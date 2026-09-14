@@ -2304,6 +2304,50 @@ cut before this policy was formally documented and has been renumbered
 to v0.4.1 to align with the new policy — the Bucket A+B changes are
 FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.</p>
 <h2 id="unreleased">[Unreleased]<a class="headerlink" href="#unreleased" title="Permanent link">&para;</a></h2>
+<h3 id="added">Added<a class="headerlink" href="#added" title="Permanent link">&para;</a></h3>
+<ul>
+<li>
+<p><strong>Drug-safety silent-events wire to <code>safety_skip_log</code></strong> (Issue #1403,
+  narrative Rule 2 backend leg). Four previously-silent drug-modification
+  paths now write a <code>SafetySkipEntry</code> with an explicit <code>event_type</code> so
+  the narrative <code>considered_but_not_prescribed</code> surface can render
+  clinically-appropriate cadences (Rule 2 prompt v17):</p>
+</li>
+<li>
+<p><code>outpatient._apply_pregnancy_substitution</code> (#1321) — Amlodipine →
+    Methyldopa etc. per <code>pregnancy_substitutions.yaml</code>. Event type
+    <code>substitute</code>, active_conflict="active pregnancy", verdict rule_id
+    <code>pregnancy-teratogen</code>.</p>
+</li>
+<li><code>medication_pipeline._generate_home_medication_orders</code> yaml_held
+    silent-skip (#1335) — Enalapril in AKI, Alendronate in stroke, etc.
+    per disease-protocol <code>medication_holds</code>. Event type <code>hold</code>, verdict
+    rule_id <code>medication-hold:&lt;disease&gt;</code>. Reason strings routed through
+    <code>_hold_reason_english</code> / <code>_hold_reason_japanese</code> for locale-appropriate
+    conflict phrasing (KDIGO 2012 § 3.5.2 for AKI, etc.).</li>
+<li><code>discharge_rx._append_item</code> renal-hold + protocol-held returns
+    (#1335 discharge leg) — same holds re-applied at discharge Rx build.
+    Event type <code>hold</code>, verdict rule_id <code>discharge-medication-hold</code>.
+    Shared logging helper <code>_log_discharge_hold</code>.</li>
+<li><code>discontinue_flip.enrich_discontinue_flip</code> (#1346) — antibiotic
+    de-escalation POST_ENCOUNTER enricher now emits a <code>deescalate</code>
+    entry per stopped drug (once, even when multiple parallel orders
+    of the same drug are flipped), with <code>stopped_on_day</code> computed
+    from the marker order's <code>ordered_datetime</code> minus admission, and
+    <code>substituted_with</code> populated by a simple "narrower replacement"
+    heuristic (first non-DISCONTINUE / non-stopped MED order on-or-after
+    the stop day). Verdict rule_id <code>antibiotic-de-escalation</code>.</li>
+</ul>
+<p>Prompt-side (v17) is already prepared to dispatch on these
+  <code>event_type</code> values — the four Rule 2 cadences (avoid / hold /
+  substitute / deescalate) render distinctly per locale. Rendering path
+  covered by 10 new unit tests in
+  <code>tests/unit/modules/document/narrative/test_safety_skip_event_types.py</code>.</p>
+<p><code>SafetySkipEntry</code> gained two new optional fields
+  (<code>event_type: EventType = "avoid"</code> and <code>stopped_on_day: int | None = None</code>);
+  legacy pair-conflict constructor sites (<code>activator._derive_home_medications</code>,
+  <code>medication_pipeline._apply_gate_and_append</code>, <code>emergency._apply_ed_gate</code>,
+  etc.) require no callsite edits and keep their <code>avoid</code> semantics.</p>
 <h3 id="changed">Changed<a class="headerlink" href="#changed" title="Permanent link">&para;</a></h3>
 <ul>
 <li><strong>Narrative bundle prompts v16 → v17</strong> (S113→S114 narrative review;
@@ -2391,7 +2435,7 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.</p>
   <code>frequency: prn</code> chronic med (Nitroglycerin SL, Loperamide,
   etc.) if declared.</li>
 </ul>
-<h3 id="added">Added<a class="headerlink" href="#added" title="Permanent link">&para;</a></h3>
+<h3 id="added_1">Added<a class="headerlink" href="#added_1" title="Permanent link">&para;</a></h3>
 <ul>
 <li><strong>Acute-illness medication holds for AKI and acute ischemic stroke</strong>
   (Issue #1335, META #1392 Cluster A part 3). Extended
@@ -3407,7 +3451,7 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.</p>
   cadence for sliding-scale prescriptions. Separate PR.</p>
 <p>FHIR-emit-only change: CIF is byte-unchanged; classified PATCH
   under the CIF-narrative consistency policy.</p>
-<h3 id="added_1">Added<a class="headerlink" href="#added_1" title="Permanent link">&para;</a></h3>
+<h3 id="added_2">Added<a class="headerlink" href="#added_2" title="Permanent link">&para;</a></h3>
 <ul>
 <li><strong>US SEER-calibrated prevalences for C15 / C16 / C25 / C67 / C71</strong>
   (Issue #1311). S108 PRs #1298 (C15/C16 → FOLFOX), #1303 (Gemcitabine
@@ -3774,7 +3818,7 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.</p>
   no CIF change; RNG-neutral; sibling <code>_drop_entries_after_death</code>
   benefits from the same iterator improvement.</li>
 </ul>
-<h3 id="added_2">Added<a class="headerlink" href="#added_2" title="Permanent link">&para;</a></h3>
+<h3 id="added_3">Added<a class="headerlink" href="#added_3" title="Permanent link">&para;</a></h3>
 <ul>
 <li>
 <p><strong>BMI-derived <code>E66.3</code> (Overweight, BMI 25-29.9) Condition emit</strong>
@@ -3930,7 +3974,7 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.</p>
   template-string fallback only; no CIF change; no RNG.</p>
 </li>
 </ul>
-<h3 id="added_3">Added<a class="headerlink" href="#added_3" title="Permanent link">&para;</a></h3>
+<h3 id="added_4">Added<a class="headerlink" href="#added_4" title="Permanent link">&para;</a></h3>
 <ul>
 <li><strong>Newborn bilirubin + CCHD SpO2 + US ophthalmic prophylaxis</strong> (#1252 →
   PR, sub-scope N7 — final slice of the newborn workup roadmap).</li>
@@ -4011,7 +4055,7 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.</p>
   dict); narrative CIF unchanged.</p>
 </li>
 </ul>
-<h3 id="added_4">Added<a class="headerlink" href="#added_4" title="Permanent link">&para;</a></h3>
+<h3 id="added_5">Added<a class="headerlink" href="#added_5" title="Permanent link">&para;</a></h3>
 <ul>
 <li><strong>Newborn shift-cadence vital signs</strong> (#1252 → PR, sub-scope N3). The
   observation module's vitals engine is disease-anchored (needs a
@@ -4046,7 +4090,7 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.</p>
   patient-attribute defaults; no CIF schema change; narrative CIF was
   never using the previous adult values.</li>
 </ul>
-<h3 id="added_5">Added<a class="headerlink" href="#added_5" title="Permanent link">&para;</a></h3>
+<h3 id="added_6">Added<a class="headerlink" href="#added_6" title="Permanent link">&para;</a></h3>
 <ul>
 <li><strong><code>clinosim/modules/newborn/</code> — birth-admission clinical workup</strong> (#1252 → PR,
   sub-scope N2). New module that fills the gap between <code>simulator/perinatal.py</code>
@@ -4293,7 +4337,7 @@ invariants required a MINOR bump per the versioning policy: seven of
 the 30+ PRs since 0.5.0 are RNG-cascade or CIF-shape changes; a fresh
 <code>narrate</code> run is required against the new structured CIF.</p>
 <h3 id="session-104-2026-09-06--2026-09-07-additions">Session 104 (2026-09-06 → 2026-09-07) additions<a class="headerlink" href="#session-104-2026-09-06--2026-09-07-additions" title="Permanent link">&para;</a></h3>
-<h4 id="added_6">Added<a class="headerlink" href="#added_6" title="Permanent link">&para;</a></h4>
+<h4 id="added_7">Added<a class="headerlink" href="#added_7" title="Permanent link">&para;</a></h4>
 <ul>
 <li><strong>Patient-profile realism keys for LLM narrative prompts</strong> (PR
   <a href="https://github.com/TomoOkuyama/clinosim/pull/1164">#1164</a>). Three
@@ -4638,7 +4682,7 @@ the 30+ PRs since 0.5.0 are RNG-cascade or CIF-shape changes; a fresh
 <li>No new FHIR resource types emitted, no bundle-structural change, no
   DetectedIssue.</li>
 </ul>
-<h3 id="added_7">Added<a class="headerlink" href="#added_7" title="Permanent link">&para;</a></h3>
+<h3 id="added_8">Added<a class="headerlink" href="#added_8" title="Permanent link">&para;</a></h3>
 <ul>
 <li><strong>Pregnancy lifecycle refactor: <code>TemporalStatePeriod</code> framework +
   biology-consistent obstetric emit (META #957 Incr 1).</strong> Introduces a
@@ -4743,7 +4787,7 @@ the 30+ PRs since 0.5.0 are RNG-cascade or CIF-shape changes; a fresh
   the sim window is not preserved; a fresh <code>narrate</code> run is required.
   Author: Claude.</li>
 </ul>
-<h3 id="added_8">Added<a class="headerlink" href="#added_8" title="Permanent link">&para;</a></h3>
+<h3 id="added_9">Added<a class="headerlink" href="#added_9" title="Permanent link">&para;</a></h3>
 <ul>
 <li><strong>Issue #957 (male-C50 activation) — Breast cancer for male patients.</strong>
   Real-world male breast cancer is ~1 % of C50 total (MHLW 患者調査 2020 /
@@ -5226,7 +5270,7 @@ the 30+ PRs since 0.5.0 are RNG-cascade or CIF-shape changes; a fresh
   preserved; a fresh <code>narrate</code> run is required.
   Author: Claude.</li>
 </ul>
-<h3 id="added_9">Added<a class="headerlink" href="#added_9" title="Permanent link">&para;</a></h3>
+<h3 id="added_10">Added<a class="headerlink" href="#added_10" title="Permanent link">&para;</a></h3>
 <ul>
 <li><strong>Issue #961 — Death certificate (死亡診断書) Composition for deceased
   inpatients.</strong> Pre-fix, 47/6,389 deceased patients on the JP p=6,389
@@ -5584,7 +5628,7 @@ the 30+ PRs since 0.5.0 are RNG-cascade or CIF-shape changes; a fresh
   tests, and documented as public API — whitelist entry added to
   <code>vulture_whitelist.py</code>.</li>
 </ul>
-<h3 id="added_10">Added<a class="headerlink" href="#added_10" title="Permanent link">&para;</a></h3>
+<h3 id="added_11">Added<a class="headerlink" href="#added_11" title="Permanent link">&para;</a></h3>
 <ul>
 <li><strong>Issue #946 — Anthropometric vitals (height / weight / BMI /
   head-circumference).</strong> Pre-fix, not a single body-height /
@@ -6418,7 +6462,7 @@ regression).</p>
 <li><code>test_data/</code> (5392 files / 200 MB of accumulated LLM narrative eval
   outputs) untracked; <code>.gitignore</code> prevents re-add (PR #529).</li>
 </ul>
-<h3 id="added_11">Added<a class="headerlink" href="#added_11" title="Permanent link">&para;</a></h3>
+<h3 id="added_12">Added<a class="headerlink" href="#added_12" title="Permanent link">&para;</a></h3>
 <ul>
 <li><strong>Synthea comparison adapter</strong> (P1-10):
   <a href="../../eval/"><code>clinosim eval</code></a> can now score a
@@ -6584,7 +6628,7 @@ distribution work that makes it installable.</p>
 <li>New <code>LICENSE</code> file at repo root (prior state: <code>pyproject.toml</code> declared
   MIT but no LICENSE text shipped).</li>
 </ul>
-<h3 id="added_12">Added<a class="headerlink" href="#added_12" title="Permanent link">&para;</a></h3>
+<h3 id="added_13">Added<a class="headerlink" href="#added_13" title="Permanent link">&para;</a></h3>
 <ul>
 <li>Population-driven, physiology-based synthetic EHR data simulation
   (13-variable hidden physiological state per patient).</li>
