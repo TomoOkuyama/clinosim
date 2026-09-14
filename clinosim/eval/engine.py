@@ -167,13 +167,20 @@ class EvalEngine:
         self.cohort_dir = Path(cohort_dir)
         # Lazy import to keep the top-level `clinosim.eval` import cheap.
         if axes is None:
-            from clinosim.eval.axes import clinical, jp_clins_lab_compliance, locale, structural
+            from clinosim.eval.axes import (
+                clinical,
+                jp_clins_lab_compliance,
+                locale,
+                structural,
+                us_core_compliance,
+            )
 
             axes = {
                 "structural": structural.run,
                 "clinical": clinical.run,
                 "locale": locale.run,
                 "jp_clins_lab_compliance": jp_clins_lab_compliance.run,
+                "us_core_compliance": us_core_compliance.run,
             }
         if only_axes is not None:
             unknown = [a for a in only_axes if a not in axes]

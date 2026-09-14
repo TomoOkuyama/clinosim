@@ -39,6 +39,40 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.
 
 ## [Unreleased]
 
+### Added
+
+- **US Core narrow-gate compliance axis + CI gate**
+  (S115, Issue #1418 Phase 1). New `clinosim.eval.axes.us_core_compliance`
+  registers a 7-check axis that runs strictly (`threshold=1.0`) on US
+  cohorts and returns `[]` on non-US locales. The checks cover the
+  narrow subset of US Core AllPatients / Encounter / Condition
+  must-support elements that are already at 100 % on master (verified
+  against a p=100 s=300 US cohort at implementation time):
+  1. `us_core_patient_identifier_present` — every US Patient carries
+     an identifier.
+  2. `us_core_patient_name_family_given` — every US Patient has both
+     `name.family` and `name.given`.
+  3. `us_core_patient_birthsex_extension_valid` — every US Patient
+     carries `us-core-birthsex` with a valid HL7 v3 AdministrativeGender
+     valueCode (M / F / UNK / OTH / ASKU).
+  4. `us_core_patient_race_extension_shape` — every US Patient that
+     emits `us-core-race` has the correct nested-extension shape
+     (`ombCategory.valueCoding.system = urn:oid:2.16.840.1.113883.6.238`
+     + `text.valueString` present). Denominator = "has ext", so
+     partial-coverage upstream (unknown race slug per
+     `feedback_empty_vs_wrong_assertion`) does not false-fail this
+     gate.
+  5. `us_core_patient_ethnicity_extension_shape` — same as race.
+  6. `us_core_encounter_class_v3_actcode` — every US Encounter carries
+     `class.system = http://terminology.hl7.org/CodeSystem/v3-ActCode`
+     with a code.
+  7. `us_core_condition_category_system` — every US Condition category
+     coding uses the FHIR `condition-category` CodeSystem.
+  Wired into CI via a new `us-core-compliance-gate.yml` workflow
+  (US p=300 seed=300 → `clinosim eval --strict --only-axes
+  us_core_compliance`, ~1 min per PR). Full HL7 FHIR Validator
+  coverage for US Core stays on the roadmap as Phase 3 (Issue #1418).
+
 ### Changed
 
 - **CI unit tests: N=3 shards + xdist -n 2 + coverage combine**
