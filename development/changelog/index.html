@@ -2335,6 +2335,42 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.</p>
   actual field shape from the p=10000 US cohort to prevent regression;
   legacy fixture tests remain green (backward-compat via fallback
   reads).</li>
+<li><strong><code>treatment_modifications</code> stop events default to <code>event_type="switch"</code>,
+  not <code>"deescalate"</code></strong> (Issue #1413 / PR #1408 follow-up). S114
+  verification of a US p=10000 s=357 cohort found 165 (US) + 277 (JP)
+  <code>deescalate</code> skip_log entries — <strong>100 % were actually escalations</strong>
+  driven by disease-YAML <code>treatment_modifications.day_N.stop</code> blocks
+  that all encode clinical-worsening escalations (Cefazolin →
+  Meropenem+Vancomycin for cellulitis worsening, Ampicillin/Sulbactam
+  → Meropenem for aspiration pneumonia deterioration, Pip/Tazo →
+  Meropenem+Vancomycin for sepsis rescue, Ceftriaxone → Meropenem for
+  UTI worsening, etc.).</li>
+<li><code>SafetySkipEntry.EventType</code> gained a fifth value <code>"switch"</code>
+    (neutral, spectrum-agnostic).</li>
+<li><code>discontinue_flip.enrich_discontinue_flip</code> (renamed helper
+    <code>_log_deescalation</code> → <code>_log_treatment_change</code>, <code>_find_narrower_
+    replacement</code> → <code>_find_replacement_agent</code>) now emits
+    <code>event_type="switch"</code> by default with <code>active_conflict</code> derived
+    from the DISCONTINUE marker's <code>clinical_intent</code> archetype token
+    ("treatment plan change (archetype: treatment_resistant)"), NOT
+    the pre-#1413 hardcoded "antibiotic stewardship" phrasing.</li>
+<li><code>SafetyVerdict.rule_id</code> renamed from
+    <code>"antibiotic-de-escalation"</code> to <code>"treatment-modification-switch"</code>.</li>
+<li>Rule 2 cadence in <code>narrative_seed_bundle</code> v19 → v21 (en + ja):
+    added <code>switch</code> cadence (neutral "X discontinued on day N; Y
+    started"), downgraded <code>deescalate</code> cadence to explicit opt-in
+    only, forbids upgrading a <code>switch:</code> bullet to <code>deescalate:</code> prose
+    (LLM must not assert spectrum direction from a <code>switch:</code> marker).</li>
+<li><code>deescalate</code> remains available for future opt-in when a
+    disease-YAML <code>stewardship_action: "de_escalate"</code> flag or a
+    spectrum-comparison verdict is added — pre-#1413 legacy skip_log
+    entries carrying <code>event_type="deescalate"</code> still render with the
+    de-escalation cadence.</li>
+<li>New tests: <code>test_switch_with_day_and_replacement_en</code>,
+    <code>test_switch_ja_neutral_phrasing</code>, <code>test_switch_without_
+    replacement</code>, <code>test_discontinue_flip_emits_skip_log_with_switch_
+    event_type</code>, <code>test_extract_archetype_parses_daily_loop_clinical_
+    intent</code>.</li>
 </ul>
 <h3 id="changed">Changed<a class="headerlink" href="#changed" title="Permanent link">&para;</a></h3>
 <ul>
