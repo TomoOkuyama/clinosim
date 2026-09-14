@@ -39,6 +39,22 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.
 
 ## [Unreleased]
 
+### Changed
+
+- **JA prompt system: block prose translated to Japanese** (Issue
+  #1406, `prompts/ja/narrative_seed_bundle.yaml` v19 → v20). Rewrote
+  Rule 1〜6 explanations, intro paragraph, trajectory / phase-of-stay
+  / localization / per-doc-type header prose from English to Japanese
+  to honor the user rule "JP 出力生成時は LLM prompt も日本語で" (that
+  overrides the session-88j design "instruction-following is more
+  reliable in English"). All code identifiers, template variables
+  (`${target_language}`, `${document_type}`), backtick-quoted context
+  keys, canonical drug katakana, and Rule 5 translation tables are
+  preserved verbatim. Not touched in this PR (deferred): the Context
+  contract's individual key descriptions (already mixed EN/JA) and
+  the five Rule 5 translation tables (their content IS the
+  localization mapping — translating them would defeat their purpose).
+
 ### Added
 
 - **Drug-safety silent-events wire to `safety_skip_log`** (Issue #1403,

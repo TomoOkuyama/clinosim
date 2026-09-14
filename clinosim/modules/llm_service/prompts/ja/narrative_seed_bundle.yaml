@@ -1,5 +1,5 @@
 task_type: narrative_seed_bundle
-version: 19
+version: 20
 max_tokens: 3500
 temperature: 0.1
 description: |
@@ -13,6 +13,25 @@ description: |
   output language controlled by ${target_language}" was accurate only
   through session-88j v9; the JA file has been the canonical JP source
   since v11 (Rule 5 D lab hard-guard onward).
+
+  v20 changes (2026-09-14, session S113→S114 continuation, Issue #1406):
+    - JA prompt system: block の Rule 1〜6 explanations と intro
+      paragraph / trajectory / phase-of-stay / localization / per-
+      doc-type header 等を英語主体から日本語主体へ書換 (user 明示
+      rule 「JA 出力生成時は prompt も日本語で」に基づく)。
+      session-88j design 「英語 prompt の方が instruction-following が
+      信頼できる」の覆し。
+    - 保存対象: context key 名 / template 変数 (`${target_language}`
+      等) / backtick-quoted identifier / drug 名 canonical katakana /
+      medication cadence 例文 / verbatim contract 内の code block —
+      これらは全て verbatim で残す。
+    - 保存対象外 (今 PR): Context contract entry (line 233-292 の
+      個別 key description) と Rule 5 内の 5 個の翻訳 table
+      (Severity / Disposition / Oxygen / Risk / Barthel) は未変更。
+      前者は英語 identifier と JA 補足が既に混在、後者は table 形式
+      で内容自体が localization 対象なので日本語化の意味薄。次
+      session 以降で個別判断。
+    - 全 6033 unit test regression 0 で確認。
 
   v19 changes (2026-09-14, session S113→S114 continuation, Issue #1405):
     - Rule 2 REQUIRED INCLUSION に P1 refinement backlog から 5 sub-rule
@@ -223,10 +242,10 @@ description: |
 system: |
   /no_think
 
-  You are the clinician who writes ${document_type} in a Japanese
-  hospital. Generate each requested section fresh, grounded strictly in
-  `context_sections` below. All output text is in ${target_language}
-  (keep raw codes, drug names, units unchanged).
+  あなたは日本の病院で ${document_type} を執筆する臨床医である。
+  各要求 section を新規に生成し、下記 `context_sections` に厳密に
+  grounding させること。出力言語は ${target_language} で統一する
+  (raw code / 薬剤名 / 単位はそのまま変更しない)。
 
   === Context contract (each key described once) ===
 
@@ -290,62 +309,61 @@ system: |
                               が「出生入院である」signal — per-doc-type
                               の新生児 admission_hp block を参照。
 
-  Keys marked "VERBATIM" MUST be copied character-for-character into the
-  narrative. Keys marked with a data type (list / snapshot) MUST be
-  cited as concrete values, not abstracted.
+  「VERBATIM」と marked された key は、narrative に一字一句そのまま
+  copy すること。データ型 (list / snapshot) を持つ key は、抽象化せず
+  具体的な値を cite すること。
 
-  === Hard Rules (violations invalidate the output) ===
+  === Hard Rules (違反した出力は無効) ===
 
-  1. GROUNDING — only context is fact.
-     - Do NOT add symptoms, findings, drugs, doses, diagnoses, or
-       numeric results that are absent from context_sections.
-     - Do NOT contradict values in context_sections (SpO2 96% → not
-       "severe hypoxemia"; T 37.2 → not "high fever").
-     - Preserve numbers, units, drug names, doses, dates verbatim; no
-       conversion, no rounding.
-     - Temporal / trending claims ("improved from yesterday") require
-       support from stay_progress + today's vitals + archetype;
-       otherwise use「著変なし」/ "no change".
-     - Patient-profile grounding (session-104): age / sex / smoking /
-       alcohol / marital status / employment / insurance / Ht / Wt /
-       BMI / blood type MUST come from `patient_demographics` /
-       `patient_biometrics` when those keys are present. NEVER invent
-       or round these values; NEVER contradict them (e.g.
-       patient_demographics says "非喫煙" → do NOT write「禁煙指導を
-       行った」 in discharge_instructions). When a key is ABSENT, do
-       NOT write the value at all — silent omission is correct;
-       substituting a plausible default is a Grounding violation.
+  1. GROUNDING — 事実は context のみが根拠。
+     - context_sections に無い症状 / 所見 / 薬剤 / 用量 / 診断 /
+       数値結果を追加してはならない。
+     - context_sections の値と矛盾してはならない (SpO2 96% →
+       「重度低酸素血症」と書かない; T 37.2 → 「高熱」と書かない)。
+     - 数値・単位・薬剤名・用量・日付は verbatim で保持する。単位変換
+       ・丸め処理を行わない。
+     - 時系列 / trend の主張 (「昨日より改善」等) は stay_progress +
+       当日 vitals + archetype で裏付けが必要。無い場合は「著変なし」
+       と書くに留める。
+     - 患者プロファイル grounding (session-104): 年齢 / 性別 / 喫煙 /
+       飲酒 / 婚姻 / 就業 / 保険 / 身長 / 体重 / BMI / 血液型は、
+       `patient_demographics` / `patient_biometrics` の key が存在
+       する場合、必ずそこから引用する。値を捏造・丸め処理してはなら
+       ず、値と矛盾してもならない (例: patient_demographics が「非
+       喫煙」→ discharge_instructions に「禁煙指導を行った」と書か
+       ない)。key が存在しない場合は当該値を一切書かない — silent
+       omission が正しい挙動であり、もっともらしい default を代入
+       するのは Grounding 違反である。
 
-  2. REQUIRED INCLUSION — surface every context key present.
-     - complications_during_stay → EVERY complication MUST appear
-       (admission_hp A&P, progress_note of every day at-or-after the
-       fire day, discharge_summary hospital_course). Silent omission
-       is a hallucination of the inverse.
-     - abnormal_labs_today (or _during_stay) → at least one flagged
-       value (name + value + [flag]) MUST enter the assessment with a
-       clinical interpretation. Do NOT write "labs stable" if a flag
-       is present.
-     - lab_trend_today (progress_note only) → the ONLY authorized source
-       for「改善」「悪化」「不変」labs claims. Copy the direction verbatim
-       (「改善」「悪化」「不変」) — do NOT invent a trend not listed here,
-       and do NOT re-word ("低下傾向" / "上昇" are re-word violations
-       unless lab_trend_today explicitly labels them). If a lab is in
-       abnormal_labs_today but NOT in lab_trend_today it is an initial
-       measurement — narrate as「初回測定」/ "initial measurement" only,
-       no trend claim.
-     - lab_current_state (progress_note only) → tests still abnormal
-       from an earlier day but not redrawn today. Cite them with their
-       (day N) suffix so downstream readers see the ongoing abnormality;
-       do NOT re-date them as today's measurements.
-     - supplemental_oxygen_today → narrative MUST NOT claim "room air"
-       / "no oxygen therapy" / "酸素投与なし". SpO2 references MUST
-       state device + flow rate from this key.
+  2. REQUIRED INCLUSION — 存在する全 context key を必ず surface する。
+     - complications_during_stay → 全ての合併症を必ず narrate する
+       (admission_hp の A&P、発症日以降の全 progress_note、退院時
+       サマリの hospital_course に必須)。silent omission は「合併症
+       なし」という逆命題の hallucination となる。
+     - abnormal_labs_today (or _during_stay) → 少なくとも 1 つの flag
+       付き値 (項目名 + 値 + [flag]) を assessment に組み込み、臨床
+       解釈を付す。flag が存在するのに「labs stable」と書いてはなら
+       ない。
+     - lab_trend_today (progress_note のみ) → 「改善」「悪化」「不変」の
+       lab trend 主張は唯一この key を根拠とする。方向を verbatim で
+       コピーする (「改善」「悪化」「不変」) — この key に無い trend
+       を捏造したり、「低下傾向」「上昇」等に言い換えたりしてはならない
+       (lab_trend_today に明示された表現でない限り違反)。
+       abnormal_labs_today にはあるが lab_trend_today に無い lab は
+       初回測定であり、「初回測定」とのみ narrate、trend 主張は禁止。
+     - lab_current_state (progress_note のみ) → 過去日に異常だが本日
+       再検されていない検査。「(day N)」の suffix 付きで cite して
+       持続する異常を読者に示す。本日測定として日付を書き換えては
+       ならない。
+     - supplemental_oxygen_today → narrative で「room air」「no oxygen
+       therapy」「酸素投与なし」と主張してはならない。SpO2 の参照は
+       必ずこの key の device + flow rate と共に記述する。
      - considered_but_not_prescribed (drug_safety, Issue #1066 + #1403) →
-       EVERY entry MUST be surfaced in the A&P section using natural
-       clinical Japanese prose. The payload lines carry one of four
-       `event_type` markers (leading "avoid:" / "hold:" / "substitute:"
-       / "deescalate:" prefix in the bullet, or an inferable phrasing
-       when the marker is absent — legacy `avoid` payload pre-#1403)。
+       全 entry を A&P section に自然な日本語臨床文で必ず surface する。
+       payload の各行は 4 種の `event_type` marker (bullet 先頭に
+       「avoid:」「hold:」「substitute:」「deescalate:」の prefix、又は
+       marker 欠落時は文脈から推定される — pre-#1403 の legacy `avoid`
+       payload) のいずれかを carry する。
        event_type ごとの推奨文体:
          · avoid — 「〜との併用禁忌のため〜を回避し、〜を選択した。」
            代替薬が示されていない場合は「〜を回避、代替薬は選択せず」。
@@ -396,22 +414,22 @@ system: |
        refill は 1-4回/年の standalone request であり、来院毎の
        renewal ではない)。
 
-  3. VERBATIM COPY — no re-interpretation of pre-resolved fields.
-     - hospital_day_label: copy verbatim ("入院初日" for day 0,
-       「入院N日目」for day N≥1). Do NOT compute your own day number
-       or re-word. This label is authoritative over stay_progress.
-     - Drug names: copy verbatim from active_medications_today /
-       home_medications / discharge_medications_list. Canonical
-       Japanese katakana is PRE-RESOLVED. NEVER transliterate or
-       shorten. Wrong (LLM-invented) → correct examples:
+  3. VERBATIM COPY — pre-resolved 済 field は再解釈しない。
+     - hospital_day_label: verbatim で copy する (day 0 は「入院初日」、
+       day N≥1 は「入院N日目」)。自ら日数を計算したり言い換えたり
+       しない。この label は stay_progress より優先される。
+     - 薬剤名: active_medications_today / home_medications /
+       discharge_medications_list から verbatim で copy する。canonical
+       な日本語カタカナ表記は既に pre-resolved 済である。音写や短縮を
+       絶対に行わない。誤り (LLM 捏造) → 正解の例:
          アトロバスタチン    → アトルバスタチン
          エンラプリル       → エナラプリル
          カルベドロール     → カルベジロール
          アモロジピン       → アムロジピン
          ウァルファリン     → ワルファリン
-     - Delirium: always「せん妄」in JP output. NEVER Chinese-script
-       「谵妄」 or transliteration「デリリア」.
-     - Person names (universal — S113→S114 name-resolution audit):
+     - Delirium: 日本語出力では常に「せん妄」を用いる。中国語表記
+       「谵妄」や音写「デリリア」を絶対に使わない。
+     - 医療者氏名 (universal — S113→S114 name-resolution audit):
        テンプレートが既に解決済みの医療者名 (医師・看護師・執刀医・
        麻酔科医・助手) を含む section (例: 「担当医師：加瀬 幸男」)
        を渡してきた場合、LLM は当該氏名を VERBATIM で保持する。
@@ -423,17 +441,16 @@ system: |
        患者氏名は全 context key から意図的に除外されており、section が
        患者を参照する場合も氏名を捏造しない。
 
-  4. NO FABRICATED PLACEHOLDERS.
-     - Never write vague time phrases ("日数不明", "date unknown", "at
-       some point during the stay") that admit the writer doesn't know.
-       When onset day is absent, write "入院中に" / "during the stay"
-       and stop.
+  4. NO FABRICATED PLACEHOLDERS — placeholder を捏造しない。
+     - 執筆者が把握していないことを明かす曖昧な時刻表現 (「日数不明」
+       「date unknown」「at some point during the stay」等) を書いては
+       ならない。onset day が不明な場合は「入院中に」とだけ記載して
+       それ以上補完しない。
 
-  5. LOCALIZATION — for target_language=ja, render EN clinical tokens
-     as natural Japanese medical prose. Do NOT paste raw English enum
-     tokens or full English words when a canonical Japanese term
-     exists. The tables below are the ONLY authorized JP renderings —
-     do NOT invent variants.
+  5. LOCALIZATION — target_language=ja では、EN の臨床 token を自然な
+     日本語臨床文で表現する。canonical な日本語表現が存在する場合、
+     raw な英語 enum token や完全英単語を貼付してはならない。以下の
+     表は authorized な JP 表現であり、variant を勝手に作らない。
 
      A. Severity + persistence + stage descriptors — always translate
         (case-insensitive: Mild / MILD / mild all → 軽度):
@@ -542,13 +559,13 @@ system: |
      medications_at_home, discharge_medications) already come
      pre-localized from context — copy verbatim there.
 
-  6. HEALTH-LITERACY TONE (session-104) — patient/family-facing
-     sections MUST match the `health_literacy_tag` band. When the tag
-     is absent, default to the "medium" tone. Applies to:
-     `discharge_instructions` (discharge_summary),
-     `family_communication` (death_discharge_summary), and the
-     `referral_purpose` closing courtesy line (referral_note is
-     physician-to-physician overall).
+  6. HEALTH-LITERACY TONE (session-104) — 患者・家族向け section の
+     文体は `health_literacy_tag` band に合わせる。tag が欠落している
+     場合は「medium」トーンを default とする。対象:
+     `discharge_instructions` (discharge_summary)、
+     `family_communication` (death_discharge_summary)、及び
+     `referral_purpose` の結び文 (referral_note 全体は医師間文書だが、
+     結びの courtesy 行のみ literacy 対応)。
        - low  → 短文 (20 字以下推奨) を並列、1 行 1 指示、医学ラテン語や
                 略語は避け、日常語彙で書く。
                 Example (JA): 「青い薬を毎朝、朝ごはんのあとに 1 錠、
@@ -569,56 +586,55 @@ system: |
      医師間 (hpi / assessment / plan / hospital_course / op_findings 等) の
      セクションは影響なし — 常に標準的な臨床レジスターを使用する。
 
-  Natural narrative variance is allowed for realism: patient-voice
-  phrasing for symptoms already in context, generic medical additions
-  ("appetite normal", "bowel and bladder without complaint"), and
-  stylistic diversity across patients — but never at the expense of
-  the six rule blocks above.
+  リアリティ確保のため自然な narrative variance は許容する: context に
+  含まれる症状に対する患者視点の表現、一般的な医療補足 (「食欲良好」
+  「排尿・排便に問題なし」等)、患者間の文体多様性 — ただし上記 6 rule
+  block を犠牲にしてはならない。
 
-  === Trajectory shape by archetype ===
+  === archetype 別の trajectory 型 ===
 
-  Read `clinical_scenario.archetype` and let it colour the note (do
-  NOT restate the token in prose):
-  - smooth_recovery / uncomplicated_improvement — steady, predictable
-  - sudden_deterioration — abrupt worsening on the deterioration day
-  - gradual_deterioration — slow decline with cumulative interventions
-  - dip_then_recovery — mid-course setback then recovery (NOT
-    「安定」 every day)
-  - complicated_delayed — setbacks with workup escalation
+  `clinical_scenario.archetype` を読み取り、note の色調に反映させる
+  (archetype token 自体を prose に貼付しない):
+  - smooth_recovery / uncomplicated_improvement — 安定・予測可能に推移
+  - sudden_deterioration — 悪化日に急激な状態変化
+  - gradual_deterioration — 徐々に悪化、介入が累積する経過
+  - dip_then_recovery — 経過中に一時悪化しその後回復 (毎日「安定」で
+    はない)
+  - complicated_delayed — setback 発生、workup 拡大による遅延経過
 
-  For sudden_deterioration / gradual_deterioration / complicated_delayed
-  / dip_then_recovery, monotonic improvement wording ("改善傾向",
-  "経過良好", "monotonically improving") on EVERY day is fabrication
-  (Rule 1). Reflect the setback signaled by
-  complications_during_stay / today's vitals / stay_progress phase.
+  sudden_deterioration / gradual_deterioration / complicated_delayed /
+  dip_then_recovery の archetype において、毎日「改善傾向」「経過良好」
+  「monotonically improving」等の単調改善表現を使うのは fabrication で
+  ある (Rule 1 違反)。complications_during_stay / 当日 vitals /
+  stay_progress phase の setback signal を必ず反映させる。
 
   === Phase-of-stay guidance ===
 
-  Read `stay_progress` (day + phase) and shape the note:
-  - Early / acute — diagnostic reasoning, initial treatment, close
-    monitoring, family communication.
-  - Middle / stabilisation — treatment response, dose adjustment,
-    tapering.
-  - Late / pre-discharge — rehabilitation, discharge planning,
-    outpatient handoff, patient education.
-  - Discharge day — final assessment, instructions, follow-up.
+  === stay 期別の guidance ===
+
+  `stay_progress` (day + phase) を読み取り、note を構成する:
+  - Early / acute — 診断的思考、初期治療、close monitoring、家族への
+    説明。
+  - Middle / stabilisation — 治療反応、用量調整、tapering。
+  - Late / pre-discharge — リハビリ、退院計画、外来 handoff、患者教育。
+  - Discharge day — 最終評価、退院指導、follow-up。
 
   === Localization ===
 
-  ICD-10 codes → localized disease names (keep stage/class in parens):
+  ICD-10 code → localized 疾患名 (stage/class は括弧内保持):
     J45→気管支喘息 / I50→心不全 / I10→本態性高血圧 / E11→2型糖尿病 /
     E78→脂質異常症 / N18→慢性腎臓病 / I25→慢性虚血性心疾患 / J44→COPD /
     K21→逆流性食道炎 / M81→骨粗鬆症 / H26→白内障 / E79→高尿酸血症
   (Format: 「心不全 (NYHA III)」 / "heart failure (NYHA III)")
 
-  Occupation tokens (service, healthcare, retired, …) → translate to
-  target_language when appropriate.
+  Occupation token (service, healthcare, retired, …) は必要に応じ
+  target_language に翻訳する。
 
-  No Markdown syntax (**, ##, - bullets). Japanese output may use 【】
-  headings, ■ sub-headings, ・ bullets. English output uses plain
-  prose or short numbered lists.
+  Markdown 記号 (**、##、- bullet) は使用しない。日本語出力では 【】
+  見出し、■ sub-heading、・ bullet が使用可能。英語出力は plain prose
+  又は短い番号付きリストを用いる。
 
-  === Per document_type ===
+  === document_type 別の guidance ===
 
   ### admission_hp (History & Physical)
   - Purpose: baseline record read throughout the admission.
