@@ -112,6 +112,12 @@ def _build_safety_skips(patient: Any, encounter: Any) -> list[dict[str, Any]]:
                 "substituted_with_ja": entry.substituted_with_ja,
                 "context": entry.context_hint,
                 "severity": getattr(verdict, "severity", None),
+                # Issue #1403: event_type distinguishes silent-drop paths
+                # (avoid / hold / substitute / deescalate) for narrative
+                # Rule 2 cadence dispatch. Default "avoid" preserves the
+                # legacy pair-conflict interpretation for older logs.
+                "event_type": getattr(entry, "event_type", "avoid"),
+                "stopped_on_day": getattr(entry, "stopped_on_day", None),
             }
         )
     return out

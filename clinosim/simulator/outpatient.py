@@ -47,6 +47,62 @@ from clinosim.types.output import CIFPatientRecord
 from clinosim.types.patient import PatientProfile
 
 
+def _log_pregnancy_substitution(
+    patient: PatientProfile,
+    encounter: Any,
+    original_med: Any,
+    substitution_entry: dict,
+    visit_date: datetime,
+) -> None:
+    """Issue #1403: record a pregnancy-driven med substitution on the
+    patient's ``safety_skip_log`` so narrative_seed_bundle's Rule 2
+    ``considered_but_not_prescribed`` context surface can render the
+    swap ("妊娠中のため Amlodipine を Methyldopa に切替 (ACOG 2019)").
+
+    Pre-fix the substitution was silent — the LLM saw only the
+    resulting substitute in the Rx list and could either (a) drop
+    Methyldopa entirely from A&P, or (b) fabricate Amlodipine as a
+    continued chronic med. Both are clinically misleading.
+
+    The verdict shell is synthesized (severity="major",
+    rule_id="pregnancy-teratogen") since pregnancy substitution does
+    not go through the pair-rule engine.
+    """
+    from clinosim.modules.drug_safety.verdict import (
+        SafetySkipEntry,
+        SafetyVerdict,
+    )
+
+    substitute = str(substitution_entry.get("substitute") or "")
+    substitute_ja = str(substitution_entry.get("substitute_ja") or substitute)
+    rationale_en = str(substitution_entry.get("rationale_en") or "pregnancy-safe substitution")
+    rationale_ja = str(substitution_entry.get("rationale_ja") or "妊娠中の胎児安全性代替")
+    verdict = SafetyVerdict(
+        severity="major",
+        rule_id="pregnancy-teratogen",
+        matched_classes=None,
+        matched_active_drug="active pregnancy",
+        rationale_en=rationale_en,
+        rationale_ja=rationale_ja,
+        substitution_hint=substitute,
+    )
+    patient.safety_skip_log.append(
+        SafetySkipEntry(
+            encounter_id=encounter.encounter_id,
+            candidate_drug=original_med.drug_name or "",
+            candidate_drug_ja=original_med.drug_name_ja or original_med.drug_name or "",
+            active_conflict="active pregnancy",
+            active_conflict_ja="妊娠中",
+            verdict=verdict,
+            substituted_with=substitute or None,
+            substituted_with_ja=substitute_ja or None,
+            context_hint=rationale_en,
+            timestamp=visit_date.isoformat(),
+            event_type="substitute",
+        )
+    )
+
+
 def _sample_ambulatory_visit_length_minutes(
     visit_type: str,
     country: str,
@@ -377,6 +433,11 @@ def _simulate_outpatient_visit(
         def _apply_pregnancy_substitution(med: Any) -> dict:
             entry = _preg_subs.get(med.drug_name) if _in_pregnancy else None
             if entry:
+                # Issue #1403: log the silent swap so the narrative
+                # `considered_but_not_prescribed` context surface can
+                # narrate "妊娠中のため Amlodipine を Methyldopa に切替".
+                # ACOG 2019 first-line pregnancy HTN.
+                _log_pregnancy_substitution(patient, encounter, med, entry, visit_date)
                 return {
                     "drug_name": str(entry.get("substitute") or med.drug_name),
                     "drug_name_ja": str(entry.get("substitute_ja") or med.drug_name_ja),

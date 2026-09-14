@@ -79,6 +79,51 @@ def _dedup_key(name: str) -> str:
     return " ".join(name.lower().split())
 
 
+def _log_discharge_hold(
+    patient: PatientProfile,
+    encounter_id: str,
+    held_drug_name: str,
+    held_drug_name_ja: str,
+    hold_reason: str,
+    hold_reason_ja: str,
+    timestamp: datetime,
+) -> None:
+    """Issue #1403: record a discharge-Rx hold (renal-threshold or
+    disease-protocol medication_holds) on ``patient.safety_skip_log``.
+    Sister of ``medication_pipeline._log_disease_medication_hold`` for
+    the discharge side. See that helper for the rationale.
+    """
+    from clinosim.modules.drug_safety.verdict import (
+        SafetySkipEntry,
+        SafetyVerdict,
+    )
+
+    verdict = SafetyVerdict(
+        severity="major",
+        rule_id="discharge-medication-hold",
+        matched_classes=None,
+        matched_active_drug=hold_reason,
+        rationale_en=f"held at discharge: {hold_reason}",
+        rationale_ja=f"退院時保留: {hold_reason_ja}",
+        substitution_hint=None,
+    )
+    patient.safety_skip_log.append(
+        SafetySkipEntry(
+            encounter_id=encounter_id,
+            candidate_drug=held_drug_name,
+            candidate_drug_ja=held_drug_name_ja,
+            active_conflict=hold_reason,
+            active_conflict_ja=hold_reason_ja,
+            verdict=verdict,
+            substituted_with=None,
+            substituted_with_ja=None,
+            context_hint=hold_reason,
+            timestamp=timestamp.isoformat(),
+            event_type="hold",
+        )
+    )
+
+
 def build_discharge_rx(
     patient: PatientProfile,
     disease_id: str,
@@ -174,11 +219,34 @@ def build_discharge_rx(
         if final_renal_function < DISCHARGE_RENAL_HOLD_THRESHOLD and any(
             rd in drug_name.lower() for rd in _RENAL_HOLD_DRUGS
         ):
+            # Issue #1403: log renal-driven hold for narrative surface
+            # (matches inpatient medication_pipeline._log_disease_medication_hold
+            # semantic — discharge Rx side).
+            _log_discharge_hold(
+                patient,
+                encounter_id=encounter_id,
+                held_drug_name=drug_name,
+                held_drug_name_ja=drug_spec.get("drug_ja", "") or drug_name,
+                hold_reason="renal function impairment",
+                hold_reason_ja="腎機能低下",
+                timestamp=admission_time,
+            )
             return
         # Issue #1335: apply the disease-protocol medication_holds at
         # discharge as well. Substring match on lowercase drug_name to
         # mirror ``medication_pipeline``'s inpatient hold semantics.
         if protocol_held and any(h in drug_name.lower() for h in protocol_held):
+            # Issue #1403: log the silent protocol-driven hold at
+            # discharge for narrative surface.
+            _log_discharge_hold(
+                patient,
+                encounter_id=encounter_id,
+                held_drug_name=drug_name,
+                held_drug_name_ja=drug_spec.get("drug_ja", "") or drug_name,
+                hold_reason=f"{disease_id} protocol hold" if disease_id else "protocol hold",
+                hold_reason_ja=f"{disease_id} protocol による保留" if disease_id else "protocol による保留",
+                timestamp=admission_time,
+            )
             return
         key = _dedup_key(drug_name)
         if key in seen_dedup_keys:

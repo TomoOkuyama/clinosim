@@ -39,6 +39,49 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.
 
 ## [Unreleased]
 
+### Added
+
+- **Drug-safety silent-events wire to `safety_skip_log`** (Issue #1403,
+  narrative Rule 2 backend leg). Four previously-silent drug-modification
+  paths now write a `SafetySkipEntry` with an explicit `event_type` so
+  the narrative `considered_but_not_prescribed` surface can render
+  clinically-appropriate cadences (Rule 2 prompt v17):
+
+  * `outpatient._apply_pregnancy_substitution` (#1321) — Amlodipine →
+    Methyldopa etc. per `pregnancy_substitutions.yaml`. Event type
+    `substitute`, active_conflict="active pregnancy", verdict rule_id
+    `pregnancy-teratogen`.
+  * `medication_pipeline._generate_home_medication_orders` yaml_held
+    silent-skip (#1335) — Enalapril in AKI, Alendronate in stroke, etc.
+    per disease-protocol `medication_holds`. Event type `hold`, verdict
+    rule_id `medication-hold:<disease>`. Reason strings routed through
+    `_hold_reason_english` / `_hold_reason_japanese` for locale-appropriate
+    conflict phrasing (KDIGO 2012 § 3.5.2 for AKI, etc.).
+  * `discharge_rx._append_item` renal-hold + protocol-held returns
+    (#1335 discharge leg) — same holds re-applied at discharge Rx build.
+    Event type `hold`, verdict rule_id `discharge-medication-hold`.
+    Shared logging helper `_log_discharge_hold`.
+  * `discontinue_flip.enrich_discontinue_flip` (#1346) — antibiotic
+    de-escalation POST_ENCOUNTER enricher now emits a `deescalate`
+    entry per stopped drug (once, even when multiple parallel orders
+    of the same drug are flipped), with `stopped_on_day` computed
+    from the marker order's `ordered_datetime` minus admission, and
+    `substituted_with` populated by a simple "narrower replacement"
+    heuristic (first non-DISCONTINUE / non-stopped MED order on-or-after
+    the stop day). Verdict rule_id `antibiotic-de-escalation`.
+
+  Prompt-side (v17) is already prepared to dispatch on these
+  `event_type` values — the four Rule 2 cadences (avoid / hold /
+  substitute / deescalate) render distinctly per locale. Rendering path
+  covered by 10 new unit tests in
+  `tests/unit/modules/document/narrative/test_safety_skip_event_types.py`.
+
+  `SafetySkipEntry` gained two new optional fields
+  (`event_type: EventType = "avoid"` and `stopped_on_day: int | None = None`);
+  legacy pair-conflict constructor sites (`activator._derive_home_medications`,
+  `medication_pipeline._apply_gate_and_append`, `emergency._apply_ed_gate`,
+  etc.) require no callsite edits and keep their `avoid` semantics.
+
 ### Changed
 
 - **Narrative bundle prompts v16 → v17** (S113→S114 narrative review;
