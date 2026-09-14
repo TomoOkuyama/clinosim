@@ -88,6 +88,91 @@ _FREQ_TO_HOURS: dict[int, list[int]] = {
 _CONTINUOUS_INFUSION_MAR_HOURS: list[int] = [0, 4, 8, 12, 16, 20]  # q4h cap for freq >= 12
 
 
+def _log_disease_medication_hold(
+    patient: PatientProfile,
+    encounter_id: str,
+    held_drug_name: str,
+    held_drug_name_ja: str,
+    hold_reason: str,
+    disease_id: str,
+    timestamp: datetime,
+) -> None:
+    """Issue #1403: record a disease-protocol ``medication_holds`` silent
+    drop on ``patient.safety_skip_log`` so the narrative
+    ``considered_but_not_prescribed`` context surface can render the
+    clinical reasoning (e.g. "Enalapril was held during this admission
+    because of AKI protocol; resume after renal function recovers").
+
+    Pre-fix the hold was invisible: the MAR simply lacked the drug,
+    and the LLM had no way to know a home med was intentionally paused
+    (risk: LLM fabricates "continued on Enalapril" from PMH inference).
+    """
+    from clinosim.modules.drug_safety.verdict import (
+        SafetySkipEntry,
+        SafetyVerdict,
+    )
+
+    verdict = SafetyVerdict(
+        severity="major",
+        rule_id=f"medication-hold:{disease_id or 'protocol'}",
+        matched_classes=None,
+        matched_active_drug=hold_reason,
+        rationale_en=f"held per protocol: {hold_reason}",
+        rationale_ja=f"protocol による保留: {hold_reason}",
+        substitution_hint=None,
+    )
+    # active_conflict phrasing carries the CLINICAL REASON (English +
+    # Japanese) — the narrative Rule 2 hold cadence reads this as the
+    # "because of ~" clause. Encoding the reason on the conflict field
+    # (instead of a separate `reason_ja` field) reuses the existing
+    # narrative context payload shape without a schema change.
+    reason_en = _hold_reason_english(hold_reason)
+    reason_ja = _hold_reason_japanese(hold_reason)
+    patient.safety_skip_log.append(
+        SafetySkipEntry(
+            encounter_id=encounter_id,
+            candidate_drug=held_drug_name,
+            candidate_drug_ja=held_drug_name_ja,
+            active_conflict=reason_en,
+            active_conflict_ja=reason_ja,
+            verdict=verdict,
+            substituted_with=None,
+            substituted_with_ja=None,
+            context_hint=hold_reason,
+            timestamp=timestamp.isoformat(),
+            event_type="hold",
+        )
+    )
+
+
+# Small locale-aware translator for the free-form YAML `reason` strings
+# used in disease-protocol `medication_holds`. Only a handful of unique
+# reasons are used in production YAML today; the fallback returns the
+# raw string so a new reason lands correctly (English side) with an
+# imperfect JA rendering until translated. Kept in the pipeline module
+# (rather than a shared table) so it stays scoped to the hold semantic.
+_HOLD_REASON_EN: dict[str, str] = {
+    "AKI: RAAS blockade held per KDIGO 2012 § 3.5.2": "AKI (KDIGO 2012 § 3.5.2 RAAS hold)",
+    "AKI: NSAIDs held (worsen renal perfusion)": "AKI (NSAID renal-perfusion hold)",
+    "Stroke: PO bisphosphonates held (aspiration risk)": "acute stroke (PO bisphosphonate aspiration risk)",
+    "Metformin held for renal function": "acute kidney injury / renal impairment",
+}
+_HOLD_REASON_JA: dict[str, str] = {
+    "AKI: RAAS blockade held per KDIGO 2012 § 3.5.2": "急性腎障害 (KDIGO 2012 § 3.5.2 RAAS 抑制保留)",
+    "AKI: NSAIDs held (worsen renal perfusion)": "急性腎障害 (NSAID による腎灌流悪化)",
+    "Stroke: PO bisphosphonates held (aspiration risk)": "急性期脳卒中 (PO bisphosphonate 誤嚥リスク)",
+    "Metformin held for renal function": "急性腎障害 / 腎機能低下",
+}
+
+
+def _hold_reason_english(reason: str) -> str:
+    return _HOLD_REASON_EN.get(reason, reason)
+
+
+def _hold_reason_japanese(reason: str) -> str:
+    return _HOLD_REASON_JA.get(reason, reason)
+
+
 def _admin_hours_from_frequency(freq_per_day: int) -> list[int]:
     """Map a prescribed per-day frequency (from ``MR.timing.repeat.frequency``
     equivalent) to the MAR admin-hour slots.
@@ -185,12 +270,28 @@ def _generate_home_medication_orders(
 
         # 1. Protocol-driven disease-specific holds.
         yaml_held = False
+        matched_hold_name = ""
         for held_name in held_drugs:
             if held_name in drug_lower:
                 yaml_held = True
+                matched_hold_name = held_name
                 break
         if yaml_held:
-            continue  # silently skip — not ordered
+            # Issue #1403: log the silent hold so the narrative
+            # `considered_but_not_prescribed` context surface can
+            # render "Enalapril was held during this admission because
+            # of AKI protocol" instead of leaving the home med
+            # invisible to the LLM's home-medication reconciliation.
+            _log_disease_medication_hold(
+                patient,
+                encounter_id=encounter_id,
+                held_drug_name=drug_name,
+                held_drug_name_ja=getattr(med, "drug_name_ja", "") or drug_name,
+                hold_reason=hold_reasons.get(matched_hold_name, "disease-specific hold"),
+                disease_id=disease_id,
+                timestamp=admission_time,
+            )
+            continue  # silently skip — not ordered (but now logged)
 
         # 2. Metformin: renal-function-based hold.
         if "metformin" in drug_lower and (initial_renal < METFORMIN_ADMISSION_HOLD_THRESHOLD or has_renal_impairment):

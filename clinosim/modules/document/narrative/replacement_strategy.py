@@ -1303,24 +1303,73 @@ def _build_extra_context(
         is_ja = ctx.target_lang == "ja"
         lines: list[str] = []
         for s in safety_skips[:8]:  # cap payload (~200 tokens max)
+            # Issue #1403: event_type-aware cadence — the narrative
+            # prompt Rule 2 (v17) reads a leading marker per bullet
+            # to dispatch to the matching clinical phrasing (avoid /
+            # hold / substitute / deescalate). Legacy pair-avoid logs
+            # (event_type absent) fall through to "avoid".
+            event = str(s.get("event_type") or "avoid").lower()
             if is_ja:
                 considered = s.get("considered_ja") or s.get("considered") or ""
-                avoided = s.get("avoided_due_to_ja") or s.get("avoided_due_to") or ""
+                conflict = s.get("avoided_due_to_ja") or s.get("avoided_due_to") or ""
                 substituted = s.get("substituted_with_ja") or s.get("substituted_with")
-                if substituted:
-                    lines.append(f"- {considered} ({avoided} との併用のため回避); 代替として {substituted} を処方")
-                else:
-                    lines.append(f"- {considered} ({avoided} との併用のため回避、代替薬は選択せず)")
+                if event == "hold":
+                    lines.append(f"- hold: {considered} ({conflict} のため今回入院中は保留)")
+                elif event == "substitute":
+                    if substituted:
+                        lines.append(f"- substitute: {considered} を {substituted} に切替 (理由: {conflict})")
+                    else:
+                        lines.append(f"- substitute: {considered} を切替 (理由: {conflict})")
+                elif event == "deescalate":
+                    day = s.get("stopped_on_day")
+                    day_phrase = f"第{int(day)}病日" if day else "経過中"
+                    if substituted:
+                        lines.append(
+                            f"- deescalate: {considered} を {day_phrase}で中止し "
+                            f"{substituted} へ de-escalate ({conflict})"
+                        )
+                    else:
+                        lines.append(f"- deescalate: {considered} を {day_phrase}で中止 ({conflict})")
+                else:  # avoid (legacy + explicit)
+                    if substituted:
+                        lines.append(
+                            f"- avoid: {considered} ({conflict} との併用のため回避); 代替として {substituted} を処方"
+                        )
+                    else:
+                        lines.append(f"- avoid: {considered} ({conflict} との併用のため回避、代替薬は選択せず)")
             else:
                 considered = s.get("considered") or ""
-                avoided = s.get("avoided_due_to") or ""
+                conflict = s.get("avoided_due_to") or ""
                 substituted = s.get("substituted_with")
-                if substituted:
-                    lines.append(
-                        f"- {considered} (avoided due to concurrent {avoided}); substituted with {substituted}"
-                    )
-                else:
-                    lines.append(f"- {considered} (avoided due to concurrent {avoided}); no alternative selected")
+                if event == "hold":
+                    lines.append(f"- hold: {considered} was held during this admission because of {conflict}")
+                elif event == "substitute":
+                    if substituted:
+                        lines.append(
+                            f"- substitute: {considered} substituted with {substituted} (rationale: {conflict})"
+                        )
+                    else:
+                        lines.append(f"- substitute: {considered} substituted (rationale: {conflict})")
+                elif event == "deescalate":
+                    day = s.get("stopped_on_day")
+                    day_phrase = f"on day {int(day)}" if day else "during the stay"
+                    if substituted:
+                        lines.append(
+                            f"- deescalate: {considered} discontinued {day_phrase} "
+                            f"and narrowed to {substituted} ({conflict})"
+                        )
+                    else:
+                        lines.append(f"- deescalate: {considered} discontinued {day_phrase} ({conflict})")
+                else:  # avoid (legacy + explicit)
+                    if substituted:
+                        lines.append(
+                            f"- avoid: {considered} (avoided due to concurrent {conflict}); "
+                            f"substituted with {substituted}"
+                        )
+                    else:
+                        lines.append(
+                            f"- avoid: {considered} (avoided due to concurrent {conflict}); no alternative selected"
+                        )
         extra["considered_but_not_prescribed"] = "\n".join(lines)
 
     complications = list(getattr(ctx, "complications_occurred", []) or [])
