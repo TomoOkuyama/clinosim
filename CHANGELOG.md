@@ -41,6 +41,23 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.
 
 ### Changed
 
+- **CI integration tests: 5 → 10 shards** (S115, Issue #1420 Phase 2).
+  Bin-packing simulation on the current `.test_durations` (370
+  integration tests, 2035 s single-thread total) gives 10 shards of
+  ~204 s each at 1.01 × imbalance under `least_duration` — essentially
+  perfect balance. Under xdist -n 2, expected per-shard wall drops
+  from ~5-6 min to ~3-4 min; the shard containing the slowest
+  single test (~86 s, `test_all_resource_ids_are_spec_valid_jp`) is
+  bounded below by that test's own wall time. Combined parallelism
+  = 10 shards × xdist -n 2 = 20 concurrent workers. Runner cost
+  stays net roughly flat (10 × ~4 min ≈ 5 × ~8 min). Beyond N=10,
+  per-shard overhead (~90 s CI setup) begins to dominate — the next
+  wall-time reduction requires attacking the slow tests themselves
+  via session-scoped fixture consolidation.
+
+
+### Changed
+
 - **CI unit tests: N=3 shards + xdist -n 2 + coverage combine**
   (S115, Issue #1420 Phase 1). Local bin-packing simulation on the
   regenerated `.test_durations` (6086 unit entries, 119.2s
