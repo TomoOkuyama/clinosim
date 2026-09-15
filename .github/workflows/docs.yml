@@ -31,11 +31,15 @@ jobs:
       - uses: actions/setup-python@v7
         with:
           python-version: "3.12"
-          cache: pip
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+          cache-dependency-glob: pyproject.toml
       - name: Install docs extras
         # `mkdocs-include-markdown-plugin` needs to see the whole repo so
         # its transclusions (README.md, CHANGELOG.md, ...) resolve.
-        run: pip install -e ".[docs]"
+        run: uv pip install --system -e ".[docs]"
       - name: Build
         # `--strict` is not used: transcluded root files (README.md,
         # MODULES.md, ...) contain internal repo-path links that are
@@ -61,9 +65,13 @@ jobs:
       - uses: actions/setup-python@v7
         with:
           python-version: "3.12"
-          cache: pip
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+          cache-dependency-glob: pyproject.toml
       - name: Install docs extras
-        run: pip install -e ".[docs]"
+        run: uv pip install --system -e ".[docs]"
       - name: Configure git identity for gh-deploy
         run: |
           git config user.name "github-actions[bot]"

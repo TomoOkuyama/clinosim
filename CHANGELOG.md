@@ -39,6 +39,26 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.
 
 ## [Unreleased]
 
+### Changed
+
+- **CI: introduce `uv` for dependency installation across all
+  workflows** (S115, follow-up to Issue #1420). Replace `pip install`
+  with `uv pip install --system` in all 9 workflows (ci / nightly /
+  release / docs / jp-clins-lab-compliance-gate / jp-core-compliance-gate /
+  us-core-compliance-gate / jp-validate / us-validate). Each workflow
+  now inserts an `astral-sh/setup-uv@v6` step immediately after
+  `actions/setup-python`, with `enable-cache: true` and
+  `cache-dependency-glob: pyproject.toml` so the wheel cache keys off
+  the dependency spec. The unit-test shard imbalance observed post-#1426
+  (max 4m5s vs min 1m36s, gap ~2m30s) is dominated by pip-install
+  runner-cache variance (~3m cold vs ~30s warm); `uv` installs the
+  same wheels ~10 × faster, so the install phase converges to ~30 s
+  regardless of cache state. Expected gap collapse: shard variance
+  drops from 2-3 min to ~20-30 s, so the max-shard wall matches the
+  min-shard wall much more tightly. `cache: pip` on `setup-python`
+  and any `python -m pip install --upgrade pip` steps are removed
+  (uv owns its own cache and does not need a bootstrapped pip).
+
 ### Added
 
 - **US Core narrow-gate compliance axis + CI gate**
