@@ -1251,6 +1251,36 @@ def _drop_entries_after_death(entries: list[dict], dod_iso: str) -> list[dict]:
                     res["period"] = p
                 if res.get("status") == "active":
                     res["status"] = "cancelled"
+            # Issue #1442: same treatment for Encounter. The pre-1442
+            # comment on this gate (#1219) reasoned that an in-hospital
+            # death legitimately overshoots dod for `disp=exp`
+            # encounters, which is true — but `disp=home` encounters
+            # whose LOS-driven discharge date happens to land after the
+            # actuarial death date encode a physical contradiction (the
+            # patient was discharged home on a day they were already
+            # dead). Mirror the Coverage branch: clamp `period.end` down
+            # to dod, and flip a non-exp `dischargeDisposition` to `exp`
+            # so the resource's active period ends at the death event.
+            if rtype == "Encounter":
+                end = p.get("end", "")
+                if isinstance(end, str) and end and end[:10] > dod_iso:
+                    p["end"] = dod_iso
+                    res["period"] = p
+                    hospitalization = res.get("hospitalization") or {}
+                    disp = hospitalization.get("dischargeDisposition") or {}
+                    coding_list = disp.get("coding") or []
+                    disp_code = (coding_list[0] or {}).get("code", "") if coding_list else ""
+                    if disp_code != "exp":
+                        # Overwrite the disposition to the death-event code.
+                        hospitalization["dischargeDisposition"] = {
+                            "coding": [
+                                {
+                                    "system": "http://terminology.hl7.org/CodeSystem/discharge-disposition",
+                                    "code": "exp",
+                                }
+                            ]
+                        }
+                        res["hospitalization"] = hospitalization
             kept.append(e)
             continue
         after_death = False

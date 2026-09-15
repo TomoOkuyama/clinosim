@@ -122,3 +122,131 @@ def test_keeps_resource_with_no_dt_fields() -> None:
     entries = [_entry({"resourceType": "Coverage", "id": "cov-x", "status": "active"})]
     kept = _drop_entries_after_death(entries, "2025-12-16")
     assert len(kept) == 1
+
+
+# ----- Encounter.period.end clamp on death (Issue #1442) -----
+#
+# `_drop_entries_after_death` used to gate Encounter on `period.start`
+# only, letting `period.end` legitimately extend past dod for in-hospital
+# deaths (Issue #1219 comment). That reasoning holds for `disp=exp`
+# encounters where the discharge event IS the death. It fails for
+# `disp=home` encounters whose LOS-driven discharge date happens to
+# overshoot the actuarial death date — the sim then emits a live
+# discharge on a day the patient is already dead. Mirror the Coverage
+# sibling: clamp `period.end` down to dod and flip `dischargeDisposition`
+# to `exp` so the resource's active period ends at the death event.
+
+
+def test_encounter_clamps_period_end_when_home_disp_extends_past_death() -> None:
+    """Encounter that started before death and would have discharged
+    home 6 days later must be clamped: period.end = dod, disp flipped
+    to exp. Mirrors the Coverage branch (period.end clamp + status flip)."""
+    entries = [
+        _entry(
+            {
+                "resourceType": "Encounter",
+                "id": "enc-clamp",
+                "period": {"start": "2026-01-05T08:06:00Z", "end": "2026-01-15T12:06:00Z"},
+                "hospitalization": {
+                    "dischargeDisposition": {
+                        "coding": [
+                            {
+                                "system": "http://terminology.hl7.org/CodeSystem/discharge-disposition",
+                                "code": "home",
+                            }
+                        ]
+                    }
+                },
+            }
+        )
+    ]
+    kept = _drop_entries_after_death(entries, "2026-01-09")
+    assert len(kept) == 1
+    enc = kept[0]["resource"]
+    # period.end clamped down to dod (calendar-date prefix)
+    assert enc["period"]["end"] == "2026-01-09"
+    # dischargeDisposition flipped from home → exp
+    disp_code = enc["hospitalization"]["dischargeDisposition"]["coding"][0]["code"]
+    assert disp_code == "exp"
+
+
+def test_encounter_leaves_exp_disp_alone_but_still_clamps_end() -> None:
+    """When the disposition is already `exp` (in-hospital death was
+    recorded correctly), the disp field must not be double-flipped, but
+    the clamp still fires — a same-day death encounter that landed on
+    `T23:37+09` (24 min past the dod-midnight ceiling on some checks)
+    should not encode as post-death by strict datetime compare either."""
+    entries = [
+        _entry(
+            {
+                "resourceType": "Encounter",
+                "id": "enc-exp",
+                "period": {"start": "2026-01-05T08:06:00Z", "end": "2026-01-15T12:06:00Z"},
+                "hospitalization": {
+                    "dischargeDisposition": {
+                        "coding": [
+                            {
+                                "system": "http://terminology.hl7.org/CodeSystem/discharge-disposition",
+                                "code": "exp",
+                            }
+                        ]
+                    }
+                },
+            }
+        )
+    ]
+    kept = _drop_entries_after_death(entries, "2026-01-09")
+    enc = kept[0]["resource"]
+    assert enc["period"]["end"] == "2026-01-09"
+    # disp untouched — already exp
+    disp_code = enc["hospitalization"]["dischargeDisposition"]["coding"][0]["code"]
+    assert disp_code == "exp"
+
+
+def test_encounter_period_end_before_dod_untouched() -> None:
+    """An encounter whose period.end already sits at or before dod
+    must be forwarded unchanged — no spurious clamp, no disp flip."""
+    entries = [
+        _entry(
+            {
+                "resourceType": "Encounter",
+                "id": "enc-before-dod",
+                "period": {"start": "2026-01-05T08:06:00Z", "end": "2026-01-08T20:00:00Z"},
+                "hospitalization": {
+                    "dischargeDisposition": {
+                        "coding": [
+                            {
+                                "system": "http://terminology.hl7.org/CodeSystem/discharge-disposition",
+                                "code": "home",
+                            }
+                        ]
+                    }
+                },
+            }
+        )
+    ]
+    kept = _drop_entries_after_death(entries, "2026-01-09")
+    enc = kept[0]["resource"]
+    # period.end intact
+    assert enc["period"]["end"] == "2026-01-08T20:00:00Z"
+    # disp intact
+    disp_code = enc["hospitalization"]["dischargeDisposition"]["coding"][0]["code"]
+    assert disp_code == "home"
+
+
+def test_encounter_without_disp_still_clamps_end() -> None:
+    """An encounter without dischargeDisposition (legitimate for open
+    admissions) must still have period.end clamped. No disp field to
+    flip."""
+    entries = [
+        _entry(
+            {
+                "resourceType": "Encounter",
+                "id": "enc-no-disp",
+                "period": {"start": "2026-01-05T08:06:00Z", "end": "2026-01-15T12:06:00Z"},
+            }
+        )
+    ]
+    kept = _drop_entries_after_death(entries, "2026-01-09")
+    enc = kept[0]["resource"]
+    assert enc["period"]["end"] == "2026-01-09"
