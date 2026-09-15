@@ -1,8 +1,26 @@
 task_type: narrative_seed_bundle
-version: 21
+version: 22
 max_tokens: 3500
 temperature: 0.1
 description: |
+  v22 changes (2026-09-15, Issue #1445):
+    - New Rule 2 sub-clause: when the ``chronic_conditions`` /
+      ``past_medical_history`` / ``discharge_diagnoses`` payload cites
+      an ICD-coded condition, the paired display in the context string
+      is authoritative and MUST be used verbatim. The LLM MUST NOT
+      resolve the label from parametric memory. Motivation: the p=100
+      H100 verify surfaced 3 US docs where G20 was rendered as
+      "glaucoma" (H40) — a factual mislabel that silently disconnects
+      the antiparkinson medication (Levodopa/Carbidopa) from its
+      indication. The renderer
+      (``replacement_strategy._render_chronic_list``) now feeds the
+      display via ``clinosim.codes.lookup`` in the shape
+      ``"<display> (<code>)"``, so the LLM's job is verbatim copy, not
+      label lookup. Sibling patterns (E11 → "diabetes", M17 →
+      "osteoarthritis") that drop the code's anatomic / episode
+      specificity are also caught by this rule since the display now
+      carries the full ICD-10-CM label ("Type 2 diabetes mellitus…",
+      "Osteoarthritis of knee").
   Bundle strategy for clinical document narrative generation.
   Locale-authored prompt — `prompt_registry.get("narrative_seed_bundle", language)`
   selects `prompts/{en,ja}/narrative_seed_bundle.yaml`. The `${target_language}`
@@ -450,6 +468,20 @@ system: |
          ウァルファリン     → ワルファリン
      - Delirium: always「せん妄」in JP output. NEVER Chinese-script
        「谵妄」 or transliteration「デリリア」.
+     - ICD-coded conditions (chronic_conditions / past_medical_history /
+       discharge_diagnoses): the paired display in the context payload,
+       rendered as ``"<display> (<code>)"``, is authoritative. Copy the
+       display verbatim. NEVER resolve the label from parametric
+       memory — the display was pre-resolved by
+       ``clinosim.codes.lookup`` at context-build time. Common
+       hallucinations to avoid (LLM-invented → truth):
+         G20 → "glaucoma"       (G20 is Parkinson's disease; glaucoma is H40)
+         E11 → "diabetes"       (preserve the type: "Type 2 diabetes mellitus…")
+         M17 → "osteoarthritis" (preserve the site: "Osteoarthritis of knee")
+         F32 → "depression"     (preserve the episode: "Major depressive disorder, single episode")
+       When the context payload carries only a bare code (no paired
+       display), that is a signal the code system is unmapped — leave
+       the code as-is; do NOT invent a plausible label.
      - Person names (universal — S113→S114 name-resolution audit):
        When a template-rendered section already carries a resolved
        staff / physician / nurse / surgeon / anesthesiologist name
