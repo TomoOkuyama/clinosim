@@ -304,6 +304,117 @@ def test_jp_output_may_have_japanese():
     assert _JAPANESE_RE.search(dumped), "Expected Japanese text in JP output"
 
 
+# ----- Assessment effectiveDateTime vs encounter admission_datetime (Issue #1437) -----
+#
+# Barthel / Braden / Morse / intake-output / urine output Observations
+# were emitted with ``effectiveDateTime = <date>T00:00:00`` because the
+# CIF ADL / nursing-risk / intake-output generators store ``date`` as
+# a ``date`` object (day precision). When the actual admission lands
+# late in the day (e.g. 18:03, 22:31), the assessment Observation
+# precedes the Encounter.period.start it references — a temporal
+# invariant violation. Verify on p=10000 s=360: 3,288 US / 3,894 JP
+# such records across the six categories. Fix: when the assessment's
+# date matches the admission date, emit the Observation at the
+# encounter's admission time; on later days, use a nurse-shift-plausible
+# hour (09:00) preserving the encounter's timezone.
+
+
+def _record_with_encounter(admission_iso: str) -> dict:
+    """Same shape as ``_record()`` but wired to a real inpatient
+    encounter whose ``admission_datetime`` is late in the day."""
+    from datetime import datetime as _dt
+
+    admit = _dt.fromisoformat(admission_iso)
+    return {
+        "patient_id": "p1",
+        "encounters": [
+            {
+                "encounter_id": "enc1",
+                "encounter_type": "inpatient",
+                "admission_datetime": admission_iso,
+                "primary_nurse_id": "",
+            }
+        ],
+        "nursing_risk_assessments": [
+            {
+                "date": admit.date(),
+                "braden_total": 14,
+                "morse_total": 55,
+                "fall_risk_level": "high",
+            }
+        ],
+        "adl_assessments": [{"date": admit.date(), "barthel_score": 40}],
+        "intake_output_records": [
+            {
+                "date": admit.date(),
+                "intake_iv_ml": 1500,
+                "intake_oral_ml": 0,
+                "intake_other_ml": 0,
+                "output_urine_ml": 1200,
+                "output_drain_ml": 0,
+                "output_other_ml": 0,
+            }
+        ],
+    }
+
+
+def test_assessment_effective_ge_admission_when_same_day():
+    """Every assessment Observation whose date equals the admission day
+    must emit ``effectiveDateTime`` at or after ``admission_datetime`` —
+    never at midnight of that day."""
+    from clinosim.modules.output.fhir_r4.procedures.nursing import _bb_nursing_observations
+
+    ctx = _make_ctx(_record_with_encounter("2025-10-20T18:03:00"), country="US")
+    obs = _bb_nursing_observations(ctx)
+    assert obs, "expected at least one nursing observation"
+    admit_iso = "2025-10-20T18:03:00"
+    for o in obs:
+        eff = o.get("effectiveDateTime")
+        if not eff:
+            continue
+        # accept optional TZ suffix — parse the local wall-clock portion
+        eff_local = eff[:19]
+        assert eff_local >= admit_iso[:19], (
+            f"Observation {o['id']} effectiveDateTime {eff_local!r} precedes admission_datetime {admit_iso[:19]!r}"
+        )
+
+
+def test_assessment_effective_not_midnight_when_admission_late():
+    """Guard against a regression where the emit path reverts to
+    day-midnight — every assessment Observation must have a nonzero
+    time-of-day when the encounter's admission is late."""
+    from clinosim.modules.output.fhir_r4.procedures.nursing import _bb_nursing_observations
+
+    ctx = _make_ctx(_record_with_encounter("2025-10-20T18:03:00"), country="US")
+    obs = _bb_nursing_observations(ctx)
+    assert obs
+    for o in obs:
+        eff = o.get("effectiveDateTime")
+        if not eff:
+            continue
+        # e.g. "2025-10-20T00:00:00..." would fail
+        assert "T00:00:00" not in eff[:19], (
+            f"Observation {o['id']} effectiveDateTime {eff!r} still landed at day-midnight"
+        )
+
+
+def test_assessment_effective_uses_admission_time_when_same_day():
+    """Day-0 assessments should emit at the encounter's admission time
+    itself (nurse assessment on arrival)."""
+    from clinosim.modules.output.fhir_r4.procedures.nursing import _bb_nursing_observations
+
+    ctx = _make_ctx(_record_with_encounter("2025-10-20T18:03:00"), country="US")
+    obs = _bb_nursing_observations(ctx)
+    admit_iso_prefix = "2025-10-20T18:03:00"
+    for o in obs:
+        eff = o.get("effectiveDateTime")
+        if not eff:
+            continue
+        assert eff.startswith(admit_iso_prefix), (
+            f"Observation {o['id']} expected day-0 effectiveDateTime to start with {admit_iso_prefix!r}, got {eff!r}"
+        )
+
+
 def test_empty_record_returns_empty_list():
     """No nursing data → empty observation list."""
     from clinosim.modules.output.fhir_r4.procedures.nursing import _bb_nursing_observations

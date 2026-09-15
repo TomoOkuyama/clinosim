@@ -9,6 +9,7 @@ through the adapter (no cycle).
 
 from __future__ import annotations
 
+from datetime import date, datetime, time
 from typing import Any
 
 from clinosim.codes import get_system_uri
@@ -27,6 +28,96 @@ from clinosim.modules.output.fhir_r4.lib.ids import (
     structural_key_system,
     wrap_as_identifier,
 )
+
+# Nurse-shift-plausible clock time for post-admission assessments
+# (Issue #1437). Day-0 assessments emit at the encounter's actual
+# admission time; day-N (N>=1) assessments emit at this hour on the
+# assessment date, preserving the encounter's timezone.
+_POST_ADMIT_SHIFT_TIME = time(9, 0)
+
+
+def _resolve_assessment_effective(
+    assessment_date: Any,
+    encounters: list[dict[str, Any]] | None,
+) -> str:
+    """Compute an ``effectiveDateTime`` string for an assessment Observation.
+
+    Issue #1437: the CIF ADL / nursing-risk / intake-output generators
+    store ``date`` as a Python ``date`` (day precision) — Barthel, Braden,
+    Morse, intake-total, urine-output, and output-total Observations all
+    inherit that. Feeding a bare date through ``to_fhir_datetime`` yields
+    ``2026-01-01`` (no time), which the FHIR output layer expands to
+    ``2026-01-01T00:00:00`` — precedent to the Encounter's actual
+    ``period.start`` for any admission whose hour is later than midnight.
+
+    This helper resolves the emit-time value so the invariant
+    ``Observation.effectiveDateTime >= Encounter.period.start`` holds:
+
+    - a ``datetime`` value passes through unchanged (already has a
+      time component),
+    - a ``date`` value on the admission day is combined with the
+      encounter's actual admission time (day-0 nurse assessment
+      on arrival),
+    - a ``date`` value on a later day is combined with the
+      day-shift hour (09:00) while preserving the encounter's
+      timezone,
+    - anything else (unparseable) is forwarded to ``to_fhir_datetime``
+      unchanged so no data is lost.
+
+    Empty / None returns an empty string just like ``to_fhir_datetime``.
+    """
+    if assessment_date is None or assessment_date == "":
+        return ""
+    if isinstance(assessment_date, datetime):
+        return to_fhir_datetime(assessment_date)
+    # Coerce string date-only ("2026-01-01") to date so the combine path
+    # is exercised uniformly. Test fixtures may pass either shape.
+    _date_val: date | None = None
+    if isinstance(assessment_date, date):
+        _date_val = assessment_date
+    elif isinstance(assessment_date, str):
+        try:
+            if len(assessment_date) == 10 and assessment_date[4] == "-" and assessment_date[7] == "-":
+                _date_val = date.fromisoformat(assessment_date)
+        except (ValueError, TypeError):
+            _date_val = None
+    if _date_val is None:
+        return to_fhir_datetime(assessment_date)
+
+    admit_dt = _resolve_admission_datetime(encounters)
+    if admit_dt is None:
+        combined = datetime.combine(_date_val, _POST_ADMIT_SHIFT_TIME)
+    elif _date_val == admit_dt.date():
+        combined = datetime.combine(_date_val, admit_dt.time())
+        if admit_dt.tzinfo is not None:
+            combined = combined.replace(tzinfo=admit_dt.tzinfo)
+    else:
+        combined = datetime.combine(_date_val, _POST_ADMIT_SHIFT_TIME)
+        if admit_dt.tzinfo is not None:
+            combined = combined.replace(tzinfo=admit_dt.tzinfo)
+    return to_fhir_datetime(combined)
+
+
+def _resolve_admission_datetime(encounters: list[dict[str, Any]] | None) -> datetime | None:
+    """Return the primary encounter's ``admission_datetime`` as a datetime,
+    or ``None`` if no encounter carries one. String and datetime shapes
+    are both accepted (CIF JSON hydrates timestamps as strings; in-process
+    records carry datetime objects)."""
+    if not encounters:
+        return None
+    for enc in encounters:
+        adm = enc.get("admission_datetime") if isinstance(enc, dict) else None
+        if adm is None or adm == "":
+            continue
+        if isinstance(adm, datetime):
+            return adm
+        if isinstance(adm, str):
+            try:
+                return datetime.fromisoformat(adm.replace("Z", "+00:00"))
+            except (ValueError, TypeError):
+                continue
+    return None
+
 
 # === Issue #854 Bucket A row 4 (PR-obs-vs): opaque scoring Observation.id ===
 # GCS and NEWS2 vital-derived scoring Observations. Same pattern as
@@ -212,7 +303,10 @@ def _bb_nursing_observations(ctx: BundleContext) -> list[dict]:
     # --- Nursing risk assessments: Braden and Morse ---
     for i, nra in enumerate(ctx.record.get("nursing_risk_assessments") or []):
         nra_date = nra.get("date")
-        effective = to_fhir_datetime(nra_date) or None
+        # Issue #1437: date-only assessment records emitted at midnight
+        # precede the encounter's actual admission hour. Combine with
+        # admission time on day 0, day-shift hour on later days.
+        effective = _resolve_assessment_effective(nra_date, encounters) or None
 
         braden = nra.get("braden_total")
         if braden is not None:
@@ -266,7 +360,8 @@ def _bb_nursing_observations(ctx: BundleContext) -> list[dict]:
     # --- ADL assessments: Barthel index ---
     for i, adl in enumerate(ctx.record.get("adl_assessments") or []):
         adl_date = adl.get("date")
-        effective = to_fhir_datetime(adl_date) or None
+        # Issue #1437: see nursing_risk_assessments comment above.
+        effective = _resolve_assessment_effective(adl_date, encounters) or None
 
         barthel = adl.get("barthel_score")
         if barthel is not None:
@@ -283,7 +378,8 @@ def _bb_nursing_observations(ctx: BundleContext) -> list[dict]:
     # --- Intake and output records ---
     for i, io in enumerate(ctx.record.get("intake_output_records") or []):
         io_date = io.get("date")
-        effective = to_fhir_datetime(io_date) or None
+        # Issue #1437: see nursing_risk_assessments comment above.
+        effective = _resolve_assessment_effective(io_date, encounters) or None
 
         # Fluid intake total 24h = iv + oral + other (LOINC 9108-2)
         iv_ml = io.get("intake_iv_ml") or 0
