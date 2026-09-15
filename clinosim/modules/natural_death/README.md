@@ -25,6 +25,16 @@ downstream event generator + FHIR emitter on
     `Patient.deceasedDateTime` populated from `date_of_death` +
     `Patient.active = false` on every deceased record. Living
     patients keep `active = true` + `deceasedBoolean = false`.
+    Emit path (`clinosim/modules/output/fhir_r4/demographics/patient.py`)
+    routes `date_of_death` through
+    [`to_fhir_deceased_datetime`](../output/fhir_r4/lib/common.py)
+    (Issue #1440), which expands a `date`-only input to
+    `T23:59:59{TZ}` (JP → `+09:00`, other → `Z`) so same-day
+    intra-day events (encounter discharge, post-mortem `Condition`
+    record) fall before the deceased moment under a strict datetime
+    compare. Full datetime inputs pass through unchanged so a future
+    upstream widening of `date_of_death` to a real time-of-death
+    datetime picks that up with no further change here.
 - **Out of scope**: in-hospital death (already lives in
   [`discharge_gate.py`](../../simulator/discharge_gate.py) which
   flips `PatientProfile.deceased`; C11g-2/3 do not disturb that

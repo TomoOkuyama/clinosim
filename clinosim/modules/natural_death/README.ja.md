@@ -25,6 +25,16 @@
     `Patient.deceasedDateTime` に `date_of_death` を populate、
     かつ deceased record では `Patient.active = false`。生存患者は
     `active = true` + `deceasedBoolean = false` を維持。
+    Emit path (`clinosim/modules/output/fhir_r4/demographics/patient.py`)
+    は `date_of_death` を
+    [`to_fhir_deceased_datetime`](../output/fhir_r4/lib/common.py)
+    経由で normalize (Issue #1440)。`date`-only 入力は
+    `T23:59:59{TZ}` (JP → `+09:00`、その他 → `Z`) に expand し、
+    死亡日中の intra-day event (encounter discharge、post-mortem
+    `Condition.recordedDate` 等) が strict datetime 比較で死亡前
+    扱いになるようにする。datetime 型入力はそのまま pass-through
+    するので、将来 `date_of_death` を実際の time-of-death datetime
+    に widen した場合も追加変更なしで正しく反映される。
 - **Out of scope**: 院内死亡 (既存
   [`discharge_gate.py`](../../simulator/discharge_gate.py) が
   `PatientProfile.deceased` を flip する経路。C11g-2/3 はこの path
