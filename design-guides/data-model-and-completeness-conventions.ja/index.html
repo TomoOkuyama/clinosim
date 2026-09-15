@@ -2481,7 +2481,7 @@ completeness 修正に固有の新規約だけを書く — 既存規約は<stro
 </ol>
 <hr />
 <h2 id="1-fhir-completeness-contractこのプロジェクトの新しい第一原理">1. FHIR Completeness Contract(このプロジェクトの新しい第一原理)<a class="headerlink" href="#1-fhir-completeness-contractこのプロジェクトの新しい第一原理" title="Permanent link">&para;</a></h2>
-<p><strong>「著者が YAML に書いた臨床意図は、必ず FHIR 出力に到達する」</strong>を不変則に格上げする。
+<p>**「著者が YAML に書いた臨床意図は、必ず FHIR 出力に到達する」**を不変則に格上げする。
 不完全状態を 3 クラスで定義(考察 §1)、いずれも新規混入禁止:</p>
 <ul>
 <li><strong>C1 Silent-drop 禁止</strong>: YAML キーが読まれず default に化ける / 破棄されることを許さない。</li>
@@ -2504,7 +2504,7 @@ completeness 修正に固有の新規約だけを書く — 既存規約は<stro
 </ul>
 <h3 id="23-モデルを通さない生-dict-経路にも防御を効かせる">2.3 モデルを通さない生 dict 経路にも防御を効かせる<a class="headerlink" href="#23-モデルを通さない生-dict-経路にも防御を効かせる" title="Permanent link">&para;</a></h3>
 <p>疾患 YAML には 2 経路がある:(A) <code>DiseaseProtocol(**data)</code> 属性アクセス、(B) <code>order/engine.py</code> の
-生 dict <code>.get()</code>。<strong><code>extra="forbid"</code> は経路 A のみ守る。</strong>経路 B は owner module の accessor 経由に寄せ、
+生 dict <code>.get()</code>。**<code>extra="forbid"</code> は経路 A のみ守る。**経路 B は owner module の accessor 経由に寄せ、
 未知キーを load 時に fail-loud にする(FP-YAML-3)。「片方の経路だけ守った」は J5 class(1 venue のみ配線)の再来。</p>
 <h3 id="24-キーを削除するときも意図を記録">2.4 キーを削除するときも意図を記録<a class="headerlink" href="#24-キーを削除するときも意図を記録" title="Permanent link">&para;</a></h3>
 <p>孤児キーが臨床文献引用(TIMI / ACC-AHA / Tokyo Guidelines 等)を含む場合、削除前に commit message
