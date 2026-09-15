@@ -1745,12 +1745,49 @@ class TemplateNarrativeGenerator:
         return int.from_bytes(hashlib.sha256(seed.encode("utf-8")).digest()[:4], "big") % pool_size
 
     def _build_hpi(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
-        """Build HPI section.
+        """Build HPI section, then append the neonatal workup one-liner
+        for birth admissions (Issue #1432).
 
-        For ED_NOTE: reads from encounter_protocol.narrative.ed_note_template.hpi_<lang>.
-        For all other document types: reads from narrative.hpi_template.onset_pattern[severity]
-        (onset_pattern has no per-language split; see ja_only_fallback tagging below).
+        The core HPI builder has multiple return paths (ED_NOTE branch,
+        no-narrative fallback, missing-hpi_template fallback, EN locale
+        onset synthesis, JA onset_pattern) — wrapping the whole thing so
+        every path picks up the newborn workup append without duplicating
+        the check at each return.
         """
+        text, facts = self._build_hpi_core(ctx)
+        return self._maybe_append_newborn_workup(text, facts, ctx)
+
+    def _maybe_append_newborn_workup(self, text: str, facts: list[str], ctx: NarrativeContext) -> tuple[str, list[str]]:
+        """Issue #1432: append the newborn workup one-liner to HPI when
+        ``ctx.newborn_workup["is_neonate"]`` is true and the rendered
+        summary is non-empty. The summary is built by
+        ``replacement_strategy._render_newborn_workup_summary`` — the
+        same helper the LLM prompt grounding uses, so template body and
+        LLM narrative anchor on identical CIF-derived facts.
+        """
+        workup = getattr(ctx, "newborn_workup", None) or {}
+        if not workup.get("is_neonate"):
+            return text, facts
+        from clinosim.modules.document.narrative.replacement_strategy import (
+            _render_newborn_workup_summary,
+        )
+
+        summary = _render_newborn_workup_summary(workup, lang=ctx.target_lang)
+        if not summary:
+            return text, facts
+        # Terminate the appended fragment with the locale-appropriate
+        # sentence punctuation so the section reads as one paragraph.
+        terminator = "。" if ctx.target_lang == "ja" else "."
+        appended = f"{summary}{terminator}"
+        if text:
+            joined = f"{text} {appended}"
+        else:
+            joined = appended
+        facts.append("ctx.newborn_workup")
+        return joined, facts
+
+    def _build_hpi_core(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
+        """HPI content, pre-neonatal-append. See :meth:`_build_hpi`."""
         facts: list[str] = []
         lang = ctx.target_lang
         is_ja = lang == "ja"
