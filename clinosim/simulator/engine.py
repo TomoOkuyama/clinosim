@@ -251,6 +251,43 @@ def _verify_no_actual_overlap(
     return best
 
 
+def _handle_overlap_via_merge(
+    patient_records: list[CIFPatientRecord],
+    new_record: CIFPatientRecord,
+    disease_id: str,
+    *,
+    companions: list[CIFPatientRecord] | None = None,
+) -> CIFPatientRecord | None:
+    """Post-hoc overlap check + merge, with optional companion rewrite.
+
+    Consolidates the ``_verify_no_actual_overlap`` + ``_merge_disease_into_active_encounter``
+    pattern used at every inpatient-dispatch append site. When an overlap
+    is detected, the new record's disease is merged into the earlier
+    surviving stay (as an in-hospital complication), and any companion
+    record's ``admit_source_encounter_id`` (FHIR ``Encounter.partOf``)
+    pointing at ``new_record``'s encounter is repointed to the surviving
+    encounter — so a mother-side delivery merged into an ongoing
+    admission does not leave the newborn's ``partOf`` reference dangling.
+
+    Issue #1436: the two-site wiring in #1430 (main + readmission loop)
+    missed the perinatal / abortion / unknown_condition sibling
+    dispatchers. This helper is what those sites call.
+    """
+    overlap = _verify_no_actual_overlap(patient_records, new_record)
+    if overlap is None:
+        return None
+    admit_dt = new_record.encounters[0].admission_datetime
+    _merge_disease_into_active_encounter(overlap, disease_id, admit_dt)
+    if companions:
+        new_enc_id = new_record.encounters[0].encounter_id
+        target_enc_id = overlap.encounters[0].encounter_id
+        for comp in companions:
+            for enc in comp.encounters:
+                if enc.admit_source_encounter_id == new_enc_id:
+                    enc.admit_source_encounter_id = target_enc_id
+    return overlap
+
+
 def _merge_disease_into_active_encounter(
     active_record: CIFPatientRecord,
     disease_id: str,
@@ -789,6 +826,15 @@ def run_beta(
                     config=config,
                 )
             if record:
+                # Issue #1436: post-hoc overlap check also applies here.
+                # The unknown_condition path takes an early ``continue``
+                # branch before reaching the main loop's verifier at line
+                # ~843, so wire the same helper explicitly.
+                _post_hoc_overlap = _handle_overlap_via_merge(patient_records, record, disease_id)
+                if _post_hoc_overlap is not None:
+                    hospital_state.bed_occupancy = max(0.0, hospital_state.bed_occupancy - 1.0 / beds_total)
+                    concurrent_patients = max(0, concurrent_patients - 1)
+                    continue
                 patient_records.append(record)
                 person.has_visited_hospital = True
                 person.visit_count += 1
@@ -1183,7 +1229,14 @@ def run_beta(
                 config=config,
                 hospital_ops=hospital_ops,
             )
-            patient_records.extend(abortion_records)
+            # Issue #1436: verify each emitted record does not overlap an
+            # existing IMP stay. Non-IMP records are no-op inside the
+            # verifier (short-circuits on encounter_type check), so this
+            # is safe for any mix of records the abortion emitter returns.
+            for _r in abortion_records:
+                _post_hoc_overlap = _handle_overlap_via_merge(patient_records, _r, event.disease_id)
+                if _post_hoc_overlap is None:
+                    patient_records.append(_r)
             n_calendar += 1
             continue
         elif event.event_type == "delivery":
@@ -1209,10 +1262,36 @@ def run_beta(
                 config=config,
                 hospital_ops=hospital_ops,
             )
-            # Both mother and newborn records land on ``patient_records``;
-            # skip the shared single-record append at the bottom of this
-            # branch (delivery is the only dispatch that produces >1 record).
-            patient_records.extend(delivery_records)
+            # Issue #1436: the mother's delivery encounter is IMP-class
+            # and can overlap an ongoing inpatient stay (e.g. a mother
+            # hospitalized for asthma who goes into labor mid-admission).
+            # Verify against the current patient_records; if the mother
+            # overlaps, merge the delivery event into the earlier stay
+            # and rewrite the newborn record's ``admit_source_encounter_id``
+            # (FHIR ``Encounter.partOf``) to the surviving encounter so
+            # the newborn linkage does not dangle. Newborn is a separate
+            # patient (different patient_id) so it never overlaps by the
+            # verifier's same-patient gate — it is kept as a companion
+            # for the partOf rewrite only.
+            #
+            # By convention ``simulate_delivery_encounter`` returns
+            # ``[mother, newborn]``. Handle mother first (with newborn as
+            # companion for partOf rewrite), then handle any remaining
+            # records defensively.
+            if delivery_records:
+                mother_rec = delivery_records[0]
+                companions = list(delivery_records[1:])
+                _post_hoc_overlap = _handle_overlap_via_merge(
+                    patient_records, mother_rec, event.disease_id, companions=companions
+                )
+                if _post_hoc_overlap is None:
+                    patient_records.append(mother_rec)
+                # Append companion records (newborn etc.). Their
+                # ``admit_source_encounter_id`` has been repointed if the
+                # mother was merged; otherwise it still targets the
+                # newly-appended mother encounter.
+                for _r in companions:
+                    patient_records.append(_r)
             n_calendar += 1
             continue
         elif event.event_type == "chemo_visit":
