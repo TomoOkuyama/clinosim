@@ -243,3 +243,144 @@ def test_find_overlapping_returns_earliest_when_multiple():
     rec_late.encounters[0].encounter_id = "ENC-POP-1-2"
     found = _find_overlapping_inpatient_record([rec_early, rec_late], "POP-1", datetime(2026, 6, 17, 12))
     assert found is rec_early
+
+
+# --- Post-hoc actual-period overlap verifier (Issue #1430) ---
+#
+# The pre-dispatch gates (``_find_active_inpatient_record`` +
+# ``_find_overlapping_inpatient_record``) key off ``event_time =
+# datetime(year, month, day, 12, 0)`` because the life-event stream is
+# date-precision. The actual admit hour is not decided until
+# ``_simulate_patient`` runs, so both gates can miss overlaps at the
+# hour level. ``_verify_no_actual_overlap`` runs after simulation with
+# the real ``admission_datetime`` / ``discharge_datetime`` on the new
+# record and closes the residual gap.
+
+
+def test_verify_no_actual_overlap_returns_none_when_no_prior_records():
+    from clinosim.simulator.engine import _verify_no_actual_overlap
+
+    new_rec = _make_inpatient_record("POP-1", datetime(2026, 2, 7, 18, 3), datetime(2026, 2, 12, 12, 3))
+    assert _verify_no_actual_overlap([], new_rec) is None
+
+
+def test_verify_detects_us_same_day_two_late_admits():
+    """Reproduces the US p=10000 s=359 case: two same-day life events for
+    one person, both landing after noon. The pre-dispatch gate at
+    date+noon sees the first record as ``admission (18:03) > noon``, so
+    the second record's noon check is passed, but at simulate time it
+    lands at 19:46 — a concurrent stay the noon gate could never catch.
+    """
+    from clinosim.simulator.engine import _verify_no_actual_overlap
+
+    prior = _make_inpatient_record("POP-1", datetime(2026, 2, 7, 18, 3), datetime(2026, 2, 12, 12, 3))
+    new_rec = _make_inpatient_record(
+        "POP-1", datetime(2026, 2, 7, 19, 46), datetime(2026, 2, 11, 13, 46), primary_disease="acute_mi"
+    )
+    new_rec.encounters[0].encounter_id = "ENC-POP-1-2"
+    found = _verify_no_actual_overlap([prior], new_rec)
+    assert found is prior
+
+
+def test_verify_detects_readmit_before_prior_discharge():
+    """Reproduces the JP p=10000 s=359 case: prior stay discharges at
+    10:37, readmission's noon gate sees ``rec_end (10:37) <= noon`` and
+    skips it. Readmission simulates and lands at 06:12 — before the
+    prior discharge, i.e. a time-machine violation.
+    """
+    from clinosim.simulator.engine import _verify_no_actual_overlap
+
+    prior = _make_inpatient_record("POP-2", datetime(2026, 7, 22, 0, 37), datetime(2026, 8, 16, 10, 37))
+    new_rec = _make_inpatient_record(
+        "POP-2", datetime(2026, 8, 16, 6, 12), datetime(2026, 9, 4, 11, 12), primary_disease="heart_failure"
+    )
+    new_rec.encounters[0].encounter_id = "ENC-POP-2-2"
+    found = _verify_no_actual_overlap([prior], new_rec)
+    assert found is prior
+
+
+def test_verify_returns_none_when_periods_are_disjoint():
+    """No overlap → returns None. Prior ends 12:03 on 2/12, new starts
+    12:04 on 2/12 → no intersection under half-open interval semantics."""
+    from clinosim.simulator.engine import _verify_no_actual_overlap
+
+    prior = _make_inpatient_record("POP-1", datetime(2026, 2, 7, 18, 3), datetime(2026, 2, 12, 12, 3))
+    new_rec = _make_inpatient_record(
+        "POP-1", datetime(2026, 2, 12, 12, 4), datetime(2026, 2, 15, 10, 0), primary_disease="acute_mi"
+    )
+    new_rec.encounters[0].encounter_id = "ENC-POP-1-2"
+    assert _verify_no_actual_overlap([prior], new_rec) is None
+
+
+def test_verify_ignores_other_patients():
+    from clinosim.simulator.engine import _verify_no_actual_overlap
+
+    prior = _make_inpatient_record("POP-99", datetime(2026, 2, 7, 18, 3), datetime(2026, 2, 12, 12, 3))
+    new_rec = _make_inpatient_record("POP-1", datetime(2026, 2, 7, 19, 46), datetime(2026, 2, 11, 13, 46))
+    assert _verify_no_actual_overlap([prior], new_rec) is None
+
+
+def test_verify_ignores_outpatient_records():
+    from clinosim.simulator.engine import _verify_no_actual_overlap
+
+    prior = _make_inpatient_record("POP-1", datetime(2026, 2, 7, 18, 3), datetime(2026, 2, 12, 12, 3))
+    prior.encounters[0].encounter_type = EncounterType.OUTPATIENT
+    new_rec = _make_inpatient_record("POP-1", datetime(2026, 2, 7, 19, 46), datetime(2026, 2, 11, 13, 46))
+    new_rec.encounters[0].encounter_id = "ENC-POP-1-2"
+    assert _verify_no_actual_overlap([prior], new_rec) is None
+
+
+def test_verify_ignores_self_reference():
+    """Defensive: even if the new record were somehow already in the list
+    it must not match itself as its own overlap."""
+    from clinosim.simulator.engine import _verify_no_actual_overlap
+
+    new_rec = _make_inpatient_record("POP-1", datetime(2026, 2, 7, 18, 3), datetime(2026, 2, 12, 12, 3))
+    assert _verify_no_actual_overlap([new_rec], new_rec) is None
+
+
+def test_verify_returns_earliest_when_multiple_overlap():
+    """When more than one prior record overlaps, return the earliest so
+    the disease merges into the primary stay (matches the pre-dispatch
+    gate's behavior)."""
+    from clinosim.simulator.engine import _verify_no_actual_overlap
+
+    early = _make_inpatient_record("POP-1", datetime(2026, 2, 7, 10, 0), datetime(2026, 2, 20, 10, 0))
+    late = _make_inpatient_record(
+        "POP-1", datetime(2026, 2, 10, 12, 0), datetime(2026, 2, 15, 12, 0), primary_disease="secondary_dx"
+    )
+    late.encounters[0].encounter_id = "ENC-POP-1-2"
+    new_rec = _make_inpatient_record(
+        "POP-1", datetime(2026, 2, 12, 6, 0), datetime(2026, 2, 18, 12, 0), primary_disease="tertiary_dx"
+    )
+    new_rec.encounters[0].encounter_id = "ENC-POP-1-3"
+    found = _verify_no_actual_overlap([early, late], new_rec)
+    assert found is early
+
+
+def test_verify_new_stay_still_admitted_treats_as_infinite():
+    """A new record with discharge_datetime=None (still admitted at
+    snapshot) must be treated as extending to +inf, so any prior stay
+    whose end is after the new admit still overlaps."""
+    from clinosim.simulator.engine import _verify_no_actual_overlap
+
+    prior = _make_inpatient_record("POP-1", datetime(2026, 2, 7, 18, 3), datetime(2026, 2, 20, 12, 0))
+    new_rec = _make_inpatient_record("POP-1", datetime(2026, 2, 15, 6, 0), None, primary_disease="acute_mi")
+    new_rec.encounters[0].encounter_id = "ENC-POP-1-2"
+    found = _verify_no_actual_overlap([prior], new_rec)
+    assert found is prior
+
+
+def test_verify_prior_still_admitted_treats_as_infinite():
+    """A prior record still admitted at snapshot (discharge_datetime=None)
+    must be treated as +inf, so any subsequent same-patient stay
+    overlaps."""
+    from clinosim.simulator.engine import _verify_no_actual_overlap
+
+    prior = _make_inpatient_record("POP-1", datetime(2026, 2, 7, 18, 3), None)
+    new_rec = _make_inpatient_record(
+        "POP-1", datetime(2026, 3, 1, 6, 0), datetime(2026, 3, 10, 12, 0), primary_disease="acute_mi"
+    )
+    new_rec.encounters[0].encounter_id = "ENC-POP-1-2"
+    found = _verify_no_actual_overlap([prior], new_rec)
+    assert found is prior

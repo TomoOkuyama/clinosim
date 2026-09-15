@@ -176,6 +176,81 @@ def _find_overlapping_inpatient_record(
     return best
 
 
+def _verify_no_actual_overlap(
+    patient_records: list[CIFPatientRecord],
+    new_record: CIFPatientRecord,
+) -> CIFPatientRecord | None:
+    """Post-hoc overlap check using the just-simulated encounter's ACTUAL
+    ``admission_datetime`` and ``discharge_datetime`` — not the
+    ``date + noon`` sentinel that fed the pre-dispatch gate.
+
+    Issue #1430: ``_find_active_inpatient_record`` (main loop) and
+    ``_find_overlapping_inpatient_record`` (readmission loop) both key off
+    ``event_time = datetime(year, month, day, 12, 0)`` because the
+    life-event stream carries date-precision timestamps. The actual admit
+    hour is not decided until ``_simulate_patient`` runs, so both gates
+    can miss overlaps that manifest at the hour level:
+
+    - Main loop: two same-day life events for one person. The first
+      lands with ``admission_datetime = 18:03``. The second's noon gate
+      sees a record whose ``admission_datetime (18:03) > event_time
+      (12:00)``, so the record is skipped (``_find_active_inpatient_record``
+      only counts records already active *at* event_time). The second
+      then simulates and lands at ``19:46`` — a physically-concurrent
+      stay the pre-dispatch gate never had the data to catch.
+
+    - Readmission loop: a readmission fires the same day the prior stay
+      is discharged. Prior discharge is ``10:37``, readmission's noon
+      gate sees ``rec_end (10:37) <= event_time (12:00)``, so the record
+      is skipped as already-ended. The readmission then simulates and
+      lands at ``06:12`` — before the prior discharge (time-machine
+      violation).
+
+    Both cases share the same shape: the pre-dispatch gate is
+    date-precision, the actual admission clock is hour-precision, so a
+    post-hoc verifier is the right place to catch the residual overlap.
+    Returns the earliest-admitting existing record whose period intersects
+    the new record's actual period, if any. Callers merge the new
+    disease into that record (mirroring the pre-dispatch merge path) and
+    discard the concurrent stay.
+    """
+    if not new_record.encounters:
+        return None
+    new_enc = new_record.encounters[0]
+    if new_enc.encounter_type != EncounterType.INPATIENT:
+        return None
+    new_admit = new_enc.admission_datetime
+    if new_admit is None:
+        return None
+    new_dc = new_enc.discharge_datetime if new_enc.discharge_datetime is not None else datetime.max
+    person_id = new_record.patient.patient_id
+    best: CIFPatientRecord | None = None
+    best_admit: datetime | None = None
+    for record in patient_records:
+        if record is new_record:
+            continue
+        if record.patient.patient_id != person_id:
+            continue
+        if not record.encounters:
+            continue
+        enc = record.encounters[0]
+        if enc.encounter_type != EncounterType.INPATIENT:
+            continue
+        rec_start = enc.admission_datetime
+        if rec_start is None:
+            continue
+        rec_end = enc.discharge_datetime if enc.discharge_datetime is not None else datetime.max
+        # Half-open overlap: [rec_start, rec_end) ∩ [new_admit, new_dc)
+        if rec_start >= new_dc:
+            continue  # existing starts at or after new's end
+        if rec_end <= new_admit:
+            continue  # existing ended at or before new's start
+        if best_admit is None or rec_start < best_admit:
+            best_admit = rec_start
+            best = record
+    return best
+
+
 def _merge_disease_into_active_encounter(
     active_record: CIFPatientRecord,
     disease_id: str,
@@ -757,6 +832,20 @@ def run_beta(
                 hospital_state=hospital_state,
                 hospital_ops=hospital_ops,
             )
+        # Issue #1430: post-hoc overlap check. The pre-dispatch gate above
+        # (``_find_active_inpatient_record``) uses date+noon, so it can
+        # miss overlaps that manifest at the actual admit hour (~1 per
+        # 10,000 patients on p=10000 s=359 verify). Re-run the check
+        # against the just-simulated record's real admission_datetime;
+        # if it now overlaps an existing stay, treat it the same way the
+        # pre-dispatch gate would have — merge as an in-hospital
+        # complication and discard the concurrent encounter.
+        _post_hoc_overlap = _verify_no_actual_overlap(patient_records, record)
+        if _post_hoc_overlap is not None:
+            _merge_disease_into_active_encounter(_post_hoc_overlap, disease_id, record.encounters[0].admission_datetime)
+            hospital_state.bed_occupancy = max(0.0, hospital_state.bed_occupancy - 1.0 / beds_total)
+            concurrent_patients = max(0, concurrent_patients - 1)
+            continue
         patient_records.append(record)
         _deactivate_to_layer1(person, record, disease_id, patient_cache=patient_cache)
         # Track discharge for bed occupancy management
@@ -866,6 +955,18 @@ def run_beta(
             hospital_state=hospital_state,
             hospital_ops=hospital_ops,
         )
+        # Issue #1430: post-hoc overlap check (see main-loop copy for
+        # rationale). The readmission's noon gate uses period-overlap,
+        # but a discharge at 10:37 with a readmission that lands at
+        # 06:12 the same day escapes both gates — the noon check sees
+        # the prior stay as already-ended, and only the actual admit
+        # hour reveals the time-machine violation.
+        _post_hoc_overlap = _verify_no_actual_overlap(patient_records, record)
+        if _post_hoc_overlap is not None:
+            _merge_disease_into_active_encounter(
+                _post_hoc_overlap, re_event.disease_id, record.encounters[0].admission_datetime
+            )
+            continue
         patient_records.append(record)
         _deactivate_to_layer1(person, record, re_event.disease_id, patient_cache=patient_cache)
         if record.deceased:
