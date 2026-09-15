@@ -284,6 +284,129 @@ def test_stub_day_index_missing_dates_defaults_to_zero(tmp_path: Path):
 # ─── backward compat (pre-1a structural JSON) ────────────────────────────
 
 
+# ─── safety_skips / newborn_workup wiring (Issues #1431, #1432) ──────────
+#
+# These two ctx fields were added to ``context.build_narrative_context`` for
+# #1066 (drug_safety) and #1404 (neonatal) respectively, but the production
+# path (``passes.NarrativePass._build_context``) had drifted from that
+# factory and silently omitted both kwargs. As a result all 4,927 US /
+# 4,653 JP CIF safety_skip_log entries and every neonatal Apgar/CCHD/
+# workup projection dropped between CIF and FHIR DocumentReference on
+# p=10000 s=359 verify. These tests pin the wiring so a future drift is
+# caught immediately.
+
+
+def test_safety_skips_wired_from_patient_safety_skip_log():
+    """#1431: ctx.safety_skips must project matching-encounter entries
+    from ``patient.safety_skip_log`` when passes.py builds the context."""
+    pd = _patient_dict()
+    pd["patient"]["safety_skip_log"] = [
+        {
+            "encounter_id": "ENC-1",
+            "candidate_drug": "Ibuprofen",
+            "candidate_drug_ja": "イブプロフェン",
+            "active_conflict": "Warfarin",
+            "active_conflict_ja": "ワルファリン",
+            "verdict": {
+                "severity": "contraindicated",
+                "rationale_en": "GI bleed risk",
+                "rationale_ja": "消化管出血リスク",
+            },
+            "substituted_with": "Acetaminophen",
+            "substituted_with_ja": "アセトアミノフェン",
+            "context_hint": "pain_management",
+            "event_type": "substitute",
+            "stopped_on_day": None,
+        }
+    ]
+    ctx = _build_ctx(pd)
+    assert len(ctx.safety_skips) == 1
+    entry = ctx.safety_skips[0]
+    assert entry["considered"] == "Ibuprofen"
+    assert entry["substituted_with"] == "Acetaminophen"
+    assert entry["event_type"] == "substitute"
+    assert entry["severity"] == "contraindicated"
+
+
+def test_safety_skips_filtered_by_encounter_id():
+    """Entries whose encounter_id does not match the active encounter
+    are filtered out — no cross-encounter leakage."""
+    pd = _patient_dict()
+    pd["patient"]["safety_skip_log"] = [
+        {
+            "encounter_id": "ENC-1",
+            "candidate_drug": "Ibuprofen",
+            "candidate_drug_ja": "イブプロフェン",
+            "active_conflict": "Warfarin",
+            "active_conflict_ja": "ワルファリン",
+            "verdict": None,
+            "substituted_with": None,
+            "substituted_with_ja": None,
+            "context_hint": "pain_management",
+            "event_type": "hold",
+            "stopped_on_day": 2,
+        },
+        {
+            "encounter_id": "ENC-OTHER",
+            "candidate_drug": "Aspirin",
+            "candidate_drug_ja": "アスピリン",
+            "active_conflict": "Warfarin",
+            "active_conflict_ja": "ワルファリン",
+            "verdict": None,
+            "substituted_with": None,
+            "substituted_with_ja": None,
+            "context_hint": "pain_management",
+            "event_type": "avoid",
+            "stopped_on_day": None,
+        },
+    ]
+    ctx = _build_ctx(pd)
+    assert len(ctx.safety_skips) == 1
+    assert ctx.safety_skips[0]["considered"] == "Ibuprofen"
+    assert ctx.safety_skips[0]["event_type"] == "hold"
+
+
+def test_safety_skips_empty_when_no_log():
+    """Absent safety_skip_log → ctx.safety_skips == []."""
+    ctx = _build_ctx(_patient_dict())
+    assert ctx.safety_skips == []
+
+
+def test_newborn_workup_wired_for_neonate():
+    """#1432: ctx.newborn_workup must project record.extensions['newborn']
+    when the patient is a neonate (age=0)."""
+    pd = _patient_dict()
+    pd["patient"]["age"] = 0
+    pd["patient"]["occupation"] = "infant"
+    pd["extensions"] = {
+        "newborn": {
+            "apgar": [
+                {"minute": 1, "score": 8},
+                {"minute": 5, "score": 9},
+            ],
+            "bilirubin": [{"value_mg_dl": 12.5}],
+            "cchd_pulse_ox": [
+                {"site": "right_hand", "value_pct": 98},
+                {"site": "foot", "value_pct": 97},
+            ],
+        }
+    }
+    ctx = _build_ctx(pd)
+    nw = ctx.newborn_workup
+    assert nw.get("is_neonate") is True
+    assert nw.get("apgar_1min") == 8
+    assert nw.get("apgar_5min") == 9
+    assert nw.get("bilirubin_peak") == 12.5
+    assert nw.get("cchd_ru_spo2") == 98
+    assert nw.get("cchd_le_spo2") == 97
+
+
+def test_newborn_workup_empty_for_non_neonate():
+    """Non-neonate patient → ctx.newborn_workup == {}."""
+    ctx = _build_ctx(_patient_dict())
+    assert ctx.newborn_workup == {}
+
+
 def test_old_cif_without_new_fields_defaults_cleanly():
     """Pre-1a JSON: no severity/archetype on encounter, no condition_event,
     missing list keys → sensible defaults, no raise."""

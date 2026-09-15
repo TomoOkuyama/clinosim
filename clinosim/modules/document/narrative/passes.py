@@ -25,6 +25,7 @@ if TYPE_CHECKING:
 from clinosim.modules._shared import get_attr_or_key as _o
 from clinosim.modules._shared import is_jp, resolve_lang
 from clinosim.modules.document import specs_for_country
+from clinosim.modules.document.narrative.context import _build_newborn_workup, _build_safety_skips
 from clinosim.modules.document.narrative.fact_extractor import extract_all_facts
 from clinosim.modules.document.narrative.registry import DocumentTypeSpec
 from clinosim.modules.document.narrative.scenario_spine import build_narrative_spine
@@ -420,6 +421,16 @@ class NarrativePass(ABC):
             # Issue #982 — expose family_history for the narrative walker
             # (was previously ignored → 100% "特記家族歴なし" placeholder).
             family_history=list(patient_dict.get("family_history", []) or []),
+            # Issues #1431, #1432 — the ``context.build_narrative_context``
+            # factory wires ``safety_skips`` (drug_safety avoidance log,
+            # #1066) and ``newborn_workup`` (neonatal Apgar/CCHD/screen
+            # projection, #1404) but is only used by unit tests. The
+            # production factory (this one) had drifted and silently
+            # omitted both, so every entry / projection dropped between
+            # CIF and rendered narrative. Delegate to the same helpers
+            # here so the two factories stay in lockstep.
+            safety_skips=_build_safety_skips(patient_dict.get("patient"), encounter_dict),
+            newborn_workup=_build_newborn_workup(patient_dict, patient_dict.get("patient")),
         )
         ctx.narrative_spine = build_narrative_spine(
             disease_protocol,
