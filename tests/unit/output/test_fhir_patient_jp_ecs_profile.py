@@ -127,6 +127,9 @@ def test_issue_926_deceased_patient_flips_active_false() -> None:
     dead["date_of_death"] = "2025-12-16"
     p = _build_patient(dead, country="JP")
     assert p.get("active") is False, f"deceased Patient must have active=false, got {p.get('active')}"
-    assert p.get("deceasedDateTime") == "2025-12-16"
+    # Issue #1440: date-only ``date_of_death`` expands to end-of-day at
+    # the country's TZ so same-day intra-day events (encounter discharge,
+    # post-mortem Condition record) fall before the deceased moment.
+    assert p.get("deceasedDateTime") == "2025-12-16T23:59:59+09:00"
     # deceasedBoolean must NOT be emitted alongside deceasedDateTime.
     assert "deceasedBoolean" not in p
