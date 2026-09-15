@@ -41,7 +41,6 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.
 
 ### Added
 
-<<<<<<< HEAD
 - **US Core narrow-gate compliance axis + CI gate**
   (S115, Issue #1418 Phase 1). New `clinosim.eval.axes.us_core_compliance`
   registers a 7-check axis that runs strictly (`threshold=1.0`) on US
@@ -73,7 +72,6 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.
   (US p=300 seed=300 → `clinosim eval --strict --only-axes
   us_core_compliance`, ~1 min per PR). Full HL7 FHIR Validator
   coverage for US Core stays on the roadmap as Phase 3 (Issue #1418).
-=======
 - **JP Core narrow-gate compliance axis + CI gate**
   (S115, Issue #1418 Phase 1). New
   `clinosim.eval.axes.jp_core_compliance` registers a 7-check axis
@@ -101,7 +99,27 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.
   --only-axes jp_core_compliance`, ~1 min per PR). YJ/HOT drug code
   membership already covered in the `locale` axis so this new axis
   does not duplicate it.
->>>>>>> 1f97eeade8 (feat(eval): JP Core narrow-gate compliance axis + CI gate — #1418 Phase 1)
+- **US FHIR profile validator on-demand workflow**
+  (S115, Issue #1418 Phase 3). New `.github/workflows/us-validate.yml`
+  mirrors `jp-validate.yml`: runs the HL7 official FHIR Validator
+  against US Core 8.0 profiles on an on-demand trigger
+  (`workflow_dispatch` or PR label `us-validate`). Complements the
+  narrow gate (`us-core-compliance-gate.yml`, per-PR) with
+  spec-driven full validation for pre-release / label-triggered
+  runs. Files added:
+  - `.github/us-validator-pins.env` — validator_cli.jar and US Core
+    IG package version + SHA256 pins (STRICT mode default; jar
+    version 6.4.3, US Core 8.0.0).
+  - `.github/workflows/us-validate.yml` — CI wiring, timeout 30 min.
+  - `scripts/validate_us.sh` — end-to-end bridge (US cohort generate
+    → sample extraction for 9 US Core profiles → java validator
+    dispatch). Local dry-run without VALIDATOR_JAR extracts samples
+    only.
+  - `scripts/pin_us_validator.sh` — bootstrap helper that fetches
+    the pinned versions and writes SHA256 back into the pin file.
+  VALIDATOR_SHA256 remains empty in the initial commit; run
+  `bash scripts/pin_us_validator.sh` locally to populate it before
+  enabling STRICT gating on production.
 
 ### Changed
 
