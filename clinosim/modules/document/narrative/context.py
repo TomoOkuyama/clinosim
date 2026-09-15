@@ -249,40 +249,48 @@ def _build_newborn_workup(record: Any, patient: Any) -> dict[str, Any]:
 
 def _build_safety_skips(patient: Any, encounter: Any) -> list[dict[str, Any]]:
     """Filter ``patient.safety_skip_log`` to entries whose encounter_id matches
-    ``encounter.id`` and reshape into narrative-consumable dicts.
+    the active encounter and reshape into narrative-consumable dicts.
     Returns [] when patient is None, no log exists, or no entries match.
+
+    Accepts both attribute-shaped inputs (``SafetySkipEntry`` dataclass +
+    ``PatientProfile`` from in-process simulation) and dict-shaped inputs
+    (JSON-hydrated CIF read from disk by ``passes.NarrativePass``). The
+    encounter is looked up via ``id`` first (attr shape from the runtime
+    ``Encounter``) then ``encounter_id`` (dict shape from CIF JSON).
     """
     if patient is None:
         return []
     raw_log = _o(patient, "safety_skip_log", []) or []
     if not raw_log:
         return []
-    encounter_id = _o(encounter, "id", None) if encounter is not None else None
+    if encounter is None:
+        return []
+    encounter_id = _o(encounter, "id", None) or _o(encounter, "encounter_id", None)
     if encounter_id is None:
         return []
     out: list[dict[str, Any]] = []
     for entry in raw_log:
-        if getattr(entry, "encounter_id", None) != encounter_id:
+        if _o(entry, "encounter_id", None) != encounter_id:
             continue
-        verdict = getattr(entry, "verdict", None)
+        verdict = _o(entry, "verdict", None)
         out.append(
             {
-                "considered": entry.candidate_drug,
-                "considered_ja": entry.candidate_drug_ja,
-                "avoided_due_to": entry.active_conflict,
-                "avoided_due_to_ja": entry.active_conflict_ja,
-                "rationale_en": getattr(verdict, "rationale_en", None),
-                "rationale_ja": getattr(verdict, "rationale_ja", None),
-                "substituted_with": entry.substituted_with,
-                "substituted_with_ja": entry.substituted_with_ja,
-                "context": entry.context_hint,
-                "severity": getattr(verdict, "severity", None),
+                "considered": _o(entry, "candidate_drug", None),
+                "considered_ja": _o(entry, "candidate_drug_ja", None),
+                "avoided_due_to": _o(entry, "active_conflict", None),
+                "avoided_due_to_ja": _o(entry, "active_conflict_ja", None),
+                "rationale_en": _o(verdict, "rationale_en", None),
+                "rationale_ja": _o(verdict, "rationale_ja", None),
+                "substituted_with": _o(entry, "substituted_with", None),
+                "substituted_with_ja": _o(entry, "substituted_with_ja", None),
+                "context": _o(entry, "context_hint", None),
+                "severity": _o(verdict, "severity", None),
                 # Issue #1403: event_type distinguishes silent-drop paths
                 # (avoid / hold / substitute / deescalate) for narrative
                 # Rule 2 cadence dispatch. Default "avoid" preserves the
                 # legacy pair-conflict interpretation for older logs.
-                "event_type": getattr(entry, "event_type", "avoid"),
-                "stopped_on_day": getattr(entry, "stopped_on_day", None),
+                "event_type": _o(entry, "event_type", "avoid"),
+                "stopped_on_day": _o(entry, "stopped_on_day", None),
             }
         )
     return out
