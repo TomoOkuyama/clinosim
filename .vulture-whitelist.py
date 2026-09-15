@@ -568,3 +568,18 @@ _.audit_drug_safety  # modules/drug_safety/audit.py:30
 # pick. Read by tests + a future audit path that traces which YAML block
 # supplied each substitute. Kept as documented public data-carrier field.
 _.source_path  # modules/drug_safety/engine.py::AlternativeDrug
+
+# SafetySkipEntry dataclass fields consumed via ``_o(entry, "<field>", …)``
+# (get_attr_or_key) in ``modules/document/narrative/context.py::_build_safety_skips``.
+# Attribute-access reads were replaced with the ``_o`` helper in Issue #1431
+# so the same builder accepts both attribute-shaped inputs (in-process
+# ``SafetySkipEntry`` from simulation) and dict-shaped inputs (JSON-hydrated
+# CIF read from disk by ``passes.NarrativePass``). Vulture only sees the
+# dataclass field declarations + write sites in outpatient.py / discharge_rx.py
+# / drug_safety and misses the ``_o``-style consumer.
+_.candidate_drug_ja  # modules/drug_safety/verdict.py::SafetySkipEntry — read via _o() in narrative/context.py
+_.active_conflict_ja  # modules/drug_safety/verdict.py::SafetySkipEntry — read via _o() in narrative/context.py
+_.substituted_with  # modules/drug_safety/verdict.py::SafetySkipEntry — read via _o() in narrative/context.py
+_.substituted_with_ja  # modules/drug_safety/verdict.py::SafetySkipEntry — read via _o() in narrative/context.py
+_.context_hint  # modules/drug_safety/verdict.py::SafetySkipEntry — read via _o() in narrative/context.py
+_.stopped_on_day  # modules/drug_safety/verdict.py::SafetySkipEntry — read via _o() in narrative/context.py
