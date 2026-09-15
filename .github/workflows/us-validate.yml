@@ -1,0 +1,120 @@
+# US FHIR profile validation (S115, Issue #1418 Phase 3)
+#
+# HL7 official FHIR Validator を US Core profile に対して自動実行する
+# CI gate。JP 側 (`jp-validate.yml`) の mirror。
+#   - validator_cli.jar の version + SHA256 pin (`.github/us-validator-pins.env`)
+#   - US Core IG package の version / URL / SHA256 pin
+#   - STRICT モード (pin mismatch → fail)
+#   - workflow_dispatch の run_validator default=true (auto-fail gate)
+#   - PR label "us-validate" trigger は維持 (重い job のため on-demand)
+#
+# 毎 PR で走る narrow gate は `.github/workflows/us-core-compliance-gate.yml`
+# 側にある (US Core narrow-list eval axis)。この workflow はそれで検出
+# しきれない spec-driven 全 invariant を on-demand で回す位置付け。
+name: US FHIR validate
+
+on:
+  workflow_dispatch:
+    inputs:
+      population:
+        description: "Population size (default 100)"
+        required: false
+        default: "100"
+      seed:
+        description: "Random seed (default 42)"
+        required: false
+        default: "42"
+      run_validator:
+        description: "Run the HL7 validator against samples (auto-fail on mismatch)"
+        type: boolean
+        required: false
+        default: true
+      strict_pins:
+        description: "STRICT mode — SHA256 mismatch → job fail"
+        type: boolean
+        required: false
+        default: true
+  pull_request:
+    types: [labeled]
+
+jobs:
+  us-validate:
+    if: >
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'pull_request' && github.event.label.name == 'us-validate')
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+
+      - name: Install clinosim
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e .
+
+      - name: Load validator pins
+        id: pins
+        run: |
+          set -euo pipefail
+          set -a
+          # shellcheck disable=SC1091
+          source .github/us-validator-pins.env
+          set +a
+          echo "VALIDATOR_VERSION=$VALIDATOR_VERSION" >> "$GITHUB_ENV"
+          echo "VALIDATOR_SHA256=$VALIDATOR_SHA256"   >> "$GITHUB_ENV"
+          echo "  pinned validator: $VALIDATOR_VERSION (sha256=${VALIDATOR_SHA256:-<unset>})"
+
+      - name: Set up Java (validator)
+        if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.run_validator == 'true' || github.event_name == 'pull_request' }}
+        uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Download HL7 FHIR Validator (pinned version)
+        if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.run_validator == 'true' || github.event_name == 'pull_request' }}
+        run: |
+          set -euo pipefail
+          mkdir -p .cache
+          url="https://github.com/hapifhir/org.hl7.fhir.core/releases/download/${VALIDATOR_VERSION}/validator_cli.jar"
+          echo "downloading validator_cli.jar $VALIDATOR_VERSION"
+          curl -sSL --fail -o .cache/validator_cli.jar "$url"
+          echo "VALIDATOR_JAR=$PWD/.cache/validator_cli.jar" >> "$GITHUB_ENV"
+
+      - name: Verify validator SHA256 (STRICT gate)
+        if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.run_validator == 'true' || github.event_name == 'pull_request' }}
+        env:
+          STRICT: ${{ github.event.inputs.strict_pins }}
+        run: |
+          set -euo pipefail
+          if [ -z "${VALIDATOR_SHA256:-}" ]; then
+              if [ "${STRICT:-true}" = "true" ]; then
+                  echo "::error::VALIDATOR_SHA256 pin が未設定です。scripts/pin_us_validator.sh を実行して .github/us-validator-pins.env を更新してください。"
+                  echo "  (bootstrap 実行例:)"
+                  actual=$(shasum -a 256 "$VALIDATOR_JAR" | awk '{print $1}')
+                  echo "  VALIDATOR_SHA256=$actual"
+                  exit 1
+              fi
+              echo "::warning::VALIDATOR_SHA256 未設定 (soft-mode で continue)"
+              exit 0
+          fi
+          actual=$(shasum -a 256 "$VALIDATOR_JAR" | awk '{print $1}')
+          if [ "$actual" != "$VALIDATOR_SHA256" ]; then
+              echo "::error::SHA256 mismatch: expected=$VALIDATOR_SHA256 actual=$actual"
+              exit 1
+          fi
+          echo "  validator SHA256 verified: $actual"
+
+      - name: Run US validation bridge
+        env:
+          CLINOSIM_US_VAL_POPULATION: ${{ github.event.inputs.population || '100' }}
+          CLINOSIM_US_VAL_SEED: ${{ github.event.inputs.seed || '42' }}
+          CLINOSIM_US_VAL_PINS: ${{ github.workspace }}/.github/us-validator-pins.env
+          CLINOSIM_US_VAL_STRICT: ${{ (github.event.inputs.strict_pins || 'true') == 'true' && '1' || '0' }}
+        run: |
+          chmod +x scripts/validate_us.sh
+          scripts/validate_us.sh
