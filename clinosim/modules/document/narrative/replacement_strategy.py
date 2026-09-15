@@ -1592,21 +1592,33 @@ def _build_extra_context(
 
 
 def _render_chronic_list(chronic: list, lang: str = "en") -> str:
-    """chronic_conditions [{'code','severity','stage','onset_date'}, ...] →
-    short comma-separated string.
+    """chronic_conditions [{'code','system','severity','stage','onset_date'}, ...]
+    → short comma-separated string of the form
+    ``"<display> (<code>) (<stage>, <severity>)"``.
 
     session-88j Phase B: when ``lang == "ja"`` translates the severity
     token (mild/moderate/severe → 軽度/中等度/重度) inline so downstream
     LLM verbatim-copy behaviour lands natural Japanese instead of raw
     English tokens. Stage codes ("Stage 1", "G3b", "NYHA II") are
     intentionally kept as-is since those are the JA medical standard.
+
+    Issue #1445: when the entry carries an explicit ``system`` field the
+    display is resolved via :func:`clinosim.codes.lookup` and prepended
+    to the code so the LLM does not have to guess the label from
+    parametric memory (observed hallucination: G20 → "glaucoma", where
+    G20 is Parkinson's disease and glaucoma is H40). Entries without a
+    ``system`` field (legacy CIFs that stored resolved labels directly
+    in ``code``) pass through unchanged for backward compatibility.
     """
+    from clinosim.codes import lookup as code_lookup
+
     parts = []
     for c in (chronic or [])[:15]:
         if isinstance(c, str):
             parts.append(c)
             continue
         code = _get(c, "code", "") or ""
+        system = _get(c, "system", "") or ""
         stage = _get(c, "stage", "") or ""
         sev = _get(c, "severity", "") or ""
         if sev and lang == "ja":
@@ -1618,7 +1630,17 @@ def _render_chronic_list(chronic: list, lang: str = "en") -> str:
             detail = f" ({stage})"
         elif sev:
             detail = f" ({sev})"
-        if code:
+        # Issue #1445: resolve display when system is present. code_lookup
+        # echoes the code back on miss (unmapped / fictional codes), so
+        # guard against emitting a redundant "CODE (CODE)" string.
+        display = ""
+        if code and system:
+            resolved = code_lookup(system, code, lang) or ""
+            if resolved and resolved != code:
+                display = resolved
+        if display and code:
+            parts.append(f"{display} ({code}){detail}")
+        elif code:
             parts.append(f"{code}{detail}")
     return "; ".join(parts) if parts else ""
 

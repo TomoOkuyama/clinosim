@@ -172,6 +172,81 @@ def test_render_chronic_list_en_leaves_severity_untranslated():
     assert "軽度" not in en
 
 
+# ----- Issue #1445: ICD code → display resolution to prevent LLM hallucination -----
+#
+# When the LLM narrative pass receives ``chronic_conditions`` as bare
+# codes (``{"code": "G20", "system": "icd-10-cm"}``) with no paired
+# display, the model resolves the label from parametric memory and can
+# emit factually wrong pairings — observed on p=100 H100 verify: G20
+# (Parkinson's disease) rendered as "glaucoma" (correctly H40). Fix:
+# ``_render_chronic_list`` resolves display via ``code_lookup`` when the
+# entry carries a ``system`` field, so the prompt receives an
+# unambiguous ``display (code, stage, severity)`` string that the LLM
+# uses verbatim.
+
+
+@pytest.mark.unit
+def test_render_chronic_list_resolves_icd_display_en():
+    """G20 must render as 'Parkinson disease (G20)', not just 'G20'."""
+    chronic = [{"code": "G20", "system": "icd-10-cm", "severity": "mild"}]
+    en = _render_chronic_list(chronic, lang="en")
+    assert "Parkinson" in en, f"expected 'Parkinson' in {en!r}"
+    assert "(G20)" in en, f"expected '(G20)' in {en!r}"
+    assert "mild" in en
+
+
+@pytest.mark.unit
+def test_render_chronic_list_resolves_icd_display_ja():
+    """Same case, JA locale — display must be the JA name."""
+    chronic = [{"code": "G20", "system": "icd-10-cm", "severity": "mild"}]
+    ja = _render_chronic_list(chronic, lang="ja")
+    assert "パーキンソン" in ja, f"expected 'パーキンソン' in {ja!r}"
+    assert "(G20)" in ja
+    assert "軽度" in ja
+
+
+@pytest.mark.unit
+def test_render_chronic_list_legacy_no_system_passes_through():
+    """Backward compat: entries without a ``system`` field render as
+    before (code echo only). Legacy CIFs that stored resolved labels
+    directly in ``code`` (e.g. ``code = 'essential HTN'``) must not
+    trigger a spurious lookup."""
+    chronic = [{"code": "essential HTN", "severity": "mild"}]
+    en = _render_chronic_list(chronic, lang="en")
+    # No paired display appended when system is absent.
+    assert "essential HTN" in en
+    # No accidental duplicate resolution (would produce
+    # "essential HTN (essential HTN)" if lookup fired without system gate).
+    assert en.count("essential HTN") == 1
+
+
+@pytest.mark.unit
+def test_render_chronic_list_unknown_code_falls_back_cleanly():
+    """When ``code_lookup`` cannot resolve a code (fictional / unmapped),
+    ``code_lookup`` echoes the code back. The renderer must detect that
+    and avoid emitting a redundant ``CODE (CODE)`` string."""
+    chronic = [{"code": "ZZZ99", "system": "icd-10-cm", "severity": "mild"}]
+    en = _render_chronic_list(chronic, lang="en")
+    # Echoed code = no true display; renderer should skip the paren-display.
+    assert "ZZZ99 (ZZZ99)" not in en
+    assert "ZZZ99" in en
+    assert "mild" in en
+
+
+@pytest.mark.unit
+def test_render_chronic_list_multiple_icd_codes_all_resolved():
+    """Sanity: several conditions with system all render display + code."""
+    chronic = [
+        {"code": "I10", "system": "icd-10-cm"},
+        {"code": "N18", "system": "icd-10-cm", "stage": "CKD G4"},
+        {"code": "C34", "system": "icd-10-cm"},
+    ]
+    en = _render_chronic_list(chronic, lang="en")
+    # I10 → hypertension family, N18 → chronic kidney, C34 → lung.
+    for token in ("hypertension", "(I10)", "(N18)", "CKD G4", "(C34)"):
+        assert token.lower() in en.lower(), f"missing {token!r} in {en!r}"
+
+
 @pytest.mark.unit
 def test_render_supplemental_oxygen_today_ja_localizes_device():
     vitals = [

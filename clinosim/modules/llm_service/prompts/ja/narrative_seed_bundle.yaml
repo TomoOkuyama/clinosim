@@ -1,8 +1,23 @@
 task_type: narrative_seed_bundle
-version: 21
+version: 22
 max_tokens: 3500
 temperature: 0.1
 description: |
+  v22 変更点 (2026-09-15, Issue #1445):
+    - Rule 2 に新条項: ``chronic_conditions`` /
+      ``past_medical_history`` / ``discharge_diagnoses`` の payload が
+      ICD 有 code 疾患を含む場合、context 文字列に添えられた display
+      を **verbatim 使用しなければならない**。LLM が parametric
+      memory から label を推定してはならない。動機: p=100 H100 verify
+      で US 3 文書が G20 を "glaucoma" (実際は H40) と誤 label、抗パ
+      ーキンソン薬 Levodopa/Carbidopa の適応と narrative 上で解離した。
+      renderer (``replacement_strategy._render_chronic_list``) は
+      ``clinosim.codes.lookup`` で display を解決して
+      ``"<display> (<code>)"`` の shape で prompt に注入するので、
+      LLM の役割は verbatim copy であり label lookup ではない。
+      E11 → "糖尿病"、M17 → "変形性関節症" 等の specificity drop も
+      同 rule でカバー — display は完全な ICD-10-CM label
+      ("2型糖尿病"、"膝関節症" 等) を保持する。
   Bundle strategy for clinical document narrative generation.
   Locale-authored prompt — `prompt_registry.get("narrative_seed_bundle", language)`
   selects `prompts/{en,ja}/narrative_seed_bundle.yaml`. The `${target_language}`
@@ -462,6 +477,20 @@ system: |
          ウァルファリン     → ワルファリン
      - Delirium: 日本語出力では常に「せん妄」を用いる。中国語表記
        「谵妄」や音写「デリリア」を絶対に使わない。
+     - ICD 有 code の疾患 (chronic_conditions / past_medical_history /
+       discharge_diagnoses): context payload に添えられた display
+       (``"<display> (<code>)"`` の形) が authoritative である。display
+       を verbatim でコピーする。LLM が parametric memory から label
+       を推定してはならない — display は context 構築時に
+       ``clinosim.codes.lookup`` で pre-resolved されている。よくある
+       捏造 (LLM 誤り → 正解):
+         G20 → "緑内障"          (G20 はパーキンソン病、緑内障は H40)
+         E11 → "糖尿病"          (type を保持: 「2型糖尿病」)
+         M17 → "変形性関節症"    (部位を保持: 「膝関節症」)
+         F32 → "うつ病"          (episode を保持: 「うつ病エピソード、単発性」)
+       context payload が code のみ (display なし) で来た場合は、code
+       system が未マッピングの signal である — code をそのまま残し、
+       もっともらしい label を捏造しない。
      - 医療者氏名 (universal — S113→S114 name-resolution audit):
        テンプレートが既に解決済みの医療者名 (医師・看護師・執刀医・
        麻酔科医・助手) を含む section (例: 「担当医師：加瀬 幸男」)
