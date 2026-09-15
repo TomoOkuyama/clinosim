@@ -384,3 +384,114 @@ def test_verify_prior_still_admitted_treats_as_infinite():
     new_rec.encounters[0].encounter_id = "ENC-POP-1-2"
     found = _verify_no_actual_overlap([prior], new_rec)
     assert found is prior
+
+
+# --- _handle_overlap_via_merge helper (Issue #1436) ---
+#
+# The post-hoc verifier landed in #1430 was wired at two of five
+# ``patient_records`` append/extend sites in ``simulator/engine.py``.
+# Three sibling dispatchers (delivery / abortion / unknown_condition)
+# bypassed it and produced a residual same-patient IMP overlap
+# (JP p=10000 s=360: 1 case, mother whose delivery landed inside an
+# ongoing asthma admission). The helper ``_handle_overlap_via_merge``
+# consolidates the verifier + merge pattern so every dispatch site
+# can call one function, and it adds the delivery-specific companion
+# rewrite: newborn record's ``admit_source_encounter_id`` (FHIR
+# Encounter.partOf) is repointed from the discarded mother encounter
+# to the surviving encounter so the newborn linkage is preserved
+# even when the mother's delivery encounter is merged away.
+
+
+def test_handle_overlap_returns_none_when_no_overlap():
+    from clinosim.simulator.engine import _handle_overlap_via_merge
+
+    prior = _make_inpatient_record("POP-1", datetime(2026, 2, 7, 18, 3), datetime(2026, 2, 12, 12, 3))
+    new_rec = _make_inpatient_record(
+        "POP-1", datetime(2026, 3, 1, 10, 0), datetime(2026, 3, 8, 12, 0), primary_disease="delivery_o80"
+    )
+    new_rec.encounters[0].encounter_id = "ENC-POP-1-DELIV"
+    result = _handle_overlap_via_merge([prior], new_rec, "delivery_o80")
+    assert result is None
+
+
+def test_handle_overlap_merges_into_earlier_stay_when_detected():
+    """Overlap detected → new disease is merged into the earlier stay and
+    the earlier record is returned so the caller knows to skip append."""
+    from clinosim.simulator.engine import _handle_overlap_via_merge
+
+    prior = _make_inpatient_record("POP-1", datetime(2026, 2, 7, 18, 3), datetime(2026, 2, 20, 12, 3))
+    new_rec = _make_inpatient_record(
+        "POP-1", datetime(2026, 2, 10, 10, 0), datetime(2026, 2, 15, 12, 0), primary_disease="delivery_o80"
+    )
+    new_rec.encounters[0].encounter_id = "ENC-POP-1-DELIV"
+    result = _handle_overlap_via_merge([prior], new_rec, "delivery_o80")
+    assert result is prior
+    # Merge side-effect: disease appended to prior's complications.
+    assert "delivery_o80" in prior.complications_occurred
+
+
+def test_handle_overlap_rewrites_companion_admit_source_encounter_id():
+    """When the merged record is a mother's delivery encounter and a
+    companion newborn record's ``admit_source_encounter_id`` points at
+    the mother's discarded encounter, that reference must be repointed
+    to the earlier surviving encounter so the newborn's FHIR
+    ``Encounter.partOf`` still resolves."""
+    from clinosim.simulator.engine import _handle_overlap_via_merge
+
+    prior = _make_inpatient_record("POP-1", datetime(2026, 2, 7, 18, 3), datetime(2026, 2, 20, 12, 3))
+    prior.encounters[0].encounter_id = "ENC-POP-1-ASTHMA"
+    mother = _make_inpatient_record(
+        "POP-1", datetime(2026, 2, 10, 10, 0), datetime(2026, 2, 15, 12, 0), primary_disease="delivery_o80"
+    )
+    mother.encounters[0].encounter_id = "ENC-POP-1-DELIV"
+    newborn = _make_inpatient_record(
+        "POP-1-NEWBORN", datetime(2026, 2, 10, 10, 30), datetime(2026, 2, 15, 12, 0), primary_disease="z38_0"
+    )
+    newborn.encounters[0].encounter_id = "ENC-POP-1-NEWBORN"
+    newborn.encounters[0].admit_source_encounter_id = "ENC-POP-1-DELIV"
+
+    result = _handle_overlap_via_merge([prior], mother, "delivery_o80", companions=[newborn])
+    assert result is prior
+    # Newborn's partOf reference now points at the surviving stay.
+    assert newborn.encounters[0].admit_source_encounter_id == "ENC-POP-1-ASTHMA"
+
+
+def test_handle_overlap_companion_unchanged_when_no_overlap():
+    """If no overlap fires, the companion record must not be touched."""
+    from clinosim.simulator.engine import _handle_overlap_via_merge
+
+    prior = _make_inpatient_record("POP-1", datetime(2026, 2, 7, 18, 3), datetime(2026, 2, 8, 12, 3))
+    mother = _make_inpatient_record(
+        "POP-1", datetime(2026, 2, 10, 10, 0), datetime(2026, 2, 15, 12, 0), primary_disease="delivery_o80"
+    )
+    mother.encounters[0].encounter_id = "ENC-POP-1-DELIV"
+    newborn = _make_inpatient_record(
+        "POP-1-NEWBORN", datetime(2026, 2, 10, 10, 30), datetime(2026, 2, 15, 12, 0), primary_disease="z38_0"
+    )
+    newborn.encounters[0].encounter_id = "ENC-POP-1-NEWBORN"
+    newborn.encounters[0].admit_source_encounter_id = "ENC-POP-1-DELIV"
+
+    result = _handle_overlap_via_merge([prior], mother, "delivery_o80", companions=[newborn])
+    assert result is None
+    # partOf untouched.
+    assert newborn.encounters[0].admit_source_encounter_id == "ENC-POP-1-DELIV"
+
+
+def test_handle_overlap_companion_without_matching_ref_untouched():
+    """If a companion record's admit_source_encounter_id points at
+    something unrelated, the rewrite must be scoped: only references
+    pointing at the discarded encounter are repointed."""
+    from clinosim.simulator.engine import _handle_overlap_via_merge
+
+    prior = _make_inpatient_record("POP-1", datetime(2026, 2, 7, 18, 3), datetime(2026, 2, 20, 12, 3))
+    prior.encounters[0].encounter_id = "ENC-POP-1-ASTHMA"
+    mother = _make_inpatient_record(
+        "POP-1", datetime(2026, 2, 10, 10, 0), datetime(2026, 2, 15, 12, 0), primary_disease="delivery_o80"
+    )
+    mother.encounters[0].encounter_id = "ENC-POP-1-DELIV"
+    companion = _make_inpatient_record("POP-1-OTHER", datetime(2026, 2, 10, 10, 30), datetime(2026, 2, 15, 12, 0))
+    companion.encounters[0].encounter_id = "ENC-POP-1-OTHER"
+    companion.encounters[0].admit_source_encounter_id = "ENC-UNRELATED"
+
+    _handle_overlap_via_merge([prior], mother, "delivery_o80", companions=[companion])
+    assert companion.encounters[0].admit_source_encounter_id == "ENC-UNRELATED"
