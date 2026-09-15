@@ -24,6 +24,7 @@ from clinosim.modules.output.fhir_r4.lib.common import (
     build_address,
     build_telecom,
     to_fhir_date,
+    to_fhir_deceased_datetime,
 )
 from clinosim.modules.output.fhir_r4.lib.ids import (
     derive_opaque_id,
@@ -885,7 +886,11 @@ def _build_patient(p: dict, country: str) -> dict:
     # marks the patient as deceased, override with deceasedDateTime.
     _dod = p.get("date_of_death", "") or p.get("dod", "")
     if _dod:
-        resource["deceasedDateTime"] = str(_dod)
+        # Issue #1440: date-only ``date_of_death`` values must expand
+        # to end-of-day so same-day intra-day events (encounter
+        # discharge, post-mortem Condition record) fall before the
+        # deceased moment. Full datetime inputs pass through unchanged.
+        resource["deceasedDateTime"] = to_fhir_deceased_datetime(_dod, country)
         # Issue #926: FHIR `Patient.active` = "Whether this patient's record
         # is in active use." A deceased patient's record is by definition no
         # longer in active use. Flip active=false whenever the CIF marks

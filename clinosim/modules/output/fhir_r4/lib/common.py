@@ -1725,6 +1725,52 @@ def to_fhir_datetime(value: Any) -> str:
     return _append_tz_if_missing(s)
 
 
+def to_fhir_deceased_datetime(value: Any, country: str) -> str:
+    """Normalize ``Patient.deceasedDateTime``.
+
+    Issue #1440: a bare date value emits as ``YYYY-MM-DD`` and gets
+    interpreted by strict temporal checks as ``T00:00:00``. Any
+    same-day intra-day event — most importantly a death-related
+    inpatient encounter's ``period.end`` and a post-mortem
+    ``Condition.recordedDate`` — then falls after the deceased
+    moment even though the simulator's intent was that the patient
+    died at the end of the last encounter.
+
+    Expand a date-only input to end-of-day (``T23:59:59``) with the
+    country's canonical TZ suffix so every same-day event lands before
+    the deceased moment. Full datetime inputs (already carrying a time
+    component) pass through unchanged — a future upstream that widens
+    ``date_of_death`` to a real time-of-death datetime picks that up
+    with no further change here.
+
+    Empty / ``None`` returns ``""`` (matches ``to_fhir_datetime``).
+    """
+    if value is None or value == "":
+        return ""
+    tz = tz_suffix_for_country(country)
+    # Full datetime object → forward as-is with TZ.
+    if isinstance(value, datetime):
+        return to_fhir_datetime(value)
+    # date object → end-of-day at the country's TZ.
+    if isinstance(value, date) and not isinstance(value, datetime):
+        return f"{value.isoformat()}T23:59:59{tz}"
+    # String forms.
+    s = str(value)
+    # Already carries a time component → forward through the standard
+    # ``to_fhir_datetime`` normalizer (adds TZ if missing per the
+    # existing convention).
+    if "T" in s and len(s) >= 11:
+        return to_fhir_datetime(s)
+    # Space-separated datetime → normalize the separator then forward.
+    if len(s) >= 11 and s[10] == " ":
+        return to_fhir_datetime(s[:10] + "T" + s[11:])
+    # Date-only string (``YYYY-MM-DD``) → expand to end-of-day.
+    if len(s) == 10 and s[4] == "-" and s[7] == "-":
+        return f"{s}T23:59:59{tz}"
+    # Fallback: forward as-is.
+    return to_fhir_datetime(s)
+
+
 def to_fhir_instant(value: Any) -> str:
     """Normalize to FHIR R4 ``instant`` (秒精度 + TZ 必須).
 

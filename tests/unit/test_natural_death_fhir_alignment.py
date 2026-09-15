@@ -23,9 +23,15 @@ from clinosim.modules.output.fhir_r4.demographics.patient import _build_patient
 @pytest.mark.unit
 class TestFHIRDeceasedDateTime:
     def test_natural_death_emits_deceased_date_time(self, patient_dict_factory) -> None:
+        """Issue #1440: a date-only ``date_of_death`` must expand to
+        end-of-day so same-day intra-day events (encounter discharge,
+        post-mortem Condition record) fall before it. Otherwise the
+        emit collapses to midnight and any event on the death date
+        after 00:00 looks post-mortem to strict temporal checks."""
         p = patient_dict_factory(date_of_death="2025-06-15")
         resource = _build_patient(p, "US")
-        assert resource.get("deceasedDateTime") == "2025-06-15"
+        # US → UTC suffix per ``tz_suffix_for_country``.
+        assert resource.get("deceasedDateTime") == "2025-06-15T23:59:59Z"
         # Issue #926: deceased patients also flip active=False.
         assert resource.get("active") is False
         # Not both — deceasedBoolean must not co-exist with deceasedDateTime.
@@ -38,7 +44,7 @@ class TestFHIRDeceasedDateTime:
         derivation, see fhir_r4/__init__.py:521) stay compatible."""
         p = patient_dict_factory(dod="2024-12-01")
         resource = _build_patient(p, "US")
-        assert resource.get("deceasedDateTime") == "2024-12-01"
+        assert resource.get("deceasedDateTime") == "2024-12-01T23:59:59Z"
         assert resource.get("active") is False
 
     def test_living_patient_emits_deceased_boolean_false(self, patient_dict_factory) -> None:
@@ -51,10 +57,22 @@ class TestFHIRDeceasedDateTime:
 
     def test_jp_natural_death_same_behavior(self, patient_dict_factory) -> None:
         """JP path uses the same ``_build_patient`` builder — verify
-        cross-locale parity of the deceased handling."""
+        cross-locale parity of the deceased handling. JP TZ suffix is
+        ``+09:00`` (JST) per ``tz_suffix_for_country``."""
         p = patient_dict_factory(date_of_death="2025-06-15", sex="M")
         resource = _build_patient(p, "JP")
-        assert resource.get("deceasedDateTime") == "2025-06-15"
+        assert resource.get("deceasedDateTime") == "2025-06-15T23:59:59+09:00"
+        assert resource.get("active") is False
+
+    def test_deceased_datetime_preserves_full_datetime_input(self, patient_dict_factory) -> None:
+        """Issue #1440: if the source already carries a full datetime
+        (with time component), pass it through — the end-of-day normalize
+        is only for date-only inputs. This preserves any future upstream
+        that widens ``date_of_death`` to a real time-of-death datetime."""
+        p = patient_dict_factory(date_of_death="2025-06-15T14:30:00+00:00")
+        resource = _build_patient(p, "US")
+        # Full datetime with TZ passes through to_fhir_datetime unchanged.
+        assert resource.get("deceasedDateTime") == "2025-06-15T14:30:00+00:00"
         assert resource.get("active") is False
 
 
