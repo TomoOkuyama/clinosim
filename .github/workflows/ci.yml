@@ -62,9 +62,13 @@ jobs:
       - uses: actions/setup-python@v7
         with:
           python-version: "3.12"
-          cache: pip
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+          cache-dependency-glob: pyproject.toml
       - name: Install (with dev extras)
-        run: pip install -e ".[dev]"
+        run: uv pip install --system -e ".[dev]"
       - name: Run unit tests with coverage (shard ${{ matrix.shard }}/3)
         env:
           COVERAGE_FILE: ".coverage.shard-${{ matrix.shard }}"
@@ -97,9 +101,13 @@ jobs:
       - uses: actions/setup-python@v7
         with:
           python-version: "3.12"
-          cache: pip
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+          cache-dependency-glob: pyproject.toml
       - name: Install coverage
-        run: pip install "coverage[toml]"
+        run: uv pip install --system "coverage[toml]"
       - name: Download all shard coverage data
         uses: actions/download-artifact@v7
         with:
@@ -196,9 +204,13 @@ jobs:
       - uses: actions/setup-python@v7
         with:
           python-version: "3.12"
-          cache: pip
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+          cache-dependency-glob: pyproject.toml
       - name: Install (with dev extras)
-        run: pip install -e ".[dev]"
+        run: uv pip install --system -e ".[dev]"
       - name: Run integration tests (shard ${{ matrix.shard }}/10, xdist -n 2)
         run: >
           pytest tests/integration -q --tb=short
@@ -226,11 +238,15 @@ jobs:
       - uses: actions/setup-python@v7
         with:
           python-version: "3.12"
-          cache: pip
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+          cache-dependency-glob: pyproject.toml
       - name: Install pinned ruff
         # Match the version pinned in the informational Quality job so
         # findings reproduce byte-identically across the two jobs.
-        run: pip install "ruff==0.16.3"
+        run: uv pip install --system "ruff==0.16.3"
       - name: ruff check --select F401,F841 clinosim/ tests/
         run: ruff check --select F401,F841 clinosim/ tests/
 
@@ -257,9 +273,13 @@ jobs:
       - uses: actions/setup-python@v7
         with:
           python-version: "3.12"
-          cache: pip
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+          cache-dependency-glob: pyproject.toml
       - name: Install pinned vulture
-        run: pip install "vulture==2.16"
+        run: uv pip install --system "vulture==2.16"
       - name: vulture (with whitelist)
         run: vulture clinosim/ .vulture-whitelist.py --min-confidence 60
 
@@ -276,14 +296,18 @@ jobs:
       - uses: actions/setup-python@v7
         with:
           python-version: "3.12"
-          cache: pip
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+          cache-dependency-glob: pyproject.toml
       - name: Install (with dev extras)
-        run: pip install -e ".[dev]"
+        run: uv pip install --system -e ".[dev]"
       - name: Install pinned ruff
         # Exact-pinned (session 73 Issue #449): CI and local envs must resolve
         # to the same ruff version so lint failures reproduce byte-identically
         # across machines. Bumping this line = intentional lint-config change.
-        run: pip install "ruff==0.16.3"
+        run: uv pip install --system "ruff==0.16.3"
       - name: ruff check
         run: ruff check clinosim/ tests/
       - name: ruff format --check
@@ -300,9 +324,13 @@ jobs:
       - uses: actions/setup-python@v7
         with:
           python-version: "3.12"
-          cache: pip
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+          cache-dependency-glob: pyproject.toml
       - name: Install build tools
-        run: pip install build twine
+        run: uv pip install --system build twine
       - name: Build sdist + wheel
         run: python -m build
       - name: Verify PyPI-compatible metadata

@@ -49,15 +49,18 @@ jobs:
         uses: actions/setup-python@v7
         with:
           python-version: "3.12"
-          cache: pip
-
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+          cache-dependency-glob: pyproject.toml
       - name: Install build tooling + clinosim
         # `clinosim dataset build` needs the CLI on PATH, and the tag-verify
         # step below needs `import clinosim`. Install once here (editable is
         # fine — this env is torn down at job end).
         run: |
-          pip install build twine
-          pip install -e .
+          uv pip install --system build twine
+          uv pip install --system -e .
 
       - name: Verify tag matches package version
         # Tag `vX.Y.Z` must match `clinosim.__version__` — otherwise the
