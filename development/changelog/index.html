@@ -2305,40 +2305,41 @@ to v0.4.1 to align with the new policy — the Bucket A+B changes are
 FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.</p>
 <h2 id="unreleased">[Unreleased]<a class="headerlink" href="#unreleased" title="Permanent link">&para;</a></h2>
 <h3 id="added">Added<a class="headerlink" href="#added" title="Permanent link">&para;</a></h3>
-<p>&lt;&lt;&lt;&lt;&lt;&lt;&lt; HEAD
-- <strong>US Core narrow-gate compliance axis + CI gate</strong>
+<ul>
+<li><strong>US Core narrow-gate compliance axis + CI gate</strong>
   (S115, Issue #1418 Phase 1). New <code>clinosim.eval.axes.us_core_compliance</code>
   registers a 7-check axis that runs strictly (<code>threshold=1.0</code>) on US
   cohorts and returns <code>[]</code> on non-US locales. The checks cover the
   narrow subset of US Core AllPatients / Encounter / Condition
   must-support elements that are already at 100 % on master (verified
-  against a p=100 s=300 US cohort at implementation time):
-  1. <code>us_core_patient_identifier_present</code> — every US Patient carries
-     an identifier.
-  2. <code>us_core_patient_name_family_given</code> — every US Patient has both
-     <code>name.family</code> and <code>name.given</code>.
-  3. <code>us_core_patient_birthsex_extension_valid</code> — every US Patient
+  against a p=100 s=300 US cohort at implementation time):</li>
+<li><code>us_core_patient_identifier_present</code> — every US Patient carries
+     an identifier.</li>
+<li><code>us_core_patient_name_family_given</code> — every US Patient has both
+     <code>name.family</code> and <code>name.given</code>.</li>
+<li><code>us_core_patient_birthsex_extension_valid</code> — every US Patient
      carries <code>us-core-birthsex</code> with a valid HL7 v3 AdministrativeGender
-     valueCode (M / F / UNK / OTH / ASKU).
-  4. <code>us_core_patient_race_extension_shape</code> — every US Patient that
+     valueCode (M / F / UNK / OTH / ASKU).</li>
+<li><code>us_core_patient_race_extension_shape</code> — every US Patient that
      emits <code>us-core-race</code> has the correct nested-extension shape
-     (<code>ombCategory.valueCoding.system = urn:oid:2.16.840.1.113883.6.238</code>
-     + <code>text.valueString</code> present). Denominator = "has ext", so
-     partial-coverage upstream (unknown race slug per
-     <code>feedback_empty_vs_wrong_assertion</code>) does not false-fail this
-     gate.
-  5. <code>us_core_patient_ethnicity_extension_shape</code> — same as race.
-  6. <code>us_core_encounter_class_v3_actcode</code> — every US Encounter carries
+     (<code>ombCategory.valueCoding.system = urn:oid:2.16.840.1.113883.6.238</code><ul>
+<li><code>text.valueString</code> present). Denominator = "has ext", so
+ partial-coverage upstream (unknown race slug per
+ <code>feedback_empty_vs_wrong_assertion</code>) does not false-fail this
+ gate.</li>
+</ul>
+</li>
+<li><code>us_core_patient_ethnicity_extension_shape</code> — same as race.</li>
+<li><code>us_core_encounter_class_v3_actcode</code> — every US Encounter carries
      <code>class.system = http://terminology.hl7.org/CodeSystem/v3-ActCode</code>
-     with a code.
-  7. <code>us_core_condition_category_system</code> — every US Condition category
+     with a code.</li>
+<li><code>us_core_condition_category_system</code> — every US Condition category
      coding uses the FHIR <code>condition-category</code> CodeSystem.
   Wired into CI via a new <code>us-core-compliance-gate.yml</code> workflow
   (US p=300 seed=300 → <code>clinosim eval --strict --only-axes
   us_core_compliance</code>, ~1 min per PR). Full HL7 FHIR Validator
-  coverage for US Core stays on the roadmap as Phase 3 (Issue #1418).
-=======
-- <strong>JP Core narrow-gate compliance axis + CI gate</strong>
+  coverage for US Core stays on the roadmap as Phase 3 (Issue #1418).</li>
+<li><strong>JP Core narrow-gate compliance axis + CI gate</strong>
   (S115, Issue #1418 Phase 1). New
   <code>clinosim.eval.axes.jp_core_compliance</code> registers a 7-check axis
   that runs strictly (<code>threshold=1.0</code>) on JP cohorts and returns
@@ -2348,38 +2349,45 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.</p>
   準拠必須. The checks cover the narrow subset of JP Core
   Patient / Encounter / MedicationRequest must-support elements
   that are already at 100 % on master (verified against a p=100
-  s=300 JP cohort at implementation time):
-  1. <code>jp_core_patient_profile_declared</code> — every JP Patient carries
-     a <code>meta.profile</code> starting with the JP Core Patient URL prefix.
-  2. <code>jp_core_patient_identifier_present</code>
-  3. <code>jp_core_patient_name_family_given</code>
-  4. <code>jp_core_patient_kanji_representation</code> — every JP Patient has
+  s=300 JP cohort at implementation time):</li>
+<li><code>jp_core_patient_profile_declared</code> — every JP Patient carries
+     a <code>meta.profile</code> starting with the JP Core Patient URL prefix.</li>
+<li><code>jp_core_patient_identifier_present</code></li>
+<li><code>jp_core_patient_name_family_given</code></li>
+<li><code>jp_core_patient_kanji_representation</code> — every JP Patient has
      at least one name with <code>iso21090-EN-representation = IDE</code>
      (kanji). Kana (SYL) coverage stays as a WARN in the <code>locale</code>
-     axis, not gated here.
-  5. <code>jp_core_encounter_class_present</code>
-  6. <code>jp_core_encounter_period_present</code>
-  7. <code>jp_core_medicationrequest_medication_coding_present</code>
+     axis, not gated here.</li>
+<li><code>jp_core_encounter_class_present</code></li>
+<li><code>jp_core_encounter_period_present</code></li>
+<li><code>jp_core_medicationrequest_medication_coding_present</code>
   Wired into CI via a new <code>jp-core-compliance-gate.yml</code> workflow
   (JP p=300 s=300 <code>--allow-legacy</code> → <code>clinosim eval --strict
   --only-axes jp_core_compliance</code>, ~1 min per PR). YJ/HOT drug code
   membership already covered in the <code>locale</code> axis so this new axis
-  does not duplicate it.</p>
-<blockquote>
-<blockquote>
-<blockquote>
-<blockquote>
-<blockquote>
-<blockquote>
-<blockquote>
-<p>1f97eeade8 (feat(eval): JP Core narrow-gate compliance axis + CI gate — #1418 Phase 1)</p>
-</blockquote>
-</blockquote>
-</blockquote>
-</blockquote>
-</blockquote>
-</blockquote>
-</blockquote>
+  does not duplicate it.</li>
+<li><strong>US FHIR profile validator on-demand workflow</strong>
+  (S115, Issue #1418 Phase 3). New <code>.github/workflows/us-validate.yml</code>
+  mirrors <code>jp-validate.yml</code>: runs the HL7 official FHIR Validator
+  against US Core 8.0 profiles on an on-demand trigger
+  (<code>workflow_dispatch</code> or PR label <code>us-validate</code>). Complements the
+  narrow gate (<code>us-core-compliance-gate.yml</code>, per-PR) with
+  spec-driven full validation for pre-release / label-triggered
+  runs. Files added:</li>
+<li><code>.github/us-validator-pins.env</code> — validator_cli.jar and US Core
+    IG package version + SHA256 pins (STRICT mode default; jar
+    version 6.4.3, US Core 8.0.0).</li>
+<li><code>.github/workflows/us-validate.yml</code> — CI wiring, timeout 30 min.</li>
+<li><code>scripts/validate_us.sh</code> — end-to-end bridge (US cohort generate
+    → sample extraction for 9 US Core profiles → java validator
+    dispatch). Local dry-run without VALIDATOR_JAR extracts samples
+    only.</li>
+<li><code>scripts/pin_us_validator.sh</code> — bootstrap helper that fetches
+    the pinned versions and writes SHA256 back into the pin file.
+  VALIDATOR_SHA256 remains empty in the initial commit; run
+  <code>bash scripts/pin_us_validator.sh</code> locally to populate it before
+  enabling STRICT gating on production.</li>
+</ul>
 <h3 id="changed">Changed<a class="headerlink" href="#changed" title="Permanent link">&para;</a></h3>
 <ul>
 <li><strong>CI integration tests: 5 → 10 shards</strong> (S115, Issue #1420 Phase 2).
