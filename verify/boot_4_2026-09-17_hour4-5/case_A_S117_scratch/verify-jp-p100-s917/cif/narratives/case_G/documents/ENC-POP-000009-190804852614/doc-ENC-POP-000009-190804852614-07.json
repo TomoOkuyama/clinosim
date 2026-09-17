@@ -1,0 +1,39 @@
+{
+  "document_id": "doc-ENC-POP-000009-190804852614-07",
+  "encounter_id": "ENC-POP-000009-190804852614",
+  "narrative": {
+    "text": "",
+    "sections": {
+      "admission_reason": "単胎自然分娩のため入院となった。",
+      "admission_details": "2026-03-16に入院した。",
+      "admission_diagnoses": "1. 単胎自然分娩（O80）",
+      "chief_complaint": "分娩 (自然分娩)",
+      "present_illness": "32歳女性。単胎自然分娩のため2026-03-16に入院となった。入院初日に経腟分娩（K894）を施行し、無事に出産に至った。術後経過は順調で、合併症は認められず、2026-03-21に自宅退院となった。",
+      "hospital_course": "2026-03-16に単胎自然分娩のため入院となった。入院初日に経腟分娩（K894）を施行し、無事に出産に至った。術後経過は順調で、発熱や出血異常などの合併症は認められず、安定した経過をたどった。退院時の診断は分娩の転帰（Z37.0）であり、2026-03-21に自宅退院となった。",
+      "discharge_details": "2026-03-21自宅退院となった。",
+      "discharge_diagnoses": "分娩の転帰（Z37.0）",
+      "discharge_medications": "アセトアミノフェン 500mg; イブプロフェン 400mg",
+      "discharge_instructions": "【内服薬】\nアセトアミノフェン 500mg、イブプロフェン 400mgを、痛みがある場合にのみ服用してください。痛みがなければ服用する必要はありません。\n\n【通院】\n産後検診の日程を確認し、指定された日時に受診してください。\n\n【日常生活】\n十分な休息をとり、無理な運動や重い物の持ち上げは避けてください。授乳や育児で疲れた場合は、家族に協力をお願いし、無理をしないようにしてください。\n\n【受診の目安】\n発熱、強い腹痛、出血量が増えた場合、会陰部や腹部の傷が化膿した場合、気分が落ち込み続ける場合は、早めに医療機関を受診してください。"
+    },
+    "generator": "llm-vllm",
+    "generator_metadata": {
+      "generator": "llm",
+      "lang": "ja"
+    },
+    "generated_at": "2020-01-01T00:00:42Z",
+    "facts_used": [
+      "ctx.diagnoses[0].admission_diagnosis_code",
+      "ctx.encounter.admission_datetime",
+      "ctx.diagnoses",
+      "ctx.encounter.chief_complaint_ja",
+      "ctx.patient.demographics",
+      "ctx.encounter.chief_complaint",
+      "ctx.patient.chronic_conditions",
+      "ctx.los_days",
+      "ctx.encounter.discharge_datetime",
+      "ctx.diagnoses",
+      "ctx.discharge_medications",
+      "discharge_instructions.baseline"
+    ]
+  }
+}

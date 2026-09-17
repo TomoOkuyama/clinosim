@@ -1,0 +1,46 @@
+{
+  "document_id": "doc-ENC-POP-000050-382319029846-06",
+  "encounter_id": "ENC-POP-000050-382319029846",
+  "narrative": {
+    "text": "S（主観） 入院5日目、退院当日。主訴の疼痛は軽減し、著変なし。\nO（客観） 特記事項なし。一般状態: 意識清明、症状改善傾向。循環器: 整、心雑音なし。呼吸器: 呼吸音清明、呼吸数正常。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし\nA（評価） 経腟分娩後の経過は良好で、合併症は認めない。一般状態は安定しており、退院基準を満たしている。\nP（計画） 本日退院とする。退院後の経過観察は外来にて継続する。",
+    "sections": {
+      "subjective": "入院5日目、退院当日。主訴の疼痛は軽減し、著変なし。",
+      "objective": "特記事項なし。一般状態: 意識清明、症状改善傾向。循環器: 整、心雑音なし。呼吸器: 呼吸音清明、呼吸数正常。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし",
+      "assessment": "経腟分娩後の経過は良好で、合併症は認めない。一般状態は安定しており、退院基準を満たしている。",
+      "plan": "本日退院とする。退院後の経過観察は外来にて継続する。"
+    },
+    "generator": "llm-vllm",
+    "generator_metadata": {
+      "generator": "llm",
+      "lang": "ja",
+      "day_index": 4,
+      "raw_text_rejoin": {
+        "separator": "\n",
+        "order": [
+          [
+            "S（主観）",
+            "subjective"
+          ],
+          [
+            "O（客観）",
+            "objective"
+          ],
+          [
+            "A（評価）",
+            "assessment"
+          ],
+          [
+            "P（計画）",
+            "plan"
+          ]
+        ]
+      }
+    },
+    "generated_at": "2020-01-01T00:00:42Z",
+    "facts_used": [
+      "physical_exam_findings..day_4",
+      "ctx.day_index",
+      "ctx.clinical_course_archetype"
+    ]
+  }
+}

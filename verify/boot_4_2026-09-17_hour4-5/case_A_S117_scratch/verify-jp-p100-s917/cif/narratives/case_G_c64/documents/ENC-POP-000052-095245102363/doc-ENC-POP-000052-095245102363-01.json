@@ -1,0 +1,33 @@
+{
+  "document_id": "doc-ENC-POP-000052-095245102363-01",
+  "encounter_id": "ENC-POP-000052-095245102363",
+  "narrative": {
+    "text": "",
+    "sections": {
+      "subjective": "糖尿病管理および血糖コントロールの確認のため受診。既往の2型糖尿病、脂質異常症、慢性閉塞性肺疾患、慢性腎臓病、骨粗鬆症、変形性膝関節症、反復性うつ病性障害、ニコチン依存症に対する経過観察中。本日の主訴は特になく、日常生活での不調や新たな症状の訴えはない。",
+      "objective": "BP 117/81 mmHg, HR 79 回/分。体重測定、下肢浮腫の有無を確認。",
+      "assessment": "バイタルサインはBP 117/81 mmHg、HR 79 回/分と安定している。検査所見では血糖 131.0 mg/dL [H]、HbA1c 6.5 % [H]、ALT 94.0 U/L [H]、AST 157.0 U/L [H] と肝機能障害を示唆する異常値が認められる。2型糖尿病 (E11.9) (HbA1c 6.5%, 軽度) については血糖値が基準範囲を超えているが、HbA1cは目標範囲内である。脂質異常症 (E78) (軽度)、慢性閉塞性肺疾患 (J44) (GOLD 2, 中等度)、慢性腎臓病 (N18) (CKD G2, 中等度)、骨粗鬆症 (M81) (軽度)、変形性膝関節症 (M17) (軽度)、H26 (中等度)、反復性うつ病性障害 (F33) (中等度)、ニコチン依存症（紙巻きたばこ、合併症なし） (F17.210) (中等度) についても継続的な管理が必要である。",
+      "plan": "肝機能異常 (ALT 94.0 U/L, AST 157.0 U/L) に対して原因精査のため、次回受診時に再検査を行う。血糖コントロールについては現在の治療方針を継続しつつ、生活指導を行う。内服薬 (メトホルミン、スライディングスケールインスリン、アトルバスタチン、チオトロピウム、サルブタモール、アレンドロネート、ビタミンD、セレコキシブ、Sertraline) は継続する。次回受診時に肝機能検査の結果を確認し、必要に応じて薬剤調整を検討する。"
+    },
+    "generator": "llm-vllm",
+    "generator_metadata": {
+      "generator": "llm",
+      "lang": "ja"
+    },
+    "generated_at": "2020-01-01T00:00:42Z",
+    "facts_used": [
+      "outpatient_soap_template.subjective_ja",
+      "ctx.patient.demographics",
+      "ctx.encounter.chief_complaint",
+      "ctx.patient.chronic_conditions",
+      "ctx.vitals",
+      "outpatient_soap_template.objective",
+      "encounter_protocol.narrative.outpatient_soap_template.assessment_ja",
+      "ctx.patient.chronic_conditions",
+      "ctx.vitals.today",
+      "ctx.lab_results.today",
+      "encounter_protocol.narrative.outpatient_soap_template.plan_ja",
+      "encounter_protocol.next_visit_interval"
+    ]
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "document_id": "doc-ENC-POP-000073-711618123536-ED-26",
+  "encounter_id": "ENC-POP-000073-711618123536",
+  "narrative": {
+    "text": "トリアージ情報：未記録",
+    "sections": {},
+    "generator": "llm-vllm",
+    "generator_metadata": {
+      "generator": "template",
+      "lang": "ja"
+    },
+    "generated_at": "2020-01-01T00:00:42Z",
+    "facts_used": []
+  }
+}

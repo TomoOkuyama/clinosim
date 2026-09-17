@@ -1,0 +1,29 @@
+{
+  "document_id": "doc-ENC-VAX-POP-000050-BABY-d8f0c87788e3-27",
+  "encounter_id": "ENC-VAX-POP-000050-BABY-d8f0c87788e3",
+  "narrative": {
+    "text": "",
+    "sections": {
+      "subjective": "予防接種の受診を目的に来院。自覚症状の訴えはなく、体調に著変なし。",
+      "objective": "BP 68/40 mmHg, HR 130 回/分, RR 40 回/分, SpO2 97%, T 36.7°C",
+      "assessment": "出生児の出生場所および分娩様式別分類 (Z38.0) (軽度) について経過観察中。バイタルサインは BP 68/40 mmHg, HR 130 回/分, RR 40 回/分, SpO2 97%, T 36.7°C と、年齢層に即した範囲内であり、異常所見は認められない。",
+      "plan": "予定通り予防接種を実施。次回受診日は特に指定せず、体調変化があれば随時受診するよう指導。"
+    },
+    "generator": "llm-vllm",
+    "generator_metadata": {
+      "generator": "llm",
+      "lang": "ja"
+    },
+    "generated_at": "2020-01-01T00:00:42Z",
+    "facts_used": [
+      "ctx.patient.demographics",
+      "ctx.encounter.chief_complaint",
+      "ctx.patient.chronic_conditions",
+      "ctx.vitals",
+      "ctx.patient.chronic_conditions",
+      "ctx.vitals.today",
+      "ctx.lab_results.today",
+      "encounter_protocol.next_visit_interval"
+    ]
+  }
+}

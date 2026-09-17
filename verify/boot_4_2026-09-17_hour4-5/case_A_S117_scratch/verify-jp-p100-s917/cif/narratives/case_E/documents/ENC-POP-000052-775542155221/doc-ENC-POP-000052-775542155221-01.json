@@ -1,0 +1,33 @@
+{
+  "document_id": "doc-ENC-POP-000052-775542155221-01",
+  "encounter_id": "ENC-POP-000052-775542155221",
+  "narrative": {
+    "text": "",
+    "sections": {
+      "subjective": "糖尿病管理・血糖コントロールの確認のため外来受診。前回受診時と比べ、自覚症状に著変なし。",
+      "objective": "BP 117/76 mmHg, HR 80 回/分。体重測定、下肢浮腫の有無を確認。",
+      "assessment": "2型糖尿病 (E11.9) (HbA1c 6.5%, 軽度) について、本日測定した血糖 124.0 mg/dL [H]、HbA1c 6.4 % [H] は軽度の異常を示すが、全体として安定した推移。脂質異常症 (E78) (軽度)、慢性閉塞性肺疾患 (J44) (GOLD 2, 中等度)、慢性腎臓病 (N18) (CKD G2, 中等度)、骨粗鬆症 (M81) (軽度)、変形性膝関節症 (M17) (軽度)、H26 (中等度)、反復性うつ病性障害 (F33) (中等度)、ニコチン依存症（紙巻きたばこ、合併症なし） (F17.210) (中等度) についても経過観察中。",
+      "plan": "現在の治療方針を継続。次回受診時に血糖値の再評価を行う。"
+    },
+    "generator": "llm-vllm",
+    "generator_metadata": {
+      "generator": "llm",
+      "lang": "ja"
+    },
+    "generated_at": "2020-01-01T00:00:42Z",
+    "facts_used": [
+      "outpatient_soap_template.subjective_ja",
+      "ctx.patient.demographics",
+      "ctx.encounter.chief_complaint",
+      "ctx.patient.chronic_conditions",
+      "ctx.vitals",
+      "outpatient_soap_template.objective",
+      "encounter_protocol.narrative.outpatient_soap_template.assessment_ja",
+      "ctx.patient.chronic_conditions",
+      "ctx.vitals.today",
+      "ctx.lab_results.today",
+      "encounter_protocol.narrative.outpatient_soap_template.plan_ja",
+      "encounter_protocol.next_visit_interval"
+    ]
+  }
+}

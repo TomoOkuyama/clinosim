@@ -1,0 +1,33 @@
+{
+  "document_id": "doc-ENC-POP-000016-416962979291-01",
+  "encounter_id": "ENC-POP-000016-416962979291",
+  "narrative": {
+    "text": "",
+    "sections": {
+      "subjective": "骨粗鬆症のフォローアップおよび骨折リスク評価を目的に外来受診。既往の胃食道逆流症や白内障に関する自覚症状の増悪は認めず、現在のところ特記すべき新たな訴えはない。",
+      "objective": "BP 131/72 mmHg, HR 81 回/分。上腹部圧痛の有無を確認。",
+      "assessment": "62歳女性。骨粗鬆症（軽度）、胃食道逆流症（軽度）、白内障（中等度）、過体重（軽度）の既往あり。元喫煙者。本日のバイタルサインはBP 131/72 mmHg、HR 81回/分と安定している。上腹部圧痛の有無を確認したが、特記すべき異常所見は認められず、現在の治療方針を継続して問題ないと判断した。",
+      "plan": "現在の内服薬（アレンドロネート、ビタミンD、ランソプラゾール）を継続する。次回受診時に再度骨折リスクを評価する予定。"
+    },
+    "generator": "llm-vllm",
+    "generator_metadata": {
+      "generator": "llm",
+      "lang": "ja"
+    },
+    "generated_at": "2020-01-01T00:00:42Z",
+    "facts_used": [
+      "outpatient_soap_template.subjective_ja",
+      "ctx.patient.demographics",
+      "ctx.encounter.chief_complaint",
+      "ctx.patient.chronic_conditions",
+      "ctx.vitals",
+      "outpatient_soap_template.objective",
+      "encounter_protocol.narrative.outpatient_soap_template.assessment_ja",
+      "ctx.patient.chronic_conditions",
+      "ctx.vitals.today",
+      "ctx.lab_results.today",
+      "encounter_protocol.narrative.outpatient_soap_template.plan_ja",
+      "encounter_protocol.next_visit_interval"
+    ]
+  }
+}

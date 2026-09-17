@@ -1,0 +1,33 @@
+{
+  "document_id": "doc-ENC-POP-000032-657620137221-01",
+  "encounter_id": "ENC-POP-000032-657620137221",
+  "narrative": {
+    "text": "",
+    "sections": {
+      "subjective": "血圧管理および処方薬の見直しを目的に受診。自覚症状は特になく、日常生活に支障はないと述べる。",
+      "objective": "BP 128/104 mmHg, HR 76 回/分。診察室血圧を測定、家庭血圧との整合性を確認。",
+      "assessment": "本態性高血圧症 (I10) (Stage 1, 軽度)、2型糖尿病 (E11.9) (HbA1c 9.2%, 軽度)、脂質異常症 (E78) (軽度)、慢性腎臓病 (N18) (CKD G4, 軽度)、慢性虚血性心疾患 (I25) (CCS I, 中等度)、前立腺肥大症 (N40) (中等度)、変形性膝関節症 (M17) (軽度)、H26 (軽度)、腰痛、詳細不明 (M54) (軽度) の経過観察中。本日測定した HbA1c は 8.8 % [H] と高値を示しており、血糖管理の強化が必要と判断される。",
+      "plan": "アムロジピン、メトホルミン、アトルバスタチン、アスピリン、タムスロシン、アセトアミノフェンを継続内服とする。HbA1c 8.8 % [H] に対し、食事指導および運動指導を再徹底し、次回受診時に血糖値の再評価を行う。"
+    },
+    "generator": "llm-vllm",
+    "generator_metadata": {
+      "generator": "llm",
+      "lang": "ja"
+    },
+    "generated_at": "2020-01-01T00:00:42Z",
+    "facts_used": [
+      "outpatient_soap_template.subjective_ja",
+      "ctx.patient.demographics",
+      "ctx.encounter.chief_complaint",
+      "ctx.patient.chronic_conditions",
+      "ctx.vitals",
+      "outpatient_soap_template.objective",
+      "encounter_protocol.narrative.outpatient_soap_template.assessment_ja",
+      "ctx.patient.chronic_conditions",
+      "ctx.vitals.today",
+      "ctx.lab_results.today",
+      "encounter_protocol.narrative.outpatient_soap_template.plan_ja",
+      "encounter_protocol.next_visit_interval"
+    ]
+  }
+}

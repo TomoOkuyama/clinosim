@@ -1,0 +1,33 @@
+{
+  "document_id": "doc-ENC-POP-000067-327318490819-01",
+  "encounter_id": "ENC-POP-000067-327318490819",
+  "narrative": {
+    "text": "",
+    "sections": {
+      "subjective": "血圧管理および処方薬の見直しを目的に受診。自覚症状は特になく、日常生活に支障はない。",
+      "objective": "BP 140/73 mmHg, HR 73 回/分。診察室血圧を測定、家庭血圧との整合性を確認。",
+      "assessment": "本態性高血圧症 (I10) (Stage 1, 中等度) に対してアムロジピン、胃食道逆流症 (K21) (軽度) に対してランソプラゾールを内服中。診察室血圧 140/73 mmHg、脈拍 73 回/分であり、家庭血圧との整合性を確認した。胃の悪性新生物、詳細不明 (C16) (軽度) についても経過観察中。",
+      "plan": "現在の内服薬（アムロジピン、ランソプラゾール）を継続する。血圧管理のため家庭血圧の記録を継続し、次回受診時に持参するよう指導。"
+    },
+    "generator": "llm-vllm",
+    "generator_metadata": {
+      "generator": "llm",
+      "lang": "ja"
+    },
+    "generated_at": "2020-01-01T00:00:42Z",
+    "facts_used": [
+      "outpatient_soap_template.subjective_ja",
+      "ctx.patient.demographics",
+      "ctx.encounter.chief_complaint",
+      "ctx.patient.chronic_conditions",
+      "ctx.vitals",
+      "outpatient_soap_template.objective",
+      "encounter_protocol.narrative.outpatient_soap_template.assessment_ja",
+      "ctx.patient.chronic_conditions",
+      "ctx.vitals.today",
+      "ctx.lab_results.today",
+      "encounter_protocol.narrative.outpatient_soap_template.plan_ja",
+      "encounter_protocol.next_visit_interval"
+    ]
+  }
+}

@@ -1,0 +1,432 @@
+{
+  "patient": {
+    "patient_id": "POP-000098",
+    "household_id": "HH-000043",
+    "name": {
+      "family_name": "加藤",
+      "given_name": "浩",
+      "display_name": "加藤 浩",
+      "name_script": "ja",
+      "phonetic": "カトウ ヒロシ"
+    },
+    "age": 66,
+    "sex": "M",
+    "date_of_birth": "1958-09-09",
+    "date_of_death": null,
+    "blood_type": "B",
+    "rh_factor": "+",
+    "height_cm": 174.9,
+    "weight_kg": 73.4,
+    "bmi": 24.0,
+    "address": {
+      "postal_code": "220-0002",
+      "state": "神奈川県",
+      "city": "横浜市",
+      "line1": "富士見3丁目17-10 サンライズ513",
+      "line2": "",
+      "country": "JP"
+    },
+    "contact": {
+      "phone_home": "03-5105-5531",
+      "phone_mobile": "080-7766-1246",
+      "phone_primary": "080-7766-1246",
+      "email": "",
+      "emergency_contact_name": "加藤 裕",
+      "emergency_contact_phone": "03-5105-5531",
+      "emergency_contact_relationship": "parent"
+    },
+    "marital_status": "M",
+    "preferred_language": "ja-JP",
+    "employment_status": "retired",
+    "occupation": "retired",
+    "insurance_type": "national",
+    "identity": {
+      "national": {
+        "country": "JP",
+        "national_id": "454397060994",
+        "has_id_card": true,
+        "id_card_linked_to_insurance": true
+      },
+      "enrollments": [
+        {
+          "country": "JP",
+          "category": "national",
+          "insurer_number": "131011",
+          "member_id": "460416",
+          "group_symbol": "5508",
+          "branch_number": "02",
+          "valid_from": null,
+          "valid_to": null,
+          "system_uri": ""
+        }
+      ],
+      "card_acquired_on": null,
+      "insurance_linked_on": null
+    },
+    "race": "",
+    "ethnicity": "",
+    "health_literacy": 0.68,
+    "chronic_conditions": [
+      {
+        "code": "E78",
+        "system": "icd-10-cm",
+        "onset_date": "2012-04-07",
+        "severity": "mild",
+        "controlled": true,
+        "severity_score": 0.2933218520110282,
+        "stage": "",
+        "glycemic_control": null
+      },
+      {
+        "code": "K64.9",
+        "system": "icd-10-cm",
+        "onset_date": "2019-02-13",
+        "severity": "mild",
+        "controlled": true,
+        "severity_score": 0.2061138909936754,
+        "stage": "",
+        "glycemic_control": null
+      }
+    ],
+    "allergies": [
+      {
+        "allergy_id": "nka",
+        "allergen_code": "716186003",
+        "category": "",
+        "criticality": "unable-to-assess",
+        "verification_status": "confirmed",
+        "clinical_status": "resolved",
+        "onset_date": null,
+        "reactions": [],
+        "is_nka": true
+      }
+    ],
+    "current_medications": [
+      {
+        "drug_name": "Atorvastatin",
+        "drug_name_ja": "アトルバスタチン",
+        "route": "PO",
+        "dose": "10mg",
+        "dose_quantity": null,
+        "dose_unit": "",
+        "frequency": "daily"
+      }
+    ],
+    "safety_skip_log": [],
+    "baseline_chronic_medications": [
+      {
+        "drug_name": "Atorvastatin",
+        "drug_name_ja": "アトルバスタチン",
+        "route": "PO",
+        "dose": "10mg",
+        "dose_quantity": null,
+        "dose_unit": "",
+        "frequency": "daily"
+      }
+    ],
+    "smoking_status": "never",
+    "alcohol_use": "none",
+    "physiological_profile": {
+      "immune_reactivity": 0.3838795899013286,
+      "drug_metabolism_rate": "normal",
+      "renal_reserve": 0.8042753376455143,
+      "cardiac_reserve": 0.8493968910350738,
+      "hepatic_reserve": 0.8955156922760814,
+      "treatment_sensitivity": 1.024841608891278,
+      "symptom_reporting_bias": 0.9317831117336981,
+      "delirium_susceptibility": 0.18779656915994372,
+      "dvt_susceptibility": 0.20012804279774601
+    },
+    "baseline_vitals": {
+      "temperature": 36.6,
+      "heart_rate": 72,
+      "systolic_bp": 136,
+      "diastolic_bp": 78,
+      "respiratory_rate": 16,
+      "spo2": 95.8
+    },
+    "state_periods": []
+  },
+  "encounters": [
+    {
+      "encounter_id": "ENC-POP-000098-819146162687",
+      "patient_id": "POP-000098",
+      "episode_id": "EP-POP-000098-819146162687",
+      "encounter_type": "outpatient",
+      "status": "completed",
+      "department_id": "internal_medicine",
+      "attending_physician_id": "DR-IM-003",
+      "admitting_physician_id": "DR-IM-003",
+      "discharging_physician_id": "DR-IM-003",
+      "admission_datetime": "2026-03-26T10:41:00",
+      "discharge_datetime": "2026-03-26T10:50:00",
+      "chief_complaint": "脂質管理・スタチン療法のモニタリング",
+      "chief_complaint_ja": "脂質管理・スタチン療法のモニタリング",
+      "disease_event_id": "DE-POP-000098-001",
+      "ward_id": "",
+      "bed_number": "",
+      "time_resolution": 3600.0,
+      "admit_source": "outp",
+      "admit_source_encounter_id": "",
+      "discharge_disposition": "home",
+      "priority": "R",
+      "primary_nurse_id": "",
+      "triage_data": null,
+      "severity": "",
+      "clinical_course_archetype": "",
+      "service_line": "",
+      "admission_diagnosis_code": "",
+      "admission_diagnosis_system": ""
+    }
+  ],
+  "orders": [
+    {
+      "order_id": "ORD-ENC-POP-000098-819146162687-OPD-L00",
+      "encounter_id": "ENC-POP-000098-819146162687",
+      "patient_id": "POP-000098",
+      "order_type": "lab",
+      "order_code": "",
+      "display_name": "AST",
+      "urgency": "routine",
+      "clinical_intent": "Outpatient follow-up: AST",
+      "clinical_intent_ja": "外来フォローアップ: AST",
+      "ordered_datetime": "2026-03-26T10:51:00",
+      "ordered_by": "DR-IM-003",
+      "status": "resulted",
+      "result": {
+        "result_datetime": "2026-03-26T12:41:00",
+        "performed_by": "TECH-LAB-006",
+        "lab_name": "AST",
+        "value": 62.0,
+        "unit": "U/L",
+        "reference_range": null,
+        "flag": "H",
+        "interpretation": null,
+        "specimen_note": null
+      },
+      "dose_quantity": null,
+      "dose_unit": "",
+      "frequency": "",
+      "frequency_per_day": null,
+      "route": "",
+      "duration_days": null,
+      "reason_condition": "",
+      "panel_key": "",
+      "imaging_modality": "",
+      "imaging_body_site_code": "",
+      "imaging_views": [],
+      "imaging_spec_meta": {},
+      "medication_intent": "",
+      "dose_text_ja": "",
+      "dose_text_en": "",
+      "notes": []
+    },
+    {
+      "order_id": "ORD-ENC-POP-000098-819146162687-MED-MON-00",
+      "encounter_id": "ENC-POP-000098-819146162687",
+      "patient_id": "POP-000098",
+      "order_type": "lab",
+      "order_code": "1742-6",
+      "display_name": "ALT",
+      "urgency": "routine",
+      "clinical_intent": "Chronic-medication monitoring (Atorvastatin): Statin hepatotoxicity monitoring — companion to AST. Discontinue if AST/ALT > 3× upper limit of normal.",
+      "clinical_intent_ja": "慢性投薬モニタリング (アトルバスタチン): スタチン肝毒性モニタリング — AST と対で評価。AST/ALT が基準値上限の 3 倍を超えたら中止。",
+      "ordered_datetime": "2026-03-26T10:55:00",
+      "ordered_by": "DR-IM-003",
+      "status": "resulted",
+      "result": {
+        "result_datetime": "2026-03-26T12:55:00",
+        "performed_by": "",
+        "lab_name": "ALT",
+        "value": 23.0,
+        "unit": "U/L",
+        "reference_range": null,
+        "flag": null,
+        "interpretation": null,
+        "specimen_note": null
+      },
+      "dose_quantity": null,
+      "dose_unit": "",
+      "frequency": "",
+      "frequency_per_day": null,
+      "route": "",
+      "duration_days": null,
+      "reason_condition": "",
+      "panel_key": "",
+      "imaging_modality": "",
+      "imaging_body_site_code": "",
+      "imaging_views": [],
+      "imaging_spec_meta": {},
+      "medication_intent": "",
+      "dose_text_ja": "",
+      "dose_text_en": "",
+      "notes": []
+    }
+  ],
+  "vital_signs": [
+    {
+      "timestamp": "2026-03-26T10:46:00",
+      "temperature_celsius": null,
+      "heart_rate": 78,
+      "systolic_bp": 132,
+      "diastolic_bp": 75,
+      "respiratory_rate": null,
+      "spo2": null,
+      "pain_score": null,
+      "consciousness_level": "A",
+      "on_supplemental_oxygen": false,
+      "oxygen_flow_rate_lpm": null,
+      "oxygen_delivery_device": "",
+      "nursing_note": "",
+      "measured_by": "NS-PC-004",
+      "data_source": "manual",
+      "news2_score": 0,
+      "gcs_score": 15
+    }
+  ],
+  "lab_results": [
+    {
+      "result_datetime": "2026-03-26T12:41:00",
+      "performed_by": "TECH-LAB-006",
+      "lab_name": "AST",
+      "value": 62.0,
+      "unit": "U/L",
+      "reference_range": null,
+      "flag": "H",
+      "interpretation": null,
+      "specimen_note": null
+    },
+    {
+      "result_datetime": "2026-03-26T12:55:00",
+      "performed_by": "",
+      "lab_name": "ALT",
+      "value": 23.0,
+      "unit": "U/L",
+      "reference_range": null,
+      "flag": null,
+      "interpretation": null,
+      "specimen_note": null
+    }
+  ],
+  "condition_event": {
+    "condition_id": "COND-POP-000098-OPD",
+    "condition_type": "chronic_followup",
+    "ground_truth_diseases": [
+      "E78"
+    ],
+    "symptom_pattern": "",
+    "state_impacts": {},
+    "presenting_symptoms": []
+  },
+  "clinical_diagnosis": {
+    "admission_diagnosis_code": "E78",
+    "admission_diagnosis_system": "icd-10-mhlw",
+    "working_diagnoses": [],
+    "discharge_diagnosis_code": "E78",
+    "discharge_diagnosis_system": "icd-10-mhlw",
+    "diagnosis_correct": true,
+    "missed_diagnoses": [],
+    "overcalled_diagnoses": []
+  },
+  "complications_occurred": [],
+  "procedures": [],
+  "rehab_sessions": [],
+  "documents": [
+    {
+      "document_id": "doc-ENC-POP-000098-819146162687-01",
+      "task_type": "outpatient_soap",
+      "loinc_code": "34131-3",
+      "patient_id": "POP-000098",
+      "encounter_id": "ENC-POP-000098-819146162687",
+      "author_practitioner_id": "DR-IM-003",
+      "related_procedure_id": "",
+      "authored_datetime": "2026-03-26T10:41:00",
+      "period_start": "2026-03-26T10:41:00",
+      "period_end": "2026-03-26T10:50:00",
+      "language": "ja",
+      "content_type": "text/plain",
+      "format_type": "composition",
+      "shift": "",
+      "checkup_type": "",
+      "narrative": null
+    }
+  ],
+  "medication_administrations": [],
+  "intake_output_records": [],
+  "adl_assessments": [],
+  "nursing_risk_assessments": [],
+  "immunizations": [
+    {
+      "vaccine_cvx": "309",
+      "occurrence_date": "2021-07-07",
+      "status": "completed",
+      "primary_source": false,
+      "dose_number": null,
+      "lot_number": "L157-202107-726",
+      "administered_by": "NS-GS-001",
+      "encounter_id": ""
+    },
+    {
+      "vaccine_cvx": "150",
+      "occurrence_date": "2022-11-01",
+      "status": "completed",
+      "primary_source": false,
+      "dose_number": null,
+      "lot_number": "L976-202211-148",
+      "administered_by": "NS-GS-001",
+      "encounter_id": ""
+    }
+  ],
+  "family_history": [
+    {
+      "relationship": "MTH",
+      "sex": "female",
+      "deceased": false,
+      "condition_codes": [
+        "I10",
+        "E78",
+        "C18"
+      ]
+    },
+    {
+      "relationship": "FTH",
+      "sex": "male",
+      "deceased": true,
+      "condition_codes": [
+        "I10",
+        "I25",
+        "E78"
+      ]
+    }
+  ],
+  "code_status": "",
+  "care_level": "",
+  "microbiology": [],
+  "discharge_prescription": {
+    "prescription_id": "RX-POP-000098-OPD",
+    "patient_id": "",
+    "prescriber_id": "DR-IM-003",
+    "issue_date": "2026-03-26T10:41:00",
+    "items": [
+      {
+        "drug_name": "Atorvastatin",
+        "drug_name_ja": "アトルバスタチン",
+        "dose": "10mg",
+        "route": "PO",
+        "frequency": "daily",
+        "duration_days": 30
+      }
+    ]
+  },
+  "icu_transferred": false,
+  "icu_transferred_day": -1,
+  "deceased": false,
+  "death_day": null,
+  "is_readmission": false,
+  "prior_encounter_id": null,
+  "readmission_number": 0,
+  "physiological_states": [],
+  "extensions": {
+    "clinical_impressions": []
+  }
+}

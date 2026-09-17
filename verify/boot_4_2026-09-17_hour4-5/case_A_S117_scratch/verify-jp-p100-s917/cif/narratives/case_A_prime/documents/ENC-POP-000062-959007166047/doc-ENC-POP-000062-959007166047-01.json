@@ -1,0 +1,33 @@
+{
+  "document_id": "doc-ENC-POP-000062-959007166047-01",
+  "encounter_id": "ENC-POP-000062-959007166047",
+  "narrative": {
+    "text": "",
+    "sections": {
+      "subjective": "糖尿病性網膜症スクリーニング・眼底検査のため受診。前回受診時と比べ、自覚症状に著変なし。",
+      "objective": "BP 127/76 mmHg, HR 77 回/分。体重測定、下肢浮腫の有無を確認。",
+      "assessment": "2型糖尿病 (E11.9) に対しては HbA1c 6.5 % と中等度の管理状態を維持している。本日測定した肝機能検査で ALT 90.0 U/L [H]、AST 107.0 U/L [H] と上昇が認められ、肝機能障害の可能性があるため経過観察が必要である。",
+      "plan": "眼底検査の結果に基づき、糖尿病性網膜症の進行度合いを評価する。肝機能異常に対しては、アトルバスタチン等の内服薬の副作用を疑い、次回受診時に再検査を行う。次回受診日は1ヶ月後を予定。"
+    },
+    "generator": "llm-vllm",
+    "generator_metadata": {
+      "generator": "llm",
+      "lang": "ja"
+    },
+    "generated_at": "2020-01-01T00:00:42Z",
+    "facts_used": [
+      "outpatient_soap_template.subjective_ja",
+      "ctx.patient.demographics",
+      "ctx.encounter.chief_complaint",
+      "ctx.patient.chronic_conditions",
+      "ctx.vitals",
+      "outpatient_soap_template.objective",
+      "encounter_protocol.narrative.outpatient_soap_template.assessment_ja",
+      "ctx.patient.chronic_conditions",
+      "ctx.vitals.today",
+      "ctx.lab_results.today",
+      "encounter_protocol.narrative.outpatient_soap_template.plan_ja",
+      "encounter_protocol.next_visit_interval"
+    ]
+  }
+}

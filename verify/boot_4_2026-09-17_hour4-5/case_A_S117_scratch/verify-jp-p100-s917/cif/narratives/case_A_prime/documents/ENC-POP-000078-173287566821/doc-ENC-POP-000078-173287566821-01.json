@@ -1,0 +1,33 @@
+{
+  "document_id": "doc-ENC-POP-000078-173287566821-01",
+  "encounter_id": "ENC-POP-000078-173287566821",
+  "narrative": {
+    "text": "",
+    "sections": {
+      "subjective": "脂質管理およびスタチン療法のモニタリング目的で受診。前回の外来受診時と比べて自覚症状に著変なし。",
+      "objective": "BP 121/63 mmHg, HR 71 回/分。体重・BMI 測定、心血管イベントリスクを再評価。",
+      "assessment": "脂質異常症 (E78) (軽度) に対するアトルバスタチン内服継続中。前立腺の悪性新生物 (C61) (軽度) に対するビカルタミド、リュープロレリンも継続中。変形性膝関節症 (M17) (中等度) および腰痛、詳細不明 (M54) (軽度) については経過観察。",
+      "plan": "現在の内服薬 (アトルバスタチン、ビカルタミド、リュープロレリン) を継続。次回外来受診時に脂質プロファイルおよび肝機能検査を再評価する。"
+    },
+    "generator": "llm-vllm",
+    "generator_metadata": {
+      "generator": "llm",
+      "lang": "ja"
+    },
+    "generated_at": "2020-01-01T00:00:42Z",
+    "facts_used": [
+      "outpatient_soap_template.subjective_ja",
+      "ctx.patient.demographics",
+      "ctx.encounter.chief_complaint",
+      "ctx.patient.chronic_conditions",
+      "ctx.vitals",
+      "outpatient_soap_template.objective",
+      "encounter_protocol.narrative.outpatient_soap_template.assessment_ja",
+      "ctx.patient.chronic_conditions",
+      "ctx.vitals.today",
+      "ctx.lab_results.today",
+      "encounter_protocol.narrative.outpatient_soap_template.plan_ja",
+      "encounter_protocol.next_visit_interval"
+    ]
+  }
+}

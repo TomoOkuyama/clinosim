@@ -1,0 +1,33 @@
+{
+  "document_id": "doc-ENC-POP-000029-210502078243-01",
+  "encounter_id": "ENC-POP-000029-210502078243",
+  "narrative": {
+    "text": "",
+    "sections": {
+      "subjective": "マンモグラフィー検診を目的に来院。2型糖尿病の経過観察および血糖管理の再評価を希望。",
+      "objective": "BP 124/57 mmHg, HR 90 回/分, RR 15 回/分, SpO2 100%, T 36.2°C。体重測定、下肢浮腫の有無を確認。",
+      "assessment": "2型糖尿病 (E11.9) (HbA1c 9.6%, 中等度) に対してメトホルミンを内服中だが、本日測定した血糖 176.0 mg/dL [H]、HbA1c 9.3 % [H] は高値であり、血糖コントロール不良と判断される。また、AST 66.0 U/L [H]、ALT 52.0 U/L [H] と肝機能異常も認められる。",
+      "plan": "血糖コントロール改善のため、メトホルミンの継続および用量調整を検討する。肝機能異常の原因精査のため、次回受診時に再検査を行う。"
+    },
+    "generator": "llm-vllm",
+    "generator_metadata": {
+      "generator": "llm",
+      "lang": "ja"
+    },
+    "generated_at": "2020-01-01T00:00:42Z",
+    "facts_used": [
+      "outpatient_soap_template.subjective_ja",
+      "ctx.patient.demographics",
+      "ctx.encounter.chief_complaint",
+      "ctx.patient.chronic_conditions",
+      "ctx.vitals",
+      "outpatient_soap_template.objective",
+      "encounter_protocol.narrative.outpatient_soap_template.assessment_ja",
+      "ctx.patient.chronic_conditions",
+      "ctx.vitals.today",
+      "ctx.lab_results.today",
+      "encounter_protocol.narrative.outpatient_soap_template.plan_ja",
+      "encounter_protocol.next_visit_interval"
+    ]
+  }
+}

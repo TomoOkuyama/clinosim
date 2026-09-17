@@ -1,0 +1,33 @@
+{
+  "document_id": "doc-ENC-POP-000027-552241011852-01",
+  "encounter_id": "ENC-POP-000027-552241011852",
+  "narrative": {
+    "text": "",
+    "sections": {
+      "subjective": "血圧管理および処方薬の見直しを目的に受診。前回の外来受診時と比べて自覚症状に著変はない。日常生活動作に支障はなく、食欲・睡眠も良好。",
+      "objective": "BP 138/93 mmHg, HR 63 回/分。診察室血圧を測定、家庭血圧との整合性を確認。",
+      "assessment": "本態性高血圧症 (I10) (Stage 1, 軽度) に対し、アムロジピンおよびカンデサルタンを継続中。今日測定した診察室血圧は 138/93 mmHg、心拍数は 63 回/分であり、家庭血圧との整合性を確認した。脂質異常症 (E78) (中等度)、慢性閉塞性肺疾患 (J44) (GOLD 3, 中等度)、胃食道逆流症 (K21) (軽度)、前立腺肥大症 (N40) (軽度)、変形性膝関節症 (M17) (軽度)、うつ病 (F32) (中等度) についても、現在の内服薬で症状は安定している。",
+      "plan": "現在の内服薬（アムロジピン、カンデサルタン、アトルバスタチン、チオトロピウム、サルブタモール、ランソプラゾール、タムスロシン、Sertraline）を継続する。血圧のコントロール状況を継続的にモニタリングし、次回外来受診時に再評価を行う。"
+    },
+    "generator": "llm-vllm",
+    "generator_metadata": {
+      "generator": "llm",
+      "lang": "ja"
+    },
+    "generated_at": "2020-01-01T00:00:42Z",
+    "facts_used": [
+      "outpatient_soap_template.subjective_ja",
+      "ctx.patient.demographics",
+      "ctx.encounter.chief_complaint",
+      "ctx.patient.chronic_conditions",
+      "ctx.vitals",
+      "outpatient_soap_template.objective",
+      "encounter_protocol.narrative.outpatient_soap_template.assessment_ja",
+      "ctx.patient.chronic_conditions",
+      "ctx.vitals.today",
+      "ctx.lab_results.today",
+      "encounter_protocol.narrative.outpatient_soap_template.plan_ja",
+      "encounter_protocol.next_visit_interval"
+    ]
+  }
+}

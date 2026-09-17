@@ -1,0 +1,33 @@
+{
+  "document_id": "doc-ENC-POP-000056-517253535406-01",
+  "encounter_id": "ENC-POP-000056-517253535406",
+  "narrative": {
+    "text": "",
+    "sections": {
+      "subjective": "インフルエンザ予防接種を目的に来院。既往の脂質異常症、喘息、過体重について定期フォローアップを希望。本日の体調に特記すべき変化はなく、日常生活に支障はない。",
+      "objective": "BP 105/78 mmHg, HR 87 回/分。体重・BMI 測定、心血管イベントリスクを再評価。",
+      "assessment": "48歳男性、非喫煙。脂質異常症 (E78) (軽度)、喘息 (J45) (中等度持続)、過体重 (E66.3) (中等度) の経過観察中。バイタルサインは BP 105/78 mmHg、HR 87 回/分と安定しており、心血管イベントリスクの再評価を行う。",
+      "plan": "インフルエンザ予防接種を施行。アトルバスタチン、フルチカゾン/サルメテロール、サルブタモールの内服を継続。次回外来受診時に体重・BMIを測定し、脂質異常症および喘息のコントロール状態を再評価する。"
+    },
+    "generator": "llm-vllm",
+    "generator_metadata": {
+      "generator": "llm",
+      "lang": "ja"
+    },
+    "generated_at": "2020-01-01T00:00:42Z",
+    "facts_used": [
+      "outpatient_soap_template.subjective_ja",
+      "ctx.patient.demographics",
+      "ctx.encounter.chief_complaint",
+      "ctx.patient.chronic_conditions",
+      "ctx.vitals",
+      "outpatient_soap_template.objective",
+      "encounter_protocol.narrative.outpatient_soap_template.assessment_ja",
+      "ctx.patient.chronic_conditions",
+      "ctx.vitals.today",
+      "ctx.lab_results.today",
+      "encounter_protocol.narrative.outpatient_soap_template.plan_ja",
+      "encounter_protocol.next_visit_interval"
+    ]
+  }
+}

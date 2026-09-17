@@ -1,0 +1,33 @@
+{
+  "document_id": "doc-ENC-POP-000063-982447636365-01",
+  "encounter_id": "ENC-POP-000063-982447636365",
+  "narrative": {
+    "text": "",
+    "sections": {
+      "subjective": "血圧管理および処方薬の見直しを目的に外来受診。自覚症状の著変は認めず、日常生活に支障はないと述べる。",
+      "objective": "BP 141/76 mmHg, HR 74 回/分。診察室血圧を測定、家庭血圧との整合性を確認。",
+      "assessment": "本態性高血圧症 (I10) (Stage 1, 軽度)、慢性腎臓病 (N18) (CKD G3a, 軽度)、前立腺肥大症 (N40) (中等度)、H26 (中等度)、腰痛、詳細不明 (M54) (中等度)、過体重 (E66.3) (軽度) の経過観察中。本日測定した診察室血圧は 141/76 mmHg、心拍数は 74 回/分であり、家庭血圧との整合性を確認した。",
+      "plan": "アムロジピン、タムスロシンを継続内服とする。次回外来受診時に血圧の推移および腎機能の再評価を行う。"
+    },
+    "generator": "llm-vllm",
+    "generator_metadata": {
+      "generator": "llm",
+      "lang": "ja"
+    },
+    "generated_at": "2020-01-01T00:00:42Z",
+    "facts_used": [
+      "outpatient_soap_template.subjective_ja",
+      "ctx.patient.demographics",
+      "ctx.encounter.chief_complaint",
+      "ctx.patient.chronic_conditions",
+      "ctx.vitals",
+      "outpatient_soap_template.objective",
+      "encounter_protocol.narrative.outpatient_soap_template.assessment_ja",
+      "ctx.patient.chronic_conditions",
+      "ctx.vitals.today",
+      "ctx.lab_results.today",
+      "encounter_protocol.narrative.outpatient_soap_template.plan_ja",
+      "encounter_protocol.next_visit_interval"
+    ]
+  }
+}

@@ -1,0 +1,718 @@
+{
+  "patient": {
+    "patient_id": "POP-000032",
+    "household_id": "HH-000013",
+    "name": {
+      "family_name": "井上",
+      "given_name": "晃",
+      "display_name": "井上 晃",
+      "name_script": "ja",
+      "phonetic": "イノウエ アキラ"
+    },
+    "age": 70,
+    "sex": "M",
+    "date_of_birth": "1954-03-26",
+    "date_of_death": null,
+    "blood_type": "O",
+    "rh_factor": "+",
+    "height_cm": 168.7,
+    "weight_kg": 66.9,
+    "bmi": 23.5,
+    "address": {
+      "postal_code": "145-0061",
+      "state": "東京都",
+      "city": "大田区",
+      "line1": "大宮2丁目23-11 サンライズ840",
+      "line2": "",
+      "country": "JP"
+    },
+    "contact": {
+      "phone_home": "045-780-1327",
+      "phone_mobile": "090-5572-8370",
+      "phone_primary": "090-5572-8370",
+      "email": "",
+      "emergency_contact_name": "井上 結菜",
+      "emergency_contact_phone": "045-780-1327",
+      "emergency_contact_relationship": "spouse"
+    },
+    "marital_status": "M",
+    "preferred_language": "ja-JP",
+    "employment_status": "retired",
+    "occupation": "retired",
+    "insurance_type": "national",
+    "identity": {
+      "national": {
+        "country": "JP",
+        "national_id": "218860083723",
+        "has_id_card": true,
+        "id_card_linked_to_insurance": true
+      },
+      "enrollments": [
+        {
+          "country": "JP",
+          "category": "national",
+          "insurer_number": "131011",
+          "member_id": "273144",
+          "group_symbol": "2191",
+          "branch_number": "01",
+          "valid_from": null,
+          "valid_to": null,
+          "system_uri": ""
+        }
+      ],
+      "card_acquired_on": null,
+      "insurance_linked_on": null
+    },
+    "race": "",
+    "ethnicity": "",
+    "health_literacy": 0.69,
+    "chronic_conditions": [
+      {
+        "code": "I10",
+        "system": "icd-10-cm",
+        "onset_date": "2013-02-15",
+        "severity": "mild",
+        "controlled": false,
+        "severity_score": 0.3,
+        "stage": "Stage 1",
+        "glycemic_control": null
+      },
+      {
+        "code": "E11.9",
+        "system": "icd-10-cm",
+        "onset_date": "2022-11-21",
+        "severity": "mild",
+        "controlled": true,
+        "severity_score": 0.23577323521195542,
+        "stage": "HbA1c 9.2%",
+        "glycemic_control": 0.46812844555210886
+      },
+      {
+        "code": "E78",
+        "system": "icd-10-cm",
+        "onset_date": "2011-08-24",
+        "severity": "mild",
+        "controlled": false,
+        "severity_score": 0.1303023550342427,
+        "stage": "",
+        "glycemic_control": null
+      },
+      {
+        "code": "N18",
+        "system": "icd-10-cm",
+        "onset_date": "2017-06-09",
+        "severity": "mild",
+        "controlled": false,
+        "severity_score": 0.7,
+        "stage": "CKD G4",
+        "glycemic_control": null
+      },
+      {
+        "code": "I25",
+        "system": "icd-10-cm",
+        "onset_date": "2022-10-01",
+        "severity": "moderate",
+        "controlled": true,
+        "severity_score": 0.1,
+        "stage": "CCS I",
+        "glycemic_control": null
+      },
+      {
+        "code": "N40",
+        "system": "icd-10-cm",
+        "onset_date": "2015-01-18",
+        "severity": "moderate",
+        "controlled": false,
+        "severity_score": 0.15339474092882788,
+        "stage": "",
+        "glycemic_control": null
+      },
+      {
+        "code": "M17",
+        "system": "icd-10-cm",
+        "onset_date": "2021-10-22",
+        "severity": "mild",
+        "controlled": true,
+        "severity_score": 0.18801420034585048,
+        "stage": "",
+        "glycemic_control": null
+      },
+      {
+        "code": "H26",
+        "system": "icd-10-cm",
+        "onset_date": "2011-12-07",
+        "severity": "mild",
+        "controlled": true,
+        "severity_score": 0.3681575683811341,
+        "stage": "",
+        "glycemic_control": null
+      },
+      {
+        "code": "M54",
+        "system": "icd-10-cm",
+        "onset_date": "2023-01-18",
+        "severity": "mild",
+        "controlled": true,
+        "severity_score": 0.2736225713381782,
+        "stage": "",
+        "glycemic_control": null
+      }
+    ],
+    "allergies": [
+      {
+        "allergy_id": "1",
+        "allergen_code": "735038006",
+        "category": "food",
+        "criticality": "low",
+        "verification_status": "confirmed",
+        "clinical_status": "active",
+        "onset_date": null,
+        "reactions": [
+          {
+            "manifestation_snomed": "271807003",
+            "severity": "mild"
+          }
+        ],
+        "is_nka": false
+      },
+      {
+        "allergy_id": "2",
+        "allergen_code": "387458008",
+        "category": "medication",
+        "criticality": "low",
+        "verification_status": "confirmed",
+        "clinical_status": "active",
+        "onset_date": null,
+        "reactions": [
+          {
+            "manifestation_snomed": "271807003",
+            "severity": "mild"
+          }
+        ],
+        "is_nka": false
+      }
+    ],
+    "current_medications": [
+      {
+        "drug_name": "Amlodipine",
+        "drug_name_ja": "アムロジピン",
+        "route": "PO",
+        "dose": "5mg",
+        "dose_quantity": null,
+        "dose_unit": "",
+        "frequency": "daily"
+      },
+      {
+        "drug_name": "Metformin",
+        "drug_name_ja": "メトホルミン",
+        "route": "PO",
+        "dose": "500mg",
+        "dose_quantity": null,
+        "dose_unit": "",
+        "frequency": "bid"
+      },
+      {
+        "drug_name": "Atorvastatin",
+        "drug_name_ja": "アトルバスタチン",
+        "route": "PO",
+        "dose": "10mg",
+        "dose_quantity": null,
+        "dose_unit": "",
+        "frequency": "daily"
+      },
+      {
+        "drug_name": "Aspirin",
+        "drug_name_ja": "アスピリン",
+        "route": "PO",
+        "dose": "100mg",
+        "dose_quantity": null,
+        "dose_unit": "",
+        "frequency": "daily"
+      },
+      {
+        "drug_name": "Tamsulosin",
+        "drug_name_ja": "タムスロシン",
+        "route": "PO",
+        "dose": "0.2mg",
+        "dose_quantity": null,
+        "dose_unit": "",
+        "frequency": "daily"
+      },
+      {
+        "drug_name": "Acetaminophen",
+        "drug_name_ja": "アセトアミノフェン",
+        "route": "PO",
+        "dose": "500mg",
+        "dose_quantity": null,
+        "dose_unit": "",
+        "frequency": "tid"
+      }
+    ],
+    "safety_skip_log": [],
+    "baseline_chronic_medications": [
+      {
+        "drug_name": "Amlodipine",
+        "drug_name_ja": "アムロジピン",
+        "route": "PO",
+        "dose": "5mg",
+        "dose_quantity": null,
+        "dose_unit": "",
+        "frequency": "daily"
+      },
+      {
+        "drug_name": "Metformin",
+        "drug_name_ja": "メトホルミン",
+        "route": "PO",
+        "dose": "500mg",
+        "dose_quantity": null,
+        "dose_unit": "",
+        "frequency": "bid"
+      },
+      {
+        "drug_name": "Atorvastatin",
+        "drug_name_ja": "アトルバスタチン",
+        "route": "PO",
+        "dose": "10mg",
+        "dose_quantity": null,
+        "dose_unit": "",
+        "frequency": "daily"
+      },
+      {
+        "drug_name": "Aspirin",
+        "drug_name_ja": "アスピリン",
+        "route": "PO",
+        "dose": "100mg",
+        "dose_quantity": null,
+        "dose_unit": "",
+        "frequency": "daily"
+      },
+      {
+        "drug_name": "Tamsulosin",
+        "drug_name_ja": "タムスロシン",
+        "route": "PO",
+        "dose": "0.2mg",
+        "dose_quantity": null,
+        "dose_unit": "",
+        "frequency": "daily"
+      },
+      {
+        "drug_name": "Acetaminophen",
+        "drug_name_ja": "アセトアミノフェン",
+        "route": "PO",
+        "dose": "500mg",
+        "dose_quantity": null,
+        "dose_unit": "",
+        "frequency": "tid"
+      }
+    ],
+    "smoking_status": "former",
+    "alcohol_use": "none",
+    "physiological_profile": {
+      "immune_reactivity": 0.3339653375961744,
+      "drug_metabolism_rate": "normal",
+      "renal_reserve": 0.7985935155433201,
+      "cardiac_reserve": 0.8159599666891401,
+      "hepatic_reserve": 0.8896591229195455,
+      "treatment_sensitivity": 0.9253789601959463,
+      "symptom_reporting_bias": 1.2427918300631349,
+      "delirium_susceptibility": 0.0062482443343037574,
+      "dvt_susceptibility": 0.14878789113553917
+    },
+    "baseline_vitals": {
+      "temperature": 36.5,
+      "heart_rate": 67,
+      "systolic_bp": 135,
+      "diastolic_bp": 108,
+      "respiratory_rate": 18,
+      "spo2": 95.6
+    },
+    "state_periods": []
+  },
+  "encounters": [
+    {
+      "encounter_id": "ENC-POP-000032-983363686304",
+      "patient_id": "POP-000032",
+      "episode_id": "EP-POP-000032-983363686304",
+      "encounter_type": "outpatient",
+      "status": "completed",
+      "department_id": "internal_medicine",
+      "attending_physician_id": "DR-IM-002",
+      "admitting_physician_id": "DR-IM-002",
+      "discharging_physician_id": "DR-IM-002",
+      "admission_datetime": "2025-12-11T10:31:00",
+      "discharge_datetime": "2025-12-11T10:47:00",
+      "chief_complaint": "インフルエンザ予防接種",
+      "chief_complaint_ja": "インフルエンザ予防接種",
+      "disease_event_id": "DE-POP-000032-001",
+      "ward_id": "",
+      "bed_number": "",
+      "time_resolution": 3600.0,
+      "admit_source": "outp",
+      "admit_source_encounter_id": "",
+      "discharge_disposition": "home",
+      "priority": "R",
+      "primary_nurse_id": "",
+      "triage_data": null,
+      "severity": "",
+      "clinical_course_archetype": "",
+      "service_line": "",
+      "admission_diagnosis_code": "",
+      "admission_diagnosis_system": ""
+    }
+  ],
+  "orders": [
+    {
+      "order_id": "ORD-ENC-POP-000032-983363686304-MED-MON-00",
+      "encounter_id": "ENC-POP-000032-983363686304",
+      "patient_id": "POP-000032",
+      "order_type": "lab",
+      "order_code": "4548-4",
+      "display_name": "HbA1c",
+      "urgency": "routine",
+      "clinical_intent": "Chronic-medication monitoring (Metformin): Chronic glycemic control monitoring — HbA1c target <7% (ADA/JDS individualized). Guideline: every 3-6 months on stable therapy, every 3 months during titration.",
+      "clinical_intent_ja": "慢性投薬モニタリング (メトホルミン): 慢性血糖コントロールモニタリング — HbA1c 目標 <7% (ADA/JDS 個別化)。ガイドライン: 安定治療下は 3-6 か月毎、用量調整期は 3 か月毎。",
+      "ordered_datetime": "2025-12-11T10:59:00",
+      "ordered_by": "DR-IM-002",
+      "status": "resulted",
+      "result": {
+        "result_datetime": "2025-12-11T12:59:00",
+        "performed_by": "",
+        "lab_name": "HbA1c",
+        "value": 9.3,
+        "unit": "%",
+        "reference_range": null,
+        "flag": "H",
+        "interpretation": null,
+        "specimen_note": null
+      },
+      "dose_quantity": null,
+      "dose_unit": "",
+      "frequency": "",
+      "frequency_per_day": null,
+      "route": "",
+      "duration_days": null,
+      "reason_condition": "",
+      "panel_key": "",
+      "imaging_modality": "",
+      "imaging_body_site_code": "",
+      "imaging_views": [],
+      "imaging_spec_meta": {},
+      "medication_intent": "",
+      "dose_text_ja": "",
+      "dose_text_en": "",
+      "notes": []
+    },
+    {
+      "order_id": "ORD-ENC-POP-000032-983363686304-MED-MON-01",
+      "encounter_id": "ENC-POP-000032-983363686304",
+      "patient_id": "POP-000032",
+      "order_type": "lab",
+      "order_code": "1920-8",
+      "display_name": "AST",
+      "urgency": "routine",
+      "clinical_intent": "Chronic-medication monitoring (Atorvastatin): Statin hepatotoxicity monitoring — AST/ALT baseline + as clinically indicated (myalgia, muscle-weakness). ACC/AHA 2018 + JAS 2022 guideline.",
+      "clinical_intent_ja": "慢性投薬モニタリング (アトルバスタチン): スタチン肝毒性モニタリング — AST/ALT はベースライン取得後、筋痛・筋力低下等の臨床所見が出た時に再検。ACC/AHA 2018 + JAS 2022 ガイドライン準拠。",
+      "ordered_datetime": "2025-12-11T10:59:00",
+      "ordered_by": "DR-IM-002",
+      "status": "resulted",
+      "result": {
+        "result_datetime": "2025-12-11T12:59:00",
+        "performed_by": "",
+        "lab_name": "AST",
+        "value": 29.0,
+        "unit": "U/L",
+        "reference_range": null,
+        "flag": null,
+        "interpretation": null,
+        "specimen_note": null
+      },
+      "dose_quantity": null,
+      "dose_unit": "",
+      "frequency": "",
+      "frequency_per_day": null,
+      "route": "",
+      "duration_days": null,
+      "reason_condition": "",
+      "panel_key": "",
+      "imaging_modality": "",
+      "imaging_body_site_code": "",
+      "imaging_views": [],
+      "imaging_spec_meta": {},
+      "medication_intent": "",
+      "dose_text_ja": "",
+      "dose_text_en": "",
+      "notes": []
+    },
+    {
+      "order_id": "ORD-ENC-POP-000032-983363686304-MED-MON-02",
+      "encounter_id": "ENC-POP-000032-983363686304",
+      "patient_id": "POP-000032",
+      "order_type": "lab",
+      "order_code": "1742-6",
+      "display_name": "ALT",
+      "urgency": "routine",
+      "clinical_intent": "Chronic-medication monitoring (Atorvastatin): Statin hepatotoxicity monitoring — companion to AST. Discontinue if AST/ALT > 3× upper limit of normal.",
+      "clinical_intent_ja": "慢性投薬モニタリング (アトルバスタチン): スタチン肝毒性モニタリング — AST と対で評価。AST/ALT が基準値上限の 3 倍を超えたら中止。",
+      "ordered_datetime": "2025-12-11T10:52:00",
+      "ordered_by": "DR-IM-002",
+      "status": "resulted",
+      "result": {
+        "result_datetime": "2025-12-11T12:52:00",
+        "performed_by": "",
+        "lab_name": "ALT",
+        "value": 22.0,
+        "unit": "U/L",
+        "reference_range": null,
+        "flag": null,
+        "interpretation": null,
+        "specimen_note": null
+      },
+      "dose_quantity": null,
+      "dose_unit": "",
+      "frequency": "",
+      "frequency_per_day": null,
+      "route": "",
+      "duration_days": null,
+      "reason_condition": "",
+      "panel_key": "",
+      "imaging_modality": "",
+      "imaging_body_site_code": "",
+      "imaging_views": [],
+      "imaging_spec_meta": {},
+      "medication_intent": "",
+      "dose_text_ja": "",
+      "dose_text_en": "",
+      "notes": []
+    }
+  ],
+  "vital_signs": [
+    {
+      "timestamp": "2025-12-11T10:36:00",
+      "temperature_celsius": null,
+      "heart_rate": 75,
+      "systolic_bp": 126,
+      "diastolic_bp": 102,
+      "respiratory_rate": null,
+      "spo2": null,
+      "pain_score": null,
+      "consciousness_level": "A",
+      "on_supplemental_oxygen": false,
+      "oxygen_flow_rate_lpm": null,
+      "oxygen_delivery_device": "",
+      "nursing_note": "",
+      "measured_by": "NS-PC-003",
+      "data_source": "manual",
+      "news2_score": 0,
+      "gcs_score": 15
+    }
+  ],
+  "lab_results": [
+    {
+      "result_datetime": "2025-12-11T12:59:00",
+      "performed_by": "",
+      "lab_name": "HbA1c",
+      "value": 9.3,
+      "unit": "%",
+      "reference_range": null,
+      "flag": "H",
+      "interpretation": null,
+      "specimen_note": null
+    },
+    {
+      "result_datetime": "2025-12-11T12:59:00",
+      "performed_by": "",
+      "lab_name": "AST",
+      "value": 29.0,
+      "unit": "U/L",
+      "reference_range": null,
+      "flag": null,
+      "interpretation": null,
+      "specimen_note": null
+    },
+    {
+      "result_datetime": "2025-12-11T12:52:00",
+      "performed_by": "",
+      "lab_name": "ALT",
+      "value": 22.0,
+      "unit": "U/L",
+      "reference_range": null,
+      "flag": null,
+      "interpretation": null,
+      "specimen_note": null
+    }
+  ],
+  "condition_event": {
+    "condition_id": "COND-POP-000032-OPD",
+    "condition_type": "chronic_followup",
+    "ground_truth_diseases": [
+      "Z23"
+    ],
+    "symptom_pattern": "",
+    "state_impacts": {},
+    "presenting_symptoms": []
+  },
+  "clinical_diagnosis": {
+    "admission_diagnosis_code": "Z23",
+    "admission_diagnosis_system": "icd-10-mhlw",
+    "working_diagnoses": [],
+    "discharge_diagnosis_code": "Z23",
+    "discharge_diagnosis_system": "icd-10-mhlw",
+    "diagnosis_correct": true,
+    "missed_diagnoses": [],
+    "overcalled_diagnoses": []
+  },
+  "complications_occurred": [],
+  "procedures": [],
+  "rehab_sessions": [],
+  "documents": [
+    {
+      "document_id": "doc-ENC-POP-000032-983363686304-01",
+      "task_type": "outpatient_soap",
+      "loinc_code": "34131-3",
+      "patient_id": "POP-000032",
+      "encounter_id": "ENC-POP-000032-983363686304",
+      "author_practitioner_id": "DR-IM-002",
+      "related_procedure_id": "",
+      "authored_datetime": "2025-12-11T10:31:00",
+      "period_start": "2025-12-11T10:31:00",
+      "period_end": "2025-12-11T10:47:00",
+      "language": "ja",
+      "content_type": "text/plain",
+      "format_type": "composition",
+      "shift": "",
+      "checkup_type": "",
+      "narrative": null
+    }
+  ],
+  "medication_administrations": [],
+  "intake_output_records": [],
+  "adl_assessments": [],
+  "nursing_risk_assessments": [],
+  "immunizations": [
+    {
+      "vaccine_cvx": "150",
+      "occurrence_date": "2018-10-01",
+      "status": "completed",
+      "primary_source": false,
+      "dose_number": null,
+      "lot_number": "L976-201810-897",
+      "administered_by": "NS-CA-006",
+      "encounter_id": ""
+    },
+    {
+      "vaccine_cvx": "33",
+      "occurrence_date": "2020-10-29",
+      "status": "completed",
+      "primary_source": false,
+      "dose_number": null,
+      "lot_number": "L858-202010-372",
+      "administered_by": "NS-CA-006",
+      "encounter_id": ""
+    },
+    {
+      "vaccine_cvx": "150",
+      "occurrence_date": "2020-11-01",
+      "status": "completed",
+      "primary_source": false,
+      "dose_number": null,
+      "lot_number": "L976-202011-124",
+      "administered_by": "NS-CA-006",
+      "encounter_id": ""
+    },
+    {
+      "vaccine_cvx": "150",
+      "occurrence_date": "2022-01-01",
+      "status": "completed",
+      "primary_source": false,
+      "dose_number": null,
+      "lot_number": "L976-202201-820",
+      "administered_by": "NS-CA-006",
+      "encounter_id": ""
+    },
+    {
+      "vaccine_cvx": "309",
+      "occurrence_date": "2022-11-19",
+      "status": "completed",
+      "primary_source": false,
+      "dose_number": null,
+      "lot_number": "L157-202211-362",
+      "administered_by": "NS-CA-006",
+      "encounter_id": ""
+    },
+    {
+      "vaccine_cvx": "150",
+      "occurrence_date": "2023-11-01",
+      "status": "completed",
+      "primary_source": false,
+      "dose_number": null,
+      "lot_number": "L976-202311-827",
+      "administered_by": "NS-CA-006",
+      "encounter_id": ""
+    },
+    {
+      "vaccine_cvx": "150",
+      "occurrence_date": "2024-11-01",
+      "status": "completed",
+      "primary_source": false,
+      "dose_number": null,
+      "lot_number": "L976-202411-789",
+      "administered_by": "NS-CA-006",
+      "encounter_id": ""
+    }
+  ],
+  "family_history": [
+    {
+      "relationship": "MTH",
+      "sex": "female",
+      "deceased": true,
+      "condition_codes": [
+        "I10"
+      ]
+    },
+    {
+      "relationship": "FTH",
+      "sex": "male",
+      "deceased": true,
+      "condition_codes": [
+        "I10",
+        "I25",
+        "I64",
+        "E78"
+      ]
+    },
+    {
+      "relationship": "NSIB",
+      "sex": "male",
+      "deceased": false,
+      "condition_codes": [
+        "I10",
+        "E78"
+      ]
+    },
+    {
+      "relationship": "NSIB",
+      "sex": "male",
+      "deceased": false,
+      "condition_codes": [
+        "I10",
+        "I25",
+        "E78"
+      ]
+    }
+  ],
+  "code_status": "",
+  "care_level": "",
+  "microbiology": [],
+  "discharge_prescription": null,
+  "icu_transferred": false,
+  "icu_transferred_day": -1,
+  "deceased": false,
+  "death_day": null,
+  "is_readmission": false,
+  "prior_encounter_id": null,
+  "readmission_number": 0,
+  "physiological_states": [],
+  "extensions": {
+    "clinical_impressions": []
+  }
+}

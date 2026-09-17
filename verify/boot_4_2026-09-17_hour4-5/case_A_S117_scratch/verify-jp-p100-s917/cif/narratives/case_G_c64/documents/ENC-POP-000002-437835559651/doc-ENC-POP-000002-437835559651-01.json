@@ -1,0 +1,33 @@
+{
+  "document_id": "doc-ENC-POP-000002-437835559651-01",
+  "encounter_id": "ENC-POP-000002-437835559651",
+  "narrative": {
+    "text": "",
+    "sections": {
+      "subjective": "年次健診のため来院。本日の主訴は特になく、既往の本態性高血圧症および腰痛に対してアムロジピンを継続内服中。",
+      "objective": "BP 131/84 mmHg, HR 82 回/分, RR 18 回/分, SpO2 97%, T 36.9°C。診察室血圧を測定、家庭血圧との整合性を確認。",
+      "assessment": "バイタルサインは安定しており、血圧管理は良好。検査所見ではクレアチニン 1.14 mg/dL [H]、AST 59.0 U/L [H]、ALT 73.0 U/L [H] と肝機能および腎機能の軽度異常を認める。",
+      "plan": "アムロジピンを継続。肝機能および腎機能の異常について経過観察とし、次回受診時に再検査を行う。"
+    },
+    "generator": "llm-vllm",
+    "generator_metadata": {
+      "generator": "llm",
+      "lang": "ja"
+    },
+    "generated_at": "2020-01-01T00:00:42Z",
+    "facts_used": [
+      "outpatient_soap_template.subjective_ja",
+      "ctx.patient.demographics",
+      "ctx.encounter.chief_complaint",
+      "ctx.patient.chronic_conditions",
+      "ctx.vitals",
+      "outpatient_soap_template.objective",
+      "encounter_protocol.narrative.outpatient_soap_template.assessment_ja",
+      "ctx.patient.chronic_conditions",
+      "ctx.vitals.today",
+      "ctx.lab_results.today",
+      "encounter_protocol.narrative.outpatient_soap_template.plan_ja",
+      "encounter_protocol.next_visit_interval"
+    ]
+  }
+}

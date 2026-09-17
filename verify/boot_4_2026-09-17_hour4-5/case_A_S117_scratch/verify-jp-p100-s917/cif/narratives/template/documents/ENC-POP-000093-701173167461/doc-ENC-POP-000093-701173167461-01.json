@@ -1,0 +1,29 @@
+{
+  "document_id": "doc-ENC-POP-000093-701173167461-01",
+  "encounter_id": "ENC-POP-000093-701173167461",
+  "narrative": {
+    "text": "",
+    "sections": {
+      "subjective": "56歳女性患者、本日「胃がんフォローアップ・腫瘍マーカー（CEA, CA19-9）・症状評価」のため外来受診。慢性疾患（胃の悪性新生物、詳細不明、E66.3、F17.210）のフォローアップを兼ねる。",
+      "objective": "BP 124/72 mmHg, HR 69 回/分",
+      "assessment": "1. 胃の悪性新生物、詳細不明: 本日測定 (BP 124/72 mmHg、HR 69 回/分、hb 13.1 g/dL、albumin 4.4 g/dL) は病態特異的モニタリング項目に該当せず、次回受診時に 胃の悪性新生物、詳細不明 特化評価を追加検討。\n2. E66.3: 本日測定 (BP 124/72 mmHg、HR 69 回/分、hb 13.1 g/dL、albumin 4.4 g/dL) は病態特異的モニタリング項目に該当せず、次回受診時に E66.3 特化評価を追加検討。\n3. F17.210: 本日測定 (BP 124/72 mmHg、HR 69 回/分、hb 13.1 g/dL、albumin 4.4 g/dL) は病態特異的モニタリング項目に該当せず、次回受診時に F17.210 特化評価を追加検討。",
+      "plan": "次回外来: 28日後を予定。"
+    },
+    "generator": "template",
+    "generator_metadata": {
+      "generator": "template",
+      "lang": "ja"
+    },
+    "generated_at": "2020-01-01T00:15:17Z",
+    "facts_used": [
+      "ctx.patient.demographics",
+      "ctx.encounter.chief_complaint",
+      "ctx.patient.chronic_conditions",
+      "ctx.vitals",
+      "ctx.patient.chronic_conditions",
+      "ctx.vitals.today",
+      "ctx.lab_results.today",
+      "encounter_protocol.next_visit_interval"
+    ]
+  }
+}

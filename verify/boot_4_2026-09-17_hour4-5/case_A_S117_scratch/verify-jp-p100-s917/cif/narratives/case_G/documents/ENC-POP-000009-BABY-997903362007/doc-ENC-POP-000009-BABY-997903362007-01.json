@@ -1,0 +1,37 @@
+{
+  "document_id": "doc-ENC-POP-000009-BABY-997903362007-01",
+  "encounter_id": "ENC-POP-000009-BABY-997903362007",
+  "narrative": {
+    "text": "",
+    "sections": {
+      "chief_complaint": "新生児 — 院内出生",
+      "hpi": "2026年3月16日10時38分に当院にて出生し、新生児室へ入院となった。出生時体重3.2 kg、身長50 cm、血液型A+。分娩様式は経腟分娩。出生直後のApgarスコアは1分時8点、5分時9点であった。授乳は開始済み。入院初日である本日、バイタルサインはBP 68/40 mmHg、HR 130/min、T 36.7°C、SpO2 97% (RA)、RR 40/minと安定している。一般状態は意識清明、苦痛様。循環器系では整、心雑音なし。呼吸器系では呼吸音清明、呼吸数は軽度上昇。腹部は平坦、軟、圧痛なし。神経系では麻痺なし、項部硬直なし。薬物アレルギーはなし（NKDA）。",
+      "past_medical_history": "出生児の出生場所別分類 [Z38.0]",
+      "medications_at_home": "常用薬なし",
+      "allergies": "薬物アレルギーなし（NKDA）",
+      "social_history": "喫煙歴: 非喫煙者; 飲酒歴: 飲酒なし; 職業: 乳幼児",
+      "family_history": "特記家族歴なし",
+      "physical_examination": "バイタルサイン: BP 68/40 mmHg, HR 130/min, T 36.7°C, SpO2 97% (RA), RR 40/min。一般状態: 意識清明、苦痛様。循環器: 整、心雑音なし。呼吸器: 呼吸音清明、呼吸数軽度上昇。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし、項部硬直なし",
+      "assessment_and_plan": "【評価】\n経腟分娩による新生児。出生時Apgarスコアは良好（1分時8点、5分時9点）。入院初日であり、バイタルサインは安定している。呼吸数は軽度上昇しているが、SpO2は97% (RA)と正常範囲内。CCHDスクリーンでは右上肢96%、下肢98%と差が3%未満であり、passと判断される。総ビリルビン最高値は6.0 mg/dLで、光線療法閾値には達していない。AABR聴覚スクリーンおよびタンデムMS代謝異常症スクリーンは提出済みで、結果は数日以内に判明予定。ビタミンK予防投与は実施済み。\n\n【薬物療法】\nビタミンK（予防投与、実施済み）\n\n【検査】\nAABR聴覚スクリーン（提出済み、結果待ち）\nタンデムMS代謝異常症スクリーン（提出済み、結果待ち）\n総ビリルビン（最高値6.0 mg/dL、経過観察）\nCCHD SpO2スクリーン（右上肢96%、下肢98%、pass）\n\n【教育・指導】\n授乳方法および新生児の日常ケアについて説明済み。黄疸の観察方法（皮膚の黄染の有無）を指導。\n\n【予定入院期間】\n経腟分娩のため、新生児室pathwayに従い24-48時間程度を予定。経過観察のうえ、退院基準を満たせば退院とする。"
+    },
+    "generator": "llm-vllm",
+    "generator_metadata": {
+      "generator": "llm",
+      "lang": "ja"
+    },
+    "generated_at": "2020-01-01T00:00:42Z",
+    "facts_used": [
+      "ctx.encounter.chief_complaint_ja",
+      "ctx.patient.demographics",
+      "ctx.encounter.chief_complaint",
+      "ctx.patient.chronic_conditions",
+      "ctx.newborn_workup",
+      "ctx.patient.chronic_conditions",
+      "ctx.patient.smoking_status",
+      "ctx.patient.alcohol_use",
+      "ctx.patient.occupation",
+      "physical_exam_findings..day_0",
+      "ctx.vitals[day_0]"
+    ]
+  }
+}

@@ -1,0 +1,35 @@
+{
+  "document_id": "doc-ENC-POP-000056-825659864909-01",
+  "encounter_id": "ENC-POP-000056-825659864909",
+  "narrative": {
+    "text": "",
+    "sections": {
+      "chief_complaint": "鼻出血（圧迫止血困難）",
+      "hpi": "49歳男性、非喫煙者。脂質異常症 (E78) (軽度)、喘息 (J45) (中等度持続)、過体重 (E66.3) (中等度) の既往あり。2026年7月24日21時25分、自家用車で来院。主訴は「鼻出血（圧迫止血困難）」である。到着時のバイタルサインは T 35.8°C、HR 81/min、BP 106/77 mmHg、SpO2 95.2% (RA)、RR 11/min であり、意識は清明であった。",
+      "triage_details": "トリアージレベル: JTAS Level 3。来院形態: 自家用車来院。",
+      "physical_exam": "バイタルサイン: BP 106/77 mmHg, HR 81/min, T 35.8°C, SpO2 95% (RA), RR 11/min。意識清明、苦痛様",
+      "ed_workup": "検査: PT_INR、AST、ALT。処置指示: Nasal packing (anterior)",
+      "assessment": "トリアージレベルは JTAS Level 3。中等度の鼻出血と評価。前鼻出血に対する圧迫止血が困難なため、前鼻閉塞術 (Nasal packing) を施行した。止血効果を確認するため、PT_INR、AST、ALT を検査した。",
+      "disposition": "前鼻閉塞術により止血を確認し、経過観察のため入院した。予定入院期間は1日。"
+    },
+    "generator": "llm-vllm",
+    "generator_metadata": {
+      "generator": "llm",
+      "lang": "ja"
+    },
+    "generated_at": "2020-01-01T00:00:42Z",
+    "facts_used": [
+      "ctx.encounter.chief_complaint_ja",
+      "encounter_protocol.narrative.ed_note_template.hpi_ja",
+      "ctx.patient.demographics",
+      "ctx.patient.chronic_conditions",
+      "ctx.patient.current_medications",
+      "encounter.triage_data",
+      "encounter_protocol.narrative.ed_note_template.physical_exam_ja",
+      "ctx.vitals[day_0]",
+      "ctx.orders.ed",
+      "ctx.ed_assessment.state_composed",
+      "ctx.encounter.disposition"
+    ]
+  }
+}

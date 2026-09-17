@@ -1,0 +1,33 @@
+{
+  "document_id": "doc-ENC-POP-000078-995210446164-01",
+  "encounter_id": "ENC-POP-000078-995210446164",
+  "narrative": {
+    "text": "",
+    "sections": {
+      "subjective": "年次健診のため来院。前回の受診時と比べて自覚症状に著変なし。日常生活動作に支障はなく、食欲・睡眠も良好。",
+      "objective": "BP 123/60 mmHg, HR 75 回/分, RR 19 回/分, SpO2 95%, T 36.6°C。体重・BMI 測定、心血管イベントリスクを再評価。",
+      "assessment": "脂質異常症、変形性膝関節症、腰痛、前立腺の悪性新生物、過体重の経過観察中。バイタルサインは安定しているが、AST 92.0 U/L [H]、ALT 81.0 U/L [H] と肝機能に異常を認める。前立腺癌に対するビカルタミド、リュープロレリン内服中であり、薬剤性肝障害の可能性を考慮する必要がある。",
+      "plan": "肝機能異常の原因精査のため、次回受診時に再検査を行う。現在の内服薬（アトルバスタチン、ビカルタミド、リュープロレリン）は継続するが、肝機能の推移を厳重にモニタリングする。異常が持続・悪化する場合、薬剤調整を検討する。"
+    },
+    "generator": "llm-vllm",
+    "generator_metadata": {
+      "generator": "llm",
+      "lang": "ja"
+    },
+    "generated_at": "2020-01-01T00:00:42Z",
+    "facts_used": [
+      "outpatient_soap_template.subjective_ja",
+      "ctx.patient.demographics",
+      "ctx.encounter.chief_complaint",
+      "ctx.patient.chronic_conditions",
+      "ctx.vitals",
+      "outpatient_soap_template.objective",
+      "encounter_protocol.narrative.outpatient_soap_template.assessment_ja",
+      "ctx.patient.chronic_conditions",
+      "ctx.vitals.today",
+      "ctx.lab_results.today",
+      "encounter_protocol.narrative.outpatient_soap_template.plan_ja",
+      "encounter_protocol.next_visit_interval"
+    ]
+  }
+}

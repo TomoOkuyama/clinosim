@@ -1,0 +1,33 @@
+{
+  "document_id": "doc-ENC-POP-000029-371236783920-01",
+  "encounter_id": "ENC-POP-000029-371236783920",
+  "narrative": {
+    "text": "",
+    "sections": {
+      "subjective": "糖尿病管理および血糖コントロールの確認のため外来受診。主訴は特になく、日常生活に支障をきたす症状は認めない。",
+      "objective": "BP 123/59 mmHg, HR 90 回/分。体重測定、下肢浮腫の有無を確認。",
+      "assessment": "2型糖尿病 (E11.9) に対してメトホルミンを内服中であるが、本日測定した血糖 181.0 mg/dL [H]、HbA1c 8.9 % [H] とおり、血糖コントロール不良が持続している。併存疾患として K64.9 (中等度)、ニコチン依存症（紙巻きたばこ、合併症なし） (F17.210) (中等度) を有する。",
+      "plan": "現在のメトホルミン内服を継続する。血糖コントロール改善のため、次回受診時に食事指導および運動指導を再評価する予定。"
+    },
+    "generator": "llm-vllm",
+    "generator_metadata": {
+      "generator": "llm",
+      "lang": "ja"
+    },
+    "generated_at": "2020-01-01T00:00:42Z",
+    "facts_used": [
+      "outpatient_soap_template.subjective_ja",
+      "ctx.patient.demographics",
+      "ctx.encounter.chief_complaint",
+      "ctx.patient.chronic_conditions",
+      "ctx.vitals",
+      "outpatient_soap_template.objective",
+      "encounter_protocol.narrative.outpatient_soap_template.assessment_ja",
+      "ctx.patient.chronic_conditions",
+      "ctx.vitals.today",
+      "ctx.lab_results.today",
+      "encounter_protocol.narrative.outpatient_soap_template.plan_ja",
+      "encounter_protocol.next_visit_interval"
+    ]
+  }
+}

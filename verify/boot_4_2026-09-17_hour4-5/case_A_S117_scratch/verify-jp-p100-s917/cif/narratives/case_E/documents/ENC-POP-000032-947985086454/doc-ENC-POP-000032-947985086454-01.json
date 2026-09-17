@@ -1,0 +1,33 @@
+{
+  "document_id": "doc-ENC-POP-000032-947985086454-01",
+  "encounter_id": "ENC-POP-000032-947985086454",
+  "narrative": {
+    "text": "",
+    "sections": {
+      "subjective": "糖尿病性網膜症スクリーニング・眼底検査のため受診。既往の2型糖尿病、本態性高血圧症、慢性腎臓病、慢性虚血性心疾患、脂質異常症、前立腺肥大症、変形性膝関節症、白内障、腰痛に対する経過観察中。アムロジピン、メトホルミン、アトルバスタチン、アスピリン、タムスロシン、アセトアミノフェンを内服継続中。本日の外来受診に際しては、特に新たな自覚症状や体調の変化は訴えていない。",
+      "objective": "BP 127/102 mmHg, HR 72 回/分。診察室血圧を測定、家庭血圧との整合性を確認。",
+      "assessment": "本日のバイタルサインはBP 127/102 mmHg、HR 72 回/分であり、診察室血圧と家庭血圧の整合性を確認した。検査所見ではHbA1c 8.6 % [H] と高値を示しており、2型糖尿病の血糖コントロールが不十分である。慢性腎臓病 (CKD G4) を有するため、腎機能への影響を考慮した血糖管理の継続が必要である。眼底検査による網膜症の進行評価と、高血圧・脂質異常症・虚血性心疾患に対する総合的なリスク管理が本日の評価の中心となる。",
+      "plan": "眼底検査の結果に基づき、糖尿病性網膜症の進行度合いを評価し、必要に応じて眼科的介入や血糖管理の強化を検討する。HbA1c 8.6 % [H] に対しては、現在のメトホルミン内服を継続しつつ、食事指導や運動指導を再確認し、次回受診時の血糖値の推移を評価する。高血圧・脂質異常症・慢性虚血性心疾患・前立腺肥大症・変形性膝関節症・白内障・腰痛に対する現在の治療方針を継続し、アムロジピン、アトルバスタチン、アスピリン、タムスロシン、アセトアミノフェンの内服を継続する。次回受診日は眼底検査の結果確認と血糖コントロール再評価のため、1ヶ月後に設定する。"
+    },
+    "generator": "llm-vllm",
+    "generator_metadata": {
+      "generator": "llm",
+      "lang": "ja"
+    },
+    "generated_at": "2020-01-01T00:00:42Z",
+    "facts_used": [
+      "outpatient_soap_template.subjective_ja",
+      "ctx.patient.demographics",
+      "ctx.encounter.chief_complaint",
+      "ctx.patient.chronic_conditions",
+      "ctx.vitals",
+      "outpatient_soap_template.objective",
+      "encounter_protocol.narrative.outpatient_soap_template.assessment_ja",
+      "ctx.patient.chronic_conditions",
+      "ctx.vitals.today",
+      "ctx.lab_results.today",
+      "encounter_protocol.narrative.outpatient_soap_template.plan_ja",
+      "encounter_protocol.next_visit_interval"
+    ]
+  }
+}

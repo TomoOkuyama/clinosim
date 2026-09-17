@@ -1,0 +1,33 @@
+{
+  "document_id": "doc-ENC-POP-000016-829925703931-01",
+  "encounter_id": "ENC-POP-000016-829925703931",
+  "narrative": {
+    "text": "",
+    "sections": {
+      "subjective": "61歳女性患者、本日「骨粗鬆症フォローアップ・骨折リスク評価」のため外来受診。慢性疾患（骨粗鬆症、詳細不明、食道炎を伴わない胃食道逆流症、白内障、詳細不明）のフォローアップを兼ねる。 胸やけ・呑酸・咽喉違和感の有無を聴取。食事内容・飲酒・喫煙、\n体位 (就寝時の頭部挙上) を確認。",
+      "objective": "BP 129/76 mmHg, HR 86 回/分。上腹部圧痛の有無を確認。",
+      "assessment": "GERD のフォローアップ。症状頻度、PPI 効果を評価。上部消化管\n内視鏡は必要に応じて 1-2 年ごと。\n\n1. 骨粗鬆症（病的骨折なし）: 本日測定 (BP 129/76 mmHg、HR 86 回/分) は病態特異的モニタリング項目に該当せず、次回受診時に 骨粗鬆症（病的骨折なし） 特化評価を追加検討。\n2. 胃食道逆流症: 本日測定 (BP 129/76 mmHg、HR 86 回/分) は病態特異的モニタリング項目に該当せず、次回受診時に 胃食道逆流症 特化評価を追加検討。\n3. 白内障（その他）: 本日測定 (BP 129/76 mmHg、HR 86 回/分) は病態特異的モニタリング項目に該当せず、次回受診時に 白内障（その他） 特化評価を追加検討。\n4. E66.3: 本日測定 (BP 129/76 mmHg、HR 86 回/分) は病態特異的モニタリング項目に該当せず、次回受診時に E66.3 特化評価を追加検討。",
+      "plan": "PPI 継続、症状増悪時は用量調整を検討。生活指導 (少食頻回、就寝\n2 時間前までに食事終了、頭部挙上)。次回外来は 3-6 か月後。\n\n次回外来: 90日後を予定。"
+    },
+    "generator": "template",
+    "generator_metadata": {
+      "generator": "template",
+      "lang": "ja"
+    },
+    "generated_at": "2020-01-01T00:15:17Z",
+    "facts_used": [
+      "outpatient_soap_template.subjective_ja",
+      "ctx.patient.demographics",
+      "ctx.encounter.chief_complaint",
+      "ctx.patient.chronic_conditions",
+      "ctx.vitals",
+      "outpatient_soap_template.objective",
+      "encounter_protocol.narrative.outpatient_soap_template.assessment_ja",
+      "ctx.patient.chronic_conditions",
+      "ctx.vitals.today",
+      "ctx.lab_results.today",
+      "encounter_protocol.narrative.outpatient_soap_template.plan_ja",
+      "encounter_protocol.next_visit_interval"
+    ]
+  }
+}

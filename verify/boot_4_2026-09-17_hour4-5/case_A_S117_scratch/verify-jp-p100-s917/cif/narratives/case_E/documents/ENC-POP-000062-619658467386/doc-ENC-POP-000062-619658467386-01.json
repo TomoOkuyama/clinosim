@@ -1,0 +1,33 @@
+{
+  "document_id": "doc-ENC-POP-000062-619658467386-01",
+  "encounter_id": "ENC-POP-000062-619658467386",
+  "narrative": {
+    "text": "",
+    "sections": {
+      "subjective": "年次健診のため来院。既往の2型糖尿病、脂質異常症、骨粗鬆症、胃食道逆流症、白内障に対する経過観察中。本日の主訴は特になく、日常生活に支障はないと述べる。",
+      "objective": "BP 124/71 mmHg, HR 78 回/分, RR 12 回/分, SpO2 98%, T 36.4°C。体重測定、下肢浮腫の有無を確認。",
+      "assessment": "バイタルサインは安定している。しかし、検査所見で血糖 127.0 mg/dL [H]、AST 122.0 U/L [H]、ALT 93.0 U/L [H]、HbA1c 9.0 % [H] と、糖尿病の血糖コントロール不良および肝機能異常が認められる。既往のHbA1c 6.5%から悪化しており、インスリン抵抗性や肝障害の進行を疑う。",
+      "plan": "1. 糖尿病治療の強化: スライディングスケールインスリンの調整を検討。メトホルミンの継続と併用し、血糖コントロール目標を再設定。\n2. 肝機能異常の精査: AST/ALT上昇の原因を特定するため、ウイルス性肝炎スクリーニング、自己免疫性肝炎マーカー、腹部超音波検査を施行。\n3. 脂質異常症: アトルバスタチン継続。肝機能改善後に再評価。\n4. 骨粗鬆症: アレンドロネート、ビタミンD継続。\n5. 胃食道逆流症: ランソプラゾール継続。\n6. 2週間後に肝機能検査、血糖検査を再検し、結果に基づき治療方針を修正。"
+    },
+    "generator": "llm-vllm",
+    "generator_metadata": {
+      "generator": "llm",
+      "lang": "ja"
+    },
+    "generated_at": "2020-01-01T00:00:42Z",
+    "facts_used": [
+      "outpatient_soap_template.subjective_ja",
+      "ctx.patient.demographics",
+      "ctx.encounter.chief_complaint",
+      "ctx.patient.chronic_conditions",
+      "ctx.vitals",
+      "outpatient_soap_template.objective",
+      "encounter_protocol.narrative.outpatient_soap_template.assessment_ja",
+      "ctx.patient.chronic_conditions",
+      "ctx.vitals.today",
+      "ctx.lab_results.today",
+      "encounter_protocol.narrative.outpatient_soap_template.plan_ja",
+      "encounter_protocol.next_visit_interval"
+    ]
+  }
+}

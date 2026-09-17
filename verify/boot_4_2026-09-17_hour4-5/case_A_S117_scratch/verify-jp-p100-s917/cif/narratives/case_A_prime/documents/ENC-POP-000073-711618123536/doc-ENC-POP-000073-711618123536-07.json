@@ -1,0 +1,44 @@
+{
+  "document_id": "doc-ENC-POP-000073-711618123536-07",
+  "encounter_id": "ENC-POP-000073-711618123536",
+  "narrative": {
+    "text": "",
+    "sections": {
+      "admission_reason": "その他及び詳細不明の腸閉塞のため入院となった。",
+      "admission_details": "2026-02-11に入院した。",
+      "admission_diagnoses": "1. その他及び詳細不明の腸閉塞（K56.6）",
+      "chief_complaint": "腹痛・嘔吐・排便停止・腹部膨満",
+      "present_illness": "2026-02-11に腹痛・嘔吐・排便停止・腹部膨満を主訴に来院し、その他及び詳細不明の腸閉塞（K56.6）と診断されて入院となった。入院初日に経鼻胃管挿入（J034）による減圧療法を開始し、絶食・補液療法を施行した。入院中に電解質異常を合併したが、補正により改善した。検査上はBUN 23.8 mg/dL [H]、乳酸 2.7 mmol/L [H]、AST 83.0 U/L [H]と異常を認めたが、経過とともに改善傾向を示した。第5病日（2026-02-16）には排便再開・腹部膨満の改善を認め、麻痺性イレウス・腸閉塞（K56.9）として自宅退院となった。",
+      "hospital_course": "2026-02-11に腹痛・嘔吐・排便停止・腹部膨満を主訴に、その他及び詳細不明の腸閉塞（K56.6）と診断され入院となった。入院初日は急性期として絶食・経鼻胃管挿入（J034）による減圧・補液療法を開始した。入院中に電解質異常（electrolyte_imbalance）を合併したが、補液と電解質補正により改善した。検査ではBUN 23.8 mg/dL [H]、乳酸 2.7 mmol/L [H]、AST 83.0 U/L [H]と異常所見を認めたが、経過とともに正常化傾向を示した。バイタルサインは収縮期血圧142-149 mmHg、心拍数90-99回/分、体温36.3-38.2℃、SpO2 94-100%の範囲で推移し、酸素投与は不要であった。第5病日（2026-02-16）には排便再開・腹部膨満の改善を認め、麻痺性イレウス・腸閉塞（K56.9）として自宅退院となった。",
+      "discharge_details": "2026-02-16自宅退院となった。",
+      "discharge_diagnoses": "麻痺性イレウス・腸閉塞（K56.9）",
+      "discharge_medications": "モサプリド 5mg PO TID; アムロジピン 5mg; カンデサルタン 8mg",
+      "discharge_instructions": "【内服薬】\nモサプリド 5mg を1日3回、食後に服用してください（胃腸の動きを整える薬です）。\nアムロジピン 5mg を1日1回、毎朝服用してください（血圧の薬です）。\nカンデサルタン 8mg を1日1回、毎朝服用してください（血圧の薬です）。\n\n【通院】\n退院後1週間以内に消化器内科を受診し、経過確認をしてください。\n\n【日常生活】\n退院直後は消化に良い食事を心がけ、無理な運動は避けてください。\n\n【受診の目安】\n強い腹痛、嘔吐、排便停止、発熱（38℃以上）が再発した場合は、速やかに受診してください。"
+    },
+    "generator": "llm-vllm",
+    "generator_metadata": {
+      "generator": "llm",
+      "lang": "ja"
+    },
+    "generated_at": "2020-01-01T00:00:42Z",
+    "facts_used": [
+      "ctx.diagnoses[0].admission_diagnosis_code",
+      "ctx.encounter.admission_datetime",
+      "ctx.diagnoses",
+      "ctx.encounter.chief_complaint_ja",
+      "chief_complaint_variants.ileus[0]",
+      "disease_protocol.narrative.hpi_template.onset_pattern.mild",
+      "disease_protocol.narrative.hpi_template.trigger_options[0]",
+      "ctx.patient.demographics",
+      "ctx.encounter.chief_complaint",
+      "ctx.patient.chronic_conditions",
+      "ctx.complications_occurred",
+      "ctx.los_days",
+      "ctx.encounter.discharge_datetime",
+      "ctx.diagnoses",
+      "ctx.discharge_medications",
+      "discharge_instructions.baseline",
+      "discharge_instructions.disease_specific.ileus"
+    ]
+  }
+}

@@ -1,0 +1,33 @@
+{
+  "document_id": "doc-ENC-POP-000027-884784255016-01",
+  "encounter_id": "ENC-POP-000027-884784255016",
+  "narrative": {
+    "text": "",
+    "sections": {
+      "subjective": "年次健診のため来院。既往の慢性閉塞性肺疾患 (J44) (GOLD 3, 中等度) に対してチオトロピウム、サルブタモールを内服中であり、本日も呼吸苦の増悪や咳・痰の性状変化は認めない。うつ病 (F32) (中等度) に対してSertralineを継続内服中であるが、気分状態や睡眠に著変はない。本日の外来バイタルサインは BP 144/95 mmHg, HR 63 回/分, RR 22 回/分, SpO2 89%, T 36.3°C であり、家庭血圧との整合性を確認した。",
+      "objective": "BP 144/95 mmHg, HR 63 回/分, RR 22 回/分, SpO2 89%, T 36.3°C。診察室血圧を測定、家庭血圧との整合性を確認。",
+      "assessment": "本態性高血圧症 (I10) (Stage 1, 軽度) に対しアムロジピン、カンデサルタンを内服中であるが、外来血圧 144/95 mmHg とやや高値を呈している。脂質異常症 (E78) (中等度) に対しアトルバスタチン内服中。胃食道逆流症 (K21) (軽度) に対しランソプラゾール、前立腺肥大症 (N40) (軽度) に対しタムスロシンを継続中。変形性膝関節症 (M17) (軽度) に対しては対症療法のみ。本日の検査ではクレアチニン 1.09 mg/dL [H]、AST 120.0 U/L [H]、ALT 85.0 U/L [H] と肝機能および腎機能の異常が認められ、経過観察が必要である。",
+      "plan": "現在の内服薬（アムロジピン、カンデサルタン、アトルバスタチン、チオトロピウム、サルブタモール、ランソプラゾール、タムスロシン、Sertraline）は継続する。血圧管理のため家庭血圧の記録を継続し、次回受診時に持参するよう指導した。肝機能および腎機能の異常値（AST 120.0 U/L [H], ALT 85.0 U/L [H], クレアチニン 1.09 mg/dL [H]）について、1週間後に血液検査を再施行し、経過を確認する予定である。"
+    },
+    "generator": "llm-vllm",
+    "generator_metadata": {
+      "generator": "llm",
+      "lang": "ja"
+    },
+    "generated_at": "2020-01-01T00:00:42Z",
+    "facts_used": [
+      "outpatient_soap_template.subjective_ja",
+      "ctx.patient.demographics",
+      "ctx.encounter.chief_complaint",
+      "ctx.patient.chronic_conditions",
+      "ctx.vitals",
+      "outpatient_soap_template.objective",
+      "encounter_protocol.narrative.outpatient_soap_template.assessment_ja",
+      "ctx.patient.chronic_conditions",
+      "ctx.vitals.today",
+      "ctx.lab_results.today",
+      "encounter_protocol.narrative.outpatient_soap_template.plan_ja",
+      "encounter_protocol.next_visit_interval"
+    ]
+  }
+}

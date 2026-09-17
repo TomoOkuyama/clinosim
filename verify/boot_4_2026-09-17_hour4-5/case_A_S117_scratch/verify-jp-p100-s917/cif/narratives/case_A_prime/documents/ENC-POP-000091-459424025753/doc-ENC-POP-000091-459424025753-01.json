@@ -1,0 +1,33 @@
+{
+  "document_id": "doc-ENC-POP-000091-459424025753-01",
+  "encounter_id": "ENC-POP-000091-459424025753",
+  "narrative": {
+    "text": "",
+    "sections": {
+      "subjective": "脂質管理およびスタチン療法のモニタリング目的で受診。既往の喘息症状は安定しており、特記すべき増悪や新たな自覚症状はない。",
+      "objective": "BP 117/71 mmHg, HR 66 回/分。体重・BMI 測定、心血管イベントリスクを再評価。",
+      "assessment": "脂質異常症 (E78) (中等度) および喘息 (J45) (軽度持続) の経過観察。本日測定したHDLコレステロールは 45.0 mg/dL [L] と低値を示している。血圧 117/71 mmHg、心拍数 66 回/分とバイタルサインは安定しており、心血管イベントリスクの再評価が必要である。",
+      "plan": "アトルバスタチン、フルチカゾン/サルメテロール、サルブタモールの内服を継続する。HDLコレステロールの低値については生活習慣指導を行い、次回受診時に再評価する。"
+    },
+    "generator": "llm-vllm",
+    "generator_metadata": {
+      "generator": "llm",
+      "lang": "ja"
+    },
+    "generated_at": "2020-01-01T00:00:42Z",
+    "facts_used": [
+      "outpatient_soap_template.subjective_ja",
+      "ctx.patient.demographics",
+      "ctx.encounter.chief_complaint",
+      "ctx.patient.chronic_conditions",
+      "ctx.vitals",
+      "outpatient_soap_template.objective",
+      "encounter_protocol.narrative.outpatient_soap_template.assessment_ja",
+      "ctx.patient.chronic_conditions",
+      "ctx.vitals.today",
+      "ctx.lab_results.today",
+      "encounter_protocol.narrative.outpatient_soap_template.plan_ja",
+      "encounter_protocol.next_visit_interval"
+    ]
+  }
+}

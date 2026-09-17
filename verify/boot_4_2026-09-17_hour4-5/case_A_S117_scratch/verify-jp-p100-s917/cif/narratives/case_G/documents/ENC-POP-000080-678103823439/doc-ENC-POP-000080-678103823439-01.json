@@ -1,0 +1,33 @@
+{
+  "document_id": "doc-ENC-POP-000080-678103823439-01",
+  "encounter_id": "ENC-POP-000080-678103823439",
+  "narrative": {
+    "text": "",
+    "sections": {
+      "subjective": "血圧管理および処方薬の見直しを目的に受診。自覚症状は特になく、日常生活に支障はない。",
+      "objective": "BP 138/76 mmHg, HR 81 回/分。診察室血圧を測定、家庭血圧との整合性を確認。",
+      "assessment": "本態性高血圧症 (I10) (Stage 2, 軽度) および脂質異常症 (E78) (軽度) の経過観察。診察室血圧 138/76 mmHg、心拍数 81 回/分であり、家庭血圧との整合性を確認した。",
+      "plan": "アムロジピン、カンデサルタン、アトルバスタチンの内服を継続する。次回外来で血圧の推移を確認する。"
+    },
+    "generator": "llm-vllm",
+    "generator_metadata": {
+      "generator": "llm",
+      "lang": "ja"
+    },
+    "generated_at": "2020-01-01T00:00:42Z",
+    "facts_used": [
+      "outpatient_soap_template.subjective_ja",
+      "ctx.patient.demographics",
+      "ctx.encounter.chief_complaint",
+      "ctx.patient.chronic_conditions",
+      "ctx.vitals",
+      "outpatient_soap_template.objective",
+      "encounter_protocol.narrative.outpatient_soap_template.assessment_ja",
+      "ctx.patient.chronic_conditions",
+      "ctx.vitals.today",
+      "ctx.lab_results.today",
+      "encounter_protocol.narrative.outpatient_soap_template.plan_ja",
+      "encounter_protocol.next_visit_interval"
+    ]
+  }
+}

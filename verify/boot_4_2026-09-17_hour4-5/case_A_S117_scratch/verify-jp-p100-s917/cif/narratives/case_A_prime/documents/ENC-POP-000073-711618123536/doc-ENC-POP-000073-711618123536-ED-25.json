@@ -1,0 +1,31 @@
+{
+  "document_id": "doc-ENC-POP-000073-711618123536-ED-25",
+  "encounter_id": "ENC-POP-000073-711618123536",
+  "narrative": {
+    "text": "",
+    "sections": {
+      "chief_complaint": "腹痛・嘔吐・排便停止・腹部膨満",
+      "hpi": "腹痛・嘔吐・排便停止・腹部膨満を主訴に、救急車搬送で来院した。到着時のバイタルサインは T 38.2°C、HR 94 回/分、BP 146/86 mmHg、SpO2 97.7% であり、発熱を伴う急性腹部症状を呈していた。既往歴として本態性高血圧症 (I10) (Stage 1, 軽度)、H26 (軽度)、ニコチン依存症（紙巻きたばこ、合併症なし） (F17.210) (軽度) を有する。",
+      "triage_details": "トリアージ情報：未記録",
+      "physical_exam": "来院時所見: BP 146/86 mmHg, HR 94 回/分, RR 14 回/分, SpO2 98%, T 38.2°C。特記の身体所見なし。",
+      "ed_workup": "検査: CBC、CRP、クレアチニン、BUN、Na、K、Cl、乳酸。画像: Abdominal_Xray_erect_supine、CT_abdomen_pelvis_with_contrast、X-ray Abdomen (Supine and Upright)、CT Abdomen with contrast。投薬: Lactated Ringer、Metoclopramide、Daikenchuto、IV_fluid: Lactated Ringer 125-250 mL/h、Amlodipine、Candesartan。異常値: BUN 23.8 mg/dL [H]",
+      "assessment": "腹部単純X線および造影CT検査にて腸閉塞 (ileus) と診断した。軽度の重症度であり、経過は順調な回復 (smooth_recovery) が期待される。検査所見では BUN 23.8 mg/dL [H] の異常を認め、電解質異常 (electrolyte_imbalance) を伴う可能性を考慮する。",
+      "disposition": "入院加療を決定した。入院初日であり、予定在院日数は 5 日である。入院日時 2026-02-11T08:29:00 にて入院手続を行い、急性期の管理を開始する。"
+    },
+    "generator": "llm-vllm",
+    "generator_metadata": {
+      "generator": "llm",
+      "lang": "ja"
+    },
+    "generated_at": "2020-01-01T00:00:42Z",
+    "facts_used": [
+      "ctx.encounter.chief_complaint_ja",
+      "chief_complaint_variants.ileus[0]",
+      "ctx.vitals[0]",
+      "ctx.orders.ed",
+      "ctx.lab_results.abnormal",
+      "ctx.ed_assessment.state_composed",
+      "ctx.encounter.disposition"
+    ]
+  }
+}

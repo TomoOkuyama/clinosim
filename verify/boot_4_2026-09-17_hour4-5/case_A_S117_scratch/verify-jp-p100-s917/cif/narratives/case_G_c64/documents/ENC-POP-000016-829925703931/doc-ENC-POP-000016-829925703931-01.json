@@ -1,0 +1,33 @@
+{
+  "document_id": "doc-ENC-POP-000016-829925703931-01",
+  "encounter_id": "ENC-POP-000016-829925703931",
+  "narrative": {
+    "text": "",
+    "sections": {
+      "subjective": "骨粗鬆症のフォローアップおよび骨折リスク評価を目的に外来受診。自覚症状の著変なし。",
+      "objective": "BP 129/76 mmHg, HR 86 回/分。上腹部圧痛の有無を確認。",
+      "assessment": "骨粗鬆症 (M81) (軽度) に対する定期的な経過観察。併存疾患として胃食道逆流症 (K21) (軽度)、H26 (中等度)、過体重 (E66.3) (軽度) を有する。バイタルサインは安定しており、上腹部圧痛の有無を確認した。",
+      "plan": "現在の内服薬（アレンドロネート、ビタミンD、ランソプラゾール）を継続する。次回受診時に骨折リスクを再評価する。"
+    },
+    "generator": "llm-vllm",
+    "generator_metadata": {
+      "generator": "llm",
+      "lang": "ja"
+    },
+    "generated_at": "2020-01-01T00:00:42Z",
+    "facts_used": [
+      "outpatient_soap_template.subjective_ja",
+      "ctx.patient.demographics",
+      "ctx.encounter.chief_complaint",
+      "ctx.patient.chronic_conditions",
+      "ctx.vitals",
+      "outpatient_soap_template.objective",
+      "encounter_protocol.narrative.outpatient_soap_template.assessment_ja",
+      "ctx.patient.chronic_conditions",
+      "ctx.vitals.today",
+      "ctx.lab_results.today",
+      "encounter_protocol.narrative.outpatient_soap_template.plan_ja",
+      "encounter_protocol.next_visit_interval"
+    ]
+  }
+}

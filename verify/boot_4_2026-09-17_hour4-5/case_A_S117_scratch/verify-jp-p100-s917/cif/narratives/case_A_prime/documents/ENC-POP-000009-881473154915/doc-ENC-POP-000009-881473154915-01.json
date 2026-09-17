@@ -1,0 +1,29 @@
+{
+  "document_id": "doc-ENC-POP-000009-881473154915-01",
+  "encounter_id": "ENC-POP-000009-881473154915",
+  "narrative": {
+    "text": "",
+    "sections": {
+      "subjective": "妊婦健診のため来院。胎児健常評価および妊婦バイタルサインの確認を目的とする。",
+      "objective": "BP 93/82 mmHg, HR 79 回/分",
+      "assessment": "32歳女性、元喫煙者。葉酸およびフマル酸第一鉄を内服中。本日測定したバイタルサインはBP 93/82 mmHg、HR 79 回/分であり、血圧は基準値よりやや低めであるが、心拍数は正常範囲内にある。",
+      "plan": "現在の内服薬（葉酸、フマル酸第一鉄）を継続する。次回健診時に再評価予定。"
+    },
+    "generator": "llm-vllm",
+    "generator_metadata": {
+      "generator": "llm",
+      "lang": "ja"
+    },
+    "generated_at": "2020-01-01T00:00:42Z",
+    "facts_used": [
+      "ctx.patient.demographics",
+      "ctx.encounter.chief_complaint",
+      "ctx.patient.chronic_conditions",
+      "ctx.vitals",
+      "ctx.encounter.chief_complaint",
+      "ctx.patient.current_medications",
+      "ctx.discharge_medications",
+      "encounter_protocol.next_visit_interval"
+    ]
+  }
+}

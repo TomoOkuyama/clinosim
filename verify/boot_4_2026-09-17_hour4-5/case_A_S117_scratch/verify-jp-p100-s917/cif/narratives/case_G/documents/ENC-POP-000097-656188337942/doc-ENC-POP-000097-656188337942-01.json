@@ -1,0 +1,33 @@
+{
+  "document_id": "doc-ENC-POP-000097-656188337942-01",
+  "encounter_id": "ENC-POP-000097-656188337942",
+  "narrative": {
+    "text": "",
+    "sections": {
+      "subjective": "マンモグラフィー検診のため来院。既往の脂質異常症、慢性閉塞性肺疾患、高尿酸血症の経過観察を目的とする。本日の主訴は特になく、呼吸苦や胸痛などの急性症状は認めない。",
+      "objective": "BP 110/68 mmHg, HR 79 回/分, RR 13 回/分, SpO2 93%, T 36.6°C。体重・BMI 測定、心血管イベントリスクを再評価。",
+      "assessment": "バイタルサインはBP 110/68 mmHg、HR 79 回/分、RR 13 回/分、SpO2 93%、T 36.6°Cと安定している。検査所見ではクレアチニン 0.84 mg/dL [H]、AST 119.0 U/L [H]、ALT 135.0 U/L [H]と肝機能障害および腎機能の異常が認められる。脂質異常症 (E78) (軽度)、慢性閉塞性肺疾患 (J44) (GOLD 1, 軽度)、E79 (中等度) の管理継続が必要である。",
+      "plan": "アトルバスタチン、チオトロピウム、サルブタモールの内服を継続する。肝機能異常 (AST 119.0 U/L [H], ALT 135.0 U/L [H]) に対しては、原因精査のため次回外来で再検査を行う。マンモグラフィー検診の結果を待機し、異常所見があれば追加検査を検討する。"
+    },
+    "generator": "llm-vllm",
+    "generator_metadata": {
+      "generator": "llm",
+      "lang": "ja"
+    },
+    "generated_at": "2020-01-01T00:00:42Z",
+    "facts_used": [
+      "outpatient_soap_template.subjective_ja",
+      "ctx.patient.demographics",
+      "ctx.encounter.chief_complaint",
+      "ctx.patient.chronic_conditions",
+      "ctx.vitals",
+      "outpatient_soap_template.objective",
+      "encounter_protocol.narrative.outpatient_soap_template.assessment_ja",
+      "ctx.patient.chronic_conditions",
+      "ctx.vitals.today",
+      "ctx.lab_results.today",
+      "encounter_protocol.narrative.outpatient_soap_template.plan_ja",
+      "encounter_protocol.next_visit_interval"
+    ]
+  }
+}

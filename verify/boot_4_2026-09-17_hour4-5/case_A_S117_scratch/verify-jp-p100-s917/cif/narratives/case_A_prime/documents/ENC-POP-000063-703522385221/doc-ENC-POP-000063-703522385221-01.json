@@ -1,0 +1,33 @@
+{
+  "document_id": "doc-ENC-POP-000063-703522385221-01",
+  "encounter_id": "ENC-POP-000063-703522385221",
+  "narrative": {
+    "text": "",
+    "sections": {
+      "subjective": "年次健診のため来院。自覚症状は特になく、日常生活に支障はない。既往症として本態性高血圧症、慢性腎臓病、前立腺肥大症、白内障、腰痛、過体重があり、アムロジピン、タムスロシンを内服中。",
+      "objective": "BP 139/78 mmHg, HR 77 回/分, RR 15 回/分, SpO2 98%, T 35.9°C。診察室血圧を測定、家庭血圧との整合性を確認。",
+      "assessment": "本態性高血圧症 (I10) (Stage 1, 軽度) について、外来血圧 139/78 mmHg とは整合性を確認したが、家庭血圧との比較が必要。慢性腎臓病 (N18) (CKD G3a, 軽度) について、クレアチニン 1.5 mg/dL [H] と上昇しており、腎機能の悪化を疑う。AST 70.0 U/L [H]、ALT 60.0 U/L [H] と肝酵素も上昇しており、肝機能障害の可能性を考慮する。前立腺肥大症 (N40) (中等度)、白内障 (H26) (中等度)、腰痛 (M54) (中等度)、過体重 (E66.3) (軽度) は経過観察。",
+      "plan": "本態性高血圧症 (I10) (Stage 1, 軽度) については、アムロジピンを継続し、家庭血圧の記録を依頼。慢性腎臓病 (N18) (CKD G3a, 軽度) については、クレアチニン上昇のため、腎機能の再評価と原因精査を予定。AST 70.0 U/L [H]、ALT 60.0 U/L [H] については、肝機能検査の再検査と必要に応じて画像検査を予定。前立腺肥大症 (N40) (中等度) については、タムスロシンを継続。次回受診は1ヶ月後。"
+    },
+    "generator": "llm-vllm",
+    "generator_metadata": {
+      "generator": "llm",
+      "lang": "ja"
+    },
+    "generated_at": "2020-01-01T00:00:42Z",
+    "facts_used": [
+      "outpatient_soap_template.subjective_ja",
+      "ctx.patient.demographics",
+      "ctx.encounter.chief_complaint",
+      "ctx.patient.chronic_conditions",
+      "ctx.vitals",
+      "outpatient_soap_template.objective",
+      "encounter_protocol.narrative.outpatient_soap_template.assessment_ja",
+      "ctx.patient.chronic_conditions",
+      "ctx.vitals.today",
+      "ctx.lab_results.today",
+      "encounter_protocol.narrative.outpatient_soap_template.plan_ja",
+      "encounter_protocol.next_visit_interval"
+    ]
+  }
+}

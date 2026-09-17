@@ -1,0 +1,36 @@
+{
+  "document_id": "doc-ENC-POP-000044-227339163210-01",
+  "encounter_id": "ENC-POP-000044-227339163210",
+  "narrative": {
+    "text": "",
+    "sections": {
+      "chief_complaint": "意識消失・失神エピソード",
+      "hpi": "3日前より意識消失・失神エピソードが出現・増悪 3歳女性患者。主訴: 意識消失・失神エピソード。",
+      "triage_details": "トリアージレベル: JTAS Level 3。来院形態: 救急車搬送。",
+      "physical_exam": "バイタルサイン: BP 101/68 mmHg, HR 71/min, T 37.5°C, SpO2 100% (RA), RR 17/min。JCS I-2、簡単な問いかけには応答するも見当識低下あり",
+      "ed_workup": "検査: Hb。投薬: IV normal saline 1L",
+      "assessment": "来院理由: 意識消失・失神エピソード",
+      "disposition": "自宅退院（JTAS レベル 3、意識消失・失神エピソード）"
+    },
+    "generator": "template",
+    "generator_metadata": {
+      "generator": "template",
+      "lang": "ja"
+    },
+    "generated_at": "2020-01-01T00:15:17Z",
+    "facts_used": [
+      "ctx.encounter.chief_complaint_ja",
+      "encounter_protocol.narrative.ed_note_template.hpi_ja",
+      "ctx.patient.demographics",
+      "ctx.patient.chronic_conditions",
+      "ctx.patient.current_medications",
+      "encounter.triage_data",
+      "encounter_protocol.narrative.ed_note_template.physical_exam_ja",
+      "cc_pe_consistency:consciousness",
+      "ctx.vitals[day_0]",
+      "ctx.orders.ed",
+      "ctx.ed_assessment.state_composed",
+      "ctx.encounter.disposition"
+    ]
+  }
+}

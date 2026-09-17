@@ -1,0 +1,33 @@
+{
+  "document_id": "doc-ENC-POP-000080-639493610305-01",
+  "encounter_id": "ENC-POP-000080-639493610305",
+  "narrative": {
+    "text": "",
+    "sections": {
+      "subjective": "71歳女性患者、本日「血圧管理・処方薬の見直し」のため外来受診。慢性疾患（本態性高血圧症、高脂血症、詳細不明）のフォローアップを兼ねる。 血圧手帳を持参、家庭血圧の記録を確認。降圧薬の副作用は認めず、\n自覚症状は特記事項なし。",
+      "objective": "BP 140/75 mmHg, HR 78 回/分。診察室血圧を測定、家庭血圧との整合性を確認。",
+      "assessment": "本態性高血圧のフォローアップ。目標 130/80 mmHg 未満を基準に評価。\n\n1. 本態性高血圧症: BP 140/75 mmHg — 目標 140/90 mmHg 未満 — コントロール不十分、アムロジピン 継続。\n2. 脂質異常症: 本日測定 (BP 140/75 mmHg、HR 78 回/分、ast 27.0 U/L、alt 17.0 U/L) は病態特異的モニタリング項目に該当せず、次回受診時に 脂質異常症 特化評価を追加検討。",
+      "plan": "降圧薬継続、家庭血圧測定継続を指導。減塩・適度な運動・体重管理を再確認。\n次回外来は 4-6 週後に予定。\n\n次回外来: 90日後を予定。"
+    },
+    "generator": "template",
+    "generator_metadata": {
+      "generator": "template",
+      "lang": "ja"
+    },
+    "generated_at": "2020-01-01T00:15:17Z",
+    "facts_used": [
+      "outpatient_soap_template.subjective_ja",
+      "ctx.patient.demographics",
+      "ctx.encounter.chief_complaint",
+      "ctx.patient.chronic_conditions",
+      "ctx.vitals",
+      "outpatient_soap_template.objective",
+      "encounter_protocol.narrative.outpatient_soap_template.assessment_ja",
+      "ctx.patient.chronic_conditions",
+      "ctx.vitals.today",
+      "ctx.lab_results.today",
+      "encounter_protocol.narrative.outpatient_soap_template.plan_ja",
+      "encounter_protocol.next_visit_interval"
+    ]
+  }
+}

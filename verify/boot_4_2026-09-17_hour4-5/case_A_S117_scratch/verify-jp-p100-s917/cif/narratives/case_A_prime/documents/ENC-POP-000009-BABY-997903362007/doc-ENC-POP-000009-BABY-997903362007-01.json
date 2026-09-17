@@ -1,0 +1,37 @@
+{
+  "document_id": "doc-ENC-POP-000009-BABY-997903362007-01",
+  "encounter_id": "ENC-POP-000009-BABY-997903362007",
+  "narrative": {
+    "text": "",
+    "sections": {
+      "chief_complaint": "新生児 — 院内出生",
+      "hpi": "2026年3月16日10時38分に当院にて出生し、新生児室へ入院となった。出生時体重3.2 kg、身長50 cm、血液型A+。Apgarスコアは1分時8点、5分時9点であった。出生直後のスクリーニング検査として、AABR聴覚スクリーンおよびタンデムMSによる代謝異常症スクリーンを提出済みである。総ビリルビン最高値は6.0 mg/dLであり、光線療法閾値には達していない。CCHDスクリーンでは右上肢SpO2 96%、下肢SpO2 98%と、両側95%以上かつ差3%未満の基準を満たしている。ビタミンKの予防投与は実施済みである。",
+      "past_medical_history": "出生児の出生場所別分類 [Z38.0]",
+      "medications_at_home": "常用薬なし",
+      "allergies": "薬物アレルギーなし（NKDA）",
+      "social_history": "喫煙歴: 非喫煙者; 飲酒歴: 飲酒なし; 職業: 乳幼児",
+      "family_history": "特記家族歴なし",
+      "physical_examination": "バイタルサイン: BP 68/40 mmHg, HR 130/min, T 36.7°C, SpO2 97% (RA), RR 40/min。一般状態: 意識清明、苦痛様。循環器: 整、心雑音なし。呼吸器: 呼吸音清明、呼吸数軽度上昇。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし、項部硬直なし",
+      "assessment_and_plan": "【評価】\n経腟分娩による出生児。Apgarスコア良好、CCHDスクリーンpass、総ビリルビン6.0 mg/dLと生理的黄疸の範囲内。AABRおよびタンデムMSスクリーンは提出済みで、結果は数日以内に判明予定。現時点で異常所見は認めず、経過観察下で問題ない。\n\n【薬物療法】\nビタミンK 1回投与済み。その他、現時点での投薬はなし。\n\n【検査】\nAABR聴覚スクリーン、タンデムMS代謝異常症スクリーンの結果を待機。総ビリルビンの推移をモニタリング。\n\n【教育・指導】\n授乳指導、黄疸の観察方法、退院後の育児に関する指導を行う。\n\n【予定入院期間】\n新生児室の標準的な入院期間に従い、経過観察の上で退院予定。"
+    },
+    "generator": "llm-vllm",
+    "generator_metadata": {
+      "generator": "llm",
+      "lang": "ja"
+    },
+    "generated_at": "2020-01-01T00:00:42Z",
+    "facts_used": [
+      "ctx.encounter.chief_complaint_ja",
+      "ctx.patient.demographics",
+      "ctx.encounter.chief_complaint",
+      "ctx.patient.chronic_conditions",
+      "ctx.newborn_workup",
+      "ctx.patient.chronic_conditions",
+      "ctx.patient.smoking_status",
+      "ctx.patient.alcohol_use",
+      "ctx.patient.occupation",
+      "physical_exam_findings..day_0",
+      "ctx.vitals[day_0]"
+    ]
+  }
+}

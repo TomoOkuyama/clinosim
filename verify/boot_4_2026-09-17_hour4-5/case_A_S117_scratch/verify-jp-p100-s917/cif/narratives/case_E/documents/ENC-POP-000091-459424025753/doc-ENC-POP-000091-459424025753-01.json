@@ -1,0 +1,33 @@
+{
+  "document_id": "doc-ENC-POP-000091-459424025753-01",
+  "encounter_id": "ENC-POP-000091-459424025753",
+  "narrative": {
+    "text": "",
+    "sections": {
+      "subjective": "脂質管理およびスタチン療法のモニタリング目的で外来受診。既往の脂質異常症および喘息に対する内服治療を継続中であり、本日の主訴は特になく、経過は安定している。",
+      "objective": "BP 117/71 mmHg, HR 66 回/分。体重・BMI 測定、心血管イベントリスクを再評価。",
+      "assessment": "脂質異常症 (E78) (中等度) および喘息 (J45) (軽度持続) について経過観察中。本日の検査で HDL 45.0 mg/dL [L] と低値を認めるが、アトルバスタチンによるLDL-C低下効果は期待通りであり、総合的な心血管リスク評価では安定と判断する。喘息症状もコントロール良好。",
+      "plan": "アトルバスタチン、フルチカゾン/サルメテロール、サルブタモールの内服を継続する。HDL低値については生活習慣指導を継続し、次回外来時に再評価を行う。"
+    },
+    "generator": "llm-vllm",
+    "generator_metadata": {
+      "generator": "llm",
+      "lang": "ja"
+    },
+    "generated_at": "2020-01-01T00:00:42Z",
+    "facts_used": [
+      "outpatient_soap_template.subjective_ja",
+      "ctx.patient.demographics",
+      "ctx.encounter.chief_complaint",
+      "ctx.patient.chronic_conditions",
+      "ctx.vitals",
+      "outpatient_soap_template.objective",
+      "encounter_protocol.narrative.outpatient_soap_template.assessment_ja",
+      "ctx.patient.chronic_conditions",
+      "ctx.vitals.today",
+      "ctx.lab_results.today",
+      "encounter_protocol.narrative.outpatient_soap_template.plan_ja",
+      "encounter_protocol.next_visit_interval"
+    ]
+  }
+}

@@ -1,0 +1,33 @@
+{
+  "document_id": "doc-ENC-POP-000097-656188337942-01",
+  "encounter_id": "ENC-POP-000097-656188337942",
+  "narrative": {
+    "text": "",
+    "sections": {
+      "subjective": "マンモグラフィー検診のため来院。既往の脂質異常症、慢性閉塞性肺疾患、高尿酸血症の経過観察を目的とする。本日の症状に著変なし。",
+      "objective": "BP 110/68 mmHg, HR 79 回/分, RR 13 回/分, SpO2 93%, T 36.6°C。体重・BMI 測定、心血管イベントリスクを再評価。",
+      "assessment": "バイタルサインは安定 (BP 110/68 mmHg, HR 79 回/分, RR 13 回/分, SpO2 93%, T 36.6°C)。検査所見でクレアチニン 0.84 mg/dL [H]、AST 119.0 U/L [H]、ALT 135.0 U/L [H] と肝機能障害および腎機能異常が認められる。アトルバスタチン内服中の肝酵素上昇を疑うため、薬剤性肝障害の可能性を考慮し、心血管イベントリスクの再評価が必要。",
+      "plan": "肝機能障害の経過観察のため、アトルバスタチンを一時的に中止し、再検査を予定。チオトロピウムおよびサルブタモールの内服は継続。次回外来で肝機能検査の結果を確認し、薬剤調整を検討する。"
+    },
+    "generator": "llm-vllm",
+    "generator_metadata": {
+      "generator": "llm",
+      "lang": "ja"
+    },
+    "generated_at": "2020-01-01T00:00:42Z",
+    "facts_used": [
+      "outpatient_soap_template.subjective_ja",
+      "ctx.patient.demographics",
+      "ctx.encounter.chief_complaint",
+      "ctx.patient.chronic_conditions",
+      "ctx.vitals",
+      "outpatient_soap_template.objective",
+      "encounter_protocol.narrative.outpatient_soap_template.assessment_ja",
+      "ctx.patient.chronic_conditions",
+      "ctx.vitals.today",
+      "ctx.lab_results.today",
+      "encounter_protocol.narrative.outpatient_soap_template.plan_ja",
+      "encounter_protocol.next_visit_interval"
+    ]
+  }
+}

@@ -1,0 +1,897 @@
+{
+  "patient": {
+    "patient_id": "POP-000052",
+    "household_id": "HH-000023",
+    "name": {
+      "family_name": "岡田",
+      "given_name": "弘子",
+      "display_name": "岡田 弘子",
+      "name_script": "ja",
+      "phonetic": "オカダ ヒロコ"
+    },
+    "age": 85,
+    "sex": "F",
+    "date_of_birth": "1939-09-02",
+    "date_of_death": null,
+    "blood_type": "A",
+    "rh_factor": "+",
+    "height_cm": 153.6,
+    "weight_kg": 47.6,
+    "bmi": 20.2,
+    "address": {
+      "postal_code": "175-0082",
+      "state": "東京都",
+      "city": "板橋区",
+      "line1": "美園4丁目10-1",
+      "line2": "",
+      "country": "JP"
+    },
+    "contact": {
+      "phone_home": "03-5716-4894",
+      "phone_mobile": "070-5195-9945",
+      "phone_primary": "070-5195-9945",
+      "email": "",
+      "emergency_contact_name": "岡田 健太",
+      "emergency_contact_phone": "03-5716-4894",
+      "emergency_contact_relationship": "spouse"
+    },
+    "marital_status": "M",
+    "preferred_language": "ja-JP",
+    "employment_status": "retired",
+    "occupation": "retired",
+    "insurance_type": "late_elderly",
+    "identity": {
+      "national": {
+        "country": "JP",
+        "national_id": "592647474076",
+        "has_id_card": true,
+        "id_card_linked_to_insurance": false
+      },
+      "enrollments": [
+        {
+          "country": "JP",
+          "category": "late_elderly",
+          "insurer_number": "39130083",
+          "member_id": "85139986",
+          "group_symbol": null,
+          "branch_number": null,
+          "valid_from": null,
+          "valid_to": null,
+          "system_uri": ""
+        }
+      ],
+      "card_acquired_on": null,
+      "insurance_linked_on": null
+    },
+    "race": "",
+    "ethnicity": "",
+    "health_literacy": 0.71,
+    "chronic_conditions": [
+      {
+        "code": "E11.9",
+        "system": "icd-10-cm",
+        "onset_date": "2022-03-12",
+        "severity": "mild",
+        "controlled": false,
+        "severity_score": 0.15622082675244844,
+        "stage": "HbA1c 6.5%",
+        "glycemic_control": 0.9191648622338264
+      },
+      {
+        "code": "E78",
+        "system": "icd-10-cm",
+        "onset_date": "2016-11-02",
+        "severity": "mild",
+        "controlled": true,
+        "severity_score": 0.14547258094726,
+        "stage": "",
+        "glycemic_control": null
+      },
+      {
+        "code": "J44",
+        "system": "icd-10-cm",
+        "onset_date": "2021-09-27",
+        "severity": "moderate",
+        "controlled": true,
+        "severity_score": 0.25,
+        "stage": "GOLD 2",
+        "glycemic_control": null
+      },
+      {
+        "code": "N18",
+        "system": "icd-10-cm",
+        "onset_date": "2017-11-13",
+        "severity": "moderate",
+        "controlled": true,
+        "severity_score": 0.15,
+        "stage": "CKD G2",
+        "glycemic_control": null
+      },
+      {
+        "code": "M81",
+        "system": "icd-10-cm",
+        "onset_date": "2018-12-07",
+        "severity": "mild",
+        "controlled": false,
+        "severity_score": 0.24241173380192235,
+        "stage": "",
+        "glycemic_control": null
+      },
+      {
+        "code": "M17",
+        "system": "icd-10-cm",
+        "onset_date": "2018-06-26",
+        "severity": "mild",
+        "controlled": true,
+        "severity_score": 0.3410556774003002,
+        "stage": "",
+        "glycemic_control": null
+      },
+      {
+        "code": "H26",
+        "system": "icd-10-cm",
+        "onset_date": "2020-03-25",
+        "severity": "moderate",
+        "controlled": true,
+        "severity_score": 0.26650334963768796,
+        "stage": "",
+        "glycemic_control": null
+      },
+      {
+        "code": "F33",
+        "system": "icd-10-cm",
+        "onset_date": "2022-09-14",
+        "severity": "moderate",
+        "controlled": true,
+        "severity_score": 0.1340896998171334,
+        "stage": "",
+        "glycemic_control": null
+      },
+      {
+        "code": "F17.210",
+        "system": "icd-10-cm",
+        "onset_date": "2020-10-18",
+        "severity": "moderate",
+        "controlled": true,
+        "severity_score": 0.22315638347761335,
+        "stage": "",
+        "glycemic_control": null
+      }
+    ],
+    "allergies": [
+      {
+        "allergy_id": "1",
+        "allergen_code": "387458008",
+        "category": "medication",
+        "criticality": "low",
+        "verification_status": "confirmed",
+        "clinical_status": "active",
+        "onset_date": null,
+        "reactions": [
+          {
+            "manifestation_snomed": "271807003",
+            "severity": "mild"
+          }
+        ],
+        "is_nka": false
+      },
+      {
+        "allergy_id": "2",
+        "allergen_code": "735038006",
+        "category": "food",
+        "criticality": "low",
+        "verification_status": "confirmed",
+        "clinical_status": "active",
+        "onset_date": null,
+        "reactions": [
+          {
+            "manifestation_snomed": "271807003",
+            "severity": "mild"
+          }
+        ],
+        "is_nka": false
+      }
+    ],
+    "current_medications": [
+      {
+        "drug_name": "Metformin",
+        "drug_name_ja": "メトホルミン",
+        "route": "PO",
+        "dose": "500mg",
+        "dose_quantity": null,
+        "dose_unit": "",
+        "frequency": "bid"
+      },
+      {
+        "drug_name": "Sliding scale insulin",
+        "drug_name_ja": "スライディングスケール インスリン",
+        "route": "SC",
+        "dose": "",
+        "dose_quantity": null,
+        "dose_unit": "",
+        "frequency": "qid"
+      },
+      {
+        "drug_name": "Atorvastatin",
+        "drug_name_ja": "アトルバスタチン",
+        "route": "PO",
+        "dose": "10mg",
+        "dose_quantity": null,
+        "dose_unit": "",
+        "frequency": "daily"
+      },
+      {
+        "drug_name": "Tiotropium",
+        "drug_name_ja": "チオトロピウム",
+        "route": "INH",
+        "dose": "18mcg",
+        "dose_quantity": null,
+        "dose_unit": "",
+        "frequency": "daily"
+      },
+      {
+        "drug_name": "Salbutamol",
+        "drug_name_ja": "サルブタモール",
+        "route": "INH",
+        "dose": "100mcg",
+        "dose_quantity": null,
+        "dose_unit": "",
+        "frequency": "prn"
+      },
+      {
+        "drug_name": "Alendronate",
+        "drug_name_ja": "アレンドロネート",
+        "route": "PO",
+        "dose": "35mg",
+        "dose_quantity": null,
+        "dose_unit": "",
+        "frequency": "weekly"
+      },
+      {
+        "drug_name": "Vitamin D",
+        "drug_name_ja": "ビタミンD",
+        "route": "PO",
+        "dose": "1000IU",
+        "dose_quantity": null,
+        "dose_unit": "",
+        "frequency": "daily"
+      },
+      {
+        "drug_name": "Celecoxib",
+        "drug_name_ja": "セレコキシブ",
+        "route": "PO",
+        "dose": "200mg",
+        "dose_quantity": null,
+        "dose_unit": "",
+        "frequency": "daily"
+      },
+      {
+        "drug_name": "Sertraline",
+        "drug_name_ja": "セルトラリン",
+        "route": "PO",
+        "dose": "50mg",
+        "dose_quantity": null,
+        "dose_unit": "",
+        "frequency": "daily"
+      }
+    ],
+    "safety_skip_log": [],
+    "baseline_chronic_medications": [
+      {
+        "drug_name": "Metformin",
+        "drug_name_ja": "メトホルミン",
+        "route": "PO",
+        "dose": "500mg",
+        "dose_quantity": null,
+        "dose_unit": "",
+        "frequency": "bid"
+      },
+      {
+        "drug_name": "Sliding scale insulin",
+        "drug_name_ja": "スライディングスケール インスリン",
+        "route": "SC",
+        "dose": "",
+        "dose_quantity": null,
+        "dose_unit": "",
+        "frequency": "qid"
+      },
+      {
+        "drug_name": "Atorvastatin",
+        "drug_name_ja": "アトルバスタチン",
+        "route": "PO",
+        "dose": "10mg",
+        "dose_quantity": null,
+        "dose_unit": "",
+        "frequency": "daily"
+      },
+      {
+        "drug_name": "Tiotropium",
+        "drug_name_ja": "チオトロピウム",
+        "route": "INH",
+        "dose": "18mcg",
+        "dose_quantity": null,
+        "dose_unit": "",
+        "frequency": "daily"
+      },
+      {
+        "drug_name": "Salbutamol",
+        "drug_name_ja": "サルブタモール",
+        "route": "INH",
+        "dose": "100mcg",
+        "dose_quantity": null,
+        "dose_unit": "",
+        "frequency": "prn"
+      },
+      {
+        "drug_name": "Alendronate",
+        "drug_name_ja": "アレンドロネート",
+        "route": "PO",
+        "dose": "35mg",
+        "dose_quantity": null,
+        "dose_unit": "",
+        "frequency": "weekly"
+      },
+      {
+        "drug_name": "Vitamin D",
+        "drug_name_ja": "ビタミンD",
+        "route": "PO",
+        "dose": "1000IU",
+        "dose_quantity": null,
+        "dose_unit": "",
+        "frequency": "daily"
+      },
+      {
+        "drug_name": "Celecoxib",
+        "drug_name_ja": "セレコキシブ",
+        "route": "PO",
+        "dose": "200mg",
+        "dose_quantity": null,
+        "dose_unit": "",
+        "frequency": "daily"
+      },
+      {
+        "drug_name": "Sertraline",
+        "drug_name_ja": "セルトラリン",
+        "route": "PO",
+        "dose": "50mg",
+        "dose_quantity": null,
+        "dose_unit": "",
+        "frequency": "daily"
+      }
+    ],
+    "smoking_status": "current",
+    "alcohol_use": "none",
+    "physiological_profile": {
+      "immune_reactivity": 0.31094183657700575,
+      "drug_metabolism_rate": "normal",
+      "renal_reserve": 0.7564983195498316,
+      "cardiac_reserve": 0.7462035686136799,
+      "hepatic_reserve": 0.6899888578505396,
+      "treatment_sensitivity": 0.8559355577307698,
+      "symptom_reporting_bias": 0.48423081980104743,
+      "delirium_susceptibility": 0.24021594793808398,
+      "dvt_susceptibility": 0.28165910500345104
+    },
+    "baseline_vitals": {
+      "temperature": 36.4,
+      "heart_rate": 74,
+      "systolic_bp": 125,
+      "diastolic_bp": 83,
+      "respiratory_rate": 15,
+      "spo2": 93.9
+    },
+    "state_periods": []
+  },
+  "encounters": [
+    {
+      "encounter_id": "ENC-POP-000052-095245102363",
+      "patient_id": "POP-000052",
+      "episode_id": "EP-POP-000052-095245102363",
+      "encounter_type": "outpatient",
+      "status": "completed",
+      "department_id": "internal_medicine",
+      "attending_physician_id": "DR-IM-001",
+      "admitting_physician_id": "DR-IM-001",
+      "discharging_physician_id": "DR-IM-001",
+      "admission_datetime": "2026-01-23T10:11:00",
+      "discharge_datetime": "2026-01-23T10:19:00",
+      "chief_complaint": "糖尿病管理・血糖コントロールの確認",
+      "chief_complaint_ja": "糖尿病管理・血糖コントロールの確認",
+      "disease_event_id": "DE-POP-000052-001",
+      "ward_id": "",
+      "bed_number": "",
+      "time_resolution": 3600.0,
+      "admit_source": "outp",
+      "admit_source_encounter_id": "",
+      "discharge_disposition": "home",
+      "priority": "R",
+      "primary_nurse_id": "",
+      "triage_data": null,
+      "severity": "",
+      "clinical_course_archetype": "",
+      "service_line": "",
+      "admission_diagnosis_code": "",
+      "admission_diagnosis_system": ""
+    }
+  ],
+  "orders": [
+    {
+      "order_id": "ORD-ENC-POP-000052-095245102363-OPD-L00",
+      "encounter_id": "ENC-POP-000052-095245102363",
+      "patient_id": "POP-000052",
+      "order_type": "lab",
+      "order_code": "",
+      "display_name": "Glucose",
+      "urgency": "routine",
+      "clinical_intent": "Outpatient follow-up: Glucose",
+      "clinical_intent_ja": "外来フォローアップ: Glucose",
+      "ordered_datetime": "2026-01-23T10:21:00",
+      "ordered_by": "DR-IM-001",
+      "status": "resulted",
+      "result": {
+        "result_datetime": "2026-01-23T12:11:00",
+        "performed_by": "TECH-LAB-009",
+        "lab_name": "Glucose",
+        "value": 131.0,
+        "unit": "mg/dL",
+        "reference_range": null,
+        "flag": "H",
+        "interpretation": null,
+        "specimen_note": null
+      },
+      "dose_quantity": null,
+      "dose_unit": "",
+      "frequency": "",
+      "frequency_per_day": null,
+      "route": "",
+      "duration_days": null,
+      "reason_condition": "",
+      "panel_key": "",
+      "imaging_modality": "",
+      "imaging_body_site_code": "",
+      "imaging_views": [],
+      "imaging_spec_meta": {},
+      "medication_intent": "",
+      "dose_text_ja": "",
+      "dose_text_en": "",
+      "notes": []
+    },
+    {
+      "order_id": "ORD-ENC-POP-000052-095245102363-OPD-L01",
+      "encounter_id": "ENC-POP-000052-095245102363",
+      "patient_id": "POP-000052",
+      "order_type": "lab",
+      "order_code": "",
+      "display_name": "HbA1c",
+      "urgency": "routine",
+      "clinical_intent": "Outpatient follow-up: HbA1c",
+      "clinical_intent_ja": "外来フォローアップ: HbA1c",
+      "ordered_datetime": "2026-01-23T10:21:00",
+      "ordered_by": "DR-IM-001",
+      "status": "resulted",
+      "result": {
+        "result_datetime": "2026-01-23T12:11:00",
+        "performed_by": "TECH-LAB-009",
+        "lab_name": "HbA1c",
+        "value": 6.5,
+        "unit": "%",
+        "reference_range": null,
+        "flag": "H",
+        "interpretation": null,
+        "specimen_note": null
+      },
+      "dose_quantity": null,
+      "dose_unit": "",
+      "frequency": "",
+      "frequency_per_day": null,
+      "route": "",
+      "duration_days": null,
+      "reason_condition": "",
+      "panel_key": "",
+      "imaging_modality": "",
+      "imaging_body_site_code": "",
+      "imaging_views": [],
+      "imaging_spec_meta": {},
+      "medication_intent": "",
+      "dose_text_ja": "",
+      "dose_text_en": "",
+      "notes": []
+    },
+    {
+      "order_id": "ORD-ENC-POP-000052-095245102363-OPD-L02",
+      "encounter_id": "ENC-POP-000052-095245102363",
+      "patient_id": "POP-000052",
+      "order_type": "lab",
+      "order_code": "",
+      "display_name": "ALT",
+      "urgency": "routine",
+      "clinical_intent": "Outpatient follow-up: ALT",
+      "clinical_intent_ja": "外来フォローアップ: ALT",
+      "ordered_datetime": "2026-01-23T10:21:00",
+      "ordered_by": "DR-IM-001",
+      "status": "resulted",
+      "result": {
+        "result_datetime": "2026-01-23T12:11:00",
+        "performed_by": "TECH-LAB-009",
+        "lab_name": "ALT",
+        "value": 94.0,
+        "unit": "U/L",
+        "reference_range": null,
+        "flag": "H",
+        "interpretation": null,
+        "specimen_note": null
+      },
+      "dose_quantity": null,
+      "dose_unit": "",
+      "frequency": "",
+      "frequency_per_day": null,
+      "route": "",
+      "duration_days": null,
+      "reason_condition": "",
+      "panel_key": "",
+      "imaging_modality": "",
+      "imaging_body_site_code": "",
+      "imaging_views": [],
+      "imaging_spec_meta": {},
+      "medication_intent": "",
+      "dose_text_ja": "",
+      "dose_text_en": "",
+      "notes": []
+    },
+    {
+      "order_id": "ORD-ENC-POP-000052-095245102363-OPD-L03",
+      "encounter_id": "ENC-POP-000052-095245102363",
+      "patient_id": "POP-000052",
+      "order_type": "lab",
+      "order_code": "",
+      "display_name": "AST",
+      "urgency": "routine",
+      "clinical_intent": "Outpatient follow-up: AST",
+      "clinical_intent_ja": "外来フォローアップ: AST",
+      "ordered_datetime": "2026-01-23T10:21:00",
+      "ordered_by": "DR-IM-001",
+      "status": "resulted",
+      "result": {
+        "result_datetime": "2026-01-23T12:11:00",
+        "performed_by": "TECH-LAB-009",
+        "lab_name": "AST",
+        "value": 157.0,
+        "unit": "U/L",
+        "reference_range": null,
+        "flag": "H",
+        "interpretation": null,
+        "specimen_note": null
+      },
+      "dose_quantity": null,
+      "dose_unit": "",
+      "frequency": "",
+      "frequency_per_day": null,
+      "route": "",
+      "duration_days": null,
+      "reason_condition": "",
+      "panel_key": "",
+      "imaging_modality": "",
+      "imaging_body_site_code": "",
+      "imaging_views": [],
+      "imaging_spec_meta": {},
+      "medication_intent": "",
+      "dose_text_ja": "",
+      "dose_text_en": "",
+      "notes": []
+    }
+  ],
+  "vital_signs": [
+    {
+      "timestamp": "2026-01-23T10:16:00",
+      "temperature_celsius": null,
+      "heart_rate": 79,
+      "systolic_bp": 117,
+      "diastolic_bp": 81,
+      "respiratory_rate": null,
+      "spo2": null,
+      "pain_score": null,
+      "consciousness_level": "A",
+      "on_supplemental_oxygen": false,
+      "oxygen_flow_rate_lpm": null,
+      "oxygen_delivery_device": "",
+      "nursing_note": "",
+      "measured_by": "NS-PC-004",
+      "data_source": "manual",
+      "news2_score": 0,
+      "gcs_score": 15
+    }
+  ],
+  "lab_results": [
+    {
+      "result_datetime": "2026-01-23T12:11:00",
+      "performed_by": "TECH-LAB-009",
+      "lab_name": "Glucose",
+      "value": 131.0,
+      "unit": "mg/dL",
+      "reference_range": null,
+      "flag": "H",
+      "interpretation": null,
+      "specimen_note": null
+    },
+    {
+      "result_datetime": "2026-01-23T12:11:00",
+      "performed_by": "TECH-LAB-009",
+      "lab_name": "HbA1c",
+      "value": 6.5,
+      "unit": "%",
+      "reference_range": null,
+      "flag": "H",
+      "interpretation": null,
+      "specimen_note": null
+    },
+    {
+      "result_datetime": "2026-01-23T12:11:00",
+      "performed_by": "TECH-LAB-009",
+      "lab_name": "ALT",
+      "value": 94.0,
+      "unit": "U/L",
+      "reference_range": null,
+      "flag": "H",
+      "interpretation": null,
+      "specimen_note": null
+    },
+    {
+      "result_datetime": "2026-01-23T12:11:00",
+      "performed_by": "TECH-LAB-009",
+      "lab_name": "AST",
+      "value": 157.0,
+      "unit": "U/L",
+      "reference_range": null,
+      "flag": "H",
+      "interpretation": null,
+      "specimen_note": null
+    }
+  ],
+  "condition_event": {
+    "condition_id": "COND-POP-000052-OPD",
+    "condition_type": "chronic_followup",
+    "ground_truth_diseases": [
+      "E11.9"
+    ],
+    "symptom_pattern": "",
+    "state_impacts": {},
+    "presenting_symptoms": []
+  },
+  "clinical_diagnosis": {
+    "admission_diagnosis_code": "E11.9",
+    "admission_diagnosis_system": "icd-10-mhlw",
+    "working_diagnoses": [],
+    "discharge_diagnosis_code": "E11.9",
+    "discharge_diagnosis_system": "icd-10-mhlw",
+    "diagnosis_correct": true,
+    "missed_diagnoses": [],
+    "overcalled_diagnoses": []
+  },
+  "complications_occurred": [],
+  "procedures": [],
+  "rehab_sessions": [],
+  "documents": [
+    {
+      "document_id": "doc-ENC-POP-000052-095245102363-01",
+      "task_type": "outpatient_soap",
+      "loinc_code": "34131-3",
+      "patient_id": "POP-000052",
+      "encounter_id": "ENC-POP-000052-095245102363",
+      "author_practitioner_id": "DR-IM-001",
+      "related_procedure_id": "",
+      "authored_datetime": "2026-01-23T10:11:00",
+      "period_start": "2026-01-23T10:11:00",
+      "period_end": "2026-01-23T10:19:00",
+      "language": "ja",
+      "content_type": "text/plain",
+      "format_type": "composition",
+      "shift": "",
+      "checkup_type": "",
+      "narrative": null
+    }
+  ],
+  "medication_administrations": [],
+  "intake_output_records": [],
+  "adl_assessments": [],
+  "nursing_risk_assessments": [],
+  "immunizations": [
+    {
+      "vaccine_cvx": "150",
+      "occurrence_date": "2017-11-01",
+      "status": "completed",
+      "primary_source": false,
+      "dose_number": null,
+      "lot_number": "L976-201711-801",
+      "administered_by": "NS-EM-002",
+      "encounter_id": ""
+    },
+    {
+      "vaccine_cvx": "150",
+      "occurrence_date": "2019-11-01",
+      "status": "completed",
+      "primary_source": false,
+      "dose_number": null,
+      "lot_number": "L976-201911-990",
+      "administered_by": "NS-EM-002",
+      "encounter_id": ""
+    },
+    {
+      "vaccine_cvx": "150",
+      "occurrence_date": "2020-11-01",
+      "status": "completed",
+      "primary_source": false,
+      "dose_number": null,
+      "lot_number": "L976-202011-124",
+      "administered_by": "NS-EM-002",
+      "encounter_id": ""
+    },
+    {
+      "vaccine_cvx": "150",
+      "occurrence_date": "2021-11-01",
+      "status": "completed",
+      "primary_source": false,
+      "dose_number": null,
+      "lot_number": "L976-202111-234",
+      "administered_by": "NS-EM-002",
+      "encounter_id": ""
+    },
+    {
+      "vaccine_cvx": "150",
+      "occurrence_date": "2022-11-01",
+      "status": "completed",
+      "primary_source": false,
+      "dose_number": null,
+      "lot_number": "L976-202211-148",
+      "administered_by": "NS-EM-002",
+      "encounter_id": ""
+    },
+    {
+      "vaccine_cvx": "150",
+      "occurrence_date": "2023-11-01",
+      "status": "completed",
+      "primary_source": false,
+      "dose_number": null,
+      "lot_number": "L976-202311-827",
+      "administered_by": "NS-EM-002",
+      "encounter_id": ""
+    },
+    {
+      "vaccine_cvx": "150",
+      "occurrence_date": "2025-10-14",
+      "status": "completed",
+      "primary_source": true,
+      "dose_number": null,
+      "lot_number": "L976-202511-427",
+      "administered_by": "NS-EM-002",
+      "encounter_id": "ENC-POP-000052-599932016077"
+    }
+  ],
+  "family_history": [
+    {
+      "relationship": "MTH",
+      "sex": "female",
+      "deceased": true,
+      "condition_codes": [
+        "I10",
+        "I25",
+        "E78"
+      ]
+    },
+    {
+      "relationship": "FTH",
+      "sex": "male",
+      "deceased": true,
+      "condition_codes": [
+        "I10",
+        "I25",
+        "E78"
+      ]
+    },
+    {
+      "relationship": "NSIB",
+      "sex": "male",
+      "deceased": false,
+      "condition_codes": [
+        "E78"
+      ]
+    },
+    {
+      "relationship": "NSIB",
+      "sex": "male",
+      "deceased": false,
+      "condition_codes": [
+        "E11",
+        "I10",
+        "I25",
+        "E78",
+        "C61"
+      ]
+    }
+  ],
+  "code_status": "",
+  "care_level": "care2",
+  "microbiology": [],
+  "discharge_prescription": {
+    "prescription_id": "RX-POP-000052-OPD",
+    "patient_id": "",
+    "prescriber_id": "DR-IM-001",
+    "issue_date": "2026-01-23T10:11:00",
+    "items": [
+      {
+        "drug_name": "Metformin",
+        "drug_name_ja": "メトホルミン",
+        "dose": "500mg",
+        "route": "PO",
+        "frequency": "bid",
+        "duration_days": 30
+      },
+      {
+        "drug_name": "Sliding scale insulin",
+        "drug_name_ja": "スライディングスケール インスリン",
+        "dose": "",
+        "route": "SC",
+        "frequency": "qid",
+        "duration_days": 30
+      },
+      {
+        "drug_name": "Atorvastatin",
+        "drug_name_ja": "アトルバスタチン",
+        "dose": "10mg",
+        "route": "PO",
+        "frequency": "daily",
+        "duration_days": 30
+      },
+      {
+        "drug_name": "Tiotropium",
+        "drug_name_ja": "チオトロピウム",
+        "dose": "18mcg",
+        "route": "INH",
+        "frequency": "daily",
+        "duration_days": 30
+      },
+      {
+        "drug_name": "Alendronate",
+        "drug_name_ja": "アレンドロネート",
+        "dose": "35mg",
+        "route": "PO",
+        "frequency": "weekly",
+        "duration_days": 30
+      },
+      {
+        "drug_name": "Vitamin D",
+        "drug_name_ja": "ビタミンD",
+        "dose": "1000IU",
+        "route": "PO",
+        "frequency": "daily",
+        "duration_days": 30
+      },
+      {
+        "drug_name": "Celecoxib",
+        "drug_name_ja": "セレコキシブ",
+        "dose": "200mg",
+        "route": "PO",
+        "frequency": "daily",
+        "duration_days": 30
+      },
+      {
+        "drug_name": "Sertraline",
+        "drug_name_ja": "セルトラリン",
+        "dose": "50mg",
+        "route": "PO",
+        "frequency": "daily",
+        "duration_days": 30
+      }
+    ]
+  },
+  "icu_transferred": false,
+  "icu_transferred_day": -1,
+  "deceased": false,
+  "death_day": null,
+  "is_readmission": false,
+  "prior_encounter_id": null,
+  "readmission_number": 0,
+  "physiological_states": [],
+  "extensions": {
+    "clinical_impressions": []
+  }
+}

@@ -1,0 +1,33 @@
+{
+  "document_id": "doc-ENC-POP-000089-891312558950-01",
+  "encounter_id": "ENC-POP-000089-891312558950",
+  "narrative": {
+    "text": "",
+    "sections": {
+      "subjective": "糖尿病管理および血糖コントロールの確認のため外来受診。前回受診時と比べて自覚症状に著変なし。",
+      "objective": "BP 113/69 mmHg, HR 80 回/分。体重測定、下肢浮腫の有無を確認。",
+      "assessment": "2型糖尿病 (E11.9) (HbA1c 10.7%, 中等度) に対して血糖コントロール不良を認める。本日測定した血糖 207.0 mg/dL [H]、HbA1c 10.7 % [H] は高値であり、現在の治療法では目標達成に至っていない。併存疾患として脂質異常症 (E78) (中等度)、胃食道逆流症 (K21) (軽度)、喘息 (J45) (Mild intermittent, 軽度)、H26 (軽度) を有する。肝機能検査では ALT 62.0 U/L [H]、AST 83.0 U/L [H] と上昇を認めるため、薬剤性肝障害や生活習慣病に伴う肝障害の鑑別が必要である。",
+      "plan": "インスリン療法を含む現在の治療方針を継続しつつ、血糖コントロールの改善に向けて生活指導を強化する。肝機能異常 (ALT 62.0 U/L [H], AST 83.0 U/L [H]) について経過観察し、次回受診時に再検査を行う。脂質異常症 (E78) (中等度) に対するアトルバスタチン、胃食道逆流症 (K21) (軽度) に対するランソプラゾール、喘息 (J45) (Mild intermittent, 軽度) に対するフルチカゾン/サルメテロールおよびサルブタモールの内服を継続する。次回受診日は1ヶ月後を予定。"
+    },
+    "generator": "llm-vllm",
+    "generator_metadata": {
+      "generator": "llm",
+      "lang": "ja"
+    },
+    "generated_at": "2020-01-01T00:00:42Z",
+    "facts_used": [
+      "outpatient_soap_template.subjective_ja",
+      "ctx.patient.demographics",
+      "ctx.encounter.chief_complaint",
+      "ctx.patient.chronic_conditions",
+      "ctx.vitals",
+      "outpatient_soap_template.objective",
+      "encounter_protocol.narrative.outpatient_soap_template.assessment_ja",
+      "ctx.patient.chronic_conditions",
+      "ctx.vitals.today",
+      "ctx.lab_results.today",
+      "encounter_protocol.narrative.outpatient_soap_template.plan_ja",
+      "encounter_protocol.next_visit_interval"
+    ]
+  }
+}

@@ -1,0 +1,33 @@
+{
+  "document_id": "doc-ENC-POP-000022-634440873998-01",
+  "encounter_id": "ENC-POP-000022-634440873998",
+  "narrative": {
+    "text": "",
+    "sections": {
+      "subjective": "年次健診のため来院。自覚症状は特になく、日常生活に支障はない。",
+      "objective": "BP 137/76 mmHg, HR 79 回/分, RR 13 回/分, SpO2 96%, T 36.2°C。診察室血圧を測定、家庭血圧との整合性を確認。",
+      "assessment": "本態性高血圧症 (I10) (Stage 1, 中等度) に対してアムロジピン、カンデサルタンを内服中。今日測定した診察室血圧 137/76 mmHg は目標値よりやや高値であるが、家庭血圧との整合性を確認した。検査所見ではクレアチニン 0.84 mg/dL [H]、AST 98.0 U/L [H]、ALT 107.0 U/L [H] と肝機能・腎機能に異常を認める。腰痛、詳細不明 (M54) (軽度) および過体重 (E66.3) (中等度) についても経過観察が必要。",
+      "plan": "高血圧管理のため現在の内服薬を継続する。肝機能異常 (AST 98.0 U/L, ALT 107.0 U/L) について再検査を指示し、原因精査のため必要に応じて他科紹介を検討する。クレアチニン上昇 (0.84 mg/dL) についても経過観察を行う。次回受診時に結果を確認する。"
+    },
+    "generator": "llm-vllm",
+    "generator_metadata": {
+      "generator": "llm",
+      "lang": "ja"
+    },
+    "generated_at": "2020-01-01T00:00:42Z",
+    "facts_used": [
+      "outpatient_soap_template.subjective_ja",
+      "ctx.patient.demographics",
+      "ctx.encounter.chief_complaint",
+      "ctx.patient.chronic_conditions",
+      "ctx.vitals",
+      "outpatient_soap_template.objective",
+      "encounter_protocol.narrative.outpatient_soap_template.assessment_ja",
+      "ctx.patient.chronic_conditions",
+      "ctx.vitals.today",
+      "ctx.lab_results.today",
+      "encounter_protocol.narrative.outpatient_soap_template.plan_ja",
+      "encounter_protocol.next_visit_interval"
+    ]
+  }
+}

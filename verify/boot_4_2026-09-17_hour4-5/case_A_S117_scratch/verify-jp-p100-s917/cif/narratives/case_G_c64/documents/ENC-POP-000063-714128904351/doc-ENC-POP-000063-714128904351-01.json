@@ -1,0 +1,33 @@
+{
+  "document_id": "doc-ENC-POP-000063-714128904351-01",
+  "encounter_id": "ENC-POP-000063-714128904351",
+  "narrative": {
+    "text": "",
+    "sections": {
+      "subjective": "年次健診のため来院。本日の主訴は特になく、既往症に対する定期的な経過観察を目的としている。",
+      "objective": "BP 140/82 mmHg, HR 73 回/分, RR 17 回/分, SpO2 97%, T 35.9°C。診察室血圧を測定、家庭血圧との整合性を確認。",
+      "assessment": "本態性高血圧症 (I10) (Stage 1, 軽度)、慢性腎臓病 (N18) (CKD G3a, 軽度)、前立腺肥大症 (N40) (中等度)、H26 (中等度)、腰痛、詳細不明 (M54) (中等度)、過体重 (E66.3) (軽度) の経過観察中。本日測定された検査値において、クレアチニン 1.65 mg/dL [H]、AST 70.0 U/L [H]、ALT 61.0 U/L [H] と上昇が認められた。",
+      "plan": "アムロジピン、タムスロシンの内服を継続する。上昇した肝機能および腎機能検査値について、経過観察を行い次回受診時に再評価する。"
+    },
+    "generator": "llm-vllm",
+    "generator_metadata": {
+      "generator": "llm",
+      "lang": "ja"
+    },
+    "generated_at": "2020-01-01T00:00:42Z",
+    "facts_used": [
+      "outpatient_soap_template.subjective_ja",
+      "ctx.patient.demographics",
+      "ctx.encounter.chief_complaint",
+      "ctx.patient.chronic_conditions",
+      "ctx.vitals",
+      "outpatient_soap_template.objective",
+      "encounter_protocol.narrative.outpatient_soap_template.assessment_ja",
+      "ctx.patient.chronic_conditions",
+      "ctx.vitals.today",
+      "ctx.lab_results.today",
+      "encounter_protocol.narrative.outpatient_soap_template.plan_ja",
+      "encounter_protocol.next_visit_interval"
+    ]
+  }
+}

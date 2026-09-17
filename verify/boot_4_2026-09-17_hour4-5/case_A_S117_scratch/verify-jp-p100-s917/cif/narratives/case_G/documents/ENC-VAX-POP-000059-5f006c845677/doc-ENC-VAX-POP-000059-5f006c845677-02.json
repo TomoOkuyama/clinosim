@@ -1,0 +1,27 @@
+{
+  "document_id": "doc-ENC-VAX-POP-000059-5f006c845677-02",
+  "encounter_id": "ENC-VAX-POP-000059-5f006c845677",
+  "narrative": {
+    "text": "",
+    "sections": {
+      "subjective": "5歳男性、preschool、非喫煙、s、national。Vaccination visitを目的に外来を受診した。",
+      "objective": "HR 80 回/分, T 37.7°C",
+      "assessment": "バイタルサインはHR 80 回/分、T 37.7°Cと安定している。Vaccination visitとしての評価であり、特記すべき異常所見は認められない。",
+      "plan": "予定された予防接種を実施する。"
+    },
+    "generator": "llm-vllm",
+    "generator_metadata": {
+      "generator": "llm",
+      "lang": "ja"
+    },
+    "generated_at": "2020-01-01T00:00:42Z",
+    "facts_used": [
+      "ctx.patient.demographics",
+      "ctx.encounter.chief_complaint",
+      "ctx.patient.chronic_conditions",
+      "ctx.vitals",
+      "ctx.encounter.chief_complaint",
+      "encounter_protocol.next_visit_interval"
+    ]
+  }
+}

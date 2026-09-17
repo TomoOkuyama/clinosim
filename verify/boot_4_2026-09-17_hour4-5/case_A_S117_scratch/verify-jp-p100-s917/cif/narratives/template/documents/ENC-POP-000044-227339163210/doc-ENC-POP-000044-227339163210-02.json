@@ -1,0 +1,17 @@
+{
+  "document_id": "doc-ENC-POP-000044-227339163210-02",
+  "encounter_id": "ENC-POP-000044-227339163210",
+  "narrative": {
+    "text": "トリアージレベル: JTAS Level 3\n来院形態: 救急車搬送\n主訴: 意識消失・失神エピソード",
+    "sections": {},
+    "generator": "template",
+    "generator_metadata": {
+      "generator": "template",
+      "lang": "ja"
+    },
+    "generated_at": "2020-01-01T00:15:17Z",
+    "facts_used": [
+      "encounter.triage_data"
+    ]
+  }
+}

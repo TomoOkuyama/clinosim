@@ -1,0 +1,57 @@
+=== S117 vllm serve command history (H100 shell) ===
+no vllm serve in .bash_history
+
+=== Any related config files in $HOME ===
+-rwxr-xr-x 1 ubuntu ubuntu 548 Sep 15 15:58 /home/ubuntu/vllm_restart.sh
+no local vllm scripts
+
+=== Recent processes (in case vLLM was in a systemd unit) ===
+root         955  0.0  0.0 871264 52064 ?        Ssl  15:09   0:00 /usr/bin/python3 /usr/bin/fail2ban-server -xf start
+ubuntu      1441  0.0  0.0   5696  1768 ?        S    15:13   0:00              |   \_ tee /home/ubuntu/verify/out/s117_vllm_config_recovery.txt
+
+=== INSTALLED vllm-env package versions (uv drift check) ===
+humming-kernels==0.1.10
+nvidia-cublas==13.1.1.3
+nvidia-cuda-cccl==13.3.4.3.1
+nvidia-cuda-crt==13.4.92
+nvidia-cuda-cupti==13.0.85
+nvidia-cuda-nvcc==13.4.92
+nvidia-cuda-nvdisasm==13.4.92
+nvidia-cuda-nvrtc==13.0.88
+nvidia-cuda-runtime==13.0.96
+nvidia-cudnn-cu13==9.20.0.48
+nvidia-cudnn-frontend==1.28.0
+nvidia-cufft==12.0.0.61
+nvidia-cufile==1.15.1.6
+nvidia-curand==10.4.0.35
+nvidia-cusolver==12.0.4.66
+nvidia-cusparse==12.6.3.3
+nvidia-cusparselt-cu13==0.8.1
+nvidia-cutlass-dsl-libs-base==4.6.0
+nvidia-cutlass-dsl-libs-core==4.6.0
+nvidia-cutlass-dsl-libs-cu12==4.6.0
+nvidia-cutlass-dsl-libs-cu13==4.6.0
+nvidia-cutlass-dsl==4.6.0
+nvidia-ml-py==13.610.43
+nvidia-nccl-cu13==2.29.7
+nvidia-nvjitlink==13.4.92
+nvidia-nvshmem-cu13==3.4.5
+nvidia-nvtx==13.0.85
+nvidia-nvvm==13.4.92
+torch==2.13.0
+torch_c_dlpack_ext==0.1.5
+torchaudio==2.11.0
+torchcodec==0.16.0
+torchvision==0.28.0
+transformers==5.17.0
+triton==3.7.1
+vllm==0.27.1
+xgrammar==0.2.7
+
+=== S117-era vLLM version banner (from preserved log) ===
+(no S117 log survived cleanup — skip)
+
+=== nvcc / cuda_home probe ===
+nvcc: NOT ON PATH
+no /usr/local/cuda*
+torch CUDA_HOME=None

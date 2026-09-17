@@ -1,0 +1,30 @@
+{
+  "document_id": "doc-ENC-POP-000043-357104212170-01",
+  "encounter_id": "ENC-POP-000043-357104212170",
+  "narrative": {
+    "text": "",
+    "sections": {
+      "subjective": "インフルエンザ予防接種を目的に来院。既往の甲状腺機能低下症、高尿酸血症、アルコール依存症に対する経過観察中。本日の主訴は特になく、体調に著変はないと述べる。",
+      "objective": "BP 131/79 mmHg, HR 77 回/分",
+      "assessment": "甲状腺機能低下症 (E03) (中等度)、E79 (中等度)、アルコール依存症（合併症なし） (F10.20) (軽度) の慢性疾患管理下。バイタルサインは BP 131/79 mmHg、HR 77 回/分と安定しており、急性増悪の所見はない。",
+      "plan": "インフルエンザ予防接種を実施。レボチロキシンを継続内服。次回外来受診は定期フォローアップに従う。"
+    },
+    "generator": "llm-vllm",
+    "generator_metadata": {
+      "generator": "llm",
+      "lang": "ja"
+    },
+    "generated_at": "2020-01-01T00:00:42Z",
+    "facts_used": [
+      "ctx.patient.demographics",
+      "ctx.encounter.chief_complaint",
+      "ctx.patient.chronic_conditions",
+      "ctx.vitals",
+      "ctx.patient.chronic_conditions",
+      "ctx.vitals.today",
+      "ctx.lab_results.today",
+      "ctx.patient.current_medications",
+      "encounter_protocol.next_visit_interval"
+    ]
+  }
+}

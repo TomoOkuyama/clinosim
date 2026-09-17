@@ -1,0 +1,47 @@
+{
+  "document_id": "doc-ENC-POP-000009-BABY-997903362007-03",
+  "encounter_id": "ENC-POP-000009-BABY-997903362007",
+  "narrative": {
+    "text": "S（主観） 入院2日目。入院直後、症状経過安定。\nO（客観） BP 68/40 mmHg, HR 130 回/分, RR 40 回/分, SpO2 97%, T 36.7°C。特記事項なし。一般状態: 意識清明、苦痛様。循環器: 整、心雑音なし。呼吸器: 呼吸音清明、呼吸数軽度上昇。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし、項部硬直なし\nA（評価） 経過観察中、著変なし。\nP（計画） 薬物療法継続: ケイツーシロップ (フィトナジオン 2 mg 経口)。",
+    "sections": {
+      "subjective": "入院2日目。入院直後、症状経過安定。",
+      "objective": "BP 68/40 mmHg, HR 130 回/分, RR 40 回/分, SpO2 97%, T 36.7°C。特記事項なし。一般状態: 意識清明、苦痛様。循環器: 整、心雑音なし。呼吸器: 呼吸音清明、呼吸数軽度上昇。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし、項部硬直なし",
+      "assessment": "経過観察中、著変なし。",
+      "plan": "薬物療法継続: ケイツーシロップ (フィトナジオン 2 mg 経口)。"
+    },
+    "generator": "template",
+    "generator_metadata": {
+      "generator": "template",
+      "lang": "ja",
+      "day_index": 1,
+      "raw_text_rejoin": {
+        "separator": "\n",
+        "order": [
+          [
+            "S（主観）",
+            "subjective"
+          ],
+          [
+            "O（客観）",
+            "objective"
+          ],
+          [
+            "A（評価）",
+            "assessment"
+          ],
+          [
+            "P（計画）",
+            "plan"
+          ]
+        ]
+      }
+    },
+    "generated_at": "2020-01-01T00:15:17Z",
+    "facts_used": [
+      "ctx.vitals.today",
+      "physical_exam_findings..day_1",
+      "ctx.day_index",
+      "ctx.clinical_course_archetype"
+    ]
+  }
+}

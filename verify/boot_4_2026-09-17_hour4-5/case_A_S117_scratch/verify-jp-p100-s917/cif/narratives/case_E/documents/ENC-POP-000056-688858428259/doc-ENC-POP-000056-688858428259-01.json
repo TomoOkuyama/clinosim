@@ -1,0 +1,33 @@
+{
+  "document_id": "doc-ENC-POP-000056-688858428259-01",
+  "encounter_id": "ENC-POP-000056-688858428259",
+  "narrative": {
+    "text": "",
+    "sections": {
+      "subjective": "脂質管理およびスタチン療法のモニタリング目的で受診。自覚症状の著変なし。",
+      "objective": "BP 105/77 mmHg, HR 82 回/分。体重・BMI 測定、心血管イベントリスクを再評価。",
+      "assessment": "脂質異常症 (E78) (軽度) に対してアトルバスタチン内服中。本日検査で AST 35.0 U/L [H]、TC 260.0 mg/dL [H] と異常値を認める。AST 上昇は肝機能への影響を疑うため、スタチン療法の継続可否および用量調整を検討する必要がある。TC 高値は現在の治療下でも目標達成に至っていないことを示唆する。",
+      "plan": "アトルバスタチンの継続を暫定的に維持し、肝機能検査の再評価を予定。TC 高値に対しては生活指導を強化し、次回受診時に再検査を実施して治療方針を決定する。"
+    },
+    "generator": "llm-vllm",
+    "generator_metadata": {
+      "generator": "llm",
+      "lang": "ja"
+    },
+    "generated_at": "2020-01-01T00:00:42Z",
+    "facts_used": [
+      "outpatient_soap_template.subjective_ja",
+      "ctx.patient.demographics",
+      "ctx.encounter.chief_complaint",
+      "ctx.patient.chronic_conditions",
+      "ctx.vitals",
+      "outpatient_soap_template.objective",
+      "encounter_protocol.narrative.outpatient_soap_template.assessment_ja",
+      "ctx.patient.chronic_conditions",
+      "ctx.vitals.today",
+      "ctx.lab_results.today",
+      "encounter_protocol.narrative.outpatient_soap_template.plan_ja",
+      "encounter_protocol.next_visit_interval"
+    ]
+  }
+}

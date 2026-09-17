@@ -1,0 +1,33 @@
+{
+  "document_id": "doc-ENC-POP-000062-959007166047-01",
+  "encounter_id": "ENC-POP-000062-959007166047",
+  "narrative": {
+    "text": "",
+    "sections": {
+      "subjective": "糖尿病性網膜症スクリーニング・眼底検査のため受診。70歳女性、退職、非喫煙。既往歴として2型糖尿病 (E11.9) (HbA1c 6.5%, 中等度)、脂質異常症 (E78) (中等度)、骨粗鬆症 (M81) (中等度)、胃食道逆流症 (K21) (中等度)、H26 (軽度) を有する。外来での単日受診であり、入院初日相当の経過。",
+      "objective": "BP 127/76 mmHg, HR 77 回/分。体重測定、下肢浮腫の有無を確認。",
+      "assessment": "バイタルサインは BP 127/76 mmHg、HR 77 回/分と安定。体重測定および下肢浮腫の有無を確認した。本日測定された検査値では HbA1c 6.5 % [H]、ALT 90.0 U/L [H]、AST 107.0 U/L [H] と肝酵素の上昇が認められる。2型糖尿病の血糖管理は中等度であり、脂質異常症・骨粗鬆症・胃食道逆流症・H26 (軽度) の経過観察が必要。",
+      "plan": "メトホルミン、スライディングスケールインスリン、アトルバスタチン、アレンドロネート、ビタミンD、ランソプラゾールを継続内服。肝酵素上昇 (ALT 90.0 U/L, AST 107.0 U/L) について経過観察し、次回受診時に再評価を行う。眼底検査の結果に基づき糖尿病性網膜症の進行度を確認し、必要に応じて眼科への紹介を検討する。"
+    },
+    "generator": "llm-vllm",
+    "generator_metadata": {
+      "generator": "llm",
+      "lang": "ja"
+    },
+    "generated_at": "2020-01-01T00:00:42Z",
+    "facts_used": [
+      "outpatient_soap_template.subjective_ja",
+      "ctx.patient.demographics",
+      "ctx.encounter.chief_complaint",
+      "ctx.patient.chronic_conditions",
+      "ctx.vitals",
+      "outpatient_soap_template.objective",
+      "encounter_protocol.narrative.outpatient_soap_template.assessment_ja",
+      "ctx.patient.chronic_conditions",
+      "ctx.vitals.today",
+      "ctx.lab_results.today",
+      "encounter_protocol.narrative.outpatient_soap_template.plan_ja",
+      "encounter_protocol.next_visit_interval"
+    ]
+  }
+}

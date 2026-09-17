@@ -1,0 +1,47 @@
+{
+  "document_id": "doc-ENC-POP-000009-BABY-997903362007-04",
+  "encounter_id": "ENC-POP-000009-BABY-997903362007",
+  "narrative": {
+    "text": "S（主観） 入院3日目。食事摂取良好、明らかな苦痛の訴えなし。\nO（客観） BP 68/40 mmHg, HR 130 回/分, RR 40 回/分, SpO2 97%, T 36.7°C。特記事項なし。一般状態: 意識清明、苦痛様。循環器: 整、心雑音なし。呼吸器: 呼吸音清明、呼吸数軽度上昇。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし、項部硬直なし\nA（評価） 経過観察中、著変なし。\nP（計画） 治療継続、経過観察。",
+    "sections": {
+      "subjective": "入院3日目。食事摂取良好、明らかな苦痛の訴えなし。",
+      "objective": "BP 68/40 mmHg, HR 130 回/分, RR 40 回/分, SpO2 97%, T 36.7°C。特記事項なし。一般状態: 意識清明、苦痛様。循環器: 整、心雑音なし。呼吸器: 呼吸音清明、呼吸数軽度上昇。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし、項部硬直なし",
+      "assessment": "経過観察中、著変なし。",
+      "plan": "治療継続、経過観察。"
+    },
+    "generator": "template",
+    "generator_metadata": {
+      "generator": "template",
+      "lang": "ja",
+      "day_index": 2,
+      "raw_text_rejoin": {
+        "separator": "\n",
+        "order": [
+          [
+            "S（主観）",
+            "subjective"
+          ],
+          [
+            "O（客観）",
+            "objective"
+          ],
+          [
+            "A（評価）",
+            "assessment"
+          ],
+          [
+            "P（計画）",
+            "plan"
+          ]
+        ]
+      }
+    },
+    "generated_at": "2020-01-01T00:15:17Z",
+    "facts_used": [
+      "ctx.vitals.today",
+      "physical_exam_findings..day_2",
+      "ctx.day_index",
+      "ctx.clinical_course_archetype"
+    ]
+  }
+}

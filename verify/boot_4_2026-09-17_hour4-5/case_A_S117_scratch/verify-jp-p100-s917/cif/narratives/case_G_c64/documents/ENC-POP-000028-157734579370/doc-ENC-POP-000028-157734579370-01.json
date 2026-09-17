@@ -1,0 +1,33 @@
+{
+  "document_id": "doc-ENC-POP-000028-157734579370-01",
+  "encounter_id": "ENC-POP-000028-157734579370",
+  "narrative": {
+    "text": "",
+    "sections": {
+      "subjective": "脂質管理およびスタチン療法のモニタリング目的で受診。自覚症状の著変なし。",
+      "objective": "BP 121/71 mmHg, HR 85 回/分。体重・BMI 測定、心血管イベントリスクを再評価。",
+      "assessment": "脂質異常症 (E78) (中等度) に対するアトルバスタチン内服継続中。本日測定した肝機能検査で ALT 86.0 U/L [H] と上昇を認める。胃食道逆流症 (K21) (軽度) に対するランソプラゾール内服継続中。H26 (中等度) および腰痛、詳細不明 (M54) (軽度) は経過観察。",
+      "plan": "肝機能異常 (ALT 86.0 U/L [H]) に対し、アトルバスタチンの一時的な中止または減量を検討し、数週間後に肝機能再検査を予定。脂質異常症 (E78) (中等度) に対するスタチン療法の再開基準を再評価する。胃食道逆流症 (K21) (軽度) に対するランソプラゾールは継続。次回受診時に肝機能検査結果を確認し、治療方針を決定する。"
+    },
+    "generator": "llm-vllm",
+    "generator_metadata": {
+      "generator": "llm",
+      "lang": "ja"
+    },
+    "generated_at": "2020-01-01T00:00:42Z",
+    "facts_used": [
+      "outpatient_soap_template.subjective_ja",
+      "ctx.patient.demographics",
+      "ctx.encounter.chief_complaint",
+      "ctx.patient.chronic_conditions",
+      "ctx.vitals",
+      "outpatient_soap_template.objective",
+      "encounter_protocol.narrative.outpatient_soap_template.assessment_ja",
+      "ctx.patient.chronic_conditions",
+      "ctx.vitals.today",
+      "ctx.lab_results.today",
+      "encounter_protocol.narrative.outpatient_soap_template.plan_ja",
+      "encounter_protocol.next_visit_interval"
+    ]
+  }
+}

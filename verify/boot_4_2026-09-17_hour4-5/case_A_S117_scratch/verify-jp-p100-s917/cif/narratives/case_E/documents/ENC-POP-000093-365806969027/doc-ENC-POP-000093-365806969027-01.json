@@ -1,0 +1,29 @@
+{
+  "document_id": "doc-ENC-POP-000093-365806969027-01",
+  "encounter_id": "ENC-POP-000093-365806969027",
+  "narrative": {
+    "text": "",
+    "sections": {
+      "subjective": "胃がんのフォローアップ、腫瘍マーカー（CEA, CA19-9）の測定、および症状評価のため外来を受診した。",
+      "objective": "BP 123/72 mmHg, HR 67 回/分",
+      "assessment": "胃の悪性新生物、詳細不明 (C16) (軽度) の経過観察中。過体重 (E66.3) (中等度) およびニコチン依存症（紙巻きたばこ、合併症なし） (F17.210) (軽度) を併存。本日バイタルサインは BP 123/72 mmHg, HR 67 回/分 と安定している。",
+      "plan": "腫瘍マーカー（CEA, CA19-9）の結果を待機し、所見に基づいて今後の治療方針を決定する。"
+    },
+    "generator": "llm-vllm",
+    "generator_metadata": {
+      "generator": "llm",
+      "lang": "ja"
+    },
+    "generated_at": "2020-01-01T00:00:42Z",
+    "facts_used": [
+      "ctx.patient.demographics",
+      "ctx.encounter.chief_complaint",
+      "ctx.patient.chronic_conditions",
+      "ctx.vitals",
+      "ctx.patient.chronic_conditions",
+      "ctx.vitals.today",
+      "ctx.lab_results.today",
+      "encounter_protocol.next_visit_interval"
+    ]
+  }
+}

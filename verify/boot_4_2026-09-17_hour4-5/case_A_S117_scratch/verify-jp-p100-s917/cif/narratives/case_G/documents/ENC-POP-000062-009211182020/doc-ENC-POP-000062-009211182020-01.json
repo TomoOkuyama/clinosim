@@ -1,0 +1,33 @@
+{
+  "document_id": "doc-ENC-POP-000062-009211182020-01",
+  "encounter_id": "ENC-POP-000062-009211182020",
+  "narrative": {
+    "text": "",
+    "sections": {
+      "subjective": "糖尿病管理および血糖コントロールの確認のため外来受診。自覚症状の著変なし。",
+      "objective": "BP 130/70 mmHg, HR 72 回/分。体重測定、下肢浮腫の有無を確認。",
+      "assessment": "2型糖尿病 (E11.9) (HbA1c 6.5%, 中等度) について、HbA1c 6.4 % [H] と血糖 130.0 mg/dL [H] を確認。脂質異常症 (E78) (中等度)、骨粗鬆症 (M81) (中等度)、胃食道逆流症 (K21) (中等度)、H26 (軽度) の経過観察中。肝機能検査で ALT 63.0 U/L [H]、AST 137.0 U/L [H] と上昇を認めるため、肝機能異常の精査が必要。",
+      "plan": "肝機能異常 (ALT 63.0 U/L [H], AST 137.0 U/L [H]) に対し、原因の精査および経過観察を行う。現在の内服薬 (メトホルミン、スライディングスケールインスリン、アトルバスタチン、アレンドロネート、ビタミンD、ランソプラゾール) は継続する。次回受診時に肝機能検査の結果を再評価する。"
+    },
+    "generator": "llm-vllm",
+    "generator_metadata": {
+      "generator": "llm",
+      "lang": "ja"
+    },
+    "generated_at": "2020-01-01T00:00:42Z",
+    "facts_used": [
+      "outpatient_soap_template.subjective_ja",
+      "ctx.patient.demographics",
+      "ctx.encounter.chief_complaint",
+      "ctx.patient.chronic_conditions",
+      "ctx.vitals",
+      "outpatient_soap_template.objective",
+      "encounter_protocol.narrative.outpatient_soap_template.assessment_ja",
+      "ctx.patient.chronic_conditions",
+      "ctx.vitals.today",
+      "ctx.lab_results.today",
+      "encounter_protocol.narrative.outpatient_soap_template.plan_ja",
+      "encounter_protocol.next_visit_interval"
+    ]
+  }
+}

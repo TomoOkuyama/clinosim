@@ -1,0 +1,33 @@
+{
+  "document_id": "doc-ENC-POP-000052-432600296497-01",
+  "encounter_id": "ENC-POP-000052-432600296497",
+  "narrative": {
+    "text": "",
+    "sections": {
+      "subjective": "糖尿病管理および血糖コントロールの確認のため受診。前回受診時と比べて自覚症状に著変なし。",
+      "objective": "BP 121/76 mmHg, HR 79 回/分。体重測定、下肢浮腫の有無を確認。",
+      "assessment": "2型糖尿病 (E11.9) について、血糖 132.0 mg/dL [H]、HbA1c 6.6 % [H] と軽度の血糖上昇を認める。また、ALT 180.0 U/L [H]、AST 156.0 U/L [H] と肝機能異常を認め、内服薬の影響や他の肝疾患の精査が必要と判断した。",
+      "plan": "肝機能異常の精査のため、次回受診時に肝機能検査を再検する。現在の内服薬（メトホルミン、スライディングスケールインスリン、アトルバスタチン、チオトロピウム、サルブタモール、アレンドロネート、ビタミンD、セレコキシブ、Sertraline）は継続する。"
+    },
+    "generator": "llm-vllm",
+    "generator_metadata": {
+      "generator": "llm",
+      "lang": "ja"
+    },
+    "generated_at": "2020-01-01T00:00:42Z",
+    "facts_used": [
+      "outpatient_soap_template.subjective_ja",
+      "ctx.patient.demographics",
+      "ctx.encounter.chief_complaint",
+      "ctx.patient.chronic_conditions",
+      "ctx.vitals",
+      "outpatient_soap_template.objective",
+      "encounter_protocol.narrative.outpatient_soap_template.assessment_ja",
+      "ctx.patient.chronic_conditions",
+      "ctx.vitals.today",
+      "ctx.lab_results.today",
+      "encounter_protocol.narrative.outpatient_soap_template.plan_ja",
+      "encounter_protocol.next_visit_interval"
+    ]
+  }
+}

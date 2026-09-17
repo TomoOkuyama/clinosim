@@ -1,0 +1,33 @@
+{
+  "document_id": "doc-ENC-POP-000097-875405427991-01",
+  "encounter_id": "ENC-POP-000097-875405427991",
+  "narrative": {
+    "text": "",
+    "sections": {
+      "subjective": "年次健診のため来院。自覚症状は特になく、呼吸苦や胸痛、倦怠感などの訴えはない。",
+      "objective": "BP 110/62 mmHg, HR 75 回/分, RR 18 回/分, SpO2 94%, T 37.0°C。体重・BMI 測定、心血管イベントリスクを再評価。",
+      "assessment": "脂質異常症 (E78) (軽度)、慢性閉塞性肺疾患 (J44) (GOLD 1, 軽度)、E79 (中等度) の経過観察。バイタルサインは安定しているが、検査値でクレアチニン 0.8 mg/dL [H]、AST 137.0 U/L [H]、ALT 128.0 U/L [H] と肝機能および腎機能の異常が認められる。",
+      "plan": "肝機能および腎機能の異常について再検査を指示。アトルバスタチン、チオトロピウム、サルブタモールの内服継続。次回受診時に検査結果を確認し、必要に応じて治療方針を調整する。"
+    },
+    "generator": "llm-vllm",
+    "generator_metadata": {
+      "generator": "llm",
+      "lang": "ja"
+    },
+    "generated_at": "2020-01-01T00:00:42Z",
+    "facts_used": [
+      "outpatient_soap_template.subjective_ja",
+      "ctx.patient.demographics",
+      "ctx.encounter.chief_complaint",
+      "ctx.patient.chronic_conditions",
+      "ctx.vitals",
+      "outpatient_soap_template.objective",
+      "encounter_protocol.narrative.outpatient_soap_template.assessment_ja",
+      "ctx.patient.chronic_conditions",
+      "ctx.vitals.today",
+      "ctx.lab_results.today",
+      "encounter_protocol.narrative.outpatient_soap_template.plan_ja",
+      "encounter_protocol.next_visit_interval"
+    ]
+  }
+}

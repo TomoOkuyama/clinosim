@@ -1,0 +1,27 @@
+{
+  "document_id": "doc-ENC-POP-000013-123032303234-01",
+  "encounter_id": "ENC-POP-000013-123032303234",
+  "narrative": {
+    "text": "",
+    "sections": {
+      "subjective": "4歳女性、発熱を伴う上気道感染のため受診。外来での対症療法を目的とする。",
+      "objective": "HR 75 回/分, T 35.6°C",
+      "assessment": "上気道感染と診断。バイタルサインはHR 75回/分、T 35.6℃と安定している。",
+      "plan": "対症療法を継続する。経過観察のもと、症状の改善を確認する。"
+    },
+    "generator": "llm-vllm",
+    "generator_metadata": {
+      "generator": "llm",
+      "lang": "ja"
+    },
+    "generated_at": "2020-01-01T00:00:42Z",
+    "facts_used": [
+      "ctx.patient.demographics",
+      "ctx.encounter.chief_complaint",
+      "ctx.patient.chronic_conditions",
+      "ctx.vitals",
+      "ctx.encounter.chief_complaint",
+      "encounter_protocol.next_visit_interval"
+    ]
+  }
+}

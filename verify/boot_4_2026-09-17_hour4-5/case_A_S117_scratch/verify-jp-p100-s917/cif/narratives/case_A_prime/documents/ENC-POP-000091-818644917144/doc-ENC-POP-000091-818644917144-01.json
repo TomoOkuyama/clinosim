@@ -1,0 +1,33 @@
+{
+  "document_id": "doc-ENC-POP-000091-818644917144-01",
+  "encounter_id": "ENC-POP-000091-818644917144",
+  "narrative": {
+    "text": "",
+    "sections": {
+      "subjective": "脂質管理およびスタチン療法のモニタリング目的で受診。自覚症状の著変なし。",
+      "objective": "BP 117/69 mmHg, HR 65 回/分。体重・BMI 測定、心血管イベントリスクを再評価。",
+      "assessment": "脂質異常症 (E78) (中等度) および喘息 (J45) (軽度持続) の経過観察中。本日測定した ALT 25.0 U/L [H] は基準値上限をわずかに超える軽度の上昇であり、アトルバスタチン内服に伴う肝機能変動の可能性を考慮する。",
+      "plan": "アトルバスタチン、フルチカゾン/サルメテロール、サルブタモールの内服を継続。肝機能の推移を確認するため、次回外来時に再検査を行う。"
+    },
+    "generator": "llm-vllm",
+    "generator_metadata": {
+      "generator": "llm",
+      "lang": "ja"
+    },
+    "generated_at": "2020-01-01T00:00:42Z",
+    "facts_used": [
+      "outpatient_soap_template.subjective_ja",
+      "ctx.patient.demographics",
+      "ctx.encounter.chief_complaint",
+      "ctx.patient.chronic_conditions",
+      "ctx.vitals",
+      "outpatient_soap_template.objective",
+      "encounter_protocol.narrative.outpatient_soap_template.assessment_ja",
+      "ctx.patient.chronic_conditions",
+      "ctx.vitals.today",
+      "ctx.lab_results.today",
+      "encounter_protocol.narrative.outpatient_soap_template.plan_ja",
+      "encounter_protocol.next_visit_interval"
+    ]
+  }
+}

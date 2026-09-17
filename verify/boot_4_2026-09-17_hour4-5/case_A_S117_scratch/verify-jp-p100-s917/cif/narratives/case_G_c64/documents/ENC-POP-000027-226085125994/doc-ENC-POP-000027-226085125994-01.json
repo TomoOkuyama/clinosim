@@ -1,0 +1,33 @@
+{
+  "document_id": "doc-ENC-POP-000027-226085125994-01",
+  "encounter_id": "ENC-POP-000027-226085125994",
+  "narrative": {
+    "text": "",
+    "sections": {
+      "subjective": "血圧管理および処方薬の見直しを目的に受診。自覚症状は特になく、日常生活に支障はないと述べる。",
+      "objective": "BP 142/92 mmHg, HR 64 回/分。診察室血圧を測定、家庭血圧との整合性を確認。",
+      "assessment": "本態性高血圧症 (I10) (Stage 1, 軽度) に対し、診察室血圧 142/92 mmHg、HR 64 回/分を測定し、家庭血圧との整合性を確認した。脂質異常症 (E78) (中等度)、慢性閉塞性肺疾患 (J44) (GOLD 3, 中等度)、胃食道逆流症 (K21) (軽度)、前立腺肥大症 (N40) (軽度)、変形性膝関節症 (M17) (軽度)、うつ病 (F32) (中等度) に対する継続治療は安定している。",
+      "plan": "アムロジピン、カンデサルタン、アトルバスタチン、チオトロピウム、サルブタモール、ランソプラゾール、タムスロシン、Sertraline を継続内服とする。次回外来で血圧の再評価を行う。"
+    },
+    "generator": "llm-vllm",
+    "generator_metadata": {
+      "generator": "llm",
+      "lang": "ja"
+    },
+    "generated_at": "2020-01-01T00:00:42Z",
+    "facts_used": [
+      "outpatient_soap_template.subjective_ja",
+      "ctx.patient.demographics",
+      "ctx.encounter.chief_complaint",
+      "ctx.patient.chronic_conditions",
+      "ctx.vitals",
+      "outpatient_soap_template.objective",
+      "encounter_protocol.narrative.outpatient_soap_template.assessment_ja",
+      "ctx.patient.chronic_conditions",
+      "ctx.vitals.today",
+      "ctx.lab_results.today",
+      "encounter_protocol.narrative.outpatient_soap_template.plan_ja",
+      "encounter_protocol.next_visit_interval"
+    ]
+  }
+}

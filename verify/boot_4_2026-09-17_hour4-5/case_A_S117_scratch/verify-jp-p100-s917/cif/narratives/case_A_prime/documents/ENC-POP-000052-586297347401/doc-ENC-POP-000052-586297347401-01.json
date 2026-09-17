@@ -1,0 +1,33 @@
+{
+  "document_id": "doc-ENC-POP-000052-586297347401-01",
+  "encounter_id": "ENC-POP-000052-586297347401",
+  "narrative": {
+    "text": "",
+    "sections": {
+      "subjective": "年次健診のため来院。慢性疾患の経過観察および内服薬の継続確認を目的とする。本日の主訴は特になく、日常生活動作に大きな変化はないと述べる。",
+      "objective": "BP 112/76 mmHg, HR 81 回/分, RR 11 回/分, SpO2 93%, T 36.2°C。体重測定、下肢浮腫の有無を確認。",
+      "assessment": "2型糖尿病 (E11.9) について、HbA1c 9.3 % [H] と血糖 111.0 mg/dL [H] が確認され、血糖管理が不十分である。また、AST 198.0 U/L [H]、ALT 195.0 U/L [H] と肝機能異常が認められる。慢性閉塞性肺疾患 (J44) (GOLD 2, 中等度) に対しては、SpO2 93% とやや低値傾向にあるが、バイタルサイン全体としては安定している。脂質異常症 (E78) (軽度)、慢性腎臓病 (N18) (CKD G2, 中等度)、骨粗鬆症 (M81) (軽度)、変形性膝関節症 (M17) (軽度)、H26 (中等度)、反復性うつ病性障害 (F33) (中等度)、ニコチン依存症（紙巻きたばこ、合併症なし） (F17.210) (中等度) についても継続的な管理が必要である。",
+      "plan": "メトホルミン、スライディングスケールインスリン、アトルバスタチン、チオトロピウム、サルブタモール、アレンドロネート、ビタミンD、セレコキシブ、Sertraline を継続内服とする。肝機能異常 (AST 198.0 U/L [H], ALT 195.0 U/L [H]) に対しては、原因精査のため次回受診時に再検査を行う。血糖管理 (HbA1c 9.3 % [H]) については、インスリンの調整を検討する。次回受診は1ヶ月後を予定。"
+    },
+    "generator": "llm-vllm",
+    "generator_metadata": {
+      "generator": "llm",
+      "lang": "ja"
+    },
+    "generated_at": "2020-01-01T00:00:42Z",
+    "facts_used": [
+      "outpatient_soap_template.subjective_ja",
+      "ctx.patient.demographics",
+      "ctx.encounter.chief_complaint",
+      "ctx.patient.chronic_conditions",
+      "ctx.vitals",
+      "outpatient_soap_template.objective",
+      "encounter_protocol.narrative.outpatient_soap_template.assessment_ja",
+      "ctx.patient.chronic_conditions",
+      "ctx.vitals.today",
+      "ctx.lab_results.today",
+      "encounter_protocol.narrative.outpatient_soap_template.plan_ja",
+      "encounter_protocol.next_visit_interval"
+    ]
+  }
+}

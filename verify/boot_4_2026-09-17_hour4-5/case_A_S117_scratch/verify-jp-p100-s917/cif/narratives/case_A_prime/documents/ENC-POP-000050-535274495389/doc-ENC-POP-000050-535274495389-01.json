@@ -1,0 +1,28 @@
+{
+  "document_id": "doc-ENC-POP-000050-535274495389-01",
+  "encounter_id": "ENC-POP-000050-535274495389",
+  "narrative": {
+    "text": "",
+    "sections": {
+      "subjective": "産後フォローアップ、創部確認、授乳支援、産後うつスクリーニングのため外来受診。既往歴に特記すべき変化はなく、現在の体調について相談のため来院した。",
+      "objective": "BP 106/70 mmHg, HR 82 回/分",
+      "assessment": "バイタルサインはBP 106/70 mmHg、HR 82 回/分と安定している。産後経過は概ね良好であり、創部の治癒状況や授乳の進捗、心理状態の評価を目的とする。",
+      "plan": "産後フォローアップ、創部確認、授乳支援、産後うつスクリーニングを実施する。葉酸およびフマル酸第一鉄の内服を継続する。次回受診日は指示に従う。"
+    },
+    "generator": "llm-vllm",
+    "generator_metadata": {
+      "generator": "llm",
+      "lang": "ja"
+    },
+    "generated_at": "2020-01-01T00:00:42Z",
+    "facts_used": [
+      "ctx.patient.demographics",
+      "ctx.encounter.chief_complaint",
+      "ctx.patient.chronic_conditions",
+      "ctx.vitals",
+      "ctx.encounter.chief_complaint",
+      "ctx.patient.current_medications",
+      "encounter_protocol.next_visit_interval"
+    ]
+  }
+}

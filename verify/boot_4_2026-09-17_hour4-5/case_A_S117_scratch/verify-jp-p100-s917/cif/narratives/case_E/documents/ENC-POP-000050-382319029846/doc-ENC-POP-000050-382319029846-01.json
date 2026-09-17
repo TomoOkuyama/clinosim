@@ -1,0 +1,37 @@
+{
+  "document_id": "doc-ENC-POP-000050-382319029846-01",
+  "encounter_id": "ENC-POP-000050-382319029846",
+  "narrative": {
+    "text": "",
+    "sections": {
+      "chief_complaint": "分娩 (自然分娩)",
+      "hpi": "2026年6月4日10時08分に入院。主訴は分娩（自然分娩）である。入院初日であり、急性期段階にある。既往歴は特記事項なし。自宅内服薬として葉酸、フマル酸第一鉄を内服中。薬物アレルギーはなし（NKDA）。社会歴として元喫煙者、飲酒なし、職業は学生。家族歴は母が慢性虚血性心疾患、父が本態性高血圧症。身長151 cm、体重46.2 kg、BMI 20.3、血液型B+。",
+      "past_medical_history": "特記既往歴なし",
+      "medications_at_home": "葉酸; フマル酸第一鉄",
+      "allergies": "薬物アレルギーなし（NKDA）",
+      "social_history": "喫煙歴: 元喫煙者; 飲酒歴: 飲酒なし; 職業: 学生",
+      "family_history": "家族歴: 母 – 慢性虚血性心疾患 父 – 本態性高血圧症",
+      "physical_examination": "一般状態: 意識清明、苦痛様。循環器: 整、心雑音なし。呼吸器: 呼吸音清明、呼吸数軽度上昇。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし、項部硬直なし",
+      "assessment_and_plan": "【評価】\n分娩（自然分娩）による入院。意識清明、苦痛様。循環器系は整、心雑音なし。呼吸器系は呼吸音清明、呼吸数軽度上昇。腹部は平坦、軟、圧痛なし。神経系は麻痺なし、項部硬直なし。\n\n【薬物療法】\n葉酸、フマル酸第一鉄を継続内服。\n\n【検査】\n入院初日として、バイタルサインのモニタリング、血液検査、尿検査、必要に応じた画像検査を実施。\n\n【教育・指導】\n授乳方法、新生児のケア、退院後の生活指導を行う。\n\n【予定入院期間】\n5日間。"
+    },
+    "generator": "llm-vllm",
+    "generator_metadata": {
+      "generator": "llm",
+      "lang": "ja"
+    },
+    "generated_at": "2020-01-01T00:00:42Z",
+    "facts_used": [
+      "ctx.encounter.chief_complaint_ja",
+      "ctx.patient.demographics",
+      "ctx.encounter.chief_complaint",
+      "ctx.patient.chronic_conditions",
+      "ctx.patient.current_medications",
+      "ctx.allergies",
+      "ctx.patient.smoking_status",
+      "ctx.patient.alcohol_use",
+      "ctx.patient.occupation",
+      "ctx.family_history",
+      "physical_exam_findings..day_0"
+    ]
+  }
+}

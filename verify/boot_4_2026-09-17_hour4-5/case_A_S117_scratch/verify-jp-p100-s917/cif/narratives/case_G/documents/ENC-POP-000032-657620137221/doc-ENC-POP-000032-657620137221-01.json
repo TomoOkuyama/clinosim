@@ -1,0 +1,33 @@
+{
+  "document_id": "doc-ENC-POP-000032-657620137221-01",
+  "encounter_id": "ENC-POP-000032-657620137221",
+  "narrative": {
+    "text": "",
+    "sections": {
+      "subjective": "血圧管理と処方薬の見直しを目的に受診。自覚症状は特になく、日常生活に支障はない。",
+      "objective": "BP 128/104 mmHg, HR 76 回/分。診察室血圧を測定、家庭血圧との整合性を確認。",
+      "assessment": "本態性高血圧症 (I10) (Stage 1, 軽度) に対し、診察室血圧 128/104 mmHg、HR 76 回/分を測定し、家庭血圧との整合性を確認した。2型糖尿病 (E11.9) (HbA1c 9.2%, 軽度) について、本日測定した HbA1c 8.8 % [H] は依然として基準値を上回っており、血糖管理の継続的評価が必要である。",
+      "plan": "現在の内服薬（アムロジピン、メトホルミン、アトルバスタチン、アスピリン、タムスロシン、アセトアミノフェン）を継続する。血圧および血糖値の管理状況を再評価するため、次回外来受診を予定する。"
+    },
+    "generator": "llm-vllm",
+    "generator_metadata": {
+      "generator": "llm",
+      "lang": "ja"
+    },
+    "generated_at": "2020-01-01T00:00:42Z",
+    "facts_used": [
+      "outpatient_soap_template.subjective_ja",
+      "ctx.patient.demographics",
+      "ctx.encounter.chief_complaint",
+      "ctx.patient.chronic_conditions",
+      "ctx.vitals",
+      "outpatient_soap_template.objective",
+      "encounter_protocol.narrative.outpatient_soap_template.assessment_ja",
+      "ctx.patient.chronic_conditions",
+      "ctx.vitals.today",
+      "ctx.lab_results.today",
+      "encounter_protocol.narrative.outpatient_soap_template.plan_ja",
+      "encounter_protocol.next_visit_interval"
+    ]
+  }
+}
