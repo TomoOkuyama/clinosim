@@ -13,8 +13,14 @@ narrative:
   vllm:
     endpoint: "http://localhost:8000"
     model: "Qwen/Qwen3.8-27B-FP8"
-    # Match the S117 production config: no explicit thinking flag (server default).
-    # enable_thinking: false  # uncomment if we want to explicitly force off
+    # CRITICAL (Boot 4 finding, 2026-09-17): Qwen3.8-27B-FP8 emits a
+    # </think> block prefix by default, breaking JSON parse of the
+    # bundle strategy response even when the prompt starts with
+    # /no_think. Passing enable_thinking=false through chat_template_kwargs
+    # (via clinosim/modules/llm_service/providers/vllm.py forward) fully
+    # disables thinking. Without this flag, warmup narrate showed 100%
+    # JSON parse fallback rate.
+    enable_thinking: false
     seed: 42
     timeout_seconds: 300
   model_map:
