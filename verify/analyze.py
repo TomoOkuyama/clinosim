@@ -242,6 +242,8 @@ def main() -> None:
     for cm, d in cases:
         pc = d.get("prefix_cache_hit_rate")
         sm = cm.nvidia_smi_summary.get("sm_util_mean")
+        pc_str = f"{pc*100:5.1f}%" if isinstance(pc, float) else "  -  "
+        sm_str = f"{sm:5.1f}%" if isinstance(sm, float) else "  -  "
         print(
             f"{cm.case:10s} "
             f"{d.get('L2_measure_wall_s', 0):>7d} s "
@@ -249,16 +251,8 @@ def main() -> None:
             f"{d.get('L1_gen_tokens_per_s', 0):>13.1f} "
             f"{d.get('L1_avg_prompt_tokens_per_req', 0):>11.0f} "
             f"{d.get('L1_avg_gen_tokens_per_req', 0):>8.0f} "
-            f"{pc*100 if pc is not None else '-':>6s}"
-            if isinstance(pc, float) else
-            f"{cm.case:10s} "
-            f"{d.get('L2_measure_wall_s', 0):>7d} s "
-            f"{d.get('L2_docs_per_s', 0):>9.3f} "
-            f"{d.get('L1_gen_tokens_per_s', 0):>13.1f} "
-            f"{d.get('L1_avg_prompt_tokens_per_req', 0):>11.0f} "
-            f"{d.get('L1_avg_gen_tokens_per_req', 0):>8.0f} "
-            f"{'-':>7s} "
-            f"{sm if sm is not None else '-':>7} %"
+            f"{pc_str:>7s} "
+            f"{sm_str:>8s}"
         )
 
     print("=" * 100)
