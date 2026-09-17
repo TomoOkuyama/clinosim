@@ -66,16 +66,31 @@ vLLM startup config confirms:
    accommodate current prompts with margin. Pre-built variant:
    `verify/v22_prompt_ja_fixA_maxtok2500.yaml`.
 
-5. **Fix E (fallback 0 target)**: vLLM `guided_json` / structured
-   output. User-stated priority: JSON parse fallback rate should be 0
-   across all runs. vLLM 0.27+ supports
-   `response_format={"type":"json_object"}` which triggers xgrammar-
-   based grammar-constrained decoding, guaranteeing valid JSON output.
-   Client-side code patch in
+5. **Fix E (fallback 0 target — Phase 2 acceptable)**: vLLM
+   `guided_json` / structured output. User-stated priority: JSON parse
+   fallback rate should be 0 across all runs; user later added "Phase 2
+   でも良いよ" (deferring the guarantee mechanism is acceptable). vLLM
+   0.27+ supports `response_format={"type":"json_object"}` which
+   triggers xgrammar-based grammar-constrained decoding, guaranteeing
+   valid JSON output. Client-side code patch in
    `clinosim/modules/llm_service/providers/vllm.py` (added on this
    branch) forwards the config to vLLM's payload. Yaml variant:
    `verify/llm_service_vllm_guided.yaml`. Expected zero JSON parse
    fallbacks post-adoption. Speed cost: <5% per vLLM benchmarks.
+
+   **v0.6.2 empirical baseline (measured 2026-09-17 from release
+   asset)**: 0 unexpected fallbacks across 79,000 docs
+   (`clinosim-v0.6.2-jp-p10000-s500-llm-polished-narrative`). 55.5%
+   LLM-generated, 44.5% by-design template (triage / care plans /
+   assessments — no LLM narrative section). User's hypothesis that
+   "large fallback rate might have inflated wall-clock" is falsified —
+   the throughput regression is a real per-LLM-doc slowdown, not a
+   masking effect.
+
+   Corrected LLM-only doc/s (accounting for 44.5% template
+   pass-through): baseline ~2.43 doc/s → v22 ~1.23 doc/s. Same 2×
+   slowdown at the actual-LLM level. See
+   `verify/FALLBACK_ANALYSIS.md` §v0.6.2 release analysis.
 
 ## Non-actionable (documented for completeness)
 
