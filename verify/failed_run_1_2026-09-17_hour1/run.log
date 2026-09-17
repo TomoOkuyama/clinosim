@@ -1,0 +1,46 @@
+=== S117 narrate throughput verify @ 2026-09-17T03:38:31Z ===
+--- Step -2: extract S117 vLLM config from history ---
+→ review /home/ubuntu/verify/out/s117_vllm_config_recovery.txt to reconcile with verify/vllm_start_16k.sh
+--- Step -1: cleanup past narrate data ---
+4.0K	/home/ubuntu/run_p100_v4_stdout.log
+4.0K	/home/ubuntu/run_p100_v5.log
+4.0K	/home/ubuntu/run_p100_v5.sh
+4.0K	/home/ubuntu/run_p100_v5_stdout.log
+4.0K	/home/ubuntu/vllm_restart.sh
+8.0K	/home/ubuntu/run_p100_v3.log
+8.0K	/home/ubuntu/run_p100_v3_stdout.log
+12K	/home/ubuntu/autonomous_run.sh
+16K	/home/ubuntu/orchestrator.sh
+20K	/home/ubuntu/vllm_p100_v3.log
+28K	/home/ubuntu/vllm_debug.log
+32K	/home/ubuntu/vllm_p100.log
+136K	/home/ubuntu/vllm_p100_v4.log
+140K	/home/ubuntu/vllm_p100_v5.log
+156K	/home/ubuntu/vllm_p100_s401.log
+276K	/home/ubuntu/run.log
+276K	/home/ubuntu/vllm_p100_v2.log
+708K	/home/ubuntu/verify_bundle.tar.gz
+1.1M	/home/ubuntu/verify
+5.2M	/home/ubuntu/nvidia_dmon.log
+5.5M	/home/ubuntu/vllm_jp_p10k.log
+6.5M	/home/ubuntu/vllm_serve.log
+101M	/home/ubuntu/jp_p10k_cif.tar.gz
+140M	/home/ubuntu/p100
+204M	/home/ubuntu/p100_s401
+269M	/home/ubuntu/jp_p10k_fhir_polished.tar.gz
+689M	/home/ubuntu/autonomous_run
+903M	/home/ubuntu/clinosim
+8.1G	/home/ubuntu/vllm-env
+8.6G	/home/ubuntu/jp_p10k
+
+Deleting: ~/n3_cif ~/*_out ~/narrate_* ~/*.log (excluding weight cache)
+
+AFTER cleanup:
+33G	/home/ubuntu/.cache/huggingface
+Filesystem      Size  Used Avail Use% Mounted on
+/dev/vda2        99G   82G   13G  87% /
+WARNING: weight cache smaller than expected (32 GB, expected ~54 GB)
+weight cache: 32 GB — OK
+--- start vLLM: vllm_start_16k_S117.sh ---
+vLLM PID: 1448
+ERROR: vLLM vllm_start_16k_S117.sh did not become ready within 300s

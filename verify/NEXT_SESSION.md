@@ -1,8 +1,28 @@
-# Next session resume prompt — S117 narrate throughput verify
+# Next session resume prompt — S117 narrate throughput verify (2nd attempt)
 
 ## 状況 (session 終端 2026-09-17)
 
-**Pre-boot 準備完了**、次 session は **H100 boot + 実測 + 分析** から開始。
+**Failed Run 1 完了、¥990 消費・成果ゼロ**。詳細は `verify/failed_run_1_2026-09-17_hour1/POSTMORTEM.md`。
+
+**判明事実 (副産物)**:
+- S117 実 vLLM config 復元: `enable_prefix_caching=False`, gpu-mem 0.88, max-num-seqs 32
+- First-time vLLM boot は **~17-18 min** 要 (weight load 3.3 min + torch.compile 2 min + CUDA graph capture ~12 min)
+- vLLM 側 `VLLM_ENGINE_READY_TIMEOUT_S=600s` が短すぎ、初回 boot 失敗
+
+**次 session boot 前必須修正**:
+1. `run_all_cases.sh` shell timeout: 300s → 1800s (start_vllm helper 内)
+2. `export VLLM_ENGINE_READY_TIMEOUT_S=1800` を各 vLLM 起動前に設定
+3. Fallback logging を harness に組み込み (`verify/FALLBACK_ANALYSIS.md`)
+4. Fix C (vLLM guided_json) yaml variant 用意
+5. Case J (Fix C isolation) を Case matrix に追加
+
+**時間見積り (修正後)**:
+- First-time vLLM boot #1: ~17 min
+- Cached vLLM restarts #2-#5: ~5-8 min each
+- 10 cases × 3 min = 30 min
+- Total: 17 + 4×7 + 30 + 5 (buffer) = ~80 min = **billing hour 2 に若干越境** (~¥1980)
+
+**代替案**: `--enforce-eager` で CUDA graph 無効化 → startup ~3 min に短縮。ただし Case A_S117 (S117 exact replay) は `enforce_eager=False` 必須。他 case では検討可。
 
 ## Resume 手順
 
