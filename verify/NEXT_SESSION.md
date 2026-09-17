@@ -19,9 +19,16 @@
 5. ✅ Case J (Fix C isolation) (checkpoint 13)
 6. ✅ **NEW: Step -1 cleanup で `~/.cache/vllm/torch_compile_cache` + `torch_aot_compile` 削除** (checkpoint 15、Failed Run 2 mitigation)
 
-**Plan B (Boot 3 でも同じ nvcc error なら):**
-- `--enforce-eager` flag を非-A_S117 vllm_start_*.sh に追加 (torch.compile 全 skip、5-10% inference 遅延、S117 exact-config 崩れ)
-- または `sudo apt install nvidia-cuda-toolkit` を H100 に事前 install (30 min + 1GB disk)
+**Plan A (checkpoint 15+16 で試す)**: Step -1 torch.compile cache 削除 + Step -2 で pip freeze 診断。同じ nvcc error なら Plan B へ。
+
+**Plan B (uv rollback、user 認可済)**: `verify/rebuild_venv_pip.sh` を実行して `~/vllm-env` を pip で再構築 (uv 依存を除去)。所要 ~15-20 min、実質 hour 3 の丸ごと消費 (~¥990 追加、累計 ¥2970)。手順:
+```
+ssh sakura 'bash ~/verify/rebuild_venv_pip.sh 2>&1 | tee ~/verify/out/rebuild_venv.log'
+# then re-run
+ssh sakura 'bash ~/verify/run_all_cases.sh 2>&1 | tee ~/verify/master.log'
+```
+
+**Plan C (最後手段)**: `--enforce-eager` を非-A_S117 boot に追加 (S117 exact-config 崩れ、inference 5-10% 遅延)、または `sudo apt install nvidia-cuda-toolkit` (30 min setup)
 
 **時間見積り (checkpoint 13 修正込み)**:
 - First-time vLLM boot #0 (S117 config): ~15 min (torch.compile cached from failed run 1, ~7 min saving; CUDA graph capture ~12 min unavoidable)
