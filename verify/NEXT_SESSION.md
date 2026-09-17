@@ -143,6 +143,7 @@ Case F (Fix A) と Case G (Fix A + Fix B) が本命。Case A_c64 は削除 (FP16
 | **G** | **v22 JA Fix A** | 16384 | **FP8** | 32 | **Fix A + Fix B compound** |
 | **G_c64** | **v22 JA Fix A** | 16384 | **FP8** | 64 | **true 並列度 scaling** |
 | D_revised | v22 JA | 12288 | FP16 | 32 | Factor D revised |
+| **H** | **Fix A + max_tok 2500** | **12288** | FP16 | 32 | **Level-1 tuning: 16384 依存除去** |
 
 ## 最終目標 (report 執筆時の指針)
 

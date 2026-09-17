@@ -278,6 +278,16 @@ def main() -> None:
     _cmp("Fix A (prompt struct — Case F)",     "A", "F")
     _cmp("Fix A + Fix B (KV FP8 — Case G)",    "A", "G")
     _cmp("Fix A + Fix B + conc 64 (G_c64)",    "A", "G_c64")
+    _cmp("Level-1 (max_tok 2500 @ 12k — Case H)", "A", "H")
+
+    # If Case H shows truncation, warn.
+    if "H" in by_case:
+        gen_avg = by_case["H"][1].get("L1_avg_gen_tokens_per_req", 0)
+        if gen_avg > 2400:
+            print(f"  ⚠ Case H avg gen tokens = {gen_avg:.0f}, near max_tokens=2500 cap "
+                  f"→ possible truncation, review sample outputs before shipping max_tokens=2500")
+        else:
+            print(f"  ✓ Case H avg gen tokens = {gen_avg:.0f}, comfortably under 2500 cap")
 
     # Concurrency ceiling (theory predicts A_c128 ≈ A due to KV budget bound)
     if "A" in by_case and "A_c128" in by_case:

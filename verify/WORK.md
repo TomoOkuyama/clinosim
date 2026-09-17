@@ -77,6 +77,7 @@ v22 prompt cut (S117 = v0.6.2) を境に narrate throughput が 1.35 → 0.68 do
 | **G** | **v22 JA Fix A** | 16384 | **FP8** | 32 | **Fix A + Fix B compound** |
 | **G_c64** | **v22 JA Fix A** | 16384 | **FP8** | 64 | **true concurrency scaling** |
 | D_revised | v22 JA | **12288** | FP16 | 32 | Factor D (max-len 効果、8k は unviable と判明) |
+| **H** | **Fix A + max_tokens=2500** | **12288** | FP16 | 32 | **Level-1 tuning: max_tokens 緊縮で 16384 依存除去** |
 
 **Dropped**:
 - Case A_c64 — FP16 KV では ~22 seq ceiling で頭打ち理論確定、A_c32 と差なし予想
