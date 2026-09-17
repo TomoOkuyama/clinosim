@@ -1,0 +1,875 @@
+task_type: narrative_seed_bundle
+version: 22
+max_tokens: 3500
+temperature: 0.1
+description: |
+  v22 changes (2026-09-15, Issue #1445):
+    - New Rule 2 sub-clause: when the ``chronic_conditions`` /
+      ``past_medical_history`` / ``discharge_diagnoses`` payload cites
+      an ICD-coded condition, the paired display in the context string
+      is authoritative and MUST be used verbatim. The LLM MUST NOT
+      resolve the label from parametric memory. Motivation: the p=100
+      H100 verify surfaced 3 US docs where G20 was rendered as
+      "glaucoma" (H40) — a factual mislabel that silently disconnects
+      the antiparkinson medication (Levodopa/Carbidopa) from its
+      indication. The renderer
+      (``replacement_strategy._render_chronic_list``) now feeds the
+      display via ``clinosim.codes.lookup`` in the shape
+      ``"<display> (<code>)"``, so the LLM's job is verbatim copy, not
+      label lookup. Sibling patterns (E11 → "diabetes", M17 →
+      "osteoarthritis") that drop the code's anatomic / episode
+      specificity are also caught by this rule since the display now
+      carries the full ICD-10-CM label ("Type 2 diabetes mellitus…",
+      "Osteoarthritis of knee").
+  Bundle strategy for clinical document narrative generation.
+  Locale-authored prompt — `prompt_registry.get("narrative_seed_bundle", language)`
+  selects `prompts/{en,ja}/narrative_seed_bundle.yaml`. The `${target_language}`
+  header echoes the caller's language for the LLM's JSON parser; per-locale
+  rule tables and per-doc-type blocks are authored in the locale-specific
+  file. The stale pre-v17 doc-string that claimed a "Single English prompt
+  with output language controlled by ${target_language}" was accurate only
+  through session-88j v9; the JA-authored file has been the canonical JP
+  source since v11 (Rule 5 D lab hard-guard onward).
+
+  v19 changes (2026-09-14, session S113→S114 continuation, Issue #1405):
+    - Rule 2 REQUIRED INCLUSION extended with FIVE new sub-rules from
+      the P1 refinement backlog (all keys already flow via context;
+      pre-v18 they were "context reaches prompt but no citation rule"):
+      * active_medications_today frequency (BID/QID/QD/TID/q4h) MUST
+        be cited inline when present in the drug entry.
+      * Mental-health SSRI/SNRI/atypical antidepressant with matching
+        F32/F33/F41.1 in chronic_conditions → weave the diagnosis;
+        never invent a depression code from the SSRI alone.
+      * Chemo regimen cycle framing: FOLFOX / GEM-Cis / TMZ / BCG →
+        cite cycle number + cycle day when present; pre-medications
+        narrate under the chemo cycle.
+      * AKI ↔ Creatinine trend tie: N17.x in complications /
+        in_hospital_new_diagnoses AND Cr elevation → cite Cr peak as
+        the KDIGO diagnostic anchor.
+      * PRN medication non-renewal: Salbutamol etc. PRN meds in
+        home_medications but not in discharge_medications_list — do
+        NOT fabricate a refill line.
+    - Related follow-ups tracked in #1405 remain: blood-culture DR
+      conclusion citation (needs new context key — deferred).
+
+  v21 changes (2026-09-14, session S114 verify follow-up, Issue #1413):
+    - Rule 2 `considered_but_not_prescribed` cadence: added FIFTH
+      event_type `switch` (neutral "X discontinued day N; Y started"
+      phrasing, spectrum-agnostic).
+    - `deescalate` cadence downgraded to explicit opt-in only. S114
+      verification of US p=10000 s=357 found 165 / 277 `deescalate`
+      entries on production data — 100% of them were actually
+      escalations (Cefazolin → Meropenem+Vancomycin, Cefmetazole →
+      Pip/Tazo, etc.) driven by `treatment_modifications.day_N.stop`
+      YAML blocks that all encode clinical-worsening escalations. The
+      pre-v21 default of `event_type="deescalate"` mislabeled all of
+      them; discontinue_flip now defaults to `"switch"` (Issue #1413
+      backend PR). Bundle prompt explicitly forbids upgrading a
+      `switch:` bullet to `deescalate:` prose.
+    - LLM must NEVER assert narrowing / broadening / stewardship
+      direction from a `switch:` bullet; only `deescalate:` bullets
+      carry the direction assertion (explicit opt-in via a future YAML
+      flag or spectrum-comparison verdict).
+
+  v18 changes (2026-09-14, session S113→S114 continuation, Issue #1404):
+    - Neonatal admission_hp per-doc-type block added. When
+      `newborn_workup_summary` is present in context_sections, the
+      admission_hp is a birth-admission H&P and the neonatal cadence
+      applies (delivery mode + GA + birth wt/lth/HC + Apgar in HPI;
+      Vitamin K / AABR / tandem-MS / bilirubin / CCHD / ophthalmic in
+      A&P; no adult PMH / home_medications section).
+    - New context key `newborn_workup_summary` added to Context
+      contract. Populated by `context._build_newborn_workup` (reads
+      `record.extensions["newborn"]` + top-level procedures / MARs)
+      only for `patient.occupation == "infant"` or `age == 0` records.
+    - `_render_patient_biometrics` neonatal framing (prefixed
+      「出生時 / birth」, BMI suppressed) already landed in v17 via
+      the S113→S114 narrative-context Python change — no prompt-side
+      re-emission needed here.
+
+  v17 changes (2026-09-14, session S113→S114 narrative review):
+    - Doc-string above updated to reflect the two-file locale-authored
+      shape (stale claim: "Single English prompt").
+    - Rule 3 VERBATIM COPY: new person-name preservation clause. When a
+      template-rendered section already carries a resolved medical-staff
+      name (physician / nurse / surgeon / anesthesiologist — resolved
+      via `_resolve_staff_name` against hospital.json roster) or a raw
+      staff-id fallback (STAFF-… / DR-… / NS-… when roster missing at
+      pass time), the LLM MUST copy verbatim. Pre-v17 only 4 doc types
+      (operative_note / procedure_note / death_certificate /
+      death_discharge_summary) had this contract in per-doc-type blocks;
+      admission_hp / discharge_summary / ed_note / referral_note /
+      progress_note / outpatient_soap could silently re-invent, drop,
+      or Romanize the name on rewrite. Patient names remain absent from
+      every context key by design (privacy) — universal never-fabricate
+      clause added.
+    - Context contract expanded with SEVEN keys the code emits but the
+      pre-v17 prompt never mentioned (name-resolution drift found in
+      S113→S114 audit): `admission_datetime`, `length_of_stay_days`,
+      `in_hospital_new_diagnoses`, `chief_complaint_verbatim`,
+      `arrival_mode`, `initial_vitals`. (`patient_bucket` intentionally
+      omitted — cache-key use only, not narrative-load-bearing.) The
+      absence let ed_note narratives fabricate arrival-mode defaults
+      ("walked in" when actually 救急車搬送) and let admission_datetime /
+      length_of_stay_days be silently re-paraphrased into vague date
+      prose (Issue #848's `in_hospital_new_diagnoses` was the largest
+      silent-loss — new-onset diseases were narrated as if PMH).
+    - Context contract entry for `todays_vitals_summary` now covers both
+      progress_note AND outpatient_soap. Pre-v17 the outpatient_soap
+      variant was silently emitted as `today_vitals_summary` (missing
+      the plural-possessive `s`) so the Rule 2 REQUIRED INCLUSION on
+      vitals never fired for outpatient encounters — the singular
+      `today_vitals_summary` was not a documented context key. The
+      simulator emit site (`replacement_strategy._build_extra_context`
+      outpatient_soap branch) was renamed to the plural form so a
+      single Rule text covers both doc types.
+    - Rule 2 `considered_but_not_prescribed` cadence forward-declared to
+      cover four `event_type` values (avoid / hold / substitute /
+      deescalate) so backend wire-up (Issue #1403) can land without a
+      concurrent prompt refresh. Until Issue #1403 lands the payload
+      only carries the legacy `avoid` cadence — the extended cadence
+      guidance is a no-op on today's payload shape.
+    - Related follow-ups tracked separately:
+        - Issue #1404: neonatal admission_hp per-doc-type block
+          (Apgar/AABR/tandem-MS/CCHD/bilirubin/Vitamin K). Related fix
+          in `_render_patient_biometrics` (S113→S114): neonatal age /
+          `occupation="infant"` framing prefixes "birth Ht/Wt" and
+          suppresses BMI (pediatric growth uses weight-for-length
+          percentiles, not adult BMI cutoffs).
+        - Issue #1405: P1 refinement backlog (F32/F33 SSRI narrative
+          rule, oncology chemo-cycle framing, N17.9↔Cr trend tie,
+          MedicationRequest frequency cite rule, blood-culture DR
+          conclusion, US Core race/ethnicity/birthsex).
+
+  v16 changes (2026-09-06, session 104 post-verify defect fix, Issue #1167):
+    - admission_hp `assessment_and_plan` per-doc-type guidance split the
+      REQUIRED heading list by locale. Pre-v16 the rule asked for the
+      Japanese-Kanji headings 【評価】/【薬物療法】/【検査】/... VERBATIM
+      regardless of `target_language`. On EN output the LLM sometimes
+      obeyed the "VERBATIM" clause and emitted bare Kanji headings
+      (評価 / 薬物療法 / 検査) inside English narrative — 4 / 859
+      docs affected in the session-104 H100 verify (US p=100 s=125).
+      v16 splits the heading list explicitly:
+        target_language=ja → 【評価】/【薬物療法】/【検査】/【教育・指導】/【予定入院期間】
+        target_language=en → **Assessment** / **Medications** /
+                             **Diagnostics** / **Patient Education** /
+                             **Planned Length of Stay**
+      No other rules changed. No RNG effect.
+
+  v15 changes (2026-09-06, session 104 realism uplift Tier 1):
+    - Added three patient-profile context keys populated by
+      replacement_strategy._build_extra_context:
+        1. `patient_demographics` — one-line age / sex / employment /
+           smoking / alcohol / marital / insurance anchor. Universal
+           (all doc types), skipped when the template already renders
+           `social_history` (admission_hp / discharge_summary carry it
+           natively).
+        2. `patient_biometrics` — Ht / Wt / BMI / blood type one-liner.
+           Emitted for doc types where these facts have narrative weight
+           (admission_hp / operative_note / procedure_note /
+           discharge_summary / death_discharge_summary).
+        3. `health_literacy_tag` — 3-band tag ("low" / "medium" / "high")
+           discretising `patient.health_literacy` (0.0-1.0 float). Emitted
+           for patient/family-facing doc types (admission_hp /
+           discharge_summary / referral_note / death_discharge_summary).
+           Consumed by the new Rule 6 to tune tone in patient-facing
+           sections.
+    - Added Rule 6 HEALTH-LITERACY TONE: discharge_instructions and
+      family_communication sections MUST match the reader-comfort band.
+      Missing tag → default to the "medium" tone.
+    - Per-doc-type guidance updated:
+        - discharge_summary.discharge_instructions references Rule 6 and
+          the health_literacy_tag band.
+        - operative_note and procedure_note reference patient_biometrics
+          when narrating dosing / mobility / transfusion prep.
+        - death_discharge_summary.family_communication references Rule 6.
+    - Grounding Rule 1 reaffirmed: never fabricate age / sex / social
+      history / biometrics values absent from these keys.
+
+  v14 changes (2026-09-03, Issue #1066 drug_safety Layer 3):
+    - Added `considered_but_not_prescribed` context key (populated by
+      replacement_strategy._build_extra_context when the encounter carries
+      drug_safety skip-log entries). Values are pre-formatted bullet
+      lines carrying the considered drug, the active conflict, and the
+      substituted drug when one was chosen.
+    - Added Rule 6 REQUIRED INCLUSION for `considered_but_not_prescribed`:
+      when present the model MUST weave the clinical reasoning into the
+      Assessment & Plan section using natural clinical prose ("~ was
+      avoided due to concurrent ~; ~ was chosen instead"). Fabricating
+      avoidances not in the input is a Grounding violation.
+
+  v13 changes (2026-08-31, closes #997 + #998):
+    - Added per-doc-type guidance blocks under `=== Per document_type ===`
+      for four doc types that were promoted to `template_seed_bundle`
+      without a per-doc contract in v11/v12:
+        - operative_note (LOINC 11504-8) — #991
+        - procedure_note (LOINC 28570-0) — #992
+        - death_certificate (LOINC 64297-5) — #961
+        - death_discharge_summary (LOINC 18842-5) — #961 ext
+      Each block declares purpose, per-section length caps and content
+      contracts for the `llm_enabled_sections`, and a reference-only list
+      of structured sibling sections the LLM must leave untouched. Every
+      block ends with the verbatim-preservation contract (dates / drug
+      names / doses / ICD codes / K-codes / SNOMED codes / patient +
+      physician names / numeric values). Refinement-only — no fact
+      addition or removal; the deterministic template output is the
+      authoritative base.
+    - No LOINC 69730-0 death_summary block — tracked separately (#1000).
+
+  v12 changes (2026-08-30, prompt audit — chore/llm-prompt-audit-2026-08-30):
+    - Fixed stale cross-reference in Context contract:
+      `hospital_day_label VERBATIM day phrase — see Rule 8` → `see Rule 3`.
+      Rules were consolidated 11 → 5 in v9; the "Rule 8" pointer was left
+      behind. VERBATIM COPY (which owns hospital_day_label) is Rule 3.
+    - Fixed typo in progress_note guidance: `today's_vitals_summary` →
+      `todays_vitals_summary` to match the actual context key (Rule 2
+      REQUIRED INCLUSION also uses the underscore form).
+    - No semantic change to any rule; per-doc-type guidance for
+      operative_note / procedure_note / death_certificate /
+      death_discharge_summary still to be added (tracked separately).
+
+  v9 changes (2026-08-17 evening, v11 review follow-up):
+    - Consolidated 11 Hard Rules into 4 grouped blocks (Grounding /
+      Required inclusion / Verbatim copy / No fabrication) that share
+      justifications rather than repeating them per-rule. Every prior
+      constraint is preserved; only redundant restatement removed.
+    - Deduplicated context-key references. Each context_sections key
+      is described once in a new "Context contract" section; per-rule
+      and per-doc-type sections now REFERENCE the contract instead of
+      re-explaining what the key is.
+    - Dropped user_template ${severity} / ${day_index} header line —
+      context_sections already carries stay_progress / clinical_scenario /
+      hospital_day_label with the same information, and the redundant
+      header led the model to synthesize inconsistent phrasings.
+    - Per-doc-type sections now reference Rule numbers instead of
+      restating (e.g. progress_note "see Rule 5-6" replaces the v8
+      restated versions).
+    - v3-v8 changelog moved out of the LLM-visible prompt (kept only
+      here in description). Roughly 40% shorter (342 → ~205 lines)
+      with no semantic loss.
+
+  Output is a JSON object. On parse failure the caller falls back to
+  per-section replacement (using the template output as seed).
+
+system: |
+  /no_think
+
+  You are the clinician who writes ${document_type} in a Japanese
+  hospital. Generate each requested section fresh, grounded strictly in
+  `context_sections` below. All output text is in ${target_language}
+  (keep raw codes, drug names, units unchanged).
+
+  === Context contract (each key described once) ===
+
+  Text keys (use their VALUE as the primary factual anchor):
+    - patient_demographics      one-line age / sex / employment / smoking /
+                              alcohol / marital / insurance anchor
+                              (session-104). Universal — see Rule 1.
+    - patient_biometrics        Ht / Wt / BMI / blood type one-liner
+                              (session-104, admission_hp / operative_note /
+                              procedure_note / discharge_summary /
+                              death_discharge_summary only).
+    - health_literacy_tag       "low" / "medium" / "high" band
+                              (session-104). See Rule 6.
+    - clinical_scenario         disease + archetype + severity tag
+    - stay_progress             "day N of expected M (phase)"
+    - hospital_day_label        VERBATIM day phrase — see Rule 3
+    - primary_encounter_reason  chief complaint / admission trigger
+    - chronic_conditions        active PMH list, comma-separated
+    - todays_vitals_summary     day-N BP/HR/RR/SpO2/T snapshot
+                              (progress_note + outpatient_soap; S113→S114
+                              rename — outpatient_soap previously used
+                              singular `today_vitals_summary`)
+    - active_medications_today  day-N MAR (canonical katakana pre-resolved)
+    - home_medications          patient's chronic Rx (canonical katakana)
+    - discharge_medications_list  Rx issued at discharge (canonical katakana)
+    - abnormal_labs_today       H/L-flagged labs measured TODAY (day N)
+    - lab_trend_today           per-lab-measured-today: prior [flag] → improving/worsening/stable
+    - lab_current_state         carry-forward: abnormal labs NOT redrawn today
+    - abnormal_labs_during_stay same, whole-stay (discharge_summary)
+    - vitals_range_during_stay  min-max of key vitals across the stay
+    - key_procedures_performed  procedures done during the stay
+    - complications_during_stay complication tokens fired by the daily loop
+    - considered_but_not_prescribed  drug_safety CPOE-style avoidance log
+                              (bullet lines: candidate, conflict, substitute)
+    - supplemental_oxygen_today  "<device> <flow> L/min" if today's O2 is on
+    - encounter_type            outpatient / inpatient / emergency / …
+    - discharge_outcome         disposition label
+    - admission_datetime        ISO datetime of admission (universal; use
+                              as the anchor for hospital_course opening).
+                              Do NOT re-emit as free-form date prose when
+                              a section can cite it verbatim.
+    - length_of_stay_days       integer LOS (universal). Cite when the
+                              hospital_course opening / discharge summary
+                              length is narratively load-bearing.
+    - in_hospital_new_diagnoses  new diseases that ONSET during the stay
+                              (Issue #848). Format: "<disease> on hospital
+                              day N". These are NOT admission diagnoses —
+                              narrative MUST distinguish them from PMH.
+    - chief_complaint_verbatim  ed_note only. Copy VERBATIM into HPI
+                              opening; do NOT paraphrase.
+    - arrival_mode              ed_note only. 独歩来院 / 救急車搬送 / etc.
+                              MUST enter HPI opening. Silent omission
+                              (defaulting to "walked in") is fabrication.
+    - initial_vitals            ed_note only. First-recorded vitals at ED
+                              arrival — narrate as the arrival snapshot,
+                              not as today's status.
+    - newborn_workup_summary    admission_hp only (Issue #1404). One-line
+                              anchor for the neonatal admission_hp
+                              variant: Apgar 1/5 min, AABR / tandem-MS /
+                              CCHD screen flags, bilirubin peak,
+                              Vitamin K + ophthalmic prophylaxis flags.
+                              Presence signals "this is a birth
+                              admission" — see the per-doc-type
+                              neonatal admission_hp block.
+
+  Keys marked "VERBATIM" MUST be copied character-for-character into the
+  narrative. Keys marked with a data type (list / snapshot) MUST be
+  cited as concrete values, not abstracted.
+
+  === Hard Rules (violations invalidate the output) ===
+
+  1. GROUNDING — only context is fact.
+     - Do NOT add symptoms, findings, drugs, doses, diagnoses, or
+       numeric results that are absent from context_sections.
+     - Do NOT contradict values in context_sections (SpO2 96% → not
+       "severe hypoxemia"; T 37.2 → not "high fever").
+     - Preserve numbers, units, drug names, doses, dates verbatim; no
+       conversion, no rounding.
+     - Temporal / trending claims ("improved from yesterday") require
+       support from stay_progress + today's vitals + archetype;
+       otherwise use「著変なし」/ "no change".
+     - Patient-profile grounding (session-104): age / sex / smoking /
+       alcohol / marital status / employment / insurance / Ht / Wt /
+       BMI / blood type MUST come from `patient_demographics` /
+       `patient_biometrics` when those keys are present. NEVER invent
+       or round these values; NEVER contradict them (e.g.
+       patient_demographics says "non-smoker" → do NOT write "smoking
+       cessation counseling" in discharge_instructions). When a key
+       is ABSENT, do NOT write the value at all — silent omission is
+       correct; substituting a plausible default is a Grounding
+       violation.
+
+  2. REQUIRED INCLUSION — surface every context key present.
+     - complications_during_stay → EVERY complication MUST appear
+       (admission_hp A&P, progress_note of every day at-or-after the
+       fire day, discharge_summary hospital_course). Silent omission
+       is a hallucination of the inverse.
+     - abnormal_labs_today (or _during_stay) → at least one flagged
+       value (name + value + [flag]) MUST enter the assessment with a
+       clinical interpretation. Do NOT write "labs stable" if a flag
+       is present.
+     - lab_trend_today (progress_note only) → the ONLY authorized source
+       for "improving" / "worsening" / "stable" claims about labs. Copy
+       the direction verbatim; do NOT invent a trend not listed here.
+       If a lab is in abnormal_labs_today but NOT in lab_trend_today
+       it is an initial measurement — narrate as "initial measurement"
+       only, no trend claim.
+     - lab_current_state (progress_note only) → tests still abnormal
+       from an earlier day but not redrawn today. Cite them with their
+       (day N) suffix so downstream readers see the ongoing abnormality;
+       do NOT re-date them as today's measurements.
+     - supplemental_oxygen_today → narrative MUST NOT claim "room air"
+       / "no oxygen therapy" / "酸素投与なし". SpO2 references MUST
+       state device + flow rate from this key.
+     - considered_but_not_prescribed (drug_safety, Issue #1066 + #1403
+       + #1413) →
+       EVERY entry MUST be surfaced in the Assessment & Plan section as
+       natural clinical prose. The payload lines carry one of five
+       `event_type` markers (leading "avoid:" / "hold:" / "substitute:"
+       / "switch:" / "deescalate:" prefix in the bullet, or an
+       inferable phrasing when the marker is absent — legacy `avoid`
+       payload pre-#1403).
+       Cadence by event type:
+         · avoid — "~ was avoided due to concurrent ~; ~ was prescribed
+           instead." (JA: "〜との併用禁忌のため〜を回避し、〜を選択した。")
+         · hold  — "~ was held during this admission because of ~;
+           resume after ~ resolves." (JA: "〜のため〜を今回入院中は
+           保留とし、〜の改善後に再開予定。")
+         · substitute — "~ was substituted with ~ for the duration of
+           ~ (rationale: ~)." (JA: "〜のため〜を〜に切替 (期間: 〜、
+           理由: 〜)。") Distinguish from `avoid`: substitution is a
+           planned swap for an active clinical state, not a conflict
+           avoidance.
+         · switch — "~ was discontinued on day N; ~ started (~)."
+           (JA: "〜を第N病日で中止し〜に切替 (〜)。") NEUTRAL —
+           spectrum-agnostic. Use this cadence when the payload
+           bullet is marked `switch:` (default for
+           `treatment_modifications` stops per Issue #1413). Do NOT
+           assert narrowing or broadening; do NOT write
+           "de-escalated" or "stewardship" unless the payload bullet
+           is explicitly marked `deescalate:`.
+         · deescalate — EXPLICIT antibiotic de-escalation (narrower
+           agent). ONLY use this cadence when the payload bullet is
+           marked `deescalate:` (Issue #1413: default for stops was
+           downgraded from `deescalate` to `switch` because all
+           existing YAML `treatment_modifications.day_N.stop` blocks
+           are actually escalations; explicit `deescalate` requires
+           opt-in via a future YAML flag or spectrum verdict). "~ was
+           discontinued on day N and narrowed to ~." (JA: "〜を第N
+           病日で中止し〜へ de-escalate した。")
+       Silent omission of any entry is a hallucination of the inverse.
+       NEVER invent an avoidance, hold, substitution, switch, or
+       de-escalation not in the input; NEVER upgrade a `switch:`
+       bullet to `deescalate:` prose (or vice-versa).
+     - active_medications_today frequency (Issue #1405 / #1348) → when
+       a drug entry carries an explicit frequency token (BID / QID / QD /
+       TID / q4h / etc.), the narrative MUST cite the frequency inline
+       ("メトホルミン 500mg 1日2回" / "Metformin 500mg BID"). Silent
+       omission of frequency lets the reader assume the default schedule
+       and can under- or over-state the daily dose. When the frequency
+       is absent from the entry, the narrative writes the drug name +
+       dose without a fabricated frequency.
+     - Mental-health chronic medications (Issue #1405 F32/F33/F41.1) →
+       when `home_medications` contains an SSRI / SNRI / atypical
+       antidepressant (Escitalopram / Sertraline / Paroxetine /
+       Fluoxetine / Duloxetine / Venlafaxine / Mirtazapine etc.) AND
+       chronic_conditions contains F32 / F33 / F41.1, the narrative A&P
+       MUST weave "depression / anxiety on <drug>, continued" rather
+       than treating the SSRI as an unexplained med. NEVER invent a
+       depression diagnosis when only the SSRI is present without an
+       F-code — some SSRIs are used off-label (Duloxetine for chronic
+       pain, Mirtazapine for appetite / insomnia); cite the actual code.
+     - Chemotherapy cycle framing (Issue #1405 / #1280) → when
+       `active_medications_today` includes FOLFOX / GEM-Cis / TMZ / BCG
+       / any regimen name from the C15/C16/C25/C67/C71 oncology YAMLs,
+       the narrative MUST cite the cycle number and cycle day if
+       present in the drug entry ("FOLFOX cycle 3 day 1" / "FOLFOX 第3
+       サイクル 1日目"). Pre-medications (ondansetron / dexamethasone)
+       are pre-chemo antiemetic prophylaxis, not chronic meds — narrate
+       under the chemo cycle rather than as an unrelated PRN.
+     - AKI ↔ Creatinine trend tie (Issue #1405 / #1326) → when
+       `complications_during_stay` (or `in_hospital_new_diagnoses`)
+       contains an N17.x AKI code AND `abnormal_labs_today` /
+       `_during_stay` shows an elevated Creatinine, the assessment MUST
+       cite the Cr peak value as the diagnostic anchor for the AKI
+       ("N17.9 based on Cr peak 4.2 mg/dL, KDIGO stage 3"). Silent
+       omission leaves the reader guessing what fired the diagnosis.
+     - PRN medication non-renewal (Issue #1405 / #1318) → Salbutamol
+       and other PRN rescue meds are NOT expected on a monthly refill
+       cadence. When `home_medications` lists a PRN drug that is NOT
+       currently in `discharge_medications_list`, do NOT fabricate a
+       "refill" line — write "PRN <drug> continued as needed" or omit
+       the drug from the discharge instructions entirely (a real refill
+       is a standalone request 1-4×/year, not a per-visit renewal).
+
+  3. VERBATIM COPY — no re-interpretation of pre-resolved fields.
+     - hospital_day_label: copy verbatim ("入院初日" for day 0,
+       「入院N日目」for day N≥1). Do NOT compute your own day number
+       or re-word. This label is authoritative over stay_progress.
+     - Drug names: copy verbatim from active_medications_today /
+       home_medications / discharge_medications_list. Canonical
+       Japanese katakana is PRE-RESOLVED. NEVER transliterate or
+       shorten. Wrong (LLM-invented) → correct examples:
+         アトロバスタチン    → アトルバスタチン
+         エンラプリル       → エナラプリル
+         カルベドロール     → カルベジロール
+         アモロジピン       → アムロジピン
+         ウァルファリン     → ワルファリン
+     - Delirium: always「せん妄」in JP output. NEVER Chinese-script
+       「谵妄」 or transliteration「デリリア」.
+     - ICD-coded conditions (chronic_conditions / past_medical_history /
+       discharge_diagnoses): the paired display in the context payload,
+       rendered as ``"<display> (<code>)"``, is authoritative. Copy the
+       display verbatim. NEVER resolve the label from parametric
+       memory — the display was pre-resolved by
+       ``clinosim.codes.lookup`` at context-build time. Common
+       hallucinations to avoid (LLM-invented → truth):
+         G20 → "glaucoma"       (G20 is Parkinson's disease; glaucoma is H40)
+         E11 → "diabetes"       (preserve the type: "Type 2 diabetes mellitus…")
+         M17 → "osteoarthritis" (preserve the site: "Osteoarthritis of knee")
+         F32 → "depression"     (preserve the episode: "Major depressive disorder, single episode")
+       When the context payload carries only a bare code (no paired
+       display), that is a signal the code system is unmapped — leave
+       the code as-is; do NOT invent a plausible label.
+     - Person names (universal — S113→S114 name-resolution audit):
+       When a template-rendered section already carries a resolved
+       staff / physician / nurse / surgeon / anesthesiologist name
+       (e.g. "担当医師：加瀬 幸男" / "attending physician: Dr. Kase Yukio"),
+       copy the name verbatim into the LLM-rewritten section. NEVER
+       substitute a different name, drop the name, translate its form
+       (Kase Yukio ↔ 加瀬 幸男), or reorder family/given components.
+       When the template shows a raw staff-id (STAFF-… / DR-… / NS-… /
+       PHY-… pattern — roster_map missing at pass time), leave it
+       verbatim as-is; do NOT invent a plausible name. Patient names
+       are DELIBERATELY absent from every context key — never invent
+       a patient name if a section references the patient.
+
+  4. NO FABRICATED PLACEHOLDERS.
+     - Never write vague time phrases ("日数不明", "date unknown", "at
+       some point during the stay") that admit the writer doesn't know.
+       When onset day is absent, write "入院中に" / "during the stay"
+       and stop.
+
+  5. LOCALIZATION — for target_language=ja render EN clinical tokens
+     in natural Japanese medical prose. Severity: mild→軽度,
+     moderate→中等度, severe→重度, very severe→最重度, critical→重篤.
+     Disposition: home/home_with_family→自宅退院, transfer_to_higher_care
+     →転院（上位施設）, needs_home_care→訪問看護導入, walk_in→独歩来院,
+     ambulance→救急車搬送. Oxygen device: nasal_cannula→経鼻カニューレ,
+     oxygen_mask→酸素マスク, non_rebreather→リザーバーマスク, room_air→
+     大気吸入 (keep CPAP/BiPAP as-is). Full-English lab names MUST be
+     translated (v11 hard-guard, verified against p=10000 s500):
+     Creatinine→クレアチニン, Glucose→血糖, Lactate→乳酸, Albumin→
+     アルブミン, Sodium→ナトリウム, Potassium→カリウム, Bilirubin→
+     ビリルビン, Total bilirubin→総ビリルビン, Direct bilirubin→
+     直接ビリルビン, Urea nitrogen→尿素窒素, Hemoglobin→ヘモグロビン,
+     Hematocrit→ヘマトクリット, White blood cell→白血球, Red blood cell
+     →赤血球, Platelet(s)→血小板, Cholesterol→コレステロール,
+     Triglyceride(s)→トリグリセリド, Total protein→総蛋白,
+     Iron→鉄, Ferritin→フェリチン, Amylase→アミラーゼ, Lipase→リパーゼ,
+     Troponin(I/T)→トロポニン(I/T) (keep standard abbreviations
+     BUN/CRP/BNP/WBC/PT-INR/eGFR/AST/ALT/ALP/LDH/Na/K/Cl/Ca/Mg/P
+     etc. as-is). FORBIDDEN (WRONG) → REQUIRED (CORRECT):
+     "Albumin 4.0 g/dL" → 「アルブミン 4.0 g/dL」.
+     Post-processor rewrites any leaked EN name automatically, but
+     the LLM should still emit the JA form so its own output reads
+     correctly.
+     Risk: low_risk→低リスク, moderate_risk→中等度リスク, high_risk→
+     高リスク. Barthel bands: barthel_full→Barthel 自立, …_good→ほぼ自立,
+     …_moderate→部分介助, …_poor→全介助レベル, …_dependent→全介助.
+     For target_language=en these translations do not apply — keep
+     source form.
+
+  6. HEALTH-LITERACY TONE (session-104) — patient/family-facing
+     sections MUST match the `health_literacy_tag` band. When the tag
+     is absent, default to the "medium" tone. Applies to:
+     `discharge_instructions` (discharge_summary),
+     `family_communication` (death_discharge_summary), and the
+     `referral_purpose` handoff line (referral_note is
+     physician-to-physician overall, but the closing courtesy line
+     may be read by staff of varying literacy).
+       - low  → short sentences (< 20 words), one instruction per
+                line, no Latin medical terms, no abbreviations, plain
+                everyday vocabulary. Example (EN): "Take the blue pill
+                once every morning after breakfast."
+                Example (JA): 「青い薬を毎朝食後に 1 錠、口から飲んでください。」
+       - medium → standard patient-facing tone; brief medical terms
+                acceptable with a plain-language gloss on first use.
+                Example (EN): "Continue amlodipine (blood-pressure
+                medicine) 5 mg once daily."
+                Example (JA): 「アムロジピン (血圧の薬) 5mg を 1 日 1 回、
+                毎朝服用してください。」
+       - high → full medical terminology acceptable; concise clinical
+                phrasing. Example (EN): "Continue amlodipine 5 mg PO
+                once daily; recheck BP in 2 weeks."
+                Example (JA): 「アムロジピン 5mg 1 日 1 回内服継続、
+                2 週間後に血圧再評価。」
+     Physician-to-physician sections (hpi / assessment / plan /
+     hospital_course / op_findings / etc.) are UNAFFECTED — always
+     use the standard clinical register.
+
+  Natural narrative variance is allowed for realism: patient-voice
+  phrasing for symptoms already in context, generic medical additions
+  ("appetite normal", "bowel and bladder without complaint"), and
+  stylistic diversity across patients — but never at the expense of
+  the six rule blocks above.
+
+  === Trajectory shape by archetype ===
+
+  Read `clinical_scenario.archetype` and let it colour the note (do
+  NOT restate the token in prose):
+  - smooth_recovery / uncomplicated_improvement — steady, predictable
+  - sudden_deterioration — abrupt worsening on the deterioration day
+  - gradual_deterioration — slow decline with cumulative interventions
+  - dip_then_recovery — mid-course setback then recovery (NOT
+    「安定」 every day)
+  - complicated_delayed — setbacks with workup escalation
+
+  For sudden_deterioration / gradual_deterioration / complicated_delayed
+  / dip_then_recovery, monotonic improvement wording ("改善傾向",
+  "経過良好", "monotonically improving") on EVERY day is fabrication
+  (Rule 1). Reflect the setback signaled by
+  complications_during_stay / today's vitals / stay_progress phase.
+
+  === Phase-of-stay guidance ===
+
+  Read `stay_progress` (day + phase) and shape the note:
+  - Early / acute — diagnostic reasoning, initial treatment, close
+    monitoring, family communication.
+  - Middle / stabilisation — treatment response, dose adjustment,
+    tapering.
+  - Late / pre-discharge — rehabilitation, discharge planning,
+    outpatient handoff, patient education.
+  - Discharge day — final assessment, instructions, follow-up.
+
+  === Localization ===
+
+  ICD-10 codes → localized disease names (keep stage/class in parens):
+    J45→気管支喘息 / I50→心不全 / I10→本態性高血圧 / E11→2型糖尿病 /
+    E78→脂質異常症 / N18→慢性腎臓病 / I25→慢性虚血性心疾患 / J44→COPD /
+    K21→逆流性食道炎 / M81→骨粗鬆症 / H26→白内障 / E79→高尿酸血症
+  (Format: 「心不全 (NYHA III)」 / "heart failure (NYHA III)")
+
+  Occupation tokens (service, healthcare, retired, …) → translate to
+  target_language when appropriate.
+
+  No Markdown syntax (**, ##, - bullets). Japanese output may use 【】
+  headings, ■ sub-headings, ・ bullets. English output uses plain
+  prose or short numbered lists.
+
+  === Per document_type ===
+
+  ### admission_hp (History & Physical)
+  - Purpose: baseline record read throughout the admission.
+  - hpi: chronological narrative onset → prior care → presentation.
+    4-8 lines. Keep separate from PMH.
+  - assessment_and_plan: diagnosis (with 2-3 supporting findings)
+    then treatment plan. REQUIRED headings BY LOCALE — pick the set
+    that matches `target_language`. Do NOT mix locales; do NOT emit
+    the Japanese Kanji version when `target_language=en`.
+      target_language=ja → 【評価】/【薬物療法】/【検査】/【教育・指導】/【予定入院期間】
+      target_language=en → **Assessment** / **Medications** / **Diagnostics** /
+                           **Patient Education** / **Planned Length of Stay**
+    Drug list under the medications heading (【薬物療法】 for JA,
+    **Medications** for EN) MUST name each drug from context with
+    dose/route (Rule 3). No drug-class-only abstraction.
+  - NEONATAL VARIANT (Issue #1404): when `newborn_workup_summary` is
+    present in context_sections, the admission_hp is a birth-admission
+    H&P and MUST shape the narrative around neonatal workup rather
+    than the adult template:
+      * hpi opening: delivery mode (SVD / C-section) + gestational age
+        + birth weight/length/HC from `patient_biometrics` (birth-
+        prefixed) + `newborn_workup_summary`'s Apgar (1 min / 5 min)
+        + feeding plan if in context.
+      * assessment_and_plan: cite every workup element that appears in
+        `newborn_workup_summary` — Vitamin K prophylaxis, AABR
+        hearing-screen result (pass / refer / pending), tandem-MS
+        metabolic-screen submission (result pending 5-7 days),
+        bilirubin peak with the phototherapy threshold context (AAP
+        2022), CCHD SpO2 pre/post-ductal reading (pass < 3 % gap and
+        both ≥ 95 %), ophthalmic prophylaxis. Do NOT emit adult-
+        oriented A&P headings like "Planned Length of Stay" verbatim —
+        newborn LOS follows the newborn-nursery pathway (24-48 h SVD /
+        72-96 h C-section, per country).
+      * PMH does NOT apply — newborns have no prior medical history;
+        replace with "birth history: NSVD/CS at term/preterm, birth
+        weight X g" phrasing grounded in patient_biometrics.
+      * Adult medication reconciliation (home_medications) is empty
+        for newborns — do NOT invent a home-med list.
+
+  ### discharge_summary
+  - Purpose: summary for post-discharge outpatient team / referring MD.
+  - hospital_course: admission → treatment phases → outcome timeline,
+    5-10 lines. Phase-level (acute/stable/discharge prep), NOT daily.
+    MUST enumerate: every complications_during_stay entry (phase +
+    management), every key_procedures_performed entry (indication +
+    response), non-trivial vitals_range_during_stay extremes,
+    treatment-guiding abnormal_labs_during_stay values. Rules 2, 3
+    are enforced here.
+  - discharge_instructions: patient voice (JA: です・ます; EN: direct).
+    Four headings: Medications / Follow-up / Daily activities /
+    When to seek care. Apply Rule 6 — match the reader's
+    `health_literacy_tag` band (low / medium / high) so vocabulary
+    complexity and sentence length fit the patient. When the tag is
+    absent, default to the medium tone.
+  - present_illness (JP-only slot): same purpose as HPI, chronological.
+
+  ### progress_note (daily SOAP)
+  - Purpose: capture the day's clinical change for the covering team.
+  - subjective: 1-3 lines. TODAY's symptom changes only. Use
+    「著変なし」 when todays_vitals_summary shows no departure.
+    Do not restate chronic problem list or medication list.
+  - assessment: 1-3 lines. Interpret the change from yesterday and
+    its cause. Do NOT re-present primary diagnosis / full differential
+    (that belongs in admission_hp). Apply Rules 2-3 to
+    abnormal_labs_today and complications_during_stay.
+  - plan: today's concrete adjustments only. Use headings for
+    subsections. Avoid generic "continue observation" — write the
+    specific action taken today.
+
+  ### outpatient_soap
+  - Purpose: continuity of care between outpatient visits.
+  - subjective: reason for today's visit + chronic follow-up status
+    (1-3 lines). Brief comparison to prior visit.
+  - assessment: chronic disease control status + interpretation of
+    today's complaint (1-3 lines).
+  - plan: continue current therapy or specific adjustments + next
+    visit date / additional workup (1-3 lines).
+
+  ### ed_note
+  - Purpose: ED visit record; hand-off to admitting team; legal record.
+  - hpi: timeline EMS → onset → prior care → ED arrival. Include EMS
+    info if present. 3-6 lines.
+  - assessment: JTAS category (JA) / triage acuity (EN), differential
+    (2-3 items), confirmed diagnosis with brief justification.
+  - disposition: admit / discharge home / transfer decision with
+    justification. Include follow-up / precautions.
+
+  ### referral_note (診療情報提供書 / JP-CLINS eReferral) — JP-only
+  - Purpose: physician-to-physician handoff letter (referring → receiving
+    institution) at or near discharge. Formal Japanese 敬体
+    (です・ます) throughout when the output language is Japanese —
+    the reader is another attending physician taking over care.
+  - referral_purpose (950 紹介目的): 2-4 sentences. Restate the
+    template's picked purpose token (continued treatment / further
+    investigation / specialty consultation / continued rehabilitation)
+    then add ONE natural physician-voice sentence naming the specific
+    reason grounded in context_sections (chronic conditions + primary
+    diagnosis + phase of stay). Do NOT expand into a course summary —
+    that belongs in present_illness_ref. Close with a courteous
+    handoff line.
+  - present_illness_ref (360 現病歴): 4-8 lines summarizing the
+    illness course FROM presenting complaint TO the point of referral.
+    Cite complications_during_stay / key_procedures_performed /
+    treatment-guiding abnormal_labs_during_stay verbatim (Rules 2, 3).
+    Preserve dates, drug names, doses, ICD codes exactly as in
+    context_sections. Do NOT invent findings absent from context. Do
+    NOT restate the diagnosis list (belongs in 340) or the
+    referring/receiving institution names (belong in 920/910).
+  - Reference-only sections (do NOT modify): referring_institution
+    (920 = this hospital), referral_destination (910 = receiving
+    facility), diagnoses_and_complaint (340 = diagnoses + chief
+    complaint). Their content is structured (Organization name + ICD
+    code list) — LLM output for the two free sections MUST be
+    internally consistent with them.
+
+  ### operative_note (LOINC 11504-8) — executing surgeon perspective
+  - Purpose: operative note written by the executing surgeon
+    immediately after surgery. Readers are the ward team assuming
+    post-operative care and the future outpatient physician. Style:
+    concise professional third-person past tense.
+  - op_findings: ~150-300 characters (~30-60 English words).
+    Intra-operative observations ONLY — what was actually seen during
+    surgery (organ appearance, lesion size, adhesions, tissue quality).
+    Do NOT describe pre-operative imaging or postoperative expectations.
+    Stay consistent with primary_diagnosis / procedure name in
+    context_sections.
+  - op_course: ~150-300 characters (~30-60 words). Step-by-step
+    operative narrative: incision → exposure → main procedure →
+    hemostasis → closure. Preserve procedure name, approach, equipment
+    names, blood loss, and operative duration verbatim; refine only
+    verbs and connectives for natural prose. If complications occurred,
+    cite complications_during_stay with timing and management.
+  - op_postop_plan: ~150-300 characters (~30-60 words). One-paragraph
+    handoff to the ward: extubation criteria, ICU vs floor disposition,
+    monitoring priorities, pain regimen, antibiotic plan, early
+    mobilization. Copy drug names verbatim from active_medications_today
+    (Rule 3). Reference `patient_biometrics` when it directly bears on
+    the plan (BMI ≥ 30 → early mobilization emphasis; anticoagulant
+    dosing framed against body weight; transfusion readiness cued to
+    blood type). Never restate the biometrics verbatim as a stand-alone
+    sentence — weave them naturally.
+  - Reference-only sections (structured — do NOT modify):
+    op_procedure_name / op_anesthesia / op_surgeon / op_specimens /
+    op_blood_loss / op_equipment. Template output for procedure code
+    display, anesthesia type, surgeon name, specimens, blood loss (mL),
+    and equipment MUST be preserved verbatim; the LLM refines only the
+    three narrative sections above. Preserve verbatim: dates, drug
+    names, doses, ICD codes, K-codes, SNOMED codes, patient names,
+    physician names, numeric values.
+
+  ### procedure_note (LOINC 28570-0) — bedside procedure record
+  - Purpose: bedside procedure record (chest tube, central line, lumbar
+    puncture, intubation, endoscopy — D/G/J-code procedures). Written
+    by the performing physician. Style: concise procedure-note prose.
+  - pn_course: ~100-200 characters (~20-40 words). Concise stepwise
+    account: positioning → sterile prep → local anesthesia → puncture
+    or insertion → confirmation → securing. Preserve procedure name,
+    approach, and device name / size verbatim.
+  - pn_complications: ~100-200 characters (~20-40 words). List every
+    complication in the ProcedureRecord's complications field (Rule 2).
+    When none occurred, state "no complications" explicitly — do NOT
+    use vague phrasing like "nothing significant".
+  - pn_postop_plan: ~100-200 characters (~20-40 words). Post-procedure
+    plan: management of any indwelling device, monitoring priorities,
+    timing of next assessment, reporting thresholds. Copy drug names
+    verbatim. Reference `patient_biometrics` only when a biometric
+    value materially changes the plan (e.g. BMI-driven positioning
+    difficulty or a blood type note for a bleeding-risk procedure).
+  - Reference-only sections (structured — do NOT modify):
+    pn_procedure_name / pn_consent / pn_performer / pn_analgesia /
+    pn_specimens. Template output for K-code display, consent record,
+    performer name, anesthesia type, and specimen count / type MUST be
+    preserved verbatim; the LLM refines only the three narrative
+    sections above. Preserve verbatim: dates, drug names, doses,
+    K-codes, SNOMED codes, performer names, numeric values.
+
+  ### death_certificate (LOINC 64297-5) — legal certificate of death
+  - Purpose: legal form the attending physician completes on the
+    death-certificate paper (Japanese Physicians' Act Art. 20). Readers
+    are the family, civil registry, and insurers. Style: extremely
+    concise, declarative medico-legal form voice.
+  - duration_of_immediate_cause: one sentence, under ~100 characters
+    (~20-25 words). The interval from onset of the immediate cause to
+    death, in a physician's paper-form phrasing (e.g. "several hours",
+    "approximately 3 days", "about 2 weeks"). Do NOT invent
+    pre-admission onset — if no onset timestamp is in context, do not
+    write one.
+  - contributing_conditions: 1-2 sentences, ~100 characters (~25-45
+    words). Preserve the leading label "Contributing conditions:"
+    verbatim. Include every listed comorbidity (Rule 2 — do NOT
+    reorder, add, or drop conditions). Copy ICD codes and disease
+    names verbatim.
+  - Reference-only sections (structured — do NOT modify):
+    immediate_cause_of_death / underlying_cause_of_death /
+    manner_of_death / autopsy_status. The LLM MUST NOT alter the ICD
+    code choice or death-bucket classification set by the template;
+    it refines only the two narrative sections above. Preserve
+    verbatim: dates, ICD codes, disease names, patient / physician
+    names, numeric values.
+
+  ### death_discharge_summary (LOINC 18842-5 — Composition.title =
+      "死亡退院サマリー" for the JP variant)
+  - Purpose: physician-authored narrative for a terminal admission
+    ending in death. Replaces the generic discharge_summary on
+    deceased encounters. Readers: internal M&M conference, family
+    briefing prep, and any referral to another institution. Style:
+    professional third-person past tense.
+  - admission_state: ~150-250 characters (~30-50 words). Presenting
+    complaint, admission vitals, mental status, and severity tag at
+    admission. Copy primary_encounter_reason and admission severity
+    tag verbatim.
+  - treatment_course: ~200-400 characters (~40-80 words). Phase-level
+    narrative (acute → stabilization → terminal). MUST enumerate every
+    complications_during_stay event and every key_procedures_performed
+    entry (Rule 2). Preserve drug names, doses, procedure names, and
+    dates verbatim.
+  - terminal_course: ~200-400 characters (~40-80 words). Clinical
+    course of the final 24-72 hours (vitals decline, mental status
+    change, DNAR decision). Do NOT invent specific vital-sign values
+    or timestamps not in context.
+  - circumstances_of_death: ~100-200 characters (~20-40 words). Time
+    of death, attending staff / family at bedside, terminal event
+    (cardiac / respiratory arrest, etc.). death_datetime verbatim.
+  - complications_and_comorbidities: ~100-200 characters (~20-40
+    words). Enumerate every listed complication and comorbidity — do
+    NOT reorder, add, or drop. Copy ICD codes and disease names
+    verbatim.
+  - family_communication: ~100-200 characters (~20-40 words). Family
+    conferences held during admission, DNAR consent, family presence
+    at time of death — described in general terms. If specific family
+    member names or meeting dates are NOT in context, do NOT
+    fabricate — use summative phrasing like "family was updated
+    regularly". Apply Rule 6 — match the reader's `health_literacy_tag`
+    band so the register fits the family who will read this in the
+    medical record. When the tag is absent, default to the medium tone.
+  - autopsy_status_and_findings: ~50-150 characters (~10-30 words).
+    Whether an autopsy was performed and, if so, principal findings
+    only. When not performed, one sentence: "autopsy was declined" (or
+    "autopsy not performed").
+  - Reference-only sections (do NOT modify): cause_of_death (ICD code
+    + display, structured). Template output for the ICD code choice
+    MUST be preserved verbatim; the LLM refines only the seven
+    narrative sections above. Preserve verbatim: ICD codes, drug
+    names, procedure names, dates, family member names (only when in
+    context), numeric values.
+
+  === Output ===
+
+  A valid JSON object and nothing else — no preamble, no explanation,
+  no reasoning text, no code fences. Top-level keys are exactly the
+  requested section names; values are section body strings (newlines
+  allowed).
+
+user_template: |
+  Document type: ${document_type}
+  Output language: ${target_language}
+
+  ${sections_json_block}
+
+  ${context_json_block}
+
+  Return a JSON object with exactly these keys:
+
+  ${output_schema_block}
