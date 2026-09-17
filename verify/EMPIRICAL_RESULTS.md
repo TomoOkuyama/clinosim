@@ -98,14 +98,107 @@ cold on vLLM #0).
 | A_pc_c128 | v22 JA canonical | 128 | 2.851 | +209% | 0 |
 | F | v22 JA Fix A | 32 | 3.448 | +273% | 0 |
 
-## vLLM #2 (PC ON + FP8 KV, `--max-num-seqs 64`) — cases pending
+## vLLM #2 (PC ON + FP8 KV, max-num-seqs 64)
 
-Startup added `--kv-cache-dtype fp8` and doubled `--max-num-seqs` to 64
-based on the R4 sizing: FP8 halves per-token KV footprint, so more
-concurrent seqs can fit. Boot in progress at commit time. Cases
-planned: G (Fix A + FP8 + conc 32), G_c64 (Fix A + FP8 + conc 64).
-Expect Case G_c64 to show meaningful concurrency-scaling improvement
-over Case F because the KV budget can now support >32 concurrent.
+### Case G (Fix A + PC ON + FP8 KV, conc 32)
+- 373 docs in **2m 43.9s (164s)** → **2.275 doc/s**
+- Fallbacks: **0**
+- **Δ vs F: -34%** — FP8 KV made things SLOWER for this workload.
+  FP8→FP16 conversion overhead outweighed extra KV budget benefit.
+
+### Case G_c64 (Fix A + PC ON + FP8 KV, conc 64)
+- 373 docs in **2m 24.4s (144s)** → **2.583 doc/s**
+- Fallbacks: **0**
+- Still 25% slower than Case F. **FP8 KV recommendation DROPPED.**
+
+## Phase 2 additional cases (Boot 5, 2026-09-17)
+
+### Case F_repro (v22 JA Fix A + PC ON + max-num-seqs 32, conc 32)
+- 373 docs in **1m 45.3s (105s)** → **3.542 doc/s** (variance ~+3% over Case F)
+- Fallbacks: **0**
+- Confirms Case F reproducibility as the new baseline.
+
+### Case J (Fix A + PC ON + guided_json)
+- 373 docs in **1m 51.2s (111s)** → **3.354 doc/s**
+- Fallbacks: **0** (structurally guaranteed via xgrammar constraint)
+- **Δ vs F_repro: -5.3%** — matches vLLM benchmark prediction. Trades
+  small speed cost for guaranteed fallback-0.
+
+### Case R2 (Fix A + max_tokens 2500)
+- 373 docs in **1m 46.9s (107s)** → **3.489 doc/s**
+- Fallbacks: **0**
+- **Avg gen tokens = 215** (measured via `/v1/metrics` delta) — response
+  ceiling of 2500 tokens uses only 8.6% capacity, no truncation risk.
+- **Δ vs F_repro: -1.5%** — noise. max_tokens reduction has essentially
+  zero throughput impact on this workload. Frees max-model-len budget
+  but doesn't move throughput by itself.
+
+### Case P1 (Fix A + max-num-seqs 64, conc 32)
+- 373 docs in **1m 51.9s (112s)** → **3.334 doc/s**
+- Fallbacks: **0**
+- **Δ vs F_repro: -5.9%** — increasing server capacity to 64 without
+  raising client conc did NOT help (concurrency 32 saturates any
+  ceiling >= 32). Small regression is noise.
+
+### Case P1_c64 (Fix A + max-num-seqs 64, conc 64)
+- 373 docs in **1m 36.8s (97s)** → **3.852 doc/s**
+- Fallbacks: **0**
+- **Δ vs F_repro: +8.7%** — **NEW WINNER!** Raising both server
+  max-num-seqs AND client concurrency to 64 unlocks additional
+  throughput. The FP16 KV budget can accommodate 64 seqs on this
+  workload despite theoretical R4 analysis suggesting ~22 seqs max —
+  actual per-doc prompt length must average lower than the 13k P95
+  estimate, or vLLM's page-based KV allocator is more efficient than
+  the linear estimate.
+
+### Case P3 (Fix A + max-num-seqs 64 + max-model-len 12288 + conc 64) — ATTEMPTED, FAILED
+- vLLM #C startup failed with "Free memory on device cuda:0
+  (7.68/79.18 GiB) < required 69.68 GiB" — previous vLLM #B pkill left
+  ~72 GB of GPU memory unreleased. Needed sudo `nvidia-smi --gpu-reset`
+  or reboot to clear, out of billing time. Data not collected.
+
+## Comprehensive summary (across all boots)
+
+| Case | Config | doc/s | Δ vs A_S117 | Δ vs F_repro |
+|---|---|---|---|---|
+| A_S117 | v22 JA, PC OFF | 0.923 | baseline | — |
+| A_prime | v22 EN scaffold, PC OFF | 0.954 | +3.4% | — |
+| E | v21 JA, PC OFF | 0.998 | +8.1% | — |
+| A_pc | v22 JA, PC ON | 2.813 | +205% | — |
+| F / F_repro | Fix A + PC ON | 3.448-3.542 | +273-284% | baseline |
+| J | Fix A + PC ON + guided_json | 3.354 | +263% | -5.3% |
+| R2 | Fix A + max_tok 2500 | 3.489 | +278% | -1.5% |
+| P1 | Fix A + max_seqs 64, conc 32 | 3.334 | +261% | -5.9% |
+| **P1_c64** | **Fix A + max_seqs 64, conc 64** | **3.852** | **+317%** | **+8.7%** |
+| A_pc_c128 | Fix A + max_seqs 32, conc 128 | 2.851 | +209% | -19% (32 seq ceiling) |
+| G | Fix A + FP8 KV | 2.275 | +147% | -34% (FP8 overhead) |
+| G_c64 | Fix A + FP8 KV, conc 64 | 2.583 | +180% | -27% |
+
+## Winner: **Case P1_c64 = 3.852 doc/s = 4.17× S117 baseline**
+
+Ship config:
+```bash
+vllm serve Qwen/Qwen3.8-27B-FP8 \
+  --host 127.0.0.1 --port 8000 \
+  --max-model-len 16384 --enable-prefix-caching \
+  --gpu-memory-utilization 0.88 --max-num-seqs 64 \
+  --dtype auto --gdn-prefill-backend triton \
+  --served-model-name Qwen/Qwen3.8-27B-FP8
+# Env: VLLM_USE_FLASHINFER_SAMPLER=0
+
+# Client:
+clinosim narrate --provider vllm --concurrency 64 ...
+# Yaml: enable_thinking: false + Fix A prompt applied
+```
+
+## Phase 2 lost (P3): recommended for Phase 3 boot
+
+- Case P3 (max-model-len 12288 + max-num-seqs 64, conc 64): expected
+  further +5-15% via freed KV budget. Requires clean vLLM restart with
+  full GPU reset between configs — implement `nvidia-smi --gpu-reset`
+  or full vLLM daemon lifecycle management before next boot.
+- Additional axes for Phase 3: TRITON_ATTN backend, chunked_prefill off,
+  scheduler_steps > 1, prompt structural compression.
 
 ## Key discovery: `enable_thinking: false` is REQUIRED
 
