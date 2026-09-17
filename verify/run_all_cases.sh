@@ -56,18 +56,31 @@ echo "→ review $OUT_DIR/s117_vllm_config_recovery.txt to reconcile with verify
 
 # -----------------------------------------------------------
 # Step -1: Cleanup past data on H100 (frees disk, protects weight cache).
+#
+# CRITICAL (Failed Run 2 postmortem): also clear ~/.cache/vllm/torch_compile_cache
+# and ~/.cache/vllm/torch_aot_compile. Failed Run 1 crashed mid-write and
+# left a partial cache; when Boot 2 tried to load-and-validate it, vLLM
+# invoked nvcc (which isn't installed on this VM) and crashed the engine
+# core. Deleting the cache forces cold-compile which does not require nvcc.
+# Cost: ~2 extra minutes per vLLM boot (rebuild the cache from scratch);
+# huge savings vs a full ¥990 hour of failed boot.
 # -----------------------------------------------------------
-echo "--- Step -1: cleanup past narrate data ---" | tee -a "$OUT_DIR/run.log"
+echo "--- Step -1: cleanup past narrate data + vLLM torch caches ---" | tee -a "$OUT_DIR/run.log"
 {
     du -sh ~/* 2>/dev/null | sort -h | tail -30 || true
     echo ""
-    echo "Deleting: ~/n3_cif ~/*_out ~/narrate_* ~/*.log (excluding weight cache)"
+    echo "Deleting: ~/n3_cif ~/*_out ~/narrate_* ~/*.log"
     rm -rf ~/n3_cif ~/*_out ~/narrate_* 2>/dev/null || true
     find ~/ -maxdepth 1 -name '*.tar.gz' -not -path '*/.cache/*' -delete 2>/dev/null || true
     find ~/ -maxdepth 1 -name '*.log' -delete 2>/dev/null || true
     echo ""
+    echo "Deleting: ~/.cache/vllm/torch_compile_cache and ~/.cache/vllm/torch_aot_compile"
+    echo "(Failed Run 2 mitigation — prevents cache-hit-validation invoking nvcc)"
+    rm -rf ~/.cache/vllm/torch_compile_cache ~/.cache/vllm/torch_aot_compile 2>/dev/null || true
+    echo ""
     echo "AFTER cleanup:"
     du -sh ~/.cache/huggingface 2>/dev/null || echo "WARNING: weight cache missing!"
+    du -sh ~/.cache/vllm 2>/dev/null | head -3
     df -h ~
 } | tee -a "$OUT_DIR/run.log"
 
