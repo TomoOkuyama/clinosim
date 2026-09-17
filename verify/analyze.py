@@ -272,13 +272,14 @@ def main() -> None:
             t = by_case[target_case][1]["L2_docs_per_s"]
             print(f"  {label}: {base_case} {b:.3f} → {target_case} {t:.3f} dps  ({_pct(t, b)})")
 
-    _cmp("Factor A (JA→EN prompt scaffold)",   "A", "A_prime")
-    _cmp("Factor B+C (v22→v21 content)",       "A", "E")
-    _cmp("Factor D (max-len 16k→12k)",         "A", "D_revised")
-    _cmp("Fix A (prompt struct — Case F)",     "A", "F")
-    _cmp("Fix A + Fix B (KV FP8 — Case G)",    "A", "G")
-    _cmp("Fix A + Fix B + conc 64 (G_c64)",    "A", "G_c64")
-    _cmp("Level-1 (max_tok 2500 @ 12k — Case H)", "A", "H")
+    _cmp("Factor E (turn PC on — S117 → PC on)","A_S117", "A_pc")
+    _cmp("Factor A (JA→EN prompt scaffold)",   "A_pc", "A_prime")
+    _cmp("Factor B+C (v22→v21 content)",       "A_pc", "E")
+    _cmp("Factor D (max-len 16k→12k)",         "A_pc", "D_revised")
+    _cmp("Fix A (prompt struct — Case F)",     "A_pc", "F")
+    _cmp("Fix A + Fix B (KV FP8 — Case G)",    "A_pc", "G")
+    _cmp("Fix A + Fix B + conc 64 (G_c64)",    "A_pc", "G_c64")
+    _cmp("Level-1 (max_tok 2500 @ 12k — Case H)", "A_pc", "H")
 
     # If Case H shows truncation, warn.
     if "H" in by_case:
@@ -289,23 +290,23 @@ def main() -> None:
         else:
             print(f"  ✓ Case H avg gen tokens = {gen_avg:.0f}, comfortably under 2500 cap")
 
-    # Concurrency ceiling (theory predicts A_c128 ≈ A due to KV budget bound)
-    if "A" in by_case and "A_c128" in by_case:
-        a = by_case["A"][1]["L2_docs_per_s"]
-        c128 = by_case["A_c128"][1]["L2_docs_per_s"]
+    # Concurrency ceiling (theory predicts A_pc_c128 ≈ A_pc due to KV budget bound)
+    if "A_pc" in by_case and "A_pc_c128" in by_case:
+        a = by_case["A_pc"][1]["L2_docs_per_s"]
+        c128 = by_case["A_pc_c128"][1]["L2_docs_per_s"]
         print(f"  Concurrency ceiling (theory: no gain past ~22 seqs @ FP16 KV):")
-        print(f"    A_c32 {a:.3f} → A_c128 {c128:.3f} dps ({_pct(c128, a)})")
+        print(f"    A_pc {a:.3f} → A_pc_c128 {c128:.3f} dps ({_pct(c128, a)})")
 
-    # Total recovery vs the 1.35 baseline
-    if "A" in by_case:
-        a = by_case["A"][1]["L2_docs_per_s"]
-        for target in ["F", "G", "G_c64"]:
+    # Total recovery vs the 1.35 baseline (from A_S117 = actual S117 config)
+    if "A_S117" in by_case:
+        a_s117 = by_case["A_S117"][1]["L2_docs_per_s"]
+        print(f"\n  Recovery toward 1.35 baseline (from A_S117 = {a_s117:.3f} dps):")
+        for target in ["A_pc", "F", "G", "G_c64", "H"]:
             if target in by_case:
                 t = by_case[target][1]["L2_docs_per_s"]
-                gap_to_baseline = 1.35 - a
-                recovery = (t - a) / gap_to_baseline if gap_to_baseline > 0 else 0
-                print(f"  Recovery toward 1.35 baseline via {target}: "
-                      f"{100*recovery:+.1f}% of the regression gap closed")
+                gap_to_baseline = 1.35 - a_s117
+                recovery = (t - a_s117) / gap_to_baseline if gap_to_baseline > 0 else 0
+                print(f"    {target:>10s}: {t:.3f} dps → {100*recovery:+.1f}% of regression gap closed")
 
     # Dump raw
     dump_path = args.out_dir / "analysis.json"

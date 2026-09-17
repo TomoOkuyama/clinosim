@@ -17,8 +17,8 @@ exec vllm serve "$MODEL" \
     --port 8000 \
     --max-model-len 16384 \
     --enable-prefix-caching \
-    --gpu-memory-utilization 0.9 \
-    --max-num-seqs 256 \
+    --gpu-memory-utilization 0.88 \
+    --max-num-seqs 64 \
     --dtype auto \
     --kv-cache-dtype fp8 \
     --served-model-name Qwen/Qwen3.8-27B-FP8
