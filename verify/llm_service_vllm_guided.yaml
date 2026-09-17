@@ -19,6 +19,10 @@ narrative:
   vllm:
     endpoint: "http://localhost:8000"
     model: "Qwen/Qwen3.8-27B-FP8"
+    # Disable Qwen thinking mode (else </think> block breaks JSON parse
+    # even when using guided_json — the constraint applies to the whole
+    # response, so thinking content violates the schema).
+    enable_thinking: false
     seed: 42
     timeout_seconds: 300
     # Force valid JSON output at the decode step. vLLM 0.27.1 supports
