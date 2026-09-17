@@ -9,6 +9,30 @@ Reads $OUT_DIR (scp'd back from H100) and produces:
 
 Usage:
     python verify/analyze.py --out-dir /path/to/verify/out
+
+Measurement layers (from most-authoritative to most-conflated):
+
+  L1 (pure LLM speed, PRIMARY):
+     Server-side /v1/metrics deltas of `vllm:generation_tokens_total`
+     and `vllm:e2e_request_latency_seconds_*`. Excludes narrate client
+     setup / CIF I/O / prompt build / output save — measures ONLY what
+     happens between the HTTP request hitting vLLM and vLLM emitting the
+     final token. This is the metric the goal statement in WORK.md is
+     about ("pure LLM 生成速度").
+
+  L2 (narrate measurement wall, SECONDARY):
+     Wall-clock between narrate CLI start and end. Includes CIF parse,
+     prompt build, HTTP overhead, output save. Excludes vLLM startup
+     and warmup narrate. Useful for end-to-end operator experience
+     ("how long does narrating N docs take") but not for pure LLM
+     tuning decisions.
+
+  L3 (total wall, PARENTHETICAL only):
+     Warmup + measurement + all narrate overhead. Includes reflex-level
+     confounds. Reported only to sanity-check that L2 tracks it.
+
+Primary throughput answers come from L1. If L1 and L2 diverge sharply,
+that's itself a finding (narrate CLI is bottlenecking, not the LLM).
 """
 
 from __future__ import annotations
