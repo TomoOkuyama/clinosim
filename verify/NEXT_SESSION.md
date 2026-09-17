@@ -122,6 +122,57 @@ Tokenizer 事前計測から:
 
 Case D と prefix cache hit rate が最重要指標。Case A' の operational value は「品質保った EN 化で速さ戻るか」の decision-relevant answer として二次的。
 
+## 最終目標 (report 執筆時の指針)
+
+**品質・臨床整合性・ナラティブ適切さを維持/向上した上での速度短縮**を目指す。
+
+Report は Factor breakdown だけで終わらせず、**quality-neutral な改善候補**を
+priority 付きで列挙する。
+
+### 採用可能な速度改善候補 (quality-neutral)
+
+Factor 実測結果を見て以下を検討:
+
+1. **vLLM 起動 flag tuning** (Factor E 実測次第)
+   - `--enable-prefix-caching` の hit rate を上げる (system prompt が per-request
+     で毎回 prefill されているなら、prompt template の render 順を系統的に見直し、
+     可変部分を末尾に寄せる)
+   - `--gpu-memory-utilization` 上げ余地確認
+   - `--max-num-seqs` 拡大で真の並列度上限を確認 (concurrency sweep 結果次第)
+2. **max-model-len 適正化** (Factor D 実測次第)
+   - S117 で 16384 に拡大した理由 (12289-token prompt+response overflow) は
+     legitimate。しかし p=100 実測で observed prompt+response 分布を採り、
+     P99+margin で足りるサイズに絞る (16384 が過剰なら 12000 等)
+   - max-model-len 縮小 = KV cache 予約減 = max-num-seqs 増 = 実効並列度増
+3. **Prompt 構造 (semantic 保持で token 減)**
+   - description block は既に yaml comment (LLM 送信されない) なので影響なし
+   - system: block 内の v22 Rule 3 拡張 (700-1000 chars) を、文言短縮で semantic
+     を保ったまま ~200 chars 削減可能かレビュー
+   - Rule 5 の JA translation table (Severity / Disposition / Oxygen 等) は
+     使用頻度が低い entry を per-doc-type の contextual insertion に降格可能か
+
+### 採用不可能な速度改善案 (quality regression)
+
+- Rule 3 削除 → S117 で fix された G20/E11/M17/F32 hallucination 再発
+- JA localization rule 削除 → 日本語文書適切さ regression
+- v21 (Rule 3 未搭載) への恒久 revert → 同上
+
+### Report 構造の推奨骨子
+
+`docs/verify-narrate-throughput-<date>.md` の section:
+
+1. Executive summary — 実測 doc/s と主要 factor
+2. 測定条件 (cohort seed、prompt versions、vLLM flags、H100 config)
+3. Factor breakdown table (analyze.py 出力)
+4. Prefix cache hit rate analysis (vLLM /v1/metrics より)
+5. GPU util analysis (nvidia-smi より、SM 占有率が bottleneck かどうか)
+6. **推奨修正** priority 順 (quality-neutral のみ)
+7. 各修正の expected throughput gain
+8. Next steps / defer 項目
+
+Case A' の結果は Factor A の isolation として cite するが、恒久採用候補として
+は書かない (`[[feedback_llm_prompt_matches_output_language]]` を明示引用)。
+
 ## 成果物一覧 (verify/ ディレクトリ)
 
 | ファイル | 用途 |
