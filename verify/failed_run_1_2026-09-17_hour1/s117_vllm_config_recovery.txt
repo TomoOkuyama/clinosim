@@ -1,0 +1,10 @@
+=== S117 vllm serve command history (H100 shell) ===
+no vllm serve in .bash_history
+
+=== Any related config files in $HOME ===
+-rwxr-xr-x 1 ubuntu ubuntu 548 Sep 15 15:58 /home/ubuntu/vllm_restart.sh
+no local vllm scripts
+
+=== Recent processes (in case vLLM was in a systemd unit) ===
+root         946  0.0  0.0 838492 53344 ?        Ssl  12:33   0:00 /usr/bin/python3 /usr/bin/fail2ban-server -xf start
+ubuntu      1419  0.0  0.0   5692  1772 ?        S    12:38   0:00              |   \_ tee /home/ubuntu/verify/out/s117_vllm_config_recovery.txt
