@@ -21,6 +21,11 @@
 #   --enforce-eager          : DEFAULT off (CUDA graph on). Explicitly
 #                              omitted to keep CUDA graph enabled.
 #   --dtype auto             : FP8 model → vLLM auto-detects.
+#   --gdn-prefill-backend triton : REQUIRED — bypass flashinfer's GDN
+#                              prefill JIT compile (needs nvcc, not
+#                              installed on this H100). Failed Run 2+3
+#                              root cause. Triton backend has similar
+#                              perf without JIT.
 #
 # --- USER REVIEW POINTS ---
 #   1. Should `--enable-prefix-caching` be on? (Recommend: YES for measurement)
@@ -41,4 +46,5 @@ exec vllm serve "$MODEL" \
     --gpu-memory-utilization 0.88 \
     --max-num-seqs 32 \
     --dtype auto \
+    --gdn-prefill-backend triton \
     --served-model-name Qwen/Qwen3.8-27B-FP8
