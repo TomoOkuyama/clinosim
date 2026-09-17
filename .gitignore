@@ -99,3 +99,4 @@ site/
 # session can regenerate — no need to version, and dropping 500-patient
 # JP + US cohorts here would be tens of MB per commit.
 /baseline/
+verify/boot_*/case_*_scratch/
