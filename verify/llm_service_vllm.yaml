@@ -1,0 +1,33 @@
+# clinosim LLM Service Configuration — S117 narrate throughput verify
+#
+# vLLM (OpenAI-compatible) on Sakura H100, localhost:8000.
+# Used by verify/run_case.sh for the Case A/A'/E/D measurements.
+
+judgment:
+  mode: "template"
+  provider: ""
+
+narrative:
+  mode: "llm"
+  provider: "vllm"
+  vllm:
+    endpoint: "http://localhost:8000"
+    model: "Qwen/Qwen3.8-27B-FP8"
+    # Match the S117 production config: no explicit thinking flag (server default).
+    # enable_thinking: false  # uncomment if we want to explicitly force off
+    seed: 42
+    timeout_seconds: 300
+  model_map:
+    small: "Qwen/Qwen3.8-27B-FP8"
+    medium: "Qwen/Qwen3.8-27B-FP8"
+    large: "Qwen/Qwen3.8-27B-FP8"
+  timeout_seconds: 300
+  retry_attempts: 1  # don't mask throughput measurements with silent retries
+  retry_backoff_seconds: 2
+
+prompts:
+  registry_path: null
+
+# Disable disk cache for measurement — cache hits would falsely inflate throughput.
+cache:
+  enabled: false

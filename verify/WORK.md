@@ -58,8 +58,8 @@ v22 prompt cut (S117 = v0.6.2) を境に narrate throughput が 1.35 → 0.68 do
 | T7 | 本 cohort CIF (p=100 JP s=917) | `verify/cohort_p100_jp_s917.tar.gz` (546K) | ✅ done |
 | T5 | warmup cohort (p=10 JP s=918) | `verify/cohort_warmup_jp_p10_s918.tar.gz` (23K) | ✅ done |
 | T6 | 削除 path list (user check) | `verify/cleanup_paths.txt` | ✅ done |
-| T4 | narrate client harness | `verify/run_case.sh` | pending |
-| T8 | vLLM 起動 script 2 種 (user check) | `verify/vllm_start_{16k,8k}.sh` | pending |
+| T4 | narrate client harness | `verify/run_case.sh` + `verify/run_all_cases.sh` + `verify/llm_service_vllm.yaml` | ✅ done |
+| T8 | vLLM 起動 script 2 種 (user check) | `verify/vllm_start_{16k,8k}.sh` | ✅ done (user review 待ち) |
 
 ## 次 session に持ち越し (今 3h に含まれない)
 
@@ -83,7 +83,8 @@ v22 prompt cut (S117 = v0.6.2) を境に narrate throughput が 1.35 → 0.68 do
 |---|---|---|---|
 | 1 | 2026-09-17 | 環境準備 + T1 + T13 (v22 + v21 prompt freeze) | d83058d48b |
 | 2 | 2026-09-17 | T2 + T3 (Case A' prompt + tokenizer precount) | a3691deb0c |
-| 3 | 2026-09-17 | T7 + T5 + T6 (cohorts + cleanup list) | (pending) |
+| 3 | 2026-09-17 | T7 + T5 + T6 (cohorts + cleanup list) | 7e807c1559 / 9c4d9ec0ba (tarball force-add) |
+| 4 | 2026-09-17 | T4 + T8 (harness + vLLM scripts) | (pending) |
 
 ## Session 切断時の resume 手順
 
