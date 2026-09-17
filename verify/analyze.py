@@ -70,6 +70,7 @@ class CaseMetrics:
     metrics_after_warmup: dict = field(default_factory=dict)
     metrics_after: dict = field(default_factory=dict)
     nvidia_smi_summary: dict = field(default_factory=dict)
+    fallbacks: dict = field(default_factory=dict)
 
 
 def parse_prometheus_metrics(text: str) -> dict[str, float]:
@@ -160,9 +161,37 @@ def load_case(case_dir: Path) -> CaseMetrics | None:
     if smi_path.exists():
         cm.nvidia_smi_summary = parse_nvidia_smi_dmon(smi_path.read_text())
 
+    # Fallback tracking — user goal: fallback 0.
+    fb_path = case_dir / "fallback_summary.txt"
+    if fb_path.exists():
+        cm.fallbacks = parse_fallback_summary(fb_path.read_text())
+
     if cm.measure_start == 0:
         return None
     return cm
+
+
+def parse_fallback_summary(text: str) -> dict:
+    """Parse fallback_summary.txt written by run_case.sh."""
+    out = {"json_parse": 0, "provider_error": 0, "prompt_error": 0,
+           "no_provider_configured": 0}
+    key_map = {
+        "JSON parse fallbacks:": "json_parse",
+        "provider_error fallbacks:": "provider_error",
+        "prompt_error fallbacks:": "prompt_error",
+        "no_provider_configured fallbacks:": "no_provider_configured",
+    }
+    lines = text.splitlines()
+    for i, line in enumerate(lines):
+        for prefix, key in key_map.items():
+            if prefix in line and i + 1 < len(lines):
+                try:
+                    out[key] = int(lines[i + 1].strip())
+                except (ValueError, IndexError):
+                    pass
+    out["total"] = sum(out[k] for k in ("json_parse", "provider_error",
+                                        "prompt_error", "no_provider_configured"))
+    return out
 
 
 def compute_derived(cm: CaseMetrics, doc_count: int = 100) -> dict:
@@ -234,16 +263,20 @@ def main() -> None:
         return
 
     # Header
-    print("=" * 100)
+    print("=" * 115)
     print(f"{'case':10s} {'L2 wall':>9s} {'L2 doc/s':>9s} "
           f"{'L1 gen tok/s':>13s} {'avg prompt':>11s} {'avg gen':>8s} "
-          f"{'PC hit':>7s} {'SM util':>8s}")
-    print("=" * 100)
+          f"{'PC hit':>7s} {'SM util':>8s} {'FB':>6s}")
+    print("=" * 115)
     for cm, d in cases:
         pc = d.get("prefix_cache_hit_rate")
         sm = cm.nvidia_smi_summary.get("sm_util_mean")
         pc_str = f"{pc*100:5.1f}%" if isinstance(pc, float) else "  -  "
         sm_str = f"{sm:5.1f}%" if isinstance(sm, float) else "  -  "
+        fb_total = cm.fallbacks.get("total")
+        # Mark ⚠ if any fallback (user goal: fallback 0).
+        fb_str = f"⚠{fb_total}" if isinstance(fb_total, int) and fb_total > 0 \
+                 else ("0" if fb_total == 0 else "  -  ")
         print(
             f"{cm.case:10s} "
             f"{d.get('L2_measure_wall_s', 0):>7d} s "
@@ -252,10 +285,11 @@ def main() -> None:
             f"{d.get('L1_avg_prompt_tokens_per_req', 0):>11.0f} "
             f"{d.get('L1_avg_gen_tokens_per_req', 0):>8.0f} "
             f"{pc_str:>7s} "
-            f"{sm_str:>8s}"
+            f"{sm_str:>8s} "
+            f"{fb_str:>6s}"
         )
 
-    print("=" * 100)
+    print("=" * 115)
 
     # Factor breakdown
     by_case = {cm.case: (cm, d) for cm, d in cases}
@@ -280,6 +314,7 @@ def main() -> None:
     _cmp("Fix A + Fix B (KV FP8 — Case G)",    "A_pc", "G")
     _cmp("Fix A + Fix B + conc 64 (G_c64)",    "A_pc", "G_c64")
     _cmp("Level-1 (max_tok 2500 @ 12k — Case H)", "A_pc", "H")
+    _cmp("Fix C (guided_json — Case J)",       "A_pc", "J")
 
     # If Case H shows truncation, warn.
     if "H" in by_case:
@@ -296,6 +331,23 @@ def main() -> None:
         c128 = by_case["A_pc_c128"][1]["L2_docs_per_s"]
         print(f"  Concurrency ceiling (theory: no gain past ~22 seqs @ FP16 KV):")
         print(f"    A_pc {a:.3f} → A_pc_c128 {c128:.3f} dps ({_pct(c128, a)})")
+
+    # Fallback rate summary (user goal: 0 across all cases)
+    fb_any = any(cm.fallbacks.get("total", 0) > 0 for cm, _ in cases)
+    if fb_any:
+        print("\n⚠ Fallbacks observed (user goal is 0):")
+        for cm, _ in cases:
+            fb = cm.fallbacks
+            if fb.get("total", 0) > 0:
+                print(f"  {cm.case:10s} json_parse={fb.get('json_parse',0)}  "
+                      f"provider_err={fb.get('provider_error',0)}  "
+                      f"prompt_err={fb.get('prompt_error',0)}  "
+                      f"no_provider={fb.get('no_provider_configured',0)}  "
+                      f"(total={fb.get('total',0)})")
+    else:
+        cases_with_fb_data = [cm for cm, _ in cases if cm.fallbacks]
+        if cases_with_fb_data:
+            print(f"\n✓ Fallback 0 achieved across {len(cases_with_fb_data)} cases")
 
     # Total recovery vs the 1.35 baseline (from A_S117 = actual S117 config)
     if "A_S117" in by_case:

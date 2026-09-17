@@ -1,0 +1,41 @@
+# clinosim LLM Service Configuration — S117 verify + Fix C
+#
+# vLLM guided_json / structured output variant. Constrains the LLM's
+# generated tokens to valid JSON grammar so `template_seed_bundle:
+# JSON parse failed` fallback goes to 0 (user goal, S117 mid-verify).
+#
+# NOTE: this passes response_format via extra_body to vLLM's OpenAI
+# compat endpoint. The vLLM provider code must forward `response_format`
+# in the /v1/chat/completions payload. If clinosim's vllm.py doesn't
+# forward it, we'll need to add that as a small code patch pre-boot.
+
+judgment:
+  mode: "template"
+  provider: ""
+
+narrative:
+  mode: "llm"
+  provider: "vllm"
+  vllm:
+    endpoint: "http://localhost:8000"
+    model: "Qwen/Qwen3.8-27B-FP8"
+    seed: 42
+    timeout_seconds: 300
+    # Force valid JSON output at the decode step. vLLM 0.27.1 supports
+    # response_format={type: json_object} which triggers xgrammar-based
+    # constrained decoding. Zero perplexity impact on prose content
+    # inside the JSON string values.
+    response_format: {"type": "json_object"}
+  model_map:
+    small: "Qwen/Qwen3.8-27B-FP8"
+    medium: "Qwen/Qwen3.8-27B-FP8"
+    large: "Qwen/Qwen3.8-27B-FP8"
+  timeout_seconds: 300
+  retry_attempts: 1
+  retry_backoff_seconds: 2
+
+prompts:
+  registry_path: null
+
+cache:
+  enabled: false

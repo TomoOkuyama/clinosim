@@ -25,6 +25,11 @@ OUT_DIR="${OUT_DIR:-$HOME/verify/out}"
 VLLM_URL="${VLLM_URL:-http://localhost:8000}"
 CLINOSIM_DIR="${CLINOSIM_DIR:-$HOME/clinosim}"
 
+# Failed Run 1 (2026-09-17) hit vLLM's internal 600s engine-core-ready
+# timeout during first-time CUDA graph capture. Boot 2 sets a generous
+# 1800s ceiling for both the vLLM-side timeout and our own shell wait.
+export VLLM_ENGINE_READY_TIMEOUT_S=1800
+
 export VERIFY_DIR OUT_DIR VLLM_URL CLINOSIM_DIR
 
 mkdir -p "$OUT_DIR"
@@ -84,18 +89,27 @@ echo "weight cache: ${WEIGHT_SIZE_GB} GB — OK" | tee -a "$OUT_DIR/run.log"
 # -----------------------------------------------------------
 start_vllm() {
     local script="$1" logname="$2"
-    echo "--- start vLLM: $script ---" | tee -a "$OUT_DIR/run.log"
+    echo "--- start vLLM: $script ($(date -u +%FT%TZ)) ---" | tee -a "$OUT_DIR/run.log"
     bash "$VERIFY_DIR/$script" > "$OUT_DIR/$logname" 2>&1 &
     VLLM_PID=$!
     echo "vLLM PID: $VLLM_PID" | tee -a "$OUT_DIR/run.log"
-    for i in {1..300}; do
+    # First-time vLLM boot on H100 = ~17-18 min (weight load 3.3 min +
+    # torch.compile 2 min [cached after first success] + CUDA graph
+    # capture ~12 min per process). Wait up to 1800s = 30 min.
+    for i in {1..1800}; do
         if curl -sSf "$VLLM_URL/v1/models" >/dev/null 2>&1; then
-            echo "  vLLM ready after ${i}s" | tee -a "$OUT_DIR/run.log"
+            echo "  vLLM ready after ${i}s ($(date -u +%FT%TZ))" | tee -a "$OUT_DIR/run.log"
             return 0
+        fi
+        # Every 60s, echo a progress marker so log tails know we're alive.
+        if (( i % 60 == 0 )); then
+            local latest_line
+            latest_line=$(tail -1 "$OUT_DIR/$logname" 2>/dev/null | tr -d '\r' | cut -c 1-120)
+            echo "  … waiting ${i}s (last vllm log line: $latest_line)" | tee -a "$OUT_DIR/run.log"
         fi
         sleep 1
     done
-    echo "ERROR: vLLM $script did not become ready within 300s" | tee -a "$OUT_DIR/run.log"
+    echo "ERROR: vLLM $script did not become ready within 1800s" | tee -a "$OUT_DIR/run.log"
     kill $VLLM_PID 2>/dev/null || true
     exit 1
 }
@@ -127,8 +141,8 @@ start_vllm vllm_start_16k.sh vllm_16k.log
 # Cases running on 16k config.
 # -----------------------------------------------------------
 run_one() {
-    local case_id="$1" prompt="$2" conc="$3"
-    bash "$VERIFY_DIR/run_case.sh" "$case_id" "$prompt" "$conc" 2>&1 | tee -a "$OUT_DIR/run.log"
+    local case_id="$1" prompt="$2" conc="$3" llm_config="${4:-}"
+    bash "$VERIFY_DIR/run_case.sh" "$case_id" "$prompt" "$conc" "$llm_config" 2>&1 | tee -a "$OUT_DIR/run.log"
 }
 
 # -----------------------------------------------------------
@@ -151,6 +165,15 @@ run_one A_pc_c128 "$VERIFY_DIR/v22_prompt_ja.yaml" 128
 
 # Case F: Fix A alone (PC on, prompt structure fix)
 run_one F       "$VERIFY_DIR/v22_prompt_ja_fixA.yaml" 32
+
+# Case J: Fix C (vLLM guided_json / structured output) — user's
+# "fallback 0" goal. Same PC-on config, v22 JA baseline prompt, but
+# routed through llm_service_vllm_guided.yaml which sets
+# response_format={"type":"json_object"}. Expect fallback_summary.txt
+# to show json_parse=0 across the case. Speed may drop 3-5% from
+# xgrammar overhead; that trade-off vs eliminating parse failures is
+# worth it if fallback rate on Case A_pc is nonzero.
+run_one J       "$VERIFY_DIR/v22_prompt_ja.yaml" 32 llm_service_vllm_guided.yaml
 
 # -----------------------------------------------------------
 # vLLM #2: PC on + --kv-cache-dtype fp8. Fix B tests.

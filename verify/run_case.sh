@@ -30,9 +30,9 @@ set -euo pipefail
 # shellcheck source=/dev/null
 source "${VLLM_VENV:-$HOME/vllm-env}/bin/activate"
 
-CASE_ID="${1:?usage: run_case.sh CASE_ID PROMPT_YAML CONCURRENCY}"
-PROMPT_YAML="${2:?usage: run_case.sh CASE_ID PROMPT_YAML CONCURRENCY}"
-CONCURRENCY="${3:?usage: run_case.sh CASE_ID PROMPT_YAML CONCURRENCY}"
+CASE_ID="${1:?usage: run_case.sh CASE_ID PROMPT_YAML CONCURRENCY [LLM_CONFIG]}"
+PROMPT_YAML="${2:?usage: run_case.sh CASE_ID PROMPT_YAML CONCURRENCY [LLM_CONFIG]}"
+CONCURRENCY="${3:?usage: run_case.sh CASE_ID PROMPT_YAML CONCURRENCY [LLM_CONFIG]}"
 
 VERIFY_DIR="${VERIFY_DIR:-$HOME/verify}"
 OUT_DIR="${OUT_DIR:-$HOME/verify/out}"
@@ -40,7 +40,14 @@ VLLM_URL="${VLLM_URL:-http://localhost:8000}"
 CLINOSIM_DIR="${CLINOSIM_DIR:-$HOME/clinosim}"
 COHORT_TARBALL="${COHORT_TARBALL:-$VERIFY_DIR/cohort_p100_jp_s917.tar.gz}"
 WARMUP_TARBALL="${WARMUP_TARBALL:-$VERIFY_DIR/cohort_warmup_jp_p10_s918.tar.gz}"
-LLM_CONFIG="${LLM_CONFIG:-$VERIFY_DIR/llm_service_vllm.yaml}"
+# LLM config: 4th positional arg (path relative to $VERIFY_DIR or absolute),
+# falls back to standard llm_service_vllm.yaml. Case J uses
+# llm_service_vllm_guided.yaml for structured output (Fix C).
+LLM_CONFIG_ARG="${4:-llm_service_vllm.yaml}"
+case "$LLM_CONFIG_ARG" in
+    /*) LLM_CONFIG="$LLM_CONFIG_ARG" ;;
+    *)  LLM_CONFIG="$VERIFY_DIR/$LLM_CONFIG_ARG" ;;
+esac
 
 CASE_OUT="$OUT_DIR/case_${CASE_ID}"
 mkdir -p "$CASE_OUT/narrate_output"
@@ -133,7 +140,39 @@ date -u +%s > "$CASE_OUT/wallclock.measure_end"
 curl -sS "$VLLM_URL/metrics" > "$CASE_OUT/metrics_after.txt"
 
 # -------------------------------------------------------------------
-# 7. Copy narrate output to case dir + restore prompt.
+# 7. Fallback tracking — user goal: fallback 0.
+# Grep narrate_measure.log for the 4 kinds of fallback events:
+#   - "JSON parse failed" — bundle strategy parse fallback
+#   - "fallback_reason" — engine.py-side fallback string
+#   - "no_provider_configured" / "prompt_error" / "provider_error"
+# Save a summary + first 3 sample failed responses (if any) for pattern
+# analysis. See verify/FALLBACK_ANALYSIS.md.
+# -------------------------------------------------------------------
+echo "--- fallback summary ---" | tee "$CASE_OUT/fallback_summary.txt"
+{
+    echo "JSON parse fallbacks:"
+    grep -c "JSON parse failed" "$CASE_OUT/narrate_measure.log" 2>/dev/null || echo 0
+    echo
+    echo "provider_error fallbacks:"
+    grep -c "provider_error" "$CASE_OUT/narrate_measure.log" 2>/dev/null || echo 0
+    echo
+    echo "prompt_error fallbacks:"
+    grep -c "prompt_error" "$CASE_OUT/narrate_measure.log" 2>/dev/null || echo 0
+    echo
+    echo "no_provider_configured fallbacks:"
+    grep -c "no_provider_configured" "$CASE_OUT/narrate_measure.log" 2>/dev/null || echo 0
+    echo
+    echo "=== 3 sample fallback lines (context) ==="
+    grep -E "JSON parse failed|fallback_reason|falling back|provider_error|prompt_error" \
+        "$CASE_OUT/narrate_measure.log" 2>/dev/null | head -3 || echo "(no fallbacks)"
+} >> "$CASE_OUT/fallback_summary.txt"
+
+# LLMService.metrics() — grab the fallback_count if narrate emitted it
+grep -E '"fallback_count":' "$CASE_OUT/narrate_measure.log" 2>/dev/null \
+    | tail -1 >> "$CASE_OUT/fallback_summary.txt" || true
+
+# -------------------------------------------------------------------
+# 8. Copy narrate output to case dir + restore prompt.
 # -------------------------------------------------------------------
 NARR_DIR="$MAIN_CIF/narrative/case_${CASE_ID}"
 if [ -d "$NARR_DIR" ]; then
