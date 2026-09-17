@@ -1,0 +1,52 @@
+# H100 (Sakura VM) 過去データ削除 path list
+# S117 narrate throughput investigation, boot 後の Step -1 で使用
+# --- 使い方 ---
+#   1. boot 後、SSH で `ssh sakura "du -sh ~/*" | sort -h` で現状確認
+#   2. 保護対象 (下記 PRESERVE) が全て残っていることを確認
+#   3. 削除対象 (下記 DELETE) を rm -rf で削除
+#   4. `~/.cache/huggingface/` のサイズが 50 GB 前後で残っていること確認
+
+# =============================================================
+# 削除対象 (DELETE) — 過去 session の narrate 中間物、全てローカル
+# にダウンロード済で v0.6.2 release にも上がっている
+# =============================================================
+
+~/n3_cif                         # 過去 CIF/FHIR 出力、S117 の JP p=10k s=500 も含む
+~/jp_p10k_cif.tar.gz             # release asset にアップ済
+~/jp_p10k_fhir_polished.tar.gz   # release asset にアップ済
+~/*.tar.gz                       # 他 tarball も削除 (weight cache は tar.gz でない)
+~/*_out                          # narrate output ディレクトリ
+~/narrate_*                      # narrate 作業ディレクトリ
+~/*.log                          # 過去 log (vllm.log 等、ローテーション対象)
+
+# =============================================================
+# 保護対象 (PRESERVE) — 絶対削除しない
+# =============================================================
+
+~/.cache/huggingface/            # Qwen3.8-27B-FP8 weight (~54 GB), 再 DL は 15-30 min = 課金爆発
+~/.cache/                        # 汎用 cache root (huggingface 以外も含む)
+~/.ssh/                          # SSH keys
+~/.bashrc                        # shell config
+~/.profile                       # shell profile
+~/.bash_history                  # command history (S117 の vLLM 起動 command 復元に useful)
+~/venv*                          # Python 仮想環境 (vLLM install がここに)
+~/miniconda3/                    # Conda 環境
+~/anaconda3/                     # 同上
+~/.conda/                        # Conda config
+~/.local/                        # pip user install
+~/clinosim/                      # git clone (もしあれば)
+~/workspace/                     # 汎用 workspace
+
+# =============================================================
+# 削除コマンド (boot 後 SSH で実行) — 保護 path を明示的に排除
+# =============================================================
+# ssh sakura "rm -rf ~/n3_cif ~/*_out ~/narrate_* ~/*.log 2>/dev/null; \
+#             find ~/ -maxdepth 1 -name '*.tar.gz' -not -path '~/.cache/*' -delete 2>/dev/null; \
+#             echo 'AFTER cleanup:'; du -sh ~/.cache/huggingface ~/n3_cif 2>/dev/null; \
+#             df -h ~"
+
+# =============================================================
+# 保護対象の存在確認 (boot 後 SSH で実行)
+# =============================================================
+# ssh sakura "test -d ~/.cache/huggingface && echo 'weight cache OK' || \
+#             echo 'WARNING: weight cache missing — re-DL will take 15-30 min'"

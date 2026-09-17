@@ -55,9 +55,9 @@ v22 prompt cut (S117 = v0.6.2) を境に narrate throughput が 1.35 → 0.68 do
 | T2 | v22 EN 翻訳 (user check) | `verify/v22_prompt_en.yaml` (937 lines, v19 base + v21/v22 merged, Case A') | ✅ done |
 | — | tokenize script (T3 支援) | `verify/tokenize_prompts.py` | ✅ done |
 | T3 | tokenizer 事前計測 | `verify/tokens_precount.json` (Qwen3-8B tokenizer) | ✅ done |
-| T7 | 本 cohort CIF (p=100) | `verify/cohort_p100.tar.gz` | pending |
-| T5 | warmup cohort (p=10) | `verify/cohort_warmup.tar.gz` | pending |
-| T6 | 削除 path list (user check) | `verify/cleanup_paths.txt` | pending |
+| T7 | 本 cohort CIF (p=100 JP s=917) | `verify/cohort_p100_jp_s917.tar.gz` (546K) | ✅ done |
+| T5 | warmup cohort (p=10 JP s=918) | `verify/cohort_warmup_jp_p10_s918.tar.gz` (23K) | ✅ done |
+| T6 | 削除 path list (user check) | `verify/cleanup_paths.txt` | ✅ done |
 | T4 | narrate client harness | `verify/run_case.sh` | pending |
 | T8 | vLLM 起動 script 2 種 (user check) | `verify/vllm_start_{16k,8k}.sh` | pending |
 
@@ -82,7 +82,8 @@ v22 prompt cut (S117 = v0.6.2) を境に narrate throughput が 1.35 → 0.68 do
 | # | timestamp | scope | SHA |
 |---|---|---|---|
 | 1 | 2026-09-17 | 環境準備 + T1 + T13 (v22 + v21 prompt freeze) | d83058d48b |
-| 2 | 2026-09-17 | T2 + T3 (Case A' prompt + tokenizer precount) | (pending) |
+| 2 | 2026-09-17 | T2 + T3 (Case A' prompt + tokenizer precount) | a3691deb0c |
+| 3 | 2026-09-17 | T7 + T5 + T6 (cohorts + cleanup list) | (pending) |
 
 ## Session 切断時の resume 手順
 
