@@ -34,6 +34,13 @@ class VLLMProvider:
         self.enable_thinking = config.get("enable_thinking", None)
         self.seed = config.get("seed", None)
         self.timeout_seconds = int(config.get("timeout_seconds", 300))
+        # OpenAI-compat response_format for structured output (json_object
+        # / json_schema). vLLM 0.27+ forwards this to xgrammar-based
+        # constrained decoding, guaranteeing the emitted tokens satisfy
+        # the schema. clinosim uses this via
+        # verify/llm_service_vllm_guided.yaml (Fix C) to drive
+        # `template_seed_bundle: JSON parse failed` fallback to zero.
+        self.response_format = config.get("response_format", None)
 
     def complete(
         self,
@@ -69,6 +76,10 @@ class VLLMProvider:
             # vLLM chat-template kwargs — passed through to the tokenizer's
             # chat template. Qwen thinking models respect enable_thinking.
             payload["chat_template_kwargs"] = {"enable_thinking": self.enable_thinking}
+        if self.response_format is not None:
+            # OpenAI-compat structured output. vLLM 0.27+ triggers
+            # xgrammar-based grammar-constrained decoding on this field.
+            payload["response_format"] = self.response_format
 
         started = time.perf_counter()
         try:
