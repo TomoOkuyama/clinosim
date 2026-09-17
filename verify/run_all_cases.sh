@@ -166,9 +166,19 @@ for i in {1..120}; do
     fi
 done
 
-# Case D_revised: Factor D revised (max-model-len 12288 — S117 pre-widening)
-# Expect ~5-10% of docs to 400-fail (XLARGE contexts exceed 12288+3500)
+# Case D_revised: Factor D revised (max-model-len 12288 — S117 pre-widening).
+# Uses current v22 JA prompt (max_tokens=3500). Expect ~5-10% of docs to
+# 400-fail — XLARGE contexts exceed 12288+3500. Records failure rate.
 run_one D_revised "$VERIFY_DIR/v22_prompt_ja.yaml" 32
+
+# Case H: Level-1 tuning — Fix A + max_tokens=2500 + max-len 12288 (all
+# FP16 KV, conc 32). Tests whether narrower response budget (3500→2500)
+# is sufficient to make max-len 12288 viable — addressing user's
+# "16384 is over-fit to 1 outlier doc" observation. If H succeeds with
+# 0 truncations AND matches or beats D_revised throughput, then
+# max-model-len 12288 with max_tokens=2500 is a clear quality-preserving
+# improvement (smaller KV budget per seq → more concurrency headroom).
+run_one H "$VERIFY_DIR/v22_prompt_ja_fixA_maxtok2500.yaml" 32
 
 # -----------------------------------------------------------
 # Wrap up.

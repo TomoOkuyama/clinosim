@@ -165,6 +165,38 @@ If observed ordering differs from this prediction, that's itself a finding:
 - If G_c64 doesn't scale over G → concurrency isn't the bottleneck
 - If any of D_revised / A_c128 accidentally does well → theory needs revision
 
+## R5: max_tokens over-provisioning 分析 (user 提起)
+
+User pointed out that widening max-model-len 12288 → 16384 to
+accommodate a SINGLE 12289-token overflow (8789 prompt + 3500 response
+budget) is over-fitting.
+
+**Root cause**: yaml sets `max_tokens: 3500` uniformly. Actual response
+length is typically 500-1500 tokens even for complex ICU discharge
+summaries. The 3500 budget is generous safety margin.
+
+### 3-level tuning options
+
+| Level | Change | Risk | Effect |
+|---|---|---|---|
+| 1 | `max_tokens: 3500 → 2500` (yaml 1 line) | Low. Rare truncations; measurable | max prompt fits in 12288 for observed distribution |
+| 2 | Adaptive `max_tokens` per doc_type (code change) | Medium. Per-type tuning required | Optimal KV budget per request |
+| 3 | Selective per-doc-type block in system prompt | Higher. Careful quality verify | System 12k → 7-8k tokens, 33% prefill drop |
+
+**Recommendation**: apply Level 1 (in verify Case H below) to test whether
+the compact 12288 config works. Defer Level 2 / Level 3 as future work
+after we validate Fix A + Fix B recovers primary throughput.
+
+### Case H additions
+
+Added Case H to the verify matrix: Fix A + `max_tokens=2500` at
+max-model-len 12288. Directly tests whether Level 1 tuning + Fix A
+allows the smaller max-model-len to be viable.
+
+analyze.py adds a truncation warning: if H's avg gen tokens > 2400,
+the max_tokens=2500 cap is likely truncating rare responses and needs
+tuning.
+
 ## Recommended actions (post-run)
 
 If G / G_c64 recovers speed:
@@ -177,6 +209,11 @@ If G / G_c64 recovers speed:
 
 If only F helps (Fix A):
 - Ship Fix A in v0.6.3, defer Fix B pending more testing
+
+If Case H also succeeds without truncation:
+- Consider bundling `max_tokens: 2500` + max-model-len 12288 into v0.6.3
+- Removes 16384 over-provisioning
+- Level 2/3 becomes optional future work
 
 If nothing helps:
 - Bottleneck is elsewhere (network, HTTP serialization, per-request
