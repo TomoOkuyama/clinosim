@@ -1,0 +1,33 @@
+{
+  "document_id": "doc-ENC-POP-000063-526087729791-01",
+  "encounter_id": "ENC-POP-000063-526087729791",
+  "narrative": {
+    "text": "",
+    "sections": {
+      "subjective": "血圧管理および処方薬の見直しを目的に受診。前回の外来受診時と比べて自覚症状に著変はない。",
+      "objective": "BP 142/78 mmHg, HR 77 回/分。診察室血圧を測定、家庭血圧との整合性を確認。",
+      "assessment": "本態性高血圧症 (I10) (Stage 1, 軽度) に対してアムロジピンを継続中。慢性腎臓病 (N18) (CKD G3a, 軽度) についても経過観察中。前立腺肥大症 (N40) (中等度) に対してタムスロシンを内服中。",
+      "plan": "現在の内服薬 (アムロジピン、タムスロシン) を継続する。次回外来受診時に血圧の推移を確認し、必要に応じて用量調整を検討する。"
+    },
+    "generator": "llm-vllm",
+    "generator_metadata": {
+      "generator": "llm",
+      "lang": "ja"
+    },
+    "generated_at": "2020-01-01T00:00:42Z",
+    "facts_used": [
+      "outpatient_soap_template.subjective_ja",
+      "ctx.patient.demographics",
+      "ctx.encounter.chief_complaint",
+      "ctx.patient.chronic_conditions",
+      "ctx.vitals",
+      "outpatient_soap_template.objective",
+      "encounter_protocol.narrative.outpatient_soap_template.assessment_ja",
+      "ctx.patient.chronic_conditions",
+      "ctx.vitals.today",
+      "ctx.lab_results.today",
+      "encounter_protocol.narrative.outpatient_soap_template.plan_ja",
+      "encounter_protocol.next_visit_interval"
+    ]
+  }
+}

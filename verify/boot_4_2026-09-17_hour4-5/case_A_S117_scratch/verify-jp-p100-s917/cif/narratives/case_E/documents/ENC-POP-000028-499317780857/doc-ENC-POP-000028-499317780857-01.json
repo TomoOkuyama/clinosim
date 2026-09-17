@@ -1,0 +1,33 @@
+{
+  "document_id": "doc-ENC-POP-000028-499317780857-01",
+  "encounter_id": "ENC-POP-000028-499317780857",
+  "narrative": {
+    "text": "",
+    "sections": {
+      "subjective": "脂質管理およびスタチン療法のモニタリング目的で受診。既往の胃食道逆流症や腰痛について、本日の外来受診に際しては新たな症状の増悪や特記すべき苦情は認めない。",
+      "objective": "BP 114/74 mmHg, HR 87 回/分。体重・BMI 測定、心血管イベントリスクを再評価。",
+      "assessment": "脂質異常症 (E78) (中等度) に対するアトルバスタチン内服継続中。本日の検査で AST 112.0 U/L [H] と肝機能異常が認められたため、スタチン療法の肝毒性リスクを評価する必要がある。その他の既往である胃食道逆流症 (K21) (軽度)、H26 (中等度)、腰痛、詳細不明 (M54) (軽度) については安定している。",
+      "plan": "AST 上昇に対する経過観察を指示。次回受診時に肝機能検査を再検し、スタチン療法の継続可否を判断する。現在の内服薬 (アトルバスタチン、ランソプラゾール) は継続する。"
+    },
+    "generator": "llm-vllm",
+    "generator_metadata": {
+      "generator": "llm",
+      "lang": "ja"
+    },
+    "generated_at": "2020-01-01T00:00:42Z",
+    "facts_used": [
+      "outpatient_soap_template.subjective_ja",
+      "ctx.patient.demographics",
+      "ctx.encounter.chief_complaint",
+      "ctx.patient.chronic_conditions",
+      "ctx.vitals",
+      "outpatient_soap_template.objective",
+      "encounter_protocol.narrative.outpatient_soap_template.assessment_ja",
+      "ctx.patient.chronic_conditions",
+      "ctx.vitals.today",
+      "ctx.lab_results.today",
+      "encounter_protocol.narrative.outpatient_soap_template.plan_ja",
+      "encounter_protocol.next_visit_interval"
+    ]
+  }
+}

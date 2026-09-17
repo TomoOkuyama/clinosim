@@ -1,0 +1,33 @@
+{
+  "document_id": "doc-ENC-POP-000029-793546100452-01",
+  "encounter_id": "ENC-POP-000029-793546100452",
+  "narrative": {
+    "text": "",
+    "sections": {
+      "subjective": "年次健診のため来院。既往の2型糖尿病 (E11.9) について、メトホルミンを継続内服中。本日の主訴や新たな症状の訴えは特になく、前回受診時と比べても自覚症状に著変はない。",
+      "objective": "BP 122/59 mmHg, HR 91 回/分, RR 15 回/分, SpO2 98%, T 36.2°C。体重測定、下肢浮腫の有無を確認。",
+      "assessment": "2型糖尿病 (E11.9) に対しては、HbA1c 9.0 % [H]、血糖 161.0 mg/dL [H] と血糖コントロール不良が示唆される。また、AST 77.0 U/L [H]、ALT 33.0 U/L [H] と肝機能に異常を認める。K64.9 (中等度) およびニコチン依存症（紙巻きたばこ、合併症なし） (F17.210) (中等度) についても継続的な管理が必要である。",
+      "plan": "現在のメトホルミンの内服を継続する。肝機能異常および血糖コントロール不良に対し、次回受診時に再検査を行い、必要に応じて治療方針を調整する。生活習慣指導（禁煙指導を含む）を継続する。"
+    },
+    "generator": "llm-vllm",
+    "generator_metadata": {
+      "generator": "llm",
+      "lang": "ja"
+    },
+    "generated_at": "2020-01-01T00:00:42Z",
+    "facts_used": [
+      "outpatient_soap_template.subjective_ja",
+      "ctx.patient.demographics",
+      "ctx.encounter.chief_complaint",
+      "ctx.patient.chronic_conditions",
+      "ctx.vitals",
+      "outpatient_soap_template.objective",
+      "encounter_protocol.narrative.outpatient_soap_template.assessment_ja",
+      "ctx.patient.chronic_conditions",
+      "ctx.vitals.today",
+      "ctx.lab_results.today",
+      "encounter_protocol.narrative.outpatient_soap_template.plan_ja",
+      "encounter_protocol.next_visit_interval"
+    ]
+  }
+}

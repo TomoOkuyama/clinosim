@@ -1,0 +1,27 @@
+{
+  "document_id": "doc-ENC-POP-000065-538695319392-01",
+  "encounter_id": "ENC-POP-000065-538695319392",
+  "narrative": {
+    "text": "",
+    "sections": {
+      "subjective": "小児・思春期年次健診のため来院。自覚症状は特になく、日常生活に支障はないと訴える。",
+      "objective": "HR 81 回/分, T 36.9°C",
+      "assessment": "11歳男性。バイタルサインはHR 81回/分、T 36.9℃と安定しており、異常所見は認められない。年次健診として健康状態は良好と評価する。",
+      "plan": "特記すべき異常所見なし。次回健診まで経過観察とし、症状出現時は随時受診を指示した。"
+    },
+    "generator": "llm-vllm",
+    "generator_metadata": {
+      "generator": "llm",
+      "lang": "ja"
+    },
+    "generated_at": "2020-01-01T00:00:42Z",
+    "facts_used": [
+      "ctx.patient.demographics",
+      "ctx.encounter.chief_complaint",
+      "ctx.patient.chronic_conditions",
+      "ctx.vitals",
+      "ctx.encounter.chief_complaint",
+      "encounter_protocol.next_visit_interval"
+    ]
+  }
+}

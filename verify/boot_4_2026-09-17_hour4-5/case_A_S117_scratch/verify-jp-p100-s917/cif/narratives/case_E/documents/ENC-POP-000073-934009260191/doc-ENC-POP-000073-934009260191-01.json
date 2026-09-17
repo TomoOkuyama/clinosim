@@ -1,0 +1,33 @@
+{
+  "document_id": "doc-ENC-POP-000073-934009260191-01",
+  "encounter_id": "ENC-POP-000073-934009260191",
+  "narrative": {
+    "text": "",
+    "sections": {
+      "subjective": "イレウス退院後のフォローアップ、腸管機能の確認、および食事の進行状況の評価を目的に来院。既往の本態性高血圧症、白内障、ニコチン依存症に対する経過観察中。",
+      "objective": "BP 144/86 mmHg, HR 93 回/分, RR 13 回/分, SpO2 95%, T 36.7°C。診察室血圧を測定、家庭血圧との整合性を確認。",
+      "assessment": "本態性高血圧症 (I10) (Stage 1, 軽度) に対し、アムロジピンおよびカンデサルタンを継続内服中。外来血圧 144/86 mmHg、心拍数 93 回/分、呼吸数 13 回/分、SpO2 95%、体温 36.7°C と、バイタルサインは概ね安定している。",
+      "plan": "現在の内服薬 (アムロジピン、カンデサルタン) を継続する。腸管機能の回復状況と食事の摂取量を確認し、必要に応じて食事指導を行う。次回外来受診時に血圧の再評価を行う。"
+    },
+    "generator": "llm-vllm",
+    "generator_metadata": {
+      "generator": "llm",
+      "lang": "ja"
+    },
+    "generated_at": "2020-01-01T00:00:42Z",
+    "facts_used": [
+      "outpatient_soap_template.subjective_ja",
+      "ctx.patient.demographics",
+      "ctx.encounter.chief_complaint",
+      "ctx.patient.chronic_conditions",
+      "ctx.vitals",
+      "outpatient_soap_template.objective",
+      "encounter_protocol.narrative.outpatient_soap_template.assessment_ja",
+      "ctx.patient.chronic_conditions",
+      "ctx.vitals.today",
+      "ctx.lab_results.today",
+      "encounter_protocol.narrative.outpatient_soap_template.plan_ja",
+      "encounter_protocol.next_visit_interval"
+    ]
+  }
+}

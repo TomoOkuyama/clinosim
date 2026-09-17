@@ -1,0 +1,33 @@
+{
+  "document_id": "doc-ENC-POP-000052-599932016077-01",
+  "encounter_id": "ENC-POP-000052-599932016077",
+  "narrative": {
+    "text": "",
+    "sections": {
+      "subjective": "糖尿病性網膜症スクリーニング・眼底検査のため受診。前回の受診時と比べて自覚症状に著変なし。",
+      "objective": "BP 115/78 mmHg, HR 83 回/分。体重測定、下肢浮腫の有無を確認。",
+      "assessment": "2型糖尿病 (E11.9) (HbA1c 6.5%, 軽度) について、本日測定した HbA1c 6.6 % [H] は前回値からわずかに上昇したが、目標範囲内であり血糖管理は安定している。脂質異常症 (E78) (軽度) に対してはアトルバスタチン継続中。慢性閉塞性肺疾患 (J44) (GOLD 2, 中等度) に対してはチオトロピウム、サルブタモールを継続。慢性腎臓病 (N18) (CKD G2, 中等度) に対してはメトホルミン、スライディングスケールインスリンを継続。骨粗鬆症 (M81) (軽度) に対してはアレンドロネート、ビタミンDを継続。変形性膝関節症 (M17) (軽度) に対してはセレコキシブを継続。反復性うつ病性障害 (F33) (中等度) に対してはSertralineを継続内服中。ニコチン依存症（紙巻きたばこ、合併症なし） (F17.210) (中等度) に対しては禁煙指導継続。",
+      "plan": "現在の治療方針を継続する。次回受診は3ヶ月後。"
+    },
+    "generator": "llm-vllm",
+    "generator_metadata": {
+      "generator": "llm",
+      "lang": "ja"
+    },
+    "generated_at": "2020-01-01T00:00:42Z",
+    "facts_used": [
+      "outpatient_soap_template.subjective_ja",
+      "ctx.patient.demographics",
+      "ctx.encounter.chief_complaint",
+      "ctx.patient.chronic_conditions",
+      "ctx.vitals",
+      "outpatient_soap_template.objective",
+      "encounter_protocol.narrative.outpatient_soap_template.assessment_ja",
+      "ctx.patient.chronic_conditions",
+      "ctx.vitals.today",
+      "ctx.lab_results.today",
+      "encounter_protocol.narrative.outpatient_soap_template.plan_ja",
+      "encounter_protocol.next_visit_interval"
+    ]
+  }
+}

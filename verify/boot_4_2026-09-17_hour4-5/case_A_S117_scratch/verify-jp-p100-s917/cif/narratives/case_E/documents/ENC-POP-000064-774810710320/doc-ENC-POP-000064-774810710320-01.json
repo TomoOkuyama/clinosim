@@ -1,0 +1,33 @@
+{
+  "document_id": "doc-ENC-POP-000064-774810710320-01",
+  "encounter_id": "ENC-POP-000064-774810710320",
+  "narrative": {
+    "text": "",
+    "sections": {
+      "subjective": "血圧管理および処方薬の見直しを目的に外来受診。既往歴として本態性高血圧症、脂質異常症、胃食道逆流症、変形性膝関節症、肝硬変、過体重を有する。",
+      "objective": "BP 143/93 mmHg, HR 90 回/分。診察室血圧を測定、家庭血圧との整合性を確認。",
+      "assessment": "77歳女性、後期高齢者医療制度。本態性高血圧症 (Stage 2, 軽度) に対しアムロジピン、カンデサルタンを内服中。脂質異常症 (軽度) に対しアトルバスタチン、胃食道逆流症 (軽度) に対しランソプラゾール、変形性膝関節症 (中等度) に対しアセトアミノフェンを内服中。肝硬変 (軽度) および過体重 (軽度) も併存。",
+      "plan": "現在の内服薬 (アムロジピン、カンデサルタン、アトルバスタチン、ランソプラゾール、アセトアミノフェン) を継続。血圧管理の継続と定期受診を指示。"
+    },
+    "generator": "llm-vllm",
+    "generator_metadata": {
+      "generator": "llm",
+      "lang": "ja"
+    },
+    "generated_at": "2020-01-01T00:00:42Z",
+    "facts_used": [
+      "outpatient_soap_template.subjective_ja",
+      "ctx.patient.demographics",
+      "ctx.encounter.chief_complaint",
+      "ctx.patient.chronic_conditions",
+      "ctx.vitals",
+      "outpatient_soap_template.objective",
+      "encounter_protocol.narrative.outpatient_soap_template.assessment_ja",
+      "ctx.patient.chronic_conditions",
+      "ctx.vitals.today",
+      "ctx.lab_results.today",
+      "encounter_protocol.narrative.outpatient_soap_template.plan_ja",
+      "encounter_protocol.next_visit_interval"
+    ]
+  }
+}

@@ -1,0 +1,33 @@
+{
+  "document_id": "doc-ENC-POP-000062-994774861294-01",
+  "encounter_id": "ENC-POP-000062-994774861294",
+  "narrative": {
+    "text": "",
+    "sections": {
+      "subjective": "糖尿病管理・血糖コントロールの確認のため外来受診。既往の2型糖尿病、脂質異常症、骨粗鬆症、胃食道逆流症、白内障に対する定期通院中。本日の主訴は特になく、日常生活での不調や症状の増悪は認めない。",
+      "objective": "BP 126/74 mmHg, HR 77 回/分。体重測定、下肢浮腫の有無を確認。",
+      "assessment": "バイタルサインはBP 126/74 mmHg、HR 77 回/分と安定している。検査所見では血糖 131.0 mg/dL [H]、HbA1c 6.6 % [H] と軽度の異常を認めるが、既往のHbA1c 6.5%とほぼ同水準であり、血糖コントロールは概ね良好に維持されていると判断する。",
+      "plan": "現在の内服療法（メトホルミン、スライディングスケールインスリン、アトルバスタチン、アレンドロネート、ビタミンD、ランソプラゾール）を継続する。次回受診時に血糖値の再評価を行う。"
+    },
+    "generator": "llm-vllm",
+    "generator_metadata": {
+      "generator": "llm",
+      "lang": "ja"
+    },
+    "generated_at": "2020-01-01T00:00:42Z",
+    "facts_used": [
+      "outpatient_soap_template.subjective_ja",
+      "ctx.patient.demographics",
+      "ctx.encounter.chief_complaint",
+      "ctx.patient.chronic_conditions",
+      "ctx.vitals",
+      "outpatient_soap_template.objective",
+      "encounter_protocol.narrative.outpatient_soap_template.assessment_ja",
+      "ctx.patient.chronic_conditions",
+      "ctx.vitals.today",
+      "ctx.lab_results.today",
+      "encounter_protocol.narrative.outpatient_soap_template.plan_ja",
+      "encounter_protocol.next_visit_interval"
+    ]
+  }
+}

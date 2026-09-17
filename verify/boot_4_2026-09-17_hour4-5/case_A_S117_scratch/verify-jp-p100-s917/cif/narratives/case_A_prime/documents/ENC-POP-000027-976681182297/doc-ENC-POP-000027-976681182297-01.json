@@ -1,0 +1,33 @@
+{
+  "document_id": "doc-ENC-POP-000027-976681182297-01",
+  "encounter_id": "ENC-POP-000027-976681182297",
+  "narrative": {
+    "text": "",
+    "sections": {
+      "subjective": "年次健診のため来院。既往の慢性疾患に対する内服治療を継続中であり、本日の外来受診にあたり、家庭血圧の測定状況や生活習慣に関する質問に回答した。",
+      "objective": "BP 144/93 mmHg, HR 65 回/分, RR 19 回/分, SpO2 92%, T 36.4°C。診察室血圧を測定、家庭血圧との整合性を確認。",
+      "assessment": "本態性高血圧症 (I10) (Stage 1, 軽度)、脂質異常症 (E78) (中等度)、慢性閉塞性肺疾患 (J44) (GOLD 3, 中等度)、胃食道逆流症 (K21) (軽度)、前立腺肥大症 (N40) (軽度)、変形性膝関節症 (M17) (軽度)、うつ病 (F32) (中等度) の経過観察。今日測定されたバイタルサインは BP 144/93 mmHg、HR 65 回/分、RR 19 回/分、SpO2 92%、T 36.4°C であり、血圧は目標値よりやや高い傾向にある。検査所見では血糖 111.0 mg/dL [H]、AST 127.0 U/L [H]、ALT 77.0 U/L [H] と肝機能障害および高血糖が認められた。",
+      "plan": "アムロジピン、カンデサルタン、アトルバスタチン、チオトロピウム、サルブタモール、ランソプラゾール、タムスロシン、Sertraline の内服を継続する。肝機能異常 (AST 127.0 U/L, ALT 77.0 U/L) と高血糖 (111.0 mg/dL) に対して、次回受診時に再検査を行い、必要に応じて内服薬の調整や追加検査を検討する。血圧管理のため家庭血圧の記録を継続し、次回受診時に持参するよう指導した。"
+    },
+    "generator": "llm-vllm",
+    "generator_metadata": {
+      "generator": "llm",
+      "lang": "ja"
+    },
+    "generated_at": "2020-01-01T00:00:42Z",
+    "facts_used": [
+      "outpatient_soap_template.subjective_ja",
+      "ctx.patient.demographics",
+      "ctx.encounter.chief_complaint",
+      "ctx.patient.chronic_conditions",
+      "ctx.vitals",
+      "outpatient_soap_template.objective",
+      "encounter_protocol.narrative.outpatient_soap_template.assessment_ja",
+      "ctx.patient.chronic_conditions",
+      "ctx.vitals.today",
+      "ctx.lab_results.today",
+      "encounter_protocol.narrative.outpatient_soap_template.plan_ja",
+      "encounter_protocol.next_visit_interval"
+    ]
+  }
+}

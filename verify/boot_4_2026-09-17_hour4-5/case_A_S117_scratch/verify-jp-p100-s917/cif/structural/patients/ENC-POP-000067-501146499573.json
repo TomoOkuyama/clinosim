@@ -1,0 +1,504 @@
+{
+  "patient": {
+    "patient_id": "POP-000067",
+    "household_id": "HH-000028",
+    "name": {
+      "family_name": "西村",
+      "given_name": "典子",
+      "display_name": "西村 典子",
+      "name_script": "ja",
+      "phonetic": "ニシムラ ノリコ"
+    },
+    "age": 56,
+    "sex": "F",
+    "date_of_birth": "1968-08-11",
+    "date_of_death": null,
+    "blood_type": "O",
+    "rh_factor": "+",
+    "height_cm": 153.4,
+    "weight_kg": 58.0,
+    "bmi": 24.7,
+    "address": {
+      "postal_code": "211-0001",
+      "state": "神奈川県",
+      "city": "川崎市",
+      "line1": "若葉1丁目27-4",
+      "line2": "",
+      "country": "JP"
+    },
+    "contact": {
+      "phone_home": "",
+      "phone_mobile": "080-3193-2833",
+      "phone_primary": "080-3193-2833",
+      "email": "",
+      "emergency_contact_name": "西村 武",
+      "emergency_contact_phone": "080-3193-2833",
+      "emergency_contact_relationship": "sibling"
+    },
+    "marital_status": "D",
+    "preferred_language": "ja-JP",
+    "employment_status": "employed",
+    "occupation": "service",
+    "insurance_type": "national",
+    "identity": {
+      "national": {
+        "country": "JP",
+        "national_id": "513144150918",
+        "has_id_card": true,
+        "id_card_linked_to_insurance": true
+      },
+      "enrollments": [
+        {
+          "country": "JP",
+          "category": "national",
+          "insurer_number": "131011",
+          "member_id": "445903",
+          "group_symbol": "8312",
+          "branch_number": "01",
+          "valid_from": null,
+          "valid_to": null,
+          "system_uri": ""
+        }
+      ],
+      "card_acquired_on": null,
+      "insurance_linked_on": null
+    },
+    "race": "",
+    "ethnicity": "",
+    "health_literacy": 0.58,
+    "chronic_conditions": [
+      {
+        "code": "I10",
+        "system": "icd-10-cm",
+        "onset_date": "2021-12-02",
+        "severity": "moderate",
+        "controlled": true,
+        "severity_score": 0.3,
+        "stage": "Stage 1",
+        "glycemic_control": null
+      },
+      {
+        "code": "K21",
+        "system": "icd-10-cm",
+        "onset_date": "2010-11-19",
+        "severity": "mild",
+        "controlled": false,
+        "severity_score": 0.2561623006177267,
+        "stage": "",
+        "glycemic_control": null
+      },
+      {
+        "code": "C16",
+        "system": "icd-10-cm",
+        "onset_date": "2018-05-21",
+        "severity": "mild",
+        "controlled": true,
+        "severity_score": 0.11800428579111759,
+        "stage": "",
+        "glycemic_control": null
+      }
+    ],
+    "allergies": [
+      {
+        "allergy_id": "nka",
+        "allergen_code": "716186003",
+        "category": "",
+        "criticality": "unable-to-assess",
+        "verification_status": "confirmed",
+        "clinical_status": "resolved",
+        "onset_date": null,
+        "reactions": [],
+        "is_nka": true
+      }
+    ],
+    "current_medications": [
+      {
+        "drug_name": "Amlodipine",
+        "drug_name_ja": "アムロジピン",
+        "route": "PO",
+        "dose": "5mg",
+        "dose_quantity": null,
+        "dose_unit": "",
+        "frequency": "daily"
+      },
+      {
+        "drug_name": "Lansoprazole",
+        "drug_name_ja": "ランソプラゾール",
+        "route": "PO",
+        "dose": "15mg",
+        "dose_quantity": null,
+        "dose_unit": "",
+        "frequency": "daily"
+      }
+    ],
+    "safety_skip_log": [],
+    "baseline_chronic_medications": [
+      {
+        "drug_name": "Amlodipine",
+        "drug_name_ja": "アムロジピン",
+        "route": "PO",
+        "dose": "5mg",
+        "dose_quantity": null,
+        "dose_unit": "",
+        "frequency": "daily"
+      },
+      {
+        "drug_name": "Lansoprazole",
+        "drug_name_ja": "ランソプラゾール",
+        "route": "PO",
+        "dose": "15mg",
+        "dose_quantity": null,
+        "dose_unit": "",
+        "frequency": "daily"
+      }
+    ],
+    "smoking_status": "former",
+    "alcohol_use": "social",
+    "physiological_profile": {
+      "immune_reactivity": 0.6380087503852061,
+      "drug_metabolism_rate": "normal",
+      "renal_reserve": 0.8895090239581721,
+      "cardiac_reserve": 0.8071200571118796,
+      "hepatic_reserve": 0.8602331762929101,
+      "treatment_sensitivity": 1.1044092387285496,
+      "symptom_reporting_bias": 0.8862322782150381,
+      "delirium_susceptibility": 0.3435848284641394,
+      "dvt_susceptibility": 0.014401565136101184
+    },
+    "baseline_vitals": {
+      "temperature": 36.5,
+      "heart_rate": 69,
+      "systolic_bp": 144,
+      "diastolic_bp": 80,
+      "respiratory_rate": 13,
+      "spo2": 99.0
+    },
+    "state_periods": []
+  },
+  "encounters": [
+    {
+      "encounter_id": "ENC-POP-000067-501146499573",
+      "patient_id": "POP-000067",
+      "episode_id": "EP-POP-000067-501146499573",
+      "encounter_type": "outpatient",
+      "status": "completed",
+      "department_id": "internal_medicine",
+      "attending_physician_id": "DR-IM-003",
+      "admitting_physician_id": "DR-IM-003",
+      "discharging_physician_id": "DR-IM-003",
+      "admission_datetime": "2026-01-22T10:33:00",
+      "discharge_datetime": "2026-01-22T10:50:00",
+      "chief_complaint": "血圧管理・処方薬の見直し",
+      "chief_complaint_ja": "血圧管理・処方薬の見直し",
+      "disease_event_id": "DE-POP-000067-001",
+      "ward_id": "",
+      "bed_number": "",
+      "time_resolution": 3600.0,
+      "admit_source": "outp",
+      "admit_source_encounter_id": "",
+      "discharge_disposition": "home",
+      "priority": "R",
+      "primary_nurse_id": "",
+      "triage_data": null,
+      "severity": "",
+      "clinical_course_archetype": "",
+      "service_line": "",
+      "admission_diagnosis_code": "",
+      "admission_diagnosis_system": ""
+    }
+  ],
+  "orders": [
+    {
+      "order_id": "ORD-ENC-POP-000067-501146499573-OPD-L00",
+      "encounter_id": "ENC-POP-000067-501146499573",
+      "patient_id": "POP-000067",
+      "order_type": "lab",
+      "order_code": "",
+      "display_name": "K",
+      "urgency": "routine",
+      "clinical_intent": "Outpatient follow-up: K",
+      "clinical_intent_ja": "外来フォローアップ: K",
+      "ordered_datetime": "2026-01-22T10:43:00",
+      "ordered_by": "DR-IM-003",
+      "status": "resulted",
+      "result": {
+        "result_datetime": "2026-01-22T12:33:00",
+        "performed_by": "TECH-LAB-009",
+        "lab_name": "K",
+        "value": 4.8,
+        "unit": "mmol/L",
+        "reference_range": null,
+        "flag": null,
+        "interpretation": null,
+        "specimen_note": null
+      },
+      "dose_quantity": null,
+      "dose_unit": "",
+      "frequency": "",
+      "frequency_per_day": null,
+      "route": "",
+      "duration_days": null,
+      "reason_condition": "",
+      "panel_key": "",
+      "imaging_modality": "",
+      "imaging_body_site_code": "",
+      "imaging_views": [],
+      "imaging_spec_meta": {},
+      "medication_intent": "",
+      "dose_text_ja": "",
+      "dose_text_en": "",
+      "notes": []
+    }
+  ],
+  "vital_signs": [
+    {
+      "timestamp": "2026-01-22T10:38:00",
+      "temperature_celsius": null,
+      "heart_rate": 74,
+      "systolic_bp": 136,
+      "diastolic_bp": 75,
+      "respiratory_rate": null,
+      "spo2": null,
+      "pain_score": null,
+      "consciousness_level": "A",
+      "on_supplemental_oxygen": false,
+      "oxygen_flow_rate_lpm": null,
+      "oxygen_delivery_device": "",
+      "nursing_note": "",
+      "measured_by": "NS-PC-005",
+      "data_source": "manual",
+      "news2_score": 0,
+      "gcs_score": 15
+    }
+  ],
+  "lab_results": [
+    {
+      "result_datetime": "2026-01-22T12:33:00",
+      "performed_by": "TECH-LAB-009",
+      "lab_name": "K",
+      "value": 4.8,
+      "unit": "mmol/L",
+      "reference_range": null,
+      "flag": null,
+      "interpretation": null,
+      "specimen_note": null
+    }
+  ],
+  "condition_event": {
+    "condition_id": "COND-POP-000067-OPD",
+    "condition_type": "chronic_followup",
+    "ground_truth_diseases": [
+      "I10"
+    ],
+    "symptom_pattern": "",
+    "state_impacts": {},
+    "presenting_symptoms": []
+  },
+  "clinical_diagnosis": {
+    "admission_diagnosis_code": "I10",
+    "admission_diagnosis_system": "icd-10-mhlw",
+    "working_diagnoses": [],
+    "discharge_diagnosis_code": "I10",
+    "discharge_diagnosis_system": "icd-10-mhlw",
+    "diagnosis_correct": true,
+    "missed_diagnoses": [],
+    "overcalled_diagnoses": []
+  },
+  "complications_occurred": [],
+  "procedures": [],
+  "rehab_sessions": [],
+  "documents": [
+    {
+      "document_id": "doc-ENC-POP-000067-501146499573-01",
+      "task_type": "outpatient_soap",
+      "loinc_code": "34131-3",
+      "patient_id": "POP-000067",
+      "encounter_id": "ENC-POP-000067-501146499573",
+      "author_practitioner_id": "DR-IM-003",
+      "related_procedure_id": "",
+      "authored_datetime": "2026-01-22T10:33:00",
+      "period_start": "2026-01-22T10:33:00",
+      "period_end": "2026-01-22T10:50:00",
+      "language": "ja",
+      "content_type": "text/plain",
+      "format_type": "composition",
+      "shift": "",
+      "checkup_type": "",
+      "narrative": null
+    }
+  ],
+  "medication_administrations": [],
+  "intake_output_records": [],
+  "adl_assessments": [],
+  "nursing_risk_assessments": [],
+  "immunizations": [
+    {
+      "vaccine_cvx": "150",
+      "occurrence_date": "2017-11-01",
+      "status": "completed",
+      "primary_source": false,
+      "dose_number": null,
+      "lot_number": "L976-201711-801",
+      "administered_by": "NS-GI-003",
+      "encounter_id": ""
+    },
+    {
+      "vaccine_cvx": "150",
+      "occurrence_date": "2019-11-01",
+      "status": "completed",
+      "primary_source": false,
+      "dose_number": null,
+      "lot_number": "L976-201911-990",
+      "administered_by": "NS-GI-003",
+      "encounter_id": ""
+    },
+    {
+      "vaccine_cvx": "150",
+      "occurrence_date": "2020-11-01",
+      "status": "completed",
+      "primary_source": false,
+      "dose_number": null,
+      "lot_number": "L976-202011-124",
+      "administered_by": "NS-GI-003",
+      "encounter_id": ""
+    },
+    {
+      "vaccine_cvx": "150",
+      "occurrence_date": "2021-11-01",
+      "status": "completed",
+      "primary_source": false,
+      "dose_number": null,
+      "lot_number": "L976-202111-234",
+      "administered_by": "NS-GI-003",
+      "encounter_id": ""
+    },
+    {
+      "vaccine_cvx": "309",
+      "occurrence_date": "2021-11-13",
+      "status": "completed",
+      "primary_source": false,
+      "dose_number": null,
+      "lot_number": "L157-202111-749",
+      "administered_by": "NS-GI-003",
+      "encounter_id": ""
+    },
+    {
+      "vaccine_cvx": "150",
+      "occurrence_date": "2022-12-01",
+      "status": "completed",
+      "primary_source": false,
+      "dose_number": null,
+      "lot_number": "L976-202212-452",
+      "administered_by": "NS-GI-003",
+      "encounter_id": ""
+    },
+    {
+      "vaccine_cvx": "150",
+      "occurrence_date": "2023-11-01",
+      "status": "completed",
+      "primary_source": false,
+      "dose_number": null,
+      "lot_number": "L976-202311-827",
+      "administered_by": "NS-GI-003",
+      "encounter_id": ""
+    },
+    {
+      "vaccine_cvx": "150",
+      "occurrence_date": "2024-10-01",
+      "status": "completed",
+      "primary_source": false,
+      "dose_number": null,
+      "lot_number": "L976-202410-746",
+      "administered_by": "NS-GI-003",
+      "encounter_id": ""
+    },
+    {
+      "vaccine_cvx": "150",
+      "occurrence_date": "2025-11-07",
+      "status": "completed",
+      "primary_source": true,
+      "dose_number": null,
+      "lot_number": "L976-202510-641",
+      "administered_by": "NS-GI-003",
+      "encounter_id": "ENC-POP-000067-617100979069"
+    }
+  ],
+  "family_history": [
+    {
+      "relationship": "MTH",
+      "sex": "female",
+      "deceased": true,
+      "condition_codes": [
+        "I10",
+        "I25",
+        "E78",
+        "C34"
+      ]
+    },
+    {
+      "relationship": "FTH",
+      "sex": "male",
+      "deceased": false,
+      "condition_codes": [
+        "E11",
+        "I10"
+      ]
+    },
+    {
+      "relationship": "NSIB",
+      "sex": "female",
+      "deceased": false,
+      "condition_codes": [
+        "I10",
+        "E78"
+      ]
+    },
+    {
+      "relationship": "NSIB",
+      "sex": "female",
+      "deceased": false,
+      "condition_codes": [
+        "E11",
+        "I10"
+      ]
+    }
+  ],
+  "code_status": "",
+  "care_level": "",
+  "microbiology": [],
+  "discharge_prescription": {
+    "prescription_id": "RX-POP-000067-OPD",
+    "patient_id": "",
+    "prescriber_id": "DR-IM-003",
+    "issue_date": "2026-01-22T10:33:00",
+    "items": [
+      {
+        "drug_name": "Amlodipine",
+        "drug_name_ja": "アムロジピン",
+        "dose": "5mg",
+        "route": "PO",
+        "frequency": "daily",
+        "duration_days": 30
+      },
+      {
+        "drug_name": "Lansoprazole",
+        "drug_name_ja": "ランソプラゾール",
+        "dose": "15mg",
+        "route": "PO",
+        "frequency": "daily",
+        "duration_days": 30
+      }
+    ]
+  },
+  "icu_transferred": false,
+  "icu_transferred_day": -1,
+  "deceased": false,
+  "death_day": null,
+  "is_readmission": false,
+  "prior_encounter_id": null,
+  "readmission_number": 0,
+  "physiological_states": [],
+  "extensions": {
+    "clinical_impressions": []
+  }
+}

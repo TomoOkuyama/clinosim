@@ -1,0 +1,33 @@
+{
+  "document_id": "doc-ENC-POP-000073-032654291135-01",
+  "encounter_id": "ENC-POP-000073-032654291135",
+  "narrative": {
+    "text": "",
+    "sections": {
+      "subjective": "インフルエンザ予防接種を目的に来院。既往の本態性高血圧症、H26、ニコチン依存症に対する経過観察中。アムロジピン、カンデサルタンを内服継続中。本日の主訴は特になく、体調に著変なし。",
+      "objective": "BP 142/87 mmHg, HR 91 回/分。診察室血圧を測定、家庭血圧との整合性を確認。",
+      "assessment": "本態性高血圧症 (I10) (Stage 1, 軽度) に対してアムロジピン、カンデサルタンを内服中。診察室血圧 142/87 mmHg、HR 91 回/分であり、家庭血圧との整合性を確認した。H26 (軽度) およびニコチン依存症（紙巻きたばこ、合併症なし） (F17.210) (軽度) についても経過観察中。",
+      "plan": "インフルエンザ予防接種を実施。高血圧管理のためアムロジピン、カンデサルタンを継続内服。家庭血圧の記録を継続し、次回外来で血圧コントロールの評価を行う。"
+    },
+    "generator": "llm-vllm",
+    "generator_metadata": {
+      "generator": "llm",
+      "lang": "ja"
+    },
+    "generated_at": "2020-01-01T00:00:42Z",
+    "facts_used": [
+      "outpatient_soap_template.subjective_ja",
+      "ctx.patient.demographics",
+      "ctx.encounter.chief_complaint",
+      "ctx.patient.chronic_conditions",
+      "ctx.vitals",
+      "outpatient_soap_template.objective",
+      "encounter_protocol.narrative.outpatient_soap_template.assessment_ja",
+      "ctx.patient.chronic_conditions",
+      "ctx.vitals.today",
+      "ctx.lab_results.today",
+      "encounter_protocol.narrative.outpatient_soap_template.plan_ja",
+      "encounter_protocol.next_visit_interval"
+    ]
+  }
+}

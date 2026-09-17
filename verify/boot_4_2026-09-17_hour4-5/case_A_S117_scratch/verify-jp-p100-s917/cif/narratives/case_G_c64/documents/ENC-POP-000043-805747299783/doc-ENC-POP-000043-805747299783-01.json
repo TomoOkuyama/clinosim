@@ -1,0 +1,30 @@
+{
+  "document_id": "doc-ENC-POP-000043-805747299783-01",
+  "encounter_id": "ENC-POP-000043-805747299783",
+  "narrative": {
+    "text": "",
+    "sections": {
+      "subjective": "年次健診のため来院。自覚症状は特になく、体調に著変はない。",
+      "objective": "BP 129/83 mmHg, HR 78 回/分, RR 15 回/分, SpO2 95%, T 35.7°C",
+      "assessment": "甲状腺機能低下症 (E03) (中等度)、E79 (中等度)、アルコール依存症（合併症なし） (F10.20) (軽度) の経過観察中。本日測定した検査値で AST 106.0 U/L [H]、ALT 61.0 U/L [H] と肝機能異常を認める。",
+      "plan": "レボチロキシン の内服継続。肝機能異常の原因精査のため、次回外来で再検査を行う。"
+    },
+    "generator": "llm-vllm",
+    "generator_metadata": {
+      "generator": "llm",
+      "lang": "ja"
+    },
+    "generated_at": "2020-01-01T00:00:42Z",
+    "facts_used": [
+      "ctx.patient.demographics",
+      "ctx.encounter.chief_complaint",
+      "ctx.patient.chronic_conditions",
+      "ctx.vitals",
+      "ctx.patient.chronic_conditions",
+      "ctx.vitals.today",
+      "ctx.lab_results.today",
+      "ctx.patient.current_medications",
+      "encounter_protocol.next_visit_interval"
+    ]
+  }
+}

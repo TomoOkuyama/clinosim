@@ -1,0 +1,33 @@
+{
+  "document_id": "doc-ENC-POP-000063-402276813839-01",
+  "encounter_id": "ENC-POP-000063-402276813839",
+  "narrative": {
+    "text": "",
+    "sections": {
+      "subjective": "血圧管理および処方薬の見直しを目的に受診。自覚症状は特になく、日常生活に支障はないと述べる。",
+      "objective": "BP 142/81 mmHg, HR 74 回/分。診察室血圧を測定、家庭血圧との整合性を確認。",
+      "assessment": "本態性高血圧症 (I10) (Stage 1, 軽度) に対しアムロジピンを内服中だが、外来血圧 142/81 mmHg とやや高値傾向を認める。慢性腎臓病 (N18) (CKD G3a, 軽度) においてクレアチニン 1.46 mg/dL [H] と上昇しており、腎機能の悪化に注意が必要である。前立腺肥大症 (N40) (中等度) に対するタムスロシンは継続中。",
+      "plan": "アムロジピンおよびタムスロシンは継続する。クレアチニン上昇に対し、次回受診時に再検査を行い腎機能の推移を確認する。家庭血圧の記録を指示し、次回受診時に持参してもらう。"
+    },
+    "generator": "llm-vllm",
+    "generator_metadata": {
+      "generator": "llm",
+      "lang": "ja"
+    },
+    "generated_at": "2020-01-01T00:00:42Z",
+    "facts_used": [
+      "outpatient_soap_template.subjective_ja",
+      "ctx.patient.demographics",
+      "ctx.encounter.chief_complaint",
+      "ctx.patient.chronic_conditions",
+      "ctx.vitals",
+      "outpatient_soap_template.objective",
+      "encounter_protocol.narrative.outpatient_soap_template.assessment_ja",
+      "ctx.patient.chronic_conditions",
+      "ctx.vitals.today",
+      "ctx.lab_results.today",
+      "encounter_protocol.narrative.outpatient_soap_template.plan_ja",
+      "encounter_protocol.next_visit_interval"
+    ]
+  }
+}

@@ -1,0 +1,33 @@
+{
+  "document_id": "doc-ENC-POP-000054-038045652438-01",
+  "encounter_id": "ENC-POP-000054-038045652438",
+  "narrative": {
+    "text": "",
+    "sections": {
+      "subjective": "年次健診のため来院。自覚症状の著変なし。",
+      "objective": "BP 113/72 mmHg, HR 88 回/分, RR 20 回/分, SpO2 100%, T 36.9°C。体重・BMI 測定、心血管イベントリスクを再評価。",
+      "assessment": "脂質異常症、前立腺肥大症、結腸の悪性新生物、前立腺の悪性新生物、過体重、ニコチン依存症の経過観察中。本日測定した検査値でクレアチニン 1.1 mg/dL [H]、AST 124.0 U/L [H]、ALT 96.0 U/L [H] と肝機能および腎機能の異常を認める。",
+      "plan": "アトルバスタチン、タムスロシン、ビカルタミドの内服継続。肝機能および腎機能の異常について再検査を予定。"
+    },
+    "generator": "llm-vllm",
+    "generator_metadata": {
+      "generator": "llm",
+      "lang": "ja"
+    },
+    "generated_at": "2020-01-01T00:00:42Z",
+    "facts_used": [
+      "outpatient_soap_template.subjective_ja",
+      "ctx.patient.demographics",
+      "ctx.encounter.chief_complaint",
+      "ctx.patient.chronic_conditions",
+      "ctx.vitals",
+      "outpatient_soap_template.objective",
+      "encounter_protocol.narrative.outpatient_soap_template.assessment_ja",
+      "ctx.patient.chronic_conditions",
+      "ctx.vitals.today",
+      "ctx.lab_results.today",
+      "encounter_protocol.narrative.outpatient_soap_template.plan_ja",
+      "encounter_protocol.next_visit_interval"
+    ]
+  }
+}

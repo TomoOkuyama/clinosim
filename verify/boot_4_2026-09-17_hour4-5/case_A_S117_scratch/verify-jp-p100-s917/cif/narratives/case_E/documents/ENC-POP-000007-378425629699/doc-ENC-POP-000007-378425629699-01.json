@@ -1,0 +1,33 @@
+{
+  "document_id": "doc-ENC-POP-000007-378425629699-01",
+  "encounter_id": "ENC-POP-000007-378425629699",
+  "narrative": {
+    "text": "",
+    "sections": {
+      "subjective": "脂質管理およびスタチン療法のモニタリング目的で外来受診。既往の脂質異常症、K64.9、ニコチン依存症に対する経過観察中。本日の主訴は特になく、定期的な経過観察のため来院した。",
+      "objective": "BP 125/70 mmHg, HR 88 回/分。体重・BMI 測定、心血管イベントリスクを再評価。",
+      "assessment": "67歳女性、現喫煙者。脂質異常症 (E78) (中等度)、K64.9 (軽度)、ニコチン依存症（紙巻きたばこ、合併症なし） (F17.210) (中等度) を有する。アトルバスタチン内服下での脂質管理状況を確認するため、体重・BMI測定および心血管イベントリスクの再評価を行う。",
+      "plan": "体重・BMI測定を実施し、心血管イベントリスクを再評価する。アトルバスタチンの継続内服を指示し、次回受診時に脂質プロファイルの結果を評価する。"
+    },
+    "generator": "llm-vllm",
+    "generator_metadata": {
+      "generator": "llm",
+      "lang": "ja"
+    },
+    "generated_at": "2020-01-01T00:00:42Z",
+    "facts_used": [
+      "outpatient_soap_template.subjective_ja",
+      "ctx.patient.demographics",
+      "ctx.encounter.chief_complaint",
+      "ctx.patient.chronic_conditions",
+      "ctx.vitals",
+      "outpatient_soap_template.objective",
+      "encounter_protocol.narrative.outpatient_soap_template.assessment_ja",
+      "ctx.patient.chronic_conditions",
+      "ctx.vitals.today",
+      "ctx.lab_results.today",
+      "encounter_protocol.narrative.outpatient_soap_template.plan_ja",
+      "encounter_protocol.next_visit_interval"
+    ]
+  }
+}

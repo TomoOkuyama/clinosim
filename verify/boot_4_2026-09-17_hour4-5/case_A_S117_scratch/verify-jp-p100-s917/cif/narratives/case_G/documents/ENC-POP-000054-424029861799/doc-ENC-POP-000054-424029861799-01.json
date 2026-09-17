@@ -1,0 +1,33 @@
+{
+  "document_id": "doc-ENC-POP-000054-424029861799-01",
+  "encounter_id": "ENC-POP-000054-424029861799",
+  "narrative": {
+    "text": "",
+    "sections": {
+      "subjective": "化学療法・点滴投与のため外来受診。前回の受診時と比べて特記すべき症状の変化や新たな苦情は認めない。",
+      "objective": "BP 111/72 mmHg, HR 87 回/分。体重・BMI 測定、心血管イベントリスクを再評価。",
+      "assessment": "結腸の悪性新生物 (C18) (中等度) および前立腺の悪性新生物 (C61) (軽度) に対する化学療法・点滴投与の適応あり。脂質異常症 (E78) (軽度)、前立腺肥大症 (N40) (軽度)、H26 (軽度)、K59 (軽度)、K64.9 (軽度)、過体重 (E66.3) (軽度)、ニコチン依存症（紙巻きたばこ、合併症なし） (F17.210) (軽度) の経過観察継続。",
+      "plan": "本日の化学療法・点滴投与を実施。アトルバスタチン、タムスロシン、ビカルタミドの内服を継続。次回受診時に副作用の有無を確認し、経過観察を行う。"
+    },
+    "generator": "llm-vllm",
+    "generator_metadata": {
+      "generator": "llm",
+      "lang": "ja"
+    },
+    "generated_at": "2020-01-01T00:00:42Z",
+    "facts_used": [
+      "outpatient_soap_template.subjective_ja",
+      "ctx.patient.demographics",
+      "ctx.encounter.chief_complaint",
+      "ctx.patient.chronic_conditions",
+      "ctx.vitals",
+      "outpatient_soap_template.objective",
+      "encounter_protocol.narrative.outpatient_soap_template.assessment_ja",
+      "ctx.patient.chronic_conditions",
+      "ctx.vitals.today",
+      "ctx.lab_results.today",
+      "encounter_protocol.narrative.outpatient_soap_template.plan_ja",
+      "encounter_protocol.next_visit_interval"
+    ]
+  }
+}

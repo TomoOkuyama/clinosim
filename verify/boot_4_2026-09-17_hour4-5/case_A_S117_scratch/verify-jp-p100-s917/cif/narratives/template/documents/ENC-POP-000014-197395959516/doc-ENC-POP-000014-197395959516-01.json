@@ -1,0 +1,33 @@
+{
+  "document_id": "doc-ENC-POP-000014-197395959516-01",
+  "encounter_id": "ENC-POP-000014-197395959516",
+  "narrative": {
+    "text": "",
+    "sections": {
+      "subjective": "55歳男性患者、本日「血圧管理・処方薬の見直し」のため外来受診。慢性疾患（本態性高血圧症）のフォローアップを兼ねる。 血圧手帳を持参、家庭血圧の記録を確認。降圧薬の副作用は認めず、\n自覚症状は特記事項なし。",
+      "objective": "BP 125/84 mmHg, HR 81 回/分。診察室血圧を測定、家庭血圧との整合性を確認。",
+      "assessment": "本態性高血圧のフォローアップ。目標 130/80 mmHg 未満を基準に評価。\n\n1. 本態性高血圧症: BP 125/84 mmHg — 目標 140/90 mmHg 未満 — 目標達成、アムロジピン 継続。",
+      "plan": "降圧薬継続、家庭血圧測定継続を指導。減塩・適度な運動・体重管理を再確認。\n次回外来は 4-6 週後に予定。\n\n次回外来: 90日後を予定。"
+    },
+    "generator": "template",
+    "generator_metadata": {
+      "generator": "template",
+      "lang": "ja"
+    },
+    "generated_at": "2020-01-01T00:15:17Z",
+    "facts_used": [
+      "outpatient_soap_template.subjective_ja",
+      "ctx.patient.demographics",
+      "ctx.encounter.chief_complaint",
+      "ctx.patient.chronic_conditions",
+      "ctx.vitals",
+      "outpatient_soap_template.objective",
+      "encounter_protocol.narrative.outpatient_soap_template.assessment_ja",
+      "ctx.patient.chronic_conditions",
+      "ctx.vitals.today",
+      "ctx.lab_results.today",
+      "encounter_protocol.narrative.outpatient_soap_template.plan_ja",
+      "encounter_protocol.next_visit_interval"
+    ]
+  }
+}

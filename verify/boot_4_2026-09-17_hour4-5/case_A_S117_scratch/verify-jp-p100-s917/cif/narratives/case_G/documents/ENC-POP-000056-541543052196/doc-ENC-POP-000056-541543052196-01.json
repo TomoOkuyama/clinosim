@@ -1,0 +1,33 @@
+{
+  "document_id": "doc-ENC-POP-000056-541543052196-01",
+  "encounter_id": "ENC-POP-000056-541543052196",
+  "narrative": {
+    "text": "",
+    "sections": {
+      "subjective": "脂質管理およびスタチン療法のモニタリング目的で受診。自覚症状の著変なし。",
+      "objective": "BP 106/73 mmHg, HR 81 回/分。体重・BMI 測定、心血管イベントリスクを再評価。",
+      "assessment": "脂質異常症 (E78) (軽度) に対してアトルバスタチン内服中だが、LDL 215.0 mg/dL [H] と目標達成に至っておらず、治療強化の検討が必要。AST 41.0 U/L [H] と軽度上昇を認めるが、肝機能障害の臨床所見はなく、経過観察とする。喘息 (J45) (Moderate persistent, 軽度) はフルチカゾン/サルメテロールおよびサルブタモールでコントロール良好。過体重 (E66.3) (中等度) についても継続的な生活指導を行う。",
+      "plan": "アトルバスタチンの継続および用量調整を検討。AST 41.0 U/L [H] については次回再検査で経過観察。喘息の吸入療法は継続。生活習慣指導（食事・運動）を継続。次回受診は1ヶ月後。"
+    },
+    "generator": "llm-vllm",
+    "generator_metadata": {
+      "generator": "llm",
+      "lang": "ja"
+    },
+    "generated_at": "2020-01-01T00:00:42Z",
+    "facts_used": [
+      "outpatient_soap_template.subjective_ja",
+      "ctx.patient.demographics",
+      "ctx.encounter.chief_complaint",
+      "ctx.patient.chronic_conditions",
+      "ctx.vitals",
+      "outpatient_soap_template.objective",
+      "encounter_protocol.narrative.outpatient_soap_template.assessment_ja",
+      "ctx.patient.chronic_conditions",
+      "ctx.vitals.today",
+      "ctx.lab_results.today",
+      "encounter_protocol.narrative.outpatient_soap_template.plan_ja",
+      "encounter_protocol.next_visit_interval"
+    ]
+  }
+}

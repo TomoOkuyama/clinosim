@@ -1,0 +1,24 @@
+{
+  "document_id": "doc-ENC-POP-000050-BABY-103885697903-18-evening",
+  "encounter_id": "ENC-POP-000050-BABY-103885697903",
+  "narrative": {
+    "text": "【看護記録(準夜)】 入院 4 日目 / 入院予定 5 日間\n担当看護師: 上原 慎太郎 看護師\n患者状態: BP 68/40, HR 130, SpO2 97%, T 36.7°C。\n投薬継続: ケイツーシロップ (フィトナジオン 2 mg 経口)。\n観察・ケア継続、特記事項なし。",
+    "sections": {},
+    "generator": "llm-vllm",
+    "generator_metadata": {
+      "generator": "template",
+      "lang": "ja",
+      "day_index": 3,
+      "shift": "evening"
+    },
+    "generated_at": "2020-01-01T00:00:42Z",
+    "facts_used": [
+      "ctx.shift",
+      "encounter.primary_nurse_id",
+      "ctx.vitals.today",
+      "ctx.medications.today",
+      "ctx.day_index",
+      "ctx.los_days"
+    ]
+  }
+}

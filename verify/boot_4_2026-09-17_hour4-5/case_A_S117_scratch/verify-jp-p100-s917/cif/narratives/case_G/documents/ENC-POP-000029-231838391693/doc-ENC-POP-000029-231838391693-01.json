@@ -1,0 +1,33 @@
+{
+  "document_id": "doc-ENC-POP-000029-231838391693-01",
+  "encounter_id": "ENC-POP-000029-231838391693",
+  "narrative": {
+    "text": "",
+    "sections": {
+      "subjective": "年次健診のため来院。自覚症状は特になく、日常生活に支障はない。",
+      "objective": "BP 118/60 mmHg, HR 89 回/分, RR 16 回/分, SpO2 98%, T 37.2°C。体重測定、下肢浮腫の有無を確認。",
+      "assessment": "2型糖尿病 (E11.9) (HbA1c 9.6%, 中等度) に対してメトホルミンを内服中だが、本日測定した血糖 168.0 mg/dL [H]、HbA1c 8.9 % [H] は高値であり、血糖コントロール不良と判断される。また、AST 77.0 U/L [H]、ALT 42.0 U/L [H] の肝機能異常も認められる。K64.9 (中等度) およびニコチン依存症（紙巻きたばこ、合併症なし） (F17.210) (中等度) についても継続的な管理が必要である。",
+      "plan": "血糖コントロール改善のため、メトホルミンの継続内服を指示し、食事指導と運動指導を行う。肝機能異常の原因精査のため、次回受診時に再検査を予定する。喫煙継続中であるため、禁煙指導を行う。次回受診は1ヶ月後を予定。"
+    },
+    "generator": "llm-vllm",
+    "generator_metadata": {
+      "generator": "llm",
+      "lang": "ja"
+    },
+    "generated_at": "2020-01-01T00:00:42Z",
+    "facts_used": [
+      "outpatient_soap_template.subjective_ja",
+      "ctx.patient.demographics",
+      "ctx.encounter.chief_complaint",
+      "ctx.patient.chronic_conditions",
+      "ctx.vitals",
+      "outpatient_soap_template.objective",
+      "encounter_protocol.narrative.outpatient_soap_template.assessment_ja",
+      "ctx.patient.chronic_conditions",
+      "ctx.vitals.today",
+      "ctx.lab_results.today",
+      "encounter_protocol.narrative.outpatient_soap_template.plan_ja",
+      "encounter_protocol.next_visit_interval"
+    ]
+  }
+}

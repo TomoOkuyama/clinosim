@@ -1,0 +1,33 @@
+{
+  "document_id": "doc-ENC-POP-000049-035682923458-01",
+  "encounter_id": "ENC-POP-000049-035682923458",
+  "narrative": {
+    "text": "",
+    "sections": {
+      "subjective": "血圧管理と処方薬の見直しを目的に外来受診。自覚症状の著変は認めず、日常生活動作に支障はないと訴える。",
+      "objective": "BP 127/79 mmHg, HR 86 回/分。診察室血圧を測定、家庭血圧との整合性を確認。",
+      "assessment": "本態性高血圧症 (I10) (Stage 1, 中等度)、脂質異常症 (E78) (中等度)、心不全 (I50) (NYHA IV, 中等度)、変形性膝関節症 (M17) (中等度)、過体重 (E66.3) (軽度) の経過観察中。診察室血圧 127/79 mmHg、心拍数 86 回/分と安定している。本日測定した検査値で ALT 120.0 U/L [H]、AST 135.0 U/L [H] と肝機能異常が認められ、内服薬の影響や肝疾患の進行を疑うため、原因の精査と薬剤調整の検討が必要である。",
+      "plan": "肝機能異常 (ALT 120.0 U/L [H], AST 135.0 U/L [H]) に対して、アムロジピン、アトルバスタチン、フロセミド、カルベジロール、アセトアミノフェンを含む現在の内服薬を再評価し、肝毒性の可能性がある薬剤の中止または減量を検討する。次回受診時に肝機能検査を再検し、改善傾向を確認する。"
+    },
+    "generator": "llm-vllm",
+    "generator_metadata": {
+      "generator": "llm",
+      "lang": "ja"
+    },
+    "generated_at": "2020-01-01T00:00:42Z",
+    "facts_used": [
+      "outpatient_soap_template.subjective_ja",
+      "ctx.patient.demographics",
+      "ctx.encounter.chief_complaint",
+      "ctx.patient.chronic_conditions",
+      "ctx.vitals",
+      "outpatient_soap_template.objective",
+      "encounter_protocol.narrative.outpatient_soap_template.assessment_ja",
+      "ctx.patient.chronic_conditions",
+      "ctx.vitals.today",
+      "ctx.lab_results.today",
+      "encounter_protocol.narrative.outpatient_soap_template.plan_ja",
+      "encounter_protocol.next_visit_interval"
+    ]
+  }
+}

@@ -1,0 +1,30 @@
+{
+  "document_id": "doc-ENC-POP-000043-507863301774-01",
+  "encounter_id": "ENC-POP-000043-507863301774",
+  "narrative": {
+    "text": "",
+    "sections": {
+      "subjective": "マンモグラフィー検診のため来院。甲状腺機能低下症、高尿酸血症、アルコール依存症（合併症なし）の経過観察中。レボチロキシンを内服継続中。本日の主訴や新たな症状の訴えは特になし。",
+      "objective": "BP 129/81 mmHg, HR 77 回/分, RR 18 回/分, SpO2 96%, T 36.0°C",
+      "assessment": "バイタルサインは安定（BP 129/81 mmHg, HR 77 回/分, RR 18 回/分, SpO2 96%, T 36.0°C）。検査所見でAST 77.0 U/L [H]、ALT 99.0 U/L [H]と肝酵素の上昇を認める。既往のアルコール依存症（軽度）および多量飲酒歴を考慮し、肝障害の進行または悪化が疑われる。甲状腺機能低下症（中等度）および高尿酸血症（中等度）の管理は継続が必要。",
+      "plan": "肝酵素上昇の原因精査のため、肝機能検査の再評価および腹部超音波検査を予定。アルコール摂取量の厳格な管理と禁酒指導を徹底する。レボチロキシンは現在の用量で継続。次回外来受診時に検査結果を持ち帰り、所見に基づいて治療方針を再検討する。"
+    },
+    "generator": "llm-vllm",
+    "generator_metadata": {
+      "generator": "llm",
+      "lang": "ja"
+    },
+    "generated_at": "2020-01-01T00:00:42Z",
+    "facts_used": [
+      "ctx.patient.demographics",
+      "ctx.encounter.chief_complaint",
+      "ctx.patient.chronic_conditions",
+      "ctx.vitals",
+      "ctx.patient.chronic_conditions",
+      "ctx.vitals.today",
+      "ctx.lab_results.today",
+      "ctx.patient.current_medications",
+      "encounter_protocol.next_visit_interval"
+    ]
+  }
+}

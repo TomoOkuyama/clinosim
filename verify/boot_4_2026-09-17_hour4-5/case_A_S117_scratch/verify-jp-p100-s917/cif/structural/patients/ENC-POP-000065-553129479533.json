@@ -1,0 +1,466 @@
+{
+  "patient": {
+    "patient_id": "POP-000065",
+    "household_id": "HH-000028",
+    "name": {
+      "family_name": "西村",
+      "given_name": "守",
+      "display_name": "西村 守",
+      "name_script": "ja",
+      "phonetic": "ニシムラ マモル"
+    },
+    "age": 10,
+    "sex": "M",
+    "date_of_birth": "2014-06-14",
+    "date_of_death": null,
+    "blood_type": "O",
+    "rh_factor": "+",
+    "height_cm": 167.9,
+    "weight_kg": 61.2,
+    "bmi": 21.7,
+    "address": {
+      "postal_code": "211-0001",
+      "state": "神奈川県",
+      "city": "川崎市",
+      "line1": "若葉1丁目27-4",
+      "line2": "",
+      "country": "JP"
+    },
+    "contact": {
+      "phone_home": "",
+      "phone_mobile": "",
+      "phone_primary": "",
+      "email": "",
+      "emergency_contact_name": "",
+      "emergency_contact_phone": "",
+      "emergency_contact_relationship": ""
+    },
+    "marital_status": "S",
+    "preferred_language": "ja-JP",
+    "employment_status": "employed",
+    "occupation": "elementary_student",
+    "insurance_type": "national",
+    "identity": {
+      "national": {
+        "country": "JP",
+        "national_id": "268033559227",
+        "has_id_card": true,
+        "id_card_linked_to_insurance": false
+      },
+      "enrollments": [
+        {
+          "country": "JP",
+          "category": "national",
+          "insurer_number": "131011",
+          "member_id": "445903",
+          "group_symbol": "8312",
+          "branch_number": "03",
+          "valid_from": null,
+          "valid_to": null,
+          "system_uri": ""
+        }
+      ],
+      "card_acquired_on": null,
+      "insurance_linked_on": null
+    },
+    "race": "",
+    "ethnicity": "",
+    "health_literacy": 0.52,
+    "chronic_conditions": [],
+    "allergies": [
+      {
+        "allergy_id": "nka",
+        "allergen_code": "716186003",
+        "category": "",
+        "criticality": "unable-to-assess",
+        "verification_status": "confirmed",
+        "clinical_status": "resolved",
+        "onset_date": null,
+        "reactions": [],
+        "is_nka": true
+      }
+    ],
+    "current_medications": [],
+    "safety_skip_log": [],
+    "baseline_chronic_medications": [],
+    "smoking_status": "never",
+    "alcohol_use": "none",
+    "physiological_profile": {
+      "immune_reactivity": 0.4494016567562057,
+      "drug_metabolism_rate": "rapid",
+      "renal_reserve": 0.9878838703783708,
+      "cardiac_reserve": 0.9630504030947465,
+      "hepatic_reserve": 0.9279365379095276,
+      "treatment_sensitivity": 0.8152739694934588,
+      "symptom_reporting_bias": 0.7098027777032633,
+      "delirium_susceptibility": 0.3202501225701033,
+      "dvt_susceptibility": 0.032702075906484995
+    },
+    "baseline_vitals": {
+      "temperature": 36.6,
+      "heart_rate": 77,
+      "systolic_bp": 110,
+      "diastolic_bp": 78,
+      "respiratory_rate": 19,
+      "spo2": 97.6
+    },
+    "state_periods": []
+  },
+  "encounters": [
+    {
+      "encounter_id": "ENC-POP-000065-553129479533",
+      "patient_id": "POP-000065",
+      "episode_id": "EP-POP-000065-553129479533",
+      "encounter_type": "outpatient",
+      "status": "completed",
+      "department_id": "primary_care",
+      "attending_physician_id": "DR-PC-002",
+      "admitting_physician_id": "DR-PC-002",
+      "discharging_physician_id": "DR-PC-002",
+      "admission_datetime": "2026-03-10T10:42:00",
+      "discharge_datetime": "2026-03-10T10:55:00",
+      "chief_complaint": "発熱を伴う上気道感染 (外来対症療法)",
+      "chief_complaint_ja": "発熱を伴う上気道感染 (外来対症療法)",
+      "disease_event_id": "DE-POP-000065-001",
+      "ward_id": "",
+      "bed_number": "",
+      "time_resolution": 3600.0,
+      "admit_source": "outp",
+      "admit_source_encounter_id": "",
+      "discharge_disposition": "home",
+      "priority": "R",
+      "primary_nurse_id": "",
+      "triage_data": null,
+      "severity": "",
+      "clinical_course_archetype": "",
+      "service_line": "",
+      "admission_diagnosis_code": "",
+      "admission_diagnosis_system": ""
+    }
+  ],
+  "orders": [],
+  "vital_signs": [
+    {
+      "timestamp": "2026-03-10T10:47:00",
+      "temperature_celsius": 36.2,
+      "heart_rate": 77,
+      "systolic_bp": null,
+      "diastolic_bp": null,
+      "respiratory_rate": null,
+      "spo2": null,
+      "pain_score": null,
+      "consciousness_level": "A",
+      "on_supplemental_oxygen": false,
+      "oxygen_flow_rate_lpm": null,
+      "oxygen_delivery_device": "",
+      "nursing_note": "",
+      "measured_by": "NS-PC-002",
+      "data_source": "manual",
+      "news2_score": 0,
+      "gcs_score": 15
+    }
+  ],
+  "lab_results": [],
+  "condition_event": {
+    "condition_id": "COND-POP-000065-OPD",
+    "condition_type": "chronic_followup",
+    "ground_truth_diseases": [
+      "Z00"
+    ],
+    "symptom_pattern": "",
+    "state_impacts": {},
+    "presenting_symptoms": []
+  },
+  "clinical_diagnosis": {
+    "admission_diagnosis_code": "Z00",
+    "admission_diagnosis_system": "icd-10-mhlw",
+    "working_diagnoses": [],
+    "discharge_diagnosis_code": "Z00",
+    "discharge_diagnosis_system": "icd-10-mhlw",
+    "diagnosis_correct": true,
+    "missed_diagnoses": [],
+    "overcalled_diagnoses": []
+  },
+  "complications_occurred": [],
+  "procedures": [],
+  "rehab_sessions": [],
+  "documents": [
+    {
+      "document_id": "doc-ENC-POP-000065-553129479533-01",
+      "task_type": "outpatient_soap",
+      "loinc_code": "34131-3",
+      "patient_id": "POP-000065",
+      "encounter_id": "ENC-POP-000065-553129479533",
+      "author_practitioner_id": "DR-PC-002",
+      "related_procedure_id": "",
+      "authored_datetime": "2026-03-10T10:42:00",
+      "period_start": "2026-03-10T10:42:00",
+      "period_end": "2026-03-10T10:55:00",
+      "language": "ja",
+      "content_type": "text/plain",
+      "format_type": "composition",
+      "shift": "",
+      "checkup_type": "",
+      "narrative": null
+    }
+  ],
+  "medication_administrations": [],
+  "intake_output_records": [],
+  "adl_assessments": [],
+  "nursing_risk_assessments": [],
+  "immunizations": [
+    {
+      "vaccine_cvx": "17",
+      "occurrence_date": "2014-08-18",
+      "status": "completed",
+      "primary_source": false,
+      "dose_number": 1,
+      "lot_number": "L149-201408-842",
+      "administered_by": "NS-GI-001",
+      "encounter_id": ""
+    },
+    {
+      "vaccine_cvx": "133",
+      "occurrence_date": "2014-08-29",
+      "status": "completed",
+      "primary_source": false,
+      "dose_number": 1,
+      "lot_number": "L941-201408-338",
+      "administered_by": "NS-GI-001",
+      "encounter_id": ""
+    },
+    {
+      "vaccine_cvx": "106",
+      "occurrence_date": "2014-09-23",
+      "status": "completed",
+      "primary_source": false,
+      "dose_number": 1,
+      "lot_number": "L174-201409-149",
+      "administered_by": "NS-GI-001",
+      "encounter_id": ""
+    },
+    {
+      "vaccine_cvx": "133",
+      "occurrence_date": "2014-09-23",
+      "status": "completed",
+      "primary_source": false,
+      "dose_number": 2,
+      "lot_number": "L941-201409-252",
+      "administered_by": "NS-GI-001",
+      "encounter_id": ""
+    },
+    {
+      "vaccine_cvx": "17",
+      "occurrence_date": "2014-10-02",
+      "status": "completed",
+      "primary_source": false,
+      "dose_number": 2,
+      "lot_number": "L149-201410-219",
+      "administered_by": "NS-GI-001",
+      "encounter_id": ""
+    },
+    {
+      "vaccine_cvx": "17",
+      "occurrence_date": "2014-10-16",
+      "status": "completed",
+      "primary_source": false,
+      "dose_number": 3,
+      "lot_number": "L149-201410-219",
+      "administered_by": "NS-GI-001",
+      "encounter_id": ""
+    },
+    {
+      "vaccine_cvx": "133",
+      "occurrence_date": "2014-10-23",
+      "status": "completed",
+      "primary_source": false,
+      "dose_number": 3,
+      "lot_number": "L941-201410-360",
+      "administered_by": "NS-GI-001",
+      "encounter_id": ""
+    },
+    {
+      "vaccine_cvx": "106",
+      "occurrence_date": "2014-11-03",
+      "status": "completed",
+      "primary_source": false,
+      "dose_number": 2,
+      "lot_number": "L174-201411-207",
+      "administered_by": "NS-GI-001",
+      "encounter_id": ""
+    },
+    {
+      "vaccine_cvx": "19",
+      "occurrence_date": "2014-12-15",
+      "status": "completed",
+      "primary_source": false,
+      "dose_number": 1,
+      "lot_number": "L284-201412-350",
+      "administered_by": "NS-GI-001",
+      "encounter_id": ""
+    },
+    {
+      "vaccine_cvx": "106",
+      "occurrence_date": "2014-12-29",
+      "status": "completed",
+      "primary_source": false,
+      "dose_number": 3,
+      "lot_number": "L174-201412-814",
+      "administered_by": "NS-GI-001",
+      "encounter_id": ""
+    },
+    {
+      "vaccine_cvx": "21",
+      "occurrence_date": "2015-07-11",
+      "status": "completed",
+      "primary_source": false,
+      "dose_number": 1,
+      "lot_number": "L861-201507-159",
+      "administered_by": "NS-GI-001",
+      "encounter_id": ""
+    },
+    {
+      "vaccine_cvx": "17",
+      "occurrence_date": "2015-07-24",
+      "status": "completed",
+      "primary_source": false,
+      "dose_number": 4,
+      "lot_number": "L149-201507-388",
+      "administered_by": "NS-GI-001",
+      "encounter_id": ""
+    },
+    {
+      "vaccine_cvx": "133",
+      "occurrence_date": "2015-08-03",
+      "status": "completed",
+      "primary_source": false,
+      "dose_number": 4,
+      "lot_number": "L941-201508-529",
+      "administered_by": "NS-GI-001",
+      "encounter_id": ""
+    },
+    {
+      "vaccine_cvx": "106",
+      "occurrence_date": "2015-09-05",
+      "status": "completed",
+      "primary_source": false,
+      "dose_number": 4,
+      "lot_number": "L174-201509-871",
+      "administered_by": "NS-GI-001",
+      "encounter_id": ""
+    },
+    {
+      "vaccine_cvx": "21",
+      "occurrence_date": "2015-09-21",
+      "status": "completed",
+      "primary_source": false,
+      "dose_number": 2,
+      "lot_number": "L861-201509-753",
+      "administered_by": "NS-GI-001",
+      "encounter_id": ""
+    },
+    {
+      "vaccine_cvx": "07",
+      "occurrence_date": "2015-10-16",
+      "status": "completed",
+      "primary_source": false,
+      "dose_number": 1,
+      "lot_number": "L152-201510-646",
+      "administered_by": "NS-GI-001",
+      "encounter_id": ""
+    },
+    {
+      "vaccine_cvx": "04",
+      "occurrence_date": "2016-01-20",
+      "status": "completed",
+      "primary_source": false,
+      "dose_number": 1,
+      "lot_number": "L552-201601-187",
+      "administered_by": "NS-GI-001",
+      "encounter_id": ""
+    },
+    {
+      "vaccine_cvx": "129",
+      "occurrence_date": "2018-03-22",
+      "status": "completed",
+      "primary_source": false,
+      "dose_number": 1,
+      "lot_number": "L845-201803-493",
+      "administered_by": "NS-GI-001",
+      "encounter_id": ""
+    },
+    {
+      "vaccine_cvx": "129",
+      "occurrence_date": "2018-09-14",
+      "status": "completed",
+      "primary_source": false,
+      "dose_number": 2,
+      "lot_number": "L845-201809-220",
+      "administered_by": "NS-GI-001",
+      "encounter_id": ""
+    },
+    {
+      "vaccine_cvx": "04",
+      "occurrence_date": "2019-11-18",
+      "status": "completed",
+      "primary_source": false,
+      "dose_number": 2,
+      "lot_number": "L552-201911-279",
+      "administered_by": "NS-GI-001",
+      "encounter_id": ""
+    },
+    {
+      "vaccine_cvx": "129",
+      "occurrence_date": "2024-04-16",
+      "status": "completed",
+      "primary_source": false,
+      "dose_number": 3,
+      "lot_number": "L845-202404-634",
+      "administered_by": "NS-GI-001",
+      "encounter_id": ""
+    }
+  ],
+  "family_history": [
+    {
+      "relationship": "MTH",
+      "sex": "female",
+      "deceased": false,
+      "condition_codes": []
+    },
+    {
+      "relationship": "FTH",
+      "sex": "male",
+      "deceased": false,
+      "condition_codes": [
+        "E11"
+      ]
+    },
+    {
+      "relationship": "NSIB",
+      "sex": "female",
+      "deceased": false,
+      "condition_codes": []
+    },
+    {
+      "relationship": "NSIB",
+      "sex": "female",
+      "deceased": false,
+      "condition_codes": []
+    }
+  ],
+  "code_status": "",
+  "care_level": "",
+  "microbiology": [],
+  "discharge_prescription": null,
+  "icu_transferred": false,
+  "icu_transferred_day": -1,
+  "deceased": false,
+  "death_day": null,
+  "is_readmission": false,
+  "prior_encounter_id": null,
+  "readmission_number": 0,
+  "physiological_states": [],
+  "extensions": {
+    "clinical_impressions": []
+  }
+}

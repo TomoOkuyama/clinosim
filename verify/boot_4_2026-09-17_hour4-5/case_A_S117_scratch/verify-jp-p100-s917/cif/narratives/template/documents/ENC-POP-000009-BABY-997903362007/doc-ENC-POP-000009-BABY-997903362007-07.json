@@ -1,0 +1,39 @@
+{
+  "document_id": "doc-ENC-POP-000009-BABY-997903362007-07",
+  "encounter_id": "ENC-POP-000009-BABY-997903362007",
+  "narrative": {
+    "text": "",
+    "sections": {
+      "admission_reason": "出生児の出生場所別分類のため入院となった。",
+      "admission_details": "2026-03-16に入院した。",
+      "admission_diagnoses": "1. 出生児の出生場所別分類（Z38.0）",
+      "chief_complaint": "新生児 — 院内出生",
+      "present_illness": "受診となった。 主訴: 新生児 — 院内出生。既往: 出生児の出生場所別分類。 Apgar 8(1分)/9(5分)、AABR 聴覚スクリーン提出済、タンデム MS 代謝異常症スクリーン提出済、総ビリルビン最高値 6.0 mg/dL、CCHD SpO2 右上肢 96% / 下肢 98%、ビタミン K 投与済。",
+      "hospital_course": "入院期間 5 日間（主病名/主訴: 新生児 — 院内出生）。",
+      "discharge_details": "2026-03-21自宅退院となった。",
+      "discharge_diagnoses": "出生児の出生場所別分類（Z38.0）",
+      "discharge_medications": "退院処方なし",
+      "discharge_instructions": "十分な水分摂取を心がけてください。 十分な休息をとり、無理な活動は控えてください。 退院後 1-2 週間以内にかかりつけ医を受診してください。 処方された薬はすべて指示通りに内服してください。医師に相談なく中止しないでください。 症状が著しく悪化した場合は速やかに救急受診してください。 食事は体調に合わせて徐々に通常食に戻してください。"
+    },
+    "generator": "template",
+    "generator_metadata": {
+      "generator": "template",
+      "lang": "ja"
+    },
+    "generated_at": "2020-01-01T00:15:17Z",
+    "facts_used": [
+      "ctx.diagnoses[0].admission_diagnosis_code",
+      "ctx.encounter.admission_datetime",
+      "ctx.diagnoses",
+      "ctx.encounter.chief_complaint_ja",
+      "ctx.patient.demographics",
+      "ctx.encounter.chief_complaint",
+      "ctx.patient.chronic_conditions",
+      "ctx.newborn_workup",
+      "ctx.los_days",
+      "ctx.encounter.discharge_datetime",
+      "ctx.diagnoses",
+      "discharge_instructions.baseline"
+    ]
+  }
+}

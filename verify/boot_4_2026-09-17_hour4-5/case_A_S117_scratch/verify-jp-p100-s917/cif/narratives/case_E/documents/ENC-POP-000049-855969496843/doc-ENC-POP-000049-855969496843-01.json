@@ -1,0 +1,33 @@
+{
+  "document_id": "doc-ENC-POP-000049-855969496843-01",
+  "encounter_id": "ENC-POP-000049-855969496843",
+  "narrative": {
+    "text": "",
+    "sections": {
+      "subjective": "血圧管理および処方薬の見直しを目的に外来受診。本日の主訴は特になく、日常生活での不調や新たな症状の出現は認めない。既往症に対する現在の内服薬（アムロジピン、アトルバスタチン、フロセミド、カルベジロール、アセトアミノフェン）を継続している。",
+      "objective": "BP 126/80 mmHg, HR 86 回/分。診察室血圧を測定、家庭血圧との整合性を確認。",
+      "assessment": "80歳男性、本態性高血圧症 (I10) (Stage 1, 中等度)、脂質異常症 (E78) (中等度)、心不全 (I50) (NYHA IV, 中等度)、変形性膝関節症 (M17) (中等度)、過体重 (E66.3) (軽度) の既往あり。診察室血圧は 126/80 mmHg、心拍数は 86 回/分であり、家庭血圧との整合性を確認した。現在のバイタルサインは安定しており、心不全 (NYHA IV) を有する患者として血圧管理は適切に保たれている。",
+      "plan": "現在の内服薬（アムロジピン、アトルバスタチン、フロセミド、カルベジロール、アセトアミノフェン）を継続する。血圧管理の継続と定期的な経過観察を指示。次回受診時に再度血圧測定および状態評価を行う。"
+    },
+    "generator": "llm-vllm",
+    "generator_metadata": {
+      "generator": "llm",
+      "lang": "ja"
+    },
+    "generated_at": "2020-01-01T00:00:42Z",
+    "facts_used": [
+      "outpatient_soap_template.subjective_ja",
+      "ctx.patient.demographics",
+      "ctx.encounter.chief_complaint",
+      "ctx.patient.chronic_conditions",
+      "ctx.vitals",
+      "outpatient_soap_template.objective",
+      "encounter_protocol.narrative.outpatient_soap_template.assessment_ja",
+      "ctx.patient.chronic_conditions",
+      "ctx.vitals.today",
+      "ctx.lab_results.today",
+      "encounter_protocol.narrative.outpatient_soap_template.plan_ja",
+      "encounter_protocol.next_visit_interval"
+    ]
+  }
+}

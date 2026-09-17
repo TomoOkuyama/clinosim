@@ -1,0 +1,33 @@
+{
+  "document_id": "doc-ENC-POP-000097-230418474577-01",
+  "encounter_id": "ENC-POP-000097-230418474577",
+  "narrative": {
+    "text": "",
+    "sections": {
+      "subjective": "脂質管理およびスタチン療法のモニタリング目的で受診。自覚症状の著変なし。",
+      "objective": "BP 110/67 mmHg, HR 76 回/分。体重・BMI 測定、心血管イベントリスクを再評価。",
+      "assessment": "脂質異常症 (E78) (軽度)、慢性閉塞性肺疾患 (J44) (GOLD 1, 軽度)、E79 (中等度) の経過観察中。本日測定した肝機能検査で ALT 80.0 U/L [H]、AST 167.0 U/L [H] と上昇を認める。アトルバスタチン内服に伴う肝機能異常の可能性を考慮し、経過観察が必要。",
+      "plan": "アトルバスタチン、チオトロピウム、サルブタモールの内服継続。肝機能検査の再評価のため、1週間後に再受診。"
+    },
+    "generator": "llm-vllm",
+    "generator_metadata": {
+      "generator": "llm",
+      "lang": "ja"
+    },
+    "generated_at": "2020-01-01T00:00:42Z",
+    "facts_used": [
+      "outpatient_soap_template.subjective_ja",
+      "ctx.patient.demographics",
+      "ctx.encounter.chief_complaint",
+      "ctx.patient.chronic_conditions",
+      "ctx.vitals",
+      "outpatient_soap_template.objective",
+      "encounter_protocol.narrative.outpatient_soap_template.assessment_ja",
+      "ctx.patient.chronic_conditions",
+      "ctx.vitals.today",
+      "ctx.lab_results.today",
+      "encounter_protocol.narrative.outpatient_soap_template.plan_ja",
+      "encounter_protocol.next_visit_interval"
+    ]
+  }
+}

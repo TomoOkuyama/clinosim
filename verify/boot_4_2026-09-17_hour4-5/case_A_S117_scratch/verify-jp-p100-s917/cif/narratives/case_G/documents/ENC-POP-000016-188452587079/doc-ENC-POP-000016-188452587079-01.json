@@ -1,0 +1,33 @@
+{
+  "document_id": "doc-ENC-POP-000016-188452587079-01",
+  "encounter_id": "ENC-POP-000016-188452587079",
+  "narrative": {
+    "text": "",
+    "sections": {
+      "subjective": "年次健診のため来院。自覚症状は特になく、著変なし。",
+      "objective": "BP 129/70 mmHg, HR 85 回/分, RR 18 回/分, SpO2 97%, T 36.4°C。上腹部圧痛の有無を確認。",
+      "assessment": "バイタルサインは安定している。検査所見で血糖 114.0 mg/dL [H]、AST 140.0 U/L [H]、ALT 140.0 U/L [H] と肝機能異常および高血糖が認められる。骨粗鬆症 (M81) (軽度)、胃食道逆流症 (K21) (軽度)、H26 (中等度)、過体重 (E66.3) (軽度) の経過観察が必要。",
+      "plan": "肝機能異常および高血糖の原因精査のため、次回受診時に再検査を行う。アレンドロネート、ビタミンD、ランソプラゾールの内服を継続する。"
+    },
+    "generator": "llm-vllm",
+    "generator_metadata": {
+      "generator": "llm",
+      "lang": "ja"
+    },
+    "generated_at": "2020-01-01T00:00:42Z",
+    "facts_used": [
+      "outpatient_soap_template.subjective_ja",
+      "ctx.patient.demographics",
+      "ctx.encounter.chief_complaint",
+      "ctx.patient.chronic_conditions",
+      "ctx.vitals",
+      "outpatient_soap_template.objective",
+      "encounter_protocol.narrative.outpatient_soap_template.assessment_ja",
+      "ctx.patient.chronic_conditions",
+      "ctx.vitals.today",
+      "ctx.lab_results.today",
+      "encounter_protocol.narrative.outpatient_soap_template.plan_ja",
+      "encounter_protocol.next_visit_interval"
+    ]
+  }
+}

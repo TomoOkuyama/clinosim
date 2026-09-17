@@ -1,0 +1,33 @@
+{
+  "document_id": "doc-ENC-POP-000029-210502078243-01",
+  "encounter_id": "ENC-POP-000029-210502078243",
+  "narrative": {
+    "text": "",
+    "sections": {
+      "subjective": "46歳女性、製造業勤務、現喫煙。2型糖尿病、K64.9、ニコチン依存症の既往あり。本日、マンモグラフィー検診を目的に外来受診。前回の受診時と比べて自覚症状に著変なし。",
+      "objective": "BP 124/57 mmHg, HR 90 回/分, RR 15 回/分, SpO2 100%, T 36.2°C。体重測定、下肢浮腫の有無を確認。",
+      "assessment": "2型糖尿病 (E11.9) について、HbA1c 9.3 % [H]、血糖 176.0 mg/dL [H] と血糖コントロール不良が持続している。また、AST 66.0 U/L [H]、ALT 52.0 U/L [H] と肝機能異常を認める。K64.9 (中等度) およびニコチン依存症（紙巻きたばこ、合併症なし） (F17.210) (中等度) についても継続的な管理が必要である。",
+      "plan": "メトホルミンの継続内服を指示。肝機能異常および血糖コントロール不良に対し、次回受診時に再評価を行う。禁煙指導を継続。"
+    },
+    "generator": "llm-vllm",
+    "generator_metadata": {
+      "generator": "llm",
+      "lang": "ja"
+    },
+    "generated_at": "2020-01-01T00:00:42Z",
+    "facts_used": [
+      "outpatient_soap_template.subjective_ja",
+      "ctx.patient.demographics",
+      "ctx.encounter.chief_complaint",
+      "ctx.patient.chronic_conditions",
+      "ctx.vitals",
+      "outpatient_soap_template.objective",
+      "encounter_protocol.narrative.outpatient_soap_template.assessment_ja",
+      "ctx.patient.chronic_conditions",
+      "ctx.vitals.today",
+      "ctx.lab_results.today",
+      "encounter_protocol.narrative.outpatient_soap_template.plan_ja",
+      "encounter_protocol.next_visit_interval"
+    ]
+  }
+}

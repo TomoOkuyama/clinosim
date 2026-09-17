@@ -1,0 +1,33 @@
+{
+  "document_id": "doc-ENC-POP-000052-434789660536-01",
+  "encounter_id": "ENC-POP-000052-434789660536",
+  "narrative": {
+    "text": "",
+    "sections": {
+      "subjective": "糖尿病性網膜症スクリーニング・眼底検査のため受診。前回の受診時と比べて自覚症状に著変なし。",
+      "objective": "BP 113/75 mmHg, HR 81 回/分。体重測定、下肢浮腫の有無を確認。",
+      "assessment": "2型糖尿病 (E11.9) (HbA1c 6.5%, 軽度) について、本日測定したHbA1c 6.4 % [H] は前回値から改善傾向を示しており、血糖管理は良好に推移している。脂質異常症 (E78) (軽度)、慢性閉塞性肺疾患 (J44) (GOLD 2, 中等度)、慢性腎臓病 (N18) (CKD G2, 中等度)、骨粗鬆症 (M81) (軽度)、変形性膝関節症 (M17) (軽度)、H26 (中等度)、反復性うつ病性障害 (F33) (中等度)、ニコチン依存症（紙巻きたばこ、合併症なし） (F17.210) (中等度) についても、現在の所見から安定している。",
+      "plan": "メトホルミン、スライディングスケールインスリン、アトルバスタチン、チオトロピウム、サルブタモール、アレンドロネート、ビタミンD、セレコキシブ、Sertraline の内服を継続する。次回受診時に眼底所見の再評価を行う。"
+    },
+    "generator": "llm-vllm",
+    "generator_metadata": {
+      "generator": "llm",
+      "lang": "ja"
+    },
+    "generated_at": "2020-01-01T00:00:42Z",
+    "facts_used": [
+      "outpatient_soap_template.subjective_ja",
+      "ctx.patient.demographics",
+      "ctx.encounter.chief_complaint",
+      "ctx.patient.chronic_conditions",
+      "ctx.vitals",
+      "outpatient_soap_template.objective",
+      "encounter_protocol.narrative.outpatient_soap_template.assessment_ja",
+      "ctx.patient.chronic_conditions",
+      "ctx.vitals.today",
+      "ctx.lab_results.today",
+      "encounter_protocol.narrative.outpatient_soap_template.plan_ja",
+      "encounter_protocol.next_visit_interval"
+    ]
+  }
+}

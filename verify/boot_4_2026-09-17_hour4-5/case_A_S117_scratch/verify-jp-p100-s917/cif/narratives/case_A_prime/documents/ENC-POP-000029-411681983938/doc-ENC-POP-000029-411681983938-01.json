@@ -1,0 +1,33 @@
+{
+  "document_id": "doc-ENC-POP-000029-411681983938-01",
+  "encounter_id": "ENC-POP-000029-411681983938",
+  "narrative": {
+    "text": "",
+    "sections": {
+      "subjective": "2型糖尿病の血糖コントロール確認のため外来受診。前回受診時と比べ、自覚症状に著変なし。",
+      "objective": "BP 118/59 mmHg, HR 89 回/分。体重測定、下肢浮腫の有無を確認。",
+      "assessment": "2型糖尿病 (E11.9) に対してメトホルミンを継続内服中。本日測定した血糖 214.0 mg/dL [H]、HbA1c 9.1 % [H] は基準値を上回っており、現在の治療法では血糖コントロールが不十分と判断される。",
+      "plan": "メトホルミンの継続内服を指示。食事指導および生活習慣改善（禁煙指導を含む）を再強調。次回受診時に血糖値の再評価を行う。"
+    },
+    "generator": "llm-vllm",
+    "generator_metadata": {
+      "generator": "llm",
+      "lang": "ja"
+    },
+    "generated_at": "2020-01-01T00:00:42Z",
+    "facts_used": [
+      "outpatient_soap_template.subjective_ja",
+      "ctx.patient.demographics",
+      "ctx.encounter.chief_complaint",
+      "ctx.patient.chronic_conditions",
+      "ctx.vitals",
+      "outpatient_soap_template.objective",
+      "encounter_protocol.narrative.outpatient_soap_template.assessment_ja",
+      "ctx.patient.chronic_conditions",
+      "ctx.vitals.today",
+      "ctx.lab_results.today",
+      "encounter_protocol.narrative.outpatient_soap_template.plan_ja",
+      "encounter_protocol.next_visit_interval"
+    ]
+  }
+}

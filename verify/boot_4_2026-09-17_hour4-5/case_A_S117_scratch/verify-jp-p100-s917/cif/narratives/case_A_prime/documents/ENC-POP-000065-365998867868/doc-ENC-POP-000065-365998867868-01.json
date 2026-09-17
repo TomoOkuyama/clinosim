@@ -1,0 +1,27 @@
+{
+  "document_id": "doc-ENC-POP-000065-365998867868-01",
+  "encounter_id": "ENC-POP-000065-365998867868",
+  "narrative": {
+    "text": "",
+    "sections": {
+      "subjective": "思春期予防接種（DPT、HPV、髄膜炎菌）のため来院。自覚症状は特になく、体調は良好と訴える。",
+      "objective": "HR 83 回/分, T 37.3°C",
+      "assessment": "バイタルサインは安定しており、HR 83 回/分、T 37.3°C と発熱や不整脈等の異常所見は認めない。接種禁忌となる急性疾患やアレルギー歴は確認されず、思春期予防接種の適応あり。",
+      "plan": "DPT、HPV、髄膜炎菌ワクチンを接種する。接種後の経過観察を30分間実施し、帰宅後の発熱や局所反応への対応について指導する。次回受診は定期接種スケジュールに従う。"
+    },
+    "generator": "llm-vllm",
+    "generator_metadata": {
+      "generator": "llm",
+      "lang": "ja"
+    },
+    "generated_at": "2020-01-01T00:00:42Z",
+    "facts_used": [
+      "ctx.patient.demographics",
+      "ctx.encounter.chief_complaint",
+      "ctx.patient.chronic_conditions",
+      "ctx.vitals",
+      "ctx.encounter.chief_complaint",
+      "encounter_protocol.next_visit_interval"
+    ]
+  }
+}

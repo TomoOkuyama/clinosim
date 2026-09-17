@@ -1,0 +1,27 @@
+{
+  "document_id": "doc-ENC-POP-000019-685108907987-01",
+  "encounter_id": "ENC-POP-000019-685108907987",
+  "narrative": {
+    "text": "",
+    "sections": {
+      "subjective": "6歳男児、年次健診のため来院。保護者より特記すべき症状の訴えはないと聴取。",
+      "objective": "HR 76 回/分, T 37.0°C",
+      "assessment": "バイタルサインはHR 76回/分、T 37.0℃と安定しており、異常所見は認められない。小児・思春期年次健診として健康状態は良好と評価。",
+      "plan": "特記すべき異常所見なし。次回年次健診まで経過観察。"
+    },
+    "generator": "llm-vllm",
+    "generator_metadata": {
+      "generator": "llm",
+      "lang": "ja"
+    },
+    "generated_at": "2020-01-01T00:00:42Z",
+    "facts_used": [
+      "ctx.patient.demographics",
+      "ctx.encounter.chief_complaint",
+      "ctx.patient.chronic_conditions",
+      "ctx.vitals",
+      "ctx.encounter.chief_complaint",
+      "encounter_protocol.next_visit_interval"
+    ]
+  }
+}

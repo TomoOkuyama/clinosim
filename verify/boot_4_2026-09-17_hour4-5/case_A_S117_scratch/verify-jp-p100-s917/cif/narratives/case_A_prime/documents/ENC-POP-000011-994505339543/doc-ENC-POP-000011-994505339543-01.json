@@ -1,0 +1,33 @@
+{
+  "document_id": "doc-ENC-POP-000011-994505339543-01",
+  "encounter_id": "ENC-POP-000011-994505339543",
+  "narrative": {
+    "text": "",
+    "sections": {
+      "subjective": "脂質管理およびスタチン療法のモニタリング目的で受診。自覚症状の著変なし。",
+      "objective": "BP 134/63 mmHg, HR 83 回/分。体重・BMI 測定、心血管イベントリスクを再評価。",
+      "assessment": "脂質異常症 (E78) (中等度)、慢性腎臓病 (N18) (CKD G2, 中等度)、H26 (軽度) の経過観察中。本日測定した検査値で ALT 74.0 U/L [H]、TC 254.0 mg/dL [H] と異常所見を認める。",
+      "plan": "アトルバスタチンの継続内服を指示。肝機能および脂質プロファイルの再評価のため、次回外来受診時に再検査を行う。"
+    },
+    "generator": "llm-vllm",
+    "generator_metadata": {
+      "generator": "llm",
+      "lang": "ja"
+    },
+    "generated_at": "2020-01-01T00:00:42Z",
+    "facts_used": [
+      "outpatient_soap_template.subjective_ja",
+      "ctx.patient.demographics",
+      "ctx.encounter.chief_complaint",
+      "ctx.patient.chronic_conditions",
+      "ctx.vitals",
+      "outpatient_soap_template.objective",
+      "encounter_protocol.narrative.outpatient_soap_template.assessment_ja",
+      "ctx.patient.chronic_conditions",
+      "ctx.vitals.today",
+      "ctx.lab_results.today",
+      "encounter_protocol.narrative.outpatient_soap_template.plan_ja",
+      "encounter_protocol.next_visit_interval"
+    ]
+  }
+}

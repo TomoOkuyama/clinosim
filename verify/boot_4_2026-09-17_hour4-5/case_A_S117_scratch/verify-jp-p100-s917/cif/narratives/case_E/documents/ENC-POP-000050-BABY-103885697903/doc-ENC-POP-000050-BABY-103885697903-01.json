@@ -1,0 +1,37 @@
+{
+  "document_id": "doc-ENC-POP-000050-BABY-103885697903-01",
+  "encounter_id": "ENC-POP-000050-BABY-103885697903",
+  "narrative": {
+    "text": "",
+    "sections": {
+      "chief_complaint": "新生児 — 院内出生",
+      "hpi": "2026年6月4日10時08分に経腟分娩にて出生した新生児（在胎週数・分娩様式の詳細はcontextに明記なし、出生入院として記録）。出生時身長50 cm、体重3.2 kg、血液型A+。Apgarスコアは1分時7点、5分時9点であった。入院初日、バイタルサインはBP 68/40 mmHg、HR 130/min、T 36.7°C、SpO2 97% (RA)、RR 40/min。一般状態は意識清明、苦痛様。循環器系は整、心雑音なし。呼吸器系は呼吸音清明、呼吸数は軽度上昇。腹部は平坦、軟、圧痛なし。神経系は麻痺なし、項部硬直なし。",
+      "past_medical_history": "出生児の出生場所別分類 [Z38.0]",
+      "medications_at_home": "常用薬なし",
+      "allergies": "薬物アレルギーなし（NKDA）",
+      "social_history": "喫煙歴: 非喫煙者; 飲酒歴: 飲酒なし; 職業: 乳幼児",
+      "family_history": "特記家族歴なし",
+      "physical_examination": "バイタルサイン: BP 68/40 mmHg, HR 130/min, T 36.7°C, SpO2 97% (RA), RR 40/min。一般状態: 意識清明、苦痛様。循環器: 整、心雑音なし。呼吸器: 呼吸音清明、呼吸数軽度上昇。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし、項部硬直なし",
+      "assessment_and_plan": "【評価】\n新生児出生入院。Apgar 7(1分)/9(5分)で出生後適応良好。CCHDスクリーンにてSpO2右上肢98%、下肢96%（差2%、両側95%以上）で陰性。総ビリルビン最高値13.8 mg/dLは光線療法閾値未満。AABR聴覚スクリーン、タンデムMS代謝異常症スクリーンは提出済み（結果は数日以内に判明予定）。ビタミンK予防投与済み。\n\n【薬物療法】\nビタミンK（出生時投与済）、その他常用薬なし。\n\n【検査】\nAABR聴覚スクリーン、タンデムMS代謝異常症スクリーン（結果待ち）、総ビリルビン経過観察。\n\n【教育・指導】\n授乳計画、退院後の育児指導、スクリーン結果の連絡方法について説明。\n\n【予定入院期間】\n経腟分娩新生児の標準入院期間（24-48時間）を想定し、経過観察のうえ退院予定。"
+    },
+    "generator": "llm-vllm",
+    "generator_metadata": {
+      "generator": "llm",
+      "lang": "ja"
+    },
+    "generated_at": "2020-01-01T00:00:42Z",
+    "facts_used": [
+      "ctx.encounter.chief_complaint_ja",
+      "ctx.patient.demographics",
+      "ctx.encounter.chief_complaint",
+      "ctx.patient.chronic_conditions",
+      "ctx.newborn_workup",
+      "ctx.patient.chronic_conditions",
+      "ctx.patient.smoking_status",
+      "ctx.patient.alcohol_use",
+      "ctx.patient.occupation",
+      "physical_exam_findings..day_0",
+      "ctx.vitals[day_0]"
+    ]
+  }
+}

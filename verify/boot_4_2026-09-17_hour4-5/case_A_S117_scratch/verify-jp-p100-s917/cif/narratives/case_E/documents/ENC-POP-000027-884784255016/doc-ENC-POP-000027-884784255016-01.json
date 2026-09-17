@@ -1,0 +1,33 @@
+{
+  "document_id": "doc-ENC-POP-000027-884784255016-01",
+  "encounter_id": "ENC-POP-000027-884784255016",
+  "narrative": {
+    "text": "",
+    "sections": {
+      "subjective": "年次健診のため来院。既往の慢性閉塞性肺疾患 (GOLD 3, 中等度) に対してチオトロピウムとサルブタモールを内服中であり、本日も症状に著変なしと訴える。本態性高血圧症 (Stage 1, 軽度) に対してアムロジピンとカンデサルタンを継続内服中。脂質異常症 (中等度) に対してアトルバスタチン、胃食道逆流症 (軽度) に対してランソプラゾール、前立腺肥大症 (軽度) に対してタムスロシンを内服中。うつ病 (中等度) に対してSertralineを継続内服中。",
+      "objective": "BP 144/95 mmHg, HR 63 回/分, RR 22 回/分, SpO2 89%, T 36.3°C。診察室血圧を測定、家庭血圧との整合性を確認。",
+      "assessment": "本日のバイタルサインは BP 144/95 mmHg, HR 63 回/分, RR 22 回/分, SpO2 89%, T 36.3°C であり、家庭血圧との整合性を確認した。検査所見ではクレアチニン 1.09 mg/dL [H]、AST 120.0 U/L [H]、ALT 85.0 U/L [H] と肝機能および腎機能の異常が認められる。SpO2 89% は慢性閉塞性肺疾患 (GOLD 3, 中等度) の病態と整合する。",
+      "plan": "アムロジピン、カンデサルタン、アトルバスタチン、チオトロピウム、サルブタモール、ランソプラゾール、タムスロシン、Sertraline を継続内服とする。肝機能異常 (AST 120.0 U/L, ALT 85.0 U/L) およびクレアチニン上昇 (1.09 mg/dL) について、次回外来で再検査を行い経過観察する。"
+    },
+    "generator": "llm-vllm",
+    "generator_metadata": {
+      "generator": "llm",
+      "lang": "ja"
+    },
+    "generated_at": "2020-01-01T00:00:42Z",
+    "facts_used": [
+      "outpatient_soap_template.subjective_ja",
+      "ctx.patient.demographics",
+      "ctx.encounter.chief_complaint",
+      "ctx.patient.chronic_conditions",
+      "ctx.vitals",
+      "outpatient_soap_template.objective",
+      "encounter_protocol.narrative.outpatient_soap_template.assessment_ja",
+      "ctx.patient.chronic_conditions",
+      "ctx.vitals.today",
+      "ctx.lab_results.today",
+      "encounter_protocol.narrative.outpatient_soap_template.plan_ja",
+      "encounter_protocol.next_visit_interval"
+    ]
+  }
+}

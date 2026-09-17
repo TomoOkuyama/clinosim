@@ -1,0 +1,33 @@
+{
+  "document_id": "doc-ENC-POP-000053-215265289362-01",
+  "encounter_id": "ENC-POP-000053-215265289362",
+  "narrative": {
+    "text": "",
+    "sections": {
+      "subjective": "血圧管理および処方薬の見直しを目的に外来受診。74歳女性、退職、非喫煙。本態性高血圧症 (I10) (Stage 1, 軽度)、変形性膝関節症 (M17) (中等度)、E79 (軽度)、H26 (軽度) の既往あり。アムロジピン、カンデサルタン、アセトアミノフェンを内服中。",
+      "objective": "BP 133/88 mmHg, HR 79 回/分。診察室血圧を測定、家庭血圧との整合性を確認。",
+      "assessment": "外来血圧 133/88 mmHg、心拍数 79 回/分。家庭血圧との整合性を確認し、現在の血圧管理状態を評価。既往疾患の経過観察が必要。",
+      "plan": "現在の内服薬 (アムロジピン、カンデサルタン、アセトアミノフェン) を継続。血圧管理の継続と定期的な外来受診を指示。"
+    },
+    "generator": "llm-vllm",
+    "generator_metadata": {
+      "generator": "llm",
+      "lang": "ja"
+    },
+    "generated_at": "2020-01-01T00:00:42Z",
+    "facts_used": [
+      "outpatient_soap_template.subjective_ja",
+      "ctx.patient.demographics",
+      "ctx.encounter.chief_complaint",
+      "ctx.patient.chronic_conditions",
+      "ctx.vitals",
+      "outpatient_soap_template.objective",
+      "encounter_protocol.narrative.outpatient_soap_template.assessment_ja",
+      "ctx.patient.chronic_conditions",
+      "ctx.vitals.today",
+      "ctx.lab_results.today",
+      "encounter_protocol.narrative.outpatient_soap_template.plan_ja",
+      "encounter_protocol.next_visit_interval"
+    ]
+  }
+}

@@ -1,0 +1,48 @@
+{
+  "document_id": "doc-ENC-POP-000073-711618123536-03",
+  "encounter_id": "ENC-POP-000073-711618123536",
+  "narrative": {
+    "text": "S（主観） 症状緩和傾向\nO（客観） BP 147/86 mmHg, HR 94 回/分, RR 16 回/分, SpO2 99%, T 37.4°C。バイタル安定、検査所見改善。一般状態: 意識清明、苦痛様。循環器: 整、心雑音なし。呼吸器: 肺音清明。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし、項部硬直なし\nA（評価） 治療反応良好\nP（計画） 薬物療法継続: 乳酸リンゲル液、メトクロプラミド、大建中湯、輸液: 乳酸リンゲル液 125-250 mL/h、アムロジピン、カンデサルタン。",
+    "sections": {
+      "subjective": "症状緩和傾向",
+      "objective": "BP 147/86 mmHg, HR 94 回/分, RR 16 回/分, SpO2 99%, T 37.4°C。バイタル安定、検査所見改善。一般状態: 意識清明、苦痛様。循環器: 整、心雑音なし。呼吸器: 肺音清明。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし、項部硬直なし",
+      "assessment": "治療反応良好",
+      "plan": "薬物療法継続: 乳酸リンゲル液、メトクロプラミド、大建中湯、輸液: 乳酸リンゲル液 125-250 mL/h、アムロジピン、カンデサルタン。"
+    },
+    "generator": "template",
+    "generator_metadata": {
+      "generator": "template",
+      "lang": "ja",
+      "day_index": 1,
+      "raw_text_rejoin": {
+        "separator": "\n",
+        "order": [
+          [
+            "S（主観）",
+            "subjective"
+          ],
+          [
+            "O（客観）",
+            "objective"
+          ],
+          [
+            "A（評価）",
+            "assessment"
+          ],
+          [
+            "P（計画）",
+            "plan"
+          ]
+        ]
+      }
+    },
+    "generated_at": "2020-01-01T00:15:17Z",
+    "facts_used": [
+      "disease_protocol.course_archetypes.smooth_recovery.daily_trajectory.day_1",
+      "ctx.vitals.today",
+      "physical_exam_findings.smooth_recovery.day_1",
+      "ctx.day_index",
+      "ctx.clinical_course_archetype"
+    ]
+  }
+}

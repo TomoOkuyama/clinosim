@@ -1,0 +1,33 @@
+{
+  "document_id": "doc-ENC-POP-000089-342071906827-01",
+  "encounter_id": "ENC-POP-000089-342071906827",
+  "narrative": {
+    "text": "",
+    "sections": {
+      "subjective": "糖尿病管理・血糖コントロールの確認のため外来受診。既往の2型糖尿病、脂質異常症、胃食道逆流症、喘息、白内障に対する経過観察中。本日の主訴は特になく、日常生活での症状変化や自覚症状の悪化は認めない。",
+      "objective": "BP 113/72 mmHg, HR 81 回/分。体重測定、下肢浮腫の有無を確認。",
+      "assessment": "2型糖尿病 (E11.9) に対して血糖コントロール不良を認める。本日測定した血糖 217.0 mg/dL [H]、HbA1c 10.7 % [H] は中等度のコントロール不良を示唆する。また、肝機能異常として ALT 53.0 U/L [H]、AST 102.0 U/L [H] を認め、内服薬剤の影響や他の肝疾患の可能性を考慮する必要がある。脂質異常症 (E78)、胃食道逆流症 (K21)、喘息 (J45) (軽度間欠)、白内障 (H26) は現状維持。",
+      "plan": "血糖コントロール改善のため、インスリン療法の調整を検討する。肝機能異常 (ALT 53.0 U/L [H], AST 102.0 U/L [H]) について、原因解明のため追加検査を指示し、経過観察を行う。メトホルミン、スライディングスケールインスリン、アトルバスタチン、ランソプラゾール、フルチカゾン/サルメテロール、サルブタモールの内服を継続。次回受診時に肝機能検査の結果を確認し、治療方針を再評価する。"
+    },
+    "generator": "llm-vllm",
+    "generator_metadata": {
+      "generator": "llm",
+      "lang": "ja"
+    },
+    "generated_at": "2020-01-01T00:00:42Z",
+    "facts_used": [
+      "outpatient_soap_template.subjective_ja",
+      "ctx.patient.demographics",
+      "ctx.encounter.chief_complaint",
+      "ctx.patient.chronic_conditions",
+      "ctx.vitals",
+      "outpatient_soap_template.objective",
+      "encounter_protocol.narrative.outpatient_soap_template.assessment_ja",
+      "ctx.patient.chronic_conditions",
+      "ctx.vitals.today",
+      "ctx.lab_results.today",
+      "encounter_protocol.narrative.outpatient_soap_template.plan_ja",
+      "encounter_protocol.next_visit_interval"
+    ]
+  }
+}
