@@ -3,6 +3,31 @@
 **User 目標 (S117 mid-verify guidance)**:
 > フォールバックが発生したらログを記録し、フォールバックが発生しないように調整したい。基本的にはフォールバック0を目指す。
 
+**Phase 分けの user 追加指示 (S117 hour 4)**:
+> Fallback 発生しないように最適化もしたい。これは後の Phase でも良いよ。
+
+→ v0.6.3 では**現状の追跡機構 (log 集約 + analyze.py の ⚠ marker)** を ship
+し、Phase 2 で **Fix C (guided_json) の恒久採用** + 4 種 fallback それぞれの
+proactive prevention を実装。
+
+## v0.6.2 release の観測事実 (2026-09-17 実測)
+
+`clinosim-v0.6.2-jp-p10000-s500-llm-polished-narrative.tar.gz` を local
+scratchpad で全 79,000 doc 解析した結果:
+
+| 分類 | 数 | 割合 | 判定 |
+|---|---|---|---|
+| sections_empty + template (triage / structured fields) | 32,104 | 40.6% | ✅ by design |
+| sections_populated + template (care plan / assessment) | 3,037 | 3.9% | ✅ by design (LLM 対象外の doc_type) |
+| sections_populated + llm | 43,859 | 55.5% | ✅ 実 LLM 生成 |
+| sections_empty + llm (異常組合せ) | 0 | 0% | ✅ 発生なし |
+| **総計** | **79,000** | 100% | |
+
+**Unexpected fallback rate = 0%** (v0.6.2 asset)。ただしこれは releasing 時点の
+特定 cohort × prompt version での実測値。将来 prompt version 変更 / cohort
+拡張で fallback が発生する可能性は残る。**Fix C は「発生 0 を維持する保証
+機構」として ship する価値あり**。
+
 ## Fallback taxonomy (現状 code から)
 
 narrate 中に発生する fallback は 4 種類:
