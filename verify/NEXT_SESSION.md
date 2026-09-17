@@ -9,20 +9,23 @@
 - First-time vLLM boot は **~17-18 min** 要 (weight load 3.3 min + torch.compile 2 min + CUDA graph capture ~12 min)
 - vLLM 側 `VLLM_ENGINE_READY_TIMEOUT_S=600s` が短すぎ、初回 boot 失敗
 
-**次 session boot 前必須修正**:
-1. `run_all_cases.sh` shell timeout: 300s → 1800s (start_vllm helper 内)
-2. `export VLLM_ENGINE_READY_TIMEOUT_S=1800` を各 vLLM 起動前に設定
-3. Fallback logging を harness に組み込み (`verify/FALLBACK_ANALYSIS.md`)
-4. Fix C (vLLM guided_json) yaml variant 用意
-5. Case J (Fix C isolation) を Case matrix に追加
+**次 session boot 前必須修正**: ✅ ALL DONE (checkpoint 13 = `87fcea55c1`)
+1. ✅ `run_all_cases.sh` shell timeout 1800s + 60s progress markers
+2. ✅ `VLLM_ENGINE_READY_TIMEOUT_S=1800` env export
+3. ✅ Fallback logging in run_case.sh (`fallback_summary.txt`) + analyze.py table column + summary block
+4. ✅ Fix C (`verify/llm_service_vllm_guided.yaml`) + `clinosim/modules/llm_service/providers/vllm.py` に response_format forward 追加
+5. ✅ Case J (Fix C isolation) を run_all_cases.sh + WORK.md に追加
 
-**時間見積り (修正後)**:
-- First-time vLLM boot #1: ~17 min
-- Cached vLLM restarts #2-#5: ~5-8 min each
-- 10 cases × 3 min = 30 min
-- Total: 17 + 4×7 + 30 + 5 (buffer) = ~80 min = **billing hour 2 に若干越境** (~¥1980)
+**時間見積り (checkpoint 13 修正込み)**:
+- First-time vLLM boot #0 (S117 config): ~15 min (torch.compile cached from failed run 1, ~7 min saving; CUDA graph capture ~12 min unavoidable)
+  - Failed Run 1 が `/home/ubuntu/.cache/vllm/torch_compile_cache/` に AOT compile cache を残しているので、subsequent boots の torch.compile step (~2 min) はスキップされるはず
+- Cached vLLM restarts #1-#3: ~10-12 min each (weight already in FS cache, torch.compile skip, only CUDA graph capture)
+- 11 cases × 3 min = 33 min
+- Total: 15 + 3×11 + 33 + 5 (buffer) = ~86 min = **billing hour 2 に約 25 min 越境** (~¥1980 総)
 
-**代替案**: `--enforce-eager` で CUDA graph 無効化 → startup ~3 min に短縮。ただし Case A_S117 (S117 exact replay) は `enforce_eager=False` 必須。他 case では検討可。
+**代替案**: `--enforce-eager` で CUDA graph 無効化 → startup ~3-5 min に短縮。ただし Case A_S117 (S117 exact replay) は `enforce_eager=False` 必須。他 case では検討可 — vllm_start_16k_S117.sh 以外の 3 script に `--enforce-eager` を追加すれば 4×10 min → 4×4 min = 24 min 削減、hour 1 内で完走可能。ただしその変更で K/V 生成が遅くなり Case A_pc の生成時間絶対値が S117 と直接比較できなくなる。
+
+**推奨**: hour 2 越境を受け入れて exact-config で走らせる (¥1980 total)。データ品質 > 費用の user priority。
 
 ## Resume 手順
 
