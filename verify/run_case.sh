@@ -26,6 +26,10 @@
 
 set -euo pipefail
 
+# Activate the vllm-env venv where clinosim + vllm live.
+# shellcheck source=/dev/null
+source "${VLLM_VENV:-$HOME/vllm-env}/bin/activate"
+
 CASE_ID="${1:?usage: run_case.sh CASE_ID PROMPT_YAML CONCURRENCY}"
 PROMPT_YAML="${2:?usage: run_case.sh CASE_ID PROMPT_YAML CONCURRENCY}"
 CONCURRENCY="${3:?usage: run_case.sh CASE_ID PROMPT_YAML CONCURRENCY}"

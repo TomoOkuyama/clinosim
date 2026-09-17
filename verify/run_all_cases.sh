@@ -16,6 +16,10 @@
 
 set -euo pipefail
 
+# Activate the vllm-env venv where clinosim + vllm live.
+# shellcheck source=/dev/null
+source "${VLLM_VENV:-$HOME/vllm-env}/bin/activate"
+
 VERIFY_DIR="${VERIFY_DIR:-$HOME/verify}"
 OUT_DIR="${OUT_DIR:-$HOME/verify/out}"
 VLLM_URL="${VLLM_URL:-http://localhost:8000}"
@@ -76,27 +80,48 @@ fi
 echo "weight cache: ${WEIGHT_SIZE_GB} GB — OK" | tee -a "$OUT_DIR/run.log"
 
 # -----------------------------------------------------------
-# Step 1: Start vLLM with max-model-len 16384 (S117 production config).
+# Helper: start a vLLM config, wait ready, or abort.
 # -----------------------------------------------------------
-echo "--- Step 1: start vLLM (max-model-len 16384) ---" | tee -a "$OUT_DIR/run.log"
-bash "$VERIFY_DIR/vllm_start_16k.sh" > "$OUT_DIR/vllm_16k.log" 2>&1 &
-VLLM_PID=$!
-echo "vLLM PID: $VLLM_PID" | tee -a "$OUT_DIR/run.log"
+start_vllm() {
+    local script="$1" logname="$2"
+    echo "--- start vLLM: $script ---" | tee -a "$OUT_DIR/run.log"
+    bash "$VERIFY_DIR/$script" > "$OUT_DIR/$logname" 2>&1 &
+    VLLM_PID=$!
+    echo "vLLM PID: $VLLM_PID" | tee -a "$OUT_DIR/run.log"
+    for i in {1..300}; do
+        if curl -sSf "$VLLM_URL/v1/models" >/dev/null 2>&1; then
+            echo "  vLLM ready after ${i}s" | tee -a "$OUT_DIR/run.log"
+            return 0
+        fi
+        sleep 1
+    done
+    echo "ERROR: vLLM $script did not become ready within 300s" | tee -a "$OUT_DIR/run.log"
+    kill $VLLM_PID 2>/dev/null || true
+    exit 1
+}
 
-# Wait for server ready.
-echo "waiting for vLLM /v1/models to respond..." | tee -a "$OUT_DIR/run.log"
-for i in {1..120}; do
-    if curl -sSf "$VLLM_URL/v1/models" >/dev/null 2>&1; then
-        echo "  vLLM ready after ${i}s" | tee -a "$OUT_DIR/run.log"
-        break
-    fi
-    sleep 1
-    if [ "$i" -eq 120 ]; then
-        echo "ERROR: vLLM did not become ready within 120s" | tee -a "$OUT_DIR/run.log"
-        kill $VLLM_PID 2>/dev/null || true
-        exit 1
-    fi
-done
+stop_vllm() {
+    kill $VLLM_PID 2>/dev/null || true
+    wait $VLLM_PID 2>/dev/null || true
+    sleep 3
+}
+
+# -----------------------------------------------------------
+# vLLM #0: S117 EXACT replay (recovered from vllm_p100_v5.log):
+# max_model_len=16384, gpu-mem=0.88, max-num-seqs=32, PREFIX-CACHING OFF,
+# kv-cache-dtype=auto (FP16 default). Reproduces the 0.68 doc/s baseline.
+# -----------------------------------------------------------
+start_vllm vllm_start_16k_S117.sh vllm_16k_S117.log
+
+# Case A_S117: pure S117 replay (v22 JA, prefix-caching OFF, gpu-mem 0.88)
+run_one A_S117 "$VERIFY_DIR/v22_prompt_ja.yaml" 32
+
+# -----------------------------------------------------------
+# vLLM #1: same as #0 but --enable-prefix-caching ON.
+# Case A_pc measures Factor E in isolation (just turn PC on).
+# -----------------------------------------------------------
+stop_vllm
+start_vllm vllm_start_16k.sh vllm_16k.log
 
 # -----------------------------------------------------------
 # Cases running on 16k config.
@@ -112,78 +137,38 @@ run_one() {
 # Case A_c64 dropped (no theoretical gain at FP16 KV ceiling).
 # -----------------------------------------------------------
 
-# Case A: baseline (v22 JA, concurrency 32)
-run_one A       "$VERIFY_DIR/v22_prompt_ja.yaml" 32
+# Case A_pc: Factor E in isolation (S117 config + prefix-caching ON)
+run_one A_pc    "$VERIFY_DIR/v22_prompt_ja.yaml" 32
 
-# Case A': Factor A isolation (EN scaffold, concurrency 32)
+# Case A': Factor A isolation (EN scaffold, PC on, conc 32)
 run_one A_prime "$VERIFY_DIR/v22_prompt_en.yaml" 32
 
-# Case E: Factor B+C (v21 JA, concurrency 32)
+# Case E: Factor B+C (v21 JA, PC on, conc 32)
 run_one E       "$VERIFY_DIR/v21_prompt_ja.yaml" 32
 
-# Case A_c128: queue-limited ceiling (theory predicts no gain over A_c32
-# under FP16 KV cache with realistic ~13k prompts)
-run_one A_c128  "$VERIFY_DIR/v22_prompt_ja.yaml" 128
+# Case A_pc_c128: does concurrency scale up now with PC on?
+run_one A_pc_c128 "$VERIFY_DIR/v22_prompt_ja.yaml" 128
 
-# Case F: Fix A alone (prompt structure fix — move ${document_type} /
-# ${target_language} to user_prompt so system: block is 100% prefix-cacheable)
+# Case F: Fix A alone (PC on, prompt structure fix)
 run_one F       "$VERIFY_DIR/v22_prompt_ja_fixA.yaml" 32
 
 # -----------------------------------------------------------
-# Restart vLLM #2 with --kv-cache-dtype fp8 for Fix B tests.
+# vLLM #2: PC on + --kv-cache-dtype fp8. Fix B tests.
 # -----------------------------------------------------------
-echo "--- Restart vLLM with --kv-cache-dtype fp8 ---" | tee -a "$OUT_DIR/run.log"
-kill $VLLM_PID
-wait $VLLM_PID 2>/dev/null || true
-sleep 3
+stop_vllm
+start_vllm vllm_start_16k_fp8kv.sh vllm_16k_fp8kv.log
 
-bash "$VERIFY_DIR/vllm_start_16k_fp8kv.sh" > "$OUT_DIR/vllm_16k_fp8kv.log" 2>&1 &
-VLLM_PID=$!
-echo "vLLM PID (16k FP8 KV): $VLLM_PID" | tee -a "$OUT_DIR/run.log"
-
-for i in {1..120}; do
-    if curl -sSf "$VLLM_URL/v1/models" >/dev/null 2>&1; then
-        echo "  vLLM ready after ${i}s" | tee -a "$OUT_DIR/run.log"
-        break
-    fi
-    sleep 1
-    if [ "$i" -eq 120 ]; then
-        echo "ERROR: vLLM 16k FP8 KV did not become ready within 120s" | tee -a "$OUT_DIR/run.log"
-        kill $VLLM_PID 2>/dev/null || true
-        exit 1
-    fi
-done
-
-# Case G: Fix A + Fix B (prompt struct + KV FP8, conc 32)
+# Case G: Fix A + Fix B (prompt struct + KV FP8, PC on, conc 32)
 run_one G       "$VERIFY_DIR/v22_prompt_ja_fixA.yaml" 32
 
-# Case G_c64: Fix A + Fix B + true concurrency scaling (KV budget allows ~45 seqs)
+# Case G_c64: Fix A + Fix B + true concurrency scaling
 run_one G_c64   "$VERIFY_DIR/v22_prompt_ja_fixA.yaml" 64
 
 # -----------------------------------------------------------
-# Restart vLLM #3 with max-model-len 12288 for revised Case D.
+# vLLM #3: PC on + max-model-len 12288 (S117 pre-widening).
 # -----------------------------------------------------------
-echo "--- Restart vLLM (max-model-len 12288 — S117 pre-widening value) ---" | tee -a "$OUT_DIR/run.log"
-kill $VLLM_PID
-wait $VLLM_PID 2>/dev/null || true
-sleep 3
-
-bash "$VERIFY_DIR/vllm_start_12k.sh" > "$OUT_DIR/vllm_12k.log" 2>&1 &
-VLLM_PID=$!
-echo "vLLM PID (12k): $VLLM_PID" | tee -a "$OUT_DIR/run.log"
-
-for i in {1..120}; do
-    if curl -sSf "$VLLM_URL/v1/models" >/dev/null 2>&1; then
-        echo "  vLLM ready after ${i}s" | tee -a "$OUT_DIR/run.log"
-        break
-    fi
-    sleep 1
-    if [ "$i" -eq 120 ]; then
-        echo "ERROR: vLLM 12k did not become ready within 120s" | tee -a "$OUT_DIR/run.log"
-        kill $VLLM_PID 2>/dev/null || true
-        exit 1
-    fi
-done
+stop_vllm
+start_vllm vllm_start_12k.sh vllm_12k.log
 
 # Case D_revised: Factor D revised (max-model-len 12288 — S117 pre-widening).
 # Uses current v22 JA prompt (max_tokens=3500). Expect ~5-10% of docs to
@@ -202,8 +187,7 @@ run_one H "$VERIFY_DIR/v22_prompt_ja_fixA_maxtok2500.yaml" 32
 # -----------------------------------------------------------
 # Wrap up.
 # -----------------------------------------------------------
-kill $VLLM_PID 2>/dev/null || true
-wait $VLLM_PID 2>/dev/null || true
+stop_vllm
 
 echo "=== all cases done @ $(date -u +%FT%TZ) ===" | tee -a "$OUT_DIR/run.log"
 echo "output: $OUT_DIR"
