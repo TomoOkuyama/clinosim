@@ -2,7 +2,44 @@
 
 ## 目的
 
-v22 prompt cut (S117 = v0.6.2) を境に narrate throughput が 1.35 → 0.68 doc/s (~2×) に低下した原因を切り分ける。
+**測定対象**: **pure LLM 生成速度** (CIF 生成時間・narrate setup overhead 除外)。
+測定は server-side `/v1/metrics` (vLLM Prometheus) を authoritative source とし、
+`vllm:generation_tokens_total` / `vllm:e2e_request_latency_seconds` の
+delta を pure-LLM metric として採る。narrate CLI の wall-clock は L2 として
+補助的に、CIF I/O + prompt build + output save を含むので絶対値評価には使わない。
+
+**最終目標**: **データ品質 + 臨床的整合性 + ナラティブ文書としての適切さを**
+**維持/向上した上で** LLM 生成時間を短縮する。
+
+**品質制約 (quality guardrails)**:
+- v22 Rule 3 (ICD VERBATIM COPY on chronic conditions) は保持必須 — S117 で
+  実測された 3 US docs G20→"glaucoma" hallucination の fix。削除は臨床整合性の
+  regression になる。
+- v19 の JP output localization (Delirium→せん妄、canonical katakana、Kanji
+  section heading) は保持必須 — ナラティブ文書としての日本語文書適切さの basis。
+- v22 の per-doc-type block (admission_hp / discharge_summary / operative_note /
+  ...) 構造は保持必須 — 各文書種の "記述すべき情報の定義" を encode。
+
+**採用可能な速度改善候補** (quality-neutral):
+- vLLM 起動 flag tuning (prefix caching、gpu-mem-util、max-num-seqs)
+- `--max-model-len` 適正化 (16384 が必要かの実測、8192 で足りるならそちらへ)
+- Prompt 構造 (system prompt を prefix cache 対象として最大化する render 順)
+- Rule 記述の compression (semantic 同一、token 減少)
+- concurrency sweep で真の並列度上限を確認
+
+**採用不可能な改善案** (quality regression):
+- Rule 3 削除 (品質 regression)
+- JA localization rule 削除 (文書適切さ regression)
+- v21 に戻す (Rule 3 未搭載で hallucination 再発)
+- Prompt 言語を EN に恒久変更 (JA 出力品質不安定化)
+
+Case A' は「診断用の temp variant」であり、恒久採用候補ではない — Factor A
+の影響量を測るための tool。
+
+## 原因切り分けの sub-question
+
+v22 prompt cut (S117 = v0.6.2) を境に narrate throughput が 1.35 → 0.68 doc/s
+(~2×) に低下した原因を切り分ける。
 
 ## 仮説 (寄与因子)
 
