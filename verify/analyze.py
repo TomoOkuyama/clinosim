@@ -259,28 +259,43 @@ def main() -> None:
 
     # Factor breakdown
     by_case = {cm.case: (cm, d) for cm, d in cases}
-    print("\nFactor breakdown:")
-    if "A" in by_case and "A_prime" in by_case:
-        a_dps = by_case["A"][1]["L2_docs_per_s"]
-        ap_dps = by_case["A_prime"][1]["L2_docs_per_s"]
-        print(f"  Factor A (JA vs EN prompt): "
-              f"A {a_dps:.3f} → A' {ap_dps:.3f} doc/s ({100*(ap_dps-a_dps)/a_dps:+.1f}%)")
-    if "A" in by_case and "E" in by_case:
-        a_dps = by_case["A"][1]["L2_docs_per_s"]
-        e_dps = by_case["E"][1]["L2_docs_per_s"]
-        print(f"  Factor B+C (v22 vs v21): "
-              f"A {a_dps:.3f} → E {e_dps:.3f} doc/s ({100*(e_dps-a_dps)/a_dps:+.1f}%)")
-    if "A" in by_case and "D" in by_case:
-        a_dps = by_case["A"][1]["L2_docs_per_s"]
-        d_dps = by_case["D"][1]["L2_docs_per_s"]
-        print(f"  Factor D (max-len 16k vs 8k): "
-              f"A {a_dps:.3f} → D {d_dps:.3f} doc/s ({100*(d_dps-a_dps)/a_dps:+.1f}%)")
-    if "A" in by_case and "A_c64" in by_case and "A_c128" in by_case:
+    print("\nFactor breakdown (dps = doc/s):")
+
+    def _pct(new, base):
+        if base <= 0:
+            return "n/a"
+        return f"{100*(new-base)/base:+.1f}%"
+
+    def _cmp(label, base_case, target_case):
+        if base_case in by_case and target_case in by_case:
+            b = by_case[base_case][1]["L2_docs_per_s"]
+            t = by_case[target_case][1]["L2_docs_per_s"]
+            print(f"  {label}: {base_case} {b:.3f} → {target_case} {t:.3f} dps  ({_pct(t, b)})")
+
+    _cmp("Factor A (JA→EN prompt scaffold)",   "A", "A_prime")
+    _cmp("Factor B+C (v22→v21 content)",       "A", "E")
+    _cmp("Factor D (max-len 16k→12k)",         "A", "D_revised")
+    _cmp("Fix A (prompt struct — Case F)",     "A", "F")
+    _cmp("Fix A + Fix B (KV FP8 — Case G)",    "A", "G")
+    _cmp("Fix A + Fix B + conc 64 (G_c64)",    "A", "G_c64")
+
+    # Concurrency ceiling (theory predicts A_c128 ≈ A due to KV budget bound)
+    if "A" in by_case and "A_c128" in by_case:
         a = by_case["A"][1]["L2_docs_per_s"]
-        c64 = by_case["A_c64"][1]["L2_docs_per_s"]
         c128 = by_case["A_c128"][1]["L2_docs_per_s"]
-        print(f"  Factor E (concurrency sweep A): "
-              f"32→{a:.3f} 64→{c64:.3f} 128→{c128:.3f} doc/s")
+        print(f"  Concurrency ceiling (theory: no gain past ~22 seqs @ FP16 KV):")
+        print(f"    A_c32 {a:.3f} → A_c128 {c128:.3f} dps ({_pct(c128, a)})")
+
+    # Total recovery vs the 1.35 baseline
+    if "A" in by_case:
+        a = by_case["A"][1]["L2_docs_per_s"]
+        for target in ["F", "G", "G_c64"]:
+            if target in by_case:
+                t = by_case[target][1]["L2_docs_per_s"]
+                gap_to_baseline = 1.35 - a
+                recovery = (t - a) / gap_to_baseline if gap_to_baseline > 0 else 0
+                print(f"  Recovery toward 1.35 baseline via {target}: "
+                      f"{100*recovery:+.1f}% of the regression gap closed")
 
     # Dump raw
     dump_path = args.out_dir / "analysis.json"

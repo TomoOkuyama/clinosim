@@ -113,14 +113,36 @@ python verify/analyze.py --out-dir ./verify/out_<timestamp>
 - Factor 寄与 breakdown、推奨修正、次アクション
 - master に PR 出すか、branch のまま残すかは user 判断
 
-## Pre-boot で確定した予想仮説
+## Pre-boot で確定した予想仮説 (updated after R1-R4 research)
 
-Tokenizer 事前計測から:
-- Factor A (JA vs EN prompt): +6.1% token 差のみ
-- Factor B/C (v21→v22 content): +2.5% token 差のみ
-- → **50% throughput 低下は Factor D (max-len) or Factor E (vLLM flag/prefix cache) が dominant**
+**詳細は `verify/RESEARCH_FINDINGS.md`**。
 
-Case D と prefix cache hit rate が最重要指標。Case A' の operational value は「品質保った EN 化で速さ戻るか」の decision-relevant answer として二次的。
+Tokenizer 事前計測 + prompt 構造解析 + vLLM KV cache 理論値計算から:
+
+- Factor A (JA vs EN prompt): +6.1% token 差のみ — 弱い
+- Factor B/C (v21→v22 content): +2.5% token 差のみ — 弱い
+- Factor D 元計画 (max-len 8192): **unviable** — v22 system alone = 12k > 8k、全 request 400 fail
+- Factor E (concurrency): FP16 KV cache では H100 80GB の理論上限 ~22 seqs、`--concurrency 32` は既に queue-bound
+
+**Dominant 仮説 (発見)**: **prompt 構造 + KV cache dtype**
+
+- **Fix A**: `${document_type}` / `${target_language}` が system: block char 22 にあるため prefix cache が 11 tokens しか cache されない。user_prompt に移すと system 全体 (11,989 tokens) が cache 可能 → 24× 削減
+- **Fix B**: `--kv-cache-dtype fp8` で concurrent seq capacity 2× (22 → 45 @ 13k prompt)
+
+Case F (Fix A) と Case G (Fix A + Fix B) が本命。Case A_c64 は削除 (FP16 KV では効果なし理論確定)、Case D は revised (12288 = S117 pre-widening) に。
+
+**revised Case matrix**:
+
+| Case | Prompt | max-len | KV dtype | Conc | 主目的 |
+|---|---|---|---|---|---|
+| A | v22 JA | 16384 | FP16 | 32 | baseline (再現) |
+| A' | v22 EN scaffold | 16384 | FP16 | 32 | Factor A isolation |
+| E | v21 JA | 16384 | FP16 | 32 | Factor B+C isolation |
+| A_c128 | v22 JA | 16384 | FP16 | 128 | 理論 ceiling 確認 |
+| **F** | **v22 JA Fix A** | 16384 | FP16 | 32 | **prompt 構造 fix** |
+| **G** | **v22 JA Fix A** | 16384 | **FP8** | 32 | **Fix A + Fix B compound** |
+| **G_c64** | **v22 JA Fix A** | 16384 | **FP8** | 64 | **true 並列度 scaling** |
+| D_revised | v22 JA | 12288 | FP16 | 32 | Factor D revised |
 
 ## 最終目標 (report 執筆時の指針)
 

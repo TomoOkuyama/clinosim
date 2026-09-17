@@ -1,0 +1,34 @@
+{
+  "tokenizer": "Qwen/Qwen3-8B",
+  "max_tokens_response": 3500,
+  "scenarios": [
+    {
+      "scenario": "MINIMAL: single-encounter outpatient soap",
+      "system_tokens": 11962,
+      "user_tokens": 271,
+      "total_in": 12233,
+      "total_in_plus_max_resp": 15733
+    },
+    {
+      "scenario": "TYPICAL: 3-day inpatient admission_hp",
+      "system_tokens": 11961,
+      "user_tokens": 786,
+      "total_in": 12747,
+      "total_in_plus_max_resp": 16247
+    },
+    {
+      "scenario": "LARGE: 14-day inpatient discharge_summary",
+      "system_tokens": 11961,
+      "user_tokens": 1412,
+      "total_in": 13373,
+      "total_in_plus_max_resp": 16873
+    },
+    {
+      "scenario": "XLARGE: complex ICU discharge_summary",
+      "system_tokens": 11961,
+      "user_tokens": 1629,
+      "total_in": 13590,
+      "total_in_plus_max_resp": 17090
+    }
+  ]
+}

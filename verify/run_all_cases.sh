@@ -87,30 +87,40 @@ run_one() {
     bash "$VERIFY_DIR/run_case.sh" "$case_id" "$prompt" "$conc" 2>&1 | tee -a "$OUT_DIR/run.log"
 }
 
+# -----------------------------------------------------------
+# Cases on vLLM #1 config: max-len 16384, FP16 KV (S117 baseline).
+# Revised per RESEARCH_FINDINGS.md — Case D at 8k dropped as unviable,
+# Case A_c64 dropped (no theoretical gain at FP16 KV ceiling).
+# -----------------------------------------------------------
+
 # Case A: baseline (v22 JA, concurrency 32)
 run_one A       "$VERIFY_DIR/v22_prompt_ja.yaml" 32
 
-# Case A': Factor A isolation (Case A' EN scaffold, concurrency 32)
+# Case A': Factor A isolation (EN scaffold, concurrency 32)
 run_one A_prime "$VERIFY_DIR/v22_prompt_en.yaml" 32
 
 # Case E: Factor B+C (v21 JA, concurrency 32)
 run_one E       "$VERIFY_DIR/v21_prompt_ja.yaml" 32
 
-# Case A concurrency sweep (Factor E)
-run_one A_c64   "$VERIFY_DIR/v22_prompt_ja.yaml" 64
+# Case A_c128: queue-limited ceiling (theory predicts no gain over A_c32
+# under FP16 KV cache with realistic ~13k prompts)
 run_one A_c128  "$VERIFY_DIR/v22_prompt_ja.yaml" 128
 
+# Case F: Fix A alone (prompt structure fix — move ${document_type} /
+# ${target_language} to user_prompt so system: block is 100% prefix-cacheable)
+run_one F       "$VERIFY_DIR/v22_prompt_ja_fixA.yaml" 32
+
 # -----------------------------------------------------------
-# Restart vLLM with max-model-len 8192 for Case D.
+# Restart vLLM #2 with --kv-cache-dtype fp8 for Fix B tests.
 # -----------------------------------------------------------
-echo "--- Step 5: restart vLLM (max-model-len 8192) ---" | tee -a "$OUT_DIR/run.log"
+echo "--- Restart vLLM with --kv-cache-dtype fp8 ---" | tee -a "$OUT_DIR/run.log"
 kill $VLLM_PID
 wait $VLLM_PID 2>/dev/null || true
 sleep 3
 
-bash "$VERIFY_DIR/vllm_start_8k.sh" > "$OUT_DIR/vllm_8k.log" 2>&1 &
+bash "$VERIFY_DIR/vllm_start_16k_fp8kv.sh" > "$OUT_DIR/vllm_16k_fp8kv.log" 2>&1 &
 VLLM_PID=$!
-echo "vLLM PID (8k): $VLLM_PID" | tee -a "$OUT_DIR/run.log"
+echo "vLLM PID (16k FP8 KV): $VLLM_PID" | tee -a "$OUT_DIR/run.log"
 
 for i in {1..120}; do
     if curl -sSf "$VLLM_URL/v1/models" >/dev/null 2>&1; then
@@ -119,14 +129,46 @@ for i in {1..120}; do
     fi
     sleep 1
     if [ "$i" -eq 120 ]; then
-        echo "ERROR: vLLM 8k did not become ready within 120s" | tee -a "$OUT_DIR/run.log"
+        echo "ERROR: vLLM 16k FP8 KV did not become ready within 120s" | tee -a "$OUT_DIR/run.log"
         kill $VLLM_PID 2>/dev/null || true
         exit 1
     fi
 done
 
-# Case D: Factor D (v22 JA, max-model-len 8192, concurrency 32)
-run_one D "$VERIFY_DIR/v22_prompt_ja.yaml" 32
+# Case G: Fix A + Fix B (prompt struct + KV FP8, conc 32)
+run_one G       "$VERIFY_DIR/v22_prompt_ja_fixA.yaml" 32
+
+# Case G_c64: Fix A + Fix B + true concurrency scaling (KV budget allows ~45 seqs)
+run_one G_c64   "$VERIFY_DIR/v22_prompt_ja_fixA.yaml" 64
+
+# -----------------------------------------------------------
+# Restart vLLM #3 with max-model-len 12288 for revised Case D.
+# -----------------------------------------------------------
+echo "--- Restart vLLM (max-model-len 12288 — S117 pre-widening value) ---" | tee -a "$OUT_DIR/run.log"
+kill $VLLM_PID
+wait $VLLM_PID 2>/dev/null || true
+sleep 3
+
+bash "$VERIFY_DIR/vllm_start_12k.sh" > "$OUT_DIR/vllm_12k.log" 2>&1 &
+VLLM_PID=$!
+echo "vLLM PID (12k): $VLLM_PID" | tee -a "$OUT_DIR/run.log"
+
+for i in {1..120}; do
+    if curl -sSf "$VLLM_URL/v1/models" >/dev/null 2>&1; then
+        echo "  vLLM ready after ${i}s" | tee -a "$OUT_DIR/run.log"
+        break
+    fi
+    sleep 1
+    if [ "$i" -eq 120 ]; then
+        echo "ERROR: vLLM 12k did not become ready within 120s" | tee -a "$OUT_DIR/run.log"
+        kill $VLLM_PID 2>/dev/null || true
+        exit 1
+    fi
+done
+
+# Case D_revised: Factor D revised (max-model-len 12288 — S117 pre-widening)
+# Expect ~5-10% of docs to 400-fail (XLARGE contexts exceed 12288+3500)
+run_one D_revised "$VERIFY_DIR/v22_prompt_ja.yaml" 32
 
 # -----------------------------------------------------------
 # Wrap up.

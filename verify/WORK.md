@@ -65,16 +65,22 @@ v22 prompt cut (S117 = v0.6.2) を境に narrate throughput が 1.35 → 0.68 do
 - → **Factor D (max-len 16384) と Factor E (vLLM 起動 flag / prefix caching hit rate) が dominant 仮説**
 - H100 検証優先度: **Case D + vLLM flag 確認 > Case A' (EN prompt)**。ただし Case A' は「品質保った上で EN framing に戻すと速さが戻るか」の operational answer として残す価値あり
 
-## Case 一覧
+## Case 一覧 (revised per R1-R4 findings; see RESEARCH_FINDINGS.md)
 
-| Case | prompt | max-len | concurrency | 目的 |
-|---|---|---|---|---|
-| A | v22 JA | 16384 | 32 | baseline (現行) |
-| A' | v22 EN | 16384 | 32 | Factor A isolation |
-| E | v21 JA | 16384 | 32 | Factor B+C 合算 |
-| A/c64 | v22 JA | 16384 | 64 | Factor E (concurrency) |
-| A/c128 | v22 JA | 16384 | 128 | Factor E (concurrency) |
-| D | v22 JA 圧縮 | 8192 | 32 | Factor D |
+| Case | prompt | max-len | KV dtype | conc | 目的 |
+|---|---|---|---|---|---|
+| A | v22 JA | 16384 | FP16 | 32 | baseline (現行) |
+| A' | v22 EN scaffold | 16384 | FP16 | 32 | Factor A isolation |
+| E | v21 JA | 16384 | FP16 | 32 | Factor B+C 合算 |
+| A_c128 | v22 JA | 16384 | FP16 | 128 | Factor E — ceiling check (theory: no gain) |
+| **F** | **v22 JA Fix A** | 16384 | FP16 | 32 | **prompt 構造 fix (prefix cache 復活)** |
+| **G** | **v22 JA Fix A** | 16384 | **FP8** | 32 | **Fix A + Fix B compound** |
+| **G_c64** | **v22 JA Fix A** | 16384 | **FP8** | 64 | **true concurrency scaling** |
+| D_revised | v22 JA | **12288** | FP16 | 32 | Factor D (max-len 効果、8k は unviable と判明) |
+
+**Dropped**:
+- Case A_c64 — FP16 KV では ~22 seq ceiling で頭打ち理論確定、A_c32 と差なし予想
+- Case D at 8192 — system alone = 12k tokens で 8k 全 request fail 確定 (R1)
 
 ## metric 3 層
 
@@ -126,7 +132,10 @@ v22 prompt cut (S117 = v0.6.2) を境に narrate throughput が 1.35 → 0.68 do
 | 2 | 2026-09-17 | T2 + T3 (Case A' prompt + tokenizer precount) | a3691deb0c |
 | 3 | 2026-09-17 | T7 + T5 + T6 (cohorts + cleanup list) | 7e807c1559 / 9c4d9ec0ba (tarball force-add) |
 | 4 | 2026-09-17 | T4 + T8 (harness + vLLM scripts) | 477c279120 |
-| 5 | 2026-09-17 | T11 + T14 + NEXT_SESSION (analyze + Sakura ops + resume prompt) | (pending) |
+| 5 | 2026-09-17 | T11 + T14 + NEXT_SESSION (analyze + Sakura ops + resume prompt) | 0945c207fa |
+| 6 | 2026-09-17 | goal 明確化 (pure LLM 速度 + quality-preserving) | 188658a92f |
+| 7 | 2026-09-17 | analyze.py bugfix + S117 baseline meta + report template | 01fe425b64 |
+| 8 | 2026-09-17 | R1-R4 pre-boot research + Case matrix revision (Fix A/B pre-built) | (pending) |
 
 ## Session 切断時の resume 手順
 
