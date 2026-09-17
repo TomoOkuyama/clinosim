@@ -1,0 +1,31 @@
+{
+  "document_id": "doc-ENC-POP-000043-629143534145-01",
+  "encounter_id": "ENC-POP-000043-629143534145",
+  "narrative": {
+    "text": "",
+    "sections": {
+      "subjective": "甲状腺機能モニタリングおよびレボチロキシンの用量調整を目的に外来受診。自覚症状の著変は認めず、日常生活に支障はないと述べる。",
+      "objective": "BP 129/83 mmHg, HR 77 回/分",
+      "assessment": "甲状腺機能低下症 (E03) (中等度) に対する定期フォローアップ。バイタルサインは BP 129/83 mmHg、HR 77 回/分と安定している。併存疾患として E79 (中等度)、アルコール依存症（合併症なし） (F10.20) (軽度) を有する。",
+      "plan": "レボチロキシシンを継続内服とする。次回受診時に甲状腺機能検査の結果を確認し、必要に応じて用量を調整する。"
+    },
+    "generator": "llm-vllm",
+    "generator_metadata": {
+      "generator": "llm",
+      "lang": "ja"
+    },
+    "generated_at": "2020-01-01T00:00:42Z",
+    "facts_used": [
+      "ctx.patient.demographics",
+      "ctx.encounter.chief_complaint",
+      "ctx.patient.chronic_conditions",
+      "ctx.vitals",
+      "ctx.patient.chronic_conditions",
+      "ctx.vitals.today",
+      "ctx.lab_results.today",
+      "ctx.patient.current_medications",
+      "ctx.discharge_medications",
+      "encounter_protocol.next_visit_interval"
+    ]
+  }
+}

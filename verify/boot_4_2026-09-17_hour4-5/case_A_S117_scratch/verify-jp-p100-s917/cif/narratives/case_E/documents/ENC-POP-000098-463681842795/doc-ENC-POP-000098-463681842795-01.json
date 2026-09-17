@@ -1,0 +1,33 @@
+{
+  "document_id": "doc-ENC-POP-000098-463681842795-01",
+  "encounter_id": "ENC-POP-000098-463681842795",
+  "narrative": {
+    "text": "",
+    "sections": {
+      "subjective": "年次健診のため来院。自覚症状は特になく、日常生活に支障はない。",
+      "objective": "BP 130/75 mmHg, HR 79 回/分, RR 15 回/分, SpO2 96%, T 37.0°C。体重・BMI 測定、心血管イベントリスクを再評価。",
+      "assessment": "脂質異常症 (E78) (軽度) および K64.9 (軽度) の経過観察中。本日測定した肝機能検査で AST 79.0 U/L [H]、ALT 80.0 U/L [H] と上昇を認める。アトルバスタチン内服中の肝酵素上昇の可能性を考慮し、経過観察が必要。",
+      "plan": "アトルバスタチンの継続内服を維持しつつ、肝機能の再評価を予定。次回外来受診時に再検査を行い、数値の推移を確認する。"
+    },
+    "generator": "llm-vllm",
+    "generator_metadata": {
+      "generator": "llm",
+      "lang": "ja"
+    },
+    "generated_at": "2020-01-01T00:00:42Z",
+    "facts_used": [
+      "outpatient_soap_template.subjective_ja",
+      "ctx.patient.demographics",
+      "ctx.encounter.chief_complaint",
+      "ctx.patient.chronic_conditions",
+      "ctx.vitals",
+      "outpatient_soap_template.objective",
+      "encounter_protocol.narrative.outpatient_soap_template.assessment_ja",
+      "ctx.patient.chronic_conditions",
+      "ctx.vitals.today",
+      "ctx.lab_results.today",
+      "encounter_protocol.narrative.outpatient_soap_template.plan_ja",
+      "encounter_protocol.next_visit_interval"
+    ]
+  }
+}

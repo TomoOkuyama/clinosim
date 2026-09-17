@@ -1,0 +1,48 @@
+{
+  "document_id": "doc-ENC-POP-000073-711618123536-02",
+  "encounter_id": "ENC-POP-000073-711618123536",
+  "narrative": {
+    "text": "S（主観） 入院初日。腹痛、嘔吐、便秘、腹部膨満を主訴として入院した。現在、苦痛を訴えているが、意識は清明である。\nO（客観） BP 146/86 mmHg, HR 94 回/分, RR 14 回/分, SpO2 98%, T 38.2°C。バイタル安定、検査所見あり。一般状態: 意識清明、苦痛様。循環器: 整、心雑音なし。呼吸器: 肺音清明。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし、項部硬直なし\nA（評価） 軽度のイレウスと診断し、経過観察中。バイタルサインは概ね安定しているが、体温 38.2°C と軽度の発熱を認める。検査所見では BUN 23.8 mg/dL [H]、乳酸 2.7 mmol/L [H]、AST 83.0 U/L [H] と異常値を認め、電解質異常 (electrolyte_imbalance) が合併している。\nP（計画） ■ 一般管理\n・絶食、鼻胃管挿入による減圧\n・乳酸リンゲル液 125-250 mL/h による補液\n・メトクロプラミド、大建中湯による対症療法\n・アムロジピン、カンデサルタンによる血圧管理継続\n■ 検査\n・電解質異常の改善を確認するため、随時血液検査を施行",
+    "sections": {
+      "subjective": "入院初日。腹痛、嘔吐、便秘、腹部膨満を主訴として入院した。現在、苦痛を訴えているが、意識は清明である。",
+      "objective": "BP 146/86 mmHg, HR 94 回/分, RR 14 回/分, SpO2 98%, T 38.2°C。バイタル安定、検査所見あり。一般状態: 意識清明、苦痛様。循環器: 整、心雑音なし。呼吸器: 肺音清明。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし、項部硬直なし",
+      "assessment": "軽度のイレウスと診断し、経過観察中。バイタルサインは概ね安定しているが、体温 38.2°C と軽度の発熱を認める。検査所見では BUN 23.8 mg/dL [H]、乳酸 2.7 mmol/L [H]、AST 83.0 U/L [H] と異常値を認め、電解質異常 (electrolyte_imbalance) が合併している。",
+      "plan": "■ 一般管理\n・絶食、鼻胃管挿入による減圧\n・乳酸リンゲル液 125-250 mL/h による補液\n・メトクロプラミド、大建中湯による対症療法\n・アムロジピン、カンデサルタンによる血圧管理継続\n■ 検査\n・電解質異常の改善を確認するため、随時血液検査を施行"
+    },
+    "generator": "llm-vllm",
+    "generator_metadata": {
+      "generator": "llm",
+      "lang": "ja",
+      "day_index": 0,
+      "raw_text_rejoin": {
+        "separator": "\n",
+        "order": [
+          [
+            "S（主観）",
+            "subjective"
+          ],
+          [
+            "O（客観）",
+            "objective"
+          ],
+          [
+            "A（評価）",
+            "assessment"
+          ],
+          [
+            "P（計画）",
+            "plan"
+          ]
+        ]
+      }
+    },
+    "generated_at": "2020-01-01T00:00:42Z",
+    "facts_used": [
+      "disease_protocol.course_archetypes.smooth_recovery.daily_trajectory.day_0",
+      "ctx.vitals.today",
+      "physical_exam_findings.smooth_recovery.day_0",
+      "ctx.day_index",
+      "ctx.clinical_course_archetype"
+    ]
+  }
+}

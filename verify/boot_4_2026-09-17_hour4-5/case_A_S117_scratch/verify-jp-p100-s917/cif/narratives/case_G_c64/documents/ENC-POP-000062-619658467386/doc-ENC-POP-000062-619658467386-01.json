@@ -1,0 +1,33 @@
+{
+  "document_id": "doc-ENC-POP-000062-619658467386-01",
+  "encounter_id": "ENC-POP-000062-619658467386",
+  "narrative": {
+    "text": "",
+    "sections": {
+      "subjective": "年次健診のため来院。自覚症状は特になく、日常生活に支障はない。",
+      "objective": "BP 124/71 mmHg, HR 78 回/分, RR 12 回/分, SpO2 98%, T 36.4°C。体重測定、下肢浮腫の有無を確認。",
+      "assessment": "2型糖尿病 (E11.9) について、HbA1c 9.0 % [H] と血糖 127.0 mg/dL [H] が確認され、血糖コントロール不良と判断される。また、AST 122.0 U/L [H]、ALT 93.0 U/L [H] と肝機能異常を認める。脂質異常症 (E78) (中等度)、骨粗鬆症 (M81) (中等度)、胃食道逆流症 (K21) (中等度)、H26 (軽度) は経過観察中。",
+      "plan": "2型糖尿病 (E11.9) に対して、インスリンの用量調整を検討し、次回受診時に血糖値の再評価を行う。肝機能異常 (AST 122.0 U/L [H], ALT 93.0 U/L [H]) については、原因精査のため追加検査を予定する。脂質異常症 (E78) (中等度)、骨粗鬆症 (M81) (中等度)、胃食道逆流症 (K21) (中等度)、H26 (軽度) については、現在の内服治療を継続する。"
+    },
+    "generator": "llm-vllm",
+    "generator_metadata": {
+      "generator": "llm",
+      "lang": "ja"
+    },
+    "generated_at": "2020-01-01T00:00:42Z",
+    "facts_used": [
+      "outpatient_soap_template.subjective_ja",
+      "ctx.patient.demographics",
+      "ctx.encounter.chief_complaint",
+      "ctx.patient.chronic_conditions",
+      "ctx.vitals",
+      "outpatient_soap_template.objective",
+      "encounter_protocol.narrative.outpatient_soap_template.assessment_ja",
+      "ctx.patient.chronic_conditions",
+      "ctx.vitals.today",
+      "ctx.lab_results.today",
+      "encounter_protocol.narrative.outpatient_soap_template.plan_ja",
+      "encounter_protocol.next_visit_interval"
+    ]
+  }
+}

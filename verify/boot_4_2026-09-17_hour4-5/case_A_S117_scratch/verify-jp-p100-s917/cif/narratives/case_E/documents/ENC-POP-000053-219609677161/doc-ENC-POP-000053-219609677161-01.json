@@ -1,0 +1,33 @@
+{
+  "document_id": "doc-ENC-POP-000053-219609677161-01",
+  "encounter_id": "ENC-POP-000053-219609677161",
+  "narrative": {
+    "text": "",
+    "sections": {
+      "subjective": "73歳女性、退職、非喫煙、social、m、national。本日はマンモグラフィー検診のため来院。既往歴として本態性高血圧症 (I10) (Stage 1, 軽度)、変形性膝関節症 (M17) (中等度)、E79 (軽度)、H26 (軽度) を有する。アムロジピン、カンデサルタン、アセトアミノフェンを内服中。",
+      "objective": "BP 130/92 mmHg, HR 74 回/分, RR 16 回/分, SpO2 97%, T 36.6°C。診察室血圧を測定、家庭血圧との整合性を確認。",
+      "assessment": "バイタルサインは BP 130/92 mmHg, HR 74 回/分, RR 16 回/分, SpO2 97%, T 36.6°C と安定している。検査所見にて AST 104.0 U/L [H]、ALT 97.0 U/L [H] と肝機能異常が認められる。",
+      "plan": "肝機能異常 (AST 104.0 U/L [H], ALT 97.0 U/L [H]) に対し、原因精査のため次回受診時に再検査を行う。アムロジピン、カンデサルタン、アセトアミノフェンの内服は継続する。"
+    },
+    "generator": "llm-vllm",
+    "generator_metadata": {
+      "generator": "llm",
+      "lang": "ja"
+    },
+    "generated_at": "2020-01-01T00:00:42Z",
+    "facts_used": [
+      "outpatient_soap_template.subjective_ja",
+      "ctx.patient.demographics",
+      "ctx.encounter.chief_complaint",
+      "ctx.patient.chronic_conditions",
+      "ctx.vitals",
+      "outpatient_soap_template.objective",
+      "encounter_protocol.narrative.outpatient_soap_template.assessment_ja",
+      "ctx.patient.chronic_conditions",
+      "ctx.vitals.today",
+      "ctx.lab_results.today",
+      "encounter_protocol.narrative.outpatient_soap_template.plan_ja",
+      "encounter_protocol.next_visit_interval"
+    ]
+  }
+}

@@ -1,0 +1,29 @@
+{
+  "document_id": "doc-ENC-POP-000009-881473154915-01",
+  "encounter_id": "ENC-POP-000009-881473154915",
+  "narrative": {
+    "text": "",
+    "sections": {
+      "subjective": "妊婦健診のため来院。自覚症状の著変なし。",
+      "objective": "BP 93/82 mmHg, HR 79 回/分",
+      "assessment": "妊婦健診・胎児健常評価・妊婦バイタルサインの評価を目的とした外来受診。バイタルサインはBP 93/82 mmHg、HR 79 回/分と安定しており、異常所見は認められない。",
+      "plan": "葉酸、フマル酸第一鉄の内服を継続する。次回妊婦健診まで経過観察。"
+    },
+    "generator": "llm-vllm",
+    "generator_metadata": {
+      "generator": "llm",
+      "lang": "ja"
+    },
+    "generated_at": "2020-01-01T00:00:42Z",
+    "facts_used": [
+      "ctx.patient.demographics",
+      "ctx.encounter.chief_complaint",
+      "ctx.patient.chronic_conditions",
+      "ctx.vitals",
+      "ctx.encounter.chief_complaint",
+      "ctx.patient.current_medications",
+      "ctx.discharge_medications",
+      "encounter_protocol.next_visit_interval"
+    ]
+  }
+}

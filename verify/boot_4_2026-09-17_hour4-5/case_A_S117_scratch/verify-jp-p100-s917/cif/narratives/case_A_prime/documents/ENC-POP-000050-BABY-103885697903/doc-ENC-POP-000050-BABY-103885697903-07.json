@@ -1,0 +1,39 @@
+{
+  "document_id": "doc-ENC-POP-000050-BABY-103885697903-07",
+  "encounter_id": "ENC-POP-000050-BABY-103885697903",
+  "narrative": {
+    "text": "",
+    "sections": {
+      "admission_reason": "出生児の出生場所別分類のため入院となった。",
+      "admission_details": "2026-06-04に入院した。",
+      "admission_diagnoses": "1. 出生児の出生場所別分類（Z38.0）",
+      "chief_complaint": "新生児 — 院内出生",
+      "present_illness": "2026-06-04に院内出生のため入院となった。出生時体重 3.2 kg、身長 50 cm、血液型 A+。入院初日から第5病日までの経過は安定し、バイタルサインに異常変動は認められなかった。実施された処置（232717001; 405058008）に合併症はなく、2026-06-09に自宅退院となった。",
+      "hospital_course": "2026-06-04に出生児の出生場所別分類（Z38.0）のため入院となった。入院初日から第5病日までの在院期間中、バイタルサインは安定しており、収縮期血圧 68 mmHg、心拍数 130 回/分、体温 36.7 ℃、SpO2 97% を維持した。入院中に実施した処置（232717001; 405058008）は問題なく完了し、合併症は認められなかった。経過は良好であり、2026-06-09に自宅退院となった。",
+      "discharge_details": "2026-06-09自宅退院となった。",
+      "discharge_diagnoses": "出生児の出生場所別分類（Z38.0）",
+      "discharge_medications": "退院処方なし",
+      "discharge_instructions": "【内服】\n退院処方なし。\n\n【通院】\n小児科の定期健診に従い、次回受診日に必ず受診してください。\n\n【日常生活】\n授乳・睡眠リズムを整え、清潔な環境で過ごしてください。\n\n【受診の目安】\n発熱、呼吸苦、哺乳不良、黄疸の増強、意識障害が認められた場合は、直ちに医療機関を受診してください。"
+    },
+    "generator": "llm-vllm",
+    "generator_metadata": {
+      "generator": "llm",
+      "lang": "ja"
+    },
+    "generated_at": "2020-01-01T00:00:42Z",
+    "facts_used": [
+      "ctx.diagnoses[0].admission_diagnosis_code",
+      "ctx.encounter.admission_datetime",
+      "ctx.diagnoses",
+      "ctx.encounter.chief_complaint_ja",
+      "ctx.patient.demographics",
+      "ctx.encounter.chief_complaint",
+      "ctx.patient.chronic_conditions",
+      "ctx.newborn_workup",
+      "ctx.los_days",
+      "ctx.encounter.discharge_datetime",
+      "ctx.diagnoses",
+      "discharge_instructions.baseline"
+    ]
+  }
+}

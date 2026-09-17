@@ -1,0 +1,33 @@
+{
+  "document_id": "doc-ENC-POP-000098-306199459104-01",
+  "encounter_id": "ENC-POP-000098-306199459104",
+  "narrative": {
+    "text": "",
+    "sections": {
+      "subjective": "インフルエンザ予防接種を目的に来院。既往の脂質異常症およびK64.9に対する定期受診も兼ねている。本日の主訴は特になく、体調に著変はないと述べる。",
+      "objective": "BP 129/70 mmHg, HR 78 回/分。体重・BMI 測定、心血管イベントリスクを再評価。",
+      "assessment": "67歳男性、非喫煙者。脂質異常症 (E78) (軽度) および K64.9 (軽度) の経過観察中。本日のバイタルサインは BP 129/70 mmHg、HR 78 回/分と安定しており、心血管イベントリスクの再評価において異常所見は認められない。",
+      "plan": "インフルエンザ予防接種を実施。アトルバスタチンの内服を継続する。次回受診は定期検診のスケジュールに従う。"
+    },
+    "generator": "llm-vllm",
+    "generator_metadata": {
+      "generator": "llm",
+      "lang": "ja"
+    },
+    "generated_at": "2020-01-01T00:00:42Z",
+    "facts_used": [
+      "outpatient_soap_template.subjective_ja",
+      "ctx.patient.demographics",
+      "ctx.encounter.chief_complaint",
+      "ctx.patient.chronic_conditions",
+      "ctx.vitals",
+      "outpatient_soap_template.objective",
+      "encounter_protocol.narrative.outpatient_soap_template.assessment_ja",
+      "ctx.patient.chronic_conditions",
+      "ctx.vitals.today",
+      "ctx.lab_results.today",
+      "encounter_protocol.narrative.outpatient_soap_template.plan_ja",
+      "encounter_protocol.next_visit_interval"
+    ]
+  }
+}

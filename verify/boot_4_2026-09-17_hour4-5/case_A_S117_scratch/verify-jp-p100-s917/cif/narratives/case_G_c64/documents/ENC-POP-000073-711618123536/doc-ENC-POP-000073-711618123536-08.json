@@ -1,0 +1,31 @@
+{
+  "document_id": "doc-ENC-POP-000073-711618123536-08",
+  "encounter_id": "ENC-POP-000073-711618123536",
+  "narrative": {
+    "text": "",
+    "sections": {
+      "nursing_history": "担当看護師: 平良 仁美 看護師。入院目的: 腹痛・嘔吐・排便停止・腹部膨満。既往: 本態性高血圧症、白内障、詳細不明、F17.210。",
+      "adl_assessment": "Barthel Index 73/100 → 軽度介助（食事8、入浴3、移動10、排泄7）",
+      "risk_assessments": "褥瘡リスク (Braden 19/23): 低リスク。転倒リスク (Morse 34): 中等度リスク。",
+      "nursing_diagnosis": "看護診断: 血圧管理不足のリスク、転倒リスク。",
+      "care_plan": "看護計画: 血圧を朝夕測定、目標未達時は担当医へ報告、転倒予防: ベッド柵設置、ナースコール手元。"
+    },
+    "generator": "llm-vllm",
+    "generator_metadata": {
+      "generator": "template",
+      "lang": "ja"
+    },
+    "generated_at": "2020-01-01T00:00:42Z",
+    "facts_used": [
+      "encounter.primary_nurse_id",
+      "ctx.encounter.chief_complaint",
+      "ctx.patient.chronic_conditions",
+      "ctx.adl_assessments[-1]",
+      "ctx.nursing_risk_assessments[-1]",
+      "ctx.patient.chronic_conditions",
+      "ctx.nursing_risk_assessments",
+      "ctx.patient.chronic_conditions",
+      "ctx.nursing_risk_assessments"
+    ]
+  }
+}

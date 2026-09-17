@@ -1,0 +1,33 @@
+{
+  "document_id": "doc-ENC-POP-000053-219609677161-01",
+  "encounter_id": "ENC-POP-000053-219609677161",
+  "narrative": {
+    "text": "",
+    "sections": {
+      "subjective": "マンモグラフィー検診のため来院。既往の血圧管理や膝関節痛について、現在の状態に大きな変化はないと述べる。",
+      "objective": "BP 130/92 mmHg, HR 74 回/分, RR 16 回/分, SpO2 97%, T 36.6°C。診察室血圧を測定、家庭血圧との整合性を確認。",
+      "assessment": "本態性高血圧症 (I10) (Stage 1, 軽度)、変形性膝関節症 (M17) (中等度)、E79 (軽度)、H26 (軽度) の経過観察。今日測定したAST 104.0 U/L [H]、ALT 97.0 U/L [H] は初回測定であり、肝機能の異常を示唆するため、今後の経過観察が必要である。",
+      "plan": "アムロジピン、カンデサルタン、アセトアミノフェンの内服を継続する。肝機能検査の異常値について、次回外来時に再検査を行い、必要に応じて精査を進める。"
+    },
+    "generator": "llm-vllm",
+    "generator_metadata": {
+      "generator": "llm",
+      "lang": "ja"
+    },
+    "generated_at": "2020-01-01T00:00:42Z",
+    "facts_used": [
+      "outpatient_soap_template.subjective_ja",
+      "ctx.patient.demographics",
+      "ctx.encounter.chief_complaint",
+      "ctx.patient.chronic_conditions",
+      "ctx.vitals",
+      "outpatient_soap_template.objective",
+      "encounter_protocol.narrative.outpatient_soap_template.assessment_ja",
+      "ctx.patient.chronic_conditions",
+      "ctx.vitals.today",
+      "ctx.lab_results.today",
+      "encounter_protocol.narrative.outpatient_soap_template.plan_ja",
+      "encounter_protocol.next_visit_interval"
+    ]
+  }
+}

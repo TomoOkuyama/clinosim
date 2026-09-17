@@ -1,0 +1,27 @@
+{
+  "document_id": "doc-ENC-VAX-POP-000059-5f006c845677-02",
+  "encounter_id": "ENC-VAX-POP-000059-5f006c845677",
+  "narrative": {
+    "text": "",
+    "sections": {
+      "subjective": "5歳男性患者、本日「予防接種」のため外来受診。",
+      "objective": "HR 80 回/分, T 37.7°C",
+      "assessment": "来院理由: Vaccination visit",
+      "plan": "次回外来: 60日後を予定。"
+    },
+    "generator": "template",
+    "generator_metadata": {
+      "generator": "template",
+      "lang": "ja"
+    },
+    "generated_at": "2020-01-01T00:15:17Z",
+    "facts_used": [
+      "ctx.patient.demographics",
+      "ctx.encounter.chief_complaint",
+      "ctx.patient.chronic_conditions",
+      "ctx.vitals",
+      "ctx.encounter.chief_complaint",
+      "encounter_protocol.next_visit_interval"
+    ]
+  }
+}

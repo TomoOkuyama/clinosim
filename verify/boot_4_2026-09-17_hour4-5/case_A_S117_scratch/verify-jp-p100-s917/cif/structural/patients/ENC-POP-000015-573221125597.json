@@ -1,0 +1,729 @@
+{
+  "patient": {
+    "patient_id": "POP-000015",
+    "household_id": "HH-000005",
+    "name": {
+      "family_name": "大谷",
+      "given_name": "敦",
+      "display_name": "大谷 敦",
+      "name_script": "ja",
+      "phonetic": "オオタニ アツシ"
+    },
+    "age": 67,
+    "sex": "M",
+    "date_of_birth": "1957-08-23",
+    "date_of_death": null,
+    "blood_type": "A",
+    "rh_factor": "+",
+    "height_cm": 175.3,
+    "weight_kg": 80.9,
+    "bmi": 26.3,
+    "address": {
+      "postal_code": "132-0001",
+      "state": "東京都",
+      "city": "江戸川区",
+      "line1": "中央3丁目13-8 ブリリア863",
+      "line2": "",
+      "country": "JP"
+    },
+    "contact": {
+      "phone_home": "045-890-5549",
+      "phone_mobile": "070-4545-6993",
+      "phone_primary": "070-4545-6993",
+      "email": "",
+      "emergency_contact_name": "大谷 豊",
+      "emergency_contact_phone": "045-890-5549",
+      "emergency_contact_relationship": "child"
+    },
+    "marital_status": "M",
+    "preferred_language": "ja-JP",
+    "employment_status": "retired",
+    "occupation": "retired",
+    "insurance_type": "national",
+    "identity": {
+      "national": {
+        "country": "JP",
+        "national_id": "302708935669",
+        "has_id_card": true,
+        "id_card_linked_to_insurance": true
+      },
+      "enrollments": [
+        {
+          "country": "JP",
+          "category": "national",
+          "insurer_number": "131011",
+          "member_id": "157686",
+          "group_symbol": "9864",
+          "branch_number": "01",
+          "valid_from": null,
+          "valid_to": null,
+          "system_uri": ""
+        }
+      ],
+      "card_acquired_on": null,
+      "insurance_linked_on": null
+    },
+    "race": "",
+    "ethnicity": "",
+    "health_literacy": 0.78,
+    "chronic_conditions": [
+      {
+        "code": "I10",
+        "system": "icd-10-cm",
+        "onset_date": "2022-02-26",
+        "severity": "mild",
+        "controlled": true,
+        "severity_score": 0.3,
+        "stage": "Stage 1",
+        "glycemic_control": null
+      },
+      {
+        "code": "E78",
+        "system": "icd-10-cm",
+        "onset_date": "2021-03-17",
+        "severity": "mild",
+        "controlled": true,
+        "severity_score": 0.3113890506482956,
+        "stage": "",
+        "glycemic_control": null
+      },
+      {
+        "code": "K21",
+        "system": "icd-10-cm",
+        "onset_date": "2023-06-12",
+        "severity": "moderate",
+        "controlled": true,
+        "severity_score": 0.2645119508633392,
+        "stage": "",
+        "glycemic_control": null
+      },
+      {
+        "code": "M17",
+        "system": "icd-10-cm",
+        "onset_date": "2021-04-17",
+        "severity": "mild",
+        "controlled": true,
+        "severity_score": 0.3614185469884288,
+        "stage": "",
+        "glycemic_control": null
+      },
+      {
+        "code": "H26",
+        "system": "icd-10-cm",
+        "onset_date": "2022-08-10",
+        "severity": "mild",
+        "controlled": true,
+        "severity_score": 0.13044230966677192,
+        "stage": "",
+        "glycemic_control": null
+      },
+      {
+        "code": "E66.3",
+        "system": "icd-10-cm",
+        "onset_date": "2015-07-26",
+        "severity": "moderate",
+        "controlled": true,
+        "severity_score": 0.38029637245446246,
+        "stage": "",
+        "glycemic_control": null
+      },
+      {
+        "code": "F17.210",
+        "system": "icd-10-cm",
+        "onset_date": "2022-10-16",
+        "severity": "moderate",
+        "controlled": false,
+        "severity_score": 0.24935797028169743,
+        "stage": "",
+        "glycemic_control": null
+      }
+    ],
+    "allergies": [
+      {
+        "allergy_id": "nka",
+        "allergen_code": "716186003",
+        "category": "",
+        "criticality": "unable-to-assess",
+        "verification_status": "confirmed",
+        "clinical_status": "resolved",
+        "onset_date": null,
+        "reactions": [],
+        "is_nka": true
+      }
+    ],
+    "current_medications": [
+      {
+        "drug_name": "Amlodipine",
+        "drug_name_ja": "アムロジピン",
+        "route": "PO",
+        "dose": "5mg",
+        "dose_quantity": null,
+        "dose_unit": "",
+        "frequency": "daily"
+      },
+      {
+        "drug_name": "Candesartan",
+        "drug_name_ja": "カンデサルタン",
+        "route": "PO",
+        "dose": "8mg",
+        "dose_quantity": null,
+        "dose_unit": "",
+        "frequency": "daily"
+      },
+      {
+        "drug_name": "Atorvastatin",
+        "drug_name_ja": "アトルバスタチン",
+        "route": "PO",
+        "dose": "10mg",
+        "dose_quantity": null,
+        "dose_unit": "",
+        "frequency": "daily"
+      },
+      {
+        "drug_name": "Lansoprazole",
+        "drug_name_ja": "ランソプラゾール",
+        "route": "PO",
+        "dose": "15mg",
+        "dose_quantity": null,
+        "dose_unit": "",
+        "frequency": "daily"
+      },
+      {
+        "drug_name": "Acetaminophen",
+        "drug_name_ja": "アセトアミノフェン",
+        "route": "PO",
+        "dose": "500mg",
+        "dose_quantity": null,
+        "dose_unit": "",
+        "frequency": "tid"
+      }
+    ],
+    "safety_skip_log": [],
+    "baseline_chronic_medications": [
+      {
+        "drug_name": "Amlodipine",
+        "drug_name_ja": "アムロジピン",
+        "route": "PO",
+        "dose": "5mg",
+        "dose_quantity": null,
+        "dose_unit": "",
+        "frequency": "daily"
+      },
+      {
+        "drug_name": "Candesartan",
+        "drug_name_ja": "カンデサルタン",
+        "route": "PO",
+        "dose": "8mg",
+        "dose_quantity": null,
+        "dose_unit": "",
+        "frequency": "daily"
+      },
+      {
+        "drug_name": "Atorvastatin",
+        "drug_name_ja": "アトルバスタチン",
+        "route": "PO",
+        "dose": "10mg",
+        "dose_quantity": null,
+        "dose_unit": "",
+        "frequency": "daily"
+      },
+      {
+        "drug_name": "Lansoprazole",
+        "drug_name_ja": "ランソプラゾール",
+        "route": "PO",
+        "dose": "15mg",
+        "dose_quantity": null,
+        "dose_unit": "",
+        "frequency": "daily"
+      },
+      {
+        "drug_name": "Acetaminophen",
+        "drug_name_ja": "アセトアミノフェン",
+        "route": "PO",
+        "dose": "500mg",
+        "dose_quantity": null,
+        "dose_unit": "",
+        "frequency": "tid"
+      }
+    ],
+    "smoking_status": "current",
+    "alcohol_use": "none",
+    "physiological_profile": {
+      "immune_reactivity": 0.6507243738265379,
+      "drug_metabolism_rate": "normal",
+      "renal_reserve": 0.8411493912686644,
+      "cardiac_reserve": 0.841303611711822,
+      "hepatic_reserve": 0.8678342163358866,
+      "treatment_sensitivity": 0.98312182642883,
+      "symptom_reporting_bias": 1.666650015984613,
+      "delirium_susceptibility": 0.06246120923477303,
+      "dvt_susceptibility": 0.23281071866453942
+    },
+    "baseline_vitals": {
+      "temperature": 36.8,
+      "heart_rate": 77,
+      "systolic_bp": 145,
+      "diastolic_bp": 74,
+      "respiratory_rate": 18,
+      "spo2": 97.3
+    },
+    "state_periods": []
+  },
+  "encounters": [
+    {
+      "encounter_id": "ENC-POP-000015-573221125597",
+      "patient_id": "POP-000015",
+      "episode_id": "EP-POP-000015-573221125597",
+      "encounter_type": "outpatient",
+      "status": "completed",
+      "department_id": "internal_medicine",
+      "attending_physician_id": "DR-IM-004",
+      "admitting_physician_id": "DR-IM-004",
+      "discharging_physician_id": "DR-IM-004",
+      "admission_datetime": "2026-09-09T10:20:00",
+      "discharge_datetime": "2026-09-09T10:28:00",
+      "chief_complaint": "血圧管理・処方薬の見直し",
+      "chief_complaint_ja": "血圧管理・処方薬の見直し",
+      "disease_event_id": "DE-POP-000015-001",
+      "ward_id": "",
+      "bed_number": "",
+      "time_resolution": 3600.0,
+      "admit_source": "outp",
+      "admit_source_encounter_id": "",
+      "discharge_disposition": "home",
+      "priority": "R",
+      "primary_nurse_id": "",
+      "triage_data": null,
+      "severity": "",
+      "clinical_course_archetype": "",
+      "service_line": "",
+      "admission_diagnosis_code": "",
+      "admission_diagnosis_system": ""
+    }
+  ],
+  "orders": [
+    {
+      "order_id": "ORD-ENC-POP-000015-573221125597-OPD-L00",
+      "encounter_id": "ENC-POP-000015-573221125597",
+      "patient_id": "POP-000015",
+      "order_type": "lab",
+      "order_code": "",
+      "display_name": "K",
+      "urgency": "routine",
+      "clinical_intent": "Outpatient follow-up: K",
+      "clinical_intent_ja": "外来フォローアップ: K",
+      "ordered_datetime": "2026-09-09T10:30:00",
+      "ordered_by": "DR-IM-004",
+      "status": "resulted",
+      "result": {
+        "result_datetime": "2026-09-09T12:20:00",
+        "performed_by": "TECH-LAB-008",
+        "lab_name": "K",
+        "value": 4.0,
+        "unit": "mmol/L",
+        "reference_range": null,
+        "flag": null,
+        "interpretation": null,
+        "specimen_note": null
+      },
+      "dose_quantity": null,
+      "dose_unit": "",
+      "frequency": "",
+      "frequency_per_day": null,
+      "route": "",
+      "duration_days": null,
+      "reason_condition": "",
+      "panel_key": "",
+      "imaging_modality": "",
+      "imaging_body_site_code": "",
+      "imaging_views": [],
+      "imaging_spec_meta": {},
+      "medication_intent": "",
+      "dose_text_ja": "",
+      "dose_text_en": "",
+      "notes": []
+    },
+    {
+      "order_id": "ORD-ENC-POP-000015-573221125597-OPD-L01",
+      "encounter_id": "ENC-POP-000015-573221125597",
+      "patient_id": "POP-000015",
+      "order_type": "lab",
+      "order_code": "",
+      "display_name": "Creatinine",
+      "urgency": "routine",
+      "clinical_intent": "Outpatient follow-up: Creatinine",
+      "clinical_intent_ja": "外来フォローアップ: Creatinine",
+      "ordered_datetime": "2026-09-09T10:30:00",
+      "ordered_by": "DR-IM-004",
+      "status": "resulted",
+      "result": {
+        "result_datetime": "2026-09-09T12:20:00",
+        "performed_by": "TECH-LAB-008",
+        "lab_name": "Creatinine",
+        "value": 0.87,
+        "unit": "mg/dL",
+        "reference_range": null,
+        "flag": null,
+        "interpretation": null,
+        "specimen_note": null
+      },
+      "dose_quantity": null,
+      "dose_unit": "",
+      "frequency": "",
+      "frequency_per_day": null,
+      "route": "",
+      "duration_days": null,
+      "reason_condition": "",
+      "panel_key": "",
+      "imaging_modality": "",
+      "imaging_body_site_code": "",
+      "imaging_views": [],
+      "imaging_spec_meta": {},
+      "medication_intent": "",
+      "dose_text_ja": "",
+      "dose_text_en": "",
+      "notes": []
+    },
+    {
+      "order_id": "ORD-ENC-POP-000015-573221125597-MED-MON-00",
+      "encounter_id": "ENC-POP-000015-573221125597",
+      "patient_id": "POP-000015",
+      "order_type": "lab",
+      "order_code": "1920-8",
+      "display_name": "AST",
+      "urgency": "routine",
+      "clinical_intent": "Chronic-medication monitoring (Atorvastatin): Statin hepatotoxicity monitoring — AST/ALT baseline + as clinically indicated (myalgia, muscle-weakness). ACC/AHA 2018 + JAS 2022 guideline.",
+      "clinical_intent_ja": "慢性投薬モニタリング (アトルバスタチン): スタチン肝毒性モニタリング — AST/ALT はベースライン取得後、筋痛・筋力低下等の臨床所見が出た時に再検。ACC/AHA 2018 + JAS 2022 ガイドライン準拠。",
+      "ordered_datetime": "2026-09-09T10:43:00",
+      "ordered_by": "DR-IM-004",
+      "status": "resulted",
+      "result": {
+        "result_datetime": "2026-09-09T12:43:00",
+        "performed_by": "",
+        "lab_name": "AST",
+        "value": 23.0,
+        "unit": "U/L",
+        "reference_range": null,
+        "flag": null,
+        "interpretation": null,
+        "specimen_note": null
+      },
+      "dose_quantity": null,
+      "dose_unit": "",
+      "frequency": "",
+      "frequency_per_day": null,
+      "route": "",
+      "duration_days": null,
+      "reason_condition": "",
+      "panel_key": "",
+      "imaging_modality": "",
+      "imaging_body_site_code": "",
+      "imaging_views": [],
+      "imaging_spec_meta": {},
+      "medication_intent": "",
+      "dose_text_ja": "",
+      "dose_text_en": "",
+      "notes": []
+    },
+    {
+      "order_id": "ORD-ENC-POP-000015-573221125597-MED-MON-01",
+      "encounter_id": "ENC-POP-000015-573221125597",
+      "patient_id": "POP-000015",
+      "order_type": "lab",
+      "order_code": "1742-6",
+      "display_name": "ALT",
+      "urgency": "routine",
+      "clinical_intent": "Chronic-medication monitoring (Atorvastatin): Statin hepatotoxicity monitoring — companion to AST. Discontinue if AST/ALT > 3× upper limit of normal.",
+      "clinical_intent_ja": "慢性投薬モニタリング (アトルバスタチン): スタチン肝毒性モニタリング — AST と対で評価。AST/ALT が基準値上限の 3 倍を超えたら中止。",
+      "ordered_datetime": "2026-09-09T10:41:00",
+      "ordered_by": "DR-IM-004",
+      "status": "resulted",
+      "result": {
+        "result_datetime": "2026-09-09T12:41:00",
+        "performed_by": "",
+        "lab_name": "ALT",
+        "value": 24.0,
+        "unit": "U/L",
+        "reference_range": null,
+        "flag": null,
+        "interpretation": null,
+        "specimen_note": null
+      },
+      "dose_quantity": null,
+      "dose_unit": "",
+      "frequency": "",
+      "frequency_per_day": null,
+      "route": "",
+      "duration_days": null,
+      "reason_condition": "",
+      "panel_key": "",
+      "imaging_modality": "",
+      "imaging_body_site_code": "",
+      "imaging_views": [],
+      "imaging_spec_meta": {},
+      "medication_intent": "",
+      "dose_text_ja": "",
+      "dose_text_en": "",
+      "notes": []
+    }
+  ],
+  "vital_signs": [
+    {
+      "timestamp": "2026-09-09T10:25:00",
+      "temperature_celsius": null,
+      "heart_rate": 82,
+      "systolic_bp": 139,
+      "diastolic_bp": 70,
+      "respiratory_rate": null,
+      "spo2": null,
+      "pain_score": null,
+      "consciousness_level": "A",
+      "on_supplemental_oxygen": false,
+      "oxygen_flow_rate_lpm": null,
+      "oxygen_delivery_device": "",
+      "nursing_note": "",
+      "measured_by": "NS-PC-004",
+      "data_source": "manual",
+      "news2_score": 0,
+      "gcs_score": 15
+    }
+  ],
+  "lab_results": [
+    {
+      "result_datetime": "2026-09-09T12:20:00",
+      "performed_by": "TECH-LAB-008",
+      "lab_name": "K",
+      "value": 4.0,
+      "unit": "mmol/L",
+      "reference_range": null,
+      "flag": null,
+      "interpretation": null,
+      "specimen_note": null
+    },
+    {
+      "result_datetime": "2026-09-09T12:20:00",
+      "performed_by": "TECH-LAB-008",
+      "lab_name": "Creatinine",
+      "value": 0.87,
+      "unit": "mg/dL",
+      "reference_range": null,
+      "flag": null,
+      "interpretation": null,
+      "specimen_note": null
+    },
+    {
+      "result_datetime": "2026-09-09T12:43:00",
+      "performed_by": "",
+      "lab_name": "AST",
+      "value": 23.0,
+      "unit": "U/L",
+      "reference_range": null,
+      "flag": null,
+      "interpretation": null,
+      "specimen_note": null
+    },
+    {
+      "result_datetime": "2026-09-09T12:41:00",
+      "performed_by": "",
+      "lab_name": "ALT",
+      "value": 24.0,
+      "unit": "U/L",
+      "reference_range": null,
+      "flag": null,
+      "interpretation": null,
+      "specimen_note": null
+    }
+  ],
+  "condition_event": {
+    "condition_id": "COND-POP-000015-OPD",
+    "condition_type": "chronic_followup",
+    "ground_truth_diseases": [
+      "I10"
+    ],
+    "symptom_pattern": "",
+    "state_impacts": {},
+    "presenting_symptoms": []
+  },
+  "clinical_diagnosis": {
+    "admission_diagnosis_code": "I10",
+    "admission_diagnosis_system": "icd-10-mhlw",
+    "working_diagnoses": [],
+    "discharge_diagnosis_code": "I10",
+    "discharge_diagnosis_system": "icd-10-mhlw",
+    "diagnosis_correct": true,
+    "missed_diagnoses": [],
+    "overcalled_diagnoses": []
+  },
+  "complications_occurred": [],
+  "procedures": [],
+  "rehab_sessions": [],
+  "documents": [
+    {
+      "document_id": "doc-ENC-POP-000015-573221125597-01",
+      "task_type": "outpatient_soap",
+      "loinc_code": "34131-3",
+      "patient_id": "POP-000015",
+      "encounter_id": "ENC-POP-000015-573221125597",
+      "author_practitioner_id": "DR-IM-004",
+      "related_procedure_id": "",
+      "authored_datetime": "2026-09-09T10:20:00",
+      "period_start": "2026-09-09T10:20:00",
+      "period_end": "2026-09-09T10:28:00",
+      "language": "ja",
+      "content_type": "text/plain",
+      "format_type": "composition",
+      "shift": "",
+      "checkup_type": "",
+      "narrative": null
+    }
+  ],
+  "medication_administrations": [],
+  "intake_output_records": [],
+  "adl_assessments": [],
+  "nursing_risk_assessments": [],
+  "immunizations": [
+    {
+      "vaccine_cvx": "150",
+      "occurrence_date": "2019-11-01",
+      "status": "completed",
+      "primary_source": false,
+      "dose_number": null,
+      "lot_number": "L976-201911-990",
+      "administered_by": "NS-EM-001",
+      "encounter_id": ""
+    },
+    {
+      "vaccine_cvx": "309",
+      "occurrence_date": "2021-06-05",
+      "status": "completed",
+      "primary_source": false,
+      "dose_number": null,
+      "lot_number": "L157-202106-514",
+      "administered_by": "NS-EM-001",
+      "encounter_id": ""
+    },
+    {
+      "vaccine_cvx": "150",
+      "occurrence_date": "2023-12-01",
+      "status": "completed",
+      "primary_source": false,
+      "dose_number": null,
+      "lot_number": "L976-202312-454",
+      "administered_by": "NS-EM-001",
+      "encounter_id": ""
+    },
+    {
+      "vaccine_cvx": "150",
+      "occurrence_date": "2025-02-01",
+      "status": "completed",
+      "primary_source": false,
+      "dose_number": null,
+      "lot_number": "L976-202502-647",
+      "administered_by": "NS-EM-001",
+      "encounter_id": ""
+    }
+  ],
+  "family_history": [
+    {
+      "relationship": "MTH",
+      "sex": "female",
+      "deceased": true,
+      "condition_codes": [
+        "I10",
+        "I25",
+        "E78",
+        "C50"
+      ]
+    },
+    {
+      "relationship": "FTH",
+      "sex": "male",
+      "deceased": true,
+      "condition_codes": [
+        "I10",
+        "I25",
+        "E78"
+      ]
+    },
+    {
+      "relationship": "NSIB",
+      "sex": "female",
+      "deceased": false,
+      "condition_codes": [
+        "I10",
+        "E78"
+      ]
+    },
+    {
+      "relationship": "NSIB",
+      "sex": "male",
+      "deceased": false,
+      "condition_codes": [
+        "I10",
+        "E78"
+      ]
+    }
+  ],
+  "code_status": "",
+  "care_level": "",
+  "microbiology": [],
+  "discharge_prescription": {
+    "prescription_id": "RX-POP-000015-OPD",
+    "patient_id": "",
+    "prescriber_id": "DR-IM-004",
+    "issue_date": "2026-09-09T10:20:00",
+    "items": [
+      {
+        "drug_name": "Amlodipine",
+        "drug_name_ja": "アムロジピン",
+        "dose": "5mg",
+        "route": "PO",
+        "frequency": "daily",
+        "duration_days": 30
+      },
+      {
+        "drug_name": "Candesartan",
+        "drug_name_ja": "カンデサルタン",
+        "dose": "8mg",
+        "route": "PO",
+        "frequency": "daily",
+        "duration_days": 30
+      },
+      {
+        "drug_name": "Atorvastatin",
+        "drug_name_ja": "アトルバスタチン",
+        "dose": "10mg",
+        "route": "PO",
+        "frequency": "daily",
+        "duration_days": 30
+      },
+      {
+        "drug_name": "Lansoprazole",
+        "drug_name_ja": "ランソプラゾール",
+        "dose": "15mg",
+        "route": "PO",
+        "frequency": "daily",
+        "duration_days": 30
+      },
+      {
+        "drug_name": "Acetaminophen",
+        "drug_name_ja": "アセトアミノフェン",
+        "dose": "500mg",
+        "route": "PO",
+        "frequency": "tid",
+        "duration_days": 30
+      }
+    ]
+  },
+  "icu_transferred": false,
+  "icu_transferred_day": -1,
+  "deceased": false,
+  "death_day": null,
+  "is_readmission": false,
+  "prior_encounter_id": null,
+  "readmission_number": 0,
+  "physiological_states": [],
+  "extensions": {
+    "clinical_impressions": []
+  }
+}

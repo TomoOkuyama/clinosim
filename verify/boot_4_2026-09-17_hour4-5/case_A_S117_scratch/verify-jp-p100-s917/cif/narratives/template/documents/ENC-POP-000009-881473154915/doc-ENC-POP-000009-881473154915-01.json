@@ -1,0 +1,29 @@
+{
+  "document_id": "doc-ENC-POP-000009-881473154915-01",
+  "encounter_id": "ENC-POP-000009-881473154915",
+  "narrative": {
+    "text": "",
+    "sections": {
+      "subjective": "32歳女性患者、本日「妊婦健診・胎児健常評価・妊婦バイタルサイン」のため外来受診。",
+      "objective": "BP 93/82 mmHg, HR 79 回/分",
+      "assessment": "来院理由: 妊婦健診・胎児健常評価・妊婦バイタルサイン",
+      "plan": "継続処方: 葉酸、フマル酸第一鉄\n本日処方: 葉酸 0.4mg、フマル酸第一鉄 50mg\n次回外来: 90日後を予定。"
+    },
+    "generator": "template",
+    "generator_metadata": {
+      "generator": "template",
+      "lang": "ja"
+    },
+    "generated_at": "2020-01-01T00:15:17Z",
+    "facts_used": [
+      "ctx.patient.demographics",
+      "ctx.encounter.chief_complaint",
+      "ctx.patient.chronic_conditions",
+      "ctx.vitals",
+      "ctx.encounter.chief_complaint",
+      "ctx.patient.current_medications",
+      "ctx.discharge_medications",
+      "encounter_protocol.next_visit_interval"
+    ]
+  }
+}

@@ -1,0 +1,371 @@
+{
+  "patient": {
+    "patient_id": "POP-000050",
+    "household_id": "HH-000022",
+    "name": {
+      "family_name": "佐々木",
+      "given_name": "紬",
+      "display_name": "佐々木 紬",
+      "name_script": "ja",
+      "phonetic": "ササキ ツムギ"
+    },
+    "age": 20,
+    "sex": "F",
+    "date_of_birth": "2004-03-08",
+    "date_of_death": null,
+    "blood_type": "B",
+    "rh_factor": "+",
+    "height_cm": 150.9,
+    "weight_kg": 46.2,
+    "bmi": 20.3,
+    "address": {
+      "postal_code": "224-0001",
+      "state": "神奈川県",
+      "city": "横浜市",
+      "line1": "富士見5丁目2-8",
+      "line2": "",
+      "country": "JP"
+    },
+    "contact": {
+      "phone_home": "03-9989-9144",
+      "phone_mobile": "080-8126-6464",
+      "phone_primary": "080-8126-6464",
+      "email": "",
+      "emergency_contact_name": "佐々木 和夫",
+      "emergency_contact_phone": "03-9989-9144",
+      "emergency_contact_relationship": "child"
+    },
+    "marital_status": "S",
+    "preferred_language": "ja-JP",
+    "employment_status": "employed",
+    "occupation": "student",
+    "insurance_type": "national",
+    "identity": {
+      "national": {
+        "country": "JP",
+        "national_id": "177243155514",
+        "has_id_card": true,
+        "id_card_linked_to_insurance": false
+      },
+      "enrollments": [
+        {
+          "country": "JP",
+          "category": "national",
+          "insurer_number": "131011",
+          "member_id": "320479",
+          "group_symbol": "5439",
+          "branch_number": "01",
+          "valid_from": null,
+          "valid_to": null,
+          "system_uri": ""
+        }
+      ],
+      "card_acquired_on": null,
+      "insurance_linked_on": null
+    },
+    "race": "",
+    "ethnicity": "",
+    "health_literacy": 0.59,
+    "chronic_conditions": [],
+    "allergies": [
+      {
+        "allergy_id": "nka",
+        "allergen_code": "716186003",
+        "category": "",
+        "criticality": "unable-to-assess",
+        "verification_status": "confirmed",
+        "clinical_status": "resolved",
+        "onset_date": null,
+        "reactions": [],
+        "is_nka": true
+      }
+    ],
+    "current_medications": [
+      {
+        "drug_name": "Folic acid",
+        "drug_name_ja": "葉酸",
+        "route": "PO",
+        "dose": "0.4mg",
+        "dose_quantity": null,
+        "dose_unit": "",
+        "frequency": "daily"
+      },
+      {
+        "drug_name": "Ferrous fumarate",
+        "drug_name_ja": "フマル酸第一鉄",
+        "route": "PO",
+        "dose": "50mg",
+        "dose_quantity": null,
+        "dose_unit": "",
+        "frequency": "daily"
+      }
+    ],
+    "safety_skip_log": [],
+    "baseline_chronic_medications": [
+      {
+        "drug_name": "Folic acid",
+        "drug_name_ja": "葉酸",
+        "route": "PO",
+        "dose": "0.4mg",
+        "dose_quantity": null,
+        "dose_unit": "",
+        "frequency": "daily"
+      },
+      {
+        "drug_name": "Ferrous fumarate",
+        "drug_name_ja": "フマル酸第一鉄",
+        "route": "PO",
+        "dose": "50mg",
+        "dose_quantity": null,
+        "dose_unit": "",
+        "frequency": "daily"
+      }
+    ],
+    "smoking_status": "former",
+    "alcohol_use": "none",
+    "physiological_profile": {
+      "immune_reactivity": 0.7494617921351892,
+      "drug_metabolism_rate": "normal",
+      "renal_reserve": 0.9933009881547792,
+      "cardiac_reserve": 0.9673504869275832,
+      "hepatic_reserve": 0.9475797652974456,
+      "treatment_sensitivity": 1.0657695809176948,
+      "symptom_reporting_bias": 0.9527707527331386,
+      "delirium_susceptibility": 0.08435114556840284,
+      "dvt_susceptibility": 0.3779285904971398
+    },
+    "baseline_vitals": {
+      "temperature": 36.4,
+      "heart_rate": 81,
+      "systolic_bp": 105,
+      "diastolic_bp": 71,
+      "respiratory_rate": 15,
+      "spo2": 97.7
+    },
+    "state_periods": [
+      {
+        "state_type": "pregnancy",
+        "start_date": "2025-09-04",
+        "end_date": "2026-06-04",
+        "outcome": "delivered",
+        "metadata": {
+          "lmp": "2025-09-04",
+          "edd": "2026-06-11",
+          "planned_delivery_date": "2026-06-04",
+          "complications": [],
+          "delivered_on": "2026-06-04"
+        },
+        "period_seq": 0
+      }
+    ]
+  },
+  "encounters": [
+    {
+      "encounter_id": "ENC-POP-000050-535274495389",
+      "patient_id": "POP-000050",
+      "episode_id": "EP-POP-000050-535274495389",
+      "encounter_type": "outpatient",
+      "status": "completed",
+      "department_id": "primary_care",
+      "attending_physician_id": "DR-PC-001",
+      "admitting_physician_id": "DR-PC-001",
+      "discharging_physician_id": "DR-PC-001",
+      "admission_datetime": "2026-06-11T10:39:00",
+      "discharge_datetime": "2026-06-11T10:53:00",
+      "chief_complaint": "産後フォローアップ・創部確認・授乳支援・産後うつスクリーニング",
+      "chief_complaint_ja": "産後フォローアップ・創部確認・授乳支援・産後うつスクリーニング",
+      "disease_event_id": "DE-POP-000050-001",
+      "ward_id": "",
+      "bed_number": "",
+      "time_resolution": 3600.0,
+      "admit_source": "outp",
+      "admit_source_encounter_id": "",
+      "discharge_disposition": "home",
+      "priority": "R",
+      "primary_nurse_id": "",
+      "triage_data": null,
+      "severity": "",
+      "clinical_course_archetype": "",
+      "service_line": "",
+      "admission_diagnosis_code": "",
+      "admission_diagnosis_system": ""
+    }
+  ],
+  "orders": [],
+  "vital_signs": [
+    {
+      "timestamp": "2026-06-11T10:44:00",
+      "temperature_celsius": null,
+      "heart_rate": 82,
+      "systolic_bp": 106,
+      "diastolic_bp": 70,
+      "respiratory_rate": null,
+      "spo2": null,
+      "pain_score": null,
+      "consciousness_level": "A",
+      "on_supplemental_oxygen": false,
+      "oxygen_flow_rate_lpm": null,
+      "oxygen_delivery_device": "",
+      "nursing_note": "",
+      "measured_by": "NS-PC-002",
+      "data_source": "manual",
+      "news2_score": 1,
+      "gcs_score": 15
+    }
+  ],
+  "lab_results": [],
+  "condition_event": {
+    "condition_id": "COND-POP-000050-OPD",
+    "condition_type": "chronic_followup",
+    "ground_truth_diseases": [
+      "Z39"
+    ],
+    "symptom_pattern": "",
+    "state_impacts": {},
+    "presenting_symptoms": []
+  },
+  "clinical_diagnosis": {
+    "admission_diagnosis_code": "Z39",
+    "admission_diagnosis_system": "icd-10-mhlw",
+    "working_diagnoses": [],
+    "discharge_diagnosis_code": "Z39",
+    "discharge_diagnosis_system": "icd-10-mhlw",
+    "diagnosis_correct": true,
+    "missed_diagnoses": [],
+    "overcalled_diagnoses": []
+  },
+  "complications_occurred": [],
+  "procedures": [],
+  "rehab_sessions": [],
+  "documents": [
+    {
+      "document_id": "doc-ENC-POP-000050-535274495389-01",
+      "task_type": "outpatient_soap",
+      "loinc_code": "34131-3",
+      "patient_id": "POP-000050",
+      "encounter_id": "ENC-POP-000050-535274495389",
+      "author_practitioner_id": "DR-PC-001",
+      "related_procedure_id": "",
+      "authored_datetime": "2026-06-11T10:39:00",
+      "period_start": "2026-06-11T10:39:00",
+      "period_end": "2026-06-11T10:53:00",
+      "language": "ja",
+      "content_type": "text/plain",
+      "format_type": "composition",
+      "shift": "",
+      "checkup_type": "",
+      "narrative": null
+    }
+  ],
+  "medication_administrations": [],
+  "intake_output_records": [],
+  "adl_assessments": [],
+  "nursing_risk_assessments": [],
+  "immunizations": [
+    {
+      "vaccine_cvx": "19",
+      "occurrence_date": "2004-09-17",
+      "status": "completed",
+      "primary_source": false,
+      "dose_number": 1,
+      "lot_number": "L284-200409-687",
+      "administered_by": "NS-CA-006",
+      "encounter_id": ""
+    },
+    {
+      "vaccine_cvx": "129",
+      "occurrence_date": "2013-06-30",
+      "status": "completed",
+      "primary_source": false,
+      "dose_number": 3,
+      "lot_number": "L845-201306-439",
+      "administered_by": "NS-CA-006",
+      "encounter_id": ""
+    },
+    {
+      "vaccine_cvx": "129",
+      "occurrence_date": "2016-07-13",
+      "status": "completed",
+      "primary_source": false,
+      "dose_number": 4,
+      "lot_number": "L845-201607-700",
+      "administered_by": "NS-CA-006",
+      "encounter_id": ""
+    },
+    {
+      "vaccine_cvx": "309",
+      "occurrence_date": "2022-10-18",
+      "status": "completed",
+      "primary_source": false,
+      "dose_number": null,
+      "lot_number": "L157-202210-922",
+      "administered_by": "NS-CA-006",
+      "encounter_id": ""
+    },
+    {
+      "vaccine_cvx": "150",
+      "occurrence_date": "2023-01-01",
+      "status": "completed",
+      "primary_source": false,
+      "dose_number": null,
+      "lot_number": "L976-202301-412",
+      "administered_by": "NS-CA-006",
+      "encounter_id": ""
+    },
+    {
+      "vaccine_cvx": "150",
+      "occurrence_date": "2025-11-27",
+      "status": "completed",
+      "primary_source": true,
+      "dose_number": null,
+      "lot_number": "L976-202511-427",
+      "administered_by": "NS-CA-006",
+      "encounter_id": "ENC-POP-000050-493527461676"
+    }
+  ],
+  "family_history": [
+    {
+      "relationship": "MTH",
+      "sex": "female",
+      "deceased": false,
+      "condition_codes": [
+        "I25"
+      ]
+    },
+    {
+      "relationship": "FTH",
+      "sex": "male",
+      "deceased": false,
+      "condition_codes": [
+        "I10"
+      ]
+    },
+    {
+      "relationship": "NSIB",
+      "sex": "male",
+      "deceased": false,
+      "condition_codes": []
+    },
+    {
+      "relationship": "NSIB",
+      "sex": "female",
+      "deceased": false,
+      "condition_codes": []
+    }
+  ],
+  "code_status": "",
+  "care_level": "",
+  "microbiology": [],
+  "discharge_prescription": null,
+  "icu_transferred": false,
+  "icu_transferred_day": -1,
+  "deceased": false,
+  "death_day": null,
+  "is_readmission": false,
+  "prior_encounter_id": null,
+  "readmission_number": 0,
+  "physiological_states": [],
+  "extensions": {
+    "clinical_impressions": []
+  }
+}

@@ -1,0 +1,31 @@
+{
+  "document_id": "doc-ENC-POP-000009-190804852614-23",
+  "encounter_id": "ENC-POP-000009-190804852614",
+  "narrative": {
+    "text": "",
+    "sections": {
+      "ward_and_room": "病棟・病室：未定",
+      "other_staff": "担当看護師：安部 啓子 看護師",
+      "diagnosis": "単胎自然分娩（O80）",
+      "symptoms": "分娩 (自然分娩)",
+      "treatment_plan": "【評価】主訴「分娩 (自然分娩)」で入院。\n【方針】予定入院期間: 約5日。",
+      "test_schedule": "検査：担当医の判断により決定",
+      "surgery_schedule": "手術：予定なし",
+      "estimated_los": "推定入院期間：約5日間",
+      "special_nutrition_management": "特別な栄養管理の必要性：無",
+      "other_plans": "その他：看護計画・リハビリテーション等の計画については看護記録を参照。"
+    },
+    "generator": "llm-vllm",
+    "generator_metadata": {
+      "generator": "template",
+      "lang": "ja"
+    },
+    "generated_at": "2020-01-01T00:00:42Z",
+    "facts_used": [
+      "encounter.primary_nurse_id",
+      "ctx.diagnoses",
+      "ctx.encounter.chief_complaint_ja",
+      "ctx.los_days"
+    ]
+  }
+}

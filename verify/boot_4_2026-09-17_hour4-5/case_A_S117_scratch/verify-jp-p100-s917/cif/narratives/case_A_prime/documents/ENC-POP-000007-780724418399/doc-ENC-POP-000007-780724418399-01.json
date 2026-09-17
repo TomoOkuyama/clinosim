@@ -1,0 +1,33 @@
+{
+  "document_id": "doc-ENC-POP-000007-780724418399-01",
+  "encounter_id": "ENC-POP-000007-780724418399",
+  "narrative": {
+    "text": "",
+    "sections": {
+      "subjective": "脂質管理およびスタチン療法のモニタリング目的で受診。自覚症状の著変なし。",
+      "objective": "BP 130/69 mmHg, HR 95 回/分。体重・BMI 測定、心血管イベントリスクを再評価。",
+      "assessment": "脂質異常症 (E78) (中等度) に対するアトルバスタチン継続内服中。本日の検査で ALT 28.0 U/L [H] と軽度上昇を認める。K64.9 (軽度) およびニコチン依存症（紙巻きたばこ、合併症なし） (F17.210) (中等度) の経過も観察中。",
+      "plan": "アトルバスタチンの継続内服を指示。肝機能の経過観察のため、次回受診時に再検査を行う。"
+    },
+    "generator": "llm-vllm",
+    "generator_metadata": {
+      "generator": "llm",
+      "lang": "ja"
+    },
+    "generated_at": "2020-01-01T00:00:42Z",
+    "facts_used": [
+      "outpatient_soap_template.subjective_ja",
+      "ctx.patient.demographics",
+      "ctx.encounter.chief_complaint",
+      "ctx.patient.chronic_conditions",
+      "ctx.vitals",
+      "outpatient_soap_template.objective",
+      "encounter_protocol.narrative.outpatient_soap_template.assessment_ja",
+      "ctx.patient.chronic_conditions",
+      "ctx.vitals.today",
+      "ctx.lab_results.today",
+      "encounter_protocol.narrative.outpatient_soap_template.plan_ja",
+      "encounter_protocol.next_visit_interval"
+    ]
+  }
+}

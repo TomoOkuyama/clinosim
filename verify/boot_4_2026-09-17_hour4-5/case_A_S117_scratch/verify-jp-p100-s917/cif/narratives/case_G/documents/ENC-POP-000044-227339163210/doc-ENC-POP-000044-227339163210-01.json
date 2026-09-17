@@ -1,0 +1,36 @@
+{
+  "document_id": "doc-ENC-POP-000044-227339163210-01",
+  "encounter_id": "ENC-POP-000044-227339163210",
+  "narrative": {
+    "text": "",
+    "sections": {
+      "chief_complaint": "意識消失・失神エピソード",
+      "hpi": "3歳女性。意識消失・失神エピソードを主訴に救急車搬送で来院した。到着時のバイタルサインは T 37.5°C、HR 71/min、BP 101/68 mmHg、SpO2 100% (RA)、RR 17/min であり、中等度の重症度と判断した。身体診察では JCS I-2 で、簡単な問いかけには応答するが見当識低下を認めた。",
+      "triage_details": "トリアージレベル: JTAS Level 3。来院形態: 救急車搬送。",
+      "physical_exam": "バイタルサイン: BP 101/68 mmHg, HR 71/min, T 37.5°C, SpO2 100% (RA), RR 17/min。JCS I-2、簡単な問いかけには応答するも見当識低下あり",
+      "ed_workup": "検査: Hb。投薬: IV normal saline 1L",
+      "assessment": "JTAS Level 3。意識消失・失神エピソードに対する鑑別診断として、心因性失神、起立性低血圧、心原性失神などを考慮した。バイタルサインの安定と SpO2 100% (RA) を踏まえ、急性の低酸素状態や重篤な循環不全は否定された。",
+      "disposition": "救急外来にて IV normal saline 1L の投与および Hb 検査を実施し、経過観察を行った。状態の安定を確認したため、自宅退院とした。再発時の受診基準について家族に説明した。"
+    },
+    "generator": "llm-vllm",
+    "generator_metadata": {
+      "generator": "llm",
+      "lang": "ja"
+    },
+    "generated_at": "2020-01-01T00:00:42Z",
+    "facts_used": [
+      "ctx.encounter.chief_complaint_ja",
+      "encounter_protocol.narrative.ed_note_template.hpi_ja",
+      "ctx.patient.demographics",
+      "ctx.patient.chronic_conditions",
+      "ctx.patient.current_medications",
+      "encounter.triage_data",
+      "encounter_protocol.narrative.ed_note_template.physical_exam_ja",
+      "cc_pe_consistency:consciousness",
+      "ctx.vitals[day_0]",
+      "ctx.orders.ed",
+      "ctx.ed_assessment.state_composed",
+      "ctx.encounter.disposition"
+    ]
+  }
+}

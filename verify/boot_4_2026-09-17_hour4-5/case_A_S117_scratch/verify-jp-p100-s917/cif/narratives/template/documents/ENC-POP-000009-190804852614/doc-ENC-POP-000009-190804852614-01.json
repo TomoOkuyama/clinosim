@@ -1,0 +1,37 @@
+{
+  "document_id": "doc-ENC-POP-000009-190804852614-01",
+  "encounter_id": "ENC-POP-000009-190804852614",
+  "narrative": {
+    "text": "",
+    "sections": {
+      "chief_complaint": "分娩 (自然分娩)",
+      "hpi": "受診となった。 32歳女性患者。主訴: 分娩 (自然分娩)。常用薬: 葉酸、フマル酸第一鉄。外来にて内服処方継続中。",
+      "past_medical_history": "特記既往歴なし",
+      "medications_at_home": "葉酸; フマル酸第一鉄",
+      "allergies": "薬物アレルギーなし（NKDA）",
+      "social_history": "喫煙歴: 元喫煙者; 飲酒歴: 飲酒なし; 職業: 運輸業",
+      "family_history": "家族歴: 母 – 本態性高血圧症、慢性虚血性心疾患、脂質異常症 兄弟姉妹 – 脂質異常症",
+      "physical_examination": "一般状態: 意識清明、苦痛様。循環器: 整、心雑音なし。呼吸器: 呼吸音清明、呼吸数軽度上昇。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし、項部硬直なし",
+      "assessment_and_plan": "【評価】主訴「分娩 (自然分娩)」で入院。\n【方針】予定入院期間: 約5日。"
+    },
+    "generator": "template",
+    "generator_metadata": {
+      "generator": "template",
+      "lang": "ja"
+    },
+    "generated_at": "2020-01-01T00:15:17Z",
+    "facts_used": [
+      "ctx.encounter.chief_complaint_ja",
+      "ctx.patient.demographics",
+      "ctx.encounter.chief_complaint",
+      "ctx.patient.chronic_conditions",
+      "ctx.patient.current_medications",
+      "ctx.allergies",
+      "ctx.patient.smoking_status",
+      "ctx.patient.alcohol_use",
+      "ctx.patient.occupation",
+      "ctx.family_history",
+      "physical_exam_findings..day_0"
+    ]
+  }
+}

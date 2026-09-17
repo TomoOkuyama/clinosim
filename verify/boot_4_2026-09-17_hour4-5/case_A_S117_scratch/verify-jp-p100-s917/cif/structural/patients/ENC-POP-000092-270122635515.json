@@ -1,0 +1,406 @@
+{
+  "patient": {
+    "patient_id": "POP-000092",
+    "household_id": "HH-000039",
+    "name": {
+      "family_name": "平田",
+      "given_name": "義雄",
+      "display_name": "平田 義雄",
+      "name_script": "ja",
+      "phonetic": "ヒラタ ヨシオ"
+    },
+    "age": 71,
+    "sex": "M",
+    "date_of_birth": "1953-08-27",
+    "date_of_death": "2025-12-16",
+    "blood_type": "AB",
+    "rh_factor": "+",
+    "height_cm": 169.1,
+    "weight_kg": 71.7,
+    "bmi": 25.1,
+    "address": {
+      "postal_code": "220-0001",
+      "state": "神奈川県",
+      "city": "横浜市",
+      "line1": "中央4丁目28-5 パークシティ976",
+      "line2": "",
+      "country": "JP"
+    },
+    "contact": {
+      "phone_home": "044-832-2527",
+      "phone_mobile": "090-5716-4428",
+      "phone_primary": "090-5716-4428",
+      "email": "",
+      "emergency_contact_name": "平田 香織",
+      "emergency_contact_phone": "044-832-2527",
+      "emergency_contact_relationship": "spouse"
+    },
+    "marital_status": "M",
+    "preferred_language": "ja-JP",
+    "employment_status": "retired",
+    "occupation": "retired",
+    "insurance_type": "national",
+    "identity": {
+      "national": {
+        "country": "JP",
+        "national_id": "871968697790",
+        "has_id_card": true,
+        "id_card_linked_to_insurance": true
+      },
+      "enrollments": [
+        {
+          "country": "JP",
+          "category": "national",
+          "insurer_number": "131011",
+          "member_id": "472936",
+          "group_symbol": "3529",
+          "branch_number": "01",
+          "valid_from": null,
+          "valid_to": null,
+          "system_uri": ""
+        }
+      ],
+      "card_acquired_on": null,
+      "insurance_linked_on": null
+    },
+    "race": "",
+    "ethnicity": "",
+    "health_literacy": 0.92,
+    "chronic_conditions": [
+      {
+        "code": "N18",
+        "system": "icd-10-cm",
+        "onset_date": "2015-01-23",
+        "severity": "mild",
+        "controlled": false,
+        "severity_score": 0.35,
+        "stage": "CKD G3a",
+        "glycemic_control": null
+      },
+      {
+        "code": "M17",
+        "system": "icd-10-cm",
+        "onset_date": "2019-12-15",
+        "severity": "mild",
+        "controlled": true,
+        "severity_score": 0.19461953263171974,
+        "stage": "",
+        "glycemic_control": null
+      },
+      {
+        "code": "K64.9",
+        "system": "icd-10-cm",
+        "onset_date": "2023-12-05",
+        "severity": "moderate",
+        "controlled": true,
+        "severity_score": 0.13786596190420825,
+        "stage": "",
+        "glycemic_control": null
+      },
+      {
+        "code": "M54",
+        "system": "icd-10-cm",
+        "onset_date": "2023-05-21",
+        "severity": "mild",
+        "controlled": false,
+        "severity_score": 0.31424465475386143,
+        "stage": "",
+        "glycemic_control": null
+      },
+      {
+        "code": "E66.3",
+        "system": "icd-10-cm",
+        "onset_date": "2012-01-25",
+        "severity": "mild",
+        "controlled": true,
+        "severity_score": 0.32704198071694246,
+        "stage": "",
+        "glycemic_control": null
+      }
+    ],
+    "allergies": [
+      {
+        "allergy_id": "nka",
+        "allergen_code": "716186003",
+        "category": "",
+        "criticality": "unable-to-assess",
+        "verification_status": "confirmed",
+        "clinical_status": "resolved",
+        "onset_date": null,
+        "reactions": [],
+        "is_nka": true
+      }
+    ],
+    "current_medications": [
+      {
+        "drug_name": "Sodium bicarbonate",
+        "drug_name_ja": "炭酸水素ナトリウム",
+        "route": "PO",
+        "dose": "500mg",
+        "dose_quantity": null,
+        "dose_unit": "",
+        "frequency": "tid"
+      },
+      {
+        "drug_name": "Acetaminophen",
+        "drug_name_ja": "アセトアミノフェン",
+        "route": "PO",
+        "dose": "500mg",
+        "dose_quantity": null,
+        "dose_unit": "",
+        "frequency": "tid"
+      }
+    ],
+    "safety_skip_log": [],
+    "baseline_chronic_medications": [
+      {
+        "drug_name": "Sodium bicarbonate",
+        "drug_name_ja": "炭酸水素ナトリウム",
+        "route": "PO",
+        "dose": "500mg",
+        "dose_quantity": null,
+        "dose_unit": "",
+        "frequency": "tid"
+      },
+      {
+        "drug_name": "Acetaminophen",
+        "drug_name_ja": "アセトアミノフェン",
+        "route": "PO",
+        "dose": "500mg",
+        "dose_quantity": null,
+        "dose_unit": "",
+        "frequency": "tid"
+      }
+    ],
+    "smoking_status": "never",
+    "alcohol_use": "none",
+    "physiological_profile": {
+      "immune_reactivity": 0.5885809338944776,
+      "drug_metabolism_rate": "rapid",
+      "renal_reserve": 0.7991225410204645,
+      "cardiac_reserve": 0.7458350434114992,
+      "hepatic_reserve": 0.8226212017546431,
+      "treatment_sensitivity": 0.9233846929731595,
+      "symptom_reporting_bias": 1.2391588342726856,
+      "delirium_susceptibility": 0.10974315519490022,
+      "dvt_susceptibility": 0.34014447980465184
+    },
+    "baseline_vitals": {
+      "temperature": 36.5,
+      "heart_rate": 60,
+      "systolic_bp": 134,
+      "diastolic_bp": 77,
+      "respiratory_rate": 14,
+      "spo2": 96.3
+    },
+    "state_periods": []
+  },
+  "encounters": [
+    {
+      "encounter_id": "ENC-POP-000092-270122635515",
+      "patient_id": "POP-000092",
+      "episode_id": "EP-POP-000092-270122635515",
+      "encounter_type": "outpatient",
+      "status": "completed",
+      "department_id": "internal_medicine",
+      "attending_physician_id": "DR-IM-002",
+      "admitting_physician_id": "DR-IM-002",
+      "discharging_physician_id": "DR-IM-002",
+      "admission_datetime": "2025-11-03T10:14:00",
+      "discharge_datetime": "2025-11-03T10:24:00",
+      "chief_complaint": "インフルエンザ予防接種",
+      "chief_complaint_ja": "インフルエンザ予防接種",
+      "disease_event_id": "DE-POP-000092-001",
+      "ward_id": "",
+      "bed_number": "",
+      "time_resolution": 3600.0,
+      "admit_source": "outp",
+      "admit_source_encounter_id": "",
+      "discharge_disposition": "home",
+      "priority": "R",
+      "primary_nurse_id": "",
+      "triage_data": null,
+      "severity": "",
+      "clinical_course_archetype": "",
+      "service_line": "",
+      "admission_diagnosis_code": "",
+      "admission_diagnosis_system": ""
+    }
+  ],
+  "orders": [],
+  "vital_signs": [
+    {
+      "timestamp": "2025-11-03T10:19:00",
+      "temperature_celsius": null,
+      "heart_rate": 67,
+      "systolic_bp": 126,
+      "diastolic_bp": 72,
+      "respiratory_rate": null,
+      "spo2": null,
+      "pain_score": null,
+      "consciousness_level": "A",
+      "on_supplemental_oxygen": false,
+      "oxygen_flow_rate_lpm": null,
+      "oxygen_delivery_device": "",
+      "nursing_note": "",
+      "measured_by": "NS-PC-004",
+      "data_source": "manual",
+      "news2_score": 0,
+      "gcs_score": 15
+    }
+  ],
+  "lab_results": [],
+  "condition_event": {
+    "condition_id": "COND-POP-000092-OPD",
+    "condition_type": "chronic_followup",
+    "ground_truth_diseases": [
+      "Z23"
+    ],
+    "symptom_pattern": "",
+    "state_impacts": {},
+    "presenting_symptoms": []
+  },
+  "clinical_diagnosis": {
+    "admission_diagnosis_code": "Z23",
+    "admission_diagnosis_system": "icd-10-mhlw",
+    "working_diagnoses": [],
+    "discharge_diagnosis_code": "Z23",
+    "discharge_diagnosis_system": "icd-10-mhlw",
+    "diagnosis_correct": true,
+    "missed_diagnoses": [],
+    "overcalled_diagnoses": []
+  },
+  "complications_occurred": [],
+  "procedures": [],
+  "rehab_sessions": [],
+  "documents": [
+    {
+      "document_id": "doc-ENC-POP-000092-270122635515-01",
+      "task_type": "outpatient_soap",
+      "loinc_code": "34131-3",
+      "patient_id": "POP-000092",
+      "encounter_id": "ENC-POP-000092-270122635515",
+      "author_practitioner_id": "DR-IM-002",
+      "related_procedure_id": "",
+      "authored_datetime": "2025-11-03T10:14:00",
+      "period_start": "2025-11-03T10:14:00",
+      "period_end": "2025-11-03T10:24:00",
+      "language": "ja",
+      "content_type": "text/plain",
+      "format_type": "composition",
+      "shift": "",
+      "checkup_type": "",
+      "narrative": null
+    }
+  ],
+  "medication_administrations": [],
+  "intake_output_records": [],
+  "adl_assessments": [],
+  "nursing_risk_assessments": [],
+  "immunizations": [
+    {
+      "vaccine_cvx": "150",
+      "occurrence_date": "2018-11-01",
+      "status": "completed",
+      "primary_source": false,
+      "dose_number": null,
+      "lot_number": "L976-201811-158",
+      "administered_by": "NS-GI-001",
+      "encounter_id": ""
+    },
+    {
+      "vaccine_cvx": "150",
+      "occurrence_date": "2019-11-01",
+      "status": "completed",
+      "primary_source": false,
+      "dose_number": null,
+      "lot_number": "L976-201911-990",
+      "administered_by": "NS-GI-001",
+      "encounter_id": ""
+    },
+    {
+      "vaccine_cvx": "150",
+      "occurrence_date": "2020-11-01",
+      "status": "completed",
+      "primary_source": false,
+      "dose_number": null,
+      "lot_number": "L976-202011-124",
+      "administered_by": "NS-GI-001",
+      "encounter_id": ""
+    },
+    {
+      "vaccine_cvx": "33",
+      "occurrence_date": "2020-11-25",
+      "status": "completed",
+      "primary_source": false,
+      "dose_number": null,
+      "lot_number": "L858-202011-585",
+      "administered_by": "NS-GI-001",
+      "encounter_id": ""
+    },
+    {
+      "vaccine_cvx": "150",
+      "occurrence_date": "2021-11-01",
+      "status": "completed",
+      "primary_source": false,
+      "dose_number": null,
+      "lot_number": "L976-202111-234",
+      "administered_by": "NS-GI-001",
+      "encounter_id": ""
+    },
+    {
+      "vaccine_cvx": "150",
+      "occurrence_date": "2023-12-01",
+      "status": "completed",
+      "primary_source": false,
+      "dose_number": null,
+      "lot_number": "L976-202312-454",
+      "administered_by": "NS-GI-001",
+      "encounter_id": ""
+    },
+    {
+      "vaccine_cvx": "309",
+      "occurrence_date": "2025-11-03",
+      "status": "completed",
+      "primary_source": true,
+      "dose_number": null,
+      "lot_number": "L157-202510-584",
+      "administered_by": "NS-GI-001",
+      "encounter_id": "ENC-POP-000092-270122635515"
+    }
+  ],
+  "family_history": [
+    {
+      "relationship": "MTH",
+      "sex": "female",
+      "deceased": false,
+      "condition_codes": [
+        "I10"
+      ]
+    },
+    {
+      "relationship": "FTH",
+      "sex": "male",
+      "deceased": false,
+      "condition_codes": [
+        "I10",
+        "E78"
+      ]
+    }
+  ],
+  "code_status": "",
+  "care_level": "",
+  "microbiology": [],
+  "discharge_prescription": null,
+  "icu_transferred": false,
+  "icu_transferred_day": -1,
+  "deceased": false,
+  "death_day": null,
+  "is_readmission": false,
+  "prior_encounter_id": null,
+  "readmission_number": 0,
+  "physiological_states": [],
+  "extensions": {
+    "clinical_impressions": []
+  }
+}

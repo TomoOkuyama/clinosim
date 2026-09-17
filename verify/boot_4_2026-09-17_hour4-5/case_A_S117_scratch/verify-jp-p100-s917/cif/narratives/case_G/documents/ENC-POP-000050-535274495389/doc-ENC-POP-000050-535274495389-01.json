@@ -1,0 +1,28 @@
+{
+  "document_id": "doc-ENC-POP-000050-535274495389-01",
+  "encounter_id": "ENC-POP-000050-535274495389",
+  "narrative": {
+    "text": "",
+    "sections": {
+      "subjective": "産後フォローアップ、創部確認、授乳支援、産後うつスクリーニングを目的に外来受診。",
+      "objective": "BP 106/70 mmHg, HR 82 回/分",
+      "assessment": "バイタルサインは安定しており、血圧 106/70 mmHg、心拍数 82 回/分。葉酸およびフマル酸第一鉄の内服継続中。",
+      "plan": "葉酸およびフマル酸第一鉄の内服を継続。授乳支援および産後うつスクリーニングを実施。"
+    },
+    "generator": "llm-vllm",
+    "generator_metadata": {
+      "generator": "llm",
+      "lang": "ja"
+    },
+    "generated_at": "2020-01-01T00:00:42Z",
+    "facts_used": [
+      "ctx.patient.demographics",
+      "ctx.encounter.chief_complaint",
+      "ctx.patient.chronic_conditions",
+      "ctx.vitals",
+      "ctx.encounter.chief_complaint",
+      "ctx.patient.current_medications",
+      "encounter_protocol.next_visit_interval"
+    ]
+  }
+}

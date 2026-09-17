@@ -1,0 +1,33 @@
+{
+  "document_id": "doc-ENC-POP-000063-051674846892-01",
+  "encounter_id": "ENC-POP-000063-051674846892",
+  "narrative": {
+    "text": "",
+    "sections": {
+      "subjective": "大腸内視鏡検診のため来院。既往症の経過について特に新たな自覚症状や苦情は訴えていない。",
+      "objective": "BP 144/79 mmHg, HR 79 回/分, RR 16 回/分, SpO2 96%, T 36.6°C。診察室血圧を測定、家庭血圧との整合性を確認。",
+      "assessment": "本態性高血圧症 (I10) (Stage 1, 軽度) に対してアムロジピン、前立腺肥大症 (N40) (中等度) に対してタムスロシンを継続内服中。慢性腎臓病 (N18) (CKD G3a, 軽度) の経過観察下。本日測定したクレアチニン 1.48 mg/dL [H]、AST 85.0 U/L [H]、ALT 61.0 U/L [H] は基準値を上回っており、腎機能および肝機能の悪化を示唆するため、経過観察が必要である。",
+      "plan": "現在の内服薬（アムロジピン、タムスロシン）を継続する。異常所見となったクレアチニン、AST、ALT について、次回外来時に再検査を行い、変動の有無を確認する。"
+    },
+    "generator": "llm-vllm",
+    "generator_metadata": {
+      "generator": "llm",
+      "lang": "ja"
+    },
+    "generated_at": "2020-01-01T00:00:42Z",
+    "facts_used": [
+      "outpatient_soap_template.subjective_ja",
+      "ctx.patient.demographics",
+      "ctx.encounter.chief_complaint",
+      "ctx.patient.chronic_conditions",
+      "ctx.vitals",
+      "outpatient_soap_template.objective",
+      "encounter_protocol.narrative.outpatient_soap_template.assessment_ja",
+      "ctx.patient.chronic_conditions",
+      "ctx.vitals.today",
+      "ctx.lab_results.today",
+      "encounter_protocol.narrative.outpatient_soap_template.plan_ja",
+      "encounter_protocol.next_visit_interval"
+    ]
+  }
+}

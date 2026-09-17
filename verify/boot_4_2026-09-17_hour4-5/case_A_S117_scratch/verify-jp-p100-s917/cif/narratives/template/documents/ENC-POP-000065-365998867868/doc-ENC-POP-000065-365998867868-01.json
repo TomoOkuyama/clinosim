@@ -1,0 +1,27 @@
+{
+  "document_id": "doc-ENC-POP-000065-365998867868-01",
+  "encounter_id": "ENC-POP-000065-365998867868",
+  "narrative": {
+    "text": "",
+    "sections": {
+      "subjective": "12歳男性患者、本日「予防接種 (思春期: DPT / HPV / 髄膜炎菌)」のため外来受診。",
+      "objective": "HR 83 回/分, T 37.3°C",
+      "assessment": "来院理由: 予防接種 (思春期: DPT / HPV / 髄膜炎菌)",
+      "plan": "次回外来: 90日後を予定。"
+    },
+    "generator": "template",
+    "generator_metadata": {
+      "generator": "template",
+      "lang": "ja"
+    },
+    "generated_at": "2020-01-01T00:15:17Z",
+    "facts_used": [
+      "ctx.patient.demographics",
+      "ctx.encounter.chief_complaint",
+      "ctx.patient.chronic_conditions",
+      "ctx.vitals",
+      "ctx.encounter.chief_complaint",
+      "encounter_protocol.next_visit_interval"
+    ]
+  }
+}

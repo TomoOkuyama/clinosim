@@ -1,0 +1,37 @@
+{
+  "document_id": "doc-ENC-POP-000050-BABY-103885697903-01",
+  "encounter_id": "ENC-POP-000050-BABY-103885697903",
+  "narrative": {
+    "text": "",
+    "sections": {
+      "chief_complaint": "新生児 — 院内出生",
+      "hpi": "2026年6月4日10時08分に経腟分娩にて出生。在胎週数は記載なし。出生時体重3.2 kg、身長50 cm。Apgarスコアは1分時7点、5分時9点であった。出生直後より新生児室にて経過観察を行い、入院初日として記録する。",
+      "past_medical_history": "出生児の出生場所別分類 [Z38.0]",
+      "medications_at_home": "常用薬なし",
+      "allergies": "薬物アレルギーなし（NKDA）",
+      "social_history": "喫煙歴: 非喫煙者; 飲酒歴: 飲酒なし; 職業: 乳幼児",
+      "family_history": "特記家族歴なし",
+      "physical_examination": "バイタルサイン: BP 68/40 mmHg, HR 130/min, T 36.7°C, SpO2 97% (RA), RR 40/min。一般状態: 意識清明、苦痛様。循環器: 整、心雑音なし。呼吸器: 呼吸音清明、呼吸数軽度上昇。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし、項部硬直なし",
+      "assessment_and_plan": "【評価】\n経腟分娩による新生児。Apgarスコア1分時7点、5分時9点で、出生直後の状態は安定している。バイタルサインはBP 68/40 mmHg、HR 130/min、T 36.7°C、SpO2 97% (RA)、RR 40/minであり、呼吸数は軽度上昇しているが、呼吸音は清明で苦痛様はない。CCHDスクリーンでは右上肢SpO2 98%、下肢SpO2 96%と差は3%以内であり、先天性心疾患の疑いは低い。総ビリルビン最高値は13.8 mg/dLで、光線療法閾値には達していない。AABR聴覚スクリーンおよびタンデムMS代謝異常症スクリーンは提出済みであり、結果は数日以内に判明する予定である。\n\n【薬物療法】\nビタミンK予防投与は出生直後に実施済み。その他の薬剤投与は現時点では不要。\n\n【検査】\nAABR聴覚スクリーン、タンデムMS代謝異常症スクリーンの結果を待機。総ビリルビンの推移を毎日モニタリングし、光線療法閾値に達した場合の対応を準備する。\n\n【教育・指導】\n授乳計画については、母乳育児を推奨し、必要に応じて哺乳指導を行う。家族には経過観察の目的と、スクリーン検査の結果が出るまでの期間について説明済み。\n\n【予定入院期間】\n経腟分娩後の新生児として、通常24-48時間の入院を予定しているが、スクリーン検査の結果や黄疸の推移に応じて調整する。"
+    },
+    "generator": "llm-vllm",
+    "generator_metadata": {
+      "generator": "llm",
+      "lang": "ja"
+    },
+    "generated_at": "2020-01-01T00:00:42Z",
+    "facts_used": [
+      "ctx.encounter.chief_complaint_ja",
+      "ctx.patient.demographics",
+      "ctx.encounter.chief_complaint",
+      "ctx.patient.chronic_conditions",
+      "ctx.newborn_workup",
+      "ctx.patient.chronic_conditions",
+      "ctx.patient.smoking_status",
+      "ctx.patient.alcohol_use",
+      "ctx.patient.occupation",
+      "physical_exam_findings..day_0",
+      "ctx.vitals[day_0]"
+    ]
+  }
+}

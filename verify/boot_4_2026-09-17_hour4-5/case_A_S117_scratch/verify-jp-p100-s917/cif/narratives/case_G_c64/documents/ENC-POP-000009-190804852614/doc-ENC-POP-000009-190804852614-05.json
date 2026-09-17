@@ -1,0 +1,46 @@
+{
+  "document_id": "doc-ENC-POP-000009-190804852614-05",
+  "encounter_id": "ENC-POP-000009-190804852614",
+  "narrative": {
+    "text": "S（主観） 自覚症状に著変なし。\nO（客観） 特記事項なし。一般状態: 意識清明、症状改善傾向。循環器: 整、心雑音なし。呼吸器: 呼吸音清明、呼吸数正常。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし\nA（評価） 経腟分娩後の経過は良好で、一般状態は安定している。\nP（計画） 経過観察を継続する。",
+    "sections": {
+      "subjective": "自覚症状に著変なし。",
+      "objective": "特記事項なし。一般状態: 意識清明、症状改善傾向。循環器: 整、心雑音なし。呼吸器: 呼吸音清明、呼吸数正常。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし",
+      "assessment": "経腟分娩後の経過は良好で、一般状態は安定している。",
+      "plan": "経過観察を継続する。"
+    },
+    "generator": "llm-vllm",
+    "generator_metadata": {
+      "generator": "llm",
+      "lang": "ja",
+      "day_index": 3,
+      "raw_text_rejoin": {
+        "separator": "\n",
+        "order": [
+          [
+            "S（主観）",
+            "subjective"
+          ],
+          [
+            "O（客観）",
+            "objective"
+          ],
+          [
+            "A（評価）",
+            "assessment"
+          ],
+          [
+            "P（計画）",
+            "plan"
+          ]
+        ]
+      }
+    },
+    "generated_at": "2020-01-01T00:00:42Z",
+    "facts_used": [
+      "physical_exam_findings..day_3",
+      "ctx.day_index",
+      "ctx.clinical_course_archetype"
+    ]
+  }
+}

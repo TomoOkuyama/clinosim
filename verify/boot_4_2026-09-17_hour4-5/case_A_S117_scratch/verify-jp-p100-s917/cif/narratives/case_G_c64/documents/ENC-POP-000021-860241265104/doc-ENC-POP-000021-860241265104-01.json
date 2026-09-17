@@ -1,0 +1,33 @@
+{
+  "document_id": "doc-ENC-POP-000021-860241265104-01",
+  "encounter_id": "ENC-POP-000021-860241265104",
+  "narrative": {
+    "text": "",
+    "sections": {
+      "subjective": "マンモグラフィー検診のため来院。既往の血圧管理や骨粗鬆症治療について定期的な経過観察を希望。本日の体調に特記すべき変化はなく、日常生活に支障はないと述べる。",
+      "objective": "BP 126/78 mmHg, HR 89 回/分, RR 17 回/分, SpO2 97%, T 36.1°C。診察室血圧を測定、家庭血圧との整合性を確認。",
+      "assessment": "本日のバイタルサインはBP 126/78 mmHg、HR 89 回/分、RR 17 回/分、SpO2 97%、T 36.1°Cと安定しており、家庭血圧との整合性も確認された。本態性高血圧症 (I10) (Stage 2, 軽度) に対するアムロジピン内服下で血圧は管理良好。骨粗鬆症 (M81) (中等度) に対するアレンドロネートおよびビタミンD、胃食道逆流症 (K21) (軽度) に対するランソプラゾールの継続内服中。本日測定された肝機能検査でAST 103.0 U/L [H]、ALT 80.0 U/L [H] と上昇が認められ、肝機能異常の評価が必要。",
+      "plan": "肝機能異常 (AST 103.0 U/L, ALT 80.0 U/L) について、原因解明のため追加の血液検査や画像検査を予定。現在の内服薬 (アムロジピン、アレンドロネート、ビタミンD、ランソプラゾール) は継続する。次回受診時に検査結果を持ち帰り、所見に基づいて治療方針を再検討する。"
+    },
+    "generator": "llm-vllm",
+    "generator_metadata": {
+      "generator": "llm",
+      "lang": "ja"
+    },
+    "generated_at": "2020-01-01T00:00:42Z",
+    "facts_used": [
+      "outpatient_soap_template.subjective_ja",
+      "ctx.patient.demographics",
+      "ctx.encounter.chief_complaint",
+      "ctx.patient.chronic_conditions",
+      "ctx.vitals",
+      "outpatient_soap_template.objective",
+      "encounter_protocol.narrative.outpatient_soap_template.assessment_ja",
+      "ctx.patient.chronic_conditions",
+      "ctx.vitals.today",
+      "ctx.lab_results.today",
+      "encounter_protocol.narrative.outpatient_soap_template.plan_ja",
+      "encounter_protocol.next_visit_interval"
+    ]
+  }
+}

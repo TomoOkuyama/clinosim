@@ -1,0 +1,27 @@
+{
+  "document_id": "doc-ENC-VAX-POP-000044-df2a017f8755-04",
+  "encounter_id": "ENC-VAX-POP-000044-df2a017f8755",
+  "narrative": {
+    "text": "",
+    "sections": {
+      "subjective": "4歳女性、予防接種のため来院。",
+      "objective": "BP 101/68 mmHg, HR 71 回/分, RR 17 回/分, SpO2 100%, T 37.5°C",
+      "assessment": "バイタルサインは安定しており、発熱や異常所見は認められない。",
+      "plan": "予防接種を実施。"
+    },
+    "generator": "llm-vllm",
+    "generator_metadata": {
+      "generator": "llm",
+      "lang": "ja"
+    },
+    "generated_at": "2020-01-01T00:00:42Z",
+    "facts_used": [
+      "ctx.patient.demographics",
+      "ctx.encounter.chief_complaint",
+      "ctx.patient.chronic_conditions",
+      "ctx.vitals",
+      "ctx.encounter.chief_complaint",
+      "encounter_protocol.next_visit_interval"
+    ]
+  }
+}

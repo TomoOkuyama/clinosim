@@ -1,0 +1,33 @@
+{
+  "document_id": "doc-ENC-POP-000014-882806924711-01",
+  "encounter_id": "ENC-POP-000014-882806924711",
+  "narrative": {
+    "text": "",
+    "sections": {
+      "subjective": "血圧管理および処方薬の見直しを目的に受診。自覚症状は特になく、日常生活に支障はない。",
+      "objective": "BP 125/87 mmHg, HR 75 回/分。診察室血圧を測定、家庭血圧との整合性を確認。",
+      "assessment": "本態性高血圧症 (I10) (Stage 1, 軽度) に対してアムロジピン、カンデサルタンを内服中。診察室血圧 125/87 mmHg、脈拍 75 回/分であり、家庭血圧との整合性を確認した。現在の治療方針は継続が適当と判断。",
+      "plan": "アムロジピン、カンデサルタンを継続内服。次回受診時に血圧の推移を確認する。"
+    },
+    "generator": "llm-vllm",
+    "generator_metadata": {
+      "generator": "llm",
+      "lang": "ja"
+    },
+    "generated_at": "2020-01-01T00:00:42Z",
+    "facts_used": [
+      "outpatient_soap_template.subjective_ja",
+      "ctx.patient.demographics",
+      "ctx.encounter.chief_complaint",
+      "ctx.patient.chronic_conditions",
+      "ctx.vitals",
+      "outpatient_soap_template.objective",
+      "encounter_protocol.narrative.outpatient_soap_template.assessment_ja",
+      "ctx.patient.chronic_conditions",
+      "ctx.vitals.today",
+      "ctx.lab_results.today",
+      "encounter_protocol.narrative.outpatient_soap_template.plan_ja",
+      "encounter_protocol.next_visit_interval"
+    ]
+  }
+}

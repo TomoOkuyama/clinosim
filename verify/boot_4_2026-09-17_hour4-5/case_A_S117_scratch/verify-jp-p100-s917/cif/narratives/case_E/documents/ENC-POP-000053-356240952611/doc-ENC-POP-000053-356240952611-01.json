@@ -1,0 +1,33 @@
+{
+  "document_id": "doc-ENC-POP-000053-356240952611-01",
+  "encounter_id": "ENC-POP-000053-356240952611",
+  "narrative": {
+    "text": "",
+    "sections": {
+      "subjective": "血圧管理および処方薬の見直しを目的に外来受診。73歳女性、退職、非喫煙。本日の主訴は特になく、日常生活での不調や新たな症状の出現は認めない。既往歴として本態性高血圧症、変形性膝関節症、高尿酸血症、白内障を有する。",
+      "objective": "BP 134/88 mmHg, HR 77 回/分。診察室血圧を測定、家庭血圧との整合性を確認。",
+      "assessment": "本態性高血圧症 (Stage 1, 軽度) について、外来血圧 134/88 mmHg、心拍数 77 回/分を測定し、家庭血圧との整合性を確認した。現在の血圧値は管理目標範囲内であり、アムロジピンおよびカンデサルタンによる内服治療は有効と判断される。変形性膝関節症 (中等度) に対してはアセトアミノフェンを継続中である。",
+      "plan": "現在の内服薬 (アムロジピン、カンデサルタン、アセトアミノフェン) を継続する。血圧管理は良好であるため、薬剤の増減は行わない。次回外来受診時に家庭血圧の記録を持参し、継続的な管理を行う。"
+    },
+    "generator": "llm-vllm",
+    "generator_metadata": {
+      "generator": "llm",
+      "lang": "ja"
+    },
+    "generated_at": "2020-01-01T00:00:42Z",
+    "facts_used": [
+      "outpatient_soap_template.subjective_ja",
+      "ctx.patient.demographics",
+      "ctx.encounter.chief_complaint",
+      "ctx.patient.chronic_conditions",
+      "ctx.vitals",
+      "outpatient_soap_template.objective",
+      "encounter_protocol.narrative.outpatient_soap_template.assessment_ja",
+      "ctx.patient.chronic_conditions",
+      "ctx.vitals.today",
+      "ctx.lab_results.today",
+      "encounter_protocol.narrative.outpatient_soap_template.plan_ja",
+      "encounter_protocol.next_visit_interval"
+    ]
+  }
+}

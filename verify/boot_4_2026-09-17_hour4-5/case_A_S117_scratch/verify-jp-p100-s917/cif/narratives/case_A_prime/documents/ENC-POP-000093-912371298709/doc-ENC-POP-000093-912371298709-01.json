@@ -1,0 +1,29 @@
+{
+  "document_id": "doc-ENC-POP-000093-912371298709-01",
+  "encounter_id": "ENC-POP-000093-912371298709",
+  "narrative": {
+    "text": "",
+    "sections": {
+      "subjective": "マンモグラフィー検診のため来院。既往歴として胃の悪性新生物、詳細不明 (C16) (軽度)、過体重 (E66.3) (中等度)、ニコチン依存症（紙巻きたばこ、合併症なし） (F17.210) (軽度) を有する。本日の主訴や症状の著変は認めない。",
+      "objective": "BP 125/71 mmHg, HR 71 回/分, RR 13 回/分, SpO2 96%, T 36.2°C",
+      "assessment": "バイタルサインは安定しており、血圧 125/71 mmHg、心拍数 71 回/分、呼吸数 13 回/分、SpO2 96%、体温 36.2°C と異常所見はない。血液検査では AST 103.0 U/L [H]、ALT 85.0 U/L [H] と肝酵素の上昇が認められる。",
+      "plan": "肝酵素上昇の原因精査のため、次回受診時に再検査を行う。現在の所見から緊急性は低く、経過観察とする。"
+    },
+    "generator": "llm-vllm",
+    "generator_metadata": {
+      "generator": "llm",
+      "lang": "ja"
+    },
+    "generated_at": "2020-01-01T00:00:42Z",
+    "facts_used": [
+      "ctx.patient.demographics",
+      "ctx.encounter.chief_complaint",
+      "ctx.patient.chronic_conditions",
+      "ctx.vitals",
+      "ctx.patient.chronic_conditions",
+      "ctx.vitals.today",
+      "ctx.lab_results.today",
+      "encounter_protocol.next_visit_interval"
+    ]
+  }
+}

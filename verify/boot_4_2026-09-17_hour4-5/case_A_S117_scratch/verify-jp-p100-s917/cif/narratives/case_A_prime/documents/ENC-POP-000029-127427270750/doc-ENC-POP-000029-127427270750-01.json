@@ -1,0 +1,33 @@
+{
+  "document_id": "doc-ENC-POP-000029-127427270750-01",
+  "encounter_id": "ENC-POP-000029-127427270750",
+  "narrative": {
+    "text": "",
+    "sections": {
+      "subjective": "糖尿病管理および血糖コントロールの確認のため来院。前回受診時と比べて自覚症状に著変なし。",
+      "objective": "BP 119/58 mmHg, HR 86 回/分。体重測定、下肢浮腫の有無を確認。",
+      "assessment": "2型糖尿病 (E11.9) に対してメトホルミンを継続中。本日測定した血糖 172.0 mg/dL [H]、HbA1c 9.7 % [H] と、血糖コントロール不良が示唆される。",
+      "plan": "現在の治療方針を継続し、生活習慣指導を再実施。次回受診時に血糖値の再評価を行う。"
+    },
+    "generator": "llm-vllm",
+    "generator_metadata": {
+      "generator": "llm",
+      "lang": "ja"
+    },
+    "generated_at": "2020-01-01T00:00:42Z",
+    "facts_used": [
+      "outpatient_soap_template.subjective_ja",
+      "ctx.patient.demographics",
+      "ctx.encounter.chief_complaint",
+      "ctx.patient.chronic_conditions",
+      "ctx.vitals",
+      "outpatient_soap_template.objective",
+      "encounter_protocol.narrative.outpatient_soap_template.assessment_ja",
+      "ctx.patient.chronic_conditions",
+      "ctx.vitals.today",
+      "ctx.lab_results.today",
+      "encounter_protocol.narrative.outpatient_soap_template.plan_ja",
+      "encounter_protocol.next_visit_interval"
+    ]
+  }
+}

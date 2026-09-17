@@ -1,0 +1,546 @@
+{
+  "patient": {
+    "patient_id": "POP-000022",
+    "household_id": "HH-000009",
+    "name": {
+      "family_name": "佐々木",
+      "given_name": "真由",
+      "display_name": "佐々木 真由",
+      "name_script": "ja",
+      "phonetic": "ササキ マユ"
+    },
+    "age": 75,
+    "sex": "F",
+    "date_of_birth": "1949-09-11",
+    "date_of_death": null,
+    "blood_type": "A",
+    "rh_factor": "+",
+    "height_cm": 155.0,
+    "weight_kg": 62.0,
+    "bmi": 25.8,
+    "address": {
+      "postal_code": "212-0001",
+      "state": "神奈川県",
+      "city": "川崎市",
+      "line1": "大宮1丁目21-9 ブリリア694",
+      "line2": "",
+      "country": "JP"
+    },
+    "contact": {
+      "phone_home": "",
+      "phone_mobile": "090-8607-7049",
+      "phone_primary": "090-8607-7049",
+      "email": "",
+      "emergency_contact_name": "佐々木 千代",
+      "emergency_contact_phone": "090-8607-7049",
+      "emergency_contact_relationship": "child"
+    },
+    "marital_status": "D",
+    "preferred_language": "ja-JP",
+    "employment_status": "retired",
+    "occupation": "retired",
+    "insurance_type": "late_elderly",
+    "identity": {
+      "national": {
+        "country": "JP",
+        "national_id": "730406450153",
+        "has_id_card": true,
+        "id_card_linked_to_insurance": false
+      },
+      "enrollments": [
+        {
+          "country": "JP",
+          "category": "late_elderly",
+          "insurer_number": "39130083",
+          "member_id": "36531369",
+          "group_symbol": null,
+          "branch_number": null,
+          "valid_from": null,
+          "valid_to": null,
+          "system_uri": ""
+        }
+      ],
+      "card_acquired_on": null,
+      "insurance_linked_on": null
+    },
+    "race": "",
+    "ethnicity": "",
+    "health_literacy": 0.55,
+    "chronic_conditions": [
+      {
+        "code": "I10",
+        "system": "icd-10-cm",
+        "onset_date": "2018-11-16",
+        "severity": "moderate",
+        "controlled": false,
+        "severity_score": 0.3,
+        "stage": "Stage 1",
+        "glycemic_control": null
+      },
+      {
+        "code": "M54",
+        "system": "icd-10-cm",
+        "onset_date": "2013-12-26",
+        "severity": "mild",
+        "controlled": true,
+        "severity_score": 0.2517028112182046,
+        "stage": "",
+        "glycemic_control": null
+      },
+      {
+        "code": "E66.3",
+        "system": "icd-10-cm",
+        "onset_date": "2020-03-21",
+        "severity": "moderate",
+        "controlled": true,
+        "severity_score": 0.3566109385212704,
+        "stage": "",
+        "glycemic_control": null
+      }
+    ],
+    "allergies": [
+      {
+        "allergy_id": "nka",
+        "allergen_code": "716186003",
+        "category": "",
+        "criticality": "unable-to-assess",
+        "verification_status": "confirmed",
+        "clinical_status": "resolved",
+        "onset_date": null,
+        "reactions": [],
+        "is_nka": true
+      }
+    ],
+    "current_medications": [
+      {
+        "drug_name": "Amlodipine",
+        "drug_name_ja": "アムロジピン",
+        "route": "PO",
+        "dose": "5mg",
+        "dose_quantity": null,
+        "dose_unit": "",
+        "frequency": "daily"
+      },
+      {
+        "drug_name": "Candesartan",
+        "drug_name_ja": "カンデサルタン",
+        "route": "PO",
+        "dose": "8mg",
+        "dose_quantity": null,
+        "dose_unit": "",
+        "frequency": "daily"
+      }
+    ],
+    "safety_skip_log": [],
+    "baseline_chronic_medications": [
+      {
+        "drug_name": "Amlodipine",
+        "drug_name_ja": "アムロジピン",
+        "route": "PO",
+        "dose": "5mg",
+        "dose_quantity": null,
+        "dose_unit": "",
+        "frequency": "daily"
+      },
+      {
+        "drug_name": "Candesartan",
+        "drug_name_ja": "カンデサルタン",
+        "route": "PO",
+        "dose": "8mg",
+        "dose_quantity": null,
+        "dose_unit": "",
+        "frequency": "daily"
+      }
+    ],
+    "smoking_status": "former",
+    "alcohol_use": "none",
+    "physiological_profile": {
+      "immune_reactivity": 0.6116323769671169,
+      "drug_metabolism_rate": "normal",
+      "renal_reserve": 0.6753471604826536,
+      "cardiac_reserve": 0.7591293134105604,
+      "hepatic_reserve": 0.8239870142531938,
+      "treatment_sensitivity": 1.1962338926097609,
+      "symptom_reporting_bias": 1.2882576416830738,
+      "delirium_susceptibility": 0.3173388661892081,
+      "dvt_susceptibility": 0.6303869420023555
+    },
+    "baseline_vitals": {
+      "temperature": 36.2,
+      "heart_rate": 73,
+      "systolic_bp": 145,
+      "diastolic_bp": 81,
+      "respiratory_rate": 15,
+      "spo2": 98.2
+    },
+    "state_periods": []
+  },
+  "encounters": [
+    {
+      "encounter_id": "ENC-POP-000022-175786150936",
+      "patient_id": "POP-000022",
+      "episode_id": "EP-POP-000022-175786150936",
+      "encounter_type": "outpatient",
+      "status": "completed",
+      "department_id": "internal_medicine",
+      "attending_physician_id": "DR-IM-004",
+      "admitting_physician_id": "DR-IM-004",
+      "discharging_physician_id": "DR-IM-004",
+      "admission_datetime": "2025-10-24T10:40:00",
+      "discharge_datetime": "2025-10-24T10:52:00",
+      "chief_complaint": "血圧管理・処方薬の見直し",
+      "chief_complaint_ja": "血圧管理・処方薬の見直し",
+      "disease_event_id": "DE-POP-000022-001",
+      "ward_id": "",
+      "bed_number": "",
+      "time_resolution": 3600.0,
+      "admit_source": "outp",
+      "admit_source_encounter_id": "",
+      "discharge_disposition": "home",
+      "priority": "R",
+      "primary_nurse_id": "",
+      "triage_data": null,
+      "severity": "",
+      "clinical_course_archetype": "",
+      "service_line": "",
+      "admission_diagnosis_code": "",
+      "admission_diagnosis_system": ""
+    }
+  ],
+  "orders": [
+    {
+      "order_id": "ORD-ENC-POP-000022-175786150936-MED-MON-00",
+      "encounter_id": "ENC-POP-000022-175786150936",
+      "patient_id": "POP-000022",
+      "order_type": "lab",
+      "order_code": "2823-3",
+      "display_name": "K",
+      "urgency": "routine",
+      "clinical_intent": "Chronic-medication monitoring (Candesartan): ARB/ACE-i renal-safety monitoring — K rise reflects RAAS blockade + reduced aldosterone-driven K excretion. Hold if K > 5.5 mmol/L or Cr rises > 30% baseline.",
+      "clinical_intent_ja": "慢性投薬モニタリング (カンデサルタン): ARB/ACE-i 腎安全性モニタリング — K 上昇は RAAS 遮断とアルドステロン低下による K 排泄減少を反映。K > 5.5 mmol/L または Cr がベースライン比 30% 以上上昇した場合は中止。",
+      "ordered_datetime": "2025-10-24T11:05:00",
+      "ordered_by": "DR-IM-004",
+      "status": "resulted",
+      "result": {
+        "result_datetime": "2025-10-24T13:05:00",
+        "performed_by": "",
+        "lab_name": "K",
+        "value": 4.1,
+        "unit": "mmol/L",
+        "reference_range": null,
+        "flag": null,
+        "interpretation": null,
+        "specimen_note": null
+      },
+      "dose_quantity": null,
+      "dose_unit": "",
+      "frequency": "",
+      "frequency_per_day": null,
+      "route": "",
+      "duration_days": null,
+      "reason_condition": "",
+      "panel_key": "",
+      "imaging_modality": "",
+      "imaging_body_site_code": "",
+      "imaging_views": [],
+      "imaging_spec_meta": {},
+      "medication_intent": "",
+      "dose_text_ja": "",
+      "dose_text_en": "",
+      "notes": []
+    },
+    {
+      "order_id": "ORD-ENC-POP-000022-175786150936-MED-MON-01",
+      "encounter_id": "ENC-POP-000022-175786150936",
+      "patient_id": "POP-000022",
+      "order_type": "lab",
+      "order_code": "2160-0",
+      "display_name": "Creatinine",
+      "urgency": "routine",
+      "clinical_intent": "Chronic-medication monitoring (Candesartan): ARB/ACE-i renal-safety monitoring — companion to K. Expected 10-20% Cr rise at start (efferent arteriolar vasodilation); > 30% requires dose reduction.",
+      "clinical_intent_ja": "慢性投薬モニタリング (カンデサルタン): ARB/ACE-i 腎安全性モニタリング — K と対で評価。開始時に Cr が 10-20% 上昇するのは輸出細動脈の血管拡張による想定内変化。30% 超は減量が必要。",
+      "ordered_datetime": "2025-10-24T11:03:00",
+      "ordered_by": "DR-IM-004",
+      "status": "resulted",
+      "result": {
+        "result_datetime": "2025-10-24T13:03:00",
+        "performed_by": "",
+        "lab_name": "Creatinine",
+        "value": 0.6,
+        "unit": "mg/dL",
+        "reference_range": null,
+        "flag": null,
+        "interpretation": null,
+        "specimen_note": null
+      },
+      "dose_quantity": null,
+      "dose_unit": "",
+      "frequency": "",
+      "frequency_per_day": null,
+      "route": "",
+      "duration_days": null,
+      "reason_condition": "",
+      "panel_key": "",
+      "imaging_modality": "",
+      "imaging_body_site_code": "",
+      "imaging_views": [],
+      "imaging_spec_meta": {},
+      "medication_intent": "",
+      "dose_text_ja": "",
+      "dose_text_en": "",
+      "notes": []
+    }
+  ],
+  "vital_signs": [
+    {
+      "timestamp": "2025-10-24T10:45:00",
+      "temperature_celsius": null,
+      "heart_rate": 78,
+      "systolic_bp": 139,
+      "diastolic_bp": 77,
+      "respiratory_rate": null,
+      "spo2": null,
+      "pain_score": null,
+      "consciousness_level": "A",
+      "on_supplemental_oxygen": false,
+      "oxygen_flow_rate_lpm": null,
+      "oxygen_delivery_device": "",
+      "nursing_note": "",
+      "measured_by": "NS-PC-001",
+      "data_source": "manual",
+      "news2_score": 0,
+      "gcs_score": 15
+    }
+  ],
+  "lab_results": [
+    {
+      "result_datetime": "2025-10-24T13:05:00",
+      "performed_by": "",
+      "lab_name": "K",
+      "value": 4.1,
+      "unit": "mmol/L",
+      "reference_range": null,
+      "flag": null,
+      "interpretation": null,
+      "specimen_note": null
+    },
+    {
+      "result_datetime": "2025-10-24T13:03:00",
+      "performed_by": "",
+      "lab_name": "Creatinine",
+      "value": 0.6,
+      "unit": "mg/dL",
+      "reference_range": null,
+      "flag": null,
+      "interpretation": null,
+      "specimen_note": null
+    }
+  ],
+  "condition_event": {
+    "condition_id": "COND-POP-000022-OPD",
+    "condition_type": "chronic_followup",
+    "ground_truth_diseases": [
+      "I10"
+    ],
+    "symptom_pattern": "",
+    "state_impacts": {},
+    "presenting_symptoms": []
+  },
+  "clinical_diagnosis": {
+    "admission_diagnosis_code": "I10",
+    "admission_diagnosis_system": "icd-10-mhlw",
+    "working_diagnoses": [],
+    "discharge_diagnosis_code": "I10",
+    "discharge_diagnosis_system": "icd-10-mhlw",
+    "diagnosis_correct": true,
+    "missed_diagnoses": [],
+    "overcalled_diagnoses": []
+  },
+  "complications_occurred": [],
+  "procedures": [],
+  "rehab_sessions": [],
+  "documents": [
+    {
+      "document_id": "doc-ENC-POP-000022-175786150936-01",
+      "task_type": "outpatient_soap",
+      "loinc_code": "34131-3",
+      "patient_id": "POP-000022",
+      "encounter_id": "ENC-POP-000022-175786150936",
+      "author_practitioner_id": "DR-IM-004",
+      "related_procedure_id": "",
+      "authored_datetime": "2025-10-24T10:40:00",
+      "period_start": "2025-10-24T10:40:00",
+      "period_end": "2025-10-24T10:52:00",
+      "language": "ja",
+      "content_type": "text/plain",
+      "format_type": "composition",
+      "shift": "",
+      "checkup_type": "",
+      "narrative": null
+    }
+  ],
+  "medication_administrations": [],
+  "intake_output_records": [],
+  "adl_assessments": [],
+  "nursing_risk_assessments": [],
+  "immunizations": [
+    {
+      "vaccine_cvx": "150",
+      "occurrence_date": "2016-12-01",
+      "status": "completed",
+      "primary_source": false,
+      "dose_number": null,
+      "lot_number": "L976-201612-846",
+      "administered_by": "NS-CA-005",
+      "encounter_id": ""
+    },
+    {
+      "vaccine_cvx": "150",
+      "occurrence_date": "2018-02-01",
+      "status": "completed",
+      "primary_source": false,
+      "dose_number": null,
+      "lot_number": "L976-201802-926",
+      "administered_by": "NS-CA-005",
+      "encounter_id": ""
+    },
+    {
+      "vaccine_cvx": "150",
+      "occurrence_date": "2018-11-01",
+      "status": "completed",
+      "primary_source": false,
+      "dose_number": null,
+      "lot_number": "L976-201811-158",
+      "administered_by": "NS-CA-005",
+      "encounter_id": ""
+    },
+    {
+      "vaccine_cvx": "150",
+      "occurrence_date": "2021-12-01",
+      "status": "completed",
+      "primary_source": false,
+      "dose_number": null,
+      "lot_number": "L976-202112-823",
+      "administered_by": "NS-CA-005",
+      "encounter_id": ""
+    },
+    {
+      "vaccine_cvx": "150",
+      "occurrence_date": "2022-11-01",
+      "status": "completed",
+      "primary_source": false,
+      "dose_number": null,
+      "lot_number": "L976-202211-148",
+      "administered_by": "NS-CA-005",
+      "encounter_id": ""
+    },
+    {
+      "vaccine_cvx": "309",
+      "occurrence_date": "2022-11-04",
+      "status": "completed",
+      "primary_source": false,
+      "dose_number": null,
+      "lot_number": "L157-202211-362",
+      "administered_by": "NS-CA-005",
+      "encounter_id": ""
+    },
+    {
+      "vaccine_cvx": "150",
+      "occurrence_date": "2024-01-01",
+      "status": "completed",
+      "primary_source": false,
+      "dose_number": null,
+      "lot_number": "L976-202401-220",
+      "administered_by": "NS-CA-005",
+      "encounter_id": ""
+    },
+    {
+      "vaccine_cvx": "150",
+      "occurrence_date": "2024-11-01",
+      "status": "completed",
+      "primary_source": false,
+      "dose_number": null,
+      "lot_number": "L976-202411-789",
+      "administered_by": "NS-CA-005",
+      "encounter_id": ""
+    },
+    {
+      "vaccine_cvx": "33",
+      "occurrence_date": "2025-05-09",
+      "status": "completed",
+      "primary_source": false,
+      "dose_number": null,
+      "lot_number": "L858-202505-602",
+      "administered_by": "NS-CA-005",
+      "encounter_id": ""
+    },
+    {
+      "vaccine_cvx": "150",
+      "occurrence_date": "2025-10-24",
+      "status": "completed",
+      "primary_source": true,
+      "dose_number": null,
+      "lot_number": "L976-202511-427",
+      "administered_by": "NS-CA-005",
+      "encounter_id": "ENC-POP-000022-175786150936"
+    }
+  ],
+  "family_history": [
+    {
+      "relationship": "MTH",
+      "sex": "female",
+      "deceased": true,
+      "condition_codes": [
+        "E11",
+        "I10",
+        "I63"
+      ]
+    },
+    {
+      "relationship": "FTH",
+      "sex": "male",
+      "deceased": true,
+      "condition_codes": [
+        "I10"
+      ]
+    }
+  ],
+  "code_status": "",
+  "care_level": "",
+  "microbiology": [],
+  "discharge_prescription": {
+    "prescription_id": "RX-POP-000022-OPD",
+    "patient_id": "",
+    "prescriber_id": "DR-IM-004",
+    "issue_date": "2025-10-24T10:40:00",
+    "items": [
+      {
+        "drug_name": "Amlodipine",
+        "drug_name_ja": "アムロジピン",
+        "dose": "5mg",
+        "route": "PO",
+        "frequency": "daily",
+        "duration_days": 30
+      },
+      {
+        "drug_name": "Candesartan",
+        "drug_name_ja": "カンデサルタン",
+        "dose": "8mg",
+        "route": "PO",
+        "frequency": "daily",
+        "duration_days": 30
+      }
+    ]
+  },
+  "icu_transferred": false,
+  "icu_transferred_day": -1,
+  "deceased": false,
+  "death_day": null,
+  "is_readmission": false,
+  "prior_encounter_id": null,
+  "readmission_number": 0,
+  "physiological_states": [],
+  "extensions": {
+    "clinical_impressions": []
+  }
+}

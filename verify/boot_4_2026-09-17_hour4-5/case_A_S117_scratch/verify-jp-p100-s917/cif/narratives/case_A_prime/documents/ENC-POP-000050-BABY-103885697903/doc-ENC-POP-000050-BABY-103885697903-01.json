@@ -1,0 +1,37 @@
+{
+  "document_id": "doc-ENC-POP-000050-BABY-103885697903-01",
+  "encounter_id": "ENC-POP-000050-BABY-103885697903",
+  "narrative": {
+    "text": "",
+    "sections": {
+      "chief_complaint": "新生児 — 院内出生",
+      "hpi": "2026年6月4日10時08分に経腟分娩にて出生。在胎週数は記載なし。出生時身長50 cm、体重3.2 kg、血液型A+。Apgarスコアは1分時7点、5分時9点であった。出生直後、ビタミンKの予防投与を実施済み。新生児スクリーニング検査として、AABR聴覚スクリーンおよびタンデムMSによる代謝異常症スクリーンを提出済み。CCHDスクリーンでは、右上肢SpO2 98%、下肢SpO2 96%を記録し、両側95%以上かつ差3%未満の基準を満たしている。入院初日、バイタルサインはBP 68/40 mmHg、HR 130/min、T 36.7°C、SpO2 97% (RA)、RR 40/min。一般状態は意識清明、苦痛様。循環器系は整、心雑音なし。呼吸器系は呼吸音清明、呼吸数は軽度上昇。腹部は平坦、軟、圧痛なし。神経系は麻痺なし、項部硬直なし。",
+      "past_medical_history": "出生児の出生場所別分類 [Z38.0]",
+      "medications_at_home": "常用薬なし",
+      "allergies": "薬物アレルギーなし（NKDA）",
+      "social_history": "喫煙歴: 非喫煙者; 飲酒歴: 飲酒なし; 職業: 乳幼児",
+      "family_history": "特記家族歴なし",
+      "physical_examination": "バイタルサイン: BP 68/40 mmHg, HR 130/min, T 36.7°C, SpO2 97% (RA), RR 40/min。一般状態: 意識清明、苦痛様。循環器: 整、心雑音なし。呼吸器: 呼吸音清明、呼吸数軽度上昇。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし、項部硬直なし",
+      "assessment_and_plan": "【評価】\n経腟分娩による新生児。Apgarスコア1分時7点、5分時9点で、出生時アスペクツは良好。CCHDスクリーンは右上肢98%、下肢96%で基準内。総ビリルビン最高値13.8 mg/dLは、在胎週数に応じた光線療法閾値（AAP 2022）を大きく上回っておらず、経過観察の範囲内。AABR聴覚スクリーンおよびタンデムMS代謝異常症スクリーンは提出済みで、結果は数日以内に判明予定。ビタミンK予防投与は実施済み。\n\n【薬物療法】\nビタミンK（出生時予防投与済み）。その他、現時点での投薬はなし。\n\n【検査】\nAABR聴覚スクリーン：提出済み（結果待ち）。\nタンデムMS代謝異常症スクリーン：提出済み（結果待ち）。\nCCHDスクリーン：右上肢98%、下肢96%（基準内）。\n総ビリルビン：最高値13.8 mg/dL。\n\n【教育・指導】\n授乳計画は記載なし。新生児スクリーニング検査の結果は数日以内に判明するため、異常所見が認められた場合は速やかに連絡する旨を説明済み。\n\n【予定入院期間】\n経腟分娩のため、新生児室の標準的な入院期間（24-48時間）に従う。"
+    },
+    "generator": "llm-vllm",
+    "generator_metadata": {
+      "generator": "llm",
+      "lang": "ja"
+    },
+    "generated_at": "2020-01-01T00:00:42Z",
+    "facts_used": [
+      "ctx.encounter.chief_complaint_ja",
+      "ctx.patient.demographics",
+      "ctx.encounter.chief_complaint",
+      "ctx.patient.chronic_conditions",
+      "ctx.newborn_workup",
+      "ctx.patient.chronic_conditions",
+      "ctx.patient.smoking_status",
+      "ctx.patient.alcohol_use",
+      "ctx.patient.occupation",
+      "physical_exam_findings..day_0",
+      "ctx.vitals[day_0]"
+    ]
+  }
+}

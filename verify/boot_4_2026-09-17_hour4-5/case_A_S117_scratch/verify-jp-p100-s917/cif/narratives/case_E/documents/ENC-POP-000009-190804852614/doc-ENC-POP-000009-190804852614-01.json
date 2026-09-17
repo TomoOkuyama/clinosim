@@ -1,0 +1,37 @@
+{
+  "document_id": "doc-ENC-POP-000009-190804852614-01",
+  "encounter_id": "ENC-POP-000009-190804852614",
+  "narrative": {
+    "text": "",
+    "sections": {
+      "chief_complaint": "分娩 (自然分娩)",
+      "hpi": "2026年3月16日10時38分に、自然分娩を主訴として入院した。分娩経過は順調であり、新生児は健康に出生した。入院時バイタルサインは安定しており、意識は清明であった。既往歴は特記事項なし。内服薬は葉酸およびフマル酸第一鉄を継続中。薬物アレルギーはなし。喫煙歴はあり（元喫煙者）、飲酒歴なし。職業は運輸業。家族歴として、母に本態性高血圧症・慢性虚血性心疾患・脂質異常症、兄弟姉妹に脂質異常症の既往がある。身体所見では、循環器系に心雑音なし、呼吸器系に呼吸音清明、腹部は平坦・軟で圧痛なし、神経系に麻痺・項部硬直なしと、異常所見は認められなかった。",
+      "past_medical_history": "特記既往歴なし",
+      "medications_at_home": "葉酸; フマル酸第一鉄",
+      "allergies": "薬物アレルギーなし（NKDA）",
+      "social_history": "喫煙歴: 元喫煙者; 飲酒歴: 飲酒なし; 職業: 運輸業",
+      "family_history": "家族歴: 母 – 本態性高血圧症、慢性虚血性心疾患、脂質異常症 兄弟姉妹 – 脂質異常症",
+      "physical_examination": "一般状態: 意識清明、苦痛様。循環器: 整、心雑音なし。呼吸器: 呼吸音清明、呼吸数軽度上昇。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし、項部硬直なし",
+      "assessment_and_plan": "【評価】\n自然分娩後の経過観察入院。分娩は順調に完了し、母体のバイタルサインは安定している。新生児の健康状態も良好である。既往歴や家族歴に特別なリスク因子は見られないが、母の心疾患・高血圧・脂質異常症の既往を念頭に置き、血圧および循環器系の状態を継続的にモニタリングする必要がある。\n\n【薬物療法】\n・葉酸：継続内服\n・フマル酸第一鉄：継続内服\n・産後出血予防および感染予防のため、必要に応じて子宮収縮薬や抗菌薬を投与する予定。\n\n【検査】\n・血液検査（CBC、凝固能、肝機能、腎機能）：入院初日に実施し、貧血や感染の有無を確認。\n・尿検査：蛋白尿の有無を確認し、妊娠高血圧症候群の合併を除外。\n・心電図：心拍異常の有無を確認。\n\n【教育・指導】\n・産後のセルフケア（会陰部の清潔保持、授乳の指導、休息の確保）について説明。\n・異常出血、発熱、強い腹痛などの症状が出現した場合の対応について指導。\n・新生児のケア（授乳、沐浴、黄疸の観察）について説明。\n\n【予定入院期間】\n5日間（2026年3月16日～2026年3月20日）"
+    },
+    "generator": "llm-vllm",
+    "generator_metadata": {
+      "generator": "llm",
+      "lang": "ja"
+    },
+    "generated_at": "2020-01-01T00:00:42Z",
+    "facts_used": [
+      "ctx.encounter.chief_complaint_ja",
+      "ctx.patient.demographics",
+      "ctx.encounter.chief_complaint",
+      "ctx.patient.chronic_conditions",
+      "ctx.patient.current_medications",
+      "ctx.allergies",
+      "ctx.patient.smoking_status",
+      "ctx.patient.alcohol_use",
+      "ctx.patient.occupation",
+      "ctx.family_history",
+      "physical_exam_findings..day_0"
+    ]
+  }
+}
