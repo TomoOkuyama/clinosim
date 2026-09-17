@@ -1,0 +1,55 @@
+{
+  "tokenizer": "Qwen/Qwen3-8B",
+  "cases": {
+    "v22_ja_current": {
+      "case": "v22_ja_current",
+      "path": "verify/v22_prompt_ja.yaml",
+      "version": 22,
+      "system_chars": 29290,
+      "system_lines": 646,
+      "user_template_chars": 186,
+      "description_chars_NOT_SENT": 14577,
+      "system_tokens": 11966,
+      "user_template_tokens": 38,
+      "tokenizer_source": "huggingface"
+    },
+    "v22_en_case_a_prime": {
+      "case": "v22_en_case_a_prime",
+      "path": "verify/v22_prompt_en.yaml",
+      "version": 22,
+      "system_chars": 31481,
+      "system_lines": 651,
+      "user_template_chars": 186,
+      "description_chars_NOT_SENT": 14729,
+      "system_tokens": 11239,
+      "user_template_tokens": 38,
+      "tokenizer_source": "huggingface"
+    },
+    "v21_ja_case_e": {
+      "case": "v21_ja_case_e",
+      "path": "verify/v21_prompt_ja.yaml",
+      "version": 21,
+      "system_chars": 28597,
+      "system_lines": 632,
+      "user_template_chars": 186,
+      "description_chars_NOT_SENT": 13832,
+      "system_tokens": 11669,
+      "user_template_tokens": 38,
+      "tokenizer_source": "huggingface"
+    },
+    "v22_en_us_original": {
+      "case": "v22_en_us_original",
+      "path": "verify/v22_prompt_en_original.yaml",
+      "version": 22,
+      "system_chars": 34161,
+      "system_lines": 610,
+      "user_template_chars": 186,
+      "description_chars_NOT_SENT": 14641,
+      "system_tokens": 8968,
+      "user_template_tokens": 38,
+      "tokenizer_source": "huggingface"
+    }
+  },
+  "factor_a_bound_tokens": 727,
+  "factor_bc_bound_tokens": 297
+}

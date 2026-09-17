@@ -14,10 +14,19 @@ v22 prompt cut (S117 = v0.6.2) を境に narrate throughput が 1.35 → 0.68 do
 | D | context 上限 | `--max-model-len 8192 → 16384` (S117 で拡大) | KV cache 予約、concurrency slot | 直接 S117 帰属 |
 | E | vLLM 起動 flag | prefix-caching / gpu-mem / max-num-seqs | throughput 全般 | 環境固有 |
 
-**重要な事前観察 (T13 実測から)**:
-- v21→v22 の system: block 追加は **14 lines** (JA 700-1000 chars = Qwen で ~350-800 tokens)
-- Rule 3 で completion token に追加されるのは chronic 疾患 label 精緻化のみ (~15-20 tokens/doc)
-- 単純加算では 2× slowdown を説明できない → **Factor D (max-len 16384) が最有力**、次点で Factor E (concurrency slot 減による並列度低下)
+**重要な事前観察 (T3 tokenizer 実測から確定)**:
+
+| Case | version | tokens | 対 v22 JA 差 |
+|---|---|---|---|
+| v22 JA (現行) | 22 | **11,966** | — |
+| v22 EN Case A' | 22 | 11,239 | **-727 (-6.1%)** |
+| v21 JA (Case E) | 21 | 11,669 | **-297 (-2.5%)** |
+
+- **Factor A (JA vs EN system prompt)**: 727 tokens = **6.1%** の差
+- **Factor B/C (v21→v22 content 追加)**: 297 tokens = **2.5%** の差
+- 単純に prompt token 数の変化だけでは 50% throughput 低下 (1.35→0.68 doc/s) を説明不能。線形近似なら +6.1% は速度 -6% 程度に留まる
+- → **Factor D (max-len 16384) と Factor E (vLLM 起動 flag / prefix caching hit rate) が dominant 仮説**
+- H100 検証優先度: **Case D + vLLM flag 確認 > Case A' (EN prompt)**。ただし Case A' は「品質保った上で EN framing に戻すと速さが戻るか」の operational answer として残す価値あり
 
 ## Case 一覧
 
@@ -43,8 +52,9 @@ v22 prompt cut (S117 = v0.6.2) を境に narrate throughput が 1.35 → 0.68 do
 | — | 環境準備 (branch + verify/ + WORK.md) | — | ✅ done |
 | T1 | v22 JA prompt freeze | `verify/v22_prompt_ja.yaml` (933 lines, from fa024893f2) | ✅ done |
 | T13 | v21 prompt 復元 | `verify/v21_prompt_ja.yaml` (904 lines, from 4115f563a8) | ✅ done |
-| T2 | v22 EN 翻訳 (user check) | `verify/v22_prompt_en.yaml` | in_progress |
-| T3 | tokenizer 事前計測 | `verify/tokens_precount.json` | pending |
+| T2 | v22 EN 翻訳 (user check) | `verify/v22_prompt_en.yaml` (937 lines, v19 base + v21/v22 merged, Case A') | ✅ done |
+| — | tokenize script (T3 支援) | `verify/tokenize_prompts.py` | ✅ done |
+| T3 | tokenizer 事前計測 | `verify/tokens_precount.json` (Qwen3-8B tokenizer) | ✅ done |
 | T7 | 本 cohort CIF (p=100) | `verify/cohort_p100.tar.gz` | pending |
 | T5 | warmup cohort (p=10) | `verify/cohort_warmup.tar.gz` | pending |
 | T6 | 削除 path list (user check) | `verify/cleanup_paths.txt` | pending |
@@ -71,7 +81,8 @@ v22 prompt cut (S117 = v0.6.2) を境に narrate throughput が 1.35 → 0.68 do
 
 | # | timestamp | scope | SHA |
 |---|---|---|---|
-| 1 | 2026-09-17 | 環境準備 + T1 + T13 (v22 + v21 prompt freeze) | (pending push) |
+| 1 | 2026-09-17 | 環境準備 + T1 + T13 (v22 + v21 prompt freeze) | d83058d48b |
+| 2 | 2026-09-17 | T2 + T3 (Case A' prompt + tokenizer precount) | (pending) |
 
 ## Session 切断時の resume 手順
 
