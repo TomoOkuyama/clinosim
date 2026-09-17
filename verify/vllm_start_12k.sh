@@ -26,4 +26,5 @@ exec vllm serve "$MODEL" \
     --gpu-memory-utilization 0.88 \
     --max-num-seqs 32 \
     --dtype auto \
+    --gdn-prefill-backend triton \
     --served-model-name Qwen/Qwen3.8-27B-FP8
