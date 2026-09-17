@@ -58,11 +58,54 @@ Boot time: 481s cold start.
 | A_prime | v22 EN scaffold | 0.954 | +3.4% | 0 |
 | E | v21 JA (pre-v22 content) | 0.998 | +8.1% | 0 |
 
-## vLLM #1 (PC ON) — cases pending
+## vLLM #1 (PC ON, otherwise same as #0)
 
-Startup: same as #0 plus `--enable-prefix-caching`. Boot in progress at
-commit time. Cases planned: A_pc (v22 JA), F (v22 JA Fix A prompt),
-A_pc_c128 (concurrency 128), and possibly more if hour 5 permits.
+Startup added `--enable-prefix-caching`. Warm reboot: 240s (vs 481s
+cold on vLLM #0).
+
+### Case A_pc (v22 JA canonical, PC ON)
+- 373 docs in **2m 12.7s (133s)** → **2.813 doc/s**
+- Fallbacks: **0**
+- **Δ vs A_S117: +205% (3.05×)** — massive throughput uplift from just
+  enabling prefix caching. This is THE dominant factor in the S117
+  "regression". S117's production script had prefix caching OFF, so
+  every request re-prefilled ~12k tokens of system prompt from scratch.
+
+### Case F (v22 JA Fix A prompt, PC ON)
+- 373 docs in **1m 48.2s (108s)** → **3.448 doc/s**
+- Fallbacks: **0**
+- **Δ vs A_S117: +273% (3.73×)**, **Δ vs A_pc: +22.5%**
+- Fix A (moving `${document_type}` and `${target_language}` out of the
+  system prompt into user_prompt) provides additional 22.5% on top of
+  PC ON, because the system prompt becomes 100% prefix-cacheable
+  across doc types (not just within same doc type). Compound with
+  Fix C (PC ON) — total 3.73× S117 baseline.
+
+### Case A_pc_c128 (v22 JA, PC ON, concurrency 128)
+- 373 docs in **2m 10.8s (131s)** → **2.851 doc/s**
+- Fallbacks: **0**
+- **Δ vs A_pc: +1.4%** — concurrency 32→128 gives essentially zero
+  benefit under FP16 KV cache. Confirms the R4 pre-boot theoretical
+  analysis: `--max-num-seqs 32` is a hard ceiling with FP16 KV at 13k
+  prompts on 80GB H100. Client-side concurrency > 32 gets queued
+  server-side.
+
+## Summary of PC-ON phase (vLLM #1)
+
+| Case | prompt | conc | doc/s | Δ vs A_S117 | fallbacks |
+|---|---|---|---|---|---|
+| A_pc | v22 JA canonical | 32 | 2.813 | +205% | 0 |
+| A_pc_c128 | v22 JA canonical | 128 | 2.851 | +209% | 0 |
+| F | v22 JA Fix A | 32 | 3.448 | +273% | 0 |
+
+## vLLM #2 (PC ON + FP8 KV, `--max-num-seqs 64`) — cases pending
+
+Startup added `--kv-cache-dtype fp8` and doubled `--max-num-seqs` to 64
+based on the R4 sizing: FP8 halves per-token KV footprint, so more
+concurrent seqs can fit. Boot in progress at commit time. Cases
+planned: G (Fix A + FP8 + conc 32), G_c64 (Fix A + FP8 + conc 64).
+Expect Case G_c64 to show meaningful concurrency-scaling improvement
+over Case F because the KV budget can now support >32 concurrent.
 
 ## Key discovery: `enable_thinking: false` is REQUIRED
 
