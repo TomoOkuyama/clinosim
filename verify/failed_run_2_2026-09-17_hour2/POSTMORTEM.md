@@ -16,11 +16,23 @@ RuntimeError: Could not find nvcc and default cuda_home='/usr/local/cuda' doesn'
 
 ### なぜ S117 で起こらず今回起こったか
 
+**2 つの原因が交絡している可能性**:
+
+**原因 A: uv-based reinstall (user 指摘)**
+- S117 → 今 session の間に、clinosim が pip install から uv install に切替
+- `~/vllm-env` が再構築され、S117 時と異なる vllm/torch/nvidia-cu13 wheel versions が入った
+- vLLM 0.27.1 は同 version でも wheel binary differs (uv 解決差)
+- 新 wheel は cache-hit path で nvcc invoke するように挙動が変わっている
+
+**原因 B: torch_compile_cache poisoning (Failed Run 1 由来)**
+
 | フェーズ | torch_compile_cache 状態 | 挙動 |
 |---|---|---|
-| **S117 (Sept 15)** | 空 (fresh) | source から compile、cache-cold path (nvcc 不要)、成功 |
-| **Failed Run 1 (今 hour 1)** | S117 の cache は VM 再起動 or vLLM 更新で invalidated → fresh compile 中 | 内部 600s vLLM timeout で crash、**cache 2.1GB を partial write** |
-| **Boot 2 (今 hour 2)** | Failed Run 1 の partial/inconsistent cache 存在 | cache validity check で nvcc invoke → **nvcc 未 install → 失敗** |
+| **S117 (Sept 15)** | 空 (fresh) | pre-uv pip 環境 + cache-cold path → 成功 |
+| **Failed Run 1 (今 hour 1)** | 空 (fresh) | uv 環境 + 600s 内部 timeout で crash、**cache 2.1GB を partial write** |
+| **Boot 2 (今 hour 2)** | Failed Run 1 の partial cache 存在 | uv 環境 + cache validity check で nvcc invoke → **nvcc 未 install → 失敗** |
+
+どちらも「S117 と今回の差」に寄与している。Boot 3 の Step -2 は現行 pip freeze を採取して S117 との version diff を verify する。
 
 Failed Run 1 が「crash 直前まで書き込んだ cache」を Boot 2 が読もうとしたのが引き金。cache-cold は nvcc 不要、cache-hit-validation は nvcc 必要という vLLM 0.27.1 の設計に、partial cache が半端に触れて失敗パスに入った。
 

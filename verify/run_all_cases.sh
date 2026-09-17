@@ -37,9 +37,12 @@ echo "=== S117 narrate throughput verify @ $(date -u +%FT%TZ) ===" | tee "$OUT_D
 
 # -----------------------------------------------------------
 # Step -2: Capture S117 baseline vLLM startup command from bash history
-# BEFORE cleanup wipes any log evidence. This is the authoritative source
-# of what flags S117 actually used — verify Case A's config matches (or
-# note the differences).
+# AND record the current Python package versions. Failed Run 2
+# postmortem hypothesized that a uv-based reinstall between S117 and
+# now may have shifted vllm / torch / nvidia-cu13 versions in a way
+# that triggers nvcc-invoking paths. Compare this dump against the
+# S117-era import banners in ~/vllm_jp_p10k.log / vllm_p100_v5.log to
+# spot version drift.
 # -----------------------------------------------------------
 echo "--- Step -2: extract S117 vLLM config from history ---" | tee -a "$OUT_DIR/run.log"
 {
@@ -51,6 +54,20 @@ echo "--- Step -2: extract S117 vLLM config from history ---" | tee -a "$OUT_DIR
     echo
     echo "=== Recent processes (in case vLLM was in a systemd unit) ==="
     ps auxf 2>/dev/null | grep -E "vllm|python.*serve" | grep -v grep || echo "no live vLLM"
+    echo
+    echo "=== INSTALLED vllm-env package versions (uv drift check) ==="
+    source ~/vllm-env/bin/activate 2>/dev/null && pip freeze 2>/dev/null \
+        | grep -iE "^(vllm|torch|nvidia|xformers|flash-attn|xgrammar|transformers|triton|humming)" \
+        | sort
+    echo
+    echo "=== S117-era vLLM version banner (from preserved log) ==="
+    grep -E "version 0\.[0-9]+\.[0-9]+" ~/vllm_p100_v5.log 2>/dev/null | head -3 \
+        || echo "(no S117 log survived cleanup — skip)"
+    echo
+    echo "=== nvcc / cuda_home probe ==="
+    which nvcc || echo "nvcc: NOT ON PATH"
+    ls -d /usr/local/cuda* 2>/dev/null || echo "no /usr/local/cuda*"
+    source ~/vllm-env/bin/activate 2>/dev/null && python -c 'from torch.utils.cpp_extension import CUDA_HOME; print(f"torch CUDA_HOME={CUDA_HOME}")' 2>&1
 } | tee "$OUT_DIR/s117_vllm_config_recovery.txt"
 echo "→ review $OUT_DIR/s117_vllm_config_recovery.txt to reconcile with verify/vllm_start_16k.sh" | tee -a "$OUT_DIR/run.log"
 

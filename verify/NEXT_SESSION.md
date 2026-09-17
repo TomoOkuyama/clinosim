@@ -1,20 +1,27 @@
-# Next session resume prompt — S117 narrate throughput verify (2nd attempt)
+# Next session resume prompt — S117 narrate throughput verify (3rd attempt)
 
 ## 状況 (session 終端 2026-09-17)
 
-**Failed Run 1 完了、¥990 消費・成果ゼロ**。詳細は `verify/failed_run_1_2026-09-17_hour1/POSTMORTEM.md`。
+**Failed Run 1 + Failed Run 2 完了、¥1980 消費・Case data ゼロ**。詳細は:
+- `verify/failed_run_1_2026-09-17_hour1/POSTMORTEM.md` — vLLM 内部 timeout
+- `verify/failed_run_2_2026-09-17_hour2/POSTMORTEM.md` — torch.compile cache poisoning
 
 **判明事実 (副産物)**:
 - S117 実 vLLM config 復元: `enable_prefix_caching=False`, gpu-mem 0.88, max-num-seqs 32
 - First-time vLLM boot は **~17-18 min** 要 (weight load 3.3 min + torch.compile 2 min + CUDA graph capture ~12 min)
 - vLLM 側 `VLLM_ENGINE_READY_TIMEOUT_S=600s` が短すぎ、初回 boot 失敗
 
-**次 session boot 前必須修正**: ✅ ALL DONE (checkpoint 13 = `87fcea55c1`)
-1. ✅ `run_all_cases.sh` shell timeout 1800s + 60s progress markers
-2. ✅ `VLLM_ENGINE_READY_TIMEOUT_S=1800` env export
-3. ✅ Fallback logging in run_case.sh (`fallback_summary.txt`) + analyze.py table column + summary block
-4. ✅ Fix C (`verify/llm_service_vllm_guided.yaml`) + `clinosim/modules/llm_service/providers/vllm.py` に response_format forward 追加
-5. ✅ Case J (Fix C isolation) を run_all_cases.sh + WORK.md に追加
+**次 session boot 前必須修正 (Failed Run 1+2 の learning 反映済)**:
+1. ✅ `run_all_cases.sh` shell timeout 1800s + 60s progress markers (checkpoint 13)
+2. ✅ `VLLM_ENGINE_READY_TIMEOUT_S=1800` env export (checkpoint 13)
+3. ✅ Fallback logging in run_case.sh + analyze.py (checkpoint 13)
+4. ✅ Fix C (`llm_service_vllm_guided.yaml` + vllm.py response_format forward) (checkpoint 13)
+5. ✅ Case J (Fix C isolation) (checkpoint 13)
+6. ✅ **NEW: Step -1 cleanup で `~/.cache/vllm/torch_compile_cache` + `torch_aot_compile` 削除** (checkpoint 15、Failed Run 2 mitigation)
+
+**Plan B (Boot 3 でも同じ nvcc error なら):**
+- `--enforce-eager` flag を非-A_S117 vllm_start_*.sh に追加 (torch.compile 全 skip、5-10% inference 遅延、S117 exact-config 崩れ)
+- または `sudo apt install nvidia-cuda-toolkit` を H100 に事前 install (30 min + 1GB disk)
 
 **時間見積り (checkpoint 13 修正込み)**:
 - First-time vLLM boot #0 (S117 config): ~15 min (torch.compile cached from failed run 1, ~7 min saving; CUDA graph capture ~12 min unavoidable)
