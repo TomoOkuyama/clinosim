@@ -61,21 +61,25 @@ v22 prompt cut (S117 = v0.6.2) を境に narrate throughput が 1.35 → 0.68 do
 | T4 | narrate client harness | `verify/run_case.sh` + `verify/run_all_cases.sh` + `verify/llm_service_vllm.yaml` | ✅ done |
 | T8 | vLLM 起動 script 2 種 (user check) | `verify/vllm_start_{16k,8k}.sh` | ✅ done (user review 待ち) |
 
-## 次 session に持ち越し (今 3h に含まれない)
+## 次 session に持ち越し
 
-| # | task | 想定所要 |
-|---|---|---|
-| T9 | weight cache 保護 command | 2 min |
-| T10 | metric 収集 script (scrape/dmon/measure) | 30 min |
-| T11 | post-hoc 分析 harness + dry-run | 30-45 min |
-| T12 | S117 0.68 doc/s メタデータ復元 | 10 min |
-| T14 | Sakura VM 運用 command 確認 | 5 min |
-| T15 | 予算プリチェック (user 承認) | 1 min |
-| T16 | 時計同期プラン | 2 min |
-| T17 | Case 実行順序 runbook 化 | 15 min |
-| T18 | verify report 骨子 | 10 min |
-| — | **H100 boot 実行** | **1h billing** |
-| — | post-run 分析 + report | 1h |
+3h 内で当初 defer 予定だった T9/T10/T11/T14/T16/T17 も追加で仕上げた。残りは:
+
+| # | task | 想定所要 | 状態 |
+|---|---|---|---|
+| T9 | weight cache 保護 | — | ✅ cleanup_paths.txt に統合 |
+| T10 | metric 収集 script | — | ✅ run_case.sh に統合 (inline curl + nvidia-smi dmon) |
+| T11 | post-hoc 分析 harness | — | ✅ done (`verify/analyze.py`) |
+| T12 | S117 0.68 doc/s メタデータ復元 | 10 min | ⏳ next session |
+| T14 | Sakura VM 運用 command 確認 | — | ✅ done (`verify/sakura_ops.md`) |
+| T15 | 予算プリチェック (user 承認) | 1 min | ⏳ next session (user go 前) |
+| T16 | 時計同期プラン | — | ✅ sakura_ops.md に統合 |
+| T17 | Case 実行順序 runbook 化 | — | ✅ run_all_cases.sh に統合 |
+| T18 | verify report 骨子 | 10 min | ⏳ post-run に post-run で書く |
+| — | **H100 boot 実行** | **1h billing (¥990)** | ⏳ next session、user go 待ち |
+| — | post-run 分析 + report | 1h | ⏳ next session |
+
+**Resume 手順は `verify/NEXT_SESSION.md` 参照**。
 
 ## Checkpoint commit 履歴
 
@@ -84,7 +88,8 @@ v22 prompt cut (S117 = v0.6.2) を境に narrate throughput が 1.35 → 0.68 do
 | 1 | 2026-09-17 | 環境準備 + T1 + T13 (v22 + v21 prompt freeze) | d83058d48b |
 | 2 | 2026-09-17 | T2 + T3 (Case A' prompt + tokenizer precount) | a3691deb0c |
 | 3 | 2026-09-17 | T7 + T5 + T6 (cohorts + cleanup list) | 7e807c1559 / 9c4d9ec0ba (tarball force-add) |
-| 4 | 2026-09-17 | T4 + T8 (harness + vLLM scripts) | (pending) |
+| 4 | 2026-09-17 | T4 + T8 (harness + vLLM scripts) | 477c279120 |
+| 5 | 2026-09-17 | T11 + T14 + NEXT_SESSION (analyze + Sakura ops + resume prompt) | (pending) |
 
 ## Session 切断時の resume 手順
 
