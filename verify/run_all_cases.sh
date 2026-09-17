@@ -27,6 +27,25 @@ mkdir -p "$OUT_DIR"
 echo "=== S117 narrate throughput verify @ $(date -u +%FT%TZ) ===" | tee "$OUT_DIR/run.log"
 
 # -----------------------------------------------------------
+# Step -2: Capture S117 baseline vLLM startup command from bash history
+# BEFORE cleanup wipes any log evidence. This is the authoritative source
+# of what flags S117 actually used — verify Case A's config matches (or
+# note the differences).
+# -----------------------------------------------------------
+echo "--- Step -2: extract S117 vLLM config from history ---" | tee -a "$OUT_DIR/run.log"
+{
+    echo "=== S117 vllm serve command history (H100 shell) ==="
+    grep -a "vllm serve\|vllm-serve" ~/.bash_history 2>/dev/null || echo "no vllm serve in .bash_history"
+    echo
+    echo "=== Any related config files in \$HOME ==="
+    ls -la ~/vllm*.sh ~/start_vllm* ~/serve*.sh 2>/dev/null || echo "no local vllm scripts"
+    echo
+    echo "=== Recent processes (in case vLLM was in a systemd unit) ==="
+    ps auxf 2>/dev/null | grep -E "vllm|python.*serve" | grep -v grep || echo "no live vLLM"
+} | tee "$OUT_DIR/s117_vllm_config_recovery.txt"
+echo "→ review $OUT_DIR/s117_vllm_config_recovery.txt to reconcile with verify/vllm_start_16k.sh" | tee -a "$OUT_DIR/run.log"
+
+# -----------------------------------------------------------
 # Step -1: Cleanup past data on H100 (frees disk, protects weight cache).
 # -----------------------------------------------------------
 echo "--- Step -1: cleanup past narrate data ---" | tee -a "$OUT_DIR/run.log"
