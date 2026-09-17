@@ -1,0 +1,53 @@
+=== S117 narrate throughput verify @ 2026-09-17T05:53:39Z ===
+--- Step -2: extract S117 vLLM config from history ---
+→ review /home/ubuntu/verify/out/s117_vllm_config_recovery.txt to reconcile with verify/vllm_start_16k.sh
+--- Step -1: cleanup past narrate data + vLLM torch caches ---
+4.0K	/home/ubuntu/run.log.narrate.chunk91
+4.0K	/home/ubuntu/run.log.narrate.chunk92
+4.0K	/home/ubuntu/run.log.narrate.chunk93
+4.0K	/home/ubuntu/run.log.narrate.chunk94
+4.0K	/home/ubuntu/run.log.narrate.chunk95
+4.0K	/home/ubuntu/run.log.narrate.chunk96
+4.0K	/home/ubuntu/run.log.narrate.chunk97
+4.0K	/home/ubuntu/run.log.narrate.chunk98
+4.0K	/home/ubuntu/run.log.narrate.chunk99
+4.0K	/home/ubuntu/run.log.shutdown
+4.0K	/home/ubuntu/run.log.simulate
+4.0K	/home/ubuntu/run.log.upload
+4.0K	/home/ubuntu/run_jp_p10k.sh
+4.0K	/home/ubuntu/run_p100_narrate.sh
+4.0K	/home/ubuntu/run_p100_narrate_v2.sh
+4.0K	/home/ubuntu/run_p100_s401.sh
+4.0K	/home/ubuntu/run_p100_v3.sh
+4.0K	/home/ubuntu/run_p100_v4.sh
+4.0K	/home/ubuntu/run_p100_v5.sh
+4.0K	/home/ubuntu/vllm_restart.sh
+12K	/home/ubuntu/autonomous_run.sh
+16K	/home/ubuntu/orchestrator.sh
+128K	/home/ubuntu/clinosim_patch
+1.2M	/home/ubuntu/verify
+140M	/home/ubuntu/p100
+204M	/home/ubuntu/p100_s401
+689M	/home/ubuntu/autonomous_run
+903M	/home/ubuntu/clinosim
+8.0G	/home/ubuntu/vllm-env
+8.6G	/home/ubuntu/jp_p10k
+
+Deleting: ~/n3_cif ~/*_out ~/narrate_* ~/*.log
+
+Deleting: ~/.cache/vllm/torch_compile_cache and ~/.cache/vllm/torch_aot_compile
+(Failed Run 2 mitigation — prevents cache-hit-validation invoking nvcc)
+
+AFTER cleanup:
+33G	/home/ubuntu/.cache/huggingface
+20K	/home/ubuntu/.cache/vllm
+Filesystem      Size  Used Avail Use% Mounted on
+/dev/vda2        99G   80G   14G  86% /
+WARNING: weight cache smaller than expected (32 GB, expected ~54 GB)
+weight cache: 32 GB — OK
+--- start vLLM: vllm_start_16k_S117.sh (2026-09-17T05:53:42Z) ---
+vLLM PID: 6169
+  … waiting 60s (last vllm log line: (EngineCore pid=6373) INFO 09-17 14:54:38 [default_loader.py:430] Loading weights took 4.53 seconds)
+  … waiting 120s (last vllm log line: (EngineCore pid=6373) INFO 09-17 14:54:55 [backends.py:1155] Dynamo bytecode transform time: 11.57 s)
+  … waiting 180s (last vllm log line: (APIServer pid=6169) RuntimeError: Engine core initialization failed. See root cause above. Failed core proc(s): {})
+  … waiting 240s (last vllm log line: (APIServer pid=6169) RuntimeError: Engine core initialization failed. See root cause above. Failed core proc(s): {})
