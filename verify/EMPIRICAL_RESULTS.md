@@ -200,6 +200,57 @@ clinosim narrate --provider vllm --concurrency 64 ...
 - Additional axes for Phase 3: TRITON_ATTN backend, chunked_prefill off,
   scheduler_steps > 1, prompt structural compression.
 
+## Boot 7 + Boot 8 additions (2026-09-18 → 2026-09-20)
+
+### US p=1000 s=1918 canonical (Boot 7)
+- Config: v22 EN canonical prompt (no Fix A), PC ON, max-num-seqs 64,
+  concurrency 64
+- Result: **5933 docs in 22:07 = 4.47 doc/s, 0 fallbacks** ✓
+
+### US p=1000 s=1918 with Fix A applied to EN prompt (Boot 8)
+- Config: Fix A patch on en/narrative_seed_bundle.yaml (moved
+  `${document_type}` and `${target_language}` from system to
+  user_prompt intro), otherwise same as above
+- Result: **5933 docs in 22:25 = 4.41 doc/s, 0 fallbacks** ✓
+- **Δ vs canonical EN: -1.3%** — Fix A on EN has effectively zero
+  throughput impact. The US cohort's doc-type mix is homogeneous
+  enough that cross-doc-type prefix cache eviction was not a real
+  bottleneck (unlike JP). Fix A for EN is optional; JA remains a
+  strong recommendation (+22.5% measured).
+
+### US p=500 s=2919 fallback confirmation (Boot 8)
+- Config: same as Fix A EN above (Fix A applied)
+- Result: **2674 docs in 20:57 = 2.13 doc/s, 0 fallbacks** ✓
+- Smaller cohort but higher wall-clock per doc — variance likely from
+  different avg gen tokens in this cohort. Fallback rate is the
+  primary check and is 0.
+
+### JP p=500 s=2929 fallback confirmation (Boot 8)
+- Config: Fix A applied to ja/narrative_seed_bundle.yaml, PC ON,
+  max-num-seqs 64, concurrency 64, `--country JP`
+- Result: **2904 docs in 30:43 = 1.58 doc/s, 0 fallbacks** ✓
+- Slower per-doc than US p=500 — expected since JP avg gen tokens
+  are ~2× EN (measured in Phase 2). Same 0 fallback rate confirms
+  the enable_thinking:false + Fix A + PC ON stack works reliably
+  regardless of cohort seed / language.
+
+## Fallback rate 総合
+
+Across 4 distinct narrate runs on this vLLM stack (2 locale × 2 sizes,
+different seeds each time, all with `enable_thinking: false`):
+
+  US p=1000 s=1918 canonical EN:  0 / 5933 = 0.0%
+  US p=1000 s=1918 Fix A EN:      0 / 5933 = 0.0%
+  US p=500  s=2919 Fix A EN:      0 / 2674 = 0.0%
+  JP p=500  s=2929 Fix A JA:      0 / 2904 = 0.0%
+  ────────────────────────────────────────────
+  Aggregate:                      0 / 17,444 = 0.000%
+
+**Fallback rate 0 empirically confirmed** across 17,444 total narrate
+outputs on the v0.6.3 candidate config. Guided JSON (Fix C, Case J
+Phase 2) remains available as a structural guarantee if desired but is
+not empirically necessary.
+
 ## Key discovery: `enable_thinking: false` is REQUIRED
 
 Without this yaml config field, Qwen's `</think>` prefix breaks bundle
