@@ -618,6 +618,109 @@ def test_bundle_strategy_falls_back_to_per_section_on_bad_json() -> None:
         assert "Not a JSON" in result.sections[section] or "reply" in result.sections[section]
 
 
+def test_bundle_strategy_length_truncation_retries_with_expanded_max_tokens() -> None:
+    """Boot 11 finding: when the first bundle call returns
+    ``finish_reason="length"`` (max_tokens hit → JSON truncated
+    mid-string), the strategy retries ONCE with an expanded max_tokens
+    budget computed from the observed input tokens against
+    ``_BUNDLE_RETRY_MAX_MODEL_LEN``. If the retry parses cleanly the
+    bundle succeeds — no per-section fallback fires."""
+
+    class _LengthThenValidProvider(MockProvider):
+        def __init__(self) -> None:
+            super().__init__()
+            self._call_max_tokens: list[int] = []
+
+        def complete(self, prompt, max_tokens=1000, **kw):  # type: ignore[override]
+            self.call_count += 1
+            self._call_max_tokens.append(max_tokens)
+            from clinosim.modules.llm_service.providers.base import ProviderResponse
+
+            if self.call_count == 1:
+                # Simulate a length-truncated bundle: opens a string in
+                # the first section but never closes it. Report
+                # finish_reason="length" so the strategy triggers the
+                # length-retry branch.
+                return ProviderResponse(
+                    text='{"subjective": "long text that ran out of ',
+                    input_tokens=12000,
+                    output_tokens=max_tokens,
+                    model="mock",
+                    latency_ms=0,
+                    metadata={"finish_reason": "length"},
+                )
+            # Retry: return a well-formed bundle for all target sections.
+            return ProviderResponse(
+                text='{"subjective": "OK", "assessment": "OK", "plan": "OK"}',
+                input_tokens=12000,
+                output_tokens=100,
+                model="mock",
+                latency_ms=0,
+                metadata={"finish_reason": "stop"},
+            )
+
+    spec = _bundle_spec()
+    provider = _LengthThenValidProvider()
+    ctx = _make_ctx()
+
+    result = _apply(_bundle_template_output(), ctx, spec, _mock_llm(provider))
+
+    # Exactly two calls: the initial (truncated) + one retry. No
+    # per-section retries — the retry path succeeded and returned a
+    # bundle response.
+    assert provider.call_count == 2
+    # First call used the prompt-spec default; the retry used the
+    # expanded budget derived from _BUNDLE_RETRY_MAX_MODEL_LEN.
+    assert provider._call_max_tokens[1] > provider._call_max_tokens[0]
+    # All three LLM-enabled sections populated by the retry response.
+    for section in ("subjective", "assessment", "plan"):
+        assert result.sections[section] == "OK"
+
+
+def test_bundle_strategy_length_truncation_retry_also_fails_falls_back() -> None:
+    """If BOTH the initial bundle call and the length-expanded retry
+    return unparseable JSON, the safety net (per-section fallback) still
+    fires. This preserves the invariant that narrative quality never
+    silently regresses to pure template."""
+
+    class _AlwaysTruncatedProvider(MockProvider):
+        def complete(self, prompt, max_tokens=1000, **kw):  # type: ignore[override]
+            self.call_count += 1
+            from clinosim.modules.llm_service.providers.base import ProviderResponse
+
+            # Bundle-strategy attempts (calls 1 and 2) return truncated
+            # JSON with finish_reason="length"; per-section fallback
+            # calls (3+) return valid text so those sections still fill.
+            if self.call_count <= 2:
+                return ProviderResponse(
+                    text='{"subjective": "trunc',
+                    input_tokens=12000,
+                    output_tokens=max_tokens,
+                    model="mock",
+                    latency_ms=0,
+                    metadata={"finish_reason": "length"},
+                )
+            return ProviderResponse(
+                text="Per-section OK reply",
+                input_tokens=100,
+                output_tokens=20,
+                model="mock",
+                latency_ms=0,
+                metadata={"finish_reason": "stop"},
+            )
+
+    spec = _bundle_spec()
+    provider = _AlwaysTruncatedProvider()
+    ctx = _make_ctx()
+
+    result = _apply(_bundle_template_output(), ctx, spec, _mock_llm(provider))
+
+    # 2 bundle attempts (initial + retry) + N per-section calls
+    assert provider.call_count == 2 + len(spec.llm_enabled_sections)
+    for section in ("subjective", "assessment", "plan"):
+        assert "OK" in result.sections[section]
+
+
 def test_bundle_strategy_free_text_rebuilds_raw_text() -> None:
     """FREE_TEXT bundle (progress_note): after one bundle call replaces
     the S/A/P sections, `raw_text` is rebuilt from sections using the

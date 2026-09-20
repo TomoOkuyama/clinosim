@@ -1,0 +1,8 @@
+boot10_start_epoch=1789864865
+narrate: wrote 5940 narrative documents across 3635 encounters → narratives/boot10_us_p1000_s2918/
+
+real	22m24.367s
+user	2m22.653s
+sys	0m2.816s
+boot10_end_epoch=1789866209
+boot10_elapsed_seconds=1344

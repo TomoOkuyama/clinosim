@@ -221,6 +221,12 @@ class LLMResponse:
     fallback_reason: str = ""
     chosen_option: str | None = None
     reasoning: str | None = None
+    # Provider-side generation stop reason: "stop" (EOS), "length"
+    # (max_tokens hit — truncated), "content_filter", ... Forwarded from
+    # ProviderResponse.metadata["finish_reason"] so callers can detect
+    # truncation and retry with an expanded budget (see the length-retry
+    # path in replacement_strategy._apply_template_seed_bundle_strategy).
+    finish_reason: str | None = None
 
 
 class LLMService:
@@ -495,6 +501,7 @@ class LLMService:
             cached = self.cache.get(system_prompt, user_prompt, model)
             if cached is not None:
                 self.cache_hit_count += 1
+                cached_finish = (cached.metadata or {}).get("finish_reason") if cached.metadata else None
                 return LLMResponse(
                     text=cached.text,
                     source="cache",
@@ -503,6 +510,7 @@ class LLMService:
                     input_tokens=cached.input_tokens,
                     output_tokens=cached.output_tokens,
                     cache_hit=True,
+                    finish_reason=cached_finish,
                 )
 
         last_error = ""
@@ -522,6 +530,7 @@ class LLMService:
                 if self.cache is not None:
                     self.cache.put(system_prompt, user_prompt, model, response)
 
+                provider_finish = (response.metadata or {}).get("finish_reason") if response.metadata else None
                 return LLMResponse(
                     text=response.text,
                     source="llm",
@@ -529,6 +538,7 @@ class LLMService:
                     provider=provider_name,
                     input_tokens=response.input_tokens,
                     output_tokens=response.output_tokens,
+                    finish_reason=provider_finish,
                 )
             except Exception as e:
                 last_error = f"{type(e).__name__}: {e}"

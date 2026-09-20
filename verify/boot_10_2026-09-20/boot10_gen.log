@@ -1,0 +1,41 @@
+⚠️  User-specified -p 1000 used as-is (hospital recommended: 40000 for US)
+clinosim generate: population=1000, seed=2918, country=US, period=2025-09-20~2026-09-20
+  Log: /home/ubuntu/boot10_us_p1000_s2918/simulator.log
+  Hospital: 50 beds
+  Population: 971 persons
+  Life events: 77 total, 70 requiring hospital
+  Simulating inpatient 50/70 (concurrent=3, bed_occ=76%)...
+  Simulating inpatient 70/70 (concurrent=2, bed_occ=74%)...
+  Inpatient done: 68 records (peak concurrent: 3)
+  Readmissions done: 13 evaluated
+  Healthcare calendar: 2904 events for population
+  Outpatient done: 63 post-discharge + 2847 calendar
+  ED visits (not admitted): 252 generated
+
+==================================================
+  clinosim generation complete
+==================================================
+  Total records:  3241
+    Inpatient:    98 (12 readmissions)
+    Outpatient:   2906
+    Deceased:     8
+  Data volume:
+    Lab results:  13,219
+    Vital signs:  8,908
+    MAR entries:  6,678
+    I/O records:  408
+    Orders:       16,608
+
+  Disease distribution (inpatient):
+    copd_exacerbation                22  (LOS avg 4.8d)
+    asthma_exacerbation              13  (LOS avg 3.4d)
+    Z37.0                             9  (LOS avg -1.0d)
+    Z38.0                             9  (LOS avg -1.0d)
+    bacterial_pneumonia               6  (LOS avg 5.3d)
+    heart_failure_exacerbation        5  (LOS avg 5.6d)
+    urinary_tract_infection           5  (LOS avg 5.6d)
+    acute_mi                          5  (LOS avg 5.4d)
+    influenza                         5  (LOS avg 4.0d)
+    cerebral_infarction               4  (LOS avg 8.0d)
+
+  Output: /home/ubuntu/boot10_us_p1000_s2918/

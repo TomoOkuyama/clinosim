@@ -51,6 +51,14 @@ from clinosim.modules.document.narrative.template_generator import _filter_vital
 from clinosim.modules.llm_service.engine import LLMService, LLMTaskType
 from clinosim.types.document import DocumentTypeSpec, NarrativeContext, NarrativeOutput
 
+# vLLM max-model-len used by the length-truncation retry in
+# _apply_template_seed_bundle_strategy. Must match the server's
+# `--max-model-len` flag. Boot 11 (2026-09-20) confirmed the retry path
+# recovers bundle responses whose original max_tokens budget was cut
+# short mid-string, achieving structural fallback = 0 for
+# `template_seed_bundle` without a vLLM restart.
+_BUNDLE_RETRY_MAX_MODEL_LEN = 16384
+
 
 # v8 (2026-08-17): lazy accessor for _localize_drug_name to avoid the
 # document→output→document circular import at module load. The
@@ -705,23 +713,97 @@ def _apply_template_seed_bundle_strategy(
         try:
             parsed_bundle = _parse_bundle_response(raw_response, llm_sections)
         except ValueError as exc:
-            _logger.warning(
-                "template_seed_bundle: JSON parse failed for %s (%s) — falling back to per-section",
-                spec.type_key,
-                exc,
-            )
-            # Safety net: retry via per-section strategy so we never
-            # silently regress to pure template on parse issues.
-            return _apply_template_seed_strategy(
-                template_output,
-                ctx,
-                spec,
-                llm,
-                task_type=task_type,
-                language=language,
-                cache_get=cache_get,
-                cache_put=cache_put,
-            )
+            # Length-truncation retry (Boot 11 finding): when vLLM returns
+            # finish_reason="length" the response was cut mid-string, breaking
+            # JSON. Retry ONCE with an expanded max_tokens budget computed
+            # from the observed input token count. Only fires on the ~0.02%
+            # of bundle calls that hit the max_tokens ceiling — normal path
+            # has zero overhead. On retry success we continue as a normal
+            # bundle response; on retry failure or non-length parse errors
+            # we fall through to the per-section safety net below.
+            finish_reason = getattr(response, "finish_reason", None)
+            if finish_reason == "length" and prompt_spec.max_tokens < _BUNDLE_RETRY_MAX_MODEL_LEN:
+                input_toks = getattr(response, "input_tokens", 0) or 0
+                # Reserve 200-token safety margin below max-model-len.
+                retry_budget = _BUNDLE_RETRY_MAX_MODEL_LEN - input_toks - 200
+                if retry_budget > prompt_spec.max_tokens:
+                    _logger.info(
+                        "template_seed_bundle: length-truncated %s (in_tok=%d out=%d), retrying with max_tokens=%d",
+                        spec.type_key,
+                        input_toks,
+                        _out,
+                        retry_budget,
+                    )
+                    retry_response = llm.complete_prompt(
+                        system_prompt,
+                        user_prompt,
+                        language=language,
+                        task_type=task_type,
+                        max_tokens=retry_budget,
+                        temperature=prompt_spec.temperature,
+                    )
+                    retry_raw = retry_response.text or ""
+                    try:
+                        parsed_bundle = _parse_bundle_response(retry_raw, llm_sections)
+                        # Retry succeeded — treat as a normal bundle response.
+                        # Update raw_response so the cache_put below stores
+                        # the successful retry, not the truncated original.
+                        raw_response = retry_raw
+                        response = retry_response
+                    except ValueError as retry_exc:
+                        _logger.warning(
+                            "template_seed_bundle: retry parse failed for %s (%s) — falling back to per-section",
+                            spec.type_key,
+                            retry_exc,
+                        )
+                        return _apply_template_seed_strategy(
+                            template_output,
+                            ctx,
+                            spec,
+                            llm,
+                            task_type=task_type,
+                            language=language,
+                            cache_get=cache_get,
+                            cache_put=cache_put,
+                        )
+                else:
+                    _logger.warning(
+                        "template_seed_bundle: length-truncated %s but retry budget %d ≤ "
+                        "original %d (prompt fills model context) — per-section fallback",
+                        spec.type_key,
+                        retry_budget,
+                        prompt_spec.max_tokens,
+                    )
+                    return _apply_template_seed_strategy(
+                        template_output,
+                        ctx,
+                        spec,
+                        llm,
+                        task_type=task_type,
+                        language=language,
+                        cache_get=cache_get,
+                        cache_put=cache_put,
+                    )
+            else:
+                _logger.warning(
+                    "template_seed_bundle: JSON parse failed for %s (%s, finish_reason=%s) "
+                    "— falling back to per-section",
+                    spec.type_key,
+                    exc,
+                    finish_reason,
+                )
+                # Safety net: retry via per-section strategy so we never
+                # silently regress to pure template on parse issues.
+                return _apply_template_seed_strategy(
+                    template_output,
+                    ctx,
+                    spec,
+                    llm,
+                    task_type=task_type,
+                    language=language,
+                    cache_get=cache_get,
+                    cache_put=cache_put,
+                )
 
         # Store the RAW response (not the parsed dict) so the cache-hit
         # path can re-parse. This keeps the cache format simple + text-only.
