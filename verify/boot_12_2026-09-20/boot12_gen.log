@@ -1,0 +1,55 @@
+WARN: JP-CLINS package not detected — --allow-legacy was passed, so
+  the run will continue with legacy 5-digit JLAC10 OID output.
+  Output will NOT be JP-CLINS eCS compliant. Downstream validators
+  (jp_clins_lab_compliance axis) will surface Outcome.NA rather than PASS.
+clinosim generate: population=10000, seed=3532, country=JP, period=2025-09-20~2026-09-20
+  JP insurance numbers (被保険者番号): on
+  Log: /home/ubuntu/boot12_jp_p10000_s3532/simulator.log
+  Hospital: 50 beds
+  Population: 10000 persons
+  Life events: 605 total, 578 requiring hospital
+  Simulating inpatient 50/578 (concurrent=18, bed_occ=93%)...
+  Simulating inpatient 100/578 (concurrent=25, bed_occ=99%)...
+  Simulating inpatient 150/578 (concurrent=32, bed_occ=95%)...
+  Simulating inpatient 200/578 (concurrent=24, bed_occ=69%)...
+  Simulating inpatient 250/578 (concurrent=34, bed_occ=87%)...
+  Simulating inpatient 300/578 (concurrent=49, bed_occ=99%)...
+  Simulating inpatient 350/578 (concurrent=28, bed_occ=55%)...
+  Simulating inpatient 400/578 (concurrent=36, bed_occ=71%)...
+  Simulating inpatient 450/578 (concurrent=29, bed_occ=57%)...
+  Simulating inpatient 500/578 (concurrent=36, bed_occ=71%)...
+  Simulating inpatient 550/578 (concurrent=37, bed_occ=73%)...
+  Simulating inpatient 578/578 (concurrent=44, bed_occ=87%)...
+  Inpatient done: 565 records (peak concurrent: 45)
+  Readmissions done: 66 evaluated
+  Healthcare calendar: 28120 events for population
+  Outpatient done: 502 post-discharge + 27316 calendar
+  ED visits (not admitted): 1470 generated
+
+==================================================
+  clinosim generation complete
+==================================================
+  Total records:  29948
+    Inpatient:    767 (64 readmissions)
+    Outpatient:   27774
+    Deceased:     41
+  Data volume:
+    Lab results:  157,539
+    Vital signs:  129,792
+    MAR entries:  136,354
+    I/O records:  9,043
+    Orders:       193,129
+
+  Disease distribution (inpatient):
+    copd_exacerbation               107  (LOS avg 11.6d)
+    urinary_tract_infection          87  (LOS avg 13.1d)
+    Z37.0                            69  (LOS avg -1.0d)
+    Z38.0                            69  (LOS avg -1.0d)
+    bacterial_pneumonia              56  (LOS avg 15.2d)
+    heart_failure_exacerbation       53  (LOS avg 16.6d)
+    asthma_exacerbation              51  (LOS avg 8.8d)
+    cerebral_infarction              40  (LOS avg 21.4d)
+    diabetic_ketoacidosis            31  (LOS avg 13.7d)
+    hip_fracture                     26  (LOS avg 29.7d)
+
+  Output: /home/ubuntu/boot12_jp_p10000_s3532/

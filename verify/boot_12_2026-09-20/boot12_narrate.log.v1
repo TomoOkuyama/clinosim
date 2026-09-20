@@ -1,0 +1,3 @@
+boot12_start_epoch=1789889760
+LLM narrative generation failed (LLMCompletionError: ReadTimeout: timed out); falling back to template output (doc_type=discharge_summary, lang=ja)
+LLM narrative generation failed (LLMCompletionError: ReadTimeout: timed out); falling back to template output (doc_type=discharge_summary, lang=ja)

@@ -100,3 +100,9 @@ site/
 # JP + US cohorts here would be tens of MB per commit.
 /baseline/
 verify/boot_*/case_*_scratch/
+
+# Large boot data tarballs (kept local-only, too big for git)
+verify/boot_*/*_narratives.tar.gz
+verify/boot_*/*_cohort_cif.tar.gz
+verify/boot_*/*_fhir_r4.tar.gz
+verify/boot_*/*_artifacts.tar.gz
