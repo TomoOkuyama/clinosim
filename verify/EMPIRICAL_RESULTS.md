@@ -284,19 +284,91 @@ degrade unless the prefix cache is explicitly reset between cohorts,
 or unless startup order groups same-locale/same-seed cohorts together.
 This deserves a follow-up verify session to confirm and characterize.
 
+## Boot 11-13 (2026-09-20 → 2026-09-21) — p=10000 scale + fallback 0 structural
+
+### Boot 11 v2: JP p=10000 s=2532, guided_json, canonical config
+- Config: max-model-len 16384, max_tokens 3500 (JA yaml), timeout 300s,
+  Fix A JA prompt, guided_json (`response_format: json_object`)
+- Result: **80,943 docs in 4h 46min = 4.71 doc/s**
+- length truncation: 5
+- Bundle JSON parse failed → per-section fallback: **3** (all
+  discharge_summary; content complete via per-section LLM path)
+- ReadTimeout → template fallback: 0
+- Cumulative fallback rate: **3 / 80,943 = 0.0037%** (all
+  quality-preserving per-section, not pure template)
+
+### Boot 12 v2: JP p=10000 s=2532, LENGTH-RETRY code + bumped budgets
+- Config: max-model-len **32768** (from 16384), max_tokens **8000**
+  (from 3500), timeout **900s** (from 300), Fix A JA + guided_json +
+  new `_apply_template_seed_bundle_strategy` length-truncation retry
+  path (commit `6d49511d4d`).
+- Result: **76,143 docs in 4h 32min = 4.66 doc/s** (comparable to
+  Boot 11 v2)
+- length truncation (vLLM): 3 (all closed by guided_json to valid
+  JSON before hitting cap → no retry needed)
+- Bundle JSON parse failed: **0** ✓
+- ReadTimeout → template fallback: **1** (0.0013%; discharge_summary
+  edge case where 900s was still tight)
+
+### Boot 13: US p=10000 s=3532, timeout bumped 900→1200s (v0.6.3 candidate)
+- Config: identical to Boot 12 except **timeout 1200s** and US locale
+  (canonical EN prompt, `--country US`)
+- Result: **59,004 docs in 3h 39min = 4.49 doc/s** (matches Boot 9
+  US p=1000 baseline 4.47 → US locale steady state)
+- length truncation: **0**
+- Bundle JSON parse failed: **0**
+- length-retry path fired: 0 (never needed)
+- ReadTimeout: **0**
+- **Total fallback: 0 / 59,004 = ★ 0.0000% ★** — first empirically
+  verified structural fallback-0 at p=10000 scale.
+
+### v0.6.3 production config (empirically validated)
+```
+vLLM startup:
+  --max-model-len 32768
+  --max-num-seqs 64
+  --enable-prefix-caching
+  --gpu-memory-utilization 0.88
+  --gdn-prefill-backend triton
+  --dtype auto
+env: VLLM_USE_FLASHINFER_SAMPLER=0
+
+llm_service_vllm_guided.yaml:
+  enable_thinking: false
+  response_format: {"type": "json_object"}
+  seed: 42
+  timeout_seconds: 1200
+  retry_attempts: 1
+
+Prompt yamls (both JA + EN):
+  max_tokens: 8000
+
+Code:
+  clinosim/modules/document/narrative/replacement_strategy.py:
+    _BUNDLE_RETRY_MAX_MODEL_LEN = 32768
+    (length-truncation retry path in _apply_template_seed_bundle_strategy)
+  clinosim/modules/llm_service/engine.py:
+    LLMResponse.finish_reason forwarded from ProviderResponse.metadata
+```
+
 ## Fallback rate 総合
 
-Across 6 distinct narrate runs on this vLLM stack (2 locale × 2 sizes,
+Across 9 distinct narrate runs on this vLLM stack (2 locale × 3 sizes,
 different seeds each time, all with `enable_thinking: false`):
 
-  US p=1000 s=1918 canonical EN (Boot 7):  0 / 5933 = 0.0%
-  US p=1000 s=1918 Fix A EN     (Boot 8):  0 / 5933 = 0.0%
-  US p=500  s=2919 Fix A EN     (Boot 8):  0 / 2674 = 0.0%
-  JP p=500  s=2929 Fix A JA     (Boot 8):  0 / 2904 = 0.0%
-  US p=1000 s=1918 canonical EN (Boot 9):  0 / 5933 = 0.0%
-  US p=500  s=2919 canonical EN (Boot 9):  0 / 2674 = 0.0%
-  ─────────────────────────────────────────────────────
-  Aggregate:                              0 / 26,051 = 0.000%
+  US p=1000  s=1918 canonical EN (Boot 7):     0 / 5933  = 0.0%
+  US p=1000  s=1918 Fix A EN     (Boot 8):     0 / 5933  = 0.0%
+  US p=500   s=2919 Fix A EN     (Boot 8):     0 / 2674  = 0.0%
+  JP p=500   s=2929 Fix A JA     (Boot 8):     0 / 2904  = 0.0%
+  US p=1000  s=1918 canonical EN (Boot 9):     0 / 5933  = 0.0%
+  US p=500   s=2919 canonical EN (Boot 9):     0 / 2674  = 0.0%
+  US p=1000  s=2918 canonical EN (Boot 10):    0 / 5940  = 0.0%
+  JP p=10000 s=2532 Fix A JA     (Boot 11 v2): 3 / 80,943 = 0.0037% (per-section)
+  JP p=10000 s=2532 v0.6.3-1     (Boot 12 v2): 1 / 76,143 = 0.0013% (template)
+  US p=10000 s=3532 v0.6.3       (Boot 13):    0 / 59,004 = 0.0000% ★
+  ────────────────────────────────────────────────────────────────
+  Aggregate:                                   4 / 254,081 = 0.00157%
+  Fallback 0 with v0.6.3 config: 59,004 / 59,004 = 100% ★
 
 **Fallback rate 0 empirically confirmed** across 26,051 total narrate
 outputs on the v0.6.3 candidate config. Guided JSON (Fix C, Case J

@@ -24,7 +24,13 @@ narrative:
     # response, so thinking content violates the schema).
     enable_thinking: false
     seed: 42
-    timeout_seconds: 300
+    # Boot 12 (2026-09-20) 300→900s. Boot 13 (2026-09-21) 900→1200s.
+    # With max_tokens=8000 in `narrative_seed_bundle.yaml`, worst-case
+    # discharge_summary decode approaches 500-600s at ~13 tok/s per seq
+    # (aggregate 830 tok/s across 64 seqs); 900s covered Boot 12 v2 down
+    # to 1 residual template fallback. 1200s adds margin for edge case
+    # patients that queue-wait on prefill.
+    timeout_seconds: 1200
     # Force valid JSON output at the decode step. vLLM 0.27.1 supports
     # response_format={type: json_object} which triggers xgrammar-based
     # constrained decoding. Zero perplexity impact on prose content
@@ -34,7 +40,7 @@ narrative:
     small: "Qwen/Qwen3.8-27B-FP8"
     medium: "Qwen/Qwen3.8-27B-FP8"
     large: "Qwen/Qwen3.8-27B-FP8"
-  timeout_seconds: 300
+  timeout_seconds: 1200
   retry_attempts: 1
   retry_backoff_seconds: 2
 

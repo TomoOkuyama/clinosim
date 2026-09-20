@@ -1,0 +1,7 @@
+boot11_v2_start_epoch=1789872001
+template_seed_bundle: JSON parse failed for discharge_summary (invalid JSON: Unterminated string starting at: line 3 column 29 (char 499)) — falling back to per-section
+template_seed_bundle: JSON parse failed for discharge_summary (invalid JSON: Unterminated string starting at: line 3 column 29 (char 488)) — falling back to per-section
+template_seed_bundle: JSON parse failed for discharge_summary (invalid JSON: Unterminated string starting at: line 3 column 29 (char 440)) — falling back to per-section
+narrate: wrote 80943 narrative documents across 31947 encounters → narratives/boot11_v2_jp_p10000_s2532_guided/
+boot11_v2_end_epoch=1789889177
+boot11_v2_elapsed_seconds=17176
