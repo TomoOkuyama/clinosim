@@ -1,0 +1,8 @@
+boot9_p500_start_epoch=1789862943
+narrate: wrote 2674 narrative documents across 1888 encounters → narratives/boot9_us_p500/
+
+real	10m36.219s
+user	1m22.384s
+sys	0m1.426s
+boot9_p500_end_epoch=1789863579
+boot9_p500_elapsed_seconds=636
