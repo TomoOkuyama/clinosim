@@ -1,0 +1,51 @@
+⚠️  User-specified -p 10000 used as-is (hospital recommended: 40000 for US)
+clinosim generate: population=10000, seed=3532, country=US, period=2025-09-21~2026-09-21
+  Log: /home/ubuntu/boot13_us_p10000_s3532/simulator.log
+  Hospital: 50 beds
+  Population: 9929 persons
+  Life events: 613 total, 560 requiring hospital
+  Simulating inpatient 50/560 (concurrent=12, bed_occ=91%)...
+  Simulating inpatient 100/560 (concurrent=6, bed_occ=77%)...
+  Simulating inpatient 150/560 (concurrent=9, bed_occ=83%)...
+  Simulating inpatient 200/560 (concurrent=9, bed_occ=83%)...
+  Simulating inpatient 250/560 (concurrent=8, bed_occ=69%)...
+  Simulating inpatient 300/560 (concurrent=14, bed_occ=81%)...
+  Simulating inpatient 350/560 (concurrent=15, bed_occ=83%)...
+  Simulating inpatient 400/560 (concurrent=14, bed_occ=81%)...
+  Simulating inpatient 450/560 (concurrent=19, bed_occ=91%)...
+  Simulating inpatient 500/560 (concurrent=20, bed_occ=93%)...
+  Simulating inpatient 550/560 (concurrent=25, bed_occ=93%)...
+  Simulating inpatient 560/560 (concurrent=23, bed_occ=89%)...
+  Inpatient done: 544 records (peak concurrent: 24)
+  Readmissions done: 108 evaluated
+  Healthcare calendar: 30422 events for population
+  Outpatient done: 492 post-discharge + 29476 calendar
+  ED visits (not admitted): 2177 generated
+
+==================================================
+  clinosim generation complete
+==================================================
+  Total records:  32937
+    Inpatient:    943 (103 readmissions)
+    Outpatient:   29903
+    Deceased:     25
+  Data volume:
+    Lab results:  129,451
+    Vital signs:  81,346
+    MAR entries:  60,450
+    I/O records:  3,431
+    Orders:       159,652
+
+  Disease distribution (inpatient):
+    copd_exacerbation               186  (LOS avg 5.9d)
+    Z37.0                           148  (LOS avg -1.0d)
+    Z38.0                           148  (LOS avg -1.0d)
+    asthma_exacerbation              71  (LOS avg 3.7d)
+    urinary_tract_infection          69  (LOS avg 5.0d)
+    heart_failure_exacerbation       67  (LOS avg 5.2d)
+    diabetic_ketoacidosis            47  (LOS avg 4.7d)
+    bacterial_pneumonia              38  (LOS avg 5.4d)
+    acute_mi                         21  (LOS avg 5.2d)
+    sepsis                           20  (LOS avg 13.2d)
+
+  Output: /home/ubuntu/boot13_us_p10000_s3532/

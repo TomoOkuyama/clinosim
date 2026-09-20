@@ -1,0 +1,48 @@
+{"ts": 1789889334.3285604, "module": "simulator", "event": "log_configured", "log_file": "/home/ubuntu/boot12_jp_p10000_s3532/simulator.log", "level": "INFO"}
+{"ts": 1789889335.741989, "module": "engine", "event": "hospital_loaded", "beds": 50, "country": "JP"}
+{"ts": 1789889339.2450888, "module": "engine", "event": "population_generated", "persons": 10000, "catchment": 10000}
+{"ts": 1789889339.8428104, "module": "natural_death", "event": "cohort_mortality_sampled", "country": "JP", "n_total": 10000, "n_dead": 255, "sim_years": 2, "per_kyr": 12.75}
+{"ts": 1789889350.9016535, "module": "engine", "event": "life_events_generated", "total": 605, "hospital": 578}
+{"ts": 1789889350.9018023, "module": "engine", "event": "inpatient_loop_start", "target": 578}
+{"ts": 1789889353.7589712, "module": "engine", "event": "inpatient_progress", "processed": 50, "target": 578, "concurrent": 18, "bed_occupancy": 0.93}
+{"ts": 1789889356.078225, "module": "engine", "event": "inpatient_progress", "processed": 100, "target": 578, "concurrent": 25, "bed_occupancy": 0.99}
+{"ts": 1789889358.5115554, "module": "engine", "event": "inpatient_progress", "processed": 150, "target": 578, "concurrent": 32, "bed_occupancy": 0.95}
+{"ts": 1789889361.310042, "module": "engine", "event": "inpatient_progress", "processed": 200, "target": 578, "concurrent": 24, "bed_occupancy": 0.69}
+{"ts": 1789889364.0100775, "module": "engine", "event": "inpatient_progress", "processed": 250, "target": 578, "concurrent": 34, "bed_occupancy": 0.87}
+{"ts": 1789889366.9089768, "module": "engine", "event": "inpatient_progress", "processed": 300, "target": 578, "concurrent": 49, "bed_occupancy": 0.99}
+{"ts": 1789889369.7340693, "module": "engine", "event": "inpatient_progress", "processed": 350, "target": 578, "concurrent": 28, "bed_occupancy": 0.55}
+{"ts": 1789889372.557572, "module": "engine", "event": "inpatient_progress", "processed": 400, "target": 578, "concurrent": 36, "bed_occupancy": 0.71}
+{"ts": 1789889374.8379185, "module": "engine", "event": "inpatient_progress", "processed": 450, "target": 578, "concurrent": 29, "bed_occupancy": 0.57}
+{"ts": 1789889377.7989142, "module": "engine", "event": "inpatient_progress", "processed": 500, "target": 578, "concurrent": 36, "bed_occupancy": 0.71}
+{"ts": 1789889380.8451934, "module": "engine", "event": "inpatient_progress", "processed": 550, "target": 578, "concurrent": 37, "bed_occupancy": 0.73}
+{"ts": 1789889382.457588, "module": "engine", "event": "inpatient_progress", "processed": 578, "target": 578, "concurrent": 44, "bed_occupancy": 0.87}
+{"ts": 1789889382.4683828, "module": "engine", "event": "inpatient_loop_done", "records": 565, "peak_concurrent": 45, "elapsed_s": 31.567}
+{"ts": 1789889385.9048557, "module": "engine", "event": "readmissions_done", "evaluated": 66}
+{"ts": 1789889386.7662997, "module": "perinatal", "event": "yearly_stage_counts", "year": 2025, "country": "JP", "called_fertile_female": 1944, "conception_bernoulli_attempted": 1944, "conception_declined": 1858, "conception_rolled_pregnant": 86, "outcome_delivery": 73, "delivery_deferred_next_year": 59, "outcome_abortion": 13, "delivery_emitted_this_year": 14}
+{"ts": 1789889387.0165966, "module": "perinatal", "event": "yearly_stage_counts", "year": 2026, "country": "JP", "called_fertile_female": 1944, "conception_bernoulli_attempted": 1885, "conception_declined": 1800, "carried_active_period": 59, "delivery_emitted_this_year": 71, "conception_rolled_pregnant": 85, "outcome_delivery": 71, "delivery_deferred_next_year": 59, "outcome_abortion": 14}
+{"ts": 1789889387.0346682, "module": "engine", "event": "healthcare_calendar_generated", "events": 28120}
+{"ts": 1789889409.342387, "module": "engine", "event": "outpatient_done", "post_discharge": 502, "calendar": 27316}
+{"ts": 1789889413.1487582, "module": "engine", "event": "ed_visits_generated", "ed_visits": 1470}
+{"ts": 1789889428.9180574, "module": "antibiotic", "event": "stage_total", "stage": "post_encounter", "calls": 29936, "elapsed_s": 0.069, "avg_s": 2e-06, "rate_per_s": 431985.98}
+{"ts": 1789889428.918195, "module": "device", "event": "stage_total", "stage": "post_encounter", "calls": 29936, "elapsed_s": 1.103, "avg_s": 3.7e-05, "rate_per_s": 27137.35}
+{"ts": 1789889428.9182508, "module": "discontinue_flip", "event": "stage_total", "stage": "post_encounter", "calls": 29936, "elapsed_s": 0.052, "avg_s": 2e-06, "rate_per_s": 574325.23}
+{"ts": 1789889428.9182837, "module": "document", "event": "stage_total", "stage": "post_encounter", "calls": 29936, "elapsed_s": 0.944, "avg_s": 3.2e-05, "rate_per_s": 31713.86}
+{"ts": 1789889428.9183128, "module": "hai", "event": "stage_total", "stage": "post_encounter", "calls": 29936, "elapsed_s": 0.623, "avg_s": 2.1e-05, "rate_per_s": 48082.33}
+{"ts": 1789889428.9183393, "module": "imaging", "event": "stage_total", "stage": "post_encounter", "calls": 29936, "elapsed_s": 0.297, "avg_s": 1e-05, "rate_per_s": 100687.74}
+{"ts": 1789889428.9183645, "module": "lab_derived_dx", "event": "stage_total", "stage": "post_encounter", "calls": 29936, "elapsed_s": 0.041, "avg_s": 1e-06, "rate_per_s": 736970.75}
+{"ts": 1789889428.9183893, "module": "newborn", "event": "stage_total", "stage": "post_encounter", "calls": 29936, "elapsed_s": 0.084, "avg_s": 3e-06, "rate_per_s": 354932.52}
+{"ts": 1789889428.9184124, "module": "nursing_assignment", "event": "stage_total", "stage": "post_encounter", "calls": 29936, "elapsed_s": 0.081, "avg_s": 3e-06, "rate_per_s": 368478.2}
+{"ts": 1789889428.9184363, "module": "prophylaxis", "event": "stage_total", "stage": "post_encounter", "calls": 29936, "elapsed_s": 0.103, "avg_s": 3e-06, "rate_per_s": 291850.2}
+{"ts": 1789889428.9184601, "module": "triage", "event": "stage_total", "stage": "post_encounter", "calls": 29936, "elapsed_s": 0.197, "avg_s": 7e-06, "rate_per_s": 151621.93}
+{"ts": 1789889428.918484, "module": "allergy", "event": "stage_total", "stage": "post_population", "calls": 1, "elapsed_s": 0.168, "avg_s": 0.16763, "rate_per_s": 5.97}
+{"ts": 1789889428.9185085, "module": "identity", "event": "stage_total", "stage": "post_population", "calls": 1, "elapsed_s": 0.307, "avg_s": 0.306669, "rate_per_s": 3.26}
+{"ts": 1789889428.9185326, "module": "natural_death", "event": "stage_total", "stage": "post_population", "calls": 1, "elapsed_s": 0.118, "avg_s": 0.118306, "rate_per_s": 8.45}
+{"ts": 1789889428.9185562, "module": "care_level", "event": "stage_total", "stage": "post_records", "calls": 1, "elapsed_s": 0.812, "avg_s": 0.811959, "rate_per_s": 1.23}
+{"ts": 1789889428.9185789, "module": "code_status", "event": "stage_total", "stage": "post_records", "calls": 1, "elapsed_s": 0.068, "avg_s": 0.067766, "rate_per_s": 14.76}
+{"ts": 1789889428.918603, "module": "family_history", "event": "stage_total", "stage": "post_records", "calls": 1, "elapsed_s": 3.237, "avg_s": 3.237145, "rate_per_s": 0.31}
+{"ts": 1789889428.9186268, "module": "immunization", "event": "stage_total", "stage": "post_records", "calls": 1, "elapsed_s": 8.646, "avg_s": 8.645528, "rate_per_s": 0.12}
+{"ts": 1789889428.9186497, "module": "medication_monitoring", "event": "stage_total", "stage": "post_records", "calls": 1, "elapsed_s": 2.265, "avg_s": 2.265173, "rate_per_s": 0.44}
+{"ts": 1789889428.9186704, "module": "nursing", "event": "stage_total", "stage": "post_records", "calls": 1, "elapsed_s": 0.741, "avg_s": 0.741441, "rate_per_s": 1.35}
+{"ts": 1789889428.9186962, "module": "engine", "event": "run_beta_done", "patients": 29948, "country": "JP", "seed": 3532}
+{"ts": 1789889428.9298563, "module": "cif_writer", "event": "cif_write_start", "patients": 29948, "output_dir": "/home/ubuntu/boot12_jp_p10000_s3532/cif"}
+{"ts": 1789889457.062654, "module": "cif_writer", "event": "cif_write_end", "patients": 29948, "bytes_out": 808078218, "elapsed_s": 28.133}

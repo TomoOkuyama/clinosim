@@ -1,0 +1,9 @@
+boot12_v2_start_epoch=1789899621
+LLM narrative generation failed (LLMCompletionError: ReadTimeout: timed out); falling back to template output (doc_type=discharge_summary, lang=ja)
+narrate: wrote 76143 narrative documents across 31332 encounters → narratives/boot12_v2_jp_p10000_s3532_guided/
+
+real	272m22.413s
+user	24m18.729s
+sys	0m37.314s
+boot12_v2_end_epoch=1789915963
+boot12_v2_elapsed_seconds=16342
