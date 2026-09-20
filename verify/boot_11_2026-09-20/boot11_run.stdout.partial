@@ -1,0 +1,8 @@
+boot11_start_epoch=1789867498
+template_seed_bundle: JSON parse failed for admission_hp (invalid JSON: Unterminated string starting at: line 3 column 26 (char 247)) — falling back to per-section
+template_seed_bundle: JSON parse failed for progress_note (invalid JSON: Unterminated string starting at: line 3 column 17 (char 70)) — falling back to per-section
+Terminated
+
+real	74m40.625s
+user	6m23.552s
+sys	0m3.405s

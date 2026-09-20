@@ -53,11 +53,13 @@ from clinosim.types.document import DocumentTypeSpec, NarrativeContext, Narrativ
 
 # vLLM max-model-len used by the length-truncation retry in
 # _apply_template_seed_bundle_strategy. Must match the server's
-# `--max-model-len` flag. Boot 11 (2026-09-20) confirmed the retry path
-# recovers bundle responses whose original max_tokens budget was cut
-# short mid-string, achieving structural fallback = 0 for
-# `template_seed_bundle` without a vLLM restart.
-_BUNDLE_RETRY_MAX_MODEL_LEN = 16384
+# `--max-model-len` flag. Boot 12 (2026-09-20) bumped from 16384 to
+# 32768 alongside `max_tokens: 8000` in the JP bundle prompt to give the
+# retry path enough headroom that discharge_summary edge cases hit by
+# Boot 11 (3 length-truncation fallbacks in 80,943 docs) are absorbed
+# by the first bundle call rather than escalating to the retry or the
+# per-section safety net.
+_BUNDLE_RETRY_MAX_MODEL_LEN = 32768
 
 
 # v8 (2026-08-17): lazy accessor for _localize_drug_name to avoid the
