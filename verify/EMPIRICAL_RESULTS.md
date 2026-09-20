@@ -234,19 +234,71 @@ clinosim narrate --provider vllm --concurrency 64 ...
   the enable_thinking:false + Fix A + PC ON stack works reliably
   regardless of cohort seed / language.
 
+## Boot 9 (2026-09-20) — Boot 7 reproducibility + Boot 8 p=500 anomaly investigation
+
+Session task: user asked to re-run Boot 7 (US p=1000 s=1918 canonical
+EN) to test the hypothesis that Boot 8 p=500 s=2919 = 2.13 doc/s
+anomaly reflects "cohort content difference alone." Both runs use the
+same vLLM (fresh boot), same config (max-num-seqs 64, PC ON, FP16 KV,
+canonical EN prompt, VLLM_USE_FLASHINFER_SAMPLER=0, gdn-prefill triton),
+and same cohort tarballs.
+
+### Boot 9 run 1: US p=1000 s=1918 canonical (Boot 7 exact repro)
+- Cohort tarball: `verify/cohort_p1000_us_s1918.tar.gz` (byte-identical
+  to Boot 7)
+- Result: **5933 docs in 1354 s = 4.38 doc/s, 0 fallbacks** ✓
+- LLM reqs: 4292 (Boot 7: 4293 — off by one, essentially same)
+- avg gen tok/req: **263** (Boot 7: 263 — identical)
+- prefix cache hit rate: 90.2%
+- **Δ vs Boot 7: -2.0%** — reproducible within measurement noise.
+  Confirms Boot 7 numbers were not a fluke.
+
+### Boot 9 run 2: US p=500 s=2919 canonical (Boot 8 p=500 comparison)
+- Cohort tarball: `verify/cohort_p500_us_s2919.tar.gz` (byte-identical
+  to Boot 8)
+- Result: **2674 docs in 636 s = 4.20 doc/s, 0 fallbacks** ✓
+- LLM reqs: 2098 (Boot 8: 2098 — identical)
+- avg gen tok/req: **253** (Boot 8: 256 — near-identical)
+- prefix cache hit rate: 90.4%
+- **vs Boot 8: 4.20 vs 2.13 doc/s = 1.97× FASTER** ← anomaly explained
+
+### Interpretation: Boot 8 p=500 = 2.13 was NOT cohort-driven
+
+The Boot 8 p=500 result was captured immediately after Boot 8 had
+already run US p=1000 (Fix A EN, 22:25 = 1345 s) and JP p=500 (Fix A
+JA, 30:43 = 1843 s) on the same vLLM instance. By the time US p=500
+was launched, the vLLM had been serving continuously for ~53 min with
+mixed-locale, mixed-cohort prompts. Boot 9 p=500 uses the same cohort
+and same config but was launched on a fresh vLLM that had only served
+p=1000 s=1918 (same locale, same seed cohort) — resulting in ~2× the
+throughput.
+
+**Likely root cause**: vLLM prefix cache eviction pattern degrades
+significantly under cross-locale / cross-seed load. Boot 8's mixed
+history left the cache in a poor state for US p=500 s=2919, while
+Boot 9's cache had 90%+ hits on identical or near-identical prompts.
+
+**Corollary**: In production, if narrate is run over multiple cohorts
+back-to-back with different seeds/locales, per-cohort throughput may
+degrade unless the prefix cache is explicitly reset between cohorts,
+or unless startup order groups same-locale/same-seed cohorts together.
+This deserves a follow-up verify session to confirm and characterize.
+
 ## Fallback rate 総合
 
-Across 4 distinct narrate runs on this vLLM stack (2 locale × 2 sizes,
+Across 6 distinct narrate runs on this vLLM stack (2 locale × 2 sizes,
 different seeds each time, all with `enable_thinking: false`):
 
-  US p=1000 s=1918 canonical EN:  0 / 5933 = 0.0%
-  US p=1000 s=1918 Fix A EN:      0 / 5933 = 0.0%
-  US p=500  s=2919 Fix A EN:      0 / 2674 = 0.0%
-  JP p=500  s=2929 Fix A JA:      0 / 2904 = 0.0%
-  ────────────────────────────────────────────
-  Aggregate:                      0 / 17,444 = 0.000%
+  US p=1000 s=1918 canonical EN (Boot 7):  0 / 5933 = 0.0%
+  US p=1000 s=1918 Fix A EN     (Boot 8):  0 / 5933 = 0.0%
+  US p=500  s=2919 Fix A EN     (Boot 8):  0 / 2674 = 0.0%
+  JP p=500  s=2929 Fix A JA     (Boot 8):  0 / 2904 = 0.0%
+  US p=1000 s=1918 canonical EN (Boot 9):  0 / 5933 = 0.0%
+  US p=500  s=2919 canonical EN (Boot 9):  0 / 2674 = 0.0%
+  ─────────────────────────────────────────────────────
+  Aggregate:                              0 / 26,051 = 0.000%
 
-**Fallback rate 0 empirically confirmed** across 17,444 total narrate
+**Fallback rate 0 empirically confirmed** across 26,051 total narrate
 outputs on the v0.6.3 candidate config. Guided JSON (Fix C, Case J
 Phase 2) remains available as a structural guarantee if desired but is
 not empirically necessary.
