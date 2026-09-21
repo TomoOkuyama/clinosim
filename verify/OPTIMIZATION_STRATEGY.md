@@ -1,5 +1,44 @@
 # Optimization strategy for narrate — fastest + fallback 0
 
+## ★ Outcome (2026-09-21, Boot 13) — supersedes Phase 2 recommendations below
+
+The Boot 11-13 sequence executed Phase 2 with **different tunings than
+this doc originally recommended** and reached fallback-0 empirically at
+p=10000 scale:
+
+- max_tokens: **INCREASED** 3500 → **8000** (this doc had planned to
+  *decrease* it to 2500). Increasing gives the LLM enough room to
+  complete every doc in one bundle call.
+- max-model-len: **INCREASED** 16384 → **32768** (this doc had planned
+  to *decrease* it to 12288). The extra ceiling absorbs the bigger
+  max_tokens plus the ~13k prompt.
+- timeout_seconds: **INCREASED** 300 → **1200** (this doc left it at
+  300s). Longer decode budget (up to 8000 tokens at ~13 tok/s per seq
+  = 615s worst case) requires proportional timeout headroom.
+- guided_json (Fix C, Layer 2): **APPLIED**. Provides structural JSON
+  validity even at the token boundary where max_tokens hits.
+- length-truncation client retry (`replacement_strategy.py` +
+  `_BUNDLE_RETRY_MAX_MODEL_LEN=32768`, commit `6d49511d4d`): **APPLIED**
+  as safety net. Never fired in Boot 13 because the max_tokens bump
+  eliminated the underlying truncations.
+
+Boot 13 result: **0 fallbacks / 59,004 US narrative documents** (US
+p=10000 s=3532, 3h 39min, doc/s 4.49). See
+`verify/EMPIRICAL_RESULTS.md` "v0.6.3 production config" for the
+canonical value set, and the "Boot 11-13" section for the audit trail.
+
+The Phase 2 / Phase 3 sections below are kept for historical context —
+Phase 2's "reduce budgets to fit more seqs" thesis was empirically
+disproven; enlarging budgets and letting paged attention scale seqs
+dynamically was the winning strategy. Phase 3 (selective per-doc-type
+block + adaptive max_tokens per doc_type) is no longer required to
+reach fallback-0 but remains a plausible throughput optimization for a
+future release.
+
+---
+
+## Historical: Phase 1-3 pre-Boot-11 plan (kept for context)
+
 Based on Boot 4 (2026-09-17) empirical measurements. All measurements
 on JP p=100 s=917 cohort (373 docs across 258 encounters).
 
