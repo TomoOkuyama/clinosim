@@ -297,7 +297,10 @@ This deserves a follow-up verify session to confirm and characterize.
 - Cumulative fallback rate: **3 / 80,943 = 0.0037%** (all
   quality-preserving per-section, not pure template)
 
-### Boot 12 v2: JP p=10000 s=2532, LENGTH-RETRY code + bumped budgets
+### Boot 12 v2: JP p=10000 s=3532, LENGTH-RETRY code + bumped budgets
+- Cohort: fresh `s=3532` (not the Boot 11 `s=2532` cohort — user
+  requested a seed change between Boot 11 and Boot 12 to keep the
+  runs independent). Total patients generated: 29,948.
 - Config: max-model-len **32768** (from 16384), max_tokens **8000**
   (from 3500), timeout **900s** (from 300), Fix A JA + guided_json +
   new `_apply_template_seed_bundle_strategy` length-truncation retry
@@ -364,7 +367,7 @@ different seeds each time, all with `enable_thinking: false`):
   US p=500   s=2919 canonical EN (Boot 9):     0 / 2674  = 0.0%
   US p=1000  s=2918 canonical EN (Boot 10):    0 / 5940  = 0.0%
   JP p=10000 s=2532 Fix A JA     (Boot 11 v2): 3 / 80,943 = 0.0037% (per-section)
-  JP p=10000 s=2532 v0.6.3-1     (Boot 12 v2): 1 / 76,143 = 0.0013% (template)
+  JP p=10000 s=3532 v0.6.3-1     (Boot 12 v2): 1 / 76,143 = 0.0013% (template)
   US p=10000 s=3532 v0.6.3       (Boot 13):    0 / 59,004 = 0.0000% ★
   ────────────────────────────────────────────────────────────────
   Aggregate:                                   4 / 254,081 = 0.00157%

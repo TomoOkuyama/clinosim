@@ -55,6 +55,56 @@ tar -xzf clinosim-dataset-jp-100-v0.3.0.tar.gz
 Between releases, use `clinosim dataset build` locally — output is
 guaranteed byte-identical.
 
+## Larger H100-generated sample cohorts (LLM-polished)
+
+Some releases (starting v0.6.1) also attach much larger, opportunistic
+LLM-polished sample cohorts generated on Sakura H100 (Qwen3.8-27B-FP8
+via vLLM). These are *not* CLI-buildable presets — they carry a
+non-42 seed and the H100 vLLM tuning contract described in
+[`verify/EMPIRICAL_RESULTS.md`](../verify/EMPIRICAL_RESULTS.md) —
+but they follow a **stable naming convention** so downstream users
+can script bulk-download and diff-across-releases:
+
+```
+clinosim-v<VERSION>-<locale>-p<POP>-s<SEED>-<narrative-generator>.tar.gz
+```
+
+Fields:
+
+- `<VERSION>`: the release tag, e.g. `0.6.3`.
+- `<locale>`: `jp` or `us` (lowercase).
+- `<POP>`: catchment population size, e.g. `p10000`.
+- `<SEED>`: the `--seed` value used at `clinosim simulate` time,
+  e.g. `s3532`.
+- `<narrative-generator>`: `template-narrative` (deterministic,
+  no-LLM) or `llm-polished-narrative` (LLM-generated bundle
+  narratives).
+
+The internal layout is identical for both variants:
+
+```
+cif/
+  hospital.json
+  metadata.json            (clinosim_version pinned to the release tag)
+  structural/
+    patients/*.json
+  narratives/
+    current_version.txt    (points at "llm-polished" or "template")
+    template/              (deterministic template narratives; always present)
+    llm-polished/          (only in llm-polished-narrative archives)
+fhir_r4/
+  *.ndjson                 (all FHIR R4 resources)
+  _generator_metadata.json (clinosim_version + nested cif_metadata mirror)
+```
+
+Both metadata files pin `clinosim_version` to the release tag; the
+`_generator_metadata.json` also records the exact git commit + recent
+PR history the cohort was generated against.
+
+Recent examples: `clinosim-v0.6.3-jp-p10000-s3532-llm-polished-narrative.tar.gz`
+and `clinosim-v0.6.3-us-p10000-s3532-llm-polished-narrative.tar.gz`
+(see the `v0.6.3` release page).
+
 ## Ethics & disclaimers
 
 Every dataset shipped here is **fully synthetic**. clinosim does not
