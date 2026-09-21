@@ -39,6 +39,16 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.
 
 ## [Unreleased]
 
+### Added
+
+- **Length-truncation retry for bundle-strategy narrate** in `clinosim/modules/document/narrative/replacement_strategy.py`. When a `template_seed_bundle` LLM response comes back with `finish_reason="length"` (max_tokens ceiling hit → JSON truncated mid-string), the strategy now re-issues the same prompt once with an expanded `max_tokens` derived from the remaining `_BUNDLE_RETRY_MAX_MODEL_LEN` budget (default 32768, matching the recommended vLLM `--max-model-len`). If the retry parses cleanly the bundle path continues without per-section fallback; the safety-net per-section retry remains for genuine parse errors or the degenerate "prompt fills context" case. `LLMResponse.finish_reason` is now forwarded end-to-end from `ProviderResponse.metadata` (previously dropped during the `_complete_with_retry` conversion). Two new unit tests cover the retry-success path and the double-truncation degenerate case.
+
+### Changed
+
+- **Bundle-strategy `max_tokens` raised 3500 → 8000** in both `clinosim/modules/llm_service/prompts/ja/narrative_seed_bundle.yaml` and `clinosim/modules/llm_service/prompts/en/narrative_seed_bundle.yaml`. The old 3500 ceiling truncated a small number of `discharge_summary` edge-case patients whose LLM bundle output naturally ran longer, forcing a per-section fallback (or, at the earlier 300s HTTP timeout, a template fallback). The new 8000 ceiling is calibrated against a paired vLLM `--max-model-len 32768` and `timeout_seconds: 1200` so the entire bundle can complete in one call even for the most verbose patient. Empirically verified: US p=10000 s=3532 produced 59,004 documents with zero length truncations, zero JSON parse fallbacks, and zero HTTP timeouts (see `verify/EMPIRICAL_RESULTS.md`, "Boot 11-13" section).
+- **`clinosim/config/llm_service.sakura.yaml` inline comment updated** to reference the new `max_tokens=8000` bundle default (was documenting a stale 2000 value from a pre-bundle prototype).
+- **`verify/OPTIMIZATION_STRATEGY.md` prefaced with an "Outcome" section** documenting how the Boot 11-13 empirical work reversed several Phase 2 pre-boot recommendations (max_tokens and max-model-len were *increased*, not decreased, and combining the bumps with `guided_json` + client-side length-retry achieved structural fallback = 0 without requiring the Phase 3 selective per-doc-type block).
+
 ## [0.6.2] - 2026-09-15
 
 ### Fixed

@@ -1,8 +1,22 @@
 # narrate throughput verify report — 2026-09-17
 
-**Status**: pre-boot analysis complete. **Empirical measurements deferred** — 3 H100
-boot attempts (¥2970) all failed at vLLM engine core initialization due
-to JIT compilation environment issues (details in
+> **Status (updated 2026-09-21, after Boot 13 completion)**:
+> Empirical measurements completed across Boot 4-13. The v0.6.3
+> production config was validated on **US p=10000 s=3532 (Boot 13,
+> 59,004 documents, 0 fallbacks in 3h 39min)**. Read
+> `verify/EMPIRICAL_RESULTS.md` for the actual value set and the
+> Boot 11-13 audit trail — several concrete recommendations in this
+> pre-boot report (specifically the "reduce max_tokens 3500→2500 +
+> narrow max-model-len to 12288" thesis in Level-1) were **reversed
+> in practice**: the Boot 13 winning config *increased* both
+> `max_tokens` (3500→8000) and `max-model-len` (16384→32768). Keep
+> this document as the pre-boot rationale, but treat the canonical
+> tunings in `verify/EMPIRICAL_RESULTS.md` as authoritative.
+
+**Original status header (2026-09-17)**: pre-boot analysis complete.
+**Empirical measurements deferred** — 3 H100 boot attempts (¥2970) all
+failed at vLLM engine core initialization due to JIT compilation
+environment issues (details in
 `verify/failed_run_[1-3]_2026-09-17_hour[1-3]/POSTMORTEM.md`). Report
 below is based on pre-boot tokenizer + prompt-structure + KV-sizing
 analysis; recommendations are actionable but require confirmation on

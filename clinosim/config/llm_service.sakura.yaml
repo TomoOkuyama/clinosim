@@ -50,9 +50,11 @@ narrative:
     # (実測: V100 32GB で ~24 sec/call → ~3-5 sec/call)。
     think: false
   model_map:
-    # bundle strategy の narrative_seed_bundle は max_tokens=2000 で
-    # medium tier を想定。small/medium/large 全て同一モデルで開始し、
-    # 品質評価後にサイズ別モデル (Swallow 70B 等) へ切替する。
+    # bundle strategy の narrative_seed_bundle は現行 max_tokens=8000
+    # (v0.6.3、Boot 12/13 検証結果反映) で medium tier を想定。
+    # small/medium/large 全て同一モデルで開始し、品質評価後にサイズ別
+    # モデル (Swallow 70B 等) へ切替する。詳細は
+    # verify/EMPIRICAL_RESULTS.md "v0.6.3 production config" 参照。
     small: "qwen3:32b-q4_K_M"
     medium: "qwen3:32b-q4_K_M"
     large: "qwen3:32b-q4_K_M"
