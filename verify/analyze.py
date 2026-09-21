@@ -173,8 +173,7 @@ def load_case(case_dir: Path) -> CaseMetrics | None:
 
 def parse_fallback_summary(text: str) -> dict:
     """Parse fallback_summary.txt written by run_case.sh."""
-    out = {"json_parse": 0, "provider_error": 0, "prompt_error": 0,
-           "no_provider_configured": 0}
+    out = {"json_parse": 0, "provider_error": 0, "prompt_error": 0, "no_provider_configured": 0}
     key_map = {
         "JSON parse fallbacks:": "json_parse",
         "provider_error fallbacks:": "provider_error",
@@ -189,8 +188,7 @@ def parse_fallback_summary(text: str) -> dict:
                     out[key] = int(lines[i + 1].strip())
                 except (ValueError, IndexError):
                     pass
-    out["total"] = sum(out[k] for k in ("json_parse", "provider_error",
-                                        "prompt_error", "no_provider_configured"))
+    out["total"] = sum(out[k] for k in ("json_parse", "provider_error", "prompt_error", "no_provider_configured"))
     return out
 
 
@@ -213,12 +211,8 @@ def compute_derived(cm: CaseMetrics, doc_count: int = 100) -> dict:
     before = cm.metrics_after_warmup or cm.metrics_before
     after = cm.metrics_after
     if before and after:
-        d_prompt = after.get("vllm:prompt_tokens_total", 0) - before.get(
-            "vllm:prompt_tokens_total", 0
-        )
-        d_gen = after.get("vllm:generation_tokens_total", 0) - before.get(
-            "vllm:generation_tokens_total", 0
-        )
+        d_prompt = after.get("vllm:prompt_tokens_total", 0) - before.get("vllm:prompt_tokens_total", 0)
+        d_gen = after.get("vllm:generation_tokens_total", 0) - before.get("vllm:generation_tokens_total", 0)
         d_reqs = after.get("vllm:e2e_request_latency_seconds_count", 0) - before.get(
             "vllm:e2e_request_latency_seconds_count", 0
         )
@@ -230,12 +224,8 @@ def compute_derived(cm: CaseMetrics, doc_count: int = 100) -> dict:
         d["L1_avg_prompt_tokens_per_req"] = d_prompt / d_reqs if d_reqs > 0 else 0
         d["L1_avg_gen_tokens_per_req"] = d_gen / d_reqs if d_reqs > 0 else 0
 
-        d_pc_hits = after.get("vllm:prefix_cache_hits_total", 0) - before.get(
-            "vllm:prefix_cache_hits_total", 0
-        )
-        d_pc_q = after.get("vllm:prefix_cache_queries_total", 0) - before.get(
-            "vllm:prefix_cache_queries_total", 0
-        )
+        d_pc_hits = after.get("vllm:prefix_cache_hits_total", 0) - before.get("vllm:prefix_cache_hits_total", 0)
+        d_pc_q = after.get("vllm:prefix_cache_queries_total", 0) - before.get("vllm:prefix_cache_queries_total", 0)
         d["prefix_cache_hit_rate"] = d_pc_hits / d_pc_q if d_pc_q > 0 else None
 
     return d
@@ -244,8 +234,7 @@ def compute_derived(cm: CaseMetrics, doc_count: int = 100) -> dict:
 def main() -> None:
     p = argparse.ArgumentParser()
     p.add_argument("--out-dir", required=True, type=Path)
-    p.add_argument("--doc-count", type=int, default=100,
-                   help="expected docs per case measurement (default 100)")
+    p.add_argument("--doc-count", type=int, default=100, help="expected docs per case measurement (default 100)")
     args = p.parse_args()
 
     cases = []
@@ -264,19 +253,20 @@ def main() -> None:
 
     # Header
     print("=" * 115)
-    print(f"{'case':10s} {'L2 wall':>9s} {'L2 doc/s':>9s} "
-          f"{'L1 gen tok/s':>13s} {'avg prompt':>11s} {'avg gen':>8s} "
-          f"{'PC hit':>7s} {'SM util':>8s} {'FB':>6s}")
+    print(
+        f"{'case':10s} {'L2 wall':>9s} {'L2 doc/s':>9s} "
+        f"{'L1 gen tok/s':>13s} {'avg prompt':>11s} {'avg gen':>8s} "
+        f"{'PC hit':>7s} {'SM util':>8s} {'FB':>6s}"
+    )
     print("=" * 115)
     for cm, d in cases:
         pc = d.get("prefix_cache_hit_rate")
         sm = cm.nvidia_smi_summary.get("sm_util_mean")
-        pc_str = f"{pc*100:5.1f}%" if isinstance(pc, float) else "  -  "
+        pc_str = f"{pc * 100:5.1f}%" if isinstance(pc, float) else "  -  "
         sm_str = f"{sm:5.1f}%" if isinstance(sm, float) else "  -  "
         fb_total = cm.fallbacks.get("total")
         # Mark ⚠ if any fallback (user goal: fallback 0).
-        fb_str = f"⚠{fb_total}" if isinstance(fb_total, int) and fb_total > 0 \
-                 else ("0" if fb_total == 0 else "  -  ")
+        fb_str = f"⚠{fb_total}" if isinstance(fb_total, int) and fb_total > 0 else ("0" if fb_total == 0 else "  -  ")
         print(
             f"{cm.case:10s} "
             f"{d.get('L2_measure_wall_s', 0):>7d} s "
@@ -298,7 +288,7 @@ def main() -> None:
     def _pct(new, base):
         if base <= 0:
             return "n/a"
-        return f"{100*(new-base)/base:+.1f}%"
+        return f"{100 * (new - base) / base:+.1f}%"
 
     def _cmp(label, base_case, target_case):
         if base_case in by_case and target_case in by_case:
@@ -306,22 +296,24 @@ def main() -> None:
             t = by_case[target_case][1]["L2_docs_per_s"]
             print(f"  {label}: {base_case} {b:.3f} → {target_case} {t:.3f} dps  ({_pct(t, b)})")
 
-    _cmp("Factor E (turn PC on — S117 → PC on)","A_S117", "A_pc")
-    _cmp("Factor A (JA→EN prompt scaffold)",   "A_pc", "A_prime")
-    _cmp("Factor B+C (v22→v21 content)",       "A_pc", "E")
-    _cmp("Factor D (max-len 16k→12k)",         "A_pc", "D_revised")
-    _cmp("Fix A (prompt struct — Case F)",     "A_pc", "F")
-    _cmp("Fix A + Fix B (KV FP8 — Case G)",    "A_pc", "G")
-    _cmp("Fix A + Fix B + conc 64 (G_c64)",    "A_pc", "G_c64")
+    _cmp("Factor E (turn PC on — S117 → PC on)", "A_S117", "A_pc")
+    _cmp("Factor A (JA→EN prompt scaffold)", "A_pc", "A_prime")
+    _cmp("Factor B+C (v22→v21 content)", "A_pc", "E")
+    _cmp("Factor D (max-len 16k→12k)", "A_pc", "D_revised")
+    _cmp("Fix A (prompt struct — Case F)", "A_pc", "F")
+    _cmp("Fix A + Fix B (KV FP8 — Case G)", "A_pc", "G")
+    _cmp("Fix A + Fix B + conc 64 (G_c64)", "A_pc", "G_c64")
     _cmp("Level-1 (max_tok 2500 @ 12k — Case H)", "A_pc", "H")
-    _cmp("Fix C (guided_json — Case J)",       "A_pc", "J")
+    _cmp("Fix C (guided_json — Case J)", "A_pc", "J")
 
     # If Case H shows truncation, warn.
     if "H" in by_case:
         gen_avg = by_case["H"][1].get("L1_avg_gen_tokens_per_req", 0)
         if gen_avg > 2400:
-            print(f"  ⚠ Case H avg gen tokens = {gen_avg:.0f}, near max_tokens=2500 cap "
-                  f"→ possible truncation, review sample outputs before shipping max_tokens=2500")
+            print(
+                f"  ⚠ Case H avg gen tokens = {gen_avg:.0f}, near max_tokens=2500 cap "
+                f"→ possible truncation, review sample outputs before shipping max_tokens=2500"
+            )
         else:
             print(f"  ✓ Case H avg gen tokens = {gen_avg:.0f}, comfortably under 2500 cap")
 
@@ -339,11 +331,13 @@ def main() -> None:
         for cm, _ in cases:
             fb = cm.fallbacks
             if fb.get("total", 0) > 0:
-                print(f"  {cm.case:10s} json_parse={fb.get('json_parse',0)}  "
-                      f"provider_err={fb.get('provider_error',0)}  "
-                      f"prompt_err={fb.get('prompt_error',0)}  "
-                      f"no_provider={fb.get('no_provider_configured',0)}  "
-                      f"(total={fb.get('total',0)})")
+                print(
+                    f"  {cm.case:10s} json_parse={fb.get('json_parse', 0)}  "
+                    f"provider_err={fb.get('provider_error', 0)}  "
+                    f"prompt_err={fb.get('prompt_error', 0)}  "
+                    f"no_provider={fb.get('no_provider_configured', 0)}  "
+                    f"(total={fb.get('total', 0)})"
+                )
     else:
         cases_with_fb_data = [cm for cm, _ in cases if cm.fallbacks]
         if cases_with_fb_data:
@@ -358,27 +352,33 @@ def main() -> None:
                 t = by_case[target][1]["L2_docs_per_s"]
                 gap_to_baseline = 1.35 - a_s117
                 recovery = (t - a_s117) / gap_to_baseline if gap_to_baseline > 0 else 0
-                print(f"    {target:>10s}: {t:.3f} dps → {100*recovery:+.1f}% of regression gap closed")
+                print(f"    {target:>10s}: {t:.3f} dps → {100 * recovery:+.1f}% of regression gap closed")
 
     # Dump raw
     dump_path = args.out_dir / "analysis.json"
-    dump_path.write_text(json.dumps({
-        "cases": [
+    dump_path.write_text(
+        json.dumps(
             {
-                "case": cm.case,
-                "wallclock": {
-                    "warmup_start": cm.warmup_start,
-                    "warmup_end": cm.warmup_end,
-                    "measure_start": cm.measure_start,
-                    "measure_end": cm.measure_end,
-                },
-                "prompt_md5": cm.prompt_yaml_md5,
-                "metrics_deltas": derived,
-                "nvidia_smi": cm.nvidia_smi_summary,
-            }
-            for cm, derived in cases
-        ]
-    }, indent=2, default=str))
+                "cases": [
+                    {
+                        "case": cm.case,
+                        "wallclock": {
+                            "warmup_start": cm.warmup_start,
+                            "warmup_end": cm.warmup_end,
+                            "measure_start": cm.measure_start,
+                            "measure_end": cm.measure_end,
+                        },
+                        "prompt_md5": cm.prompt_yaml_md5,
+                        "metrics_deltas": derived,
+                        "nvidia_smi": cm.nvidia_smi_summary,
+                    }
+                    for cm, derived in cases
+                ]
+            },
+            indent=2,
+            default=str,
+        )
+    )
     print(f"\nsaved: {dump_path}")
 
 

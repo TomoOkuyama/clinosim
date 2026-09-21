@@ -72,6 +72,7 @@ def main() -> None:
         # any doc would carry: patient_demographics + all context keys populated.
 
         from clinosim.modules.llm_service.prompt_registry import PromptRegistry
+
         reg = PromptRegistry()
         spec = reg.get("narrative_seed_bundle", "ja")
 
@@ -100,31 +101,38 @@ def main() -> None:
             total_in = sys_tok + user_tok
             total_max = total_in + max_tokens_response
             over_8k = "!" if total_max > 8192 else " "
-            print(
-                f"{name:<48s} {sys_tok:>8d} {user_tok:>9d} "
-                f"{total_in:>10d} {total_max:>10d} {over_8k:>5s}"
+            print(f"{name:<48s} {sys_tok:>8d} {user_tok:>9d} {total_in:>10d} {total_max:>10d} {over_8k:>5s}")
+            results.append(
+                {
+                    "scenario": name,
+                    "system_tokens": sys_tok,
+                    "user_tokens": user_tok,
+                    "total_in": total_in,
+                    "total_in_plus_max_resp": total_max,
+                }
             )
-            results.append({
-                "scenario": name,
-                "system_tokens": sys_tok,
-                "user_tokens": user_tok,
-                "total_in": total_in,
-                "total_in_plus_max_resp": total_max,
-            })
 
         print()
 
         # Save.
-        (HERE / "actual_prompts_precount.json").write_text(json.dumps({
-            "tokenizer": "Qwen/Qwen3-8B",
-            "max_tokens_response": max_tokens_response,
-            "scenarios": results,
-        }, indent=2, ensure_ascii=False))
+        (HERE / "actual_prompts_precount.json").write_text(
+            json.dumps(
+                {
+                    "tokenizer": "Qwen/Qwen3-8B",
+                    "max_tokens_response": max_tokens_response,
+                    "scenarios": results,
+                },
+                indent=2,
+                ensure_ascii=False,
+            )
+        )
 
         # Interpretation.
         print("=" * 100)
         print("INTERPRETATION:")
-        print(f"  - v22 JA system: block alone = {results[0]['system_tokens']} tokens (~99.3% static after ${{document_type}} at char 22)")
+        print(
+            f"  - v22 JA system: block alone = {results[0]['system_tokens']} tokens (~99.3% static after ${{document_type}} at char 22)"
+        )
         max_case = max(results, key=lambda r: r["total_in_plus_max_resp"])
         print(f"  - Worst-case scenario ({max_case['scenario']}) = {max_case['total_in_plus_max_resp']} tokens")
         if max_case["total_in_plus_max_resp"] > 8192:
@@ -155,9 +163,8 @@ def _prompt_variables(ctx: dict, doc_type: str = "admission_hp") -> dict:
             "template wording; sections MUST be grounded in the context_sections "
             "facts below):\n" + _json.dumps(list(llm_sections), ensure_ascii=False, indent=2)
         ),
-        "context_json_block": "Context sections (reference only — do NOT modify):\n" + _json.dumps(
-            context_sections, ensure_ascii=False, indent=2
-        ),
+        "context_json_block": "Context sections (reference only — do NOT modify):\n"
+        + _json.dumps(context_sections, ensure_ascii=False, indent=2),
         "output_schema_block": _json.dumps(
             {s: "<rewritten section body>" for s in llm_sections}, ensure_ascii=False, indent=2
         ),
@@ -207,8 +214,11 @@ def _large_context() -> dict:
     ctx = _typical_context()
     ctx["_doc_type"] = "discharge_summary"
     ctx["_llm_sections"] = [
-        "hospital_course", "diagnoses_at_discharge", "medications_at_discharge",
-        "follow_up_plan", "patient_education",
+        "hospital_course",
+        "diagnoses_at_discharge",
+        "medications_at_discharge",
+        "follow_up_plan",
+        "patient_education",
     ]
     ctx["stay_progress"] = "day 14 of expected 14 (recovery/discharge)"
     ctx["length_of_stay_days"] = 14
