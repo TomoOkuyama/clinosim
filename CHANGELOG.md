@@ -39,6 +39,8 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.
 
 ## [Unreleased]
 
+## [0.6.3] - 2026-09-21
+
 ### Added
 
 - **Length-truncation retry for bundle-strategy narrate** in `clinosim/modules/document/narrative/replacement_strategy.py`. When a `template_seed_bundle` LLM response comes back with `finish_reason="length"` (max_tokens ceiling hit → JSON truncated mid-string), the strategy now re-issues the same prompt once with an expanded `max_tokens` derived from the remaining `_BUNDLE_RETRY_MAX_MODEL_LEN` budget (default 32768, matching the recommended vLLM `--max-model-len`). If the retry parses cleanly the bundle path continues without per-section fallback; the safety-net per-section retry remains for genuine parse errors or the degenerate "prompt fills context" case. `LLMResponse.finish_reason` is now forwarded end-to-end from `ProviderResponse.metadata` (previously dropped during the `_complete_with_retry` conversion). Two new unit tests cover the retry-success path and the double-truncation degenerate case.
