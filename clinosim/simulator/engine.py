@@ -58,6 +58,7 @@ from clinosim.simulator._scheduling_thresholds import (
     OUTPATIENT_MINUTE_JITTER_MAX_EXCLUSIVE,
     OUTPATIENT_MINUTE_JITTER_MIN,
 )
+from clinosim.simulator.complications import build_complication
 from clinosim.simulator.emergency import _simulate_ed_visit
 from clinosim.simulator.enrichers import (
     POST_POPULATION,
@@ -342,8 +343,20 @@ def _merge_disease_into_active_encounter(
     if onset_day < 0:
         onset_day = 0
 
-    if disease_id not in active_record.complications_occurred:
-        active_record.complications_occurred.append(disease_id)
+    # Phase 1a schema: complications_occurred entries are dicts carrying
+    # onset_day / onset_datetime / source. Idempotency check compares by
+    # name (some producers may re-fire the same disease under a different
+    # source; the first entry wins to preserve original timing).
+    existing_names = {(e.get("name") if isinstance(e, dict) else str(e)) for e in active_record.complications_occurred}
+    if disease_id not in existing_names:
+        active_record.complications_occurred.append(
+            build_complication(
+                name=disease_id,
+                onset_day=onset_day,
+                onset_datetime=event_time.isoformat(),
+                source="in_hospital_new_disease",
+            )
+        )
 
     ce = active_record.condition_event
     if ce is not None:
@@ -1593,7 +1606,21 @@ def run_forced(scenario: ForcedScenario, config: SimulatorConfig | None = None) 
 
         # Force specific complications if requested
         if scenario.complications:
-            record.complications_occurred.extend(scenario.complications)
+            # Phase 1a: wrap forced-scenario complications in the canonical
+            # dict shape. Enumeration / forced-scenario paths do not carry
+            # per-complication onset info (they inject test-scoped adverse
+            # events wholesale) — leave onset_day / onset_datetime None
+            # and tag source="scenario_forced" so downstream consumers can
+            # distinguish these from real simulation output.
+            for _c in scenario.complications:
+                record.complications_occurred.append(
+                    build_complication(
+                        name=str(_c),
+                        onset_day=None,
+                        onset_datetime=None,
+                        source="scenario_forced",
+                    )
+                )
 
         patient_records.append(record)
 

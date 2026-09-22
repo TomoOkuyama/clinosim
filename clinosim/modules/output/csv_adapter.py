@@ -12,6 +12,7 @@ from clinosim.modules.output.fhir_r4.labs.microbiology import (
     resolve_culture_code,
     resolve_susceptibility_code,
 )
+from clinosim.simulator.complications import complication_names as _complication_names_from_cif
 
 
 def convert_cif_to_csv(
@@ -126,7 +127,7 @@ def convert_cif_to_csv(
                 "diagnosis_correct": clinical_dx.get("diagnosis_correct", ""),
                 "ground_truth_diseases": "|".join(condition.get("ground_truth_diseases", [])),
                 "condition_type": condition.get("condition_type", ""),
-                "complications": "|".join(record.get("complications_occurred", [])),
+                "complications": "|".join(_complication_names_from_cif(record.get("complications_occurred", []))),
                 "deceased": record.get("deceased", False),
             }
         )

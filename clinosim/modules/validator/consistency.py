@@ -13,6 +13,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 
+from clinosim.simulator.complications import complication_names as _complication_names_from_cif
 from clinosim.types.output import CIFDataset, CIFPatientRecord
 
 
@@ -191,7 +192,9 @@ def _check_medication_holds(record: CIFPatientRecord, pid: str, report: Consiste
     # DKA/sepsis/pancreatitis: no metformin
     metformin_hold_diseases = {"diabetic_ketoacidosis", "sepsis", "acute_pancreatitis", "acute_kidney_injury"}
     # Check primary disease AND complications for metformin contraindication
-    all_conditions = set(gt) | set(record.complications_occurred)
+    # Phase 1a: complications_occurred entries may be dicts; project to
+    # bare names for the metformin-contraindication set-membership check.
+    all_conditions = set(gt) | set(_complication_names_from_cif(record.complications_occurred))
     if all_conditions & metformin_hold_diseases:
         triggering = all_conditions & metformin_hold_diseases
         for order in record.orders:

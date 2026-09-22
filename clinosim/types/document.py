@@ -244,6 +244,17 @@ class NarrativeContext:
     # progress_note / admission_hp had no way to surface a pneumothorax
     # that actually happened. Consumed by _build_extra_context to feed
     # the LLM prompt.
+    #
+    # 2026-09-22 (Phase 1a): the on-disk CIF now stores structured dicts
+    # with ``onset_day`` / ``onset_datetime`` / ``source`` (see
+    # ``types/output.py::CIFPatientRecord.complications_occurred``), but
+    # this narrative-facing field remains a plain ``list[str]`` for
+    # backward compat — the ctx build sites in ``narrative/context.py``
+    # and ``narrative/passes.py`` project the CIF dict list down to
+    # names via ``clinosim.simulator.complications.complication_names``.
+    # Phase 1b will lift this to ``list[dict]`` so LLM prompts and
+    # template renderers can consume ``onset_day`` directly (closes the
+    # Channel A undated-string leak for day-scoped documents).
     complications_occurred: list[str] = field(default_factory=list)
 
     # === Issue #1066 (drug_safety, session 99) ===

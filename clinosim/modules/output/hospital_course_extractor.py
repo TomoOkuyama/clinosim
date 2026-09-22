@@ -14,6 +14,7 @@ from datetime import datetime
 from typing import Any
 
 from clinosim.codes import lookup as code_lookup
+from clinosim.simulator.complications import complication_names as _complication_names_from_cif
 
 __all__ = [
     "HospitalCourseFact",
@@ -297,12 +298,18 @@ def _complication_events(record: dict[str, Any], language: str) -> list[Hospital
     complications = record.get("complications_occurred") or []
     if not complications:
         return []
-    # Place complications at day 1 so they appear after admission but before peaks
+    # Phase 1a: complications_occurred may carry structured dict entries
+    # {"name", "onset_day", ...}. Backward-compat: bare strings from
+    # pre-Phase-1 CIF JSON are still accepted via _normalize_complication.
+    # Phase 1b will use onset_day for exact ordering; for now we keep
+    # the day-1 default so this PR is behavior-neutral.
+    from clinosim.simulator.complications import _normalize_complication
+
     return [
         HospitalCourseFact(
             hospital_day=1,
             event_type="complication",
-            description=f"Complication identified: {c}",
+            description=f"Complication identified: {_normalize_complication(c)['name']}",
         )
         for c in complications
     ]
@@ -471,7 +478,10 @@ def extract_clinical_guidance(
         "had_surgery": any(
             p.get("category_code") == "387713003" for p in (record.get("procedures") or []) if isinstance(p, dict)
         ),
-        "complications": record.get("complications_occurred") or [],
+        # Phase 1a: project structured dict entries down to bare names for
+        # downstream metrics that expect ``list[str]``. Bare-string CIF
+        # (v0.6.x) passes through unchanged.
+        "complications": _complication_names_from_cif(record.get("complications_occurred") or []),
         "icu_transferred": record.get("icu_transferred", False),
     }
 

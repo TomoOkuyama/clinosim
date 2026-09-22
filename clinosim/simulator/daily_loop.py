@@ -70,6 +70,7 @@ from clinosim.simulator._daily_loop_thresholds import (
     TREATMENT_ESCALATION_DAY,
     TREATMENT_ESCALATION_INFLAMMATION_MIN,
 )
+from clinosim.simulator.complications import build_complication
 from clinosim.simulator.helpers import _check_discharge_ready, _evaluate_mortality
 from clinosim.simulator.lab_pipeline import _run_lab_result_pipeline
 from clinosim.simulator.medication_pipeline import _generate_mar, _place_chronic_monitoring_orders
@@ -131,7 +132,9 @@ def _run_daily_loop(
     all_adl: list = []
     state_history = [deepcopy(state)]
     active_complications: set[str] = set()
-    complications_occurred: list[str] = []
+    # Phase 1a schema: entries are dicts with onset_day / onset_datetime /
+    # source (see clinosim.simulator.complications for the canonical shape).
+    complications_occurred: list[dict[str, Any]] = []
     death_occurred = False
     icu_transferred = False
     icu_transferred_day_local: int = -1  # C5-22: day of ICU transfer
@@ -651,7 +654,22 @@ def _run_daily_loop(
                 for var, delta in comp.get("state_impact", {}).items():
                     apply_state_delta(state, var, delta)
                 comp_name = comp.get("name", "unknown")
-                complications_occurred.append(comp_name)
+                # Phase 1a: record the onset day + a canonical noon-of-day
+                # timestamp so downstream (narrative context filter,
+                # hospital_course_extractor ordering, future FHIR Condition
+                # .onsetDateTime emit) knows WHEN the complication fired.
+                # The daily loop is per-day, not per-hour, so noon is used
+                # as a stable within-day anchor.
+                onset_dt = admission_time + timedelta(days=day)
+                onset_dt = onset_dt.replace(hour=12, minute=0, second=0, microsecond=0)
+                complications_occurred.append(
+                    build_complication(
+                        name=comp_name,
+                        onset_day=day,
+                        onset_datetime=onset_dt.isoformat(),
+                        source="daily_loop",
+                    )
+                )
                 if "icu_transfer" in comp.get("actions", []):
                     if not icu_transferred:
                         # C5-22: capture day of transfer for
