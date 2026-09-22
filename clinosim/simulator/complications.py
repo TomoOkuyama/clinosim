@@ -86,13 +86,6 @@ def _normalize_complication(entry: Any) -> dict[str, Any]:
     }
 
 
-def normalized_complications(entries: list[Any] | None) -> list[dict[str, Any]]:
-    """Return every entry coerced to the canonical dict shape."""
-    if not entries:
-        return []
-    return [_normalize_complication(e) for e in entries]
-
-
 def complication_names(entries: list[Any] | None) -> list[str]:
     """Return just the ``name`` field of each entry (legacy read path).
 
