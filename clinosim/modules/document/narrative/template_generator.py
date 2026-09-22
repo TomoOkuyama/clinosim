@@ -6438,9 +6438,20 @@ class TemplateNarrativeGenerator:
                 + ("、".join(imaging_names[:6]) if is_ja else ", ".join(imaging_names[:6]))
             )
         if med_names:
+            # Phase 1c-3 (2026-09-22): localize med display names to
+            # katakana JA via the shared ``drug_names_ja`` table used by
+            # the FHIR emit path. Pre-fix 183 JP ed_workup lines carried
+            # 「投薬: Ibuprofen 400mg、Acetaminophen 500mg」 verbatim.
+            med_display = med_names[:6]
+            if is_ja:
+                try:
+                    from clinosim.modules.output.fhir_r4.lib.localization import _localize_drug_name
+
+                    med_display = [_localize_drug_name(m, "JP") or m for m in med_display]
+                except Exception:  # noqa: BLE001 — never fail narrative on i18n
+                    pass
             parts.append(
-                ("投薬: " if is_ja else "Medications: ")
-                + ("、".join(med_names[:6]) if is_ja else ", ".join(med_names[:6]))
+                ("投薬: " if is_ja else "Medications: ") + ("、".join(med_display) if is_ja else ", ".join(med_display))
             )
         if proc_order_names:
             parts.append(
