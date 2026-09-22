@@ -1377,6 +1377,108 @@ def test_render_patient_demographics_silent_on_empty_patient() -> None:
     assert _render_patient_demographics(_empty_patient(), lang="en") == ""
 
 
+def test_render_patient_demographics_localizes_occupation_ja() -> None:
+    """Phase 1c-1 (2026-09-22): pre-fix, the demographics renderer emitted
+    the raw ``occupation`` string ("service") verbatim into JA output —
+    the JP p=500 H100 audit surfaced 「32歳男性、service、非喫煙、s、
+    dependent」 as the ed_note::hpi opening line. Occupation now routes
+    through ``_OCCUPATION_LABELS`` so common vocabulary values (service,
+    office, healthcare, manufacturing, ...) resolve to JA labels."""
+    p = SimpleNamespace(
+        age=32,
+        sex="male",
+        employment_status="employed",
+        occupation="service",
+        smoking_status="never",
+        alcohol_use="none",
+        marital_status="single",
+        insurance_type="employee_dependent",
+    )
+    ja = _render_patient_demographics(p, lang="ja")
+    assert "サービス業" in ja
+    assert "service" not in ja  # raw enum must not leak
+    en = _render_patient_demographics(p, lang="en")
+    assert "service industry" in en
+
+
+def test_render_patient_demographics_localizes_marital_short_codes() -> None:
+    """Phase 1c-1: PatientProfile.marital_status is emitted as a
+    single-letter uppercase code (M / S / D / W / P) by the demographics
+    populator. Pre-fix, ``_localize_token`` lower-cased them to
+    "m"/"s"/... which had no table entry and fell back to the raw slug
+    ("s") — 600 patients / 2 cohorts leaked verbatim. Alias entries now
+    map each short code to the full form's JA/EN labels."""
+    for code, ja_expected, en_expected in [
+        ("M", "既婚", "married"),
+        ("S", "独身", "single"),
+        ("D", "離婚", "divorced"),
+        ("W", "死別", "widowed"),
+        ("P", "内縁", "partnered"),
+    ]:
+        p = SimpleNamespace(
+            age=45,
+            sex="female",
+            employment_status="",
+            occupation="",
+            smoking_status="",
+            alcohol_use="",
+            marital_status=code,
+            insurance_type="",
+        )
+        ja = _render_patient_demographics(p, lang="ja")
+        assert ja_expected in ja, f"code={code!r} missing {ja_expected!r} in {ja!r}"
+        assert code.lower() not in ja  # bare single letter must not leak
+        en = _render_patient_demographics(p, lang="en")
+        assert en_expected in en
+
+
+def test_render_patient_demographics_localizes_jp_insurance_short_forms() -> None:
+    """Phase 1c-1: the JP identity module writes short-form
+    insurance_type values (`dependent` / `national` / `employee`) rather
+    than the canonical `employee_dependent` / `national_health_insurance`
+    slugs the pre-fix table indexed by. 200/600 JP patients carried
+    "dependent" verbatim into the LLM prompt pre-fix — now covered."""
+    for raw, ja_expected in [
+        ("dependent", "被用者保険 (被扶養者)"),
+        ("employee", "被用者保険 (被保険者)"),
+        ("national", "国民健康保険"),
+        ("late_elderly", "後期高齢者医療制度"),
+        ("NHI_employee", "国民健康保険 (被用者相当)"),
+    ]:
+        p = SimpleNamespace(
+            age=70,
+            sex="male",
+            employment_status="",
+            occupation="",
+            smoking_status="",
+            alcohol_use="",
+            marital_status="",
+            insurance_type=raw,
+        )
+        ja = _render_patient_demographics(p, lang="ja")
+        assert ja_expected in ja, f"raw={raw!r} missing {ja_expected!r} in {ja!r}"
+        assert raw.lower() not in ja  # raw enum must not leak
+
+
+def test_render_patient_demographics_localizes_social_alcohol_ja() -> None:
+    """Phase 1c-1: ``alcohol_use="social"`` was missing from
+    ``_ALCOHOL_LABELS`` (which only had "occasional"), so 157/600 JP
+    patients emitted the raw English "social" inside JA demographics."""
+    p = SimpleNamespace(
+        age=50,
+        sex="male",
+        employment_status="",
+        occupation="",
+        smoking_status="never",
+        alcohol_use="social",
+        marital_status="",
+        insurance_type="",
+    )
+    ja = _render_patient_demographics(p, lang="ja")
+    assert "機会飲酒" in ja
+    assert "social" not in ja
+
+
 def test_render_patient_demographics_partial_skips_missing() -> None:
     p = SimpleNamespace(
         age=68,
