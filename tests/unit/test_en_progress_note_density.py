@@ -61,8 +61,12 @@ def test_en_assessment_with_complications() -> None:
     out = gen._compose_progress_assessment_from_state(
         _ctx("en", complications=["pneumothorax", "aspiration_pneumonia"])
     )
+    # Phase 1c-2 (2026-09-22): complication tokens are localized via
+    # ``_localize_complication`` — the ``aspiration_pneumonia`` snake_case
+    # slug now renders as "aspiration pneumonia" in EN output. Assert
+    # the humanised form.
     assert "pneumothorax" in out
-    assert "aspiration_pneumonia" in out
+    assert "aspiration pneumonia" in out
     assert "Complications noted" in out
 
 
