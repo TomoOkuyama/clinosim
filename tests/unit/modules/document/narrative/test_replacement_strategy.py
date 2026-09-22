@@ -1004,6 +1004,111 @@ def test_temporal_filter_keeps_undated_complication_in_whole_stay_scope() -> Non
     assert "aspiration_pneumonia" in extra.get("complications_during_stay", "")
 
 
+def test_temporal_filter_reads_onset_from_complications_events() -> None:
+    """Phase 1b: for a daily-loop-sourced complication (which now carries
+    its own onset_day via ctx.complications_events), the filter must read
+    onset directly from the event entry — not require a working_diagnoses
+    cross-lookup. Closes the Channel A 49% undated-string leak: a day-2
+    progress note for an encounter whose aspiration_pneumonia fires on
+    day 8 no longer surfaces the future complication."""
+    from clinosim.modules.document.narrative.replacement_strategy import _build_extra_context
+
+    ctx = _make_ctx()
+    ctx.day_index = 2
+    ctx.complications_occurred = ["aspiration_pneumonia"]
+    # NOTE: no matching working_diagnoses entry — pre-Phase-1b this made
+    # the complication behave as "undated" and drop it entirely for
+    # day-scoped scopes. Phase 1b instead reads onset from the event
+    # entry itself.
+    ctx.complications_events = [
+        {
+            "name": "aspiration_pneumonia",
+            "onset_day": 8,
+            "onset_datetime": "2026-04-08T12:00:00",
+            "source": "daily_loop",
+        }
+    ]
+    ctx.working_diagnoses = []
+    spec = _bundle_spec(
+        type_key="progress_note",
+        llm_enabled_sections=("subjective", "assessment", "plan"),
+    )
+    extra = _build_extra_context(ctx, spec, template_section_names=set())
+    assert "complications_during_stay" not in extra
+
+
+def test_temporal_filter_events_onset_past_surfaces() -> None:
+    """Phase 1b mirror: same daily-loop-sourced complication surfaces once
+    the writing day passes its onset (day 10 for a day-8 event)."""
+    from clinosim.modules.document.narrative.replacement_strategy import _build_extra_context
+
+    ctx = _make_ctx()
+    ctx.day_index = 10
+    ctx.complications_occurred = ["aspiration_pneumonia"]
+    ctx.complications_events = [
+        {
+            "name": "aspiration_pneumonia",
+            "onset_day": 8,
+            "onset_datetime": "2026-04-08T12:00:00",
+            "source": "daily_loop",
+        }
+    ]
+    ctx.working_diagnoses = []
+    spec = _bundle_spec(
+        type_key="progress_note",
+        llm_enabled_sections=("subjective", "assessment", "plan"),
+    )
+    extra = _build_extra_context(ctx, spec, template_section_names=set())
+    assert "aspiration_pneumonia" in extra.get("complications_during_stay", "")
+    assert "hospital-day 8 onset" in extra["complications_during_stay"]
+
+
+def test_temporal_filter_legacy_undated_still_dropped_in_day_scope() -> None:
+    """Backward-compat contract: a complications_events entry with
+    source="legacy" (synthesised on read from a pre-Phase-1 bare-string
+    CIF) still has ``onset_day=None`` and is dropped for day-scoped and
+    admission-scoped documents — preserves the Phase 0 conservative
+    filter for the small legacy tail."""
+    from clinosim.modules.document.narrative.replacement_strategy import _build_extra_context
+
+    ctx = _make_ctx()
+    ctx.day_index = 3
+    ctx.complications_occurred = ["seizure"]
+    ctx.complications_events = [
+        {"name": "seizure", "onset_day": None, "onset_datetime": None, "source": "legacy"},
+    ]
+    ctx.working_diagnoses = []
+    spec = _bundle_spec(
+        type_key="progress_note",
+        llm_enabled_sections=("subjective", "assessment", "plan"),
+    )
+    extra = _build_extra_context(ctx, spec, template_section_names=set())
+    assert "complications_during_stay" not in extra
+
+
+def test_temporal_filter_events_preferred_over_working_diagnoses() -> None:
+    """When a name appears in both ``complications_events`` (with onset)
+    and ``working_diagnoses`` (also with onset), the events onset wins —
+    it is source-of-truth for the producer that dispatched the event."""
+    from clinosim.modules.document.narrative.replacement_strategy import _build_extra_context
+
+    ctx = _make_ctx()
+    ctx.day_index = 6
+    ctx.complications_occurred = ["N17.9"]
+    ctx.complications_events = [
+        {"name": "N17.9", "onset_day": 5, "onset_datetime": "2026-04-05T12:00:00", "source": "daily_loop"},
+    ]
+    # working_diagnoses says onset day 4 (a different provenance path);
+    # events wins → the emitted phrase reflects day 5.
+    ctx.working_diagnoses = [{"disease_id": "N17.9", "onset_day": 4}]
+    spec = _bundle_spec(
+        type_key="progress_note",
+        llm_enabled_sections=("subjective", "assessment", "plan"),
+    )
+    extra = _build_extra_context(ctx, spec, template_section_names=set())
+    assert "hospital-day 5 onset" in extra.get("complications_during_stay", "")
+
+
 def test_temporal_filter_day_zero_progress_note_still_admits_same_day_onset() -> None:
     """Boundary: onset_day = 0 (admission-day complication) MUST surface in
     a day-0 progress_note. Filter uses ``>`` so equality passes through."""
