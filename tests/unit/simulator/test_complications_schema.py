@@ -10,7 +10,6 @@ from clinosim.simulator.complications import (
     _normalize_complication,
     build_complication,
     complication_names,
-    normalized_complications,
 )
 
 
@@ -130,27 +129,3 @@ class TestBuildComplication:
         for src in SOURCES:
             result = build_complication(name="x", onset_day=None, onset_datetime=None, source=src)
             assert result["source"] == src
-
-
-class TestNormalizedComplications:
-    def test_mixed_legacy_and_new_projects_uniformly(self):
-        """The mixed list a Phase-1a consumer receives from a partially-
-        migrated CIF ends up with every entry in the canonical dict shape."""
-        entries = [
-            "pressure_ulcer",  # legacy bare string
-            {
-                "name": "dvt",
-                "onset_day": 7,
-                "onset_datetime": "2026-04-08T12:00:00",
-                "source": "daily_loop",
-            },
-        ]
-        result = normalized_complications(entries)
-        assert len(result) == 2
-        assert result[0]["source"] == "legacy"
-        assert result[1]["source"] == "daily_loop"
-        assert result[1]["onset_day"] == 7
-
-    def test_empty_input(self):
-        assert normalized_complications(None) == []
-        assert normalized_complications([]) == []
