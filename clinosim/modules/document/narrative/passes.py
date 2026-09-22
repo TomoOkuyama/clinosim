@@ -31,6 +31,7 @@ from clinosim.modules.document.narrative.registry import DocumentTypeSpec
 from clinosim.modules.document.narrative.scenario_spine import build_narrative_spine
 from clinosim.modules.document.narrative.section_extractor import extract_for_composition
 from clinosim.modules.document.narrative.template_generator import TemplateNarrativeGenerator
+from clinosim.simulator.complications import complication_names
 from clinosim.types.clinical import (
     ClinicalDocumentNarrative,
     NarrativeVersionManifest,
@@ -399,7 +400,10 @@ class NarrativePass(ABC):
             document_type=DocumentType(spec.type_key),
             target_lang=language,
             locale="jp" if is_jp(self.country) else "us",
-            complications_occurred=list(patient_dict.get("complications_occurred", []) or []),
+            # Phase 1a: on-disk CIF now carries structured dict entries;
+            # project to bare names so ctx.complications_occurred stays a
+            # ``list[str]`` for the existing template + LLM consumers.
+            complications_occurred=complication_names(patient_dict.get("complications_occurred", []) or []),
             # Issue #848: intra-admission new-disease working diagnoses
             # (populated by engine._merge_disease_into_active_encounter
             # when a life event fires for an already-admitted patient).
