@@ -1256,6 +1256,81 @@ def _health_literacy_tag(patient: Any) -> str:
     return "high"
 
 
+# ---- Temporal-scope map (physician writing-time convention) -------------
+# Keyed by ``DocumentTypeSpec.type_key``. Values are semantic scopes the
+# narrative-context filter uses to gate future events out of documents whose
+# author (a physician / nurse at a specific point in time) could not
+# legitimately know them:
+#
+#   "day_of_stub" — day-scoped; writing_day = ctx.day_index. progress_note /
+#                   nursing_shift_note fire once per calendar day, and the
+#                   stub carries the day. operative_note / procedure_note
+#                   are also stub-day-scoped (the narrative pass sets
+#                   day_index = procedure start day).
+#   "admission"   — written at admission or during a single-day encounter;
+#                   writing_day = 0. Covers admission_hp / ed_note /
+#                   ed_triage_note / admission_care_plan /
+#                   admission_nursing_assessment / outpatient_soap /
+#                   health_checkup_report.
+#   "whole_stay"  — written at discharge / referral / death; writing_day =
+#                   None (no temporal filter — the writer legitimately sees
+#                   the full admission timeline). Covers discharge_summary /
+#                   death_certificate / death_discharge_summary /
+#                   nursing_discharge_summary / referral_note /
+#                   nutrition_care_plan / rehabilitation_plan.
+#
+# Unknown doc types default to "whole_stay" (safe backward-compat — a new
+# doc type gets no leak filter until explicitly categorised here; the pre-
+# filter behaviour was whole-stay-only anyway).
+_WRITING_DAY_SCOPE: dict[str, str] = {
+    # day-of-stub
+    "progress_note": "day_of_stub",
+    "nursing_shift_note": "day_of_stub",
+    "operative_note": "day_of_stub",
+    "procedure_note": "day_of_stub",
+    # admission / single-day
+    "admission_hp": "admission",
+    "admission_nursing_assessment": "admission",
+    "admission_care_plan": "admission",
+    "ed_note": "admission",
+    "ed_triage_note": "admission",
+    "outpatient_soap": "admission",
+    "health_checkup_report": "admission",
+    # whole-stay (discharge / referral / death)
+    "discharge_summary": "whole_stay",
+    "death_certificate": "whole_stay",
+    "death_discharge_summary": "whole_stay",
+    "nursing_discharge_summary": "whole_stay",
+    "referral_note": "whole_stay",
+    "nutrition_care_plan": "whole_stay",
+    "rehabilitation_plan": "whole_stay",
+}
+
+
+def _writing_day_of(spec: DocumentTypeSpec, ctx: NarrativeContext) -> int | None:
+    """Return the 0-indexed hospital day at which this document is written,
+    or ``None`` for whole-stay scope (no temporal filter).
+
+    Compared against ``working_diagnoses[i].onset_day`` (also 0-indexed
+    calendar days since admission — see ``simulator/engine.py::
+    _merge_disease_into_active_encounter`` where onset_day is computed as
+    ``(event_time.date() - admit_dt.date()).days``). A complication whose
+    ``onset_day > writing_day`` has not yet occurred by the writer's clock
+    and must be filtered out (see the ``complications_during_stay`` /
+    ``in_hospital_new_diagnoses`` block below).
+
+    Whole-stay scope (``None``) preserves the pre-filter behaviour for
+    discharge_summary / death_* / referral_note — those documents are
+    authored at or near discharge and legitimately know the full timeline.
+    """
+    scope = _WRITING_DAY_SCOPE.get(getattr(spec, "type_key", ""), "whole_stay")
+    if scope == "day_of_stub":
+        return int(getattr(ctx, "day_index", 0) or 0)
+    if scope == "admission":
+        return 0
+    return None
+
+
 def _build_extra_context(
     ctx: NarrativeContext,
     spec: DocumentTypeSpec,
@@ -1519,25 +1594,68 @@ def _build_extra_context(
         # Surface that timing to the LLM prompt so the generated
         # narrative can say "入院第30日目に急性心筋梗塞を発症" instead of
         # listing the disease as if it had been an admission-day finding.
+        #
+        # Temporal-leak filter (2026-09-22): the pre-filter code
+        # unconditionally surfaced every complication + every dated new-dx
+        # to every LLM call, including day-N progress_notes. Prompt Rule 2
+        # requires the LLM to surface every listed complication → a day-1
+        # progress note for an encounter whose N17.9 AKI onsets on day 13
+        # would narrate "入院初日に急性腎障害が発症" — physically
+        # impossible from the writer's day-1 vantage. Measured leak rates
+        # in the v0.6.3 JP p=10000 llm-polished cohort:
+        #   - working_diagnoses onset_day >= 2 encounters:  10.1% of
+        #     pre-onset docs mention the future dx (190/1874)
+        #   - complications_occurred string-name entries (no onset):
+        #     49% of day-1 notes mention the complication (905/1841)
+        # The fix applies a two-part filter:
+        #   (a) dated entries (onset_day known): drop when onset_day >
+        #       writing_day.
+        #   (b) undated entries (bare string, no matching working_dx):
+        #       drop when writing_day is not None (i.e. day-scoped or
+        #       admission-scoped doc). Retained for whole-stay scope
+        #       (discharge_summary / death_* / referral_note) where the
+        #       writer legitimately knows the timeline.
+        # Rule 2 stays unchanged — the LLM still surfaces every complication
+        # it sees; correctness now lives in what the CONTEXT contains.
         _wds = list(getattr(ctx, "working_diagnoses", []) or [])
         _onset_by_disease = {
             str(wd.get("disease_id", "")): wd.get("onset_day")
             for wd in _wds
             if isinstance(wd, dict) and wd.get("onset_day") is not None
         }
-        _phrases = []
+        writing_day = _writing_day_of(spec, ctx)
+        _phrases: list[str] = []
         for c in complications[:10]:
             cid = str(c)
             onset = _onset_by_disease.get(cid)
-            if onset is not None and int(onset) > 0:
-                _phrases.append(f"{cid} (hospital-day {int(onset)} onset)")
+            if onset is not None:
+                if writing_day is not None and int(onset) > writing_day:
+                    continue  # future event, not yet occurred at writing time
+                if int(onset) > 0:
+                    _phrases.append(f"{cid} (hospital-day {int(onset)} onset)")
+                else:
+                    _phrases.append(cid)
             else:
-                _phrases.append(cid)
-        extra["complications_during_stay"] = "; ".join(_phrases)
-        if _onset_by_disease:
-            extra["in_hospital_new_diagnoses"] = "; ".join(
-                f"{did} on hospital day {int(od)}" for did, od in _onset_by_disease.items() if od
-            )
+                # Undated complication string (typical shape, e.g.
+                # "aspiration_pneumonia" from the daily loop). Without
+                # an onset_day we cannot safely place it in a day-scoped
+                # or admission-scoped narrative — surfacing it there
+                # would let the LLM claim a same-day / earlier onset
+                # that the CIF does not support. Retain for whole-stay
+                # scope only.
+                if writing_day is None:
+                    _phrases.append(cid)
+        if _phrases:
+            extra["complications_during_stay"] = "; ".join(_phrases)
+        # in_hospital_new_diagnoses always carries onset_day by construction;
+        # apply the same day filter so day-N notes never see future new dx.
+        filtered_new_dx = [
+            f"{did} on hospital day {int(od)}"
+            for did, od in _onset_by_disease.items()
+            if od is not None and (writing_day is None or int(od) <= writing_day)
+        ]
+        if filtered_new_dx:
+            extra["in_hospital_new_diagnoses"] = "; ".join(filtered_new_dx)
 
     # ---- Doc-type-specific ----
     if doc_type in ("progress_note", "nursing_shift_note"):
