@@ -857,14 +857,35 @@ def _admission_spec():
     )
 
 
-def test_build_extra_context_surfaces_complications() -> None:
-    """v6: complications_during_stay MUST appear when
-    NarrativeContext.complications_occurred is non-empty."""
+def _discharge_spec():
+    """A whole-stay-scope spec (discharge_summary) — writing_day = None so
+    the temporal filter does not gate complications. Use this whenever a
+    test asserts that a complication string SHOULD appear regardless of
+    its onset day (real narrative use case: hospital_course prose)."""
+    return _bundle_spec(
+        type_key="discharge_summary",
+        llm_enabled_sections=("hospital_course", "discharge_instructions"),
+        composition_sections=(
+            "admission_summary",
+            "hospital_course",
+            "discharge_diagnoses",
+            "discharge_medications",
+            "discharge_instructions",
+            "follow_up",
+        ),
+    )
+
+
+def test_build_extra_context_surfaces_complications_in_discharge_scope() -> None:
+    """complications_during_stay MUST appear when
+    NarrativeContext.complications_occurred is non-empty AND the writing
+    scope is whole-stay (discharge_summary is written at discharge, so the
+    author legitimately knows every complication that occurred)."""
     from clinosim.modules.document.narrative.replacement_strategy import _build_extra_context
 
     ctx = _make_ctx()
     ctx.complications_occurred = ["pneumothorax", "aspiration_pneumonia"]
-    extra = _build_extra_context(ctx, _admission_spec(), template_section_names=set())
+    extra = _build_extra_context(ctx, _discharge_spec(), template_section_names=set())
     assert "complications_during_stay" in extra
     assert "pneumothorax" in extra["complications_during_stay"]
     assert "aspiration_pneumonia" in extra["complications_during_stay"]
@@ -876,8 +897,131 @@ def test_build_extra_context_omits_complications_when_empty() -> None:
 
     ctx = _make_ctx()
     ctx.complications_occurred = []
+    extra = _build_extra_context(ctx, _discharge_spec(), template_section_names=set())
+    assert "complications_during_stay" not in extra
+
+
+# ─────────────────────────────────────────────────────────────────
+# Temporal-scope filter (2026-09-22 leak-audit fix)
+# ─────────────────────────────────────────────────────────────────
+#
+# Motivation: pre-fix, `_build_extra_context` surfaced every complication +
+# every dated in-hospital new-dx to every doc type, including day-N progress
+# notes. Prompt Rule 2 requires the LLM to narrate every listed complication,
+# so a day-1 progress note for an encounter whose N17.9 AKI onsets on day 13
+# would narrate 「入院初日に急性腎障害が発症」. Measured in v0.6.3 JP p=10000
+# llm-polished cohort:
+#   working_diagnoses onset_day >= 2: 190/1874 pre-onset docs leak (10.1%)
+#   undated complications_occurred:  905/1841 day-1 docs leak (49%)
+
+
+def test_temporal_filter_drops_future_dated_complication_from_progress_note() -> None:
+    """A working_diagnoses entry with onset_day=5 must NOT surface in a
+    day-2 progress_note (writing_day = ctx.day_index = 2 < 5)."""
+    from clinosim.modules.document.narrative.replacement_strategy import _build_extra_context
+
+    ctx = _make_ctx()
+    ctx.day_index = 2
+    ctx.complications_occurred = ["N17.9"]
+    ctx.working_diagnoses = [{"disease_id": "N17.9", "onset_day": 5}]
+    spec = _bundle_spec(
+        type_key="progress_note",
+        llm_enabled_sections=("subjective", "assessment", "plan"),
+    )
+    extra = _build_extra_context(ctx, spec, template_section_names=set())
+    # future onset → both context keys must be absent (empty phrase list
+    # → key omitted).
+    assert "complications_during_stay" not in extra
+    assert "in_hospital_new_diagnoses" not in extra
+
+
+def test_temporal_filter_keeps_already_occurred_complication_in_progress_note() -> None:
+    """A working_diagnoses entry with onset_day=1 SHOULD surface in a day-3
+    progress_note (writing_day = 3 >= 1)."""
+    from clinosim.modules.document.narrative.replacement_strategy import _build_extra_context
+
+    ctx = _make_ctx()
+    ctx.day_index = 3
+    ctx.complications_occurred = ["N17.9"]
+    ctx.working_diagnoses = [{"disease_id": "N17.9", "onset_day": 1}]
+    spec = _bundle_spec(
+        type_key="progress_note",
+        llm_enabled_sections=("subjective", "assessment", "plan"),
+    )
+    extra = _build_extra_context(ctx, spec, template_section_names=set())
+    assert "N17.9" in extra.get("complications_during_stay", "")
+    assert "hospital day 1" in extra.get("in_hospital_new_diagnoses", "")
+
+
+def test_temporal_filter_partial_mix_only_past_onsets_surface() -> None:
+    """Mix of already-occurred + future-onset: only past entries surface."""
+    from clinosim.modules.document.narrative.replacement_strategy import _build_extra_context
+
+    ctx = _make_ctx()
+    ctx.day_index = 4
+    ctx.complications_occurred = ["N17.9", "A41.9"]
+    ctx.working_diagnoses = [
+        {"disease_id": "N17.9", "onset_day": 2},  # past
+        {"disease_id": "A41.9", "onset_day": 7},  # future
+    ]
+    spec = _bundle_spec(
+        type_key="progress_note",
+        llm_enabled_sections=("subjective", "assessment", "plan"),
+    )
+    extra = _build_extra_context(ctx, spec, template_section_names=set())
+    comps = extra.get("complications_during_stay", "")
+    new_dx = extra.get("in_hospital_new_diagnoses", "")
+    assert "N17.9" in comps and "N17.9" in new_dx
+    assert "A41.9" not in comps and "A41.9" not in new_dx
+
+
+def test_temporal_filter_drops_undated_complication_from_admission_scope() -> None:
+    """Undated complication strings (typical shape from daily loop) MUST
+    be dropped in admission-scope docs (writing_day = 0). Without an
+    onset_day we cannot safely place them in an admission_hp — surfacing
+    would let the LLM claim same-day onset that CIF does not support.
+    Whole-stay scope keeps them (see below)."""
+    from clinosim.modules.document.narrative.replacement_strategy import _build_extra_context
+
+    ctx = _make_ctx()
+    ctx.complications_occurred = ["pneumothorax", "aspiration_pneumonia"]
+    ctx.working_diagnoses = []  # no dated entries — pure undated strings
     extra = _build_extra_context(ctx, _admission_spec(), template_section_names=set())
     assert "complications_during_stay" not in extra
+    assert "in_hospital_new_diagnoses" not in extra
+
+
+def test_temporal_filter_keeps_undated_complication_in_whole_stay_scope() -> None:
+    """Whole-stay scope (discharge_summary) writer legitimately knows the
+    full timeline — undated complications MUST still be surfaced there."""
+    from clinosim.modules.document.narrative.replacement_strategy import _build_extra_context
+
+    ctx = _make_ctx()
+    ctx.complications_occurred = ["pneumothorax", "aspiration_pneumonia"]
+    ctx.working_diagnoses = []
+    extra = _build_extra_context(ctx, _discharge_spec(), template_section_names=set())
+    assert "pneumothorax" in extra.get("complications_during_stay", "")
+    assert "aspiration_pneumonia" in extra.get("complications_during_stay", "")
+
+
+def test_temporal_filter_day_zero_progress_note_still_admits_same_day_onset() -> None:
+    """Boundary: onset_day = 0 (admission-day complication) MUST surface in
+    a day-0 progress_note. Filter uses ``>`` so equality passes through."""
+    from clinosim.modules.document.narrative.replacement_strategy import _build_extra_context
+
+    ctx = _make_ctx()
+    ctx.day_index = 0
+    ctx.complications_occurred = ["I48"]
+    ctx.working_diagnoses = [{"disease_id": "I48", "onset_day": 0}]
+    spec = _bundle_spec(
+        type_key="progress_note",
+        llm_enabled_sections=("subjective", "assessment", "plan"),
+    )
+    extra = _build_extra_context(ctx, spec, template_section_names=set())
+    # onset_day = 0 was previously suppressed by the "> 0" check; the fix
+    # keeps that (bare cid without "hospital-day 0 onset" phrasing) so we
+    # only require the id itself to appear.
+    assert "I48" in extra.get("complications_during_stay", "")
 
 
 def test_build_extra_context_localizes_encounter_type_ja() -> None:
