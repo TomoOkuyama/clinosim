@@ -760,6 +760,28 @@ _OCCUPATION_JA: dict[str, str] = {
     "other": "その他",
     "unemployed": "無職",
     "homemaker": "主婦",
+    # Phase 1c-2 (2026-09-22): the H100 JP p=500 template audit surfaced
+    # "職業: construction" as a raw-slug leak in one admission_hp
+    # social_history. The additions below cover every remaining occupation
+    # token in the JP/US demographics yaml (agriculture / construction /
+    # sales / hospitality / retail / government / finance / it /
+    # professional / management / self_employed / high_school_student /
+    # university_student / disabled) so a novel population value never
+    # surfaces raw again.
+    "agriculture": "農業従事者",
+    "construction": "建設業",
+    "sales": "販売職",
+    "hospitality": "接客業",
+    "retail": "小売業",
+    "government": "公務員",
+    "finance": "金融業",
+    "it": "IT 関係者",
+    "professional": "専門職",
+    "management": "管理職",
+    "self_employed": "自営業",
+    "high_school_student": "高校生",
+    "university_student": "大学生",
+    "disabled": "就労困難",
 }
 _OCCUPATION_EN: dict[str, str] = {
     "retired": "Retired",
@@ -777,7 +799,285 @@ _OCCUPATION_EN: dict[str, str] = {
     "other": "Other",
     "unemployed": "Unemployed",
     "homemaker": "Homemaker",
+    # Phase 1c-2 mirror additions (JA parity).
+    "agriculture": "Agricultural worker",
+    "construction": "Construction worker",
+    "sales": "Sales worker",
+    "hospitality": "Hospitality worker",
+    "retail": "Retail worker",
+    "government": "Government employee",
+    "finance": "Finance professional",
+    "it": "IT professional",
+    "professional": "Professional",
+    "management": "Manager",
+    "self_employed": "Self-employed",
+    "high_school_student": "High-school student",
+    "university_student": "University student",
+    "disabled": "Unable to work",
 }
+
+# Phase 1c-2 (2026-09-22): complication token localization for JA
+# narratives. Pre-fix, the ``_build_progress_note_assessment`` renderer
+# joined ``ctx.complications_occurred`` verbatim ("合併症 delirium、
+# acute_kidney_injury を認識、対応継続中") — the H100 JP p=500 audit
+# surfaced 610 raw-slug occurrences across assessment / treatment_plan
+# sections. Tokens come from disease-YAML ``complications`` lists +
+# in-hospital-new-dx merge; unmapped values still fall back to the slug
+# so a novel complication surfaces something rather than being dropped.
+_COMPLICATION_JA: dict[str, str] = {
+    "delirium": "せん妄",
+    "postoperative_delirium": "術後せん妄",
+    "acute_kidney_injury": "急性腎障害",
+    "aspiration_pneumonia": "誤嚥性肺炎",
+    "seizure": "痙攣発作",
+    "pressure_ulcer": "褥瘡",
+    "dvt": "深部静脈血栓症",
+    "pulmonary_embolism": "肺塞栓症",
+    "cauti": "カテーテル関連尿路感染症",
+    "clabsi": "中心静脈カテーテル関連血流感染症",
+    "central_line_associated_bloodstream_infection": "中心静脈カテーテル関連血流感染症",
+    "surgical_site_infection": "術後創部感染",
+    "hypoglycemia": "低血糖",
+    "hyperkalemia": "高カリウム血症",
+    "hypokalemia": "低カリウム血症",
+    "steroid_hyperglycemia": "ステロイド性高血糖",
+    "sepsis": "敗血症",
+    "bacteremia": "菌血症",
+    "urosepsis": "尿路性敗血症",
+    "gi_bleed": "消化管出血",
+    "myocardial_infarction": "心筋梗塞",
+    "acute_myocardial_infarction": "急性心筋梗塞",
+    "perioperative_cardiac_event": "周術期心血管イベント",
+    "stroke": "脳卒中",
+    "cerebral_infarction": "脳梗塞",
+    "arrhythmia": "不整脈",
+    "shock": "ショック",
+    "atelectasis": "無気肺",
+    "acute_heart_failure": "急性心不全",
+    "heart_failure_exacerbation": "心不全増悪",
+    "bacterial_pneumonia": "細菌性肺炎",
+    "c_diff_colitis": "クロストリジウム・ディフィシル腸炎",
+    "hepatic_dysfunction": "肝機能障害",
+    "rhabdomyolysis": "横紋筋融解症",
+    "renal_abscess": "腎膿瘍",
+    "respiratory_failure": "呼吸不全",
+    "respiratory_failure_requiring_niv": "呼吸不全 (NPPV 適応)",
+    "intubation_required": "気管挿管管理",
+    "copd_exacerbation": "COPD 増悪",
+    "disseminated_intravascular_coagulation": "播種性血管内凝固症候群 (DIC)",
+    "dic": "DIC",
+    "treatment_resistant": "治療抵抗性",
+}
+_COMPLICATION_EN: dict[str, str] = {
+    # EN output prefers spaced full names over snake_case; leave abbreviations
+    # (DVT / CLABSI / CAUTI / DIC) as-is per international convention.
+    "delirium": "delirium",
+    "postoperative_delirium": "postoperative delirium",
+    "acute_kidney_injury": "acute kidney injury",
+    "aspiration_pneumonia": "aspiration pneumonia",
+    "seizure": "seizure",
+    "pressure_ulcer": "pressure ulcer",
+    "dvt": "DVT",
+    "pulmonary_embolism": "pulmonary embolism",
+    "cauti": "CAUTI",
+    "clabsi": "CLABSI",
+    "central_line_associated_bloodstream_infection": "central line-associated bloodstream infection",
+    "surgical_site_infection": "surgical site infection",
+    "hypoglycemia": "hypoglycemia",
+    "hyperkalemia": "hyperkalemia",
+    "hypokalemia": "hypokalemia",
+    "steroid_hyperglycemia": "steroid-induced hyperglycemia",
+    "sepsis": "sepsis",
+    "bacteremia": "bacteremia",
+    "urosepsis": "urosepsis",
+    "gi_bleed": "GI bleed",
+    "myocardial_infarction": "myocardial infarction",
+    "acute_myocardial_infarction": "acute myocardial infarction",
+    "perioperative_cardiac_event": "perioperative cardiac event",
+    "stroke": "stroke",
+    "cerebral_infarction": "cerebral infarction",
+    "arrhythmia": "arrhythmia",
+    "shock": "shock",
+    "atelectasis": "atelectasis",
+    "acute_heart_failure": "acute heart failure",
+    "heart_failure_exacerbation": "heart failure exacerbation",
+    "bacterial_pneumonia": "bacterial pneumonia",
+    "c_diff_colitis": "C. difficile colitis",
+    "hepatic_dysfunction": "hepatic dysfunction",
+    "rhabdomyolysis": "rhabdomyolysis",
+    "renal_abscess": "renal abscess",
+    "respiratory_failure": "respiratory failure",
+    "respiratory_failure_requiring_niv": "respiratory failure requiring NIV",
+    "intubation_required": "intubation required",
+    "copd_exacerbation": "COPD exacerbation",
+    "disseminated_intravascular_coagulation": "disseminated intravascular coagulation (DIC)",
+    "dic": "DIC",
+    "treatment_resistant": "treatment-resistant",
+}
+
+# Phase 1c-2 (2026-09-22): lab-name localization for the vitals+labs
+# fallback line rendered by the chronic-condition assessment loop
+# (``_render_outpatient_chronic_soap`` around line 5625). Pre-fix, that
+# renderer emitted ``lab_by_name`` keys verbatim in lower-case
+# ("本日測定 (BP 100/79 mmHg、HR 69 回/分、glucose 154.0 mg/dL、
+# hba1c 8.9 %)"), leaking 863 raw slugs across the JP p=500 audit.
+# Rule (mirrors ``narrative_seed_bundle`` Rule 5 D): full English words
+# translate to JA; abbreviations (all-caps or ≤6 letters) keep as-is
+# but canonicalize to the standard casing.
+_LAB_NAME_JA: dict[str, str] = {
+    # Full-word labs → translate.
+    "creatinine": "クレアチニン",
+    "glucose": "血糖",
+    "albumin": "アルブミン",
+    "lactate": "乳酸",
+    "sodium": "ナトリウム",
+    "potassium": "カリウム",
+    "chloride": "クロール",
+    "calcium": "カルシウム",
+    "magnesium": "マグネシウム",
+    "phosphorus": "リン",
+    "bilirubin": "ビリルビン",
+    "urea": "尿素",
+    "hemoglobin": "ヘモグロビン",
+    "hematocrit": "ヘマトクリット",
+    "troponin_i": "トロポニンI",
+    "troponin_t": "トロポニンT",
+    "ferritin": "フェリチン",
+    "amylase": "アミラーゼ",
+    "lipase": "リパーゼ",
+    # Abbreviations → canonicalize casing.
+    "alt": "ALT",
+    "ast": "AST",
+    "wbc": "WBC",
+    "rbc": "RBC",
+    "hba1c": "HbA1c",
+    "hb": "Hb",
+    "hct": "Hct",
+    "k": "K",
+    "na": "Na",
+    "cl": "Cl",
+    "ca": "Ca",
+    "mg": "Mg",
+    "crp": "CRP",
+    "tsh": "TSH",
+    "bun": "BUN",
+    "cr": "Cr",
+    "egfr": "eGFR",
+    "ldl": "LDL",
+    "hdl": "HDL",
+    "tc": "TC",
+    "tg": "TG",
+    "tp": "TP",
+    "plt": "Plt",
+    "ldh": "LDH",
+    "alp": "ALP",
+    "pct": "PCT",
+    "bnp": "BNP",
+    "nt_probnp": "NT-proBNP",
+    "pt_inr": "PT-INR",
+    "pt": "PT",
+    "aptt": "APTT",
+    "ph": "pH",
+    "pco2": "PaCO2",
+    "po2": "PaO2",
+    "hco3": "HCO3",
+    "ammonia": "NH3",
+    "ck": "CK",
+    "ldl_c": "LDL-C",
+    "hdl_c": "HDL-C",
+    "gamma_gtp": "γ-GTP",
+}
+_LAB_NAME_EN: dict[str, str] = {
+    # Full-word labs → keep lowercase-first for English prose readability;
+    # abbreviations canonicalize casing.
+    "creatinine": "creatinine",
+    "glucose": "glucose",
+    "albumin": "albumin",
+    "lactate": "lactate",
+    "sodium": "sodium",
+    "potassium": "potassium",
+    "chloride": "chloride",
+    "calcium": "calcium",
+    "magnesium": "magnesium",
+    "phosphorus": "phosphorus",
+    "bilirubin": "bilirubin",
+    "urea": "urea",
+    "hemoglobin": "hemoglobin",
+    "hematocrit": "hematocrit",
+    "troponin_i": "troponin I",
+    "troponin_t": "troponin T",
+    "ferritin": "ferritin",
+    "amylase": "amylase",
+    "lipase": "lipase",
+    "alt": "ALT",
+    "ast": "AST",
+    "wbc": "WBC",
+    "rbc": "RBC",
+    "hba1c": "HbA1c",
+    "hb": "Hb",
+    "hct": "Hct",
+    "k": "K",
+    "na": "Na",
+    "cl": "Cl",
+    "ca": "Ca",
+    "mg": "Mg",
+    "crp": "CRP",
+    "tsh": "TSH",
+    "bun": "BUN",
+    "cr": "Cr",
+    "egfr": "eGFR",
+    "ldl": "LDL",
+    "hdl": "HDL",
+    "tc": "TC",
+    "tg": "TG",
+    "tp": "TP",
+    "plt": "Plt",
+    "ldh": "LDH",
+    "alp": "ALP",
+    "pct": "PCT",
+    "bnp": "BNP",
+    "nt_probnp": "NT-proBNP",
+    "pt_inr": "PT-INR",
+    "pt": "PT",
+    "aptt": "APTT",
+    "ph": "pH",
+    "pco2": "PaCO2",
+    "po2": "PaO2",
+    "hco3": "HCO3",
+    "ammonia": "NH3",
+    "ck": "CK",
+    "ldl_c": "LDL-C",
+    "hdl_c": "HDL-C",
+    "gamma_gtp": "γ-GTP",
+}
+
+
+def _localize_complication(name: str, lang: str) -> str:
+    """Return the localized display for a complication token; fall back to
+    the ``name.replace("_", " ")`` humanised form when the mapping is
+    missing so a novel complication still surfaces something clinically
+    readable rather than a machine slug."""
+    if not name:
+        return ""
+    key = str(name).strip().lower()
+    if not key:
+        return ""
+    table = _COMPLICATION_JA if str(lang).lower().startswith("ja") else _COMPLICATION_EN
+    return table.get(key, key.replace("_", " "))
+
+
+def _localize_lab_name(name: str, lang: str) -> str:
+    """Return the localized display for a lab_name token; fall back to
+    the token as-is when unknown (some sim disease archetypes emit
+    lab_names that predate this table)."""
+    if not name:
+        return ""
+    key = str(name).strip().lower()
+    if not key:
+        return ""
+    table = _LAB_NAME_JA if str(lang).lower().startswith("ja") else _LAB_NAME_EN
+    return table.get(key, name)
+
 
 # SOAP section labels per locale
 _SOAP_JA = ("S（主観）", "O（客観）", "A（評価）", "P（計画）")
@@ -2404,10 +2704,17 @@ class TemplateNarrativeGenerator:
                     )
 
                     _sev = _localize_severity_ja(_sev)
+                # Phase 1c-2 (2026-09-22): the raw disease_id snake_case
+                # token ("bacterial_pneumonia", "acute_myocardial_infarction")
+                # leaked into JA output as「病態: bacterial_pneumonia (中等度)」.
+                # ``_localize_complication`` covers the disease-id vocabulary
+                # too because ``disease_id`` and complication tokens draw
+                # from the same disease-YAML namespace.
+                disease_label = _localize_complication(str(disease), ctx.target_lang)
                 if is_ja:
-                    parts.append(f"病態: {disease} ({_sev})。")
+                    parts.append(f"病態: {disease_label} ({_sev})。")
                 else:
-                    parts.append(f"Working diagnosis: {disease} (severity: {_sev}).")
+                    parts.append(f"Working diagnosis: {disease_label} (severity: {_sev}).")
         # Chronic backdrop — Issue #1333: route CIF base code through
         # map_diagnosis_code so display matches the FHIR emit-target.
         conds = _o(ctx.patient, "chronic_conditions", []) or [] if ctx.patient else []
@@ -3120,15 +3427,19 @@ class TemplateNarrativeGenerator:
             phrases: list[str] = []
             for c in comps[:6]:
                 cid = str(c)
+                # Phase 1c-2 (2026-09-22): localize the complication token
+                # to JA/EN; unmapped values fall back to a humanised
+                # ("_"-stripped) form so novel complications still surface.
+                label = _localize_complication(cid, ctx.target_lang)
                 wd = wd_by_disease.get(cid)
                 onset_day = wd.get("onset_day") if wd else None
                 if onset_day is not None and int(onset_day) > 0:
                     if is_ja:
-                        phrases.append(f"入院第{int(onset_day)}日目 {cid}")
+                        phrases.append(f"入院第{int(onset_day)}日目 {label}")
                     else:
-                        phrases.append(f"{cid} (onset day {int(onset_day)})")
+                        phrases.append(f"{label} (onset day {int(onset_day)})")
                 else:
-                    phrases.append(cid)
+                    phrases.append(label)
             if wds:
                 facts.append("ctx.working_diagnoses")
             if is_ja:
@@ -4290,21 +4601,25 @@ class TemplateNarrativeGenerator:
                 or ""
             )
         comps = list(getattr(ctx, "complications_occurred", []) or [])
+        # Phase 1c-2 (2026-09-22): localize complication tokens (31 leaks
+        # in JP p=500 admission_status audit — "経過中の合併症: urosepsis"
+        # → "経過中の合併症: 尿路性敗血症").
+        comp_labels = [_localize_complication(str(c), ctx.target_lang) for c in comps[:3]]
         parts: list[str] = []
         if is_ja:
             parts.append(f"入院期間: {los}日間。")
             if cc:
                 parts.append(f"入院理由: {cc}。")
-            if comps:
-                parts.append(f"経過中の合併症: {'、'.join(str(c) for c in comps[:3])}。")
+            if comp_labels:
+                parts.append(f"経過中の合併症: {'、'.join(comp_labels)}。")
                 facts.append("ctx.complications_occurred")
             parts.append("退院基準を満たし退院となった。")
         else:
             parts.append(f"Hospital stay: {los} days. ")
             if cc:
                 parts.append(f"Admission reason: {cc}. ")
-            if comps:
-                parts.append(f"Complications: {', '.join(str(c) for c in comps[:3])}. ")
+            if comp_labels:
+                parts.append(f"Complications: {', '.join(comp_labels)}. ")
                 facts.append("ctx.complications_occurred")
             parts.append("Discharge criteria met.")
         return "".join(parts), facts
@@ -4792,14 +5107,20 @@ class TemplateNarrativeGenerator:
         """
         is_ja = ctx.target_lang == "ja"
         parts: list[str] = []
-        # Complications (from record via NarrativeContext v6 field)
+        # Complications (from record via NarrativeContext v6 field).
+        # Phase 1c-2 (2026-09-22): the raw snake_case complication tokens
+        # ("delirium" / "acute_kidney_injury" / "postoperative_delirium"
+        # …) leaked into JA narratives — 610 occurrences in the JP p=500
+        # audit. Route each token through ``_localize_complication`` so JA
+        # output reads 「合併症 せん妄、急性腎障害 を認識」 rather than
+        # 「合併症 delirium、acute_kidney_injury を認識」.
         comps = list(getattr(ctx, "complications_occurred", []) or [])
         if comps:
-            comp_list = ", ".join(str(c) for c in comps[:3])
+            localised = [_localize_complication(str(c), ctx.target_lang) for c in comps[:3]]
             if is_ja:
-                parts.append(f"合併症 {'、'.join(str(c) for c in comps[:3])} を認識、対応継続中。")
+                parts.append(f"合併症 {'、'.join(localised)} を認識、対応継続中。")
             else:
-                parts.append(f"Complications noted ({comp_list}); management ongoing.")
+                parts.append(f"Complications noted ({', '.join(localised)}); management ongoing.")
         # Abnormal labs today — Issue #1154 fix.
         #
         # Prior behaviour: the code read a ``lab.day`` field that real
@@ -5210,14 +5531,17 @@ class TemplateNarrativeGenerator:
             if cc:
                 return cc
 
-        # Complications if any
+        # Complications if any.
+        # Phase 1c-2 (2026-09-22): localize complication tokens (6 leaks
+        # in JP p=500 ed assessment audit — "合併症: acute_kidney_injury"
+        # → "合併症: 急性腎障害").
         comps = list(getattr(ctx, "complications_occurred", []) or [])
         if comps:
-            comp_list = ", ".join(str(c) for c in comps[:3])
+            comp_labels = [_localize_complication(str(c), ctx.target_lang) for c in comps[:3]]
             if is_ja:
-                parts.append(f"合併症: {comp_list}")
+                parts.append(f"合併症: {'、'.join(comp_labels)}")
             else:
-                parts.append(f"Complications: {comp_list}")
+                parts.append(f"Complications: {', '.join(comp_labels)}")
 
         sep = "。" if is_ja else ". "
         return sep.join(parts) + ("。" if is_ja and parts else "" if not parts else ".")
@@ -5622,7 +5946,14 @@ class TemplateNarrativeGenerator:
                                     continue  # skip Nathan-inconsistent glucose
                             except (TypeError, ValueError):
                                 pass
-                        obs_bits.append(f"{name} {v}{f' {u}' if u else ''}")
+                        # Phase 1c-2 (2026-09-22): the JP p=500 audit
+                        # surfaced 863 lowercase lab-name slugs
+                        # ("creatinine 0.69 mg/dL、k 4.9 mmol/L") in
+                        # outpatient assessment fallback lines. Localise
+                        # each name via ``_localize_lab_name`` so JA output
+                        # reads 「クレアチニン 0.69 mg/dL、K 4.9 mmol/L」
+                        # and EN output canonicalises abbreviation casing.
+                        obs_bits.append(f"{_localize_lab_name(name, ctx.target_lang)} {v}{f' {u}' if u else ''}")
                 if obs_bits:
                     joined = ("、" if is_ja else ", ").join(obs_bits[:4])
                     if is_ja:

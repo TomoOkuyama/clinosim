@@ -134,7 +134,12 @@ def test_ed_assessment_includes_complications() -> None:
             complications=["septic_shock"],
         )
     )
-    assert "septic_shock" in out
+    # Phase 1c-2 (2026-09-22): complication tokens are localized —
+    # ``septic_shock`` (not in the canonical vocabulary) humanises to
+    # "septic shock" for EN output (underscores → spaces). Keep the
+    # substring assertion on the humanised form; presence of
+    # "Complications" label unchanged.
+    assert "septic shock" in out
     assert "Complications" in out
 
 

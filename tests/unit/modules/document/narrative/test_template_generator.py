@@ -670,6 +670,80 @@ def test_social_history_unmapped_occupation_falls_through() -> None:
     assert "space_pilot" in social_text
 
 
+# ─────────────────────────────────────────────────────────────────
+# Phase 1c-2 (2026-09-22) — extended template narrative JP localization
+# ─────────────────────────────────────────────────────────────────
+
+
+def test_social_history_localizes_extended_occupation_ja() -> None:
+    """Phase 1c-2: additional occupation vocabulary (construction /
+    agriculture / sales / hospitality / retail / government / finance /
+    it / professional / management / self_employed / high_school_student /
+    university_student / disabled) must render as JA. Pre-fix the H100
+    JP p=500 audit saw 「職業: construction」 leak in admission_hp
+    social_history for one patient."""
+    from clinosim.modules.document.narrative.template_generator import _OCCUPATION_JA
+
+    for raw, ja in [
+        ("construction", "建設業"),
+        ("agriculture", "農業従事者"),
+        ("sales", "販売職"),
+        ("high_school_student", "高校生"),
+        ("university_student", "大学生"),
+        ("self_employed", "自営業"),
+    ]:
+        assert _OCCUPATION_JA.get(raw) == ja, f"occupation {raw!r} not localised: got {_OCCUPATION_JA.get(raw)!r}"
+
+
+def test_localize_complication_ja_covers_common_tokens() -> None:
+    """Phase 1c-2: complication tokens ("delirium" / "acute_kidney_injury"
+    / "postoperative_delirium" / "bacterial_pneumonia" / ...) must
+    localise to JA. Pre-fix the H100 JP p=500 template narrative surfaced
+    610 raw-slug occurrences in assessment / admission_status /
+    hospital_course sections."""
+    from clinosim.modules.document.narrative.template_generator import _localize_complication
+
+    cases = [
+        ("delirium", "せん妄"),
+        ("postoperative_delirium", "術後せん妄"),
+        ("acute_kidney_injury", "急性腎障害"),
+        ("dvt", "深部静脈血栓症"),
+        ("pulmonary_embolism", "肺塞栓症"),
+        ("urosepsis", "尿路性敗血症"),
+        ("bacterial_pneumonia", "細菌性肺炎"),
+        ("c_diff_colitis", "クロストリジウム・ディフィシル腸炎"),
+        ("central_line_associated_bloodstream_infection", "中心静脈カテーテル関連血流感染症"),
+        ("hepatic_dysfunction", "肝機能障害"),
+        ("perioperative_cardiac_event", "周術期心血管イベント"),
+    ]
+    for raw, ja in cases:
+        assert _localize_complication(raw, "ja") == ja, f"{raw!r} missed"
+    # Unmapped tokens humanise (underscores → spaces) instead of raw leak.
+    assert _localize_complication("novel_never_seen_event", "ja") == "novel never seen event"
+
+
+def test_localize_lab_name_ja_covers_common_labs() -> None:
+    """Phase 1c-2: lowercase lab-name slugs ("creatinine" / "glucose" /
+    "hba1c" / "k") in the outpatient assessment vitals-list fallback
+    surfaced 863 times pre-fix. Full-word labs translate; abbreviations
+    canonicalise casing."""
+    from clinosim.modules.document.narrative.template_generator import _localize_lab_name
+
+    # Full words → JA translation.
+    assert _localize_lab_name("creatinine", "ja") == "クレアチニン"
+    assert _localize_lab_name("glucose", "ja") == "血糖"
+    assert _localize_lab_name("albumin", "ja") == "アルブミン"
+    assert _localize_lab_name("lactate", "ja") == "乳酸"
+    # Abbreviations → canonical casing (kept in both JA and EN).
+    assert _localize_lab_name("hba1c", "ja") == "HbA1c"
+    assert _localize_lab_name("k", "ja") == "K"
+    assert _localize_lab_name("crp", "ja") == "CRP"
+    assert _localize_lab_name("egfr", "ja") == "eGFR"
+    assert _localize_lab_name("pt_inr", "ja") == "PT-INR"
+    # Unknown token falls back to the raw name so novel labs still surface.
+    assert _localize_lab_name("mystery_marker", "ja") == "mystery_marker"
+
+
 def test_filter_vitals_for_day_uses_timestamp_when_day_field_missing() -> None:
     """v6 root-cause fix for POP-000075 "T=38.1°C 15日連続同一値" bug.
 
