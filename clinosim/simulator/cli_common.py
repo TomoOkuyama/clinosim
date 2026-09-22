@@ -261,9 +261,11 @@ def _print_debug_record(record: CIFPatientRecord, index: int = 1) -> None:
                 print(f"    {mar.drug_name} ({mar.route})")
                 seen.add(mar.drug_name)
 
-    # Complications
+    # Complications (Phase 1a: entries may be dicts; render names only for the debug print).
     if r.complications_occurred:
-        print(f"\n  Complications: {r.complications_occurred}")
+        from clinosim.simulator.complications import complication_names as _cn
+
+        print(f"\n  Complications: {_cn(r.complications_occurred)}")
 
     # ADL
     if r.adl_assessments:

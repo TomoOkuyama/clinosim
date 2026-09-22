@@ -138,16 +138,31 @@ def test_find_active_picks_most_recent_when_multiple():
 
 
 def test_merge_appends_to_complications_occurred():
+    """Phase 1a: entries are dicts with onset_day / onset_datetime / source."""
+    from clinosim.simulator.complications import complication_names
+
     rec = _make_inpatient_record("POP-1", datetime(2026, 3, 10, 9), datetime(2026, 3, 25, 12))
     _merge_disease_into_active_encounter(rec, "acute_myocardial_infarction", datetime(2026, 3, 15, 12))
-    assert rec.complications_occurred == ["acute_myocardial_infarction"]
+    assert complication_names(rec.complications_occurred) == ["acute_myocardial_infarction"]
+    # Structured shape check: onset_day = 5 (3/15 - 3/10) with source tag.
+    entry = rec.complications_occurred[0]
+    assert entry["onset_day"] == 5
+    assert entry["source"] == "in_hospital_new_disease"
+    assert entry["onset_datetime"].startswith("2026-03-15")
 
 
 def test_merge_is_idempotent_on_complications():
+    """Phase 1a: idempotency dedupes by ``name``; the first entry wins so
+    its onset_day is preserved even if a later merge would have computed a
+    different day."""
+    from clinosim.simulator.complications import complication_names
+
     rec = _make_inpatient_record("POP-1", datetime(2026, 3, 10, 9), datetime(2026, 3, 25, 12))
     _merge_disease_into_active_encounter(rec, "acute_myocardial_infarction", datetime(2026, 3, 15, 12))
     _merge_disease_into_active_encounter(rec, "acute_myocardial_infarction", datetime(2026, 3, 18, 12))
-    assert rec.complications_occurred == ["acute_myocardial_infarction"]
+    assert complication_names(rec.complications_occurred) == ["acute_myocardial_infarction"]
+    # First-entry-wins semantics: onset_day still reflects the first merge.
+    assert rec.complications_occurred[0]["onset_day"] == 5
 
 
 def test_merge_promotes_condition_type_to_mixed():
@@ -426,8 +441,11 @@ def test_handle_overlap_merges_into_earlier_stay_when_detected():
     new_rec.encounters[0].encounter_id = "ENC-POP-1-DELIV"
     result = _handle_overlap_via_merge([prior], new_rec, "delivery_o80")
     assert result is prior
-    # Merge side-effect: disease appended to prior's complications.
-    assert "delivery_o80" in prior.complications_occurred
+    # Merge side-effect: disease appended to prior's complications
+    # (Phase 1a: dict shape with name / onset_day / onset_datetime).
+    from clinosim.simulator.complications import complication_names
+
+    assert "delivery_o80" in complication_names(prior.complications_occurred)
 
 
 def test_handle_overlap_rewrites_companion_admit_source_encounter_id():

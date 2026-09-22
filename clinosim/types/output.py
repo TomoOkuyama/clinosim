@@ -57,7 +57,24 @@ class CIFPatientRecord:
     # Condition & diagnosis (AD-28)
     condition_event: ConditionEvent = field(default_factory=ConditionEvent)
     clinical_diagnosis: ClinicalDiagnosis = field(default_factory=ClinicalDiagnosis)
-    complications_occurred: list[str] = field(default_factory=list)
+    complications_occurred: list[dict[str, Any] | str] = field(default_factory=list)
+    """Adverse events / mid-admission complications recorded during the stay.
+
+    Schema (2026-09-22, Phase 1a): each entry is a dict of shape
+    ``{"name": str, "onset_day": int | None, "onset_datetime": str | None,
+    "source": str}`` where ``onset_day`` is 0-indexed calendar days from
+    admission (matches ``ClinicalDiagnosis.working_diagnoses[i].onset_day``
+    and ``NarrativeContext.day_index``) and ``source`` is one of
+    ``"daily_loop"`` / ``"in_hospital_new_disease"`` / ``"lab_derived"`` /
+    ``"scenario_forced"`` / ``"legacy"``.
+
+    Backward compat: the type annotation retains ``str`` so pre-Phase-1
+    CIF JSON files (v0.6.x releases and older dataset artefacts) still
+    load. Downstream reads MUST route through ``_normalize_complication``
+    (``clinosim.simulator.complications``) which coerces both str and
+    dict forms to the canonical dict shape. Producers should ALWAYS
+    write the dict form.
+    """
     procedures: list[ProcedureRecord] = field(default_factory=list)
     rehab_sessions: list[RehabSession] = field(default_factory=list)
     documents: list[ClinicalDocument] = field(default_factory=list)  # ClinicalDocument stubs (text="" in Stage 1)
