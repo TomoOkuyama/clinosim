@@ -959,6 +959,10 @@ _ALCOHOL_LABELS: dict[str, tuple[str, str]] = {
     "none": ("飲酒なし", "non-drinker"),
     "never": ("飲酒なし", "non-drinker"),
     "occasional": ("機会飲酒", "occasional alcohol"),
+    "social": (
+        "機会飲酒",
+        "social drinker",
+    ),  # Phase 1c-1: PatientProfile.alcohol_use canonical value (none/social/heavy)
     "light": ("少量飲酒", "light alcohol use"),
     "moderate": ("中等度飲酒", "moderate alcohol use"),
     "heavy": ("多量飲酒", "heavy alcohol use"),
@@ -971,6 +975,18 @@ _MARITAL_LABELS: dict[str, tuple[str, str]] = {
     "widowed": ("死別", "widowed"),
     "separated": ("別居", "separated"),
     "partnered": ("内縁", "partnered"),
+    # Phase 1c-1 (2026-09-22): PatientProfile.marital_status is generated
+    # as a single-letter code (M / S / D / W / P) by the demographics
+    # populator; the JP p=500 audit found ~600 patients carried these
+    # short codes verbatim into the LLM prompt because ``_localize_token``
+    # lower-cases them to "m"/"s"/"d"/"w" which have no match and then
+    # falls back to the raw slug ("s"). Alias each short code to its full
+    # form so the same JA/EN labels apply.
+    "m": ("既婚", "married"),
+    "s": ("独身", "single"),
+    "d": ("離婚", "divorced"),
+    "w": ("死別", "widowed"),
+    "p": ("内縁", "partnered"),
 }
 _EMPLOYMENT_LABELS: dict[str, tuple[str, str]] = {
     "employed": ("就業中", "employed"),
@@ -980,6 +996,49 @@ _EMPLOYMENT_LABELS: dict[str, tuple[str, str]] = {
     "student": ("学生", "student"),
     "homemaker": ("主婦・主夫", "homemaker"),
     "disabled": ("就労困難", "unable to work (disability)"),
+}
+
+# Phase 1c-1 (2026-09-22): PatientProfile.occupation is a free-form string
+# but the demographics populator draws from a fixed vocabulary (see
+# ``clinosim/modules/patient/activator.py`` and the JP/US demographics
+# yaml). Without a localization table the raw enum token (e.g. "service",
+# "manufacturing", "office") leaked verbatim into JP narratives:
+# 「32歳男性、service、非喫煙、s、dependent」in the JP p=500 audit.
+# The tables below cover every occupation value observed across US +
+# JP p=500 cohorts plus common values that also appear in the demographics
+# yaml. Unknown tokens still fall back to the slug via ``_localize_token``.
+_OCCUPATION_LABELS: dict[str, tuple[str, str]] = {
+    "office": ("事務職", "office worker"),
+    "service": ("サービス業", "service industry"),
+    "healthcare": ("医療従事者", "healthcare worker"),
+    "manufacturing": ("製造業", "manufacturing worker"),
+    "construction": ("建設業", "construction worker"),
+    "agriculture": ("農業従事者", "agricultural worker"),
+    "transportation": ("運輸業", "transportation worker"),
+    "sales": ("販売職", "sales worker"),
+    "hospitality": ("接客業", "hospitality worker"),
+    "retail": ("小売業", "retail worker"),
+    "education": ("教育関係者", "educator"),
+    "government": ("公務員", "government employee"),
+    "finance": ("金融業", "finance professional"),
+    "it": ("IT 関係者", "IT professional"),
+    "professional": ("専門職", "professional"),
+    "management": ("管理職", "manager"),
+    "self_employed": ("自営業", "self-employed"),
+    "preschool": ("未就学児", "preschooler"),
+    "elementary_student": ("小学生", "elementary school student"),
+    "middle_student": ("中学生", "middle school student"),
+    "middle_school_student": ("中学生", "middle school student"),
+    "high_student": ("高校生", "high school student"),
+    "high_school_student": ("高校生", "high school student"),
+    "university_student": ("大学生", "university student"),
+    "student": ("学生", "student"),
+    "infant": ("乳幼児", "infant"),
+    "homemaker": ("主婦・主夫", "homemaker"),
+    "retired": ("退職", "retired"),
+    "unemployed": ("無職", "unemployed"),
+    "disabled": ("就労困難", "unable to work"),
+    "other": ("その他", "other"),
 }
 _RACE_LABELS: dict[str, tuple[str, str]] = {
     # US OMB race categories (PatientProfile.race, US-only per patient.py:211).
@@ -997,7 +1056,7 @@ _ETHNICITY_LABELS: dict[str, tuple[str, str]] = {
     "not_hispanic": ("非ヒスパニック", "not Hispanic or Latino"),
 }
 _INSURANCE_LABELS: dict[str, tuple[str, str]] = {
-    # US
+    # US (canonical schema names)
     "employer_group": ("雇用主提供保険", "employer-sponsored"),
     "medicare": ("Medicare", "Medicare"),
     "medicaid": ("Medicaid", "Medicaid"),
@@ -1007,11 +1066,33 @@ _INSURANCE_LABELS: dict[str, tuple[str, str]] = {
     "self_pay": ("自費", "self-pay"),
     "chip": ("CHIP", "CHIP"),
     "dual_eligible": ("Medicare + Medicaid 二重加入", "Medicare + Medicaid (dual eligible)"),
-    # JP
+    # Phase 1c-1 (2026-09-22): US demographics populator writes these
+    # additional insurance_type values that the pre-fix table did not
+    # cover — the raw slug leaked into JP narratives ("uninsured",
+    # "private_employer" etc. staying English inside JA text).
+    "private_employer": ("雇用主提供民間保険", "employer-sponsored private insurance"),
+    "medicare_plus_private": ("Medicare + 補足民間保険", "Medicare with supplemental private"),
+    "medicare_medicaid": ("Medicare + Medicaid 二重加入", "Medicare + Medicaid (dual eligible)"),
+    "private": ("民間保険", "private insurance"),
+    "uninsured": ("無保険", "uninsured"),
+    "other_public": ("その他公的保険", "other public insurance"),
+    # JP (canonical + short-form aliases)
     "employee_subscriber": ("被用者保険 (被保険者)", "employee health insurance (subscriber)"),
     "employee_dependent": ("被用者保険 (被扶養者)", "employee health insurance (dependent)"),
     "national_health_insurance": ("国民健康保険", "National Health Insurance"),
     "late_elderly": ("後期高齢者医療制度", "Late-Elderly Medical Care System"),
+    # Phase 1c-1 short forms — the JP identity module (`identity/providers/jp.py`)
+    # writes `dependent` / `employee` / `national` on PatientProfile.insurance_type,
+    # NOT the canonical `employee_dependent` / `national_health_insurance` slugs.
+    # 200/600 JP p=500 patients carried "dependent" verbatim to the LLM prompt
+    # pre-fix. `NHI_employee` is the pre-Phase-1c dataclass default.
+    "employee": ("被用者保険 (被保険者)", "employee health insurance (subscriber)"),
+    "dependent": ("被用者保険 (被扶養者)", "employee health insurance (dependent)"),
+    "national": ("国民健康保険", "National Health Insurance"),
+    # Table lookup normalizes the key to lower-case (see ``_localize_token``),
+    # so `NHI_employee` must live under the lower-case slug or it falls
+    # through to the raw-slug fallback ("nhi employee" leaking into JA).
+    "nhi_employee": ("国民健康保険 (被用者相当)", "National Health Insurance (employee-eligible)"),
 }
 
 
@@ -1105,17 +1186,29 @@ def _render_patient_demographics(patient: Any, lang: str, encounter: Any = None)
 
     # Employment (retired / employed / …) — retired matters for
     # discharge-planning + adherence context.
+    #
+    # Phase 1c-1 (2026-09-22): the occupation branches previously
+    # appended ``str(occupation)`` raw, so JP narratives received the
+    # English enum token verbatim ("service"、"manufacturing"、"office"
+    # …). Route both branches through ``_localize_token`` /
+    # ``_OCCUPATION_LABELS`` — unknown tokens still fall back to the
+    # slug so novel occupations (not yet in the table) surface something
+    # rather than silently disappearing.
     employment = _localize_token(_get(patient, "employment_status", ""), _EMPLOYMENT_LABELS, lang)
-    occupation = _get(patient, "occupation", "") or ""
+    occupation_raw = _get(patient, "occupation", "") or ""
+    occupation_label = _localize_token(occupation_raw, _OCCUPATION_LABELS, lang) if occupation_raw else ""
     if employment:
         # If occupation is present AND employment==employed, prefer the
-        # occupation phrase; else use the employment label.
-        if occupation and employment in ("就業中", "employed"):
-            parts.append(str(occupation) if is_ja else str(occupation))
+        # occupation phrase; else use the employment label. Retirees
+        # already carry occupation="retired" which resolves to the same
+        # "退職" / "retired" label — dedupe by preferring employment
+        # in that case.
+        if occupation_label and employment in ("就業中", "employed"):
+            parts.append(occupation_label)
         else:
             parts.append(employment)
-    elif occupation:
-        parts.append(str(occupation))
+    elif occupation_label:
+        parts.append(occupation_label)
 
     # Smoking / alcohol — social history.
     smoke = _localize_token(_get(patient, "smoking_status", ""), _SMOKING_LABELS, lang)
