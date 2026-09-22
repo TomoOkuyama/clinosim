@@ -54,7 +54,7 @@ jobs:
         with:
           python-version: "3.12"
       - name: Set up uv
-        uses: astral-sh/setup-uv@v6
+        uses: astral-sh/setup-uv@v7
         with:
           enable-cache: true
           cache-dependency-glob: pyproject.toml
@@ -72,7 +72,7 @@ jobs:
         with:
           python-version: "3.11"
       - name: Set up uv
-        uses: astral-sh/setup-uv@v6
+        uses: astral-sh/setup-uv@v7
         with:
           enable-cache: true
           cache-dependency-glob: pyproject.toml
@@ -97,7 +97,7 @@ jobs:
         with:
           python-version: "3.12"
       - name: Set up uv
-        uses: astral-sh/setup-uv@v6
+        uses: astral-sh/setup-uv@v7
         with:
           enable-cache: true
           cache-dependency-glob: pyproject.toml
@@ -156,7 +156,7 @@ jobs:
         with:
           python-version: "3.12"
       - name: Set up uv
-        uses: astral-sh/setup-uv@v6
+        uses: astral-sh/setup-uv@v7
         with:
           enable-cache: true
           cache-dependency-glob: pyproject.toml
@@ -171,7 +171,7 @@ jobs:
           pytest tests/integration --store-durations -n 2 --dist=worksteal \
             -q --tb=no --no-cov
       - name: Open PR if .test_durations changed
-        uses: peter-evans/create-pull-request@v7
+        uses: peter-evans/create-pull-request@v8
         with:
           # GITHUB_TOKEN suffices for same-repo PRs; no PAT needed.
           commit-message: |
@@ -222,7 +222,7 @@ jobs:
         with:
           python-version: "3.12"
       - name: Set up uv
-        uses: astral-sh/setup-uv@v6
+        uses: astral-sh/setup-uv@v7
         with:
           enable-cache: true
           cache-dependency-glob: pyproject.toml
