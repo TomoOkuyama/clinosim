@@ -1595,39 +1595,66 @@ def _build_extra_context(
         # narrative can say "入院第30日目に急性心筋梗塞を発症" instead of
         # listing the disease as if it had been an admission-day finding.
         #
-        # Temporal-leak filter (2026-09-22): the pre-filter code
-        # unconditionally surfaced every complication + every dated new-dx
-        # to every LLM call, including day-N progress_notes. Prompt Rule 2
-        # requires the LLM to surface every listed complication → a day-1
-        # progress note for an encounter whose N17.9 AKI onsets on day 13
-        # would narrate "入院初日に急性腎障害が発症" — physically
-        # impossible from the writer's day-1 vantage. Measured leak rates
-        # in the v0.6.3 JP p=10000 llm-polished cohort:
+        # Temporal-leak filter (Phase 0 2026-09-22 → Phase 1b 2026-09-22):
+        # the pre-filter code unconditionally surfaced every complication
+        # + every dated new-dx to every LLM call, including day-N
+        # progress_notes. Prompt Rule 2 requires the LLM to surface every
+        # listed complication → a day-1 progress note for an encounter
+        # whose N17.9 AKI onsets on day 13 would narrate "入院初日に急性
+        # 腎障害が発症" — physically impossible from the writer's day-1
+        # vantage. v0.6.3 JP p=10000 llm-polished audit measured:
         #   - working_diagnoses onset_day >= 2 encounters:  10.1% of
-        #     pre-onset docs mention the future dx (190/1874)
+        #     pre-onset docs mention the future dx (190/1874) → closed
+        #     by PR #1452 (Phase 0).
         #   - complications_occurred string-name entries (no onset):
-        #     49% of day-1 notes mention the complication (905/1841)
-        # The fix applies a two-part filter:
-        #   (a) dated entries (onset_day known): drop when onset_day >
-        #       writing_day.
-        #   (b) undated entries (bare string, no matching working_dx):
-        #       drop when writing_day is not None (i.e. day-scoped or
-        #       admission-scoped doc). Retained for whole-stay scope
-        #       (discharge_summary / death_* / referral_note) where the
-        #       writer legitimately knows the timeline.
+        #     49.2% of day-1 notes mention the complication (905/1841)
+        #     → Phase 1b closes for daily_loop-source entries because
+        #     they now carry onset_day directly (Phase 1a schema); the
+        #     conservative undated-entry drop stays for the tiny legacy
+        #     tail (source="legacy") that still lacks onset_day.
         # Rule 2 stays unchanged — the LLM still surfaces every complication
         # it sees; correctness now lives in what the CONTEXT contains.
+        events = list(getattr(ctx, "complications_events", []) or [])
         _wds = list(getattr(ctx, "working_diagnoses", []) or [])
         _onset_by_disease = {
             str(wd.get("disease_id", "")): wd.get("onset_day")
             for wd in _wds
             if isinstance(wd, dict) and wd.get("onset_day") is not None
         }
+        # Merge onset info from complications_events (Phase 1a schema —
+        # every dict entry carries its own onset_day when known). For a
+        # complication that appears in both the daily-loop and the
+        # working_diagnoses paths (some paths cross-write) the events
+        # onset wins because it is source-of-truth for the dispatching
+        # producer.
+        _onset_from_events: dict[str, int | None] = {}
+        for evt in events:
+            if not isinstance(evt, dict):
+                continue
+            n = str(evt.get("name") or "")
+            if not n:
+                continue
+            od = evt.get("onset_day")
+            if od is None:
+                _onset_from_events.setdefault(n, None)
+            else:
+                _onset_from_events[n] = int(od)
+
+        def _onset_of(name: str) -> int | None:
+            """Return the earliest known onset_day for ``name`` (Phase 1b:
+            events schema is primary, working_diagnoses is the fallback)."""
+            if name in _onset_from_events and _onset_from_events[name] is not None:
+                return _onset_from_events[name]
+            wd_onset = _onset_by_disease.get(name)
+            if wd_onset is not None:
+                return int(wd_onset)
+            return None
+
         writing_day = _writing_day_of(spec, ctx)
         _phrases: list[str] = []
         for c in complications[:10]:
             cid = str(c)
-            onset = _onset_by_disease.get(cid)
+            onset = _onset_of(cid)
             if onset is not None:
                 if writing_day is not None and int(onset) > writing_day:
                     continue  # future event, not yet occurred at writing time
@@ -1636,19 +1663,19 @@ def _build_extra_context(
                 else:
                     _phrases.append(cid)
             else:
-                # Undated complication string (typical shape, e.g.
-                # "aspiration_pneumonia" from the daily loop). Without
-                # an onset_day we cannot safely place it in a day-scoped
-                # or admission-scoped narrative — surfacing it there
-                # would let the LLM claim a same-day / earlier onset
-                # that the CIF does not support. Retain for whole-stay
-                # scope only.
+                # Undated entry (no matching events/working_diagnoses
+                # onset). After Phase 1a producers this is only the
+                # ``source="legacy"`` tail — pre-Phase-1 CIF JSON we still
+                # read for backward compat. Retain for whole-stay scope
+                # only; a day-scoped or admission-scoped narrative cannot
+                # safely place an untimed event on the writer's clock.
                 if writing_day is None:
                     _phrases.append(cid)
         if _phrases:
             extra["complications_during_stay"] = "; ".join(_phrases)
-        # in_hospital_new_diagnoses always carries onset_day by construction;
-        # apply the same day filter so day-N notes never see future new dx.
+        # in_hospital_new_diagnoses: the working_diagnoses list carries
+        # dated in-hospital new-dx entries. Filter by writing_day so day-N
+        # notes never see future new dx.
         filtered_new_dx = [
             f"{did} on hospital day {int(od)}"
             for did, od in _onset_by_disease.items()

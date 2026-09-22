@@ -247,15 +247,28 @@ class NarrativeContext:
     #
     # 2026-09-22 (Phase 1a): the on-disk CIF now stores structured dicts
     # with ``onset_day`` / ``onset_datetime`` / ``source`` (see
-    # ``types/output.py::CIFPatientRecord.complications_occurred``), but
-    # this narrative-facing field remains a plain ``list[str]`` for
-    # backward compat — the ctx build sites in ``narrative/context.py``
-    # and ``narrative/passes.py`` project the CIF dict list down to
-    # names via ``clinosim.simulator.complications.complication_names``.
-    # Phase 1b will lift this to ``list[dict]`` so LLM prompts and
-    # template renderers can consume ``onset_day`` directly (closes the
-    # Channel A undated-string leak for day-scoped documents).
+    # ``types/output.py::CIFPatientRecord.complications_occurred``). This
+    # narrative-facing field remains a plain ``list[str]`` so the eight
+    # template_generator consumers (`_build_hospital_course`,
+    # `_render_progress_note_assessment`, etc.) that iterate over the
+    # tokens are untouched. See ``complications_events`` below for the
+    # dict-carrying twin field that the LLM prompt path
+    # (``replacement_strategy._build_extra_context``) reads directly for
+    # temporal filtering — the Phase 1b close-out of the 49% Channel A
+    # undated-string leak.
     complications_occurred: list[str] = field(default_factory=list)
+
+    # 2026-09-22 (Phase 1b): full-fidelity twin of ``complications_occurred``.
+    # Each entry is a canonical complication dict (see
+    # ``clinosim.simulator.complications._normalize_complication``) carrying
+    # ``onset_day`` / ``onset_datetime`` / ``source`` so consumers that
+    # need writing-time filtering (LLM prompt context) can read timing
+    # directly rather than falling back to the ``working_diagnoses``
+    # cross-lookup that Phase 0 relied on. Bare-string legacy CIF entries
+    # normalize to ``source="legacy"`` with ``onset_day=None`` — those
+    # remain filtered out for day-scoped documents (safe conservative
+    # default matching the Phase 0 fix).
+    complications_events: list[dict[str, Any]] = field(default_factory=list)
 
     # === Issue #1066 (drug_safety, session 99) ===
     # Encounter-filtered projection of PatientProfile.safety_skip_log entries.

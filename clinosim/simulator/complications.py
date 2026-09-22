@@ -86,6 +86,19 @@ def _normalize_complication(entry: Any) -> dict[str, Any]:
     }
 
 
+def normalized_complications(entries: list[Any] | None) -> list[dict[str, Any]]:
+    """Return every entry coerced to the canonical dict shape.
+
+    Used by narrative context builders that need the full event payload
+    (``onset_day`` for temporal filtering, ``source`` for provenance)
+    rather than just the names — see
+    ``NarrativeContext.complications_events``.
+    """
+    if not entries:
+        return []
+    return [_normalize_complication(e) for e in entries]
+
+
 def complication_names(entries: list[Any] | None) -> list[str]:
     """Return just the ``name`` field of each entry (legacy read path).
 
