@@ -162,11 +162,27 @@ def enrich_discontinue_flip(ctx: EnricherContext) -> None:
                     # the DISCONTINUE marker's bare drug name — narrative
                     # cites the drug + dose for clinical specificity
                     # ("Cefazolin 2g" > "Cefazolin").
+                    # Phase 1c-3 (2026-09-22): fall through to
+                    # ``_localize_drug_name`` when the order carries no
+                    # explicit ``display_name_ja`` (most treatment_
+                    # modifications entries don't). Pre-fix
+                    # "Ampicillin/Sulbactam" / "Ceftriaxone" leaked as
+                    # the raw English display in the JA plan-section
+                    # narratives. Uses the same shared drug_names_ja
+                    # table the FHIR emit path uses.
+                    _ja_display = getattr(o, "display_name_ja", "") or ""
+                    if not _ja_display:
+                        try:
+                            from clinosim.modules.output.fhir_r4.lib.localization import _localize_drug_name
+
+                            _ja_display = _localize_drug_name(display, "JP") or display
+                        except Exception:  # noqa: BLE001 — never fail the enricher on i18n
+                            _ja_display = display
                     _log_treatment_change(
                         patient,
                         encounter_id=encounter_id,
                         stopped_drug=display,
-                        stopped_drug_ja=getattr(o, "display_name_ja", "") or display,
+                        stopped_drug_ja=_ja_display,
                         replacement_agent=replacement,
                         stop_day=stop_day,
                         clinical_intent=marker_intent,
@@ -357,6 +373,23 @@ def _log_treatment_change(
         substitution_hint=replacement_agent,
     )
     ts = timestamp.isoformat() if hasattr(timestamp, "isoformat") else str(timestamp or "")
+    # Phase 1c-3 (2026-09-22): resolve the replacement-agent drug name to
+    # katakana JA via the shared ``drug_names_ja`` table so the narrative
+    # renderer's ``substituted_with_ja`` clause emits 「メロペネム 1g 静注
+    # 8時間毎」 rather than the raw English "Meropenem 1g IV q8h" that
+    # leaked into 46 JP p=500 plan-section narratives pre-fix.
+    # ``_localize_drug_name`` is the same helper the FHIR emit path uses;
+    # it handles substring drug + dose/route/frequency term translation.
+    # Note: ``stopped_drug_ja`` is already resolved at the caller
+    # (order.display_name_ja) so we do NOT re-localise it here.
+    replacement_ja = replacement_agent
+    if replacement_agent:
+        try:
+            from clinosim.modules.output.fhir_r4.lib.localization import _localize_drug_name
+
+            replacement_ja = _localize_drug_name(replacement_agent, "JP") or replacement_agent
+        except Exception:  # noqa: BLE001 — never fail the enricher on i18n
+            replacement_ja = replacement_agent
     patient.safety_skip_log.append(
         SafetySkipEntry(
             encounter_id=encounter_id,
@@ -366,9 +399,7 @@ def _log_treatment_change(
             active_conflict_ja=conflict_ja,
             verdict=verdict,
             substituted_with=replacement_agent,
-            # display_name_ja for the replacement could be resolved via
-            # drug_safety lookup; keep the raw display for now.
-            substituted_with_ja=replacement_agent,
+            substituted_with_ja=replacement_ja,
             context_hint=clinical_intent or "treatment_modifications switch",
             timestamp=ts,
             event_type="switch",
