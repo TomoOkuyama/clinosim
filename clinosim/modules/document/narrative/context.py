@@ -6,7 +6,7 @@ from typing import Any
 
 from clinosim.modules._shared import get_attr_or_key as _o
 from clinosim.modules._shared import resolve_lang
-from clinosim.simulator.complications import complication_names
+from clinosim.simulator.complications import complication_names, normalized_complications
 from clinosim.types.document import DocumentType, NarrativeContext
 
 
@@ -69,11 +69,12 @@ def build_narrative_context(
         target_lang=lang,
         locale=locale,
         # Phase 1a: the CIF field carries structured dict entries (name +
-        # onset_day + onset_datetime + source) but NarrativeContext still
-        # exposes a bare-string list for backward compat with the existing
-        # template + LLM consumers. Phase 1b will lift the ctx type to
-        # dicts so consumers can filter by onset_day directly.
+        # onset_day + onset_datetime + source). ``complications_occurred``
+        # stays a bare-string list to keep the template_generator consumers
+        # untouched; ``complications_events`` is the dict-carrying twin
+        # that the LLM prompt path reads for temporal filtering (Phase 1b).
         complications_occurred=complication_names(_o(record, "complications_occurred", []) or []),
+        complications_events=normalized_complications(_o(record, "complications_occurred", []) or []),
         # Issue #848: intra-admission new-disease diagnoses from
         # ``engine._merge_disease_into_active_encounter``. Extracted from
         # ``record.clinical_diagnosis.working_diagnoses`` (populated only
