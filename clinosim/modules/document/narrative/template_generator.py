@@ -1891,7 +1891,7 @@ class TemplateNarrativeGenerator:
         facts: list[str] = []
         lang = ctx.target_lang
         is_ja = lang == "ja"
-        fallback = "発熱・全身倦怠感" if is_ja else "Chief complaint not specified"
+        fallback = t("chief_complaint.hpi_fallback", lang)
 
         # Precompute the disease canonical CC — used to decide whether the
         # raw encounter CC is a disease default (variant-eligible) or a
@@ -3008,7 +3008,6 @@ class TemplateNarrativeGenerator:
 
         facts: list[str] = []
         lang = ctx.target_lang
-        is_ja = lang == "ja"
         diagnoses = ctx.diagnoses or []
         if not diagnoses:
             return t("section_none.admission_diagnoses", lang), facts
@@ -3026,7 +3025,7 @@ class TemplateNarrativeGenerator:
             )
             display = code_lookup(system, code, ctx.target_lang)
             if display and display != code:
-                lines.append(f"{idx}. {display}（{code}）" if is_ja else f"{idx}. {display} ({code})")
+                lines.append(t("list_item.numbered_dx_with_code", lang, idx=idx, display=display, code=code))
             else:
                 lines.append(f"{idx}. {code}")
         if not lines:
@@ -3161,7 +3160,7 @@ class TemplateNarrativeGenerator:
             )
             display = code_lookup(system, code, ctx.target_lang)
             if display and display != code:
-                dx_lines.append(f"{idx}. {display}（{code}）" if is_ja else f"{idx}. {display} ({code})")
+                dx_lines.append(t("list_item.numbered_dx_with_code", lang, idx=idx, display=display, code=code))
             else:
                 dx_lines.append(f"{idx}. {code}")
         if dx_lines:
@@ -3338,7 +3337,7 @@ class TemplateNarrativeGenerator:
             resolved_system = system_key_for("diagnosis", "JP") if is_ja else system
             display = code_lookup(resolved_system, code, ctx.target_lang)
             if display and display != code:
-                history_lines.append(f"- {display}（{code}）" if is_ja else f"- {display} ({code})")
+                history_lines.append(t("list_item.bullet_dx_with_code", lang, display=display, code=code))
             else:
                 history_lines.append(f"- {code}")
         if chronic:
@@ -3531,7 +3530,6 @@ class TemplateNarrativeGenerator:
 
         facts: list[str] = []
         lang = ctx.target_lang
-        is_ja = lang == "ja"
 
         diagnoses = ctx.diagnoses or []
         if not diagnoses:
@@ -3552,7 +3550,7 @@ class TemplateNarrativeGenerator:
             )
             display = code_lookup(system, code, ctx.target_lang)
             if display and display != code:
-                parts.append(f"{display}（{code}）" if is_ja else f"{display} ({code})")
+                parts.append(t("list_item.inline_dx_with_code", lang, display=display, code=code))
             else:
                 parts.append(code)
 
@@ -3947,7 +3945,7 @@ class TemplateNarrativeGenerator:
         if nurse_id:
             facts.append("encounter.primary_nurse_id")
             nurse_disp = _resolve_staff_name(nurse_id, ctx.roster_map, is_ja)
-            parts.append(f"担当看護師: {nurse_disp}。" if is_ja else f"Assigned nurse: {nurse_disp}. ")
+            parts.append(t("admission_status.assigned_nurse", lang, name=nurse_disp))
         cc = ""
         if ctx.encounter is not None:
             cc = (
@@ -3956,7 +3954,7 @@ class TemplateNarrativeGenerator:
                 or ""
             )
         if cc:
-            parts.append(f"入院目的: {cc}。" if is_ja else f"Admission reason: {cc}. ")
+            parts.append(t("admission_status.admission_reason", lang, cc=cc))
         # Chronic summary — Issue #1333: route CIF base code through
         # map_diagnosis_code so display matches the FHIR emit-target.
         from clinosim.codes import lookup as _code_lookup
@@ -3985,7 +3983,7 @@ class TemplateNarrativeGenerator:
         if allergies:
             first_allergen = _o(allergies[0], "substance", None) or _o(allergies[0], "name", None) or ""
             if first_allergen:
-                parts.append(f"アレルギー: {first_allergen}。" if is_ja else f"Allergy: {first_allergen}. ")
+                parts.append(t("admission_status.allergy_first", lang, allergen=first_allergen))
         if len(parts) <= 1:
             parts.append(_NURSING_HISTORY_FALLBACK_JA if is_ja else _NURSING_HISTORY_FALLBACK_EN)
         facts.extend(["ctx.encounter.chief_complaint", "ctx.patient.chronic_conditions"])
@@ -4007,15 +4005,15 @@ class TemplateNarrativeGenerator:
         facts.append("ctx.adl_assessments[-1]")
         # Barthel band interpretation (standard)
         if barthel >= 91:
-            band = "自立" if is_ja else "independent"
+            band = t("barthel_band.independent", lang)
         elif barthel >= 61:
-            band = "軽度介助" if is_ja else "minimal assistance"
+            band = t("barthel_band.minimal_assist", lang)
         elif barthel >= 41:
-            band = "中等度介助" if is_ja else "moderate assistance"
+            band = t("barthel_band.moderate_assist", lang)
         elif barthel >= 21:
-            band = "重度介助" if is_ja else "severe dependence"
+            band = t("barthel_band.severe_dependence", lang)
         else:
-            band = "全介助" if is_ja else "total care"
+            band = t("barthel_band.total_care", lang)
         detail_parts = []
         for k, ja_label in [("feeding", "食事"), ("bathing", "入浴"), ("mobility", "移動"), ("toilet_use", "排泄")]:
             v = _o(latest, k, None)
@@ -4048,15 +4046,15 @@ class TemplateNarrativeGenerator:
         if braden is not None:
             # Braden risk bands: >18 low / 15-18 mild / 13-14 moderate / 10-12 high / ≤9 severe
             if braden >= 19:
-                bband = "低リスク" if is_ja else "low"
+                bband = t("morse_band.low", lang)
             elif braden >= 15:
-                bband = "軽度リスク" if is_ja else "mild"
+                bband = t("morse_band.mild", lang)
             elif braden >= 13:
-                bband = "中等度リスク" if is_ja else "moderate"
+                bband = t("morse_band.moderate", lang)
             elif braden >= 10:
-                bband = "高リスク" if is_ja else "high"
+                bband = t("morse_band.high", lang)
             else:
-                bband = "重度リスク" if is_ja else "severe"
+                bband = t("morse_band.severe", lang)
             parts.append(
                 f"褥瘡リスク (Braden {braden}/23): {bband}"
                 if is_ja
@@ -4070,7 +4068,7 @@ class TemplateNarrativeGenerator:
             if is_ja:
                 _fall_ja = {"low": "低リスク", "moderate": "中等度リスク", "high": "高リスク"}
                 lvl = _fall_ja.get(str(lvl).lower(), lvl)
-            parts.append(f"転倒リスク (Morse {morse}): {lvl}" if is_ja else f"Fall (Morse {morse}): {lvl}")
+            parts.append(t("fall_risk.morse_score_line", lang, morse=morse, level=lvl))
         if not parts:
             return (_RISK_FALLBACK_JA if is_ja else _RISK_FALLBACK_EN), facts
         return ("。".join(parts) + "。") if is_ja else (". ".join(parts) + "."), facts
@@ -4100,7 +4098,7 @@ class TemplateNarrativeGenerator:
             latest = risks[-1]
             fall = _o(latest, "fall_risk_level", None)
             if fall and str(fall).lower() in ("high", "moderate"):
-                fr = "転倒リスク" if is_ja else "fall risk"
+                fr = t("fall_risk.short_label", lang)
                 if fr not in dx_labels:
                     dx_labels.append(fr)
                     if "ctx.nursing_risk_assessments" not in facts:
@@ -4220,7 +4218,6 @@ class TemplateNarrativeGenerator:
 
         facts: list[str] = []
         lang = ctx.target_lang
-        is_ja = lang == "ja"
         diagnoses = ctx.diagnoses or []
         if not diagnoses:
             return self._build_chief_complaint(ctx)
@@ -4240,7 +4237,7 @@ class TemplateNarrativeGenerator:
             )
             display = code_lookup(system, code, ctx.target_lang)
             if display and display != code:
-                parts.append(f"{display}（{code}）" if is_ja else f"{display} ({code})")
+                parts.append(t("list_item.inline_dx_with_code", lang, display=display, code=code))
             else:
                 parts.append(code)
 
