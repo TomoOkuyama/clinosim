@@ -534,52 +534,10 @@ _RP_POLICY_FALLBACK_EN = (
 # ``day_index`` so consecutive days differ. Every phrase describes the
 # day's clinical hold without asserting an unmodeled symptom — a nurse's
 # neutral-observation vocabulary, not fabrication.
-_INPATIENT_SUBJECTIVE_POOL_JA: dict[str, tuple[str, ...]] = {
-    "early": (
-        "自覚症状に著変なし。",
-        "入院直後、症状経過安定。",
-        "初期治療への忍容性良好。",
-    ),
-    "mid": (
-        "自覚症状に著変なし。",
-        "全身状態安定、経過観察継続。",
-        "食事摂取良好、明らかな苦痛の訴えなし。",
-        "夜間良眠、日中の活動性維持。",
-        "治療継続中、症状は概ね安定。",
-    ),
-    "late": (
-        "退院に向けた自立訓練継続中。",
-        "全身状態改善傾向、退院準備を検討。",
-        "リハビリ耐性良好、日常動作の自立度改善。",
-    ),
-    "eve": (
-        "退院前日、症状安定。退院後生活指導を実施。",
-        "退院準備完了、家族への説明終了。",
-    ),
-}
-_INPATIENT_SUBJECTIVE_POOL_EN: dict[str, tuple[str, ...]] = {
-    "early": (
-        "No new subjective complaints.",
-        "Tolerating initial therapy without adverse reaction.",
-        "Symptoms stable since admission.",
-    ),
-    "mid": (
-        "No new subjective complaints.",
-        "Overall clinical status stable; observation continues.",
-        "Appetite adequate; no acute discomfort reported.",
-        "Slept well overnight; daytime activity maintained.",
-        "Continuing planned therapy; symptoms broadly stable.",
-    ),
-    "late": (
-        "Continuing rehab in preparation for discharge.",
-        "Improving trend; discharge planning underway.",
-        "Tolerating ADL retraining; independence improving.",
-    ),
-    "eve": (
-        "Day before planned discharge; symptoms stable, discharge instructions reviewed.",
-        "Discharge readiness confirmed; family instructed.",
-    ),
-}
+# Phase 1d-17: ``_INPATIENT_SUBJECTIVE_POOL_JA / _EN`` dict tables moved
+# to ``clinosim/locale/shared/inpatient_subjective_pool.yaml`` and loaded
+# via ``load_inpatient_subjective_pool()``. See
+# ``_pick_stable_progress_phrase`` below.
 
 # Issue #981: ED disposition reasoning-phrase templates. Selected from the
 # admission diagnosis / acuity when the raw disposition code alone would
@@ -4797,17 +4755,13 @@ class TemplateNarrativeGenerator:
         day with no acute change, not a fabricated symptom claim.
         """
         lang = ctx.target_lang
-        is_ja = lang == "ja"
         picks = _filter_vitals_for_day(ctx.vitals, ctx.day_index, ctx.encounter)
         prev = _filter_vitals_for_day(ctx.vitals, ctx.day_index - 1, ctx.encounter) if ctx.day_index > 0 else []
         parts: list[str] = []
         los = ctx.los_days or 0
         day_1indexed = ctx.day_index + 1
         if los > 0:
-            if is_ja:
-                parts.append(f"入院{day_1indexed}日目。")
-            else:
-                parts.append(f"Hospital day {day_1indexed}.")
+            parts.append(t("progress.hospital_day", lang, day=day_1indexed))
 
         abnormal_added = False
         if picks:
@@ -4824,52 +4778,28 @@ class TemplateNarrativeGenerator:
             if temp_f is not None and temp_f >= 38.0:
                 # Escalating vs persistent — differentiate for rhythm.
                 if prev_temp and prev_temp < 38.0:
-                    if is_ja:
-                        parts.append(f"発熱 {temp_f:.1f}°C 出現。")
-                    else:
-                        parts.append(f"New-onset fever {temp_f:.1f}°C.")
+                    parts.append(t("progress.fever_new_onset", lang, t=temp_f))
                 elif prev_temp and temp_f > prev_temp + 0.3:
-                    if is_ja:
-                        parts.append(f"発熱 {temp_f:.1f}°C 上昇傾向。")
-                    else:
-                        parts.append(f"Fever {temp_f:.1f}°C, worsening trend.")
+                    parts.append(t("progress.fever_worsening", lang, t=temp_f))
                 else:
-                    if is_ja:
-                        parts.append(f"発熱 {temp_f:.1f}°C 持続。")
-                    else:
-                        parts.append(f"Persistent fever {temp_f:.1f}°C.")
+                    parts.append(t("progress.fever_persistent", lang, t=temp_f))
                 abnormal_added = True
             elif temp_f is not None and temp_f < 36.0:
-                if is_ja:
-                    parts.append(f"低体温 {temp_f:.1f}°C を認める。")
-                else:
-                    parts.append(f"Hypothermia {temp_f:.1f}°C noted.")
+                parts.append(t("progress.hypothermia", lang, t=temp_f))
                 abnormal_added = True
             elif prev_temp >= 38.0 and temp_f is not None and temp_f < 37.5:
                 # Fever resolved — rhythm-worthy positive change.
-                if is_ja:
-                    parts.append(f"熱型下降 (前日 {prev_temp:.1f}°C → 本日 {temp_f:.1f}°C)。")
-                else:
-                    parts.append(f"Fever trending down (prev {prev_temp:.1f}°C → today {temp_f:.1f}°C).")
+                parts.append(t("progress.fever_resolving", lang, pt=prev_temp, t=temp_f))
                 abnormal_added = True
 
             if spo2_f is not None and spo2_f < 92:
                 if prev_spo2 and spo2_f < prev_spo2 - 2:
-                    if is_ja:
-                        parts.append(f"SpO2 {spo2_f:.0f}% と悪化傾向。")
-                    else:
-                        parts.append(f"SpO2 {spo2_f:.0f}% (worsening).")
+                    parts.append(t("progress.spo2_worsening", lang, s=spo2_f))
                 else:
-                    if is_ja:
-                        parts.append(f"SpO2 {spo2_f:.0f}% と低下傾向。")
-                    else:
-                        parts.append(f"SpO2 {spo2_f:.0f}% (desaturation trend).")
+                    parts.append(t("progress.spo2_desaturating", lang, s=spo2_f))
                 abnormal_added = True
             elif prev_spo2 and prev_spo2 < 92 and spo2_f is not None and spo2_f >= 94:
-                if is_ja:
-                    parts.append(f"SpO2 改善 (前日 {prev_spo2:.0f}% → 本日 {spo2_f:.0f}%)。")
-                else:
-                    parts.append(f"SpO2 recovering (prev {prev_spo2:.0f}% → today {spo2_f:.0f}%).")
+                parts.append(t("progress.spo2_recovering", lang, ps=prev_spo2, s=spo2_f))
                 abnormal_added = True
 
         if not abnormal_added:
@@ -4877,11 +4807,11 @@ class TemplateNarrativeGenerator:
             # so a multi-day stay does not read as identical boilerplate
             # (Issue #1327). Phrases stay CIF-anchored: they describe the
             # day's clinical hold, not fabricated symptoms.
-            phrase = self._pick_stable_progress_phrase(ctx, is_ja=is_ja)
+            phrase = self._pick_stable_progress_phrase(ctx, lang=lang)
             parts.append(phrase)
         return t("list_sep.chunk", lang).join(parts)
 
-    def _pick_stable_progress_phrase(self, ctx: NarrativeContext, *, is_ja: bool) -> str:
+    def _pick_stable_progress_phrase(self, ctx: NarrativeContext, *, lang: str) -> str:
         """Return a neutral-observation subjective phrase for a stable day.
 
         Issue #1327: rotates through a small pool keyed on stay-phase so
@@ -4890,12 +4820,19 @@ class TemplateNarrativeGenerator:
         from ``day_index`` alone, so seed-reproducibility is preserved
         (no RNG consumption).
 
+        Phase 1d-17: pool moved to
+        ``clinosim/locale/shared/inpatient_subjective_pool.yaml``. The
+        list index is shared across languages so the same day_index
+        picks the same slot in each locale.
+
         Phase heuristics (approximate; LOS-relative):
           - early:  day 1-2 of the stay
           - mid:    days 3..(los-2)
           - late:   penultimate day
           - eve:    last inpatient day (near discharge)
         """
+        from clinosim.locale.loader import load_inpatient_subjective_pool, resolve_localized_display
+
         los = ctx.los_days or 0
         day = (ctx.day_index or 0) + 1
         if los <= 0:
@@ -4909,12 +4846,12 @@ class TemplateNarrativeGenerator:
         else:
             phase = "mid"
 
-        if is_ja:
-            pool = _INPATIENT_SUBJECTIVE_POOL_JA.get(phase) or _INPATIENT_SUBJECTIVE_POOL_JA["mid"]
-        else:
-            pool = _INPATIENT_SUBJECTIVE_POOL_EN.get(phase) or _INPATIENT_SUBJECTIVE_POOL_EN["mid"]
+        pool_data = load_inpatient_subjective_pool()
+        pool = pool_data.get(phase) or pool_data.get("mid") or []
+        if not pool:
+            return ""
         idx = (ctx.day_index or 0) % len(pool)
-        return pool[idx]
+        return resolve_localized_display(pool[idx], lang, fallback="")
 
     def _compose_progress_assessment_from_state(self, ctx: NarrativeContext) -> str:
         """Inpatient progress_note Assessment from CIF facts.
