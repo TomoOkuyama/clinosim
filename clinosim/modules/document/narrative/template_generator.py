@@ -994,6 +994,36 @@ _COMPLICATION_JA: dict[str, str] = {
     "anastomotic_leak": "縫合不全",
     "postoperative_ileus": "術後イレウス",
     "diabetic_foot_ulcer": "糖尿病性足潰瘍",
+    # Phase 1c-7 (2026-09-23) — additional composite complications
+    # surfaced in the post-Phase-1c-6 audit residuals.
+    "hematoma_expansion": "血腫拡大",
+    "metabolic_acidosis": "代謝性アシドーシス",
+    "respiratory_acidosis": "呼吸性アシドーシス",
+    "lactic_acidosis": "乳酸アシドーシス",
+    "lung_abscess": "肺膿瘍",
+    "pancreatic_pseudocyst": "膵仮性嚢胞",
+    "pancreatic_necrosis": "膵壊死",
+    "transfusion_reaction": "輸血反応",
+    "acute_hemolytic_reaction": "急性溶血反応",
+    "transfusion_related_acute_lung_injury": "輸血関連急性肺障害 (TRALI)",
+    "trali": "輸血関連急性肺障害 (TRALI)",
+    "taco": "輸血関連循環過負荷 (TACO)",
+    "post_transfusion_purpura": "輸血後紫斑病",
+    "pulmonary_edema": "肺水腫",
+    "cardiogenic_pulmonary_edema": "心原性肺水腫",
+    "constipation_ileus": "便秘性イレウス",
+    "adynamic_ileus": "麻痺性イレウス",
+    "viral_pneumonia": "ウイルス性肺炎",
+    "influenza_pneumonia": "インフルエンザ肺炎",
+    "myocarditis": "心筋炎",
+    "pericarditis": "心膜炎",
+    "pericardial_effusion": "心膜液貯留",
+    "cardiac_tamponade": "心タンポナーデ",
+    "atypical_pneumonia": "非定型肺炎",
+    "bronchiolitis": "細気管支炎",
+    "bronchitis": "気管支炎",
+    "sinusitis": "副鼻腔炎",
+    "otitis_media": "中耳炎",
 }
 _COMPLICATION_EN: dict[str, str] = {
     # EN output prefers spaced full names over snake_case; leave abbreviations
@@ -1126,6 +1156,35 @@ _COMPLICATION_EN: dict[str, str] = {
     "anastomotic_leak": "anastomotic leak",
     "postoperative_ileus": "postoperative ileus",
     "diabetic_foot_ulcer": "diabetic foot ulcer",
+    # Phase 1c-7 (2026-09-23) — additional composite complications.
+    "hematoma_expansion": "hematoma expansion",
+    "metabolic_acidosis": "metabolic acidosis",
+    "respiratory_acidosis": "respiratory acidosis",
+    "lactic_acidosis": "lactic acidosis",
+    "lung_abscess": "lung abscess",
+    "pancreatic_pseudocyst": "pancreatic pseudocyst",
+    "pancreatic_necrosis": "pancreatic necrosis",
+    "transfusion_reaction": "transfusion reaction",
+    "acute_hemolytic_reaction": "acute hemolytic reaction",
+    "transfusion_related_acute_lung_injury": "transfusion-related acute lung injury (TRALI)",
+    "trali": "TRALI",
+    "taco": "TACO",
+    "post_transfusion_purpura": "post-transfusion purpura",
+    "pulmonary_edema": "pulmonary edema",
+    "cardiogenic_pulmonary_edema": "cardiogenic pulmonary edema",
+    "constipation_ileus": "constipation ileus",
+    "adynamic_ileus": "adynamic ileus",
+    "viral_pneumonia": "viral pneumonia",
+    "influenza_pneumonia": "influenza pneumonia",
+    "myocarditis": "myocarditis",
+    "pericarditis": "pericarditis",
+    "pericardial_effusion": "pericardial effusion",
+    "cardiac_tamponade": "cardiac tamponade",
+    "atypical_pneumonia": "atypical pneumonia",
+    "bronchiolitis": "bronchiolitis",
+    "bronchitis": "bronchitis",
+    "sinusitis": "sinusitis",
+    "otitis_media": "otitis media",
 }
 
 # Phase 1c-2 (2026-09-22): lab-name localization for the vitals+labs
@@ -1260,6 +1319,15 @@ _LAB_NAME_JA: dict[str, str] = {
     "protein_s": "プロテイン S",
     "antithrombin_iii": "アンチトロンビン III",
     "at3": "アンチトロンビン III",
+    # Phase 1c-7 (2026-09-23): additional lab-panel aliases.
+    "coag": "凝固検査",
+    "coags": "凝固検査",
+    "coagulation": "凝固検査",
+    "ft4": "FT4",
+    "ft3": "FT3",
+    "urine_ph": "尿 pH",
+    "urine_sg": "尿比重",
+    "microalbumin": "微量アルブミン尿",
 }
 _LAB_NAME_EN: dict[str, str] = {
     # Full-word labs → keep lowercase-first for English prose readability;
@@ -1574,6 +1642,31 @@ _IMAGING_JA: dict[str, str] = {
     "shoulder_xray_post_reduction": "肩関節レントゲン (整復後)",
     # --- Hepatobiliary ---
     "mrcp": "MRCP (磁気共鳴胆管膵管造影)",
+    # Phase 1c-7 (2026-09-23): additional imaging variants surfaced in
+    # the JP p=10000 ed_workup 「画像:」 line. Both underscore-slug and
+    # spaced-CamelCase forms are keyed since the `_localize_imaging`
+    # helper normalises whitespace / hyphen but preserves compound
+    # token structure. `wrist xray ap lateral` etc. are lower-cased by
+    # the helper before lookup.
+    "wrist_xray": "手関節レントゲン",
+    "wrist xray": "手関節レントゲン",
+    "wrist_xray_ap_lateral": "手関節レントゲン (正面・側面)",
+    "wrist xray ap lateral": "手関節レントゲン (正面・側面)",
+    "spine_xray": "脊椎レントゲン",
+    "spine xray": "脊椎レントゲン",
+    "spine_xray_ap_lateral": "脊椎レントゲン (正面・側面)",
+    "spine xray ap lateral": "脊椎レントゲン (正面・側面)",
+    "x-ray spine ap and lateral": "脊椎レントゲン (正面・側面)",
+    "spine mri": "脊椎 MRI",
+    "spine_mri": "脊椎 MRI",
+    "mr spine without contrast": "脊椎 MRI (単純)",
+    "xray affected area": "患部レントゲン",
+    "xray_affected_area": "患部レントゲン",
+    "ct pulmonary angiography": "肺動脈 CT アンギオ",
+    "ct_pulmonary_angiography": "肺動脈 CT アンギオ",
+    "lower extremity venous ultrasound": "下肢静脈エコー",
+    "lower_extremity_venous_ultrasound": "下肢静脈エコー",
+    "chest ct (with contrast)": "胸部 CT (造影)",
 }
 _IMAGING_EN: dict[str, str] = {
     # EN reuses de-underscored forms; canonical spacing + capitalisation.
@@ -4141,21 +4234,45 @@ class TemplateNarrativeGenerator:
             # English drug tokens ("Furosemide 20mg PO daily") because
             # this builder never routed through _localize_drug_name.
             display = str(drug)
+            # Phase 1c-6 (Category F, 2026-09-23): route dose / route /
+            # frequency fields through ``_localize_dosage_terms`` on JA
+            # output so 「20mg PO daily」 → 「20mg 経口 1日1回」. Pre-
+            # fix, `_localize_drug_name` translated dosage terms only
+            # when they appeared inside the drug_name string; the
+            # separate ``dose`` / ``route`` / ``frequency`` fields on
+            # ``PrescriptionRecord.items`` were concatenated raw, so
+            # discharge_medications leaked ``PO`` / ``daily`` / ``TID``
+            # / ``q4h`` verbatim into JA output (~545 leaks in the
+            # p=10000 audit for `daily` alone).
             if is_ja:
-                from clinosim.modules.output.fhir_r4.lib.localization import _localize_drug_name
+                from clinosim.modules.output.fhir_r4.lib.localization import (
+                    _localize_dosage_terms,
+                    _localize_drug_name,
+                )
 
                 display = _localize_drug_name(display, "JP")
+
+                def _ja_term(v: str) -> str:
+                    try:
+                        return _localize_dosage_terms(v)
+                    except Exception:  # noqa: BLE001
+                        return v
+            else:
+
+                def _ja_term(v: str) -> str:
+                    return v
+
             dose = _o(med, "dose", "") or ""
             route = _o(med, "route", "") or ""
             freq = _o(med, "frequency", "") or ""
             days = _o(med, "days_supply", None)
             bits: list[str] = [display]
             if dose:
-                bits.append(str(dose))
+                bits.append(_ja_term(str(dose)))
             if route:
-                bits.append(str(route))
+                bits.append(_ja_term(str(route)))
             if freq:
-                bits.append(str(freq))
+                bits.append(_ja_term(str(freq)))
             if days:
                 bits.append(f"x{days}日分" if is_ja else f"x{days}d")
             lines.append(" ".join(bits))
@@ -6404,7 +6521,7 @@ class TemplateNarrativeGenerator:
                     try:
                         vf = float(v)
                         if vf >= NARRATIVE_LDL_HIGH_THRESHOLD:
-                            ctrl = "高 LDL 血症、statin 効果不十分" if is_ja else "high LDL, statin under-response"
+                            ctrl = "高 LDL 血症、スタチン効果不十分" if is_ja else "high LDL, statin under-response"
                         elif vf >= NARRATIVE_LDL_BORDERLINE_THRESHOLD:
                             ctrl = "境界域、生活・薬物療法強化検討" if is_ja else "borderline, consider intensification"
                         elif vf >= NARRATIVE_LDL_ELEVATED_THRESHOLD:
@@ -7061,9 +7178,29 @@ class TemplateNarrativeGenerator:
                 ("投薬: " if is_ja else "Medications: ") + ("、".join(med_display) if is_ja else ", ".join(med_display))
             )
         if proc_order_names:
+            # Phase 1c-6 (Category L, 2026-09-23): route each procedure
+            # order display name through ``_localize_drug_name`` (which
+            # also invokes ``_localize_dosage_terms`` internally) on JA
+            # output so composite English phrases like
+            # 「bronchodilator: Salbutamol 2.5mg nebulizer q4h」 →
+            # 「気管支拡張薬: サルブタモール 2.5mg ネブライザー 4時間毎」.
+            # Pre-fix ~1,700 leaks in the JP p=10000 audit across
+            # bronchodilator / nebulizer / cannula / irrigation /
+            # bandage / saline / Salbutamol / Ipratropium / etc. Lazy
+            # import + broad except mirrors the med_display handler.
+            proc_display = proc_order_names[:6]
+            if is_ja:
+                try:
+                    from clinosim.modules.output.fhir_r4.lib.localization import (
+                        _localize_drug_name,
+                    )
+
+                    proc_display = [_localize_drug_name(p, "JP") or p for p in proc_display]
+                except Exception:  # noqa: BLE001
+                    pass
             parts.append(
                 ("処置指示: " if is_ja else "Procedures ordered: ")
-                + ("、".join(proc_order_names[:6]) if is_ja else ", ".join(proc_order_names[:6]))
+                + ("、".join(proc_display) if is_ja else ", ".join(proc_display))
             )
 
         # Enrich with any flagged abnormals (kept from the v9 path — an
@@ -8119,6 +8256,21 @@ class TemplateNarrativeGenerator:
         "percutaneous": "経皮的",
         "thoracoscopic": "胸腔鏡下",
         "robotic": "ロボット支援下",
+        # Phase 1c-6 (Category K, 2026-09-23): composite approach
+        # strings authored verbatim in disease-YAML `procedural.approach`
+        # dicts (hip_fracture / bowel_resection / etc.). Pre-fix these
+        # leaked into JA operative_note as raw English ~200 leaks.
+        "lateral approach to proximal femur": "大腿骨近位部への外側アプローチ",
+        "posterolateral approach to hip joint": "股関節への後外側アプローチ",
+        "midline laparotomy": "正中切開",
+        "transverse laparotomy": "横切開",
+        "mcburney incision": "マクバーニー切開",
+        "kocher incision": "コッハー切開",
+        "median sternotomy": "胸骨正中切開",
+        "posterior approach": "後方アプローチ",
+        "anterior approach": "前方アプローチ",
+        "lateral approach": "外側アプローチ",
+        "medial approach": "内側アプローチ",
     }
     _OP_APPROACH_EN: dict[str, str] = {
         "laparoscopic": "laparoscopic",
@@ -8127,6 +8279,20 @@ class TemplateNarrativeGenerator:
         "percutaneous": "percutaneous",
         "thoracoscopic": "thoracoscopic",
         "robotic": "robotic-assisted",
+    }
+    # Phase 1c-6 (Category K, 2026-09-23): op_equipment implant JA labels.
+    # Source is `procedure/engine.py` hip_fracture ORIF /
+    # hemiarthroplasty branches (currently the only sim path that
+    # populates implants_used with hardcoded EN strings). Case-insensitive
+    # lookup; unmapped implant strings pass through unchanged.
+    _OP_IMPLANT_JA: dict[str, str] = {
+        "compression hip screw": "圧迫式ヒップスクリュー",
+        "intramedullary nail": "髄内釘",
+        "bipolar femoral prosthesis": "バイポーラ人工骨頭",
+        "cannulated screw": "カニュレイテッドスクリュー",
+        "dynamic hip screw": "ダイナミックヒップスクリュー",
+        "sliding hip screw": "スライディングヒップスクリュー",
+        "cephalomedullary nail": "頭髄内釘",
     }
 
     def _primary_surgical_procedure(self, ctx: NarrativeContext) -> Any | None:
@@ -8250,28 +8416,37 @@ class TemplateNarrativeGenerator:
         preop = _o(proc, "preop_diagnosis", "") or ""
         postop = _o(proc, "postop_diagnosis", "") or ""
         intraop = list(_o(proc, "intraop_complications", []) or [])
+        # Phase 1c-6 (Category K, 2026-09-23): preop / postop diagnosis
+        # are stamped with the disease_id slug (hip_fracture /
+        # acute_cholecystitis / …) and intraop_complications are
+        # complication slugs — route through ``_localize_complication``
+        # so JA reads 「術前診断：大腿骨近位部骨折」 rather than
+        # 「術前診断：hip_fracture」.
+        preop_disp = _localize_complication(preop, ctx.target_lang) if preop else ""
+        postop_disp = _localize_complication(postop, ctx.target_lang) if postop else ""
+        intraop_disp = [_localize_complication(str(c), ctx.target_lang) for c in intraop]
         if is_ja:
             parts = []
             if body_site:
                 parts.append(f"手術部位：{body_site}")
-            if preop:
-                parts.append(f"術前診断：{preop}")
-            if postop and postop != preop:
-                parts.append(f"術後診断：{postop}")
-            if intraop:
-                parts.append(f"術中合併症：{'、'.join(intraop)}")
+            if preop_disp:
+                parts.append(f"術前診断：{preop_disp}")
+            if postop_disp and postop_disp != preop_disp:
+                parts.append(f"術後診断：{postop_disp}")
+            if intraop_disp:
+                parts.append(f"術中合併症：{'、'.join(intraop_disp)}")
             else:
                 parts.append("術中合併症：認めず")
             return "／".join(parts) if parts else "術中所見：特記すべき所見なし", facts
         parts = []
         if body_site:
             parts.append(f"Body site: {body_site}")
-        if preop:
-            parts.append(f"Preop diagnosis: {preop}")
-        if postop and postop != preop:
-            parts.append(f"Postop diagnosis: {postop}")
-        if intraop:
-            parts.append(f"Intraop complications: {', '.join(intraop)}")
+        if preop_disp:
+            parts.append(f"Preop diagnosis: {preop_disp}")
+        if postop_disp and postop_disp != preop_disp:
+            parts.append(f"Postop diagnosis: {postop_disp}")
+        if intraop_disp:
+            parts.append(f"Intraop complications: {', '.join(intraop_disp)}")
         else:
             parts.append("No intraoperative complications")
         return " / ".join(parts) if parts else "No significant intraoperative findings", facts
@@ -8361,6 +8536,13 @@ class TemplateNarrativeGenerator:
             return (
                 "使用機器・材料：特記すべきインプラント・器材使用なし" if is_ja else "Implants / devices: none"
             ), facts
+        # Phase 1c-6 (Category K, 2026-09-23): route each implant name
+        # through `_OP_IMPLANT_JA` on JA output so 「使用機器・材料：
+        # バイポーラ人工骨頭」 rather than 「使用機器・材料：bipolar
+        # femoral prosthesis」. Case-insensitive lookup on the full
+        # string; unmapped names pass through unchanged.
+        if is_ja:
+            implants = [self._OP_IMPLANT_JA.get(x.lower(), x) for x in implants]
         sep = "、" if is_ja else ", "
         if is_ja:
             return f"使用機器・材料：{sep.join(implants)}", facts
