@@ -1,0 +1,254 @@
+# Multi-language medication dosage / category / term catalog
+# (Phase 1d-3, 2026-09-23).
+#
+# Previously ``med_terms_ja.yaml`` (JA-only flat map). Restructured to
+# ``{key: {lang: display}}`` so adding a new target language (fr / zh /
+# ko / …) is a data change — extend each entry with ``<lang>: <display>``.
+#
+# Consumers: ``clinosim.modules.output.fhir_r4.lib.localization
+# ._localize_dosage_terms(text, lang)`` applies these as
+# case-insensitive word-boundary substitutions (categories first,
+# longest-key-first per section, all-uppercase keys stay case-sensitive
+# to avoid tail-of-word collisions like ``po`` inside ``clopidogrel``).
+#
+# EN slots are intentionally omitted for now: the source-language for
+# dosage / route / category text is English, so ``lang=en`` output is
+# a pass-through (the substitution loop finds no ``en`` slot per
+# entry and leaves the raw English token in place). Add ``en: ...``
+# only if you want to override casing / expand an abbreviation.
+#
+# Loader: ``clinosim.locale.loader.load_med_terms``.
+
+categories:
+  dvt prophylaxis: {ja: DVT予防}
+  dvt_prophylaxis: {ja: DVT予防}
+  antipyretic: {ja: 解熱剤}
+  bronchodilator: {ja: 気管支拡張薬}
+  steroid: {ja: ステロイド}
+  iv fluid: {ja: 輸液}
+  iv_fluid: {ja: 輸液}
+  iv_insulin: {ja: インスリン持続静注}
+  iv insulin: {ja: インスリン持続静注}
+  k_replacement: {ja: カリウム補充}
+  k replacement: {ja: カリウム補充}
+  pain_management: {ja: 疼痛管理}
+  pain management: {ja: 疼痛管理}
+  ppi: {ja: PPI}
+  nsaid: {ja: NSAIDs}
+  antibiotic: {ja: 抗菌薬}
+  o2: {ja: 酸素投与}
+  continuous_telemetry: {ja: 心電図モニター}
+  continuous telemetry: {ja: 心電図モニター}
+  nutritional_support: {ja: 栄養サポート}
+  nutritional support: {ja: 栄養サポート}
+  respiratory_support: {ja: 呼吸補助}
+  respiratory support: {ja: 呼吸補助}
+  fluid_resuscitation: {ja: 輸液蘇生}
+  fluid resuscitation: {ja: 輸液蘇生}
+terms:
+  PRN: {ja: 頓用}
+  PO: {ja: 経口}
+  IV: {ja: 静注}
+  SC: {ja: 皮下注}
+  IM: {ja: 筋注}
+  SL: {ja: 舌下}
+  inh: {ja: 吸入}
+  inhaler: {ja: 吸入薬}
+  nebulizer: {ja: ネブライザー}
+  local infiltration: {ja: 局所浸潤}
+  daily: {ja: 1日1回}
+  bid: {ja: 1日2回}
+  tid: {ja: 1日3回}
+  qid: {ja: 1日4回}
+  q4h: {ja: 4時間毎}
+  q6h: {ja: 6時間毎}
+  q8h: {ja: 8時間毎}
+  q12h: {ja: 12時間毎}
+  q1h: {ja: 1時間毎}
+  q6months: {ja: 6ヶ月毎}
+  tablet: {ja: 錠}
+  as prescribed: {ja: 指示どおり}
+  bolus: {ja: ボーラス}
+  continuous: {ja: 持続}
+  drip: {ja: 点滴静注}
+  infusion: {ja: 輸注}
+  loading: {ja: 負荷投与}
+  avoid: {ja: 回避}
+  hold: {ja: 保留}
+  if: {ja: 場合}
+  or: {ja: または}
+  and: {ja: および}
+  then: {ja: その後}
+  first: {ja: 最初の}
+  per: {ja: あたり}
+  acute: {ja: 急性期}
+  hours: {ja: 時間}
+  hour: {ja: 時間}
+  session: {ja: セッション}
+  week: {ja: 週}
+  days: {ja: 日間}
+  min: {ja: 分}
+  over: {ja: かけて}
+  after: {ja: 後}
+  once: {ja: 一度}
+  stable: {ja: 安定後}
+  hemodynamically: {ja: 血行動態}
+  hypotonic: {ja: 低張}
+  fluids: {ja: 輸液}
+  anticoagulant: {ja: 抗凝固}
+  target: {ja: 目標}
+  booster: {ja: 追加接種}
+  anterior: {ja: 前方}
+  nasal: {ja: 鼻}
+  spray: {ja: スプレー}
+  glue: {ja: 接着剤}
+  nasal cannula: {ja: 経鼻カニューラ}
+  cannula: {ja: カニューラ}
+  mask: {ja: マスク}
+  controlled: {ja: 制御下}
+  hyperoxia: {ja: 高酸素}
+  retainers: {ja: 貯留患者}
+  needed: {ja: 必要時}
+  Nebulized: {ja: ネブライザー}
+  nebulized: {ja: ネブライザー}
+  Propofol: {ja: プロポフォール}
+  Midazolam: {ja: ミダゾラム}
+  temp: {ja: 体温}
+  opioid: {ja: オピオイド}
+  within: {ja: 以内}
+  in: {ja: 内}
+  cream: {ja: クリーム}
+  gel: {ja: ゲル}
+  bromide: {ja: 臭化物}
+  pre-op: {ja: 術前}
+  coagulopathy: {ja: 凝固異常}
+  encephalopathy: {ja: 肝性脳症}
+  for: {ja: の}
+  aggressive: {ja: 積極的}
+  hydration: {ja: 補液}
+  Pneumatic compression devices: {ja: 間欠的空気圧迫装置}
+  pneumatic compression: {ja: 間欠的空気圧迫}
+  SCDs: {ja: SCD}
+  delay: {ja: 遅延}
+  pharmacologic prophylaxis: {ja: 薬理学的予防}
+  via: {ja: 経由}
+  central line: {ja: 中心静脈ライン}
+  contralateral: {ja: 反対側}
+  limb: {ja: 肢}
+  NPO: {ja: 絶食}
+  local: {ja: 局所}
+  q3h: {ja: 3時間毎}
+  q2h: {ja: 2時間毎}
+  CONTINUOUS: {ja: 持続}
+  NEB: {ja: ネブライザー}
+  NEBULIZED: {ja: ネブライザー}
+  SUBCUTANEOUS: {ja: 皮下注}
+  INHALATION: {ja: 吸入}
+  TOPICAL: {ja: 外用}
+  ORAL: {ja: 経口}
+  INTRAVENOUS: {ja: 静注}
+  INTRAMUSCULAR: {ja: 筋注}
+  SUBLINGUAL: {ja: 舌下}
+  Parkland formula: {ja: Parkland式}
+  titrate: {ja: 調節}
+  to: {ja: まで}
+  MAP: {ja: MAP（平均動脈圧）}
+  open: {ja: 全開}
+  wide: {ja: 広い}
+  sedation: {ja: 鎮静}
+  TBI: {ja: 頭部外傷}
+  Alteplase: {ja: アルテプラーゼ}
+  tPA: {ja: tPA}
+  dose: {ja: 用量}
+  max: {ja: 最大}
+  JP: {ja: 日本}
+  ug: {ja: μg}
+  cerebral: {ja: 脳}
+  edema: {ja: 浮腫}
+  risk: {ja: リスク}
+  eye: {ja: 眼}
+  drops: {ja: 点眼}
+  eye drops: {ja: 点眼}
+  needle: {ja: 針}
+  removal: {ja: 除去}
+  rust: {ja: 錆}
+  ring: {ja: 輪}
+  burr: {ja: バー}
+  when: {ja: 時}
+  bleeding: {ja: 出血}
+  resolved: {ja: 消失}
+  transition: {ja: 移行}
+  oral: {ja: 経口}
+  Endoscopy: {ja: 内視鏡}
+  endoscopy: {ja: 内視鏡}
+  adjust: {ja: 調整}
+  renal: {ja: 腎}
+  function: {ja: 機能}
+  section: {ja: セクション}
+  see: {ja: 参照}
+  drugs: {ja: 薬剤}
+  Start: {ja: 開始}
+  start: {ja: 開始}
+  anticoagulation: {ja: 抗凝固療法}
+  protocol: {ja: プロトコル}
+  cautious: {ja: 慎重}
+  may: {ja: 可能性}
+  tolerate: {ja: 耐容}
+  volume: {ja: 容量}
+  replaces: {ja: 置換}
+  prophylactic: {ja: 予防投与}
+  under: {ja: 下}
+  fluoroscopy: {ja: 透視}
+  catheter: {ja: カテーテル}
+  patch: {ja: パッチ}
+  RV: {ja: 右室}
+  PE: {ja: PE（肺塞栓）}
+  not: {ja: できず}
+  Ice pack application: {ja: 氷嚢貼付}
+  ice pack application: {ja: 氷嚢貼付}
+  Ice pack: {ja: 氷嚢}
+  ice pack: {ja: 氷嚢}
+  Wound irrigation: {ja: 創部洗浄}
+  wound irrigation: {ja: 創部洗浄}
+  Wound: {ja: 創部}
+  wound: {ja: 創部}
+  normal saline: {ja: 生理食塩水}
+  Normal saline: {ja: 生理食塩水}
+  saline: {ja: 生理食塩水}
+  Elastic bandage wrap: {ja: 弾性包帯巻き付け}
+  elastic bandage wrap: {ja: 弾性包帯巻き付け}
+  Elastic bandage: {ja: 弾性包帯}
+  elastic bandage: {ja: 弾性包帯}
+  bandage: {ja: 包帯}
+  wrap: {ja: 巻き付け}
+  Suture closure: {ja: 縫合閉鎖}
+  suture closure: {ja: 縫合閉鎖}
+  Suture: {ja: 縫合}
+  suture: {ja: 縫合}
+  Tissue adhesive: {ja: 皮膚接着剤}
+  tissue adhesive: {ja: 皮膚接着剤}
+  Foley catheter: {ja: フォーリーカテーテル}
+  Foley: {ja: フォーリー}
+  hourly urine output measurement: {ja: 時間尿量測定}
+  urine output monitoring: {ja: 尿量モニタリング}
+  urine_output_monitoring: {ja: 尿量モニタリング}
+  Hemodialysis: {ja: 血液透析}
+  hemodialysis: {ja: 血液透析}
+  CRRT: {ja: 持続的腎代替療法 (CRRT)}
+  irrigation: {ja: 洗浄}
+  application: {ja: 貼付}
+  closure: {ja: 閉鎖}
+  adhesive: {ja: 接着剤}
+  pack: {ja: パック}
+  once daily: {ja: 1日1回}
+  twice daily: {ja: 1日2回}
+  three times daily: {ja: 1日3回}
+  four times daily: {ja: 1日4回}
+  every 4 hours: {ja: 4時間毎}
+  every 6 hours: {ja: 6時間毎}
+  every 8 hours: {ja: 8時間毎}
+  every 12 hours: {ja: 12時間毎}
+  as needed: {ja: 頓用}
+  before meals: {ja: 食前}
+  after meals: {ja: 食後}
+  at bedtime: {ja: 就寝前}

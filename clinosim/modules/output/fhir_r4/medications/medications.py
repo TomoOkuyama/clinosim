@@ -1203,7 +1203,7 @@ def _build_discharge_medication_request(
         dose_parts = [p for p in (dose, rate_adjustment_note) if p]
         if dose_parts:
             dose_text = " ".join(dose_parts)
-            dosage["text"] = _localize_dosage_terms(dose_text) if is_jp(country) else dose_text
+            dosage["text"] = _localize_dosage_terms(dose_text, resolve_lang(country))
 
     # Issue #920: emit structured `doseAndRate.doseQuantity` + `timing` from
     # the same fields we already put in `.text`. Pre-fix, 91% of MR carried a
@@ -1541,7 +1541,7 @@ def _build_medication_admin(
     # Issue #472: localize at the assignment only — `dose_text` itself stays English
     # because the continuous-infusion detection below matches on "CONTINUOUS" / "DRIP".
     # The MedicationRequest sibling applies the same call on its own dosage["text"].
-    dosage: dict[str, Any] = {"text": _localize_dosage_terms(dose_text) if is_jp(country) else dose_text}
+    dosage: dict[str, Any] = {"text": _localize_dosage_terms(dose_text, resolve_lang(country))}
     if parsed.get("dose_quantity") is not None and parsed.get("dose_unit"):
         # Route through build_ucum_quantity so `code` is populated (JP-CLINS
         # eCS profiles require it — feedback fix PR-A, 2026-07-16).

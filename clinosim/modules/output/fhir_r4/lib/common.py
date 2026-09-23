@@ -1511,7 +1511,7 @@ def build_dosage_instruction(order: dict, country: str = "US") -> dict[str, Any]
                 ja_parts.append(_ROUTE_JA.get(p_upper) or _FREQ_JA.get(p_upper) or _FREQ_JA.get(p) or p)
             text = " ".join(ja_parts)
             # Final pass through dosage term translator for any remaining English
-            dosage["text"] = _localize_dosage_terms(text) if is_jp(country) else text
+            dosage["text"] = _localize_dosage_terms(text, resolve_lang(country))
         else:
             dosage["text"] = " ".join(parts)
     elif order.get("display_name"):
