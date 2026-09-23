@@ -1,0 +1,16 @@
+# Severity / persistence / grade descriptor token localization for PMH.
+#
+# Format: <slug>: {en: <english>, ja: <日本語>}
+# Add new language: extend each entry with `<lang_code>: <display>`.
+# Load via ``clinosim.locale.loader.load_narrative_stage_tokens()``.
+
+stage_tokens:
+  critical: {ja: 重篤}
+  grade: {ja: グレード}
+  intermittent: {ja: 間欠}
+  level: {ja: レベル}
+  mild: {ja: 軽度}
+  moderate: {ja: 中等度}
+  persistent: {ja: 持続}
+  severe: {ja: 重度}
+  very severe: {ja: 最重度}

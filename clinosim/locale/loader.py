@@ -445,6 +445,72 @@ def load_department_display() -> dict[str, dict[str, str]]:
     return raw.get("departments", {}) or {}
 
 
+# ---------------------------------------------------------------------------
+# Narrative-renderer vocabulary loaders (Phase 1d-1, 2026-09-23)
+#
+# Each loader mirrors ``load_department_display``: reads
+# ``shared/narrative_<domain>.yaml`` and returns the top-level dict of
+# ``{slug: {lang: display}}`` entries. Callers in
+# ``clinosim/modules/document/narrative/`` resolve the target language
+# via ``clinosim.modules._shared.resolve_lang`` (or, when ctx.target_lang
+# is already ``"ja"``/``"en"``, pass it directly).
+#
+# Adding a new language: extend each entry with `<lang>: <display>` in
+# every ``shared/narrative_*.yaml`` file. The loader is language-agnostic
+# — no code change required. This replaces the pre-Phase-1d-1
+# hardcoded ``_XXX_JA`` / ``_XXX_EN`` dicts embedded in
+# ``template_generator.py`` and ``discontinue_flip.py``.
+# ---------------------------------------------------------------------------
+
+
+@lru_cache(maxsize=1)
+def load_narrative_complications() -> dict[str, dict[str, str]]:
+    raw = _load_yaml(_LOCALE_DIR / "shared" / "narrative_complications.yaml", fallback={})
+    return raw.get("complications", {}) or {}
+
+
+@lru_cache(maxsize=1)
+def load_narrative_lab_names() -> dict[str, dict[str, str]]:
+    raw = _load_yaml(_LOCALE_DIR / "shared" / "narrative_lab_names.yaml", fallback={})
+    return raw.get("lab_names", {}) or {}
+
+
+@lru_cache(maxsize=1)
+def load_narrative_lab_flags() -> dict[str, dict[str, str]]:
+    raw = _load_yaml(_LOCALE_DIR / "shared" / "narrative_lab_flags.yaml", fallback={})
+    return raw.get("lab_flags", {}) or {}
+
+
+@lru_cache(maxsize=1)
+def load_narrative_stage_tokens() -> dict[str, dict[str, str]]:
+    raw = _load_yaml(_LOCALE_DIR / "shared" / "narrative_stage_tokens.yaml", fallback={})
+    return raw.get("stage_tokens", {}) or {}
+
+
+@lru_cache(maxsize=1)
+def load_narrative_imaging() -> dict[str, dict[str, str]]:
+    raw = _load_yaml(_LOCALE_DIR / "shared" / "narrative_imaging.yaml", fallback={})
+    return raw.get("imaging", {}) or {}
+
+
+@lru_cache(maxsize=1)
+def load_narrative_op_approach() -> dict[str, dict[str, str]]:
+    raw = _load_yaml(_LOCALE_DIR / "shared" / "narrative_op_approach.yaml", fallback={})
+    return raw.get("op_approach", {}) or {}
+
+
+@lru_cache(maxsize=1)
+def load_narrative_op_implants() -> dict[str, dict[str, str]]:
+    raw = _load_yaml(_LOCALE_DIR / "shared" / "narrative_op_implants.yaml", fallback={})
+    return raw.get("op_implants", {}) or {}
+
+
+@lru_cache(maxsize=1)
+def load_narrative_archetypes() -> dict[str, dict[str, str]]:
+    raw = _load_yaml(_LOCALE_DIR / "shared" / "narrative_archetypes.yaml", fallback={})
+    return raw.get("archetypes", {}) or {}
+
+
 @lru_cache(maxsize=2)
 def load_ambulatory_visit_length(country: str) -> dict[str, Any]:
     """Load per-visit-type ambulatory (outpatient) encounter length distributions.

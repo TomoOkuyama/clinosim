@@ -845,569 +845,25 @@ _OCCUPATION_EN: dict[str, str] = {
     "disabled": "Unable to work",
 }
 
-# Phase 1c-2 (2026-09-22): complication token localization for JA
-# narratives. Pre-fix, the ``_build_progress_note_assessment`` renderer
-# joined ``ctx.complications_occurred`` verbatim ("合併症 delirium、
-# acute_kidney_injury を認識、対応継続中") — the H100 JP p=500 audit
-# surfaced 610 raw-slug occurrences across assessment / treatment_plan
-# sections. Tokens come from disease-YAML ``complications`` lists +
-# in-hospital-new-dx merge; unmapped values still fall back to the slug
-# so a novel complication surfaces something rather than being dropped.
-_COMPLICATION_JA: dict[str, str] = {
-    "delirium": "せん妄",
-    "postoperative_delirium": "術後せん妄",
-    "acute_kidney_injury": "急性腎障害",
-    "aspiration_pneumonia": "誤嚥性肺炎",
-    "seizure": "痙攣発作",
-    "pressure_ulcer": "褥瘡",
-    "dvt": "深部静脈血栓症",
-    "pulmonary_embolism": "肺塞栓症",
-    "cauti": "カテーテル関連尿路感染症",
-    "clabsi": "中心静脈カテーテル関連血流感染症",
-    "central_line_associated_bloodstream_infection": "中心静脈カテーテル関連血流感染症",
-    "surgical_site_infection": "術後創部感染",
-    "hypoglycemia": "低血糖",
-    "hyperkalemia": "高カリウム血症",
-    "hypokalemia": "低カリウム血症",
-    "steroid_hyperglycemia": "ステロイド性高血糖",
-    "sepsis": "敗血症",
-    "bacteremia": "菌血症",
-    "urosepsis": "尿路性敗血症",
-    "gi_bleed": "消化管出血",
-    "myocardial_infarction": "心筋梗塞",
-    "acute_myocardial_infarction": "急性心筋梗塞",
-    "perioperative_cardiac_event": "周術期心血管イベント",
-    "stroke": "脳卒中",
-    "cerebral_infarction": "脳梗塞",
-    "arrhythmia": "不整脈",
-    "shock": "ショック",
-    "atelectasis": "無気肺",
-    "acute_heart_failure": "急性心不全",
-    "heart_failure_exacerbation": "心不全増悪",
-    "bacterial_pneumonia": "細菌性肺炎",
-    "c_diff_colitis": "クロストリジウム・ディフィシル腸炎",
-    "hepatic_dysfunction": "肝機能障害",
-    "rhabdomyolysis": "横紋筋融解症",
-    "renal_abscess": "腎膿瘍",
-    "respiratory_failure": "呼吸不全",
-    "respiratory_failure_requiring_niv": "呼吸不全 (NPPV 適応)",
-    "intubation_required": "気管挿管管理",
-    "copd_exacerbation": "COPD 増悪",
-    "disseminated_intravascular_coagulation": "播種性血管内凝固症候群 (DIC)",
-    "dic": "DIC",
-    "treatment_resistant": "治療抵抗性",
-    # Phase 1c-5 (2026-09-23): additional disease_ids + composite English
-    # complications observed in the JP p=10000 template-narrate audit —
-    # ~3,300 leaks concentrated in progress_note assessment /
-    # hospital_course sections. Keys are the underscore slug form; the
-    # ``_localize_complication`` helper normalises whitespace →
-    # underscores at lookup time so ``"urinary tract infection"`` and
-    # ``"urinary_tract_infection"`` collapse to the same entry.
-    "urinary_tract_infection": "尿路感染症",
-    "uti": "尿路感染症",
-    "hemorrhagic_stroke": "出血性脳卒中",
-    "ischemic_stroke": "虚血性脳卒中",
-    "acute_respiratory_distress_syndrome": "急性呼吸窮迫症候群 (ARDS)",
-    "ards": "急性呼吸窮迫症候群 (ARDS)",
-    "cardiac_arrhythmia": "心不整脈",
-    "atrial_fibrillation": "心房細動",
-    "ventricular_tachycardia": "心室頻拍",
-    "ventricular_fibrillation": "心室細動",
-    "venous_thromboembolism": "静脈血栓塞栓症",
-    "vte": "静脈血栓塞栓症",
-    "post_stroke_depression": "脳卒中後うつ",
-    "malnutrition": "低栄養",
-    "malnutrition_worsening": "低栄養の悪化",
-    "icu_delirium": "ICU せん妄",
-    "stress_cardiomyopathy": "たこつぼ型心筋症",
-    "acute_cholecystitis": "急性胆嚢炎",
-    "acute_pancreatitis": "急性膵炎",
-    "acute_appendicitis": "急性虫垂炎",
-    "hip_fracture": "大腿骨近位部骨折",
-    "coronary_pci": "冠動脈経皮的インターベンション (PCI)",
-    "pci": "冠動脈経皮的インターベンション (PCI)",
-    "pacemaker_implant": "ペースメーカー植込み術",
-    "hemiarthroplasty": "人工骨頭置換術",
-    "orif": "観血的整復固定術 (ORIF)",
-    "aki": "急性腎障害",
-    "chf_exacerbation": "うっ血性心不全増悪",
-    "renal_failure": "腎不全",
-    "acute_renal_failure": "急性腎不全",
-    "encephalopathy": "脳症",
-    "hepatic_encephalopathy": "肝性脳症",
-    "acute_liver_failure": "急性肝不全",
-    "acute_stroke": "急性期脳卒中",
-    "cardiogenic_shock": "心原性ショック",
-    "septic_shock": "敗血症性ショック",
-    "hypovolemic_shock": "循環血液量減少性ショック",
-    # Phase 1c-5 (2026-09-23) — disease_id mirror. The
-    # ``_localize_complication`` helper is used by
-    # ``_compose_admission_hp_status`` for the ``病態:`` line, so every
-    # disease-YAML ``disease_id`` also has to be present here (in
-    # addition to the complication-slug entries above).
-    "acute_mi": "急性心筋梗塞",
-    "asthma_exacerbation": "喘息増悪",
-    "atrial_fibrillation_rvr": "心房細動 (RVR)",
-    "cellulitis": "蜂窩織炎",
-    "crush_injury_hand": "手挫滅損傷",
-    "deep_vein_thrombosis": "深部静脈血栓症",
-    "diabetic_ketoacidosis": "糖尿病性ケトアシドーシス",
-    "electrical_injury": "電撃傷",
-    "fall_from_height": "高所転落外傷",
-    "gi_bleeding": "消化管出血",
-    "ileus": "イレウス",
-    "industrial_burn_severe": "重症熱傷 (労災)",
-    "influenza": "インフルエンザ",
-    "liver_cirrhosis_decompensated": "肝硬変 (非代償期)",
-    "subdural_hematoma": "硬膜下血腫",
-    "traffic_accident_severe": "重症交通外傷",
-    "vertebral_compression_fracture": "椎体圧迫骨折",
-    "wrist_fracture_surgical": "手関節骨折 (観血的整復)",
-    # Complications observed only in the p=10000 audit residuals
-    # (composite English + disease-specific complication vocabulary).
-    "hemorrhagic_transformation": "出血性変化",
-    "empyema": "膿胸",
-    "uremic_encephalopathy": "尿毒症性脳症",
-    "rebleeding": "再出血",
-    "burn_wound_infection": "熱傷創部感染",
-    "inhalation_injury": "吸入損傷",
-    "inhalation_injury_respiratory_failure": "吸入損傷による呼吸不全",
-    "hydrocephalus": "水頭症",
-    "cerebral_edema": "脳浮腫",
-    "increased_icp": "頭蓋内圧亢進",
-    "rebleeding_intracerebral": "脳内再出血",
-    "vasospasm": "血管攣縮",
-    # Phase 1c-6 (2026-09-23) — additional composite complications
-    # surfaced in the post-Phase-1c-5 audit residuals.
-    "hospital_acquired_pneumonia": "院内肺炎",
-    "healthcare_associated_pneumonia": "医療介護関連肺炎",
-    "parapneumonic_effusion": "肺炎随伴性胸水",
-    "ventricular_arrhythmia": "心室性不整脈",
-    "postoperative_hemorrhage": "術後出血",
-    "acute_respiratory_distress": "急性呼吸窮迫",
-    "recurrent_aspiration": "反復性誤嚥",
-    "pneumothorax": "気胸",
-    "tension_pneumothorax": "緊張性気胸",
-    "pleural_effusion": "胸水",
-    "chronic_pleural_effusion": "慢性胸水",
-    "wound_dehiscence": "創部離開",
-    "anastomotic_leak": "縫合不全",
-    "postoperative_ileus": "術後イレウス",
-    "diabetic_foot_ulcer": "糖尿病性足潰瘍",
-    # Phase 1c-7 (2026-09-23) — additional composite complications
-    # surfaced in the post-Phase-1c-6 audit residuals.
-    "hematoma_expansion": "血腫拡大",
-    "metabolic_acidosis": "代謝性アシドーシス",
-    "respiratory_acidosis": "呼吸性アシドーシス",
-    "lactic_acidosis": "乳酸アシドーシス",
-    "lung_abscess": "肺膿瘍",
-    "pancreatic_pseudocyst": "膵仮性嚢胞",
-    "pancreatic_necrosis": "膵壊死",
-    "transfusion_reaction": "輸血反応",
-    "acute_hemolytic_reaction": "急性溶血反応",
-    "transfusion_related_acute_lung_injury": "輸血関連急性肺障害 (TRALI)",
-    "trali": "輸血関連急性肺障害 (TRALI)",
-    "taco": "輸血関連循環過負荷 (TACO)",
-    "post_transfusion_purpura": "輸血後紫斑病",
-    "pulmonary_edema": "肺水腫",
-    "cardiogenic_pulmonary_edema": "心原性肺水腫",
-    "constipation_ileus": "便秘性イレウス",
-    "adynamic_ileus": "麻痺性イレウス",
-    "viral_pneumonia": "ウイルス性肺炎",
-    "influenza_pneumonia": "インフルエンザ肺炎",
-    "myocarditis": "心筋炎",
-    "pericarditis": "心膜炎",
-    "pericardial_effusion": "心膜液貯留",
-    "cardiac_tamponade": "心タンポナーデ",
-    "atypical_pneumonia": "非定型肺炎",
-    "bronchiolitis": "細気管支炎",
-    "bronchitis": "気管支炎",
-    "sinusitis": "副鼻腔炎",
-    "otitis_media": "中耳炎",
-}
-_COMPLICATION_EN: dict[str, str] = {
-    # EN output prefers spaced full names over snake_case; leave abbreviations
-    # (DVT / CLABSI / CAUTI / DIC) as-is per international convention.
-    "delirium": "delirium",
-    "postoperative_delirium": "postoperative delirium",
-    "acute_kidney_injury": "acute kidney injury",
-    "aspiration_pneumonia": "aspiration pneumonia",
-    "seizure": "seizure",
-    "pressure_ulcer": "pressure ulcer",
-    "dvt": "DVT",
-    "pulmonary_embolism": "pulmonary embolism",
-    "cauti": "CAUTI",
-    "clabsi": "CLABSI",
-    "central_line_associated_bloodstream_infection": "central line-associated bloodstream infection",
-    "surgical_site_infection": "surgical site infection",
-    "hypoglycemia": "hypoglycemia",
-    "hyperkalemia": "hyperkalemia",
-    "hypokalemia": "hypokalemia",
-    "steroid_hyperglycemia": "steroid-induced hyperglycemia",
-    "sepsis": "sepsis",
-    "bacteremia": "bacteremia",
-    "urosepsis": "urosepsis",
-    "gi_bleed": "GI bleed",
-    "myocardial_infarction": "myocardial infarction",
-    "acute_myocardial_infarction": "acute myocardial infarction",
-    "perioperative_cardiac_event": "perioperative cardiac event",
-    "stroke": "stroke",
-    "cerebral_infarction": "cerebral infarction",
-    "arrhythmia": "arrhythmia",
-    "shock": "shock",
-    "atelectasis": "atelectasis",
-    "acute_heart_failure": "acute heart failure",
-    "heart_failure_exacerbation": "heart failure exacerbation",
-    "bacterial_pneumonia": "bacterial pneumonia",
-    "c_diff_colitis": "C. difficile colitis",
-    "hepatic_dysfunction": "hepatic dysfunction",
-    "rhabdomyolysis": "rhabdomyolysis",
-    "renal_abscess": "renal abscess",
-    "respiratory_failure": "respiratory failure",
-    "respiratory_failure_requiring_niv": "respiratory failure requiring NIV",
-    "intubation_required": "intubation required",
-    "copd_exacerbation": "COPD exacerbation",
-    "disseminated_intravascular_coagulation": "disseminated intravascular coagulation (DIC)",
-    "dic": "DIC",
-    "treatment_resistant": "treatment-resistant",
-    # Phase 1c-5 (2026-09-23): mirror JA-side additions in canonical
-    # English display form.
-    "urinary_tract_infection": "urinary tract infection",
-    "uti": "UTI",
-    "hemorrhagic_stroke": "hemorrhagic stroke",
-    "ischemic_stroke": "ischemic stroke",
-    "acute_respiratory_distress_syndrome": "acute respiratory distress syndrome",
-    "ards": "ARDS",
-    "cardiac_arrhythmia": "cardiac arrhythmia",
-    "atrial_fibrillation": "atrial fibrillation",
-    "ventricular_tachycardia": "ventricular tachycardia",
-    "ventricular_fibrillation": "ventricular fibrillation",
-    "venous_thromboembolism": "venous thromboembolism",
-    "vte": "VTE",
-    "post_stroke_depression": "post-stroke depression",
-    "malnutrition": "malnutrition",
-    "malnutrition_worsening": "worsening malnutrition",
-    "icu_delirium": "ICU delirium",
-    "stress_cardiomyopathy": "stress cardiomyopathy",
-    "acute_cholecystitis": "acute cholecystitis",
-    "acute_pancreatitis": "acute pancreatitis",
-    "acute_appendicitis": "acute appendicitis",
-    "hip_fracture": "hip fracture",
-    "coronary_pci": "coronary PCI",
-    "pci": "PCI",
-    "pacemaker_implant": "pacemaker implantation",
-    "hemiarthroplasty": "hemiarthroplasty",
-    "orif": "ORIF",
-    "aki": "AKI",
-    "chf_exacerbation": "CHF exacerbation",
-    "renal_failure": "renal failure",
-    "acute_renal_failure": "acute renal failure",
-    "encephalopathy": "encephalopathy",
-    "hepatic_encephalopathy": "hepatic encephalopathy",
-    "acute_liver_failure": "acute liver failure",
-    "acute_stroke": "acute stroke",
-    "cardiogenic_shock": "cardiogenic shock",
-    "septic_shock": "septic shock",
-    "hypovolemic_shock": "hypovolemic shock",
-    # Phase 1c-5 (2026-09-23) — disease_id + residual-complication mirror.
-    "acute_mi": "acute myocardial infarction",
-    "asthma_exacerbation": "asthma exacerbation",
-    "atrial_fibrillation_rvr": "atrial fibrillation with RVR",
-    "cellulitis": "cellulitis",
-    "crush_injury_hand": "crush injury (hand)",
-    "deep_vein_thrombosis": "deep vein thrombosis",
-    "diabetic_ketoacidosis": "diabetic ketoacidosis",
-    "electrical_injury": "electrical injury",
-    "fall_from_height": "fall from height",
-    "gi_bleeding": "GI bleeding",
-    "ileus": "ileus",
-    "industrial_burn_severe": "industrial burn (severe)",
-    "influenza": "influenza",
-    "liver_cirrhosis_decompensated": "decompensated liver cirrhosis",
-    "subdural_hematoma": "subdural hematoma",
-    "traffic_accident_severe": "traffic accident (severe)",
-    "vertebral_compression_fracture": "vertebral compression fracture",
-    "wrist_fracture_surgical": "wrist fracture (surgical)",
-    "hemorrhagic_transformation": "hemorrhagic transformation",
-    "empyema": "empyema",
-    "uremic_encephalopathy": "uremic encephalopathy",
-    "rebleeding": "rebleeding",
-    "burn_wound_infection": "burn wound infection",
-    "inhalation_injury": "inhalation injury",
-    "inhalation_injury_respiratory_failure": "inhalation-injury respiratory failure",
-    "hydrocephalus": "hydrocephalus",
-    "cerebral_edema": "cerebral edema",
-    "increased_icp": "elevated intracranial pressure",
-    "rebleeding_intracerebral": "intracerebral rebleeding",
-    "vasospasm": "vasospasm",
-    # Phase 1c-6 (2026-09-23) — additional composite complications.
-    "hospital_acquired_pneumonia": "hospital-acquired pneumonia",
-    "healthcare_associated_pneumonia": "healthcare-associated pneumonia",
-    "parapneumonic_effusion": "parapneumonic effusion",
-    "ventricular_arrhythmia": "ventricular arrhythmia",
-    "postoperative_hemorrhage": "postoperative hemorrhage",
-    "acute_respiratory_distress": "acute respiratory distress",
-    "recurrent_aspiration": "recurrent aspiration",
-    "pneumothorax": "pneumothorax",
-    "tension_pneumothorax": "tension pneumothorax",
-    "pleural_effusion": "pleural effusion",
-    "chronic_pleural_effusion": "chronic pleural effusion",
-    "wound_dehiscence": "wound dehiscence",
-    "anastomotic_leak": "anastomotic leak",
-    "postoperative_ileus": "postoperative ileus",
-    "diabetic_foot_ulcer": "diabetic foot ulcer",
-    # Phase 1c-7 (2026-09-23) — additional composite complications.
-    "hematoma_expansion": "hematoma expansion",
-    "metabolic_acidosis": "metabolic acidosis",
-    "respiratory_acidosis": "respiratory acidosis",
-    "lactic_acidosis": "lactic acidosis",
-    "lung_abscess": "lung abscess",
-    "pancreatic_pseudocyst": "pancreatic pseudocyst",
-    "pancreatic_necrosis": "pancreatic necrosis",
-    "transfusion_reaction": "transfusion reaction",
-    "acute_hemolytic_reaction": "acute hemolytic reaction",
-    "transfusion_related_acute_lung_injury": "transfusion-related acute lung injury (TRALI)",
-    "trali": "TRALI",
-    "taco": "TACO",
-    "post_transfusion_purpura": "post-transfusion purpura",
-    "pulmonary_edema": "pulmonary edema",
-    "cardiogenic_pulmonary_edema": "cardiogenic pulmonary edema",
-    "constipation_ileus": "constipation ileus",
-    "adynamic_ileus": "adynamic ileus",
-    "viral_pneumonia": "viral pneumonia",
-    "influenza_pneumonia": "influenza pneumonia",
-    "myocarditis": "myocarditis",
-    "pericarditis": "pericarditis",
-    "pericardial_effusion": "pericardial effusion",
-    "cardiac_tamponade": "cardiac tamponade",
-    "atypical_pneumonia": "atypical pneumonia",
-    "bronchiolitis": "bronchiolitis",
-    "bronchitis": "bronchitis",
-    "sinusitis": "sinusitis",
-    "otitis_media": "otitis media",
-}
+# Phase 1d-1 (2026-09-23): narrative-vocabulary tables were extracted
+# from this module into ``clinosim/locale/shared/narrative_*.yaml`` so
+# adding a new language is a data change, not a code change. The
+# helper functions below are unchanged in API — they resolve the
+# ``ja``/``en`` display via ``clinosim.locale.loader.load_narrative_*``
+# and fall back to the humanised slug when a key is unmapped.
+#
+# History (kept for grep):
+# - _COMPLICATION_JA/EN → narrative_complications.yaml (Phase 1c-2/5/6/7)
+# - _LAB_NAME_JA/EN     → narrative_lab_names.yaml     (Phase 1c-2/4/5/7)
+# - _LAB_FLAG_JA        → narrative_lab_flags.yaml     (Phase 1c-5)
 
-# Phase 1c-2 (2026-09-22): lab-name localization for the vitals+labs
-# fallback line rendered by the chronic-condition assessment loop
-# (``_render_outpatient_chronic_soap`` around line 5625). Pre-fix, that
-# renderer emitted ``lab_by_name`` keys verbatim in lower-case
-# ("本日測定 (BP 100/79 mmHg、HR 69 回/分、glucose 154.0 mg/dL、
-# hba1c 8.9 %)"), leaking 863 raw slugs across the JP p=500 audit.
-# Rule (mirrors ``narrative_seed_bundle`` Rule 5 D): full English words
-# translate to JA; abbreviations (all-caps or ≤6 letters) keep as-is
-# but canonicalize to the standard casing.
-_LAB_NAME_JA: dict[str, str] = {
-    # Full-word labs → translate.
-    "creatinine": "クレアチニン",
-    "glucose": "血糖",
-    "albumin": "アルブミン",
-    "lactate": "乳酸",
-    "sodium": "ナトリウム",
-    "potassium": "カリウム",
-    "chloride": "クロール",
-    "calcium": "カルシウム",
-    "magnesium": "マグネシウム",
-    "phosphorus": "リン",
-    "bilirubin": "ビリルビン",
-    "urea": "尿素",
-    "hemoglobin": "ヘモグロビン",
-    "hematocrit": "ヘマトクリット",
-    "troponin_i": "トロポニンI",
-    "troponin_t": "トロポニンT",
-    "ferritin": "フェリチン",
-    "amylase": "アミラーゼ",
-    "lipase": "リパーゼ",
-    # Abbreviations → canonicalize casing.
-    "alt": "ALT",
-    "ast": "AST",
-    "wbc": "WBC",
-    "rbc": "RBC",
-    "hba1c": "HbA1c",
-    "hb": "Hb",
-    "hct": "Hct",
-    "k": "K",
-    "na": "Na",
-    "cl": "Cl",
-    "ca": "Ca",
-    "mg": "Mg",
-    "crp": "CRP",
-    "tsh": "TSH",
-    "bun": "BUN",
-    "cr": "Cr",
-    "egfr": "eGFR",
-    "ldl": "LDL",
-    "hdl": "HDL",
-    "tc": "TC",
-    "tg": "TG",
-    "tp": "TP",
-    "plt": "Plt",
-    "ldh": "LDH",
-    "alp": "ALP",
-    "pct": "PCT",
-    "bnp": "BNP",
-    "nt_probnp": "NT-proBNP",
-    "pt_inr": "PT-INR",
-    "pt": "PT",
-    "aptt": "APTT",
-    "ph": "pH",
-    "pco2": "PaCO2",
-    "po2": "PaO2",
-    "hco3": "HCO3",
-    "ammonia": "NH3",
-    "ck": "CK",
-    "ldl_c": "LDL-C",
-    "hdl_c": "HDL-C",
-    "gamma_gtp": "γ-GTP",
-    # Phase 1c-4 (2026-09-23): additional lab / panel tokens observed in
-    # the JP p=500 ed_workup ``検査:`` line audit. Pre-fix these rendered
-    # as English inside JA narratives ("検査: CBC、LFT、Total_bilirubin、
-    # Beta_hydroxybutyrate、Urinalysis"). Full-word labs translate to
-    # kana; multi-analyte panels (CBC / BMP / ABG / LFT) stay as the
-    # international abbreviation per JA hospital convention.
-    "cbc": "CBC (全血球算定)",
-    "bmp": "BMP (基本代謝パネル)",
-    "lft": "LFT (肝機能パネル)",
-    "abg": "ABG (動脈血ガス)",
-    "urinalysis": "尿検査",
-    "urine_culture_sensitivity": "尿培養・感受性検査",
-    "blood_culture_set_1": "血液培養 (セット 1)",
-    "blood_culture_set_2": "血液培養 (セット 2)",
-    "rapid_influenza_antigen": "インフルエンザ迅速抗原検査",
-    "total_bilirubin": "総ビリルビン",
-    "direct_bilirubin": "直接ビリルビン",
-    "beta_hydroxybutyrate": "β ヒドロキシ酪酸",
-    "troponin": "トロポニン",  # bare 'Troponin' without I/T suffix
-    # Phase 1c-5 (2026-09-23): additional lab tokens observed in the JP
-    # p=10000 progress_note ``本日の検査所見:`` list — Troponin_I /
-    # Troponin_T were already keyed but CK_MB and a handful of other
-    # cardiac / coagulation markers were leaking full-word English.
-    "ck_mb": "CK-MB",
-    "ckmb": "CK-MB",
-    "d_dimer": "D-ダイマー",
-    "ddimer": "D-ダイマー",
-    "fibrinogen": "フィブリノゲン",
-    "myoglobin": "ミオグロビン",
-    "procalcitonin": "プロカルシトニン",
-    "lactic_acid": "乳酸",
-    "il_6": "IL-6",
-    "il6": "IL-6",
-    "cortisol": "コルチゾール",
-    "iron": "鉄",
-    "tibc": "TIBC",
-    "reticulocyte": "網赤血球",
-    "vitamin_b12": "ビタミン B12",
-    "folate": "葉酸",
-    "haptoglobin": "ハプトグロビン",
-    # Phase 1c-6 (2026-09-23): additional lab-name aliases observed in
-    # the JP p=10000 progress_note assessment 「本日の検査所見:」 list —
-    # the CIF authors sometimes emit ``T_Bil`` (T-bilirubin) instead of
-    # the full ``total_bilirubin``, and there are a handful of other
-    # slot-shorthand tokens like ``D_Bil``.
-    "t_bil": "総ビリルビン",
-    "tbil": "総ビリルビン",
-    "d_bil": "直接ビリルビン",
-    "dbil": "直接ビリルビン",
-    "i_bil": "間接ビリルビン",
-    "ibil": "間接ビリルビン",
-    "gluc": "血糖",
-    "glc": "血糖",
-    "creat": "クレアチニン",
-    "hgb": "ヘモグロビン",
-    "plts": "血小板",
-    "protein_total": "総蛋白",
-    "protein_c": "プロテイン C",
-    "protein_s": "プロテイン S",
-    "antithrombin_iii": "アンチトロンビン III",
-    "at3": "アンチトロンビン III",
-    # Phase 1c-7 (2026-09-23): additional lab-panel aliases.
-    "coag": "凝固検査",
-    "coags": "凝固検査",
-    "coagulation": "凝固検査",
-    "ft4": "FT4",
-    "ft3": "FT3",
-    "urine_ph": "尿 pH",
-    "urine_sg": "尿比重",
-    "microalbumin": "微量アルブミン尿",
-}
-_LAB_NAME_EN: dict[str, str] = {
-    # Full-word labs → keep lowercase-first for English prose readability;
-    # abbreviations canonicalize casing.
-    "creatinine": "creatinine",
-    "glucose": "glucose",
-    "albumin": "albumin",
-    "lactate": "lactate",
-    "sodium": "sodium",
-    "potassium": "potassium",
-    "chloride": "chloride",
-    "calcium": "calcium",
-    "magnesium": "magnesium",
-    "phosphorus": "phosphorus",
-    "bilirubin": "bilirubin",
-    "urea": "urea",
-    "hemoglobin": "hemoglobin",
-    "hematocrit": "hematocrit",
-    "troponin_i": "troponin I",
-    "troponin_t": "troponin T",
-    "ferritin": "ferritin",
-    "amylase": "amylase",
-    "lipase": "lipase",
-    "alt": "ALT",
-    "ast": "AST",
-    "wbc": "WBC",
-    "rbc": "RBC",
-    "hba1c": "HbA1c",
-    "hb": "Hb",
-    "hct": "Hct",
-    "k": "K",
-    "na": "Na",
-    "cl": "Cl",
-    "ca": "Ca",
-    "mg": "Mg",
-    "crp": "CRP",
-    "tsh": "TSH",
-    "bun": "BUN",
-    "cr": "Cr",
-    "egfr": "eGFR",
-    "ldl": "LDL",
-    "hdl": "HDL",
-    "tc": "TC",
-    "tg": "TG",
-    "tp": "TP",
-    "plt": "Plt",
-    "ldh": "LDH",
-    "alp": "ALP",
-    "pct": "PCT",
-    "bnp": "BNP",
-    "nt_probnp": "NT-proBNP",
-    "pt_inr": "PT-INR",
-    "pt": "PT",
-    "aptt": "APTT",
-    "ph": "pH",
-    "pco2": "PaCO2",
-    "po2": "PaO2",
-    "hco3": "HCO3",
-    "ammonia": "NH3",
-    "ck": "CK",
-    "ldl_c": "LDL-C",
-    "hdl_c": "HDL-C",
-    "gamma_gtp": "γ-GTP",
-    # Phase 1c-4 (2026-09-23): panel / additional lab tokens observed in
-    # ed_workup 検査 lines. EN mirror of the JA entries; multi-analyte
-    # panels stay as the international abbreviation.
-    "cbc": "CBC",
-    "bmp": "BMP",
-    "lft": "LFT",
-    "abg": "ABG",
-    "urinalysis": "urinalysis",
-    "urine_culture_sensitivity": "urine culture + sensitivity",
-    "blood_culture_set_1": "blood culture (set 1)",
-    "blood_culture_set_2": "blood culture (set 2)",
-    "rapid_influenza_antigen": "rapid influenza antigen",
-    "total_bilirubin": "total bilirubin",
-    "direct_bilirubin": "direct bilirubin",
-    "beta_hydroxybutyrate": "β-hydroxybutyrate",
-    "troponin": "troponin",
-}
+
+def _lang_key(lang: str) -> str:
+    """Normalize a language string to the two-letter key used in the
+    narrative-vocab YAML entries. ``"ja"``/``"jp"``/``"JA"`` → ``"ja"``;
+    everything else → ``"en"``. Matches ``resolve_lang`` semantics
+    (``clinosim.modules._shared``) without needing a country code."""
+    return "ja" if str(lang).lower().startswith("ja") else "en"
 
 
 def _localize_complication(name: str, lang: str) -> str:
@@ -1416,13 +872,11 @@ def _localize_complication(name: str, lang: str) -> str:
     missing so a novel complication still surfaces something clinically
     readable rather than a machine slug.
 
-    Phase 1c-5 (2026-09-23): the lookup key normalises whitespace →
-    underscores so a space-separated composite English complication
-    (``"urinary tract infection"`` written in disease-YAML) collapses
-    onto the same table entry as the underscore-slug form
-    (``"urinary_tract_infection"``). Pre-fix, only the slug form was
-    localised and the space form fell through to the pass-through
-    humanised branch, leaking raw English into JA narratives.
+    Whitespace-tokens in the input (space-separated composite English
+    complications authored in disease YAML, e.g.
+    ``"urinary tract infection"``) collapse to underscore-slug lookup
+    (``urinary_tract_infection``) so both forms resolve to the same
+    entry — matches the Phase 1c-5 behaviour.
     """
     if not name:
         return ""
@@ -1430,8 +884,10 @@ def _localize_complication(name: str, lang: str) -> str:
     if not key:
         return ""
     key = "_".join(key.split())
-    table = _COMPLICATION_JA if str(lang).lower().startswith("ja") else _COMPLICATION_EN
-    return table.get(key, key.replace("_", " "))
+    from clinosim.locale.loader import load_narrative_complications
+
+    entry = load_narrative_complications().get(key, {})
+    return entry.get(_lang_key(lang)) or key.replace("_", " ")
 
 
 def _localize_lab_name(name: str, lang: str) -> str:
@@ -1443,39 +899,29 @@ def _localize_lab_name(name: str, lang: str) -> str:
     key = str(name).strip().lower()
     if not key:
         return ""
-    table = _LAB_NAME_JA if str(lang).lower().startswith("ja") else _LAB_NAME_EN
-    return table.get(key, name)
+    from clinosim.locale.loader import load_narrative_lab_names
 
-
-# Phase 1c-5 (2026-09-23): lab abnormal-flag display for the
-# ``本日の検査所見:`` progress-note assessment list. Only the severity-2
-# markers (``critical`` / ``!``) get translated — ``H`` / ``L`` are the
-# standard JP hospital-slip abnormal-flag convention and stay as-is per
-# `_LAB_FLAG_LABELS` in `replacement_strategy.py`. Pre-fix the JP p=10000
-# audit surfaced ~600 ``[critical]`` markers inside JA narratives.
-_LAB_FLAG_JA: dict[str, str] = {
-    "critical": "重篤",
-    "!": "重篤",
-    "h*": "H*",
-    "l*": "L*",
-    "h": "H",
-    "l": "L",
-}
+    entry = load_narrative_lab_names().get(key, {})
+    return entry.get(_lang_key(lang)) or name
 
 
 def _localize_lab_flag(flag: str, lang: str) -> str:
     """Localize an abnormal-flag marker for narrative display.
 
     JA output: ``critical`` / ``!`` → ``重篤``; ``H`` / ``L`` (single-
-    letter JP hospital convention) pass through. EN / unknown lang:
-    pass through untouched.
+    letter JP hospital convention) pass through per YAML. EN / unknown
+    lang: pass through untouched (the YAML has no ``en`` entry for
+    single-letter flags — the lookup returns the input flag).
     """
     if not flag:
         return ""
-    if not str(lang).lower().startswith("ja"):
+    if _lang_key(lang) != "ja":
         return str(flag)
+    from clinosim.locale.loader import load_narrative_lab_flags
+
     key = str(flag).strip().lower()
-    return _LAB_FLAG_JA.get(key, str(flag))
+    entry = load_narrative_lab_flags().get(key, {})
+    return entry.get("ja") or str(flag)
 
 
 # Phase 1c-6 (2026-09-23): procedure_type → localized display for the
@@ -1529,32 +975,18 @@ def _localize_proc_type(proc_type: str, lang: str) -> str:
     return _PROC_TYPE_LOCALE_CACHE.get(lang_key, {}).get(key) or key.replace("_", " ")
 
 
-# Phase 1c-6 (2026-09-23): PMH severity / persistence / grade token
-# localization for the ``past_medical_history`` renderer. The chronic-
-# condition stage descriptor is authored in EN (``"Mild persistent"`` /
-# ``"Moderate persistent"`` / ``"Severe"`` / ``"intermittent"``) by the
-# disease YAMLs and was pasted verbatim into JA output pre-fix
-# (~245 leaks in the JP p=10000 audit). Mirrors the authorised JA
-# mapping already documented in ``prompts/ja/narrative_seed_bundle.yaml``
-# Rule 5 A so LLM-polished and template-only narratives stay coherent.
-_STAGE_TOKEN_JA: dict[str, str] = {
-    "mild": "軽度",
-    "moderate": "中等度",
-    "severe": "重度",
-    "very severe": "最重度",
-    "critical": "重篤",
-    "intermittent": "間欠",
-    "persistent": "持続",
-    "level": "レベル",
-    "grade": "グレード",
-}
+# PMH severity / persistence / grade descriptor localization —
+# vocab lives in ``clinosim/locale/shared/narrative_stage_tokens.yaml``
+# (Phase 1d-1 extraction). Mirrors the LLM prompt Rule 5 A table in
+# ``prompts/ja/narrative_seed_bundle.yaml`` so template and LLM output
+# stay coherent.
 
 
 def _localize_stage(stage: str, lang: str) -> str:
     """Localize a compound severity / persistence descriptor for JA.
 
     Whitespace-tokenises the stage string and translates each token
-    via ``_STAGE_TOKEN_JA`` when JA; unknown tokens (numeric grades,
+    via the YAML-backed table when JA; unknown tokens (numeric grades,
     proper-noun scales, unmapped words) pass through so a
     ``"Stage 1"`` or ``"NYHA III"`` string keeps its canonical form.
     Non-JA locales get the stage unchanged.
@@ -1562,156 +994,35 @@ def _localize_stage(stage: str, lang: str) -> str:
     if not stage:
         return ""
     s = str(stage).strip()
-    if not s or not str(lang).lower().startswith("ja"):
+    if not s or _lang_key(lang) != "ja":
         return s
+    from clinosim.locale.loader import load_narrative_stage_tokens
+
+    table = load_narrative_stage_tokens()
     out: list[str] = []
     for tok in s.split():
         # Preserve any surrounding punctuation on the token boundary.
         prefix = tok[: len(tok) - len(tok.lstrip("(,.;:"))]
         suffix = tok[len(tok.rstrip("),.;:")) :]
         base = tok[len(prefix) : len(tok) - len(suffix)] if suffix else tok[len(prefix) :]
-        ja = _STAGE_TOKEN_JA.get(base.lower())
+        entry = table.get(base.lower(), {})
+        ja = entry.get("ja")
         out.append(f"{prefix}{ja if ja else base}{suffix}")
     return " ".join(out)
 
 
-# Phase 1c-4 (2026-09-23): imaging order display-name localization for
-# the ed_workup ``画像:`` line rendered by ``_build_ed_workup``. Pre-fix
-# the JP p=500 audit surfaced 59 raw slugs like "Chest_Xray_PA_Lateral"
-# and "CT_Head" verbatim inside JA narratives. The keys are lower-cased,
-# whitespace/hyphen-normalised forms so semantic duplicates
-# ("Chest_Xray_PA_Lateral" and "Chest X-ray PA and Lateral") collapse to
-# a single entry. Unknown tokens still fall back to the raw slug.
-_IMAGING_JA: dict[str, str] = {
-    # --- Chest X-ray family ---
-    "chest_xray": "胸部レントゲン",
-    "chest xray": "胸部レントゲン",
-    "chest_xray_pa": "胸部レントゲン (正面)",
-    "chest xray pa": "胸部レントゲン (正面)",
-    "chest x-ray pa": "胸部レントゲン (正面)",
-    "chest_xray_pa_lateral": "胸部レントゲン (正面・側面)",
-    "chest xray pa lateral": "胸部レントゲン (正面・側面)",
-    "chest x-ray pa and lateral": "胸部レントゲン (正面・側面)",
-    "chest_xray_portable": "胸部ポータブルレントゲン",
-    "chest_xray_preop": "胸部レントゲン (術前)",
-    # --- Chest CT ---
-    "chest_ct": "胸部 CT",
-    "chest ct": "胸部 CT",
-    "chest_ct_with_contrast": "胸部 CT (造影)",
-    "ct chest without contrast": "胸部 CT (単純)",
-    "ct chest with contrast": "胸部 CT (造影)",
-    # --- Abdomen / pelvis imaging ---
-    "ct_abdomen_pelvis": "腹部・骨盤 CT",
-    "ct_abdomen_pelvis_with_contrast": "腹部・骨盤 CT (造影)",
-    "ct_abdomen_pelvis_noncontrast": "腹部・骨盤 CT (単純)",
-    "ct abdomen with contrast": "腹部 CT (造影)",
-    "ct abdomen without contrast": "腹部 CT (単純)",
-    "abdominal_xray": "腹部レントゲン",
-    "abdominal xray": "腹部レントゲン",
-    "abdominal_xray_erect_supine": "腹部レントゲン (立位・臥位)",
-    "x-ray abdomen (supine and upright)": "腹部レントゲン (臥位・立位)",
-    "xray_abdomen": "腹部レントゲン",
-    "xray abdomen": "腹部レントゲン",
-    # --- Ultrasound ---
-    "renal_ultrasound": "腎エコー",
-    "ultrasound kidney": "腎エコー",
-    "abdominal_ultrasound": "腹部エコー",
-    "ultrasound abdomen": "腹部エコー",
-    "bladder_ultrasound": "膀胱エコー",
-    "carotid_ultrasound": "頸動脈エコー",
-    "echocardiogram": "心エコー",
-    "echocardiography_tte": "経胸壁心エコー",
-    # --- Head / brain ---
-    "ct_head": "頭部 CT",
-    "ct head": "頭部 CT",
-    "ct_head_noncontrast": "頭部 CT (単純)",
-    "ct_angiography_head_neck": "頭頸部 CT アンギオ",
-    "mri_brain_dwi": "頭部 MRI (拡散強調)",
-    "mra_intracranial": "頭蓋内 MRA",
-    # --- Cardiac ---
-    "ecg": "心電図",
-    "ecg_12lead": "12 誘導心電図",
-    # --- Skeletal / X-ray ---
-    "ankle_xray": "足関節レントゲン",
-    "cervical_spine_xray": "頸椎レントゲン",
-    "lumbar_xray": "腰椎レントゲン",
-    "hip_xray_ap_lateral": "股関節レントゲン (正面・側面)",
-    "x-ray hip ap and lateral": "股関節レントゲン (正面・側面)",
-    "ct hip without contrast": "股関節 CT (単純)",
-    "shoulder_xray_ap_lateral": "肩関節レントゲン (正面・側面)",
-    "shoulder_xray_post_reduction": "肩関節レントゲン (整復後)",
-    # --- Hepatobiliary ---
-    "mrcp": "MRCP (磁気共鳴胆管膵管造影)",
-    # Phase 1c-7 (2026-09-23): additional imaging variants surfaced in
-    # the JP p=10000 ed_workup 「画像:」 line. Both underscore-slug and
-    # spaced-CamelCase forms are keyed since the `_localize_imaging`
-    # helper normalises whitespace / hyphen but preserves compound
-    # token structure. `wrist xray ap lateral` etc. are lower-cased by
-    # the helper before lookup.
-    "wrist_xray": "手関節レントゲン",
-    "wrist xray": "手関節レントゲン",
-    "wrist_xray_ap_lateral": "手関節レントゲン (正面・側面)",
-    "wrist xray ap lateral": "手関節レントゲン (正面・側面)",
-    "spine_xray": "脊椎レントゲン",
-    "spine xray": "脊椎レントゲン",
-    "spine_xray_ap_lateral": "脊椎レントゲン (正面・側面)",
-    "spine xray ap lateral": "脊椎レントゲン (正面・側面)",
-    "x-ray spine ap and lateral": "脊椎レントゲン (正面・側面)",
-    "spine mri": "脊椎 MRI",
-    "spine_mri": "脊椎 MRI",
-    "mr spine without contrast": "脊椎 MRI (単純)",
-    "xray affected area": "患部レントゲン",
-    "xray_affected_area": "患部レントゲン",
-    "ct pulmonary angiography": "肺動脈 CT アンギオ",
-    "ct_pulmonary_angiography": "肺動脈 CT アンギオ",
-    "lower extremity venous ultrasound": "下肢静脈エコー",
-    "lower_extremity_venous_ultrasound": "下肢静脈エコー",
-    "chest ct (with contrast)": "胸部 CT (造影)",
-}
-_IMAGING_EN: dict[str, str] = {
-    # EN reuses de-underscored forms; canonical spacing + capitalisation.
-    "chest_xray": "chest X-ray",
-    "chest_xray_pa": "chest X-ray PA",
-    "chest_xray_pa_lateral": "chest X-ray PA and lateral",
-    "chest_xray_portable": "portable chest X-ray",
-    "chest_xray_preop": "pre-operative chest X-ray",
-    "chest_ct": "chest CT",
-    "chest_ct_with_contrast": "chest CT (with contrast)",
-    "ct_abdomen_pelvis": "CT abdomen/pelvis",
-    "ct_abdomen_pelvis_with_contrast": "CT abdomen/pelvis (with contrast)",
-    "ct_abdomen_pelvis_noncontrast": "CT abdomen/pelvis (non-contrast)",
-    "abdominal_xray": "abdominal X-ray",
-    "abdominal_xray_erect_supine": "abdominal X-ray (erect and supine)",
-    "xray_abdomen": "abdominal X-ray",
-    "renal_ultrasound": "renal ultrasound",
-    "abdominal_ultrasound": "abdominal ultrasound",
-    "bladder_ultrasound": "bladder ultrasound",
-    "carotid_ultrasound": "carotid ultrasound",
-    "echocardiogram": "echocardiogram",
-    "echocardiography_tte": "transthoracic echocardiogram",
-    "ct_head": "CT head",
-    "ct_head_noncontrast": "CT head (non-contrast)",
-    "ct_angiography_head_neck": "CT angiography head/neck",
-    "mri_brain_dwi": "MRI brain (DWI)",
-    "mra_intracranial": "MRA (intracranial)",
-    "ecg": "ECG",
-    "ecg_12lead": "12-lead ECG",
-    "ankle_xray": "ankle X-ray",
-    "cervical_spine_xray": "cervical spine X-ray",
-    "lumbar_xray": "lumbar spine X-ray",
-    "hip_xray_ap_lateral": "hip X-ray AP and lateral",
-    "ct hip without contrast": "CT hip (without contrast)",
-    "shoulder_xray_ap_lateral": "shoulder X-ray AP and lateral",
-    "shoulder_xray_post_reduction": "shoulder X-ray (post-reduction)",
-    "mrcp": "MRCP",
-}
+# Imaging order display-name localization — vocab lives in
+# ``clinosim/locale/shared/narrative_imaging.yaml`` (Phase 1d-1
+# extraction). Keys are lower-cased, whitespace/hyphen-normalised
+# forms so semantic duplicates (``Chest_Xray_PA_Lateral`` and
+# ``Chest X-ray PA and Lateral``) collapse to a single entry.
 
 
 def _localize_imaging(name: str, lang: str) -> str:
     """Return the localized display for an imaging order token. Keys are
     matched case-insensitively after collapsing consecutive whitespace so
-    both underscore-slug forms ("Chest_Xray_PA_Lateral") and spaced
-    variants ("Chest X-ray PA and Lateral") resolve to the same entry.
+    both underscore-slug forms (``Chest_Xray_PA_Lateral``) and spaced
+    variants (``Chest X-ray PA and Lateral``) resolve to the same entry.
     Unknown tokens fall back to a humanised slug (underscores → spaces)
     so a novel imaging code renders naturally rather than as a machine
     slug."""
@@ -1721,17 +1032,52 @@ def _localize_imaging(name: str, lang: str) -> str:
     if not key:
         return ""
     key = " ".join(key.split())  # collapse whitespace runs
-    table = _IMAGING_JA if str(lang).lower().startswith("ja") else _IMAGING_EN
-    hit = table.get(key)
-    if hit is not None:
-        return hit
+    from clinosim.locale.loader import load_narrative_imaging
+
+    table = load_narrative_imaging()
+    lang_key = _lang_key(lang)
+    entry = table.get(key)
+    if entry:
+        hit = entry.get(lang_key)
+        if hit:
+            return hit
     # Underscore-form fallback: try the underscored variant
     alt = key.replace(" ", "_")
-    hit = table.get(alt)
-    if hit is not None:
-        return hit
+    entry = table.get(alt)
+    if entry:
+        hit = entry.get(lang_key)
+        if hit:
+            return hit
     # Humanised fallback so a slug never leaks raw in JA prose.
     return name.replace("_", " ")
+
+
+def _localize_op_approach(approach: str, lang: str) -> str:
+    """Localize a surgical-approach token / composite phrase for the
+    operative_note ``approach`` field. Vocab lives in
+    ``clinosim/locale/shared/narrative_op_approach.yaml`` (Phase 1d-1).
+    Falls back to the raw input when unmapped (matches pre-refactor
+    behaviour of ``dict.get(key, key)``)."""
+    if not approach:
+        return ""
+    key = str(approach).strip().lower()
+    from clinosim.locale.loader import load_narrative_op_approach
+
+    entry = load_narrative_op_approach().get(key, {})
+    return entry.get(_lang_key(lang)) or key
+
+
+def _localize_op_implant(implant: str, lang: str) -> str:
+    """Localize an implant / device string for the operative_note
+    equipment field. Vocab lives in ``narrative_op_implants.yaml``
+    (Phase 1d-1). Falls back to the raw input when unmapped."""
+    if not implant:
+        return ""
+    key = str(implant).strip().lower()
+    from clinosim.locale.loader import load_narrative_op_implants
+
+    entry = load_narrative_op_implants().get(key, {})
+    return entry.get(_lang_key(lang)) or implant
 
 
 # SOAP section labels per locale
@@ -8249,51 +7595,10 @@ class TemplateNarrativeGenerator:
         "385670004": "partially successful (minor intraop complications)",
         "385671000": "unsuccessful",
     }
-    _OP_APPROACH_JA: dict[str, str] = {
-        "laparoscopic": "腹腔鏡下",
-        "open": "開腹",
-        "endovascular": "血管内",
-        "percutaneous": "経皮的",
-        "thoracoscopic": "胸腔鏡下",
-        "robotic": "ロボット支援下",
-        # Phase 1c-6 (Category K, 2026-09-23): composite approach
-        # strings authored verbatim in disease-YAML `procedural.approach`
-        # dicts (hip_fracture / bowel_resection / etc.). Pre-fix these
-        # leaked into JA operative_note as raw English ~200 leaks.
-        "lateral approach to proximal femur": "大腿骨近位部への外側アプローチ",
-        "posterolateral approach to hip joint": "股関節への後外側アプローチ",
-        "midline laparotomy": "正中切開",
-        "transverse laparotomy": "横切開",
-        "mcburney incision": "マクバーニー切開",
-        "kocher incision": "コッハー切開",
-        "median sternotomy": "胸骨正中切開",
-        "posterior approach": "後方アプローチ",
-        "anterior approach": "前方アプローチ",
-        "lateral approach": "外側アプローチ",
-        "medial approach": "内側アプローチ",
-    }
-    _OP_APPROACH_EN: dict[str, str] = {
-        "laparoscopic": "laparoscopic",
-        "open": "open",
-        "endovascular": "endovascular",
-        "percutaneous": "percutaneous",
-        "thoracoscopic": "thoracoscopic",
-        "robotic": "robotic-assisted",
-    }
-    # Phase 1c-6 (Category K, 2026-09-23): op_equipment implant JA labels.
-    # Source is `procedure/engine.py` hip_fracture ORIF /
-    # hemiarthroplasty branches (currently the only sim path that
-    # populates implants_used with hardcoded EN strings). Case-insensitive
-    # lookup; unmapped implant strings pass through unchanged.
-    _OP_IMPLANT_JA: dict[str, str] = {
-        "compression hip screw": "圧迫式ヒップスクリュー",
-        "intramedullary nail": "髄内釘",
-        "bipolar femoral prosthesis": "バイポーラ人工骨頭",
-        "cannulated screw": "カニュレイテッドスクリュー",
-        "dynamic hip screw": "ダイナミックヒップスクリュー",
-        "sliding hip screw": "スライディングヒップスクリュー",
-        "cephalomedullary nail": "頭髄内釘",
-    }
+    # _OP_APPROACH / _OP_IMPLANT vocab — moved to
+    # ``clinosim/locale/shared/narrative_op_approach.yaml`` and
+    # ``narrative_op_implants.yaml`` (Phase 1d-1). Callers resolve via
+    # module-level ``_localize_op_approach`` / ``_localize_op_implant``.
 
     def _primary_surgical_procedure(self, ctx: NarrativeContext) -> Any | None:
         """Return the encounter's earliest surgical ProcedureRecord (or None).
@@ -8346,7 +7651,7 @@ class TemplateNarrativeGenerator:
         name = self._resolve_procedure_display(proc, ctx.target_lang)
         code = _o(proc, "procedure_code", "") or _o(proc, "procedure_code_jp", "") or _o(proc, "procedure_code_us", "")
         approach_raw = str(_o(proc, "approach", "") or "").lower()
-        approach = (self._OP_APPROACH_JA if is_ja else self._OP_APPROACH_EN).get(approach_raw, approach_raw)
+        approach = _localize_op_approach(approach_raw, ctx.target_lang)
         duration = _o(proc, "duration_minutes", 0) or 0
         if is_ja:
             approach_part = f"（{approach}）" if approach else ""
@@ -8459,7 +7764,7 @@ class TemplateNarrativeGenerator:
             return ("手術経過：情報なし" if is_ja else "Operative course: not documented"), []
         facts = ["ctx.procedures"]
         approach_raw = str(_o(proc, "approach", "") or "").lower()
-        approach = (self._OP_APPROACH_JA if is_ja else self._OP_APPROACH_EN).get(approach_raw, approach_raw)
+        approach = _localize_op_approach(approach_raw, ctx.target_lang)
         duration = _o(proc, "duration_minutes", 0) or 0
         outcome_code = str(_o(proc, "outcome_code", "") or "")
         outcome = (self._OP_OUTCOME_JA if is_ja else self._OP_OUTCOME_EN).get(outcome_code, "")
@@ -8542,7 +7847,7 @@ class TemplateNarrativeGenerator:
         # femoral prosthesis」. Case-insensitive lookup on the full
         # string; unmapped names pass through unchanged.
         if is_ja:
-            implants = [self._OP_IMPLANT_JA.get(x.lower(), x) for x in implants]
+            implants = [_localize_op_implant(x, ctx.target_lang) for x in implants]
         sep = "、" if is_ja else ", "
         if is_ja:
             return f"使用機器・材料：{sep.join(implants)}", facts

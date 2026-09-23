@@ -39,40 +39,29 @@ from clinosim.modules._shared import MED_STOP_ORDER_ID_MARKER
 from clinosim.simulator.enrichers import EnricherContext
 from clinosim.types.encounter import OrderStatus, OrderType
 
-# Phase 1c-5 (2026-09-23): clinical-course archetype token localization.
+# Clinical-course archetype token localization was moved to
+# ``clinosim/locale/shared/narrative_archetypes.yaml`` (Phase 1d-1).
 # The daily_loop DISCONTINUE marker's clinical_intent field encodes the
 # archetype (``treatment_resistant`` / ``gradual_deterioration`` / …)
 # and ``_log_treatment_change`` propagates it into the safety-skip
 # ``active_conflict_ja`` field the template ``switch`` renderer reads.
-# Pre-fix the JP p=10000 audit surfaced ~1,100 raw archetype-slug leaks
-# inside JA narratives (「治療計画変更 (経過型: treatment_resistant)」).
-# The mapping mirrors ``template_generator._CLINICAL_COURSE_JA/EN``.
-_ARCHETYPE_JA: dict[str, str] = {
-    "smooth_recovery": "順調な回復経過",
-    "standard_recovery": "標準経過",
-    "uncomplicated_improvement": "非合併症性改善経過",
-    "dip_then_recovery": "一過性増悪後回復経過",
-    "plateau": "改善プラトー",
-    "gradual_deterioration": "緩徐増悪",
-    "sudden_deterioration": "急激増悪",
-    "treatment_resistant": "治療抵抗性",
-    "complicated_delayed": "合併症遷延型",
-    "prolonged_recovery": "遷延性回復",
-    "readmission_early": "早期再入院",
-}
-_ARCHETYPE_EN: dict[str, str] = {
-    "smooth_recovery": "smooth recovery",
-    "standard_recovery": "standard recovery",
-    "uncomplicated_improvement": "uncomplicated improvement",
-    "dip_then_recovery": "transient worsening then recovery",
-    "plateau": "improvement plateau",
-    "gradual_deterioration": "gradual deterioration",
-    "sudden_deterioration": "sudden deterioration",
-    "treatment_resistant": "treatment-resistant",
-    "complicated_delayed": "complicated delayed course",
-    "prolonged_recovery": "prolonged recovery",
-    "readmission_early": "early readmission",
-}
+
+
+def _localize_archetype(archetype: str, lang: str) -> str:
+    """Resolve a clinical-course archetype slug to its localized display.
+
+    Fallback: ``archetype.replace("_", " ")`` humanised form when the
+    slug is missing from the YAML (a novel archetype introduced by
+    later disease-YAML authoring still surfaces something readable).
+    """
+    if not archetype:
+        return ""
+    key = str(archetype).strip().lower()
+    from clinosim.locale.loader import load_narrative_archetypes
+
+    entry = load_narrative_archetypes().get(key, {})
+    lang_key = "ja" if str(lang).lower().startswith("ja") else "en"
+    return entry.get(lang_key) or key.replace("_", " ")
 
 
 def _drug_key(display_name: str) -> str:
@@ -391,8 +380,8 @@ def _log_treatment_change(
     # (経過型: 治療抵抗性)」.
     archetype = _extract_archetype(clinical_intent)
     if archetype:
-        archetype_en = _ARCHETYPE_EN.get(archetype.lower(), archetype.replace("_", " "))
-        archetype_ja = _ARCHETYPE_JA.get(archetype.lower(), archetype.replace("_", " "))
+        archetype_en = _localize_archetype(archetype, "en")
+        archetype_ja = _localize_archetype(archetype, "ja")
         conflict_en = f"treatment plan change (archetype: {archetype_en})"
         conflict_ja = f"治療計画変更 (経過型: {archetype_ja})"
     else:

@@ -1,0 +1,24 @@
+# Operative-note surgical-approach localization (single-word + composite).
+#
+# Format: <slug>: {en: <english>, ja: <日本語>}
+# Add new language: extend each entry with `<lang_code>: <display>`.
+# Load via ``clinosim.locale.loader.load_narrative_op_approach()``.
+
+op_approach:
+  anterior approach: {ja: 前方アプローチ}
+  endovascular: {en: endovascular, ja: 血管内}
+  kocher incision: {ja: コッハー切開}
+  laparoscopic: {en: laparoscopic, ja: 腹腔鏡下}
+  lateral approach: {ja: 外側アプローチ}
+  lateral approach to proximal femur: {ja: 大腿骨近位部への外側アプローチ}
+  mcburney incision: {ja: マクバーニー切開}
+  medial approach: {ja: 内側アプローチ}
+  median sternotomy: {ja: 胸骨正中切開}
+  midline laparotomy: {ja: 正中切開}
+  open: {en: open, ja: 開腹}
+  percutaneous: {en: percutaneous, ja: 経皮的}
+  posterior approach: {ja: 後方アプローチ}
+  posterolateral approach to hip joint: {ja: 股関節への後外側アプローチ}
+  robotic: {en: robotic-assisted, ja: ロボット支援下}
+  thoracoscopic: {en: thoracoscopic, ja: 胸腔鏡下}
+  transverse laparotomy: {ja: 横切開}
