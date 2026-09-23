@@ -1,0 +1,98 @@
+# Narrative renderer label tables (Phase 1d-15, 2026-09-23).
+#
+# Extracted from the 12 module-level ``_XXX_JA`` / ``_XXX_EN`` dict
+# constants previously embedded in
+# ``clinosim/modules/document/narrative/template_generator.py``. Same
+# ``{section: {slug: {lang: display}}}`` shape as Phase 1d-2
+# ``llm_prompt_labels.yaml``.
+#
+# Adding a new target language (fr / zh / …) extends each entry with
+# ``<lang>: <display>``. No code change needed.
+#
+# Loader: ``clinosim.locale.loader.load_narrative_labels()``.
+
+staff_role_suffix:
+  CN: {en: nurse, ja: 看護師}
+  DR: {en: physician, ja: 医師}
+  NS: {en: nurse, ja: 看護師}
+  OT: {en: occupational therapist, ja: 作業療法士}
+  PH: {en: pharmacist, ja: 薬剤師}
+  PT: {en: physical therapist, ja: 理学療法士}
+  RT: {en: respiratory therapist, ja: 呼吸療法士}
+  ST: {en: speech therapist, ja: 言語聴覚士}
+shift_labels:
+  day: {en: day, ja: 日勤}
+  evening: {en: evening, ja: 準夜}
+  night: {en: night, ja: 深夜}
+family_relation:
+  FTH: {en: father, ja: 父}
+  MTH: {en: mother, ja: 母}
+  NSIB: {en: sibling, ja: 兄弟姉妹}
+ed_acuity_reason:
+  mild: {en: mild symptoms, ja: 症状軽度}
+  moderate: {en: ongoing symptoms, ja: 症状継続}
+  severe: {en: severe symptoms, ja: 症状重度}
+arrival_mode:
+  ambulance: {en: ambulance, ja: 救急車搬送}
+  helicopter: {en: helicopter/air transport, ja: ドクターヘリ搬送}
+  police: {en: police transport, ja: 警察搬送}
+  private_vehicle: {en: private vehicle, ja: 自家用車来院}
+  walk-in: {en: walk-in, ja: 自来院（Walk-in）}
+smoking:
+  current: {en: Current smoker, ja: 喫煙者（現在）}
+  former: {en: Former smoker, ja: 元喫煙者}
+  never: {en: Non-smoker, ja: 非喫煙者}
+  unknown: {en: Smoking history unknown, ja: 喫煙歴不明}
+alcohol:
+  heavy: {en: Heavy drinker, ja: 多量飲酒}
+  moderate: {en: Moderate drinker, ja: 適度な飲酒}
+  none: {en: Non-drinker, ja: 飲酒なし}
+  occasional: {en: Occasional drinker, ja: 機会飲酒}
+  social: {en: Social drinker, ja: 社交的飲酒}
+  unknown: {en: Alcohol use unknown, ja: 飲酒状況不明}
+occupation:
+  agriculture: {en: Agricultural worker, ja: 農業従事者}
+  construction: {en: Construction worker, ja: 建設業}
+  disabled: {en: Unable to work, ja: 就労困難}
+  education: {en: Education, ja: 教育関係}
+  elementary_student: {en: Elementary-school student, ja: 小学生}
+  finance: {en: Finance professional, ja: 金融業}
+  government: {en: Government employee, ja: 公務員}
+  healthcare: {en: Healthcare, ja: 医療従事者}
+  high_school_student: {en: High-school student, ja: 高校生}
+  homemaker: {en: Homemaker, ja: 主婦}
+  hospitality: {en: Hospitality worker, ja: 接客業}
+  infant: {en: Infant, ja: 乳幼児}
+  it: {en: IT professional, ja: IT 関係者}
+  management: {en: Manager, ja: 管理職}
+  manufacturing: {en: Manufacturing, ja: 製造業}
+  middle_school_student: {en: Middle-school student, ja: 中学生}
+  office: {en: Office worker, ja: 事務職}
+  other: {en: Other, ja: その他}
+  preschool: {en: Preschool child, ja: 未就学児}
+  professional: {en: Professional, ja: 専門職}
+  retail: {en: Retail worker, ja: 小売業}
+  retired: {en: Retired, ja: 退職}
+  sales: {en: Sales worker, ja: 販売職}
+  self_employed: {en: Self-employed, ja: 自営業}
+  service: {en: Service industry, ja: サービス業}
+  student: {en: Student, ja: 学生}
+  transportation: {en: Transportation, ja: 運輸業}
+  unemployed: {en: Unemployed, ja: 無職}
+  university_student: {en: University student, ja: 大学生}
+rp_therapy_type:
+  OT: {en: Occupational therapy (OT), ja: 作業療法(OT)}
+  PT: {en: Physical therapy (PT), ja: 理学療法(PT)}
+  ST: {en: Speech therapy (ST), ja: 言語聴覚療法(ST)}
+rp_progress:
+  improved: {en: improved, ja: 改善}
+  stable: {en: stable, ja: 維持}
+  unable_to_assess: {en: unable to assess, ja: 評価不能}
+rp_participation:
+  fair: {en: fair, ja: やや不良}
+  good: {en: good, ja: 良好}
+  refused: {en: refused, ja: 拒否}
+rp_phase:
+  early: {en: 'Early phase (bed exercises, sitting practice)', ja: 早期(ベッド上運動・座位保持練習)}
+  late: {en: 'Late phase (independent ambulation, ADL practice)', ja: 後期(独立歩行・ADL練習)}
+  mid: {en: 'Mid phase (walker ambulation, transfer training)', ja: 中期(歩行器歩行・移乗動作練習)}

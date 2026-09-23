@@ -66,6 +66,25 @@ from clinosim.modules.document.reference_data_loaders import (
 )
 from clinosim.types.document import DocumentType, FormatType, NarrativeContext, NarrativeOutput
 
+
+def _label(section: str, key: str, lang: str, fallback: str = "") -> str:
+    """Look up a narrative-label section entry in the language-agnostic
+    ``load_narrative_labels`` bundle. Returns ``fallback`` when the
+    slug is unknown; the fallback chain (``entry[lang]`` →
+    ``entry["en"]`` → ``fallback``) is provided by
+    ``resolve_localized_display`` per the S120 rule.
+
+    Key resolution is case-preserving with a lower-cased fallback so
+    both HL7-style uppercase codes (``"MTH"`` / ``"FTH"``) and
+    snake_case slugs (``"day_shift"`` / ``"morning"``) resolve without
+    the caller normalising."""
+    from clinosim.locale.loader import load_narrative_labels, resolve_localized_display
+
+    section_entries = load_narrative_labels().get(section, {})
+    entry = section_entries.get(str(key)) or section_entries.get(str(key).lower())
+    return resolve_localized_display(entry, lang, fallback=fallback or str(key))
+
+
 logger = logging.getLogger(__name__)
 
 
@@ -77,26 +96,6 @@ logger = logging.getLogger(__name__)
 # Composition FHIR-emit time but DocumentReference attachments
 # (Progress Notes, Nursing Records, ED Notes) were untouched, producing
 # a 68% staff-id leak in the deployed cohort.
-_STAFF_ROLE_SUFFIX_JA: dict[str, str] = {
-    "DR": "医師",
-    "NS": "看護師",
-    "CN": "看護師",
-    "RT": "呼吸療法士",
-    "PT": "理学療法士",
-    "OT": "作業療法士",
-    "ST": "言語聴覚士",
-    "PH": "薬剤師",
-}
-_STAFF_ROLE_SUFFIX_EN: dict[str, str] = {
-    "DR": "physician",
-    "NS": "nurse",
-    "CN": "nurse",
-    "RT": "respiratory therapist",
-    "PT": "physical therapist",
-    "OT": "occupational therapist",
-    "ST": "speech therapist",
-    "PH": "pharmacist",
-}
 
 
 def _resolve_staff_name(staff_id: str, roster_map: dict[str, dict], is_ja: bool) -> str:
@@ -122,7 +121,7 @@ def _resolve_staff_name(staff_id: str, roster_map: dict[str, dict], is_ja: bool)
     if not name:
         return staff_id
     prefix = staff_id.split("-", 1)[0] if "-" in staff_id else ""
-    suffix = (_STAFF_ROLE_SUFFIX_JA if is_ja else _STAFF_ROLE_SUFFIX_EN).get(prefix, "")
+    suffix = _label("staff_role_suffix", prefix, "ja" if is_ja else "en", fallback="")
     if not suffix:
         return name
     return f"{name} {suffix}" if is_ja else f"{name} ({suffix})"
@@ -513,47 +512,12 @@ _RP_POLICY_FALLBACK_EN = (
     "to improve independence in activities of daily living"
 )
 
-_RP_THERAPY_TYPE_JA = {"PT": "理学療法(PT)", "OT": "作業療法(OT)", "ST": "言語聴覚療法(ST)"}
-_RP_THERAPY_TYPE_EN = {
-    "PT": "Physical therapy (PT)",
-    "OT": "Occupational therapy (OT)",
-    "ST": "Speech therapy (ST)",
-}
-_RP_PROGRESS_JA = {"improved": "改善", "stable": "維持", "unable_to_assess": "評価不能"}
-_RP_PROGRESS_EN = {
-    "improved": "improved",
-    "stable": "stable",
-    "unable_to_assess": "unable to assess",
-}
-_RP_PARTICIPATION_JA = {"good": "良好", "fair": "やや不良", "refused": "拒否"}
-_RP_PARTICIPATION_EN = {"good": "good", "fair": "fair", "refused": "refused"}
-_RP_PHASE_JA = {
-    "early": "早期(ベッド上運動・座位保持練習)",
-    "mid": "中期(歩行器歩行・移乗動作練習)",
-    "late": "後期(独立歩行・ADL練習)",
-}
-_RP_PHASE_EN = {
-    "early": "Early phase (bed exercises, sitting practice)",
-    "mid": "Mid phase (walker ambulation, transfer training)",
-    "late": "Late phase (independent ambulation, ADL practice)",
-}
-
 
 # Nursing shift labels, keyed by the neutral shift key stored in
 # structural CIF (ClinicalDocument.shift → NarrativeContext.shift). Labels are
 # resolved here at render time by language .
 # CIF). Keys must cover engine.SHIFT_SCHEDULE exactly (guarded by
 # tests/unit/modules/document/narrative/test_template_generator_3shift.py).
-_SHIFT_LABELS_JA: dict[str, str] = {
-    "night": "深夜",
-    "day": "日勤",
-    "evening": "準夜",
-}
-_SHIFT_LABELS_EN: dict[str, str] = {
-    "night": "night",
-    "day": "day",
-    "evening": "evening",
-}
 
 # ED section fallback phrases
 
@@ -562,16 +526,6 @@ _SHIFT_LABELS_EN: dict[str, str] = {
 # `_build_relationship_codeable` map in
 # clinosim/modules/output/fhir_r4/demographics/family_history.py so the
 # narrative and the FHIR resource render the same label per relative.
-_FAMILY_RELATION_LABEL_JA: dict[str, str] = {
-    "MTH": "母",
-    "FTH": "父",
-    "NSIB": "兄弟姉妹",
-}
-_FAMILY_RELATION_LABEL_EN: dict[str, str] = {
-    "MTH": "mother",
-    "FTH": "father",
-    "NSIB": "sibling",
-}
 
 
 # Issue #1327: neutral-observation phrase pool for the inpatient
@@ -633,69 +587,17 @@ _INPATIENT_SUBJECTIVE_POOL_EN: dict[str, tuple[str, ...]] = {
 
 # Fallback reasoning phrases per acuity keyword when no admit diagnosis
 # is available (kept short — the disposition sentence must stay compact).
-_ED_ACUITY_REASON_JA: dict[str, str] = {
-    "severe": "症状重度",
-    "moderate": "症状継続",
-    "mild": "症状軽度",
-}
-_ED_ACUITY_REASON_EN: dict[str, str] = {
-    "severe": "severe symptoms",
-    "moderate": "ongoing symptoms",
-    "mild": "mild symptoms",
-}
 
 # Arrival mode display
-_ARRIVAL_MODE_JA: dict[str, str] = {
-    "ambulance": "救急車搬送",
-    "walk-in": "自来院（Walk-in）",
-    "helicopter": "ドクターヘリ搬送",
-    "police": "警察搬送",
-    "private_vehicle": "自家用車来院",
-}
-_ARRIVAL_MODE_EN: dict[str, str] = {
-    "ambulance": "ambulance",
-    "walk-in": "walk-in",
-    "helicopter": "helicopter/air transport",
-    "police": "police transport",
-    "private_vehicle": "private vehicle",
-}
 
 # NKDA phrases per locale
 
 # Social history smoking labels
-_SMOKING_JA: dict[str, str] = {
-    "never": "非喫煙者",
-    "former": "元喫煙者",
-    "current": "喫煙者（現在）",
-    "unknown": "喫煙歴不明",
-}
-_SMOKING_EN: dict[str, str] = {
-    "never": "Non-smoker",
-    "former": "Former smoker",
-    "current": "Current smoker",
-    "unknown": "Smoking history unknown",
-}
 
 # Alcohol use labels
 # v6 (2026-08-16): `social` is a first-class token emitted by the
 # population layer alongside none/heavy; without an explicit mapping it
 # was falling back to "unknown", erasing information from JP narratives.
-_ALCOHOL_JA: dict[str, str] = {
-    "none": "飲酒なし",
-    "occasional": "機会飲酒",
-    "social": "社交的飲酒",
-    "moderate": "適度な飲酒",
-    "heavy": "多量飲酒",
-    "unknown": "飲酒状況不明",
-}
-_ALCOHOL_EN: dict[str, str] = {
-    "none": "Non-drinker",
-    "occasional": "Occasional drinker",
-    "social": "Social drinker",
-    "moderate": "Moderate drinker",
-    "heavy": "Heavy drinker",
-    "unknown": "Alcohol use unknown",
-}
 
 # Occupation labels (v6, 2026-08-16). Population layer emits raw
 # English tokens (retired, office, manufacturing, …); v5
@@ -703,77 +605,6 @@ _ALCOHOL_EN: dict[str, str] = {
 # 96-yo 女性 の 職業 が 「retired」 と英字で残っていた。These maps close
 # the gap. `_OCCUPATION_*.get(k, k)` — unmapped values fall back to the
 # raw token so unknown occupations still render (defensive default).
-_OCCUPATION_JA: dict[str, str] = {
-    "retired": "退職",
-    "office": "事務職",
-    "manufacturing": "製造業",
-    "service": "サービス業",
-    "transportation": "運輸業",
-    "education": "教育関係",
-    "healthcare": "医療従事者",
-    "student": "学生",
-    "middle_school_student": "中学生",
-    "elementary_student": "小学生",
-    "preschool": "未就学児",
-    "infant": "乳幼児",
-    "other": "その他",
-    "unemployed": "無職",
-    "homemaker": "主婦",
-    # Phase 1c-2 (2026-09-22): the H100 JP p=500 template audit surfaced
-    # "職業: construction" as a raw-slug leak in one admission_hp
-    # social_history. The additions below cover every remaining occupation
-    # token in the JP/US demographics yaml (agriculture / construction /
-    # sales / hospitality / retail / government / finance / it /
-    # professional / management / self_employed / high_school_student /
-    # university_student / disabled) so a novel population value never
-    # surfaces raw again.
-    "agriculture": "農業従事者",
-    "construction": "建設業",
-    "sales": "販売職",
-    "hospitality": "接客業",
-    "retail": "小売業",
-    "government": "公務員",
-    "finance": "金融業",
-    "it": "IT 関係者",
-    "professional": "専門職",
-    "management": "管理職",
-    "self_employed": "自営業",
-    "high_school_student": "高校生",
-    "university_student": "大学生",
-    "disabled": "就労困難",
-}
-_OCCUPATION_EN: dict[str, str] = {
-    "retired": "Retired",
-    "office": "Office worker",
-    "manufacturing": "Manufacturing",
-    "service": "Service industry",
-    "transportation": "Transportation",
-    "education": "Education",
-    "healthcare": "Healthcare",
-    "student": "Student",
-    "middle_school_student": "Middle-school student",
-    "elementary_student": "Elementary-school student",
-    "preschool": "Preschool child",
-    "infant": "Infant",
-    "other": "Other",
-    "unemployed": "Unemployed",
-    "homemaker": "Homemaker",
-    # Phase 1c-2 mirror additions (JA parity).
-    "agriculture": "Agricultural worker",
-    "construction": "Construction worker",
-    "sales": "Sales worker",
-    "hospitality": "Hospitality worker",
-    "retail": "Retail worker",
-    "government": "Government employee",
-    "finance": "Finance professional",
-    "it": "IT professional",
-    "professional": "Professional",
-    "management": "Manager",
-    "self_employed": "Self-employed",
-    "high_school_student": "High-school student",
-    "university_student": "University student",
-    "disabled": "Unable to work",
-}
 
 # Phase 1d-1 (2026-09-23): narrative-vocabulary tables were extracted
 # from this module into ``clinosim/locale/shared/narrative_*.yaml`` so
@@ -2389,7 +2220,6 @@ class TemplateNarrativeGenerator:
         """Build social history from patient smoking_status, alcohol_use, occupation."""
         facts: list[str] = []
         lang = ctx.target_lang
-        is_ja = lang == "ja"
 
         patient = ctx.patient
         if patient is None:
@@ -2399,11 +2229,8 @@ class TemplateNarrativeGenerator:
         alcohol_use = _o(patient, "alcohol_use", "unknown") or "unknown"
         occupation = _o(patient, "occupation", "") or ""
 
-        smoke_map = _SMOKING_JA if is_ja else _SMOKING_EN
-        alcohol_map = _ALCOHOL_JA if is_ja else _ALCOHOL_EN
-
-        smoke_text = smoke_map.get(smoking_status, smoke_map.get("unknown", ""))
-        alcohol_text = alcohol_map.get(alcohol_use, alcohol_map.get("unknown", ""))
+        smoke_text = _label("smoking", smoking_status, lang, fallback=_label("smoking", "unknown", lang, fallback=""))
+        alcohol_text = _label("alcohol", alcohol_use, lang, fallback=_label("alcohol", "unknown", lang, fallback=""))
 
         parts = []
         if smoke_text:
@@ -2417,8 +2244,7 @@ class TemplateNarrativeGenerator:
             # v6 (2026-08-16): localize occupation token; fall back to
             # raw when unmapped so a novel population value still renders
             # (rather than being dropped silently).
-            occ_map = _OCCUPATION_JA if is_ja else _OCCUPATION_EN
-            occ_text = occ_map.get(occupation, occupation)
+            occ_text = _label("occupation", occupation, lang, fallback=occupation)
             parts.append(f"{key}: {occ_text}")
 
         facts.append("ctx.patient.smoking_status")
@@ -2466,8 +2292,6 @@ class TemplateNarrativeGenerator:
             icd_system_key = system_key_for("diagnosis", country)
         except KeyError:  # pragma: no cover — kind is hard-coded
             icd_system_key = "icd-10-mhlw" if is_ja else "icd-10-cm"
-
-        label_map = _FAMILY_RELATION_LABEL_JA if is_ja else _FAMILY_RELATION_LABEL_EN
         deceased_suffix = t("fallback.family_history_deceased_suffix", lang)
         cond_sep = t("list_sep.serial", lang)
         entry_sep = t("list_sep.space", lang)
@@ -2475,7 +2299,7 @@ class TemplateNarrativeGenerator:
         entries: list[str] = []
         for fam in fams:
             rel = str(_o(fam, "relationship", "") or "")
-            label = label_map.get(rel, rel or t("common.relative", lang))
+            label = _label("family_relation", rel, lang, fallback=rel or t("common.relative", lang))
             deceased = bool(_o(fam, "deceased", False))
             codes = list(_o(fam, "condition_codes", []) or [])
             displays: list[str] = []
@@ -3650,9 +3474,8 @@ class TemplateNarrativeGenerator:
         shift_label = ""
         if shift_key:
             facts.append("ctx.shift")
-            labels = _SHIFT_LABELS_JA if is_ja else _SHIFT_LABELS_EN
             # Unknown key → render the neutral key itself (never drop silently).
-            shift_label = labels.get(shift_key, shift_key)
+            shift_label = _label("shift_labels", shift_key, lang, fallback=shift_key)
 
         nurse_id = _o(ctx.encounter, "primary_nurse_id", "") or ""
         nurse_line = ""
@@ -3827,9 +3650,7 @@ class TemplateNarrativeGenerator:
         level_system = _o(triage, "level_system", "") or ""
         arrival_mode = _o(triage, "arrival_mode", "") or ""
         cc_summary = _o(triage, "chief_complaint_summary", "") or ""
-
-        arrival_mode_display_map = _ARRIVAL_MODE_JA if is_ja else _ARRIVAL_MODE_EN
-        arrival_display = arrival_mode_display_map.get(arrival_mode, arrival_mode)
+        arrival_display = _label("arrival_mode", arrival_mode, lang, fallback=arrival_mode)
 
         if is_ja:
             level_line = (
@@ -4488,8 +4309,7 @@ class TemplateNarrativeGenerator:
         if not therapy_types:
             return (t("fallback.rp_team_fallback", lang)), facts
         facts.append("ctx.rehab_sessions")
-        labels = _RP_THERAPY_TYPE_JA if is_ja else _RP_THERAPY_TYPE_EN
-        joined = t("list_sep.serial", lang).join(labels.get(t, t) for t in therapy_types)
+        joined = t("list_sep.serial", lang).join(_label("rp_therapy_type", t, lang, fallback=t) for t in therapy_types)
         therapist_note = t("fallback.rp_therapist_fallback", lang)
         if is_ja:
             return f"担当リハビリ職種：{joined}／{therapist_note}", facts
@@ -4509,10 +4329,8 @@ class TemplateNarrativeGenerator:
         progress = str(_o(latest, "functional_progress", "") or "")
         participation = str(_o(latest, "patient_participation", "") or "")
         pain = _o(latest, "pain_score", None)
-        progress_label = (_RP_PROGRESS_JA if is_ja else _RP_PROGRESS_EN).get(progress, progress)
-        participation_label = (_RP_PARTICIPATION_JA if is_ja else _RP_PARTICIPATION_EN).get(
-            participation, participation
-        )
+        progress_label = _label("rp_progress", progress, lang, fallback=progress)
+        participation_label = _label("rp_participation", participation, lang, fallback=participation)
         pain_text = f"{pain}/10" if pain is not None else t("section_none.pain_not_assessed", lang)
         if is_ja:
             return (
@@ -4530,7 +4348,6 @@ class TemplateNarrativeGenerator:
         text is not used (per design spec §4)。"""
         facts: list[str] = []
         lang = ctx.target_lang
-        is_ja = lang == "ja"
         sessions = ctx.rehab_sessions or []
         if not sessions:
             return (t("fallback.rp_movement_fallback", lang)), facts
@@ -4543,7 +4360,7 @@ class TemplateNarrativeGenerator:
             phase = "mid"
         else:
             phase = "late"
-        return (_RP_PHASE_JA if is_ja else _RP_PHASE_EN)[phase], facts
+        return _label("rp_phase", phase, lang), facts
 
     def _build_rp_session_frequency(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
         """実施回数・期間・1回あたりの時間。"""
@@ -6287,8 +6104,7 @@ class TemplateNarrativeGenerator:
         level = _o(triage, "level", "") or ""
         level_system = _o(triage, "level_system", "") or ""
         arrival_mode = _o(triage, "arrival_mode", "") or ""
-        arrival_map = _ARRIVAL_MODE_JA if is_ja else _ARRIVAL_MODE_EN
-        arrival_display = arrival_map.get(arrival_mode, arrival_mode)
+        arrival_display = _label("arrival_mode", arrival_mode, lang, fallback=arrival_mode)
 
         if level_system and level:
             level_text = f"{level_system} Level {level}"
@@ -6666,9 +6482,9 @@ class TemplateNarrativeGenerator:
             elif proto_cc:
                 return str(proto_cc)
         severity = str(_o(enc, "severity", "") or ctx.severity or "").lower() if enc is not None else ""
-        acuity_map = _ED_ACUITY_REASON_JA if is_ja else _ED_ACUITY_REASON_EN
-        if severity in acuity_map:
-            return acuity_map[severity]
+        acuity_label = _label("ed_acuity_reason", severity, "ja" if is_ja else "en", fallback="")
+        if acuity_label:
+            return acuity_label
         return t("control_status.clinical_judgment", "ja" if is_ja else "en")
 
     # ─────────────────────────────────────────────────────────────────

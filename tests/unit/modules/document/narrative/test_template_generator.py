@@ -682,8 +682,12 @@ def test_social_history_localizes_extended_occupation_ja() -> None:
     university_student / disabled) must render as JA. Pre-fix the H100
     JP p=500 audit saw 「職業: construction」 leak in admission_hp
     social_history for one patient."""
-    from clinosim.modules.document.narrative.template_generator import _OCCUPATION_JA
+    # Phase 1d-15 (2026-09-23): the ``_OCCUPATION_JA`` module dict
+    # moved to ``clinosim/locale/shared/narrative_labels.yaml``
+    # under the ``occupation`` section. Assert via the loader.
+    from clinosim.locale.loader import load_narrative_labels
 
+    entries = load_narrative_labels().get("occupation", {})
     for raw, ja in [
         ("construction", "建設業"),
         ("agriculture", "農業従事者"),
@@ -692,7 +696,7 @@ def test_social_history_localizes_extended_occupation_ja() -> None:
         ("university_student", "大学生"),
         ("self_employed", "自営業"),
     ]:
-        assert _OCCUPATION_JA.get(raw) == ja, f"occupation {raw!r} not localised: got {_OCCUPATION_JA.get(raw)!r}"
+        assert entries.get(raw, {}).get("ja") == ja, f"occupation {raw!r} not localised"
 
 
 def test_localize_complication_ja_covers_common_tokens() -> None:
