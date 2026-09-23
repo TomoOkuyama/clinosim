@@ -6570,13 +6570,10 @@ class TemplateNarrativeGenerator:
         (no clinical_diagnosis on record), emits a never-fabricate marker.
         """
         lang = ctx.target_lang
-        is_ja = lang == "ja"
         code, display, facts = self._dc_resolve_primary_cause(ctx)
         if not code:
             return t("death_cert.immediate_cause_not_documented", lang), facts
-        if is_ja:
-            return f"直接死因: {display}（{code}）。", facts
-        return f"Immediate cause of death: {display} ({code}).", facts
+        return t("death_cert_line.immediate_cause", lang, display=display, code=code), facts
 
     def _build_dc_duration_of_immediate_cause(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
         """直接死因までの期間 / Time from onset of the immediate cause to death.
@@ -6747,14 +6744,11 @@ class TemplateNarrativeGenerator:
         dx has a decimal specifier.
         """
         lang = ctx.target_lang
-        is_ja = lang == "ja"
         code, display, facts = self._dc_resolve_primary_cause(ctx)
         if not code:
             return t("death_cert.underlying_cause_not_documented", lang), facts
         chapter = code.split(".")[0] if "." in code else code
-        if is_ja:
-            return f"原死因: {display}（{chapter}）。", facts
-        return f"Underlying cause of death: {display} ({chapter}).", facts
+        return t("death_cert_line.underlying_cause", lang, display=display, chapter=chapter), facts
 
     def _build_dc_contributing_conditions(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
         """影響を及ぼした傷病名 / Contributing conditions.
@@ -6843,11 +6837,8 @@ class TemplateNarrativeGenerator:
         builder.
         """
         lang = ctx.target_lang
-        is_ja = lang == "ja"
         facts: list[str] = []
-        if is_ja:
-            return "死因の種類: 病死及び自然死。", facts
-        return "Manner of death: natural / disease-related.", facts
+        return t("death_cert_line.manner_natural", lang), facts
 
     def _build_dc_autopsy_status(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
         """解剖の有無 / Autopsy status.
@@ -6886,11 +6877,19 @@ class TemplateNarrativeGenerator:
     # refinement pass polishes phrasing on top when available (see
     # llm_service/prompts/{ja,en}/death_discharge_summary_*.yaml).
 
-    def _dds_severity_ja(self, severity: str) -> str:
-        return {"mild": "軽症", "moderate": "中等症", "severe": "重症"}.get(severity or "moderate", "中等症")
+    def _dds_severity(self, severity: str, lang: str) -> str:
+        """Return the localized severity label for the DDS narrative.
 
-    def _dds_severity_en(self, severity: str) -> str:
-        return (severity or "moderate").capitalize()
+        Phase 1d-26: was ``_dds_severity_ja`` / ``_dds_severity_en``
+        pair. Vocabulary moved to
+        ``narrative_labels.yaml::dds_severity``. For a value outside
+        the ``mild`` / ``moderate`` / ``severe`` bucket, JA falls back
+        to 中等症 (the JA-specific default), other locales use the
+        capitalised raw token.
+        """
+        key = severity or "moderate"
+        default = "中等症" if lang == "ja" else key.capitalize()
+        return _label("dds_severity", key, lang, fallback=default)
 
     def _build_dds_admission_state(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
         """入院時病状 / Clinical state at admission.
@@ -6901,7 +6900,6 @@ class TemplateNarrativeGenerator:
         cannot drift toward fabricated "healthy on admission" framing.
         """
         lang = ctx.target_lang
-        is_ja = lang == "ja"
         facts: list[str] = []
         adm_dt = _o(ctx.encounter, "admission_datetime", None)
         adm_str = str(adm_dt)[:16].replace("T", " ") if adm_dt else ""
@@ -6912,27 +6910,26 @@ class TemplateNarrativeGenerator:
         adm_disp = ""
         if adm_code:
             adm_disp = (
-                code_lookup(adm_sys or system_key_for("diagnosis", ctx.locale.upper()), adm_code, ctx.target_lang)
-                or adm_code
+                code_lookup(adm_sys or system_key_for("diagnosis", ctx.locale.upper()), adm_code, lang) or adm_code
             )
             facts.append("ctx.diagnoses[0].admission_diagnosis_code")
         if adm_dt:
             facts.append("ctx.encounter.admission_datetime")
         severity = ctx.severity or "moderate"
-
-        if is_ja:
-            sev = self._dds_severity_ja(severity)
-            when = f"{adm_str}に" if adm_str else ""
-            dx = f"{adm_disp}（{adm_code}）にて" if adm_code else "急性増悪にて"
-            body = f"患者は{when}{dx}当院に緊急入院となった。入院時の全身状態は{sev}の所見を呈していた。"
-            return body, facts
-
-        sev = self._dds_severity_en(severity)
-        when = f"on {adm_str} " if adm_str else ""
-        dx = f"with {adm_disp} ({adm_code})" if adm_code else "with an acute exacerbation"
-        body = (
-            f"The patient was admitted urgently {when}{dx}. "
-            f"On admission the overall clinical status was assessed as {sev.lower()}."
+        sev = self._dds_severity(severity, lang)
+        when_str = t("dds_admission_state.when_at", lang, when=adm_str) if adm_str else ""
+        dx_str = (
+            t("dds_admission_state.dx_with_code", lang, disp=adm_disp, code=adm_code)
+            if adm_code
+            else t("dds_admission_state.dx_no_code", lang)
+        )
+        body = t(
+            "dds_admission_state.full_line",
+            lang,
+            when=when_str,
+            dx=dx_str,
+            severity=sev,
+            severity_lower=sev.lower(),
         )
         return body, facts
 
@@ -7080,13 +7077,10 @@ class TemplateNarrativeGenerator:
         feedback_dr_conclusion_code_single_walk).
         """
         lang = ctx.target_lang
-        is_ja = lang == "ja"
         code, display, facts = self._dc_resolve_primary_cause(ctx)
         if not code:
             return t("death_cert.cause_of_death_not_documented", lang), facts
-        if is_ja:
-            return f"死因: {display}（{code}）。", facts
-        return f"Cause of death: {display} ({code}).", facts
+        return t("death_cert_line.cause_of_death", lang, display=display, code=code), facts
 
     def _build_dds_complications_and_comorbidities(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
         """合併症・併存症 / Complications and comorbidities.
