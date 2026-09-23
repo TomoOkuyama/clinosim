@@ -986,6 +986,25 @@ _LAB_NAME_JA: dict[str, str] = {
     "ldl_c": "LDL-C",
     "hdl_c": "HDL-C",
     "gamma_gtp": "γ-GTP",
+    # Phase 1c-4 (2026-09-23): additional lab / panel tokens observed in
+    # the JP p=500 ed_workup ``検査:`` line audit. Pre-fix these rendered
+    # as English inside JA narratives ("検査: CBC、LFT、Total_bilirubin、
+    # Beta_hydroxybutyrate、Urinalysis"). Full-word labs translate to
+    # kana; multi-analyte panels (CBC / BMP / ABG / LFT) stay as the
+    # international abbreviation per JA hospital convention.
+    "cbc": "CBC (全血球算定)",
+    "bmp": "BMP (基本代謝パネル)",
+    "lft": "LFT (肝機能パネル)",
+    "abg": "ABG (動脈血ガス)",
+    "urinalysis": "尿検査",
+    "urine_culture_sensitivity": "尿培養・感受性検査",
+    "blood_culture_set_1": "血液培養 (セット 1)",
+    "blood_culture_set_2": "血液培養 (セット 2)",
+    "rapid_influenza_antigen": "インフルエンザ迅速抗原検査",
+    "total_bilirubin": "総ビリルビン",
+    "direct_bilirubin": "直接ビリルビン",
+    "beta_hydroxybutyrate": "β ヒドロキシ酪酸",
+    "troponin": "トロポニン",  # bare 'Troponin' without I/T suffix
 }
 _LAB_NAME_EN: dict[str, str] = {
     # Full-word labs → keep lowercase-first for English prose readability;
@@ -1049,6 +1068,22 @@ _LAB_NAME_EN: dict[str, str] = {
     "ldl_c": "LDL-C",
     "hdl_c": "HDL-C",
     "gamma_gtp": "γ-GTP",
+    # Phase 1c-4 (2026-09-23): panel / additional lab tokens observed in
+    # ed_workup 検査 lines. EN mirror of the JA entries; multi-analyte
+    # panels stay as the international abbreviation.
+    "cbc": "CBC",
+    "bmp": "BMP",
+    "lft": "LFT",
+    "abg": "ABG",
+    "urinalysis": "urinalysis",
+    "urine_culture_sensitivity": "urine culture + sensitivity",
+    "blood_culture_set_1": "blood culture (set 1)",
+    "blood_culture_set_2": "blood culture (set 2)",
+    "rapid_influenza_antigen": "rapid influenza antigen",
+    "total_bilirubin": "total bilirubin",
+    "direct_bilirubin": "direct bilirubin",
+    "beta_hydroxybutyrate": "β-hydroxybutyrate",
+    "troponin": "troponin",
 }
 
 
@@ -1077,6 +1112,140 @@ def _localize_lab_name(name: str, lang: str) -> str:
         return ""
     table = _LAB_NAME_JA if str(lang).lower().startswith("ja") else _LAB_NAME_EN
     return table.get(key, name)
+
+
+# Phase 1c-4 (2026-09-23): imaging order display-name localization for
+# the ed_workup ``画像:`` line rendered by ``_build_ed_workup``. Pre-fix
+# the JP p=500 audit surfaced 59 raw slugs like "Chest_Xray_PA_Lateral"
+# and "CT_Head" verbatim inside JA narratives. The keys are lower-cased,
+# whitespace/hyphen-normalised forms so semantic duplicates
+# ("Chest_Xray_PA_Lateral" and "Chest X-ray PA and Lateral") collapse to
+# a single entry. Unknown tokens still fall back to the raw slug.
+_IMAGING_JA: dict[str, str] = {
+    # --- Chest X-ray family ---
+    "chest_xray": "胸部レントゲン",
+    "chest xray": "胸部レントゲン",
+    "chest_xray_pa": "胸部レントゲン (正面)",
+    "chest xray pa": "胸部レントゲン (正面)",
+    "chest x-ray pa": "胸部レントゲン (正面)",
+    "chest_xray_pa_lateral": "胸部レントゲン (正面・側面)",
+    "chest xray pa lateral": "胸部レントゲン (正面・側面)",
+    "chest x-ray pa and lateral": "胸部レントゲン (正面・側面)",
+    "chest_xray_portable": "胸部ポータブルレントゲン",
+    "chest_xray_preop": "胸部レントゲン (術前)",
+    # --- Chest CT ---
+    "chest_ct": "胸部 CT",
+    "chest ct": "胸部 CT",
+    "chest_ct_with_contrast": "胸部 CT (造影)",
+    "ct chest without contrast": "胸部 CT (単純)",
+    "ct chest with contrast": "胸部 CT (造影)",
+    # --- Abdomen / pelvis imaging ---
+    "ct_abdomen_pelvis": "腹部・骨盤 CT",
+    "ct_abdomen_pelvis_with_contrast": "腹部・骨盤 CT (造影)",
+    "ct_abdomen_pelvis_noncontrast": "腹部・骨盤 CT (単純)",
+    "ct abdomen with contrast": "腹部 CT (造影)",
+    "ct abdomen without contrast": "腹部 CT (単純)",
+    "abdominal_xray": "腹部レントゲン",
+    "abdominal xray": "腹部レントゲン",
+    "abdominal_xray_erect_supine": "腹部レントゲン (立位・臥位)",
+    "x-ray abdomen (supine and upright)": "腹部レントゲン (臥位・立位)",
+    "xray_abdomen": "腹部レントゲン",
+    "xray abdomen": "腹部レントゲン",
+    # --- Ultrasound ---
+    "renal_ultrasound": "腎エコー",
+    "ultrasound kidney": "腎エコー",
+    "abdominal_ultrasound": "腹部エコー",
+    "ultrasound abdomen": "腹部エコー",
+    "bladder_ultrasound": "膀胱エコー",
+    "carotid_ultrasound": "頸動脈エコー",
+    "echocardiogram": "心エコー",
+    "echocardiography_tte": "経胸壁心エコー",
+    # --- Head / brain ---
+    "ct_head": "頭部 CT",
+    "ct head": "頭部 CT",
+    "ct_head_noncontrast": "頭部 CT (単純)",
+    "ct_angiography_head_neck": "頭頸部 CT アンギオ",
+    "mri_brain_dwi": "頭部 MRI (拡散強調)",
+    "mra_intracranial": "頭蓋内 MRA",
+    # --- Cardiac ---
+    "ecg": "心電図",
+    "ecg_12lead": "12 誘導心電図",
+    # --- Skeletal / X-ray ---
+    "ankle_xray": "足関節レントゲン",
+    "cervical_spine_xray": "頸椎レントゲン",
+    "lumbar_xray": "腰椎レントゲン",
+    "hip_xray_ap_lateral": "股関節レントゲン (正面・側面)",
+    "x-ray hip ap and lateral": "股関節レントゲン (正面・側面)",
+    "ct hip without contrast": "股関節 CT (単純)",
+    "shoulder_xray_ap_lateral": "肩関節レントゲン (正面・側面)",
+    "shoulder_xray_post_reduction": "肩関節レントゲン (整復後)",
+    # --- Hepatobiliary ---
+    "mrcp": "MRCP (磁気共鳴胆管膵管造影)",
+}
+_IMAGING_EN: dict[str, str] = {
+    # EN reuses de-underscored forms; canonical spacing + capitalisation.
+    "chest_xray": "chest X-ray",
+    "chest_xray_pa": "chest X-ray PA",
+    "chest_xray_pa_lateral": "chest X-ray PA and lateral",
+    "chest_xray_portable": "portable chest X-ray",
+    "chest_xray_preop": "pre-operative chest X-ray",
+    "chest_ct": "chest CT",
+    "chest_ct_with_contrast": "chest CT (with contrast)",
+    "ct_abdomen_pelvis": "CT abdomen/pelvis",
+    "ct_abdomen_pelvis_with_contrast": "CT abdomen/pelvis (with contrast)",
+    "ct_abdomen_pelvis_noncontrast": "CT abdomen/pelvis (non-contrast)",
+    "abdominal_xray": "abdominal X-ray",
+    "abdominal_xray_erect_supine": "abdominal X-ray (erect and supine)",
+    "xray_abdomen": "abdominal X-ray",
+    "renal_ultrasound": "renal ultrasound",
+    "abdominal_ultrasound": "abdominal ultrasound",
+    "bladder_ultrasound": "bladder ultrasound",
+    "carotid_ultrasound": "carotid ultrasound",
+    "echocardiogram": "echocardiogram",
+    "echocardiography_tte": "transthoracic echocardiogram",
+    "ct_head": "CT head",
+    "ct_head_noncontrast": "CT head (non-contrast)",
+    "ct_angiography_head_neck": "CT angiography head/neck",
+    "mri_brain_dwi": "MRI brain (DWI)",
+    "mra_intracranial": "MRA (intracranial)",
+    "ecg": "ECG",
+    "ecg_12lead": "12-lead ECG",
+    "ankle_xray": "ankle X-ray",
+    "cervical_spine_xray": "cervical spine X-ray",
+    "lumbar_xray": "lumbar spine X-ray",
+    "hip_xray_ap_lateral": "hip X-ray AP and lateral",
+    "ct hip without contrast": "CT hip (without contrast)",
+    "shoulder_xray_ap_lateral": "shoulder X-ray AP and lateral",
+    "shoulder_xray_post_reduction": "shoulder X-ray (post-reduction)",
+    "mrcp": "MRCP",
+}
+
+
+def _localize_imaging(name: str, lang: str) -> str:
+    """Return the localized display for an imaging order token. Keys are
+    matched case-insensitively after collapsing consecutive whitespace so
+    both underscore-slug forms ("Chest_Xray_PA_Lateral") and spaced
+    variants ("Chest X-ray PA and Lateral") resolve to the same entry.
+    Unknown tokens fall back to a humanised slug (underscores → spaces)
+    so a novel imaging code renders naturally rather than as a machine
+    slug."""
+    if not name:
+        return ""
+    key = str(name).strip().lower()
+    if not key:
+        return ""
+    key = " ".join(key.split())  # collapse whitespace runs
+    table = _IMAGING_JA if str(lang).lower().startswith("ja") else _IMAGING_EN
+    hit = table.get(key)
+    if hit is not None:
+        return hit
+    # Underscore-form fallback: try the underscored variant
+    alt = key.replace(" ", "_")
+    hit = table.get(alt)
+    if hit is not None:
+        return hit
+    # Humanised fallback so a slug never leaks raw in JA prose.
+    return name.replace("_", " ")
 
 
 # SOAP section labels per locale
@@ -6429,13 +6598,23 @@ class TemplateNarrativeGenerator:
                     proc_order_names.append(str(display_raw))
         parts: list[str] = []
         if lab_names:
+            # Phase 1c-4 (2026-09-23): localise lab / panel tokens
+            # ("Creatinine" / "CBC" / "Urinalysis" / "Total_bilirubin"
+            # etc.) via ``_localize_lab_name``. Pre-fix, the JA emission
+            # embedded English tokens verbatim under 「検査:」.
+            lab_display = [_localize_lab_name(n, ctx.target_lang) for n in lab_names[:8]]
             parts.append(
-                ("検査: " if is_ja else "Labs: ") + ("、".join(lab_names[:8]) if is_ja else ", ".join(lab_names[:8]))
+                ("検査: " if is_ja else "Labs: ") + ("、".join(lab_display) if is_ja else ", ".join(lab_display))
             )
         if imaging_names:
+            # Phase 1c-4 (2026-09-23): localise imaging codes
+            # ("Chest_Xray_PA_Lateral" / "CT_Head" / etc.) via
+            # ``_localize_imaging``. Handles both underscore-slug and
+            # spaced-name variants (semantic dedup).
+            imaging_display = [_localize_imaging(n, ctx.target_lang) for n in imaging_names[:6]]
             parts.append(
                 ("画像: " if is_ja else "Imaging: ")
-                + ("、".join(imaging_names[:6]) if is_ja else ", ".join(imaging_names[:6]))
+                + ("、".join(imaging_display) if is_ja else ", ".join(imaging_display))
             )
         if med_names:
             # Phase 1c-3 (2026-09-22): localize med display names to
