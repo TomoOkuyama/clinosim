@@ -37,6 +37,7 @@ from typing import Any
 from clinosim.codes import get_display as code_display
 from clinosim.codes import lookup as code_lookup
 from clinosim.codes import system_key_for
+from clinosim.locale.i18n import t
 from clinosim.modules._shared import get_attr_or_key as _o
 from clinosim.modules._shared import strip_protocol_prefix
 from clinosim.modules.disease.localization import target_los_config
@@ -2324,7 +2325,7 @@ class TemplateNarrativeGenerator:
         facts: list[str] = []
         lang = ctx.target_lang
         is_ja = lang == "ja"
-        none_text = "特記既往歴なし" if is_ja else "No significant past medical history"
+        none_text = t("section_none.past_medical_history", lang)
 
         patient = ctx.patient
         if patient is None:
@@ -2396,8 +2397,7 @@ class TemplateNarrativeGenerator:
         """Build home medications from ctx.patient.current_medications."""
         facts: list[str] = []
         lang = ctx.target_lang
-        is_ja = lang == "ja"
-        none_text = "常用薬なし" if is_ja else "No home medications"
+        none_text = t("section_none.home_medications", lang)
 
         patient = ctx.patient
         if patient is None:
@@ -2479,13 +2479,13 @@ class TemplateNarrativeGenerator:
 
         parts = []
         if smoke_text:
-            key = "喫煙歴" if is_ja else "Smoking"
+            key = t("section_label.smoking", lang)
             parts.append(f"{key}: {smoke_text}")
         if alcohol_text:
-            key = "飲酒歴" if is_ja else "Alcohol"
+            key = t("section_label.alcohol", lang)
             parts.append(f"{key}: {alcohol_text}")
         if occupation:
-            key = "職業" if is_ja else "Occupation"
+            key = t("section_label.occupation", lang)
             # v6 (2026-08-16): localize occupation token; fall back to
             # raw when unmapped so a novel population value still renders
             # (rather than being dropped silently).
@@ -2575,7 +2575,7 @@ class TemplateNarrativeGenerator:
             return fallback, facts
 
         facts.append("ctx.family_history")
-        prefix = "家族歴: " if is_ja else "Family history: "
+        prefix = t("section_label.family_history_prefix", lang)
         return prefix + entry_sep.join(entries), facts
 
     def _build_physical_examination(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
@@ -2696,7 +2696,8 @@ class TemplateNarrativeGenerator:
         actual chief complaint / disease / severity. EN branch now
         parallels the JA structure (same CIF sources, English wording).
         """
-        is_ja = ctx.target_lang == "ja"
+        lang = ctx.target_lang
+        is_ja = lang == "ja"
         parts: list[str] = []
         enc = ctx.encounter
         # Primary reason — respect locale (JA reads chief_complaint_ja
@@ -2780,7 +2781,8 @@ class TemplateNarrativeGenerator:
         medication orders, and workup procedures instead of the
         ``Continue current management`` fallback.
         """
-        is_ja = ctx.target_lang == "ja"
+        lang = ctx.target_lang
+        is_ja = lang == "ja"
         parts: list[str] = []
         # LOS estimate — Issue #1185 F4: two sections of the same admission_hp
         # document reported different planned LOS numbers (25日 vs 17日)
@@ -2882,7 +2884,8 @@ class TemplateNarrativeGenerator:
         from clinosim.codes import lookup as code_lookup
 
         facts: list[str] = []
-        is_ja = ctx.target_lang == "ja"
+        lang = ctx.target_lang
+        is_ja = lang == "ja"
         diagnoses = ctx.diagnoses or []
         primary = diagnoses[0] if diagnoses else None
         code = ""
@@ -2913,7 +2916,8 @@ class TemplateNarrativeGenerator:
     def _build_admission_details(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
         """322 入院時詳細セクション:入院日・入院経路(救急経由か)・入棟病棟。"""
         facts: list[str] = []
-        is_ja = ctx.target_lang == "ja"
+        lang = ctx.target_lang
+        is_ja = lang == "ja"
         enc = ctx.encounter
         adm_dt = _o(enc, "admission_datetime", "") if enc is not None else ""
         ward = _o(enc, "ward", "") if enc is not None else ""
@@ -2956,7 +2960,8 @@ class TemplateNarrativeGenerator:
         symmetrically to close that gap.
         """
         facts: list[str] = []
-        is_ja = ctx.target_lang == "ja"
+        lang = ctx.target_lang
+        is_ja = lang == "ja"
         enc = ctx.encounter
         dis_dt = _o(enc, "discharge_datetime", None) if enc is not None else None
         ward = _o(enc, "ward", "") if enc is not None else ""
@@ -3002,10 +3007,11 @@ class TemplateNarrativeGenerator:
         from clinosim.codes import lookup as code_lookup
 
         facts: list[str] = []
-        is_ja = ctx.target_lang == "ja"
+        lang = ctx.target_lang
+        is_ja = lang == "ja"
         diagnoses = ctx.diagnoses or []
         if not diagnoses:
-            return ("特記事項なし。" if is_ja else "No admission diagnoses recorded."), facts
+            return t("section_none.admission_diagnoses", lang), facts
 
         facts.append("ctx.diagnoses")
         lines: list[str] = []
@@ -3024,7 +3030,7 @@ class TemplateNarrativeGenerator:
             else:
                 lines.append(f"{idx}. {code}")
         if not lines:
-            return ("特記事項なし。" if is_ja else "No admission diagnoses recorded."), facts
+            return t("section_none.admission_diagnoses", lang), facts
         return "\n".join(lines), facts
 
     def _build_present_illness(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
@@ -3035,7 +3041,8 @@ class TemplateNarrativeGenerator:
         LLM 差替時に調整予定。
         """
         hpi_text, facts = self._build_hpi(ctx)
-        is_ja = ctx.target_lang == "ja"
+        lang = ctx.target_lang
+        is_ja = lang == "ja"
         # HPI is already structured as a chronological onset narrative, so
         # no structural changes are needed. Text style harmonization will be
         # deferred to the LLM narrative pass when applicable.
@@ -3073,7 +3080,8 @@ class TemplateNarrativeGenerator:
         to the LLM narrative pass for future enhancement.
         """
         facts: list[str] = []
-        is_ja = ctx.target_lang == "ja"
+        lang = ctx.target_lang
+        is_ja = lang == "ja"
         if is_ja:
             text = "紹介元:当院(急性期一般病棟)。担当医師の署名により発行。"
         else:
@@ -3088,7 +3096,8 @@ class TemplateNarrativeGenerator:
         から sample する余地あり。
         """
         facts: list[str] = []
-        is_ja = ctx.target_lang == "ja"
+        lang = ctx.target_lang
+        is_ja = lang == "ja"
         if is_ja:
             text = "紹介先:他院。当該患者の継続加療を目的として本情報提供書を作成する。"
         else:
@@ -3104,7 +3113,8 @@ class TemplateNarrativeGenerator:
         import hashlib
 
         facts: list[str] = []
-        is_ja = ctx.target_lang == "ja"
+        lang = ctx.target_lang
+        is_ja = lang == "ja"
         enc = ctx.encounter
         enc_id = _o(enc, "encounter_id", "") or "ENC-UNKNOWN"
         purposes_ja = [
@@ -3134,7 +3144,8 @@ class TemplateNarrativeGenerator:
         from clinosim.codes import lookup as code_lookup
 
         facts: list[str] = []
-        is_ja = ctx.target_lang == "ja"
+        lang = ctx.target_lang
+        is_ja = lang == "ja"
 
         # Diagnoses
         diagnoses = ctx.diagnoses or []
@@ -3173,7 +3184,8 @@ class TemplateNarrativeGenerator:
     def _build_present_illness_ref(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
         """360 現病歴セクション(診療情報提供書用):HPI builder を再利用。"""
         hpi_text, facts = self._build_hpi(ctx)
-        is_ja = ctx.target_lang == "ja"
+        lang = ctx.target_lang
+        is_ja = lang == "ja"
         if not hpi_text:
             # #1266 empty-severity guard (see `_build_hpi`).
             sev = str(ctx.severity or "").strip()
@@ -3207,7 +3219,8 @@ class TemplateNarrativeGenerator:
         余地あり。
         """
         facts: list[str] = []
-        is_ja = ctx.target_lang == "ja"
+        lang = ctx.target_lang
+        is_ja = lang == "ja"
 
         # Extract 5 measured values from lab_results keyed by LOINC code
         results_by_loinc: dict[str, float | None] = {}
@@ -3307,7 +3320,8 @@ class TemplateNarrativeGenerator:
         from clinosim.codes import lookup as code_lookup
 
         facts: list[str] = []
-        is_ja = ctx.target_lang == "ja"
+        lang = ctx.target_lang
+        is_ja = lang == "ja"
         patient = ctx.patient
 
         # Convert past medical history (chronic_conditions) codes to
@@ -3329,7 +3343,7 @@ class TemplateNarrativeGenerator:
                 history_lines.append(f"- {code}")
         if chronic:
             facts.append("ctx.patient.chronic_conditions")
-        history_text = "\n".join(history_lines) if history_lines else ("特記事項なし" if is_ja else "None noted")
+        history_text = "\n".join(history_lines) if history_lines else t("section_none.history_none_noted", lang)
 
         # Current medications: list may contain HomeMedication objects or
         # mixed dict/str entries
@@ -3339,7 +3353,7 @@ class TemplateNarrativeGenerator:
         med_text = (
             ("、" if is_ja else ", ").join(_render_home_med_name(m) for m in current_meds)
             if current_meds
-            else ("常用薬なし" if is_ja else "None taken")
+            else t("section_none.home_medications_alt", lang)
         )
 
         # 生活習慣(smoking_status / alcohol_use)
@@ -3516,7 +3530,8 @@ class TemplateNarrativeGenerator:
         from clinosim.codes import lookup as code_lookup
 
         facts: list[str] = []
-        is_ja = ctx.target_lang == "ja"
+        lang = ctx.target_lang
+        is_ja = lang == "ja"
 
         diagnoses = ctx.diagnoses or []
         if not diagnoses:
@@ -3561,7 +3576,7 @@ class TemplateNarrativeGenerator:
         facts: list[str] = []
         lang = ctx.target_lang
         is_ja = lang == "ja"
-        none_text = "退院処方なし" if is_ja else "No discharge medications"
+        none_text = t("section_none.discharge_medications", lang)
 
         meds = getattr(ctx, "discharge_medications", None) or []
         if not meds:
@@ -3980,7 +3995,8 @@ class TemplateNarrativeGenerator:
         """Build adl_assessment from CIF adl_assessments (Barthel Index).
         v9 density fix — v8 emitted 12-char "ADL：自立（問題なし）"."""
         facts: list[str] = []
-        is_ja = ctx.target_lang == "ja"
+        lang = ctx.target_lang
+        is_ja = lang == "ja"
         adls = list(getattr(ctx, "adl_assessments", None) or [])
         if not adls:
             return (_ADL_FALLBACK_JA if is_ja else _ADL_FALLBACK_EN), facts
@@ -4018,7 +4034,8 @@ class TemplateNarrativeGenerator:
         """Build risk_assessments from CIF (Braden + Morse). v9 density
         fix — v8 emitted 12-char placeholder."""
         facts: list[str] = []
-        is_ja = ctx.target_lang == "ja"
+        lang = ctx.target_lang
+        is_ja = lang == "ja"
         risks = list(getattr(ctx, "nursing_risk_assessments", None) or [])
         if not risks:
             return (_RISK_FALLBACK_JA if is_ja else _RISK_FALLBACK_EN), facts
@@ -4072,7 +4089,8 @@ class TemplateNarrativeGenerator:
         Risk-derived NDx (fall / pressure ulcer) are appended after
         the YAML-driven items — same behavior as pre-session-104.
         """
-        is_ja = ctx.target_lang == "ja"
+        lang = ctx.target_lang
+        is_ja = lang == "ja"
         dx_labels, facts = _lookup_nursing_content(ctx, "nursing_diagnoses", is_ja, cap=5)
 
         # Risk-derived NDx (unchanged from pre-session-104 semantics —
@@ -4113,7 +4131,8 @@ class TemplateNarrativeGenerator:
         precautions) are appended after the YAML-driven items — same
         as pre-session-104.
         """
-        is_ja = ctx.target_lang == "ja"
+        lang = ctx.target_lang
+        is_ja = lang == "ja"
         actions, facts = _lookup_nursing_content(ctx, "care_plan", is_ja, cap=4)
 
         # Risk-driven actions. Semantic-prefix dedup (session-104): the
@@ -4166,7 +4185,8 @@ class TemplateNarrativeGenerator:
     def _build_acp_ward_and_room(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
         """病棟（病室）— Encounter.ward_id + bed_number."""
         facts: list[str] = []
-        is_ja = ctx.target_lang == "ja"
+        lang = ctx.target_lang
+        is_ja = lang == "ja"
         ward = str(_o(ctx.encounter, "ward_id", "") or "")
         bed = str(_o(ctx.encounter, "bed_number", "") or "")
         if not ward and not bed:
@@ -4183,7 +4203,8 @@ class TemplateNarrativeGenerator:
         """Healthcare staff names other than attending physician — mapped to
         Encounter.primary_nurse_id (shares field with CareTeam)."""
         facts: list[str] = []
-        is_ja = ctx.target_lang == "ja"
+        lang = ctx.target_lang
+        is_ja = lang == "ja"
         nurse_id = str(_o(ctx.encounter, "primary_nurse_id", "") or "")
         if not nurse_id:
             return (_ACP_OTHER_STAFF_FALLBACK_JA if is_ja else _ACP_OTHER_STAFF_FALLBACK_EN), facts
@@ -4198,7 +4219,8 @@ class TemplateNarrativeGenerator:
         from clinosim.codes import lookup as code_lookup
 
         facts: list[str] = []
-        is_ja = ctx.target_lang == "ja"
+        lang = ctx.target_lang
+        is_ja = lang == "ja"
         diagnoses = ctx.diagnoses or []
         if not diagnoses:
             return self._build_chief_complaint(ctx)
@@ -4241,7 +4263,8 @@ class TemplateNarrativeGenerator:
         distinct test names is the best available data-driven proxy within
         NarrativeContext's existing schema (spec §3b decision)."""
         facts: list[str] = []
-        is_ja = ctx.target_lang == "ja"
+        lang = ctx.target_lang
+        is_ja = lang == "ja"
         names: set[str] = set()
         for lab in ctx.lab_results or []:
             name = _o(lab, "test_name", None)
@@ -4257,7 +4280,8 @@ class TemplateNarrativeGenerator:
     def _build_acp_surgery_schedule(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
         """手術内容及び日程 — ctx.procedures filtered to category_code=387713003 (surgical)."""
         facts: list[str] = []
-        is_ja = ctx.target_lang == "ja"
+        lang = ctx.target_lang
+        is_ja = lang == "ja"
         surgical = [p for p in (ctx.procedures or []) if str(_o(p, "category_code", "") or "") == "387713003"]
         if not surgical:
             return (_ACP_SURGERY_NONE_JA if is_ja else _ACP_SURGERY_NONE_EN), facts
@@ -4306,7 +4330,8 @@ class TemplateNarrativeGenerator:
 
     def _build_acp_estimated_los(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
         """推定される入院期間 — see _estimated_los_days for the shared calculation."""
-        is_ja = ctx.target_lang == "ja"
+        lang = ctx.target_lang
+        is_ja = lang == "ja"
         los_days, facts = self._estimated_los_days(ctx)
         if is_ja:
             return f"推定入院期間：約{los_days}日間", facts
@@ -4315,7 +4340,8 @@ class TemplateNarrativeGenerator:
     def _build_acp_special_nutrition_management(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
         """特別な栄養管理の必要性 — MVP: always「無」(no NutritionOrder subsystem
         exists yet; TODO.md tracks the future nutrition subsystem chain)."""
-        is_ja = ctx.target_lang == "ja"
+        lang = ctx.target_lang
+        is_ja = lang == "ja"
         return (_ACP_NUTRITION_NO_JA if is_ja else _ACP_NUTRITION_NO_EN), []
 
     def _build_acp_other_plans(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
@@ -4324,7 +4350,8 @@ class TemplateNarrativeGenerator:
         content at this call site (each spec walked independently), so this
         section cannot dynamically pull admission_nursing_assessment content
         without a larger architecture change (out of scope, see plan)."""
-        is_ja = ctx.target_lang == "ja"
+        lang = ctx.target_lang
+        is_ja = lang == "ja"
         return (_ACP_OTHER_PLANS_JA if is_ja else _ACP_OTHER_PLANS_EN), []
 
     # ─────────────────────────────────────────────────────────────────
@@ -4342,7 +4369,8 @@ class TemplateNarrativeGenerator:
     def _build_ncp_ward_and_physician(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
         """病棟／担当医師名／入院日 — same Encounter fields as admission_care_plan."""
         facts: list[str] = []
-        is_ja = ctx.target_lang == "ja"
+        lang = ctx.target_lang
+        is_ja = lang == "ja"
         ward = str(_o(ctx.encounter, "ward_id", "") or "")
         physician = str(_o(ctx.encounter, "attending_physician_id", "") or "")
         if ward:
@@ -4359,17 +4387,19 @@ class TemplateNarrativeGenerator:
 
     def _build_ncp_dietitian(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
         """担当管理栄養士名 — MVP: no dietitian staff role exists yet."""
-        is_ja = ctx.target_lang == "ja"
+        lang = ctx.target_lang
+        is_ja = lang == "ja"
         return (_NCP_DIETITIAN_FALLBACK_JA if is_ja else _NCP_DIETITIAN_FALLBACK_EN), []
 
     def _build_ncp_nutrition_risk(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
         """入院時栄養状態に関するリスク — BMI 3-tier threshold (coarse screening
         proxy, not a validated instrument like GLIM/MUST — design spec §4)."""
         facts: list[str] = []
-        is_ja = ctx.target_lang == "ja"
+        lang = ctx.target_lang
+        is_ja = lang == "ja"
         bmi = _o(ctx.patient, "bmi", None)
         if bmi is None:
-            fallback = "栄養リスク：評価データなし" if is_ja else "Nutrition risk: no assessment data"
+            fallback = t("section_none.nutrition_risk_no_data", lang)
             return fallback, facts
         facts.append("patient.bmi")
         bmi_r = round(float(bmi), 1)
@@ -4387,7 +4417,8 @@ class TemplateNarrativeGenerator:
         """栄養状態の評価と課題 — v9 density fix: compose from BMI +
         chronic disease + ADL (Barthel) rather than MVP placeholder."""
         facts: list[str] = []
-        is_ja = ctx.target_lang == "ja"
+        lang = ctx.target_lang
+        is_ja = lang == "ja"
         patient = ctx.patient
         if patient is None:
             return (_NCP_ASSESSMENT_FALLBACK_JA if is_ja else _NCP_ASSESSMENT_FALLBACK_EN), facts
@@ -4439,7 +4470,8 @@ class TemplateNarrativeGenerator:
 
     def _build_ncp_nutrition_goals(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
         """栄養管理計画 目標 — MVP fixed fallback."""
-        is_ja = ctx.target_lang == "ja"
+        lang = ctx.target_lang
+        is_ja = lang == "ja"
         return (_NCP_GOALS_FALLBACK_JA if is_ja else _NCP_GOALS_FALLBACK_EN), []
 
     def _build_ncp_nutrition_supply(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
@@ -4448,10 +4480,11 @@ class TemplateNarrativeGenerator:
         (25-30 kcal/kg/day energy midpoint, 1.0-1.2 g/kg/day protein
         midpoint — design spec §3c). Route fixed to 経口 (oral) MVP default."""
         facts: list[str] = []
-        is_ja = ctx.target_lang == "ja"
+        lang = ctx.target_lang
+        is_ja = lang == "ja"
         weight = _o(ctx.patient, "weight_kg", None)
         if weight is None:
-            fallback = "栄養補給量：算出データなし" if is_ja else "Nutrition supply: no data to compute"
+            fallback = t("section_none.nutrition_supply_no_data", lang)
             return fallback, facts
         facts.append("patient.weight_kg")
         energy = round(float(weight) * NUTRITION_ENERGY_KCAL_PER_KG_MIDPOINT)
@@ -4462,19 +4495,22 @@ class TemplateNarrativeGenerator:
 
     def _build_ncp_dysphagia_diet(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
         """嚥下調整食の必要性 — MVP fixed 「なし」."""
-        is_ja = ctx.target_lang == "ja"
+        lang = ctx.target_lang
+        is_ja = lang == "ja"
         return (_NCP_DYSPHAGIA_NONE_JA if is_ja else _NCP_DYSPHAGIA_NONE_EN), []
 
     def _build_ncp_dietary_content(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
         """食事内容 — MVP fixed fallback."""
-        is_ja = ctx.target_lang == "ja"
+        lang = ctx.target_lang
+        is_ja = lang == "ja"
         return (_NCP_DIETARY_CONTENT_FALLBACK_JA if is_ja else _NCP_DIETARY_CONTENT_FALLBACK_EN), []
 
     def _build_ncp_nutrition_counseling(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
         """栄養食事相談に関する事項 — MVP fixed fallback (collapses the 3 MHLW
         sub-items — admission/consult/discharge instruction — into one
         section; no per-item data source exists, design spec §2 row 7)."""
-        is_ja = ctx.target_lang == "ja"
+        lang = ctx.target_lang
+        is_ja = lang == "ja"
         return (_NCP_COUNSELING_FALLBACK_JA if is_ja else _NCP_COUNSELING_FALLBACK_EN), []
 
     def _build_ncp_other_issues(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
@@ -4482,7 +4518,8 @@ class TemplateNarrativeGenerator:
         allergies + high-risk chronic combo. Falls back to placeholder
         when CIF has no relevant markers."""
         facts: list[str] = []
-        is_ja = ctx.target_lang == "ja"
+        lang = ctx.target_lang
+        is_ja = lang == "ja"
         parts: list[str] = []
         # Food allergies (subset)
         for a in (ctx.allergies or [])[:3]:
@@ -4505,14 +4542,16 @@ class TemplateNarrativeGenerator:
 
     def _build_ncp_reassessment_timing(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
         """栄養状態の再評価の時期 — MVP fixed fallback."""
-        is_ja = ctx.target_lang == "ja"
+        lang = ctx.target_lang
+        is_ja = lang == "ja"
         return (_NCP_REASSESSMENT_FALLBACK_JA if is_ja else _NCP_REASSESSMENT_FALLBACK_EN), []
 
     def _build_ncp_discharge_evaluation(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
         """退院時及び終了時の総合的評価 — genuinely unknowable at plan-creation
         time; this system has no mechanism to revise a Stage-1 stub at a
         later encounter phase for this doc type (design spec §2 row 10)."""
-        is_ja = ctx.target_lang == "ja"
+        lang = ctx.target_lang
+        is_ja = lang == "ja"
         return (_NCP_DISCHARGE_EVAL_FALLBACK_JA if is_ja else _NCP_DISCHARGE_EVAL_FALLBACK_EN), []
 
     # ─────────────────────────────────────────────────────────────────
@@ -4531,7 +4570,8 @@ class TemplateNarrativeGenerator:
         present rather than implying multi-disciplinary coverage that doesn't
         exist (design spec §3e / §4 out-of-scope note)."""
         facts: list[str] = []
-        is_ja = ctx.target_lang == "ja"
+        lang = ctx.target_lang
+        is_ja = lang == "ja"
         therapy_types = sorted(
             {str(_o(s, "therapy_type", "") or "") for s in (ctx.rehab_sessions or []) if _o(s, "therapy_type", "")}
         )
@@ -4549,7 +4589,8 @@ class TemplateNarrativeGenerator:
         """機能評価 — latest (by session_date) session's functional_progress /
         patient_participation / pain_score."""
         facts: list[str] = []
-        is_ja = ctx.target_lang == "ja"
+        lang = ctx.target_lang
+        is_ja = lang == "ja"
         sessions = ctx.rehab_sessions or []
         if not sessions:
             return (_RP_FUNCTIONAL_FALLBACK_JA if is_ja else _RP_FUNCTIONAL_FALLBACK_EN), facts
@@ -4562,7 +4603,7 @@ class TemplateNarrativeGenerator:
         participation_label = (_RP_PARTICIPATION_JA if is_ja else _RP_PARTICIPATION_EN).get(
             participation, participation
         )
-        pain_text = f"{pain}/10" if pain is not None else ("評価なし" if is_ja else "not assessed")
+        pain_text = f"{pain}/10" if pain is not None else t("section_none.pain_not_assessed", lang)
         if is_ja:
             return (
                 f"機能的改善度：{progress_label}／リハビリへの参加度：{participation_label}／疼痛スコア：{pain_text}"
@@ -4578,7 +4619,8 @@ class TemplateNarrativeGenerator:
         is absent, so recalculation is required. RehabSession.activities raw English
         text is not used (per design spec §4)。"""
         facts: list[str] = []
-        is_ja = ctx.target_lang == "ja"
+        lang = ctx.target_lang
+        is_ja = lang == "ja"
         sessions = ctx.rehab_sessions or []
         if not sessions:
             return (_RP_MOVEMENT_FALLBACK_JA if is_ja else _RP_MOVEMENT_FALLBACK_EN), facts
@@ -4596,7 +4638,8 @@ class TemplateNarrativeGenerator:
     def _build_rp_session_frequency(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
         """実施回数・期間・1回あたりの時間。"""
         facts: list[str] = []
-        is_ja = ctx.target_lang == "ja"
+        lang = ctx.target_lang
+        is_ja = lang == "ja"
         sessions = ctx.rehab_sessions or []
         if not sessions:
             return (_RP_FREQUENCY_FALLBACK_JA if is_ja else _RP_FREQUENCY_FALLBACK_EN), facts
@@ -4618,19 +4661,22 @@ class TemplateNarrativeGenerator:
     def _build_rp_goals(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
         """本人の希望・家族の希望 — CIF に患者意向を表すフィールドなし
         (design spec §3d)、固定フォールバック。"""
-        is_ja = ctx.target_lang == "ja"
+        lang = ctx.target_lang
+        is_ja = lang == "ja"
         return (_RP_GOALS_FALLBACK_JA if is_ja else _RP_GOALS_FALLBACK_EN), []
 
     def _build_rp_policy(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
         """リハビリテーション治療方針 — 固定フォールバック(design spec §3d)。"""
-        is_ja = ctx.target_lang == "ja"
+        lang = ctx.target_lang
+        is_ja = lang == "ja"
         return (_RP_POLICY_FALLBACK_JA if is_ja else _RP_POLICY_FALLBACK_EN), []
 
     def _build_rp_discharge_estimate(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
         """リハビリテーション終了の目安・時期 — _estimated_los_days を再利用
         (admission_care_plan の estimated_los と同じ target_los データ、
         リハ完了フレーミングの文言のみ異なる)。"""
-        is_ja = ctx.target_lang == "ja"
+        lang = ctx.target_lang
+        is_ja = lang == "ja"
         los_days, facts = self._estimated_los_days(ctx)
         if is_ja:
             return f"リハビリテーション終了の目安：入院後約{los_days}日", facts
@@ -4639,7 +4685,8 @@ class TemplateNarrativeGenerator:
     def _build_rp_explanation_consent(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
         """本人・家族への説明(署名欄) — 固定フォールバック
         (admission_care_plan/nutrition_care_plan と同じ signature-block pattern)。"""
-        is_ja = ctx.target_lang == "ja"
+        lang = ctx.target_lang
+        is_ja = lang == "ja"
         return (_RP_EXPLANATION_FALLBACK_JA if is_ja else _RP_EXPLANATION_FALLBACK_EN), []
 
     # ─────────────────────────────────────────────────────────────────
@@ -4689,7 +4736,8 @@ class TemplateNarrativeGenerator:
         """Build nursing_interventions_provided from CIF procedures / MAR /
         intake-output totals. v9 density fix — v8 emitted 15-char placeholder."""
         facts: list[str] = []
-        is_ja = ctx.target_lang == "ja"
+        lang = ctx.target_lang
+        is_ja = lang == "ja"
         parts: list[str] = []
         procs = [_o(pr, "procedure_name", None) or _o(pr, "name", None) for pr in (ctx.procedures or [])[:5]]
         procs = [p for p in procs if p]
@@ -4729,7 +4777,8 @@ class TemplateNarrativeGenerator:
         No risk-derived rows here (unlike nursing_diagnosis /
         care_plan) — patient education is disease-driven only.
         """
-        is_ja = ctx.target_lang == "ja"
+        lang = ctx.target_lang
+        is_ja = lang == "ja"
         topics, facts = _lookup_nursing_content(ctx, "patient_education", is_ja, cap=4)
         if not topics:
             return (_PATIENT_EDUCATION_FALLBACK_JA if is_ja else _PATIENT_EDUCATION_FALLBACK_EN), facts
@@ -4740,7 +4789,8 @@ class TemplateNarrativeGenerator:
     def _build_discharge_readiness(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
         """Build discharge_readiness from latest ADL + risk. v9 density fix."""
         facts: list[str] = []
-        is_ja = ctx.target_lang == "ja"
+        lang = ctx.target_lang
+        is_ja = lang == "ja"
         adls = list(getattr(ctx, "adl_assessments", None) or [])
         risks = list(getattr(ctx, "nursing_risk_assessments", None) or [])
         parts: list[str] = []
@@ -4895,7 +4945,8 @@ class TemplateNarrativeGenerator:
         enc = ctx.encounter
         if patient is None:
             return ""
-        is_ja = ctx.target_lang == "ja"
+        lang = ctx.target_lang
+        is_ja = lang == "ja"
         age = _age_at(ctx)
         sex_raw = _o(patient, "sex", None) or ""
         sex_ja = {"M": "男性", "F": "女性"}.get(str(sex_raw).upper(), "")
@@ -5032,7 +5083,8 @@ class TemplateNarrativeGenerator:
         neutral-observation vocabulary radiologists / nurses use for a
         day with no acute change, not a fabricated symptom claim.
         """
-        is_ja = ctx.target_lang == "ja"
+        lang = ctx.target_lang
+        is_ja = lang == "ja"
         picks = _filter_vitals_for_day(ctx.vitals, ctx.day_index, ctx.encounter)
         prev = _filter_vitals_for_day(ctx.vitals, ctx.day_index - 1, ctx.encounter) if ctx.day_index > 0 else []
         parts: list[str] = []
@@ -5166,7 +5218,8 @@ class TemplateNarrativeGenerator:
         labs cited by name+value+flag — so each per-day EN note carries
         patient-specific reasoning.
         """
-        is_ja = ctx.target_lang == "ja"
+        lang = ctx.target_lang
+        is_ja = lang == "ja"
         parts: list[str] = []
         # Complications (from record via NarrativeContext v6 field).
         # Phase 1c-2 (2026-09-22): the raw snake_case complication tokens
@@ -5177,8 +5230,6 @@ class TemplateNarrativeGenerator:
         # 「合併症 delirium、acute_kidney_injury を認識」.
         comps = list(getattr(ctx, "complications_occurred", []) or [])
         if comps:
-            from clinosim.locale.i18n import t
-
             localised = [_localize_complication(str(c), ctx.target_lang) for c in comps[:3]]
             sep = "、" if is_ja else ", "
             parts.append(t("progress.complications_noted", ctx.target_lang, list=sep.join(localised)))
@@ -5233,13 +5284,9 @@ class TemplateNarrativeGenerator:
             if len(abn) >= 6:
                 break
         if abn:
-            from clinosim.locale.i18n import t
-
             sep = "、" if is_ja else ", "
             parts.append(t("progress.notable_labs", ctx.target_lang, list=sep.join(abn[:4])))
         if not parts:
-            from clinosim.locale.i18n import t
-
             parts.append(t("progress.stable_course_assessment", ctx.target_lang))
         return "".join(parts) if is_ja else " ".join(parts)
 
@@ -5255,7 +5302,8 @@ class TemplateNarrativeGenerator:
         management`` fallback (measured on US p=2000 seed=500: 7.8 % of
         1,409 progress notes shipped the fallback).
         """
-        is_ja = ctx.target_lang == "ja"
+        lang = ctx.target_lang
+        is_ja = lang == "ja"
         parts: list[str] = []
         # Today's meds (MAR) — Issue #1154 fix: MedicationAdministration
         # records store ``scheduled_datetime`` / ``actual_datetime`` but
@@ -5625,7 +5673,8 @@ class TemplateNarrativeGenerator:
         enc = getattr(ctx, "encounter", None)
         if enc is None:
             return ""
-        is_ja = ctx.target_lang == "ja"
+        lang = ctx.target_lang
+        is_ja = lang == "ja"
         # Phase 1c-6 (2026-09-23): prefer the locale-specific
         # ``chief_complaint_{ja,en}`` over the raw ``chief_complaint``
         # so JA output emits 「来院理由: 予防接種」 rather than the
@@ -5647,7 +5696,6 @@ class TemplateNarrativeGenerator:
         # phrase-catalog lookup (see ``clinosim/locale/i18n.py`` and
         # ``narrative_phrases.yaml``). Adding fr / zh / … requires only
         # a YAML edit; no code change here.
-        from clinosim.locale.i18n import t
 
         if cc and cc.lower() not in ("none", "n/a", "--"):
             return t("chief_complaint.encounter_reason", ctx.target_lang, cc=cc)
@@ -5755,7 +5803,8 @@ class TemplateNarrativeGenerator:
 
         from clinosim.codes import lookup as _code_lookup
 
-        is_ja = ctx.target_lang == "ja"
+        lang = ctx.target_lang
+        is_ja = lang == "ja"
         disp_key = "icd-10" if ctx.locale == "jp" else "icd-10-cm"
 
         # Pre-resolve current-medications for continuation-tail. Issue #1033:
@@ -6162,7 +6211,8 @@ class TemplateNarrativeGenerator:
         rx = list(getattr(ctx, "discharge_medications", None) or [])
         if not rx:
             return ""
-        is_ja = ctx.target_lang == "ja"
+        lang = ctx.target_lang
+        is_ja = lang == "ja"
         parts: list[str] = []
         for m in rx[:8]:
             drug = _o(m, "drug_name", "") or ""
@@ -6198,7 +6248,8 @@ class TemplateNarrativeGenerator:
         procs = list(ctx.procedures or [])
         if not procs:
             return ""
-        is_ja = ctx.target_lang == "ja"
+        lang = ctx.target_lang
+        is_ja = lang == "ja"
         names: list[str] = []
         seen: set[str] = set()
         for pr in procs[:6]:
@@ -6225,7 +6276,8 @@ class TemplateNarrativeGenerator:
         """
         ep = ctx.encounter_protocol
         interval = _o(ep, "next_visit_interval_days", None) if ep is not None else None
-        is_ja = ctx.target_lang == "ja"
+        lang = ctx.target_lang
+        is_ja = lang == "ja"
         if interval:
             try:
                 d = int(interval)
@@ -6281,7 +6333,8 @@ class TemplateNarrativeGenerator:
         meds = _o(patient, "current_medications", []) or []
         if not meds:
             return ""
-        is_ja = ctx.target_lang == "ja"
+        lang = ctx.target_lang
+        is_ja = lang == "ja"
         names: list[str] = []
         for m in meds:
             n = _render_home_med_name(m, lang=ctx.target_lang) if not isinstance(m, str) else m
@@ -6859,7 +6912,8 @@ class TemplateNarrativeGenerator:
 
     def _generic_trajectory(self, ctx: NarrativeContext) -> dict[str, str]:
         """Return generic SOAP entry for when no trajectory data is available."""
-        is_ja = ctx.target_lang == "ja"
+        lang = ctx.target_lang
+        is_ja = lang == "ja"
         return {
             "subjective": _GENERIC_FALLBACK_JA if is_ja else _GENERIC_FALLBACK_EN,
             "objective": _GENERIC_FALLBACK_JA if is_ja else _GENERIC_FALLBACK_EN,
@@ -6950,7 +7004,8 @@ class TemplateNarrativeGenerator:
         Sourced from the encounter's final ICD-10 diagnosis. When missing
         (no clinical_diagnosis on record), emits a never-fabricate marker.
         """
-        is_ja = ctx.target_lang == "ja"
+        lang = ctx.target_lang
+        is_ja = lang == "ja"
         code, display, facts = self._dc_resolve_primary_cause(ctx)
         if not code:
             return ("直接死因: 記録なし。" if is_ja else "Immediate cause of death: not documented."), facts
@@ -6975,7 +7030,8 @@ class TemplateNarrativeGenerator:
         anchors on the observed admission-to-death interval and states
         so explicitly.
         """
-        is_ja = ctx.target_lang == "ja"
+        lang = ctx.target_lang
+        is_ja = lang == "ja"
         facts: list[str] = ["ctx.los_days"]
         los = ctx.los_days or 0
         code, display, _ = self._dc_resolve_primary_cause(ctx)
@@ -7125,7 +7181,8 @@ class TemplateNarrativeGenerator:
         first two digits) as the underlying-cause bucket when the discharge
         dx has a decimal specifier.
         """
-        is_ja = ctx.target_lang == "ja"
+        lang = ctx.target_lang
+        is_ja = lang == "ja"
         code, display, facts = self._dc_resolve_primary_cause(ctx)
         if not code:
             return ("原死因: 記録なし。" if is_ja else "Underlying cause of death: not documented."), facts
@@ -7153,7 +7210,8 @@ class TemplateNarrativeGenerator:
         the patient has no chronic history and no in-hospital
         complication was recorded.
         """
-        is_ja = ctx.target_lang == "ja"
+        lang = ctx.target_lang
+        is_ja = lang == "ja"
         facts: list[str] = []
         conds = _o(ctx.patient, "chronic_conditions", []) or [] if ctx.patient else []
         parts: list[str] = []
@@ -7219,7 +7277,8 @@ class TemplateNarrativeGenerator:
         is 病死及び自然死. Future external_cause markers would extend this
         builder.
         """
-        is_ja = ctx.target_lang == "ja"
+        lang = ctx.target_lang
+        is_ja = lang == "ja"
         facts: list[str] = []
         if is_ja:
             return "死因の種類: 病死及び自然死。", facts
@@ -7241,7 +7300,8 @@ class TemplateNarrativeGenerator:
         (feedback_dr_conclusion_code_single_walk — one source for a
         cross-document invariant).
         """
-        is_ja = ctx.target_lang == "ja"
+        lang = ctx.target_lang
+        is_ja = lang == "ja"
         facts: list[str] = ["encounter.id::autopsy_sample"]
         performed = _autopsy_performed_sha256(ctx)
         if performed:
@@ -7280,7 +7340,8 @@ class TemplateNarrativeGenerator:
         narrative in the observed baseline so the LLM refinement pass
         cannot drift toward fabricated "healthy on admission" framing.
         """
-        is_ja = ctx.target_lang == "ja"
+        lang = ctx.target_lang
+        is_ja = lang == "ja"
         facts: list[str] = []
         adm_dt = _o(ctx.encounter, "admission_datetime", None)
         adm_str = str(adm_dt)[:16].replace("T", " ") if adm_dt else ""
@@ -7324,7 +7385,8 @@ class TemplateNarrativeGenerator:
         counts — the LLM pass can rewrite phrasing but cannot invent
         procedures or diagnoses that the counts do not support.
         """
-        is_ja = ctx.target_lang == "ja"
+        lang = ctx.target_lang
+        is_ja = lang == "ja"
         facts: list[str] = ["ctx.los_days"]
         los = ctx.los_days or 0
         med_count = len(ctx.medications or [])
@@ -7367,7 +7429,8 @@ class TemplateNarrativeGenerator:
         on disease pattern (chronic decompensation vs acute event)
         rather than fabricating specific vital values.
         """
-        is_ja = ctx.target_lang == "ja"
+        lang = ctx.target_lang
+        is_ja = lang == "ja"
         facts: list[str] = []
         dis_dt = _o(ctx.encounter, "discharge_datetime", None)
         dis_str = str(dis_dt)[:16].replace("T", " ") if dis_dt else ""
@@ -7409,7 +7472,8 @@ class TemplateNarrativeGenerator:
         CPR/resuscitation procedure is recorded, and "蘇生術施行" when
         the CIF Procedure list contains a resuscitation code.
         """
-        is_ja = ctx.target_lang == "ja"
+        lang = ctx.target_lang
+        is_ja = lang == "ja"
         facts: list[str] = []
         procedures = ctx.procedures or []
         resuscitation = False
@@ -7455,7 +7519,8 @@ class TemplateNarrativeGenerator:
         encounter (single-source-of-truth per
         feedback_dr_conclusion_code_single_walk).
         """
-        is_ja = ctx.target_lang == "ja"
+        lang = ctx.target_lang
+        is_ja = lang == "ja"
         code, display, facts = self._dc_resolve_primary_cause(ctx)
         if not code:
             return ("死因: 記録なし。" if is_ja else "Cause of death: not documented."), facts
@@ -7471,7 +7536,8 @@ class TemplateNarrativeGenerator:
         AND in-hospital complications side by side rather than fusing
         them, so consumers can distinguish pre-existing from acquired.
         """
-        is_ja = ctx.target_lang == "ja"
+        lang = ctx.target_lang
+        is_ja = lang == "ja"
         facts: list[str] = []
         conds = _o(ctx.patient, "chronic_conditions", []) or [] if ctx.patient else []
         cond_labels: list[str] = []
@@ -7528,7 +7594,8 @@ class TemplateNarrativeGenerator:
         "経過に応じて随時説明") so the LLM refinement pass can polish
         without inventing specific meeting dates.
         """
-        is_ja = ctx.target_lang == "ja"
+        lang = ctx.target_lang
+        is_ja = lang == "ja"
         facts: list[str] = ["ctx.los_days"]
         los = ctx.los_days or 0
 
@@ -7564,7 +7631,8 @@ class TemplateNarrativeGenerator:
         pathological findings, so this stays generic rather than
         fabricating specific gross/microscopic descriptions.
         """
-        is_ja = ctx.target_lang == "ja"
+        lang = ctx.target_lang
+        is_ja = lang == "ja"
         facts: list[str] = ["encounter.id::autopsy_sample"]
         performed = _autopsy_performed_sha256(ctx)
         if performed:
@@ -7665,7 +7733,8 @@ class TemplateNarrativeGenerator:
 
     def _build_op_procedure_name(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
         """術式名 — procedure code display + K/CPT code + approach modifier."""
-        is_ja = ctx.target_lang == "ja"
+        lang = ctx.target_lang
+        is_ja = lang == "ja"
         proc = self._primary_surgical_procedure(ctx)
         if proc is None:
             return ("術式：情報なし" if is_ja else "Procedure: not documented"), []
@@ -7687,7 +7756,8 @@ class TemplateNarrativeGenerator:
 
     def _build_op_anesthesia(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
         """麻酔法 — anesthesia type + ASA class + anesthesiologist."""
-        is_ja = ctx.target_lang == "ja"
+        lang = ctx.target_lang
+        is_ja = lang == "ja"
         proc = self._primary_surgical_procedure(ctx)
         if proc is None:
             return ("麻酔：情報なし" if is_ja else "Anesthesia: not documented"), []
@@ -7709,7 +7779,8 @@ class TemplateNarrativeGenerator:
 
     def _build_op_surgeon(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
         """執刀医・助手 — primary surgeon + assistant list (name-resolved)."""
-        is_ja = ctx.target_lang == "ja"
+        lang = ctx.target_lang
+        is_ja = lang == "ja"
         proc = self._primary_surgical_procedure(ctx)
         if proc is None:
             return ("執刀医：情報なし" if is_ja else "Surgeon: not documented"), []
@@ -7729,7 +7800,8 @@ class TemplateNarrativeGenerator:
 
     def _build_op_findings(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
         """術中所見 — body site + preop/postop diagnosis + intraop complications."""
-        is_ja = ctx.target_lang == "ja"
+        lang = ctx.target_lang
+        is_ja = lang == "ja"
         proc = self._primary_surgical_procedure(ctx)
         if proc is None:
             return ("術中所見：情報なし" if is_ja else "Intraoperative findings: not documented"), []
@@ -7780,7 +7852,8 @@ class TemplateNarrativeGenerator:
 
     def _build_op_course(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
         """手術経過 — approach + duration + outcome + timing narrative."""
-        is_ja = ctx.target_lang == "ja"
+        lang = ctx.target_lang
+        is_ja = lang == "ja"
         proc = self._primary_surgical_procedure(ctx)
         if proc is None:
             return ("手術経過：情報なし" if is_ja else "Operative course: not documented"), []
@@ -7813,7 +7886,8 @@ class TemplateNarrativeGenerator:
 
     def _build_op_specimens(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
         """摘出臓器・組織 — specimens_sent list."""
-        is_ja = ctx.target_lang == "ja"
+        lang = ctx.target_lang
+        is_ja = lang == "ja"
         proc = self._primary_surgical_procedure(ctx)
         if proc is None:
             return ("摘出臓器・組織：情報なし" if is_ja else "Specimens: not documented"), []
@@ -7828,7 +7902,8 @@ class TemplateNarrativeGenerator:
 
     def _build_op_blood_loss(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
         """出血量・輸血 — estimated_blood_loss_ml + transfusion note."""
-        is_ja = ctx.target_lang == "ja"
+        lang = ctx.target_lang
+        is_ja = lang == "ja"
         proc = self._primary_surgical_procedure(ctx)
         if proc is None:
             return ("出血量：情報なし" if is_ja else "Blood loss: not documented"), []
@@ -7853,7 +7928,8 @@ class TemplateNarrativeGenerator:
 
     def _build_op_equipment(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
         """使用機器・材料 — implants_used list."""
-        is_ja = ctx.target_lang == "ja"
+        lang = ctx.target_lang
+        is_ja = lang == "ja"
         proc = self._primary_surgical_procedure(ctx)
         if proc is None:
             return ("使用機器・材料：情報なし" if is_ja else "Equipment: not documented"), []
@@ -7877,7 +7953,8 @@ class TemplateNarrativeGenerator:
 
     def _build_op_postop_plan(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
         """術後方針 — recovery destination + monitoring plan (derived)."""
-        is_ja = ctx.target_lang == "ja"
+        lang = ctx.target_lang
+        is_ja = lang == "ja"
         proc = self._primary_surgical_procedure(ctx)
         if proc is None:
             return ("術後方針：情報なし" if is_ja else "Postoperative plan: not documented"), []
@@ -7922,7 +7999,8 @@ class TemplateNarrativeGenerator:
 
     def _build_pn_procedure_name(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
         """処置名 / Procedure name — resolved from procedure_code."""
-        is_ja = ctx.target_lang == "ja"
+        lang = ctx.target_lang
+        is_ja = lang == "ja"
         proc, facts = self._pn_resolve_procedure(ctx)
         if proc is None:
             return ("処置名: 記録なし。" if is_ja else "Procedure: not documented."), facts
@@ -7968,7 +8046,8 @@ class TemplateNarrativeGenerator:
         Procedure.note) and extend this builder.
         """
         _proc, facts = self._pn_resolve_procedure(ctx)
-        is_ja = ctx.target_lang == "ja"
+        lang = ctx.target_lang
+        is_ja = lang == "ja"
         if is_ja:
             return (
                 "インフォームド・コンセント: 患者本人（または家族）に手技の目的・方法・"
@@ -7981,7 +8060,8 @@ class TemplateNarrativeGenerator:
 
     def _build_pn_performer(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
         """実施者 / Performer — from ProcedureRecord.primary_surgeon_id."""
-        is_ja = ctx.target_lang == "ja"
+        lang = ctx.target_lang
+        is_ja = lang == "ja"
         proc, facts = self._pn_resolve_procedure(ctx)
         if proc is None:
             return ("実施者: 記録なし。" if is_ja else "Operator: not documented."), facts
@@ -8021,7 +8101,8 @@ class TemplateNarrativeGenerator:
 
     def _build_pn_analgesia(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
         """麻酔・鎮静 / Analgesia — from ProcedureRecord.anesthesia_type."""
-        is_ja = ctx.target_lang == "ja"
+        lang = ctx.target_lang
+        is_ja = lang == "ja"
         proc, facts = self._pn_resolve_procedure(ctx)
         if proc is None:
             return ("麻酔・鎮静: 記録なし。" if is_ja else "Analgesia: not documented."), facts
@@ -8048,7 +8129,8 @@ class TemplateNarrativeGenerator:
 
     def _build_pn_course(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
         """処置経過 / Procedure course — from duration + approach + outcome."""
-        is_ja = ctx.target_lang == "ja"
+        lang = ctx.target_lang
+        is_ja = lang == "ja"
         proc, facts = self._pn_resolve_procedure(ctx)
         if proc is None:
             return ("処置経過: 記録なし。" if is_ja else "Course: not documented."), facts
@@ -8080,7 +8162,8 @@ class TemplateNarrativeGenerator:
 
     def _build_pn_complications(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
         """合併症の有無 / Complications — from intraop_complications + complication_codes."""
-        is_ja = ctx.target_lang == "ja"
+        lang = ctx.target_lang
+        is_ja = lang == "ja"
         proc, facts = self._pn_resolve_procedure(ctx)
         if proc is None:
             return ("合併症の有無: 記録なし。" if is_ja else "Complications: not documented."), facts
@@ -8103,7 +8186,8 @@ class TemplateNarrativeGenerator:
 
     def _build_pn_specimens(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
         """検体の有無 / Specimens — from ProcedureRecord.specimens_sent."""
-        is_ja = ctx.target_lang == "ja"
+        lang = ctx.target_lang
+        is_ja = lang == "ja"
         proc, facts = self._pn_resolve_procedure(ctx)
         if proc is None:
             return ("検体の有無: 記録なし。" if is_ja else "Specimens: not documented."), facts
@@ -8120,7 +8204,8 @@ class TemplateNarrativeGenerator:
 
     def _build_pn_postop_plan(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
         """術後方針 / Post-procedure plan — outcome-aware boilerplate."""
-        is_ja = ctx.target_lang == "ja"
+        lang = ctx.target_lang
+        is_ja = lang == "ja"
         proc, facts = self._pn_resolve_procedure(ctx)
         if proc is None:
             return ("術後方針: 記録なし。" if is_ja else "Post-procedure plan: not documented."), facts
