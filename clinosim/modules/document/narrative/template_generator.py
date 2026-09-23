@@ -3607,7 +3607,6 @@ class TemplateNarrativeGenerator:
         v9 density fix — v8 emitted 12-char "ADL：自立（問題なし）"."""
         facts: list[str] = []
         lang = ctx.target_lang
-        is_ja = lang == "ja"
         adls = list(getattr(ctx, "adl_assessments", None) or [])
         if not adls:
             return (t("fallback.adl_fallback", lang)), facts
@@ -3627,18 +3626,13 @@ class TemplateNarrativeGenerator:
             band = t("barthel_band.severe_dependence", lang)
         else:
             band = t("barthel_band.total_care", lang)
-        detail_parts = []
-        for k, ja_label in [("feeding", "食事"), ("bathing", "入浴"), ("mobility", "移動"), ("toilet_use", "排泄")]:
+        detail_parts: list[str] = []
+        for k in ("feeding", "bathing", "mobility", "toilet_use"):
             v = _o(latest, k, None)
             if v is not None:
-                detail_parts.append(f"{ja_label}{v}" if is_ja else f"{k}={v}")
-        detail = (
-            "（" + "、".join(detail_parts) + "）"
-            if is_ja and detail_parts
-            else (" (" + ", ".join(detail_parts) + ")" if detail_parts else "")
-        )
-        if is_ja:
-            return f"Barthel Index {barthel}/100 → {band}{detail}", facts
+                label = _label("adl_detail_key", k, lang, fallback=k)
+                detail_parts.append(t("adl_detail.item", lang, label=label, score=v))
+        detail = t("adl_detail.wrap", lang, items=t("list_sep.serial", lang).join(detail_parts)) if detail_parts else ""
         return f"Barthel Index {barthel}/100 → {band}{detail}", facts
 
     def _build_risk_assessments(self, ctx: NarrativeContext) -> tuple[str, list[str]]:

@@ -234,3 +234,13 @@ discharge_disposition:
   other-hcf: {en: transferred to another healthcare facility, ja: 他施設転院}
   snf: {en: discharged to skilled nursing facility, ja: 施設退院}
   exp: {en: expired, ja: 死亡退院}
+
+# ADL Barthel-detail item labels (Phase 1d-35). Was inline
+# ``[("feeding", "食事"), ...]`` tuple in ``_build_adl_assessment``.
+# JA uses full-word labels ("食事{score}"), EN keeps the raw slug
+# ("feeding=score") — the EN "label" is the slug itself.
+adl_detail_key:
+  feeding: {en: feeding, ja: 食事}
+  bathing: {en: bathing, ja: 入浴}
+  mobility: {en: mobility, ja: 移動}
+  toilet_use: {en: toilet_use, ja: 排泄}
