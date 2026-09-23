@@ -3507,7 +3507,6 @@ class TemplateNarrativeGenerator:
         """
         facts: list[str] = []
         lang = ctx.target_lang
-        is_ja = lang == "ja"
 
         triage = _o(ctx.encounter, "triage_data", None)
 
@@ -3527,24 +3526,18 @@ class TemplateNarrativeGenerator:
         cc_summary = _o(triage, "chief_complaint_summary", "") or ""
         arrival_display = _label("arrival_mode", arrival_mode, lang, fallback=arrival_mode)
 
-        if is_ja:
-            level_line = (
-                f"トリアージレベル: {level_system} Level {level}"
-                if level_system and level
-                else "トリアージレベル: 未評価"
-            )
-            arrival_line = f"来院形態: {arrival_display}" if arrival_display else "来院形態: 不明"
-            cc_line = f"主訴: {cc_summary}" if cc_summary else "主訴: 未記録"
-            raw_text = "\n".join([level_line, arrival_line, cc_line])
-        else:
-            level_line = (
-                f"Triage level: {level_system} Level {level}"
-                if level_system and level
-                else "Triage level: not assessed"
-            )
-            arrival_line = f"Arrival mode: {arrival_display}" if arrival_display else "Arrival mode: unknown"
-            cc_line = f"Chief complaint: {cc_summary}" if cc_summary else "Chief complaint: not recorded"
-            raw_text = "\n".join([level_line, arrival_line, cc_line])
+        level_line = (
+            t("triage_note.level_line_with_data", lang, system=level_system, level=level)
+            if level_system and level
+            else t("triage_note.level_line_none", lang)
+        )
+        arrival_line = (
+            t("triage_note.arrival_line", lang, mode=arrival_display)
+            if arrival_display
+            else t("triage_note.arrival_line_none", lang)
+        )
+        cc_line = t("triage_note.cc_line", lang, cc=cc_summary) if cc_summary else t("triage_note.cc_line_none", lang)
+        raw_text = "\n".join([level_line, arrival_line, cc_line])
 
         return NarrativeOutput(
             raw_text=raw_text,
@@ -5712,14 +5705,15 @@ class TemplateNarrativeGenerator:
         if not rx:
             return ""
         lang = ctx.target_lang
-        is_ja = lang == "ja"
         parts: list[str] = []
         for m in rx[:8]:
             drug = _o(m, "drug_name", "") or ""
             if not drug:
                 continue
             drug, _cat = strip_protocol_prefix(drug)
-            if is_ja:
+            if lang == "ja":
+                # JA-locale drug-name katakana lookup (locale-specific
+                # data pipeline, same rationale as _compose_ap_plan_from_state).
                 from clinosim.modules.output.fhir_r4.lib.localization import _localize_drug_name
 
                 drug = _localize_drug_name(drug, "JP")
@@ -5832,11 +5826,12 @@ class TemplateNarrativeGenerator:
         if not meds:
             return ""
         lang = ctx.target_lang
-        is_ja = lang == "ja"
         names: list[str] = []
         for m in meds:
-            n = _render_home_med_name(m, lang=ctx.target_lang) if not isinstance(m, str) else m
-            if isinstance(m, str) and is_ja:
+            n = _render_home_med_name(m, lang=lang) if not isinstance(m, str) else m
+            if isinstance(m, str) and lang == "ja":
+                # JA-locale drug-name katakana lookup for str-only entries
+                # (dict entries already routed through _render_home_med_name).
                 from clinosim.modules.output.fhir_r4.lib.localization import _localize_drug_name
 
                 n = _localize_drug_name(m, "JP")
@@ -5849,17 +5844,11 @@ class TemplateNarrativeGenerator:
         # outpatient encounters — 10 covers the 90%ile.
         limit = 10
         shown = names[:limit]
-        joiner_ja = "、"
-        joiner_en = ", "
-        joiner = joiner_ja if is_ja else joiner_en
+        joiner = t("list_sep.serial", lang)
         head = joiner.join(shown)
         if len(names) > limit:
-            more_ja = f"（他 {len(names) - limit} 剤）"
-            more_en = f" (and {len(names) - limit} others)"
-            head += more_ja if is_ja else more_en
-        if is_ja:
-            return f"継続処方: {head}"
-        return f"Continue current medications: {head}"
+            head += t("current_medications.truncate_suffix", lang, n=len(names) - limit)
+        return t("current_medications.line", lang, list=head)
 
     # ─────────────────────────────────────────────────────────────────
     # α-min-2: ED_NOTE section builders
