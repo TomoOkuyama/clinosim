@@ -50,4 +50,13 @@ def test_med_terms_tables_loaded():
     # editing med_terms_ja.yaml — a diff here is the load-bearing signal
     # that the localization table changed.
     assert len(tables["categories"]) == 25
-    assert len(tables["terms"]) == 158  # 155 + q6months / tablet / as prescribed (Issue #469)
+    # Phase 1c-7 (2026-09-23): count bumped from 158 → 206 after
+    # extending the terms table with the ed_workup composite vocabulary
+    # (Ice pack / Wound irrigation / Elastic bandage / Suture closure /
+    # Tissue adhesive / Foley catheter / CRRT / etc.) and Category F
+    # dosage-descriptor phrases (once daily / every 4 hours / as needed
+    # / before meals / at bedtime / …). Duplicate `Nasal cannula` /
+    # `nasal cannula` / `cannula` keys were intentionally not
+    # re-added — the pre-existing FHIR-emit convention (経鼻カニューラ)
+    # is asserted by test_fhir_procedure_jp_text.
+    assert len(tables["terms"]) == 206

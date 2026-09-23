@@ -234,9 +234,10 @@ terms:
   Tissue adhesive: 皮膚接着剤
   tissue adhesive: 皮膚接着剤
   glue: 接着剤
-  Nasal cannula: 経鼻カニューレ
-  nasal cannula: 経鼻カニューレ
-  cannula: カニューレ
+  # `Nasal cannula` / `nasal cannula` / `cannula` are already declared
+  # earlier in this file with the FHIR-emit convention 経鼻カニューラ /
+  # カニューラ; do not redeclare here (YAML duplicate keys cause parse
+  # loss and one existing regression test asserts the pre-existing form).
   Foley catheter: フォーリーカテーテル
   Foley: フォーリー
   hourly urine output measurement: 時間尿量測定
