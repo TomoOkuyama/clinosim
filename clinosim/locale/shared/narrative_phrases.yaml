@@ -947,6 +947,47 @@ autopsy:
     ja: "剖検の有無・所見: 剖検は施行せず（家族同意得られず）。"
     en: "Autopsy status and findings: autopsy not performed (no family consent)."
 
+# JP-CLINS REFERRAL section-builder line templates (Phase 1d-28).
+# From template_generator._build_referring_institution /
+# _build_referral_destination / _build_referral_purpose /
+# _build_present_illness / _build_present_illness_ref.
+referral:
+  referring_institution_line:
+    ja: "紹介元:当院(急性期一般病棟)。担当医師の署名により発行。"
+    en: "Referring institution: this hospital (acute-care general ward)."
+  referral_destination_line:
+    ja: "紹介先:他院。当該患者の継続加療を目的として本情報提供書を作成する。"
+    en: "Referral destination: unspecified other institution (continued care)."
+  referral_purpose_line:
+    ja: "紹介目的:{purpose}のため。"
+    en: "Referral purpose: {purpose}."
+
+# HPI-fallback phrase pair used by _build_present_illness (with
+# admission clause) and _build_present_illness_ref (without).
+hpi:
+  admission_with_severity:
+    ja: "{sev}の症状で受診し入院となった。"
+    en: "Patient presented with {sev} symptoms leading to admission."
+  admission_no_severity:
+    ja: "受診し入院となった。"
+    en: "Patient presented for evaluation and admission."
+  ref_with_severity:
+    ja: "{sev}の症状で受診し入院となった。"
+    en: "Patient presented with {sev} symptoms."
+  ref_no_severity:
+    ja: "受診となった。"
+    en: "Patient presented for evaluation."
+
+# Diagnoses + chief-complaint compound section (JP-CLINS referral 340).
+# From template_generator._build_diagnoses_and_complaint.
+diagnoses_and_complaint:
+  section:
+    ja: "【傷病名】\n{dx_lines}\n\n【主訴】\n{cc_text}"
+    en: "Diagnoses:\n{dx_lines}\n\nChief complaint: {cc_text}"
+  no_diagnoses:
+    ja: "特記事項なし。"
+    en: "None recorded."
+
 # REHAB_PLAN (RP) section-builder line templates (Phase 1d-27).
 # From template_generator._build_rp_rehab_team /
 # _build_rp_functional_status / _build_rp_session_frequency /
