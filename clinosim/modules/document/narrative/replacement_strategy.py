@@ -925,7 +925,6 @@ def _render_patient_demographics(patient: Any, lang: str, encounter: Any = None)
             except (AttributeError, TypeError, ValueError):
                 pass
     sex = _get(patient, "sex", "")
-    is_ja = str(lang).lower().startswith("ja")
 
     parts: list[str] = []
 
@@ -935,14 +934,22 @@ def _render_patient_demographics(patient: Any, lang: str, encounter: Any = None)
         sex_label = ""
         if sex:
             s = str(sex).strip().lower()
-            if is_ja:
-                sex_label = {"male": "男性", "female": "女性", "m": "男性", "f": "女性"}.get(s, "")
-            else:
-                sex_label = {"male": "male", "female": "female", "m": "male", "f": "female"}.get(s, s)
-        if is_ja:
-            parts.append(f"{age}歳{sex_label}" if sex_label else f"{age}歳")
+            # Phase 1d-16: sex-label vocabulary moved to
+            # ``narrative_labels.yaml::sex_label``. In practice patient
+            # sex is populated from a bounded enum ("M" / "F") so the
+            # lookup miss path is dead — kept only for defensive parity
+            # with the prior ternary's ``.get(s, "")`` semantic.
+            from clinosim.locale.loader import (
+                load_narrative_labels,
+                resolve_localized_display,
+            )
+
+            sex_entry = load_narrative_labels().get("sex_label", {}).get(s)
+            sex_label = resolve_localized_display(sex_entry, lang, fallback="")
+        if sex_label:
+            parts.append(t("patient_demographics.age_with_sex", lang, age=age, sex_label=sex_label))
         else:
-            parts.append(f"{age} y/o {sex_label}".strip() if sex_label else f"{age} y/o")
+            parts.append(t("patient_demographics.age_only", lang, age=age))
 
     # Employment (retired / employed / …) — retired matters for
     # discharge-planning + adherence context.
@@ -1003,8 +1010,7 @@ def _render_patient_demographics(patient: Any, lang: str, encounter: Any = None)
 
     if not parts:
         return ""
-    sep = "、" if is_ja else ", "
-    return sep.join(parts)
+    return t("list_sep.serial", lang).join(parts)
 
 
 def _render_patient_biometrics(patient: Any, lang: str) -> str:
@@ -1027,7 +1033,6 @@ def _render_patient_biometrics(patient: Any, lang: str) -> str:
     bmi = _get(patient, "bmi", None)
     blood_type = _get(patient, "blood_type", "") or ""
     rh = _get(patient, "rh_factor", "") or ""
-    is_ja = str(lang).lower().startswith("ja")
 
     _age = _get(patient, "age", None)
     _occupation = str(_get(patient, "occupation", "") or "").strip().lower()
@@ -1044,16 +1049,8 @@ def _render_patient_biometrics(patient: Any, lang: str) -> str:
     if _pos(height_cm) or _pos(weight_kg):
         h_str = f"{float(height_cm):.0f} cm" if _pos(height_cm) else "-"
         w_str = f"{float(weight_kg):.1f} kg" if _pos(weight_kg) else "-"
-        if is_neonate:
-            if is_ja:
-                parts.append(f"出生時 身長 {h_str} / 体重 {w_str}")
-            else:
-                parts.append(f"birth Ht {h_str} / Wt {w_str}")
-        else:
-            if is_ja:
-                parts.append(f"身長 {h_str} / 体重 {w_str}")
-            else:
-                parts.append(f"Ht {h_str} / Wt {w_str}")
+        phrase_key = "patient_biometrics.height_weight_neonate" if is_neonate else "patient_biometrics.height_weight"
+        parts.append(t(phrase_key, lang, h=h_str, w=w_str))
     # BMI: suppress for neonates / infants (weight-for-length percentile
     # is the pediatric standard; adult BMI cutoffs do not apply < 2 y/o).
     if _pos(bmi) and not is_neonate:
@@ -1070,15 +1067,11 @@ def _render_patient_biometrics(patient: Any, lang: str) -> str:
             elif r in ("negative", "neg", "-"):
                 rh_symbol = "-"
         label = f"{bt}{rh_symbol}" if rh_symbol else bt
-        if is_ja:
-            parts.append(f"血液型 {label}")
-        else:
-            parts.append(f"blood type {label}")
+        parts.append(t("patient_biometrics.blood_type", lang, label=label))
 
     if not parts:
         return ""
-    sep = "、" if is_ja else ", "
-    return sep.join(parts)
+    return t("list_sep.serial", lang).join(parts)
 
 
 def _health_literacy_tag(patient: Any) -> str:
