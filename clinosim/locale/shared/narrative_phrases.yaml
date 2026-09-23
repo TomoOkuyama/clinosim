@@ -165,6 +165,80 @@ fall_risk:
     ja: "転倒リスク"
     en: "fall risk"
 
+# Prescription / medication line formatters.
+prescription:
+  days_supply_suffix:
+    ja: "x{days}日分"
+    en: "x{days}d"
+  next_visit:
+    ja: "次回外来: {days}日後を予定。"
+    en: "Next visit: in {days} days (planned)."
+  medication_continue:
+    ja: "{med} 継続"
+    en: "{med} continue"
+  medication_inhalation_continue:
+    ja: "{med} 吸入継続"
+    en: "{med} inhalation continue"
+
+# O2 / oxygen device narrative fragments.
+oxygen:
+  device_line:
+    ja: "酸素投与: {device}"
+    en: "O2: {device}"
+
+# Allergy / criticality parens (JA uses full-width parens).
+allergy:
+  criticality_suffix:
+    ja: "（{criticality}）"
+    en: " ({criticality})"
+  avoidance_line:
+    ja: "アレルギー配慮: {substance}"
+    en: "Allergy avoidance: {substance}"
+
+# ACP composite phrases.
+acp:
+  assigned_nurse_line:
+    ja: "担当看護師：{name}"
+    en: "Assigned nurse: {name}"
+  test_schedule_line:
+    ja: "検査項目：{joined} を実施予定"
+    en: "Planned tests: {joined}"
+  surgery_schedule_line:
+    ja: "手術予定：{joined}"
+    en: "Planned surgery: {joined}"
+
+# Nutrition / rehab composite phrases.
+nutrition:
+  malnutrition_high_line:
+    ja: "低栄養リスク：高（BMI {bmi}）"
+    en: "Malnutrition risk: high (BMI {bmi})"
+  overnutrition_line:
+    ja: "過栄養傾向（BMI {bmi}）"
+    en: "Overnutrition tendency (BMI {bmi})"
+
+rehab:
+  discharge_barthel_line:
+    ja: "退院時 Barthel {score}/100"
+    en: "Discharge Barthel {score}/100"
+  fall_suffix:
+    ja: "転倒 {label}"
+    en: "fall {label}"
+
+# Chronic-condition SOAP lab-fragment templates.
+chronic_labs:
+  urine_albumin:
+    ja: "尿アルブミン {value} {unit}"
+    en: "urine albumin {value} {unit}"
+  glucose_line:
+    ja: "血糖 {value} {unit}"
+    en: "glucose {value} {unit}"
+  hr_per_min:
+    ja: "HR {value} 回/分"
+    en: "HR {value} /min"
+  ckd_stage:
+    ja: "CKD ステージ {stage}"
+    en: "CKD stage {stage}"
+
 # ------------------------------------------------------------
 # Fallback texts (Phase 1d-7): migrated from module-level
 # ``_XXX_FALLBACK_JA`` / ``_XXX_FALLBACK_EN`` string constants that
