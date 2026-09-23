@@ -6878,7 +6878,6 @@ class TemplateNarrativeGenerator:
         procedures or diagnoses that the counts do not support.
         """
         lang = ctx.target_lang
-        is_ja = lang == "ja"
         facts: list[str] = ["ctx.los_days"]
         los = ctx.los_days or 0
         med_count = len(ctx.medications or [])
@@ -6892,23 +6891,15 @@ class TemplateNarrativeGenerator:
         if working_count:
             facts.append("ctx.working_diagnoses")
 
-        if is_ja:
-            los_part = f"入院期間{los}日間において、" if los > 0 else "入院当日より、"
-            med_part = f"薬剤{med_count}件の投与、" if med_count else ""
-            proc_part = f"処置{proc_count}件を実施し、" if proc_count else ""
-            wk_part = ""
-            if working_count:
-                wk_part = f"入院中に新たに{working_count}件の合併症・併存疾患が判明した。"
-            tail = "集学的治療を継続したが救命に至らなかった。"
-            return f"{los_part}{med_part}{proc_part}{wk_part}{tail}", facts
-
-        los_part = f"Over the {los}-day admission, " if los > 0 else "From admission, "
-        med_part = f"{med_count} medication order(s) were administered, " if med_count else ""
-        proc_part = f"{proc_count} procedure(s) were performed, " if proc_count else ""
-        wk_part = ""
-        if working_count:
-            wk_part = f"and {working_count} additional working diagnosis/es emerged during the stay. "
-        tail = "Multidisciplinary treatment was continued, but the patient could not be saved."
+        los_part = (
+            t("dds_treatment_course.los_part_with_days", lang, los=los)
+            if los > 0
+            else t("dds_treatment_course.los_part_admission", lang)
+        )
+        med_part = t("dds_treatment_course.med_part", lang, count=med_count) if med_count else ""
+        proc_part = t("dds_treatment_course.proc_part", lang, count=proc_count) if proc_count else ""
+        wk_part = t("dds_treatment_course.wk_part", lang, count=working_count) if working_count else ""
+        tail = t("dds_treatment_course.tail", lang)
         return f"{los_part}{med_part}{proc_part}{wk_part}{tail}", facts
 
     def _build_dds_terminal_course(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
@@ -6922,7 +6913,6 @@ class TemplateNarrativeGenerator:
         rather than fabricating specific vital values.
         """
         lang = ctx.target_lang
-        is_ja = lang == "ja"
         facts: list[str] = []
         dis_dt = _o(ctx.encounter, "discharge_datetime", None)
         dis_str = str(dis_dt)[:16].replace("T", " ") if dis_dt else ""
@@ -6933,26 +6923,18 @@ class TemplateNarrativeGenerator:
         if code:
             facts.append("ctx.diagnoses[0].discharge_diagnosis_code")
 
-        if is_ja:
-            if pattern == "acute":
-                phrase = "急速な循環動態悪化を呈し、"
-            elif pattern == "chronic":
-                phrase = "慢性経過の緩徐な悪化から終末期に至り、"
-            else:
-                phrase = "臨床状態の増悪を認め、"
-            dx_part = f"{display}を主因として" if display else ""
-            when = f"{dis_str}に" if dis_str else "最終的に"
-            return f"死亡直前の数時間、{phrase}{dx_part}{when}死亡確認となった。", facts
-
-        if pattern == "acute":
-            phrase = "developed acute hemodynamic deterioration"
-        elif pattern == "chronic":
-            phrase = "progressed slowly toward end-stage decompensation"
-        else:
-            phrase = "showed clinical deterioration"
-        dx_part = f", attributed to {display}," if display else ""
-        when = f"at {dis_str}" if dis_str else "eventually"
-        return f"In the final hours the patient {phrase}{dx_part} and death was confirmed {when}.", facts
+        phrase_key = {
+            "acute": "dds_terminal_course.phrase_acute",
+            "chronic": "dds_terminal_course.phrase_chronic",
+        }.get(pattern, "dds_terminal_course.phrase_unknown")
+        phrase = t(phrase_key, lang)
+        dx_part = t("dds_terminal_course.dx_part", lang, display=display) if display else ""
+        when = (
+            t("dds_terminal_course.when_at", lang, ts=dis_str)
+            if dis_str
+            else t("dds_terminal_course.when_eventually", lang)
+        )
+        return t("dds_terminal_course.full_line", lang, phrase=phrase, dx_part=dx_part, when=when), facts
 
     def _build_dds_circumstances_of_death(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
         """死亡時状況 / Circumstances of death (bedside events).
@@ -6965,7 +6947,6 @@ class TemplateNarrativeGenerator:
         the CIF Procedure list contains a resuscitation code.
         """
         lang = ctx.target_lang
-        is_ja = lang == "ja"
         facts: list[str] = []
         procedures = ctx.procedures or []
         resuscitation = False
@@ -6984,24 +6965,8 @@ class TemplateNarrativeGenerator:
         if procedures:
             facts.append("ctx.procedures")
 
-        if is_ja:
-            if resuscitation:
-                body = "入院中の病棟にて、担当医立会いのもと心肺蘇生術を施行するも反応なく、死亡確認となった。"
-            else:
-                body = "入院中の病棟にて、担当医の看取りのもと自然な経過にて死亡確認となった。"
-            return body, facts
-
-        if resuscitation:
-            body = (
-                "On the ward, cardiopulmonary resuscitation was performed by the attending physician; "
-                "the patient did not respond and death was confirmed."
-            )
-        else:
-            body = (
-                "On the ward, the patient died naturally under the attending physician's palliative bedside care, "
-                "and death was confirmed."
-            )
-        return body, facts
+        key = "dds_circumstances_of_death.resuscitation" if resuscitation else "dds_circumstances_of_death.natural"
+        return t(key, lang), facts
 
     def _build_dds_cause_of_death(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
         """死因 / Cause of death (structured mirror of DC immediate cause).
@@ -7026,7 +6991,6 @@ class TemplateNarrativeGenerator:
         them, so consumers can distinguish pre-existing from acquired.
         """
         lang = ctx.target_lang
-        is_ja = lang == "ja"
         facts: list[str] = []
         conds = _o(ctx.patient, "chronic_conditions", []) or [] if ctx.patient else []
         cond_labels: list[str] = []
@@ -7035,8 +6999,8 @@ class TemplateNarrativeGenerator:
             if not code_val:
                 continue
             system = _o(c, "system", "") or system_key_for("diagnosis", ctx.locale.upper())
-            disp = code_lookup(system, code_val, ctx.target_lang) or code_val
-            cond_labels.append(f"{disp}（{code_val}）" if is_ja else f"{disp} ({code_val})")
+            disp = code_lookup(system, code_val, lang) or code_val
+            cond_labels.append(t("list_item.inline_dx_with_code", lang, display=disp, code=code_val))
         if cond_labels:
             facts.append("ctx.patient.chronic_conditions")
 
@@ -7047,24 +7011,17 @@ class TemplateNarrativeGenerator:
         if not cond_labels and not comp_tokens:
             return t("death_cert.comorbidities_none", lang), facts
 
-        if is_ja:
-            parts: list[str] = []
-            if cond_labels:
-                parts.append("既往の慢性疾患として" + "、".join(cond_labels) + "を有していた")
-            if comp_tokens:
-                labels = "、".join(str(t).replace("_", " ") for t in comp_tokens)
-                parts.append(f"入院中に{labels}の合併を認めた")
-            body = "。".join(parts) + "。"
-            return f"合併症・併存症: {body}", facts
-
-        parts_en: list[str] = []
+        cond_sep = t("list_sep.serial", lang)
+        parts: list[str] = []
         if cond_labels:
-            parts_en.append("The patient had a chronic-disease history including " + ", ".join(cond_labels))
+            parts.append(t("dds_complications_and_comorbidities.chronic_part", lang, list=cond_sep.join(cond_labels)))
         if comp_tokens:
-            labels = ", ".join(str(t).replace("_", " ") for t in comp_tokens)
-            parts_en.append(f"During admission the following complication(s) developed: {labels}")
-        body = ". ".join(parts_en) + "."
-        return f"Complications and comorbidities: {body}", facts
+            comp_labels_str = cond_sep.join(str(tok).replace("_", " ") for tok in comp_tokens)
+            parts.append(t("dds_complications_and_comorbidities.in_hospital_part", lang, list=comp_labels_str))
+        # JA joins parts with "。" (list_sep.period) + trailing period;
+        # EN joins with ". " (list_sep.period_space) + trailing period.
+        body = t("list_sep.period_space", lang).join(parts) + t("list_sep.period", lang)
+        return t("dds_complications_and_comorbidities.head", lang, body=body), facts
 
     def _build_dds_family_communication(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
         """家族への説明経過 / Family communication timeline.
@@ -7081,31 +7038,17 @@ class TemplateNarrativeGenerator:
         without inventing specific meeting dates.
         """
         lang = ctx.target_lang
-        is_ja = lang == "ja"
         facts: list[str] = ["ctx.los_days"]
         los = ctx.los_days or 0
 
-        if is_ja:
-            if los <= 1:
-                lead = "入院時より病状の重篤性について家族に説明を行い、"
-            elif los <= 7:
-                lead = "入院早期より病状進行の可能性について家族に説明し、経過に応じて随時追加説明を行い、"
-            else:
-                lead = "入院経過中、病状悪化の節目ごとに複数回にわたり家族に説明を行い、"
-            tail = "死亡時には家族立会いのもと死亡確認を行った。"
-            return f"家族への説明経過: {lead}{tail}", facts
-
         if los <= 1:
-            lead = "The severity of the patient's condition was explained to the family on admission, "
+            lead_key = "dds_family_communication.lead_short"
         elif los <= 7:
-            lead = (
-                "The family was informed early in the admission about the possibility of clinical "
-                "deterioration, and updated as the course evolved, "
-            )
+            lead_key = "dds_family_communication.lead_med"
         else:
-            lead = "The family was updated on multiple occasions at key inflection points during the admission, "
-        tail = "and the family was present at the bedside at the time of death confirmation."
-        return f"Family communication: {lead}{tail}", facts
+            lead_key = "dds_family_communication.lead_long"
+        lead = t(lead_key, lang)
+        return t("dds_family_communication.head_with_tail", lang, lead=lead), facts
 
     def _build_dds_autopsy_status_and_findings(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
         """剖検の有無・所見 / Autopsy status and findings.

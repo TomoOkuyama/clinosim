@@ -1069,6 +1069,84 @@ rp_note:
     ja: "リハビリテーション終了の目安：入院後約{days}日"
     en: "Estimated rehabilitation completion: approximately {days} days post-admission"
 
+# DDS treatment / terminal / circumstances / comorbidities / family
+# communication composers (Phase 1d-31). From _build_dds_*.
+dds_treatment_course:
+  los_part_with_days:
+    ja: "入院期間{los}日間において、"
+    en: "Over the {los}-day admission, "
+  los_part_admission:
+    ja: "入院当日より、"
+    en: "From admission, "
+  med_part:
+    ja: "薬剤{count}件の投与、"
+    en: "{count} medication order(s) were administered, "
+  proc_part:
+    ja: "処置{count}件を実施し、"
+    en: "{count} procedure(s) were performed, "
+  wk_part:
+    ja: "入院中に新たに{count}件の合併症・併存疾患が判明した。"
+    en: "and {count} additional working diagnosis/es emerged during the stay. "
+  tail:
+    ja: "集学的治療を継続したが救命に至らなかった。"
+    en: "Multidisciplinary treatment was continued, but the patient could not be saved."
+
+dds_terminal_course:
+  full_line:
+    ja: "死亡直前の数時間、{phrase}{dx_part}{when}死亡確認となった。"
+    en: "In the final hours the patient {phrase}{dx_part} and death was confirmed {when}."
+  phrase_acute:
+    ja: "急速な循環動態悪化を呈し、"
+    en: "developed acute hemodynamic deterioration"
+  phrase_chronic:
+    ja: "慢性経過の緩徐な悪化から終末期に至り、"
+    en: "progressed slowly toward end-stage decompensation"
+  phrase_unknown:
+    ja: "臨床状態の増悪を認め、"
+    en: "showed clinical deterioration"
+  dx_part:
+    ja: "{display}を主因として"
+    en: ", attributed to {display},"
+  when_at:
+    ja: "{ts}に"
+    en: "at {ts}"
+  when_eventually:
+    ja: "最終的に"
+    en: "eventually"
+
+dds_circumstances_of_death:
+  resuscitation:
+    ja: "入院中の病棟にて、担当医立会いのもと心肺蘇生術を施行するも反応なく、死亡確認となった。"
+    en: "On the ward, cardiopulmonary resuscitation was performed by the attending physician; the patient did not respond and death was confirmed."
+  natural:
+    ja: "入院中の病棟にて、担当医の看取りのもと自然な経過にて死亡確認となった。"
+    en: "On the ward, the patient died naturally under the attending physician's palliative bedside care, and death was confirmed."
+
+dds_complications_and_comorbidities:
+  chronic_part:
+    ja: "既往の慢性疾患として{list}を有していた"
+    en: "The patient had a chronic-disease history including {list}"
+  in_hospital_part:
+    ja: "入院中に{list}の合併を認めた"
+    en: "During admission the following complication(s) developed: {list}"
+  head:
+    ja: "合併症・併存症: {body}"
+    en: "Complications and comorbidities: {body}"
+
+dds_family_communication:
+  lead_short:
+    ja: "入院時より病状の重篤性について家族に説明を行い、"
+    en: "The severity of the patient's condition was explained to the family on admission, "
+  lead_med:
+    ja: "入院早期より病状進行の可能性について家族に説明し、経過に応じて随時追加説明を行い、"
+    en: "The family was informed early in the admission about the possibility of clinical deterioration, and updated as the course evolved, "
+  lead_long:
+    ja: "入院経過中、病状悪化の節目ごとに複数回にわたり家族に説明を行い、"
+    en: "The family was updated on multiple occasions at key inflection points during the admission, "
+  head_with_tail:
+    ja: "家族への説明経過: {lead}死亡時には家族立会いのもと死亡確認を行った。"
+    en: "Family communication: {lead}and the family was present at the bedside at the time of death confirmation."
+
 # Death-certificate + DDS single-line composers (Phase 1d-26).
 # From template_generator._build_dc_immediate_cause /
 # _build_dc_underlying_cause / _build_dc_manner_of_death /
