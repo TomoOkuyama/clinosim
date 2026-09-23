@@ -142,6 +142,45 @@ admission_summary:
     ja: "主訴: {cc}。入院日: {day} 日目現在。"
     en: "Chief complaint: {cc}. Admitted for inpatient care."
 
+# Outpatient SOAP subjective composer phrases (Phase 1d-21).
+# From template_generator._compose_outpatient_subjective_from_state.
+# Piece-wise so the composition can drop empty optional slots and the
+# strings concatenate cleanly per locale.
+outpatient:
+  subject_with_sex:
+    ja: "{age}歳{sex}患者、"
+    en: "{age}-year-old {sex} patient"
+  subject_no_sex:
+    ja: "{age}歳患者、"
+    en: "{age}-year-old patient"
+  visit_reason_with_cc:
+    ja: "本日「{cc}」のため外来受診。"
+    en: " presenting for {cc}."
+  visit_reason_no_cc:
+    ja: "本日外来受診。"
+    en: " presenting for outpatient visit."
+  chronic_followup:
+    ja: "慢性疾患（{list}）のフォローアップを兼ねる。"
+    en: " Follow-up of chronic conditions: {list}."
+
+# ED-note assessment composer phrases (Phase 1d-21).
+# From template_generator._compose_ed_assessment_from_state.
+# ed.on_arrival_no_findings (Phase 1d-20) lives in the same section.
+ed_assessment:
+  working_dx_line:
+    ja: "救急対応中の疾患: {list}"
+    en: "ED working assessment: {list}"
+  complications_line:
+    ja: "合併症: {list}"
+    en: "Complications: {list}"
+
+# Chronic-condition follow-up short line composer (Phase 1d-21).
+# From template_generator._compose_chronic_condition_line.
+chronic:
+  followup_head:
+    ja: "既往症フォローアップ: {list}"
+    en: "Chronic-condition follow-up: {list}"
+
 # Section fallback text when the underlying CIF field is empty.
 # Callers: template_generator._build_past_medical_history /
 # _build_medications_at_home / _build_admission_diagnoses /
