@@ -19,8 +19,6 @@ import pytest
 from clinosim.modules.document.engine import SHIFT_SCHEDULE
 from clinosim.modules.document.narrative.registry import DocumentTypeSpec
 from clinosim.modules.document.narrative.template_generator import (
-    _SHIFT_LABELS_EN,
-    _SHIFT_LABELS_JA,
     TemplateNarrativeGenerator,
 )
 from clinosim.types.document import DocumentType, FormatType, NarrativeContext
@@ -154,7 +152,18 @@ def test_shift_key_recorded_in_metadata() -> None:
 
 
 def test_label_maps_cover_all_schedule_shift_keys() -> None:
-    """Both label maps must cover exactly the SHIFT_SCHEDULE keys (engine = writer)."""
+    """Both label maps must cover exactly the SHIFT_SCHEDULE keys (engine = writer).
+
+    Phase 1d-15 (2026-09-23): the ``_SHIFT_LABELS_JA/EN`` module-level
+    dicts moved to ``clinosim/locale/shared/narrative_labels.yaml``
+    under the ``shift_labels`` section. Assert against the loader's
+    view of the catalog instead.
+    """
+    from clinosim.locale.loader import load_narrative_labels
+
     schedule_keys = {k for k, _ in SHIFT_SCHEDULE}
-    assert set(_SHIFT_LABELS_JA) == schedule_keys
-    assert set(_SHIFT_LABELS_EN) == schedule_keys
+    entries = load_narrative_labels().get("shift_labels", {})
+    ja_keys = {k for k, v in entries.items() if "ja" in v}
+    en_keys = {k for k, v in entries.items() if "en" in v}
+    assert ja_keys == schedule_keys
+    assert en_keys == schedule_keys
