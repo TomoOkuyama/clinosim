@@ -592,6 +592,25 @@ def resolve_localized_display(entry: dict[str, str] | None, lang: str, fallback:
 
 
 @lru_cache(maxsize=1)
+def load_narrative_labels() -> dict[str, dict[str, dict[str, str]]]:
+    """Load the multi-language narrative-renderer label bundle (Phase 1d-15).
+
+    Structure: ``{section: {slug: {lang: display}}}``. Sections cover
+    the 12 module-level ``_XXX_JA`` / ``_XXX_EN`` dict constants
+    previously embedded in
+    ``clinosim/modules/document/narrative/template_generator.py``
+    (staff_role_suffix / shift_labels / family_relation /
+    ed_acuity_reason / arrival_mode / smoking / alcohol / occupation
+    / rp_therapy_type / rp_progress / rp_participation / rp_phase).
+
+    Adding a new target language is a data change across each
+    ``{lang: display}`` entry — the loader is language-agnostic.
+    """
+    raw = _load_yaml(_LOCALE_DIR / "shared" / "narrative_labels.yaml", fallback={})
+    return raw or {}
+
+
+@lru_cache(maxsize=1)
 def load_llm_prompt_labels() -> dict[str, dict[str, dict[str, str]]]:
     """Load the LLM-prompt-time locale label bundle (Phase 1d-2).
 
