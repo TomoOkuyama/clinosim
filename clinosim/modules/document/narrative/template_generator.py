@@ -4597,19 +4597,17 @@ class TemplateNarrativeGenerator:
         if patient is None:
             return ""
         lang = ctx.target_lang
-        is_ja = lang == "ja"
         age = _age_at(ctx)
         sex_raw = _o(patient, "sex", None) or ""
-        sex_ja = {"M": "男性", "F": "女性"}.get(str(sex_raw).upper(), "")
-        sex_en = {"M": "male", "F": "female"}.get(str(sex_raw).upper(), "")
+        # Sex vocabulary moved to narrative_labels.yaml::sex_label
+        # (Phase 1d-16). Case-insensitive lookup via _label's built-in
+        # fallback path.
+        sex_label = _label("sex_label", str(sex_raw).lower(), lang, fallback="")
         # chief_complaint — encounter first (v9 chief_complaint bug fix),
         # skip English-in-JA leak.
         cc = ""
         if enc is not None:
-            if is_ja:
-                cc = _o(enc, "chief_complaint_ja", None) or _o(enc, "chief_complaint", None) or ""
-            else:
-                cc = _o(enc, "chief_complaint_en", None) or _o(enc, "chief_complaint", None) or ""
+            cc = _o(enc, f"chief_complaint_{lang}", None) or _o(enc, "chief_complaint", None) or ""
         cc = str(cc)
         # Chronic condition follow-up context (short list, code-lookup localized).
         # Issue #1333: route CIF base code through map_diagnosis_code so the
@@ -4629,31 +4627,22 @@ class TemplateNarrativeGenerator:
             if not code:
                 continue
             emit_code = _map_diagnosis_code(code, country) or code
-            key = "icd-10" if ctx.locale == "jp" else "icd-10-cm"
-            disp = _code_lookup(key, emit_code, ctx.target_lang) or emit_code
+            key = _label("code_system_icd_display", "primary", lang)
+            disp = _code_lookup(key, emit_code, lang) or emit_code
             chronic_labels.append(disp)
         # Compose
         parts: list[str] = []
-        if is_ja:
-            if age and sex_ja:
-                parts.append(f"{age}歳{sex_ja}患者、")
-            elif age:
-                parts.append(f"{age}歳患者、")
-            if cc:
-                parts.append(f"本日「{cc}」のため外来受診。")
-            else:
-                parts.append("本日外来受診。")
-            if chronic_labels:
-                parts.append(f"慢性疾患（{'、'.join(chronic_labels)}）のフォローアップを兼ねる。")
+        if age and sex_label:
+            parts.append(t("outpatient.subject_with_sex", lang, age=age, sex=sex_label))
+        elif age:
+            parts.append(t("outpatient.subject_no_sex", lang, age=age))
+        if cc:
+            parts.append(t("outpatient.visit_reason_with_cc", lang, cc=cc))
         else:
-            if age and sex_en:
-                parts.append(f"{age}-year-old {sex_en} patient")
-            elif age:
-                parts.append(f"{age}-year-old patient")
-            visit_reason = f"presenting for {cc}" if cc else "presenting for outpatient visit"
-            parts.append(f" {visit_reason}.")
-            if chronic_labels:
-                parts.append(f" Follow-up of chronic conditions: {', '.join(chronic_labels)}.")
+            parts.append(t("outpatient.visit_reason_no_cc", lang))
+        if chronic_labels:
+            sep = t("list_sep.serial", lang)
+            parts.append(t("outpatient.chronic_followup", lang, list=sep.join(chronic_labels)))
         text = "".join(parts).strip()
         return text
 
@@ -5240,7 +5229,6 @@ class TemplateNarrativeGenerator:
         Empty string when no facts available (caller falls back to generic).
         """
         lang = ctx.target_lang
-        is_ja = lang == "ja"
         from clinosim.codes import lookup as _code_lookup
 
         # Use working_diagnoses from ctx if available
@@ -5259,16 +5247,14 @@ class TemplateNarrativeGenerator:
         # If no working dx, fall back to encounter chief complaint anchor
         parts: list[str] = []
         if primary_dx_codes:
-            disp_key = "icd-10" if ctx.locale == "jp" else "icd-10-cm"
+            disp_key = _label("code_system_icd_display", "primary", lang)
             labels = []
             for code in primary_dx_codes:
                 # Strip pediatric/other prefixes — try registry lookup first
                 disp = _code_lookup(disp_key, code, lang) or code
                 labels.append(disp)
-            if is_ja:
-                parts.append(f"救急対応中の疾患: {'、'.join(labels)}")
-            else:
-                parts.append(f"ED working assessment: {', '.join(labels)}")
+            sep = t("list_sep.serial", lang)
+            parts.append(t("ed_assessment.working_dx_line", lang, list=sep.join(labels)))
         else:
             # Fall through to chief_complaint if no dx
             cc = self._compose_encounter_reason_line(ctx)
@@ -5281,14 +5267,12 @@ class TemplateNarrativeGenerator:
         # → "合併症: 急性腎障害").
         comps = list(getattr(ctx, "complications_occurred", []) or [])
         if comps:
-            comp_labels = [_localize_complication(str(c), ctx.target_lang) for c in comps[:3]]
-            if is_ja:
-                parts.append(f"合併症: {'、'.join(comp_labels)}")
-            else:
-                parts.append(f"Complications: {', '.join(comp_labels)}")
+            comp_labels = [_localize_complication(str(c), lang) for c in comps[:3]]
+            sep = t("list_sep.serial", lang)
+            parts.append(t("ed_assessment.complications_line", lang, list=sep.join(comp_labels)))
 
         sep = t("list_sep.period_space", lang)
-        return sep.join(parts) + ("。" if is_ja and parts else "" if not parts else ".")
+        return sep.join(parts) + (t("list_sep.period", lang) if parts else "")
 
     def _compose_encounter_reason_line(self, ctx: NarrativeContext) -> str:
         """Short JA/EN line describing the visit's primary reason (Issue #1074 B9).
@@ -5301,7 +5285,6 @@ class TemplateNarrativeGenerator:
         if enc is None:
             return ""
         lang = ctx.target_lang
-        is_ja = lang == "ja"
         # Phase 1c-6 (2026-09-23): prefer the locale-specific
         # ``chief_complaint_{ja,en}`` over the raw ``chief_complaint``
         # so JA output emits 「来院理由: 予防接種」 rather than the
@@ -5309,10 +5292,7 @@ class TemplateNarrativeGenerator:
         # (immunization / vaccination visits, ED follow-ups) whose
         # emitters populate both language slots. Mirrors the pattern in
         # `_render_outpatient_chronic_soap` (line 5258).
-        if is_ja:
-            cc = _o(enc, "chief_complaint_ja", None) or _o(enc, "chief_complaint", "") or ""
-        else:
-            cc = _o(enc, "chief_complaint_en", None) or _o(enc, "chief_complaint", "") or ""
+        cc = _o(enc, f"chief_complaint_{lang}", None) or _o(enc, "chief_complaint", "") or ""
         cc = str(cc).strip()
         primary_dx = _o(enc, "primary_diagnosis", "") or _o(enc, "primary_dx", "") or ""
         primary_dx = str(primary_dx).strip()
@@ -5348,14 +5328,13 @@ class TemplateNarrativeGenerator:
             code = _o(c, "code", "") or (c if isinstance(c, str) else "")
             if not code:
                 continue
-            disp_key = "icd-10" if ctx.locale == "jp" else "icd-10-cm"
+            disp_key = _label("code_system_icd_display", "primary", lang)
             disp = _code_lookup(disp_key, code, lang) or code
             labels.append(disp)
         if not labels:
             return ""
-        if lang == "ja":
-            return "既往症フォローアップ: " + "、".join(labels)
-        return "Chronic-condition follow-up: " + ", ".join(labels)
+        sep = t("list_sep.serial", lang)
+        return t("chronic.followup_head", lang, list=sep.join(labels))
 
     def _compose_chronic_assessment_integrated(self, ctx: NarrativeContext) -> str:
         """SOAP Assessment enriched with today's vitals + labs + target
