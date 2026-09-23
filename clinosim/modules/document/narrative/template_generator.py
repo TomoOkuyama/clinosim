@@ -2469,8 +2469,8 @@ class TemplateNarrativeGenerator:
 
         label_map = _FAMILY_RELATION_LABEL_JA if is_ja else _FAMILY_RELATION_LABEL_EN
         deceased_suffix = t("fallback.family_history_deceased_suffix", lang)
-        cond_sep = "、" if is_ja else ", "
-        entry_sep = " " if is_ja else "; "
+        cond_sep = t("list_sep.serial", lang)
+        entry_sep = t("list_sep.space", lang)
 
         entries: list[str] = []
         for fam in fams:
@@ -3904,7 +3904,7 @@ class TemplateNarrativeGenerator:
             parts.append(
                 t("pmh.header_prefix", lang)
                 + ("、".join(labels) if is_ja else ", ".join(labels))
-                + ("。" if is_ja else ".")
+                + t("list_sep.period", lang)
             )
         # Allergy
         allergies = ctx.allergies or []
@@ -4041,8 +4041,8 @@ class TemplateNarrativeGenerator:
 
         if dx_labels:
             head = t("nursing.diagnoses_head", lang)
-            sep = "、" if is_ja else ", "
-            return head + sep.join(dx_labels) + ("。" if is_ja else "."), facts
+            sep = t("list_sep.serial", lang)
+            return head + sep.join(dx_labels) + t("list_sep.period", lang), facts
         return (t("fallback.nursing_dx_fallback", lang)), facts
 
     def _build_care_plan(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
@@ -4095,8 +4095,8 @@ class TemplateNarrativeGenerator:
 
         if actions:
             head = t("nursing.care_plan_head", lang)
-            sep = "、" if is_ja else "; "
-            return head + sep.join(actions) + ("。" if is_ja else "."), facts
+            sep = t("list_sep.semicolon", lang)
+            return head + sep.join(actions) + t("list_sep.period", lang), facts
         return (t("fallback.care_plan_fallback", lang)), facts
 
     # ─────────────────────────────────────────────────────────────────
@@ -4381,11 +4381,11 @@ class TemplateNarrativeGenerator:
         if adls:
             b = _o(adls[-1], "barthel_score", None)
             if b is not None and b < 60:
-                parts.append("摂食動作に介助必要" if is_ja else "feeding assistance required")
+                parts.append(t("nutrition.feeding_assist", lang))
                 facts.append("ctx.adl_assessments[-1]")
         if not parts:
             return (t("fallback.ncp_assessment_fallback", lang)), facts
-        head = "栄養状態評価: " if is_ja else "Nutrition assessment: "
+        head = t("nutrition.assessment_head", lang)
         return head + ("、".join(parts) + "。" if is_ja else "; ".join(parts) + "."), facts
 
     def _build_ncp_nutrition_goals(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
@@ -4448,13 +4448,11 @@ class TemplateNarrativeGenerator:
         conds = _o(ctx.patient, "chronic_conditions", []) or [] if ctx.patient else []
         codes = {(_o(c, "code", "") or (c if isinstance(c, str) else "")).split(".")[0].upper() for c in conds}
         if "E11" in codes and "N18" in codes:
-            parts.append("DM+CKD 併存で複合栄養制限要" if is_ja else "DM+CKD requires combined dietary restriction")
+            parts.append(t("nutrition.dm_ckd_combined", lang))
             facts.append("ctx.patient.chronic_conditions")
         if not parts:
             return (t("fallback.ncp_other_issues_fallback", lang)), facts
-        return ("その他: " if is_ja else "Other: ") + (
-            "、".join(parts) + "。" if is_ja else "; ".join(parts) + "."
-        ), facts
+        return t("nutrition.other_head", lang) + ("、".join(parts) + "。" if is_ja else "; ".join(parts) + "."), facts
 
     def _build_ncp_reassessment_timing(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
         """栄養状態の再評価の時期 — MVP fixed fallback."""
@@ -4657,7 +4655,7 @@ class TemplateNarrativeGenerator:
         if procs:
             facts.append("ctx.procedures")
             parts.append(
-                ("実施処置: " if is_ja else "Procedures: ")
+                t("discharge_readiness.procedures_head", lang)
                 + ("、".join(str(p) for p in procs) if is_ja else ", ".join(str(p) for p in procs))
             )
         # Intake/output totals
@@ -4695,9 +4693,9 @@ class TemplateNarrativeGenerator:
         topics, facts = _lookup_nursing_content(ctx, "patient_education", is_ja, cap=4)
         if not topics:
             return (t("fallback.patient_education_fallback", lang)), facts
-        head = "患者教育: " if is_ja else "Patient education: "
-        sep = "、" if is_ja else "; "
-        return head + sep.join(topics) + ("。" if is_ja else "."), facts
+        head = t("patient_education.head", lang)
+        sep = t("list_sep.semicolon", lang)
+        return head + sep.join(topics) + t("list_sep.period", lang), facts
 
     def _build_discharge_readiness(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
         """Build discharge_readiness from latest ADL + risk. v9 density fix."""
@@ -4731,8 +4729,8 @@ class TemplateNarrativeGenerator:
                     bits.append(f"Braden {braden}")
                 parts.append("、".join(bits) if is_ja else ", ".join(bits))
         if parts:
-            head = "退院準備: " if is_ja else "Discharge readiness: "
-            return head + ("、".join(parts) if is_ja else "; ".join(parts)) + ("。" if is_ja else "."), facts
+            head = t("discharge_readiness.head", lang)
+            return head + ("、".join(parts) if is_ja else "; ".join(parts)) + t("list_sep.period", lang), facts
         return (t("fallback.discharge_readiness_fallback", lang)), facts
 
     # ─────────────────────────────────────────────────────────────────
@@ -5142,7 +5140,7 @@ class TemplateNarrativeGenerator:
         comps = list(getattr(ctx, "complications_occurred", []) or [])
         if comps:
             localised = [_localize_complication(str(c), ctx.target_lang) for c in comps[:3]]
-            sep = "、" if is_ja else ", "
+            sep = t("list_sep.serial", lang)
             parts.append(t("progress.complications_noted", ctx.target_lang, list=sep.join(localised)))
         # Abnormal labs today — Issue #1154 fix.
         #
@@ -5195,7 +5193,7 @@ class TemplateNarrativeGenerator:
             if len(abn) >= 6:
                 break
         if abn:
-            sep = "、" if is_ja else ", "
+            sep = t("list_sep.serial", lang)
             parts.append(t("progress.notable_labs", ctx.target_lang, list=sep.join(abn[:4])))
         if not parts:
             parts.append(t("progress.stable_course_assessment", ctx.target_lang))
@@ -5773,7 +5771,7 @@ class TemplateNarrativeGenerator:
                     ja_hints=("アムロジピン", "エナラプリル", "ロサルタン", "テルミサルタン"),
                 )
                 med_tail = f"、{med} 継続" if med and is_ja else (f"; {med} continue" if med else "")
-                interp = f"BP {int(sbp)}/{int(dbp)} mmHg — {target} — {ctrl}{med_tail}" + ("。" if is_ja else ".")
+                interp = f"BP {int(sbp)}/{int(dbp)} mmHg — {target} — {ctrl}{med_tail}" + t("list_sep.period", lang)
 
             # ── E11 / E10: Diabetes mellitus ───────────────────────────
             elif code_prefix.startswith(("E10", "E11")):
@@ -5836,7 +5834,7 @@ class TemplateNarrativeGenerator:
                 if med:
                     parts_dm.append(t("prescription.medication_continue", lang, med=med))
                 if parts_dm:
-                    interp = ("、" if is_ja else ", ").join(parts_dm) + ("。" if is_ja else ".")
+                    interp = ("、" if is_ja else ", ").join(parts_dm) + t("list_sep.period", lang)
 
             # ── E78: Dyslipidemia ──────────────────────────────────────
             elif code_prefix.startswith("E78"):
@@ -5865,7 +5863,7 @@ class TemplateNarrativeGenerator:
                         ja_hints=("スタチン", "ロスバスタチン", "アトルバスタチン", "エゼチミブ"),
                     )
                     med_tail = f"、{med} 継続" if med and is_ja else (f"; {med} continue" if med else "")
-                    interp = f"LDL {v} {u or 'mg/dL'} — {target} — {ctrl}{med_tail}" + ("。" if is_ja else ".")
+                    interp = f"LDL {v} {u or 'mg/dL'} — {target} — {ctrl}{med_tail}" + t("list_sep.period", lang)
 
             # ── N18: Chronic kidney disease ────────────────────────────
             elif code_prefix.startswith("N18"):
@@ -7694,7 +7692,7 @@ class TemplateNarrativeGenerator:
         surgeon_name = _resolve_staff_name(surgeon_id, ctx.roster_map, is_ja) if surgeon_id else ""
         assistant_ids = list(_o(proc, "assistant_ids", []) or [])
         assistant_names = [_resolve_staff_name(a, ctx.roster_map, is_ja) for a in assistant_ids if a]
-        sep = "、" if is_ja else ", "
+        sep = t("list_sep.serial", lang)
         if is_ja:
             surgeon_part = f"執刀医：{surgeon_name}" if surgeon_name else "執刀医：情報なし"
             assist_part = f"／助手：{sep.join(assistant_names)}" if assistant_names else "／助手：なし"
@@ -7800,7 +7798,7 @@ class TemplateNarrativeGenerator:
         specimens = [str(s) for s in (_o(proc, "specimens_sent", []) or []) if s]
         if not specimens:
             return ("摘出臓器・組織：なし" if is_ja else "Specimens sent to pathology: none"), facts
-        sep = "、" if is_ja else ", "
+        sep = t("list_sep.serial", lang)
         if is_ja:
             return f"摘出臓器・組織：{sep.join(specimens)}（病理検査へ提出）", facts
         return f"Specimens sent to pathology: {sep.join(specimens)}", facts
@@ -7851,7 +7849,7 @@ class TemplateNarrativeGenerator:
         # string; unmapped names pass through unchanged.
         if is_ja:
             implants = [_localize_op_implant(x, ctx.target_lang) for x in implants]
-        sep = "、" if is_ja else ", "
+        sep = t("list_sep.serial", lang)
         if is_ja:
             return f"使用機器・材料：{sep.join(implants)}", facts
         return f"Implants / devices used: {sep.join(implants)}", facts
