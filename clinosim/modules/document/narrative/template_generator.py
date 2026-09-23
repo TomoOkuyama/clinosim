@@ -858,12 +858,12 @@ _OCCUPATION_EN: dict[str, str] = {
 # - _LAB_FLAG_JA        → narrative_lab_flags.yaml     (Phase 1c-5)
 
 
-def _lang_key(lang: str) -> str:
-    """Normalize a language string to the two-letter key used in the
-    narrative-vocab YAML entries. ``"ja"``/``"jp"``/``"JA"`` → ``"ja"``;
-    everything else → ``"en"``. Matches ``resolve_lang`` semantics
-    (``clinosim.modules._shared``) without needing a country code."""
-    return "ja" if str(lang).lower().startswith("ja") else "en"
+# Phase 1d-2 (2026-09-23): the vocabulary-lookup pattern is
+# language-agnostic — ``lang`` is the free-form ISO-639-1 style code
+# passed directly to ``resolve_localized_display`` as a dict key. There
+# is no ``if is_ja: … else: …`` binary here, so adding a new target
+# language is purely a YAML data change (extend each entry with
+# ``<lang>: <display>``) — no code edit required in this module.
 
 
 def _localize_complication(name: str, lang: str) -> str:
@@ -884,10 +884,13 @@ def _localize_complication(name: str, lang: str) -> str:
     if not key:
         return ""
     key = "_".join(key.split())
-    from clinosim.locale.loader import load_narrative_complications
+    from clinosim.locale.loader import load_narrative_complications, resolve_localized_display
 
-    entry = load_narrative_complications().get(key, {})
-    return entry.get(_lang_key(lang)) or key.replace("_", " ")
+    return resolve_localized_display(
+        load_narrative_complications().get(key, {}),
+        lang,
+        fallback=key.replace("_", " "),
+    )
 
 
 def _localize_lab_name(name: str, lang: str) -> str:
@@ -899,10 +902,13 @@ def _localize_lab_name(name: str, lang: str) -> str:
     key = str(name).strip().lower()
     if not key:
         return ""
-    from clinosim.locale.loader import load_narrative_lab_names
+    from clinosim.locale.loader import load_narrative_lab_names, resolve_localized_display
 
-    entry = load_narrative_lab_names().get(key, {})
-    return entry.get(_lang_key(lang)) or name
+    return resolve_localized_display(
+        load_narrative_lab_names().get(key, {}),
+        lang,
+        fallback=name,
+    )
 
 
 def _localize_lab_flag(flag: str, lang: str) -> str:
@@ -915,13 +921,16 @@ def _localize_lab_flag(flag: str, lang: str) -> str:
     """
     if not flag:
         return ""
-    if _lang_key(lang) != "ja":
-        return str(flag)
-    from clinosim.locale.loader import load_narrative_lab_flags
+    from clinosim.locale.loader import load_narrative_lab_flags, resolve_localized_display
 
     key = str(flag).strip().lower()
-    entry = load_narrative_lab_flags().get(key, {})
-    return entry.get("ja") or str(flag)
+    # Fallback = raw flag: unmapped markers (H / L) pass through
+    # untouched — matches the JP-hospital abnormal-flag convention.
+    return resolve_localized_display(
+        load_narrative_lab_flags().get(key, {}),
+        lang,
+        fallback=str(flag),
+    )
 
 
 # Phase 1c-6 (2026-09-23): procedure_type → localized display for the
@@ -994,9 +1003,9 @@ def _localize_stage(stage: str, lang: str) -> str:
     if not stage:
         return ""
     s = str(stage).strip()
-    if not s or _lang_key(lang) != "ja":
+    if not s:
         return s
-    from clinosim.locale.loader import load_narrative_stage_tokens
+    from clinosim.locale.loader import load_narrative_stage_tokens, resolve_localized_display
 
     table = load_narrative_stage_tokens()
     out: list[str] = []
@@ -1005,9 +1014,10 @@ def _localize_stage(stage: str, lang: str) -> str:
         prefix = tok[: len(tok) - len(tok.lstrip("(,.;:"))]
         suffix = tok[len(tok.rstrip("),.;:")) :]
         base = tok[len(prefix) : len(tok) - len(suffix)] if suffix else tok[len(prefix) :]
-        entry = table.get(base.lower(), {})
-        ja = entry.get("ja")
-        out.append(f"{prefix}{ja if ja else base}{suffix}")
+        # Fallback = untranslated base token so numeric grades / proper
+        # scales (Stage 1 / NYHA III) pass through in every language.
+        display = resolve_localized_display(table.get(base.lower(), {}), lang, fallback=base)
+        out.append(f"{prefix}{display}{suffix}")
     return " ".join(out)
 
 
@@ -1032,23 +1042,22 @@ def _localize_imaging(name: str, lang: str) -> str:
     if not key:
         return ""
     key = " ".join(key.split())  # collapse whitespace runs
-    from clinosim.locale.loader import load_narrative_imaging
+    from clinosim.locale.loader import load_narrative_imaging, resolve_localized_display
 
     table = load_narrative_imaging()
-    lang_key = _lang_key(lang)
     entry = table.get(key)
     if entry:
-        hit = entry.get(lang_key)
+        hit = resolve_localized_display(entry, lang)
         if hit:
             return hit
-    # Underscore-form fallback: try the underscored variant
+    # Underscore-form fallback: try the underscored variant.
     alt = key.replace(" ", "_")
     entry = table.get(alt)
     if entry:
-        hit = entry.get(lang_key)
+        hit = resolve_localized_display(entry, lang)
         if hit:
             return hit
-    # Humanised fallback so a slug never leaks raw in JA prose.
+    # Humanised fallback so a slug never leaks raw in prose.
     return name.replace("_", " ")
 
 
@@ -1061,10 +1070,13 @@ def _localize_op_approach(approach: str, lang: str) -> str:
     if not approach:
         return ""
     key = str(approach).strip().lower()
-    from clinosim.locale.loader import load_narrative_op_approach
+    from clinosim.locale.loader import load_narrative_op_approach, resolve_localized_display
 
-    entry = load_narrative_op_approach().get(key, {})
-    return entry.get(_lang_key(lang)) or key
+    return resolve_localized_display(
+        load_narrative_op_approach().get(key, {}),
+        lang,
+        fallback=key,
+    )
 
 
 def _localize_op_implant(implant: str, lang: str) -> str:
@@ -1074,10 +1086,13 @@ def _localize_op_implant(implant: str, lang: str) -> str:
     if not implant:
         return ""
     key = str(implant).strip().lower()
-    from clinosim.locale.loader import load_narrative_op_implants
+    from clinosim.locale.loader import load_narrative_op_implants, resolve_localized_display
 
-    entry = load_narrative_op_implants().get(key, {})
-    return entry.get(_lang_key(lang)) or implant
+    return resolve_localized_display(
+        load_narrative_op_implants().get(key, {}),
+        lang,
+        fallback=implant,
+    )
 
 
 # SOAP section labels per locale

@@ -1,0 +1,245 @@
+# LLM prompt-time locale labels (Phase 1d-2, 2026-09-23).
+#
+# Extracted from the module-level ``_XXX_JA`` / ``_XXX_LABELS`` dicts
+# previously embedded in
+# ``clinosim/modules/document/narrative/replacement_strategy.py``.
+# Consumers: the LLM ``_build_extra_context`` pipeline uses these to
+# turn CIF enum-style tokens (``inpatient`` / ``walk_in`` / ``mild`` /
+# ``nasal_cannula`` / ``dependent`` / ``employer_group`` / …) into a
+# clinician-natural anchor phrase before the JA prompt is rendered.
+#
+# Adding a new language (fr / zh / …): extend each entry with
+# ``<lang>: <display>`` and update ``_localize_token`` /
+# ``_lookup_ja_label`` callers to pass the new lang code. No code
+# change required inside this repository beyond that.
+#
+# Structure: ``<section>: {<slug>: {<lang>: <display>}}``.
+# Two flavours coexist:
+#   - JA-only sections (encounter_type, disposition, severity, …)
+#     carry only the ``ja`` slot; EN falls back to the raw slug at
+#     lookup time (matches pre-refactor behaviour).
+#   - Multi-lang sections (smoking, marital, occupation, insurance, …)
+#     carry both ``ja`` and ``en`` slots.
+
+encounter_type:
+  outpatient: {ja: 外来}
+  inpatient: {ja: 入院}
+  emergency: {ja: 救急}
+  icu: {ja: ICU}
+  day_surgery: {ja: 日帰り手術}
+  rehab_inpatient: {ja: 回復期リハビリ入院}
+  prenatal_visit: {ja: 妊婦健診}
+  delivery: {ja: 分娩}
+  nicu: {ja: NICU}
+  checkup: {ja: 健康診断}
+disposition:
+  home: {ja: 自宅退院}
+  hosp: {ja: 他院転院}
+  other-hcf: {ja: 他施設転院}
+  snf: {ja: 施設退院}
+  exp: {ja: 死亡退院}
+  home_with_family: {ja: 自宅退院}
+  home_alone: {ja: 自宅退院（独居）}
+  independent_home: {ja: 独居自宅退院}
+  discharge_to_home: {ja: 自宅退院}
+  transfer_to_higher_care: {ja: 転院（上位施設）}
+  discharge_to_snf: {ja: 介護保険施設入所}
+  needs_snf: {ja: 介護保険施設入所}
+  needs_home_care: {ja: 訪問看護導入}
+  needs_rehab: {ja: リハビリ転院}
+  discharge_to_rehab: {ja: リハビリ転院}
+  deceased: {ja: 死亡退院}
+severity:
+  mild: {ja: 軽度}
+  moderate: {ja: 中等度}
+  severe: {ja: 重度}
+  very severe: {ja: 最重度}
+  very_severe: {ja: 最重度}
+  critical: {ja: 重篤}
+oxygen_device:
+  nasal_cannula: {ja: 経鼻カニューレ}
+  oxygen_mask: {ja: 酸素マスク}
+  simple_mask: {ja: 酸素マスク}
+  non_rebreather: {ja: リザーバーマスク}
+  reservoir_mask: {ja: リザーバーマスク}
+  venturi: {ja: ベンチュリーマスク}
+  venturi_mask: {ja: ベンチュリーマスク}
+  high_flow_nc: {ja: ハイフローネーザル}
+  high_flow_nasal_cannula: {ja: ハイフローネーザル}
+  mechanical_ventilation: {ja: 人工呼吸器}
+  invasive_mechanical_ventilation: {ja: 人工呼吸器}
+  room_air: {ja: 大気吸入}
+  supplemental o2: {ja: 酸素投与}
+  cpap: {ja: CPAP}
+  bipap: {ja: BiPAP}
+  niv: {ja: NIV}
+arrival_mode:
+  walk_in: {ja: 独歩来院}
+  walk-in: {ja: 独歩来院}
+  walkin: {ja: 独歩来院}
+  self: {ja: 独歩来院}
+  ambulance: {ja: 救急車搬送}
+  ems: {ja: 救急車搬送}
+  helicopter: {ja: ヘリ搬送}
+  transfer: {ja: 転院搬送}
+  public: {ja: 公共交通機関来院}
+  private: {ja: 自家用車来院}
+risk_level:
+  low: {ja: 低リスク}
+  low_risk: {ja: 低リスク}
+  moderate: {ja: 中等度リスク}
+  moderate_risk: {ja: 中等度リスク}
+  medium: {ja: 中等度リスク}
+  medium_risk: {ja: 中等度リスク}
+  high: {ja: 高リスク}
+  high_risk: {ja: 高リスク}
+  very_high: {ja: 非常に高リスク}
+  very_high_risk: {ja: 非常に高リスク}
+barthel_band:
+  barthel_full: {ja: Barthel 自立}
+  barthel_good: {ja: Barthel ほぼ自立}
+  barthel_moderate: {ja: Barthel 部分介助}
+  barthel_poor: {ja: Barthel 全介助レベル}
+  barthel_dependent: {ja: Barthel 全介助}
+  full: {ja: 自立}
+  good: {ja: ほぼ自立}
+  moderate_dependence: {ja: 部分介助}
+  severe_dependence: {ja: 全介助レベル}
+  total_dependence: {ja: 全介助}
+lab_name:
+  creatinine: {ja: クレアチニン}
+  glucose: {ja: 血糖}
+  lactate: {ja: 乳酸}
+  albumin: {ja: アルブミン}
+  sodium: {ja: ナトリウム}
+  potassium: {ja: カリウム}
+  chloride: {ja: クロール}
+  calcium: {ja: カルシウム}
+  magnesium: {ja: マグネシウム}
+  phosphorus: {ja: リン}
+  phosphate: {ja: リン}
+  bilirubin: {ja: ビリルビン}
+  total bilirubin: {ja: 総ビリルビン}
+  direct bilirubin: {ja: 直接ビリルビン}
+  urea: {ja: 尿素}
+  urea nitrogen: {ja: 尿素窒素}
+  hemoglobin: {ja: ヘモグロビン}
+  hematocrit: {ja: ヘマトクリット}
+  platelet: {ja: 血小板}
+  platelets: {ja: 血小板}
+  white blood cell: {ja: 白血球}
+  red blood cell: {ja: 赤血球}
+  cholesterol: {ja: コレステロール}
+  triglyceride: {ja: トリグリセリド}
+  triglycerides: {ja: トリグリセリド}
+  protein: {ja: 蛋白}
+  total protein: {ja: 総蛋白}
+  iron: {ja: 鉄}
+  ferritin: {ja: フェリチン}
+  amylase: {ja: アミラーゼ}
+  lipase: {ja: リパーゼ}
+  troponin: {ja: トロポニン}
+  troponin i: {ja: トロポニンI}
+  troponin t: {ja: トロポニンT}
+smoking:
+  never: {en: non-smoker, ja: 非喫煙}
+  never_smoker: {en: non-smoker, ja: 非喫煙}
+  current: {en: current smoker, ja: 現喫煙}
+  current_smoker: {en: current smoker, ja: 現喫煙}
+  former: {en: former smoker, ja: 元喫煙}
+  former_smoker: {en: former smoker, ja: 元喫煙}
+alcohol:
+  none: {en: non-drinker, ja: 飲酒なし}
+  never: {en: non-drinker, ja: 飲酒なし}
+  occasional: {en: occasional alcohol, ja: 機会飲酒}
+  social: {en: social drinker, ja: 機会飲酒}
+  light: {en: light alcohol use, ja: 少量飲酒}
+  moderate: {en: moderate alcohol use, ja: 中等度飲酒}
+  heavy: {en: heavy alcohol use, ja: 多量飲酒}
+  former: {en: former drinker (abstinent), ja: 断酒中}
+marital:
+  single: {en: single, ja: 独身}
+  married: {en: married, ja: 既婚}
+  divorced: {en: divorced, ja: 離婚}
+  widowed: {en: widowed, ja: 死別}
+  separated: {en: separated, ja: 別居}
+  partnered: {en: partnered, ja: 内縁}
+  m: {en: married, ja: 既婚}
+  s: {en: single, ja: 独身}
+  d: {en: divorced, ja: 離婚}
+  w: {en: widowed, ja: 死別}
+  p: {en: partnered, ja: 内縁}
+employment:
+  employed: {en: employed, ja: 就業中}
+  self_employed: {en: self-employed, ja: 自営}
+  unemployed: {en: unemployed, ja: 無職}
+  retired: {en: retired, ja: 退職}
+  student: {en: student, ja: 学生}
+  homemaker: {en: homemaker, ja: 主婦・主夫}
+  disabled: {en: unable to work (disability), ja: 就労困難}
+occupation:
+  office: {en: office worker, ja: 事務職}
+  service: {en: service industry, ja: サービス業}
+  healthcare: {en: healthcare worker, ja: 医療従事者}
+  manufacturing: {en: manufacturing worker, ja: 製造業}
+  construction: {en: construction worker, ja: 建設業}
+  agriculture: {en: agricultural worker, ja: 農業従事者}
+  transportation: {en: transportation worker, ja: 運輸業}
+  sales: {en: sales worker, ja: 販売職}
+  hospitality: {en: hospitality worker, ja: 接客業}
+  retail: {en: retail worker, ja: 小売業}
+  education: {en: educator, ja: 教育関係者}
+  government: {en: government employee, ja: 公務員}
+  finance: {en: finance professional, ja: 金融業}
+  it: {en: IT professional, ja: IT 関係者}
+  professional: {en: professional, ja: 専門職}
+  management: {en: manager, ja: 管理職}
+  self_employed: {en: self-employed, ja: 自営業}
+  preschool: {en: preschooler, ja: 未就学児}
+  elementary_student: {en: elementary school student, ja: 小学生}
+  middle_student: {en: middle school student, ja: 中学生}
+  middle_school_student: {en: middle school student, ja: 中学生}
+  high_student: {en: high school student, ja: 高校生}
+  high_school_student: {en: high school student, ja: 高校生}
+  university_student: {en: university student, ja: 大学生}
+  student: {en: student, ja: 学生}
+  infant: {en: infant, ja: 乳幼児}
+  homemaker: {en: homemaker, ja: 主婦・主夫}
+  retired: {en: retired, ja: 退職}
+  unemployed: {en: unemployed, ja: 無職}
+  disabled: {en: unable to work, ja: 就労困難}
+  other: {en: other, ja: その他}
+race:
+  white: {en: white, ja: 白人}
+  black: {en: Black or African American, ja: 黒人}
+  asian: {en: Asian, ja: アジア系}
+  native_american: {en: American Indian or Alaska Native, ja: ネイティブアメリカン}
+  pacific_islander: {en: Native Hawaiian or Other Pacific Islander, ja: 太平洋諸島系}
+  other: {en: other race, ja: その他人種}
+ethnicity:
+  hispanic: {en: Hispanic or Latino, ja: ヒスパニック}
+  not_hispanic: {en: not Hispanic or Latino, ja: 非ヒスパニック}
+insurance:
+  employer_group: {en: employer-sponsored, ja: 雇用主提供保険}
+  medicare: {en: Medicare, ja: Medicare}
+  medicaid: {en: Medicaid, ja: Medicaid}
+  medicare_advantage: {en: Medicare Advantage, ja: Medicare Advantage}
+  private_individual: {en: private (individual market), ja: 個人加入民間保険}
+  va_tricare: {en: VA/TRICARE, ja: VA/TRICARE}
+  self_pay: {en: self-pay, ja: 自費}
+  chip: {en: CHIP, ja: CHIP}
+  dual_eligible: {en: Medicare + Medicaid (dual eligible), ja: Medicare + Medicaid 二重加入}
+  private_employer: {en: employer-sponsored private insurance, ja: 雇用主提供民間保険}
+  medicare_plus_private: {en: Medicare with supplemental private, ja: Medicare + 補足民間保険}
+  medicare_medicaid: {en: Medicare + Medicaid (dual eligible), ja: Medicare + Medicaid 二重加入}
+  private: {en: private insurance, ja: 民間保険}
+  uninsured: {en: uninsured, ja: 無保険}
+  other_public: {en: other public insurance, ja: その他公的保険}
+  employee_subscriber: {en: employee health insurance (subscriber), ja: 被用者保険 (被保険者)}
+  employee_dependent: {en: employee health insurance (dependent), ja: 被用者保険 (被扶養者)}
+  national_health_insurance: {en: National Health Insurance, ja: 国民健康保険}
+  late_elderly: {en: Late-Elderly Medical Care System, ja: 後期高齢者医療制度}
+  employee: {en: employee health insurance (subscriber), ja: 被用者保険 (被保険者)}
+  dependent: {en: employee health insurance (dependent), ja: 被用者保険 (被扶養者)}
+  national: {en: National Health Insurance, ja: 国民健康保険}
+  nhi_employee: {en: National Health Insurance (employee-eligible), ja: 国民健康保険 (被用者相当)}
