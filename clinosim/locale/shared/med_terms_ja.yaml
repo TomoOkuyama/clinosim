@@ -206,3 +206,63 @@ terms:
   RV: 右室
   PE: PE（肺塞栓）
   not: できず
+  # Phase 1c-6 (Category L, 2026-09-23): ed_workup procedure-order
+  # composite vocabulary observed in JP p=10000 audit residuals.
+  # Applied via _localize_dosage_terms — case-insensitive except for
+  # the UPPERCASE forms which stay case-sensitive.
+  Ice pack application: 氷嚢貼付
+  ice pack application: 氷嚢貼付
+  Ice pack: 氷嚢
+  ice pack: 氷嚢
+  Wound irrigation: 創部洗浄
+  wound irrigation: 創部洗浄
+  Wound: 創部
+  wound: 創部
+  normal saline: 生理食塩水
+  Normal saline: 生理食塩水
+  saline: 生理食塩水
+  Elastic bandage wrap: 弾性包帯巻き付け
+  elastic bandage wrap: 弾性包帯巻き付け
+  Elastic bandage: 弾性包帯
+  elastic bandage: 弾性包帯
+  bandage: 包帯
+  wrap: 巻き付け
+  Suture closure: 縫合閉鎖
+  suture closure: 縫合閉鎖
+  Suture: 縫合
+  suture: 縫合
+  Tissue adhesive: 皮膚接着剤
+  tissue adhesive: 皮膚接着剤
+  glue: 接着剤
+  Nasal cannula: 経鼻カニューレ
+  nasal cannula: 経鼻カニューレ
+  cannula: カニューレ
+  Foley catheter: フォーリーカテーテル
+  Foley: フォーリー
+  hourly urine output measurement: 時間尿量測定
+  urine output monitoring: 尿量モニタリング
+  urine_output_monitoring: 尿量モニタリング
+  Hemodialysis: 血液透析
+  hemodialysis: 血液透析
+  session: セッション
+  continuous: 持続
+  CRRT: 持続的腎代替療法 (CRRT)
+  irrigation: 洗浄
+  application: 貼付
+  closure: 閉鎖
+  adhesive: 接着剤
+  pack: パック
+  # Category F extras: dosage descriptor tokens sometimes concatenated
+  # into route/frequency free-text fields.
+  once daily: 1日1回
+  twice daily: 1日2回
+  three times daily: 1日3回
+  four times daily: 1日4回
+  every 4 hours: 4時間毎
+  every 6 hours: 6時間毎
+  every 8 hours: 8時間毎
+  every 12 hours: 12時間毎
+  as needed: 頓用
+  before meals: 食前
+  after meals: 食後
+  at bedtime: 就寝前
