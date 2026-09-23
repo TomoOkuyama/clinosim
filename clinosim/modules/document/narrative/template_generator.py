@@ -5177,11 +5177,11 @@ class TemplateNarrativeGenerator:
         # 「合併症 delirium、acute_kidney_injury を認識」.
         comps = list(getattr(ctx, "complications_occurred", []) or [])
         if comps:
+            from clinosim.locale.i18n import t
+
             localised = [_localize_complication(str(c), ctx.target_lang) for c in comps[:3]]
-            if is_ja:
-                parts.append(f"合併症 {'、'.join(localised)} を認識、対応継続中。")
-            else:
-                parts.append(f"Complications noted ({', '.join(localised)}); management ongoing.")
+            sep = "、" if is_ja else ", "
+            parts.append(t("progress.complications_noted", ctx.target_lang, list=sep.join(localised)))
         # Abnormal labs today — Issue #1154 fix.
         #
         # Prior behaviour: the code read a ``lab.day`` field that real
@@ -5233,15 +5233,14 @@ class TemplateNarrativeGenerator:
             if len(abn) >= 6:
                 break
         if abn:
-            if is_ja:
-                parts.append(f"本日の検査所見: {'、'.join(abn[:4])}。")
-            else:
-                parts.append(f"Notable labs today: {', '.join(abn[:4])}.")
+            from clinosim.locale.i18n import t
+
+            sep = "、" if is_ja else ", "
+            parts.append(t("progress.notable_labs", ctx.target_lang, list=sep.join(abn[:4])))
         if not parts:
-            if is_ja:
-                parts.append("経過観察中、著変なし。")
-            else:
-                parts.append("Clinical course stable, no significant change.")
+            from clinosim.locale.i18n import t
+
+            parts.append(t("progress.stable_course_assessment", ctx.target_lang))
         return "".join(parts) if is_ja else " ".join(parts)
 
     def _compose_progress_plan_from_state(self, ctx: NarrativeContext) -> str:
@@ -5642,15 +5641,18 @@ class TemplateNarrativeGenerator:
         primary_dx = _o(enc, "primary_diagnosis", "") or _o(enc, "primary_dx", "") or ""
         primary_dx = str(primary_dx).strip()
 
-        # Prefer a non-empty, non-stub chief_complaint
+        # Prefer a non-empty, non-stub chief_complaint. Phase 1d-4
+        # (2026-09-23): binary ``if is_ja: X else Y`` inline templates
+        # replaced with the language-agnostic ``t(key, lang, **params)``
+        # phrase-catalog lookup (see ``clinosim/locale/i18n.py`` and
+        # ``narrative_phrases.yaml``). Adding fr / zh / … requires only
+        # a YAML edit; no code change here.
+        from clinosim.locale.i18n import t
+
         if cc and cc.lower() not in ("none", "n/a", "--"):
-            if is_ja:
-                return f"来院理由: {cc}"
-            return f"Encounter reason: {cc}"
+            return t("chief_complaint.encounter_reason", ctx.target_lang, cc=cc)
         if primary_dx:
-            if is_ja:
-                return f"主な問題: {primary_dx}"
-            return f"Primary problem: {primary_dx}"
+            return t("chief_complaint.primary_problem", ctx.target_lang, dx=primary_dx)
         return ""
 
     def _compose_chronic_condition_line(self, ctx: NarrativeContext) -> str:
