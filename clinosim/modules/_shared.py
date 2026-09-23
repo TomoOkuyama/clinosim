@@ -54,12 +54,28 @@ def is_us(country: str) -> bool:
 
 
 def resolve_lang(country: str) -> str:
-    """Display language for a country: ``"ja"`` for JP, ``"en"`` otherwise.
+    """Display language ISO-639-1 code for a country code.
 
-    Single edit point for the ``lang = "ja" if <country is JP> else "en"``
-    selection previously inlined at each FHIR builder / enricher call site.
+    Phase 1d-2 (2026-09-23): backed by
+    ``clinosim/locale/shared/country_language.yaml`` so adding a new
+    locale is a data change (one YAML line) rather than a code edit
+    here. Falls back to ``"en"`` when the country code is not mapped.
+
+    Historic single-line binary (``"ja" if is_jp(country) else "en"``)
+    is preserved as a bootstrap fallback for callers that load before
+    the locale-loader module is available (import-cycle safety).
     """
-    return "ja" if is_jp(country) else "en"
+    key = str(country).strip().lower()
+    try:
+        from clinosim.locale.loader import _load_country_language_map
+
+        m = _load_country_language_map()
+        hit = m.get(key)
+        if hit:
+            return hit
+        return "en"
+    except Exception:  # noqa: BLE001 — bootstrap fallback for import-order edge cases
+        return "ja" if key == "jp" else "en"
 
 
 def strip_protocol_prefix(name: str) -> tuple[str, str]:

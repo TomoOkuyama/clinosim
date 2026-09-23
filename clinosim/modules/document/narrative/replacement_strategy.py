@@ -75,182 +75,59 @@ def _load_drug_localizer():  # pragma: no cover — trivial thunk
 # the LLM prompt as bare English tokens (encounter_type enum,
 # discharge_disposition code) confuse JA narrative generation — LLM saw
 # "inpatient" for an outpatient encounter and wrote 「緊急入院」.
-_ENCOUNTER_TYPE_JA: dict[str, str] = {
-    "outpatient": "外来",
-    "inpatient": "入院",
-    "emergency": "救急",
-    "icu": "ICU",
-    "day_surgery": "日帰り手術",
-    "rehab_inpatient": "回復期リハビリ入院",
-    "prenatal_visit": "妊婦健診",
-    "delivery": "分娩",
-    "nicu": "NICU",
-    "checkup": "健康診断",
-}
-_DISPOSITION_JA: dict[str, str] = {
-    "home": "自宅退院",
-    "hosp": "他院転院",
-    "other-hcf": "他施設転院",
-    "snf": "施設退院",
-    "exp": "死亡退院",
-    # session-88j Phase B: CIF/CDA enum names that reach the LLM
-    "home_with_family": "自宅退院",
-    "home_alone": "自宅退院（独居）",
-    "independent_home": "独居自宅退院",
-    "discharge_to_home": "自宅退院",
-    "transfer_to_higher_care": "転院（上位施設）",
-    "discharge_to_snf": "介護保険施設入所",
-    "needs_snf": "介護保険施設入所",
-    "needs_home_care": "訪問看護導入",
-    "needs_rehab": "リハビリ転院",
-    "discharge_to_rehab": "リハビリ転院",
-    "deceased": "死亡退院",
-}
-
-# session-88j Phase B: natural Japanese equivalents for enum-style
-# clinical labels that would otherwise leak into JA narratives as raw
-# English tokens (v14 review found 165 unique EN tokens; the largest
-# offenders were mild/moderate → 634+442 mentions, nasal_cannula → 155,
-# raw drug names). Each map is checked case-insensitively via
-# _lookup_ja_label().
-_SEVERITY_JA: dict[str, str] = {
-    "mild": "軽度",
-    "moderate": "中等度",
-    "severe": "重度",
-    "very severe": "最重度",
-    "very_severe": "最重度",
-    "critical": "重篤",
-}
-_OXYGEN_DEVICE_JA: dict[str, str] = {
-    "nasal_cannula": "経鼻カニューレ",
-    "oxygen_mask": "酸素マスク",
-    "simple_mask": "酸素マスク",
-    "non_rebreather": "リザーバーマスク",
-    "reservoir_mask": "リザーバーマスク",
-    "venturi": "ベンチュリーマスク",
-    "venturi_mask": "ベンチュリーマスク",
-    "high_flow_nc": "ハイフローネーザル",
-    "high_flow_nasal_cannula": "ハイフローネーザル",
-    "mechanical_ventilation": "人工呼吸器",
-    "invasive_mechanical_ventilation": "人工呼吸器",
-    "room_air": "大気吸入",
-    "supplemental o2": "酸素投与",  # generic fallback
-    # NIV modes commonly used as-is in Japanese practice
-    "cpap": "CPAP",
-    "bipap": "BiPAP",
-    "niv": "NIV",
-}
-_ARRIVAL_MODE_JA: dict[str, str] = {
-    "walk_in": "独歩来院",
-    "walk-in": "独歩来院",
-    "walkin": "独歩来院",
-    "self": "独歩来院",
-    "ambulance": "救急車搬送",
-    "ems": "救急車搬送",
-    "helicopter": "ヘリ搬送",
-    "transfer": "転院搬送",
-    "public": "公共交通機関来院",
-    "private": "自家用車来院",
-}
-_RISK_LEVEL_JA: dict[str, str] = {
-    "low": "低リスク",
-    "low_risk": "低リスク",
-    "moderate": "中等度リスク",
-    "moderate_risk": "中等度リスク",
-    "medium": "中等度リスク",
-    "medium_risk": "中等度リスク",
-    "high": "高リスク",
-    "high_risk": "高リスク",
-    "very_high": "非常に高リスク",
-    "very_high_risk": "非常に高リスク",
-}
-_BARTHEL_BAND_JA: dict[str, str] = {
-    "barthel_full": "Barthel 自立",
-    "barthel_good": "Barthel ほぼ自立",
-    "barthel_moderate": "Barthel 部分介助",
-    "barthel_poor": "Barthel 全介助レベル",
-    "barthel_dependent": "Barthel 全介助",
-    "full": "自立",
-    "good": "ほぼ自立",
-    "moderate_dependence": "部分介助",
-    "severe_dependence": "全介助レベル",
-    "total_dependence": "全介助",
-}
-# Long-form English lab names → natural Japanese. Universally-accepted
-# short abbreviations (BUN, CRP, BNP, WBC, HbA1c, eGFR, Cr, Na, K, Cl,
-# Ca, Mg, P, etc.) are DELIBERATELY OMITTED — they are standard in
-# Japanese practice and translating them would harm readability.
-_LAB_NAME_JA: dict[str, str] = {
-    "creatinine": "クレアチニン",
-    "glucose": "血糖",
-    "lactate": "乳酸",
-    "albumin": "アルブミン",
-    "sodium": "ナトリウム",
-    "potassium": "カリウム",
-    "chloride": "クロール",
-    "calcium": "カルシウム",
-    "magnesium": "マグネシウム",
-    "phosphorus": "リン",
-    "phosphate": "リン",
-    "bilirubin": "ビリルビン",
-    "total bilirubin": "総ビリルビン",
-    "direct bilirubin": "直接ビリルビン",
-    "urea": "尿素",
-    "urea nitrogen": "尿素窒素",
-    "hemoglobin": "ヘモグロビン",
-    "hematocrit": "ヘマトクリット",
-    "platelet": "血小板",
-    "platelets": "血小板",
-    "white blood cell": "白血球",
-    "red blood cell": "赤血球",
-    "cholesterol": "コレステロール",
-    "triglyceride": "トリグリセリド",
-    "triglycerides": "トリグリセリド",
-    "protein": "蛋白",
-    "total protein": "総蛋白",
-    "iron": "鉄",
-    "ferritin": "フェリチン",
-    "amylase": "アミラーゼ",
-    "lipase": "リパーゼ",
-    "troponin": "トロポニン",
-    "troponin i": "トロポニンI",
-    "troponin t": "トロポニンT",
-}
+# Phase 1d-2 (2026-09-23): the 16 module-level ``_XXX_JA`` /
+# ``_XXX_LABELS`` locale-label tables that used to live here were
+# extracted to ``clinosim/locale/shared/llm_prompt_labels.yaml`` so
+# adding a new target language is a data change, not a code change.
+# The helper signatures below are unchanged from the pre-Phase-1d-2
+# API — internal lookups go through
+# ``clinosim.locale.loader.load_llm_prompt_labels()`` instead of the
+# inline dicts. See the YAML file for the section layout.
 
 
-def _lookup_ja_label(raw: str, table: dict[str, str]) -> str:
-    """Case-insensitive lookup returning the JA label, or the raw
-    input if no mapping exists (safe fallback — never drops content).
-    """
+def _lookup_ja_label(raw: str, section: str) -> str:
+    """Case-insensitive JA lookup for a raw enum-like token in the
+    named LLM-prompt-labels section. Returns the raw input if the
+    section / slug / ja slot is missing (safe fallback — never drops
+    content). Kept named ``_lookup_ja_label`` because every caller
+    below resolves against the ``ja`` slot; multi-lang callers use
+    ``_localize_token`` which routes through
+    ``resolve_localized_display`` (language-agnostic)."""
     if not raw:
         return raw
     key = str(raw).strip().lower()
-    return table.get(key, str(raw))
+    from clinosim.locale.loader import load_llm_prompt_labels, resolve_localized_display
+
+    return resolve_localized_display(
+        load_llm_prompt_labels().get(section, {}).get(key, {}),
+        "ja",
+        fallback=str(raw),
+    )
 
 
 def _localize_severity_ja(sev: str) -> str:
     """mild → 軽度 (etc). Safe fallback returns input verbatim."""
-    return _lookup_ja_label(sev, _SEVERITY_JA)
+    return _lookup_ja_label(sev, "severity")
 
 
 def _localize_oxygen_device_ja(device: str) -> str:
     """nasal_cannula → 経鼻カニューレ (etc)."""
-    return _lookup_ja_label(device, _OXYGEN_DEVICE_JA)
+    return _lookup_ja_label(device, "oxygen_device")
 
 
 def _localize_arrival_mode_ja(mode: str) -> str:
     """walk_in → 独歩来院 (etc)."""
-    return _lookup_ja_label(mode, _ARRIVAL_MODE_JA)
+    return _lookup_ja_label(mode, "arrival_mode")
 
 
 def _localize_risk_level_ja(level: str) -> str:
     """moderate_risk → 中等度リスク (etc)."""
-    return _lookup_ja_label(level, _RISK_LEVEL_JA)
+    return _lookup_ja_label(level, "risk_level")
 
 
 def _localize_barthel_band_ja(band: str) -> str:
     """barthel_full → Barthel 自立 (etc)."""
-    return _lookup_ja_label(band, _BARTHEL_BAND_JA)
+    return _lookup_ja_label(band, "barthel_band")
 
 
 def _localize_lab_name_ja(name: str) -> str:
@@ -258,7 +135,7 @@ def _localize_lab_name_ja(name: str) -> str:
     as-is since they are Japanese medical standard."""
     if not name:
         return name
-    return _lookup_ja_label(name, _LAB_NAME_JA)
+    return _lookup_ja_label(name, "lab_name")
 
 
 # --- prompt v11: post-processor hard-guard for EN lab names in JA text ------
@@ -275,11 +152,29 @@ def _localize_lab_name_ja(name: str) -> str:
 # Compound names ("Total bilirubin", "Direct bilirubin", "Total protein",
 # "Urea nitrogen", "White blood cell", "Red blood cell", "Troponin I/T")
 # are matched BEFORE their single-word bases via longest-first ordering.
-_LAB_TERMS_LONGEST_FIRST = sorted(_LAB_NAME_JA.keys(), key=len, reverse=True)
-_LAB_NAME_PATTERN_JA = re.compile(
-    r"\b(" + "|".join(re.escape(k) for k in _LAB_TERMS_LONGEST_FIRST) + r")\b",
-    re.IGNORECASE,
-)
+# Phase 1d-2 (2026-09-23): lazy-compiled longest-first regex over the
+# ``lab_name`` section of ``llm_prompt_labels.yaml``. The pattern must
+# recompile if the YAML changes; ``functools.lru_cache`` on
+# ``load_llm_prompt_labels`` guarantees a stable dict identity for the
+# process lifetime, so caching on that identity is safe.
+_LAB_NAME_PATTERN_CACHE: dict[int, re.Pattern[str]] = {}
+
+
+def _get_lab_name_pattern() -> re.Pattern[str]:
+    from clinosim.locale.loader import load_llm_prompt_labels
+
+    section = load_llm_prompt_labels().get("lab_name", {})
+    cache_key = id(section)
+    hit = _LAB_NAME_PATTERN_CACHE.get(cache_key)
+    if hit is not None:
+        return hit
+    keys = sorted(section.keys(), key=len, reverse=True)
+    pattern = re.compile(
+        r"\b(" + "|".join(re.escape(k) for k in keys) + r")\b",
+        re.IGNORECASE,
+    )
+    _LAB_NAME_PATTERN_CACHE[cache_key] = pattern
+    return pattern
 
 
 def _localize_lab_names_in_text_ja(text: str) -> str:
@@ -293,9 +188,9 @@ def _localize_lab_names_in_text_ja(text: str) -> str:
         return text
 
     def _repl(m: re.Match) -> str:
-        return _LAB_NAME_JA.get(m.group(1).lower(), m.group(1))
+        return _lookup_ja_label(m.group(1), "lab_name")
 
-    return _LAB_NAME_PATTERN_JA.sub(_repl, text)
+    return _get_lab_name_pattern().sub(_repl, text)
 
 
 def _localize_lab_names_in_sections_ja(sections: dict[str, str]) -> dict[str, str]:
@@ -947,169 +842,33 @@ _HEALTH_LITERACY_DOC_TYPES: frozenset[str] = frozenset(
 # (from PatientProfile) to a (JA, EN) display pair — the EN side keeps
 # short, clinician-natural phrasing rather than a raw slug so the LLM
 # reads a real note-style anchor, not an ENUM-flavoured hint.
-_SMOKING_LABELS: dict[str, tuple[str, str]] = {
-    "never": ("非喫煙", "non-smoker"),
-    "never_smoker": ("非喫煙", "non-smoker"),
-    "current": ("現喫煙", "current smoker"),
-    "current_smoker": ("現喫煙", "current smoker"),
-    "former": ("元喫煙", "former smoker"),
-    "former_smoker": ("元喫煙", "former smoker"),
-}
-_ALCOHOL_LABELS: dict[str, tuple[str, str]] = {
-    "none": ("飲酒なし", "non-drinker"),
-    "never": ("飲酒なし", "non-drinker"),
-    "occasional": ("機会飲酒", "occasional alcohol"),
-    "social": (
-        "機会飲酒",
-        "social drinker",
-    ),  # Phase 1c-1: PatientProfile.alcohol_use canonical value (none/social/heavy)
-    "light": ("少量飲酒", "light alcohol use"),
-    "moderate": ("中等度飲酒", "moderate alcohol use"),
-    "heavy": ("多量飲酒", "heavy alcohol use"),
-    "former": ("断酒中", "former drinker (abstinent)"),
-}
-_MARITAL_LABELS: dict[str, tuple[str, str]] = {
-    "single": ("独身", "single"),
-    "married": ("既婚", "married"),
-    "divorced": ("離婚", "divorced"),
-    "widowed": ("死別", "widowed"),
-    "separated": ("別居", "separated"),
-    "partnered": ("内縁", "partnered"),
-    # Phase 1c-1 (2026-09-22): PatientProfile.marital_status is generated
-    # as a single-letter code (M / S / D / W / P) by the demographics
-    # populator; the JP p=500 audit found ~600 patients carried these
-    # short codes verbatim into the LLM prompt because ``_localize_token``
-    # lower-cases them to "m"/"s"/"d"/"w" which have no match and then
-    # falls back to the raw slug ("s"). Alias each short code to its full
-    # form so the same JA/EN labels apply.
-    "m": ("既婚", "married"),
-    "s": ("独身", "single"),
-    "d": ("離婚", "divorced"),
-    "w": ("死別", "widowed"),
-    "p": ("内縁", "partnered"),
-}
-_EMPLOYMENT_LABELS: dict[str, tuple[str, str]] = {
-    "employed": ("就業中", "employed"),
-    "self_employed": ("自営", "self-employed"),
-    "unemployed": ("無職", "unemployed"),
-    "retired": ("退職", "retired"),
-    "student": ("学生", "student"),
-    "homemaker": ("主婦・主夫", "homemaker"),
-    "disabled": ("就労困難", "unable to work (disability)"),
-}
-
-# Phase 1c-1 (2026-09-22): PatientProfile.occupation is a free-form string
-# but the demographics populator draws from a fixed vocabulary (see
-# ``clinosim/modules/patient/activator.py`` and the JP/US demographics
-# yaml). Without a localization table the raw enum token (e.g. "service",
-# "manufacturing", "office") leaked verbatim into JP narratives:
-# 「32歳男性、service、非喫煙、s、dependent」in the JP p=500 audit.
-# The tables below cover every occupation value observed across US +
-# JP p=500 cohorts plus common values that also appear in the demographics
-# yaml. Unknown tokens still fall back to the slug via ``_localize_token``.
-_OCCUPATION_LABELS: dict[str, tuple[str, str]] = {
-    "office": ("事務職", "office worker"),
-    "service": ("サービス業", "service industry"),
-    "healthcare": ("医療従事者", "healthcare worker"),
-    "manufacturing": ("製造業", "manufacturing worker"),
-    "construction": ("建設業", "construction worker"),
-    "agriculture": ("農業従事者", "agricultural worker"),
-    "transportation": ("運輸業", "transportation worker"),
-    "sales": ("販売職", "sales worker"),
-    "hospitality": ("接客業", "hospitality worker"),
-    "retail": ("小売業", "retail worker"),
-    "education": ("教育関係者", "educator"),
-    "government": ("公務員", "government employee"),
-    "finance": ("金融業", "finance professional"),
-    "it": ("IT 関係者", "IT professional"),
-    "professional": ("専門職", "professional"),
-    "management": ("管理職", "manager"),
-    "self_employed": ("自営業", "self-employed"),
-    "preschool": ("未就学児", "preschooler"),
-    "elementary_student": ("小学生", "elementary school student"),
-    "middle_student": ("中学生", "middle school student"),
-    "middle_school_student": ("中学生", "middle school student"),
-    "high_student": ("高校生", "high school student"),
-    "high_school_student": ("高校生", "high school student"),
-    "university_student": ("大学生", "university student"),
-    "student": ("学生", "student"),
-    "infant": ("乳幼児", "infant"),
-    "homemaker": ("主婦・主夫", "homemaker"),
-    "retired": ("退職", "retired"),
-    "unemployed": ("無職", "unemployed"),
-    "disabled": ("就労困難", "unable to work"),
-    "other": ("その他", "other"),
-}
-_RACE_LABELS: dict[str, tuple[str, str]] = {
-    # US OMB race categories (PatientProfile.race, US-only per patient.py:211).
-    # Emitted for US locale patients only — JP records leave race="" so
-    # `_localize_token` returns "" and the line drops silently.
-    "white": ("白人", "white"),
-    "black": ("黒人", "Black or African American"),
-    "asian": ("アジア系", "Asian"),
-    "native_american": ("ネイティブアメリカン", "American Indian or Alaska Native"),
-    "pacific_islander": ("太平洋諸島系", "Native Hawaiian or Other Pacific Islander"),
-    "other": ("その他人種", "other race"),
-}
-_ETHNICITY_LABELS: dict[str, tuple[str, str]] = {
-    "hispanic": ("ヒスパニック", "Hispanic or Latino"),
-    "not_hispanic": ("非ヒスパニック", "not Hispanic or Latino"),
-}
-_INSURANCE_LABELS: dict[str, tuple[str, str]] = {
-    # US (canonical schema names)
-    "employer_group": ("雇用主提供保険", "employer-sponsored"),
-    "medicare": ("Medicare", "Medicare"),
-    "medicaid": ("Medicaid", "Medicaid"),
-    "medicare_advantage": ("Medicare Advantage", "Medicare Advantage"),
-    "private_individual": ("個人加入民間保険", "private (individual market)"),
-    "va_tricare": ("VA/TRICARE", "VA/TRICARE"),
-    "self_pay": ("自費", "self-pay"),
-    "chip": ("CHIP", "CHIP"),
-    "dual_eligible": ("Medicare + Medicaid 二重加入", "Medicare + Medicaid (dual eligible)"),
-    # Phase 1c-1 (2026-09-22): US demographics populator writes these
-    # additional insurance_type values that the pre-fix table did not
-    # cover — the raw slug leaked into JP narratives ("uninsured",
-    # "private_employer" etc. staying English inside JA text).
-    "private_employer": ("雇用主提供民間保険", "employer-sponsored private insurance"),
-    "medicare_plus_private": ("Medicare + 補足民間保険", "Medicare with supplemental private"),
-    "medicare_medicaid": ("Medicare + Medicaid 二重加入", "Medicare + Medicaid (dual eligible)"),
-    "private": ("民間保険", "private insurance"),
-    "uninsured": ("無保険", "uninsured"),
-    "other_public": ("その他公的保険", "other public insurance"),
-    # JP (canonical + short-form aliases)
-    "employee_subscriber": ("被用者保険 (被保険者)", "employee health insurance (subscriber)"),
-    "employee_dependent": ("被用者保険 (被扶養者)", "employee health insurance (dependent)"),
-    "national_health_insurance": ("国民健康保険", "National Health Insurance"),
-    "late_elderly": ("後期高齢者医療制度", "Late-Elderly Medical Care System"),
-    # Phase 1c-1 short forms — the JP identity module (`identity/providers/jp.py`)
-    # writes `dependent` / `employee` / `national` on PatientProfile.insurance_type,
-    # NOT the canonical `employee_dependent` / `national_health_insurance` slugs.
-    # 200/600 JP p=500 patients carried "dependent" verbatim to the LLM prompt
-    # pre-fix. `NHI_employee` is the pre-Phase-1c dataclass default.
-    "employee": ("被用者保険 (被保険者)", "employee health insurance (subscriber)"),
-    "dependent": ("被用者保険 (被扶養者)", "employee health insurance (dependent)"),
-    "national": ("国民健康保険", "National Health Insurance"),
-    # Table lookup normalizes the key to lower-case (see ``_localize_token``),
-    # so `NHI_employee` must live under the lower-case slug or it falls
-    # through to the raw-slug fallback ("nhi employee" leaking into JA).
-    "nhi_employee": ("国民健康保険 (被用者相当)", "National Health Insurance (employee-eligible)"),
-}
+# Phase 1d-2 (2026-09-23): the multi-lang label tables (SMOKING /
+# ALCOHOL / MARITAL / EMPLOYMENT / OCCUPATION / RACE / ETHNICITY /
+# INSURANCE) moved to ``llm_prompt_labels.yaml``. ``_localize_token``
+# now looks up by section name instead of dict reference.
 
 
-def _localize_token(token: str, table: dict[str, tuple[str, str]], lang: str) -> str:
-    """Look a raw enum-like token up in the (JA, EN) label table.
-    Returns "" for empty / unknown / None input; falls back to a
-    lower-case slug for tokens the table does not know."""
+def _localize_token(token: str, section: str, lang: str) -> str:
+    """Look a raw enum-like token up in the named LLM-prompt-labels
+    section. Returns "" for empty / unknown / None input; falls back
+    to a lower-case slug for tokens the table does not know.
+
+    Language-agnostic: ``lang`` is used as a direct key into the YAML
+    entry (via ``resolve_localized_display``), so adding a new locale
+    is a data-only change — no branch in this function needs editing.
+    """
     if not token:
         return ""
     key = str(token).strip().lower()
     if not key or key in ("unknown", "none"):
         return ""
-    is_ja = str(lang).lower().startswith("ja")
-    hit = table.get(key)
-    if hit is not None:
-        return hit[0] if is_ja else hit[1]
-    return key.replace("_", " ")
+    from clinosim.locale.loader import load_llm_prompt_labels, resolve_localized_display
+
+    return resolve_localized_display(
+        load_llm_prompt_labels().get(section, {}).get(key, {}),
+        lang,
+        fallback=key.replace("_", " "),
+    )
 
 
 def _render_patient_demographics(patient: Any, lang: str, encounter: Any = None) -> str:
@@ -1191,12 +950,12 @@ def _render_patient_demographics(patient: Any, lang: str, encounter: Any = None)
     # appended ``str(occupation)`` raw, so JP narratives received the
     # English enum token verbatim ("service"、"manufacturing"、"office"
     # …). Route both branches through ``_localize_token`` /
-    # ``_OCCUPATION_LABELS`` — unknown tokens still fall back to the
+    # ``"occupation"`` — unknown tokens still fall back to the
     # slug so novel occupations (not yet in the table) surface something
     # rather than silently disappearing.
-    employment = _localize_token(_get(patient, "employment_status", ""), _EMPLOYMENT_LABELS, lang)
+    employment = _localize_token(_get(patient, "employment_status", ""), "employment", lang)
     occupation_raw = _get(patient, "occupation", "") or ""
-    occupation_label = _localize_token(occupation_raw, _OCCUPATION_LABELS, lang) if occupation_raw else ""
+    occupation_label = _localize_token(occupation_raw, "occupation", lang) if occupation_raw else ""
     if employment:
         # If occupation is present AND employment==employed, prefer the
         # occupation phrase; else use the employment label. Retirees
@@ -1211,20 +970,20 @@ def _render_patient_demographics(patient: Any, lang: str, encounter: Any = None)
         parts.append(occupation_label)
 
     # Smoking / alcohol — social history.
-    smoke = _localize_token(_get(patient, "smoking_status", ""), _SMOKING_LABELS, lang)
+    smoke = _localize_token(_get(patient, "smoking_status", ""), "smoking", lang)
     if smoke:
         parts.append(smoke)
-    alc = _localize_token(_get(patient, "alcohol_use", ""), _ALCOHOL_LABELS, lang)
+    alc = _localize_token(_get(patient, "alcohol_use", ""), "alcohol", lang)
     if alc:
         parts.append(alc)
 
     # Marital status — matters for disposition + family communication.
-    marital = _localize_token(_get(patient, "marital_status", ""), _MARITAL_LABELS, lang)
+    marital = _localize_token(_get(patient, "marital_status", ""), "marital", lang)
     if marital:
         parts.append(marital)
 
     # Insurance — matters for follow-up + referral routing.
-    ins = _localize_token(_get(patient, "insurance_type", ""), _INSURANCE_LABELS, lang)
+    ins = _localize_token(_get(patient, "insurance_type", ""), "insurance", lang)
     if ins:
         parts.append(ins)
 
@@ -1234,10 +993,10 @@ def _render_patient_demographics(patient: Any, lang: str, encounter: Any = None)
     # JP records (race / ethnicity strings are empty). Emit them last so
     # they read as the closing demographic anchor rather than intruding
     # on the leading age/sex/social-history clause.
-    race = _localize_token(_get(patient, "race", ""), _RACE_LABELS, lang)
+    race = _localize_token(_get(patient, "race", ""), "race", lang)
     if race:
         parts.append(race)
-    ethn = _localize_token(_get(patient, "ethnicity", ""), _ETHNICITY_LABELS, lang)
+    ethn = _localize_token(_get(patient, "ethnicity", ""), "ethnicity", lang)
     if ethn:
         parts.append(ethn)
 
@@ -1543,7 +1302,7 @@ def _build_extra_context(
             # v6 localization: prompt payload should not leak raw English
             # enum tokens into JA narrative generation.
             if ctx.target_lang == "ja":
-                extra["encounter_type"] = _ENCOUNTER_TYPE_JA.get(et_raw, et_raw)[:40]
+                extra["encounter_type"] = _lookup_ja_label(et_raw, "encounter_type")[:40]
             else:
                 extra["encounter_type"] = et_raw[:40]
 
@@ -1846,7 +1605,7 @@ def _build_extra_context(
             # like transfer_to_higher_care / home_with_family / needs_snf
             # are recognized alongside the legacy short codes.
             if ctx.target_lang == "ja":
-                extra["discharge_outcome"] = _lookup_ja_label(outcome_raw, _DISPOSITION_JA)
+                extra["discharge_outcome"] = _lookup_ja_label(outcome_raw, "disposition")
             else:
                 extra["discharge_outcome"] = outcome_raw
         # v6 blocker fix: hospital_course was collapsing to a 1-liner

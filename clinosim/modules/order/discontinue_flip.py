@@ -50,18 +50,21 @@ from clinosim.types.encounter import OrderStatus, OrderType
 def _localize_archetype(archetype: str, lang: str) -> str:
     """Resolve a clinical-course archetype slug to its localized display.
 
-    Fallback: ``archetype.replace("_", " ")`` humanised form when the
-    slug is missing from the YAML (a novel archetype introduced by
-    later disease-YAML authoring still surfaces something readable).
+    Language-agnostic: ``lang`` is a direct YAML lookup key (via
+    ``resolve_localized_display``), so adding a new locale is a
+    data-only change — no branch here needs editing. Fallback chain:
+    entry[lang] → entry["en"] → humanised slug.
     """
     if not archetype:
         return ""
     key = str(archetype).strip().lower()
-    from clinosim.locale.loader import load_narrative_archetypes
+    from clinosim.locale.loader import load_narrative_archetypes, resolve_localized_display
 
-    entry = load_narrative_archetypes().get(key, {})
-    lang_key = "ja" if str(lang).lower().startswith("ja") else "en"
-    return entry.get(lang_key) or key.replace("_", " ")
+    return resolve_localized_display(
+        load_narrative_archetypes().get(key, {}),
+        lang,
+        fallback=key.replace("_", " "),
+    )
 
 
 def _drug_key(display_name: str) -> str:

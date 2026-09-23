@@ -1,0 +1,21 @@
+# Country code → display language code mapping (Phase 1d-2, 2026-09-23).
+#
+# Consumers: ``clinosim.modules._shared.resolve_lang(country)`` reads
+# this map to pick the target ISO-639-1 language code from a country
+# code. Adding a new locale is a data change here + adding
+# ``<lang>: <display>`` entries in the narrative / llm_prompt YAML
+# files — no code edit required to route the lookup.
+#
+# Country codes are lower-cased at lookup time (case-insensitive).
+# The default when a country code has no entry is ``en`` (the
+# canonical universal fallback used across the codebase).
+
+country_language:
+  jp: ja
+  us: en
+  # Future locales — add here + populate the corresponding lang slots
+  # in ``narrative_*.yaml`` and ``llm_prompt_labels.yaml``:
+  # fr: fr
+  # de: de
+  # zh: zh
+  # ko: ko

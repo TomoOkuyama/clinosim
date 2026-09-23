@@ -511,6 +511,79 @@ def load_narrative_archetypes() -> dict[str, dict[str, str]]:
     return raw.get("archetypes", {}) or {}
 
 
+@lru_cache(maxsize=1)
+def _load_country_language_map() -> dict[str, str]:
+    """Country code (lower-case) → ISO-639-1 language code map.
+
+    Backs ``clinosim.modules._shared.resolve_lang``. Adding a new
+    locale (fr / zh / …) is a one-line YAML edit here — no code
+    change needed to route the country→lang resolution.
+    """
+    raw = _load_yaml(_LOCALE_DIR / "shared" / "country_language.yaml", fallback={})
+    m = raw.get("country_language", {}) if isinstance(raw, dict) else {}
+    return {str(k).lower(): str(v).lower() for k, v in (m or {}).items()}
+
+
+def resolve_localized_display(entry: dict[str, str] | None, lang: str, fallback: str = "") -> str:
+    """Return the display for ``lang`` from a multi-language entry.
+
+    ``entry`` is the ``{lang_code: display}`` dict authored in the
+    per-domain narrative / llm-prompt YAMLs (Phase 1d-1 / 1d-2). The
+    language code is passed through case-insensitively so a caller may
+    hold ``"ja"`` / ``"JA"`` / ``"jp"`` / an ISO-639-1 code for any
+    future locale (``"fr"``, ``"zh"``, ``"ko"``, …).
+
+    Fallback chain:
+        1. ``entry[lang]`` — the caller's requested locale.
+        2. ``entry["en"]`` — the canonical universal fallback so a
+           partially-populated entry still surfaces something readable
+           for a future locale before its translations land.
+        3. ``fallback`` — the caller's slug / humanised-key form.
+
+    Design goal (S120 feedback, 2026-09-23): adding a new target
+    language must not require a code change — extend each YAML entry
+    with ``<lang>: <display>`` and pass the new lang code at the call
+    site. The pre-Phase-1d-2 binary ``is_ja = lang.startswith("ja")``
+    check baked "ja" and "en" into the source and would silently
+    return English for a French request.
+    """
+    if not entry:
+        return fallback
+    lang_key = str(lang).strip().lower()
+    # Tolerate the "jp"/"JP" spelling used by callers holding a country
+    # code rather than a language code — both refer to Japanese output.
+    if lang_key == "jp":
+        lang_key = "ja"
+    hit = entry.get(lang_key)
+    if hit:
+        return hit
+    # EN fallback so a JA-only entry (severity, oxygen_device, etc.)
+    # still renders a readable form for callers requesting "en" —
+    # matches the pre-refactor behaviour where the JA-only tables were
+    # not consulted on EN output and the caller passed the raw token.
+    hit = entry.get("en")
+    if hit:
+        return hit
+    return fallback
+
+
+@lru_cache(maxsize=1)
+def load_llm_prompt_labels() -> dict[str, dict[str, dict[str, str]]]:
+    """Load the LLM-prompt-time locale label bundle (Phase 1d-2).
+
+    Structure: ``{section: {slug: {lang: display}}}``. Sections are the
+    16 CIF-enum-token categories consumed by
+    ``replacement_strategy._build_extra_context`` (encounter_type,
+    disposition, severity, oxygen_device, arrival_mode, risk_level,
+    barthel_band, lab_name, smoking, alcohol, marital, employment,
+    occupation, race, ethnicity, insurance). Adding a new target
+    language is a data change across each ``{lang: display}`` entry —
+    the loader is language-agnostic.
+    """
+    raw = _load_yaml(_LOCALE_DIR / "shared" / "llm_prompt_labels.yaml", fallback={})
+    return raw or {}
+
+
 @lru_cache(maxsize=2)
 def load_ambulatory_visit_length(country: str) -> dict[str, Any]:
     """Load per-visit-type ambulatory (outpatient) encounter length distributions.
