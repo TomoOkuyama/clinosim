@@ -2725,29 +2725,25 @@ class TemplateNarrativeGenerator:
         """
         hpi_text, facts = self._build_hpi(ctx)
         lang = ctx.target_lang
-        is_ja = lang == "ja"
         # HPI is already structured as a chronological onset narrative, so
         # no structural changes are needed. Text style harmonization will be
         # deferred to the LLM narrative pass when applicable.
         if not hpi_text:
-            # #1266 empty-severity guard (see `_build_hpi`).
+            # #1266 empty-severity guard (see `_build_hpi`). JA severity
+            # translation via _localize_severity_ja is JA-locale-specific
+            # (JA disease severity ontology mapping); other locales use
+            # the raw token via the phrase template.
             sev = str(ctx.severity or "").strip()
-            if is_ja:
+            if sev and lang == "ja":
                 from clinosim.modules.document.narrative.replacement_strategy import (
                     _localize_severity_ja,
                 )
 
-                if sev:
-                    _sev_disp = _localize_severity_ja(sev)
-                    hpi_text = f"{_sev_disp}の症状で受診し入院となった。"
-                else:
-                    hpi_text = "受診し入院となった。"
+                sev = _localize_severity_ja(sev)
+            if sev:
+                hpi_text = t("hpi.admission_with_severity", lang, sev=sev)
             else:
-                hpi_text = (
-                    f"Patient presented with {sev} symptoms leading to admission."
-                    if sev
-                    else "Patient presented for evaluation and admission."
-                )
+                hpi_text = t("hpi.admission_no_severity", lang)
         return hpi_text, facts
 
     # ─────────────────────────────────────────────────────────────────
@@ -2764,12 +2760,7 @@ class TemplateNarrativeGenerator:
         """
         facts: list[str] = []
         lang = ctx.target_lang
-        is_ja = lang == "ja"
-        if is_ja:
-            text = "紹介元:当院(急性期一般病棟)。担当医師の署名により発行。"
-        else:
-            text = "Referring institution: this hospital (acute-care general ward)."
-        return text, facts
+        return t("referral.referring_institution_line", lang), facts
 
     def _build_referral_destination(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
         """910 紹介先情報セクション:紹介先医療機関の記載。
@@ -2780,12 +2771,18 @@ class TemplateNarrativeGenerator:
         """
         facts: list[str] = []
         lang = ctx.target_lang
-        is_ja = lang == "ja"
-        if is_ja:
-            text = "紹介先:他院。当該患者の継続加療を目的として本情報提供書を作成する。"
-        else:
-            text = "Referral destination: unspecified other institution (continued care)."
-        return text, facts
+        return t("referral.referral_destination_line", lang), facts
+
+    # Ordered key tuple for _build_referral_purpose SHA256 index
+    # sampling (Phase 1d-28). Key order is load-bearing: it defines
+    # which YAML slot maps to which hash-index, so cohort determinism
+    # depends on preserving it.
+    _REFERRAL_PURPOSE_KEYS: tuple[str, ...] = (
+        "option_1",
+        "option_2",
+        "option_3",
+        "option_4",
+    )
 
     def _build_referral_purpose(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
         """950 紹介目的セクション:標準セットから決定的に一つ選択。
@@ -2797,30 +2794,13 @@ class TemplateNarrativeGenerator:
 
         facts: list[str] = []
         lang = ctx.target_lang
-        is_ja = lang == "ja"
         enc = ctx.encounter
         enc_id = _o(enc, "encounter_id", "") or "ENC-UNKNOWN"
-        purposes_ja = [
-            "継続加療",
-            "精査依頼",
-            "他科紹介",
-            "リハビリテーション継続",
-        ]
-        purposes_en = [
-            "continued treatment",
-            "further investigation",
-            "specialty consultation",
-            "continued rehabilitation",
-        ]
         digest = hashlib.sha256(enc_id.encode("utf-8")).digest()
-        idx = digest[0] % len(purposes_ja)
-        picked = purposes_ja[idx] if is_ja else purposes_en[idx]
+        idx = digest[0] % len(self._REFERRAL_PURPOSE_KEYS)
+        picked = _label("referral_purpose_options", self._REFERRAL_PURPOSE_KEYS[idx], lang)
         facts.append(f"ctx.encounter.encounter_id[hash-idx={idx}]")
-        if is_ja:
-            text = f"紹介目的:{picked}のため。"
-        else:
-            text = f"Referral purpose: {picked}."
-        return text, facts
+        return t("referral.referral_purpose_line", lang, purpose=picked), facts
 
     def _build_diagnoses_and_complaint(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
         """340 傷病名・主訴セクション:傷病名リスト + 主訴の複合セクション。"""
@@ -2828,7 +2808,6 @@ class TemplateNarrativeGenerator:
 
         facts: list[str] = []
         lang = ctx.target_lang
-        is_ja = lang == "ja"
 
         # Diagnoses
         diagnoses = ctx.diagnoses or []
@@ -2842,7 +2821,7 @@ class TemplateNarrativeGenerator:
                 or _o(dx, "admission_diagnosis_system", "")
                 or system_key_for("diagnosis", ctx.locale.upper())
             )
-            display = code_lookup(system, code, ctx.target_lang)
+            display = code_lookup(system, code, lang)
             if display and display != code:
                 dx_lines.append(t("list_item.numbered_dx_with_code", lang, idx=idx, display=display, code=code))
             else:
@@ -2854,36 +2833,27 @@ class TemplateNarrativeGenerator:
         cc_text, cc_facts = self._build_chief_complaint(ctx)
         facts.extend(cc_facts)
 
-        if is_ja:
-            header = "【傷病名】\n" + ("\n".join(dx_lines) if dx_lines else "特記事項なし。")
-            complaint = f"\n\n【主訴】\n{cc_text}"
-            text = header + complaint
-        else:
-            header = "Diagnoses:\n" + ("\n".join(dx_lines) if dx_lines else "None recorded.")
-            complaint = f"\n\nChief complaint: {cc_text}"
-            text = header + complaint
+        dx_body = "\n".join(dx_lines) if dx_lines else t("diagnoses_and_complaint.no_diagnoses", lang)
+        text = t("diagnoses_and_complaint.section", lang, dx_lines=dx_body, cc_text=cc_text)
         return text, facts
 
     def _build_present_illness_ref(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
         """360 現病歴セクション(診療情報提供書用):HPI builder を再利用。"""
         hpi_text, facts = self._build_hpi(ctx)
         lang = ctx.target_lang
-        is_ja = lang == "ja"
         if not hpi_text:
             # #1266 empty-severity guard (see `_build_hpi`).
             sev = str(ctx.severity or "").strip()
-            if is_ja:
+            if sev and lang == "ja":
                 from clinosim.modules.document.narrative.replacement_strategy import (
                     _localize_severity_ja,
                 )
 
-                if sev:
-                    _sev_disp = _localize_severity_ja(sev)
-                    hpi_text = f"{_sev_disp}の症状で受診し入院となった。"
-                else:
-                    hpi_text = "受診となった。"
+                sev = _localize_severity_ja(sev)
+            if sev:
+                hpi_text = t("hpi.ref_with_severity", lang, sev=sev)
             else:
-                hpi_text = f"Patient presented with {sev} symptoms." if sev else "Patient presented for evaluation."
+                hpi_text = t("hpi.ref_no_severity", lang)
         return hpi_text, facts
 
     # ─────────────────────────────────────────────────────────────────

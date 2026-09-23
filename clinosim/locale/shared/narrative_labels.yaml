@@ -213,3 +213,14 @@ dds_severity:
   mild: {en: Mild, ja: 軽症}
   moderate: {en: Moderate, ja: 中等症}
   severe: {en: Severe, ja: 重症}
+
+# Referral purpose 4-option pool (Phase 1d-28). Was inline
+# ``purposes_ja/en`` lists in ``_build_referral_purpose``. Selection is
+# by SHA256 hash of encounter_id modulo len(keys), so key ORDER
+# matters for RNG-neutral determinism — the Python side keeps a small
+# tuple of ordered keys.
+referral_purpose_options:
+  option_1: {en: continued treatment, ja: 継続加療}
+  option_2: {en: further investigation, ja: 精査依頼}
+  option_3: {en: specialty consultation, ja: 他科紹介}
+  option_4: {en: continued rehabilitation, ja: リハビリテーション継続}
