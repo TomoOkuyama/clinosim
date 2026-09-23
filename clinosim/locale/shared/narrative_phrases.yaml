@@ -207,7 +207,7 @@ acp:
     ja: "手術予定：{joined}"
     en: "Planned surgery: {joined}"
 
-# Nutrition / rehab composite phrases.
+# Nutrition composite phrases (Phase 1d-8 / 1d-11 merged).
 nutrition:
   malnutrition_high_line:
     ja: "低栄養リスク：高（BMI {bmi}）"
@@ -215,6 +215,18 @@ nutrition:
   overnutrition_line:
     ja: "過栄養傾向（BMI {bmi}）"
     en: "Overnutrition tendency (BMI {bmi})"
+  feeding_assist:
+    ja: "摂食動作に介助必要"
+    en: "feeding assistance required"
+  assessment_head:
+    ja: "栄養状態評価: "
+    en: "Nutrition assessment: "
+  dm_ckd_combined:
+    ja: "DM+CKD 併存で複合栄養制限要"
+    en: "DM+CKD requires combined dietary restriction"
+  other_head:
+    ja: "その他: "
+    en: "Other: "
 
 rehab:
   discharge_barthel_line:
@@ -341,6 +353,24 @@ common:
   relative:
     ja: "親族"
     en: "relative"
+
+# NCP nutrition-care-plan phrases (Phase 1d-11) — additions to the
+# top-level ``nutrition:`` section. YAML duplicate top-level keys
+# silently overwrite, so both blocks must be merged.
+
+# Patient-facing section labels.
+patient_education:
+  head:
+    ja: "患者教育: "
+    en: "Patient education: "
+
+discharge_readiness:
+  head:
+    ja: "退院準備: "
+    en: "Discharge readiness: "
+  procedures_head:
+    ja: "実施処置: "
+    en: "Procedures: "
 
 # ------------------------------------------------------------
 # Fallback texts (Phase 1d-7): migrated from module-level
