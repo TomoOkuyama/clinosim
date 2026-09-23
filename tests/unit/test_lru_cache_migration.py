@@ -146,12 +146,11 @@ def test_load_med_terms_ja_fallback_when_yaml_missing(monkeypatch):
     `{categories: {}, terms: {}}` shape."""
     from pathlib import Path
 
-    from clinosim.modules.output.fhir_r4.lib import localization as _fhir_localization
-
     # Phase 1d-3 (2026-09-23): _load_med_terms_ja is now a projection of
     # load_med_terms (multi-language), so both caches must be cleared to
     # exercise the yaml-missing fallback path.
     from clinosim.locale.loader import load_med_terms as _load_med_terms
+    from clinosim.modules.output.fhir_r4.lib import localization as _fhir_localization
 
     _load_med_terms.cache_clear()
     _fhir_localization._load_med_terms_ja.cache_clear()
