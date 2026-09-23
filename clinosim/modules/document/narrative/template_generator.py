@@ -2350,7 +2350,6 @@ class TemplateNarrativeGenerator:
 
         facts: list[str] = []
         lang = ctx.target_lang
-        is_ja = lang == "ja"
 
         allergies = ctx.allergies or []
         if not allergies:
@@ -2376,7 +2375,7 @@ class TemplateNarrativeGenerator:
             criticality = _o(allergy, "criticality", "") or ""
             if display:
                 if criticality:
-                    crit_str = f"（{criticality}）" if is_ja else f" ({criticality})"
+                    crit_str = t("allergy.criticality_suffix", lang, criticality=criticality)
                     parts.append(f"{display}{crit_str}")
                 else:
                     parts.append(display)
@@ -3578,7 +3577,7 @@ class TemplateNarrativeGenerator:
             if freq:
                 bits.append(_ja_term(str(freq)))
             if days:
-                bits.append(f"x{days}日分" if is_ja else f"x{days}d")
+                bits.append(t("prescription.days_supply_suffix", lang, days=days))
             lines.append(" ".join(bits))
 
         if lines:
@@ -3705,7 +3704,7 @@ class TemplateNarrativeGenerator:
                             else f"酸素投与: {device_disp} {float(flow):g} L/min"
                         )
                     except (TypeError, ValueError):
-                        status_bits.append(f"酸素投与: {device_disp}" if is_ja else f"O2: {device_disp}")
+                        status_bits.append(t("oxygen.device_line", lang, device=device_disp))
                 else:
                     status_bits.append("酸素投与継続中" if is_ja else "supplemental O2")
             facts.append("ctx.vitals.today")
@@ -4133,7 +4132,7 @@ class TemplateNarrativeGenerator:
             return (t("fallback.acp_other_staff_fallback", lang)), facts
         facts.append("encounter.primary_nurse_id")
         nurse_disp = _resolve_staff_name(nurse_id, ctx.roster_map, is_ja)
-        return (f"担当看護師：{nurse_disp}" if is_ja else f"Assigned nurse: {nurse_disp}"), facts
+        return t("acp.assigned_nurse_line", lang, name=nurse_disp), facts
 
     def _build_acp_diagnosis(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
         """病名（他に考え得る病名）— ctx.diagnoses, admission code preferred
@@ -4197,7 +4196,7 @@ class TemplateNarrativeGenerator:
             return fallback, facts
         facts.append("ctx.lab_results")
         joined = "、".join(sorted(names)) if is_ja else ", ".join(sorted(names))
-        return (f"検査項目：{joined} を実施予定" if is_ja else f"Planned tests: {joined}"), facts
+        return t("acp.test_schedule_line", lang, joined=joined), facts
 
     def _build_acp_surgery_schedule(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
         """手術内容及び日程 — ctx.procedures filtered to category_code=387713003 (surgical)."""
@@ -4218,7 +4217,7 @@ class TemplateNarrativeGenerator:
             if _o(p, "procedure_type", "")
         ]
         joined = "、".join(types) if is_ja else ", ".join(types)
-        return (f"手術予定：{joined}" if is_ja else f"Planned surgery: {joined}"), facts
+        return t("acp.surgery_schedule_line", lang, joined=joined), facts
 
     def _estimated_los_days(self, ctx: NarrativeContext) -> tuple[int, list[str]]:
         """disease_protocol.target_los[country][severity].mean → whole days,
@@ -4323,9 +4322,9 @@ class TemplateNarrativeGenerator:
         facts.append("patient.bmi")
         bmi_r = round(float(bmi), 1)
         if bmi_r < NARRATIVE_BMI_UNDERWEIGHT_MAX_EXCLUSIVE:
-            return (f"低栄養リスク：高（BMI {bmi_r}）" if is_ja else f"Malnutrition risk: high (BMI {bmi_r})"), facts
+            return t("nutrition.malnutrition_high_line", lang, bmi=bmi_r), facts
         if bmi_r > NARRATIVE_BMI_NORMAL_MAX_EXCLUSIVE:
-            return (f"過栄養傾向（BMI {bmi_r}）" if is_ja else f"Overnutrition tendency (BMI {bmi_r})"), facts
+            return t("nutrition.overnutrition_line", lang, bmi=bmi_r), facts
         return (
             f"低栄養リスク：低（BMI {bmi_r}、リスクなし）"
             if is_ja
@@ -4440,7 +4439,7 @@ class TemplateNarrativeGenerator:
         for a in (ctx.allergies or [])[:3]:
             substance = _o(a, "substance", None) or _o(a, "name", None) or ""
             if substance:
-                parts.append(f"アレルギー配慮: {substance}" if is_ja else f"Allergy avoidance: {substance}")
+                parts.append(t("allergy.avoidance_line", lang, substance=substance))
         if parts:
             facts.append("ctx.allergies")
         # Combined chronic (DM+CKD) — polyrestrictive diet
@@ -4711,7 +4710,7 @@ class TemplateNarrativeGenerator:
             barthel = _o(latest, "barthel_score", None)
             if barthel is not None:
                 facts.append("ctx.adl_assessments[-1]")
-                parts.append(f"退院時 Barthel {barthel}/100" if is_ja else f"Discharge Barthel {barthel}/100")
+                parts.append(t("rehab.discharge_barthel_line", lang, score=barthel))
         if risks:
             latest = risks[-1]
             fall = _o(latest, "fall_risk_level", None)
@@ -4725,7 +4724,7 @@ class TemplateNarrativeGenerator:
                     if is_ja:
                         _fall_ja = {"low": "低リスク", "moderate": "中等度リスク", "high": "高リスク"}
                         fall_disp = _fall_ja.get(str(fall).lower(), fall)
-                    bits.append(f"転倒 {fall_disp}" if is_ja else f"fall {fall}")
+                    bits.append(t("rehab.fall_suffix", lang, label=fall_disp if is_ja else fall))
                 if braden is not None:
                     bits.append(f"Braden {braden}")
                 parts.append("、".join(bits) if is_ja else ", ".join(bits))
@@ -5798,9 +5797,7 @@ class TemplateNarrativeGenerator:
                 ualb = lab_by_name.get("urine_albumin") or lab_by_name.get("albuminuria")
                 if ualb:
                     v, u = ualb
-                    parts_dm.append(
-                        f"尿アルブミン {v} {u or 'mg/gCr'}" if is_ja else f"urine albumin {v} {u or 'mg/gCr'}"
-                    )
+                    parts_dm.append(t("chronic_labs.urine_albumin", lang, value=v, unit=u or "mg/gCr"))
                 # 空腹時血糖 — Issue #1188 F4: Nathan formula consistency
                 # gate. `eAG (mg/dL) ≈ 28.7 × HbA1c − 46.7`. When HbA1c is
                 # elevated (≥8) but the glucose is normoglycemic (<160),
@@ -5829,13 +5826,13 @@ class TemplateNarrativeGenerator:
                         except (TypeError, ValueError):
                             pass
                     if _emit_glucose:
-                        parts_dm.append(f"血糖 {v_g} {u_g or 'mg/dL'}" if is_ja else f"glucose {v_g} {u_g or 'mg/dL'}")
+                        parts_dm.append(t("chronic_labs.glucose_line", lang, value=v_g, unit=u_g or "mg/dL"))
                 med = _pick_med_containing(
                     en_hints=("Metformin", "Glimepiride", "Insulin", "Sitagliptin", "DPP"),
                     ja_hints=("メトホルミン", "グリメピリド", "インスリン", "シタグリプチン", "DPP"),
                 )
                 if med:
-                    parts_dm.append(f"{med} 継続" if is_ja else f"{med} continue")
+                    parts_dm.append(t("prescription.medication_continue", lang, med=med))
                 if parts_dm:
                     interp = ("、" if is_ja else ", ").join(parts_dm) + ("。" if is_ja else ".")
 
@@ -5891,7 +5888,7 @@ class TemplateNarrativeGenerator:
                             stage = "G5"
                     except (TypeError, ValueError):
                         stage = ""
-                    stage_ja = f"CKD ステージ {stage}" if is_ja else f"CKD stage {stage}"
+                    stage_ja = t("chronic_labs.ckd_stage", lang, stage=stage)
                     # UCUM eGFR unit "mL/min/{1.73_m2}" carries a `{}`
                     # annotation that reads as a placeholder in narrative.
                     # Prefer the plain human display for prose emit.
@@ -5916,7 +5913,7 @@ class TemplateNarrativeGenerator:
                     ja_hints=("LABA", "LAMA", "チオトロピウム", "サルメテロール"),
                 )
                 if med:
-                    bits.append(f"{med} 吸入継続" if is_ja else f"{med} inhalation continue")
+                    bits.append(t("prescription.medication_inhalation_continue", lang, med=med))
                 if bits:
                     interp = ("、" if is_ja else ", ").join(bits) + (
                         "、CAT score / mMRC で症状評価。" if is_ja else "; CAT / mMRC symptom review."
@@ -5933,7 +5930,7 @@ class TemplateNarrativeGenerator:
                     ja_hints=("ICS", "サルメテロール", "モンテルカスト"),
                 )
                 if med:
-                    bits2.append(f"{med} 継続" if is_ja else f"{med} continue")
+                    bits2.append(t("prescription.medication_continue", lang, med=med))
                 if bits2:
                     interp = ("、" if is_ja else ", ").join(bits2) + (
                         "、ACT で コントロール状況確認。" if is_ja else "; ACT control review."
@@ -5953,7 +5950,7 @@ class TemplateNarrativeGenerator:
                 if sbp is not None and dbp is not None:
                     obs_bits.append(f"BP {int(sbp)}/{int(dbp)} mmHg")
                 if hr_f is not None:
-                    obs_bits.append(f"HR {int(round(hr_f))} 回/分" if is_ja else f"HR {int(round(hr_f))} /min")
+                    obs_bits.append(t("chronic_labs.hr_per_min", lang, value=int(round(hr_f))))
                 if temp_f is not None:
                     obs_bits.append(f"T {temp_f:.1f}°C")
                 if spo2_f is not None:
@@ -6143,7 +6140,7 @@ class TemplateNarrativeGenerator:
             if freq:
                 bits.append(str(freq))
             if days:
-                bits.append(f"x{days}日分" if is_ja else f"x{days}d")
+                bits.append(t("prescription.days_supply_suffix", lang, days=days))
             parts.append(" ".join(bits))
         if not parts:
             return ""
@@ -6185,11 +6182,10 @@ class TemplateNarrativeGenerator:
         ep = ctx.encounter_protocol
         interval = _o(ep, "next_visit_interval_days", None) if ep is not None else None
         lang = ctx.target_lang
-        is_ja = lang == "ja"
         if interval:
             try:
                 d = int(interval)
-                return f"次回外来: {d}日後を予定。" if is_ja else f"Next visit: in {d} days (planned)."
+                return t("prescription.next_visit", lang, days=d)
             except (TypeError, ValueError):
                 pass
         # #1180: per-condition follow-up interval bands (in days). Reflects
@@ -6225,7 +6221,7 @@ class TemplateNarrativeGenerator:
         key = f"{pat_id}|{enc_id}|follow_up_interval".encode()
         idx = int.from_bytes(hashlib.sha256(key).digest()[:4], "big") % len(band)
         d = band[idx]
-        return f"次回外来: {d}日後を予定。" if is_ja else f"Next visit: in {d} days (planned)."
+        return t("prescription.next_visit", lang, days=d)
 
     def _compose_current_medications_line(self, ctx: NarrativeContext) -> str:
         """List the patient's current medications for the Plan section.
