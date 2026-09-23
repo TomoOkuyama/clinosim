@@ -79,6 +79,46 @@ def _dedup_key(name: str) -> str:
     return " ".join(name.lower().split())
 
 
+def _discharge_protocol_hold_reason_en(disease_id: str | None) -> str:
+    """EN hold_reason for a disease-protocol-driven discharge medication hold.
+
+    Phase 1c-5 (2026-09-23): the human-readable EN form replaces the
+    machine-slug ``<disease_id> protocol hold`` that used to appear
+    verbatim in narratives. When ``disease_id`` is a known complication
+    slug (``heart_failure_exacerbation`` / ``acute_kidney_injury`` /
+    …) the humanised ``_COMPLICATION_EN`` display is used; otherwise
+    the slug is passed through so a novel disease surfaces something
+    rather than being dropped.
+    """
+    from clinosim.modules.document.narrative.template_generator import (
+        _localize_complication,
+    )
+
+    if not disease_id:
+        return "held per discharge protocol"
+    label = _localize_complication(disease_id, "en") or disease_id
+    return f"held per {label} discharge protocol"
+
+
+def _discharge_protocol_hold_reason_ja(disease_id: str | None) -> str:
+    """JA hold_reason for a disease-protocol-driven discharge medication hold.
+
+    Phase 1c-5 (2026-09-23): pre-fix the JP p=10000 audit found the raw
+    slug (``heart_failure_exacerbation protocol による保留``) leaking into
+    JA narratives (~2,900 occurrences). Route the disease_id through
+    ``_localize_complication`` so JA reads 「心不全増悪のプロトコルに
+    よる保留」.
+    """
+    from clinosim.modules.document.narrative.template_generator import (
+        _localize_complication,
+    )
+
+    if not disease_id:
+        return "プロトコルによる保留"
+    label = _localize_complication(disease_id, "ja") or disease_id
+    return f"{label}のプロトコルによる保留"
+
+
 def _log_discharge_hold(
     patient: PatientProfile,
     encounter_id: str,
@@ -243,8 +283,8 @@ def build_discharge_rx(
                 encounter_id=encounter_id,
                 held_drug_name=drug_name,
                 held_drug_name_ja=drug_spec.get("drug_ja", "") or drug_name,
-                hold_reason=f"{disease_id} protocol hold" if disease_id else "protocol hold",
-                hold_reason_ja=f"{disease_id} protocol による保留" if disease_id else "protocol による保留",
+                hold_reason=_discharge_protocol_hold_reason_en(disease_id),
+                hold_reason_ja=_discharge_protocol_hold_reason_ja(disease_id),
                 timestamp=admission_time,
             )
             return

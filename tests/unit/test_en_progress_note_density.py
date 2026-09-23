@@ -86,7 +86,10 @@ def test_en_assessment_cites_abnormal_labs_today() -> None:
             ],
         )
     )
-    assert "Creatinine 2.1 mg/dL [H]" in out
+    # Phase 1c-5 (2026-09-23): lab-name routed through _localize_lab_name;
+    # EN table canonicalizes full-word labs to lowercase-first prose
+    # ("creatinine", not "Creatinine"). Abbreviations stay uppercase.
+    assert "creatinine 2.1 mg/dL [H]" in out
     assert "K 5.6 mmol/L [H]" in out
     assert "Notable labs today" in out
 
