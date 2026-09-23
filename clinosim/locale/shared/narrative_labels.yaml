@@ -224,3 +224,13 @@ referral_purpose_options:
   option_2: {en: further investigation, ja: 精査依頼}
   option_3: {en: specialty consultation, ja: 他科紹介}
   option_4: {en: continued rehabilitation, ja: リハビリテーション継続}
+
+# Discharge disposition labels (Phase 1d-32). Was ``_JA_DISPO_LABEL``
+# and ``_EN_DISPO_LABEL`` module-level dicts. FHIR / eDS
+# discharge_disposition slugs → per-locale narrative display.
+discharge_disposition:
+  home: {en: discharged home, ja: 自宅退院}
+  hosp: {en: transferred to another hospital, ja: 他院転院}
+  other-hcf: {en: transferred to another healthcare facility, ja: 他施設転院}
+  snf: {en: discharged to skilled nursing facility, ja: 施設退院}
+  exp: {en: expired, ja: 死亡退院}

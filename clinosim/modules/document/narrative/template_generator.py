@@ -340,20 +340,9 @@ _GENERIC_PLAN_EN = t("fallback.generic_plan", "en")
 # JP/EN disposition-label map for `_build_discharge_details`. Kept at
 # module scope because the equivalent function-local ``UPPER_CASE`` binding
 # would trigger the N806 lint rule.
-_JA_DISPO_LABEL: dict[str, str] = {
-    "home": "自宅退院",
-    "hosp": "他院転院",
-    "other-hcf": "他施設転院",
-    "snf": "施設退院",
-    "exp": "死亡退院",
-}
-_EN_DISPO_LABEL: dict[str, str] = {
-    "home": "discharged home",
-    "hosp": "transferred to another hospital",
-    "other-hcf": "transferred to another healthcare facility",
-    "snf": "discharged to skilled nursing facility",
-    "exp": "expired",
-}
+# Phase 1d-32: ``_JA_DISPO_LABEL`` / ``_EN_DISPO_LABEL`` moved to
+# ``clinosim/locale/shared/narrative_labels.yaml`` under
+# ``discharge_disposition``. Callers resolve via ``_label``.
 
 
 def _render_safety_skips_line(skips: list[dict], lang: str) -> str:
@@ -2592,10 +2581,15 @@ class TemplateNarrativeGenerator:
         return text, facts
 
     def _build_admission_details(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
-        """322 入院時詳細セクション:入院日・入院経路(救急経由か)・入棟病棟。"""
+        """322 入院時詳細セクション:入院日・入院経路(救急経由か)・入棟病棟。
+
+        JA sentence structure joins fragments with 「、」 then closes
+        with 「に入院した。」. EN joins with " " then a trailing period.
+        Fragment templates live in ``narrative_phrases.yaml::
+        admission_details``.
+        """
         facts: list[str] = []
         lang = ctx.target_lang
-        is_ja = lang == "ja"
         enc = ctx.encounter
         adm_dt = _o(enc, "admission_datetime", "") if enc is not None else ""
         ward = _o(enc, "ward", "") if enc is not None else ""
@@ -2606,26 +2600,17 @@ class TemplateNarrativeGenerator:
         adm_date = ""
         if adm_dt:
             adm_date = str(adm_dt).split("T")[0]
-        if is_ja:
-            parts: list[str] = []
-            if adm_date:
-                parts.append(f"{adm_date}")
-            if via_ed:
-                parts.append("救急外来受診後")
-            if ward:
-                parts.append(f"{ward}病棟")
-            parts.append("に入院した。")
-            text = "、".join(parts[:-1]) + parts[-1] if len(parts) > 1 else parts[0]
-        else:
-            fragments: list[str] = []
-            if adm_date:
-                fragments.append(f"Admitted on {adm_date}")
-            if via_ed:
-                fragments.append("via the emergency department")
-            if ward:
-                fragments.append(f"to the {ward} ward")
-            text = " ".join(fragments) + "." if fragments else "Admitted for inpatient care."
-        return text, facts
+        fragments: list[str] = []
+        if adm_date:
+            fragments.append(t("admission_details.date_slot", lang, date=adm_date))
+        if via_ed:
+            fragments.append(t("admission_details.via_ed_slot", lang))
+        if ward:
+            fragments.append(t("admission_details.ward_slot", lang, ward=ward))
+        if not fragments:
+            return t("admission_details.fallback", lang), facts
+        parts_joined = t("admission_details.fragment_sep", lang).join(fragments)
+        return t("admission_details.full_line", lang, parts=parts_joined), facts
 
     def _build_discharge_details(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
         """324 退院時詳細セクション:退院日・退院病棟・退院時転帰(JP-only)。
@@ -2639,38 +2624,37 @@ class TemplateNarrativeGenerator:
         """
         facts: list[str] = []
         lang = ctx.target_lang
-        is_ja = lang == "ja"
         enc = ctx.encounter
         dis_dt = _o(enc, "discharge_datetime", None) if enc is not None else None
         ward = _o(enc, "ward", "") if enc is not None else ""
         disposition = _o(enc, "discharge_disposition", "") if enc is not None else ""
         facts.append("ctx.encounter.discharge_datetime")
-        # Disposition maps to Japanese display text (narrative short form, not
-        # JP-CLINS spec codes). _JA_DISPO_LABEL and _EN_DISPO_LABEL are
-        # module-scope constants (defined at file top).
+        # Disposition slug → per-locale narrative label lives in
+        # ``narrative_labels.yaml::discharge_disposition`` (Phase 1d-32).
 
         dis_date = ""
         if dis_dt:
             dis_date = str(dis_dt).split("T")[0]
 
-        if is_ja:
+        dispo_default = t("discharge_details.disposition_default", lang)
+        dispo_label = _label("discharge_disposition", disposition, lang, fallback=dispo_default)
+
+        if lang == "ja":
             parts: list[str] = []
             if dis_date:
-                parts.append(f"{dis_date}")
+                parts.append(dis_date)
             if ward:
-                parts.append(f"{ward}病棟から")
-            dispo_label = _JA_DISPO_LABEL.get(disposition, "退院")
+                parts.append(t("discharge_details.ward_slot", lang, ward=ward))
             parts.append(f"{dispo_label}となった。")
             text = "、".join(parts[:-1]) + parts[-1] if len(parts) > 1 else parts[0]
             if not text:
-                text = "退院時所見の記録なし。"
+                text = t("discharge_details.fallback_ja_only", lang)
         else:
             fragments: list[str] = []
             if dis_date:
-                fragments.append(f"Discharged on {dis_date}")
+                fragments.append(t("discharge_details.date_slot", lang, date=dis_date))
             if ward:
-                fragments.append(f"from the {ward} ward")
-            dispo_label = _EN_DISPO_LABEL.get(disposition, "discharged")
+                fragments.append(t("discharge_details.ward_slot", lang, ward=ward))
             fragments.append(f"({dispo_label})")
             text = " ".join(fragments) + "." if fragments else "Discharge details not recorded."
         return text, facts
@@ -5897,7 +5881,6 @@ class TemplateNarrativeGenerator:
         """Build triage_details from encounter.triage_data."""
         facts: list[str] = []
         lang = ctx.target_lang
-        is_ja = lang == "ja"
         fallback = t("fallback.triage_fallback", lang)
 
         triage = _o(ctx.encounter, "triage_data", None)
@@ -5915,12 +5898,8 @@ class TemplateNarrativeGenerator:
         else:
             level_text = t("control_status.not_assessed", lang)
 
-        if is_ja:
-            text = f"トリアージレベル: {level_text}。来院形態: {arrival_display or '不明'}。"
-        else:
-            text = f"Triage level: {level_text}. Arrival mode: {arrival_display or 'unknown'}."
-
-        return text, facts
+        mode_display = arrival_display or t("triage_details.arrival_unknown", lang)
+        return t("triage_details.line", lang, level=level_text, mode=mode_display), facts
 
     def _build_ed_physical_exam(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
         """Build physical_exam for ED_NOTE from ed_note_template.physical_exam_<lang>.
