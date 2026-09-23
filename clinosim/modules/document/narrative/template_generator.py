@@ -2475,7 +2475,7 @@ class TemplateNarrativeGenerator:
         entries: list[str] = []
         for fam in fams:
             rel = str(_o(fam, "relationship", "") or "")
-            label = label_map.get(rel, rel or ("親族" if is_ja else "relative"))
+            label = label_map.get(rel, rel or t("common.relative", lang))
             deceased = bool(_o(fam, "deceased", False))
             codes = list(_o(fam, "condition_codes", []) or [])
             displays: list[str] = []
@@ -3710,7 +3710,7 @@ class TemplateNarrativeGenerator:
                     except (TypeError, ValueError):
                         status_bits.append(t("oxygen.device_line", lang, device=device_disp))
                 else:
-                    status_bits.append("酸素投与継続中" if is_ja else "supplemental O2")
+                    status_bits.append(t("nursing.supplemental_o2", lang))
             facts.append("ctx.vitals.today")
 
         # Today's meds (limit 3 for shift-note brevity)
@@ -3902,7 +3902,7 @@ class TemplateNarrativeGenerator:
             labels.append(_code_lookup(key, emit_code, ctx.target_lang) or emit_code)
         if labels:
             parts.append(
-                ("既往: " if is_ja else "PMH: ")
+                t("pmh.header_prefix", lang)
                 + ("、".join(labels) if is_ja else ", ".join(labels))
                 + ("。" if is_ja else ".")
             )
@@ -4033,14 +4033,14 @@ class TemplateNarrativeGenerator:
                         facts.append("ctx.nursing_risk_assessments")
             braden = _o(latest, "braden_total", None)
             if braden is not None and braden <= 14:
-                pu = "褥瘡リスク" if is_ja else "pressure-ulcer risk"
+                pu = t("nursing.pu_risk_label", lang)
                 if pu not in dx_labels:
                     dx_labels.append(pu)
                     if "ctx.nursing_risk_assessments" not in facts:
                         facts.append("ctx.nursing_risk_assessments")
 
         if dx_labels:
-            head = "看護診断: " if is_ja else "Nursing diagnoses: "
+            head = t("nursing.diagnoses_head", lang)
             sep = "、" if is_ja else ", "
             return head + sep.join(dx_labels) + ("。" if is_ja else "."), facts
         return (t("fallback.nursing_dx_fallback", lang)), facts
@@ -4068,8 +4068,8 @@ class TemplateNarrativeGenerator:
         # existing action already opens with the fall-precaution /
         # PU-prevention prefix (locale-specific).
         risks = list(getattr(ctx, "nursing_risk_assessments", None) or [])
-        _fall_prefix = "転倒予防" if is_ja else "fall precautions"
-        _pu_prefix = "褥瘡予防" if is_ja else "PU prevention"
+        _fall_prefix = t("nursing.fall_precautions", lang)
+        _pu_prefix = t("nursing.pu_prevention", lang)
         if risks:
             latest = risks[-1]
             if str(_o(latest, "fall_risk_level", "") or "").lower() in ("high", "moderate"):
@@ -4094,7 +4094,7 @@ class TemplateNarrativeGenerator:
                         facts.append("ctx.nursing_risk_assessments")
 
         if actions:
-            head = "看護計画: " if is_ja else "Care plan: "
+            head = t("nursing.care_plan_head", lang)
             sep = "、" if is_ja else "; "
             return head + sep.join(actions) + ("。" if is_ja else "."), facts
         return (t("fallback.care_plan_fallback", lang)), facts
@@ -4300,10 +4300,8 @@ class TemplateNarrativeGenerator:
             facts.append("encounter.ward_id")
         if physician:
             facts.append("encounter.attending_physician_id")
-        ward_disp = ward or ("未定" if is_ja else "TBD")
-        physician_disp = (
-            _resolve_staff_name(physician, ctx.roster_map, is_ja) if physician else ("未定" if is_ja else "TBD")
-        )
+        ward_disp = ward or t("common.tbd", lang)
+        physician_disp = _resolve_staff_name(physician, ctx.roster_map, is_ja) if physician else t("common.tbd", lang)
         if is_ja:
             return f"病棟：{ward_disp}　担当医師：{physician_disp}", facts
         return f"Ward: {ward_disp}, Attending physician: {physician_disp}", facts
@@ -4352,13 +4350,13 @@ class TemplateNarrativeGenerator:
                 bmi = float(weight) / ((float(height) / 100) ** 2)
                 facts.append("patient.weight_kg+height_cm")
                 if bmi < 18.5:
-                    band = "低体重" if is_ja else "underweight"
+                    band = t("bmi_band.underweight", lang)
                 elif bmi < 25:
-                    band = "普通" if is_ja else "normal"
+                    band = t("bmi_band.normal", lang)
                 elif bmi < 30:
-                    band = "過体重" if is_ja else "overweight"
+                    band = t("bmi_band.overweight", lang)
                 else:
-                    band = "肥満" if is_ja else "obese"
+                    band = t("bmi_band.obese", lang)
                 parts.append(f"BMI {bmi:.1f} ({band})")
             except (TypeError, ValueError, ZeroDivisionError):
                 pass
@@ -4367,10 +4365,10 @@ class TemplateNarrativeGenerator:
         codes = {(_o(c, "code", "") or (c if isinstance(c, str) else "")).split(".")[0].upper() for c in conds}
         risk_conds = []
         risk_map = {
-            "E11": "糖尿病栄養管理" if is_ja else "diabetic diet",
-            "N18": "CKD 蛋白制限" if is_ja else "CKD protein restriction",
-            "I50": "心不全水分・塩分制限" if is_ja else "HF fluid/salt restriction",
-            "K70": "肝機能考慮" if is_ja else "hepatic diet",
+            "E11": t("diet_plan.diabetic", lang),
+            "N18": t("diet_plan.ckd_protein_restriction", lang),
+            "I50": t("diet_plan.hf_fluid_salt_restriction", lang),
+            "K70": t("diet_plan.hepatic", lang),
         }
         for k, label in risk_map.items():
             if k in codes:
