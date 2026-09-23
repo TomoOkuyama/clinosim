@@ -880,6 +880,55 @@ proc_note:
   postop_baseline:
     ja: "術後方針: バイタル・穿刺部位（挿入部）を経時的に観察し、合併症の早期発見に努める。翌日以降にフォロー画像・検査を予定する。"
     en: "Post-procedure plan: monitor vitals and the puncture / insertion site serially for early detection of complications. Follow-up imaging or labs will be scheduled the next day."
+  # Procedure-name composer sub-parts (Phase 1d-25).
+  procedure_head:
+    ja: "処置名: {display}"
+    en: "Procedure: {display}"
+  procedure_code_paren:
+    ja: "（{code}）"
+    en: " ({code})"
+  procedure_type_suffix:
+    ja: "／術式区分: {ptype}"
+    en: " / type: {ptype}"
+  # Consent boilerplate (Phase 1d-25). Static text; no interpolation.
+  consent_line:
+    ja: "インフォームド・コンセント: 患者本人（または家族）に手技の目的・方法・予想される合併症について文書で説明し、同意を得た。"
+    en: "Informed consent: risks, benefits, and alternatives were explained to the patient (or surrogate) and written consent was obtained prior to the procedure."
+  # Performer + assistants + anesthesiologist compound line (Phase 1d-25).
+  # _build_pn_performer localises staff-ids with the ", MD" / 医師 role suffix
+  # inline, then joins per-role lines with "。" / ". " (locale-specific glue).
+  performer_role_suffix:
+    ja: "{name}医師"
+    en: "{name}, MD"
+  performer_head:
+    ja: "実施者: {performer}"
+    en: "Operator: {performer}"
+  performer_none:
+    ja: "実施者: 記録なし"
+    en: "Operator: not documented"
+  performer_assistants:
+    ja: "介助: {list}"
+    en: "Assistants: {list}"
+  performer_anesth:
+    ja: "麻酔科医: {name}"
+    en: "Anesthesiologist: {name}"
+  # Analgesia composer (Phase 1d-25).
+  analgesia_line:
+    ja: "麻酔・鎮静: {method}下に施行。"
+    en: "Analgesia: procedure performed under {method}."
+  # Course composer (Phase 1d-25).
+  course_duration_head:
+    ja: "処置経過: 所要時間{duration}分にて実施。"
+    en: "Course: procedure took {duration} minutes."
+  course_approach_part:
+    ja: "アプローチは{approach}。"
+    en: " Approach: {approach}."
+  course_outcome_suffix:
+    ja: "{outcome}。"
+    en: " {outcome}."
+  course_outcome_default:
+    ja: "手技は概ね予定通りに完遂した"
+    en: "The procedure was completed as planned"
 
 # Autopsy status + findings (Phase 1d-22).
 # From template_generator._build_dc_autopsy_status +
