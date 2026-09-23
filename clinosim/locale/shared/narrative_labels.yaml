@@ -169,3 +169,20 @@ sex_label:
   female: {en: female, ja: 女性}
   m: {en: male, ja: 男性}
   f: {en: female, ja: 女性}
+
+# Op-note anesthesia_type dictionary (Phase 1d-24). Was module-level
+# ``_OP_ANESTHESIA_JA`` / ``_OP_ANESTHESIA_EN`` in template_generator.py.
+op_anesthesia_type:
+  general: {en: General anesthesia, ja: 全身麻酔}
+  spinal: {en: Spinal anesthesia, ja: 脊髄くも膜下麻酔}
+  epidural: {en: Epidural anesthesia, ja: 硬膜外麻酔}
+  local: {en: Local anesthesia, ja: 局所麻酔}
+  sedation: {en: IV sedation, ja: 静脈麻酔（鎮静）}
+  regional: {en: Regional anesthesia, ja: 区域麻酔}
+
+# Op-note SNOMED outcome-code dictionary (Phase 1d-24). Was
+# ``_OP_OUTCOME_JA`` / ``_OP_OUTCOME_EN``.
+op_outcome_code:
+  '385669000': {en: successful, ja: 順調に終了}
+  '385670004': {en: 'partially successful (minor intraop complications)', ja: '部分的成功（軽度合併症あり）'}
+  '385671000': {en: unsuccessful, ja: 不成功}
