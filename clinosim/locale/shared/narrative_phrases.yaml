@@ -24,6 +24,9 @@ chief_complaint:
   primary_problem:
     ja: "主な問題: {dx}"
     en: "Primary problem: {dx}"
+  hpi_fallback:
+    ja: "発熱・全身倦怠感"
+    en: "Chief complaint not specified"
 
 progress:
   # From template_generator._compose_progress_assessment_from_state and
@@ -91,3 +94,73 @@ section_label:
   family_history_prefix:
     ja: "家族歴: "
     en: "Family history: "
+
+# Numbered / bullet list item format for diagnosis / condition listings.
+# Uses full-width parens for JA to match printed-chart convention.
+list_item:
+  numbered_dx_with_code:
+    ja: "{idx}. {display}（{code}）"
+    en: "{idx}. {display} ({code})"
+  bullet_dx_with_code:
+    ja: "- {display}（{code}）"
+    en: "- {display} ({code})"
+  inline_dx_with_code:
+    ja: "{display}（{code}）"
+    en: "{display} ({code})"
+
+
+# Admission_status narrative labels (single-line header renderer).
+admission_status:
+  assigned_nurse:
+    ja: "担当看護師: {name}。"
+    en: "Assigned nurse: {name}. "
+  admission_reason:
+    ja: "入院目的: {cc}。"
+    en: "Admission reason: {cc}. "
+  allergy_first:
+    ja: "アレルギー: {allergen}。"
+    en: "Allergy: {allergen}. "
+
+# Barthel functional-independence band labels (5 tiers).
+barthel_band:
+  independent:
+    ja: "自立"
+    en: "independent"
+  minimal_assist:
+    ja: "軽度介助"
+    en: "minimal assistance"
+  moderate_assist:
+    ja: "中等度介助"
+    en: "moderate assistance"
+  severe_dependence:
+    ja: "重度介助"
+    en: "severe dependence"
+  total_care:
+    ja: "全介助"
+    en: "total care"
+
+# Morse fall-risk band labels (5 tiers) + composite risk section label.
+morse_band:
+  low:
+    ja: "低リスク"
+    en: "low"
+  mild:
+    ja: "軽度リスク"
+    en: "mild"
+  moderate:
+    ja: "中等度リスク"
+    en: "moderate"
+  high:
+    ja: "高リスク"
+    en: "high"
+  severe:
+    ja: "重度リスク"
+    en: "severe"
+
+fall_risk:
+  morse_score_line:
+    ja: "転倒リスク (Morse {morse}): {level}"
+    en: "Fall (Morse {morse}): {level}"
+  short_label:
+    ja: "転倒リスク"
+    en: "fall risk"
