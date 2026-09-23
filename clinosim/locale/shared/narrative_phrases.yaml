@@ -1122,6 +1122,39 @@ triage_details:
     ja: "不明"
     en: "unknown"
 
+# ED_TRIAGE_NOTE free-text renderer phrases (Phase 1d-33).
+# From _render_ed_triage_note_text.
+triage_note:
+  level_line_with_data:
+    ja: "トリアージレベル: {system} Level {level}"
+    en: "Triage level: {system} Level {level}"
+  level_line_none:
+    ja: "トリアージレベル: 未評価"
+    en: "Triage level: not assessed"
+  arrival_line:
+    ja: "来院形態: {mode}"
+    en: "Arrival mode: {mode}"
+  arrival_line_none:
+    ja: "来院形態: 不明"
+    en: "Arrival mode: unknown"
+  cc_line:
+    ja: "主訴: {cc}"
+    en: "Chief complaint: {cc}"
+  cc_line_none:
+    ja: "主訴: 未記録"
+    en: "Chief complaint: not recorded"
+
+# Current-medications composer phrases (Phase 1d-33).
+# From _compose_current_medications_line — polypharmacy Plan-section
+# list with truncate suffix.
+current_medications:
+  line:
+    ja: "継続処方: {list}"
+    en: "Continue current medications: {list}"
+  truncate_suffix:
+    ja: "（他 {n} 剤）"
+    en: " (and {n} others)"
+
 # DDS treatment / terminal / circumstances / comorbidities / family
 # communication composers (Phase 1d-31). From _build_dds_*.
 dds_treatment_course:
