@@ -3106,7 +3106,6 @@ class TemplateNarrativeGenerator:
         """
         facts: list[str] = []
         lang = ctx.target_lang
-        is_ja = lang == "ja"
 
         los = ctx.los_days or 1
         parts: list[str] = []
@@ -3119,24 +3118,21 @@ class TemplateNarrativeGenerator:
         # the strategy dispatches through it.
         primary_reason = None
         if ctx.encounter is not None:
-            if is_ja:
-                primary_reason = _o(ctx.encounter, "primary_diagnosis_ja", None) or _o(
-                    ctx.encounter, "chief_complaint_ja", None
-                )
-            else:
+            # Try the localized ``primary_diagnosis_<lang>`` /
+            # ``chief_complaint_<lang>`` slots first; fall back to the
+            # base slots. For lang=en both localized slots are typically
+            # absent so lookup drops to the base fields on its own.
+            primary_reason = _o(ctx.encounter, f"primary_diagnosis_{lang}", None) or _o(
+                ctx.encounter, f"chief_complaint_{lang}", None
+            )
+            if not primary_reason:
                 primary_reason = _o(ctx.encounter, "primary_diagnosis", None) or _o(
                     ctx.encounter, "chief_complaint", None
                 )
-        if is_ja:
-            head = f"入院期間 {los} 日間"
-            if primary_reason:
-                head += f"（主病名/主訴: {str(primary_reason)[:80]}）"
-            parts.append(head + "。")
+        if primary_reason:
+            parts.append(t("hospital_course.los_head_with_reason", lang, los=los, reason=str(primary_reason)[:80]))
         else:
-            head = f"Length of stay: {los} days"
-            if primary_reason:
-                head += f" (primary reason: {str(primary_reason)[:80]})"
-            parts.append(head + ".")
+            parts.append(t("hospital_course.los_head", lang, los=los))
 
         # Sentence 2: complications (blocker 1 — MUST be surfaced)
         # Issue #848: when a working_diagnoses entry carries an
@@ -3157,22 +3153,17 @@ class TemplateNarrativeGenerator:
                 # Phase 1c-2 (2026-09-22): localize the complication token
                 # to JA/EN; unmapped values fall back to a humanised
                 # ("_"-stripped) form so novel complications still surface.
-                label = _localize_complication(cid, ctx.target_lang)
+                label = _localize_complication(cid, lang)
                 wd = wd_by_disease.get(cid)
                 onset_day = wd.get("onset_day") if wd else None
                 if onset_day is not None and int(onset_day) > 0:
-                    if is_ja:
-                        phrases.append(f"入院第{int(onset_day)}日目 {label}")
-                    else:
-                        phrases.append(f"{label} (onset day {int(onset_day)})")
+                    phrases.append(t("hospital_course.complication_with_onset", lang, day=int(onset_day), label=label))
                 else:
                     phrases.append(label)
             if wds:
                 facts.append("ctx.working_diagnoses")
-            if is_ja:
-                parts.append(f"経過中の合併症: {'、'.join(phrases)}。")
-            else:
-                parts.append(f"Complications during stay: {', '.join(phrases)}.")
+            sep = t("list_sep.serial", lang)
+            parts.append(t("hospital_course.complications_line", lang, list=sep.join(phrases)))
 
         # Sentence 3: key procedures performed
         proc_names: list[str] = []
@@ -3189,10 +3180,8 @@ class TemplateNarrativeGenerator:
                 break
         if proc_names:
             facts.append("ctx.procedures")
-            if is_ja:
-                parts.append(f"主な処置・手技: {'、'.join(proc_names)}。")
-            else:
-                parts.append(f"Key procedures: {', '.join(proc_names)}.")
+            sep = t("list_sep.serial", lang)
+            parts.append(t("hospital_course.procedures_line", lang, list=sep.join(proc_names)))
 
         # v7 (2026-08-16 pm): closer removed. v6 emitted
         # "治療経過は臨床経過（アーキタイプ）に沿って推移した。" in

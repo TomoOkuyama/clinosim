@@ -306,6 +306,25 @@ rehab:
     ja: "転倒 {label}"
     en: "fall {label}"
 
+# Discharge-summary hospital_course composer phrases (Phase 1d-19).
+# From template_generator._build_hospital_course.
+hospital_course:
+  los_head:
+    ja: "入院期間 {los} 日間。"
+    en: "Length of stay: {los} days."
+  los_head_with_reason:
+    ja: "入院期間 {los} 日間（主病名/主訴: {reason}）。"
+    en: "Length of stay: {los} days (primary reason: {reason})."
+  complication_with_onset:
+    ja: "入院第{day}日目 {label}"
+    en: "{label} (onset day {day})"
+  complications_line:
+    ja: "経過中の合併症: {list}。"
+    en: "Complications during stay: {list}."
+  procedures_line:
+    ja: "主な処置・手技: {list}。"
+    en: "Key procedures: {list}."
+
 # Chronic-condition SOAP lab-fragment templates.
 chronic_labs:
   urine_albumin:
