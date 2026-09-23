@@ -204,3 +204,12 @@ pn_outcome_code:
   '385669000': {en: The procedure was completed without issue, ja: 手技は問題なく完遂した}
   '385670004': {en: The procedure was partially completed, ja: 手技は部分的に完遂した}
   '385671000': {en: The procedure could not be completed, ja: 手技は完遂できなかった}
+
+# DDS severity vocabulary (Phase 1d-26). Was ``_dds_severity_ja/en``
+# helper methods in template_generator.py. JA locale falls back to
+# ``moderate`` for unknown values; EN locale relies on
+# ``.capitalize()`` in the composer for unknown values.
+dds_severity:
+  mild: {en: Mild, ja: 軽症}
+  moderate: {en: Moderate, ja: 中等症}
+  severe: {en: Severe, ja: 重症}

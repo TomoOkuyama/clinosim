@@ -947,6 +947,40 @@ autopsy:
     ja: "剖検の有無・所見: 剖検は施行せず（家族同意得られず）。"
     en: "Autopsy status and findings: autopsy not performed (no family consent)."
 
+# Death-certificate + DDS single-line composers (Phase 1d-26).
+# From template_generator._build_dc_immediate_cause /
+# _build_dc_underlying_cause / _build_dc_manner_of_death /
+# _build_dds_cause_of_death.
+death_cert_line:
+  immediate_cause:
+    ja: "直接死因: {display}（{code}）。"
+    en: "Immediate cause of death: {display} ({code})."
+  underlying_cause:
+    ja: "原死因: {display}（{chapter}）。"
+    en: "Underlying cause of death: {display} ({chapter})."
+  manner_natural:
+    ja: "死因の種類: 病死及び自然死。"
+    en: "Manner of death: natural / disease-related."
+  cause_of_death:
+    ja: "死因: {display}（{code}）。"
+    en: "Cause of death: {display} ({code})."
+
+# DDS admission-state composer (Phase 1d-26).
+# From template_generator._build_dds_admission_state.
+dds_admission_state:
+  full_line:
+    ja: "患者は{when}{dx}当院に緊急入院となった。入院時の全身状態は{severity}の所見を呈していた。"
+    en: "The patient was admitted urgently {when}{dx}. On admission the overall clinical status was assessed as {severity_lower}."
+  when_at:
+    ja: "{when}に"
+    en: "on {when} "
+  dx_with_code:
+    ja: "{disp}（{code}）にて"
+    en: "with {disp} ({code})"
+  dx_no_code:
+    ja: "急性増悪にて"
+    en: "with an acute exacerbation"
+
 # Death certificate fallbacks (Phase 1d-13).
 death_cert:
   immediate_cause_not_documented:
