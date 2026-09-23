@@ -164,3 +164,55 @@ fall_risk:
   short_label:
     ja: "転倒リスク"
     en: "fall risk"
+
+# ------------------------------------------------------------
+# Fallback texts (Phase 1d-7): migrated from module-level
+# ``_XXX_FALLBACK_JA`` / ``_XXX_FALLBACK_EN`` string constants that
+# were previously duplicated at ``template_generator.py:330-620``.
+# Every entry is a single-line empty-CIF fallback that renders when
+# the underlying section has no data.
+# ------------------------------------------------------------
+
+fallback:
+  acp_nutrition_no: {en: 'Special nutritional management required: No', ja: 特別な栄養管理の必要性：無}
+  acp_other_plans: {en: 'Other: see nursing documentation for the nursing care plan and rehabilitation plan.', ja: その他：看護計画・リハビリテーション等の計画については看護記録を参照。}
+  acp_other_staff_fallback: {en: No additional staff assigned, ja: 担当なし}
+  acp_surgery_none: {en: 'Surgery: none planned', ja: 手術：予定なし}
+  acp_test_schedule_fallback: {en: 'Tests: to be determined by the attending physician', ja: 検査：担当医の判断により決定}
+  acp_ward_room_fallback: {en: 'Ward/Room: not yet assigned', ja: 病棟・病室：未定}
+  adl_fallback: {en: 'ADL: independent (no issues noted)', ja: ADL：自立（問題なし）}
+  care_plan_fallback: {en: 'Care plan: continue standard nursing care', ja: 看護計画：標準的ケア継続}
+  discharge_readiness_fallback: {en: 'Discharge readiness: criteria met', ja: 退院準備：退院基準を満たす}
+  disposition_fallback: {en: 'Disposition: to be determined', ja: 帰宅または入院加療}
+  ed_disposition_admission: {en: 'Admitted ({reason})', ja: '入院適応（{reason}）'}
+  ed_disposition_expired: {en: Died in the ED (family informed), ja: 救急室内死亡（家族への説明済み）}
+  ed_disposition_home: {en: 'Discharged home (JTAS level {level}, {reason})', ja: '自宅退院（JTAS レベル {level}、{reason}）'}
+  ed_disposition_transfer: {en: 'Transferred to another facility ({reason})', ja: '他院転送（{reason}）'}
+  ed_workup_fallback: {en: 'ED workup: no significant findings', ja: 検査・処置：特記事項なし}
+  family_history_deceased_suffix: {en: ' (deceased)', ja: （故人）}
+  family_history_fallback: {en: No significant family history, ja: 特記家族歴なし}
+  generic_assessment: {en: Clinical assessment ongoing, ja: 経過観察中}
+  generic_fallback: {en: No special findings, ja: 特記事項なし}
+  generic_plan: {en: Continue current management, ja: 治療継続}
+  interventions_fallback: {en: 'Nursing interventions provided: no significant findings', ja: 実施した看護介入：特記事項なし}
+  ncp_assessment_fallback: {en: 'Nutrition status assessment: no significant findings', ja: 栄養状態の評価と課題：特記事項なし}
+  ncp_counseling_fallback: {en: 'Nutrition counseling: to be provided as needed', ja: 栄養食事相談：必要に応じて実施}
+  ncp_dietary_content_fallback: {en: 'Dietary content: regular diet', ja: 食事内容：常食}
+  ncp_dietitian_fallback: {en: No dietitian assigned, ja: 担当なし}
+  ncp_discharge_eval_fallback: {en: 'Comprehensive evaluation at discharge: pending, to be assessed at discharge', ja: 退院時及び終了時の総合的評価：退院時に評価予定}
+  ncp_dysphagia_none: {en: 'Dysphagia diet required: No', ja: 嚥下調整食の必要性：なし}
+  ncp_goals_fallback: {en: 'Nutrition management goal: maintain current nutritional status', ja: 栄養管理計画の目標：現在の栄養状態を維持}
+  ncp_other_issues_fallback: {en: 'Other nutrition management issues: none noted', ja: その他栄養管理上の課題：特記事項なし}
+  ncp_reassessment_fallback: {en: 'Nutrition status reassessment: planned approximately 1 week after admission', ja: 栄養状態の再評価：入院後1週間を目安に実施}
+  nkda: {en: No known drug allergies (NKDA), ja: 薬物アレルギーなし（NKDA）}
+  nursing_dx_fallback: {en: 'Nursing diagnosis: no significant findings', ja: 看護診断：特記事項なし}
+  nursing_history_fallback: {en: 'Nursing history: no significant findings', ja: 入院目的・既往歴：特記事項なし}
+  patient_education_fallback: {en: 'Patient education: discharge instructions provided', ja: 患者教育：退院指導実施}
+  risk_fallback: {en: 'Fall / pressure ulcer risk: assessment pending', ja: 転倒・褥瘡リスク：評価中}
+  rp_explanation_fallback: {en: 'Explanation to patient/family: pending', ja: 本人・家族への説明：説明予定}
+  rp_frequency_fallback: {en: 'Session frequency: no record', ja: 実施回数：記録なし}
+  rp_functional_fallback: {en: 'Functional assessment: no record', ja: 機能評価：記録なし}
+  rp_movement_fallback: {en: 'Basic movement: no record', ja: 基本動作：記録なし}
+  rp_team_fallback: {en: No rehabilitation therapy on record, ja: リハビリ実施なし}
+  rp_therapist_fallback: {en: 'Named therapist: not yet assigned', ja: 担当者未定}
+  triage_fallback: {en: 'Triage information: not recorded', ja: トリアージ情報：未記録}

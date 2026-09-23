@@ -297,8 +297,7 @@ def _fill_template_placeholders(text: str, ctx: NarrativeContext, lang: str) -> 
     """
     if "{" not in text:
         return text
-    is_ja = lang == "ja"
-    generic = _GENERIC_FALLBACK_JA if is_ja else _GENERIC_FALLBACK_EN
+    generic = t("fallback.generic_fallback", lang)
     try:
         fields = {fname for _, fname, _, _ in string.Formatter().parse(text) if fname is not None}
     except ValueError:
@@ -327,9 +326,17 @@ def _fill_template_placeholders(text: str, ctx: NarrativeContext, lang: str) -> 
         return text
 
 
-# Generic fallback phrases per locale
-_GENERIC_FALLBACK_JA = "特記事項なし"
-_GENERIC_FALLBACK_EN = "No special findings"
+# Generic fallback phrases per locale — Phase 1d-7: content moved to
+# ``narrative_phrases.yaml`` (section ``fallback:``). The three module
+# constants below are still assigned so callers referencing them by
+# bare name inside per-language conditional blocks continue to work;
+# the values now come from the language-agnostic phrase catalog.
+_GENERIC_FALLBACK_JA = t("fallback.generic_fallback", "ja")
+_GENERIC_FALLBACK_EN = t("fallback.generic_fallback", "en")
+_GENERIC_ASSESSMENT_JA = t("fallback.generic_assessment", "ja")
+_GENERIC_ASSESSMENT_EN = t("fallback.generic_assessment", "en")
+_GENERIC_PLAN_JA = t("fallback.generic_plan", "ja")
+_GENERIC_PLAN_EN = t("fallback.generic_plan", "en")
 
 # JP/EN disposition-label map for `_build_discharge_details`. Kept at
 # module scope because the equivalent function-local ``UPPER_CASE`` binding
@@ -348,10 +355,6 @@ _EN_DISPO_LABEL: dict[str, str] = {
     "snf": "discharged to skilled nursing facility",
     "exp": "expired",
 }
-_GENERIC_ASSESSMENT_JA = "経過観察中"
-_GENERIC_ASSESSMENT_EN = "Clinical assessment ongoing"
-_GENERIC_PLAN_JA = "治療継続"
-_GENERIC_PLAN_EN = "Continue current management"
 
 
 def _render_safety_skips_line(skips: list[dict], lang: str) -> str:
@@ -488,60 +491,12 @@ _HPI_ONSET_EN: dict[str, str] = {
 }
 
 # Nursing section fallback phrases
-_NURSING_HISTORY_FALLBACK_JA = "入院目的・既往歴：特記事項なし"
-_NURSING_HISTORY_FALLBACK_EN = "Nursing history: no significant findings"
-_ADL_FALLBACK_JA = "ADL：自立（問題なし）"
-_ADL_FALLBACK_EN = "ADL: independent (no issues noted)"
-_RISK_FALLBACK_JA = "転倒・褥瘡リスク：評価中"
-_RISK_FALLBACK_EN = "Fall / pressure ulcer risk: assessment pending"
-_NURSING_DX_FALLBACK_JA = "看護診断：特記事項なし"
-_NURSING_DX_FALLBACK_EN = "Nursing diagnosis: no significant findings"
 
 # ADMISSION_CARE_PLAN (Phase 2) fallback phrases
-_ACP_WARD_ROOM_FALLBACK_JA = "病棟・病室：未定"
-_ACP_WARD_ROOM_FALLBACK_EN = "Ward/Room: not yet assigned"
-_ACP_OTHER_STAFF_FALLBACK_JA = "担当なし"
-_ACP_OTHER_STAFF_FALLBACK_EN = "No additional staff assigned"
-_ACP_TEST_SCHEDULE_FALLBACK_JA = "検査：担当医の判断により決定"
-_ACP_TEST_SCHEDULE_FALLBACK_EN = "Tests: to be determined by the attending physician"
-_ACP_SURGERY_NONE_JA = "手術：予定なし"
-_ACP_SURGERY_NONE_EN = "Surgery: none planned"
-_ACP_NUTRITION_NO_JA = "特別な栄養管理の必要性：無"
-_ACP_NUTRITION_NO_EN = "Special nutritional management required: No"
-_ACP_OTHER_PLANS_JA = "その他：看護計画・リハビリテーション等の計画については看護記録を参照。"
-_ACP_OTHER_PLANS_EN = "Other: see nursing documentation for the nursing care plan and rehabilitation plan."
 
 # NUTRITION_CARE_PLAN (Phase 2) fallback phrases
-_NCP_DIETITIAN_FALLBACK_JA = "担当なし"
-_NCP_DIETITIAN_FALLBACK_EN = "No dietitian assigned"
-_NCP_ASSESSMENT_FALLBACK_JA = "栄養状態の評価と課題：特記事項なし"
-_NCP_ASSESSMENT_FALLBACK_EN = "Nutrition status assessment: no significant findings"
-_NCP_GOALS_FALLBACK_JA = "栄養管理計画の目標：現在の栄養状態を維持"
-_NCP_GOALS_FALLBACK_EN = "Nutrition management goal: maintain current nutritional status"
-_NCP_DYSPHAGIA_NONE_JA = "嚥下調整食の必要性：なし"
-_NCP_DYSPHAGIA_NONE_EN = "Dysphagia diet required: No"
-_NCP_DIETARY_CONTENT_FALLBACK_JA = "食事内容：常食"
-_NCP_DIETARY_CONTENT_FALLBACK_EN = "Dietary content: regular diet"
-_NCP_COUNSELING_FALLBACK_JA = "栄養食事相談：必要に応じて実施"
-_NCP_COUNSELING_FALLBACK_EN = "Nutrition counseling: to be provided as needed"
-_NCP_OTHER_ISSUES_FALLBACK_JA = "その他栄養管理上の課題：特記事項なし"
-_NCP_OTHER_ISSUES_FALLBACK_EN = "Other nutrition management issues: none noted"
-_NCP_REASSESSMENT_FALLBACK_JA = "栄養状態の再評価：入院後1週間を目安に実施"
-_NCP_REASSESSMENT_FALLBACK_EN = "Nutrition status reassessment: planned approximately 1 week after admission"
-_NCP_DISCHARGE_EVAL_FALLBACK_JA = "退院時及び終了時の総合的評価：退院時に評価予定"
-_NCP_DISCHARGE_EVAL_FALLBACK_EN = "Comprehensive evaluation at discharge: pending, to be assessed at discharge"
 
 # REHABILITATION_PLAN (Phase 2) fallback phrases
-_RP_TEAM_FALLBACK_JA = "リハビリ実施なし"
-_RP_TEAM_FALLBACK_EN = "No rehabilitation therapy on record"
-_RP_THERAPIST_FALLBACK_JA = "担当者未定"
-_RP_THERAPIST_FALLBACK_EN = "Named therapist: not yet assigned"
-_RP_FUNCTIONAL_FALLBACK_JA = "機能評価：記録なし"
-_RP_FUNCTIONAL_FALLBACK_EN = "Functional assessment: no record"
-_RP_MOVEMENT_FALLBACK_JA = "基本動作：記録なし"
-_RP_MOVEMENT_FALLBACK_EN = "Basic movement: no record"
-_RP_FREQUENCY_FALLBACK_JA = "実施回数：記録なし"
-_RP_FREQUENCY_FALLBACK_EN = "Session frequency: no record"
 _RP_GOALS_FALLBACK_JA = "本人の希望：現在の身体機能の回復・自宅復帰を希望／家族の希望：早期の日常生活動作自立を希望"
 _RP_GOALS_FALLBACK_EN = (
     "Patient goal: recovery of function and return home / Family goal: early independence in activities of daily living"
@@ -553,8 +508,6 @@ _RP_POLICY_FALLBACK_EN = (
     "Rehabilitation policy: continue disease-specific rehabilitation therapy "
     "to improve independence in activities of daily living"
 )
-_RP_EXPLANATION_FALLBACK_JA = "本人・家族への説明：説明予定"
-_RP_EXPLANATION_FALLBACK_EN = "Explanation to patient/family: pending"
 
 _RP_THERAPY_TYPE_JA = {"PT": "理学療法(PT)", "OT": "作業療法(OT)", "ST": "言語聴覚療法(ST)"}
 _RP_THERAPY_TYPE_EN = {
@@ -581,14 +534,6 @@ _RP_PHASE_EN = {
     "late": "Late phase (independent ambulation, ADL practice)",
 }
 
-_CARE_PLAN_FALLBACK_JA = "看護計画：標準的ケア継続"
-_CARE_PLAN_FALLBACK_EN = "Care plan: continue standard nursing care"
-_INTERVENTIONS_FALLBACK_JA = "実施した看護介入：特記事項なし"
-_INTERVENTIONS_FALLBACK_EN = "Nursing interventions provided: no significant findings"
-_PATIENT_EDUCATION_FALLBACK_JA = "患者教育：退院指導実施"
-_PATIENT_EDUCATION_FALLBACK_EN = "Patient education: discharge instructions provided"
-_DISCHARGE_READINESS_FALLBACK_JA = "退院準備：退院基準を満たす"
-_DISCHARGE_READINESS_FALLBACK_EN = "Discharge readiness: criteria met"
 
 # Nursing shift labels, keyed by the neutral shift key stored in
 # structural CIF (ClinicalDocument.shift → NarrativeContext.shift). Labels are
@@ -607,10 +552,6 @@ _SHIFT_LABELS_EN: dict[str, str] = {
 }
 
 # ED section fallback phrases
-_ED_WORKUP_FALLBACK_JA = "検査・処置：特記事項なし"
-_ED_WORKUP_FALLBACK_EN = "ED workup: no significant findings"
-_DISPOSITION_FALLBACK_JA = "帰宅または入院加療"
-_DISPOSITION_FALLBACK_EN = "Disposition: to be determined"
 
 # Issue #982: family-history relationship display labels. HL7 v3-RoleCode
 # canonical Japanese labels ("母"/"父"/"兄弟姉妹") — mirrors the FHIR
@@ -627,10 +568,6 @@ _FAMILY_RELATION_LABEL_EN: dict[str, str] = {
     "FTH": "father",
     "NSIB": "sibling",
 }
-_FAMILY_HISTORY_FALLBACK_JA = "特記家族歴なし"
-_FAMILY_HISTORY_FALLBACK_EN = "No significant family history"
-_FAMILY_HISTORY_DECEASED_SUFFIX_JA = "（故人）"
-_FAMILY_HISTORY_DECEASED_SUFFIX_EN = " (deceased)"
 
 
 # Issue #1327: neutral-observation phrase pool for the inpatient
@@ -689,14 +626,6 @@ _INPATIENT_SUBJECTIVE_POOL_EN: dict[str, tuple[str, ...]] = {
 # Issue #981: ED disposition reasoning-phrase templates. Selected from the
 # admission diagnosis / acuity when the raw disposition code alone would
 # leave the narrative bare ("自宅退院。" without a why).
-_ED_DISPOSITION_ADMISSION_JA = "入院適応（{reason}）"
-_ED_DISPOSITION_ADMISSION_EN = "Admitted ({reason})"
-_ED_DISPOSITION_HOME_JA = "自宅退院（JTAS レベル {level}、{reason}）"
-_ED_DISPOSITION_HOME_EN = "Discharged home (JTAS level {level}, {reason})"
-_ED_DISPOSITION_EXPIRED_JA = "救急室内死亡（家族への説明済み）"
-_ED_DISPOSITION_EXPIRED_EN = "Died in the ED (family informed)"
-_ED_DISPOSITION_TRANSFER_JA = "他院転送（{reason}）"
-_ED_DISPOSITION_TRANSFER_EN = "Transferred to another facility ({reason})"
 
 # Fallback reasoning phrases per acuity keyword when no admit diagnosis
 # is available (kept short — the disposition sentence must stay compact).
@@ -710,8 +639,6 @@ _ED_ACUITY_REASON_EN: dict[str, str] = {
     "moderate": "ongoing symptoms",
     "mild": "mild symptoms",
 }
-_TRIAGE_FALLBACK_JA = "トリアージ情報：未記録"
-_TRIAGE_FALLBACK_EN = "Triage information: not recorded"
 
 # Arrival mode display
 _ARRIVAL_MODE_JA: dict[str, str] = {
@@ -730,8 +657,6 @@ _ARRIVAL_MODE_EN: dict[str, str] = {
 }
 
 # NKDA phrases per locale
-_NKDA_JA = "薬物アレルギーなし（NKDA）"
-_NKDA_EN = "No known drug allergies (NKDA)"
 
 # Social history smoking labels
 _SMOKING_JA: dict[str, str] = {
@@ -2429,7 +2354,7 @@ class TemplateNarrativeGenerator:
 
         allergies = ctx.allergies or []
         if not allergies:
-            return _NKDA_JA if is_ja else _NKDA_EN, facts
+            return t("fallback.nkda", lang), facts
 
         # Issue #942: a cohort of exactly one NKA (No Known Allergies)
         # positive-assertion record is narratively equivalent to "no known
@@ -2437,7 +2362,7 @@ class TemplateNarrativeGenerator:
         # the SNOMED "no known allergy" label verbatim.
         if len(allergies) == 1 and bool(_o(allergies[0], "is_nka", False)):
             facts.append("ctx.allergies")
-            return _NKDA_JA if is_ja else _NKDA_EN, facts
+            return t("fallback.nkda", lang), facts
 
         facts.append("ctx.allergies")
         parts = []
@@ -2455,7 +2380,7 @@ class TemplateNarrativeGenerator:
                     parts.append(f"{display}{crit_str}")
                 else:
                     parts.append(display)
-        return "; ".join(parts) if parts else (_NKDA_JA if is_ja else _NKDA_EN), facts
+        return "; ".join(parts) if parts else (t("fallback.nkda", lang)), facts
 
     def _build_social_history(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
         """Build social history from patient smoking_status, alcohol_use, occupation."""
@@ -2465,7 +2390,7 @@ class TemplateNarrativeGenerator:
 
         patient = ctx.patient
         if patient is None:
-            return _GENERIC_FALLBACK_JA if is_ja else _GENERIC_FALLBACK_EN, facts
+            return t("fallback.generic_fallback", lang), facts
 
         smoking_status = _o(patient, "smoking_status", "unknown") or "unknown"
         alcohol_use = _o(patient, "alcohol_use", "unknown") or "unknown"
@@ -2497,7 +2422,7 @@ class TemplateNarrativeGenerator:
         facts.append("ctx.patient.alcohol_use")
         facts.append("ctx.patient.occupation")
 
-        fallback = _GENERIC_FALLBACK_JA if is_ja else _GENERIC_FALLBACK_EN
+        fallback = t("fallback.generic_fallback", lang)
         return "; ".join(parts) if parts else fallback, facts
 
     def _build_family_history(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
@@ -2523,7 +2448,7 @@ class TemplateNarrativeGenerator:
         facts: list[str] = []
         lang = ctx.target_lang
         is_ja = lang == "ja"
-        fallback = _FAMILY_HISTORY_FALLBACK_JA if is_ja else _FAMILY_HISTORY_FALLBACK_EN
+        fallback = t("fallback.family_history_fallback", lang)
 
         fams = ctx.family_history or []
         if not fams:
@@ -2540,7 +2465,7 @@ class TemplateNarrativeGenerator:
             icd_system_key = "icd-10-mhlw" if is_ja else "icd-10-cm"
 
         label_map = _FAMILY_RELATION_LABEL_JA if is_ja else _FAMILY_RELATION_LABEL_EN
-        deceased_suffix = _FAMILY_HISTORY_DECEASED_SUFFIX_JA if is_ja else _FAMILY_HISTORY_DECEASED_SUFFIX_EN
+        deceased_suffix = t("fallback.family_history_deceased_suffix", lang)
         cond_sep = "、" if is_ja else ", "
         entry_sep = " " if is_ja else "; "
 
@@ -3886,7 +3811,7 @@ class TemplateNarrativeGenerator:
         triage = _o(ctx.encounter, "triage_data", None)
 
         if triage is None:
-            raw_text = _TRIAGE_FALLBACK_JA if is_ja else _TRIAGE_FALLBACK_EN
+            raw_text = t("fallback.triage_fallback", lang)
             return NarrativeOutput(
                 raw_text=raw_text,
                 metadata={"generator": "template", "lang": lang},
@@ -3985,7 +3910,7 @@ class TemplateNarrativeGenerator:
             if first_allergen:
                 parts.append(t("admission_status.allergy_first", lang, allergen=first_allergen))
         if len(parts) <= 1:
-            parts.append(_NURSING_HISTORY_FALLBACK_JA if is_ja else _NURSING_HISTORY_FALLBACK_EN)
+            parts.append(t("fallback.nursing_history_fallback", lang))
         facts.extend(["ctx.encounter.chief_complaint", "ctx.patient.chronic_conditions"])
         return "".join(parts), facts
 
@@ -3997,11 +3922,11 @@ class TemplateNarrativeGenerator:
         is_ja = lang == "ja"
         adls = list(getattr(ctx, "adl_assessments", None) or [])
         if not adls:
-            return (_ADL_FALLBACK_JA if is_ja else _ADL_FALLBACK_EN), facts
+            return (t("fallback.adl_fallback", lang)), facts
         latest = adls[-1]
         barthel = _o(latest, "barthel_score", None)
         if barthel is None:
-            return (_ADL_FALLBACK_JA if is_ja else _ADL_FALLBACK_EN), facts
+            return (t("fallback.adl_fallback", lang)), facts
         facts.append("ctx.adl_assessments[-1]")
         # Barthel band interpretation (standard)
         if barthel >= 91:
@@ -4036,7 +3961,7 @@ class TemplateNarrativeGenerator:
         is_ja = lang == "ja"
         risks = list(getattr(ctx, "nursing_risk_assessments", None) or [])
         if not risks:
-            return (_RISK_FALLBACK_JA if is_ja else _RISK_FALLBACK_EN), facts
+            return (t("fallback.risk_fallback", lang)), facts
         latest = risks[-1]
         braden = _o(latest, "braden_total", None)
         morse = _o(latest, "morse_total", None)
@@ -4070,7 +3995,7 @@ class TemplateNarrativeGenerator:
                 lvl = _fall_ja.get(str(lvl).lower(), lvl)
             parts.append(t("fall_risk.morse_score_line", lang, morse=morse, level=lvl))
         if not parts:
-            return (_RISK_FALLBACK_JA if is_ja else _RISK_FALLBACK_EN), facts
+            return (t("fallback.risk_fallback", lang)), facts
         return ("。".join(parts) + "。") if is_ja else (". ".join(parts) + "."), facts
 
     def _build_nursing_diagnosis(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
@@ -4115,7 +4040,7 @@ class TemplateNarrativeGenerator:
             head = "看護診断: " if is_ja else "Nursing diagnoses: "
             sep = "、" if is_ja else ", "
             return head + sep.join(dx_labels) + ("。" if is_ja else "."), facts
-        return (_NURSING_DX_FALLBACK_JA if is_ja else _NURSING_DX_FALLBACK_EN), facts
+        return (t("fallback.nursing_dx_fallback", lang)), facts
 
     def _build_care_plan(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
         """Build care_plan from CIF-derived nursing diagnoses (mirror of
@@ -4169,7 +4094,7 @@ class TemplateNarrativeGenerator:
             head = "看護計画: " if is_ja else "Care plan: "
             sep = "、" if is_ja else "; "
             return head + sep.join(actions) + ("。" if is_ja else "."), facts
-        return (_CARE_PLAN_FALLBACK_JA if is_ja else _CARE_PLAN_FALLBACK_EN), facts
+        return (t("fallback.care_plan_fallback", lang)), facts
 
     # ─────────────────────────────────────────────────────────────────
     # ADMISSION_CARE_PLAN (Phase 2) section builders (入院診療計画書, LOINC 18776-5)
@@ -4188,7 +4113,7 @@ class TemplateNarrativeGenerator:
         ward = str(_o(ctx.encounter, "ward_id", "") or "")
         bed = str(_o(ctx.encounter, "bed_number", "") or "")
         if not ward and not bed:
-            return (_ACP_WARD_ROOM_FALLBACK_JA if is_ja else _ACP_WARD_ROOM_FALLBACK_EN), facts
+            return (t("fallback.acp_ward_room_fallback", lang)), facts
         if ward:
             facts.append("encounter.ward_id")
         if bed:
@@ -4205,7 +4130,7 @@ class TemplateNarrativeGenerator:
         is_ja = lang == "ja"
         nurse_id = str(_o(ctx.encounter, "primary_nurse_id", "") or "")
         if not nurse_id:
-            return (_ACP_OTHER_STAFF_FALLBACK_JA if is_ja else _ACP_OTHER_STAFF_FALLBACK_EN), facts
+            return (t("fallback.acp_other_staff_fallback", lang)), facts
         facts.append("encounter.primary_nurse_id")
         nurse_disp = _resolve_staff_name(nurse_id, ctx.roster_map, is_ja)
         return (f"担当看護師：{nurse_disp}" if is_ja else f"Assigned nurse: {nurse_disp}"), facts
@@ -4268,7 +4193,7 @@ class TemplateNarrativeGenerator:
             if name:
                 names.add(str(name))
         if not names:
-            fallback = _ACP_TEST_SCHEDULE_FALLBACK_JA if is_ja else _ACP_TEST_SCHEDULE_FALLBACK_EN
+            fallback = t("fallback.acp_test_schedule_fallback", lang)
             return fallback, facts
         facts.append("ctx.lab_results")
         joined = "、".join(sorted(names)) if is_ja else ", ".join(sorted(names))
@@ -4281,7 +4206,7 @@ class TemplateNarrativeGenerator:
         is_ja = lang == "ja"
         surgical = [p for p in (ctx.procedures or []) if str(_o(p, "category_code", "") or "") == "387713003"]
         if not surgical:
-            return (_ACP_SURGERY_NONE_JA if is_ja else _ACP_SURGERY_NONE_EN), facts
+            return (t("fallback.acp_surgery_none", lang)), facts
         facts.append("ctx.procedures")
         # Phase 1c-6 (2026-09-23): localize each procedure_type slug via
         # `_localize_proc_type` so JA emits 「手術予定：経皮的冠動脈形成術、
@@ -4338,8 +4263,7 @@ class TemplateNarrativeGenerator:
         """特別な栄養管理の必要性 — MVP: always「無」(no NutritionOrder subsystem
         exists yet; TODO.md tracks the future nutrition subsystem chain)."""
         lang = ctx.target_lang
-        is_ja = lang == "ja"
-        return (_ACP_NUTRITION_NO_JA if is_ja else _ACP_NUTRITION_NO_EN), []
+        return (t("fallback.acp_nutrition_no", lang)), []
 
     def _build_acp_other_plans(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
         """その他（看護計画・リハビリテーション等の計画）— fixed cross-reference
@@ -4348,8 +4272,7 @@ class TemplateNarrativeGenerator:
         section cannot dynamically pull admission_nursing_assessment content
         without a larger architecture change (out of scope, see plan)."""
         lang = ctx.target_lang
-        is_ja = lang == "ja"
-        return (_ACP_OTHER_PLANS_JA if is_ja else _ACP_OTHER_PLANS_EN), []
+        return (t("fallback.acp_other_plans", lang)), []
 
     # ─────────────────────────────────────────────────────────────────
     # NUTRITION_CARE_PLAN (Phase 2) section builders (栄養管理計画書, LOINC 80791-7)
@@ -4385,8 +4308,7 @@ class TemplateNarrativeGenerator:
     def _build_ncp_dietitian(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
         """担当管理栄養士名 — MVP: no dietitian staff role exists yet."""
         lang = ctx.target_lang
-        is_ja = lang == "ja"
-        return (_NCP_DIETITIAN_FALLBACK_JA if is_ja else _NCP_DIETITIAN_FALLBACK_EN), []
+        return (t("fallback.ncp_dietitian_fallback", lang)), []
 
     def _build_ncp_nutrition_risk(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
         """入院時栄養状態に関するリスク — BMI 3-tier threshold (coarse screening
@@ -4418,7 +4340,7 @@ class TemplateNarrativeGenerator:
         is_ja = lang == "ja"
         patient = ctx.patient
         if patient is None:
-            return (_NCP_ASSESSMENT_FALLBACK_JA if is_ja else _NCP_ASSESSMENT_FALLBACK_EN), facts
+            return (t("fallback.ncp_assessment_fallback", lang)), facts
         parts: list[str] = []
         weight = _o(patient, "weight_kg", None)
         height = _o(patient, "height_cm", None)
@@ -4461,15 +4383,14 @@ class TemplateNarrativeGenerator:
                 parts.append("摂食動作に介助必要" if is_ja else "feeding assistance required")
                 facts.append("ctx.adl_assessments[-1]")
         if not parts:
-            return (_NCP_ASSESSMENT_FALLBACK_JA if is_ja else _NCP_ASSESSMENT_FALLBACK_EN), facts
+            return (t("fallback.ncp_assessment_fallback", lang)), facts
         head = "栄養状態評価: " if is_ja else "Nutrition assessment: "
         return head + ("、".join(parts) + "。" if is_ja else "; ".join(parts) + "."), facts
 
     def _build_ncp_nutrition_goals(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
         """栄養管理計画 目標 — MVP fixed fallback."""
         lang = ctx.target_lang
-        is_ja = lang == "ja"
-        return (_NCP_GOALS_FALLBACK_JA if is_ja else _NCP_GOALS_FALLBACK_EN), []
+        return (t("fallback.ncp_goals_fallback", lang)), []
 
     def _build_ncp_nutrition_supply(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
         """栄養補給に関する事項 (エネルギー/たんぱく質/補給方法) — standard
@@ -4493,22 +4414,19 @@ class TemplateNarrativeGenerator:
     def _build_ncp_dysphagia_diet(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
         """嚥下調整食の必要性 — MVP fixed 「なし」."""
         lang = ctx.target_lang
-        is_ja = lang == "ja"
-        return (_NCP_DYSPHAGIA_NONE_JA if is_ja else _NCP_DYSPHAGIA_NONE_EN), []
+        return (t("fallback.ncp_dysphagia_none", lang)), []
 
     def _build_ncp_dietary_content(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
         """食事内容 — MVP fixed fallback."""
         lang = ctx.target_lang
-        is_ja = lang == "ja"
-        return (_NCP_DIETARY_CONTENT_FALLBACK_JA if is_ja else _NCP_DIETARY_CONTENT_FALLBACK_EN), []
+        return (t("fallback.ncp_dietary_content_fallback", lang)), []
 
     def _build_ncp_nutrition_counseling(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
         """栄養食事相談に関する事項 — MVP fixed fallback (collapses the 3 MHLW
         sub-items — admission/consult/discharge instruction — into one
         section; no per-item data source exists, design spec §2 row 7)."""
         lang = ctx.target_lang
-        is_ja = lang == "ja"
-        return (_NCP_COUNSELING_FALLBACK_JA if is_ja else _NCP_COUNSELING_FALLBACK_EN), []
+        return (t("fallback.ncp_counseling_fallback", lang)), []
 
     def _build_ncp_other_issues(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
         """その他栄養管理上解決すべき課題 — v9 density fix: derive from
@@ -4532,7 +4450,7 @@ class TemplateNarrativeGenerator:
             parts.append("DM+CKD 併存で複合栄養制限要" if is_ja else "DM+CKD requires combined dietary restriction")
             facts.append("ctx.patient.chronic_conditions")
         if not parts:
-            return (_NCP_OTHER_ISSUES_FALLBACK_JA if is_ja else _NCP_OTHER_ISSUES_FALLBACK_EN), facts
+            return (t("fallback.ncp_other_issues_fallback", lang)), facts
         return ("その他: " if is_ja else "Other: ") + (
             "、".join(parts) + "。" if is_ja else "; ".join(parts) + "."
         ), facts
@@ -4540,16 +4458,14 @@ class TemplateNarrativeGenerator:
     def _build_ncp_reassessment_timing(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
         """栄養状態の再評価の時期 — MVP fixed fallback."""
         lang = ctx.target_lang
-        is_ja = lang == "ja"
-        return (_NCP_REASSESSMENT_FALLBACK_JA if is_ja else _NCP_REASSESSMENT_FALLBACK_EN), []
+        return (t("fallback.ncp_reassessment_fallback", lang)), []
 
     def _build_ncp_discharge_evaluation(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
         """退院時及び終了時の総合的評価 — genuinely unknowable at plan-creation
         time; this system has no mechanism to revise a Stage-1 stub at a
         later encounter phase for this doc type (design spec §2 row 10)."""
         lang = ctx.target_lang
-        is_ja = lang == "ja"
-        return (_NCP_DISCHARGE_EVAL_FALLBACK_JA if is_ja else _NCP_DISCHARGE_EVAL_FALLBACK_EN), []
+        return (t("fallback.ncp_discharge_eval_fallback", lang)), []
 
     # ─────────────────────────────────────────────────────────────────
     # REHABILITATION_PLAN sections (LOINC 34823-5)
@@ -4573,11 +4489,11 @@ class TemplateNarrativeGenerator:
             {str(_o(s, "therapy_type", "") or "") for s in (ctx.rehab_sessions or []) if _o(s, "therapy_type", "")}
         )
         if not therapy_types:
-            return (_RP_TEAM_FALLBACK_JA if is_ja else _RP_TEAM_FALLBACK_EN), facts
+            return (t("fallback.rp_team_fallback", lang)), facts
         facts.append("ctx.rehab_sessions")
         labels = _RP_THERAPY_TYPE_JA if is_ja else _RP_THERAPY_TYPE_EN
         joined = ("、" if is_ja else ", ").join(labels.get(t, t) for t in therapy_types)
-        therapist_note = _RP_THERAPIST_FALLBACK_JA if is_ja else _RP_THERAPIST_FALLBACK_EN
+        therapist_note = t("fallback.rp_therapist_fallback", lang)
         if is_ja:
             return f"担当リハビリ職種：{joined}／{therapist_note}", facts
         return f"Rehab discipline(s): {joined} / {therapist_note}", facts
@@ -4590,7 +4506,7 @@ class TemplateNarrativeGenerator:
         is_ja = lang == "ja"
         sessions = ctx.rehab_sessions or []
         if not sessions:
-            return (_RP_FUNCTIONAL_FALLBACK_JA if is_ja else _RP_FUNCTIONAL_FALLBACK_EN), facts
+            return (t("fallback.rp_functional_fallback", lang)), facts
         latest = max(sessions, key=lambda s: _o(s, "session_date", datetime(1970, 1, 1)))
         facts.append("ctx.rehab_sessions")
         progress = str(_o(latest, "functional_progress", "") or "")
@@ -4620,7 +4536,7 @@ class TemplateNarrativeGenerator:
         is_ja = lang == "ja"
         sessions = ctx.rehab_sessions or []
         if not sessions:
-            return (_RP_MOVEMENT_FALLBACK_JA if is_ja else _RP_MOVEMENT_FALLBACK_EN), facts
+            return (t("fallback.rp_movement_fallback", lang)), facts
         latest = max(sessions, key=lambda s: _o(s, "session_date", datetime(1970, 1, 1)))
         facts.append("ctx.rehab_sessions")
         day_post_op = _o(latest, "day_post_op", 0) or 0
@@ -4639,7 +4555,7 @@ class TemplateNarrativeGenerator:
         is_ja = lang == "ja"
         sessions = ctx.rehab_sessions or []
         if not sessions:
-            return (_RP_FREQUENCY_FALLBACK_JA if is_ja else _RP_FREQUENCY_FALLBACK_EN), facts
+            return (t("fallback.rp_frequency_fallback", lang)), facts
         facts.append("ctx.rehab_sessions")
         dates = [_o(s, "session_date", datetime(1970, 1, 1)) for s in sessions]
         first_date, last_date = min(dates), max(dates)
@@ -4683,8 +4599,7 @@ class TemplateNarrativeGenerator:
         """本人・家族への説明(署名欄) — 固定フォールバック
         (admission_care_plan/nutrition_care_plan と同じ signature-block pattern)。"""
         lang = ctx.target_lang
-        is_ja = lang == "ja"
-        return (_RP_EXPLANATION_FALLBACK_JA if is_ja else _RP_EXPLANATION_FALLBACK_EN), []
+        return (t("fallback.rp_explanation_fallback", lang)), []
 
     # ─────────────────────────────────────────────────────────────────
     # NURSING_DISCHARGE_SUMMARY section builders
@@ -4760,7 +4675,7 @@ class TemplateNarrativeGenerator:
                 parts.append(f"Cumulative IN {total_in} mL / OUT {total_out} mL (net {total_in - total_out:+} mL)")
         if parts:
             return ("。".join(parts) + "。") if is_ja else ("; ".join(parts) + "."), facts
-        return (_INTERVENTIONS_FALLBACK_JA if is_ja else _INTERVENTIONS_FALLBACK_EN), facts
+        return (t("fallback.interventions_fallback", lang)), facts
 
     def _build_patient_education(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
         """Build patient_education from chronic conditions + acute
@@ -4778,7 +4693,7 @@ class TemplateNarrativeGenerator:
         is_ja = lang == "ja"
         topics, facts = _lookup_nursing_content(ctx, "patient_education", is_ja, cap=4)
         if not topics:
-            return (_PATIENT_EDUCATION_FALLBACK_JA if is_ja else _PATIENT_EDUCATION_FALLBACK_EN), facts
+            return (t("fallback.patient_education_fallback", lang)), facts
         head = "患者教育: " if is_ja else "Patient education: "
         sep = "、" if is_ja else "; "
         return head + sep.join(topics) + ("。" if is_ja else "."), facts
@@ -4817,7 +4732,7 @@ class TemplateNarrativeGenerator:
         if parts:
             head = "退院準備: " if is_ja else "Discharge readiness: "
             return head + ("、".join(parts) if is_ja else "; ".join(parts)) + ("。" if is_ja else "."), facts
-        return (_DISCHARGE_READINESS_FALLBACK_JA if is_ja else _DISCHARGE_READINESS_FALLBACK_EN), facts
+        return (t("fallback.discharge_readiness_fallback", lang)), facts
 
     # ─────────────────────────────────────────────────────────────────
     # OUTPATIENT_SOAP section builders
@@ -4890,8 +4805,7 @@ class TemplateNarrativeGenerator:
         """
         facts: list[str] = []
         lang = ctx.target_lang
-        is_ja = lang == "ja"
-        fallback = _GENERIC_FALLBACK_JA if is_ja else _GENERIC_FALLBACK_EN
+        fallback = t("fallback.generic_fallback", lang)
 
         # v9 (2026-08-17 evening) FIX: v11 review found 28 encounters had
         # identical stereotype subjective because the chronic SOAP
@@ -5022,8 +4936,7 @@ class TemplateNarrativeGenerator:
         """
         facts: list[str] = []
         lang = ctx.target_lang
-        is_ja = lang == "ja"
-        fallback = _GENERIC_FALLBACK_JA if is_ja else _GENERIC_FALLBACK_EN
+        fallback = t("fallback.generic_fallback", lang)
 
         vital_line = self._compose_vital_signs_line(ctx)
         template_prose = ""
@@ -5546,8 +5459,7 @@ class TemplateNarrativeGenerator:
         """
         facts: list[str] = []
         lang = ctx.target_lang
-        is_ja = lang == "ja"
-        fallback = _GENERIC_ASSESSMENT_JA if is_ja else _GENERIC_ASSESSMENT_EN
+        fallback = t("fallback.generic_assessment", lang)
 
         # ED_NOTE: previously returned generic. Now composes from CIF —
         # primary dx code + working diagnoses give a per-patient A line.
@@ -6145,8 +6057,7 @@ class TemplateNarrativeGenerator:
         """
         facts: list[str] = []
         lang = ctx.target_lang
-        is_ja = lang == "ja"
-        fallback = _GENERIC_PLAN_JA if is_ja else _GENERIC_PLAN_EN
+        fallback = t("fallback.generic_plan", lang)
 
         soap = self._get_soap_template(ctx)
         if soap is not None:
@@ -6381,7 +6292,7 @@ class TemplateNarrativeGenerator:
         facts: list[str] = []
         lang = ctx.target_lang
         is_ja = lang == "ja"
-        fallback = _TRIAGE_FALLBACK_JA if is_ja else _TRIAGE_FALLBACK_EN
+        fallback = t("fallback.triage_fallback", lang)
 
         triage = _o(ctx.encounter, "triage_data", None)
         if triage is None:
@@ -6417,7 +6328,7 @@ class TemplateNarrativeGenerator:
         facts: list[str] = []
         lang = ctx.target_lang
         is_ja = lang == "ja"
-        fallback = _GENERIC_FALLBACK_JA if is_ja else _GENERIC_FALLBACK_EN
+        fallback = t("fallback.generic_fallback", lang)
 
         ed_tmpl = self._get_ed_note_template(ctx)
         if ed_tmpl is None:
@@ -6494,7 +6405,7 @@ class TemplateNarrativeGenerator:
         facts: list[str] = []
         lang = ctx.target_lang
         is_ja = lang == "ja"
-        fallback = _ED_WORKUP_FALLBACK_JA if is_ja else _ED_WORKUP_FALLBACK_EN
+        fallback = t("fallback.ed_workup_fallback", lang)
 
         ed_tmpl = self._get_ed_note_template(ctx)
         if ed_tmpl is not None:
@@ -6689,7 +6600,7 @@ class TemplateNarrativeGenerator:
         facts: list[str] = []
         lang = ctx.target_lang
         is_ja = lang == "ja"
-        fallback = _DISPOSITION_FALLBACK_JA if is_ja else _DISPOSITION_FALLBACK_EN
+        fallback = t("fallback.disposition_fallback", lang)
 
         ed_tmpl = self._get_ed_note_template(ctx)
         if ed_tmpl is not None:
@@ -6716,15 +6627,15 @@ class TemplateNarrativeGenerator:
                 # Deprecated `admit_to_ward` (used by legacy fixtures) is
                 # normalized to the same "admitted" path as an inbound
                 # transfer disposition.
-                tmpl = _ED_DISPOSITION_ADMISSION_JA if is_ja else _ED_DISPOSITION_ADMISSION_EN
+                tmpl = t("fallback.ed_disposition_admission", lang)
                 return tmpl.format(reason=reason), facts
             if dispo == "exp":
-                return (_ED_DISPOSITION_EXPIRED_JA if is_ja else _ED_DISPOSITION_EXPIRED_EN), facts
+                return (t("fallback.ed_disposition_expired", lang)), facts
             if dispo in ("other-hcf", "snf"):
-                tmpl = _ED_DISPOSITION_TRANSFER_JA if is_ja else _ED_DISPOSITION_TRANSFER_EN
+                tmpl = t("fallback.ed_disposition_transfer", lang)
                 return tmpl.format(reason=reason), facts
             if dispo == "home":
-                tmpl = _ED_DISPOSITION_HOME_JA if is_ja else _ED_DISPOSITION_HOME_EN
+                tmpl = t("fallback.ed_disposition_home", lang)
                 return tmpl.format(level=jtas_level, reason=reason), facts
 
         return fallback, facts
@@ -6910,12 +6821,11 @@ class TemplateNarrativeGenerator:
     def _generic_trajectory(self, ctx: NarrativeContext) -> dict[str, str]:
         """Return generic SOAP entry for when no trajectory data is available."""
         lang = ctx.target_lang
-        is_ja = lang == "ja"
         return {
-            "subjective": _GENERIC_FALLBACK_JA if is_ja else _GENERIC_FALLBACK_EN,
-            "objective": _GENERIC_FALLBACK_JA if is_ja else _GENERIC_FALLBACK_EN,
-            "assessment": _GENERIC_ASSESSMENT_JA if is_ja else _GENERIC_ASSESSMENT_EN,
-            "plan": _GENERIC_PLAN_JA if is_ja else _GENERIC_PLAN_EN,
+            "subjective": t("fallback.generic_fallback", lang),
+            "objective": t("fallback.generic_fallback", lang),
+            "assessment": t("fallback.generic_assessment", lang),
+            "plan": t("fallback.generic_plan", lang),
         }
 
     def _resolve_discharge_instructions(self, ctx: NarrativeContext) -> dict[str, dict[str, str]]:
