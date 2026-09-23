@@ -1,0 +1,77 @@
+# Imaging order display-name localization (underscore + spaced-CamelCase forms).
+#
+# Format: <slug>: {en: <english>, ja: <日本語>}
+# Add new language: extend each entry with `<lang_code>: <display>`.
+# Load via ``clinosim.locale.loader.load_narrative_imaging()``.
+
+imaging:
+  abdominal xray: {ja: 腹部レントゲン}
+  abdominal_ultrasound: {en: abdominal ultrasound, ja: 腹部エコー}
+  abdominal_xray: {en: abdominal X-ray, ja: 腹部レントゲン}
+  abdominal_xray_erect_supine: {en: abdominal X-ray (erect and supine), ja: 腹部レントゲン (立位・臥位)}
+  ankle_xray: {en: ankle X-ray, ja: 足関節レントゲン}
+  bladder_ultrasound: {en: bladder ultrasound, ja: 膀胱エコー}
+  carotid_ultrasound: {en: carotid ultrasound, ja: 頸動脈エコー}
+  cervical_spine_xray: {en: cervical spine X-ray, ja: 頸椎レントゲン}
+  chest ct: {ja: 胸部 CT}
+  chest ct (with contrast): {ja: 胸部 CT (造影)}
+  chest x-ray pa: {ja: 胸部レントゲン (正面)}
+  chest x-ray pa and lateral: {ja: 胸部レントゲン (正面・側面)}
+  chest xray: {ja: 胸部レントゲン}
+  chest xray pa: {ja: 胸部レントゲン (正面)}
+  chest xray pa lateral: {ja: 胸部レントゲン (正面・側面)}
+  chest_ct: {en: chest CT, ja: 胸部 CT}
+  chest_ct_with_contrast: {en: chest CT (with contrast), ja: 胸部 CT (造影)}
+  chest_xray: {en: chest X-ray, ja: 胸部レントゲン}
+  chest_xray_pa: {en: chest X-ray PA, ja: 胸部レントゲン (正面)}
+  chest_xray_pa_lateral: {en: chest X-ray PA and lateral, ja: 胸部レントゲン (正面・側面)}
+  chest_xray_portable: {en: portable chest X-ray, ja: 胸部ポータブルレントゲン}
+  chest_xray_preop: {en: pre-operative chest X-ray, ja: 胸部レントゲン (術前)}
+  ct abdomen with contrast: {ja: 腹部 CT (造影)}
+  ct abdomen without contrast: {ja: 腹部 CT (単純)}
+  ct chest with contrast: {ja: 胸部 CT (造影)}
+  ct chest without contrast: {ja: 胸部 CT (単純)}
+  ct head: {ja: 頭部 CT}
+  ct hip without contrast: {en: CT hip (without contrast), ja: 股関節 CT (単純)}
+  ct pulmonary angiography: {ja: 肺動脈 CT アンギオ}
+  ct_abdomen_pelvis: {en: CT abdomen/pelvis, ja: 腹部・骨盤 CT}
+  ct_abdomen_pelvis_noncontrast: {en: CT abdomen/pelvis (non-contrast), ja: 腹部・骨盤 CT (単純)}
+  ct_abdomen_pelvis_with_contrast: {en: CT abdomen/pelvis (with contrast), ja: 腹部・骨盤 CT (造影)}
+  ct_angiography_head_neck: {en: CT angiography head/neck, ja: 頭頸部 CT アンギオ}
+  ct_head: {en: CT head, ja: 頭部 CT}
+  ct_head_noncontrast: {en: CT head (non-contrast), ja: 頭部 CT (単純)}
+  ct_pulmonary_angiography: {ja: 肺動脈 CT アンギオ}
+  ecg: {en: ECG, ja: 心電図}
+  ecg_12lead: {en: 12-lead ECG, ja: 12 誘導心電図}
+  echocardiogram: {en: echocardiogram, ja: 心エコー}
+  echocardiography_tte: {en: transthoracic echocardiogram, ja: 経胸壁心エコー}
+  hip_xray_ap_lateral: {en: hip X-ray AP and lateral, ja: 股関節レントゲン (正面・側面)}
+  lower extremity venous ultrasound: {ja: 下肢静脈エコー}
+  lower_extremity_venous_ultrasound: {ja: 下肢静脈エコー}
+  lumbar_xray: {en: lumbar spine X-ray, ja: 腰椎レントゲン}
+  mr spine without contrast: {ja: 脊椎 MRI (単純)}
+  mra_intracranial: {en: MRA (intracranial), ja: 頭蓋内 MRA}
+  mrcp: {en: MRCP, ja: MRCP (磁気共鳴胆管膵管造影)}
+  mri_brain_dwi: {en: MRI brain (DWI), ja: 頭部 MRI (拡散強調)}
+  renal_ultrasound: {en: renal ultrasound, ja: 腎エコー}
+  shoulder_xray_ap_lateral: {en: shoulder X-ray AP and lateral, ja: 肩関節レントゲン (正面・側面)}
+  shoulder_xray_post_reduction: {en: shoulder X-ray (post-reduction), ja: 肩関節レントゲン (整復後)}
+  spine mri: {ja: 脊椎 MRI}
+  spine xray: {ja: 脊椎レントゲン}
+  spine xray ap lateral: {ja: 脊椎レントゲン (正面・側面)}
+  spine_mri: {ja: 脊椎 MRI}
+  spine_xray: {ja: 脊椎レントゲン}
+  spine_xray_ap_lateral: {ja: 脊椎レントゲン (正面・側面)}
+  ultrasound abdomen: {ja: 腹部エコー}
+  ultrasound kidney: {ja: 腎エコー}
+  wrist xray: {ja: 手関節レントゲン}
+  wrist xray ap lateral: {ja: 手関節レントゲン (正面・側面)}
+  wrist_xray: {ja: 手関節レントゲン}
+  wrist_xray_ap_lateral: {ja: 手関節レントゲン (正面・側面)}
+  x-ray abdomen (supine and upright): {ja: 腹部レントゲン (臥位・立位)}
+  x-ray hip ap and lateral: {ja: 股関節レントゲン (正面・側面)}
+  x-ray spine ap and lateral: {ja: 脊椎レントゲン (正面・側面)}
+  xray abdomen: {ja: 腹部レントゲン}
+  xray affected area: {ja: 患部レントゲン}
+  xray_abdomen: {en: abdominal X-ray, ja: 腹部レントゲン}
+  xray_affected_area: {ja: 患部レントゲン}

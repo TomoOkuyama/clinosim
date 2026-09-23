@@ -1,0 +1,159 @@
+# Complication / disease-id token localization for the narrative renderer.
+#
+# Format: <slug>: {en: <english>, ja: <日本語>}
+# Add new language: extend each entry with `<lang_code>: <display>`.
+# Load via ``clinosim.locale.loader.load_narrative_complications()``.
+
+complications:
+  acute_appendicitis: {en: acute appendicitis, ja: 急性虫垂炎}
+  acute_cholecystitis: {en: acute cholecystitis, ja: 急性胆嚢炎}
+  acute_heart_failure: {en: acute heart failure, ja: 急性心不全}
+  acute_hemolytic_reaction: {en: acute hemolytic reaction, ja: 急性溶血反応}
+  acute_kidney_injury: {en: acute kidney injury, ja: 急性腎障害}
+  acute_liver_failure: {en: acute liver failure, ja: 急性肝不全}
+  acute_mi: {en: acute myocardial infarction, ja: 急性心筋梗塞}
+  acute_myocardial_infarction: {en: acute myocardial infarction, ja: 急性心筋梗塞}
+  acute_pancreatitis: {en: acute pancreatitis, ja: 急性膵炎}
+  acute_renal_failure: {en: acute renal failure, ja: 急性腎不全}
+  acute_respiratory_distress: {en: acute respiratory distress, ja: 急性呼吸窮迫}
+  acute_respiratory_distress_syndrome: {en: acute respiratory distress syndrome, ja: 急性呼吸窮迫症候群 (ARDS)}
+  acute_stroke: {en: acute stroke, ja: 急性期脳卒中}
+  adynamic_ileus: {en: adynamic ileus, ja: 麻痺性イレウス}
+  aki: {en: AKI, ja: 急性腎障害}
+  anastomotic_leak: {en: anastomotic leak, ja: 縫合不全}
+  ards: {en: ARDS, ja: 急性呼吸窮迫症候群 (ARDS)}
+  arrhythmia: {en: arrhythmia, ja: 不整脈}
+  aspiration_pneumonia: {en: aspiration pneumonia, ja: 誤嚥性肺炎}
+  asthma_exacerbation: {en: asthma exacerbation, ja: 喘息増悪}
+  atelectasis: {en: atelectasis, ja: 無気肺}
+  atrial_fibrillation: {en: atrial fibrillation, ja: 心房細動}
+  atrial_fibrillation_rvr: {en: atrial fibrillation with RVR, ja: 心房細動 (RVR)}
+  atypical_pneumonia: {en: atypical pneumonia, ja: 非定型肺炎}
+  bacteremia: {en: bacteremia, ja: 菌血症}
+  bacterial_pneumonia: {en: bacterial pneumonia, ja: 細菌性肺炎}
+  bronchiolitis: {en: bronchiolitis, ja: 細気管支炎}
+  bronchitis: {en: bronchitis, ja: 気管支炎}
+  burn_wound_infection: {en: burn wound infection, ja: 熱傷創部感染}
+  c_diff_colitis: {en: C. difficile colitis, ja: クロストリジウム・ディフィシル腸炎}
+  cardiac_arrhythmia: {en: cardiac arrhythmia, ja: 心不整脈}
+  cardiac_tamponade: {en: cardiac tamponade, ja: 心タンポナーデ}
+  cardiogenic_pulmonary_edema: {en: cardiogenic pulmonary edema, ja: 心原性肺水腫}
+  cardiogenic_shock: {en: cardiogenic shock, ja: 心原性ショック}
+  cauti: {en: CAUTI, ja: カテーテル関連尿路感染症}
+  cellulitis: {en: cellulitis, ja: 蜂窩織炎}
+  central_line_associated_bloodstream_infection: {en: central line-associated bloodstream infection, ja: 中心静脈カテーテル関連血流感染症}
+  cerebral_edema: {en: cerebral edema, ja: 脳浮腫}
+  cerebral_infarction: {en: cerebral infarction, ja: 脳梗塞}
+  chf_exacerbation: {en: CHF exacerbation, ja: うっ血性心不全増悪}
+  chronic_pleural_effusion: {en: chronic pleural effusion, ja: 慢性胸水}
+  clabsi: {en: CLABSI, ja: 中心静脈カテーテル関連血流感染症}
+  constipation_ileus: {en: constipation ileus, ja: 便秘性イレウス}
+  copd_exacerbation: {en: COPD exacerbation, ja: COPD 増悪}
+  coronary_pci: {en: coronary PCI, ja: 冠動脈経皮的インターベンション (PCI)}
+  crush_injury_hand: {en: crush injury (hand), ja: 手挫滅損傷}
+  deep_vein_thrombosis: {en: deep vein thrombosis, ja: 深部静脈血栓症}
+  delirium: {en: delirium, ja: せん妄}
+  diabetic_foot_ulcer: {en: diabetic foot ulcer, ja: 糖尿病性足潰瘍}
+  diabetic_ketoacidosis: {en: diabetic ketoacidosis, ja: 糖尿病性ケトアシドーシス}
+  dic: {en: DIC, ja: DIC}
+  disseminated_intravascular_coagulation: {en: disseminated intravascular coagulation (DIC), ja: 播種性血管内凝固症候群 (DIC)}
+  dvt: {en: DVT, ja: 深部静脈血栓症}
+  electrical_injury: {en: electrical injury, ja: 電撃傷}
+  empyema: {en: empyema, ja: 膿胸}
+  encephalopathy: {en: encephalopathy, ja: 脳症}
+  fall_from_height: {en: fall from height, ja: 高所転落外傷}
+  gi_bleed: {en: GI bleed, ja: 消化管出血}
+  gi_bleeding: {en: GI bleeding, ja: 消化管出血}
+  healthcare_associated_pneumonia: {en: healthcare-associated pneumonia, ja: 医療介護関連肺炎}
+  heart_failure_exacerbation: {en: heart failure exacerbation, ja: 心不全増悪}
+  hematoma_expansion: {en: hematoma expansion, ja: 血腫拡大}
+  hemiarthroplasty: {en: hemiarthroplasty, ja: 人工骨頭置換術}
+  hemorrhagic_stroke: {en: hemorrhagic stroke, ja: 出血性脳卒中}
+  hemorrhagic_transformation: {en: hemorrhagic transformation, ja: 出血性変化}
+  hepatic_dysfunction: {en: hepatic dysfunction, ja: 肝機能障害}
+  hepatic_encephalopathy: {en: hepatic encephalopathy, ja: 肝性脳症}
+  hip_fracture: {en: hip fracture, ja: 大腿骨近位部骨折}
+  hospital_acquired_pneumonia: {en: hospital-acquired pneumonia, ja: 院内肺炎}
+  hydrocephalus: {en: hydrocephalus, ja: 水頭症}
+  hyperkalemia: {en: hyperkalemia, ja: 高カリウム血症}
+  hypoglycemia: {en: hypoglycemia, ja: 低血糖}
+  hypokalemia: {en: hypokalemia, ja: 低カリウム血症}
+  hypovolemic_shock: {en: hypovolemic shock, ja: 循環血液量減少性ショック}
+  icu_delirium: {en: ICU delirium, ja: ICU せん妄}
+  ileus: {en: ileus, ja: イレウス}
+  increased_icp: {en: elevated intracranial pressure, ja: 頭蓋内圧亢進}
+  industrial_burn_severe: {en: industrial burn (severe), ja: 重症熱傷 (労災)}
+  influenza: {en: influenza, ja: インフルエンザ}
+  influenza_pneumonia: {en: influenza pneumonia, ja: インフルエンザ肺炎}
+  inhalation_injury: {en: inhalation injury, ja: 吸入損傷}
+  inhalation_injury_respiratory_failure: {en: inhalation-injury respiratory failure, ja: 吸入損傷による呼吸不全}
+  intubation_required: {en: intubation required, ja: 気管挿管管理}
+  ischemic_stroke: {en: ischemic stroke, ja: 虚血性脳卒中}
+  lactic_acidosis: {en: lactic acidosis, ja: 乳酸アシドーシス}
+  liver_cirrhosis_decompensated: {en: decompensated liver cirrhosis, ja: 肝硬変 (非代償期)}
+  lung_abscess: {en: lung abscess, ja: 肺膿瘍}
+  malnutrition: {en: malnutrition, ja: 低栄養}
+  malnutrition_worsening: {en: worsening malnutrition, ja: 低栄養の悪化}
+  metabolic_acidosis: {en: metabolic acidosis, ja: 代謝性アシドーシス}
+  myocardial_infarction: {en: myocardial infarction, ja: 心筋梗塞}
+  myocarditis: {en: myocarditis, ja: 心筋炎}
+  orif: {en: ORIF, ja: 観血的整復固定術 (ORIF)}
+  otitis_media: {en: otitis media, ja: 中耳炎}
+  pacemaker_implant: {en: pacemaker implantation, ja: ペースメーカー植込み術}
+  pancreatic_necrosis: {en: pancreatic necrosis, ja: 膵壊死}
+  pancreatic_pseudocyst: {en: pancreatic pseudocyst, ja: 膵仮性嚢胞}
+  parapneumonic_effusion: {en: parapneumonic effusion, ja: 肺炎随伴性胸水}
+  pci: {en: PCI, ja: 冠動脈経皮的インターベンション (PCI)}
+  pericardial_effusion: {en: pericardial effusion, ja: 心膜液貯留}
+  pericarditis: {en: pericarditis, ja: 心膜炎}
+  perioperative_cardiac_event: {en: perioperative cardiac event, ja: 周術期心血管イベント}
+  pleural_effusion: {en: pleural effusion, ja: 胸水}
+  pneumothorax: {en: pneumothorax, ja: 気胸}
+  post_stroke_depression: {en: post-stroke depression, ja: 脳卒中後うつ}
+  post_transfusion_purpura: {en: post-transfusion purpura, ja: 輸血後紫斑病}
+  postoperative_delirium: {en: postoperative delirium, ja: 術後せん妄}
+  postoperative_hemorrhage: {en: postoperative hemorrhage, ja: 術後出血}
+  postoperative_ileus: {en: postoperative ileus, ja: 術後イレウス}
+  pressure_ulcer: {en: pressure ulcer, ja: 褥瘡}
+  pulmonary_edema: {en: pulmonary edema, ja: 肺水腫}
+  pulmonary_embolism: {en: pulmonary embolism, ja: 肺塞栓症}
+  rebleeding: {en: rebleeding, ja: 再出血}
+  rebleeding_intracerebral: {en: intracerebral rebleeding, ja: 脳内再出血}
+  recurrent_aspiration: {en: recurrent aspiration, ja: 反復性誤嚥}
+  renal_abscess: {en: renal abscess, ja: 腎膿瘍}
+  renal_failure: {en: renal failure, ja: 腎不全}
+  respiratory_acidosis: {en: respiratory acidosis, ja: 呼吸性アシドーシス}
+  respiratory_failure: {en: respiratory failure, ja: 呼吸不全}
+  respiratory_failure_requiring_niv: {en: respiratory failure requiring NIV, ja: 呼吸不全 (NPPV 適応)}
+  rhabdomyolysis: {en: rhabdomyolysis, ja: 横紋筋融解症}
+  seizure: {en: seizure, ja: 痙攣発作}
+  sepsis: {en: sepsis, ja: 敗血症}
+  septic_shock: {en: septic shock, ja: 敗血症性ショック}
+  shock: {en: shock, ja: ショック}
+  sinusitis: {en: sinusitis, ja: 副鼻腔炎}
+  steroid_hyperglycemia: {en: steroid-induced hyperglycemia, ja: ステロイド性高血糖}
+  stress_cardiomyopathy: {en: stress cardiomyopathy, ja: たこつぼ型心筋症}
+  stroke: {en: stroke, ja: 脳卒中}
+  subdural_hematoma: {en: subdural hematoma, ja: 硬膜下血腫}
+  surgical_site_infection: {en: surgical site infection, ja: 術後創部感染}
+  taco: {en: TACO, ja: 輸血関連循環過負荷 (TACO)}
+  tension_pneumothorax: {en: tension pneumothorax, ja: 緊張性気胸}
+  traffic_accident_severe: {en: traffic accident (severe), ja: 重症交通外傷}
+  trali: {en: TRALI, ja: 輸血関連急性肺障害 (TRALI)}
+  transfusion_reaction: {en: transfusion reaction, ja: 輸血反応}
+  transfusion_related_acute_lung_injury: {en: transfusion-related acute lung injury (TRALI), ja: 輸血関連急性肺障害 (TRALI)}
+  treatment_resistant: {en: treatment-resistant, ja: 治療抵抗性}
+  uremic_encephalopathy: {en: uremic encephalopathy, ja: 尿毒症性脳症}
+  urinary_tract_infection: {en: urinary tract infection, ja: 尿路感染症}
+  urosepsis: {en: urosepsis, ja: 尿路性敗血症}
+  uti: {en: UTI, ja: 尿路感染症}
+  vasospasm: {en: vasospasm, ja: 血管攣縮}
+  venous_thromboembolism: {en: venous thromboembolism, ja: 静脈血栓塞栓症}
+  ventricular_arrhythmia: {en: ventricular arrhythmia, ja: 心室性不整脈}
+  ventricular_fibrillation: {en: ventricular fibrillation, ja: 心室細動}
+  ventricular_tachycardia: {en: ventricular tachycardia, ja: 心室頻拍}
+  vertebral_compression_fracture: {en: vertebral compression fracture, ja: 椎体圧迫骨折}
+  viral_pneumonia: {en: viral pneumonia, ja: ウイルス性肺炎}
+  vte: {en: VTE, ja: 静脈血栓塞栓症}
+  wound_dehiscence: {en: wound dehiscence, ja: 創部離開}
+  wrist_fracture_surgical: {en: wrist fracture (surgical), ja: 手関節骨折 (観血的整復)}

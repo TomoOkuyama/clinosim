@@ -1,0 +1,13 @@
+# Abnormal-flag marker localization (severity-2 markers only; H/L pass through).
+#
+# Format: <slug>: {en: <english>, ja: <日本語>}
+# Add new language: extend each entry with `<lang_code>: <display>`.
+# Load via ``clinosim.locale.loader.load_narrative_lab_flags()``.
+
+lab_flags:
+  '!': {ja: 重篤}
+  critical: {ja: 重篤}
+  h: {ja: H}
+  h*: {ja: H*}
+  l: {ja: L}
+  l*: {ja: L*}

@@ -1,0 +1,18 @@
+# Clinical-course archetype token localization (safety_skip switch cadence).
+#
+# Format: <slug>: {en: <english>, ja: <日本語>}
+# Add new language: extend each entry with `<lang_code>: <display>`.
+# Load via ``clinosim.locale.loader.load_narrative_archetypes()``.
+
+archetypes:
+  complicated_delayed: {en: complicated delayed course, ja: 合併症遷延型}
+  dip_then_recovery: {en: transient worsening then recovery, ja: 一過性増悪後回復経過}
+  gradual_deterioration: {en: gradual deterioration, ja: 緩徐増悪}
+  plateau: {en: improvement plateau, ja: 改善プラトー}
+  prolonged_recovery: {en: prolonged recovery, ja: 遷延性回復}
+  readmission_early: {en: early readmission, ja: 早期再入院}
+  smooth_recovery: {en: smooth recovery, ja: 順調な回復経過}
+  standard_recovery: {en: standard recovery, ja: 標準経過}
+  sudden_deterioration: {en: sudden deterioration, ja: 急激増悪}
+  treatment_resistant: {en: treatment-resistant, ja: 治療抵抗性}
+  uncomplicated_improvement: {en: uncomplicated improvement, ja: 非合併症性改善経過}

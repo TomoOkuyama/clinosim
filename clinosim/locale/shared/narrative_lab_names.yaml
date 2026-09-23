@@ -1,0 +1,120 @@
+# Lab-name / panel token localization for narrative lab lists.
+#
+# Format: <slug>: {en: <english>, ja: <日本語>}
+# Add new language: extend each entry with `<lang_code>: <display>`.
+# Load via ``clinosim.locale.loader.load_narrative_lab_names()``.
+
+lab_names:
+  abg: {en: ABG, ja: ABG (動脈血ガス)}
+  albumin: {en: albumin, ja: アルブミン}
+  alp: {en: ALP, ja: ALP}
+  alt: {en: ALT, ja: ALT}
+  ammonia: {en: NH3, ja: NH3}
+  amylase: {en: amylase, ja: アミラーゼ}
+  antithrombin_iii: {ja: アンチトロンビン III}
+  aptt: {en: APTT, ja: APTT}
+  ast: {en: AST, ja: AST}
+  at3: {ja: アンチトロンビン III}
+  beta_hydroxybutyrate: {en: β-hydroxybutyrate, ja: β ヒドロキシ酪酸}
+  bilirubin: {en: bilirubin, ja: ビリルビン}
+  blood_culture_set_1: {en: blood culture (set 1), ja: 血液培養 (セット 1)}
+  blood_culture_set_2: {en: blood culture (set 2), ja: 血液培養 (セット 2)}
+  bmp: {en: BMP, ja: BMP (基本代謝パネル)}
+  bnp: {en: BNP, ja: BNP}
+  bun: {en: BUN, ja: BUN}
+  ca: {en: Ca, ja: Ca}
+  calcium: {en: calcium, ja: カルシウム}
+  cbc: {en: CBC, ja: CBC (全血球算定)}
+  chloride: {en: chloride, ja: クロール}
+  ck: {en: CK, ja: CK}
+  ck_mb: {ja: CK-MB}
+  ckmb: {ja: CK-MB}
+  cl: {en: Cl, ja: Cl}
+  coag: {ja: 凝固検査}
+  coags: {ja: 凝固検査}
+  coagulation: {ja: 凝固検査}
+  cortisol: {ja: コルチゾール}
+  cr: {en: Cr, ja: Cr}
+  creat: {ja: クレアチニン}
+  creatinine: {en: creatinine, ja: クレアチニン}
+  crp: {en: CRP, ja: CRP}
+  d_bil: {ja: 直接ビリルビン}
+  d_dimer: {ja: D-ダイマー}
+  dbil: {ja: 直接ビリルビン}
+  ddimer: {ja: D-ダイマー}
+  direct_bilirubin: {en: direct bilirubin, ja: 直接ビリルビン}
+  egfr: {en: eGFR, ja: eGFR}
+  ferritin: {en: ferritin, ja: フェリチン}
+  fibrinogen: {ja: フィブリノゲン}
+  folate: {ja: 葉酸}
+  ft3: {ja: FT3}
+  ft4: {ja: FT4}
+  gamma_gtp: {en: γ-GTP, ja: γ-GTP}
+  glc: {ja: 血糖}
+  gluc: {ja: 血糖}
+  glucose: {en: glucose, ja: 血糖}
+  haptoglobin: {ja: ハプトグロビン}
+  hb: {en: Hb, ja: Hb}
+  hba1c: {en: HbA1c, ja: HbA1c}
+  hco3: {en: HCO3, ja: HCO3}
+  hct: {en: Hct, ja: Hct}
+  hdl: {en: HDL, ja: HDL}
+  hdl_c: {en: HDL-C, ja: HDL-C}
+  hematocrit: {en: hematocrit, ja: ヘマトクリット}
+  hemoglobin: {en: hemoglobin, ja: ヘモグロビン}
+  hgb: {ja: ヘモグロビン}
+  i_bil: {ja: 間接ビリルビン}
+  ibil: {ja: 間接ビリルビン}
+  il6: {ja: IL-6}
+  il_6: {ja: IL-6}
+  iron: {ja: 鉄}
+  k: {en: K, ja: K}
+  lactate: {en: lactate, ja: 乳酸}
+  lactic_acid: {ja: 乳酸}
+  ldh: {en: LDH, ja: LDH}
+  ldl: {en: LDL, ja: LDL}
+  ldl_c: {en: LDL-C, ja: LDL-C}
+  lft: {en: LFT, ja: LFT (肝機能パネル)}
+  lipase: {en: lipase, ja: リパーゼ}
+  magnesium: {en: magnesium, ja: マグネシウム}
+  mg: {en: Mg, ja: Mg}
+  microalbumin: {ja: 微量アルブミン尿}
+  myoglobin: {ja: ミオグロビン}
+  na: {en: Na, ja: Na}
+  nt_probnp: {en: NT-proBNP, ja: NT-proBNP}
+  pco2: {en: PaCO2, ja: PaCO2}
+  pct: {en: PCT, ja: PCT}
+  ph: {en: pH, ja: pH}
+  phosphorus: {en: phosphorus, ja: リン}
+  plt: {en: Plt, ja: Plt}
+  plts: {ja: 血小板}
+  po2: {en: PaO2, ja: PaO2}
+  potassium: {en: potassium, ja: カリウム}
+  procalcitonin: {ja: プロカルシトニン}
+  protein_c: {ja: プロテイン C}
+  protein_s: {ja: プロテイン S}
+  protein_total: {ja: 総蛋白}
+  pt: {en: PT, ja: PT}
+  pt_inr: {en: PT-INR, ja: PT-INR}
+  rapid_influenza_antigen: {en: rapid influenza antigen, ja: インフルエンザ迅速抗原検査}
+  rbc: {en: RBC, ja: RBC}
+  reticulocyte: {ja: 網赤血球}
+  sodium: {en: sodium, ja: ナトリウム}
+  t_bil: {ja: 総ビリルビン}
+  tbil: {ja: 総ビリルビン}
+  tc: {en: TC, ja: TC}
+  tg: {en: TG, ja: TG}
+  tibc: {ja: TIBC}
+  total_bilirubin: {en: total bilirubin, ja: 総ビリルビン}
+  tp: {en: TP, ja: TP}
+  troponin: {en: troponin, ja: トロポニン}
+  troponin_i: {en: troponin I, ja: トロポニンI}
+  troponin_t: {en: troponin T, ja: トロポニンT}
+  tsh: {en: TSH, ja: TSH}
+  urea: {en: urea, ja: 尿素}
+  urinalysis: {en: urinalysis, ja: 尿検査}
+  urine_culture_sensitivity: {en: urine culture + sensitivity, ja: 尿培養・感受性検査}
+  urine_ph: {ja: 尿 pH}
+  urine_sg: {ja: 尿比重}
+  vitamin_b12: {ja: ビタミン B12}
+  wbc: {en: WBC, ja: WBC}
