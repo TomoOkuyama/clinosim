@@ -389,6 +389,16 @@ rehab:
     ja: "転倒 {label}"
     en: "fall {label}"
 
+# ADL detail-item render (Phase 1d-35). From _build_adl_assessment —
+# JA emits "食事80" (label + value), EN emits "feeding=80" (slug=value).
+adl_detail:
+  item:
+    ja: "{label}{score}"
+    en: "{label}={score}"
+  wrap:
+    ja: "（{items}）"
+    en: " ({items})"
+
 # Discharge-summary hospital_course composer phrases (Phase 1d-19).
 # From template_generator._build_hospital_course.
 hospital_course:
