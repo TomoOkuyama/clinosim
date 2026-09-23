@@ -1839,18 +1839,16 @@ class TemplateNarrativeGenerator:
         # in the emitted Composition. Both locales use the natural
         # chief-complaint-less form on empty severity.
         sev = str(ctx.severity or "").strip()
-        if is_ja:
+        if sev and lang == "ja":
             from clinosim.modules.document.narrative.replacement_strategy import (
                 _localize_severity_ja,
             )
 
-            if sev:
-                _sev_disp = _localize_severity_ja(sev)
-                fallback = f"{_sev_disp}の症状で受診。"
-            else:
-                fallback = "受診となった。"
+            sev = _localize_severity_ja(sev)
+        if sev:
+            fallback = t("hpi_core.fallback_with_severity", lang, sev=sev)
         else:
-            fallback = f"Patient presented with {sev} symptoms." if sev else "Patient presented for evaluation."
+            fallback = t("hpi_core.fallback_no_severity", lang)
 
         # ED_NOTE reads from ed_note_template
         if ctx.document_type == DocumentType.ED_NOTE:
@@ -3825,7 +3823,6 @@ class TemplateNarrativeGenerator:
         """病棟（病室）— Encounter.ward_id + bed_number."""
         facts: list[str] = []
         lang = ctx.target_lang
-        is_ja = lang == "ja"
         ward = str(_o(ctx.encounter, "ward_id", "") or "")
         bed = str(_o(ctx.encounter, "bed_number", "") or "")
         if not ward and not bed:
@@ -3834,9 +3831,8 @@ class TemplateNarrativeGenerator:
             facts.append("encounter.ward_id")
         if bed:
             facts.append("encounter.bed_number")
-        if is_ja:
-            return f"病棟：{ward or '未定'}　病室：{bed or '未定'}", facts
-        return f"Ward: {ward or 'TBD'}, Room: {bed or 'TBD'}", facts
+        tbd = t("acp.ward_tbd", lang)
+        return t("acp.ward_and_room_line", lang, ward=ward or tbd, bed=bed or tbd), facts
 
     def _build_acp_other_staff(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
         """Healthcare staff names other than attending physician — mapped to
@@ -3966,11 +3962,8 @@ class TemplateNarrativeGenerator:
     def _build_acp_estimated_los(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
         """推定される入院期間 — see _estimated_los_days for the shared calculation."""
         lang = ctx.target_lang
-        is_ja = lang == "ja"
         los_days, facts = self._estimated_los_days(ctx)
-        if is_ja:
-            return f"推定入院期間：約{los_days}日間", facts
-        return f"Estimated length of stay: approximately {los_days} days", facts
+        return t("acp.estimated_los_line", lang, days=los_days), facts
 
     def _build_acp_special_nutrition_management(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
         """特別な栄養管理の必要性 — MVP: always「無」(no NutritionOrder subsystem
@@ -4003,7 +3996,6 @@ class TemplateNarrativeGenerator:
         """病棟／担当医師名／入院日 — same Encounter fields as admission_care_plan."""
         facts: list[str] = []
         lang = ctx.target_lang
-        is_ja = lang == "ja"
         ward = str(_o(ctx.encounter, "ward_id", "") or "")
         physician = str(_o(ctx.encounter, "attending_physician_id", "") or "")
         if ward:
@@ -4012,9 +4004,7 @@ class TemplateNarrativeGenerator:
             facts.append("encounter.attending_physician_id")
         ward_disp = ward or t("common.tbd", lang)
         physician_disp = _resolve_staff_name(physician, ctx.roster_map, lang) if physician else t("common.tbd", lang)
-        if is_ja:
-            return f"病棟：{ward_disp}　担当医師：{physician_disp}", facts
-        return f"Ward: {ward_disp}, Attending physician: {physician_disp}", facts
+        return t("ncp.ward_and_physician_line", lang, ward=ward_disp, physician=physician_disp), facts
 
     def _build_ncp_dietitian(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
         """担当管理栄養士名 — MVP: no dietitian staff role exists yet."""
@@ -4026,7 +4016,6 @@ class TemplateNarrativeGenerator:
         proxy, not a validated instrument like GLIM/MUST — design spec §4)."""
         facts: list[str] = []
         lang = ctx.target_lang
-        is_ja = lang == "ja"
         bmi = _o(ctx.patient, "bmi", None)
         if bmi is None:
             fallback = t("section_none.nutrition_risk_no_data", lang)
@@ -4037,11 +4026,7 @@ class TemplateNarrativeGenerator:
             return t("nutrition.malnutrition_high_line", lang, bmi=bmi_r), facts
         if bmi_r > NARRATIVE_BMI_NORMAL_MAX_EXCLUSIVE:
             return t("nutrition.overnutrition_line", lang, bmi=bmi_r), facts
-        return (
-            f"低栄養リスク：低（BMI {bmi_r}、リスクなし）"
-            if is_ja
-            else f"Malnutrition risk: low (BMI {bmi_r}, no risk identified)"
-        ), facts
+        return t("ncp.nutrition_low_risk_line", lang, bmi=bmi_r), facts
 
     def _build_ncp_nutrition_assessment(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
         """栄養状態の評価と課題 — v9 density fix: compose from BMI +
@@ -4109,7 +4094,6 @@ class TemplateNarrativeGenerator:
         midpoint — design spec §3c). Route fixed to 経口 (oral) MVP default."""
         facts: list[str] = []
         lang = ctx.target_lang
-        is_ja = lang == "ja"
         weight = _o(ctx.patient, "weight_kg", None)
         if weight is None:
             fallback = t("section_none.nutrition_supply_no_data", lang)
@@ -4117,9 +4101,7 @@ class TemplateNarrativeGenerator:
         facts.append("patient.weight_kg")
         energy = round(float(weight) * NUTRITION_ENERGY_KCAL_PER_KG_MIDPOINT)
         protein = round(float(weight) * NUTRITION_PROTEIN_G_PER_KG_MIDPOINT, 1)
-        if is_ja:
-            return (f"エネルギー：{energy}kcal／日　たんぱく質：{protein}g／日　補給方法：経口"), facts
-        return (f"Energy: {energy} kcal/day, Protein: {protein} g/day, Route: oral"), facts
+        return t("ncp.nutrition_supply_line", lang, energy=energy, protein=protein), facts
 
     def _build_ncp_dysphagia_diet(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
         """嚥下調整食の必要性 — MVP fixed 「なし」."""
