@@ -15,7 +15,9 @@ import re
 from clinosim.codes import lookup as code_lookup
 from clinosim.locale.loader import load_department_display as _load_department_display
 from clinosim.locale.loader import load_drug_names_ja as _load_drug_names_ja
+from clinosim.locale.loader import load_med_terms as _load_med_terms
 from clinosim.locale.loader import load_med_terms_ja as _load_med_terms_ja
+from clinosim.locale.loader import resolve_localized_display
 from clinosim.modules._shared import is_jp, is_us, resolve_lang
 
 # expose the private-name loader aliases so mypy's strict export
@@ -23,6 +25,7 @@ from clinosim.modules._shared import is_jp, is_us, resolve_lang
 __all__ = [
     "_load_department_display",
     "_load_drug_names_ja",
+    "_load_med_terms",
     "_load_med_terms_ja",
     "code_lookup",
     "is_jp",
@@ -37,51 +40,73 @@ __all__ = [
 # lru_cache object keeps those APIs working.
 
 
-# Pattern caches for the localization hot paths. Keyed on `id()` of the
-# loader-returned dict so `_load_med_terms_ja.cache_clear()` /
-# `_load_drug_names_ja.cache_clear()` (tests) transparently invalidate the
+# Pattern caches for the localization hot paths. Keyed on `(id(dict), lang)`
+# so `_load_med_terms.cache_clear()` (tests) transparently invalidates the
 # derived pattern cache: the next loader call returns a fresh dict object,
-# `id()` differs, and the compiled-pattern rebuild kicks in.
-_DOSAGE_PATTERNS_CACHE: dict[str, object] = {"dict_id": None, "value": None}
+# `id()` differs, and the compiled-pattern rebuild kicks in. Phase 1d-3
+# widened the cache key to include ``lang`` so future non-JA locales share
+# the same cache without collisions.
+_DOSAGE_PATTERNS_CACHE: dict[tuple[int, str], tuple[tuple[re.Pattern[str], str], ...]] = {}
 _DRUG_PATTERNS_CACHE: dict[str, object] = {"dict_id": None, "value": None}
 
 
-def _dosage_term_patterns() -> tuple[tuple[re.Pattern[str], str], ...]:
+def _dosage_term_patterns(lang: str = "ja") -> tuple[tuple[re.Pattern[str], str], ...]:
     """Pre-compile med-term (category + term) regex patterns once per process.
 
-    Pre-#1062 the sort + `re.compile` ran on every ``_localize_dosage_terms``
-    call — 183 terms × 104,581 calls on a JP p=1000 sim = ~19M compile
-    operations, ~45s wall. Sorting descending-by-length once and returning
-    the compiled patterns as a tuple lets the hot-path skip both.
+    Pre-#1062 the sort + ``re.compile`` ran on every
+    ``_localize_dosage_terms`` call — 183 terms × 104,581 calls on a JP
+    p=1000 sim = ~19M compile operations, ~45s wall. Sorting
+    descending-by-length once and returning the compiled patterns as a
+    tuple lets the hot-path skip both.
+
+    Phase 1d-3 (2026-09-23): the per-language display is resolved via
+    ``resolve_localized_display`` at compile time (not per-call), so
+    adding a new locale extends the YAML with ``<lang>: <display>`` and
+    ``_localize_dosage_terms(text, "<lang>")`` picks it up. An entry
+    with no ``<lang>`` slot and no ``en`` slot is dropped from the
+    pattern list (nothing to substitute for that language).
     """
-    tables = _load_med_terms_ja()
-    if _DOSAGE_PATTERNS_CACHE["dict_id"] == id(tables):
-        return _DOSAGE_PATTERNS_CACHE["value"]  # type: ignore[return-value]
+    tables = _load_med_terms()
+    cache_key = (id(tables), lang)
+    hit = _DOSAGE_PATTERNS_CACHE.get(cache_key)
+    if hit is not None:
+        return hit
     patterns: list[tuple[re.Pattern[str], str]] = []
     # Category prefixes first, longest-match-wins, case-insensitive.
-    for cat, ja in sorted(tables["categories"].items(), key=lambda x: -len(x[0])):
-        patterns.append((re.compile(r"(?i)\b" + re.escape(cat) + r"\b"), ja))
+    for cat, entry in sorted(tables["categories"].items(), key=lambda x: -len(x[0])):
+        display = resolve_localized_display(entry, lang, fallback="")
+        if display and display != cat:
+            patterns.append((re.compile(r"(?i)\b" + re.escape(cat) + r"\b"), display))
     # Dose/route/frequency terms: case-sensitive for all-caps abbreviations
     # (PRN, PO, IV) so the terminal-lower-case token "po" in "clopidogrel"
     # does not collide, case-insensitive otherwise.
-    for term, ja in sorted(tables["terms"].items(), key=lambda x: -len(x[0])):
+    for term, entry in sorted(tables["terms"].items(), key=lambda x: -len(x[0])):
+        display = resolve_localized_display(entry, lang, fallback="")
+        if not display or display == term:
+            continue
         if term.isupper():
-            patterns.append((re.compile(r"\b" + re.escape(term) + r"\b"), ja))
+            patterns.append((re.compile(r"\b" + re.escape(term) + r"\b"), display))
         else:
-            patterns.append((re.compile(r"(?i)\b" + re.escape(term) + r"\b"), ja))
+            patterns.append((re.compile(r"(?i)\b" + re.escape(term) + r"\b"), display))
     compiled = tuple(patterns)
-    _DOSAGE_PATTERNS_CACHE["dict_id"] = id(tables)
-    _DOSAGE_PATTERNS_CACHE["value"] = compiled
+    _DOSAGE_PATTERNS_CACHE[cache_key] = compiled
     return compiled
 
 
-def _localize_dosage_terms(text: str) -> str:
-    """Translate common medical abbreviations and dosage terms to Japanese.
+def _localize_dosage_terms(text: str, lang: str = "ja") -> str:
+    """Translate common medical abbreviations and dosage terms to the
+    target language. Word-level replacements with case-insensitive
+    matching for common terms.
 
-    Word-level replacements with case-insensitive matching for common terms.
+    Phase 1d-3 (2026-09-23): the second parameter accepts any ISO-639-1
+    code. When ``lang`` has no substitution entries (e.g. ``en``, or a
+    locale that has not yet been populated in ``med_terms.yaml``) the
+    input is passed through unchanged — no code branch is needed. The
+    default remains ``"ja"`` to keep existing single-arg callers
+    byte-identical during migration.
     """
-    for pattern, ja in _dosage_term_patterns():
-        text = pattern.sub(ja, text)
+    for pattern, display in _dosage_term_patterns(lang):
+        text = pattern.sub(display, text)
     return text
 
 

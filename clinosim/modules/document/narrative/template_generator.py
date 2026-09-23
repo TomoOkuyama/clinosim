@@ -3613,9 +3613,14 @@ class TemplateNarrativeGenerator:
 
                 display = _localize_drug_name(display, "JP")
 
+                # Phase 1d-3 (2026-09-23): pass ctx.target_lang through so
+                # this branch stays lang-agnostic when a future locale
+                # (fr / zh) adds its own YAML slots to med_terms.yaml.
+                _term_lang = ctx.target_lang
+
                 def _ja_term(v: str) -> str:
                     try:
-                        return _localize_dosage_terms(v)
+                        return _localize_dosage_terms(v, _term_lang)
                     except Exception:  # noqa: BLE001
                         return v
             else:

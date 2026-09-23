@@ -148,11 +148,18 @@ def test_load_med_terms_ja_fallback_when_yaml_missing(monkeypatch):
 
     from clinosim.modules.output.fhir_r4.lib import localization as _fhir_localization
 
+    # Phase 1d-3 (2026-09-23): _load_med_terms_ja is now a projection of
+    # load_med_terms (multi-language), so both caches must be cleared to
+    # exercise the yaml-missing fallback path.
+    from clinosim.locale.loader import load_med_terms as _load_med_terms
+
+    _load_med_terms.cache_clear()
     _fhir_localization._load_med_terms_ja.cache_clear()
     monkeypatch.setattr(Path, "exists", lambda self: False)
     data = _fhir_localization._load_med_terms_ja()
     assert data == {"categories": {}, "terms": {}}
-    _fhir_localization._load_med_terms_ja.cache_clear()  # leave clean for sibling tests
+    _load_med_terms.cache_clear()  # leave clean for sibling tests
+    _fhir_localization._load_med_terms_ja.cache_clear()
 
 
 def test_load_drug_names_ja_fallback_when_yaml_missing(monkeypatch):

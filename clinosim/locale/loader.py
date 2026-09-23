@@ -417,17 +417,41 @@ def load_encounter_disposition_defaults() -> dict[str, Any]:
 
 
 @lru_cache(maxsize=1)
-def load_med_terms_ja() -> dict[str, dict[str, str]]:
-    """Load JP medication-term tables ({"categories": {...}, "terms": {...}}).
+def load_med_terms() -> dict[str, dict[str, dict[str, str]]]:
+    """Load the multi-language medication dosage / term catalog.
 
-    Order is preserved from the YAML (substitutions are order-sensitive).
-    Canonical loader for the FHIR adapter localization layer (was previously a
-    raw ``yaml.safe_load`` inlined in ``output/_fhir_localization.py``).
+    Structure: ``{"categories": {slug: {lang: display}}, "terms":
+    {slug: {lang: display}}}`` — same shape as the Phase 1d-1
+    ``narrative_*.yaml`` and Phase 1d-2 ``llm_prompt_labels.yaml``
+    files. Order is preserved from the YAML (substitutions are
+    order-sensitive: longer keys must be tried first).
+
+    Backing file: ``clinosim/locale/shared/med_terms.yaml`` (Phase
+    1d-3, 2026-09-23). Adding a new locale (fr / zh / …) is a data
+    change here — extend each entry with ``<lang>: <display>``.
     """
-    raw = _load_yaml(_LOCALE_DIR / "shared" / "med_terms_ja.yaml", fallback={})
+    raw = _load_yaml(_LOCALE_DIR / "shared" / "med_terms.yaml", fallback={})
     return {
         "categories": raw.get("categories", {}) or {},
         "terms": raw.get("terms", {}) or {},
+    }
+
+
+@lru_cache(maxsize=1)
+def load_med_terms_ja() -> dict[str, dict[str, str]]:
+    """Deprecated alias — returns a ``{"categories": {slug: ja_value},
+    "terms": {slug: ja_value}}`` view of the multi-language catalog for
+    callers that predate Phase 1d-3.
+
+    Use ``load_med_terms`` for new code. This shim projects each
+    per-slot dict to its ``ja`` slot only; callers that need
+    ``lang="en"`` (etc.) must migrate to ``load_med_terms`` and
+    resolve via ``resolve_localized_display``.
+    """
+    ml = load_med_terms()
+    return {
+        "categories": {k: entry.get("ja", "") for k, entry in ml["categories"].items()},
+        "terms": {k: entry.get("ja", "") for k, entry in ml["terms"].items()},
     }
 
 
