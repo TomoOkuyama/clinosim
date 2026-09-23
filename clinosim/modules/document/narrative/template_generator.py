@@ -2450,23 +2450,20 @@ class TemplateNarrativeGenerator:
         parallels the JA structure (same CIF sources, English wording).
         """
         lang = ctx.target_lang
-        is_ja = lang == "ja"
         parts: list[str] = []
         enc = ctx.encounter
-        # Primary reason — respect locale (JA reads chief_complaint_ja
-        # first; EN reads chief_complaint first so JA labels do not leak
-        # into US-locale narratives).
+        # Primary reason — try the localized ``chief_complaint_<lang>``
+        # slot first, then fall back to the language-agnostic base
+        # ``chief_complaint`` field. Preserves the pre-Phase-1d-18
+        # behaviour: JA reads chief_complaint_ja first, EN reads
+        # chief_complaint first (there is no chief_complaint_en slot on
+        # PatientProfile) — but the branch is now data-driven.
         if enc is None:
             cc = None
-        elif is_ja:
-            cc = _o(enc, "chief_complaint_ja", None) or _o(enc, "chief_complaint", None)
         else:
-            cc = _o(enc, "chief_complaint", None) or _o(enc, "chief_complaint_ja", None)
+            cc = _o(enc, f"chief_complaint_{lang}", None) or _o(enc, "chief_complaint", None)
         if cc:
-            if is_ja:
-                parts.append(f"主訴「{cc}」で入院。")
-            else:
-                parts.append(f"Admitted for evaluation and management of: {cc}.")
+            parts.append(t("ap_assessment.chief_complaint_line", lang, cc=cc))
         # Severity + disease
         # session-88j P1-12/Bug-3: JA output must not leak raw EN severity
         # (mild / moderate / severe / critical) into 「病態: X (Y)」. v14
@@ -2476,7 +2473,7 @@ class TemplateNarrativeGenerator:
             disease = _o(ctx.disease_protocol, "disease_id", None)
             if disease:
                 _sev = str(ctx.severity or "")
-                if _sev and is_ja:
+                if _sev and lang == "ja":
                     from clinosim.modules.document.narrative.replacement_strategy import (
                         _localize_severity_ja,
                     )
@@ -2484,15 +2481,12 @@ class TemplateNarrativeGenerator:
                     _sev = _localize_severity_ja(_sev)
                 # Phase 1c-2 (2026-09-22): the raw disease_id snake_case
                 # token ("bacterial_pneumonia", "acute_myocardial_infarction")
-                # leaked into JA output as「病態: bacterial_pneumonia (中等度)」.
+                # leaked into JA narratives.
                 # ``_localize_complication`` covers the disease-id vocabulary
                 # too because ``disease_id`` and complication tokens draw
                 # from the same disease-YAML namespace.
-                disease_label = _localize_complication(str(disease), ctx.target_lang)
-                if is_ja:
-                    parts.append(f"病態: {disease_label} ({_sev})。")
-                else:
-                    parts.append(f"Working diagnosis: {disease_label} (severity: {_sev}).")
+                disease_label = _localize_complication(str(disease), lang)
+                parts.append(t("ap_assessment.disease_severity_line", lang, disease=disease_label, severity=_sev))
         # Chronic backdrop — Issue #1333: route CIF base code through
         # map_diagnosis_code so display matches the FHIR emit-target.
         conds = _o(ctx.patient, "chronic_conditions", []) or [] if ctx.patient else []
@@ -2503,27 +2497,22 @@ class TemplateNarrativeGenerator:
             )
 
             country = "JP" if ctx.locale.lower() == "jp" else "US"
-            key = "icd-10" if ctx.locale == "jp" else "icd-10-cm"
+            key = _label("code_system_icd_display", "primary", lang)
 
             def _resolve_chronic_label(c: object) -> str:
                 base = _o(c, "code", "") or ""
                 if not base:
                     return ""
                 emit = _map_diagnosis_code(base, country) or base
-                return _code_lookup(key, emit, ctx.target_lang) or emit
+                return _code_lookup(key, emit, lang) or emit
 
             labels = [_resolve_chronic_label(c) for c in conds[:4]]
             labels = [lbl for lbl in labels if lbl]
             if labels:
-                if is_ja:
-                    parts.append(f"併存疾患: {'、'.join(labels)}。")
-                else:
-                    parts.append(f"Comorbidities: {', '.join(labels)}.")
+                sep = t("list_sep.serial", lang)
+                parts.append(t("ap_assessment.comorbidities_line", lang, list=sep.join(labels)))
         if not parts:
-            if is_ja:
-                parts.append("急性症状の精査・治療目的で入院。")
-            else:
-                parts.append("Admitted for acute symptom workup and management.")
+            parts.append(t("ap_assessment.acute_fallback", lang))
         return t("list_sep.chunk", lang).join(parts)
 
     def _compose_ap_plan_from_state(self, ctx: NarrativeContext) -> str:
@@ -2535,7 +2524,6 @@ class TemplateNarrativeGenerator:
         ``Continue current management`` fallback.
         """
         lang = ctx.target_lang
-        is_ja = lang == "ja"
         parts: list[str] = []
         # LOS estimate — Issue #1185 F4: two sections of the same admission_hp
         # document reported different planned LOS numbers (25日 vs 17日)
@@ -2548,10 +2536,7 @@ class TemplateNarrativeGenerator:
         # `ctx.los_days` when disease_protocol is unavailable.
         los, _los_facts = self._estimated_los_days(ctx)
         if los > 0:
-            if is_ja:
-                parts.append(f"予定入院期間: 約{los}日。")
-            else:
-                parts.append(f"Estimated length of stay: ~{los} days.")
+            parts.append(t("ap_plan.estimated_los", lang, los=los))
         # Today's meds (day 0 admission-day filter). Same explicit-day-else-
         # timestamp-derived pattern as `_compose_progress_plan_from_state`
         # (Issue #1154) so real CIF MedicationAdministration without a
@@ -2576,7 +2561,12 @@ class TemplateNarrativeGenerator:
             if not name or name in seen:
                 continue
             seen.add(name)
-            if is_ja:
+            if lang == "ja":
+                # Drug-name katakana lookup is a JA-locale-specific data
+                # pipeline (not just a display translation), so this
+                # branch dispatches on lang. Extending to fr/zh/… would
+                # add a matching per-locale drug-name resolver, not
+                # extend a YAML phrase catalog.
                 from clinosim.modules.output.fhir_r4.lib.localization import _localize_drug_name
 
                 med_names.append(_localize_drug_name(str(name), "JP"))
@@ -2585,38 +2575,27 @@ class TemplateNarrativeGenerator:
             if len(med_names) >= 6:
                 break
         if med_names:
-            if is_ja:
-                parts.append(f"薬物療法: {'、'.join(med_names)}。")
-            else:
-                parts.append(f"Initial medications: {', '.join(med_names)}.")
+            sep = t("list_sep.serial", lang)
+            parts.append(t("ap_plan.initial_meds", lang, list=sep.join(med_names)))
         # Ordered procedures (workup)
         procs = [_o(pr, "procedure_name", None) or _o(pr, "name", None) for pr in (ctx.procedures or [])[:4]]
         procs = [p for p in procs if p]
         if procs:
-            if is_ja:
-                parts.append(f"検査・処置: {'、'.join(str(p) for p in procs)}。")
-            else:
-                parts.append(f"Workup / procedures: {', '.join(str(p) for p in procs)}.")
+            sep = t("list_sep.serial", lang)
+            parts.append(t("ap_plan.workup_procedures", lang, list=sep.join(str(p) for p in procs)))
         if not parts:
-            if is_ja:
-                parts.append("経過観察・症状に応じた対応。")
-            else:
-                parts.append("Observation with symptom-directed management.")
+            parts.append(t("ap_plan.observation_fallback", lang))
         return t("list_sep.chunk", lang).join(parts)
 
     def _build_admission_summary(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
         """Build admission_summary for DISCHARGE_SUMMARY."""
         facts: list[str] = []
         lang = ctx.target_lang
-        is_ja = lang == "ja"
 
         cc_text, cc_facts = self._build_chief_complaint(ctx)
         facts.extend(cc_facts)
 
-        if is_ja:
-            text = f"主訴: {cc_text}。入院日: {ctx.day_index + 1} 日目現在。"
-        else:
-            text = f"Chief complaint: {cc_text}. Admitted for inpatient care."
+        text = t("admission_summary.head_line", lang, cc=cc_text, day=ctx.day_index + 1)
 
         return text, facts
 

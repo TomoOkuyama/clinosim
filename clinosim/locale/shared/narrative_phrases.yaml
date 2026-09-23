@@ -45,6 +45,45 @@ progress:
     ja: "本日の検査所見: {list}。"
     en: "Notable labs today: {list}."
 
+# admission_hp Assessment section composer phrases (Phase 1d-18).
+# From template_generator._compose_ap_assessment_from_state.
+ap_assessment:
+  chief_complaint_line:
+    ja: "主訴「{cc}」で入院。"
+    en: "Admitted for evaluation and management of: {cc}."
+  disease_severity_line:
+    ja: "病態: {disease} ({severity})。"
+    en: "Working diagnosis: {disease} (severity: {severity})."
+  comorbidities_line:
+    ja: "併存疾患: {list}。"
+    en: "Comorbidities: {list}."
+  acute_fallback:
+    ja: "急性症状の精査・治療目的で入院。"
+    en: "Admitted for acute symptom workup and management."
+
+# admission_hp Plan section composer phrases (Phase 1d-18).
+# From template_generator._compose_ap_plan_from_state.
+ap_plan:
+  estimated_los:
+    ja: "予定入院期間: 約{los}日。"
+    en: "Estimated length of stay: ~{los} days."
+  initial_meds:
+    ja: "薬物療法: {list}。"
+    en: "Initial medications: {list}."
+  workup_procedures:
+    ja: "検査・処置: {list}。"
+    en: "Workup / procedures: {list}."
+  observation_fallback:
+    ja: "経過観察・症状に応じた対応。"
+    en: "Observation with symptom-directed management."
+
+# Discharge-summary admission_summary head (Phase 1d-18).
+# From template_generator._build_admission_summary.
+admission_summary:
+  head_line:
+    ja: "主訴: {cc}。入院日: {day} 日目現在。"
+    en: "Chief complaint: {cc}. Admitted for inpatient care."
+
 # Section fallback text when the underlying CIF field is empty.
 # Callers: template_generator._build_past_medical_history /
 # _build_medications_at_home / _build_admission_diagnoses /
