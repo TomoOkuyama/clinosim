@@ -367,6 +367,42 @@ chronic_labs:
     ja: "CKD ステージ {stage}"
     en: "CKD stage {stage}"
 
+# NURSING_SHIFT_NOTE renderer phrases (Phase 1d-23).
+# From template_generator._render_nursing_shift_note_text — a
+# free-text per-shift note (day/evening/night) with header + patient
+# status + meds line + observations.
+nursing_shift:
+  nurse_line:
+    ja: "担当看護師: {name}"
+    en: "Nurse: {name}"
+  o2_device_with_flow:
+    ja: "酸素投与: {device} {flow} L/min"
+    en: "{device} {flow} L/min"
+  fall_risk_line:
+    ja: "転倒リスク {level}、ベッド柵設置。"
+    en: "Fall risk {level}; bed rails in place. "
+  title_with_shift:
+    ja: "【看護記録({shift})】"
+    en: "[Nursing Shift Note - {shift} shift]"
+  title_no_shift:
+    ja: "【看護記録】"
+    en: "[Nursing Shift Note]"
+  header_line:
+    ja: "{title} 入院 {day} 日目 / 入院予定 {los} 日間"
+    en: "{title} Day {day} / LOS {los} days"
+  patient_status_head:
+    ja: "患者状態: "
+    en: "Patient status: "
+  no_vital_record:
+    ja: "バイタル記録なし。"
+    en: "no vital record."
+  meds_head:
+    ja: "投薬継続: "
+    en: "Meds administered: "
+  observations_default:
+    ja: "観察・ケア継続、特記事項なし。"
+    en: "Observation and care ongoing, no significant findings."
+
 # Newborn / infant screening phrases (Phase 1d-9, from
 # replacement_strategy._build_neonatal_addendum).
 newborn:

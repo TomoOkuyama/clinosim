@@ -3386,7 +3386,6 @@ class TemplateNarrativeGenerator:
         """
         facts: list[str] = []
         lang = ctx.target_lang
-        is_ja = lang == "ja"
 
         day_num = ctx.day_index + 1  # 1-based display
         los = ctx.los_days or 1
@@ -3403,10 +3402,7 @@ class TemplateNarrativeGenerator:
         if nurse_id:
             facts.append("encounter.primary_nurse_id")
             nurse_disp = _resolve_staff_name(nurse_id, ctx.roster_map, lang)
-            if is_ja:
-                nurse_line = f"担当看護師: {nurse_disp}"
-            else:
-                nurse_line = f"Nurse: {nurse_disp}"
+            nurse_line = t("nursing_shift.nurse_line", lang, name=nurse_disp)
 
         # v9 (2026-08-17) density fix: replace 「バイタルサイン安定 / 特記事項なし」
         # boilerplate with CIF-sourced per-shift narrative (today's vitals,
@@ -3436,7 +3432,10 @@ class TemplateNarrativeGenerator:
             if vital_line_parts:
                 status_bits.append(", ".join(vital_line_parts))
             if on_o2:
-                if is_ja:
+                # JA-locale drug/device-name katakana lookup is a
+                # locale-specific data pipeline; other languages pass
+                # the raw device token through.
+                if lang == "ja":
                     from clinosim.modules.document.narrative.replacement_strategy import (
                         _localize_oxygen_device_ja,
                     )
@@ -3446,10 +3445,9 @@ class TemplateNarrativeGenerator:
                     device_disp = str(device or "")
                 if device and flow is not None:
                     try:
+                        flow_str = f"{float(flow):g}"
                         status_bits.append(
-                            f"{device_disp} {float(flow):g} L/min"
-                            if not is_ja
-                            else f"酸素投与: {device_disp} {float(flow):g} L/min"
+                            t("nursing_shift.o2_device_with_flow", lang, device=device_disp, flow=flow_str)
                         )
                     except (TypeError, ValueError):
                         status_bits.append(t("oxygen.device_line", lang, device=device_disp))
@@ -3468,7 +3466,9 @@ class TemplateNarrativeGenerator:
             if not n or n in seen:
                 continue
             seen.add(n)
-            if is_ja:
+            if lang == "ja":
+                # JA-locale drug-name katakana lookup (locale-specific
+                # data pipeline, same rationale as _compose_ap_plan_from_state).
                 from clinosim.modules.output.fhir_r4.lib.localization import _localize_drug_name
 
                 med_names.append(_localize_drug_name(str(n), "JP"))
@@ -3484,33 +3484,39 @@ class TemplateNarrativeGenerator:
             latest = risks[-1]
             fall = _o(latest, "fall_risk_level", None)
             if fall and str(fall).lower() in ("high", "moderate"):
-                # JA: localize enum ("high"/"moderate") so the LLM
-                # doesn't inherit the EN token into its shift-note.
-                # Same map as `_build_risk_assessments` line ~2567.
-                if is_ja:
-                    _fall_ja = {"low": "低リスク", "moderate": "中等度リスク", "high": "高リスク"}
-                    fall_disp = _fall_ja.get(str(fall).lower(), str(fall))
-                else:
+                # Localize the risk-level enum via the shared morse_band
+                # phrase catalog (low/moderate/high → 低リスク/中等度リスク/
+                # 高リスク on JA output). Unknown values fall back to the
+                # raw token so novel risk levels still surface.
+                fall_disp = t(f"morse_band.{str(fall).lower()}", lang)
+                if fall_disp == f"morse_band.{str(fall).lower()}":
                     fall_disp = str(fall)
-                risk_bit = (
-                    f"転倒リスク {fall_disp}、ベッド柵設置。"
-                    if is_ja
-                    else f"Fall risk {fall_disp}; bed rails in place. "
-                )
+                risk_bit = t("nursing_shift.fall_risk_line", lang, level=fall_disp)
                 facts.append("ctx.nursing_risk_assessments[-1]")
 
-        if is_ja:
-            title = f"【看護記録({shift_label})】" if shift_label else "【看護記録】"
-            header = f"{title} 入院 {day_num} 日目 / 入院予定 {los} 日間"
-            status = "患者状態: " + ("、".join(status_bits) + "。" if status_bits else "バイタル記録なし。")
-            meds_line = ("投薬継続: " + "、".join(med_names) + "。") if med_names else ""
-            observations = risk_bit or "観察・ケア継続、特記事項なし。"
+        title = (
+            t("nursing_shift.title_with_shift", lang, shift=shift_label)
+            if shift_label
+            else t("nursing_shift.title_no_shift", lang)
+        )
+        header = t("nursing_shift.header_line", lang, title=title, day=day_num, los=los)
+        # status_bits separator differs by locale: JA uses 「、」, EN uses
+        # "; " — matched by list_sep.semicolon. Trailing period picked
+        # via list_sep.period (「。」 / ".").
+        if status_bits:
+            status_body = t("list_sep.semicolon", lang).join(status_bits) + t("list_sep.period", lang)
         else:
-            title = f"[Nursing Shift Note - {shift_label} shift]" if shift_label else "[Nursing Shift Note]"
-            header = f"{title} Day {day_num} / LOS {los} days"
-            status = "Patient status: " + ("; ".join(status_bits) + "." if status_bits else "no vital record.")
-            meds_line = ("Meds administered: " + ", ".join(med_names) + ".") if med_names else ""
-            observations = risk_bit or "Observation and care ongoing, no significant findings."
+            status_body = t("nursing_shift.no_vital_record", lang)
+        status = t("nursing_shift.patient_status_head", lang) + status_body
+        if med_names:
+            meds_line = (
+                t("nursing_shift.meds_head", lang)
+                + t("list_sep.serial", lang).join(med_names)
+                + t("list_sep.period", lang)
+            )
+        else:
+            meds_line = ""
+        observations = risk_bit or t("nursing_shift.observations_default", lang)
 
         lines = [header]
         if nurse_line:
