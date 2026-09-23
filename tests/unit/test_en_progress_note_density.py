@@ -101,9 +101,14 @@ def test_ja_assessment_still_uses_kanji_prose() -> None:
     )
 
     gen = TemplateNarrativeGenerator()
-    out = gen._compose_progress_assessment_from_state(_ctx("ja", complications=["pneumothorax"]))
+    # Phase 1c-6 (2026-09-23): use an unmapped fallback slug so the
+    # test guards the humanised pass-through path (Phase 1c-6 added
+    # `pneumothorax` → 「気胸」 to `_COMPLICATION_JA`, so it is no
+    # longer a fallback probe). Any novel slug that stays out of the
+    # table exercises the ``key.replace("_", " ")`` fallback.
+    out = gen._compose_progress_assessment_from_state(_ctx("ja", complications=["novel_complication"]))
     assert "合併症" in out
-    assert "pneumothorax" in out
+    assert "novel complication" in out
 
 
 # ---------------------------------------------------------------------------
