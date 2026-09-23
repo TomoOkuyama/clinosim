@@ -269,6 +269,78 @@ list_sep:
   prior_word:
     ja: "前値"
     en: "prior"
+  period:
+    ja: "。"
+    en: "."
+  space:
+    ja: " "
+    en: "; "
+
+# Nursing / care-plan section labels + composite phrases.
+nursing:
+  diagnoses_head:
+    ja: "看護診断: "
+    en: "Nursing diagnoses: "
+  care_plan_head:
+    ja: "看護計画: "
+    en: "Care plan: "
+  fall_precautions:
+    ja: "転倒予防"
+    en: "fall precautions"
+  pu_prevention:
+    ja: "褥瘡予防"
+    en: "PU prevention"
+  pu_risk_label:
+    ja: "褥瘡リスク"
+    en: "pressure-ulcer risk"
+  supplemental_o2:
+    ja: "酸素投与継続中"
+    en: "supplemental O2"
+
+# PMH (past medical history) header phrase inside admission_status.
+pmh:
+  header_prefix:
+    ja: "既往: "
+    en: "PMH: "
+
+# BMI-derived body-composition band labels (5 tiers).
+bmi_band:
+  underweight:
+    ja: "低体重"
+    en: "underweight"
+  normal:
+    ja: "普通"
+    en: "normal"
+  overweight:
+    ja: "過体重"
+    en: "overweight"
+  obese:
+    ja: "肥満"
+    en: "obese"
+
+# Chronic-condition-specific diet plan tags (E11/N18/I50/K70 anchors).
+diet_plan:
+  diabetic:
+    ja: "糖尿病栄養管理"
+    en: "diabetic diet"
+  ckd_protein_restriction:
+    ja: "CKD 蛋白制限"
+    en: "CKD protein restriction"
+  hf_fluid_salt_restriction:
+    ja: "心不全水分・塩分制限"
+    en: "HF fluid/salt restriction"
+  hepatic:
+    ja: "肝機能考慮"
+    en: "hepatic diet"
+
+# Generic small phrases.
+common:
+  tbd:
+    ja: "未定"
+    en: "TBD"
+  relative:
+    ja: "親族"
+    en: "relative"
 
 # ------------------------------------------------------------
 # Fallback texts (Phase 1d-7): migrated from module-level
