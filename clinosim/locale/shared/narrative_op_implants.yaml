@@ -1,0 +1,14 @@
+# Operative-note implant / device localization.
+#
+# Format: <slug>: {en: <english>, ja: <日本語>}
+# Add new language: extend each entry with `<lang_code>: <display>`.
+# Load via ``clinosim.locale.loader.load_narrative_op_implants()``.
+
+op_implants:
+  bipolar femoral prosthesis: {ja: バイポーラ人工骨頭}
+  cannulated screw: {ja: カニュレイテッドスクリュー}
+  cephalomedullary nail: {ja: 頭髄内釘}
+  compression hip screw: {ja: 圧迫式ヒップスクリュー}
+  dynamic hip screw: {ja: ダイナミックヒップスクリュー}
+  intramedullary nail: {ja: 髄内釘}
+  sliding hip screw: {ja: スライディングヒップスクリュー}
