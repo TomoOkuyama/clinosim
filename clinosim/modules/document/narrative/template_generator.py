@@ -3646,7 +3646,6 @@ class TemplateNarrativeGenerator:
         fix — v8 emitted 12-char placeholder."""
         facts: list[str] = []
         lang = ctx.target_lang
-        is_ja = lang == "ja"
         risks = list(getattr(ctx, "nursing_risk_assessments", None) or [])
         if not risks:
             return (t("fallback.risk_fallback", lang)), facts
@@ -3668,20 +3667,18 @@ class TemplateNarrativeGenerator:
                 bband = t("morse_band.high", lang)
             else:
                 bband = t("morse_band.severe", lang)
-            parts.append(
-                f"褥瘡リスク (Braden {braden}/23): {bband}"
-                if is_ja
-                else f"Pressure-ulcer (Braden {braden}/23): {bband}"
-            )
+            parts.append(t("risk.braden_line", lang, braden=braden, band=bband))
         if morse is not None:
             lvl = fall_lvl or ("low" if morse < 25 else "moderate" if morse < 45 else "high")
-            # v9 (2026-08-17 evening) FIX: fall_risk_level raw enum
-            # ("low"/"moderate"/"high") was leaking into JA narrative;
-            # localize to Japanese standard nursing terminology.
-            if is_ja:
-                _fall_ja = {"low": "低リスク", "moderate": "中等度リスク", "high": "高リスク"}
-                lvl = _fall_ja.get(str(lvl).lower(), lvl)
-            parts.append(t("fall_risk.morse_score_line", lang, morse=morse, level=lvl))
+            # Localize the fall-risk enum via the shared morse_band phrase
+            # catalog so JA emits 「低リスク / 中等度リスク / 高リスク」
+            # instead of the raw EN token. Unknown values fall back to
+            # the raw string.
+            lvl_key = str(lvl).lower()
+            lvl_disp = t(f"morse_band.{lvl_key}", lang)
+            if lvl_disp == f"morse_band.{lvl_key}":
+                lvl_disp = str(lvl)
+            parts.append(t("fall_risk.morse_score_line", lang, morse=morse, level=lvl_disp))
         if not parts:
             return (t("fallback.risk_fallback", lang)), facts
         return t("list_sep.period", lang).join(parts) + t("list_sep.period", lang), facts
@@ -4343,7 +4340,6 @@ class TemplateNarrativeGenerator:
         """Build discharge_readiness from latest ADL + risk. v9 density fix."""
         facts: list[str] = []
         lang = ctx.target_lang
-        is_ja = lang == "ja"
         adls = list(getattr(ctx, "adl_assessments", None) or [])
         risks = list(getattr(ctx, "nursing_risk_assessments", None) or [])
         parts: list[str] = []
@@ -4361,12 +4357,15 @@ class TemplateNarrativeGenerator:
                 facts.append("ctx.nursing_risk_assessments[-1]")
                 bits = []
                 if fall:
-                    # v9 evening: localize fall_risk_level enum for JA
-                    fall_disp = fall
-                    if is_ja:
-                        _fall_ja = {"low": "低リスク", "moderate": "中等度リスク", "high": "高リスク"}
-                        fall_disp = _fall_ja.get(str(fall).lower(), fall)
-                    bits.append(t("rehab.fall_suffix", lang, label=fall_disp if is_ja else fall))
+                    # Localize fall_risk_level via the shared morse_band
+                    # catalog (JA emits 「低リスク / 中等度リスク / 高リスク」
+                    # rather than the raw EN token). Unknown values fall
+                    # back to the raw string.
+                    fall_key = str(fall).lower()
+                    fall_disp = t(f"morse_band.{fall_key}", lang)
+                    if fall_disp == f"morse_band.{fall_key}":
+                        fall_disp = str(fall)
+                    bits.append(t("rehab.fall_suffix", lang, label=fall_disp))
                 if braden is not None:
                     bits.append(f"Braden {braden}")
                 parts.append(t("list_sep.serial", lang).join(bits))
