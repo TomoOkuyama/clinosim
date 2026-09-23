@@ -2233,7 +2233,6 @@ class TemplateNarrativeGenerator:
         """
         facts: list[str] = []
         lang = ctx.target_lang
-        is_ja = lang == "ja"
         fallback = t("fallback.family_history_fallback", lang)
 
         fams = ctx.family_history or []
@@ -2275,10 +2274,7 @@ class TemplateNarrativeGenerator:
                 continue
             suffix = deceased_suffix if deceased else ""
             joined = cond_sep.join(displays)
-            if is_ja:
-                entries.append(f"{label}{suffix} – {joined}")
-            else:
-                entries.append(f"{label}{suffix}: {joined}")
+            entries.append(t("family_history.entry_line", lang, label=label, suffix=suffix, conditions=joined))
 
         if not entries:
             return fallback, facts
@@ -4296,7 +4292,6 @@ class TemplateNarrativeGenerator:
         include admission reason + complications summary."""
         facts: list[str] = []
         lang = ctx.target_lang
-        is_ja = lang == "ja"
         los = ctx.los_days or 1
         facts.append("ctx.los_days")
         cc = ""
@@ -4306,24 +4301,15 @@ class TemplateNarrativeGenerator:
         # Phase 1c-2 (2026-09-22): localize complication tokens (31 leaks
         # in JP p=500 admission_status audit — "経過中の合併症: urosepsis"
         # → "経過中の合併症: 尿路性敗血症").
-        comp_labels = [_localize_complication(str(c), ctx.target_lang) for c in comps[:3]]
-        parts: list[str] = []
-        if is_ja:
-            parts.append(f"入院期間: {los}日間。")
-            if cc:
-                parts.append(f"入院理由: {cc}。")
-            if comp_labels:
-                parts.append(f"経過中の合併症: {'、'.join(comp_labels)}。")
-                facts.append("ctx.complications_occurred")
-            parts.append("退院基準を満たし退院となった。")
-        else:
-            parts.append(f"Hospital stay: {los} days. ")
-            if cc:
-                parts.append(f"Admission reason: {cc}. ")
-            if comp_labels:
-                parts.append(f"Complications: {', '.join(comp_labels)}. ")
-                facts.append("ctx.complications_occurred")
-            parts.append("Discharge criteria met.")
+        comp_labels = [_localize_complication(str(c), lang) for c in comps[:3]]
+        parts: list[str] = [t("nursing_admission_status.stay_head", lang, los=los)]
+        if cc:
+            parts.append(t("nursing_admission_status.admission_reason_line", lang, cc=cc))
+        if comp_labels:
+            sep = t("list_sep.serial", lang)
+            parts.append(t("nursing_admission_status.complications_line", lang, list=sep.join(comp_labels)))
+            facts.append("ctx.complications_occurred")
+        parts.append(t("nursing_admission_status.discharge_met_line", lang))
         return "".join(parts), facts
 
     def _build_nursing_interventions_provided(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
@@ -4331,7 +4317,6 @@ class TemplateNarrativeGenerator:
         intake-output totals. v9 density fix — v8 emitted 15-char placeholder."""
         facts: list[str] = []
         lang = ctx.target_lang
-        is_ja = lang == "ja"
         parts: list[str] = []
         procs = [_o(pr, "procedure_name", None) or _o(pr, "name", None) for pr in (ctx.procedures or [])[:5]]
         procs = [p for p in procs if p]
@@ -4350,10 +4335,9 @@ class TemplateNarrativeGenerator:
                 _o(r, "output_urine_ml", 0) + _o(r, "output_drain_ml", 0) + _o(r, "output_other_ml", 0) for r in io
             )
             facts.append("ctx.intake_output_records")
-            if is_ja:
-                parts.append(f"入院期間合計 IN {total_in} mL / OUT {total_out} mL (差 {total_in - total_out:+} mL)")
-            else:
-                parts.append(f"Cumulative IN {total_in} mL / OUT {total_out} mL (net {total_in - total_out:+} mL)")
+            parts.append(
+                t("nursing_interventions.io_line", lang, in_ml=total_in, out_ml=total_out, net=total_in - total_out)
+            )
         if parts:
             return t("list_sep.semicolon", lang).join(parts) + t("list_sep.period", lang), facts
         return (t("fallback.interventions_fallback", lang)), facts
