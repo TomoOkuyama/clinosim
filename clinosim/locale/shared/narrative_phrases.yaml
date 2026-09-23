@@ -372,6 +372,21 @@ discharge_readiness:
     ja: "実施処置: "
     en: "Procedures: "
 
+# Nutrition-plan "special" prefix (Phase 1d-12).
+nutrition_special:
+  prefix:
+    ja: "要注意: "
+    en: "Special: "
+
+# Chronic-SOAP control-status labels (Phase 1d-12).
+control_status:
+  poorly_controlled:
+    ja: "コントロール不十分"
+    en: "poorly controlled"
+  high_normal:
+    ja: "高値注意、追加介入検討"
+    en: "high-normal, consider titration"
+
 # ------------------------------------------------------------
 # Fallback texts (Phase 1d-7): migrated from module-level
 # ``_XXX_FALLBACK_JA`` / ``_XXX_FALLBACK_EN`` string constants that
