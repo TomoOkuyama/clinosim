@@ -977,6 +977,23 @@ _COMPLICATION_JA: dict[str, str] = {
     "increased_icp": "頭蓋内圧亢進",
     "rebleeding_intracerebral": "脳内再出血",
     "vasospasm": "血管攣縮",
+    # Phase 1c-6 (2026-09-23) — additional composite complications
+    # surfaced in the post-Phase-1c-5 audit residuals.
+    "hospital_acquired_pneumonia": "院内肺炎",
+    "healthcare_associated_pneumonia": "医療介護関連肺炎",
+    "parapneumonic_effusion": "肺炎随伴性胸水",
+    "ventricular_arrhythmia": "心室性不整脈",
+    "postoperative_hemorrhage": "術後出血",
+    "acute_respiratory_distress": "急性呼吸窮迫",
+    "recurrent_aspiration": "反復性誤嚥",
+    "pneumothorax": "気胸",
+    "tension_pneumothorax": "緊張性気胸",
+    "pleural_effusion": "胸水",
+    "chronic_pleural_effusion": "慢性胸水",
+    "wound_dehiscence": "創部離開",
+    "anastomotic_leak": "縫合不全",
+    "postoperative_ileus": "術後イレウス",
+    "diabetic_foot_ulcer": "糖尿病性足潰瘍",
 }
 _COMPLICATION_EN: dict[str, str] = {
     # EN output prefers spaced full names over snake_case; leave abbreviations
@@ -1093,6 +1110,22 @@ _COMPLICATION_EN: dict[str, str] = {
     "increased_icp": "elevated intracranial pressure",
     "rebleeding_intracerebral": "intracerebral rebleeding",
     "vasospasm": "vasospasm",
+    # Phase 1c-6 (2026-09-23) — additional composite complications.
+    "hospital_acquired_pneumonia": "hospital-acquired pneumonia",
+    "healthcare_associated_pneumonia": "healthcare-associated pneumonia",
+    "parapneumonic_effusion": "parapneumonic effusion",
+    "ventricular_arrhythmia": "ventricular arrhythmia",
+    "postoperative_hemorrhage": "postoperative hemorrhage",
+    "acute_respiratory_distress": "acute respiratory distress",
+    "recurrent_aspiration": "recurrent aspiration",
+    "pneumothorax": "pneumothorax",
+    "tension_pneumothorax": "tension pneumothorax",
+    "pleural_effusion": "pleural effusion",
+    "chronic_pleural_effusion": "chronic pleural effusion",
+    "wound_dehiscence": "wound dehiscence",
+    "anastomotic_leak": "anastomotic leak",
+    "postoperative_ileus": "postoperative ileus",
+    "diabetic_foot_ulcer": "diabetic foot ulcer",
 }
 
 # Phase 1c-2 (2026-09-22): lab-name localization for the vitals+labs
@@ -1206,6 +1239,27 @@ _LAB_NAME_JA: dict[str, str] = {
     "vitamin_b12": "ビタミン B12",
     "folate": "葉酸",
     "haptoglobin": "ハプトグロビン",
+    # Phase 1c-6 (2026-09-23): additional lab-name aliases observed in
+    # the JP p=10000 progress_note assessment 「本日の検査所見:」 list —
+    # the CIF authors sometimes emit ``T_Bil`` (T-bilirubin) instead of
+    # the full ``total_bilirubin``, and there are a handful of other
+    # slot-shorthand tokens like ``D_Bil``.
+    "t_bil": "総ビリルビン",
+    "tbil": "総ビリルビン",
+    "d_bil": "直接ビリルビン",
+    "dbil": "直接ビリルビン",
+    "i_bil": "間接ビリルビン",
+    "ibil": "間接ビリルビン",
+    "gluc": "血糖",
+    "glc": "血糖",
+    "creat": "クレアチニン",
+    "hgb": "ヘモグロビン",
+    "plts": "血小板",
+    "protein_total": "総蛋白",
+    "protein_c": "プロテイン C",
+    "protein_s": "プロテイン S",
+    "antithrombin_iii": "アンチトロンビン III",
+    "at3": "アンチトロンビン III",
 }
 _LAB_NAME_EN: dict[str, str] = {
     # Full-word labs → keep lowercase-first for English prose readability;
@@ -1354,6 +1408,103 @@ def _localize_lab_flag(flag: str, lang: str) -> str:
         return str(flag)
     key = str(flag).strip().lower()
     return _LAB_FLAG_JA.get(key, str(flag))
+
+
+# Phase 1c-6 (2026-09-23): procedure_type → localized display for the
+# procedure_note ``術式区分:`` line and any other emit site that quotes
+# a bedside procedure_type slug. Sourced from
+# ``clinosim.modules.procedure.engine._BEDSIDE_PROCEDURES`` — the single
+# source of truth for the (CPT / K-code / EN-name / JA-name) tuple.
+# Lazy-imported once at first access to keep template_generator import-
+# time cost flat and to avoid circular-import risk. Pre-fix, the JP
+# p=10000 audit surfaced ~500 raw slug leaks (urinary_catheter /
+# central_line / arterial_line / intubation / nasogastric_tube etc.)
+# in the pn_procedure_name section.
+_PROC_TYPE_LOCALE_CACHE: dict[str, dict[str, str]] = {}
+
+
+def _load_proc_type_locale() -> None:
+    if _PROC_TYPE_LOCALE_CACHE:
+        return
+    try:
+        from clinosim.modules.procedure.engine import _BEDSIDE_PROCEDURES
+
+        ja: dict[str, str] = {}
+        en: dict[str, str] = {}
+        for entry in _BEDSIDE_PROCEDURES:
+            proc_type = str(entry[0])
+            name_en = str(entry[3])
+            name_ja = str(entry[4])
+            if proc_type and name_ja:
+                ja[proc_type.lower()] = name_ja
+            if proc_type and name_en:
+                en[proc_type.lower()] = name_en
+        _PROC_TYPE_LOCALE_CACHE["ja"] = ja
+        _PROC_TYPE_LOCALE_CACHE["en"] = en
+    except Exception:  # noqa: BLE001 — never break narrative on i18n load
+        _PROC_TYPE_LOCALE_CACHE["ja"] = {}
+        _PROC_TYPE_LOCALE_CACHE["en"] = {}
+
+
+def _localize_proc_type(proc_type: str, lang: str) -> str:
+    """Return the localized display for a bedside procedure_type slug.
+
+    Fallback: ``proc_type.replace("_", " ")`` humanised form when the
+    slug is missing from ``_BEDSIDE_PROCEDURES`` (e.g. a delivery /
+    chemotherapy_administration category outside the bedside set).
+    """
+    if not proc_type:
+        return ""
+    _load_proc_type_locale()
+    key = str(proc_type).strip().lower()
+    lang_key = "ja" if str(lang).lower().startswith("ja") else "en"
+    return _PROC_TYPE_LOCALE_CACHE.get(lang_key, {}).get(key) or key.replace("_", " ")
+
+
+# Phase 1c-6 (2026-09-23): PMH severity / persistence / grade token
+# localization for the ``past_medical_history`` renderer. The chronic-
+# condition stage descriptor is authored in EN (``"Mild persistent"`` /
+# ``"Moderate persistent"`` / ``"Severe"`` / ``"intermittent"``) by the
+# disease YAMLs and was pasted verbatim into JA output pre-fix
+# (~245 leaks in the JP p=10000 audit). Mirrors the authorised JA
+# mapping already documented in ``prompts/ja/narrative_seed_bundle.yaml``
+# Rule 5 A so LLM-polished and template-only narratives stay coherent.
+_STAGE_TOKEN_JA: dict[str, str] = {
+    "mild": "軽度",
+    "moderate": "中等度",
+    "severe": "重度",
+    "very severe": "最重度",
+    "critical": "重篤",
+    "intermittent": "間欠",
+    "persistent": "持続",
+    "level": "レベル",
+    "grade": "グレード",
+}
+
+
+def _localize_stage(stage: str, lang: str) -> str:
+    """Localize a compound severity / persistence descriptor for JA.
+
+    Whitespace-tokenises the stage string and translates each token
+    via ``_STAGE_TOKEN_JA`` when JA; unknown tokens (numeric grades,
+    proper-noun scales, unmapped words) pass through so a
+    ``"Stage 1"`` or ``"NYHA III"`` string keeps its canonical form.
+    Non-JA locales get the stage unchanged.
+    """
+    if not stage:
+        return ""
+    s = str(stage).strip()
+    if not s or not str(lang).lower().startswith("ja"):
+        return s
+    out: list[str] = []
+    for tok in s.split():
+        # Preserve any surrounding punctuation on the token boundary.
+        prefix = tok[: len(tok) - len(tok.lstrip("(,.;:"))]
+        suffix = tok[len(tok.rstrip("),.;:")) :]
+        base = tok[len(prefix) : len(tok) - len(suffix)] if suffix else tok[len(prefix) :]
+        ja = _STAGE_TOKEN_JA.get(base.lower())
+        out.append(f"{prefix}{ja if ja else base}{suffix}")
+    return " ".join(out)
 
 
 # Phase 1c-4 (2026-09-23): imaging order display-name localization for
@@ -2768,9 +2919,17 @@ class TemplateNarrativeGenerator:
                 base = emit_code.split(".")[0]
                 if base != emit_code:
                     display = code_lookup(icd_system, base, lang) or emit_code
-            annotation = f" ({stage})" if stage else ""
+            # Phase 1c-6 (2026-09-23): localize the severity /
+            # persistence descriptor via ``_localize_stage`` so JA
+            # emits 「気管支喘息 (軽度持続) [J45]」 rather than
+            # 「気管支喘息 (Mild persistent) [J45]」. Mirrors the LLM
+            # prompt Rule 5 A authorised table. ~245 leaks in the JP
+            # p=10000 audit (Mild / Moderate / Severe / persistent /
+            # intermittent).
+            stage_display = _localize_stage(str(stage), lang) if stage else ""
+            annotation = f" ({stage_display})" if stage_display else ""
             if display and display != emit_code:
-                # Format: "気管支喘息 (Moderate persistent) [J45]" — code
+                # Format: "気管支喘息 (軽度持続) [J45]" — code
                 # trailing for traceability, humans read the display first.
                 lines.append(f"{display}{annotation} [{emit_code}]")
             else:
@@ -4620,7 +4779,15 @@ class TemplateNarrativeGenerator:
         if not surgical:
             return (_ACP_SURGERY_NONE_JA if is_ja else _ACP_SURGERY_NONE_EN), facts
         facts.append("ctx.procedures")
-        types = [str(_o(p, "procedure_type", "") or "") for p in surgical if _o(p, "procedure_type", "")]
+        # Phase 1c-6 (2026-09-23): localize each procedure_type slug via
+        # `_localize_proc_type` so JA emits 「手術予定：経皮的冠動脈形成術、
+        # ペースメーカー移植術」 rather than 「手術予定：coronary_pci、
+        # pacemaker_implant」. ~50 leaks in the JP p=10000 audit.
+        types = [
+            _localize_proc_type(str(_o(p, "procedure_type", "") or ""), ctx.target_lang)
+            for p in surgical
+            if _o(p, "procedure_type", "")
+        ]
         joined = "、".join(types) if is_ja else ", ".join(types)
         return (f"手術予定：{joined}" if is_ja else f"Planned surgery: {joined}"), facts
 
@@ -5977,7 +6144,17 @@ class TemplateNarrativeGenerator:
         if enc is None:
             return ""
         is_ja = ctx.target_lang == "ja"
-        cc = _o(enc, "chief_complaint", "") or ""
+        # Phase 1c-6 (2026-09-23): prefer the locale-specific
+        # ``chief_complaint_{ja,en}`` over the raw ``chief_complaint``
+        # so JA output emits 「来院理由: 予防接種」 rather than the
+        # underlying-EN 「来院理由: Vaccination visit」 for encounters
+        # (immunization / vaccination visits, ED follow-ups) whose
+        # emitters populate both language slots. Mirrors the pattern in
+        # `_render_outpatient_chronic_soap` (line 5258).
+        if is_ja:
+            cc = _o(enc, "chief_complaint_ja", None) or _o(enc, "chief_complaint", "") or ""
+        else:
+            cc = _o(enc, "chief_complaint_en", None) or _o(enc, "chief_complaint", "") or ""
         cc = str(cc).strip()
         primary_dx = _o(enc, "primary_diagnosis", "") or _o(enc, "primary_dx", "") or ""
         primary_dx = str(primary_dx).strip()
@@ -8252,19 +8429,24 @@ class TemplateNarrativeGenerator:
         )
         display = code_lookup(system_key, primary_code, ctx.target_lang) or primary_code or ""
         proc_type = str(_o(proc, "procedure_type", "") or "")
+        # Phase 1c-6 (2026-09-23): localize the procedure_type slug
+        # (urinary_catheter / central_line / intubation / …) via the
+        # bedside-procedures SoT so JA emits 「術式区分: 尿道カテーテル
+        # 挿入」 rather than 「術式区分: urinary_catheter」.
+        proc_type_display = _localize_proc_type(proc_type, ctx.target_lang) if proc_type else ""
         facts.append("ctx.procedures.procedure_code")
         if is_ja:
             core = f"処置名: {display}"
             if primary_code:
                 core += f"（{primary_code}）"
-            if proc_type:
-                core += f"／術式区分: {proc_type}"
+            if proc_type_display:
+                core += f"／術式区分: {proc_type_display}"
             return core + "。", facts
         core = f"Procedure: {display}"
         if primary_code:
             core += f" ({primary_code})"
-        if proc_type:
-            core += f" / type: {proc_type}"
+        if proc_type_display:
+            core += f" / type: {proc_type_display}"
         return core + ".", facts
 
     def _build_pn_consent(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
