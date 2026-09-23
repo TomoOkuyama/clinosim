@@ -1069,6 +1069,59 @@ rp_note:
     ja: "リハビリテーション終了の目安：入院後約{days}日"
     en: "Estimated rehabilitation completion: approximately {days} days post-admission"
 
+# admission/discharge/triage details composers (Phase 1d-32).
+# From _build_admission_details / _build_discharge_details /
+# _build_triage_details. JA vs EN sentence structures differ so each
+# lang carries a complete template plus optional sub-slot phrases.
+admission_details:
+  full_line:
+    ja: "{parts}に入院した。"
+    en: "{parts}."
+  fallback:
+    ja: "入院した。"
+    en: "Admitted for inpatient care."
+  date_slot:
+    ja: "{date}"
+    en: "Admitted on {date}"
+  via_ed_slot:
+    ja: "救急外来受診後"
+    en: "via the emergency department"
+  ward_slot:
+    ja: "{ward}病棟"
+    en: "to the {ward} ward"
+  # Joiner between the ordered fragments — JA uses 「、」, EN uses " ".
+  fragment_sep:
+    ja: "、"
+    en: " "
+
+discharge_details:
+  full_line:
+    ja: "{parts}となった。"
+    en: "{parts}."
+  fallback_ja_only:
+    ja: "退院時所見の記録なし。"
+    en: "Discharge summary not documented."
+  date_slot:
+    ja: "{date}"
+    en: "Discharged on {date}"
+  ward_slot:
+    ja: "{ward}病棟から"
+    en: "from the {ward} ward"
+  dispo_slot:
+    ja: "{dispo}"
+    en: "{dispo}"
+  disposition_default:
+    ja: "退院"
+    en: "discharged"
+
+triage_details:
+  line:
+    ja: "トリアージレベル: {level}。来院形態: {mode}。"
+    en: "Triage level: {level}. Arrival mode: {mode}."
+  arrival_unknown:
+    ja: "不明"
+    en: "unknown"
+
 # DDS treatment / terminal / circumstances / comorbidities / family
 # communication composers (Phase 1d-31). From _build_dds_*.
 dds_treatment_course:
