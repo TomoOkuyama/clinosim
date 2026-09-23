@@ -2699,7 +2699,7 @@ class TemplateNarrativeGenerator:
                 parts.append("急性症状の精査・治療目的で入院。")
             else:
                 parts.append("Admitted for acute symptom workup and management.")
-        return "".join(parts) if is_ja else " ".join(parts)
+        return t("list_sep.chunk", lang).join(parts)
 
     def _compose_ap_plan_from_state(self, ctx: NarrativeContext) -> str:
         """admission_hp Plan composed from CIF (v9 density fix).
@@ -2777,7 +2777,7 @@ class TemplateNarrativeGenerator:
                 parts.append("経過観察・症状に応じた対応。")
             else:
                 parts.append("Observation with symptom-directed management.")
-        return "".join(parts) if is_ja else " ".join(parts)
+        return t("list_sep.chunk", lang).join(parts)
 
     def _build_admission_summary(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
         """Build admission_summary for DISCHARGE_SUMMARY."""
@@ -4653,8 +4653,7 @@ class TemplateNarrativeGenerator:
         if procs:
             facts.append("ctx.procedures")
             parts.append(
-                t("discharge_readiness.procedures_head", lang)
-                + ("、".join(str(p) for p in procs) if is_ja else ", ".join(str(p) for p in procs))
+                t("discharge_readiness.procedures_head", lang) + t("list_sep.serial", lang).join(str(p) for p in procs)
             )
         # Intake/output totals
         io = list(getattr(ctx, "intake_output_records", None) or [])
@@ -5073,7 +5072,7 @@ class TemplateNarrativeGenerator:
             # day's clinical hold, not fabricated symptoms.
             phrase = self._pick_stable_progress_phrase(ctx, is_ja=is_ja)
             parts.append(phrase)
-        return "".join(parts) if is_ja else " ".join(parts)
+        return t("list_sep.chunk", lang).join(parts)
 
     def _pick_stable_progress_phrase(self, ctx: NarrativeContext, *, is_ja: bool) -> str:
         """Return a neutral-observation subjective phrase for a stable day.
@@ -5126,7 +5125,6 @@ class TemplateNarrativeGenerator:
         patient-specific reasoning.
         """
         lang = ctx.target_lang
-        is_ja = lang == "ja"
         parts: list[str] = []
         # Complications (from record via NarrativeContext v6 field).
         # Phase 1c-2 (2026-09-22): the raw snake_case complication tokens
@@ -5195,7 +5193,7 @@ class TemplateNarrativeGenerator:
             parts.append(t("progress.notable_labs", ctx.target_lang, list=sep.join(abn[:4])))
         if not parts:
             parts.append(t("progress.stable_course_assessment", ctx.target_lang))
-        return "".join(parts) if is_ja else " ".join(parts)
+        return t("list_sep.chunk", lang).join(parts)
 
     def _compose_progress_plan_from_state(self, ctx: NarrativeContext) -> str:
         """Inpatient progress_note Plan from CIF facts.
@@ -5266,7 +5264,7 @@ class TemplateNarrativeGenerator:
                 parts.append("治療継続、経過観察。")
             else:
                 parts.append("Continue current management, observe course.")
-        return "".join(parts) if is_ja else " ".join(parts)
+        return t("list_sep.chunk", lang).join(parts)
 
     def _compose_today_vitals_line(self, ctx: NarrativeContext) -> str:
         """Compose today's numeric vital-signs summary for inpatient
@@ -5566,7 +5564,7 @@ class TemplateNarrativeGenerator:
             else:
                 parts.append(f"Complications: {', '.join(comp_labels)}")
 
-        sep = "。" if is_ja else ". "
+        sep = t("list_sep.period_space", lang)
         return sep.join(parts) + ("。" if is_ja and parts else "" if not parts else ".")
 
     def _compose_encounter_reason_line(self, ctx: NarrativeContext) -> str:
@@ -6146,7 +6144,6 @@ class TemplateNarrativeGenerator:
         if not procs:
             return ""
         lang = ctx.target_lang
-        is_ja = lang == "ja"
         names: list[str] = []
         seen: set[str] = set()
         for pr in procs[:6]:
@@ -6157,7 +6154,7 @@ class TemplateNarrativeGenerator:
             names.append(str(nm))
         if not names:
             return ""
-        head = t("outpatient.today_workup_head", lang) + ("、".join(names) if is_ja else "; ".join(names))
+        head = t("outpatient.today_workup_head", lang) + t("list_sep.semicolon", lang).join(names)
         return head
 
     def _compose_follow_up_line(self, ctx: NarrativeContext) -> str:
@@ -6296,7 +6293,7 @@ class TemplateNarrativeGenerator:
         if level_system and level:
             level_text = f"{level_system} Level {level}"
         else:
-            level_text = "未評価" if is_ja else "not assessed"
+            level_text = t("control_status.not_assessed", lang)
 
         if is_ja:
             text = f"トリアージレベル: {level_text}。来院形態: {arrival_display or '不明'}。"
@@ -6356,7 +6353,7 @@ class TemplateNarrativeGenerator:
 
         if parts:
             facts.append(f"encounter_protocol.narrative.ed_note_template.{field}")
-            sep = "。" if is_ja else ". "
+            sep = t("list_sep.period_space", lang)
             text = sep.join(parts)
             # Issue #980: rewrite contradicted PE clauses (JA only — the
             # rewrite pools + trigger keywords are JP terminology).
@@ -6465,17 +6462,14 @@ class TemplateNarrativeGenerator:
             # etc.) via ``_localize_lab_name``. Pre-fix, the JA emission
             # embedded English tokens verbatim under 「検査:」.
             lab_display = [_localize_lab_name(n, ctx.target_lang) for n in lab_names[:8]]
-            parts.append(t("ed_workup.labs_head", lang) + ("、".join(lab_display) if is_ja else ", ".join(lab_display)))
+            parts.append(t("ed_workup.labs_head", lang) + t("list_sep.serial", lang).join(lab_display))
         if imaging_names:
             # Phase 1c-4 (2026-09-23): localise imaging codes
             # ("Chest_Xray_PA_Lateral" / "CT_Head" / etc.) via
             # ``_localize_imaging``. Handles both underscore-slug and
             # spaced-name variants (semantic dedup).
             imaging_display = [_localize_imaging(n, ctx.target_lang) for n in imaging_names[:6]]
-            parts.append(
-                t("ed_workup.imaging_head", lang)
-                + ("、".join(imaging_display) if is_ja else ", ".join(imaging_display))
-            )
+            parts.append(t("ed_workup.imaging_head", lang) + t("list_sep.serial", lang).join(imaging_display))
         if med_names:
             # Phase 1c-3 (2026-09-22): localize med display names to
             # katakana JA via the shared ``drug_names_ja`` table used by
@@ -6489,9 +6483,7 @@ class TemplateNarrativeGenerator:
                     med_display = [_localize_drug_name(m, "JP") or m for m in med_display]
                 except Exception:  # noqa: BLE001 — never fail narrative on i18n
                     pass
-            parts.append(
-                t("ed_workup.medications_head", lang) + ("、".join(med_display) if is_ja else ", ".join(med_display))
-            )
+            parts.append(t("ed_workup.medications_head", lang) + t("list_sep.serial", lang).join(med_display))
         if proc_order_names:
             # Phase 1c-6 (Category L, 2026-09-23): route each procedure
             # order display name through ``_localize_drug_name`` (which
@@ -6513,10 +6505,7 @@ class TemplateNarrativeGenerator:
                     proc_display = [_localize_drug_name(p, "JP") or p for p in proc_display]
                 except Exception:  # noqa: BLE001
                     pass
-            parts.append(
-                t("ed_workup.procedures_ordered_head", lang)
-                + ("、".join(proc_display) if is_ja else ", ".join(proc_display))
-            )
+            parts.append(t("ed_workup.procedures_ordered_head", lang) + t("list_sep.serial", lang).join(proc_display))
 
         # Enrich with any flagged abnormals (kept from the v9 path — an
         # abnormal Cr / K reading is high-signal even when the panel it
@@ -6543,9 +6532,7 @@ class TemplateNarrativeGenerator:
                 disp_flag = _localize_lab_flag(flag, ctx.target_lang)
                 abn_labs.append(f"{disp_name} {val} {unit} [{disp_flag}]")
         if abn_labs:
-            parts.append(
-                t("ed_workup.abnormal_head", lang) + ("、".join(abn_labs[:4]) if is_ja else ", ".join(abn_labs[:4]))
-            )
+            parts.append(t("ed_workup.abnormal_head", lang) + t("list_sep.serial", lang).join(abn_labs[:4]))
 
         # Bedside procedures / imaging descriptions.
         procs = []
@@ -6554,7 +6541,7 @@ class TemplateNarrativeGenerator:
             if nm:
                 procs.append(str(nm))
         if procs:
-            parts.append(t("ed_workup.procedures_head", lang) + ("、".join(procs) if is_ja else ", ".join(procs)))
+            parts.append(t("ed_workup.procedures_head", lang) + t("list_sep.serial", lang).join(procs))
         if parts:
             fact_sources = []
             if lab_names or imaging_names or med_names or proc_order_names:
@@ -6564,7 +6551,7 @@ class TemplateNarrativeGenerator:
             if procs:
                 fact_sources.append("ctx.procedures.ed")
             facts.extend(fact_sources)
-            return "。".join(parts) if is_ja else ". ".join(parts), facts
+            return t("list_sep.period_space", lang).join(parts), facts
 
         return fallback, facts
 
@@ -6682,7 +6669,7 @@ class TemplateNarrativeGenerator:
         acuity_map = _ED_ACUITY_REASON_JA if is_ja else _ED_ACUITY_REASON_EN
         if severity in acuity_map:
             return acuity_map[severity]
-        return "症状に応じて対応" if is_ja else "clinical judgment"
+        return t("control_status.clinical_judgment", "ja" if is_ja else "en")
 
     # ─────────────────────────────────────────────────────────────────
     # Fallback helpers
@@ -7825,9 +7812,7 @@ class TemplateNarrativeGenerator:
         facts = ["ctx.procedures"]
         implants = [str(x) for x in (_o(proc, "implants_used", []) or []) if x]
         if not implants:
-            return (
-                "使用機器・材料：特記すべきインプラント・器材使用なし" if is_ja else "Implants / devices: none"
-            ), facts
+            return (t("op_note.implants_none", lang)), facts
         # Phase 1c-6 (Category K, 2026-09-23): route each implant name
         # through `_OP_IMPLANT_JA` on JA output so 「使用機器・材料：
         # バイポーラ人工骨頭」 rather than 「使用機器・材料：bipolar
@@ -7846,7 +7831,7 @@ class TemplateNarrativeGenerator:
         is_ja = lang == "ja"
         proc = self._primary_surgical_procedure(ctx)
         if proc is None:
-            return ("術後方針：情報なし" if is_ja else "Postoperative plan: not documented"), []
+            return t("op_note.postop_plan_not_documented", lang), []
         facts = ["ctx.procedures"]
         enc_type_raw = _o(ctx.encounter, "encounter_type", None)
         enc_type = str(_o(enc_type_raw, "value", enc_type_raw) or "").lower()
@@ -7892,7 +7877,7 @@ class TemplateNarrativeGenerator:
         is_ja = lang == "ja"
         proc, facts = self._pn_resolve_procedure(ctx)
         if proc is None:
-            return ("処置名: 記録なし。" if is_ja else "Procedure: not documented."), facts
+            return t("proc_note.procedure_not_documented", lang), facts
         code_jp = str(_o(proc, "procedure_code_jp", "") or "")
         code_us = str(_o(proc, "procedure_code_us", "") or "")
         code = str(_o(proc, "procedure_code", "") or "")
@@ -7953,7 +7938,7 @@ class TemplateNarrativeGenerator:
         is_ja = lang == "ja"
         proc, facts = self._pn_resolve_procedure(ctx)
         if proc is None:
-            return ("実施者: 記録なし。" if is_ja else "Operator: not documented."), facts
+            return t("proc_note.operator_not_documented", lang), facts
         performer_id = str(_o(proc, "primary_surgeon_id", "") or "")
         assistant_ids = list(_o(proc, "assistant_ids", []) or [])
         anesth_id = str(_o(proc, "anesthesiologist_id", "") or "")
@@ -7994,7 +7979,7 @@ class TemplateNarrativeGenerator:
         is_ja = lang == "ja"
         proc, facts = self._pn_resolve_procedure(ctx)
         if proc is None:
-            return ("麻酔・鎮静: 記録なし。" if is_ja else "Analgesia: not documented."), facts
+            return t("proc_note.analgesia_not_documented", lang), facts
         anesth = str(_o(proc, "anesthesia_type", "") or "").strip().lower()
         # Bedside procedures use local / sedation almost exclusively —
         # if the record says "general" we still honor it (some cardio-
@@ -8022,7 +8007,7 @@ class TemplateNarrativeGenerator:
         is_ja = lang == "ja"
         proc, facts = self._pn_resolve_procedure(ctx)
         if proc is None:
-            return ("処置経過: 記録なし。" if is_ja else "Course: not documented."), facts
+            return t("proc_note.course_not_documented", lang), facts
         duration = int(_o(proc, "duration_minutes", 0) or 0)
         approach = str(_o(proc, "approach", "") or "")
         outcome_code = str(_o(proc, "outcome_code", "") or "")
@@ -8055,7 +8040,7 @@ class TemplateNarrativeGenerator:
         is_ja = lang == "ja"
         proc, facts = self._pn_resolve_procedure(ctx)
         if proc is None:
-            return ("合併症の有無: 記録なし。" if is_ja else "Complications: not documented."), facts
+            return t("proc_note.complications_not_documented", lang), facts
         intraop = [str(x) for x in (_o(proc, "intraop_complications", []) or []) if x]
         codes = [str(x) for x in (_o(proc, "complication_codes", []) or []) if x]
         facts.append("ctx.procedures.intraop_complications")
@@ -8079,7 +8064,7 @@ class TemplateNarrativeGenerator:
         is_ja = lang == "ja"
         proc, facts = self._pn_resolve_procedure(ctx)
         if proc is None:
-            return ("検体の有無: 記録なし。" if is_ja else "Specimens: not documented."), facts
+            return t("proc_note.specimens_not_documented", lang), facts
         specimens = [str(x) for x in (_o(proc, "specimens_sent", []) or []) if x]
         facts.append("ctx.procedures.specimens_sent")
         if specimens:
@@ -8097,7 +8082,7 @@ class TemplateNarrativeGenerator:
         is_ja = lang == "ja"
         proc, facts = self._pn_resolve_procedure(ctx)
         if proc is None:
-            return ("術後方針: 記録なし。" if is_ja else "Post-procedure plan: not documented."), facts
+            return t("proc_note.postop_plan_not_documented", lang), facts
         outcome_code = str(_o(proc, "outcome_code", "") or "")
         facts.append("ctx.procedures.outcome_code")
         # Simple, defensible plans: baseline monitoring for successful
@@ -8202,4 +8187,4 @@ class TemplateNarrativeGenerator:
                 label = labels.get(sys_key, sys_key)
                 parts.append(f"{label}: {text}")
 
-        return "。".join(parts) if is_ja else ". ".join(parts)
+        return t("list_sep.period_space", "ja" if is_ja else "en").join(parts)
