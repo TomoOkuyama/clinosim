@@ -75,6 +75,33 @@ progress:
   spo2_recovering:
     ja: "SpO2 改善 (前日 {ps:.0f}% → 本日 {s:.0f}%)。"
     en: "SpO2 recovering (prev {ps:.0f}% → today {s:.0f}%)."
+  # From template_generator._compose_progress_plan_from_state (Phase 1d-20).
+  # Per-day inpatient plan lines: continue-meds list, today's procs,
+  # observation fallback.
+  meds_continue:
+    ja: "薬物療法継続: {list}。"
+    en: "Continue current medications: {list}."
+  procs_today:
+    ja: "本日の処置: {list}。"
+    en: "Procedures today: {list}."
+  observation_fallback:
+    ja: "治療継続、経過観察。"
+    en: "Continue current management, observe course."
+
+# Admission-reason single-line composer (Phase 1d-20).
+# From template_generator._build_admission_reason.
+admission_reason:
+  admitted_for:
+    ja: "{subject}のため入院となった。"
+    en: "Admitted for {subject}."
+
+# ED-note fallback phrases (Phase 1d-20).
+# From template_generator._build_ed_physical_exam (vitals-derived
+# fallback when the encounter template carries no physical_exam).
+ed:
+  on_arrival_no_findings:
+    ja: "来院時所見: {vitals}。特記の身体所見なし。"
+    en: "On arrival: {vitals}. No focal findings on exam."
 
 # Section fallback text when the underlying CIF field is empty.
 # Callers: template_generator._build_past_medical_history /

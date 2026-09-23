@@ -2596,7 +2596,6 @@ class TemplateNarrativeGenerator:
 
         facts: list[str] = []
         lang = ctx.target_lang
-        is_ja = lang == "ja"
         diagnoses = ctx.diagnoses or []
         primary = diagnoses[0] if diagnoses else None
         code = ""
@@ -2608,20 +2607,15 @@ class TemplateNarrativeGenerator:
                 or _o(primary, "discharge_diagnosis_system", "")
                 or system_key_for("diagnosis", ctx.locale.upper())
             )
-        display = code_lookup(system, code, ctx.target_lang) if code else ""
+        display = code_lookup(system, code, lang) if code else ""
         if display and display != code:
             facts.append("ctx.diagnoses[0].admission_diagnosis_code")
-            if is_ja:
-                text = f"{display}のため入院となった。"
-            else:
-                text = f"Admitted for {display}."
+            subject = display
         else:
             cc_text, cc_facts = self._build_chief_complaint(ctx)
             facts.extend(cc_facts)
-            if is_ja:
-                text = f"{cc_text}のため入院となった。"
-            else:
-                text = f"Admitted for {cc_text}."
+            subject = cc_text
+        text = t("admission_reason.admitted_for", lang, subject=subject)
         return text, facts
 
     def _build_admission_details(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
@@ -4952,7 +4946,6 @@ class TemplateNarrativeGenerator:
         1,409 progress notes shipped the fallback).
         """
         lang = ctx.target_lang
-        is_ja = lang == "ja"
         parts: list[str] = []
         # Today's meds (MAR) — Issue #1154 fix: MedicationAdministration
         # records store ``scheduled_datetime`` / ``actual_datetime`` but
@@ -4982,7 +4975,10 @@ class TemplateNarrativeGenerator:
             if not name or name in seen:
                 continue
             seen.add(name)
-            if is_ja:
+            if lang == "ja":
+                # JA-locale drug-name katakana lookup (locale-specific
+                # data pipeline, not a display translation — same
+                # rationale as _compose_ap_plan_from_state in Phase 1d-18).
                 from clinosim.modules.output.fhir_r4.lib.localization import _localize_drug_name
 
                 med_names.append(_localize_drug_name(str(name), "JP"))
@@ -4991,23 +4987,16 @@ class TemplateNarrativeGenerator:
             if len(med_names) >= 6:
                 break
         if med_names:
-            if is_ja:
-                parts.append(f"薬物療法継続: {'、'.join(med_names)}。")
-            else:
-                parts.append(f"Continue current medications: {', '.join(med_names)}.")
+            sep = t("list_sep.serial", lang)
+            parts.append(t("progress.meds_continue", lang, list=sep.join(med_names)))
         # Today's procedures
         procs = [_o(pr, "procedure_name", None) or _o(pr, "name", None) for pr in (ctx.procedures or [])[:4]]
         procs = [p for p in procs if p]
         if procs:
-            if is_ja:
-                parts.append(f"本日の処置: {'、'.join(str(p) for p in procs)}。")
-            else:
-                parts.append(f"Procedures today: {', '.join(str(p) for p in procs)}.")
+            sep = t("list_sep.serial", lang)
+            parts.append(t("progress.procs_today", lang, list=sep.join(str(p) for p in procs)))
         if not parts:
-            if is_ja:
-                parts.append("治療継続、経過観察。")
-            else:
-                parts.append("Continue current management, observe course.")
+            parts.append(t("progress.observation_fallback", lang))
         return t("list_sep.chunk", lang).join(parts)
 
     def _compose_today_vitals_line(self, ctx: NarrativeContext) -> str:
@@ -6064,9 +6053,7 @@ class TemplateNarrativeGenerator:
             vital_line = self._compose_vital_signs_line(ctx)
             if vital_line:
                 facts.append("ctx.vitals[0]")
-                if is_ja:
-                    return f"来院時所見: {vital_line}。特記の身体所見なし。", facts
-                return f"On arrival: {vital_line}. No focal findings on exam.", facts
+                return t("ed.on_arrival_no_findings", lang, vitals=vital_line), facts
             return fallback, facts
 
         # physical_exam_<lang> is a structured per-body-system object, not a plain
