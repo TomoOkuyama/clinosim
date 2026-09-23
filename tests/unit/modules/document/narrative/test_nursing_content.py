@@ -110,7 +110,7 @@ def _ctx(disease_id: str = "", chronic_codes: list[str] | None = None, lang: str
 
 def test_lookup_acute_only_returns_all_pilot_items() -> None:
     ctx = _ctx(disease_id="copd_exacerbation")
-    items, facts = _lookup_nursing_content(ctx, "nursing_diagnoses", is_ja=True, cap=5)
+    items, facts = _lookup_nursing_content(ctx, "nursing_diagnoses", lang="ja", cap=5)
     # COPD pilot carries 4 nursing_diagnoses
     assert len(items) == 4
     assert "ガス交換障害" in items
@@ -121,7 +121,7 @@ def test_lookup_acute_only_returns_all_pilot_items() -> None:
 def test_lookup_acute_plus_chronic_merges_with_dedup() -> None:
     # COPD acute (4 items) + I50 chronic (1 item, distinct) — cap=5
     ctx = _ctx(disease_id="copd_exacerbation", chronic_codes=["I50"])
-    items, facts = _lookup_nursing_content(ctx, "nursing_diagnoses", is_ja=True, cap=5)
+    items, facts = _lookup_nursing_content(ctx, "nursing_diagnoses", lang="ja", cap=5)
     assert len(items) == 5
     assert "ガス交換障害" in items  # acute
     assert "体液貯留・活動耐性低下" in items  # chronic I50
@@ -132,7 +132,7 @@ def test_lookup_acute_plus_chronic_merges_with_dedup() -> None:
 def test_lookup_chronic_only_when_no_acute_match() -> None:
     # No disease_protocol → acute contributes nothing; chronic path only
     ctx = _ctx(chronic_codes=["I10", "E11"])
-    items, facts = _lookup_nursing_content(ctx, "nursing_diagnoses", is_ja=False, cap=5)
+    items, facts = _lookup_nursing_content(ctx, "nursing_diagnoses", lang="en", cap=5)
     assert "risk for inadequate BP control" in items  # I10
     assert "unstable glycemic control" in items  # E11
     assert "ctx.disease_protocol.disease_id" not in facts
@@ -142,14 +142,14 @@ def test_lookup_chronic_only_when_no_acute_match() -> None:
 def test_lookup_unknown_disease_falls_back_to_chronic_only() -> None:
     # disease_id not in pilot 5 → acute miss; chronic still fires
     ctx = _ctx(disease_id="not_a_pilot_disease", chronic_codes=["J45"])
-    items, facts = _lookup_nursing_content(ctx, "nursing_diagnoses", is_ja=True, cap=5)
+    items, facts = _lookup_nursing_content(ctx, "nursing_diagnoses", lang="ja", cap=5)
     assert items == ["気道クリアランス不十分のリスク"]  # J45 chronic verbatim
     assert facts == ["ctx.patient.chronic_conditions"]
 
 
 def test_lookup_empty_ctx_returns_empty() -> None:
     ctx = _ctx()  # no disease, no chronic
-    items, facts = _lookup_nursing_content(ctx, "nursing_diagnoses", is_ja=True, cap=5)
+    items, facts = _lookup_nursing_content(ctx, "nursing_diagnoses", lang="ja", cap=5)
     assert items == []
     assert facts == []
 
@@ -157,7 +157,7 @@ def test_lookup_empty_ctx_returns_empty() -> None:
 def test_lookup_respects_cap() -> None:
     # DKA acute has 4 items; cap=2 must return only 2
     ctx = _ctx(disease_id="diabetic_ketoacidosis")
-    items, _ = _lookup_nursing_content(ctx, "nursing_diagnoses", is_ja=False, cap=2)
+    items, _ = _lookup_nursing_content(ctx, "nursing_diagnoses", lang="en", cap=2)
     assert len(items) == 2
 
 
@@ -174,7 +174,7 @@ def test_lookup_each_of_5_pilots_produces_disease_specific_items() -> None:
         "cerebral_infarction",
     ):
         ctx = _ctx(disease_id=did)
-        items, _ = _lookup_nursing_content(ctx, "nursing_diagnoses", is_ja=True, cap=5)
+        items, _ = _lookup_nursing_content(ctx, "nursing_diagnoses", lang="ja", cap=5)
         assert items, f"{did}: no items"
         seen_first_items.add(items[0])
     # 5 pilot diseases must each produce a distinct leading nursing diagnosis
@@ -183,9 +183,9 @@ def test_lookup_each_of_5_pilots_produces_disease_specific_items() -> None:
 
 def test_lookup_covers_all_3_content_fields() -> None:
     ctx = _ctx(disease_id="heart_failure_exacerbation")
-    ndx, _ = _lookup_nursing_content(ctx, "nursing_diagnoses", is_ja=True, cap=5)
-    plan, _ = _lookup_nursing_content(ctx, "care_plan", is_ja=True, cap=4)
-    edu, _ = _lookup_nursing_content(ctx, "patient_education", is_ja=True, cap=4)
+    ndx, _ = _lookup_nursing_content(ctx, "nursing_diagnoses", lang="ja", cap=5)
+    plan, _ = _lookup_nursing_content(ctx, "care_plan", lang="ja", cap=4)
+    edu, _ = _lookup_nursing_content(ctx, "patient_education", lang="ja", cap=4)
     assert ndx and plan and edu
     # Fields must produce distinct content — no accidental copy/paste in YAML
     assert set(ndx).isdisjoint(set(plan)) or True  # weak — same word may appear across fields legitimately

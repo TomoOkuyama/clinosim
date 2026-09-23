@@ -359,6 +359,48 @@ common:
   relative:
     ja: "親族"
     en: "relative"
+  # Staff name + localized role suffix render (Phase 1d-16).
+  # JA style: "<name> <suffix>" (space-separated). EN style:
+  # "<name> (<suffix>)" (parenthesized). Was:
+  #   f"{name} {suffix}" if is_ja else f"{name} ({suffix})"
+  staff_name_with_role:
+    ja: "{name} {suffix}"
+    en: "{name} ({suffix})"
+
+# Newborn metabolic-screen DiagnosticReport.conclusion (Phase 1d-16).
+# Long-form conclusion text per outcome key. The short conclusionCode
+# text lives in ``narrative_labels.yaml::newborn_screen_outcome_text``.
+newborn_screen:
+  conclusion_pass:
+    ja: "陰性 (パス) — スクリーニングパネル全項目で異常所見なし。"
+    en: "Pass — no significant abnormalities detected across the screening panel."
+  conclusion_refer:
+    ja: "陽性 (要精査) — スクリーニングパネルの一部で異常所見あり、確認検査を推奨。"
+    en: "Refer — one or more screening panel results were flagged; follow-up confirmatory testing indicated."
+
+# Patient demographics + biometrics one-liner phrases (Phase 1d-16).
+# JA and EN split the age/sex glue and unit label conventions
+# ("{age}歳男性" vs "{age} y/o male"; "身長" vs "Ht"; "血液型" vs
+# "blood type"). Kept as templates so per-locale format rules stay in
+# YAML data rather than in code branches.
+patient_demographics:
+  age_with_sex:
+    ja: "{age}歳{sex_label}"
+    en: "{age} y/o {sex_label}"
+  age_only:
+    ja: "{age}歳"
+    en: "{age} y/o"
+
+patient_biometrics:
+  height_weight_neonate:
+    ja: "出生時 身長 {h} / 体重 {w}"
+    en: "birth Ht {h} / Wt {w}"
+  height_weight:
+    ja: "身長 {h} / 体重 {w}"
+    en: "Ht {h} / Wt {w}"
+  blood_type:
+    ja: "血液型 {label}"
+    en: "blood type {label}"
 
 # NCP nutrition-care-plan phrases (Phase 1d-11) — additions to the
 # top-level ``nutrition:`` section. YAML duplicate top-level keys
