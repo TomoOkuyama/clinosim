@@ -25,6 +25,20 @@ def _encounter_ref(encounter_id: str) -> dict[str, str]:
     return encounter_ref(encounter_id)
 
 
+def _label(section: str, key: str, lang: str, fallback: str = "") -> str:
+    """Thin wrapper over ``load_narrative_labels`` + ``resolve_localized_display``
+    (Phase 1d-16 unified multi-language pattern — same shape as the
+    ``_label`` helper in ``template_generator.py``). Case-preserving with
+    a lower-cased fallback lookup so callers may use either the raw slug
+    or a lower-cased key.
+    """
+    from clinosim.locale.loader import load_narrative_labels, resolve_localized_display
+
+    section_entries = load_narrative_labels().get(section, {})
+    entry = section_entries.get(str(key)) or section_entries.get(str(key).lower())
+    return resolve_localized_display(entry, lang, fallback=fallback or str(key))
+
+
 _APGAR_MINUTE_TO_LOINC: dict[int, str] = {
     1: "9271-8",
     5: "9274-2",
@@ -32,15 +46,9 @@ _APGAR_MINUTE_TO_LOINC: dict[int, str] = {
     # who needed resuscitation — out of scope for the well-newborn slice.
 }
 
-_APGAR_MINUTE_DISPLAY_EN: dict[int, str] = {
-    1: "1 minute Apgar Score",
-    5: "5 minute Apgar Score",
-}
-
-_APGAR_MINUTE_DISPLAY_JA: dict[int, str] = {
-    1: "アプガースコア (1 分)",
-    5: "アプガースコア (5 分)",
-}
+# Phase 1d-16: Apgar minute display moved to narrative_labels.yaml
+# (``newborn_apgar_minute`` section). Resolved via ``_label()`` +
+# ``resolve_localized_display``.
 
 
 def _apgar_observation_id(patient_id: str, minute: int) -> str:
@@ -85,7 +93,7 @@ def _bb_newborn_apgar(ctx: Any) -> list[dict]:
     CIF fixtures / opt-out).
     """
     from clinosim.codes import get_system_uri
-    from clinosim.modules._shared import is_jp
+    from clinosim.modules._shared import resolve_lang
     from clinosim.modules.output.fhir_r4.demographics.patient import patient_ref
     from clinosim.modules.output.fhir_r4.lib.ids import wrap_as_identifier
 
@@ -103,7 +111,7 @@ def _bb_newborn_apgar(ctx: Any) -> list[dict]:
         return []
     country = str(getattr(ctx, "country", "us") or "us")
     encounter_id = str(getattr(ctx, "primary_enc_id", "") or "")
-    is_ja = is_jp(country)
+    lang = resolve_lang(country)
     key_system = "urn:clinosim:identifier:apgar-observation-key"
 
     out: list[dict] = []
@@ -114,7 +122,10 @@ def _bb_newborn_apgar(ctx: Any) -> list[dict]:
         if not loinc:
             continue
         struct_key = f"{patient_id}-apgar-{minute}m"
-        display = (_APGAR_MINUTE_DISPLAY_JA if is_ja else _APGAR_MINUTE_DISPLAY_EN)[minute]
+        # EN display is the LOINC-registered term; used as the coding
+        # display slot regardless of ``lang``.
+        loinc_display = _label("newborn_apgar_minute", str(minute), "en")
+        display = _label("newborn_apgar_minute", str(minute), lang)
         obs: dict[str, Any] = {
             "resourceType": "Observation",
             "id": _apgar_observation_id(patient_id, minute),
@@ -129,7 +140,7 @@ def _bb_newborn_apgar(ctx: Any) -> list[dict]:
                             "display": "Survey",
                         }
                     ],
-                    "text": "Survey" if not is_ja else "評価スコア",
+                    "text": _label("newborn_category_text", "survey", lang),
                 }
             ],
             "code": {
@@ -137,7 +148,7 @@ def _bb_newborn_apgar(ctx: Any) -> list[dict]:
                     {
                         "system": get_system_uri("loinc"),
                         "code": loinc,
-                        "display": _APGAR_MINUTE_DISPLAY_EN[minute],
+                        "display": loinc_display,
                     }
                 ],
                 "text": display,
@@ -177,7 +188,7 @@ def _bb_newborn_bilirubin(ctx: Any) -> list[dict]:
     valueQuantity in `mg/dL` (UCUM).
     """
     from clinosim.codes import get_system_uri
-    from clinosim.modules._shared import is_jp
+    from clinosim.modules._shared import resolve_lang
     from clinosim.modules.output.fhir_r4.demographics.patient import patient_ref
     from clinosim.modules.output.fhir_r4.lib.ids import wrap_as_identifier
 
@@ -192,7 +203,7 @@ def _bb_newborn_bilirubin(ctx: Any) -> list[dict]:
     patient_id = str(getattr(ctx, "patient_id", "") or "")
     country = str(getattr(ctx, "country", "us") or "us")
     encounter_id = str(getattr(ctx, "primary_enc_id", "") or "")
-    is_ja = is_jp(country)
+    lang = resolve_lang(country)
     key_system = "urn:clinosim:identifier:newborn-bilirubin-key"
     out: list[dict] = []
     for e in bili:
@@ -214,7 +225,7 @@ def _bb_newborn_bilirubin(ctx: Any) -> list[dict]:
                             "display": "Exam",
                         }
                     ],
-                    "text": "身体所見" if is_ja else "Exam",
+                    "text": _label("newborn_category_text", "exam", lang),
                 }
             ],
             "code": {
@@ -225,7 +236,7 @@ def _bb_newborn_bilirubin(ctx: Any) -> list[dict]:
                         "display": "Bilirubin.total [Mass/volume] transcutaneous",
                     }
                 ],
-                "text": "経皮ビリルビン" if is_ja else "Transcutaneous bilirubin",
+                "text": _label("newborn_code_text", "transcutaneous_bilirubin", lang),
             },
             "subject": patient_ref(patient_id),
             "valueQuantity": {
@@ -249,10 +260,8 @@ _CCHD_SITE_SNOMED: dict[str, tuple[str, str]] = {
     "foot": ("22335008", "Foot"),
 }
 
-_CCHD_SITE_DISPLAY_JA: dict[str, str] = {
-    "right_hand": "右手 (pre-ductal)",
-    "foot": "足 (post-ductal)",
-}
+# Phase 1d-16: CCHD per-site display moved to narrative_labels.yaml
+# (``newborn_cchd_site`` and ``newborn_cchd_body_site`` sections).
 
 
 def _bb_newborn_cchd_pulse_ox(ctx: Any) -> list[dict]:
@@ -264,7 +273,7 @@ def _bb_newborn_cchd_pulse_ox(ctx: Any) -> list[dict]:
     SNOMED `bodySite` distinguishing pre- vs post-ductal readings.
     """
     from clinosim.codes import get_system_uri
-    from clinosim.modules._shared import is_jp
+    from clinosim.modules._shared import resolve_lang
     from clinosim.modules.output.fhir_r4.demographics.patient import patient_ref
     from clinosim.modules.output.fhir_r4.lib.ids import wrap_as_identifier
 
@@ -279,7 +288,7 @@ def _bb_newborn_cchd_pulse_ox(ctx: Any) -> list[dict]:
     patient_id = str(getattr(ctx, "patient_id", "") or "")
     country = str(getattr(ctx, "country", "us") or "us")
     encounter_id = str(getattr(ctx, "primary_enc_id", "") or "")
-    is_ja = is_jp(country)
+    lang = resolve_lang(country)
     key_system = "urn:clinosim:identifier:newborn-cchd-key"
 
     out: list[dict] = []
@@ -305,7 +314,7 @@ def _bb_newborn_cchd_pulse_ox(ctx: Any) -> list[dict]:
                             "display": "Vital Signs",
                         }
                     ],
-                    "text": "バイタルサイン" if is_ja else "Vital Signs",
+                    "text": _label("newborn_category_text", "vital_signs", lang),
                 }
             ],
             "code": {
@@ -316,7 +325,7 @@ def _bb_newborn_cchd_pulse_ox(ctx: Any) -> list[dict]:
                         "display": "Oxygen saturation in Arterial blood by Pulse oximetry",
                     }
                 ],
-                "text": (_CCHD_SITE_DISPLAY_JA[site] if is_ja else f"SpO2 ({site.replace('_', ' ')})"),
+                "text": _label("newborn_cchd_site", site, lang, fallback=site_snomed[1]),
             },
             "subject": patient_ref(patient_id),
             "valueQuantity": {
@@ -333,7 +342,7 @@ def _bb_newborn_cchd_pulse_ox(ctx: Any) -> list[dict]:
                         "display": site_snomed[1],
                     }
                 ],
-                "text": _CCHD_SITE_DISPLAY_JA[site] if is_ja else site_snomed[1],
+                "text": _label("newborn_cchd_body_site", site, lang, fallback=site_snomed[1]),
             },
         }
         ts = e.get("timestamp")
@@ -357,11 +366,18 @@ def _bb_newborn_cchd_pulse_ox(ctx: Any) -> list[dict]:
 # ═════════════════════════════════════════════════════════════════════
 
 
-def _read_metabolic_screen_ext(ctx: Any) -> tuple[dict[str, Any], str, str, bool] | None:
+def _read_metabolic_screen_ext(ctx: Any) -> tuple[dict[str, Any], str, str, str] | None:
     """Shared preamble for the three N6b bundle-builders. Returns
-    ``(ext_dict, patient_id, encounter_id, is_ja)`` or None on no-op.
+    ``(ext_dict, patient_id, encounter_id, lang)`` or None on no-op.
+
+    Phase 1d-16: the tuple's 4th element is the ISO-639-1 lang code
+    (``"ja" / "en" / ...``) resolved via
+    ``clinosim.modules._shared.resolve_lang``. Prior signature returned
+    ``is_ja: bool`` — replaced to unify the multi-language pattern
+    (adding a new language extends ``country_language.yaml`` and the
+    per-section ``narrative_labels.yaml`` slots, no code change).
     """
-    from clinosim.modules._shared import is_jp
+    from clinosim.modules._shared import resolve_lang
 
     record = getattr(ctx, "record", None) or {}
     if isinstance(record, dict):
@@ -376,7 +392,7 @@ def _read_metabolic_screen_ext(ctx: Any) -> tuple[dict[str, Any], str, str, bool
         return None
     country = str(getattr(ctx, "country", "us") or "us")
     encounter_id = str(getattr(ctx, "primary_enc_id", "") or "") or str(ext.get("encounter_id", "") or "")
-    return ext, patient_id, encounter_id, is_jp(country)
+    return ext, patient_id, encounter_id, resolve_lang(country)
 
 
 def _iso(dt: Any) -> str:
@@ -400,12 +416,16 @@ def _bb_newborn_metabolic_screen_service_request(ctx: Any) -> list[dict]:
     parsed = _read_metabolic_screen_ext(ctx)
     if parsed is None:
         return []
-    ext, patient_id, encounter_id, is_ja = parsed
+    ext, patient_id, encounter_id, lang = parsed
 
     sr_id = _metabolic_screen_sr_id(patient_id)
     order_loinc = str(ext.get("order_loinc") or "54089-8")
     order_display = str(ext.get("order_display") or "Newborn screening panel")
-    order_display_ja = str(ext.get("order_display_ja") or order_display)
+    # ``order_display_<lang>`` extension slot generalises the previous
+    # ``order_display_ja`` field for any target language. Falls back to
+    # the base ``order_display`` when the per-lang slot is missing —
+    # same fallback semantic as ``resolve_localized_display``.
+    order_display_local = str(ext.get(f"order_display_{lang}") or order_display)
     cat_code = str(ext.get("order_category_code") or "108252007")
     cat_display = str(ext.get("order_category_display") or "Laboratory procedure")
 
@@ -440,7 +460,7 @@ def _bb_newborn_metabolic_screen_service_request(ctx: Any) -> list[dict]:
                     "display": order_display,
                 }
             ],
-            "text": order_display_ja if is_ja else order_display,
+            "text": order_display_local,
         },
         "subject": patient_ref(patient_id),
     }
@@ -471,19 +491,22 @@ def _bb_newborn_metabolic_screen_specimen(ctx: Any) -> list[dict]:
     parsed = _read_metabolic_screen_ext(ctx)
     if parsed is None:
         return []
-    ext, patient_id, _encounter_id, is_ja = parsed
+    ext, patient_id, _encounter_id, lang = parsed
 
     spec_id = _metabolic_screen_specimen_id(patient_id)
     type_code = str(ext.get("specimen_type_code") or "122554006")
     type_display = str(ext.get("specimen_type_display") or "Capillary blood specimen")
-    type_display_ja = str(ext.get("specimen_type_display_ja") or type_display)
+    # ``specimen_type_display_<lang>`` generalises the prior
+    # ``specimen_type_display_ja`` field. Falls back to the base
+    # ``specimen_type_display`` slot per resolve_localized_display shape.
+    type_display_local = str(ext.get(f"specimen_type_display_{lang}") or type_display)
 
     body_site_text = str(
-        ext.get("specimen_body_site_ja" if is_ja else "specimen_body_site_en") or ("踵" if is_ja else "Heel")
+        ext.get(f"specimen_body_site_{lang}") or _label("newborn_specimen_body_site", "heel", lang, fallback="Heel")
     )
     method_text = str(
-        ext.get("specimen_method_ja" if is_ja else "specimen_method_en")
-        or ("踵採血 (毛細血管採血)" if is_ja else "Heel-stick capillary blood collection")
+        ext.get(f"specimen_method_{lang}")
+        or _label("newborn_specimen_method", "heel_stick", lang, fallback="Heel-stick capillary blood collection")
     )
     collected = ext.get("collected_datetime")
 
@@ -505,7 +528,7 @@ def _bb_newborn_metabolic_screen_specimen(ctx: Any) -> list[dict]:
                     "display": type_display,
                 }
             ],
-            "text": type_display_ja if is_ja else type_display,
+            "text": type_display_local,
         },
         "subject": patient_ref(patient_id),
         "collection": {
@@ -528,12 +551,13 @@ def _bb_newborn_metabolic_screen_diagnostic_report(ctx: Any) -> list[dict]:
     overall verdict.
     """
     from clinosim.codes import get_system_uri
+    from clinosim.locale.i18n import t
     from clinosim.modules.output.fhir_r4.demographics.patient import patient_ref
 
     parsed = _read_metabolic_screen_ext(ctx)
     if parsed is None:
         return []
-    ext, patient_id, encounter_id, is_ja = parsed
+    ext, patient_id, encounter_id, lang = parsed
 
     dr_id = _metabolic_screen_dr_id(patient_id)
     sr_id = _metabolic_screen_sr_id(patient_id)
@@ -541,20 +565,18 @@ def _bb_newborn_metabolic_screen_diagnostic_report(ctx: Any) -> list[dict]:
 
     dr_loinc = str(ext.get("dr_code_loinc") or "54089-8")
     dr_display = str(ext.get("dr_code_display") or "Newborn screening panel")
-    dr_display_ja = str(ext.get("dr_code_display_ja") or dr_display)
+    # ``dr_code_display_<lang>`` generalises the previous
+    # ``dr_code_display_ja`` field; fallback to the base slot.
+    dr_display_local = str(ext.get(f"dr_code_display_{lang}") or dr_display)
     dr_cat_code = str(ext.get("dr_category_code") or "LAB")
     dr_cat_display = str(ext.get("dr_category_display") or "Laboratory")
 
     outcome_code = str(ext.get("outcome_code") or "")
     outcome_key = str(ext.get("outcome_key") or "")
-    if outcome_key == "pass":
-        conclusion_en = "Pass — no significant abnormalities detected across the screening panel."
-        conclusion_ja = "陰性 (パス) — スクリーニングパネル全項目で異常所見なし。"
-    else:
-        conclusion_en = (
-            "Refer — one or more screening panel results were flagged; follow-up confirmatory testing indicated."
-        )
-        conclusion_ja = "陽性 (要精査) — スクリーニングパネルの一部で異常所見あり、確認検査を推奨。"
+    conclusion = t(
+        "newborn_screen.conclusion_pass" if outcome_key == "pass" else "newborn_screen.conclusion_refer",
+        lang,
+    )
 
     resource: dict[str, Any] = {
         "resourceType": "DiagnosticReport",
@@ -586,14 +608,15 @@ def _bb_newborn_metabolic_screen_diagnostic_report(ctx: Any) -> list[dict]:
                     "display": dr_display,
                 }
             ],
-            "text": dr_display_ja if is_ja else dr_display,
+            "text": dr_display_local,
         },
         "subject": patient_ref(patient_id),
         "basedOn": [{"reference": f"ServiceRequest/{sr_id}"}],
         "specimen": [{"reference": f"Specimen/{spec_id}"}],
-        "conclusion": conclusion_ja if is_ja else conclusion_en,
+        "conclusion": conclusion,
     }
     if outcome_code:
+        outcome_text_key = "pass" if outcome_key == "pass" else "refer"
         resource["conclusionCode"] = [
             {
                 "coding": [
@@ -606,9 +629,7 @@ def _bb_newborn_metabolic_screen_diagnostic_report(ctx: Any) -> list[dict]:
                         "display": ("Successful" if outcome_key == "pass" else "Unsuccessful"),
                     }
                 ],
-                "text": ("陰性 (パス)" if is_ja else "Pass")
-                if outcome_key == "pass"
-                else ("要精査" if is_ja else "Refer"),
+                "text": _label("newborn_screen_outcome_text", outcome_text_key, lang),
             }
         ]
     collected = ext.get("collected_datetime")

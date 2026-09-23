@@ -98,7 +98,7 @@ logger = logging.getLogger(__name__)
 # a 68% staff-id leak in the deployed cohort.
 
 
-def _resolve_staff_name(staff_id: str, roster_map: dict[str, dict], is_ja: bool) -> str:
+def _resolve_staff_name(staff_id: str, roster_map: dict[str, dict], lang: str) -> str:
     """Return `<name>` + role suffix from ``roster_map``, or the raw
     ``staff_id`` when the id is not resolvable.
 
@@ -108,9 +108,9 @@ def _resolve_staff_name(staff_id: str, roster_map: dict[str, dict], is_ja: bool)
 
     Examples::
 
-        _resolve_staff_name("NS-OR-004", roster, is_ja=True)  → "小松 凜 看護師"
-        _resolve_staff_name("DR-CA-002", roster, is_ja=False) → "加瀬 幸男 (physician)"
-        _resolve_staff_name("XYZ-999", {}, is_ja=True)        → "XYZ-999"
+        _resolve_staff_name("NS-OR-004", roster, "ja")  → "小松 凜 看護師"
+        _resolve_staff_name("DR-CA-002", roster, "en") → "加瀬 幸男 (physician)"
+        _resolve_staff_name("XYZ-999", {}, "ja")        → "XYZ-999"
     """
     if not staff_id:
         return staff_id
@@ -121,10 +121,10 @@ def _resolve_staff_name(staff_id: str, roster_map: dict[str, dict], is_ja: bool)
     if not name:
         return staff_id
     prefix = staff_id.split("-", 1)[0] if "-" in staff_id else ""
-    suffix = _label("staff_role_suffix", prefix, "ja" if is_ja else "en", fallback="")
+    suffix = _label("staff_role_suffix", prefix, lang, fallback="")
     if not suffix:
         return name
-    return f"{name} {suffix}" if is_ja else f"{name} ({suffix})"
+    return t("common.staff_name_with_role", lang, name=name, suffix=suffix)
 
 
 def _render_home_med_name(m: Any, lang: str = "en") -> str:
@@ -861,7 +861,7 @@ _SOAP_JA = ("S（主観）", "O（客観）", "A（評価）", "P（計画）")
 _SOAP_EN = ("S:", "O:", "A:", "P:")
 
 
-def _lookup_nursing_content(ctx: NarrativeContext, field: str, is_ja: bool, cap: int) -> tuple[list[str], list[str]]:
+def _lookup_nursing_content(ctx: NarrativeContext, field: str, lang: str, cap: int) -> tuple[list[str], list[str]]:
     """Session 104 Tier 2: merge acute-disease + chronic-ICD10 nursing
     content items for the given field
     (``"nursing_diagnoses" / "care_plan" / "patient_education"``).
@@ -886,7 +886,6 @@ def _lookup_nursing_content(ctx: NarrativeContext, field: str, is_ja: bool, cap:
     except (FileNotFoundError, ValueError, OSError):
         return [], []
 
-    lang = "ja" if is_ja else "en"
     items: list[str] = []
     facts: list[str] = []
     seen: set[str] = set()
@@ -1378,7 +1377,7 @@ class TemplateNarrativeGenerator:
             phys_exam = self._resolve_physical_exam(ctx, ctx.clinical_course_archetype, ctx.day_index)
             if phys_exam:
                 facts.append(f"physical_exam_findings.{ctx.clinical_course_archetype}.day_{ctx.day_index}")
-            phys_summary = self._format_physical_exam(phys_exam, ctx.severity, is_ja)
+            phys_summary = self._format_physical_exam(phys_exam, ctx.severity, lang)
             if phys_summary:
                 objective = f"{objective}。{phys_summary}"
 
@@ -1648,6 +1647,8 @@ class TemplateNarrativeGenerator:
         overrides (crush injury body-part strings, ED protocol templates)
         are never touched.
         """
+        from clinosim.locale.loader import resolve_localized_display
+
         facts: list[str] = []
         lang = ctx.target_lang
         is_ja = lang == "ja"
@@ -1657,7 +1658,7 @@ class TemplateNarrativeGenerator:
         # raw encounter CC is a disease default (variant-eligible) or a
         # real per-encounter override (leave untouched).
         disease_id = _o(ctx.disease_protocol, "disease_id", None) if ctx.disease_protocol is not None else None
-        canonical_disease_cc = self._disease_canonical_cc(ctx.disease_protocol, is_ja)
+        canonical_disease_cc = self._disease_canonical_cc(ctx.disease_protocol, lang)
         # Fall-through slot: encounter_protocol carries its own canonical CC
         # + condition_id for ED "minor complaint" flows (chest_pain_noncardiac,
         # viral_uri, etc.) — the majority of ED CC frequency in the p=2000
@@ -1666,12 +1667,12 @@ class TemplateNarrativeGenerator:
         encounter_condition_id = (
             _o(ctx.encounter_protocol, "condition_id", None) if ctx.encounter_protocol is not None else None
         )
-        canonical_encounter_cc = self._disease_canonical_cc(ctx.encounter_protocol, is_ja)
+        canonical_encounter_cc = self._disease_canonical_cc(ctx.encounter_protocol, lang)
 
         # 1. Encounter's own chief_complaint is the primary source of truth.
         enc = ctx.encounter
         if enc is not None:
-            preferred_key = "chief_complaint_ja" if is_ja else "chief_complaint_en"
+            preferred_key = f"chief_complaint_{lang}"
             for key in (preferred_key, "chief_complaint"):
                 raw = _o(enc, key, None)
                 if raw:
@@ -1711,9 +1712,8 @@ class TemplateNarrativeGenerator:
             return fallback, facts
 
         if isinstance(cc, dict):
-            text = cc.get(lang) or cc.get("ja" if is_ja else "en") or cc.get("en") or fallback
-            key = "ja" if is_ja else "en"
-            facts_key = f"disease_protocol.chief_complaint.{key}"
+            text = resolve_localized_display(cc, lang, fallback=fallback)
+            facts_key = f"disease_protocol.chief_complaint.{lang}"
             if text == fallback:
                 facts_key += ":fallback"
             facts.append(facts_key)
@@ -1737,19 +1737,21 @@ class TemplateNarrativeGenerator:
         return swapped, facts
 
     @staticmethod
-    def _disease_canonical_cc(disease_protocol: Any, is_ja: bool) -> str | None:
+    def _disease_canonical_cc(disease_protocol: Any, lang: str) -> str | None:
         """Return the disease-protocol canonical chief_complaint (single string).
 
         Used as the "is this a disease default?" comparison target for
         Issue #983 variant swapping.
         """
+        from clinosim.locale.loader import resolve_localized_display
+
         if disease_protocol is None:
             return None
         cc = _o(disease_protocol, "chief_complaint", None)
         if cc is None:
             return None
         if isinstance(cc, dict):
-            return cc.get("ja" if is_ja else "en") or cc.get("en")
+            return resolve_localized_display(cc, lang, fallback="") or None
         return str(cc)
 
     @staticmethod
@@ -2084,7 +2086,6 @@ class TemplateNarrativeGenerator:
         """Build past medical history from ctx.patient.chronic_conditions."""
         facts: list[str] = []
         lang = ctx.target_lang
-        is_ja = lang == "ja"
         none_text = t("section_none.past_medical_history", lang)
 
         patient = ctx.patient
@@ -2116,7 +2117,7 @@ class TemplateNarrativeGenerator:
         from clinosim.modules.output.fhir_r4.lib.common import map_diagnosis_code
 
         country = "JP" if ctx.locale.lower() == "jp" else "US"
-        icd_system = "icd-10" if is_ja else "icd-10-cm"
+        icd_system = _label("code_system_icd_display", "primary", lang)
         lines = []
         for cond in conditions:
             code = _o(cond, "code", "")
@@ -2291,7 +2292,7 @@ class TemplateNarrativeGenerator:
         try:
             icd_system_key = system_key_for("diagnosis", country)
         except KeyError:  # pragma: no cover — kind is hard-coded
-            icd_system_key = "icd-10-mhlw" if is_ja else "icd-10-cm"
+            icd_system_key = _label("code_system_icd_lookup", "primary", lang)
         deceased_suffix = t("fallback.family_history_deceased_suffix", lang)
         cond_sep = t("list_sep.serial", lang)
         entry_sep = t("list_sep.space", lang)
@@ -2370,7 +2371,7 @@ class TemplateNarrativeGenerator:
         if phys_exam:
             facts.append(f"physical_exam_findings.{ctx.clinical_course_archetype}.day_{ctx.day_index}")
 
-        text = self._format_physical_exam(phys_exam, ctx.severity, is_ja)
+        text = self._format_physical_exam(phys_exam, ctx.severity, lang)
         if not text:
             text = _GENERIC_FALLBACK_JA
 
@@ -3481,7 +3482,7 @@ class TemplateNarrativeGenerator:
         nurse_line = ""
         if nurse_id:
             facts.append("encounter.primary_nurse_id")
-            nurse_disp = _resolve_staff_name(nurse_id, ctx.roster_map, is_ja)
+            nurse_disp = _resolve_staff_name(nurse_id, ctx.roster_map, lang)
             if is_ja:
                 nurse_line = f"担当看護師: {nurse_disp}"
             else:
@@ -3693,15 +3694,11 @@ class TemplateNarrativeGenerator:
         nurse_id = _o(ctx.encounter, "primary_nurse_id", "") or ""
         if nurse_id:
             facts.append("encounter.primary_nurse_id")
-            nurse_disp = _resolve_staff_name(nurse_id, ctx.roster_map, is_ja)
+            nurse_disp = _resolve_staff_name(nurse_id, ctx.roster_map, lang)
             parts.append(t("admission_status.assigned_nurse", lang, name=nurse_disp))
         cc = ""
         if ctx.encounter is not None:
-            cc = (
-                _o(ctx.encounter, "chief_complaint_ja" if is_ja else "chief_complaint_en", None)
-                or _o(ctx.encounter, "chief_complaint", None)
-                or ""
-            )
+            cc = _o(ctx.encounter, f"chief_complaint_{lang}", None) or _o(ctx.encounter, "chief_complaint", None) or ""
         if cc:
             parts.append(t("admission_status.admission_reason", lang, cc=cc))
         # Chronic summary — Issue #1333: route CIF base code through
@@ -3837,8 +3834,7 @@ class TemplateNarrativeGenerator:
         the YAML-driven items — same behavior as pre-session-104.
         """
         lang = ctx.target_lang
-        is_ja = lang == "ja"
-        dx_labels, facts = _lookup_nursing_content(ctx, "nursing_diagnoses", is_ja, cap=5)
+        dx_labels, facts = _lookup_nursing_content(ctx, "nursing_diagnoses", lang, cap=5)
 
         # Risk-derived NDx (unchanged from pre-session-104 semantics —
         # appended on top of the YAML-driven items, past the cap).
@@ -3880,7 +3876,7 @@ class TemplateNarrativeGenerator:
         """
         lang = ctx.target_lang
         is_ja = lang == "ja"
-        actions, facts = _lookup_nursing_content(ctx, "care_plan", is_ja, cap=4)
+        actions, facts = _lookup_nursing_content(ctx, "care_plan", lang, cap=4)
 
         # Risk-driven actions. Semantic-prefix dedup (session-104): the
         # acute YAML entry for cerebral_infarction (and future pilots)
@@ -3951,12 +3947,11 @@ class TemplateNarrativeGenerator:
         Encounter.primary_nurse_id (shares field with CareTeam)."""
         facts: list[str] = []
         lang = ctx.target_lang
-        is_ja = lang == "ja"
         nurse_id = str(_o(ctx.encounter, "primary_nurse_id", "") or "")
         if not nurse_id:
             return (t("fallback.acp_other_staff_fallback", lang)), facts
         facts.append("encounter.primary_nurse_id")
-        nurse_disp = _resolve_staff_name(nurse_id, ctx.roster_map, is_ja)
+        nurse_disp = _resolve_staff_name(nurse_id, ctx.roster_map, lang)
         return t("acp.assigned_nurse_line", lang, name=nurse_disp), facts
 
     def _build_acp_diagnosis(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
@@ -4120,7 +4115,7 @@ class TemplateNarrativeGenerator:
         if physician:
             facts.append("encounter.attending_physician_id")
         ward_disp = ward or t("common.tbd", lang)
-        physician_disp = _resolve_staff_name(physician, ctx.roster_map, is_ja) if physician else t("common.tbd", lang)
+        physician_disp = _resolve_staff_name(physician, ctx.roster_map, lang) if physician else t("common.tbd", lang)
         if is_ja:
             return f"病棟：{ward_disp}　担当医師：{physician_disp}", facts
         return f"Ward: {ward_disp}, Attending physician: {physician_disp}", facts
@@ -4429,11 +4424,7 @@ class TemplateNarrativeGenerator:
         facts.append("ctx.los_days")
         cc = ""
         if ctx.encounter is not None:
-            cc = (
-                _o(ctx.encounter, "chief_complaint_ja" if is_ja else "chief_complaint_en", None)
-                or _o(ctx.encounter, "chief_complaint", None)
-                or ""
-            )
+            cc = _o(ctx.encounter, f"chief_complaint_{lang}", None) or _o(ctx.encounter, "chief_complaint", None) or ""
         comps = list(getattr(ctx, "complications_occurred", []) or [])
         # Phase 1c-2 (2026-09-22): localize complication tokens (31 leaks
         # in JP p=500 admission_status audit — "経過中の合併症: urosepsis"
@@ -4503,8 +4494,7 @@ class TemplateNarrativeGenerator:
         care_plan) — patient education is disease-driven only.
         """
         lang = ctx.target_lang
-        is_ja = lang == "ja"
-        topics, facts = _lookup_nursing_content(ctx, "patient_education", is_ja, cap=4)
+        topics, facts = _lookup_nursing_content(ctx, "patient_education", lang, cap=4)
         if not topics:
             return (t("fallback.patient_education_fallback", lang)), facts
         head = t("patient_education.head", lang)
@@ -5657,7 +5647,7 @@ class TemplateNarrativeGenerator:
                     try:
                         vf = float(v)
                         if vf >= NARRATIVE_LDL_HIGH_THRESHOLD:
-                            ctrl = "高 LDL 血症、スタチン効果不十分" if is_ja else "high LDL, statin under-response"
+                            ctrl = t("control_status.high_ldl_statin_underresponse", lang)
                         elif vf >= NARRATIVE_LDL_BORDERLINE_THRESHOLD:
                             ctrl = t("control_status.borderline_intensification", lang)
                         elif vf >= NARRATIVE_LDL_ELEVATED_THRESHOLD:
@@ -6387,7 +6377,6 @@ class TemplateNarrativeGenerator:
         """
         facts: list[str] = []
         lang = ctx.target_lang
-        is_ja = lang == "ja"
         fallback = t("fallback.disposition_fallback", lang)
 
         ed_tmpl = self._get_ed_note_template(ctx)
@@ -6408,7 +6397,7 @@ class TemplateNarrativeGenerator:
             dispo = str(_o(enc, "discharge_disposition", None) or _o(enc, "outcome", None) or "").lower()
             adm = _o(enc, "admit_to_ward", None) or bool(_o(enc, "admitted", False))
             facts.append("ctx.encounter.disposition")
-            reason = self._ed_disposition_reason(ctx, is_ja)
+            reason = self._ed_disposition_reason(ctx, lang)
             jtas_level = self._ed_triage_level(ctx)
 
             if adm or dispo == "hosp":
@@ -6452,14 +6441,14 @@ class TemplateNarrativeGenerator:
         return {"severe": "2", "moderate": "3", "mild": "4"}.get(severity, "-")
 
     @staticmethod
-    def _ed_disposition_reason(ctx: NarrativeContext, is_ja: bool) -> str:
+    def _ed_disposition_reason(ctx: NarrativeContext, lang: str) -> str:
         """Return a short reasoning phrase (admit dx / CC / acuity) for #981.
 
         Never returns empty — an empty reason would collapse the
         parenthetical to "（）" and read worse than the pre-fix bare
         disposition. Fall-through priority:
 
-          1. ``encounter.chief_complaint_ja`` / ``chief_complaint`` –
+          1. ``encounter.chief_complaint_<lang>`` / ``chief_complaint`` –
              the specific complaint the ED chart already knows about.
           2. ``disease_protocol.chief_complaint`` – matches when the
              encounter did not override.
@@ -6467,25 +6456,29 @@ class TemplateNarrativeGenerator:
           4. Locale-appropriate generic ("症状に応じて対応" / "clinical
              judgment").
         """
+        from clinosim.locale.loader import resolve_localized_display
+
         enc = ctx.encounter
         if enc is not None:
-            key = "chief_complaint_ja" if is_ja else "chief_complaint"
-            cc = _o(enc, key, "") or (_o(enc, "chief_complaint", "") if is_ja else "")
+            # Preferred slot ``chief_complaint_<lang>``; base
+            # ``chief_complaint`` is the language-agnostic fallback.
+            preferred_key = f"chief_complaint_{lang}"
+            cc = _o(enc, preferred_key, "") or _o(enc, "chief_complaint", "")
             if cc:
                 return str(cc)
         if ctx.disease_protocol is not None:
             proto_cc = _o(ctx.disease_protocol, "chief_complaint", None)
             if isinstance(proto_cc, dict):
-                val = proto_cc.get("ja" if is_ja else "en") or proto_cc.get("en")
+                val = resolve_localized_display(proto_cc, lang, fallback="")
                 if val:
                     return str(val)
             elif proto_cc:
                 return str(proto_cc)
         severity = str(_o(enc, "severity", "") or ctx.severity or "").lower() if enc is not None else ""
-        acuity_label = _label("ed_acuity_reason", severity, "ja" if is_ja else "en", fallback="")
+        acuity_label = _label("ed_acuity_reason", severity, lang, fallback="")
         if acuity_label:
             return acuity_label
-        return t("control_status.clinical_judgment", "ja" if is_ja else "en")
+        return t("control_status.clinical_judgment", lang)
 
     # ─────────────────────────────────────────────────────────────────
     # Fallback helpers
@@ -7460,7 +7453,7 @@ class TemplateNarrativeGenerator:
         )
         asa = _o(proc, "asa_class", 0) or 0
         anes_id = _o(proc, "anesthesiologist_id", "") or ""
-        anes_name = _resolve_staff_name(anes_id, ctx.roster_map, is_ja) if anes_id else ""
+        anes_name = _resolve_staff_name(anes_id, ctx.roster_map, lang) if anes_id else ""
         if is_ja:
             asa_part = f"、ASA分類 {asa}" if asa else ""
             anes_part = f"、麻酔科医 {anes_name}" if anes_name else ""
@@ -7478,9 +7471,9 @@ class TemplateNarrativeGenerator:
             return t("op_note.surgeon_not_documented", lang), []
         facts = ["ctx.procedures"]
         surgeon_id = _o(proc, "primary_surgeon_id", "") or ""
-        surgeon_name = _resolve_staff_name(surgeon_id, ctx.roster_map, is_ja) if surgeon_id else ""
+        surgeon_name = _resolve_staff_name(surgeon_id, ctx.roster_map, lang) if surgeon_id else ""
         assistant_ids = list(_o(proc, "assistant_ids", []) or [])
-        assistant_names = [_resolve_staff_name(a, ctx.roster_map, is_ja) for a in assistant_ids if a]
+        assistant_names = [_resolve_staff_name(a, ctx.roster_map, lang) for a in assistant_ids if a]
         sep = t("list_sep.serial", lang)
         if is_ja:
             surgeon_part = f"執刀医：{surgeon_name}" if surgeon_name else "執刀医：情報なし"
@@ -7951,7 +7944,7 @@ class TemplateNarrativeGenerator:
                     }
         return result
 
-    def _format_physical_exam(self, phys_exam: dict[str, Any], severity: str, is_ja: bool) -> str:
+    def _format_physical_exam(self, phys_exam: dict[str, Any], severity: str, lang: str) -> str:
         """Format a physical exam findings dict to a single text string.
 
         Picks the most appropriate severity level per system:
@@ -7962,21 +7955,9 @@ class TemplateNarrativeGenerator:
         if not phys_exam:
             return ""
 
-        body_system_labels_ja = {
-            "general": "一般状態",
-            "cardiovascular": "循環器",
-            "respiratory": "呼吸器",
-            "abdominal": "腹部",
-            "neurological": "神経",
-        }
-        body_system_labels_en = {
-            "general": "General",
-            "cardiovascular": "Cardiovascular",
-            "respiratory": "Respiratory",
-            "abdominal": "Abdomen",
-            "neurological": "Neurological",
-        }
-        labels = body_system_labels_ja if is_ja else body_system_labels_en
+        # Phase 1d-16: per-body-system labels moved to
+        # ``narrative_labels.yaml::body_system``. Adding a new language
+        # extends each entry with ``<lang>: <display>`` — no code change.
 
         parts = []
         for sys_key in ("general", "cardiovascular", "respiratory", "abdominal", "neurological"):
@@ -8000,7 +7981,7 @@ class TemplateNarrativeGenerator:
             else:
                 text = ""
             if text:
-                label = labels.get(sys_key, sys_key)
+                label = _label("body_system", sys_key, lang, fallback=sys_key)
                 parts.append(f"{label}: {text}")
 
-        return t("list_sep.period_space", "ja" if is_ja else "en").join(parts)
+        return t("list_sep.period_space", lang).join(parts)

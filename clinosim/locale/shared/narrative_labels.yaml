@@ -96,3 +96,76 @@ rp_phase:
   early: {en: 'Early phase (bed exercises, sitting practice)', ja: 早期(ベッド上運動・座位保持練習)}
   late: {en: 'Late phase (independent ambulation, ADL practice)', ja: 後期(独立歩行・ADL練習)}
   mid: {en: 'Mid phase (walker ambulation, transfer training)', ja: 中期(歩行器歩行・移乗動作練習)}
+
+# Phase 1d-16 additions (2026-09-24): newborn FHIR emit + code-system
+# selector + physical-exam body-system labels. Extracted from
+# ``clinosim/modules/newborn/fhir_emit.py`` (8 Pattern C sites, 2 dict
+# tables) and ``clinosim/modules/document/narrative/template_generator.py``
+# (ICD system, body_system dicts).
+
+# Observation.category text for newborn FHIR resources.
+newborn_category_text:
+  exam: {en: Exam, ja: 身体所見}
+  survey: {en: Survey, ja: 評価スコア}
+  vital_signs: {en: Vital Signs, ja: バイタルサイン}
+
+# Observation.code text for newborn FHIR resources.
+newborn_code_text:
+  transcutaneous_bilirubin: {en: Transcutaneous bilirubin, ja: 経皮ビリルビン}
+
+# Apgar score display per minute (was ``_APGAR_MINUTE_DISPLAY_JA/EN`` in fhir_emit.py).
+newborn_apgar_minute:
+  '1': {en: 1 minute Apgar Score, ja: アプガースコア (1 分)}
+  '5': {en: 5 minute Apgar Score, ja: アプガースコア (5 分)}
+
+# CCHD pulse-ox site display for Observation.code.text
+# (was ``_CCHD_SITE_DISPLAY_JA[site] if is_ja else f"SpO2 ({site})"``).
+newborn_cchd_site:
+  right_hand: {en: SpO2 (right hand), ja: 右手 (pre-ductal)}
+  foot: {en: SpO2 (foot), ja: 足 (post-ductal)}
+
+# CCHD bodySite.text (was ``_CCHD_SITE_DISPLAY_JA[site] if is_ja else site_snomed[1]``).
+newborn_cchd_body_site:
+  right_hand: {en: Right upper arm, ja: 右手 (pre-ductal)}
+  foot: {en: Foot, ja: 足 (post-ductal)}
+
+# Metabolic-screen Specimen collection text fallbacks.
+newborn_specimen_body_site:
+  heel: {en: Heel, ja: 踵}
+newborn_specimen_method:
+  heel_stick: {en: Heel-stick capillary blood collection, ja: 踵採血 (毛細血管採血)}
+
+# Metabolic-screen outcome short text for conclusionCode.text.
+newborn_screen_outcome_text:
+  pass: {en: Pass, ja: 陰性 (パス)}
+  refer: {en: Refer, ja: 要精査}
+
+# ICD code-system name for the trailing ``[code]`` bracket in
+# narrative Condition renders. JA locale uses the base ``icd-10``
+# system; EN uses the US clinical modification ``icd-10-cm``.
+code_system_icd_display:
+  primary: {en: icd-10-cm, ja: icd-10}
+
+# ICD code-system lookup key for the FHIR emit-side ``get_display``
+# helper (JP uses the MHLW-augmented code system).
+code_system_icd_lookup:
+  primary: {en: icd-10-cm, ja: icd-10-mhlw}
+
+# Physical-exam per-body-system labels (was ``body_system_labels_ja/en``
+# in template_generator.py``_format_physical_exam``).
+body_system:
+  general: {en: General, ja: 一般状態}
+  cardiovascular: {en: Cardiovascular, ja: 循環器}
+  respiratory: {en: Respiratory, ja: 呼吸器}
+  abdominal: {en: Abdomen, ja: 腹部}
+  neurological: {en: Neurological, ja: 神経}
+
+# Sex-label vocabulary used in patient demographics prose.
+# Keys mirror the values ``PatientProfile.sex`` may carry
+# (``"male" / "female"`` in the demographics field, plus the
+# single-letter aliases the CIF permits).
+sex_label:
+  male: {en: male, ja: 男性}
+  female: {en: female, ja: 女性}
+  m: {en: male, ja: 男性}
+  f: {en: female, ja: 女性}
