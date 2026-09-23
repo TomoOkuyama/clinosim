@@ -342,6 +342,16 @@ acp:
   surgery_schedule_line:
     ja: "手術予定：{joined}"
     en: "Planned surgery: {joined}"
+  # ACP ward / room / LOS lines (Phase 1d-29).
+  ward_and_room_line:
+    ja: "病棟：{ward}　病室：{bed}"
+    en: "Ward: {ward}, Room: {bed}"
+  ward_tbd:
+    ja: "未定"
+    en: "TBD"
+  estimated_los_line:
+    ja: "推定入院期間：約{days}日間"
+    en: "Estimated length of stay: approximately {days} days"
 
 # Nutrition composite phrases (Phase 1d-8 / 1d-11 merged).
 nutrition:
@@ -946,6 +956,29 @@ autopsy:
   findings_no:
     ja: "剖検の有無・所見: 剖検は施行せず（家族同意得られず）。"
     en: "Autopsy status and findings: autopsy not performed (no family consent)."
+
+# HPI-core fallback phrase (Phase 1d-29). From _build_hpi_core.
+# Same 'admission_with_severity' shape as _build_present_illness but a
+# shorter no-severity variant.
+hpi_core:
+  fallback_with_severity:
+    ja: "{sev}の症状で受診。"
+    en: "Patient presented with {sev} symptoms."
+  fallback_no_severity:
+    ja: "受診となった。"
+    en: "Patient presented for evaluation."
+
+# NCP composite lines (Phase 1d-29).
+ncp:
+  ward_and_physician_line:
+    ja: "病棟：{ward}　担当医師：{physician}"
+    en: "Ward: {ward}, Attending physician: {physician}"
+  nutrition_supply_line:
+    ja: "エネルギー：{energy}kcal／日　たんぱく質：{protein}g／日　補給方法：経口"
+    en: "Energy: {energy} kcal/day, Protein: {protein} g/day, Route: oral"
+  nutrition_low_risk_line:
+    ja: "低栄養リスク：低（BMI {bmi}、リスクなし）"
+    en: "Malnutrition risk: low (BMI {bmi}, no risk identified)"
 
 # JP-CLINS REFERRAL section-builder line templates (Phase 1d-28).
 # From template_generator._build_referring_institution /
