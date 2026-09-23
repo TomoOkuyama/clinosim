@@ -4223,25 +4223,23 @@ class TemplateNarrativeGenerator:
         exist (design spec §3e / §4 out-of-scope note)."""
         facts: list[str] = []
         lang = ctx.target_lang
-        is_ja = lang == "ja"
         therapy_types = sorted(
             {str(_o(s, "therapy_type", "") or "") for s in (ctx.rehab_sessions or []) if _o(s, "therapy_type", "")}
         )
         if not therapy_types:
             return (t("fallback.rp_team_fallback", lang)), facts
         facts.append("ctx.rehab_sessions")
-        joined = t("list_sep.serial", lang).join(_label("rp_therapy_type", t, lang, fallback=t) for t in therapy_types)
+        joined = t("list_sep.serial", lang).join(
+            _label("rp_therapy_type", tt, lang, fallback=tt) for tt in therapy_types
+        )
         therapist_note = t("fallback.rp_therapist_fallback", lang)
-        if is_ja:
-            return f"担当リハビリ職種：{joined}／{therapist_note}", facts
-        return f"Rehab discipline(s): {joined} / {therapist_note}", facts
+        return t("rp_note.rehab_team_line", lang, disciplines=joined, therapist_note=therapist_note), facts
 
     def _build_rp_functional_status(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
         """機能評価 — latest (by session_date) session's functional_progress /
         patient_participation / pain_score."""
         facts: list[str] = []
         lang = ctx.target_lang
-        is_ja = lang == "ja"
         sessions = ctx.rehab_sessions or []
         if not sessions:
             return (t("fallback.rp_functional_fallback", lang)), facts
@@ -4253,13 +4251,16 @@ class TemplateNarrativeGenerator:
         progress_label = _label("rp_progress", progress, lang, fallback=progress)
         participation_label = _label("rp_participation", participation, lang, fallback=participation)
         pain_text = f"{pain}/10" if pain is not None else t("section_none.pain_not_assessed", lang)
-        if is_ja:
-            return (
-                f"機能的改善度：{progress_label}／リハビリへの参加度：{participation_label}／疼痛スコア：{pain_text}"
-            ), facts
         return (
-            f"Functional progress: {progress_label} / Participation: {participation_label} / Pain score: {pain_text}"
-        ), facts
+            t(
+                "rp_note.functional_status_line",
+                lang,
+                progress=progress_label,
+                participation=participation_label,
+                pain=pain_text,
+            ),
+            facts,
+        )
 
     def _build_rp_basic_movement(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
         """基本動作 — day_post_op から phase (early/mid/late) を再導出。
@@ -4287,7 +4288,6 @@ class TemplateNarrativeGenerator:
         """実施回数・期間・1回あたりの時間。"""
         facts: list[str] = []
         lang = ctx.target_lang
-        is_ja = lang == "ja"
         sessions = ctx.rehab_sessions or []
         if not sessions:
             return (t("fallback.rp_frequency_fallback", lang)), facts
@@ -4296,15 +4296,17 @@ class TemplateNarrativeGenerator:
         first_date, last_date = min(dates), max(dates)
         duration = _o(sessions[0], "duration_minutes", 0) or 0
         count = len(sessions)
-        if is_ja:
-            return (
-                f"実施回数：{count}回（{first_date.date().isoformat()}〜"
-                f"{last_date.date().isoformat()}）、1回あたり{duration}分"
-            ), facts
         return (
-            f"Sessions: {count} ({first_date.date().isoformat()} to "
-            f"{last_date.date().isoformat()}), {duration} min each"
-        ), facts
+            t(
+                "rp_note.session_frequency_line",
+                lang,
+                count=count,
+                first=first_date.date().isoformat(),
+                last=last_date.date().isoformat(),
+                duration=duration,
+            ),
+            facts,
+        )
 
     def _build_rp_goals(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
         """本人の希望・家族の希望 — CIF に患者意向を表すフィールドなし
@@ -4324,11 +4326,8 @@ class TemplateNarrativeGenerator:
         (admission_care_plan の estimated_los と同じ target_los データ、
         リハ完了フレーミングの文言のみ異なる)。"""
         lang = ctx.target_lang
-        is_ja = lang == "ja"
         los_days, facts = self._estimated_los_days(ctx)
-        if is_ja:
-            return f"リハビリテーション終了の目安：入院後約{los_days}日", facts
-        return (f"Estimated rehabilitation completion: approximately {los_days} days post-admission"), facts
+        return t("rp_note.discharge_estimate_line", lang, days=los_days), facts
 
     def _build_rp_explanation_consent(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
         """本人・家族への説明(署名欄) — 固定フォールバック
