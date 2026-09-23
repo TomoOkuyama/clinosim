@@ -700,6 +700,22 @@ op_note:
   postop_plan_not_documented:
     ja: "術後方針：情報なし"
     en: "Postoperative plan: not documented"
+  # Op-note equipment + postop-plan lines (Phase 1d-22).
+  equipment_head:
+    ja: "使用機器・材料：{list}"
+    en: "Implants / devices used: {list}"
+  postop_plan_line:
+    ja: "術後方針：{dest}。{monitor}"
+    en: "Postoperative plan: {dest}. {monitor}"
+  postop_dest_icu:
+    ja: "ICUにて全身管理"
+    en: "ICU-level monitoring"
+  postop_dest_ward:
+    ja: "病棟にて経過観察"
+    en: "ward-level monitoring"
+  postop_monitor:
+    ja: "バイタルサイン・尿量・創部所見を頻回に観察し、術後合併症の早期発見に努める。"
+    en: "Vital signs, urine output, and wound assessment will be checked at frequent intervals to detect postoperative complications early."
 
 # Procedure note (処置記録) fallbacks — separate from op_note.
 proc_note:
@@ -724,6 +740,42 @@ proc_note:
   postop_plan_not_documented:
     ja: "術後方針: 記録なし。"
     en: "Post-procedure plan: not documented."
+  # Procedure-note complications / specimens / plan (Phase 1d-22).
+  complications_present:
+    ja: "合併症の有無: あり — {list}。"
+    en: "Complications: present — {list}."
+  complications_none:
+    ja: "合併症の有無: 特記すべき手技合併症なし。"
+    en: "Complications: none noted during the procedure."
+  specimens_present:
+    ja: "検体の有無: {list}を採取し病理・微生物検査に提出。"
+    en: "Specimens: {list} obtained and sent for pathology/microbiology."
+  specimens_none:
+    ja: "検体の有無: 検体採取なし。"
+    en: "Specimens: none obtained."
+  postop_unsuccessful:
+    ja: "術後方針: 手技目的を達成できなかったため、代替治療（外科的介入 または内視鏡的再アプローチ）を検討する。バイタル・症状の変化を厳重に監視する。"
+    en: "Post-procedure plan: because the intended goal was not achieved, alternative therapy (surgical or repeat endoscopic approach) will be considered. Continue close monitoring of vitals and symptoms."
+  postop_baseline:
+    ja: "術後方針: バイタル・穿刺部位（挿入部）を経時的に観察し、合併症の早期発見に努める。翌日以降にフォロー画像・検査を予定する。"
+    en: "Post-procedure plan: monitor vitals and the puncture / insertion site serially for early detection of complications. Follow-up imaging or labs will be scheduled the next day."
+
+# Autopsy status + findings (Phase 1d-22).
+# From template_generator._build_dc_autopsy_status +
+# _build_dds_autopsy_status_and_findings.
+autopsy:
+  status_yes:
+    ja: "解剖の有無: 有（病理解剖）。"
+    en: "Autopsy performed: yes (pathological autopsy)."
+  status_no:
+    ja: "解剖の有無: 無。"
+    en: "Autopsy performed: no."
+  findings_yes:
+    ja: "剖検の有無・所見: 病理解剖を施行。臨床診断と主要臓器の病理所見に大きな乖離は認めなかった。"
+    en: "Autopsy status and findings: pathological autopsy performed. Major-organ pathological findings were consistent with the clinical diagnosis."
+  findings_no:
+    ja: "剖検の有無・所見: 剖検は施行せず（家族同意得られず）。"
+    en: "Autopsy status and findings: autopsy not performed (no family consent)."
 
 # Death certificate fallbacks (Phase 1d-13).
 death_cert:

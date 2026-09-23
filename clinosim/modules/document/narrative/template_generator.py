@@ -6860,16 +6860,11 @@ class TemplateNarrativeGenerator:
         cross-document invariant).
         """
         lang = ctx.target_lang
-        is_ja = lang == "ja"
         facts: list[str] = ["encounter.id::autopsy_sample"]
         performed = _autopsy_performed_sha256(ctx)
         if performed:
-            if is_ja:
-                return "解剖の有無: 有（病理解剖）。", facts
-            return "Autopsy performed: yes (pathological autopsy).", facts
-        if is_ja:
-            return "解剖の有無: 無。", facts
-        return "Autopsy performed: no.", facts
+            return t("autopsy.status_yes", lang), facts
+        return t("autopsy.status_no", lang), facts
 
     # ─────────────────────────────────────────────────────────────────
     # DEATH_DISCHARGE_SUMMARY sections (LOINC 18842-5 / title 死亡退院
@@ -7188,21 +7183,11 @@ class TemplateNarrativeGenerator:
         fabricating specific gross/microscopic descriptions.
         """
         lang = ctx.target_lang
-        is_ja = lang == "ja"
         facts: list[str] = ["encounter.id::autopsy_sample"]
         performed = _autopsy_performed_sha256(ctx)
         if performed:
-            if is_ja:
-                return (
-                    "剖検の有無・所見: 病理解剖を施行。臨床診断と主要臓器の病理所見に大きな乖離は認めなかった。"
-                ), facts
-            return (
-                "Autopsy status and findings: pathological autopsy performed. "
-                "Major-organ pathological findings were consistent with the clinical diagnosis."
-            ), facts
-        if is_ja:
-            return "剖検の有無・所見: 剖検は施行せず（家族同意得られず）。", facts
-        return "Autopsy status and findings: autopsy not performed (no family consent).", facts
+            return t("autopsy.findings_yes", lang), facts
+        return t("autopsy.findings_no", lang), facts
 
     # ─────────────────────────────────────────────────────────────────
     # OPERATIVE_NOTE section builders (Issue #991)
@@ -7485,7 +7470,6 @@ class TemplateNarrativeGenerator:
     def _build_op_equipment(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
         """使用機器・材料 — implants_used list."""
         lang = ctx.target_lang
-        is_ja = lang == "ja"
         proc = self._primary_surgical_procedure(ctx)
         if proc is None:
             return t("op_note.equipment_not_documented", lang), []
@@ -7494,21 +7478,20 @@ class TemplateNarrativeGenerator:
         if not implants:
             return (t("op_note.implants_none", lang)), facts
         # Phase 1c-6 (Category K, 2026-09-23): route each implant name
-        # through `_OP_IMPLANT_JA` on JA output so 「使用機器・材料：
-        # バイポーラ人工骨頭」 rather than 「使用機器・材料：bipolar
-        # femoral prosthesis」. Case-insensitive lookup on the full
-        # string; unmapped names pass through unchanged.
-        if is_ja:
-            implants = [_localize_op_implant(x, ctx.target_lang) for x in implants]
+        # through the ``narrative_op_implants.yaml`` translation table
+        # on JA output so 「使用機器・材料：バイポーラ人工骨頭」 rather
+        # than 「使用機器・材料：bipolar femoral prosthesis」.
+        # Case-insensitive lookup on the full string; unmapped names
+        # pass through unchanged. Only JA has a translation table today;
+        # other languages fall through unchanged as well.
+        if lang == "ja":
+            implants = [_localize_op_implant(x, lang) for x in implants]
         sep = t("list_sep.serial", lang)
-        if is_ja:
-            return f"使用機器・材料：{sep.join(implants)}", facts
-        return f"Implants / devices used: {sep.join(implants)}", facts
+        return t("op_note.equipment_head", lang, list=sep.join(implants)), facts
 
     def _build_op_postop_plan(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
         """術後方針 — recovery destination + monitoring plan (derived)."""
         lang = ctx.target_lang
-        is_ja = lang == "ja"
         proc = self._primary_surgical_procedure(ctx)
         if proc is None:
             return t("op_note.postop_plan_not_documented", lang), []
@@ -7519,16 +7502,9 @@ class TemplateNarrativeGenerator:
         intraop = list(_o(proc, "intraop_complications", []) or [])
         # Recovery destination: ICU/high-acuity or general ward
         icu_flag = enc_type == "icu" or bool(intraop) or outcome_code == "385670004"
-        if is_ja:
-            dest = "ICUにて全身管理" if icu_flag else "病棟にて経過観察"
-            monitor = "バイタルサイン・尿量・創部所見を頻回に観察し、術後合併症の早期発見に努める。"
-            return f"術後方針：{dest}。{monitor}", facts
-        dest = "ICU-level monitoring" if icu_flag else "ward-level monitoring"
-        monitor = (
-            "Vital signs, urine output, and wound assessment will be checked at frequent intervals "
-            "to detect postoperative complications early."
-        )
-        return f"Postoperative plan: {dest}. {monitor}", facts
+        dest = t("op_note.postop_dest_icu" if icu_flag else "op_note.postop_dest_ward", lang)
+        monitor = t("op_note.postop_monitor", lang)
+        return t("op_note.postop_plan_line", lang, dest=dest, monitor=monitor), facts
 
     # Issue #992: PROCEDURE_NOTE (処置記録, LOINC 28570-0) section builders.
     # Each builder resolves the ProcedureRecord identified by
@@ -7717,7 +7693,6 @@ class TemplateNarrativeGenerator:
     def _build_pn_complications(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
         """合併症の有無 / Complications — from intraop_complications + complication_codes."""
         lang = ctx.target_lang
-        is_ja = lang == "ja"
         proc, facts = self._pn_resolve_procedure(ctx)
         if proc is None:
             return t("proc_note.complications_not_documented", lang), facts
@@ -7727,39 +7702,33 @@ class TemplateNarrativeGenerator:
         if intraop or codes:
             code_display = []
             for c in codes:
-                disp = code_lookup("snomed-ct", c, ctx.target_lang) or c
-                code_display.append(f"{disp}（{c}）" if is_ja else f"{disp} ({c})")
+                disp = code_lookup("snomed-ct", c, lang) or c
+                code_display.append(t("list_item.inline_dx_with_code", lang, display=disp, code=c))
             all_items = intraop + code_display
-            joined = "、".join(all_items) if is_ja else "; ".join(all_items)
-            if is_ja:
-                return f"合併症の有無: あり — {joined}。", facts
-            return f"Complications: present — {joined}.", facts
-        if is_ja:
-            return "合併症の有無: 特記すべき手技合併症なし。", facts
-        return "Complications: none noted during the procedure.", facts
+            # Complications use "; " in EN (semicolon-space) not "; ".
+            # Reuse list_sep.semicolon which is 「、」 / 「; 」.
+            sep = t("list_sep.semicolon", lang)
+            joined = sep.join(all_items)
+            return t("proc_note.complications_present", lang, list=joined), facts
+        return t("proc_note.complications_none", lang), facts
 
     def _build_pn_specimens(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
         """検体の有無 / Specimens — from ProcedureRecord.specimens_sent."""
         lang = ctx.target_lang
-        is_ja = lang == "ja"
         proc, facts = self._pn_resolve_procedure(ctx)
         if proc is None:
             return t("proc_note.specimens_not_documented", lang), facts
         specimens = [str(x) for x in (_o(proc, "specimens_sent", []) or []) if x]
         facts.append("ctx.procedures.specimens_sent")
         if specimens:
-            joined = "、".join(specimens) if is_ja else ", ".join(specimens)
-            if is_ja:
-                return f"検体の有無: {joined}を採取し病理・微生物検査に提出。", facts
-            return f"Specimens: {joined} obtained and sent for pathology/microbiology.", facts
-        if is_ja:
-            return "検体の有無: 検体採取なし。", facts
-        return "Specimens: none obtained.", facts
+            sep = t("list_sep.serial", lang)
+            joined = sep.join(specimens)
+            return t("proc_note.specimens_present", lang, list=joined), facts
+        return t("proc_note.specimens_none", lang), facts
 
     def _build_pn_postop_plan(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
         """術後方針 / Post-procedure plan — outcome-aware boilerplate."""
         lang = ctx.target_lang
-        is_ja = lang == "ja"
         proc, facts = self._pn_resolve_procedure(ctx)
         if proc is None:
             return t("proc_note.postop_plan_not_documented", lang), facts
@@ -7768,27 +7737,8 @@ class TemplateNarrativeGenerator:
         # Simple, defensible plans: baseline monitoring for successful
         # procedures; escalation-of-care phrasing for unsuccessful ones.
         if outcome_code == "385671000":
-            if is_ja:
-                return (
-                    "術後方針: 手技目的を達成できなかったため、代替治療（外科的介入 "
-                    "または内視鏡的再アプローチ）を検討する。バイタル・症状の変化を"
-                    "厳重に監視する。"
-                ), facts
-            return (
-                "Post-procedure plan: because the intended goal was not achieved, "
-                "alternative therapy (surgical or repeat endoscopic approach) will be "
-                "considered. Continue close monitoring of vitals and symptoms."
-            ), facts
-        if is_ja:
-            return (
-                "術後方針: バイタル・穿刺部位（挿入部）を経時的に観察し、合併症の"
-                "早期発見に努める。翌日以降にフォロー画像・検査を予定する。"
-            ), facts
-        return (
-            "Post-procedure plan: monitor vitals and the puncture / insertion site "
-            "serially for early detection of complications. Follow-up imaging or labs "
-            "will be scheduled the next day."
-        ), facts
+            return t("proc_note.postop_unsuccessful", lang), facts
+        return t("proc_note.postop_baseline", lang), facts
 
     # ─────────────────────────────────────────────────────────────────
     # Formatting helpers
