@@ -947,6 +947,24 @@ autopsy:
     ja: "剖検の有無・所見: 剖検は施行せず（家族同意得られず）。"
     en: "Autopsy status and findings: autopsy not performed (no family consent)."
 
+# REHAB_PLAN (RP) section-builder line templates (Phase 1d-27).
+# From template_generator._build_rp_rehab_team /
+# _build_rp_functional_status / _build_rp_session_frequency /
+# _build_rp_discharge_estimate.
+rp_note:
+  rehab_team_line:
+    ja: "担当リハビリ職種：{disciplines}／{therapist_note}"
+    en: "Rehab discipline(s): {disciplines} / {therapist_note}"
+  functional_status_line:
+    ja: "機能的改善度：{progress}／リハビリへの参加度：{participation}／疼痛スコア：{pain}"
+    en: "Functional progress: {progress} / Participation: {participation} / Pain score: {pain}"
+  session_frequency_line:
+    ja: "実施回数：{count}回（{first}〜{last}）、1回あたり{duration}分"
+    en: "Sessions: {count} ({first} to {last}), {duration} min each"
+  discharge_estimate_line:
+    ja: "リハビリテーション終了の目安：入院後約{days}日"
+    en: "Estimated rehabilitation completion: approximately {days} days post-admission"
+
 # Death-certificate + DDS single-line composers (Phase 1d-26).
 # From template_generator._build_dc_immediate_cause /
 # _build_dc_underlying_cause / _build_dc_manner_of_death /
