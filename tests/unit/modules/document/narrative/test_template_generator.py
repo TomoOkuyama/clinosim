@@ -959,3 +959,56 @@ def test_inpatient_progress_subjective_trend_detection_1327() -> None:
     ctx_day2b.vitals = vitals2
     text2 = gen._compose_progress_subjective_from_state(ctx_day2b)
     assert "SpO2 改善" in text2, f"SpO2-recovery trend phrase must appear on day-2; got {text2!r}"
+
+
+# ─────────────────────────────────────────────────────────────────
+# Phase 1c-4 (2026-09-23) — ed_workup imaging + lab / panel localization
+# ─────────────────────────────────────────────────────────────────
+
+
+def test_localize_imaging_ja_handles_slug_and_spaced_variants() -> None:
+    """Phase 1c-4: imaging tokens ("Chest_Xray_PA_Lateral", "CT_Head",
+    "Renal_ultrasound") and their spaced-name siblings ("Chest X-ray PA
+    and Lateral", "Ultrasound Kidney") must resolve to the same JA
+    label. Pre-fix the H100 JP p=500 audit surfaced 59 raw slugs inside
+    the JA 「画像:」 line."""
+    from clinosim.modules.document.narrative.template_generator import _localize_imaging
+
+    for a, b in [
+        ("Chest_Xray_PA_Lateral", "Chest X-ray PA and Lateral"),
+        ("Renal_ultrasound", "Ultrasound Kidney"),
+        ("Abdominal_ultrasound", "Ultrasound Abdomen"),
+    ]:
+        assert _localize_imaging(a, "ja") == _localize_imaging(b, "ja"), (
+            f"semantic siblings did not converge: {a!r} vs {b!r}"
+        )
+    # Concrete JA outputs.
+    assert _localize_imaging("Chest_Xray_PA_Lateral", "ja") == "胸部レントゲン (正面・側面)"
+    assert _localize_imaging("CT_Head", "ja") == "頭部 CT"
+    assert _localize_imaging("Renal_ultrasound", "ja") == "腎エコー"
+    assert _localize_imaging("MRCP", "ja") == "MRCP (磁気共鳴胆管膵管造影)"
+    # Novel imaging token humanises rather than leaking raw slug.
+    assert _localize_imaging("Novel_scan_type", "ja") == "Novel scan type"
+
+
+def test_localize_lab_name_ja_handles_ed_workup_panels() -> None:
+    """Phase 1c-4: additional panel / lab tokens observed in the JP p=500
+    ed_workup ``検査:`` audit — 全 45 距 raw-English leaks eliminated.
+    Multi-analyte panel labels keep the abbreviation + a JA gloss."""
+    from clinosim.modules.document.narrative.template_generator import _localize_lab_name
+
+    assert _localize_lab_name("CBC", "ja") == "CBC (全血球算定)"
+    assert _localize_lab_name("LFT", "ja") == "LFT (肝機能パネル)"
+    assert _localize_lab_name("BMP", "ja") == "BMP (基本代謝パネル)"
+    assert _localize_lab_name("ABG", "ja") == "ABG (動脈血ガス)"
+    assert _localize_lab_name("Urinalysis", "ja") == "尿検査"
+    assert _localize_lab_name("Urine_culture_sensitivity", "ja") == "尿培養・感受性検査"
+    assert _localize_lab_name("Blood_culture_set_1", "ja") == "血液培養 (セット 1)"
+    assert _localize_lab_name("Blood_culture_set_2", "ja") == "血液培養 (セット 2)"
+    assert _localize_lab_name("Total_bilirubin", "ja") == "総ビリルビン"
+    assert _localize_lab_name("Direct_bilirubin", "ja") == "直接ビリルビン"
+    assert _localize_lab_name("Beta_hydroxybutyrate", "ja") == "β ヒドロキシ酪酸"
+    assert _localize_lab_name("Rapid_Influenza_Antigen", "ja") == "インフルエンザ迅速抗原検査"
+    # Bare "Troponin" (as opposed to Troponin_I / Troponin_T which had
+    # entries pre-Phase-1c-4).
+    assert _localize_lab_name("Troponin", "ja") == "トロポニン"

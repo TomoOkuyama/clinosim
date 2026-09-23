@@ -144,6 +144,20 @@ Levodopa/Carbidopa: "レボドパ/カルビドパ"
 Lorazepam: "ロラゼパム"
 Milnacipran: "ミルナシプラン"              # MHLW YJ 1179040F2108
 
+# --- Psychotropic / 向精神薬 (SSRI / SNRI / atypical antidepressant + anxiolytic) ---
+# Phase 1c-4 (2026-09-23): observed as JA ed_workup investigational-drug
+# leaks (Escitalopram) and referenced by the LLM prompt Rule 2 mental-
+# health cadence (see narrative_seed_bundle.yaml Issue #1405 mapping).
+Citalopram: "シタロプラム"
+Duloxetine: "デュロキセチン"                # MHLW YJ 1179043F1027 (サインバルタ)
+Escitalopram: "エスシタロプラム"            # MHLW YJ 1179052F1021 (レクサプロ)
+Fluoxetine: "フルオキセチン"
+Fluvoxamine: "フルボキサミン"               # MHLW YJ 1179037F2101 (デプロメール / ルボックス)
+Mirtazapine: "ミルタザピン"                 # MHLW YJ 1179045F1024 (リフレックス / レメロン)
+Paroxetine: "パロキセチン"                  # MHLW YJ 1179041F1029 (パキシル)
+Sertraline: "セルトラリン"                  # MHLW YJ 1179046F1021 (ジェイゾロフト)
+Venlafaxine: "ベンラファキシン"             # MHLW YJ 1179049F1020 (イフェクサー SR)
+
 # --- Bone / 骨代謝 ---
 Alendronate: "アレンドロネート"
 Alfacalcidol: "アルファカルシドール"
