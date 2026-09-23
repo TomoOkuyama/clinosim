@@ -41,3 +41,53 @@ progress:
   notable_labs:
     ja: "本日の検査所見: {list}。"
     en: "Notable labs today: {list}."
+
+# Section fallback text when the underlying CIF field is empty.
+# Callers: template_generator._build_past_medical_history /
+# _build_medications_at_home / _build_admission_diagnoses /
+# _build_discharge_medications / _build_ncp_* / _build_pain_score /
+# _build_hpi_history_of_present_illness (etc.).
+section_none:
+  past_medical_history:
+    ja: "特記既往歴なし"
+    en: "No significant past medical history"
+  home_medications:
+    ja: "常用薬なし"
+    en: "No home medications"
+  home_medications_alt:
+    ja: "常用薬なし"
+    en: "None taken"
+  admission_diagnoses:
+    ja: "特記事項なし。"
+    en: "No admission diagnoses recorded."
+  discharge_medications:
+    ja: "退院処方なし"
+    en: "No discharge medications"
+  history_none_noted:
+    ja: "特記事項なし"
+    en: "None noted"
+  nutrition_risk_no_data:
+    ja: "栄養リスク：評価データなし"
+    en: "Nutrition risk: no assessment data"
+  nutrition_supply_no_data:
+    ja: "栄養補給量：算出データなし"
+    en: "Nutrition supply: no data to compute"
+  pain_not_assessed:
+    ja: "評価なし"
+    en: "not assessed"
+
+# Section-heading labels shared across social_history / family_history
+# builders. Only the label token, not the full compound line.
+section_label:
+  smoking:
+    ja: "喫煙歴"
+    en: "Smoking"
+  alcohol:
+    ja: "飲酒歴"
+    en: "Alcohol"
+  occupation:
+    ja: "職業"
+    en: "Occupation"
+  family_history_prefix:
+    ja: "家族歴: "
+    en: "Family history: "
