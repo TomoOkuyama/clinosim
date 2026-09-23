@@ -160,7 +160,10 @@ def test_discontinue_flip_emits_skip_log_with_switch_event_type():
     # active_conflict must carry the archetype context, not the pre-#1413
     # hardcoded "antibiotic stewardship" phrasing.
     assert "treatment plan change" in entry.active_conflict
-    assert "treatment_resistant" in entry.active_conflict
+    # Phase 1c-5 (2026-09-23): archetype token localized via _ARCHETYPE_EN
+    # (``treatment_resistant`` → ``treatment-resistant``) so JA narrative
+    # reads 「治療計画変更 (経過型: 治療抵抗性)」 rather than raw slug.
+    assert "treatment-resistant" in entry.active_conflict
     # verdict.rule_id renamed from "antibiotic-de-escalation" to a
     # neutral marker.
     assert entry.verdict.rule_id == "treatment-modification-switch"
