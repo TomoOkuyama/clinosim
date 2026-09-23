@@ -484,6 +484,9 @@ list_sep:
   period_space:
     ja: "。"
     en: ". "
+  slash:
+    ja: "／"
+    en: " / "
 
 # Nursing / care-plan section labels + composite phrases.
 nursing:
@@ -752,6 +755,88 @@ op_note:
   postop_monitor:
     ja: "バイタルサイン・尿量・創部所見を頻回に観察し、術後合併症の早期発見に努める。"
     en: "Vital signs, urine output, and wound assessment will be checked at frequent intervals to detect postoperative complications early."
+  # Op-note procedure_name + anesthesia + surgeon + findings + course
+  # + specimens + blood_loss composers (Phase 1d-24). Each key covers
+  # a headed line whose sub-parts (approach / code / duration paren,
+  # etc.) are concatenated to the head string by the composer.
+  procedure_head:
+    ja: "術式：{name}"
+    en: "Procedure: {name}"
+  procedure_approach_paren:
+    ja: "（{approach}）"
+    en: " ({approach})"
+  procedure_code_paren:
+    ja: "（コード {code}）"
+    en: " (code {code})"
+  procedure_duration_suffix:
+    ja: "、手術時間 {duration} 分"
+    en: "; operative time {duration} min"
+  anesthesia_head:
+    ja: "麻酔法：{label}"
+    en: "Anesthesia: {label}"
+  anesthesia_asa_suffix:
+    ja: "、ASA分類 {asa}"
+    en: ", ASA class {asa}"
+  anesthesia_anesthesiologist_suffix:
+    ja: "、麻酔科医 {name}"
+    en: ", anesthesiologist {name}"
+  surgeon_line:
+    ja: "執刀医：{surgeon}"
+    en: "Primary surgeon: {surgeon}"
+  surgeon_none:
+    ja: "執刀医：情報なし"
+    en: "Primary surgeon: not documented"
+  assistants_suffix:
+    ja: "／助手：{list}"
+    en: " / Assistants: {list}"
+  assistants_none_suffix:
+    ja: "／助手：なし"
+    en: " / Assistants: none"
+  findings_line:
+    ja: "手術部位：{body_site}"
+    en: "Body site: {body_site}"
+  findings_preop:
+    ja: "術前診断：{dx}"
+    en: "Preop diagnosis: {dx}"
+  findings_postop:
+    ja: "術後診断：{dx}"
+    en: "Postop diagnosis: {dx}"
+  findings_intraop:
+    ja: "術中合併症：{list}"
+    en: "Intraop complications: {list}"
+  findings_intraop_none:
+    ja: "術中合併症：認めず"
+    en: "No intraoperative complications"
+  findings_none_default:
+    ja: "術中所見：特記すべき所見なし"
+    en: "No significant intraoperative findings"
+  course_head:
+    ja: "手術経過：{approach_part}予定術式を施行{time_part}{duration_part}{outcome_part}"
+    en: "Operative course: planned procedure performed{approach_part}{time_part}{duration_part}{outcome_part}"
+  course_approach_part:
+    ja: "{approach}アプローチにて"
+    en: " via a {approach} approach"
+  course_time_part:
+    ja: "（{start} 開始／{end} 終了）"
+    en: " ({start} start / {end} end)"
+  course_duration_part:
+    ja: "、手術時間 {duration} 分"
+    en: ", operative time {duration} min"
+  course_outcome_part:
+    ja: "。転帰：{outcome}"
+    en: ". Outcome: {outcome}"
+  specimens_line:
+    ja: "摘出臓器・組織：{list}（病理検査へ提出）"
+    en: "Specimens sent to pathology: {list}"
+  blood_loss_line:
+    ja: "推定出血量：{ebl} mL{transfusion_part}"
+    en: "Estimated blood loss: {ebl} mL{transfusion_part}"
+  blood_loss_transfusion_yes:
+    ja: "、術中輸血あり"
+    en: "; intraoperative transfusion given"
+  blood_loss_transfusion_no:
+    ja: "、術中輸血なし"
+    en: "; no intraoperative transfusion"
 
 # Procedure note (処置記録) fallbacks — separate from op_note.
 proc_note:
