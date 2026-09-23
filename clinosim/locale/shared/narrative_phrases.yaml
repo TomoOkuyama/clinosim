@@ -386,6 +386,120 @@ control_status:
   high_normal:
     ja: "高値注意、追加介入検討"
     en: "high-normal, consider titration"
+  at_goal:
+    ja: "目標達成"
+    en: "at goal"
+  near_target:
+    ja: "目標近傍"
+    en: "near target"
+  at_goal_active:
+    ja: "目標達成中"
+    en: "at goal"
+  borderline_intensification:
+    ja: "境界域、生活・薬物療法強化検討"
+    en: "borderline, consider intensification"
+  elevated:
+    ja: "高値注意"
+    en: "elevated"
+  no_measurement_reassess:
+    ja: "本日測定なし、次回受診時再評価。"
+    en: "no measurement today; reassess next visit."
+  hba1c_target_below_7:
+    ja: "目標 7.0% 未満"
+    en: "target < 7.0%"
+
+# Chronic-SOAP continuation-monitoring phrases (Phase 1d-13).
+chronic_monitoring:
+  renal_function:
+    ja: "、腎機能推移を継続監視。"
+    en: "; ongoing renal function monitoring."
+  cat_mmrc_review:
+    ja: "、CAT score / mMRC で症状評価。"
+    en: "; CAT / mMRC symptom review."
+  act_control_review:
+    ja: "、ACT で コントロール状況確認。"
+    en: "; ACT control review."
+
+# ED workup section headers (Phase 1d-13).
+ed_workup:
+  labs_head:
+    ja: "検査: "
+    en: "Labs: "
+  imaging_head:
+    ja: "画像: "
+    en: "Imaging: "
+  medications_head:
+    ja: "投薬: "
+    en: "Medications: "
+  procedures_ordered_head:
+    ja: "処置指示: "
+    en: "Procedures ordered: "
+  abnormal_head:
+    ja: "異常値: "
+    en: "Abnormal: "
+  procedures_head:
+    ja: "処置: "
+    en: "Procedures: "
+
+# Outpatient Rx / workup headers.
+outpatient:
+  today_prescription_head:
+    ja: "本日処方: "
+    en: "Today's prescription: "
+  today_workup_head:
+    ja: "本日実施: "
+    en: "Today's workup: "
+
+# Operative note "not documented" fallbacks.
+op_note:
+  procedure_not_documented:
+    ja: "術式：情報なし"
+    en: "Procedure: not documented"
+  anesthesia_not_documented:
+    ja: "麻酔：情報なし"
+    en: "Anesthesia: not documented"
+  anes_no_record:
+    ja: "記載なし"
+    en: "not documented"
+  surgeon_not_documented:
+    ja: "執刀医：情報なし"
+    en: "Surgeon: not documented"
+  findings_not_documented:
+    ja: "術中所見：情報なし"
+    en: "Intraoperative findings: not documented"
+  course_not_documented:
+    ja: "手術経過：情報なし"
+    en: "Operative course: not documented"
+  specimens_not_documented:
+    ja: "摘出臓器・組織：情報なし"
+    en: "Specimens: not documented"
+  specimens_none:
+    ja: "摘出臓器・組織：なし"
+    en: "Specimens sent to pathology: none"
+  blood_loss_not_documented:
+    ja: "出血量：情報なし"
+    en: "Blood loss: not documented"
+  equipment_not_documented:
+    ja: "使用機器・材料：情報なし"
+    en: "Equipment: not documented"
+
+# Death certificate fallbacks (Phase 1d-13).
+death_cert:
+  immediate_cause_not_documented:
+    ja: "直接死因: 記録なし。"
+    en: "Immediate cause of death: not documented."
+  underlying_cause_not_documented:
+    ja: "原死因: 記録なし。"
+    en: "Underlying cause of death: not documented."
+  cause_of_death_not_documented:
+    ja: "死因: 記録なし。"
+    en: "Cause of death: not documented."
+  contributing_none:
+    ja: "影響を及ぼした傷病名: 該当なし。"
+    en: "Contributing conditions: none documented."
+  comorbidities_none:
+    ja: "合併症・併存症: 特記すべき合併症なし、既知の慢性疾患も記録なし。"
+    en: "Comorbidities: no notable complications; no known chronic conditions on file."
 
 # ------------------------------------------------------------
 # Fallback texts (Phase 1d-7): migrated from module-level

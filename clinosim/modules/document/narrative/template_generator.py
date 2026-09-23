@@ -5752,7 +5752,7 @@ class TemplateNarrativeGenerator:
                 elif sbp >= NARRATIVE_BP_HIGH_NORMAL_SBP_THRESHOLD or dbp >= NARRATIVE_BP_HIGH_NORMAL_DBP_THRESHOLD:
                     ctrl = t("control_status.high_normal", lang)
                 else:
-                    ctrl = "目標達成" if is_ja else "at goal"
+                    ctrl = t("control_status.at_goal", lang)
                 target = (
                     (
                         f"目標 {NARRATIVE_BP_HYPERTENSION_SBP_THRESHOLD}/"
@@ -5782,12 +5782,12 @@ class TemplateNarrativeGenerator:
                         if vf >= NARRATIVE_HBA1C_DIABETES_THRESHOLD + 0.5:  # ≥ 7.0
                             ctrl = t("control_status.poorly_controlled", lang)
                         elif vf >= NARRATIVE_HBA1C_DIABETES_THRESHOLD:  # 6.5-7.0
-                            ctrl = "目標近傍" if is_ja else "near target"
+                            ctrl = t("control_status.near_target", lang)
                         else:
-                            ctrl = "目標達成中" if is_ja else "at goal"
+                            ctrl = t("control_status.at_goal_active", lang)
                     except (TypeError, ValueError):
                         ctrl = ""
-                    target = "目標 7.0% 未満" if is_ja else "target < 7.0%"
+                    target = t("control_status.hba1c_target_below_7", lang)
                     parts_dm.append(
                         f"HbA1c {v}{u or '%'} — {target} — {ctrl}" if ctrl else f"HbA1c {v}{u or '%'} — {target}"
                     )
@@ -5844,11 +5844,11 @@ class TemplateNarrativeGenerator:
                         if vf >= NARRATIVE_LDL_HIGH_THRESHOLD:
                             ctrl = "高 LDL 血症、スタチン効果不十分" if is_ja else "high LDL, statin under-response"
                         elif vf >= NARRATIVE_LDL_BORDERLINE_THRESHOLD:
-                            ctrl = "境界域、生活・薬物療法強化検討" if is_ja else "borderline, consider intensification"
+                            ctrl = t("control_status.borderline_intensification", lang)
                         elif vf >= NARRATIVE_LDL_ELEVATED_THRESHOLD:
-                            ctrl = "高値注意" if is_ja else "elevated"
+                            ctrl = t("control_status.elevated", lang)
                         else:
-                            ctrl = "目標達成" if is_ja else "at goal"
+                            ctrl = t("control_status.at_goal", lang)
                     except (TypeError, ValueError):
                         ctrl = ""
                     target = (
@@ -5896,9 +5896,7 @@ class TemplateNarrativeGenerator:
                     v, u = cr
                     parts_ckd.append(f"Cr {v} {u or 'mg/dL'}")
                 if parts_ckd:
-                    interp = t("list_sep.serial", lang).join(parts_ckd) + (
-                        "、腎機能推移を継続監視。" if is_ja else "; ongoing renal function monitoring."
-                    )
+                    interp = t("list_sep.serial", lang).join(parts_ckd) + (t("chronic_monitoring.renal_function", lang))
 
             # ── J44: COPD (stable) ─────────────────────────────────────
             elif code_prefix.startswith("J44"):
@@ -5913,9 +5911,7 @@ class TemplateNarrativeGenerator:
                 if med:
                     bits.append(t("prescription.medication_inhalation_continue", lang, med=med))
                 if bits:
-                    interp = t("list_sep.serial", lang).join(bits) + (
-                        "、CAT score / mMRC で症状評価。" if is_ja else "; CAT / mMRC symptom review."
-                    )
+                    interp = t("list_sep.serial", lang).join(bits) + (t("chronic_monitoring.cat_mmrc_review", lang))
 
             # ── J45: Asthma ────────────────────────────────────────────
             elif code_prefix.startswith("J45"):
@@ -5930,9 +5926,7 @@ class TemplateNarrativeGenerator:
                 if med:
                     bits2.append(t("prescription.medication_continue", lang, med=med))
                 if bits2:
-                    interp = t("list_sep.serial", lang).join(bits2) + (
-                        "、ACT で コントロール状況確認。" if is_ja else "; ACT control review."
-                    )
+                    interp = t("list_sep.serial", lang).join(bits2) + (t("chronic_monitoring.act_control_review", lang))
 
             if interp:
                 lines.append(f"{i}. {label}: {interp}")
@@ -6003,7 +5997,7 @@ class TemplateNarrativeGenerator:
                         )
                     lines.append(f"{i}. {label}: {follow}")
                 else:
-                    stub = "本日測定なし、次回受診時再評価。" if is_ja else "no measurement today; reassess next visit."
+                    stub = t("control_status.no_measurement_reassess", lang)
                     lines.append(f"{i}. {label}: {stub}")
 
         # Issue #1183: Assessment previously ignored abnormal vitals that
@@ -6142,7 +6136,7 @@ class TemplateNarrativeGenerator:
             parts.append(" ".join(bits))
         if not parts:
             return ""
-        head = ("本日処方: " if is_ja else "Today's prescription: ") + (t("list_sep.semicolon", lang).join(parts))
+        head = t("outpatient.today_prescription_head", lang) + (t("list_sep.semicolon", lang).join(parts))
         return head
 
     def _compose_today_procedures_line(self, ctx: NarrativeContext) -> str:
@@ -6163,7 +6157,7 @@ class TemplateNarrativeGenerator:
             names.append(str(nm))
         if not names:
             return ""
-        head = ("本日実施: " if is_ja else "Today's workup: ") + ("、".join(names) if is_ja else "; ".join(names))
+        head = t("outpatient.today_workup_head", lang) + ("、".join(names) if is_ja else "; ".join(names))
         return head
 
     def _compose_follow_up_line(self, ctx: NarrativeContext) -> str:
@@ -6471,9 +6465,7 @@ class TemplateNarrativeGenerator:
             # etc.) via ``_localize_lab_name``. Pre-fix, the JA emission
             # embedded English tokens verbatim under 「検査:」.
             lab_display = [_localize_lab_name(n, ctx.target_lang) for n in lab_names[:8]]
-            parts.append(
-                ("検査: " if is_ja else "Labs: ") + ("、".join(lab_display) if is_ja else ", ".join(lab_display))
-            )
+            parts.append(t("ed_workup.labs_head", lang) + ("、".join(lab_display) if is_ja else ", ".join(lab_display)))
         if imaging_names:
             # Phase 1c-4 (2026-09-23): localise imaging codes
             # ("Chest_Xray_PA_Lateral" / "CT_Head" / etc.) via
@@ -6481,7 +6473,7 @@ class TemplateNarrativeGenerator:
             # spaced-name variants (semantic dedup).
             imaging_display = [_localize_imaging(n, ctx.target_lang) for n in imaging_names[:6]]
             parts.append(
-                ("画像: " if is_ja else "Imaging: ")
+                t("ed_workup.imaging_head", lang)
                 + ("、".join(imaging_display) if is_ja else ", ".join(imaging_display))
             )
         if med_names:
@@ -6498,7 +6490,7 @@ class TemplateNarrativeGenerator:
                 except Exception:  # noqa: BLE001 — never fail narrative on i18n
                     pass
             parts.append(
-                ("投薬: " if is_ja else "Medications: ") + ("、".join(med_display) if is_ja else ", ".join(med_display))
+                t("ed_workup.medications_head", lang) + ("、".join(med_display) if is_ja else ", ".join(med_display))
             )
         if proc_order_names:
             # Phase 1c-6 (Category L, 2026-09-23): route each procedure
@@ -6522,7 +6514,7 @@ class TemplateNarrativeGenerator:
                 except Exception:  # noqa: BLE001
                     pass
             parts.append(
-                ("処置指示: " if is_ja else "Procedures ordered: ")
+                t("ed_workup.procedures_ordered_head", lang)
                 + ("、".join(proc_display) if is_ja else ", ".join(proc_display))
             )
 
@@ -6552,8 +6544,7 @@ class TemplateNarrativeGenerator:
                 abn_labs.append(f"{disp_name} {val} {unit} [{disp_flag}]")
         if abn_labs:
             parts.append(
-                ("異常値: " if is_ja else "Abnormal: ")
-                + ("、".join(abn_labs[:4]) if is_ja else ", ".join(abn_labs[:4]))
+                t("ed_workup.abnormal_head", lang) + ("、".join(abn_labs[:4]) if is_ja else ", ".join(abn_labs[:4]))
             )
 
         # Bedside procedures / imaging descriptions.
@@ -6563,7 +6554,7 @@ class TemplateNarrativeGenerator:
             if nm:
                 procs.append(str(nm))
         if procs:
-            parts.append(("処置: " if is_ja else "Procedures: ") + ("、".join(procs) if is_ja else ", ".join(procs)))
+            parts.append(t("ed_workup.procedures_head", lang) + ("、".join(procs) if is_ja else ", ".join(procs)))
         if parts:
             fact_sources = []
             if lab_names or imaging_names or med_names or proc_order_names:
@@ -6909,7 +6900,7 @@ class TemplateNarrativeGenerator:
         is_ja = lang == "ja"
         code, display, facts = self._dc_resolve_primary_cause(ctx)
         if not code:
-            return ("直接死因: 記録なし。" if is_ja else "Immediate cause of death: not documented."), facts
+            return t("death_cert.immediate_cause_not_documented", lang), facts
         if is_ja:
             return f"直接死因: {display}（{code}）。", facts
         return f"Immediate cause of death: {display} ({code}).", facts
@@ -7086,7 +7077,7 @@ class TemplateNarrativeGenerator:
         is_ja = lang == "ja"
         code, display, facts = self._dc_resolve_primary_cause(ctx)
         if not code:
-            return ("原死因: 記録なし。" if is_ja else "Underlying cause of death: not documented."), facts
+            return t("death_cert.underlying_cause_not_documented", lang), facts
         chapter = code.split(".")[0] if "." in code else code
         if is_ja:
             return f"原死因: {display}（{chapter}）。", facts
@@ -7136,7 +7127,7 @@ class TemplateNarrativeGenerator:
         pattern = self._dc_disease_pattern(primary_code)
 
         if not parts and not comp_tokens:
-            return ("影響を及ぼした傷病名: 該当なし。" if is_ja else "Contributing conditions: none documented."), facts
+            return t("death_cert.contributing_none", lang), facts
 
         if is_ja:
             prefix = "影響を及ぼした傷病名: "
@@ -7424,7 +7415,7 @@ class TemplateNarrativeGenerator:
         is_ja = lang == "ja"
         code, display, facts = self._dc_resolve_primary_cause(ctx)
         if not code:
-            return ("死因: 記録なし。" if is_ja else "Cause of death: not documented."), facts
+            return t("death_cert.cause_of_death_not_documented", lang), facts
         if is_ja:
             return f"死因: {display}（{code}）。", facts
         return f"Cause of death: {display} ({code}).", facts
@@ -7457,10 +7448,7 @@ class TemplateNarrativeGenerator:
             facts.append("ctx.complications_occurred")
 
         if not cond_labels and not comp_tokens:
-            en_none = (
-                "Complications and comorbidities: no notable in-hospital complications; no chronic disease on record."
-            )
-            return ("合併症・併存症: 特記すべき合併症なし、既知の慢性疾患も記録なし。" if is_ja else en_none), facts
+            return t("death_cert.comorbidities_none", lang), facts
 
         if is_ja:
             parts: list[str] = []
@@ -7638,7 +7626,7 @@ class TemplateNarrativeGenerator:
         is_ja = lang == "ja"
         proc = self._primary_surgical_procedure(ctx)
         if proc is None:
-            return ("術式：情報なし" if is_ja else "Procedure: not documented"), []
+            return t("op_note.procedure_not_documented", lang), []
         facts = ["ctx.procedures"]
         name = self._resolve_procedure_display(proc, ctx.target_lang)
         code = _o(proc, "procedure_code", "") or _o(proc, "procedure_code_jp", "") or _o(proc, "procedure_code_us", "")
@@ -7661,11 +7649,11 @@ class TemplateNarrativeGenerator:
         is_ja = lang == "ja"
         proc = self._primary_surgical_procedure(ctx)
         if proc is None:
-            return ("麻酔：情報なし" if is_ja else "Anesthesia: not documented"), []
+            return t("op_note.anesthesia_not_documented", lang), []
         facts = ["ctx.procedures"]
         atype = str(_o(proc, "anesthesia_type", "") or "").lower()
         anes_label = (self._OP_ANESTHESIA_JA if is_ja else self._OP_ANESTHESIA_EN).get(
-            atype, atype or ("記載なし" if is_ja else "not documented")
+            atype, atype or t("op_note.anes_no_record", lang)
         )
         asa = _o(proc, "asa_class", 0) or 0
         anes_id = _o(proc, "anesthesiologist_id", "") or ""
@@ -7684,7 +7672,7 @@ class TemplateNarrativeGenerator:
         is_ja = lang == "ja"
         proc = self._primary_surgical_procedure(ctx)
         if proc is None:
-            return ("執刀医：情報なし" if is_ja else "Surgeon: not documented"), []
+            return t("op_note.surgeon_not_documented", lang), []
         facts = ["ctx.procedures"]
         surgeon_id = _o(proc, "primary_surgeon_id", "") or ""
         surgeon_name = _resolve_staff_name(surgeon_id, ctx.roster_map, is_ja) if surgeon_id else ""
@@ -7705,7 +7693,7 @@ class TemplateNarrativeGenerator:
         is_ja = lang == "ja"
         proc = self._primary_surgical_procedure(ctx)
         if proc is None:
-            return ("術中所見：情報なし" if is_ja else "Intraoperative findings: not documented"), []
+            return t("op_note.findings_not_documented", lang), []
         facts = ["ctx.procedures"]
         body_site_code = _o(proc, "body_site_code", "") or ""
         # snomed-ct is the canonical system key (loader.py). Lookup returns
@@ -7757,7 +7745,7 @@ class TemplateNarrativeGenerator:
         is_ja = lang == "ja"
         proc = self._primary_surgical_procedure(ctx)
         if proc is None:
-            return ("手術経過：情報なし" if is_ja else "Operative course: not documented"), []
+            return t("op_note.course_not_documented", lang), []
         facts = ["ctx.procedures"]
         approach_raw = str(_o(proc, "approach", "") or "").lower()
         approach = _localize_op_approach(approach_raw, ctx.target_lang)
@@ -7791,11 +7779,11 @@ class TemplateNarrativeGenerator:
         is_ja = lang == "ja"
         proc = self._primary_surgical_procedure(ctx)
         if proc is None:
-            return ("摘出臓器・組織：情報なし" if is_ja else "Specimens: not documented"), []
+            return t("op_note.specimens_not_documented", lang), []
         facts = ["ctx.procedures"]
         specimens = [str(s) for s in (_o(proc, "specimens_sent", []) or []) if s]
         if not specimens:
-            return ("摘出臓器・組織：なし" if is_ja else "Specimens sent to pathology: none"), facts
+            return t("op_note.specimens_none", lang), facts
         sep = t("list_sep.serial", lang)
         if is_ja:
             return f"摘出臓器・組織：{sep.join(specimens)}（病理検査へ提出）", facts
@@ -7807,7 +7795,7 @@ class TemplateNarrativeGenerator:
         is_ja = lang == "ja"
         proc = self._primary_surgical_procedure(ctx)
         if proc is None:
-            return ("出血量：情報なし" if is_ja else "Blood loss: not documented"), []
+            return t("op_note.blood_loss_not_documented", lang), []
         facts = ["ctx.procedures"]
         ebl = _o(proc, "estimated_blood_loss_ml", 0) or 0
         # Transfusion inference: check ctx.procedures for a blood_transfusion
@@ -7833,7 +7821,7 @@ class TemplateNarrativeGenerator:
         is_ja = lang == "ja"
         proc = self._primary_surgical_procedure(ctx)
         if proc is None:
-            return ("使用機器・材料：情報なし" if is_ja else "Equipment: not documented"), []
+            return t("op_note.equipment_not_documented", lang), []
         facts = ["ctx.procedures"]
         implants = [str(x) for x in (_o(proc, "implants_used", []) or []) if x]
         if not implants:
