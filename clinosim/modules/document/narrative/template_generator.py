@@ -444,7 +444,11 @@ def _render_safety_skips_line(skips: list[dict], lang: str) -> str:
         else:
             considered = s.get("considered") or ""
             conflict = s.get("avoided_due_to") or ""
-            substituted = s.get("substituted_with")
+            # Phase 1d-9 mypy fix: unify `substituted` to str across
+            # both language branches (ja branch returns str via _ja_drug;
+            # else branch previously returned Any | None). Empty string
+            # is falsy, so ``if substituted:`` semantics are preserved.
+            substituted = s.get("substituted_with") or ""
             if event == "hold":
                 lines.append(f"- {considered} was held during this admission because of {conflict}.")
             elif event == "substitute":
