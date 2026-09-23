@@ -287,6 +287,12 @@ list_sep:
   space:
     ja: " "
     en: "; "
+  chunk:
+    ja: ""
+    en: " "
+  period_space:
+    ja: "。"
+    en: ". "
 
 # Nursing / care-plan section labels + composite phrases.
 nursing:
@@ -407,6 +413,15 @@ control_status:
   hba1c_target_below_7:
     ja: "目標 7.0% 未満"
     en: "target < 7.0%"
+  high_ldl_statin_underresponse:
+    ja: "高 LDL 血症、スタチン効果不十分"
+    en: "high LDL, statin under-response"
+  not_assessed:
+    ja: "未評価"
+    en: "not assessed"
+  clinical_judgment:
+    ja: "症状に応じて対応"
+    en: "clinical judgment"
 
 # Chronic-SOAP continuation-monitoring phrases (Phase 1d-13).
 chronic_monitoring:
@@ -482,6 +497,36 @@ op_note:
   equipment_not_documented:
     ja: "使用機器・材料：情報なし"
     en: "Equipment: not documented"
+  implants_none:
+    ja: "使用機器・材料：特記すべきインプラント・器材使用なし"
+    en: "Implants / devices: none"
+  postop_plan_not_documented:
+    ja: "術後方針：情報なし"
+    en: "Postoperative plan: not documented"
+
+# Procedure note (処置記録) fallbacks — separate from op_note.
+proc_note:
+  procedure_not_documented:
+    ja: "処置名: 記録なし。"
+    en: "Procedure: not documented."
+  operator_not_documented:
+    ja: "実施者: 記録なし。"
+    en: "Operator: not documented."
+  analgesia_not_documented:
+    ja: "麻酔・鎮静: 記録なし。"
+    en: "Analgesia: not documented."
+  course_not_documented:
+    ja: "処置経過: 記録なし。"
+    en: "Course: not documented."
+  complications_not_documented:
+    ja: "合併症の有無: 記録なし。"
+    en: "Complications: not documented."
+  specimens_not_documented:
+    ja: "検体の有無: 記録なし。"
+    en: "Specimens: not documented."
+  postop_plan_not_documented:
+    ja: "術後方針: 記録なし。"
+    en: "Post-procedure plan: not documented."
 
 # Death certificate fallbacks (Phase 1d-13).
 death_cert:
