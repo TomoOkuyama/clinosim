@@ -301,6 +301,13 @@ fall_risk:
     ja: "転倒リスク"
     en: "fall risk"
 
+# Pressure-ulcer / Braden risk phrase (Phase 1d-34).
+# From _build_risk_assessments.
+risk:
+  braden_line:
+    ja: "褥瘡リスク (Braden {braden}/23): {band}"
+    en: "Pressure-ulcer (Braden {braden}/23): {band}"
+
 # Prescription / medication line formatters.
 prescription:
   days_supply_suffix:
