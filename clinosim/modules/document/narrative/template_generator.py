@@ -7497,7 +7497,6 @@ class TemplateNarrativeGenerator:
     def _build_pn_procedure_name(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
         """処置名 / Procedure name — resolved from procedure_code."""
         lang = ctx.target_lang
-        is_ja = lang == "ja"
         proc, facts = self._pn_resolve_procedure(ctx)
         if proc is None:
             return t("proc_note.procedure_not_documented", lang), facts
@@ -7505,33 +7504,32 @@ class TemplateNarrativeGenerator:
         code_us = str(_o(proc, "procedure_code_us", "") or "")
         code = str(_o(proc, "procedure_code", "") or "")
         # Pick the locale-appropriate code system for the display lookup.
-        primary_code = code_jp if (is_ja and code_jp) else (code_us if (not is_ja and code_us) else code)
-        system_key = (
-            "k-codes"
-            if primary_code == code_jp and code_jp
-            else ("cpt" if primary_code == code_us and code_us else "k-codes")
-        )
-        display = code_lookup(system_key, primary_code, ctx.target_lang) or primary_code or ""
+        # JA-locale prefers ``code_jp`` (K-codes / 診療報酬点数コード),
+        # other locales prefer ``code_us`` (CPT); fall back to the base
+        # ``code`` field when the locale-specific slot is empty.
+        if lang == "ja" and code_jp:
+            primary_code = code_jp
+            system_key = "k-codes"
+        elif lang != "ja" and code_us:
+            primary_code = code_us
+            system_key = "cpt"
+        else:
+            primary_code = code
+            system_key = "k-codes"
+        display = code_lookup(system_key, primary_code, lang) or primary_code or ""
         proc_type = str(_o(proc, "procedure_type", "") or "")
         # Phase 1c-6 (2026-09-23): localize the procedure_type slug
         # (urinary_catheter / central_line / intubation / …) via the
         # bedside-procedures SoT so JA emits 「術式区分: 尿道カテーテル
         # 挿入」 rather than 「術式区分: urinary_catheter」.
-        proc_type_display = _localize_proc_type(proc_type, ctx.target_lang) if proc_type else ""
+        proc_type_display = _localize_proc_type(proc_type, lang) if proc_type else ""
         facts.append("ctx.procedures.procedure_code")
-        if is_ja:
-            core = f"処置名: {display}"
-            if primary_code:
-                core += f"（{primary_code}）"
-            if proc_type_display:
-                core += f"／術式区分: {proc_type_display}"
-            return core + "。", facts
-        core = f"Procedure: {display}"
+        core = t("proc_note.procedure_head", lang, display=display)
         if primary_code:
-            core += f" ({primary_code})"
+            core += t("proc_note.procedure_code_paren", lang, code=primary_code)
         if proc_type_display:
-            core += f" / type: {proc_type_display}"
-        return core + ".", facts
+            core += t("proc_note.procedure_type_suffix", lang, ptype=proc_type_display)
+        return core + t("list_sep.period", lang), facts
 
     def _build_pn_consent(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
         """インフォームド・コンセント / Consent — boilerplate.
@@ -7544,21 +7542,11 @@ class TemplateNarrativeGenerator:
         """
         _proc, facts = self._pn_resolve_procedure(ctx)
         lang = ctx.target_lang
-        is_ja = lang == "ja"
-        if is_ja:
-            return (
-                "インフォームド・コンセント: 患者本人（または家族）に手技の目的・方法・"
-                "予想される合併症について文書で説明し、同意を得た。"
-            ), facts
-        return (
-            "Informed consent: risks, benefits, and alternatives were explained to the "
-            "patient (or surrogate) and written consent was obtained prior to the procedure."
-        ), facts
+        return t("proc_note.consent_line", lang), facts
 
     def _build_pn_performer(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
         """実施者 / Performer — from ProcedureRecord.primary_surgeon_id."""
         lang = ctx.target_lang
-        is_ja = lang == "ja"
         proc, facts = self._pn_resolve_procedure(ctx)
         if proc is None:
             return t("proc_note.operator_not_documented", lang), facts
@@ -7571,91 +7559,69 @@ class TemplateNarrativeGenerator:
         # goes through and downstream roster localizers may still
         # rewrite it (feedback: staff-id leak was already fixed for
         # Composition, this keeps parity).
-        def _localise(raw_id: str, role_suffix_ja: str, role_suffix_en: str) -> str:
+        def _localise(raw_id: str) -> str:
             entry = (ctx.roster_map or {}).get(raw_id) if raw_id else None
             if entry:
                 name = str(_o(entry, "name", "") or _o(entry, "display", "") or raw_id)
-                return f"{name}{role_suffix_ja}" if is_ja else f"{name}{role_suffix_en}"
+                return t("proc_note.performer_role_suffix", lang, name=name)
             return raw_id
 
-        performer = _localise(performer_id, "医師", ", MD")
-        assistants = [_localise(a, "医師", ", MD") for a in assistant_ids if a]
-        anesth = _localise(anesth_id, "医師", ", MD") if anesth_id else ""
+        performer = _localise(performer_id)
+        assistants = [_localise(a) for a in assistant_ids if a]
+        anesth = _localise(anesth_id) if anesth_id else ""
         facts.extend(["ctx.procedures.primary_surgeon_id"])
-        if is_ja:
-            parts = [f"実施者: {performer or '記録なし'}"]
-            if assistants:
-                parts.append(f"介助: {', '.join(assistants)}")
-            if anesth:
-                parts.append(f"麻酔科医: {anesth}")
-            return "。".join(parts) + "。", facts
-        parts = [f"Operator: {performer or 'not documented'}"]
+        parts = [
+            t("proc_note.performer_head", lang, performer=performer)
+            if performer
+            else t("proc_note.performer_none", lang)
+        ]
         if assistants:
-            parts.append(f"Assistants: {', '.join(assistants)}")
+            # Assistants join uses ", " for both locales in the source
+            # (JA also used ", " inline). Preserve that.
+            parts.append(t("proc_note.performer_assistants", lang, list=", ".join(assistants)))
         if anesth:
-            parts.append(f"Anesthesiologist: {anesth}")
-        return ". ".join(parts) + ".", facts
+            parts.append(t("proc_note.performer_anesth", lang, name=anesth))
+        return t("list_sep.period_space", lang).join(parts) + t("list_sep.period", lang), facts
 
     def _build_pn_analgesia(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
         """麻酔・鎮静 / Analgesia — from ProcedureRecord.anesthesia_type."""
         lang = ctx.target_lang
-        is_ja = lang == "ja"
         proc, facts = self._pn_resolve_procedure(ctx)
         if proc is None:
             return t("proc_note.analgesia_not_documented", lang), facts
         anesth = str(_o(proc, "anesthesia_type", "") or "").strip().lower()
         # Bedside procedures use local / sedation almost exclusively —
-        # if the record says "general" we still honor it (some cardio-
-        # version cases are done under brief GA).
-        display_ja = {
-            "local": "局所麻酔",
-            "sedation": "静脈内鎮静（監視下）",
-            "spinal": "脊椎麻酔",
-            "general": "全身麻酔",
-        }.get(anesth, "局所麻酔")
-        display_en = {
-            "local": "local anesthesia",
-            "sedation": "monitored intravenous sedation",
-            "spinal": "spinal anesthesia",
-            "general": "general anesthesia",
-        }.get(anesth, "local anesthesia")
+        # if the record says "general" we still honor it (some
+        # cardioversion cases are done under brief GA). Analgesia
+        # vocabulary moved to ``narrative_labels.yaml::pn_analgesia_type``
+        # (Phase 1d-25). Fallback is ``local`` (bedside procedures default).
+        default_method = _label("pn_analgesia_type", "local", lang)
+        method = _label("pn_analgesia_type", anesth, lang, fallback=default_method)
         facts.append("ctx.procedures.anesthesia_type")
-        if is_ja:
-            return f"麻酔・鎮静: {display_ja}下に施行。", facts
-        return f"Analgesia: procedure performed under {display_en}.", facts
+        return t("proc_note.analgesia_line", lang, method=method), facts
 
     def _build_pn_course(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
         """処置経過 / Procedure course — from duration + approach + outcome."""
         lang = ctx.target_lang
-        is_ja = lang == "ja"
         proc, facts = self._pn_resolve_procedure(ctx)
         if proc is None:
             return t("proc_note.course_not_documented", lang), facts
         duration = int(_o(proc, "duration_minutes", 0) or 0)
         approach = str(_o(proc, "approach", "") or "")
         outcome_code = str(_o(proc, "outcome_code", "") or "")
-        # SNOMED outcome codes: 385669000 successful / 385670004 partial /
-        # 385671000 unsuccessful.
-        outcome_ja = {
-            "385669000": "手技は問題なく完遂した",
-            "385670004": "手技は部分的に完遂した",
-            "385671000": "手技は完遂できなかった",
-        }.get(outcome_code, "手技は概ね予定通りに完遂した")
-        outcome_en = {
-            "385669000": "The procedure was completed without issue",
-            "385670004": "The procedure was partially completed",
-            "385671000": "The procedure could not be completed",
-        }.get(outcome_code, "The procedure was completed as planned")
+        # SNOMED outcome codes 385669000 / 385670004 / 385671000 moved
+        # to ``narrative_labels.yaml::pn_outcome_code`` (Phase 1d-25).
+        # Missing / unknown code falls back to the "planned completion"
+        # phrase (still language-agnostic via the same YAML).
+        outcome_default = t("proc_note.course_outcome_default", lang)
+        outcome = (
+            _label("pn_outcome_code", outcome_code, lang, fallback=outcome_default) if outcome_code else outcome_default
+        )
         facts.extend(["ctx.procedures.duration_minutes", "ctx.procedures.outcome_code"])
-        if is_ja:
-            core = f"処置経過: 所要時間{duration}分にて実施。"
-            if approach:
-                core += f"アプローチは{approach}。"
-            return core + f"{outcome_ja}。", facts
-        core = f"Course: procedure took {duration} minutes."
+        core = t("proc_note.course_duration_head", lang, duration=duration)
         if approach:
-            core += f" Approach: {approach}."
-        return core + f" {outcome_en}.", facts
+            core += t("proc_note.course_approach_part", lang, approach=approach)
+        return core + t("proc_note.course_outcome_suffix", lang, outcome=outcome), facts
 
     def _build_pn_complications(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
         """合併症の有無 / Complications — from intraop_complications + complication_codes."""

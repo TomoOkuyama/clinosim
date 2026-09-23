@@ -186,3 +186,21 @@ op_outcome_code:
   '385669000': {en: successful, ja: 順調に終了}
   '385670004': {en: 'partially successful (minor intraop complications)', ja: '部分的成功（軽度合併症あり）'}
   '385671000': {en: unsuccessful, ja: 不成功}
+
+# Procedure-note analgesia_type dictionary (Phase 1d-25).
+# Was inline dict in ``_build_pn_analgesia``. Fallback is
+# ``local`` (bedside procedures default).
+pn_analgesia_type:
+  local: {en: local anesthesia, ja: 局所麻酔}
+  sedation: {en: monitored intravenous sedation, ja: 静脈内鎮静（監視下）}
+  spinal: {en: spinal anesthesia, ja: 脊椎麻酔}
+  general: {en: general anesthesia, ja: 全身麻酔}
+
+# Procedure-note SNOMED outcome-code narrative phrases (Phase 1d-25).
+# Different wording than op_outcome_code — this is the "手技は…した"
+# sentence-style narrative used inside _build_pn_course. Fallback
+# is 手技は概ね予定通りに完遂した / The procedure was completed as planned.
+pn_outcome_code:
+  '385669000': {en: The procedure was completed without issue, ja: 手技は問題なく完遂した}
+  '385670004': {en: The procedure was partially completed, ja: 手技は部分的に完遂した}
+  '385671000': {en: The procedure could not be completed, ja: 手技は完遂できなかった}
