@@ -239,6 +239,37 @@ chronic_labs:
     ja: "CKD ステージ {stage}"
     en: "CKD stage {stage}"
 
+# Newborn / infant screening phrases (Phase 1d-9, from
+# replacement_strategy._build_neonatal_addendum).
+newborn:
+  aabr_completed:
+    ja: "AABR 聴覚スクリーン提出済"
+    en: "AABR hearing screen completed"
+  tandem_ms_submitted:
+    ja: "タンデム MS 代謝異常症スクリーン提出済"
+    en: "tandem-MS metabolic screen submitted"
+  vitamin_k_admin:
+    ja: "ビタミン K 投与済"
+    en: "Vitamin K administered"
+  ophthalmic_prophylaxis:
+    ja: "眼科的予防投与済"
+    en: "ophthalmic prophylaxis administered"
+
+# List-formatting separators. Not per-section — used for joining
+# tokens in composite phrases. Keeping them in the phrase catalog
+# rather than hardcoded ternaries keeps punctuation choice per-locale
+# (JA prefers ideographic comma 「、」 over ASCII comma).
+list_sep:
+  serial:
+    ja: "、"
+    en: ", "
+  semicolon:
+    ja: "、"
+    en: "; "
+  prior_word:
+    ja: "前値"
+    en: "prior"
+
 # ------------------------------------------------------------
 # Fallback texts (Phase 1d-7): migrated from module-level
 # ``_XXX_FALLBACK_JA`` / ``_XXX_FALLBACK_EN`` string constants that

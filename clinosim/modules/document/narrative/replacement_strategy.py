@@ -42,6 +42,7 @@ import time as _time
 from collections.abc import Callable
 from typing import Any
 
+from clinosim.locale.i18n import t
 from clinosim.modules.document.narrative.cache import (
     cache_key,
     demographics_bucket,
@@ -1753,10 +1754,10 @@ def _render_newborn_workup_summary(workup: dict, lang: str = "en") -> str:
             parts.append(f"Apgar {a1_str}(1 min) / {a5_str}(5 min)")
 
     if workup.get("has_aabr"):
-        parts.append("AABR 聴覚スクリーン提出済" if is_ja else "AABR hearing screen completed")
+        parts.append(t("newborn.aabr_completed", lang))
 
     if workup.get("has_metabolic"):
-        parts.append("タンデム MS 代謝異常症スクリーン提出済" if is_ja else "tandem-MS metabolic screen submitted")
+        parts.append(t("newborn.tandem_ms_submitted", lang))
 
     bili = workup.get("bilirubin_peak")
     if bili is not None:
@@ -1780,14 +1781,14 @@ def _render_newborn_workup_summary(workup: dict, lang: str = "en") -> str:
             parts.append(f"CCHD SpO2 RU {ru_str} / LE {le_str}")
 
     if workup.get("has_vitamin_k"):
-        parts.append("ビタミン K 投与済" if is_ja else "Vitamin K administered")
+        parts.append(t("newborn.vitamin_k_admin", lang))
 
     if workup.get("has_ophthalmic"):
-        parts.append("眼科的予防投与済" if is_ja else "ophthalmic prophylaxis administered")
+        parts.append(t("newborn.ophthalmic_prophylaxis", lang))
 
     if not parts:
         return ""
-    sep = "、" if is_ja else "; "
+    sep = t("list_sep.semicolon", lang)
     return sep.join(parts)
 
 
@@ -2042,7 +2043,7 @@ def _render_lab_trend_today(
     if not trend_rows:
         return ""
     label_map = _TREND_LABEL_JA if lang == "ja" else _TREND_LABEL_EN
-    prior_word = "前値" if lang == "ja" else "prior"
+    prior_word = t("list_sep.prior_word", lang)
     parts: list[str] = []
     for row in trend_rows:
         if row["direction"] == "initial":
