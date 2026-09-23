@@ -957,6 +957,36 @@ autopsy:
     ja: "剖検の有無・所見: 剖検は施行せず（家族同意得られず）。"
     en: "Autopsy status and findings: autopsy not performed (no family consent)."
 
+# Family-history entry format (Phase 1d-30).
+# From _build_family_history — per-relative line assembled from
+# relationship label + deceased suffix + condition list.
+family_history:
+  entry_line:
+    ja: "{label}{suffix} – {conditions}"
+    en: "{label}{suffix}: {conditions}"
+
+# Nursing discharge-summary admission-status composer (Phase 1d-30).
+# From _build_nursing_admission_status. Sub-lines concatenate.
+nursing_admission_status:
+  stay_head:
+    ja: "入院期間: {los}日間。"
+    en: "Hospital stay: {los} days. "
+  admission_reason_line:
+    ja: "入院理由: {cc}。"
+    en: "Admission reason: {cc}. "
+  complications_line:
+    ja: "経過中の合併症: {list}。"
+    en: "Complications: {list}. "
+  discharge_met_line:
+    ja: "退院基準を満たし退院となった。"
+    en: "Discharge criteria met."
+
+# Nursing interventions in/out line (Phase 1d-30).
+nursing_interventions:
+  io_line:
+    ja: "入院期間合計 IN {in_ml} mL / OUT {out_ml} mL (差 {net:+} mL)"
+    en: "Cumulative IN {in_ml} mL / OUT {out_ml} mL (net {net:+} mL)"
+
 # HPI-core fallback phrase (Phase 1d-29). From _build_hpi_core.
 # Same 'admission_with_severity' shape as _build_present_illness but a
 # shorter no-severity variant.
