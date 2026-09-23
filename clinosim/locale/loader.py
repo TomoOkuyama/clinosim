@@ -611,6 +611,24 @@ def load_narrative_labels() -> dict[str, dict[str, dict[str, str]]]:
 
 
 @lru_cache(maxsize=1)
+def load_inpatient_subjective_pool() -> dict[str, list[dict[str, str]]]:
+    """Load the inpatient progress_note fallback subjective phrase pool (Phase 1d-17).
+
+    Structure: ``{phase: [{lang: phrase}, ...]}``. Phases are
+    ``early / mid / late / eve`` (stay-phase heuristic from
+    ``_pick_stable_progress_phrase``). The list index is shared
+    across languages so seed-reproducibility is preserved (same
+    day_index rotation position → same slot in each lang). Adding
+    a new target language extends each entry with ``<lang>: <phrase>``.
+
+    Was ``_INPATIENT_SUBJECTIVE_POOL_JA/EN`` module-level dict tables
+    in ``clinosim/modules/document/narrative/template_generator.py``.
+    """
+    raw = _load_yaml(_LOCALE_DIR / "shared" / "inpatient_subjective_pool.yaml", fallback={})
+    return raw or {}
+
+
+@lru_cache(maxsize=1)
 def load_llm_prompt_labels() -> dict[str, dict[str, dict[str, str]]]:
     """Load the LLM-prompt-time locale label bundle (Phase 1d-2).
 

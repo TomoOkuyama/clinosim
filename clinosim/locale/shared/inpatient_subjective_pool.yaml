@@ -1,0 +1,54 @@
+# Inpatient progress_note fallback subjective pool (Phase 1d-17, 2026-09-24).
+#
+# Neutral-observation phrases picked when today's vitals show no
+# abnormal marker. Rotated deterministically by day_index so
+# consecutive hospital days differ (Issue #1327). Every phrase
+# describes the day's clinical hold without asserting an unmodeled
+# symptom.
+#
+# Structure: ``{phase: [{lang: phrase}, ...]}``. The list index is
+# shared across languages (same rotation index → same slot in each
+# lang) so seed-reproducibility is preserved. Adding a new language
+# extends each entry with ``<lang>: <phrase>`` — no code change.
+#
+# Phases (from _pick_stable_progress_phrase):
+#   early — day 1-2 of the stay
+#   mid   — days 3..(los-2)
+#   late  — penultimate day
+#   eve   — last inpatient day (near discharge)
+#
+# Loader: ``clinosim.locale.loader.load_inpatient_subjective_pool()``.
+
+early:
+  - ja: "自覚症状に著変なし。"
+    en: "No new subjective complaints."
+  - ja: "入院直後、症状経過安定。"
+    en: "Tolerating initial therapy without adverse reaction."
+  - ja: "初期治療への忍容性良好。"
+    en: "Symptoms stable since admission."
+
+mid:
+  - ja: "自覚症状に著変なし。"
+    en: "No new subjective complaints."
+  - ja: "全身状態安定、経過観察継続。"
+    en: "Overall clinical status stable; observation continues."
+  - ja: "食事摂取良好、明らかな苦痛の訴えなし。"
+    en: "Appetite adequate; no acute discomfort reported."
+  - ja: "夜間良眠、日中の活動性維持。"
+    en: "Slept well overnight; daytime activity maintained."
+  - ja: "治療継続中、症状は概ね安定。"
+    en: "Continuing planned therapy; symptoms broadly stable."
+
+late:
+  - ja: "退院に向けた自立訓練継続中。"
+    en: "Continuing rehab in preparation for discharge."
+  - ja: "全身状態改善傾向、退院準備を検討。"
+    en: "Improving trend; discharge planning underway."
+  - ja: "リハビリ耐性良好、日常動作の自立度改善。"
+    en: "Tolerating ADL retraining; independence improving."
+
+eve:
+  - ja: "退院前日、症状安定。退院後生活指導を実施。"
+    en: "Day before planned discharge; symptoms stable, discharge instructions reviewed."
+  - ja: "退院準備完了、家族への説明終了。"
+    en: "Discharge readiness confirmed; family instructed."

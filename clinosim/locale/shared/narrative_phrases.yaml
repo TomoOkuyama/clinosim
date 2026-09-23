@@ -44,6 +44,37 @@ progress:
   notable_labs:
     ja: "本日の検査所見: {list}。"
     en: "Notable labs today: {list}."
+  # From template_generator._compose_progress_subjective_from_state
+  # (Phase 1d-17). Per-day inpatient subjective composed from vitals
+  # deltas (fever / hypothermia / spo2 trend). Each key covers one
+  # abnormal-signal micro-phrase; the composer assembles them.
+  hospital_day:
+    ja: "入院{day}日目。"
+    en: "Hospital day {day}."
+  fever_new_onset:
+    ja: "発熱 {t:.1f}°C 出現。"
+    en: "New-onset fever {t:.1f}°C."
+  fever_worsening:
+    ja: "発熱 {t:.1f}°C 上昇傾向。"
+    en: "Fever {t:.1f}°C, worsening trend."
+  fever_persistent:
+    ja: "発熱 {t:.1f}°C 持続。"
+    en: "Persistent fever {t:.1f}°C."
+  hypothermia:
+    ja: "低体温 {t:.1f}°C を認める。"
+    en: "Hypothermia {t:.1f}°C noted."
+  fever_resolving:
+    ja: "熱型下降 (前日 {pt:.1f}°C → 本日 {t:.1f}°C)。"
+    en: "Fever trending down (prev {pt:.1f}°C → today {t:.1f}°C)."
+  spo2_worsening:
+    ja: "SpO2 {s:.0f}% と悪化傾向。"
+    en: "SpO2 {s:.0f}% (worsening)."
+  spo2_desaturating:
+    ja: "SpO2 {s:.0f}% と低下傾向。"
+    en: "SpO2 {s:.0f}% (desaturation trend)."
+  spo2_recovering:
+    ja: "SpO2 改善 (前日 {ps:.0f}% → 本日 {s:.0f}%)。"
+    en: "SpO2 recovering (prev {ps:.0f}% → today {s:.0f}%)."
 
 # Section fallback text when the underlying CIF field is empty.
 # Callers: template_generator._build_past_medical_history /
