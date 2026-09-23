@@ -376,12 +376,41 @@ def _render_safety_skips_line(skips: list[dict], lang: str) -> str:
         return ""
     is_ja = lang == "ja"
     lines: list[str] = []
+
+    # Phase 1c-5 (2026-09-23): JA drug-name localization.
+    #
+    # Two failure modes existed pre-fix and both leaked ~4,000 raw
+    # English drug names (Furosemide / Enalapril / Candesartan / …) into
+    # JA narratives on the JP p=10000 audit:
+    #   1. ``considered_ja`` / ``substituted_with_ja`` is unset (some
+    #      log paths never populate a JA field);
+    #   2. ``considered_ja`` is set but was copied from the English drug
+    #      name (e.g. ``chronic_medications.yaml`` has no ``drug_ja`` so
+    #      ``discharge_rx._register_medication`` falls back to the raw
+    #      English name).
+    # Route every JA drug string (populated or fallback) through the
+    # shared ``_localize_drug_name`` helper — the same table the FHIR
+    # emit path uses (``drug_names_ja.yaml``). A katakana input that is
+    # not a table key falls through the substring-matcher unchanged, so
+    # already-localized values are idempotent. Lazy import + broad
+    # except mirrors ``discontinue_flip._log_treatment_change`` so an
+    # i18n failure never breaks the narrative render.
+    def _ja_drug(value: str | None) -> str:
+        if not value:
+            return ""
+        try:
+            from clinosim.modules.output.fhir_r4.lib.localization import _localize_drug_name
+
+            return _localize_drug_name(value, "JP") or value
+        except Exception:  # noqa: BLE001
+            return value
+
     for s in skips:
         event = str(s.get("event_type") or "avoid").lower()
         if is_ja:
-            considered = s.get("considered_ja") or s.get("considered") or ""
+            considered = _ja_drug(s.get("considered_ja") or s.get("considered")) or ""
             conflict = s.get("avoided_due_to_ja") or s.get("avoided_due_to") or ""
-            substituted = s.get("substituted_with_ja") or s.get("substituted_with")
+            substituted = _ja_drug(s.get("substituted_with_ja") or s.get("substituted_with"))
             if event == "hold":
                 lines.append(f"・{considered}：{conflict}のため今回入院中は保留。")
             elif event == "substitute":
@@ -867,6 +896,87 @@ _COMPLICATION_JA: dict[str, str] = {
     "disseminated_intravascular_coagulation": "播種性血管内凝固症候群 (DIC)",
     "dic": "DIC",
     "treatment_resistant": "治療抵抗性",
+    # Phase 1c-5 (2026-09-23): additional disease_ids + composite English
+    # complications observed in the JP p=10000 template-narrate audit —
+    # ~3,300 leaks concentrated in progress_note assessment /
+    # hospital_course sections. Keys are the underscore slug form; the
+    # ``_localize_complication`` helper normalises whitespace →
+    # underscores at lookup time so ``"urinary tract infection"`` and
+    # ``"urinary_tract_infection"`` collapse to the same entry.
+    "urinary_tract_infection": "尿路感染症",
+    "uti": "尿路感染症",
+    "hemorrhagic_stroke": "出血性脳卒中",
+    "ischemic_stroke": "虚血性脳卒中",
+    "acute_respiratory_distress_syndrome": "急性呼吸窮迫症候群 (ARDS)",
+    "ards": "急性呼吸窮迫症候群 (ARDS)",
+    "cardiac_arrhythmia": "心不整脈",
+    "atrial_fibrillation": "心房細動",
+    "ventricular_tachycardia": "心室頻拍",
+    "ventricular_fibrillation": "心室細動",
+    "venous_thromboembolism": "静脈血栓塞栓症",
+    "vte": "静脈血栓塞栓症",
+    "post_stroke_depression": "脳卒中後うつ",
+    "malnutrition": "低栄養",
+    "malnutrition_worsening": "低栄養の悪化",
+    "icu_delirium": "ICU せん妄",
+    "stress_cardiomyopathy": "たこつぼ型心筋症",
+    "acute_cholecystitis": "急性胆嚢炎",
+    "acute_pancreatitis": "急性膵炎",
+    "acute_appendicitis": "急性虫垂炎",
+    "hip_fracture": "大腿骨近位部骨折",
+    "coronary_pci": "冠動脈経皮的インターベンション (PCI)",
+    "pci": "冠動脈経皮的インターベンション (PCI)",
+    "pacemaker_implant": "ペースメーカー植込み術",
+    "hemiarthroplasty": "人工骨頭置換術",
+    "orif": "観血的整復固定術 (ORIF)",
+    "aki": "急性腎障害",
+    "chf_exacerbation": "うっ血性心不全増悪",
+    "renal_failure": "腎不全",
+    "acute_renal_failure": "急性腎不全",
+    "encephalopathy": "脳症",
+    "hepatic_encephalopathy": "肝性脳症",
+    "acute_liver_failure": "急性肝不全",
+    "acute_stroke": "急性期脳卒中",
+    "cardiogenic_shock": "心原性ショック",
+    "septic_shock": "敗血症性ショック",
+    "hypovolemic_shock": "循環血液量減少性ショック",
+    # Phase 1c-5 (2026-09-23) — disease_id mirror. The
+    # ``_localize_complication`` helper is used by
+    # ``_compose_admission_hp_status`` for the ``病態:`` line, so every
+    # disease-YAML ``disease_id`` also has to be present here (in
+    # addition to the complication-slug entries above).
+    "acute_mi": "急性心筋梗塞",
+    "asthma_exacerbation": "喘息増悪",
+    "atrial_fibrillation_rvr": "心房細動 (RVR)",
+    "cellulitis": "蜂窩織炎",
+    "crush_injury_hand": "手挫滅損傷",
+    "deep_vein_thrombosis": "深部静脈血栓症",
+    "diabetic_ketoacidosis": "糖尿病性ケトアシドーシス",
+    "electrical_injury": "電撃傷",
+    "fall_from_height": "高所転落外傷",
+    "gi_bleeding": "消化管出血",
+    "ileus": "イレウス",
+    "industrial_burn_severe": "重症熱傷 (労災)",
+    "influenza": "インフルエンザ",
+    "liver_cirrhosis_decompensated": "肝硬変 (非代償期)",
+    "subdural_hematoma": "硬膜下血腫",
+    "traffic_accident_severe": "重症交通外傷",
+    "vertebral_compression_fracture": "椎体圧迫骨折",
+    "wrist_fracture_surgical": "手関節骨折 (観血的整復)",
+    # Complications observed only in the p=10000 audit residuals
+    # (composite English + disease-specific complication vocabulary).
+    "hemorrhagic_transformation": "出血性変化",
+    "empyema": "膿胸",
+    "uremic_encephalopathy": "尿毒症性脳症",
+    "rebleeding": "再出血",
+    "burn_wound_infection": "熱傷創部感染",
+    "inhalation_injury": "吸入損傷",
+    "inhalation_injury_respiratory_failure": "吸入損傷による呼吸不全",
+    "hydrocephalus": "水頭症",
+    "cerebral_edema": "脳浮腫",
+    "increased_icp": "頭蓋内圧亢進",
+    "rebleeding_intracerebral": "脳内再出血",
+    "vasospasm": "血管攣縮",
 }
 _COMPLICATION_EN: dict[str, str] = {
     # EN output prefers spaced full names over snake_case; leave abbreviations
@@ -913,6 +1023,76 @@ _COMPLICATION_EN: dict[str, str] = {
     "disseminated_intravascular_coagulation": "disseminated intravascular coagulation (DIC)",
     "dic": "DIC",
     "treatment_resistant": "treatment-resistant",
+    # Phase 1c-5 (2026-09-23): mirror JA-side additions in canonical
+    # English display form.
+    "urinary_tract_infection": "urinary tract infection",
+    "uti": "UTI",
+    "hemorrhagic_stroke": "hemorrhagic stroke",
+    "ischemic_stroke": "ischemic stroke",
+    "acute_respiratory_distress_syndrome": "acute respiratory distress syndrome",
+    "ards": "ARDS",
+    "cardiac_arrhythmia": "cardiac arrhythmia",
+    "atrial_fibrillation": "atrial fibrillation",
+    "ventricular_tachycardia": "ventricular tachycardia",
+    "ventricular_fibrillation": "ventricular fibrillation",
+    "venous_thromboembolism": "venous thromboembolism",
+    "vte": "VTE",
+    "post_stroke_depression": "post-stroke depression",
+    "malnutrition": "malnutrition",
+    "malnutrition_worsening": "worsening malnutrition",
+    "icu_delirium": "ICU delirium",
+    "stress_cardiomyopathy": "stress cardiomyopathy",
+    "acute_cholecystitis": "acute cholecystitis",
+    "acute_pancreatitis": "acute pancreatitis",
+    "acute_appendicitis": "acute appendicitis",
+    "hip_fracture": "hip fracture",
+    "coronary_pci": "coronary PCI",
+    "pci": "PCI",
+    "pacemaker_implant": "pacemaker implantation",
+    "hemiarthroplasty": "hemiarthroplasty",
+    "orif": "ORIF",
+    "aki": "AKI",
+    "chf_exacerbation": "CHF exacerbation",
+    "renal_failure": "renal failure",
+    "acute_renal_failure": "acute renal failure",
+    "encephalopathy": "encephalopathy",
+    "hepatic_encephalopathy": "hepatic encephalopathy",
+    "acute_liver_failure": "acute liver failure",
+    "acute_stroke": "acute stroke",
+    "cardiogenic_shock": "cardiogenic shock",
+    "septic_shock": "septic shock",
+    "hypovolemic_shock": "hypovolemic shock",
+    # Phase 1c-5 (2026-09-23) — disease_id + residual-complication mirror.
+    "acute_mi": "acute myocardial infarction",
+    "asthma_exacerbation": "asthma exacerbation",
+    "atrial_fibrillation_rvr": "atrial fibrillation with RVR",
+    "cellulitis": "cellulitis",
+    "crush_injury_hand": "crush injury (hand)",
+    "deep_vein_thrombosis": "deep vein thrombosis",
+    "diabetic_ketoacidosis": "diabetic ketoacidosis",
+    "electrical_injury": "electrical injury",
+    "fall_from_height": "fall from height",
+    "gi_bleeding": "GI bleeding",
+    "ileus": "ileus",
+    "industrial_burn_severe": "industrial burn (severe)",
+    "influenza": "influenza",
+    "liver_cirrhosis_decompensated": "decompensated liver cirrhosis",
+    "subdural_hematoma": "subdural hematoma",
+    "traffic_accident_severe": "traffic accident (severe)",
+    "vertebral_compression_fracture": "vertebral compression fracture",
+    "wrist_fracture_surgical": "wrist fracture (surgical)",
+    "hemorrhagic_transformation": "hemorrhagic transformation",
+    "empyema": "empyema",
+    "uremic_encephalopathy": "uremic encephalopathy",
+    "rebleeding": "rebleeding",
+    "burn_wound_infection": "burn wound infection",
+    "inhalation_injury": "inhalation injury",
+    "inhalation_injury_respiratory_failure": "inhalation-injury respiratory failure",
+    "hydrocephalus": "hydrocephalus",
+    "cerebral_edema": "cerebral edema",
+    "increased_icp": "elevated intracranial pressure",
+    "rebleeding_intracerebral": "intracerebral rebleeding",
+    "vasospasm": "vasospasm",
 }
 
 # Phase 1c-2 (2026-09-22): lab-name localization for the vitals+labs
@@ -1005,6 +1185,27 @@ _LAB_NAME_JA: dict[str, str] = {
     "direct_bilirubin": "直接ビリルビン",
     "beta_hydroxybutyrate": "β ヒドロキシ酪酸",
     "troponin": "トロポニン",  # bare 'Troponin' without I/T suffix
+    # Phase 1c-5 (2026-09-23): additional lab tokens observed in the JP
+    # p=10000 progress_note ``本日の検査所見:`` list — Troponin_I /
+    # Troponin_T were already keyed but CK_MB and a handful of other
+    # cardiac / coagulation markers were leaking full-word English.
+    "ck_mb": "CK-MB",
+    "ckmb": "CK-MB",
+    "d_dimer": "D-ダイマー",
+    "ddimer": "D-ダイマー",
+    "fibrinogen": "フィブリノゲン",
+    "myoglobin": "ミオグロビン",
+    "procalcitonin": "プロカルシトニン",
+    "lactic_acid": "乳酸",
+    "il_6": "IL-6",
+    "il6": "IL-6",
+    "cortisol": "コルチゾール",
+    "iron": "鉄",
+    "tibc": "TIBC",
+    "reticulocyte": "網赤血球",
+    "vitamin_b12": "ビタミン B12",
+    "folate": "葉酸",
+    "haptoglobin": "ハプトグロビン",
 }
 _LAB_NAME_EN: dict[str, str] = {
     # Full-word labs → keep lowercase-first for English prose readability;
@@ -1091,12 +1292,22 @@ def _localize_complication(name: str, lang: str) -> str:
     """Return the localized display for a complication token; fall back to
     the ``name.replace("_", " ")`` humanised form when the mapping is
     missing so a novel complication still surfaces something clinically
-    readable rather than a machine slug."""
+    readable rather than a machine slug.
+
+    Phase 1c-5 (2026-09-23): the lookup key normalises whitespace →
+    underscores so a space-separated composite English complication
+    (``"urinary tract infection"`` written in disease-YAML) collapses
+    onto the same table entry as the underscore-slug form
+    (``"urinary_tract_infection"``). Pre-fix, only the slug form was
+    localised and the space form fell through to the pass-through
+    humanised branch, leaking raw English into JA narratives.
+    """
     if not name:
         return ""
     key = str(name).strip().lower()
     if not key:
         return ""
+    key = "_".join(key.split())
     table = _COMPLICATION_JA if str(lang).lower().startswith("ja") else _COMPLICATION_EN
     return table.get(key, key.replace("_", " "))
 
@@ -1112,6 +1323,37 @@ def _localize_lab_name(name: str, lang: str) -> str:
         return ""
     table = _LAB_NAME_JA if str(lang).lower().startswith("ja") else _LAB_NAME_EN
     return table.get(key, name)
+
+
+# Phase 1c-5 (2026-09-23): lab abnormal-flag display for the
+# ``本日の検査所見:`` progress-note assessment list. Only the severity-2
+# markers (``critical`` / ``!``) get translated — ``H`` / ``L`` are the
+# standard JP hospital-slip abnormal-flag convention and stay as-is per
+# `_LAB_FLAG_LABELS` in `replacement_strategy.py`. Pre-fix the JP p=10000
+# audit surfaced ~600 ``[critical]`` markers inside JA narratives.
+_LAB_FLAG_JA: dict[str, str] = {
+    "critical": "重篤",
+    "!": "重篤",
+    "h*": "H*",
+    "l*": "L*",
+    "h": "H",
+    "l": "L",
+}
+
+
+def _localize_lab_flag(flag: str, lang: str) -> str:
+    """Localize an abnormal-flag marker for narrative display.
+
+    JA output: ``critical`` / ``!`` → ``重篤``; ``H`` / ``L`` (single-
+    letter JP hospital convention) pass through. EN / unknown lang:
+    pass through untouched.
+    """
+    if not flag:
+        return ""
+    if not str(lang).lower().startswith("ja"):
+        return str(flag)
+    key = str(flag).strip().lower()
+    return _LAB_FLAG_JA.get(key, str(flag))
 
 
 # Phase 1c-4 (2026-09-23): imaging order display-name localization for
@@ -5328,7 +5570,16 @@ class TemplateNarrativeGenerator:
             val = _o(lab, "value", None)
             unit = _o(lab, "unit", "") or ""
             if name and val is not None:
-                abn.append(f"{name} {val} {unit} [{flag}]")
+                # Phase 1c-5 (2026-09-23): route lab_name through
+                # ``_localize_lab_name`` and abnormal-flag through
+                # ``_localize_lab_flag`` so JA output emits 「クレアチニン
+                # 3.2 mg/dL [重篤]」 rather than 「Creatinine 3.2 mg/dL
+                # [critical]」. Pre-fix the JP p=10000 audit surfaced
+                # ~22,000 raw-English lab-name leaks + ~600 raw
+                # ``[critical]`` markers in ``本日の検査所見:`` lists.
+                disp_name = _localize_lab_name(name, ctx.target_lang)
+                disp_flag = _localize_lab_flag(flag, ctx.target_lang)
+                abn.append(f"{disp_name} {val} {unit} [{disp_flag}]")
             if len(abn) >= 6:
                 break
         if abn:
@@ -6641,6 +6892,15 @@ class TemplateNarrativeGenerator:
         # Enrich with any flagged abnormals (kept from the v9 path — an
         # abnormal Cr / K reading is high-signal even when the panel it
         # came from is already listed above).
+        #
+        # Phase 1c-5 (2026-09-23): sibling of the progress_note
+        # ``本日の検査所見:`` fix — route lab_name through
+        # ``_localize_lab_name`` and flag through ``_localize_lab_flag``
+        # so JA emits 「クレアチニン 5.19 mg/dL [H]、BUN 143.8 mg/dL [H]」
+        # rather than 「Creatinine 5.19 mg/dL [H]、BUN 143.8 mg/dL [H]」.
+        # Pre-fix the JP p=10000 audit surfaced ~2,000 raw-English lab
+        # names in ed_workup ``異常値:`` lines (Creatinine / Albumin /
+        # Glucose / Lactate / Troponin_I / …).
         abn_labs = []
         for lab in (ctx.lab_results or [])[:8]:
             flag = _o(lab, "flag", None)
@@ -6650,7 +6910,9 @@ class TemplateNarrativeGenerator:
             val = _o(lab, "value", None)
             unit = _o(lab, "unit", "") or ""
             if name and val is not None:
-                abn_labs.append(f"{name} {val} {unit} [{flag}]")
+                disp_name = _localize_lab_name(name, ctx.target_lang)
+                disp_flag = _localize_lab_flag(flag, ctx.target_lang)
+                abn_labs.append(f"{disp_name} {val} {unit} [{disp_flag}]")
         if abn_labs:
             parts.append(
                 ("異常値: " if is_ja else "Abnormal: ")

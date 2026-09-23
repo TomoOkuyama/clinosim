@@ -39,6 +39,41 @@ from clinosim.modules._shared import MED_STOP_ORDER_ID_MARKER
 from clinosim.simulator.enrichers import EnricherContext
 from clinosim.types.encounter import OrderStatus, OrderType
 
+# Phase 1c-5 (2026-09-23): clinical-course archetype token localization.
+# The daily_loop DISCONTINUE marker's clinical_intent field encodes the
+# archetype (``treatment_resistant`` / ``gradual_deterioration`` / …)
+# and ``_log_treatment_change`` propagates it into the safety-skip
+# ``active_conflict_ja`` field the template ``switch`` renderer reads.
+# Pre-fix the JP p=10000 audit surfaced ~1,100 raw archetype-slug leaks
+# inside JA narratives (「治療計画変更 (経過型: treatment_resistant)」).
+# The mapping mirrors ``template_generator._CLINICAL_COURSE_JA/EN``.
+_ARCHETYPE_JA: dict[str, str] = {
+    "smooth_recovery": "順調な回復経過",
+    "standard_recovery": "標準経過",
+    "uncomplicated_improvement": "非合併症性改善経過",
+    "dip_then_recovery": "一過性増悪後回復経過",
+    "plateau": "改善プラトー",
+    "gradual_deterioration": "緩徐増悪",
+    "sudden_deterioration": "急激増悪",
+    "treatment_resistant": "治療抵抗性",
+    "complicated_delayed": "合併症遷延型",
+    "prolonged_recovery": "遷延性回復",
+    "readmission_early": "早期再入院",
+}
+_ARCHETYPE_EN: dict[str, str] = {
+    "smooth_recovery": "smooth recovery",
+    "standard_recovery": "standard recovery",
+    "uncomplicated_improvement": "uncomplicated improvement",
+    "dip_then_recovery": "transient worsening then recovery",
+    "plateau": "improvement plateau",
+    "gradual_deterioration": "gradual deterioration",
+    "sudden_deterioration": "sudden deterioration",
+    "treatment_resistant": "treatment-resistant",
+    "complicated_delayed": "complicated delayed course",
+    "prolonged_recovery": "prolonged recovery",
+    "readmission_early": "early readmission",
+}
+
 
 def _drug_key(display_name: str) -> str:
     """Whitespace-collapsed lowercase first-token of the display name.
@@ -345,11 +380,24 @@ def _log_treatment_change(
     # Turn "Day 3 treatment_resistant: stop Cefazolin" into an
     # active_conflict phrase like "day 3 treatment-resistant course"
     # for the JA rationale variant.
+    #
+    # Phase 1c-5 (2026-09-23): the pre-fix code inlined the raw
+    # archetype slug (``treatment_resistant`` /
+    # ``gradual_deterioration`` / ``complicated_delayed`` / …) into
+    # both ``conflict_en`` and ``conflict_ja``. In JA that surfaced as
+    # 「治療計画変更 (経過型: treatment_resistant)」 — a leak of ~1,100
+    # raw archetype tokens across the JP p=10000 audit. Route the token
+    # through ``_ARCHETYPE_JA/_ARCHETYPE_EN`` so JA reads 「治療計画変更
+    # (経過型: 治療抵抗性)」.
     archetype = _extract_archetype(clinical_intent)
     if archetype:
-        conflict_en = f"treatment plan change (archetype: {archetype})"
-        conflict_ja = f"治療計画変更 (経過型: {archetype})"
+        archetype_en = _ARCHETYPE_EN.get(archetype.lower(), archetype.replace("_", " "))
+        archetype_ja = _ARCHETYPE_JA.get(archetype.lower(), archetype.replace("_", " "))
+        conflict_en = f"treatment plan change (archetype: {archetype_en})"
+        conflict_ja = f"治療計画変更 (経過型: {archetype_ja})"
     else:
+        archetype_en = ""
+        archetype_ja = ""
         conflict_en = "treatment plan change"
         conflict_ja = "治療計画変更"
 
