@@ -3278,7 +3278,7 @@ class TemplateNarrativeGenerator:
         if current_meds:
             facts.append("ctx.patient.current_medications")
         med_text = (
-            ("、" if is_ja else ", ").join(_render_home_med_name(m) for m in current_meds)
+            t("list_sep.serial", lang).join(_render_home_med_name(m) for m in current_meds)
             if current_meds
             else t("section_none.home_medications_alt", lang)
         )
@@ -3999,7 +3999,7 @@ class TemplateNarrativeGenerator:
             parts.append(t("fall_risk.morse_score_line", lang, morse=morse, level=lvl))
         if not parts:
             return (t("fallback.risk_fallback", lang)), facts
-        return ("。".join(parts) + "。") if is_ja else (". ".join(parts) + "."), facts
+        return t("list_sep.period", lang).join(parts) + t("list_sep.period", lang), facts
 
     def _build_nursing_diagnosis(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
         """Build nursing_diagnosis from CIF chronic conditions + acute
@@ -4189,7 +4189,6 @@ class TemplateNarrativeGenerator:
         NarrativeContext's existing schema (spec §3b decision)."""
         facts: list[str] = []
         lang = ctx.target_lang
-        is_ja = lang == "ja"
         names: set[str] = set()
         for lab in ctx.lab_results or []:
             name = _o(lab, "test_name", None)
@@ -4199,14 +4198,13 @@ class TemplateNarrativeGenerator:
             fallback = t("fallback.acp_test_schedule_fallback", lang)
             return fallback, facts
         facts.append("ctx.lab_results")
-        joined = "、".join(sorted(names)) if is_ja else ", ".join(sorted(names))
+        joined = t("list_sep.serial", lang).join(sorted(names))
         return t("acp.test_schedule_line", lang, joined=joined), facts
 
     def _build_acp_surgery_schedule(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
         """手術内容及び日程 — ctx.procedures filtered to category_code=387713003 (surgical)."""
         facts: list[str] = []
         lang = ctx.target_lang
-        is_ja = lang == "ja"
         surgical = [p for p in (ctx.procedures or []) if str(_o(p, "category_code", "") or "") == "387713003"]
         if not surgical:
             return (t("fallback.acp_surgery_none", lang)), facts
@@ -4220,7 +4218,7 @@ class TemplateNarrativeGenerator:
             for p in surgical
             if _o(p, "procedure_type", "")
         ]
-        joined = "、".join(types) if is_ja else ", ".join(types)
+        joined = t("list_sep.serial", lang).join(types)
         return t("acp.surgery_schedule_line", lang, joined=joined), facts
 
     def _estimated_los_days(self, ctx: NarrativeContext) -> tuple[int, list[str]]:
@@ -4338,7 +4336,6 @@ class TemplateNarrativeGenerator:
         chronic disease + ADL (Barthel) rather than MVP placeholder."""
         facts: list[str] = []
         lang = ctx.target_lang
-        is_ja = lang == "ja"
         patient = ctx.patient
         if patient is None:
             return (t("fallback.ncp_assessment_fallback", lang)), facts
@@ -4375,7 +4372,7 @@ class TemplateNarrativeGenerator:
                 risk_conds.append(label)
         if risk_conds:
             facts.append("ctx.patient.chronic_conditions")
-            parts.append(("要注意: " + "、".join(risk_conds)) if is_ja else ("Special: " + ", ".join(risk_conds)))
+            parts.append(t("nutrition_special.prefix", lang) + t("list_sep.serial", lang).join(risk_conds))
         # ADL
         adls = list(getattr(ctx, "adl_assessments", None) or [])
         if adls:
@@ -4386,7 +4383,7 @@ class TemplateNarrativeGenerator:
         if not parts:
             return (t("fallback.ncp_assessment_fallback", lang)), facts
         head = t("nutrition.assessment_head", lang)
-        return head + ("、".join(parts) + "。" if is_ja else "; ".join(parts) + "."), facts
+        return head + t("list_sep.semicolon", lang).join(parts) + t("list_sep.period", lang), facts
 
     def _build_ncp_nutrition_goals(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
         """栄養管理計画 目標 — MVP fixed fallback."""
@@ -4435,7 +4432,6 @@ class TemplateNarrativeGenerator:
         when CIF has no relevant markers."""
         facts: list[str] = []
         lang = ctx.target_lang
-        is_ja = lang == "ja"
         parts: list[str] = []
         # Food allergies (subset)
         for a in (ctx.allergies or [])[:3]:
@@ -4452,7 +4448,9 @@ class TemplateNarrativeGenerator:
             facts.append("ctx.patient.chronic_conditions")
         if not parts:
             return (t("fallback.ncp_other_issues_fallback", lang)), facts
-        return t("nutrition.other_head", lang) + ("、".join(parts) + "。" if is_ja else "; ".join(parts) + "."), facts
+        return t("nutrition.other_head", lang) + t("list_sep.semicolon", lang).join(parts) + t(
+            "list_sep.period", lang
+        ), facts
 
     def _build_ncp_reassessment_timing(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
         """栄養状態の再評価の時期 — MVP fixed fallback."""
@@ -4491,7 +4489,7 @@ class TemplateNarrativeGenerator:
             return (t("fallback.rp_team_fallback", lang)), facts
         facts.append("ctx.rehab_sessions")
         labels = _RP_THERAPY_TYPE_JA if is_ja else _RP_THERAPY_TYPE_EN
-        joined = ("、" if is_ja else ", ").join(labels.get(t, t) for t in therapy_types)
+        joined = t("list_sep.serial", lang).join(labels.get(t, t) for t in therapy_types)
         therapist_note = t("fallback.rp_therapist_fallback", lang)
         if is_ja:
             return f"担当リハビリ職種：{joined}／{therapist_note}", facts
@@ -4673,7 +4671,7 @@ class TemplateNarrativeGenerator:
             else:
                 parts.append(f"Cumulative IN {total_in} mL / OUT {total_out} mL (net {total_in - total_out:+} mL)")
         if parts:
-            return ("。".join(parts) + "。") if is_ja else ("; ".join(parts) + "."), facts
+            return t("list_sep.semicolon", lang).join(parts) + t("list_sep.period", lang), facts
         return (t("fallback.interventions_fallback", lang)), facts
 
     def _build_patient_education(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
@@ -4727,10 +4725,10 @@ class TemplateNarrativeGenerator:
                     bits.append(t("rehab.fall_suffix", lang, label=fall_disp if is_ja else fall))
                 if braden is not None:
                     bits.append(f"Braden {braden}")
-                parts.append("、".join(bits) if is_ja else ", ".join(bits))
+                parts.append(t("list_sep.serial", lang).join(bits))
         if parts:
             head = t("discharge_readiness.head", lang)
-            return head + ("、".join(parts) if is_ja else "; ".join(parts)) + t("list_sep.period", lang), facts
+            return head + (t("list_sep.semicolon", lang).join(parts)) + t("list_sep.period", lang), facts
         return (t("fallback.discharge_readiness_fallback", lang)), facts
 
     # ─────────────────────────────────────────────────────────────────
@@ -5750,9 +5748,9 @@ class TemplateNarrativeGenerator:
             # ── I10: Essential hypertension ────────────────────────────
             if code_prefix.startswith("I10") and sbp and dbp:
                 if sbp >= NARRATIVE_BP_HYPERTENSION_SBP_THRESHOLD or dbp >= NARRATIVE_BP_HYPERTENSION_DBP_THRESHOLD:
-                    ctrl = "コントロール不十分" if is_ja else "poorly controlled"
+                    ctrl = t("control_status.poorly_controlled", lang)
                 elif sbp >= NARRATIVE_BP_HIGH_NORMAL_SBP_THRESHOLD or dbp >= NARRATIVE_BP_HIGH_NORMAL_DBP_THRESHOLD:
-                    ctrl = "高値注意、追加介入検討" if is_ja else "high-normal, consider titration"
+                    ctrl = t("control_status.high_normal", lang)
                 else:
                     ctrl = "目標達成" if is_ja else "at goal"
                 target = (
@@ -5782,7 +5780,7 @@ class TemplateNarrativeGenerator:
                     try:
                         vf = float(v)
                         if vf >= NARRATIVE_HBA1C_DIABETES_THRESHOLD + 0.5:  # ≥ 7.0
-                            ctrl = "コントロール不十分" if is_ja else "poorly controlled"
+                            ctrl = t("control_status.poorly_controlled", lang)
                         elif vf >= NARRATIVE_HBA1C_DIABETES_THRESHOLD:  # 6.5-7.0
                             ctrl = "目標近傍" if is_ja else "near target"
                         else:
@@ -5834,7 +5832,7 @@ class TemplateNarrativeGenerator:
                 if med:
                     parts_dm.append(t("prescription.medication_continue", lang, med=med))
                 if parts_dm:
-                    interp = ("、" if is_ja else ", ").join(parts_dm) + t("list_sep.period", lang)
+                    interp = t("list_sep.serial", lang).join(parts_dm) + t("list_sep.period", lang)
 
             # ── E78: Dyslipidemia ──────────────────────────────────────
             elif code_prefix.startswith("E78"):
@@ -5898,7 +5896,7 @@ class TemplateNarrativeGenerator:
                     v, u = cr
                     parts_ckd.append(f"Cr {v} {u or 'mg/dL'}")
                 if parts_ckd:
-                    interp = ("、" if is_ja else ", ").join(parts_ckd) + (
+                    interp = t("list_sep.serial", lang).join(parts_ckd) + (
                         "、腎機能推移を継続監視。" if is_ja else "; ongoing renal function monitoring."
                     )
 
@@ -5915,7 +5913,7 @@ class TemplateNarrativeGenerator:
                 if med:
                     bits.append(t("prescription.medication_inhalation_continue", lang, med=med))
                 if bits:
-                    interp = ("、" if is_ja else ", ").join(bits) + (
+                    interp = t("list_sep.serial", lang).join(bits) + (
                         "、CAT score / mMRC で症状評価。" if is_ja else "; CAT / mMRC symptom review."
                     )
 
@@ -5932,7 +5930,7 @@ class TemplateNarrativeGenerator:
                 if med:
                     bits2.append(t("prescription.medication_continue", lang, med=med))
                 if bits2:
-                    interp = ("、" if is_ja else ", ").join(bits2) + (
+                    interp = t("list_sep.serial", lang).join(bits2) + (
                         "、ACT で コントロール状況確認。" if is_ja else "; ACT control review."
                     )
 
@@ -5992,7 +5990,7 @@ class TemplateNarrativeGenerator:
                         # and EN output canonicalises abbreviation casing.
                         obs_bits.append(f"{_localize_lab_name(name, ctx.target_lang)} {v}{f' {u}' if u else ''}")
                 if obs_bits:
-                    joined = ("、" if is_ja else ", ").join(obs_bits[:4])
+                    joined = t("list_sep.serial", lang).join(obs_bits[:4])
                     if is_ja:
                         follow = (
                             f"本日測定 ({joined}) は病態特異的モニタリング項目に該当せず、"
@@ -6144,7 +6142,7 @@ class TemplateNarrativeGenerator:
             parts.append(" ".join(bits))
         if not parts:
             return ""
-        head = ("本日処方: " if is_ja else "Today's prescription: ") + ("、".join(parts) if is_ja else "; ".join(parts))
+        head = ("本日処方: " if is_ja else "Today's prescription: ") + (t("list_sep.semicolon", lang).join(parts))
         return head
 
     def _compose_today_procedures_line(self, ctx: NarrativeContext) -> str:
