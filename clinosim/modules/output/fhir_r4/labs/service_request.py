@@ -135,6 +135,42 @@ def _resolve_service_request_id(structural_key: str) -> str:
 PLACER_ORDER_NUMBER_SYSTEM = "urn:clinosim:placer-order-number"
 LAB_CATEGORY_SNOMED = "108252007"
 LAB_CATEGORY_V2_0074 = "LAB"
+
+
+# ===========================================================================
+# Non-order-driven LAB Observation ID prefix registry.
+#
+# Some ``category=laboratory`` Observations are legitimately NOT backed by
+# a ServiceRequest and therefore have no ``basedOn`` reference. The
+# clinical-integrity audit (``audit/axes/clinical.py::_check_lab_basedon``)
+# imports this tuple to skip them when computing basedOn coverage — the
+# ``lab_obs.basedOn → ServiceRequest`` invariant only applies to
+# order-driven lab observations.
+#
+# Adding a new demographic / non-order-driven lab Observation family: add
+# its ID prefix here with a one-line justification. Structural changes
+# (e.g. an emitter that now creates ServiceRequests) should remove entries.
+#
+# by-design registry: `[[project_by_design_registry]]` — this is the
+# canonical source-of-truth for "lab Observations legitimately without
+# basedOn"; per that pattern the audit reads the registry rather than
+# hardcoding its own exclusion list (which would silently rot as new
+# families are added).
+# ===========================================================================
+NON_ORDER_DRIVEN_LAB_OBS_ID_PREFIXES: tuple[str, ...] = (
+    # Microbiology: culture + susceptibility observations are emitted from
+    # ``modules/output/fhir_r4/labs/microbiology.py`` without a paired
+    # ServiceRequest — microbiology SR support is Tier 2 backlog.
+    "mb-org-",
+    "mb-sus-",
+    # Blood-type (ABO / RhD): patient-lifetime demographic facts emitted
+    # by ``modules/output/fhir_r4/labs/blood_type.py`` at patient-enrichment
+    # time. Not per-encounter order-driven — Type & Screen re-verification
+    # at each admission is not modelled in clinosim (see
+    # ``blood_type.py`` module docstring).
+    "blood-abo-",
+    "blood-rh-",
+)
 # === Imaging category constants (Tier 1 #2 PR1) ===
 # SNOMED CT 363679005 "Imaging procedure" — owner: this file (builder that emits imaging SRs).
 IMAGING_CATEGORY_SNOMED = "363679005"
