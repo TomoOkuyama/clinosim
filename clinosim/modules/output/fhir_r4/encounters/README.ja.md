@@ -13,7 +13,7 @@ URL)、`Location` + `Organization` (facility Bundle として CIF write
 
 - **In scope**: `_build_encounter` (root Encounter builder);
   `_bb_care_teams` + `_build_care_team` + `CARE_TEAM_ID_PREFIX =
-  "careteam-"` + `_CARE_TEAM_CATEGORY_EN` / `_JA` — 2-name scope
+  "careteam-"` + `care_team_fhir.category_display` (YAML) — 2-name scope
   契約 (participant[0] = attending、participant[1] = nurse は
   `primary_nurse_id` 非空時のみ、participant[] は決して `[]` にしない);
   `_bb_endpoints` + `_build_endpoint` +

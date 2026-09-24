@@ -35,6 +35,7 @@ from functools import lru_cache
 from typing import Any
 
 from clinosim.codes import get_system_uri
+from clinosim.locale.i18n import t
 from clinosim.locale.loader import load_external_organizations
 
 # eCS `identifier:medicalInstitutionCode` slice fixedUri — identical to the
@@ -141,6 +142,4 @@ def format_referral_destination_text(entry: dict[str, Any], lang: str = "ja") ->
     eReferral is JP-only — but keeps the helper honest).
     """
     name = entry.get("name") or entry["id"]
-    if lang == "ja":
-        return f"紹介先:{name}。当該患者の継続加療を目的として本情報提供書を作成する。"
-    return f"Referral destination: {name} (continued care)."
+    return t("referral_fhir.destination_sentence", lang, name=name)
