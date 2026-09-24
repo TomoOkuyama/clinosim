@@ -13,7 +13,7 @@ custom JP `CareLevel` (要介護度) social-history `Observation`.
 
 - **In scope**: `_build_encounter` (root Encounter builder); `_bb_care_teams`
   + `_build_care_team` + `CARE_TEAM_ID_PREFIX = "careteam-"` +
-  `_CARE_TEAM_CATEGORY_EN` / `_JA` — 2-name scope contract
+  `care_team_fhir.category_display` (YAML) — 2-name scope contract
   (participant[0] = attending, participant[1] = nurse only when
   `primary_nurse_id` is non-empty; participant[] never `[]`);
   `_bb_endpoints` + `_build_endpoint` + `DICOM_WADO_RS_CONNECTION_TYPE
