@@ -2795,7 +2795,6 @@ class TemplateNarrativeGenerator:
         """
         facts: list[str] = []
         lang = ctx.target_lang
-        is_ja = lang == "ja"
 
         # Extract 5 measured values from lab_results keyed by LOINC code
         results_by_loinc: dict[str, float | None] = {}
@@ -2806,79 +2805,76 @@ class TemplateNarrativeGenerator:
                 results_by_loinc[loinc] = val
                 facts.append(f"ctx.lab_results[{loinc}]")
 
-        # Helper returns assessment per item (A=normal, B=borderline,
-        # C=guidance needed, D=detailed testing needed)
-        def _judge_bmi(v: float | None) -> tuple[str, str]:
+        # Helpers return (catalog_key, format_kwargs, grade) —
+        # grade ∈ {A, B, C, D} (A=normal, B=borderline, C=guidance
+        # needed, D=detailed testing needed). The catalog_key is
+        # resolved by ``t()`` at compose time so the prose is a
+        # data-only concern.
+        def _judge_bmi(v: float | None) -> tuple[str, dict, str]:
             if v is None:
-                return ("未測定", "A")
+                return ("checkup_lab_results.bmi_unmeasured", {}, "A")
             if v < NARRATIVE_BMI_UNDERWEIGHT_MAX_EXCLUSIVE:
-                return (f"{v:.1f}(低体重)", "B")
+                return ("checkup_lab_results.bmi_underweight", {"v": v}, "B")
             if v < NARRATIVE_BMI_NORMAL_MAX_EXCLUSIVE:
-                return (f"{v:.1f}(標準)", "A")
+                return ("checkup_lab_results.bmi_normal", {"v": v}, "A")
             if v < NARRATIVE_BMI_OBESITY_MILD_MAX_EXCLUSIVE:
-                return (f"{v:.1f}(肥満 1 度)", "B")
-            return (f"{v:.1f}(肥満 2 度以上)", "C")
+                return ("checkup_lab_results.bmi_obesity_1", {"v": v}, "B")
+            return ("checkup_lab_results.bmi_obesity_2plus", {"v": v}, "C")
 
-        def _judge_bp(sys_v: float | None, dia_v: float | None) -> tuple[str, str]:
+        def _judge_bp(sys_v: float | None, dia_v: float | None) -> tuple[str, dict, str]:
             if sys_v is None or dia_v is None:
-                return ("未測定", "A")
+                return ("checkup_lab_results.bp_unmeasured", {}, "A")
+            kw = {"sbp": sys_v, "dbp": dia_v}
             if sys_v >= NARRATIVE_BP_HYPERTENSION_SBP_THRESHOLD or dia_v >= NARRATIVE_BP_HYPERTENSION_DBP_THRESHOLD:
-                return (f"{sys_v:.0f}/{dia_v:.0f} mmHg(高血圧)", "D")
+                return ("checkup_lab_results.bp_hypertension", kw, "D")
             if sys_v >= NARRATIVE_BP_HIGH_NORMAL_SBP_THRESHOLD or dia_v >= NARRATIVE_BP_HIGH_NORMAL_DBP_THRESHOLD:
-                return (f"{sys_v:.0f}/{dia_v:.0f} mmHg(高値注意)", "B")
-            return (f"{sys_v:.0f}/{dia_v:.0f} mmHg(基準内)", "A")
+                return ("checkup_lab_results.bp_high_normal", kw, "B")
+            return ("checkup_lab_results.bp_reference", kw, "A")
 
-        def _judge_hba1c(v: float | None) -> tuple[str, str]:
+        def _judge_hba1c(v: float | None) -> tuple[str, dict, str]:
             if v is None:
-                return ("未測定", "A")
+                return ("checkup_lab_results.hba1c_unmeasured", {}, "A")
             if v >= NARRATIVE_HBA1C_DIABETES_THRESHOLD:
-                return (f"{v:.1f}%(糖尿病型)", "D")
+                return ("checkup_lab_results.hba1c_diabetic", {"v": v}, "D")
             if v >= NARRATIVE_HBA1C_BORDERLINE_THRESHOLD:
-                return (f"{v:.1f}%(境界)", "B")
-            return (f"{v:.1f}%(基準内)", "A")
+                return ("checkup_lab_results.hba1c_borderline", {"v": v}, "B")
+            return ("checkup_lab_results.hba1c_reference", {"v": v}, "A")
 
-        def _judge_ldl(v: float | None) -> tuple[str, str]:
+        def _judge_ldl(v: float | None) -> tuple[str, dict, str]:
             if v is None:
-                return ("未測定", "A")
+                return ("checkup_lab_results.ldl_unmeasured", {}, "A")
             if v >= NARRATIVE_LDL_HIGH_THRESHOLD:
-                return (f"{v:.0f} mg/dL(高 LDL 血症)", "D")
+                return ("checkup_lab_results.ldl_high", {"v": v}, "D")
             if v >= NARRATIVE_LDL_BORDERLINE_THRESHOLD:
-                return (f"{v:.0f} mg/dL(境界域)", "C")
+                return ("checkup_lab_results.ldl_borderline", {"v": v}, "C")
             if v >= NARRATIVE_LDL_ELEVATED_THRESHOLD:
-                return (f"{v:.0f} mg/dL(高値注意)", "B")
-            return (f"{v:.0f} mg/dL(基準内)", "A")
+                return ("checkup_lab_results.ldl_elevated", {"v": v}, "B")
+            return ("checkup_lab_results.ldl_reference", {"v": v}, "A")
 
-        bmi_desc, bmi_grade = _judge_bmi(results_by_loinc.get("39156-5"))
-        bp_desc, bp_grade = _judge_bp(results_by_loinc.get("8480-6"), results_by_loinc.get("8462-4"))
-        hba1c_desc, hba1c_grade = _judge_hba1c(results_by_loinc.get("4548-4"))
-        ldl_desc, ldl_grade = _judge_ldl(results_by_loinc.get("18262-6"))
+        bmi_key, bmi_kw, bmi_grade = _judge_bmi(results_by_loinc.get("39156-5"))
+        bp_key, bp_kw, bp_grade = _judge_bp(results_by_loinc.get("8480-6"), results_by_loinc.get("8462-4"))
+        hba1c_key, hba1c_kw, hba1c_grade = _judge_hba1c(results_by_loinc.get("4548-4"))
+        ldl_key, ldl_kw, ldl_grade = _judge_ldl(results_by_loinc.get("18262-6"))
+
+        bmi_desc = t(bmi_key, lang, **bmi_kw)
+        bp_desc = t(bp_key, lang, **bp_kw)
+        hba1c_desc = t(hba1c_key, lang, **hba1c_kw)
+        ldl_desc = t(ldl_key, lang, **ldl_kw)
 
         # Overall assessment = worst grade across all items (A<B<C<D)
         grades = [bmi_grade, bp_grade, hba1c_grade, ldl_grade]
         overall = max(grades, key=lambda g: "ABCD".index(g))
-        overall_note = {
-            "A": "異常なし",
-            "B": "軽度異常、生活指導",
-            "C": "要指導",
-            "D": "要精査・要治療",
-        }[overall]
+        overall_note = t(f"checkup_lab_results.overall_{overall}", lang)
 
-        if is_ja:
-            text = (
-                f"【身体計測】BMI:{bmi_desc}。\n"
-                f"【血圧】{bp_desc}。\n"
-                f"【血糖・HbA1c】HbA1c:{hba1c_desc}。\n"
-                f"【脂質】LDL:{ldl_desc}。\n"
-                f"総合判定:{overall}({overall_note})。"
-            )
-        else:
-            text = (
-                f"Body measurements: BMI {bmi_desc}.\n"
-                f"Blood pressure: {bp_desc}.\n"
-                f"HbA1c: {hba1c_desc}.\n"
-                f"LDL: {ldl_desc}.\n"
-                f"Overall assessment: {overall} ({overall_note})."
-            )
+        text = "\n".join(
+            [
+                t("checkup_lab_results.body_measurements_line", lang, bmi=bmi_desc),
+                t("checkup_lab_results.blood_pressure_line", lang, bp=bp_desc),
+                t("checkup_lab_results.hba1c_line", lang, hba1c=hba1c_desc),
+                t("checkup_lab_results.ldl_line", lang, ldl=ldl_desc),
+                t("checkup_lab_results.overall_line", lang, overall=overall, overall_note=overall_note),
+            ]
+        )
         return text, facts
 
     def _build_checkup_questionnaire(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
