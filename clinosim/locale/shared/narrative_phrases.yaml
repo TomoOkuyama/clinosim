@@ -1094,6 +1094,45 @@ rp_note:
     ja: "リハビリテーション終了の目安：入院後約{days}日"
     en: "Estimated rehabilitation completion: approximately {days} days post-admission"
 
+# Drug-safety event narrative line templates (Phase 1d-39).
+# From _render_safety_skips_line — one line per skip/hold/substitute/
+# switch/deescalate/avoid event with {considered}, {conflict},
+# {substituted}, {day_phrase} placeholders.
+safety_skips:
+  hold:
+    ja: "・{considered}：{conflict}のため今回入院中は保留。"
+    en: "- {considered} was held during this admission because of {conflict}."
+  substitute_with_sub:
+    ja: "・{considered} を {substituted} に切替（理由：{conflict}）。"
+    en: "- {considered} was substituted with {substituted} (rationale: {conflict})."
+  substitute_no_sub:
+    ja: "・{considered} を切替（理由：{conflict}）。"
+    en: "- {considered} was substituted (rationale: {conflict})."
+  switch_with_sub:
+    ja: "・{considered} を{day_phrase}で中止し {substituted} に切替（{conflict}）。"
+    en: "- {considered} was discontinued {day_phrase}; {substituted} started ({conflict})."
+  switch_no_sub:
+    ja: "・{considered} を{day_phrase}で中止（{conflict}）。"
+    en: "- {considered} was discontinued {day_phrase} ({conflict})."
+  deescalate_with_sub:
+    ja: "・{considered} を{day_phrase}で中止し {substituted} へ de-escalate（{conflict}）。"
+    en: "- {considered} was discontinued {day_phrase} and narrowed to {substituted} ({conflict})."
+  deescalate_no_sub:
+    ja: "・{considered} を{day_phrase}で中止し de-escalate（{conflict}）。"
+    en: "- {considered} was discontinued {day_phrase} and de-escalated ({conflict})."
+  avoid_with_sub:
+    ja: "・{considered} は {conflict} との併用禁忌のため回避し、{substituted} を処方。"
+    en: "- {considered} avoided due to concurrent {conflict}; {substituted} prescribed instead."
+  avoid_no_sub:
+    ja: "・{considered} は {conflict} との併用禁忌のため処方せず。"
+    en: "- {considered} avoided due to concurrent {conflict}; no alternative selected."
+  day_phrase_specific:
+    ja: "第{day}病日"
+    en: "on day {day}"
+  day_phrase_default:
+    ja: "経過中"
+    en: "during the stay"
+
 # Checkup questionnaire full-page composer (Phase 1d-38).
 # From _build_checkup_questionnaire. JA renders 【…】-marked
 # section headers; EN renders comma-separated labelled fields.
