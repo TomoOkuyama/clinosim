@@ -1094,6 +1094,23 @@ rp_note:
     ja: "リハビリテーション終了の目安：入院後約{days}日"
     en: "Estimated rehabilitation completion: approximately {days} days post-admission"
 
+# Checkup questionnaire full-page composer (Phase 1d-38).
+# From _build_checkup_questionnaire. JA renders 【…】-marked
+# section headers; EN renders comma-separated labelled fields.
+checkup_questionnaire:
+  full_line:
+    ja: "【既往歴】\n{history}\n【自覚症状】特記事項なし。\n【服薬】{meds}。\n【生活習慣】{smoking}、{alcohol}。\n【判定】{assessment}"
+    en: "History: {history}\nSymptoms: none noted.\nMedications: {meds}.\nLifestyle: smoking={smoking}, alcohol={alcohol}.\nAssessment: {assessment}"
+  assessment_followup_needed:
+    ja: "既往に慢性疾患あり、かかりつけ医での継続経過観察を要す。"
+    en: "Chronic condition(s) present; continued follow-up with primary care recommended."
+  assessment_no_followup:
+    ja: "経過観察不要。"
+    en: "No follow-up required."
+  history_raw_line:
+    ja: "- {code}"
+    en: "- {code}"
+
 # DC 直接死因までの期間 (duration_of_immediate_cause) composer
 # (Phase 1d-36). Was _dc_duration_phrase_ja / _en helper methods with
 # 5 bucket × 3 pattern × 2 lang branching. Unified via lang-agnostic
