@@ -545,9 +545,15 @@ nursing:
   fall_precautions:
     ja: "転倒予防"
     en: "fall precautions"
+  fall_precautions_action:
+    ja: "転倒予防: ベッド柵設置、ナースコール手元"
+    en: "fall precautions: bed rails, call bell within reach"
   pu_prevention:
     ja: "褥瘡予防"
     en: "PU prevention"
+  pu_prevention_action:
+    ja: "褥瘡予防: 2時間毎体位変換、圧再分散マットレス"
+    en: "PU prevention: q2h turning, pressure-redistributing mattress"
   pu_risk_label:
     ja: "褥瘡リスク"
     en: "pressure-ulcer risk"
