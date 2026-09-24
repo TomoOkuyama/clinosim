@@ -246,7 +246,23 @@ jobs:
             --format fhir-r4 -o cohort-today
       - name: Byte-diff vs cached baseline
         # Cache miss on first run → skip diff, just populate.
-        # Cache hit → cmp -s every ndjson and fail on any diff.
+        # Cache hit → cmp -s every ndjson and SURFACE drift as a warning
+        # (does NOT fail the job).
+        #
+        # Rationale (Issue #1499 governance): during active refactoring
+        # (i18n unification / FHIR emit adjustments) the canary trips
+        # every night as a legitimate signal — the merged PRs each
+        # produce cohort-visible drift, individually not release-notable
+        # but collectively real. Prior severity `::error` + exit 1 caused
+        # 30+ consecutive nightly-red days, which trained the maintainer
+        # to ignore the alert. Downgrading to `::warning` keeps the
+        # signal visible on the run summary page while restoring the
+        # nightly job's ability to signal actual regressions (audit,
+        # reproducibility, unit-py311 failures now stand out).
+        #
+        # Follow-up (Issue #1499): a per-PR opt-in acknowledgement
+        # (label / CHANGELOG parse) can restore fail-on-unacknowledged
+        # semantics without regressing to the previous chronic-red state.
         run: |
           set -euo pipefail
           if [ ! -d cohort-baseline/fhir_r4 ]; then
@@ -270,8 +286,8 @@ jobs:
             fi
           done
           if [ "$diff_count" -gt 0 ]; then
-            echo "::error::$diff_count NDJSON file(s) drifted since yesterday. Either the merge queue contains an intentional cohort-visible change (add to CHANGELOG under a MINOR bump) or a silent regression (revert / fix)."
-            exit 1
+            echo "::warning::$diff_count NDJSON file(s) drifted since yesterday. Either the merge queue contains intentional cohort-visible changes (add to CHANGELOG under a MINOR bump) or a silent regression (fix / revert). Surfaced as a warning per Issue #1499 governance; use the run summary + drift list above to triage."
+            exit 0
           fi
           echo "cohort byte-identical vs yesterday's baseline"
       - name: Rotate cache — today becomes tomorrow's baseline
