@@ -1722,3 +1722,18 @@ diagnostic_report_fhir:
   jp_radiology_report_display:
     ja: "画像検査報告書"
     en: "Diagnostic imaging report"
+
+# FHIR emit-side small phrase batch (Phase 1d-52). One-off text/display
+# fields spread across CareTeam / AllergyIntolerance / FamilyMemberHistory
+# / referral-Composition builders.
+care_team_fhir:
+  category_display: {ja: "多職種ケアチーム", en: "Multidisciplinary care team"}
+  reason_inpatient_care: {ja: "入院診療", en: "Inpatient care"}
+allergy_intolerance_fhir:
+  nka_text: {ja: "アレルギー歴なし", en: "No known allergies"}
+family_history_fhir:
+  onset_unknown: {ja: "詳細不明", en: "unknown onset"}
+referral_fhir:
+  destination_sentence:
+    ja: "紹介先:{name}。当該患者の継続加療を目的として本情報提供書を作成する。"
+    en: "Referral destination: {name} (continued care)."

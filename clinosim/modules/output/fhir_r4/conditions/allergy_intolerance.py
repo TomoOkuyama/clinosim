@@ -29,6 +29,7 @@ from typing import Any
 
 from clinosim.codes import get_system_uri
 from clinosim.codes import lookup as code_lookup
+from clinosim.locale.i18n import t
 from clinosim.modules._shared import get_attr_or_key as _o
 from clinosim.modules._shared import resolve_lang
 from clinosim.modules.document import ALLERGY_ID_PREFIX
@@ -212,8 +213,7 @@ def _build_allergy_intolerance(allergy: Any, patient_id: str, lang: str = "en") 
     # Issue #942: NKA localized text takes precedence over code_lookup
     # (which would yield the English SNOMED display "No known allergy").
     if is_nka:
-        nka_text = "アレルギー歴なし" if lang == "ja" else "No known allergies"
-        code: dict[str, Any] = {"text": nka_text}
+        code: dict[str, Any] = {"text": t("allergy_intolerance_fhir.nka_text", lang)}
     else:
         code = {"text": resolved_display}
     if allergen_code:

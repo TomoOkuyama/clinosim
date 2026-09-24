@@ -32,6 +32,7 @@ from __future__ import annotations
 
 from typing import Any
 
+from clinosim.locale.i18n import t
 from clinosim.modules._shared import get_attr_or_key as _o
 from clinosim.modules._shared import is_jp, resolve_lang
 from clinosim.modules.output.fhir_r4.demographics.patient import patient_ref
@@ -83,8 +84,8 @@ def _resolve_care_team_id(structural_key: str) -> str:
 # `text 0..1`), so emitting text alone is spec-compliant and validator-clean.
 # When a validator loadout eventually gains one of the SNOMED concepts,
 # re-introduce a coding — but until then, text-only is the correct answer.
-_CARE_TEAM_CATEGORY_EN = "Multidisciplinary care team"
-_CARE_TEAM_CATEGORY_JA = "多職種ケアチーム"
+# CareTeam.category display lives in `narrative_phrases.yaml` under
+# `care_team_fhir.category_display` — resolved via `t()` at emit time.
 
 
 def _bb_care_teams(ctx: BundleContext) -> list[dict[str, Any]]:
@@ -173,7 +174,7 @@ def _build_care_team(
     # CodeableConcept satisfies the FHIR R4 CodeableConcept cardinality
     # (coding 0..*, text 0..1 — either satisfies the datatype) AND the
     # `preferred` binding on CareTeam.category (no strict code required).
-    category_display = _CARE_TEAM_CATEGORY_JA if lang == "ja" else _CARE_TEAM_CATEGORY_EN
+    category_display = t("care_team_fhir.category_display", lang)
 
     # attending_physician_id — UNKNOWN placeholder when missing (mirrors α-min-1 Composition
     # adv-1 fix). Surfaces for reference integrity audit; does not silently drop the resource.
@@ -299,7 +300,7 @@ def _build_care_team(
         # the encounter's Condition already carries the ICD code so we don't
         # duplicate the coding.
         "reasonCode": [
-            {"text": _o(encounter, "chief_complaint", "") or ("入院診療" if lang == "ja" else "Inpatient care")}
+            {"text": _o(encounter, "chief_complaint", "") or t("care_team_fhir.reason_inpatient_care", lang)}
         ],
     }
 

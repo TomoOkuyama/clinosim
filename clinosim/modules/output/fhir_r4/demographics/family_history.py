@@ -5,6 +5,7 @@ from __future__ import annotations
 from typing import Any
 
 from clinosim.codes import get_system_uri, system_key_for
+from clinosim.locale.i18n import t
 from clinosim.modules._shared import get_attr_or_key as _get
 from clinosim.modules._shared import resolve_lang
 from clinosim.modules.family_history.engine import load_reference
@@ -141,7 +142,7 @@ def _bb_family_history(ctx: BundleContext) -> list[dict]:
         # CIF family_history has no per-condition onset data (relatives are
         # patient-reported). Emit an "詳細不明" / "unknown" onsetString so the
         # field is populated per JP Core FamilyMemberHistory recommendation.
-        _onset_unknown = "詳細不明" if lang == "ja" else "unknown onset"
+        _onset_unknown = t("family_history_fhir.onset_unknown", lang)
         conditions = [
             {
                 "code": build_diagnosis_codeable_concept(
