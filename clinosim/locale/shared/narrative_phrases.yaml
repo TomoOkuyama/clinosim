@@ -1639,3 +1639,14 @@ fallback:
   rp_team_fallback: {en: No rehabilitation therapy on record, ja: リハビリ実施なし}
   rp_therapist_fallback: {en: 'Named therapist: not yet assigned', ja: 担当者未定}
   triage_fallback: {en: 'Triage information: not recorded', ja: トリアージ情報：未記録}
+
+# FHIR emit-side per-resource text/display strings (Phase 1d-49).
+# From `clinosim/modules/output/fhir_r4/procedures/immunization.py` —
+# Immunization.statusReason.text / reasonCode.text / site.display /
+# route.display fields. JA text is required by JP-locale narratives;
+# EN fallback keeps consumer-agnostic display cleanly typed.
+immunization_fhir:
+  patient_refused: {ja: "患者拒否", en: "Patient refused"}
+  vaccination_routine: {ja: "予防接種（定期接種）", en: "Vaccination (routine)"}
+  left_deltoid: {ja: "左三角筋", en: "Left deltoid"}
+  intramuscular_route: {ja: "筋肉内注射", en: "Intramuscular route"}
