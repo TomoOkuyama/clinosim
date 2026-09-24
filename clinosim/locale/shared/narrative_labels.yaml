@@ -214,6 +214,21 @@ dds_severity:
   moderate: {en: Moderate, ja: 中等症}
   severe: {en: Severe, ja: 重症}
 
+# Checkup questionnaire smoking / alcohol vocabulary (Phase 1d-38).
+# JA renders full-word narrative labels; EN keeps the raw enum slug
+# (checkup narratives cite the CIF enum verbatim per current spec).
+# Unknown values fall back to per-lang formatters at call site
+# (JA: ``{value}(区分未定義)``, EN: raw value).
+checkup_smoking_status:
+  never: {ja: 喫煙歴なし, en: never}
+  former: {ja: "禁煙(過去に喫煙歴あり)", en: former}
+  current: {ja: 現在喫煙中, en: current}
+checkup_alcohol_use:
+  none: {ja: 飲酒なし, en: none}
+  occasional: {ja: 機会飲酒, en: occasional}
+  regular: {ja: 習慣的飲酒, en: regular}
+  heavy: {ja: 多量飲酒, en: heavy}
+
 # Referral purpose 4-option pool (Phase 1d-28). Was inline
 # ``purposes_ja/en`` lists in ``_build_referral_purpose``. Selection is
 # by SHA256 hash of encounter_id modulo len(keys), so key ORDER

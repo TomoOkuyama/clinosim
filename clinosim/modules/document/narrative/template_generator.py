@@ -2952,11 +2952,13 @@ class TemplateNarrativeGenerator:
 
         facts: list[str] = []
         lang = ctx.target_lang
-        is_ja = lang == "ja"
         patient = ctx.patient
 
         # Convert past medical history (chronic_conditions) codes to
-        # Japanese display text
+        # locale-appropriate display text. JP forces the ICD-10 authority
+        # (JP-CLINS uses base icd-10, not the US -CM modification);
+        # other locales use whatever ``system`` the CIF Condition
+        # carries (typically icd-10-cm on US records).
         chronic = _o(patient, "chronic_conditions", []) or []
         history_lines: list[str] = []
         for cond in chronic:
@@ -2964,14 +2966,12 @@ class TemplateNarrativeGenerator:
             system = _o(cond, "system", "icd-10-cm") or "icd-10-cm"
             if not code:
                 continue
-            # JP uses icd-10 authority; US uses icd-10-cm (per spec
-            # §Diagnosis code coverage)
-            resolved_system = system_key_for("diagnosis", "JP") if is_ja else system
-            display = code_lookup(resolved_system, code, ctx.target_lang)
+            resolved_system = system_key_for("diagnosis", "JP") if lang == "ja" else system
+            display = code_lookup(resolved_system, code, lang)
             if display and display != code:
                 history_lines.append(t("list_item.bullet_dx_with_code", lang, display=display, code=code))
             else:
-                history_lines.append(f"- {code}")
+                history_lines.append(t("checkup_questionnaire.history_raw_line", lang, code=code))
         if chronic:
             facts.append("ctx.patient.chronic_conditions")
         history_text = "\n".join(history_lines) if history_lines else t("section_none.history_none_noted", lang)
@@ -2987,51 +2987,40 @@ class TemplateNarrativeGenerator:
             else t("section_none.home_medications_alt", lang)
         )
 
-        # 生活習慣(smoking_status / alcohol_use)
+        # 生活習慣(smoking_status / alcohol_use). Vocabulary moved to
+        # ``narrative_labels.yaml::checkup_smoking_status / _alcohol_use``.
+        # Unknown values fall back to per-lang formatters (JA marks
+        # ``(区分未定義)``, EN emits the raw slug — matches pre-Phase-1d-38
+        # behaviour byte-for-byte).
         smoking = _o(patient, "smoking_status", "never") or "never"
         alcohol = _o(patient, "alcohol_use", "none") or "none"
         facts.append("ctx.patient.smoking_status")
         facts.append("ctx.patient.alcohol_use")
 
-        smoking_ja = {
-            "never": "喫煙歴なし",
-            "former": "禁煙(過去に喫煙歴あり)",
-            "current": "現在喫煙中",
-        }.get(smoking, f"{smoking}(区分未定義)")
-        alcohol_ja = {
-            "none": "飲酒なし",
-            "occasional": "機会飲酒",
-            "regular": "習慣的飲酒",
-            "heavy": "多量飲酒",
-        }.get(alcohol, f"{alcohol}(区分未定義)")
+        def _checkup_lifestyle_label(section: str, key: str) -> str:
+            fallback = f"{key}(区分未定義)" if lang == "ja" else key
+            return _label(section, key, lang, fallback=fallback)
+
+        smoking_disp = _checkup_lifestyle_label("checkup_smoking_status", smoking)
+        alcohol_disp = _checkup_lifestyle_label("checkup_alcohol_use", alcohol)
 
         # Assessment: follow-up required when chronic conditions are present
         needs_followup = len(chronic) > 0
-        assessment_ja = (
-            "既往に慢性疾患あり、かかりつけ医での継続経過観察を要す。" if needs_followup else "経過観察不要。"
-        )
-        assessment_en = (
-            "Chronic condition(s) present; continued follow-up with primary care recommended."
+        assessment = t(
+            "checkup_questionnaire.assessment_followup_needed"
             if needs_followup
-            else "No follow-up required."
+            else "checkup_questionnaire.assessment_no_followup",
+            lang,
         )
-
-        if is_ja:
-            text = (
-                f"【既往歴】\n{history_text}\n"
-                f"【自覚症状】特記事項なし。\n"
-                f"【服薬】{med_text}。\n"
-                f"【生活習慣】{smoking_ja}、{alcohol_ja}。\n"
-                f"【判定】{assessment_ja}"
-            )
-        else:
-            text = (
-                f"History: {history_text}\n"
-                f"Symptoms: none noted.\n"
-                f"Medications: {med_text}.\n"
-                f"Lifestyle: smoking={smoking}, alcohol={alcohol}.\n"
-                f"Assessment: {assessment_en}"
-            )
+        text = t(
+            "checkup_questionnaire.full_line",
+            lang,
+            history=history_text,
+            meds=med_text,
+            smoking=smoking_disp,
+            alcohol=alcohol_disp,
+            assessment=assessment,
+        )
         return text, facts
 
     def _build_hospital_course(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
