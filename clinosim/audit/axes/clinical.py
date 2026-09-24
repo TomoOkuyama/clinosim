@@ -29,9 +29,11 @@ from clinosim.modules.antibiotic.engine import ABX_ORDER_ID_PREFIX
 from clinosim.modules.output.fhir_r4.labs.microbiology import (
     HAI_EVENT_ID_SYSTEM,
     MB_ORG_ID_PREFIX,
-    MB_SUS_ID_PREFIX,
 )
-from clinosim.modules.output.fhir_r4.labs.service_request import LAB_CATEGORY_V2_0074
+from clinosim.modules.output.fhir_r4.labs.service_request import (
+    LAB_CATEGORY_V2_0074,
+    NON_ORDER_DRIVEN_LAB_OBS_ID_PREFIXES,
+)
 from clinosim.modules.output.fhir_r4.medications.medications import MEDICATION_REQUEST_KEY_SYSTEM
 
 
@@ -364,11 +366,14 @@ def _check_lab_obs_basedon(cohort: Cohort, country: str, result: AxisResult) -> 
         )
         if not is_lab:
             continue
-        # Exclude microbiology Observations (PR1 scope = lab panel orders only).
-        # mb-org-* and mb-sus-* carry "laboratory" category but have no basedOn
-        # (microbiology SR support is Tier 2 backlog).
+        # Skip non-order-driven lab Observations (blood-type demographic
+        # facts, microbiology culture/susceptibility) whose ID prefixes
+        # are declared in the canonical registry
+        # ``labs/service_request.py::NON_ORDER_DRIVEN_LAB_OBS_ID_PREFIXES``.
+        # Reads the registry so a new demographic / non-order lab family
+        # only edits emit-side; the audit picks it up automatically.
         obs_id = row.get("id", "")
-        if obs_id.startswith(MB_ORG_ID_PREFIX) or obs_id.startswith(MB_SUS_ID_PREFIX):
+        if obs_id.startswith(NON_ORDER_DRIVEN_LAB_OBS_ID_PREFIXES):
             continue
         lab_obs_count += 1
         based_on = row.get("basedOn") or []
