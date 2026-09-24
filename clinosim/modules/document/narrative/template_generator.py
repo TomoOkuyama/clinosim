@@ -366,25 +366,17 @@ def _render_safety_skips_line(skips: list[dict], lang: str) -> str:
     """
     if not skips:
         return ""
-    is_ja = lang == "ja"
     lines: list[str] = []
 
-    # Phase 1c-5 (2026-09-23): JA drug-name localization.
-    #
-    # Two failure modes existed pre-fix and both leaked ~4,000 raw
-    # English drug names (Furosemide / Enalapril / Candesartan / …) into
-    # JA narratives on the JP p=10000 audit:
-    #   1. ``considered_ja`` / ``substituted_with_ja`` is unset (some
-    #      log paths never populate a JA field);
-    #   2. ``considered_ja`` is set but was copied from the English drug
-    #      name (e.g. ``chronic_medications.yaml`` has no ``drug_ja`` so
-    #      ``discharge_rx._register_medication`` falls back to the raw
-    #      English name).
-    # Route every JA drug string (populated or fallback) through the
-    # shared ``_localize_drug_name`` helper — the same table the FHIR
-    # emit path uses (``drug_names_ja.yaml``). A katakana input that is
-    # not a table key falls through the substring-matcher unchanged, so
-    # already-localized values are idempotent. Lazy import + broad
+    # Phase 1c-5 (2026-09-23): JA drug-name localization is a locale-
+    # specific data pipeline (katakana translation via drug_names_ja.yaml)
+    # — kept behind a ``lang == "ja"`` gate. Two pre-fix failure modes:
+    # (1) ``considered_ja`` / ``substituted_with_ja`` sometimes unset;
+    # (2) when set, sometimes falls back to raw English (chronic_medications.
+    # yaml lacks ``drug_ja`` so ``discharge_rx._register_medication`` copies
+    # the EN name). Routing through ``_localize_drug_name`` normalises
+    # both. Katakana input passes through the substring-matcher unchanged,
+    # so already-localized values are idempotent. Lazy import + broad
     # except mirrors ``discontinue_flip._log_treatment_change`` so an
     # i18n failure never breaks the narrative render.
     def _ja_drug(value: str | None) -> str:
@@ -397,76 +389,40 @@ def _render_safety_skips_line(skips: list[dict], lang: str) -> str:
         except Exception:  # noqa: BLE001
             return value
 
+    # Localized-field selectors: prefer ``<field>_<lang>`` (JA only
+    # populates this slot; EN falls straight through to the base field).
+    def _localized_field(s: dict, base: str) -> str:
+        return str(s.get(f"{base}_{lang}") or s.get(base) or "")
+
     for s in skips:
         event = str(s.get("event_type") or "avoid").lower()
-        if is_ja:
-            considered = _ja_drug(s.get("considered_ja") or s.get("considered")) or ""
-            conflict = s.get("avoided_due_to_ja") or s.get("avoided_due_to") or ""
-            substituted = _ja_drug(s.get("substituted_with_ja") or s.get("substituted_with"))
-            if event == "hold":
-                lines.append(f"・{considered}：{conflict}のため今回入院中は保留。")
-            elif event == "substitute":
-                if substituted:
-                    lines.append(f"・{considered} を {substituted} に切替（理由：{conflict}）。")
-                else:
-                    lines.append(f"・{considered} を切替（理由：{conflict}）。")
-            elif event == "switch":
-                day = s.get("stopped_on_day")
-                day_phrase = f"第{int(day)}病日" if day else "経過中"
-                if substituted:
-                    lines.append(f"・{considered} を{day_phrase}で中止し {substituted} に切替（{conflict}）。")
-                else:
-                    lines.append(f"・{considered} を{day_phrase}で中止（{conflict}）。")
-            elif event == "deescalate":
-                day = s.get("stopped_on_day")
-                day_phrase = f"第{int(day)}病日" if day else "経過中"
-                if substituted:
-                    lines.append(f"・{considered} を{day_phrase}で中止し {substituted} へ de-escalate（{conflict}）。")
-                else:
-                    lines.append(f"・{considered} を{day_phrase}で中止し de-escalate（{conflict}）。")
-            else:  # avoid (default + explicit)
-                if substituted:
-                    lines.append(f"・{considered} は {conflict} との併用禁忌のため回避し、{substituted} を処方。")
-                else:
-                    lines.append(f"・{considered} は {conflict} との併用禁忌のため処方せず。")
-        else:
-            considered = s.get("considered") or ""
-            conflict = s.get("avoided_due_to") or ""
-            # Phase 1d-9 mypy fix: unify `substituted` to str across
-            # both language branches (ja branch returns str via _ja_drug;
-            # else branch previously returned Any | None). Empty string
-            # is falsy, so ``if substituted:`` semantics are preserved.
-            substituted = s.get("substituted_with") or ""
-            if event == "hold":
-                lines.append(f"- {considered} was held during this admission because of {conflict}.")
-            elif event == "substitute":
-                if substituted:
-                    lines.append(f"- {considered} was substituted with {substituted} (rationale: {conflict}).")
-                else:
-                    lines.append(f"- {considered} was substituted (rationale: {conflict}).")
-            elif event == "switch":
-                day = s.get("stopped_on_day")
-                day_phrase = f"on day {int(day)}" if day else "during the stay"
-                if substituted:
-                    lines.append(f"- {considered} was discontinued {day_phrase}; {substituted} started ({conflict}).")
-                else:
-                    lines.append(f"- {considered} was discontinued {day_phrase} ({conflict}).")
-            elif event == "deescalate":
-                day = s.get("stopped_on_day")
-                day_phrase = f"on day {int(day)}" if day else "during the stay"
-                if substituted:
-                    lines.append(
-                        f"- {considered} was discontinued {day_phrase} and narrowed to {substituted} ({conflict})."
-                    )
-                else:
-                    lines.append(f"- {considered} was discontinued {day_phrase} and de-escalated ({conflict}).")
-            else:  # avoid (default + explicit)
-                if substituted:
-                    lines.append(
-                        f"- {considered} avoided due to concurrent {conflict}; {substituted} prescribed instead."
-                    )
-                else:
-                    lines.append(f"- {considered} avoided due to concurrent {conflict}; no alternative selected.")
+        considered = _localized_field(s, "considered")
+        conflict = _localized_field(s, "avoided_due_to")
+        substituted = _localized_field(s, "substituted_with")
+        if lang == "ja":
+            considered = _ja_drug(considered)
+            substituted = _ja_drug(substituted)
+
+        day = s.get("stopped_on_day")
+        day_phrase = (
+            t("safety_skips.day_phrase_specific", lang, day=int(day))
+            if day
+            else t("safety_skips.day_phrase_default", lang)
+        )
+
+        if event == "hold":
+            key = "safety_skips.hold"
+        elif event == "substitute":
+            key = "safety_skips.substitute_with_sub" if substituted else "safety_skips.substitute_no_sub"
+        elif event == "switch":
+            key = "safety_skips.switch_with_sub" if substituted else "safety_skips.switch_no_sub"
+        elif event == "deescalate":
+            key = "safety_skips.deescalate_with_sub" if substituted else "safety_skips.deescalate_no_sub"
+        else:  # avoid (default + explicit)
+            key = "safety_skips.avoid_with_sub" if substituted else "safety_skips.avoid_no_sub"
+        lines.append(
+            t(key, lang, considered=considered, conflict=conflict, substituted=substituted, day_phrase=day_phrase)
+        )
     return "\n".join(lines)
 
 
