@@ -295,6 +295,7 @@ _.causes_myocardial_injury  # disease/protocol.py:521
 # `modules/document/narrative/*` consumers.
 _.subjective_ja  # encounter/protocol.py:25
 _.objective_ja  # encounter/protocol.py:26
+_.assessment_ja  # encounter/protocol.py:27
 _.plan_ja  # encounter/protocol.py:28
 _.general  # encounter/protocol.py:34 (physical-exam categories)
 _.cardiovascular  # encounter/protocol.py:35
