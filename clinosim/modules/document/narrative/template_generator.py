@@ -3194,7 +3194,6 @@ class TemplateNarrativeGenerator:
         """
         facts: list[str] = []
         lang = ctx.target_lang
-        is_ja = lang == "ja"
         none_text = t("section_none.discharge_medications", lang)
 
         meds = getattr(ctx, "discharge_medications", None) or []
@@ -3239,7 +3238,9 @@ class TemplateNarrativeGenerator:
             # discharge_medications leaked ``PO`` / ``daily`` / ``TID``
             # / ``q4h`` verbatim into JA output (~545 leaks in the
             # p=10000 audit for `daily` alone).
-            if is_ja:
+            if lang == "ja":
+                # JA-locale drug-name katakana + dosage-term localization
+                # (locale-specific data pipeline).
                 from clinosim.modules.output.fhir_r4.lib.localization import (
                     _localize_dosage_terms,
                     _localize_drug_name,
@@ -3250,7 +3251,7 @@ class TemplateNarrativeGenerator:
                 # Phase 1d-3 (2026-09-23): pass ctx.target_lang through so
                 # this branch stays lang-agnostic when a future locale
                 # (fr / zh) adds its own YAML slots to med_terms.yaml.
-                _term_lang = ctx.target_lang
+                _term_lang = lang
 
                 def _ja_term(v: str) -> str:
                     try:
@@ -5893,7 +5894,6 @@ class TemplateNarrativeGenerator:
         """
         facts: list[str] = []
         lang = ctx.target_lang
-        is_ja = lang == "ja"
         fallback = t("fallback.generic_fallback", lang)
 
         ed_tmpl = self._get_ed_note_template(ctx)
@@ -5934,18 +5934,21 @@ class TemplateNarrativeGenerator:
             facts.append(f"encounter_protocol.narrative.ed_note_template.{field}")
             sep = t("list_sep.period_space", lang)
             text = sep.join(parts)
-            # Issue #980: rewrite contradicted PE clauses (JA only — the
-            # rewrite pools + trigger keywords are JP terminology).
-            if is_ja:
+            # JA-locale narrative enhancements (Issues #980 + #979). Both
+            # are JA-specific by design: the rewrite pools + trigger
+            # keywords in _apply_cc_pe_consistency are JP terminology,
+            # and the vitals-line prepend is an inpatient-JA convention
+            # not yet mirrored elsewhere. Adding a new locale (fr / zh)
+            # would need its own contradiction-rewrite pool and
+            # vitals-line style — this is a locale-specific data pipeline
+            # gate, not a display translation.
+            if lang == "ja":
                 text, cc_facts = self._apply_cc_pe_consistency(text, ctx)
                 facts.extend(cc_facts)
-            # Issue #979: prepend vitals prose line (JA only for now — same
-            # rationale as the inpatient path in `_build_physical_examination`).
-            if is_ja:
                 vitals_line = self._compose_pe_vitals_line(ctx)
                 if vitals_line:
                     facts.append(f"ctx.vitals[day_{ctx.day_index}]")
-                    text = f"バイタルサイン: {vitals_line}。{text}"
+                    text = t("ed_physical_exam.vitals_prepend", lang, vitals=vitals_line, text=text)
             return text, facts
 
         return fallback, facts
@@ -5968,7 +5971,6 @@ class TemplateNarrativeGenerator:
         """
         facts: list[str] = []
         lang = ctx.target_lang
-        is_ja = lang == "ja"
         fallback = t("fallback.ed_workup_fallback", lang)
 
         ed_tmpl = self._get_ed_note_template(ctx)
@@ -6055,7 +6057,9 @@ class TemplateNarrativeGenerator:
             # the FHIR emit path. Pre-fix 183 JP ed_workup lines carried
             # 「投薬: Ibuprofen 400mg、Acetaminophen 500mg」 verbatim.
             med_display = med_names[:6]
-            if is_ja:
+            if lang == "ja":
+                # JA-locale drug-name katakana lookup (locale-specific
+                # data pipeline, same rationale as _compose_ap_plan_from_state).
                 try:
                     from clinosim.modules.output.fhir_r4.lib.localization import _localize_drug_name
 
@@ -6075,7 +6079,9 @@ class TemplateNarrativeGenerator:
             # bandage / saline / Salbutamol / Ipratropium / etc. Lazy
             # import + broad except mirrors the med_display handler.
             proc_display = proc_order_names[:6]
-            if is_ja:
+            if lang == "ja":
+                # JA-locale drug-name katakana lookup (locale-specific
+                # data pipeline; same rationale as med_display above).
                 try:
                     from clinosim.modules.output.fhir_r4.lib.localization import (
                         _localize_drug_name,

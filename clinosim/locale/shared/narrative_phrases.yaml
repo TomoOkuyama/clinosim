@@ -103,6 +103,14 @@ ed:
     ja: "来院時所見: {vitals}。特記の身体所見なし。"
     en: "On arrival: {vitals}. No focal findings on exam."
 
+# ED-note physical-exam vitals prepend (Phase 1d-37, Issue #979).
+# JA-locale narrative enhancement — prepends a vitals prose line
+# before the body-system findings. No EN equivalent today; when a
+# future locale wires it up they extend this entry.
+ed_physical_exam:
+  vitals_prepend:
+    ja: "バイタルサイン: {vitals}。{text}"
+
 # admission_hp Assessment section composer phrases (Phase 1d-18).
 # From template_generator._compose_ap_assessment_from_state.
 ap_assessment:
