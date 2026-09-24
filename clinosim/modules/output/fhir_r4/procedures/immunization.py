@@ -14,6 +14,7 @@ from typing import Any
 
 from clinosim.codes import get_system_uri
 from clinosim.codes import lookup as code_lookup
+from clinosim.locale.i18n import t
 from clinosim.modules._shared import get_attr_or_key, is_jp, resolve_lang
 from clinosim.modules.output.fhir_r4.demographics.patient import patient_ref
 from clinosim.modules.output.fhir_r4.encounters.encounter import encounter_ref
@@ -196,13 +197,13 @@ def _bb_immunizations(ctx: BundleContext) -> list[dict]:
             lang = resolve_lang(ctx.country)
             resource["statusReason"] = {
                 "coding": [_coding_with_display("hl7-v3-actreason", "PATOBJ", lang)],
-                "text": "患者拒否" if lang == "ja" else "Patient refused",
+                "text": t("immunization_fhir.patient_refused", lang),
             }
         # C3-05: reasonCode is universal — vaccination
         # is always the reason. text-only per AD-30 (no fabricated coding).
         resource["reasonCode"] = [
             {
-                "text": "予防接種（定期接種）" if lang == "ja" else "Vaccination (routine)",
+                "text": t("immunization_fhir.vaccination_routine", lang),
             }
         ]
         # Issue #917: pediatric-series entries carry a dose_number (1..N).
@@ -237,7 +238,7 @@ def _bb_immunizations(ctx: BundleContext) -> list[dict]:
                     {
                         "system": get_system_uri("snomed-ct"),
                         "code": "368208006",
-                        "display": "左三角筋" if lang == "ja" else "Left deltoid",
+                        "display": t("immunization_fhir.left_deltoid", lang),
                     }
                 ],
             }
@@ -246,7 +247,7 @@ def _bb_immunizations(ctx: BundleContext) -> list[dict]:
                     {
                         "system": get_system_uri("snomed-ct"),
                         "code": "78421000",
-                        "display": "筋肉内注射" if lang == "ja" else "Intramuscular route",
+                        "display": t("immunization_fhir.intramuscular_route", lang),
                     }
                 ],
             }
