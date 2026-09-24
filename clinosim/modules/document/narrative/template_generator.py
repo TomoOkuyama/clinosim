@@ -750,9 +750,9 @@ def _localize_op_implant(implant: str, lang: str) -> str:
     )
 
 
-# SOAP section labels per locale
-_SOAP_JA = ("S（主観）", "O（客観）", "A（評価）", "P（計画）")
-_SOAP_EN = ("S:", "O:", "A:", "P:")
+# SOAP section labels live in `narrative_labels.yaml` under
+# `soap_label:` (`subjective` / `objective` / `assessment` / `plan`)
+# — resolved by `_label()` at render time.
 
 
 def _lookup_nursing_content(ctx: NarrativeContext, field: str, lang: str, cap: int) -> tuple[list[str], list[str]]:
@@ -1187,8 +1187,9 @@ class TemplateNarrativeGenerator:
         """Build a SOAP-style progress note as plain text (PROGRESS_NOTE)."""
         facts: list[str] = []
         lang = ctx.target_lang
-        is_ja = lang == "ja"
-        soap_labels = _SOAP_JA if is_ja else _SOAP_EN
+        soap_labels = tuple(
+            _label("soap_label", slug, lang) for slug in ("subjective", "objective", "assessment", "plan")
+        )
 
         # daily_trajectory / physical_exam_findings values (disease YAML +
         # reference_data) are JP-only strings. The EN locale must not read
@@ -1201,7 +1202,7 @@ class TemplateNarrativeGenerator:
         # fallback (baseline: 19.4 % ``Clinical assessment ongoing`` +
         # 7.8 % ``Continue current management`` across 1,409 progress
         # notes at US p=2000 seed=500).
-        if not is_ja:
+        if lang != "ja":
             facts.append("composed:progress_note_soap_en")
             # Issue #1155 (session-103): subjective + objective previously
             # short-circuited to "No special findings" on every EN
@@ -1762,7 +1763,6 @@ class TemplateNarrativeGenerator:
         """HPI content, pre-neonatal-append. See :meth:`_build_hpi`."""
         facts: list[str] = []
         lang = ctx.target_lang
-        is_ja = lang == "ja"
         # JA: localize severity token (mild/moderate/... → 軽度/中等度/...)
         # so the LLM doesn't inherit the EN token into its output — same
         # rule as `_build_admission_hp_condition` line ~1393. EN branch
@@ -1843,7 +1843,7 @@ class TemplateNarrativeGenerator:
         # `trigger_options` entirely (per-disease English wording is
         # deferred to the LLM narrative pass — a functional fallback beats
         # a locale leak).
-        if not is_ja:
+        if lang != "ja":
             onset_text_en = _HPI_ONSET_EN.get(ctx.severity) or _HPI_ONSET_EN["moderate"]
             facts.append(f"generic:hpi_onset_en.{ctx.severity}")
             return onset_text_en, facts
@@ -2235,7 +2235,6 @@ class TemplateNarrativeGenerator:
         """
         facts: list[str] = []
         lang = ctx.target_lang
-        is_ja = lang == "ja"
 
         # Issue #1156: EN PE previously short-circuited to a bare
         # "No special findings" placeholder. The JP-only per-disease
@@ -2246,7 +2245,7 @@ class TemplateNarrativeGenerator:
         # cleanly in either locale. EN now prepends the vitals block
         # so admission H&P PE carries at least the encounter's
         # objective vitals instead of being blank.
-        if not is_ja:
+        if lang != "ja":
             vitals_line = self._compose_pe_vitals_line(ctx)
             if vitals_line:
                 facts.append(f"ctx.vitals[day_{ctx.day_index}]")
@@ -2280,7 +2279,6 @@ class TemplateNarrativeGenerator:
         """Build assessment_and_plan from daily_trajectory day_0 assessment + plan."""
         facts: list[str] = []
         lang = ctx.target_lang
-        is_ja = lang == "ja"
 
         # Issue #1156: EN branch previously short-circuited to the
         # generic "Clinical assessment ongoing. Plan: Continue current
@@ -2292,7 +2290,7 @@ class TemplateNarrativeGenerator:
         # Severe wheezing... Initial medications: Prednisone, Albuterol..."
         # instead of the disconnected generic fallback. daily_trajectory
         # YAML content is still JA-only so EN skips that source.
-        if not is_ja:
+        if lang != "ja":
             facts.append("composed:cif_state_en")
             _en_assessment = self._compose_ap_assessment_from_state(ctx) or _GENERIC_ASSESSMENT_EN
             _en_plan = self._compose_ap_plan_from_state(ctx) or _GENERIC_PLAN_EN
