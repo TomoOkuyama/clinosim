@@ -1086,6 +1086,64 @@ rp_note:
     ja: "リハビリテーション終了の目安：入院後約{days}日"
     en: "Estimated rehabilitation completion: approximately {days} days post-admission"
 
+# DC 直接死因までの期間 (duration_of_immediate_cause) composer
+# (Phase 1d-36). Was _dc_duration_phrase_ja / _en helper methods with
+# 5 bucket × 3 pattern × 2 lang branching. Unified via lang-agnostic
+# sub-phrase catalog.
+dc_duration:
+  prefix:
+    ja: "直接死因までの期間: "
+    en: "Time from onset of immediate cause to death: "
+  chronic_lead:
+    ja: "既往の慢性経過に加え、"
+    en: "on a background of chronic disease, "
+  disease_suffix:
+    ja: "（{disease}）"
+    en: " from {disease}"
+  body_hours:
+    ja: "入院より約{hours}時間で死亡{suffix}"
+    en: "died approximately {hours} h after admission{suffix}"
+  body_same_day:
+    ja: "入院同日、数時間以内に死亡{suffix}"
+    en: "died the same day of admission, within hours{suffix}"
+  body_days:
+    ja: "入院より約{los}日の経過で死亡{suffix}"
+    en: "died approximately {los} days into the admission{suffix}"
+  body_weeks:
+    ja: "入院より約{weeks}週間（{los}日）の経過で死亡{suffix}"
+    en: "died approximately {weeks} week(s) ({los} d) into the admission{suffix}"
+  body_long:
+    ja: "入院より約{weeks}週間の長期経過で死亡{suffix}"
+    en: "died after a prolonged {weeks}-week course during this admission{suffix}"
+  tail:
+    ja: "。入院前の経過は本記録範囲外。"
+    en: ". Pre-admission course not captured in this record."
+
+# DC contributing conditions composer (Phase 1d-36).
+# JA and EN differ in sentence structure (JA places comp_part before
+# tail, EN places tail before comp_part) so compound_line has
+# lang-specific slot ORDER — but every slot phrase is language-
+# agnostic.
+dc_contributing:
+  prefix:
+    ja: "影響を及ぼした傷病名: "
+    en: "Contributing conditions: "
+  connector_chronic:
+    ja: "の慢性経過が背景にあり、"
+    en: " on a background of chronic disease, "
+  connector_comorbid:
+    ja: "を併存疾患として有し、"
+    en: " as comorbid conditions, "
+  comp_part:
+    ja: "入院中に{comp_labels}を合併し臨床経過に影響した。"
+    en: " In-hospital complication(s) — {comp_labels} — also affected the clinical course."
+  tail_with_list:
+    ja: "死亡に至る臨床経過に影響したと考えられる。"
+    en: "which plausibly contributed to the terminal course."
+  compound_line:
+    ja: "{prefix}{list_part}{connector}{comp_part}{tail}"
+    en: "{prefix}{list_part}{connector}{tail}{comp_part}"
+
 # admission/discharge/triage details composers (Phase 1d-32).
 # From _build_admission_details / _build_discharge_details /
 # _build_triage_details. JA vs EN sentence structures differ so each
