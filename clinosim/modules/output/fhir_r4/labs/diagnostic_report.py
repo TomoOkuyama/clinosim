@@ -26,6 +26,7 @@ from typing import Any, NamedTuple
 
 from clinosim.codes import get_system_uri
 from clinosim.codes import lookup as _codes_lookup
+from clinosim.locale.i18n import t
 from clinosim.modules._shared import get_attr_or_key, is_jp, resolve_lang
 from clinosim.modules.document.narrative.replacement_strategy import _localize_lab_name_ja
 from clinosim.modules.imaging.engine import (
@@ -126,13 +127,12 @@ RADIOLOGY_CATEGORY_V2_0074 = "RAD"
 #   code.coding:radiologyReportCode = JP_DocumentCodes_CS 18748-4(画像検査報告書)
 _JP_DR_RADIOLOGY_PROFILE = "http://jpfhir.jp/fhir/core/StructureDefinition/JP_DiagnosticReport_Radiology"
 _JP_DR_RADIOLOGY_CATEGORY_LOINC_CODE = "LP29684-5"
-_JP_DR_RADIOLOGY_CATEGORY_LOINC_DISPLAY_JA = "放射線"
-_JP_DR_RADIOLOGY_CATEGORY_LOINC_DISPLAY_EN = "Radiology"
 _JP_DR_DICOM_MODALITY_SYSTEM = "http://dicom.nema.org/resources/ontology/DCM"
 _JP_DOCUMENT_CODES_CS = "http://jpfhir.jp/fhir/core/CodeSystem/JP_DocumentCodes_CS"
 _JP_DR_RADIOLOGY_REPORT_CODE = "18748-4"
-_JP_DR_RADIOLOGY_REPORT_DISPLAY_JA = "画像検査報告書"
-_JP_DR_RADIOLOGY_REPORT_DISPLAY_EN = "Diagnostic imaging report"
+# JP_DR_RADIOLOGY_CATEGORY/REPORT displays live in
+# `narrative_phrases.yaml` under
+# `diagnostic_report_fhir.jp_radiology_{category,report}_display`.
 
 # JP Core DiagnosticReport_LabResult profile (`jp-diagnosticreport-labresult`)
 # requires `category:first.coding.code` fixedCode = `LP29693-6` on LOINC
@@ -461,9 +461,9 @@ def _derive_imaging_conclusion_code(impression_text: str, lang: str) -> dict:
             {
                 "system": "http://snomed.info/sct",
                 "code": code,
-                "display": ("異常所見" if lang == "ja" else "Abnormal")
+                "display": t("diagnostic_report_fhir.abnormal_finding", lang)
                 if is_abnormal
-                else ("異常なし" if lang == "ja" else "Normal"),
+                else t("diagnostic_report_fhir.normal_finding", lang),
             }
         ]
     }
@@ -549,13 +549,15 @@ def _build_lab_panel_conclusion(
         parts.append(segment)
     if not parts:
         return ("", False)
-    joiner = "、" if lang == "ja" else ", "
+    joiner = t("list_sep.serial", lang)
     body = joiner.join(parts)
     if flagged:
-        if lang == "ja":
-            body = f"{body}。参照範囲外: {joiner.join(flagged)}"
-        else:
-            body = f"{body}. Out of reference range: {joiner.join(flagged)}"
+        body = t(
+            "diagnostic_report_fhir.out_of_reference_range",
+            lang,
+            body=body,
+            names=joiner.join(flagged),
+        )
     return (body, has_abnormal)
 
 
@@ -712,9 +714,9 @@ def build_dr_resource(
                     {
                         "system": "http://snomed.info/sct",
                         "code": "263654008" if _abnormal else "17621005",
-                        "display": ("異常所見" if lang == "ja" else "Abnormal")
+                        "display": t("diagnostic_report_fhir.abnormal_finding", lang)
                         if _abnormal
-                        else ("異常なし" if lang == "ja" else "Normal"),
+                        else t("diagnostic_report_fhir.normal_finding", lang),
                     }
                 ],
             }
@@ -737,13 +739,13 @@ def _lab_panel_presented_text(panel: dict, display: str, group: _GroupedPanel, l
     Deterministic (no timestamps beyond the effectiveDateTime already on the
     resource) so regeneration is byte-identical (AD-16).
     """
-    header_en = f"Diagnostic Report: {display}"
-    header_ja = f"検査報告書: {display}"
-    header = header_ja if lang == "ja" else header_en
-    n_obs = len(group.obs_idxs)
-    body_en = f"Report date: {group.bucket}\nObservations included: {n_obs}"
-    body_ja = f"報告日: {group.bucket}\n含まれる検査項目数: {n_obs}"
-    body = body_ja if lang == "ja" else body_en
+    header = t("diagnostic_report_fhir.lab_panel_title", lang, display=display)
+    body = t(
+        "diagnostic_report_fhir.lab_panel_body",
+        lang,
+        bucket=group.bucket,
+        n_obs=len(group.obs_idxs),
+    )
     return f"{header}\n\n{body}\n"
 
 
@@ -954,9 +956,7 @@ def _build_radiology_dr(study: Any, report: Any, ctx: Any) -> dict:
     _jp_dr_category: list[dict] = []
     _jp_code_coding: list[dict] = []
     if _is_jp:
-        _lp_display = (
-            _JP_DR_RADIOLOGY_CATEGORY_LOINC_DISPLAY_JA if lang == "ja" else _JP_DR_RADIOLOGY_CATEGORY_LOINC_DISPLAY_EN
-        )
+        _lp_display = t("diagnostic_report_fhir.jp_radiology_category_display", lang)
         _jp_dr_category.append(
             {
                 "coding": [
@@ -995,7 +995,7 @@ def _build_radiology_dr(study: Any, report: Any, ctx: Any) -> dict:
                 ]
             }
         )
-        _report_disp = _JP_DR_RADIOLOGY_REPORT_DISPLAY_JA if lang == "ja" else _JP_DR_RADIOLOGY_REPORT_DISPLAY_EN
+        _report_disp = t("diagnostic_report_fhir.jp_radiology_report_display", lang)
         _jp_code_coding.append(
             {
                 "system": _JP_DOCUMENT_CODES_CS,
@@ -1122,7 +1122,7 @@ def _build_radiology_dr(study: Any, report: Any, ctx: Any) -> dict:
     # per-image / per-instance 参照の意図。ImagingStudy series の代表 1 件を link。
     dr["media"] = [
         {
-            "comment": "画像は関連 ImagingStudy を参照" if lang == "ja" else "See linked ImagingStudy for image data",
+            "comment": t("diagnostic_report_fhir.image_reference_comment", lang),
             "link": {"reference": f"ImagingStudy/{imaging_study_id_for_cif_study_id(study_id)}"},
         }
     ]
@@ -1151,9 +1151,10 @@ def _build_radiology_dr(study: Any, report: Any, ctx: Any) -> dict:
         dr["conclusionCode"] = [_derive_imaging_conclusion_code(impression_text, lang)]
     # C5-20 (Chain 3): presentedForm — findings + impression as text/plain
     # (mirrors text.div content, formatted for direct patient reading).
-    _title_en = f"Radiology Report: {proc_display}" if proc_display else "Radiology Report"
-    _title_ja = f"画像診断報告書: {proc_display}" if proc_display else "画像診断報告書"
-    _title = _title_ja if lang == "ja" else _title_en
+    if proc_display:
+        _title = t("diagnostic_report_fhir.radiology_title_with_display", lang, display=proc_display)
+    else:
+        _title = t("diagnostic_report_fhir.radiology_title_bare", lang)
     _summary = _radiology_presented_text(findings_text, impression_text, lang)
     _pf = build_presented_form(_summary, _title, lang)
     if _pf:
@@ -1163,6 +1164,9 @@ def _build_radiology_dr(study: Any, report: Any, ctx: Any) -> dict:
 
 def _radiology_presented_text(findings: str, impression: str, lang: str) -> str:
     """Compose text/plain radiology summary for presentedForm."""
-    if lang == "ja":
-        return f"[所見]\n{findings}\n\n[印象]\n{impression}\n"
-    return f"[Findings]\n{findings}\n\n[Impression]\n{impression}\n"
+    return t(
+        "diagnostic_report_fhir.radiology_presented_form",
+        lang,
+        findings=findings,
+        impression=impression,
+    )

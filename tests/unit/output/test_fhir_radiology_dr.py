@@ -359,10 +359,10 @@ def test_jp_radiology_dr_code_coding_prepends_document_codes_18748_4():
     """#218:spec `code.coding:radiologyReportCode` = JP_DocumentCodes_CS 18748-4
     "画像検査報告書" を必須。既存 LOINC procedure code は secondary として維持。
     """
+    from clinosim.locale.i18n import t
     from clinosim.modules.output.fhir_r4.labs.diagnostic_report import (
         _JP_DOCUMENT_CODES_CS,
         _JP_DR_RADIOLOGY_REPORT_CODE,
-        _JP_DR_RADIOLOGY_REPORT_DISPLAY_JA,
     )
 
     ctx = _make_ctx([_sample_study()], country="jp")
@@ -372,7 +372,8 @@ def test_jp_radiology_dr_code_coding_prepends_document_codes_18748_4():
     # primary = radiologyReportCode slice
     assert codings[0]["system"] == _JP_DOCUMENT_CODES_CS
     assert codings[0]["code"] == _JP_DR_RADIOLOGY_REPORT_CODE == "18748-4"
-    assert codings[0]["display"] == _JP_DR_RADIOLOGY_REPORT_DISPLAY_JA == "画像検査報告書"
+    _jp_report_display = t("diagnostic_report_fhir.jp_radiology_report_display", "ja")
+    assert codings[0]["display"] == _jp_report_display == "画像検査報告書"
     # secondary = LOINC procedure code
     assert any(c["system"] == "http://loinc.org" for c in codings[1:])
 

@@ -1686,3 +1686,39 @@ microbiology_fhir:
   isolated_with_sus:
     ja: "{org} を分離。感受性: {tail}。"
     en: "{org} isolated. Susceptibility: {tail}."
+
+# FHIR emit-side lab / radiology DiagnosticReport labels + prose
+# (Phase 1d-51). From
+# `clinosim/modules/output/fhir_r4/labs/diagnostic_report.py` —
+# conclusionCode display, panel conclusion prose, presentedForm
+# titles/bodies, and JP-Radiology profile display constants.
+diagnostic_report_fhir:
+  abnormal_finding: {ja: "異常所見", en: "Abnormal"}
+  normal_finding: {ja: "異常なし", en: "Normal"}
+  out_of_reference_range:
+    ja: "{body}。参照範囲外: {names}"
+    en: "{body}. Out of reference range: {names}"
+  lab_panel_title:
+    ja: "検査報告書: {display}"
+    en: "Diagnostic Report: {display}"
+  lab_panel_body:
+    ja: "報告日: {bucket}\n含まれる検査項目数: {n_obs}"
+    en: "Report date: {bucket}\nObservations included: {n_obs}"
+  image_reference_comment:
+    ja: "画像は関連 ImagingStudy を参照"
+    en: "See linked ImagingStudy for image data"
+  radiology_title_bare:
+    ja: "画像診断報告書"
+    en: "Radiology Report"
+  radiology_title_with_display:
+    ja: "画像診断報告書: {display}"
+    en: "Radiology Report: {display}"
+  radiology_presented_form:
+    ja: "[所見]\n{findings}\n\n[印象]\n{impression}\n"
+    en: "[Findings]\n{findings}\n\n[Impression]\n{impression}\n"
+  jp_radiology_category_display:
+    ja: "放射線"
+    en: "Radiology"
+  jp_radiology_report_display:
+    ja: "画像検査報告書"
+    en: "Diagnostic imaging report"
