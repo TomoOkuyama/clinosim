@@ -444,18 +444,9 @@ _HPI_ONSET_EN: dict[str, str] = {
 
 # NUTRITION_CARE_PLAN (Phase 2) fallback phrases
 
-# REHABILITATION_PLAN (Phase 2) fallback phrases
-_RP_GOALS_FALLBACK_JA = "本人の希望：現在の身体機能の回復・自宅復帰を希望／家族の希望：早期の日常生活動作自立を希望"
-_RP_GOALS_FALLBACK_EN = (
-    "Patient goal: recovery of function and return home / Family goal: early independence in activities of daily living"
-)
-_RP_POLICY_FALLBACK_JA = (
-    "リハビリテーション治療方針：疾患特異的リハビリテーションを継続し、日常生活動作の自立度向上を図る"
-)
-_RP_POLICY_FALLBACK_EN = (
-    "Rehabilitation policy: continue disease-specific rehabilitation therapy "
-    "to improve independence in activities of daily living"
-)
+# REHABILITATION_PLAN (Phase 2) fallback phrases live in
+# `narrative_phrases.yaml` under `fallback:` (`rp_goals_fallback`,
+# `rp_policy_fallback`, …) — resolved by `t()` at render time.
 
 
 # Nursing shift labels, keyed by the neutral shift key stored in
@@ -4173,15 +4164,11 @@ class TemplateNarrativeGenerator:
     def _build_rp_goals(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
         """本人の希望・家族の希望 — CIF に患者意向を表すフィールドなし
         (design spec §3d)、固定フォールバック。"""
-        lang = ctx.target_lang
-        is_ja = lang == "ja"
-        return (_RP_GOALS_FALLBACK_JA if is_ja else _RP_GOALS_FALLBACK_EN), []
+        return t("fallback.rp_goals_fallback", ctx.target_lang), []
 
     def _build_rp_policy(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
         """リハビリテーション治療方針 — 固定フォールバック(design spec §3d)。"""
-        lang = ctx.target_lang
-        is_ja = lang == "ja"
-        return (_RP_POLICY_FALLBACK_JA if is_ja else _RP_POLICY_FALLBACK_EN), []
+        return t("fallback.rp_policy_fallback", ctx.target_lang), []
 
     def _build_rp_discharge_estimate(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
         """リハビリテーション終了の目安・時期 — _estimated_los_days を再利用
