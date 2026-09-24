@@ -5215,7 +5215,6 @@ class TemplateNarrativeGenerator:
         from clinosim.codes import lookup as _code_lookup
 
         lang = ctx.target_lang
-        is_ja = lang == "ja"
         disp_key = "icd-10" if ctx.locale == "jp" else "icd-10-cm"
 
         # Pre-resolve current-medications for continuation-tail. Issue #1033:
@@ -5234,7 +5233,7 @@ class TemplateNarrativeGenerator:
             match set is chosen by ``ctx.target_lang`` so a US assessment
             searches on English tokens and a JP assessment on katakana.
             """
-            hints = ja_hints if is_ja else en_hints
+            hints = ja_hints if lang == "ja" else en_hints
             for n in med_names_display:
                 for h in hints:
                     if h in n:
@@ -5258,22 +5257,17 @@ class TemplateNarrativeGenerator:
                     ctrl = t("control_status.high_normal", lang)
                 else:
                     ctrl = t("control_status.at_goal", lang)
-                target = (
-                    (
-                        f"目標 {NARRATIVE_BP_HYPERTENSION_SBP_THRESHOLD}/"
-                        f"{NARRATIVE_BP_HYPERTENSION_DBP_THRESHOLD} mmHg 未満"
-                    )
-                    if is_ja
-                    else (
-                        f"target < {NARRATIVE_BP_HYPERTENSION_SBP_THRESHOLD}/"
-                        f"{NARRATIVE_BP_HYPERTENSION_DBP_THRESHOLD} mmHg"
-                    )
+                target = t(
+                    "chronic_assessment.bp_target",
+                    lang,
+                    sbp=NARRATIVE_BP_HYPERTENSION_SBP_THRESHOLD,
+                    dbp=NARRATIVE_BP_HYPERTENSION_DBP_THRESHOLD,
                 )
                 med = _pick_med_containing(
                     en_hints=("Amlodipine", "Enalapril", "Losartan", "Telmisartan"),
                     ja_hints=("アムロジピン", "エナラプリル", "ロサルタン", "テルミサルタン"),
                 )
-                med_tail = f"、{med} 継続" if med and is_ja else (f"; {med} continue" if med else "")
+                med_tail = t("chronic_assessment.med_continue_tail", lang, med=med) if med else ""
                 interp = f"BP {int(sbp)}/{int(dbp)} mmHg — {target} — {ctrl}{med_tail}" + t("list_sep.period", lang)
 
             # ── E11 / E10: Diabetes mellitus ───────────────────────────
@@ -5356,16 +5350,16 @@ class TemplateNarrativeGenerator:
                             ctrl = t("control_status.at_goal", lang)
                     except (TypeError, ValueError):
                         ctrl = ""
-                    target = (
-                        f"目標 {NARRATIVE_LDL_ELEVATED_THRESHOLD} mg/dL 未満 (一次予防)"
-                        if is_ja
-                        else f"target < {NARRATIVE_LDL_ELEVATED_THRESHOLD} mg/dL (primary prevention)"
+                    target = t(
+                        "chronic_assessment.ldl_target_primary_prevention",
+                        lang,
+                        ldl=NARRATIVE_LDL_ELEVATED_THRESHOLD,
                     )
                     med = _pick_med_containing(
                         en_hints=("statin", "Rosuvastatin", "Atorvastatin", "Ezetimibe"),
                         ja_hints=("スタチン", "ロスバスタチン", "アトルバスタチン", "エゼチミブ"),
                     )
-                    med_tail = f"、{med} 継続" if med and is_ja else (f"; {med} continue" if med else "")
+                    med_tail = t("chronic_assessment.med_continue_tail", lang, med=med) if med else ""
                     interp = f"LDL {v} {u or 'mg/dL'} — {target} — {ctrl}{med_tail}" + t("list_sep.period", lang)
 
             # ── N18: Chronic kidney disease ────────────────────────────
@@ -5490,16 +5484,7 @@ class TemplateNarrativeGenerator:
                         obs_bits.append(f"{_localize_lab_name(name, ctx.target_lang)} {v}{f' {u}' if u else ''}")
                 if obs_bits:
                     joined = t("list_sep.serial", lang).join(obs_bits[:4])
-                    if is_ja:
-                        follow = (
-                            f"本日測定 ({joined}) は病態特異的モニタリング項目に該当せず、"
-                            f"次回受診時に {label} 特化評価を追加検討。"
-                        )
-                    else:
-                        follow = (
-                            f"today's measurements ({joined}) not condition-specific; "
-                            f"defer {label} focused review to next visit."
-                        )
+                    follow = t("chronic_assessment.followup_deferred", lang, joined=joined, label=label)
                     lines.append(f"{i}. {label}: {follow}")
                 else:
                     stub = t("control_status.no_measurement_reassess", lang)
@@ -5516,22 +5501,12 @@ class TemplateNarrativeGenerator:
         # observation-aware fallback).
         vital_lines: list[str] = []
         if hr_f is not None and hr_f >= 100:
-            if is_ja:
-                vital_lines.append(f"頻脈: HR {int(round(hr_f))} 回/分、動悸・脱水評価要。")
-            else:
-                vital_lines.append(f"Tachycardia: HR {int(round(hr_f))} /min, assess volume + arrhythmia.")
+            vital_lines.append(t("chronic_assessment.tachycardia", lang, hr=int(round(hr_f))))
         if spo2_f is not None and spo2_f < 95:
-            severity_ja = "重度低酸素症" if spo2_f < 90 else "低酸素症"
-            severity_en = "severe hypoxemia" if spo2_f < 90 else "hypoxemia"
-            if is_ja:
-                vital_lines.append(f"{severity_ja}: SpO2 {spo2_f:.0f}%、酸素化評価要。")
-            else:
-                vital_lines.append(f"{severity_en.capitalize()}: SpO2 {spo2_f:.0f}%, oxygenation review needed.")
+            key = "chronic_assessment.hypoxemia_severe" if spo2_f < 90 else "chronic_assessment.hypoxemia"
+            vital_lines.append(t(key, lang, spo2=spo2_f))
         if temp_f is not None and temp_f >= 38.0:
-            if is_ja:
-                vital_lines.append(f"発熱: T {temp_f:.1f}°C、感染源精査要。")
-            else:
-                vital_lines.append(f"Fever: T {temp_f:.1f}°C, evaluate for infection source.")
+            vital_lines.append(t("chronic_assessment.fever", lang, temp=temp_f))
         # Append with continued numbering so the Assessment reads as one list.
         start = len(lines) + 1
         for j, extra in enumerate(vital_lines):
