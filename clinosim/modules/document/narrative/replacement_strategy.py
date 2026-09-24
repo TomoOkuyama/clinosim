@@ -1733,7 +1733,6 @@ def _render_newborn_workup_summary(workup: dict, lang: str = "en") -> str:
     """
     if not workup:
         return ""
-    is_ja = str(lang).lower().startswith("ja")
     parts: list[str] = []
 
     a1 = workup.get("apgar_1min")
@@ -1741,10 +1740,7 @@ def _render_newborn_workup_summary(workup: dict, lang: str = "en") -> str:
     if a1 is not None or a5 is not None:
         a1_str = str(a1) if a1 is not None else "-"
         a5_str = str(a5) if a5 is not None else "-"
-        if is_ja:
-            parts.append(f"Apgar {a1_str}(1分)/{a5_str}(5分)")
-        else:
-            parts.append(f"Apgar {a1_str}(1 min) / {a5_str}(5 min)")
+        parts.append(t("newborn.apgar_line", lang, a1=a1_str, a5=a5_str))
 
     if workup.get("has_aabr"):
         parts.append(t("newborn.aabr_completed", lang))
@@ -1756,10 +1752,7 @@ def _render_newborn_workup_summary(workup: dict, lang: str = "en") -> str:
     if bili is not None:
         try:
             bili_f = float(bili)
-            if is_ja:
-                parts.append(f"総ビリルビン最高値 {bili_f:.1f} mg/dL")
-            else:
-                parts.append(f"peak total bilirubin {bili_f:.1f} mg/dL")
+            parts.append(t("newborn.bilirubin_peak", lang, v=bili_f))
         except (TypeError, ValueError):
             pass
 
@@ -1768,10 +1761,7 @@ def _render_newborn_workup_summary(workup: dict, lang: str = "en") -> str:
     if ru is not None or le is not None:
         ru_str = f"{ru}%" if ru is not None else "-"
         le_str = f"{le}%" if le is not None else "-"
-        if is_ja:
-            parts.append(f"CCHD SpO2 右上肢 {ru_str} / 下肢 {le_str}")
-        else:
-            parts.append(f"CCHD SpO2 RU {ru_str} / LE {le_str}")
+        parts.append(t("newborn.cchd_spo2_line", lang, ru=ru_str, le=le_str))
 
     if workup.get("has_vitamin_k"):
         parts.append(t("newborn.vitamin_k_admin", lang))

@@ -492,6 +492,17 @@ newborn:
   ophthalmic_prophylaxis:
     ja: "眼科的予防投与済"
     en: "ophthalmic prophylaxis administered"
+  # Additional per-newborn summary lines (Phase 1d-40, from
+  # _render_newborn_workup_summary — Apgar + bilirubin + CCHD prose).
+  apgar_line:
+    ja: "Apgar {a1}(1分)/{a5}(5分)"
+    en: "Apgar {a1}(1 min) / {a5}(5 min)"
+  bilirubin_peak:
+    ja: "総ビリルビン最高値 {v:.1f} mg/dL"
+    en: "peak total bilirubin {v:.1f} mg/dL"
+  cchd_spo2_line:
+    ja: "CCHD SpO2 右上肢 {ru} / 下肢 {le}"
+    en: "CCHD SpO2 RU {ru} / LE {le}"
 
 # List-formatting separators. Not per-section — used for joining
 # tokens in composite phrases. Keeping them in the phrase catalog
