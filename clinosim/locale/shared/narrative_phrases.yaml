@@ -1519,7 +1519,13 @@ fallback:
   rp_explanation_fallback: {en: 'Explanation to patient/family: pending', ja: 本人・家族への説明：説明予定}
   rp_frequency_fallback: {en: 'Session frequency: no record', ja: 実施回数：記録なし}
   rp_functional_fallback: {en: 'Functional assessment: no record', ja: 機能評価：記録なし}
+  rp_goals_fallback:
+    ja: "本人の希望：現在の身体機能の回復・自宅復帰を希望／家族の希望：早期の日常生活動作自立を希望"
+    en: "Patient goal: recovery of function and return home / Family goal: early independence in activities of daily living"
   rp_movement_fallback: {en: 'Basic movement: no record', ja: 基本動作：記録なし}
+  rp_policy_fallback:
+    ja: "リハビリテーション治療方針：疾患特異的リハビリテーションを継続し、日常生活動作の自立度向上を図る"
+    en: "Rehabilitation policy: continue disease-specific rehabilitation therapy to improve independence in activities of daily living"
   rp_team_fallback: {en: No rehabilitation therapy on record, ja: リハビリ実施なし}
   rp_therapist_fallback: {en: 'Named therapist: not yet assigned', ja: 担当者未定}
   triage_fallback: {en: 'Triage information: not recorded', ja: トリアージ情報：未記録}
