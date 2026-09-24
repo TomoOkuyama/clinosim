@@ -1333,7 +1333,7 @@ def _build_extra_context(
     # in template_generator._render_safety_skips_line.
     safety_skips = list(getattr(ctx, "safety_skips", []) or [])
     if safety_skips:
-        is_ja = ctx.target_lang == "ja"
+        lang = ctx.target_lang
         lines: list[str] = []
         for s in safety_skips[:8]:  # cap payload (~200 tokens max)
             # Issue #1403: event_type-aware cadence — the narrative
@@ -1341,95 +1341,53 @@ def _build_extra_context(
             # to dispatch to the matching clinical phrasing (avoid /
             # hold / substitute / deescalate). Legacy pair-avoid logs
             # (event_type absent) fall through to "avoid".
+            # Issue #1413 (S114): switch/deescalate keep neutral
+            # "X discontinued → Y started" prose — no direction
+            # assertion (real treatment_modifications stops are mostly
+            # escalations, so a spectrum-agnostic phrasing is safer).
             event = str(s.get("event_type") or "avoid").lower()
-            if is_ja:
+            if lang == "ja":
                 considered = s.get("considered_ja") or s.get("considered") or ""
                 conflict = s.get("avoided_due_to_ja") or s.get("avoided_due_to") or ""
                 substituted = s.get("substituted_with_ja") or s.get("substituted_with")
-                if event == "hold":
-                    lines.append(f"- hold: {considered} ({conflict} のため今回入院中は保留)")
-                elif event == "substitute":
-                    if substituted:
-                        lines.append(f"- substitute: {considered} を {substituted} に切替 (理由: {conflict})")
-                    else:
-                        lines.append(f"- substitute: {considered} を切替 (理由: {conflict})")
-                elif event == "switch":
-                    # Issue #1413 (S114): neutral "X 中止 → Y 開始" 表現。
-                    # 広域/狭域を主張しない — treatment_modifications の
-                    # stop→start は多くが escalation (臨床悪化・薬剤失敗
-                    # 対応) なので、direction を assert しない安全な文体。
-                    day = s.get("stopped_on_day")
-                    day_phrase = f"第{int(day)}病日" if day else "経過中"
-                    if substituted:
-                        lines.append(
-                            f"- switch: {considered} を {day_phrase}で中止し {substituted} に切替 ({conflict})"
-                        )
-                    else:
-                        lines.append(f"- switch: {considered} を {day_phrase}で中止 ({conflict})")
-                elif event == "deescalate":
-                    day = s.get("stopped_on_day")
-                    day_phrase = f"第{int(day)}病日" if day else "経過中"
-                    if substituted:
-                        lines.append(
-                            f"- deescalate: {considered} を {day_phrase}で中止し "
-                            f"{substituted} へ de-escalate ({conflict})"
-                        )
-                    else:
-                        lines.append(f"- deescalate: {considered} を {day_phrase}で中止 ({conflict})")
-                else:  # avoid (legacy + explicit)
-                    if substituted:
-                        lines.append(
-                            f"- avoid: {considered} ({conflict} との併用のため回避); 代替として {substituted} を処方"
-                        )
-                    else:
-                        lines.append(f"- avoid: {considered} ({conflict} との併用のため回避、代替薬は選択せず)")
             else:
                 considered = s.get("considered") or ""
                 conflict = s.get("avoided_due_to") or ""
                 substituted = s.get("substituted_with")
-                if event == "hold":
-                    lines.append(f"- hold: {considered} was held during this admission because of {conflict}")
-                elif event == "substitute":
-                    if substituted:
-                        lines.append(
-                            f"- substitute: {considered} substituted with {substituted} (rationale: {conflict})"
-                        )
-                    else:
-                        lines.append(f"- substitute: {considered} substituted (rationale: {conflict})")
-                elif event == "switch":
-                    # Issue #1413 (S114): neutral "X discontinued, Y started".
-                    # Does NOT assert narrowing or broadening — real
-                    # `treatment_modifications` stops in disease YAML are
-                    # mostly escalations (clinical worsening / failure
-                    # trigger), so a spectrum-agnostic phrasing is safer.
-                    day = s.get("stopped_on_day")
-                    day_phrase = f"on day {int(day)}" if day else "during the stay"
-                    if substituted:
-                        lines.append(
-                            f"- switch: {considered} discontinued {day_phrase}; {substituted} started ({conflict})"
-                        )
-                    else:
-                        lines.append(f"- switch: {considered} discontinued {day_phrase} ({conflict})")
-                elif event == "deescalate":
-                    day = s.get("stopped_on_day")
-                    day_phrase = f"on day {int(day)}" if day else "during the stay"
-                    if substituted:
-                        lines.append(
-                            f"- deescalate: {considered} discontinued {day_phrase} "
-                            f"and narrowed to {substituted} ({conflict})"
-                        )
-                    else:
-                        lines.append(f"- deescalate: {considered} discontinued {day_phrase} ({conflict})")
-                else:  # avoid (legacy + explicit)
-                    if substituted:
-                        lines.append(
-                            f"- avoid: {considered} (avoided due to concurrent {conflict}); "
-                            f"substituted with {substituted}"
-                        )
-                    else:
-                        lines.append(
-                            f"- avoid: {considered} (avoided due to concurrent {conflict}); no alternative selected"
-                        )
+            day = s.get("stopped_on_day")
+            day_phrase = (
+                t("safety_skips.day_phrase_specific", lang, day=int(day))
+                if day
+                else t("safety_skips.day_phrase_default", lang)
+            )
+            if event == "hold":
+                key = "safety_skips_prompt.hold"
+            elif event == "substitute":
+                key = (
+                    "safety_skips_prompt.substitute_with_sub"
+                    if substituted
+                    else "safety_skips_prompt.substitute_no_sub"
+                )
+            elif event == "switch":
+                key = "safety_skips_prompt.switch_with_sub" if substituted else "safety_skips_prompt.switch_no_sub"
+            elif event == "deescalate":
+                key = (
+                    "safety_skips_prompt.deescalate_with_sub"
+                    if substituted
+                    else "safety_skips_prompt.deescalate_no_sub"
+                )
+            else:  # avoid (legacy + explicit)
+                key = "safety_skips_prompt.avoid_with_sub" if substituted else "safety_skips_prompt.avoid_no_sub"
+            lines.append(
+                t(
+                    key,
+                    lang,
+                    considered=considered,
+                    conflict=conflict,
+                    substituted=substituted or "",
+                    day_phrase=day_phrase,
+                )
+            )
         extra["considered_but_not_prescribed"] = "\n".join(lines)
 
     complications = list(getattr(ctx, "complications_occurred", []) or [])

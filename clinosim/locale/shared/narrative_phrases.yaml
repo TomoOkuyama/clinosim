@@ -1144,6 +1144,43 @@ safety_skips:
     ja: "経過中"
     en: "during the stay"
 
+# Drug-safety event LLM-prompt context line templates (Phase 1d-41).
+# From _build_extra_context (Layer 3 — the prompt-context bullet list
+# handed to the production LLM). Distinct from safety_skips: (Layer 2 —
+# deterministic template narrator) because the LLM prompt bullets carry
+# a leading `- <event>: ` dispatch marker so the LLM can dispatch to
+# the matching clinical phrasing per prompt Rule 2 (v17). Reuses
+# safety_skips.day_phrase_specific / day_phrase_default for the
+# time-of-event phrase.
+safety_skips_prompt:
+  hold:
+    ja: "- hold: {considered} ({conflict} のため今回入院中は保留)"
+    en: "- hold: {considered} was held during this admission because of {conflict}"
+  substitute_with_sub:
+    ja: "- substitute: {considered} を {substituted} に切替 (理由: {conflict})"
+    en: "- substitute: {considered} substituted with {substituted} (rationale: {conflict})"
+  substitute_no_sub:
+    ja: "- substitute: {considered} を切替 (理由: {conflict})"
+    en: "- substitute: {considered} substituted (rationale: {conflict})"
+  switch_with_sub:
+    ja: "- switch: {considered} を {day_phrase}で中止し {substituted} に切替 ({conflict})"
+    en: "- switch: {considered} discontinued {day_phrase}; {substituted} started ({conflict})"
+  switch_no_sub:
+    ja: "- switch: {considered} を {day_phrase}で中止 ({conflict})"
+    en: "- switch: {considered} discontinued {day_phrase} ({conflict})"
+  deescalate_with_sub:
+    ja: "- deescalate: {considered} を {day_phrase}で中止し {substituted} へ de-escalate ({conflict})"
+    en: "- deescalate: {considered} discontinued {day_phrase} and narrowed to {substituted} ({conflict})"
+  deescalate_no_sub:
+    ja: "- deescalate: {considered} を {day_phrase}で中止 ({conflict})"
+    en: "- deescalate: {considered} discontinued {day_phrase} ({conflict})"
+  avoid_with_sub:
+    ja: "- avoid: {considered} ({conflict} との併用のため回避); 代替として {substituted} を処方"
+    en: "- avoid: {considered} (avoided due to concurrent {conflict}); substituted with {substituted}"
+  avoid_no_sub:
+    ja: "- avoid: {considered} ({conflict} との併用のため回避、代替薬は選択せず)"
+    en: "- avoid: {considered} (avoided due to concurrent {conflict}); no alternative selected"
+
 # Checkup questionnaire full-page composer (Phase 1d-38).
 # From _build_checkup_questionnaire. JA renders 【…】-marked
 # section headers; EN renders comma-separated labelled fields.
