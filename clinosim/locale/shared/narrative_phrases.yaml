@@ -1650,3 +1650,39 @@ immunization_fhir:
   vaccination_routine: {ja: "予防接種（定期接種）", en: "Vaccination (routine)"}
   left_deltoid: {ja: "左三角筋", en: "Left deltoid"}
   intramuscular_route: {ja: "筋肉内注射", en: "Intramuscular route"}
+
+# FHIR emit-side microbiology labels + prose (Phase 1d-50).
+# From `clinosim/modules/output/fhir_r4/labs/microbiology.py` —
+# Specimen.condition, Observation.code/method, DR.conclusionCode /
+# .presentedForm title, and `_mb_conclusion_text` culture-outcome
+# one-liners.
+microbiology_fhir:
+  specimen_negative_adequate:
+    ja: "陰性(異常なし)"
+    en: "Negative (adequate)"
+  culture: {ja: "培養検査", en: "Culture"}
+  culture_and_identification: {ja: "培養同定", en: "Culture and identification"}
+  antimicrobial_susceptibility_testing:
+    ja: "感受性試験"
+    en: "Antimicrobial susceptibility testing"
+  antimicrobial_susceptibility:
+    ja: "感受性試験"
+    en: "Antimicrobial susceptibility"
+  abnormal: {ja: "異常所見", en: "Abnormal"}
+  normal: {ja: "異常なし", en: "Normal"}
+  report_title: {ja: "微生物検査報告書", en: "Microbiology Report"}
+  no_growth_after_5day:
+    ja: "5 日間培養で発育なし。"
+    en: "No growth after 5-day incubation."
+  detected_not_significant:
+    ja: "{org} を検出したが臨床的意義は乏しい(汚染疑い)。"
+    en: "{org} detected but not clinically significant (likely contaminant)."
+  culture_positive_pending_id:
+    ja: "培養陽性(菌種同定中)。"
+    en: "Culture positive; organism identification pending."
+  isolated_pending_sus:
+    ja: "{org} を分離。感受性検査は実施中。"
+    en: "{org} isolated; susceptibility panel pending."
+  isolated_with_sus:
+    ja: "{org} を分離。感受性: {tail}。"
+    en: "{org} isolated. Susceptibility: {tail}."

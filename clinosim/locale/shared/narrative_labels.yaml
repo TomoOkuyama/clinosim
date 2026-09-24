@@ -270,3 +270,15 @@ soap_label:
   objective: {en: "O:", ja: "O（客観）"}
   assessment: {en: "A:", ja: "A（評価）"}
   plan: {en: "P:", ja: "P（計画）"}
+
+# Microbiology specimen container text (Phase 1d-50). Was
+# `_container_text_ja` / `_container_text_en` dict pair inside
+# `microbiology._bb_microbiology`. Emitted at
+# `Specimen.container[0].type.text`.
+mb_container_text:
+  blood: {en: Blood culture bottle, ja: 血液培養ボトル}
+  urine: {en: Sterile urine container, ja: 滅菌尿カップ}
+  sputum: {en: Sputum container, ja: 喀痰カップ}
+  wound: {en: Swab container, ja: スワブ容器}
+  csf: {en: Sterile CSF tube, ja: 髄液滅菌管}
+  stool: {en: Stool container, ja: 便検体容器}

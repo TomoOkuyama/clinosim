@@ -13,7 +13,8 @@ from typing import Any
 
 from clinosim.codes import get_system_uri, system_key_for
 from clinosim.codes import lookup as code_lookup
-from clinosim.locale.loader import load_code_mapping
+from clinosim.locale.i18n import t
+from clinosim.locale.loader import load_code_mapping, load_narrative_labels, resolve_localized_display
 from clinosim.modules._shared import is_jp, resolve_lang
 from clinosim.modules.output.fhir_r4.demographics.patient import patient_ref
 from clinosim.modules.output.fhir_r4.encounters.encounter import encounter_ref
@@ -232,25 +233,9 @@ def _bb_microbiology(ctx: BundleContext) -> list[dict]:
         # (Blood culture bottle / Urine sterile container / Sputum container)。
         # SNOMED CT 容器 code は正典未確定、text-only per no-fabrication policy。
         _spec_type = mb.get("specimen", "")
-        _container_text_ja = {
-            "blood": "血液培養ボトル",
-            "urine": "滅菌尿カップ",
-            "sputum": "喀痰カップ",
-            "wound": "スワブ容器",
-            "csf": "髄液滅菌管",
-            "stool": "便検体容器",
-        }
-        _container_text_en = {
-            "blood": "Blood culture bottle",
-            "urine": "Sterile urine container",
-            "sputum": "Sputum container",
-            "wound": "Swab container",
-            "csf": "Sterile CSF tube",
-            "stool": "Stool container",
-        }
-        _ct = _container_text_ja if lang == "ja" else _container_text_en
-        if _spec_type in _ct:
-            specimen["container"] = [{"type": {"text": _ct[_spec_type]}}]
+        _ct_entry = load_narrative_labels().get("mb_container_text", {}).get(_spec_type)
+        if _ct_entry:
+            specimen["container"] = [{"type": {"text": resolve_localized_display(_ct_entry, lang, fallback="")}}]
         # CY8-11 fix: Specimen.condition — 品質状態。既定は SNOMED 260385009
         # (Negative — 異常無し)、hemolysis/quality-note があれば別 code。
         # 現状 CIF に quality flag 無いため一律 negative (98%+ realistic)。
@@ -260,7 +245,7 @@ def _bb_microbiology(ctx: BundleContext) -> list[dict]:
                     {
                         "system": "http://snomed.info/sct",
                         "code": "260385009",
-                        "display": "陰性(異常なし)" if lang == "ja" else "Negative (adequate)",
+                        "display": t("microbiology_fhir.specimen_negative_adequate", lang),
                     }
                 ]
             }
@@ -281,18 +266,18 @@ def _bb_microbiology(ctx: BundleContext) -> list[dict]:
             _c = micro_coding(code_system, culture_code_value, lang)
             culture_code = {
                 "coding": [_c],
-                "text": _c.get("display") or ("培養検査" if lang == "ja" else "Culture"),
+                "text": _c.get("display") or t("microbiology_fhir.culture", lang),
             }
         else:
-            culture_code = {"text": "培養検査" if lang == "ja" else "Culture"}
+            culture_code = {"text": t("microbiology_fhir.culture", lang)}
         result_refs: list[dict] = []
 
         # C5-21 (Chain 2): Observation.method for microbiology. Culture-based
         # identification is a distinct method from bench-analyzer chemistry
         # (see _fhir_observations._build_lab_observation). Text-only per
         # FHIR R4 CodeableConcept precedent.
-        _culture_method_text = "培養同定" if lang == "ja" else "Culture and identification"
-        _sus_method_text = "感受性試験" if lang == "ja" else "Antimicrobial susceptibility testing"
+        _culture_method_text = t("microbiology_fhir.culture_and_identification", lang)
+        _sus_method_text = t("microbiology_fhir.antimicrobial_susceptibility_testing", lang)
 
         # Issue #854 Bucket A row 4 (PR-obs-microbiology): opaque mb-org id.
         _mb_org_structural_key = base
@@ -352,7 +337,7 @@ def _bb_microbiology(ctx: BundleContext) -> list[dict]:
             sus_code_value, sus_code_system = resolve_susceptibility_code(antibiotic_loinc, ctx.country)
             # #321 JP_Observation_LabResult code.text min=1 満たす。
             _sus_c = micro_coding(sus_code_system, sus_code_value, lang)
-            _sus_code_text = _sus_c.get("display") or ("感受性試験" if lang == "ja" else "Antimicrobial susceptibility")
+            _sus_code_text = _sus_c.get("display") or t("microbiology_fhir.antimicrobial_susceptibility", lang)
             # 同 profile の valueCodeableConcept.coding.display min=1 満たす
             # (v6.1 で 162 件 error)。v3-ObservationInterpretation は
             # English-only CS のため、JP output でも "en" で lookup
@@ -472,9 +457,9 @@ def _bb_microbiology(ctx: BundleContext) -> list[dict]:
                     {
                         "system": "http://snomed.info/sct",
                         "code": "263654008" if _mb_abnormal else "17621005",
-                        "display": ("異常所見" if lang == "ja" else "Abnormal")
+                        "display": t("microbiology_fhir.abnormal", lang)
                         if _mb_abnormal
-                        else ("異常なし" if lang == "ja" else "Normal"),
+                        else t("microbiology_fhir.normal", lang),
                     }
                 ],
             }
@@ -497,7 +482,7 @@ def _bb_microbiology(ctx: BundleContext) -> list[dict]:
         # C5-20 (Chain 3): presentedForm — text/plain summary of culture +
         # susceptibility results (patient-facing form of the microbiology
         # report). Deterministic text (no external state).
-        _title = "微生物検査報告書" if lang == "ja" else "Microbiology Report"
+        _title = t("microbiology_fhir.report_title", lang)
         _summary = _mb_presented_text(mb, lang)
         _pf = build_presented_form(_summary, _title, lang)
         if _pf:
@@ -521,25 +506,17 @@ def _mb_conclusion_text(mb: dict, lang: str) -> str:
     organism = mb.get("organism_snomed", "") or ""
     if not growth:
         if not organism:
-            return "5 日間培養で発育なし。" if lang == "ja" else "No growth after 5-day incubation."
+            return t("microbiology_fhir.no_growth_after_5day", lang)
         # Rare: growth flag off but organism recorded → treat as "not
         # clinically significant, likely contaminant" for narrative honesty.
         org_disp = code_lookup("snomed-ct", organism, lang) or organism
-        return (
-            f"{org_disp} を検出したが臨床的意義は乏しい(汚染疑い)。"
-            if lang == "ja"
-            else f"{org_disp} detected but not clinically significant (likely contaminant)."
-        )
+        return t("microbiology_fhir.detected_not_significant", lang, org=org_disp)
     org_disp = code_lookup("snomed-ct", organism, lang) if organism else ""
     if not org_disp:
-        return "培養陽性(菌種同定中)。" if lang == "ja" else "Culture positive; organism identification pending."
+        return t("microbiology_fhir.culture_positive_pending_id", lang)
     sus_list = mb.get("susceptibilities") or []
     if not sus_list:
-        return (
-            f"{org_disp} を分離。感受性検査は実施中。"
-            if lang == "ja"
-            else f"{org_disp} isolated; susceptibility panel pending."
-        )
+        return t("microbiology_fhir.isolated_pending_sus", lang, org=org_disp)
 
     # Compact sensitivity summary — pick up to 4 sensitivities to keep the
     # line readable. Prefer the payload's ``antibiotic_display`` when
@@ -571,7 +548,7 @@ def _mb_conclusion_text(mb: dict, lang: str) -> str:
     tail = ", ".join(parts)
     if len(sus_list) > 4:
         tail += " …"
-    return f"{org_disp} を分離。感受性: {tail}。" if lang == "ja" else f"{org_disp} isolated. Susceptibility: {tail}."
+    return t("microbiology_fhir.isolated_with_sus", lang, org=org_disp, tail=tail)
 
 
 def _mb_presented_text(mb: dict, lang: str) -> str:
