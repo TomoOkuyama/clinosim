@@ -259,3 +259,14 @@ adl_detail_key:
   bathing: {en: bathing, ja: 入浴}
   mobility: {en: mobility, ja: 移動}
   toilet_use: {en: toilet_use, ja: 排泄}
+
+# SOAP progress-note section header prefixes (Phase 1d-45). Was
+# `_SOAP_JA` / `_SOAP_EN` module-level tuples in
+# `template_generator._render_progress_note_text`. The renderer
+# looks these up by ordered slug (subjective → objective →
+# assessment → plan) to prefix each SOAP block.
+soap_label:
+  subjective: {en: "S:", ja: "S（主観）"}
+  objective: {en: "O:", ja: "O（客観）"}
+  assessment: {en: "A:", ja: "A（評価）"}
+  plan: {en: "P:", ja: "P（計画）"}
