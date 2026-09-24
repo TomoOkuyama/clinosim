@@ -723,6 +723,37 @@ chronic_monitoring:
     ja: "、ACT で コントロール状況確認。"
     en: "; ACT control review."
 
+# Chronic-assessment prose fragments (Phase 1d-46).
+# From template_generator._compose_chronic_assessment_integrated —
+# per-condition target + medication-continuation tail, non-condition-
+# specific measurement fallback, and abnormal-vital sentinel lines.
+# Placeholders: {sbp}/{dbp}/{ldl}/{med}/{joined}/{label}/{hr}/{spo2}/{temp}.
+chronic_assessment:
+  bp_target:
+    ja: "目標 {sbp}/{dbp} mmHg 未満"
+    en: "target < {sbp}/{dbp} mmHg"
+  ldl_target_primary_prevention:
+    ja: "目標 {ldl} mg/dL 未満 (一次予防)"
+    en: "target < {ldl} mg/dL (primary prevention)"
+  med_continue_tail:
+    ja: "、{med} 継続"
+    en: "; {med} continue"
+  followup_deferred:
+    ja: "本日測定 ({joined}) は病態特異的モニタリング項目に該当せず、次回受診時に {label} 特化評価を追加検討。"
+    en: "today's measurements ({joined}) not condition-specific; defer {label} focused review to next visit."
+  tachycardia:
+    ja: "頻脈: HR {hr} 回/分、動悸・脱水評価要。"
+    en: "Tachycardia: HR {hr} /min, assess volume + arrhythmia."
+  hypoxemia:
+    ja: "低酸素症: SpO2 {spo2:.0f}%、酸素化評価要。"
+    en: "Hypoxemia: SpO2 {spo2:.0f}%, oxygenation review needed."
+  hypoxemia_severe:
+    ja: "重度低酸素症: SpO2 {spo2:.0f}%、酸素化評価要。"
+    en: "Severe hypoxemia: SpO2 {spo2:.0f}%, oxygenation review needed."
+  fever:
+    ja: "発熱: T {temp:.1f}°C、感染源精査要。"
+    en: "Fever: T {temp:.1f}°C, evaluate for infection source."
+
 # ED workup section headers (Phase 1d-13).
 ed_workup:
   labs_head:
