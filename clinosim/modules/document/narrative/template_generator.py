@@ -1545,7 +1545,6 @@ class TemplateNarrativeGenerator:
 
         facts: list[str] = []
         lang = ctx.target_lang
-        is_ja = lang == "ja"
         fallback = t("chief_complaint.hpi_fallback", lang)
 
         # Precompute the disease canonical CC — used to decide whether the
@@ -1576,7 +1575,7 @@ class TemplateNarrativeGenerator:
                         raw_str,
                         disease_id,
                         canonical_disease_cc,
-                        is_ja,
+                        lang,
                         ctx,
                         encounter_condition_id=encounter_condition_id,
                         canonical_encounter_cc=canonical_encounter_cc,
@@ -1621,7 +1620,7 @@ class TemplateNarrativeGenerator:
             text,
             disease_id,
             canonical_disease_cc,
-            is_ja,
+            lang,
             ctx,
             encounter_condition_id=encounter_condition_id,
             canonical_encounter_cc=canonical_encounter_cc,
@@ -1653,7 +1652,7 @@ class TemplateNarrativeGenerator:
         text: str,
         disease_id: str | None,
         canonical_cc: str | None,
-        is_ja: bool,
+        lang: str,
         ctx: NarrativeContext,
         *,
         encounter_condition_id: str | None = None,
@@ -1677,7 +1676,7 @@ class TemplateNarrativeGenerator:
              path; a swap here breaks the pre-#983 uniform-per-condition
              concentration.
         """
-        if not is_ja or not text:
+        if lang != "ja" or not text:
             return text, None
         try:
             variants = load_chief_complaint_variants()
@@ -3492,7 +3491,6 @@ class TemplateNarrativeGenerator:
         emitted only a nurse id + generic fallback (~30 chars)."""
         facts: list[str] = []
         lang = ctx.target_lang
-        is_ja = lang == "ja"
 
         parts: list[str] = []
         nurse_id = _o(ctx.encounter, "primary_nurse_id", "") or ""
@@ -3524,9 +3522,7 @@ class TemplateNarrativeGenerator:
             labels.append(_code_lookup(key, emit_code, ctx.target_lang) or emit_code)
         if labels:
             parts.append(
-                t("pmh.header_prefix", lang)
-                + ("、".join(labels) if is_ja else ", ".join(labels))
-                + t("list_sep.period", lang)
+                t("pmh.header_prefix", lang) + t("list_sep.serial", lang).join(labels) + t("list_sep.period", lang)
             )
         # Allergy
         allergies = ctx.allergies or []
