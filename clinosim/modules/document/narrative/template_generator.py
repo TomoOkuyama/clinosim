@@ -6489,7 +6489,6 @@ class TemplateNarrativeGenerator:
         so explicitly.
         """
         lang = ctx.target_lang
-        is_ja = lang == "ja"
         facts: list[str] = ["ctx.los_days"]
         los = ctx.los_days or 0
         code, display, _ = self._dc_resolve_primary_cause(ctx)
@@ -6515,11 +6514,7 @@ class TemplateNarrativeGenerator:
             bucket = "long"
             bucket_hours = 0
 
-        if is_ja:
-            text = self._dc_duration_phrase_ja(bucket, los, bucket_hours, pattern, display or "")
-        else:
-            text = self._dc_duration_phrase_en(bucket, los, bucket_hours, pattern, display or "")
-        return text, facts
+        return self._dc_duration_phrase(bucket, los, bucket_hours, pattern, display or "", lang), facts
 
     def _dc_disease_pattern(self, icd_code: str) -> str:
         """Return an "acute" / "chronic" / "unknown" pattern from ICD-10.
@@ -6584,50 +6579,38 @@ class TemplateNarrativeGenerator:
         except Exception:
             return None
 
-    def _dc_duration_phrase_ja(self, bucket: str, los: int, hours: int, pattern: str, disease_label: str) -> str:
-        """JP duration phrase generator — five LOS buckets × three patterns.
-
-        The prose reads like a JP physician's short-form note on the
-        死亡診断書 form; the LLM refinement pass polishes further when
-        available, but this template output is already clinically valid
-        and grammatically complete on its own.
+    def _dc_duration_phrase(
+        self,
+        bucket: str,
+        los: int,
+        hours: int,
+        pattern: str,
+        disease_label: str,
+        lang: str,
+    ) -> str:
+        """Compose the JP-CLINS 直接死因までの期間 phrase from bucket +
+        pattern + disease-label. Phase 1d-36: unified the previously
+        per-lang _dc_duration_phrase_ja / _en pair via the shared
+        ``dc_duration`` phrase catalog. Fluency reads like a JP
+        physician's short-form note on the 死亡診断書 form; EN
+        translations mirror the semantics.
         """
-        prefix = "直接死因までの期間: "
-        chronic_lead = "既往の慢性経過に加え、" if pattern == "chronic" else ""
-        disease_suffix = f"（{disease_label}）" if disease_label else ""
+        prefix = t("dc_duration.prefix", lang)
+        chronic_lead = t("dc_duration.chronic_lead", lang) if pattern == "chronic" else ""
+        suffix = t("dc_duration.disease_suffix", lang, disease=disease_label) if disease_label else ""
         if bucket == "hours":
-            body = f"入院より約{hours}時間で死亡{disease_suffix}"
+            body = t("dc_duration.body_hours", lang, hours=hours, suffix=suffix)
         elif bucket == "same_day":
-            body = f"入院同日、数時間以内に死亡{disease_suffix}"
+            body = t("dc_duration.body_same_day", lang, suffix=suffix)
         elif bucket == "days":
-            body = f"入院より約{los}日の経過で死亡{disease_suffix}"
+            body = t("dc_duration.body_days", lang, los=los, suffix=suffix)
         elif bucket == "weeks":
             weeks = max(1, round(los / 7))
-            body = f"入院より約{weeks}週間（{los}日）の経過で死亡{disease_suffix}"
+            body = t("dc_duration.body_weeks", lang, weeks=weeks, los=los, suffix=suffix)
         else:  # "long"
             weeks = max(4, round(los / 7))
-            body = f"入院より約{weeks}週間の長期経過で死亡{disease_suffix}"
-        tail = "。入院前の経過は本記録範囲外。"
-        return f"{prefix}{chronic_lead}{body}{tail}"
-
-    def _dc_duration_phrase_en(self, bucket: str, los: int, hours: int, pattern: str, disease_label: str) -> str:
-        """EN duration phrase generator (mirrors the JP version)."""
-        prefix = "Time from onset of immediate cause to death: "
-        chronic_lead = "on a background of chronic disease, " if pattern == "chronic" else ""
-        disease_suffix = f" from {disease_label}" if disease_label else ""
-        if bucket == "hours":
-            body = f"died approximately {hours} h after admission{disease_suffix}"
-        elif bucket == "same_day":
-            body = f"died the same day of admission, within hours{disease_suffix}"
-        elif bucket == "days":
-            body = f"died approximately {los} days into the admission{disease_suffix}"
-        elif bucket == "weeks":
-            weeks = max(1, round(los / 7))
-            body = f"died approximately {weeks} week(s) ({los} d) into the admission{disease_suffix}"
-        else:
-            weeks = max(4, round(los / 7))
-            body = f"died after a prolonged {weeks}-week course during this admission{disease_suffix}"
-        tail = ". Pre-admission course not captured in this record."
+            body = t("dc_duration.body_long", lang, weeks=weeks, suffix=suffix)
+        tail = t("dc_duration.tail", lang)
         return f"{prefix}{chronic_lead}{body}{tail}"
 
     def _build_dc_underlying_cause(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
@@ -6666,7 +6649,6 @@ class TemplateNarrativeGenerator:
         complication was recorded.
         """
         lang = ctx.target_lang
-        is_ja = lang == "ja"
         facts: list[str] = []
         conds = _o(ctx.patient, "chronic_conditions", []) or [] if ctx.patient else []
         parts: list[str] = []
@@ -6675,8 +6657,8 @@ class TemplateNarrativeGenerator:
             if not code_val:
                 continue
             system = _o(c, "system", "") or system_key_for("diagnosis", ctx.locale.upper())
-            display = code_lookup(system, code_val, ctx.target_lang) or code_val
-            parts.append(f"{display}（{code_val}）" if is_ja else f"{display} ({code_val})")
+            display = code_lookup(system, code_val, lang) or code_val
+            parts.append(t("list_item.inline_dx_with_code", lang, display=display, code=code_val))
         if parts:
             facts.append("ctx.patient.chronic_conditions")
 
@@ -6692,35 +6674,34 @@ class TemplateNarrativeGenerator:
         if not parts and not comp_tokens:
             return t("death_cert.contributing_none", lang), facts
 
-        if is_ja:
-            prefix = "影響を及ぼした傷病名: "
-            list_part = "、".join(parts) if parts else ""
-            connector = ""
-            if list_part:
-                connector = "の慢性経過が背景にあり、" if pattern == "chronic" else "を併存疾患として有し、"
-            comp_part = ""
-            if comp_tokens:
-                comp_labels = "、".join(str(t).replace("_", " ") for t in comp_tokens)
-                comp_part = f"入院中に{comp_labels}を合併し臨床経過に影響した。"
-            if list_part:
-                tail = "死亡に至る臨床経過に影響したと考えられる。"
-                return f"{prefix}{list_part}{connector}{comp_part}{tail}", facts
-            return f"{prefix}{comp_part}", facts
-
-        # EN path.
-        prefix = "Contributing conditions: "
-        list_part = "; ".join(parts) if parts else ""
+        prefix = t("dc_contributing.prefix", lang)
+        # JA joins the code-labelled parts with 「、」, EN with "; ".
+        # ``list_sep.semicolon`` matches both.
+        list_part = t("list_sep.semicolon", lang).join(parts) if parts else ""
         connector = ""
         if list_part:
-            connector = " on a background of chronic disease, " if pattern == "chronic" else " as comorbid conditions, "
+            connector = t(
+                "dc_contributing.connector_chronic" if pattern == "chronic" else "dc_contributing.connector_comorbid",
+                lang,
+            )
         comp_part = ""
         if comp_tokens:
-            comp_labels = ", ".join(str(t).replace("_", " ") for t in comp_tokens)
-            comp_part = f" In-hospital complication(s) — {comp_labels} — also affected the clinical course."
+            comp_sep = t("list_sep.serial", lang)
+            comp_labels = comp_sep.join(str(tok).replace("_", " ") for tok in comp_tokens)
+            comp_part = t("dc_contributing.comp_part", lang, comp_labels=comp_labels)
         if list_part:
-            tail = "which plausibly contributed to the terminal course."
-            return f"{prefix}{list_part}{connector}{tail}{comp_part}", facts
-        return f"{prefix}{comp_part.strip()}", facts
+            tail = t("dc_contributing.tail_with_list", lang)
+            return t(
+                "dc_contributing.compound_line",
+                lang,
+                prefix=prefix,
+                list_part=list_part,
+                connector=connector,
+                comp_part=comp_part,
+                tail=tail,
+            ), facts
+        # No list_part → prefix + comp_part only. EN strips leading whitespace.
+        return f"{prefix}{comp_part.strip() if lang != 'ja' else comp_part}", facts
 
     def _build_dc_manner_of_death(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
         """死因の種類 / Manner of death.
