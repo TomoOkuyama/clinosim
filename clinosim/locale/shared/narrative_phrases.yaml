@@ -1218,6 +1218,79 @@ safety_skips_prompt:
     ja: "- avoid: {considered} ({conflict} との併用のため回避、代替薬は選択せず)"
     en: "- avoid: {considered} (avoided due to concurrent {conflict}); no alternative selected"
 
+# Checkup lab-results section (Phase 1d-47). From
+# _build_checkup_lab_results — 4 measured items (BMI / BP / HbA1c /
+# LDL) each classified as unmeasured / normal / borderline / elevated
+# / severe, plus an overall A-D grade note. JP-only document today,
+# so the EN slot is a functional placeholder — but the shape stays
+# uniform so adding a new locale is a data-only change.
+checkup_lab_results:
+  bmi_unmeasured: {ja: "未測定", en: "not measured"}
+  bmi_underweight:
+    ja: "{v:.1f}(低体重)"
+    en: "{v:.1f} (underweight)"
+  bmi_normal:
+    ja: "{v:.1f}(標準)"
+    en: "{v:.1f} (normal)"
+  bmi_obesity_1:
+    ja: "{v:.1f}(肥満 1 度)"
+    en: "{v:.1f} (mild obesity)"
+  bmi_obesity_2plus:
+    ja: "{v:.1f}(肥満 2 度以上)"
+    en: "{v:.1f} (moderate-to-severe obesity)"
+  bp_unmeasured: {ja: "未測定", en: "not measured"}
+  bp_hypertension:
+    ja: "{sbp:.0f}/{dbp:.0f} mmHg(高血圧)"
+    en: "{sbp:.0f}/{dbp:.0f} mmHg (hypertension)"
+  bp_high_normal:
+    ja: "{sbp:.0f}/{dbp:.0f} mmHg(高値注意)"
+    en: "{sbp:.0f}/{dbp:.0f} mmHg (high-normal)"
+  bp_reference:
+    ja: "{sbp:.0f}/{dbp:.0f} mmHg(基準内)"
+    en: "{sbp:.0f}/{dbp:.0f} mmHg (within reference)"
+  hba1c_unmeasured: {ja: "未測定", en: "not measured"}
+  hba1c_diabetic:
+    ja: "{v:.1f}%(糖尿病型)"
+    en: "{v:.1f}% (diabetic pattern)"
+  hba1c_borderline:
+    ja: "{v:.1f}%(境界)"
+    en: "{v:.1f}% (borderline)"
+  hba1c_reference:
+    ja: "{v:.1f}%(基準内)"
+    en: "{v:.1f}% (within reference)"
+  ldl_unmeasured: {ja: "未測定", en: "not measured"}
+  ldl_high:
+    ja: "{v:.0f} mg/dL(高 LDL 血症)"
+    en: "{v:.0f} mg/dL (high LDL)"
+  ldl_borderline:
+    ja: "{v:.0f} mg/dL(境界域)"
+    en: "{v:.0f} mg/dL (borderline)"
+  ldl_elevated:
+    ja: "{v:.0f} mg/dL(高値注意)"
+    en: "{v:.0f} mg/dL (elevated)"
+  ldl_reference:
+    ja: "{v:.0f} mg/dL(基準内)"
+    en: "{v:.0f} mg/dL (within reference)"
+  overall_A: {ja: "異常なし", en: "no abnormalities"}
+  overall_B: {ja: "軽度異常、生活指導", en: "mild abnormalities, lifestyle guidance"}
+  overall_C: {ja: "要指導", en: "guidance recommended"}
+  overall_D: {ja: "要精査・要治療", en: "further evaluation and treatment recommended"}
+  body_measurements_line:
+    ja: "【身体計測】BMI:{bmi}。"
+    en: "Body measurements: BMI {bmi}."
+  blood_pressure_line:
+    ja: "【血圧】{bp}。"
+    en: "Blood pressure: {bp}."
+  hba1c_line:
+    ja: "【血糖・HbA1c】HbA1c:{hba1c}。"
+    en: "HbA1c: {hba1c}."
+  ldl_line:
+    ja: "【脂質】LDL:{ldl}。"
+    en: "LDL: {ldl}."
+  overall_line:
+    ja: "総合判定:{overall}({overall_note})。"
+    en: "Overall assessment: {overall} ({overall_note})."
+
 # Checkup questionnaire full-page composer (Phase 1d-38).
 # From _build_checkup_questionnaire. JA renders 【…】-marked
 # section headers; EN renders comma-separated labelled fields.
