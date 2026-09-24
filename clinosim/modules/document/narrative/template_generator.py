@@ -3670,7 +3670,6 @@ class TemplateNarrativeGenerator:
         as pre-session-104.
         """
         lang = ctx.target_lang
-        is_ja = lang == "ja"
         actions, facts = _lookup_nursing_content(ctx, "care_plan", lang, cap=4)
 
         # Risk-driven actions. Semantic-prefix dedup (session-104): the
@@ -3686,22 +3685,12 @@ class TemplateNarrativeGenerator:
             latest = risks[-1]
             if str(_o(latest, "fall_risk_level", "") or "").lower() in ("high", "moderate"):
                 if not any(a.startswith(_fall_prefix) for a in actions):
-                    fp = (
-                        "転倒予防: ベッド柵設置、ナースコール手元"
-                        if is_ja
-                        else "fall precautions: bed rails, call bell within reach"
-                    )
-                    actions.append(fp)
+                    actions.append(t("nursing.fall_precautions_action", lang))
                     if "ctx.nursing_risk_assessments" not in facts:
                         facts.append("ctx.nursing_risk_assessments")
             if (_o(latest, "braden_total", 25) or 25) <= 14:
                 if not any(a.startswith(_pu_prefix) for a in actions):
-                    pu = (
-                        "褥瘡予防: 2時間毎体位変換、圧再分散マットレス"
-                        if is_ja
-                        else "PU prevention: q2h turning, pressure-redistributing mattress"
-                    )
-                    actions.append(pu)
+                    actions.append(t("nursing.pu_prevention_action", lang))
                     if "ctx.nursing_risk_assessments" not in facts:
                         facts.append("ctx.nursing_risk_assessments")
 
