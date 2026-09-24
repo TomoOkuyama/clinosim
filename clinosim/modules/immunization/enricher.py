@@ -166,7 +166,6 @@ def _synthesize_vaccination_encounter(
     _suffix = hashlib.sha256(_key).hexdigest()[:12]
     enc_id = f"ENC-VAX-{patient_id}-{_suffix}"
     adm = datetime(occ.year, occ.month, occ.day, 10, 0)
-    is_ja = country == "JP"
     chief_en = "Vaccination visit"
     chief_ja = "予防接種"
     # Issue #1215: stamp Z23 "Encounter for immunization" as the companion
@@ -187,7 +186,7 @@ def _synthesize_vaccination_encounter(
         admission_datetime=adm,
         discharge_datetime=adm,
         chief_complaint=chief_en,
-        chief_complaint_ja=chief_ja if is_ja else "",
+        chief_complaint_ja=chief_ja if country == "JP" else "",
         priority="R",  # routine
         admission_diagnosis_code="Z23",
         admission_diagnosis_system="icd-10-cm",
