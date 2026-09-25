@@ -566,6 +566,10 @@ def _format_lab_unit_for_prose(unit: str | None) -> str:
       (returns ``<real>``); the mL/min/1.73m² special-case is handled
       at its callsite for the ² typography, so this helper leaves the
       raw underscore/digit form untouched.
+    - UCUM special-unit brackets ``[X]`` (e.g. ``mm[Hg]`` for mmHg,
+      ``cm[H2O]`` for cmH2O) are stripped so blood-gas / airway-
+      pressure units render as clinicians write them (`PaCO2 46.4
+      mmHg` rather than `PaCO2 46.4 mm[Hg]`).
     - Otherwise the unit is returned verbatim.
     """
     if not unit:
@@ -580,7 +584,13 @@ def _format_lab_unit_for_prose(unit: str | None) -> str:
     if u.endswith("}"):
         anno_start = u.rfind("/{")
         if anno_start > 0:
-            return u[:anno_start]
+            u = u[:anno_start]
+    # Strip UCUM special-unit brackets — `mm[Hg]` → `mmHg`,
+    # `cm[H2O]` → `cmH2O`, `[in_i]` → `in_i`. The brackets carry no
+    # information beyond marking a UCUM special unit family; prose
+    # renders them without.
+    if "[" in u and "]" in u:
+        u = u.replace("[", "").replace("]", "")
     return u
 
 
