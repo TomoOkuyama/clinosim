@@ -164,18 +164,28 @@ first. Two symmetric defenses coexist:
     staff_dict}` loaded from `hospital.json` by
     `NarrativePass._load_roster()` and threaded into every ctx.
     `template_generator._resolve_staff_name(staff_id, roster_map,
-    is_ja)` maps `DR-CA-002` → `加瀬 幸男 医師` (JA) / `加瀬 幸男
+    lang)` maps `DR-CA-002` → `加瀬 幸男 医師` (JA) / `加瀬 幸男
     (physician)` (EN). Falls back to the raw id when unknown — never
     fabricates. 4 template call-sites use it (nursing shift note,
     progress-note nurse line, ACP other-staff, NCP ward/physician).
-  - JA enum localization uses helpers on
-    `replacement_strategy.py`:
-    `_localize_severity_ja` (mild → 軽度; PR #832),
-    `_localize_oxygen_device_ja` (nasal_cannula → 経鼻カニューレ),
-    inline `_fall_ja` (high → 高リスク). Call-sites are the small
-    number of `_build_*` functions that would otherwise embed the
-    raw enum in JA text (PR #833 closed the last two in
-    `_build_nursing_shift_status`).
+  - Lang-aware localizer wrappers (Phase 1d-61/62 unified-i18n
+    API) let callers drop the outer `if lang == "ja":` gate around
+    per-locale data-pipeline lookups (drug names, lab names,
+    oxygen devices). Each is a no-op when the target locale has
+    no lookup table (today: any `lang != "ja"`):
+    - `output/fhir_r4/lib/localization.localize_drug_name(name,
+      lang)` — wraps `_localize_drug_name`.
+    - `replacement_strategy.localize_lab_name(name, lang)` — wraps
+      `_localize_lab_name_ja`.
+    - `replacement_strategy.localize_oxygen_device(device, lang)`
+      — wraps `_localize_oxygen_device_ja`.
+    Underlying JA-only helpers
+    (`_localize_severity_ja`, `_localize_oxygen_device_ja`,
+    `_localize_lab_name_ja`, `_localize_arrival_mode_ja`,
+    `_localize_risk_level_ja`, `_localize_barthel_band_ja`) stay
+    as the actual dictionary implementations. Adding a new locale
+    is a data-only extension of the underlying YAML (see
+    `llm_prompt_labels.yaml`) — no code change.
 - **Backstop (post-hoc walker)** — `_localize_practitioner_ids_in_text`
   in `output/fhir_r4/documents/composition.py` (PR #828). Regex-
   substitutes any surviving staff-id in `Composition.section[].text.div`

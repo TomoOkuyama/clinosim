@@ -251,6 +251,13 @@ FP の **Status 列を更新**(OPEN → IN-PROGRESS → DONE)し、DONE 時に P
   3. 残る `lang=="ja"` 参照(`_fhir_care_team:87` の `_CARE_TEAM_CATEGORY_JA/_EN` dispatch +
      `_fhir_diagnostic_report:407-418` の `findings_text_ja` / `impression_text_ja` フィールド
      selector)は data-field 選択(literal label emission ではない)なので intentional にそのまま。
+     **後続対応 (Phase 1d, session 121 以降)**: 上記 3 の deferred 項目は統一 i18n
+     roadmap の一環として後続 phase で移行済み — `_CARE_TEAM_CATEGORY_JA/_EN` →
+     `narrative_labels.yaml/care_team_role_display:` (Phase 1d-57, PR #1522) /
+     `findings_text_ja` / `impression_text_ja` 選択 → 共有 `pick_localized_field(source,
+     base, lang)` helper (Phase 1d-53, PR #1518)。関連ファイル path も `_fhir_care_team.py` →
+     `encounters/care_team.py`、`_fhir_diagnostic_report.py` → `labs/diagnostic_report.py`
+     への rename 済 (AD-55 refactor)。
   - **Out-of-scope**(low value、別 backlog): `_o` ラッパ 3 箇所を `get_attr_or_key as _o` alias
     import に統一 / `healthcare_system/loader.py:24-27` country map の `is_jp/is_us` 経由化
     (現状 `.get(country)` の case-sensitivity で fail-loud、silent-no-op ではない)/
