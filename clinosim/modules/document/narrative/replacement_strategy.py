@@ -43,6 +43,7 @@ from collections.abc import Callable
 from typing import Any
 
 from clinosim.locale.i18n import t
+from clinosim.modules._shared import pick_localized_field
 from clinosim.modules.document.narrative.cache import (
     cache_key,
     demographics_bucket,
@@ -67,7 +68,10 @@ _BUNDLE_RETRY_MAX_MODEL_LEN = 32768
 # document→output→document circular import at module load. The
 # localization helper only depends on a small YAML at first-call time.
 def _load_drug_localizer():  # pragma: no cover — trivial thunk
-    from clinosim.modules.output.fhir_r4.lib.localization import _localize_drug_name as _f
+    """Lazy import of the lang-aware `localize_drug_name` wrapper.
+    Returned callable takes `(drug_name, lang)` — a no-op for any
+    lang without a lookup table."""
+    from clinosim.modules.output.fhir_r4.lib.localization import localize_drug_name as _f
 
     return _f
 
@@ -1366,14 +1370,13 @@ def _build_extra_context(
             # assertion (real treatment_modifications stops are mostly
             # escalations, so a spectrum-agnostic phrasing is safer).
             event = str(s.get("event_type") or "avoid").lower()
-            if lang == "ja":
-                considered = s.get("considered_ja") or s.get("considered") or ""
-                conflict = s.get("avoided_due_to_ja") or s.get("avoided_due_to") or ""
-                substituted = s.get("substituted_with_ja") or s.get("substituted_with")
-            else:
-                considered = s.get("considered") or ""
-                conflict = s.get("avoided_due_to") or ""
-                substituted = s.get("substituted_with")
+            # `<field>_<lang>` slot with bare-slot fallback via the
+            # shared CIF-slot picker — no `lang == "ja"` gate here so
+            # adding a locale is a data-only change (populate
+            # `<field>_<lang>` on the safety-skip entry).
+            considered = pick_localized_field(s, "considered", lang)
+            conflict = pick_localized_field(s, "avoided_due_to", lang)
+            substituted = pick_localized_field(s, "substituted_with", lang) or None
             day = s.get("stopped_on_day")
             day_phrase = (
                 t("safety_skips.day_phrase_specific", lang, day=int(day))
@@ -1811,7 +1814,7 @@ def _render_supplemental_oxygen_today(vitals: list, day_index: int, encounter: o
         if not _get(v, "on_supplemental_oxygen"):
             continue
         device = _get(v, "oxygen_delivery_device") or "supplemental O2"
-        device_str = _localize_oxygen_device_ja(str(device)) if lang == "ja" else str(device)
+        device_str = localize_oxygen_device(str(device), lang)
         flow = _get(v, "oxygen_flow_rate_lpm")
         if flow is not None:
             try:
@@ -1859,14 +1862,13 @@ def _render_med_names(meds: list, lang: str = "en") -> str:
     """
     names: list[str] = []
     seen: set[str] = set()
-    country = "JP" if lang == "ja" else "US"
     for m in meds or []:
         name = _get(m, "name") or _get(m, "display_name") or _get(m, "drug_name") or _get(m, "medication")
         if isinstance(m, str):
             name = m
         if not name:
             continue
-        localized = _load_drug_localizer()(str(name), country)
+        localized = _load_drug_localizer()(str(name), lang)
         if localized and localized not in seen:
             names.append(localized[:60])
             seen.add(localized)
@@ -1881,7 +1883,6 @@ def _render_active_meds(admins: list, day_index: int, lang: str = "en") -> str:
     JA localization as ``_render_med_names``."""
     names: list[str] = []
     seen: set[str] = set()
-    country = "JP" if lang == "ja" else "US"
     for m in admins or []:
         d = _get(m, "day")
         if d is not None and d != day_index:
@@ -1889,7 +1890,7 @@ def _render_active_meds(admins: list, day_index: int, lang: str = "en") -> str:
         name = _get(m, "drug_name") or _get(m, "medication") or _get(m, "name")
         if not name:
             continue
-        localized = _load_drug_localizer()(str(name), country)
+        localized = _load_drug_localizer()(str(name), lang)
         if localized and localized not in seen:
             names.append(localized[:60])
             seen.add(localized)
@@ -1948,8 +1949,7 @@ def _render_abnormal_labs(
         unit = _get(lab, "unit") or ""
         if not name or val is None:
             continue
-        if lang == "ja":
-            name = _localize_lab_name_ja(str(name))
+        name = localize_lab_name(str(name), lang)
         val_str = f"{val}"
         parts = f"{name} {val_str}"
         if unit:
@@ -1961,18 +1961,10 @@ def _render_abnormal_labs(
     return "; ".join(picks) if picks else ""
 
 
-_TREND_LABEL_JA = {
-    "improving": "改善",
-    "worsening": "悪化",
-    "stable": "不変",
-    "initial": "初回測定",
-}
-_TREND_LABEL_EN = {
-    "improving": "improving",
-    "worsening": "worsening",
-    "stable": "stable",
-    "initial": "initial",
-}
+# _TREND_LABEL_JA / _TREND_LABEL_EN moved to
+# `narrative_labels.yaml/lab_trend_direction:` (Phase 1d-62).
+# Resolved via `resolve_localized_display` at emit time so adding a
+# new locale is a data-only change.
 
 
 def _render_lab_trend_today(
@@ -2003,20 +1995,23 @@ def _render_lab_trend_today(
     trend_rows = lab_trend(lab_results, admission_datetime, day_index)
     if not trend_rows:
         return ""
-    label_map = _TREND_LABEL_JA if lang == "ja" else _TREND_LABEL_EN
+    from clinosim.locale.loader import load_narrative_labels, resolve_localized_display
+
+    _direction_map = load_narrative_labels().get("lab_trend_direction", {})
     prior_word = t("list_sep.prior_word", lang)
     parts: list[str] = []
     for row in trend_rows:
         if row["direction"] == "initial":
             continue
-        name = str(row["name"])
-        if lang == "ja":
-            name = _localize_lab_name_ja(name)
+        name = localize_lab_name(str(row["name"]), lang)
         cur_flag_part = f" [{row['current_flag']}]" if row["current_flag"] else ""
         prior_flag_part = f" [{row['prior_flag']}]" if row["prior_flag"] else ""
+        direction_label = resolve_localized_display(
+            _direction_map.get(row["direction"]), lang, fallback=row["direction"]
+        )
         parts.append(
             f"{name} {row['current_value']}{cur_flag_part} "
-            f"({prior_word} {row['prior_value']}{prior_flag_part} → {label_map[row['direction']]})"
+            f"({prior_word} {row['prior_value']}{prior_flag_part} → {direction_label})"
         )
         if len(parts) >= 8:
             break
@@ -2063,7 +2058,7 @@ def _render_lab_carry_forward(
         unit = _get(lab, "unit") or ""
         if val is None:
             continue
-        display_name = _localize_lab_name_ja(str(name)) if lang == "ja" else str(name)
+        display_name = localize_lab_name(str(name), lang)
         # Day is 0-indexed; caller-facing convention is 1-indexed hospital day.
         display_day = (d + 1) if d is not None else "?"
         val_str = f"{val}"
