@@ -321,3 +321,17 @@ lab_trend_direction:
   worsening: {en: worsening, ja: 悪化}
   stable: {en: stable, ja: 不変}
   initial: {en: initial, ja: 初回測定}
+
+# Unknown-condition pattern labels (Phase 1d-65). From
+# `_population_workflow_thresholds.UNKNOWN_CONDITION_PATTERNS_FALLBACK`.
+# The population engine samples one of these slugs when an
+# undifferentiated / idiopathic presentation is generated for an older
+# adult; `unknown_condition.py` uses this map to populate the encounter
+# `chief_complaint` (EN) + `chief_complaint_ja` (JA) slots so the JP
+# narrative reads「発熱・原因不明」rather than the raw slug prose
+# `elevated inflammatory markers`.
+unknown_condition_pattern:
+  fever_unknown: {en: "Fever of unknown origin", ja: "原因不明の発熱"}
+  weight_loss_unexplained: {en: "Unexplained weight loss", ja: "原因不明の体重減少"}
+  malaise_fatigue: {en: "Generalized malaise and fatigue", ja: "全身倦怠感・疲労"}
+  elevated_inflammatory_markers: {en: "Elevated inflammatory markers", ja: "炎症反応上昇"}
