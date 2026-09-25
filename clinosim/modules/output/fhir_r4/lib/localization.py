@@ -226,6 +226,26 @@ def _localize_drug_name(drug_name: str, country: str) -> str:
     )  # noqa: E501
 
 
+def localize_drug_name(drug_name: str, lang: str) -> str:
+    """Language-aware drug-name localizer — the public unified entry
+    point that lets callers drop the ``if lang == "ja":`` guard.
+
+    Returns ``drug_name`` unchanged when no per-locale drug-name
+    lookup table exists for ``lang`` (today: any lang other than
+    ``"ja"``). For ``lang == "ja"``, delegates to
+    ``_localize_drug_name`` with the JP country signal.
+
+    Adding a new target locale is a data-only extension: drop a new
+    ``drug_names_<lang>.yaml`` next to ``drug_names_ja.yaml`` and
+    extend this dispatcher (single-site edit) — no code change at
+    the ~15 callers spread across ``template_generator`` /
+    ``replacement_strategy`` / FHIR emitters.
+    """
+    if not drug_name or lang != "ja":
+        return drug_name
+    return _localize_drug_name(drug_name, "JP")
+
+
 def _dept_display(dept: str, country: str) -> str:
     """Resolve a department key to its display name for the target country.
 
