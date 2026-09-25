@@ -311,6 +311,46 @@ def get_attr_or_key(obj: Any, name: str, default: Any = None) -> Any:
     return getattr(obj, name, default)
 
 
+def pick_localized_field(source: Any, base: str, lang: str, fallback: str = "") -> str:
+    """CIF field-slot locale pick with the ``<base>_<lang>`` + bare-base convention.
+
+    Convention (data-side counterpart to the ``t()`` phrase catalog):
+    per-locale CIF fields carry a ``<base>_<lang>`` slot for each non-``en``
+    locale (e.g. ``findings_text_ja``) plus the bare ``<base>`` slot as
+    the ``en`` / universal fallback. Callers that used to write::
+
+        text = _o(rec, "findings_text_ja", "") if lang == "ja" \\
+            else _o(rec, "findings_text", "")
+        if lang == "ja" and not text:
+            text = _o(rec, "findings_text", "")
+
+    collapse to::
+
+        text = pick_localized_field(rec, "findings_text", lang)
+
+    Adding a new target locale (e.g. ``fr``) is a data-only change:
+    add ``findings_text_fr`` fields to the CIF, no code change needed.
+
+    Resolution:
+      1. When ``lang`` is non-empty and not ``"en"``: try
+         ``source[<base>_<lang>]``; keep that value when non-empty.
+      2. Fall back to ``source[<base>]``.
+      3. Fall back to the caller's ``fallback`` (default ``""``).
+
+    Empty-string values in the lang-specific slot fall through to the
+    bare slot rather than being cached as the answer — this matches the
+    pre-refactor ``lang == "ja" and not text`` fallback pattern.
+    """
+    if lang and lang != "en":
+        v = get_attr_or_key(source, f"{base}_{lang}", "") or ""
+        if v:
+            return str(v)
+    v = get_attr_or_key(source, base, "") or ""
+    if v:
+        return str(v)
+    return fallback
+
+
 def set_attr_or_key(obj: Any, name: str, value: Any) -> None:
     """Set ``name`` on ``obj`` whether ``obj`` is a dict or a dataclass instance.
 

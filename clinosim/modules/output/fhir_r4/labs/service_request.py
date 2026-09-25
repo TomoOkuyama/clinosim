@@ -32,7 +32,7 @@ from typing import Any
 from clinosim.codes import get_system_uri, system_key_for
 from clinosim.codes import lookup as code_lookup
 from clinosim.locale.loader import load_code_mapping
-from clinosim.modules._shared import get_attr_or_key, is_jp, resolve_lang
+from clinosim.modules._shared import get_attr_or_key, is_jp, pick_localized_field, resolve_lang
 from clinosim.modules.order.panel_grouping import load_panel_definitions
 from clinosim.modules.output.fhir_r4.encounters.encounter import encounter_ref
 from clinosim.modules.output.fhir_r4.lib.common import BundleContext, to_fhir_datetime
@@ -87,11 +87,7 @@ def _pick_reason_text(source: Any, lang: str) -> str:
     Same writer/reader locale-split pattern as
     ``Encounter.chief_complaint`` / ``chief_complaint_ja`` (Issue #360 G1).
     """
-    if lang == "ja":
-        ja = _o(source, "clinical_intent_ja", "")
-        if ja:
-            return ja
-    return _o(source, "clinical_intent", "")
+    return pick_localized_field(source, "clinical_intent", lang)
 
 
 from clinosim.modules.output.fhir_r4.demographics.patient import patient_ref
