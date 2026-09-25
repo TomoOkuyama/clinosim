@@ -6648,7 +6648,14 @@ class TemplateNarrativeGenerator:
         comp_part = ""
         if comp_tokens:
             comp_sep = t("list_sep.serial", lang)
-            comp_labels = comp_sep.join(str(tok).replace("_", " ") for tok in comp_tokens)
+            # Phase 1d-72: route through _localize_complication so the
+            # JA output resolves ``hydrocephalus`` → 水頭症, ``urosepsis``
+            # → 尿路性敗血症 etc. (see narrative_complications.yaml), and
+            # the EN output picks up canonical casing (``requiring NIV``
+            # not the lowercase slug fallback ``requiring niv``). Pre-
+            # 1d-72 the composer just did ``.replace("_", " ")`` on the
+            # raw complication key.
+            comp_labels = comp_sep.join(_localize_complication(str(tok), lang) for tok in comp_tokens)
             comp_part = t("dc_contributing.comp_part", lang, comp_labels=comp_labels)
         if list_part:
             tail = t("dc_contributing.tail_with_list", lang)
@@ -6919,7 +6926,10 @@ class TemplateNarrativeGenerator:
         if cond_labels:
             parts.append(t("dds_complications_and_comorbidities.chronic_part", lang, list=cond_sep.join(cond_labels)))
         if comp_tokens:
-            comp_labels_str = cond_sep.join(str(tok).replace("_", " ") for tok in comp_tokens)
+            # Phase 1d-72: route through _localize_complication so JA
+            # resolves ``hypokalemia`` → 低カリウム血症 etc. and EN keeps
+            # canonical casing. Sibling fix to _build_dc_contributing_conditions.
+            comp_labels_str = cond_sep.join(_localize_complication(str(tok), lang) for tok in comp_tokens)
             parts.append(t("dds_complications_and_comorbidities.in_hospital_part", lang, list=comp_labels_str))
         # JA joins parts with "。" (list_sep.period) + trailing period;
         # EN joins with ". " (list_sep.period_space) + trailing period.
