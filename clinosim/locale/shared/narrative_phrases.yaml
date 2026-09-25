@@ -915,6 +915,13 @@ op_note:
   course_approach_part:
     ja: "{approach}アプローチにて"
     en: " via a {approach} approach"
+  # Bare variant used when the localized ``approach`` string already
+  # ends with "アプローチ" (JA) / "approach" (EN) — appending the suffix
+  # again produces "…アプローチアプローチにて" / "…approach approach".
+  # Selected by ``_build_op_course`` on a suffix check.
+  course_approach_part_bare:
+    ja: "{approach}にて"
+    en: " via {approach}"
   course_time_part:
     ja: "（{start} 開始／{end} 終了）"
     en: " ({start} start / {end} end)"
