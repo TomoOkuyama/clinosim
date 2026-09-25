@@ -311,3 +311,13 @@ allergy_jfagy_display:
   food: {en: Food, ja: 食品}
   environment: {en: Non-food non-medication, ja: 非食品・非医薬品}
   biologic: {en: Non-food non-medication, ja: 非食品・非医薬品}
+
+# Lab-trend direction label (Phase 1d-62). Was `_TREND_LABEL_JA` /
+# `_TREND_LABEL_EN` module-level dicts in `replacement_strategy.py`.
+# Used by `_render_lab_trend_today` to annotate current-vs-prior
+# arrow prose (e.g. `→ improving`).
+lab_trend_direction:
+  improving: {en: improving, ja: 改善}
+  worsening: {en: worsening, ja: 悪化}
+  stable: {en: stable, ja: 不変}
+  initial: {en: initial, ja: 初回測定}
