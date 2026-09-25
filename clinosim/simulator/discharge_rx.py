@@ -95,9 +95,14 @@ def _discharge_protocol_hold_reason_en(disease_id: str | None) -> str:
     )
 
     if not disease_id:
-        return "held per discharge protocol"
+        return "discharge protocol"
     label = _localize_complication(disease_id, "en") or disease_id
-    return f"held per {label} discharge protocol"
+    # Phase 1d-73: return a bare noun phrase (no "held per…" prefix)
+    # so the narrative template `- {considered} was held … because of
+    # {conflict}.` doesn't compose into "…because of held per…" (a
+    # broken second "held"). Sibling ``_discharge_protocol_hold_reason_ja``
+    # applies the same reformulation for JA.
+    return f"{label} discharge protocol"
 
 
 def _discharge_protocol_hold_reason_ja(disease_id: str | None) -> str:
@@ -114,9 +119,12 @@ def _discharge_protocol_hold_reason_ja(disease_id: str | None) -> str:
     )
 
     if not disease_id:
-        return "プロトコルによる保留"
+        return "退院プロトコル"
     label = _localize_complication(disease_id, "ja") or disease_id
-    return f"{label}のプロトコルによる保留"
+    # Phase 1d-73: bare noun phrase (no 「保留」 suffix) so the JA
+    # narrative template 「・{considered}：{conflict}のため今回入院中
+    # は保留。」 doesn't collapse into "…保留のため…保留" (二重「保留」).
+    return f"{label}の退院プロトコル"
 
 
 def _log_discharge_hold(
