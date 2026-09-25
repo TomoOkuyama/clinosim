@@ -74,6 +74,24 @@ _SYSTEM_DATA_ALIASES: dict[str, str] = {
 # still returns the capstandard YJ URI.
 _SYSTEM_LOOKUP_SIBLINGS: dict[str, tuple[str, ...]] = {
     "yj": ("hot7",),
+    # Phase 1d-74 (2026-09-25): SDOH-derived chronic Conditions are
+    # authored in ICD-10-CM (F17.210 nicotine dependence, E66.3
+    # overweight, F10.20 alcohol dependence, …). When those codes flow
+    # into a JP narrative context — which looks up display against
+    # ``icd-10`` (WHO) / ``icd-10-mhlw`` — the ICD-10-CM leaf misses
+    # (WHO ICD-10 has no ``.210`` extension) and the narrative falls
+    # back to raw code (「慢性疾患（F17.210）」, 「E66.3（E66.3）」).
+    #
+    # Sibling to icd-10-cm as a display-only fallback: preserves the
+    # JP-specific detailed display already authored in the ICD-10-CM
+    # yaml (「ニコチン依存症（紙巻きたばこ、合併症なし）」,「過体重」)
+    # without fabricating WHO ICD-10 entries for codes that don't
+    # exist in WHO. The reverse fallback (``icd-10-cm`` → ``icd-10``)
+    # covers the opposite gap: WHO-only codes that a US narrative
+    # might encounter.
+    "icd-10": ("icd-10-cm",),
+    "icd-10-mhlw": ("icd-10-cm",),
+    "icd-10-cm": ("icd-10",),
 }
 
 
