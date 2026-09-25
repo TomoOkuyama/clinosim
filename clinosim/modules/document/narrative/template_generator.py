@@ -2446,17 +2446,14 @@ class TemplateNarrativeGenerator:
             if not name or name in seen:
                 continue
             seen.add(name)
-            if lang == "ja":
-                # Drug-name katakana lookup is a JA-locale-specific data
-                # pipeline (not just a display translation), so this
-                # branch dispatches on lang. Extending to fr/zh/… would
-                # add a matching per-locale drug-name resolver, not
-                # extend a YAML phrase catalog.
-                from clinosim.modules.output.fhir_r4.lib.localization import _localize_drug_name
+            # Drug-name katakana lookup is a JA-locale-specific data
+            # pipeline via `localize_drug_name(name, lang)` — a no-op
+            # for any lang without a lookup table (today: any non-`"ja"`).
+            # Adding a new locale is a data-only extension of
+            # `drug_names_<lang>.yaml`; no branch here.
+            from clinosim.modules.output.fhir_r4.lib.localization import localize_drug_name
 
-                med_names.append(_localize_drug_name(str(name), "JP"))
-            else:
-                med_names.append(str(name))
+            med_names.append(localize_drug_name(str(name), lang))
             if len(med_names) >= 6:
                 break
         if med_names:
@@ -3167,29 +3164,23 @@ class TemplateNarrativeGenerator:
             # discharge_medications leaked ``PO`` / ``daily`` / ``TID``
             # / ``q4h`` verbatim into JA output (~545 leaks in the
             # p=10000 audit for `daily` alone).
-            if lang == "ja":
-                # JA-locale drug-name katakana + dosage-term localization
-                # (locale-specific data pipeline).
-                from clinosim.modules.output.fhir_r4.lib.localization import (
-                    _localize_dosage_terms,
-                    _localize_drug_name,
-                )
+            # Drug-name katakana + dosage-term localization is a
+            # locale-specific data pipeline. `localize_drug_name` is
+            # a lang-aware wrapper that returns input verbatim for
+            # any lang without a lookup table (today: any
+            # non-`"ja"`); `_localize_dosage_terms` is already
+            # lang-aware. Single code path across locales.
+            from clinosim.modules.output.fhir_r4.lib.localization import (
+                _localize_dosage_terms,
+                localize_drug_name,
+            )
 
-                display = _localize_drug_name(display, "JP")
+            display = localize_drug_name(display, lang)
 
-                # Phase 1d-3 (2026-09-23): pass ctx.target_lang through so
-                # this branch stays lang-agnostic when a future locale
-                # (fr / zh) adds its own YAML slots to med_terms.yaml.
-                _term_lang = lang
-
-                def _ja_term(v: str) -> str:
-                    try:
-                        return _localize_dosage_terms(v, _term_lang)
-                    except Exception:  # noqa: BLE001
-                        return v
-            else:
-
-                def _ja_term(v: str) -> str:
+            def _term(v: str) -> str:
+                try:
+                    return _localize_dosage_terms(v, lang)
+                except Exception:  # noqa: BLE001
                     return v
 
             dose = _o(med, "dose", "") or ""
@@ -3198,11 +3189,11 @@ class TemplateNarrativeGenerator:
             days = _o(med, "days_supply", None)
             bits: list[str] = [display]
             if dose:
-                bits.append(_ja_term(str(dose)))
+                bits.append(_term(str(dose)))
             if route:
-                bits.append(_ja_term(str(route)))
+                bits.append(_term(str(route)))
             if freq:
-                bits.append(_ja_term(str(freq)))
+                bits.append(_term(str(freq)))
             if days:
                 bits.append(t("prescription.days_supply_suffix", lang, days=days))
             lines.append(" ".join(bits))
@@ -3310,17 +3301,14 @@ class TemplateNarrativeGenerator:
             if vital_line_parts:
                 status_bits.append(", ".join(vital_line_parts))
             if on_o2:
-                # JA-locale drug/device-name katakana lookup is a
-                # locale-specific data pipeline; other languages pass
-                # the raw device token through.
-                if lang == "ja":
-                    from clinosim.modules.document.narrative.replacement_strategy import (
-                        _localize_oxygen_device_ja,
-                    )
+                # Device-name katakana lookup is a JA-locale data
+                # pipeline via `localize_oxygen_device(x, lang)` — a
+                # no-op for any lang without a lookup table.
+                from clinosim.modules.document.narrative.replacement_strategy import (
+                    localize_oxygen_device,
+                )
 
-                    device_disp = _localize_oxygen_device_ja(str(device or ""))
-                else:
-                    device_disp = str(device or "")
+                device_disp = localize_oxygen_device(str(device or ""), lang)
                 if device and flow is not None:
                     try:
                         flow_str = f"{float(flow):g}"
@@ -3344,14 +3332,11 @@ class TemplateNarrativeGenerator:
             if not n or n in seen:
                 continue
             seen.add(n)
-            if lang == "ja":
-                # JA-locale drug-name katakana lookup (locale-specific
-                # data pipeline, same rationale as _compose_ap_plan_from_state).
-                from clinosim.modules.output.fhir_r4.lib.localization import _localize_drug_name
+            # Drug-name katakana lookup via lang-aware wrapper —
+            # no-op for lang without a lookup table.
+            from clinosim.modules.output.fhir_r4.lib.localization import localize_drug_name
 
-                med_names.append(_localize_drug_name(str(n), "JP"))
-            else:
-                med_names.append(str(n))
+            med_names.append(localize_drug_name(str(n), lang))
             if len(med_names) >= 3:
                 break
 
@@ -4755,15 +4740,11 @@ class TemplateNarrativeGenerator:
             if not name or name in seen:
                 continue
             seen.add(name)
-            if lang == "ja":
-                # JA-locale drug-name katakana lookup (locale-specific
-                # data pipeline, not a display translation — same
-                # rationale as _compose_ap_plan_from_state in Phase 1d-18).
-                from clinosim.modules.output.fhir_r4.lib.localization import _localize_drug_name
+            # Drug-name katakana lookup via lang-aware wrapper (no-op
+            # when lang has no lookup table).
+            from clinosim.modules.output.fhir_r4.lib.localization import localize_drug_name
 
-                med_names.append(_localize_drug_name(str(name), "JP"))
-            else:
-                med_names.append(str(name))
+            med_names.append(localize_drug_name(str(name), lang))
             if len(med_names) >= 6:
                 break
         if med_names:
@@ -5591,12 +5572,10 @@ class TemplateNarrativeGenerator:
             if not drug:
                 continue
             drug, _cat = strip_protocol_prefix(drug)
-            if lang == "ja":
-                # JA-locale drug-name katakana lookup (locale-specific
-                # data pipeline, same rationale as _compose_ap_plan_from_state).
-                from clinosim.modules.output.fhir_r4.lib.localization import _localize_drug_name
+            # Drug-name katakana lookup via lang-aware wrapper.
+            from clinosim.modules.output.fhir_r4.lib.localization import localize_drug_name
 
-                drug = _localize_drug_name(drug, "JP")
+            drug = localize_drug_name(drug, lang)
             dose = _o(m, "dose", "") or ""
             route = _o(m, "route", "") or ""
             freq = _o(m, "frequency", "") or ""
@@ -5709,12 +5688,13 @@ class TemplateNarrativeGenerator:
         names: list[str] = []
         for m in meds:
             n = _render_home_med_name(m, lang=lang) if not isinstance(m, str) else m
-            if isinstance(m, str) and lang == "ja":
-                # JA-locale drug-name katakana lookup for str-only entries
-                # (dict entries already routed through _render_home_med_name).
-                from clinosim.modules.output.fhir_r4.lib.localization import _localize_drug_name
+            if isinstance(m, str):
+                # Drug-name katakana lookup for str-only entries via
+                # lang-aware wrapper (dict entries already routed through
+                # `_render_home_med_name`).
+                from clinosim.modules.output.fhir_r4.lib.localization import localize_drug_name
 
-                n = _localize_drug_name(m, "JP")
+                n = localize_drug_name(m, lang)
             if n:
                 names.append(str(n))
         if not names:
@@ -5943,15 +5923,15 @@ class TemplateNarrativeGenerator:
             # the FHIR emit path. Pre-fix 183 JP ed_workup lines carried
             # 「投薬: Ibuprofen 400mg、Acetaminophen 500mg」 verbatim.
             med_display = med_names[:6]
-            if lang == "ja":
-                # JA-locale drug-name katakana lookup (locale-specific
-                # data pipeline, same rationale as _compose_ap_plan_from_state).
-                try:
-                    from clinosim.modules.output.fhir_r4.lib.localization import _localize_drug_name
+            # Drug-name katakana lookup via lang-aware wrapper (no-op
+            # for lang without a lookup table). Broad except keeps a
+            # narrative render from failing on an i18n edge case.
+            try:
+                from clinosim.modules.output.fhir_r4.lib.localization import localize_drug_name
 
-                    med_display = [_localize_drug_name(m, "JP") or m for m in med_display]
-                except Exception:  # noqa: BLE001 — never fail narrative on i18n
-                    pass
+                med_display = [localize_drug_name(m, lang) or m for m in med_display]
+            except Exception:  # noqa: BLE001 — never fail narrative on i18n
+                pass
             parts.append(t("ed_workup.medications_head", lang) + t("list_sep.serial", lang).join(med_display))
         if proc_order_names:
             # Phase 1c-6 (Category L, 2026-09-23): route each procedure
@@ -5965,17 +5945,16 @@ class TemplateNarrativeGenerator:
             # bandage / saline / Salbutamol / Ipratropium / etc. Lazy
             # import + broad except mirrors the med_display handler.
             proc_display = proc_order_names[:6]
-            if lang == "ja":
-                # JA-locale drug-name katakana lookup (locale-specific
-                # data pipeline; same rationale as med_display above).
-                try:
-                    from clinosim.modules.output.fhir_r4.lib.localization import (
-                        _localize_drug_name,
-                    )
+            # Drug/procedure display katakana via lang-aware wrapper
+            # (same wrapper as med_display above).
+            try:
+                from clinosim.modules.output.fhir_r4.lib.localization import (
+                    localize_drug_name,
+                )
 
-                    proc_display = [_localize_drug_name(p, "JP") or p for p in proc_display]
-                except Exception:  # noqa: BLE001
-                    pass
+                proc_display = [localize_drug_name(p, lang) or p for p in proc_display]
+            except Exception:  # noqa: BLE001
+                pass
             parts.append(t("ed_workup.procedures_ordered_head", lang) + t("list_sep.serial", lang).join(proc_display))
 
         # Enrich with any flagged abnormals (kept from the v9 path — an

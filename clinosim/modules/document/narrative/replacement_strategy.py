@@ -139,6 +139,26 @@ def _localize_lab_name_ja(name: str) -> str:
     return _lookup_ja_label(name, "lab_name")
 
 
+def localize_lab_name(name: str, lang: str) -> str:
+    """Language-aware lab-name localizer wrapper. No-op when
+    ``lang != "ja"``. Callers that used to gate on
+    ``if lang == "ja":`` around ``_localize_lab_name_ja`` can call
+    this unconditionally instead — adding a new locale means
+    extending ``llm_prompt_labels.yaml/lab_name:`` with the new
+    ``<lang>`` slot (data-only change)."""
+    if not name or lang != "ja":
+        return name
+    return _localize_lab_name_ja(name)
+
+
+def localize_oxygen_device(device: str, lang: str) -> str:
+    """Language-aware oxygen-device localizer wrapper (sibling to
+    ``localize_lab_name``). No-op when ``lang != "ja"``."""
+    if not device or lang != "ja":
+        return device
+    return _localize_oxygen_device_ja(device)
+
+
 # --- prompt v11: post-processor hard-guard for EN lab names in JA text ------
 # LLM occasionally emits full-English lab names verbatim in JA narrative
 # output even after Rule 5 D of the prompt asks for canonical Japanese
