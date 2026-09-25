@@ -28,7 +28,7 @@ from clinosim.codes import get_system_uri
 from clinosim.codes import lookup as _codes_lookup
 from clinosim.locale.i18n import t
 from clinosim.modules._shared import get_attr_or_key, is_jp, pick_localized_field, resolve_lang
-from clinosim.modules.document.narrative.replacement_strategy import _localize_lab_name_ja
+from clinosim.modules.document.narrative.replacement_strategy import localize_lab_name
 from clinosim.modules.imaging.engine import (
     RADIOLOGY_REPORT_ID_PREFIX,
     _resolve_imaging_procedure_code_key,
@@ -521,13 +521,14 @@ def _build_lab_panel_conclusion(
         # so the fact-only aggregation reads naturally in the JA
         # narrative context. Standard medical abbreviations (BUN, CRP,
         # BNP, HbA1c, eGFR, Cr, Na, K, Cl, Ca, Mg, P, AST, ALT, …) are
-        # DELIBERATELY preserved by _localize_lab_name_ja's underlying
+        # DELIBERATELY preserved by `localize_lab_name`'s underlying
         # map. The retroactive post-processor
         # (`_localize_lab_names_in_text_ja`) would also fix this at the
         # emitted-text level, but doing it here at the source keeps the
         # emitted conclusion clean without relying on a second pass.
-        if lang == "ja":
-            lab_name = _localize_lab_name_ja(lab_name)
+        # `localize_lab_name` is lang-aware — no-op when the target
+        # locale has no lookup table.
+        lab_name = localize_lab_name(lab_name, lang)
         unit = _o(result, "unit") or ""
         flag = _o(result, "flag") or ""
         # Format the value: drop a trailing ".0" for integer-valued floats
