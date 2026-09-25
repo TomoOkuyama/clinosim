@@ -299,3 +299,15 @@ care_team_role_display:
   '159033005': {en: Dietitian, ja: 管理栄養士}
   '106328005': {en: Social worker, ja: 医療ソーシャルワーカー}
   '309362007': {en: Rehabilitation physician, ja: リハビリテーション科医}
+
+# JFAGY-generic AllergyIntolerance.code.coding display per clinosim
+# allergy category (Phase 1d-58). Was `(uri, code, ja_disp, en_disp)`
+# 4-tuple inside `_JFAGY_GENERIC_BY_CATEGORY` in
+# `conditions/allergy_intolerance.py`. Keyed by the clinosim category
+# slug — the CS URI + code stay in the code map, the JA/EN displays
+# live here so adding a locale is a data-only extension.
+allergy_jfagy_display:
+  medication: {en: Medication, ja: 医薬品}
+  food: {en: Food, ja: 食品}
+  environment: {en: Non-food non-medication, ja: 非食品・非医薬品}
+  biologic: {en: Non-food non-medication, ja: 非食品・非医薬品}

@@ -30,6 +30,7 @@ from typing import Any
 from clinosim.codes import get_system_uri
 from clinosim.codes import lookup as code_lookup
 from clinosim.locale.i18n import t
+from clinosim.locale.loader import load_narrative_labels, resolve_localized_display
 from clinosim.modules._shared import get_attr_or_key as _o
 from clinosim.modules._shared import resolve_lang
 from clinosim.modules.document import ALLERGY_ID_PREFIX
@@ -96,27 +97,20 @@ _JP_JFAGY_FOOD_ALLERGEN_CS = "http://jpfhir.jp/fhir/core/CodeSystem/JP_JfagyFood
 _JP_JFAGY_MEDICATION_ALLERGEN_CS = "http://jpfhir.jp/fhir/core/CodeSystem/YCM/JP_JfagyMedicationAllergen_CS"
 _JP_JFAGY_NON_FOOD_NON_MED_ALLERGEN_CS = "http://jpfhir.jp/fhir/core/CodeSystem/JP_JfagyNonFoodNonMedicationAllergen_CS"
 
-# Category → (CodeSystem URI, generic code, ja display, en display).
-_JFAGY_GENERIC_BY_CATEGORY: dict[str, tuple[str, str, str, str]] = {
-    "medication": (_JP_JFAGY_MEDICATION_ALLERGEN_CS, "00M", "医薬品", "Medication"),
-    "food": (_JP_JFAGY_FOOD_ALLERGEN_CS, "00F", "食品", "Food"),
+# Category → (CodeSystem URI, generic code). The JA/EN display for
+# each category lives in `narrative_labels.yaml/allergy_jfagy_display:`
+# keyed by the same category slug — resolved via
+# `resolve_localized_display` at emit time.
+_JFAGY_GENERIC_BY_CATEGORY: dict[str, tuple[str, str]] = {
+    "medication": (_JP_JFAGY_MEDICATION_ALLERGEN_CS, "00M"),
+    "food": (_JP_JFAGY_FOOD_ALLERGEN_CS, "00F"),
     # `environment` in clinosim's allergens.yaml (pollen / dust mite / etc.)
     # maps to the non-food non-medication JFAGY bucket.
-    "environment": (
-        _JP_JFAGY_NON_FOOD_NON_MED_ALLERGEN_CS,
-        "00N",
-        "非食品・非医薬品",
-        "Non-food non-medication",
-    ),
+    "environment": (_JP_JFAGY_NON_FOOD_NON_MED_ALLERGEN_CS, "00N"),
     # `biologic` (FHIR-valid category, currently unused by clinosim) —
     # dispatched under the non-food non-medication CS as a safe default;
     # future work may introduce a distinct code once tx-server exposes it.
-    "biologic": (
-        _JP_JFAGY_NON_FOOD_NON_MED_ALLERGEN_CS,
-        "00N",
-        "非食品・非医薬品",
-        "Non-food non-medication",
-    ),
+    "biologic": (_JP_JFAGY_NON_FOOD_NON_MED_ALLERGEN_CS, "00N"),
 }
 
 
@@ -127,8 +121,9 @@ def _jfagy_coding_for_category(category: str, lang: str) -> dict[str, str] | Non
     entry = _JFAGY_GENERIC_BY_CATEGORY.get(category)
     if entry is None:
         return None
-    uri, code, ja_disp, en_disp = entry
-    display = ja_disp if lang == "ja" else en_disp
+    uri, code = entry
+    display_map = load_narrative_labels().get("allergy_jfagy_display", {})
+    display = resolve_localized_display(display_map.get(category), lang, fallback=code)
     return {"system": uri, "code": code, "display": display}
 
 
