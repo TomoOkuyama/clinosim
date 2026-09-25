@@ -24,7 +24,7 @@ from __future__ import annotations
 from typing import Any
 
 from clinosim.modules._shared import get_attr_or_key as _o
-from clinosim.modules._shared import is_jp
+from clinosim.modules._shared import pick_localized_field, resolve_lang
 from clinosim.modules.document import CLINICAL_IMPRESSION_ID_PREFIX
 from clinosim.modules.output.fhir_r4.demographics.patient import patient_ref
 from clinosim.modules.output.fhir_r4.encounters.encounter import encounter_ref
@@ -80,9 +80,7 @@ def _build_clinical_impression(imp: Any, patient_id: str, country: str = "US") -
     impression_id = _o(imp, "impression_id", "") or ""
     encounter_id = _o(imp, "encounter_id", "") or ""
     date_val = _o(imp, "date", None)
-    description_en = _o(imp, "description", "") or ""
-    description_ja = _o(imp, "description_ja", "") or ""
-    description = description_ja if is_jp(country) and description_ja else description_en
+    description = pick_localized_field(imp, "description", resolve_lang(country))
     summary = _o(imp, "summary", "") or ""
     investigation_refs = _o(imp, "investigation_refs", []) or []
     finding_refs = _o(imp, "finding_refs", []) or []

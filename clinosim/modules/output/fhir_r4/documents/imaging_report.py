@@ -30,7 +30,7 @@ from typing import Any
 
 from clinosim.codes import get_system_uri
 from clinosim.modules._shared import get_attr_or_key as _o
-from clinosim.modules._shared import is_jp
+from clinosim.modules._shared import is_jp, pick_localized_field, resolve_lang
 from clinosim.modules.output.fhir_r4.demographics.patient import patient_ref
 from clinosim.modules.output.fhir_r4.encounters.encounter import encounter_ref
 from clinosim.modules.output.fhir_r4.labs.diagnostic_report import (  # type: ignore[attr-defined]
@@ -111,12 +111,9 @@ def _build_imaging_report_composition(
             "",
         )
 
-    findings_en = _o(report, "findings_text", "") or ""
-    findings_ja = _o(report, "findings_text_ja", "") or ""
-    impression_en = _o(report, "impression_text", "") or ""
-    impression_ja = _o(report, "impression_text_ja", "") or ""
-    findings = (findings_ja if _is_jp and findings_ja else findings_en) or ""
-    impression = (impression_ja if _is_jp and impression_ja else impression_en) or ""
+    lang = resolve_lang(country)
+    findings = pick_localized_field(report, "findings_text", lang)
+    impression = pick_localized_field(report, "impression_text", lang)
 
     sections: list[dict[str, Any]] = []
     # p=500 review finding (session 89): LOINC is on the English-only-CS
