@@ -29,8 +29,9 @@ from __future__ import annotations
 from typing import Any
 
 from clinosim.codes import get_system_uri
+from clinosim.locale.i18n import t
 from clinosim.modules._shared import get_attr_or_key as _o
-from clinosim.modules._shared import is_jp, pick_localized_field, resolve_lang
+from clinosim.modules._shared import pick_localized_field, resolve_lang
 from clinosim.modules.output.fhir_r4.demographics.patient import patient_ref
 from clinosim.modules.output.fhir_r4.encounters.encounter import encounter_ref
 from clinosim.modules.output.fhir_r4.labs.diagnostic_report import (  # type: ignore[attr-defined]
@@ -42,16 +43,15 @@ from clinosim.modules.output.fhir_r4.lib.common import BundleContext, _escape_ht
 
 # LOINC "画像検査報告書" — the canonical Composition.type for radiology
 # reports, verified via JP-CLINS eImaging / JP Core radiology profile.
+# Composition.title + .type.display live in `narrative_phrases.yaml`
+# under `imaging_report_fhir.title` — resolved via `t()` at emit.
 _IMAGING_REPORT_LOINC = "18748-4"
-_IMAGING_REPORT_TITLE_JA = "画像検査報告書"
-_IMAGING_REPORT_TITLE_EN = "Diagnostic imaging study report"
 
 # LOINC LP29684-5 "放射線" for category:first slice (JP-CLINS
-# JP_DiagnosticReport_Radiology profile). Kept consistent with the
-# sibling radiology DR emit so query filters return both together.
+# JP_DiagnosticReport_Radiology profile). Display lives in
+# `narrative_phrases.yaml` under
+# `imaging_report_fhir.radiology_category_display`.
 _LP29684_5_LOINC = "LP29684-5"
-_LP29684_5_DISPLAY_JA = "放射線"
-_LP29684_5_DISPLAY_EN = "Radiology"
 
 # Section titles + LOINC codes. Only Findings + Impression are
 # populated from the CIF; other sections (technique, differential,
@@ -90,7 +90,6 @@ def _build_imaging_report_composition(
     would produce a non-integer suffix (e.g. legacy `imgrpt-<enc>-a`).
     """
     country = ctx.country
-    _is_jp = is_jp(country)
 
     encounter_id = _o(study, "encounter_id", "") or ""
     patient_id = _o(study, "patient_id", "") or ctx.patient_id
@@ -123,10 +122,10 @@ def _build_imaging_report_composition(
     # + text=locale) holds on the radiology imaging-report Composition
     # section codes too. See feedback_dual_slot_english_only_cs.
     if findings:
-        _findings_disp = "所見" if _is_jp else "Study observation"
+        _findings_disp = t("imaging_report_fhir.findings_section_code_display", lang)
         sections.append(
             {
-                "title": "所見" if _is_jp else "Findings",
+                "title": t("imaging_report_fhir.findings_section_title", lang),
                 "code": {
                     "coding": [
                         {
@@ -144,10 +143,10 @@ def _build_imaging_report_composition(
             }
         )
     if impression:
-        _impression_disp = "印象" if _is_jp else "Radiology imaging study impression"
+        _impression_disp = t("imaging_report_fhir.impression_section_code_display", lang)
         sections.append(
             {
-                "title": "印象" if _is_jp else "Impression",
+                "title": t("imaging_report_fhir.impression_section_title", lang),
                 "code": {
                     "coding": [
                         {
@@ -165,8 +164,8 @@ def _build_imaging_report_composition(
             }
         )
 
-    _title = _IMAGING_REPORT_TITLE_JA if _is_jp else _IMAGING_REPORT_TITLE_EN
-    _lp_display = _LP29684_5_DISPLAY_JA if _is_jp else _LP29684_5_DISPLAY_EN
+    _title = t("imaging_report_fhir.title", lang)
+    _lp_display = t("imaging_report_fhir.radiology_category_display", lang)
 
     # Issue #854 Bucket B (PR-composition): opaque Composition.id.
     # Structural key = pre-#854 id body (without `comp-` prefix) =
