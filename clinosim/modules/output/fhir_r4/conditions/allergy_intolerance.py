@@ -32,7 +32,7 @@ from clinosim.codes import lookup as code_lookup
 from clinosim.locale.i18n import t
 from clinosim.locale.loader import load_narrative_labels, resolve_localized_display
 from clinosim.modules._shared import get_attr_or_key as _o
-from clinosim.modules._shared import resolve_lang
+from clinosim.modules._shared import resolve_lang, uses_jp_clins_profile
 from clinosim.modules.document import ALLERGY_ID_PREFIX
 from clinosim.modules.output.fhir_r4.demographics.patient import patient_ref
 from clinosim.modules.output.fhir_r4.encounters.encounter import encounter_ref
@@ -236,7 +236,7 @@ def _build_allergy_intolerance(allergy: Any, patient_id: str, lang: str = "en") 
         # it as an information-level notice, not a required-binding error.
         if is_nka:
             code["coding"] = [snomed_coding]
-        elif lang == "ja":
+        elif uses_jp_clins_profile(lang):
             jfagy = _jfagy_coding_for_category(category, lang)
             if jfagy is not None:
                 code["coding"] = [jfagy]
@@ -258,11 +258,12 @@ def _build_allergy_intolerance(allergy: Any, patient_id: str, lang: str = "en") 
         "id": _resolve_allergy_id(_ai_structural_key),
         "identifier": [wrap_as_identifier(_ai_structural_key, ALLERGY_KEY_SYSTEM)],
         # chain #2: JP Core AllergyIntolerance profile.
-        # lang == "ja" is the JP-country signal in this builder's caller chain
-        # (BundleContext resolves lang from country in _bb_allergy_intolerances).
+        # Gated via `uses_jp_clins_profile` (Phase 1d-60) so a future
+        # locale that should NOT trigger JP-CLINS can flip the predicate
+        # in one place; today equivalent to `lang == "ja"`.
         **(
             {"meta": {"profile": ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_AllergyIntolerance"]}}
-            if lang == "ja"
+            if uses_jp_clins_profile(lang)
             else {}
         ),
         "clinicalStatus": {
