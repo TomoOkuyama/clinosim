@@ -379,13 +379,17 @@ def _render_safety_skips_line(skips: list[dict], lang: str) -> str:
     # so already-localized values are idempotent. Lazy import + broad
     # except mirrors ``discontinue_flip._log_treatment_change`` so an
     # i18n failure never breaks the narrative render.
-    def _ja_drug(value: str | None) -> str:
+    def _drug(value: str | None) -> str:
+        """Lang-aware drug-name katakana wrapper — no-op for lang
+        without a lookup table. Broad except keeps a narrative
+        render from failing on an i18n edge case (mirrors
+        `discontinue_flip._log_treatment_change`)."""
         if not value:
             return ""
         try:
-            from clinosim.modules.output.fhir_r4.lib.localization import _localize_drug_name
+            from clinosim.modules.output.fhir_r4.lib.localization import localize_drug_name
 
-            return _localize_drug_name(value, "JP") or value
+            return localize_drug_name(value, lang) or value
         except Exception:  # noqa: BLE001
             return value
 
@@ -396,12 +400,9 @@ def _render_safety_skips_line(skips: list[dict], lang: str) -> str:
 
     for s in skips:
         event = str(s.get("event_type") or "avoid").lower()
-        considered = _localized_field(s, "considered")
+        considered = _drug(_localized_field(s, "considered"))
         conflict = _localized_field(s, "avoided_due_to")
-        substituted = _localized_field(s, "substituted_with")
-        if lang == "ja":
-            considered = _ja_drug(considered)
-            substituted = _ja_drug(substituted)
+        substituted = _drug(_localized_field(s, "substituted_with"))
 
         day = s.get("stopped_on_day")
         day_phrase = (
@@ -1482,8 +1483,7 @@ class TemplateNarrativeGenerator:
                 facts.extend(section_facts)
             else:
                 # Unknown section — generic fallback
-                lang = ctx.target_lang
-                sections[section] = _GENERIC_FALLBACK_JA if lang == "ja" else _GENERIC_FALLBACK_EN
+                sections[section] = t("fallback.generic_fallback", ctx.target_lang)
 
         return NarrativeOutput(
             sections=sections,
@@ -2935,7 +2935,7 @@ class TemplateNarrativeGenerator:
         facts.append("ctx.patient.alcohol_use")
 
         def _checkup_lifestyle_label(section: str, key: str) -> str:
-            fallback = f"{key}(区分未定義)" if lang == "ja" else key
+            fallback = t("fallback.checkup_lifestyle_unmapped", lang, key=key)
             return _label(section, key, lang, fallback=fallback)
 
         smoking_disp = _checkup_lifestyle_label("checkup_smoking_status", smoking)
@@ -7129,15 +7129,14 @@ class TemplateNarrativeGenerator:
         implants = [str(x) for x in (_o(proc, "implants_used", []) or []) if x]
         if not implants:
             return (t("op_note.implants_none", lang)), facts
-        # Phase 1c-6 (Category K, 2026-09-23): route each implant name
-        # through the ``narrative_op_implants.yaml`` translation table
-        # on JA output so 「使用機器・材料：バイポーラ人工骨頭」 rather
-        # than 「使用機器・材料：bipolar femoral prosthesis」.
-        # Case-insensitive lookup on the full string; unmapped names
-        # pass through unchanged. Only JA has a translation table today;
-        # other languages fall through unchanged as well.
-        if lang == "ja":
-            implants = [_localize_op_implant(x, lang) for x in implants]
+        # Route each implant name through the
+        # `narrative_op_implants.yaml` translation table. Case-
+        # insensitive lookup on the full string; unmapped names pass
+        # through unchanged. Only JA has a translation table today,
+        # so `_localize_op_implant(x, "en")` returns `x` verbatim
+        # — dropping the outer `lang == "ja"` guard is a no-op and
+        # keeps the callsite lang-agnostic.
+        implants = [_localize_op_implant(x, lang) for x in implants]
         sep = t("list_sep.serial", lang)
         return t("op_note.equipment_head", lang, list=sep.join(implants)), facts
 
