@@ -1619,7 +1619,11 @@ fallback:
   disposition_fallback: {en: 'Disposition: to be determined', ja: 帰宅または入院加療}
   ed_disposition_admission: {en: 'Admitted ({reason})', ja: '入院適応（{reason}）'}
   ed_disposition_expired: {en: Died in the ED (family informed), ja: 救急室内死亡（家族への説明済み）}
-  ed_disposition_home: {en: 'Discharged home (JTAS level {level}, {reason})', ja: '自宅退院（JTAS レベル {level}、{reason}）'}
+  # Locale-appropriate triage scale label — JA uses JTAS (Japan
+  # Triage and Acuity Scale); EN uses ESI (Emergency Severity Index,
+  # the US ED standard). Both use integer 1-5 so the ``{level}`` slot
+  # is scale-agnostic; only the label differs.
+  ed_disposition_home: {en: 'Discharged home (ESI level {level}, {reason})', ja: '自宅退院（JTAS レベル {level}、{reason}）'}
   ed_disposition_transfer: {en: 'Transferred to another facility ({reason})', ja: '他院転送（{reason}）'}
   ed_workup_fallback: {en: 'ED workup: no significant findings', ja: 検査・処置：特記事項なし}
   family_history_deceased_suffix: {en: ' (deceased)', ja: （故人）}
