@@ -1642,6 +1642,13 @@ fallback:
   follow_up_default:
     ja: "外来フォローアップ予定"
     en: "Follow up with outpatient provider"
+  # Checkup lifestyle label fallback prefix — JA appends
+  # `(区分未定義)` after the raw slug when the label catalog has
+  # no entry; EN uses the slug verbatim. Called via
+  # `t("fallback.checkup_lifestyle_unmapped", lang, key=<slug>)`.
+  checkup_lifestyle_unmapped:
+    ja: "{key}(区分未定義)"
+    en: "{key}"
 
 # FHIR emit-side per-resource text/display strings (Phase 1d-49).
 # From `clinosim/modules/output/fhir_r4/procedures/immunization.py` —
