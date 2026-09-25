@@ -722,6 +722,16 @@ control_status:
   clinical_judgment:
     ja: "症状に応じて対応"
     en: "clinical judgment"
+  # AFib / warfarin INR control-status (Phase 1d-66).
+  inr_therapeutic:
+    ja: "治療域"
+    en: "within therapeutic range"
+  inr_subtherapeutic:
+    ja: "治療域未満・血栓リスク"
+    en: "subtherapeutic — thrombotic risk"
+  inr_supratherapeutic:
+    ja: "治療域超過・出血リスク"
+    en: "supratherapeutic — bleeding risk"
 
 # Chronic-SOAP continuation-monitoring phrases (Phase 1d-13).
 chronic_monitoring:
@@ -747,6 +757,9 @@ chronic_assessment:
   ldl_target_primary_prevention:
     ja: "目標 {ldl} mg/dL 未満 (一次予防)"
     en: "target < {ldl} mg/dL (primary prevention)"
+  inr_target_standard:
+    ja: "目標 2.0-3.0"
+    en: "target 2.0-3.0"
   med_continue_tail:
     ja: "、{med} 継続"
     en: "; {med} continue"
