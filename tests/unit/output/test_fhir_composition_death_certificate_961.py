@@ -540,6 +540,10 @@ def test_dc_contributing_conditions_includes_chronic_and_complication_ja() -> No
     gen = TemplateNarrativeGenerator()
     text, facts = gen._build_dc_contributing_conditions(ctx)
     assert "I25" in text or "慢性" in text
-    assert "pneumothorax" in text
+    # Phase 1d-72: complication tokens now go through
+    # _localize_complication, so JA output resolves ``pneumothorax``
+    # → 気胸 rather than emitting the raw English slug.
+    assert "気胸" in text
+    assert "pneumothorax" not in text
     assert "ctx.patient.chronic_conditions" in facts
     assert "ctx.complications_occurred" in facts
