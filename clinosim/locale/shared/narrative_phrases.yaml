@@ -1639,6 +1639,9 @@ fallback:
   rp_team_fallback: {en: No rehabilitation therapy on record, ja: リハビリ実施なし}
   rp_therapist_fallback: {en: 'Named therapist: not yet assigned', ja: 担当者未定}
   triage_fallback: {en: 'Triage information: not recorded', ja: トリアージ情報：未記録}
+  follow_up_default:
+    ja: "外来フォローアップ予定"
+    en: "Follow up with outpatient provider"
 
 # FHIR emit-side per-resource text/display strings (Phase 1d-49).
 # From `clinosim/modules/output/fhir_r4/procedures/immunization.py` —
