@@ -3632,7 +3632,11 @@ class TemplateNarrativeGenerator:
             parts.append(t("fall_risk.morse_score_line", lang, morse=morse, level=lvl_disp))
         if not parts:
             return (t("fallback.risk_fallback", lang)), facts
-        return t("list_sep.period", lang).join(parts) + t("list_sep.period", lang), facts
+        # Phase 1d-70: use ``period_space`` between sentences so EN
+        # emits ``low. Fall (...): moderate.`` rather than the
+        # spaceless ``low.Fall (...): moderate.`` — JA ``。`` already
+        # needs no space and both variants collapse to the same char.
+        return t("list_sep.period_space", lang).join(parts) + t("list_sep.period", lang), facts
 
     def _build_nursing_diagnosis(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
         """Build nursing_diagnosis from CIF chronic conditions + acute
