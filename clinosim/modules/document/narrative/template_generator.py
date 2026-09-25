@@ -5411,6 +5411,37 @@ class TemplateNarrativeGenerator:
                 if parts_ckd:
                     interp = t("list_sep.serial", lang).join(parts_ckd) + (t("chronic_monitoring.renal_function", lang))
 
+            # ── I48: Atrial fibrillation / flutter ─────────────────────
+            # Anticoagulation is the primary monitoring axis. INR is the
+            # therapeutic marker for warfarin (2.0-3.0 for non-valvular
+            # AFib per ACC/AHA + JCS guidelines); DOACs skip INR but the
+            # med-continuation tail still records the drug.
+            elif code_prefix.startswith("I48"):
+                parts_afib: list[str] = []
+                inr = lab_by_name.get("pt-inr") or lab_by_name.get("pt_inr") or lab_by_name.get("inr")
+                if inr:
+                    v, u = inr
+                    try:
+                        vf = float(v)
+                        if 2.0 <= vf <= 3.0:
+                            ctrl = t("control_status.inr_therapeutic", lang)
+                        elif vf < 2.0:
+                            ctrl = t("control_status.inr_subtherapeutic", lang)
+                        else:
+                            ctrl = t("control_status.inr_supratherapeutic", lang)
+                    except (TypeError, ValueError):
+                        ctrl = ""
+                    target = t("chronic_assessment.inr_target_standard", lang)
+                    parts_afib.append(f"PT-INR {v} — {target} — {ctrl}" if ctrl else f"PT-INR {v} — {target}")
+                med = _pick_med_containing(
+                    en_hints=("Warfarin", "Apixaban", "Rivaroxaban", "Edoxaban", "Dabigatran"),
+                    ja_hints=("ワルファリン", "アピキサバン", "リバーロキサバン", "エドキサバン", "ダビガトラン"),
+                )
+                if med:
+                    parts_afib.append(t("prescription.medication_continue", lang, med=med))
+                if parts_afib:
+                    interp = t("list_sep.serial", lang).join(parts_afib) + t("list_sep.period", lang)
+
             # ── J44: COPD (stable) ─────────────────────────────────────
             elif code_prefix.startswith("J44"):
                 spo2 = _o(v0, "spo2", None) if v0 else None
