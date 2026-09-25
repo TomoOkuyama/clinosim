@@ -14,7 +14,7 @@ from typing import Any
 from clinosim.codes import get_system_uri, system_key_for
 from clinosim.codes import lookup as code_lookup
 from clinosim.codes.hl7_encounter import ActPriority
-from clinosim.modules._shared import is_jp, resolve_lang
+from clinosim.modules._shared import is_jp, pick_localized_field, resolve_lang
 from clinosim.modules.diagnosis.nonspecific_codes import is_visit_reason_zcode
 from clinosim.modules.output.fhir_r4.conditions.primary_ref import (
     encounter_admission_condition_id,
@@ -389,9 +389,7 @@ def _build_encounter(
         # output — CIF stores English canonical (AD-30), so the plain
         # ``enc["chief_complaint"]`` is English and would reach the JP
         # Clinical Cockpit as English protocol text (feedback G1).
-        _chief_en = enc.get("chief_complaint", "")
-        _chief_ja = enc.get("chief_complaint_ja", "") or ""
-        _fallback_text = _chief_ja if lang == "ja" and _chief_ja else _chief_en
+        _fallback_text = pick_localized_field(enc, "chief_complaint", lang)
         if _reason_code:
             reason_text = code_lookup(_reason_system, _reason_code, lang)
             if reason_text == _reason_code:
