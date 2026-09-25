@@ -1737,3 +1737,21 @@ referral_fhir:
   destination_sentence:
     ja: "紹介先:{name}。当該患者の継続加療を目的として本情報提供書を作成する。"
     en: "Referral destination: {name} (continued care)."
+
+# FHIR emit-side imaging-report Composition text (Phase 1d-56).
+# From `documents/imaging_report._build_imaging_report_composition` —
+# Composition.title / .type display, category display, and two
+# per-section (Findings / Impression) title + code.text pairs.
+imaging_report_fhir:
+  title: {ja: "画像検査報告書", en: "Diagnostic imaging study report"}
+  radiology_category_display:
+    ja: "放射線"
+    en: "Radiology"
+  findings_section_title: {ja: "所見", en: "Findings"}
+  findings_section_code_display:
+    ja: "所見"
+    en: "Study observation"
+  impression_section_title: {ja: "印象", en: "Impression"}
+  impression_section_code_display:
+    ja: "印象"
+    en: "Radiology imaging study impression"
