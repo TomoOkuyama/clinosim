@@ -39,6 +39,28 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.
 
 ## [Unreleased]
 
+### Changed
+
+- **Phase 1d unified-i18n migration continued (sessions 121-125, Phases 1d-40 through 1d-63)** — 24 PRs (#1505-#1527) advancing the "add a new locale = zero code change" contract across the narrative pipeline + FHIR emit modules. All phases verified byte-identical to pre-refactor output; CIF ↔ narrative-CIF consistency preserved.
+- **`if is_ja:` bindings eliminated** — `template_generator.py`: **37 → 0** runtime bindings (100% removed). `replacement_strategy.py`: **6 → 0** runtime bindings. Remaining `is_ja` mentions are docstring/comment references to the historical pattern.
+- **Phrase catalog expanded** — added `safety_skips`, `safety_skips_prompt`, `chronic_assessment`, `checkup_lab_results`, `immunization_fhir`, `microbiology_fhir`, `diagnostic_report_fhir`, `imaging_report_fhir`, `care_team_fhir`, `allergy_intolerance_fhir`, `family_history_fhir`, `referral_fhir` sections in `narrative_phrases.yaml` (~130 keys total).
+- **Label catalog expanded** — added `soap_label`, `mb_container_text`, `care_team_role_display`, `allergy_jfagy_display`, `lab_trend_direction` sections in `narrative_labels.yaml` (24 keys); newborn / op_note / procedure-note label sections consolidated.
+- **Data-side helper `pick_localized_field(source, base, lang, fallback)`** added to `clinosim.modules._shared` (Phase 1d-53). Encodes the CIF field-slot convention `<base>_<lang>` + bare-slot fallback so callers stop hand-rolling `_o(rec, "X_ja") if lang == "ja" else _o(rec, "X")` branches. Applied at 5 sites (diagnostic_report, encounter, service_request, imaging_report, clinical_impression).
+- **Structural-dispatch predicate `uses_jp_clins_profile(lang)`** promoted to `clinosim.modules._shared` (Phase 1d-60). Semantic separator between "display language" and "regulatory profile family" — today equivalent to `lang == "ja"` but future locales that need a non-JP-CLINS profile can flip the predicate in one place instead of surgically at each JP-CLINS builder-dispatch / identifier-URI-pin site.
+- **Lang-aware localizer wrappers** — `localize_drug_name(name, lang)` (`output/fhir_r4/lib/localization.py`), `localize_lab_name(name, lang)` / `localize_oxygen_device(device, lang)` (`document/narrative/replacement_strategy.py`). Each is a no-op when the target locale has no lookup table (today: any `lang != "ja"`), so ~15 callsites across `template_generator.py` / `replacement_strategy.py` / FHIR emitters drop the outer `if lang == "ja":` guard.
+- **Module-level JA/EN constants deleted** — `_SOAP_JA/EN`, `_CARE_TEAM_CATEGORY_JA/EN`, `_IMAGING_REPORT_TITLE_JA/EN`, `_LP29684_5_DISPLAY_JA/EN`, `_JP_DR_RADIOLOGY_{CATEGORY,REPORT}_DISPLAY_{JA,EN}`, `_RP_GOALS_FALLBACK_JA/EN`, `_RP_POLICY_FALLBACK_JA/EN`, `_TREND_LABEL_JA/EN`, `_JFAGY_GENERIC_BY_CATEGORY` display slots — all lifted into YAML.
+- **Vulture whitelist** — added `assessment_ja` to `.vulture-whitelist.py` for the `OutpatientSoapTemplate` Pydantic field (Phase 1d-40 co-fix, unblocked master CI).
+- **Nightly cohort byte-diff canary** — downgraded from `::error` + `exit 1` to `::warning` + `exit 0` in `.github/workflows/nightly.yml` (session 121). Per-file diff visibility retained; upstream Issue #1499 tracks a governance follow-up.
+- **Audit `basedOn` coverage check** — excluded non-order-driven LAB Observations (`mb-org-*`, `mb-sus-*`, `blood-abo-*`, `blood-rh-*`) via canonical registry `NON_ORDER_DRIVEN_LAB_OBS_ID_PREFIXES` in `output/fhir_r4/labs/service_request.py`. Replaces hard-coded audit-side exclusion with a single-source-of-truth registry.
+
+### Docs
+
+- **`AGENTS.md` JP-localization guidance** updated to point at `localize_drug_name(name, lang)` / `localize_lab_name(name, lang)` / `localize_oxygen_device(device, lang)` as the unified lang-aware entry points (Phase 1d-63).
+- **`clinosim/modules/document/narrative/README(.ja).md`** — `_resolve_staff_name` signature corrected (`is_ja` → `lang`), removed stale `_fall_ja` reference, added the lang-aware localizer wrapper block (Phase 1d-63).
+- **`docs/design-guides/fhir-data-generation-logic(.ja).md`** — drug/procedure name guidance updated with the `localize_drug_name(name, lang)` wrapper (Phase 1d-63).
+- **`docs/design-notes/2026-07-06-fix-point-registry.md`** — FP-UNIFY-3 "residual `lang=="ja"`" note extended with a Phase 1d follow-up pointer showing that the two deferred sites (`_CARE_TEAM_CATEGORY_JA/EN` dispatch and `findings_text_ja` selector) were subsequently migrated (Phase 1d-53 / 1d-57).
+- **`clinosim/modules/output/fhir_r4/encounters/README(.ja).md`** — CareTeam scope contract line updated (`_CARE_TEAM_CATEGORY_EN` / `_JA` → `care_team_fhir.category_display` YAML key).
+
 ## [0.6.3] - 2026-09-21
 
 ### Added
