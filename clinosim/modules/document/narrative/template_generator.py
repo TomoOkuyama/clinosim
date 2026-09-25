@@ -7131,7 +7131,12 @@ class TemplateNarrativeGenerator:
         outcome = _label("op_outcome_code", outcome_code, lang, fallback="") if outcome_code else ""
         start_dt = _o(proc, "start_datetime", None)
         end_dt = _o(proc, "end_datetime", None)
-        approach_part = t("op_note.course_approach_part", lang, approach=approach) if approach else ""
+        approach_part = ""
+        if approach:
+            approach_lower = approach.lower().rstrip()
+            already_has_suffix = approach_lower.endswith("approach") or approach.rstrip().endswith("アプローチ")
+            key = "op_note.course_approach_part_bare" if already_has_suffix else "op_note.course_approach_part"
+            approach_part = t(key, lang, approach=approach)
         time_part = ""
         if isinstance(start_dt, datetime) and isinstance(end_dt, datetime):
             time_part = t(
