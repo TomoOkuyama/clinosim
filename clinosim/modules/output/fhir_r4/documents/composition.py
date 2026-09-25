@@ -102,6 +102,26 @@ __all__ = [
     "_bb_compositions",
 ]
 
+
+def _uses_jp_clins_profile(lang: str) -> bool:
+    """True when the composition should emit under a JP-CLINS profile.
+
+    Semantic predicate for the "which regulatory profile family?"
+    decision — historically conflated with ``lang == "ja"`` because
+    JP-locale output has always mapped 1:1 to JP-CLINS-conformant
+    Composition variants (eDS 18842-5, eReferral 57133-1, eCheckup
+    General 53576-5, JP Composition eCS wrapper, death certificate
+    64297-5, etc.). Adding a locale that should NOT trigger JP-CLINS
+    (e.g. Portuguese output from the same JP hospital cohort) means
+    changing the predicate here rather than surgically at each
+    routing site.
+
+    Today equivalent to ``lang == "ja"`` — the predicate exists to
+    make the intent explicit at the callsite, not to change behavior.
+    """
+    return lang == "ja"
+
+
 # #278:enc → free-text-doc-id 優先度用 LOINC 定数。
 # module-scope(function 内では N806 lint violation)。
 _HOSPITAL_COURSE_LOINC = "8648-8"
@@ -636,7 +656,7 @@ def _build_composition(
         return _build_death_discharge_summary_composition(
             doc, sections, lang, roster_map=roster_map, encounter_index=encounter_index
         )
-    if lang == "ja":
+    if _uses_jp_clins_profile(lang):
         loinc = _o(doc, "loinc_code", "")
         if loinc == "18842-5":
             return _build_jp_clins_discharge_summary_composition(
@@ -756,9 +776,13 @@ def _build_composition_generic(
     # to `http://jpfhir.jp/fhir/core/IdSystem/resourceInstance-identifier`
     # (StructureDefinition-JP-Composition-{eDS,eReferral}.json). US / generic
     # output keeps the clinosim namespace URI (no profile constraint). The
-    # decision follows the caller's `lang` — JP-CLINS builders pass "ja",
-    # generic / US pass "en".
-    identifier_system = _JP_COMPOSITION_IDENTIFIER_SYSTEM if lang == "ja" else "urn:clinosim:composition-id"
+    # decision follows the caller's profile family (JP-CLINS builders pass
+    # `lang="ja"`; generic / US pass `lang="en"`), routed through the
+    # `_uses_jp_clins_profile` predicate so a future locale that should NOT
+    # trigger the JP-CLINS URI can override the decision in one place.
+    identifier_system = (
+        _JP_COMPOSITION_IDENTIFIER_SYSTEM if _uses_jp_clins_profile(lang) else "urn:clinosim:composition-id"
+    )
     res: dict[str, Any] = {
         "resourceType": "Composition",
         "id": comp_id,
