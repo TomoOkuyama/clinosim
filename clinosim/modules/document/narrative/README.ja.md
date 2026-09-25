@@ -154,16 +154,27 @@ token が template 出力に混入すると LLM は verbatim rule に従って
     から `NarrativePass._load_roster()` が読み込んだ
     `{staff_id: staff_dict}` を各 ctx に伝播。
     `template_generator._resolve_staff_name(staff_id, roster_map,
-    is_ja)` が `DR-CA-002` → `加瀬 幸男 医師` (JA) / `加瀬 幸男
+    lang)` が `DR-CA-002` → `加瀬 幸男 医師` (JA) / `加瀬 幸男
     (physician)` (EN) に解決。unknown id は生 id fallback、決して
     fabricate しない。4 テンプレート call-site が利用中 (看護記録、
     progress note の nurse line、ACP other-staff、NCP ward/physician)。
-  - JA enum の localization は `replacement_strategy.py` の helper
-    経由: `_localize_severity_ja` (mild → 軽度; PR #832)、
-    `_localize_oxygen_device_ja` (nasal_cannula → 経鼻カニューレ)、
-    inline `_fall_ja` (high → 高リスク)。JA 文脈で生 enum を埋め
-    込んでいた `_build_*` 関数群が呼び出す (PR #833 で
-    `_build_nursing_shift_status` の最後 2 site を close)。
+  - Lang-aware localizer wrapper (Phase 1d-61/62 の統一 i18n API)
+    により、per-locale data-pipeline lookup (drug names / lab
+    names / oxygen device) の外側 `if lang == "ja":` gate を落と
+    せる。lookup table を持たない locale では no-op (今日は
+    `lang != "ja"` すべて):
+    - `output/fhir_r4/lib/localization.localize_drug_name(name,
+      lang)` — `_localize_drug_name` を wrap。
+    - `replacement_strategy.localize_lab_name(name, lang)` —
+      `_localize_lab_name_ja` を wrap。
+    - `replacement_strategy.localize_oxygen_device(device, lang)`
+      — `_localize_oxygen_device_ja` を wrap。
+    基底の JA-only helper 群
+    (`_localize_severity_ja`、`_localize_oxygen_device_ja`、
+    `_localize_lab_name_ja`、`_localize_arrival_mode_ja`、
+    `_localize_risk_level_ja`、`_localize_barthel_band_ja`) は
+    実辞書実装として維持。新 locale 追加は基底 YAML
+    (`llm_prompt_labels.yaml`) の data 追加のみ、code 変更不要。
 - **後段 backstop (post-hoc walker)** —
   `output/fhir_r4/documents/composition.py` の
   `_localize_practitioner_ids_in_text` (PR #828)。
