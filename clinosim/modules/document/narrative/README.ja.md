@@ -153,11 +153,12 @@ token が template 出力に混入すると LLM は verbatim rule に従って
   - `NarrativeContext.roster_map` (PR #831 追加) は `hospital.json`
     から `NarrativePass._load_roster()` が読み込んだ
     `{staff_id: staff_dict}` を各 ctx に伝播。
-    `template_generator._resolve_staff_name(staff_id, roster_map,
-    lang)` が `DR-CA-002` → `加瀬 幸男 医師` (JA) / `加瀬 幸男
-    (physician)` (EN) に解決。unknown id は生 id fallback、決して
-    fabricate しない。4 テンプレート call-site が利用中 (看護記録、
-    progress note の nurse line、ACP other-staff、NCP ward/physician)。
+    `template_generator._resolve_staff_name(staff_id, roster_map)`
+    が `DR-CA-002` → `加瀬 幸男` に解決。unknown id は生 id fallback、
+    決して fabricate しない。役職 suffix は付けない — 外側 template が
+    既に「担当看護師: {name}」「執刀医：{surgeon}」等の役職ラベルを
+    持っているため、suffix を足すと役職が二重になる (Phase 1d-71 以前
+    は「担当看護師: 田川 智美 看護師」等が発生していた)。
   - Lang-aware localizer wrapper (Phase 1d-61/62 の統一 i18n API)
     により、per-locale data-pipeline lookup (drug names / lab
     names / oxygen device) の外側 `if lang == "ja":` gate を落と

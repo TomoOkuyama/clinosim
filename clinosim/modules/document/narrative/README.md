@@ -163,11 +163,13 @@ first. Two symmetric defenses coexist:
   - `NarrativeContext.roster_map` (added PR #831) is `{staff_id:
     staff_dict}` loaded from `hospital.json` by
     `NarrativePass._load_roster()` and threaded into every ctx.
-    `template_generator._resolve_staff_name(staff_id, roster_map,
-    lang)` maps `DR-CA-002` → `加瀬 幸男 医師` (JA) / `加瀬 幸男
-    (physician)` (EN). Falls back to the raw id when unknown — never
-    fabricates. 4 template call-sites use it (nursing shift note,
-    progress-note nurse line, ACP other-staff, NCP ward/physician).
+    `template_generator._resolve_staff_name(staff_id, roster_map)`
+    maps `DR-CA-002` → `加瀬 幸男`. Falls back to the raw id when
+    unknown — never fabricates. The role suffix is omitted because
+    every outer template already carries the role indicator
+    (`Assigned nurse: {name}`, `Primary surgeon: {surgeon}`); prior
+    to Phase 1d-71 the composed line stated the role twice (e.g.
+    `Assigned nurse: George York (physician)`).
   - Lang-aware localizer wrappers (Phase 1d-61/62 unified-i18n
     API) let callers drop the outer `if lang == "ja":` gate around
     per-locale data-pipeline lookups (drug names, lab names,

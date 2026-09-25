@@ -98,33 +98,36 @@ logger = logging.getLogger(__name__)
 # a 68% staff-id leak in the deployed cohort.
 
 
-def _resolve_staff_name(staff_id: str, roster_map: dict[str, dict], lang: str) -> str:
-    """Return `<name>` + role suffix from ``roster_map``, or the raw
-    ``staff_id`` when the id is not resolvable.
+def _resolve_staff_name(staff_id: str, roster_map: dict[str, dict]) -> str:
+    """Return `<name>` from ``roster_map``, or the raw ``staff_id``
+    when the id is not resolvable.
 
     Never fabricates a name for an unknown id (mirrors the same rule as
     the sibling FHIR-emit walker `_localize_practitioner_ids_in_text`
     in `composition.py`).
 
+    The role suffix (「看護師」/「(physician)」 …) is intentionally
+    omitted: every narrative callsite reaches this helper through an
+    outer template that already carries the role indicator
+    (``Assigned nurse: {name}``, ``担当看護師: {name}``,
+    ``Primary surgeon: {surgeon}`` …). Appending the suffix again
+    produced "Assigned nurse: George York (physician)" /
+    "担当看護師: 田川 智美 看護師" with the role stated twice — the
+    Phase 1d-71 review across all 29 narrative doc types found this
+    at every staff-name emit site.
+
     Examples::
 
-        _resolve_staff_name("NS-OR-004", roster, "ja")  → "小松 凜 看護師"
-        _resolve_staff_name("DR-CA-002", roster, "en") → "加瀬 幸男 (physician)"
-        _resolve_staff_name("XYZ-999", {}, "ja")        → "XYZ-999"
+        _resolve_staff_name("NS-OR-004", roster)  → "小松 凜"
+        _resolve_staff_name("DR-CA-002", roster)  → "加瀬 幸男"
+        _resolve_staff_name("XYZ-999", {})        → "XYZ-999"
     """
     if not staff_id:
         return staff_id
     staff = roster_map.get(staff_id) if roster_map else None
     if not staff:
         return staff_id
-    name = staff.get("name") or ""
-    if not name:
-        return staff_id
-    prefix = staff_id.split("-", 1)[0] if "-" in staff_id else ""
-    suffix = _label("staff_role_suffix", prefix, lang, fallback="")
-    if not suffix:
-        return name
-    return t("common.staff_name_with_role", lang, name=name, suffix=suffix)
+    return staff.get("name") or staff_id
 
 
 def _render_home_med_name(m: Any, lang: str = "en") -> str:
@@ -3305,7 +3308,7 @@ class TemplateNarrativeGenerator:
         nurse_line = ""
         if nurse_id:
             facts.append("encounter.primary_nurse_id")
-            nurse_disp = _resolve_staff_name(nurse_id, ctx.roster_map, lang)
+            nurse_disp = _resolve_staff_name(nurse_id, ctx.roster_map)
             nurse_line = t("nursing_shift.nurse_line", lang, name=nurse_disp)
 
         # v9 (2026-08-17) density fix: replace 「バイタルサイン安定 / 特記事項なし」
@@ -3510,7 +3513,7 @@ class TemplateNarrativeGenerator:
         nurse_id = _o(ctx.encounter, "primary_nurse_id", "") or ""
         if nurse_id:
             facts.append("encounter.primary_nurse_id")
-            nurse_disp = _resolve_staff_name(nurse_id, ctx.roster_map, lang)
+            nurse_disp = _resolve_staff_name(nurse_id, ctx.roster_map)
             parts.append(t("admission_status.assigned_nurse", lang, name=nurse_disp))
         cc = ""
         if ctx.encounter is not None:
@@ -3743,7 +3746,7 @@ class TemplateNarrativeGenerator:
         if not nurse_id:
             return (t("fallback.acp_other_staff_fallback", lang)), facts
         facts.append("encounter.primary_nurse_id")
-        nurse_disp = _resolve_staff_name(nurse_id, ctx.roster_map, lang)
+        nurse_disp = _resolve_staff_name(nurse_id, ctx.roster_map)
         return t("acp.assigned_nurse_line", lang, name=nurse_disp), facts
 
     def _build_acp_diagnosis(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
@@ -3903,7 +3906,7 @@ class TemplateNarrativeGenerator:
         if physician:
             facts.append("encounter.attending_physician_id")
         ward_disp = ward or t("common.tbd", lang)
-        physician_disp = _resolve_staff_name(physician, ctx.roster_map, lang) if physician else t("common.tbd", lang)
+        physician_disp = _resolve_staff_name(physician, ctx.roster_map) if physician else t("common.tbd", lang)
         return t("ncp.ward_and_physician_line", lang, ward=ward_disp, physician=physician_disp), facts
 
     def _build_ncp_dietitian(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
@@ -7047,7 +7050,7 @@ class TemplateNarrativeGenerator:
         anes_label = _label("op_anesthesia_type", atype, lang, fallback=atype or t("op_note.anes_no_record", lang))
         asa = _o(proc, "asa_class", 0) or 0
         anes_id = _o(proc, "anesthesiologist_id", "") or ""
-        anes_name = _resolve_staff_name(anes_id, ctx.roster_map, lang) if anes_id else ""
+        anes_name = _resolve_staff_name(anes_id, ctx.roster_map) if anes_id else ""
         head = t("op_note.anesthesia_head", lang, label=anes_label)
         asa_part = t("op_note.anesthesia_asa_suffix", lang, asa=asa) if asa else ""
         anes_part = t("op_note.anesthesia_anesthesiologist_suffix", lang, name=anes_name) if anes_name else ""
@@ -7061,9 +7064,9 @@ class TemplateNarrativeGenerator:
             return t("op_note.surgeon_not_documented", lang), []
         facts = ["ctx.procedures"]
         surgeon_id = _o(proc, "primary_surgeon_id", "") or ""
-        surgeon_name = _resolve_staff_name(surgeon_id, ctx.roster_map, lang) if surgeon_id else ""
+        surgeon_name = _resolve_staff_name(surgeon_id, ctx.roster_map) if surgeon_id else ""
         assistant_ids = list(_o(proc, "assistant_ids", []) or [])
-        assistant_names = [_resolve_staff_name(a, ctx.roster_map, lang) for a in assistant_ids if a]
+        assistant_names = [_resolve_staff_name(a, ctx.roster_map) for a in assistant_ids if a]
         sep = t("list_sep.serial", lang)
         surgeon_part = (
             t("op_note.surgeon_line", lang, surgeon=surgeon_name) if surgeon_name else t("op_note.surgeon_none", lang)
