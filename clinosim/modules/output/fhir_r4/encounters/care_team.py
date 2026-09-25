@@ -33,6 +33,7 @@ from __future__ import annotations
 from typing import Any
 
 from clinosim.locale.i18n import t
+from clinosim.locale.loader import load_narrative_labels, resolve_localized_display
 from clinosim.modules._shared import get_attr_or_key as _o
 from clinosim.modules._shared import is_jp, resolve_lang
 from clinosim.modules.output.fhir_r4.demographics.patient import patient_ref
@@ -186,8 +187,13 @@ def _build_care_team(
     #   224535009 = "Registered nurse"
     #   46255001  = "Pharmacist"
     # Build participant list: attending always first; nurse only when non-empty.
-    def _role_coding(code: str, en: str, ja: str) -> list[dict]:
-        display = ja if lang == "ja" else en
+    # Role displays live in `narrative_labels.yaml/care_team_role_display:`
+    # keyed by the SNOMED code, so this helper takes only the code — the
+    # locale-specific display is resolved from the label catalog.
+    _role_display_map = load_narrative_labels().get("care_team_role_display", {})
+
+    def _role_coding(code: str) -> list[dict]:
+        display = resolve_localized_display(_role_display_map.get(code), lang, fallback=code)
         return [
             {
                 "coding": [
@@ -203,14 +209,14 @@ def _build_care_team(
 
     participants: list[dict[str, Any]] = [
         {
-            "role": _role_coding("309343006", "Physician", "医師"),
+            "role": _role_coding("309343006"),
             "member": {"reference": f"Practitioner/{attending_ref}"},
         },
     ]
     if primary_nurse_id:
         participants.append(
             {
-                "role": _role_coding("224535009", "Registered nurse", "看護師"),
+                "role": _role_coding("224535009"),
                 "member": {"reference": f"Practitioner/{primary_nurse_id}"},
             }
         )
@@ -225,7 +231,7 @@ def _build_care_team(
         idx = sum(ord(c) for c in encounter_id) % len(pharmacist_ids)
         participants.append(
             {
-                "role": _role_coding("46255001", "Pharmacist", "薬剤師"),
+                "role": _role_coding("46255001"),
                 "member": {"reference": f"Practitioner/{pharmacist_ids[idx]}"},
             }
         )
@@ -248,19 +254,22 @@ def _build_care_team(
     # provenance): 36682004 = "Physiotherapist", 80546007 =
     # "Occupational therapist", 159026005 = "Speech and language
     # therapist", 159033005 = "Dietitian", 106328005 = "Social worker".
+    # Role JA/EN displays live in
+    # `narrative_labels.yaml/care_team_role_display:` keyed by SNOMED
+    # code — the spec here only names the (allied_role_name, SNOMED
+    # code) pair. Rehabilitation physician (SNOMED 309362007) is a
+    # consult member, not primary attending; verified via tx.fhir.org
+    # 2026-06-01 loadout alongside the other 5 allied codes.
     _allied_role_specs = (
-        ("physical_therapist", "36682004", "Physiotherapist", "理学療法士"),
-        ("occupational_therapist", "80546007", "Occupational therapist", "作業療法士"),
-        ("speech_therapist", "159026005", "Speech and language therapist", "言語聴覚士"),
-        ("dietitian", "159033005", "Dietitian", "管理栄養士"),
-        ("medical_social_worker", "106328005", "Social worker", "医療ソーシャルワーカー"),
-        # Rehabilitation physician (リハビリテーション科医) — consult member,
-        # not primary attending; uses SNOMED 309362007 "Rehabilitation
-        # physician" (verified via tx.fhir.org 2026-06-01 loadout).
-        ("rehab_physician", "309362007", "Rehabilitation physician", "リハビリテーション科医"),
+        ("physical_therapist", "36682004"),
+        ("occupational_therapist", "80546007"),
+        ("speech_therapist", "159026005"),
+        ("dietitian", "159033005"),
+        ("medical_social_worker", "106328005"),
+        ("rehab_physician", "309362007"),
     )
     if allied_ids_by_role and enc_type in ("inpatient", "icu", "rehab_inpatient"):
-        for role_name, snomed_code, en_display, ja_display in _allied_role_specs:
+        for role_name, snomed_code in _allied_role_specs:
             pool = allied_ids_by_role.get(role_name, [])
             if not pool:
                 continue
@@ -271,7 +280,7 @@ def _build_care_team(
             idx = sum(ord(c) for c in hash_key) % len(pool)
             participants.append(
                 {
-                    "role": _role_coding(snomed_code, en_display, ja_display),
+                    "role": _role_coding(snomed_code),
                     "member": {"reference": f"Practitioner/{pool[idx]}"},
                 }
             )

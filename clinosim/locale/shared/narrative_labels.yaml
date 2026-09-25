@@ -282,3 +282,20 @@ mb_container_text:
   wound: {en: Swab container, ja: スワブ容器}
   csf: {en: Sterile CSF tube, ja: 髄液滅菌管}
   stool: {en: Stool container, ja: 便検体容器}
+
+# CareTeam.participant.role display per SNOMED clinical role code
+# (Phase 1d-57). Was inline `ja if lang == "ja" else en` argument
+# pair in `care_team._role_coding`, with each callsite passing per-
+# role JA/EN literals. Keyed by the SNOMED code so the callsite
+# stays code-driven (no locale-specific args) and the display map
+# is a data-only concern.
+care_team_role_display:
+  '309343006': {en: Physician, ja: 医師}
+  '224535009': {en: Registered nurse, ja: 看護師}
+  '46255001': {en: Pharmacist, ja: 薬剤師}
+  '36682004': {en: Physiotherapist, ja: 理学療法士}
+  '80546007': {en: Occupational therapist, ja: 作業療法士}
+  '159026005': {en: Speech and language therapist, ja: 言語聴覚士}
+  '159033005': {en: Dietitian, ja: 管理栄養士}
+  '106328005': {en: Social worker, ja: 医療ソーシャルワーカー}
+  '309362007': {en: Rehabilitation physician, ja: リハビリテーション科医}
