@@ -588,10 +588,11 @@ def _bb_compositions(ctx: BundleContext) -> list[dict[str, Any]]:
                 encounter_index=enc_index,
             )
         )
-        # Track sampled external org for referral letters (JP-only path).
-        # Same seed (patient_id + encounter_id) as the builder, so the id
-        # is byte-identical to the reference the builder wrote.
-        if lang == "ja" and _o(doc, "loinc_code", "") == "57133-1":
+        # Track sampled external org for referral letters (JP-CLINS
+        # eReferral 57133-1 doc-type). Same seed (patient_id +
+        # encounter_id) as the builder, so the id is byte-identical to
+        # the reference the builder wrote.
+        if _uses_jp_clins_profile(lang) and _o(doc, "loinc_code", "") == "57133-1":
             _pid = _o(doc, "patient_id", "") or ""
             _eid = _o(doc, "encounter_id", "") or ""
             _dest = pick_external_hospital(_pid, _eid, country="JP")
@@ -1529,7 +1530,7 @@ def _build_jp_clins_referral_note_composition(
     # 覚悟した上での明示的 fallback。
     pid = _o(doc, "patient_id", "") or ""
     eid = _o(doc, "encounter_id", "") or ""
-    external_dest = pick_external_hospital(pid, eid, country="JP") if lang == "ja" else None
+    external_dest = pick_external_hospital(pid, eid, country="JP") if _uses_jp_clins_profile(lang) else None
 
     top_entry_by_code: dict[str, list[dict[str, str]]] = {
         "920": _JP_ER_REFERRING_FROM_REF,

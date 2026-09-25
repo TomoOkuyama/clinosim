@@ -3239,7 +3239,7 @@ class TemplateNarrativeGenerator:
         follow_up_entry = instructions.get("follow_up") or {}
         text = follow_up_entry.get(lang) or follow_up_entry.get("ja") or follow_up_entry.get("en") or ""
         if not text:
-            text = "外来フォローアップ予定" if lang == "ja" else "Follow up with outpatient provider"
+            text = t("fallback.follow_up_default", lang)
         return text, ["discharge_instructions.follow_up"]
 
     # ─────────────────────────────────────────────────────────────────
