@@ -3815,11 +3815,17 @@ in <code>clinosim/modules/_shared.py</code> — shared-logic unification
   <code>system_key_for(kind, ctx.country)</code> (E.11).</li>
 <li>Enum values (severity / route / category etc.) = <code>_localize_display()</code>
   (existing helper, <code>clinosim/modules/output/fhir_r4/lib/common.py (localization helpers)</code>).</li>
-<li>Drug / procedure names = <code>code_lookup()</code> or <code>_localize_drug_name()</code>
-  (backed by the canonical cached loaders
+<li>Drug / procedure names = <code>code_lookup()</code> or the lang-aware
+  wrapper <code>localize_drug_name(name, lang)</code> from
+  <code>output/fhir_r4/lib/localization.py</code> (Phase 1d-61). The wrapper
+  is a no-op for locales without a drug-name lookup table (today:
+  any <code>lang != "ja"</code>), so callers stay single-code-path — no
+  <code>if lang == "ja":</code> gate needed. Underlying <code>_localize_drug_name</code>
+  (country-parameter form) remains for callers on the country
+  seam; both are backed by the canonical cached loaders
   <code>clinosim/locale/loader.py:load_drug_names_ja()</code> /
-  <code>load_med_terms_ja()</code> — no raw-YAML reads inside the builder,
-  E.3).</li>
+  <code>load_med_terms_ja()</code> — no raw-YAML reads inside the builder
+  (E.3).</li>
 <li>Department display = <code>_dept_display()</code> (backed by
   <code>load_department_display()</code>).</li>
 <li>If no translation exists → EN fallback + audit warn list.</li>
