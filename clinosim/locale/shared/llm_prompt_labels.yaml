@@ -61,6 +61,11 @@ oxygen_device:
   oxygen_mask: {ja: 酸素マスク}
   simple_mask: {ja: 酸素マスク}
   non_rebreather: {ja: リザーバーマスク}
+  # `non-rebreather` (hyphen form) is what `vitals_pipeline.py:304`
+  # actually writes to CIF. Alias entry so the JA-narrative
+  # localizer resolves the hyphenated CIF value rather than leaking
+  # `non-rebreather` verbatim into JP prose (Phase 1d-64 verify).
+  non-rebreather: {ja: リザーバーマスク}
   reservoir_mask: {ja: リザーバーマスク}
   venturi: {ja: ベンチュリーマスク}
   venturi_mask: {ja: ベンチュリーマスク}
