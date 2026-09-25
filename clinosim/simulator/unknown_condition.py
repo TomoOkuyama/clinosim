@@ -124,8 +124,20 @@ def _simulate_unknown_condition(
         0,
     )
     state.timestamp = admission_time
-    complaint = event.disease_id.replace("unknown_", "").replace("_", " ")
+    # Look up the sampled pattern slug (`unknown_<pattern>`) in the
+    # `unknown_condition_pattern` label catalog so both EN and JA
+    # display slots on the encounter are populated. Prevents the JP
+    # narrative from leaking the raw slug (e.g. "elevated inflammatory
+    # markers") verbatim into `chief_complaint` prose (Phase 1d-65).
+    from clinosim.locale.loader import load_narrative_labels, resolve_localized_display
+
+    _slug = event.disease_id.replace("unknown_", "", 1)
+    _entry = load_narrative_labels().get("unknown_condition_pattern", {}).get(_slug, {})
+    complaint = resolve_localized_display(_entry, "en", fallback=_slug.replace("_", " "))
+    complaint_ja = resolve_localized_display(_entry, "ja", fallback="")
     encounter = create_inpatient_encounter(patient.patient_id, admission_time, chief_complaint=complaint)
+    if complaint_ja:
+        encounter.chief_complaint_ja = complaint_ja
     # Unknown conditions are managed by internal medicine — resolve via hospital config
     department = resolve_department("internal_medicine", hospital_ops)
     encounter.department_id = department

@@ -549,6 +549,41 @@ def _localize_complication(name: str, lang: str) -> str:
     )
 
 
+def _format_lab_unit_for_prose(unit: str | None) -> str:
+    """Return a display-friendly form of a UCUM lab unit for narrative prose.
+
+    UCUM allows dimensionless-annotation units of the form ``{annotation}``
+    (curly braces are literal) — e.g. ``{INR}`` for PT-INR ratio,
+    ``{score}`` for scored assessments — and lets any real unit carry a
+    trailing ``/{annotation}`` clarifier (e.g. eGFR
+    ``mL/min/{1.73_m2}``). These read as raw placeholders in narrative
+    prose (``PT-INR 2.6 {INR}``, ``mL/min/{1.73_m2}``).
+
+    Rules:
+    - A pure-annotation unit ``{...}`` is treated as dimensionless and
+      returns ``""`` — the accompanying value is self-describing.
+    - A composite unit ``<real>/{...}`` strips the annotation clause
+      (returns ``<real>``); the mL/min/1.73m² special-case is handled
+      at its callsite for the ² typography, so this helper leaves the
+      raw underscore/digit form untouched.
+    - Otherwise the unit is returned verbatim.
+    """
+    if not unit:
+        return ""
+    u = str(unit).strip()
+    if not u:
+        return ""
+    if u.startswith("{") and u.endswith("}"):
+        return ""
+    # Strip a trailing "/{annotation}" clause without touching the real
+    # unit prefix.
+    if u.endswith("}"):
+        anno_start = u.rfind("/{")
+        if anno_start > 0:
+            return u[:anno_start]
+    return u
+
+
 def _localize_lab_name(name: str, lang: str) -> str:
     """Return the localized display for a lab_name token; fall back to
     the token as-is when unknown (some sim disease archetypes emit
@@ -4688,7 +4723,9 @@ class TemplateNarrativeGenerator:
                 # ``[critical]`` markers in ``本日の検査所見:`` lists.
                 disp_name = _localize_lab_name(name, ctx.target_lang)
                 disp_flag = _localize_lab_flag(flag, ctx.target_lang)
-                abn.append(f"{disp_name} {val} {unit} [{disp_flag}]")
+                unit_disp = _format_lab_unit_for_prose(unit)
+                unit_part = f" {unit_disp}" if unit_disp else ""
+                abn.append(f"{disp_name} {val}{unit_part} [{disp_flag}]")
             if len(abn) >= 6:
                 break
         if abn:
@@ -5458,7 +5495,10 @@ class TemplateNarrativeGenerator:
                         # each name via ``_localize_lab_name`` so JA output
                         # reads 「クレアチニン 0.69 mg/dL、K 4.9 mmol/L」
                         # and EN output canonicalises abbreviation casing.
-                        obs_bits.append(f"{_localize_lab_name(name, ctx.target_lang)} {v}{f' {u}' if u else ''}")
+                        _u_disp = _format_lab_unit_for_prose(u)
+                        obs_bits.append(
+                            f"{_localize_lab_name(name, ctx.target_lang)} {v}{f' {_u_disp}' if _u_disp else ''}"
+                        )
                 if obs_bits:
                     joined = t("list_sep.serial", lang).join(obs_bits[:4])
                     follow = t("chronic_assessment.followup_deferred", lang, joined=joined, label=label)
@@ -5980,7 +6020,9 @@ class TemplateNarrativeGenerator:
             if name and val is not None:
                 disp_name = _localize_lab_name(name, ctx.target_lang)
                 disp_flag = _localize_lab_flag(flag, ctx.target_lang)
-                abn_labs.append(f"{disp_name} {val} {unit} [{disp_flag}]")
+                unit_disp = _format_lab_unit_for_prose(unit)
+                unit_part = f" {unit_disp}" if unit_disp else ""
+                abn_labs.append(f"{disp_name} {val}{unit_part} [{disp_flag}]")
         if abn_labs:
             parts.append(t("ed_workup.abnormal_head", lang) + t("list_sep.serial", lang).join(abn_labs[:4]))
 
