@@ -51,7 +51,7 @@ from typing import Any
 from clinosim.codes import get_system_uri
 from clinosim.codes import lookup as code_lookup
 from clinosim.modules._shared import get_attr_or_key as _o
-from clinosim.modules._shared import is_jp, resolve_lang
+from clinosim.modules._shared import is_jp, resolve_lang, uses_jp_clins_profile
 from clinosim.modules.document import COMPOSITION_ID_PREFIX, DOC_REFERENCE_ID_PREFIX
 from clinosim.modules.document.narrative.registry import (
     resolve_section_loinc as _resolve_section_loinc,
@@ -103,23 +103,12 @@ __all__ = [
 ]
 
 
-def _uses_jp_clins_profile(lang: str) -> bool:
-    """True when the composition should emit under a JP-CLINS profile.
-
-    Semantic predicate for the "which regulatory profile family?"
-    decision — historically conflated with ``lang == "ja"`` because
-    JP-locale output has always mapped 1:1 to JP-CLINS-conformant
-    Composition variants (eDS 18842-5, eReferral 57133-1, eCheckup
-    General 53576-5, JP Composition eCS wrapper, death certificate
-    64297-5, etc.). Adding a locale that should NOT trigger JP-CLINS
-    (e.g. Portuguese output from the same JP hospital cohort) means
-    changing the predicate here rather than surgically at each
-    routing site.
-
-    Today equivalent to ``lang == "ja"`` — the predicate exists to
-    make the intent explicit at the callsite, not to change behavior.
-    """
-    return lang == "ja"
+# `_uses_jp_clins_profile` was introduced module-locally in Phase 1d-54
+# and promoted to `clinosim.modules._shared.uses_jp_clins_profile` in
+# Phase 1d-60 (see that module's docstring). Kept as a module alias so
+# existing callsite spelling stays intact; new callers import the
+# shared symbol directly.
+_uses_jp_clins_profile = uses_jp_clins_profile
 
 
 # #278:enc → free-text-doc-id 優先度用 LOINC 定数。
@@ -1838,7 +1827,7 @@ def _build_death_discharge_summary_composition(
         if ts:
             meta["lastUpdated"] = ts
 
-    if lang == "ja":
+    if uses_jp_clins_profile(lang):
         # Emit under jpfhir doc-typecodes with the death-variant title
         # (feedback_dual_slot_at_emit_site_not_post_process — set `.text`
         # here rather than rely on a post-process walker). The LOINC

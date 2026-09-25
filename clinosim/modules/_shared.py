@@ -53,6 +53,28 @@ def is_us(country: str) -> bool:
     return str(country).strip().lower() == "us"
 
 
+def uses_jp_clins_profile(lang: str) -> bool:
+    """True when FHIR resources should emit under a JP-CLINS profile family.
+
+    Semantic predicate for the "which regulatory profile family?"
+    decision — historically conflated with ``lang == "ja"`` because
+    JP-locale output has always mapped 1:1 to JP-CLINS-conformant
+    resource variants (JP_Composition_eDS / eReferral / eCheckup,
+    JP_AllergyIntolerance, JP_DiagnosticReport_Radiology,
+    JP_Organization_eCS, etc.). Adding a locale that should NOT
+    trigger JP-CLINS (e.g. Portuguese output from a JP hospital
+    cohort emitting under a generic profile) means changing the
+    predicate here rather than surgically at each dispatch site.
+
+    Today equivalent to ``lang == "ja"`` — the predicate exists to
+    make the intent explicit at every callsite, not to change
+    behavior. Introduced module-locally in Phase 1d-54
+    (`composition.py`); promoted to shared here in Phase 1d-60 so
+    every FHIR emit module can use one canonical predicate.
+    """
+    return lang == "ja"
+
+
 def resolve_lang(country: str) -> str:
     """Display language ISO-639-1 code for a country code.
 
