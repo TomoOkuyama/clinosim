@@ -34,7 +34,46 @@ from __future__ import annotations
 from functools import lru_cache
 from typing import Any
 
-from clinosim.locale.loader import _LOCALE_DIR, _load_yaml, resolve_localized_display
+import yaml
+
+from clinosim.locale.loader import _LOCALE_DIR, resolve_localized_display
+
+
+class _DuplicateKeyError(ValueError):
+    """Raised at import time when a YAML mapping key is defined more than
+    once inside the same parent scope. PyYAML's default behaviour silently
+    accepts the last binding, so a shadowed key at the top level (e.g. two
+    ``outpatient:`` blocks) would cause every ``t()`` call against the
+    shadowed subtree to fall through to the raw-key fallback — a
+    hard-to-notice silent leak (Phase 1d-64 regression, ~24k
+    JP-narrative subjective fields with raw
+    ``outpatient.subject_with_sex`` prose).
+    """
+
+
+class _StrictSafeLoader(yaml.SafeLoader):
+    """SafeLoader that raises on duplicate mapping keys."""
+
+
+def _no_duplicate_construct_mapping(loader, node, deep=False):
+    mapping: dict[Any, Any] = {}
+    for key_node, value_node in node.value:
+        key = loader.construct_object(key_node, deep=deep)
+        if key in mapping:
+            raise _DuplicateKeyError(
+                f"duplicate key {key!r} in YAML mapping at "
+                f"{key_node.start_mark.name}:{key_node.start_mark.line + 1} "
+                f"(shadows earlier definition — PyYAML silently keeps the last "
+                f"binding, which loses every sibling entry under the earlier one)."
+            )
+        mapping[key] = loader.construct_object(value_node, deep=deep)
+    return mapping
+
+
+_StrictSafeLoader.add_constructor(
+    yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG,
+    _no_duplicate_construct_mapping,
+)
 
 
 @lru_cache(maxsize=1)
@@ -44,8 +83,17 @@ def _load_phrase_catalog() -> dict[str, Any]:
     Structure: nested YAML tree with leaf entries of shape
     ``{lang: template}``. Callers reach a leaf via dot-notation
     (``chief_complaint.encounter_reason``).
+
+    Uses a strict SafeLoader that raises ``_DuplicateKeyError`` on any
+    duplicate mapping key so the shadowed-block failure mode
+    (Phase 1d-64) surfaces at import time rather than as a silent
+    per-callsite fallback.
     """
-    raw = _load_yaml(_LOCALE_DIR / "shared" / "narrative_phrases.yaml", fallback={})
+    path = _LOCALE_DIR / "shared" / "narrative_phrases.yaml"
+    if not path.exists():
+        return {}
+    with open(path, encoding="utf-8") as f:
+        raw = yaml.load(f, Loader=_StrictSafeLoader)  # noqa: S506 — strict subclass
     return raw or {}
 
 

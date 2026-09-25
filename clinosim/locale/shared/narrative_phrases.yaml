@@ -150,11 +150,16 @@ admission_summary:
     ja: "主訴: {cc}。入院日: {day} 日目現在。"
     en: "Chief complaint: {cc}. Admitted for inpatient care."
 
-# Outpatient SOAP subjective composer phrases (Phase 1d-21).
-# From template_generator._compose_outpatient_subjective_from_state.
-# Piece-wise so the composition can drop empty optional slots and the
-# strings concatenate cleanly per locale.
+# Outpatient SOAP subjective composer phrases (Phase 1d-21) +
+# outpatient Rx / workup headers (Phase 1d earlier). Merged into a
+# single `outpatient:` mapping so YAML does not silently drop keys via
+# the duplicate-mapping override (Phase 1d-64 fix — the second
+# `outpatient:` at L779 was shadowing this block, leaking raw dot-
+# notation keys `outpatient.subject_with_sex` etc. into ~24k JP
+# narrative subjective fields per p=10000 cohort).
 outpatient:
+  # SOAP subjective composer piece-wise phrases — the composer drops
+  # empty optional slots and concatenates cleanly per locale.
   subject_with_sex:
     ja: "{age}歳{sex}患者、"
     en: "{age}-year-old {sex} patient"
@@ -170,6 +175,13 @@ outpatient:
   chronic_followup:
     ja: "慢性疾患（{list}）のフォローアップを兼ねる。"
     en: " Follow-up of chronic conditions: {list}."
+  # Outpatient Rx / workup section headers.
+  today_prescription_head:
+    ja: "本日処方: "
+    en: "Today's prescription: "
+  today_workup_head:
+    ja: "本日実施: "
+    en: "Today's workup: "
 
 # ED-note assessment composer phrases (Phase 1d-21).
 # From template_generator._compose_ed_assessment_from_state.
@@ -774,15 +786,6 @@ ed_workup:
   procedures_head:
     ja: "処置: "
     en: "Procedures: "
-
-# Outpatient Rx / workup headers.
-outpatient:
-  today_prescription_head:
-    ja: "本日処方: "
-    en: "Today's prescription: "
-  today_workup_head:
-    ja: "本日実施: "
-    en: "Today's workup: "
 
 # Operative note "not documented" fallbacks.
 op_note:
