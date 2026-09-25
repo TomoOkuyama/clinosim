@@ -27,7 +27,7 @@ from typing import Any, NamedTuple
 from clinosim.codes import get_system_uri
 from clinosim.codes import lookup as _codes_lookup
 from clinosim.locale.i18n import t
-from clinosim.modules._shared import get_attr_or_key, is_jp, resolve_lang
+from clinosim.modules._shared import get_attr_or_key, is_jp, pick_localized_field, resolve_lang
 from clinosim.modules.document.narrative.replacement_strategy import _localize_lab_name_ja
 from clinosim.modules.imaging.engine import (
     RADIOLOGY_REPORT_ID_PREFIX,
@@ -925,15 +925,13 @@ def _build_radiology_dr(study: Any, report: Any, ctx: Any) -> dict:
         except ValueError:
             pass  # Unknown combination — proc_code stays ""; forward-compat for new modalities
 
-    # Locale-bound findings + impression text (JP cohort → ja fields).
-    findings_text = _o(report, "findings_text_ja", "") if lang == "ja" else _o(report, "findings_text", "")
-    impression_text = _o(report, "impression_text_ja", "") if lang == "ja" else _o(report, "impression_text", "")
-
-    # Fall back to en text when ja fields are empty (e.g. test stubs).
-    if lang == "ja" and not findings_text:
-        findings_text = _o(report, "findings_text", "")
-    if lang == "ja" and not impression_text:
-        impression_text = _o(report, "impression_text", "")
+    # Locale-bound findings + impression text (JP cohort → ja slot with
+    # bare-slot fallback for test stubs). Uses the shared
+    # `pick_localized_field` helper so adding a new locale (fr/zh/…)
+    # requires only new CIF `findings_text_<lang>` / `impression_text_<lang>`
+    # fields, no code change.
+    findings_text = pick_localized_field(report, "findings_text", lang)
+    impression_text = pick_localized_field(report, "impression_text", lang)
 
     # Build text.div (FHIR Narrative, Radiology IG requirement).
     div = (
