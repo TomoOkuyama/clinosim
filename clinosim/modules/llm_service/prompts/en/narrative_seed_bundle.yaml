@@ -1,5 +1,5 @@
 task_type: narrative_seed_bundle
-version: 22
+version: 23
 # Boot 12/13 (2026-09-20/21): bumped 3500→8000 alongside vLLM
 # `--max-model-len 32768` to eliminate discharge_summary length
 # truncation → per-section fallback observed in Boot 11 v2 (JP p=10000).
@@ -8,6 +8,26 @@ version: 22
 max_tokens: 8000
 temperature: 0.1
 description: |
+  v23 changes (2026-09-26, Phase 1d-75 — LLM prompt review P1):
+    - System-prompt frame fix: EN bundle previously read "You are the
+      clinician who writes ${document_type} in a Japanese hospital."
+      That claim was a leftover from the JP-only era and was silently
+      biasing the US-locale narrative (target_language=en). Now reads
+      "in a US hospital" — matches the locale-authored architecture
+      where prompts/en/ is EN-target-only. (JA file unchanged — it
+      correctly says 日本の病院.)
+    - Markdown rule vs prescribed heading contradiction: the "No
+      Markdown" line (`No Markdown syntax (**, ##, - bullets)`) was
+      contradicted by the admission_hp A&P section requiring
+      `**Assessment**` / `**Medications**` / etc. as the EN-target
+      heading set. Both files now carve out an explicit exception:
+      the Markdown-forbidden rule stands universally except for
+      section headings prescribed under "Per document_type" (today:
+      admission_hp A&P). Downstream JA output is unaffected — 【】
+      continues to be authorized instead of `**`.
+    - Detected by the narrative-generation LLM prompt review after
+      Phase 1d-74 icd sibling display fallback merged.
+
   v22 changes (2026-09-15, Issue #1445):
     - New Rule 2 sub-clause: when the ``chronic_conditions`` /
       ``past_medical_history`` / ``discharge_diagnoses`` payload cites
@@ -259,7 +279,7 @@ description: |
 system: |
   /no_think
 
-  You are the clinician who writes ${document_type} in a Japanese
+  You are the clinician who writes ${document_type} in a US
   hospital. Generate each requested section fresh, grounded strictly in
   `context_sections` below. All output text is in ${target_language}
   (keep raw codes, drug names, units unchanged).
@@ -609,9 +629,12 @@ system: |
   Occupation tokens (service, healthcare, retired, …) → translate to
   target_language when appropriate.
 
-  No Markdown syntax (**, ##, - bullets). Japanese output may use 【】
-  headings, ■ sub-headings, ・ bullets. English output uses plain
-  prose or short numbered lists.
+  No Markdown syntax (**, ##, - bullets) EXCEPT the section headings
+  prescribed under "Per document_type" below (e.g. **Assessment** /
+  **Medications** on the admission_hp A&P). Japanese output may use
+  【】 headings, ■ sub-headings, ・ bullets. English output uses plain
+  prose or short numbered lists, plus **Heading** only where the
+  per-doc-type block explicitly requires it.
 
   === Per document_type ===
 
