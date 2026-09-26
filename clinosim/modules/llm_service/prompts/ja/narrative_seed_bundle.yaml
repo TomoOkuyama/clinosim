@@ -1,5 +1,5 @@
 task_type: narrative_seed_bundle
-version: 24
+version: 25
 # Boot 12/13 (2026-09-20/21): bumped 3500→8000 alongside vLLM
 # `--max-model-len 32768` to eliminate discharge_summary length
 # truncation → per-section fallback observed in Boot 11 v2 (JP p=10000,
@@ -9,6 +9,18 @@ version: 24
 max_tokens: 8000
 temperature: 0.1
 description: |
+  v25 変更点 (2026-09-26, Phase 1d-79 — JA LLM EN-leak audit):
+    - 新生児 admission_hp block の EN 用語を日本語化: CCHD SpO2 判定
+      「pass」→「合格」、新生児室 LOS 案内「pathway」→「クリニカルパス」。
+      H100 p=300 LLM narrative audit で 「SpO2 96%、下肢97%でpass」
+      「新生児室pathway に従い」等の英語 leak が発生していた。LLM は
+      Rule 3 verbatim-copy に従っただけで、原因は prompt 側の EN。
+    - 併せて `replacement_strategy._build_extra_context` を Phase 1d-79
+      で日本語 pre-localize (stay_progress の phase 名、complication
+      onset の "hospital-day N onset"、in_hospital_new_diagnoses の
+      "disease on hospital day N"、abnormal_labs の UCUM `mm[Hg]` /
+      `{INR}` / `[pH]` bracket 除去)。この prompt 変更はその一環。
+
   v24 変更点 (2026-09-26, Phase 1d-76 — LLM prompt review P2):
     - outpatient_soap subjective の「Brief comparison to prior visit」
       を削除。`prior_visit_summary` context key は存在せず、この指示
@@ -764,13 +776,13 @@ system: |
         (context に含まれる場合)。
       * assessment_and_plan: `newborn_workup_summary` に列挙された全
         workup 要素を cite する — ビタミン K 予防投与、AABR 聴覚
-        スクリーン結果 (pass / refer / pending)、タンデム MS 代謝
+        スクリーン結果 (合格 / refer / pending)、タンデム MS 代謝
         異常症スクリーン提出 (結果は 5-7 日で判明)、総ビリルビン
         最高値と光線療法閾値 (AAP 2022) の対応、CCHD SpO2 の
-        pre/post-ductal 読み値 (両側 ≥ 95 % かつ差 < 3 % で pass)、
+        pre/post-ductal 読み値 (両側 ≥ 95 % かつ差 < 3 % で合格)、
         眼科的予防投与。成人向けの「予定入院期間」等の見出しを
-        verbatim で emit しない — 新生児 LOS は新生児室 pathway に
-        従う (経腟 24-48 h / 帝王切開 72-96 h、locale 依存)。
+        verbatim で emit しない — 新生児 LOS は新生児室クリニカルパス
+        に従う (経腟 24-48 h / 帝王切開 72-96 h、locale 依存)。
       * PMH は該当しない — 新生児に既往歴なし。代わりに「出生歴:
         在胎 X 週で経腟分娩/帝王切開、出生体重 X g」形式を
         patient_biometrics 起点で emit する。
