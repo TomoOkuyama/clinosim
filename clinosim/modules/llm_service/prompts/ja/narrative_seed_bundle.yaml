@@ -1,5 +1,5 @@
 task_type: narrative_seed_bundle
-version: 22
+version: 23
 # Boot 12/13 (2026-09-20/21): bumped 3500→8000 alongside vLLM
 # `--max-model-len 32768` to eliminate discharge_summary length
 # truncation → per-section fallback observed in Boot 11 v2 (JP p=10000,
@@ -9,6 +9,23 @@ version: 22
 max_tokens: 8000
 temperature: 0.1
 description: |
+  v23 変更点 (2026-09-26, Phase 1d-75 — LLM prompt review P1):
+    - Markdown 記号禁止 rule と per-doc-type prescribed heading の
+      矛盾解消: 「Markdown 記号 (**、##、- bullet) は使用しない」rule
+      は L701 で universal に宣言しつつ、admission_hp A&P の EN-target
+      block (L715-716) は `**Assessment**` / `**Medications**` を必須
+      heading として指定 — LLM は rule 矛盾を silent に無視するリスク
+      があった。両ファイルの Markdown rule に「per document_type 節で
+      明示的に指定された heading は例外」を明記し、target_language=ja
+      の 【】 heading と target_language=en の限定的な `**Heading**` を
+      対称的に許可。JA 出力は 【】 が引き続き authorized で影響なし。
+    - EN bundle 側 (prompts/en/narrative_seed_bundle.yaml) は追加で
+      system prompt frame を "in a Japanese hospital" → "in a US
+      hospital" に修正 (locale-authored 契約に合わせる — JA 側は
+      日本の病院 のまま)。
+    - Phase 1d-74 icd sibling display fallback merge 後の LLM prompt
+      review で検出。
+
   v22 変更点 (2026-09-15, Issue #1445):
     - Rule 2 に新条項: ``chronic_conditions`` /
       ``past_medical_history`` / ``discharge_diagnoses`` の payload が
@@ -698,9 +715,13 @@ system: |
   Occupation token (service, healthcare, retired, …) は必要に応じ
   target_language に翻訳する。
 
-  Markdown 記号 (**、##、- bullet) は使用しない。日本語出力では 【】
-  見出し、■ sub-heading、・ bullet が使用可能。英語出力は plain prose
-  又は短い番号付きリストを用いる。
+  Markdown 記号 (**、##、- bullet) は原則使用しない。ただし「per
+  document_type」節で明示的に指定された heading (例: admission_hp
+  A&P の **Assessment** / **Medications** 等 target_language=en 向け)
+  は例外として認める。日本語出力では 【】見出し、■ sub-heading、
+  ・ bullet が使用可能。英語出力は plain prose 又は短い番号付きリスト
+  を用い、per document_type で明記された **Heading** の Markdown 表記
+  のみを追加で許可する。
 
   === document_type 別の guidance ===
 
