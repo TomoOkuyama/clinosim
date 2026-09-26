@@ -106,6 +106,17 @@ jobs:
         # them locally with `clinosim dataset build <name>` and get the
         # same bytes. Total build time on ubuntu-latest ~5-8 min
         # (us-100 + jp-100 ≤ 30 s each, us-1000 + jp-1000 ~2-3 min each).
+        env:
+          # Issue #418 fail-loud gate: JP presets fail without a JP-CLINS
+          # package present, but installing the pkg in this CI runner is
+          # heavy (Java + fhir-toolkit) and the release job is
+          # deliberately a pkg-less environment (same posture as
+          # nightly.yml + scripts/reproduce.sh). Opt into the documented
+          # env-var override so JP presets fall back to the legacy
+          # 5-digit JLAC10 OIDs used by v0.6.3 and earlier release assets
+          # — CI-test-harness / release-artifact use case, exactly what
+          # the env var was added for.
+          CLINOSIM_ALLOW_LEGACY_JP_CLINS_PKG: "1"
         run: |
           mkdir -p dataset-dist
           for name in us-100 us-1000 jp-100 jp-1000; do
