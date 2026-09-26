@@ -959,8 +959,10 @@ def test_temporal_filter_keeps_already_occurred_complication_in_progress_note() 
     # carries the raw code + onset day for the LLM to correlate.
     cds = extra.get("complications_during_stay", "")
     assert "急性腎不全" in cds
-    assert "hospital-day 1 onset" in cds
-    assert "hospital day 1" in extra.get("in_hospital_new_diagnoses", "")
+    # Phase 1d-79: JA-target complication onset uses 「入院N日目発症」;
+    # in_hospital_new_diagnoses uses 「入院N日目に<disease>」.
+    assert "入院1日目発症" in cds
+    assert "入院1日目に" in extra.get("in_hospital_new_diagnoses", "")
 
 
 def test_temporal_filter_partial_mix_only_past_onsets_surface() -> None:
@@ -1076,8 +1078,9 @@ def test_temporal_filter_events_onset_past_surfaces() -> None:
     )
     extra = _build_extra_context(ctx, spec, template_section_names=set())
     # Phase 1d-77: JA-target pre-localizes to 「誤嚥性肺炎」.
+    # Phase 1d-79: onset phrase is 「入院N日目発症」 for JA.
     assert "誤嚥性肺炎" in extra.get("complications_during_stay", "")
-    assert "hospital-day 8 onset" in extra["complications_during_stay"]
+    assert "入院8日目発症" in extra["complications_during_stay"]
 
 
 def test_temporal_filter_legacy_undated_still_dropped_in_day_scope() -> None:
@@ -1123,7 +1126,8 @@ def test_temporal_filter_events_preferred_over_working_diagnoses() -> None:
         llm_enabled_sections=("subjective", "assessment", "plan"),
     )
     extra = _build_extra_context(ctx, spec, template_section_names=set())
-    assert "hospital-day 5 onset" in extra.get("complications_during_stay", "")
+    # Phase 1d-79: JA-target onset phrase is 「入院N日目発症」.
+    assert "入院5日目発症" in extra.get("complications_during_stay", "")
 
 
 def test_temporal_filter_day_zero_progress_note_still_admits_same_day_onset() -> None:
