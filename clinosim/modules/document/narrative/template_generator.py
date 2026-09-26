@@ -4741,6 +4741,11 @@ class TemplateNarrativeGenerator:
                 disp_name = _localize_lab_name(name, ctx.target_lang)
                 disp_flag = _localize_lab_flag(flag, ctx.target_lang)
                 unit_disp = _format_lab_unit_for_prose(unit)
+                # Phase 1d-80: drop the unit when it collapses to the same
+                # string as the lab_name (real case: pH lab with UCUM unit
+                # "[pH]" strips to "pH" → visible duplicate "pH 7.4 pH [L]").
+                if unit_disp and unit_disp.lower() == str(disp_name).lower():
+                    unit_disp = ""
                 unit_part = f" {unit_disp}" if unit_disp else ""
                 abn.append(f"{disp_name} {val}{unit_part} [{disp_flag}]")
             if len(abn) >= 6:
@@ -5544,9 +5549,11 @@ class TemplateNarrativeGenerator:
                         # reads 「クレアチニン 0.69 mg/dL、K 4.9 mmol/L」
                         # and EN output canonicalises abbreviation casing.
                         _u_disp = _format_lab_unit_for_prose(u)
-                        obs_bits.append(
-                            f"{_localize_lab_name(name, ctx.target_lang)} {v}{f' {_u_disp}' if _u_disp else ''}"
-                        )
+                        _lab_disp = _localize_lab_name(name, ctx.target_lang)
+                        # Phase 1d-80: unit=name dedupe (pH case).
+                        if _u_disp and _u_disp.lower() == str(_lab_disp).lower():
+                            _u_disp = ""
+                        obs_bits.append(f"{_lab_disp} {v}{f' {_u_disp}' if _u_disp else ''}")
                 if obs_bits:
                     joined = t("list_sep.serial", lang).join(obs_bits[:4])
                     follow = t("chronic_assessment.followup_deferred", lang, joined=joined, label=label)
