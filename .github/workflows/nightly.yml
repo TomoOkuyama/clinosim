@@ -171,6 +171,18 @@ jobs:
           pytest tests/integration --store-durations -n 2 --dist=worksteal \
             -q --tb=no --no-cov
       - name: Open PR if .test_durations changed
+        id: create_pr
+        # Issue #1500 governance: this step can fail with the message
+        # "GitHub Actions is not permitted to create or approve pull
+        # requests" when the repo setting
+        # `Settings → Actions → General → Workflow permissions →
+        # "Allow GitHub Actions to create and approve pull requests"`
+        # is OFF. That toggle is a one-time maintainer action but only
+        # the repo owner can flip it. Until then, we fall back to
+        # (a) surfacing the diff as a downloadable artifact and (b)
+        # emitting a WARN notice pointing at the setting — so the
+        # nightly job stops going red on this expected permission gap.
+        continue-on-error: true
         uses: peter-evans/create-pull-request@v8
         with:
           # GITHUB_TOKEN suffices for same-repo PRs; no PAT needed.
@@ -203,6 +215,26 @@ jobs:
           labels: |
             ci
             test-durations
+      - name: Fallback — upload .test_durations diff as artifact
+        # Runs when the create-PR step failed (Issue #1500 permission gap)
+        # OR when the file changed but the PR create was skipped. Gives
+        # the maintainer a way to apply the refresh manually without
+        # needing to re-run the whole regen locally.
+        if: steps.create_pr.outcome == 'failure' || steps.create_pr.outcome == 'skipped'
+        run: |
+          if git diff --quiet -- .test_durations; then
+            echo "::notice::.test_durations unchanged — no refresh needed."
+            exit 0
+          fi
+          echo "::warning::Auto-PR creation failed (see Issue #1500 — repo owner needs to enable Settings → Actions → General → Workflow permissions → 'Allow GitHub Actions to create and approve pull requests'). The refreshed .test_durations is uploaded as an artifact below; maintainer can download and commit manually."
+          git diff --stat -- .test_durations
+      - name: Upload refreshed .test_durations
+        if: steps.create_pr.outcome == 'failure' || steps.create_pr.outcome == 'skipped'
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-durations-refresh
+          path: .test_durations
+          retention-days: 14
   cohort-byte-diff-vs-master:
     name: Cohort byte-diff vs master (US p=100 seed=42)
     runs-on: ubuntu-latest
