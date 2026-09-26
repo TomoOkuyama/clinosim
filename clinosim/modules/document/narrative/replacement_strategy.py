@@ -1292,8 +1292,16 @@ def _build_extra_context(
     if scenario_bits:
         extra["clinical_scenario"] = " / ".join(scenario_bits)
     if ctx.los_days and ctx.los_days > 0:
-        phase = _stay_phase(ctx.day_index, ctx.los_days)
-        extra["stay_progress"] = f"day {ctx.day_index} of expected {ctx.los_days} ({phase})"
+        phase = _stay_phase(ctx.day_index, ctx.los_days, ctx.target_lang)
+        # Phase 1d-79: locale-aware stay_progress. Pre-1d-79 the value was
+        # hard-coded English ("day N of expected M (middle / stabilisation
+        # phase)"); the LLM copied it verbatim into JA prose, producing
+        # visible EN leaks (「入院5日目（middle / stabilisation phase）」).
+        if ctx.target_lang == "ja":
+            hd = ctx.day_index + 1  # 1-indexed hospital day
+            extra["stay_progress"] = f"入院{hd}日目 / 予定{ctx.los_days}日 ({phase})"
+        else:
+            extra["stay_progress"] = f"day {ctx.day_index} of expected {ctx.los_days} ({phase})"
 
     # v7 fix (2026-08-17): explicit 1-indexed hospital day label. v6
     # passed only day_index (0-indexed) and the LLM systematically
@@ -1507,6 +1515,14 @@ def _build_extra_context(
                 return _code_lookup(sys_key, cid, ctx.target_lang) or cid
             return _localize_complication(cid, ctx.target_lang) or cid
 
+        # Phase 1d-79: locale-aware onset phrase. Pre-1d-79 the format was
+        # hard-coded English (`(hospital-day N onset)`) which the LLM copied
+        # verbatim into JA prose ("急性腎障害 (hospital-day 2 onset)").
+        def _onset_suffix(onset_day: int) -> str:
+            if ctx.target_lang == "ja":
+                return f"（入院{onset_day}日目発症）"
+            return f"(hospital-day {onset_day} onset)"
+
         _phrases: list[str] = []
         for c in complications[:10]:
             cid = str(c)
@@ -1515,7 +1531,7 @@ def _build_extra_context(
                 if writing_day is not None and int(onset) > writing_day:
                     continue  # future event, not yet occurred at writing time
                 if int(onset) > 0:
-                    _phrases.append(f"{_disp(cid)} (hospital-day {int(onset)} onset)")
+                    _phrases.append(f"{_disp(cid)} {_onset_suffix(int(onset))}")
                 else:
                     _phrases.append(_disp(cid))
             else:
@@ -1529,11 +1545,18 @@ def _build_extra_context(
                     _phrases.append(_disp(cid))
         if _phrases:
             extra["complications_during_stay"] = "; ".join(_phrases)
+
         # in_hospital_new_diagnoses: the working_diagnoses list carries
         # dated in-hospital new-dx entries. Filter by writing_day so day-N
         # notes never see future new dx.
+        # Phase 1d-79: locale-aware format (JA gets 「入院N日目発症」).
+        def _new_dx_line(disease: str, onset_day: int) -> str:
+            if ctx.target_lang == "ja":
+                return f"入院{onset_day}日目に{disease}"
+            return f"{disease} on hospital day {onset_day}"
+
         filtered_new_dx = [
-            f"{did} on hospital day {int(od)}"
+            _new_dx_line(did, int(od))
             for did, od in _onset_by_disease.items()
             if od is not None and (writing_day is None or int(od) <= writing_day)
         ]
@@ -1982,7 +2005,17 @@ def _render_abnormal_labs(
         val_str = f"{val}"
         parts = f"{name} {val_str}"
         if unit:
-            parts += f" {unit}"
+            # Phase 1d-79: strip UCUM bracket / annotation from unit before
+            # injecting into LLM context — the LLM's Rule 3 verbatim-copy
+            # otherwise carries `mm[Hg]` / `{INR}` / `[pH]` into narrative
+            # prose. Mirrors the template-side fix in Phase 1d-65/1d-69.
+            from clinosim.modules.document.narrative.template_generator import (
+                _format_lab_unit_for_prose,
+            )
+
+            unit_disp = _format_lab_unit_for_prose(unit)
+            if unit_disp:
+                parts += f" {unit_disp}"
         parts += f" [{flag}]"
         picks.append(parts)
         if len(picks) >= max_pick:
@@ -2093,7 +2126,15 @@ def _render_lab_carry_forward(
         val_str = f"{val}"
         piece = f"{display_name} {val_str}"
         if unit:
-            piece += f" {unit}"
+            # Phase 1d-79: strip UCUM brackets / annotations for LLM context
+            # (see _render_abnormal_labs comment).
+            from clinosim.modules.document.narrative.template_generator import (
+                _format_lab_unit_for_prose,
+            )
+
+            unit_disp = _format_lab_unit_for_prose(unit)
+            if unit_disp:
+                piece += f" {unit_disp}"
         piece += f" [{flag}] ({day_word_prefix}{display_day}{day_word_suffix})"
         parts.append(piece)
         if len(parts) >= 8:
@@ -2153,15 +2194,22 @@ def _render_vitals_range(vitals: list) -> str:
     return " / ".join(parts)
 
 
-def _stay_phase(day_index: int, los_days: int) -> str:
-    """Bucket day-of-stay into phase label the LLM can key off in prose."""
+def _stay_phase(day_index: int, los_days: int, lang: str = "en") -> str:
+    """Bucket day-of-stay into phase label the LLM can key off in prose.
+
+    Phase 1d-79: JA output pre-localizes the label so the LLM's Rule 3
+    verbatim-copy behavior surfaces natural JA prose (「急性期」等) rather
+    than the raw English tokens (`middle / stabilisation phase`) leaking
+    into JA narratives.
+    """
+    is_ja = str(lang).lower().startswith("ja")
     if los_days <= 1:
-        return "single-day encounter"
+        return "単日受診" if is_ja else "single-day encounter"
     frac = (day_index + 1) / max(los_days, 1)
     if frac <= 0.34:
-        return "early / acute phase"
+        return "急性期" if is_ja else "early / acute phase"
     if frac <= 0.66:
-        return "middle / stabilisation phase"
+        return "安定期" if is_ja else "middle / stabilisation phase"
     if frac < 1.0:
-        return "late / pre-discharge phase"
-    return "discharge day"
+        return "退院準備期" if is_ja else "late / pre-discharge phase"
+    return "退院日" if is_ja else "discharge day"
