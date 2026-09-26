@@ -6076,6 +6076,13 @@ class TemplateNarrativeGenerator:
                 disp_name = _localize_lab_name(name, ctx.target_lang)
                 disp_flag = _localize_lab_flag(flag, ctx.target_lang)
                 unit_disp = _format_lab_unit_for_prose(unit)
+                # Phase 1d-81 follow-up: same unit=name dedupe as
+                # Phase 1d-80 covered in the two progress_note sites;
+                # this ed_workup abnormal-lab emit needs it too. Real
+                # case: pH lab (`lab_name="pH"` / `unit="[pH]"`) →
+                # `pH 7.33 pH [L]` visible dup.
+                if unit_disp and unit_disp.lower() == str(disp_name).lower():
+                    unit_disp = ""
                 unit_part = f" {unit_disp}" if unit_disp else ""
                 abn_labs.append(f"{disp_name} {val}{unit_part} [{disp_flag}]")
         if abn_labs:
