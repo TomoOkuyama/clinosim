@@ -2014,7 +2014,11 @@ def _render_abnormal_labs(
             )
 
             unit_disp = _format_lab_unit_for_prose(unit)
-            if unit_disp:
+            # Phase 1d-80: skip the unit when it equals the lab_name after
+            # bracket stripping. Real case: name="pH" + UCUM unit="[pH]" →
+            # unit_disp="pH" → visible duplicate "pH 7.11 pH [L]". This
+            # is unitless-scale idiom (pH is dimensionless) — drop unit.
+            if unit_disp and unit_disp.lower() != str(name).lower():
                 parts += f" {unit_disp}"
         parts += f" [{flag}]"
         picks.append(parts)
@@ -2133,7 +2137,9 @@ def _render_lab_carry_forward(
             )
 
             unit_disp = _format_lab_unit_for_prose(unit)
-            if unit_disp:
+            # Phase 1d-80: dedupe when unit collapses to the same string as
+            # the localized name (see _render_abnormal_labs — pH case).
+            if unit_disp and unit_disp.lower() != str(display_name).lower():
                 piece += f" {unit_disp}"
         piece += f" [{flag}] ({day_word_prefix}{display_day}{day_word_suffix})"
         parts.append(piece)
