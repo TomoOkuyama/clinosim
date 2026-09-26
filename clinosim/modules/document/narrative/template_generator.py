@@ -7160,8 +7160,15 @@ class TemplateNarrativeGenerator:
         end_dt = _o(proc, "end_datetime", None)
         approach_part = ""
         if approach:
-            approach_lower = approach.lower().rstrip()
-            already_has_suffix = approach_lower.endswith("approach") or approach.rstrip().endswith("アプローチ")
+            # Phase 1d-78: widen from endswith to substring — the raw
+            # yaml fallback strings (e.g. "laparoscopic approach with
+            # 4-port technique") carry "approach" in the MIDDLE, not
+            # at the end. Endswith-only detection let the template
+            # append a second " approach" → "…technique approach"
+            # (US) or "…technique アプローチにて" (JA on unmapped
+            # composite). Substring detection catches both cases.
+            approach_lower = approach.lower()
+            already_has_suffix = "approach" in approach_lower or "アプローチ" in approach
             key = "op_note.course_approach_part_bare" if already_has_suffix else "op_note.course_approach_part"
             approach_part = t(key, lang, approach=approach)
         time_part = ""
