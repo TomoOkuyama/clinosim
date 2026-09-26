@@ -1478,6 +1478,35 @@ def _build_extra_context(
             return None
 
         writing_day = _writing_day_of(spec, ctx)
+        # Phase 1d-77: pre-localize the complication tokens so the JA LLM
+        # context sees 「気胸」「低カリウム血症」「尿路性敗血症」etc.
+        # rather than raw slugs (pneumothorax / hypokalemia / urosepsis).
+        # Matches the template-path fix (Phase 1d-72) that routes death_cert
+        # + dds complications through _localize_complication. Rule 3 verbatim
+        # then applies cleanly — the LLM copies the already-localized display
+        # instead of relying on parametric-memory translation.
+        #
+        # ICD codes (e.g. "N17.9") mix into complications_occurred alongside
+        # English slugs; they must render via code_lookup (JP → icd-10-mhlw)
+        # not _localize_complication (which lowercases keys and misses).
+        # Presence of a digit-and-dot signals the ICD form.
+        import re as _re
+
+        from clinosim.codes import lookup as _code_lookup
+        from clinosim.modules.document.narrative.template_generator import (
+            _localize_complication,
+        )
+
+        _icd_pat = _re.compile(r"^[A-Z]\d")
+
+        def _disp(cid: str) -> str:
+            if _icd_pat.match(cid):
+                # ICD code — resolve via code_lookup on the JA/EN diagnosis
+                # code system; fall back to the raw code when unmapped.
+                sys_key = "icd-10-mhlw" if ctx.locale == "jp" else "icd-10-cm"
+                return _code_lookup(sys_key, cid, ctx.target_lang) or cid
+            return _localize_complication(cid, ctx.target_lang) or cid
+
         _phrases: list[str] = []
         for c in complications[:10]:
             cid = str(c)
@@ -1486,9 +1515,9 @@ def _build_extra_context(
                 if writing_day is not None and int(onset) > writing_day:
                     continue  # future event, not yet occurred at writing time
                 if int(onset) > 0:
-                    _phrases.append(f"{cid} (hospital-day {int(onset)} onset)")
+                    _phrases.append(f"{_disp(cid)} (hospital-day {int(onset)} onset)")
                 else:
-                    _phrases.append(cid)
+                    _phrases.append(_disp(cid))
             else:
                 # Undated entry (no matching events/working_diagnoses
                 # onset). After Phase 1a producers this is only the
@@ -1497,7 +1526,7 @@ def _build_extra_context(
                 # only; a day-scoped or admission-scoped narrative cannot
                 # safely place an untimed event on the writer's clock.
                 if writing_day is None:
-                    _phrases.append(cid)
+                    _phrases.append(_disp(cid))
         if _phrases:
             extra["complications_during_stay"] = "; ".join(_phrases)
         # in_hospital_new_diagnoses: the working_diagnoses list carries
