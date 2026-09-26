@@ -39,9 +39,33 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.
 
 ## [Unreleased]
 
+## [0.6.4] - 2026-09-26
+
 ### Changed
 
-- **Phase 1d unified-i18n migration continued (sessions 121-125, Phases 1d-40 through 1d-63)** — 24 PRs (#1505-#1527) advancing the "add a new locale = zero code change" contract across the narrative pipeline + FHIR emit modules. All phases verified byte-identical to pre-refactor output; CIF ↔ narrative-CIF consistency preserved.
+- **Phase 1d unified-i18n migration continued (sessions 122, Phases 1d-64 through 1d-81)** — 18 further PRs (#1528–#1547) closing the "add a new locale = zero code change" contract on the last emit sites + resolving the JA LLM narrative EN-leak class surfaced by the H100 p=300 vLLM audit.
+- **Phase 1d-67 → 1d-73 (session 122 late)** — 8 template-side i18n fixes surfaced by the p=10000 manual narrative review across all 29 doc types (16 JP + 12 US):
+  - **operative_note approach dedup** (Phase 1d-67, 1d-78) — the composer appended `" approach"` / `"アプローチにて"` even when the localized approach text already contained that word. Detection widened from `endswith` to substring so `laparoscopic approach with 4-port technique` no longer collapses into `…technique approach approach` / `…techniqueアプローチにて`.
+  - **US `ed_note` disposition triage scale** (Phase 1d-68) — the fallback template hard-coded `JTAS level {level}` for both locales. EN now emits `ESI level {level}` to match the standard US ED triage scale.
+  - **UCUM special-unit brackets in prose** (Phase 1d-69) — `_format_lab_unit_for_prose` now strips `[Hg]` / `[H2O]` / `[in_i]` alongside `{annotation}` so blood-gas labs read `PaCO2 46.4 mmHg` rather than `PaCO2 46.4 mm[Hg]`.
+  - **`risk_assessments` sentence separator** (Phase 1d-70) — EN output was `low.Fall (…): moderate.` with no space between sentences. Now joins with `list_sep.period_space` (`. ` in EN / `。` in JA).
+  - **Staff-name role suffix drop** (Phase 1d-71) — `_resolve_staff_name` no longer appends a role suffix ("看護師" / "(physician)"); every outer template already declares the role indicator so the composed line read the role twice ("担当看護師: 田川 智美 看護師").
+  - **Complication localize in death_cert / dds** (Phase 1d-72) — `_build_dc_contributing_conditions` and `_build_dds_complications_and_comorbidities` now route complication tokens through `_localize_complication` so JA emits 「水頭症」/「尿路性敗血症」etc. and EN keeps canonical yaml casing (`requiring NIV`) instead of the lowercase slug fallback.
+  - **Discharge-hold reason as noun phrase** (Phase 1d-73) — `_discharge_protocol_hold_reason_{en,ja}` no longer emit a verb prefix so the composed line reads `- Furosemide was held during this admission because of heart failure exacerbation discharge protocol.` instead of the double-verb `…because of held per…` (EN) / `…保留のため…保留` (JA).
+- **Phase 1d-74 icd-10 ↔ icd-10-cm sibling display fallback** — reciprocal `_SYSTEM_LOOKUP_SIBLINGS` entries between `icd-10` / `icd-10-mhlw` / `icd-10-cm` in `clinosim/codes/loader.py`. Lookup misses in one system fall through to the sibling, so SDOH-derived chronic Conditions authored in ICD-10-CM (F17.210 nicotine dependence, E66.3 overweight, F10.20 alcohol dependence) resolve to their JA displays under JP's `icd-10-mhlw` context, and JP-only chronic roots (E79, H26, K59) resolve under US's `icd-10-cm` context. Display-only fallback — each system keeps its own canonical URI.
+- **Phase 1d-75 → 1d-77 (LLM prompt + context review)** —
+  - **`narrative_seed_bundle.yaml` v22 → v25 across both locales.** v23 (Phase 1d-75) closed two P1 defects: EN bundle system-prompt frame `"in a Japanese hospital"` → `"in a US hospital"` (the JP-only-era leftover was silently biasing US narratives), and both files now carve out an explicit Markdown-restriction exception for section headings prescribed under "Per document_type" (admission_hp A&P). v24 (Phase 1d-76) grounded the outpatient_soap subjective (removed the "prior visit" comparison instruction — no `prior_visit_summary` context key exists) and the ed_note assessment (differential considerations must be grounded in chief_complaint + PMH + labs, not invented). v25 (Phase 1d-79) localized the JA-only neonatal admission_hp block (`pass` → 「合格」 for CCHD screen result; `pathway` → 「クリニカルパス」 for newborn nursery LOS).
+  - **`_build_extra_context` pre-localization** (Phase 1d-77) — `complications_during_stay` now routes English slugs through `_localize_complication` (JA gets 「気胸」etc.) and ICD codes through `codes.lookup` on the target-locale diagnosis system (JP → `icd-10-mhlw` → 「急性腎不全、詳細不明」). Matches the template-path fix in Phase 1d-72.
+- **Phase 1d-79 → 1d-81 (LLM output EN-leak fixes)** — closes 7 EN-leak patterns surfaced by the H100 p=300 vLLM manual review (1662 JP + 1677 US docs, 0 fallback):
+  - **UCUM `mm[Hg]` / `{INR}` / `[pH]` in labs context** — `_render_abnormal_labs` and `_render_lab_carry_forward` now apply `_format_lab_unit_for_prose` before injection.
+  - **`in_hospital_new_diagnoses` locale-aware format** — `f"入院{N}日目に{disease}"` for JA, EN preserved.
+  - **`stay_progress` phase names localized** — `_stay_phase` accepts `lang` and returns 「急性期」/「安定期」/「退院準備期」/「退院日」/「単日受診」 for JA; outer format also localized.
+  - **`hospital-day N onset` phrase** — JA emits 「入院N日目発症」in `complications_during_stay`.
+  - **Bundle prompt neonatal `pass` / `pathway`** — Japanese equivalents `合格` / `クリニカルパス`.
+  - **Template `1 shift 毎に` / `毎 shift`** — respiratory-care and NIHSS-stroke care_plan JA strings now use「勤務帯ごとに」(Phases 1d-79 and 1d-81).
+  - **pH-pH lab dedupe** (Phase 1d-80, 1d-81) — when the stripped unit collapses to the same string as the lab_name (real case: pH lab with UCUM `[pH]` → strips to `pH` → visible `pH 7.11 pH [L]` dup), the unit is dropped. Applied at three lab-render callsites (progress_note notable_labs, outpatient-fallback observations, ed_workup abnormal-labs).
+- **Nightly `test-durations-regen` graceful fallback** (Issue #1500) — `.github/workflows/nightly.yml`: `continue-on-error: true` on the create-PR step + WARN notice + `.test_durations` artifact upload. Nightly job stops going red on the expected permission gap; once the repo setting `Settings → Actions → General → Workflow permissions → Allow GitHub Actions to create and approve pull requests` is toggled ON (owner action), the fallback steps auto-skip.
+- **Phase 1d unified-i18n migration (sessions 121-125, Phases 1d-40 through 1d-63)** — 24 PRs (#1505-#1527) advancing the "add a new locale = zero code change" contract across the narrative pipeline + FHIR emit modules. All phases verified byte-identical to pre-refactor output; CIF ↔ narrative-CIF consistency preserved.
 - **`if is_ja:` bindings eliminated** — `template_generator.py`: **37 → 0** runtime bindings (100% removed). `replacement_strategy.py`: **6 → 0** runtime bindings. Remaining `is_ja` mentions are docstring/comment references to the historical pattern.
 - **Phrase catalog expanded** — added `safety_skips`, `safety_skips_prompt`, `chronic_assessment`, `checkup_lab_results`, `immunization_fhir`, `microbiology_fhir`, `diagnostic_report_fhir`, `imaging_report_fhir`, `care_team_fhir`, `allergy_intolerance_fhir`, `family_history_fhir`, `referral_fhir` sections in `narrative_phrases.yaml` (~130 keys total).
 - **Label catalog expanded** — added `soap_label`, `mb_container_text`, `care_team_role_display`, `allergy_jfagy_display`, `lab_trend_direction` sections in `narrative_labels.yaml` (24 keys); newborn / op_note / procedure-note label sections consolidated.
@@ -60,6 +84,10 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.
 - **`docs/design-guides/fhir-data-generation-logic(.ja).md`** — drug/procedure name guidance updated with the `localize_drug_name(name, lang)` wrapper (Phase 1d-63).
 - **`docs/design-notes/2026-07-06-fix-point-registry.md`** — FP-UNIFY-3 "residual `lang=="ja"`" note extended with a Phase 1d follow-up pointer showing that the two deferred sites (`_CARE_TEAM_CATEGORY_JA/EN` dispatch and `findings_text_ja` selector) were subsequently migrated (Phase 1d-53 / 1d-57).
 - **`clinosim/modules/output/fhir_r4/encounters/README(.ja).md`** — CareTeam scope contract line updated (`_CARE_TEAM_CATEGORY_EN` / `_JA` → `care_team_fhir.category_display` YAML key).
+
+### Verified
+
+- **Post-Phase-1d-81 full-corpus sweep** of the p=10000 s=500 JP template narrative (80,248 docs) confirms 0 hits for every previously-detected EN leak: `mm[Hg]`, `{INR}`, `hospital day N`, `stabilisation phase`, `acute phase`, `pathway`, `1 shift`, `毎 shift`, `pH pH`, F17.210/E66.3/H26/K59/E79 raw code.
 
 ## [0.6.3] - 2026-09-21
 
