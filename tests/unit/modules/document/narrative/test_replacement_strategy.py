@@ -887,8 +887,12 @@ def test_build_extra_context_surfaces_complications_in_discharge_scope() -> None
     ctx.complications_occurred = ["pneumothorax", "aspiration_pneumonia"]
     extra = _build_extra_context(ctx, _discharge_spec(), template_section_names=set())
     assert "complications_during_stay" in extra
-    assert "pneumothorax" in extra["complications_during_stay"]
-    assert "aspiration_pneumonia" in extra["complications_during_stay"]
+    # Phase 1d-77: LLM context pre-localizes complication tokens through
+    # _localize_complication, so the JA-target ctx (target_lang="ja")
+    # emits 「気胸」「誤嚥性肺炎」 rather than the raw English slugs.
+    assert "気胸" in extra["complications_during_stay"]
+    assert "誤嚥性肺炎" in extra["complications_during_stay"]
+    assert "pneumothorax" not in extra["complications_during_stay"]
 
 
 def test_build_extra_context_omits_complications_when_empty() -> None:
@@ -949,7 +953,13 @@ def test_temporal_filter_keeps_already_occurred_complication_in_progress_note() 
         llm_enabled_sections=("subjective", "assessment", "plan"),
     )
     extra = _build_extra_context(ctx, spec, template_section_names=set())
-    assert "N17.9" in extra.get("complications_during_stay", "")
+    # Phase 1d-77: ICD complication tokens resolve via code_lookup on the
+    # target-locale diagnosis system (JP → icd-10-mhlw), so N17.9 emits its
+    # JA display 「急性腎不全、詳細不明」. `in_hospital_new_diagnoses` still
+    # carries the raw code + onset day for the LLM to correlate.
+    cds = extra.get("complications_during_stay", "")
+    assert "急性腎不全" in cds
+    assert "hospital-day 1 onset" in cds
     assert "hospital day 1" in extra.get("in_hospital_new_diagnoses", "")
 
 
@@ -971,8 +981,11 @@ def test_temporal_filter_partial_mix_only_past_onsets_surface() -> None:
     extra = _build_extra_context(ctx, spec, template_section_names=set())
     comps = extra.get("complications_during_stay", "")
     new_dx = extra.get("in_hospital_new_diagnoses", "")
-    assert "N17.9" in comps and "N17.9" in new_dx
-    assert "A41.9" not in comps and "A41.9" not in new_dx
+    # Phase 1d-77: N17.9 renders as its JA display in the complications
+    # phrase; the raw code remains in in_hospital_new_diagnoses.
+    assert "急性腎不全" in comps and "N17.9" in new_dx
+    assert "敗血症" not in comps and "A41.9" not in new_dx
+    assert "A41" not in comps  # future-onset entry filtered out entirely
 
 
 def test_temporal_filter_drops_undated_complication_from_admission_scope() -> None:
@@ -1000,8 +1013,11 @@ def test_temporal_filter_keeps_undated_complication_in_whole_stay_scope() -> Non
     ctx.complications_occurred = ["pneumothorax", "aspiration_pneumonia"]
     ctx.working_diagnoses = []
     extra = _build_extra_context(ctx, _discharge_spec(), template_section_names=set())
-    assert "pneumothorax" in extra.get("complications_during_stay", "")
-    assert "aspiration_pneumonia" in extra.get("complications_during_stay", "")
+    # Phase 1d-77: JA-target ctx pre-localizes complication slugs.
+    cds = extra.get("complications_during_stay", "")
+    assert "気胸" in cds
+    assert "誤嚥性肺炎" in cds
+    assert "pneumothorax" not in cds
 
 
 def test_temporal_filter_reads_onset_from_complications_events() -> None:
@@ -1059,7 +1075,8 @@ def test_temporal_filter_events_onset_past_surfaces() -> None:
         llm_enabled_sections=("subjective", "assessment", "plan"),
     )
     extra = _build_extra_context(ctx, spec, template_section_names=set())
-    assert "aspiration_pneumonia" in extra.get("complications_during_stay", "")
+    # Phase 1d-77: JA-target pre-localizes to 「誤嚥性肺炎」.
+    assert "誤嚥性肺炎" in extra.get("complications_during_stay", "")
     assert "hospital-day 8 onset" in extra["complications_during_stay"]
 
 
@@ -1124,9 +1141,10 @@ def test_temporal_filter_day_zero_progress_note_still_admits_same_day_onset() ->
     )
     extra = _build_extra_context(ctx, spec, template_section_names=set())
     # onset_day = 0 was previously suppressed by the "> 0" check; the fix
-    # keeps that (bare cid without "hospital-day 0 onset" phrasing) so we
-    # only require the id itself to appear.
-    assert "I48" in extra.get("complications_during_stay", "")
+    # keeps that (bare display without "hospital-day 0 onset" phrasing).
+    # Phase 1d-77: I48 resolves to its JA display via icd-10-mhlw sibling.
+    cds = extra.get("complications_during_stay", "")
+    assert "心房細動" in cds
 
 
 def test_build_extra_context_localizes_encounter_type_ja() -> None:
@@ -1299,7 +1317,8 @@ def test_build_extra_context_discharge_summary_enrichment() -> None:
         llm_enabled_sections=("hospital_course", "discharge_instructions"),
     )
     extra = _build_extra_context(ctx, spec, template_section_names=set())
-    assert "pneumothorax" in extra.get("complications_during_stay", "")
+    # Phase 1d-77: pneumothorax → 気胸 for JA-target ctx.
+    assert "気胸" in extra.get("complications_during_stay", "")
     assert "chest tube" in extra.get("key_procedures_performed", "").lower()
     assert "WBC" in extra.get("abnormal_labs_during_stay", "")
     range_line = extra.get("vitals_range_during_stay", "")
