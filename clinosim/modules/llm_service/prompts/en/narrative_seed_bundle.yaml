@@ -1,5 +1,5 @@
 task_type: narrative_seed_bundle
-version: 23
+version: 24
 # Boot 12/13 (2026-09-20/21): bumped 3500→8000 alongside vLLM
 # `--max-model-len 32768` to eliminate discharge_summary length
 # truncation → per-section fallback observed in Boot 11 v2 (JP p=10000).
@@ -8,6 +8,27 @@ version: 23
 max_tokens: 8000
 temperature: 0.1
 description: |
+  v24 changes (2026-09-26, Phase 1d-76 — LLM prompt review P2):
+    - outpatient_soap subjective: removed the "Brief comparison to
+      prior visit" instruction. No `prior_visit_summary` context key
+      exists, so the instruction was an invitation to fabricate a
+      prior-encounter contrast the LLM could only draw from
+      parametric memory. Replaced with an explicit
+      "state current status only" clause.
+    - ed_note assessment: reworded the "differential (2-3 items),
+      confirmed diagnosis with brief justification" line into a
+      grounded shape. Named differential considerations are still
+      permitted (2-3 conditions for the chief_complaint, e.g. chest
+      pain → ACS / PE / aortic dissection — these are pattern-
+      recognition off the presenting complaint, not fact invention)
+      but the LLM is explicitly forbidden from inventing workup
+      findings, imaging results, or rule-out reasoning absent from
+      context. Working diagnosis justification must be drawn only
+      from chief_complaint + PMH + abnormal_labs_today /
+      initial_vitals.
+    - Detected in the same LLM prompt review that surfaced the
+      Phase 1d-75 Markdown / hospital-frame P1s.
+
   v23 changes (2026-09-26, Phase 1d-75 — LLM prompt review P1):
     - System-prompt frame fix: EN bundle previously read "You are the
       clinician who writes ${document_type} in a Japanese hospital."
@@ -709,7 +730,9 @@ system: |
   ### outpatient_soap
   - Purpose: continuity of care between outpatient visits.
   - subjective: reason for today's visit + chronic follow-up status
-    (1-3 lines). Brief comparison to prior visit.
+    (1-3 lines). Do NOT fabricate a comparison to a prior visit —
+    the context does not carry prior-visit facts. State current
+    status only.
   - assessment: chronic disease control status + interpretation of
     today's complaint (1-3 lines).
   - plan: continue current therapy or specific adjustments + next
@@ -719,8 +742,17 @@ system: |
   - Purpose: ED visit record; hand-off to admitting team; legal record.
   - hpi: timeline EMS → onset → prior care → ED arrival. Include EMS
     info if present. 3-6 lines.
-  - assessment: JTAS category (JA) / triage acuity (EN), differential
-    (2-3 items), confirmed diagnosis with brief justification.
+  - assessment: JTAS category (JA) / triage acuity (EN), followed by
+    the confirmed / working diagnosis (grounded in
+    `primary_encounter_reason` / `chief_complaint_verbatim`) with a
+    brief justification drawn ONLY from context (chief_complaint +
+    PMH + abnormal_labs_today / initial_vitals). Named differential
+    considerations for the chief_complaint are allowed — 2-3 conditions
+    named for the presenting complaint (e.g. chest pain → ACS / PE /
+    aortic dissection) — but do NOT invent workup findings, imaging
+    results, or rule-out reasoning that isn't in context (Rule 1). If
+    the differential rests on data not in context, drop it and go
+    straight to the working diagnosis.
   - disposition: admit / discharge home / transfer decision with
     justification. Include follow-up / precautions.
 
