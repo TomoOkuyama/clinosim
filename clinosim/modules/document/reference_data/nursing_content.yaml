@@ -194,7 +194,7 @@ acute_disease:
         - impaired verbal communication
     care_plan:
       ja:
-        - NIHSS ベースの神経学的評価を毎 shift 実施
+        - NIHSS ベースの神経学的評価を勤務帯ごとに実施
         - 嚥下スクリーニング後の食事形態調整、誤嚥予防
         - "転倒予防: ベッド柵・センサーマット・ナースコール手元"
         - 患側肢のポジショニング + 早期リハビリ連携
