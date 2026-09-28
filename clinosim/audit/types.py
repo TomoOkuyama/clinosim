@@ -76,7 +76,7 @@ class Cohort:
         self.root = root
 
     @classmethod
-    def open(cls, root: Path | str, encoding="utf-8") -> Cohort:
+    def open(cls, root: Path | str) -> Cohort:
         return cls(Path(root))
 
     def countries(self) -> list[str]:

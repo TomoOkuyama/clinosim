@@ -170,7 +170,7 @@ def load_patient_profile(name_or_path: str) -> PatientProfile:
                 f"patient profile not found: {name_or_path!r} (looked in {_PATIENT_PROFILE_DIR} and as literal path)"
             )
 
-    data = yaml.safe_load(p.read_text())
+    data = yaml.safe_load(p.read_text(encoding="utf-8"))
     profile = PatientProfile(**data)
 
     expected_stem = p.stem
