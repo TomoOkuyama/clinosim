@@ -137,9 +137,11 @@ def _run_regenerate_goldens(args: Any) -> None:
                     for doc_file in sorted(enc_dir.iterdir()):
                         if doc_file.suffix != ".json":
                             continue
-                        actual[doc_file.stem] = json.loads(doc_file.read_text())
+                        actual[doc_file.stem] = json.loads(doc_file.read_text(encoding="utf-8"))
 
-            golden_path.write_text(json.dumps(actual, indent=2, ensure_ascii=False, sort_keys=True) + "\n")
+            golden_path.write_text(
+                json.dumps(actual, indent=2, ensure_ascii=False, sort_keys=True) + "\n", encoding="utf-8"
+            )
             count += 1
             print(f"regenerated: {golden_path}", file=sys.stderr)
 

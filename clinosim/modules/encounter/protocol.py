@@ -151,7 +151,7 @@ def load_all_encounter_conditions() -> dict[str, dict[str, Any]]:
     """Auto-discover, validate, and load all encounter condition YAMLs. Cached."""
     conditions: dict[str, dict[str, Any]] = {}
     for yaml_file in sorted(_REF_DIR.glob("*.yaml")):
-        data = yaml.safe_load(yaml_file.read_text())
+        data = yaml.safe_load(yaml_file.read_text(encoding="utf-8"))
         try:
             EncounterConditionProtocol.model_validate(data)
         except Exception as exc:  # narrow re-raise with offending filename

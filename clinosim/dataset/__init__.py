@@ -89,7 +89,7 @@ def load_preset(name: str, presets_dir: Path | None = None) -> DatasetPreset:
         raise ValueError(
             f"unknown dataset preset {name!r}; available: {', '.join(available) if available else '(none)'}"
         )
-    raw = yaml.safe_load(spec_path.read_text()) or {}
+    raw = yaml.safe_load(spec_path.read_text(encoding="utf-8")) or {}
 
     required = ("name", "description", "country", "population", "seed", "start", "end", "format")
     missing = [k for k in required if k not in raw]
