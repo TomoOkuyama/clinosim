@@ -9,10 +9,10 @@
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 [![FHIR](https://img.shields.io/badge/output-HL7%20FHIR%20R4%20Bulk-orange)](https://hl7.org/fhir/uv/bulkdata/)
 
+**Developed at [InterSystems](https://www.intersystems.com/) · Not an official InterSystems product ([details](#affiliation))**
+
 📚 **[Documentation site](https://tomookuyama.github.io/clinosim/)**  |  🇯🇵 **[README.ja.md](README.ja.md)**
 
-> ⚠️ **Personal project disclaimer** — independent personal project, not an official product of any organisation.
->
 > ⚠️ **Synthetic data only** — fully synthetic output. Not for clinical use. clinosim does not ingest, reference, or reproduce any real patient data / PHI / PII.
 
 ## What is clinosim?
@@ -92,6 +92,18 @@ Prior-art comparison (Synthea): [docs/synthea-comparison.md](docs/synthea-compar
 - Starter tasks — [`good first issue`](https://github.com/TomoOkuyama/clinosim/labels/good%20first%20issue) label
 - Issue templates — [`.github/ISSUE_TEMPLATE/`](.github/ISSUE_TEMPLATE/) (structured bug / feature forms)
 - Citation — GitHub "Cite this repository" button (backed by [`CITATION.cff`](CITATION.cff))
+
+## Affiliation
+
+clinosim is developed by an engineer at **InterSystems** and released
+under the MIT License as an open-source contribution to the healthcare
+AI developer community.
+
+**It is not an official InterSystems product.** It is not part of
+InterSystems IRIS for Health or any other commercial offering, and it
+carries no InterSystems support, warranty, or roadmap commitment.
+Issues and pull requests are handled here on GitHub, not through
+InterSystems support channels.
 
 ## License
 
