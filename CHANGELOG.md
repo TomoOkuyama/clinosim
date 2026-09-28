@@ -39,6 +39,26 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.
 
 ## [Unreleased]
 
+## [0.6.5] - 2026-09-28
+
+### Fixed
+
+- **Windows JP (`cp932`) portability — `pip install clinosim` now works on Japanese-locale Windows** (Issue #1556, PR #1557). Every text-mode `open(...)`, `Path.open(...)`, `Path.read_text(...)`, and `Path.write_text(...)` in `clinosim/` now specifies `encoding="utf-8"` explicitly. Previously, Windows-JP users hit `UnicodeDecodeError: 'cp932' codec can't decode byte 0x88...` at import time (`clinosim.determinism` loading `determinism.yaml`) because Python's `locale.getpreferredencoding()` returns `cp932` on Windows JP but every YAML / JSON / prompt / markdown file in this repo is UTF-8 with non-ASCII Japanese content. 67 + 6 = 73 callsites patched across 50 files. A follow-up non-encoding Windows portability sweep (`os.fork`, `SIGKILL`, `fcntl`, `multiprocessing.set_start_method("fork")`, `shell=True`, `os.symlink`, hardcoded `/tmp/`, `os.environ["HOME"]`, colon-in-filename traps, non-safe atomic writes) turned up zero remaining POSIX-only or locale-dependent idioms in the shipped package. macOS / Linux behaviour unchanged (encoding was already implicitly UTF-8 there).
+
+### Changed
+
+- **`pyproject.toml`: dropped the `"License :: OSI Approved :: MIT License"` classifier** (PR #1554). PEP 639 / PyPI's newer SPDX-aware metadata pipeline rejects a wheel that carries both a SPDX `license = "MIT"` field and the equivalent classifier. Authoritative license source stays `license = "MIT"` + the top-level `LICENSE` file.
+- **`.github/workflows/release.yml`: PyPI publish now uses Trusted Publishing / OIDC** (PR #1555). Replaced the commented-out placeholder with a live `pypa/gh-action-pypi-publish@release/v1` step. The `release:` job now runs in the `release` environment and holds `id-token: write` so the OIDC token audience matches the publisher registered at <https://pypi.org/manage/project/clinosim/settings/publishing/>. No long-lived PyPI token in this repo; the OIDC token is exchanged for a short-lived upload credential at publish time. Starting with this release, `git push origin vX.Y.Z` publishes both the GitHub Release *and* the PyPI upload with no manual `twine upload`.
+
+### Docs
+
+- **Post-v0.6.4 doc/code drift fix** (PR #1552). `AGENTS.md` no longer claims "v0.6.0 scope complete, awaiting user Go for tag" — v0.6.4 has shipped since 2026-09-26, and the CHANGELOG range is updated to `v0.3 → v0.6.4`. `docs/clinical_documents.{md,ja.md}` document-scope section rewritten to reflect the actual per-country registry (`specs_for_country()`): **US emits 13 doc types**, **JP emits 18** (the previous claim of "eight document types" only covered the physician-inpatient tier and omitted every nursing / outpatient / ED / JP-CLINS-workflow doc type wired end-to-end since v0.5.x). Progress Note is no longer reserved for "Tier C opt-in" — it is emitted end-to-end via the `narrative_seed_bundle` strategy. `docs/clinical_documents.{md,ja.md}` also gain a release-asset version-id convention note (`template/` vs `template + llm-polished/`).
+- **InterSystems affiliation added** (PR #1553). `README.md` / `README.ja.md` gain a one-line attribution+disclaimer banner under the badge row ("Developed at InterSystems · Not an official InterSystems product") and a new `## Affiliation` / `## 所属について` section right before `## License`. `CITATION.cff` gains `Okuyama, Tomo` as a named author with `affiliation: InterSystems` alongside the existing "clinosim contributors" collective entry, and its `version` + `date-released` fields catch up from `0.5.0` (2026-08-28) to `0.6.4` (2026-09-26). Repo description on GitHub gains `"Built at InterSystems."` suffix and topics list adds `intersystems`.
+
+### Verified
+
+- **PyPI publish smoke test on fresh Ubuntu 24.04 (t4g.small ARM64 EC2)** — `pip install clinosim` + `clinosim simulate --country US --population 10 --seed 42 --output ./out --format fhir-r4` produced the expected 27-file FHIR R4 Bulk export. Sanity check on the wheel: `unzip -l dist/clinosim-*.whl | grep -c yaml` returned `271` YAML data files bundled — no `hatchling`/`hatch_build` misconfiguration.
+
 ## [0.6.4] - 2026-09-26
 
 ### Changed
