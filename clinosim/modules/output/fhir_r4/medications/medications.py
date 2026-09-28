@@ -406,7 +406,7 @@ def _load_full_yj_codes() -> frozenset[str]:
     _cs = _Path(__file__).resolve().parents[4] / "codes" / "authoritative" / "JP_MedicationCodeYJ_CS_full.json"
     if not _cs.is_file():
         return frozenset()
-    _data = _json.loads(_cs.read_text())
+    _data = _json.loads(_cs.read_text(encoding="utf-8"))
     return frozenset(c.get("code", "") for c in _data.get("concept", []) if c.get("code"))
 
 
