@@ -18,11 +18,14 @@ abstract: >-
   conditions, and deterministic seeded reproduction are supported.
 
 authors:
+  - family-names: "Okuyama"
+    given-names: "Tomo"
+    affiliation: "InterSystems"
   - name: "clinosim contributors"
     website: "https://github.com/TomoOkuyama/clinosim/graphs/contributors"
 
-version: "0.5.0"
-date-released: "2026-08-28"
+version: "0.6.4"
+date-released: "2026-09-26"
 
 repository-code: "https://github.com/TomoOkuyama/clinosim"
 url: "https://github.com/TomoOkuyama/clinosim"
