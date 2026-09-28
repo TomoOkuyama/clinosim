@@ -225,7 +225,7 @@ _CHRONIC_ONSET_MIN_AGE_PATH = Path(__file__).resolve().parents[2] / "locale" / "
 @lru_cache(maxsize=1)
 def _chronic_onset_min_age_table() -> tuple[dict[str, int], int]:
     """Return (codes_dict, default_min_years) from the shared yaml (Issue #968)."""
-    with open(_CHRONIC_ONSET_MIN_AGE_PATH) as f:
+    with open(_CHRONIC_ONSET_MIN_AGE_PATH, encoding="utf-8") as f:
         data = yaml.safe_load(f) or {}
     codes = {str(k): int(v) for k, v in (data.get("codes") or {}).items()}
     default = int(data.get("default_min_years", 0))

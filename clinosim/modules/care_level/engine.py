@@ -17,7 +17,7 @@ _LOCALE = _HERE.parents[1] / "locale"
 
 @lru_cache(maxsize=1)
 def load_reference() -> dict:
-    with open(_REF_DIR / "care_level.yaml") as f:
+    with open(_REF_DIR / "care_level.yaml", encoding="utf-8") as f:
         return yaml.safe_load(f) or {}
 
 
@@ -29,7 +29,7 @@ def load_rates(country: str = "JP") -> dict:
     additions slot in without API churn."""
     if not is_jp(country):
         return {}
-    with open(_LOCALE / "jp" / "care_level_rates.yaml") as f:
+    with open(_LOCALE / "jp" / "care_level_rates.yaml", encoding="utf-8") as f:
         return (yaml.safe_load(f) or {}).get("weights", {})
 
 

@@ -230,7 +230,7 @@ def _validate_document_type_specs(data: dict[str, Any]) -> None:
 @lru_cache(maxsize=1)
 def load_document_type_specs() -> dict[DocumentType, DocumentTypeSpec]:
     """Load + validate document_type_specs.yaml. Cached singleton."""
-    with (_REF_DIR / "document_type_specs.yaml").open() as f:
+    with (_REF_DIR / "document_type_specs.yaml").open(encoding="utf-8") as f:
         data = yaml.safe_load(f)
     _validate_document_type_specs(data)
     result: dict[DocumentType, DocumentTypeSpec] = {}
@@ -375,7 +375,7 @@ def _validate_section_catalog(catalog: dict[str, dict[str, Any]]) -> None:
 @lru_cache(maxsize=1)
 def load_section_catalog() -> dict[str, SectionCatalogEntry]:
     """Load + validate `section_catalog.yaml`. Cached singleton."""
-    with (_REF_DIR / "section_catalog.yaml").open() as f:
+    with (_REF_DIR / "section_catalog.yaml").open(encoding="utf-8") as f:
         data = yaml.safe_load(f) or {}
     _validate_section_catalog(data)
     out: dict[str, SectionCatalogEntry] = {}

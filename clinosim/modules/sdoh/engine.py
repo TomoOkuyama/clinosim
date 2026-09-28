@@ -33,5 +33,5 @@ def load_social_history() -> dict:
     Display strings are NOT in this YAML — resolved at FHIR output time
     via ``clinosim.codes.lookup("snomed-ct", code, lang)``.
     """
-    with open(_REF_DIR / "social_history.yaml") as f:
+    with open(_REF_DIR / "social_history.yaml", encoding="utf-8") as f:
         return yaml.safe_load(f) or {}

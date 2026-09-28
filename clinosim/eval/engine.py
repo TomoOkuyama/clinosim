@@ -224,6 +224,6 @@ def _count_resources(cohort: Cohort, country: str) -> dict[str, int]:
         return {}
     counts: dict[str, int] = {}
     for path in sorted(base.glob("*.ndjson")):
-        with path.open() as f:
+        with path.open(encoding="utf-8") as f:
             counts[path.stem] = sum(1 for _ in f)
     return counts

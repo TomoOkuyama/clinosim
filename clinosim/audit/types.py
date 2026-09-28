@@ -76,7 +76,7 @@ class Cohort:
         self.root = root
 
     @classmethod
-    def open(cls, root: Path | str) -> Cohort:
+    def open(cls, root: Path | str, encoding="utf-8") -> Cohort:
         return cls(Path(root))
 
     def countries(self) -> list[str]:
@@ -98,7 +98,7 @@ class Cohort:
             return iter(())
 
         def _iter():
-            with path.open() as f:
+            with path.open(encoding="utf-8") as f:
                 for line in f:
                     if line.strip():
                         yield json.loads(line)

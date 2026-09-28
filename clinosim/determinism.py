@@ -83,7 +83,7 @@ def _load_precision_bits() -> int:
     """Load ``mpmath.prec`` from yaml. Fail loud on any parse issue —
     this is a determinism-critical setting, silent fallback would defeat
     the purpose."""
-    with open(_CONFIG_PATH) as fh:
+    with open(_CONFIG_PATH, encoding="utf-8") as fh:
         cfg = yaml.safe_load(fh)
     return int(cfg["mpmath_precision_bits"])
 

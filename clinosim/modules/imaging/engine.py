@@ -271,7 +271,7 @@ def _validate_impression_templates(data: dict[str, Any]) -> None:
 @lru_cache(maxsize=1)
 def load_modalities() -> dict[str, Any]:
     """Load modalities.yaml + validate. Cached singleton."""
-    with (_REF_DIR / "modalities.yaml").open() as f:
+    with (_REF_DIR / "modalities.yaml").open(encoding="utf-8") as f:
         data = yaml.safe_load(f)
     _validate_modalities(data)
     return data["modalities"]
@@ -280,7 +280,7 @@ def load_modalities() -> dict[str, Any]:
 @lru_cache(maxsize=1)
 def load_body_sites() -> dict[str, Any]:
     """Load body_sites.yaml + validate. Cached singleton."""
-    with (_REF_DIR / "body_sites.yaml").open() as f:
+    with (_REF_DIR / "body_sites.yaml").open(encoding="utf-8") as f:
         data = yaml.safe_load(f)
     _validate_body_sites(data)
     return data["body_sites"]
@@ -289,7 +289,7 @@ def load_body_sites() -> dict[str, Any]:
 @lru_cache(maxsize=1)
 def load_impression_templates() -> dict[str, Any]:
     """Load impression_templates.yaml + validate. Cached singleton."""
-    with (_REF_DIR / "impression_templates.yaml").open() as f:
+    with (_REF_DIR / "impression_templates.yaml").open(encoding="utf-8") as f:
         data = yaml.safe_load(f)
     _validate_impression_templates(data)
     return data["templates"]

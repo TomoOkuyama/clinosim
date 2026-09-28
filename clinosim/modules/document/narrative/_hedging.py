@@ -27,7 +27,7 @@ _REGISTRY_FILENAME = "hedging_phrases.yaml"
 @lru_cache(maxsize=1)
 def _load_registry() -> dict[str, Any]:
     """Load the YAML registry once and cache it (small file, static shape)."""
-    with resources.files(_REGISTRY_PACKAGE).joinpath(_REGISTRY_FILENAME).open("r") as f:
+    with resources.files(_REGISTRY_PACKAGE).joinpath(_REGISTRY_FILENAME).open("r", encoding="utf-8") as f:
         return yaml.safe_load(f) or {}
 
 
