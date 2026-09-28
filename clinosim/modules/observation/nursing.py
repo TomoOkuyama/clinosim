@@ -44,7 +44,7 @@ _REF_DIR = _HERE / "reference_data"
 
 @lru_cache(maxsize=1)
 def _scores() -> dict:
-    with open(_REF_DIR / "nursing_scores.yaml") as f:
+    with open(_REF_DIR / "nursing_scores.yaml", encoding="utf-8") as f:
         return yaml.safe_load(f) or {}
 
 

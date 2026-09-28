@@ -62,7 +62,7 @@ def load_schedule(country: str) -> dict:
     if not (is_us(country) or is_jp(country)):
         return {}
     key = "jp" if is_jp(country) else "us"
-    with open(_LOCALE / key / "immunization_schedule.yaml") as f:
+    with open(_LOCALE / key / "immunization_schedule.yaml", encoding="utf-8") as f:
         return (yaml.safe_load(f) or {}).get("vaccines", {})
 
 

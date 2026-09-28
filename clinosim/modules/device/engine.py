@@ -33,7 +33,7 @@ _REF_DIR = _HERE / "reference_data"
 @lru_cache(maxsize=1)
 def load_devices_config() -> dict[str, Any]:
     """Load device reference data from devices.yaml (cached)."""
-    with (_REF_DIR / "devices.yaml").open() as f:
+    with (_REF_DIR / "devices.yaml").open(encoding="utf-8") as f:
         data = yaml.safe_load(f)
     return data
 

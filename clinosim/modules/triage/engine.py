@@ -67,7 +67,7 @@ def _validate_triage_protocols(data: dict[str, Any]) -> None:
 @lru_cache(maxsize=1)
 def load_triage_protocols() -> dict[str, Any]:
     """Load triage_protocols.yaml + validate."""
-    with (_REF_DIR / "triage_protocols.yaml").open() as f:
+    with (_REF_DIR / "triage_protocols.yaml").open(encoding="utf-8") as f:
         data = yaml.safe_load(f)
     _validate_triage_protocols(data)
     return data

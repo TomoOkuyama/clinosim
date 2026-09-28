@@ -51,7 +51,7 @@ def _run_export_fhir(args: Any) -> None:
         path = os.path.join(output_dir, name)
         size = os.path.getsize(path)
         if name.endswith(".ndjson"):
-            with open(path) as f:
+            with open(path, encoding="utf-8") as f:
                 line_count = sum(1 for _ in f)
             print(f"    {name:35s} {line_count:>7d} lines  ({size:>10,} B)")
         else:

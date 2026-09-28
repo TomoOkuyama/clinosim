@@ -224,7 +224,7 @@ def _fhir_ndjsons(cohort: Cohort, country: str):
 def _read_ndjson(path):
     import json
 
-    with path.open() as f:
+    with path.open(encoding="utf-8") as f:
         for line in f:
             line = line.strip()
             if not line:

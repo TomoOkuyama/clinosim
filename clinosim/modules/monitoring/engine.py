@@ -62,7 +62,7 @@ def load_medication_lab_mapping() -> dict[str, dict[str, Any]]:
     path = _REF_DIR / "med_lab_mapping.yaml"
     if not path.exists():
         raise FileNotFoundError(f"medication-lab mapping YAML missing: {path}")
-    with path.open() as f:
+    with path.open(encoding="utf-8") as f:
         data = yaml.safe_load(f) or {}
     mapping = data.get("medication_lab_mapping")
     if not mapping or not isinstance(mapping, dict):
