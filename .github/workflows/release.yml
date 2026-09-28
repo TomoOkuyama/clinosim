@@ -12,10 +12,11 @@
 #      Release with the artifacts attached and the CHANGELOG entry
 #      as release notes.
 #
-# PyPI upload is INTENTIONALLY commented out. To enable:
-#   - Configure a `PYPI_API_TOKEN` repository secret (or set up PyPI
-#     trusted publishing and switch to the `pypi-publish` action),
-#   - Uncomment the "Publish to PyPI" step below.
+# PyPI publish uses Trusted Publishing / OIDC — no long-lived token
+# in this repo. The trusted publisher is registered at
+# https://pypi.org/manage/project/clinosim/settings/publishing/ against
+# (owner: TomoOkuyama, repo: clinosim, workflow: release.yml,
+# environment: release). See the `Publish to PyPI` step below.
 name: Release
 
 on:
@@ -33,11 +34,17 @@ jobs:
   release:
     name: Cut GitHub Release
     runs-on: ubuntu-latest
+    # PyPI Trusted Publishing binds the `release` environment name into
+    # the OIDC token audience — the environment configured at
+    # https://pypi.org/manage/project/clinosim/settings/publishing/
+    # expects `release`, so this job must run in the matching
+    # environment or PyPI will reject the token exchange.
+    environment: release
     permissions:
       # Needed for `gh release create` and artifact uploads on the tag.
       contents: write
-      # Uncomment when enabling PyPI trusted publishing (OIDC-based):
-      # id-token: write
+      # Needed for PyPI Trusted Publishing (OIDC token exchange).
+      id-token: write
     steps:
       - uses: actions/checkout@v7
         with:
@@ -139,22 +146,21 @@ jobs:
             dist/clinosim-*.whl \
             dataset-dist/clinosim-dataset-*.tar.gz
 
-      # Enable when PyPI is configured. Two options:
-      #
-      # (a) API-token based (simpler, requires storing a long-lived token):
-      # - name: Publish to PyPI (token)
-      #   env:
-      #     TWINE_USERNAME: __token__
-      #     TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
-      #   run: twine upload --non-interactive dist/*
-      #
-      # (b) Trusted publishing / OIDC (recommended by PyPI, no secrets):
-      #   1. Add `id-token: write` to `permissions:` above.
-      #   2. Configure a "Trusted Publisher" for this repo + workflow at
-      #      https://pypi.org/manage/account/publishing/
-      #   3. Replace the step below.
-      # - name: Publish to PyPI (trusted publishing)
-      #   uses: pypa/gh-action-pypi-publish@release/v1
+      - name: Publish to PyPI (Trusted Publishing / OIDC)
+        # Uploads dist/*.whl + dist/*.tar.gz to PyPI using OIDC token
+        # exchange against the trusted publisher registered at
+        # https://pypi.org/manage/project/clinosim/settings/publishing/
+        # (owner: TomoOkuyama, repo: clinosim, workflow: release.yml,
+        # environment: release). No long-lived API token is stored in
+        # this repo; the job's OIDC token is exchanged for a
+        # short-lived upload credential at publish time.
+        #
+        # `packages-dir: dist/` — only the sdist + wheel land in dist/;
+        # the dataset preset tarballs live under dataset-dist/ and are
+        # attached to the GitHub Release only, not published to PyPI.
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          packages-dir: dist/
 
       - name: Upload build artifacts to the workflow run
         # Even without a PyPI push, keep the artifacts attached to the run
