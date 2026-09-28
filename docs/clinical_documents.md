@@ -19,28 +19,54 @@ This guide covers:
 
 ## Document scope
 
-clinosim's LLM-service enum `LLMTaskType`
-(`clinosim/modules/llm_service/engine.py`) lists 20+ NARRATIVE task
-types plus 4 JUDGMENT task types. The subset **wired end-to-end
-through a prompt YAML → template pass → DocumentReference emit path**
-is the eight document types below (each has an EN + JA prompt YAML
-under `clinosim/modules/llm_service/prompts/{en,ja}/`). Progress Note
-(LOINC 11506-3) is defined in the enum but reserved for a future
-Tier C opt-in because real-world progress notes are heavily redundant
-with the structured vitals/labs/MAR layer; the additional nursing /
-outpatient / ED / care-plan / health-checkup NARRATIVE types are
-similarly declared in the enum for later phases.
+clinosim's per-country document registry
+(`clinosim/modules/document/narrative/registry.py::specs_for_country()`)
+wires **13 document types for US** and **18 for JP** end-to-end
+through a country/encounter-type gate → per-doc builder → bundled
+`narrative_seed_bundle.yaml` LLM strategy → DocumentReference emit
+path. The 5 additional JP-only types (admission_care_plan,
+nutrition_care_plan, rehabilitation_plan, referral_note,
+health_checkup_report) reflect JP-CLINS eReferral / clinical-workflow
+requirements. Progress Note (LOINC 11506-3) — previously deferred as
+Tier C in earlier releases — is emitted end-to-end as of v0.6.x.
 
-| Tier | Document | LOINC | Generated when | Per-encounter count |
-|---|---|---|---|---|
-| A | Discharge Summary | `18842-5` | Every finished inpatient encounter (non-deceased) | 1 |
-| A | Death Summary | `69730-0` | `record.deceased = true` | 1 |
-| A | Death Discharge Summary | `18842-5` (specialized title) | `record.deceased = true` — replaces the generic Discharge Summary on deceased encounters (Issue #961) | 1 |
-| A | Death Certificate | `64297-5` | `record.deceased = true` — 医師法第 20 条 mandate (Issue #961) | 1 |
-| A | Operative Note | `11504-8` | `ProcedureRecord.category_code = 387713003` (surgical) | 1 per surgery |
-| B | Admission H&P | `34117-2` | Every inpatient encounter | 1 |
-| B | Procedure Note | `28570-0` | Invasive bedside procedure from a fixed allowlist | 0..N |
-| JP | Referral Note | `57133-1` | Deterministic 20% subset of `country=JP` discharge encounters (JP-CLINS eReferral, PR2b) | 1 |
+### Physician inpatient documentation (US + JP)
+
+| Document | LOINC | Generated when | Per-encounter count |
+|---|---|---|---|
+| Admission H&P | `34117-2` | Every inpatient / ICU / rehab-inpatient encounter | 1 |
+| Progress Note | `11506-3` | Daily during inpatient stay | 1 per hospital day |
+| Discharge Summary | `18842-5` | Every finished inpatient encounter (non-deceased) | 1 |
+| Operative Note | `11504-8` | `ProcedureRecord.category_code = 387713003` (surgical) | 1 per surgery |
+| Procedure Note | `28570-0` | Invasive bedside procedure from a fixed allowlist | 0..N |
+| Death Discharge Summary | `18842-5` (specialized) | `record.deceased = true` — replaces the standard Discharge Summary on deceased encounters | 1 |
+| Death Certificate | `64297-5` | `record.deceased = true` — 医師法第 20 条 mandate | 1 |
+
+### Nursing documentation (US + JP)
+
+| Document | LOINC | Generated when | Per-encounter count |
+|---|---|---|---|
+| Admission Nursing Assessment | `78390-2` | Every inpatient admission | 1 |
+| Nursing Shift Note | `34746-8` | Every nursing shift (day / evening / night) | 3 per hospital day |
+| Nursing Discharge Summary | `34745-0` | Every finished inpatient encounter | 1 |
+
+### Outpatient / Emergency (US + JP)
+
+| Document | LOINC | Generated when | Per-encounter count |
+|---|---|---|---|
+| Outpatient SOAP | `34131-3` | Every outpatient encounter | 1 |
+| ED Note | `34878-9` | Every emergency encounter | 1 |
+| ED Triage Note | `54094-8` | Every emergency encounter | 1 |
+
+### JP-only (JP-CLINS / clinical workflow)
+
+| Document | LOINC | Generated when | Per-encounter count |
+|---|---|---|---|
+| Admission Care Plan | `18776-5` | Every JP inpatient admission | 1 |
+| Nutrition Care Plan | `80791-7` | JP inpatient admission with LOS > 7 days | 1 |
+| Rehabilitation Plan | `34823-5` | JP inpatient with rehab sessions ordered | 1 |
+| Referral Note | `57133-1` | Deterministic 20% subset of JP discharge encounters (JP-CLINS eReferral) | 1 |
+| Health Checkup Report | `53576-5` | Every JP `checkup` encounter | 1 |
 
 ### Procedure Note allowlist
 
@@ -65,12 +91,10 @@ DocumentReference.
 
 ### What is **not** generated (by design)
 
-| Document | LOINC | Why excluded from Milestone 1 |
+| Document | LOINC | Why excluded |
 |---|---|---|
-| Progress Note | `11506-3` | ~80% redundant with structured observations; 4–10x document inflation with marginal research value. Reserved for Tier C opt-in. |
 | Consultation Note | `11488-4` | Requires consult workflow (not modeled). |
-| Nursing Note | `34119-8` | Narrative text is absorbed into vitals/I/O records. |
-| Radiology Report | `11526-1` | Radiology is represented as Procedure + ServiceRequest, not free-text report. |
+| Radiology Report | `11526-1` | Radiology is represented as Procedure + ServiceRequest + `DiagnosticReport`, not a free-text report document. |
 | Pathology Report | `11526-1` (pathology variant) | No specimen pathology modeling. |
 
 ---
@@ -185,21 +209,40 @@ clinosim export-fhir --cif-dir ./cif --narrative-version ollama_en_v1 -o ./fhir_
 clinosim export-fhir --cif-dir ./cif --narrative-version bedrock_en_v1 -o ./fhir_bedrock
 ```
 
+The version-id string is chosen by the caller. In the published
+GitHub Release tarballs (see `clinosim-vX.Y.Z-*-*-narrative.tar.gz`
+assets), the shipped convention is:
+
+- **template tarball**: `cif/narratives/template/`, `current_version.txt = "template"`.
+- **llm-polished tarball**: `cif/narratives/{template,llm-polished}/`
+  (both directories present), `current_version.txt = "llm-polished"`.
+
+Local runs are free to use any label; only the release-asset
+convention is fixed.
+
 ---
 
 ## Prompts
 
 Prompt templates live under
-`clinosim/modules/llm_service/prompts/<language>/<task_type>.yaml`:
+`clinosim/modules/llm_service/prompts/<language>/<task_type>.yaml`.
+Each language directory contains ~17 prompts covering the individual
+narrative tasks plus the `narrative_seed_bundle.yaml` strategy prompt
+that drives the multi-document bundle path used at runtime:
 
 ```
 clinosim/modules/llm_service/prompts/
 └── en/
+    ├── narrative_seed_bundle.yaml      # bundle strategy (multi-doc call)
     ├── admission_hp.yaml
     ├── discharge_summary.yaml
-    ├── death_summary.yaml
     ├── operative_note.yaml
-    └── procedure_note.yaml
+    ├── procedure_note.yaml
+    ├── death_certificate_*.yaml
+    ├── death_discharge_summary_*.yaml  # per-section prompts
+    ├── death_summary.yaml
+    ├── narrative_seed.yaml
+    └── referral_note.yaml
 ```
 
 Each file has this structure:
@@ -371,9 +414,11 @@ The narrative version's `manifest.json` aggregates these into:
 
 ## Adding a new document type
 
-**Scope note:** if you are adding a Tier C document (Progress Note, Consultation
-Note), confirm the scope decision first — Progress Note is intentionally
-deferred, and Tier C generation multiplies document counts by 5–10x.
+**Scope note:** if you are adding a document with high per-encounter
+multiplicity (e.g. Consultation Note, additional per-shift notes),
+confirm the scope decision first — such doc types can multiply the
+per-encounter document count by 5–10× and materially inflate the
+FHIR export.
 
 1. **Pick a LOINC code** from the [Regenstrief LOINC browser](https://loinc.org/)
    and add it to `clinosim/codes/data/loinc.yaml` with at least the `en` field:

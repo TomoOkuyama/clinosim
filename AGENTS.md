@@ -349,9 +349,9 @@ merge 時の HEAD が同一であること**を確認する。
 
 ## Current implementation phase
 
-**Baseline capabilities (v0.6.0 scope complete, awaiting user Go for
-tag — see `feedback_release_tag_requires_user_go`)**: population-driven
-simulation with full FHIR R4 Bulk Data Export, multi-country
+**Baseline capabilities (v0.6.4 released 2026-09-26)**:
+population-driven simulation with full FHIR R4 Bulk Data Export,
+multi-country
 (US / JP), **32 inpatient disease protocols + 46 ED / outpatient
 encounter conditions**, JP-CLINS eCS emission (profile pin tracked in
 `.github/jp-validator-pins.env` and the
@@ -412,10 +412,9 @@ Framework rationale:
 [`docs/architecture/architecture-notes.md`](docs/architecture/architecture-notes.md)
 §9 (AD-71 TemporalStatePeriod).
 
-The v0.3 → v0.5.0 history of PATCH / MINOR bumps, plus the v0.6.0
-work still queued under `[Unreleased]`, between these two
-baselines lives in [`CHANGELOG.md`](CHANGELOG.md); the invariants
-below stay accurate irrespective of release cadence.
+The v0.3 → v0.6.4 history of PATCH / MINOR bumps lives in
+[`CHANGELOG.md`](CHANGELOG.md); the invariants below stay accurate
+irrespective of release cadence.
 
 **Silent-no-op defense triplet** is fully wired across the codebase (PR #102 / #103 2026-06-27): (1) canonical constants(例 `HAI_TYPES`)を module-level に定義、(2) `_validate_*(data) -> None` を 5 主要 YAML loader(`_validate_microbiology` PR-A 7 cross-refs + `_validate_hai_organisms` + `_validate_demographics` + `_validate_names` + `_validate_addresses`)に wire(import 時 fail-loud)、(3) `normalize_probabilities(..., fallback="raise")` を全 **15 YAML-sourced callsites** に適用(7 modules: code_status / population / clinical_course / hai / family_history / observation / care_level)。test 補強 + 4-stage adversarial chain converged で検証済(unit / integration / e2e: 1020 passed, 4 skipped)。
 
