@@ -2246,6 +2246,50 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
+  <a href="#医師-入院-文書-us--jp" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        医師 (入院) 文書 (US + JP)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#看護記録-us--jp" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        看護記録 (US + JP)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#外来--救急-us--jp" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        外来 / 救急 (US + JP)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#jp-のみ-jp-clins--臨床ワークフロー" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        JP のみ (JP-CLINS / 臨床ワークフロー)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#procedure-note-allowlist" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2513,20 +2557,20 @@ NDJSON エクスポート内の FHIR R4 <code>DocumentReference</code> リソー
 </ul>
 <hr />
 <h2 id="document-scope">Document scope<a class="headerlink" href="#document-scope" title="Permanent link">&para;</a></h2>
-<p>clinosim の LLM service enum <code>LLMTaskType</code>
-(<code>clinosim/modules/llm_service/engine.py</code>) は 20+ の NARRATIVE task type
-と 4 つの JUDGMENT task type を定義しています。うち <strong>prompt YAML →
-template pass → DocumentReference emit path で end-to-end 配線済みの
-サブセット</strong>が以下の 8 文書種別で、いずれも
-<code>clinosim/modules/llm_service/prompts/{en,ja}/</code> に EN + JA prompt YAML
-を持ちます。Progress Note (LOINC 11506-3) は enum 定義済ながら、実世界
-の progress note が構造化 vitals/labs/MAR レイヤと重複度が高いため
-将来の Tier C opt-in として予約。nursing / outpatient / ED / care-plan /
-health-checkup 系 NARRATIVE type も同様に将来 phase 用に enum のみ宣言。</p>
+<p>clinosim の国別文書レジストリ
+(<code>clinosim/modules/document/narrative/registry.py::specs_for_country()</code>)
+は <strong>US で 13 文書種別</strong>、<strong>JP で 18 種別</strong> を国 / エンカウンター種別
+ゲート → 各文書ビルダー → bundled <code>narrative_seed_bundle.yaml</code> LLM
+戦略 → DocumentReference emit path で end-to-end 配線しています。
+JP のみの 5 種 (admission_care_plan, nutrition_care_plan,
+rehabilitation_plan, referral_note, health_checkup_report) は JP-CLINS
+eReferral / 臨床ワークフロー要件を反映。Progress Note (LOINC 11506-3)
+は初期リリースでは Tier C 予約扱いでしたが、v0.6.x 系で end-to-end
+配線済みです。</p>
+<h3 id="医師-入院-文書-us--jp">医師 (入院) 文書 (US + JP)<a class="headerlink" href="#医師-入院-文書-us--jp" title="Permanent link">&para;</a></h3>
 <table>
 <thead>
 <tr>
-<th>Tier</th>
 <th>文書</th>
 <th>LOINC</th>
 <th>生成タイミング</th>
@@ -2535,59 +2579,150 @@ health-checkup 系 NARRATIVE type も同様に将来 phase 用に enum のみ宣
 </thead>
 <tbody>
 <tr>
-<td>A</td>
+<td>Admission H&amp;P</td>
+<td><code>34117-2</code></td>
+<td>各入院 / ICU / rehab-inpatient エンカウンター</td>
+<td>1</td>
+</tr>
+<tr>
+<td>Progress Note</td>
+<td><code>11506-3</code></td>
+<td>入院中の各在院日</td>
+<td>在院日ごとに 1</td>
+</tr>
+<tr>
 <td>Discharge Summary</td>
 <td><code>18842-5</code></td>
 <td>完了した各入院エンカウンター (非死亡)</td>
 <td>1</td>
 </tr>
 <tr>
-<td>A</td>
-<td>Death Summary</td>
-<td><code>69730-0</code></td>
-<td><code>record.deceased = true</code></td>
-<td>1</td>
-</tr>
-<tr>
-<td>A</td>
-<td>Death Discharge Summary</td>
-<td><code>18842-5</code> (specialized title)</td>
-<td><code>record.deceased = true</code> — 死亡症例で通常の退院サマリを置換 (Issue #961)</td>
-<td>1</td>
-</tr>
-<tr>
-<td>A</td>
-<td>Death Certificate</td>
-<td><code>64297-5</code></td>
-<td><code>record.deceased = true</code> — 医師法第 20 条 mandate (Issue #961)</td>
-<td>1</td>
-</tr>
-<tr>
-<td>A</td>
 <td>Operative Note</td>
 <td><code>11504-8</code></td>
 <td><code>ProcedureRecord.category_code = 387713003</code> (手術)</td>
 <td>手術ごとに 1</td>
 </tr>
 <tr>
-<td>B</td>
-<td>Admission H&amp;P</td>
-<td><code>34117-2</code></td>
-<td>各入院エンカウンター</td>
-<td>1</td>
-</tr>
-<tr>
-<td>B</td>
 <td>Procedure Note</td>
 <td><code>28570-0</code></td>
 <td>固定 allowlist からの侵襲的ベッドサイド手技</td>
 <td>0..N</td>
 </tr>
 <tr>
-<td>JP</td>
+<td>Death Discharge Summary</td>
+<td><code>18842-5</code> (specialized)</td>
+<td><code>record.deceased = true</code> — 死亡症例で通常の退院サマリを置換</td>
+<td>1</td>
+</tr>
+<tr>
+<td>Death Certificate</td>
+<td><code>64297-5</code></td>
+<td><code>record.deceased = true</code> — 医師法第 20 条 mandate</td>
+<td>1</td>
+</tr>
+</tbody>
+</table>
+<h3 id="看護記録-us--jp">看護記録 (US + JP)<a class="headerlink" href="#看護記録-us--jp" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>文書</th>
+<th>LOINC</th>
+<th>生成タイミング</th>
+<th>エンカウンター別回数</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Admission Nursing Assessment</td>
+<td><code>78390-2</code></td>
+<td>各入院時</td>
+<td>1</td>
+</tr>
+<tr>
+<td>Nursing Shift Note</td>
+<td><code>34746-8</code></td>
+<td>各看護シフト (日勤 / 準夜 / 深夜)</td>
+<td>在院日ごとに 3</td>
+</tr>
+<tr>
+<td>Nursing Discharge Summary</td>
+<td><code>34745-0</code></td>
+<td>各入院退院時</td>
+<td>1</td>
+</tr>
+</tbody>
+</table>
+<h3 id="外来--救急-us--jp">外来 / 救急 (US + JP)<a class="headerlink" href="#外来--救急-us--jp" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>文書</th>
+<th>LOINC</th>
+<th>生成タイミング</th>
+<th>エンカウンター別回数</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Outpatient SOAP</td>
+<td><code>34131-3</code></td>
+<td>各外来エンカウンター</td>
+<td>1</td>
+</tr>
+<tr>
+<td>ED Note</td>
+<td><code>34878-9</code></td>
+<td>各救急エンカウンター</td>
+<td>1</td>
+</tr>
+<tr>
+<td>ED Triage Note</td>
+<td><code>54094-8</code></td>
+<td>各救急エンカウンター</td>
+<td>1</td>
+</tr>
+</tbody>
+</table>
+<h3 id="jp-のみ-jp-clins--臨床ワークフロー">JP のみ (JP-CLINS / 臨床ワークフロー)<a class="headerlink" href="#jp-のみ-jp-clins--臨床ワークフロー" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>文書</th>
+<th>LOINC</th>
+<th>生成タイミング</th>
+<th>エンカウンター別回数</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Admission Care Plan</td>
+<td><code>18776-5</code></td>
+<td>JP 各入院時</td>
+<td>1</td>
+</tr>
+<tr>
+<td>Nutrition Care Plan</td>
+<td><code>80791-7</code></td>
+<td>JP 入院かつ在院 &gt; 7 日</td>
+<td>1</td>
+</tr>
+<tr>
+<td>Rehabilitation Plan</td>
+<td><code>34823-5</code></td>
+<td>JP 入院かつリハビリセッション oder あり</td>
+<td>1</td>
+</tr>
+<tr>
 <td>Referral Note</td>
 <td><code>57133-1</code></td>
-<td><code>country=JP</code> の退院エンカウンターの決定的 20% サブセット (JP-CLINS eReferral、PR2b)</td>
+<td>JP 退院エンカウンターの決定的 20% サブセット (JP-CLINS eReferral)</td>
+<td>1</td>
+</tr>
+<tr>
+<td>Health Checkup Report</td>
+<td><code>53576-5</code></td>
+<td>JP の各 <code>checkup</code> エンカウンター</td>
 <td>1</td>
 </tr>
 </tbody>
@@ -2646,29 +2781,19 @@ health-checkup 系 NARRATIVE type も同様に将来 phase 用に enum のみ宣
 <tr>
 <th>文書</th>
 <th>LOINC</th>
-<th>Milestone 1 で除外理由</th>
+<th>除外理由</th>
 </tr>
 </thead>
 <tbody>
-<tr>
-<td>Progress Note</td>
-<td><code>11506-3</code></td>
-<td>構造化観察と ~80% 重複; 4–10x の文書膨張と限界的研究価値。Tier C opt-in として予約。</td>
-</tr>
 <tr>
 <td>Consultation Note</td>
 <td><code>11488-4</code></td>
 <td>consult ワークフロー必須 (未モデル化)。</td>
 </tr>
 <tr>
-<td>Nursing Note</td>
-<td><code>34119-8</code></td>
-<td>narrative は vitals/I/O record に吸収。</td>
-</tr>
-<tr>
 <td>Radiology Report</td>
 <td><code>11526-1</code></td>
-<td>放射線は Procedure + ServiceRequest として表現、自由文レポートではない。</td>
+<td>放射線は Procedure + ServiceRequest + <code>DiagnosticReport</code> として表現、自由文レポート文書ではない。</td>
 </tr>
 <tr>
 <td>Pathology Report</td>
@@ -2760,18 +2885,35 @@ attachment はセマンティクス上無意味)。</p>
 </span><span id="__span-6-7"><a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a>clinosim<span class="w"> </span>export-fhir<span class="w"> </span>--cif-dir<span class="w"> </span>./cif<span class="w"> </span>--narrative-version<span class="w"> </span>ollama_en_v1<span class="w"> </span>-o<span class="w"> </span>./fhir_ollama
 </span><span id="__span-6-8"><a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a>clinosim<span class="w"> </span>export-fhir<span class="w"> </span>--cif-dir<span class="w"> </span>./cif<span class="w"> </span>--narrative-version<span class="w"> </span>bedrock_en_v1<span class="w"> </span>-o<span class="w"> </span>./fhir_bedrock
 </span></code></pre></div>
+<p>version-id 文字列は呼び出し側が任意に選択できます。公開されている
+GitHub Release tarball (<code>clinosim-vX.Y.Z-*-*-narrative.tar.gz</code> asset)
+では以下の convention を採用:</p>
+<ul>
+<li><strong>template tarball</strong>: <code>cif/narratives/template/</code>、<code>current_version.txt = "template"</code>。</li>
+<li><strong>llm-polished tarball</strong>: <code>cif/narratives/{template,llm-polished}/</code>
+  (両者存在)、<code>current_version.txt = "llm-polished"</code>。</li>
+</ul>
+<p>ローカル実行では任意のラベル使用可、release asset 側の convention
+のみ固定。</p>
 <hr />
 <h2 id="prompts">Prompts<a class="headerlink" href="#prompts" title="Permanent link">&para;</a></h2>
 <p>プロンプトテンプレートは
 <code>clinosim/modules/llm_service/prompts/&lt;language&gt;/&lt;task_type&gt;.yaml</code>
-に配置:</p>
+に配置。各言語ディレクトリには ~17 個のプロンプトがあり、個別
+narrative タスク用に加えてランタイムで使用される
+<code>narrative_seed_bundle.yaml</code> (multi-document bundle 戦略) を含む:</p>
 <div class="highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>clinosim/modules/llm_service/prompts/
 </span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>└── en/
-</span><span id="__span-7-3"><a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a>    ├── admission_hp.yaml
-</span><span id="__span-7-4"><a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a>    ├── discharge_summary.yaml
-</span><span id="__span-7-5"><a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a>    ├── death_summary.yaml
+</span><span id="__span-7-3"><a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a>    ├── narrative_seed_bundle.yaml      # bundle 戦略 (multi-doc 呼び出し)
+</span><span id="__span-7-4"><a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a>    ├── admission_hp.yaml
+</span><span id="__span-7-5"><a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a>    ├── discharge_summary.yaml
 </span><span id="__span-7-6"><a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a>    ├── operative_note.yaml
-</span><span id="__span-7-7"><a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a>    └── procedure_note.yaml
+</span><span id="__span-7-7"><a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a>    ├── procedure_note.yaml
+</span><span id="__span-7-8"><a id="__codelineno-7-8" name="__codelineno-7-8" href="#__codelineno-7-8"></a>    ├── death_certificate_*.yaml
+</span><span id="__span-7-9"><a id="__codelineno-7-9" name="__codelineno-7-9" href="#__codelineno-7-9"></a>    ├── death_discharge_summary_*.yaml  # section 別 prompt
+</span><span id="__span-7-10"><a id="__codelineno-7-10" name="__codelineno-7-10" href="#__codelineno-7-10"></a>    ├── death_summary.yaml
+</span><span id="__span-7-11"><a id="__codelineno-7-11" name="__codelineno-7-11" href="#__codelineno-7-11"></a>    ├── narrative_seed.yaml
+</span><span id="__span-7-12"><a id="__codelineno-7-12" name="__codelineno-7-12" href="#__codelineno-7-12"></a>    └── referral_note.yaml
 </span></code></pre></div>
 <p>各ファイルの構造:</p>
 <div class="highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="nt">task_type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">discharge_summary</span>
@@ -2952,9 +3094,10 @@ specimens_obtained, complications, outcome</code></p>
 </span></code></pre></div>
 <hr />
 <h2 id="新規文書種別の追加">新規文書種別の追加<a class="headerlink" href="#新規文書種別の追加" title="Permanent link">&para;</a></h2>
-<p><strong>スコープ注記:</strong> Tier C 文書 (Progress Note / Consultation Note)
-を追加する場合、スコープ判断を最初に確認 — Progress Note は意図的
-に defer 済で、Tier C 生成は文書数を 5–10x に増やす。</p>
+<p><strong>スコープ注記:</strong> エンカウンター当たりの生成数が多い文書 (例:
+Consultation Note、シフト別追加 note) を追加する際は、スコープ判断
+を先に確認 — エンカウンター当たり文書数を 5–10× に増やし FHIR export
+を大幅に肥大化させ得るため。</p>
 <ol>
 <li>
 <p><strong>LOINC コードを選択</strong>

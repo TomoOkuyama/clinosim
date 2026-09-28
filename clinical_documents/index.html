@@ -1780,6 +1780,50 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
+  <a href="#physician-inpatient-documentation-us--jp" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Physician inpatient documentation (US + JP)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#nursing-documentation-us--jp" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Nursing documentation (US + JP)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#outpatient--emergency-us--jp" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Outpatient / Emergency (US + JP)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#jp-only-jp-clins--clinical-workflow" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        JP-only (JP-CLINS / clinical workflow)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#procedure-note-allowlist" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2540,6 +2584,50 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
+  <a href="#physician-inpatient-documentation-us--jp" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Physician inpatient documentation (US + JP)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#nursing-documentation-us--jp" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Nursing documentation (US + JP)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#outpatient--emergency-us--jp" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Outpatient / Emergency (US + JP)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#jp-only-jp-clins--clinical-workflow" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        JP-only (JP-CLINS / clinical workflow)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#procedure-note-allowlist" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2807,21 +2895,20 @@ the Bulk Data NDJSON export.</p>
 </ul>
 <hr />
 <h2 id="document-scope">Document scope<a class="headerlink" href="#document-scope" title="Permanent link">&para;</a></h2>
-<p>clinosim's LLM-service enum <code>LLMTaskType</code>
-(<code>clinosim/modules/llm_service/engine.py</code>) lists 20+ NARRATIVE task
-types plus 4 JUDGMENT task types. The subset <strong>wired end-to-end
-through a prompt YAML → template pass → DocumentReference emit path</strong>
-is the eight document types below (each has an EN + JA prompt YAML
-under <code>clinosim/modules/llm_service/prompts/{en,ja}/</code>). Progress Note
-(LOINC 11506-3) is defined in the enum but reserved for a future
-Tier C opt-in because real-world progress notes are heavily redundant
-with the structured vitals/labs/MAR layer; the additional nursing /
-outpatient / ED / care-plan / health-checkup NARRATIVE types are
-similarly declared in the enum for later phases.</p>
+<p>clinosim's per-country document registry
+(<code>clinosim/modules/document/narrative/registry.py::specs_for_country()</code>)
+wires <strong>13 document types for US</strong> and <strong>18 for JP</strong> end-to-end
+through a country/encounter-type gate → per-doc builder → bundled
+<code>narrative_seed_bundle.yaml</code> LLM strategy → DocumentReference emit
+path. The 5 additional JP-only types (admission_care_plan,
+nutrition_care_plan, rehabilitation_plan, referral_note,
+health_checkup_report) reflect JP-CLINS eReferral / clinical-workflow
+requirements. Progress Note (LOINC 11506-3) — previously deferred as
+Tier C in earlier releases — is emitted end-to-end as of v0.6.x.</p>
+<h3 id="physician-inpatient-documentation-us--jp">Physician inpatient documentation (US + JP)<a class="headerlink" href="#physician-inpatient-documentation-us--jp" title="Permanent link">&para;</a></h3>
 <table>
 <thead>
 <tr>
-<th>Tier</th>
 <th>Document</th>
 <th>LOINC</th>
 <th>Generated when</th>
@@ -2830,59 +2917,150 @@ similarly declared in the enum for later phases.</p>
 </thead>
 <tbody>
 <tr>
-<td>A</td>
+<td>Admission H&amp;P</td>
+<td><code>34117-2</code></td>
+<td>Every inpatient / ICU / rehab-inpatient encounter</td>
+<td>1</td>
+</tr>
+<tr>
+<td>Progress Note</td>
+<td><code>11506-3</code></td>
+<td>Daily during inpatient stay</td>
+<td>1 per hospital day</td>
+</tr>
+<tr>
 <td>Discharge Summary</td>
 <td><code>18842-5</code></td>
 <td>Every finished inpatient encounter (non-deceased)</td>
 <td>1</td>
 </tr>
 <tr>
-<td>A</td>
-<td>Death Summary</td>
-<td><code>69730-0</code></td>
-<td><code>record.deceased = true</code></td>
-<td>1</td>
-</tr>
-<tr>
-<td>A</td>
-<td>Death Discharge Summary</td>
-<td><code>18842-5</code> (specialized title)</td>
-<td><code>record.deceased = true</code> — replaces the generic Discharge Summary on deceased encounters (Issue #961)</td>
-<td>1</td>
-</tr>
-<tr>
-<td>A</td>
-<td>Death Certificate</td>
-<td><code>64297-5</code></td>
-<td><code>record.deceased = true</code> — 医師法第 20 条 mandate (Issue #961)</td>
-<td>1</td>
-</tr>
-<tr>
-<td>A</td>
 <td>Operative Note</td>
 <td><code>11504-8</code></td>
 <td><code>ProcedureRecord.category_code = 387713003</code> (surgical)</td>
 <td>1 per surgery</td>
 </tr>
 <tr>
-<td>B</td>
-<td>Admission H&amp;P</td>
-<td><code>34117-2</code></td>
-<td>Every inpatient encounter</td>
-<td>1</td>
-</tr>
-<tr>
-<td>B</td>
 <td>Procedure Note</td>
 <td><code>28570-0</code></td>
 <td>Invasive bedside procedure from a fixed allowlist</td>
 <td>0..N</td>
 </tr>
 <tr>
-<td>JP</td>
+<td>Death Discharge Summary</td>
+<td><code>18842-5</code> (specialized)</td>
+<td><code>record.deceased = true</code> — replaces the standard Discharge Summary on deceased encounters</td>
+<td>1</td>
+</tr>
+<tr>
+<td>Death Certificate</td>
+<td><code>64297-5</code></td>
+<td><code>record.deceased = true</code> — 医師法第 20 条 mandate</td>
+<td>1</td>
+</tr>
+</tbody>
+</table>
+<h3 id="nursing-documentation-us--jp">Nursing documentation (US + JP)<a class="headerlink" href="#nursing-documentation-us--jp" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Document</th>
+<th>LOINC</th>
+<th>Generated when</th>
+<th>Per-encounter count</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Admission Nursing Assessment</td>
+<td><code>78390-2</code></td>
+<td>Every inpatient admission</td>
+<td>1</td>
+</tr>
+<tr>
+<td>Nursing Shift Note</td>
+<td><code>34746-8</code></td>
+<td>Every nursing shift (day / evening / night)</td>
+<td>3 per hospital day</td>
+</tr>
+<tr>
+<td>Nursing Discharge Summary</td>
+<td><code>34745-0</code></td>
+<td>Every finished inpatient encounter</td>
+<td>1</td>
+</tr>
+</tbody>
+</table>
+<h3 id="outpatient--emergency-us--jp">Outpatient / Emergency (US + JP)<a class="headerlink" href="#outpatient--emergency-us--jp" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Document</th>
+<th>LOINC</th>
+<th>Generated when</th>
+<th>Per-encounter count</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Outpatient SOAP</td>
+<td><code>34131-3</code></td>
+<td>Every outpatient encounter</td>
+<td>1</td>
+</tr>
+<tr>
+<td>ED Note</td>
+<td><code>34878-9</code></td>
+<td>Every emergency encounter</td>
+<td>1</td>
+</tr>
+<tr>
+<td>ED Triage Note</td>
+<td><code>54094-8</code></td>
+<td>Every emergency encounter</td>
+<td>1</td>
+</tr>
+</tbody>
+</table>
+<h3 id="jp-only-jp-clins--clinical-workflow">JP-only (JP-CLINS / clinical workflow)<a class="headerlink" href="#jp-only-jp-clins--clinical-workflow" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Document</th>
+<th>LOINC</th>
+<th>Generated when</th>
+<th>Per-encounter count</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Admission Care Plan</td>
+<td><code>18776-5</code></td>
+<td>Every JP inpatient admission</td>
+<td>1</td>
+</tr>
+<tr>
+<td>Nutrition Care Plan</td>
+<td><code>80791-7</code></td>
+<td>JP inpatient admission with LOS &gt; 7 days</td>
+<td>1</td>
+</tr>
+<tr>
+<td>Rehabilitation Plan</td>
+<td><code>34823-5</code></td>
+<td>JP inpatient with rehab sessions ordered</td>
+<td>1</td>
+</tr>
+<tr>
 <td>Referral Note</td>
 <td><code>57133-1</code></td>
-<td>Deterministic 20% subset of <code>country=JP</code> discharge encounters (JP-CLINS eReferral, PR2b)</td>
+<td>Deterministic 20% subset of JP discharge encounters (JP-CLINS eReferral)</td>
+<td>1</td>
+</tr>
+<tr>
+<td>Health Checkup Report</td>
+<td><code>53576-5</code></td>
+<td>Every JP <code>checkup</code> encounter</td>
 <td>1</td>
 </tr>
 </tbody>
@@ -2942,29 +3120,19 @@ DocumentReference.</p>
 <tr>
 <th>Document</th>
 <th>LOINC</th>
-<th>Why excluded from Milestone 1</th>
+<th>Why excluded</th>
 </tr>
 </thead>
 <tbody>
-<tr>
-<td>Progress Note</td>
-<td><code>11506-3</code></td>
-<td>~80% redundant with structured observations; 4–10x document inflation with marginal research value. Reserved for Tier C opt-in.</td>
-</tr>
 <tr>
 <td>Consultation Note</td>
 <td><code>11488-4</code></td>
 <td>Requires consult workflow (not modeled).</td>
 </tr>
 <tr>
-<td>Nursing Note</td>
-<td><code>34119-8</code></td>
-<td>Narrative text is absorbed into vitals/I/O records.</td>
-</tr>
-<tr>
 <td>Radiology Report</td>
 <td><code>11526-1</code></td>
-<td>Radiology is represented as Procedure + ServiceRequest, not free-text report.</td>
+<td>Radiology is represented as Procedure + ServiceRequest + <code>DiagnosticReport</code>, not a free-text report document.</td>
 </tr>
 <tr>
 <td>Pathology Report</td>
@@ -3054,17 +3222,35 @@ Useful for:
 </span><span id="__span-6-7"><a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a>clinosim<span class="w"> </span>export-fhir<span class="w"> </span>--cif-dir<span class="w"> </span>./cif<span class="w"> </span>--narrative-version<span class="w"> </span>ollama_en_v1<span class="w"> </span>-o<span class="w"> </span>./fhir_ollama
 </span><span id="__span-6-8"><a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a>clinosim<span class="w"> </span>export-fhir<span class="w"> </span>--cif-dir<span class="w"> </span>./cif<span class="w"> </span>--narrative-version<span class="w"> </span>bedrock_en_v1<span class="w"> </span>-o<span class="w"> </span>./fhir_bedrock
 </span></code></pre></div>
+<p>The version-id string is chosen by the caller. In the published
+GitHub Release tarballs (see <code>clinosim-vX.Y.Z-*-*-narrative.tar.gz</code>
+assets), the shipped convention is:</p>
+<ul>
+<li><strong>template tarball</strong>: <code>cif/narratives/template/</code>, <code>current_version.txt = "template"</code>.</li>
+<li><strong>llm-polished tarball</strong>: <code>cif/narratives/{template,llm-polished}/</code>
+  (both directories present), <code>current_version.txt = "llm-polished"</code>.</li>
+</ul>
+<p>Local runs are free to use any label; only the release-asset
+convention is fixed.</p>
 <hr />
 <h2 id="prompts">Prompts<a class="headerlink" href="#prompts" title="Permanent link">&para;</a></h2>
 <p>Prompt templates live under
-<code>clinosim/modules/llm_service/prompts/&lt;language&gt;/&lt;task_type&gt;.yaml</code>:</p>
+<code>clinosim/modules/llm_service/prompts/&lt;language&gt;/&lt;task_type&gt;.yaml</code>.
+Each language directory contains ~17 prompts covering the individual
+narrative tasks plus the <code>narrative_seed_bundle.yaml</code> strategy prompt
+that drives the multi-document bundle path used at runtime:</p>
 <div class="highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>clinosim/modules/llm_service/prompts/
 </span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>└── en/
-</span><span id="__span-7-3"><a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a>    ├── admission_hp.yaml
-</span><span id="__span-7-4"><a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a>    ├── discharge_summary.yaml
-</span><span id="__span-7-5"><a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a>    ├── death_summary.yaml
+</span><span id="__span-7-3"><a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a>    ├── narrative_seed_bundle.yaml      # bundle strategy (multi-doc call)
+</span><span id="__span-7-4"><a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a>    ├── admission_hp.yaml
+</span><span id="__span-7-5"><a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a>    ├── discharge_summary.yaml
 </span><span id="__span-7-6"><a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a>    ├── operative_note.yaml
-</span><span id="__span-7-7"><a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a>    └── procedure_note.yaml
+</span><span id="__span-7-7"><a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a>    ├── procedure_note.yaml
+</span><span id="__span-7-8"><a id="__codelineno-7-8" name="__codelineno-7-8" href="#__codelineno-7-8"></a>    ├── death_certificate_*.yaml
+</span><span id="__span-7-9"><a id="__codelineno-7-9" name="__codelineno-7-9" href="#__codelineno-7-9"></a>    ├── death_discharge_summary_*.yaml  # per-section prompts
+</span><span id="__span-7-10"><a id="__codelineno-7-10" name="__codelineno-7-10" href="#__codelineno-7-10"></a>    ├── death_summary.yaml
+</span><span id="__span-7-11"><a id="__codelineno-7-11" name="__codelineno-7-11" href="#__codelineno-7-11"></a>    ├── narrative_seed.yaml
+</span><span id="__span-7-12"><a id="__codelineno-7-12" name="__codelineno-7-12" href="#__codelineno-7-12"></a>    └── referral_note.yaml
 </span></code></pre></div>
 <p>Each file has this structure:</p>
 <div class="highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="nt">task_type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">discharge_summary</span>
@@ -3239,9 +3425,11 @@ complications, outcome</code></p>
 </span></code></pre></div>
 <hr />
 <h2 id="adding-a-new-document-type">Adding a new document type<a class="headerlink" href="#adding-a-new-document-type" title="Permanent link">&para;</a></h2>
-<p><strong>Scope note:</strong> if you are adding a Tier C document (Progress Note, Consultation
-Note), confirm the scope decision first — Progress Note is intentionally
-deferred, and Tier C generation multiplies document counts by 5–10x.</p>
+<p><strong>Scope note:</strong> if you are adding a document with high per-encounter
+multiplicity (e.g. Consultation Note, additional per-shift notes),
+confirm the scope decision first — such doc types can multiply the
+per-encounter document count by 5–10× and materially inflate the
+FHIR export.</p>
 <ol>
 <li>
 <p><strong>Pick a LOINC code</strong> from the <a href="https://loinc.org/">Regenstrief LOINC browser</a>
