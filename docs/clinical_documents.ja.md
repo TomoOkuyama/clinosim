@@ -19,27 +19,54 @@ NDJSON エクスポート内の FHIR R4 `DocumentReference` リソースとし�
 
 ## Document scope
 
-clinosim の LLM service enum `LLMTaskType`
-(`clinosim/modules/llm_service/engine.py`) は 20+ の NARRATIVE task type
-と 4 つの JUDGMENT task type を定義しています。うち **prompt YAML →
-template pass → DocumentReference emit path で end-to-end 配線済みの
-サブセット**が以下の 8 文書種別で、いずれも
-`clinosim/modules/llm_service/prompts/{en,ja}/` に EN + JA prompt YAML
-を持ちます。Progress Note (LOINC 11506-3) は enum 定義済ながら、実世界
-の progress note が構造化 vitals/labs/MAR レイヤと重複度が高いため
-将来の Tier C opt-in として予約。nursing / outpatient / ED / care-plan /
-health-checkup 系 NARRATIVE type も同様に将来 phase 用に enum のみ宣言。
+clinosim の国別文書レジストリ
+(`clinosim/modules/document/narrative/registry.py::specs_for_country()`)
+は **US で 13 文書種別**、**JP で 18 種別** を国 / エンカウンター種別
+ゲート → 各文書ビルダー → bundled `narrative_seed_bundle.yaml` LLM
+戦略 → DocumentReference emit path で end-to-end 配線しています。
+JP のみの 5 種 (admission_care_plan, nutrition_care_plan,
+rehabilitation_plan, referral_note, health_checkup_report) は JP-CLINS
+eReferral / 臨床ワークフロー要件を反映。Progress Note (LOINC 11506-3)
+は初期リリースでは Tier C 予約扱いでしたが、v0.6.x 系で end-to-end
+配線済みです。
 
-| Tier | 文書 | LOINC | 生成タイミング | エンカウンター別回数 |
-|---|---|---|---|---|
-| A | Discharge Summary | `18842-5` | 完了した各入院エンカウンター (非死亡) | 1 |
-| A | Death Summary | `69730-0` | `record.deceased = true` | 1 |
-| A | Death Discharge Summary | `18842-5` (specialized title) | `record.deceased = true` — 死亡症例で通常の退院サマリを置換 (Issue #961) | 1 |
-| A | Death Certificate | `64297-5` | `record.deceased = true` — 医師法第 20 条 mandate (Issue #961) | 1 |
-| A | Operative Note | `11504-8` | `ProcedureRecord.category_code = 387713003` (手術) | 手術ごとに 1 |
-| B | Admission H&P | `34117-2` | 各入院エンカウンター | 1 |
-| B | Procedure Note | `28570-0` | 固定 allowlist からの侵襲的ベッドサイド手技 | 0..N |
-| JP | Referral Note | `57133-1` | `country=JP` の退院エンカウンターの決定的 20% サブセット (JP-CLINS eReferral、PR2b) | 1 |
+### 医師 (入院) 文書 (US + JP)
+
+| 文書 | LOINC | 生成タイミング | エンカウンター別回数 |
+|---|---|---|---|
+| Admission H&P | `34117-2` | 各入院 / ICU / rehab-inpatient エンカウンター | 1 |
+| Progress Note | `11506-3` | 入院中の各在院日 | 在院日ごとに 1 |
+| Discharge Summary | `18842-5` | 完了した各入院エンカウンター (非死亡) | 1 |
+| Operative Note | `11504-8` | `ProcedureRecord.category_code = 387713003` (手術) | 手術ごとに 1 |
+| Procedure Note | `28570-0` | 固定 allowlist からの侵襲的ベッドサイド手技 | 0..N |
+| Death Discharge Summary | `18842-5` (specialized) | `record.deceased = true` — 死亡症例で通常の退院サマリを置換 | 1 |
+| Death Certificate | `64297-5` | `record.deceased = true` — 医師法第 20 条 mandate | 1 |
+
+### 看護記録 (US + JP)
+
+| 文書 | LOINC | 生成タイミング | エンカウンター別回数 |
+|---|---|---|---|
+| Admission Nursing Assessment | `78390-2` | 各入院時 | 1 |
+| Nursing Shift Note | `34746-8` | 各看護シフト (日勤 / 準夜 / 深夜) | 在院日ごとに 3 |
+| Nursing Discharge Summary | `34745-0` | 各入院退院時 | 1 |
+
+### 外来 / 救急 (US + JP)
+
+| 文書 | LOINC | 生成タイミング | エンカウンター別回数 |
+|---|---|---|---|
+| Outpatient SOAP | `34131-3` | 各外来エンカウンター | 1 |
+| ED Note | `34878-9` | 各救急エンカウンター | 1 |
+| ED Triage Note | `54094-8` | 各救急エンカウンター | 1 |
+
+### JP のみ (JP-CLINS / 臨床ワークフロー)
+
+| 文書 | LOINC | 生成タイミング | エンカウンター別回数 |
+|---|---|---|---|
+| Admission Care Plan | `18776-5` | JP 各入院時 | 1 |
+| Nutrition Care Plan | `80791-7` | JP 入院かつ在院 > 7 日 | 1 |
+| Rehabilitation Plan | `34823-5` | JP 入院かつリハビリセッション oder あり | 1 |
+| Referral Note | `57133-1` | JP 退院エンカウンターの決定的 20% サブセット (JP-CLINS eReferral) | 1 |
+| Health Checkup Report | `53576-5` | JP の各 `checkup` エンカウンター | 1 |
 
 ### Procedure Note allowlist
 
@@ -63,12 +90,10 @@ health-checkup 系 NARRATIVE type も同様に将来 phase 用に enum のみ宣
 
 ### **生成しないもの** (意図的)
 
-| 文書 | LOINC | Milestone 1 で除外理由 |
+| 文書 | LOINC | 除外理由 |
 |---|---|---|
-| Progress Note | `11506-3` | 構造化観察と ~80% 重複; 4–10x の文書膨張と限界的研究価値。Tier C opt-in として予約。 |
 | Consultation Note | `11488-4` | consult ワークフロー必須 (未モデル化)。 |
-| Nursing Note | `34119-8` | narrative は vitals/I/O record に吸収。 |
-| Radiology Report | `11526-1` | 放射線は Procedure + ServiceRequest として表現、自由文レポートではない。 |
+| Radiology Report | `11526-1` | 放射線は Procedure + ServiceRequest + `DiagnosticReport` として表現、自由文レポート文書ではない。 |
 | Pathology Report | `11526-1` (pathology variant) | 検体病理未モデル化。 |
 
 ---
@@ -185,22 +210,40 @@ clinosim export-fhir --cif-dir ./cif --narrative-version ollama_en_v1 -o ./fhir_
 clinosim export-fhir --cif-dir ./cif --narrative-version bedrock_en_v1 -o ./fhir_bedrock
 ```
 
+version-id 文字列は呼び出し側が任意に選択できます。公開されている
+GitHub Release tarball (`clinosim-vX.Y.Z-*-*-narrative.tar.gz` asset)
+では以下の convention を採用:
+
+- **template tarball**: `cif/narratives/template/`、`current_version.txt = "template"`。
+- **llm-polished tarball**: `cif/narratives/{template,llm-polished}/`
+  (両者存在)、`current_version.txt = "llm-polished"`。
+
+ローカル実行では任意のラベル使用可、release asset 側の convention
+のみ固定。
+
 ---
 
 ## Prompts
 
 プロンプトテンプレートは
 `clinosim/modules/llm_service/prompts/<language>/<task_type>.yaml`
-に配置:
+に配置。各言語ディレクトリには ~17 個のプロンプトがあり、個別
+narrative タスク用に加えてランタイムで使用される
+`narrative_seed_bundle.yaml` (multi-document bundle 戦略) を含む:
 
 ```
 clinosim/modules/llm_service/prompts/
 └── en/
+    ├── narrative_seed_bundle.yaml      # bundle 戦略 (multi-doc 呼び出し)
     ├── admission_hp.yaml
     ├── discharge_summary.yaml
-    ├── death_summary.yaml
     ├── operative_note.yaml
-    └── procedure_note.yaml
+    ├── procedure_note.yaml
+    ├── death_certificate_*.yaml
+    ├── death_discharge_summary_*.yaml  # section 別 prompt
+    ├── death_summary.yaml
+    ├── narrative_seed.yaml
+    └── referral_note.yaml
 ```
 
 各ファイルの構造:
@@ -378,9 +421,10 @@ narrative version の `manifest.json` はこれらを集約:
 
 ## 新規文書種別の追加
 
-**スコープ注記:** Tier C 文書 (Progress Note / Consultation Note)
-を追加する場合、スコープ判断を最初に確認 — Progress Note は意図的
-に defer 済で、Tier C 生成は文書数を 5–10x に増やす。
+**スコープ注記:** エンカウンター当たりの生成数が多い文書 (例:
+Consultation Note、シフト別追加 note) を追加する際は、スコープ判断
+を先に確認 — エンカウンター当たり文書数を 5–10× に増やし FHIR export
+を大幅に肥大化させ得るため。
 
 1. **LOINC コードを選択**
    [Regenstrief LOINC browser](https://loinc.org/) から選び、少なく
