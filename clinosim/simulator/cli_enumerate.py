@@ -66,7 +66,7 @@ def _run_enumerate(args: Any) -> None:
     # patient_id → scenario map without walking the CIF.
     _os.makedirs(args.output, exist_ok=True)
     manifest_path = _os.path.join(args.output, "enumeration_manifest.json")
-    with open(manifest_path, "w") as f:
+    with open(manifest_path, "w", encoding="utf-8") as f:
         f.write(manifest.to_json())
     print(f"  wrote {manifest_path}")
 
@@ -83,7 +83,7 @@ def _run_enumerate(args: Any) -> None:
         rng_seed=args.seed,
     ).run()
     _os.makedirs(_os.path.join(cif_dir, "narratives"), exist_ok=True)
-    with open(_os.path.join(cif_dir, "narratives", "current_version.txt"), "w") as f:
+    with open(_os.path.join(cif_dir, "narratives", "current_version.txt"), "w", encoding="utf-8") as f:
         f.write("template")
 
     formats = args.format or []

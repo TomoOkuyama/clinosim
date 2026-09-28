@@ -514,7 +514,7 @@ def run_beta(
     if hospital_config_path:
         import yaml
 
-        with open(Path(hospital_config_path)) as f:
+        with open(Path(hospital_config_path), encoding="utf-8") as f:
             hospital_ops = yaml.safe_load(f) or {}
     else:
         hospital_ops = load_hospital_operations()

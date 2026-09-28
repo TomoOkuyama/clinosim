@@ -17,7 +17,7 @@ _LOCALE = _HERE.parents[1] / "locale"
 
 @lru_cache(maxsize=1)
 def load_reference() -> dict:
-    with open(_REF_DIR / "code_status.yaml") as f:
+    with open(_REF_DIR / "code_status.yaml", encoding="utf-8") as f:
         return yaml.safe_load(f) or {}
 
 
@@ -29,7 +29,7 @@ def load_rates(country: str) -> dict:
     if not (is_us(country) or is_jp(country)):
         return {}
     key = "jp" if is_jp(country) else "us"
-    with open(_LOCALE / key / "code_status_rates.yaml") as f:
+    with open(_LOCALE / key / "code_status_rates.yaml", encoding="utf-8") as f:
         return (yaml.safe_load(f) or {}).get("weights", {})
 
 

@@ -34,7 +34,7 @@ def _load_reference_data() -> tuple[
 
     Display names are not stored; they are resolved at use time via clinosim.codes.
     """
-    with open(_REF_DIR / "builtin_differentials.yaml") as f:
+    with open(_REF_DIR / "builtin_differentials.yaml", encoding="utf-8") as f:
         data = yaml.safe_load(f) or {}
     differentials = data.get("differentials", {})
     progression = {

@@ -161,7 +161,7 @@ def convert_cif_to_fhir(
     hospital_config: dict = {}
     hospital_path = os.path.join(cif_dir, "hospital.json")
     if os.path.exists(hospital_path):
-        with open(hospital_path) as f:
+        with open(hospital_path, encoding="utf-8") as f:
             hospital_data = json.load(f)
         for staff in hospital_data.get("staff", []):
             roster_map[staff.get("staff_id", "")] = staff

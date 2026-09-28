@@ -477,7 +477,7 @@ def _read(cohort: Cohort, country: str, resource_type: str):
         return iter(())
 
     def _gen():
-        with path.open() as f:
+        with path.open(encoding="utf-8") as f:
             for line in f:
                 line = line.strip()
                 if not line:

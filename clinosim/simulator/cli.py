@@ -772,7 +772,7 @@ def main() -> None:
     )
     _narrative_pass.run()
     os.makedirs(os.path.join(cif_dir, "narratives"), exist_ok=True)
-    with open(os.path.join(cif_dir, "narratives", "current_version.txt"), "w") as f:
+    with open(os.path.join(cif_dir, "narratives", "current_version.txt"), "w", encoding="utf-8") as f:
         f.write("template")
 
     # Format exports via the adapter registry (AD-58). Add a format = register an adapter.

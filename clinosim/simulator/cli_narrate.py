@@ -25,7 +25,7 @@ def _country_from_cif_metadata(cif_dir: str) -> str | None:
     if not os.path.exists(meta_path):
         return None
     try:
-        with open(meta_path) as f:
+        with open(meta_path, encoding="utf-8") as f:
             data = json.load(f)
     except (OSError, ValueError):
         return None
@@ -217,7 +217,7 @@ def _run_narrate(args: Any) -> None:
         )
     if set_current:
         os.makedirs(os.path.join(args.cif_dir, "narratives"), exist_ok=True)
-        with open(os.path.join(args.cif_dir, "narratives", "current_version.txt"), "w") as f:
+        with open(os.path.join(args.cif_dir, "narratives", "current_version.txt"), "w", encoding="utf-8") as f:
             f.write(version_id)
         print(f"narrate: current -> {version_id}")
     print(

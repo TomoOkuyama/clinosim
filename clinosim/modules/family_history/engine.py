@@ -33,7 +33,7 @@ to two decimal places)."""
 
 @lru_cache(maxsize=1)
 def load_reference() -> dict:
-    with open(_REF_DIR / "family_history.yaml") as f:
+    with open(_REF_DIR / "family_history.yaml", encoding="utf-8") as f:
         return yaml.safe_load(f) or {}
 
 
@@ -46,7 +46,7 @@ def load_prevalence(country: str) -> dict:
     if not (is_us(country) or is_jp(country)):
         return {}
     key = "jp" if is_jp(country) else "us"
-    with open(_LOCALE / key / "family_history_prevalence.yaml") as f:
+    with open(_LOCALE / key / "family_history_prevalence.yaml", encoding="utf-8") as f:
         return (yaml.safe_load(f) or {}).get("prevalence", {})
 
 

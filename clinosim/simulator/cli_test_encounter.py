@@ -234,7 +234,7 @@ def _run_test_encounter_generate(args: Any) -> None:
         rng_seed=args.seed,
     ).run()
     os.makedirs(os.path.join(cif_dir, "narratives"), exist_ok=True)
-    with open(os.path.join(cif_dir, "narratives", "current_version.txt"), "w") as f:
+    with open(os.path.join(cif_dir, "narratives", "current_version.txt"), "w", encoding="utf-8") as f:
         f.write("template")
 
     # Format exports via the adapter registry (AD-58) — reuse the same `_run_exports`

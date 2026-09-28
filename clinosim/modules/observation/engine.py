@@ -29,7 +29,7 @@ _REF_DIR = _HERE / "reference_data"
 def _lab_aliases() -> dict[str, str]:
     path = _REF_DIR / "lab_aliases.yaml"
     if path.exists():
-        with open(path) as f:
+        with open(path, encoding="utf-8") as f:
             return yaml.safe_load(f) or {}
     return {}
 
@@ -38,7 +38,7 @@ def _lab_aliases() -> dict[str, str]:
 def _lab_panels() -> dict[str, list[str]]:
     path = _REF_DIR / "lab_panels.yaml"
     if path.exists():
-        with open(path) as f:
+        with open(path, encoding="utf-8") as f:
             return yaml.safe_load(f) or {}
     return {}
 

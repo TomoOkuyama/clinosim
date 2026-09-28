@@ -30,7 +30,7 @@ def load_healthcare_config(country: str) -> HealthcareSystemConfig:
     if not config_path.exists():
         raise FileNotFoundError(f"Healthcare config not found: {config_path}")
 
-    with open(config_path) as f:
+    with open(config_path, encoding="utf-8") as f:
         data = yaml.safe_load(f)
 
     return HealthcareSystemConfig(**data)

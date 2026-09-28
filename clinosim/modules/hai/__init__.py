@@ -51,7 +51,7 @@ def load_hai_antibiogram() -> dict:
     """
     from clinosim.modules.antibiotic import ANTIBIOTIC_LOINC_LOOKUP
 
-    with open(_HAI_ANTIBIOGRAM_PATH) as f:
+    with open(_HAI_ANTIBIOGRAM_PATH, encoding="utf-8") as f:
         raw = yaml.safe_load(f) or {}
     abg = raw.get("hai_antibiogram") or {}
     # PR3b-3 stage-1 adversarial finding I2: empty top-level antibiogram would

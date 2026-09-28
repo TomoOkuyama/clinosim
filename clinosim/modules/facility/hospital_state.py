@@ -246,6 +246,6 @@ def load_hospital_operations() -> dict[str, Any]:
     a fresh dict directly and is unaffected by this cache.)
     """
     if _HOSPITAL_OPERATIONS_PATH.exists():
-        with open(_HOSPITAL_OPERATIONS_PATH) as f:
+        with open(_HOSPITAL_OPERATIONS_PATH, encoding="utf-8") as f:
             return yaml.safe_load(f) or {}
     return {}

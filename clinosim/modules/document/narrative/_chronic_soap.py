@@ -30,7 +30,7 @@ _REGISTRY_FILENAME = "chronic_soap_templates.yaml"
 @lru_cache(maxsize=1)
 def _load_registry() -> dict[str, dict[str, str]]:
     """Load the chronic-SOAP registry once."""
-    with resources.files(_REGISTRY_PACKAGE).joinpath(_REGISTRY_FILENAME).open("r") as f:
+    with resources.files(_REGISTRY_PACKAGE).joinpath(_REGISTRY_FILENAME).open("r", encoding="utf-8") as f:
         return yaml.safe_load(f) or {}
 
 

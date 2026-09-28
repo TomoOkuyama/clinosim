@@ -120,7 +120,7 @@ class NarrativePass(ABC):
         if not _os.path.exists(path):
             return {}
         try:
-            with open(path) as fh:
+            with open(path, encoding="utf-8") as fh:
                 d = _json.load(fh)
             return {s.get("staff_id", ""): s for s in (d.get("staff") or []) if s.get("staff_id")}
         except Exception:  # noqa: BLE001 — narrative must not fail on roster load
@@ -167,7 +167,7 @@ class NarrativePass(ABC):
             never race across threads.
             """
             spec, language, pf = unit
-            with open(os.path.join(structural_dir, pf)) as f:
+            with open(os.path.join(structural_dir, pf), encoding="utf-8") as f:
                 patient_dict = json.load(f)
             if not self._spec_applies(spec, patient_dict):
                 return []
@@ -279,7 +279,7 @@ class NarrativePass(ABC):
             partial=bool(self.patient_filter),
         )
         manifest_path = os.path.join(self.cif_dir, "narratives", self.version_id, "manifest.json")
-        with open(manifest_path, "w") as f:
+        with open(manifest_path, "w", encoding="utf-8") as f:
             json.dump(asdict(manifest), f, indent=2, ensure_ascii=False)
         return manifest
 
@@ -298,7 +298,7 @@ class NarrativePass(ABC):
             if self._patient_filter_re.search(stem):
                 selected.append(pf)
                 continue
-            with open(os.path.join(structural_dir, pf)) as f:
+            with open(os.path.join(structural_dir, pf), encoding="utf-8") as f:
                 patient_dict = json.load(f)
             patient_id = str(_o(patient_dict.get("patient") or {}, "patient_id", "") or "")
             if patient_id and self._patient_filter_re.search(patient_id):
@@ -664,7 +664,7 @@ class NarrativePass(ABC):
             "encounter_id": encounter_id,
             "narrative": _narr,
         }
-        with open(os.path.join(enc_dir, filename), "w") as f:
+        with open(os.path.join(enc_dir, filename), "w", encoding="utf-8") as f:
             json.dump(payload, f, indent=2, ensure_ascii=False)
 
     def _filename_for(self, stub: dict[str, Any], spec: DocumentTypeSpec) -> str:

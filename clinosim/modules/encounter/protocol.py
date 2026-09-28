@@ -139,7 +139,7 @@ def load_encounter_condition(condition_id: str) -> dict[str, Any]:
     path = _REF_DIR / f"{condition_id}.yaml"
     if not path.exists():
         raise FileNotFoundError(f"Encounter condition not found: {path}")
-    with open(path) as f:
+    with open(path, encoding="utf-8") as f:
         data = yaml.safe_load(f)
     EncounterConditionProtocol.model_validate(data)
     _validate_encounter_route_vocabulary(condition_id, data)

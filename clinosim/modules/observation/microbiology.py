@@ -124,7 +124,7 @@ def _load() -> dict[str, Any]:
     path = _REF_DIR / "microbiology.yaml"
     if not path.exists():
         return {}
-    with open(path) as f:
+    with open(path, encoding="utf-8") as f:
         data = yaml.safe_load(f) or {}
     _validate_microbiology(data)
     return data

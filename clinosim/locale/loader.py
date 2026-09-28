@@ -786,7 +786,7 @@ def load_identity_config(country: str) -> dict[str, Any]:
 
 def _load_yaml(path: Path, fallback: Any = None) -> Any:
     if path.exists():
-        with open(path) as f:
+        with open(path, encoding="utf-8") as f:
             return yaml.safe_load(f) or fallback
     return fallback if fallback is not None else {}
 

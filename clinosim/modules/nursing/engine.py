@@ -91,7 +91,7 @@ def _validate_nursing_assessment(data: dict[str, Any]) -> None:
 @lru_cache(maxsize=1)
 def load_nursing_assessment() -> dict[str, Any]:
     """Load nursing_assessment.yaml + validate (cached)."""
-    with (_REF_DIR / "nursing_assessment.yaml").open() as f:
+    with (_REF_DIR / "nursing_assessment.yaml").open(encoding="utf-8") as f:
         data = yaml.safe_load(f)
     _validate_nursing_assessment(data)
     return data

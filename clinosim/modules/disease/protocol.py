@@ -572,7 +572,7 @@ def load_disease_protocol(disease_id: str) -> DiseaseProtocol:
     if not protocol_path.exists():
         raise FileNotFoundError(f"Disease protocol not found: {protocol_path}")
 
-    with open(protocol_path) as f:
+    with open(protocol_path, encoding="utf-8") as f:
         data = yaml.safe_load(f)
 
     protocol = DiseaseProtocol(**data)
