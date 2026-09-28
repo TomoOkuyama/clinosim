@@ -9,10 +9,10 @@
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 [![FHIR](https://img.shields.io/badge/output-HL7%20FHIR%20R4%20Bulk-orange)](https://hl7.org/fhir/uv/bulkdata/)
 
+**[InterSystems](https://www.intersystems.com/) のエンジニアが開発 · InterSystems の公式製品ではありません ([詳細](#所属について))**
+
 📚 **[ドキュメントサイト (英語)](https://tomookuyama.github.io/clinosim/)**  |  🇺🇸 **[README.md](README.md)**
 
-> ⚠️ **個人プロジェクト免責** — 独立した個人プロジェクトであり、いかなる組織の公式製品でもありません。
->
 > ⚠️ **合成データのみ** — 出力はすべて完全合成。臨床用途不可。clinosim は実患者データ / PHI / PII を取り込み・参照・再現しません。
 
 ## clinosim とは
@@ -92,6 +92,17 @@ JP のワーファリン服用患者では、clinosim の生理学エンジン�
 - スターター課題 — [`good first issue`](https://github.com/TomoOkuyama/clinosim/labels/good%20first%20issue) ラベル
 - Issue テンプレート — [`.github/ISSUE_TEMPLATE/`](.github/ISSUE_TEMPLATE/) (構造化されたバグ / 機能フォーム)
 - 引用 — GitHub "Cite this repository" ボタン ([`CITATION.cff`](CITATION.cff) が背後)
+
+## 所属について
+
+clinosim は **InterSystems** のエンジニアが開発し、医療 AI 開発者
+コミュニティへのオープンソースでの貢献として MIT ライセンスで
+公開しているものです。
+
+**InterSystems の公式製品ではありません。** InterSystems IRIS for
+Health をはじめとする製品の一部ではなく、InterSystems によるサポート・
+保証・ロードマップ上の約束はありません。Issue と Pull Request は
+GitHub 上で扱われ、InterSystems のサポート窓口では受け付けていません。
 
 ## ライセンス
 
