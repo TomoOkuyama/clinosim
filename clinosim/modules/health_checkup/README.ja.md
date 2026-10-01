@@ -9,7 +9,7 @@ health checkup) を JP コホートに追加する opt-in POST_RECORDS enricher�
 `CHECKUP` encounter、法定健診項目 5 種 (BMI、収縮期 BP、拡張期 BP、
 HbA1c、LDL コレステロール)、および `HEALTH_CHECKUP_REPORT` の
 `ClinicalDocument` stub (narrative は
-[`document.narrative`](../document/narrative/README.md) が Stage 2
+[`document.narrative`](../document/narrative/README.ja.md) が Stage 2
 で populate) を emit する。
 
 **default OFF** — `SimulatorConfig.modules["health_checkup"] == True`
@@ -28,10 +28,10 @@ HbA1c、LDL コレステロール)、および `HEALTH_CHECKUP_REPORT` の
   文字列、`HEALTH_CHECKUP_REPORT` の `ClinicalDocument` stub
   (narrative=None、Stage 2 fill 用)。
 - **Out of scope**: narrative content —
-  [`clinosim.modules.document.narrative`](../document/narrative/README.md)
+  [`clinosim.modules.document.narrative`](../document/narrative/README.ja.md)
   が post-simulation で populate (AD-65 Stage 2)、FHIR Composition +
   section text の emit
-  ([`clinosim.modules.output.fhir_r4.documents`](../output/fhir_r4/documents/README.md))、
+  ([`clinosim.modules.output.fhir_r4.documents`](../output/fhir_r4/documents/README.ja.md))、
   保険種別ベースの精緻化 (将来 sub-PR)、非 JP コホート。
 
 ## Public API
@@ -133,7 +133,7 @@ enricher entry は `engine.py` の `enrich_health_checkup`、reference
 ## Output surface (consumers)
 
 | Consumer | 場所 | 役割 |
-|---|---|---|
+| --- | --- | --- |
 | Enricher registry | [`clinosim/simulator/enrichers.py:373`](../../simulator/enrichers.py) | POST_RECORDS order=70 登録。 |
 | Encounter type mapping | [`clinosim/modules/output/fhir_r4/encounters/encounter.py`](../output/fhir_r4/encounters/encounter.py) | `EncounterType.CHECKUP` を JP-eCheckup の `class` + `type` に写像。 |
 | FHIR DocumentReference builder | [`clinosim/modules/output/fhir_r4/documents/document_reference_checkup.py`](../output/fhir_r4/documents/document_reference_checkup.py) | `HEALTH_CHECKUP_REPORT` stub を `DocumentReference` として emit (narrative populate 後は Composition 相当)。 |
@@ -159,6 +159,6 @@ pytest tests/unit -k "health_checkup or checkup" -q
 ## Ownership
 
 `maintainers@` — 詳細は
-[`CONTRIBUTING.md`](../../../CONTRIBUTING.md)。
+[`CONTRIBUTING.md`](../../../CONTRIBUTING.ja.md)。
 
-英語版: [`README.md`](README.md)。
+英語版: [`README.md`](README.ja.md)。

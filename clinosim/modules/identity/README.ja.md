@@ -2,7 +2,7 @@
 
 ## 概要
 
-[`clinosim.modules.population`](../population/README.md) が生成する全
+[`clinosim.modules.population`](../population/README.ja.md) が生成する全
 住民に対し、POST_POPULATION パスで `IdentityTimeline` (national
 identity + insurance enrollment) を付与する。国別の番号生成規則は
 `IdentityProvider` Protocol の背後に隠蔽され、新国追加は provider
@@ -18,15 +18,15 @@ AD-54)。
 - **現在有効な provider は JP のみ**。US provider は Phase-1 stub
   (`assign_household → {}`、`assign_personal → NationalIdentity(country="US")`)
   で、US 保険サンプリングは Phase-4 migration まで
-  [`clinosim.modules.patient.activator`](../patient/README.md) に
+  [`clinosim.modules.patient.activator`](../patient/README.ja.md) に
   残っている。enricher は `enabled=lambda c: is_jp(c.country) and
   c.jp_insurance_numbers` のため、US または JP 番号付与オフ時は
   no-op。
 - **Out of scope**: 姓名 / 住所 / 生年月日 生成
-  ([`clinosim.modules.population`](../population/README.md) +
+  ([`clinosim.modules.population`](../population/README.ja.md) +
   [`clinosim/locale/<country>/`](../../locale/))、
-  医療者 ID ([`clinosim.modules.staff`](../staff/README.md))、
-  FHIR serialization ([`clinosim.modules.output`](../output/README.md))。
+  医療者 ID ([`clinosim.modules.staff`](../staff/README.ja.md))、
+  FHIR serialization ([`clinosim.modules.output`](../output/README.ja.md))。
 
 ## Public API
 
@@ -138,7 +138,7 @@ reference data は `clinosim/locale/jp/identity.yaml`、enricher entry
 ## Output surface (consumers)
 
 | Consumer | 場所 | 役割 |
-|---|---|---|
+| --- | --- | --- |
 | Enricher registry | [`clinosim/simulator/enrichers.py:136-146`](../../simulator/enrichers.py) | POST_POPULATION order=10 登録。 |
 | `PersonRecord.identity` field | [`clinosim/types/population.py:78`](../../types/population.py) | 下流 code は本パス実行後に `person.identity.national` / `person.identity.enrollments` を読む。 |
 | FHIR `Patient` / `Coverage` builder | [`clinosim/modules/output/fhir_r4/`](../output/fhir_r4/) | `Patient` にマイナンバー式 identifier、`Coverage` に JP 保険証情報を emit。 |
@@ -161,6 +161,6 @@ pytest tests/e2e -k identity_jp -q       # JP locale end-to-end
 ## Ownership
 
 `maintainers@` — 詳細は
-[`CONTRIBUTING.md`](../../../CONTRIBUTING.md)。
+[`CONTRIBUTING.md`](../../../CONTRIBUTING.ja.md)。
 
-英語版: [`README.md`](README.md)。
+英語版: [`README.md`](README.ja.md)。

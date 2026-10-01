@@ -111,7 +111,7 @@
 confirmed / partly-confirmed のみ。value/effort 順。コンセプト適合 = 修正が CLAUDE.md/AD の原則に明確に沿うか。
 
 | id | 対象 (file:line) | 問題 | 推奨 | effort | risk | コンセプト適合 |
-|---|---|---|---|---|---|---|
+| --- | --- | --- | --- | --- | --- | --- |
 | DET-4 | `inpatient.py:761,774-776` | `_prev_diet` が function-object に process 寿命の global state を蓄積 (AD-16 違反) | `_run_daily_loop` の local 変数化、`getattr` 撤去 | small | low (golden 差分は汚染依存時のみ) | ◎ AD-16 中核 |
 | FA-4 | `csv_adapter.py:94,96`; `narrative_generator.py:94` | 存在しない `*_diagnosis_name` を読み常に空 (AD-30 違反、実害) | `code_lookup(system, code, lang)` に置換、import 追加 | small | CSV golden 更新要 | ◎ AD-30 |
 | CODES-7 | `code_mapping_drug.yaml:8-9`; `rxnorm.yaml:68-70` | CUI 18631 を 2 薬剤で共有、捏造 display | NLM rxnav で正 CUI 取得、分離登録 | small | US MedicationRequest golden 更新要 | ◎ 権威出典 |

@@ -11,7 +11,7 @@ data / (該当時) audit フックを備える。
 本ページは **ナビゲーション索引** — 各モジュール 1 行、機能領域で
 グルーピングし、各子 README にリンクする。詳細な設計議論は個別
 module のドキュメントに、より広い architecture view は
-[`AGENTS.md`](../../AGENTS.md) と [`DESIGN.md`](../../DESIGN.md) に。
+[`AGENTS.md`](../../AGENTS.md) と [`DESIGN.md`](../../DESIGN.ja.md) に。
 
 ## 全モジュール共通の設計慣習
 
@@ -41,7 +41,7 @@ Cross-module invariant:
 - **Boilerplate**: 新モジュールは
   [`.github/TEMPLATE_MODULE_README.md`](../../.github/TEMPLATE_MODULE_README.md)
   から複製。module 追加ワークフローは
-  [`docs/CONTRIBUTING-modules.md`](../../docs/CONTRIBUTING-modules.md)。
+  [`docs/CONTRIBUTING-modules.md`](../../docs/CONTRIBUTING-modules.ja.md)。
 - **決定論的**: 乱数を引く module は sub-seeded RNG stream を使用し、
   `(country, population, seed, dates)` タプル固定でコホート出力が
   byte 再現する (AD-16)。sub-seed offset は
@@ -136,15 +136,15 @@ Cross-module invariant:
   - [`clinosim.seeding`](../seeding.py) — canonical
     `ENRICHER_SEED_OFFSETS` 表。
 - **Contribution guide**:
-  - [`docs/CONTRIBUTING-modules.md`](../../docs/CONTRIBUTING-modules.md)
+  - [`docs/CONTRIBUTING-modules.md`](../../docs/CONTRIBUTING-modules.ja.md)
     — 新 module 追加手順。
-  - [`docs/add-your-country.md`](../../docs/add-your-country.md) —
+  - [`docs/add-your-country.md`](../../docs/add-your-country.ja.md) —
     新国追加手順 (locale + identity provider + healthcare-system
     config)。
 - **Architecture**:
   - [`AGENTS.md`](../../AGENTS.md) — AI-agent 向け指示 + データフロー
     + ADR ポインタ。
-  - [`DESIGN.md`](../../DESIGN.md) — ADR 表。
-  - [`MODULES.md`](../../MODULES.md) — module 概観 cheat sheet。
+  - [`DESIGN.md`](../../DESIGN.ja.md) — ADR 表。
+  - [`MODULES.md`](../../MODULES.ja.md) — module 概観 cheat sheet。
 
-英語版: [`README.md`](README.md)。
+英語版: [`README.md`](README.ja.md)。

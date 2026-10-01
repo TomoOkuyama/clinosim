@@ -3,7 +3,7 @@
 # 多国対応
 
 | 項目 | US (デフォルト) | JP (`--country JP`) |
-|---|---|---|
+| --- | --- | --- |
 | 診断コード | ICD-10-CM | ICD-10 (WHO) |
 | 検査コード | LOINC | JLAC10 |
 | 薬剤コード | RxNorm | YJ codes |

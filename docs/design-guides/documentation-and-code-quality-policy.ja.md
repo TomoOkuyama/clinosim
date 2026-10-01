@@ -10,7 +10,7 @@
 本ドキュメントは、このプロジェクトでドキュメントがどう書かれ、ソース
 コード品質がどう維持されるかの single source of truth。
 [`AGENTS.md`](../../AGENTS.md) (自動 agent 向け)、
-[`CONTRIBUTING.md`](../../CONTRIBUTING.md) (人間 contributor 向け)、
+[`CONTRIBUTING.md`](../../CONTRIBUTING.ja.md) (人間 contributor 向け)、
 トップレベル READMEs から参照される。
 
 ポリシーは
@@ -38,7 +38,7 @@
 ファイル言語はファイル名接尾辞で識別。
 
 | ファイル位置 | 言語 | 必須 |
-|---|---|---|
+| --- | --- | --- |
 | Root `README.md` | 英語 | Yes |
 | Root `README.ja.md` | 日本語 | Yes |
 | 各パッケージ/モジュールディレクトリ `README.md` | 英語 | Yes |
@@ -195,7 +195,7 @@ docstring なしの bare `MAGIC_NUMBER = 42` は review-blocker。
 - Test plan は各 PR description で必須。
 
 完全な contribution ワークフロー (local セットアップ、DCO signoff
-機構、CI ジョブ説明) は [`CONTRIBUTING.md`](../../CONTRIBUTING.md)
+機構、CI ジョブ説明) は [`CONTRIBUTING.md`](../../CONTRIBUTING.ja.md)
 参照。
 
 ---

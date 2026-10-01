@@ -5,11 +5,11 @@
 overall score を含む JSON + Markdown レポートを emit します。
 
 **`clinosim audit run` とは異なります** (詳細は
-[`docs/CONTRIBUTING-modules.md`](CONTRIBUTING-modules.md)「PR 検証
+[`docs/CONTRIBUTING-modules.md`](CONTRIBUTING-modules.ja.md)「PR 検証
 ガイド」参照):
 
 |  | `clinosim eval` | `clinosim audit run` |
-|---|---|---|
+| --- | --- | --- |
 | 想定利用者 | 外部研究者 / ML エンジニア | PR を書くコントリビュータ |
 | 入力 | 任意の FHIR NDJSON ディレクトリ | Module PR で生成したコホート |
 | 出力 | 数値スコア + 違反リスト | 軸 × Module ごとに PASS / FAIL / WARN |
@@ -50,7 +50,7 @@ structural + locale は 5 check ずつ、clinical は 7 (MVP 5 + coherence
 ### Structural (FHIR 準拠)
 
 | Check | Severity | 主張内容 |
-|---|---|---|
+| --- | --- | --- |
 | `resource_id_uniqueness` | critical | 同一 resourceType 内で `id` 重複なし |
 | `reference_integrity` | critical | 全 `reference` フィールドが emit 済リソースに解決 |
 | `required_fields_present` | major | Patient.identifier / Encounter.status / Condition.subject が非空 |
@@ -60,13 +60,13 @@ structural + locale は 5 check ずつ、clinical は 7 (MVP 5 + coherence
 ### Clinical (整合性)
 
 | Check | Severity | 主張内容 |
-|---|---|---|
+| --- | --- | --- |
 | `lab_values_physiological_range` | major | LOINC コード付き検査値が生理範囲内 (WBC / Hb / Cr / Glucose / K / Na / T-bili / PT-INR) |
 | `age_condition_consistency` | major | 小児患者に adult-only 疾患なし |
 | `medication_date_sanity` | major | MedicationRequest.authoredOn ≥ Patient.birthDate |
 | `encounter_temporal_ordering` | major | Encounter.period.start ≤ .end |
 | `condition_encounter_link` | minor | Condition.encounter が設定されている場合、emit 済 Encounter に解決 |
-| `condition_lab_coherence` | major | 敗血症で lactate 上昇、DKA で HCO₃ 低下、MI で troponin 上昇 … (8 ペアリング — [eval-rules.md](eval-rules.md#condition_lab_coherence-major) 参照) |
+| `condition_lab_coherence` | major | 敗血症で lactate 上昇、DKA で HCO₃ 低下、MI で troponin 上昇 … (8 ペアリング — [eval-rules.md](eval-rules.ja.md#condition_lab_coherence-major) 参照) |
 | `medication_lab_coherence_warfarin` | major | ワルファリン患者の PT-INR が治療域 2.0–3.5 内 |
 
 ### Locale (言語 + コードシステム)
@@ -77,7 +77,7 @@ JP Core meta.profile 存在から自動検出)。
 **JP checks:**
 
 | Check | Severity |
-|---|---|
+| --- | --- |
 | `japanese_displays_on_condition` | major |
 | `jlac10_or_loinc_on_lab` | major |
 | `yj_code_on_medications` | major |
@@ -87,7 +87,7 @@ JP Core meta.profile 存在から自動検出)。
 **US checks:**
 
 | Check | Severity |
-|---|---|
+| --- | --- |
 | `ascii_only_displays` | major |
 | `rxnorm_present_on_medications` | major |
 | `loinc_present_on_lab_observations` | major |

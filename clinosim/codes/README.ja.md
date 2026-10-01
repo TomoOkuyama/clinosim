@@ -126,16 +126,16 @@ JP-only-display 検出、システム別データ形状不変条件を網羅。
 
 ## オーナー
 
-`maintainers@` — [`CONTRIBUTING.md`](../../CONTRIBUTING.md) 参照。
+`maintainers@` — [`CONTRIBUTING.md`](../../CONTRIBUTING.ja.md) 参照。
 
-英語版: [`README.md`](README.md)。
+英語版: [`README.md`](README.ja.md)。
 
 ---
 
 ## 設計原則
 
 | # | 原則 | 説明 |
-|---|---|---|
+| --- | --- | --- |
 | 1 | **英語がプライマリデータ** | 各コードは `en` フィールド必須。他言語は翻訳オプション。 |
 | 2 | **権威ある情報源との整合** | コード値と英語表示は公式団体 (CMS / NLM / AMA / WHO / MHLW / MEDIS / JCCLS …) の最新リリースに追従。 |
 | 3 | **locale 非依存** | コードシステムは国際標準。`clinosim/locale/` には culture 依存データのみ (氏名 / 住所 …)。 |
@@ -148,7 +148,7 @@ JP-only-display 検出、システム別データ形状不変条件を網羅。
 ### コア臨床レジストリ (curated data 付き)
 
 | キー | 名称 | FHIR system URI | コード数 | 情報源 |
-|---|---|---|---|---|
+| --- | --- | --- | --- | --- |
 | `icd-10-cm` | ICD-10-CM | `http://hl7.org/fhir/sid/icd-10-cm` | 357 | CMS / NCHS |
 | `icd-10` | WHO ICD-10 | `http://hl7.org/fhir/sid/icd-10` | 320 | WHO ICD-10 |
 | `icd-10-mhlw` | JP MHLW ICD-10 (2013 registry) | `http://jpfhir.jp/fhir/core/mhlw/CodeSystem/ICD10-2013-full` | (icd-10 に alias) | MHLW / JP-Core |
@@ -165,7 +165,7 @@ JP-only-display 検出、システム別データ形状不変条件を網羅。
 ### HL7 terminology CodeSystem (データ付き)
 
 | キー | コード数 |
-|---|---|
+| --- | --- |
 | `hl7-condition-clinical` / `hl7-condition-ver-status` | 6 + 6 |
 | `hl7-admit-source` / `hl7-discharge-disposition` | 3 + 2 |
 | `hl7-allergyintolerance-clinical` / `hl7-allergyintolerance-verification` | 3 + 4 |
@@ -177,7 +177,7 @@ JP-only-display 検出、システム別データ形状不変条件を網羅。
 ### JP 固有 gap-fill および構造 CodeSystem
 
 | キー | コード数 |
-|---|---|
+| --- | --- |
 | `jp-care-level` | 8 |
 | `jpfhir-doc-section` | 42 |
 | `jpfhir-doc-typecodes` | 5 |
@@ -287,7 +287,7 @@ codes:
 ## `locale` モジュールとの境界
 
 | | `clinosim.codes` | `clinosim.locale` |
-|---|---|---|
+| --- | --- | --- |
 | **責務** | 国際コードシステム + 多言語表示 | culture / 国依存データ |
 | **locale scoped?** | いいえ (全言語 1 ファイル) | はい (`jp/` / `us/` …) |
 | **典型データ** | ICD / LOINC / RxNorm / SNOMED CT / HL7 語彙 … | 氏名、住所、電話フォーマット、reference range |

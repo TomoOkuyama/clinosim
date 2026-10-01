@@ -91,7 +91,7 @@ domain README file が family 別 builder を列挙する。
 - **FHIR resource-id 形状**: 各 builder は
   `{resource_type_lower}-{encounter_id or patient_id}-{seq}` を
   生成。ID prefix 定数は所有 module 側
-  ([`clinosim.modules.document`](../../document/README.md) の
+  ([`clinosim.modules.document`](../../document/README.ja.md) の
   `DOC_REFERENCE_ID_PREFIX` 等、`labs/service_request.py` の
   `SR_ID_PREFIX` / `PLACER_ORDER_NUMBER_SYSTEM` 等)。
 - **`BundleContext`** (`lib/common.py`): 各 `_bb_*` builder に
@@ -104,7 +104,7 @@ domain README file が family 別 builder を列挙する。
   `attach_ecs_institutional_extensions` — JP-CLINS Composition
   profile が要求する eCS (electronic Clinical Statement)
   institution / department extension。
-- **Post-processing pipeline** ([`post_process/`](post_process/README.md))
+- **Post-processing pipeline** ([`post_process/`](post_process/README.ja.md))
   — bundle-level pipeline (PR3、Issue #556 を fold): timestamp
   正規化、JP-CLINS profile URI、specimen 合成、strip pass。
 
@@ -127,7 +127,7 @@ clinosim/modules/output/fhir_r4/
 ## FHIR resource → domain mapping (canonical 表)
 
 | FHIR resource | Domain module |
-|---|---|
+| --- | --- |
 | Patient | `demographics/patient.py` |
 | Practitioner + PractitionerRole | `demographics/practitioner.py` |
 | FamilyMemberHistory | `demographics/family_history.py` |
@@ -168,7 +168,7 @@ clinosim/modules/output/fhir_r4/
 ## Output surface (consumers)
 
 | Consumer | 場所 | 役割 |
-|---|---|---|
+| --- | --- | --- |
 | Built-in FHIR adapter | [`../adapters_builtin.py`](../adapters_builtin.py) (`FhirR4Adapter.convert`) | AD-58 registry のため `convert_cif_to_fhir` を wrap。 |
 | Backwards-compat shim | [`../fhir_r4_adapter.py`](../fhir_r4_adapter.py) | pre-migration caller のため公開面全体を再 export (Issue #555 PR1)。 |
 | Downstream tools | (外部) | Bulk Data Access spec に沿った NDJSON + manifest.json — HAPI FHIR, InferNo 等。 |
@@ -188,6 +188,6 @@ cross-verify する。
 ## Ownership
 
 `maintainers@` — 詳細は
-[`CONTRIBUTING.md`](../../../../CONTRIBUTING.md)。
+[`CONTRIBUTING.md`](../../../../CONTRIBUTING.ja.md)。
 
-英語版: [`README.md`](README.md)。
+英語版: [`README.md`](README.ja.md)。

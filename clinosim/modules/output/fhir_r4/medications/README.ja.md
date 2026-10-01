@@ -9,7 +9,7 @@ Medication profile の MEDIS `NOCODED` fallback を emit、US path は
 RxNorm。JP `MedicationRequest.status='completed'` invariant
 (JP eCS Medication_Common が要求) を emit 時に強制する — memory
 [`project_jp_ecs_forces_status_completed`](../../../../../..) 参照。
-[`clinosim.modules.antibiotic`](../../../antibiotic/README.md) の
+[`clinosim.modules.antibiotic`](../../../antibiotic/README.ja.md) の
 `discontinuation_datetime` slot は narrow / stop 時に
 `MedicationRequest.statusReason` に情報を寄せて workaround する。
 
@@ -34,16 +34,16 @@ RxNorm。JP `MedicationRequest.status='completed'` invariant
   `_JP_MEDICATION_CODE_NOCODED_CODE = "NOCODED"`,
   `_JP_MEDICATION_CODE_NOCODED_DISPLAY = "標準コードなし"`)。
 - **Out of scope**: 処方 / MAR の **生成**
-  ([`order`](../../../order/README.md)、
+  ([`order`](../../../order/README.ja.md)、
   [`simulator`](../../../../simulator/)、
-  [`antibiotic`](../../../antibiotic/README.md));薬剤 code registry
+  [`antibiotic`](../../../antibiotic/README.ja.md));薬剤 code registry
   ([`clinosim/codes/data/{rxnorm,yj,hot,jp-medis-drug-uncoded}.yaml`](../../../../codes/data/));
   退院薬理由 / narrow-target 用量 default
   ([`antibiotic/_narrow_dose_defaults.py`](../../../antibiotic/_narrow_dose_defaults.py))。
 
 ### 化学療法サイクル MR + MAR (v0.5 → v0.6.0)
 
-各 `chemo_visit` LifeEvent について、[`order`](../../../order/README.md)
+各 `chemo_visit` LifeEvent について、[`order`](../../../order/README.ja.md)
 が regimen `cycle_orders` の各薬剤について `MedicationRequest` +
 `MedicationAdministration` を **同一 `order_id`** で 1 対 emit する。
 これにより本 subpackage の `_bb_medication_requests` /
@@ -108,7 +108,7 @@ fragment builder のみを移し、`_bb_*` 登録は inline_bb に残した。
   `rx-{encounter_id}-{seq}` 形状。退院 outflow は
   `DISCHARGE_RX_ID_PREFIX = "rxdc-"`、外来は
   `OUTPATIENT_RX_ID_PREFIX = "rxopd-"`。
-  [`antibiotic`](../../../antibiotic/README.md) module は regimen を
+  [`antibiotic`](../../../antibiotic/README.ja.md) module は regimen を
   `ABX_ORDER_REQ_PREFIX` / `ABX_NARROW_SUFFIX` で追加 emit する
   ([`antibiotic/engine.py`](../../../antibiotic/engine.py))。
 - **Terminology system** (`MedicationRequest` metadata 用 HL7
@@ -157,6 +157,6 @@ pytest tests/integration -k "antibiotic or servicerequest_chain" -q
 ## Ownership
 
 `maintainers@` — 詳細は
-[`CONTRIBUTING.md`](../../../../../CONTRIBUTING.md)。
+[`CONTRIBUTING.md`](../../../../../CONTRIBUTING.ja.md)。
 
-英語版: [`README.md`](README.md)。
+英語版: [`README.md`](README.ja.md)。

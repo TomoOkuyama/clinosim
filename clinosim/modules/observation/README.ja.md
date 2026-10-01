@@ -13,7 +13,7 @@
    — vital + ADL データからの NEWS2 / GCS / Braden 褥瘡 / Morse
    転倒リスクスコア計算と、`simulator/enrichers.py` に `name="nursing"`
    で登録される POST_RECORDS `enrich_nursing` enricher。
-   ([`clinosim.modules.nursing`](../nursing/README.md) が所有する
+   ([`clinosim.modules.nursing`](../nursing/README.ja.md) が所有する
    `nursing_assignment` — primary_nurse_id 割当 — とは別。)
 3. **Microbiology culture + 感受性** (`microbiology.py`) — 決定論的
    culture organism サンプリング、antibiogram からの S/I/R
@@ -40,12 +40,12 @@ previously-inline scalar を全て lift し、単一 edit が全経路に伝播�
   `generate_microbiology(...)` + `antibiotic_loinc_lookup()`、
   臨床引用付きの 4 threshold sub-module。
 - **Out of scope**: lab 値を駆動する physiology state
-  ([`physiology`](../physiology/README.md))、order placement
-  ([`order`](../order/README.md))、vitals / imaging 導出
-  ([`physiology`](../physiology/README.md) +
+  ([`physiology`](../physiology/README.ja.md))、order placement
+  ([`order`](../order/README.ja.md))、vitals / imaging 導出
+  ([`physiology`](../physiology/README.ja.md) +
   `simulator/vitals_pipeline.py`)、FHIR emission
-  ([`output`](../output/README.md))、microbiology の抗菌薬レジメン
-  選定 ([`antibiotic`](../antibiotic/README.md))。
+  ([`output`](../output/README.ja.md))、microbiology の抗菌薬レジメン
+  選定 ([`antibiotic`](../antibiotic/README.ja.md))。
 
 ## Public API
 
@@ -87,7 +87,7 @@ from clinosim.modules.observation.microbiology import (
   [`clinosim/seeding.py`](../../seeding.py) の
   `ENRICHER_SEED_OFFSETS["nursing"]` に登録済み。本モジュールの
   `enrich_nursing` (POST_RECORDS order=20、`name="nursing"` で登録)
-  と [`clinosim.modules.nursing`](../nursing/README.md) の
+  と [`clinosim.modules.nursing`](../nursing/README.ja.md) の
   primary-nurse enricher (POST_ENCOUNTER order=94、`name="nursing_assignment"`)
   で共有される。両者は異なる stage で動くため、共有 offset は衝突しない。
 - Microbiology サンプリングは **encounter 単位**の sub-seed
@@ -184,7 +184,7 @@ clinosim/modules/observation/
   は `clinosim.modules.observation.nursing_enricher.enrich_nursing`。
   各 vital record に NEWS2 + GCS を埋め、日次 Braden + Morse を生成。
 
-[`clinosim.modules.nursing`](../nursing/README.md) が登録する
+[`clinosim.modules.nursing`](../nursing/README.ja.md) が登録する
 `nursing_assignment` enricher (POST_ENCOUNTER order=94) は別 enricher。
 両者は `0x4E55` sub-seed offset を共有するが、異なる stage で動くため
 衝突しない。
@@ -192,7 +192,7 @@ clinosim/modules/observation/
 ## Output surface (consumers)
 
 | Consumer | 場所 | 役割 |
-|---|---|---|
+| --- | --- | --- |
 | Enricher registry | [`clinosim/simulator/enrichers.py:148`](../../simulator/enrichers.py) | POST_RECORDS `nursing` 登録。 |
 | Lab pipeline | [`clinosim/simulator/lab_pipeline.py`](../../simulator/lab_pipeline.py) | 発注 lab ごとに `generate_lab_result` を呼び出す。 |
 | Vitals pipeline | [`clinosim/simulator/vitals_pipeline.py`](../../simulator/vitals_pipeline.py) | `fluid_balance.py` + `oxygenation.py` 閾値を消費。 |
@@ -215,6 +215,6 @@ microbiology YAML validation、pre-analytical error rate を exercise。
 ## Ownership
 
 `maintainers@` — 詳細は
-[`CONTRIBUTING.md`](../../../CONTRIBUTING.md)。
+[`CONTRIBUTING.md`](../../../CONTRIBUTING.ja.md)。
 
-英語版: [`README.md`](README.md)。
+英語版: [`README.md`](README.ja.md)。

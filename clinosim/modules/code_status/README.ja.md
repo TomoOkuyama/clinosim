@@ -23,9 +23,9 @@
 - **context 決定**: 死亡 → `terminal`、ICU 転棟あり → `icu`、それ以外 →
   `routine`。年齢帯が高く重症 context ほど DNR / Comfort に偏る。
 - **Out of scope**: DNR による治療計画の変化 (該当時は
-  [`clinosim.modules.clinical_course`](../clinical_course/README.md))、
+  [`clinosim.modules.clinical_course`](../clinical_course/README.ja.md))、
   FHIR `Consent` serialization や multi-slot な事前指示書ドキュメント
-  ([`clinosim.modules.output`](../output/README.md))。
+  ([`clinosim.modules.output`](../output/README.ja.md))。
 
 ## Public API
 
@@ -115,7 +115,7 @@ clinosim/modules/code_status/
 ## Output surface (consumers)
 
 | Consumer | 場所 | 役割 |
-|---|---|---|
+| --- | --- | --- |
 | CSV adapter | [`clinosim/modules/output/csv_adapter.py`](../output/csv_adapter.py) (`L358` 付近, `L419` 付近) | `record["code_status"]` から `code_status.csv` を書き出し。 |
 | FHIR `Observation` builder | [`clinosim/modules/output/fhir_r4/conditions/code_status.py`](../output/fhir_r4/conditions/code_status.py) (`_bb_code_status`) | survey カテゴリの `Observation`、id `codestatus-{enc_id}`、`code` = observable 304251008、`valueCodeableConcept` = tier SNOMED、`effectiveDateTime` = 入院日時。JP encounter は追加で `meta.profile = JP_Observation_Common` を付与。 |
 | Enricher registry | [`clinosim/simulator/enrichers.py:188`](../../simulator/enrichers.py) | POST_RECORDS 登録。 |
@@ -145,6 +145,6 @@ pytest tests/integration -k code_status -q  # enricher + FHIR 出力
 ## Ownership
 
 `maintainers@` — 詳細は
-[`CONTRIBUTING.md`](../../../CONTRIBUTING.md)。
+[`CONTRIBUTING.md`](../../../CONTRIBUTING.ja.md)。
 
-英語版: [`README.md`](README.md)。
+英語版: [`README.md`](README.ja.md)。

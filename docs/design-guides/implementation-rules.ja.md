@@ -38,7 +38,7 @@
 ## 2. アーキテクチャ不変則(データフロー)
 
 | 不変則 | 内容 |
-|---|---|
+| --- | --- |
 | AD-17 | **CIF がシミュレーションの唯一の出力**。format adapter(FHIR/CSV)は CIF だけを読む |
 | AD-30 | **CIF は code のみ、display text 禁止**。表示解決は出力時に `clinosim.codes.lookup()` |
 | AD-65 | **structural / narrative の 2 層 file 分離**。Stage 1 は `ClinicalDocument` stub のみ(narrative=None)、narrative は post-simulation の `NarrativePass` が `narratives/<version>/` に書く。inline 混在禁止 |
@@ -67,7 +67,7 @@
 同じロジックが 2 箇所以上 = 違反。以下は必ず import して使う:
 
 | 用途 | Helper(定義場所) |
-|---|---|
+| --- | --- |
 | JP 判定 / 表示言語 | `is_jp(country)` / `is_us(country)` / `resolve_lang(country)`(`modules/_shared.py`)。`country == "JP"` 等の手書き比較禁止 |
 | 国→コード体系選択 | `system_key_for(kind, country)`(`clinosim.codes`)。jlac10/loinc 等の inline 分岐禁止 |
 | system URI | `get_system_uri(key)`(`clinosim.codes`)。URI 文字列 hardcode 禁止 |
@@ -129,7 +129,7 @@
 **単一の canonical 入口**を持ち、call-site で再実装しない(§4 の原則の適用)。
 
 | 横断ロジック | canonical 入口(owner) | 規約 / データ源 |
-|---|---|---|
+| --- | --- | --- |
 | **データ参照**(YAML/参照データの load) | 各 module の `load_X()`(`@lru_cache` + `_HERE/_REF_DIR/_LOCALE` path 定数 + import 時 `_validate_X`)。他 module の reference_data は owner の accessor 経由(§5) | Layer 1 = `modules/*/reference_data/`・`locale/`・`config/`。cached loader の戻り値は shared read-only(mutate 禁止) |
 | **データ生成**(乱数・生理・重症度) | 乱数 = `derive_sub_seed` + `ENRICHER_SEED_OFFSETS`(lab は `panel_specimen_seed`/`individual_lab_seed`)。重症度 = `disease.severity.sample_severity`。course = `clinical_course.select_archetype`。生理 = `physiology.engine`(initialize_state / derive_lab_values) | 全乱数 seed 由来で決定的(AD-16)。臨床値は疾患/検査 YAML 駆動、Python にハードコードしない。`rng.choice(p=)` は `normalize_probabilities(p, fallback="raise")` 経由 |
 | **コードマッピング**(内部名→標準コード→表示) | 内部名→標準コード = `locale/<country>/code_mapping_*.yaml`。国→コード体系 = `system_key_for(kind, country)`。code→display = `code_lookup(system, code, lang)`。system URI = `get_system_uri(key)` | `codes/data/*.yaml`(EN 必須、国際標準、locale 非依存)。display 文字列・URI・コードの hardcode/捏造禁止。CIF は code のみ(AD-30) |
@@ -190,7 +190,7 @@
 
 ## 10. FHIR builder(Layer 4)の要点
 
-詳細 = [`fhir-data-generation-logic.md`](fhir-data-generation-logic.md)。最低限:
+詳細 = [`fhir-data-generation-logic.md`](fhir-data-generation-logic.ja.md)。最低限:
 CIF は read-only / display・URI・ID prefix は canonical source から / builder 登録は
 registry 経由 / dict+dataclass 両 path のテスト必須 / reference integrity(dangling 禁止)。
 
@@ -199,7 +199,7 @@ registry 経由 / dict+dataclass 両 path のテスト必須 / reference integri
 ## 読む順序(新規参加の実装 AI 向け)
 
 1. 本書(不変則)
-2. [`README.md`](README.md)(読了パス)→ `MODULES.md`(全体地図)
+2. [`README.md`](README.ja.md)(読了パス)→ `MODULES.md`(全体地図)
 3. `docs/CONTRIBUTING-modules.md`(Layers 1-3 詳細 HOW-TO)
 4. `fhir-data-generation-logic.md`(Layer 4、builder を書くとき)
 5. `clinosim/modules/output/SPEC.md`(two-pass narrative、Stage 2 を触るとき)

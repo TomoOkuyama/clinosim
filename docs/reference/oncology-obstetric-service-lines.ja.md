@@ -7,7 +7,7 @@
 を明記する。*
 
 **ステータス:** v0.6.0 リリースゲート時点の最新。英語版:
-[`oncology-obstetric-service-lines.md`](oncology-obstetric-service-lines.md)。
+[`oncology-obstetric-service-lines.md`](oncology-obstetric-service-lines.ja.md)。
 
 ---
 
@@ -25,7 +25,7 @@
 ### 1.1 腫瘍 — カバー要素
 
 | 要素 | 内容 | 場所 |
-|---|---|---|
+| --- | --- | --- |
 | がん慢性マーカー (10 部位) | C15 / C16 / C18 / C22 / C25 / C34 / C50 / C61 / C67 / C71 | `locale/jp/demographics.yaml` + `locale/us/demographics.yaml` |
 | 男性乳がん (C50 全体の ~1 %) | 女性 primary + 男性 augmentation | `chronic_prevalence.C50.by_sex` (§3.2) |
 | がん follow-up 外来訪問 | 四半期毎、部位別 visit reason + labs (腫瘍マーカー + basic panel) + 処方 renewal | `locale/shared/chronic_followup.yaml` |
@@ -38,7 +38,7 @@
 ### 1.2 産科 — カバー要素
 
 | 要素 | 内容 | 場所 |
-|---|---|---|
+| --- | --- | --- |
 | 時限付き妊娠 lifecycle state (META #957 Incr 1) | 15-49 歳女性に対して MHLW 2022 (JP) / CDC NVSR 2022 (US) の年齢帯別出生率で年次 conception Bernoulli。受精すると `TemporalStatePeriod(state_type="pregnancy")` を `PersonRecord.state_periods` に open (metadata: `{lmp, edd, planned_delivery_date}`)、planned_delivery_date を含む年で close (`outcome="delivered"`)、または abortion date で close (`outcome="aborted"`)。 | `perinatal.yaml::lifecycle.annual_conception_rate` + `population/engine.py::_pregnancy_lifecycle_events` + `types/patient.py::TemporalStatePeriod` |
 | 過去分娩 Z37 problem-list-item | delivered pregnancy period 毎に 1 件、onsetDateTime = 分娩日。生物学的整合 — 複数出産で複数 Z37。FHIR emit 時に `state_history("pregnancy")` から導出、**Incr 1 前の chronic-sample proxy を置換**。 | `modules/output/fhir_r4/conditions/conditions.py::_build_conditions` (past-pregnancies adapter) |
 | 妊娠中サプリ Rx | 葉酸 + 鉄剤。pregnancy 履歴のある patient にのみ home medication として付与。emit path は不変 (`chronic_medications.yaml::Z34`)、gate が `chronic_conditions` から `state_periods` へ移動 — activator で仮想 Z34 `ChronicCondition` を med-derivation 入力に注入。 | `locale/shared/chronic_medications.yaml` の Z34 block + `modules/patient/activator.py` (state 起点 hook) |
@@ -379,7 +379,7 @@ order として現れる** — disease YAML が long-term として label して
 `modules/monitoring/reference_data/med_lab_mapping.yaml` 内):
 
 | 薬剤 | モニタリング lab | ケイデンス |
-|---|---|---|
+| --- | --- | --- |
 | Warfarin / Coumadin | PT_INR | 毎回 visit |
 | Levothyroxine | TSH | ~q6mo |
 | Metformin、Insulin | HbA1c | q3-6mo |
@@ -403,7 +403,7 @@ YAML driven; mapping 追加で Python は触らない。
 cascade しないことを保証する:
 
 | Emit | Sub-seed helper | Key |
-|---|---|---|
+| --- | --- | --- |
 | Chemo regimen 選択 + Day-1 offset | `chemotherapy_regimen_seed` | `(patient_id, cancer_code)` |
 | 妊娠 lifecycle (受精 Bernoulli + LMP + jitter) | `perinatal_delivery_seed` | `(patient_id, year)` |
 | 中絶 outcome (自然 / 人工 split) | `_abortion_outcome_sub_seed` | `(mother_id, year)` |
@@ -413,14 +413,14 @@ cascade しないことを保証する:
 | 放射線治療 per-visit trigger | ad-hoc `sha256("rt:<encounter_id>")` | `encounter_id` |
 
 すべて `clinosim/seeding.py` に定義。AD-16 パターンの背景は
-[`architecture/design-principles.md`](../architecture/design-principles.md) 参照。
+[`architecture/design-principles.md`](../architecture/design-principles.ja.md) 参照。
 
 ---
 
 ## 7. どこで何を変えるか
 
 | やりたいこと | 触る場所 |
-|---|---|
+| --- | --- |
 | JP または US 慢性がん保有 cohort に部位を追加 | `locale/<c>/demographics.yaml` (`chronic_prevalence`) + `locale/shared/chronic_followup.yaml` (follow-up スケジュール) + `codes/data/icd-10*.yaml` (display) |
 | Chemo regimen を追加 (または新がんに attach) | `locale/shared/chemo_regimens.yaml` — `regimens` 下に新規 + `by_cancer` に 1 行 |
 | 分娩 LOS または delivery Procedure code を変更 | `locale/shared/perinatal.yaml::encounter` / `::procedure` |
@@ -442,4 +442,4 @@ cascade しないことを保証する:
 - Diagnosis code coverage (US sex-conditional C50 mapping):
   [`../../AGENTS.md`](../../AGENTS.md) §"Diagnosis code coverage"。
 - Module registry (monitoring、perinatal helpers、chemo_regimens loader):
-  [`../../clinosim/modules/README.md`](../../clinosim/modules/README.md)。
+  [`../../clinosim/modules/README.md`](../../clinosim/modules/README.ja.md)。

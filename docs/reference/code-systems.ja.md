@@ -6,7 +6,7 @@
 付き (日本語はオプション)。
 
 | Key | Name | 用途 | 権威ソース |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | `icd-10-cm` | ICD-10-CM | US 診断 | [CMS](https://www.cms.gov/medicare/coding-billing/icd-10-codes) |
 | `icd-10` | WHO ICD-10 | JP 診断 | [WHO](https://icd.who.int/browse10/) |
 | `loinc` | LOINC | 検査、vital、臨床文書型 | [Regenstrief](https://loinc.org/) |
@@ -20,7 +20,7 @@
 臨床文書型は以下の LOINC コードを使用:
 
 | 文書 | LOINC | 備考 |
-|---|---|---|
+| --- | --- | --- |
 | History and physical note | `34117-2` | 入院時生成 |
 | Progress note | `11506-3` | 将来 Tier C scope 用に予約 |
 | Discharge summary note | `18842-5` | 退院時生成 |

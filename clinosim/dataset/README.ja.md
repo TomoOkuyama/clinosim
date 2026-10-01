@@ -83,7 +83,7 @@ clinosim dataset build jp-100 -o ./jp-100   # プリセット 1 件をビルド
   に `presets_dir` override を受け付けます。
 - **同梱プリセット** (執筆時点): `jp-100` / `jp-1000` / `us-100` /
   `us-1000`。正式なリストと各プリセットの説明は
-  [`datasets/README.md`](../../datasets/README.md) 参照。
+  [`datasets/README.md`](../../datasets/README.ja.md) 参照。
 
 ## ディレクトリ構成
 
@@ -111,6 +111,6 @@ pytest tests/unit -k dataset -q
 
 ## オーナー
 
-`maintainers@` — [`CONTRIBUTING.md`](../../CONTRIBUTING.md) 参照。
+`maintainers@` — [`CONTRIBUTING.md`](../../CONTRIBUTING.ja.md) 参照。
 
-英語版: [`README.md`](README.md)。
+英語版: [`README.md`](README.ja.md)。

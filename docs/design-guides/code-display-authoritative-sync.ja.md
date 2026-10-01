@@ -132,7 +132,7 @@ Myocardial infarction (disorder))。
 ## Migration plan
 
 | System        | Source                                          | Migration PR   |
-|---------------|-------------------------------------------------|-----------------|
+| --------------- | ------------------------------------------------- | ----------------- |
 | YJ            | `jpfhir-terminology 2.2606.0` YJ-code CS         | Phase 1 (本 PR) |
 | SNOMED CT     | tx-server SNOMED International fragment           | Phase 2         |
 | ICD-10 (WHO)  | `codes/data/icd-10.yaml` vs WHO ICD-10 browser    | Phase 2         |

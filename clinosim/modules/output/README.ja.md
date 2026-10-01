@@ -6,7 +6,7 @@
 pluggable adapter registry (AD-58)、CIF writer + reader、bundled
 `csv` + `fhir-r4` adapter、narrative pipeline が discharge summary
 の fact 構築に使う `hospital_course_extractor` helper を所有する。
-FHIR R4 emission 本体は [`fhir_r4/`](fhir_r4/README.md) subpackage に。
+FHIR R4 emission 本体は [`fhir_r4/`](fhir_r4/README.ja.md) subpackage に。
 
 ## Scope
 
@@ -21,10 +21,10 @@ FHIR R4 emission 本体は [`fhir_r4/`](fhir_r4/README.md) subpackage に。
   `summarize_*` helper;FHIR-R4 subpackage の entry 再 export
   (`register_bundle_builder`, `available_builders`)。
 - **Out of scope**: FHIR R4 emit logic 本体
-  ([`fhir_r4/`](fhir_r4/README.md) subpackage — resource builder、
+  ([`fhir_r4/`](fhir_r4/README.ja.md) subpackage — resource builder、
   bundle assembly、post-processing);CIF フォーマット本体
   ([`clinosim.types`](../../types/));narrative content 生成
-  ([`document.narrative`](../document/narrative/README.md))。
+  ([`document.narrative`](../document/narrative/README.ja.md))。
 
 ### 縦断サービスラインの emission surface (v0.5 → v0.6.0)
 
@@ -45,7 +45,7 @@ subpackage は `_BUNDLE_BUILDERS` registry 経由で CIF から拾う:
   O04.5) は外来日帰り手術 Encounter として emit。
 - **オンコロジー — 化学療法 visit Encounter** に per-cycle
   `MedicationRequest` + `MedicationAdministration` (同一 `order_id`、
-  詳細 [`order`](../order/README.md))、放射線治療 `Procedure`、
+  詳細 [`order`](../order/README.ja.md))、放射線治療 `Procedure`、
   腫瘍マーカー `Observation` labs (CEA / CA19-9 / AFP / PIVKA-II /
   CA15-3 / PSA)。
 
@@ -130,7 +130,7 @@ adapter は本 facade を編集せず新 `format_id` を import 時に登録で�
   (`register_bundle_builder` / `available_builders`) — 新 FHIR
   resource 追加のための AD-56 plug-in 面。builder は
   `(ctx: BundleContext) -> list[resource]` の callable。registry
-  実体は [`fhir_r4/`](fhir_r4/README.md) 内。
+  実体は [`fhir_r4/`](fhir_r4/README.ja.md) 内。
 - **Backwards-compat shim**: `fhir_r4_adapter.py` は FHIR subpackage
   の公開面を pre-migration の ~100 caller のため再 export する
   (Issue #555 PR1)。`DeprecationWarning` は出さない — shim は
@@ -165,7 +165,7 @@ fhir-r4 ...` または単独 `clinosim export-fhir`) に呼び出され、
 ## Output surface (consumers)
 
 | Consumer | 場所 | 役割 |
-|---|---|---|
+| --- | --- | --- |
 | CLI `export` / `export-fhir` | [`clinosim/simulator/cli.py`](../../simulator/cli.py) | `get_adapter(format_id).convert(cif_dir, out_dir, ctx)` を呼び出す。 |
 | Narrative pipeline | [`clinosim/modules/document/narrative/passes.py`](../document/narrative/passes.py) | `CIFReader` で構造化 + narrative-version-merged CIF を load。 |
 | Narrative discharge-summary | [`clinosim/modules/document/narrative/template_generator.py`](../document/narrative/template_generator.py) | `extract_hospital_course` + `summarize_*` helper で discharge-summary fact を構成。 |
@@ -184,6 +184,6 @@ CIF-reader test、hospital-course extractor test を検索。
 ## Ownership
 
 `maintainers@` — 詳細は
-[`CONTRIBUTING.md`](../../../CONTRIBUTING.md)。
+[`CONTRIBUTING.md`](../../../CONTRIBUTING.ja.md)。
 
-英語版: [`README.md`](README.md)。
+英語版: [`README.md`](README.ja.md)。

@@ -3,8 +3,8 @@
 **Status:** Active(2026-07-06、session 38 で確立)
 **Audience:** FHIR completeness fix-point registry(`docs/design-notes/2026-07-06-fix-point-registry.md`)の
 各 chain を実装するセッション/実装 AI。
-**位置づけ:** 既存の [`implementation-rules.md`](implementation-rules.md)(全域の不変則)と
-[`fhir-data-generation-logic.md`](fhir-data-generation-logic.md)(Layer 4)の**補遺**。ここには
+**位置づけ:** 既存の [`implementation-rules.md`](implementation-rules.ja.md)(全域の不変則)と
+[`fhir-data-generation-logic.md`](fhir-data-generation-logic.ja.md)(Layer 4)の**補遺**。ここには
 completeness 修正に固有の新規約だけを書く — 既存規約は**再掲せず cross-link**する(重複はこの
 プロジェクト自身の禁則)。迷ったら判断 4 軸:**データ品質 / 臨床整合性 / メンテ性 / コンセプト適切性**。
 
@@ -12,7 +12,7 @@ completeness 修正に固有の新規約だけを書く — 既存規約は**再
 
 ## 0. まず読む(前提)
 
-1. [`implementation-rules.md`](implementation-rules.md) — 全域の不変則(canonical helpers / 決定性 /
+1. [`implementation-rules.md`](implementation-rules.ja.md) — 全域の不変則(canonical helpers / 決定性 /
    silent-no-op 防御 / 検証 gate)。**本補遺の規約はこれを上書きしない、追加する。**
 2. [`../design-notes/2026-07-06-fhir-completeness-and-data-model-unification.md`](../design-notes/2026-07-06-fhir-completeness-and-data-model-unification.md) — 考察・ゴール(なぜこの規約が要るか)。
 3. `docs/design-notes/2026-07-06-fix-point-registry.md` — 着手する FP の Status/依存/検証。
@@ -141,9 +141,9 @@ call-site は event 日(`event.timestamp`)を渡す。
 ## 7. 入出力インターフェース早見(このfix群が触る境界)
 
 | 境界 | 入力 | 出力 | canonical seam |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | 疾患 YAML → simulation | `reference_data/*.yaml` | `DiseaseProtocol`(属性)/ 生 dict(order) | `load_disease_protocol`(A)/ owner accessor(B、FP-YAML-3 で整備) |
-| severity 決定 | `event.severity`(float)/ protocol 分布 | `"mild|moderate|severe"` + score | `severity_from_protocol`(FP-SEV-MODEL で新設) |
+| severity 決定 | `event.severity`(float)/ protocol 分布 | `"mild |moderate |severe"` + score | `severity_from_protocol`(FP-SEV-MODEL で新設) |
 | age 参照 | `dob` + event 日 | as-of age(int) | `_age_on`(FP-AGE で `_shared` 昇格) |
 | code → display | (system, code, lang) | display 文字列 | `code_lookup` / `system_key_for`(既存) |
 | CIF → FHIR | structural + narrative CIF | FHIR R4 NDJSON | `_fhir_*` builders(registry 登録、既存) |

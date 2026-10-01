@@ -3,7 +3,7 @@
 ## 概要
 
 AD-65 Stage 2 narrative pass の実装。`NarrativePass` が
-([`clinosim.modules.document`](../README.md) が stub として
+([`clinosim.modules.document`](../README.ja.md) が stub として
 `narrative=None` で emit した) 構造化 CIF を (doc_type, language) group
 順に walk し、各 document を `NarrativeGenerator` に渡す。generator は 2 種:
 
@@ -13,9 +13,9 @@ AD-65 Stage 2 narrative pass の実装。`NarrativePass` が
 - **`LLMNarrativeGenerator`** — template generator を wrap し、
   `DocumentTypeSpec.llm_enabled_sections` を `LLMService.complete_prompt`
   経由で LLM 出力に置換する (AD-11 — 全 LLM 呼び出しは
-  [`clinosim.modules.llm_service`](../../llm_service/README.md) 経由)。
+  [`clinosim.modules.llm_service`](../../llm_service/README.ja.md) 経由)。
   provider 失敗時は per-document で template 出力に fallback。opt-in は
-  明示的 CLI `clinosim narrate --provider bedrock|ollama|mock` — env
+  明示的 CLI `clinosim narrate --provider bedrock |ollama |mock` — env
   gate は無し。
 
 `NarrativeCache` は layer-1 in-memory cache (clinical-context +
@@ -46,10 +46,10 @@ template-seed-hash key、患者跨ぎ section 再利用用)。layer-2 disk
   `specs_for_encounter_type` filter + `AD-64` の
   `encounter_types_supported` 空 tuple gotcha)。
 - **Out of scope**: LLM provider I/O
-  ([`llm_service`](../../llm_service/README.md))、stub emission
-  ([`document`](../README.md))、FHIR
+  ([`llm_service`](../../llm_service/README.ja.md))、stub emission
+  ([`document`](../README.ja.md))、FHIR
   `Composition` / `DocumentReference` serialization
-  ([`output/fhir_r4/documents/`](../../output/fhir_r4/documents/README.md))。
+  ([`output/fhir_r4/documents/`](../../output/fhir_r4/documents/README.ja.md))。
 
 ## Public API
 
@@ -66,7 +66,7 @@ from clinosim.modules.document.narrative import (
 from clinosim.modules.document.narrative.passes import (
     NarrativePass,                # 抽象
     TemplateNarrativePass,        # default (Stage 1)
-    LLMNarrativePass,             # narrate --provider {bedrock|ollama|mock}
+    LLMNarrativePass,             # narrate --provider {bedrock |ollama |mock}
 )
 from clinosim.modules.document.narrative.registry import (
     DocumentTypeSpec,
@@ -221,10 +221,10 @@ reference data は親 `document` package。
 ## Output surface (consumers)
 
 | Consumer | 場所 | 役割 |
-|---|---|---|
+| --- | --- | --- |
 | CLI `narrate` subcommand | [`clinosim/simulator/cli_narrate.py`](../../../simulator/cli_narrate.py) | default で `TemplateNarrativePass`、`--provider` 指定時は `LLMNarrativePass` を instantiate し `.run(cif_dir, version_id)` を呼び出す。 |
 | Document package | [`clinosim/modules/document/__init__.py`](../__init__.py) | `registry` から `DocumentTypeSpec` + spec loader / filter を再 export。 |
-| FHIR document builder | [`clinosim/modules/output/fhir_r4/documents/`](../../output/fhir_r4/documents/README.md) | 本 pass が populate した `ClinicalDocumentNarrative.sections` / `text` を `Composition.section[].text.div` に流し込む。 |
+| FHIR document builder | [`clinosim/modules/output/fhir_r4/documents/`](../../output/fhir_r4/documents/README.ja.md) | 本 pass が populate した `ClinicalDocumentNarrative.sections` / `text` を `Composition.section[].text.div` に流し込む。 |
 | Semantic-check CLI | (`clinosim narrate --check`) | `check_narratives` を呼び LLM 出力を fact 制約に対して verify。 |
 
 ## テスト
@@ -243,6 +243,6 @@ mock provider が決定論的に replay するため、`LLMNarrativePass` test
 ## Ownership
 
 `maintainers@` — 詳細は
-[`CONTRIBUTING.md`](../../../../CONTRIBUTING.md)。
+[`CONTRIBUTING.md`](../../../../CONTRIBUTING.ja.md)。
 
-英語版: [`README.md`](README.md)。
+英語版: [`README.md`](README.ja.md)。
