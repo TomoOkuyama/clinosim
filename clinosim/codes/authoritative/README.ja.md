@@ -12,7 +12,7 @@ override を許容する (下の allowlist に登録)。
 ## ファイル
 
 | File | Source | Fetched | Notes |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | `yj_tx_fragment.json` | `jpfhir-terminology 2.2606.0` / `CodeSystem-jp-medicationcodeyj-cs.json` (`http://capstandard.jp/iyaku.info/CodeSystem/YJ-code`) | 2026-07-19 | Fragment (tx-server 上 2000 concept)、clinosim が現在 emit する 9 コードにフィルタ。 |
 | `loinc_2_82_tx.json` | LOINC 2.82 公式マスター (`Loinc_2.82/LoincTable/Loinc.csv`) を `tx-server-build/loinc-src/` 経由で | 2026-07-19 | clinosim emit の 167 コード; `display` (LONG_COMMON_NAME) + `short_display` (SHORTNAME) + `status` を含む。フル display cross-check は Issue #270 (Phase 3-b) で有効化 — 75 の正当略記 + 17 の追跡セマンティック mismatch override を allowlist に登録。 |
 

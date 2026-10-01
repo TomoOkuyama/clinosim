@@ -65,5 +65,5 @@ flowchart TD
 ![clinosim end-to-end パイプライン: 集団生成 → 生理 + encounter シミュレーション → enricher stages → CIF → format adapters → NDJSON 出力](../assets/pipeline.svg)
 
 step-by-step ウォークスルーは
-[`../design-guides/data-generation-walkthrough.md`](../design-guides/data-generation-walkthrough.md)
+[`../design-guides/data-generation-walkthrough.md`](../design-guides/data-generation-walkthrough.ja.md)
 参照。

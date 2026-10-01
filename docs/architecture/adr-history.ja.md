@@ -48,7 +48,7 @@ spec = chronic_meds.get(code) or chronic_meds.get(code.split(".")[0])
 FHIR R4 アダプタは `country="JP"` のとき日本語 localization を適用:
 
 | Resource | Field | JP value |
-|---|---|---|
+| --- | --- | --- |
 | Location | name | `4E病棟`, `4E-01号室` |
 | Encounter | type | `入院`, `外来`, `救急` |
 | Encounter | serviceType | `内科`, `外科`, etc. |
@@ -70,7 +70,7 @@ FHIR R4 アダプタは `country="JP"` のとき日本語 localization を適用
 テストが以下を確認:
 
 | 観点 | A (事前 JP 化) | B (英語、LLM が翻訳) |
-|--------|---------------------|---------------------------|
+| -------- | --------------------- | --------------------------- |
 | 薬剤/手技名 | 両方正しい | 両方正しい |
 | 自然な日本語の流れ | やや機械的 | より自然 |
 | CRP 単位 | 正しい (mg/dL) | **誤り** (mg/L 混入) |

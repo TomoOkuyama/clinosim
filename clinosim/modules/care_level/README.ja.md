@@ -24,8 +24,8 @@ JP コホートの全患者に対して介護保険の認定区分
   `Observation` も CSV 行も出力されない。実 EHR で未認定患者の
   認定区分レコードが存在しないのと同じ挙動。
 - **Out of scope**: ADL / Barthel / 機能評価スコア
-  ([`clinosim.modules.nursing`](../nursing/README.md))、FHIR
-  serialization ([`clinosim.modules.output`](../output/README.md))、
+  ([`clinosim.modules.nursing`](../nursing/README.ja.md))、FHIR
+  serialization ([`clinosim.modules.output`](../output/README.ja.md))、
   code system の日本語表示テキスト
   ([`clinosim/codes/data/jp-care-level.yaml`](../../codes/data/jp-care-level.yaml))。
 
@@ -112,7 +112,7 @@ clinosim/modules/care_level/
 ## Output surface (consumers)
 
 | Consumer | 場所 | 役割 |
-|---|---|---|
+| --- | --- | --- |
 | CSV adapter | [`clinosim/modules/output/csv_adapter.py`](../output/csv_adapter.py) (`L371` 付近, `L420` 付近) | `record["care_level"]` から `care_level.csv` を書き出し。 |
 | FHIR `Observation` builder | [`clinosim/modules/output/fhir_r4/encounters/care_level.py`](../output/fhir_r4/encounters/care_level.py) (`_bb_care_level`) | social-history `Observation`、id `carelevel-{patient_id}`、`code` = LOINC 80391-6 (JP では `text = "要介護度"`)、`valueCodeableConcept` = `jp-care-level` コード。`effectiveDateTime` は SDOH パターン (最初の encounter 入院時刻) を踏襲。JP encounter は `meta.profile = JP_Observation_Common` を付与。PR2 G2 (2026-06-24) で旧 `_fhir_sdoh.py` から single-responsibility 分離。 |
 | Enricher registry | [`clinosim/simulator/enrichers.py:201`](../../simulator/enrichers.py) | POST_RECORDS 登録。 |
@@ -136,6 +136,6 @@ pytest tests/integration -k care_level -q  # enricher + FHIR 出力
 ## Ownership
 
 `maintainers@` — 詳細は
-[`CONTRIBUTING.md`](../../../CONTRIBUTING.md)。
+[`CONTRIBUTING.md`](../../../CONTRIBUTING.ja.md)。
 
-英語版: [`README.md`](README.md)。
+英語版: [`README.md`](README.ja.md)。

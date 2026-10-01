@@ -21,7 +21,7 @@ diff します。exit 0 = byte-identical、exit 1 = 決定性回帰 (該当
 ## 環境変数 override
 
 | 変数 | デフォルト |
-|---|---|
+| --- | --- |
 | `CLINOSIM_REPRO_COUNTRIES` | `US JP` |
 | `CLINOSIM_REPRO_POPULATION` | `50` |
 | `CLINOSIM_REPRO_SEED` | `42` |
@@ -38,7 +38,7 @@ diff します。exit 0 = byte-identical、exit 1 = 決定性回帰 (該当
 
 ## 基礎となる不変条件
 
-[AD-16](../reference/design.md) より:
+[AD-16](../reference/design.ja.md) より:
 
 - 各モジュールは master seed から sub-seed を派生; `random.random()`
   やグローバル RNG state 禁止。

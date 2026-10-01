@@ -164,6 +164,6 @@ extension、MEDIS uncoded fallback 存在などの post-process 不変量を
 ## Ownership
 
 `maintainers@` — 詳細は
-[`CONTRIBUTING.md`](../../../../../CONTRIBUTING.md)。
+[`CONTRIBUTING.md`](../../../../../CONTRIBUTING.ja.md)。
 
-英語版: [`README.md`](README.md)。
+英語版: [`README.md`](README.ja.md)。

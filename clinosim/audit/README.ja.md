@@ -122,11 +122,11 @@ pytest tests/unit -k audit -q
 
 `clinosim.audit` を参照するテストファイルは約 19。module 作者が従う
 ワークフローは
-[`docs/CONTRIBUTING-modules.md`](../../docs/CONTRIBUTING-modules.md)
+[`docs/CONTRIBUTING-modules.md`](../../docs/CONTRIBUTING-modules.ja.md)
 「PR 検証ガイド」を参照。
 
 ## オーナー
 
-`maintainers@` — [`CONTRIBUTING.md`](../../CONTRIBUTING.md) 参照。
+`maintainers@` — [`CONTRIBUTING.md`](../../CONTRIBUTING.ja.md) 参照。
 
-英語版: [`README.md`](README.md)。
+英語版: [`README.md`](README.ja.md)。

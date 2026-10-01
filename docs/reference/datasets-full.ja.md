@@ -13,7 +13,7 @@ clinosim dataset build jp-100 --output ./jp-100          # プリセット 1 件
 ```
 
 | Preset | Country | Patients | Period | サイズ目安 |
-|---|---|---:|---:|---:|
+| --- | --- | ---: | ---: | ---: |
 | [`us-100`](datasets/us-100/)   | US | 100  | 3 ヶ月 | ~2 MB   |
 | [`us-1000`](datasets/us-1000/) | US | 1000 | 6 ヶ月 | ~30 MB  |
 | [`jp-100`](datasets/jp-100/)   | JP | 100  | 3 ヶ月 | ~2 MB   |

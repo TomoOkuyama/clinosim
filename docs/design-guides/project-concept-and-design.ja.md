@@ -3,7 +3,7 @@
 **Status:** Active(2026-07-03、session 32 で確立)
 **Audience:** 新規参加の開発者/実装 AI(Opus 4.7 等)が最初に読む「このプロジェクトは
 何で、どう作られているか」の全体像。規則集は
-[`implementation-rules.md`](implementation-rules.md)、詳細アーキテクチャは `DESIGN.md`(ADR 全集)。
+[`implementation-rules.md`](implementation-rules.ja.md)、詳細アーキテクチャは `DESIGN.md`(ADR 全集)。
 
 ---
 
@@ -51,18 +51,18 @@
 ```
 
 - **CLI 3-stage(AD-37)**: `clinosim simulate`(→ structural CIF)→ `clinosim narrate
-  --provider template|mock|ollama|bedrock`(→ narratives/<version>/)→
+  --provider template |mock |ollama |bedrock`(→ narratives/<version>/)→
   `clinosim export-fhir --narrative-version X`。これがコンセプト 6(差し替え)の実体。
 - **決定性(AD-16)**: 全乱数は階層 sub-seed。同 seed = byte 同一出力(wall-clock は
   determinism chain で全除去済、session 34)。
 - **★ この図の詳細版**(実ファイル/関数名つきの end-to-end トレース)=
-  [`data-generation-walkthrough.md`](data-generation-walkthrough.md)。新規貢献者はまず本節で
+  [`data-generation-walkthrough.md`](data-generation-walkthrough.ja.md)。新規貢献者はまず本節で
   全体像を掴み、walkthrough で 1 患者の生成を具体的に追う。
 
 ## 3. レイヤと責任分解
 
 | Layer | 内容 | 場所 |
-|---|---|---|
+| --- | --- | --- |
 | 0 | 国際コード体系(LOINC/ICD/RxNorm/JLAC10…、EN-first) | `clinosim/codes/` |
 | 1 | 参照データ YAML(疾患・検査・locale・病院設定) | `modules/*/reference_data/`, `locale/`, `config/` |
 | 2 | loader(cached + fail-loud validation) | 各 module 内 |
@@ -122,7 +122,7 @@
 ## 6. 品質保証の仕組み(このプロジェクトの特徴)
 
 | 仕組み | 役割 |
-|---|---|
+| --- | --- |
 | `pytest -m unit / integration / e2e` | 通常のテスト 3 層(1000+ / 264 / 35) |
 | `pytest -m regression`(opt-in) | 6 canonical patient profile の narrative goldens byte-diff(template + llm-mock、AD-66) |
 | byte-diff | refactor PR の gate(FHIR NDJSON + narratives sha256 一致) |
@@ -164,7 +164,7 @@
 ## 8. 用語ミニ辞書
 
 | 用語 | 意味 |
-|---|---|
+| --- | --- |
 | CIF | Clinical Intermediate Format。シミュレーションの唯一の出力(structural + narrative 2 層) |
 | chain | 1 テーマの作業単位(spec → 実装 → adv review → merge、通常 1 PR) |
 | adv-1 / 5-lens | merge 前の adversarial review(silent-no-op / data unification / FHIR·JP Core / determinism / spec 整合の 5 観点) |

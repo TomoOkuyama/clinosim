@@ -33,9 +33,9 @@ eCheckup) は各々 `composition.py` に template 特化 builder を持つ。
   (eCheckup 特化 `DocumentReference`);`_fhir_instant_or_empty`
   (安全な ISO-instant 変換)。
 - **Out of scope**: `ClinicalDocument` stub emission
-  ([`clinosim.modules.document`](../../../document/README.md));
+  ([`clinosim.modules.document`](../../../document/README.ja.md));
   narrative content 生成
-  ([`clinosim.modules.document.narrative`](../../../document/narrative/README.md));
+  ([`clinosim.modules.document.narrative`](../../../document/narrative/README.ja.md));
   narrative version 管理 (CIF writer が担当);
   `ClinicalImpression` (emit は
   [`../conditions/clinical_impression.py`](../conditions/clinical_impression.py))。
@@ -74,7 +74,7 @@ from clinosim.modules.output.fhir_r4.documents.document_reference_checkup import
 pure 関数。Stage 2 narrative pass は template path で決定論的
 (byte-identical)、LLM path では semantic-check gate が byte-diff を
 代替する
-([`document/narrative`](../../../document/narrative/README.md) 参照)。
+([`document/narrative`](../../../document/narrative/README.ja.md) 参照)。
 
 ## 依存
 
@@ -146,6 +146,6 @@ cross-verify する。
 ## Ownership
 
 `maintainers@` — 詳細は
-[`CONTRIBUTING.md`](../../../../../CONTRIBUTING.md)。
+[`CONTRIBUTING.md`](../../../../../CONTRIBUTING.ja.md)。
 
-英語版: [`README.md`](README.md)。
+英語版: [`README.md`](README.ja.md)。

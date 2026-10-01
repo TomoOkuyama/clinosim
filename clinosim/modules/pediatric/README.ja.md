@@ -22,7 +22,7 @@ pediatric 訪問 schedule を追加する。
 - **Out of scope**: 新生児 ICU-level physiology (別 campaign)、
   成人 encounter engine 本体 (本モジュールは既存 population calendar
   loop に plug-in する)、emit される `disease_id` 各値に対応する
-  disease spec ([`clinosim.modules.disease`](../disease/README.md)
+  disease spec ([`clinosim.modules.disease`](../disease/README.ja.md)
   配下の YAML)。
 
 ## Public API
@@ -69,7 +69,7 @@ age_max`、`encounters` top-level が dict でない) はすべて `ValueError`
 は登録済みの encounter を単一 `encounters:` map に格納する。各 entry:
 
 | キー | 意味 |
-|---|---|
+| --- | --- |
 | `age_min` | 含む下限 (歳)。 |
 | `age_max` | 含む上限 (歳)。 |
 | `visits_per_year` | 非空 `list[int]` — 患者 × 年ごとに uniform sampling し patient 間の分散を与える。 |
@@ -111,9 +111,9 @@ pediatric event を他の calendar event と同等に扱う。
 ## Output surface (consumers)
 
 | Consumer | 場所 | 役割 |
-|---|---|---|
+| --- | --- | --- |
 | Population calendar loop | [`clinosim/modules/population/engine.py`](../population/engine.py) (`L807-815` 付近、`generate_healthcare_calendar` 内) | (person, year) ごとに `generate_pediatric_events(person, year, prng)` を呼び、返却 `LifeEvent` を calendar `events` list に追加。 |
-| Encounter engine dispatch | [`clinosim.modules.encounter`](../encounter/README.md) | encounter build 時に `LifeEvent.encounter_type` / `disease_id` / `protocol_source` (prefix `"pediatric:"`) を読んで pediatric 訪問を識別する。 |
+| Encounter engine dispatch | [`clinosim.modules.encounter`](../encounter/README.ja.md) | encounter build 時に `LifeEvent.encounter_type` / `disease_id` / `protocol_source` (prefix `"pediatric:"`) を読んで pediatric 訪問を識別する。 |
 
 ## テスト
 
@@ -128,6 +128,6 @@ malformed entry で fail-loud) と `generate_pediatric_events` の挙動
 ## Ownership
 
 `maintainers@` — 詳細は
-[`CONTRIBUTING.md`](../../../CONTRIBUTING.md)。
+[`CONTRIBUTING.md`](../../../CONTRIBUTING.ja.md)。
 
-英語版: [`README.md`](README.md)。
+英語版: [`README.md`](README.ja.md)。

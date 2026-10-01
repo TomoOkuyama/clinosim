@@ -13,39 +13,39 @@ clinosim の評価・利用を検討中ならここから:
 
 - **[getting-started/](getting-started/)** — インストール、初回
   コホート生成、30 秒スモークテスト。
-- **[getting-started/configuration.md](getting-started/configuration.md)** —
+- **[getting-started/configuration.md](getting-started/configuration.ja.md)** —
   CLI フラグと環境変数の完全リファレンス。
-- **[getting-started/first-cohort.md](getting-started/first-cohort.md)** —
+- **[getting-started/first-cohort.md](getting-started/first-cohort.ja.md)** —
   FHIR 出力の読み方、生理駆動の PT-INR ウォークスルー。
-- **[index.md](index.md)** — トッププロジェクト概要 (docs サイトの
+- **[index.md](index.ja.md)** — トッププロジェクト概要 (docs サイトの
   landing page と同内容)。
-- **[eval.md](eval.md)** — `clinosim eval` フレームワーク: 何をスコア
+- **[eval.md](eval.ja.md)** — `clinosim eval` フレームワーク: 何をスコア
   し、レポートをどう解釈するか。
-- **[eval-rules.md](eval-rules.md)** — eval エンジンが強制する軸別
+- **[eval-rules.md](eval-rules.ja.md)** — eval エンジンが強制する軸別
   ルール。
-- **[jp-clins.md](jp-clins.md)** — 日本 Clinical Information Sharing
+- **[jp-clins.md](jp-clins.ja.md)** — 日本 Clinical Information Sharing
   (JP-CLINS) プロファイル対応と JP コホートが US とどう異なるか。
-- **[roadmap.md](roadmap.md)** — 今後の作業を追跡する GitHub Issues
+- **[roadmap.md](roadmap.ja.md)** — 今後の作業を追跡する GitHub Issues
   へのポインタ (canonical ライブビュー; 本ファイルはスタブ)。
-- **[clinical_documents.md](clinical_documents.md)** — clinosim が
+- **[clinical_documents.md](clinical_documents.ja.md)** — clinosim が
   生成する文書種別と CIF での位置。
-- **[fhir-server-ingestion.md](fhir-server-ingestion.md)** — clinosim
+- **[fhir-server-ingestion.md](fhir-server-ingestion.ja.md)** — clinosim
   出力を HAPI / IRIS / 他の FHIR サーバーに投入。
-- **[synthea-comparison.md](synthea-comparison.md)** — clinosim と
+- **[synthea-comparison.md](synthea-comparison.ja.md)** — clinosim と
   [Synthea](https://synthetichealth.github.io/synthea/) の違いと
   使い分け。
-- **[benchmarks.md](benchmarks.md)** — コホートサイズ / seed / ランタイム
+- **[benchmarks.md](benchmarks.ja.md)** — コホートサイズ / seed / ランタイム
   ベンチマーク。
-- **[add-your-country.md](add-your-country.md)** — 新規国追加
+- **[add-your-country.md](add-your-country.ja.md)** — 新規国追加
   (US-Core / USCDI 等) の提案テンプレート。
 
 ## コントリビュータ向け
 
 - **[../AGENTS.md](../AGENTS.md)** — 正式なエージェント + コントリ
   ビュータ向け指示。**PR を開く前に必ずこれを読むこと。**
-- **[../CONTRIBUTING.md](../CONTRIBUTING.md)** — 人間向け PR
+- **[../CONTRIBUTING.md](../CONTRIBUTING.ja.md)** — 人間向け PR
   ワークフロー、DCO サインオフ、CI マトリクス。
-- **[CONTRIBUTING-modules.md](CONTRIBUTING-modules.md)** — 新規
+- **[CONTRIBUTING-modules.md](CONTRIBUTING-modules.ja.md)** — 新規
   モジュールが従うべきモジュール境界ルール (AD-55/AD-56)。
 - **[design-guides/](design-guides/)** — 長文の設計ガイド。
   `AGENTS.md` が深掘りとしてリンクする project-concept と

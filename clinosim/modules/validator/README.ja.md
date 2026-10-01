@@ -29,9 +29,9 @@
   `_check_los_consistency`, `_check_vital_ranges`,
   `_check_sex_specific_conditions`)。
 - **Out of scope**: PR-time module gating (それは
-  [`clinosim.audit`](../../audit/README.md) — AD-60 audit framework
+  [`clinosim.audit`](../../audit/README.ja.md) — AD-60 audit framework
   と per-module plug-in);下流の cohort scoring
-  ([`clinosim.eval`](../../eval/README.md));検出 issue の修正
+  ([`clinosim.eval`](../../eval/README.ja.md));検出 issue の修正
   (本モジュールは報告のみ)。
 
 ## Public API
@@ -103,7 +103,7 @@ seed 未登録。
 ## Output surface (consumers)
 
 | Consumer | 場所 | 役割 |
-|---|---|---|
+| --- | --- | --- |
 | CLI `validate` subcommand | [`clinosim/simulator/cli.py`](../../simulator/cli.py) (`L224-225`, `L660-680` 付近) | Argparse subparser + dispatch。生成 dataset を load して `run_benchmarks` + `run_consistency_checks` を呼び、roll-up を print。 |
 | E2E test | [`tests/e2e/test_beta.py`](../../../tests/e2e/test_beta.py) | 実 cohort に対して `run_benchmarks` を回し、realism envelope を end-to-end guard。 |
 
@@ -122,6 +122,6 @@ per-check unit file は低コストの follow-up。
 ## Ownership
 
 `maintainers@` — 詳細は
-[`CONTRIBUTING.md`](../../../CONTRIBUTING.md)。
+[`CONTRIBUTING.md`](../../../CONTRIBUTING.ja.md)。
 
-英語版: [`README.md`](README.md)。
+英語版: [`README.md`](README.ja.md)。

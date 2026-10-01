@@ -30,7 +30,7 @@ country=JP コホートの各リソース型は、既存の JP Core プロファ
 ともに `meta.profile[]` に JP-CLINS eCS プロファイル URL を保持:
 
 | 情報 | Resource | JP-CLINS プロファイル URL |
-|---|---|---|
+| --- | --- | --- |
 | 傷病名 + 感染症 | Condition | `.../JP_Condition_eCS` |
 | アレルギー | AllergyIntolerance | `.../JP_AllergyIntolerance_eCS` |
 | 検査 | Observation (category=laboratory) | `.../JP_Observation_LabResult_eCS` |

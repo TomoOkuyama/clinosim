@@ -28,15 +28,15 @@ staff identity の単一情報源。
   使う grep-alignable sentinel。production 経路では fallback
   `dict.get` が発火する時点で必ず本物 ID が用意されている。
 - **Out of scope**: 患者 identifier
-  ([`clinosim.modules.identity`](../identity/README.md))、病院 /
+  ([`clinosim.modules.identity`](../identity/README.ja.md))、病院 /
   病棟 / ベッド在庫
-  ([`clinosim.modules.facility`](../facility/README.md))、看護
+  ([`clinosim.modules.facility`](../facility/README.ja.md))、看護
   アセスメント scaffolding
-  ([`clinosim.modules.nursing`](../nursing/README.md))、入院
+  ([`clinosim.modules.nursing`](../nursing/README.ja.md))、入院
   encounter への主担当看護師割当 (これは
-  [`clinosim.modules.nursing.engine.nursing_enricher`](../nursing/README.md)
+  [`clinosim.modules.nursing.engine.nursing_enricher`](../nursing/README.ja.md)
   で走り、**本モジュール**の roster から選ぶ)、FHIR 出力
-  ([`clinosim.modules.output`](../output/README.md))。
+  ([`clinosim.modules.output`](../output/README.ja.md))。
 
 ## Public API
 
@@ -147,7 +147,7 @@ simulator が run あたり 1 回構築し、`assign_staff` は下記 encounter
 ## Output surface (consumers)
 
 | Consumer | 場所 | 役割 |
-|---|---|---|
+| --- | --- | --- |
 | Encounter builder (inpatient) | [`clinosim/simulator/inpatient.py`](../../simulator/inpatient.py) (`L45` 付近, `L260` 付近) | `assign_staff("admission", department, roster, rng)` で attending + primary nurse を選出。 |
 | Encounter builder (outpatient) | [`clinosim/simulator/outpatient.py`](../../simulator/outpatient.py) (`L21`, `L109`, `L161`, `L177` 付近) | 回診 / 投薬 / 検査採取の割当。 |
 | Lab pipeline | [`clinosim/simulator/lab_pipeline.py`](../../simulator/lab_pipeline.py) (`L51`, `L113`, `L131`, `L166` 付近) | `assign_staff("lab_result", …)` で performing / result 技師を選出、roster 空時は `FALLBACK_TECH_ID`。 |
@@ -177,6 +177,6 @@ test は無く、integration / e2e で間接カバーされている。`generate
 ## Ownership
 
 `maintainers@` — 詳細は
-[`CONTRIBUTING.md`](../../../CONTRIBUTING.md)。
+[`CONTRIBUTING.md`](../../../CONTRIBUTING.ja.md)。
 
-英語版: [`README.md`](README.md)。
+英語版: [`README.md`](README.ja.md)。

@@ -53,7 +53,7 @@ YAML を読みます。
 主要トップレベルキー:
 
 | キー | 目的 | 例 |
-|---|---|---|
+| --- | --- | --- |
 | `recommended_population` | 国別のデフォルト catchment 人口 (`US` / `JP` / `default`) | `US: 40000`, `JP: 10000`, `default: 40000` |
 | `imaging.wado_base_url` | 画像 Endpoint emit 用 WADO base URL | `https://wado.clinosim.example/dicomweb` |
 | `available_departments` | この病院に存在する診療科 | `internal_medicine`, `cardiology`, … |
@@ -94,7 +94,7 @@ YAML を読みます。
 - `llm_service.cloud.yaml` — クラウドホスト LLM プロバイダ (例:
   Anthropic API 直接)。
 - `llm_service.sakura.yaml` — さくらインターネット GPU プロバイダ
-  ([`docs/sakura_gpu_setup.md`](../../docs/sakura_gpu_setup.md) 参照)。
+  ([`docs/sakura_gpu_setup.md`](../../docs/sakura_gpu_setup.ja.md) 参照)。
 
 LLM サービスがこれらのファイルを消費してプロバイダを切り替える方法は
 [`clinosim/modules/llm_service/README.ja.md`](../modules/llm_service/README.ja.md)
@@ -129,6 +129,6 @@ clinosim/config/
 
 ## オーナー
 
-`maintainers@` — [`CONTRIBUTING.md`](../../CONTRIBUTING.md) 参照。
+`maintainers@` — [`CONTRIBUTING.md`](../../CONTRIBUTING.ja.md) 参照。
 
-英語版: [`README.md`](README.md)。
+英語版: [`README.md`](README.ja.md)。

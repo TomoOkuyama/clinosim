@@ -17,12 +17,12 @@ cache / country dispatch 契約のみを持つ。
   それ以外 → `ValueError`)。
 - **Out of scope**: 病院レベルのレイアウト / ベッド数 / 部門運用
   ([`clinosim/config/hospital_*.yaml`](../../config/) にあり
-  [`clinosim.modules.facility`](../facility/README.md) が消費)、
+  [`clinosim.modules.facility`](../facility/README.ja.md) が消費)、
   患者 demographics / 検査基準範囲 / drug code mapping
   (locale scope、[`clinosim/locale/<country>/`](../../locale/))、
   cross-facility 紹介 / スケジューリング (現状モデル化していない)、
   FHIR `Organization` emission
-  ([`clinosim.modules.output`](../output/README.md))。
+  ([`clinosim.modules.output`](../output/README.ja.md))。
 
 ## Public API
 
@@ -108,7 +108,7 @@ clinosim/modules/healthcare_system/
 ## Output surface (consumers)
 
 | Consumer | 場所 | 役割 |
-|---|---|---|
+| --- | --- | --- |
 | Simulator boot | [`clinosim/simulator/engine.py`](../../simulator/engine.py) (`L17` 付近) | `load_healthcare_config` を import、起動時に国別 1 回 cache。以降 `SimulatorConfig` 経由で全モジュールに `HealthcareSystemConfig` が届く。 |
 | `HealthcareSystemConfig` field consumers | [`clinosim/types/config.py`](../../types/config.py) | 下流モジュールが共有モデルから `discharge_criteria` や `*_code_system` 文字列、各種 multiplier を読み取る。検索: `grep -rn "hc_config\." clinosim/`。 |
 
@@ -123,6 +123,6 @@ coverage gap は follow-up として、JP → `japan.yaml`、US → `us.yaml`、
 ## Ownership
 
 `maintainers@` — 詳細は
-[`CONTRIBUTING.md`](../../../CONTRIBUTING.md)。
+[`CONTRIBUTING.md`](../../../CONTRIBUTING.ja.md)。
 
-英語版: [`README.md`](README.md)。
+英語版: [`README.md`](README.ja.md)。

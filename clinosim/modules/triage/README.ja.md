@@ -16,13 +16,13 @@ no-op。
   `load_triage_protocols()` YAML loader with 6-layer
   `_validate_triage_protocols` (silent-no-op 防御)。
 - **Out of scope**: encounter routing / class emission
-  ([`clinosim.modules.encounter`](../encounter/README.md))、FHIR
+  ([`clinosim.modules.encounter`](../encounter/README.ja.md))、FHIR
   `Encounter.class` / `type` / `priority` emission
-  ([`clinosim.modules.output`](../output/README.md))、ED narrative
+  ([`clinosim.modules.output`](../output/README.ja.md))、ED narrative
   文書
-  ([`clinosim.modules.document.narrative`](../document/narrative/README.md)
+  ([`clinosim.modules.document.narrative`](../document/narrative/README.ja.md)
   — ED_TRIAGE_NOTE stub は
-  [`document`](../document/README.md) module が後段
+  [`document`](../document/README.ja.md) module が後段
   POST_ENCOUNTER pass で emit する)。
 
 ## Public API
@@ -93,7 +93,7 @@ clinosim/modules/triage/
 ## Output surface (consumers)
 
 | Consumer | 場所 | 役割 |
-|---|---|---|
+| --- | --- | --- |
 | Enricher registry | [`clinosim/simulator/enrichers.py:311`](../../simulator/enrichers.py) | POST_ENCOUNTER order=93 登録。 |
 | Audit registry | [`clinosim/modules/triage/audit.py`](audit.py) | AD-60 audit plug-in — canonical-constants cross-check + firing proof。 |
 | Document module | [`clinosim/modules/document/audit.py`](../document/audit.py) | triage canonical tier 集合を cross-reference。 |
@@ -116,6 +116,6 @@ clinosim audit run -d <cohort_dir> --module triage
 ## Ownership
 
 `maintainers@` — 詳細は
-[`CONTRIBUTING.md`](../../../CONTRIBUTING.md)。
+[`CONTRIBUTING.md`](../../../CONTRIBUTING.ja.md)。
 
-英語版: [`README.md`](README.md)。
+英語版: [`README.md`](README.ja.md)。

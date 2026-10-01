@@ -20,7 +20,7 @@
   任意 `history_years` の EHR 保持期間 (flu → 10 y 等)。
 - **Out of scope**: 小児接種歴の遡及モデリング、副反応 / 副作用生成、
   接種目的の encounter 生成 (現状 first-class encounter ではない)、
-  FHIR / CSV serialization ([`clinosim.modules.output`](../output/README.md))、
+  FHIR / CSV serialization ([`clinosim.modules.output`](../output/README.ja.md))、
   CVX の表示テキスト
   ([`clinosim/codes/data/cvx.yaml`](../../codes/data/cvx.yaml))。
 
@@ -119,7 +119,7 @@ in-progress snapshot でのバックデート出力を防ぐ。
     COVID-19 mRNA, PPSV23)。
 - Schedule エントリ shape:
   | キー | 意味 |
-  |---|---|
+| --- | --- |
   | `cvx` | CDC CVX コード (文字列)。 |
   | `min_age` | 接種資格の最低年齢。 |
   | `frequency` | `"annual"` / `"once"` / `"every_n_years"`。 |
@@ -158,7 +158,7 @@ clinosim/modules/immunization/
 ## Output surface (consumers)
 
 | Consumer | 場所 | 役割 |
-|---|---|---|
+| --- | --- | --- |
 | CSV adapter | [`clinosim/modules/output/csv_adapter.py`](../output/csv_adapter.py) (`L327` 付近, `L417` 付近) | `record["immunizations"]` から `immunizations.csv` を書き出し。 |
 | FHIR `Immunization` builder | [`clinosim/modules/output/fhir_r4/procedures/immunization.py`](../output/fhir_r4/procedures/immunization.py) | 記録ごとに FHIR R4 `Immunization` を 1 件出力。id `imm-{patient_id}-{index}`、`vaccineCode` = CVX + locale 表示、`occurrenceDateTime` = 接種日、`primarySource = true`、`administered_by` が非空なら `performer` に反映、`_synthetic_lot` を `lotNumber` に emit。 |
 | Enricher registry | [`clinosim/simulator/enrichers.py:162`](../../simulator/enrichers.py) | POST_RECORDS 登録。 |
@@ -182,6 +182,6 @@ pytest tests/integration -k immunization -q  # enricher + FHIR 出力
 ## Ownership
 
 `maintainers@` — 詳細は
-[`CONTRIBUTING.md`](../../../CONTRIBUTING.md)。
+[`CONTRIBUTING.md`](../../../CONTRIBUTING.ja.md)。
 
-英語版: [`README.md`](README.md)。
+英語版: [`README.md`](README.ja.md)。

@@ -45,18 +45,18 @@ ServiceRequest への `basedOn` を持つことを要求する
   "Coag", "UA", "Checkup")`)、3 種 `classify_*` treatment
   classifier。
 - **Out of scope**: lab 値そのものの導出
-  ([`observation.engine.generate_lab_result`](../observation/README.md))、
+  ([`observation.engine.generate_lab_result`](../observation/README.ja.md))、
   lab / imaging 結果が依存する physiology state
-  ([`physiology`](../physiology/README.md))、hospital state
-  ([`facility.HospitalState`](../facility/README.md))、FHIR
+  ([`physiology`](../physiology/README.ja.md))、hospital state
+  ([`facility.HospitalState`](../facility/README.ja.md))、FHIR
   ServiceRequest emission
   ([`output/fhir_r4/labs/service_request.py`](../output/fhir_r4/labs/service_request.py))、
-  抗菌薬 regimen 構築 ([`antibiotic`](../antibiotic/README.md))。
+  抗菌薬 regimen 構築 ([`antibiotic`](../antibiotic/README.ja.md))。
 
 ### 化学療法サイクル order emission (v0.5 → v0.6.0)
 
 `chemo_visit` LifeEvent (詳細は
-[`clinosim.modules.population`](../population/README.md)) ごとに、外来
+[`clinosim.modules.population`](../population/README.ja.md)) ごとに、外来
 encounter builder が
 [`clinosim/locale/shared/chemo_regimens.yaml`](../../locale/shared/chemo_regimens.yaml)
 の regimen 定義を消費し、regimen の `cycle_orders` list の各薬剤について
@@ -189,7 +189,7 @@ plug-in。
 ## Output surface (consumers)
 
 | Consumer | 場所 | 役割 |
-|---|---|---|
+| --- | --- | --- |
 | Inpatient encounter | [`clinosim/simulator/inpatient.py`](../../simulator/inpatient.py) | `place_admission_orders` + `place_daily_lab_orders` + `place_imaging_orders` を呼び、`supportive[]` に対して classifier を呼ぶ。 |
 | Emergency encounter | [`clinosim/simulator/emergency.py`](../../simulator/emergency.py) | ED tier で同じ発注面 + `treatment[]` に `classify_encounter_treatment` を適用。 |
 | Daily loop | [`clinosim/simulator/daily_loop.py`](../../simulator/daily_loop.py) | 日次 lab + medication 発注を配置。 |
@@ -214,6 +214,6 @@ load-bearing 検証。
 ## Ownership
 
 `maintainers@` — 詳細は
-[`CONTRIBUTING.md`](../../../CONTRIBUTING.md)。
+[`CONTRIBUTING.md`](../../../CONTRIBUTING.ja.md)。
 
-英語版: [`README.md`](README.md)。
+英語版: [`README.md`](README.ja.md)。

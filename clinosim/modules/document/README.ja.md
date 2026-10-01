@@ -9,7 +9,7 @@ operative note / procedure note / referral note / nurse note /
 ED_NOTE / ED_TRIAGE_NOTE / HEALTH_CHECKUP_REPORT 等) と、
 inpatient / ICU / rehab encounter に対する `ClinicalImpression`
 日次 record を emit する。各 stub は `narrative=None`。narrative content
-は 2-pass の [`narrative`](narrative/README.md) subpackage が Stage 2
+は 2-pass の [`narrative`](narrative/README.ja.md) subpackage が Stage 2
 pass で populate する (AD-65)。全 consumer が import する canonical
 FHIR resource ID prefix も所有する。
 
@@ -44,12 +44,12 @@ FHIR resource ID prefix も所有する。
   AllergyIntolerance 分布 + CareTeam / triage / nursing / outpatient
   / ED の per-encounter target (計 13 key) をカバー。
 - **Out of scope**: narrative content 組立 / template rendering
-  ([`narrative`](narrative/README.md) subpackage が Stage 2 pass と
+  ([`narrative`](narrative/README.ja.md) subpackage が Stage 2 pass と
   LLM/template dispatch を所有)、LLM gateway
-  ([`llm_service`](../llm_service/README.md))、FHIR
+  ([`llm_service`](../llm_service/README.ja.md))、FHIR
   `DocumentReference` / `Composition` / `ClinicalImpression` /
   `CareTeam` emission
-  ([`output/fhir_r4/documents/`](../output/fhir_r4/documents/README.md))。
+  ([`output/fhir_r4/documents/`](../output/fhir_r4/documents/README.ja.md))。
 
 ## Public API
 
@@ -143,7 +143,7 @@ from clinosim.modules.document.engine import document_enricher
   を検査。YAML typo は import 時に raise。
 - **Chronic SOAP + hedging** reference YAML
   (`chronic_soap_templates.yaml`, `hedging_phrases.yaml`) は
-  [`narrative`](narrative/README.md) 側 submodule から read されるが、
+  [`narrative`](narrative/README.ja.md) 側 submodule から read されるが、
   本 package の `reference_data/` に配置されている。
 
 ## ディレクトリ構造
@@ -177,11 +177,11 @@ clinosim/modules/document/
 ## Output surface (consumers)
 
 | Consumer | 場所 | 役割 |
-|---|---|---|
+| --- | --- | --- |
 | Enricher registry | [`clinosim/simulator/enrichers.py:344`](../../simulator/enrichers.py) | POST_ENCOUNTER order=95 登録。 |
 | Audit registry | [`clinosim/modules/document/audit.py`](audit.py) | AD-60 audit plug-in — 49-check lift_firing_proof + clinical_acceptance。 |
 | Narrative Stage 2 | [`clinosim/modules/document/narrative/passes.py`](narrative/passes.py) | 本モジュールが emit した全 stub に `narrative.sections` を populate。 |
-| FHIR document builder | [`clinosim/modules/output/fhir_r4/documents/`](../output/fhir_r4/documents/README.md) | stub + populate 済み narrative から `DocumentReference` / `Composition` / `ClinicalImpression` を emit。 |
+| FHIR document builder | [`clinosim/modules/output/fhir_r4/documents/`](../output/fhir_r4/documents/README.ja.md) | stub + populate 済み narrative から `DocumentReference` / `Composition` / `ClinicalImpression` を emit。 |
 
 ## テスト
 
@@ -198,6 +198,6 @@ Coverage は大量 — `tests/unit -k document` で per-spec / per-encounter
 ## Ownership
 
 `maintainers@` — 詳細は
-[`CONTRIBUTING.md`](../../../CONTRIBUTING.md)。
+[`CONTRIBUTING.md`](../../../CONTRIBUTING.ja.md)。
 
-英語版: [`README.md`](README.md)。
+英語版: [`README.md`](README.ja.md)。

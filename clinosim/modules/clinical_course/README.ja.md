@@ -5,7 +5,7 @@
 日 scale の臨床 trajectory を所有する: 入院時に disease YAML の
 `course_archetypes` (例 `smooth_recovery`, `gradual_deterioration`,
 `sudden_deterioration`, `treatment_resistant`) から 1 つを選出し、
-[`clinosim.modules.physiology`](../physiology/README.md) が state
+[`clinosim.modules.physiology`](../physiology/README.ja.md) が state
 vector に適用する日次 `StateChangeDirective` を評価し、疾患スコープの
 リスク条件による合併症を評価し、診断有効度の feedback で trajectory
 を補正する。`physiology` が「現時点 state の意味」を決めるのに対し、
@@ -26,10 +26,10 @@ vector に適用する日次 `StateChangeDirective` を評価し、疾患スコ�
   `course_archetypes` / `archetype_modifiers` に対する import 時
   validator。
 - **Out of scope**: state vector 意味論 + coupling
-  ([`clinosim.modules.physiology`](../physiology/README.md))、disease
+  ([`clinosim.modules.physiology`](../physiology/README.ja.md))、disease
   YAML schema 本体
-  ([`clinosim.modules.disease`](../disease/README.md))、encounter
-  timeline ([`clinosim.modules.encounter`](../encounter/README.md))、
+  ([`clinosim.modules.disease`](../disease/README.ja.md))、encounter
+  timeline ([`clinosim.modules.encounter`](../encounter/README.ja.md))、
   日次 loop mechanics
   ([`clinosim.simulator.daily_loop`](../../simulator/daily_loop.py))。
 
@@ -126,7 +126,7 @@ archetype データは disease YAML
 ## Output surface (consumers)
 
 | Consumer | 場所 | 役割 |
-|---|---|---|
+| --- | --- | --- |
 | Inpatient encounter | [`clinosim/simulator/inpatient.py`](../../simulator/inpatient.py) (`L12`, `L252` 付近) | 入院時に `select_archetype` を呼び、結果を `encounter.clinical_course_archetype` に書き込む。 |
 | Daily loop | [`clinosim/simulator/daily_loop.py`](../../simulator/daily_loop.py) (`L21` 付近) | 入院日ごとに `get_daily_directive` + `evaluate_complications` を呼び、directive を `physiology.update` に渡す。 |
 | Disease-protocol integration | [`clinosim/modules/disease/protocol.py`](../disease/protocol.py) | YAML `archetype_modifiers.condition` token 解決を load 時に cross-validate。 |
@@ -150,6 +150,6 @@ pytest tests/unit -k "clinical_course or diagnosis_feedback" -q
 ## Ownership
 
 `maintainers@` — 詳細は
-[`CONTRIBUTING.md`](../../../CONTRIBUTING.md)。
+[`CONTRIBUTING.md`](../../../CONTRIBUTING.ja.md)。
 
-英語版: [`README.md`](README.md)。
+英語版: [`README.md`](README.ja.md)。

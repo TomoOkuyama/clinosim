@@ -76,7 +76,7 @@ hospital encounter に変換される。これにより疫学が人口レベル�
 **イベントカタログ:**
 
 | `event_type` | 発火対象 | ケイデンス出所 | Dispatch 先 |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | `chronic_visit` | `locale/shared/chronic_followup.yaml` にある慢性疾患保有者 (16 の慢性コード + インフル予防接種 + 糖尿病網膜症スクリーニング) | 慢性エントリ毎の `follow_up_interval_months`、年 6 回まで cap | `_simulate_outpatient_visit(visit_type="chronic_followup")` |
 | `pediatric_visit` | active な well-child schedule item を持つ患者 (`modules/pediatric/calendar.py`) | JP MHLW / US CDC well-child schedule に沿った年齢条件付き | `_simulate_outpatient_visit(visit_type="pediatric_visit")` |
 | `health_screening` | 40 歳以上 (年 1 健診) + 50 歳以上 colonoscopy (10 年間隔 → 10 %/年) + 女性 40 歳以上 mammography (60 %/年) | `_population_workflow_thresholds` の population 閾値 | `_simulate_outpatient_visit(visit_type="health_screening")` |
@@ -172,7 +172,7 @@ encounter binding、`narrative=None`)を作る。実際の自然文は Stage 2 �
 
 ## 2. Stage 2 = `narrate`:ナラティブ生成(差し替え可能層)
 
-`narrate --provider template|mock|ollama|bedrock --version-id <id>` が
+`narrate --provider template |mock |ollama |bedrock --version-id <id>` が
 `cif/narratives/<version>/documents/<enc>/<doc>.json` を書く。
 
 - `NarrativePass`(`document/narrative/passes.py`、ABC)が structural CIF を読み、患者 profile /
@@ -243,7 +243,7 @@ run_beta(config)                                   # simulator/engine.py
 ## 5. データを増やす/直すときの入口
 
 | やりたいこと | どこを触るか |
-|---|---|
+| --- | --- |
 | 新しい疾患 | `modules/disease/reference_data/<id>.yaml` を追加(既存疾患を雛形に)+ 発生率を locale に + 診断コードを `codes/data/` に登録。engine コード変更不要。`CONTRIBUTING-modules.md` |
 | 新しい ED/外来条件 | `modules/encounter/reference_data/<id>.yaml` |
 | 新しい検査値 analyte | `derive_lab_values`(observation)+ code_mapping + `codes/data/loinc.yaml` |

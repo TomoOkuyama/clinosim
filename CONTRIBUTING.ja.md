@@ -17,11 +17,11 @@
 
 コードに触れる予定なら以下も読んでください:
 
-- [`docs/CONTRIBUTING-modules.md`](docs/CONTRIBUTING-modules.md) —
+- [`docs/CONTRIBUTING-modules.md`](docs/CONTRIBUTING-modules.ja.md) —
   新モジュール / plug-in / FHIR builder 追加の実務 playbook
   (Base vs Module 判別、enricher stage、registry 利用、
   `clinosim audit run` による PR 検証)。
-- [`DESIGN.md`](DESIGN.md) — 55+ の architecture decision record
+- [`DESIGN.md`](DESIGN.ja.md) — 55+ の architecture decision record
   (`docs/architecture/` 配下 3 file に split 済み)。
   日本語版: [`DESIGN.ja.md`](DESIGN.ja.md)。
 - [`AGENTS.md`](AGENTS.md) — repo 全体の規約と invariant
@@ -30,7 +30,7 @@
   thin pointer)。
 - [`.github/TEMPLATE_MODULE_README.md`](.github/TEMPLATE_MODULE_README.md)
   — 新モジュールディレクトリの boilerplate。
-- [`docs/design-guides/documentation-and-code-quality-policy.md`](docs/design-guides/documentation-and-code-quality-policy.md)
+- [`docs/design-guides/documentation-and-code-quality-policy.md`](docs/design-guides/documentation-and-code-quality-policy.ja.md)
   — ドキュメント言語 pairing (英語 + 日本語)、source code コメント
   言語ルール、self-contained OSS quality 標準、定数 documentation
   ルール、dead-code 衛生。全 PR は本ポリシーに対して review されます。
@@ -162,7 +162,7 @@ block します。
 ## Documentation + code コメント言語ポリシー
 
 全 PR は
-[`docs/design-guides/documentation-and-code-quality-policy.md`](docs/design-guides/documentation-and-code-quality-policy.md)
+[`docs/design-guides/documentation-and-code-quality-policy.md`](docs/design-guides/documentation-and-code-quality-policy.ja.md)
 に対して review されます。要点:
 
 - ドキュメント file は言語ペアで提供: 英語 `README.md` + 日本語

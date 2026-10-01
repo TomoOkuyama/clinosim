@@ -240,7 +240,7 @@ diff original/Patient.sorted.ndjson exported/Patient.sorted.ndjson
 - [FHIR R4 Bulk Data Access spec](https://hl7.org/fhir/uv/bulkdata/)
 - [HAPI FHIR docs](https://hapifhir.io/hapi-fhir/docs/)
 - [jpfhir.jp — JP Core FHIR プロファイル](https://jpfhir.jp/fhir/core/)
-- clinosim [Reproducibility](development/reproducibility.md) — 何か
+- clinosim [Reproducibility](development/reproducibility.ja.md) — 何か
   を ingest する前にソースコホートのバイト同一性を検証。
 - clinosim [Evaluation](eval.ja.md) — ingest 前に `clinosim eval` で
   ソースコホートを採点することで、決定性 / 臨床 / locale に関する

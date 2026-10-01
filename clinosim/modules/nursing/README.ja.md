@@ -15,7 +15,7 @@ POST_ENCOUNTER enricher (登録名 **`nursing_assignment`**) と、
   (`clinosim.modules.nursing.engine.nursing_enricher`)、POST_ENCOUNTER
   order=94、`EncounterRecord.primary_nurse_id` を書き込む。
 - **`nursing_flowsheets`** — observation パッケージ
-  ([`clinosim.modules.observation.nursing_enricher`](../observation/README.md))、
+  ([`clinosim.modules.observation.nursing_enricher`](../observation/README.ja.md))、
   POST_RECORDS order=20、NEWS2 / GCS / Braden / Morse スコアを出力。
 
 コードコメント中は常にこの曖昧回避名を使う。本モジュールは前者のみ担当。
@@ -36,13 +36,13 @@ POST_ENCOUNTER enricher (登録名 **`nursing_assignment`**) と、
     `INPATIENT_ENCOUNTER_TYPES` (enricher が受理する 3 encounter 種別)。
 - **Out of scope**:
   - 看護 flowsheet observation (NEWS2 / GCS / Braden / Morse) —
-    [`clinosim.modules.observation`](../observation/README.md)。
+    [`clinosim.modules.observation`](../observation/README.ja.md)。
   - 看護師 identity 生成
-    ([`clinosim.modules.staff`](../staff/README.md) が roster 担当)。
+    ([`clinosim.modules.staff`](../staff/README.ja.md) が roster 担当)。
   - 看護 narrative 文書
-    ([`clinosim.modules.document.narrative`](../document/narrative/README.md))。
+    ([`clinosim.modules.document.narrative`](../document/narrative/README.ja.md))。
   - FHIR CareTeam / performer emission
-    ([`clinosim.modules.output.fhir_r4`](../output/README.md))。
+    ([`clinosim.modules.output.fhir_r4`](../output/README.ja.md))。
 
 ## Public API
 
@@ -136,13 +136,13 @@ clinosim/modules/nursing/
 - **もう 1 つの nursing enricher — `nursing_flowsheets` — は同 file 内で
   `name="nursing"`, `stage=POST_RECORDS`, `order=20` として登録され、
   実体は
-  [`clinosim.modules.observation.nursing_enricher`](../observation/README.md)。**
+  [`clinosim.modules.observation.nursing_enricher`](../observation/README.ja.md)。**
   混同しないこと。
 
 ## Output surface (consumers)
 
 | Consumer | 場所 | 役割 |
-|---|---|---|
+| --- | --- | --- |
 | FHIR `CareTeam` builder | [`clinosim/modules/output/fhir_r4/encounters/care_team.py`](../output/fhir_r4/encounters/care_team.py) | `primary_nurse_id` を `CareTeam.participant[1].member` として emit — 非空のときのみ (attending physician が participant[0])。 |
 | FHIR 看護 flowsheet performer fallback | [`clinosim/modules/output/fhir_r4/procedures/nursing.py`](../output/fhir_r4/procedures/nursing.py) (`L47` 付近) | RM-1: 看護 survey Observation に per-observation performer が無いときの default `performer` として `primary_nurse_id` を使用。 |
 | FHIR 看護 observation performer fallback | [`clinosim/modules/output/fhir_r4/lib/inline_bb.py`](../output/fhir_r4/lib/inline_bb.py) (`L785` 付近) | inline 看護 observation builder における同 RM-1 fallback。 |
@@ -172,6 +172,6 @@ pytest tests/integration -k nursing -q  # enricher + flowsheet FHIR 出力
 ## Ownership
 
 `maintainers@` — 詳細は
-[`CONTRIBUTING.md`](../../../CONTRIBUTING.md)。
+[`CONTRIBUTING.md`](../../../CONTRIBUTING.ja.md)。
 
-英語版: [`README.md`](README.md)。
+英語版: [`README.md`](README.ja.md)。

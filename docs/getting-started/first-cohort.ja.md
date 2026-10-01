@@ -70,6 +70,6 @@ clinosim simulate --country JP --population 100 --seed 42 \
 
 - 完全な CLI リファレンス: [`configuration.ja.md`](configuration.ja.md)。
 - 生理モデルの背後にあるアーキテクチャ:
-  [`../architecture/README.md`](../architecture/README.md)。
+  [`../architecture/README.md`](../architecture/README.ja.md)。
 - 公開コホートスコアリング gate:
   [`../eval.ja.md`](../eval.ja.md)。

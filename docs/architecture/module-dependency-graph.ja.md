@@ -26,7 +26,7 @@ flowchart TD
         order --> proc
     end
 
-    codes -->|lookup| output
+    codes --> |lookup | output
     locale --> output
     locale --> patient
     patient --> encounter

@@ -2,8 +2,8 @@
 
 ## 概要
 
-always-on の HAI cascade 3 番目 ([`device`](../device/README.md) →
-[`hai`](../hai/README.md) → 本モジュール → observation microbiology
+always-on の HAI cascade 3 番目 ([`device`](../device/README.ja.md) →
+[`hai`](../hai/README.ja.md) → 本モジュール → observation microbiology
 emitter)。`extensions["hai"]` を消費し、snapshot 手前の onset を持つ
 HAI event 各々について IDSA 2009 / 2016 empirical regimen と
 (PR3b-3 Pass 2) S/I/R 駆動 narrow / de-escalation regimen を
@@ -32,10 +32,10 @@ N 件になるため、新 builder は不要。
   S. aureus HAIEvent → 6 susceptibility 行、vancomycin always-S
   sentinel、cefazolin non-degenerate probe)。
 - **Out of scope**: HAI event サンプリング
-  ([`hai`](../hai/README.md))、microbiology culture emission
+  ([`hai`](../hai/README.ja.md))、microbiology culture emission
   ([`observation.microbiology`](../observation/microbiology.py))、
   FHIR MedicationRequest / MedicationAdministration serialization
-  ([`output/fhir_r4/medications/`](../output/fhir_r4/medications/README.md))、
+  ([`output/fhir_r4/medications/`](../output/fhir_r4/medications/README.ja.md))、
   narrow-target 用量 / 頻度 default — これは
   [`_narrow_dose_defaults.py`](_narrow_dose_defaults.py) が所有。
 
@@ -150,11 +150,11 @@ clinosim/modules/antibiotic/
 ## Output surface (consumers)
 
 | Consumer | 場所 | 役割 |
-|---|---|---|
+| --- | --- | --- |
 | Enricher registry | [`clinosim/simulator/enrichers.py`](../../simulator/enrichers.py) | POST_ENCOUNTER order=85 登録。 |
 | Audit registry | [`clinosim/modules/antibiotic/audit.py`](audit.py) | AD-60 audit plug-in。 |
 | HAI enricher | [`clinosim/modules/hai/enricher.py`](../hai/enricher.py) | `ANTIBIOTIC_LOINC_LOOKUP` を cross-import。 |
-| FHIR medications builder | [`clinosim/modules/output/fhir_r4/medications/`](../output/fhir_r4/medications/README.md) | 追加された `Order` + MAR record から `MedicationRequest` + `MedicationAdministration` を emit (discontinued empirical は `status="stopped"`)。 |
+| FHIR medications builder | [`clinosim/modules/output/fhir_r4/medications/`](../output/fhir_r4/medications/README.ja.md) | 追加された `Order` + MAR record から `MedicationRequest` + `MedicationAdministration` を emit (discontinued empirical は `status="stopped"`)。 |
 
 ## テスト
 
@@ -188,6 +188,6 @@ clinosim audit run -d <cohort_dir> --module antibiotic
 ## Ownership
 
 `maintainers@` — 詳細は
-[`CONTRIBUTING.md`](../../../CONTRIBUTING.md)。
+[`CONTRIBUTING.md`](../../../CONTRIBUTING.ja.md)。
 
-英語版: [`README.md`](README.md)。
+英語版: [`README.md`](README.ja.md)。

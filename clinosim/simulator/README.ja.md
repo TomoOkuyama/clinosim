@@ -100,7 +100,7 @@ clinosim test-disease bacterial_pneumonia --archetype treatment_resistant -n 5
   [`clinosim/config/README.ja.md`](../config/README.ja.md) 参照。
 - **CLI フラグデフォルト** は `cli.py` と各 `cli_*.py` サブコマンド
   ハンドラに存在。`clinosim <subcommand> --help` およびルート
-  [`README.md`](../../README.md) の "Configuration" セクションで
+  [`README.md`](../../README.ja.md) の "Configuration" セクションで
   ドキュメント化。
 - **Per-behavior 閾値** — 全運用閾値 (ADL スコアリング、MAR 投与
   ウィンドウ、日次ループタイミング、退院ゲート、ED トリアージ、
@@ -199,6 +199,6 @@ pytest tests/integration -q                # エンドツーエンド + byte-dif
 
 ## オーナー
 
-`maintainers@` — [`CONTRIBUTING.md`](../../CONTRIBUTING.md) 参照。
+`maintainers@` — [`CONTRIBUTING.md`](../../CONTRIBUTING.ja.md) 参照。
 
-英語版: [`README.md`](README.md)。
+英語版: [`README.md`](README.ja.md)。

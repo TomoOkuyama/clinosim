@@ -3,7 +3,7 @@
 ## 概要
 
 Layer-1 `PersonRecord`
-([`clinosim.modules.population`](../population/README.md) 由来) を
+([`clinosim.modules.population`](../population/README.ja.md) 由来) を
 Layer-2 `PatientProfile` に promote する — 生理予備能 (腎 / 肝 / 心 /
 免疫 / 薬物代謝) の付与、年齢 + 性別スケールの baseline vitals
 (HR / SBP / DBP / RR / SpO₂ / 体温) の設定、per-condition stage サンプリング
@@ -26,11 +26,11 @@ severity score 付きの慢性疾患活性化、disease profile 由来の常用�
   保険サンプリング、JP romaji 名生成。加えて `test_patient.py` の
   決定論的 `create_test_patient()` fixture。
 - **Out of scope**: 患者 *生成*
-  ([`clinosim.modules.population`](../population/README.md))、疾患
+  ([`clinosim.modules.population`](../population/README.ja.md))、疾患
   protocol 定義
-  ([`clinosim.modules.disease`](../disease/README.md))、physiology
+  ([`clinosim.modules.disease`](../disease/README.ja.md))、physiology
   state 進行
-  ([`clinosim.modules.physiology`](../physiology/README.md))、
+  ([`clinosim.modules.physiology`](../physiology/README.ja.md))、
   encounter simulation ([`clinosim.simulator`](../../simulator/))、
   常用薬カタログ
   ([`clinosim.locale`](../../locale/) の `chronic_medications.yaml`)。
@@ -138,7 +138,7 @@ from clinosim.modules.patient.activator import (
     import 時に合計 1.0 を validate。
   - `STAGE_SEVERITY: dict[str, float]` — stage テキストを
     `[0.0, 1.0]` の severity score に写像。
-    [`clinosim.modules.physiology.engine.initialize_state`](../physiology/README.md)
+    [`clinosim.modules.physiology.engine.initialize_state`](../physiology/README.ja.md)
     が消費する。各条件の severe 閾値
     (`clinosim/modules/physiology/_coupling_coefficients.py` 定義)
     を超える score は "severe" physiology 分岐を発火する。
@@ -174,7 +174,7 @@ caller 側 `person_id` キーの cache 内で走り、run あたり exactly-once
 ## Output surface (consumers)
 
 | Consumer | 場所 | 役割 |
-|---|---|---|
+| --- | --- | --- |
 | Simulator boot | [`clinosim/simulator/engine.py`](../../simulator/engine.py) (`L19` 付近, `L399-410`, `L970`) | 全 population member を patient cache に activate してから per-encounter simulation を回す。`unknown_condition` walkthrough でも再 activate。 |
 | Enumeration path | [`clinosim/simulator/enumerate.py`](../../simulator/enumerate.py) (`L581`, `L647` 付近) | enumeration entry で `activate_patient` を遅延 import。 |
 | CLI single-encounter driver | [`clinosim/simulator/cli_test_encounter.py`](../../simulator/cli_test_encounter.py) (`L15`, `L111`, `L191` 付近) | smoke run で 1 患者ずつ activate。 |
@@ -205,6 +205,6 @@ pytest tests/integration -k "patient_cache" -q
 ## Ownership
 
 `maintainers@` — 詳細は
-[`CONTRIBUTING.md`](../../../CONTRIBUTING.md)。
+[`CONTRIBUTING.md`](../../../CONTRIBUTING.ja.md)。
 
-英語版: [`README.md`](README.md)。
+英語版: [`README.md`](README.ja.md)。

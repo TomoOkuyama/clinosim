@@ -7,7 +7,7 @@
 ## 利用可能プリセット
 
 | Preset | Country | Patients | Period | サイズ目安 (FHIR NDJSON) |
-|---|---|---|---:|---:|
+| --- | --- | --- | ---: | ---: |
 | [`us-100`](us-100/)   | US | 100  | 3 ヶ月 | ~2 MB   |
 | [`us-1000`](us-1000/) | US | 1000 | 6 ヶ月 | ~30 MB  |
 | [`jp-100`](jp-100/)   | JP | 100  | 3 ヶ月 | ~2 MB   |
@@ -36,7 +36,7 @@ clinosim simulate \
 
 同 clinosim バージョンでリリース build とバイト単位で一致。これが
 SemVer 決定性契約; `reproducibility` CI ジョブが全 push でこれを
-強制 (トップレベル [Reproducibility セクション](../README.md#reproducibility) 参照)。
+強制 (トップレベル [Reproducibility セクション](../README.ja.md#reproducibility) 参照)。
 
 ## Pre-built データセットのダウンロード
 
@@ -59,7 +59,7 @@ tar -xzf clinosim-dataset-jp-100-v0.3.0.tar.gz
 PHI、PII を取り込み・参照・再現しません。出力は **臨床用途を意図
 していない**、いかなる診断・治療・ケア判断にも依拠してはならない。
 詳細は
-[プロジェクトレベル免責](../README.md#clinosim) 参照。
+[プロジェクトレベル免責](../README.ja.md#clinosim) 参照。
 
 ## 引用
 

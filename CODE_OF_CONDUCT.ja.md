@@ -19,7 +19,7 @@ URL から参照できる:
 
 適用範囲、エンフォースメント責任、Community Impact Guidelines
 (Correction / Warning / Temporary Ban / Permanent Ban の 4 段階) は
-英語版 [`CODE_OF_CONDUCT.md`](CODE_OF_CONDUCT.md) と Contributor
+英語版 [`CODE_OF_CONDUCT.md`](CODE_OF_CONDUCT.ja.md) と Contributor
 Covenant 公式日本語訳を参照してください。両者は同じ規範を記述して
 います。
 

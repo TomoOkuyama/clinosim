@@ -29,10 +29,10 @@ dispatcher (`coding_strategy`)。
   (observation builder が消費する vital-sign + BP 成分の
   reference-range 表)。
 - **Out of scope**: lab / vitals / microbiology / imaging の **生成**
-  ([`observation`](../../../observation/README.md)、
-  [`hai`](../../../hai/README.md)、
-  [`imaging`](../../../imaging/README.md) 等);Order 発注
-  ([`order`](../../../order/README.md))。
+  ([`observation`](../../../observation/README.ja.md)、
+  [`hai`](../../../hai/README.ja.md)、
+  [`imaging`](../../../imaging/README.ja.md) 等);Order 発注
+  ([`order`](../../../order/README.ja.md))。
 
 ## Public API
 
@@ -97,7 +97,7 @@ from clinosim.modules.output.fhir_r4.labs._reference_ranges import (
 - **`_LOINC_ABO_GROUP = "883-9"`** + **`_LOINC_RH_GROUP = "10331-7"`**
   — ABO group + Rh factor Observation の LOINC 定数
   (Issue #795 RNG-neutral additive-field pattern、値は
-  [`population`](../../../population/README.md) で
+  [`population`](../../../population/README.ja.md) で
   `sha256(person_id + salt)` から派生)。
 - **`SR_ID_PREFIX`, `PLACER_ORDER_NUMBER_SYSTEM`,
   `LAB_CATEGORY_SNOMED = "108252007"`, `LAB_CATEGORY_V2_0074 = "LAB"`**
@@ -155,6 +155,6 @@ clinosim audit run -d <cohort_dir> --module hai        # microbiology 上の HAI
 ## Ownership
 
 `maintainers@` — 詳細は
-[`CONTRIBUTING.md`](../../../../../CONTRIBUTING.md)。
+[`CONTRIBUTING.md`](../../../../../CONTRIBUTING.ja.md)。
 
-英語版: [`README.md`](README.md)。
+英語版: [`README.md`](README.ja.md)。

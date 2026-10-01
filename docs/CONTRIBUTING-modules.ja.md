@@ -2,9 +2,9 @@
 
 このドキュメントは、新しいコントリビューターが clinosim に **モジュール/プラグインを追加し、データを生成し、どのデータ/コードを使うかを正しく選択する** ための実践 playbook です。アーキテクチャ原則 (ADR) は `DESIGN.md`、規約の総覧は `AGENTS.md` を参照してください。本書はそれらと重複せず、**HOW-TO** に集中します。
 
-> **本書は CIF 生成 layer(Layers 1-3 = 参照 YAML、loader、CIF generation module)が中心** です。**FHIR builder layer(Layer 4 = `fhir_r4/<domain>/*.py`)を追加・拡張する場合は** [`docs/design-guides/fhir-data-generation-logic.md`](design-guides/fhir-data-generation-logic.md) を参照してください(BundleContext / code_lookup / 多言語 display / identifier system 規約 / register_bundle_builder)。
+> **本書は CIF 生成 layer(Layers 1-3 = 参照 YAML、loader、CIF generation module)が中心** です。**FHIR builder layer(Layer 4 = `fhir_r4/<domain>/*.py`)を追加・拡張する場合は** [`docs/design-guides/fhir-data-generation-logic.md`](design-guides/fhir-data-generation-logic.ja.md) を参照してください(BundleContext / code_lookup / 多言語 display / identifier system 規約 / register_bundle_builder)。
 
-> **新規モジュール作成時**: [`.github/TEMPLATE_MODULE_README.md`](../.github/TEMPLATE_MODULE_README.md) をコピーして開始。全 33 module(counting rule: `clinosim/modules/` 配下の package 数。`_shared.py` 等の非 package ファイルは含まない)の俯瞰は [`MODULES.md`](../MODULES.md) を参照。PR 検証手段の選び方は本書の「PR 検証ガイド: byte-diff vs 3-axis DQR」セクション参照。読む順序の全体像は [`docs/design-guides/README.md`](design-guides/README.md) を参照。
+> **新規モジュール作成時**: [`.github/TEMPLATE_MODULE_README.md`](../.github/TEMPLATE_MODULE_README.md) をコピーして開始。全 33 module(counting rule: `clinosim/modules/` 配下の package 数。`_shared.py` 等の非 package ファイルは含まない)の俯瞰は [`MODULES.md`](../MODULES.ja.md) を参照。PR 検証手段の選び方は本書の「PR 検証ガイド: byte-diff vs 3-axis DQR」セクション参照。読む順序の全体像は [`docs/design-guides/README.md`](design-guides/README.ja.md) を参照。
 
 実コードの正本パス:
 - Enricher registry: `clinosim/simulator/enrichers.py`
@@ -19,7 +19,7 @@
 `DESIGN.md` には 55+ の ADR があるが、新規 module 著者が最初に把握すべきは以下の 9 つ:
 
 | ADR | 一言サマリ |
-|---|---|
+| --- | --- |
 | AD-16 | 決定論: 同 seed + 同 config = byte-identical な structural 出力。全乱数は sub-seed 由来の `numpy.random.Generator`(`random.random()` 禁止) |
 | AD-17 | CIF が唯一の simulation 出力。format adapter(FHIR/CSV)は CIF だけを読む — simulation 内部に触れない |
 | AD-25 | CIF は language-neutral。localization(用語翻訳・単位・整形)は出力時に行う(CIF 生成時の国別データは氏名のみ) |
@@ -166,14 +166,14 @@ call site では `_REF_DIR / "X.yaml"` / `_LOCALE / country / "X.yaml"` で path
 ### `@lru_cache` の `maxsize` 規約(PR-A 2026-06-26 で確立)
 
 | loader の signature | `maxsize` |
-|---|---|
+| --- | --- |
 | `load_X() -> dict`(no parameter) | `1` |
 | `load_X(country: str) -> dict` | `2`(US + JP) |
 | `load_X(country: str, language: str)` | `4`(将来の多言語拡張用、現在は未使用) |
 
 `maxsize` は eviction policy にしか効きませんが、**意図を読みやすくする load-bearing な signal** です。`maxsize=4` を country-only loader に付けるとレビュアーが「将来 4 国対応?」と誤解します。
 
-**PR-B1 (2026-06-27) + adversarial fix で完成**: 残存していた hand-rolled cache pattern(`global X; if X is None: ... else return X` を **6 loader**で使用)を撤廃し、全 module の loader が `@lru_cache` 標準。touch 対象は `clinosim/modules/encounter/protocol.py:load_all_encounter_conditions` / `clinosim/simulator/helpers.py:_load_all_disease_protocols` / `clinosim/modules/output/fhir_r4/labs/diagnostic_report.py:load_panel_groups` / `clinosim/modules/output/fhir_r4/lib/common.py` (localization helpers) の `_load_med_terms_ja` + `_load_drug_names_ja` + `_load_department_display`。新規 module で global mutable `_cache` 変数を導入することは禁止(`test_*` で `load_X.cache_clear()` を使う標準テスト pattern と相反するため)。同 PR で `clinosim/simulator/helpers.py:_load_all_disease_protocols` の `try/except pass` silent skip も削除済(silent-no-op 防御強化、PR #102 silent-no-op 防御 3 層との整合)。**brainstorming Step 1 での sweep grep は `grep -i "cache\|state\|memo"` 等の意味フィルタを使わず、`grep -E "^_[A-Za-z_]+: *.+ *= *None"` の generic sentinel pattern を必ず使うこと**(PR-B1 adversarial review 教訓: 意味フィルタが `_drug_names_ja` 等の cache を false-negative)。
+**PR-B1 (2026-06-27) + adversarial fix で完成**: 残存していた hand-rolled cache pattern(`global X; if X is None: ... else return X` を **6 loader**で使用)を撤廃し、全 module の loader が `@lru_cache` 標準。touch 対象は `clinosim/modules/encounter/protocol.py:load_all_encounter_conditions` / `clinosim/simulator/helpers.py:_load_all_disease_protocols` / `clinosim/modules/output/fhir_r4/labs/diagnostic_report.py:load_panel_groups` / `clinosim/modules/output/fhir_r4/lib/common.py` (localization helpers) の `_load_med_terms_ja` + `_load_drug_names_ja` + `_load_department_display`。新規 module で global mutable `_cache` 変数を導入することは禁止(`test_*` で `load_X.cache_clear()` を使う標準テスト pattern と相反するため)。同 PR で `clinosim/simulator/helpers.py:_load_all_disease_protocols` の `try/except pass` silent skip も削除済(silent-no-op 防御強化、PR #102 silent-no-op 防御 3 層との整合)。**brainstorming Step 1 での sweep grep は `grep -i "cache\ |state\ |memo"` 等の意味フィルタを使わず、`grep -E "^_[A-Za-z_]+: *.+ *= *None"` の generic sentinel pattern を必ず使うこと**(PR-B1 adversarial review 教訓: 意味フィルタが `_drug_names_ja` 等の cache を false-negative)。
 
 **共通ロジック統一 (2026-07-02) で protocol / config loader も `@lru_cache` 化済**: `load_disease_protocol(disease_id)`(maxsize=64)/ `load_encounter_condition(condition_id)`(maxsize=64)/ `load_healthcare_config(country)`(maxsize=2)/ `load_hospital_operations()`(maxsize=1)。
 
@@ -327,7 +327,7 @@ def generate_lab_result(canon: str, true_value: float, rng: np.random.Generator,
 PR の性質によって適切な検証手段が異なります:
 
 | PR の性質 | 検証手段 | 何を保証するか |
-|---|---|---|
+| --- | --- | --- |
 | **Pure mechanical refactor** (例: 内部構造整理、helper 共通化、registry 中央化、ファイル分割) | **byte-diff** — master と branch で同 seed/設定で生成した 11 NDJSON が sha256 IDENTICAL | refactor 前後で **出力が一切変わっていない** = no-regression gate |
 | **新機能 / リアリティ改善** (例: 新 analyte 追加、scenario flag 追加、medication coupling 追加、新疾患追加) | **`clinosim audit run`** — 4 軸 (structural / clinical / jp_language / silent_no_op) を一括検証。Module 著者は `clinosim/modules/<name>/audit.py` に `ModuleAuditSpec` を register する。レポートは `docs/reviews/<date>-<topic>-audit.md` に保存 | **FHIR R4 / JP Core 適合性 + 臨床整合性 + JP language 品質 + silent-no-op gate** (PR-90 class of bug 再発防止) = goal achievement gate |
 | **Pure docs update** (例: README 更新、新 doc 作成) | regression check (テスト緑) + manual link review | code 変更がないこと |
@@ -365,7 +365,7 @@ PR の性質によって適切な検証手段が異なります:
 order → canonical_lab_name → generate_lab_result(true_value, rng) → determine_flag(canon, observed, sex, reference_ranges)
 ```
 
-疾患・薬剤が特定 lab を lift する場合は `derive_lab_values` の scenario flag(`causes_X`)/ medication flag(`on_warfarin` 等)を使います — flag の一覧・追加手順・J5-pattern 防止の設計は [`SCENARIO_FLAGS.md`](../SCENARIO_FLAGS.md) を参照。
+疾患・薬剤が特定 lab を lift する場合は `derive_lab_values` の scenario flag(`causes_X`)/ medication flag(`on_warfarin` 等)を使います — flag の一覧・追加手順・J5-pattern 防止の設計は [`SCENARIO_FLAGS.md`](../SCENARIO_FLAGS.ja.md) を参照。
 
 > **注意 (OBS-3):** `determine_flag()` には locale reference range を渡してください。現状 call site (`inpatient.py:604`, `outpatient.py:178`, `emergency.py:146` 等) が `reference_ranges=` を渡さず、JP 出力で interpretation が US default で計算される不整合があります。新規 call は `reference_ranges=load_reference_ranges(country).get("ranges", {})` を渡すこと。
 >
@@ -420,7 +420,7 @@ ENRICHER_SEED_OFFSETS = {
 決定 matrix:
 
 | 軸 | typed field | extensions |
-|---|---|---|
+| --- | --- | --- |
 | Always-on Base data | ✓ | |
 | Opt-in module data | | ✓ |
 | 共通 core EHR field | ✓ | |
@@ -647,7 +647,7 @@ The two-pass CIF generation architecture (`clinosim simulate` → Stage 1 struct
 ### Change types and iteration time
 
 | Change target | Fastest regen command | Estimated time | Notes |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | **Simulator engine / enricher** (population, disease, encounter logic) | `clinosim simulate -p N -o /tmp/cX` | 5-50 min | Full cohort → CIF output. Proportional to N. |
 | **Template narrative generator** (TemplateNarrativeGenerator, bug A pattern) | `clinosim narrate --cif-dir /tmp/cX --version-id template` → `clinosim export-fhir --cif-dir /tmp/cX` | ~30 sec + 5 min | Reuse existing structural CIF. Stage 2 only. |
 | **FHIR builder** (bug C pattern) | `clinosim export-fhir --cif-dir /tmp/cX` | ~5 min | Reuse existing CIF. Stage 3 only. |

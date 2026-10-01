@@ -18,7 +18,7 @@ spec
 ## 現在の flag 一覧
 
 | Flag | Type | Set in | Read in | Effect on lab values |
-|---|---|---|---|---|
+| --- | --- | --- | --- | --- |
 | `myocardial_injury` (alias: disease YAML 上の `causes_myocardial_injury`) | scenario | `acute_mi.yaml` | `physiology.engine.derive_lab_values` | Troponin_I → ACS-grade (~10-100 ng/mL); CK_MB も上昇 |
 | `causes_vte` | scenario | `pulmonary_embolism.yaml`, `deep_vein_thrombosis.yaml`, `cerebral_infarction.yaml` (embolic) | `derive_lab_values` | D_dimer → VTE-positive (clamp 0.15-20 μg/mL FEU; PE/DVT/CI admit p50 ≥ 4) |
 | `on_warfarin` | medication | `PatientProfile.current_medications` (慢性 AF / post-VTE) **または** 入院中 warfarin order で ≥ 3 日経過 (loading-dose ルール) | `derive_lab_values` | PT_INR → 治療域 2.5 + half-gain 併存疾患摂動、PT も同時 (PT = 12 × PT_INR) |
@@ -86,7 +86,7 @@ apply_hai_lab_lift(record=record, encounter=encounter,
 pattern を使用):
 
 | Site | File | Purpose | medication context |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | Pass-1 lab loop | `simulator/inpatient.py:563-571` | 日次入院 labs | full (orders + day) |
 | unknown-condition site | `simulator/inpatient.py:~1701` | unknown-condition encounter labs | chronic-only |
 | ED admit | `simulator/emergency.py:126-130` | ED visit labs | chronic-only |
@@ -123,10 +123,10 @@ Core compliance + 臨床整合」原則に反する。詳細は PR #82 (Phase 2b
 
 ## 関連
 
-- [DESIGN.md](DESIGN.md) AD-57 (BNP-pattern surgical) / AD-59
+- [DESIGN.md](DESIGN.ja.md) AD-57 (BNP-pattern surgical) / AD-59
   (per-order sub-rng) / AD-56 (enricher registry)
 - [AGENTS.md](AGENTS.md) 「AD-55 enricher patterns」
-- [docs/CONTRIBUTING-modules.md](docs/CONTRIBUTING-modules.md)
+- [docs/CONTRIBUTING-modules.md](docs/CONTRIBUTING-modules.ja.md)
   「PR 検証ガイド」+ 「sub-seed 導出ルール」
 - [clinosim/modules/physiology/README.ja.md](clinosim/modules/physiology/README.ja.md)
   — helper API リファレンス
@@ -134,4 +134,4 @@ Core compliance + 臨床整合」原則に反する。詳細は PR #82 (Phase 2b
   (causes_vte) + `docs/history/specs-archive/2026-06-24-phase2b-on-anticoagulation-design.md`
   (on_warfarin)
 
-英語版: [`SCENARIO_FLAGS.md`](SCENARIO_FLAGS.md)。
+英語版: [`SCENARIO_FLAGS.md`](SCENARIO_FLAGS.ja.md)。

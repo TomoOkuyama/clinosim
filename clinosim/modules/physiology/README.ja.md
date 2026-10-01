@@ -12,7 +12,7 @@ sign、薬物応答が導出元とする軸。患者の
 projection する。simulator 外部から見える臨床値はすべてこの state
 の projection である「リアリズム core」。
 
-[`clinical_course`](../clinical_course/README.md) は「翌日 state を
+[`clinical_course`](../clinical_course/README.ja.md) は「翌日 state を
 どう動かすか」を決定するのに対し、`physiology` は「その state が
 現時点の患者 lab / vital にとって何を意味するか」を定義し、
 clinical_course が要求する day-scale delta を適用する。
@@ -34,11 +34,11 @@ clinical_course が要求する day-scale delta を適用する。
   `derive_observed_vitals` (circadian + 測定 noise 付与)、
   cross-module reflection 用 `canonical_state_vars()`。
 - **Out of scope**: 時間軸 trajectory 選択
-  ([`clinical_course`](../clinical_course/README.md))、CIF に着地
-  する観測値 ([`observation`](../observation/README.md))、疾患定義
-  ([`disease`](../disease/README.md))、ordering 規則
-  ([`order`](../order/README.md))、FHIR emission
-  ([`output`](../output/README.md))。
+  ([`clinical_course`](../clinical_course/README.ja.md))、CIF に着地
+  する観測値 ([`observation`](../observation/README.ja.md))、疾患定義
+  ([`disease`](../disease/README.ja.md))、ordering 規則
+  ([`order`](../order/README.ja.md))、FHIR emission
+  ([`output`](../output/README.ja.md))。
 
 ## Public API
 
@@ -168,7 +168,7 @@ physiology は encounter simulator が直接呼び、YAML data は持たず、
 ## Output surface (consumers)
 
 | Consumer | 場所 | 役割 |
-|---|---|---|
+| --- | --- | --- |
 | Inpatient encounter | [`clinosim/simulator/inpatient.py`](../../simulator/inpatient.py) | 入院時 + 日次回診で `initialize_state`, `derive_lab_values`, `derive_vital_signs` を呼び出す。 |
 | Emergency + outpatient | [`clinosim/simulator/{emergency,outpatient,unknown_condition}.py`](../../simulator/) | ED / 外来 tier で同様 (日次 loop なし)。 |
 | Daily loop | [`clinosim/simulator/daily_loop.py`](../../simulator/daily_loop.py) | 入院 day ごとに state を進行 (`update`) し coupling 規則を適用。 |
@@ -200,6 +200,6 @@ focused check (audit-module の lift-firing-proof に相当) を加える。
 ## Ownership
 
 `maintainers@` — 詳細は
-[`CONTRIBUTING.md`](../../../CONTRIBUTING.md)。
+[`CONTRIBUTING.md`](../../../CONTRIBUTING.ja.md)。
 
-英語版: [`README.md`](README.md)。
+英語版: [`README.md`](README.ja.md)。

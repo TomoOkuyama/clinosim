@@ -9,9 +9,9 @@ CDC NHSN の per-line-day risk rate に基づき、encounter ごとに医療関�
 反映すべく既存 WBC + CRP 観測値を closed-form 順方向 delta で持ち上げる
 (Phase 3a) モジュール。
 
-[`clinosim.modules.device`](../device/README.md) (POST_ENCOUNTER
+[`clinosim.modules.device`](../device/README.ja.md) (POST_ENCOUNTER
 order=70、line-days 生成)、
-[`clinosim.modules.antibiotic`](../antibiotic/README.md)
+[`clinosim.modules.antibiotic`](../antibiotic/README.ja.md)
 (POST_ENCOUNTER order=85、empirical regimen)、observation
 microbiology emitter と組み合わさり、本モジュールは 4 モジュール
 HAI cascade の中核。
@@ -38,13 +38,13 @@ HAI cascade の中核。
   CRP delta ≥ 25、CLABSI / VAP 各 ≥ 3000 / ≥ 50、小 cohort → WARN)
   も含む。
 - **Out of scope**: device line-days 生成
-  ([`device`](../device/README.md))、empirical / narrowing
+  ([`device`](../device/README.ja.md))、empirical / narrowing
   抗菌薬 regimen 構築
-  ([`antibiotic`](../antibiotic/README.md))、culture の FHIR
+  ([`antibiotic`](../antibiotic/README.ja.md))、culture の FHIR
   `Observation` / `DiagnosticReport` emission
   ([`output/fhir_r4/labs/`](../output/fhir_r4/) —
   `fhir_r4/labs/microbiology.py`)、ServiceRequest emission
-  ([`order`](../order/README.md))。
+  ([`order`](../order/README.ja.md))。
 
 ## Public API
 
@@ -147,7 +147,7 @@ clinosim/modules/hai/
 ## Output surface (consumers)
 
 | Consumer | 場所 | 役割 |
-|---|---|---|
+| --- | --- | --- |
 | Enricher registry | [`clinosim/simulator/enrichers.py`](../../simulator/enrichers.py) | POST_ENCOUNTER order=80 登録。 |
 | Audit registry | [`clinosim/modules/hai/audit.py`](audit.py) | AD-60 audit plug-in — lift_firing_proof + canonical / structural / clinical check。 |
 | Antibiotic enricher | [`clinosim/modules/antibiotic/enricher.py`](../antibiotic/enricher.py) | empirical regimen 選択のため `extensions["hai"]` を read。 |
@@ -187,6 +187,6 @@ clinosim audit run -d <cohort_dir> --module hai
 ## Ownership
 
 `maintainers@` — 詳細は
-[`CONTRIBUTING.md`](../../../CONTRIBUTING.md)。
+[`CONTRIBUTING.md`](../../../CONTRIBUTING.ja.md)。
 
-英語版: [`README.md`](README.md)。
+英語版: [`README.md`](README.ja.md)。

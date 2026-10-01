@@ -22,13 +22,13 @@ discharge protocol、および antibiotic 起点 order の 3 系統だけで、
   dedup により disease YAML flow (sepsis / PE / GI bleed) が正当に
   同 analyte を発注しているケースを尊重して二重発行しない。
 - **Out of scope**: 慢性薬付与
-  ([`clinosim.modules.patient`](../patient/README.md) activator)、
+  ([`clinosim.modules.patient`](../patient/README.ja.md) activator)、
   disease YAML lab order
-  ([`clinosim.modules.order`](../order/README.md))、lab 値そのもの
+  ([`clinosim.modules.order`](../order/README.ja.md))、lab 値そのもの
   の導出
-  ([`clinosim.modules.observation`](../observation/README.md))、
+  ([`clinosim.modules.observation`](../observation/README.ja.md))、
   FHIR emission
-  ([`clinosim.modules.output`](../output/README.md))、
+  ([`clinosim.modules.output`](../output/README.ja.md))、
   頻度 scheduling (daily vs monthly、induction vs maintenance) —
   META #757 pass 3+ 予定。
 
@@ -121,7 +121,7 @@ clinosim/modules/monitoring/
 ## Output surface (consumers)
 
 | Consumer | 場所 | 役割 |
-|---|---|---|
+| --- | --- | --- |
 | Enricher registry | [`clinosim/simulator/enrichers.py:226`](../../simulator/enrichers.py) | POST_RECORDS order=65 登録。 |
 | Observation engine | [`clinosim/modules/observation/engine.py`](../observation/engine.py) | `generate_lab_result` + `determine_flag` + `get_lab_unit` が emit lab 値を生成。 |
 | 下流 FHIR + CSV | (生成される `Order` / `OrderResult` 経由) | 注入 order が標準 lab-emission path を流れる。 |
@@ -141,6 +141,6 @@ pytest tests/unit -k medication_monitoring -q
 ## Ownership
 
 `maintainers@` — 詳細は
-[`CONTRIBUTING.md`](../../../CONTRIBUTING.md)。
+[`CONTRIBUTING.md`](../../../CONTRIBUTING.ja.md)。
 
-英語版: [`README.md`](README.md)。
+英語版: [`README.md`](README.ja.md)。

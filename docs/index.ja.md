@@ -44,8 +44,8 @@ clinosim dataset build jp-100 --output ./jp-100          # 約 30 秒
 clinosim eval -d ./jp-100                                # 評価
 ```
 
-詳細ウォークスルー: [Installation](getting-started/installation.md) →
-[Quick start](getting-started/quick-start.md)。
+詳細ウォークスルー: [Installation](getting-started/installation.ja.md) →
+[Quick start](getting-started/quick-start.ja.md)。
 
 ---
 
@@ -59,7 +59,7 @@ clinosim eval -d ./jp-100                                # 評価
 
     集団 → CIF → FHIR パイプラインがエンドツーエンドで動作する仕組み。
 
-    [→ Data generation walkthrough](design-guides/data-generation-walkthrough.md)
+    [→ Data generation walkthrough](design-guides/data-generation-walkthrough.ja.md)
 
 -   :material-database-outline: **Datasets**
 
@@ -67,7 +67,7 @@ clinosim eval -d ./jp-100                                # 評価
 
     4 つの名前付きプリセットデータセット (US/JP × 100/1000) + 自作方法。
 
-    [→ Datasets reference](reference/datasets.md)
+    [→ Datasets reference](reference/datasets.ja.md)
 
 -   :material-chart-line: **Evaluation**
 
@@ -75,7 +75,7 @@ clinosim eval -d ./jp-100                                # 評価
 
     生成コホートを structural / clinical / locale の 3 軸でスコア化。
 
-    [→ `clinosim eval`](eval.md)
+    [→ `clinosim eval`](eval.ja.md)
 
 -   :material-code-braces: **Guides**
 
@@ -83,7 +83,7 @@ clinosim eval -d ./jp-100                                # 評価
 
     モジュール追加、疾患 YAML 拡張、新しい FHIR ビルダー配線。
 
-    [→ Adding a module](CONTRIBUTING-modules.md)
+    [→ Adding a module](CONTRIBUTING-modules.ja.md)
 
 </div>
 

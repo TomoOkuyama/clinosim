@@ -5,7 +5,7 @@
 初期集患エリア population (世帯 + 人物: demographics / 住所 / 電話 /
 体格 / lifestyle / 慢性疾患) を生成し、その上で 年 scale の医療
 calendar (月次 acute-disease event、慢性フォロー visit、screening、
-[`clinosim.modules.pediatric`](../pediatric/README.md) と merge した
+[`clinosim.modules.pediatric`](../pediatric/README.ja.md) と merge した
 小児 visit) を回す。本モジュールはシミュレーション pipeline の頭。
 下流全モジュールが返却の `PopulationRegistry` を消費する。
 
@@ -38,14 +38,14 @@ calendar (月次 acute-disease event、慢性フォロー visit、screening、
   ならない。
 - **Out of scope**: 姓名 / 住所 / 電話 raw data
   ([`clinosim/locale/<country>/`](../../locale/))、疾患プロトコル定義
-  ([`clinosim.modules.disease`](../disease/README.md))、患者の
+  ([`clinosim.modules.disease`](../disease/README.ja.md))、患者の
   encounter 発生
-  ([`clinosim.modules.patient.activator`](../patient/README.md))、
+  ([`clinosim.modules.patient.activator`](../patient/README.ja.md))、
   identity / 保険番号
-  ([`clinosim.modules.identity`](../identity/README.md))、encounter
+  ([`clinosim.modules.identity`](../identity/README.ja.md))、encounter
   simulator 本体 ([`clinosim.simulator`](../../simulator/))、
   小児 visit emit (本モジュールは
-  [`clinosim.modules.pediatric.calendar.generate_pediatric_events`](../pediatric/README.md)
+  [`clinosim.modules.pediatric.calendar.generate_pediatric_events`](../pediatric/README.ja.md)
   に委譲)。
 
 ## Public API
@@ -246,7 +246,7 @@ CLI master RNG で `generate_population`, `generate_monthly_events`,
 ## Output surface (consumers)
 
 | Consumer | 場所 | 役割 |
-|---|---|---|
+| --- | --- | --- |
 | Simulator boot | [`clinosim/simulator/engine.py`](../../simulator/engine.py) | `generate_population` を 1 回、次に年ごとに `generate_monthly_events` + `generate_healthcare_calendar` を呼び出す。 |
 | Inpatient / discharge encounter | [`clinosim/simulator/{inpatient,discharge_gate,unknown_condition}.py`](../../simulator/) | `PersonRecord` + `HospitalizationSummary` の field (慢性疾患、既往入院、care-seeking threshold、lifestyle) を read。 |
 | Enumeration | [`clinosim/simulator/enumerate.py`](../../simulator/enumerate.py) | `PopulationRegistry` を walk して per-person iterator を構築。 |
@@ -284,6 +284,6 @@ pytest tests/integration -k population -q
 ## Ownership
 
 `maintainers@` — 詳細は
-[`CONTRIBUTING.md`](../../../CONTRIBUTING.md)。
+[`CONTRIBUTING.md`](../../../CONTRIBUTING.ja.md)。
 
-英語版: [`README.md`](README.md)。
+英語版: [`README.md`](README.ja.md)。

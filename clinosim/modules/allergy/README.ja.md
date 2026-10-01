@@ -27,8 +27,8 @@ calibration (population level ~15.3 %) を保つ。
   membership に対して cross-check。
 - **Out of scope**: 患者あたり複数アレルギー (現状 single-allergy、
   拡張は code コメントで記載)、drug-allergy と処方の相互作用
-  ([`clinosim.modules.order`](../order/README.md))、FHIR serialization
-  ([`clinosim.modules.output`](../output/README.md))、特定 encounter
+  ([`clinosim.modules.order`](../order/README.ja.md))、FHIR serialization
+  ([`clinosim.modules.output`](../output/README.ja.md))、特定 encounter
   中の反応 event 生成、SNOMED 表示テキスト
   ([`clinosim/codes/`](../../codes/))。
 
@@ -58,7 +58,7 @@ from clinosim.modules.allergy.engine import (
 (latex)。実世界 benchmark:
 
 | Reference | Rate | Scope |
-|---|---|---|
+| --- | --- | --- |
 | MHLW アレルギー疾患実態調査 2011 | 30-40% | 花粉症 (J30) や食物不耐 (K90.4) を含む「何らかのアレルギー疾患」 |
 | 薬物アレルギー documented alone | 5-10% | Medication-only、実 EHR |
 | 臨床的に文書化された `AllergyIntolerance` 合算 | 10-20% | 実病院 EHR の典型値 |
@@ -162,7 +162,7 @@ enricher entry は `engine.py` の `allergy_enricher`。
 ## Output surface (consumers)
 
 | Consumer | 場所 | 役割 |
-|---|---|---|
+| --- | --- | --- |
 | FHIR `AllergyIntolerance` builder | [`clinosim/modules/output/fhir_r4/conditions/allergy_intolerance.py`](../output/fhir_r4/conditions/allergy_intolerance.py) | `record.allergies` を読み、entry ごとに `AllergyIntolerance` 1 件を emit。id は builder 所有の canonical `allergy-{patient_id}-{idx}` (I-4 fix — engine は placeholder `allergy_id="1"` を置く)。 |
 | Enricher registry | [`clinosim/simulator/enrichers.py:127`](../../simulator/enrichers.py) | POST_POPULATION order=10 登録。 |
 
@@ -187,6 +187,6 @@ pytest tests/unit -k fhir_allergy -q    # AllergyIntolerance 出力
 ## Ownership
 
 `maintainers@` — 詳細は
-[`CONTRIBUTING.md`](../../../CONTRIBUTING.md)。
+[`CONTRIBUTING.md`](../../../CONTRIBUTING.ja.md)。
 
-英語版: [`README.md`](README.md)。
+英語版: [`README.md`](README.ja.md)。

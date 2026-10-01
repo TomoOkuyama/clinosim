@@ -2,7 +2,7 @@
 
 ## 概要
 
-[`fhir_r4/`](../README.md) 配下の全 clinical-domain builder
+[`fhir_r4/`](../README.ja.md) 配下の全 clinical-domain builder
 subpackage が import する共有 low-level fragment helper。FHIR
 subsystem の leaf 層 — 各 helper は top-level resource ではなく
 FHIR *fragment* (Coding, CodeableConcept, Bundle entry, UCUM
@@ -148,6 +148,6 @@ AD-60 audit plug-in (hai, antibiotic, order, imaging, document) が
 ## Ownership
 
 `maintainers@` — 詳細は
-[`CONTRIBUTING.md`](../../../../../CONTRIBUTING.md)。
+[`CONTRIBUTING.md`](../../../../../CONTRIBUTING.ja.md)。
 
-英語版: [`README.md`](README.md)。
+英語版: [`README.md`](README.ja.md)。

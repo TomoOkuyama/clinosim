@@ -29,7 +29,7 @@ template Stage 2 narrative pass を自動実行するので
 になる。`clinosim generate` は同じオプションを受け付ける。
 
 | Option | Default | 説明 |
-|---|---|---|
+| --- | --- | --- |
 | `-o, --output DIR` | `./output` | 出力ディレクトリ |
 | `-p, --population N` | hospital config の `recommended_population` | Catchment population |
 | `--country CODE` | `US` | `US` または `JP` |
@@ -58,7 +58,7 @@ template Stage 2 narrative pass を自動実行するので
 出す。
 
 | Option | Default | 説明 |
-|---|---|---|
+| --- | --- | --- |
 | `--cif-dir DIR` | **必須** | 既存 CIF ディレクトリへのパス |
 | `--provider NAME` | `template` | Narrative 生成器: `template` (決定的)、または LLM provider: `bedrock`、`ollama`、`mock`、`vllm` (OpenAI 互換 `/v1/chat/completions`; SGLang 他 OpenAI 互換サーバも対象)、`openai_compatible` (`vllm` の alias)。 |
 | `--llm-config PATH` | provider ごとの default | LLM サービス YAML (`clinosim/config/llm_service*.yaml`)。Default: `bedrock` → `llm_service.bedrock.yaml`、`ollama` → `llm_service.yaml`、`mock` → in-code `MockProvider`。 |
@@ -74,7 +74,7 @@ template Stage 2 narrative pass を自動実行するので
 **Tier A+B 文書 scope** (デフォルト):
 
 | 文書 | LOINC | 生成タイミング | 頻度 |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | Discharge Summary | `18842-5` | 各入院退院 | encounter ごとに 1 |
 | Death Note | `69730-0` | 死亡入院患者 | 死亡ごとに 1 |
 | Operative Note | `11504-8` | 外科手技 (SNOMED 387713003) | 手術ごとに 1 |
@@ -92,7 +92,7 @@ template Stage 2 narrative pass を自動実行するので
 version により `final` docStatus に昇格) から emit。
 
 | Option | Default | 説明 |
-|---|---|---|
+| --- | --- | --- |
 | `--cif-dir DIR` | **必須** | 既存 CIF ディレクトリへのパス |
 | `-o, --output DIR` | `<cif>/../fhir_r4` | 出力ディレクトリ |
 | `--country CODE` | `US` | `US` または `JP` |
@@ -105,7 +105,7 @@ AD-66 patient-profile bootstrap)。`DISEASE_ID` は
 `--patient-profile` 指定時は任意。
 
 | Option | Default | 説明 |
-|---|---|---|
+| --- | --- | --- |
 | `--patient-profile NAME` | (未設定) | 患者 profile fixture 名またはパス (AD-66); CLI 引数は profile field を上書きし stderr `WARN` を出す |
 | `-n, --count N` | 3 (または profile count) | 患者数 |
 | `--severity LEVEL` | (YAML から) | severity 強制: `mild` / `moderate` / `severe` |
@@ -125,7 +125,7 @@ clinosim test-disease heart_failure_exacerbation \
 単一 ED / 外来 encounter YAML を通じて 1 (以上) の患者を simulate。
 
 | Option | Default | 説明 |
-|---|---|---|
+| --- | --- | --- |
 | `-n, --count N` | 1 | 患者数 |
 | `-s, --seed N` | 42 | Random seed |
 | `--country CODE` | US | Country code |
@@ -143,7 +143,7 @@ clinosim test-encounter migraine --age 35 --sex F
 生成データを公開ベンチマークに対して品質 check。
 
 | Option | Default | 説明 |
-|---|---|---|
+| --- | --- | --- |
 | `-p, --population N` | 5000 | Population size |
 | `-s, --seed N` | 42 | Random seed |
 | `--country CODE` | US | Country code |
@@ -162,7 +162,7 @@ clinosim test-encounter migraine --age 35 --sex F
 決定的に全組合わせをカバーする。
 
 | Option | Default | 説明 |
-|---|---|---|
+| --- | --- | --- |
 | `-o, --output DIR` | **必須** | `cif/` / `cif/narratives/template/` / `fhir_r4/` / `enumeration_manifest.json` を書き出す |
 | `--level LEVEL` | `full` | `basic` (シナリオごとに 1)、`severity` (シナリオ × severity)、`full` (疾患 × severity × course_archetype) |
 | `--country CODE` | `US` | `US` または `JP` |
@@ -178,7 +178,7 @@ clinosim test-encounter migraine --age 35 --sex F
 day-N vs day-M 追記)。export 済み FHIR ディレクトリで実行。
 
 | Option | Default | 説明 |
-|---|---|---|
+| --- | --- | --- |
 | `--old DIR` | **必須** | 前 snapshot の FHIR 出力ディレクトリ |
 | `--new DIR` | **必須** | 現 snapshot の FHIR 出力ディレクトリ |
 | `--output-bundle PATH` | **必須** | Bundle transaction JSON 出力パス |
@@ -193,8 +193,8 @@ AD-66 α-min-2c golden narrative bootstrap。
 対する golden を再生成。
 
 | Option | Default | 説明 |
-|---|---|---|
-| `--profile NAME` \| `--all` | (どちらか必須) | 単一 profile 名、または全 profile |
+| --- | --- | --- |
+| `--profile NAME` \ | `--all` | (どちらか必須) | 単一 profile 名、または全 profile |
 | `--provider NAME` | `template` | `template` (`<name>.golden.json` を書く)、または `mock` / `bedrock` / `ollama` (`<name>.llm-<tag>.golden.json` を書く) |
 | `--llm-config PATH` | (provider ごとの default) | `narrate` に渡す LLM サービス YAML |
 | `--model-tag TAG` | provider 名 | LLM golden のファイル名 tag |
@@ -205,7 +205,7 @@ AD-66 α-min-2c golden narrative bootstrap。
 ゲート。exit 0 = pass、1 = 検出あり。
 
 | Option | Default | 説明 |
-|---|---|---|
+| --- | --- | --- |
 | `--cif-dir DIR` | **必須** | CIF ディレクトリへのパス |
 | `--version ID` | **必須** | check 対象 narrative version id (例: `llm-mock`、`ollama`) |
 | `--profile NAME` | (未設定) | 患者 profile — expectation を `tests/fixtures/patient_profiles/<name>.llm-expectations.yaml` に解決 |

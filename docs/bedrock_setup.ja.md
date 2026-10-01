@@ -313,7 +313,7 @@ clinosim は入院エンカウンター 1 件あたり **約 2.2 Tier A+B 文書
 トークン数はエンカウンターの複雑さに依存するが、典型範囲:
 
 | 文書 | 入力 tokens | 出力 tokens |
-|---|---|---|
+| --- | --- | --- |
 | Admission H&P | 800–1,200 | 400–600 |
 | Discharge Summary | 1,200–1,800 | 600–1,000 |
 | Operative Note | 700–1,000 | 300–500 |
@@ -395,8 +395,8 @@ Cache hit は無料。cache を有効化し実験ごとにプロンプトを再�
 
 - [clinical_documents.ja.md](clinical_documents.ja.md) — 臨床文書
   ガイド全体
-- [README.md § LLM Integration](../README.md#llm-integration-optional) —
+- [README.md § LLM Integration](../README.ja.md#llm-integration-optional) —
   プロバイダ概要
-- [../DESIGN.md § 7](../DESIGN.md) — アーキテクチャ判断 (AD-36〜AD-41)
+- [../DESIGN.md § 7](../DESIGN.ja.md) — アーキテクチャ判断 (AD-36〜AD-41)
 - [AWS Bedrock ドキュメント](https://docs.aws.amazon.com/bedrock/latest/userguide/)
 - [Bedrock Converse API リファレンス](https://docs.aws.amazon.com/bedrock/latest/APIReference/API_runtime_Converse.html)

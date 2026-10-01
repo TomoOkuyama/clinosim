@@ -2,11 +2,11 @@
 
 **Status:** Active(2026-06-29、PR1 ServiceRequest で確立)
 **Audience:** clinosim FHIR resource builder を追加・拡張する新規開発者。正規レイアウト: builder は `clinosim/modules/output/fhir_r4/` 配下 (`conditions/` / `labs/` / `procedures/` / `documents/` 等の domain sub-package) にあり、`_BUNDLE_BUILDERS` registry と `register_bundle_builder()` は `clinosim/modules/output/fhir_r4/__init__.py`。歴史的な `clinosim/modules/output/fhir_r4_adapter.py` は現在は薄い互換 re-export
-**Scope:** Layer 4 = FHIR R4 resource builder のみ。CIF 生成(Layers 1-3)は別 guide → [`docs/CONTRIBUTING-modules.md`](../CONTRIBUTING-modules.md) を参照
+**Scope:** Layer 4 = FHIR R4 resource builder のみ。CIF 生成(Layers 1-3)は別 guide → [`docs/CONTRIBUTING-modules.md`](../CONTRIBUTING-modules.ja.md) を参照
 
 clinosim FHIR 生成は **CIF を入力として、FHIR R4 resource dict を出力する** thin な変換層。FHIR 仕様 / US Core / JP Core 準拠 / 多言語 display 解決 / identifier 規約 が中心の関心事。
 
-CIF 側(Layers 1-3 = 参照 YAML、loader、CIF generation module)の design rule は既に [`docs/CONTRIBUTING-modules.md`](../CONTRIBUTING-modules.md) に詳述されている(canonical path / `@lru_cache` 規約 / `_validate_*` 6-layer + 7-layer system defense / sub-seed / panel-aware grouping / etc.)。重複させない — 本 guide は **FHIR builder layer の責務だけ** を扱う。
+CIF 側(Layers 1-3 = 参照 YAML、loader、CIF generation module)の design rule は既に [`docs/CONTRIBUTING-modules.md`](../CONTRIBUTING-modules.ja.md) に詳述されている(canonical path / `@lru_cache` 規約 / `_validate_*` 6-layer + 7-layer system defense / sub-seed / panel-aware grouping / etc.)。重複させない — 本 guide は **FHIR builder layer の責務だけ** を扱う。
 
 第一巡読 = A → B → C → D 順。E は anti-pattern、F は参考 reference。
 
@@ -31,7 +31,7 @@ CIF 側(Layers 1-3 = 参照 YAML、loader、CIF generation module)の design rul
 **FHIR builder の責務 / 非責務**:
 
 | Layer 4 がする | Layer 4 がしない |
-|---|---|
+| --- | --- |
 | CIF を読む(record / extensions / orders / lab_results / etc.) | CIF を変更する |
 | `code_lookup()` で display 解決 | display 文字列を hardcode |
 | `get_system_uri()` で system URI 解決 | system URI を hardcode |
@@ -47,7 +47,7 @@ CIF 側(Layers 1-3 = 参照 YAML、loader、CIF generation module)の design rul
 ### B.1 全体フロー(7 step)
 
 | Step | 内容 | 関連 |
-|---|---|---|
+| --- | --- | --- |
 | 1 | CIF 側で必要な field / extensions を準備(完了済み前提) | CIF guide = `docs/CONTRIBUTING-modules.md` |
 | 2 | 新 builder file `clinosim/modules/output/fhir_r4/<domain>/<topic>.py` を作成 | Section B.2 |
 | 3 | builder 内 canonical constants(ID prefix / identifier system)を定義 | Section B.3 |
@@ -172,7 +172,7 @@ def _bb_<topic>(ctx: BundleContext) -> list[dict]:
 `BundleContext`(`clinosim/modules/output/fhir_r4/lib/common.py` 既存)は builder への uniform 入力:
 
 | Field | 用途 |
-|---|---|
+| --- | --- |
 | `ctx.record` | CIF 患者 record(dict-like、`record.orders` / `record.lab_results` / `record.extensions[X]` 等) |
 | `ctx.country` | `"US"` / `"JP"` — display lang 選択に使用 |
 | `ctx.patient_id` | `Patient/<id>` reference 解決 |
@@ -341,7 +341,7 @@ register_audit_module(ModuleAuditSpec(
 ### D.1 Resource.id naming 規約
 
 | Resource | 形式 | 例 |
-|---|---|---|
+| --- | --- | --- |
 | ServiceRequest(panel) | `sr-{encounter_id}-{panel_key}-{N}` | `sr-enc-pt001-001-CBC-1` |
 | ServiceRequest(stand-alone) | `sr-{order_id}` | `sr-ORD-pt001-ADM-L05` |
 | Observation(lab) | `lab-{encounter_id}-{seq}` | `lab-enc-pt001-001-0001` |
@@ -560,7 +560,7 @@ Condition / Procedure / ServiceRequest 等で dual coding(local primary + intero
 
 ## 関連
 
-- [`docs/CONTRIBUTING-modules.md`](../CONTRIBUTING-modules.md) — CIF 生成側(Layers 1-3)の design rule 全集(日本語)
+- [`docs/CONTRIBUTING-modules.md`](../CONTRIBUTING-modules.ja.md) — CIF 生成側(Layers 1-3)の design rule 全集(日本語)
 - `DESIGN.md` — ADRs AD-17 / AD-25 / AD-30 / AD-31 / AD-46 / AD-47 / AD-55 / AD-56 / AD-58 / AD-59 / AD-60 / AD-61
 - `AGENTS.md` — § "FHIR output rules(must follow for all resource builders)" / § "FHIR R4 output" / § "Enrichment architecture (narrative prompts)" / § "Common pitfalls" (`CLAUDE.md` は AGENTS.md への薄い pointer として残存)
 - `.github/TEMPLATE_MODULE_README.md` — 新 module README boilerplate
@@ -569,12 +569,12 @@ Condition / Procedure / ServiceRequest 等で dual coding(local primary + intero
 ## Application precedents(FHIR builder layer)
 
 | PR | FHIR builder layer の wins |
-|---|---|
+| --- | --- |
 | FA-1 (PR #49-#59) | `fhir_r4_adapter` を per-theme `_fhir_*` builder に分割(3015 行 → 498 行) |
 | AD-46(Multilingual coding) | Condition / Procedure dual coding |
 | AD-47(refRange + interpretation) | Observation 整合性 |
 | PR-A 2026-06-26 | `_HERE / "reference_data"` canonical form を builder 側にも適用 |
-| PR3b-5 (2026-06-29) | `HAI_EVENT_ID_SYSTEM` cross-module canonical URI(writer = `_fhir_microbiology.py`, reader = `clinosim/audit/axes/clinical.py`)|
+| PR3b-5 (2026-06-29) | `HAI_EVENT_ID_SYSTEM` cross-module canonical URI(writer = `_fhir_microbiology.py`, reader = `clinosim/audit/axes/clinical.py`) |
 | **PR1 ServiceRequest (2026-06-29)** | **`_fhir_service_request.py` builder + `SR_ID_PREFIX` / `PLACER_ORDER_NUMBER_SYSTEM` / `LAB_CATEGORY_*` canonical constants + `_fhir_observations.basedOn` + `_fhir_diagnostic_report.basedOn` + AD-61 ADR** |
 | **Tier 1 #3 DocumentReference (2026-07-01)** | **`_fhir_document_reference.py`**: `DOC_REFERENCE_ID_PREFIX = "doc-"`, reads `ClinicalDocument.text` (base64-encode inline), `ClinicalDocument.loinc_code` → `type.coding[0].code`, `ClinicalDocument.format_type == "free_text"` gate; `_o()` dual-access on extensions dict; Patient + Encounter refs wired via `ctx.patient_id` / `ctx.primary_enc_id`. dict-path + dataclass-path tests required. |
 | **Tier 1 #3 Composition (2026-07-01)** | **`_fhir_composition.py`**: `COMPOSITION_ID_PREFIX = "comp-"`, dispatched on `ClinicalDocument.format_type == "composition"`, reads `ClinicalDocument.sections` dict (NOT re-parses raw_text — ClinicalDocument.sections field is authoritative per AD-63 Task 8 fix), emits `section[]` with LOINC `title` + `text.div` per section key. `Composition.author = []` TODO pending practitioner ref wiring (α-min-2). |

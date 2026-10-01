@@ -33,7 +33,7 @@ eReferral / 臨床ワークフロー要件を反映。Progress Note (LOINC 11506
 ### 医師 (入院) 文書 (US + JP)
 
 | 文書 | LOINC | 生成タイミング | エンカウンター別回数 |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | Admission H&P | `34117-2` | 各入院 / ICU / rehab-inpatient エンカウンター | 1 |
 | Progress Note | `11506-3` | 入院中の各在院日 | 在院日ごとに 1 |
 | Discharge Summary | `18842-5` | 完了した各入院エンカウンター (非死亡) | 1 |
@@ -45,7 +45,7 @@ eReferral / 臨床ワークフロー要件を反映。Progress Note (LOINC 11506
 ### 看護記録 (US + JP)
 
 | 文書 | LOINC | 生成タイミング | エンカウンター別回数 |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | Admission Nursing Assessment | `78390-2` | 各入院時 | 1 |
 | Nursing Shift Note | `34746-8` | 各看護シフト (日勤 / 準夜 / 深夜) | 在院日ごとに 3 |
 | Nursing Discharge Summary | `34745-0` | 各入院退院時 | 1 |
@@ -53,7 +53,7 @@ eReferral / 臨床ワークフロー要件を反映。Progress Note (LOINC 11506
 ### 外来 / 救急 (US + JP)
 
 | 文書 | LOINC | 生成タイミング | エンカウンター別回数 |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | Outpatient SOAP | `34131-3` | 各外来エンカウンター | 1 |
 | ED Note | `34878-9` | 各救急エンカウンター | 1 |
 | ED Triage Note | `54094-8` | 各救急エンカウンター | 1 |
@@ -61,7 +61,7 @@ eReferral / 臨床ワークフロー要件を反映。Progress Note (LOINC 11506
 ### JP のみ (JP-CLINS / 臨床ワークフロー)
 
 | 文書 | LOINC | 生成タイミング | エンカウンター別回数 |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | Admission Care Plan | `18776-5` | JP 各入院時 | 1 |
 | Nutrition Care Plan | `80791-7` | JP 入院かつ在院 > 7 日 | 1 |
 | Rehabilitation Plan | `34823-5` | JP 入院かつリハビリセッション oder あり | 1 |
@@ -74,7 +74,7 @@ eReferral / 臨床ワークフロー要件を反映。Progress Note (LOINC 11506
 正式な Procedure Note を生成:
 
 | `procedure_type` | 根拠 |
-|---|---|
+| --- | --- |
 | `central_line` | 挿入部位、血管、確認要 |
 | `lumbar_puncture` | 開放圧、CSF 性状、tube 採取 |
 | `thoracentesis` | 液量と性状、処置後画像 |
@@ -91,7 +91,7 @@ eReferral / 臨床ワークフロー要件を反映。Progress Note (LOINC 11506
 ### **生成しないもの** (意図的)
 
 | 文書 | LOINC | 除外理由 |
-|---|---|---|
+| --- | --- | --- |
 | Consultation Note | `11488-4` | consult ワークフロー必須 (未モデル化)。 |
 | Radiology Report | `11526-1` | 放射線は Procedure + ServiceRequest + `DiagnosticReport` として表現、自由文レポート文書ではない。 |
 | Pathology Report | `11526-1` (pathology variant) | 検体病理未モデル化。 |
@@ -154,7 +154,7 @@ clinosim export-fhir →  fhir_r4/*.ndjson (DocumentReference.ndjson 含む)  (S
 ```
 
 CLI 完全リファレンスはメインの
-[README.md](../README.md#cli-reference) 参照。
+[README.md](../README.ja.md#cli-reference) 参照。
 
 ### テンプレートモード (LLM なし)
 
@@ -281,7 +281,7 @@ user_template: |          # ユーザープロンプト、${variable} プレー�
 プロンプトレジストリは substitution 前に変数を正規化:
 
 | Python 型 | レンダリング形式 |
-|---|---|
+| --- | --- |
 | `str` | そのまま |
 | `int` / `float` | `str(value)` |
 | `None` | 空文字列 |
@@ -508,10 +508,10 @@ Consultation Note、シフト別追加 note) を追加する際は、スコー�
 
 ## 関連
 
-- [README.md](../README.md) — メインユーザガイド
+- [README.md](../README.ja.md) — メインユーザガイド
 - [bedrock_setup.ja.md](bedrock_setup.ja.md) — EC2 + AWS Bedrock
   デプロイ
-- [../DESIGN.md](../DESIGN.md) Section 7 — 臨床文書のアーキテクチャ
+- [../DESIGN.md](../DESIGN.ja.md) Section 7 — 臨床文書のアーキテクチャ
   判断 (AD-36〜AD-41)
 - `clinosim/modules/llm_service/README.ja.md` — LLM サービスモジュール
   リファレンス

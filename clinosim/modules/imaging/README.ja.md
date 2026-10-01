@@ -45,7 +45,7 @@ multi-series 展開ロジックは必ず `engine._expand_views_to_series` に
 - **Out of scope**: imaging 発注そのもの (これは
   [`clinosim.modules.order.engine.place_imaging_orders`](../order/engine.py));
   FHIR `ImagingStudy` / `Endpoint` / radiology `DiagnosticReport`
-  / `ServiceRequest` emission ([`output/fhir_r4/`](../output/fhir_r4/README.md));
+  / `ServiceRequest` emission ([`output/fhir_r4/`](../output/fhir_r4/README.ja.md));
   PACS 側 DICOM store (clinosim scope 外)。
 
 ## Public API
@@ -143,7 +143,7 @@ clinosim/modules/imaging/
 ## Output surface (consumers)
 
 | Consumer | 場所 | 役割 |
-|---|---|---|
+| --- | --- | --- |
 | Enricher registry | [`clinosim/simulator/enrichers.py:294`](../../simulator/enrichers.py) | POST_ENCOUNTER order=90 登録。 |
 | Audit registry | [`clinosim/modules/imaging/audit.py`](audit.py) | AD-60 audit plug-in。 |
 | FHIR `ImagingStudy` / `Endpoint` / radiology `DiagnosticReport` / `ServiceRequest` builder | [`clinosim/modules/output/fhir_r4/`](../output/fhir_r4/) | `extensions["imaging"]` から 4 リソースファミリを emit。 |
@@ -179,6 +179,6 @@ clinosim audit run -d <cohort_dir> --module imaging
 ## Ownership
 
 `maintainers@` — 詳細は
-[`CONTRIBUTING.md`](../../../CONTRIBUTING.md)。
+[`CONTRIBUTING.md`](../../../CONTRIBUTING.ja.md)。
 
-英語版: [`README.md`](README.md)。
+英語版: [`README.md`](README.ja.md)。

@@ -26,7 +26,7 @@ jp-100/
     └── manifest.json            # FHIR Bulk manifest
 ```
 
-詳細: [Datasets](../reference/datasets.md)。
+詳細: [Datasets](../reference/datasets.ja.md)。
 
 ## 独自コホートを生成
 
@@ -69,7 +69,7 @@ clinosim eval -d ./jp-100 --json report.json --md report.md
 - **完全な CLI リファレンスと環境変数** —
   [Configuration](configuration.ja.md)
 - **モデルを理解する** —
-  [Concepts / Data generation walkthrough](../design-guides/data-generation-walkthrough.md)
+  [Concepts / Data generation walkthrough](../design-guides/data-generation-walkthrough.ja.md)
 - **疾患 YAML を拡張** —
   [Adding a module](../CONTRIBUTING-modules.ja.md)
 - **自マシンで再現性を検証** —
