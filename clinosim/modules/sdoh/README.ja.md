@@ -10,7 +10,7 @@ AD-55 Base モジュール。下流の FHIR builder が本データを読み、
 category `social-history` の `Observation` を出力する。
 
 本モジュールは **data-only variant**
-([`docs/CONTRIBUTING-modules.md`](../../../docs/CONTRIBUTING-modules.md)
+([`docs/CONTRIBUTING-modules.md`](../../../docs/CONTRIBUTING-modules.ja.md)
 「データ専用モジュール (variant)」節参照): `enricher.py` なし、
 `assign_*` 関数なし、乱数使用なし。属性の割り当ては
 `patient/activator.py` が `locale/{us,jp}/demographics.yaml` を読んで
@@ -21,7 +21,7 @@ category `social-history` の `Observation` を出力する。
 - **In scope**: smoking / alcohol の tier → SNOMED コード対応と、
   topic ごとの LOINC observation code を SDOH topic + enum 値で公開。
 - **Out of scope**: `smoking_status` / `alcohol_use` の患者単位割り当て
-  ([`clinosim.modules.patient`](../patient/README.md) activator +
+  ([`clinosim.modules.patient`](../patient/README.ja.md) activator +
   [`clinosim/locale/{us,jp}/demographics.yaml`](../../locale/))、
   FHIR `Observation` 出力
   ([`clinosim.modules.output.fhir_r4.demographics.smoking_alcohol`](../output/fhir_r4/demographics/smoking_alcohol.py))、
@@ -49,7 +49,7 @@ data = load_social_history()
 該当なし — 本モジュールは乱数を引かない。公開関数は cache 付き YAML
 loader 1 つのみで、`PatientProfile` に載る smoking / alcohol enum
 の割り当ては
-[`clinosim.modules.patient`](../patient/README.md) 側で行われ、
+[`clinosim.modules.patient`](../patient/README.ja.md) 側で行われ、
 seed もそちら側で管理される。
 
 ## 依存
@@ -94,7 +94,7 @@ clinosim/modules/sdoh/
 該当なし — 本モジュールは data-only reference variant。
 `register_builtin_enrichers` に登録なく、`ENRICHER_SEED_OFFSETS`
 にも seed 登録なし。`smoking_status` / `alcohol_use` の属性割り当ては
-[`clinosim.modules.patient.activator`](../patient/README.md) が
+[`clinosim.modules.patient.activator`](../patient/README.ja.md) が
 [`clinosim/locale/{us,jp}/demographics.yaml`](../../locale/) を
 読んで行い、FHIR 出力は結果として設定される `PatientProfile` field
 から走る — 本モジュールは consumer が解決する enum → SNOMED + LOINC
@@ -123,7 +123,7 @@ clinosim/modules/sdoh/
 ## Output surface (consumers)
 
 | Consumer | 場所 | 役割 |
-|---|---|---|
+| --- | --- | --- |
 | FHIR `Observation` builder | [`clinosim/modules/output/fhir_r4/demographics/smoking_alcohol.py`](../output/fhir_r4/demographics/smoking_alcohol.py) | `load_social_history()` を読み、smoking + alcohol の social-history `Observation` を 2 件出力 (LOINC observation code + enum ごとの SNOMED `valueCodeableConcept`)。 |
 
 SDOH 専用の CSV 列は無い。smoking / alcohol は患者 CSV 行内に格納される。
@@ -150,6 +150,6 @@ pytest tests/integration -k sdoh -q   # FHIR 出力
 ## Ownership
 
 `maintainers@` — 詳細は
-[`CONTRIBUTING.md`](../../../CONTRIBUTING.md)。
+[`CONTRIBUTING.md`](../../../CONTRIBUTING.ja.md)。
 
-英語版: [`README.md`](README.md)。
+英語版: [`README.md`](README.ja.md)。

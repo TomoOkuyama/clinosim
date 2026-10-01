@@ -16,12 +16,12 @@ Output surfaces / Testing / Ownership) に従う `README.md` +
 ## このドキュメントの読み方
 
 | Goal | Read |
-|---|---|
+| --- | --- |
 | 初めて見る | top to bottom |
 | 特定モジュールを探す | "Module inventory" table |
 | 既存コードを変更する | "Typical change impact" |
-| 新モジュールを足す | [`docs/CONTRIBUTING-modules.md`](docs/CONTRIBUTING-modules.md) + [`.github/TEMPLATE_MODULE_README.md`](.github/TEMPLATE_MODULE_README.md) |
-| PR 検証手段を選ぶ | [`docs/CONTRIBUTING-modules.md`](docs/CONTRIBUTING-modules.md) 「PR 検証ガイド」 |
+| 新モジュールを足す | [`docs/CONTRIBUTING-modules.md`](docs/CONTRIBUTING-modules.ja.md) + [`.github/TEMPLATE_MODULE_README.md`](.github/TEMPLATE_MODULE_README.md) |
+| PR 検証手段を選ぶ | [`docs/CONTRIBUTING-modules.md`](docs/CONTRIBUTING-modules.ja.md) 「PR 検証ガイド」 |
 
 ## TL;DR
 
@@ -118,7 +118,7 @@ framework (現在 6 per-module plug-in: `hai`, `antibiotic`, `order`,
 canonical 11-section 構造に従う per-module README にリンクする。
 
 | Module | 役割 | Layer | Sub-seed | Enricher stage / order |
-|---|---|---|---|---|
+| --- | --- | --- | --- | --- |
 | [codes](clinosim/codes/) | 国際コード lookup (LOINC/SNOMED/ICD/RxNorm/JLAC10/CVX/JJ1017 K-code) | foundation | — | — |
 | [locale](clinosim/locale/) | 国別データ (names / addresses / reference range / code_mapping) | foundation | — | — |
 | [physiology](clinosim/modules/physiology/README.ja.md) | 14 変数 physiology state + lab/vital 導出 | simulation | — (caller RNG) | — |
@@ -271,23 +271,23 @@ builder を登録 — `_BUNDLE_BUILDERS` を直接編集しないこと。詳細
 ## Typical change impact
 
 | 変更 | 影響 | Notes |
-|---|---|---|
-| Scenario flag 追加 (`causes_X`) | `physiology.engine` + `derive_lab_values` 呼び出し 4 site | `scenario_flags_from_protocol` helper 経由; [`SCENARIO_FLAGS.md`](SCENARIO_FLAGS.md) 参照 |
-| 薬剤駆動 lab effect 追加 | `physiology.engine` + 4 site | `medication_flags_from_context` helper 経由; [`SCENARIO_FLAGS.md`](SCENARIO_FLAGS.md) 参照 |
-| 新 code 追加 (LOINC/SNOMED/ICD/…) | `codes/data/<system>.yaml` (`en` + optional `ja`) | [`clinosim/codes/README.md`](clinosim/codes/README.md) 参照 |
+| --- | --- | --- |
+| Scenario flag 追加 (`causes_X`) | `physiology.engine` + `derive_lab_values` 呼び出し 4 site | `scenario_flags_from_protocol` helper 経由; [`SCENARIO_FLAGS.md`](SCENARIO_FLAGS.ja.md) 参照 |
+| 薬剤駆動 lab effect 追加 | `physiology.engine` + 4 site | `medication_flags_from_context` helper 経由; [`SCENARIO_FLAGS.md`](SCENARIO_FLAGS.ja.md) 参照 |
+| 新 code 追加 (LOINC/SNOMED/ICD/…) | `codes/data/<system>.yaml` (`en` + optional `ja`) | [`clinosim/codes/README.md`](clinosim/codes/README.ja.md) 参照 |
 | 新 FHIR resource 型 追加 | `output/fhir_r4/<domain>/` 配下に新 builder file + `register_bundle_builder()` | [`clinosim/modules/output/fhir_r4/README.ja.md`](clinosim/modules/output/fhir_r4/README.ja.md) |
 | 新疾患追加 | 新 disease YAML + `locale/<country>/demographics.yaml` に登録 | [`clinosim/modules/disease/README.ja.md`](clinosim/modules/disease/README.ja.md) |
-| 新モジュール追加 | [`.github/TEMPLATE_MODULE_README.md`](.github/TEMPLATE_MODULE_README.md) を複製、[`docs/CONTRIBUTING-modules.md`](docs/CONTRIBUTING-modules.md) 手順で登録 | canonical 11-section README 構造に従う |
+| 新モジュール追加 | [`.github/TEMPLATE_MODULE_README.md`](.github/TEMPLATE_MODULE_README.md) を複製、[`docs/CONTRIBUTING-modules.md`](docs/CONTRIBUTING-modules.ja.md) 手順で登録 | canonical 11-section README 構造に従う |
 
 > **プロジェクト目標: FHIR R4 / JP Core 準拠 + 臨床整合 + JP 言語品質**。
 > PR 検証手段 (byte-diff vs 3-axis DQR vs `clinosim audit run`) は
-> [`docs/CONTRIBUTING-modules.md`](docs/CONTRIBUTING-modules.md)
+> [`docs/CONTRIBUTING-modules.md`](docs/CONTRIBUTING-modules.ja.md)
 > 「PR 検証ガイド」参照。
 
 ## 新モジュール追加 (5-step quick start)
 
 1. **Base か opt-in Module か判断** →
-   [`docs/CONTRIBUTING-modules.md`](docs/CONTRIBUTING-modules.md)
+   [`docs/CONTRIBUTING-modules.md`](docs/CONTRIBUTING-modules.ja.md)
    「判断: Base か Module か」。
 2. **テンプレートを複製** →
    [`.github/TEMPLATE_MODULE_README.md`](.github/TEMPLATE_MODULE_README.md)
@@ -307,14 +307,14 @@ builder を登録 — `_BUNDLE_BUILDERS` を直接編集しないこと。詳細
 ## Where to read next
 
 | Doc | Purpose |
-|---|---|
-| [`README.md`](README.md) / [`README.ja.md`](README.ja.md) | ユーザー向け概要 |
+| --- | --- |
+| [`README.md`](README.ja.md) / [`README.ja.md`](README.ja.md) | ユーザー向け概要 |
 | [`AGENTS.md`](AGENTS.md) | AI エージェント規則 + プロジェクト規約 (`CLAUDE.md` は本 file への pointer) |
-| [`DESIGN.md`](DESIGN.md) | landing pointer → `docs/architecture/` (設計原則 / architecture notes / ADR history) |
-| [`docs/CONTRIBUTING-modules.md`](docs/CONTRIBUTING-modules.md) | Module 作成 playbook + PR 検証ガイド |
+| [`DESIGN.md`](DESIGN.ja.md) | landing pointer → `docs/architecture/` (設計原則 / architecture notes / ADR history) |
+| [`docs/CONTRIBUTING-modules.md`](docs/CONTRIBUTING-modules.ja.md) | Module 作成 playbook + PR 検証ガイド |
 | [`.github/TEMPLATE_MODULE_README.md`](.github/TEMPLATE_MODULE_README.md) | 新 module README ボイラープレート |
-| [`SCENARIO_FLAGS.md`](SCENARIO_FLAGS.md) | Scenario / 薬剤 flag 中央 reference |
-| [`docs/roadmap.md`](docs/roadmap.md) | Roadmap (GitHub Issues board) |
+| [`SCENARIO_FLAGS.md`](SCENARIO_FLAGS.ja.md) | Scenario / 薬剤 flag 中央 reference |
+| [`docs/roadmap.md`](docs/roadmap.ja.md) | Roadmap (GitHub Issues board) |
 | [`clinosim/modules/README.ja.md`](clinosim/modules/README.ja.md) | モジュール索引 (本 file の per-module 対応) |
 
-英語版: [`MODULES.md`](MODULES.md)。
+英語版: [`MODULES.md`](MODULES.ja.md)。

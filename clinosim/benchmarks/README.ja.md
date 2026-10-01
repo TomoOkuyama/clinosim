@@ -103,6 +103,6 @@ pytest tests/unit -k benchmarks -q
 
 ## オーナー
 
-`maintainers@` — [`CONTRIBUTING.md`](../../CONTRIBUTING.md) 参照。
+`maintainers@` — [`CONTRIBUTING.md`](../../CONTRIBUTING.ja.md) 参照。
 
-英語版: [`README.md`](README.md)。
+英語版: [`README.md`](README.ja.md)。

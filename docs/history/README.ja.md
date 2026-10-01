@@ -9,7 +9,7 @@
 
 - [`spec-2026-04.md`](spec-2026-04.md) — 2026 年 4 月に書かれた元の
   フルシステム仕様書 (「医療ダミーデータ生成システム 仕様書
-  v0.3」)。[`DESIGN.md`](../../DESIGN.md) (アーキテクチャ + ADR
+  v0.3」)。[`DESIGN.md`](../../DESIGN.ja.md) (アーキテクチャ + ADR
   表) と [`clinosim/modules/output/SPEC.md`](../../clinosim/modules/output/SPEC.md)
   (FHIR 出力仕様) に superseded された。
 - [`des-migration-audit.md`](des-migration-audit.md) — discrete-event

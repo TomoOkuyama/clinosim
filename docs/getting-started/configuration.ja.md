@@ -7,7 +7,7 @@ machine-readable リストは `clinosim simulate --help` を実行。
 ## 主要 CLI フラグ (`clinosim simulate`)
 
 | Flag | Default | 意味 |
-|---|---|---|
+| --- | --- | --- |
 | `--country {US,JP}` | `US` | Locale — 氏名 / 住所 / 保険 / コードシステムを制御 |
 | `--population N` | hospital config の catchment デフォルト | 集団サイズ (人) |
 | `--seed N` | `42` | 決定的 seed (AD-16 不変条件) |
@@ -19,7 +19,7 @@ machine-readable リストは `clinosim simulate --help` を実行。
 ## 主要環境変数
 
 | 変数 | Default | 意味 |
-|---|---|---|
+| --- | --- | --- |
 | `CLINOSIM_JP_CLINS_PKG_DIR` | 未設定 | JP-CLINS パッケージディレクトリへのパス (JP-CLINS lab-compliance gate 必須; [`jp-clins.ja.md`](../jp-clins.ja.md) 参照) |
 | `AWS_REGION`, `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY` | AWS デフォルトチェーン | AWS Bedrock narrative provider (`--provider bedrock`) にのみ必要 |
 
@@ -37,5 +37,5 @@ clinosim dataset build jp-100 --output ./jp-100-out
 デフォルト病院形状 (ベッド数、ward mix、スタッフ roster) は
 `hospital_operations.yaml` からロード。カスタム形状を使うには
 `--hospital-config path/to/your.yaml` を渡す。スキーマは
-[`../architecture/module-architecture.md`](../architecture/module-architecture.md)
+[`../architecture/module-architecture.md`](../architecture/module-architecture.ja.md)
 参照。

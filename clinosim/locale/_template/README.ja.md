@@ -6,13 +6,13 @@
 `<xx>/` locale ディレクトリにコピーし、プレースホルダを権威
 ソースからのデータで置き換える。
 
-完全な walk-through は [`docs/add-your-country.md`](../../../docs/add-your-country.md)
+完全な walk-through は [`docs/add-your-country.md`](../../../docs/add-your-country.ja.md)
 参照。
 
 ## ファイル
 
 | File | Required? | Purpose |
-|---|---|---|
+| --- | --- | --- |
 | `names.yaml` | ✓ | Given / family 名 + 頻度重み |
 | `addresses.yaml` | ✓ | Region / 郵便番号 |
 | `demographics.yaml` | ✓ | 年齢 / 血液型 / 慢性疾患 prevalence / 疾患 incidence |

@@ -6,7 +6,7 @@ POST_ENCOUNTER always-on の AD-55 Module。適格な入院 / ICU /
 rehab-inpatient encounter に対して ICU デバイス (中心静脈カテーテル、
 膀胱留置カテーテル、機械換気) を配置し、結果を
 `CIFPatientRecord.extensions["device"]` に書き込む。下流の
-[`clinosim.modules.hai`](../hai/README.md) が line-days を消費する
+[`clinosim.modules.hai`](../hai/README.ja.md) が line-days を消費する
 (Phase 2 HAI cascade — CDC NHSN の per-line-day risk baseline)。
 
 ## Scope
@@ -16,10 +16,10 @@ rehab-inpatient encounter に対して ICU デバイス (中心静脈カテー�
   → device 集合)、`load_devices_config` YAML loader、POST_ENCOUNTER
   `enrich_device` enricher。
 - **Out of scope**: デバイス line-days からの HAI event サンプリング
-  ([`clinosim.modules.hai`](../hai/README.md))、デバイス関連抗菌薬
-  ([`clinosim.modules.antibiotic`](../antibiotic/README.md))、
+  ([`clinosim.modules.hai`](../hai/README.ja.md))、デバイス関連抗菌薬
+  ([`clinosim.modules.antibiotic`](../antibiotic/README.ja.md))、
   FHIR `Device` / `DeviceUseStatement` emission
-  ([`clinosim.modules.output`](../output/README.md))。
+  ([`clinosim.modules.output`](../output/README.ja.md))。
 
 ## Public API
 
@@ -91,7 +91,7 @@ clinosim/modules/device/
 ## Output surface (consumers)
 
 | Consumer | 場所 | 役割 |
-|---|---|---|
+| --- | --- | --- |
 | Enricher registry | [`clinosim/simulator/enrichers.py:241`](../../simulator/enrichers.py) | POST_ENCOUNTER order=70 登録。 |
 | HAI enricher | [`clinosim/modules/hai/engine.py`](../hai/engine.py) | `extensions["device"]` の line-days を CDC NHSN per-line-day HAI onset サンプリングに使用 (Phase 2)。 |
 | FHIR `Device` builder | [`clinosim/modules/output/fhir_r4/`](../output/fhir_r4/) | `extensions["device"]` から `Device` + `DeviceUseStatement` を emit。 |
@@ -112,6 +112,6 @@ pytest tests/unit -k "device_engine or device_enricher" -q
 ## Ownership
 
 `maintainers@` — 詳細は
-[`CONTRIBUTING.md`](../../../CONTRIBUTING.md)。
+[`CONTRIBUTING.md`](../../../CONTRIBUTING.ja.md)。
 
-英語版: [`README.md`](README.md)。
+英語版: [`README.md`](README.ja.md)。

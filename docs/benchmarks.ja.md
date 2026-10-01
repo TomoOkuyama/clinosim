@@ -13,7 +13,7 @@ clinosim 生成コホートに対する共通の早期警戒タスクの再現�
 ## 対応タスク
 
 | タスク | 陽性定義 | AUROC 用の連続スコア |
-|---|---|---|
+| --- | --- | --- |
 | `sepsis` | `condition_event.disease_id == "sepsis"` または ICD `A41.*` / `R65.2*` | first-window Lactate (mmol/L) |
 | `aki` | `condition_event.disease_id == "acute_kidney_injury"` または ICD `N17.*` / `N19` | peak SCr − baseline SCr (mg/dL) |
 

@@ -2,7 +2,7 @@
 
 ## 概要
 
-[`clinosim.modules.llm_service`](../README.md) が dispatch する具体的
+[`clinosim.modules.llm_service`](../README.ja.md) が dispatch する具体的
 LLM backend 群。各 provider は `LLMProvider` Protocol を実装しており
 `LLMService` は config だけで backend を差し替えられる (AD-11 /
 AD-24)。親パッケージが orchestration (prompt cache、cost accounting、
@@ -17,7 +17,7 @@ task-type dispatch) を所有、本 subpackage は実装 + registry を所有す
   (`register_provider` + `build_provider`)。
 - **Out of scope**: prompt template、response caching、task-type
   dispatch、LOINC mapping — 全て
-  [`clinosim.modules.llm_service`](../README.md) 上位。
+  [`clinosim.modules.llm_service`](../README.ja.md) 上位。
 
 ## Public API
 
@@ -38,7 +38,7 @@ Registry (`__init__.py` の `_REGISTRY`) が config section 名 →
 provider builder を map:
 
 | Config 名 | Builder |
-|---|---|
+| --- | --- |
 | `mock` | `MockProvider(cfg)` |
 | `ollama` | `OllamaProvider(cfg)` |
 | `local` | `OllamaProvider(cfg)` (alias) |
@@ -106,7 +106,7 @@ data (prompt + config) は上位 `clinosim.modules.llm_service` にある。
 ## Output surface (consumers)
 
 | Consumer | 場所 | 役割 |
-|---|---|---|
+| --- | --- | --- |
 | `LLMService` 構築 | [`clinosim/modules/llm_service/factory.py`](../factory.py) | `_build_provider_from_section` → `build_provider(name, cfg)`。 |
 | Package 再 export | [`clinosim/modules/llm_service/__init__.py`](../__init__.py) | `LLMProvider`, `ProviderResponse`, `MockProvider` が親 package root で再 export。 |
 | Third-party 拡張 | (user code) | `register_provider(name, builder)` で本 file を編集せず custom provider を追加できる。 |
@@ -125,6 +125,6 @@ translation、retry 意味論) は低コストの follow-up。
 ## Ownership
 
 `maintainers@` — 詳細は
-[`CONTRIBUTING.md`](../../../../CONTRIBUTING.md)。
+[`CONTRIBUTING.md`](../../../../CONTRIBUTING.ja.md)。
 
-英語版: [`README.md`](README.md)。
+英語版: [`README.md`](README.ja.md)。

@@ -38,7 +38,7 @@ from clinosim.types import Encounter          # 便宜的な再エクスポー�
 ます:
 
 | サブモジュール | 内容 | トップレベル再エクスポート? |
-|---|---|---|
+| --- | --- | --- |
 | `clinical.py` | 臨床イベント中核型 (文書・所見) | ✅ |
 | `config.py` | `SimulatorConfig` と関連する実行時設定モデル | ✅ |
 | `encounter.py` | `Encounter` / `EncounterType` / `EncounterStatus` / order / 薬剤投与 | ✅ |
@@ -125,6 +125,6 @@ pytest tests/unit -k types -q
 
 ## オーナー
 
-`maintainers@` — [`CONTRIBUTING.md`](../../CONTRIBUTING.md) 参照。
+`maintainers@` — [`CONTRIBUTING.md`](../../CONTRIBUTING.ja.md) 参照。
 
-英語版: [`README.md`](README.md)。
+英語版: [`README.md`](README.ja.md)。

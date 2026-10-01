@@ -11,7 +11,7 @@ Morse flowsheet)、酸素療法 `Procedure` (Issue #796 — vitals の
 
 FHIR taxonomy が Immunization を Procedure ファミリに配置している
 ため、Immunization は
-[`../conditions/`](../conditions/README.md) ではなくここに住む。
+[`../conditions/`](../conditions/README.ja.md) ではなくここに住む。
 
 ## Scope
 
@@ -31,11 +31,11 @@ FHIR taxonomy が Immunization を Procedure ファミリに配置している
   `_SNOMED_OXYGEN_THERAPY = "57485005"`。
 - **Out of scope**: procedure / device / immunization / nursing の
   **生成**
-  ([`clinosim.modules.procedure`](../../../procedure/README.md)、
-  [`clinosim.modules.device`](../../../device/README.md)、
-  [`clinosim.modules.immunization`](../../../immunization/README.md)、
+  ([`clinosim.modules.procedure`](../../../procedure/README.ja.md)、
+  [`clinosim.modules.device`](../../../device/README.ja.md)、
+  [`clinosim.modules.immunization`](../../../immunization/README.ja.md)、
   看護スコアと vitals flag は
-  [`clinosim.modules.observation`](../../../observation/README.md));
+  [`clinosim.modules.observation`](../../../observation/README.ja.md));
   `ImagingStudy` (臨床的には procedural だが
   [`../labs/imaging_study.py`](../labs/imaging_study.py) に住む)。
 
@@ -43,7 +43,7 @@ FHIR taxonomy が Immunization を Procedure ファミリに配置している
 
 以下 2 種の Procedure code set は、標準の `_build_procedure` path を
 経由して FHIR 到達する (新規 resource-type builder は不要)。兄弟モジュール
-[`clinosim.modules.procedure`](../../../procedure/README.md) が
+[`clinosim.modules.procedure`](../../../procedure/README.ja.md) が
 両者について `ProcedureRecord` を構築し、FHIR post-process pipeline
 が code + display を追加配線なしで拾う:
 
@@ -152,6 +152,6 @@ Cross-verification: HAI cascade が `extensions["device"]` line-days を
 ## Ownership
 
 `maintainers@` — 詳細は
-[`CONTRIBUTING.md`](../../../../../CONTRIBUTING.md)。
+[`CONTRIBUTING.md`](../../../../../CONTRIBUTING.ja.md)。
 
-英語版: [`README.md`](README.md)。
+英語版: [`README.md`](README.ja.md)。

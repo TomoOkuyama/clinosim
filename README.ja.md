@@ -53,13 +53,13 @@ clinosim simulate --country US --population 100 --seed 42 \
 ls ./out/fhir_r4/          # Patient.ndjson, Encounter.ndjson, ...
 ```
 
-JP コホート、named-preset データセット、hospital-config override、CLI 全リファレンスは **[docs/getting-started/configuration.md](docs/getting-started/configuration.md)** (英語) 参照。
+JP コホート、named-preset データセット、hospital-config override、CLI 全リファレンスは **[docs/getting-started/configuration.md](docs/getting-started/configuration.ja.md)**参照。
 
 ## 実際の動き
 
 JP のワーファリン服用患者では、clinosim の生理学エンジンが患者を治療域 PT-INR に配置し、その範囲内の lab 値 (例: `2.7`) を発行します — "PT-INR 正常域からサンプリング" ではなく、隠れ状態がその値を選んだ結果です。ワーファリンを外せば、次回実行の INR は ~1.0 に戻ります。
 
-**[完全な JSON walkthrough → docs/getting-started/first-cohort.md](docs/getting-started/first-cohort.md)** (英語)
+**[完全な JSON walkthrough → docs/getting-started/first-cohort.md](docs/getting-started/first-cohort.ja.md)**
 
 ## なぜ clinosim か
 
@@ -70,25 +70,25 @@ JP のワーファリン服用患者では、clinosim の生理学エンジン�
 - **YAML 駆動の拡張** — 32 の入院疾患 + 46 の ED / 外来病態はすべてデータファイル、コードではない。
 - **縦断サービスライン** — 腫瘍 (がん 10 部位 (男性乳がん含む)、化学療法 regimen サイクル、放射線治療 Procedure、腫瘍マーカー labs) + 産科 (妊娠を時限 `TemporalStatePeriod` lifecycle としてモデル化 — 年次 conception、妊娠週 12/24/36 の妊婦健診、母親側分娩 Encounter with Z37.0 discharge dx + 分娩 Procedure + 新生児 Patient chain、7 d / 28 d の産褥フォロー) を平坦な注釈ではなく正しい時間的頻度で出力する。詳細は [`docs/reference/oncology-obstetric-service-lines.ja.md`](docs/reference/oncology-obstetric-service-lines.ja.md)。
 
-先行事例 (Synthea) との比較: [docs/synthea-comparison.md](docs/synthea-comparison.md) (英語)。
+先行事例 (Synthea) との比較: [docs/synthea-comparison.md](docs/synthea-comparison.ja.md)。
 
 ## 詳しくは
 
 | トピック | 場所 |
 | --- | --- |
 | ドキュメントサイト (英語) | <https://tomookuyama.github.io/clinosim/> |
-| アーキテクチャリファレンス (英語) | [`docs/architecture/`](docs/architecture/README.md) |
+| アーキテクチャリファレンス | [`docs/architecture/`](docs/architecture/README.ja.md) |
 | モジュール索引 (33 モジュール) | [`clinosim/modules/`](clinosim/modules/README.ja.md) |
-| データ品質・評価 (英語) | [`docs/eval.md`](docs/eval.md) |
-| JP-CLINS プロファイル対応 (英語) | [`docs/jp-clins.md`](docs/jp-clins.md) |
-| コントリビュート (英語) | [`CONTRIBUTING.md`](CONTRIBUTING.md) |
+| データ品質・評価 | [`docs/eval.md`](docs/eval.ja.md) |
+| JP-CLINS プロファイル対応 | [`docs/jp-clins.md`](docs/jp-clins.ja.md) |
+| コントリビュート | [`CONTRIBUTING.md`](CONTRIBUTING.ja.md) |
 | AI エージェント規約 (英語) | [`AGENTS.md`](AGENTS.md) |
-| 変更履歴 (英語) | [`CHANGELOG.md`](CHANGELOG.md) |
+| 変更履歴 | [`CHANGELOG.md`](CHANGELOG.ja.md) |
 
 ## コミュニティ
 
-- Code of Conduct — [`CODE_OF_CONDUCT.md`](CODE_OF_CONDUCT.md) (Contributor Covenant 2.1)
-- セキュリティポリシー — [`SECURITY.md`](SECURITY.md) (GitHub Security Advisories 経由の非公開報告)
+- Code of Conduct — [`CODE_OF_CONDUCT.md`](CODE_OF_CONDUCT.ja.md) (Contributor Covenant 2.1)
+- セキュリティポリシー — [`SECURITY.md`](SECURITY.ja.md) (GitHub Security Advisories 経由の非公開報告)
 - スターター課題 — [`good first issue`](https://github.com/TomoOkuyama/clinosim/labels/good%20first%20issue) ラベル
 - Issue テンプレート — [`.github/ISSUE_TEMPLATE/`](.github/ISSUE_TEMPLATE/) (構造化されたバグ / 機能フォーム)
 - 引用 — GitHub "Cite this repository" ボタン ([`CITATION.cff`](CITATION.cff) が背後)

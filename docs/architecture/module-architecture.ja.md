@@ -4,9 +4,9 @@
 
 > **注:** 以下のフォルダマップは概念構造を示すもので、コード数や
 > 詳細ファイルリストの一部は執筆時点のスナップショットです。canonical
-> なモジュール一覧・数は [`../../MODULES.md`](../../MODULES.md)、
+> なモジュール一覧・数は [`../../MODULES.md`](../../MODULES.ja.md)、
 > 各コード数の現在値は
-> [`../../clinosim/codes/README.md`](../../clinosim/codes/README.md)
+> [`../../clinosim/codes/README.md`](../../clinosim/codes/README.ja.md)
 > 参照。
 
 ```

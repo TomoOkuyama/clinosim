@@ -19,7 +19,7 @@ FHIR プロファイル準拠** を優先する。
 2. NDJSON のグローバルレビュー — FHIR spec 準拠、display フォール
    バック、reference 整合性、spec 違反 datetime、silent-drop、
    統計異常等。**cycle の issue リストに observation を追加する前**
-   に [`by-design-registry.md`](by-design-registry.md) を確認 —
+   に [`by-design-registry.md`](by-design-registry.ja.md) を確認 —
    observation が登録された by-design エントリの Signature と一致
    すれば、追加せず `cycle-<N>.md` に 1 行だけ記録:
    `By-design confirmed (see by-design-registry.md#<slug>)`。full-scan

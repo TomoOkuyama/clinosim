@@ -2,7 +2,7 @@
 
 このページは `clinosim eval` が実行する全 check、その severity、
 スコアリング式、および (clinical coherence check については) 期待帯
-の文献ソースをカタログ化します。CLI 使用は [Evaluation](eval.md)
+の文献ソースをカタログ化します。CLI 使用は [Evaluation](eval.ja.md)
 参照。
 
 ## 軸レベル rollup
@@ -23,7 +23,7 @@
 コンテンツ品質にかかわらず FHIR R4 不変条件を破るコホートを拒否。
 
 | Name | Severity | Passes when |
-|---|---|---|
+| --- | --- | --- |
 | `resource_id_uniqueness` | CRITICAL | 同一 resourceType 内で `id` 重複なし |
 | `reference_integrity` | CRITICAL | 全内部 `reference` (`Type/id`) が emit 済リソースに解決 |
 | `required_fields_present` | MAJOR | Patient.identifier / Encounter.status / Condition.subject が非空 |
@@ -37,7 +37,7 @@
 **MVP** (P1-8) — schema レベルの生理学的妥当性を守る 5 checks:
 
 | Name | Severity | Passes when |
-|---|---|---|
+| --- | --- | --- |
 | `lab_values_physiological_range` | MAJOR | LOINC コード付き検査値が生理範囲内 (WBC 0–500、Hb 0–25、Cr 0–30 …) |
 | `age_condition_consistency` | MAJOR | 小児患者 (< 12 歳) に adult-only ICD コード (I10 / I25 / I48 / I50 / E11 / N18 / N40 / F03) なし |
 | `medication_date_sanity` | MAJOR | MedicationRequest.authoredOn ≥ Patient.birthDate |
@@ -61,7 +61,7 @@
 反映。25% 超は生理学モデルが診断ラベルから乖離していることを示唆。
 
 | ペアリング名 | ICD プレフィックス | Lab (LOINC) | 期待帯 | ソース |
-|---|---|---|---|---|
+| --- | --- | --- | --- | --- |
 | `sepsis_lactate` | A41.* | 2524-7 (静脈 lactate) | **≥ 2.0 mmol/L** | [Surviving Sepsis 2021](https://www.sccm.org/SurvivingSepsisCampaign/Guidelines/Adult-Patients) |
 | `dka_hco3` | E10.10-11、E11.10-11 | 1963-8 (HCO₃) | **< 18 mEq/L** | [ADA DKA severity criteria](https://diabetesjournals.org/care/article/32/7/1335) |
 | `acute_mi_troponin` | I21、I22 | 10839-9 (Troponin I) | **> 0.04 ng/mL** (99th %ile URL) | [Fourth Universal Definition of MI](https://www.jacc.org/doi/10.1016/j.jacc.2018.08.1038) |
@@ -99,7 +99,7 @@
 ### JP コホート
 
 | Name | Severity |
-|---|---|
+| --- | --- |
 | `japanese_displays_on_condition` | MAJOR |
 | `jlac10_or_loinc_on_lab` | MAJOR |
 | `yj_code_on_medications` | MAJOR |
@@ -109,7 +109,7 @@
 ### US コホート
 
 | Name | Severity |
-|---|---|
+| --- | --- |
 | `ascii_only_displays` | MAJOR |
 | `rxnorm_present_on_medications` | MAJOR |
 | `loinc_present_on_lab_observations` | MAJOR |

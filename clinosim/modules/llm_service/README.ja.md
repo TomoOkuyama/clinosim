@@ -27,10 +27,10 @@ prompt cache、provider 選択を所有する。
   SHA-256 keyed disk cache)、`build_from_config` +
   `build_from_config_file` factory、`providers/` 配下の 6 provider。
 - **Out of scope**: narrative content 組立 / template rendering
-  ([`clinosim.modules.document.narrative`](../document/narrative/README.md)
+  ([`clinosim.modules.document.narrative`](../document/narrative/README.ja.md)
   が 2-pass narrative を所有し `LLMService` を import する)、
   cost tracking / accounting、FHIR emission
-  ([`clinosim.modules.output`](../output/README.md))。
+  ([`clinosim.modules.output`](../output/README.ja.md))。
 
 ## Public API
 
@@ -146,7 +146,7 @@ library。`register_builtin_enrichers` に登録なく、`ENRICHER_SEED_OFFSETS`
 ## Output surface (consumers)
 
 | Consumer | 場所 | 役割 |
-|---|---|---|
+| --- | --- | --- |
 | Narrative pass | [`clinosim/modules/document/narrative/llm_generator.py`](../document/narrative/llm_generator.py), [`replacement_strategy.py`](../document/narrative/replacement_strategy.py), [`passes.py`](../document/narrative/passes.py) | Stage 2 narrative 生成が document 種別ごとに `LLMService.complete(...)` を呼び出す。 |
 | CLI `narrate` subcommand | [`clinosim/simulator/cli_narrate.py`](../../simulator/cli_narrate.py) | boot 時に `--llm-config` から `LLMService` を build、`NarrativePass` を invoke、`PromptCache` を配線。 |
 
@@ -179,6 +179,6 @@ pytest tests/unit -k "llm" -q
 ## Ownership
 
 `maintainers@` — 詳細は
-[`CONTRIBUTING.md`](../../../CONTRIBUTING.md)。
+[`CONTRIBUTING.md`](../../../CONTRIBUTING.ja.md)。
 
-英語版: [`README.md`](README.md)。
+英語版: [`README.md`](README.ja.md)。

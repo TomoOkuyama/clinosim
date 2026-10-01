@@ -29,11 +29,11 @@ encounter 単位の procedure emission を 3 家族に対して所有:
   `ProcedureMeta` (procedure ごとの metadata dataclass)。
 - **Out of scope**: procedure コード YAML
   ([`clinosim.codes`](../../codes/))、procedure encounter timeline
-  ([`clinosim.modules.encounter`](../encounter/README.md))、FHIR
+  ([`clinosim.modules.encounter`](../encounter/README.ja.md))、FHIR
   `Procedure` emission
-  ([`clinosim.modules.output.fhir_r4.procedures`](../output/fhir_r4/procedures/README.md))、
+  ([`clinosim.modules.output.fhir_r4.procedures`](../output/fhir_r4/procedures/README.ja.md))、
   imaging 発注構築 — これは
-  [`clinosim.modules.imaging`](../imaging/README.md)。
+  [`clinosim.modules.imaging`](../imaging/README.ja.md)。
 
 ### 縦断サービスライン Procedure (v0.5 → v0.6.0)
 
@@ -41,7 +41,7 @@ encounter 単位の procedure emission を 3 家族に対して所有:
 同じ `ProcedureRecord` shape で emit される:
 
 - **分娩 Procedure** — 母親側の周産期分娩 Encounter (詳細:
-  [`clinosim.modules.encounter`](../encounter/README.md)) に付与。
+  [`clinosim.modules.encounter`](../encounter/README.ja.md)) に付与。
   Code: JP `K894` (経腟分娩 — MHLW 診療報酬点数表 K-code) または
   US CPT `59400` (routine obstetric care incl. vaginal delivery)。
   emit 元は
@@ -55,7 +55,7 @@ encounter 単位の procedure emission を 3 家族に対して所有:
   `simulate_surgery` を経由しない。
 
 両者とも canonical な `ProcedureRecord` field を維持するため、FHIR
-adapter ([`output/fhir_r4/procedures/`](../output/fhir_r4/procedures/README.md))
+adapter ([`output/fhir_r4/procedures/`](../output/fhir_r4/procedures/README.ja.md))
 は新しい resource-type builder を追加せずに emit 可能。
 
 ## Public API
@@ -140,7 +140,7 @@ clinosim/modules/procedure/
 ## Output surface (consumers)
 
 | Consumer | 場所 | 役割 |
-|---|---|---|
+| --- | --- | --- |
 | Inpatient encounter | [`clinosim/simulator/inpatient.py`](../../simulator/inpatient.py) | 入院日ごとに `simulate_surgery`, `generate_bedside_procedures`, `generate_rehab_sessions` を呼び出す。 |
 | Emergency encounter | [`clinosim/simulator/emergency.py`](../../simulator/emergency.py) | ED-to-OR 経路で `simulate_surgery`、ED bedside 行為で `generate_bedside_procedures`。 |
 | FHIR Procedure builder | [`clinosim/modules/output/fhir_r4/procedures/`](../output/fhir_r4/procedures/) | `ProcedureRecord` (+ 酸素療法 performedPeriod) を read して FHIR `Procedure` を emit。 |
@@ -169,6 +169,6 @@ pytest tests/unit -k "procedure or oxygen_therapy_procedure" -q
 ## Ownership
 
 `maintainers@` — 詳細は
-[`CONTRIBUTING.md`](../../../CONTRIBUTING.md)。
+[`CONTRIBUTING.md`](../../../CONTRIBUTING.ja.md)。
 
-英語版: [`README.md`](README.md)。
+英語版: [`README.md`](README.ja.md)。

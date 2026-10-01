@@ -53,7 +53,7 @@ skeleton 値は `_template/` scaffold (`clinosim/locale/_template/`)
 参照。
 
 | File | 目的 | 権威ソースヒント |
-|---|---|---|
+| --- | --- | --- |
 | `names.yaml` | 姓 + 名 と頻度重み | 国家統計局 / 戸籍 |
 | `addresses.yaml` | 地域 (都道府県 / 県 / 州) + 郵便コード | 国営郵便サービス |
 | `demographics.yaml` | 年齢分布、血液型、慢性疾患 prevalence (下記スキーマ注記参照)、疾患 incidence、生活習慣 | 政府センサス / 疾患サーベイランス |
@@ -72,7 +72,7 @@ skeleton 値は `_template/` scaffold (`clinosim/locale/_template/`)
 
 エントリごとに 2 つの形式を受け付けます:
 
-- **Flat form** (単性別または性別非依存): `sex: F|M|""` +
+- **Flat form** (単性別または性別非依存): `sex: F |M |""` +
   `"<lo>-<hi>": <target_marginal>` 年齢帯 pair。共有の population
   master RNG からサンプリング。
 
@@ -111,7 +111,7 @@ full な挙動 + downstream の sex-conditional 請求コード mapping:
 対応国が特定 opt-in モジュールをサポートする場合のみ追加:
 
 | File | 追加タイミング | モジュール |
-|---|---|---|
+| --- | --- | --- |
 | `identity.yaml` | 国民識別子 / 保険番号をモデル化する場合 | `identity` |
 | `code_mapping_microbiology.yaml` | 国別 microbiology コーディング | `microbiology` |
 | `code_mapping_microbiology_susceptibility.yaml` | 国別感受性報告 | `microbiology` |
@@ -199,10 +199,10 @@ gate:
 
 ## 次に読むもの
 
-- プロジェクト全体概念: [`docs/design-guides/project-concept-and-design.md`](design-guides/project-concept-and-design.md)
+- プロジェクト全体概念: [`docs/design-guides/project-concept-and-design.md`](design-guides/project-concept-and-design.ja.md)
 - Locale モジュールリファレンス: [`clinosim/locale/README.ja.md`](../clinosim/locale/README.ja.md)
 - 診断コードカバレッジルール: [`AGENTS.md`](../AGENTS.md) §"Diagnosis code coverage"
-- 再現性不変条件: [`docs/development/reproducibility.md`](development/reproducibility.md)
+- 再現性不変条件: [`docs/development/reproducibility.md`](development/reproducibility.ja.md)
 
 ## Scaffold テンプレート
 

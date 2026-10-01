@@ -12,7 +12,7 @@
 れる必要がある:
 
 | 次元 | 問い | 例 |
-|---|---|---|
+| --- | --- | --- |
 | **生物学的リアリズム** | これは生理学的・病理学的に妥当か? | CRP は感染発症 2 時間後に 200 mg/L に上昇しない。Cr は透析なしで一晩に 3 mg/dL 下がらない。 |
 | **行動リアリズム** | 実際の臨床医、看護師、患者がこう振る舞うか? | 医師は安定した肺炎患者に午前 3 時に CT オーダーしない。35 歳が外傷なく大腿骨骨折を呈さない。日本人患者は肺炎で 14 日入院しうるが、米国人患者は 5 日で退院する。 |
 | **システムリアリズム** | この医療システムと施設内でこれが起こりうるか? | 小規模コミュニティ病院は心臓カテーテル検査を行わない。夜勤の検査結果は時間がかかる。週末の consultant availability は限定的。 |
@@ -158,7 +158,7 @@ LLM 層 (選択的、コンテキスト、高価)
 ### モジュール別 LLM 呼び出しポイント
 
 | モジュール | 呼び出しポイント | LLM の役割 | ルールベース維持部分 | Model tier | Context (in → out token) |
-|---|---|---|---|---|---|
+| --- | --- | --- | --- | --- | --- |
 | **patient** | Chief complaint 生成 | 症状から自然言語 chief complaint | 症状選定と重症度 | Small | ~500 → 200 |
 | **diagnosis** | 各判断点での差分更新 | Assessment 節の臨床推論 narrative | 確率計算 (Bayesian update)、LR 適用 | Medium | ~1,500 → 800 |
 | **treatment** | 治療選択 / 変更判断 | 臨床 context 付き治療選択理由 | 薬剤選択ロジック、用量計算、相互作用チェック | Medium | ~1,200 → 600 |
@@ -184,7 +184,7 @@ token。
 ### モデル tier 選択
 
 | Tier | モデルクラス | 用途 | 呼出コスト目安 |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | **Small** | Haiku クラス | 大量、シンプルな生成 (chief complaint、簡潔な看護ノート、症状記述) | 最安 |
 | **Medium** | Sonnet クラス | 臨床推論、治療理由、中長ノート | 中 |
 | **Large** | Opus クラス | 退院サマリ、H&P ノート、整合性レビュー、複雑な臨床判断 | 最高 |
@@ -328,7 +328,7 @@ class NarrativeGenerator:
 #### JUDGMENT タスク (常に英語 — 効率的 token、高品質)
 
 | タスク | 回数 | Input | Output | 合計 | Model |
-|---|---|---|---|---|---|
+| --- | --- | --- | --- | --- | --- |
 | 診断推論 | 3 | 800 × 3 | 400 × 3 | 3,600 | Medium |
 | 治療判断 | 2 | 700 × 2 | 300 × 2 | 2,000 | Medium |
 | 整合性レビュー | 1 | 4,000 | 1,000 | 5,000 | Large |
@@ -337,7 +337,7 @@ class NarrativeGenerator:
 #### NARRATIVE タスク (日本語出力 — 自然テキストのためより大きな token 予算)
 
 | タスク | 回数 | Input (en) | Output (ja) | 合計 | Model |
-|---|---|---|---|---|---|
+| --- | --- | --- | --- | --- | --- |
 | Chief complaint | 1 | 500 | 200 | 700 | Small |
 | Admission H&P | 1 | 2,000 | 4,000 | 6,000 | Large |
 | Progress notes (キー日) | 4 | 1,200 × 4 | 1,500 × 4 | 10,800 | Medium |
@@ -348,7 +348,7 @@ class NarrativeGenerator:
 #### 合算
 
 | | JP 患者 | US 患者 (全英語) |
-|---|---|---|
+| --- | --- | --- |
 | Judgment tasks | 10,600 | 10,600 (同) |
 | Narrative tasks | 29,900 | ~20,000 (英語出力は ~30% 少ない token) |
 | **患者あたり合計** | **~40,500** | **~30,600** |
@@ -357,7 +357,7 @@ class NarrativeGenerator:
 #### 患者あたりコスト目安 (Bedrock 価格 2025)
 
 | Model tier | 呼び出し数 | JP 患者コスト | US 患者コスト |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | Small (Haiku) | 5 | ~$0.003 | ~$0.002 |
 | Medium (Sonnet) | 9 | ~$0.06 | ~$0.05 |
 | Large (Opus) | 3 | ~$0.40 | ~$0.30 |
@@ -366,7 +366,7 @@ class NarrativeGenerator:
 #### スケール見積 (JP 患者)
 
 | 患者数 | 合計 token | 概算コスト | Cache (~50% hit) 適用時 |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | 10 | ~405K | ~$4.60 | ~$2.50 |
 | 100 | ~4.05M | ~$46 | ~$25 |
 | 1,000 | ~40.5M | ~$460 | ~$250 |
@@ -379,7 +379,7 @@ class NarrativeGenerator:
 ### アーキテクチャ判断記録
 
 | ID | 判断 |
-|---|---|
+| --- | --- |
 | AD-7 | LLM は選択的増幅器: narrative と臨床推論を強化; 全数値 / 構造データはルールベースのまま |
 | AD-8 | 3 生成モード: `none` (構造のみ)、`template` (ルールベーステキスト)、`llm` (フル LLM 強化) |
 | AD-9 | コンパクト context パターン: 患者レコード全体ではなく pre-summarized `LLMClinicalContext` (~300 token) |
@@ -435,7 +435,7 @@ class SeedManager:
 #### 再現性レベル
 
 | Level | 保証 | 達成方法 |
-|---|---|---|
+| --- | --- | --- |
 | **Level 1: 構造** | 同患者、同疾患、同 encounter、同検査値、同タイムスタンプ | 全ルールベースモジュールに決定的 seed。LLM 依存なし。 |
 | **Level 2: 構造 + cached LLM** | Level 1 + 同一 narrative テキスト | LLM 出力を disk に cache (task_type + event_data hash キー)。再実行時 cache がロードされ LLM 呼び出しなし。 |
 | **Level 3: フルフレッシュ** | 構造データ同一。LLM テキストは僅かに変動しうる。 | LLM は fresh 呼び出し (cache なし)。構造データは依然決定的。 |
@@ -660,7 +660,7 @@ Layer 4: Narrative テキスト -- llm_service により Stage 2 で生成 (対�
 国別名前構造:
 
 | 国 | 構造 | 姓の位置 | 正式表示 | 例 |
-|---|---|---|---|---|
+| --- | --- | --- | --- | --- |
 | JP | 姓 + 名 | 先 | 田中 太郎 | 田中 太郎 (Tanaka Taro) |
 | US | 名 + 姓 | 後 | John Smith | John Smith |
 
@@ -687,7 +687,7 @@ class PersonName:
 **権威データソース (翻訳に LLM を使用してはならない):**
 
 | ドメイン | 日本ソース | US ソース |
-|---|---|---|
+| --- | --- | --- |
 | 診断名 | 厚生労働省 標準病名マスター | CMS ICD-10-CM Official Guidelines |
 | 検査名 | JLAC10 マスター (日本臨床検査標準協議会) | LOINC (Regenstrief Institute) |
 | 薬剤名 | 医薬品マスター (PMDA) | RxNorm (NLM) |
@@ -701,7 +701,7 @@ class PersonName:
 各出力アダプタが国別フォーマット規則を適用:
 
 | 項目 | 日本 | US |
-|---|---|---|
+| --- | --- | --- |
 | 体温 | ℃ (常に摂氏) | ℃ または ℉ (施設依存; 大半は ℃) |
 | 体重 | kg | kg (臨床) または lb (患者向け) |
 | 身長 | cm | cm (臨床) または ft/in (患者向け) |
@@ -732,7 +732,7 @@ JUDGMENT タスクは常に英語 (AD-13)。NARRATIVE タスクは
 #### アーキテクチャ判断
 
 | AD | 判断 |
-|---|---|
+| --- | --- |
 | AD-25 | CIF は language-neutral。生成時に CIF に保存される唯一の国固有データは人物名。他の localization (用語翻訳、単位、フォーマット、narrative) は全て出力 / Stage 2 で発生。 |
 | AD-26 | 臨床用語 (診断、薬剤、検査、手技名) は公式マスターデータのみを使用。LLM 翻訳は決してしない。マッピング YAML ファイルは権威ソースを引用。 |
 
@@ -756,16 +756,16 @@ Ground truth          臨床プロセス          EHR レコード
   既知疾患       -->    症状 / 徴候      -->    "Pneumonia, unspecified"
   混合原因       -->    重複症状          -->    "Pneumonia" (誤りかも)
   未知原因       -->    非特異的症状       -->    "Fever, unspecified"
-                            |
+|
                         Workup:
                           labs、imaging
-                            |
+|
                         Differential:
                           結果で更新
-                            |
+|
                         Working Dx:            Progress notes:
                           変わりうる           "Pneumonia suspected"
-                            |
+|
                         Final Dx:              Discharge Dx:
                           ground truth と      "Pneumonia due to S. pneumoniae"
                           異なりうる           (または 10% で "Fever, unresolved")
@@ -842,7 +842,7 @@ class ClinicalDiagnosis:
 モデル化:
 
 | パラメータ | デフォルト | 意味 |
-|---|---|---|
+| --- | --- | --- |
 | `initial_correct_rate` | 0.60 | 最初の working diagnosis が正しい確率 |
 | `final_correct_rate` | 0.85 | 退院診断が ground truth と一致する確率 |
 | `missed_secondary_rate` | 0.30 | 混合ケースで 2 次診断を見逃す確率 |
@@ -858,7 +858,7 @@ class ClinicalDiagnosis:
 #### アーキテクチャ判断
 
 | AD | 判断 |
-|---|---|
+| --- | --- |
 | AD-28 | Condition-first モデル: 患者は診断ではなく症状で呈示する。Ground truth (hidden) は臨床診断 (記録) と異なりうる。3 condition タイプ: known-disease、mixed-cause、unknown-cause。 |
 | AD-29 | 診断精度は tunable パラメータ。デフォルトは実世界レート (~85% 正しい) と一致。異なる用途のために調整可能。 |
 
@@ -1018,7 +1018,7 @@ catchment 地域外の care を必要とする人:
 ### アーキテクチャ判断記録
 
 | ID | 判断 | 理由 |
-|---|---|---|
+| --- | --- | --- |
 | AD-3 | Population-driven forward シミュレーション | リアリズム: 実世界は病院需要ではなく集団動態で患者を生成する |
 | AD-4 | 2 層集団モデル (registry + active) | 性能: 病院訪問者のみフルシミュレーション要 |
 | AD-5 | 世帯ベース生成 | リアリズム: 家族構造が保険、生活状況、遺伝リスク、感染伝染を駆動 |
@@ -1064,7 +1064,7 @@ clinosim/
 ### モジュールフォルダあたり必要ファイル
 
 | File | 内容 |
-|---|---|
+| --- | --- |
 | `SPEC.md` | モジュール目的、入出力定義、確定 spec、open question |
 
 ### SPEC.md テンプレート
@@ -1226,7 +1226,7 @@ Layer 2 → Layer 1 (更新履歴付き)。NO なら人は Layer 1 に留まる
 ## 5. 命名規則
 
 | ターゲット | 規約 | 例 |
-|---|---|---|
+| --- | --- | --- |
 | モジュールフォルダ | snake_case | `clinical_course/` |
 | Python ファイル | snake_case | `state_engine.py` |
 | クラス名 | PascalCase | `PatientProfile` |

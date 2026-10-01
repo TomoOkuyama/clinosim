@@ -6,26 +6,26 @@ cliff だった。Issue #568 PR B で `docs/architecture/` 配下の 3 file
 
 ## 3 分割
 
-- **[Design principles](docs/architecture/design-principles.md)** (英語)
+- **[Design principles](docs/architecture/design-principles.ja.md)**
   — realism-above-all、モジュラーアーキテクチャ、LLM 統合、
   simulation mode、フォルダ構造、inter-module インターフェイス規約、
   命名規約。歴史的な基盤で largely stable。
-- **[Architecture notes](docs/architecture/architecture-notes.md)** (英語)
+- **[Architecture notes](docs/architecture/architecture-notes.ja.md)**
   — per-module 設計注記 (code system、FHIR bulk data、snapshot
   semantics、hospital config layout、vital sign pattern、identifier、
   EHR enrichment、拡張性 foundation)、臨床文書 module (FHIR
   DocumentReference)、LLM service architecture (pluggable provider
   + YAML prompt)。
-- **[ADR history](docs/architecture/adr-history.md)** (英語) —
+- **[ADR history](docs/architecture/adr-history.ja.md)** —
   per-ADR section (`### AD-NN:`)。日本語 localisation (AD-42、
   AD-43)、FHIR 標準準拠 + 労災 (AD-44 〜 AD-48、AD-61 〜 AD-70)。
 
 ## 関連ドキュメント
 
-- **[docs/README.md](docs/README.md)** — top-level docs landing page。
-- **[docs/architecture/README.md](docs/architecture/README.md)** —
+- **[docs/README.md](docs/README.ja.md)** — top-level docs landing page。
+- **[docs/architecture/README.md](docs/architecture/README.ja.md)** —
   architecture 専用ナビゲーション。
-- **[MODULES.md](MODULES.md) / [MODULES.ja.md](MODULES.ja.md)** —
+- **[MODULES.md](MODULES.ja.md) / [MODULES.ja.md](MODULES.ja.md)** —
   モジュール単位 API 索引。
 
 ## 歴史的コンテキスト
@@ -38,4 +38,4 @@ top-level `DESIGN.md` を指すものは残っていない。
 55+ per-ADR file への split (元 proposal) ではなく 3 file への
 split を選んだ理由は Issue #568 PR B の description を参照。
 
-英語版: [`DESIGN.md`](DESIGN.md)。
+英語版: [`DESIGN.md`](DESIGN.ja.md)。

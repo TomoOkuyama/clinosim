@@ -447,7 +447,7 @@ observation から計算可能。
 ## 6.8 更新 ADR 一覧 (Part 6 追加分)
 
 | ADR | 日付 | タイトル |
-|---|---|---|
+| --- | --- | --- |
 | AD-28 | 2026-04-06 | 診断 vs ground truth 分離 (ConditionEvent vs ClinicalDiagnosis) |
 | AD-29 | 2026-04-06 | 尤度比 (Bayesian update) による診断精度 |
 | AD-30 | 2026-04-08 | Code が唯一の真実: CIF はコードのみ保持、表示テキストを持たない |
@@ -633,7 +633,7 @@ lab を導出するので、同じことが microbiology、血液ガス、心臓
 ### 分類
 
 | Tier | Data | Lives in |
-|---|---|---|
+| --- | --- | --- |
 | Base | Microbiology + susceptibility; lactate / ABG / cardiac markers; `DiagnosticReport` grouping; 看護 flowsheet (I/O、NEWS2、pain、GCS、Braden); immunization 履歴; family history; code status / advance directive; 拡張 SDOH (JP 要介護度含む) | core: `types`、`population`、`observation`、`simulator`、`output` |
 | Module | Billing (`modules/billing/` — JP DPC / US Claim+EOB); Devices + HAI (`modules/device/` — CLABSI/CAUTI/VAP); Care coordination (`modules/care_coordination/` — CarePlan/CareTeam/Goal) | テーマごとに 1 opt-in モジュール |
 
@@ -764,7 +764,7 @@ version) を読み、narrative version が提供された場合は
 clinosim はこれらの文書を out of the box で produce:
 
 | Tier | 文書 | LOINC | encounter あたり数 | 正当化 |
-|---|---|---|---|---|
+| --- | --- | --- | --- | --- |
 | A | 退院サマリ | 18842-5 | 入院あたり 1 | CMS §482.24 で全退院に必須 |
 | A | 死亡記録 | 69730-0 | 死亡あたり 1 | 法的文書; M&M レビュー |
 | A | 手術記録 | 11504-8 | 手術手技あたり 1 | CMS §482.51 で必須 |
@@ -1075,7 +1075,7 @@ match)。
 ### 現在の consumer
 
 | Consumer | 読み取り元 | 目的 |
-|---|---|---|
+| --- | --- | --- |
 | `_pregnancy_lifecycle_events` | 自らの `state_periods` 書き込み | 年 N+1 の `get_active_state` short-circuit で Bernoulli skip; 年 N の period が年境界を carry |
 | `activator.py::activate_patient` | `person.state_periods` | 妊娠履歴 non-empty で med-derivation 入力に葉酸 + 鉄剤を注入 |
 | `_build_conditions` (FHIR) | `record["patient"]["state_periods"]` | delivered pregnancy period 毎に Z37 problem-list-item Condition を emit |

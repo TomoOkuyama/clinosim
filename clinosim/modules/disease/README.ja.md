@@ -13,7 +13,7 @@ module 名は "disease" だが、実際には **入院 / encounter プロトコ�
 全般** を扱う: 内因性疾患 (肺炎、HF、MI、脳卒中、DKA…)、外傷
 (手部挫滅、MVA 手骨折…)、労災 (工業熱傷、感電、高所墜落…)。
 外来 / ED の短期プロトコルは兄弟 registry
-[`clinosim.modules.encounter`](../encounter/README.md) 側に分離。
+[`clinosim.modules.encounter`](../encounter/README.ja.md) 側に分離。
 
 ### 縦断がんサービスライン (v0.5 → v0.6.0)
 
@@ -23,14 +23,14 @@ module 名は "disease" だが、実際には **入院 / encounter プロトコ�
 `chronic_prevalence` marker から縦断治療 chain へと dispatch される
 (chronic Condition としてだけの表現ではない)。chain は複数
 モジュールに跨る:
-[`clinosim.modules.population`](../population/README.md) が
+[`clinosim.modules.population`](../population/README.ja.md) が
 [`clinosim/locale/shared/chemo_regimens.yaml`](../../locale/shared/chemo_regimens.yaml)
 の regimen (FOLFOX q14d, CarboPem q21d, Trastuzumab q3w, LHRH q28d)
 を用いて年 calendar に `chemo_visit` LifeEvent を配置、
-[`clinosim.modules.order`](../order/README.md) が regimen
+[`clinosim.modules.order`](../order/README.ja.md) が regimen
 `cycle_orders` 各 Day-1 薬剤について per-cycle MedicationRequest +
 MedicationAdministration を emit、
-[`clinosim.modules.procedure`](../procedure/README.md) が
+[`clinosim.modules.procedure`](../procedure/README.ja.md) が
 放射線治療 Procedure resource を emit、lab 導出は腫瘍マーカー labs
 (CEA, CA19-9, AFP, PIVKA-II, CA15-3, PSA) を emit。本モジュールは
 急性入院 YAML の所有を継続し、上記 10 code は chronic marker であって
@@ -38,7 +38,7 @@ MedicationAdministration を emit、
 
 **男性乳がん (~1 % of C50)**: C50 の female-only sex lock は解除
 (C51–C58 は lock 継続)。
-[`clinosim.modules.population`](../population/README.md) sampler が
+[`clinosim.modules.population`](../population/README.ja.md) sampler が
 `chronic_prevalence[C50]` に `by_sex: {F: {bands}, M: {bands}}`
 prevalence schema を消費し、male 亚 population を独立 per-`(patient, code)`
 sub-seed (`chronic_augment_sex_seed`) で augmentation する — master
@@ -71,13 +71,13 @@ slice list):
   を reject する。
 - **Out of scope**: シミュレーション時に protocol を読む
   physiology-state 更新ロジック
-  ([`clinosim.modules.physiology`](../physiology/README.md))、
+  ([`clinosim.modules.physiology`](../physiology/README.ja.md))、
   clinical-course trajectory 選択
-  ([`clinosim.modules.clinical_course`](../clinical_course/README.md))、
+  ([`clinosim.modules.clinical_course`](../clinical_course/README.ja.md))、
   外来 / ED 短期プロトコル data
-  ([`clinosim.modules.encounter`](../encounter/README.md))、narrative
+  ([`clinosim.modules.encounter`](../encounter/README.ja.md))、narrative
   templating
-  ([`clinosim.modules.document.narrative`](../document/narrative/README.md))、
+  ([`clinosim.modules.document.narrative`](../document/narrative/README.ja.md))、
   疾患駆動の encounter emission ロジック
   ([`clinosim.simulator`](../../simulator/))。
 
@@ -110,7 +110,7 @@ from clinosim.modules.disease.protocol import (
 from clinosim.modules.disease.severity import (
     SEVERITY_CATEGORIES,          # ("mild", "moderate", "severe")
     SEVERITY_SCORE_RANGES,        # canonical 半開範囲
-    category_from_score,          # (score) -> "mild"|"moderate"|"severe"
+    category_from_score,          # (score) -> "mild" |"moderate" |"severe"
     sample_severity_category,     # (dist, modifiers, minimum, person, rng)
     sample_severity,              # (protocol, person, rng) -> (category, score)
     EVALUABLE_CONDITIONS,
@@ -144,8 +144,8 @@ schema / validation 失敗時に `ValueError` / Pydantic
 
 - 重症度サンプリング (`sample_severity_category`,
   `sample_severity`) は `rng` に対して決定論的。seed 導出は caller
-  ([`clinosim.modules.population`](../population/README.md) の入院
-  gate + [`clinosim.modules.patient.activator`](../patient/README.md))
+  ([`clinosim.modules.population`](../population/README.ja.md) の入院
+  gate + [`clinosim.modules.patient.activator`](../patient/README.ja.md))
   が握る。本モジュールは enricher ではなく必要な consumer が直接
   import する形態のため、サブ seed オフセットは未登録。
 - その他 (loader / validator / 薬剤 vocabulary helper / acuity
@@ -236,7 +236,7 @@ clinosim/modules/disease/
 ## Output surface (consumers)
 
 | Consumer | 場所 | 役割 |
-|---|---|---|
+| --- | --- | --- |
 | Simulator boot | [`clinosim/simulator/engine.py`](../../simulator/engine.py) | run あたり 1 回 `load_all_disease_protocols()` を load。 |
 | Inpatient encounter | [`clinosim/simulator/inpatient.py`](../../simulator/inpatient.py) | 入院発注 / 日次 trajectory / 薬剤プロトコル / target LOS のため `DiseaseProtocol` を read。acuity 別集合を参照して `Encounter.priority` と vitals サンプリング頻度を gate。 |
 | Emergency / outpatient / daily loop | [`clinosim/simulator/{emergency,outpatient,daily_loop,vitals_pipeline}.py`](../../simulator/) | 各 encounter tier で同 read pattern。 |
@@ -269,6 +269,6 @@ pytest tests/unit -k disease -q
 ## Ownership
 
 `maintainers@` — 詳細は
-[`CONTRIBUTING.md`](../../../CONTRIBUTING.md)。
+[`CONTRIBUTING.md`](../../../CONTRIBUTING.ja.md)。
 
-英語版: [`README.md`](README.md)。
+英語版: [`README.md`](README.ja.md)。

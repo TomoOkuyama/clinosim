@@ -30,12 +30,12 @@ MedicationRequest の reasonReference 等が encounter primary reason
   に住み、conditions/ ではない — immunization は臨床的には condition
   近縁だが FHIR 上は Procedure family)、condition / allergy /
   impression の **生成**
-  ([`clinosim.modules.diagnosis`](../../../diagnosis/README.md)、
-  [`clinosim.modules.allergy`](../../../allergy/README.md)、
+  ([`clinosim.modules.diagnosis`](../../../diagnosis/README.ja.md)、
+  [`clinosim.modules.allergy`](../../../allergy/README.ja.md)、
   `ClinicalImpression` は
-  [`clinosim.modules.document`](../../../document/README.md)、
-  HAI event は [`clinosim.modules.hai`](../../../hai/README.md)、
-  [`clinosim.modules.code_status`](../../../code_status/README.md))、
+  [`clinosim.modules.document`](../../../document/README.ja.md)、
+  HAI event は [`clinosim.modules.hai`](../../../hai/README.ja.md)、
+  [`clinosim.modules.code_status`](../../../code_status/README.ja.md))、
   code registry 本体
   ([`clinosim/codes/`](../../../../codes/))。
 
@@ -146,6 +146,6 @@ AD-60 plug-in で、ClinicalImpression + primary-Condition-ref 不変量
 ## Ownership
 
 `maintainers@` — 詳細は
-[`CONTRIBUTING.md`](../../../../../CONTRIBUTING.md)。
+[`CONTRIBUTING.md`](../../../../../CONTRIBUTING.ja.md)。
 
-英語版: [`README.md`](README.md)。
+英語版: [`README.md`](README.ja.md)。

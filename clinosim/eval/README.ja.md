@@ -88,8 +88,8 @@ def run(cohort: Cohort, country: str) -> list[EvalCheck]
 - **国別発火** — `jp_clins_lab_compliance` は `country == "JP"` の
   ときのみ実行。
 - CLI デフォルトは `clinosim eval --help`。
-  [`docs/eval.md`](../../docs/eval.md) と
-  [`docs/eval-rules.md`](../../docs/eval-rules.md) 参照。
+  [`docs/eval.md`](../../docs/eval.ja.md) と
+  [`docs/eval-rules.md`](../../docs/eval-rules.ja.md) 参照。
 
 ## ディレクトリ構成
 
@@ -124,6 +124,6 @@ Synthea アダプタラウンドトリップ、CLI dispatch を網羅。
 
 ## オーナー
 
-`maintainers@` — [`CONTRIBUTING.md`](../../CONTRIBUTING.md) 参照。
+`maintainers@` — [`CONTRIBUTING.md`](../../CONTRIBUTING.ja.md) 参照。
 
-英語版: [`README.md`](README.md)。
+英語版: [`README.md`](README.ja.md)。

@@ -7,7 +7,7 @@ demographics + 社会歴ファミリの FHIR R4 resource 全てを emit:
 Observation + inline AllergyIntolerance 付き)、`Practitioner` +
 `PractitionerRole`、`FamilyMemberHistory`、smoking / alcohol
 社会歴 `Observation`。standalone allergy path は
-[`../conditions/`](../conditions/README.md) の `AllergyIntolerance`
+[`../conditions/`](../conditions/README.ja.md) の `AllergyIntolerance`
 builder が担い、`patient.py` 内の inline `_build_allergy_intolerance`
 は legacy の Patient-embed であり 1 release cycle 残す。
 
@@ -24,11 +24,11 @@ builder が担い、`patient.py` 内の inline `_build_allergy_intolerance`
   `_sdoh_performer_ref`。
 - **Out of scope**: patient / practitioner / family-history / SDOH
   の **生成**
-  ([`clinosim.modules.population`](../../../population/README.md)、
-  [`clinosim.modules.identity`](../../../identity/README.md)、
-  [`clinosim.modules.staff`](../../../staff/README.md)、
-  [`clinosim.modules.family_history`](../../../family_history/README.md)、
-  [`clinosim.modules.sdoh`](../../../sdoh/README.md));JP 保険番号
+  ([`clinosim.modules.population`](../../../population/README.ja.md)、
+  [`clinosim.modules.identity`](../../../identity/README.ja.md)、
+  [`clinosim.modules.staff`](../../../staff/README.ja.md)、
+  [`clinosim.modules.family_history`](../../../family_history/README.ja.md)、
+  [`clinosim.modules.sdoh`](../../../sdoh/README.ja.md));JP 保険番号
   (`identity` module 内)。
 
 ### 新生児 (Newborn) Patient (v0.5 → v0.6.0)
@@ -105,7 +105,7 @@ NDJSON を id で sort する。
 - **JP Core profile URI** — `attach_ecs_institutional_extensions` と
   JP Core Coverage profile URI (jpfhir.jp) 経由で付与。
 - **Family-history relationship coding** — HL7 v3-RoleCode
-  ([`family_history` module README](../../../family_history/README.md)
+  ([`family_history` module README](../../../family_history/README.ja.md)
   に記載の Issue #369 v23 regression ルール — per-code JA 表示は
   load-bearing)。
 - **社会歴 SDOH anchor**: `_sdoh_effective_datetime` が smoking /
@@ -137,6 +137,6 @@ patient / coverage test。
 ## Ownership
 
 `maintainers@` — 詳細は
-[`CONTRIBUTING.md`](../../../../../CONTRIBUTING.md)。
+[`CONTRIBUTING.md`](../../../../../CONTRIBUTING.ja.md)。
 
-英語版: [`README.md`](README.md)。
+英語版: [`README.md`](README.ja.md)。

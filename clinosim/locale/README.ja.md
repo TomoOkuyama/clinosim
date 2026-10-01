@@ -163,7 +163,7 @@ clinosim/locale/
    を拡張。
 6. 新規国をカバーする統合テストを追加。
 
-[`docs/add-your-country.md`](../../docs/add-your-country.md) も参照。
+[`docs/add-your-country.md`](../../docs/add-your-country.ja.md) も参照。
 
 ## テスト
 
@@ -178,6 +178,6 @@ pytest tests/integration -k locale -q
 
 ## オーナー
 
-`maintainers@` — [`CONTRIBUTING.md`](../../CONTRIBUTING.md) 参照。
+`maintainers@` — [`CONTRIBUTING.md`](../../CONTRIBUTING.ja.md) 参照。
 
-英語版: [`README.md`](README.md)。
+英語版: [`README.md`](README.ja.md)。

@@ -19,12 +19,12 @@ named canonical 定数も所有する。
   (`UNRESOLVED_DIAGNOSIS_ICD = "R69"`, `ICD_COUGH = "R05"`、
   R50.9 / R53.1 / R68.8 / Z09 の拡張スロット)。
 - **Out of scope**: disease protocol 定義
-  ([`clinosim.modules.disease`](../disease/README.md))、ICD /
+  ([`clinosim.modules.disease`](../disease/README.ja.md))、ICD /
   SNOMED registry ([`clinosim/codes/`](../../codes/))、FHIR
   `Condition` / `ClinicalImpression` emission
-  ([`clinosim.modules.output`](../output/README.md))、diagnosis の
+  ([`clinosim.modules.output`](../output/README.ja.md))、diagnosis の
   trajectory feedback (それは
-  [`clinosim.modules.clinical_course`](../clinical_course/README.md)
+  [`clinosim.modules.clinical_course`](../clinical_course/README.ja.md)
   で走る)。
 
 ## Public API
@@ -111,7 +111,7 @@ seed 未登録。
 ## Output surface (consumers)
 
 | Consumer | 場所 | 役割 |
-|---|---|---|
+| --- | --- | --- |
 | Inpatient encounter | [`clinosim/simulator/inpatient.py`](../../simulator/inpatient.py) | 入院時に `initialize_differential`、退院時に `get_current_diagnosis_code`。 |
 | Daily loop | [`clinosim/simulator/daily_loop.py`](../../simulator/daily_loop.py) | 新規 observation ごとに `update_differential`。 |
 | Wall-clock sentinel test | [`tests/unit/test_wallclock_sentinel_defaults.py`](../../../tests/unit/test_wallclock_sentinel_defaults.py) | `DifferentialDiagnosis` sentinel default を import。 |
@@ -131,7 +131,7 @@ pytest tests/unit -k "diagnosis or r05_cough" -q
 - [`tests/unit/test_diagnosis_code_mapping.py`](../../../tests/unit/test_diagnosis_code_mapping.py)
   — code → display mapping。
 - [`tests/unit/test_diagnosis_feedback.py`](../../../tests/unit/test_diagnosis_feedback.py)
-  — [`clinosim.modules.clinical_course`](../clinical_course/README.md)
+  — [`clinosim.modules.clinical_course`](../clinical_course/README.ja.md)
   への diagnosis feedback (cross-module integration)。
 - [`tests/unit/test_types_diagnosis.py`](../../../tests/unit/test_types_diagnosis.py)
   — dataclass shape。
@@ -142,6 +142,6 @@ pytest tests/unit -k "diagnosis or r05_cough" -q
 ## Ownership
 
 `maintainers@` — 詳細は
-[`CONTRIBUTING.md`](../../../CONTRIBUTING.md)。
+[`CONTRIBUTING.md`](../../../CONTRIBUTING.ja.md)。
 
-英語版: [`README.md`](README.md)。
+英語版: [`README.md`](README.ja.md)。

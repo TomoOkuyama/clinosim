@@ -22,9 +22,9 @@
   (reference YAML の per-condition `sex` フィールドで強制)。
 - **Out of scope**: 家族歴を本人の疾患サンプリングに逆流させる処理
   (Phase 2+ で
-  [`clinosim.modules.population`](../population/README.md) の
+  [`clinosim.modules.population`](../population/README.ja.md) の
   risk-factor logic 想定)、FHIR / CSV serialization
-  ([`clinosim.modules.output`](../output/README.md))、ICD-10 や
+  ([`clinosim.modules.output`](../output/README.ja.md))、ICD-10 や
   HL7 v3-RoleCode の表示テキスト ([`clinosim/codes/`](../../codes/))。
 
 ## Public API
@@ -123,7 +123,7 @@ clinosim/modules/family_history/
 ## Output surface (consumers)
 
 | Consumer | 場所 | 役割 |
-|---|---|---|
+| --- | --- | --- |
 | CSV adapter | [`clinosim/modules/output/csv_adapter.py`](../output/csv_adapter.py) (`L341` 付近, `L418` 付近) | `record["family_history"]` から `family_history.csv` を書き出し (患者単位)。 |
 | FHIR `FamilyMemberHistory` builder | [`clinosim/modules/output/fhir_r4/demographics/family_history.py`](../output/fhir_r4/demographics/family_history.py) | 近親ごとに `FamilyMemberHistory` を 1 件出力。id は `fmh-{patient_id}-NN` で write 時 de-dup。 |
 | Enricher registry | [`clinosim/simulator/enrichers.py:175`](../../simulator/enrichers.py) | POST_RECORDS 登録。 |
@@ -157,6 +157,6 @@ pytest tests/integration -k family_history -q  # enricher + FHIR 出力
 ## Ownership
 
 `maintainers@` — 詳細は
-[`CONTRIBUTING.md`](../../../CONTRIBUTING.md)。
+[`CONTRIBUTING.md`](../../../CONTRIBUTING.ja.md)。
 
-英語版: [`README.md`](README.md)。
+英語版: [`README.md`](README.ja.md)。

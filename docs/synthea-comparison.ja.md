@@ -17,7 +17,7 @@ state-transition 合成健康記録ジェネレータ) と clinosim は同じ問
 ## Feature comparison
 
 | 次元 | clinosim | Synthea |
-|---|---|---|
+| --- | --- | --- |
 | モデル化アプローチ | 生理駆動の前向きシミュレーション (患者ごとに 14 変数の hidden state) | 疾患別 state-transition モジュール |
 | 検査 / vital 間の整合性 | 共有生理状態により保証 | モジュールごとに独立 |
 | ネイティブ FHIR R4 出力 | Bulk Data Access NDJSON、ResourceType ごとに 1 ファイル | patient ごとに FHIR R4 JSON |
@@ -176,7 +176,7 @@ overall            85.9       92.6
 
 - [Evaluation](eval.ja.md) — CLI + スコアリングリファレンス。
 - [Evaluation rules](eval-rules.ja.md) — check ごとの合格基準 + 文献。
-- [Datasets](reference/datasets.md) — clinosim プリセットコホート。
-- [Reproducibility](development/reproducibility.md) — clinosim の
+- [Datasets](reference/datasets.ja.md) — clinosim プリセットコホート。
+- [Reproducibility](development/reproducibility.ja.md) — clinosim の
   バイト同一決定性契約。
 - [Synthea ドキュメント](https://github.com/synthetichealth/synthea/wiki)。

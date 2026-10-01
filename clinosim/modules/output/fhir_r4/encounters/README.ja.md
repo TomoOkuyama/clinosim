@@ -25,13 +25,13 @@ URL)、`Location` + `Organization` (facility Bundle として CIF write
   valueCodeableConcept を持つ social-history Observation)。
 - **Out of scope**: encounter の **シミュレーション**
   ([`clinosim.simulator`](../../../../simulator/));facility 運用状態
-  model ([`clinosim.modules.facility`](../../../facility/README.md));
+  model ([`clinosim.modules.facility`](../../../facility/README.ja.md));
   staff roster + `assign_staff` dispatch
-  ([`clinosim.modules.staff`](../../../staff/README.md));`Endpoint`
+  ([`clinosim.modules.staff`](../../../staff/README.ja.md));`Endpoint`
   が参照する `ImagingStudy` を生成する imaging chain
-  ([`clinosim.modules.imaging`](../../../imaging/README.md));
+  ([`clinosim.modules.imaging`](../../../imaging/README.ja.md));
   要介護度付与
-  ([`clinosim.modules.care_level`](../../../care_level/README.md))。
+  ([`clinosim.modules.care_level`](../../../care_level/README.ja.md))。
 
 ### 周産期 + オンコロジー encounter shape (v0.5 → v0.6.0)
 
@@ -151,6 +151,6 @@ participant[] 非空) を cross-verify する。
 ## Ownership
 
 `maintainers@` — 詳細は
-[`CONTRIBUTING.md`](../../../../../CONTRIBUTING.md)。
+[`CONTRIBUTING.md`](../../../../../CONTRIBUTING.ja.md)。
 
-英語版: [`README.md`](README.md)。
+英語版: [`README.md`](README.ja.md)。

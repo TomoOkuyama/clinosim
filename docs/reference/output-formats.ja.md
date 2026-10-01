@@ -139,7 +139,7 @@ Reference integrity を維持。
 ### 含まれる FHIR R4 フィールド (主要リソース)
 
 | Resource | Fields |
-|---|---|
+| --- | --- |
 | Patient | identifier (MRN、type=MR)、name (JP 用漢字+カナ拡張)、gender、birthDate、address、telecom、maritalStatus、communication (BCP-47)、contact (緊急) |
 | Encounter | class、type (SNOMED)、serviceType、priority、period、length、participant (ATND/ADM/DIS)、diagnosis ref、hospitalization (admitSource、dischargeDisposition)、location (bed → ward via partOf)、serviceProvider (診療科 Org) |
 | Observation | code (LOINC)、valueQuantity (UCUM 単位 + system + code)、referenceRange (low/high/text/source extension for JP Core)、interpretation (N/H/L/HH/LL)、encounter、performer |

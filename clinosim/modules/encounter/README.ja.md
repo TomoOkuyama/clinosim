@@ -9,7 +9,7 @@
    条件 (asthma attack、migraine、minor laceration、screening visit、
    allergic reaction、syncope、viral gastroenteritis、annual health
    screening、dialysis session、rehab outpatient 等) を扱う。
-   [`clinosim.modules.disease`](../disease/README.md) が担当する
+   [`clinosim.modules.disease`](../disease/README.ja.md) が担当する
    入院 / 外傷 protocol の兄弟 registry。
 2. **入院日次 cycle timeline** — 1 入院 encounter に対する
    決定論的 admission → daily cycle → discharge の event 順序と、
@@ -29,12 +29,12 @@
   22:00)、`generate_encounter_timeline` (admission + daily × N +
   discharge を時系列 sort)。
 - **Out of scope**: 入院 / 外傷 / 労災 protocol
-  ([`clinosim.modules.disease`](../disease/README.md))、narrative
+  ([`clinosim.modules.disease`](../disease/README.ja.md))、narrative
   rendering
-  ([`clinosim.modules.document.narrative`](../document/narrative/README.md))、
+  ([`clinosim.modules.document.narrative`](../document/narrative/README.ja.md))、
   encounter simulation / stateful daily loop
   ([`clinosim.simulator`](../../simulator/))、FHIR `Encounter`
-  emission ([`clinosim.modules.output`](../output/README.md))。
+  emission ([`clinosim.modules.output`](../output/README.ja.md))。
 
 ### 縦断サービスライン encounter shape (v0.5 → v0.6.0)
 
@@ -63,7 +63,7 @@
 - **化学療法 Encounter** (`chemo_visit` 外来 event) — 各 regimen
   cycle につき 1 件、cadence は
   [`clinosim/locale/shared/chemo_regimens.yaml`](../../locale/shared/chemo_regimens.yaml)
-  から。Encounter は分娩 / 化学療法 Procedure と、([`order`](../order/README.md)
+  から。Encounter は分娩 / 化学療法 Procedure と、([`order`](../order/README.ja.md)
   経由の) regimen `cycle_orders` 各 Day-1 薬剤に対する per-cycle
   MedicationRequest + MedicationAdministration を持つ。放射線治療
   encounter も同様。
@@ -161,7 +161,7 @@ clinosim/modules/encounter/
 ## Output surface (consumers)
 
 | Consumer | 場所 | 役割 |
-|---|---|---|
+| --- | --- | --- |
 | Simulator boot + 全 encounter simulator | [`clinosim/simulator/{engine,inpatient,outpatient,emergency,unknown_condition,enumerate,cli_test_encounter,cli}.py`](../../simulator/) | `create_inpatient_encounter` と condition-protocol loader を import。 |
 | Narrative | [`clinosim/modules/document/narrative/passes.py`](../document/narrative/passes.py) | 外来 / ED template flow で `EncounterConditionProtocol.narrative` を read。 |
 | Encounter-type FHIR mapping | [`clinosim/modules/output/fhir_r4/encounters/`](../output/fhir_r4/encounters/) | protocol が持つ encounter class + type 文字列を消費。 |
@@ -191,6 +191,6 @@ pytest tests/unit -k encounter -q
 ## Ownership
 
 `maintainers@` — 詳細は
-[`CONTRIBUTING.md`](../../../CONTRIBUTING.md)。
+[`CONTRIBUTING.md`](../../../CONTRIBUTING.ja.md)。
 
-英語版: [`README.md`](README.md)。
+英語版: [`README.md`](README.ja.md)。
