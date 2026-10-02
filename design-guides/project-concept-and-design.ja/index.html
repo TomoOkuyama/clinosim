@@ -2350,7 +2350,7 @@
 <p><strong>Status:</strong> Active(2026-07-03、session 32 で確立)
 <strong>Audience:</strong> 新規参加の開発者/実装 AI(Opus 4.7 等)が最初に読む「このプロジェクトは
 何で、どう作られているか」の全体像。規則集は
-<a href="../implementation-rules/"><code>implementation-rules.md</code></a>、詳細アーキテクチャは <code>DESIGN.md</code>(ADR 全集)。</p>
+<a href="../implementation-rules.ja/"><code>implementation-rules.md</code></a>、詳細アーキテクチャは <code>DESIGN.md</code>(ADR 全集)。</p>
 <hr />
 <h2 id="1-プロジェクトコンセプトゴール">1. プロジェクトコンセプト(ゴール)<a class="headerlink" href="#1-プロジェクトコンセプトゴール" title="Permanent link">&para;</a></h2>
 <p><strong>clinosim は高品質な EHR/EMR サンプルデータセットの生成器</strong>である。
@@ -2392,12 +2392,12 @@
 </span></code></pre></div>
 <ul>
 <li><strong>CLI 3-stage(AD-37)</strong>: <code>clinosim simulate</code>(→ structural CIF)→ <code>clinosim narrate
-  --provider template|mock|ollama|bedrock</code>(→ narratives/<version>/)→
+  --provider template |mock |ollama |bedrock</code>(→ narratives/<version>/)→
   <code>clinosim export-fhir --narrative-version X</code>。これがコンセプト 6(差し替え)の実体。</li>
 <li><strong>決定性(AD-16)</strong>: 全乱数は階層 sub-seed。同 seed = byte 同一出力(wall-clock は
   determinism chain で全除去済、session 34)。</li>
 <li><strong>★ この図の詳細版</strong>(実ファイル/関数名つきの end-to-end トレース)=
-  <a href="../data-generation-walkthrough/"><code>data-generation-walkthrough.md</code></a>。新規貢献者はまず本節で
+  <a href="../data-generation-walkthrough.ja/"><code>data-generation-walkthrough.md</code></a>。新規貢献者はまず本節で
   全体像を掴み、walkthrough で 1 患者の生成を具体的に追う。</li>
 </ul>
 <h2 id="3-レイヤと責任分解">3. レイヤと責任分解<a class="headerlink" href="#3-レイヤと責任分解" title="Permanent link">&para;</a></h2>

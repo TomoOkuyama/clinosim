@@ -2286,11 +2286,11 @@ Output surfaces / Testing / Ownership) に従う <code>README.md</code> +
 </tr>
 <tr>
 <td>新モジュールを足す</td>
-<td><a href="../../CONTRIBUTING-modules/"><code>docs/CONTRIBUTING-modules.md</code></a> + <a href="../../.github/TEMPLATE_MODULE_README.md"><code>.github/TEMPLATE_MODULE_README.md</code></a></td>
+<td><a href="../../CONTRIBUTING-modules.ja/"><code>docs/CONTRIBUTING-modules.md</code></a> + <a href="../../.github/TEMPLATE_MODULE_README.md"><code>.github/TEMPLATE_MODULE_README.md</code></a></td>
 </tr>
 <tr>
 <td>PR 検証手段を選ぶ</td>
-<td><a href="../../CONTRIBUTING-modules/"><code>docs/CONTRIBUTING-modules.md</code></a> 「PR 検証ガイド」</td>
+<td><a href="../../CONTRIBUTING-modules.ja/"><code>docs/CONTRIBUTING-modules.md</code></a> 「PR 検証ガイド」</td>
 </tr>
 </tbody>
 </table>
@@ -2761,17 +2761,17 @@ builder を登録 — <code>_BUNDLE_BUILDERS</code> を直接編集しないこ�
 <tr>
 <td>Scenario flag 追加 (<code>causes_X</code>)</td>
 <td><code>physiology.engine</code> + <code>derive_lab_values</code> 呼び出し 4 site</td>
-<td><code>scenario_flags_from_protocol</code> helper 経由; <a href="../../SCENARIO_FLAGS.md"><code>SCENARIO_FLAGS.md</code></a> 参照</td>
+<td><code>scenario_flags_from_protocol</code> helper 経由; <a href="../../SCENARIO_FLAGS.ja.md"><code>SCENARIO_FLAGS.md</code></a> 参照</td>
 </tr>
 <tr>
 <td>薬剤駆動 lab effect 追加</td>
 <td><code>physiology.engine</code> + 4 site</td>
-<td><code>medication_flags_from_context</code> helper 経由; <a href="../../SCENARIO_FLAGS.md"><code>SCENARIO_FLAGS.md</code></a> 参照</td>
+<td><code>medication_flags_from_context</code> helper 経由; <a href="../../SCENARIO_FLAGS.ja.md"><code>SCENARIO_FLAGS.md</code></a> 参照</td>
 </tr>
 <tr>
 <td>新 code 追加 (LOINC/SNOMED/ICD/…)</td>
 <td><code>codes/data/&lt;system&gt;.yaml</code> (<code>en</code> + optional <code>ja</code>)</td>
-<td><a href="../../clinosim/codes/README.md"><code>clinosim/codes/README.md</code></a> 参照</td>
+<td><a href="../../clinosim/codes/README.ja.md"><code>clinosim/codes/README.md</code></a> 参照</td>
 </tr>
 <tr>
 <td>新 FHIR resource 型 追加</td>
@@ -2785,7 +2785,7 @@ builder を登録 — <code>_BUNDLE_BUILDERS</code> を直接編集しないこ�
 </tr>
 <tr>
 <td>新モジュール追加</td>
-<td><a href="../../.github/TEMPLATE_MODULE_README.md"><code>.github/TEMPLATE_MODULE_README.md</code></a> を複製、<a href="../../CONTRIBUTING-modules/"><code>docs/CONTRIBUTING-modules.md</code></a> 手順で登録</td>
+<td><a href="../../.github/TEMPLATE_MODULE_README.md"><code>.github/TEMPLATE_MODULE_README.md</code></a> を複製、<a href="../../CONTRIBUTING-modules.ja/"><code>docs/CONTRIBUTING-modules.md</code></a> 手順で登録</td>
 <td>canonical 11-section README 構造に従う</td>
 </tr>
 </tbody>
@@ -2793,13 +2793,13 @@ builder を登録 — <code>_BUNDLE_BUILDERS</code> を直接編集しないこ�
 <blockquote>
 <p><strong>プロジェクト目標: FHIR R4 / JP Core 準拠 + 臨床整合 + JP 言語品質</strong>。
 PR 検証手段 (byte-diff vs 3-axis DQR vs <code>clinosim audit run</code>) は
-<a href="../../CONTRIBUTING-modules/"><code>docs/CONTRIBUTING-modules.md</code></a>
+<a href="../../CONTRIBUTING-modules.ja/"><code>docs/CONTRIBUTING-modules.md</code></a>
 「PR 検証ガイド」参照。</p>
 </blockquote>
 <h2 id="新モジュール追加-5-step-quick-start">新モジュール追加 (5-step quick start)<a class="headerlink" href="#新モジュール追加-5-step-quick-start" title="Permanent link">&para;</a></h2>
 <ol>
 <li><strong>Base か opt-in Module か判断</strong> →
-   <a href="../../CONTRIBUTING-modules/"><code>docs/CONTRIBUTING-modules.md</code></a>
+   <a href="../../CONTRIBUTING-modules.ja/"><code>docs/CONTRIBUTING-modules.md</code></a>
    「判断: Base か Module か」。</li>
 <li><strong>テンプレートを複製</strong> →
    <a href="../../.github/TEMPLATE_MODULE_README.md"><code>.github/TEMPLATE_MODULE_README.md</code></a>
@@ -2826,7 +2826,7 @@ PR 検証手段 (byte-diff vs 3-axis DQR vs <code>clinosim audit run</code>) は
 </thead>
 <tbody>
 <tr>
-<td><a href="../../README.md"><code>README.md</code></a> / <a href="../../README.ja.md"><code>README.ja.md</code></a></td>
+<td><a href="../../README.ja.md"><code>README.md</code></a> / <a href="../../README.ja.md"><code>README.ja.md</code></a></td>
 <td>ユーザー向け概要</td>
 </tr>
 <tr>
@@ -2834,11 +2834,11 @@ PR 検証手段 (byte-diff vs 3-axis DQR vs <code>clinosim audit run</code>) は
 <td>AI エージェント規則 + プロジェクト規約 (<code>CLAUDE.md</code> は本 file への pointer)</td>
 </tr>
 <tr>
-<td><a href="../../DESIGN.md"><code>DESIGN.md</code></a></td>
+<td><a href="../../DESIGN.ja.md"><code>DESIGN.md</code></a></td>
 <td>landing pointer → <code>docs/architecture/</code> (設計原則 / architecture notes / ADR history)</td>
 </tr>
 <tr>
-<td><a href="../../CONTRIBUTING-modules/"><code>docs/CONTRIBUTING-modules.md</code></a></td>
+<td><a href="../../CONTRIBUTING-modules.ja/"><code>docs/CONTRIBUTING-modules.md</code></a></td>
 <td>Module 作成 playbook + PR 検証ガイド</td>
 </tr>
 <tr>
@@ -2846,11 +2846,11 @@ PR 検証手段 (byte-diff vs 3-axis DQR vs <code>clinosim audit run</code>) は
 <td>新 module README ボイラープレート</td>
 </tr>
 <tr>
-<td><a href="../../SCENARIO_FLAGS.md"><code>SCENARIO_FLAGS.md</code></a></td>
+<td><a href="../../SCENARIO_FLAGS.ja.md"><code>SCENARIO_FLAGS.md</code></a></td>
 <td>Scenario / 薬剤 flag 中央 reference</td>
 </tr>
 <tr>
-<td><a href="../../roadmap/"><code>docs/roadmap.md</code></a></td>
+<td><a href="../../roadmap.ja/"><code>docs/roadmap.md</code></a></td>
 <td>Roadmap (GitHub Issues board)</td>
 </tr>
 <tr>
@@ -2859,7 +2859,7 @@ PR 検証手段 (byte-diff vs 3-axis DQR vs <code>clinosim audit run</code>) は
 </tr>
 </tbody>
 </table>
-<p>英語版: <a href="../../MODULES.md"><code>MODULES.md</code></a>。</p>
+<p>英語版: <a href="../../MODULES.ja.md"><code>MODULES.md</code></a>。</p>
 
 
 

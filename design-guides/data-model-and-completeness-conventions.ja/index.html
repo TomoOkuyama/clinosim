@@ -2467,14 +2467,14 @@
 <p><strong>Status:</strong> Active(2026-07-06、session 38 で確立)
 <strong>Audience:</strong> FHIR completeness fix-point registry(<code>docs/design-notes/2026-07-06-fix-point-registry.md</code>)の
 各 chain を実装するセッション/実装 AI。
-<strong>位置づけ:</strong> 既存の <a href="../implementation-rules/"><code>implementation-rules.md</code></a>(全域の不変則)と
-<a href="../fhir-data-generation-logic/"><code>fhir-data-generation-logic.md</code></a>(Layer 4)の<strong>補遺</strong>。ここには
+<strong>位置づけ:</strong> 既存の <a href="../implementation-rules.ja/"><code>implementation-rules.md</code></a>(全域の不変則)と
+<a href="../fhir-data-generation-logic.ja/"><code>fhir-data-generation-logic.md</code></a>(Layer 4)の<strong>補遺</strong>。ここには
 completeness 修正に固有の新規約だけを書く — 既存規約は<strong>再掲せず cross-link</strong>する(重複はこの
 プロジェクト自身の禁則)。迷ったら判断 4 軸:<strong>データ品質 / 臨床整合性 / メンテ性 / コンセプト適切性</strong>。</p>
 <hr />
 <h2 id="0-まず読む前提">0. まず読む(前提)<a class="headerlink" href="#0-まず読む前提" title="Permanent link">&para;</a></h2>
 <ol>
-<li><a href="../implementation-rules/"><code>implementation-rules.md</code></a> — 全域の不変則(canonical helpers / 決定性 /
+<li><a href="../implementation-rules.ja/"><code>implementation-rules.md</code></a> — 全域の不変則(canonical helpers / 決定性 /
    silent-no-op 防御 / 検証 gate)。<strong>本補遺の規約はこれを上書きしない、追加する。</strong></li>
 <li><a href="../../design-notes/2026-07-06-fhir-completeness-and-data-model-unification/"><code>../design-notes/2026-07-06-fhir-completeness-and-data-model-unification.md</code></a> — 考察・ゴール(なぜこの規約が要るか)。</li>
 <li><code>docs/design-notes/2026-07-06-fix-point-registry.md</code> — 着手する FP の Status/依存/検証。</li>
@@ -2591,7 +2591,7 @@ call-site は event 日(<code>event.timestamp</code>)を渡す。</p>
 <tr>
 <td>severity 決定</td>
 <td><code>event.severity</code>(float)/ protocol 分布</td>
-<td><code>"mild|moderate|severe"</code> + score</td>
+<td><code>"mild |moderate |severe"</code> + score</td>
 <td><code>severity_from_protocol</code>(FP-SEV-MODEL で新設)</td>
 </tr>
 <tr>
