@@ -584,3 +584,11 @@ _.substituted_with  # modules/drug_safety/verdict.py::SafetySkipEntry — read v
 _.substituted_with_ja  # modules/drug_safety/verdict.py::SafetySkipEntry — read via _o() in narrative/context.py
 _.context_hint  # modules/drug_safety/verdict.py::SafetySkipEntry — read via _o() in narrative/context.py
 _.stopped_on_day  # modules/drug_safety/verdict.py::SafetySkipEntry — read via _o() in narrative/context.py
+
+# Issue #1564 Phase 1: snapshot of pids present at the end of
+# `generate_initial_population`. Field is consumed by (a) unit tests
+# in `tests/unit/modules/population/test_newborn_registration_1564.py`
+# and (b) a follow-up PR within Phase 1 that iterates the initial
+# cohort separately from mid-sim additions (newborns). Vulture only
+# scans `clinosim/`, so the test-only consumer is invisible to it.
+_.initial_person_ids  # modules/population/engine.py::PopulationRegistry — read via tests + follow-up newborn event pass

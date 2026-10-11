@@ -145,6 +145,14 @@ class Household:
 class PopulationRegistry:
     households: list[Household] = field(default_factory=list)
     persons: dict[str, PersonRecord] = field(default_factory=dict)
+    # Snapshot of person_ids present at the end of initial population
+    # generation (Issue #1564 Phase 1). Any pid in `.persons` that is not
+    # in this set was added mid-simulation (e.g. a newborn registered by
+    # `clinosim.modules.population.newborn.register_newborn`). Downstream
+    # code uses this to iterate initial persons under their original RNG
+    # spawn shape (preserving byte-identity) and treat added persons as a
+    # separate stream with their own derived sub-seeds.
+    initial_person_ids: set[str] = field(default_factory=set)
 
     def get_person(self, person_id: str) -> PersonRecord | None:
         return self.persons.get(person_id)
@@ -772,6 +780,12 @@ def generate_population(
             registry.persons[pid] = person
 
         registry.households.append(hh)
+
+    # Issue #1564 Phase 1: snapshot the initial person set so persons
+    # added mid-simulation (e.g. newborns from `register_newborn`) can be
+    # distinguished from the initial cohort. Deterministic — same pids as
+    # we just inserted into `registry.persons`.
+    registry.initial_person_ids = set(registry.persons.keys())
 
     return registry
 
