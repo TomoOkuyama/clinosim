@@ -601,9 +601,26 @@ def run_beta(
         if (snap_y, snap_m) < (end_y, end_m):
             end_y, end_m = snap_y, snap_m
 
+    # Issue #1564 Phase 2 scaffold: `advance_population(registry, year)`
+    # runs once per calendar year, before that year's monthly events are
+    # generated, and gives per-person aging passes (chronic onset, stage
+    # progression, allergy drift, condition-reactive mortality) a hook
+    # to mutate state. The scaffold invocation is a no-op (all four
+    # passes return without touching state), so output is byte-identical
+    # to pre-change master. Behaviour lands in follow-up PRs within
+    # Phase 2.
+    from clinosim.modules.population.aging import advance_population
+
     all_events: list[LifeEvent] = []
     y, m = start_y, start_m
     while (y, m) <= (end_y, end_m):
+        # Issue #1564 Phase 2 scaffold: run the aging hook at the first
+        # month of each calendar year (January) and at the very first
+        # iteration of the sim window (even if the window starts
+        # mid-year). No-op in the scaffold PR — follow-up PRs within
+        # Phase 2 attach behaviour to the pass stubs.
+        if m == 1 or (y, m) == (start_y, start_m):
+            advance_population(population, y)
         month_key = f"{y:04d}-{m:02d}"
         month_rng = derive_phase_rng(master_seed, PHASE_LIFE_EVENT, month_key)
         all_events.extend(generate_monthly_events(population, y, m, month_rng, country=config.country))
