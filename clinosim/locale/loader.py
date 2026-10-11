@@ -312,6 +312,19 @@ def load_actuarial_life_table() -> dict[str, Any]:
 
 
 @lru_cache(maxsize=1)
+def load_condition_mortality_smr() -> dict[str, Any]:
+    """Load the sparse per-ICD SMR table used by the aging hook's
+    ``_condition_reactive_mortality`` pass (Issue #1564 Phase 2).
+
+    Top-level shape:
+        smr_table.<icd> -> float (≥ 1.0 typically)
+        combine_method -> str ("geometric_mean")
+        max_excess_qx_per_year -> float (hard cap on added yearly qx)
+    """
+    return _load_yaml(_LOCALE_DIR / "shared" / "condition_mortality_smr.yaml", fallback={})
+
+
+@lru_cache(maxsize=1)
 def load_chemo_regimens() -> dict[str, Any]:
     """Load chemotherapy regimen library + per-cancer assignment table.
 
