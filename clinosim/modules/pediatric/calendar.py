@@ -98,6 +98,19 @@ def generate_pediatric_events(
     # empty-schedule invariant style for the >18 case).
     if age > 18:
         return []
+    # Issue #1564 Phase 1 follow-up: short-circuit for persons not yet
+    # born in this cal_year. Newborns registered mid-sim appear in the
+    # registry from year 0 of the sim (not from their birth year), and
+    # ``generate_healthcare_calendar`` iterates every cal_year in the sim
+    # window — without this guard the pediatric calendar would consume
+    # one per-person rng draw per pre-birth year on the newborn's own
+    # (position-K) stream. The initial cohort's rng streams are not
+    # affected because ``spawn(N+K)`` returns the same first N streams as
+    # ``spawn(N)``; this guard only avoids RNG waste on the newborn's own
+    # stream and prevents a late-year schedule change from drifting the
+    # newborn's own pediatric calendar via consumed draws.
+    if age < 0:
+        return []
 
     # Issue #922 — care-seeking participation gate.
     #
