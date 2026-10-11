@@ -383,6 +383,15 @@ def activate_patient(
         else:
             glycemic_control = None
             stage = _generate_stage(code, sev, rng)
+        # Issue #1572 (Phase 2.5 prep): snapshot the staged value to
+        # ``person.disease_stages`` so the aging-hook disease-progression
+        # pass (follow-up PR) has a Layer-1 handle on the person's
+        # current stage. First-call-sample behaviour is byte-identical
+        # to pre-prep master because the dict write happens after the
+        # RNG draw and the sampled value is already what downstream
+        # uses. Empty strings (unstaged codes like I10) are not stored.
+        if stage:
+            person.disease_stages[code_base] = stage
         # Draw both values in the exact same order/position as before this fix
         # (controlled, then the generic severity uniform), then substitute the
         # CKD-stage-derived score for N18 afterward — the uniform draw is

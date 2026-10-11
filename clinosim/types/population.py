@@ -59,6 +59,16 @@ class PersonRecord:
     phone_home: str = ""
     phone_mobile: str = ""
     chronic_conditions: list[str] = field(default_factory=list)
+    # Issue #1572 (Phase 2.5 prep for `_disease_progression`): per-ICD
+    # stage snapshot. Keyed by the base ICD prefix (e.g. ``"N18"``,
+    # ``"J44"``) and valued with the Layer-2 stage string
+    # (``"CKD G3a"``, ``"GOLD 2"``, etc.) sampled by
+    # ``clinosim.modules.patient.activator._generate_stage``. Written
+    # back by ``activate_patient`` the first time a disease is staged
+    # for the person so the aging-hook disease-progression pass has a
+    # Layer-1 handle on current stage. Empty for persons whose
+    # chronic conditions have no stage distribution (I10, F32, etc.).
+    disease_stages: dict[str, str] = field(default_factory=dict)
     current_medications: list[HomeMedication] = field(default_factory=list)  # active medications (see #452)
     # Occupation category (drives work-related injury risk); see PatientProfile.occupation
     occupation: str = "other"
