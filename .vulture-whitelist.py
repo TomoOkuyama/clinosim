@@ -542,12 +542,6 @@ _.lab_trend  # document/narrative/lab_timeseries.py:188
 # Kept as the documented public entrypoint for allergen-catalog loading.
 _.load_allergens  # modules/allergy/engine.py:134
 
-# load_stage_transition — public API introduced in Issue #1572 Phase 2.5
-# yaml PR. The consumer is the `_disease_progression` body PR
-# (follow-up on the same META). yaml-only PR carries the data +
-# loader without yet wiring the pass body, so vulture flags the
-# function. Kept here with the issue reference until body PR lands.
-_.load_stage_transition  # locale/loader.py:327
 
 # Issue #957: Encounter.service_line consumed via _o(encounter, "service_line",
 # "") in modules/document/engine.py::_effective_outpatient_loinc. Vulture only
