@@ -137,18 +137,20 @@ class PersonRecord:
     def is_alive_at(self, when: date) -> bool:
         """Return True if the person is alive at ``when`` (Issue #1114 C11g-2).
 
-        Rule: alive iff ``date_of_death is None`` (never dies within the
-        modelled window) OR ``when < date_of_death`` (still pre-death).
+        Rule: alive iff ``date_of_birth <= when`` (the person has already
+        been born) AND (``date_of_death is None`` OR ``when < date_of_death``).
         The death day itself counts as not-alive — matches the standard
         actuarial convention that a person "dies on" their death date and
-        is unavailable for events scheduled on that day or later.
-
-        Note: C11g-2 populates ``date_of_death`` but does NOT yet route
-        the event generators through this method. C11g-3 wires the
-        filter into ``generate_monthly_events`` /
-        ``generate_healthcare_calendar`` (4+ call sites of the current
-        naive ``is_alive`` boolean).
+        is unavailable for events scheduled on that day or later. The
+        pre-birth guard (Issue #1564 Phase 1 follow-up) protects newborns
+        registered mid-sim from receiving events dated before their
+        delivery (healthcare calendar iterates every cal_year including
+        years before a newborn's birth; without this guard a pediatric
+        well-child visit scheduled at month=3 of a baby's birth year
+        would fire for a date the baby did not yet exist).
         """
+        if self.date_of_birth is not None and when < self.date_of_birth:
+            return False
         if self.date_of_death is None:
             return True
         return when < self.date_of_death
