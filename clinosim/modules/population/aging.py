@@ -12,8 +12,15 @@ their state before the year's events are generated:
   (P_next − P_this) new onset probability. Marginal-preserving by
   construction: single source of truth stays
   ``locale/*/demographics.yaml:chronic_prevalence``.
-* :func:`_disease_progression` — stage advancement (CKD G1→G5,
-  COPD GOLD I→IV, diabetes compensated→decompensated). Stub.
+* :func:`_disease_progression` — stage advancement for CKD G1→G5
+  and COPD GOLD 1→4. First touch of a disease on a person
+  initialises its stage from the activator-matching weight vector
+  (so Phase A sampling preserves cohort distribution); subsequent
+  years draw annual Bernoulli advancement from
+  ``locale/shared/stage_transition.yaml``. Activator prefers the
+  aging-set stage on the Phase B activation path (RNG draw burned
+  to preserve per-patient stream). Diabetes glycemic trajectory
+  and dementia severity are planned follow-ups.
 * :func:`_allergy_drift` — childhood food-allergy resolution (flips
   ``clinical_status`` to ``resolved`` under the childhood resolution
   rate from ``allergens.yaml:aging``) and late-onset drug-sensitivity
@@ -267,6 +274,57 @@ def _annual_chronic_onset(
 # ---------------------------------------------------------------------------
 
 
+# ---------------------------------------------------------------------------
+# Disease stage progression (Issue #1572 Phase 2.5, CKD + COPD only)
+# ---------------------------------------------------------------------------
+
+
+@lru_cache(maxsize=1)
+def _load_stage_transitions() -> dict[str, dict]:
+    """Return the per-ICD stage-transition config from
+    ``stage_transition.yaml``. Cached singleton. Returns empty dict
+    when yaml is missing — pass becomes safe no-op."""
+    from clinosim.locale.loader import load_stage_transition
+
+    data = load_stage_transition()
+    return data.get("stage_transitions") or {}
+
+
+# Initial-stage weights for the two Phase 2.5 targets. Values mirror
+# ``clinosim.modules.patient._severity_activation`` so a cohort whose
+# stage is sampled at Phase A (aging init) matches, in distribution,
+# a cohort whose stage would have been sampled by the activator at
+# Phase B. The strings here match the format stored in
+# ``person.disease_stages`` (CKD prefix included; GOLD un-prefixed).
+_INITIAL_STAGE_SAMPLERS: dict[str, tuple[tuple[str, ...], tuple[float, ...]]] = {
+    "N18": (
+        ("CKD G1", "CKD G2", "CKD G3a", "CKD G3b", "CKD G4", "CKD G5"),
+        (0.05, 0.30, 0.30, 0.20, 0.10, 0.05),
+    ),
+    "J44": (
+        ("GOLD 1", "GOLD 2", "GOLD 3", "GOLD 4"),
+        (0.20, 0.40, 0.30, 0.10),
+    ),
+}
+
+
+def _weighted_sample(prng: np.random.Generator, choices: tuple[str, ...], weights: tuple[float, ...]) -> str:
+    """One-shot weighted sample. Mirrors ``rng.choice(choices, p=weights)``
+    but uses `prng.random()` so we stay on the pass-isolated stream and
+    don't call into the shared numpy choice path (which has a different
+    draw-count footprint)."""
+    total = float(sum(weights))
+    if total <= 0.0:
+        return choices[0]
+    u = float(prng.random()) * total
+    acc = 0.0
+    for c, w in zip(choices, weights, strict=False):
+        acc += float(w)
+        if u < acc:
+            return c
+    return choices[-1]
+
+
 def _disease_progression(
     person: PersonRecord,
     year: int,
@@ -274,13 +332,60 @@ def _disease_progression(
     incidence_table: dict[str, _ChronicIncidenceSpec],
     locale: str = "us",
 ) -> None:
-    """Per-person annual disease-stage advancement (Phase 2 stub).
+    """Per-person annual disease-stage advancement for Phase 2.5
+    scope diseases (CKD, COPD).
 
-    Future contract: use existing physiology state where it exists;
-    otherwise YAML-driven annual transition matrices to advance
-    CKD stage, COPD GOLD stage, diabetes compensation, dementia
-    progression. No-op in this PR.
+    Mechanism:
+
+    * For each ICD on ``person.chronic_conditions`` whose base code
+      has a config entry in ``stage_transition.yaml`` AND an
+      ``_INITIAL_STAGE_SAMPLERS`` weighting (N18 or J44):
+
+      1. **Initialize** on first touch — if the person has the ICD
+         but no entry in ``person.disease_stages`` yet, sample an
+         initial stage from the activator-matching weight vector.
+         No advancement in the init year to avoid a double step.
+      2. **Advance** — otherwise, draw a Bernoulli against the
+         yaml-declared annual_advance_probability for the current
+         stage and, on hit, move to the next entry in ``stages``.
+
+    All draws come from the pass-isolated ``prng``. The activator
+    (Phase B) prefers the aging-provided stage when
+    ``person.disease_stages[code_base]`` is non-empty, so the
+    advanced stage propagates downstream automatically (narrative,
+    FHIR Condition.stage, physiology severity_score).
+
+    Phase 2.5 scope: CKD + COPD only. Diabetes glycemic trajectory
+    and dementia severity are planned follow-ups extending
+    ``stage_transition.yaml`` and ``_INITIAL_STAGE_SAMPLERS``.
     """
+    cfg_all = _load_stage_transitions()
+    if not cfg_all:
+        return
+    for code in person.chronic_conditions:
+        code_base = code.split(".")[0]
+        cfg = cfg_all.get(code_base)
+        if cfg is None:
+            continue
+        stages = tuple(cfg.get("stages") or ())
+        if not stages:
+            continue
+        if code_base not in person.disease_stages:
+            sampler = _INITIAL_STAGE_SAMPLERS.get(code_base)
+            if sampler is None:
+                continue
+            person.disease_stages[code_base] = _weighted_sample(prng, sampler[0], sampler[1])
+            continue
+        current = person.disease_stages[code_base]
+        if current not in stages:
+            continue
+        rate = float((cfg.get("annual_advance_probability") or {}).get(current, 0.0))
+        if rate <= 0.0:
+            continue
+        if float(prng.random()) < rate:
+            idx = stages.index(current)
+            if idx + 1 < len(stages):
+                person.disease_stages[code_base] = stages[idx + 1]
 
 
 def _allergy_drift(
