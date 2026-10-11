@@ -207,3 +207,47 @@ cross_reactivity:
   - trigger_allergen_codes: ["373270004"]   # Penicillin
     boost_category: "medication"
     boost_weight_bonus: 0.20                # +20% conditional boost on medication category
+
+# ---------------------------------------------------------------------------
+# Issue #1564 Phase 2: year-over-year allergy drift (consumed by
+# `clinosim.modules.population.aging._allergy_drift`).
+#
+# * childhood_food_resolution — per-year Bernoulli to flip an active
+#   food allergy to `clinical_status: resolved` while the person is a
+#   minor. Clinical basis: 60-80 % of childhood egg / milk allergies
+#   resolve by age 16 (Sicherer & Sampson, JACI 2014; AAAAI parameter
+#   update 2020). Mapped as an aggregate 8 %/yr Bernoulli: a child
+#   with a food allergy who stays symptomatic for 18 years has
+#   ~1 - 0.92^18 ≈ 78 % cumulative resolution probability — the
+#   mid-point of the Sicherer range. Adults with persistent food
+#   allergy rarely outgrow (<1 %/yr), modelled here as 0.
+# * late_onset_drug_sensitivity — per-year Bernoulli to acquire a new
+#   `medication` allergy as an adult. Clinical basis: drug allergy
+#   lifetime prevalence 5-10 % (MHLW drug-safety survey 2018 referenced
+#   in the file header) accumulates mostly during adulthood; a 60-year
+#   adult window with ~0.5 %/yr Bernoulli gives ~26 % cumulative, which
+#   with the 15 % overall allergy prevalence baseline aligns with the
+#   10 % mid-range for population-level documented drug allergy.
+#   Elderly (65+) acquire slightly more due to greater drug exposure
+#   (polypharmacy); 0.8 %/yr matches geriatric drug-allergy incidence
+#   data (Thong, Allergol Int 2016).
+# ---------------------------------------------------------------------------
+aging:
+  childhood_food_resolution:
+    # Annual Bernoulli applied to each active food allergy on a person
+    # whose current age is below `child_age_cutoff`. Flips
+    # `clinical_status` from "active" to "resolved" when it fires.
+    child_age_cutoff: 18
+    annual_rate_child: 0.08    # 8%/yr during childhood
+    annual_rate_adult: 0.0     # Adults do not outgrow in this model
+  late_onset_drug_sensitivity:
+    # Annual Bernoulli applied to each adult (age ≥ `adult_age_floor`)
+    # who does not already carry a medication allergy. On hit, draws
+    # a medication allergen uniformly from `allergens.medication` and
+    # appends it with `clinical_status: active`,
+    # `verification_status: confirmed`, and `onset_date` set to
+    # mid-year of the current simulation year.
+    adult_age_floor: 18
+    elderly_age_floor: 65
+    annual_rate_adult: 0.005   # 0.5%/yr for 18-64
+    annual_rate_elderly: 0.008 # 0.8%/yr for 65+

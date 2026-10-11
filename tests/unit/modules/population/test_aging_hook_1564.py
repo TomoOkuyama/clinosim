@@ -6,7 +6,10 @@ Covers:
 * ``_annual_chronic_onset`` behaviour: age gate, sex gate,
   already-present skip, deterministic draws, band-diff derivation
   math, approximate marginal preservation across a decade.
-* Stub signatures for the three not-yet-implemented passes.
+* ``_allergy_drift`` behaviour: None-safe skip, childhood food
+  resolution flip, adult drug-sensitivity emergence (incl. NKA
+  removal), age-tiered elderly rate.
+* Stub signatures for the two not-yet-implemented passes.
 """
 
 from __future__ import annotations
@@ -74,16 +77,180 @@ def test_advance_population_skips_dead_persons() -> None:
     assert p_alive.is_alive is True
 
 
-def test_pass_stubs_are_callable_no_op() -> None:
-    """Three Phase-2 stub passes still accept ``(person, year, prng,
-    incidence_table)`` and return ``None`` without touching state."""
+def test_remaining_stubs_are_callable_no_op() -> None:
+    """Two Phase-2 stub passes still accept ``(person, year, prng,
+    incidence_table)`` and return ``None`` without touching state.
+
+    ``_allergy_drift`` is excluded — it now has a behavioural body and
+    is covered by the allergy-drift section below.
+    """
     p = _alive("PT-X", age=65)
     before = (tuple(p.chronic_conditions), p.is_alive, p.date_of_death)
-    for fn in (_disease_progression, _allergy_drift, _condition_reactive_mortality):
+    for fn in (_disease_progression, _condition_reactive_mortality):
         rv = fn(p, 2026, np.random.default_rng(42), {})
         assert rv is None
     after = (tuple(p.chronic_conditions), p.is_alive, p.date_of_death)
     assert before == after
+
+
+# ---------------------------------------------------------------------------
+# _allergy_drift behaviour
+# ---------------------------------------------------------------------------
+
+
+def _food_allergy(code: str = "735038006", status: str = "active"):
+    """Build an active food Allergy (egg protein by default)."""
+    from clinosim.types.allergy import Allergy, AllergyReaction
+
+    return Allergy(
+        allergy_id=f"ALG-FOOD-{code}",
+        allergen_code=code,
+        category="food",
+        criticality="low",
+        verification_status="confirmed",
+        clinical_status=status,
+        reactions=[AllergyReaction(manifestation_snomed="247472004", severity="mild")],
+    )
+
+
+def _nka_record():
+    from clinosim.types.allergy import Allergy
+
+    return Allergy(
+        allergy_id="ALG-NKA",
+        allergen_code="716186003",
+        category="",
+        criticality="unable-to-assess",
+        verification_status="confirmed",
+        clinical_status="resolved",
+        is_nka=True,
+    )
+
+
+def test_allergy_drift_none_allergies_is_no_op() -> None:
+    """``person.allergies is None`` (newborn before enricher) → skip."""
+    p = _alive("PT-NEWBORN", age=1)
+    assert p.allergies is None
+    _allergy_drift(p, 2026, np.random.default_rng(0), {})
+    assert p.allergies is None
+
+
+def test_allergy_drift_resolves_child_food_allergy_at_expected_rate() -> None:
+    """Monte-Carlo: 400 children (age 8) with a food allergy at
+    year 2026. One single-year 8 % Bernoulli → expected ~32 flips.
+    We assert > 10 to be robust to RNG spread."""
+    flipped = 0
+    for i in range(400):
+        p = _alive(f"PT-CHILD-{i:04d}", age=8)
+        p.allergies = [_food_allergy()]
+        sub = np.random.default_rng(aging_sub_seed(p.person_id, 2026, "_allergy_drift"))
+        _allergy_drift(p, 2026, sub, {})
+        if p.allergies[0].clinical_status == "resolved":
+            flipped += 1
+    assert flipped > 10, f"only {flipped}/400 food allergies resolved (expected ~32)"
+
+
+def test_allergy_drift_does_not_resolve_adult_food_allergy() -> None:
+    """Adults are gated out of childhood resolution (rate 0)."""
+    p = _alive("PT-ADULT", age=40)
+    p.allergies = [_food_allergy()]
+    for yr in range(2026, 2046):
+        sub = np.random.default_rng(aging_sub_seed(p.person_id, yr, "_allergy_drift"))
+        _allergy_drift(p, yr, sub, {})
+    assert p.allergies[0].clinical_status == "active"
+
+
+def test_allergy_drift_emerges_adult_drug_allergy_eventually() -> None:
+    """Adult without a medication allergy should pick one up over
+    many years at ~0.5 %/yr (cumulative ~1 - 0.995^100 ≈ 39 %;
+    using many fresh seeds we expect at least one hit)."""
+    hits = 0
+    for i in range(400):
+        p = _alive(f"PT-ADULT-{i:04d}", age=50)
+        p.allergies = [_nka_record()]
+        sub = np.random.default_rng(aging_sub_seed(p.person_id, 2026, "_allergy_drift"))
+        _allergy_drift(p, 2026, sub, {})
+        if any(a.category == "medication" for a in p.allergies):
+            hits += 1
+    # 0.5 %/yr × 400 adults = expected ~2 hits in a single year.
+    # Across 400 person-years we expect ~2 with sampling spread. We
+    # relax to >=1 to keep this a smoke test (RNG is deterministic
+    # so the exact count is fixed, but we document the expected mag).
+    assert hits >= 1, f"no drug-allergy emergence across 400 adult-years (hits={hits})"
+
+
+def test_allergy_drift_elderly_rate_higher_than_adult() -> None:
+    """Over a large Monte-Carlo, 65+ cohort should emerge drug
+    allergies more often than 18-64 at the same person-year count."""
+    adult_hits = 0
+    elderly_hits = 0
+    for i in range(1000):
+        p_a = _alive(f"PT-A-{i:04d}", age=40)
+        p_a.allergies = [_nka_record()]
+        _allergy_drift(
+            p_a,
+            2026,
+            np.random.default_rng(aging_sub_seed(p_a.person_id, 2026, "_allergy_drift")),
+            {},
+        )
+        if any(a.category == "medication" for a in p_a.allergies):
+            adult_hits += 1
+        p_e = _alive(f"PT-E-{i:04d}", age=75)
+        p_e.allergies = [_nka_record()]
+        _allergy_drift(
+            p_e,
+            2026,
+            np.random.default_rng(aging_sub_seed(p_e.person_id, 2026, "_allergy_drift")),
+            {},
+        )
+        if any(a.category == "medication" for a in p_e.allergies):
+            elderly_hits += 1
+    # Expected: ~5 adult / ~8 elderly per 1000. Rate ratio 1.6×; the
+    # count ratio won't be exact but direction must hold.
+    assert elderly_hits > adult_hits, f"adult={adult_hits} elderly={elderly_hits}"
+
+
+def test_allergy_drift_removes_nka_on_emergence() -> None:
+    """When the first real allergy is added, the NKA record must be
+    dropped — mixing is self-contradicting."""
+    from clinosim.types.allergy import Allergy
+
+    # Hunt for a seed/year combo that fires an emergence for 1 person.
+    for yr in range(2026, 2500):
+        p = _alive("PT-NKA-FLIP", age=70)
+        p.allergies = [_nka_record()]
+        sub = np.random.default_rng(aging_sub_seed(p.person_id, yr, "_allergy_drift"))
+        _allergy_drift(p, yr, sub, {})
+        if any(isinstance(a, Allergy) and a.category == "medication" for a in p.allergies):
+            # NKA removed.
+            assert not any(a.is_nka for a in p.allergies), "NKA not removed after real allergy added"
+            assert p.allergies[-1].onset_date is not None
+            return
+    raise AssertionError("Could not find a year that fired drug emergence; rate too low or RNG off")
+
+
+def test_allergy_drift_skips_adult_with_existing_med_allergy() -> None:
+    """If the person already carries a medication allergy, drift
+    does not stack another one."""
+    from clinosim.types.allergy import Allergy, AllergyReaction
+
+    p = _alive("PT-MED", age=50)
+    p.allergies = [
+        Allergy(
+            allergy_id="ALG-PENI",
+            allergen_code="373270004",
+            category="medication",
+            criticality="high",
+            verification_status="confirmed",
+            clinical_status="active",
+            reactions=[AllergyReaction(manifestation_snomed="247472004", severity="moderate")],
+        )
+    ]
+    for yr in range(2026, 2046):
+        sub = np.random.default_rng(aging_sub_seed(p.person_id, yr, "_allergy_drift"))
+        _allergy_drift(p, yr, sub, {})
+    med_count = sum(1 for a in p.allergies if a.category == "medication")
+    assert med_count == 1
 
 
 # ---------------------------------------------------------------------------

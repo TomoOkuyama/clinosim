@@ -14,8 +14,10 @@ their state before the year's events are generated:
   ``locale/*/demographics.yaml:chronic_prevalence``.
 * :func:`_disease_progression` — stage advancement (CKD G1→G5,
   COPD GOLD I→IV, diabetes compensated→decompensated). Stub.
-* :func:`_allergy_drift` — childhood food-allergy resolution and
-  late-onset drug-sensitivity emergence. Stub.
+* :func:`_allergy_drift` — childhood food-allergy resolution (flips
+  ``clinical_status`` to ``resolved`` under the childhood resolution
+  rate from ``allergens.yaml:aging``) and late-onset drug-sensitivity
+  emergence (adds a new medication allergy with ``onset_date`` set).
 * :func:`_condition_reactive_mortality` — replace ``natural_death``'s
   single pre-sampled date with a lazy per-year Bernoulli that factors
   the person's current condition load. Stub.
@@ -38,6 +40,7 @@ from functools import lru_cache
 import numpy as np
 
 from clinosim.locale.loader import load_demographics
+from clinosim.modules.allergy.engine import load_allergen_config
 from clinosim.types.population import PersonRecord
 
 __all__ = [
@@ -172,6 +175,33 @@ def _load_annual_incidence_for_locale(country: str) -> dict[str, _ChronicInciden
     return out
 
 
+# ---------------------------------------------------------------------------
+# Allergy-drift config loaders
+# ---------------------------------------------------------------------------
+
+
+@lru_cache(maxsize=1)
+def _load_aging_allergy_config() -> dict:
+    """Return the ``aging:`` block of ``allergens.yaml`` (empty dict
+    when the yaml predates this field). Cached singleton."""
+    data = load_allergen_config()
+    aging = data.get("aging")
+    if not isinstance(aging, dict):
+        return {}
+    return aging
+
+
+@lru_cache(maxsize=1)
+def _load_medication_allergen_entries() -> tuple[dict, ...]:
+    """Return the ``allergens.medication`` list from ``allergens.yaml``
+    as an immutable tuple of dicts (so ``@lru_cache`` is safe) — used
+    by late-onset drug-sensitivity emergence to pick a candidate
+    allergen uniformly."""
+    data = load_allergen_config()
+    meds = ((data.get("allergens") or {}).get("medication")) or []
+    return tuple(meds)
+
+
 def _current_age(person: PersonRecord, year: int) -> int:
     """Approximate age at Jan 1 of ``year`` from ``date_of_birth``.
     Birthday-exact comparison would require a month+day pivot; using
@@ -251,12 +281,110 @@ def _allergy_drift(
     prng: np.random.Generator,
     incidence_table: dict[str, _ChronicIncidenceSpec],
 ) -> None:
-    """Per-person annual allergy drift (Phase 2 stub).
+    """Per-person annual allergy drift.
 
-    Future contract: childhood food-allergy resolution rates by age,
-    late-onset drug-sensitivity emergence after exposure. Mutates
-    ``person.allergies`` in place. No-op in this PR.
+    Two behaviours, both parametrised by ``allergens.yaml:aging``:
+
+    * **Childhood food-allergy resolution** — for each active food
+      allergy on a person whose current age is below
+      ``child_age_cutoff``, flip ``clinical_status`` to ``"resolved"``
+      with annual probability ``annual_rate_child``. Models the
+      well-documented outgrowth of egg / milk / soy allergy by
+      adolescence (see yaml citation).
+    * **Late-onset drug-sensitivity emergence** — if the person is at
+      or above ``adult_age_floor`` and does not already carry a
+      medication allergy, draw an annual Bernoulli at the age-tiered
+      rate (``annual_rate_elderly`` for ≥ ``elderly_age_floor``, else
+      ``annual_rate_adult``). On hit, pick a medication allergen
+      uniformly from ``allergens.medication``, build an
+      :class:`Allergy` with ``onset_date = date(year, 6, 15)`` and
+      append it to ``person.allergies``. If the person previously
+      had only an NKA record, that record is removed first — once
+      a real allergy exists the NKA assertion is no longer valid.
+
+    If ``person.allergies is None`` (newborn registered mid-sim before
+    the allergy enricher runs for them), the pass is skipped —
+    newborn allergy initialisation is a separate follow-up concern.
+    All draws use the pass-isolated ``prng`` so toggling behaviour
+    here cannot cascade into unrelated cohort output.
     """
+    from datetime import date as _date
+
+    from clinosim.types.allergy import Allergy, AllergyReaction
+
+    if person.allergies is None:
+        return
+
+    cfg = _load_aging_allergy_config()
+    if not cfg:
+        return
+    resolve_cfg = cfg.get("childhood_food_resolution") or {}
+    emerge_cfg = cfg.get("late_onset_drug_sensitivity") or {}
+
+    age = _current_age(person, year)
+
+    # 1) Childhood food-allergy resolution.
+    child_cutoff = int(resolve_cfg.get("child_age_cutoff", 18))
+    if age < child_cutoff:
+        rate = float(resolve_cfg.get("annual_rate_child", 0.0))
+        if rate > 0.0:
+            for allergy in person.allergies:
+                if allergy.is_nka:
+                    continue
+                if allergy.category != "food":
+                    continue
+                if allergy.clinical_status != "active":
+                    continue
+                if prng.random() < rate:
+                    allergy.clinical_status = "resolved"
+
+    # 2) Late-onset drug sensitivity emergence.
+    adult_floor = int(emerge_cfg.get("adult_age_floor", 18))
+    if age < adult_floor:
+        return
+    elderly_floor = int(emerge_cfg.get("elderly_age_floor", 65))
+    rate_key = "annual_rate_elderly" if age >= elderly_floor else "annual_rate_adult"
+    emerge_rate = float(emerge_cfg.get(rate_key) or 0.0)
+    if emerge_rate <= 0.0:
+        return
+    has_medication_allergy = any(
+        (not a.is_nka) and a.category == "medication" and a.clinical_status == "active" for a in person.allergies
+    )
+    if has_medication_allergy:
+        return
+    if prng.random() >= emerge_rate:
+        return
+
+    med_entries = _load_medication_allergen_entries()
+    if not med_entries:
+        return
+    held_codes = {a.allergen_code for a in person.allergies if not a.is_nka}
+    candidates = [e for e in med_entries if e["allergen_code"] not in held_codes]
+    if not candidates:
+        return
+    pick = candidates[int(prng.integers(len(candidates)))]
+    reactions = pick.get("common_reactions") or []
+    rxn_payload = reactions[0] if reactions else {}
+    new_allergy = Allergy(
+        allergy_id=f"ALG-{person.person_id}-aging-{year}",
+        allergen_code=str(pick["allergen_code"]),
+        category="medication",
+        criticality=str(pick.get("criticality", "low")),
+        verification_status="confirmed",
+        clinical_status="active",
+        onset_date=_date(year, 6, 15),
+        reactions=[
+            AllergyReaction(
+                manifestation_snomed=str(rxn_payload.get("manifestation_snomed", "")),
+                severity=str(rxn_payload.get("severity", "mild")),
+            )
+        ]
+        if rxn_payload
+        else [],
+        is_nka=False,
+    )
+    person.allergies[:] = [a for a in person.allergies if not a.is_nka]
+    person.allergies.append(new_allergy)
 
 
 def _condition_reactive_mortality(
