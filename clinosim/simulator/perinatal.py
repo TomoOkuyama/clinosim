@@ -411,6 +411,13 @@ def simulate_delivery_encounter(
     country: str = "US",
     config: object | None = None,
     hospital_ops: dict | None = None,
+    # Issue #1564 Phase 1: when provided, the freshly-built newborn
+    # ``PatientProfile`` is also promoted to a long-lived ``PersonRecord``
+    # on this registry so later aging / pediatric-calendar work can see
+    # the baby. ``None`` keeps the existing behaviour (newborn exists
+    # only as a one-shot delivery-admission entity), used by tests that
+    # exercise the perinatal builder in isolation.
+    population_registry: object | None = None,
 ) -> list[CIFPatientRecord]:
     """Build the delivery encounter chain: mother's IMP encounter +
     (Slice 2) the newborn's Patient + IMP Encounter + Z38.0.
@@ -862,6 +869,25 @@ def simulate_delivery_encounter(
         except ValueError:
             _snap = None
     newborn = _build_newborn_patient(patient, delivery_date, baby_sex, snapshot_date=_snap, country=country)
+
+    # Issue #1564 Phase 1: promote the newborn to a long-lived
+    # ``PersonRecord`` on the shared population registry when the caller
+    # provided one. Scaffold only — the pediatric calendar does not yet
+    # fire visits for the registered newborn (follow-up PR). Resolves
+    # the mother's `PersonRecord` from the registry so the newborn joins
+    # the correct household. When the mother is not registered (test
+    # fixtures that build a `PatientProfile` directly without going
+    # through population generation), registration is skipped silently.
+    if population_registry is not None:
+        from clinosim.modules.population.engine import PopulationRegistry
+        from clinosim.modules.population.newborn import register_newborn as _register_newborn
+
+        assert isinstance(population_registry, PopulationRegistry), (
+            "population_registry must be a PopulationRegistry when provided"
+        )
+        _mother_record = population_registry.persons.get(patient.patient_id)
+        if _mother_record is not None:
+            _register_newborn(population_registry, _mother_record, newborn)
 
     newborn_encounter = create_inpatient_encounter(
         newborn.patient_id,

@@ -1274,6 +1274,9 @@ def run_beta(
                 country=config.country,
                 config=config,
                 hospital_ops=hospital_ops,
+                # Issue #1564 Phase 1: thread the registry so the
+                # newborn is promoted to a long-lived PersonRecord.
+                population_registry=population,
             )
             # Issue #1436: the mother's delivery encounter is IMP-class
             # and can overlap an ongoing inpatient stay (e.g. a mother
