@@ -1,0 +1,59 @@
+# Annual stage-transition probabilities for progressive chronic diseases.
+#
+# Consumed by `clinosim.modules.population.aging._disease_progression`
+# (Issue #1572 Phase 2.5 body PR, follow-up). The pass reads
+# ``person.disease_stages[icd_prefix]`` (populated by
+# ``activate_patient`` since the prep PR), draws a per-year
+# Bernoulli at ``annual_advance_probability[current_stage]``, and on
+# a hit advances to the next stage in ``stages``. Stays at terminal
+# stage (probability 0.0) — further mortality is a Phase 2 concern
+# handled by ``_condition_reactive_mortality``.
+#
+# Stage strings match the format already stored in
+# ``person.disease_stages`` (and in Layer-2
+# ``PatientProfile.chronic_conditions[].stage``) so no string
+# translation is needed on the hot path. For CKD, that is
+# ``"CKD G*"``; for COPD, ``"GOLD *"`` (no prefix).
+#
+# Scope: CKD + COPD only in this file (per the user's green-light
+# on Issue #1572). Diabetes glycemic trajectory and dementia
+# severity progression are planned as a follow-up expansion of
+# this same file.
+
+stage_transitions:
+  # ------------------------------------------------------------------
+  # N18 Chronic kidney disease (KDIGO stages G1-G5)
+  # ------------------------------------------------------------------
+  # Clinical basis: Thompson S et al, Kidney Int 2013; CRIC cohort
+  # (Grams ME et al, JASN 2013); NEPTUNE natural-history data.
+  # Progression accelerates with stage; G4 → G5 is the fastest
+  # single-year transition in the natural history. G5 is terminal
+  # here — further mortality is driven by condition-reactive qx in
+  # Issue #1564 Phase 2 (`_condition_reactive_mortality`).
+  N18:
+    stages: ["CKD G1", "CKD G2", "CKD G3a", "CKD G3b", "CKD G4", "CKD G5"]
+    annual_advance_probability:
+      "CKD G1": 0.015    # G1 → G2: ~1.5 %/yr (slowly progressive)
+      "CKD G2": 0.025    # G2 → G3a
+      "CKD G3a": 0.050   # G3a → G3b
+      "CKD G3b": 0.080   # G3b → G4
+      "CKD G4": 0.120    # G4 → G5: fastest single-step
+      "CKD G5": 0.0      # terminal (handled by reactive mortality)
+
+  # ------------------------------------------------------------------
+  # J44 Chronic obstructive pulmonary disease (GOLD 1-4)
+  # ------------------------------------------------------------------
+  # Clinical basis: GOLD 2023 report; Casanova C et al, AJRCCM 2011
+  # (BODE index longitudinal); Vestbo J et al, NEJM 2011 (ECLIPSE).
+  # Progression is slower and more variable than CKD; smoking status
+  # and exacerbation frequency are the dominant per-patient
+  # modifiers, which Phase 2.5 does not yet condition on — the
+  # per-stage rate here reflects an all-cohort average. Smoking-
+  # status-conditional refinement is left as a Phase 3 concern.
+  J44:
+    stages: ["GOLD 1", "GOLD 2", "GOLD 3", "GOLD 4"]
+    annual_advance_probability:
+      "GOLD 1": 0.080    # mild → moderate
+      "GOLD 2": 0.120    # moderate → severe
+      "GOLD 3": 0.150    # severe → very severe
+      "GOLD 4": 0.0      # terminal (handled by reactive mortality)
