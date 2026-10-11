@@ -9,7 +9,10 @@ Covers:
 * ``_allergy_drift`` behaviour: None-safe skip, childhood food
   resolution flip, adult drug-sensitivity emergence (incl. NKA
   removal), age-tiered elderly rate.
-* Stub signatures for the two not-yet-implemented passes.
+* ``_condition_reactive_mortality`` behaviour: SMR combine math,
+  excess_qx cap, baseline date respected unless earlier proposed,
+  is_alive_at skip, no-op when no chronic in SMR table.
+* Stub signature for the one not-yet-implemented pass.
 """
 
 from __future__ import annotations
@@ -28,6 +31,8 @@ from clinosim.modules.population.aging import (
     advance_population,
     aging_sub_seed,
 )
+
+# Imported inside tests that need them to keep the top block small.
 from clinosim.modules.population.engine import PopulationRegistry
 from clinosim.types.population import PersonRecord
 
@@ -77,18 +82,19 @@ def test_advance_population_skips_dead_persons() -> None:
     assert p_alive.is_alive is True
 
 
-def test_remaining_stubs_are_callable_no_op() -> None:
-    """Two Phase-2 stub passes still accept ``(person, year, prng,
-    incidence_table)`` and return ``None`` without touching state.
+def test_remaining_stub_disease_progression_is_no_op() -> None:
+    """One remaining Phase-2 stub pass still accepts
+    ``(person, year, prng, incidence_table, locale)`` and returns
+    ``None`` without touching state.
 
-    ``_allergy_drift`` is excluded — it now has a behavioural body and
-    is covered by the allergy-drift section below.
+    ``_allergy_drift`` and ``_condition_reactive_mortality`` are
+    excluded — both have behavioural bodies covered by their own
+    sections below.
     """
     p = _alive("PT-X", age=65)
     before = (tuple(p.chronic_conditions), p.is_alive, p.date_of_death)
-    for fn in (_disease_progression, _condition_reactive_mortality):
-        rv = fn(p, 2026, np.random.default_rng(42), {})
-        assert rv is None
+    rv = _disease_progression(p, 2026, np.random.default_rng(42), {})
+    assert rv is None
     after = (tuple(p.chronic_conditions), p.is_alive, p.date_of_death)
     assert before == after
 
@@ -227,6 +233,116 @@ def test_allergy_drift_removes_nka_on_emergence() -> None:
             assert p.allergies[-1].onset_date is not None
             return
     raise AssertionError("Could not find a year that fired drug emergence; rate too low or RNG off")
+
+
+# ---------------------------------------------------------------------------
+# _condition_reactive_mortality behaviour
+# ---------------------------------------------------------------------------
+
+
+def test_smr_combine_single_condition() -> None:
+    """A single ICD returns its SMR directly (geometric mean of
+    length-1 list)."""
+    from clinosim.modules.population.aging import _combined_smr_for, _load_condition_smr_table
+
+    smr, combine, _ = _load_condition_smr_table()
+    assert abs(_combined_smr_for(["I50"], smr, combine) - 3.0) < 1e-9
+    assert abs(_combined_smr_for(["J44"], smr, combine) - 2.5) < 1e-9
+
+
+def test_smr_combine_multiple_geometric() -> None:
+    """Three major-organ SMRs geometric-mean below the max, above
+    any single contributor's except the top one."""
+    from clinosim.modules.population.aging import _combined_smr_for, _load_condition_smr_table
+
+    smr, combine, _ = _load_condition_smr_table()
+    val = _combined_smr_for(["I50", "J44", "N18"], smr, combine)
+    assert 2.0 < val < 3.0  # geometric mean of 3.0, 2.5, 2.0 ≈ 2.47
+
+
+def test_smr_combine_untabled_codes_contribute_nothing() -> None:
+    """ICDs not in the table are ignored (SMR 1 effectively)."""
+    from clinosim.modules.population.aging import _combined_smr_for, _load_condition_smr_table
+
+    smr, combine, _ = _load_condition_smr_table()
+    assert _combined_smr_for(["Z99.9", "X77"], smr, combine) == 1.0
+
+
+def test_smr_prefix_match_for_subcodes() -> None:
+    """``N18.3`` matches entry ``N18`` via prefix fallback."""
+    from clinosim.modules.population.aging import _combined_smr_for, _load_condition_smr_table
+
+    smr, combine, _ = _load_condition_smr_table()
+    assert abs(_combined_smr_for(["N18.3"], smr, combine) - 2.0) < 1e-9
+
+
+def test_reactive_mortality_noop_when_no_chronic() -> None:
+    """A person with no chronic conditions never gets accelerated
+    death from the hook — SMR_combined = 1."""
+    p = _alive("PT-WELL", age=75)
+    sub = np.random.default_rng(aging_sub_seed(p.person_id, 2026, "_condition_reactive_mortality"))
+    _condition_reactive_mortality(p, 2026, sub, {}, locale="us")
+    assert p.date_of_death is None
+
+
+def test_reactive_mortality_never_delays_existing_death() -> None:
+    """When ``person.date_of_death`` is already set to an earlier
+    year, the hook must not push it later."""
+    p = _alive("PT-DEAD-SOON", age=80)
+    p.chronic_conditions = ["I50", "J44"]
+    p.date_of_death = date(2024, 3, 10)  # Already set to earlier
+    sub = np.random.default_rng(0)
+    _condition_reactive_mortality(p, 2026, sub, {}, locale="us")
+    assert p.date_of_death == date(2024, 3, 10)
+
+
+def test_reactive_mortality_overrides_later_death() -> None:
+    """When condition-driven death fires BEFORE a baseline-sampled
+    later date_of_death, override it. Monte-Carlo: 400 high-SMR
+    elderly adults with baseline date_of_death set to a future
+    year; a fraction should get their death moved earlier."""
+    overridden = 0
+    for i in range(400):
+        p = _alive(f"PT-OVERRIDE-{i:04d}", age=85)
+        p.chronic_conditions = ["I50", "J44", "N18"]  # SMR ≈ 2.47
+        p.date_of_death = date(2030, 11, 1)
+        sub = np.random.default_rng(aging_sub_seed(p.person_id, 2026, "_condition_reactive_mortality"))
+        _condition_reactive_mortality(p, 2026, sub, {}, locale="us")
+        if p.date_of_death == date(2026, 6, 15):
+            overridden += 1
+    # qx(US,M,85)≈0.133; excess=0.133*(2.47-1)=0.195, capped to 0.15.
+    # Expected ~60 overrides out of 400.
+    assert overridden > 20, f"only {overridden}/400 overrode — expected ~60"
+
+
+def test_reactive_mortality_excess_qx_capped() -> None:
+    """Even with an extreme SMR, excess_qx cannot exceed
+    ``max_excess_qx_per_year``. Verify via large Monte-Carlo at
+    advanced age — hit rate must be at most ~cap × 400."""
+    hits = 0
+    for i in range(400):
+        p = _alive(f"PT-CAP-{i:04d}", age=95)
+        # Multiple top-tier SMRs stack via geometric mean to ~2.5
+        p.chronic_conditions = ["I50", "I21", "J44", "N18", "F03"]
+        sub = np.random.default_rng(aging_sub_seed(p.person_id, 2026, "_condition_reactive_mortality"))
+        _condition_reactive_mortality(p, 2026, sub, {}, locale="us")
+        if p.date_of_death is not None:
+            hits += 1
+    # cap=0.15 → expected ~60 hits. Should be between 40 and 90.
+    assert 20 <= hits <= 120, f"cap breached? hits={hits} (expected ~60 at cap 0.15)"
+
+
+def test_advance_population_skips_past_dead_persons() -> None:
+    """Scaffold fix: a person whose ``date_of_death`` is before the
+    advance year must be skipped by every pass, including
+    ``_annual_chronic_onset``."""
+    p = _alive("PT-WAS-DEAD", age=70)
+    p.date_of_death = date(2024, 5, 1)
+    before = list(p.chronic_conditions)
+    reg = _registry([p])
+    advance_population(reg, 2026, "us")
+    # No new chronic conditions acquired, since person was already dead.
+    assert p.chronic_conditions == before
 
 
 def test_allergy_drift_skips_adult_with_existing_med_allergy() -> None:

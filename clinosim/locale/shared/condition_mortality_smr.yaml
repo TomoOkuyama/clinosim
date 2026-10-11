@@ -1,0 +1,67 @@
+# Standardised Mortality Ratios (SMR) for chronic conditions.
+#
+# Consumed by `clinosim.modules.population.aging._condition_reactive_mortality`
+# (Issue #1564 Phase 2). The pass computes a per-person combined SMR
+# from the ICDs on `PersonRecord.chronic_conditions`, then draws an
+# annual Bernoulli at `excess_qx = qx_baseline * (SMR_combined - 1)`.
+# A hit sets `date_of_death` to `date(year, 6, 15)` ONLY when the
+# proposed date is earlier than any existing `date_of_death` set by
+# the baseline `natural_death` enricher — the hook accelerates
+# condition-driven mortality on top of actuarial baseline, never
+# protects.
+#
+# `smr_table` is sparse by design: entries without an ICD listed get
+# SMR = 1.0 (no mortality effect). The clinical rule of thumb used
+# below is "lifestyle / early-stage" conditions sit near 1.1-1.5,
+# "advanced / major-organ" conditions sit at 2.0-3.0, cancer-prefix
+# and heart-failure sit at the top.
+#
+# References:
+#   - MI/CAD SMR 2.0-2.5 — Yeh RW et al, NEJM 2010; 362:2155-65.
+#   - CHF SMR 3.0-5.0 — Mozaffarian D et al, Circulation 2016; 133.
+#   - COPD GOLD mean SMR 2.5 — Celli BR, AHA Scientific Stmt 2015.
+#   - CKD stage 3-5 SMR 2.0-4.0 — Thompson S et al, KI 2013; 85.
+#   - Type 2 DM SMR 1.5 — Rao Kondapally Seshasai S et al, Lancet 2014.
+#   - Dementia SMR ~2.0 — Garcia-Ptacek S et al, J Alz Dis 2016.
+#   - Nicotine dependence SMR ~1.4 — CDC MMWR 2018 smoking vs never.
+#   - Current depression / recurrent SMR 1.3 — Gilman SE et al, JAMA Psy 2017.
+
+smr_table:
+  # Hypertensive disease
+  "I10": 1.3     # Essential hypertension
+  "I11": 1.5     # Hypertensive heart disease
+  "I12": 1.5     # Hypertensive renal disease
+  # Ischaemic heart disease / arrhythmia
+  "I21": 2.5     # Acute MI history
+  "I25": 2.0     # Chronic IHD
+  "I48": 1.5     # Atrial fibrillation
+  "I50": 3.0     # Heart failure (CHF)
+  # Metabolic
+  "E11": 1.5     # Type 2 DM
+  "E11.9": 1.5   # Type 2 DM, w/o complications
+  "E78": 1.1     # Dyslipidemia
+  "E66": 1.2     # Obesity
+  # Respiratory
+  "J44": 2.5     # COPD
+  "J45": 1.1     # Asthma
+  # Renal
+  "N18": 2.0     # CKD (any stage, pooled)
+  # Mental / behavioural
+  "F03": 2.0     # Dementia, unspecified
+  "F17.210": 1.4 # Nicotine dependence, cigarettes
+  "F32": 1.3     # Depressive episode
+  "F33": 1.3     # Recurrent depressive disorder
+  "F41.1": 1.1   # Generalised anxiety
+
+# Combine method for a person with multiple ICDs in `smr_table`.
+# "geometric_mean" of the listed SMR values: a 3-condition person
+# with [2.0, 2.0, 3.0] gets SMR = (2.0 * 2.0 * 3.0) ** (1/3) = 2.29,
+# bounded multiplicative — avoids runaway at 5+ comorbidities while
+# preserving the direction that more severe conditions → higher SMR.
+combine_method: "geometric_mean"
+
+# Hard cap on the per-year excess qx the pass can add. Prevents
+# runaway at advanced age where baseline qx is already 15-30 %/yr
+# (85+ bands); an SMR of 3 on a 30 % qx would otherwise schedule
+# 60 % cumulative in a single year.
+max_excess_qx_per_year: 0.15
