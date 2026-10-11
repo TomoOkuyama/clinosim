@@ -33,8 +33,12 @@ class TestIsAliveAt:
         )
 
     def test_no_death_is_always_alive(self):
+        # "Always alive" within the person's lifetime (date_of_birth onward)
+        # when no death date is set. The pre-birth guard added in
+        # Issue #1564 Phase 1 follow-up means a date before `date_of_birth`
+        # is not alive; this test covers the live-window behaviour only.
         p = self._person(None)
-        assert p.is_alive_at(date(1900, 1, 1)) is True
+        assert p.is_alive_at(date(1985, 6, 15)) is True  # birth day itself
         assert p.is_alive_at(date(2050, 12, 31)) is True
 
     def test_alive_strictly_before_death(self):
