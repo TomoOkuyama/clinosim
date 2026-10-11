@@ -751,76 +751,136 @@ def run_beta(
     # run's ~10-minute loop is no longer a JSONL blind window.
     sim_log.info("engine", "inpatient_loop_start", target=n_hosp)
     _t0_inp = time.perf_counter()
-    for idx, event in enumerate(hospital_events):
-        if (idx + 1) % 50 == 0 or idx == n_hosp - 1:
-            print(
-                f"  Simulating inpatient {idx + 1}/{n_hosp} "
-                f"(concurrent={concurrent_patients}, "
-                f"bed_occ={hospital_state.bed_occupancy:.0%})...",
-                flush=True,
-            )
-            sim_log.info(
-                "engine",
-                "inpatient_progress",
-                processed=idx + 1,
-                target=n_hosp,
-                concurrent=concurrent_patients,
-                bed_occupancy=round(hospital_state.bed_occupancy, 3),
-            )
 
-        # Advance hospital time — discharge patients who have left
-        event_time = datetime(event.timestamp.year, event.timestamp.month, event.timestamp.day, 12, 0)
-        hospital_state.update_for_time(event_time, hospital_ops)
-        new_active = []
-        for dc_date, beds in active_discharges:
-            if dc_date <= event.timestamp:
-                hospital_state.bed_occupancy = max(0, hospital_state.bed_occupancy - beds)
+    # Issue #1564 Phase 1 completion: body lifted into a nested closure so
+    # the engine can run it twice — once for the initial-cohort
+    # ``hospital_events`` and once for a secondary pass of
+    # ``newborn_hospital_events`` after the first pass registers newborns
+    # into ``population`` via the delivery handler. Shared state
+    # (hospital_state, patient_records, active_discharges,
+    # concurrent_patients, prev_admission_cache, patient_cache) is
+    # captured by closure; only the two names rebound inside the body
+    # (``concurrent_patients`` scalar and ``active_discharges`` list)
+    # need ``nonlocal``.
+    def _dispatch_hospital_events(events: list[LifeEvent], total: int, label: str = "inpatient") -> None:
+        nonlocal concurrent_patients, active_discharges
+
+        for idx, event in enumerate(events):
+            if (idx + 1) % 50 == 0 or idx == total - 1:
+                print(
+                    f"  Simulating {label} {idx + 1}/{total} "
+                    f"(concurrent={concurrent_patients}, "
+                    f"bed_occ={hospital_state.bed_occupancy:.0%})...",
+                    flush=True,
+                )
+                sim_log.info(
+                    "engine",
+                    f"{label}_progress",
+                    processed=idx + 1,
+                    target=total,
+                    concurrent=concurrent_patients,
+                    bed_occupancy=round(hospital_state.bed_occupancy, 3),
+                )
+
+            # Advance hospital time — discharge patients who have left
+            event_time = datetime(event.timestamp.year, event.timestamp.month, event.timestamp.day, 12, 0)
+            hospital_state.update_for_time(event_time, hospital_ops)
+            new_active = []
+            for dc_date, beds in active_discharges:
+                if dc_date <= event.timestamp:
+                    hospital_state.bed_occupancy = max(0, hospital_state.bed_occupancy - beds)
+                    concurrent_patients = max(0, concurrent_patients - 1)
+                else:
+                    new_active.append((dc_date, beds))
+            active_discharges = new_active
+
+            # Admit: increase bed occupancy
+            hospital_state.bed_occupancy = min(0.99, hospital_state.bed_occupancy + 1.0 / beds_total)
+            concurrent_patients += 1
+
+            person = population.get_person(event.person_id)
+            # C11g-3: natural-death gate. Skip admissions after date_of_death
+            # (the actuarial pass may have picked a date preceding this
+            # event's timestamp).
+            if person is None or not person.is_alive or not person.is_alive_at(event_time.date()):
+                continue
+
+            patient = _activate_cached(person)
+            disease_id = event.disease_id
+
+            # Issue #848: if the patient is currently admitted for an earlier
+            # event, this new life event fired *inside* the ongoing
+            # hospitalization. Rather than opening a physically-impossible
+            # second concurrent encounter, merge the disease into the active
+            # record as an in-hospital complication (mirror of what real EHR
+            # practice does — cardiology consult / CCU transfer on the same
+            # encounter). Skips subsequent per-event scaffolding (rng derive,
+            # bed increment, cache lookup, _simulate_patient) because no new
+            # encounter is created for this event.
+            _active = _find_active_inpatient_record(patient_records, event.person_id, event_time)
+            if _active is not None:
+                _merge_disease_into_active_encounter(_active, disease_id, event_time)
+                # Undo the bed_occupancy / concurrent_patients increments this
+                # loop iteration applied above — no new admission was created.
+                hospital_state.bed_occupancy = max(0.0, hospital_state.bed_occupancy - 1.0 / beds_total)
                 concurrent_patients = max(0, concurrent_patients - 1)
-            else:
-                new_active.append((dc_date, beds))
-        active_discharges = new_active
+                continue
 
-        # Admit: increase bed occupancy
-        hospital_state.bed_occupancy = min(0.99, hospital_state.bed_occupancy + 1.0 / beds_total)
-        concurrent_patients += 1
+            event_key = f"{event.person_id}|{event.timestamp.isoformat()}|{disease_id}"
+            event_rng = derive_phase_rng(master_seed, PHASE_INPATIENT_SIM, event_key)
+            # F4: content-derived cache key — identical shape to `event_key` above,
+            # reconstructable from a cached record without having simulated it.
+            cache_key = (event.person_id, event.timestamp.isoformat(), disease_id)
 
-        person = population.get_person(event.person_id)
-        # C11g-3: natural-death gate. Skip admissions after date_of_death
-        # (the actuarial pass may have picked a date preceding this
-        # event's timestamp).
-        if person is None or not person.is_alive or not person.is_alive_at(event_time.date()):
-            continue
+            # Unknown condition
+            if event.condition_type == "unknown" or disease_id.startswith("unknown_"):
+                record: CIFPatientRecord | None
+                if cache_key in prev_admission_cache:
+                    record = prev_admission_cache[cache_key]
+                    # Issue #761: replay lab/imaging queue increments so later
+                    # unrelated admissions see the same congestion state as they
+                    # would on the cold path (the cache-hit admission never
+                    # entered `calculate_result_time_from_state`).
+                    _replay_cached_admission_queue(record, hospital_state, hospital_ops)
+                else:
+                    record = _simulate_unknown_condition(
+                        patient,
+                        event,
+                        event_rng,
+                        healthcare,
+                        roster,
+                        hospital_ops=hospital_ops,
+                        config=config,
+                    )
+                if record:
+                    # Issue #1436: post-hoc overlap check also applies here.
+                    # The unknown_condition path takes an early ``continue``
+                    # branch before reaching the main loop's verifier at line
+                    # ~843, so wire the same helper explicitly.
+                    _post_hoc_overlap = _handle_overlap_via_merge(patient_records, record, disease_id)
+                    if _post_hoc_overlap is not None:
+                        hospital_state.bed_occupancy = max(0.0, hospital_state.bed_occupancy - 1.0 / beds_total)
+                        concurrent_patients = max(0, concurrent_patients - 1)
+                        continue
+                    patient_records.append(record)
+                    person.has_visited_hospital = True
+                    person.visit_count += 1
+                continue
 
-        patient = _activate_cached(person)
-        disease_id = event.disease_id
+            protocol = protocols.get(disease_id)
+            if protocol is None:
+                continue
 
-        # Issue #848: if the patient is currently admitted for an earlier
-        # event, this new life event fired *inside* the ongoing
-        # hospitalization. Rather than opening a physically-impossible
-        # second concurrent encounter, merge the disease into the active
-        # record as an in-hospital complication (mirror of what real EHR
-        # practice does — cardiology consult / CCU transfer on the same
-        # encounter). Skips subsequent per-event scaffolding (rng derive,
-        # bed increment, cache lookup, _simulate_patient) because no new
-        # encounter is created for this event.
-        _active = _find_active_inpatient_record(patient_records, event.person_id, event_time)
-        if _active is not None:
-            _merge_disease_into_active_encounter(_active, disease_id, event_time)
-            # Undo the bed_occupancy / concurrent_patients increments this
-            # loop iteration applied above — no new admission was created.
-            hospital_state.bed_occupancy = max(0.0, hospital_state.bed_occupancy - 1.0 / beds_total)
-            concurrent_patients = max(0, concurrent_patients - 1)
-            continue
+            # Mixed condition: determine secondary disease from patient's chronic conditions
+            secondary_protocol = None
+            if event.condition_type == "mixed":
+                secondary_protocol = _select_secondary_disease(
+                    patient,
+                    disease_id,
+                    protocols,
+                    event_rng,
+                )
 
-        event_key = f"{event.person_id}|{event.timestamp.isoformat()}|{disease_id}"
-        event_rng = derive_phase_rng(master_seed, PHASE_INPATIENT_SIM, event_key)
-        # F4: content-derived cache key — identical shape to `event_key` above,
-        # reconstructable from a cached record without having simulated it.
-        cache_key = (event.person_id, event.timestamp.isoformat(), disease_id)
-
-        # Unknown condition
-        if event.condition_type == "unknown" or disease_id.startswith("unknown_"):
-            record: CIFPatientRecord | None
             if cache_key in prev_admission_cache:
                 record = prev_admission_cache[cache_key]
                 # Issue #761: replay lab/imaging queue increments so later
@@ -829,90 +889,48 @@ def run_beta(
                 # entered `calculate_result_time_from_state`).
                 _replay_cached_admission_queue(record, hospital_state, hospital_ops)
             else:
-                record = _simulate_unknown_condition(
+                record = _simulate_patient(
                     patient,
                     event,
-                    event_rng,
+                    disease_id,
+                    protocol,
                     healthcare,
                     roster,
+                    config,
+                    event_rng,
+                    secondary_protocol=secondary_protocol,
+                    is_readmission=event.is_readmission,
+                    prior_encounter_id=event.prior_encounter_id,
+                    readmission_number=event.readmission_number,
+                    hospital_state=hospital_state,
                     hospital_ops=hospital_ops,
-                    config=config,
                 )
-            if record:
-                # Issue #1436: post-hoc overlap check also applies here.
-                # The unknown_condition path takes an early ``continue``
-                # branch before reaching the main loop's verifier at line
-                # ~843, so wire the same helper explicitly.
-                _post_hoc_overlap = _handle_overlap_via_merge(patient_records, record, disease_id)
-                if _post_hoc_overlap is not None:
-                    hospital_state.bed_occupancy = max(0.0, hospital_state.bed_occupancy - 1.0 / beds_total)
-                    concurrent_patients = max(0, concurrent_patients - 1)
-                    continue
-                patient_records.append(record)
-                person.has_visited_hospital = True
-                person.visit_count += 1
-            continue
+            # Issue #1430: post-hoc overlap check. The pre-dispatch gate above
+            # (``_find_active_inpatient_record``) uses date+noon, so it can
+            # miss overlaps that manifest at the actual admit hour (~1 per
+            # 10,000 patients on p=10000 s=359 verify). Re-run the check
+            # against the just-simulated record's real admission_datetime;
+            # if it now overlaps an existing stay, treat it the same way the
+            # pre-dispatch gate would have — merge as an in-hospital
+            # complication and discard the concurrent encounter.
+            _post_hoc_overlap = _verify_no_actual_overlap(patient_records, record)
+            if _post_hoc_overlap is not None:
+                _merge_disease_into_active_encounter(
+                    _post_hoc_overlap, disease_id, record.encounters[0].admission_datetime
+                )
+                hospital_state.bed_occupancy = max(0.0, hospital_state.bed_occupancy - 1.0 / beds_total)
+                concurrent_patients = max(0, concurrent_patients - 1)
+                continue
+            patient_records.append(record)
+            _deactivate_to_layer1(person, record, disease_id, patient_cache=patient_cache)
+            # Track discharge for bed occupancy management
+            if record.encounters and record.encounters[0].discharge_datetime:
+                dc_date = record.encounters[0].discharge_datetime.date()
+                active_discharges.append((dc_date, 1.0 / beds_total))
+            if record.deceased:
+                person.is_alive = False
 
-        protocol = protocols.get(disease_id)
-        if protocol is None:
-            continue
-
-        # Mixed condition: determine secondary disease from patient's chronic conditions
-        secondary_protocol = None
-        if event.condition_type == "mixed":
-            secondary_protocol = _select_secondary_disease(
-                patient,
-                disease_id,
-                protocols,
-                event_rng,
-            )
-
-        if cache_key in prev_admission_cache:
-            record = prev_admission_cache[cache_key]
-            # Issue #761: replay lab/imaging queue increments so later
-            # unrelated admissions see the same congestion state as they
-            # would on the cold path (the cache-hit admission never
-            # entered `calculate_result_time_from_state`).
-            _replay_cached_admission_queue(record, hospital_state, hospital_ops)
-        else:
-            record = _simulate_patient(
-                patient,
-                event,
-                disease_id,
-                protocol,
-                healthcare,
-                roster,
-                config,
-                event_rng,
-                secondary_protocol=secondary_protocol,
-                is_readmission=event.is_readmission,
-                prior_encounter_id=event.prior_encounter_id,
-                readmission_number=event.readmission_number,
-                hospital_state=hospital_state,
-                hospital_ops=hospital_ops,
-            )
-        # Issue #1430: post-hoc overlap check. The pre-dispatch gate above
-        # (``_find_active_inpatient_record``) uses date+noon, so it can
-        # miss overlaps that manifest at the actual admit hour (~1 per
-        # 10,000 patients on p=10000 s=359 verify). Re-run the check
-        # against the just-simulated record's real admission_datetime;
-        # if it now overlaps an existing stay, treat it the same way the
-        # pre-dispatch gate would have — merge as an in-hospital
-        # complication and discard the concurrent encounter.
-        _post_hoc_overlap = _verify_no_actual_overlap(patient_records, record)
-        if _post_hoc_overlap is not None:
-            _merge_disease_into_active_encounter(_post_hoc_overlap, disease_id, record.encounters[0].admission_datetime)
-            hospital_state.bed_occupancy = max(0.0, hospital_state.bed_occupancy - 1.0 / beds_total)
-            concurrent_patients = max(0, concurrent_patients - 1)
-            continue
-        patient_records.append(record)
-        _deactivate_to_layer1(person, record, disease_id, patient_cache=patient_cache)
-        # Track discharge for bed occupancy management
-        if record.encounters and record.encounters[0].discharge_datetime:
-            dc_date = record.encounters[0].discharge_datetime.date()
-            active_discharges.append((dc_date, 1.0 / beds_total))
-        if record.deceased:
-            person.is_alive = False
+    _dispatch_hospital_events(hospital_events, n_hosp, label="inpatient")
 
     print(f"  Inpatient done: {len(patient_records)} records (peak concurrent: {concurrent_patients})", flush=True)
     sim_log.info(
@@ -922,6 +940,88 @@ def run_beta(
         peak_concurrent=concurrent_patients,
         elapsed_s=round(time.perf_counter() - _t0_inp, 3),
     )
+
+    # === Issue #1564 Phase 1 completion — secondary pass for newborns ===
+    # The main dispatch loop above registered every live birth as a new
+    # ``PersonRecord`` in ``population.persons`` (via the delivery handler
+    # at the ``event.event_type == "delivery"`` branch). These newborns
+    # were not visible to ``generate_monthly_events`` when it ran upfront,
+    # so they received zero acute monthly events for their post-birth
+    # months. Re-run ``generate_monthly_events`` once per month, filtered
+    # to those mid-sim-added persons only, and dispatch the resulting
+    # hospital events through the same closure. Determinism is preserved
+    # for the initial cohort: the phase RNG used here is a sibling of
+    # ``PHASE_LIFE_EVENT`` and does not share state with it, and the
+    # per-person filter prevents any initial-cohort person from being
+    # re-processed.
+    _newborn_pids = {pid for pid in population.persons if pid not in population.initial_person_ids}
+    if _newborn_pids:
+
+        def _newborn_filter(_p: PersonRecord, _d: date) -> bool:
+            # Only process a newborn in a month at/after their birth date;
+            # pre-birth months yield nothing (``is_alive_at`` filters
+            # inside ``generate_monthly_events`` would catch pre-birth
+            # too, but a short-circuit here avoids wasted work).
+            return _p.person_id in _newborn_pids and _p.date_of_birth is not None and _p.date_of_birth <= _d
+
+        _newborn_all_events: list[LifeEvent] = []
+        _ny, _nm = start_y, start_m
+        while (_ny, _nm) <= (end_y, end_m):
+            _nb_month_key = f"newborn|{_ny:04d}-{_nm:02d}"
+            _nb_month_rng = derive_phase_rng(master_seed, PHASE_LIFE_EVENT, _nb_month_key)
+            _nb_event_date = date(_ny, _nm, 15)
+
+            def _month_filter(_p: PersonRecord, _d: date = _nb_event_date) -> bool:
+                return _newborn_filter(_p, _d)
+
+            _newborn_all_events.extend(
+                generate_monthly_events(
+                    population,
+                    _ny,
+                    _nm,
+                    _nb_month_rng,
+                    country=config.country,
+                    person_filter=_month_filter,
+                )
+            )
+            _nm += 1
+            if _nm > 12:
+                _nm, _ny = 1, _ny + 1
+
+        if snapshot_dt:
+            _newborn_all_events = [
+                e
+                for e in _newborn_all_events
+                if not e.timestamp or datetime.combine(e.timestamp, datetime.min.time()) <= snapshot_dt
+            ]
+        _nb_start_lb = _parse_time_range_bound(config.time_range[0])
+        _newborn_all_events = [
+            e
+            for e in _newborn_all_events
+            if not e.timestamp or datetime.combine(e.timestamp, datetime.min.time()) >= _nb_start_lb
+        ]
+        _newborn_hospital_events = sorted(
+            [e for e in _newborn_all_events if e.requires_hospital],
+            key=lambda e: e.timestamp,
+        )
+        if _newborn_hospital_events:
+            print(
+                f"  Newborn secondary pass: {len(_newborn_all_events)} total, "
+                f"{len(_newborn_hospital_events)} requiring hospital",
+                flush=True,
+            )
+            sim_log.info(
+                "engine",
+                "newborn_life_events_generated",
+                total=len(_newborn_all_events),
+                hospital=len(_newborn_hospital_events),
+                newborns=len(_newborn_pids),
+            )
+            _dispatch_hospital_events(
+                _newborn_hospital_events,
+                len(_newborn_hospital_events),
+                label="newborn_inpatient",
+            )
 
     # === Readmission evaluation (post-loop pass) ===
     country_key = _country_to_yaml_key(config.country)
