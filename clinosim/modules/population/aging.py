@@ -64,6 +64,14 @@ __all__ = [
 
 _AGING_SEED_SALT = "clinosim:aging:v1"
 _MIN_INCIDENCE_AGE = 18  # Adult-chronic incidence only; pediatric is handled by pediatric calendar.
+# Codes that appear in `chronic_prevalence` yaml but are RNG-cursor
+# placeholders only — pregnancy-lifecycle lives in `state_periods`,
+# not in `chronic_conditions`. Mirrors
+# `clinosim.modules.population.engine._STATE_PERIOD_CHRONIC_CODES`.
+# `_annual_chronic_onset` must NOT append these to a person's
+# chronic_conditions mid-sim, same way `generate_population` skips
+# them at initial sampling.
+_STATE_PERIOD_ONSET_SKIP_CODES = frozenset({"Z34", "Z37"})
 
 
 def aging_sub_seed(person_id: str, year: int, pass_name: str) -> int:
@@ -266,6 +274,19 @@ def _annual_chronic_onset(
             # in iteration order will get a fresh draw regardless.
             continue
         if prng.random() < rate:
+            # State-period markers (Z34 pregnancy, Z37 outcome-of-
+            # delivery) have per-age-band Bernoulli entries in
+            # `chronic_prevalence` only to preserve rng cursor
+            # byte-identity for codes iterated after them in the
+            # initial-cohort sampler — they are NOT real chronic
+            # entries. Mirror the initial sampler's skip here so
+            # mid-sim aging onset never injects a bogus Z34/Z37 into
+            # `person.chronic_conditions`. The pregnancy lifecycle
+            # lives in `person.state_periods` (perinatal lifecycle
+            # generator); FHIR Z37 past-birth marker is derived from
+            # state_history by the FHIR emit adapter.
+            if code in _STATE_PERIOD_ONSET_SKIP_CODES:
+                continue
             person.chronic_conditions.append(code)
 
 

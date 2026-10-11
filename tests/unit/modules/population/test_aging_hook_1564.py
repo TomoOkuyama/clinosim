@@ -535,6 +535,30 @@ def test_derive_single_band_rate_is_zero() -> None:
 # ---------------------------------------------------------------------------
 
 
+def test_chronic_onset_skips_z34_z37_state_period_markers() -> None:
+    """Z34 (pregnancy) and Z37 (outcome-of-delivery) appear in
+    `chronic_prevalence` yaml only as RNG cursor placeholders;
+    they must NEVER be appended to `person.chronic_conditions`
+    by mid-sim aging onset. Pregnancy lifecycle lives in
+    `state_periods`; Z37 past-birth marker is derived from state
+    history at FHIR emit time.
+
+    Regression guard: pre-fix, a force-rate-1.0 injection of
+    these codes would hit `chronic_conditions`, breaking the
+    `test_pregnancy_lifecycle_us_p500` integration gate.
+    """
+    from clinosim.modules.population.aging import _ChronicIncidenceSpec
+
+    p = _alive("PT-PREG", age=30, sex="F")
+    table = {
+        "Z34": _ChronicIncidenceSpec(sex="F", bands={(20, 44): 1.0}),
+        "Z37": _ChronicIncidenceSpec(sex="F", bands={(25, 64): 1.0}),
+    }
+    _annual_chronic_onset(p, 2026, np.random.default_rng(0), table)
+    assert "Z34" not in p.chronic_conditions
+    assert "Z37" not in p.chronic_conditions
+
+
 def test_chronic_onset_skips_persons_under_18() -> None:
     p = _alive("PT-TEEN", age=16, sex="M")
     before = list(p.chronic_conditions)
