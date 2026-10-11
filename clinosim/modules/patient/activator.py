@@ -382,14 +382,28 @@ def activate_patient(
             stage = f"HbA1c {hba1c_from_glycemic_control(glycemic_control):.1f}%"
         else:
             glycemic_control = None
-            stage = _generate_stage(code, sev, rng)
-        # Issue #1572 (Phase 2.5 prep): snapshot the staged value to
-        # ``person.disease_stages`` so the aging-hook disease-progression
-        # pass (follow-up PR) has a Layer-1 handle on the person's
-        # current stage. First-call-sample behaviour is byte-identical
-        # to pre-prep master because the dict write happens after the
-        # RNG draw and the sampled value is already what downstream
-        # uses. Empty strings (unstaged codes like I10) are not stored.
+            # Issue #1572 Phase 2.5 body: when the aging-hook
+            # `_disease_progression` has already initialised (and
+            # possibly advanced) this disease's stage on the
+            # PersonRecord, prefer the aging-set value over a fresh
+            # sample. The ``rng.choice`` draw inside
+            # ``_generate_stage`` is still consumed (value discarded)
+            # so the per-patient RNG stream position for every
+            # following code is preserved — same technique the
+            # diabetes gc_draw branch uses above.
+            if person.disease_stages.get(code_base):
+                _ = _generate_stage(code, sev, rng)
+                stage = person.disease_stages[code_base]
+            else:
+                stage = _generate_stage(code, sev, rng)
+        # Issue #1572 Phase 2.5 prep: snapshot the staged value to
+        # ``person.disease_stages`` so the aging-hook disease-
+        # progression pass has a Layer-1 handle on current stage.
+        # The write is a no-op when the aging hook already set
+        # the same value (above branch); for codes outside the
+        # Phase 2.5 scope (I50, J45, I10, I25) this is the only
+        # path that populates the field, matching the prep PR
+        # semantics.
         if stage:
             person.disease_stages[code_base] = stage
         # Draw both values in the exact same order/position as before this fix

@@ -82,21 +82,141 @@ def test_advance_population_skips_dead_persons() -> None:
     assert p_alive.is_alive is True
 
 
-def test_remaining_stub_disease_progression_is_no_op() -> None:
-    """One remaining Phase-2 stub pass still accepts
-    ``(person, year, prng, incidence_table, locale)`` and returns
-    ``None`` without touching state.
+# ---------------------------------------------------------------------------
+# _disease_progression behaviour (Phase 2.5, CKD + COPD)
+# ---------------------------------------------------------------------------
 
-    ``_allergy_drift`` and ``_condition_reactive_mortality`` are
-    excluded — both have behavioural bodies covered by their own
-    sections below.
-    """
-    p = _alive("PT-X", age=65)
-    before = (tuple(p.chronic_conditions), p.is_alive, p.date_of_death)
-    rv = _disease_progression(p, 2026, np.random.default_rng(42), {})
+
+def test_disease_progression_noop_when_no_tracked_conditions() -> None:
+    """A person with no CKD / COPD on chronic_conditions never
+    touches disease_stages."""
+    p = _alive("PT-OTHER", age=60)
+    p.chronic_conditions = ["I10", "F32"]
+    _disease_progression(
+        p,
+        2026,
+        np.random.default_rng(aging_sub_seed(p.person_id, 2026, "_disease_progression")),
+        {},
+    )
+    assert p.disease_stages == {}
+
+
+def test_disease_progression_initialises_ckd_stage() -> None:
+    """First-year touch on a person with N18 populates
+    disease_stages with one of the KDIGO stages."""
+    p = _alive("PT-CKD-INIT", age=65)
+    p.chronic_conditions = ["N18"]
+    _disease_progression(
+        p,
+        2026,
+        np.random.default_rng(aging_sub_seed(p.person_id, 2026, "_disease_progression")),
+        {},
+    )
+    assert "N18" in p.disease_stages
+    assert p.disease_stages["N18"] in ("CKD G1", "CKD G2", "CKD G3a", "CKD G3b", "CKD G4", "CKD G5")
+
+
+def test_disease_progression_initialises_copd_stage() -> None:
+    p = _alive("PT-COPD-INIT", age=70)
+    p.chronic_conditions = ["J44"]
+    _disease_progression(
+        p,
+        2026,
+        np.random.default_rng(aging_sub_seed(p.person_id, 2026, "_disease_progression")),
+        {},
+    )
+    assert "J44" in p.disease_stages
+    assert p.disease_stages["J44"] in ("GOLD 1", "GOLD 2", "GOLD 3", "GOLD 4")
+
+
+def test_disease_progression_init_does_not_double_step() -> None:
+    """The year a stage is first initialised, no advancement
+    happens — only ONE write per init year."""
+    p = _alive("PT-INIT", age=60)
+    p.chronic_conditions = ["N18"]
+    before_year = 2026
+    sub = np.random.default_rng(aging_sub_seed(p.person_id, before_year, "_disease_progression"))
+    _disease_progression(p, before_year, sub, {})
+    initial = p.disease_stages["N18"]
+    # Same year, same seed → same initial. No further advance in this call.
+    sub2 = np.random.default_rng(aging_sub_seed(p.person_id, before_year, "_disease_progression"))
+    p2 = _alive("PT-INIT", age=60)
+    p2.chronic_conditions = ["N18"]
+    _disease_progression(p2, before_year, sub2, {})
+    assert p2.disease_stages["N18"] == initial
+
+
+def test_disease_progression_advances_on_hit() -> None:
+    """A person already at G3b with 8 %/yr advance rate should
+    sometimes move to G4 across a Monte-Carlo cohort."""
+    advanced = 0
+    for i in range(400):
+        p = _alive(f"PT-ADV-{i:04d}", age=65)
+        p.chronic_conditions = ["N18"]
+        p.disease_stages["N18"] = "CKD G3b"
+        sub = np.random.default_rng(aging_sub_seed(p.person_id, 2027, "_disease_progression"))
+        _disease_progression(p, 2027, sub, {})
+        if p.disease_stages["N18"] == "CKD G4":
+            advanced += 1
+    # Expected ~32 at 8 %/yr; allow wide spread.
+    assert advanced > 10, f"only {advanced}/400 advanced from G3b (expected ~32)"
+
+
+def test_disease_progression_terminal_stays() -> None:
+    """A person at the terminal stage (G5 / GOLD 4) never moves
+    further — the yaml rate is 0."""
+    for icd, terminal in (("N18", "CKD G5"), ("J44", "GOLD 4")):
+        hits = 0
+        for i in range(200):
+            p = _alive(f"PT-{icd}-TERM-{i:04d}", age=85)
+            p.chronic_conditions = [icd]
+            p.disease_stages[icd] = terminal
+            sub = np.random.default_rng(aging_sub_seed(p.person_id, 2027, "_disease_progression"))
+            _disease_progression(p, 2027, sub, {})
+            if p.disease_stages[icd] != terminal:
+                hits += 1
+        assert hits == 0, f"{icd} terminal {terminal} moved {hits}/200 times"
+
+
+def test_disease_progression_subcode_prefix_match() -> None:
+    """A sub-code (``N18.3``) is tracked by its prefix (``N18``)."""
+    p = _alive("PT-SUB", age=60)
+    p.chronic_conditions = ["N18.3"]  # sub-code
+    _disease_progression(
+        p,
+        2026,
+        np.random.default_rng(aging_sub_seed(p.person_id, 2026, "_disease_progression")),
+        {},
+    )
+    assert "N18" in p.disease_stages
+
+
+def test_disease_progression_deterministic() -> None:
+    """Same (person_id, year, chronic_conditions, prior stage) →
+    same new stage. Pass-isolated sub-RNG."""
+
+    def run_once() -> str:
+        p = _alive("PT-DET", age=65)
+        p.chronic_conditions = ["N18"]
+        p.disease_stages["N18"] = "CKD G3a"
+        _disease_progression(
+            p,
+            2030,
+            np.random.default_rng(aging_sub_seed(p.person_id, 2030, "_disease_progression")),
+            {},
+        )
+        return p.disease_stages["N18"]
+
+    assert run_once() == run_once()
+
+
+def test_remaining_stub_integration_signatures() -> None:
+    """The scaffold-level invariant that `_disease_progression`
+    accepts ``(person, year, prng, incidence_table, locale)`` and
+    returns ``None`` is preserved after the body was added."""
+    p = _alive("PT-SIG", age=50)
+    rv = _disease_progression(p, 2026, np.random.default_rng(0), {}, locale="us")
     assert rv is None
-    after = (tuple(p.chronic_conditions), p.is_alive, p.date_of_death)
-    assert before == after
 
 
 # ---------------------------------------------------------------------------
