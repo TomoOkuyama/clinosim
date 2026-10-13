@@ -13,16 +13,17 @@ their state before the year's events are generated:
   construction: single source of truth stays
   ``locale/*/demographics.yaml:chronic_prevalence``.
 * :func:`_disease_progression` — stage advancement for CKD G1→G5,
-  COPD GOLD 1→4, heart failure NYHA I→IV, and ischemic heart
-  disease CCS I→III. First touch of a disease on a person
-  initialises its stage from the activator-matching weight vector
-  (so Phase A sampling preserves cohort distribution); subsequent
-  years draw annual Bernoulli advancement from
+  COPD GOLD 1→4, heart failure NYHA I→IV, ischemic heart disease
+  CCS I→III, and dementia CDR 0.5→3. First touch of a disease on a
+  person initialises its stage from the activator-matching weight
+  vector (so Phase A sampling preserves cohort distribution);
+  subsequent years draw annual Bernoulli advancement from
   ``locale/shared/stage_transition.yaml``. Activator prefers the
   aging-set stage on the Phase B activation path (RNG draw burned
-  to preserve per-patient stream). Diabetes glycemic trajectory
-  and dementia severity are planned follow-ups requiring activator
-  refactors beyond the stage-string pattern used here.
+  to preserve per-patient stream). Diabetes glycemic trajectory is
+  a planned follow-up — HbA1c is a continuous value not a discrete
+  stage, so it needs a trajectory model beyond the stage-string
+  pattern used here.
 * :func:`_allergy_drift` — childhood food-allergy resolution (flips
   ``clinical_status`` to ``resolved`` under the childhood resolution
   rate from ``allergens.yaml:aging``) and late-onset drug-sensitivity
@@ -341,6 +342,10 @@ _INITIAL_STAGE_SAMPLERS: dict[str, tuple[tuple[str, ...], tuple[float, ...]]] = 
     "I25": (
         ("CCS I", "CCS II", "CCS III"),
         (0.4, 0.4, 0.2),
+    ),
+    "F00": (
+        ("CDR 0.5", "CDR 1", "CDR 2", "CDR 3"),
+        (0.10, 0.40, 0.35, 0.15),
     ),
 }
 
