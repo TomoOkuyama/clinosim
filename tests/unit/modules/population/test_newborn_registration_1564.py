@@ -207,6 +207,16 @@ def test_register_newborn_with_config_attaches_nka_allergy_and_death_date() -> N
     # biology init ran, not that this specific newborn dies). Either
     # way the attribute has a type-stable value.
     assert record.date_of_death is None or isinstance(record.date_of_death, date)
+    # care_seeking_threshold is sampled from the locale pediatric band
+    # (JP yaml: `age_conditional["0-14"] = 0.60`, sd 0.12, clamped to
+    # the operational range). The important invariant is that the
+    # threshold is NO LONGER the PersonRecord dataclass default of 0.3,
+    # which is the adult-generator mean.
+    assert record.care_seeking_threshold != 0.3
+    # And it lands inside the operational clamp band.
+    from clinosim.modules.population.engine import CARE_SEEKING_CLAMP_MAX, CARE_SEEKING_CLAMP_MIN
+
+    assert CARE_SEEKING_CLAMP_MIN <= record.care_seeking_threshold <= CARE_SEEKING_CLAMP_MAX
 
 
 def test_register_newborn_with_config_is_deterministic() -> None:
