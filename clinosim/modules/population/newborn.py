@@ -36,9 +36,9 @@ Explicitly NOT in this PR (follow-up within Phase 1):
 
 from __future__ import annotations
 
-import hashlib
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
+from clinosim.modules.population.person_init import initialize_newborn_biology
 from clinosim.types.population import PersonRecord
 
 if TYPE_CHECKING:
@@ -46,33 +46,14 @@ if TYPE_CHECKING:
     from clinosim.types.patient import PatientProfile
 
 
-__all__ = ["register_newborn", "newborn_sub_seed"]
-
-
-# Salt for per-newborn deterministic RNG sub-seeds. Isolated from the
-# salts in ``clinosim.simulator.perinatal`` (``clinosim:newborn:v1`` and
-# ``clinosim:newborn-conditions:v1``) so a change here cannot shift the
-# newborn's sex or perinatal condition draws retroactively.
-_NEWBORN_PERSON_SEED_SALT = "clinosim:newborn-person:v1"
-
-
-def newborn_sub_seed(newborn_patient_id: str) -> int:
-    """Deterministic 32-bit sub-seed for per-newborn RNG draws made by
-    ``advance_population`` and the pediatric calendar.
-
-    Derived from the newborn's own patient id (which in turn derives
-    from mother id via ``clinosim.simulator.perinatal._newborn_patient_id``),
-    so the same newborn produces the same stream across runs with the
-    same global seed.
-    """
-    key = f"{_NEWBORN_PERSON_SEED_SALT}|{newborn_patient_id}"
-    return int(hashlib.sha256(key.encode()).hexdigest(), 16) % (2**32)
+__all__ = ["register_newborn"]
 
 
 def register_newborn(
     registry: PopulationRegistry,
     mother: PersonRecord,
     newborn: PatientProfile,
+    config: Any = None,
 ) -> PersonRecord:
     """Promote ``newborn`` (a freshly-built delivery-side
     ``PatientProfile``) to a ``PersonRecord`` and insert into
@@ -85,8 +66,7 @@ def register_newborn(
     The returned ``PersonRecord`` is NOT added to
     ``registry.initial_person_ids`` on purpose: callers can keep
     iterating the initial cohort under its original RNG spawn shape and
-    treat newborns as a separate stream whose per-person seed is
-    :func:`newborn_sub_seed`.
+    treat newborns as a separate stream.
 
     The mother's household is updated in-place: the newborn joins
     ``Household.members`` (so household-scoped queries see the baby).
@@ -94,6 +74,16 @@ def register_newborn(
     ``registry.households``, only ``registry.persons`` is updated — the
     sim still works but household membership is incomplete for that
     newborn.
+
+    When ``config`` is provided (Issue #1581 Phase A), the registered
+    newborn also goes through
+    :func:`~clinosim.modules.population.person_init.initialize_newborn_biology`,
+    which attaches the per-person state an initial-cohort citizen gets
+    from POST_POPULATION enrichers (NKA allergy baseline + pre-sampled
+    natural death date). Callers that pre-date the Phase A hook (test
+    fixtures that build a ``PatientProfile`` directly without a config)
+    may pass ``config=None`` to skip the biology init and preserve the
+    original Phase 1 behaviour.
     """
     # Idempotent re-registration.
     existing = registry.persons.get(newborn.patient_id)
@@ -153,5 +143,13 @@ def register_newborn(
             if record not in household.members:
                 household.members.append(record)
             break
+
+    # Phase A biology init — matches the per-person state an initial-
+    # cohort citizen at age 0 would have (NKA allergy baseline, pre-
+    # sampled natural-death date). ``initialize_newborn_biology`` is a
+    # no-op when ``config`` is None (test fixtures without a full sim
+    # config), preserving the original Phase 1 behaviour for those
+    # callers.
+    initialize_newborn_biology(record, config)
 
     return record

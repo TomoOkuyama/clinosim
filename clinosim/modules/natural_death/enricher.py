@@ -55,8 +55,14 @@ def _qx_for(life_table: dict, country: str, sex: str, age: int) -> float:
     return float(band_data[band])
 
 
-def _sim_window(config: Any) -> tuple[date, date] | None:
-    """Return the (start, end) sim window from config, or None if unresolved."""
+def sim_window(config: Any) -> tuple[date, date] | None:
+    """Return the (start, end) sim window from config, or None if unresolved.
+
+    Public helper so other callers (newborn biology init) can derive the
+    sim-window bounds without duplicating the time_range parsing. Returns
+    None instead of raising so test paths that omit ``config.time_range``
+    stay on a no-op branch.
+    """
     raw = getattr(config, "time_range", None)
     if raw is None:
         return None
@@ -78,19 +84,96 @@ def _sim_window(config: Any) -> tuple[date, date] | None:
     return (start, end)
 
 
+def sample_person_death_date(
+    person: Any,
+    country: str,
+    master_seed: int,
+    window: tuple[date, date],
+    life_table: dict | None = None,
+) -> date | None:
+    """Pre-sample a natural-death date for one person over a sim window.
+
+    Shared per-person entry used both by :func:`sample_natural_deaths`
+    (initial-cohort batch) and by the newborn-biology init hook
+    (``clinosim.modules.population.person_init``) so citizens born mid-
+    simulation receive the same mortality treatment as the initial
+    cohort.
+
+    Returns ``None`` without touching ``person.date_of_death`` when:
+
+    * the person is already dead (``is_alive`` is False)
+    * no year in the window produces a Bernoulli hit against qx
+
+    Writes ``person.date_of_death`` only on a positive hit so a caller
+    can still distinguish "no death sampled" from an active override.
+    Determinism contract: per-(person_id) sub-RNG derived from
+    ``master_seed + ENRICHER_SEED_OFFSETS["natural_death"]``, identical
+    to the batch enricher — a person seeded through this helper gets
+    the same date they would have gotten in the batch pass for the
+    same window.
+
+    ``life_table`` can be supplied by callers that have already loaded
+    the actuarial table (saves a yaml re-read); if omitted, the loader
+    is called lazily. Returns ``None`` with no write when the loader
+    returns an empty dict (no life-table shipped for this build).
+    """
+    if not getattr(person, "is_alive", True):
+        return None
+    if life_table is None:
+        life_table = load_actuarial_life_table()
+    if not life_table:
+        return None
+    start, end = window
+    pid = getattr(person, "person_id", "")
+    sub_seed = derive_sub_seed(master_seed, ENRICHER_SEED_OFFSETS["natural_death"], pid)
+    rng = np.random.default_rng(sub_seed)
+    # Age at the start of the sim window — for the initial cohort this is
+    # the person's age at cohort generation; for a newborn registered
+    # mid-sim, the caller must still pass the sim-window start (not the
+    # birth date) because the age advances across sim years with the
+    # same offset. The newborn hook passes age=0 at window start, which
+    # the band-diff math handles by rolling first non-zero qx at age ≥ 0.
+    age_at_start = int(getattr(person, "age", 0) or 0)
+    sex = getattr(person, "sex", "M")
+
+    death_date: date | None = None
+    for year in range(start.year, end.year + 1):
+        year_offset = year - start.year
+        age_this_year = age_at_start + year_offset
+        qx = _qx_for(life_table, country, sex, age_this_year)
+        if qx <= 0.0:
+            continue
+        if float(rng.random()) < qx:
+            year_start = date(year, 1, 1)
+            year_end = date(year, 12, 31)
+            lo = max(year_start, start)
+            hi = min(year_end, end)
+            if lo > hi:
+                break
+            span_days = (hi - lo).days + 1
+            offset = int(rng.integers(0, span_days))
+            death_date = lo + timedelta(days=offset)
+            break
+
+    if death_date is not None:
+        person.date_of_death = death_date
+    return death_date
+
+
 def sample_natural_deaths(ctx: Any) -> None:
     """POST_POPULATION enricher: sample per-person natural death dates.
 
-    Adds a per-year Bernoulli against age-conditional qx over each
-    person's sim-window years. First year that fires becomes the
-    death year; the date is a uniform-day-in-year within that year
-    (clamped to the sim window end).
+    Thin batch wrapper around :func:`sample_person_death_date`. Adds a
+    per-year Bernoulli against age-conditional qx over each person's
+    sim-window years. First year that fires becomes the death year;
+    the date is a uniform-day-in-year within that year (clamped to
+    the sim window end).
     """
     life_table = load_actuarial_life_table()
     if not life_table:
         return
     country = getattr(getattr(ctx, "config", None), "country", "US") or "US"
-    window = _sim_window(ctx.config)
+    window = sim_window(ctx.config)
     if window is None:
         return
     start, end = window
@@ -99,41 +182,14 @@ def sample_natural_deaths(ctx: Any) -> None:
 
     for person in ctx.population.persons.values():
         n_total += 1
-        # Skip already-dead persons (e.g. an activator that pre-flipped
-        # is_alive) — do not overwrite.
-        if not getattr(person, "is_alive", True):
-            continue
-        pid = getattr(person, "person_id", "")
-        sub_seed = derive_sub_seed(ctx.master_seed, ENRICHER_SEED_OFFSETS["natural_death"], pid)
-        rng = np.random.default_rng(sub_seed)
-        age_at_start = int(getattr(person, "age", 0) or 0)
-        sex = getattr(person, "sex", "M")
-
-        death_date: date | None = None
-        # Walk each calendar year in the window; year N contributes qx at
-        # (age_at_start + years_elapsed).
-        for year in range(start.year, end.year + 1):
-            year_offset = year - start.year
-            age_this_year = age_at_start + year_offset
-            qx = _qx_for(life_table, country, sex, age_this_year)
-            if qx <= 0.0:
-                continue
-            if float(rng.random()) < qx:
-                # Death fires in this year. Pick a random day in year,
-                # clamped to the sim window bounds if year is boundary.
-                year_start = date(year, 1, 1)
-                year_end = date(year, 12, 31)
-                lo = max(year_start, start)
-                hi = min(year_end, end)
-                if lo > hi:
-                    break
-                span_days = (hi - lo).days + 1
-                offset = int(rng.integers(0, span_days))
-                death_date = lo + timedelta(days=offset)
-                break
-
-        if death_date is not None:
-            person.date_of_death = death_date
+        hit = sample_person_death_date(
+            person,
+            country,
+            ctx.master_seed,
+            window,
+            life_table=life_table,
+        )
+        if hit is not None:
             n_dead += 1
 
     if n_total > 0:
