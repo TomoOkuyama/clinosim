@@ -43,6 +43,7 @@ __all__ = [
     "J45_STAGES",
     "I10_STAGES",
     "I25_STAGES",
+    "F00_STAGES",
     # Stage-selection weights (sum to 1.0)
     "N18_STAGE_WEIGHTS",
     "I50_STAGE_WEIGHTS_MILD",
@@ -51,6 +52,7 @@ __all__ = [
     "J45_STAGE_WEIGHTS",
     "I10_STAGE_WEIGHTS",
     "I25_STAGE_WEIGHTS",
+    "F00_STAGE_WEIGHTS",
 ]
 
 
@@ -91,6 +93,14 @@ STAGE_SEVERITY: dict[str, dict[str, float]] = {
     # (FP-I10), making the stage assignment non-degenerate at the vital
     # layer as well as at the physiology-coupling layer.
     "I10": {"Stage 1": 0.30, "Stage 2": 0.60},
+    # Clinical Dementia Rating (CDR) — Hughes 1982 / Morris 1993. Diagnosed-
+    # dementia (F00) cohort typically distributes across CDR 0.5 (very mild
+    # / MCI), CDR 1 (mild), CDR 2 (moderate), CDR 3 (severe). Score lifts
+    # the physiology coupling for cognitive-decline-driven lab shifts
+    # (aspiration risk, nutrition decline, fall-related trauma — the
+    # F00 risk_multipliers in demographics.yaml already consume severity
+    # for hip_fracture / aspiration_pneumonia / UTI / vertebral fracture).
+    "F00": {"CDR 0.5": 0.15, "CDR 1": 0.35, "CDR 2": 0.60, "CDR 3": 0.85},
 }
 
 
@@ -190,6 +200,23 @@ scenario that arrives via a disease-YAML encounter path rather than a
 chronic condition."""
 
 I25_STAGE_WEIGHTS: tuple[float, ...] = (0.4, 0.4, 0.2)
+
+
+# ---------------------------------------------------------------------------
+# F00 — Dementia (Clinical Dementia Rating, CDR)
+# ---------------------------------------------------------------------------
+
+F00_STAGES: tuple[str, ...] = ("CDR 0.5", "CDR 1", "CDR 2", "CDR 3")
+"""CDR 0.5 (very mild / MCI) → CDR 3 (severe). Full stage strings
+(no prefix added at emit time)."""
+
+F00_STAGE_WEIGHTS: tuple[float, ...] = (0.10, 0.40, 0.35, 0.15)
+"""Diagnosed-dementia cohort distribution across CDR stages. Mode at
+CDR 1 (mild) with a tail at CDR 3; CDR 0.5 is pre-clinical / MCI and
+less often formally diagnosed as F00. Empirical tuning for the
+synthetic simulator, consistent with Alzheimer's Association 2024
+Facts & Figures prevalence shape (US) and MHLW 2024 cognitive-
+impairment surveys (JP)."""
 """CCS stage-prevalence weights. Empirical tuning: real prevalence
 depends heavily on cardiology follow-up practices; this vector produces
 a balanced cohort for downstream cardiac-troponin / stress-test

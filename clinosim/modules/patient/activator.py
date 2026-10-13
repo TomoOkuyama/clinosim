@@ -104,6 +104,8 @@ from clinosim.modules.patient._patient_activator_thresholds import (
     TREATMENT_SENSITIVITY_SD,
 )
 from clinosim.modules.patient._severity_activation import (
+    F00_STAGE_WEIGHTS,
+    F00_STAGES,
     I10_STAGE_WEIGHTS,
     I10_STAGES,
     I25_STAGE_WEIGHTS,
@@ -165,6 +167,8 @@ def _generate_stage(code: str, severity: str, rng: np.random.Generator) -> str:
         return f"Stage {str(rng.choice(I10_STAGES, p=I10_STAGE_WEIGHTS))}"
     if base == "I25":  # Ischemic heart disease (CCS class)
         return f"CCS {str(rng.choice(I25_STAGES, p=I25_STAGE_WEIGHTS))}"
+    if base == "F00":  # Dementia (Clinical Dementia Rating)
+        return str(rng.choice(F00_STAGES, p=F00_STAGE_WEIGHTS))
     return ""
 
 

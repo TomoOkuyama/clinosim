@@ -189,13 +189,14 @@ def test_disease_progression_advances_on_hit() -> None:
 
 
 def test_disease_progression_terminal_stays() -> None:
-    """A person at the terminal stage (G5 / GOLD 4 / NYHA IV / CCS III)
-    never moves further — the yaml rate is 0."""
+    """A person at the terminal stage (G5 / GOLD 4 / NYHA IV / CCS III
+    / CDR 3) never moves further — the yaml rate is 0."""
     for icd, terminal in (
         ("N18", "CKD G5"),
         ("J44", "GOLD 4"),
         ("I50", "NYHA IV"),
         ("I25", "CCS III"),
+        ("F00", "CDR 3"),
     ):
         hits = 0
         for i in range(200):
@@ -300,6 +301,36 @@ def test_disease_progression_initialises_ccs_stage() -> None:
     )
     assert "I25" in p.disease_stages
     assert p.disease_stages["I25"] in ("CCS I", "CCS II", "CCS III")
+
+
+def test_disease_progression_initialises_cdr_stage() -> None:
+    """First-year touch on a person with F00 populates
+    disease_stages with one of the CDR classes."""
+    p = _alive("PT-CDR-INIT", age=78)
+    p.chronic_conditions = ["F00"]
+    _disease_progression(
+        p,
+        2026,
+        np.random.default_rng(aging_sub_seed(p.person_id, 2026, "_disease_progression")),
+        {},
+    )
+    assert "F00" in p.disease_stages
+    assert p.disease_stages["F00"] in ("CDR 0.5", "CDR 1", "CDR 2", "CDR 3")
+
+
+def test_disease_progression_advances_cdr_on_hit() -> None:
+    """A person already at CDR 2 with 20 %/yr advance rate should
+    sometimes move to CDR 3 across a Monte-Carlo cohort."""
+    advanced = 0
+    for i in range(400):
+        p = _alive(f"PT-CDR-ADV-{i:04d}", age=80)
+        p.chronic_conditions = ["F00"]
+        p.disease_stages["F00"] = "CDR 2"
+        sub = np.random.default_rng(aging_sub_seed(p.person_id, 2027, "_disease_progression"))
+        _disease_progression(p, 2027, sub, {})
+        if p.disease_stages["F00"] == "CDR 3":
+            advanced += 1
+    assert advanced > 50, f"only {advanced}/400 advanced from CDR 2 (expected ~80)"
 
 
 def test_disease_progression_advances_ccs_on_hit() -> None:
