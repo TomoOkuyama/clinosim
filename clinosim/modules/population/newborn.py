@@ -181,6 +181,15 @@ def register_newborn(
         # initial-cohort generator's value — RNG-neutral for existing
         # citizens.
         atopic_predisposition=_atopic_predisposition_from_mother(mother),
+        # Issue #1581 — race / ethnicity inherited from the mother's
+        # PersonRecord. These are family-level attributes (OMB race
+        # category + hispanic / not_hispanic ethnicity); a newborn
+        # takes the mother's values. Empty mother values (JP cohort
+        # with no race_distribution, or test fixtures) fall through
+        # to the newborn's own empty defaults, matching how the
+        # activator falls back to in-call sampling in that case.
+        race=getattr(mother, "race", "") or "",
+        ethnicity=getattr(mother, "ethnicity", "") or "",
     )
 
     registry.persons[newborn.patient_id] = record
