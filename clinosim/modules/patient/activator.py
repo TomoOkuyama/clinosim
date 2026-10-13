@@ -630,17 +630,33 @@ def activate_patient(
         if enrollment is not None and enrollment.category:
             insurance_type = enrollment.category
 
-    # Race and ethnicity (US only; empty string if race_distribution absent)
+    # Race and ethnicity. Issue #1581 — the initial-cohort generator
+    # now stores race / ethnicity on PersonRecord so each person has a
+    # stable value across activations. When ``person.race`` is non-empty
+    # we honour it, burning the ``rng.choice`` draw to preserve the
+    # per-activation RNG stream shape for everything downstream (same
+    # pattern as the Phase 2.5 disease-stage prefer-persisted path).
+    # Test fixtures and backwards-compat callers that construct a
+    # PersonRecord by hand keep the pre-#1581 behaviour (person.race
+    # is "" → activator samples here).
     race_dist = demo.get("race_distribution") or {}
     if race_dist:
         rk = list(race_dist.keys())
         rp = normalize_probabilities([race_dist[k] for k in rk], fallback="raise")
-        race = str(rng.choice(rk, p=rp))
+        if getattr(person, "race", "") and person.race in rk:
+            _ = rng.choice(rk, p=rp)  # burn the draw
+            race = person.race
+        else:
+            race = str(rng.choice(rk, p=rp))
         eth_dist = demo.get("ethnicity_distribution") or {}
         if eth_dist:
             ek = list(eth_dist.keys())
             ep = normalize_probabilities([eth_dist[k] for k in ek], fallback="raise")
-            ethnicity = str(rng.choice(ek, p=ep))
+            if getattr(person, "ethnicity", "") and person.ethnicity in ek:
+                _ = rng.choice(ek, p=ep)  # burn the draw
+                ethnicity = person.ethnicity
+            else:
+                ethnicity = str(rng.choice(ek, p=ep))
         else:
             ethnicity = ""
     else:
