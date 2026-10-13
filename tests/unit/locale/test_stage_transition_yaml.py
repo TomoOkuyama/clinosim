@@ -20,7 +20,7 @@ def test_yaml_loads_non_empty() -> None:
     assert isinstance(data.get("stage_transitions"), dict)
 
 
-@pytest.mark.parametrize("icd", ["N18", "J44", "I50"])
+@pytest.mark.parametrize("icd", ["N18", "J44", "I50", "I25"])
 def test_each_disease_has_stages_and_rates(icd: str) -> None:
     """Each disease in the yaml has both a `stages` list and a
     matching `annual_advance_probability` map."""
@@ -30,14 +30,22 @@ def test_each_disease_has_stages_and_rates(icd: str) -> None:
     assert set(probs.keys()) == set(cfg["stages"]), f"{icd}: stages/probs key drift"
 
 
-@pytest.mark.parametrize("icd", ["N18", "J44", "I50"])
+@pytest.mark.parametrize("icd", ["N18", "J44", "I50", "I25"])
 def test_rates_in_unit_interval(icd: str) -> None:
     cfg = load_stage_transition()["stage_transitions"][icd]
     for stage, p in cfg["annual_advance_probability"].items():
         assert 0.0 <= p <= 1.0, f"{icd} {stage}: {p} out of [0, 1]"
 
 
-@pytest.mark.parametrize("icd,terminal", [("N18", "CKD G5"), ("J44", "GOLD 4"), ("I50", "NYHA IV")])
+@pytest.mark.parametrize(
+    "icd,terminal",
+    [
+        ("N18", "CKD G5"),
+        ("J44", "GOLD 4"),
+        ("I50", "NYHA IV"),
+        ("I25", "CCS III"),
+    ],
+)
 def test_terminal_stage_has_zero_advance(icd: str, terminal: str) -> None:
     """Terminal stages have advance probability 0 — further
     mortality is a `_condition_reactive_mortality` concern."""
@@ -63,12 +71,17 @@ def test_hf_order_matches_nyha() -> None:
     assert cfg["stages"] == ["NYHA I", "NYHA II", "NYHA III", "NYHA IV"]
 
 
+def test_ihd_order_matches_ccs() -> None:
+    cfg = load_stage_transition()["stage_transitions"]["I25"]
+    assert cfg["stages"] == ["CCS I", "CCS II", "CCS III"]
+
+
 def test_rates_monotone_nondecreasing_through_middle() -> None:
     """Progression accelerates with stage (except terminal). Checks
     that non-terminal rates are weakly non-decreasing from the
     earliest stage inward — simple sanity, not a hard clinical
     invariant."""
-    for icd in ("N18", "J44", "I50"):
+    for icd in ("N18", "J44", "I50", "I25"):
         cfg = load_stage_transition()["stage_transitions"][icd]
         rates = [cfg["annual_advance_probability"][s] for s in cfg["stages"][:-1]]
         for a, b in zip(rates, rates[1:], strict=False):
