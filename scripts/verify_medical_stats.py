@@ -60,6 +60,22 @@ BENCH = {
         "stroke_incidence_per_1000_yr": (2, 5),  # ~3/1000/year
         "pneumonia_hosp_per_1000_yr": (3, 10),  # ~5/1000/year
         "sepsis_incidence_per_1000_yr": (1, 5),
+        # Trauma / injury incidence (Issue #1564 Phase 3, 2026-10-13).
+        # Counts unique Conditions whose ICD code is in the trauma-slice
+        # prefix list in `acute_prefixes["trauma"]` (S* plus the trauma-
+        # relevant T sub-ranges, see comments there). CDC WISQARS 2022
+        # estimates ~28M nonfatal injuries treated per year (~85/1000/yr
+        # all-ED) and ~1.5M injury hospitalizations (~5/1000/yr); the
+        # catalog's severe (always_hospitalize) + minor-trauma protocols
+        # together emit a rate between these two reference points.
+        # Hospital-skewed cohorts with elderly over-representation push
+        # fall-related trauma higher. The band here is a SANITY GATE
+        # (catches zero-trauma regressions on the low end and absurd
+        # 10x-WISQARS overcounts on the high end) rather than an
+        # authoritative benchmark; it is not derived from CDC WISQARS
+        # per-age-stratum tables and must not be read as such. A follow-up
+        # may narrow the band once per-age-stratum tracking is added.
+        "trauma_incidence_per_1000_yr": (5, 120),
         "mortality_per_1000_yr": (7, 11),  # ~8.7
         "outpatient_share_pct": (60, 90),
         "ed_share_pct": (5, 20),
@@ -85,6 +101,15 @@ BENCH = {
         "stroke_incidence_per_1000_yr": (2, 6),  # higher than US
         "pneumonia_hosp_per_1000_yr": (4, 12),
         "sepsis_incidence_per_1000_yr": (1, 4),
+        # Trauma / injury incidence (Issue #1564 Phase 3, 2026-10-13).
+        # 人口動態統計 2023: 不慮の事故 死亡者数 ~4.4万/年 (死亡率 ≈ 0.35/
+        # 1000/yr) で incidence はこれより桁違いに大きい。JP の elderly 比率
+        # は転倒 trauma を押し上げるため US より高齢期 trauma 寄り。本 band
+        # は US と同じく SANITY GATE 用途 (zero-trauma regression および絶対
+        # 的な overcount の検知) で、人口動態 per-age-stratum table から
+        # 導出された厳密 benchmark ではないことに注意。per-stratum tracking
+        # 追加後に band を絞る follow-up の余地あり。
+        "trauma_incidence_per_1000_yr": (5, 120),
         "mortality_per_1000_yr": (9, 13),  # ~11.4 (older pop)
         "outpatient_share_pct": (60, 90),
         "ed_share_pct": (2, 15),  # lower ED reliance in JP
@@ -219,6 +244,37 @@ acute_prefixes = {
     "pneumonia": ("J13", "J14", "J15", "J16", "J17", "J18", "J12", "J09", "J10", "J11"),
     "appendicitis": ("K35", "K36", "K37"),
     "cholecystitis": ("K80", "K81"),
+    # Issue #1564 Phase 3 (2026-10-13): trauma / injury (ICD-10 chapter XIX,
+    # S00-T88, trauma slice only). The T chapter is mixed, so prefixes are
+    # enumerated precisely rather than using broad T0-T7 wildcards.
+    # Included:
+    #   S00-S99  all injuries by body region
+    #   T00-T19  multiple-region / unspecified / foreign-body injuries
+    #   T20-T34  burns, corrosions, frostbite
+    #   T66-T77  other external-cause effects (radiation, heat/cold,
+    #            pressure, asphyxiation, maltreatment, electrical) — note
+    #            T72 and T77 are reserved/unused in current ICD-10 but
+    #            kept in the list for schema stability
+    #   T79      early complications of trauma
+    # Explicitly EXCLUDED:
+    #   T36-T50  drug poisoning / adverse drug effects (overdose, not trauma)
+    #   T51-T65  toxic effects of nonmedicinal substances
+    #   T78      adverse effects NEC — this is allergy / anaphylaxis emitted
+    #            by allergic_reaction_mild + asthma_exacerbation protocols,
+    #            not trauma
+    #   T80-T88  complications of surgical and medical care
+    #   T90-T98  sequelae of prior injuries (double-counts historical trauma)
+    #   M80      pathological / osteoporotic fracture (musculoskeletal, not
+    #            trauma per se — emitted by vertebral_compression_fracture)
+    #   V89 / W19 external-cause codes used by minor-trauma protocols
+    #            (traffic_accident_minor, elderly_fall) — not primary
+    #            injury codes
+    "trauma": (
+        ("S",)
+        + tuple(f"T{n:02d}" for n in range(0, 35))  # T00-T34
+        + tuple(f"T{n:02d}" for n in range(66, 78))  # T66-T77
+        + ("T79",)
+    ),
 }
 acute_cases = {k: set() for k in acute_prefixes}  # unique (patient, year, code_prefix)
 
@@ -345,10 +401,13 @@ for name in _CHRONIC_ROW_ORDER:
     print(band(f"{name}_prev", v, lo, hi, "%", hc_key=hc_key) + f"  (unique adults n={len(adult_with_dx[name])})")
 
 print("\n--- Acute / incidence (per 1000 population per year) ---")
-for name in ["mi", "stroke", "sepsis", "pneumonia"]:
+for name in ["mi", "stroke", "sepsis", "pneumonia", "trauma"]:
     n = len(acute_cases[name])
     per_1000_yr = n / n_pat * 1000 / SIM_YEARS
-    key = f"{name}_incidence_per_1000_yr" if name != "pneumonia" else "pneumonia_hosp_per_1000_yr"
+    if name == "pneumonia":
+        key = "pneumonia_hosp_per_1000_yr"
+    else:
+        key = f"{name}_incidence_per_1000_yr"
     lo, hi = b.get(key, (0, 100))
     print(band(f"{name}_incidence", per_1000_yr, lo, hi, "/1000/yr", hc_key=key) + f"  (cases n={n})")
 for name in ["appendicitis", "cholecystitis"]:
