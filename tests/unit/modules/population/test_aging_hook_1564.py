@@ -163,9 +163,14 @@ def test_disease_progression_advances_on_hit() -> None:
 
 
 def test_disease_progression_terminal_stays() -> None:
-    """A person at the terminal stage (G5 / GOLD 4 / NYHA IV) never
-    moves further — the yaml rate is 0."""
-    for icd, terminal in (("N18", "CKD G5"), ("J44", "GOLD 4"), ("I50", "NYHA IV")):
+    """A person at the terminal stage (G5 / GOLD 4 / NYHA IV / CCS III)
+    never moves further — the yaml rate is 0."""
+    for icd, terminal in (
+        ("N18", "CKD G5"),
+        ("J44", "GOLD 4"),
+        ("I50", "NYHA IV"),
+        ("I25", "CCS III"),
+    ):
         hits = 0
         for i in range(200):
             p = _alive(f"PT-{icd}-TERM-{i:04d}", age=85)
@@ -206,6 +211,36 @@ def test_disease_progression_advances_hf_on_hit() -> None:
         if p.disease_stages["I50"] == "NYHA IV":
             advanced += 1
     assert advanced > 20, f"only {advanced}/400 advanced from NYHA III (expected ~48)"
+
+
+def test_disease_progression_initialises_ccs_stage() -> None:
+    """First-year touch on a person with I25 populates
+    disease_stages with one of the CCS classes."""
+    p = _alive("PT-CCS-INIT", age=65)
+    p.chronic_conditions = ["I25"]
+    _disease_progression(
+        p,
+        2026,
+        np.random.default_rng(aging_sub_seed(p.person_id, 2026, "_disease_progression")),
+        {},
+    )
+    assert "I25" in p.disease_stages
+    assert p.disease_stages["I25"] in ("CCS I", "CCS II", "CCS III")
+
+
+def test_disease_progression_advances_ccs_on_hit() -> None:
+    """A person already at CCS II with 8 %/yr advance rate should
+    sometimes move to CCS III across a Monte-Carlo cohort."""
+    advanced = 0
+    for i in range(400):
+        p = _alive(f"PT-CCS-ADV-{i:04d}", age=68)
+        p.chronic_conditions = ["I25"]
+        p.disease_stages["I25"] = "CCS II"
+        sub = np.random.default_rng(aging_sub_seed(p.person_id, 2027, "_disease_progression"))
+        _disease_progression(p, 2027, sub, {})
+        if p.disease_stages["I25"] == "CCS III":
+            advanced += 1
+    assert advanced > 12, f"only {advanced}/400 advanced from CCS II (expected ~32)"
 
 
 def test_disease_progression_subcode_prefix_match() -> None:

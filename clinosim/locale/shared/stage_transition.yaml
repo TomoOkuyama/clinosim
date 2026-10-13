@@ -14,14 +14,15 @@
 # ``PatientProfile.chronic_conditions[].stage``) so no string
 # translation is needed on the hot path. For CKD, that is
 # ``"CKD G*"``; for COPD, ``"GOLD *"`` (no prefix); for heart
-# failure, ``"NYHA I/II/III/IV"`` (NYHA Roman numeral form).
+# failure, ``"NYHA I/II/III/IV"`` (NYHA Roman numeral form); for
+# ischemic heart disease, ``"CCS I/II/III"`` (CCS angina class).
 #
-# Scope: CKD + COPD + heart failure (NYHA). Diabetes glycemic
-# trajectory and dementia severity progression are planned as a
-# follow-up expansion of this same file (both require ``activator.
-# _generate_stage`` extensions beyond the stage-string pattern, so
-# they are tracked as a separate design concern rather than a
-# yaml-only addition).
+# Scope: CKD + COPD + heart failure (NYHA) + ischemic heart disease
+# (CCS). Diabetes glycemic trajectory and dementia severity
+# progression are planned as a follow-up expansion of this same
+# file (both require ``activator._generate_stage`` extensions
+# beyond the stage-string pattern, so they are tracked as a
+# separate design concern rather than a yaml-only addition).
 
 stage_transitions:
   # ------------------------------------------------------------------
@@ -81,3 +82,28 @@ stage_transitions:
       "NYHA II": 0.080    # II → III
       "NYHA III": 0.120   # III → IV: accelerates with decompensation
       "NYHA IV": 0.0      # terminal (handled by reactive mortality)
+
+  # ------------------------------------------------------------------
+  # I25 Ischemic heart disease (CCS angina classification I-III)
+  # ------------------------------------------------------------------
+  # Clinical basis: COURAGE optimal medical arm long-term follow-up
+  # (Boden WE et al, NEJM 2007 and Sedlis SP et al, NEJM 2015);
+  # SOLVD stable-angina natural history. CCS class reflects
+  # functional limitation and worsens with CAD progression +
+  # suboptimal secondary prevention. Rates below reflect an
+  # all-cohort average without conditioning on revascularisation
+  # status, LVEF, or guideline-directed therapy adherence —
+  # treatment-conditional refinement is a planned Phase 3 concern.
+  # CCS IV (angina at rest) is intentionally omitted here per the
+  # existing design in ``_severity_activation.I25_STAGES`` comment
+  # (CCS IV arrives via the disease-YAML encounter path as an
+  # active acute-coronary scenario, not a chronic stage). CCS III
+  # is terminal in this progression table; further mortality is
+  # driven by condition-reactive qx (I25 SMR 2.0 already in
+  # ``condition_mortality_smr.yaml``).
+  I25:
+    stages: ["CCS I", "CCS II", "CCS III"]
+    annual_advance_probability:
+      "CCS I": 0.050     # I → II: ~5 %/yr (effort-angina stable)
+      "CCS II": 0.080    # II → III: accelerating limitation
+      "CCS III": 0.0     # terminal (handled by reactive mortality)
