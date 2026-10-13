@@ -163,9 +163,9 @@ def test_disease_progression_advances_on_hit() -> None:
 
 
 def test_disease_progression_terminal_stays() -> None:
-    """A person at the terminal stage (G5 / GOLD 4) never moves
-    further — the yaml rate is 0."""
-    for icd, terminal in (("N18", "CKD G5"), ("J44", "GOLD 4")):
+    """A person at the terminal stage (G5 / GOLD 4 / NYHA IV) never
+    moves further — the yaml rate is 0."""
+    for icd, terminal in (("N18", "CKD G5"), ("J44", "GOLD 4"), ("I50", "NYHA IV")):
         hits = 0
         for i in range(200):
             p = _alive(f"PT-{icd}-TERM-{i:04d}", age=85)
@@ -176,6 +176,36 @@ def test_disease_progression_terminal_stays() -> None:
             if p.disease_stages[icd] != terminal:
                 hits += 1
         assert hits == 0, f"{icd} terminal {terminal} moved {hits}/200 times"
+
+
+def test_disease_progression_initialises_hf_stage() -> None:
+    """First-year touch on a person with I50 populates
+    disease_stages with one of the NYHA classes."""
+    p = _alive("PT-HF-INIT", age=72)
+    p.chronic_conditions = ["I50"]
+    _disease_progression(
+        p,
+        2026,
+        np.random.default_rng(aging_sub_seed(p.person_id, 2026, "_disease_progression")),
+        {},
+    )
+    assert "I50" in p.disease_stages
+    assert p.disease_stages["I50"] in ("NYHA I", "NYHA II", "NYHA III", "NYHA IV")
+
+
+def test_disease_progression_advances_hf_on_hit() -> None:
+    """A person already at NYHA III with 12 %/yr advance rate should
+    sometimes move to NYHA IV across a Monte-Carlo cohort."""
+    advanced = 0
+    for i in range(400):
+        p = _alive(f"PT-HF-ADV-{i:04d}", age=72)
+        p.chronic_conditions = ["I50"]
+        p.disease_stages["I50"] = "NYHA III"
+        sub = np.random.default_rng(aging_sub_seed(p.person_id, 2027, "_disease_progression"))
+        _disease_progression(p, 2027, sub, {})
+        if p.disease_stages["I50"] == "NYHA IV":
+            advanced += 1
+    assert advanced > 20, f"only {advanced}/400 advanced from NYHA III (expected ~48)"
 
 
 def test_disease_progression_subcode_prefix_match() -> None:
