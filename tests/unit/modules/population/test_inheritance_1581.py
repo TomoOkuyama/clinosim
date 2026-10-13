@@ -102,6 +102,30 @@ def test_mother_rh_positive_jp_near_universally_rh_positive() -> None:
     assert rh_pos_count / trials > 0.98
 
 
+def test_two_parent_blood_type_crosses_match_punnett() -> None:
+    """Issue #1581 Phase C.2 — when both parents' phenotypes are
+    supplied, the child distribution matches the standard Punnett
+    square. Mother A × Father B → child can be A, B, AB, or O.
+    Mother O × Father O → child always O. Mother AB × Father AB →
+    child A, B, or AB (never O)."""
+    counts_oo: Counter[str] = Counter()
+    counts_abab: Counter[str] = Counter()
+    for i in range(1000):
+        counts_oo[derive_newborn_blood_type(f"PT-OO-{i:04d}", "O", country="US", father_blood_type="O")] += 1
+        counts_abab[derive_newborn_blood_type(f"PT-ABAB-{i:04d}", "AB", country="US", father_blood_type="AB")] += 1
+    # O × O → always O.
+    assert set(counts_oo.keys()) == {"O"}
+    # AB × AB → never O.
+    assert "O" not in counts_abab
+
+
+def test_two_parent_rh_both_negative_produces_rh_negative() -> None:
+    """Rh- × Rh- → child always Rh- (both parents are dd)."""
+    for i in range(500):
+        rh = derive_newborn_rh_factor(f"PT-RHNN-{i:04d}", "-", country="US", father_rh_factor="-")
+        assert rh == "-"
+
+
 def test_mother_genotype_prob_sums_to_one() -> None:
     """Sanity: every phenotype's genotype weights add to 1 (within fp
     tolerance)."""

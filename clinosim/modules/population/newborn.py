@@ -46,29 +46,79 @@ if TYPE_CHECKING:
     from clinosim.types.patient import PatientProfile
 
 
-__all__ = ["register_newborn"]
+__all__ = ["register_newborn", "find_household_father"]
 
 
-# Single-atopic-parent OR for child allergy risk, per Bousquet et al 2008
-# (Allergy 63:5) and Hong et al 2012 (Pediatr Allergy Immunol 23:234).
-# Two-parent studies converge on ~3-4x; we observe only the mother in
-# this scope so the single-parent value is used.
-_ATOPIC_INHERITANCE_MULTIPLIER = 2.0
+# Atopic-march inheritance ORs for child allergy risk, per Bousquet et
+# al 2008 (Allergy 63:5) and Hong et al 2012 (Pediatr Allergy Immunol
+# 23:234). Single-parent OR ≈ 2 (one atopic parent), two-parent OR
+# ≈ 3.5 (both atopic). We cap at the single-parent value when only
+# the mother is observed in the household.
+_ATOPIC_INHERITANCE_MULTIPLIER_ONE_PARENT = 2.0
+_ATOPIC_INHERITANCE_MULTIPLIER_TWO_PARENTS = 3.5
 
 
-def _atopic_predisposition_from_mother(mother: PersonRecord) -> float:
-    """Return the atopic-predisposition multiplier for a newborn given
-    the mother. ``_ATOPIC_INHERITANCE_MULTIPLIER`` when the mother
-    carries any real active allergy (non-NKA, non-resolved) in her
-    ``allergies`` list; 1.0 (clinically neutral) otherwise.
+def find_household_father(mother: PersonRecord, registry: PopulationRegistry) -> PersonRecord | None:
+    """Heuristic household-father lookup for Phase C.2 inheritance paths.
+
+    Returns the registered male adult (age ≥ 18) in the mother's
+    household who is closest in age to the mother, or ``None`` when
+    no such person exists. The ``Household`` dataclass does not carry
+    an explicit relationship field (father / husband / partner), so
+    this heuristic is a best-effort proxy and is intentionally
+    conservative — same-sex partnerships and single-mother households
+    simply get ``None`` here, falling through to the mother-only
+    inheritance path used in Phase C.1.
+
+    The heuristic is monotone in household membership, so adding a
+    newborn (who is age 0, not an adult) does not change the father
+    identification for later siblings.
     """
-    allergies = getattr(mother, "allergies", None) or []
+    if getattr(mother, "sex", "") != "F":
+        return None
+    household = next((h for h in registry.households if h.household_id == mother.household_id), None)
+    if household is None:
+        return None
+    candidates = [
+        m
+        for m in household.members
+        if m.person_id != mother.person_id and getattr(m, "age", 0) >= 18 and getattr(m, "sex", "") == "M"
+    ]
+    if not candidates:
+        return None
+    return min(candidates, key=lambda m: abs(getattr(m, "age", 0) - getattr(mother, "age", 0)))
+
+
+def _is_atopic(person: PersonRecord | None) -> bool:
+    """Return True iff the person carries any real active allergy
+    (non-NKA, non-resolved) on their ``allergies`` list."""
+    if person is None:
+        return False
+    allergies = getattr(person, "allergies", None) or []
     for a in allergies:
         if getattr(a, "is_nka", False):
             continue
         if getattr(a, "clinical_status", "") == "resolved":
             continue
-        return _ATOPIC_INHERITANCE_MULTIPLIER
+        return True
+    return False
+
+
+def _atopic_predisposition_from_parents(
+    mother: PersonRecord,
+    father: PersonRecord | None,
+) -> float:
+    """Return the atopic-predisposition multiplier for a newborn given
+    both parents. 1.0 when neither is atopic (clinically neutral), 2.0
+    when only one is atopic (single-parent OR), 3.5 when both are
+    atopic (two-parent OR). ``father=None`` collapses to the Phase C.1
+    behaviour (mother-only).
+    """
+    atopic_parents = int(_is_atopic(mother)) + int(_is_atopic(father))
+    if atopic_parents >= 2:
+        return _ATOPIC_INHERITANCE_MULTIPLIER_TWO_PARENTS
+    if atopic_parents == 1:
+        return _ATOPIC_INHERITANCE_MULTIPLIER_ONE_PARENT
     return 1.0
 
 
@@ -112,6 +162,45 @@ def register_newborn(
     existing = registry.persons.get(newborn.patient_id)
     if existing is not None:
         return existing
+
+    # Issue #1581 Phase C.2 extension — look up the household father
+    # (heuristic: opposite-sex adult in the same household closest in
+    # age to the mother). ``None`` collapses the parent-aware
+    # inheritance paths to the single-parent / population-fallback
+    # behaviour from Phase C.1.
+    father = find_household_father(mother, registry)
+
+    # If the father is identified AND a config was supplied, re-derive
+    # ABO + Rh using both parents' phenotypes so the newborn
+    # PatientProfile and the long-lived PersonRecord match a
+    # biologically-correct two-parent cross. The perinatal builder
+    # only has the mother available at construction time and samples
+    # with the locale allele frequency as the father-side fallback;
+    # we overwrite in place so the downstream FHIR Patient resource
+    # (built from this PatientProfile) carries the two-parent result.
+    # Deterministic SHA-based inheritance remains byte-identical for
+    # the same (mother, father, newborn_id, country) tuple.
+    if father is not None and config is not None:
+        from clinosim.modules.population.inheritance import (
+            derive_newborn_blood_type as _derive_abo_two_parent,
+        )
+        from clinosim.modules.population.inheritance import (
+            derive_newborn_rh_factor as _derive_rh_two_parent,
+        )
+
+        country = getattr(config, "country", "US") or "US"
+        newborn.blood_type = _derive_abo_two_parent(
+            newborn.patient_id,
+            getattr(mother, "blood_type", "A") or "A",
+            country=country,
+            father_blood_type=getattr(father, "blood_type", "A") or "A",
+        )
+        newborn.rh_factor = _derive_rh_two_parent(
+            newborn.patient_id,
+            getattr(mother, "rh_factor", "+") or "+",
+            country=country,
+            father_rh_factor=getattr(father, "rh_factor", "+") or "+",
+        )
 
     # `PatientProfile.date_of_birth` is `date | None`; `PersonRecord`
     # requires `date`. Perinatal always stamps a real delivery date
@@ -180,7 +269,7 @@ def register_newborn(
         # outgrown) are treated as non-atopic. Default (1.0) is the
         # initial-cohort generator's value — RNG-neutral for existing
         # citizens.
-        atopic_predisposition=_atopic_predisposition_from_mother(mother),
+        atopic_predisposition=_atopic_predisposition_from_parents(mother, father),
         # Issue #1581 — race / ethnicity inherited from the mother's
         # PersonRecord. These are family-level attributes (OMB race
         # category + hispanic / not_hispanic ethnicity); a newborn

@@ -302,6 +302,124 @@ def test_newborn_atopic_predisposition_raised_for_atopic_mother() -> None:
     assert record.atopic_predisposition == 2.0
 
 
+def test_newborn_atopic_predisposition_two_atopic_parents() -> None:
+    """Issue #1581 Phase C.2 extension — both parents atopic produces
+    the two-parent multiplier 3.5 per Bousquet 2008 Allergy / Hong
+    2012 Pediatr Allergy Immunol."""
+    from clinosim.types.allergy import Allergy
+    from clinosim.types.population import PersonRecord
+
+    mother = _mother()
+    mother.allergies = [
+        Allergy(
+            allergy_id="ALG-M-EGG",
+            allergen_code="735038006",
+            category="food",
+            criticality="low",
+            verification_status="confirmed",
+            clinical_status="active",
+        )
+    ]
+    father = PersonRecord(
+        person_id="PT-DAD-001",
+        household_id=mother.household_id,
+        age=35,
+        sex="M",
+        date_of_birth=date(1991, 1, 1),
+    )
+    father.allergies = [
+        Allergy(
+            allergy_id="ALG-F-PCN",
+            allergen_code="373270004",
+            category="medication",
+            criticality="high",
+            verification_status="confirmed",
+            clinical_status="active",
+        )
+    ]
+    hh = Household(household_id=mother.household_id, members=[mother, father])
+    reg = PopulationRegistry(households=[hh], persons={mother.person_id: mother, father.person_id: father})
+    reg.initial_person_ids = set(reg.persons.keys())
+    newborn = _newborn_profile(mother)
+
+    record = register_newborn(reg, mother, newborn)
+    assert record.atopic_predisposition == 3.5
+
+
+def test_newborn_atopic_predisposition_father_only_atopic() -> None:
+    """Single-atopic-parent OR 2.0 fires when only the FATHER is
+    atopic (mother NKA)."""
+    from clinosim.types.allergy import Allergy
+    from clinosim.types.population import PersonRecord
+
+    mother = _mother()
+    mother.allergies = []  # no NKA, no real allergy
+    father = PersonRecord(
+        person_id="PT-DAD-002",
+        household_id=mother.household_id,
+        age=35,
+        sex="M",
+        date_of_birth=date(1991, 1, 1),
+    )
+    father.allergies = [
+        Allergy(
+            allergy_id="ALG-F-PCN",
+            allergen_code="373270004",
+            category="medication",
+            criticality="high",
+            verification_status="confirmed",
+            clinical_status="active",
+        )
+    ]
+    hh = Household(household_id=mother.household_id, members=[mother, father])
+    reg = PopulationRegistry(households=[hh], persons={mother.person_id: mother, father.person_id: father})
+    reg.initial_person_ids = set(reg.persons.keys())
+    newborn = _newborn_profile(mother)
+
+    record = register_newborn(reg, mother, newborn)
+    assert record.atopic_predisposition == 2.0
+
+
+def test_find_household_father_prefers_closest_in_age_male_adult() -> None:
+    """The household-father heuristic picks the adult male closest
+    in age to the mother. Teen boys, children and other-sex members
+    are not considered."""
+    from clinosim.modules.population.newborn import find_household_father
+    from clinosim.types.population import PersonRecord
+
+    mother = _mother()  # age 32
+    teen_son = PersonRecord(
+        person_id="PT-SON-TEEN",
+        household_id=mother.household_id,
+        age=16,
+        sex="M",
+        date_of_birth=date(2010, 1, 1),
+    )
+    partner = PersonRecord(
+        person_id="PT-DAD-001",
+        household_id=mother.household_id,
+        age=34,
+        sex="M",
+        date_of_birth=date(1992, 1, 1),
+    )
+    uncle = PersonRecord(
+        person_id="PT-UNCLE-001",
+        household_id=mother.household_id,
+        age=50,
+        sex="M",
+        date_of_birth=date(1976, 1, 1),
+    )
+    hh = Household(household_id=mother.household_id, members=[mother, teen_son, partner, uncle])
+    reg = PopulationRegistry(
+        households=[hh],
+        persons={p.person_id: p for p in [mother, teen_son, partner, uncle]},
+    )
+
+    found = find_household_father(mother, reg)
+    assert found is not None
+    assert found.person_id == partner.person_id
+
+
 def test_newborn_atopic_predisposition_ignores_resolved_allergy() -> None:
     """A mother whose only allergy record has clinical_status=resolved
     (childhood food allergy that was outgrown) is not atopic. Multiplier
