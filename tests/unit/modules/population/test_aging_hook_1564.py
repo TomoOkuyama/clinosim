@@ -239,6 +239,54 @@ def test_disease_progression_advances_hf_on_hit() -> None:
     assert advanced > 20, f"only {advanced}/400 advanced from NYHA III (expected ~48)"
 
 
+def test_allergy_drift_atopic_predisposition_doubles_emergence_rate() -> None:
+    """Issue #1581 Phase C.2 — a person with
+    ``atopic_predisposition=2.0`` has roughly double the emergence
+    hit rate for new medication allergies in ``_allergy_drift``
+    compared to a neutral (``=1.0``) person. Monte-Carlo across 400
+    person-years per cohort."""
+    from clinosim.types.allergy import Allergy
+
+    def _no_allergy_adult(pid: str, predisposition: float) -> PersonRecord:
+        p = _alive(pid, age=40)
+        p.allergies = [
+            Allergy(
+                allergy_id="ALG-NKA",
+                allergen_code="716186003",
+                category="",
+                criticality="unable-to-assess",
+                verification_status="confirmed",
+                clinical_status="resolved",
+                is_nka=True,
+            )
+        ]
+        p.atopic_predisposition = predisposition
+        return p
+
+    neutral_hits = 0
+    atopic_hits = 0
+    trials = 400
+    for i in range(trials):
+        p_n = _no_allergy_adult(f"PT-NEUTRAL-{i:04d}", 1.0)
+        p_a = _no_allergy_adult(f"PT-ATOPIC-{i:04d}", 2.0)
+        rng_n = np.random.default_rng(aging_sub_seed(p_n.person_id, 2026, "_allergy_drift"))
+        rng_a = np.random.default_rng(aging_sub_seed(p_a.person_id, 2026, "_allergy_drift"))
+        _allergy_drift(p_n, 2026, rng_n, {})
+        _allergy_drift(p_a, 2026, rng_a, {})
+        n_count = sum(1 for a in (p_n.allergies or []) if not a.is_nka)
+        a_count = sum(1 for a in (p_a.allergies or []) if not a.is_nka)
+        if n_count > 0:
+            neutral_hits += 1
+        if a_count > 0:
+            atopic_hits += 1
+
+    # Rate should roughly double. Allow wide Monte-Carlo band — the raw
+    # per-year rate is small, so hits may be in single digits across
+    # 400 trials. Core invariant: atopic cohort has strictly more
+    # hits than the neutral cohort.
+    assert atopic_hits > neutral_hits, f"atopic={atopic_hits} <= neutral={neutral_hits} (expected >)"
+
+
 def test_disease_progression_initialises_ccs_stage() -> None:
     """First-year touch on a person with I25 populates
     disease_stages with one of the CCS classes."""

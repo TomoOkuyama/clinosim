@@ -49,6 +49,29 @@ if TYPE_CHECKING:
 __all__ = ["register_newborn"]
 
 
+# Single-atopic-parent OR for child allergy risk, per Bousquet et al 2008
+# (Allergy 63:5) and Hong et al 2012 (Pediatr Allergy Immunol 23:234).
+# Two-parent studies converge on ~3-4x; we observe only the mother in
+# this scope so the single-parent value is used.
+_ATOPIC_INHERITANCE_MULTIPLIER = 2.0
+
+
+def _atopic_predisposition_from_mother(mother: PersonRecord) -> float:
+    """Return the atopic-predisposition multiplier for a newborn given
+    the mother. ``_ATOPIC_INHERITANCE_MULTIPLIER`` when the mother
+    carries any real active allergy (non-NKA, non-resolved) in her
+    ``allergies`` list; 1.0 (clinically neutral) otherwise.
+    """
+    allergies = getattr(mother, "allergies", None) or []
+    for a in allergies:
+        if getattr(a, "is_nka", False):
+            continue
+        if getattr(a, "clinical_status", "") == "resolved":
+            continue
+        return _ATOPIC_INHERITANCE_MULTIPLIER
+    return 1.0
+
+
 def register_newborn(
     registry: PopulationRegistry,
     mother: PersonRecord,
@@ -146,6 +169,18 @@ def register_newborn(
         smoking_status="never",
         alcohol_use="none",
         is_alive=True,
+        # Issue #1581 Phase C.2 — atopic-march inheritance multiplier.
+        # When the mother carries any real (non-NKA, non-resolved)
+        # allergy, raise the newborn's per-year emergence rate for new
+        # allergies in `aging._allergy_drift` by `_ATOPIC_INHERITANCE_
+        # MULTIPLIER` (2.0, single-atopic-parent OR per Bousquet 2008
+        # Allergy and Hong 2012 Pediatr Allergy Immunol). Mothers with
+        # only a NKA record (allergen_code 716186003 or `is_nka=True`)
+        # or whose only allergy is resolved (childhood food allergy
+        # outgrown) are treated as non-atopic. Default (1.0) is the
+        # initial-cohort generator's value — RNG-neutral for existing
+        # citizens.
+        atopic_predisposition=_atopic_predisposition_from_mother(mother),
     )
 
     registry.persons[newborn.patient_id] = record

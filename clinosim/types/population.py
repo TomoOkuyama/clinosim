@@ -101,6 +101,19 @@ class PersonRecord:
     # None = enricher hasn't run; [] = enricher ran, patient has no allergy.
     # Task 15 will make the enricher the sole source and remove the activator block.
     allergies: list[Allergy] | None = None
+    # Atopic-march inheritance multiplier (Issue #1581 Phase C.2). Scales
+    # the annual Bernoulli rate for new-allergy emergence in
+    # ``aging._allergy_drift``. The initial-cohort generator leaves this
+    # at 1.0 (no bump); ``register_newborn`` reads the mother's allergy
+    # list at registration and raises the multiplier when the mother is
+    # atopic, so children of allergic mothers have a higher per-year
+    # chance of developing their own allergy. 1.0 is clinically neutral,
+    # 2.0 is the single-atopic-parent rough OR from standard allergy
+    # epidemiology (Bousquet et al 2008 Allergy; Hong et al 2012
+    # Pediatr Allergy Immunol). Deliberately capped since we currently
+    # only observe the mother — a two-parent model would push toward
+    # ~3-4x per the same literature (Phase C.2 follow-up).
+    atopic_predisposition: float = 1.0
     # Time-boxed lifecycle states (META #957 Incr 1). Populated over the
     # life of the simulation by state-scoped generators (currently only
     # the pregnancy-lifecycle generator; cancer active-treatment / acute
