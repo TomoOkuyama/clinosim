@@ -956,6 +956,44 @@ def simulate_delivery_encounter(
     newborn_encounter.admitting_physician_id = encounter.attending_physician_id
     newborn_encounter.discharging_physician_id = encounter.attending_physician_id
 
+    # Issue #1581 audit — write the birth admission to the newborn's
+    # ``PersonRecord.hospitalization_history`` + ``last_encounter_id`` +
+    # ``last_discharge_date`` so a readmission check against this child
+    # sees that they have in fact been admitted. Previously the newborn's
+    # Layer-1 inpatient-history fields stayed at their dataclass defaults
+    # (empty list / None / None), making "退院後は他市民と同一管理" break
+    # on the first readmission-aware event. ``_mother_record`` is non-
+    # None here when the perinatal path is driven through the engine's
+    # population registry — test fixtures that bypass the registry get
+    # the pre-#1581 behaviour (newborn exists in CIF records but not in
+    # ``population.persons``).
+    if population_registry is not None and _mother_record is not None:
+        from clinosim.types.population import HospitalizationSummary as _HospitalizationSummary
+
+        _nb_person = population_registry.persons.get(newborn.patient_id)
+        if _nb_person is not None:
+            _admission_date = visit_date.date()
+            _discharge_date = (visit_date + timedelta(days=los_days)).date()
+            _nb_person.hospitalization_history.append(
+                _HospitalizationSummary(
+                    encounter_id=newborn_encounter.encounter_id,
+                    disease_id="newborn_birth",
+                    admission_date=_admission_date,
+                    discharge_date=_discharge_date,
+                    los_days=max(1, los_days),
+                    outcome="discharged",
+                    discharge_diagnoses=["Z38.0"],
+                    discharge_medications=[],
+                    residual_inflammation=0.0,
+                    residual_renal=1.0,
+                    was_readmission=False,
+                )
+            )
+            _nb_person.last_encounter_id = newborn_encounter.encounter_id
+            _nb_person.last_discharge_date = _discharge_date
+            _nb_person.has_visited_hospital = True
+            _nb_person.visit_count = max(1, _nb_person.visit_count + 1)
+
     newborn_diagnosis = ClinicalDiagnosis(
         admission_diagnosis_code="Z38.0",  # single liveborn, born in hospital, without cesarean
         admission_diagnosis_system=icd_system,
