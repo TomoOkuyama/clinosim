@@ -14,7 +14,7 @@ from __future__ import annotations
 from datetime import date
 
 from clinosim.modules.population.engine import Household, PopulationRegistry
-from clinosim.modules.population.newborn import newborn_sub_seed, register_newborn
+from clinosim.modules.population.newborn import register_newborn
 from clinosim.types.patient import (
     Address,
     ChronicCondition,
@@ -161,10 +161,76 @@ def test_register_newborn_carries_perinatal_conditions() -> None:
     assert record.chronic_conditions == ["P59.9"]
 
 
-def test_newborn_sub_seed_is_deterministic() -> None:
-    assert newborn_sub_seed("PT-X-BABY-01") == newborn_sub_seed("PT-X-BABY-01")
-    # Different ids produce different seeds (collision would be a surprise).
-    assert newborn_sub_seed("PT-X-BABY-01") != newborn_sub_seed("PT-X-BABY-02")
+def test_register_newborn_without_config_leaves_biology_fields_at_defaults() -> None:
+    """Phase 1 contract preserved — callers that build a PatientProfile
+    without a sim config (test fixtures) still get a valid PersonRecord
+    whose biology fields are at their dataclass defaults. The Phase A
+    biology init runs only when ``config`` is supplied."""
+    mother = _mother()
+    reg = _registry_with_mother(mother)
+    newborn = _newborn_profile(mother)
+
+    record = register_newborn(reg, mother, newborn)
+
+    # No config → no biology init → fields stay at dataclass defaults.
+    assert record.allergies is None
+    assert record.date_of_death is None
+
+
+def test_register_newborn_with_config_attaches_nka_allergy_and_death_date() -> None:
+    """Phase A (Issue #1581) biology init — a config-aware register
+    call attaches the Phase-A invariants an age-0 initial-cohort citizen
+    would have."""
+    from types import SimpleNamespace
+
+    mother = _mother()
+    reg = _registry_with_mother(mother)
+    newborn = _newborn_profile(mother)
+
+    config = SimpleNamespace(
+        country="JP",
+        random_seed=42,
+        time_range=(date(2026, 1, 1), date(2036, 1, 1)),
+        snapshot_date=None,
+    )
+    record = register_newborn(reg, mother, newborn, config=config)
+
+    # NKA baseline allergy is non-None (every PERSON must have ≥1 allergy
+    # record; NKA is the positive assertion). ``is_nka`` flag + SNOMED
+    # 716186003 are the invariants the allergy enricher ships for initial-
+    # cohort persons too.
+    assert record.allergies is not None
+    assert len(record.allergies) == 1
+    assert record.allergies[0].is_nka is True
+    # date_of_death is pre-sampled (may or may not fire in the window
+    # depending on the per-person RNG draw; we only assert that the
+    # biology init ran, not that this specific newborn dies). Either
+    # way the attribute has a type-stable value.
+    assert record.date_of_death is None or isinstance(record.date_of_death, date)
+
+
+def test_register_newborn_with_config_is_deterministic() -> None:
+    """Phase A biology init is driven by sub-seeds derived from the
+    person_id, so two registrations of the same newborn (across runs
+    with the same master seed) produce the same death-date decision."""
+    from types import SimpleNamespace
+
+    def _run() -> tuple[bool, object]:
+        mother = _mother()
+        reg = _registry_with_mother(mother)
+        newborn = _newborn_profile(mother)
+        config = SimpleNamespace(
+            country="JP",
+            random_seed=42,
+            time_range=(date(2026, 1, 1), date(2036, 1, 1)),
+            snapshot_date=None,
+        )
+        rec = register_newborn(reg, mother, newborn, config=config)
+        return rec.allergies is not None, rec.date_of_death
+
+    first = _run()
+    second = _run()
+    assert first == second
 
 
 def test_initial_person_ids_snapshot_default_empty() -> None:

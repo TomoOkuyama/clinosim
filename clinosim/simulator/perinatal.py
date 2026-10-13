@@ -887,7 +887,7 @@ def simulate_delivery_encounter(
         )
         _mother_record = population_registry.persons.get(patient.patient_id)
         if _mother_record is not None:
-            _register_newborn(population_registry, _mother_record, newborn)
+            _register_newborn(population_registry, _mother_record, newborn, config=config)
 
     newborn_encounter = create_inpatient_encounter(
         newborn.patient_id,
