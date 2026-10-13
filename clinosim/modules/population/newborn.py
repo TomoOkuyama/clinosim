@@ -292,10 +292,12 @@ def register_newborn(
 
     # Phase A biology init — matches the per-person state an initial-
     # cohort citizen at age 0 would have (NKA allergy baseline, pre-
-    # sampled natural-death date). ``initialize_newborn_biology`` is a
-    # no-op when ``config`` is None (test fixtures without a full sim
-    # config), preserving the original Phase 1 behaviour for those
-    # callers.
-    initialize_newborn_biology(record, config)
+    # sampled natural-death date, pediatric care-seeking threshold,
+    # Issue #1581 identity-timeline when the locale has a yaml). The
+    # ``registry`` is passed through so the identity init can resolve
+    # the mother's household and reuse the persisted intra-household
+    # latent. ``initialize_newborn_biology`` is a no-op when ``config``
+    # is None (test fixtures), preserving the original Phase 1 behaviour.
+    initialize_newborn_biology(record, config, registry)
 
     return record
