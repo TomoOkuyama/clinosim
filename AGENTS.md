@@ -302,6 +302,26 @@ git rebase master          # 衝突したら、重なりの判定が誤ってい
 測り直す。並行作業で state が動いている可能性があるため、**承認時の HEAD と
 merge 時の HEAD が同一であること**を確認する。
 
+### ★ `gh pr merge` 前は `scripts/wait-pr-ci.sh` で CI gate する
+
+`gh pr checks <N> --watch --fail-fast` は 2026-10-11 に **FAILURE 中の PR で exit 0
+を返した事例** が 4 連続 PR で観測されている (root cause 未確定: gh CLI race /
+polling miss / gate 未実行、のいずれか)。`gh pr merge --auto --rebase` は branch
+protection 無しの repo では CI を待たず即 merge するため、CLI 側の確実な gate が
+無いまま auto merge すると master を壊すリスクが残る。
+
+このため **merge 前は repo 側の deterministic polling gate を必ず走らせる**:
+
+```bash
+# PR 作成 → CI 完走を待って → gate pass なら merge
+scripts/wait-pr-ci.sh <PR>  # exit 0: 全 required check SUCCESS、exit 1: 1 件でも失敗
+gh pr merge <PR> --auto --rebase
+```
+
+`wait-pr-ci.sh` は `statusCheckRollup` を自前 polling し、`(?i)informational` を
+含む check 名を除外した上で、全 required check が COMPLETED かつ非 FAILURE/CANCELLED
+であることを確認してから exit 0 する。gh CLI の streaming 挙動には依存しない。
+
 **hotfix 例外**: 本番 blocker(CI 全落ち / silent-drop 検出)は master
 直接 push OK、ただし同一 session 内で post-hoc Issue + 説明 comment
 を残すこと。
