@@ -114,7 +114,20 @@ def register_newborn(
         date_of_birth=newborn.date_of_birth,
         family_name=name.family_name if name is not None else "",
         given_name=name.given_name if name is not None else "",
+        # Issue #1581 Phase C.1 — phonetic (JP 戸籍 kana reading of the
+        # surname) is inherited from the mother's PatientProfile via
+        # `_build_newborn_patient`. This writethrough carries that
+        # phonetic to the long-lived PersonRecord so later encounters
+        # of the same child re-use the family phonetic reading.
         phonetic=name.phonetic if name is not None else None,
+        # Issue #1581 Phase C.1 — ABO and Rh factor arrive from
+        # `_build_newborn_patient` where they were sampled via
+        # `inheritance.derive_newborn_blood_type` / `derive_newborn_rh_factor`
+        # (mother phenotype × locale allele frequency). The `else "A"` /
+        # `else "+"` fallbacks remain for test fixtures that bypass the
+        # perinatal builder and construct a PatientProfile with the
+        # dataclass defaults, which clinosim treated as blank sentinels
+        # before this PR.
         blood_type=newborn.blood_type if newborn.blood_type else "A",
         rh_factor=newborn.rh_factor if newborn.rh_factor else "+",
         postal_code=address.postal_code,
