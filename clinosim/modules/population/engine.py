@@ -140,6 +140,16 @@ class Household:
     household_id: str
     members: list[PersonRecord] = field(default_factory=list)
     region: str = "urban"
+    # Issue #1581 — intra-household latent for identity-timeline sampling.
+    # `assign_identities` stamps this on each household from a shared
+    # `rng.standard_normal()` draw so later per-person entry points (e.g.
+    # when a newborn joins the household mid-sim) can re-use the SAME
+    # latent and preserve the intra-household card-holding correlation
+    # the batch pass established. ``None`` means ``assign_identities``
+    # has not run yet for this household (e.g. test fixture that bypasses
+    # the enricher) — the per-person entry falls back to a 0.0 latent
+    # (no correlation).
+    identity_latent: float | None = None
 
 
 @dataclass
