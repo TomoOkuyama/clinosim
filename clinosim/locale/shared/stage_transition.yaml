@@ -15,14 +15,13 @@
 # translation is needed on the hot path. For CKD, that is
 # ``"CKD G*"``; for COPD, ``"GOLD *"`` (no prefix); for heart
 # failure, ``"NYHA I/II/III/IV"`` (NYHA Roman numeral form); for
-# ischemic heart disease, ``"CCS I/II/III"`` (CCS angina class).
+# ischemic heart disease, ``"CCS I/II/III"`` (CCS angina class);
+# for dementia, ``"CDR 0.5/1/2/3"`` (Clinical Dementia Rating).
 #
 # Scope: CKD + COPD + heart failure (NYHA) + ischemic heart disease
-# (CCS). Diabetes glycemic trajectory and dementia severity
-# progression are planned as a follow-up expansion of this same
-# file (both require ``activator._generate_stage`` extensions
-# beyond the stage-string pattern, so they are tracked as a
-# separate design concern rather than a yaml-only addition).
+# (CCS) + dementia (CDR). Diabetes glycemic trajectory requires a
+# continuous HbA1c trajectory model (not a discrete stage), tracked
+# as a separate follow-up (Phase 2.5 extension).
 
 stage_transitions:
   # ------------------------------------------------------------------
@@ -107,3 +106,25 @@ stage_transitions:
       "CCS I": 0.050     # I → II: ~5 %/yr (effort-angina stable)
       "CCS II": 0.080    # II → III: accelerating limitation
       "CCS III": 0.0     # terminal (handled by reactive mortality)
+
+  # ------------------------------------------------------------------
+  # F00 Dementia (Clinical Dementia Rating, CDR 0.5-3)
+  # ------------------------------------------------------------------
+  # Clinical basis: Morris JC 1993 (Neurology 43:2412); Hughes 1982
+  # (Br J Psychiatry 140:566); Mitchell SL 2009 NEJM (natural history
+  # of advanced dementia); Dubois B 2016 Lancet Neurol (preclinical AD).
+  # Progression is monotonic in the natural history under baseline
+  # care. Annual advance rates reflect the diagnosed-F00 population
+  # (not preclinical). Cholinesterase-inhibitor / memantine effect
+  # is NOT modelled as a per-patient modifier here — therapy-
+  # conditional refinement is a planned Phase 3 concern. CDR 3 is
+  # terminal in this progression table; further mortality is driven
+  # by condition-reactive qx (F00 / F03 SMR 2.0 already in
+  # ``condition_mortality_smr.yaml``).
+  F00:
+    stages: ["CDR 0.5", "CDR 1", "CDR 2", "CDR 3"]
+    annual_advance_probability:
+      "CDR 0.5": 0.120   # MCI → mild AD conversion: ~12 %/yr (Petersen 2001)
+      "CDR 1": 0.180     # mild → moderate: ~18 %/yr
+      "CDR 2": 0.200     # moderate → severe: ~20 %/yr (fastest step)
+      "CDR 3": 0.0       # terminal (handled by reactive mortality)
