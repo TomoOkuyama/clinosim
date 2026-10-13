@@ -89,7 +89,7 @@ def _init_newborn_care_seeking_threshold(person: Any, config: Any) -> None:
     person.care_seeking_threshold = threshold
 
 
-def initialize_newborn_biology(person: Any, config: Any) -> None:
+def initialize_newborn_biology(person: Any, config: Any, registry: Any = None) -> None:
     """Attach the per-person state a newborn needs to be indistinguishable
     from an initial-cohort citizen at age 0.
 
@@ -151,3 +151,24 @@ def initialize_newborn_biology(person: Any, config: Any) -> None:
         sample_person_death_date(person, country, master_seed, window)
 
     _init_newborn_care_seeking_threshold(person, config)
+    _init_newborn_identity(person, config, registry)
+
+
+def _init_newborn_identity(person: Any, config: Any, registry: Any) -> None:
+    """Issue #1581 — give the newborn an ``IdentityTimeline`` by calling
+    the single-person entry point exposed on the identity enricher.
+    Reuses the intra-household latent persisted by the batch
+    ``assign_identities`` pass so the newborn's card-holding sample
+    stays correlated with the household's other members. No-op when
+    the locale has no ``identity.yaml`` (e.g. US) or when the registry
+    is None (test fixtures that bypass the engine entry point).
+    """
+    if registry is None:
+        return
+    country = getattr(config, "country", "US") or "US"
+    master_seed = int(getattr(config, "random_seed", 0) or 0)
+    try:
+        from clinosim.modules.identity.assign import assign_identity_for_person
+    except Exception:
+        return
+    assign_identity_for_person(registry, person, country, master_seed)

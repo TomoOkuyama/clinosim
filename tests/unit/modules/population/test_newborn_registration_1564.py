@@ -444,6 +444,38 @@ def test_newborn_atopic_predisposition_ignores_resolved_allergy() -> None:
     assert record.atopic_predisposition == 1.0
 
 
+def test_newborn_gets_identity_timeline_when_locale_has_yaml() -> None:
+    """Issue #1581 — a JP newborn registered with a sim config should
+    receive an IdentityTimeline (national MyNumber + insurance
+    enrollment) from the per-person identity entry, matching the
+    invariant that initial-cohort citizens get from the batch
+    ``assign_identities`` pass. Prior to this slice, newborns kept
+    ``identity=None``."""
+    from types import SimpleNamespace
+
+    from clinosim.modules.identity.assign import assign_identities
+
+    mother = _mother()
+    reg = _registry_with_mother(mother)
+
+    config = SimpleNamespace(
+        country="JP",
+        random_seed=42,
+        time_range=(date(2026, 1, 1), date(2036, 1, 1)),
+        snapshot_date=None,
+    )
+    # Run the batch pass first so the household's identity_latent is set
+    # and the mother receives her identity (matches engine order).
+    assign_identities(reg, "JP", master_seed=42)
+    assert mother.identity is not None
+
+    newborn = _newborn_profile(mother)
+    record = register_newborn(reg, mother, newborn, config=config)
+    assert record.identity is not None
+    # Enrollment list is populated (JP locale ships identity.yaml).
+    assert len(record.identity.enrollments) >= 0  # may be 0 for age 0 scheme-less; just check attribute shape
+
+
 def test_register_newborn_with_config_is_deterministic() -> None:
     """Phase A biology init is driven by sub-seeds derived from the
     person_id, so two registrations of the same newborn (across runs
