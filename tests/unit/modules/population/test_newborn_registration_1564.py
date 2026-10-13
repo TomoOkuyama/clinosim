@@ -219,6 +219,81 @@ def test_register_newborn_with_config_attaches_nka_allergy_and_death_date() -> N
     assert CARE_SEEKING_CLAMP_MIN <= record.care_seeking_threshold <= CARE_SEEKING_CLAMP_MAX
 
 
+def test_newborn_atopic_predisposition_default_non_atopic_mother() -> None:
+    """Issue #1581 Phase C.2 — a non-atopic mother (no allergies, or
+    only NKA / resolved records) produces a newborn with
+    ``atopic_predisposition == 1.0`` (clinically neutral, equivalent
+    to initial-cohort citizens)."""
+    from clinosim.types.allergy import Allergy
+
+    mother = _mother()
+    # Mother with NKA only — not atopic.
+    mother.allergies = [
+        Allergy(
+            allergy_id="ALG-NKA",
+            allergen_code="716186003",
+            category="",
+            criticality="unable-to-assess",
+            verification_status="confirmed",
+            clinical_status="resolved",
+            is_nka=True,
+        )
+    ]
+    reg = _registry_with_mother(mother)
+    newborn = _newborn_profile(mother)
+
+    record = register_newborn(reg, mother, newborn)
+    assert record.atopic_predisposition == 1.0
+
+
+def test_newborn_atopic_predisposition_raised_for_atopic_mother() -> None:
+    """A mother with any real (non-NKA, non-resolved) allergy produces a
+    newborn with ``atopic_predisposition == 2.0`` (single-atopic-parent
+    OR per Bousquet 2008 Allergy)."""
+    from clinosim.types.allergy import Allergy
+
+    mother = _mother()
+    mother.allergies = [
+        Allergy(
+            allergy_id="ALG-EGG",
+            allergen_code="735038006",
+            category="food",
+            criticality="low",
+            verification_status="confirmed",
+            clinical_status="active",
+        )
+    ]
+    reg = _registry_with_mother(mother)
+    newborn = _newborn_profile(mother)
+
+    record = register_newborn(reg, mother, newborn)
+    assert record.atopic_predisposition == 2.0
+
+
+def test_newborn_atopic_predisposition_ignores_resolved_allergy() -> None:
+    """A mother whose only allergy record has clinical_status=resolved
+    (childhood food allergy that was outgrown) is not atopic. Multiplier
+    stays at 1.0."""
+    from clinosim.types.allergy import Allergy
+
+    mother = _mother()
+    mother.allergies = [
+        Allergy(
+            allergy_id="ALG-EGG-RESOLVED",
+            allergen_code="735038006",
+            category="food",
+            criticality="low",
+            verification_status="confirmed",
+            clinical_status="resolved",
+        )
+    ]
+    reg = _registry_with_mother(mother)
+    newborn = _newborn_profile(mother)
+
+    record = register_newborn(reg, mother, newborn)
+    assert record.atopic_predisposition == 1.0
+
+
 def test_register_newborn_with_config_is_deterministic() -> None:
     """Phase A biology init is driven by sub-seeds derived from the
     person_id, so two registrations of the same newborn (across runs

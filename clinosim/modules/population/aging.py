@@ -496,6 +496,15 @@ def _allergy_drift(
     elderly_floor = int(emerge_cfg.get("elderly_age_floor", 65))
     rate_key = "annual_rate_elderly" if age >= elderly_floor else "annual_rate_adult"
     emerge_rate = float(emerge_cfg.get(rate_key) or 0.0)
+    # Issue #1581 Phase C.2: scale the emergence rate by the person's
+    # atopic-predisposition multiplier (default 1.0 = no bump, no
+    # cascade for initial-cohort persons; raised at register_newborn
+    # time when the mother is atopic). Clamp at 1.0 upper bound after
+    # scaling because the rate is a Bernoulli probability — a child
+    # of two heavily-atopic parents could in theory push the raw rate
+    # above 1.0 given a very high multiplier, which the Bernoulli draw
+    # must still clip to a valid probability.
+    emerge_rate = min(1.0, emerge_rate * float(getattr(person, "atopic_predisposition", 1.0) or 1.0))
     if emerge_rate <= 0.0:
         return
     has_medication_allergy = any(
