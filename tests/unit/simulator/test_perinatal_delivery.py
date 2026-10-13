@@ -273,6 +273,52 @@ def test_delivery_encounter_returns_mother_and_newborn_records_jp() -> None:
     assert newborn_rec.clinical_diagnosis.discharge_diagnosis_code == "Z38.0"
 
 
+def test_delivery_writes_newborn_birth_admission_to_hospitalization_history_1581() -> None:
+    """Issue #1581 audit — when a population_registry is provided and
+    the mother is a registered citizen, the newborn's birth admission
+    must land on the newborn ``PersonRecord.hospitalization_history``
+    along with ``last_encounter_id`` / ``last_discharge_date`` /
+    ``has_visited_hospital`` / ``visit_count`` updates. Previously
+    these fields stayed at their dataclass defaults so a readmission-
+    aware check for the newborn (within the sim window) could not see
+    that they had been admitted."""
+    # Build a registered mother on the shared PopulationRegistry.
+    mother = _make_person("POP-000001", "F", 28)
+    reg = _seed_registry([mother])
+
+    patient = _make_patient()
+    visit_dt = datetime(2024, 7, 15, 10, 0)
+    records = simulate_delivery_encounter(
+        patient=patient,
+        visit_date=visit_dt,
+        roster=StaffRoster(),
+        rng=np.random.default_rng(42),
+        country="JP",
+        hospital_ops={},
+        population_registry=reg,
+    )
+    assert len(records) == 2
+    _, newborn_rec = records
+    newborn_pid = newborn_rec.patient.patient_id
+    newborn_person = reg.persons.get(newborn_pid)
+    assert newborn_person is not None, "newborn must be registered"
+
+    # The birth admission is on the newborn's hospitalization history.
+    assert len(newborn_person.hospitalization_history) == 1
+    summary = newborn_person.hospitalization_history[0]
+    assert summary.disease_id == "newborn_birth"
+    assert summary.outcome == "discharged"
+    assert summary.discharge_diagnoses == ["Z38.0"]
+    assert summary.admission_date == visit_dt.date()
+    assert summary.los_days >= 1
+
+    # Pointer fields are populated too.
+    assert newborn_person.last_encounter_id == summary.encounter_id
+    assert newborn_person.last_discharge_date == summary.discharge_date
+    assert newborn_person.has_visited_hospital is True
+    assert newborn_person.visit_count >= 1
+
+
 def test_pregnancy_complications_stamped_on_state_period_metadata_1285() -> None:
     """Issue #1285 Sub-A: `_pregnancy_lifecycle_events` samples per-
     pregnancy complications (O14 / O24 / O42 / O60 / O64) from
