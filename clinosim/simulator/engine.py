@@ -747,16 +747,24 @@ def run_beta(
     # and baseline vitals are consistent across all their encounters. activate_patient
     # re-samples those attributes, so calling it per encounter desynchronizes a patient's
     # own history.
-    patient_cache: dict[str, PatientProfile] = {}
+    # Issue #1581 — the cache key is now (person_id, as_of_year) so an
+    # encounter in sim year 1 can see a Layer-2 PatientProfile whose
+    # chronic_conditions[*].stage reflects the year-1 stage from
+    # person.disease_stage_history, rather than always the end-of-sim
+    # snapshot. ``as_of_year=None`` preserves the pre-#1581 behaviour
+    # (single cached profile per person, latest-only stage).
+    patient_cache: dict[tuple[str, int | None], PatientProfile] = {}
 
-    def _activate_cached(p: PersonRecord) -> PatientProfile:
-        if p.person_id not in patient_cache:
-            # Patient activation is fully determined by patient_id, independent of
-            # cursor (snapshot_date) — derive from a per-patient sub-seed rather
-            # than the shared master rng so it doesn't shift with cursor movement.
+    def _activate_cached(p: PersonRecord, as_of_year: int | None = None) -> PatientProfile:
+        key = (p.person_id, as_of_year)
+        if key not in patient_cache:
+            # Patient activation is fully determined by (patient_id, as_of_year):
+            # the per-person sub-RNG is unchanged (snapshot-independent); stage
+            # lookup inside ``activate_patient`` additionally honours as_of_year
+            # through ``person.disease_stage_history`` when supplied.
             act_rng = derive_phase_rng(master_seed, PHASE_INPATIENT_SIM, f"activate|{p.person_id}")
-            patient_cache[p.person_id] = activate_patient(p, act_rng, demo)
-        return patient_cache[p.person_id]
+            patient_cache[key] = activate_patient(p, act_rng, demo, as_of_year=as_of_year)
+        return patient_cache[key]
 
     n_hosp = len(hospital_events)
     # Issue #174: bracket the inpatient loop with `sim_log.phase` so a
@@ -821,7 +829,7 @@ def run_beta(
             if person is None or not person.is_alive or not person.is_alive_at(event_time.date()):
                 continue
 
-            patient = _activate_cached(person)
+            patient = _activate_cached(person, as_of_year=event_time.year)
             disease_id = event.disease_id
 
             # Issue #848: if the patient is currently admitted for an earlier
@@ -1134,7 +1142,7 @@ def run_beta(
         if _re_overlap is not None:
             _merge_disease_into_active_encounter(_re_overlap, re_event.disease_id, _re_event_time)
             continue
-        patient = _activate_cached(person)
+        patient = _activate_cached(person, as_of_year=_re_event_time.year)
         re_sim_key = f"{re_event.person_id}|{re_event.timestamp.isoformat()}|readmission"
         re_sim_rng = derive_phase_rng(master_seed, PHASE_INPATIENT_SIM, re_sim_key)
         record = _simulate_patient(
@@ -1219,7 +1227,7 @@ def run_beta(
         # not general internal medicine).
         opd_dept = resolve_outpatient_department("post_discharge", disease_id, enc.department_id, hospital_ops)
         opd_record = _simulate_outpatient_visit(
-            _activate_cached(person),
+            _activate_cached(person, as_of_year=followup_date.year),
             "post_discharge",
             followup_date,
             roster,
@@ -1278,7 +1286,7 @@ def run_beta(
         # per-event filter is the precise complement).
         if not person or not person.is_alive or not person.is_alive_at(event.timestamp):
             continue
-        patient = _activate_cached(person)
+        patient = _activate_cached(person, as_of_year=event.timestamp.year)
 
         # F1: fold disease_id into the key. `generate_healthcare_calendar`
         # can schedule more than one "health_screening"-type event for the same
@@ -1553,13 +1561,14 @@ def run_beta(
             total_months = (raw_end_y - start_y) * 12 + (raw_end_m - start_m) + 1
             month_offset = int(slot_rng.integers(0, total_months))
             visit_month = ((start_m - 1 + month_offset) % 12) + 1
+            visit_year = start_y + (start_m - 1 + month_offset) // 12
 
             # Select person first (uniform), then filter conditions by their occupation
             person_id = slot_rng.choice(list(population.persons.keys()))
             person = population.get_person(person_id)
             if not person or not person.is_alive:
                 continue
-            patient = _activate_cached(person)
+            patient = _activate_cached(person, as_of_year=visit_year)
 
             # Build condition probabilities weighted by occupation risk
             occupation = getattr(person, "occupation", "other")

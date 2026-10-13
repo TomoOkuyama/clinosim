@@ -303,6 +303,32 @@ def test_disease_progression_initialises_ccs_stage() -> None:
     assert p.disease_stages["I25"] in ("CCS I", "CCS II", "CCS III")
 
 
+def test_disease_progression_writes_year_indexed_history() -> None:
+    """Issue #1581 — ``_disease_progression`` now records each year's
+    stage into ``person.disease_stage_history`` so an encounter-time
+    lookup can see the stage AS OF the encounter year rather than
+    the end-of-sim snapshot."""
+    p = _alive("PT-HIST-1", age=70)
+    p.chronic_conditions = ["N18"]
+    # Year 2026 (first touch, initial sample).
+    _disease_progression(
+        p,
+        2026,
+        np.random.default_rng(aging_sub_seed(p.person_id, 2026, "_disease_progression")),
+        {},
+    )
+    first_stage = p.disease_stages["N18"]
+    assert p.disease_stage_history["N18"][2026] == first_stage
+    # Year 2027 (either stays or advances).
+    _disease_progression(
+        p,
+        2027,
+        np.random.default_rng(aging_sub_seed(p.person_id, 2027, "_disease_progression")),
+        {},
+    )
+    assert 2027 in p.disease_stage_history["N18"]
+
+
 def test_disease_progression_initialises_cdr_stage() -> None:
     """First-year touch on a person with F00 populates
     disease_stages with one of the CDR classes."""
