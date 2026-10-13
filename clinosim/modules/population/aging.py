@@ -12,15 +12,16 @@ their state before the year's events are generated:
   (P_next − P_this) new onset probability. Marginal-preserving by
   construction: single source of truth stays
   ``locale/*/demographics.yaml:chronic_prevalence``.
-* :func:`_disease_progression` — stage advancement for CKD G1→G5
-  and COPD GOLD 1→4. First touch of a disease on a person
-  initialises its stage from the activator-matching weight vector
-  (so Phase A sampling preserves cohort distribution); subsequent
-  years draw annual Bernoulli advancement from
-  ``locale/shared/stage_transition.yaml``. Activator prefers the
-  aging-set stage on the Phase B activation path (RNG draw burned
-  to preserve per-patient stream). Diabetes glycemic trajectory
-  and dementia severity are planned follow-ups.
+* :func:`_disease_progression` — stage advancement for CKD G1→G5,
+  COPD GOLD 1→4, and heart failure NYHA I→IV. First touch of a
+  disease on a person initialises its stage from the activator-
+  matching weight vector (so Phase A sampling preserves cohort
+  distribution); subsequent years draw annual Bernoulli advancement
+  from ``locale/shared/stage_transition.yaml``. Activator prefers
+  the aging-set stage on the Phase B activation path (RNG draw
+  burned to preserve per-patient stream). Diabetes glycemic
+  trajectory and dementia severity are planned follow-ups requiring
+  activator refactors beyond the stage-string pattern used here.
 * :func:`_allergy_drift` — childhood food-allergy resolution (flips
   ``clinical_status`` to ``resolved`` under the childhood resolution
   rate from ``allergens.yaml:aging``) and late-onset drug-sensitivity
@@ -296,7 +297,8 @@ def _annual_chronic_onset(
 
 
 # ---------------------------------------------------------------------------
-# Disease stage progression (Issue #1572 Phase 2.5, CKD + COPD only)
+# Disease stage progression (Issue #1572 Phase 2.5 — CKD + COPD, plus HF
+# NYHA added as a yaml-pattern-fit extension)
 # ---------------------------------------------------------------------------
 
 
@@ -311,12 +313,17 @@ def _load_stage_transitions() -> dict[str, dict]:
     return data.get("stage_transitions") or {}
 
 
-# Initial-stage weights for the two Phase 2.5 targets. Values mirror
-# ``clinosim.modules.patient._severity_activation`` so a cohort whose
-# stage is sampled at Phase A (aging init) matches, in distribution,
-# a cohort whose stage would have been sampled by the activator at
-# Phase B. The strings here match the format stored in
-# ``person.disease_stages`` (CKD prefix included; GOLD un-prefixed).
+# Initial-stage weights for the stage-progression targets. Values
+# mirror ``clinosim.modules.patient._severity_activation`` so a cohort
+# whose stage is sampled at Phase A (aging init) matches, in
+# distribution, a cohort whose stage would have been sampled by the
+# activator at Phase B. The strings here match the format stored in
+# ``person.disease_stages`` (CKD prefix included; GOLD un-prefixed;
+# NYHA Roman-numeral form). For I50 the activator uses
+# severity-conditional MILD vs DEFAULT weights, but severity is a
+# Layer-2 PatientProfile concern not available in Phase A — we use the
+# DEFAULT weights here, which matches the activator's non-mild branch
+# (most of the catchment per I50_STAGE_WEIGHTS_DEFAULT comment).
 _INITIAL_STAGE_SAMPLERS: dict[str, tuple[tuple[str, ...], tuple[float, ...]]] = {
     "N18": (
         ("CKD G1", "CKD G2", "CKD G3a", "CKD G3b", "CKD G4", "CKD G5"),
@@ -325,6 +332,10 @@ _INITIAL_STAGE_SAMPLERS: dict[str, tuple[tuple[str, ...], tuple[float, ...]]] = 
     "J44": (
         ("GOLD 1", "GOLD 2", "GOLD 3", "GOLD 4"),
         (0.20, 0.40, 0.30, 0.10),
+    ),
+    "I50": (
+        ("NYHA I", "NYHA II", "NYHA III", "NYHA IV"),
+        (0.10, 0.30, 0.40, 0.20),
     ),
 }
 
@@ -353,14 +364,13 @@ def _disease_progression(
     incidence_table: dict[str, _ChronicIncidenceSpec],
     locale: str = "us",
 ) -> None:
-    """Per-person annual disease-stage advancement for Phase 2.5
-    scope diseases (CKD, COPD).
+    """Per-person annual disease-stage advancement.
 
     Mechanism:
 
     * For each ICD on ``person.chronic_conditions`` whose base code
       has a config entry in ``stage_transition.yaml`` AND an
-      ``_INITIAL_STAGE_SAMPLERS`` weighting (N18 or J44):
+      ``_INITIAL_STAGE_SAMPLERS`` weighting:
 
       1. **Initialize** on first touch — if the person has the ICD
          but no entry in ``person.disease_stages`` yet, sample an
@@ -376,9 +386,10 @@ def _disease_progression(
     advanced stage propagates downstream automatically (narrative,
     FHIR Condition.stage, physiology severity_score).
 
-    Phase 2.5 scope: CKD + COPD only. Diabetes glycemic trajectory
-    and dementia severity are planned follow-ups extending
-    ``stage_transition.yaml`` and ``_INITIAL_STAGE_SAMPLERS``.
+    Current scope: CKD (N18), COPD (J44), heart failure (I50).
+    Diabetes glycemic trajectory and dementia severity are planned
+    follow-ups requiring activator refactors beyond the stage-string
+    pattern used here, so they are not extensions of this file alone.
     """
     cfg_all = _load_stage_transitions()
     if not cfg_all:

@@ -13,12 +13,15 @@
 # ``person.disease_stages`` (and in Layer-2
 # ``PatientProfile.chronic_conditions[].stage``) so no string
 # translation is needed on the hot path. For CKD, that is
-# ``"CKD G*"``; for COPD, ``"GOLD *"`` (no prefix).
+# ``"CKD G*"``; for COPD, ``"GOLD *"`` (no prefix); for heart
+# failure, ``"NYHA I/II/III/IV"`` (NYHA Roman numeral form).
 #
-# Scope: CKD + COPD only in this file (per the user's green-light
-# on Issue #1572). Diabetes glycemic trajectory and dementia
-# severity progression are planned as a follow-up expansion of
-# this same file.
+# Scope: CKD + COPD + heart failure (NYHA). Diabetes glycemic
+# trajectory and dementia severity progression are planned as a
+# follow-up expansion of this same file (both require ``activator.
+# _generate_stage`` extensions beyond the stage-string pattern, so
+# they are tracked as a separate design concern rather than a
+# yaml-only addition).
 
 stage_transitions:
   # ------------------------------------------------------------------
@@ -57,3 +60,24 @@ stage_transitions:
       "GOLD 2": 0.120    # moderate → severe
       "GOLD 3": 0.150    # severe → very severe
       "GOLD 4": 0.0      # terminal (handled by reactive mortality)
+
+  # ------------------------------------------------------------------
+  # I50 Heart failure (NYHA functional classification I-IV)
+  # ------------------------------------------------------------------
+  # Clinical basis: Ponikowski P et al, 2016 ESC HF guidelines (Eur
+  # Heart J 37:2129); MERIT-HF natural-history data; SOLVD and
+  # V-HeFT progression cohorts. Progression is driven by cardiac
+  # remodelling + diuretic responsiveness; rates below reflect an
+  # all-cohort average without conditioning on LVEF phenotype
+  # (HFrEF vs HFpEF) or guideline-directed therapy adherence —
+  # phenotype- and therapy-conditional refinement is a planned
+  # Phase 3 concern. NYHA IV is terminal here; further mortality
+  # is driven by condition-reactive qx in `_condition_reactive_
+  # mortality` (Issue #1564 Phase 2).
+  I50:
+    stages: ["NYHA I", "NYHA II", "NYHA III", "NYHA IV"]
+    annual_advance_probability:
+      "NYHA I": 0.050     # I → II: ~5 %/yr (slow at compensated phase)
+      "NYHA II": 0.080    # II → III
+      "NYHA III": 0.120   # III → IV: accelerates with decompensation
+      "NYHA IV": 0.0      # terminal (handled by reactive mortality)
