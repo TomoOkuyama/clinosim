@@ -124,27 +124,65 @@ def derive_newborn_blood_type(
     newborn_patient_id: str,
     mother_blood_type: str,
     country: str = "US",
+    father_blood_type: str | None = None,
 ) -> str:
     """Return the newborn's ABO phenotype inherited from the mother's
-    phenotype crossed with the locale ABO allele distribution for an
+    phenotype crossed with the father's phenotype when a household
+    father is identified (Phase C.2 extension), otherwise falls
+    through to the locale ABO allele distribution for an
     unidentified father.
+
+    Both parents' genotypes are inferred from phenotype under
+    Hardy-Weinberg equilibrium with the standard A/B allele-pair
+    distribution. Each parent donates one of their two alleles with
+    50/50 weight (biologically-correct Punnett).
 
     Deterministic SHA-based sampling — no RNG consumption, so the
     master simulation stream is unaffected and byte-identity across
     runs with the same seed is preserved. A given newborn_patient_id
-    always produces the same phenotype for the same mother phenotype
-    and locale.
+    always produces the same phenotype for the same (mother, father,
+    locale) tuple.
     """
     salt = f"{newborn_patient_id}|abo"
     q_mother_genotype = _hash_quantile(salt, byte_offset=0, byte_count=4)
     q_mother_allele = _hash_quantile(salt, byte_offset=4, byte_count=4)
-    q_father_allele = _hash_quantile(salt, byte_offset=8, byte_count=4)
+    q_father_source = _hash_quantile(salt, byte_offset=8, byte_count=4)
+    q_father_allele = _hash_quantile(salt, byte_offset=12, byte_count=4)
 
-    genotype = _sample_mother_genotype(mother_blood_type, q_mother_genotype)
-    mother_allele = genotype[0] if q_mother_allele < 0.5 else genotype[1]
-    father_allele = _sample_population_allele(country, q_father_allele)
+    mother_genotype = _sample_mother_genotype(mother_blood_type, q_mother_genotype)
+    mother_allele = mother_genotype[0] if q_mother_allele < 0.5 else mother_genotype[1]
+
+    if father_blood_type:
+        father_genotype = _sample_mother_genotype(father_blood_type, q_father_source)
+        father_allele = father_genotype[0] if q_father_allele < 0.5 else father_genotype[1]
+    else:
+        father_allele = _sample_population_allele(country, q_father_allele)
 
     return _phenotype_from_alleles(mother_allele, father_allele)
+
+
+def _parent_rh_allele(
+    phenotype: str,
+    q_genotype: float,
+    q_allele: float,
+    p_d: float,
+    q_d: float,
+) -> str:
+    """Draw a parent's donated RhD allele from their phenotype under HWE.
+
+    Rh+ carries D ≥ once: P(DD | Rh+) = p² / (p² + 2pq); P(Dd | Rh+) =
+    2pq / (p² + 2pq). From DD donates D; from Dd donates D or d with
+    50/50. Rh- is dd and donates d deterministically.
+    """
+    if phenotype == "+":
+        denom = p_d * p_d + 2 * p_d * q_d
+        if denom <= 0.0:
+            return "D"
+        p_dd_given_rh_pos = (p_d * p_d) / denom
+        if q_genotype < p_dd_given_rh_pos:
+            return "D"
+        return "D" if q_allele < 0.5 else "d"
+    return "d"
 
 
 def derive_newborn_rh_factor(
@@ -152,18 +190,13 @@ def derive_newborn_rh_factor(
     mother_rh_factor: str,
     country: str = "US",
     rh_positive_fraction: dict[str, float] | None = None,
+    father_rh_factor: str | None = None,
 ) -> str:
     """Return the newborn's RhD phenotype ("+" or "-") inherited from
-    the mother's RhD phenotype crossed with the locale d-allele
-    frequency for an unidentified father.
-
-    Mother Rh+ carries D at least once; her donated allele is D with
-    probability p / (p + q) under HWE (where p = P(D), q = P(d)),
-    i.e. she donates D with weight ``p / (p + q)`` because the
-    conditional "mother is Rh+" eliminates the dd homozygote.
-    Mother Rh- is dd deterministically and donates d. Father-side
-    draw samples d with probability q, D with probability p, from
-    the population distribution.
+    the mother's RhD phenotype crossed with the father's phenotype
+    when a household father is identified (Phase C.2 extension),
+    otherwise falls through to the locale d-allele frequency for an
+    unidentified father.
 
     Deterministic SHA-based sampling (same determinism contract as
     :func:`derive_newborn_blood_type`).
@@ -173,32 +206,19 @@ def derive_newborn_rh_factor(
     # Hardy-Weinberg allele frequency for the recessive d allele.
     # P(Rh-) = q², so q = sqrt(1 - rh_pos).
     q_d = max(0.0, min(1.0, (1.0 - rh_pos) ** 0.5))
-    p_d_cap = max(1e-9, 1.0 - q_d)  # p = P(D)
+    p_d = max(1e-9, 1.0 - q_d)
 
     salt = f"{newborn_patient_id}|rhd"
-    q_mother = _hash_quantile(salt, byte_offset=0, byte_count=4)
-    q_father = _hash_quantile(salt, byte_offset=4, byte_count=4)
+    q_mother_genotype = _hash_quantile(salt, byte_offset=0, byte_count=4)
+    q_mother_allele = _hash_quantile(salt, byte_offset=4, byte_count=4)
+    q_father_source = _hash_quantile(salt, byte_offset=8, byte_count=4)
+    q_father_allele = _hash_quantile(salt, byte_offset=12, byte_count=4)
 
-    if mother_rh_factor == "+":
-        # Mother is DD or Dd (not dd). P(DD | Rh+) = p² / (p² + 2pq);
-        # P(Dd | Rh+) = 2pq / (p² + 2pq). From DD mother donates D;
-        # from Dd mother donates D with 0.5 probability, else d.
-        denom = p_d_cap * p_d_cap + 2 * p_d_cap * q_d
-        if denom <= 0.0:
-            mother_allele = "D"
-        else:
-            p_dd_given_rh_pos = (p_d_cap * p_d_cap) / denom
-            # First sub-quantile picks genotype; recycle the mother
-            # quantile by splitting its range.
-            if q_mother < p_dd_given_rh_pos:
-                mother_allele = "D"
-            else:
-                # Heterozygote — donates D or d with 50/50.
-                mother_allele = "D" if q_mother < p_dd_given_rh_pos + (1 - p_dd_given_rh_pos) / 2 else "d"
+    mother_allele = _parent_rh_allele(mother_rh_factor, q_mother_genotype, q_mother_allele, p_d, q_d)
+    if father_rh_factor:
+        father_allele = _parent_rh_allele(father_rh_factor, q_father_source, q_father_allele, p_d, q_d)
     else:
-        mother_allele = "d"
-
-    father_allele = "D" if q_father < p_d_cap else "d"
+        father_allele = "D" if q_father_source < p_d else "d"
 
     # D is dominant.
     return "+" if "D" in (mother_allele, father_allele) else "-"
