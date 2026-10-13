@@ -233,12 +233,23 @@ def _deactivate_to_layer1(
     # `current_medications` in step with the Layer 1 update. Missing key
     # here means an unexpected caller path — fail loud rather than silently
     # no-op.
-    assert person.person_id in patient_cache, (
+    # Issue #1581 — the patient_cache is now keyed by
+    # ``(person_id, as_of_year)`` tuples so the engine can serve
+    # year-aware stage lookups. For the medication sync we only need
+    # ONE cached profile for this person (medications are not year-
+    # keyed), so we patch every cached variant that matches this
+    # person_id. The invariant becomes "at least one variant exists"
+    # rather than "exact person_id key exists".
+    matching_keys = [
+        k for k in patient_cache if (isinstance(k, tuple) and k[0] == person.person_id) or k == person.person_id
+    ]
+    assert matching_keys, (
         f"patient_cache missing person_id={person.person_id!r}. "
         f"Every call site must precede _deactivate_to_layer1 with "
         f"_activate_cached(person)."
     )
-    patient_cache[person.person_id].current_medications = list(person.current_medications)
+    for key in matching_keys:
+        patient_cache[key].current_medications = list(person.current_medications)
 
 
 def _select_secondary_disease(

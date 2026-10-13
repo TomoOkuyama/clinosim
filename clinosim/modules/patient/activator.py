@@ -311,12 +311,50 @@ def _sample_insurance(demo: dict, age: int, rng: np.random.Generator) -> str:
     return ""
 
 
+def _stage_at_year(person: PersonRecord, code_base: str, as_of_year: int | None) -> str:
+    """Issue #1581 encounter-time stage lookup.
+
+    Semantics (precise):
+
+    * ``as_of_year`` is None → return ``person.disease_stages[code_
+      base]`` (legacy latest-only path, preserves pre-#1581 behaviour).
+    * ``as_of_year`` is provided and ``person.disease_stage_history
+      [code_base]`` is empty → fall back to the latest-only path
+      (test fixtures / codes outside the progression scope).
+    * ``as_of_year`` is provided and the history has at least one
+      entry ``≤ as_of_year`` → return the stage at the largest such
+      year (the stage AS OF the encounter year).
+    * ``as_of_year`` is provided but the history's earliest year is
+      ``> as_of_year`` → return ``""`` (empty). Clinically: the
+      person did not yet have this condition staged at the encounter
+      date, so the encounter should NOT display a Condition.stage —
+      the caller is expected to treat "" as "no stage".
+    """
+    if as_of_year is None:
+        return person.disease_stages.get(code_base, "")
+    history = getattr(person, "disease_stage_history", {}).get(code_base)
+    if not history:
+        return person.disease_stages.get(code_base, "")
+    applicable_years = [y for y in history if y <= as_of_year]
+    if applicable_years:
+        return history[max(applicable_years)]
+    return ""
+
+
 def activate_patient(
     person: PersonRecord,
     rng: np.random.Generator,
     demo: dict,
+    as_of_year: int | None = None,
 ) -> PatientProfile:
-    """Convert Layer 1 PersonRecord to Layer 2 PatientProfile."""
+    """Convert Layer 1 PersonRecord to Layer 2 PatientProfile.
+
+    ``as_of_year`` (Issue #1581): when provided, encounter-time stage
+    lookups honour the year-indexed ``disease_stage_history`` so an
+    encounter in sim year 1 sees the year-1 stage rather than the
+    end-of-sim snapshot. ``None`` preserves the pre-#1581 behaviour
+    (latest-only lookup).
+    """
     age = person.age
     sex = person.sex
 
@@ -397,7 +435,9 @@ def activate_patient(
             # diabetes gc_draw branch uses above.
             if person.disease_stages.get(code_base):
                 _ = _generate_stage(code, sev, rng)
-                stage = person.disease_stages[code_base]
+                stage = _stage_at_year(person, code_base, as_of_year)
+                if not stage:
+                    stage = person.disease_stages[code_base]
             else:
                 stage = _generate_stage(code, sev, rng)
         # Issue #1572 Phase 2.5 prep: snapshot the staged value to
@@ -516,6 +556,15 @@ def activate_patient(
     # on `.drug_name` (an empty drug_name means the entry has no clinical meaning).
     _layer1_meds = person.current_medications if hasattr(person, "current_medications") else []
     current_meds = [m for m in _layer1_meds if m and m.drug_name]
+    # Issue #1581 — hoisted out of the `if not current_meds:` branch
+    # so a subsequent activate_patient call (e.g. a different
+    # ``as_of_year`` for the same person after the first encounter
+    # has already populated ``person.current_medications`` via
+    # ``_deactivate_to_layer1``) still has a defined
+    # ``_home_med_skip_log`` for the PatientProfile constructor
+    # below. Empty list when the person already carries meds is
+    # fine — no skip events to log for a persisted set.
+    _home_med_skip_log: list = []
     if not current_meds:
         # Derive home medications from chronic conditions via chronic_medications.yaml
         # CIF stores English drug names (AD-30). JP names resolved at FHIR output.
@@ -544,7 +593,6 @@ def activate_patient(
         )
         if _has_pregnancy_history:
             _meds_input = list(conditions) + [ChronicCondition(code="Z34", system="icd-10-cm")]
-        _home_med_skip_log: list = []
         current_meds = _derive_home_medications(
             _meds_input,
             patient_id=person.person_id,

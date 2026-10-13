@@ -416,18 +416,31 @@ def _disease_progression(
             sampler = _INITIAL_STAGE_SAMPLERS.get(code_base)
             if sampler is None:
                 continue
-            person.disease_stages[code_base] = _weighted_sample(prng, sampler[0], sampler[1])
+            new_stage = _weighted_sample(prng, sampler[0], sampler[1])
+            person.disease_stages[code_base] = new_stage
+            person.disease_stage_history.setdefault(code_base, {})[year] = new_stage
             continue
         current = person.disease_stages[code_base]
         if current not in stages:
             continue
         rate = float((cfg.get("annual_advance_probability") or {}).get(current, 0.0))
+        # Issue #1581 — even on a no-advance year, record the current
+        # stage into the year-indexed history so a lookup for any
+        # year in the sim window finds the correct stage (the latest
+        # year ≤ query_year). Without this, years between advances
+        # would miss history entries and lookups would fall through
+        # to a prior-year advance stage, which is actually fine
+        # (sparse-history semantics), but writing dense entries keeps
+        # the data flow explicit and the lookup unambiguous.
+        person.disease_stage_history.setdefault(code_base, {})[year] = current
         if rate <= 0.0:
             continue
         if float(prng.random()) < rate:
             idx = stages.index(current)
             if idx + 1 < len(stages):
-                person.disease_stages[code_base] = stages[idx + 1]
+                new_stage = stages[idx + 1]
+                person.disease_stages[code_base] = new_stage
+                person.disease_stage_history.setdefault(code_base, {})[year] = new_stage
 
 
 def _allergy_drift(

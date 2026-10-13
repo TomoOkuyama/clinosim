@@ -114,6 +114,16 @@ class PersonRecord:
     # only observe the mother — a two-parent model would push toward
     # ~3-4x per the same literature (Phase C.2 follow-up).
     atopic_predisposition: float = 1.0
+    # Issue #1581 — year-indexed stage history. The latest-only
+    # ``disease_stages[code]`` dict (above) is kept for backward
+    # compatibility; this field adds a per-year append log written by
+    # ``aging._disease_progression`` so encounter-time readers can
+    # look up the stage AS OF the encounter year rather than always
+    # seeing the end-of-sim snapshot. Keyed as
+    # ``{code_base: {year: stage}}``. Empty for codes outside the
+    # progression scope (CKD / COPD / HF / CCS / dementia) and for
+    # test fixtures that bypass the aging path.
+    disease_stage_history: dict[str, dict[int, str]] = field(default_factory=dict)
     # Issue #1581 — race / ethnicity (US only). Previously resampled on
     # every ``activate_patient`` call, which meant the same person could
     # see a different race across encounters within a sim. Now stored
