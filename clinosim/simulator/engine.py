@@ -982,7 +982,29 @@ def run_beta(
 
         _newborn_all_events: list[LifeEvent] = []
         _ny, _nm = start_y, start_m
+
+        # Issue #1581 Phase B — mirror the primary loop's aging + monthly
+        # interleaving for newborn-only state. The primary ``advance_
+        # population(y)`` at the top of year y ran BEFORE perinatal
+        # dispatch added newborns to ``population.persons``, so without a
+        # catch-up pass newborns would never receive any of the four
+        # aging passes (chronic onset / disease progression / allergy
+        # drift / condition-reactive mortality) in any year after their
+        # birth. The ``_newborn_aging_filter`` keeps the pass scoped to
+        # mid-sim-added persons and the per-person sub-RNG derivation is
+        # unchanged, so this catch-up does not shift any initial-cohort
+        # stream.
+        def _newborn_aging_filter(_p: PersonRecord) -> bool:
+            return _p.person_id in _newborn_pids
+
         while (_ny, _nm) <= (end_y, end_m):
+            if _nm == 1 or (_ny, _nm) == (start_y, start_m):
+                advance_population(
+                    population,
+                    _ny,
+                    config.country,
+                    person_filter=_newborn_aging_filter,
+                )
             _nb_month_key = f"newborn|{_ny:04d}-{_nm:02d}"
             _nb_month_rng = derive_phase_rng(master_seed, PHASE_LIFE_EVENT, _nb_month_key)
             _nb_event_date = date(_ny, _nm, 15)
