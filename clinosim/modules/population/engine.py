@@ -776,6 +776,13 @@ def generate_population(
                 smoking_status=smoking_status,
                 alcohol_use=alcohol_use,
                 care_seeking_threshold=threshold,
+                # Issue #1581 — race / ethnicity derived from a stable
+                # hash of person_id so this field addition is RNG-
+                # neutral (no master-stream shift). The activator still
+                # falls back to its original per-call sampling for test
+                # fixtures that bypass the initial cohort generator.
+                race=_derive_race(pid, demo),
+                ethnicity=_derive_ethnicity(pid, demo),
             )
             hh.members.append(person)
             registry.persons[pid] = person
@@ -1077,6 +1084,53 @@ _RH_POSITIVE_FRACTION: dict[str, float] = {
     "JP": 0.995,
     "US": 0.85,
 }
+
+
+def _derive_race(person_id: str, demo: dict) -> str:
+    """Return the OMB race category for a person, derived from a stable
+    hash of ``person_id`` + the locale ``race_distribution``. SHA-based
+    (not RNG) so this field can be added post-facto without shifting
+    any downstream RNG cursor — memoize / F4 byte-identical guarantee
+    preserved. Returns ``""`` when the locale has no race_distribution
+    (e.g. JP), which matches the pre-#1581 activator fallback.
+    """
+    import hashlib
+
+    dist = (demo or {}).get("race_distribution") or {}
+    if not dist:
+        return ""
+    keys = list(dist.keys())
+    weights = normalize_probabilities([float(dist[k]) for k in keys], fallback="raise")
+    h = hashlib.sha256(f"{person_id}|race|v1".encode()).digest()
+    quantile = int.from_bytes(h[:4], "big") / (2**32)
+    acc = 0.0
+    for key, weight in zip(keys, weights, strict=False):
+        acc += float(weight)
+        if quantile < acc:
+            return key
+    return keys[-1]
+
+
+def _derive_ethnicity(person_id: str, demo: dict) -> str:
+    """Return the hispanic / not_hispanic ethnicity category, same
+    determinism contract as :func:`_derive_race`. Returns ``""`` when
+    the locale has no ethnicity_distribution.
+    """
+    import hashlib
+
+    dist = (demo or {}).get("ethnicity_distribution") or {}
+    if not dist:
+        return ""
+    keys = list(dist.keys())
+    weights = normalize_probabilities([float(dist[k]) for k in keys], fallback="raise")
+    h = hashlib.sha256(f"{person_id}|ethnicity|v1".encode()).digest()
+    quantile = int.from_bytes(h[:4], "big") / (2**32)
+    acc = 0.0
+    for key, weight in zip(keys, weights, strict=False):
+        acc += float(weight)
+        if quantile < acc:
+            return key
+    return keys[-1]
 
 
 def _derive_rh_factor(person_id: str, country: str) -> str:

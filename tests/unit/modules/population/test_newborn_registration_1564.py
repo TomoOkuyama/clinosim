@@ -219,6 +219,38 @@ def test_register_newborn_with_config_attaches_nka_allergy_and_death_date() -> N
     assert CARE_SEEKING_CLAMP_MIN <= record.care_seeking_threshold <= CARE_SEEKING_CLAMP_MAX
 
 
+def test_newborn_inherits_mother_race_and_ethnicity() -> None:
+    """Issue #1581 — race / ethnicity are family-level attributes on
+    PersonRecord. ``register_newborn`` inherits both from the mother
+    so the newborn's PersonRecord shows the same OMB race category /
+    hispanic flag as the mother."""
+    mother = _mother()
+    mother.race = "asian"
+    mother.ethnicity = "not_hispanic"
+    reg = _registry_with_mother(mother)
+    newborn = _newborn_profile(mother)
+
+    record = register_newborn(reg, mother, newborn)
+    assert record.race == "asian"
+    assert record.ethnicity == "not_hispanic"
+
+
+def test_newborn_race_defaults_empty_when_mother_has_no_race() -> None:
+    """A mother with no race set (JP cohort / test fixture without a
+    race_distribution yaml) produces a newborn with empty race /
+    ethnicity. The activator's fallback branch takes over at
+    activation time."""
+    mother = _mother()
+    assert mother.race == ""
+    assert mother.ethnicity == ""
+    reg = _registry_with_mother(mother)
+    newborn = _newborn_profile(mother)
+
+    record = register_newborn(reg, mother, newborn)
+    assert record.race == ""
+    assert record.ethnicity == ""
+
+
 def test_newborn_atopic_predisposition_default_non_atopic_mother() -> None:
     """Issue #1581 Phase C.2 — a non-atopic mother (no allergies, or
     only NKA / resolved records) produces a newborn with

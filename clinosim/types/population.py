@@ -114,6 +114,18 @@ class PersonRecord:
     # only observe the mother — a two-parent model would push toward
     # ~3-4x per the same literature (Phase C.2 follow-up).
     atopic_predisposition: float = 1.0
+    # Issue #1581 — race / ethnicity (US only). Previously resampled on
+    # every ``activate_patient`` call, which meant the same person could
+    # see a different race across encounters within a sim. Now stored
+    # once on the PersonRecord so activation reads a stable value, and
+    # the newborn's ``register_newborn`` can inherit the mother's race
+    # / ethnicity (family-level attribute). Empty string means
+    # "unassigned" — the locale has no race_distribution yaml
+    # (JP) or the person pre-dates this field (test fixtures). The
+    # activator falls back to its original per-call sampling in that
+    # case so backwards compatibility is preserved.
+    race: str = ""
+    ethnicity: str = ""
     # Time-boxed lifecycle states (META #957 Incr 1). Populated over the
     # life of the simulation by state-scoped generators (currently only
     # the pregnancy-lifecycle generator; cancer active-treatment / acute
