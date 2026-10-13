@@ -69,6 +69,32 @@ def test_aging_sub_seed_deterministic_and_pass_isolated() -> None:
     assert s1 != aging_sub_seed("PT-2", 2026, "chronic_onset")
 
 
+def test_advance_population_person_filter_scopes_passes_to_subset() -> None:
+    """Issue #1581 Phase B — ``advance_population(person_filter=...)``
+    restricts the four aging passes to a subset of the registry
+    (used by the engine's newborn aging catch-up). Persons for which
+    the filter returns False are left untouched; persons for which it
+    returns True get the same per-person sub-RNG passes they would
+    have received without a filter."""
+    p_in = _alive("PT-IN", age=50)
+    p_in.chronic_conditions = ["N18"]  # eligible for stage init
+    p_out = _alive("PT-OUT", age=50)
+    p_out.chronic_conditions = ["N18"]  # also eligible, but filtered out
+    reg = _registry([p_in, p_out])
+
+    advance_population(
+        reg,
+        2026,
+        "us",
+        person_filter=lambda p: p.person_id == "PT-IN",
+    )
+
+    # p_in passed the filter and got the disease_progression init.
+    assert "N18" in p_in.disease_stages
+    # p_out was filtered out and still has no stage.
+    assert p_out.disease_stages == {}
+
+
 def test_advance_population_skips_dead_persons() -> None:
     p_dead = _alive("PT-DEAD", age=90)
     p_dead.is_alive = False
