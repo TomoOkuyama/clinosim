@@ -326,7 +326,8 @@ def _build_newborn_patient(
 ) -> PatientProfile:
     """Build the newborn's PatientProfile — enough fields for the FHIR
     Patient emit to produce a valid resource (id, name, sex, DOB,
-    household link inherited from mother, blood type omitted).
+    household link inherited from mother, blood type inherited from
+    mother ABO/Rh crossed with locale allele distribution).
 
     Household inheritance: babies live with the mother, so
     ``household_id`` mirrors the mother's. Family name is inherited.
@@ -336,10 +337,31 @@ def _build_newborn_patient(
     afterwards. Requires ``snapshot_date`` — without it (test fixtures
     that predate this signature) the name stays empty, matching the
     pre-#1247 behaviour.
+
+    Blood type inheritance (Issue #1581 Phase C.1): ABO phenotype is
+    sampled from mother's phenotype crossed with the locale ABO
+    allele frequencies (father-side draw). Rh factor is the same
+    pattern with the locale d-allele frequency. Both derivations are
+    deterministic SHA-based so they do not consume the master RNG
+    and byte-identity across runs with the same seed is preserved.
     """
+    from clinosim.modules.population.inheritance import (
+        derive_newborn_blood_type,
+        derive_newborn_rh_factor,
+    )
     from clinosim.types.patient import Address, BaselineVitals, PersonName
 
     newborn_id = _newborn_patient_id(mother.patient_id)
+    newborn_blood_type = derive_newborn_blood_type(
+        newborn_id,
+        getattr(mother, "blood_type", "A") or "A",
+        country=country,
+    )
+    newborn_rh_factor = derive_newborn_rh_factor(
+        newborn_id,
+        getattr(mother, "rh_factor", "+") or "+",
+        country=country,
+    )
     given = ""
     if snapshot_date is not None and (snapshot_date - delivery_date).days > _NEWBORN_NAMING_WINDOW_DAYS:
         given = _sample_newborn_given_name(newborn_id, sex, country)
@@ -362,10 +384,25 @@ def _build_newborn_patient(
         spo2=float(_bv_cfg.get("spo2", 97)),
     )
     occupation = str(_newborn_cfg.get("occupation") or "infant")
+    # Issue #1581 Phase C.1 audit — JP phonetic reading of the family
+    # name is a per-household property (妻側の姓読みを継承、同じ戸籍)
+    # so the newborn inherits the mother's phonetic. The field lives
+    # inside PersonName (not PatientProfile top-level). The given-name
+    # piece of the phonetic is empty when the given name itself is
+    # empty (14-day 戸籍 window); even once the given name is
+    # populated the inherited phonetic carries the family-name reading
+    # only — a precise kana reading of the sampled given name would
+    # need a dict lookup against the locale name pool and is a known
+    # follow-up.
+    newborn_phonetic = mother.name.phonetic if mother.name is not None else None
     return PatientProfile(
         patient_id=newborn_id,
         household_id=mother.household_id,
-        name=PersonName(family_name=mother.name.family_name, given_name=given),
+        name=PersonName(
+            family_name=mother.name.family_name,
+            given_name=given,
+            phonetic=newborn_phonetic,
+        ),
         age=0,
         sex=sex,
         date_of_birth=delivery_date,
@@ -377,8 +414,17 @@ def _build_newborn_patient(
         height_cm=50.0,
         weight_kg=3.2,
         bmi=12.8,  # neonate BMI is not clinically meaningful but keeps the float non-zero
+        blood_type=newborn_blood_type,
+        rh_factor=newborn_rh_factor,
         baseline_vitals=baseline_vitals,
         occupation=occupation,
+        # Newborn-specific demographic constants: single (never married)
+        # and unemployed. Overrides the PatientProfile dataclass defaults
+        # (``marital_status=""`` and ``employment_status="retired"``) so
+        # downstream consumers reading these fields for the newborn see
+        # clinically sensible values rather than a schema fallback.
+        marital_status="S",
+        employment_status="unemployed",
         address=Address(**{k: v for k, v in vars(mother.address).items()}) if mother.address else Address(),
         # Issue #1246: newborns cannot be contacted directly (no personal
         # phone / email), so `Patient.telecom` stays empty — but every
