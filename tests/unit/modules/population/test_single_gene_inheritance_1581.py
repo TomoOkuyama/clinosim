@@ -214,3 +214,20 @@ def test_hemophilia_a_catalog_entry_loads() -> None:
     # Clinical basis: WFH 2024 ~1/5000 male incidence globally.
     freq = cfg["carrier_frequency_by_race"]["default"]
     assert 0.0001 < freq < 0.001
+
+
+def test_hemophilia_b_catalog_entry_loads_and_rarer_than_a() -> None:
+    """Hemophilia B (D67, Christmas disease) uses the same X-linked
+    inheritance path. WFH 2024 reports ~1/25000 male incidence,
+    which is 4-5x rarer than hemophilia A (~1/5000) — the catalog
+    should reflect this ordering."""
+    from clinosim.locale.loader import load_single_gene_diseases
+
+    catalog = (load_single_gene_diseases() or {}).get("single_gene_diseases") or {}
+    assert "D67" in catalog, "Hemophilia B (D67) missing from single-gene catalog"
+    cfg_b = catalog["D67"]
+    cfg_a = catalog["D66"]
+    assert cfg_b["inheritance_pattern"] == "x_linked_recessive"
+    freq_a = cfg_a["carrier_frequency_by_race"]["default"]
+    freq_b = cfg_b["carrier_frequency_by_race"]["default"]
+    assert freq_b < freq_a, f"hemophilia B freq {freq_b} should be < hemophilia A freq {freq_a}"
