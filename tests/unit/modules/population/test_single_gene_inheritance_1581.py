@@ -199,3 +199,18 @@ def test_x_linked_affected_father_normal_mother_all_daughters_carriers() -> None
     for i in range(200):
         assert inherit_x_linked_recessive(f"PT-DAU-F-{i:04d}", "D55.0", "F", "normal", "affected") == "carrier"
         assert inherit_x_linked_recessive(f"PT-SON-F-{i:04d}", "D55.0", "M", "normal", "affected") == "normal"
+
+
+def test_hemophilia_a_catalog_entry_loads() -> None:
+    """Hemophilia A (D66) is in the single-gene catalog with the
+    X-linked recessive pattern and reuses the same inheritance code
+    path as G6PD — no new logic required."""
+    from clinosim.locale.loader import load_single_gene_diseases
+
+    catalog = (load_single_gene_diseases() or {}).get("single_gene_diseases") or {}
+    assert "D66" in catalog, "Hemophilia A (D66) missing from single-gene catalog"
+    cfg = catalog["D66"]
+    assert cfg["inheritance_pattern"] == "x_linked_recessive"
+    # Clinical basis: WFH 2024 ~1/5000 male incidence globally.
+    freq = cfg["carrier_frequency_by_race"]["default"]
+    assert 0.0001 < freq < 0.001
