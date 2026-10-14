@@ -106,6 +106,8 @@ from clinosim.modules.patient._patient_activator_thresholds import (
 from clinosim.modules.patient._severity_activation import (
     F00_STAGE_WEIGHTS,
     F00_STAGES,
+    G20_STAGE_WEIGHTS,
+    G20_STAGES,
     K70_STAGE_WEIGHTS,
     K70_STAGES,
     I10_STAGE_WEIGHTS,
@@ -173,6 +175,8 @@ def _generate_stage(code: str, severity: str, rng: np.random.Generator) -> str:
         return str(rng.choice(F00_STAGES, p=F00_STAGE_WEIGHTS))
     if base in ("K70", "K74"):  # Liver cirrhosis (Child-Pugh A/B/C)
         return str(rng.choice(K70_STAGES, p=K70_STAGE_WEIGHTS))
+    if base == "G20":  # Parkinson's disease (Hoehn & Yahr 1-5)
+        return str(rng.choice(G20_STAGES, p=G20_STAGE_WEIGHTS))
     return ""
 
 

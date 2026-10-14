@@ -171,6 +171,48 @@ def test_disease_progression_cirrhosis_eventually_reaches_decompensated() -> Non
     assert hit_c >= 5, f"only {hit_c}/{trials} K70 cohort reached Child-Pugh C in 20 years"
 
 
+def test_disease_progression_initialises_parkinson_stage() -> None:
+    """G20 person without a stage picks up a Hoehn & Yahr 1-5
+    assignment on first ``_disease_progression`` touch."""
+    p = _alive("PT-PD-INIT", age=70)
+    p.chronic_conditions = ["G20"]
+    _disease_progression(
+        p,
+        2026,
+        np.random.default_rng(aging_sub_seed(p.person_id, 2026, "_disease_progression")),
+        {},
+    )
+    assert "G20" in p.disease_stages
+    assert p.disease_stages["G20"] in ("H&Y 1", "H&Y 2", "H&Y 3", "H&Y 4", "H&Y 5")
+
+
+def test_disease_progression_parkinson_eventually_advances() -> None:
+    """A H&Y 1 Parkinson's person over 15 years of progression
+    Monte-Carlo at least sometimes reaches H&Y 3 or beyond. The
+    stage-1 annual rate of 0.35 compounded over 15 years makes
+    this a very high-probability outcome; the test checks the
+    code path fires at all."""
+    hit_advanced = 0
+    trials = 100
+    for i in range(trials):
+        p = _alive(f"PT-PD-ADV-{i:04d}", age=60)
+        p.chronic_conditions = ["G20"]
+        p.disease_stages = {"G20": "H&Y 1"}
+        p.disease_stage_history = {"G20": {2025: "H&Y 1"}}
+        for yr in range(15):
+            _disease_progression(
+                p,
+                2026 + yr,
+                np.random.default_rng(aging_sub_seed(p.person_id, 2026 + yr, "_disease_progression")),
+                {},
+            )
+        if p.disease_stages["G20"] in ("H&Y 3", "H&Y 4", "H&Y 5"):
+            hit_advanced += 1
+    assert hit_advanced >= 50, (
+        f"only {hit_advanced}/{trials} G20 cohort reached H&Y 3+ in 15 years — progression table may be too slow"
+    )
+
+
 def test_disease_progression_init_does_not_double_step() -> None:
     """The year a stage is first initialised, no advancement
     happens — only ONE write per init year."""
