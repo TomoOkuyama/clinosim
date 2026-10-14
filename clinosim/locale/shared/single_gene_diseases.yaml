@@ -16,11 +16,18 @@
 #                to ``chronic_conditions`` so the condition emits
 #                through the standard FHIR disease pipeline.
 #
-# `carrier_frequency_by_race` is P(hetero + homo), i.e. anyone with
-# ≥ 1 disease allele. Hardy-Weinberg: q = 1 - sqrt(1 - carrier_freq)
-# is the recessive-allele frequency (approximation when carrier_freq
-# is small). The initial-cohort sampler derives the per-person
-# phenotype from a race-conditional q.
+# `carrier_frequency_by_race` meaning depends on inheritance_pattern:
+#   autosomal_recessive  — P(≥ 1 disease allele) = 2pq + q². The
+#                          allele frequency q = 1 - sqrt(1 - carrier_
+#                          freq) is derived via Hardy-Weinberg.
+#   x_linked_recessive   — the X-chromosome mutant-allele frequency q
+#                          directly (= P(affected male)).
+#   autosomal_dominant   — P(affected) directly (no asymptomatic
+#                          carrier state; both Dd and DD show
+#                          phenotype, but we assume all affected are
+#                          Dd since DD is typically embryonic-lethal).
+# The initial-cohort sampler derives the per-person phenotype from a
+# race-conditional draw against this value.
 #
 # Race keys match the OMB categories in demographics.yaml:race_
 # distribution ("white", "black", "asian", "native_american",
@@ -114,3 +121,41 @@ single_gene_diseases:
       native_american: 0.00004
       other:           0.00004
       default:         0.00004
+
+  # Huntington's disease (HTT, 4p16.3). Clinical basis: Fisher 2014
+  # (Mov Disord) worldwide prevalence meta-analysis; ~5-10/100,000
+  # Western populations with striking regional variation (lower in
+  # East Asia at ~0.4/100,000). Autosomal dominant — a single
+  # expanded CAG allele produces the phenotype, no asymptomatic
+  # carrier state. Age of onset is typically 30-50 so sim-period
+  # prevalence is close to population prevalence. The yaml value is
+  # P(affected) = 1 - (1-q)² where q is the disease-allele frequency.
+  G10:
+    display: "Huntington's disease"
+    inheritance_pattern: autosomal_dominant
+    carrier_frequency_by_race:
+      white:           0.00007
+      black:           0.00007
+      asian:           0.000005   # ~0.4/100k East Asian
+      native_american: 0.00007
+      other:           0.00007
+      default:         0.00005
+
+  # Marfan syndrome (FBN1, 15q21.1). Clinical basis: Pyeritz 2000
+  # (Lancet) and Dietz GeneReviews — autosomal dominant connective-
+  # tissue disorder, ~1/5000 globally with minimal race variation,
+  # ~25% de novo mutations (not inherited). The catalog value is
+  # the inherited component; de novo cases are not modeled at this
+  # layer (would need a separate mutation-rate yaml). Phenotypically
+  # affected individuals are heterozygous (Mm); homozygous MM is
+  # embryonic-lethal.
+  Q87.4:
+    display: "Marfan syndrome"
+    inheritance_pattern: autosomal_dominant
+    carrier_frequency_by_race:
+      white:           0.0002
+      black:           0.0002
+      asian:           0.0002
+      native_american: 0.0002
+      other:           0.0002
+      default:         0.0002
