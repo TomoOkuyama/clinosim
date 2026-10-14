@@ -173,8 +173,13 @@ def test_anticoag_from_admission1_carries_forward_to_admission2_home_meds():
     # 2026-08-30 (#969 stats-tune): reducing US comorbidity_correlations
     # multipliers ~15% shifts joint chronic sampling; seed=55 lost the
     # fixture. Re-scouted 55..150 → seed=56 (POP-000167).
+    # 2026-10-14 (G35 MS catalog addition — PR #1611): adding G35 to
+    # ``chronic_prevalence`` consumes one additional ``prng.random()`` per
+    # age-eligible person in ``_annual_chronic_onset``, cascading
+    # downstream chronic draws → seed=56 lost the fixture. Re-scouted
+    # 56..100 → seed=64 (POP-000129).
     config = SimulatorConfig(
-        random_seed=56,
+        random_seed=64,
         catchment_population=500,
         country="US",
         time_range=("2025-01", "2026-01"),
