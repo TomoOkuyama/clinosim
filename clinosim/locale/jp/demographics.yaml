@@ -156,6 +156,12 @@ chronic_prevalence:
   M17:      # Osteoarthritis — 50+ 15%, 70+ 40% (MHLW higher than earlier)
     "50-69": 0.15
     "70-99": 0.40
+  G35:      # 多発性硬化症 — MHLW 難病情報センター: 国内有病率 ~0.015%
+            # (12-20 /100,000). 緯度勾配により欧米の 1/10 以下、若年女性
+            # に偏る (20-40 歳発症が中心)。宇多野班の指定難病疫学調査。
+    "20-39": 0.00015
+    "40-59": 0.00020
+    "60-99": 0.00015
   # RM-7b (session 42): 7 JP-common chronic codes added, epi from MHLW
   # 国民健康・栄養調査 (令和2) + 厚生労働省統計. These are prevalent in
   # JP outpatient EHR problem lists but were absent from the base list.

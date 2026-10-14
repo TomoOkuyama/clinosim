@@ -504,6 +504,10 @@ _INITIAL_STAGE_SAMPLERS: dict[str, tuple[tuple[str, ...], tuple[float, ...]]] = 
         ("Paroxysmal", "Persistent", "Long-standing persistent", "Permanent"),
         (0.45, 0.25, 0.15, 0.15),
     ),
+    "G35": (
+        ("EDSS 0-2", "EDSS 2.5-5", "EDSS 5.5-7", "EDSS 7.5-10"),
+        (0.45, 0.35, 0.15, 0.05),
+    ),
 }
 
 
