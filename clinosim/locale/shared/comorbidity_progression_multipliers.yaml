@@ -1,0 +1,60 @@
+# Comorbidity interaction multipliers for the aging hook's
+# `_disease_progression` pass. When a person carries both a target
+# chronic condition AND a configured trigger comorbidity, the
+# annual stage-advance probability (from `stage_transition.yaml`)
+# is multiplied by the configured factor.
+#
+# Current scope: diabetic nephropathy (DM → CKD acceleration under
+# poor glycemic control). Additional interactions planned as
+# follow-ups:
+#  - cardiorenal syndrome (HF ↔ CKD)
+#  - COPD + HF (cor pulmonale → NYHA progression)
+#  - DM + IHD (CAD risk doubling)
+#
+# Lookup lifecycle (per-person, per-year, per-ICD):
+#   1. aging._disease_progression picks the target ICD's stage
+#      transition entry from stage_transition.yaml (gives base rate).
+#   2. for every rule under
+#      comorbidity_progression_multipliers.<target_icd>, if the
+#      person's chronic_conditions intersects requires_any_chronic,
+#      the rule applies. Multiple applicable rules compound
+#      multiplicatively.
+#   3. glycemic_tiers (optional) refine the multiplier by the
+#      person's previous-year glycemic_control: tiers are evaluated
+#      in listed order, first match wins. If no tier matches,
+#      default_multiplier (if present, else 1.0) is used.
+#
+# Why previous-year gc: the pass_fn ordering inside
+# advance_population runs _disease_progression as the second of
+# four passes, and chronic_conditions iteration order determines
+# whether E11's glycemic_trajectory entry for the CURRENT year has
+# been written before N18 is evaluated. Reading
+# person.glycemic_trajectory[year - 1] (end of previous year) gives
+# deterministic, order-independent behavior and is clinically
+# well-defined (year y's progression reflects the control attained
+# through year y-1).
+
+comorbidity_progression_multipliers:
+
+  # ------------------------------------------------------------------
+  # N18 Chronic kidney disease — diabetic nephropathy acceleration
+  # ------------------------------------------------------------------
+  # Clinical basis: KDIGO 2024 Clinical Practice Guideline for the
+  # Evaluation and Management of Diabetes in CKD; UKPDS 35 (Stratton
+  # 2000 BMJ) showed each 1 % HbA1c reduction → 37 % reduction in
+  # microvascular endpoints (nephropathy prominent); ADVANCE trial
+  # (Patel 2008 NEJM) showed intensive glycemic control (HbA1c 6.5
+  # vs 7.3 %) reduced new or worsening nephropathy by 21 %.
+  # The multiplier tiers encode a graded acceleration: poor control
+  # (gc < 0.5, HbA1c ≳ 9 %) ~2.5x faster CKD transitions; fair
+  # control (gc < 0.7, HbA1c ~7.5-9 %) ~1.5x; good control
+  # (gc ≥ 0.7, HbA1c ≤ 7.5 %) is treated as baseline (no
+  # acceleration beyond the non-DM natural history already encoded
+  # in stage_transition.yaml for the general CKD population).
+  N18:
+    diabetic_nephropathy:
+      requires_any_chronic: ["E10", "E11"]
+      glycemic_tiers:
+        - { gc_lt: 0.5, multiplier: 2.5 }
+        - { gc_lt: 0.7, multiplier: 1.5 }
+      default_multiplier: 1.0
