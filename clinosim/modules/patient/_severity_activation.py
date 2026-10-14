@@ -48,6 +48,7 @@ __all__ = [
     "G20_STAGES",
     "I48_STAGES",
     "G35_STAGES",
+    "I69_3_STAGES",
     # Stage-selection weights (sum to 1.0)
     "N18_STAGE_WEIGHTS",
     "I50_STAGE_WEIGHTS_MILD",
@@ -61,6 +62,7 @@ __all__ = [
     "G20_STAGE_WEIGHTS",
     "I48_STAGE_WEIGHTS",
     "G35_STAGE_WEIGHTS",
+    "I69_3_STAGE_WEIGHTS",
 ]
 
 
@@ -152,6 +154,20 @@ STAGE_SEVERITY: dict[str, dict[str, float]] = {
         "EDSS 2.5-5": 0.30,  # Mild-moderate disability, ambulatory
         "EDSS 5.5-7": 0.60,  # Walking impairment, assistive device
         "EDSS 7.5-10": 0.85,  # Wheelchair → bedridden
+    },
+    # Modified Rankin Scale (van Swieten 1988 Stroke, mRS 0-5) for
+    # post-cerebral-infarction residual deficit (I69.3). mRS 6 is
+    # death and handled by reactive mortality, not a progression
+    # stage here. Severity rises steeply at mRS 3 (walking without
+    # assistance becomes limited) and plateaus near 1.0 at mRS 5
+    # (bedridden, requires constant nursing).
+    "I69": {
+        "mRS 0": 0.05,
+        "mRS 1": 0.15,
+        "mRS 2": 0.30,
+        "mRS 3": 0.55,
+        "mRS 4": 0.75,
+        "mRS 5": 0.90,
     },
 }
 
@@ -371,3 +387,30 @@ with a progressive tail. Empirical tuning for the synthetic
 simulator, consistent with Confavreux 2006 (NEJM) natural-history
 median EDSS trajectory + Wallin 2019 (Neurology) US MS registry
 cross-sectional disability distribution."""
+
+
+# ---------------------------------------------------------------------------
+# I69.3 — Sequelae of cerebral infarction (modified Rankin Scale 0-5)
+# ---------------------------------------------------------------------------
+
+I69_3_STAGES: tuple[str, ...] = ("mRS 0", "mRS 1", "mRS 2", "mRS 3", "mRS 4", "mRS 5")
+"""modified Rankin Scale (van Swieten 1988 Stroke 19:604):
+  0 — no symptoms
+  1 — no significant disability
+  2 — slight disability (independent in self-care)
+  3 — moderate disability (requires some help, walks unaided)
+  4 — moderately severe (unable to walk without assistance)
+  5 — severe disability (bedridden, incontinent, constant nursing)
+mRS 6 (dead) is NOT a progression stage — death is driven by the
+reactive-mortality pass. Full stage strings — no prefix added at
+emit time."""
+
+I69_3_STAGE_WEIGHTS: tuple[float, ...] = (0.10, 0.20, 0.25, 0.20, 0.15, 0.10)
+"""Post-stroke-at-discharge mRS distribution. Benjamin 2019
+(Circulation AHA Heart Disease Statistics) + GWTG-Stroke registry
+discharge mRS data: ~45 % discharge at mRS 0-2 (independent),
+~35 % at mRS 3-4 (dependent), ~10-15 % at mRS 5 (severely
+disabled). Empirical tuning for the synthetic simulator skewed
+slightly toward moderate residual (mode mRS 2) to match the
+cohort-weighted published distribution that includes rehab-
+discharge improvements."""
