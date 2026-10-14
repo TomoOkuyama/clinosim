@@ -341,6 +341,20 @@ def load_stage_transition() -> dict[str, Any]:
 
 
 @lru_cache(maxsize=1)
+def load_glycemic_trajectory() -> dict[str, Any]:
+    """Load per-disease annual HbA1c trajectory parameters for the
+    aging hook's ``_disease_progression`` DM extension (Issue #1581).
+
+    Top-level shape:
+        glycemic_trajectory.<icd>.gc_drift_mean -> float
+        glycemic_trajectory.<icd>.gc_drift_sd -> float
+        glycemic_trajectory.<icd>.gc_min -> float
+        glycemic_trajectory.<icd>.gc_max -> float
+    """
+    return _load_yaml(_LOCALE_DIR / "shared" / "glycemic_trajectory.yaml", fallback={})
+
+
+@lru_cache(maxsize=1)
 def load_chemo_regimens() -> dict[str, Any]:
     """Load chemotherapy regimen library + per-cancer assignment table.
 

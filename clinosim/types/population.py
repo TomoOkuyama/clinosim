@@ -124,6 +124,17 @@ class PersonRecord:
     # progression scope (CKD / COPD / HF / CCS / dementia) and for
     # test fixtures that bypass the aging path.
     disease_stage_history: dict[str, dict[int, str]] = field(default_factory=dict)
+    # Issue #1581 DM glycemic trajectory — year-indexed
+    # ``glycemic_control`` axis (0-1, where 1.0 is excellent chronic
+    # control and 0.0 is very poor). HbA1c is derived from this axis
+    # at encounter time via ``physiology.engine.hba1c_from_glycemic_
+    # control``. ``aging._disease_progression`` populates this per
+    # year for persons carrying E11 / E10 so a year-1 encounter
+    # reports a different HbA1c than a year-10 encounter, following
+    # the natural-history drift documented in ``locale/shared/
+    # glycemic_trajectory.yaml``. Empty dict when the person has no
+    # DM or the aging path has not fired yet (test fixtures).
+    glycemic_trajectory: dict[int, float] = field(default_factory=dict)
     # Issue #1581 — race / ethnicity (US only). Previously resampled on
     # every ``activate_patient`` call, which meant the same person could
     # see a different race across encounters within a sim. Now stored
