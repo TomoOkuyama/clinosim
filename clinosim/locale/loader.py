@@ -355,6 +355,29 @@ def load_glycemic_trajectory() -> dict[str, Any]:
 
 
 @lru_cache(maxsize=1)
+def load_comorbidity_progression_multipliers() -> dict[str, Any]:
+    """Load comorbidity interaction config for the aging hook's
+    ``_disease_progression`` pass. Describes how one chronic condition
+    accelerates another's stage progression — e.g. diabetes with poor
+    glycemic control accelerating CKD stage transitions (diabetic
+    nephropathy).
+
+    Top-level shape:
+        comorbidity_progression_multipliers.<target_icd>.<rule_name>
+          .requires_any_chronic -> list[str] (any-match trigger ICDs)
+          .glycemic_tiers -> list[{gc_lt: float, multiplier: float}]
+                             (optional; applied in listed order, first
+                             matching tier wins)
+          .default_multiplier -> float (optional; applied when the
+                             trigger matches but no gc tier matches)
+
+    Looked up by ``_comorbidity_multiplier`` at the point of applying
+    the Bernoulli draw on the target's annual_advance_probability.
+    """
+    return _load_yaml(_LOCALE_DIR / "shared" / "comorbidity_progression_multipliers.yaml", fallback={})
+
+
+@lru_cache(maxsize=1)
 def load_single_gene_diseases() -> dict[str, Any]:
     """Load per-disease single-gene inheritance config for Issue #1581
     Phase C.3. Returns the shape documented in
