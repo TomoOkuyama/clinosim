@@ -231,3 +231,126 @@ def test_hemophilia_b_catalog_entry_loads_and_rarer_than_a() -> None:
     freq_a = cfg_a["carrier_frequency_by_race"]["default"]
     freq_b = cfg_b["carrier_frequency_by_race"]["default"]
     assert freq_b < freq_a, f"hemophilia B freq {freq_b} should be < hemophilia A freq {freq_a}"
+
+
+# ===========================================================================
+# Autosomal dominant (Huntington / Marfan pattern)
+# ===========================================================================
+
+_HD_CFG = {
+    "display": "Huntington's disease",
+    "inheritance_pattern": "autosomal_dominant",
+    "carrier_frequency_by_race": {
+        "white": 0.00007,
+        "asian": 0.000005,
+        "default": 0.00005,
+    },
+}
+
+
+def test_autosomal_dominant_initial_prevalence_matches_rate() -> None:
+    """P(affected) at initial sampling should match the yaml value
+    directly (any D allele → affected, no 'carrier' state)."""
+    # Use an inflated test rate so Monte-Carlo converges fast; the
+    # function has no yaml dependency, it just reads disease_cfg.
+    cfg = {"inheritance_pattern": "autosomal_dominant", "carrier_frequency_by_race": {"default": 0.05}}
+    counts: Counter[str] = Counter()
+    trials = 5000
+    for i in range(trials):
+        counts[derive_initial_carrier_status(f"PT-AD-{i:04d}", "", "G10", cfg)] += 1
+    affected = counts["affected"] / trials
+    # Expected 5%; ±1.5% Monte-Carlo band.
+    assert 0.035 < affected < 0.065, f"autosomal dominant affected rate {affected:.4f} outside expected 5% band"
+    assert counts.get("carrier", 0) == 0, "autosomal dominant must never produce 'carrier' phenotype"
+
+
+def test_autosomal_dominant_race_table_applied() -> None:
+    """White 0.00007 vs Asian 0.000005 — East-Asian HD is ~14x rarer.
+    Use large trials and a small deterministic sample to confirm the
+    race-conditional branch dispatches at all (realistic rates are
+    too small for Monte-Carlo convergence; this test checks the
+    dispatch mechanism via one specific person who falls under the
+    white rate)."""
+    cfg_hd_test = {
+        "inheritance_pattern": "autosomal_dominant",
+        "carrier_frequency_by_race": {"white": 0.5, "asian": 0.001, "default": 0.1},
+    }
+    # Both races draw from the same salt, so for a shared person_id the
+    # phenotype depends only on the race-conditional rate. White 0.5
+    # → ~50% affected across population; Asian 0.001 → <1% affected.
+    aff_white = sum(
+        1
+        for i in range(2000)
+        if derive_initial_carrier_status(f"PT-AD-W-{i:04d}", "white", "G10", cfg_hd_test) == "affected"
+    )
+    aff_asian = sum(
+        1
+        for i in range(2000)
+        if derive_initial_carrier_status(f"PT-AD-A-{i:04d}", "asian", "G10", cfg_hd_test) == "affected"
+    )
+    assert aff_white > 10 * aff_asian, f"race gating broken: white={aff_white} asian={aff_asian}"
+
+
+def test_inherit_autosomal_dominant_affected_parent_half_affected_children() -> None:
+    """One affected (Dd) parent × normal (dd) parent: children are
+    50% affected (received D) / 50% normal (received d). No carrier
+    state."""
+    from clinosim.modules.population.single_gene_inheritance import inherit_autosomal_dominant
+
+    counts: Counter[str] = Counter()
+    for i in range(2000):
+        counts[inherit_autosomal_dominant(f"PT-AD-INH-{i:04d}", "G10", "affected", "normal")] += 1
+    affected = counts["affected"] / 2000
+    assert 0.44 < affected < 0.56, f"affected offspring rate {affected:.3f} outside 50% band"
+    assert counts.get("carrier", 0) == 0
+
+
+def test_inherit_autosomal_dominant_two_normal_parents_never_affected() -> None:
+    """dd × dd parents cannot produce an affected child under
+    Mendelian inheritance (de novo mutations are not modeled at this
+    layer)."""
+    from clinosim.modules.population.single_gene_inheritance import inherit_autosomal_dominant
+
+    for i in range(500):
+        assert inherit_autosomal_dominant(f"PT-AD-NN-{i:04d}", "G10", "normal", "normal") == "normal"
+
+
+def test_inherit_autosomal_dominant_two_affected_parents_mostly_affected() -> None:
+    """Both parents Dd: child receives D with 50% from each →
+    P(affected) = 1 - 0.5*0.5 = 0.75."""
+    from clinosim.modules.population.single_gene_inheritance import inherit_autosomal_dominant
+
+    counts: Counter[str] = Counter()
+    for i in range(2000):
+        counts[inherit_autosomal_dominant(f"PT-AD-AA-{i:04d}", "G10", "affected", "affected")] += 1
+    affected = counts["affected"] / 2000
+    # Expected 75%; ±5% band.
+    assert 0.70 < affected < 0.80, f"both-affected offspring rate {affected:.3f} outside 75% band"
+
+
+def test_huntington_catalog_entry_loads_with_asian_rarity() -> None:
+    """Huntington's (G10) is autosomal dominant and the catalog
+    should reflect the known East-Asian rarity (~0.4/100k vs
+    ~5-10/100k Western populations)."""
+    from clinosim.locale.loader import load_single_gene_diseases
+
+    catalog = (load_single_gene_diseases() or {}).get("single_gene_diseases") or {}
+    assert "G10" in catalog, "Huntington's (G10) missing from single-gene catalog"
+    cfg = catalog["G10"]
+    assert cfg["inheritance_pattern"] == "autosomal_dominant"
+    freq_white = cfg["carrier_frequency_by_race"]["white"]
+    freq_asian = cfg["carrier_frequency_by_race"]["asian"]
+    assert freq_white > freq_asian, "catalog should encode East-Asian HD rarity"
+
+
+def test_marfan_catalog_entry_loads() -> None:
+    """Marfan (Q87.4) is autosomal dominant with ~1/5000 global
+    prevalence and minimal race variation."""
+    from clinosim.locale.loader import load_single_gene_diseases
+
+    catalog = (load_single_gene_diseases() or {}).get("single_gene_diseases") or {}
+    assert "Q87.4" in catalog, "Marfan (Q87.4) missing from single-gene catalog"
+    cfg = catalog["Q87.4"]
+    assert cfg["inheritance_pattern"] == "autosomal_dominant"
+    freq = cfg["carrier_frequency_by_race"]["default"]
+    assert 0.0001 < freq < 0.001

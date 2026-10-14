@@ -81,6 +81,16 @@ def derive_initial_carrier_status(
     two independent X alleles — both=1 → "affected", one=1 →
     "carrier", none → "normal".
 
+    Autosomal dominant: a single disease allele produces the
+    phenotype (Dd and DD are indistinguishable; no asymptomatic
+    carrier state). The yaml ``carrier_frequency_by_race`` is
+    interpreted as P(affected) = 1 - (1-q)². Phenotype values are
+    "normal" or "affected"; "carrier" is never emitted. We assume
+    all affected individuals are heterozygous (Dd) at inheritance
+    time — a standard simplification since homozygous dominant
+    disorders are extremely rare or embryonic-lethal for most
+    autosomal dominant diseases of interest (Huntington's, Marfan).
+
     Deterministic SHA-based sampling (RNG-neutral) so this layer can
     be added without shifting any existing master stream.
     """
@@ -102,6 +112,14 @@ def derive_initial_carrier_status(
         if total == 1:
             return "carrier"
         return "affected"
+
+    if pattern == "autosomal_dominant":
+        # yaml value is P(affected) directly (any D allele shows phenotype).
+        p_affected = max(0.0, min(1.0, _carrier_freq_for_race(disease_cfg, race)))
+        if p_affected <= 0.0:
+            return "normal"
+        q_pheno = _hash_quantile(salt, byte_offset=0, byte_count=4)
+        return "affected" if q_pheno < p_affected else "normal"
 
     if pattern == "x_linked_recessive":
         # yaml value is X-allele mutant frequency q directly.
@@ -220,6 +238,39 @@ def inherit_x_linked_recessive(
     return "affected"
 
 
+def inherit_autosomal_dominant(
+    newborn_patient_id: str,
+    disease_code: str,
+    mother_phenotype: str,
+    father_phenotype: str,
+) -> str:
+    """Compute the newborn's phenotype for an autosomal dominant disease
+    given both parent phenotypes.
+
+    Rules: each affected parent is assumed heterozygous (Dd) and donates
+    D (1) or d (0) with 50/50 (standard simplification — true homozygous
+    dominant DD is rare or embryonic-lethal for most such diseases).
+    Normal parents (dd) donate d (0). The child is "affected" if ANY
+    donated allele is D, else "normal". No "carrier" state exists for
+    autosomal dominant.
+
+    When a parent phenotype is empty / unknown (test fixtures or
+    pre-catalog cohorts), it is treated as ``"normal"``.
+    """
+    salt = f"{newborn_patient_id}|single_gene_inherit_ad|{disease_code}|v1"
+
+    def _parent_allele(parent_phen: str, quantile: float) -> int:
+        if (parent_phen or "normal") == "affected":
+            return 1 if quantile < 0.5 else 0
+        return 0
+
+    q_mother = _hash_quantile(salt, byte_offset=0, byte_count=4)
+    q_father = _hash_quantile(salt, byte_offset=4, byte_count=4)
+    mother_allele = _parent_allele(mother_phenotype, q_mother)
+    father_allele = _parent_allele(father_phenotype, q_father)
+    return "affected" if (mother_allele + father_allele) >= 1 else "normal"
+
+
 def apply_initial_carrier_sampling(person: Any, catalog: dict[str, Any]) -> list[str]:
     """Walk every disease in the catalog and sample the person's
     initial carrier status, writing to ``person.carrier_status``.
@@ -279,6 +330,13 @@ def apply_newborn_inheritance(
                 newborn_patient_id,
                 code,
                 child_sex,
+                mother_phen,
+                father_phen,
+            )
+        elif pattern == "autosomal_dominant":
+            child_phen = inherit_autosomal_dominant(
+                newborn_patient_id,
+                code,
                 mother_phen,
                 father_phen,
             )
