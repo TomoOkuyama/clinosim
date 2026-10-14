@@ -211,3 +211,24 @@ stage_transitions:
       "Persistent": 0.120              # ~10-15 %/yr persistent → long-standing persistent
       "Long-standing persistent": 0.150 # ~10-20 %/yr long-standing → permanent
       "Permanent": 0.0                 # terminal
+
+  # ------------------------------------------------------------------
+  # G35 Multiple sclerosis (banded EDSS)
+  # ------------------------------------------------------------------
+  # Clinical basis: Kurtzke 1983 (Neurology) EDSS; Confavreux 2006
+  # (NEJM) natural-history median trajectory — median time to
+  # EDSS 6 (walking impairment, assistive device) is ~20 years from
+  # onset in untreated RRMS, substantially faster in primary-
+  # progressive MS. Mean time to EDSS 7.5+ (wheelchair) is ~30
+  # years. Disease-modifying-therapy effect is NOT conditioned on
+  # at the aging-pass layer (large RCT effect sizes on confirmed-
+  # disability-worsening but highly variable per patient); therapy-
+  # conditional refinement is a planned Phase 3 concern. EDSS
+  # 7.5-10 is terminal here.
+  G35:
+    stages: ["EDSS 0-2", "EDSS 2.5-5", "EDSS 5.5-7", "EDSS 7.5-10"]
+    annual_advance_probability:
+      "EDSS 0-2": 0.040       # ~25 yr dwell → ~4 %/yr Bernoulli
+      "EDSS 2.5-5": 0.060
+      "EDSS 5.5-7": 0.050     # walking-impairment plateau
+      "EDSS 7.5-10": 0.0      # terminal (handled by reactive mortality)

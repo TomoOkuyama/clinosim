@@ -257,6 +257,51 @@ def test_disease_progression_af_eventually_progresses() -> None:
     assert hit_advanced >= 60, f"only {hit_advanced}/{trials} AF cohort advanced beyond paroxysmal in 15 years"
 
 
+def test_disease_progression_initialises_multiple_sclerosis_stage() -> None:
+    """G35 person without a stage picks up a banded-EDSS label on
+    first ``_disease_progression`` touch."""
+    p = _alive("PT-MS-INIT", age=35)
+    p.chronic_conditions = ["G35"]
+    _disease_progression(
+        p,
+        2026,
+        np.random.default_rng(aging_sub_seed(p.person_id, 2026, "_disease_progression")),
+        {},
+    )
+    assert "G35" in p.disease_stages
+    assert p.disease_stages["G35"] in (
+        "EDSS 0-2",
+        "EDSS 2.5-5",
+        "EDSS 5.5-7",
+        "EDSS 7.5-10",
+    )
+
+
+def test_disease_progression_ms_eventually_advances() -> None:
+    """An EDSS 0-2 MS person over 25 years at the Confavreux-based
+    rates reaches walking impairment (EDSS 5.5-7) or worse in a
+    non-trivial fraction of trials. Loose lower bound tolerates
+    variance; the point is to exercise the natural-history mean
+    time to EDSS 6 ~20 years."""
+    hit_advanced = 0
+    trials = 100
+    for i in range(trials):
+        p = _alive(f"PT-MS-{i:04d}", age=30)
+        p.chronic_conditions = ["G35"]
+        p.disease_stages = {"G35": "EDSS 0-2"}
+        p.disease_stage_history = {"G35": {2025: "EDSS 0-2"}}
+        for yr in range(25):
+            _disease_progression(
+                p,
+                2026 + yr,
+                np.random.default_rng(aging_sub_seed(p.person_id, 2026 + yr, "_disease_progression")),
+                {},
+            )
+        if p.disease_stages["G35"] in ("EDSS 5.5-7", "EDSS 7.5-10"):
+            hit_advanced += 1
+    assert hit_advanced >= 10, f"only {hit_advanced}/{trials} MS cohort reached walking-impairment in 25 years"
+
+
 def test_disease_progression_init_does_not_double_step() -> None:
     """The year a stage is first initialised, no advancement
     happens — only ONE write per init year."""
