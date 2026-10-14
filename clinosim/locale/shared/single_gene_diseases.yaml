@@ -122,6 +122,74 @@ single_gene_diseases:
       other:           0.00004
       default:         0.00004
 
+  # Hemophilia C (F11, Factor XI deficiency). Clinical basis:
+  # Seligsohn 2009 (Haemophilia) + OMIM 264900. Autosomal recessive
+  # (not X-linked like D66/D67 — F11 is on chromosome 4q35, not X).
+  # General-population prevalence is very low (~1/1,000,000) but
+  # Ashkenazi Jewish carrier frequency is ~8-9% with ~1/450 affected,
+  # by far the most clinically significant subpopulation. Clinical
+  # presentation is a mild bleeding diathesis, mostly post-trauma /
+  # post-surgical rather than spontaneous (unlike Hemophilia A/B).
+  # OMB race keys do not break Ashkenazi out separately, so the
+  # elevated frequency is folded into ``other`` (which also
+  # captures Jewish ancestry in US demographics yaml) and
+  # ``white`` is set to the general-population carrier rate.
+  D68.1:
+    display: "Hereditary factor XI deficiency"
+    inheritance_pattern: autosomal_recessive
+    carrier_frequency_by_race:
+      white:           0.002    # general Northern European carrier rate
+      black:           0.001
+      asian:           0.001
+      native_american: 0.001
+      other:           0.040    # Ashkenazi-weighted
+      default:         0.002
+
+  # Thalassemia (HBA1/HBA2 for α, HBB for β). Clinical basis:
+  # Weatherall 2010 (Blood Rev) global burden survey + CDC
+  # worldwide carrier maps. Autosomal recessive. The two subtypes
+  # are inherited independently (different genes on different
+  # chromosomes) so each carries its own catalog entry. Carrier
+  # (trait) is asymptomatic microcytic anemia; homozygous
+  # affected is major thalassemia — transfusion-dependent in β0,
+  # often fetal/neonatal lethal in α (Hb Bart's hydrops fetalis).
+  # Carrier rate strongly region-dependent: Mediterranean / South
+  # Asian / Southeast Asian populations have carrier frequencies
+  # in the 10-30% range for one or both subtypes. OMB race keys
+  # map imperfectly to these origins; ``asian`` captures SE Asia
+  # and South Asia (both high-carrier), ``other`` captures
+  # Mediterranean/Middle Eastern.
+
+  # α-thalassemia — HBA1/HBA2 deletions. High in SE Asia
+  # (HbH disease / Hb Bart's hydrops fetalis), West African, and
+  # Mediterranean populations. "Carrier" aggregates silent carrier
+  # (1 gene deletion) + trait (2 gene deletions).
+  D56.0:
+    display: "Alpha thalassemia"
+    inheritance_pattern: autosomal_recessive
+    carrier_frequency_by_race:
+      white:           0.010    # ~1% baseline, higher in Mediterranean subsets
+      black:           0.030    # West African carrier ~3%
+      asian:           0.300    # SE Asia 25-30%, South China 5-15%
+      native_american: 0.005
+      other:           0.080    # Mediterranean / Middle Eastern
+      default:         0.030
+
+  # β-thalassemia — HBB point mutations. High in Mediterranean,
+  # South Asian, Middle Eastern populations. Severe β0/β0 is the
+  # classic Cooley's anemia; β+ heterozygous is thalassemia minor
+  # (microcytic). Lower carrier rates in East Asia than α-thal.
+  D56.1:
+    display: "Beta thalassemia"
+    inheritance_pattern: autosomal_recessive
+    carrier_frequency_by_race:
+      white:           0.015    # Mediterranean subsets push the mean up
+      black:           0.015
+      asian:           0.050    # South China / South Asia
+      native_american: 0.005
+      other:           0.100    # Mediterranean / Middle Eastern / South Asian
+      default:         0.020
+
   # Huntington's disease (HTT, 4p16.3). Clinical basis: Fisher 2014
   # (Mov Disord) worldwide prevalence meta-analysis; ~5-10/100,000
   # Western populations with striking regional variation (lower in
