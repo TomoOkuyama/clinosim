@@ -129,3 +129,73 @@ def test_inherit_deterministic_per_tuple() -> None:
     first = inherit_single_gene_autosomal_recessive("PT-DET-1", "E84", "carrier", "carrier")
     second = inherit_single_gene_autosomal_recessive("PT-DET-1", "E84", "carrier", "carrier")
     assert first == second
+
+
+# ===========================================================================
+# X-linked recessive (G6PD / hemophilia pattern)
+# ===========================================================================
+
+_G6PD_CFG = {
+    "display": "G6PD deficiency",
+    "inheritance_pattern": "x_linked_recessive",
+    "carrier_frequency_by_race": {
+        "black": 0.12,  # ~12 % African-American males affected
+        "white": 0.005,
+        "default": 0.03,
+    },
+}
+
+
+def test_x_linked_initial_male_rate_matches_q() -> None:
+    """P(affected male) = q directly (hemizygous)."""
+    affected_m = 0
+    trials = 3000
+    for i in range(trials):
+        phen = derive_initial_carrier_status(f"PT-M-G6PD-{i:04d}", "black", "D55.0", _G6PD_CFG, sex="M")
+        if phen == "affected":
+            affected_m += 1
+    rate = affected_m / trials
+    # Expected 12 %, allow ±3 % Monte-Carlo band.
+    assert 0.09 < rate < 0.15, f"black male G6PD-affected rate {rate:.3f} outside expected 12% band"
+
+
+def test_x_linked_initial_female_mostly_carrier_or_normal() -> None:
+    """Female affected rate = q², female carrier rate = 2q(1-q).
+    For q=0.12 (black), expected carrier ~21 %, affected ~1.4 %."""
+    counts: Counter[str] = Counter()
+    trials = 3000
+    for i in range(trials):
+        counts[derive_initial_carrier_status(f"PT-F-G6PD-{i:04d}", "black", "D55.0", _G6PD_CFG, sex="F")] += 1
+    carrier_rate = counts["carrier"] / trials
+    affected_rate = counts["affected"] / trials
+    # q=0.12 → carrier 2*0.12*0.88 = 0.2112, affected 0.0144.
+    assert 0.17 < carrier_rate < 0.26, f"female carrier rate {carrier_rate:.3f}"
+    assert 0.005 < affected_rate < 0.03, f"female affected rate {affected_rate:.3f}"
+
+
+def test_x_linked_inherit_carrier_mother_normal_father_son_affected_rate() -> None:
+    """Mother carrier (Xx), father normal (XY). Sons: 50 % affected,
+    50 % normal. Daughters: 50 % carrier, 50 % normal (no affected)."""
+    sons_affected = 0
+    daughters_affected = 0
+    trials = 1000
+    for i in range(trials):
+        from clinosim.modules.population.single_gene_inheritance import inherit_x_linked_recessive
+
+        if inherit_x_linked_recessive(f"PT-SON-{i:04d}", "D55.0", "M", "carrier", "normal") == "affected":
+            sons_affected += 1
+        if inherit_x_linked_recessive(f"PT-DAU-{i:04d}", "D55.0", "F", "carrier", "normal") == "affected":
+            daughters_affected += 1
+    son_rate = sons_affected / trials
+    assert 0.44 < son_rate < 0.56, f"son affected rate {son_rate:.3f} outside 50% band"
+    assert daughters_affected == 0, f"carrier mother × normal father → daughter affected {daughters_affected}×"
+
+
+def test_x_linked_affected_father_normal_mother_all_daughters_carriers() -> None:
+    """Affected father (xY), normal mother (XX). Daughters all
+    carriers (inherit father's x + mother's X). Sons all normal."""
+    from clinosim.modules.population.single_gene_inheritance import inherit_x_linked_recessive
+
+    for i in range(200):
+        assert inherit_x_linked_recessive(f"PT-DAU-F-{i:04d}", "D55.0", "F", "normal", "affected") == "carrier"
+        assert inherit_x_linked_recessive(f"PT-SON-F-{i:04d}", "D55.0", "M", "normal", "affected") == "normal"

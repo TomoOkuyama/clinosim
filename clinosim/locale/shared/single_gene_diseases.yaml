@@ -58,3 +58,23 @@ single_gene_diseases:
       native_american: 0.002
       other:           0.015   # Hispanic / Mediterranean captured in "other"
       default:         0.005
+
+  # G6PD deficiency (G6PD gene, Xq28). Clinical basis: WHO 1989
+  # G6PD review; Nkhoma 2009 (Blood Cells, Molecules, and Diseases)
+  # worldwide prevalence survey. X-linked recessive — male carriers
+  # ARE affected (hemizygous), female carriers are usually
+  # asymptomatic but mild haemolysis under triggers (favism etc.) is
+  # possible. ``carrier_frequency_by_race`` here is the X-chromosome
+  # mutant-allele frequency q (not the female-carrier rate), which
+  # equals P(affected male) directly. Female homozygous-affected
+  # rate ≈ q² is small.
+  D55.0:
+    display: "Anaemia due to glucose-6-phosphate dehydrogenase deficiency"
+    inheritance_pattern: x_linked_recessive
+    carrier_frequency_by_race:
+      white:           0.005   # ~0.5 % Northern European males affected
+      black:           0.120   # ~12 % African-American males affected
+      asian:           0.040   # Southeast Asia 2-6 % typical
+      native_american: 0.015
+      other:           0.080   # Mediterranean / Middle Eastern bulk
+      default:         0.030
