@@ -954,7 +954,33 @@ def run_beta(
             if record.deceased:
                 person.is_alive = False
 
-    _dispatch_hospital_events(hospital_events, n_hosp, label="inpatient")
+    # Issue #1596 Step 1 — dispatch per calendar month instead of a
+    # single global call. Byte-identity preserving: ``hospital_events``
+    # is still sorted globally by timestamp, and partitioning preserves
+    # that order (events in month m are strictly before events in month
+    # m+1 by timestamp). Closure state (hospital_state, patient_records,
+    # active_discharges, concurrent_patients, patient_cache) is shared
+    # across chunks via the enclosing scope, so cross-month admission
+    # overlap, discharge draining, and cache-hit replay all behave
+    # identically to the pre-#1596 single-call dispatch.
+    #
+    # This is the structural prerequisite for Step 2+, which can then
+    # eliminate the newborn secondary pass by moving generate_monthly_
+    # events INTO this per-month loop — newborns registered in month m
+    # would then be visible to month m+1's primary generation naturally.
+    _events_by_month: dict[tuple[int, int], list[LifeEvent]] = {}
+    for _hev in hospital_events:
+        _key = (_hev.timestamp.year, _hev.timestamp.month)
+        _events_by_month.setdefault(_key, []).append(_hev)
+
+    _dy, _dm = start_y, start_m
+    while (_dy, _dm) <= (end_y, end_m):
+        _chunk = _events_by_month.get((_dy, _dm), [])
+        if _chunk:
+            _dispatch_hospital_events(_chunk, n_hosp, label="inpatient")
+        _dm += 1
+        if _dm > 12:
+            _dm, _dy = 1, _dy + 1
 
     print(f"  Inpatient done: {len(patient_records)} records (peak concurrent: {concurrent_patients})", flush=True)
     sim_log.info(
