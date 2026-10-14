@@ -508,6 +508,10 @@ _INITIAL_STAGE_SAMPLERS: dict[str, tuple[tuple[str, ...], tuple[float, ...]]] = 
         ("EDSS 0-2", "EDSS 2.5-5", "EDSS 5.5-7", "EDSS 7.5-10"),
         (0.45, 0.35, 0.15, 0.05),
     ),
+    "I69": (
+        ("mRS 0", "mRS 1", "mRS 2", "mRS 3", "mRS 4", "mRS 5"),
+        (0.10, 0.20, 0.25, 0.20, 0.15, 0.10),
+    ),
 }
 
 
@@ -870,6 +874,45 @@ def _condition_reactive_mortality(
 
 
 # ---------------------------------------------------------------------------
+# Stroke → chronic-sequela promotion (Issue #1581 extension — I63 → I69.3)
+# ---------------------------------------------------------------------------
+
+
+def _stroke_sequela_promotion(
+    person: PersonRecord,
+    year: int,
+    prng: np.random.Generator,
+    incidence_table: dict[str, _ChronicIncidenceSpec],
+    locale: str = "us",
+) -> None:
+    """Promote a past cerebral_infarction hospitalization to a chronic
+    I69.3 (sequelae of cerebral infarction) condition.
+
+    Idempotent: a person who already carries I69.3 skips. The actual
+    mRS stage initialisation happens later in the pass pipeline via
+    ``_disease_progression``'s ``_INITIAL_STAGE_SAMPLERS`` branch on
+    first touch, so this pass only mutates the chronic_conditions
+    list and does not consume RNG itself (the ``prng`` arg is kept
+    for signature uniformity with the other aging passes).
+
+    Clinical rationale: ~70-80 % of stroke survivors have residual
+    neurological deficit at 1 year (Benjamin 2019 Circulation AHA
+    Heart Disease Statistics). mRS at discharge is the standard
+    outcome measure. Promoting to a chronic sequela at the year
+    boundary following the index I63 encounter captures this
+    deficit as a Layer-1 chronic condition and lets the standard
+    stage-progression machinery handle year-on-year functional
+    decline from recurrent events, cognitive impairment, and
+    immobility complications.
+    """
+    if "I69.3" in person.chronic_conditions:
+        return
+    if not any(getattr(h, "disease_id", "") == "cerebral_infarction" for h in (person.hospitalization_history or [])):
+        return
+    person.chronic_conditions.append("I69.3")
+
+
+# ---------------------------------------------------------------------------
 # Public entry point
 # ---------------------------------------------------------------------------
 
@@ -921,6 +964,7 @@ def advance_population(
             continue
         for pass_fn in (
             _annual_chronic_onset,
+            _stroke_sequela_promotion,
             _disease_progression,
             _allergy_drift,
             _condition_reactive_mortality,

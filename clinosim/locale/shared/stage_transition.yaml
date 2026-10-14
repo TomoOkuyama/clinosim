@@ -232,3 +232,32 @@ stage_transitions:
       "EDSS 2.5-5": 0.060
       "EDSS 5.5-7": 0.050     # walking-impairment plateau
       "EDSS 7.5-10": 0.0      # terminal (handled by reactive mortality)
+
+  # ------------------------------------------------------------------
+  # I69.3 Sequelae of cerebral infarction (modified Rankin Scale 0-5)
+  # ------------------------------------------------------------------
+  # Clinical basis: Hankey 2000 (Stroke 31:2080) 10-year post-stroke
+  # outcome follow-up — mRS tends to deteriorate over time via
+  # recurrent stroke (~5-10 %/yr), vascular cognitive decline, and
+  # immobility complications (deconditioning, aspiration, UTI).
+  # Rates below reflect an all-cohort baseline without conditioning
+  # on secondary-prevention adherence (antiplatelet, statin,
+  # anticoagulant for AF-related infarction) — therapy-conditional
+  # refinement is a planned Phase 3 concern. mRS 5 is terminal in
+  # this progression table; mRS 6 (dead) is handled by the
+  # reactive-mortality pass (cerebral_infarction SMR already in
+  # condition_mortality_smr.yaml).
+  # Keyed under the base ICD code "I69" because the aging / activator
+  # dispatch strips the sub-code via ``code.split(".")[0]`` before the
+  # yaml lookup. The chronic condition itself is stored on
+  # ``person.chronic_conditions`` as "I69.3" (specific sequela of
+  # cerebral infarction) so FHIR emit preserves the three-digit code.
+  I69:
+    stages: ["mRS 0", "mRS 1", "mRS 2", "mRS 3", "mRS 4", "mRS 5"]
+    annual_advance_probability:
+      "mRS 0": 0.080    # mRS 0→1: ~8 %/yr early-recurrence + silent-infarct accumulation
+      "mRS 1": 0.070
+      "mRS 2": 0.060    # mRS 2→3: slower, but gait decline from aging + silent infarcts
+      "mRS 3": 0.050
+      "mRS 4": 0.040
+      "mRS 5": 0.0      # terminal (handled by reactive mortality)
