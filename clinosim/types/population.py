@@ -135,6 +135,19 @@ class PersonRecord:
     # glycemic_trajectory.yaml``. Empty dict when the person has no
     # DM or the aging path has not fired yet (test fixtures).
     glycemic_trajectory: dict[int, float] = field(default_factory=dict)
+    # Issue #1581 Phase C.3 — single-gene disease carrier status.
+    # Keyed by ICD code, valued with one of:
+    #   "normal"   — no disease allele
+    #   "carrier"  — heterozygous (asymptomatic for recessive conditions)
+    #   "affected" — homozygous (autosomal) or hemizygous male
+    #                (X-linked), symptomatic
+    # Populated at initial-cohort generation via race-conditional SHA
+    # sampling, and at ``register_newborn`` time via Mendelian Punnett
+    # from parent phenotypes. Affected persons also carry the ICD
+    # code on ``chronic_conditions`` so the condition emits through
+    # the standard FHIR disease pipeline. Empty for codes outside the
+    # catalog.
+    carrier_status: dict[str, str] = field(default_factory=dict)
     # Issue #1581 — race / ethnicity (US only). Previously resampled on
     # every ``activate_patient`` call, which meant the same person could
     # see a different race across encounters within a sim. Now stored

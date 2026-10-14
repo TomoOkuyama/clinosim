@@ -281,6 +281,21 @@ def register_newborn(
         ethnicity=getattr(mother, "ethnicity", "") or "",
     )
 
+    # Issue #1581 Phase C.3 — Mendelian inheritance for single-gene
+    # diseases (CF / SCD autosomal recessive in this slice; X-linked
+    # follow-up). Walk the catalog and compute each disease's child
+    # phenotype from (mother, father) phenotypes via SHA-seeded Punnett.
+    # Affected newborns get the ICD code appended to chronic_conditions.
+    from clinosim.locale.loader import load_single_gene_diseases
+    from clinosim.modules.population.single_gene_inheritance import apply_newborn_inheritance
+
+    _sgd_catalog = (load_single_gene_diseases() or {}).get("single_gene_diseases") or {}
+    if _sgd_catalog:
+        _sgd_affected = apply_newborn_inheritance(record, mother, father, _sgd_catalog)
+        for _affected_code in _sgd_affected:
+            if _affected_code not in record.chronic_conditions:
+                record.chronic_conditions.append(_affected_code)
+
     registry.persons[newborn.patient_id] = record
 
     # Attach to the mother's household (same household_id as the mother).

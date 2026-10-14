@@ -355,6 +355,22 @@ def load_glycemic_trajectory() -> dict[str, Any]:
 
 
 @lru_cache(maxsize=1)
+def load_single_gene_diseases() -> dict[str, Any]:
+    """Load per-disease single-gene inheritance config for Issue #1581
+    Phase C.3. Returns the shape documented in
+    ``clinosim/locale/shared/single_gene_diseases.yaml``.
+
+    Top-level shape:
+        single_gene_diseases.<icd>.display -> str
+        single_gene_diseases.<icd>.inheritance_pattern -> str
+          ("autosomal_recessive" | "x_linked_recessive")
+        single_gene_diseases.<icd>.carrier_frequency_by_race ->
+          dict[str, float]  # race → carrier frequency (hetero + homo)
+    """
+    return _load_yaml(_LOCALE_DIR / "shared" / "single_gene_diseases.yaml", fallback={})
+
+
+@lru_cache(maxsize=1)
 def load_chemo_regimens() -> dict[str, Any]:
     """Load chemotherapy regimen library + per-cancer assignment table.
 
