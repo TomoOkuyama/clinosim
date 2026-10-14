@@ -908,6 +908,68 @@ def test_comorbidity_multiplier_diabetic_atherogenesis_on_ihd() -> None:
     assert _comorbidity_multiplier(p, "I25", 2026) == 1.5
 
 
+def test_comorbidity_multiplier_smoking_tier_dispatch_on_copd() -> None:
+    """Smoking → COPD acceleration. Current smokers 2.0x, former
+    smokers 1.3x, never-smokers 1.0x (no rule fires). Verifies the
+    ``requires_smoking_in`` trigger."""
+    from clinosim.modules.population.aging import _comorbidity_multiplier
+
+    p = _alive("PT-SMOKER", age=65)
+    p.chronic_conditions = ["J44"]
+    p.smoking_status = "current"
+    assert _comorbidity_multiplier(p, "J44", 2026) == 2.0
+
+    p.smoking_status = "former"
+    assert _comorbidity_multiplier(p, "J44", 2026) == 1.3
+
+    p.smoking_status = "never"
+    assert _comorbidity_multiplier(p, "J44", 2026) == 1.0
+
+
+def test_comorbidity_multiplier_ckd_g4plus_cardiorenal_step_up() -> None:
+    """CKD G4/G5 bumps the baseline cardiorenal 1.5x on I50 up by
+    an additional 1.4x compound (G1-G3 does NOT get the step-up).
+    Verifies the ``requires_chronic_stage_in`` trigger reads from
+    person.disease_stages[icd]."""
+    from clinosim.modules.population.aging import _comorbidity_multiplier
+
+    p = _alive("PT-CKD-STAGE", age=72)
+    p.chronic_conditions = ["I50", "N18"]
+    p.disease_stages = {"N18": "CKD G3a"}
+    # Only the baseline cardiorenal_ckd_to_hf (1.5x) fires at G3.
+    assert _comorbidity_multiplier(p, "I50", 2026) == 1.5
+
+    p.disease_stages = {"N18": "CKD G4"}
+    # G4 — both the baseline cardiorenal AND the g4plus step-up fire.
+    mult = _comorbidity_multiplier(p, "I50", 2026)
+    assert abs(mult - (1.5 * 1.4)) < 1e-9, f"G4 CKD should compound 1.5 × 1.4 = 2.1 on I50, got {mult}"
+
+    p.disease_stages = {"N18": "CKD G5"}
+    mult_g5 = _comorbidity_multiplier(p, "I50", 2026)
+    assert abs(mult_g5 - (1.5 * 1.4)) < 1e-9, f"G5 CKD should compound 1.5 × 1.4 = 2.1 on I50, got {mult_g5}"
+
+
+def test_comorbidity_multiplier_rule_with_no_triggers_is_skipped() -> None:
+    """A yaml rule missing every trigger field would otherwise
+    blanket-apply its multiplier. The dispatch guard skips it."""
+    import importlib
+
+    from clinosim.modules.population import aging as aging_mod
+
+    # Monkey-patch the loader to inject an empty-trigger rule.
+    bad_rules = {"J44": {"blanket_bug": {"default_multiplier": 10.0}}}
+    original = aging_mod._load_comorbidity_multipliers
+    aging_mod._load_comorbidity_multipliers = lambda: bad_rules  # type: ignore[assignment]
+    try:
+        p = _alive("PT-GUARD", age=50)
+        p.chronic_conditions = ["J44"]
+        # Empty-trigger rule must not fire → still 1.0.
+        assert aging_mod._comorbidity_multiplier(p, "J44", 2026) == 1.0
+    finally:
+        aging_mod._load_comorbidity_multipliers = original  # type: ignore[assignment]
+        importlib.reload(aging_mod)  # restore fresh lru_cache + original binding
+
+
 def test_comorbidity_multiplier_uses_previous_year_gc() -> None:
     """To stay independent of chronic_conditions iteration order, the
     multiplier reads ``glycemic_trajectory[year - 1]``, not
