@@ -183,16 +183,27 @@ def test_generate_writes_inpatient_loop_progress_events() -> None:
         log_file = out / "simulator.log"
         events = [json.loads(line) for line in log_file.read_text().splitlines() if line.strip()]
 
-        # start bracket event
+        # start bracket event. Since Issue #1596 Step 2 the engine
+        # cannot know the inpatient event total upfront (generation
+        # runs INSIDE the dispatch loop), so ``target`` is no longer
+        # emitted on ``inpatient_loop_start`` — the authoritative
+        # count arrives on ``inpatient_loop_done.records``.
         start = next((ev for ev in events if ev["event"] == "inpatient_loop_start"), None)
         assert start is not None, "inpatient_loop_start missing"
         assert start["module"] == "engine"
-        assert isinstance(start.get("target"), int)
-        assert start["target"] >= 0
+
+        # done event carries elapsed_s (added by Issue #174) and the
+        # final record count (Issue #1596 Step 2).
+        done = next((ev for ev in events if ev["event"] == "inpatient_loop_done"), None)
+        assert done is not None
+        assert isinstance(done.get("elapsed_s"), float)
+        assert done["elapsed_s"] >= 0.0
+        assert isinstance(done.get("records"), int)
+        assert done["records"] >= 0
 
         # progress events — at least one (final tick) when the loop fires
         progress = [ev for ev in events if ev["event"] == "inpatient_progress"]
-        if start["target"] > 0:
+        if done["records"] > 0:
             assert progress, "inpatient_progress missing despite loop having events"
             for p in progress:
                 assert p["module"] == "engine"
@@ -201,9 +212,3 @@ def test_generate_writes_inpatient_loop_progress_events() -> None:
                 assert 1 <= p["processed"] <= p["target"]
                 assert isinstance(p.get("concurrent"), int)
                 assert isinstance(p.get("bed_occupancy"), float)
-
-        # done event carries elapsed_s (added by Issue #174)
-        done = next((ev for ev in events if ev["event"] == "inpatient_loop_done"), None)
-        assert done is not None
-        assert isinstance(done.get("elapsed_s"), float)
-        assert done["elapsed_s"] >= 0.0
