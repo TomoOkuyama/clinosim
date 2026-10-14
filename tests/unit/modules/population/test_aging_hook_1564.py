@@ -858,6 +858,56 @@ def test_comorbidity_multiplier_scales_with_glycemic_control() -> None:
     assert _dm_ckd(0.85) == 1.0, "good glycemic control falls through to default_multiplier=1.0"
 
 
+def test_comorbidity_multiplier_cardiorenal_hf_to_ckd() -> None:
+    """A CKD person who ALSO has HF (I50) picks up the 1.5x
+    cardiorenal arm on N18 target. No glycemic tier involved —
+    purely chronic-trigger based."""
+    from clinosim.modules.population.aging import _comorbidity_multiplier
+
+    p = _alive("PT-CARDIORENAL", age=70)
+    p.chronic_conditions = ["N18", "I50"]
+    assert _comorbidity_multiplier(p, "N18", 2026) == 1.5
+
+
+def test_comorbidity_multiplier_compounds_hf_and_dm_on_ckd() -> None:
+    """DM + HF + CKD + poor glycemic control: diabetic nephropathy
+    (2.5x) × cardiorenal (1.5x) compound to 3.75x on N18 target."""
+    from clinosim.modules.population.aging import _comorbidity_multiplier
+
+    p = _alive("PT-TRIPLE", age=70)
+    p.chronic_conditions = ["N18", "E11", "I50"]
+    p.glycemic_trajectory = {2025: 0.3}
+    mult = _comorbidity_multiplier(p, "N18", 2026)
+    assert abs(mult - (2.5 * 1.5)) < 1e-9, f"compound multiplier should be 3.75, got {mult}"
+
+
+def test_comorbidity_multiplier_cardiorenal_ckd_to_hf_and_cor_pulmonale() -> None:
+    """HF progression accelerated by both CKD (1.5x cardiorenal) and
+    COPD (1.3x cor pulmonale). A person with all three sees the
+    compound 1.95x on I50 target."""
+    from clinosim.modules.population.aging import _comorbidity_multiplier
+
+    p = _alive("PT-HF-CKD-COPD", age=75)
+    p.chronic_conditions = ["I50", "N18", "J44"]
+    mult = _comorbidity_multiplier(p, "I50", 2026)
+    assert abs(mult - (1.5 * 1.3)) < 1e-9, f"HF should compound CKD × COPD to 1.95, got {mult}"
+
+
+def test_comorbidity_multiplier_diabetic_atherogenesis_on_ihd() -> None:
+    """DM + IHD person: 1.3x baseline (requires_any match with
+    default_multiplier). Poor glycemic control bumps to 1.5x via
+    the gc tier."""
+    from clinosim.modules.population.aging import _comorbidity_multiplier
+
+    p = _alive("PT-DM-IHD", age=65)
+    p.chronic_conditions = ["I25", "E11"]
+    p.glycemic_trajectory = {2025: 0.85}  # good control
+    assert _comorbidity_multiplier(p, "I25", 2026) == 1.3
+
+    p.glycemic_trajectory = {2025: 0.3}  # poor control
+    assert _comorbidity_multiplier(p, "I25", 2026) == 1.5
+
+
 def test_comorbidity_multiplier_uses_previous_year_gc() -> None:
     """To stay independent of chronic_conditions iteration order, the
     multiplier reads ``glycemic_trajectory[year - 1]``, not

@@ -4,12 +4,16 @@
 # annual stage-advance probability (from `stage_transition.yaml`)
 # is multiplied by the configured factor.
 #
-# Current scope: diabetic nephropathy (DM → CKD acceleration under
-# poor glycemic control). Additional interactions planned as
-# follow-ups:
-#  - cardiorenal syndrome (HF ↔ CKD)
-#  - COPD + HF (cor pulmonale → NYHA progression)
-#  - DM + IHD (CAD risk doubling)
+# Current scope:
+#  - diabetic nephropathy (DM → CKD with gc-tiered multiplier)
+#  - cardiorenal syndrome (bidirectional: HF → CKD AND CKD → HF)
+#  - cor pulmonale (COPD → HF NYHA progression)
+#  - diabetic atherogenesis (DM → IHD CCS progression with gc tier)
+#
+# Still planned as follow-ups:
+#  - Smoking (current/former) → COPD progression (requires schema
+#    extension: trigger field other than requires_any_chronic)
+#  - CKD stage-conditional cardiorenal (steeper multiplier in G4+)
 #
 # Lookup lifecycle (per-person, per-year, per-ICD):
 #   1. aging._disease_progression picks the target ICD's stage
@@ -58,3 +62,59 @@ comorbidity_progression_multipliers:
         - { gc_lt: 0.5, multiplier: 2.5 }
         - { gc_lt: 0.7, multiplier: 1.5 }
       default_multiplier: 1.0
+    # Cardiorenal syndrome (HF → CKD arm). Clinical basis: Ronco 2008
+    # (JACC) cardiorenal syndrome classification (type 2: chronic HF
+    # → chronic kidney dysfunction); Rangaswami 2019 (Circulation)
+    # AHA scientific statement. HF with reduced EF is an independent
+    # driver of CKD progression via renal hypoperfusion, venous
+    # congestion, and RAAS activation. A single-tier 1.5x multiplier
+    # keeps the config simple since NYHA phenotype (HFrEF vs HFpEF)
+    # is not yet modeled at the aging-pass layer.
+    cardiorenal_hf_to_ckd:
+      requires_any_chronic: ["I50"]
+      default_multiplier: 1.5
+
+  # ------------------------------------------------------------------
+  # I50 Heart failure — reciprocal cardiorenal + COPD acceleration
+  # ------------------------------------------------------------------
+  I50:
+    # Cardiorenal syndrome (CKD → HF arm). Clinical basis: ARIC cohort
+    # (Kottgen 2007 JASN) + CRIC cohort show CKD G3+ independently
+    # predicts HF incidence AND NYHA progression. SPRINT (Williamson
+    # 2016 NEJM) subgroup analysis confirms the risk tracks with
+    # eGFR decline. Single-tier 1.5x matches the reciprocal arm;
+    # a stage-conditional refinement (e.g. 2.0x in G4+) is a
+    # planned follow-up when the yaml schema gains stage-tier
+    # support.
+    cardiorenal_ckd_to_hf:
+      requires_any_chronic: ["N18"]
+      default_multiplier: 1.5
+    # Cor pulmonale (COPD → right-heart failure → NYHA progression).
+    # Clinical basis: GOLD 2024 pulmonary hypertension section;
+    # Weitzenblum 1984 (Thorax) long-term oxygen therapy cohort
+    # showed that cor pulmonale is a well-established cause of
+    # worsening NYHA class in advanced COPD. A single-tier 1.3x
+    # multiplier reflects the smaller magnitude than cardiorenal
+    # (COPD-driven right-heart failure is slower-progressing than
+    # the LVEF-mediated remodeling in cardiorenal).
+    cor_pulmonale:
+      requires_any_chronic: ["J44"]
+      default_multiplier: 1.3
+
+  # ------------------------------------------------------------------
+  # I25 Ischemic heart disease — diabetic macrovascular acceleration
+  # ------------------------------------------------------------------
+  # Clinical basis: Haffner 1998 (NEJM) East-West study showed DM
+  # confers CAD risk equivalent to prior MI (CAD risk ~2x
+  # non-diabetics at every age band). UKPDS (Stratton 2000) + DCCT/
+  # EDIC follow-up show macrovascular benefit lags microvascular
+  # (nephropathy / retinopathy) response to glycemic control, so the
+  # multiplier is less sensitive to gc than CKD. Encoded as a
+  # modest poor-control tier (1.5x) and a general DM-with-IHD arm
+  # (1.3x baseline) rather than CKD's steeper 2.5x gradient.
+  I25:
+    diabetic_atherogenesis:
+      requires_any_chronic: ["E10", "E11"]
+      glycemic_tiers:
+        - { gc_lt: 0.5, multiplier: 1.5 }
+      default_multiplier: 1.3
