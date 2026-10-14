@@ -347,11 +347,30 @@ def _comorbidity_multiplier(person: PersonRecord, target_icd: str, year: int) ->
     the computation order-independent of the chronic_conditions
     iteration inside ``_disease_progression``. Multiple applicable
     rules compound multiplicatively.
+
+    Rule triggers (all supplied triggers must match for the rule to
+    fire; a trigger key omitted from the yaml does not constrain
+    the rule; a rule with NO triggers at all is skipped — otherwise
+    it would blanket-apply, almost certainly a yaml bug):
+
+    * ``requires_any_chronic`` — set-intersect against
+      ``person.chronic_conditions``.
+    * ``requires_smoking_in`` — set-membership on
+      ``person.smoking_status`` (``"never"`` / ``"former"`` /
+      ``"current"``).
+    * ``requires_chronic_stage_in`` — map ``{icd: [stage, ...]}``.
+      For every listed ICD the person's current stage from
+      ``person.disease_stages[icd]`` must be in the configured
+      list. Lets a rule fire only once a *different* chronic
+      condition has progressed past a threshold (e.g. steeper
+      cardiorenal multiplier when CKD has reached G4+).
     """
     rules = _load_comorbidity_multipliers().get(target_icd)
     if not rules:
         return 1.0
     chronic = set(person.chronic_conditions or [])
+    smoking = str(getattr(person, "smoking_status", "") or "")
+    stages = person.disease_stages or {}
     # glycemic_trajectory keyed by year (dict[int, float]); 1.0 is
     # excellent chronic control, 0.0 is very poor. Reading year-1
     # gives the control attained through the END of the prior year,
@@ -362,8 +381,25 @@ def _comorbidity_multiplier(person: PersonRecord, target_icd: str, year: int) ->
     gc_prev = float((person.glycemic_trajectory or {}).get(year - 1, 0.7))
     out = 1.0
     for _rule_name, rule in rules.items():
-        trigger = set(rule.get("requires_any_chronic") or ())
-        if not trigger or not (trigger & chronic):
+        trigger_chronic = set(rule.get("requires_any_chronic") or ())
+        if trigger_chronic and not (trigger_chronic & chronic):
+            continue
+        trigger_smoking = set(rule.get("requires_smoking_in") or ())
+        if trigger_smoking and smoking not in trigger_smoking:
+            continue
+        trigger_stage_map = rule.get("requires_chronic_stage_in") or {}
+        stage_ok = True
+        for icd, allowed in trigger_stage_map.items():
+            if str(stages.get(icd, "")) not in set(allowed):
+                stage_ok = False
+                break
+        if not stage_ok:
+            continue
+        # At least one trigger must have constrained the rule;
+        # otherwise an empty-trigger rule would blanket-apply its
+        # multiplier to every person — almost certainly a yaml bug,
+        # so skip silently.
+        if not (trigger_chronic or trigger_smoking or trigger_stage_map):
             continue
         mult = float(rule.get("default_multiplier", 1.0))
         for tier in rule.get("glycemic_tiers") or ():

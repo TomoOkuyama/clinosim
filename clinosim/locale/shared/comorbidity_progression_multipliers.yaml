@@ -9,11 +9,20 @@
 #  - cardiorenal syndrome (bidirectional: HF → CKD AND CKD → HF)
 #  - cor pulmonale (COPD → HF NYHA progression)
 #  - diabetic atherogenesis (DM → IHD CCS progression with gc tier)
+#  - smoking → COPD progression (current smoker 2.0x, former 1.3x)
+#  - CKD stage-conditional cardiorenal (G4+ bumps HF multiplier up)
 #
-# Still planned as follow-ups:
-#  - Smoking (current/former) → COPD progression (requires schema
-#    extension: trigger field other than requires_any_chronic)
-#  - CKD stage-conditional cardiorenal (steeper multiplier in G4+)
+# Trigger fields recognised by `_comorbidity_multiplier` (all
+# optional; a rule fires only when every supplied trigger matches):
+#
+#  requires_any_chronic   -> list of ICDs. ANY match against
+#                            person.chronic_conditions activates.
+#  requires_smoking_in    -> list of smoking_status values
+#                            ("current"/"former"/"never"). ANY match.
+#  requires_target_stage_in -> list of stage strings. Matched against
+#                            person.disease_stages[target_icd], so the
+#                            rule only fires when the target itself
+#                            has advanced to one of the listed stages.
 #
 # Lookup lifecycle (per-person, per-year, per-ICD):
 #   1. aging._disease_progression picks the target ICD's stage
@@ -100,6 +109,41 @@ comorbidity_progression_multipliers:
     cor_pulmonale:
       requires_any_chronic: ["J44"]
       default_multiplier: 1.3
+    # CKD stage-conditional cardiorenal step-up. In addition to the
+    # baseline ``cardiorenal_ckd_to_hf`` (1.5x triggered on any CKD),
+    # advanced CKD (G4-G5) carries disproportionately worse cardiac
+    # outcomes — HF incidence and NYHA progression accelerate
+    # further as eGFR drops below 30. Clinical basis: ADVANCE +
+    # CRIC data stratified by eGFR category; SPRINT target-eGFR
+    # subgroup HR for HF events roughly doubles in G4+ vs G3.
+    # This rule compounds multiplicatively with the baseline
+    # ``cardiorenal_ckd_to_hf`` so a G4 CKD person on HF gets
+    # 1.5 × 1.4 = 2.1x NYHA progression.
+    cardiorenal_ckd_g4plus:
+      requires_chronic_stage_in:
+        N18: ["CKD G4", "CKD G5"]
+      default_multiplier: 1.4
+
+  # ------------------------------------------------------------------
+  # J44 COPD — smoking-driven acceleration
+  # ------------------------------------------------------------------
+  # Clinical basis: GOLD 2024 recommends smoking cessation as the
+  # single most effective intervention for slowing FEV1 decline;
+  # Fletcher & Peto 1977 (BMJ) established the quit-and-stay-quit
+  # recovery of lung-function decline rate. Encoded as a two-tier
+  # multiplier on GOLD stage transitions: active smokers get the
+  # steepest acceleration (2.0x — matches the Fletcher-Peto
+  # susceptible-smoker trajectory), former smokers retain a modest
+  # residual (1.3x — the ex-smoker FEV1 decline rate converges on
+  # never-smoker over ~10 years but is still measurably faster
+  # than baseline).
+  J44:
+    smoking_former_copd:
+      requires_smoking_in: ["former"]
+      default_multiplier: 1.3
+    smoking_current_copd:
+      requires_smoking_in: ["current"]
+      default_multiplier: 2.0
 
   # ------------------------------------------------------------------
   # I25 Ischemic heart disease — diabetic macrovascular acceleration
