@@ -78,3 +78,22 @@ single_gene_diseases:
       native_american: 0.015
       other:           0.080   # Mediterranean / Middle Eastern bulk
       default:         0.030
+
+  # Hemophilia A (F8, Xq28). Clinical basis: WFH 2024 Annual Global
+  # Survey + CDC Universal Data Collection program. X-linked
+  # recessive, male incidence ~1/5000 live births globally with
+  # minimal race variation (unlike G6PD) — the clotting-factor
+  # mutations are not under the same regional selection pressure.
+  # Severe disease is lifelong and requires factor replacement; the
+  # yaml value is the X-chromosome mutant-allele frequency, equal
+  # to P(affected male) ≈ 0.0002.
+  D66:
+    display: "Hereditary factor VIII deficiency"
+    inheritance_pattern: x_linked_recessive
+    carrier_frequency_by_race:
+      white:           0.0002
+      black:           0.0002
+      asian:           0.0002
+      native_american: 0.0002
+      other:           0.0002
+      default:         0.0002
