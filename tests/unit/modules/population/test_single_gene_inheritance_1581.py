@@ -354,3 +354,56 @@ def test_marfan_catalog_entry_loads() -> None:
     assert cfg["inheritance_pattern"] == "autosomal_dominant"
     freq = cfg["carrier_frequency_by_race"]["default"]
     assert 0.0001 < freq < 0.001
+
+
+def test_hemophilia_c_catalog_entry_is_autosomal_recessive() -> None:
+    """Hemophilia C (D68.1, Factor XI deficiency) is **autosomal
+    recessive** — unlike hemophilia A/B which are X-linked. The
+    catalog must reflect this inheritance distinction, and the
+    Ashkenazi-weighted ``other`` entry should be an order of
+    magnitude above the general-population ``default``."""
+    from clinosim.locale.loader import load_single_gene_diseases
+
+    catalog = (load_single_gene_diseases() or {}).get("single_gene_diseases") or {}
+    assert "D68.1" in catalog, "Hemophilia C (D68.1) missing from single-gene catalog"
+    cfg = catalog["D68.1"]
+    assert cfg["inheritance_pattern"] == "autosomal_recessive"
+    freq_other = cfg["carrier_frequency_by_race"]["other"]
+    freq_default = cfg["carrier_frequency_by_race"]["default"]
+    assert freq_other > freq_default * 5, (
+        f"Ashkenazi-weighted 'other' ({freq_other}) should be ≥5x 'default' ({freq_default})"
+    )
+
+
+def test_thalassemia_catalog_entries_are_autosomal_recessive_with_region_pattern() -> None:
+    """α-thalassemia (D56.0) and β-thalassemia (D56.1) are both
+    autosomal recessive. The yaml must encode the known regional
+    pattern — SE Asian ``asian`` and Mediterranean ``other`` carry
+    at well above the ``white`` / general-population baseline."""
+    from clinosim.locale.loader import load_single_gene_diseases
+
+    catalog = (load_single_gene_diseases() or {}).get("single_gene_diseases") or {}
+    for code in ("D56.0", "D56.1"):
+        assert code in catalog, f"{code} thalassemia missing from single-gene catalog"
+        cfg = catalog[code]
+        assert cfg["inheritance_pattern"] == "autosomal_recessive"
+        freqs = cfg["carrier_frequency_by_race"]
+        assert freqs["asian"] > freqs["white"], (
+            f"{code}: asian carrier rate must exceed white (SE Asian / South Asian high)"
+        )
+        assert freqs["other"] > freqs["white"], (
+            f"{code}: other (Mediterranean / Middle Eastern) must exceed white baseline"
+        )
+
+
+def test_thalassemia_alpha_higher_asian_carrier_than_beta() -> None:
+    """α-thalassemia carrier rate in East/SE Asia is substantially
+    higher than β-thalassemia in the same region (SE Asia is the
+    canonical α-thal belt; β-thal is Mediterranean / South Asian
+    heavy). Encoded carrier rates should reflect this."""
+    from clinosim.locale.loader import load_single_gene_diseases
+
+    catalog = (load_single_gene_diseases() or {}).get("single_gene_diseases") or {}
+    alpha_asian = catalog["D56.0"]["carrier_frequency_by_race"]["asian"]
+    beta_asian = catalog["D56.1"]["carrier_frequency_by_race"]["asian"]
+    assert alpha_asian > beta_asian, f"α-thal 'asian' ({alpha_asian}) should exceed β-thal 'asian' ({beta_asian})"
