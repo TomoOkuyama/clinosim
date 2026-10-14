@@ -143,6 +143,15 @@ chronic_prevalence:
   M17:      # Osteoarthritis — ~15% age 50+, ~30% age 70+
     "50-69": 0.15
     "70-99": 0.30
+  G35:      # Multiple sclerosis — US prevalence ~0.1 % (Compton 2008
+            # Lancet MS Atlas; Wallin 2019 Neurology US registry).
+            # Northern-latitude gradient makes US one of the higher-
+            # prevalence regions globally (vs ~0.015 % JP). Peak age-
+            # of-onset 20-40, so the prevalent-case band widens in
+            # middle age before mortality tilts the elderly tail.
+    "20-39": 0.0010
+    "40-59": 0.0015
+    "60-99": 0.0010
 
   # --- Mental health (Bundle-C, Issues #1127 + #1135, 2026-09-05) ----------
   # NHANES 2021-23 (PHQ-9 ≥ 10) US adult depression: 15-17 % (18-39),

@@ -47,6 +47,7 @@ __all__ = [
     "K70_STAGES",
     "G20_STAGES",
     "I48_STAGES",
+    "G35_STAGES",
     # Stage-selection weights (sum to 1.0)
     "N18_STAGE_WEIGHTS",
     "I50_STAGE_WEIGHTS_MILD",
@@ -59,6 +60,7 @@ __all__ = [
     "K70_STAGE_WEIGHTS",
     "G20_STAGE_WEIGHTS",
     "I48_STAGE_WEIGHTS",
+    "G35_STAGE_WEIGHTS",
 ]
 
 
@@ -136,6 +138,20 @@ STAGE_SEVERITY: dict[str, dict[str, float]] = {
         "Persistent": 0.35,
         "Long-standing persistent": 0.55,
         "Permanent": 0.70,
+    },
+    # EDSS banded staging for multiple sclerosis (Kurtzke 1983
+    # Neurology). The full EDSS has 20 half-integer levels (0, 1,
+    # 1.5, ..., 10); banding into 4 clinically-meaningful groups
+    # keeps the simulator schema uniform with other staged
+    # chronic diseases while preserving the key clinical gates
+    # (ambulatory → walking impairment → wheelchair → bedridden).
+    # Severity grows faster than in G20 because MS has a
+    # steeper functional-decline curve once mobility is lost.
+    "G35": {
+        "EDSS 0-2": 0.10,  # Minimal / sensory-only deficits, fully ambulatory
+        "EDSS 2.5-5": 0.30,  # Mild-moderate disability, ambulatory
+        "EDSS 5.5-7": 0.60,  # Walking impairment, assistive device
+        "EDSS 7.5-10": 0.85,  # Wheelchair → bedridden
     },
 }
 
@@ -327,3 +343,31 @@ remain the dominant initial presentation) with a progressive tail.
 Empirical tuning for the synthetic simulator, consistent with
 AFNET registry cross-sectional distribution and ESC AF registry
 baseline-visit shape."""
+
+
+# ---------------------------------------------------------------------------
+# G35 — Multiple sclerosis (banded EDSS)
+# ---------------------------------------------------------------------------
+
+G35_STAGES: tuple[str, ...] = (
+    "EDSS 0-2",
+    "EDSS 2.5-5",
+    "EDSS 5.5-7",
+    "EDSS 7.5-10",
+)
+"""Kurtzke 1983 (Neurology 33:1444) Expanded Disability Status
+Scale, banded into 4 clinically-meaningful groups: minimal
+(ambulatory, no mobility impairment), mild-to-moderate (ambulatory
+with some deficit), walking impairment (requires assistive device
+or orthotic), wheelchair/bedridden. The full 20-level half-integer
+scale is standard clinically but overkill for a year-scale aging
+simulator; the banded form preserves the key functional gates for
+downstream severity gating."""
+
+G35_STAGE_WEIGHTS: tuple[float, ...] = (0.45, 0.35, 0.15, 0.05)
+"""Cross-sectional prevalent-case MS distribution. Mode at the
+mild-end band (EDSS 0-2 captures newly-diagnosed + stable RRMS),
+with a progressive tail. Empirical tuning for the synthetic
+simulator, consistent with Confavreux 2006 (NEJM) natural-history
+median EDSS trajectory + Wallin 2019 (Neurology) US MS registry
+cross-sectional disability distribution."""
