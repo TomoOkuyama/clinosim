@@ -311,6 +311,30 @@ def _sample_insurance(demo: dict, age: int, rng: np.random.Generator) -> str:
     return ""
 
 
+def _glycemic_control_at_year(person: PersonRecord, as_of_year: int | None) -> float | None:
+    """Issue #1581 DM extension — look up the glycemic-control value
+    on ``person.glycemic_trajectory`` for the encounter year, floor-
+    matching to the latest history year ≤ ``as_of_year``. Returns
+    ``None`` when the trajectory is empty (aging path has not fired
+    for this person — test fixtures / pre-#1581 cohorts) or when the
+    earliest history year is after ``as_of_year`` (the person had
+    not yet been staged at that date).
+
+    ``as_of_year=None`` returns the latest trajectory value (legacy
+    activator-only path when the engine does not thread encounter
+    year through).
+    """
+    trajectory = getattr(person, "glycemic_trajectory", {}) or {}
+    if not trajectory:
+        return None
+    if as_of_year is None:
+        return trajectory[max(trajectory)]
+    applicable_years = [y for y in trajectory if y <= as_of_year]
+    if not applicable_years:
+        return None
+    return trajectory[max(applicable_years)]
+
+
 def _stage_at_year(person: PersonRecord, code_base: str, as_of_year: int | None) -> str:
     """Issue #1581 encounter-time stage lookup.
 
@@ -418,9 +442,20 @@ def activate_patient(
         code_base = code.split(".")[0]
         if code_base in ("E11", "E10"):
             gc_draw = float(rng.random())  # replaces the removed E11 stage uniform (1 draw)
-            # Cube skews control toward "good" (most diabetics are reasonably controlled):
-            # HbA1c median ~6.8%, ~55% < 7%, with a poorly-controlled tail to ~12%.
-            glycemic_control = 1.0 - gc_draw**3
+            # Issue #1581 — glycemic_trajectory is populated by the aging
+            # ``_disease_progression`` DM branch with a per-year gc value.
+            # When present and the encounter year has an applicable
+            # history entry, use it instead of a fresh gc_draw so the
+            # patient's HbA1c reflects the natural-history drift
+            # recorded for that specific year. ``gc_draw`` is still
+            # consumed (value discarded) to keep the per-patient RNG
+            # stream byte-identical with pre-#1581 cohorts for codes
+            # that aren't glycemic-trajectory-covered.
+            glycemic_control = _glycemic_control_at_year(person, as_of_year)
+            if glycemic_control is None:
+                # Cube skews control toward "good" (most diabetics are reasonably controlled):
+                # HbA1c median ~6.8%, ~55% < 7%, with a poorly-controlled tail to ~12%.
+                glycemic_control = 1.0 - gc_draw**3
             stage = f"HbA1c {hba1c_from_glycemic_control(glycemic_control):.1f}%"
         else:
             glycemic_control = None

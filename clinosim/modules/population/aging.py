@@ -315,6 +315,62 @@ def _load_stage_transitions() -> dict[str, dict]:
     return data.get("stage_transitions") or {}
 
 
+@lru_cache(maxsize=1)
+def _load_glycemic_trajectory_config() -> dict[str, dict]:
+    """Return the per-ICD glycemic-trajectory config from
+    ``glycemic_trajectory.yaml``. Cached singleton. Returns empty
+    dict when yaml is missing — DM pass becomes safe no-op."""
+    from clinosim.locale.loader import load_glycemic_trajectory
+
+    data = load_glycemic_trajectory()
+    return data.get("glycemic_trajectory") or {}
+
+
+# Diabetes ICD codes that drive the glycemic trajectory. Mirrors the
+# activator's E11/E10 branch set.
+_GLYCEMIC_ICDS: frozenset[str] = frozenset({"E11", "E10"})
+
+
+def _advance_glycemic_trajectory(
+    person: PersonRecord,
+    year: int,
+    prng: np.random.Generator,
+    dm_cfg: dict,
+) -> None:
+    """Per-person annual glycemic-control update for diabetes
+    (Issue #1581 DM extension).
+
+    First touch: sample initial ``gc`` matching the activator's
+    ``gc = 1 - rand()^3`` formula so Phase A initial-touch cohort
+    distribution matches the activator-only path.
+
+    Subsequent years: ``gc_next = clamp(gc_prev + rng.normal(mean,
+    sd), gc_min, gc_max)``. Dense per-year history so an encounter-
+    time lookup for any year finds the correct value.
+    """
+    history = person.glycemic_trajectory
+    gc_drift_mean = float(dm_cfg.get("gc_drift_mean", 0.0))
+    gc_drift_sd = float(dm_cfg.get("gc_drift_sd", 0.0))
+    gc_min = float(dm_cfg.get("gc_min", 0.0))
+    gc_max = float(dm_cfg.get("gc_max", 1.0))
+
+    if not history:
+        # First touch — mirror the activator's gc_draw formula so
+        # the per-cohort HbA1c distribution at year 0 matches what
+        # the activator-only path produced pre-#1581.
+        gc_draw = float(prng.random())
+        gc = 1.0 - gc_draw**3
+        gc = max(gc_min, min(gc_max, gc))
+        history[year] = gc
+        return
+
+    latest_year = max(history)
+    gc_prev = history[latest_year]
+    gc_next = gc_prev + float(prng.normal(gc_drift_mean, gc_drift_sd))
+    gc_next = max(gc_min, min(gc_max, gc_next))
+    history[year] = gc_next
+
+
 # Initial-stage weights for the stage-progression targets. Values
 # mirror ``clinosim.modules.patient._severity_activation`` so a cohort
 # whose stage is sampled at Phase A (aging init) matches, in
@@ -396,16 +452,27 @@ def _disease_progression(
     advanced stage propagates downstream automatically (narrative,
     FHIR Condition.stage, physiology severity_score).
 
-    Current scope: CKD (N18), COPD (J44), heart failure (I50).
-    Diabetes glycemic trajectory and dementia severity are planned
-    follow-ups requiring activator refactors beyond the stage-string
-    pattern used here, so they are not extensions of this file alone.
+    Current scope: CKD (N18), COPD (J44), heart failure (I50), IHD
+    (I25), dementia (F00). Diabetes (E11 / E10) uses a continuous
+    glycemic-control trajectory instead of discrete stages — see
+    the E11/E10 branch below and ``locale/shared/glycemic_
+    trajectory.yaml`` for the drift parameters.
     """
     cfg_all = _load_stage_transitions()
-    if not cfg_all:
+    glycemic_cfg = _load_glycemic_trajectory_config()
+    if not cfg_all and not glycemic_cfg:
         return
     for code in person.chronic_conditions:
         code_base = code.split(".")[0]
+        # Issue #1581 DM extension — glycemic trajectory for diabetes.
+        # Different data shape (continuous float year → gc) than the
+        # discrete stage-transition path, so handle it in a dedicated
+        # branch BEFORE the stage lookup.
+        if code_base in _GLYCEMIC_ICDS:
+            dm_cfg = glycemic_cfg.get(code_base)
+            if dm_cfg:
+                _advance_glycemic_trajectory(person, year, prng, dm_cfg)
+            continue
         cfg = cfg_all.get(code_base)
         if cfg is None:
             continue
