@@ -786,13 +786,25 @@ def run_beta(
     # captured by closure; only the two names rebound inside the body
     # (``concurrent_patients`` scalar and ``active_discharges`` list)
     # need ``nonlocal``.
-    def _dispatch_hospital_events(events: list[LifeEvent], total: int, label: str = "inpatient") -> None:
-        nonlocal concurrent_patients, active_discharges
+    # Issue #1596 Step 1 — cumulative progress counter so per-chunk
+    # dispatch still emits the same 50-cadence / final-event progress
+    # events as the pre-#1596 single-call path. Previously ``idx`` was
+    # local to the function, which meant per-month chunks (often < 50
+    # events) never hit the modulo trigger and never hit the
+    # ``idx == total - 1`` end trigger (``total`` is the global
+    # n_hosp, not the chunk size). Caught by
+    # ``tests/integration/test_sim_log_e2e.py::
+    # test_generate_writes_inpatient_loop_progress_events``.
+    _progress_cumul = 0
 
-        for idx, event in enumerate(events):
-            if (idx + 1) % 50 == 0 or idx == total - 1:
+    def _dispatch_hospital_events(events: list[LifeEvent], total: int, label: str = "inpatient") -> None:
+        nonlocal concurrent_patients, active_discharges, _progress_cumul
+
+        for event in events:
+            _progress_cumul += 1
+            if _progress_cumul % 50 == 0 or _progress_cumul == total:
                 print(
-                    f"  Simulating {label} {idx + 1}/{total} "
+                    f"  Simulating {label} {_progress_cumul}/{total} "
                     f"(concurrent={concurrent_patients}, "
                     f"bed_occ={hospital_state.bed_occupancy:.0%})...",
                     flush=True,
@@ -800,7 +812,7 @@ def run_beta(
                 sim_log.info(
                     "engine",
                     f"{label}_progress",
-                    processed=idx + 1,
+                    processed=_progress_cumul,
                     target=total,
                     concurrent=concurrent_patients,
                     bed_occupancy=round(hospital_state.bed_occupancy, 3),
