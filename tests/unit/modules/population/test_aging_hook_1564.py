@@ -213,6 +213,50 @@ def test_disease_progression_parkinson_eventually_advances() -> None:
     )
 
 
+def test_disease_progression_initialises_atrial_fibrillation_stage() -> None:
+    """I48 person without a stage picks up an AHA/ACC/HRS 2024
+    classification label on first ``_disease_progression`` touch."""
+    p = _alive("PT-AF-INIT", age=70)
+    p.chronic_conditions = ["I48"]
+    _disease_progression(
+        p,
+        2026,
+        np.random.default_rng(aging_sub_seed(p.person_id, 2026, "_disease_progression")),
+        {},
+    )
+    assert "I48" in p.disease_stages
+    assert p.disease_stages["I48"] in (
+        "Paroxysmal",
+        "Persistent",
+        "Long-standing persistent",
+        "Permanent",
+    )
+
+
+def test_disease_progression_af_eventually_progresses() -> None:
+    """A paroxysmal AF person over 15 years at the de Vos 2010 rates
+    reaches persistent-or-worse in the majority of Monte-Carlo
+    trials. Loose lower bound tolerates variance."""
+    hit_advanced = 0
+    trials = 100
+    for i in range(trials):
+        p = _alive(f"PT-AF-{i:04d}", age=65)
+        p.chronic_conditions = ["I48"]
+        p.disease_stages = {"I48": "Paroxysmal"}
+        p.disease_stage_history = {"I48": {2025: "Paroxysmal"}}
+        for yr in range(15):
+            _disease_progression(
+                p,
+                2026 + yr,
+                np.random.default_rng(aging_sub_seed(p.person_id, 2026 + yr, "_disease_progression")),
+                {},
+            )
+        if p.disease_stages["I48"] != "Paroxysmal":
+            hit_advanced += 1
+    # 0.15 /yr compounded over 15 years → ~90 % reach persistent+.
+    assert hit_advanced >= 60, f"only {hit_advanced}/{trials} AF cohort advanced beyond paroxysmal in 15 years"
+
+
 def test_disease_progression_init_does_not_double_step() -> None:
     """The year a stage is first initialised, no advancement
     happens — only ONE write per init year."""
