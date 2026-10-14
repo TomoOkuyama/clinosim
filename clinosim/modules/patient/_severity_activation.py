@@ -44,6 +44,7 @@ __all__ = [
     "I10_STAGES",
     "I25_STAGES",
     "F00_STAGES",
+    "K70_STAGES",
     # Stage-selection weights (sum to 1.0)
     "N18_STAGE_WEIGHTS",
     "I50_STAGE_WEIGHTS_MILD",
@@ -53,6 +54,7 @@ __all__ = [
     "I10_STAGE_WEIGHTS",
     "I25_STAGE_WEIGHTS",
     "F00_STAGE_WEIGHTS",
+    "K70_STAGE_WEIGHTS",
 ]
 
 
@@ -101,6 +103,17 @@ STAGE_SEVERITY: dict[str, dict[str, float]] = {
     # F00 risk_multipliers in demographics.yaml already consume severity
     # for hip_fracture / aspiration_pneumonia / UTI / vertebral fracture).
     "F00": {"CDR 0.5": 0.15, "CDR 1": 0.35, "CDR 2": 0.60, "CDR 3": 0.85},
+    # Child-Pugh class A/B/C for liver cirrhosis (alcoholic K70, other
+    # chronic liver disease K74). Pugh 1973 (Br J Surg) 5-9 / 7-9 /
+    # 10-15 scoring over 5 clinical / lab parameters. 1-year
+    # mortality tracks class A ~5% / B ~20% / C ~55%, so severity
+    # score climbs steeply. Score lifts the physiology coupling
+    # for synthetic-function-dependent lab shifts (albumin,
+    # bilirubin, PT/INR, platelets, ammonia) and complications
+    # (variceal bleeding risk, HE, ascites) once the physiology
+    # engine's K70/K74 branches wire in.
+    "K70": {"Child-Pugh A": 0.15, "Child-Pugh B": 0.50, "Child-Pugh C": 0.85},
+    "K74": {"Child-Pugh A": 0.15, "Child-Pugh B": 0.50, "Child-Pugh C": 0.85},
 }
 
 
@@ -221,3 +234,24 @@ impairment surveys (JP)."""
 depends heavily on cardiology follow-up practices; this vector produces
 a balanced cohort for downstream cardiac-troponin / stress-test
 generation."""
+
+
+# ---------------------------------------------------------------------------
+# K70 / K74 — Liver cirrhosis (Child-Pugh classification)
+# ---------------------------------------------------------------------------
+
+K70_STAGES: tuple[str, ...] = ("Child-Pugh A", "Child-Pugh B", "Child-Pugh C")
+"""Child-Pugh A (score 5-6: compensated) → B (7-9: significant
+functional compromise) → C (10-15: decompensated). Shared label set
+for K70 (alcoholic liver disease / alcoholic cirrhosis) and K74
+(other fibrosis / non-alcoholic cirrhosis). Full stage strings — no
+prefix added at emit time."""
+
+K70_STAGE_WEIGHTS: tuple[float, ...] = (0.55, 0.30, 0.15)
+"""Diagnosed-cirrhosis cohort distribution. Mode at Child-Pugh A
+(compensated, often an incidental or early-diagnosis finding),
+with a progressive tail — class C is the end-stage subset facing
+decompensation events. Empirical tuning for the synthetic
+simulator consistent with D'Amico 2006 (J Hepatol) natural-history
+meta-analysis prevalence shape at diagnosis + first liver clinic
+contact."""

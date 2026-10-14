@@ -129,6 +129,48 @@ def test_disease_progression_initialises_copd_stage() -> None:
     assert p.disease_stages["J44"] in ("GOLD 1", "GOLD 2", "GOLD 3", "GOLD 4")
 
 
+def test_disease_progression_initialises_cirrhosis_stage() -> None:
+    """Both K70 (alcoholic) and K74 (non-alcoholic) cirrhosis
+    initialise to a Child-Pugh A/B/C stage on first touch."""
+    for icd in ("K70", "K74"):
+        p = _alive(f"PT-CIRRHOSIS-{icd}", age=65)
+        p.chronic_conditions = [icd]
+        _disease_progression(
+            p,
+            2026,
+            np.random.default_rng(aging_sub_seed(p.person_id, 2026, "_disease_progression")),
+            {},
+        )
+        assert icd in p.disease_stages
+        assert p.disease_stages[icd] in ("Child-Pugh A", "Child-Pugh B", "Child-Pugh C")
+
+
+def test_disease_progression_cirrhosis_eventually_reaches_decompensated() -> None:
+    """A compensated (Child-Pugh A) K70 person run through 20 years
+    of progression Monte-Carlo at least sometimes decompensates to
+    Child-Pugh C. Deterministic seed keeps the result stable."""
+    hit_c = 0
+    trials = 100
+    for i in range(trials):
+        p = _alive(f"PT-K70-DECOMP-{i:04d}", age=55)
+        p.chronic_conditions = ["K70"]
+        p.disease_stages = {"K70": "Child-Pugh A"}
+        p.disease_stage_history = {"K70": {2025: "Child-Pugh A"}}
+        for yr in range(20):
+            _disease_progression(
+                p,
+                2026 + yr,
+                np.random.default_rng(aging_sub_seed(p.person_id, 2026 + yr, "_disease_progression")),
+                {},
+            )
+        if p.disease_stages["K70"] == "Child-Pugh C":
+            hit_c += 1
+    # D'Amico 2006: ~5-10 %/yr A→B then ~10-12 %/yr B→C means a
+    # non-trivial fraction reaches C over 20 years. Loose lower
+    # bound to tolerate Monte-Carlo variance.
+    assert hit_c >= 5, f"only {hit_c}/{trials} K70 cohort reached Child-Pugh C in 20 years"
+
+
 def test_disease_progression_init_does_not_double_step() -> None:
     """The year a stage is first initialised, no advancement
     happens — only ONE write per init year."""

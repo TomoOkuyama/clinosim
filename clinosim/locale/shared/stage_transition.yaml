@@ -128,3 +128,42 @@ stage_transitions:
       "CDR 1": 0.180     # mild → moderate: ~18 %/yr
       "CDR 2": 0.200     # moderate → severe: ~20 %/yr (fastest step)
       "CDR 3": 0.0       # terminal (handled by reactive mortality)
+
+  # ------------------------------------------------------------------
+  # K70 Alcoholic liver disease / cirrhosis (Child-Pugh A/B/C)
+  # ------------------------------------------------------------------
+  # Clinical basis: D'Amico 2006 (J Hepatol) natural-history
+  # meta-analysis of compensated → decompensated progression;
+  # Pugh 1973 (Br J Surg) original Child-Pugh scoring. 1-year
+  # mortality in untreated cohorts tracks ~5 % (A) / ~20 % (B) /
+  # ~55 % (C), so decompensation is the dominant time-driven
+  # process. Rates below reflect an all-cohort baseline without
+  # conditioning on continued alcohol use, HCC surveillance, or
+  # transplant availability — treatment- and lifestyle-conditional
+  # refinement is a planned Phase 3 concern. Child-Pugh C is
+  # terminal here; further mortality is driven by condition-
+  # reactive qx in ``condition_mortality_smr.yaml``.
+  K70:
+    stages: ["Child-Pugh A", "Child-Pugh B", "Child-Pugh C"]
+    annual_advance_probability:
+      "Child-Pugh A": 0.070   # A → B: ~7 %/yr (D'Amico ~5-10 %)
+      "Child-Pugh B": 0.120   # B → C: faster decline
+      "Child-Pugh C": 0.0     # terminal (handled by reactive mortality)
+
+  # ------------------------------------------------------------------
+  # K74 Fibrosis & cirrhosis of liver (non-alcoholic etiology)
+  # ------------------------------------------------------------------
+  # Clinical basis: same D'Amico 2006 natural-history data applies;
+  # the non-alcoholic (NAFLD / NASH / viral / autoimmune) etiologies
+  # follow the same Child-Pugh scoring and have similar decompensation
+  # rates once cirrhosis is established, though mean time to
+  # cirrhosis from fibrosis is slower than alcoholic. The progression
+  # table encodes the post-cirrhosis trajectory, which is etiology-
+  # agnostic. Terminal and reactive-mortality follow the same
+  # pattern as K70.
+  K74:
+    stages: ["Child-Pugh A", "Child-Pugh B", "Child-Pugh C"]
+    annual_advance_probability:
+      "Child-Pugh A": 0.060   # A → B: slightly slower than alcoholic
+      "Child-Pugh B": 0.110
+      "Child-Pugh C": 0.0     # terminal (handled by reactive mortality)
