@@ -877,8 +877,6 @@ def test_disease_progression_dm_poor_control_accelerates_ckd() -> None:
     reach CKD G3b/G4/G5 faster than DM-free CKD cohorts over 20
     years. Not byte-exact — a Bernoulli monte-carlo over 200
     persons × 20 years. Deterministic seed keeps the result stable."""
-    from collections import Counter
-
     # Metric: mean CKD stage index (0=G1 ... 5=G5) after 8 years. The
     # window is short enough that few persons plateau at G5, so the
     # acceleration gap is observable as a stage-index shift. Fraction-
