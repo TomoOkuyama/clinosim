@@ -97,3 +97,20 @@ single_gene_diseases:
       native_american: 0.0002
       other:           0.0002
       default:         0.0002
+
+  # Hemophilia B (F9, Xq27.1 — Christmas disease). Clinical basis:
+  # WFH 2024 Annual Global Survey. Male incidence ~1/25000 live
+  # births, ~4-5x rarer than hemophilia A (D66) but same X-linked
+  # recessive inheritance. Clinically similar presentation
+  # (bleeding diathesis), different clotting factor (IX vs VIII).
+  # No significant race variation reported.
+  D67:
+    display: "Hereditary factor IX deficiency"
+    inheritance_pattern: x_linked_recessive
+    carrier_frequency_by_race:
+      white:           0.00004
+      black:           0.00004
+      asian:           0.00004
+      native_american: 0.00004
+      other:           0.00004
+      default:         0.00004
