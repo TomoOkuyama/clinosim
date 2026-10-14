@@ -766,7 +766,6 @@ def advance_population(
     registry: object,
     year: int,
     locale: str,
-    person_filter: object | None = None,
 ) -> None:
     """Advance the population by one simulated year (Phase 2).
 
@@ -782,15 +781,11 @@ def advance_population(
     ``locale/{locale}/demographics.yaml:chronic_prevalence`` — the
     single source of truth also used by the initial-cohort sampler.
 
-    ``person_filter`` (Issue #1581 Phase B) is an optional callable
-    ``(person) -> bool``. When supplied, only persons for which the
-    callable returns True receive the aging passes. Used by the
-    engine's newborn aging-catch-up pass to apply the four passes to
-    mid-sim-registered newborns for the years AFTER their birth
-    (the primary annual call made at the top of each year misses
-    newborns because perinatal dispatch has not yet run). The
-    per-person sub-RNG derivation is unchanged, so filtering is RNG-
-    neutral for the covered subset.
+    Newborns registered mid-sim become part of ``registry.persons``
+    during the dispatch loop (Issue #1596 Step 2); the next-year
+    primary call picks them up naturally so no catch-up filter is
+    needed (Issue #1596 Step 3 / Step 4 removed the ``person_filter``
+    kwarg that supported the former Phase-B catch-up pass).
     """
     from datetime import date as _date
 
@@ -802,8 +797,6 @@ def advance_population(
     year_start = _date(year, 1, 1)
 
     for person in registry.persons.values():
-        if person_filter is not None and not person_filter(person):
-            continue
         # Issue #1564 Phase 2 (reactive-mortality PR): tighten the
         # alive gate from the `is_alive` flag to point-in-time
         # ``is_alive_at(year_start)``. The ``natural_death`` enricher

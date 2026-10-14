@@ -6,7 +6,6 @@ and produces care-seeking decisions that trigger hospital encounters.
 
 from __future__ import annotations
 
-from collections.abc import Callable
 from dataclasses import dataclass, field
 from datetime import date, timedelta
 
@@ -831,18 +830,14 @@ def generate_monthly_events(
     rng: np.random.Generator,
     country: str = "US",
     demo: dict | None = None,
-    person_filter: Callable[[PersonRecord], bool] | None = None,
 ) -> list[LifeEvent]:
     """Generate life events for one month across the population. All Phase 1 diseases.
 
-    ``person_filter``: optional predicate that selects which persons to
-    process. Default (``None``) iterates every person in the registry —
-    the original behaviour. Pass a callable to generate events for a
-    subset (Issue #1564 Phase 1 completion: the engine's secondary pass
-    uses this to generate acute events for mid-sim-added newborns
-    without disturbing the initial cohort's per-person RNG shape, since
-    this function spawns no per-person RNG itself — the shared `rng` is
-    consumed deterministically by the person iteration).
+    Iterates every person in the registry. Newborns registered mid-sim
+    (perinatal delivery handler → ``register_newborn``) are picked up
+    on the NEXT month's call automatically once Issue #1596 Step 2
+    collapsed generation + dispatch into the same per-month loop — no
+    ``person_filter`` kwarg is required (Step 4 removed it).
     """
     events: list[LifeEvent] = []
     event_date = date(year, month, EVENT_MID_OF_MONTH_DAY)
@@ -855,10 +850,6 @@ def generate_monthly_events(
     risk_mults = demo.get("disease_risk_multipliers", {})
 
     for person in registry.persons.values():
-        # Issue #1564 Phase 1 completion: skip persons the caller is not
-        # interested in (e.g. newborn-only secondary pass).
-        if person_filter is not None and not person_filter(person):
-            continue
         # C11g-3: honor natural death date_of_death alongside in-hospital
         # is_alive boolean — the acute disease event date is exactly
         # ``event_date`` for this month, so we can filter precisely.

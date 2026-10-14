@@ -1015,41 +1015,12 @@ def run_beta(
         elapsed_s=round(time.perf_counter() - _t0_inp, 3),
     )
 
-    # === Issue #1596 Step 2 — newborn aging catch-up pass ===
-    # The combined gen+dispatch loop above lets newborns registered
-    # during month m's dispatch participate in month m+1's primary
-    # ``generate_monthly_events`` naturally. That eliminated the
-    # newborn secondary monthly events pass accumulated in #1564
-    # Phase 1 (removed in Step 2).
-    #
-    # The per-year ``advance_population(y)`` at the top of year y
-    # still runs BEFORE any newborn is registered that year, so
-    # newborns born mid-year y do not get the four aging passes
-    # (chronic onset / disease progression / allergy drift /
-    # condition-reactive mortality) for year y via the primary call.
-    # Issue #1581 Phase B added a per-newborn catch-up loop; it is
-    # kept here (reduced to the aging-only slice — the monthly
-    # events half is gone with Step 2). Step 3 will remove this
-    # too by scheduling ``advance_population`` per newborn at
-    # registration time instead of as a post-loop sweep.
-    _newborn_pids = {pid for pid in population.persons if pid not in population.initial_person_ids}
-    if _newborn_pids:
-
-        def _newborn_aging_filter(_p: PersonRecord) -> bool:
-            return _p.person_id in _newborn_pids
-
-        _ny, _nm = start_y, start_m
-        while (_ny, _nm) <= (end_y, end_m):
-            if _nm == 1 or (_ny, _nm) == (start_y, start_m):
-                advance_population(
-                    population,
-                    _ny,
-                    config.country,
-                    person_filter=_newborn_aging_filter,
-                )
-            _nm += 1
-            if _nm > 12:
-                _nm, _ny = 1, _ny + 1
+    # Issue #1596 Steps 3/4 — the newborn aging catch-up pass and the
+    # ``advance_population(... person_filter=...)`` kwarg that
+    # supported it are gone. Under Step 2's combined gen+dispatch
+    # loop newborns registered during year y's dispatch are already
+    # in ``population.persons`` by the (y+1, 1) iteration, so the
+    # primary ``advance_population(y+1)`` picks them up naturally.
 
     # === Readmission evaluation (post-loop pass) ===
     country_key = _country_to_yaml_key(config.country)
