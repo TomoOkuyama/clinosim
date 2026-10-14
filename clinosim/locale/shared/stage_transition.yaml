@@ -191,3 +191,23 @@ stage_transitions:
       "H&Y 3": 0.250   # slows as balance plateau sets in
       "H&Y 4": 0.180
       "H&Y 5": 0.0     # terminal (handled by reactive mortality)
+
+  # ------------------------------------------------------------------
+  # I48 Atrial fibrillation (AHA/ACC/HRS 2024 classification)
+  # ------------------------------------------------------------------
+  # Clinical basis: de Vos 2010 (Circulation 121:1-9) prospective
+  # cohort progression of paroxysmal → persistent → permanent AF;
+  # AFNET registry; 2024 AHA/ACC/HRS AF Guideline. Rate-control vs
+  # rhythm-control therapy is NOT conditioned on at the aging-pass
+  # layer (de Vos data pre-dates widespread catheter ablation);
+  # therapy-conditional refinement is a planned Phase 3 concern.
+  # Permanent AF is terminal in this progression table; further
+  # mortality is driven by condition-reactive qx (I48 already in
+  # the stroke / HF / sepsis risk_multipliers table).
+  I48:
+    stages: ["Paroxysmal", "Persistent", "Long-standing persistent", "Permanent"]
+    annual_advance_probability:
+      "Paroxysmal": 0.150              # ~10-25 %/yr paroxysmal → persistent (de Vos 2010)
+      "Persistent": 0.120              # ~10-15 %/yr persistent → long-standing persistent
+      "Long-standing persistent": 0.150 # ~10-20 %/yr long-standing → permanent
+      "Permanent": 0.0                 # terminal

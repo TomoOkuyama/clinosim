@@ -108,6 +108,8 @@ from clinosim.modules.patient._severity_activation import (
     F00_STAGES,
     G20_STAGE_WEIGHTS,
     G20_STAGES,
+    I48_STAGE_WEIGHTS,
+    I48_STAGES,
     K70_STAGE_WEIGHTS,
     K70_STAGES,
     I10_STAGE_WEIGHTS,
@@ -177,6 +179,8 @@ def _generate_stage(code: str, severity: str, rng: np.random.Generator) -> str:
         return str(rng.choice(K70_STAGES, p=K70_STAGE_WEIGHTS))
     if base == "G20":  # Parkinson's disease (Hoehn & Yahr 1-5)
         return str(rng.choice(G20_STAGES, p=G20_STAGE_WEIGHTS))
+    if base == "I48":  # Atrial fibrillation (AHA/ACC/HRS 2024)
+        return str(rng.choice(I48_STAGES, p=I48_STAGE_WEIGHTS))
     return ""
 
 
