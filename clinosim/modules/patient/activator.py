@@ -112,6 +112,8 @@ from clinosim.modules.patient._severity_activation import (
     G35_STAGES,
     I48_STAGE_WEIGHTS,
     I48_STAGES,
+    I69_3_STAGE_WEIGHTS,
+    I69_3_STAGES,
     K70_STAGE_WEIGHTS,
     K70_STAGES,
     I10_STAGE_WEIGHTS,
@@ -185,6 +187,8 @@ def _generate_stage(code: str, severity: str, rng: np.random.Generator) -> str:
         return str(rng.choice(I48_STAGES, p=I48_STAGE_WEIGHTS))
     if base == "G35":  # Multiple sclerosis (banded EDSS)
         return str(rng.choice(G35_STAGES, p=G35_STAGE_WEIGHTS))
+    if base == "I69":  # Sequelae of cerebral infarction (I69.3 — modified Rankin Scale)
+        return str(rng.choice(I69_3_STAGES, p=I69_3_STAGE_WEIGHTS))
     return ""
 
 

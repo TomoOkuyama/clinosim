@@ -302,6 +302,48 @@ def test_disease_progression_ms_eventually_advances() -> None:
     assert hit_advanced >= 10, f"only {hit_advanced}/{trials} MS cohort reached walking-impairment in 25 years"
 
 
+def test_stroke_sequela_promotion_adds_i69_3_after_past_cerebral_infarction() -> None:
+    """A person with a past cerebral_infarction hospitalization and no
+    I69.3 yet picks up I69.3 on first ``advance_population`` touch.
+    Idempotent — a second run does not re-append."""
+    from datetime import date as _d
+
+    from clinosim.types.population import HospitalizationSummary
+
+    p = _alive("PT-STROKE-SEQ", age=65)
+    p.hospitalization_history = [
+        HospitalizationSummary(
+            encounter_id="ENC-ABC",
+            disease_id="cerebral_infarction",
+            admission_date=_d(2025, 3, 1),
+            discharge_date=_d(2025, 3, 10),
+            los_days=9,
+            outcome="discharged",
+        )
+    ]
+    reg = _registry([p])
+    advance_population(reg, 2026, "us")
+    assert "I69.3" in p.chronic_conditions
+    # mRS stage must be initialised by _disease_progression
+    assert p.disease_stages.get("I69") in {"mRS 0", "mRS 1", "mRS 2", "mRS 3", "mRS 4", "mRS 5"}
+
+    # Idempotent second advance.
+    chronic_before = list(p.chronic_conditions)
+    advance_population(reg, 2027, "us")
+    assert p.chronic_conditions == chronic_before
+
+
+def test_stroke_sequela_promotion_skips_when_no_past_cerebral_infarction() -> None:
+    """A person without any cerebral_infarction in hospitalization_history
+    does NOT get I69.3 — the promotion is strictly conditioned on prior
+    cerebral-infarction encounter."""
+    p = _alive("PT-NO-STROKE", age=65)
+    p.hospitalization_history = []
+    reg = _registry([p])
+    advance_population(reg, 2026, "us")
+    assert "I69.3" not in p.chronic_conditions
+
+
 def test_disease_progression_init_does_not_double_step() -> None:
     """The year a stage is first initialised, no advancement
     happens — only ONE write per init year."""
