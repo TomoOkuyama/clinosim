@@ -45,6 +45,7 @@ __all__ = [
     "I25_STAGES",
     "F00_STAGES",
     "K70_STAGES",
+    "G20_STAGES",
     # Stage-selection weights (sum to 1.0)
     "N18_STAGE_WEIGHTS",
     "I50_STAGE_WEIGHTS_MILD",
@@ -55,6 +56,7 @@ __all__ = [
     "I25_STAGE_WEIGHTS",
     "F00_STAGE_WEIGHTS",
     "K70_STAGE_WEIGHTS",
+    "G20_STAGE_WEIGHTS",
 ]
 
 
@@ -114,6 +116,11 @@ STAGE_SEVERITY: dict[str, dict[str, float]] = {
     # engine's K70/K74 branches wire in.
     "K70": {"Child-Pugh A": 0.15, "Child-Pugh B": 0.50, "Child-Pugh C": 0.85},
     "K74": {"Child-Pugh A": 0.15, "Child-Pugh B": 0.50, "Child-Pugh C": 0.85},
+    # Hoehn & Yahr stages 1-5 for Parkinson's disease (Hoehn & Yahr
+    # 1967 Neurology). Severity rises steeply at stage 3 (postural
+    # instability, falls become a dominant concern) and plateaus
+    # near 1.0 at stage 5 (bedridden, requires full-time nursing).
+    "G20": {"H&Y 1": 0.10, "H&Y 2": 0.25, "H&Y 3": 0.50, "H&Y 4": 0.75, "H&Y 5": 0.90},
 }
 
 
@@ -255,3 +262,26 @@ decompensation events. Empirical tuning for the synthetic
 simulator consistent with D'Amico 2006 (J Hepatol) natural-history
 meta-analysis prevalence shape at diagnosis + first liver clinic
 contact."""
+
+
+# ---------------------------------------------------------------------------
+# G20 — Parkinson's disease (Hoehn & Yahr staging)
+# ---------------------------------------------------------------------------
+
+G20_STAGES: tuple[str, ...] = ("H&Y 1", "H&Y 2", "H&Y 3", "H&Y 4", "H&Y 5")
+"""Hoehn & Yahr 1 (unilateral) → H&Y 2 (bilateral, no balance
+impairment) → H&Y 3 (postural instability) → H&Y 4 (severe disability,
+still ambulatory) → H&Y 5 (bedridden). Full stage strings — no prefix
+added at emit time. Original Hoehn & Yahr 1967 (Neurology 17:427)
+scale; the half-stage modified version (1.5 / 2.5) is NOT used here
+since the per-stage physiology coupling and the natural-history
+annual transition rates in the literature are reported on the
+integer-stage scale."""
+
+G20_STAGE_WEIGHTS: tuple[float, ...] = (0.30, 0.35, 0.20, 0.10, 0.05)
+"""Diagnosed-PD cohort distribution at first clinic contact /
+cross-sectional. Mode at H&Y 2 (bilateral but balance preserved),
+with a progressive tail; stage 5 is a small bedridden subset.
+Empirical tuning for the synthetic simulator, consistent with
+Zhao 2010 (Mov Disord) outpatient cohort distribution and MDS
+clinical practice guidance (most newly-diagnosed are H&Y 1-2)."""

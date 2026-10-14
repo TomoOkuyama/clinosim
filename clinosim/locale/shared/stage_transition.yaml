@@ -167,3 +167,27 @@ stage_transitions:
       "Child-Pugh A": 0.060   # A → B: slightly slower than alcoholic
       "Child-Pugh B": 0.110
       "Child-Pugh C": 0.0     # terminal (handled by reactive mortality)
+
+  # ------------------------------------------------------------------
+  # G20 Parkinson's disease (Hoehn & Yahr 1-5)
+  # ------------------------------------------------------------------
+  # Clinical basis: Hoehn & Yahr 1967 (Neurology 17:427) original
+  # scale; Zhao 2010 (Mov Disord) outpatient cohort progression
+  # data; Jankovic 2008 (JNNP) natural history under modern
+  # levodopa therapy. Mean time per stage in the Jankovic review is
+  # ~2-3 years for stages 1-3 and lengthens at stage 4 as patients
+  # plateau on levodopa response plus wheelchair use. These rates
+  # reflect the all-cohort average without conditioning on age at
+  # onset or levodopa-responder phenotype — therapy-conditional
+  # refinement is a planned Phase 3 concern. H&Y 5 is terminal
+  # here; further mortality is driven by condition-reactive qx
+  # (G20 falls / aspiration pneumonia already in demographics
+  # risk_multipliers table).
+  G20:
+    stages: ["H&Y 1", "H&Y 2", "H&Y 3", "H&Y 4", "H&Y 5"]
+    annual_advance_probability:
+      "H&Y 1": 0.350   # ~3 years per stage → ~0.33 /yr Bernoulli
+      "H&Y 2": 0.300
+      "H&Y 3": 0.250   # slows as balance plateau sets in
+      "H&Y 4": 0.180
+      "H&Y 5": 0.0     # terminal (handled by reactive mortality)

@@ -496,6 +496,10 @@ _INITIAL_STAGE_SAMPLERS: dict[str, tuple[tuple[str, ...], tuple[float, ...]]] = 
         ("Child-Pugh A", "Child-Pugh B", "Child-Pugh C"),
         (0.55, 0.30, 0.15),
     ),
+    "G20": (
+        ("H&Y 1", "H&Y 2", "H&Y 3", "H&Y 4", "H&Y 5"),
+        (0.30, 0.35, 0.20, 0.10, 0.05),
+    ),
 }
 
 
