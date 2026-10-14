@@ -46,6 +46,7 @@ __all__ = [
     "F00_STAGES",
     "K70_STAGES",
     "G20_STAGES",
+    "I48_STAGES",
     # Stage-selection weights (sum to 1.0)
     "N18_STAGE_WEIGHTS",
     "I50_STAGE_WEIGHTS_MILD",
@@ -57,6 +58,7 @@ __all__ = [
     "F00_STAGE_WEIGHTS",
     "K70_STAGE_WEIGHTS",
     "G20_STAGE_WEIGHTS",
+    "I48_STAGE_WEIGHTS",
 ]
 
 
@@ -121,6 +123,20 @@ STAGE_SEVERITY: dict[str, dict[str, float]] = {
     # instability, falls become a dominant concern) and plateaus
     # near 1.0 at stage 5 (bedridden, requires full-time nursing).
     "G20": {"H&Y 1": 0.10, "H&Y 2": 0.25, "H&Y 3": 0.50, "H&Y 4": 0.75, "H&Y 5": 0.90},
+    # AHA/ACC/HRS 2024 AF Guideline classification: paroxysmal
+    # (self-terminating / < 7 days) → persistent (>= 7 days or
+    # requires cardioversion) → long-standing persistent (>= 1 year
+    # continuous, rhythm control still attempted) → permanent (both
+    # patient and clinician accept continuous AF, no further
+    # rhythm-control attempts). Severity reflects stroke/HF/
+    # thromboembolism risk accumulation, which climbs with
+    # arrhythmia burden regardless of individual symptomatology.
+    "I48": {
+        "Paroxysmal": 0.15,
+        "Persistent": 0.35,
+        "Long-standing persistent": 0.55,
+        "Permanent": 0.70,
+    },
 }
 
 
@@ -285,3 +301,29 @@ with a progressive tail; stage 5 is a small bedridden subset.
 Empirical tuning for the synthetic simulator, consistent with
 Zhao 2010 (Mov Disord) outpatient cohort distribution and MDS
 clinical practice guidance (most newly-diagnosed are H&Y 1-2)."""
+
+
+# ---------------------------------------------------------------------------
+# I48 — Atrial fibrillation (AHA/ACC/HRS classification)
+# ---------------------------------------------------------------------------
+
+I48_STAGES: tuple[str, ...] = (
+    "Paroxysmal",
+    "Persistent",
+    "Long-standing persistent",
+    "Permanent",
+)
+"""AHA/ACC/HRS 2024 AF Guideline: paroxysmal (self-terminating or
+< 7 days) → persistent (≥ 7 days or requires cardioversion) →
+long-standing persistent (≥ 1 year continuous AF with rhythm-
+control strategy still attempted) → permanent (both patient and
+clinician accept ongoing AF, no further rhythm control). Full
+stage strings — no prefix added at emit time."""
+
+I48_STAGE_WEIGHTS: tuple[float, ...] = (0.45, 0.25, 0.15, 0.15)
+"""Diagnosed-AF cohort distribution at first clinic contact /
+cross-sectional. Mode at paroxysmal (symptomatic palpitations
+remain the dominant initial presentation) with a progressive tail.
+Empirical tuning for the synthetic simulator, consistent with
+AFNET registry cross-sectional distribution and ESC AF registry
+baseline-visit shape."""

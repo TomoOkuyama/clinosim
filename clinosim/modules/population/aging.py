@@ -500,6 +500,10 @@ _INITIAL_STAGE_SAMPLERS: dict[str, tuple[tuple[str, ...], tuple[float, ...]]] = 
         ("H&Y 1", "H&Y 2", "H&Y 3", "H&Y 4", "H&Y 5"),
         (0.30, 0.35, 0.20, 0.10, 0.05),
     ),
+    "I48": (
+        ("Paroxysmal", "Persistent", "Long-standing persistent", "Permanent"),
+        (0.45, 0.25, 0.15, 0.15),
+    ),
 }
 
 
