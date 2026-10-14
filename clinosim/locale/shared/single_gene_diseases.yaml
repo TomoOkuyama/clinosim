@@ -1,0 +1,60 @@
+# Single-gene disease catalog + inheritance patterns (Issue #1581
+# Phase C.3). Carrier status is sampled at initial cohort generation
+# via a stable SHA-based quantile per (person_id, disease_code) so
+# this layer is RNG-neutral (no master-stream shift). At newborn
+# registration, child carrier/affected is computed from the parent
+# phenotypes via Mendelian Punnett rules.
+#
+# Phenotype values stored on ``PersonRecord.carrier_status[icd]``:
+#   "normal"   — no disease allele (homozygous reference for
+#                autosomal; XX normal + male XY normal for X-linked)
+#   "carrier"  — heterozygous (one disease allele; asymptomatic for
+#                recessive conditions)
+#   "affected" — homozygous (two disease alleles for autosomal) OR
+#                hemizygous male / homozygous female for X-linked.
+#                Affected individuals also get the ICD code appended
+#                to ``chronic_conditions`` so the condition emits
+#                through the standard FHIR disease pipeline.
+#
+# `carrier_frequency_by_race` is P(hetero + homo), i.e. anyone with
+# ≥ 1 disease allele. Hardy-Weinberg: q = 1 - sqrt(1 - carrier_freq)
+# is the recessive-allele frequency (approximation when carrier_freq
+# is small). The initial-cohort sampler derives the per-person
+# phenotype from a race-conditional q.
+#
+# Race keys match the OMB categories in demographics.yaml:race_
+# distribution ("white", "black", "asian", "native_american",
+# "other"). Unknown race or empty-race locales (JP) fall through to
+# the ``default`` entry.
+
+single_gene_diseases:
+  # Cystic fibrosis (CFTR). Clinical basis: Watts 2015 (Lancet
+  # Respir Med) carrier-frequency survey; CDC newborn screening
+  # 2022 US affected incidence ~1/3500 whites, lower in other
+  # racial groups.
+  E84:
+    display: "Cystic fibrosis"
+    inheritance_pattern: autosomal_recessive
+    carrier_frequency_by_race:
+      white:           0.040   # ~1/25 — classic European CF carrier rate
+      black:           0.016   # ~1/60
+      asian:           0.011   # ~1/90
+      native_american: 0.016
+      other:           0.020
+      default:         0.015
+
+  # Sickle cell disease (HBB). Clinical basis: CDC sickle cell
+  # trait surveillance; 2010 Pediatrics review. Affected rate
+  # ~1/400 African-American newborns, carrier (sickle cell trait)
+  # ~8-10 %. Mediterranean + South Asian populations also carry
+  # at non-trivial rates.
+  D57.1:
+    display: "Sickle-cell disease without crisis"
+    inheritance_pattern: autosomal_recessive
+    carrier_frequency_by_race:
+      white:           0.001
+      black:           0.080   # ~1/13 African-American
+      asian:           0.003   # Alpha-thal / HbE more prevalent, but SCD rare
+      native_american: 0.002
+      other:           0.015   # Hispanic / Mediterranean captured in "other"
+      default:         0.005

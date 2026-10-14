@@ -21,7 +21,6 @@ from clinosim.locale.loader import load_demographics
 from clinosim.modules.patient.activator import activate_patient
 from clinosim.types.population import PersonRecord
 
-
 _DEMO = load_demographics("us")
 
 

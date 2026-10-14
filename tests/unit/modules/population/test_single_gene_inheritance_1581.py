@@ -1,0 +1,131 @@
+"""Issue #1581 Phase C.3 — single-gene disease inheritance.
+
+Autosomal recessive sampling + Mendelian Punnett for parent → child
+phenotype propagation. Deterministic SHA-based sampling, so same
+input tuples produce the same output across runs.
+"""
+
+from __future__ import annotations
+
+from collections import Counter
+
+from clinosim.modules.population.single_gene_inheritance import (
+    _recessive_allele_freq,
+    derive_initial_carrier_status,
+    inherit_single_gene_autosomal_recessive,
+)
+
+_CF_CFG = {
+    "display": "Cystic fibrosis",
+    "inheritance_pattern": "autosomal_recessive",
+    "carrier_frequency_by_race": {
+        "white": 0.04,
+        "black": 0.016,
+        "asian": 0.011,
+        "default": 0.015,
+    },
+}
+
+
+def test_hardy_weinberg_recessive_allele_frequency() -> None:
+    """q = 1 - sqrt(1 - P(≥ 1 disease allele))."""
+    # Carrier freq 4% → q ≈ 0.0202 (allele freq)
+    assert abs(_recessive_allele_freq(0.04) - 0.0202) < 1e-3
+    assert _recessive_allele_freq(0.0) == 0.0
+    assert _recessive_allele_freq(1.0) == 1.0
+
+
+def test_derive_initial_carrier_status_deterministic() -> None:
+    """Same (person_id, race, disease) → same phenotype across calls."""
+    first = derive_initial_carrier_status("PT-SGD-1", "white", "E84", _CF_CFG)
+    second = derive_initial_carrier_status("PT-SGD-1", "white", "E84", _CF_CFG)
+    assert first == second
+
+
+def test_derive_initial_carrier_matches_hw_distribution() -> None:
+    """A cohort sampled from the Hardy-Weinberg allele frequency
+    should produce ``carrier_freq`` carrier+affected prevalence and
+    ``q²`` affected prevalence (within Monte-Carlo tolerance)."""
+    affected = 0
+    carrier = 0
+    normal = 0
+    trials = 5000
+    for i in range(trials):
+        phen = derive_initial_carrier_status(f"PT-HW-{i:04d}", "white", "E84", _CF_CFG)
+        if phen == "affected":
+            affected += 1
+        elif phen == "carrier":
+            carrier += 1
+        else:
+            normal += 1
+    carrier_rate = (carrier + affected) / trials
+    affected_rate = affected / trials
+    # Target carrier_freq = 0.04, affected q² ≈ 0.0002.
+    assert 0.02 < carrier_rate < 0.06, f"carrier+affected rate {carrier_rate:.4f} outside Hardy-Weinberg band"
+    # Affected rate is tiny (q² ≈ 0.0002 → ~1/5000 trials) so just
+    # confirm it's non-negative and bounded.
+    assert 0 <= affected_rate < 0.01
+
+
+def test_initial_sampling_respects_race_table() -> None:
+    """Carrier rates should differ by race per the yaml."""
+    # White 4% vs Asian 1.1% — compare carrier+affected counts.
+
+    def race_rate(race: str, trials: int = 3000) -> float:
+        hits = 0
+        for i in range(trials):
+            phen = derive_initial_carrier_status(f"PT-RACE-{race}-{i:04d}", race, "E84", _CF_CFG)
+            if phen in ("carrier", "affected"):
+                hits += 1
+        return hits / trials
+
+    r_white = race_rate("white")
+    r_asian = race_rate("asian")
+    # White strictly > Asian — carrier_frequency_by_race is 0.04 vs 0.011.
+    assert r_white > r_asian, f"white {r_white:.3f} vs asian {r_asian:.3f} — race-conditioning not applied"
+
+
+def test_inherit_two_carrier_parents_produces_mix() -> None:
+    """Two carrier parents → 1/4 normal, 1/2 carrier, 1/4 affected
+    across a cohort. Monte-Carlo band loose."""
+    counts: Counter[str] = Counter()
+    for i in range(1000):
+        child = inherit_single_gene_autosomal_recessive(f"PT-INH-C-{i:04d}", "E84", "carrier", "carrier")
+        counts[child] += 1
+    total = sum(counts.values())
+    # Expected: 25% normal, 50% carrier, 25% affected. Allow ±5%.
+    assert 0.20 < counts["normal"] / total < 0.30, counts
+    assert 0.45 < counts["carrier"] / total < 0.55, counts
+    assert 0.20 < counts["affected"] / total < 0.30, counts
+
+
+def test_inherit_two_normal_parents_always_normal() -> None:
+    """Two normal (00) parents cannot produce a disease allele."""
+    for i in range(200):
+        child = inherit_single_gene_autosomal_recessive(f"PT-INH-N-{i:04d}", "E84", "normal", "normal")
+        assert child == "normal"
+
+
+def test_inherit_two_affected_parents_always_affected() -> None:
+    """Two affected (11) parents can only produce a homozygous child."""
+    for i in range(200):
+        child = inherit_single_gene_autosomal_recessive(f"PT-INH-A-{i:04d}", "E84", "affected", "affected")
+        assert child == "affected"
+
+
+def test_inherit_carrier_and_normal_produces_normal_or_carrier() -> None:
+    """1 carrier + 1 normal → 50% normal, 50% carrier (no affected)."""
+    counts: Counter[str] = Counter()
+    for i in range(500):
+        child = inherit_single_gene_autosomal_recessive(f"PT-INH-CN-{i:04d}", "E84", "carrier", "normal")
+        counts[child] += 1
+    assert counts.get("affected", 0) == 0
+    assert 0.40 < counts["carrier"] / 500 < 0.60
+    assert 0.40 < counts["normal"] / 500 < 0.60
+
+
+def test_inherit_deterministic_per_tuple() -> None:
+    """Same (newborn_id, disease, mother, father) → same child phenotype."""
+    first = inherit_single_gene_autosomal_recessive("PT-DET-1", "E84", "carrier", "carrier")
+    second = inherit_single_gene_autosomal_recessive("PT-DET-1", "E84", "carrier", "carrier")
+    assert first == second

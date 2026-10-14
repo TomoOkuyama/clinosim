@@ -219,6 +219,52 @@ def test_register_newborn_with_config_attaches_nka_allergy_and_death_date() -> N
     assert CARE_SEEKING_CLAMP_MIN <= record.care_seeking_threshold <= CARE_SEEKING_CLAMP_MAX
 
 
+def test_newborn_affected_when_both_parents_cf_carriers() -> None:
+    """Issue #1581 Phase C.3 — a CF-carrier mother + CF-carrier father
+    can produce an affected newborn (Punnett 1/4). Monte-Carlo over
+    many newborn ids to ensure at least one lands "affected" and gets
+    E84 on chronic_conditions."""
+    from clinosim.types.population import PersonRecord
+
+    affected_count = 0
+    carrier_count = 0
+    normal_count = 0
+    for i in range(100):
+        mother = _mother(hh_id=f"HH-SGD-{i:03d}")
+        mother.race = "white"
+        mother.carrier_status = {"E84": "carrier", "D57.1": "normal"}
+        father = PersonRecord(
+            person_id=f"PT-DAD-{i:03d}",
+            household_id=mother.household_id,
+            age=35,
+            sex="M",
+            date_of_birth=date(1991, 1, 1),
+        )
+        father.race = "white"
+        father.carrier_status = {"E84": "carrier", "D57.1": "normal"}
+        hh = Household(household_id=mother.household_id, members=[mother, father])
+        reg = PopulationRegistry(
+            households=[hh],
+            persons={mother.person_id: mother, father.person_id: father},
+        )
+        reg.initial_person_ids = set(reg.persons.keys())
+        newborn = _newborn_profile(mother, pid=f"PT-NB-SGD-{i:03d}")
+        record = register_newborn(reg, mother, newborn)
+        phen = record.carrier_status.get("E84", "")
+        if phen == "affected":
+            affected_count += 1
+            assert "E84" in record.chronic_conditions
+        elif phen == "carrier":
+            carrier_count += 1
+            assert "E84" not in record.chronic_conditions
+        else:
+            normal_count += 1
+            assert "E84" not in record.chronic_conditions
+    # Monte-Carlo: expect ~25% affected, ~50% carrier, ~25% normal.
+    assert affected_count >= 10, f"expected ~25 affected out of 100, got {affected_count}"
+    assert carrier_count >= 30, f"expected ~50 carrier out of 100, got {carrier_count}"
+
+
 def test_newborn_inherits_mother_race_and_ethnicity() -> None:
     """Issue #1581 — race / ethnicity are family-level attributes on
     PersonRecord. ``register_newborn`` inherits both from the mother
