@@ -333,6 +333,69 @@ def test_stroke_sequela_promotion_adds_i69_3_after_past_cerebral_infarction() ->
     assert p.chronic_conditions == chronic_before
 
 
+def test_stroke_sequela_promotion_hemorrhagic_adds_i69_1() -> None:
+    """A person with a past hemorrhagic_stroke hospitalization and no
+    I69.1 yet picks up I69.1 on first ``advance_population`` touch.
+    Base-code "I69" shares the mRS stage system with I69.3."""
+    from datetime import date as _d
+
+    from clinosim.types.population import HospitalizationSummary
+
+    p = _alive("PT-HEM-STROKE", age=70)
+    p.hospitalization_history = [
+        HospitalizationSummary(
+            encounter_id="ENC-HEM",
+            disease_id="hemorrhagic_stroke",
+            admission_date=_d(2025, 4, 1),
+            discharge_date=_d(2025, 4, 20),
+            los_days=19,
+            outcome="discharged",
+        )
+    ]
+    reg = _registry([p])
+    advance_population(reg, 2026, "us")
+    assert "I69.1" in p.chronic_conditions
+    # Must NOT also add I69.3 — the ischemic promotion arm did not fire.
+    assert "I69.3" not in p.chronic_conditions
+    # mRS stage initialised via the shared base-code "I69" sampler.
+    assert p.disease_stages.get("I69") in {"mRS 0", "mRS 1", "mRS 2", "mRS 3", "mRS 4", "mRS 5"}
+
+
+def test_stroke_sequela_promotion_both_arms_fire_on_mixed_history() -> None:
+    """A person with BOTH cerebral_infarction and hemorrhagic_stroke
+    in hospitalization_history gets both I69.3 and I69.1. Rare
+    clinically (bleeding risk after ischemic stroke secondary
+    prevention) but biologically possible — both arms are
+    independent."""
+    from datetime import date as _d
+
+    from clinosim.types.population import HospitalizationSummary
+
+    p = _alive("PT-MIXED-STROKE", age=75)
+    p.hospitalization_history = [
+        HospitalizationSummary(
+            encounter_id="ENC-ISC",
+            disease_id="cerebral_infarction",
+            admission_date=_d(2024, 3, 1),
+            discharge_date=_d(2024, 3, 10),
+            los_days=9,
+            outcome="discharged",
+        ),
+        HospitalizationSummary(
+            encounter_id="ENC-HEM",
+            disease_id="hemorrhagic_stroke",
+            admission_date=_d(2025, 7, 1),
+            discharge_date=_d(2025, 7, 20),
+            los_days=19,
+            outcome="discharged",
+        ),
+    ]
+    reg = _registry([p])
+    advance_population(reg, 2026, "us")
+    assert "I69.3" in p.chronic_conditions
+    assert "I69.1" in p.chronic_conditions
+
+
 def test_stroke_sequela_promotion_skips_when_no_past_cerebral_infarction() -> None:
     """A person without any cerebral_infarction in hospitalization_history
     does NOT get I69.3 — the promotion is strictly conditioned on prior

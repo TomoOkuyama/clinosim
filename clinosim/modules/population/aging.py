@@ -885,31 +885,46 @@ def _stroke_sequela_promotion(
     incidence_table: dict[str, _ChronicIncidenceSpec],
     locale: str = "us",
 ) -> None:
-    """Promote a past cerebral_infarction hospitalization to a chronic
-    I69.3 (sequelae of cerebral infarction) condition.
+    """Promote past stroke hospitalization(s) to chronic sequela
+    condition(s) on ``person.chronic_conditions``:
 
-    Idempotent: a person who already carries I69.3 skips. The actual
-    mRS stage initialisation happens later in the pass pipeline via
-    ``_disease_progression``'s ``_INITIAL_STAGE_SAMPLERS`` branch on
-    first touch, so this pass only mutates the chronic_conditions
-    list and does not consume RNG itself (the ``prng`` arg is kept
-    for signature uniformity with the other aging passes).
+    * ``cerebral_infarction`` → ``I69.3`` (sequelae of cerebral
+      infarction) — ischemic stroke sequela.
+    * ``hemorrhagic_stroke`` → ``I69.1`` (sequelae of intracerebral
+      haemorrhage) — the ICH subtype is by far the most common
+      hemorrhagic stroke etiology (~85 % of hemorrhagic strokes in
+      Benjamin 2019 Circ AHA Statistics), so a single catalog
+      entry on I69.1 captures the vast majority of survivors.
+
+    Idempotent on both arms. Does not consume RNG itself; mRS
+    stage initialisation flows through ``_disease_progression``'s
+    ``_INITIAL_STAGE_SAMPLERS["I69"]`` branch on first touch. Both
+    sequela ICDs share base code "I69" so they inherit the same
+    mRS staging and transition probabilities — a shared etiology-
+    agnostic clinical convention (mRS is a functional-outcome
+    scale, not an etiology-specific severity grader). Discharge
+    mRS distribution differs modestly between ischemic and
+    hemorrhagic survivors in the literature; a per-full-code
+    sampler is a planned future refinement.
 
     Clinical rationale: ~70-80 % of stroke survivors have residual
     neurological deficit at 1 year (Benjamin 2019 Circulation AHA
-    Heart Disease Statistics). mRS at discharge is the standard
-    outcome measure. Promoting to a chronic sequela at the year
-    boundary following the index I63 encounter captures this
-    deficit as a Layer-1 chronic condition and lets the standard
-    stage-progression machinery handle year-on-year functional
-    decline from recurrent events, cognitive impairment, and
-    immobility complications.
+    Heart Disease Statistics). Promoting to a chronic sequela at
+    the year boundary following the index stroke encounter captures
+    this deficit as a Layer-1 chronic condition and lets the
+    standard stage-progression machinery handle year-on-year
+    functional decline from recurrent events, cognitive impairment,
+    and immobility complications.
     """
-    if "I69.3" in person.chronic_conditions:
-        return
-    if not any(getattr(h, "disease_id", "") == "cerebral_infarction" for h in (person.hospitalization_history or [])):
-        return
-    person.chronic_conditions.append("I69.3")
+    history = person.hospitalization_history or []
+    if "I69.3" not in person.chronic_conditions and any(
+        getattr(h, "disease_id", "") == "cerebral_infarction" for h in history
+    ):
+        person.chronic_conditions.append("I69.3")
+    if "I69.1" not in person.chronic_conditions and any(
+        getattr(h, "disease_id", "") == "hemorrhagic_stroke" for h in history
+    ):
+        person.chronic_conditions.append("I69.1")
 
 
 # ---------------------------------------------------------------------------
