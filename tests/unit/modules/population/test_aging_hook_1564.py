@@ -826,6 +826,93 @@ def test_load_annual_incidence_for_jp_populates_i10() -> None:
     assert "I10" in table
 
 
+# ---------------------------------------------------------------------------
+# Comorbidity progression multipliers (diabetic nephropathy etc.)
+# ---------------------------------------------------------------------------
+
+
+def test_comorbidity_multiplier_1_when_no_rules_apply() -> None:
+    """A person without the trigger comorbidity picks up multiplier
+    1.0 for every target → progression rate unchanged from baseline."""
+    from clinosim.modules.population.aging import _comorbidity_multiplier
+
+    p = _alive("PT-NO-DM", age=65)
+    p.chronic_conditions = ["N18"]  # CKD, no DM
+    assert _comorbidity_multiplier(p, "N18", 2026) == 1.0
+
+
+def test_comorbidity_multiplier_scales_with_glycemic_control() -> None:
+    """DM + CKD person: tier dispatch by previous-year gc. Poor
+    control (gc < 0.5) → 2.5x; fair (gc < 0.7) → 1.5x; good
+    (gc ≥ 0.7) → 1.0x (default)."""
+    from clinosim.modules.population.aging import _comorbidity_multiplier
+
+    def _dm_ckd(gc_prev: float) -> float:
+        p = _alive("PT-DM-CKD", age=65)
+        p.chronic_conditions = ["N18", "E11"]
+        p.glycemic_trajectory = {2025: gc_prev}
+        return _comorbidity_multiplier(p, "N18", 2026)
+
+    assert _dm_ckd(0.3) == 2.5, "poor glycemic control must trigger the 2.5x tier"
+    assert _dm_ckd(0.6) == 1.5, "fair glycemic control must trigger the 1.5x tier"
+    assert _dm_ckd(0.85) == 1.0, "good glycemic control falls through to default_multiplier=1.0"
+
+
+def test_comorbidity_multiplier_uses_previous_year_gc() -> None:
+    """To stay independent of chronic_conditions iteration order, the
+    multiplier reads ``glycemic_trajectory[year - 1]``, not
+    ``[year]``. Verifies both the key and the fallback (0.7 ≈ fair
+    when the previous year has no entry)."""
+    from clinosim.modules.population.aging import _comorbidity_multiplier
+
+    p = _alive("PT-DM-NO-PRIOR", age=65)
+    p.chronic_conditions = ["N18", "E11"]
+    p.glycemic_trajectory = {2026: 0.2}  # current year poor control, no prior
+    # Multiplier should fall back to default 0.7 → good tier → 1.0
+    assert _comorbidity_multiplier(p, "N18", 2026) == 1.0
+
+
+def test_disease_progression_dm_poor_control_accelerates_ckd() -> None:
+    """Monte-Carlo: DM-affected cohorts with poor glycemic control
+    reach CKD G3b/G4/G5 faster than DM-free CKD cohorts over 20
+    years. Not byte-exact — a Bernoulli monte-carlo over 200
+    persons × 20 years. Deterministic seed keeps the result stable."""
+    from collections import Counter
+
+    # Metric: mean CKD stage index (0=G1 ... 5=G5) after 8 years. The
+    # window is short enough that few persons plateau at G5, so the
+    # acceleration gap is observable as a stage-index shift. Fraction-
+    # reaching-G3b+ saturates faster and is less sensitive. Monte-
+    # Carlo with deterministic seed keeps the result stable.
+    stage_idx = {"CKD G1": 0, "CKD G2": 1, "CKD G3a": 2, "CKD G3b": 3, "CKD G4": 4, "CKD G5": 5}
+
+    def _mean_stage(with_dm: bool, gc: float) -> float:
+        total = 0.0
+        for i in range(200):
+            p = _alive(f"PT-SIM-{i:04d}", age=60)
+            p.chronic_conditions = ["N18"] + (["E11"] if with_dm else [])
+            if with_dm:
+                p.glycemic_trajectory = {y: gc for y in range(2024, 2046)}
+            for yr in range(8):
+                _disease_progression(
+                    p,
+                    2026 + yr,
+                    np.random.default_rng(aging_sub_seed(p.person_id, 2026 + yr, "_disease_progression")),
+                    {},
+                )
+            total += stage_idx.get(p.disease_stages.get("N18", ""), 0)
+        return total / 200
+
+    no_dm = _mean_stage(with_dm=False, gc=1.0)
+    dm_poor = _mean_stage(with_dm=True, gc=0.3)
+    # Half-stage shift is a conservative threshold; the clinical
+    # expectation from a 2.5x per-year rate multiplier compounded
+    # over 8 years is >= 1 full stage shift at this baseline.
+    assert dm_poor > no_dm + 0.5, (
+        f"DM poor-control mean CKD stage ({dm_poor:.3f}) must exceed baseline ({no_dm:.3f}) by ≥0.5"
+    )
+
+
 def test_full_advance_population_runs_against_real_locale() -> None:
     """Integration smoke: a small registry walks through
     ``advance_population`` with locale='us' and acquires at least one

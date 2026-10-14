@@ -326,6 +326,55 @@ def _load_glycemic_trajectory_config() -> dict[str, dict]:
     return data.get("glycemic_trajectory") or {}
 
 
+@lru_cache(maxsize=1)
+def _load_comorbidity_multipliers() -> dict[str, dict]:
+    """Return the per-target-ICD comorbidity-interaction rules from
+    ``comorbidity_progression_multipliers.yaml``. Cached singleton.
+    Empty dict when the yaml is missing — ``_comorbidity_multiplier``
+    returns 1.0 for every lookup so pass behaviour is unchanged."""
+    from clinosim.locale.loader import load_comorbidity_progression_multipliers
+
+    data = load_comorbidity_progression_multipliers()
+    return data.get("comorbidity_progression_multipliers") or {}
+
+
+def _comorbidity_multiplier(person: PersonRecord, target_icd: str, year: int) -> float:
+    """Multiplier for ``target_icd``'s stage-advance probability under
+    the comorbidities the person already carries at the start of
+    ``year``.
+
+    Reads the previous year's ``glycemic_control`` (if any) to keep
+    the computation order-independent of the chronic_conditions
+    iteration inside ``_disease_progression``. Multiple applicable
+    rules compound multiplicatively.
+    """
+    rules = _load_comorbidity_multipliers().get(target_icd)
+    if not rules:
+        return 1.0
+    chronic = set(person.chronic_conditions or [])
+    # glycemic_trajectory keyed by year (dict[int, float]); 1.0 is
+    # excellent chronic control, 0.0 is very poor. Reading year-1
+    # gives the control attained through the END of the prior year,
+    # which is the clinically appropriate predictor for year y's
+    # progression. Fallback 0.7 ≈ moderate control for a person
+    # without a trajectory recorded yet (e.g. year immediately after
+    # DM onset before the first glycemic_trajectory pass has run).
+    gc_prev = float((person.glycemic_trajectory or {}).get(year - 1, 0.7))
+    out = 1.0
+    for _rule_name, rule in rules.items():
+        trigger = set(rule.get("requires_any_chronic") or ())
+        if not trigger or not (trigger & chronic):
+            continue
+        mult = float(rule.get("default_multiplier", 1.0))
+        for tier in rule.get("glycemic_tiers") or ():
+            gc_lt = tier.get("gc_lt")
+            if gc_lt is not None and gc_prev < float(gc_lt):
+                mult = float(tier.get("multiplier", 1.0))
+                break
+        out *= mult
+    return out
+
+
 # Diabetes ICD codes that drive the glycemic trajectory. Mirrors the
 # activator's E11/E10 branch set.
 _GLYCEMIC_ICDS: frozenset[str] = frozenset({"E11", "E10"})
@@ -491,6 +540,13 @@ def _disease_progression(
         if current not in stages:
             continue
         rate = float((cfg.get("annual_advance_probability") or {}).get(current, 0.0))
+        # Comorbidity acceleration (diabetic nephropathy etc.). The
+        # multiplier is 1.0 when no interaction rule fires, so this
+        # is RNG-neutral for cohorts that don't carry the triggering
+        # comorbidity. See
+        # ``locale/shared/comorbidity_progression_multipliers.yaml``.
+        rate = rate * _comorbidity_multiplier(person, code_base, year)
+        rate = min(1.0, max(0.0, rate))
         # Issue #1581 — even on a no-advance year, record the current
         # stage into the year-indexed history so a lookup for any
         # year in the sim window finds the correct stage (the latest
