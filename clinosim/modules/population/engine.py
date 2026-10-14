@@ -794,6 +794,22 @@ def generate_population(
                 race=_derive_race(pid, demo),
                 ethnicity=_derive_ethnicity(pid, demo),
             )
+            # Issue #1581 Phase C.3 — sample single-gene carrier
+            # status for every catalogued disease. RNG-neutral (SHA
+            # of person_id + disease code), so this field addition
+            # does not shift any existing master stream. Affected
+            # persons get the ICD code appended to chronic_conditions.
+            from clinosim.locale.loader import load_single_gene_diseases
+            from clinosim.modules.population.single_gene_inheritance import (
+                apply_initial_carrier_sampling,
+            )
+
+            _sgd_catalog = (load_single_gene_diseases() or {}).get("single_gene_diseases") or {}
+            if _sgd_catalog:
+                _sgd_affected = apply_initial_carrier_sampling(person, _sgd_catalog)
+                for _affected_code in _sgd_affected:
+                    if _affected_code not in person.chronic_conditions:
+                        person.chronic_conditions.append(_affected_code)
             hh.members.append(person)
             registry.persons[pid] = person
 
