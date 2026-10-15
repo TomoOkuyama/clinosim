@@ -26,7 +26,7 @@ from clinosim.modules.metabolic import (
 
 The four enrichers are the module's only Python-facing public surface. Axis 5 ships as yaml entries (`locale/shared/chronic_medications.yaml` E66.9 / E66.01 blocks) and has no Python export. All four enrichers accept the standard `ctx` (with `.population.persons`) and mutate `PersonRecord.chronic_conditions` in place.
 
-Internal derivation primitives (`_derive_e66_code`, `_derive_metabolic_syndrome`, `_nafld_probability`, `_draw_nafld`, `_derive_nafld_assignment`, `_bmi_tier`, `_osa_probability`, `_draw_osa`, `_derive_osa_assignment`, `_has_code_with_prefix`) are leading-underscore and intended to stay testable but not stable — call sites outside `clinosim/modules/metabolic/` should go through the enrichers.
+Internal derivation primitives (`_derive_e66_code`, `_derive_metabolic_syndrome`, `_nafld_probability`, `_draw_nafld`, `_derive_nafld_assignment`, `_bmi_tier`, `_osa_probability`, `_draw_osa`, `_derive_osa_assignment`) are leading-underscore and intended to stay testable but not stable — call sites outside `clinosim/modules/metabolic/` should go through the enrichers. The former `_has_code_with_prefix` module-local helper has been replaced by the shared `clinosim.codes.has_icd_prefix`.
 
 ## Determinism
 

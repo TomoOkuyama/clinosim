@@ -79,6 +79,7 @@ from __future__ import annotations
 import hashlib
 from typing import Any
 
+from clinosim.codes import has_icd_prefix
 from clinosim.modules.population import (
     BMI_MORBID_OBESITY_THRESHOLD as _BMI_MORBID_THRESHOLD,
 )
@@ -125,16 +126,6 @@ _OSA_PREVALENCE_FEMALE: dict[str, float] = {
 _OSA_SALT = "metabolic.osa.v1"
 
 
-def _has_code_with_prefix(chronic: list[str], prefixes: tuple[str, ...]) -> bool:
-    """Return True if any entry in ``chronic`` starts with any of ``prefixes``.
-
-    Chronic condition lists may carry either the category header (e.g.
-    "E11") or a billable leaf (e.g. "E11.9"); the prefix match treats
-    both as equivalent for the AND-check.
-    """
-    return any(c.startswith(prefixes) for c in chronic)
-
-
 def _derive_metabolic_syndrome(bmi: float, chronic: list[str]) -> str | None:
     """Return "E88.81" when all four criteria (BMI >= 30 + HTN +
     Dyslipidemia + DM) are satisfied by ``bmi`` and the condition
@@ -146,11 +137,11 @@ def _derive_metabolic_syndrome(bmi: float, chronic: list[str]) -> str | None:
     """
     if bmi < _SYNDROME_BMI_THRESHOLD:
         return None
-    if not _has_code_with_prefix(chronic, _HTN_PREFIXES):
+    if not has_icd_prefix(chronic, _HTN_PREFIXES):
         return None
-    if not _has_code_with_prefix(chronic, _DYSLIPIDEMIA_PREFIXES):
+    if not has_icd_prefix(chronic, _DYSLIPIDEMIA_PREFIXES):
         return None
-    if not _has_code_with_prefix(chronic, _DM_PREFIXES):
+    if not has_icd_prefix(chronic, _DM_PREFIXES):
         return None
     return _SYNDROME_CODE
 
@@ -261,7 +252,7 @@ def _derive_nafld_assignment(person_id: str, bmi: float, chronic: list[str]) -> 
     """Return "K76.0" when the SHA-salted per-person draw assigns
     NAFLD under the BMI + DM-weighted probability, otherwise ``None``.
     """
-    probability = _nafld_probability(bmi, _has_code_with_prefix(chronic, _DM_PREFIXES))
+    probability = _nafld_probability(bmi, has_icd_prefix(chronic, _DM_PREFIXES))
     return _NAFLD_CODE if _draw_nafld(person_id, probability) else None
 
 
