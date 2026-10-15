@@ -89,3 +89,58 @@ def test_phq9_moderate_baseline_matches_f32_cohort_mode() -> None:
     primary-care screening meta."""
     baseline = BASELINE_LAB_NORMALS["PHQ-9"]
     assert 10 <= baseline <= 14, f"baseline {baseline} not in moderate band"
+
+
+# ===========================================================================
+# GAD-7 (axis 3 of META #1137)
+# ===========================================================================
+
+
+def test_gad7_canonical_catalog_wiring() -> None:
+    """GAD-7 is registered in every analyte-catalog table used by
+    the outpatient lab-emission loop. Missing from any one would
+    silently drop the Observation."""
+    assert "GAD-7" in BASELINE_LAB_NORMALS
+    assert "GAD-7" in BIOLOGICAL_CV
+    assert "GAD-7" in LAB_UNITS
+    assert "GAD-7" in PHYSIOLOGIC_LIMITS
+    assert "GAD-7" in PRECISION
+
+
+def test_gad7_unit_is_score_ucum() -> None:
+    assert get_lab_unit("GAD-7") == "{score}"
+
+
+def test_gad7_physiologic_limits_scoring_rule() -> None:
+    """GAD-7 total score 0-21 (7 items × 3 points)."""
+    assert PHYSIOLOGIC_LIMITS["GAD-7"] == (0.0, 21.0)
+
+
+def test_gad7_precision_is_integer() -> None:
+    assert PRECISION["GAD-7"] == 0
+
+
+def test_gad7_us_loinc_mapping() -> None:
+    """US code map maps GAD-7 → LOINC 70274-6 (Generalized Anxiety
+    Disorder-7)."""
+    us_map = load_code_mapping("lab", "US")
+    assert us_map.get("GAD-7") == "70274-6"
+
+
+def test_gad7_generate_lab_result_integer_in_range() -> None:
+    """``generate_lab_result("GAD-7", baseline, rng)`` returns an
+    integer-rounded value in [0, 21]."""
+    rng = np.random.default_rng(42)
+    for _ in range(50):
+        value = generate_lab_result("GAD-7", 8.0, rng)
+        assert isinstance(value, (int, float))
+        assert float(value).is_integer(), f"GAD-7 value {value} is not an integer"
+        assert 0 <= float(value) <= 21, f"GAD-7 value {value} outside scoring range"
+
+
+def test_gad7_mild_to_moderate_baseline_matches_f411_cohort_mode() -> None:
+    """BASELINE_LAB_NORMALS["GAD-7"] sits at the mild→moderate
+    transition (5-14 band) per Spitzer 2006 severity scoring,
+    consistent with primary-care-cohort means."""
+    baseline = BASELINE_LAB_NORMALS["GAD-7"]
+    assert 5 <= baseline <= 14, f"baseline {baseline} outside mild-to-moderate band"

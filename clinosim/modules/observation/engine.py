@@ -94,6 +94,10 @@ BIOLOGICAL_CV: dict[str, float] = {
     # cohort distribution across severity bands (none / mild /
     # moderate / moderately-severe / severe).
     "PHQ-9": 0.20,
+    # GAD-7 test-retest spread. Spitzer 2006 reports ICC 0.83 at
+    # 1-week intervals; same 20 % CV convention as PHQ-9 captures
+    # the symptom-fluctuation + rater-noise band.
+    "GAD-7": 0.20,
 }
 
 # Analytical variation (instrument imprecision)
@@ -184,6 +188,8 @@ PRECISION: dict[str, int] = {
     # construction (9 items × 0-3 points). precision=0 rounds the
     # post-noise value to the clinically-reported integer.
     "PHQ-9": 0,
+    # GAD-7 total score is an integer 0-21 (7 items × 0-3 points).
+    "GAD-7": 0,
 }
 
 
@@ -266,6 +272,11 @@ LAB_UNITS: dict[str, str] = {
     # for F32 / F33 cohort. UCUM "{score}" is the canonical unit
     # annotation for standardized assessment scores.
     "PHQ-9": "{score}",
+    # Issue #1137 — mental-health cluster axis 3: GAD-7 (Generalized
+    # Anxiety Disorder-7) is a patient-reported anxiety severity
+    # score 0-21 emitted on OP follow-up for F41.1 cohort. Same
+    # UCUM "{score}" convention as PHQ-9.
+    "GAD-7": "{score}",
 }
 
 
@@ -300,6 +311,10 @@ PHYSIOLOGIC_LIMITS: dict[str, tuple[float, float]] = {
     # physiologic limit — it's a scoring-rule invariant that any
     # measurement-noise tail MUST respect.
     "PHQ-9": (0.0, 27.0),
+    # Issue #1137 — GAD-7 total score lies in [0, 21] (7 items × 3
+    # points). Scoring-rule invariant, same bound rationale as
+    # PHQ-9.
+    "GAD-7": (0.0, 21.0),
 }
 
 
@@ -339,6 +354,13 @@ BASELINE_LAB_NORMALS: dict[str, float] = {
     # by the shared noise pipeline — PHQ-9 is added to
     # ``BIOLOGICAL_CV`` below.
     "PHQ-9": 10.0,
+    # Issue #1137 — GAD-7 F41.1 cohort baseline. Severity bands
+    # per Spitzer 2006 (Arch Intern Med 166:1092): 0-4 minimal /
+    # 5-9 mild / 10-14 moderate / 15-21 severe. Baseline 8
+    # (mild→moderate transition) matches the primary-care-cohort
+    # mean in Spitzer's validation study + Kroenke 2007 (Ann
+    # Intern Med 146:317) outpatient GAD cohorts.
+    "GAD-7": 8.0,
     # Issue #757 remaining mappings: drug-level monitoring analytes.
     # Baseline values sit in the mid-therapeutic band for each drug, so a
     # patient on stable dosing shows a "therapeutic-range" (interpretation=N)

@@ -88,3 +88,8 @@ Ciclosporin: "3521-2"        # Cyclosporine [Mass/volume] in Serum or Plasma
 # screening total score. Emitted at annual-checkup OP for F32/F33
 # patients; LOINC canonical.
 PHQ-9: "44249-1"
+
+# Issue #1137 — GAD-7 Generalized Anxiety Disorder 7-item severity
+# score. Emitted on OP follow-up for F41.1 patients; LOINC
+# canonical.
+GAD-7: "70274-6"

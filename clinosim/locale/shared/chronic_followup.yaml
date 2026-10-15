@@ -147,6 +147,23 @@ F33:  # Recurrent depressive disorder (Issue #1137 cluster axis 2)
   prescriptions_renewed: true
   visit_duration_minutes: 15
 
+F41.1:  # Generalized anxiety disorder (Issue #1137 cluster axis 3)
+  visit_reason:
+    en: "GAD monitoring, GAD-7 scoring, anxiolytic/SSRI management"
+    ja: "全般性不安障害フォローアップ・GAD-7 評価・抗不安薬／SSRI 管理"
+  follow_up_interval_months: 3
+  labs: []
+  # GAD-7 (Generalized Anxiety Disorder 7-item, LOINC 70274-6)
+  # emitted every quarter for diagnosed-GAD cohort. Score integer
+  # 0-21; severity banded 0-4 minimal / 5-9 mild / 10-14 moderate /
+  # 15-21 severe (Spitzer 2006 Arch Intern Med 166:1092). Baseline
+  # 8 (mild→moderate transition) with CV 0.20 — see
+  # observation.engine.BASELINE_LAB_NORMALS / BIOLOGICAL_CV.
+  labs_quarterly: ["GAD-7"]
+  vitals: [systolic_bp, heart_rate]
+  prescriptions_renewed: true
+  visit_duration_minutes: 15
+
 F00:  # Dementia
   visit_reason:
     en: "Cognitive status assessment, caregiver support"
