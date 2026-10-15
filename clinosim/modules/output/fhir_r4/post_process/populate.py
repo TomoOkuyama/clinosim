@@ -65,6 +65,14 @@ _HL7_V3_SUBSTITUTION_SYSTEM = "http://terminology.hl7.org/CodeSystem/v3-substanc
 # clinosim has no MHLW usage-code mapping, so the dummy is the correct choice
 # and matches JP-CLINS's own example fixture
 # (MedicationRequest-Example-JP-MedReq-PO-TID-2days-dummyUsageCode.json).
+#
+# Deliberately kept as a module-level constant rather than externalised to
+# ``clinosim/codes/data/*.yaml`` per the ``feedback_constants_live_in_external_
+# config`` exception: this is a single-site, spec-mandated placeholder that
+# only changes when JP-CLINS cuts a new minor version (the comment block
+# above pins the exact spec file + section). A yaml extraction would hide
+# the fixedUri / R5020-rationale from the yaml reader without decoupling
+# any configurable behavior. Reviewed as part of META #1633 P5.
 _JP_CLINS_MEDICATION_USAGE_UNCODED_CS = "http://jpfhir.jp/fhir/clins/CodeSystem/JP_CLINS_MedicationUsage_Uncoded_CS"
 
 
