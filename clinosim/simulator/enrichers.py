@@ -151,6 +151,26 @@ def register_builtin_enrichers() -> None:
         )
     )
 
+    # Metabolic BMI-derived obesity codes (Issue #1137 cluster 2 axis
+    # 1). POST_POPULATION order=15 — after allergy / identity (order
+    # 10) so patient fundamentals are finalized, and before
+    # natural_death (order 20) so an E66 code is on
+    # ``chronic_conditions`` by the time any downstream pass reads it.
+    # Pure deterministic (BMI → ICD lookup), no RNG consumption,
+    # byte-identity preserved for cohorts without BMI thresholds
+    # crossed.
+    from clinosim.modules.metabolic import e66_bmi_enricher
+
+    register_enricher(
+        Enricher(
+            name="e66_bmi",
+            stage=POST_POPULATION,
+            order=15,
+            enabled=lambda c: True,
+            run=e66_bmi_enricher,
+        )
+    )
+
     # Natural-death sampling (Issue #1114 C11g-2). POST_POPULATION so
     # date_of_death is populated before the event generators run;
     # ``PersonRecord.is_alive_at(t)`` becomes the query API for
