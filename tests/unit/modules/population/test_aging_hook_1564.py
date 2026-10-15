@@ -361,6 +361,49 @@ def test_stroke_sequela_promotion_hemorrhagic_adds_i69_1() -> None:
     assert p.disease_stages.get("I69") in {"mRS 0", "mRS 1", "mRS 2", "mRS 3", "mRS 4", "mRS 5"}
 
 
+def test_stroke_sequela_hemorrhagic_mrs_distribution_shifted_vs_ischemic() -> None:
+    """Hemorrhagic sequela (I69.1) persons draw from a rightward-
+    shifted mRS distribution compared with ischemic sequela (I69.3)
+    persons. Monte-Carlo at p=1000 — compare mean mRS index."""
+    from datetime import date as _d
+
+    from clinosim.types.population import HospitalizationSummary
+
+    stage_idx = {"mRS 0": 0, "mRS 1": 1, "mRS 2": 2, "mRS 3": 3, "mRS 4": 4, "mRS 5": 5}
+
+    def _mean_initial_mrs(disease_id: str, expected_chronic: str) -> float:
+        total = 0.0
+        n = 1000
+        for i in range(n):
+            p = _alive(f"PT-SEQ-{disease_id}-{i:04d}", age=70)
+            p.hospitalization_history = [
+                HospitalizationSummary(
+                    encounter_id=f"ENC-{i}",
+                    disease_id=disease_id,
+                    admission_date=_d(2025, 3, 1),
+                    discharge_date=_d(2025, 3, 10),
+                    los_days=9,
+                    outcome="discharged",
+                )
+            ]
+            reg = _registry([p])
+            advance_population(reg, 2026, "us")
+            assert expected_chronic in p.chronic_conditions
+            total += stage_idx[p.disease_stages["I69"]]
+        return total / n
+
+    ischemic_mean = _mean_initial_mrs("cerebral_infarction", "I69.3")
+    hemorrhagic_mean = _mean_initial_mrs("hemorrhagic_stroke", "I69.1")
+    # Expected: ischemic ~2.5 (I69_3 weights center on mRS 2),
+    # hemorrhagic ~3.1 (I69_1 weights center on mRS 3-4). Require a
+    # clear separation to confirm the dispatcher routes to the
+    # correct per-code sampler.
+    assert hemorrhagic_mean > ischemic_mean + 0.3, (
+        f"hemorrhagic I69.1 mean mRS ({hemorrhagic_mean:.2f}) should exceed "
+        f"ischemic I69.3 mean ({ischemic_mean:.2f}) by ≥0.3; weights wiring broken"
+    )
+
+
 def test_stroke_sequela_promotion_both_arms_fire_on_mixed_history() -> None:
     """A person with BOTH cerebral_infarction and hemorrhagic_stroke
     in hospitalization_history gets both I69.3 and I69.1. Rare

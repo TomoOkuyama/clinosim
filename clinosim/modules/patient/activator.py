@@ -112,6 +112,7 @@ from clinosim.modules.patient._severity_activation import (
     G35_STAGES,
     I48_STAGE_WEIGHTS,
     I48_STAGES,
+    I69_1_STAGE_WEIGHTS,
     I69_3_STAGE_WEIGHTS,
     I69_3_STAGES,
     K70_STAGE_WEIGHTS,
@@ -187,7 +188,13 @@ def _generate_stage(code: str, severity: str, rng: np.random.Generator) -> str:
         return str(rng.choice(I48_STAGES, p=I48_STAGE_WEIGHTS))
     if base == "G35":  # Multiple sclerosis (banded EDSS)
         return str(rng.choice(G35_STAGES, p=G35_STAGE_WEIGHTS))
-    if base == "I69":  # Sequelae of cerebral infarction (I69.3 — modified Rankin Scale)
+    if base == "I69":  # Stroke sequelae (modified Rankin Scale)
+        # I69.1 (ICH sequela) has a rightward-shifted discharge mRS vs
+        # I69.3 (ischemic sequela) — hemorrhagic survivors retain more
+        # residual deficit per Kleindorfer 2021 Stroke. Both share the
+        # mRS stage label set (I69_3_STAGES).
+        if code == "I69.1":
+            return str(rng.choice(I69_3_STAGES, p=I69_1_STAGE_WEIGHTS))
         return str(rng.choice(I69_3_STAGES, p=I69_3_STAGE_WEIGHTS))
     return ""
 

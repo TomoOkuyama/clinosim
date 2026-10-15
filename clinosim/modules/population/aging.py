@@ -508,6 +508,23 @@ _INITIAL_STAGE_SAMPLERS: dict[str, tuple[tuple[str, ...], tuple[float, ...]]] = 
         ("EDSS 0-2", "EDSS 2.5-5", "EDSS 5.5-7", "EDSS 7.5-10"),
         (0.45, 0.35, 0.15, 0.05),
     ),
+    # I69.3 (ischemic sequela) and I69.1 (ICH sequela) carry
+    # different discharge-mRS distributions per Kleindorfer 2021
+    # Stroke AHA/ASA guideline + GWTG-Stroke subgroup data —
+    # hemorrhagic survivors have a rightward-shifted (worse) mRS
+    # distribution than ischemic. The dispatcher below tries the
+    # FULL code before falling back to base "I69", so these
+    # per-sub-code weights win over the shared base entry (which
+    # itself is kept for backward compatibility and for any
+    # future sub-code not explicitly broken out).
+    "I69.3": (
+        ("mRS 0", "mRS 1", "mRS 2", "mRS 3", "mRS 4", "mRS 5"),
+        (0.10, 0.20, 0.25, 0.20, 0.15, 0.10),
+    ),
+    "I69.1": (
+        ("mRS 0", "mRS 1", "mRS 2", "mRS 3", "mRS 4", "mRS 5"),
+        (0.05, 0.12, 0.18, 0.25, 0.25, 0.15),
+    ),
     "I69": (
         ("mRS 0", "mRS 1", "mRS 2", "mRS 3", "mRS 4", "mRS 5"),
         (0.10, 0.20, 0.25, 0.20, 0.15, 0.10),
@@ -589,7 +606,11 @@ def _disease_progression(
         if not stages:
             continue
         if code_base not in person.disease_stages:
-            sampler = _INITIAL_STAGE_SAMPLERS.get(code_base)
+            # Try full ICD (e.g. "I69.1" / "I69.3" distinct discharge
+            # mRS distributions) before falling back to base. Lets a
+            # per-sub-code sampler win without disturbing conditions
+            # that only register a base-code entry.
+            sampler = _INITIAL_STAGE_SAMPLERS.get(code) or _INITIAL_STAGE_SAMPLERS.get(code_base)
             if sampler is None:
                 continue
             new_stage = _weighted_sample(prng, sampler[0], sampler[1])
