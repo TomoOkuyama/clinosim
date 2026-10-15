@@ -79,11 +79,20 @@ from __future__ import annotations
 import hashlib
 from typing import Any
 
-# ICD-10 BMI thresholds (upper bounds exclusive on the lower edges
-# per the WHO classification; e.g. 24.9 -> no E66, 25.0 -> E66.3).
-_BMI_OVERWEIGHT_THRESHOLD = 25.0
-_BMI_OBESITY_THRESHOLD = 30.0
-_BMI_MORBID_THRESHOLD = 40.0
+from clinosim.modules.population import (
+    BMI_MORBID_OBESITY_THRESHOLD as _BMI_MORBID_THRESHOLD,
+)
+from clinosim.modules.population import (
+    BMI_OBESE_THRESHOLD as _BMI_OBESITY_THRESHOLD,
+)
+from clinosim.modules.population import (
+    BMI_OVERWEIGHT_THRESHOLD as _BMI_OVERWEIGHT_THRESHOLD,
+)
+
+# WHO BMI tier bounds are imported from the population package to
+# keep a single source of truth across the simulator (next WHO
+# revision needs one patch, not two). The local underscore aliases
+# keep the metabolic-side call sites unchanged.
 
 # E88.81 metabolic syndrome AND-criteria.
 _SYNDROME_BMI_THRESHOLD = 30.0
