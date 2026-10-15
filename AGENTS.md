@@ -239,7 +239,7 @@ old name; those are being cleaned up module-by-module (see linked issues).
 - `pytest -m unit` — per-module unit tests (<30s)
 - `pytest -m integration` — module chain tests (<5min)
 - `pytest -m e2e` — golden file comparison (<30min)
-- `pytest -x` — full suite (234 tests; unit+integration ~2 min, e2e golden ~8 min)
+- `pytest -x` — full suite (≈7000 tests; unit+integration ~2 min, e2e golden ~8 min)
 - Always run unit tests before committing.
 
 ## Development workflow — Issue → PR → Merge
@@ -251,9 +251,12 @@ gates, merge policy) lives in
 
 AGENTS-specific additions on top of the contributor workflow:
 
-- **Commit trailers**: keep `Co-Authored-By: <agent-model>` +
-  `Claude-Session: <url>` alongside the DCO `Signed-off-by:` so
-  agent-authored commits stay attributable.
+- **Commit trailers**: use the DCO `Signed-off-by:` only. Per the
+  2026-10-15 maintainer policy, agent-attribution trailers
+  (`Co-Authored-By: Claude ...`, `Claude-Session: ...`) are
+  **not** added to commits or PR / Issue bodies — the full git
+  history has been rewritten to strip these lines, and new work
+  must not re-introduce them.
 - **Adversarial review** (recommended for large chains): run
   `/code-review` on the PR and add fix commits before merging.
 - **scope-discipline**: 1 PR = 1 論点 (silent-drop fix / lint sweep 等の
@@ -278,7 +281,7 @@ git switch -c fix/<B>-<slug>
 # ... 実装 ...
 
 # A の CI が緑になったら merge し、master を更新してから B を続ける
-gh pr merge <A の PR 番号> --squash --delete-branch
+gh pr merge <A の PR 番号> --rebase --delete-branch
 git switch master && git pull --ff-only origin master
 ```
 
