@@ -579,6 +579,20 @@ _INITIAL_STAGE_SAMPLERS: dict[str, tuple[tuple[str, ...], tuple[float, ...]]] = 
         ("mRS 0", "mRS 1", "mRS 2", "mRS 3", "mRS 4", "mRS 5"),
         (0.10, 0.20, 0.25, 0.20, 0.15, 0.10),
     ),
+    # Issue #1137 — mental-health severity bands. F32/F33 share
+    # the PHQ-9 band structure; F41.1 uses the GAD-7 bands.
+    "F32": (
+        ("PHQ-9 none", "PHQ-9 mild", "PHQ-9 moderate", "PHQ-9 moderately severe", "PHQ-9 severe"),
+        (0.05, 0.20, 0.40, 0.25, 0.10),
+    ),
+    "F33": (
+        ("PHQ-9 none", "PHQ-9 mild", "PHQ-9 moderate", "PHQ-9 moderately severe", "PHQ-9 severe"),
+        (0.05, 0.20, 0.40, 0.25, 0.10),
+    ),
+    "F41.1": (
+        ("GAD-7 minimal", "GAD-7 mild", "GAD-7 moderate", "GAD-7 severe"),
+        (0.05, 0.30, 0.45, 0.20),
+    ),
 }
 
 
