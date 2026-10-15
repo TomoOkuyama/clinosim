@@ -276,6 +276,14 @@ def _annual_chronic_onset(
             # discipline, not a correctness requirement — the next ICD
             # in iteration order will get a fresh draw regardless.
             continue
+        # Issue #1137 — mental-health axis: scale the base onset
+        # rate by any applicable comorbidity multiplier
+        # (DM / HF / cancer / stroke-sequela → F32 / F33 / F41.1).
+        # Zero RNG cost — the multiplier only shifts the Bernoulli
+        # threshold, so byte-identity for cohorts without the
+        # triggering somatic chronic condition is preserved.
+        rate = rate * _mental_health_onset_multiplier(code, person)
+        rate = min(1.0, max(0.0, rate))
         if prng.random() < rate:
             # State-period markers (Z34 pregnancy, Z37 outcome-of-
             # delivery) have per-age-band Bernoulli entries in
@@ -324,6 +332,48 @@ def _load_glycemic_trajectory_config() -> dict[str, dict]:
 
     data = load_glycemic_trajectory()
     return data.get("glycemic_trajectory") or {}
+
+
+@lru_cache(maxsize=1)
+def _load_mental_health_onset_multipliers() -> dict[str, dict]:
+    """Return per-target-ICD onset multiplier rules from
+    ``mental_health_onset_multipliers.yaml``. Cached singleton.
+    Empty dict when the yaml is missing — ``_mental_health_onset_
+    multiplier`` returns 1.0 for every lookup so onset behaviour
+    is unchanged for cohorts without the triggering comorbidities."""
+    from clinosim.locale.loader import load_mental_health_onset_multipliers
+
+    data = load_mental_health_onset_multipliers()
+    return data.get("mental_health_onset_multipliers") or {}
+
+
+def _mental_health_onset_multiplier(code: str, person: PersonRecord) -> float:
+    """Compound onset multiplier for mental-health chronic ``code``
+    under the person's currently-held somatic comorbidities. Returns
+    1.0 (no scaling) when the target has no rule or when no rule
+    fires.
+
+    Rule triggers (all applicable rules compound multiplicatively):
+        requires_any_chronic -> ANY-match against
+                                person.chronic_conditions (exact).
+        requires_any_chronic_prefix -> ANY-match via startswith on
+                                person.chronic_conditions.
+    """
+    rules = _load_mental_health_onset_multipliers().get(code)
+    if not rules:
+        return 1.0
+    chronic = person.chronic_conditions or []
+    chronic_set = set(chronic)
+    out = 1.0
+    for _rule_name, rule in rules.items():
+        exact = set(rule.get("requires_any_chronic") or ())
+        prefix = tuple(rule.get("requires_any_chronic_prefix") or ())
+        if exact and (exact & chronic_set):
+            out *= float(rule.get("multiplier", 1.0))
+            continue
+        if prefix and any(c.startswith(p) for c in chronic for p in prefix):
+            out *= float(rule.get("multiplier", 1.0))
+    return out
 
 
 @lru_cache(maxsize=1)

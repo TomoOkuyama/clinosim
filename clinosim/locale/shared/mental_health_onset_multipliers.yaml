@@ -1,0 +1,102 @@
+# Comorbidity-conditional onset multipliers for mental-health chronic
+# conditions. Consumed by ``aging._annual_chronic_onset`` to scale the
+# base per-year Bernoulli rate for F32 / F33 / F41.1 upward when the
+# person already carries a somatic chronic condition that
+# epidemiology links to depression / anxiety onset.
+#
+# Issue #1137 motivates the clustering of mental-health axes into a
+# dedicated module. This yaml is the first per-axis addition in the
+# cluster — pure additive (no new chronic codes, no sampling schema
+# change, no FHIR emit path change). The multiplier flows through
+# the existing ``_annual_chronic_onset`` Bernoulli, keeping the pass-
+# isolated RNG shape unchanged (no new rng.random() calls per
+# iteration — the multiplier only scales the existing draw's
+# threshold).
+#
+# Lookup lifecycle (per-person, per-year, per-target):
+#   1. ``_annual_chronic_onset`` looks up the base rate from
+#      ``_derive_annual_incidence_from_prevalence`` as usual.
+#   2. ``_mental_health_onset_multiplier(code, person)`` compounds
+#      every applicable multiplier rule for ``code`` under
+#      ``mental_health_onset_multipliers.<code>``. Multiple
+#      applicable rules compound multiplicatively; a rule fires
+#      when its ``requires_any_chronic`` (or
+#      ``requires_any_chronic_prefix``) matches any entry in
+#      ``person.chronic_conditions``.
+#   3. The compound multiplier scales ``rate`` before the
+#      ``prng.random() < rate`` Bernoulli — no additional RNG draws
+#      are consumed per rule, so byte-identity for cohorts without
+#      the triggering comorbidities is preserved.
+#
+# Trigger field forms:
+#   requires_any_chronic -> list of exact ICD codes. ANY-match
+#                           against person.chronic_conditions.
+#   requires_any_chronic_prefix -> list of ICD prefixes (e.g. "C"
+#                           for any cancer, "I69" for any stroke
+#                           sequela). ANY-match via startswith.
+
+mental_health_onset_multipliers:
+
+  # ------------------------------------------------------------------
+  # F32 Depression (single episode)
+  # ------------------------------------------------------------------
+  # Clinical basis: Mezuk 2008 (Diabetes Care 31:2383) meta-analysis
+  # of DM↔depression bidirectional risk (HR ~1.5-2.5); Rutledge 2006
+  # (JACC 48:1527) heart-failure cohort meta (HR 2.0-2.5); Mitchell
+  # 2011 (Lancet Oncol 12:160) cancer-cohort pooled depression
+  # prevalence (~2-3x general); Robinson 2003 (Biol Psychiatry
+  # 54:376) post-stroke-depression review (one-year prevalence
+  # ~30-40%, baseline-adjusted RR ~2).
+  F32:
+    diabetes_depression:
+      requires_any_chronic: ["E10", "E11"]
+      multiplier: 2.0
+    heart_failure_depression:
+      requires_any_chronic: ["I50"]
+      multiplier: 2.0
+    cancer_depression:
+      requires_any_chronic_prefix: ["C"]
+      multiplier: 2.5
+    post_stroke_depression:
+      requires_any_chronic: ["I69.3", "I69.1"]
+      multiplier: 2.0
+
+  # ------------------------------------------------------------------
+  # F33 Recurrent depressive disorder
+  # ------------------------------------------------------------------
+  # Shares the same somatic-trigger profile as F32 — recurrent
+  # episodes have similar comorbidity drivers to single-episode
+  # (DSM-5 Chapter 7 continuity). Multipliers mirrored from F32.
+  F33:
+    diabetes_depression:
+      requires_any_chronic: ["E10", "E11"]
+      multiplier: 2.0
+    heart_failure_depression:
+      requires_any_chronic: ["I50"]
+      multiplier: 2.0
+    cancer_depression:
+      requires_any_chronic_prefix: ["C"]
+      multiplier: 2.5
+    post_stroke_depression:
+      requires_any_chronic: ["I69.3", "I69.1"]
+      multiplier: 2.0
+
+  # ------------------------------------------------------------------
+  # F41.1 Generalized anxiety disorder
+  # ------------------------------------------------------------------
+  # Comorbid anxiety with somatic disease is generally lower-
+  # magnitude than depression. Clinical basis: Grigsby 2002 (J
+  # Psychosom Res 53:1053) diabetes-anxiety meta (OR 1.5-1.9);
+  # Easton 2016 (BMJ Open 6:e010126) cardiovascular-anxiety review;
+  # Mitchell 2013 (JAMA Oncol) oncology-anxiety prevalence (~1.5-
+  # 2x general).
+  F41.1:
+    diabetes_anxiety:
+      requires_any_chronic: ["E10", "E11"]
+      multiplier: 1.5
+    heart_failure_anxiety:
+      requires_any_chronic: ["I50"]
+      multiplier: 1.5
+    cancer_anxiety:
+      requires_any_chronic_prefix: ["C"]
+      multiplier: 2.0

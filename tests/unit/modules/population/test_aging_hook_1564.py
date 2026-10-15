@@ -442,6 +442,59 @@ def test_stroke_sequela_hemorrhagic_advance_slower_than_ischemic() -> None:
     )
 
 
+def test_mental_health_onset_multiplier_1_when_no_rule_or_no_comorbidity() -> None:
+    """A person with no somatic comorbidity gets multiplier 1.0 on
+    every mental-health target — rate unchanged from baseline."""
+    from clinosim.modules.population.aging import _mental_health_onset_multiplier
+
+    p = _alive("PT-NONE", age=50)
+    p.chronic_conditions = []
+    assert _mental_health_onset_multiplier("F32", p) == 1.0
+    # Target without any rule → 1.0 regardless of comorbidities.
+    p.chronic_conditions = ["E11", "I50"]
+    assert _mental_health_onset_multiplier("I10", p) == 1.0
+
+
+def test_mental_health_onset_multiplier_depression_compounds_comorbidities() -> None:
+    """DM + HF + a cancer code compound: 2.0 × 2.0 × 2.5 = 10.0x on
+    F32 onset. Verifies the three trigger forms (exact, exact,
+    prefix) all route correctly."""
+    from clinosim.modules.population.aging import _mental_health_onset_multiplier
+
+    p = _alive("PT-MULTI", age=65)
+    p.chronic_conditions = ["E11", "I50", "C18"]  # DM + HF + colon cancer
+    mult = _mental_health_onset_multiplier("F32", p)
+    assert abs(mult - (2.0 * 2.0 * 2.5)) < 1e-9, f"expected 10.0, got {mult}"
+
+
+def test_mental_health_onset_multiplier_post_stroke_depression() -> None:
+    """A person with I69.3 (ischemic stroke sequela) picks up the
+    post_stroke_depression 2.0x multiplier on F32 / F33 onset."""
+    from clinosim.modules.population.aging import _mental_health_onset_multiplier
+
+    p = _alive("PT-POSTSTROKE", age=70)
+    p.chronic_conditions = ["I69.3"]
+    assert _mental_health_onset_multiplier("F32", p) == 2.0
+    assert _mental_health_onset_multiplier("F33", p) == 2.0
+    # F41.1 does not have a post-stroke-anxiety rule → 1.0
+    assert _mental_health_onset_multiplier("F41.1", p) == 1.0
+
+
+def test_mental_health_onset_multiplier_gad_lower_magnitude_than_depression() -> None:
+    """GAD (F41.1) has lower comorbidity magnitudes than depression —
+    DM-anxiety 1.5x vs DM-depression 2.0x per Grigsby 2002 /
+    Mezuk 2008."""
+    from clinosim.modules.population.aging import _mental_health_onset_multiplier
+
+    p = _alive("PT-DM", age=55)
+    p.chronic_conditions = ["E11"]
+    f32_mult = _mental_health_onset_multiplier("F32", p)
+    f41_mult = _mental_health_onset_multiplier("F41.1", p)
+    assert f32_mult == 2.0
+    assert f41_mult == 1.5
+    assert f32_mult > f41_mult
+
+
 def test_stroke_sequela_promotion_both_arms_fire_on_mixed_history() -> None:
     """A person with BOTH cerebral_infarction and hemorrhagic_stroke
     in hospitalization_history gets both I69.3 and I69.1. Rare
