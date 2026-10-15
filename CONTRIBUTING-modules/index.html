@@ -2342,6 +2342,45 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#plugin-discovery-convention-auditaxes--evalaxes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Plugin discovery convention: audit/axes/ + eval/axes/
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Plugin discovery convention: audit/axes/ + eval/axes/">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#convention" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Convention
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#adding-a-new-axis" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Adding a new axis
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -3492,6 +3531,45 @@
       
     </span>
   </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#plugin-discovery-convention-auditaxes--evalaxes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Plugin discovery convention: audit/axes/ + eval/axes/
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Plugin discovery convention: audit/axes/ + eval/axes/">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#convention" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Convention
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#adding-a-new-axis" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Adding a new axis
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -4837,6 +4915,59 @@ Quick summary:</p>
 <p><strong>AD-66 policy</strong> (see <code>AGENTS.md</code> for canonical wording):
 - Profile YAML changes MUST regenerate golden + commit both together
 - Unexpected <code>git diff</code> on goldens after intentional template changes = regression suspicion</p>
+<h2 id="plugin-discovery-convention-auditaxes--evalaxes">Plugin discovery convention: <code>audit/axes/</code> + <code>eval/axes/</code><a class="headerlink" href="#plugin-discovery-convention-auditaxes--evalaxes" title="Permanent link">&para;</a></h2>
+<p>The audit and eval pipelines both auto-discover their per-axis
+check runners from an <code>axes/</code> sub-package rather than requiring
+hand-edited registries. Any new axis module dropped into one of
+these directories is picked up on the next pipeline run:</p>
+<div class="highlight"><pre><span></span><code><span id="__span-30-1"><a id="__codelineno-30-1" name="__codelineno-30-1" href="#__codelineno-30-1"></a>clinosim/audit/axes/         # audit axes
+</span><span id="__span-30-2"><a id="__codelineno-30-2" name="__codelineno-30-2" href="#__codelineno-30-2"></a>├── __init__.py              # one-line package marker
+</span><span id="__span-30-3"><a id="__codelineno-30-3" name="__codelineno-30-3" href="#__codelineno-30-3"></a>├── clinical.py              # one axis per file
+</span><span id="__span-30-4"><a id="__codelineno-30-4" name="__codelineno-30-4" href="#__codelineno-30-4"></a>├── jp_language.py
+</span><span id="__span-30-5"><a id="__codelineno-30-5" name="__codelineno-30-5" href="#__codelineno-30-5"></a>├── silent_no_op.py
+</span><span id="__span-30-6"><a id="__codelineno-30-6" name="__codelineno-30-6" href="#__codelineno-30-6"></a>└── structural.py
+</span><span id="__span-30-7"><a id="__codelineno-30-7" name="__codelineno-30-7" href="#__codelineno-30-7"></a>
+</span><span id="__span-30-8"><a id="__codelineno-30-8" name="__codelineno-30-8" href="#__codelineno-30-8"></a>clinosim/eval/axes/          # eval axes
+</span><span id="__span-30-9"><a id="__codelineno-30-9" name="__codelineno-30-9" href="#__codelineno-30-9"></a>├── __init__.py
+</span><span id="__span-30-10"><a id="__codelineno-30-10" name="__codelineno-30-10" href="#__codelineno-30-10"></a>├── clinical.py
+</span><span id="__span-30-11"><a id="__codelineno-30-11" name="__codelineno-30-11" href="#__codelineno-30-11"></a>├── jp_clins_lab_compliance.py
+</span><span id="__span-30-12"><a id="__codelineno-30-12" name="__codelineno-30-12" href="#__codelineno-30-12"></a>├── jp_core_compliance.py
+</span><span id="__span-30-13"><a id="__codelineno-30-13" name="__codelineno-30-13" href="#__codelineno-30-13"></a>├── locale.py
+</span><span id="__span-30-14"><a id="__codelineno-30-14" name="__codelineno-30-14" href="#__codelineno-30-14"></a>├── structural.py
+</span><span id="__span-30-15"><a id="__codelineno-30-15" name="__codelineno-30-15" href="#__codelineno-30-15"></a>└── us_core_compliance.py
+</span></code></pre></div>
+<h3 id="convention">Convention<a class="headerlink" href="#convention" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>File per axis.</strong> Each axis gets its own <code>.py</code> under the
+  appropriate <code>axes/</code> directory. Grouping axes into shared files
+  is intentionally not supported — the discovery iterates one
+  module at a time.</li>
+<li><strong>Public <code>run(cohort, country) -&gt; list[...]</code> entry point.</strong>
+  <code>audit/axes/*.py</code> exposes a <code>run</code> callable returning
+  <code>list[AuditFinding]</code>; <code>eval/axes/*.py</code> exposes one returning
+  <code>list[EvalCheck]</code>. The pipeline imports the module and calls
+  <code>module.run(...)</code> — no registration decorator required.</li>
+<li><strong>No cross-axis imports.</strong> An axis module imports from
+  <code>clinosim.*</code> as needed, but not from a sibling axis file.
+  Shared helpers go into <code>clinosim/audit/_shared.py</code> /
+  <code>clinosim/eval/_shared.py</code> instead.</li>
+<li><strong>README mirror.</strong> Each <code>axes/</code> directory ships a <code>README.md</code></li>
+<li><code>README.ja.md</code> enumerating the current axes with a one-line
+  summary; keep these current when adding a new axis.</li>
+</ul>
+<h3 id="adding-a-new-axis">Adding a new axis<a class="headerlink" href="#adding-a-new-axis" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span id="__span-31-1"><a id="__codelineno-31-1" name="__codelineno-31-1" href="#__codelineno-31-1"></a><span class="c1"># 1. Add the axis file</span>
+</span><span id="__span-31-2"><a id="__codelineno-31-2" name="__codelineno-31-2" href="#__codelineno-31-2"></a>touch<span class="w"> </span>clinosim/eval/axes/my_new_axis.py
+</span><span id="__span-31-3"><a id="__codelineno-31-3" name="__codelineno-31-3" href="#__codelineno-31-3"></a>
+</span><span id="__span-31-4"><a id="__codelineno-31-4" name="__codelineno-31-4" href="#__codelineno-31-4"></a><span class="c1"># 2. Implement `run(cohort, country) -&gt; list[EvalCheck]`</span>
+</span><span id="__span-31-5"><a id="__codelineno-31-5" name="__codelineno-31-5" href="#__codelineno-31-5"></a>
+</span><span id="__span-31-6"><a id="__codelineno-31-6" name="__codelineno-31-6" href="#__codelineno-31-6"></a><span class="c1"># 3. Add a one-line entry to clinosim/eval/axes/README.md +</span>
+</span><span id="__span-31-7"><a id="__codelineno-31-7" name="__codelineno-31-7" href="#__codelineno-31-7"></a><span class="c1">#    README.ja.md</span>
+</span><span id="__span-31-8"><a id="__codelineno-31-8" name="__codelineno-31-8" href="#__codelineno-31-8"></a>
+</span><span id="__span-31-9"><a id="__codelineno-31-9" name="__codelineno-31-9" href="#__codelineno-31-9"></a><span class="c1"># 4. Run the pipeline; the axis is auto-discovered</span>
+</span><span id="__span-31-10"><a id="__codelineno-31-10" name="__codelineno-31-10" href="#__codelineno-31-10"></a>clinosim<span class="w"> </span><span class="nb">eval</span><span class="w"> </span>./out
+</span></code></pre></div>
+<p>The audit path is identical with <code>audit/axes/</code> + <code>AuditFinding</code>.</p>
 <p>Japanese counterpart: <a href="../CONTRIBUTING-modules.ja/"><code>CONTRIBUTING-modules.ja.md</code></a>.</p>
 
 
