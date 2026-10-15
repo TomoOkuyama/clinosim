@@ -29,14 +29,24 @@ pytestmark = pytest.mark.unit
 @dataclass
 class _Cond:
     code: str
+    # Severity band (optional). Required for SNRI / atypical AD
+    # tests on F32 / F33 / F41.1 after the Issue #1137 cluster
+    # axis 6 severity-gated prescribing shipped — see
+    # ``_derive_home_medications`` ``requires_stage_in`` filter.
+    stage: str = ""
 
 
 SSRI_DRUGS = ("sertraline", "escitalopram", "fluoxetine", "paroxetine")
 
 
-def _sample(country: str, code: str, n: int) -> list[list[str]]:
+def _sample(country: str, code: str, n: int, stage: str = "") -> list[list[str]]:
     return [
-        [m.drug_name for m in _derive_home_medications([_Cond(code=code)], np.random.default_rng(s), country=country)]
+        [
+            m.drug_name
+            for m in _derive_home_medications(
+                [_Cond(code=code, stage=stage)], np.random.default_rng(s), country=country
+            )
+        ]
         for s in range(n)
     ]
 
@@ -141,25 +151,41 @@ ATYPICAL_DRUGS = ("mirtazapine",)
 
 
 def test_f32_snri_class_fires_in_expected_band_us() -> None:
-    """F32 depression cohort: ~15 % receive an SNRI (Venlafaxine or
-    Duloxetine — the second-line class alongside SSRI first-line)."""
-    hits = sum(1 for s in _sample("US", "F32", n=1000) if any(d.lower() in SNRI_DRUGS for d in s))
+    """F32 depression cohort at moderate+ severity: ~15 % receive an
+    SNRI (Venlafaxine or Duloxetine — second-line / augmentation
+    class). Severity gate (axis 6) requires the stage fixture —
+    mild cohorts correctly get zero SNRI."""
+    hits = sum(
+        1 for s in _sample("US", "F32", n=1000, stage="PHQ-9 moderate") if any(d.lower() in SNRI_DRUGS for d in s)
+    )
     assert 0.08 * 1000 <= hits <= 0.22 * 1000, f"F32 SNRI rate {hits}/1000 outside 8-22 %"
 
 
 def test_f32_atypical_class_fires_in_expected_band_us() -> None:
-    """F32 depression cohort: ~6 % receive Mirtazapine (atypical class)."""
-    hits = sum(1 for s in _sample("US", "F32", n=1000) if any(d.lower() in ATYPICAL_DRUGS for d in s))
+    """F32 depression cohort at moderately severe + severe severity:
+    ~6 % receive Mirtazapine (atypical class). Severity gate (axis 6)
+    requires the stage fixture — mild / moderate cohorts correctly
+    get zero Mirtazapine (atypical is augmentation therapy)."""
+    hits = sum(
+        1
+        for s in _sample("US", "F32", n=1000, stage="PHQ-9 moderately severe")
+        if any(d.lower() in ATYPICAL_DRUGS for d in s)
+    )
     assert 0.03 * 1000 <= hits <= 0.10 * 1000, f"F32 atypical rate {hits}/1000 outside 3-10 %"
 
 
 def test_f32_augmentation_pattern_ssri_plus_snri_exists() -> None:
-    """Real STAR*D augmentation: some F32 patients on BOTH an SSRI AND
-    an SNRI (~10-15 % of treated). Confirm the multi-class exclusive
-    design permits this cross-class combination."""
+    """Real STAR*D augmentation: some F32 patients at moderate+
+    severity on BOTH an SSRI AND an SNRI (~10-15 % of treated).
+    Confirm the multi-class exclusive design permits this
+    cross-class combination. Severity gate from axis 6 requires the
+    moderate+ stage fixture — SNRI is correctly suppressed on
+    mild cohorts."""
     found_combo = False
     for seed in range(1000):
-        meds = _derive_home_medications([_Cond(code="F32")], np.random.default_rng(seed), country="US")
+        meds = _derive_home_medications(
+            [_Cond(code="F32", stage="PHQ-9 moderate")], np.random.default_rng(seed), country="US"
+        )
         names = [m.drug_name.lower() for m in meds]
         if any(d in SSRI_DRUGS for d in names) and any(d in SNRI_DRUGS for d in names):
             found_combo = True
@@ -168,11 +194,17 @@ def test_f32_augmentation_pattern_ssri_plus_snri_exists() -> None:
 
 
 def test_f41_1_snri_first_line_higher_than_f32() -> None:
-    """F41.1 GAD: SNRI probability is bumped vs F32 because APA / VA-DoD
-    list SNRI as ALSO first-line for anxiety (vs second-line for
-    depression)."""
-    f32_snri = sum(1 for s in _sample("US", "F32", n=500) if any(d.lower() in SNRI_DRUGS for d in s))
-    f41_snri = sum(1 for s in _sample("US", "F41.1", n=500) if any(d.lower() in SNRI_DRUGS for d in s))
+    """F41.1 GAD at moderate severity: SNRI first-line (APA / VA-DoD).
+    Compare at matched severity against F32 moderate so the SNRI
+    probability shape difference is visible. F41.1 SNRI candidates
+    carry higher base probability than F32 (0.15 + 0.10 vs 0.08 +
+    0.07), so the gate-matched sample must retain the ordering."""
+    f32_snri = sum(
+        1 for s in _sample("US", "F32", n=500, stage="PHQ-9 moderate") if any(d.lower() in SNRI_DRUGS for d in s)
+    )
+    f41_snri = sum(
+        1 for s in _sample("US", "F41.1", n=500, stage="GAD-7 moderate") if any(d.lower() in SNRI_DRUGS for d in s)
+    )
     assert f41_snri > f32_snri, f"F41.1 SNRI ({f41_snri}) should exceed F32 SNRI ({f32_snri})"
 
 
