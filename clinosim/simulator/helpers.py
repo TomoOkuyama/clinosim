@@ -84,26 +84,14 @@ __all__ = [
 def _sha_weighted_choice(salt: str, choices: tuple[str, ...], weights: tuple[float, ...]) -> str:
     """Deterministic weighted choice from a SHA256-hashed salt.
 
-    RNG-neutral — does not touch the master simulation stream.
-    Used by ``_promote_stroke_sequela_at_discharge`` so the initial
-    mRS draw is reproducible per-encounter without consuming
-    pass_rng. Mirrors the pattern in
-    ``modules.population.inheritance._hash_quantile``.
+    Thin wrapper over :func:`clinosim.determinism.sha_weighted_choice`
+    — kept here (plus the `_` prefix) as the historical API that
+    ``_promote_stroke_sequela_at_discharge`` and its test harness
+    import. New callers should use ``clinosim.determinism`` directly.
     """
-    import hashlib
+    from clinosim.determinism import sha_weighted_choice
 
-    h = hashlib.sha256(salt.encode()).digest()
-    q = int.from_bytes(h[:8], "big") / (1 << 64)
-    total = float(sum(weights))
-    if total <= 0.0:
-        return choices[0]
-    u = q * total
-    acc = 0.0
-    for c, w in zip(choices, weights, strict=False):
-        acc += float(w)
-        if u < acc:
-            return c
-    return choices[-1]
+    return sha_weighted_choice(salt, choices, weights)
 
 
 # Mapping from acute-stroke disease_id → (sequela_icd, stage weights).
