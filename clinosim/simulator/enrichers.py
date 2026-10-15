@@ -162,6 +162,7 @@ def register_builtin_enrichers() -> None:
     from clinosim.modules.metabolic import (
         e66_bmi_enricher,
         e88_81_syndrome_enricher,
+        g47_30_osa_enricher,
         k76_0_nafld_enricher,
     )
 
@@ -203,6 +204,20 @@ def register_builtin_enrichers() -> None:
             order=17,
             enabled=lambda c: True,
             run=k76_0_nafld_enricher,
+        )
+    )
+
+    # Issue #1137 cluster 2 axis 4 — G47.30 OSA BMI + sex-weighted
+    # SHA Bernoulli. POST_POPULATION order=18 so the four
+    # metabolic axes register in a predictable order (E66 → E88.81
+    # → K76.0 → G47.30). RNG-neutral like axis 3.
+    register_enricher(
+        Enricher(
+            name="g47_30_osa",
+            stage=POST_POPULATION,
+            order=18,
+            enabled=lambda c: True,
+            run=g47_30_osa_enricher,
         )
     )
 

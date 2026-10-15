@@ -1,6 +1,6 @@
 # `clinosim.modules.metabolic` — BMI-derived and metabolic-cluster chronic conditions
 
-Deterministic chronic-condition enrichment for metabolic syndrome components. Axis 1 is **E66 obesity ICD derivation** from `PersonRecord.bmi`; axis 2 is **E88.81 metabolic syndrome** from the 4-way AND over BMI + HTN + Dyslipidemia + DM; axis 3 is **K76.0 NAFLD** from a BMI + DM-weighted SHA Bernoulli (RNG-neutral per-person assignment). Future axes expand to **G47.30 OSA** and GLP-1 / bariatric management (per META #1137 cluster 2 scope).
+Deterministic chronic-condition enrichment for metabolic syndrome components. Axis 1 is **E66 obesity ICD derivation** from `PersonRecord.bmi`; axis 2 is **E88.81 metabolic syndrome** from the 4-way AND over BMI + HTN + Dyslipidemia + DM; axis 3 is **K76.0 NAFLD** from a BMI + DM-weighted SHA Bernoulli (RNG-neutral per-person assignment); axis 4 is **G47.30 OSA** from a BMI + sex-weighted SHA Bernoulli. Future axes expand to GLP-1 / bariatric management (per META #1137 cluster 2 scope).
 
 ## Purpose
 
@@ -24,6 +24,7 @@ deterministic function of a Layer-1 attribute.
   mutually exclusive (one E66 code per person).
 - `e88_81_syndrome_enricher(ctx)` — POST_POPULATION enricher (order=16, runs after `e66_bmi`). Appends `E88.81` metabolic syndrome when the 4-way AND holds. Idempotent, zero RNG consumption.
 - `k76_0_nafld_enricher(ctx)` — POST_POPULATION enricher (order=17, runs after both BMI-driven enrichers). Appends `K76.0` fatty-liver when a per-person SHA-salted Bernoulli draw passes the BMI + DM-weighted threshold. Idempotent, RNG-neutral (hashes a module salt + person id rather than the master stream).
+- `g47_30_osa_enricher(ctx)` — POST_POPULATION enricher (order=18). Appends `G47.30` obstructive sleep apnea when a per-person SHA-salted Bernoulli draw passes the BMI tier × biological sex table (male ~2× female per Peppard 2013). Idempotent, RNG-neutral.
 - `_derive_e66_code(bmi) -> str | None` — pure function
   mapping a BMI value to its ICD-10 code. Returns `None` for
   BMI < 25 (reference range, no E66 code).
@@ -96,9 +97,17 @@ strictest-intersection criteria inline (BMI ≥ 30 + HTN + Dyslipidemia + DM, 4-
 - 2 derivation-wrapper tests (sub-threshold None + morbid+DM high-rate assignment)
 - 4 enricher behavior tests (sub-BMI no-op + idempotence + 500-person prevalence band + RNG-neutral cross-seed)
 
+`tests/unit/modules/metabolic/test_g47_30_osa_enricher.py`:
+- 1 BMI-tier boundary test
+- 4 prevalence anchor tests (male + female tables + 2:1 ratio + unknown-sex fallback)
+- 4 SHA-draw tests (zero / one / per-person determinism / salt separation from K76.0)
+- 2 derivation-wrapper tests (reference-BMI low-rate + morbid-male high-rate)
+- 4 enricher behavior tests (idempotence + 500-person obese-male band + sex gradient visible + RNG-neutral cross-seed)
+
 ## Follow-ups (cluster 2 roadmap per META #1137)
 
 - **K76.0 NAFLD → ALT/AST baseline tie-in** — downstream PR will steer liver-enzyme emission toward elevated range for K76.0-chronic patients so the "lab-conditional" half of the issue scope is also satisfied.
+- **GLP-1 agonist / bariatric management** (axis 5) — ties into the `chronic_medications.yaml` sampler via new E66-conditioned entries; bariatric surgery referral encounter and weight-loss counseling procedure codes.
   lab-conditional path (enricher reads post-generation lab
   state).
 - **G47.30 OSA** — BMI-correlated risk + sleep-study procedure

@@ -1,18 +1,20 @@
 """Metabolic module engine (Issue #1137 cluster 2).
 
-Three deterministic enrichers that extend ``person.chronic_conditions``:
+Four deterministic enrichers that extend ``person.chronic_conditions``:
 
 - ``e66_bmi_enricher`` (axis 1): BMI-derived E66 obesity sub-code.
 - ``e88_81_syndrome_enricher`` (axis 2): 4-way AND over BMI + HTN +
   Dyslipidemia + DM collapses onto E88.81 metabolic syndrome.
 - ``k76_0_nafld_enricher`` (axis 3): BMI + DM-weighted SHA
   Bernoulli over K76.0 non-alcoholic fatty liver disease.
+- ``g47_30_osa_enricher`` (axis 4): BMI + sex-weighted SHA
+  Bernoulli over G47.30 obstructive sleep apnea.
 
-All three run at POST_POPULATION, consume no master-stream RNG
-(pure derivations for axes 1-2, per-person SHA hash for axis 3),
-so byte-identity is preserved for cohorts without the thresholds
-crossed; cohorts in range get the derived code without disturbing
-any downstream probability draw.
+All four run at POST_POPULATION, consume no master-stream RNG
+(pure derivations for axes 1-2, per-person SHA hash for axes
+3-4), so byte-identity is preserved for cohorts without the
+thresholds crossed; cohorts in range get the derived code
+without disturbing any downstream probability draw.
 
 Clinical basis:
   WHO + CDC BMI classification + ICD-10 2024:
@@ -53,6 +55,23 @@ Clinical basis:
   master simulation stream is never consumed. A follow-up PR will
   tie K76.0 chronic presence to elevated ALT/AST baselines so the
   "lab-conditional" half of the issue scope is also satisfied.
+
+  ICD-10-CM G47.30 Sleep apnea, unspecified — the issue's
+  specified billable code for the OSA axis (clinically G47.33
+  "Obstructive sleep apnea" is the more precise leaf, but the
+  cluster's chosen code is G47.30 and the simulator honors that
+  scope). Prevalence anchors come from Peppard 2013 (Am J
+  Epidemiol) and the HypnoLaus / Hidalgo cohort studies:
+
+    - BMI tier bands         male     female
+      BMI < 25               5 %      2 %
+      25 <= BMI < 30         20 %     10 %
+      30 <= BMI < 40         50 %     25 %
+      BMI >= 40              75 %     45 %
+
+  The ~2× male-vs-female gap is well documented and primarily
+  anatomical (upper-airway dimensions, fat-distribution pattern).
+  Per-person SHA Bernoulli — RNG-neutral like axis 3.
 """
 
 from __future__ import annotations
@@ -78,6 +97,22 @@ _NAFLD_OBESE_PREVALENCE = 0.60
 _NAFLD_MORBID_PREVALENCE = 0.85
 _NAFLD_DM_UPLIFT = 1.15
 _NAFLD_SALT = "metabolic.nafld.v1"
+
+# G47.30 OSA BMI tier prevalence (male / female separately).
+_OSA_CODE = "G47.30"
+_OSA_PREVALENCE_MALE: dict[str, float] = {
+    "reference": 0.05,
+    "overweight": 0.20,
+    "obese": 0.50,
+    "morbid": 0.75,
+}
+_OSA_PREVALENCE_FEMALE: dict[str, float] = {
+    "reference": 0.02,
+    "overweight": 0.10,
+    "obese": 0.25,
+    "morbid": 0.45,
+}
+_OSA_SALT = "metabolic.osa.v1"
 
 
 def _has_code_with_prefix(chronic: list[str], prefixes: tuple[str, ...]) -> bool:
@@ -238,6 +273,78 @@ def k76_0_nafld_enricher(ctx: Any) -> None:
             continue
         bmi = float(getattr(person, "bmi", 0.0) or 0.0)
         code = _derive_nafld_assignment(person.person_id, bmi, person.chronic_conditions)
+        if code is None:
+            continue
+        person.chronic_conditions.append(code)
+
+
+def _bmi_tier(bmi: float) -> str:
+    """Return the WHO BMI tier label used by the OSA (and future
+    tier-indexed) prevalence tables."""
+    if bmi >= _BMI_MORBID_THRESHOLD:
+        return "morbid"
+    if bmi >= _BMI_OBESITY_THRESHOLD:
+        return "obese"
+    if bmi >= _BMI_OVERWEIGHT_THRESHOLD:
+        return "overweight"
+    return "reference"
+
+
+def _osa_probability(bmi: float, sex: str) -> float:
+    """Return the G47.30 assignment probability for a given BMI
+    tier + biological sex.
+
+    Sex coding follows the simulator's ``PersonRecord.sex`` field
+    ("M" / "F"); any other value falls back to the female table
+    (lower prevalence, conservative under-identification rather
+    than inflated misses).
+    """
+    table = _OSA_PREVALENCE_MALE if sex.upper().startswith("M") else _OSA_PREVALENCE_FEMALE
+    return table[_bmi_tier(bmi)]
+
+
+def _draw_osa(person_id: str, probability: float) -> bool:
+    """SHA-256 Bernoulli for the G47.30 assignment. RNG-neutral,
+    deterministic per person id + module salt."""
+    if probability <= 0.0:
+        return False
+    if probability >= 1.0:
+        return True
+    import hashlib
+
+    salt = f"{_OSA_SALT}|{person_id}"
+    h = hashlib.sha256(salt.encode()).digest()
+    q = int.from_bytes(h[:8], "big") / (1 << 64)
+    return q < probability
+
+
+def _derive_osa_assignment(person_id: str, bmi: float, sex: str) -> str | None:
+    """Return "G47.30" when the SHA-salted per-person draw assigns
+    OSA under the BMI + sex-weighted probability, otherwise
+    ``None``.
+    """
+    probability = _osa_probability(bmi, sex)
+    return _OSA_CODE if _draw_osa(person_id, probability) else None
+
+
+def g47_30_osa_enricher(ctx: Any) -> None:
+    """POST_POPULATION enricher: append G47.30 OSA to each person
+    whose SHA-salted per-person Bernoulli draw passes the BMI +
+    sex-weighted threshold.
+
+    Must run after the chronic_prevalence sampler (POP_GENERATION);
+    does not depend on the other metabolic enrichers but is kept
+    at order=18 (after ``k76_0_nafld`` order=17) to keep the
+    cluster's registration order predictable. Idempotent — a
+    person who already carries G47.30 is left untouched. RNG-
+    neutral — the master simulation stream is never consumed.
+    """
+    for person in ctx.population.persons.values():
+        if _OSA_CODE in person.chronic_conditions:
+            continue
+        bmi = float(getattr(person, "bmi", 0.0) or 0.0)
+        sex = str(getattr(person, "sex", "") or "")
+        code = _derive_osa_assignment(person.person_id, bmi, sex)
         if code is None:
             continue
         person.chronic_conditions.append(code)
