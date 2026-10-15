@@ -404,6 +404,44 @@ def test_stroke_sequela_hemorrhagic_mrs_distribution_shifted_vs_ischemic() -> No
     )
 
 
+def test_stroke_sequela_hemorrhagic_advance_slower_than_ischemic() -> None:
+    """Hemorrhagic I69.1 progresses slower than ischemic I69.3 per
+    stage, reflecting the survivor-selection stability. Monte-Carlo
+    over 15 years: ischemic cohort mean mRS exceeds hemorrhagic
+    cohort mean, both starting at the same mRS 2 baseline."""
+    stage_idx = {"mRS 0": 0, "mRS 1": 1, "mRS 2": 2, "mRS 3": 3, "mRS 4": 4, "mRS 5": 5}
+
+    def _mean_final_mrs(chronic_icd: str) -> float:
+        total = 0.0
+        n = 300
+        for i in range(n):
+            p = _alive(f"PT-ADV-{chronic_icd}-{i:04d}", age=65)
+            p.chronic_conditions = [chronic_icd]
+            p.disease_stages = {"I69": "mRS 2"}
+            p.disease_stage_history = {"I69": {2025: "mRS 2"}}
+            for yr in range(15):
+                _disease_progression(
+                    p,
+                    2026 + yr,
+                    np.random.default_rng(aging_sub_seed(p.person_id, 2026 + yr, "_disease_progression")),
+                    {},
+                )
+            total += stage_idx[p.disease_stages["I69"]]
+        return total / n
+
+    ischemic_mean = _mean_final_mrs("I69.3")
+    hemorrhagic_mean = _mean_final_mrs("I69.1")
+    # ~25 % rate reduction (hemorrhagic) over 15 years at the all-
+    # cohort baseline produces a Monte-Carlo gap of ~0.15-0.20 mRS
+    # stage-index points at p=300. Lower bound 0.10 keeps the test
+    # stable under seed-local variance while still catching a
+    # directional dispatcher bug (equal rates would give gap ~0).
+    assert ischemic_mean > hemorrhagic_mean + 0.10, (
+        f"ischemic mean mRS ({ischemic_mean:.2f}) should exceed hemorrhagic "
+        f"({hemorrhagic_mean:.2f}) by ≥ 0.10 — per-sub-code dispatcher may be routing wrong"
+    )
+
+
 def test_stroke_sequela_promotion_both_arms_fire_on_mixed_history() -> None:
     """A person with BOTH cerebral_infarction and hemorrhagic_stroke
     in hospitalization_history gets both I69.3 and I69.1. Rare
