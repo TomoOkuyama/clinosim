@@ -75,3 +75,32 @@ follow-up PR.
 Place under the appropriate section by asking: "can a user without
 AWS credentials run this end-to-end?" — if yes, user-facing; if no,
 maintainer-only. Update this README in the same PR.
+
+## Why not promote these to `clinosim.cli.<cmd>` subcommands?
+
+The repo ships a user-facing `clinosim` CLI (`clinosim.simulator.
+cli_*`) for the primary workflows: `clinosim generate`,
+`clinosim narrate`, `clinosim regenerate-goldens`, etc. Scripts
+under `scripts/` deliberately stay out of that namespace because:
+
+- **Different audience.** The `clinosim` CLI is the user-facing
+  package API. Scripts under this directory are mostly
+  maintainer-side (AWS Bedrock access, authoritative-dump
+  parsing, one-shot migrations) and should not clutter the
+  user-facing help.
+- **Different lifecycle.** CLI commands are a semver surface —
+  removing or renaming one is a breaking change. Scripts here
+  can be refactored, archived (see "Retired / one-shot
+  migrations"), or renamed freely without a release note.
+- **Different quality bar.** Scripts here may hard-code
+  maintainer directory layouts, assume a specific AWS profile,
+  or exit without proper argparse — all acceptable here, none
+  acceptable in `clinosim.cli`.
+
+If a developer utility stabilises and grows a legitimate user
+audience (e.g. a cohort verifier a package user would run), it
+can graduate into the CLI as a subcommand; `verify_bundle.py`
+and `verify_medical_stats.py` are the current best candidates
+and the shortest-path promotion. Any such promotion is a
+deliberate maintainer judgement, not a batch sweep — see
+META #1633 P8 for the deferred-batch-sweep rationale.
