@@ -73,7 +73,13 @@ dev = [
     # was cleaned up in PR #448. Bumping this pin is now an intentional,
     # reviewable change; sync with `.github/workflows/ci.yml` in the same PR.
     "ruff==0.16.9",
-    "mypy>=1.8",
+    # exact-pinned (META #1633 P5, 2026-10-15): the Quality (informational)
+    # job runs mypy on every PR; without a pin, CI drifted to a newer mypy
+    # than local dev, so pre-existing issues like the ones cleared in #1630
+    # surfaced only after push. Mirror the ruff pin strategy: bumping this
+    # line is an intentional, reviewable change (sync with the local toolchain
+    # by `uv pip install -e .[dev]` after the bump).
+    "mypy==2.3.0",
     "types-PyYAML>=6.0",  # mypy stubs for pyyaml (P0-2, session 46)
     "build>=1.0",         # sdist/wheel build (P0-2, used by CI packaging job)
 ]
