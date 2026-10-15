@@ -1,6 +1,6 @@
 # clinosim Module Map
 
-A single-page overview of clinosim's **33 modules** (counting rule:
+A single-page overview of clinosim's **38 modules** (counting rule:
 top-level packages under `clinosim/modules/`; non-package files like
 `_shared.py` excluded, and `nursing_assignment` shares
 `clinosim/modules/nursing/` with the observation-layer nursing
@@ -26,7 +26,7 @@ Output surfaces / Testing / Ownership) — see the module index at
 ## TL;DR
 
 clinosim is a population-driven, physiology-based synthetic EHR data
-simulator, organized into **35 themed modules** (packages under
+simulator, organized into **38 themed modules** (packages under
 `clinosim/modules/`) across four layers:
 
 1. **Foundation** — `clinosim/codes/` + `clinosim/locale/` +
@@ -115,7 +115,7 @@ load-bearing verification gate that protects this goal.
 
 ## Module inventory
 
-35 modules total (top-level packages under `clinosim/modules/`; the
+38 modules total (top-level packages under `clinosim/modules/`; the
 table below additionally lists the `codes` / `locale` foundation
 packages). Every entry links to the per-module README (which follows
 the canonical 11-section structure).
