@@ -355,6 +355,28 @@ def load_glycemic_trajectory() -> dict[str, Any]:
 
 
 @lru_cache(maxsize=1)
+def load_mental_health_onset_multipliers() -> dict[str, Any]:
+    """Load comorbidity-conditional onset multipliers for mental-health
+    chronic conditions (F32 / F33 / F41.1). Consumed by
+    ``aging._annual_chronic_onset`` to scale the base per-year Bernoulli
+    rate upward when a somatic comorbidity (DM / HF / cancer / stroke
+    sequela) is already present on ``person.chronic_conditions``.
+
+    Issue #1137 — first axis of the ``mental_health/`` module cluster
+    (pure additive, no sampling-schema change, no new FHIR emit).
+
+    Top-level shape:
+        mental_health_onset_multipliers.<target_icd>.<rule_name>
+          .requires_any_chronic -> list[str]  # exact ICD any-match
+          .requires_any_chronic_prefix -> list[str]  # ICD prefix any-match
+          .multiplier -> float  # scales base annual onset rate
+
+    Multiple applicable rules compound multiplicatively per target.
+    """
+    return _load_yaml(_LOCALE_DIR / "shared" / "mental_health_onset_multipliers.yaml", fallback={})
+
+
+@lru_cache(maxsize=1)
 def load_comorbidity_progression_multipliers() -> dict[str, Any]:
     """Load comorbidity interaction config for the aging hook's
     ``_disease_progression`` pass. Describes how one chronic condition
