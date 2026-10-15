@@ -692,6 +692,9 @@ codes:
   70274-6:
     en: Generalized anxiety disorder 7 item (GAD-7) total score
     ja: GAD-7 全般性不安障害 総合スコア
+  93372-1:
+    en: Columbia Suicide Severity Rating Scale (C-SSRS) lifetime suicidal ideation severity scale
+    ja: C-SSRS コロンビア自殺重症度評価尺度 生涯希死念慮重症度
   89204-2:
     en: 'Patient Health Questionnaire-9: Modified for Teens total score'
     ja: PHQ-9 (青少年改訂版) 総合スコア
