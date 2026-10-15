@@ -680,12 +680,12 @@ codes:
     ja: シクロスポリン血中濃度（トラフ）
 
   # Mental-health assessment scores — Issue #1281 / META #1137
-  # mental_health cluster. All codes verified via tx.fhir.org $lookup
-  # against `http://loinc.org` on 2026-09-12. Wired for future emit by
-  # a mental_health enricher that fires at F32 / F33 / F41.1 chronic
-  # follow-up visits; the observation-side plumbing is a follow-up PR.
-  # Registering the codes here first lets any consumer / test that
-  # references PHQ-9 / GAD-7 by LOINC resolve the display correctly.
+  # mental-health cluster. All codes verified via tx.fhir.org $lookup
+  # against `http://loinc.org` on 2026-09-12. Emitted by the
+  # observation path at F32 / F33 / F41.1 outpatient follow-up visits
+  # (PHQ-9 / GAD-7 / C-SSRS; closed under axes 2, 3, 7 of cluster 1).
+  # The axes landed as additions to the existing observation emit
+  # path rather than a dedicated ``modules/mental_health/`` package.
   44249-1:
     en: PHQ-9 quick depression assessment panel
     ja: PHQ-9 うつ病質問票 総合スコア

@@ -161,9 +161,11 @@ chronic_prevalence:
   # Cross-country parity: JP demographics.yaml already declares F32 —
   # session-102 identified US mirror as a data-completeness defect (0 %
   # emit vs 13 % NHANES). Per META #1137: Option A (chronic_prevalence
-  # YAML addition) chosen over new ``mental_health/`` module for the
-  # minimal-viable close; module trigger is 2+ mental-health axes merged
-  # + first treatment path (PHQ-9/SSRI) proposed.
+  # YAML addition) was chosen over introducing a dedicated
+  # ``modules/mental_health/`` package for the minimal-viable close.
+  # The follow-up axes 1-8 closed under META #1137 cluster 1 similarly
+  # landed into existing modules (aging / outpatient / activator);
+  # the module split remains deferred as cosmetic reorganisation.
   # RNG cascade: new codes add rng.random() draws for age-eligible
   # patients. MINOR version bump required per feedback_versioning_policy.
   F32:      # Depression (single episode) — NHANES 2021-23 US adult PHQ-9 ≥ 10 = 13.1%

@@ -362,8 +362,11 @@ def load_mental_health_onset_multipliers() -> dict[str, Any]:
     rate upward when a somatic comorbidity (DM / HF / cancer / stroke
     sequela) is already present on ``person.chronic_conditions``.
 
-    Issue #1137 — first axis of the ``mental_health/`` module cluster
-    (pure additive, no sampling-schema change, no new FHIR emit).
+    Issue #1137 — first axis of the mental-health cluster (closed as
+    axes 1-8 of META #1137 cluster 1). The axes landed into existing
+    modules (aging.py / outpatient.py / activator.py) rather than a
+    dedicated ``modules/mental_health/`` package — pure additive, no
+    sampling-schema change, no new FHIR emit.
 
     Top-level shape:
         mental_health_onset_multipliers.<target_icd>.<rule_name>
