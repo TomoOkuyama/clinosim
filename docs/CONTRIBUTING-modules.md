@@ -1306,4 +1306,65 @@ Quick summary:
 - Profile YAML changes MUST regenerate golden + commit both together
 - Unexpected `git diff` on goldens after intentional template changes = regression suspicion
 
+## Plugin discovery convention: `audit/axes/` + `eval/axes/`
+
+The audit and eval pipelines both auto-discover their per-axis
+check runners from an `axes/` sub-package rather than requiring
+hand-edited registries. Any new axis module dropped into one of
+these directories is picked up on the next pipeline run:
+
+```
+clinosim/audit/axes/         # audit axes
+├── __init__.py              # one-line package marker
+├── clinical.py              # one axis per file
+├── jp_language.py
+├── silent_no_op.py
+└── structural.py
+
+clinosim/eval/axes/          # eval axes
+├── __init__.py
+├── clinical.py
+├── jp_clins_lab_compliance.py
+├── jp_core_compliance.py
+├── locale.py
+├── structural.py
+└── us_core_compliance.py
+```
+
+### Convention
+
+- **File per axis.** Each axis gets its own `.py` under the
+  appropriate `axes/` directory. Grouping axes into shared files
+  is intentionally not supported — the discovery iterates one
+  module at a time.
+- **Public `run(cohort, country) -> list[...]` entry point.**
+  `audit/axes/*.py` exposes a `run` callable returning
+  `list[AuditFinding]`; `eval/axes/*.py` exposes one returning
+  `list[EvalCheck]`. The pipeline imports the module and calls
+  `module.run(...)` — no registration decorator required.
+- **No cross-axis imports.** An axis module imports from
+  `clinosim.*` as needed, but not from a sibling axis file.
+  Shared helpers go into `clinosim/audit/_shared.py` /
+  `clinosim/eval/_shared.py` instead.
+- **README mirror.** Each `axes/` directory ships a `README.md`
+  + `README.ja.md` enumerating the current axes with a one-line
+  summary; keep these current when adding a new axis.
+
+### Adding a new axis
+
+```bash
+# 1. Add the axis file
+touch clinosim/eval/axes/my_new_axis.py
+
+# 2. Implement `run(cohort, country) -> list[EvalCheck]`
+
+# 3. Add a one-line entry to clinosim/eval/axes/README.md +
+#    README.ja.md
+
+# 4. Run the pipeline; the axis is auto-discovered
+clinosim eval ./out
+```
+
+The audit path is identical with `audit/axes/` + `AuditFinding`.
+
 Japanese counterpart: [`CONTRIBUTING-modules.ja.md`](CONTRIBUTING-modules.ja.md).
