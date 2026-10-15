@@ -400,67 +400,27 @@ def _stage_at_year(person: PersonRecord, code_base: str, as_of_year: int | None)
     return ""
 
 
-def activate_patient(
+def _derive_chronic_conditions(
     person: PersonRecord,
     rng: np.random.Generator,
-    demo: dict,
+    *,
     as_of_year: int | None = None,
-) -> PatientProfile:
-    """Convert Layer 1 PersonRecord to Layer 2 PatientProfile.
+) -> list[ChronicCondition]:
+    """Build :class:`ChronicCondition` entries for every ICD code on
+    ``person.chronic_conditions``.
 
-    ``as_of_year`` (Issue #1581): when provided, encounter-time stage
-    lookups honour the year-indexed ``disease_stage_history`` so an
-    encounter in sim year 1 sees the year-1 stage rather than the
-    end-of-sim snapshot. ``None`` preserves the pre-#1581 behaviour
-    (latest-only lookup).
+    Consumes a fixed per-code RNG budget (onset-date integers, severity
+    coin flip, stage draws, controlled-flag + generic-severity uniforms,
+    plus two vitality-adjustment reads downstream) in a deterministic
+    order so byte-identity holds across refactors. The function also
+    writes staged values back to ``person.disease_stages[code_base]``
+    for the aging-hook disease-progression pass (Issue #1572 Phase 2.5).
+
+    Extracted from ``activate_patient`` as part of META #1633 P6 to
+    reduce the main orchestrator's size; the body is unchanged from
+    the pre-refactor inline loop.
     """
-    age = person.age
-    sex = person.sex
-
-    # Height from physiology section; BMI already set in Layer 1
-    phys = demo.get("physiology") or {}
-    ht_cfg = phys.get("height_cm") or {}
-    sex_key = "male" if sex == "M" else "female"
-    ht_mean = (ht_cfg.get(sex_key) or {}).get("mean", 170.0 if sex == "M" else 157.5)
-    ht_std = (ht_cfg.get(sex_key) or {}).get("std", 5.5)
-    shrink = ht_cfg.get("shrinkage_per_decade_after_60", 0.5)
-    height = float(rng.normal(ht_mean, ht_std))
-    if age > 60:
-        height -= (age - 60) / 10 * shrink
-    bmi = person.bmi
-    weight = bmi * (height / 100) ** 2
-
-    # Derive country from demo (for name formatting, language, etc.)
-    # Issue #570 convention: default US when demo lacks _country.
-    country = demo.get("_country", "US") if isinstance(demo, dict) else "US"
-
-    # Physiological profile
-    age_penalty = max(0, (age - AGE_PENALTY_MIN_AGE) * AGE_PENALTY_SCALE)
-    profile = PatientPhysiologicalProfile(
-        immune_reactivity=float(rng.beta(*IMMUNE_REACTIVITY_BETA_PARAMS)),
-        drug_metabolism_rate=str(
-            rng.choice(
-                DRUG_METABOLISM_LABELS,
-                p=DRUG_METABOLISM_JP_PROBS if is_jp(country) else DRUG_METABOLISM_US_PROBS,
-            )
-        ),
-        renal_reserve=max(RESERVE_FLOOR, float(rng.beta(*_RESERVE_BETA_PARAMS)) - age_penalty),
-        cardiac_reserve=max(RESERVE_FLOOR, float(rng.beta(*_RESERVE_BETA_PARAMS)) - age_penalty),
-        hepatic_reserve=max(
-            RESERVE_FLOOR, float(rng.beta(*_RESERVE_BETA_PARAMS)) - age_penalty * AGE_PENALTY_HEPATIC_RATIO
-        ),
-        treatment_sensitivity=float(rng.normal(TREATMENT_SENSITIVITY_MEAN, TREATMENT_SENSITIVITY_SD)),
-        symptom_reporting_bias=float(rng.normal(SYMPTOM_REPORTING_BIAS_MEAN, SYMPTOM_REPORTING_BIAS_SD)),
-        delirium_susceptibility=float(rng.beta(*DELIRIUM_BETA_PARAMS))
-        + (DELIRIUM_ELDERLY_PREMIUM if age >= DELIRIUM_ELDERLY_AGE_THRESHOLD else 0)
-        + (DELIRIUM_DEMENTIA_PREMIUM if "F00" in person.chronic_conditions else 0)
-        + (DELIRIUM_PARKINSON_PREMIUM if "G20" in person.chronic_conditions else 0),
-        dvt_susceptibility=float(rng.beta(*DVT_BETA_PARAMS))
-        + (DVT_ELDERLY_PREMIUM if age >= DVT_ELDERLY_AGE_THRESHOLD else 0),
-    )
-
-    # Chronic conditions (expand from ICD codes)
-    conditions = []
+    conditions: list[ChronicCondition] = []
     for code in person.chronic_conditions:
         # Random onset year (1-15 yrs ago) and random month/day
         onset_year = max(
@@ -565,6 +525,70 @@ def activate_patient(
                 glycemic_control=glycemic_control,
             )
         )
+    return conditions
+
+
+def activate_patient(
+    person: PersonRecord,
+    rng: np.random.Generator,
+    demo: dict,
+    as_of_year: int | None = None,
+) -> PatientProfile:
+    """Convert Layer 1 PersonRecord to Layer 2 PatientProfile.
+
+    ``as_of_year`` (Issue #1581): when provided, encounter-time stage
+    lookups honour the year-indexed ``disease_stage_history`` so an
+    encounter in sim year 1 sees the year-1 stage rather than the
+    end-of-sim snapshot. ``None`` preserves the pre-#1581 behaviour
+    (latest-only lookup).
+    """
+    age = person.age
+    sex = person.sex
+
+    # Height from physiology section; BMI already set in Layer 1
+    phys = demo.get("physiology") or {}
+    ht_cfg = phys.get("height_cm") or {}
+    sex_key = "male" if sex == "M" else "female"
+    ht_mean = (ht_cfg.get(sex_key) or {}).get("mean", 170.0 if sex == "M" else 157.5)
+    ht_std = (ht_cfg.get(sex_key) or {}).get("std", 5.5)
+    shrink = ht_cfg.get("shrinkage_per_decade_after_60", 0.5)
+    height = float(rng.normal(ht_mean, ht_std))
+    if age > 60:
+        height -= (age - 60) / 10 * shrink
+    bmi = person.bmi
+    weight = bmi * (height / 100) ** 2
+
+    # Derive country from demo (for name formatting, language, etc.)
+    # Issue #570 convention: default US when demo lacks _country.
+    country = demo.get("_country", "US") if isinstance(demo, dict) else "US"
+
+    # Physiological profile
+    age_penalty = max(0, (age - AGE_PENALTY_MIN_AGE) * AGE_PENALTY_SCALE)
+    profile = PatientPhysiologicalProfile(
+        immune_reactivity=float(rng.beta(*IMMUNE_REACTIVITY_BETA_PARAMS)),
+        drug_metabolism_rate=str(
+            rng.choice(
+                DRUG_METABOLISM_LABELS,
+                p=DRUG_METABOLISM_JP_PROBS if is_jp(country) else DRUG_METABOLISM_US_PROBS,
+            )
+        ),
+        renal_reserve=max(RESERVE_FLOOR, float(rng.beta(*_RESERVE_BETA_PARAMS)) - age_penalty),
+        cardiac_reserve=max(RESERVE_FLOOR, float(rng.beta(*_RESERVE_BETA_PARAMS)) - age_penalty),
+        hepatic_reserve=max(
+            RESERVE_FLOOR, float(rng.beta(*_RESERVE_BETA_PARAMS)) - age_penalty * AGE_PENALTY_HEPATIC_RATIO
+        ),
+        treatment_sensitivity=float(rng.normal(TREATMENT_SENSITIVITY_MEAN, TREATMENT_SENSITIVITY_SD)),
+        symptom_reporting_bias=float(rng.normal(SYMPTOM_REPORTING_BIAS_MEAN, SYMPTOM_REPORTING_BIAS_SD)),
+        delirium_susceptibility=float(rng.beta(*DELIRIUM_BETA_PARAMS))
+        + (DELIRIUM_ELDERLY_PREMIUM if age >= DELIRIUM_ELDERLY_AGE_THRESHOLD else 0)
+        + (DELIRIUM_DEMENTIA_PREMIUM if "F00" in person.chronic_conditions else 0)
+        + (DELIRIUM_PARKINSON_PREMIUM if "G20" in person.chronic_conditions else 0),
+        dvt_susceptibility=float(rng.beta(*DVT_BETA_PARAMS))
+        + (DVT_ELDERLY_PREMIUM if age >= DVT_ELDERLY_AGE_THRESHOLD else 0),
+    )
+
+    # Chronic conditions (expand from ICD codes)
+    conditions = _derive_chronic_conditions(person, rng, as_of_year=as_of_year)
 
     # Allergies — allergy_enricher (POST_POPULATION, order=10) populates person.allergies
     # before activate_patient is called in production (engine.py run_stage then _activate_cached).
