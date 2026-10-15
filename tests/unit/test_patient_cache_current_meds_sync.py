@@ -139,25 +139,25 @@ def test_a_prime_anticoag_from_discharge_appears_as_home_med_next_encounter():
     person = _make_person()
 
     # Mimic engine.py: cache PatientProfile once
-    patient_cache: dict[str, PatientProfile] = {}
-    patient_cache[person.person_id] = activate_patient(person, rng, demo)
+    patient_cache: dict[tuple[str, int | None], PatientProfile] = {}
+    patient_cache[(person.person_id, None)] = activate_patient(person, rng, demo)
 
     # Precondition: no anticoag in initial cached profile
-    initial_meds = list(patient_cache[person.person_id].current_medications)
+    initial_meds = list(patient_cache[(person.person_id, None)].current_medications)
     assert not _has_anticoag(initial_meds), (
         f"precondition failure: cached profile already has anticoag in "
         f"current_medications: {initial_meds}. Test setup is invalid."
     )
 
     # Encounter 1: synthetic record with warfarin discharge
-    record1 = _synthetic_pe_record(patient_cache[person.person_id], person.person_id)
+    record1 = _synthetic_pe_record(patient_cache[(person.person_id, None)], person.person_id)
 
     # A' behavior under test: patient_cache kwarg passed → sync fires
     _deactivate_to_layer1(person, record1, "pulmonary_embolism", patient_cache=patient_cache)
 
     # Encounter 2 setup: same person, cache hit returns SAME PatientProfile.
     # Simulate the consumer path (`_generate_home_medication_orders`) directly.
-    patient_enc2 = patient_cache[person.person_id]
+    patient_enc2 = patient_cache[(person.person_id, None)]
     orders, _monitoring = _generate_home_medication_orders(
         patient_enc2,
         encounter_id="ENC-TEST-APRIME-001-02",
@@ -222,11 +222,11 @@ def test_duration_days_zero_is_chronic_and_carries_forward():
     rng = np.random.default_rng(42)
     demo = load_demographics("US")
     person = _make_person()
-    patient_cache: dict[str, PatientProfile] = {}
-    patient_cache[person.person_id] = activate_patient(person, rng, demo)
+    patient_cache: dict[tuple[str, int | None], PatientProfile] = {}
+    patient_cache[(person.person_id, None)] = activate_patient(person, rng, demo)
 
     record = _synthetic_record_with_duration(
-        patient_cache[person.person_id], person.person_id, "Apixaban", duration_days=0
+        patient_cache[(person.person_id, None)], person.person_id, "Apixaban", duration_days=0
     )
     _deactivate_to_layer1(person, record, "atrial_fibrillation_rvr", patient_cache=patient_cache)
 
@@ -247,11 +247,11 @@ def test_duration_days_seven_is_acute_and_dropped():
     rng = np.random.default_rng(42)
     demo = load_demographics("US")
     person = _make_person()
-    patient_cache: dict[str, PatientProfile] = {}
-    patient_cache[person.person_id] = activate_patient(person, rng, demo)
+    patient_cache: dict[tuple[str, int | None], PatientProfile] = {}
+    patient_cache[(person.person_id, None)] = activate_patient(person, rng, demo)
 
     record = _synthetic_record_with_duration(
-        patient_cache[person.person_id], person.person_id, "Levofloxacin", duration_days=7
+        patient_cache[(person.person_id, None)], person.person_id, "Levofloxacin", duration_days=7
     )
     _deactivate_to_layer1(person, record, "urinary_tract_infection", patient_cache=patient_cache)
 

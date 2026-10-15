@@ -170,7 +170,7 @@ def _deactivate_to_layer1(
     future encounters can reference the patient's medical history.
 
     A' Phase 1 (Issue #440): also syncs the Layer 2 ``PatientProfile`` held in
-    ``patient_cache[person.person_id]``. Without this sync a drug newly
+    ``patient_cache[(person.person_id, as_of_year)]``. Without this sync a drug newly
     started during the hospitalization never reaches the cached profile, so
     the next encounter's ``_generate_home_medication_orders`` silently omits
     it. ``patient_cache`` is keyword-only + required so a caller cannot drop
