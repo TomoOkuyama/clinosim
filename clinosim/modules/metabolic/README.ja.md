@@ -1,6 +1,6 @@
 # `clinosim.modules.metabolic` — BMI 由来・代謝関連慢性疾患
 
-`PersonRecord.bmi` から E66 肥満 ICD コードを決定論的に導出する POST_POPULATION enricher (軸 1) + BMI + HTN + 脂質異常症 + DM の 4 要素 AND から **E88.81 代謝症候群** を導出する POST_POPULATION enricher (軸 2) + BMI + DM で重み付けた SHA Bernoulli で **K76.0 NAFLD** を割り当てる POST_POPULATION enricher (軸 3) + BMI × 性別で重み付けた SHA Bernoulli で **G47.30 OSA** を割り当てる POST_POPULATION enricher (軸 4) を提供する代謝クラスタ関連の慢性疾患エンリッチモジュール。将来軸として GLP-1/減量手術管理 を拡張予定 (META #1137 クラスタ 2 スコープ)。
+`PersonRecord.bmi` から E66 肥満 ICD コードを決定論的に導出する POST_POPULATION enricher (軸 1) + BMI + HTN + 脂質異常症 + DM の 4 要素 AND から **E88.81 代謝症候群** を導出する POST_POPULATION enricher (軸 2) + BMI + DM で重み付けた SHA Bernoulli で **K76.0 NAFLD** を割り当てる POST_POPULATION enricher (軸 3) + BMI × 性別で重み付けた SHA Bernoulli で **G47.30 OSA** を割り当てる POST_POPULATION enricher (軸 4) + E66.9 / E66.01 患者向けに Semaglutide / Tirzepatide / Liraglutide を `chronic_medications.yaml` 経由で経口 (皮下) 投与する **GLP-1 作動薬薬物療法** (軸 5) を提供する代謝クラスタ関連の慢性疾患エンリッチモジュール。これで META #1137 クラスタ 2 の全軸 (5 軸) が完了。
 
 ## 目的
 
