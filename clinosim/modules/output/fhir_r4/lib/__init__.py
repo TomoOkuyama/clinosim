@@ -6,6 +6,11 @@
 - `inline_bb` — inline bundle-builder helpers.
 - `generator_metadata` — sim-params snapshot writer.
 - `ids` — deterministic Resource.id derivation (Issue #349).
+
+Namespace stub — the public surface for each helper is its sibling
+module's own exports. The empty ``__all__`` is intentional.
 """
 
 from __future__ import annotations
+
+__all__: list[str] = []
