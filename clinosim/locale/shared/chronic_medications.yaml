@@ -321,7 +321,9 @@ C61:  # Prostate cancer — androgen deprivation therapy (ADT)
 # to prenatal visits is Incr 1.5.
 # ---------------------------------------------------------------------
 # Mental health chronic medications — Issue #1281, aligned with META
-# #1137 (mental_health/ module cluster). First-line SSRI selection per
+# #1137 mental-health cluster (closed via axes 1-8; axes landed into
+# aging.py / outpatient.py / activator.py rather than a dedicated
+# ``modules/mental_health/`` package). First-line SSRI selection per
 # APA / VA-DoD (US) and 気分障害治療ガイドライン / 日本うつ病学会 (JP).
 # ---------------------------------------------------------------------
 # The SSRI selection is mutually exclusive within the `ssri` class —
