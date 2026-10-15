@@ -80,6 +80,82 @@ __all__ = [
 ]
 
 
+def _sha_weighted_choice(salt: str, choices: tuple[str, ...], weights: tuple[float, ...]) -> str:
+    """Deterministic weighted choice from a SHA256-hashed salt.
+
+    RNG-neutral — does not touch the master simulation stream.
+    Used by ``_promote_stroke_sequela_at_discharge`` so the initial
+    mRS draw is reproducible per-encounter without consuming
+    pass_rng. Mirrors the pattern in
+    ``modules.population.inheritance._hash_quantile``.
+    """
+    import hashlib
+
+    h = hashlib.sha256(salt.encode()).digest()
+    q = int.from_bytes(h[:8], "big") / (1 << 64)
+    total = float(sum(weights))
+    if total <= 0.0:
+        return choices[0]
+    u = q * total
+    acc = 0.0
+    for c, w in zip(choices, weights, strict=False):
+        acc += float(w)
+        if u < acc:
+            return c
+    return choices[-1]
+
+
+# Mapping from acute-stroke disease_id → (sequela_icd, stage weights).
+# Kept inline here (not in a yaml) because the lookup lives at the
+# dispatch hot path and the mapping is a single-use convention
+# tied to the stroke→sequela promotion. Stage labels / weights live
+# authoritatively in ``modules.patient._severity_activation`` and
+# are imported lazily to avoid a top-of-file cycle with the
+# patient module.
+_STROKE_SEQUELA_MAP: dict[str, str] = {
+    "cerebral_infarction": "I69.3",
+    "hemorrhagic_stroke": "I69.1",
+}
+
+
+def _promote_stroke_sequela_at_discharge(person: Any, disease_id: str, record: Any, summary: Any) -> None:
+    """Append the appropriate I69.3 / I69.1 chronic sequela and
+    sample an initial mRS stage immediately on survival-at-discharge
+    from a stroke encounter.
+
+    Idempotent — a person who already carries the sequela ICD on
+    their chronic_conditions list skips without re-sampling. See
+    the call site docstring in ``_deactivate_to_layer1`` for the
+    clinical rationale and RNG-neutrality note.
+    """
+    if record.deceased:
+        return
+    sequela_icd = _STROKE_SEQUELA_MAP.get(disease_id)
+    if sequela_icd is None:
+        return
+    if sequela_icd in person.chronic_conditions:
+        return
+
+    # Lazy import to avoid a module-load cycle with
+    # clinosim.modules.patient._severity_activation (which imports
+    # from population types that re-export via this helpers module).
+    from clinosim.modules.patient._severity_activation import (
+        I69_1_STAGE_WEIGHTS,
+        I69_3_STAGE_WEIGHTS,
+        I69_3_STAGES,
+    )
+
+    person.chronic_conditions.append(sequela_icd)
+    weights = I69_1_STAGE_WEIGHTS if sequela_icd == "I69.1" else I69_3_STAGE_WEIGHTS
+    encounter_id = getattr(summary, "encounter_id", "") or ""
+    salt = f"{getattr(person, 'person_id', '')}|stroke_mrs|{encounter_id}|v1"
+    stage = _sha_weighted_choice(salt, I69_3_STAGES, weights)
+    person.disease_stages["I69"] = stage
+    stage_year = getattr(summary, "discharge_date", None)
+    if stage_year is not None:
+        person.disease_stage_history.setdefault("I69", {})[stage_year.year] = stage
+
+
 def _deactivate_to_layer1(
     person: Any,
     record: CIFPatientRecord,
@@ -228,6 +304,24 @@ def _deactivate_to_layer1(
         was_readmission=record.is_readmission,
     )
     person.hospitalization_history.append(summary)
+
+    # Issue #1581 extension — immediate (at-discharge) stroke-sequela
+    # promotion. If the just-concluded encounter was for an ischemic
+    # (cerebral_infarction) or hemorrhagic (hemorrhagic_stroke)
+    # stroke AND the patient survived, append the corresponding
+    # I69.3 / I69.1 chronic condition and sample an initial mRS
+    # stage. Mirrors the aging-pass promotion
+    # (``aging._stroke_sequela_promotion``) but fires immediately
+    # so subsequent encounters within the same simulated year see
+    # the chronic condition rather than waiting for the next
+    # year's aging pass to catch up (which was a 1-year
+    # classification delay — the analog of the newborn secondary
+    # pass issue fixed by META #1596). The initial mRS is sampled
+    # via SHA-based deterministic draw keyed by the encounter id
+    # so the master RNG stream stays unaffected (RNG-neutral
+    # additive pattern — cf.
+    # ``feedback_rng_neutral_additive_field``).
+    _promote_stroke_sequela_at_discharge(person, disease_id, record, summary)
 
     # A' Phase 1 (Issue #440) sync: keep the cached Layer 2 profile's
     # `current_medications` in step with the Layer 1 update. Missing key
