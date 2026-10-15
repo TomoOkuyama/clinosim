@@ -33,6 +33,7 @@ from datetime import datetime, timedelta
 
 import numpy as np
 
+from clinosim.codes import has_icd_prefix
 from clinosim.modules.encounter.engine import create_inpatient_encounter
 from clinosim.modules.observation.engine import (
     determine_flag,
@@ -155,8 +156,8 @@ def _simulate_unknown_condition(
     all_orders: list[Order] = []
     all_lab_results: list[OrderResult] = []
     state_history = [deepcopy(state)]
-    has_diabetes = any(c.code.startswith("E11") for c in patient.chronic_conditions)
-    has_dyslipidemia = any(c.code.startswith("E78") for c in patient.chronic_conditions)
+    has_diabetes = has_icd_prefix(patient.chronic_conditions, "E11")
+    has_dyslipidemia = has_icd_prefix(patient.chronic_conditions, "E78")
 
     # Extensive admission workup (broader than known-disease)
     admission_labs = [

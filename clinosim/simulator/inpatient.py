@@ -7,7 +7,7 @@ from typing import Any
 
 import numpy as np
 
-from clinosim.codes import system_key_for
+from clinosim.codes import has_icd_prefix, system_key_for
 from clinosim.codes.hl7_encounter import ActPriority, AdmitSource, DischargeDisposition
 from clinosim.modules.clinical_course.engine import (
     select_archetype,
@@ -416,7 +416,7 @@ def _simulate_patient(
     differential = initialize_differential(disease_id, patient.age, protocol_diagnostic=protocol_diagnostic)
 
     # Daily simulation loop
-    has_diabetes = any(c.code.startswith("E11") for c in patient.chronic_conditions)
+    has_diabetes = has_icd_prefix(patient.chronic_conditions, "E11")
     # `target_los_config` (Issue #550) returns dict[str, float]; `min_los` param
     # is typed `int`. Cast at the boundary rather than widening the param type.
     protocol_min_los = int(los_cfg.get("min", 3))

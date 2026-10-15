@@ -26,7 +26,7 @@ from clinosim.modules.metabolic import (
 
 4 enricher がモジュールの Python 側唯一の公開面。軸 5 は yaml エントリ (`locale/shared/chronic_medications.yaml` E66.9 / E66.01 ブロック) として ship され Python export を持たない。各 enricher は標準 `ctx` (`.population.persons` を持つ) を受け取り `PersonRecord.chronic_conditions` を in-place で変更する。
 
-内部導出プリミティブ (`_derive_e66_code`, `_derive_metabolic_syndrome`, `_nafld_probability`, `_draw_nafld`, `_derive_nafld_assignment`, `_bmi_tier`, `_osa_probability`, `_draw_osa`, `_derive_osa_assignment`, `_has_code_with_prefix`) は leading-underscore でテスト可能だが安定 API ではない — `clinosim/modules/metabolic/` 外からの呼び出しは enricher 経由にする。
+内部導出プリミティブ (`_derive_e66_code`, `_derive_metabolic_syndrome`, `_nafld_probability`, `_draw_nafld`, `_derive_nafld_assignment`, `_bmi_tier`, `_osa_probability`, `_draw_osa`, `_derive_osa_assignment`) は leading-underscore でテスト可能だが安定 API ではない — `clinosim/modules/metabolic/` 外からの呼び出しは enricher 経由にする。旧 `_has_code_with_prefix` モジュールローカルヘルパーは共有 `clinosim.codes.has_icd_prefix` に置換済。
 
 ## 決定論
 
