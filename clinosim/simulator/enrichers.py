@@ -162,6 +162,7 @@ def register_builtin_enrichers() -> None:
     from clinosim.modules.metabolic import (
         e66_bmi_enricher,
         e88_81_syndrome_enricher,
+        k76_0_nafld_enricher,
     )
 
     register_enricher(
@@ -187,6 +188,21 @@ def register_builtin_enrichers() -> None:
             order=16,
             enabled=lambda c: True,
             run=e88_81_syndrome_enricher,
+        )
+    )
+
+    # Issue #1137 cluster 2 axis 3 — K76.0 NAFLD BMI + DM-weighted
+    # SHA Bernoulli. POST_POPULATION order=17 so it runs after both
+    # BMI-driven enrichers (E66, E88.81) and after chronic_prevalence
+    # sampling. RNG-neutral — the per-person draw hashes a module
+    # salt + person id, not the master stream.
+    register_enricher(
+        Enricher(
+            name="k76_0_nafld",
+            stage=POST_POPULATION,
+            order=17,
+            enabled=lambda c: True,
+            run=k76_0_nafld_enricher,
         )
     )
 
