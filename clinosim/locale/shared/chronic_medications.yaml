@@ -402,11 +402,14 @@ F41.1:  # Generalized anxiety disorder — SSRI + SNRI both first-line
   # Issue #1137 cluster axis 6 — severity-gated prescribing:
   # minimal / mild → SSRI only (step 1 per APA);
   # moderate      → SSRI OR SNRI (both first-line);
-  # severe        → SSRI + SNRI augmentation candidate.
+  # severe        → SSRI + SNRI + optional benzodiazepine bridge.
   # SSRI entries are unconditional (first-line at every severity).
   # SNRI entries are restricted to moderate / severe where
   # augmentation / SNRI first-line is clinically indicated.
-  exclusive_classes: ["ssri", "snri"]
+  # Benzodiazepine (axis 8) is restricted to severe only AND
+  # non-geriatric (age_max 64) per Beers Criteria 2023 avoid-in-
+  # elderly guidance (cognitive impairment + fall risk).
+  exclusive_classes: ["ssri", "snri", "benzodiazepine"]
   medications:
     - {drug: "Escitalopram", drug_ja: "エスシタロプラム", dose: "10mg", drug_class: "ssri", route: "PO", frequency: "daily", probability: 0.28}
     - {drug: "Sertraline", drug_ja: "セルトラリン", dose: "50mg", drug_class: "ssri", route: "PO", frequency: "daily", probability: 0.22}
@@ -420,6 +423,17 @@ F41.1:  # Generalized anxiety disorder — SSRI + SNRI both first-line
     - {drug: "Paroxetine", drug_ja: "パロキセチン", dose: "20mg", drug_class: "ssri", route: "PO", frequency: "daily", probability: 0.10, age_max: 64}
     - {drug: "Venlafaxine", drug_ja: "ベンラファキシン", dose: "75mg", drug_class: "snri", route: "PO", frequency: "daily", probability: 0.15, requires_stage_in: ["GAD-7 moderate", "GAD-7 severe"]}
     - {drug: "Duloxetine", drug_ja: "デュロキセチン", dose: "30mg", drug_class: "snri", route: "PO", frequency: "daily", probability: 0.10, requires_stage_in: ["GAD-7 moderate", "GAD-7 severe"]}
+    # Issue #1137 cluster axis 8 — benzodiazepine as short-term
+    # rescue therapy for GAD-7 severe. APA / VA-DoD guidance:
+    # benzodiazepines are NOT first-line for GAD (dependence +
+    # cognitive-impairment risk, Beers Criteria elderly caution)
+    # but ARE indicated for severe acute anxiety as bridge
+    # therapy while SSRI/SNRI titrate (4-6 weeks). ``exclusive_
+    # classes`` already contains ssri + snri; the new benzo class
+    # is a THIRD exclusive bucket (at most one benzodiazepine per
+    # patient) emitted only on GAD-7 severe cohort.
+    - {drug: "Lorazepam", drug_ja: "ロラゼパム", dose: "0.5mg", drug_class: "benzodiazepine", route: "PO", frequency: "as needed", probability: 0.25, requires_stage_in: ["GAD-7 severe"], age_max: 64}
+    - {drug: "Alprazolam", drug_ja: "アルプラゾラム", dose: "0.25mg", drug_class: "benzodiazepine", route: "PO", frequency: "as needed", probability: 0.20, requires_stage_in: ["GAD-7 severe"], age_max: 64}
 
 Z34:  # Encounter for supervision of normal pregnancy
   medications:
