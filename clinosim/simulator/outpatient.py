@@ -139,6 +139,18 @@ _CSSRS_BAND_BASELINE: dict[str, float] = {
 }
 
 
+# Dispatch table for ``_mental_health_score_baseline``:
+# canonical analyte → (chronic-code prefixes to scan,
+# band → baseline map). Adding a fourth score (e.g. PCL-5 for
+# PTSD) is a single-row addition here rather than a new elif
+# branch in the function body.
+_MENTAL_HEALTH_SCORE_CONFIG: dict[str, tuple[tuple[str, ...], dict[str, float]]] = {
+    "PHQ-9": (("F32", "F33"), _PHQ9_BAND_BASELINE),
+    "GAD-7": (("F41",), _GAD7_BAND_BASELINE),
+    "C-SSRS": (("F32", "F33"), _CSSRS_BAND_BASELINE),
+}
+
+
 def _mental_health_score_baseline(canon: str, patient: Any) -> float | None:
     """Return the severity-conditioned baseline for a PHQ-9 / GAD-7
     / C-SSRS emission.
@@ -157,18 +169,10 @@ def _mental_health_score_baseline(canon: str, patient: Any) -> float | None:
     safety-planning instrument administered to F32/F33 cohorts;
     GAD-7 does not drive C-SSRS emission.
     """
-    prefixes: tuple[str, ...]
-    if canon == "PHQ-9":
-        prefixes = ("F32", "F33")
-        band_map = _PHQ9_BAND_BASELINE
-    elif canon == "GAD-7":
-        prefixes = ("F41",)
-        band_map = _GAD7_BAND_BASELINE
-    elif canon == "C-SSRS":
-        prefixes = ("F32", "F33")
-        band_map = _CSSRS_BAND_BASELINE
-    else:
+    config = _MENTAL_HEALTH_SCORE_CONFIG.get(canon)
+    if config is None:
         return None
+    prefixes, band_map = config
     for cc in getattr(patient, "chronic_conditions", None) or []:
         code = getattr(cc, "code", "") or ""
         if not any(code.startswith(p) for p in prefixes):
