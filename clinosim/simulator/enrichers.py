@@ -159,7 +159,10 @@ def register_builtin_enrichers() -> None:
     # Pure deterministic (BMI → ICD lookup), no RNG consumption,
     # byte-identity preserved for cohorts without BMI thresholds
     # crossed.
-    from clinosim.modules.metabolic import e66_bmi_enricher
+    from clinosim.modules.metabolic import (
+        e66_bmi_enricher,
+        e88_81_syndrome_enricher,
+    )
 
     register_enricher(
         Enricher(
@@ -168,6 +171,22 @@ def register_builtin_enrichers() -> None:
             order=15,
             enabled=lambda c: True,
             run=e66_bmi_enricher,
+        )
+    )
+
+    # Issue #1137 cluster 2 axis 2 — E88.81 metabolic syndrome AND
+    # over BMI + HTN + Dyslipidemia + DM. POST_POPULATION order=16 so
+    # it runs after e66_bmi (order=15) and after the chronic_prevalence
+    # sampler at POP_GENERATION; strictly before natural_death
+    # (order=20). Pure deterministic — zero RNG consumption, no
+    # downstream probability draw perturbed.
+    register_enricher(
+        Enricher(
+            name="e88_81_syndrome",
+            stage=POST_POPULATION,
+            order=16,
+            enabled=lambda c: True,
+            run=e88_81_syndrome_enricher,
         )
     )
 
