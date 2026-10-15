@@ -193,6 +193,80 @@ def test_f32_augmentation_pattern_ssri_plus_snri_exists() -> None:
     assert found_combo, "SSRI + SNRI augmentation combination never fires across 1000 seeds"
 
 
+def test_f41_1_benzodiazepine_fires_only_at_severe_and_non_elderly() -> None:
+    """Issue #1137 cluster axis 8 — benzodiazepine (Lorazepam /
+    Alprazolam) emits as a short-term rescue therapy ONLY for
+    F41.1 GAD-7 severe cohort AND only for non-geriatric patients
+    (age < 65 per Beers Criteria 2023).
+
+    Validates three gates:
+      1. severity gate: GAD-7 severe → emits; mild/moderate → never.
+      2. age gate (Beers): age ≥ 65 → never emits regardless of severity.
+      3. baseline rate: ~30-50 % of severe non-elderly cohort receives
+         a benzo (literature APA real-world prescribing).
+    """
+    BENZO_DRUGS = {"lorazepam", "alprazolam"}
+
+    # Severe, young — should fire at ~30-50 %
+    severe_young_hits = sum(
+        1
+        for s in range(500)
+        if any(
+            d.lower() in BENZO_DRUGS
+            for d in [
+                m.drug_name
+                for m in _derive_home_medications(
+                    [_Cond(code="F41.1", stage="GAD-7 severe")],
+                    np.random.default_rng(s),
+                    country="US",
+                    patient_age=40,
+                )
+            ]
+        )
+    )
+    assert 0.25 * 500 <= severe_young_hits <= 0.55 * 500, (
+        f"GAD-7 severe benzo rate {severe_young_hits}/500 outside 25-55 % band"
+    )
+
+    # Severe, elderly — Beers gate should suppress
+    severe_old_hits = sum(
+        1
+        for s in range(500)
+        if any(
+            d.lower() in BENZO_DRUGS
+            for d in [
+                m.drug_name
+                for m in _derive_home_medications(
+                    [_Cond(code="F41.1", stage="GAD-7 severe")],
+                    np.random.default_rng(s),
+                    country="US",
+                    patient_age=75,
+                )
+            ]
+        )
+    )
+    assert severe_old_hits == 0, f"Beers gate failed: {severe_old_hits}/500 elderly got benzo"
+
+    # Mild, young — severity gate should suppress
+    mild_hits = sum(
+        1
+        for s in range(500)
+        if any(
+            d.lower() in BENZO_DRUGS
+            for d in [
+                m.drug_name
+                for m in _derive_home_medications(
+                    [_Cond(code="F41.1", stage="GAD-7 mild")],
+                    np.random.default_rng(s),
+                    country="US",
+                    patient_age=40,
+                )
+            ]
+        )
+    )
+    assert mild_hits == 0, f"severity gate failed: {mild_hits}/500 mild patients got benzo"
+
+
 def test_f41_1_snri_first_line_higher_than_f32() -> None:
     """F41.1 GAD at moderate severity: SNRI first-line (APA / VA-DoD).
     Compare at matched severity against F32 moderate so the SNRI
