@@ -103,6 +103,61 @@ def _log_pregnancy_substitution(
     )
 
 
+# Issue #1137 — PHQ-9 / GAD-7 severity-band → score baseline map.
+# Each band maps to the midpoint of its clinical score range so the
+# cohort distribution spans Kroenke 2001 / Spitzer 2006 reality
+# instead of clustering around a single fixed value. The noise
+# pipeline (BIOLOGICAL_CV 0.20) then produces a plausible per-visit
+# score inside the band.
+_PHQ9_BAND_BASELINE: dict[str, float] = {
+    "PHQ-9 none": 2.0,  # 0-4 range midpoint
+    "PHQ-9 mild": 7.0,  # 5-9
+    "PHQ-9 moderate": 12.0,  # 10-14
+    "PHQ-9 moderately severe": 17.0,  # 15-19
+    "PHQ-9 severe": 23.0,  # 20-27 (midpoint)
+}
+
+_GAD7_BAND_BASELINE: dict[str, float] = {
+    "GAD-7 minimal": 2.0,  # 0-4
+    "GAD-7 mild": 7.0,  # 5-9
+    "GAD-7 moderate": 12.0,  # 10-14
+    "GAD-7 severe": 18.0,  # 15-21 (midpoint)
+}
+
+
+def _mental_health_score_baseline(canon: str, patient: Any) -> float | None:
+    """Return the severity-conditioned baseline for a PHQ-9 or GAD-7
+    emission.
+
+    Scans ``patient.chronic_conditions`` for an F32 / F33 (PHQ-9) or
+    F41.1 (GAD-7) code that carries a staged severity band, then
+    maps the band to its clinical score midpoint. Returns ``None``
+    when the patient has no staged mental-health chronic — the
+    caller then falls back to the generic fixed baseline.
+
+    The ``.stage`` attribute is populated by the activator's
+    ``_generate_stage`` branch for F32 / F33 / F41.1 (Issue #1137
+    cluster axis 4, PR #1620).
+    """
+    if canon == "PHQ-9":
+        prefixes = ("F32", "F33")
+        band_map = _PHQ9_BAND_BASELINE
+    elif canon == "GAD-7":
+        prefixes = ("F41",)
+        band_map = _GAD7_BAND_BASELINE
+    else:
+        return None
+    for cc in getattr(patient, "chronic_conditions", None) or []:
+        code = getattr(cc, "code", "") or ""
+        if not any(code.startswith(p) for p in prefixes):
+            continue
+        stage = getattr(cc, "stage", "") or ""
+        baseline = band_map.get(stage)
+        if baseline is not None:
+            return float(baseline)
+    return None
+
+
 def _sample_ambulatory_visit_length_minutes(
     visit_type: str,
     country: str,
@@ -378,6 +433,17 @@ def _simulate_outpatient_visit(
 
         # Comorbidity-aware true value: physiology if modeled, else baseline normal.
         true_val = _true_labs.get(canon, baseline_values.get(canon, 1.0))
+        # Issue #1137 — mental-health cluster axis 5: PHQ-9 / GAD-7
+        # scores are severity-conditioned, not fixed. If the patient
+        # carries a staged mental-health chronic condition, derive
+        # the baseline from the band midpoint so cohort distributions
+        # span clinical reality (Kroenke 2001 / Spitzer 2006 bands)
+        # rather than clustering around a single fixed value. See
+        # ``_mental_health_score_baseline`` below.
+        if canon in ("PHQ-9", "GAD-7"):
+            band_baseline = _mental_health_score_baseline(canon, patient)
+            if band_baseline is not None:
+                true_val = band_baseline
         observed = generate_lab_result(canon, true_val, lab_rng)
         flag = determine_flag(canon, observed, sex=patient.sex, country=country)
         result = OrderResult(
