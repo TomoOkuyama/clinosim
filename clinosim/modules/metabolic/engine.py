@@ -76,6 +76,7 @@ Clinical basis:
 
 from __future__ import annotations
 
+import hashlib
 from typing import Any
 
 # ICD-10 BMI thresholds (upper bounds exclusive on the lower edges
@@ -241,8 +242,6 @@ def _draw_nafld(person_id: str, probability: float) -> bool:
         return False
     if probability >= 1.0:
         return True
-    import hashlib
-
     salt = f"{_NAFLD_SALT}|{person_id}"
     h = hashlib.sha256(salt.encode()).digest()
     q = int.from_bytes(h[:8], "big") / (1 << 64)
@@ -310,8 +309,6 @@ def _draw_osa(person_id: str, probability: float) -> bool:
         return False
     if probability >= 1.0:
         return True
-    import hashlib
-
     salt = f"{_OSA_SALT}|{person_id}"
     h = hashlib.sha256(salt.encode()).digest()
     q = int.from_bytes(h[:8], "big") / (1 << 64)
