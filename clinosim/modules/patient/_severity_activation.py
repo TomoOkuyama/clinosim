@@ -63,6 +63,7 @@ __all__ = [
     "I48_STAGE_WEIGHTS",
     "G35_STAGE_WEIGHTS",
     "I69_3_STAGE_WEIGHTS",
+    "I69_1_STAGE_WEIGHTS",
 ]
 
 
@@ -406,11 +407,23 @@ reactive-mortality pass. Full stage strings — no prefix added at
 emit time."""
 
 I69_3_STAGE_WEIGHTS: tuple[float, ...] = (0.10, 0.20, 0.25, 0.20, 0.15, 0.10)
-"""Post-stroke-at-discharge mRS distribution. Benjamin 2019
-(Circulation AHA Heart Disease Statistics) + GWTG-Stroke registry
-discharge mRS data: ~45 % discharge at mRS 0-2 (independent),
-~35 % at mRS 3-4 (dependent), ~10-15 % at mRS 5 (severely
-disabled). Empirical tuning for the synthetic simulator skewed
-slightly toward moderate residual (mode mRS 2) to match the
-cohort-weighted published distribution that includes rehab-
-discharge improvements."""
+"""Ischemic-stroke-at-discharge mRS distribution. Benjamin 2019
+(Circulation AHA Heart Disease Statistics) + GWTG-Stroke ischemic
+subgroup: ~55 % discharge at mRS 0-2 (independent), ~35 % at mRS
+3-4 (dependent), ~10 % at mRS 5 (severely disabled). Mean mRS
+~2.5, mode mRS 2 — matches the cohort-weighted published
+distribution that includes rehab-discharge improvements."""
+
+
+I69_1_STAGE_WEIGHTS: tuple[float, ...] = (0.05, 0.12, 0.18, 0.25, 0.25, 0.15)
+"""Hemorrhagic-stroke-at-discharge mRS distribution — shifted
+rightward (toward higher disability) compared to I69_3_STAGE_
+WEIGHTS. ICH survivors have worse discharge mRS than ischemic
+survivors because mass effect, hematoma expansion, and secondary
+injury (perihematomal edema, intraventricular extension)
+accumulate residual deficit even in those who survive the acute
+event. Mean mRS ~3.1, mode mRS 3-4. Clinical basis: Kleindorfer
+2021 (Stroke 52:e364) AHA/ASA Guideline for the Management of
+Patients With Spontaneous Intracerebral Hemorrhage; GWTG-Stroke
+hemorrhagic subgroup discharge mRS distribution; Qureshi 2001
+(NEJM 344:1450) ICH natural history."""
