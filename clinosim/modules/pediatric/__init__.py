@@ -16,3 +16,7 @@ This module ships in incremental passes per META #760:
 """
 
 from __future__ import annotations
+
+# Pass 1 scaffold has no runtime exports yet; later passes will register
+# encounter-generator entry points here and extend ``__all__``.
+__all__: list[str] = []

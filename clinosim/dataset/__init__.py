@@ -31,6 +31,14 @@ from pathlib import Path
 
 import yaml
 
+__all__ = [
+    "DatasetPreset",
+    "add_dataset_subparser",
+    "dispatch_dataset",
+    "list_presets",
+    "load_preset",
+]
+
 # Preset root is resolved at import time so subprocess / test callers see the
 # same location the interactive CLI does. `parents[2]` walks
 # clinosim/dataset/__init__.py → clinosim/dataset → clinosim → <repo root>.
