@@ -151,7 +151,7 @@ _MENTAL_HEALTH_SCORE_CONFIG: dict[str, tuple[tuple[str, ...], dict[str, float]]]
 }
 
 
-def _mental_health_score_baseline(canon: str, patient: Any) -> float | None:
+def _mental_health_score_baseline(canon: str, patient: PatientProfile) -> float | None:
     """Return the severity-conditioned baseline for a PHQ-9 / GAD-7
     / C-SSRS emission.
 
@@ -173,12 +173,10 @@ def _mental_health_score_baseline(canon: str, patient: Any) -> float | None:
     if config is None:
         return None
     prefixes, band_map = config
-    for cc in getattr(patient, "chronic_conditions", None) or []:
-        code = getattr(cc, "code", "") or ""
-        if not any(code.startswith(p) for p in prefixes):
+    for cc in patient.chronic_conditions:
+        if not any(cc.code.startswith(p) for p in prefixes):
             continue
-        stage = getattr(cc, "stage", "") or ""
-        baseline = band_map.get(stage)
+        baseline = band_map.get(cc.stage)
         if baseline is not None:
             return float(baseline)
     return None
