@@ -12,6 +12,9 @@ display name used for Order.display_name and MedicationAdministration.drug_name.
 
 from clinosim.modules.observation.microbiology import antibiotic_loinc_lookup
 
+__all__ = ["ANTIBIOTIC_DRUGS", "ANTIBIOTIC_LOINC_LOOKUP"]
+
+
 ANTIBIOTIC_DRUGS: dict[str, dict[str, str]] = {
     "vancomycin": {"name": "Vancomycin"},
     "piperacillin_tazobactam": {"name": "Piperacillin/Tazobactam"},
