@@ -26,8 +26,9 @@ from typing import Any
 import numpy as np
 
 # ---------------------------------------------------------------------------
-# Backward-compat re-exports (Issue #544). Import from the topic module
-# directly in new code — these aliases will be removed in a future cycle.
+# Backward-compat re-exports (Issue #544). Permanent compatibility shim —
+# import from the topic module directly in new code, but existing call
+# sites may continue to use these aliases indefinitely.
 # ---------------------------------------------------------------------------
 from clinosim.modules.disease.localization import (  # noqa: F401
     _country_to_yaml_key,
@@ -334,9 +335,10 @@ def _deactivate_to_layer1(
     # keyed), so we patch every cached variant that matches this
     # person_id. The invariant becomes "at least one variant exists"
     # rather than "exact person_id key exists".
-    matching_keys = [
-        k for k in patient_cache if (isinstance(k, tuple) and k[0] == person.person_id) or k == person.person_id
-    ]
+    # patient_cache is now exclusively tuple-keyed per the signature
+    # (dict[tuple[str, int | None], PatientProfile]); the str-key
+    # fallback path is unreachable since PR #1630 narrowed the type.
+    matching_keys = [k for k in patient_cache if k[0] == person.person_id]
     assert matching_keys, (
         f"patient_cache missing person_id={person.person_id!r}. "
         f"Every call site must precede _deactivate_to_layer1 with "

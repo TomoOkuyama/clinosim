@@ -63,7 +63,10 @@ def test_deactivate_preserves_drug_name_ja_when_present():
     """discharge_prescription.items[] carrying drug_name_ja round-trips into current_medications."""
     person = _make_person()
     profile = _make_profile()
-    patient_cache = {person.person_id: profile}
+    # patient_cache is tuple-keyed in production (Issue #1581 — (person_id,
+    # as_of_year)); the tests exercise the same shape.
+    cache_key = (person.person_id, None)
+    patient_cache = {cache_key: profile}
     record = _make_record_with_rx(
         person.person_id,
         items=[
@@ -83,14 +86,14 @@ def test_deactivate_preserves_drug_name_ja_when_present():
     assert med.drug_name == "Amlodipine"
     assert med.drug_name_ja == "アムロジピン"
     # Cache profile also synced
-    assert patient_cache[person.person_id].current_medications[0].drug_name_ja == "アムロジピン"
+    assert patient_cache[cache_key].current_medications[0].drug_name_ja == "アムロジピン"
 
 
 def test_deactivate_absent_drug_name_ja_stays_empty():
     """Backcompat: item without drug_name_ja key results in empty string (no crash)."""
     person = _make_person()
     profile = _make_profile()
-    patient_cache = {person.person_id: profile}
+    patient_cache = {(person.person_id, None): profile}
     record = _make_record_with_rx(
         person.person_id,
         items=[
