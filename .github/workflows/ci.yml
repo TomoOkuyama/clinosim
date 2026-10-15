@@ -307,7 +307,9 @@ jobs:
         # Exact-pinned (session 73 Issue #449): CI and local envs must resolve
         # to the same ruff version so lint failures reproduce byte-identically
         # across machines. Bumping this line = intentional lint-config change.
-        run: uv pip install --system "ruff==0.16.3"
+        # Kept in sync with pyproject.toml's dev-extras ruff spec so local
+        # `uv pip install -e .[dev]` and CI resolve to the same version.
+        run: uv pip install --system "ruff==0.16.9"
       - name: ruff check
         run: ruff check clinosim/ tests/
       - name: ruff format --check

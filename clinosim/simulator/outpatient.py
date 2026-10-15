@@ -157,6 +157,7 @@ def _mental_health_score_baseline(canon: str, patient: Any) -> float | None:
     safety-planning instrument administered to F32/F33 cohorts;
     GAD-7 does not drive C-SSRS emission.
     """
+    prefixes: tuple[str, ...]
     if canon == "PHQ-9":
         prefixes = ("F32", "F33")
         band_map = _PHQ9_BAND_BASELINE

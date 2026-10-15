@@ -161,7 +161,7 @@ def _deactivate_to_layer1(
     record: CIFPatientRecord,
     disease_id: str,
     *,
-    patient_cache: dict[str, PatientProfile],
+    patient_cache: dict[tuple[str, int | None], PatientProfile],
 ) -> None:
     """Feed hospital results back to Layer 1 PersonRecord after discharge.
 

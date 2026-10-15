@@ -114,7 +114,14 @@ from clinosim.types.population import (
     TemporalStatePeriod,
 )
 
-__all__ = ["HospitalizationSummary", "PersonRecord", "LifeEvent"]
+__all__ = [
+    "CARE_SEEKING_CLAMP_MAX",
+    "CARE_SEEKING_CLAMP_MIN",
+    "CARE_SEEKING_THRESHOLD_SD_DEFAULT",
+    "HospitalizationSummary",
+    "LifeEvent",
+    "PersonRecord",
+]
 
 # META #957 Incr 1: ICD codes that appear in demographics ``chronic_prevalence``
 # yaml for RNG-cursor placement but that represent time-boxed states rather
