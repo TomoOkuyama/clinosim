@@ -2,6 +2,13 @@
 # These are continued during hospitalization unless contraindicated.
 # Source: Standard clinical guidelines (JCS, AHA/ACC, KDIGO, GOLD, ADA)
 #
+# Module-specific sections (axis-5 context lives with the module README):
+#   E66.9 / E66.01 (obesity) — GLP-1 agonist pharmacotherapy ships as
+#       cluster-2 axis 5 of META #1137 cluster-2 scope. See
+#       clinosim/modules/metabolic/README.md "Public API" + "Output
+#       surfaces" sections for the enricher chain that assigns the
+#       E66.* chronic conditions these entries respond to.
+#
 # Fields:
 #   drug: Generic drug name (English, bare — no dose)
 #   drug_ja: Japanese drug name (optional, bare — no dose; used when country=JP)
