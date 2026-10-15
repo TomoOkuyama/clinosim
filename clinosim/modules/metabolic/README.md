@@ -1,10 +1,7 @@
 # `clinosim.modules.metabolic` — BMI-derived and metabolic-cluster chronic conditions
 
 Deterministic chronic-condition enrichment for metabolic syndrome
-components. First axis implemented is **E66 obesity ICD derivation**
-from `PersonRecord.bmi`; future axes expand to **E88.81 metabolic
-syndrome**, **K76.0 NAFLD**, **G47.30 OSA**, and GLP-1 / bariatric
-management (per META #1137 cluster 2 scope).
+components. Axis 1 is **E66 obesity ICD derivation** from `PersonRecord.bmi`; axis 2 is **E88.81 metabolic syndrome** derived from a 4-way AND over BMI + HTN + Dyslipidemia + DM. Future axes expand to **K76.0 NAFLD**, **G47.30 OSA**, and GLP-1 / bariatric management (per META #1137 cluster 2 scope).
 
 ## Purpose
 
@@ -26,6 +23,7 @@ deterministic function of a Layer-1 attribute.
   the appropriate E66 sub-code to every person's
   `chronic_conditions` based on their BMI. Idempotent and
   mutually exclusive (one E66 code per person).
+- `e88_81_syndrome_enricher(ctx)` — POST_POPULATION enricher (order=16, runs after `e66_bmi`). Appends `E88.81` metabolic syndrome when the 4-way AND holds. Idempotent, zero RNG consumption.
 - `_derive_e66_code(bmi) -> str | None` — pure function
   mapping a BMI value to its ICD-10 code. Returns `None` for
   BMI < 25 (reference range, no E66 code).
@@ -73,10 +71,8 @@ No entry in `ENRICHER_SEED_OFFSETS` is required.
 None in Phase A — thresholds are inline constants matching the
 WHO BMI classification + ICD-10 2024.
 
-A future axis (E88.81 metabolic syndrome) will add a
-`reference_data/metabolic_syndrome_criteria.yaml` encoding the
-NCEP ATP III criteria (BMI/waist + HTN + Dyslipidemia + DM
-pattern-match).
+The E88.81 metabolic syndrome enricher (axis 2) encodes the
+strictest-intersection criteria inline (BMI ≥ 30 + HTN + Dyslipidemia + DM, 4-way AND). A later refinement can externalize these into `reference_data/metabolic_syndrome_criteria.yaml` once a 3-of-5 relaxation (lipid-panel conditional) is added.
 
 ## Tests
 
@@ -88,10 +84,14 @@ pattern-match).
 - 1 mixed-cohort smoke test
 - 1 pre-existing E66 variant pass-through test
 
+`tests/unit/modules/metabolic/test_e88_81_syndrome_enricher.py`:
+- 8 pure-derivation AND-criteria tests
+  (full match / each criterion missing / Type 1 DM path / category-header codes / exact BMI boundary)
+- 5 enricher behavior tests (append on full match + sub-criteria no-op + sub-BMI no-op + idempotence + E66/E88.81 coexistence)
+- 1 mixed-cohort smoke test
+
 ## Follow-ups (cluster 2 roadmap per META #1137)
 
-- **E88.81 metabolic syndrome** — 4-way AND over BMI + HTN +
-  Dyslipidemia + DM.
 - **K76.0 NAFLD** — BMI ≥ 30 + ALT/AST elevation; requires a
   lab-conditional path (enricher reads post-generation lab
   state).

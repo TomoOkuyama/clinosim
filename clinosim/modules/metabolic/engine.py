@@ -1,11 +1,15 @@
-"""Metabolic module engine (Issue #1137 cluster 2 axis 1).
+"""Metabolic module engine (Issue #1137 cluster 2).
 
-Enricher that deterministically appends an E66 obesity sub-code to
-``person.chronic_conditions`` based on ``person.bmi``. Pure
-deterministic function — zero RNG consumption, no cascade.
-Byte-identity for cohorts without BMI thresholds crossed is
-preserved; cohorts with BMI in E66 range get the appropriate ICD
-without disturbing any downstream probability draw.
+Two deterministic enrichers that extend ``person.chronic_conditions``:
+
+- ``e66_bmi_enricher`` (axis 1): BMI-derived E66 obesity sub-code.
+- ``e88_81_syndrome_enricher`` (axis 2): 4-way AND over BMI + HTN +
+  Dyslipidemia + DM collapses onto E88.81 metabolic syndrome.
+
+Both are POST_POPULATION, pure deterministic (no RNG consumption),
+so byte-identity is preserved for cohorts without the thresholds
+crossed; cohorts in range get the derived code without disturbing
+any downstream probability draw.
 
 Clinical basis:
   WHO + CDC BMI classification + ICD-10 2024:
@@ -14,11 +18,17 @@ Clinical basis:
     - 30 <= BMI < 40  -> E66.9 Obesity, unspecified (Class I + II)
     - BMI >= 40       -> E66.01 Morbid obesity (Class III)
 
-The simulator's PersonRecord.bmi field is already set at
-cohort-generation time (lifestyle attributes). This enricher is
-POST_POPULATION so BMI is finalized by the time it runs; the
-derived E66 code becomes available to all downstream encounter /
-observation emit paths that read ``person.chronic_conditions``.
+  ICD-10-CM 2024 E88.81 Metabolic syndrome — a billable composite
+  diagnosis clinicians document when central obesity co-presents
+  with hypertension, dyslipidemia, and diabetes. The clinical
+  literature uses several overlapping criteria (NCEP ATP III
+  3-of-5, WHO insulin-resistance-plus-two, IDF central-obesity-
+  plus-two); this axis adopts the strictest intersection (all four
+  required) so false positives are structurally impossible and the
+  derived cohort matches the subset most likely to be
+  explicitly coded in real EHRs. Future refinement can relax
+  toward 3-of-5 once lipid-panel observations are available for
+  the dyslipidemia criterion.
 """
 
 from __future__ import annotations
@@ -30,6 +40,43 @@ from typing import Any
 _BMI_OVERWEIGHT_THRESHOLD = 25.0
 _BMI_OBESITY_THRESHOLD = 30.0
 _BMI_MORBID_THRESHOLD = 40.0
+
+# E88.81 metabolic syndrome AND-criteria.
+_SYNDROME_BMI_THRESHOLD = 30.0
+_HTN_PREFIXES: tuple[str, ...] = ("I10",)
+_DYSLIPIDEMIA_PREFIXES: tuple[str, ...] = ("E78",)
+_DM_PREFIXES: tuple[str, ...] = ("E10", "E11")
+_SYNDROME_CODE = "E88.81"
+
+
+def _has_code_with_prefix(chronic: list[str], prefixes: tuple[str, ...]) -> bool:
+    """Return True if any entry in ``chronic`` starts with any of ``prefixes``.
+
+    Chronic condition lists may carry either the category header (e.g.
+    "E11") or a billable leaf (e.g. "E11.9"); the prefix match treats
+    both as equivalent for the AND-check.
+    """
+    return any(c.startswith(prefixes) for c in chronic)
+
+
+def _derive_metabolic_syndrome(bmi: float, chronic: list[str]) -> str | None:
+    """Return "E88.81" when all four criteria (BMI >= 30 + HTN +
+    Dyslipidemia + DM) are satisfied by ``bmi`` and the condition
+    list, otherwise ``None``.
+
+    Deterministic — safe to call from any context without consuming
+    RNG. The 4-way AND is intentionally strict to avoid
+    over-identification; see module docstring for rationale.
+    """
+    if bmi < _SYNDROME_BMI_THRESHOLD:
+        return None
+    if not _has_code_with_prefix(chronic, _HTN_PREFIXES):
+        return None
+    if not _has_code_with_prefix(chronic, _DYSLIPIDEMIA_PREFIXES):
+        return None
+    if not _has_code_with_prefix(chronic, _DM_PREFIXES):
+        return None
+    return _SYNDROME_CODE
 
 
 def _derive_e66_code(bmi: float) -> str | None:
@@ -75,5 +122,25 @@ def e66_bmi_enricher(ctx: Any) -> None:
         # out-of-scope for Phase A (patient-level BMI drift lives
         # on the aging-pass trajectory roadmap).
         if any(c.startswith("E66") for c in person.chronic_conditions):
+            continue
+        person.chronic_conditions.append(code)
+
+
+def e88_81_syndrome_enricher(ctx: Any) -> None:
+    """POST_POPULATION enricher: append E88.81 metabolic syndrome
+    to every person whose chronic-condition list satisfies the 4-way
+    AND (BMI >= 30 + HTN + Dyslipidemia + DM).
+
+    Must run after both the chronic_prevalence sampler (POP_GENERATION)
+    and ``e66_bmi_enricher`` so all input facts are finalized. Pure
+    deterministic — zero RNG consumption. Idempotent — a person who
+    already carries E88.81 is left untouched.
+    """
+    for person in ctx.population.persons.values():
+        bmi = float(getattr(person, "bmi", 0.0) or 0.0)
+        if _SYNDROME_CODE in person.chronic_conditions:
+            continue
+        code = _derive_metabolic_syndrome(bmi, person.chronic_conditions)
+        if code is None:
             continue
         person.chronic_conditions.append(code)
