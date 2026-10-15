@@ -913,6 +913,35 @@ def _derive_home_medications(
         medications = [
             m for m in medications if _country_upper not in {str(x).upper() for x in (m.get("locale_exclude") or [])}
         ]
+        _base_code = code.split(".")[0]
+
+        # Issue #1137 — mental-health cluster axis 6: severity-gated
+        # prescribing. A drug entry's ``requires_stage_in`` field
+        # (optional) lists the severity bands under which the drug
+        # is a candidate; a patient whose staged severity is not in
+        # that list skips the drug (its probability mass is
+        # redistributed to the "no drug" branch of the sampler via
+        # the exclusive-class residual). Drugs WITHOUT
+        # ``requires_stage_in`` are available at every severity
+        # (backward-compatible — the current F32 / F33 / F41.1
+        # SSRI first-line entries remain unconditional).
+        #
+        # Clinical mapping (STAR*D / APA / VA-DoD): SSRI monotherapy
+        # at mild and moderate; augmentation (SNRI, atypical AD)
+        # at moderately severe / severe; benzodiazepine at severe
+        # F41.1 (short-term).
+        _mh_bases = {"F32", "F33", "F41"}
+        if _base_code in _mh_bases:
+            # The current loop condition is the mental-health chronic
+            # itself; its ``.stage`` carries the sampled PHQ-9 /
+            # GAD-7 severity band (populated by activator's
+            # ``_generate_stage`` per Issue #1137 cluster axis 4).
+            _patient_severity = getattr(condition, "stage", "") or ""
+            medications = [
+                m
+                for m in medications
+                if not m.get("requires_stage_in") or _patient_severity in set(m.get("requires_stage_in") or ())
+            ]
 
         # Issue #1329: active-regimen mutex. A patient sampled into an
         # active IV chemo regimen (`chemo_regimens.yaml::by_cancer`)
@@ -932,7 +961,6 @@ def _derive_home_medications(
         # zeroed weight collapsing into the residual mass). Only the
         # affected patient's Capecitabine emit outcome flips; RNG
         # cursor for downstream chronic-med draws stays put.
-        _base_code = code.split(".")[0]
         if _base_code.startswith("C") and _base_code[1:].isdigit() and patient_id:
             from clinosim.locale.loader import load_chemo_regimens
             from clinosim.modules.population.engine import pick_active_chemo_regimen
