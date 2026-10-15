@@ -125,13 +125,16 @@ F32:  # Depression — single episode (Issue #1137 cluster axis 2)
     ja: "うつ病症状モニタリング・PHQ-9 評価・抗うつ薬調整"
   follow_up_interval_months: 3
   labs: []
-  # PHQ-9 (Patient Health Questionnaire-9, LOINC 44249-1) emitted
-  # every quarter for diagnosed-depression cohort. Score integer
-  # 0-27; severity banded 0-4 none / 5-9 mild / 10-14 moderate /
-  # 15-19 moderately severe / 20-27 severe (Kroenke 2001 JGIM).
-  # Baseline moderate (10) with CV 0.20 — see
-  # observation.engine.BASELINE_LAB_NORMALS / BIOLOGICAL_CV.
-  labs_quarterly: ["PHQ-9"]
+  # PHQ-9 (Patient Health Questionnaire-9, LOINC 44249-1) +
+  # C-SSRS (Columbia Suicide Severity Rating Scale, LOINC
+  # 93372-1) emitted every quarter for diagnosed-depression cohort.
+  # - PHQ-9: integer 0-27; Kroenke 2001 severity bands.
+  # - C-SSRS: integer 0-5 ideation severity (0 none / 1 passive /
+  #   2 non-specific active / 3 w/ method / 4 w/ plan / 5 w/
+  #   intent). Posner 2011 Am J Psychiatry. Over-emits on
+  #   mild cohort for safety-first screening; a planned follow-up
+  #   gates C-SSRS to PHQ-9 moderately severe / severe only.
+  labs_quarterly: ["PHQ-9", "C-SSRS"]
   vitals: [systolic_bp, heart_rate]
   prescriptions_renewed: true
   visit_duration_minutes: 15
@@ -142,7 +145,7 @@ F33:  # Recurrent depressive disorder (Issue #1137 cluster axis 2)
     ja: "反復性うつ病性障害フォローアップ・PHQ-9 評価・長期抗うつ薬管理"
   follow_up_interval_months: 3
   labs: []
-  labs_quarterly: ["PHQ-9"]
+  labs_quarterly: ["PHQ-9", "C-SSRS"]
   vitals: [systolic_bp, heart_rate]
   prescriptions_renewed: true
   visit_duration_minutes: 15

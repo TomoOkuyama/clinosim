@@ -98,6 +98,11 @@ BIOLOGICAL_CV: dict[str, float] = {
     # 1-week intervals; same 20 % CV convention as PHQ-9 captures
     # the symptom-fluctuation + rater-noise band.
     "GAD-7": 0.20,
+    # C-SSRS test-retest + rater spread. Posner 2011 reports ICC
+    # 0.70-0.85 across raters; a 25 % CV captures the slightly
+    # wider rater-variability band of the C-SSRS vs the self-
+    # administered PHQ-9 / GAD-7.
+    "C-SSRS": 0.25,
 }
 
 # Analytical variation (instrument imprecision)
@@ -190,6 +195,8 @@ PRECISION: dict[str, int] = {
     "PHQ-9": 0,
     # GAD-7 total score is an integer 0-21 (7 items × 0-3 points).
     "GAD-7": 0,
+    # C-SSRS ideation severity is an integer 0-5.
+    "C-SSRS": 0,
 }
 
 
@@ -277,6 +284,14 @@ LAB_UNITS: dict[str, str] = {
     # score 0-21 emitted on OP follow-up for F41.1 cohort. Same
     # UCUM "{score}" convention as PHQ-9.
     "GAD-7": "{score}",
+    # Issue #1137 — mental-health cluster axis 7: Columbia Suicide
+    # Severity Rating Scale ideation severity (C-SSRS score 0-5).
+    # 0 = no ideation; 1 = wish to be dead; 2 = non-specific active
+    # ideation; 3 = active ideation with method but no plan or
+    # intent; 4 = active ideation with plan but no intent; 5 =
+    # active ideation with method, plan AND intent. Emitted at
+    # F32 / F33 OP follow-up for severity-screened safety planning.
+    "C-SSRS": "{score}",
 }
 
 
@@ -315,6 +330,11 @@ PHYSIOLOGIC_LIMITS: dict[str, tuple[float, float]] = {
     # points). Scoring-rule invariant, same bound rationale as
     # PHQ-9.
     "GAD-7": (0.0, 21.0),
+    # Issue #1137 — C-SSRS ideation severity score 0-5 (Posner 2011
+    # Am J Psychiatry 168:1266). Scoring-rule invariant: 0 is "no
+    # ideation", 5 is the maximum "active ideation with method,
+    # plan AND intent" tier.
+    "C-SSRS": (0.0, 5.0),
 }
 
 
@@ -361,6 +381,13 @@ BASELINE_LAB_NORMALS: dict[str, float] = {
     # mean in Spitzer's validation study + Kroenke 2007 (Ann
     # Intern Med 146:317) outpatient GAD cohorts.
     "GAD-7": 8.0,
+    # Issue #1137 — C-SSRS ideation severity baseline. Baseline 1
+    # (passive wish-to-be-dead) matches the F32/F33 cohort-weighted
+    # mean per Posner 2011 (Am J Psychiatry 168:1266). The
+    # outpatient emit loop overrides this with a severity-
+    # conditioned value when the patient's PHQ-9 band is known
+    # (axis 5 pattern) — baseline here is only used as a fallback.
+    "C-SSRS": 1.0,
     # Issue #757 remaining mappings: drug-level monitoring analytes.
     # Baseline values sit in the mid-therapeutic band for each drug, so a
     # patient on stable dosing shows a "therapeutic-range" (interpretation=N)

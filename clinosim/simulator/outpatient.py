@@ -124,20 +124,38 @@ _GAD7_BAND_BASELINE: dict[str, float] = {
     "GAD-7 severe": 18.0,  # 15-21 (midpoint)
 }
 
+# Issue #1137 cluster axis 7 — C-SSRS ideation severity (0-5)
+# derived from PHQ-9 band. Clinical correlation: Simon 2013
+# (Psychiatric Services 64:1195) PHQ-9 item 9 ↔ C-SSRS mapping;
+# Posner 2011 (Am J Psychiatry 168:1266) C-SSRS validation.
+# PHQ-9 moderately severe / severe cohorts have substantially
+# elevated active-ideation rates vs mild/moderate.
+_CSSRS_BAND_BASELINE: dict[str, float] = {
+    "PHQ-9 none": 0.0,  # no ideation
+    "PHQ-9 mild": 0.0,  # no ideation
+    "PHQ-9 moderate": 1.0,  # passive wish-to-be-dead
+    "PHQ-9 moderately severe": 2.0,  # non-specific active ideation
+    "PHQ-9 severe": 3.0,  # active ideation with method, no plan/intent
+}
+
 
 def _mental_health_score_baseline(canon: str, patient: Any) -> float | None:
-    """Return the severity-conditioned baseline for a PHQ-9 or GAD-7
-    emission.
+    """Return the severity-conditioned baseline for a PHQ-9 / GAD-7
+    / C-SSRS emission.
 
-    Scans ``patient.chronic_conditions`` for an F32 / F33 (PHQ-9) or
-    F41.1 (GAD-7) code that carries a staged severity band, then
-    maps the band to its clinical score midpoint. Returns ``None``
-    when the patient has no staged mental-health chronic — the
-    caller then falls back to the generic fixed baseline.
+    Scans ``patient.chronic_conditions`` for an F32 / F33 (PHQ-9,
+    C-SSRS) or F41.1 (GAD-7) code that carries a staged severity
+    band, then maps the band to its clinical score midpoint.
+    Returns ``None`` when the patient has no staged mental-health
+    chronic — the caller then falls back to the generic fixed
+    baseline.
 
     The ``.stage`` attribute is populated by the activator's
     ``_generate_stage`` branch for F32 / F33 / F41.1 (Issue #1137
-    cluster axis 4, PR #1620).
+    cluster axis 4, PR #1620). C-SSRS is also keyed on the F32/F33
+    PHQ-9 severity band (axis 7) because the Columbia scale is a
+    safety-planning instrument administered to F32/F33 cohorts;
+    GAD-7 does not drive C-SSRS emission.
     """
     if canon == "PHQ-9":
         prefixes = ("F32", "F33")
@@ -145,6 +163,9 @@ def _mental_health_score_baseline(canon: str, patient: Any) -> float | None:
     elif canon == "GAD-7":
         prefixes = ("F41",)
         band_map = _GAD7_BAND_BASELINE
+    elif canon == "C-SSRS":
+        prefixes = ("F32", "F33")
+        band_map = _CSSRS_BAND_BASELINE
     else:
         return None
     for cc in getattr(patient, "chronic_conditions", None) or []:
@@ -440,7 +461,7 @@ def _simulate_outpatient_visit(
         # span clinical reality (Kroenke 2001 / Spitzer 2006 bands)
         # rather than clustering around a single fixed value. See
         # ``_mental_health_score_baseline`` below.
-        if canon in ("PHQ-9", "GAD-7"):
+        if canon in ("PHQ-9", "GAD-7", "C-SSRS"):
             band_baseline = _mental_health_score_baseline(canon, patient)
             if band_baseline is not None:
                 true_val = band_baseline
