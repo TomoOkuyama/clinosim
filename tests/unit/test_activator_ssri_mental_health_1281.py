@@ -205,14 +205,14 @@ def test_f41_1_benzodiazepine_fires_only_at_severe_and_non_elderly() -> None:
       3. baseline rate: ~30-50 % of severe non-elderly cohort receives
          a benzo (literature APA real-world prescribing).
     """
-    BENZO_DRUGS = {"lorazepam", "alprazolam"}
+    benzo_drugs = {"lorazepam", "alprazolam"}
 
     # Severe, young — should fire at ~30-50 %
     severe_young_hits = sum(
         1
         for s in range(500)
         if any(
-            d.lower() in BENZO_DRUGS
+            d.lower() in benzo_drugs
             for d in [
                 m.drug_name
                 for m in _derive_home_medications(
@@ -233,7 +233,7 @@ def test_f41_1_benzodiazepine_fires_only_at_severe_and_non_elderly() -> None:
         1
         for s in range(500)
         if any(
-            d.lower() in BENZO_DRUGS
+            d.lower() in benzo_drugs
             for d in [
                 m.drug_name
                 for m in _derive_home_medications(
@@ -252,7 +252,7 @@ def test_f41_1_benzodiazepine_fires_only_at_severe_and_non_elderly() -> None:
         1
         for s in range(500)
         if any(
-            d.lower() in BENZO_DRUGS
+            d.lower() in benzo_drugs
             for d in [
                 m.drug_name
                 for m in _derive_home_medications(
