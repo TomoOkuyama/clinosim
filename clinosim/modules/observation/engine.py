@@ -88,6 +88,12 @@ BIOLOGICAL_CV: dict[str, float] = {
     "eGFR": 0.056,
     "PT_INR": 0.040,
     "HbA1c": 0.015,
+    # Issue #1137 — PHQ-9 test-retest spread. Kroenke 2001 reports
+    # test-retest ICC ~0.84 at 1-week intervals; a 20 % CV captures
+    # the symptom-fluctuation + rater-noise spread that drives the
+    # cohort distribution across severity bands (none / mild /
+    # moderate / moderately-severe / severe).
+    "PHQ-9": 0.20,
 }
 
 # Analytical variation (instrument imprecision)
@@ -174,6 +180,10 @@ PRECISION: dict[str, int] = {
     "Lipase": 0,
     "TSH": 2,
     "Cortisol": 1,
+    # Issue #1137 — PHQ-9 total score is an integer 0-27 by scoring
+    # construction (9 items × 0-3 points). precision=0 rounds the
+    # post-noise value to the clinically-reported integer.
+    "PHQ-9": 0,
 }
 
 
@@ -250,6 +260,12 @@ LAB_UNITS: dict[str, str] = {
     "Lithium": "mmol/L",  # UCUM canonical for mEq/L on lithium
     "Tacrolimus": "ng/mL",
     "Ciclosporin": "ng/mL",
+    # Issue #1137 — mental-health cluster axis 2: PHQ-9 (Patient
+    # Health Questionnaire-9) is a patient-reported depression
+    # screening score 0-27 emitted at annual-checkup OP visits
+    # for F32 / F33 cohort. UCUM "{score}" is the canonical unit
+    # annotation for standardized assessment scores.
+    "PHQ-9": "{score}",
 }
 
 
@@ -279,6 +295,11 @@ PHYSIOLOGIC_LIMITS: dict[str, tuple[float, float]] = {
     "CK_MB": (0.0, 500.0),  # ng/mL
     "BNP": (0.0, 5000.0),  # pg/mL — assay reporting ceiling
     "HbA1c": (3.0, 18.0),  # % — survivable glycemic range
+    # Issue #1137 — PHQ-9 total score lies in [0, 27] by construction.
+    # The upper bound is the scale maximum (9 items × 3 points), not a
+    # physiologic limit — it's a scoring-rule invariant that any
+    # measurement-noise tail MUST respect.
+    "PHQ-9": (0.0, 27.0),
 }
 
 
@@ -308,6 +329,16 @@ BASELINE_LAB_NORMALS: dict[str, float] = {
     "PIVKA_II": 20,  # mAU/mL (upper normal < 40 mAU/mL)
     "CA15_3": 18,  # U/mL (upper normal < 30 U/mL)
     "PSA": 1.5,  # ng/mL (upper normal < 4 ng/mL, male only)
+    # Issue #1137 — PHQ-9 F32/F33 cohort baseline. Severity bands
+    # per Kroenke 2001 (JGIM 16:606): 0-4 none / 5-9 mild / 10-14
+    # moderate / 15-19 moderately severe / 20-27 severe. Baseline
+    # 10 (moderate band start) matches the cohort-weighted
+    # observational mean in GPC / primary-care-registry data
+    # (Mitchell 2013 BMJ depression screening meta ~10-12).
+    # Variability (test-retest + severity-band spread) is handled
+    # by the shared noise pipeline — PHQ-9 is added to
+    # ``BIOLOGICAL_CV`` below.
+    "PHQ-9": 10.0,
     # Issue #757 remaining mappings: drug-level monitoring analytes.
     # Baseline values sit in the mid-therapeutic band for each drug, so a
     # patient on stable dosing shows a "therapeutic-range" (interpretation=N)
