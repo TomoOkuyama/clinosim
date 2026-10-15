@@ -1,6 +1,6 @@
 # `clinosim.modules.metabolic` — BMI 由来・代謝関連慢性疾患
 
-`PersonRecord.bmi` から E66 肥満 ICD コードを決定論的に導出する POST_POPULATION enricher (軸 1) + BMI + HTN + 脂質異常症 + DM の 4 要素 AND から **E88.81 代謝症候群** を導出する POST_POPULATION enricher (軸 2) + BMI + DM で重み付けた SHA Bernoulli で **K76.0 NAFLD** を割り当てる POST_POPULATION enricher (軸 3) を提供する代謝クラスタ関連の慢性疾患エンリッチモジュール。将来軸として **G47.30 OSA**、GLP-1/減量手術管理 を拡張予定 (META #1137 クラスタ 2 スコープ)。
+`PersonRecord.bmi` から E66 肥満 ICD コードを決定論的に導出する POST_POPULATION enricher (軸 1) + BMI + HTN + 脂質異常症 + DM の 4 要素 AND から **E88.81 代謝症候群** を導出する POST_POPULATION enricher (軸 2) + BMI + DM で重み付けた SHA Bernoulli で **K76.0 NAFLD** を割り当てる POST_POPULATION enricher (軸 3) + BMI × 性別で重み付けた SHA Bernoulli で **G47.30 OSA** を割り当てる POST_POPULATION enricher (軸 4) を提供する代謝クラスタ関連の慢性疾患エンリッチモジュール。将来軸として GLP-1/減量手術管理 を拡張予定 (META #1137 クラスタ 2 スコープ)。
 
 ## 目的
 
@@ -21,6 +21,7 @@ pass を経由しないよう、BMI 駆動の疾患導出を分離する。
   append する。冪等かつ相互排他 (患者 1 名につき E66 コード 1 つ)。
 - `e88_81_syndrome_enricher(ctx)` — POST_POPULATION enricher (order=16、`e66_bmi` の直後)。BMI ≥ 30 + HTN (I10) + 脂質異常症 (E78\*) + DM (E10\* or E11\*) の 4 要素 AND が成立した患者に `E88.81` を append する。冪等、RNG 非消費。
 - `k76_0_nafld_enricher(ctx)` — POST_POPULATION enricher (order=17、BMI 由来 2 enricher の直後)。モジュール salt + person_id の SHA256 ハッシュから一様分位点を取り、BMI + DM で重み付けた閾値を下回った患者に `K76.0` を append する。冪等、RNG-neutral (master stream 非消費)。
+- `g47_30_osa_enricher(ctx)` — POST_POPULATION enricher (order=18)。BMI 階層 × 生物学的性別の有病率テーブル (男性 ~2× 女性、Peppard 2013) を SHA Bernoulli で引く。冪等、RNG-neutral。
 - `_derive_e66_code(bmi) -> str | None` — BMI 値から ICD-10
   コードへの純粋関数マッピング。BMI < 25 (参照範囲、E66 コード
   なし) では `None` を返す。
