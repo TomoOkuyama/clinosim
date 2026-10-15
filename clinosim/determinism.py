@@ -248,3 +248,72 @@ def default_rng(seed: int | None = None) -> _DeterministicRngProxy:
     import numpy as np
 
     return _DeterministicRngProxy(np.random.default_rng(seed))
+
+
+# ---------------------------------------------------------------------------
+# SHA-based RNG-neutral primitives (META #1633 P4 consolidation)
+# ---------------------------------------------------------------------------
+#
+# These do NOT go through the numpy variate pipeline — they derive a
+# deterministic quantile from a salted SHA-256 hash so the master
+# simulation RNG stream is not consumed (byte-identity preserved for
+# cohorts where the decision does not fire). The salt is typically
+# ``f"<module salt>|<person_id>"`` or ``f"<encounter_id>|<module>|<version>"``;
+# anything stable per the decision point works.
+
+
+def sha_quantile(salt: str, byte_offset: int = 0, byte_count: int = 8) -> float:
+    """Return a deterministic uniform-[0, 1) quantile from a SHA-256
+    hash of ``salt``, taking ``byte_count`` bytes starting at
+    ``byte_offset``.
+
+    Defaults produce an 8-byte (2^64 resolution) quantile from the
+    hash prefix — matches the inline implementations previously
+    duplicated in ``modules/metabolic/engine.py`` and
+    ``simulator/helpers.py``. The offset parameter allows multiple
+    independent quantiles to be drawn from one salt without
+    re-hashing (the full digest is 32 bytes).
+    """
+    import hashlib
+
+    h = hashlib.sha256(salt.encode()).digest()
+    slot = h[byte_offset : byte_offset + byte_count]
+    span = 1 << (8 * byte_count)
+    return int.from_bytes(slot, "big") / span
+
+
+def sha_bernoulli(salt: str, probability: float) -> bool:
+    """Return ``True`` iff :func:`sha_quantile` of ``salt`` falls
+    below ``probability``.
+
+    RNG-neutral — does not touch any master simulation RNG stream.
+    Short-circuits on ``probability <= 0.0`` (always False) and
+    ``probability >= 1.0`` (always True) so an upstream rounding
+    that pushes the probability out of ``(0, 1)`` is handled
+    without pulling the hash.
+    """
+    if probability <= 0.0:
+        return False
+    if probability >= 1.0:
+        return True
+    return sha_quantile(salt) < probability
+
+
+def sha_weighted_choice(salt: str, choices: tuple[str, ...], weights: tuple[float, ...]) -> str:
+    """Deterministic weighted choice from a SHA-salted quantile.
+
+    RNG-neutral. If the total weight is zero (or negative) the first
+    option is returned as a defensive fallback. The last option is
+    returned if cumulative-weight comparison undershoots due to
+    floating-point rounding at the right endpoint.
+    """
+    total = float(sum(weights))
+    if total <= 0.0:
+        return choices[0]
+    u = sha_quantile(salt) * total
+    acc = 0.0
+    for c, w in zip(choices, weights, strict=False):
+        acc += float(w)
+        if u < acc:
+            return c
+    return choices[-1]

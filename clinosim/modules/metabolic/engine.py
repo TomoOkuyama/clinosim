@@ -76,10 +76,10 @@ Clinical basis:
 
 from __future__ import annotations
 
-import hashlib
 from typing import Any
 
 from clinosim.codes import has_icd_prefix
+from clinosim.determinism import sha_bernoulli
 from clinosim.modules.population import (
     BMI_MORBID_OBESITY_THRESHOLD as _BMI_MORBID_THRESHOLD,
 )
@@ -234,18 +234,12 @@ def _draw_nafld(person_id: str, probability: float) -> bool:
     quantile derived from a module-salted hash falls below the
     assignment probability.
 
-    RNG-neutral — the master simulation stream is not consumed, so
-    adding this enricher preserves byte-identity for cohorts whose
-    BMI stays under the obesity threshold.
+    Thin wrapper over :func:`clinosim.determinism.sha_bernoulli` —
+    kept here (plus the ``_`` prefix) as the historical API that
+    the axis-3 unit tests import. RNG-neutral — the master
+    simulation stream is not consumed.
     """
-    if probability <= 0.0:
-        return False
-    if probability >= 1.0:
-        return True
-    salt = f"{_NAFLD_SALT}|{person_id}"
-    h = hashlib.sha256(salt.encode()).digest()
-    q = int.from_bytes(h[:8], "big") / (1 << 64)
-    return q < probability
+    return sha_bernoulli(f"{_NAFLD_SALT}|{person_id}", probability)
 
 
 def _derive_nafld_assignment(person_id: str, bmi: float, chronic: list[str]) -> str | None:
@@ -304,15 +298,13 @@ def _osa_probability(bmi: float, sex: str) -> float:
 
 def _draw_osa(person_id: str, probability: float) -> bool:
     """SHA-256 Bernoulli for the G47.30 assignment. RNG-neutral,
-    deterministic per person id + module salt."""
-    if probability <= 0.0:
-        return False
-    if probability >= 1.0:
-        return True
-    salt = f"{_OSA_SALT}|{person_id}"
-    h = hashlib.sha256(salt.encode()).digest()
-    q = int.from_bytes(h[:8], "big") / (1 << 64)
-    return q < probability
+    deterministic per person id + module salt.
+
+    Thin wrapper over :func:`clinosim.determinism.sha_bernoulli`
+    with the OSA module salt baked in — kept at this spelling as
+    the historical API the axis-4 unit tests import.
+    """
+    return sha_bernoulli(f"{_OSA_SALT}|{person_id}", probability)
 
 
 def _derive_osa_assignment(person_id: str, bmi: float, sex: str) -> str | None:
