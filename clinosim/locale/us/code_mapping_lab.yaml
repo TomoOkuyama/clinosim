@@ -83,3 +83,8 @@ Digoxin: "10535-3"           # Digoxin [Mass/volume] in Serum or Plasma
 Lithium: "14334-7"           # Lithium [Mass/volume] in Serum or Plasma
 Tacrolimus: "27069-5"        # Tacrolimus [Mass/volume] in Serum or Plasma
 Ciclosporin: "3521-2"        # Cyclosporine [Mass/volume] in Serum or Plasma
+
+# Issue #1137 — PHQ-9 Patient Health Questionnaire 9-item depression
+# screening total score. Emitted at annual-checkup OP for F32/F33
+# patients; LOINC canonical.
+PHQ-9: "44249-1"

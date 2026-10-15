@@ -119,6 +119,34 @@ M81:  # Osteoporosis
   prescriptions_renewed: true
   visit_duration_minutes: 10
 
+F32:  # Depression — single episode (Issue #1137 cluster axis 2)
+  visit_reason:
+    en: "Depression symptom monitoring, PHQ-9 scoring, antidepressant management"
+    ja: "うつ病症状モニタリング・PHQ-9 評価・抗うつ薬調整"
+  follow_up_interval_months: 3
+  labs: []
+  # PHQ-9 (Patient Health Questionnaire-9, LOINC 44249-1) emitted
+  # every quarter for diagnosed-depression cohort. Score integer
+  # 0-27; severity banded 0-4 none / 5-9 mild / 10-14 moderate /
+  # 15-19 moderately severe / 20-27 severe (Kroenke 2001 JGIM).
+  # Baseline moderate (10) with CV 0.20 — see
+  # observation.engine.BASELINE_LAB_NORMALS / BIOLOGICAL_CV.
+  labs_quarterly: ["PHQ-9"]
+  vitals: [systolic_bp, heart_rate]
+  prescriptions_renewed: true
+  visit_duration_minutes: 15
+
+F33:  # Recurrent depressive disorder (Issue #1137 cluster axis 2)
+  visit_reason:
+    en: "Recurrent depression monitoring, PHQ-9 scoring, long-term antidepressant management"
+    ja: "反復性うつ病性障害フォローアップ・PHQ-9 評価・長期抗うつ薬管理"
+  follow_up_interval_months: 3
+  labs: []
+  labs_quarterly: ["PHQ-9"]
+  vitals: [systolic_bp, heart_rate]
+  prescriptions_renewed: true
+  visit_duration_minutes: 15
+
 F00:  # Dementia
   visit_reason:
     en: "Cognitive status assessment, caregiver support"
