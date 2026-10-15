@@ -1,0 +1,1326 @@
+"""FHIR R4 adapter — Stage 3: convert CIF structural data to FHIR R4 Bundles.
+
+Generates one FHIR Bundle (JSON) per patient containing:
+  Patient, Encounter, Observation (labs + vitals), MedicationRequest, Practitioner references.
+
+Promoted from ``fhir_r4_adapter.py`` (Issue #555 PR1). A thin shim remains at
+``clinosim/modules/output/fhir_r4_adapter.py`` for backward-compat with
+pre-migration import paths (100+ caller sites); new code should import
+directly from ``clinosim.modules.output.fhir_r4``.
+"""
+
+from __future__ import annotations
+
+import json
+import os
+import re
+import uuid
+from collections.abc import Callable
+from datetime import datetime
+from typing import Any
+
+from clinosim.modules._shared import is_jp
+from clinosim.modules.newborn.fhir_emit import (
+    _bb_newborn_apgar,
+    _bb_newborn_bilirubin,
+    _bb_newborn_cchd_pulse_ox,
+    _bb_newborn_metabolic_screen_diagnostic_report,
+    _bb_newborn_metabolic_screen_service_request,
+    _bb_newborn_metabolic_screen_specimen,
+)
+from clinosim.modules.output.cif_reader import CIFReader
+from clinosim.modules.output.fhir_r4.conditions.allergy_intolerance import _bb_allergy_intolerances
+from clinosim.modules.output.fhir_r4.conditions.clinical_impression import _bb_clinical_impressions
+from clinosim.modules.output.fhir_r4.conditions.code_status import _bb_code_status
+from clinosim.modules.output.fhir_r4.conditions.hai import _bb_hai_conditions
+from clinosim.modules.output.fhir_r4.demographics.family_history import _bb_family_history
+from clinosim.modules.output.fhir_r4.demographics.smoking_alcohol import (
+    _bb_alcohol_use,
+    _bb_smoking_status,
+)
+from clinosim.modules.output.fhir_r4.documents.composition import (
+    _bb_compositions,
+    _build_encounter_resource_index,
+)
+from clinosim.modules.output.fhir_r4.documents.document_reference_checkup import _bb_document_references_checkup
+from clinosim.modules.output.fhir_r4.documents.documents import _bb_document_references
+from clinosim.modules.output.fhir_r4.documents.imaging_report import _bb_imaging_report_compositions
+from clinosim.modules.output.fhir_r4.encounters.care_level import _bb_care_level
+from clinosim.modules.output.fhir_r4.encounters.care_team import _bb_care_teams
+from clinosim.modules.output.fhir_r4.encounters.endpoint import _bb_endpoints
+from clinosim.modules.output.fhir_r4.encounters.facility import _build_facility_bundle
+from clinosim.modules.output.fhir_r4.labs.anthropometrics import _bb_anthropometrics
+from clinosim.modules.output.fhir_r4.labs.blood_type import _bb_blood_type
+from clinosim.modules.output.fhir_r4.labs.diagnostic_report import _bb_diagnostic_reports
+from clinosim.modules.output.fhir_r4.labs.imaging_study import _bb_imaging_studies
+from clinosim.modules.output.fhir_r4.labs.microbiology import _bb_microbiology
+from clinosim.modules.output.fhir_r4.labs.observations import _bb_labs
+from clinosim.modules.output.fhir_r4.labs.service_request import _bb_service_requests
+
+# FA-1 (Phases 1-13) + (H/I/K/L/N) split this adapter's leaf data,
+# shared fragment helpers, and per-theme resource builders into sibling
+# `_fhir_*` modules. The imports below are exactly the symbols `_build_bundle`
+# and `convert_cif_to_fhir` (this module's public surface) actually call —
+# the historical facade re-export block (marked with `noqa` directives) was
+# dropped once tests migrated to canonical imports.
+from clinosim.modules.output.fhir_r4.lib.common import (
+    BundleContext,
+    entry,
+)
+from clinosim.modules.output.fhir_r4.lib.ed_reattribution import (
+    reattribute_encounter_to_ed_bridge as _reattribute_encounter_to_ed_bridge,
+)
+from clinosim.modules.output.fhir_r4.lib.generator_metadata import write_generator_metadata as _write_generator_metadata
+from clinosim.modules.output.fhir_r4.lib.inline_bb import (
+    _bb_conditions,
+    _bb_coverage,
+    _bb_discharge_medication_requests,
+    _bb_encounters,
+    _bb_medication_admins,
+    _bb_medication_requests,
+    _bb_occupation,
+    _bb_patient,
+    _bb_practitioners,
+    _bb_procedures,
+    _bb_vitals,
+)
+
+# PR N: post-emit helpers extracted to _fhir_post_process.py.
+# Imported for use inside `_build_bundle` (see finalize pass).
+from clinosim.modules.output.fhir_r4.post_process import (
+    _apply_jp_clins_profile,
+    _apply_jp_core_profile,
+    _build_companion_specimen,
+    _lab_observation_needs_specimen,
+    _normalize_dt_fields,
+    _normalize_jp_observation_category,
+    _populate_condition_ai_mr_ecs_fields,
+    _populate_jp_medication_dosage_ecs_fields,
+    _populate_observation_identifier_and_last_updated,
+    _populate_practitioner_reference_display,
+    _strip_forbidden_observation_reference_range_extensions,
+    _strip_japanese_display_on_english_only_systems,
+)
+from clinosim.modules.output.fhir_r4.procedures.device import (
+    _bb_device,
+    _bb_device_use,
+)
+from clinosim.modules.output.fhir_r4.procedures.immunization import _bb_immunizations
+from clinosim.modules.output.fhir_r4.procedures.nursing import _bb_nursing_observations
+from clinosim.modules.output.fhir_r4.procedures.oxygen_therapy import _bb_oxygen_therapy
+from clinosim.simulator import log as sim_log
+
+# FHIR R4 `Resource.id` type: `[A-Za-z0-9\-\.]{1,64}`. iris4h-ai P0 finding
+# (2026-07-17): 812,606 ids across the export violated this spec — `_` in id
+# and >64 char ids were rejected by IRIS FHIR endpoint with HTTP 400. HAPI
+# validator is more lenient but the FHIR spec is strict. The regex here is the
+# single source of truth for the pattern — every writer path routes ids
+# through it, and any non-conforming id logs a warning (fail-soft: the write
+# still succeeds so a bug in a single builder does not break the whole export,
+# but the log lets the audit CI catch regressions).
+_FHIR_ID_PATTERN = re.compile(r"^[A-Za-z0-9\-\.]{1,64}$")
+
+
+def _fhir_id_is_spec_valid(rid: str) -> bool:
+    """True if ``rid`` conforms to FHIR R4 `Resource.id` = `[A-Za-z0-9\\-\\.]{1,64}`."""
+    return bool(_FHIR_ID_PATTERN.match(rid))
+
+
+def convert_cif_to_fhir(
+    cif_dir: str,
+    output_dir: str,
+    country: str = "US",
+    narrative_version: str = "current",
+) -> None:
+    """Read CIF structural data and write FHIR R4 Bulk Data Export NDJSON files.
+
+    Output follows the HL7 FHIR Bulk Data Access spec:
+    one NDJSON file per resource type (Patient.ndjson, Encounter.ndjson, etc.).
+    Each line is a single FHIR resource (no Bundle wrapping).
+
+    DocumentReference / Composition resources are emitted from
+    record.documents, merged with narrative content by CIFReader (AD-65 Task
+    4): structural stubs are created by document_enricher at POST_ENCOUNTER
+    (Task 8); narrative text/sections are populated by a separate Stage 2
+    NarrativePass (Task 3) and merged in at read time here.
+
+    Args:
+        cif_dir: path to a cif/ directory containing structural/.
+        output_dir: directory to write the FHIR NDJSON files.
+        country: "US" or "JP" — selects display language and code systems.
+        narrative_version: narrative layer to merge in — "current" (default,
+            resolved via cif/narratives/current_version.txt, falling back to
+            "template") or an explicit version_id.
+    """
+    os.makedirs(output_dir, exist_ok=True)
+
+    reader = CIFReader(cif_dir, narrative_version=narrative_version)
+
+    # Load hospital data (Practitioner roster + Organization/Location config)
+    roster_map: dict[str, dict] = {}
+    hospital_config: dict = {}
+    hospital_path = os.path.join(cif_dir, "hospital.json")
+    if os.path.exists(hospital_path):
+        with open(hospital_path, encoding="utf-8") as f:
+            hospital_data = json.load(f)
+        for staff in hospital_data.get("staff", []):
+            roster_map[staff.get("staff_id", "")] = staff
+        hospital_config = hospital_data.get("config", {}) or {}
+
+    # Issue #944: read the simulation snapshot date from cif/metadata.json
+    # so per-FY Coverage.status can be derived from period.end vs snapshot
+    # (expired FYs → "cancelled", current FY → "active"). Soft-failure:
+    # missing / malformed metadata just leaves snapshot_date=None and
+    # builders fall back to their pre-#944 default (identity-only tests /
+    # legacy CIF fixtures rely on this).
+    snapshot_date: str | None = None
+    _meta_path = os.path.join(cif_dir, "metadata.json")
+    if os.path.exists(_meta_path):
+        try:
+            with open(_meta_path, encoding="utf-8") as _f:
+                _meta = json.load(_f)
+            _snap = _meta.get("snapshot_date") if isinstance(_meta, dict) else None
+            # CIFMetadata stores YYYY-MM-DD strings; guard against a raw
+            # datetime slipping through and normalize to the first 10 chars.
+            if isinstance(_snap, str) and len(_snap) >= 10:
+                snapshot_date = _snap[:10]
+        except (OSError, json.JSONDecodeError):
+            snapshot_date = None
+
+    # Open NDJSON file handles for each resource type
+    # Use a writer cache to lazy-create files only for types we encounter
+    writers: dict[str, Any] = {}
+    written_ids: dict[str, set[str]] = {}  # de-dup Patient and Practitioner
+    invalid_id_counts: dict[str, int] = {}  # per-resource-type spec-violation tally
+
+    def write(resource: dict) -> None:
+        rt = resource.get("resourceType", "")
+        if not rt:
+            return
+        # Enforce global Resource.id uniqueness within each type (FHIR requirement).
+        # Patient-level resources (Patient, AllergyIntolerance, Coverage, occupation
+        # Observation, ...) recur across a patient's per-encounter bundles; keep the
+        # first write only. Per-encounter resources have unique ids → never dropped.
+        rid = resource.get("id", "")
+        # FHIR R4 `Resource.id` spec check (iris4h-ai P0 finding, 2026-07-17).
+        # Fail-soft: increment the per-type counter and log a warning at
+        # export end. The write itself proceeds — a spec-invalid id from a
+        # regressed builder should surface loudly but not break the whole
+        # export.
+        if rid and not _fhir_id_is_spec_valid(rid):
+            invalid_id_counts[rt] = invalid_id_counts.get(rt, 0) + 1
+        if rid:
+            ids = written_ids.setdefault(rt, set())
+            if rid in ids:
+                return
+            ids.add(rid)
+        if rt not in writers:
+            path = os.path.join(output_dir, f"{rt}.ndjson")
+            writers[rt] = open(path, "w", encoding="utf-8")
+        writers[rt].write(json.dumps(resource, ensure_ascii=False) + "\n")
+
+    # Issue #175: bracket the whole export with `sim_log` so `tail -f
+    # simulator.log` sees a clear ``fhir_export_start`` / ``fhir_export_end``
+    # boundary with elapsed_s + resources count for the p=10000 blind
+    # window that used to sit between ``run_beta_done`` and manifest write.
+    import time as _time
+
+    t0_export = _time.perf_counter()
+    sim_log.info(
+        "fhir_r4_adapter",
+        "fhir_export_start",
+        country=country,
+        output_dir=output_dir,
+        narrative_version=narrative_version,
+    )
+    n_resources = 0
+    n_patients = 0
+    # Issue #945: per-resource-type tally of entries dropped by the
+    # `_drop_entries_after_snapshot` gate. Accumulated across every
+    # patient bundle in this export; logged once at export end for
+    # maintainer visibility (mirrors the after-death filter's fail-soft
+    # visibility pattern).
+    snapshot_drop_counter: dict[str, int] = {}
+    try:
+        # Master resources (Organization + Location + Device) — written once.
+        # Facility resources bypass `_build_bundle`, so the JP-only post-emit
+        # walkers must be reapplied here or they leak untouched Japanese
+        # display / raw HL7 URIs into the facility subset (iris4h-ai
+        # feedback V4/V5 P2 A regression when Device / Location emit HL7
+        # / SNOMED / DICOM coding with Japanese display).
+        facility_bundle = _build_facility_bundle(hospital_config, country)
+        for entry in facility_bundle.get("entry", []):
+            resource = entry["resource"]
+            if is_jp(country):
+                _apply_jp_core_profile(resource)
+                _apply_jp_clins_profile(resource)
+                _normalize_jp_observation_category(resource)
+                _strip_japanese_display_on_english_only_systems(resource)
+                # PR-I (2026-07-17): populate JP-CLINS MedicationDosage_eCS
+                # required fields (extension:periodOfUse + timing.code with the
+                # uncoded dummy usage code that satisfies R5020). No-op on the
+                # facility bundle since it emits no MedicationRequests.
+                _populate_jp_medication_dosage_ecs_fields(resource)
+            # Runs regardless of country: identifier / meta.lastUpdated are
+            # base-FHIR-optional but JP-eCS-required; universal emission keeps
+            # US output consistent and cost-free.
+            _populate_observation_identifier_and_last_updated(resource, country)
+            # #202 (2026-07-17): scrub `Observation.referenceRange[*].extension`
+            # (and low/high/component mirrors). LabResult_eCS forbids them
+            # (max=0) and the previously-emitted `referenceRangeSource` URL
+            # was not registered anywhere in JP-CLINS 1.13.0. Universal —
+            # US output already omits the extension so the walker is a no-op.
+            _strip_forbidden_observation_reference_range_extensions(resource)
+            # PR-E (2026-07-17): emit companion Specimen for lab Observations
+            # (JP_Observation_LabResult_eCS.specimen min=1). No-op on the
+            # facility bundle (no lab Observations) but keeps the code path
+            # symmetric with the main bundle loop.
+            if _lab_observation_needs_specimen(resource):
+                specimen = _build_companion_specimen(resource, country)
+                resource["specimen"] = {"reference": f"Specimen/{specimen['id']}"}
+                if is_jp(country):
+                    # Same JP-only walkers as any other resource: SNOMED
+                    # `display` on the Specimen.type coding is English-only,
+                    # so the P2 A walker strips Japanese chars — the JP text
+                    # stays in `type.text` per feedback Option 1.
+                    _strip_japanese_display_on_english_only_systems(specimen)
+                _normalize_dt_fields(specimen, country)
+                write(specimen)
+                n_resources += 1
+            # PR-G (2026-07-17): populate JP-CLINS eCS-required fields on
+            # Condition / AllergyIntolerance / MedicationRequest. Universal —
+            # US output picks up the same fields harmlessly.
+            _populate_condition_ai_mr_ecs_fields(resource, country)
+            # Issue #1178: fill Reference.display for Practitioner/… refs.
+            # Universal — no-op when roster_map is empty. Runs after every
+            # builder + eCS populator so late-added references get the same
+            # treatment.
+            _populate_practitioner_reference_display(resource, roster_map)
+            _normalize_dt_fields(resource, country)
+            write(resource)
+            n_resources += 1
+
+        # Walk patient records (structural + merged narrative), build per-record
+        # FHIR resources, write each line. Patient-scoped resources
+        # (chronic problem-list-item Condition, Coverage, AllergyIntolerance,
+        # FamilyMemberHistory, Immunization) use patient-scoped IDs so the
+        # `write()` helper's `written_ids` dedup keeps them at one per patient
+        # (root-cause fix for cycle 3 RM-7 problem-list-item excess = per-
+        # encounter re-emission with encounter-scoped IDs, C4-02).
+        for record in reader.iter_patients():
+            n_patients += 1
+            bundle = _build_bundle(
+                record,
+                country,
+                roster_map,
+                hospital_config,
+                snapshot_date,
+                snapshot_drop_counter=snapshot_drop_counter,
+            )
+            for entry in bundle.get("entry", []):
+                write(entry["resource"])
+                n_resources += 1
+
+        # Manifest (FHIR Bulk Data spec)
+        manifest = {
+            "transactionTime": datetime.now().isoformat(),
+            "request": f"clinosim generate (country={country})",
+            "requiresAccessToken": False,
+            "output": [{"type": rt, "url": f"{rt}.ndjson"} for rt in sorted(writers.keys())],
+            "error": [],
+        }
+        with open(os.path.join(output_dir, "manifest.json"), "w", encoding="utf-8") as f:
+            json.dump(manifest, f, indent=2, ensure_ascii=False)
+
+        # Sidecar `_generator_metadata.json` (issue #206): validators and
+        # downstream ingestion pipelines want to know which clinosim revision
+        # generated a given export so they can correlate observed validation
+        # results with the fix-PRs already applied. The leading underscore
+        # keeps the file out of the FHIR resource-type namespace, so tools
+        # iterating `manifest.json.output[*]` never see it as a resource file.
+        # Soft-failure: any error is logged and swallowed inside
+        # `write_generator_metadata` — the export loop continues.
+        _write_generator_metadata(output_dir, cif_dir, country)
+    finally:
+        # F2: close writers, then rewrite each NDJSON file with
+        # its resources sorted by id ascending. Row order is otherwise
+        # cursor-dependent (patient_records iteration order), so a line diff
+        # between two snapshots (cursor A / cursor B) would surface spurious
+        # "line moved" noise. Sorting by id makes the diff reflect only
+        # genuine new / changed / removed resources.
+        for w in writers.values():
+            w.close()
+        # The sort pass is O(seconds) per NDJSON file on p=10000 — bracket
+        # it separately so profile tooling can attribute the fraction of
+        # export wall-clock spent here vs the per-resource write loop.
+        t0_sort = _time.perf_counter()
+        sim_log.info(
+            "fhir_r4_adapter",
+            "ndjson_sort_start",
+            files=len(writers),
+        )
+        for rt in writers:
+            path = os.path.join(output_dir, f"{rt}.ndjson")
+            _sort_ndjson_by_id_inplace(path)
+        sim_log.info(
+            "fhir_r4_adapter",
+            "ndjson_sort_end",
+            files=len(writers),
+            elapsed_s=round(_time.perf_counter() - t0_sort, 3),
+        )
+    # Surface FHIR-id spec violations tallied inside `write()`. Empty when
+    # every emitted id conforms to `[A-Za-z0-9\-\.]{1,64}`; a non-empty dict
+    # indicates a regressed builder and shows up in `simulator.log` for the
+    # audit CI to flag (iris4h-ai P0 finding, 2026-07-17).
+    if invalid_id_counts:
+        sim_log.info(
+            "fhir_r4_adapter",
+            "invalid_fhir_ids",
+            counts=dict(invalid_id_counts),
+            total=sum(invalid_id_counts.values()),
+        )
+    # Issue #945: surface per-type snapshot-cutoff drops so a maintainer
+    # can see (a) the filter fired, and (b) which builders were emitting
+    # post-snapshot entries. Empty dict → the filter was a no-op (either
+    # `snapshot_date` was absent, or nothing crossed the cutoff).
+    if snapshot_drop_counter:
+        # Split the sentinel scrub tally from the per-type drop counts
+        # so the "counts" and "total" fields reflect only actual
+        # resource drops (mirrors the death-filter log shape).
+        _scrubbed_refs_total = snapshot_drop_counter.get("__scrubbed_refs__", 0)
+        _drop_counts_only = {k: v for k, v in snapshot_drop_counter.items() if not k.startswith("__")}
+        sim_log.info(
+            "fhir_r4_adapter",
+            "snapshot_filter_dropped",
+            snapshot_date=snapshot_date,
+            counts=_drop_counts_only,
+            total=sum(_drop_counts_only.values()),
+            scrubbed_refs=_scrubbed_refs_total,
+        )
+    sim_log.info(
+        "fhir_r4_adapter",
+        "fhir_export_end",
+        country=country,
+        patients=n_patients,
+        resources=n_resources,
+        files=len(writers),
+        elapsed_s=round(_time.perf_counter() - t0_export, 3),
+    )
+
+
+def _sort_ndjson_by_id_inplace(path: str) -> None:
+    """Rewrite an NDJSON file in place with lines sorted by resource id ascending.
+
+    F2: sorting removes cursor-dependent (patient_records
+    iteration order) row ordering so that a line diff between two snapshots
+    surfaces only genuine new / changed / removed resources, not spurious
+    "line moved" noise.
+
+    Reads the whole file into memory, so RAM usage scales with file size —
+    at p=10k total NDJSON output is ~4.7GB, with the largest single file
+    (Observation.ndjson) in the multi-GB range. This is acceptable for
+    Phase A; a future JP p=500k scale may need to replace this with an
+    external merge sort, but in-memory sort is sufficient for now.
+    """
+    with open(path, encoding="utf-8") as f:
+        lines = [line for line in f.read().splitlines() if line.strip()]
+    lines.sort(key=lambda line: json.loads(line).get("id", ""))
+    with open(path, "w", encoding="utf-8") as f:
+        for line in lines:
+            f.write(line + "\n")
+
+
+# --- Resource builders: (ctx) -> list[resource]. Order here == emission order. ---
+
+
+# Registry: emission order == list order. New Base/Module resources append a builder
+# here (or via register_bundle_builder) instead of editing _build_bundle (AD-56).
+_BUNDLE_BUILDERS: list[Callable[[BundleContext], list[dict]]] = [
+    _bb_patient,
+    _bb_coverage,
+    _bb_encounters,
+    _bb_care_teams,  # α-min-2 Task 11: 1 CareTeam per encounter (attending + nurse)
+    _bb_conditions,
+    _bb_allergy_intolerances,  # Task 9 / Task 15: 8-field SNOMED-coded schema (sole emit path)
+    _bb_clinical_impressions,  # Task 9: ClinicalImpression (daily working diagnosis)
+    _bb_occupation,
+    _bb_service_requests,
+    _bb_endpoints,  # Imaging: emit after SR, before ImagingStudy (reference resolve order)
+    _bb_imaging_studies,  # Imaging: emit after Endpoint (endpoint[] ref resolve)
+    _bb_labs,
+    _bb_vitals,
+    _bb_anthropometrics,  # Issue #946: height / weight / BMI / head-circ per encounter
+    _bb_newborn_apgar,  # Issue #1252 N4: Apgar score at 1 min / 5 min for newborns
+    _bb_newborn_bilirubin,  # Issue #1252 N7: transcutaneous bilirubin daily readings
+    _bb_newborn_cchd_pulse_ox,  # Issue #1252 N7: CCHD pulse-ox screen (RH + foot)
+    _bb_newborn_metabolic_screen_service_request,  # Issue #1252 N6b: metabolic screen SR
+    _bb_newborn_metabolic_screen_specimen,  # Issue #1252 N6b: heel-stick capillary Specimen
+    _bb_newborn_metabolic_screen_diagnostic_report,  # Issue #1252 N6b: aggregate DR
+    _bb_microbiology,
+    _bb_diagnostic_reports,
+    _bb_medication_requests,
+    _bb_discharge_medication_requests,  # Issue #445: discharge / outpatient-renewal prescriptions
+    _bb_medication_admins,
+    _bb_procedures,
+    _bb_oxygen_therapy,
+    _bb_practitioners,
+    _bb_nursing_observations,
+    _bb_immunizations,
+    _bb_family_history,
+    _bb_code_status,
+    _bb_smoking_status,
+    _bb_alcohol_use,
+    _bb_blood_type,
+    _bb_care_level,
+    _bb_device,
+    _bb_device_use,
+    _bb_hai_conditions,
+    _bb_document_references,  # Task 10: DocumentReference from record.documents (free_text, §2.2)
+    _bb_compositions,  # Task 9: Composition (section-structured H&P / Discharge)
+    _bb_document_references_checkup,  # P2-13 PR3 sub-PR-E: DocumentReference wrapper for HEALTH_CHECKUP_REPORT  # noqa: E501
+    _bb_imaging_report_compositions,  # Issue #818 (N-4): section-structured 画像検査報告書 per RadiologyReport
+]
+
+
+# Import-time contract (Issue #558): every registry entry MUST use the `_bb_`
+# prefix. `_build_X` is reserved for single-resource helpers (returning a
+# `dict`); `_bb_X` marks a bundle-builder (returning `list[dict]`). Mixing the
+# two on this list would silently break grep-by-role and let a stray
+# single-resource builder slip in without a type error. See
+# `modules/output/README.md` for the full convention.
+assert all(cb.__name__.startswith("_bb_") for cb in _BUNDLE_BUILDERS), (
+    "Bundle builders must use the _bb_ prefix. Offenders: "
+    f"{[cb.__name__ for cb in _BUNDLE_BUILDERS if not cb.__name__.startswith('_bb_')]}. "
+    "See modules/output/README.md."
+)
+
+
+def register_bundle_builder(builder: Callable[[BundleContext], list[dict]]) -> None:
+    """Register a FHIR resource builder appended after the built-ins (AD-56).
+
+    Deduplicated by function name (first registration wins), so a second builder with
+    the same name — e.g. a re-import of the same module — is not double-registered.
+
+    Enforces the `_bb_` prefix contract (Issue #558) so external registrations
+    honour the same convention as the built-in registry above.
+    """
+    if not builder.__name__.startswith("_bb_"):
+        raise ValueError(f"Bundle builder {builder.__name__!r} must use the _bb_ prefix. See modules/output/README.md.")
+    if builder.__name__ not in {b.__name__ for b in _BUNDLE_BUILDERS}:
+        _BUNDLE_BUILDERS.append(builder)
+
+
+def available_builders() -> list[str]:
+    """Names of the registered bundle builders, in execution order (introspection)."""
+    return [b.__name__ for b in _BUNDLE_BUILDERS]
+
+
+def _build_bundle(
+    record: dict,
+    country: str,
+    roster_map: dict[str, dict] | None = None,
+    hospital_config: dict | None = None,
+    snapshot_date: str | None = None,
+    snapshot_drop_counter: dict[str, int] | None = None,
+) -> dict:
+    """Build a FHIR R4 Bundle from a CIF patient record by running the builder registry."""
+    if roster_map is None:
+        roster_map = {}
+    if hospital_config is None:
+        hospital_config = {}
+    patient_data = record.get("patient", {})
+    dx = record.get("clinical_diagnosis", {})
+    encounters = record.get("encounters") or []
+    # seed=400 verification finding: record.deceased was set by
+    # `_evaluate_mortality` in the inpatient simulator (74 expired IMP
+    # encounters at seed=400 v2) but never propagated to `patient_data`, so
+    # `_build_patient` always emitted `deceasedBoolean=False`. Copy the flag
+    # + death timestamp into patient_data so the FHIR Patient carries a
+    # `deceasedDateTime` matching the Encounter.dischargeDisposition="expired".
+    _record_deceased = record.get("deceased", False) if isinstance(record, dict) else getattr(record, "deceased", False)
+    if _record_deceased and not patient_data.get("date_of_death") and not patient_data.get("dod"):
+        _dod = None
+        for _enc in encounters:
+            _dis = (
+                _enc.get("discharge_datetime") if isinstance(_enc, dict) else getattr(_enc, "discharge_datetime", None)
+            )
+            if _dis:
+                _dod = _dis
+                break
+        if _dod:
+            patient_data = dict(patient_data)
+            patient_data["date_of_death"] = str(_dod)
+    ctx = BundleContext(
+        record=record,
+        country=country,
+        roster_map=roster_map,
+        hospital_config=hospital_config,
+        patient_data=patient_data,
+        patient_id=patient_data.get("patient_id", "unknown"),
+        is_readmission=record.get("is_readmission", False),
+        prior_encounter_id=record.get("prior_encounter_id"),
+        primary_dx_code=dx.get("discharge_diagnosis_code") or dx.get("admission_diagnosis_code", ""),
+        admit_dx_code=dx.get("admission_diagnosis_code", ""),
+        admit_dx_system=dx.get("admission_diagnosis_system", "icd-10-cm"),
+        # CY7-05 (structural fix): CIFPatientRecord contract — primary
+        # (IMP) encounter is always at encounters[0]; synthesized ED
+        # encounter (when present) is appended at [1].
+        primary_enc_id=encounters[0].get("encounter_id", "") if encounters else "",
+        patient_sex=patient_data.get("sex", ""),
+        snapshot_date=snapshot_date,
+    )
+
+    entries: list[dict] = []
+    # Issue #925: the Composition builders populate `section.entry[]` by
+    # looking up the current encounter in an `encounter_id → resourceType
+    # → [Reference]` index built from the entries already accumulated by
+    # earlier builders. The index is refreshed once, immediately before
+    # the first Composition builder runs — subsequent Composition
+    # builders (imaging report) reuse the same view. Refreshing here
+    # (rather than on every builder) keeps the index O(N_entries), not
+    # O(N_entries * N_builders).
+    _composition_builder_names = {"_bb_compositions", "_bb_imaging_report_compositions"}
+    for builder in _BUNDLE_BUILDERS:
+        if builder.__name__ in _composition_builder_names and ctx.encounter_resource_index is None:
+            ctx.encounter_resource_index = _build_encounter_resource_index(entries)
+        # Issue #1217: populate the post-dedup MR id set right before the
+        # MA builder runs so it can gate `MedicationAdministration.request
+        # .reference` on the actual emitted MR surface (not the pre-dedup
+        # order set). Dedup helpers drop byte-identical + same-class MRs,
+        # so a raw order-based gate lets 357 dangling refs slip through
+        # in p=10k (audit finding #B).
+        if builder.__name__ == "_bb_medication_admins" and ctx.emitted_mr_ids is None:
+            ctx.emitted_mr_ids = {
+                _e.get("resource", {}).get("id", "")
+                for _e in entries
+                if isinstance(_e, dict) and _e.get("resource", {}).get("resourceType") == "MedicationRequest"
+            }
+            ctx.emitted_mr_ids.discard("")
+        for resource in builder(ctx):
+            # C3-11..18: apply JP Core profile URLs at
+            # the adapter level so every resource type gains conformance
+            # declarations without touching each builder. Coverage / Patient /
+            # Encounter / Condition already carry inline profile; the helper is
+            # idempotent (skips when meta.profile is already populated).
+            if is_jp(ctx.country):
+                _apply_jp_core_profile(resource)
+                _apply_jp_clins_profile(resource)
+                # JP Core は Observation.category:first slice に
+                # JP_SimpleObservationCategory_CS を、HL7 base Vital Signs
+                # profile(bp / heartrate / oxygensat / bodytemp / resprate)は
+                # VSCat slice に HL7 category coding を要求する。両方を
+                # 満たしつつ display 誤り error(V5 発見 A')も同時に解消
+                # する single seam(builders 個別修正回避)。
+                _normalize_jp_observation_category(resource)
+                # iris4h-ai feedback V4/V5 P2 A: LOINC / SNOMED / HL7
+                # terminology / DICOM / FHIR sid など英語 display のみ定義
+                # されている「standard CodeSystem」に対し、clinosim が
+                # 日本語 display を emit していると HAPI Validator が
+                # 「Wrong Display Name」error を出す(~635k 件)。feedback
+                # Option 1「display 省略、tx server が英語を補完」を採用し、
+                # builders 個別修正の代わりに単一 walker で strip する。
+                # CodeableConcept 側の text は保持されるため人間可読性は
+                # (text 未設定な Coding-direct field を除いて)維持。
+                _strip_japanese_display_on_english_only_systems(resource)
+                # PR-I (2026-07-17): populate JP-CLINS MedicationDosage_eCS
+                # required fields on MedicationRequest.dosageInstruction[].
+                _populate_jp_medication_dosage_ecs_fields(resource)
+            # PR-D (2026-07-17): populate Observation.identifier + meta.lastUpdated
+            # (JP eCS min=1). Universal — safe on US output.
+            _populate_observation_identifier_and_last_updated(resource, country)
+            # #202 (2026-07-17): scrub `Observation.referenceRange[*].extension`
+            # (and low/high/component mirrors). LabResult_eCS forbids them
+            # (max=0) and the previously-emitted `referenceRangeSource` URL
+            # was not registered anywhere in JP-CLINS 1.13.0. Universal —
+            # US output already omits the extension so the walker is a no-op.
+            _strip_forbidden_observation_reference_range_extensions(resource)
+            # PR-E (2026-07-17): emit companion Specimen for lab Observations
+            # (JP_Observation_LabResult_eCS.specimen min=1). The Specimen is
+            # added to the bundle entries alongside the Observation, and the
+            # Observation carries a `specimen` reference pointing at it.
+            if _lab_observation_needs_specimen(resource):
+                specimen = _build_companion_specimen(resource, country)
+                resource["specimen"] = {"reference": f"Specimen/{specimen['id']}"}
+                if is_jp(country):
+                    _strip_japanese_display_on_english_only_systems(specimen)
+                _normalize_dt_fields(specimen, country)
+                entries.append(entry(specimen))
+            # PR-G (2026-07-17): populate JP-CLINS eCS-required fields on
+            # Condition / AllergyIntolerance / MedicationRequest. Universal.
+            _populate_condition_ai_mr_ecs_fields(resource, country)
+            # Issue #1178: fill Reference.display for Practitioner/… refs.
+            # Walks the resource once; no-op when roster_map is empty.
+            _populate_practitioner_reference_display(resource, getattr(ctx, "roster_map", None))
+            # feedback FB-F1: 全 emit resource の dateTime / instant
+            # field を single seam で TZ 付与に正規化(builders 個別修正回避)。
+            _normalize_dt_fields(resource, country)
+            # N-3 fix (2026-08-19): route ED-attributable resources from
+            # the IMP encounter to the ``-ED`` bridge Encounter so the
+            # CY7-05 synth bridge no longer carries zero child resources.
+            # Doc-type trigger (ED_NOTE 34878-9 / ED_TRIAGE_NOTE 54094-8)
+            # is active today; timestamp trigger is future-proof for when
+            # the simulator emits ED-window vitals / meds / procedures.
+            _reattribute_encounter_to_ed_bridge(resource, ctx)
+            entries.append(entry(resource))
+
+    # Issue #926 (2026-08-29): after-death event gate. At v0.5.0 (p=10000)
+    # 1,869 clinical events were emitted with a timestamp after the
+    # subject Patient's deceasedDateTime — 1,859 of them for a single
+    # patient (a full 12-day inpatient episode 7 months post-mortem),
+    # plus 9 post-mortem Immunizations and one Procedure. The immunization
+    # scheduler was patched at source (immunization/enricher._as_of caps
+    # `as_of` at date_of_death), but the giant-case root cause is in a
+    # slow / rare path the p=1000 regression cannot see, so this filter
+    # is the belt-and-braces gate: no bundle entry survives if its own
+    # timestamp is after the patient's death, regardless of what the
+    # generator did. Runs per-record so the patient's own
+    # deceasedDateTime is the local ceiling; the Patient resource itself
+    # (deceasedDateTime is the death event) and administrative post-mortem
+    # resources without any date field are kept unchanged.
+    _pat_dod_str = patient_data.get("date_of_death") or patient_data.get("dod")
+    if _pat_dod_str:
+        entries = _drop_entries_after_death(entries, str(_pat_dod_str)[:10])
+
+    # Issue #945 (2026-08-30): post-snapshot event gate. Universal
+    # bundle-finalize filter mirroring #928 death filter — for inpatients
+    # whose admission is still open at CIF `snapshot_date`, the generator
+    # pre-emits planned future events (nursing notes, vitals, MAR,
+    # imaging, DR, MR, Composition) with `effectiveDateTime` / `date` /
+    # `started` values AFTER snapshot. v0.5.0 p=10000 counted 4,798 such
+    # entries across 7 resource types (furthest 2026-09-25, 28 days past
+    # snapshot 2026-08-28). Single central cutoff at bundle finalize is
+    # the principled fix — same shape as #928 death gate. Dimensional
+    # resources (Patient, Encounter, Coverage, CareTeam, Practitioner,
+    # PractitionerRole, Organization, Location, Endpoint, Device,
+    # Medication) are always kept: Encounter.period.end and
+    # Coverage.period.end for open admissions legitimately extend past
+    # snapshot; only CHILD event resources are gated. Runs after emit;
+    # RNG-shape neutral (no draws). Falls back to a no-op when
+    # `snapshot_date` is absent (test fixtures / legacy CIF without
+    # metadata).
+    if ctx.snapshot_date:
+        # Session-98 F10: reconcile Encounter status/period with snapshot.
+        # Pre-fix, an Encounter whose CIF-side `discharge_datetime` fell
+        # AFTER snapshot was emitted with `status="finished"` +
+        # `period.end` past the cutoff — while the downstream discharge
+        # summary Composition (and any post-snapshot MedAdmin / lab /
+        # nursing / death cert) was dropped by `_drop_entries_after_
+        # snapshot`. Consumers saw a "completed" admission with no
+        # discharge summary — semantically inconsistent (JP p=10000
+        # seed=500: 3 IMPs, 2 with post-snapshot deceased patients
+        # missing death cert). Truncate the Encounter to snapshot state:
+        # at snapshot time the patient is STILL admitted, so status
+        # reverts to "in-progress" and period.end / length / status-
+        # History-past-snapshot are cleared.
+        entries = _reconcile_encounters_at_snapshot(entries, ctx.snapshot_date)
+        entries, _snap_dropped, _snap_scrubbed = _drop_entries_after_snapshot(entries, ctx.snapshot_date)
+        if _snap_dropped and snapshot_drop_counter is not None:
+            for _rt, _cnt in _snap_dropped.items():
+                snapshot_drop_counter[_rt] = snapshot_drop_counter.get(_rt, 0) + _cnt
+        # Issue #945 follow-up: aggregate the reference-scrub count on
+        # the same counter dict under a sentinel key so the maintainer
+        # log at export end can report "scrubbed N references" alongside
+        # the per-type drop breakdown, without needing a second plumbed
+        # counter. The sentinel key starts with "__" so a downstream
+        # iterator that skips leading-underscore keys naturally ignores
+        # it; the export-end log iterates by explicit key access.
+        if _snap_scrubbed and snapshot_drop_counter is not None:
+            snapshot_drop_counter["__scrubbed_refs__"] = (
+                snapshot_drop_counter.get("__scrubbed_refs__", 0) + _snap_scrubbed
+            )
+
+    return {
+        "resourceType": "Bundle",
+        "id": str(uuid.uuid4()),
+        "type": "collection",
+        "entry": entries,
+    }
+
+
+def _reconcile_encounters_at_snapshot(entries: list[dict], snapshot_iso: str) -> list[dict]:
+    """Truncate Encounter.status + period.end for admissions crossing snapshot.
+
+    Session-98 F10 fix. Called before `_drop_entries_after_snapshot`.
+    For every Encounter whose ``period.end > snapshot`` (both dates
+    compared at day precision, mirroring the drop-filter):
+
+      * ``status`` reverts to ``"in-progress"`` — at snapshot the
+        patient is still admitted.
+      * ``period.end`` and ``length`` are removed — end date isn't
+        known as of snapshot.
+      * ``statusHistory`` entries whose ``period.start > snapshot`` are
+        stripped and any surviving entry's ``period.end`` past snapshot
+        is cleared, so the audit trail reflects the snapshot view.
+
+    This runs on the entry list in-place. Encounter is a dimensional
+    resource that survives ``_drop_entries_after_snapshot``; the
+    reconciliation just corrects its shape so downstream Composition /
+    death-cert drops don't leave a "completed but no discharge summary"
+    inconsistency.
+    """
+    for e in entries:
+        if not isinstance(e, dict):
+            continue
+        res = e.get("resource") or {}
+        if res.get("resourceType") != "Encounter":
+            continue
+        per = res.get("period") or {}
+        end = per.get("end")
+        if not isinstance(end, str) or end[:10] <= snapshot_iso:
+            continue
+        res["status"] = "in-progress"
+        per.pop("end", None)
+        res.pop("length", None)
+        sh = res.get("statusHistory")
+        if isinstance(sh, list):
+            kept: list[dict] = []
+            for entry in sh:
+                if not isinstance(entry, dict):
+                    kept.append(entry)
+                    continue
+                sh_per = entry.get("period") or {}
+                sh_start = sh_per.get("start", "")
+                if isinstance(sh_start, str) and sh_start[:10] > snapshot_iso:
+                    continue  # future status transition not observed yet
+                sh_end = sh_per.get("end")
+                if isinstance(sh_end, str) and sh_end[:10] > snapshot_iso:
+                    sh_per.pop("end", None)
+                kept.append(entry)
+            if len(kept) != len(sh):
+                res["statusHistory"] = kept
+    return entries
+
+
+# Patient + purely dimensional resources are unconditionally kept
+# regardless of any date field they carry. Patient's ``deceasedDateTime``
+# IS the death event; the others (Practitioner / Organization / Location
+# / Device / Medication / Endpoint / PractitionerRole) carry no gating
+# dateTime today but are listed for defense-in-depth.
+_AFTER_DEATH_ALLOWED_RESOURCE_TYPES = frozenset(
+    {
+        "Patient",
+        "Practitioner",
+        "PractitionerRole",
+        "Organization",
+        "Location",
+        "Endpoint",
+        "Device",
+        "Medication",
+    }
+)
+
+# Issue #1219 (2026-09-10, JP p=10000 audit): lifecycle resources whose
+# ``period.end`` legitimately extends past ``date_of_death`` for an
+# in-hospital death. Encounter.period.end is the hospital's body-out
+# timestamp (discharge_datetime), Coverage.period.end tracks insurance-
+# card validity (Issue #944 already flips ``status`` when it passes
+# snapshot), CareTeam.period mirrors the encounter's caregiving window.
+# For these resources the ``period.start`` is the correct gate: emit
+# when the resource STARTED at or before dod; drop only when it starts
+# after dod (impossible for real clinical data — indicates fabrication).
+#
+# Concrete failure this guards: 5 IMP encounters in p=10k where the
+# patient died before the ``discharge_datetime``. The universal
+# `_dt_fields` gate saw ``period.end`` after dod and dropped the whole
+# Encounter, while its per-timestamp children (Composition / DR / SR /
+# MR / MA / Procedure / DocRef / ClinImp with per-event timestamps
+# ≤ dod) survived → 41 dangling child-to-Encounter references. The
+# synth-ED bridge always survived (its period.end = IMP admission,
+# before dod), producing the asymmetric "bridge present, IMP dropped"
+# shape observed in audit. This new gate keeps the earlier invariant
+# (an Encounter that STARTS after death is bogus data → still dropped;
+# see ``test_drops_encounter_starting_after_death``).
+_AFTER_DEATH_START_GATED_RESOURCE_TYPES = frozenset({"Encounter", "Coverage", "CareTeam"})
+
+
+def _dt_fields(resource: dict):
+    """Yield every ISO datetime string on a FHIR resource that gates 'is this event after death?'."""
+    for k in (
+        "effectiveDateTime",
+        "issued",
+        "authoredOn",
+        "occurrenceDateTime",
+        "recorded",
+        # Condition / AllergyIntolerance / Immunization use `recordedDate`
+        # (not the shorter `recorded`). Missing this field caused Encounter
+        # for a post-mortem CIF record to be dropped while the sibling
+        # Condition and AllergyIntolerance survived with dangling
+        # `.encounter` refs (Issue #926 follow-up: symmetric field coverage).
+        "recordedDate",
+        # Condition uses onsetDateTime / abatementDateTime as its primary
+        # event timestamps; without them a Condition emitted post-mortem
+        # slips past the gate and leaves dangling refs to a dropped Encounter.
+        "onsetDateTime",
+        "abatementDateTime",
+        "collectedDateTime",
+        "date",
+        "performedDateTime",
+        "started",
+    ):
+        v = resource.get(k)
+        if isinstance(v, str):
+            yield v
+    for pkey in ("period", "effectivePeriod", "performedPeriod", "occurrencePeriod"):
+        p = resource.get(pkey)
+        if isinstance(p, dict):
+            for k in ("start", "end"):
+                v = p.get(k)
+                if isinstance(v, str):
+                    yield v
+
+
+# Issue #945: dimensional resources whose timestamps can legitimately
+# extend past `snapshot_date`. Encounter.period.end (open admission) and
+# Coverage.period.end (active insurance card) intentionally reach beyond
+# the cutoff — the #944 fix already flips Coverage.status to reflect
+# this. CareTeam.period tracks the caregiving window and mirrors the
+# encounter. Practitioner / PractitionerRole / Organization / Location /
+# Endpoint / Device / Medication carry no gating timestamp fields but are
+# listed for defense-in-depth against future emitter changes. Patient is
+# kept for parity with #928 (its `deceasedDateTime` / birthDate must
+# survive any date-based gate).
+_POST_SNAPSHOT_ALLOWED_RESOURCE_TYPES = frozenset(
+    {
+        "Patient",
+        "Encounter",
+        "Coverage",
+        "CareTeam",
+        "Practitioner",
+        "PractitionerRole",
+        "Organization",
+        "Location",
+        "Endpoint",
+        "Device",
+        "Medication",
+    }
+)
+
+
+def _snapshot_ts_iter(resource: dict):
+    """Yield timestamps used to gate 'is this event after snapshot?'.
+
+    Uses only ``Period.start`` for period fields (an event that STARTED
+    before snapshot is a real historical event whose projected end may
+    legitimately extend into future — see MedicationAdministration
+    effectivePeriod on ongoing infusions). Also walks
+    ``DocumentReference.context.period.start`` because ``date`` may
+    legitimately trail the encounter window.
+    """
+    for k in (
+        "effectiveDateTime",
+        "issued",
+        "authoredOn",
+        "occurrenceDateTime",
+        "recorded",
+        # Symmetric with `_dt_fields` — Condition / AllergyIntolerance /
+        # Immunization use `recordedDate` (not `recorded`), and Condition
+        # additionally uses `onsetDateTime` / `abatementDateTime`.
+        # Missing these left orphan-reference-generating events unchecked.
+        "recordedDate",
+        "onsetDateTime",
+        "abatementDateTime",
+        "collectedDateTime",
+        "date",
+        "performedDateTime",
+        "started",
+    ):
+        v = resource.get(k)
+        if isinstance(v, str):
+            yield v
+    # Issue #1273: Specimen puts its collection timestamp one level deeper
+    # at `Specimen.collection.collectedDateTime` (or
+    # `.collection.collectedPeriod.start` — Period.start policy per this
+    # function's docstring). The top-level walk above misses it, so a
+    # past-snapshot Specimen silently survived the filter while sibling
+    # ServiceRequest / DiagnosticReport / Procedure (top-level timestamp
+    # fields) were dropped — a #1252 N6b metabolic-screen orphan showed
+    # up on JP s=352 p=10k when the newborn's LOS extended past the sim
+    # window. This nested walk is deliberately scoped to Specimen (the
+    # only R4 resource with a nested date-of-event) — a generic recursive
+    # dict walk would over-filter (see the docstring's note on Period
+    # .start policy vs. the projected-end policy for ongoing infusions).
+    coll = resource.get("collection")
+    if isinstance(coll, dict):
+        v = coll.get("collectedDateTime")
+        if isinstance(v, str):
+            yield v
+        per = coll.get("collectedPeriod")
+        if isinstance(per, dict):
+            v = per.get("start")
+            if isinstance(v, str):
+                yield v
+    for pkey in ("period", "effectivePeriod", "performedPeriod", "occurrencePeriod"):
+        p = resource.get(pkey)
+        if isinstance(p, dict):
+            s = p.get("start")
+            if isinstance(s, str):
+                yield s
+    # DocumentReference.context.period.start (the encounter window the
+    # document belongs to). The reproduction script in Issue #945 walks
+    # this exact field.
+    context = resource.get("context")
+    if isinstance(context, dict):
+        p = context.get("period")
+        if isinstance(p, dict):
+            s = p.get("start")
+            if isinstance(s, str):
+                yield s
+
+
+# Issue #945 (follow-up): fields on SURVIVING resources that carry
+# References to potentially-dropped entries. When a snapshot-gated
+# resource is removed, every reference pointing at its id must be
+# scrubbed off the survivors or `reference_integrity` will FAIL with
+# "dangling reference" for e.g. ``Observation/lab-…`` still cited by a
+# ``DiagnosticReport.result[]`` entry. Two shapes:
+#
+#  1. ``_SCRUB_LIST_REF_FIELDS_BY_TYPE`` — a list of References; we drop
+#     the offending items, keep the container even if it becomes empty
+#     (structural minimum-cardinality validation is a separate concern
+#     handled by profile validators, not this filter).
+#  2. ``_CASCADE_SINGLE_REF_BY_TYPE`` — a single Reference whose target
+#     is required for the resource to make sense; if the referent is
+#     dropped, the parent is dropped as well and its id is added to the
+#     drop set so a subsequent pass can scrub any references to IT.
+#
+# Nested Reference lists (``Composition.section[*].entry[]`` and its
+# recursive ``section[*].section[…]``, ``DocumentReference.context.related[]``)
+# are handled by dedicated walkers below.
+_SCRUB_LIST_REF_FIELDS_BY_TYPE: dict[str, tuple[str, ...]] = {
+    "DiagnosticReport": ("result",),
+    "Observation": ("hasMember", "derivedFrom"),
+    # Issue #1235: MR/MA/Procedure also carry `reasonReference` list to
+    # Condition. In-hospital-death case (Issue #1219) can drop the target
+    # Condition (per-event recordedDate > dod), leaving dangling refs on
+    # surviving parent resources. Symmetric with the Encounter scrub below.
+    "MedicationRequest": ("basedOn", "reasonReference"),
+    "MedicationAdministration": ("reasonReference",),
+    "ServiceRequest": ("basedOn",),
+    "Procedure": ("report", "reasonReference"),
+    # Issue #1231: Encounter.reasonReference[] — list of Reference to
+    # Condition / Observation. In-hospital-death case (Issue #1219) keeps
+    # the Encounter (start-gated allowlist) but its per-event referents
+    # may drop via `_dt_fields` gate, leaving dangling refs. Symmetric
+    # scrub with the diagnosis[] walker below.
+    "Encounter": ("reasonReference",),
+}
+_CASCADE_SINGLE_REF_BY_TYPE: dict[str, str] = {
+    # Dropping the referenced MedicationRequest orphans the
+    # MedicationAdministration (``.request`` is 1..1 in R4). Cascade the
+    # drop so the MAR does not dangle.
+    "MedicationAdministration": "request",
+}
+
+
+def _scrub_section_entries_recursive(section: dict, dropped_ids: set[str]) -> int:
+    """Walk ``Composition.section[*].entry[]`` (recursively through
+    nested ``section``) and drop Reference items pointing at
+    ``dropped_ids``. Returns the count of references removed."""
+    scrubbed = 0
+    entry_list = section.get("entry")
+    if isinstance(entry_list, list):
+        new_list: list = []
+        for item in entry_list:
+            if isinstance(item, dict):
+                tgt = item.get("reference")
+                if isinstance(tgt, str) and tgt in dropped_ids:
+                    scrubbed += 1
+                    continue
+            new_list.append(item)
+        if len(new_list) != len(entry_list):
+            section["entry"] = new_list
+    for sub in section.get("section", []) or []:
+        if isinstance(sub, dict):
+            scrubbed += _scrub_section_entries_recursive(sub, dropped_ids)
+    return scrubbed
+
+
+def _scrub_refs_one_pass(entries: list[dict], dropped_ids: set[str]) -> tuple[list[dict], int, set[str]]:
+    """One scrubber pass over surviving entries.
+
+    Returns ``(kept, scrubbed_ref_count, cascade_dropped_ids)`` where
+    ``cascade_dropped_ids`` is the set of ``"Type/id"`` strings for
+    resources dropped in this pass because a required single Reference
+    pointed at an already-dropped id. Fixed-point iteration is the
+    caller's responsibility.
+    """
+    scrubbed = 0
+    cascade_dropped: set[str] = set()
+    new_kept: list[dict] = []
+    for e in entries:
+        res = e.get("resource", {}) if isinstance(e, dict) else {}
+        rtype = res.get("resourceType", "")
+        rid = res.get("id", "")
+        # (1) Cascade drop: single Reference whose target is dropped ⇒
+        # parent resource is orphaned and dropped as well.
+        cascade_field = _CASCADE_SINGLE_REF_BY_TYPE.get(rtype)
+        if cascade_field:
+            ref = res.get(cascade_field)
+            if isinstance(ref, dict):
+                tgt = ref.get("reference")
+                if isinstance(tgt, str) and tgt in dropped_ids:
+                    if rid:
+                        cascade_dropped.add(f"{rtype}/{rid}")
+                    continue
+        # (2) List-of-Reference fields on this resource type.
+        for field in _SCRUB_LIST_REF_FIELDS_BY_TYPE.get(rtype, ()):
+            lst = res.get(field)
+            if isinstance(lst, list):
+                new_list: list = []
+                for item in lst:
+                    if isinstance(item, dict):
+                        tgt = item.get("reference")
+                        if isinstance(tgt, str) and tgt in dropped_ids:
+                            scrubbed += 1
+                            continue
+                    new_list.append(item)
+                if len(new_list) != len(lst):
+                    res[field] = new_list
+        # (3) Composition sections (recursive).
+        if rtype == "Composition":
+            for section in res.get("section", []) or []:
+                if isinstance(section, dict):
+                    scrubbed += _scrub_section_entries_recursive(section, dropped_ids)
+        # (4a) Encounter.diagnosis[*].condition.reference — nested single
+        # Reference inside a BackboneElement list (Issue #1231, S105 final
+        # audit residual). Structure:
+        #   Encounter.diagnosis: [{"condition": {"reference": "Condition/..."},
+        #                          "use": {...}, "rank": int}, ...]
+        # Drop the whole diagnosis[] entry when its condition target is
+        # dropped — the entry loses meaning without a resolvable ref, and
+        # Encounter.diagnosis is 0..* (empty list is spec-clean).
+        if rtype == "Encounter":
+            diags = res.get("diagnosis")
+            if isinstance(diags, list):
+                new_diags: list = []
+                for d in diags:
+                    if isinstance(d, dict):
+                        cond = d.get("condition")
+                        if isinstance(cond, dict):
+                            tgt = cond.get("reference")
+                            if isinstance(tgt, str) and tgt in dropped_ids:
+                                scrubbed += 1
+                                continue
+                    new_diags.append(d)
+                if len(new_diags) != len(diags):
+                    res["diagnosis"] = new_diags
+        # (4b) DocumentReference.context.related[]
+        if rtype == "DocumentReference":
+            context = res.get("context")
+            if isinstance(context, dict):
+                related = context.get("related")
+                if isinstance(related, list):
+                    new_list = []
+                    for item in related:
+                        if isinstance(item, dict):
+                            tgt = item.get("reference")
+                            if isinstance(tgt, str) and tgt in dropped_ids:
+                                scrubbed += 1
+                                continue
+                        new_list.append(item)
+                    if len(new_list) != len(related):
+                        context["related"] = new_list
+        new_kept.append(e)
+    return new_kept, scrubbed, cascade_dropped
+
+
+def _drop_entries_after_snapshot(entries: list[dict], snapshot_iso: str) -> tuple[list[dict], dict[str, int], int]:
+    """Filter out bundle entries whose timestamp is after the CIF snapshot_date.
+
+    Issue #945: universal event-cutoff gate applied at bundle-finalize.
+    Mirrors the #928 death filter. Compares only the calendar-date prefix
+    (``YYYY-MM-DD``) so same-day activity survives (inclusive on
+    snapshot). Dimensional resource types listed in
+    :data:`_POST_SNAPSHOT_ALLOWED_RESOURCE_TYPES` bypass the filter.
+
+    Issue #945 follow-up (CI shard 2/3 fail on ``test_eval_preset_end_to_end
+    [us-100]`` → 51 dangling references): the first-pass drop leaves
+    references to the removed ids on surviving parent resources
+    (``DiagnosticReport.result[]``, ``Composition.section[*].entry[]``,
+    ``Observation.hasMember/derivedFrom[]``, ``MedicationAdministration
+    .request`` (cascade), ``MedicationRequest/ServiceRequest.basedOn[]``,
+    ``Procedure.report[]``, ``DocumentReference.context.related[]``),
+    breaking ``reference_integrity``. A second-pass scrubber walks every
+    survivor and removes Reference items whose target is in the drop
+    set; a MedicationAdministration whose ``.request`` points at a
+    dropped MedicationRequest cascade-drops (and joins the drop set so
+    the next iteration scrubs any references to IT). Bounded at 3
+    passes; convergence is expected in ≤ 2 in practice because the
+    generator only emits MedAdmin→MR one hop deep.
+
+    Returns ``(kept_entries, {resource_type: drop_count},
+    scrubbed_ref_count)`` where ``drop_count`` includes cascade drops
+    (so the maintainer log reports the true final tally) and
+    ``scrubbed_ref_count`` is the total number of dangling Reference
+    items removed from survivors.
+    """
+    kept: list[dict] = []
+    dropped: dict[str, int] = {}
+    dropped_ids: set[str] = set()
+    for e in entries:
+        res = e.get("resource", {}) if isinstance(e, dict) else {}
+        rtype = res.get("resourceType", "")
+        rid = res.get("id", "")
+        if rtype in _POST_SNAPSHOT_ALLOWED_RESOURCE_TYPES:
+            kept.append(e)
+            continue
+        after_snapshot = False
+        for v in _snapshot_ts_iter(res):
+            if v[:10] > snapshot_iso:
+                after_snapshot = True
+                break
+        if after_snapshot:
+            dropped[rtype] = dropped.get(rtype, 0) + 1
+            if rid:
+                dropped_ids.add(f"{rtype}/{rid}")
+        else:
+            kept.append(e)
+    # Second-pass reference scrubber — fixed-point iteration bounded at
+    # 3 passes. Each pass may cascade-drop resources whose single required
+    # Reference points at an already-dropped id (MedAdmin.request → MR);
+    # those cascade drops join the drop set so the next pass scrubs any
+    # references to them. Log-and-continue if not converged (unlikely in
+    # practice: the generator's Reference topology is shallow).
+    total_scrubbed = 0
+    for _ in range(3):
+        kept, scrubbed_this_pass, cascade_dropped = _scrub_refs_one_pass(kept, dropped_ids)
+        total_scrubbed += scrubbed_this_pass
+        if not cascade_dropped:
+            break
+        for cid in cascade_dropped:
+            ctype = cid.split("/", 1)[0]
+            dropped[ctype] = dropped.get(ctype, 0) + 1
+            dropped_ids.add(cid)
+    return kept, dropped, total_scrubbed
+
+
+def _drop_entries_after_death(entries: list[dict], dod_iso: str) -> list[dict]:
+    """Filter out bundle entries whose timestamp is after the patient's date of death.
+
+    Issue #926: universal safety gate applied per-record in `_build_bundle`.
+    Compares only the calendar-date prefix (``YYYY-MM-DD``) so same-day
+    activity (final labs, terminal medication administration, death
+    certificate) survives.
+
+    Issue #1218 (2026-09-10, JP p=10000 audit): first-pass drop leaves
+    references to the removed ids on surviving parent resources
+    (``Composition.section[*].entry[]``, ``DiagnosticReport.result[]``,
+    ``Observation.hasMember/derivedFrom[]``, ``MedicationAdministration
+    .request`` cascade, etc.), producing 1,866 dangling
+    ``Composition.section.entry -> Observation/…`` refs (vs/news2/lab/
+    gcs Observations recorded up until discharge, dropped when
+    effectiveDateTime > dod, while the enclosing Composition's ``.date``
+    was ≤ dod and survived). Fixed by mirroring the
+    ``_drop_entries_after_snapshot`` reference-scrubber pass on
+    survivors — same helper (`_scrub_refs_one_pass`), same 3-pass
+    fixed-point bound.
+    """
+    kept: list[dict] = []
+    dropped_ids: set[str] = set()
+    for e in entries:
+        res = e.get("resource", {}) if isinstance(e, dict) else {}
+        rtype = res.get("resourceType", "")
+        rid = res.get("id", "")
+        if rtype in _AFTER_DEATH_ALLOWED_RESOURCE_TYPES:
+            kept.append(e)
+            continue
+        if rtype in _AFTER_DEATH_START_GATED_RESOURCE_TYPES:
+            # Issue #1219: gate on ``period.start`` only — the lifecycle
+            # end (Encounter.discharge, Coverage.card-expiry) legitimately
+            # extends past dod for in-hospital deaths. An entry that
+            # STARTS after dod is still bogus data and must drop.
+            p = res.get("period", {}) or {}
+            start = p.get("start", "")
+            if isinstance(start, str) and start and start[:10] > dod_iso:
+                if rid:
+                    dropped_ids.add(f"{rtype}/{rid}")
+                continue
+            # Issue #1278: reconcile Coverage lifecycle with the DOD.
+            # `_derive_coverage_status` (Issue #944) flips status based on
+            # snapshot_date vs. period.end, but has no visibility into the
+            # patient's death. p=10k s=354 audit found ~92 % of deceased
+            # patients keep `period.end` past DOD and 36-60 % keep
+            # `status="active"` — real payers cancel enrollment at DOD.
+            # Clamp period.end down to DOD when it overshoots, and flip
+            # status to "cancelled" (the FHIR R4 value already used for
+            # expired FY rows in the same builder).
+            if rtype == "Coverage":
+                end = p.get("end", "")
+                if isinstance(end, str) and end and end[:10] > dod_iso:
+                    p["end"] = dod_iso
+                    res["period"] = p
+                if res.get("status") == "active":
+                    res["status"] = "cancelled"
+            # Issue #1442: same treatment for Encounter. The pre-1442
+            # comment on this gate (#1219) reasoned that an in-hospital
+            # death legitimately overshoots dod for `disp=exp`
+            # encounters, which is true — but `disp=home` encounters
+            # whose LOS-driven discharge date happens to land after the
+            # actuarial death date encode a physical contradiction (the
+            # patient was discharged home on a day they were already
+            # dead). Mirror the Coverage branch: clamp `period.end` down
+            # to dod, and flip a non-exp `dischargeDisposition` to `exp`
+            # so the resource's active period ends at the death event.
+            if rtype == "Encounter":
+                end = p.get("end", "")
+                if isinstance(end, str) and end and end[:10] > dod_iso:
+                    p["end"] = dod_iso
+                    res["period"] = p
+                    hospitalization = res.get("hospitalization") or {}
+                    disp = hospitalization.get("dischargeDisposition") or {}
+                    coding_list = disp.get("coding") or []
+                    disp_code = (coding_list[0] or {}).get("code", "") if coding_list else ""
+                    if disp_code != "exp":
+                        # Overwrite the disposition to the death-event code.
+                        hospitalization["dischargeDisposition"] = {
+                            "coding": [
+                                {
+                                    "system": "http://terminology.hl7.org/CodeSystem/discharge-disposition",
+                                    "code": "exp",
+                                }
+                            ]
+                        }
+                        res["hospitalization"] = hospitalization
+            kept.append(e)
+            continue
+        after_death = False
+        for v in _dt_fields(res):
+            if v[:10] > dod_iso:
+                after_death = True
+                break
+        if after_death:
+            if rid:
+                dropped_ids.add(f"{rtype}/{rid}")
+            continue
+        kept.append(e)
+    # Issue #1218: second-pass reference scrubber — bounded fixed-point
+    # iteration (3 passes), same shape as `_drop_entries_after_snapshot`.
+    # Each pass may cascade-drop resources whose single required
+    # Reference points at an already-dropped id (MedAdmin.request → MR);
+    # those cascade drops join the drop set so the next pass scrubs any
+    # references to them.
+    for _ in range(3):
+        kept, _scrubbed_this_pass, cascade_dropped = _scrub_refs_one_pass(kept, dropped_ids)
+        if not cascade_dropped:
+            break
+        for cid in cascade_dropped:
+            dropped_ids.add(cid)
+    return kept
+
+
+# ============================================================
+# Resource builders
+# ============================================================
+
+
+# Clinical abbreviations / short names for common conditions.
+# Keyed by ICD base code (before "."), with per-language short forms.
+# coding[].display keeps the official ICD name; code.text uses these.
+
+
+# JIS X 0401 prefecture codes
+
+# US state abbreviation to FIPS code (common ones)
+
+
+# SNOMED specialty codes
