@@ -599,7 +599,12 @@ def _disease_progression(
             if dm_cfg:
                 _advance_glycemic_trajectory(person, year, prng, dm_cfg)
             continue
-        cfg = cfg_all.get(code_base)
+        # Try full ICD before falling back to base. Mirrors the
+        # ``_INITIAL_STAGE_SAMPLERS`` dispatcher below so a per-sub-
+        # code annual_advance_probability (e.g. I69.1 hemorrhagic
+        # sequela carrying slower progression than I69.3 ischemic)
+        # wins over a shared base-code entry.
+        cfg = cfg_all.get(code) or cfg_all.get(code_base)
         if cfg is None:
             continue
         stages = tuple(cfg.get("stages") or ())

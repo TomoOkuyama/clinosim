@@ -247,12 +247,20 @@ stage_transitions:
   # this progression table; mRS 6 (dead) is handled by the
   # reactive-mortality pass (cerebral_infarction SMR already in
   # condition_mortality_smr.yaml).
-  # Keyed under the base ICD code "I69" because the aging / activator
-  # dispatch strips the sub-code via ``code.split(".")[0]`` before the
-  # yaml lookup. The chronic condition itself is stored on
-  # ``person.chronic_conditions`` as "I69.3" (specific sequela of
-  # cerebral infarction) so FHIR emit preserves the three-digit code.
-  I69:
+  # Stroke sequelae (modified Rankin Scale 0-5).
+  #
+  # Dispatcher: ``aging._disease_progression`` tries the full ICD
+  # (e.g. "I69.1" / "I69.3") before falling back to the base code
+  # ("I69"). The chronic condition itself is stored on
+  # ``person.chronic_conditions`` as "I69.3" (ischemic) or "I69.1"
+  # (hemorrhagic) so FHIR emit preserves the three-digit code; the
+  # yaml carries both the per-sub-code transition rates AND the
+  # shared base-code fallback.
+  #
+  # I69.3 (ischemic sequela): recurrent-stroke risk + silent-infarct
+  # accumulation dominate the late trajectory. Rates per Hankey
+  # 2000 Stroke 10-year post-stroke outcome follow-up.
+  I69.3:
     stages: ["mRS 0", "mRS 1", "mRS 2", "mRS 3", "mRS 4", "mRS 5"]
     annual_advance_probability:
       "mRS 0": 0.080    # mRS 0→1: ~8 %/yr early-recurrence + silent-infarct accumulation
@@ -261,3 +269,36 @@ stage_transitions:
       "mRS 3": 0.050
       "mRS 4": 0.040
       "mRS 5": 0.0      # terminal (handled by reactive mortality)
+
+  # I69.1 (hemorrhagic sequela): survivor-selection effect — those
+  # who survive the acute ICH + first-year rebleed window are a
+  # relatively stable subgroup, with rebleed rates after year 1
+  # dropping to ~1-2 %/yr (van Asch 2010 Lancet Neurol). Long-term
+  # trajectory therefore progresses slightly SLOWER than ischemic
+  # sequela per stage. Rates ~25 % below the I69.3 counterpart to
+  # match the directional evidence (Pandian 2018 Lancet; Qureshi
+  # 2001 NEJM 344:1450 for the post-year-1 stability signal).
+  I69.1:
+    stages: ["mRS 0", "mRS 1", "mRS 2", "mRS 3", "mRS 4", "mRS 5"]
+    annual_advance_probability:
+      "mRS 0": 0.060
+      "mRS 1": 0.052
+      "mRS 2": 0.045
+      "mRS 3": 0.038
+      "mRS 4": 0.030
+      "mRS 5": 0.0      # terminal
+
+  # Shared fallback for any I69.* sub-code without a dedicated
+  # entry above (I69.0 SAH / I69.2 other, not yet promoted by the
+  # aging / discharge-hook pipeline — the simulator's
+  # hemorrhagic_stroke disease_id is a single ICH-weighted
+  # bucket).
+  I69:
+    stages: ["mRS 0", "mRS 1", "mRS 2", "mRS 3", "mRS 4", "mRS 5"]
+    annual_advance_probability:
+      "mRS 0": 0.080
+      "mRS 1": 0.070
+      "mRS 2": 0.060
+      "mRS 3": 0.050
+      "mRS 4": 0.040
+      "mRS 5": 0.0
