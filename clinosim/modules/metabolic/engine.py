@@ -1,12 +1,15 @@
 """Metabolic module engine (Issue #1137 cluster 2).
 
-Two deterministic enrichers that extend ``person.chronic_conditions``:
+Three deterministic enrichers that extend ``person.chronic_conditions``:
 
 - ``e66_bmi_enricher`` (axis 1): BMI-derived E66 obesity sub-code.
 - ``e88_81_syndrome_enricher`` (axis 2): 4-way AND over BMI + HTN +
   Dyslipidemia + DM collapses onto E88.81 metabolic syndrome.
+- ``k76_0_nafld_enricher`` (axis 3): BMI + DM-weighted SHA
+  Bernoulli over K76.0 non-alcoholic fatty liver disease.
 
-Both are POST_POPULATION, pure deterministic (no RNG consumption),
+All three run at POST_POPULATION, consume no master-stream RNG
+(pure derivations for axes 1-2, per-person SHA hash for axis 3),
 so byte-identity is preserved for cohorts without the thresholds
 crossed; cohorts in range get the derived code without disturbing
 any downstream probability draw.
@@ -29,6 +32,27 @@ Clinical basis:
   explicitly coded in real EHRs. Future refinement can relax
   toward 3-of-5 once lipid-panel observations are available for
   the dyslipidemia criterion.
+
+  ICD-10-CM K76.0 Fatty (change of) liver, not elsewhere
+  classified — the billable code commonly used for NAFLD in
+  general-practice EHR data. Prevalence anchors come from the
+  Younossi 2016 meta-analysis (JAMA Hepatology) and the NHANES
+  2017-2020 ultrasound-defined obese sub-cohort:
+    - BMI < 30:         out of scope for this axis (future
+                        refinement will add the 25-30 overweight
+                        tier at ~25% prevalence).
+    - 30 <= BMI < 40:   ~60 % NAFLD prevalence (Younossi obesity
+                        cohort midpoint).
+    - BMI >= 40:        ~85 % NAFLD prevalence (bariatric
+                        pre-op biopsy cohorts).
+    - DM co-presence:   +15 % relative uplift on the base
+                        probability, capped at 100 %.
+
+  The per-person assignment uses a SHA-256 hash of a module-salted
+  person id so the draw is deterministic and RNG-neutral — the
+  master simulation stream is never consumed. A follow-up PR will
+  tie K76.0 chronic presence to elevated ALT/AST baselines so the
+  "lab-conditional" half of the issue scope is also satisfied.
 """
 
 from __future__ import annotations
@@ -47,6 +71,13 @@ _HTN_PREFIXES: tuple[str, ...] = ("I10",)
 _DYSLIPIDEMIA_PREFIXES: tuple[str, ...] = ("E78",)
 _DM_PREFIXES: tuple[str, ...] = ("E10", "E11")
 _SYNDROME_CODE = "E88.81"
+
+# K76.0 NAFLD BMI-weighted prevalence anchors + DM uplift.
+_NAFLD_CODE = "K76.0"
+_NAFLD_OBESE_PREVALENCE = 0.60
+_NAFLD_MORBID_PREVALENCE = 0.85
+_NAFLD_DM_UPLIFT = 1.15
+_NAFLD_SALT = "metabolic.nafld.v1"
 
 
 def _has_code_with_prefix(chronic: list[str], prefixes: tuple[str, ...]) -> bool:
@@ -141,6 +172,72 @@ def e88_81_syndrome_enricher(ctx: Any) -> None:
         if _SYNDROME_CODE in person.chronic_conditions:
             continue
         code = _derive_metabolic_syndrome(bmi, person.chronic_conditions)
+        if code is None:
+            continue
+        person.chronic_conditions.append(code)
+
+
+def _nafld_probability(bmi: float, has_dm: bool) -> float:
+    """Return the K76.0 assignment probability for a given BMI tier
+    and DM status.
+
+    Zero below the obesity threshold; the DM uplift is a relative
+    15 % multiplier capped at 1.0 so a morbidly obese diabetic
+    cannot exceed 100 %.
+    """
+    if bmi < _BMI_OBESITY_THRESHOLD:
+        return 0.0
+    base = _NAFLD_MORBID_PREVALENCE if bmi >= _BMI_MORBID_THRESHOLD else _NAFLD_OBESE_PREVALENCE
+    if has_dm:
+        base = min(1.0, base * _NAFLD_DM_UPLIFT)
+    return base
+
+
+def _draw_nafld(person_id: str, probability: float) -> bool:
+    """SHA-256 Bernoulli: return True iff a per-person uniform
+    quantile derived from a module-salted hash falls below the
+    assignment probability.
+
+    RNG-neutral — the master simulation stream is not consumed, so
+    adding this enricher preserves byte-identity for cohorts whose
+    BMI stays under the obesity threshold.
+    """
+    if probability <= 0.0:
+        return False
+    if probability >= 1.0:
+        return True
+    import hashlib
+
+    salt = f"{_NAFLD_SALT}|{person_id}"
+    h = hashlib.sha256(salt.encode()).digest()
+    q = int.from_bytes(h[:8], "big") / (1 << 64)
+    return q < probability
+
+
+def _derive_nafld_assignment(person_id: str, bmi: float, chronic: list[str]) -> str | None:
+    """Return "K76.0" when the SHA-salted per-person draw assigns
+    NAFLD under the BMI + DM-weighted probability, otherwise ``None``.
+    """
+    probability = _nafld_probability(bmi, _has_code_with_prefix(chronic, _DM_PREFIXES))
+    return _NAFLD_CODE if _draw_nafld(person_id, probability) else None
+
+
+def k76_0_nafld_enricher(ctx: Any) -> None:
+    """POST_POPULATION enricher: append K76.0 NAFLD to each person
+    whose SHA-salted per-person Bernoulli draw passes the BMI +
+    DM-weighted threshold.
+
+    Must run after both the chronic_prevalence sampler
+    (POP_GENERATION) and ``e66_bmi_enricher`` so BMI and the DM
+    criterion are finalized. Idempotent — a person who already
+    carries K76.0 is left untouched. RNG-neutral — the master
+    simulation stream is never consumed.
+    """
+    for person in ctx.population.persons.values():
+        if _NAFLD_CODE in person.chronic_conditions:
+            continue
+        bmi = float(getattr(person, "bmi", 0.0) or 0.0)
+        code = _derive_nafld_assignment(person.person_id, bmi, person.chronic_conditions)
         if code is None:
             continue
         person.chronic_conditions.append(code)

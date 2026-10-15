@@ -11,6 +11,11 @@ sampled chronic condition set.
 from clinosim.modules.metabolic.engine import (
     e66_bmi_enricher,
     e88_81_syndrome_enricher,
+    k76_0_nafld_enricher,
 )
 
-__all__ = ["e66_bmi_enricher", "e88_81_syndrome_enricher"]
+__all__ = [
+    "e66_bmi_enricher",
+    "e88_81_syndrome_enricher",
+    "k76_0_nafld_enricher",
+]
