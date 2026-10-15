@@ -346,12 +346,20 @@ C61:  # Prostate cancer — androgen deprivation therapy (ADT)
 # to work in either state.
 
 F32:  # Depressive episode (single)
-  # Two independent categorical classes: SSRI (first-line) + SNRI
-  # (second-line). Atypicals (Mirtazapine) are on a separate
-  # exclusive class too. A patient may end up on SSRI-only,
-  # SSRI+SNRI augmentation, atypical-only, etc. — matches real US
-  # STAR*D trial patterns (~15-20 % of treated depression carries
-  # augmentation therapy).
+  # Issue #1137 cluster axis 6 — severity-gated prescribing per
+  # STAR*D / APA / VA-DoD tiered guidance:
+  #   mild / moderate   → SSRI monotherapy (first-line)
+  #   moderately severe → SSRI + SNRI augmentation candidate
+  #   severe            → SSRI + SNRI OR SSRI + atypical
+  #                        (Mirtazapine) augmentation
+  # SSRI entries have no ``requires_stage_in`` — they are
+  # first-line at every severity (including remitted / "none"
+  # band patients on maintenance therapy). SNRI entries are
+  # restricted to moderate+ (treatment escalation signal) and
+  # the atypical augmentation (Mirtazapine) is restricted to the
+  # top two bands. Two independent categorical classes: SSRI
+  # (first-line) + SNRI (augmentation). Atypicals on a separate
+  # exclusive class.
   exclusive_classes: ["ssri", "snri", "atypical_ad"]
   medications:
     - {drug: "Sertraline", drug_ja: "セルトラリン", dose: "50mg", drug_class: "ssri", route: "PO", frequency: "daily", probability: 0.32}
@@ -364,25 +372,40 @@ F32:  # Depressive episode (single)
     # branch (Sertraline / Escitalopram — both PMDA-approved — remain
     # the JP first-line).
     - {drug: "Fluoxetine", drug_ja: "フルオキセチン", dose: "20mg", drug_class: "ssri", route: "PO", frequency: "daily", probability: 0.11, locale_exclude: ["JP"]}
-    - {drug: "Venlafaxine", drug_ja: "ベンラファキシン", dose: "75mg", drug_class: "snri", route: "PO", frequency: "daily", probability: 0.08}
-    - {drug: "Duloxetine", drug_ja: "デュロキセチン", dose: "30mg", drug_class: "snri", route: "PO", frequency: "daily", probability: 0.07}
-    - {drug: "Mirtazapine", drug_ja: "ミルタザピン", dose: "15mg", drug_class: "atypical_ad", route: "PO", frequency: "nightly", probability: 0.06}
+    # SNRI augmentation — moderate+ severity only (STAR*D step 2+).
+    - {drug: "Venlafaxine", drug_ja: "ベンラファキシン", dose: "75mg", drug_class: "snri", route: "PO", frequency: "daily", probability: 0.08, requires_stage_in: ["PHQ-9 moderate", "PHQ-9 moderately severe", "PHQ-9 severe"]}
+    - {drug: "Duloxetine", drug_ja: "デュロキセチン", dose: "30mg", drug_class: "snri", route: "PO", frequency: "daily", probability: 0.07, requires_stage_in: ["PHQ-9 moderate", "PHQ-9 moderately severe", "PHQ-9 severe"]}
+    # Atypical augmentation — moderately severe / severe only.
+    - {drug: "Mirtazapine", drug_ja: "ミルタザピン", dose: "15mg", drug_class: "atypical_ad", route: "PO", frequency: "nightly", probability: 0.06, requires_stage_in: ["PHQ-9 moderately severe", "PHQ-9 severe"]}
 
-F33:  # Recurrent depressive disorder — same three-class shape as F32
+F33:  # Recurrent depressive disorder — same three-class shape + severity gates as F32
+  # Recurrent-episode cohort has slightly elevated augmentation
+  # probability vs single-episode (treatment-resistance signal),
+  # so the Mirtazapine + SNRI probabilities are higher here. The
+  # severity gating convention mirrors F32: SNRI at moderate+,
+  # atypical at moderately severe+.
   exclusive_classes: ["ssri", "snri", "atypical_ad"]
   medications:
     - {drug: "Sertraline", drug_ja: "セルトラリン", dose: "50mg", drug_class: "ssri", route: "PO", frequency: "daily", probability: 0.35}
     - {drug: "Escitalopram", drug_ja: "エスシタロプラム", dose: "10mg", drug_class: "ssri", route: "PO", frequency: "daily", probability: 0.25}
     # Issue #1314: Fluoxetine NOT PMDA-approved (see F32 note above).
     - {drug: "Fluoxetine", drug_ja: "フルオキセチン", dose: "20mg", drug_class: "ssri", route: "PO", frequency: "daily", probability: 0.12, locale_exclude: ["JP"]}
-    - {drug: "Venlafaxine", drug_ja: "ベンラファキシン", dose: "75mg", drug_class: "snri", route: "PO", frequency: "daily", probability: 0.10}
-    - {drug: "Duloxetine", drug_ja: "デュロキセチン", dose: "30mg", drug_class: "snri", route: "PO", frequency: "daily", probability: 0.08}
-    - {drug: "Mirtazapine", drug_ja: "ミルタザピン", dose: "15mg", drug_class: "atypical_ad", route: "PO", frequency: "nightly", probability: 0.08}
+    - {drug: "Venlafaxine", drug_ja: "ベンラファキシン", dose: "75mg", drug_class: "snri", route: "PO", frequency: "daily", probability: 0.10, requires_stage_in: ["PHQ-9 moderate", "PHQ-9 moderately severe", "PHQ-9 severe"]}
+    - {drug: "Duloxetine", drug_ja: "デュロキセチン", dose: "30mg", drug_class: "snri", route: "PO", frequency: "daily", probability: 0.08, requires_stage_in: ["PHQ-9 moderate", "PHQ-9 moderately severe", "PHQ-9 severe"]}
+    - {drug: "Mirtazapine", drug_ja: "ミルタザピン", dose: "15mg", drug_class: "atypical_ad", route: "PO", frequency: "nightly", probability: 0.08, requires_stage_in: ["PHQ-9 moderately severe", "PHQ-9 severe"]}
 
 F41.1:  # Generalized anxiety disorder — SSRI + SNRI both first-line
   # APA / VA-DoD GAD guidelines: SNRI (Venlafaxine / Duloxetine)
   # AND SSRI both listed as first-line. Bumped SNRI probability
   # accordingly.
+  #
+  # Issue #1137 cluster axis 6 — severity-gated prescribing:
+  # minimal / mild → SSRI only (step 1 per APA);
+  # moderate      → SSRI OR SNRI (both first-line);
+  # severe        → SSRI + SNRI augmentation candidate.
+  # SSRI entries are unconditional (first-line at every severity).
+  # SNRI entries are restricted to moderate / severe where
+  # augmentation / SNRI first-line is clinically indicated.
   exclusive_classes: ["ssri", "snri"]
   medications:
     - {drug: "Escitalopram", drug_ja: "エスシタロプラム", dose: "10mg", drug_class: "ssri", route: "PO", frequency: "daily", probability: 0.28}
@@ -395,8 +418,8 @@ F41.1:  # Generalized anxiety disorder — SSRI + SNRI both first-line
     # "no ssri" branch for elderly cohort (Sertraline + Escitalopram
     # are the geriatric first-line, sampled unchanged).
     - {drug: "Paroxetine", drug_ja: "パロキセチン", dose: "20mg", drug_class: "ssri", route: "PO", frequency: "daily", probability: 0.10, age_max: 64}
-    - {drug: "Venlafaxine", drug_ja: "ベンラファキシン", dose: "75mg", drug_class: "snri", route: "PO", frequency: "daily", probability: 0.15}
-    - {drug: "Duloxetine", drug_ja: "デュロキセチン", dose: "30mg", drug_class: "snri", route: "PO", frequency: "daily", probability: 0.10}
+    - {drug: "Venlafaxine", drug_ja: "ベンラファキシン", dose: "75mg", drug_class: "snri", route: "PO", frequency: "daily", probability: 0.15, requires_stage_in: ["GAD-7 moderate", "GAD-7 severe"]}
+    - {drug: "Duloxetine", drug_ja: "デュロキセチン", dose: "30mg", drug_class: "snri", route: "PO", frequency: "daily", probability: 0.10, requires_stage_in: ["GAD-7 moderate", "GAD-7 severe"]}
 
 Z34:  # Encounter for supervision of normal pregnancy
   medications:
