@@ -1,6 +1,6 @@
 # `clinosim.modules.metabolic` — BMI-derived and metabolic-cluster chronic conditions
 
-Deterministic chronic-condition enrichment for metabolic syndrome components. Axis 1 is **E66 obesity ICD derivation** from `PersonRecord.bmi`; axis 2 is **E88.81 metabolic syndrome** from the 4-way AND over BMI + HTN + Dyslipidemia + DM; axis 3 is **K76.0 NAFLD** from a BMI + DM-weighted SHA Bernoulli (RNG-neutral per-person assignment); axis 4 is **G47.30 OSA** from a BMI + sex-weighted SHA Bernoulli. Future axes expand to GLP-1 / bariatric management (per META #1137 cluster 2 scope).
+Deterministic chronic-condition enrichment for metabolic syndrome components. Axis 1 is **E66 obesity ICD derivation** from `PersonRecord.bmi`; axis 2 is **E88.81 metabolic syndrome** from the 4-way AND over BMI + HTN + Dyslipidemia + DM; axis 3 is **K76.0 NAFLD** from a BMI + DM-weighted SHA Bernoulli (RNG-neutral per-person assignment); axis 4 is **G47.30 OSA** from a BMI + sex-weighted SHA Bernoulli; axis 5 is **GLP-1 agonist pharmacotherapy** for the E66.9 / E66.01 cohort via new entries in `chronic_medications.yaml` (Semaglutide / Tirzepatide / Liraglutide, SC, exclusive-class). All five axes close out the META #1137 cluster 2 scope.
 
 ## Purpose
 
@@ -107,7 +107,7 @@ strictest-intersection criteria inline (BMI ≥ 30 + HTN + Dyslipidemia + DM, 4-
 ## Follow-ups (cluster 2 roadmap per META #1137)
 
 - **K76.0 NAFLD → ALT/AST baseline tie-in** — downstream PR will steer liver-enzyme emission toward elevated range for K76.0-chronic patients so the "lab-conditional" half of the issue scope is also satisfied.
-- **GLP-1 agonist / bariatric management** (axis 5) — ties into the `chronic_medications.yaml` sampler via new E66-conditioned entries; bariatric surgery referral encounter and weight-loss counseling procedure codes.
+- **Bariatric surgery referral encounter + weight-loss counseling procedure** — the GLP-1 pharmacotherapy half of axis 5 ships here; the surgery referral encounter and counseling procedure code emission are tracked as a follow-up (requires new encounter yaml entries rather than a chronic-med addition).
   lab-conditional path (enricher reads post-generation lab
   state).
 - **G47.30 OSA** — BMI-correlated risk + sleep-study procedure

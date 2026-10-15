@@ -441,3 +441,28 @@ Z34:  # Encounter for supervision of normal pregnancy
     - {drug: "Ferrous fumarate", drug_ja: "フマル酸第一鉄", dose: "50mg", route: "PO", frequency: "daily", probability: 0.6}
   monitoring:
     - {test: "Hb", frequency: "monthly", intent: "Prenatal hemoglobin monitoring"}
+
+E66.9:  # Obesity, unspecified — BMI 30-40
+  # Issue #1137 cluster 2 axis 5 — GLP-1 receptor agonist
+  # pharmacotherapy for obesity. Real-world US prescribing has
+  # risen sharply since 2022 (Wegovy / Mounjaro market launch) but
+  # cost + prior-authorization friction keeps per-patient
+  # utilization in the ~5-10 % range for the general obese cohort
+  # (BMI 30-40). ``exclusive_classes: ["glp1"]`` so a patient
+  # gets at most one GLP-1 agent, not multiple.
+  exclusive_classes: ["glp1"]
+  medications:
+    - {drug: "Semaglutide", drug_ja: "セマグルチド", dose: "1mg", drug_class: "glp1", route: "SC", frequency: "weekly", probability: 0.05}
+    - {drug: "Liraglutide", drug_ja: "リラグルチド", dose: "1.2mg", drug_class: "glp1", route: "SC", frequency: "daily", probability: 0.03}
+
+E66.01:  # Morbid obesity, BMI >= 40
+  # GLP-1 utilization is substantially higher in the morbid-obesity
+  # cohort (payer coverage improves, cardiometabolic indication
+  # weight gains outweigh friction). Bariatric surgery is a parallel
+  # pathway — tracked as a follow-up for the referral-encounter
+  # path, not emitted here.
+  exclusive_classes: ["glp1"]
+  medications:
+    - {drug: "Semaglutide", drug_ja: "セマグルチド", dose: "2.4mg", drug_class: "glp1", route: "SC", frequency: "weekly", probability: 0.15}
+    - {drug: "Tirzepatide", drug_ja: "チルゼパチド", dose: "10mg", drug_class: "glp1", route: "SC", frequency: "weekly", probability: 0.10}
+    - {drug: "Liraglutide", drug_ja: "リラグルチド", dose: "3mg", drug_class: "glp1", route: "SC", frequency: "daily", probability: 0.05}
