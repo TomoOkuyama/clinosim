@@ -75,12 +75,19 @@ def test_activate_patient_writes_copd_stage_snapshot() -> None:
 
 
 def test_activate_patient_leaves_unstaged_code_absent() -> None:
-    """Codes without a stage distribution (e.g. F32 depression) do
-    not populate `disease_stages` — the condition is still created
-    on the Layer-2 side, just without a stage key here."""
-    p = _person(chronic_conditions=["F32"])
+    """Codes without a stage distribution (e.g. E78 dyslipidemia)
+    do not populate `disease_stages` — the condition is still
+    created on the Layer-2 side, just without a stage key here.
+
+    (F32 depression gained PHQ-9 severity staging as part of
+    Issue #1137 cluster axis 4, so an F32-only fixture now DOES
+    populate disease_stages. E78 remains unstaged — dyslipidemia
+    severity is captured via LDL/HDL/TG lab values at follow-up,
+    not a discrete stage.)
+    """
+    p = _person(chronic_conditions=["E78"])
     activate_patient(p, np.random.default_rng(0), _DEMO)
-    assert "F32" not in p.disease_stages
+    assert "E78" not in p.disease_stages
 
 
 def test_activate_patient_populates_all_staged_codes_in_cohort() -> None:

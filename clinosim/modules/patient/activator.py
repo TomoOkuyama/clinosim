@@ -106,6 +106,10 @@ from clinosim.modules.patient._patient_activator_thresholds import (
 from clinosim.modules.patient._severity_activation import (
     F00_STAGE_WEIGHTS,
     F00_STAGES,
+    F32_STAGE_WEIGHTS,
+    F32_STAGES,
+    F41_1_STAGE_WEIGHTS,
+    F41_1_STAGES,
     G20_STAGE_WEIGHTS,
     G20_STAGES,
     G35_STAGE_WEIGHTS,
@@ -196,6 +200,10 @@ def _generate_stage(code: str, severity: str, rng: np.random.Generator) -> str:
         if code == "I69.1":
             return str(rng.choice(I69_3_STAGES, p=I69_1_STAGE_WEIGHTS))
         return str(rng.choice(I69_3_STAGES, p=I69_3_STAGE_WEIGHTS))
+    if base in ("F32", "F33"):  # Depression severity (PHQ-9 Kroenke bands)
+        return str(rng.choice(F32_STAGES, p=F32_STAGE_WEIGHTS))
+    if code == "F41.1":  # Generalized anxiety severity (GAD-7 Spitzer bands)
+        return str(rng.choice(F41_1_STAGES, p=F41_1_STAGE_WEIGHTS))
     return ""
 
 

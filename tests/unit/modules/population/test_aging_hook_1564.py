@@ -88,10 +88,12 @@ def test_advance_population_skips_dead_persons() -> None:
 
 
 def test_disease_progression_noop_when_no_tracked_conditions() -> None:
-    """A person with no CKD / COPD on chronic_conditions never
-    touches disease_stages."""
+    """A person with no staged chronic condition never touches
+    disease_stages. I10 is intentionally not staged in
+    stage_transition.yaml (hypertension severity does not progress
+    on a yearly scale at the aging-pass layer)."""
     p = _alive("PT-OTHER", age=60)
-    p.chronic_conditions = ["I10", "F32"]
+    p.chronic_conditions = ["I10"]
     _disease_progression(
         p,
         2026,
@@ -440,6 +442,76 @@ def test_stroke_sequela_hemorrhagic_advance_slower_than_ischemic() -> None:
         f"ischemic mean mRS ({ischemic_mean:.2f}) should exceed hemorrhagic "
         f"({hemorrhagic_mean:.2f}) by ≥ 0.10 — per-sub-code dispatcher may be routing wrong"
     )
+
+
+def test_disease_progression_initialises_f32_phq9_severity() -> None:
+    """F32 person without a stage picks up a PHQ-9 severity band
+    on first ``_disease_progression`` touch (Kroenke 2001 Kroenke
+    severity bands shared with F33)."""
+    for icd in ("F32", "F33"):
+        p = _alive(f"PT-DEP-{icd}", age=45)
+        p.chronic_conditions = [icd]
+        _disease_progression(
+            p,
+            2026,
+            np.random.default_rng(aging_sub_seed(p.person_id, 2026, "_disease_progression")),
+            {},
+        )
+        assert icd in p.disease_stages
+        assert p.disease_stages[icd] in (
+            "PHQ-9 none",
+            "PHQ-9 mild",
+            "PHQ-9 moderate",
+            "PHQ-9 moderately severe",
+            "PHQ-9 severe",
+        )
+
+
+def test_disease_progression_initialises_f411_gad7_severity() -> None:
+    """F41.1 person without a stage picks up a GAD-7 severity band
+    on first ``_disease_progression`` touch (Spitzer 2006 bands).
+    Stage is stored under the base code "F41" per the aging-pass
+    ``code.split(".")[0]`` convention; the full code "F41.1" is a
+    yaml and sampler key but the resolved stage lives at the base
+    (same pattern as I69 → I69.1 / I69.3 sequelae)."""
+    p = _alive("PT-GAD", age=40)
+    p.chronic_conditions = ["F41.1"]
+    _disease_progression(
+        p,
+        2026,
+        np.random.default_rng(aging_sub_seed(p.person_id, 2026, "_disease_progression")),
+        {},
+    )
+    assert "F41" in p.disease_stages
+    assert p.disease_stages["F41"] in (
+        "GAD-7 minimal",
+        "GAD-7 mild",
+        "GAD-7 moderate",
+        "GAD-7 severe",
+    )
+
+
+def test_mental_health_severity_distribution_mode_moderate() -> None:
+    """Monte-Carlo p=1000 confirms the F32 severity distribution's
+    mode is at the moderate band (weight 0.40) — matches the
+    Kroenke primary-care cohort distribution shape."""
+    from collections import Counter
+
+    counts: Counter[str] = Counter()
+    for i in range(1000):
+        p = _alive(f"PT-DIST-{i:04d}", age=50)
+        p.chronic_conditions = ["F32"]
+        _disease_progression(
+            p,
+            2026,
+            np.random.default_rng(aging_sub_seed(p.person_id, 2026, "_disease_progression")),
+            {},
+        )
+        counts[p.disease_stages["F32"]] += 1
+    # Expected weights: 0.05 / 0.20 / 0.40 / 0.25 / 0.10 — moderate
+    # should be the mode.
+    mode_stage = counts.most_common(1)[0][0]
+    assert mode_stage == "PHQ-9 moderate", f"expected moderate mode, got {mode_stage} with counts {dict(counts)}"
 
 
 def test_mental_health_onset_multiplier_1_when_no_rule_or_no_comorbidity() -> None:

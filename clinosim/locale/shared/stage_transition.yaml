@@ -288,6 +288,50 @@ stage_transitions:
       "mRS 4": 0.030
       "mRS 5": 0.0      # terminal
 
+  # ------------------------------------------------------------------
+  # F32 / F33 Depression severity (PHQ-9 Kroenke bands)
+  # F41.1 Generalized anxiety severity (GAD-7 Spitzer bands)
+  # ------------------------------------------------------------------
+  # Clinical basis: Kroenke 2001 (JGIM 16:606) PHQ-9 severity bands;
+  # Spitzer 2006 (Arch Intern Med 166:1092) GAD-7 bands. Unlike the
+  # monotonic chronic-disease trajectories (CKD / COPD / HF / etc.),
+  # depression and anxiety severity drift BIDIRECTIONALLY with
+  # treatment response, life events, and remission cycles. The
+  # Phase-A model here samples an initial severity band at
+  # diagnosis then holds it steady (annual_advance_probability all
+  # 0.0) — a future PR will replace the static severity with a
+  # phq9_trajectory / gad7_trajectory continuous axis mirroring the
+  # DM glycemic_trajectory pattern that drifts year-over-year.
+  # Terminal mortality for severe depression is already handled by
+  # the F32 / F33 SMR entries in condition_mortality_smr.yaml;
+  # suicide-specific pathways await a separate axis (Columbia
+  # SSRS screening + risk-adjusted qx).
+  F32:
+    stages: ["PHQ-9 none", "PHQ-9 mild", "PHQ-9 moderate", "PHQ-9 moderately severe", "PHQ-9 severe"]
+    annual_advance_probability:
+      "PHQ-9 none": 0.0
+      "PHQ-9 mild": 0.0
+      "PHQ-9 moderate": 0.0
+      "PHQ-9 moderately severe": 0.0
+      "PHQ-9 severe": 0.0
+
+  F33:
+    stages: ["PHQ-9 none", "PHQ-9 mild", "PHQ-9 moderate", "PHQ-9 moderately severe", "PHQ-9 severe"]
+    annual_advance_probability:
+      "PHQ-9 none": 0.0
+      "PHQ-9 mild": 0.0
+      "PHQ-9 moderate": 0.0
+      "PHQ-9 moderately severe": 0.0
+      "PHQ-9 severe": 0.0
+
+  F41.1:
+    stages: ["GAD-7 minimal", "GAD-7 mild", "GAD-7 moderate", "GAD-7 severe"]
+    annual_advance_probability:
+      "GAD-7 minimal": 0.0
+      "GAD-7 mild": 0.0
+      "GAD-7 moderate": 0.0
+      "GAD-7 severe": 0.0
+
   # Shared fallback for any I69.* sub-code without a dedicated
   # entry above (I69.0 SAH / I69.2 other, not yet promoted by the
   # aging / discharge-hook pipeline — the simulator's

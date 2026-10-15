@@ -49,6 +49,8 @@ __all__ = [
     "I48_STAGES",
     "G35_STAGES",
     "I69_3_STAGES",
+    "F32_STAGES",
+    "F41_1_STAGES",
     # Stage-selection weights (sum to 1.0)
     "N18_STAGE_WEIGHTS",
     "I50_STAGE_WEIGHTS_MILD",
@@ -64,6 +66,8 @@ __all__ = [
     "G35_STAGE_WEIGHTS",
     "I69_3_STAGE_WEIGHTS",
     "I69_1_STAGE_WEIGHTS",
+    "F32_STAGE_WEIGHTS",
+    "F41_1_STAGE_WEIGHTS",
 ]
 
 
@@ -169,6 +173,35 @@ STAGE_SEVERITY: dict[str, dict[str, float]] = {
         "mRS 3": 0.55,
         "mRS 4": 0.75,
         "mRS 5": 0.90,
+    },
+    # Issue #1137 — F32 / F33 depression severity bands keyed on
+    # PHQ-9 total score cut-points (Kroenke 2001 JGIM 16:606).
+    # Severity rises monotonically with score; "severe" exceeds the
+    # 0.5 threshold used by downstream physiology branches for
+    # vulnerable-patient gating. F32 and F33 share the same band
+    # labels + severity map (recurrent-depression trajectory shape
+    # follows single-episode once the index episode is diagnosed).
+    "F32": {
+        "PHQ-9 none": 0.05,
+        "PHQ-9 mild": 0.15,
+        "PHQ-9 moderate": 0.35,
+        "PHQ-9 moderately severe": 0.55,
+        "PHQ-9 severe": 0.75,
+    },
+    "F33": {
+        "PHQ-9 none": 0.05,
+        "PHQ-9 mild": 0.15,
+        "PHQ-9 moderate": 0.35,
+        "PHQ-9 moderately severe": 0.55,
+        "PHQ-9 severe": 0.75,
+    },
+    # F41.1 generalized anxiety severity bands keyed on GAD-7
+    # Spitzer 2006 (Arch Intern Med 166:1092) score cut-points.
+    "F41.1": {
+        "GAD-7 minimal": 0.05,
+        "GAD-7 mild": 0.20,
+        "GAD-7 moderate": 0.45,
+        "GAD-7 severe": 0.70,
     },
 }
 
@@ -427,3 +460,52 @@ event. Mean mRS ~3.1, mode mRS 3-4. Clinical basis: Kleindorfer
 Patients With Spontaneous Intracerebral Hemorrhage; GWTG-Stroke
 hemorrhagic subgroup discharge mRS distribution; Qureshi 2001
 (NEJM 344:1450) ICH natural history."""
+
+
+# ---------------------------------------------------------------------------
+# F32 / F33 — Depression severity bands (PHQ-9 Kroenke cut-points)
+# ---------------------------------------------------------------------------
+
+F32_STAGES: tuple[str, ...] = (
+    "PHQ-9 none",
+    "PHQ-9 mild",
+    "PHQ-9 moderate",
+    "PHQ-9 moderately severe",
+    "PHQ-9 severe",
+)
+"""Kroenke 2001 (JGIM 16:606) PHQ-9 severity bands:
+  none (0-4) / mild (5-9) / moderate (10-14) /
+  moderately severe (15-19) / severe (20-27)
+Shared label set for F32 (single-episode depression) and F33
+(recurrent depressive disorder) — the recurrence axis does not
+change the per-episode severity banding."""
+
+F32_STAGE_WEIGHTS: tuple[float, ...] = (0.05, 0.20, 0.40, 0.25, 0.10)
+"""Diagnosed-F32 outpatient cohort distribution. Mode at moderate
+(10-14) with symmetric tails toward mild + moderately severe.
+Empirical tuning for the synthetic simulator, consistent with
+Kroenke 2001 primary-care-cohort PHQ-9 distribution (modeled
+diagnosed cases, not pre-diagnosis screening cohort). The "none"
+band captures remitted / stable patients on maintenance therapy."""
+
+
+# ---------------------------------------------------------------------------
+# F41.1 — Generalized anxiety severity bands (GAD-7 Spitzer cut-points)
+# ---------------------------------------------------------------------------
+
+F41_1_STAGES: tuple[str, ...] = (
+    "GAD-7 minimal",
+    "GAD-7 mild",
+    "GAD-7 moderate",
+    "GAD-7 severe",
+)
+"""Spitzer 2006 (Arch Intern Med 166:1092) GAD-7 severity bands:
+  minimal (0-4) / mild (5-9) / moderate (10-14) / severe (15-21).
+No "moderately severe" tier — GAD-7 collapses 15-21 into a single
+severe band (fewer total items than PHQ-9)."""
+
+F41_1_STAGE_WEIGHTS: tuple[float, ...] = (0.05, 0.30, 0.45, 0.20)
+"""Diagnosed-F41.1 outpatient cohort distribution. Mode at
+moderate band with mild runner-up. Empirical tuning per Spitzer
+2006 + Kroenke 2007 (Ann Intern Med 146:317) primary-care GAD
+cohort data."""
