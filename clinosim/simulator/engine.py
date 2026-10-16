@@ -503,6 +503,257 @@ class _TimeRangeBounds(NamedTuple):
     start_dt_lb: datetime
 
 
+def _run_healthcare_calendar_phase(
+    *,
+    patient_records: list[CIFPatientRecord],
+    population: Any,
+    bounds: _TimeRangeBounds,
+    master_seed: int,
+    patient_cache: dict[tuple[str, int | None], PatientProfile],
+    demo: dict[str, Any],
+    followup_data: dict[str, Any],
+    roster: Any,
+    config: SimulatorConfig,
+    hospital_ops: dict[str, Any],
+) -> tuple[int, int]:
+    """Emit the healthcare calendar outpatient pass.
+
+    Per Issue #1129, iterates over each year in ``[start_y, end_y]``
+    (year-keyed sub-RNG per cal_year — streams are cursor-independent
+    and cross-year independent), generates per-year chronic-follow-up /
+    pediatric / abortion / delivery / chemo / health_screening events,
+    filters against the snapshot cap + ``--start`` lower bound, and
+    dispatches each event through the type-specific sub-emitter.
+
+    Returns ``(len(calendar_events), n_calendar)`` — the generated-and-
+    filtered total plus the number of records actually appended (some
+    event types fail per-event gates and get skipped, some emit > 1
+    record such as delivery which emits a mother + newborn pair).
+    """
+    calendar_events: list = []
+    for cal_year in range(bounds.start_y, bounds.end_y + 1):
+        calendar_key = f"{config.country}|{cal_year:04d}|calendar"
+        calendar_rng = derive_phase_rng(master_seed, PHASE_OUTPATIENT_CAL, calendar_key)
+        calendar_events.extend(generate_healthcare_calendar(population, cal_year, config.country, calendar_rng))
+    if bounds.snapshot_dt:
+        calendar_events = [
+            e
+            for e in calendar_events
+            if not e.timestamp or datetime.combine(e.timestamp, datetime.min.time()) <= bounds.snapshot_dt
+        ]
+    # Issue #1039: lower-bound clamp (mirror of the snapshot upper
+    # clamp above) — ``generate_healthcare_calendar`` iterates a full
+    # calendar year starting at ``cal_year`` so ``--start`` mid-year
+    # produces events back to Jan 1 of that year. RNG-neutral post-
+    # generation filter.
+    calendar_events = [
+        e
+        for e in calendar_events
+        if not e.timestamp or datetime.combine(e.timestamp, datetime.min.time()) >= bounds.start_dt_lb
+    ]
+
+    n_calendar = 0
+    for event in calendar_events:
+        person = population.get_person(event.person_id)
+        # C11g-3: natural-death gate on the calendar event's target date.
+        if not person or not person.is_alive or not person.is_alive_at(event.timestamp):
+            continue
+        patient = _activate_cached_person(
+            person,
+            as_of_year=event.timestamp.year,
+            patient_cache=patient_cache,
+            master_seed=master_seed,
+            demo=demo,
+        )
+
+        # F1: fold disease_id into the key — generate_healthcare_calendar
+        # can schedule more than one "health_screening"-type event for
+        # the same person on the same calendar date (annual +
+        # colonoscopy + mammography all share event_type=
+        # "health_screening"); without disease_id in the key they'd
+        # share one ev_rng stream and collide on encounter_id (confirmed
+        # at p=500: two same-day screenings hashed to one id).
+        ev_key = f"{event.person_id}|{event.timestamp.isoformat()}|{event.event_type}|{event.disease_id}"
+        ev_rng = derive_phase_rng(master_seed, PHASE_OUTPATIENT_CAL, ev_key)
+
+        visit_time = datetime(
+            event.timestamp.year,
+            event.timestamp.month,
+            event.timestamp.day,
+            OUTPATIENT_CALENDAR_VISIT_HOUR,
+            int(ev_rng.integers(OUTPATIENT_MINUTE_JITTER_MIN, OUTPATIENT_MINUTE_JITTER_MAX_EXCLUSIVE)),
+        )
+
+        if event.event_type == "chronic_visit":
+            spec = followup_data.get(event.disease_id, {})
+            visit_labs = list(spec.get("labs", []))
+            for lab in spec.get("labs_quarterly", []):
+                if ev_rng.random() < OUTPATIENT_LABS_QUARTERLY_PROBABILITY and lab not in visit_labs:
+                    visit_labs.append(lab)
+            for lab in spec.get("labs_annual", []):
+                if ev_rng.random() < OUTPATIENT_LABS_ANNUAL_PROBABILITY and lab not in visit_labs:
+                    visit_labs.append(lab)
+            # Issue #757: medication-driven monitoring labs — follows the
+            # patient regardless of visit reason (data-driven via
+            # med_lab_mapping.yaml).
+            from clinosim.modules.monitoring import monitoring_labs_for_patient
+
+            for lab in monitoring_labs_for_patient(patient.current_medications, ev_rng):
+                if lab not in visit_labs:
+                    visit_labs.append(lab)
+            merged_spec = dict(spec)
+            merged_spec["labs"] = visit_labs
+            chronic_dept = resolve_outpatient_department("chronic_followup", event.disease_id, None, hospital_ops)
+            opd_record = _simulate_outpatient_visit(
+                patient,
+                "chronic_followup",
+                visit_time,
+                roster,
+                ev_rng,
+                chronic_code=event.disease_id,
+                followup_spec=merged_spec,
+                country=config.country,
+                config=config,
+                department_id=chronic_dept,
+            )
+        elif event.event_type == "pediatric_visit":
+            # Issue #760 pass 2: well-child visit dispatch (no labs).
+            pedi_dept = resolve_outpatient_department("pediatric_visit", event.disease_id, None, hospital_ops)
+            opd_record = _simulate_outpatient_visit(
+                patient,
+                "pediatric_visit",
+                visit_time,
+                roster,
+                ev_rng,
+                chronic_code=event.disease_id or "pediatric_visit",
+                followup_spec={
+                    "labs": [],
+                    "visit_reason": _pediatric_visit_reason(event.disease_id),
+                },
+                country=config.country,
+                config=config,
+                department_id=pedi_dept,
+            )
+        elif event.event_type == "abortion":
+            # Issue #957 Tier-3-B slice 3: pregnancy termination event.
+            from clinosim.simulator.perinatal import simulate_abortion_encounter
+
+            abortion_records = simulate_abortion_encounter(
+                patient=patient,
+                visit_date=visit_time,
+                discharge_dx=event.disease_id,
+                roster=roster,
+                rng=ev_rng,
+                country=config.country,
+                config=config,
+                hospital_ops=hospital_ops,
+            )
+            # Issue #1436: non-IMP records short-circuit inside the
+            # verifier, so this is safe for any mix.
+            for _r in abortion_records:
+                _post_hoc_overlap = _handle_overlap_via_merge(patient_records, _r, event.disease_id)
+                if _post_hoc_overlap is None:
+                    patient_records.append(_r)
+            n_calendar += 1
+            continue
+        elif event.event_type == "delivery":
+            # Issue #957 Tier-3-B: mother + newborn encounter chain.
+            # ``simulate_delivery_encounter`` returns ``[mother,
+            # newborn]`` by convention; the mother may overlap an
+            # ongoing inpatient stay (Issue #1436) so merge via
+            # _handle_overlap_via_merge and the newborn's partOf is
+            # rewritten accordingly.
+            from clinosim.simulator.perinatal import simulate_delivery_encounter
+
+            delivery_records = simulate_delivery_encounter(
+                patient=patient,
+                visit_date=visit_time,
+                roster=roster,
+                rng=ev_rng,
+                country=config.country,
+                config=config,
+                hospital_ops=hospital_ops,
+                population_registry=population,
+            )
+            if delivery_records:
+                mother_rec = delivery_records[0]
+                companions = list(delivery_records[1:])
+                _post_hoc_overlap = _handle_overlap_via_merge(
+                    patient_records, mother_rec, event.disease_id, companions=companions
+                )
+                if _post_hoc_overlap is None:
+                    patient_records.append(mother_rec)
+                for _r in companions:
+                    patient_records.append(_r)
+            n_calendar += 1
+            continue
+        elif event.event_type == "chemo_visit":
+            # Issue #957 Tier-3-A: chemo cycle visit — uses the
+            # outpatient builder with a chemo-specific followup_spec
+            # so the per-cycle Day-1 IV agents + Procedure get emitted
+            # (``simulator/outpatient.py`` chemo branch).
+            regimen_name = event.protocol_source.split(":", 1)[1] if ":" in event.protocol_source else ""
+            from clinosim.locale.loader import load_chemo_regimens
+
+            chemo_data = load_chemo_regimens()
+            regimen = (chemo_data.get("regimens") or {}).get(regimen_name) or {}
+            chemo_spec: dict = {
+                "labs": [],  # cycle labs come via the sibling chronic_visit
+                "visit_reason": (chemo_data.get("encounter") or {}).get("visit_reason") or "Chemotherapy infusion",
+                "chemo_regimen_name": regimen_name,
+                "chemo_regimen": regimen,
+                "chemo_procedure": chemo_data.get("procedure") or {},
+            }
+            chemo_dept = resolve_outpatient_department("chemo_visit", event.disease_id, None, hospital_ops)
+            opd_record = _simulate_outpatient_visit(
+                patient,
+                "chemo_visit",
+                visit_time,
+                roster,
+                ev_rng,
+                chronic_code=event.disease_id,
+                followup_spec=chemo_spec,
+                country=config.country,
+                config=config,
+                department_id=chemo_dept,
+            )
+        elif event.event_type == "health_screening":
+            # F1: visit_reason varies by disease_id — annual /
+            # colonoscopy / mammography share event_type but need
+            # distinct visit_reason text (see ev_key rationale above).
+            screening_reason = _HEALTH_SCREENING_VISIT_REASON.get(
+                event.disease_id, _HEALTH_SCREENING_VISIT_REASON_FALLBACK
+            )
+            screening_dept = resolve_outpatient_department(
+                "health_screening", event.disease_id or "annual_health_screening", None, hospital_ops
+            )
+            opd_record = _simulate_outpatient_visit(
+                patient,
+                "health_screening",
+                visit_time,
+                roster,
+                ev_rng,
+                chronic_code=event.disease_id or "annual_health_screening",
+                followup_spec={
+                    # C8 (#1103): TP (Total Protein, LOINC 2885-2) appended
+                    # at the end so existing lab order_id sub-RNG seeds
+                    # keep their positional index (AD-16 contract).
+                    "labs": ["WBC", "Hb", "Glucose", "Creatinine", "AST", "ALT", "TP"],
+                    "visit_reason": screening_reason,
+                },
+                country=config.country,
+                config=config,
+                department_id=screening_dept,
+            )
+        else:
+            continue
+
+        patient_records.append(opd_record)
+        n_calendar += 1
+
+    return len(calendar_events), n_calendar
+
+
 def _run_post_discharge_phase(
     *,
     inpatient_records: list[CIFPatientRecord],
@@ -1481,298 +1732,24 @@ def run_beta(
     )
 
     # Healthcare calendar: chronic visits + screening for ALL population.
-    # Issue #1129 (2026-09-05): pre-fix generated calendar events for
-    # ``start_y`` only (single year), so a multi-year sim (e.g. 5-year
-    # window) still emitted only 1 year of chronic-follow-up / screening
-    # events. The AMB per-adult-per-year rate at 5-year sim measured 0.81
-    # vs NAMCS ~3.5 (23 % of expected). Loop over each calendar year in
-    # ``[start_y, end_y]``, using year-keyed rng derived once per year to
-    # keep byte-identity per year (cross-year, the streams are independent
-    # by construction — no cascade from prior years' draws).
-    calendar_events: list = []
-    for cal_year in range(start_y, end_y + 1):
-        calendar_key = f"{config.country}|{cal_year:04d}|calendar"
-        calendar_rng = derive_phase_rng(master_seed, PHASE_OUTPATIENT_CAL, calendar_key)
-        calendar_events.extend(generate_healthcare_calendar(population, cal_year, config.country, calendar_rng))
-    # Filter out events past snapshot date
-    if snapshot_dt:
-        calendar_events = [
-            e
-            for e in calendar_events
-            if not e.timestamp or datetime.combine(e.timestamp, datetime.min.time()) <= snapshot_dt
-        ]
-    # Issue #1039: also clamp on the lower bound. `generate_healthcare_calendar`
-    # iterates a full calendar year (months 1..12) starting from ``cal_year``, so
-    # a `--start YYYY-MM-DD` mid-year produces events back to Jan 1 of that
-    # year. Filter them out to make the ``[--start, --end]`` window strict
-    # (mirror of the snapshot_dt upper clamp above). RNG-neutral: post-
-    # generation filter, no rng call count change → no cascade.
-    start_dt = _parse_time_range_bound(config.time_range[0])
-    calendar_events = [
-        e for e in calendar_events if not e.timestamp or datetime.combine(e.timestamp, datetime.min.time()) >= start_dt
-    ]
-    print(f"  Healthcare calendar: {len(calendar_events)} events for population", flush=True)
-    sim_log.info("engine", "healthcare_calendar_generated", events=len(calendar_events))
-
-    n_calendar = 0
-    for event in calendar_events:
-        person = population.get_person(event.person_id)
-        # C11g-3: natural-death gate on the calendar event's target date.
-        # Chronic followup / screening visits scheduled for a date
-        # after date_of_death get filtered here (the generator itself
-        # uses a per-year filter that is intentionally coarse — this
-        # per-event filter is the precise complement).
-        if not person or not person.is_alive or not person.is_alive_at(event.timestamp):
-            continue
-        patient = _activate_cached(person, as_of_year=event.timestamp.year)
-
-        # F1: fold disease_id into the key. `generate_healthcare_calendar`
-        # can schedule more than one "health_screening"-type event for the same
-        # person (annual_health_screening / colonoscopy_screening /
-        # mammography_screening all share event_type="health_screening") — if two
-        # of them land on the same calendar date, a key without disease_id would
-        # give them the identical ev_rng stream (same randomized visit minute) and,
-        # combined with the health_screening dispatch below previously hardcoding
-        # the same chief_complaint text for all of them, produced two CIFPatientRecords
-        # with byte-identical (patient, time, complaint) — a true encounter_id
-        # collision (confirmed empirically at p=500: two same-day screenings hashed
-        # to one id, silently aliasing two distinct encounters).
-        ev_key = f"{event.person_id}|{event.timestamp.isoformat()}|{event.event_type}|{event.disease_id}"
-        ev_rng = derive_phase_rng(master_seed, PHASE_OUTPATIENT_CAL, ev_key)
-
-        visit_time = datetime(
-            event.timestamp.year,
-            event.timestamp.month,
-            event.timestamp.day,
-            OUTPATIENT_CALENDAR_VISIT_HOUR,
-            int(ev_rng.integers(OUTPATIENT_MINUTE_JITTER_MIN, OUTPATIENT_MINUTE_JITTER_MAX_EXCLUSIVE)),
-        )
-
-        if event.event_type == "chronic_visit":
-            spec = followup_data.get(event.disease_id, {})
-            # Merge optional labs: quarterly (25% each visit) and annual (8% each visit)
-            visit_labs = list(spec.get("labs", []))
-            for lab in spec.get("labs_quarterly", []):
-                if ev_rng.random() < OUTPATIENT_LABS_QUARTERLY_PROBABILITY and lab not in visit_labs:
-                    visit_labs.append(lab)
-            for lab in spec.get("labs_annual", []):
-                if ev_rng.random() < OUTPATIENT_LABS_ANNUAL_PROBABILITY and lab not in visit_labs:
-                    visit_labs.append(lab)
-            # Issue #757: medication-driven monitoring labs. Follows the
-            # patient regardless of the visit's primary reason — a
-            # warfarin-treated DVT patient whose only chronic follow-up
-            # is for hypertension still gets INR checks here. Data-driven
-            # via ``med_lab_mapping.yaml``; sub-scope of the monitoring
-            # pipeline META. Closes #736 (US warfarin PT_INR 0-obs gap).
-            from clinosim.modules.monitoring import monitoring_labs_for_patient
-
-            for lab in monitoring_labs_for_patient(patient.current_medications, ev_rng):
-                if lab not in visit_labs:
-                    visit_labs.append(lab)
-            merged_spec = dict(spec)
-            merged_spec["labs"] = visit_labs
-            chronic_dept = resolve_outpatient_department("chronic_followup", event.disease_id, None, hospital_ops)
-            opd_record = _simulate_outpatient_visit(
-                patient,
-                "chronic_followup",
-                visit_time,
-                roster,
-                ev_rng,
-                chronic_code=event.disease_id,
-                followup_spec=merged_spec,
-                country=config.country,
-                config=config,
-                department_id=chronic_dept,
-            )
-        elif event.event_type == "pediatric_visit":
-            # Issue #760 pass 2: well-child visit dispatch. No labs (pediatric
-            # well-visits focus on growth-chart vitals + development screen +
-            # vaccinations rather than lab draws before school age).
-            # `_simulate_outpatient_visit` uses visit_type to select the
-            # vitals-set (temp / hr / weight for pediatric, no labs), and the
-            # visit_reason is looked up from `pediatric_schedule.yaml`.
-            pedi_dept = resolve_outpatient_department("pediatric_visit", event.disease_id, None, hospital_ops)
-            opd_record = _simulate_outpatient_visit(
-                patient,
-                "pediatric_visit",
-                visit_time,
-                roster,
-                ev_rng,
-                chronic_code=event.disease_id or "pediatric_visit",
-                followup_spec={
-                    "labs": [],
-                    "visit_reason": _pediatric_visit_reason(event.disease_id),
-                },
-                country=config.country,
-                config=config,
-                department_id=pedi_dept,
-            )
-        elif event.event_type == "abortion":
-            # Issue #957 Tier-3-B slice 3: pregnancy termination event
-            # (spontaneous O03.9 or induced O04.5). Age-gated abortion
-            # outcome resolution runs in the scheduler
-            # (``resolve_pregnancy_outcome``); dispatch here just emits
-            # the outpatient day-surgery encounter with the pre-decided
-            # discharge dx.
-            from clinosim.simulator.perinatal import simulate_abortion_encounter
-
-            abortion_records = simulate_abortion_encounter(
-                patient=patient,
-                visit_date=visit_time,
-                discharge_dx=event.disease_id,
-                roster=roster,
-                rng=ev_rng,
-                country=config.country,
-                config=config,
-                hospital_ops=hospital_ops,
-            )
-            # Issue #1436: verify each emitted record does not overlap an
-            # existing IMP stay. Non-IMP records are no-op inside the
-            # verifier (short-circuits on encounter_type check), so this
-            # is safe for any mix of records the abortion emitter returns.
-            for _r in abortion_records:
-                _post_hoc_overlap = _handle_overlap_via_merge(patient_records, _r, event.disease_id)
-                if _post_hoc_overlap is None:
-                    patient_records.append(_r)
-            n_calendar += 1
-            continue
-        elif event.event_type == "delivery":
-            # Issue #957 Tier-3-B: mother-side perinatal delivery encounter
-            # + newborn Patient + Encounter chain (Slice 2). Emits one
-            # inpatient encounter for the mother (admission dx O80
-            # spontaneous delivery, discharge dx Z37.0 single liveborn,
-            # delivery Procedure) AND one for the newborn (admitSource=born,
-            # partOf → mother's delivery encounter, discharge dx Z38.0).
-            # Prenatal + postpartum AMB visits fire separately as
-            # chronic_visit-style events (see
-            # ``_pregnancy_lifecycle_events`` in population/engine.py,
-            # which owns the full pregnancy lifecycle since META #957
-            # Incr 1).
-            from clinosim.simulator.perinatal import simulate_delivery_encounter
-
-            delivery_records = simulate_delivery_encounter(
-                patient=patient,
-                visit_date=visit_time,
-                roster=roster,
-                rng=ev_rng,
-                country=config.country,
-                config=config,
-                hospital_ops=hospital_ops,
-                # Issue #1564 Phase 1: thread the registry so the
-                # newborn is promoted to a long-lived PersonRecord.
-                population_registry=population,
-            )
-            # Issue #1436: the mother's delivery encounter is IMP-class
-            # and can overlap an ongoing inpatient stay (e.g. a mother
-            # hospitalized for asthma who goes into labor mid-admission).
-            # Verify against the current patient_records; if the mother
-            # overlaps, merge the delivery event into the earlier stay
-            # and rewrite the newborn record's ``admit_source_encounter_id``
-            # (FHIR ``Encounter.partOf``) to the surviving encounter so
-            # the newborn linkage does not dangle. Newborn is a separate
-            # patient (different patient_id) so it never overlaps by the
-            # verifier's same-patient gate — it is kept as a companion
-            # for the partOf rewrite only.
-            #
-            # By convention ``simulate_delivery_encounter`` returns
-            # ``[mother, newborn]``. Handle mother first (with newborn as
-            # companion for partOf rewrite), then handle any remaining
-            # records defensively.
-            if delivery_records:
-                mother_rec = delivery_records[0]
-                companions = list(delivery_records[1:])
-                _post_hoc_overlap = _handle_overlap_via_merge(
-                    patient_records, mother_rec, event.disease_id, companions=companions
-                )
-                if _post_hoc_overlap is None:
-                    patient_records.append(mother_rec)
-                # Append companion records (newborn etc.). Their
-                # ``admit_source_encounter_id`` has been repointed if the
-                # mother was merged; otherwise it still targets the
-                # newly-appended mother encounter.
-                for _r in companions:
-                    patient_records.append(_r)
-            n_calendar += 1
-            continue
-        elif event.event_type == "chemo_visit":
-            # Issue #957 Tier-3-A: chemo cycle visit dispatch. Uses the
-            # existing outpatient visit builder with a chemo-specific
-            # followup_spec so the encounter emits with the regimen's
-            # visit_reason + department + a Procedure record for the
-            # chemotherapy administration + per-cycle drug
-            # `MedicationRequest` + `MedicationAdministration` for each
-            # `cycle_orders` entry (Day-1 IV agents). See
-            # `simulator/outpatient.py:429` (`if visit_type ==
-            # "chemo_visit" and spec.get("chemo_regimen")`) — the
-            # per-cycle emit landed as part of the same tier-3-A slice
-            # and closes the last outstanding META #957 obstetric +
-            # oncology sub-item.
-            regimen_name = event.protocol_source.split(":", 1)[1] if ":" in event.protocol_source else ""
-            from clinosim.locale.loader import load_chemo_regimens
-
-            chemo_data = load_chemo_regimens()
-            regimen = (chemo_data.get("regimens") or {}).get(regimen_name) or {}
-            chemo_spec: dict = {
-                "labs": [],  # cycle labs are captured on the sibling chronic_visit; keep chemo_visit lean
-                "visit_reason": (chemo_data.get("encounter") or {}).get("visit_reason") or "Chemotherapy infusion",
-                "chemo_regimen_name": regimen_name,
-                "chemo_regimen": regimen,
-                "chemo_procedure": chemo_data.get("procedure") or {},
-            }
-            chemo_dept = resolve_outpatient_department("chemo_visit", event.disease_id, None, hospital_ops)
-            opd_record = _simulate_outpatient_visit(
-                patient,
-                "chemo_visit",
-                visit_time,
-                roster,
-                ev_rng,
-                chronic_code=event.disease_id,
-                followup_spec=chemo_spec,
-                country=config.country,
-                config=config,
-                department_id=chemo_dept,
-            )
-        elif event.event_type == "health_screening":
-            # F1: visit_reason must vary by disease_id — see the
-            # ev_key comment above. Previously every health_screening dispatch
-            # (annual / colonoscopy / mammography) got the identical hardcoded
-            # "Annual health screening" text regardless of which screening
-            # actually fired, which (combined with a same-day RNG-stream
-            # collision) could produce two indistinguishable encounters for a
-            # single patient's mammography + annual checkup landing on the
-            # same date.
-            screening_reason = _HEALTH_SCREENING_VISIT_REASON.get(
-                event.disease_id, _HEALTH_SCREENING_VISIT_REASON_FALLBACK
-            )
-            screening_dept = resolve_outpatient_department(
-                "health_screening", event.disease_id or "annual_health_screening", None, hospital_ops
-            )
-            opd_record = _simulate_outpatient_visit(
-                patient,
-                "health_screening",
-                visit_time,
-                roster,
-                ev_rng,
-                chronic_code=event.disease_id or "annual_health_screening",
-                followup_spec={
-                    # C8 (#1103): TP (Total Protein, LOINC 2885-2) appended
-                    # so the LFT-panel-declared analyte gets a cohort footprint.
-                    # Hardcoded list retained (see #1103 for follow-up to load
-                    # from annual_health_screening.yaml directly); appended at
-                    # the end so existing lab order_id sub-RNG seeds keep their
-                    # positional index (AD-16 individual_lab_seed contract).
-                    "labs": ["WBC", "Hb", "Glucose", "Creatinine", "AST", "ALT", "TP"],
-                    "visit_reason": screening_reason,
-                },
-                country=config.country,
-                config=config,
-                department_id=screening_dept,
-            )
-        else:
-            continue
-
-        patient_records.append(opd_record)
-        n_calendar += 1
+    # Issue #1129 (2026-09-05): per-year loop over [start_y, end_y]
+    # so a multi-year sim emits every year's chronic-follow-up /
+    # screening events (pre-fix: only start_y, giving ~23 % of the
+    # expected AMB rate at 5-year sim).
+    n_cal_events, n_calendar = _run_healthcare_calendar_phase(
+        patient_records=patient_records,
+        population=population,
+        bounds=bounds,
+        master_seed=master_seed,
+        patient_cache=patient_cache,
+        demo=demo,
+        followup_data=followup_data,
+        roster=roster,
+        config=config,
+        hospital_ops=hospital_ops,
+    )
+    print(f"  Healthcare calendar: {n_cal_events} events for population", flush=True)
+    sim_log.info("engine", "healthcare_calendar_generated", events=n_cal_events)
 
     print(f"  Outpatient done: {n_post_dc} post-discharge + {n_calendar} calendar", flush=True)
     sim_log.info("engine", "outpatient_done", post_discharge=n_post_dc, calendar=n_calendar)
