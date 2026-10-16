@@ -474,6 +474,90 @@ def _parse_time_range_bound(bound: str) -> datetime:
         return datetime.strptime(bound, "%Y-%m")
 
 
+def _load_prev_admission_cache(
+    cache_dir: Path | str | None,
+    config: SimulatorConfig,
+) -> dict[tuple[str, str, str], CIFPatientRecord]:
+    """Load the F4 previous-snapshot admission-loop cache.
+
+    Returns an index of ``(person_id, admission_date_iso, disease_id) ->
+    CIFPatientRecord`` for cached INPATIENT, non-readmission records whose
+    patients discharged entirely before the cache's snapshot cursor.
+
+    An invalid cache (missing / stale manifest / seed-config-country drift)
+    is reported to stderr and treated as a cold start — the caller gets
+    an empty dict. ``cache_dir=None`` returns ``{}`` without any I/O.
+
+    See the per-event cache-hit sites inside ``run_beta`` for the two
+    confirmed classes of shared-mutable-state divergence a hit can cause
+    for OTHER admissions in the same run (implied-chronic accretion on
+    the shared activated ``PatientProfile``; ``HospitalState`` queue
+    congestion). F1's per-event sub-seed determinism guarantees the
+    cached record's OWN bytes are identical to a fresh simulation.
+    """
+    prev_admission_cache: dict[tuple[str, str, str], CIFPatientRecord] = {}
+    if cache_dir is None:
+        return prev_admission_cache
+
+    from clinosim.simulator.memoize import (
+        _all_pids_from_cif,
+        eligible_patient_ids,
+        is_cache_valid,
+        load_patient_records_from_cif,
+        read_cache_manifest,
+    )
+
+    cache_dir_p = Path(cache_dir)
+    valid, reason = is_cache_valid(cache_dir_p, config)
+    if not valid:
+        print(f"  ⚠️  cache invalidated ({reason}); recomputing from scratch", flush=True)
+        return prev_admission_cache
+
+    manifest = read_cache_manifest(cache_dir_p)
+    assert manifest is not None  # is_cache_valid already confirmed it exists
+    prev_cursor_date = datetime.strptime(manifest.snapshot_date, "%Y-%m-%d").date()
+    prev_cif_dir = cache_dir_p / "cif"
+    all_prev_pids = _all_pids_from_cif(prev_cif_dir)
+    prev_all = load_patient_records_from_cif(prev_cif_dir, all_prev_pids)
+    flat_prev_records = [r for records in prev_all.values() for r in records]
+    eligible = eligible_patient_ids(flat_prev_records, prev_cursor_date)
+    # Index eligible patients' *admission-loop* records by the same
+    # (person_id, event date, disease_id) triple used to derive
+    # ``event_key`` in the dispatch loop — content-derived (not RNG-
+    # derived), so it can be recomputed identically from a ``LifeEvent``
+    # without having simulated anything yet. Only INPATIENT, non-
+    # readmission records are indexed: those are exactly the records
+    # ``_simulate_patient`` / ``_simulate_unknown_condition`` produce in
+    # the dispatch loop (the readmission / post-discharge / calendar /
+    # ED loops build OUTPATIENT/EMERGENCY-type or is_readmission=True
+    # records, which this cache intentionally does not substitute).
+    for pid, records in prev_all.items():
+        if pid not in eligible:
+            continue
+        for r in records:
+            if not r.encounters:
+                continue
+            if r.encounters[0].encounter_type != EncounterType.INPATIENT:
+                continue
+            if r.is_readmission:
+                continue
+            enc = r.encounters[0]
+            ce_disease_id = (
+                r.condition_event.ground_truth_diseases[0]
+                if r.condition_event.ground_truth_diseases
+                else r.condition_event.symptom_pattern
+            )
+            if not ce_disease_id:
+                continue
+            admission_date_iso = enc.admission_datetime.date().isoformat()
+            prev_admission_cache[(pid, admission_date_iso, ce_disease_id)] = r
+    print(
+        f"  Cache: {len(eligible)} eligible patients, {len(prev_admission_cache)} admission-loop records reusable",
+        flush=True,
+    )
+    return prev_admission_cache
+
+
 def run_beta(
     config: SimulatorConfig | None = None,
     hospital_config_path: str | None = None,
@@ -624,81 +708,12 @@ def run_beta(
     # this lower bound.
     _start_dt_lb = _parse_time_range_bound(config.time_range[0])
 
-    # F4: load a previous-snapshot cache, if given and valid. Only
-    # the primary admission loop below (known_disease/mixed via `_simulate_patient`
-    # and unknown-condition via `_simulate_unknown_condition`) consults this cache —
-    # it is the single most expensive per-event computation (full daily-loop
-    # physiology simulation). F1's per-event sub-seed determinism guarantees the
-    # cache-hit admission's OWN record is byte-identical to what a fresh
-    # simulation of that same event would produce. This does NOT extend to every
-    # downstream side effect of skipping `_simulate_patient`, however — see
-    # `clinosim/simulator/memoize.py` module docstring ("known limitations") for two
-    # confirmed classes of shared-mutable-state divergence a cache hit can cause
-    # for OTHER admissions processed later in the same run (implied-chronic
-    # accretion on the shared activated `PatientProfile`, and `HospitalState`
-    # resource-queue congestion affecting unrelated admissions' result_datetime).
-    # Both require touching `inpatient.py` / `order/engine.py` / `hospital_state.py`
-    # to fix properly — out of this task's file scope; documented as follow-up.
-    prev_cursor_date: date | None = None
-    prev_admission_cache: dict[tuple[str, str, str], CIFPatientRecord] = {}
-    if cache_dir is not None:
-        from clinosim.simulator.memoize import (
-            _all_pids_from_cif,
-            eligible_patient_ids,
-            is_cache_valid,
-            load_patient_records_from_cif,
-            read_cache_manifest,
-        )
-
-        cache_dir_p = Path(cache_dir)
-        valid, reason = is_cache_valid(cache_dir_p, config)
-        if not valid:
-            print(f"  ⚠️  cache invalidated ({reason}); recomputing from scratch", flush=True)
-        else:
-            manifest = read_cache_manifest(cache_dir_p)
-            assert manifest is not None  # is_cache_valid already confirmed it exists
-            prev_cursor_date = datetime.strptime(manifest.snapshot_date, "%Y-%m-%d").date()
-            prev_cif_dir = cache_dir_p / "cif"
-            all_prev_pids = _all_pids_from_cif(prev_cif_dir)
-            prev_all = load_patient_records_from_cif(prev_cif_dir, all_prev_pids)
-            flat_prev_records = [r for records in prev_all.values() for r in records]
-            eligible = eligible_patient_ids(flat_prev_records, prev_cursor_date)
-            # Index eligible patients' *admission-loop* records by the same
-            # (person_id, event date, disease_id) triple used to derive
-            # `event_key` below — content-derived (not RNG-derived), so it can
-            # be recomputed identically from a `LifeEvent` without having
-            # simulated anything yet. Only INPATIENT, non-readmission records
-            # are indexed: those are exactly the records `_simulate_patient` /
-            # `_simulate_unknown_condition` produce in the loop below (the
-            # readmission / post-discharge / calendar / ED loops build
-            # OUTPATIENT/EMERGENCY-type or is_readmission=True records, which
-            # this cache intentionally does not substitute — see module
-            # docstring above).
-            for pid, records in prev_all.items():
-                if pid not in eligible:
-                    continue
-                for r in records:
-                    if not r.encounters:
-                        continue
-                    if r.encounters[0].encounter_type != EncounterType.INPATIENT:
-                        continue
-                    if r.is_readmission:
-                        continue
-                    enc = r.encounters[0]
-                    ce_disease_id = (
-                        r.condition_event.ground_truth_diseases[0]
-                        if r.condition_event.ground_truth_diseases
-                        else r.condition_event.symptom_pattern
-                    )
-                    if not ce_disease_id:
-                        continue
-                    admission_date_iso = enc.admission_datetime.date().isoformat()
-                    prev_admission_cache[(pid, admission_date_iso, ce_disease_id)] = r
-            print(
-                f"  Cache: {len(eligible)} eligible patients, "
-                f"{len(prev_admission_cache)} admission-loop records reusable",
-                flush=True,
-            )
+    # F4: previous-snapshot admission-loop cache. Only the primary
+    # admission loop below (known_disease/mixed via ``_simulate_patient``
+    # and unknown-condition via ``_simulate_unknown_condition``)
+    # consults this cache — it is the single most expensive per-event
+    # computation (full daily-loop physiology simulation).
+    prev_admission_cache = _load_prev_admission_cache(cache_dir, config)
 
     # Simulate each patient in chronological order (DES-aware)
     # Hospital state is shared — concurrent patients affect delays
