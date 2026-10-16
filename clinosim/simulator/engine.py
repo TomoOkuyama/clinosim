@@ -503,6 +503,83 @@ class _TimeRangeBounds(NamedTuple):
     start_dt_lb: datetime
 
 
+def _run_post_discharge_phase(
+    *,
+    inpatient_records: list[CIFPatientRecord],
+    patient_records: list[CIFPatientRecord],
+    population: Any,
+    followup_data: dict[str, Any],
+    snapshot_dt: datetime | None,
+    master_seed: int,
+    patient_cache: dict[tuple[str, int | None], PatientProfile],
+    demo: dict[str, Any],
+    roster: Any,
+    config: SimulatorConfig,
+    hospital_ops: dict[str, Any],
+) -> int:
+    """Emit the post-discharge follow-up outpatient visit for each
+    inpatient stay.
+
+    For every surviving inpatient record with a discharge datetime,
+    schedule a follow-up visit at ``discharge + first_visit_days``
+    (defaults to 14 d, overridable via ``_post_discharge`` yaml),
+    gate by snapshot_dt + natural death, and dispatch via
+    ``_simulate_outpatient_visit`` with the same service line
+    (resolved via ``resolve_outpatient_department(post_discharge, …)``)
+    as the inpatient encounter — continuity of care.
+
+    Returns the number of post-discharge records appended.
+    """
+    post_dc_spec = followup_data.get("_post_discharge", {})
+    post_dc_days = post_dc_spec.get("first_visit_days", 14)
+
+    n_before = len(patient_records)
+    for record in inpatient_records:
+        pid = record.patient.patient_id
+        person = population.get_person(pid)
+        if not person or not person.is_alive:
+            continue
+        enc = record.encounters[0]
+        if not enc.discharge_datetime:
+            continue
+        disease_id = (
+            record.condition_event.ground_truth_diseases[0] if record.condition_event.ground_truth_diseases else ""
+        )
+        disease_fu = followup_data.get("_post_discharge_by_disease", {}).get(disease_id, {})
+        merged_spec = dict(post_dc_spec)
+        if disease_fu.get("labs"):
+            merged_spec["labs"] = disease_fu["labs"]
+        followup_date = enc.discharge_datetime + timedelta(days=post_dc_days)
+        if snapshot_dt and followup_date > snapshot_dt:
+            continue
+        # C11g-3b: natural-death gate on the scheduled follow-up date.
+        if not person.is_alive_at(followup_date.date()):
+            continue
+        opd_key = f"{pid}|post_discharge|{followup_date.isoformat()}"
+        opd_rng = derive_phase_rng(master_seed, PHASE_OUTPATIENT_CAL, opd_key)
+        opd_dept = resolve_outpatient_department("post_discharge", disease_id, enc.department_id, hospital_ops)
+        opd_record = _simulate_outpatient_visit(
+            _activate_cached_person(
+                person,
+                as_of_year=followup_date.year,
+                patient_cache=patient_cache,
+                master_seed=master_seed,
+                demo=demo,
+            ),
+            "post_discharge",
+            followup_date,
+            roster,
+            opd_rng,
+            followup_spec=merged_spec,
+            post_discharge_disease=disease_id,
+            country=config.country,
+            config=config,
+            department_id=opd_dept,
+        )
+        patient_records.append(opd_record)
+    return len(patient_records) - n_before
+
+
 def _run_readmission_phase(
     *,
     patient_records: list[CIFPatientRecord],
@@ -1389,56 +1466,19 @@ def run_beta(
         for r in patient_records
         if not r.deceased and r.encounters and r.encounters[0].encounter_type == EncounterType.INPATIENT
     ]
-    post_dc_spec = followup_data.get("_post_discharge", {})
-    post_dc_days = post_dc_spec.get("first_visit_days", 14)
-
-    for record in inpatient_records:
-        pid = record.patient.patient_id
-        person = population.get_person(pid)
-        if not person or not person.is_alive:
-            continue
-        enc = record.encounters[0]
-        if not enc.discharge_datetime:
-            continue
-        disease_id = (
-            record.condition_event.ground_truth_diseases[0] if record.condition_event.ground_truth_diseases else ""
-        )
-        disease_fu = followup_data.get("_post_discharge_by_disease", {}).get(disease_id, {})
-        merged_spec = dict(post_dc_spec)
-        if disease_fu.get("labs"):
-            merged_spec["labs"] = disease_fu["labs"]
-        followup_date = enc.discharge_datetime + timedelta(days=post_dc_days)
-        # Skip post-discharge visits scheduled after the snapshot date
-        if snapshot_dt and followup_date > snapshot_dt:
-            continue
-        # C11g-3b: natural-death gate on the scheduled follow-up date.
-        # A patient discharged before dying naturally on date D still
-        # gets a follow-up visit scheduled for D + post_dc_days — if
-        # that date lands after D, the visit did not physically happen.
-        if not person.is_alive_at(followup_date.date()):
-            continue
-        opd_key = f"{pid}|post_discharge|{followup_date.isoformat()}"
-        opd_rng = derive_phase_rng(master_seed, PHASE_OUTPATIENT_CAL, opd_key)
-        # Continuity of care: the post-discharge follow-up attaches to the
-        # same service line as the inpatient stay (a trauma / surgical /
-        # cardiology / GI patient is followed up by the same specialty,
-        # not general internal medicine).
-        opd_dept = resolve_outpatient_department("post_discharge", disease_id, enc.department_id, hospital_ops)
-        opd_record = _simulate_outpatient_visit(
-            _activate_cached(person, as_of_year=followup_date.year),
-            "post_discharge",
-            followup_date,
-            roster,
-            opd_rng,
-            followup_spec=merged_spec,
-            post_discharge_disease=disease_id,
-            country=config.country,
-            config=config,
-            department_id=opd_dept,
-        )
-        patient_records.append(opd_record)
-
-    n_post_dc = len(patient_records) - len(inpatient_records) - n_readmit
+    n_post_dc = _run_post_discharge_phase(
+        inpatient_records=inpatient_records,
+        patient_records=patient_records,
+        population=population,
+        followup_data=followup_data,
+        snapshot_dt=snapshot_dt,
+        master_seed=master_seed,
+        patient_cache=patient_cache,
+        demo=demo,
+        roster=roster,
+        config=config,
+        hospital_ops=hospital_ops,
+    )
 
     # Healthcare calendar: chronic visits + screening for ALL population.
     # Issue #1129 (2026-09-05): pre-fix generated calendar events for
