@@ -213,6 +213,123 @@ def _derive_final_diagnosis(
     return clinical_diagnosis, dx_name
 
 
+_IMPLIED_CHRONIC_BY_DISEASE = {
+    "acute_mi": ["I25", "I10", "E78"],  # IHD, HTN, dyslipidemia
+    "cerebral_infarction": ["I10", "I48", "I25", "E78"],
+    "hemorrhagic_stroke": ["I10", "I48"],
+    "subdural_hematoma": ["I10"],
+    "heart_failure_exacerbation": ["I50", "I25", "I10"],
+    "atrial_fibrillation_rvr": ["I48", "I50", "I10"],
+    "pulmonary_embolism": ["I48", "N40"],
+    "sepsis": ["N18"],
+    "diabetic_ketoacidosis": ["E11.9", "E78"],
+    "acute_kidney_injury": ["N18", "I10", "E11.9"],
+    "hip_fracture": ["M81", "M17"],
+    "urinary_tract_infection": ["N40"],
+    "acute_pancreatitis": ["K74"],
+    "gi_bleeding": ["K74", "K21"],
+    "copd_exacerbation": ["J44"],
+    "asthma_exacerbation": ["J45"],
+    "bacterial_pneumonia": ["J44"],
+    "aspiration_pneumonia": ["F00", "K21"],
+}
+"""Primary disease_id → likely-implied chronic ICD codes map (RM-7d).
+
+Real EHR practice: hospitalization commonly surfaces newly-diagnosed
+chronic disease (new-onset HTN, DM, AF, CKD, HF, IHD detected in workup).
+Downstream FHIR emission picks these up as problem-list-item entries.
+"""
+
+
+_IMPLIED_CHRONIC_AGE_MIN = {
+    "J44": 40,  # COPD — adult-onset
+    "N18": 60,  # CKD stage 3+ — elderly prevalence
+    "I10": 25,  # Essential hypertension — rare in minors
+    "I25": 40,  # Chronic ischemic heart disease
+    "I48": 40,  # Atrial fibrillation
+    "I50": 40,  # Heart failure
+    "E11": 15,  # Type 2 DM — extremely rare pre-teen
+    "E11.9": 15,
+    "M17": 40,  # Knee OA — degenerative
+    "M81": 50,  # Osteoporosis
+    "F00": 60,  # Dementia (Alzheimer's) — elderly
+    "F03": 60,  # Unspecified dementia
+    "G20": 40,  # Parkinson's — adult-onset
+    "N40": 40,  # BPH — adult male
+    "K74": 30,  # Chronic liver disease/cirrhosis
+}
+"""Minimum-age gate per implied-chronic ICD (p=500 review session 89).
+
+Mirrors ``demographics.yaml:chronic_prevalence`` lower bound so the
+implied path matches the random-assignment path's clinical realism
+envelope. Example: a 6-year-old with ``bacterial_pneumonia`` would
+otherwise pick up J44 (COPD, adult-onset) as a chronic condition.
+"""
+
+
+def _attach_implied_chronic_conditions(
+    *,
+    disease_id: str,
+    patient: PatientProfile,
+    admission_time: datetime,
+) -> None:
+    """RM-7d: append newly-diagnosed chronic conditions implied by
+    the primary admission disease.
+
+    Mutates ``patient.chronic_conditions`` in place, skipping codes
+    already present, sex-locked ICDs on the wrong sex (via
+    ``is_sex_locked_for``), and age-restricted ICDs on younger
+    patients (via ``_IMPLIED_CHRONIC_AGE_MIN``). The onset date is
+    backdated 1-14 years from a ``(patient_id, code)`` SHA hash so
+    it precedes the acute admission while remaining RNG-neutral.
+
+    Extracted from ``_simulate_patient`` per META #1633 P6.
+    """
+    # Issue #947: sex-lock table lives in
+    # ``clinosim/locale/shared/icd10_sex_restrictions.yaml`` and is
+    # consulted via ``clinosim.simulator.sex_gating.is_sex_locked_for`` so
+    # every anatomy-locked code (N40 BPH, N41 prostatitis, N70–N77 female
+    # PID, O00–O9A pregnancy, C50–C63 sex-specific malignancies) is covered.
+    from clinosim.simulator.sex_gating import is_sex_locked_for
+
+    implied = _IMPLIED_CHRONIC_BY_DISEASE.get(disease_id, [])
+    if not implied:
+        return
+    from clinosim.modules.patient.activator import derive_implied_chronic_onset
+    from clinosim.types.patient import ChronicCondition
+
+    existing_codes = {
+        (c.code.split(".")[0] if hasattr(c, "code") else str(c).split(".")[0])
+        for c in (getattr(patient, "chronic_conditions", []) or [])
+    }
+    patient_sex = str(getattr(patient, "sex", "") or "").upper()[:1]
+    patient_age = int(getattr(patient, "age", 0) or 0)
+    adm_date = getattr(admission_time, "date", lambda: admission_time)()
+    dob = getattr(patient, "date_of_birth", None)
+    for code in implied:
+        base = code.split(".")[0]
+        if base in existing_codes:
+            continue
+        if is_sex_locked_for(code, patient_sex):
+            continue  # skip sex-restricted ICD for the wrong sex
+        min_age = _IMPLIED_CHRONIC_AGE_MIN.get(base)
+        if min_age is not None and patient_age < min_age:
+            continue  # skip age-restricted ICD for younger patients
+        existing_codes.add(base)
+        # Issue #1339: backdate the implied-chronic onset from
+        # (patient_id, code) hash so it precedes the acute admission
+        # by 1-14 years, matching the population-time sampling window.
+        # RNG-neutral (deterministic per patient×code, no master-RNG
+        # consumption) — see `derive_implied_chronic_onset`.
+        backdated = derive_implied_chronic_onset(patient.patient_id, code, adm_date, dob)
+        patient.chronic_conditions.append(
+            ChronicCondition(
+                code=code,
+                onset_date=backdated,
+            )
+        )
+
+
 def _derive_microbiology(
     *,
     disease_id: str,
@@ -849,103 +966,11 @@ def _simulate_patient(
         snapshot_dt=snapshot_dt,
     )
 
-    # RM-7d: acquired chronic conditions during inpatient stay.
-    # Real EHR practice: hospitalization commonly surfaces newly-diagnosed
-    # chronic disease (new-onset HTN, DM, AF, CKD, HF, IHD detected in
-    # workup). We map primary disease_id → likely-implied chronic ICD codes
-    # and append to patient.chronic_conditions when the code is not already
-    # present. Downstream FHIR emission picks these up as problem-list-item.
-    _IMPLIED_CHRONIC_BY_DISEASE = {
-        "acute_mi": ["I25", "I10", "E78"],  # IHD, HTN, dyslipidemia
-        "cerebral_infarction": ["I10", "I48", "I25", "E78"],
-        "hemorrhagic_stroke": ["I10", "I48"],
-        "subdural_hematoma": ["I10"],
-        "heart_failure_exacerbation": ["I50", "I25", "I10"],
-        "atrial_fibrillation_rvr": ["I48", "I50", "I10"],
-        "pulmonary_embolism": ["I48", "N40"],
-        "sepsis": ["N18"],
-        "diabetic_ketoacidosis": ["E11.9", "E78"],
-        "acute_kidney_injury": ["N18", "I10", "E11.9"],
-        "hip_fracture": ["M81", "M17"],
-        "urinary_tract_infection": ["N40"],
-        "acute_pancreatitis": ["K74"],
-        "gi_bleeding": ["K74", "K21"],
-        "copd_exacerbation": ["J44"],
-        "asthma_exacerbation": ["J45"],
-        "bacterial_pneumonia": ["J44"],
-        "aspiration_pneumonia": ["F00", "K21"],
-    }
-    _existing_codes = {
-        (c.code.split(".")[0] if hasattr(c, "code") else str(c).split(".")[0])
-        for c in (getattr(patient, "chronic_conditions", []) or [])
-    }
-    # Issue #947: sex-lock table moved to
-    # ``clinosim/locale/shared/icd10_sex_restrictions.yaml`` and consulted
-    # via ``clinosim.simulator.sex_gating.is_sex_locked_for`` — same guard
-    # now covers every anatomy-locked code (N40 BPH, N41 prostatitis,
-    # N70–N77 female PID, O00–O9A pregnancy, C50–C63 sex-specific
-    # malignancies) instead of the pre-fix inline {"N40": "M"}.
-    from clinosim.simulator.sex_gating import is_sex_locked_for
-
-    # p=500 review finding (session 89): the implied-chronic table was
-    # applying age-restricted chronic diseases (COPD, dementia, etc.) to
-    # minors. E.g. a 6-year-old with `bacterial_pneumonia` was picking up
-    # J44 (COPD) as a chronic condition, which is clinically implausible
-    # (COPD is adult-onset). Register a minimum-age gate per code
-    # mirroring `_SEX_RESTRICTED_ICD`. Ages match the demographics.yaml
-    # `chronic_prevalence` lower bound so the implied path matches the
-    # random-assignment path's clinical realism envelope.
-    _AGE_MIN_ICD = {
-        "J44": 40,  # COPD — adult-onset
-        "N18": 60,  # CKD stage 3+ — elderly prevalence
-        "I10": 25,  # Essential hypertension — rare in minors
-        "I25": 40,  # Chronic ischemic heart disease
-        "I48": 40,  # Atrial fibrillation
-        "I50": 40,  # Heart failure
-        "E11": 15,  # Type 2 DM — extremely rare pre-teen
-        "E11.9": 15,
-        "M17": 40,  # Knee OA — degenerative
-        "M81": 50,  # Osteoporosis
-        "F00": 60,  # Dementia (Alzheimer's) — elderly
-        "F03": 60,  # Unspecified dementia
-        "G20": 40,  # Parkinson's — adult-onset
-        "N40": 40,  # BPH — adult male
-        "K74": 30,  # Chronic liver disease/cirrhosis
-    }
-    _patient_sex = str(getattr(patient, "sex", "") or "").upper()[:1]
-    _patient_age = int(getattr(patient, "age", 0) or 0)
-    _implied = _IMPLIED_CHRONIC_BY_DISEASE.get(disease_id, [])
-    if _implied:
-        from clinosim.modules.patient.activator import derive_implied_chronic_onset
-        from clinosim.types.patient import ChronicCondition
-
-        _adm_date = getattr(admission_time, "date", lambda: admission_time)()
-        _dob = getattr(patient, "date_of_birth", None)
-        for _code in _implied:
-            _base = _code.split(".")[0]
-            if _base in _existing_codes:
-                continue
-            # Issue #947: yaml-driven check via `is_sex_locked_for`; covers
-            # every anatomy-locked ICD (not just N40), so future implied-
-            # chronic additions inherit the guard automatically.
-            if is_sex_locked_for(_code, _patient_sex):
-                continue  # skip sex-restricted ICD for the wrong sex
-            _min_age = _AGE_MIN_ICD.get(_base)
-            if _min_age is not None and _patient_age < _min_age:
-                continue  # skip age-restricted ICD for younger patients
-            _existing_codes.add(_base)
-            # Issue #1339: backdate the implied-chronic onset from
-            # (patient_id, code) hash so it precedes the acute admission
-            # by 1-14 years, matching the population-time sampling window.
-            # RNG-neutral (deterministic per patient×code, no master-RNG
-            # consumption) — see `derive_implied_chronic_onset`.
-            _backdated = derive_implied_chronic_onset(patient.patient_id, _code, _adm_date, _dob)
-            patient.chronic_conditions.append(
-                ChronicCondition(
-                    code=_code,
-                    onset_date=_backdated,
-                )
-            )
+    _attach_implied_chronic_conditions(
+        disease_id=disease_id,
+        patient=patient,
+        admission_time=admission_time,
+    )
 
     # seed=400 verification: propagate in-hospital death to the
     # Patient record so `_fhir_patient` can emit `deceasedDateTime`. Uses
