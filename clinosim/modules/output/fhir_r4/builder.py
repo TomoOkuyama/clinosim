@@ -307,6 +307,13 @@ def convert_cif_to_fhir(
         # `write()` helper's `written_ids` dedup keeps them at one per patient
         # (root-cause fix for cycle 3 RM-7 problem-list-item excess = per-
         # encounter re-emission with encounter-scoped IDs, C4-02).
+        # Issue: a long p=10000 5-year export spends 15-30+ minutes
+        # inside this loop with no visibility — the pre-fix FHIR phase
+        # had no progress log, so an operator could not distinguish
+        # "silently working" from "wedged". Mirror the engine's
+        # inpatient-loop cadence: a stdout print + sim_log event every
+        # 1000 patients so `tail -f simulator.log` + the terminal both
+        # see steady progress.
         for record in reader.iter_patients():
             n_patients += 1
             bundle = _build_bundle(
@@ -320,6 +327,19 @@ def convert_cif_to_fhir(
             for entry in bundle.get("entry", []):
                 write(entry["resource"])
                 n_resources += 1
+            if n_patients % 1000 == 0:
+                print(
+                    f"  FHIR export: {n_patients} patients, {n_resources} resources "
+                    f"({round(_time.perf_counter() - t0_export, 1)}s elapsed)...",
+                    flush=True,
+                )
+                sim_log.info(
+                    "fhir_r4_adapter",
+                    "fhir_export_progress",
+                    patients=n_patients,
+                    resources=n_resources,
+                    elapsed_s=round(_time.perf_counter() - t0_export, 3),
+                )
 
         # Manifest (FHIR Bulk Data spec)
         manifest = {
