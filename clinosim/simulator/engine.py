@@ -474,6 +474,50 @@ def _parse_time_range_bound(bound: str) -> datetime:
         return datetime.strptime(bound, "%Y-%m")
 
 
+def _load_hospital_ops(hospital_config_path: str | None) -> dict[str, Any]:
+    """Load hospital-operations YAML into the engine.
+
+    ``hospital_config_path`` is the explicit path (CLI / API caller); when
+    ``None`` the default ``config/hospital_operations.yaml`` is loaded via
+    the facility loader.
+    """
+    if hospital_config_path:
+        import yaml
+
+        with open(Path(hospital_config_path), encoding="utf-8") as f:
+            return yaml.safe_load(f) or {}
+    from clinosim.modules.facility.hospital_state import load_hospital_operations
+
+    return load_hospital_operations()
+
+
+def _resolve_pop_size(hospital_ops: dict[str, Any], config: SimulatorConfig) -> int:
+    """Resolve the catchment population size for a run.
+
+    If the user did not pass ``-p`` (``config.catchment_population is None``)
+    the hospital's ``recommended_population`` (country-specific or scalar)
+    wins; a user-supplied value overrides and prints a soft warning on
+    disagreement (Bug D). Fallback is 40 000 when the YAML lacks the key.
+    """
+    recommended_raw = hospital_ops.get("recommended_population")
+    if not recommended_raw:
+        return config.catchment_population or 40000
+    if isinstance(recommended_raw, dict):
+        # Country-specific: {US: 40000, JP: 5000, default: 40000}
+        recommended = int(recommended_raw.get(config.country) or recommended_raw.get("default", 40000))
+    else:
+        recommended = int(recommended_raw)
+    if config.catchment_population is None:
+        return recommended
+    if config.catchment_population != recommended:
+        print(
+            f"⚠️  User-specified -p {config.catchment_population} used as-is "
+            f"(hospital recommended: {recommended} for {config.country})",
+            file=sys.stderr,
+        )
+    return config.catchment_population
+
+
 def _load_prev_admission_cache(
     cache_dir: Path | str | None,
     config: SimulatorConfig,
@@ -593,15 +637,9 @@ def run_beta(
     demo = load_demographics(config.country)
 
     # Hospital operational state (YAML-configurable per hospital)
-    from clinosim.modules.facility.hospital_state import HospitalState, load_hospital_operations
+    from clinosim.modules.facility.hospital_state import HospitalState
 
-    if hospital_config_path:
-        import yaml
-
-        with open(Path(hospital_config_path), encoding="utf-8") as f:
-            hospital_ops = yaml.safe_load(f) or {}
-    else:
-        hospital_ops = load_hospital_operations()
+    hospital_ops = _load_hospital_ops(hospital_config_path)
 
     # Staff roster scaled to hospital config (ward-aware, dept-aware).
     # C5-25 (Chain 3, 2026-07-11): use a dedicated sub-RNG so roster
@@ -612,31 +650,7 @@ def run_beta(
     roster = generate_roster(config.hospital_scale, config.country, _roster_rng, hospital_config=hospital_ops)
     hospital_state = HospitalState()
 
-    # Population: use hospital's recommended_population only when the user did not
-    # supply an explicit value (Bug D fix — retires the old `== 10_000` sentinel,
-    # which silently discarded any explicit CLI -p value equal to the former
-    # argparse default). config.catchment_population is None unless the user (or a
-    # preset) set it explicitly.
-    pop_size: int
-    recommended_raw = hospital_ops.get("recommended_population")
-    if recommended_raw:
-        if isinstance(recommended_raw, dict):
-            # Country-specific: {US: 40000, JP: 5000, default: 40000}
-            recommended = int(recommended_raw.get(config.country) or recommended_raw.get("default", 40000))
-        else:
-            recommended = int(recommended_raw)
-        if config.catchment_population is None:
-            pop_size = recommended
-        else:
-            pop_size = config.catchment_population
-            if config.catchment_population != recommended:
-                print(
-                    f"⚠️  User-specified -p {config.catchment_population} used as-is "
-                    f"(hospital recommended: {recommended} for {config.country})",
-                    file=sys.stderr,
-                )
-    else:
-        pop_size = config.catchment_population or 40000
+    pop_size = _resolve_pop_size(hospital_ops, config)
     beds = hospital_ops.get("resource_capacity", {}).get("inpatient_beds", 50)
     print(f"  Hospital: {beds} beds", flush=True)
     sim_log.info("engine", "hospital_loaded", beds=beds, country=config.country)
