@@ -213,6 +213,92 @@ def _derive_final_diagnosis(
     return clinical_diagnosis, dx_name
 
 
+def _finalize_discharge(
+    *,
+    patient: PatientProfile,
+    disease_id: str,
+    protocol: DiseaseProtocol,
+    attending_id: str,
+    admission_time: datetime,
+    encounter: Any,
+    country_key: str,
+    state: Any,
+    all_orders: list,
+    death_occurred: bool,
+) -> Any:
+    """Build the discharge prescription + populate discharge-related
+    ``encounter`` fields (physicians, admit source, disposition,
+    priority) and enrich medication orders with the parsed
+    dose/frequency/route surface.
+
+    Returns the ``discharge_rx`` ``PrescriptionRecord`` (or ``None``
+    when the patient died in hospital — death cases do not emit a
+    discharge Rx).
+
+    Side-effects: mutates every ``MEDICATION`` order in
+    ``all_orders`` (dose / frequency / route enrichment +
+    ``encounter_id`` back-fill) and the ``encounter`` resource
+    (discharging_physician_id, admitting_physician_id, admit_source,
+    admit_source_encounter_id, discharge_disposition, priority).
+
+    No RNG consumption — the discharge Rx builder uses its own
+    deterministic plumbing, order enrichment is a pure parse, and
+    the encounter field assignments are state-reads only.
+
+    Extracted from ``_simulate_patient`` per META #1633 P6
+    (``docs/design-guides/p6-god-function-split-plan.md``).
+    """
+    final_renal = state.renal_function if state else 1.0
+    discharge_rx = (
+        build_discharge_rx(
+            patient,
+            disease_id,
+            protocol,
+            attending_id,
+            admission_time,
+            encounter_id=encounter.encounter_id,
+            country_key=country_key,
+            final_renal_function=final_renal,
+        )
+        if not death_occurred
+        else None
+    )
+
+    # Enrich medication orders with parsed dose/frequency/route
+    from clinosim.modules.order.engine import enrich_medication_order
+
+    for o in all_orders:
+        if o.order_type == OrderType.MEDICATION:
+            enrich_medication_order(o)
+        # Set encounter_id for all orders that don't have one
+        if not o.encounter_id:
+            o.encounter_id = encounter.encounter_id
+
+    # Set encounter discharge fields
+    encounter.discharging_physician_id = attending_id
+    encounter.admitting_physician_id = attending_id
+    if not encounter.admit_source:
+        encounter.admit_source = AdmitSource.EMD  # Most inpatients come via ED
+    # CY7-05 (structural fix, 2026-07-11): populate `admit_source_encounter_id`
+    # on the inpatient encounter so the FHIR adapter can emit a synthetic ED
+    # Encounter with Encounter.partOf → IMP. Only sets the ID (a deterministic
+    # derived string); the actual ED Encounter FHIR resource is synthesized at
+    # emit time in _bb_encounters. Keeping this CIF-side change ID-only avoids
+    # the record.encounters[0] contract breakage (many downstream sites assume
+    # singleton) and avoids extra doc stubs for the synthesized ED.
+    if encounter.admit_source == AdmitSource.EMD and not encounter.admit_source_encounter_id:
+        encounter.admit_source_encounter_id = f"{encounter.encounter_id}-ED"
+    if not encounter.discharge_disposition:
+        if death_occurred:
+            encounter.discharge_disposition = DischargeDisposition.EXP  # #299:HL7 authoritative
+        else:
+            encounter.discharge_disposition = DischargeDisposition.HOME
+    if not encounter.priority:
+        encounter.priority = ActPriority.EM if disease_id in EMERGENCY_PRIORITY_DISEASES else ActPriority.UR
+
+    return discharge_rx
+
+
 def _run_post_encounter_stage(
     *,
     record: CIFPatientRecord,
@@ -667,54 +753,18 @@ def _simulate_patient(
         ground_truth_diseases=gt_diseases,
     )
 
-    # Discharge prescription
-    final_renal = state.renal_function if state else 1.0
-    discharge_rx = (
-        build_discharge_rx(
-            patient,
-            disease_id,
-            protocol,
-            attending_id,
-            admission_time,
-            encounter_id=encounter.encounter_id,
-            country_key=country_key,
-            final_renal_function=final_renal,
-        )
-        if not death_occurred
-        else None
+    discharge_rx = _finalize_discharge(
+        patient=patient,
+        disease_id=disease_id,
+        protocol=protocol,
+        attending_id=attending_id,
+        admission_time=admission_time,
+        encounter=encounter,
+        country_key=country_key,
+        state=state,
+        all_orders=all_orders,
+        death_occurred=death_occurred,
     )
-
-    # Enrich medication orders with parsed dose/frequency/route
-    from clinosim.modules.order.engine import enrich_medication_order
-
-    for o in all_orders:
-        if o.order_type == OrderType.MEDICATION:
-            enrich_medication_order(o)
-        # Set encounter_id for all orders that don't have one
-        if not o.encounter_id:
-            o.encounter_id = encounter.encounter_id
-
-    # Set encounter discharge fields
-    encounter.discharging_physician_id = attending_id
-    encounter.admitting_physician_id = attending_id
-    if not encounter.admit_source:
-        encounter.admit_source = AdmitSource.EMD  # Most inpatients come via ED
-    # CY7-05 (structural fix, 2026-07-11): populate `admit_source_encounter_id`
-    # on the inpatient encounter so the FHIR adapter can emit a synthetic ED
-    # Encounter with Encounter.partOf → IMP. Only sets the ID (a deterministic
-    # derived string); the actual ED Encounter FHIR resource is synthesized at
-    # emit time in _bb_encounters. Keeping this CIF-side change ID-only avoids
-    # the record.encounters[0] contract breakage (many downstream sites assume
-    # singleton) and avoids extra doc stubs for the synthesized ED.
-    if encounter.admit_source == AdmitSource.EMD and not encounter.admit_source_encounter_id:
-        encounter.admit_source_encounter_id = f"{encounter.encounter_id}-ED"
-    if not encounter.discharge_disposition:
-        if death_occurred:
-            encounter.discharge_disposition = DischargeDisposition.EXP  # #299:HL7 authoritative
-        else:
-            encounter.discharge_disposition = DischargeDisposition.HOME
-    if not encounter.priority:
-        encounter.priority = ActPriority.EM if disease_id in EMERGENCY_PRIORITY_DISEASES else ActPriority.UR
 
     # Discharge time: daytime (09-16) for planned discharge, any time for death
     # Clinical convention: discharges happen during daytime business hours
