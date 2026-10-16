@@ -148,6 +148,120 @@ def _planned_discharge_datetime(admission_time: datetime, actual_los: int, dc_ho
     return (admission_time + timedelta(days=actual_los)).replace(hour=dc_hour, minute=admission_time.minute)
 
 
+def _run_post_encounter_stage(
+    *,
+    record: CIFPatientRecord,
+    config: SimulatorConfig,
+    roster: StaffRoster,
+    disease_id: str,
+    snapshot_dt: Any,
+    encounter: Any,
+    state_history: list,
+    admission_time: datetime,
+) -> None:
+    """POST_ENCOUNTER stage (AD-55 encounter-bound Modules) — runs
+    after the daily loop produces the full clinical course.
+
+    Mutates ``record`` in place:
+      - modules/device places CVC / catheter / ventilator based on
+        ``record.icu_transferred`` + per-day state.
+      - modules/hai samples CLABSI / CAUTI / VAP onsets from device
+        line-days (CDC NHSN baseline), appends MicrobiologyResult
+        for culture, and writes ``list[HAIEvent]`` under
+        ``extensions["hai"]``.
+      - modules/imaging derives ``ImagingStudyRecord`` (FHIR) from
+        ``Order(IMAGING)`` and writes ``list[ImagingStudyRecord]``
+        under ``extensions["imaging"]``.
+
+    Per-patient sub-seed via ``ENRICHER_SEED_OFFSETS`` so the main
+    RNG is untouched (AD-16).
+
+    Extracted from ``_simulate_patient`` as part of META #1633 P6
+    (first-pass split; the admit / tick / discharge phases per
+    ``docs/design-guides/p6-god-function-split-plan.md`` remain as
+    follow-up work).
+    """
+    from clinosim.simulator.enrichers import (
+        POST_ENCOUNTER,
+        EnricherContext,
+        run_stage,
+    )
+
+    # Store disease_id in extensions for enrichers that need it (e.g. imaging
+    # enricher for impression template selection). Modules read via:
+    #   disease_id = (record.extensions or {}).get("_disease_id", "")
+    # Transient IPC key for inpatient simulator → enricher communication; cleaned up at
+    # end of enricher run (e.g. imaging_enricher); NOT included in FHIR output (AD-30).
+    if not record.extensions:
+        record.extensions = {}
+    record.extensions["_disease_id"] = disease_id
+
+    run_stage(
+        POST_ENCOUNTER,
+        EnricherContext(
+            config=config,
+            master_seed=config.random_seed,
+            records=[record],
+            roster=roster,  # nursing_enricher (order=94) samples primary_nurse_id from roster
+        ),
+    )
+
+    # Cleanup transient IPC key _disease_id (I-6 fix, 2026-06-30). Moved here
+    # from imaging_enricher so cleanup is exception-safe (fires even if enricher
+    # raises mid-loop) and future POST_ENCOUNTER enrichers at order > 90 can
+    # still read _disease_id during run_stage. Underscore prefix signals transient
+    # IPC key; must NOT leak into FHIR output (AD-30).
+    if record.extensions:
+        record.extensions.pop("_disease_id", None)
+
+    # AD-32 snapshot truncation for encounter-bound Modules. The earlier
+    # filter ran BEFORE POST_ENCOUNTER, so device + HAI outputs need their
+    # own snapshot pass: drop HAI events whose onset_date is past the
+    # snapshot (the patient hasn't acquired it yet as of the snapshot date),
+    # drop HAI cultures whose reported_datetime is past the snapshot, and
+    # re-run the microbiology truncation to catch HAI-appended cultures the
+    # pre-POST_ENCOUNTER filter missed.
+    if snapshot_dt is not None:
+        from datetime import date as _date
+
+        snapshot_date = snapshot_dt.date()
+        ext = record.extensions or {}
+        ext_hai = ext.get("hai") or []
+        if ext_hai:
+            kept_hai = []
+            for ev in ext_hai:
+                onset_str = getattr(ev, "onset_date", None) or ""
+                try:
+                    onset = _date.fromisoformat(onset_str)
+                except (TypeError, ValueError):
+                    kept_hai.append(ev)
+                    continue
+                if onset > snapshot_date:
+                    continue
+                kept_hai.append(ev)
+            if len(kept_hai) != len(ext_hai):
+                ext["hai"] = kept_hai
+        if record.microbiology:
+            record.microbiology = [
+                m for m in record.microbiology if m.reported_datetime is None or m.reported_datetime <= snapshot_dt
+            ]
+
+    # Phase 3a (2026-06-25): apply HAI WBC + CRP forward-delta lift to
+    # existing lab_results for any encounter day on/after each HAI
+    # event's onset_date. Uses the per-day state_history to compute the
+    # delta from derive_lab_values' hai_inflammation_lift kwarg so the
+    # original noise + circadian on the observation values is preserved.
+    from clinosim.modules.hai.lab_lift import apply_hai_lab_lift
+
+    apply_hai_lab_lift(
+        record=record,
+        encounter=encounter,
+        state_history=state_history,
+        admission_time=admission_time,
+        country=config.country,
+    )
+
+
 def _simulate_patient(
     patient: PatientProfile,
     event: LifeEvent,
@@ -763,97 +877,16 @@ def _simulate_patient(
         physiological_states=state_history,
     )
 
-    # POST_ENCOUNTER stage (AD-55 encounter-bound Modules) — runs after
-    # the daily loop produces the full clinical course. Currently:
-    #   - modules/device places CVC / catheter / ventilator based on
-    #     record.icu_transferred + per-day state (which is now available).
-    #   - modules/hai samples CLABSI / CAUTI / VAP onsets from device
-    #     line-days (CDC NHSN baseline), appends MicrobiologyResult for
-    #     culture, and writes list[HAIEvent] under extensions["hai"].
-    #   - modules/imaging derives ImagingStudyRecord (FHIR) from Order(IMAGING)
-    #     and writes list[ImagingStudyRecord] under extensions["imaging"].
-    # Per-patient sub-seed via ENRICHER_SEED_OFFSETS so the main RNG is
-    # untouched (AD-16).
-    from clinosim.simulator.enrichers import (
-        POST_ENCOUNTER,
-        EnricherContext,
-        run_stage,
-    )
-
-    # Store disease_id in extensions for enrichers that need it (e.g. imaging
-    # enricher for impression template selection). Modules read via:
-    #   disease_id = (record.extensions or {}).get("_disease_id", "")
-    # Transient IPC key for inpatient simulator → enricher communication; cleaned up at
-    # end of enricher run (e.g. imaging_enricher); NOT included in FHIR output (AD-30).
-    if not record.extensions:
-        record.extensions = {}
-    record.extensions["_disease_id"] = disease_id
-
-    run_stage(
-        POST_ENCOUNTER,
-        EnricherContext(
-            config=config,
-            master_seed=config.random_seed,
-            records=[record],
-            roster=roster,  # nursing_enricher (order=94) samples primary_nurse_id from roster
-        ),
-    )
-
-    # Cleanup transient IPC key _disease_id (I-6 fix, 2026-06-30). Moved here
-    # from imaging_enricher so cleanup is exception-safe (fires even if enricher
-    # raises mid-loop) and future POST_ENCOUNTER enrichers at order > 90 can
-    # still read _disease_id during run_stage. Underscore prefix signals transient
-    # IPC key; must NOT leak into FHIR output (AD-30).
-    if record.extensions:
-        record.extensions.pop("_disease_id", None)
-
-    # AD-32 snapshot truncation for encounter-bound Modules. The earlier
-    # filter (lines 386-390) ran BEFORE POST_ENCOUNTER, so device + HAI
-    # outputs need their own snapshot pass: drop HAI events whose onset_date
-    # is past the snapshot (the patient hasn't acquired it yet as of the
-    # snapshot date), drop HAI cultures whose reported_datetime is past the
-    # snapshot, and re-run the microbiology truncation to catch HAI-appended
-    # cultures the pre-POST_ENCOUNTER filter missed.
-    if snapshot_dt is not None:
-        from datetime import date as _date
-
-        snapshot_date = snapshot_dt.date()
-        ext = record.extensions or {}
-        ext_hai = ext.get("hai") or []
-        if ext_hai:
-            kept_hai = []
-            for ev in ext_hai:
-                onset_str = getattr(ev, "onset_date", None) or ""
-                try:
-                    onset = _date.fromisoformat(onset_str)
-                except (TypeError, ValueError):
-                    kept_hai.append(ev)
-                    continue
-                if onset > snapshot_date:
-                    continue
-                kept_hai.append(ev)
-            if len(kept_hai) != len(ext_hai):
-                ext["hai"] = kept_hai
-        if record.microbiology:
-            record.microbiology = [
-                m for m in record.microbiology if m.reported_datetime is None or m.reported_datetime <= snapshot_dt
-            ]
-
-    # Phase 3a (2026-06-25): apply HAI WBC + CRP forward-delta lift to
-    # existing lab_results for any encounter day on/after each HAI
-    # event's onset_date. Uses the per-day state_history to compute the
-    # delta from derive_lab_values' hai_inflammation_lift kwarg so the
-    # original noise + circadian on the observation values is preserved.
-    from clinosim.modules.hai.lab_lift import apply_hai_lab_lift
-
-    apply_hai_lab_lift(
+    _run_post_encounter_stage(
         record=record,
+        config=config,
+        roster=roster,
+        disease_id=disease_id,
+        snapshot_dt=snapshot_dt,
         encounter=encounter,
         state_history=state_history,
         admission_time=admission_time,
-        country=config.country,
     )
-
     return record
 
 
