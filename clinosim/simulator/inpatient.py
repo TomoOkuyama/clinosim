@@ -213,6 +213,41 @@ def _derive_final_diagnosis(
     return clinical_diagnosis, dx_name
 
 
+def _derive_microbiology(
+    *,
+    disease_id: str,
+    admission_time: datetime,
+    encounter: Any,
+    config: SimulatorConfig,
+    snapshot_dt: datetime | None,
+) -> list:
+    """Produce the encounter's microbiology culture + susceptibility
+    records for infection-class diseases, truncated at the snapshot
+    date.
+
+    AD-55 Base: ``has_microbiology`` gates which disease_ids emit;
+    ``generate_microbiology`` is seeded off the config master seed,
+    so the main simulation RNG stream is not consumed (AD-16). An
+    empty list is returned for non-infection disease_ids.
+
+    Extracted from ``_simulate_patient`` per META #1633 P6.
+    """
+    from clinosim.modules.observation.microbiology import generate_microbiology, has_microbiology
+
+    if not has_microbiology(disease_id):
+        return []
+    microbiology = generate_microbiology(
+        disease_id,
+        admission_time,
+        encounter.encounter_id,
+        config.random_seed,
+    )
+    if snapshot_dt:
+        # drop cultures not yet resulted as of snapshot
+        microbiology = [m for m in microbiology if m.reported_datetime is None or m.reported_datetime <= snapshot_dt]
+    return microbiology
+
+
 def _finalize_discharge(
     *,
     patient: PatientProfile,
@@ -806,22 +841,13 @@ def _simulate_patient(
         if discharge_rx is not None:
             discharge_rx.issue_date = planned_discharge
 
-    # Microbiology cultures + susceptibilities (AD-55 Base) — infections only.
-    # Encounter-scoped sub-seed keeps the main random stream unperturbed (AD-16).
-    from clinosim.modules.observation.microbiology import generate_microbiology, has_microbiology
-
-    microbiology: list = []
-    if has_microbiology(disease_id):
-        microbiology = generate_microbiology(
-            disease_id,
-            admission_time,
-            encounter.encounter_id,
-            config.random_seed,
-        )
-        if snapshot_dt:  # drop cultures not yet resulted as of snapshot
-            microbiology = [
-                m for m in microbiology if m.reported_datetime is None or m.reported_datetime <= snapshot_dt
-            ]
+    microbiology = _derive_microbiology(
+        disease_id=disease_id,
+        admission_time=admission_time,
+        encounter=encounter,
+        config=config,
+        snapshot_dt=snapshot_dt,
+    )
 
     # RM-7d: acquired chronic conditions during inpatient stay.
     # Real EHR practice: hospitalization commonly surfaces newly-diagnosed
