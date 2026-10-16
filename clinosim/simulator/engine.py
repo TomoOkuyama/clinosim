@@ -503,6 +503,124 @@ class _TimeRangeBounds(NamedTuple):
     start_dt_lb: datetime
 
 
+def _run_ed_slot_phase(
+    *,
+    inpatient_records: list[CIFPatientRecord],
+    patient_records: list[CIFPatientRecord],
+    population: Any,
+    demo: dict[str, Any],
+    roster: Any,
+    config: SimulatorConfig,
+    bounds: _TimeRangeBounds,
+    master_seed: int,
+    patient_cache: dict[tuple[str, int | None], PatientProfile],
+) -> int:
+    """Emit the "ED visits (not admitted)" slot-based phase.
+
+    Draws ``n_ed = int(len(inpatient_records) * ed_rate)`` slot RNGs
+    (``master_seed ^ PHASE_ED_VISIT``, slot-keyed), samples per-slot
+    (visit month / person / weighted condition / minute jitter) and
+    appends the resulting ``CIFPatientRecord`` entries to
+    ``patient_records``. The slot-RNG stream is cursor-independent;
+    the snapshot filter and natural-death gate run after date
+    sampling to keep the stream shape stable across cursors.
+
+    Returns the final ``n_ed`` for the caller's progress log.
+    """
+    from clinosim.modules.encounter.protocol import load_all_encounter_conditions
+
+    all_enc_conditions = load_all_encounter_conditions()
+    ed_conditions = [
+        (name, spec) for name, spec in all_enc_conditions.items() if spec.get("encounter_type") == "emergency"
+    ]
+    ed_demo = demo.get("ed_visit_not_admitted", {})
+    ed_rate = ed_demo.get("rate_per_admitted", ED_RATE_PER_ADMITTED_DEFAULT)
+    n_ed = int(len(inpatient_records) * ed_rate)
+    if not ed_conditions or n_ed <= 0:
+        # Preserve the original ``if ed_conditions and n_ed > 0`` guard:
+        # the caller logs ``ed_visits_generated`` only when the loop
+        # actually ran, so return 0 (not raw ``n_ed``) when either
+        # precondition fails.
+        return 0
+
+    occ_mult_table = demo.get("occupation_risk_multipliers", {})
+    for slot in range(n_ed):
+        slot_key = f"{config.country}|ed-slot-{slot:06d}"
+        slot_rng = derive_phase_rng(master_seed, PHASE_ED_VISIT, slot_key)
+
+        # F1: use the uncapped raw_end so the draw range (and therefore
+        # the sampled value for a given slot) is stable across cursors;
+        # the snapshot filter below still enforces cutoff.
+        total_months = (bounds.raw_end_y - bounds.start_y) * 12 + (bounds.raw_end_m - bounds.start_m) + 1
+        month_offset = int(slot_rng.integers(0, total_months))
+        visit_month = ((bounds.start_m - 1 + month_offset) % 12) + 1
+        visit_year = bounds.start_y + (bounds.start_m - 1 + month_offset) // 12
+
+        # Select person first (uniform), then filter conditions by their occupation.
+        person_id = slot_rng.choice(list(population.persons.keys()))
+        person = population.get_person(person_id)
+        if not person or not person.is_alive:
+            continue
+        patient = _activate_cached_person(
+            person,
+            as_of_year=visit_year,
+            patient_cache=patient_cache,
+            master_seed=master_seed,
+            demo=demo,
+        )
+
+        occupation = getattr(person, "occupation", "other")
+        ed_probs = []
+        for name, spec in ed_conditions:
+            base_p = spec.get("probability", 0.05)
+            seasonal = spec.get("seasonal", {})
+            seasonal_mod = float(seasonal.get(visit_month, seasonal.get(str(visit_month), 1.0)))
+            occ_mults = occ_mult_table.get(name, {})
+            if occ_mults:
+                occ_mod = occ_mults.get(occupation, ED_OCCUPATION_MISMATCH_FALLBACK)
+            else:
+                occ_mod = 1.0
+            ed_probs.append(base_p * seasonal_mod * occ_mod)
+        total_p = sum(ed_probs)
+        if total_p <= 0:
+            continue
+        ed_probs = [p / total_p for p in ed_probs]
+        cond_idx = int(slot_rng.choice(len(ed_conditions), p=ed_probs))
+        _cond_name, cond = ed_conditions[cond_idx]
+        ed_year = bounds.start_y + (bounds.start_m - 1 + month_offset) // 12
+        ed_day = int(slot_rng.integers(ED_DAY_MIN, ED_DAY_MAX_EXCLUSIVE))
+        ed_hour = int(slot_rng.choice(ED_FAVORED_HOURS))
+        ed_time = datetime(
+            ed_year,
+            visit_month,
+            ed_day,
+            ed_hour,
+            int(slot_rng.integers(ED_MINUTE_JITTER_MIN, ED_MINUTE_JITTER_MAX_EXCLUSIVE)),
+        )
+        if bounds.snapshot_dt and ed_time > bounds.snapshot_dt:
+            continue
+        # C11g-3b: natural-death gate on the actual ED visit date — person
+        # selection at the top uses the naive is_alive flag because
+        # ed_time is not known yet (sampled from slot_rng below). This
+        # second check blocks the visit when the sampled datetime falls
+        # after date_of_death. Reordering to filter earlier would shift
+        # the slot_rng cursor and cascade to unrelated slots.
+        if not person.is_alive_at(ed_time.date()):
+            continue
+
+        ed_record = _simulate_ed_visit(
+            patient,
+            cond,
+            ed_time,
+            roster,
+            slot_rng,
+            country=config.country,
+            config=config,
+        )
+        patient_records.append(ed_record)
+    return n_ed
+
+
 def _activate_cached_person(
     person: PersonRecord,
     *,
@@ -769,7 +887,6 @@ def run_beta(
     bounds = _derive_time_range_bounds(config)
     start_y, start_m = bounds.start_y, bounds.start_m
     end_y, end_m = bounds.end_y, bounds.end_m
-    raw_end_y, raw_end_m = bounds.raw_end_y, bounds.raw_end_m
     snapshot_dt = bounds.snapshot_dt
     _start_dt_lb = bounds.start_dt_lb
 
@@ -1579,91 +1696,18 @@ def run_beta(
     sim_log.info("engine", "outpatient_done", post_discharge=n_post_dc, calendar=n_calendar)
 
     # === ED visits (not admitted — auto-discovered from encounter YAMLs) ===
-    from clinosim.modules.encounter.protocol import load_all_encounter_conditions
-
-    all_enc_conditions = load_all_encounter_conditions()
-    ed_conditions = [
-        (name, spec) for name, spec in all_enc_conditions.items() if spec.get("encounter_type") == "emergency"
-    ]
-    ed_demo = demo.get("ed_visit_not_admitted", {})
-    ed_rate = ed_demo.get("rate_per_admitted", ED_RATE_PER_ADMITTED_DEFAULT)
-    n_ed = int(len(inpatient_records) * ed_rate)
-    if ed_conditions and n_ed > 0:
-        for slot in range(n_ed):
-            slot_key = f"{config.country}|ed-slot-{slot:06d}"
-            slot_rng = derive_phase_rng(master_seed, PHASE_ED_VISIT, slot_key)
-
-            # Apply seasonal modifiers to probabilities for this visit's month.
-            # F1: use the uncapped raw_end_y/m (see above) so the draw range —
-            # and therefore the sampled value for a given slot — is stable
-            # across cursors; the snapshot filter below still enforces cutoff.
-            total_months = (raw_end_y - start_y) * 12 + (raw_end_m - start_m) + 1
-            month_offset = int(slot_rng.integers(0, total_months))
-            visit_month = ((start_m - 1 + month_offset) % 12) + 1
-            visit_year = start_y + (start_m - 1 + month_offset) // 12
-
-            # Select person first (uniform), then filter conditions by their occupation
-            person_id = slot_rng.choice(list(population.persons.keys()))
-            person = population.get_person(person_id)
-            if not person or not person.is_alive:
-                continue
-            patient = _activate_cached(person, as_of_year=visit_year)
-
-            # Build condition probabilities weighted by occupation risk
-            occupation = getattr(person, "occupation", "other")
-            occ_mult_table = demo.get("occupation_risk_multipliers", {})
-            ed_probs = []
-            for name, spec in ed_conditions:
-                base_p = spec.get("probability", 0.05)
-                seasonal = spec.get("seasonal", {})
-                seasonal_mod = float(seasonal.get(visit_month, seasonal.get(str(visit_month), 1.0)))
-                occ_mults = occ_mult_table.get(name, {})
-                if occ_mults:
-                    # Work-related condition — use 0.05 default for non-matching occupations
-                    occ_mod = occ_mults.get(occupation, ED_OCCUPATION_MISMATCH_FALLBACK)
-                else:
-                    occ_mod = 1.0
-                ed_probs.append(base_p * seasonal_mod * occ_mod)
-            total_p = sum(ed_probs)
-            if total_p <= 0:
-                continue
-            ed_probs = [p / total_p for p in ed_probs]
-            cond_idx = int(slot_rng.choice(len(ed_conditions), p=ed_probs))
-            cond_name, cond = ed_conditions[cond_idx]
-            # Use the same month that seasonal modifiers were calculated for
-            ed_year = start_y + (start_m - 1 + month_offset) // 12
-            ed_day = int(slot_rng.integers(ED_DAY_MIN, ED_DAY_MAX_EXCLUSIVE))
-            ed_hour = int(slot_rng.choice(ED_FAVORED_HOURS))
-            ed_time = datetime(
-                ed_year,
-                visit_month,
-                ed_day,
-                ed_hour,
-                int(slot_rng.integers(ED_MINUTE_JITTER_MIN, ED_MINUTE_JITTER_MAX_EXCLUSIVE)),
-            )
-            # Skip ED visits past snapshot date
-            if snapshot_dt and ed_time > snapshot_dt:
-                continue
-            # C11g-3b: natural-death gate on the actual ED visit date.
-            # ED-visit person selection at loop head uses the naive
-            # ``is_alive`` boolean because ``ed_time`` is not yet known
-            # (it is computed here from the slot RNG); this second check
-            # blocks the visit when the sampled datetime falls after
-            # ``date_of_death``. Reordering to filter earlier would
-            # shift the slot_rng cursor and cascade to unrelated slots.
-            if not person.is_alive_at(ed_time.date()):
-                continue
-
-            ed_record = _simulate_ed_visit(
-                patient,
-                cond,
-                ed_time,
-                roster,
-                slot_rng,
-                country=config.country,
-                config=config,
-            )
-            patient_records.append(ed_record)
+    n_ed = _run_ed_slot_phase(
+        inpatient_records=inpatient_records,
+        patient_records=patient_records,
+        population=population,
+        demo=demo,
+        roster=roster,
+        config=config,
+        bounds=bounds,
+        master_seed=master_seed,
+        patient_cache=patient_cache,
+    )
+    if n_ed > 0:
         print(f"  ED visits (not admitted): {n_ed} generated", flush=True)
         sim_log.info("engine", "ed_visits_generated", ed_visits=n_ed)
 
