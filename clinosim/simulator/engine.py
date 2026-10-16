@@ -503,6 +503,35 @@ class _TimeRangeBounds(NamedTuple):
     start_dt_lb: datetime
 
 
+def _activate_cached_person(
+    person: PersonRecord,
+    *,
+    as_of_year: int | None,
+    patient_cache: dict[tuple[str, int | None], PatientProfile],
+    master_seed: int,
+    demo: dict[str, Any],
+) -> PatientProfile:
+    """Return the cached ``PatientProfile`` for a person, activating on miss.
+
+    A person who appears across multiple phases (admission, readmission,
+    post-discharge, calendar, ED) must share a single ``PatientProfile``
+    so their chronic-condition onset/stage, physiological profile, and
+    baseline vitals are consistent across every encounter. The cache
+    is keyed by ``(person_id, as_of_year)`` per Issue #1581 so a year-1
+    encounter sees that year's stage snapshot rather than end-of-sim.
+    ``as_of_year=None`` preserves the pre-#1581 single-cached-profile
+    behaviour. Patient activation is fully determined by
+    ``(patient_id, as_of_year)`` — the per-person sub-RNG is snapshot-
+    independent, and ``activate_patient`` honours ``as_of_year`` via
+    ``person.disease_stage_history``.
+    """
+    key = (person.person_id, as_of_year)
+    if key not in patient_cache:
+        act_rng = derive_phase_rng(master_seed, PHASE_INPATIENT_SIM, f"activate|{person.person_id}")
+        patient_cache[key] = activate_patient(person, act_rng, demo, as_of_year=as_of_year)
+    return patient_cache[key]
+
+
 def _derive_time_range_bounds(config: SimulatorConfig) -> _TimeRangeBounds:
     """Parse ``config.time_range`` + ``config.snapshot_date`` into the
     month-loop bounds used by ``run_beta``.
@@ -781,15 +810,13 @@ def run_beta(
     patient_cache: dict[tuple[str, int | None], PatientProfile] = {}
 
     def _activate_cached(p: PersonRecord, as_of_year: int | None = None) -> PatientProfile:
-        key = (p.person_id, as_of_year)
-        if key not in patient_cache:
-            # Patient activation is fully determined by (patient_id, as_of_year):
-            # the per-person sub-RNG is unchanged (snapshot-independent); stage
-            # lookup inside ``activate_patient`` additionally honours as_of_year
-            # through ``person.disease_stage_history`` when supplied.
-            act_rng = derive_phase_rng(master_seed, PHASE_INPATIENT_SIM, f"activate|{p.person_id}")
-            patient_cache[key] = activate_patient(p, act_rng, demo, as_of_year=as_of_year)
-        return patient_cache[key]
+        return _activate_cached_person(
+            p,
+            as_of_year=as_of_year,
+            patient_cache=patient_cache,
+            master_seed=master_seed,
+            demo=demo,
+        )
 
     # Issue #174: bracket the inpatient loop with `sim_log.phase` so a
     # `tail -f simulator.log` sees `inpatient_loop_start` immediately (not
