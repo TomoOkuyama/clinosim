@@ -10,9 +10,6 @@ from types import SimpleNamespace
 
 from clinosim.modules.document.narrative.replacement_strategy import (
     _build_extra_context,
-    _health_literacy_tag,
-    _render_patient_biometrics,
-    _render_patient_demographics,
     apply_replacement_strategy,
 )
 from clinosim.modules.llm_service.engine import LLMService, LLMTaskType
@@ -881,7 +878,6 @@ def test_build_extra_context_surfaces_complications_in_discharge_scope() -> None
     NarrativeContext.complications_occurred is non-empty AND the writing
     scope is whole-stay (discharge_summary is written at discharge, so the
     author legitimately knows every complication that occurred)."""
-    from clinosim.modules.document.narrative.replacement_strategy import _build_extra_context
 
     ctx = _make_ctx()
     ctx.complications_occurred = ["pneumothorax", "aspiration_pneumonia"]
@@ -897,7 +893,6 @@ def test_build_extra_context_surfaces_complications_in_discharge_scope() -> None
 
 def test_build_extra_context_omits_complications_when_empty() -> None:
     """Empty complications_occurred → key omitted (kept payload small)."""
-    from clinosim.modules.document.narrative.replacement_strategy import _build_extra_context
 
     ctx = _make_ctx()
     ctx.complications_occurred = []
@@ -922,7 +917,6 @@ def test_build_extra_context_omits_complications_when_empty() -> None:
 def test_temporal_filter_drops_future_dated_complication_from_progress_note() -> None:
     """A working_diagnoses entry with onset_day=5 must NOT surface in a
     day-2 progress_note (writing_day = ctx.day_index = 2 < 5)."""
-    from clinosim.modules.document.narrative.replacement_strategy import _build_extra_context
 
     ctx = _make_ctx()
     ctx.day_index = 2
@@ -942,7 +936,6 @@ def test_temporal_filter_drops_future_dated_complication_from_progress_note() ->
 def test_temporal_filter_keeps_already_occurred_complication_in_progress_note() -> None:
     """A working_diagnoses entry with onset_day=1 SHOULD surface in a day-3
     progress_note (writing_day = 3 >= 1)."""
-    from clinosim.modules.document.narrative.replacement_strategy import _build_extra_context
 
     ctx = _make_ctx()
     ctx.day_index = 3
@@ -967,7 +960,6 @@ def test_temporal_filter_keeps_already_occurred_complication_in_progress_note() 
 
 def test_temporal_filter_partial_mix_only_past_onsets_surface() -> None:
     """Mix of already-occurred + future-onset: only past entries surface."""
-    from clinosim.modules.document.narrative.replacement_strategy import _build_extra_context
 
     ctx = _make_ctx()
     ctx.day_index = 4
@@ -996,7 +988,6 @@ def test_temporal_filter_drops_undated_complication_from_admission_scope() -> No
     onset_day we cannot safely place them in an admission_hp — surfacing
     would let the LLM claim same-day onset that CIF does not support.
     Whole-stay scope keeps them (see below)."""
-    from clinosim.modules.document.narrative.replacement_strategy import _build_extra_context
 
     ctx = _make_ctx()
     ctx.complications_occurred = ["pneumothorax", "aspiration_pneumonia"]
@@ -1009,7 +1000,6 @@ def test_temporal_filter_drops_undated_complication_from_admission_scope() -> No
 def test_temporal_filter_keeps_undated_complication_in_whole_stay_scope() -> None:
     """Whole-stay scope (discharge_summary) writer legitimately knows the
     full timeline — undated complications MUST still be surfaced there."""
-    from clinosim.modules.document.narrative.replacement_strategy import _build_extra_context
 
     ctx = _make_ctx()
     ctx.complications_occurred = ["pneumothorax", "aspiration_pneumonia"]
@@ -1029,7 +1019,6 @@ def test_temporal_filter_reads_onset_from_complications_events() -> None:
     cross-lookup. Closes the Channel A 49% undated-string leak: a day-2
     progress note for an encounter whose aspiration_pneumonia fires on
     day 8 no longer surfaces the future complication."""
-    from clinosim.modules.document.narrative.replacement_strategy import _build_extra_context
 
     ctx = _make_ctx()
     ctx.day_index = 2
@@ -1058,7 +1047,6 @@ def test_temporal_filter_reads_onset_from_complications_events() -> None:
 def test_temporal_filter_events_onset_past_surfaces() -> None:
     """Phase 1b mirror: same daily-loop-sourced complication surfaces once
     the writing day passes its onset (day 10 for a day-8 event)."""
-    from clinosim.modules.document.narrative.replacement_strategy import _build_extra_context
 
     ctx = _make_ctx()
     ctx.day_index = 10
@@ -1089,7 +1077,6 @@ def test_temporal_filter_legacy_undated_still_dropped_in_day_scope() -> None:
     CIF) still has ``onset_day=None`` and is dropped for day-scoped and
     admission-scoped documents — preserves the Phase 0 conservative
     filter for the small legacy tail."""
-    from clinosim.modules.document.narrative.replacement_strategy import _build_extra_context
 
     ctx = _make_ctx()
     ctx.day_index = 3
@@ -1110,7 +1097,6 @@ def test_temporal_filter_events_preferred_over_working_diagnoses() -> None:
     """When a name appears in both ``complications_events`` (with onset)
     and ``working_diagnoses`` (also with onset), the events onset wins —
     it is source-of-truth for the producer that dispatched the event."""
-    from clinosim.modules.document.narrative.replacement_strategy import _build_extra_context
 
     ctx = _make_ctx()
     ctx.day_index = 6
@@ -1133,7 +1119,6 @@ def test_temporal_filter_events_preferred_over_working_diagnoses() -> None:
 def test_temporal_filter_day_zero_progress_note_still_admits_same_day_onset() -> None:
     """Boundary: onset_day = 0 (admission-day complication) MUST surface in
     a day-0 progress_note. Filter uses ``>`` so equality passes through."""
-    from clinosim.modules.document.narrative.replacement_strategy import _build_extra_context
 
     ctx = _make_ctx()
     ctx.day_index = 0
@@ -1154,7 +1139,6 @@ def test_temporal_filter_day_zero_progress_note_still_admits_same_day_onset() ->
 def test_build_extra_context_localizes_encounter_type_ja() -> None:
     """v6 localization: encounter_type raw enum → JA label for
     target_lang=ja. Fixes POP-000094 (外来 narrated as 「緊急入院」)."""
-    from clinosim.modules.document.narrative.replacement_strategy import _build_extra_context
 
     ctx = _make_ctx()
     ctx.encounter_type = SimpleNamespace(value="outpatient")
@@ -1165,7 +1149,6 @@ def test_build_extra_context_localizes_encounter_type_ja() -> None:
 
 def test_build_extra_context_keeps_encounter_type_raw_for_en() -> None:
     """Non-JA locales receive the raw lowercased enum value."""
-    from clinosim.modules.document.narrative.replacement_strategy import _build_extra_context
 
     ctx = _make_ctx()
     ctx.encounter_type = SimpleNamespace(value="outpatient")
@@ -1178,7 +1161,6 @@ def test_build_extra_context_supplemental_oxygen_flag() -> None:
     """v6: supplemental_oxygen_today MUST surface when today's vitals
     record on_supplemental_oxygen=True. Prevents "SpO2 89% だが酸素投与
     なしで安定" self-contradiction (POP-000075 doc-06)."""
-    from clinosim.modules.document.narrative.replacement_strategy import _build_extra_context
 
     ctx = _make_ctx()
     ctx.document_type = DocumentType.PROGRESS_NOTE
@@ -1206,7 +1188,6 @@ def test_build_extra_context_supplemental_oxygen_flag() -> None:
 def test_build_extra_context_abnormal_labs_today_filters_by_flag() -> None:
     """Only H/L/critical-flagged labs are surfaced — stable results are
     intentionally omitted to keep the payload focused."""
-    from clinosim.modules.document.narrative.replacement_strategy import _build_extra_context
 
     ctx = _make_ctx()
     ctx.document_type = DocumentType.PROGRESS_NOTE
@@ -1230,7 +1211,6 @@ def test_build_extra_context_abnormal_labs_today_filters_by_flag() -> None:
 
 def test_build_extra_context_hospital_day_label_admission_day() -> None:
     """v8 (2026-08-17): day 0 → 「入院初日」verbatim label."""
-    from clinosim.modules.document.narrative.replacement_strategy import _build_extra_context
 
     ctx = _make_ctx()
     ctx.day_index = 0
@@ -1246,7 +1226,6 @@ def test_build_extra_context_hospital_day_label_admission_day() -> None:
 def test_build_extra_context_hospital_day_label_day_two() -> None:
     """v8: day 1 → 「入院2日目」 (1-indexed). Prevents the v7 systematic
     "入院初日で" failure across all day-1 progress notes."""
-    from clinosim.modules.document.narrative.replacement_strategy import _build_extra_context
 
     ctx = _make_ctx()
     ctx.day_index = 1
@@ -1261,7 +1240,6 @@ def test_build_extra_context_hospital_day_label_day_two() -> None:
 
 def test_build_extra_context_hospital_day_label_en() -> None:
     """EN locale: matching phrase in English."""
-    from clinosim.modules.document.narrative.replacement_strategy import _build_extra_context
 
     ctx = _make_ctx()
     ctx.day_index = 4
@@ -1301,7 +1279,6 @@ def test_build_extra_context_discharge_summary_enrichment() -> None:
     abnormal_labs_during_stay, key_procedures_performed, and
     vitals_range_during_stay so LLM has per-patient facts to compose
     hospital_course from."""
-    from clinosim.modules.document.narrative.replacement_strategy import _build_extra_context
 
     ctx = _make_ctx()
     ctx.document_type = DocumentType.DISCHARGE_SUMMARY
@@ -1327,321 +1304,3 @@ def test_build_extra_context_discharge_summary_enrichment() -> None:
     assert "WBC" in extra.get("abnormal_labs_during_stay", "")
     range_line = extra.get("vitals_range_during_stay", "")
     assert "sBP" in range_line and "T" in range_line and "SpO2" in range_line
-
-
-# ─────────────────────────────────────────────────────────────────
-# Session 104 Tier 1: patient_demographics + patient_biometrics +
-# health_literacy_tag realism keys
-# ─────────────────────────────────────────────────────────────────
-
-
-def _rich_patient() -> SimpleNamespace:
-    return SimpleNamespace(
-        age=72,
-        sex="female",
-        chronic_conditions=[],
-        employment_status="retired",
-        occupation="",
-        smoking_status="former_smoker",
-        alcohol_use="occasional",
-        marital_status="widowed",
-        insurance_type="late_elderly",
-        height_cm=158,
-        weight_kg=52.4,
-        bmi=21.0,
-        blood_type="O",
-        rh_factor="positive",
-        health_literacy=0.35,
-    )
-
-
-def _empty_patient() -> SimpleNamespace:
-    return SimpleNamespace(
-        age=None,
-        sex="",
-        chronic_conditions=[],
-        employment_status="",
-        occupation="",
-        smoking_status="",
-        alcohol_use="",
-        marital_status="",
-        insurance_type="",
-        height_cm=None,
-        weight_kg=None,
-        bmi=0,
-        blood_type="",
-        rh_factor="",
-        health_literacy=None,
-    )
-
-
-def test_render_patient_demographics_ja_full_anchor() -> None:
-    out = _render_patient_demographics(_rich_patient(), lang="ja")
-    assert "72歳女性" in out
-    assert "退職" in out
-    assert "元喫煙" in out
-    assert "機会飲酒" in out
-    assert "死別" in out
-    assert "後期高齢者医療制度" in out
-
-
-def test_render_patient_demographics_en_full_anchor() -> None:
-    out = _render_patient_demographics(_rich_patient(), lang="en")
-    assert "72 y/o female" in out
-    assert "retired" in out
-    assert "former smoker" in out
-    assert "occasional alcohol" in out
-    assert "widowed" in out
-    assert "Late-Elderly Medical Care System" in out
-
-
-def test_render_patient_demographics_silent_on_empty_patient() -> None:
-    assert _render_patient_demographics(_empty_patient(), lang="ja") == ""
-    assert _render_patient_demographics(_empty_patient(), lang="en") == ""
-
-
-def test_render_patient_demographics_localizes_occupation_ja() -> None:
-    """Phase 1c-1 (2026-09-22): pre-fix, the demographics renderer emitted
-    the raw ``occupation`` string ("service") verbatim into JA output —
-    the JP p=500 H100 audit surfaced 「32歳男性、service、非喫煙、s、
-    dependent」 as the ed_note::hpi opening line. Occupation now routes
-    through ``_OCCUPATION_LABELS`` so common vocabulary values (service,
-    office, healthcare, manufacturing, ...) resolve to JA labels."""
-    p = SimpleNamespace(
-        age=32,
-        sex="male",
-        employment_status="employed",
-        occupation="service",
-        smoking_status="never",
-        alcohol_use="none",
-        marital_status="single",
-        insurance_type="employee_dependent",
-    )
-    ja = _render_patient_demographics(p, lang="ja")
-    assert "サービス業" in ja
-    assert "service" not in ja  # raw enum must not leak
-    en = _render_patient_demographics(p, lang="en")
-    assert "service industry" in en
-
-
-def test_render_patient_demographics_localizes_marital_short_codes() -> None:
-    """Phase 1c-1: PatientProfile.marital_status is emitted as a
-    single-letter uppercase code (M / S / D / W / P) by the demographics
-    populator. Pre-fix, ``_localize_token`` lower-cased them to
-    "m"/"s"/... which had no table entry and fell back to the raw slug
-    ("s") — 600 patients / 2 cohorts leaked verbatim. Alias entries now
-    map each short code to the full form's JA/EN labels."""
-    for code, ja_expected, en_expected in [
-        ("M", "既婚", "married"),
-        ("S", "独身", "single"),
-        ("D", "離婚", "divorced"),
-        ("W", "死別", "widowed"),
-        ("P", "内縁", "partnered"),
-    ]:
-        p = SimpleNamespace(
-            age=45,
-            sex="female",
-            employment_status="",
-            occupation="",
-            smoking_status="",
-            alcohol_use="",
-            marital_status=code,
-            insurance_type="",
-        )
-        ja = _render_patient_demographics(p, lang="ja")
-        assert ja_expected in ja, f"code={code!r} missing {ja_expected!r} in {ja!r}"
-        assert code.lower() not in ja  # bare single letter must not leak
-        en = _render_patient_demographics(p, lang="en")
-        assert en_expected in en
-
-
-def test_render_patient_demographics_localizes_jp_insurance_short_forms() -> None:
-    """Phase 1c-1: the JP identity module writes short-form
-    insurance_type values (`dependent` / `national` / `employee`) rather
-    than the canonical `employee_dependent` / `national_health_insurance`
-    slugs the pre-fix table indexed by. 200/600 JP patients carried
-    "dependent" verbatim into the LLM prompt pre-fix — now covered."""
-    for raw, ja_expected in [
-        ("dependent", "被用者保険 (被扶養者)"),
-        ("employee", "被用者保険 (被保険者)"),
-        ("national", "国民健康保険"),
-        ("late_elderly", "後期高齢者医療制度"),
-        ("NHI_employee", "国民健康保険 (被用者相当)"),
-    ]:
-        p = SimpleNamespace(
-            age=70,
-            sex="male",
-            employment_status="",
-            occupation="",
-            smoking_status="",
-            alcohol_use="",
-            marital_status="",
-            insurance_type=raw,
-        )
-        ja = _render_patient_demographics(p, lang="ja")
-        assert ja_expected in ja, f"raw={raw!r} missing {ja_expected!r} in {ja!r}"
-        assert raw.lower() not in ja  # raw enum must not leak
-
-
-def test_render_patient_demographics_localizes_social_alcohol_ja() -> None:
-    """Phase 1c-1: ``alcohol_use="social"`` was missing from
-    ``_ALCOHOL_LABELS`` (which only had "occasional"), so 157/600 JP
-    patients emitted the raw English "social" inside JA demographics."""
-    p = SimpleNamespace(
-        age=50,
-        sex="male",
-        employment_status="",
-        occupation="",
-        smoking_status="never",
-        alcohol_use="social",
-        marital_status="",
-        insurance_type="",
-    )
-    ja = _render_patient_demographics(p, lang="ja")
-    assert "機会飲酒" in ja
-    assert "social" not in ja
-
-
-def test_render_patient_demographics_partial_skips_missing() -> None:
-    p = SimpleNamespace(
-        age=68,
-        sex="male",
-        employment_status="",
-        occupation="",
-        smoking_status="never",
-        alcohol_use="",
-        marital_status="",
-        insurance_type="",
-    )
-    ja = _render_patient_demographics(p, lang="ja")
-    en = _render_patient_demographics(p, lang="en")
-    # Age + sex + one social item, nothing fabricated for missing fields
-    assert ja == "68歳男性、非喫煙"
-    assert en == "68 y/o male, non-smoker"
-
-
-def test_render_patient_biometrics_full_line() -> None:
-    ja = _render_patient_biometrics(_rich_patient(), lang="ja")
-    en = _render_patient_biometrics(_rich_patient(), lang="en")
-    assert "身長 158 cm" in ja
-    assert "体重 52.4 kg" in ja
-    assert "BMI 21.0" in ja
-    assert "血液型 O+" in ja
-    assert "Ht 158 cm" in en
-    assert "Wt 52.4 kg" in en
-    assert "blood type O+" in en
-
-
-def test_render_patient_biometrics_silent_on_missing() -> None:
-    assert _render_patient_biometrics(_empty_patient(), lang="ja") == ""
-    assert _render_patient_biometrics(_empty_patient(), lang="en") == ""
-
-
-def test_render_patient_biometrics_rh_negative() -> None:
-    p = SimpleNamespace(
-        height_cm=170,
-        weight_kg=68,
-        bmi=23.5,
-        blood_type="AB",
-        rh_factor="negative",
-    )
-    assert "AB-" in _render_patient_biometrics(p, lang="en")
-
-
-def test_health_literacy_tag_bands() -> None:
-    # Fixed thresholds: <0.4 low, 0.4-<0.7 medium, ≥0.7 high
-    def _tag(v):
-        return _health_literacy_tag(SimpleNamespace(health_literacy=v))
-
-    assert _tag(0.0) == "low"
-    assert _tag(0.39) == "low"
-    assert _tag(0.4) == "medium"
-    assert _tag(0.69) == "medium"
-    assert _tag(0.7) == "high"
-    assert _tag(1.0) == "high"
-    # Missing → silent
-    assert _tag(None) == ""
-    assert _health_literacy_tag(SimpleNamespace(health_literacy=None)) == ""
-
-
-def test_health_literacy_tag_absent_field_silent() -> None:
-    # A patient object with no health_literacy attribute at all
-    p = SimpleNamespace()
-    assert _health_literacy_tag(p) == ""
-
-
-def _make_ctx_with_patient(patient, doc_type="progress_note", lang="ja") -> NarrativeContext:
-    dt = getattr(DocumentType, doc_type.upper())
-    return NarrativeContext(
-        patient=patient,
-        encounter=SimpleNamespace(encounter_id="enc"),
-        encounter_type=SimpleNamespace(value="inpatient"),
-        disease_protocol=None,
-        encounter_protocol=None,
-        clinical_course_archetype="uncomplicated_improvement",
-        severity="moderate",
-        day_index=1,
-        los_days=5,
-        vitals=[],
-        lab_results=[],
-        medications=[],
-        diagnoses=[],
-        procedures=[],
-        allergies=[],
-        document_type=dt,
-        target_lang=lang,
-        locale="jp" if lang == "ja" else "us",
-    )
-
-
-def test_build_extra_context_emits_patient_demographics_when_template_lacks_social_history() -> None:
-    ctx = _make_ctx_with_patient(_rich_patient(), doc_type="progress_note", lang="ja")
-    spec = _bundle_spec(type_key="progress_note")
-    extra = _build_extra_context(ctx, spec, template_section_names=set())
-    assert "patient_demographics" in extra
-    assert "72歳女性" in extra["patient_demographics"]
-
-
-def test_build_extra_context_skips_patient_demographics_when_template_has_social_history() -> None:
-    ctx = _make_ctx_with_patient(_rich_patient(), doc_type="admission_hp", lang="ja")
-    spec = _bundle_spec(type_key="admission_hp", llm_enabled_sections=("hpi", "assessment_and_plan"))
-    extra = _build_extra_context(ctx, spec, template_section_names={"social_history"})
-    assert "patient_demographics" not in extra  # skipped because template renders it
-
-
-def test_build_extra_context_emits_patient_biometrics_only_for_scoped_doc_types() -> None:
-    # operative_note is in _BIOMETRICS_DOC_TYPES → emit
-    ctx = _make_ctx_with_patient(_rich_patient(), doc_type="operative_note", lang="en")
-    spec = _bundle_spec(type_key="operative_note", llm_enabled_sections=("op_findings",))
-    extra_op = _build_extra_context(ctx, spec, template_section_names=set())
-    assert "patient_biometrics" in extra_op
-    assert "BMI 21.0" in extra_op["patient_biometrics"]
-
-    # progress_note is NOT in the biometrics set → skip
-    ctx_pn = _make_ctx_with_patient(_rich_patient(), doc_type="progress_note", lang="en")
-    spec_pn = _bundle_spec(type_key="progress_note")
-    extra_pn = _build_extra_context(ctx_pn, spec_pn, template_section_names=set())
-    assert "patient_biometrics" not in extra_pn
-
-
-def test_build_extra_context_emits_health_literacy_tag_for_patient_facing_docs() -> None:
-    # discharge_summary is patient-facing → tag emitted
-    ctx = _make_ctx_with_patient(_rich_patient(), doc_type="discharge_summary", lang="ja")
-    spec = _bundle_spec(type_key="discharge_summary", llm_enabled_sections=("discharge_instructions",))
-    extra = _build_extra_context(ctx, spec, template_section_names=set())
-    assert extra.get("health_literacy_tag") == "low"
-
-    # progress_note is physician-to-physician → tag skipped (invariant tone)
-    ctx_pn = _make_ctx_with_patient(_rich_patient(), doc_type="progress_note", lang="ja")
-    spec_pn = _bundle_spec(type_key="progress_note")
-    extra_pn = _build_extra_context(ctx_pn, spec_pn, template_section_names=set())
-    assert "health_literacy_tag" not in extra_pn
-
-
-def test_build_extra_context_universal_keys_silent_on_empty_patient() -> None:
-    ctx = _make_ctx_with_patient(_empty_patient(), doc_type="discharge_summary", lang="ja")
-    spec = _bundle_spec(type_key="discharge_summary", llm_enabled_sections=("discharge_instructions",))
-    extra = _build_extra_context(ctx, spec, template_section_names=set())
-    assert "patient_demographics" not in extra
-    assert "patient_biometrics" not in extra
-    assert "health_literacy_tag" not in extra
