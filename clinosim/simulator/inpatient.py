@@ -148,6 +148,71 @@ def _planned_discharge_datetime(admission_time: datetime, actual_los: int, dc_ho
     return (admission_time + timedelta(days=actual_los)).replace(hour=dc_hour, minute=admission_time.minute)
 
 
+def _derive_final_diagnosis(
+    *,
+    differential: Any,
+    protocol: DiseaseProtocol,
+    secondary_protocol: DiseaseProtocol | None,
+    secondary_disease_id: str | None,
+    patient: PatientProfile,
+    config: SimulatorConfig,
+    rng: np.random.Generator,
+) -> tuple[ClinicalDiagnosis, str]:
+    """Walk the differential to a final discharge diagnosis + sample
+    the mixed-case missed-secondary-dx coin flip.
+
+    Returns ``(clinical_diagnosis, dx_name)``. ``dx_name`` is the
+    human-readable diagnosis name (used by downstream narrative /
+    discharge-prescription paths); ``clinical_diagnosis`` is the
+    structured :class:`ClinicalDiagnosis` for ``CIFPatientRecord``.
+
+    RNG consumption: one ``rng.random()`` for the AD-29 missed-
+    secondary-dx Bernoulli, only when a secondary protocol is
+    attached. Preserves the pre-refactor order.
+    """
+    protocol_diagnostic = protocol.diagnostic if hasattr(protocol, "diagnostic") else {}
+    yaml_progression = protocol_diagnostic.get("diagnosis_progression") if protocol_diagnostic else None
+    # Issue #947: sex-gate the differential-final picker. Passing patient.sex
+    # lets `get_current_diagnosis_code` walk to the next-ranked sex-compatible
+    # candidate when the top pick is anatomy-locked to the opposite sex
+    # (e.g. `prostatitis`/N41.0 on a UTI female patient). Non-RNG walk.
+    dx_code, dx_name = get_current_diagnosis_code(
+        differential,
+        protocol_progression=yaml_progression,
+        patient_sex=patient.sex,
+    )
+
+    # Diagnosis correctness and missed diagnoses (AD-29)
+    missed: list[str] = []
+    overcalled: list[str] = []
+    if secondary_protocol and secondary_disease_id:
+        # Simulated missed-secondary-diagnosis rate in mixed cases
+        if rng.random() < MIXED_CASE_MISSED_SECONDARY_DX_PROB:
+            missed.append(secondary_disease_id)
+
+    # Issue #547: use the canonical registry (`icd-10-mhlw` on JP per JP Core
+    # `jp-condition-diagnosis` required binding). The previous inline `"icd-10"`
+    # branch emitted the WHO code system on JP inpatient encounters, whereas
+    # ED / OPD paths and the FHIR emitter routed via the registry — CIF-side
+    # diagnosis_system was inconsistent across encounter types.
+    icd_sys = system_key_for("diagnosis", config.country)
+    clinical_diagnosis = ClinicalDiagnosis(
+        admission_diagnosis_code=protocol.icd_codes.get("primary", ""),
+        admission_diagnosis_system=icd_sys,
+        discharge_diagnosis_code=dx_code,
+        discharge_diagnosis_system=icd_sys,
+        # Issue #551: the engine returns ``UNRESOLVED_DIAGNOSIS_ICD`` (R69) when
+        # the differential did not converge. Previous code compared against
+        # ``"R05"`` (Cough) — a real ICD-10 code, which made legitimate cough
+        # presentations look incorrect and disagreed with the engine's actual
+        # sentinel.
+        diagnosis_correct=(dx_code != UNRESOLVED_DIAGNOSIS_ICD and not missed),
+        missed_diagnoses=missed,
+        overcalled_diagnoses=overcalled,
+    )
+    return clinical_diagnosis, dx_name
+
+
 def _run_post_encounter_stage(
     *,
     record: CIFPatientRecord,
@@ -578,46 +643,14 @@ def _simulate_patient(
     differential = loop_result["differential"]
     actual_los = loop_result["actual_los"]
 
-    # Final diagnosis
-    protocol_diagnostic = protocol.diagnostic if hasattr(protocol, "diagnostic") else {}
-    yaml_progression = protocol_diagnostic.get("diagnosis_progression") if protocol_diagnostic else None
-    # Issue #947: sex-gate the differential-final picker. Passing patient.sex
-    # lets `get_current_diagnosis_code` walk to the next-ranked sex-compatible
-    # candidate when the top pick is anatomy-locked to the opposite sex
-    # (e.g. `prostatitis`/N41.0 on a UTI female patient). Non-RNG walk.
-    dx_code, dx_name = get_current_diagnosis_code(
-        differential,
-        protocol_progression=yaml_progression,
-        patient_sex=patient.sex,
-    )
-
-    # Diagnosis correctness and missed diagnoses (AD-29)
-    missed: list[str] = []
-    overcalled: list[str] = []
-    if secondary_protocol and secondary_disease_id:
-        # Simulated missed-secondary-diagnosis rate in mixed cases
-        if rng.random() < MIXED_CASE_MISSED_SECONDARY_DX_PROB:
-            missed.append(secondary_disease_id)
-
-    # Issue #547: use the canonical registry (`icd-10-mhlw` on JP per JP Core
-    # `jp-condition-diagnosis` required binding). The previous inline `"icd-10"`
-    # branch emitted the WHO code system on JP inpatient encounters, whereas
-    # ED / OPD paths and the FHIR emitter routed via the registry — CIF-side
-    # diagnosis_system was inconsistent across encounter types.
-    icd_sys = system_key_for("diagnosis", config.country)
-    clinical_diagnosis = ClinicalDiagnosis(
-        admission_diagnosis_code=protocol.icd_codes.get("primary", ""),
-        admission_diagnosis_system=icd_sys,
-        discharge_diagnosis_code=dx_code,
-        discharge_diagnosis_system=icd_sys,
-        # Issue #551: the engine returns ``UNRESOLVED_DIAGNOSIS_ICD`` (R69) when
-        # the differential did not converge. Previous code compared against
-        # ``"R05"`` (Cough) — a real ICD-10 code, which made legitimate cough
-        # presentations look incorrect and disagreed with the engine's actual
-        # sentinel.
-        diagnosis_correct=(dx_code != UNRESOLVED_DIAGNOSIS_ICD and not missed),
-        missed_diagnoses=missed,
-        overcalled_diagnoses=overcalled,
+    clinical_diagnosis, dx_name = _derive_final_diagnosis(
+        differential=differential,
+        protocol=protocol,
+        secondary_protocol=secondary_protocol,
+        secondary_disease_id=secondary_disease_id,
+        patient=patient,
+        config=config,
+        rng=rng,
     )
 
     # Build ground truth diseases list
