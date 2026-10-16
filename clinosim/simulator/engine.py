@@ -6,7 +6,7 @@ import sys
 import time
 from datetime import date, datetime, timedelta
 from pathlib import Path
-from typing import Any
+from typing import Any, NamedTuple
 
 from clinosim import __version__ as _clinosim_version
 from clinosim import determinism
@@ -474,6 +474,63 @@ def _parse_time_range_bound(bound: str) -> datetime:
         return datetime.strptime(bound, "%Y-%m")
 
 
+class _TimeRangeBounds(NamedTuple):
+    """Resolved month-loop bounds for ``run_beta``.
+
+    - ``start_y`` / ``start_m``: inclusive lower bound of the sim window.
+    - ``end_y`` / ``end_m``: upper bound of the month loop, capped by
+      ``snapshot_date`` when it precedes the config's end — this is what
+      the primary per-month event-generation loop reads.
+    - ``raw_end_y`` / ``raw_end_m``: uncapped upper bound preserved from
+      ``config.time_range[1]``. The P4' ED slot phase sizes a draw range
+      off these so the sampled month is cursor-independent even though
+      the month-loop bound itself is cursor-capped (F1 cross-cursor
+      determinism). See the per-ED-slot computation for the invariant.
+    - ``snapshot_dt``: parsed ``config.snapshot_date`` (``None`` means
+      no snapshot cap).
+    - ``start_dt_lb``: day-precision lower bound used by the per-month
+      filter (Issue #1039 — month-precision generation can emit events
+      earlier than ``--start``).
+    """
+
+    start_y: int
+    start_m: int
+    end_y: int
+    end_m: int
+    raw_end_y: int
+    raw_end_m: int
+    snapshot_dt: datetime | None
+    start_dt_lb: datetime
+
+
+def _derive_time_range_bounds(config: SimulatorConfig) -> _TimeRangeBounds:
+    """Parse ``config.time_range`` + ``config.snapshot_date`` into the
+    month-loop bounds used by ``run_beta``.
+    """
+    start_y, start_m = int(config.time_range[0][:4]), int(config.time_range[0][5:7])
+    end_y, end_m = int(config.time_range[1][:4]), int(config.time_range[1][5:7])
+    raw_end_y, raw_end_m = end_y, end_m
+
+    snapshot_dt: datetime | None = None
+    if config.snapshot_date:
+        snapshot_dt = datetime.strptime(config.snapshot_date, "%Y-%m-%d")
+        snap_y, snap_m = snapshot_dt.year, snapshot_dt.month
+        if (snap_y, snap_m) < (end_y, end_m):
+            end_y, end_m = snap_y, snap_m
+
+    start_dt_lb = _parse_time_range_bound(config.time_range[0])
+    return _TimeRangeBounds(
+        start_y=start_y,
+        start_m=start_m,
+        end_y=end_y,
+        end_m=end_m,
+        raw_end_y=raw_end_y,
+        raw_end_m=raw_end_m,
+        snapshot_dt=snapshot_dt,
+        start_dt_lb=start_dt_lb,
+    )
+
+
 def _load_hospital_ops(hospital_config_path: str | None) -> dict[str, Any]:
     """Load hospital-operations YAML into the engine.
 
@@ -677,50 +734,23 @@ def run_beta(
         ),
     )
 
-    # Run life events
-    start_y, start_m = int(config.time_range[0][:4]), int(config.time_range[0][5:7])
-    end_y, end_m = int(config.time_range[1][:4]), int(config.time_range[1][5:7])
-    # F1: keep the *uncapped* end alongside the snapshot-capped one.
-    # `end_y, end_m` below get capped by snapshot_date and are correctly used as
-    # the P1 month-loop bound (fewer months generated for an earlier cursor is
-    # intended snapshot semantics). But the P4' ED slot phase uses `end_y, end_m`
-    # only to size a random draw range (`total_months`, below) — sizing that
-    # range off the cursor-capped end would make the draw itself cursor-
-    # dependent (same slot_rng stream, different range → different sampled
-    # month) even though slot_rng is otherwise cursor-independent. raw_end_y/m
-    # preserve the config's own (cursor-independent) time_range for that use.
-    raw_end_y, raw_end_m = end_y, end_m
-
-    # Cap end date by snapshot_date (no life events past "today")
-    snapshot_dt = None
-    if config.snapshot_date:
-        snapshot_dt = datetime.strptime(config.snapshot_date, "%Y-%m-%d")
-        snap_y, snap_m = snapshot_dt.year, snapshot_dt.month
-        if (snap_y, snap_m) < (end_y, end_m):
-            end_y, end_m = snap_y, snap_m
+    # Run life events — resolve month-loop bounds + snapshot cap.
+    # See _derive_time_range_bounds / _TimeRangeBounds for the F1 raw-vs-
+    # capped end rationale and the Issue #1039 start_dt_lb filter.
+    bounds = _derive_time_range_bounds(config)
+    start_y, start_m = bounds.start_y, bounds.start_m
+    end_y, end_m = bounds.end_y, bounds.end_m
+    raw_end_y, raw_end_m = bounds.raw_end_y, bounds.raw_end_m
+    snapshot_dt = bounds.snapshot_dt
+    _start_dt_lb = bounds.start_dt_lb
 
     # Issue #1596 Step 2 — generation now runs INSIDE the combined
     # per-month loop below (after F4 cache load + patient state init
     # + ``_dispatch_hospital_events`` definition), not here as a
-    # separate pre-dispatch pass. This lets newborns registered during
-    # month m's dispatch become visible to month m+1's
-    # ``generate_monthly_events`` naturally, eliminating the newborn
-    # secondary monthly-events pass accumulated in #1564 Phase 1.
-    #
-    # ``_start_dt_lb`` is still parsed here (used by the per-month
-    # filter inside the combined loop below). The per-year
-    # ``advance_population`` hook is imported here but called inside
-    # that same loop so the primary + newborn paths are symmetrical.
+    # separate pre-dispatch pass. The per-year ``advance_population``
+    # hook is imported here but called inside that same loop so the
+    # primary + newborn paths are symmetrical.
     from clinosim.modules.population.aging import advance_population
-
-    # Issue #1039: `generate_monthly_events` runs at month precision
-    # starting from ``start_m``; an event scheduled in the first month
-    # can land on any day 1..31, including days before ``--start``
-    # (e.g. ``--start 2025-08-31`` still fires August 1-30 events).
-    # The month-loop bound alone does not enforce the day-level
-    # ``--start`` cursor. The combined loop filters per-month using
-    # this lower bound.
-    _start_dt_lb = _parse_time_range_bound(config.time_range[0])
 
     # F4: previous-snapshot admission-loop cache. Only the primary
     # admission loop below (known_disease/mixed via ``_simulate_patient``
