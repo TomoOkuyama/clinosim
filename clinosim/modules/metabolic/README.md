@@ -108,7 +108,7 @@ End-to-end verification uses `scripts/engine-fingerprint.sh` on the US s42 + JP 
 
 Maintained alongside the META #1137 cluster-2 scope. Primary audit touchpoint: the clinical anchors (Younossi 2016, Peppard 2013) in `engine.py`'s module docstring. Future axes should land as sibling axis files once the module exceeds ~600 LOC — the current single `engine.py` is review-friendly at ~430 LOC but will need a per-axis split (`e66.py`, `e88_81.py`, …) if cluster 2 grows further.
 
-Follow-ups tracked under META #1633 and META #1137:
+Follow-ups (both former tracking METAs — #1137 and #1633 — are now closed; these items are open future work with no dedicated META):
 
 - **K76.0 NAFLD → ALT/AST baseline tie-in** — downstream PR will steer liver-enzyme emission toward elevated range for K76.0-chronic patients so the "lab-conditional" half of the issue scope is also satisfied.
 - **Bariatric surgery referral encounter + weight-loss counseling procedure** — the GLP-1 pharmacotherapy half of axis 5 ships here; the surgery referral encounter and counseling procedure code emission need new encounter yaml entries rather than a chronic-med addition.

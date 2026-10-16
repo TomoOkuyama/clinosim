@@ -108,7 +108,7 @@ E2E 検証は `scripts/engine-fingerprint.sh` を US s42 + JP s17 p=500 コホ�
 
 META #1137 クラスタ-2 スコープと一緒にメンテ。主監査ポイント: `engine.py` モジュール docstring 内の臨床アンカー (Younossi 2016, Peppard 2013)。モジュールが ~600 LOC を超えたら将来軸は sibling axis ファイルで ship すべき — 現 `engine.py` 単一構成は ~430 LOC でレビュー容易だが、クラスタ 2 が更に成長する場合は per-axis split (`e66.py`, `e88_81.py`, …) が必要。
 
-META #1633 と META #1137 で追跡される follow-up:
+Follow-up (追跡していた META #1137 と #1633 は共に close 済み。以下は専用 META のない将来作業):
 
 - **K76.0 NAFLD → ALT/AST ベースライン連動** — 下流 PR で K76.0-chronic 患者に対し liver-enzyme emission を elevated range に振るよう修正、issue スコープの "lab-conditional" 半分を満たす。
 - **肥満外科紹介 encounter + 減量カウンセリング procedure** — 軸 5 の GLP-1 薬物療法半分は本モジュールで ship、紹介 encounter + カウンセリング procedure コード emission は新 encounter yaml エントリが必要で chronic-med 追加では済まない。

@@ -1,5 +1,7 @@
 # P6 god-function split plan — proposed phase boundaries for `_simulate_patient`, `run_beta`, and `narrative/`
 
+> **Status (2026-10-16 close)**: this design was executed in-session. The LOC counts in the table below reflect the **pre-split baseline**; the extractions actually shipped are listed per section. The one remaining dedicated-session item is the `TemplateNarrativeGenerator` god class decomposition (161 methods, now ~6540 LOC in `template_generator.py` after the pre-class helpers were lifted into `_localization.py` / `_template_helpers.py` / `_narrative_utils.py` siblings).
+
 Context: META #1633 code review (2026-10-15) flagged five god functions / files in the simulator + narrative sub-tree. Three were handled in-session (`activate_patient` → `_derive_chronic_conditions` extraction, `fhir_r4/__init__.py` → `builder.py` + facade split). The remaining four are substantial refactors that need design review before mechanical extraction can proceed safely:
 
 | Target | LOC | Risk class |
