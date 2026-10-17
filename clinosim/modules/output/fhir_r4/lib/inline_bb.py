@@ -1039,14 +1039,37 @@ def _bb_procedures(ctx: BundleContext) -> list[dict]:
     return out
 
 
+# Perf (2026-10-17): export-scoped cross-patient dedup for Practitioner
+# resources. Each export processes 36k+ patient bundles; the pre-fix
+# ``_bb_practitioners`` built the full ~500-staff roster inside every
+# single bundle (relying on the ``written_ids`` dedup at write time to
+# emit each Practitioner / PractitionerRole once), paying ~4M wasted
+# ``_build_practitioner`` + ``_build_practitioner_role`` calls per
+# export. Track emitted staff_ids at module scope — reset by
+# ``reset_practitioner_cache`` at the start of each export — so an
+# already-emitted practitioner is BUILT once total instead of once per
+# patient. The downstream write() dedup is unchanged; this just
+# avoids the upstream build cost.
+_PRACTITIONER_EMITTED: set[str] = set()
+
+
+def reset_practitioner_cache() -> None:
+    """Clear the cross-patient Practitioner emit tracker.
+
+    Called by ``convert_cif_to_fhir`` at the start of each export so a
+    second export in the same process rebuilds the roster from scratch.
+    """
+    _PRACTITIONER_EMITTED.clear()
+
+
 def _bb_practitioners(ctx: BundleContext) -> list[dict]:
     out: list[dict] = []
-    seen: set[str] = set()
+    emitted = _PRACTITIONER_EMITTED
 
     def add(staff_id: str) -> None:
-        if not staff_id or staff_id in seen:
+        if not staff_id or staff_id in emitted:
             return
-        seen.add(staff_id)
+        emitted.add(staff_id)
         out.append(_build_practitioner(staff_id, ctx.roster_map, country=ctx.country))
         role = _build_practitioner_role(staff_id, ctx.roster_map, country=ctx.country)
         if role:
