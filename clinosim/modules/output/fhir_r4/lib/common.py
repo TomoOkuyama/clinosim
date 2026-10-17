@@ -430,9 +430,20 @@ def _value(system_key: str, code: str, lang: str) -> dict[str, Any]:
 
 
 def entry(resource: dict) -> dict:
-    """Wrap a resource as a Bundle entry."""
-    rid = resource.get("id", str(uuid.uuid4()))
-    resource.get("resourceType", "Resource")
+    """Wrap a resource as a Bundle entry.
+
+    Perf fix (2026-10-17): the previous ``resource.get("id", str(uuid.uuid4()))``
+    pattern evaluated the ``uuid.uuid4()`` default argument on every call
+    (classic Python default-value gotcha) regardless of whether ``id`` was
+    actually missing. Profile at p=2000 5-year showed **10.97M `os.urandom`
+    calls** flowing from this one line — all wasted because every resource
+    builder emits a deterministic ``id``. Also a correctness-smell: the
+    deterministic sim should never leak ``os.urandom`` into any code
+    path. The lazy form below only consumes ``uuid4`` when a resource
+    genuinely lacks ``id``, which is a bug anyway (``_fhir_id_is_spec_valid``
+    rejects empty ids downstream).
+    """
+    rid = resource.get("id") or str(uuid.uuid4())
     return {
         "fullUrl": f"urn:uuid:{rid}",
         "resource": resource,

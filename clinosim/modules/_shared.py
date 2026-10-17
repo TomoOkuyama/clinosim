@@ -8,6 +8,7 @@ local duplication).
 
 from __future__ import annotations
 
+from functools import lru_cache
 from typing import Any
 
 import numpy as np
@@ -29,6 +30,7 @@ import numpy as np
 MED_STOP_ORDER_ID_MARKER: str = "-STOP-"
 
 
+@lru_cache(maxsize=16)
 def is_jp(country: str) -> bool:
     """True when the country code refers to Japan (case-insensitive).
 
@@ -36,10 +38,16 @@ def is_jp(country: str) -> bool:
     Replaces the divergent inline idioms (``country == "JP"`` /
     ``country.lower() == "jp"`` / ``str(country).upper() == "JP"``) so every
     module gates on the same normalization.
+
+    Perf (2026-10-17): ``lru_cache`` because this predicate is called
+    ~56M times during a p=10000 5-year FHIR export, with ≤ 2 distinct
+    inputs per export in practice. Cache size 16 covers all realistic
+    input shapes (``"US"`` / ``"JP"`` / lower / mixed-case variants).
     """
     return str(country).strip().lower() == "jp"
 
 
+@lru_cache(maxsize=16)
 def is_us(country: str) -> bool:
     """True when the country code refers to the United States (case-insensitive).
 

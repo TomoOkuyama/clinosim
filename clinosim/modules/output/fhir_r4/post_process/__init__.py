@@ -24,6 +24,7 @@ __all__ = [
     "_PERIOD_FIELDS",
     "_PERIOD_KEYS",
     "_normalize_dt",
+    "_normalize_dt_and_fill_practitioner_display",
     "_normalize_dt_fields",
     # populate
     "_ALLERGY_CLINICAL_DISPLAY",
@@ -87,6 +88,7 @@ from clinosim.modules.output.fhir_r4.post_process.datetime_normalize import (  #
     _PERIOD_FIELDS,
     _PERIOD_KEYS,
     _normalize_dt,
+    _normalize_dt_and_fill_practitioner_display,
     _normalize_dt_fields,
 )
 from clinosim.modules.output.fhir_r4.post_process.populate import (  # noqa: E402, F401
