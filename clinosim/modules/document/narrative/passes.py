@@ -145,126 +145,124 @@ class NarrativePass(ABC):
         if self._patient_filter_re is not None:
             patient_files = self._apply_patient_filter(structural_dir, patient_files)
 
-        # Build the ordered work list. Each unit = (spec, language, pf).
-        # Preserving this order (sorted patient_files, spec order, language
-        # order) guarantees deterministic aggregate metrics regardless of
-        # concurrency: sequential run and concurrency=N run produce the
-        # same manifest counts and the same on-disk document files, because
-        # each unit writes to a unique file path and generator counters are
-        # lock-guarded.
-        units = [
-            (spec, language, pf)
-            for spec in specs
-            for language in self._languages_for_spec(spec)
-            for pf in patient_files
+        # Work plan: PATIENT-FIRST dispatch (perf fix 2026-10-17).
+        #
+        # Pre-fix the unit list was ``(spec, language, pf)`` iterated
+        # spec-major, which meant each patient's structural JSON was
+        # opened + parsed ``len(specs) * len(languages)`` times per
+        # run (13-26x redundant I/O). The ``encounters_by_id`` dict
+        # was also rebuilt that many times, and the empirically-
+        # measured super-linearity on p=10000 5-year (narrative pass
+        # 10x slower for 5x more data) traced here first.
+        #
+        # Grouping units by patient collapses patient JSON load +
+        # ``encounters_by_id`` build to once per patient, and lets
+        # per-encounter ``_build_context`` reuse across all specs that
+        # touch the same encounter (via the per-patient ``ctx_cache``).
+        #
+        # Byte-identity: each stub writes to its own unique file
+        # (``_write`` paths include encounter_id + stub key), so
+        # dispatch order does not affect any single output file.
+        # Manifest counters (encounter_count / document_count /
+        # document_counts_by_type / languages_used / encounters_
+        # touched) are all order-independent (``sum`` + ``set``).
+        # Fingerprint-verified byte-identical.
+        total_units = sum(
+            1 for _spec in specs for _language in self._languages_for_spec(_spec) for _pf in patient_files
+        )
+        specs_x_lang: list[tuple[DocumentTypeSpec, str]] = [
+            (spec, language) for spec in specs for language in self._languages_for_spec(spec)
         ]
 
-        def _run_unit(unit: tuple) -> list[dict[str, Any]]:
-            """Process one (spec, language, patient) unit sequentially.
+        def _run_patient(pf: str) -> list[dict[str, Any]]:
+            """Process every (spec, language) tuple for one patient.
 
-            Called serially in the concurrency=1 path and by worker
-            threads in the concurrency>1 path. Each unit owns its own
-            ctx (built inside), so ctx.shift / ctx.day_index mutations
-            never race across threads.
+            Patient JSON load + ``encounters_by_id`` build happen once
+            per patient (not once per spec × language). The per-
+            encounter ``_build_context`` cache is per-(encounter,
+            spec, language) — different specs produce different ctx
+            views, so the cache key must include the spec.
             """
-            spec, language, pf = unit
             with open(os.path.join(structural_dir, pf), encoding="utf-8") as f:
                 patient_dict = json.load(f)
-            if not self._spec_applies(spec, patient_dict):
-                return []
             encounters = patient_dict.get("encounters") or []
             primary_encounter = encounters[0] if encounters else {}
-            stubs = self._find_matching_stubs(patient_dict, spec)
-            if not stubs:
-                return []
-            # Issue #1237: index encounters by encounter_id so each stub can
-            # bind to its OWN encounter's context (was: every stub reused
-            # `encounters[0]`, so companion vaccination encounters
-            # (`ENC-VAX-*`, S104 PR #1214) and synth ED-bridge encounters
-            # (`{IMP}-ED`) got the parent IMP's chief_complaint / clinical
-            # course leaked into their narrative — 5,521 US / 1,387 JP
-            # semantic-false-positive files at p=10k).
+            # Issue #1237: index encounters by encounter_id so each stub
+            # can bind to its OWN encounter's context. Built once per
+            # patient (previously once per unit = up to 26x redundant).
             encounters_by_id: dict[str, dict[str, Any]] = {}
             for enc in encounters:
                 _eid = enc.get("encounter_id", "") if isinstance(enc, dict) else ""
                 if _eid:
                     encounters_by_id[_eid] = enc
-            # Per-encounter context cache — `_build_context` is O(N_facts)
-            # so we memoize across stubs that share an encounter (e.g. the
-            # 3 daily_3shift stubs for one hospital day). This keeps the
-            # per-unit cost close to the pre-#1237 baseline while giving
-            # every stub its own encounter view.
-            ctx_cache: dict[str, Any] = {}
-
-            def _ctx_for(stub_encounter_id: str) -> tuple[Any, dict[str, Any], str]:
-                """Return ``(ctx, encounter_dict, encounter_id)`` for a stub.
-
-                Falls back to the primary encounter when the stub's
-                ``encounter_id`` doesn't map (e.g. legacy stubs without
-                the field). Falls back further to an empty dict when the
-                patient has no encounters at all (test scaffolding).
-                """
-                enc = encounters_by_id.get(stub_encounter_id) or primary_encounter
-                enc_id = enc.get("encounter_id", "") if isinstance(enc, dict) else ""
-                cache_key = enc_id or "__primary__"
-                _cached = ctx_cache.get(cache_key)
-                if _cached is None:
-                    _cached = self._build_context(patient_dict, enc, spec, language)
-                    ctx_cache[cache_key] = _cached
-                return _cached, enc, enc_id
-
+            # Per-(encounter, spec, lang) context cache. Lives for the
+            # duration of this patient's full dispatch (across all
+            # specs). Reuses across stubs that share an encounter
+            # (e.g. the 3 daily_3shift stubs for one hospital day).
+            ctx_cache: dict[tuple[str, str, str], Any] = {}
             results: list[dict[str, Any]] = []
-            for stub in stubs:
-                _stub_enc_id = str(stub.get("encounter_id", "") or "")
-                ctx, encounter_dict, encounter_id = _ctx_for(_stub_enc_id)
-                # Per-stub shift key (daily_3shift stubs carry
-                # "night"/"day"/"evening"; all other stubs ""). ctx is
-                # per-unit (not shared across threads) so this mutation
-                # is thread-local.
-                ctx.shift = str(stub.get("shift", "") or "")
-                # Per-stub hospital day (mirrors the ctx.shift pattern).
-                # Daily notes previously all rendered as day 0 because
-                # ctx was built once per patient with day_index=0.
-                ctx.day_index = self._stub_day_index(stub, encounter_dict)
-                # Issue #992: per-Procedure documents (procedure_note /
-                # operative_note) carry ``related_procedure_id`` on the
-                # stub. Propagate to the ctx so ``_build_pn_*`` /
-                # ``_build_op_*`` builders can look up the specific
-                # Procedure out of ``ctx.procedures`` — every other stub
-                # leaves this as "".
-                ctx.related_procedure_id = str(stub.get("related_procedure_id", "") or "")
-                output = self._generate(ctx, spec)
-                wrapper = self._output_to_wrapper(output, generator=self._generator_name())
-                results.append(
-                    {
-                        "spec_key": spec.type_key,
-                        "language": language,
-                        "encounter_id": encounter_id,
-                        "stub": stub,
-                        "wrapper": wrapper,
-                        "spec": spec,
-                    }
-                )
+
+            for spec, language in specs_x_lang:
+                if not self._spec_applies(spec, patient_dict):
+                    continue
+                stubs = self._find_matching_stubs(patient_dict, spec)
+                if not stubs:
+                    continue
+
+                def _ctx_for(stub_encounter_id: str, _spec=spec, _lang=language) -> tuple[Any, dict[str, Any], str]:
+                    """Return ``(ctx, encounter_dict, encounter_id)`` for a stub."""
+                    enc = encounters_by_id.get(stub_encounter_id) or primary_encounter
+                    enc_id = enc.get("encounter_id", "") if isinstance(enc, dict) else ""
+                    cache_key = (enc_id or "__primary__", _spec.type_key, _lang)
+                    _cached = ctx_cache.get(cache_key)
+                    if _cached is None:
+                        _cached = self._build_context(patient_dict, enc, _spec, _lang)
+                        ctx_cache[cache_key] = _cached
+                    return _cached, enc, enc_id
+
+                for stub in stubs:
+                    _stub_enc_id = str(stub.get("encounter_id", "") or "")
+                    ctx, encounter_dict, encounter_id = _ctx_for(_stub_enc_id)
+                    # Per-stub shift key (daily_3shift stubs carry
+                    # "night"/"day"/"evening"; all other stubs "").
+                    ctx.shift = str(stub.get("shift", "") or "")
+                    # Per-stub hospital day. Daily notes previously all
+                    # rendered as day 0 because ctx was built once per
+                    # patient with day_index=0.
+                    ctx.day_index = self._stub_day_index(stub, encounter_dict)
+                    # Issue #992: per-Procedure docs (procedure_note /
+                    # operative_note) carry ``related_procedure_id`` on
+                    # the stub; propagate to the ctx so ``_build_pn_*``
+                    # / ``_build_op_*`` builders can look up the
+                    # specific Procedure out of ``ctx.procedures``.
+                    ctx.related_procedure_id = str(stub.get("related_procedure_id", "") or "")
+                    output = self._generate(ctx, spec)
+                    wrapper = self._output_to_wrapper(output, generator=self._generator_name())
+                    results.append(
+                        {
+                            "spec_key": spec.type_key,
+                            "language": language,
+                            "encounter_id": encounter_id,
+                            "stub": stub,
+                            "wrapper": wrapper,
+                            "spec": spec,
+                        }
+                    )
             return results
 
-        # Dispatch: serial or parallel. In both cases we consume results
-        # in unit-input order (pool.map preserves order) so counters and
-        # write order are byte-identical to the pre-concurrency baseline.
-        #
+        # Dispatch: serial or parallel over patients (not units).
         # Observability: the narrative pass is otherwise a 20+ minute
-        # silent gap in `simulator.log` on p=10000 5-year runs (2.5M+
-        # units × ~1-2ms each). Emit a stdout print + sim_log event
-        # every ``_progress_every`` units so operators + log consumers
-        # see steady progress. Cadence target ~1 % → every total/100
-        # units, floored to 1000 so small cohorts stay quiet.
+        # silent gap in ``simulator.log`` on p=10000 5-year runs.
+        # Emit a stdout print + sim_log event every ``_progress_every``
+        # patients. Cadence target ~1 % of patients, floored to 100.
         import time as _time
 
-        total_units = len(units)
-        _progress_every = max(1000, total_units // 100)
+        total_patients = len(patient_files)
+        _progress_every = max(100, total_patients // 100)
         _t0 = _time.perf_counter()
         print(
-            f"  Narrative pass: {total_units} units ({len(specs)} doc specs × "
-            f"{len(patient_files)} patients × languages)...",
+            f"  Narrative pass: {total_units} units "
+            f"({len(specs)} doc specs × {total_patients} patients × languages)...",
             flush=True,
         )
         sim_log.info(
@@ -272,47 +270,48 @@ class NarrativePass(ABC):
             "narrative_pass_start",
             total_units=total_units,
             doc_specs=len(specs),
-            patients=len(patient_files),
+            patients=total_patients,
             concurrency=self.concurrency,
         )
 
         def _emit_progress(done: int) -> None:
-            if done == total_units or (done > 0 and done % _progress_every == 0):
+            if done == total_patients or (done > 0 and done % _progress_every == 0):
                 elapsed = _time.perf_counter() - _t0
-                pct = (done / total_units * 100.0) if total_units else 100.0
+                pct = (done / total_patients * 100.0) if total_patients else 100.0
                 print(
-                    f"  Narrative pass: {done}/{total_units} ({pct:.1f}%, {elapsed:.0f}s elapsed)...",
+                    f"  Narrative pass: {done}/{total_patients} patients ({pct:.1f}%, {elapsed:.0f}s elapsed)...",
                     flush=True,
                 )
                 sim_log.info(
                     "narrative_pass",
                     "narrative_pass_progress",
-                    processed=done,
-                    total=total_units,
+                    processed_patients=done,
+                    total_patients=total_patients,
                     elapsed_s=round(elapsed, 3),
                 )
 
-        unit_results: list[list[dict[str, Any]]] = []
+        patient_results: list[list[dict[str, Any]]] = []
         if self.concurrency <= 1:
-            for idx, u in enumerate(units, start=1):
-                unit_results.append(_run_unit(u))
+            for idx, pf in enumerate(patient_files, start=1):
+                patient_results.append(_run_patient(pf))
                 _emit_progress(idx)
         else:
             from concurrent.futures import ThreadPoolExecutor
 
             with ThreadPoolExecutor(max_workers=self.concurrency) as pool:
-                for idx, unit_result in enumerate(pool.map(_run_unit, units), start=1):
-                    unit_results.append(unit_result)
+                for idx, p_result in enumerate(pool.map(_run_patient, patient_files), start=1):
+                    patient_results.append(p_result)
                     _emit_progress(idx)
 
         sim_log.info(
             "narrative_pass",
             "narrative_pass_end",
             total_units=total_units,
+            processed_patients=total_patients,
             elapsed_s=round(_time.perf_counter() - _t0, 3),
         )
 
-        for results in unit_results:
+        for results in patient_results:
             for r in results:
                 self._write(narrative_dir, r["encounter_id"], r["stub"], r["wrapper"], r["spec"])
                 doc_counts[r["spec_key"]] = doc_counts.get(r["spec_key"], 0) + 1
