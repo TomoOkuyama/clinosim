@@ -31,6 +31,7 @@ from clinosim.modules.document.narrative.registry import DocumentTypeSpec
 from clinosim.modules.document.narrative.scenario_spine import build_narrative_spine
 from clinosim.modules.document.narrative.section_extractor import extract_for_composition
 from clinosim.modules.document.narrative.template_generator import TemplateNarrativeGenerator
+from clinosim.simulator import log as sim_log
 from clinosim.simulator.complications import complication_names, normalized_complications
 from clinosim.types.clinical import (
     ClinicalDocumentNarrative,
@@ -249,13 +250,67 @@ class NarrativePass(ABC):
         # Dispatch: serial or parallel. In both cases we consume results
         # in unit-input order (pool.map preserves order) so counters and
         # write order are byte-identical to the pre-concurrency baseline.
+        #
+        # Observability: the narrative pass is otherwise a 20+ minute
+        # silent gap in `simulator.log` on p=10000 5-year runs (2.5M+
+        # units × ~1-2ms each). Emit a stdout print + sim_log event
+        # every ``_progress_every`` units so operators + log consumers
+        # see steady progress. Cadence target ~1 % → every total/100
+        # units, floored to 1000 so small cohorts stay quiet.
+        import time as _time
+
+        total_units = len(units)
+        _progress_every = max(1000, total_units // 100)
+        _t0 = _time.perf_counter()
+        print(
+            f"  Narrative pass: {total_units} units ({len(specs)} doc specs × "
+            f"{len(patient_files)} patients × languages)...",
+            flush=True,
+        )
+        sim_log.info(
+            "narrative_pass",
+            "narrative_pass_start",
+            total_units=total_units,
+            doc_specs=len(specs),
+            patients=len(patient_files),
+            concurrency=self.concurrency,
+        )
+
+        def _emit_progress(done: int) -> None:
+            if done == total_units or (done > 0 and done % _progress_every == 0):
+                elapsed = _time.perf_counter() - _t0
+                pct = (done / total_units * 100.0) if total_units else 100.0
+                print(
+                    f"  Narrative pass: {done}/{total_units} ({pct:.1f}%, {elapsed:.0f}s elapsed)...",
+                    flush=True,
+                )
+                sim_log.info(
+                    "narrative_pass",
+                    "narrative_pass_progress",
+                    processed=done,
+                    total=total_units,
+                    elapsed_s=round(elapsed, 3),
+                )
+
+        unit_results: list[list[dict[str, Any]]] = []
         if self.concurrency <= 1:
-            unit_results = [_run_unit(u) for u in units]
+            for idx, u in enumerate(units, start=1):
+                unit_results.append(_run_unit(u))
+                _emit_progress(idx)
         else:
             from concurrent.futures import ThreadPoolExecutor
 
             with ThreadPoolExecutor(max_workers=self.concurrency) as pool:
-                unit_results = list(pool.map(_run_unit, units))
+                for idx, unit_result in enumerate(pool.map(_run_unit, units), start=1):
+                    unit_results.append(unit_result)
+                    _emit_progress(idx)
+
+        sim_log.info(
+            "narrative_pass",
+            "narrative_pass_end",
+            total_units=total_units,
+            elapsed_s=round(_time.perf_counter() - _t0, 3),
+        )
 
         for results in unit_results:
             for r in results:
