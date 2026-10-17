@@ -154,6 +154,13 @@ def convert_cif_to_fhir(
     """
     os.makedirs(output_dir, exist_ok=True)
 
+    # Perf (2026-10-17): reset the module-level cross-patient Practitioner
+    # emit tracker so a second export in the same process rebuilds the
+    # roster from scratch instead of returning empty bundles.
+    from clinosim.modules.output.fhir_r4.lib.inline_bb import reset_practitioner_cache
+
+    reset_practitioner_cache()
+
     reader = CIFReader(cif_dir, narrative_version=narrative_version)
 
     # Load hospital data (Practitioner roster + Organization/Location config)
