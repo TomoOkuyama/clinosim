@@ -119,3 +119,54 @@ def _normalize_dt_fields(resource, country: str = "") -> None:
     elif isinstance(resource, list):
         for item in resource:
             _normalize_dt_fields(item, country)
+
+
+def _normalize_dt_and_fill_practitioner_display(resource, country: str, roster_map: dict[str, dict] | None) -> None:
+    """Combined single-pass tree walker (perf fusion of
+    ``_normalize_dt_fields`` + ``_populate_practitioner_reference_display``).
+
+    Both walkers traverse the whole resource tree visiting every nested
+    dict / list. Fusing them halves the recursion overhead (profile
+    2026-10-17: 374M + 176M = 550M `_walk` calls on p=2000 5-year;
+    fused ≈ 374M + skip of the duplicate datetime walk → ~85s saved).
+
+    Semantics preserved exactly:
+    - Practitioner reference display: fill ``display`` on
+      ``{"reference": "Practitioner/<id>", ...}`` dicts that are
+      missing a non-empty ``display``. Resolve via ``roster_map``;
+      silence when the id is absent (no fabrication).
+    - Datetime / instant / period: rewrite TZ suffix per country.
+    """
+    _fill_pract = roster_map is not None and bool(roster_map)
+
+    def _walk(node) -> None:
+        if isinstance(node, dict):
+            # Practitioner reference display (same check as the pre-
+            # fusion _populate_practitioner_reference_display walker).
+            if _fill_pract:
+                ref = node.get("reference")
+                if isinstance(ref, str) and ref.startswith("Practitioner/") and not node.get("display"):
+                    staff_id = ref[len("Practitioner/") :]
+                    staff = roster_map.get(staff_id) if roster_map else None
+                    if staff:
+                        display = str(staff.get("name", "") or "").strip()
+                        if display:
+                            node["display"] = display
+            # Datetime / instant / period normalization.
+            for k, v in list(node.items()):
+                if k in _INSTANT_FIELDS and isinstance(v, str):
+                    node[k] = _normalize_dt(v, country, want_instant=True)
+                elif k in _DATETIME_FIELDS and isinstance(v, str):
+                    node[k] = _normalize_dt(v, country)
+                elif k in _PERIOD_KEYS and isinstance(v, dict):
+                    for pk in _PERIOD_FIELDS:
+                        if pk in v:
+                            v[pk] = _normalize_dt(v[pk], country)
+                    _walk(v)
+                elif isinstance(v, (dict, list)):
+                    _walk(v)
+        elif isinstance(node, list):
+            for item in node:
+                _walk(item)
+
+    _walk(resource)

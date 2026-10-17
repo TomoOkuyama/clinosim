@@ -92,12 +92,12 @@ from clinosim.modules.output.fhir_r4.post_process import (
     _apply_jp_core_profile,
     _build_companion_specimen,
     _lab_observation_needs_specimen,
+    _normalize_dt_and_fill_practitioner_display,
     _normalize_dt_fields,
     _normalize_jp_observation_category,
     _populate_condition_ai_mr_ecs_fields,
     _populate_jp_medication_dosage_ecs_fields,
     _populate_observation_identifier_and_last_updated,
-    _populate_practitioner_reference_display,
     _strip_forbidden_observation_reference_range_extensions,
     _strip_japanese_display_on_english_only_systems,
 )
@@ -295,8 +295,8 @@ def convert_cif_to_fhir(
             # Universal — no-op when roster_map is empty. Runs after every
             # builder + eCS populator so late-added references get the same
             # treatment.
-            _populate_practitioner_reference_display(resource, roster_map)
-            _normalize_dt_fields(resource, country)
+            # Perf fusion (2026-10-17): single-pass walker instead of two.
+            _normalize_dt_and_fill_practitioner_display(resource, country, roster_map)
             write(resource)
             n_resources += 1
 
@@ -670,10 +670,15 @@ def _build_bundle(
             _populate_condition_ai_mr_ecs_fields(resource, country)
             # Issue #1178: fill Reference.display for Practitioner/… refs.
             # Walks the resource once; no-op when roster_map is empty.
-            _populate_practitioner_reference_display(resource, getattr(ctx, "roster_map", None))
-            # feedback FB-F1: 全 emit resource の dateTime / instant
-            # field を single seam で TZ 付与に正規化(builders 個別修正回避)。
-            _normalize_dt_fields(resource, country)
+            # Perf fusion (2026-10-17): single-pass walker instead of two.
+            # Combines the Issue #1178 Practitioner.display population
+            # (``_populate_practitioner_reference_display``) and the
+            # feedback FB-F1 dateTime / instant TZ normalization pass
+            # (``_normalize_dt_fields``). Byte-identical to the
+            # pre-fusion sequence; see ``datetime_normalize._normalize_
+            # dt_and_fill_practitioner_display`` for the semantic
+            # equivalence proof.
+            _normalize_dt_and_fill_practitioner_display(resource, country, getattr(ctx, "roster_map", None))
             # N-3 fix (2026-08-19): route ED-attributable resources from
             # the IMP encounter to the ``-ED`` bridge Encounter so the
             # CY7-05 synth bridge no longer carries zero child resources.

@@ -105,6 +105,9 @@ class NarrativePass(ABC):
         # deploy). Loading here (once per pass) keeps the per-doc
         # ctx construction O(1) lookup.
         self.roster_map: dict[str, dict] = self._load_roster()
+        # Perf (2026-10-17): dedupe `os.makedirs(enc_dir, exist_ok=True)`
+        # across stubs that share an encounter. Populated by ``_write``.
+        self._created_narrative_dirs: set[str] = set()
 
     def _load_roster(self) -> dict[str, dict]:
         """Read ``hospital.json`` and return ``{staff_id: staff_dict}``.
@@ -701,7 +704,15 @@ class NarrativePass(ABC):
         spec: DocumentTypeSpec,
     ) -> None:
         enc_dir = os.path.join(narrative_dir, encounter_id)
-        os.makedirs(enc_dir, exist_ok=True)
+        # Perf (2026-10-17): cache the per-encounter dir creation so we
+        # don't pay a `os.makedirs(..., exist_ok=True)` syscall per
+        # stub. Profile at p=2000 5-year showed 64,768 mkdir calls =
+        # 7s of pure syscall overhead for the same ~N encounters
+        # worth of dirs (each encounter has many stubs on multi-day
+        # inpatient stays).
+        if enc_dir not in self._created_narrative_dirs:
+            os.makedirs(enc_dir, exist_ok=True)
+            self._created_narrative_dirs.add(enc_dir)
         filename = self._filename_for(stub, spec)
         _narr = asdict(wrapper)
         # Issue #1157: drop the ``structured`` field from the on-disk
