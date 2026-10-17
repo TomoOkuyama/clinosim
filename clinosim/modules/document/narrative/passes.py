@@ -177,15 +177,20 @@ class NarrativePass(ABC):
             (spec, language) for spec in specs for language in self._languages_for_spec(spec)
         ]
 
-        def _run_patient(pf: str) -> list[dict[str, Any]]:
+        def _run_patient(
+            pf: str,
+            specs_x_lang_subset: list[tuple[DocumentTypeSpec, str]] | None = None,
+        ) -> list[dict[str, Any]]:
             """Process every (spec, language) tuple for one patient.
 
             Patient JSON load + ``encounters_by_id`` build happen once
-            per patient (not once per spec × language). The per-
-            encounter ``_build_context`` cache is per-(encounter,
-            spec, language) — different specs produce different ctx
-            views, so the cache key must include the spec.
+            per call (patient-first path = full specs_x_lang;
+            spec-first path = one-element subset, Bedrock-cache
+            contract). The per-encounter ``_build_context`` cache is
+            per-(encounter, spec, language) — different specs produce
+            different ctx views, so the cache key must include the spec.
             """
+            iter_specs_x_lang = specs_x_lang_subset if specs_x_lang_subset is not None else specs_x_lang
             with open(os.path.join(structural_dir, pf), encoding="utf-8") as f:
                 patient_dict = json.load(f)
             encounters = patient_dict.get("encounters") or []
@@ -205,7 +210,7 @@ class NarrativePass(ABC):
             ctx_cache: dict[tuple[str, str, str], Any] = {}
             results: list[dict[str, Any]] = []
 
-            for spec, language in specs_x_lang:
+            for spec, language in iter_specs_x_lang:
                 if not self._spec_applies(spec, patient_dict):
                     continue
                 stubs = self._find_matching_stubs(patient_dict, spec)
@@ -294,17 +299,35 @@ class NarrativePass(ABC):
                 )
 
         patient_results: list[list[dict[str, Any]]] = []
-        if self.concurrency <= 1:
-            for idx, pf in enumerate(patient_files, start=1):
-                patient_results.append(_run_patient(pf))
-                _emit_progress(idx)
-        else:
-            from concurrent.futures import ThreadPoolExecutor
-
-            with ThreadPoolExecutor(max_workers=self.concurrency) as pool:
-                for idx, p_result in enumerate(pool.map(_run_patient, patient_files), start=1):
-                    patient_results.append(p_result)
+        if self._prefers_patient_first_walk():
+            # Patient-first dispatch (perf fix #1682, 10× faster per
+            # unit): loads each patient JSON + builds encounters_by_id
+            # exactly once. Chosen by Template pass where cross-request
+            # LLM prompt caching does not apply.
+            if self.concurrency <= 1:
+                for idx, pf in enumerate(patient_files, start=1):
+                    patient_results.append(_run_patient(pf))
                     _emit_progress(idx)
+            else:
+                from concurrent.futures import ThreadPoolExecutor
+
+                with ThreadPoolExecutor(max_workers=self.concurrency) as pool:
+                    for idx, p_result in enumerate(pool.map(_run_patient, patient_files), start=1):
+                        patient_results.append(p_result)
+                        _emit_progress(idx)
+        else:
+            # Spec-first dispatch (AD-65 Bedrock cache contract): all
+            # ``(spec, language)`` calls for the same group run
+            # contiguously so Bedrock cross-request prompt caching can
+            # hit. Chosen by LLM pass. Pays the ``patient_dict`` reload
+            # cost (len(specs) × len(languages) extra loads per patient)
+            # but keeps the cross-request cache hit rate high — the LLM
+            # path's dominant cost is model inference, not JSON parsing.
+            for spec_i, (spec, language) in enumerate(specs_x_lang, start=1):
+                subset = [(spec, language)]
+                for pf in patient_files:
+                    patient_results.append(_run_patient(pf, subset))
+                _emit_progress(spec_i * len(patient_files) // len(specs_x_lang) if specs_x_lang else 0)
 
         sim_log.info(
             "narrative_pass",
@@ -371,6 +394,27 @@ class NarrativePass(ABC):
 
     def _generator_config(self) -> dict[str, Any]:
         return {}
+
+    def _prefers_patient_first_walk(self) -> bool:
+        """Walk-order preference.
+
+        - ``False`` (default): spec-first order, i.e. all patients for
+          ``(spec_A, lang)`` run before any ``(spec_B, lang)`` call.
+          Preserves the AD-65 Bedrock cross-request prompt-cache
+          contract — same ``(doc_type, language)`` group runs
+          contiguously so the LLM's prompt prefix (identical for every
+          call in a group) stays cached. The ``LLMNarrativePass``
+          inherits this default.
+        - ``True``: patient-first order, i.e. all specs for one patient
+          run before moving to the next patient. Loads each patient
+          JSON once per run instead of ``len(specs) × len(languages)``
+          times = ~10× faster per unit for p=10000 5-year. Chosen by
+          the ``TemplateNarrativePass`` where cross-request LLM prompt
+          caching does not apply (zero LLM calls).
+
+        Hook; subclasses override via a tiny ``return True`` body.
+        """
+        return False
 
     def _llm_cost_report(self) -> dict[str, Any]:
         """Manifest ``llm_cost_report`` hook — overridden by LLMNarrativePass.
@@ -776,6 +820,15 @@ class TemplateNarrativePass(NarrativePass):
 
     def _generator_name(self) -> str:
         return "template"
+
+    def _prefers_patient_first_walk(self) -> bool:
+        """Template pass is deterministic string composition with zero
+        LLM calls, so the AD-65 Bedrock cross-request prompt-cache
+        contract does not apply. Switch to patient-first walk order
+        for the 10× perf win (patient JSON loaded once per run
+        instead of ``len(specs) × len(languages)`` times).
+        """
+        return True
 
 
 class LLMNarrativePass(NarrativePass):
