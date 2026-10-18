@@ -856,6 +856,21 @@ def generate_monthly_events(
     seasonal = demo.get("seasonal_modifiers", {})
     risk_mults = demo.get("disease_risk_multipliers", {})
 
+    # Perf (2026-10-18): the per-call ``sorted(age_rates.items(), key=int)``
+    # inside ``_disease_monthly_rate_from_locale`` cost 12s cumulative on
+    # a p=2000 5-year profile (3.2M calls × ~5µs sort of a 5-10 entry
+    # dict). Pre-sort once per disease here, outside the N_persons loop,
+    # so the per-call cost drops to a linear walk over an immutable list
+    # of ``(int age_lo, float base_rate)`` tuples.
+    sorted_age_rates_by_disease: dict[str, list[tuple[int, float]]] = {}
+    for _d_id, _d_spec in incidence.items():
+        _ar = _d_spec.get("age_rates", _d_spec.get("age_rates_among_hf", {}))
+        if _ar:
+            sorted_age_rates_by_disease[_d_id] = sorted(
+                ((int(k), float(v)) for k, v in _ar.items()),
+                key=lambda x: x[0],
+            )
+
     for person in registry.persons.values():
         # C11g-3: honor natural death date_of_death alongside in-hospital
         # is_alive boolean — the acute disease event date is exactly
@@ -883,8 +898,8 @@ def generate_monthly_events(
 
         # --- Data-driven disease event generation ---
         for disease_id, disease_spec in incidence.items():
-            age_rates = disease_spec.get("age_rates", disease_spec.get("age_rates_among_hf", {}))
-            if not age_rates:
+            sorted_age_rates = sorted_age_rates_by_disease.get(disease_id)
+            if not sorted_age_rates:
                 continue
 
             # Prerequisite check (e.g., HF exacerbation requires I50)
@@ -899,7 +914,7 @@ def generate_monthly_events(
             rate = _disease_monthly_rate_from_locale(
                 person,
                 month,
-                age_rates,
+                sorted_age_rates,
                 sex_ratio,
                 disease_seasonal,
                 disease_risk,
@@ -1012,17 +1027,29 @@ def generate_monthly_events(
 def _disease_monthly_rate_from_locale(
     person: PersonRecord,
     month: int,
-    age_rates: dict,
+    age_rates: dict | list[tuple[int, float]],
     sex_ratio_female: float,
     seasonal: dict,
     risk_multipliers: dict,
 ) -> float:
-    """Calculate monthly disease rate from locale epidemiology data."""
-    # Find age-appropriate incidence rate
+    """Calculate monthly disease rate from locale epidemiology data.
+
+    ``age_rates`` accepts either the raw YAML dict shape or the
+    pre-sorted ``[(age_lo, base_rate), ...]`` list produced once per
+    disease by the ``generate_monthly_events`` precompute block.
+    Dict-shape callers (unit tests, ad-hoc rate samplers) keep working
+    unchanged.
+    """
+    # Find age-appropriate incidence rate (pre-sorted list fast path).
     rate = 0.0
-    for age_str, r in sorted(age_rates.items(), key=lambda x: int(x[0])):
-        if person.age >= int(age_str):
-            rate = float(r)
+    if isinstance(age_rates, list):
+        for age_lo, r in age_rates:
+            if person.age >= age_lo:
+                rate = r
+    else:
+        for age_str, r in sorted(age_rates.items(), key=lambda x: int(x[0])):
+            if person.age >= int(age_str):
+                rate = float(r)
     # Sex adjustment
     if person.sex == "F":
         rate *= sex_ratio_female
