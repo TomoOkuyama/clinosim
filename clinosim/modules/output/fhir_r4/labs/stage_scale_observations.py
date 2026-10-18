@@ -153,11 +153,6 @@ _SCALE_SPECS: dict[str, _ScaleSpec] = {
 _SPEC_BY_ICD: dict[str, _ScaleSpec] = {s.icd_base: s for s in _SCALE_SPECS.values()}
 
 
-# Public LOINC aliases (consumed by tests + external callers).
-LOINC_MRS = _SCALE_SPECS["mrs"].loinc
-LOINC_EDSS = _SCALE_SPECS["edss"].loinc
-LOINC_CDR = _SCALE_SPECS["cdr"].loinc
-
 STAGE_SCALE_OBSERVATION_ID_PREFIX = "stage-"
 STAGE_SCALE_OBSERVATION_KEY_SYSTEM = structural_key_system("stage-scale-observation-key")
 

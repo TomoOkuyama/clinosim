@@ -20,12 +20,14 @@ import pytest
 
 from clinosim.modules.output.fhir_r4.encounters.encounter import resolve_encounter_id
 from clinosim.modules.output.fhir_r4.labs.stage_scale_observations import (
-    LOINC_CDR,
-    LOINC_EDSS,
-    LOINC_MRS,
+    _SCALE_SPECS,
     _bb_stage_scale_observations,
     build_stage_scale_observations,
 )
+
+LOINC_MRS = _SCALE_SPECS["mrs"].loinc
+LOINC_EDSS = _SCALE_SPECS["edss"].loinc
+LOINC_CDR = _SCALE_SPECS["cdr"].loinc
 
 
 def _enc_ref(cif_id: str) -> str:
