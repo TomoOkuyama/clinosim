@@ -203,3 +203,13 @@ head_circumference_max_age_years: 3
 # emit uses the pediatric_growth table; at/above this age, emit uses
 # `patient.height_cm` / `patient.weight_kg` / `patient.bmi`.
 adult_path_min_age_years: 18
+
+# SDs used when sampling pediatric Layer-1 BMI and Layer-2 height
+# around the growth-chart medians above. Narrower than a true CDC ±1
+# z-band — Layer 1/2 only needs enough spread so same-age children
+# don't collapse to a single value; per-encounter growth variation
+# comes from the FHIR anthropometric emit's own noise section, not
+# here. See clinosim/modules/population/_pediatric_anthropometry.py.
+pediatric_sampling:
+  height_cm_sd: 3.0
+  bmi_sd: 1.0

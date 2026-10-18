@@ -44,6 +44,12 @@ from clinosim.modules.population._household_thresholds import (
     US_PHONE_EXCHANGE_MIN,
     WIFE_KEEPS_MAIDEN_PROBABILITY_DEFAULT,
 )
+from clinosim.modules.population._pediatric_anthropometry import (
+    pediatric_bmi_params as _peds_bmi_params,
+)
+from clinosim.modules.population._pediatric_anthropometry import (
+    pediatric_upper_age as _peds_upper_age,
+)
 from clinosim.modules.population._population_thresholds import (
     ALCOHOL_FALLBACK_LABELS,
     ALCOHOL_FALLBACK_PROBS,
@@ -516,11 +522,24 @@ def generate_population(
             ht_cfg = phys.get("height_cm") or {}
             sex_key = "male" if sex == "M" else "female"
 
-            bmi_mean = (bmi_cfg.get(sex_key) or {}).get(
-                "mean", BMI_MEAN_MALE_DEFAULT if sex == "M" else BMI_MEAN_FEMALE_DEFAULT
-            )
-            bmi_std = (bmi_cfg.get(sex_key) or {}).get("std", BMI_STD_DEFAULT)
-            bmi_clamp = bmi_cfg.get("clamp", BMI_CLAMP_DEFAULT)
+            # Pediatric branch (age < adult_path_min_age_years): sample
+            # BMI from the growth-chart median at this age / sex instead
+            # of the adult-only distribution. Pre-fix a 4-year-old would
+            # inherit the adult mean (~26) and the activator then paired
+            # it with an adult height, giving a stored weight ~75 kg —
+            # physically impossible. One rng.normal draw either way, so
+            # the master-stream shape is preserved.
+            peds_bmi = _peds_bmi_params(country, sex, age) if age < _peds_upper_age() else None
+            if peds_bmi is not None:
+                bmi_mean = peds_bmi["mean"]
+                bmi_std = peds_bmi["std"]
+                bmi_clamp = bmi_cfg.get("clamp", BMI_CLAMP_DEFAULT)
+            else:
+                bmi_mean = (bmi_cfg.get(sex_key) or {}).get(
+                    "mean", BMI_MEAN_MALE_DEFAULT if sex == "M" else BMI_MEAN_FEMALE_DEFAULT
+                )
+                bmi_std = (bmi_cfg.get(sex_key) or {}).get("std", BMI_STD_DEFAULT)
+                bmi_clamp = bmi_cfg.get("clamp", BMI_CLAMP_DEFAULT)
             bmi = float(np.clip(rng.normal(bmi_mean, bmi_std), bmi_clamp[0], bmi_clamp[1]))
 
             ht_mean = (ht_cfg.get(sex_key) or {}).get(
