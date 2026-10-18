@@ -39,6 +39,10 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.
 
 ## [Unreleased]
 
+### Fixed
+
+- **Pediatric Layer-1 / Layer-2 anthropometry — 4-year-olds no longer land on adult-sized bodies.** The population generator sampled BMI from the adult-only `physiology.bmi` distribution (US male ≈ 26, female ≈ 25.5) and the patient activator sampled height from the adult-only `physiology.height_cm` distribution (170 / 157.5 cm) for every age, including pediatric persons. A 4-year-old would therefore end up with a stored profile of ~170 cm / ~98 kg / BMI 34 — physically impossible. Pediatric persons (`age < adult_path_min_age_years`, 18) now sample BMI and height from the per-age growth-chart medians already in `locale/shared/anthropometric_reference.yaml` (CDC for US, MHLW / MEXT for JP). RNG shape is preserved (one `rng.normal` draw per quantity, same as the adult branch), so adult cohorts are byte-identical; pediatric cohorts regenerate with realistic body dimensions. (Surfaced by the p=10k 5y audit on POP-000453, a 4-year-old carrying `height_cm=169.2 / weight_kg=98.0 / bmi=34.2`.) MINOR-track change: pediatric CIF ↔ narrative-CIF consistency is intentionally broken, so a fresh `narrate` run is required for cohorts containing pediatric persons.
+
 ## [0.6.5] - 2026-09-28
 
 ### Fixed

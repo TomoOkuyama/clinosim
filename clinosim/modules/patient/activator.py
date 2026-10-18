@@ -137,6 +137,12 @@ from clinosim.modules.patient._severity_activation import (
     STAGE_SEVERITY,
 )
 from clinosim.modules.physiology.engine import hba1c_from_glycemic_control
+from clinosim.modules.population._pediatric_anthropometry import (
+    pediatric_height_params as _peds_height_params,
+)
+from clinosim.modules.population._pediatric_anthropometry import (
+    pediatric_upper_age as _peds_upper_age,
+)
 from clinosim.modules.population.engine import PersonRecord, _sample_given_name
 from clinosim.types.patient import (
     BaselineVitals,
@@ -549,18 +555,34 @@ def activate_patient(
     phys = demo.get("physiology") or {}
     ht_cfg = phys.get("height_cm") or {}
     sex_key = "male" if sex == "M" else "female"
-    ht_mean = (ht_cfg.get(sex_key) or {}).get("mean", 170.0 if sex == "M" else 157.5)
-    ht_std = (ht_cfg.get(sex_key) or {}).get("std", 5.5)
-    shrink = ht_cfg.get("shrinkage_per_decade_after_60", 0.5)
-    height = float(rng.normal(ht_mean, ht_std))
-    if age > 60:
-        height -= (age - 60) / 10 * shrink
+
+    # Derive country up front so the pediatric branch below can key
+    # the correct growth-chart row before the per-age sampling runs.
+    country = demo.get("_country", "US") if isinstance(demo, dict) else "US"
+
+    # Pediatric branch (age < adult_path_min_age_years): sample height
+    # from the growth-chart median for this age / sex, otherwise the
+    # activator inherits the adult distribution (mean ≈ 170 / 157.5 cm)
+    # and a 4-year-old lands on an adult-size stored profile. One
+    # rng.normal draw either way → master-stream shape preserved.
+    peds_height = _peds_height_params(country, sex, age) if age < _peds_upper_age() else None
+    if peds_height is not None:
+        ht_mean = peds_height["mean"]
+        ht_std = peds_height["std"]
+        height = float(rng.normal(ht_mean, ht_std))
+    else:
+        ht_mean = (ht_cfg.get(sex_key) or {}).get("mean", 170.0 if sex == "M" else 157.5)
+        ht_std = (ht_cfg.get(sex_key) or {}).get("std", 5.5)
+        shrink = ht_cfg.get("shrinkage_per_decade_after_60", 0.5)
+        height = float(rng.normal(ht_mean, ht_std))
+        if age > 60:
+            height -= (age - 60) / 10 * shrink
     bmi = person.bmi
     weight = bmi * (height / 100) ** 2
 
-    # Derive country from demo (for name formatting, language, etc.)
-    # Issue #570 convention: default US when demo lacks _country.
-    country = demo.get("_country", "US") if isinstance(demo, dict) else "US"
+    # (``country`` was derived above alongside the pediatric branch —
+    # also used downstream for name formatting, language, etc.
+    # Issue #570 convention: default US when demo lacks _country.)
 
     # Physiological profile
     age_penalty = max(0, (age - AGE_PENALTY_MIN_AGE) * AGE_PENALTY_SCALE)
