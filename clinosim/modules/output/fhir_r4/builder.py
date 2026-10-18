@@ -56,6 +56,7 @@ from clinosim.modules.output.fhir_r4.labs.imaging_study import _bb_imaging_studi
 from clinosim.modules.output.fhir_r4.labs.microbiology import _bb_microbiology
 from clinosim.modules.output.fhir_r4.labs.observations import _bb_labs
 from clinosim.modules.output.fhir_r4.labs.service_request import _bb_service_requests
+from clinosim.modules.output.fhir_r4.labs.stage_scale_observations import _bb_stage_scale_observations
 
 # FA-1 (Phases 1-13) + (H/I/K/L/N) split this adapter's leaf data,
 # shared fragment helpers, and per-theme resource builders into sibling
@@ -509,6 +510,7 @@ _BUNDLE_BUILDERS: list[Callable[[BundleContext], list[dict]]] = [
     _bb_labs,
     _bb_vitals,
     _bb_anthropometrics,  # Issue #946: height / weight / BMI / head-circ per encounter
+    _bb_stage_scale_observations,  # Chronic-disease stage scales (mRS / H&Y / EDSS / CDR)
     _bb_newborn_apgar,  # Issue #1252 N4: Apgar score at 1 min / 5 min for newborns
     _bb_newborn_bilirubin,  # Issue #1252 N7: transcutaneous bilirubin daily readings
     _bb_newborn_cchd_pulse_ox,  # Issue #1252 N7: CCHD pulse-ox screen (RH + foot)
