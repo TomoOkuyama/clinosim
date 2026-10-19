@@ -102,3 +102,29 @@ def pediatric_height_params(country: str, sex: str, age_years: int) -> dict[str,
         return None
     ht_sd, _ = _sampling_sd()
     return {"mean": med["height"], "std": ht_sd}
+
+
+def pediatric_snapshot_profile(country: str, sex: str, age_years: int) -> dict[str, float] | None:
+    """Return the growth-chart p50 anthropometry profile at
+    ``(country, sex, age)`` as ``{"height_cm": …, "weight_kg": …,
+    "bmi": …}``. Pure lookup — no RNG draw. Returns ``None`` when the
+    age falls outside the pediatric growth-chart range.
+
+    Intended for CIF-write-time snapshot updates on mid-sim-born
+    pediatric patients (e.g. ``POP-NNNNN-BABY``), whose stored
+    ``PatientProfile`` was initialised at the day of birth with
+    newborn values and never advanced as the sim moved forward. For
+    the per-encounter FHIR anthropometric Observation emit, use the
+    existing growth-chart lookup in
+    :mod:`clinosim.modules.output.fhir_r4.labs.anthropometrics`
+    instead — that path is per-encounter and already age-aware."""
+    med = _lookup_median(country, sex, age_years)
+    if med is None:
+        return None
+    h = med["height"]
+    w = med["weight"]
+    return {
+        "height_cm": round(h, 1),
+        "weight_kg": round(w, 1),
+        "bmi": round(w / ((h / 100) ** 2), 1),
+    }
