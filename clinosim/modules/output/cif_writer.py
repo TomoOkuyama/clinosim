@@ -12,8 +12,69 @@ from dataclasses import asdict
 from datetime import date, datetime, timedelta
 from typing import Any
 
+from clinosim.modules.population._pediatric_anthropometry import (
+    pediatric_snapshot_profile as _peds_snapshot_profile,
+)
+from clinosim.modules.population._pediatric_anthropometry import (
+    pediatric_upper_age as _peds_upper_age,
+)
 from clinosim.simulator import log as sim_log
 from clinosim.types.output import CIFDataset
+
+
+def _apply_baby_snapshot_anthropometry(
+    patient_dict: dict[str, Any],
+    snapshot_date: str | None,
+    country: str,
+) -> None:
+    """Mid-sim-born pediatric patients (``POP-NNNNN-BABY``) have a
+    ``PatientProfile`` initialised at delivery with newborn
+    anthropometry (``height_cm=50 w=3.2 bmi=12.8 age=0``). Nothing
+    advances those stored scalars as sim time moves forward, so a baby
+    born in sim year 1 and audited at sim year 5 still carries the
+    newborn snapshot even though the per-encounter FHIR anthropometric
+    emit already walks the growth chart by age-at-encounter. Patch the
+    stored CIF profile to the growth-chart median at
+    ``snapshot_date`` so direct consumers of the CIF JSON see a
+    plausible age-matched profile.
+
+    Scope: ``patient_id`` ending in ``"-BABY"`` only — these are the
+    perinatal.py mid-sim-birth records whose stored anthropometry is
+    unambiguously frozen at birth. Pre-sim pediatric persons (sampled
+    at generation time with per-patient variability) are intentionally
+    left alone in this PR: overwriting them with the growth-chart
+    median would also discard their initial sampling noise and
+    broaden the scope beyond the audit's CRITICAL finding.
+
+    No-op when ``snapshot_date`` is missing, when the DOB is missing,
+    when the baby is already at or past the pediatric upper age at
+    snapshot time, or when the growth-chart has no row for that age.
+    """
+    pid = patient_dict.get("patient_id") or ""
+    if not pid.endswith("-BABY"):
+        return
+    if not snapshot_date:
+        return
+    dob = patient_dict.get("date_of_birth")
+    if not dob:
+        return
+    try:
+        dob_d = date.fromisoformat(str(dob)[:10])
+        snap_d = date.fromisoformat(str(snapshot_date)[:10])
+    except ValueError:
+        return
+    if snap_d < dob_d:
+        return
+    age = snap_d.year - dob_d.year - ((snap_d.month, snap_d.day) < (dob_d.month, dob_d.day))
+    patient_dict["age"] = age
+    if age >= _peds_upper_age():
+        return
+    prof = _peds_snapshot_profile(country, patient_dict.get("sex", "M"), age)
+    if prof is None:
+        return
+    patient_dict["height_cm"] = prof["height_cm"]
+    patient_dict["weight_kg"] = prof["weight_kg"]
+    patient_dict["bmi"] = prof["bmi"]
 
 
 class _CIFEncoder(json.JSONEncoder):
@@ -76,6 +137,11 @@ def write_cif(dataset: CIFDataset, output_dir: str) -> None:
         patient_id = patient_record.patient.patient_id
         enc_id = patient_record.encounters[0].encounter_id if patient_record.encounters else f"{patient_id}-{idx:04d}"
         record_dict = asdict(patient_record)
+        _apply_baby_snapshot_anthropometry(
+            record_dict.get("patient") or {},
+            dataset.metadata.snapshot_date,
+            dataset.metadata.country,
+        )
         # AD-65: strip narrative content from documents (Stage 2 writes separately)
         for doc in record_dict.get("documents", []) or []:
             doc["narrative"] = None
