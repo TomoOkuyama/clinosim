@@ -41,3 +41,29 @@ def test_htn_escalation_fires_at_sbp_above_140():
     r = step([], [], np.random.default_rng(2), spec, context={"continuous": {"sbp": 145.0}})
     assert r.fired
     assert r.med_additions == ["Hydrochlorothiazide"]
+
+
+def test_lipid_high_intensity_escalation_yaml_loads():
+    load_attribute_specs.cache_clear()
+    specs = load_attribute_specs()
+    assert "lipid_escalate_high_intensity_e78" in specs
+    spec = specs["lipid_escalate_high_intensity_e78"]
+    assert spec.pattern == "event"
+    assert spec.depends_on == ["ldl"]
+    body = spec.body
+    assert body.emits_icd == ""
+    assert body.emits_meds == ["Rosuvastatin"]
+    assert body.fire_marker == "lipid_escalate_high_intensity_e78"
+    assert body.base_annual_rate == 0.40
+    assert spec.clinical_scope.requires_chronic_codes == ["E78"]
+
+
+def test_lipid_high_intensity_fires_at_ldl_above_160():
+    load_attribute_specs.cache_clear()
+    spec = load_attribute_specs()["lipid_escalate_high_intensity_e78"].body
+    r = step([], [], np.random.default_rng(0), spec, context={"continuous": {"ldl": 155.0}})
+    assert not r.fired
+    # seed=0 draws ~0.637 > 0.40; use seed=2 (0.274) for the fire path.
+    r = step([], [], np.random.default_rng(2), spec, context={"continuous": {"ldl": 175.0}})
+    assert r.fired
+    assert r.med_additions == ["Rosuvastatin"]
