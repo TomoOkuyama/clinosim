@@ -1,0 +1,27 @@
+# F00 adult-chronic onset — event pattern (Phase 4b.2.β).
+#
+# Dementia/Alzheimer — Alz Association 2024 F&F, 5-33 % age-banded.
+#
+# Migrated from `clinosim/modules/population/aging.py::_annual_chronic_onset`
+# (retired in the same PR). Age-band rates derived via the Phase 2
+# `_derive_annual_incidence_from_prevalence` band-diff formula against
+# the point-prevalence rows in `clinosim/locale/us/demographics.yaml::
+# chronic_prevalence.F00`. See spec §7 for migration rationale.
+
+attribute_id: f00_onset
+pattern: event
+clinical_scope:
+  requires_age_band: [18, 120]
+
+event_name: f00_onset
+emits_icd: F00
+base_annual_rate: 0.0
+base_rate_by_age_band:
+  - {age_lo: 65, age_hi: 84, rate: 0.014105}
+  - {age_lo: 85, age_hi: 99, rate: 0.000000}
+one_shot: true
+narrative_label: f00_onset
+source: >
+  Migrated 2026-10-21 from demographics.yaml::chronic_prevalence verbatim
+  (band-diff λ via _derive_annual_incidence_from_prevalence). See
+  Phase 4b.2.β plan docs/superpowers/plans/2026-10-21-phase-4b2b-annual-chronic-onset-migration.md.
