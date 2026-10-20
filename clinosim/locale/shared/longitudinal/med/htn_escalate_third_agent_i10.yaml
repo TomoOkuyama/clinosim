@@ -1,0 +1,35 @@
+# HTN third-agent treatment escalation — event pattern.
+#
+# Phase 4b.1 of the longitudinal state-evolution subsystem (Issue #1697).
+# Base rate 55 %/yr under uncontrolled SBP (> 140 mmHg), gated OUT when
+# SBP ≤ 140 via a factor-zero modifier.
+#
+# Clinical basis: ACC-AHA 2017 Hypertension Guideline + JNC 8. Thiazide
+# diuretic is the preferred third agent on top of a CCB + ARB/ACEi
+# regimen when BP remains uncontrolled. Phase 4b.1 emits
+# Hydrochlorothiazide as the representative thiazide; chlorthalidone /
+# indapamide alternatives are a Phase 4b.2 locale variant.
+
+attribute_id: htn_escalate_third_agent_i10
+pattern: event
+depends_on: [sbp]
+clinical_scope:
+  requires_chronic_codes: ["I1"]
+  requires_age_band: [18, 120]
+
+event_name: htn_escalate_third_agent_i10
+emits_icd: ""
+emits_meds: ["Hydrochlorothiazide"]
+fire_marker: htn_escalate_third_agent_i10
+base_annual_rate: 0.55
+rate_modifiers:
+  - when: {attribute: sbp, operator: "<=", value: 140.0}
+    factor: 0.0
+one_shot: true
+narrative_label:
+  en: "HTN third-agent escalation"
+  ja: "高血圧 第三薬剤 追加"
+source:
+  - "Whelton PK et al. 2017 ACC/AHA Hypertension Guideline. JACC 2018;71:e127."
+  - "James PA et al. JNC 8 report. JAMA 2014;311:507."
+  - "ALLHAT follow-up — real-world uptake of third antihypertensive agent at sustained SBP > 140."
