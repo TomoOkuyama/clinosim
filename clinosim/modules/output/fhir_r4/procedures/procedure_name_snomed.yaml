@@ -71,15 +71,16 @@ entries:
     display_en: "Continuous positive airway pressure ventilation treatment"
 
   # Sleep medicine — polysomnography (baseline sleep study for OSA
-  # diagnosis confirmation + CPAP titration). SNOMED 70404000.
+  # diagnosis confirmation + CPAP titration). SNOMED 60554003 verified
+  # 2026-10-20 via tx.fhir.org $lookup against SCT 20250201 Intl Edition.
   - match: "polysomnography"
-    snomed: "70404000"
+    snomed: "60554003"
     display_en: "Polysomnography"
   - match: "sleep study"
-    snomed: "70404000"
+    snomed: "60554003"
     display_en: "Polysomnography"
   - match: "ポリソムノグラフィー"
-    snomed: "70404000"
+    snomed: "60554003"
     display_en: "Polysomnography"
 
   # Wound care / debridement.

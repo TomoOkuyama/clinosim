@@ -17,7 +17,7 @@ def test_g47_30_block_declares_procedures():
     procedures = block.get("procedures") or []
     codes = [p.get("snomed") for p in procedures]
     assert "47545007" in codes  # CPAP therapy
-    assert "70404000" in codes  # Polysomnography
+    assert "60554003" in codes  # Polysomnography
 
 
 def test_g47_30_procedures_declare_frequency():
@@ -26,11 +26,11 @@ def test_g47_30_procedures_declare_frequency():
     procedures = block.get("procedures") or []
     frequencies = {p["snomed"]: p["frequency"] for p in procedures}
     assert frequencies.get("47545007") == "every_visit"
-    assert frequencies.get("70404000") == "baseline_only"
+    assert frequencies.get("60554003") == "baseline_only"
 
 
 def test_polysomnography_snomed_resolves_from_name():
-    """Phase 4d Task 2: polysomnography / sleep study → SNOMED 70404000
+    """Phase 4d Task 2: polysomnography / sleep study → SNOMED 60554003
     via the pre-existing procedure name → SNOMED resolver."""
     from clinosim.modules.output.fhir_r4.procedures.procedure_name_snomed import (
         resolve_procedure_snomed,
@@ -39,11 +39,11 @@ def test_polysomnography_snomed_resolves_from_name():
     result = resolve_procedure_snomed("polysomnography")
     assert result is not None
     snomed, _display = result
-    assert snomed == "70404000"
+    assert snomed == "60554003"
 
     result2 = resolve_procedure_snomed("sleep study")
     assert result2 is not None
-    assert result2[0] == "70404000"
+    assert result2[0] == "60554003"
 
 
 def test_cpap_snomed_still_resolves():

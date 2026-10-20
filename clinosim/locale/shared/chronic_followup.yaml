@@ -487,5 +487,6 @@ G47.30:  # Obstructive sleep apnea, unspecified
     # CPAP therapy — SNOMED 47545007 already registered in
     # clinosim/modules/output/fhir_r4/procedures/procedure_name_snomed.yaml.
     - {code: "99503", snomed: "47545007", name_en: "CPAP therapy", name_ja: "CPAP 療法", frequency: "every_visit"}
-    # Polysomnography — SNOMED 70404000, newly registered in Phase 4d Task 2.
-    - {code: "95810", snomed: "70404000", name_en: "Polysomnography", name_ja: "ポリソムノグラフィー", frequency: "baseline_only"}
+    # Polysomnography — SNOMED 60554003, newly registered in Phase 4d Task 2
+    # (verified 2026-10-20 via tx.fhir.org $lookup).
+    - {code: "95810", snomed: "60554003", name_en: "Polysomnography", name_ja: "ポリソムノグラフィー", frequency: "baseline_only"}
