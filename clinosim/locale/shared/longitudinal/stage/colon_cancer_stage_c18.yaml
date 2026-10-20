@@ -1,0 +1,39 @@
+# Colon cancer (C18) — AJCC 8 Markov stage ladder.
+#
+# Phase 4c of the longitudinal state-evolution subsystem (Issue #1701).
+# Clinical calibration (colon cancer under FOLFOX/CAPOX adjuvant):
+#   initial — colonoscopy screening catches more stage I-II than
+#     gastric or lung; moderate screening skew
+#   I→II:  0.12/yr   II→III: 0.08/yr   III→IV: 0.06/yr
+#   IV absorbing
+
+attribute_id: colon_cancer_stage_c18
+pattern: markov
+depends_on: []
+clinical_scope:
+  requires_chronic_codes: ["C18"]
+  requires_age_band: [0, 120]
+
+state_name: colon_cancer_stage
+icd_base: C18
+states: ["AJCC I", "AJCC II", "AJCC III", "AJCC IV"]
+initial_distribution:
+  "AJCC I": 0.25
+  "AJCC II": 0.35
+  "AJCC III": 0.25
+  "AJCC IV": 0.15
+transitions:
+  "AJCC I":
+    "AJCC II": 0.12
+  "AJCC II":
+    "AJCC III": 0.08
+  "AJCC III":
+    "AJCC IV": 0.06
+  "AJCC IV": {}
+narrative_label:
+  en: "Colon cancer stage"
+  ja: "結腸癌 ステージ"
+source:
+  - "Amin MB et al. AJCC Cancer Staging Manual 8e, Colon and Rectum Chapter 20. Springer 2017."
+  - "NCCN Colon Cancer Guidelines v2024."
+  - "Howlader N et al. SEER Cancer Statistics Review, 1975-2020. NCI 2024."
