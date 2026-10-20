@@ -122,6 +122,30 @@ def _build_procedure(
         }
     ]
 
+    # Issue #1701 Phase 4d.1: when ``procedure_type`` matches a verified
+    # keyword in ``procedure_name_snomed.yaml``, attach the SNOMED coding
+    # as a secondary entry. Mirrors the inline_bb.py Order-derived path
+    # (PR #1282). Benefits CIF ``ProcedureRecord`` emits whose
+    # ``procedure_type`` carries a clinical phrase (e.g. "CPAP therapy",
+    # "Polysomnography") regardless of the per-country primary coding
+    # system.
+    if proc_type:
+        from clinosim.modules.output.fhir_r4.procedures.procedure_name_snomed import (
+            resolve_procedure_snomed,
+        )
+
+        _sct_hit = resolve_procedure_snomed(proc_type)
+        if _sct_hit is not None:
+            _sct_code, _sct_display_en = _sct_hit
+            _sct_display = _localize_drug_name(_sct_display_en, country) if is_jp(country) else _sct_display_en
+            coding_entries.append(
+                {
+                    "system": sct_uri,
+                    "code": _sct_code,
+                    "display": _sct_display,
+                }
+            )
+
     # Secondary coding: the OTHER country's code system for international interop
     if is_jp(country) and proc_code_us:
         us_display = _procedure_display(proc_code_us, "en", fallback)

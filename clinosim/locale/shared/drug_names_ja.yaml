@@ -298,6 +298,9 @@ Hemodialysis: "血液透析"
 NIV_BiPAP: "非侵襲的陽圧換気 (BiPAP)"
 NIV BiPAP: "非侵襲的陽圧換気 (BiPAP)"
 Intubation and mechanical ventilation: "気管挿管・人工呼吸管理"
+# Issue #1701 Phase 4d.1 — chronic OSA follow-up (G47.30 cohort).
+CPAP therapy: "CPAP 療法"
+Polysomnography: "ポリソムノグラフィー"
 
 # --- Interventional procedures / 手技 ---
 Vertebroplasty: "椎体形成術"
