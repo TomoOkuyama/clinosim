@@ -221,12 +221,13 @@ C22:  # Liver cancer
   prescriptions_renewed: true
   radiation_therapy_eligible: true    # Issue #957 slice 3
   visit_duration_minutes: 20
-  # Phase 4e horizontal — NCCN v2.2024 HCC §HCC-G: abdominal US (ships
-  # as annual; semi-annual cadence tracked under #1701 残). CPT 76700,
+  # Phase 4e horizontal — NCCN v2.2024 HCC §HCC-G: abdominal US. Phase 4e
+  # shipped as `annual` with semi-annual noted as deferred; Phase 4f lands
+  # the `semi_annual` frequency and this entry is upgraded. CPT 76700,
   # SNOMED 45036003 verified 2026-10-21 via tx.fhir.org $lookup against
   # SCT 20250201 Intl Edition.
   procedures:
-    - {code: "76700", snomed: "45036003", name_en: "Abdominal ultrasound", name_ja: "腹部超音波検査", frequency: "annual"}
+    - {code: "76700", snomed: "45036003", name_en: "Abdominal ultrasound", name_ja: "腹部超音波検査", frequency: "semi_annual"}
 
 C34:  # Lung cancer
   visit_reason:
