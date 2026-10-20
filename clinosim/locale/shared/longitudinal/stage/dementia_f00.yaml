@@ -1,0 +1,39 @@
+# F00 Dementia — Markov stage transitions (Clinical Dementia Rating 0.5-3).
+#
+# Phase 2 of the longitudinal state-evolution subsystem (Issue #1696).
+#
+# Clinical basis: Morris JC 1993 (Neurology 43:2412); Hughes 1982
+# (Br J Psychiatry 140:566); Mitchell SL 2009 NEJM (natural history
+# of advanced dementia); Dubois B 2016 Lancet Neurol (preclinical AD).
+# Progression is monotonic in the natural history under baseline care.
+# Annual advance rates reflect the diagnosed-F00 population (not
+# preclinical). Cholinesterase-inhibitor / memantine effect is NOT
+# modelled as a per-patient modifier here. CDR 3 is terminal.
+
+attribute_id: dementia_stage_f00
+pattern: markov
+depends_on: []
+clinical_scope:
+  requires_chronic_codes: ["F00"]
+  requires_age_band: [0, 120]
+
+state_name: dementia_stage
+icd_base: F00
+states: ["CDR 0.5", "CDR 1", "CDR 2", "CDR 3"]
+initial_distribution:
+  "CDR 0.5": 0.10
+  "CDR 1": 0.40
+  "CDR 2": 0.35
+  "CDR 3": 0.15
+transitions:
+  "CDR 0.5": {"CDR 1": 0.120}
+  "CDR 1": {"CDR 2": 0.180}
+  "CDR 2": {"CDR 3": 0.200}
+  "CDR 3": {}
+narrative_label:
+  en: "CDR dementia stage"
+  ja: "CDR 認知症重症度"
+source:
+  - "Morris JC. The Clinical Dementia Rating (CDR): current version and scoring rules. Neurology 1993;43:2412."
+  - "Mitchell SL et al. The clinical course of advanced dementia. NEJM 2009;361:1529."
+  - "Dubois B et al. Preclinical Alzheimer's disease. Lancet Neurol 2016;15:792."

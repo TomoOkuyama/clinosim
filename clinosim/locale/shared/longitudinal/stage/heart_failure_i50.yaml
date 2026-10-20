@@ -1,0 +1,39 @@
+# I50 Heart Failure — Markov stage transitions (NYHA I-IV).
+#
+# Phase 2 of the longitudinal state-evolution subsystem (Issue #1696).
+#
+# Clinical basis: Ponikowski P et al, 2016 ESC HF guidelines
+# (Eur Heart J 37:2129); MERIT-HF natural-history data; SOLVD and
+# V-HeFT progression cohorts. Progression driven by cardiac remodelling
+# + diuretic responsiveness. Rates reflect all-cohort average without
+# conditioning on LVEF phenotype (HFrEF vs HFpEF) or guideline-directed
+# therapy adherence — phenotype- and therapy-conditional refinement is
+# planned Phase 3. NYHA IV is terminal.
+
+attribute_id: heart_failure_stage_i50
+pattern: markov
+depends_on: []
+clinical_scope:
+  requires_chronic_codes: ["I50"]
+  requires_age_band: [0, 120]
+
+state_name: heart_failure_stage
+icd_base: I50
+states: ["NYHA I", "NYHA II", "NYHA III", "NYHA IV"]
+initial_distribution:
+  "NYHA I": 0.10
+  "NYHA II": 0.30
+  "NYHA III": 0.40
+  "NYHA IV": 0.20
+transitions:
+  "NYHA I": {"NYHA II": 0.050}
+  "NYHA II": {"NYHA III": 0.080}
+  "NYHA III": {"NYHA IV": 0.120}
+  "NYHA IV": {}
+narrative_label:
+  en: "NYHA class"
+  ja: "NYHA 分類"
+source:
+  - "Ponikowski P et al. 2016 ESC Guidelines for the diagnosis and treatment of acute and chronic heart failure. Eur Heart J 2016;37:2129."
+  - "MERIT-HF Study Group. Effect of metoprolol CR/XL in chronic heart failure. Lancet 1999;353:2001."
+  - "SOLVD Investigators. NEJM 1991;325:293."

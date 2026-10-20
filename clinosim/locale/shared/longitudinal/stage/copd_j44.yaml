@@ -1,0 +1,38 @@
+# J44 COPD — Markov stage transitions (GOLD 1-4).
+#
+# Phase 2 of the longitudinal state-evolution subsystem (Issue #1696).
+#
+# Clinical basis: GOLD 2023 report; Casanova C et al, AJRCCM 2011 (BODE
+# index longitudinal); Vestbo J et al, NEJM 2011 (ECLIPSE). Progression
+# is slower and more variable than CKD; smoking status + exacerbation
+# frequency are the dominant per-patient modifiers, which Phase 2 does
+# not inline — smoking modifier applied via engine's multiplier_fn
+# from comorbidity_progression_multipliers.yaml. GOLD 4 is terminal.
+
+attribute_id: copd_stage_j44
+pattern: markov
+depends_on: []
+clinical_scope:
+  requires_chronic_codes: ["J44"]
+  requires_age_band: [0, 120]
+
+state_name: copd_stage
+icd_base: J44
+states: ["GOLD 1", "GOLD 2", "GOLD 3", "GOLD 4"]
+initial_distribution:
+  "GOLD 1": 0.20
+  "GOLD 2": 0.40
+  "GOLD 3": 0.30
+  "GOLD 4": 0.10
+transitions:
+  "GOLD 1": {"GOLD 2": 0.080}
+  "GOLD 2": {"GOLD 3": 0.120}
+  "GOLD 3": {"GOLD 4": 0.150}
+  "GOLD 4": {}
+narrative_label:
+  en: "COPD stage"
+  ja: "COPD ステージ"
+source:
+  - "Global Initiative for Chronic Obstructive Lung Disease (GOLD) 2023 report."
+  - "Casanova C et al. BODE index longitudinal. AJRCCM 2011;183:1065."
+  - "Vestbo J et al. ECLIPSE cohort progression. NEJM 2011;365:1184."
