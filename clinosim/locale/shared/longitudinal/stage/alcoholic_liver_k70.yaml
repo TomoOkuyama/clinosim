@@ -1,0 +1,36 @@
+# K70 Alcoholic Liver Disease / Cirrhosis — Markov Child-Pugh A/B/C.
+#
+# Phase 2 of the longitudinal state-evolution subsystem (Issue #1696).
+#
+# Clinical basis: D'Amico 2006 (J Hepatol) natural-history meta-analysis of
+# compensated → decompensated progression; Pugh 1973 (Br J Surg) original
+# Child-Pugh scoring. 1-year mortality in untreated cohorts tracks
+# ~5 % (A) / ~20 % (B) / ~55 % (C), so decompensation is the dominant
+# time-driven process. Rates reflect all-cohort baseline without
+# conditioning on continued alcohol use, HCC surveillance, or transplant
+# availability. Child-Pugh C is terminal.
+
+attribute_id: alcoholic_liver_stage_k70
+pattern: markov
+depends_on: []
+clinical_scope:
+  requires_chronic_codes: ["K70"]
+  requires_age_band: [0, 120]
+
+state_name: alcoholic_liver_stage
+icd_base: K70
+states: ["Child-Pugh A", "Child-Pugh B", "Child-Pugh C"]
+initial_distribution:
+  "Child-Pugh A": 0.55
+  "Child-Pugh B": 0.30
+  "Child-Pugh C": 0.15
+transitions:
+  "Child-Pugh A": {"Child-Pugh B": 0.070}
+  "Child-Pugh B": {"Child-Pugh C": 0.120}
+  "Child-Pugh C": {}
+narrative_label:
+  en: "Child-Pugh class"
+  ja: "Child-Pugh 分類"
+source:
+  - "D'Amico G et al. Natural history and prognostic indicators of survival in cirrhosis. J Hepatol 2006;44:217."
+  - "Pugh RN et al. Transection of the oesophagus for bleeding oesophageal varices. Br J Surg 1973;60:646."

@@ -1,0 +1,34 @@
+# K74 Fibrosis & Cirrhosis of Liver (non-alcoholic) — Markov Child-Pugh A/B/C.
+#
+# Phase 2 of the longitudinal state-evolution subsystem (Issue #1696).
+#
+# Clinical basis: same D'Amico 2006 natural-history data applies; the
+# non-alcoholic (NAFLD / NASH / viral / autoimmune) etiologies follow
+# the same Child-Pugh scoring and have similar decompensation rates once
+# cirrhosis is established, though mean time to cirrhosis from fibrosis
+# is slower than alcoholic. The progression table encodes the
+# post-cirrhosis trajectory, which is etiology-agnostic.
+
+attribute_id: fibrosis_liver_stage_k74
+pattern: markov
+depends_on: []
+clinical_scope:
+  requires_chronic_codes: ["K74"]
+  requires_age_band: [0, 120]
+
+state_name: fibrosis_liver_stage
+icd_base: K74
+states: ["Child-Pugh A", "Child-Pugh B", "Child-Pugh C"]
+initial_distribution:
+  "Child-Pugh A": 0.55
+  "Child-Pugh B": 0.30
+  "Child-Pugh C": 0.15
+transitions:
+  "Child-Pugh A": {"Child-Pugh B": 0.060}
+  "Child-Pugh B": {"Child-Pugh C": 0.110}
+  "Child-Pugh C": {}
+narrative_label:
+  en: "Child-Pugh class"
+  ja: "Child-Pugh 分類"
+source:
+  - "D'Amico G et al. Natural history and prognostic indicators of survival in cirrhosis. J Hepatol 2006;44:217."

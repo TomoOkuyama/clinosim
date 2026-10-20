@@ -1,0 +1,36 @@
+# I48 Atrial Fibrillation — Markov Paroxysmal → Persistent → Long-standing → Permanent.
+#
+# Phase 2 of the longitudinal state-evolution subsystem (Issue #1696).
+#
+# Clinical basis: de Vos 2010 (Circulation 121:1-9) prospective cohort
+# progression of paroxysmal → persistent → permanent AF; AFNET registry;
+# 2024 AHA/ACC/HRS AF Guideline. Rate-control vs rhythm-control therapy
+# is NOT conditioned on at this layer (de Vos data pre-dates widespread
+# catheter ablation). Permanent AF is terminal.
+
+attribute_id: atrial_fib_stage_i48
+pattern: markov
+depends_on: []
+clinical_scope:
+  requires_chronic_codes: ["I48"]
+  requires_age_band: [0, 120]
+
+state_name: atrial_fib_stage
+icd_base: I48
+states: ["Paroxysmal", "Persistent", "Long-standing persistent", "Permanent"]
+initial_distribution:
+  "Paroxysmal": 0.45
+  "Persistent": 0.25
+  "Long-standing persistent": 0.15
+  "Permanent": 0.15
+transitions:
+  "Paroxysmal": {"Persistent": 0.150}
+  "Persistent": {"Long-standing persistent": 0.120}
+  "Long-standing persistent": {"Permanent": 0.150}
+  "Permanent": {}
+narrative_label:
+  en: "AF stage"
+  ja: "心房細動 進行度"
+source:
+  - "de Vos CB et al. Progression from paroxysmal to persistent atrial fibrillation. Circulation 2010;121:1."
+  - "Joglar JA et al. 2024 ACC/AHA/HRS Guideline for the Diagnosis and Management of Atrial Fibrillation."
