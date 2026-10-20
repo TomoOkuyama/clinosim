@@ -1,0 +1,37 @@
+# SGLT2i treatment escalation — event pattern.
+#
+# Phase 4a of the longitudinal state-evolution subsystem (Issue #1697).
+# Base rate 60 %/yr under uncontrolled HbA1c (> 9.0 %), gated OUT when
+# HbA1c ≤ 9.0 % via a factor-zero modifier.
+#
+# Clinical basis: ADA Standards of Care in Diabetes 2024, §9 Figure 9.3
+# (second-agent intensification). SGLT2i (empagliflozin / dapagliflozin
+# / canagliflozin) and GLP-1 RA (semaglutide / liraglutide) are the
+# preferred second-line agents on top of metformin when HbA1c remains
+# above target; SGLT2i is preferred when ASCVD / HF / CKD comorbidity
+# is present. Phase 4a emits Empagliflozin as a single representative
+# SGLT2i; locale JP alternative (Dapagliflozin / Luseogliflozin) can
+# ship as a Phase 4b locale_exclude variant.
+
+attribute_id: dm_escalate_sglt2i_e11
+pattern: event
+depends_on: [hba1c]
+clinical_scope:
+  requires_chronic_codes: ["E11"]
+  requires_age_band: [18, 120]
+
+event_name: dm_escalate_sglt2i_e11
+emits_icd: ""
+emits_meds: ["Empagliflozin"]
+fire_marker: dm_escalate_sglt2i_e11
+base_annual_rate: 0.6
+rate_modifiers:
+  - when: {attribute: hba1c, operator: "<=", value: 9.0}
+    factor: 0.0
+one_shot: true
+narrative_label:
+  en: "DM SGLT2i escalation"
+  ja: "糖尿病 SGLT2 阻害薬 追加"
+source:
+  - "American Diabetes Association. Standards of Care in Diabetes — 2024. Section 9: Pharmacologic Approaches to Glycemic Treatment. Diabetes Care 2024;47(Suppl 1):S158."
+  - "CDC NHANES 2017-2020 secondary oral antidiabetic therapy uptake in uncontrolled T2DM."
