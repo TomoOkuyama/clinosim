@@ -11,13 +11,18 @@ from __future__ import annotations
 
 from typing import Any
 
-from clinosim.modules.longitudinal.patterns import ar1
+from clinosim.modules.longitudinal.patterns import ar1, markov
 
 PATTERN_REGISTRY: dict[str, dict[str, Any]] = {
     "ar1": {
         "spec": ar1.AR1Spec,
         "step": ar1.step,
         "initial": ar1.initial,
+    },
+    "markov": {
+        "spec": markov.MarkovSpec,
+        "step": markov.step,
+        "initial": markov.initial,
     },
 }
 
