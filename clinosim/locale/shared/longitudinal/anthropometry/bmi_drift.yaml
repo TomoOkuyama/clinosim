@@ -32,7 +32,9 @@ clamp: [13.0, 70.0]
 initial:
   mu: 3.258   # exp(3.258) ≈ 26.0 (dummy — overridden by Layer-1)
   sigma: 0.15
-  clamp: [13.0, 70.0]
+  # NB: initial.clamp defaults to top-level clamp [13.0, 70.0] (loader
+  # polish 2026-10-20) — omitted here since the step clamp + initial
+  # clamp always carry identical physiologic bounds for BMI.
 narrative_label:
   en: "BMI trajectory"
   ja: "BMI 推移"

@@ -221,6 +221,14 @@ def advance_one_year(
     - ``ValueError`` on duplicate year (idempotency contract).
     - ``ValueError`` on backward year (monotonicity contract).
 
+    Year gaps (``year > last+1``) are PERMITTED: the production
+    ``advance_population`` pipeline legitimately jumps from
+    ``initial_snapshot(base_year)`` to the sim window's start year,
+    which may be several years later. A per-call gap guard would
+    break that flow. ``state_at`` only resolves years that have been
+    advanced through, so an unvisited year raises ``IndexError`` on
+    lookup rather than silently returning stale state.
+
     ``multiplier_fn`` scales Markov transition probabilities per-icd
     per-year. Phase 2 wires ``aging._comorbidity_multiplier`` here so
     comorbidity-interaction rules in

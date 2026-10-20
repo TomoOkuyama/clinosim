@@ -39,6 +39,10 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.
 
 ## [Unreleased]
 
+### Changed
+
+- **AR(1) longitudinal attribute yamls — `initial.clamp` defaults to the top-level `clamp`** (deferred minor polish). Step clamp + initial-draw clamp typically carry identical physiologic bounds, so making `initial.clamp` optional (loader falls through to top-level `clamp` when omitted) removes DRY redundancy and divergence risk in yaml authoring. `bmi_drift.yaml` drops its redundant `initial.clamp: [13.0, 70.0]`. `hba1c_trajectory.yaml` keeps its explicit `initial.clamp: [4.5, 14.0]` because the entry-cohort distribution is intentionally narrower than the step clamp `[4.0, 15.0]` (clinically plausible first-diagnosis DM only). Also docs the engine's accepted year-gap behavior in `advance_one_year` — `advance_population` legitimately jumps from `initial_snapshot(base_year)` to the sim-window start year. No byte change.
+
 ### Fixed
 
 - **Same-day vaccinations merge into one `ENC-VAX-*` encounter instead of one per CVX** (Issue #1700). `clinosim/modules/immunization/enricher.py::_synthesize_vaccination_encounter` previously built the encounter id as `sha256(patient | date | cvx | synth-vax)`, so multi-vaccine well-child visits (ACIP 2mo / 4mo / 6mo / 12-15mo schedules routinely give 3-5 vaccines simultaneously) emitted one `ENC-VAX-*` encounter per CVX — not clinically or administratively plausible. The id is now keyed on `(patient_id, occurrence_date)` only, so all CVX administered on the same calendar day collapse to the single synthesized encounter via the enricher's existing `hosted` dedup set. Each Immunization still gets its own resource with its own `vaccineCode`; only the encounter wrapper merges. (Surfaced by the p=2000 5y audit on POP-000054-BABY carrying two same-day `ENC-VAX-*` encounters at the 2mo well-child visit.) MINOR-track change per the CIF ↔ narrative-CIF consistency contract: `-BABY` + pediatric patients with multi-vaccine same-day visits see their encounter count drop; adult cohorts byte-identical when they never had multi-same-day vaccinations.
