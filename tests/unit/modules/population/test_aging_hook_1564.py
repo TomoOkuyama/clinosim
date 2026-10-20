@@ -21,6 +21,7 @@ from datetime import date
 
 import numpy as np
 
+from clinosim.modules.longitudinal.snapshot import YearSnapshot
 from clinosim.modules.population.aging import (
     _allergy_drift,
     _annual_chronic_onset,
@@ -543,7 +544,7 @@ def test_comorbidity_multiplier_scales_with_glycemic_control() -> None:
     def _dm_ckd(gc_prev: float) -> float:
         p = _alive("PT-DM-CKD", age=65)
         p.chronic_conditions = ["N18", "E11"]
-        p.glycemic_trajectory = {2025: gc_prev}
+        p.longitudinal_history = [YearSnapshot(year=2025, continuous={'hba1c': (12 - 6 * (gc_prev))})]
         return _comorbidity_multiplier(p, "N18", 2026)
 
     assert _dm_ckd(0.3) == 2.5, "poor glycemic control must trigger the 2.5x tier"
@@ -569,7 +570,7 @@ def test_comorbidity_multiplier_compounds_hf_and_dm_on_ckd() -> None:
 
     p = _alive("PT-TRIPLE", age=70)
     p.chronic_conditions = ["N18", "E11", "I50"]
-    p.glycemic_trajectory = {2025: 0.3}
+    p.longitudinal_history = [YearSnapshot(year=2025, continuous={'hba1c': 10.2})]
     mult = _comorbidity_multiplier(p, "N18", 2026)
     assert abs(mult - (2.5 * 1.5)) < 1e-9, f"compound multiplier should be 3.75, got {mult}"
 
@@ -594,10 +595,10 @@ def test_comorbidity_multiplier_diabetic_atherogenesis_on_ihd() -> None:
 
     p = _alive("PT-DM-IHD", age=65)
     p.chronic_conditions = ["I25", "E11"]
-    p.glycemic_trajectory = {2025: 0.85}  # good control
+    p.longitudinal_history = [YearSnapshot(year=2025, continuous={'hba1c': 6.9})]  # good control
     assert _comorbidity_multiplier(p, "I25", 2026) == 1.3
 
-    p.glycemic_trajectory = {2025: 0.3}  # poor control
+    p.longitudinal_history = [YearSnapshot(year=2025, continuous={'hba1c': 10.2})]  # poor control
     assert _comorbidity_multiplier(p, "I25", 2026) == 1.5
 
 
@@ -672,7 +673,7 @@ def test_comorbidity_multiplier_uses_previous_year_gc() -> None:
 
     p = _alive("PT-DM-NO-PRIOR", age=65)
     p.chronic_conditions = ["N18", "E11"]
-    p.glycemic_trajectory = {2026: 0.2}  # current year poor control, no prior
+    p.longitudinal_history = [YearSnapshot(year=2026, continuous={'hba1c': 10.8})]  # current year poor control, no prior
     # Multiplier should fall back to default 0.7 → good tier → 1.0
     assert _comorbidity_multiplier(p, "N18", 2026) == 1.0
 
@@ -695,7 +696,7 @@ def test_disease_progression_dm_poor_control_accelerates_ckd() -> None:
             p = _alive(f"PT-SIM-{i:04d}", age=60)
             p.chronic_conditions = ["N18"] + (["E11"] if with_dm else [])
             if with_dm:
-                p.glycemic_trajectory = {y: gc for y in range(2024, 2046)}
+                p.longitudinal_history = [YearSnapshot(year=y, continuous={"hba1c": 12 - 6 * gc}) for y in range(2024, 2046)]
             for yr in range(8):
                 _disease_progression(
                     p,

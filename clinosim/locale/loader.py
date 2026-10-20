@@ -340,18 +340,10 @@ def load_stage_transition() -> dict[str, Any]:
     return _load_yaml(_LOCALE_DIR / "shared" / "stage_transition.yaml", fallback={})
 
 
-@lru_cache(maxsize=1)
-def load_glycemic_trajectory() -> dict[str, Any]:
-    """Load per-disease annual HbA1c trajectory parameters for the
-    aging hook's ``_disease_progression`` DM extension (Issue #1581).
-
-    Top-level shape:
-        glycemic_trajectory.<icd>.gc_drift_mean -> float
-        glycemic_trajectory.<icd>.gc_drift_sd -> float
-        glycemic_trajectory.<icd>.gc_min -> float
-        glycemic_trajectory.<icd>.gc_max -> float
-    """
-    return _load_yaml(_LOCALE_DIR / "shared" / "glycemic_trajectory.yaml", fallback={})
+# Phase 1 longitudinal migration (Issue #1695): load_glycemic_trajectory
+# retired. HbA1c trajectory parameters live in
+# clinosim/locale/shared/longitudinal/hba1c_trajectory.yaml and are
+# loaded by clinosim.modules.longitudinal.loader.load_attribute_specs.
 
 
 @lru_cache(maxsize=1)
