@@ -51,7 +51,7 @@ from functools import lru_cache
 
 import numpy as np
 
-from clinosim.locale.loader import load_actuarial_life_table, load_condition_mortality_smr, load_demographics
+from clinosim.locale.loader import load_actuarial_life_table, load_condition_mortality_smr
 from clinosim.modules.allergy.engine import load_allergen_config
 from clinosim.types.population import PersonRecord
 
