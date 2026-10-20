@@ -9,6 +9,7 @@ from __future__ import annotations
 import pytest
 import yaml
 
+from clinosim.codes.loader import _load_system
 from clinosim.modules.device.engine import load_devices_config
 from clinosim.modules.hai import engine as hai_engine
 
@@ -18,34 +19,46 @@ def _clear_hai_caches():
     """Each test starts with empty HAI caches so monkeypatch effects are
     visible.
 
-    `load_devices_config` is pre-warmed with the real device catalog
-    BEFORE each test — the autouse fixture runs before the test body's
-    `monkeypatch.setattr(yaml, "safe_load", ...)`, so the real device
-    dict is cached at that point and subsequent `_validate_hai_rates`
-    calls (which look up `source_device_type ∈ devices.yaml`) see the
-    real catalog even when `yaml.safe_load` is monkeypatched inside the
-    test. Without this, the transitive `load_devices_config()` call in
-    the validator reads the monkeypatched yaml on first use and its
-    `@lru_cache(maxsize=1)` stores an empty devices dict, breaking both
-    same-file tests and any later test that lands on the poisoned
+    `load_devices_config` and the three code systems the HAI validator
+    cross-references (``icd-10-cm``, ``icd-10``, ``snomed-ct``) are
+    pre-warmed with their real yaml contents BEFORE each test — the
+    autouse fixture runs before the test body's
+    `monkeypatch.setattr(yaml, "safe_load", ...)`, so the real catalogs
+    are cached at that point and subsequent `_validate_hai_*` calls see
+    them even when `yaml.safe_load` is monkeypatched inside the test.
+    Without this, the transitive `load_devices_config()` /
+    `_code_in_data(...)` → `_load_system(...)` call in the validator
+    reads the monkeypatched yaml on first use and the backing
+    `@cache` / `@lru_cache` stores an empty / HAI-shaped dict, breaking
+    both same-file tests and any later test that lands on the poisoned
     process.
 
     Only surfaced when pytest-split's `least_duration` splitting
     (S115 #1420) reorders the unit suite so this file's monkeypatches
-    run before `test_device_engine.py` has independently warmed the
-    cache with the real data."""
+    run before `test_device_engine.py` or the code-system loader has
+    independently warmed the caches with the real data. The HAI
+    `_code_in_data` cross-reference (`_load_system`) was added in the
+    sibling-sweep hardening after this fixture was first written, so
+    the three code-system pre-warm lines are the matching fix for the
+    same class of poisoning."""
     hai_engine.load_hai_rates.cache_clear()
     hai_engine.load_hai_codes.cache_clear()
     hai_engine.load_hai_organisms.cache_clear()
     hai_engine.load_hai_specimens.cache_clear()
     load_devices_config.cache_clear()
+    _load_system.cache_clear()
     load_devices_config()  # pre-warm with real yaml (before monkeypatch)
+    _load_system("icd-10-cm")  # pre-warm icd-10-cm.yaml (_validate_hai_codes)
+    _load_system("icd-10")  # pre-warm icd-10.yaml (JP WHO ICD-10, _validate_hai_codes)
+    _load_system("snomed-ct")  # pre-warm snomed-ct.yaml (_validate_hai_codes + _validate_hai_specimens)
+    _load_system("loinc")  # pre-warm loinc.yaml (_validate_hai_specimens test_loinc cross-ref)
     yield
     hai_engine.load_hai_rates.cache_clear()
     hai_engine.load_hai_codes.cache_clear()
     hai_engine.load_hai_organisms.cache_clear()
     hai_engine.load_hai_specimens.cache_clear()
     load_devices_config.cache_clear()
+    _load_system.cache_clear()
 
 
 # ----------------------------------------------------------------------------
