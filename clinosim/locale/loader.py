@@ -324,22 +324,11 @@ def load_condition_mortality_smr() -> dict[str, Any]:
     return _load_yaml(_LOCALE_DIR / "shared" / "condition_mortality_smr.yaml", fallback={})
 
 
-@lru_cache(maxsize=1)
-def load_stage_transition() -> dict[str, Any]:
-    """Load per-disease annual stage-transition probabilities for the
-    aging hook's ``_disease_progression`` pass (Issue #1572 Phase 2.5).
-
-    Top-level shape:
-        stage_transitions.<icd>.stages -> list[str] (ordered stages)
-        stage_transitions.<icd>.annual_advance_probability.<stage>
-          -> float (Bernoulli λ to advance to next stage this year)
-
-    Scope: CKD (N18) and COPD (J44) in the first body PR; DM /
-    dementia follow-up expands this file.
-    """
-    return _load_yaml(_LOCALE_DIR / "shared" / "stage_transition.yaml", fallback={})
-
-
+# Phase 2 longitudinal migration (Issue #1696): load_stage_transition
+# retired. Markov stage transition tables moved to per-family yamls
+# under clinosim/locale/shared/longitudinal/stage/*.yaml and are
+# loaded by clinosim.modules.longitudinal.loader.load_attribute_specs.
+#
 # Phase 1 longitudinal migration (Issue #1695): load_glycemic_trajectory
 # retired. HbA1c trajectory parameters live in
 # clinosim/locale/shared/longitudinal/hba1c_trajectory.yaml and are

@@ -27,7 +27,6 @@ from clinosim.modules.population.aging import (
     _annual_chronic_onset,
     _condition_reactive_mortality,
     _derive_annual_incidence_from_prevalence,
-    _disease_progression,
     _load_annual_incidence_for_locale,
     advance_population,
     aging_sub_seed,
@@ -679,47 +678,6 @@ def test_comorbidity_multiplier_uses_previous_year_gc() -> None:
     ]  # current year poor control, no prior
     # Multiplier should fall back to default 0.7 → good tier → 1.0
     assert _comorbidity_multiplier(p, "N18", 2026) == 1.0
-
-
-def test_disease_progression_dm_poor_control_accelerates_ckd() -> None:
-    """Monte-Carlo: DM-affected cohorts with poor glycemic control
-    reach CKD G3b/G4/G5 faster than DM-free CKD cohorts over 20
-    years. Not byte-exact — a Bernoulli monte-carlo over 200
-    persons × 20 years. Deterministic seed keeps the result stable."""
-    # Metric: mean CKD stage index (0=G1 ... 5=G5) after 8 years. The
-    # window is short enough that few persons plateau at G5, so the
-    # acceleration gap is observable as a stage-index shift. Fraction-
-    # reaching-G3b+ saturates faster and is less sensitive. Monte-
-    # Carlo with deterministic seed keeps the result stable.
-    stage_idx = {"CKD G1": 0, "CKD G2": 1, "CKD G3a": 2, "CKD G3b": 3, "CKD G4": 4, "CKD G5": 5}
-
-    def _mean_stage(with_dm: bool, gc: float) -> float:
-        total = 0.0
-        for i in range(200):
-            p = _alive(f"PT-SIM-{i:04d}", age=60)
-            p.chronic_conditions = ["N18"] + (["E11"] if with_dm else [])
-            if with_dm:
-                p.longitudinal_history = [
-                    YearSnapshot(year=y, continuous={"hba1c": 12 - 6 * gc}) for y in range(2024, 2046)
-                ]
-            for yr in range(8):
-                _disease_progression(
-                    p,
-                    2026 + yr,
-                    np.random.default_rng(aging_sub_seed(p.person_id, 2026 + yr, "_disease_progression")),
-                    {},
-                )
-            total += stage_idx.get(p.disease_stages.get("N18", ""), 0)
-        return total / 200
-
-    no_dm = _mean_stage(with_dm=False, gc=1.0)
-    dm_poor = _mean_stage(with_dm=True, gc=0.3)
-    # Half-stage shift is a conservative threshold; the clinical
-    # expectation from a 2.5x per-year rate multiplier compounded
-    # over 8 years is >= 1 full stage shift at this baseline.
-    assert dm_poor > no_dm + 0.5, (
-        f"DM poor-control mean CKD stage ({dm_poor:.3f}) must exceed baseline ({no_dm:.3f}) by ≥0.5"
-    )
 
 
 def test_full_advance_population_runs_against_real_locale() -> None:
