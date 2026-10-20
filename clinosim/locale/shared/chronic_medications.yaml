@@ -41,6 +41,10 @@ I10:  # Hypertension
   medications:
     - {drug: "Amlodipine", drug_ja: "アムロジピン", dose: "5mg", route: "PO", frequency: "daily"}
     - {drug: "Candesartan", drug_ja: "カンデサルタン", dose: "8mg", route: "PO", frequency: "daily", probability: 0.5}
+    # Phase 4b.1 (#1697) — longitudinal escalation drug. probability: 0.0
+    # keeps activation sampling from picking it; only the longitudinal
+    # engine's htn_escalate_third_agent_i10 event adds it via resolve_med_name.
+    - {drug: "Hydrochlorothiazide", drug_ja: "ヒドロクロロチアジド", dose: "25mg", drug_class: "thiazide", route: "PO", frequency: "daily", probability: 0.0}
   hold_conditions:
     - {drug: "Amlodipine", condition: "SBP < 90", field: "systolic_bp", threshold: 90, direction: "below"}
     - {drug: "Candesartan", condition: "SBP < 90", field: "systolic_bp", threshold: 90, direction: "below"}
@@ -64,6 +68,11 @@ E11.9:  # Type 2 Diabetes
 E78:  # Dyslipidemia
   medications:
     - {drug: "Atorvastatin", drug_ja: "アトルバスタチン", dose: "10mg", route: "PO", frequency: "daily"}
+    # Phase 4b.1 (#1697) — longitudinal escalation drugs. probability: 0.0
+    # keeps activation sampling from picking them; only the longitudinal
+    # engine's lipid_escalate_* event yamls add them via resolve_med_name.
+    - {drug: "Rosuvastatin", drug_ja: "ロスバスタチン", dose: "20mg", drug_class: "high_intensity_statin", route: "PO", frequency: "daily", probability: 0.0}
+    - {drug: "Ezetimibe", drug_ja: "エゼチミブ", dose: "10mg", drug_class: "cholesterol_absorption_inhibitor", route: "PO", frequency: "daily", probability: 0.0}
   monitoring:
     - {test: "AST", frequency: "every_3_days", intent: "Statin hepatotoxicity monitoring"}
     - {test: "ALT", frequency: "every_3_days", intent: "Statin hepatotoxicity monitoring"}
