@@ -1,0 +1,45 @@
+# I69.1 Sequelae of Non-traumatic Intracerebral Haemorrhage — Markov mRS.
+#
+# Phase 2 of the longitudinal state-evolution subsystem (Issue #1696).
+#
+# Longest-prefix precedence: an I69.1-carrying person engages THIS yaml.
+#
+# Clinical basis: Survivor-selection effect — those who survive the acute
+# ICH + first-year rebleed window are a relatively stable subgroup, with
+# rebleed rates after year 1 dropping to ~1-2 %/yr (van Asch 2010 Lancet
+# Neurol). Long-term trajectory therefore progresses slightly SLOWER
+# than ischemic sequela per stage. Rates ~25 % below the I69.3
+# counterpart. Initial distribution shifts rightward (worse mRS at
+# discharge) reflecting ICH acute-care prognosis per Kleindorfer 2021
+# AHA/ASA Stroke guideline + GWTG-Stroke subgroup data.
+
+attribute_id: stroke_sequela_stage_i69_1
+pattern: markov
+depends_on: []
+clinical_scope:
+  requires_chronic_codes: ["I69.1"]
+  requires_age_band: [0, 120]
+
+state_name: stroke_sequela_stage
+icd_base: I69
+states: ["mRS 0", "mRS 1", "mRS 2", "mRS 3", "mRS 4", "mRS 5"]
+initial_distribution:
+  "mRS 0": 0.05
+  "mRS 1": 0.12
+  "mRS 2": 0.18
+  "mRS 3": 0.25
+  "mRS 4": 0.25
+  "mRS 5": 0.15
+transitions:
+  "mRS 0": {"mRS 1": 0.060}
+  "mRS 1": {"mRS 2": 0.052}
+  "mRS 2": {"mRS 3": 0.045}
+  "mRS 3": {"mRS 4": 0.038}
+  "mRS 4": {"mRS 5": 0.030}
+  "mRS 5": {}
+narrative_label:
+  en: "modified Rankin Scale"
+  ja: "mRS 段階"
+source:
+  - "van Asch CJ et al. Incidence, case fatality, and functional outcome of intracerebral haemorrhage over time. Lancet Neurol 2010;9:167."
+  - "Kleindorfer DO et al. 2021 Guideline for the Prevention of Stroke in Patients with Stroke and Transient Ischemic Attack. Stroke 2021;52:e364."

@@ -18,6 +18,10 @@ EXPECTED: dict[str, tuple[str, list[str]]] = {
     "fibrosis_liver_stage_k74": ("K74", ["Child-Pugh A", "Child-Pugh B", "Child-Pugh C"]),
     "parkinson_stage_g20": ("G20", ["H&Y 1", "H&Y 2", "H&Y 3", "H&Y 4", "H&Y 5"]),
     "atrial_fib_stage_i48": ("I48", ["Paroxysmal", "Persistent", "Long-standing persistent", "Permanent"]),
+    "multiple_sclerosis_stage_g35": ("G35", ["EDSS 0-2", "EDSS 2.5-5", "EDSS 5.5-7", "EDSS 7.5-10"]),
+    "stroke_sequela_stage_i69_3": ("I69", ["mRS 0", "mRS 1", "mRS 2", "mRS 3", "mRS 4", "mRS 5"]),
+    "stroke_sequela_stage_i69_1": ("I69", ["mRS 0", "mRS 1", "mRS 2", "mRS 3", "mRS 4", "mRS 5"]),
+    "stroke_sequela_stage_i69": ("I69", ["mRS 0", "mRS 1", "mRS 2", "mRS 3", "mRS 4", "mRS 5"]),
 }
 
 

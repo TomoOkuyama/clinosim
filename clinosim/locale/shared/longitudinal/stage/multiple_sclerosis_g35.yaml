@@ -1,0 +1,37 @@
+# G35 Multiple Sclerosis — Markov banded EDSS.
+#
+# Phase 2 of the longitudinal state-evolution subsystem (Issue #1696).
+#
+# Clinical basis: Kurtzke 1983 (Neurology) EDSS; Confavreux 2006 (NEJM)
+# natural-history median trajectory — median time to EDSS 6 (walking
+# impairment, assistive device) is ~20 years from onset in untreated
+# RRMS, substantially faster in primary-progressive MS. Mean time to
+# EDSS 7.5+ (wheelchair) is ~30 years. Disease-modifying-therapy
+# effect is NOT conditioned on at this layer. EDSS 7.5-10 is terminal.
+
+attribute_id: multiple_sclerosis_stage_g35
+pattern: markov
+depends_on: []
+clinical_scope:
+  requires_chronic_codes: ["G35"]
+  requires_age_band: [0, 120]
+
+state_name: multiple_sclerosis_stage
+icd_base: G35
+states: ["EDSS 0-2", "EDSS 2.5-5", "EDSS 5.5-7", "EDSS 7.5-10"]
+initial_distribution:
+  "EDSS 0-2": 0.45
+  "EDSS 2.5-5": 0.35
+  "EDSS 5.5-7": 0.15
+  "EDSS 7.5-10": 0.05
+transitions:
+  "EDSS 0-2": {"EDSS 2.5-5": 0.040}
+  "EDSS 2.5-5": {"EDSS 5.5-7": 0.060}
+  "EDSS 5.5-7": {"EDSS 7.5-10": 0.050}
+  "EDSS 7.5-10": {}
+narrative_label:
+  en: "EDSS band"
+  ja: "EDSS バンド"
+source:
+  - "Kurtzke JF. Rating neurologic impairment in multiple sclerosis: an expanded disability status scale (EDSS). Neurology 1983;33:1444."
+  - "Confavreux C, Vukusic S. Natural history of multiple sclerosis: a unifying concept. NEJM 2006;354:987."

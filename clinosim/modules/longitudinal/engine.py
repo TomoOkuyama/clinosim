@@ -63,6 +63,52 @@ def _attribute_in_scope(spec: AttributeSpec, person: PersonRecord, year: int) ->
     return lo <= age <= hi
 
 
+def _attribute_specificity(spec: AttributeSpec, person_codes: list[str]) -> int:
+    """Longest matching required-prefix length for this person's chronic
+    codes. Used to break ties when two Markov attributes target the same
+    icd_base but have different ``requires_chronic_codes`` specificity
+    (I69.3 sub-code vs I69 base-code fallback). An empty requirement
+    list matches length 0 — intentionally lowest priority."""
+    best = 0
+    for required in spec.clinical_scope.requires_chronic_codes:
+        for code in person_codes:
+            if code.startswith(required):
+                best = max(best, len(required))
+    return best
+
+
+def _select_markov_winners(
+    specs: dict[str, AttributeSpec],
+    in_scope: set[str],
+    person: PersonRecord,
+) -> set[str]:
+    """Group in-scope Markov attributes by icd_base; return the single
+    winning attribute_id per group under longest-prefix specificity
+    (ties broken alphabetically on attribute_id for determinism).
+    Non-Markov attributes always pass through — they live under their
+    own latent_name / event namespace, not icd_base."""
+    winners: set[str] = set()
+    markov_by_icd: dict[str, list[str]] = {}
+    for aid in in_scope:
+        spec = specs[aid]
+        if spec.pattern != "markov":
+            winners.add(aid)
+            continue
+        markov_by_icd.setdefault(spec.body.icd_base, []).append(aid)
+    for icd, candidates in markov_by_icd.items():
+        if len(candidates) == 1:
+            winners.add(candidates[0])
+            continue
+        candidates.sort(
+            key=lambda aid: (
+                -_attribute_specificity(specs[aid], person.chronic_conditions),
+                aid,
+            ),
+        )
+        winners.add(candidates[0])
+    return winners
+
+
 def _apply_pattern(
     spec: AttributeSpec,
     snapshot: YearSnapshot,
@@ -122,11 +168,12 @@ def initial_snapshot(
     snap = YearSnapshot(year=year)
     specs = load_attribute_specs()
     order = topological_order(specs)
+    in_scope = {aid for aid in order if _attribute_in_scope(specs[aid], person, year)}
+    winners = _select_markov_winners(specs, in_scope, person)
     for aid in order:
-        spec = specs[aid]
-        if not _attribute_in_scope(spec, person, year):
+        if aid not in winners:
             continue
-        _apply_pattern(spec, snap, init_rng, prev_snapshot=None)
+        _apply_pattern(specs[aid], snap, init_rng, prev_snapshot=None)
     person.longitudinal_history.append(snap)
     return snap
 
@@ -157,11 +204,12 @@ def advance_one_year(
     prev = person.longitudinal_history[-1]
     specs = load_attribute_specs()
     order = topological_order(specs)
+    in_scope = {aid for aid in order if _attribute_in_scope(specs[aid], person, year)}
+    winners = _select_markov_winners(specs, in_scope, person)
     for aid in order:
-        spec = specs[aid]
-        if not _attribute_in_scope(spec, person, year):
+        if aid not in winners:
             continue
-        _apply_pattern(spec, snap, year_rng, prev_snapshot=prev)
+        _apply_pattern(specs[aid], snap, year_rng, prev_snapshot=prev)
     person.longitudinal_history.append(snap)
     return snap
 
