@@ -666,6 +666,44 @@ def _simulate_outpatient_visit(
     # untouched (feedback_rng_neutral_additive_field pattern).
     procedures_list: list = []
 
+    # Phase 4d (#1701 partial) — emit chronic_followup.yaml procedures:
+    # entries on this visit. Each entry carries {code, snomed, name_en,
+    # name_ja, frequency} where frequency is 'every_visit' (chronic
+    # ongoing therapy like CPAP) or 'baseline_only' (one-shot per patient
+    # like polysomnography). Dedup for baseline_only is tracked via a
+    # per-patient attribute attached by this simulator (plan Task 4
+    # Ruling — PatientProfile has no built-in encounter history field).
+    _chronic_procedures = spec.get("procedures") if chronic_code else None
+    if _chronic_procedures:
+        from clinosim.types.procedure import ProcedureRecord
+
+        _baseline_set = getattr(patient, "_phase4d_baseline_procedures_emitted", None)
+        if _baseline_set is None:
+            _baseline_set = set()
+        for _proc in _chronic_procedures:
+            _snomed = str(_proc.get("snomed") or "")
+            _frequency = str(_proc.get("frequency") or "")
+            if _frequency == "baseline_only" and _snomed in _baseline_set:
+                continue
+            _code_us = str(_proc.get("code") or "")
+            _proc_start = visit_date + timedelta(minutes=OUTPATIENT_LAB_ORDER_OFFSET_MIN)
+            procedures_list.append(
+                ProcedureRecord(
+                    procedure_id=f"PROC-{encounter.encounter_id}-{_snomed}",
+                    patient_id=patient.patient_id,
+                    encounter_id=encounter.encounter_id,
+                    procedure_type=str(_proc.get("name_en") or ""),
+                    procedure_code=_code_us,
+                    procedure_code_us=_code_us,
+                    start_datetime=_proc_start,
+                    end_datetime=_proc_start + timedelta(minutes=15),
+                    primary_surgeon_id=encounter.attending_physician_id,
+                )
+            )
+            if _frequency == "baseline_only":
+                _baseline_set.add(_snomed)
+        object.__setattr__(patient, "_phase4d_baseline_procedures_emitted", _baseline_set)
+
     # Issue #957 Tier-3-A: chemotherapy administration Procedure emit +
     # per-cycle drug MedicationRequest (Order) + MedicationAdministration
     # for chemo_visit encounters. Fires unconditionally (every chemo cycle
