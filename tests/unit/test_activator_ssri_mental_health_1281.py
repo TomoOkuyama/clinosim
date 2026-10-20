@@ -151,14 +151,19 @@ ATYPICAL_DRUGS = ("mirtazapine",)
 
 
 def test_f32_snri_class_fires_in_expected_band_us() -> None:
-    """F32 depression cohort at moderate+ severity: ~15 % receive an
-    SNRI (Venlafaxine or Duloxetine — second-line / augmentation
-    class). Severity gate (axis 6) requires the stage fixture —
-    mild cohorts correctly get zero SNRI."""
+    """F32 depression cohort at moderate+ severity: SNRI (Venlafaxine
+    or Duloxetine) emerges only on patients who did NOT already sample
+    an SSRI — the ``ssri-plus-snri`` serotonin-syndrome gate drops the
+    second serotonergic agent at the activator CPOE check. Pre-gate
+    the raw SNRI roll probability is ~15 %; post-gate the observed
+    SNRI retention rate is roughly ``P(SNRI roll) × P(no SSRI roll)``
+    ≈ 15 % × 35 % ≈ 5 %. Band kept generous (2-10 %) to absorb RNG
+    noise at n=1000. Severity gate (axis 6) requires the stage
+    fixture — mild cohorts correctly get zero SNRI."""
     hits = sum(
         1 for s in _sample("US", "F32", n=1000, stage="PHQ-9 moderate") if any(d.lower() in SNRI_DRUGS for d in s)
     )
-    assert 0.08 * 1000 <= hits <= 0.22 * 1000, f"F32 SNRI rate {hits}/1000 outside 8-22 %"
+    assert 0.02 * 1000 <= hits <= 0.10 * 1000, f"F32 SNRI rate {hits}/1000 outside 2-10 %"
 
 
 def test_f32_atypical_class_fires_in_expected_band_us() -> None:
@@ -174,23 +179,31 @@ def test_f32_atypical_class_fires_in_expected_band_us() -> None:
     assert 0.03 * 1000 <= hits <= 0.10 * 1000, f"F32 atypical rate {hits}/1000 outside 3-10 %"
 
 
-def test_f32_augmentation_pattern_ssri_plus_snri_exists() -> None:
-    """Real STAR*D augmentation: some F32 patients at moderate+
-    severity on BOTH an SSRI AND an SNRI (~10-15 % of treated).
-    Confirm the multi-class exclusive design permits this
-    cross-class combination. Severity gate from axis 6 requires the
-    moderate+ stage fixture — SNRI is correctly suppressed on
-    mild cohorts."""
-    found_combo = False
+def test_f32_ssri_plus_snri_combination_is_always_dropped() -> None:
+    """Audit s103: chronic SSRI + SNRI co-prescription is NOT
+    standard-of-care — both mechanisms raise 5-HT availability and the
+    pair multiplies serotonin-syndrome risk without evidence of
+    additive efficacy. APA 2010 / VA-DoD 2022 depression guidelines
+    recommend switching with washout rather than combining, and
+    augmentation of an SSRI/SNRI uses a non-serotonergic adjunct
+    (Mirtazapine, Bupropion). The activator CPOE gate fires the
+    ``ssri-plus-snri`` rule (severity=major) so the second
+    serotonergic candidate is dropped — the combination must NEVER
+    co-exist on ``current_medications`` for any seed.
+
+    This test previously asserted the opposite ("SSRI + SNRI combo
+    SHOULD fire") on the premise that STAR*D-style augmentation
+    permits it. That premise was wrong — STAR*D's augmentation step
+    is SSRI + non-SSRI/SNRI (bupropion, buspirone, lithium) or SSRI
+    switch, never SSRI + SNRI concurrent."""
     for seed in range(1000):
         meds = _derive_home_medications(
             [_Cond(code="F32", stage="PHQ-9 moderate")], np.random.default_rng(seed), country="US"
         )
         names = [m.drug_name.lower() for m in meds]
-        if any(d in SSRI_DRUGS for d in names) and any(d in SNRI_DRUGS for d in names):
-            found_combo = True
-            break
-    assert found_combo, "SSRI + SNRI augmentation combination never fires across 1000 seeds"
+        has_ssri = any(d in SSRI_DRUGS for d in names)
+        has_snri = any(d in SNRI_DRUGS for d in names)
+        assert not (has_ssri and has_snri), f"seed={seed}: ssri-plus-snri gate failed — meds={names}"
 
 
 def test_f41_1_benzodiazepine_fires_only_at_severe_and_non_elderly() -> None:
