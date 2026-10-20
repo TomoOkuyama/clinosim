@@ -121,6 +121,9 @@ def test_only_verified_snomed_codes():
         "241689008",  # Procedural sedation
         "229586001",  # Application of intermittent pneumatic compression (SCD)
         "244042001",  # Insertion of urinary bladder catheter (Foley)
+        # Phase 4d — OSA follow-up polysomnography (verified 2026-10-20 via
+        # tx.fhir.org $lookup against SCT 20250201 Intl Edition).
+        "60554003",  # Polysomnography
     }
     for _match, snomed, _display in _load_entries():
         assert snomed in verified, (
