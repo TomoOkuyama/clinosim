@@ -57,8 +57,10 @@ def _age_at_year(person: PersonRecord, year: int) -> int:
 
 
 def _attribute_in_scope(spec: AttributeSpec, person: PersonRecord, year: int) -> bool:
-    """``clinical_scope`` evaluation. Both chronic-code prefix match
-    and age-band containment must hold."""
+    """``clinical_scope`` evaluation. Sex-lock, chronic-code prefix
+    match, and age-band containment must all hold."""
+    if spec.clinical_scope.requires_sex and person.sex != spec.clinical_scope.requires_sex:
+        return False
     if not _chronic_codes_match(person.chronic_conditions, spec.clinical_scope.requires_chronic_codes):
         return False
     age = _age_at_year(person, year)

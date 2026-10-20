@@ -48,15 +48,18 @@ _OPERATORS = {
 class RateModifierWhen(BaseModel):
     """Trigger clause for a rate modifier.
 
-    Two mutually exclusive trigger shapes, exactly one must be populated:
+    Three mutually exclusive trigger shapes, exactly one must be populated:
     * ``attribute + operator + value`` — same-year AR(1) latent threshold
       (Phase 3). Fires when ``continuous[attribute] <op> value``.
-    * ``has_chronic`` — any-of-list membership check on the person's
+    * ``has_chronic`` — any-of-list EXACT membership check on the person's
       ``chronic_conditions`` (Phase 4b.2.α). Fires when the person
-      carries ANY of the listed ICD codes. Used by somatic-comorbidity
-      multipliers (e.g. F32 depression onset ×3 when the person has
-      E11.9 or I50), replacing the Python helper
-      ``_mental_health_onset_multiplier``.
+      carries ANY of the listed ICD codes verbatim.
+    * ``has_chronic_prefix`` — any-of-list STARTSWITH check on the
+      person's ``chronic_conditions`` (Phase 4b.2.β). Fires when any of
+      the person's codes starts with any listed prefix (e.g. ``["C"]``
+      matches any cancer family; ``["I69"]`` matches every stroke
+      sequela sub-code). Mirrors the retired Python helper
+      ``_mental_health_onset_multiplier``'s ``requires_any_chronic_prefix``.
     """
 
     model_config = ConfigDict(extra="forbid")
@@ -65,12 +68,18 @@ class RateModifierWhen(BaseModel):
     operator: str | None = None
     value: float | None = None
     has_chronic: list[str] = Field(default_factory=list)
+    has_chronic_prefix: list[str] = Field(default_factory=list)
 
     def model_post_init(self, _ctx: Any) -> None:
         has_attribute_trigger = self.attribute is not None and self.operator is not None and self.value is not None
         has_chronic_trigger = bool(self.has_chronic)
-        if has_attribute_trigger == has_chronic_trigger:
-            raise ValueError("RateModifierWhen requires exactly one of (attribute + operator + value) or (has_chronic)")
+        has_prefix_trigger = bool(self.has_chronic_prefix)
+        populated = sum((has_attribute_trigger, has_chronic_trigger, has_prefix_trigger))
+        if populated != 1:
+            raise ValueError(
+                "RateModifierWhen requires exactly one of "
+                "(attribute + operator + value), has_chronic, or has_chronic_prefix"
+            )
         if has_attribute_trigger and self.operator not in _OPERATORS:
             raise ValueError(f"RateModifier.when.operator {self.operator!r} not in {sorted(_OPERATORS)}")
 
@@ -144,6 +153,9 @@ def _modifier_matches(modifier: RateModifier, context: dict[str, Any]) -> bool:
         chronic = (context or {}).get("chronic_conditions") or []
         chronic_set = set(chronic)
         return any(code in chronic_set for code in when.has_chronic)
+    if when.has_chronic_prefix:
+        chronic = (context or {}).get("chronic_conditions") or []
+        return any(code.startswith(p) for code in chronic for p in when.has_chronic_prefix)
     # attribute trigger branch (validated: attribute/op/value all set).
     continuous = (context or {}).get("continuous") or {}
     if when.attribute not in continuous:

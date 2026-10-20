@@ -38,6 +38,10 @@ class ClinicalScope(BaseModel):
 
     requires_chronic_codes: list[str] = Field(default_factory=list)
     requires_age_band: list[int] = Field(default_factory=lambda: [0, 120], min_length=2, max_length=2)
+    # Phase 4b.2.β: sex-locked attributes (e.g. N40 BPH male-only, C61
+    # prostate male-only). Empty string = any sex (default). Values match
+    # ``PersonRecord.sex`` ("M" or "F"); case-sensitive exact compare.
+    requires_sex: str = ""
 
 
 class AttributeSpec(BaseModel):
