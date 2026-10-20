@@ -409,7 +409,16 @@ def _comorbidity_multiplier(person: PersonRecord, target_icd: str, year: int) ->
         return 1.0
     chronic = set(person.chronic_conditions or [])
     smoking = str(getattr(person, "smoking_status", "") or "")
-    stages = person.disease_stages or {}
+    # Phase 2 longitudinal (Issue #1696): stage lookup moved from
+    # person.disease_stages (retired in Task 11) to the latest-year
+    # YearSnapshot.chronic_stages. Pre-year-1 fixtures with empty
+    # longitudinal_history return an empty stage map — matching the
+    # previous "no stage set yet" behavior.
+    stages: dict[str, str] = {}
+    for snap in reversed(person.longitudinal_history or []):
+        if snap.year <= year - 1:
+            stages = dict(snap.chronic_stages)
+            break
     # Phase 1 longitudinal migration (Issue #1695): the prior year's
     # glycemic control predictor now reads HbA1c from
     # PersonRecord.longitudinal_history and inverts the Layer-2
