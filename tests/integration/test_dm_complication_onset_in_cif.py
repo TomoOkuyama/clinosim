@@ -19,7 +19,6 @@ from pathlib import Path
 
 import pytest
 
-
 _DM_COMPLICATION_CODES = {"E11.21", "E11.311", "E11.42"}
 
 

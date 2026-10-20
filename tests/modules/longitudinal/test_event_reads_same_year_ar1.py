@@ -15,10 +15,9 @@ import numpy as np
 import pytest
 
 from clinosim.modules.longitudinal import loader as loader_mod
-from clinosim.modules.longitudinal.engine import advance_one_year, initial_snapshot
+from clinosim.modules.longitudinal.engine import initial_snapshot
 from clinosim.modules.longitudinal.loader import load_attribute_specs
 from clinosim.types.population import PersonRecord
-
 
 # Deterministic AR1: phi=1.0, sigma=0, so step() always returns the
 # mean_reversion_target=10.0 regardless of prior value.
