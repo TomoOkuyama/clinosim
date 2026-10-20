@@ -20,6 +20,7 @@ from pydantic import BaseModel, Field
 
 from clinosim.modules.longitudinal.patterns import PATTERN_REGISTRY
 from clinosim.modules.longitudinal.patterns.ar1 import AR1Spec
+from clinosim.modules.longitudinal.patterns.event import EventSpec
 from clinosim.modules.longitudinal.patterns.markov import MarkovSpec
 
 _LONGITUDINAL_DIR = Path(__file__).resolve().parents[2] / "locale" / "shared" / "longitudinal"
@@ -29,7 +30,7 @@ _LONGITUDINAL_DIR = Path(__file__).resolve().parents[2] / "locale" / "shared" / 
 # dispatches. A pattern registered in PATTERN_REGISTRY but not here
 # is a half-wired state — loader fails fast at import rather than
 # letting advance_one_year raise NotImplementedError inside the sim.
-_IMPLEMENTED_PATTERNS: frozenset[str] = frozenset({"ar1", "markov"})
+_IMPLEMENTED_PATTERNS: frozenset[str] = frozenset({"ar1", "markov", "event"})
 
 
 class ClinicalScope(BaseModel):
@@ -48,7 +49,7 @@ class AttributeSpec(BaseModel):
     pattern: str
     depends_on: list[str] = Field(default_factory=list)
     clinical_scope: ClinicalScope = Field(default_factory=ClinicalScope)
-    body: AR1Spec | MarkovSpec
+    body: AR1Spec | MarkovSpec | EventSpec
 
 
 def _build_ar1_body(body_dict: dict[str, Any]) -> tuple[AR1Spec, dict[str, Any]]:
@@ -88,6 +89,21 @@ def _build_markov_body(body_dict: dict[str, Any]) -> tuple[MarkovSpec, dict[str,
     return MarkovSpec(**body_payload), {"noise": None, "narrative": narrative, "source": source}
 
 
+def _build_event_body(body_dict: dict[str, Any]) -> tuple[EventSpec, dict[str, Any]]:
+    """Build an EventSpec. Pulls out narrative_label + source for the
+    engine's auxiliary attachment."""
+    narrative = body_dict.pop("narrative_label", None)
+    source = body_dict.pop("source", None)
+    body_payload = {
+        "event_name": body_dict.pop("event_name"),
+        "emits_icd": body_dict.pop("emits_icd"),
+        "base_annual_rate": body_dict.pop("base_annual_rate"),
+        "rate_modifiers": body_dict.pop("rate_modifiers", []) or [],
+        "one_shot": body_dict.pop("one_shot", True),
+    }
+    return EventSpec(**body_payload), {"noise": None, "narrative": narrative, "source": source}
+
+
 def _load_one(path: Path) -> AttributeSpec:
     with path.open(encoding="utf-8") as fh:
         raw = yaml.safe_load(fh) or {}
@@ -108,6 +124,8 @@ def _load_one(path: Path) -> AttributeSpec:
         body, aux = _build_ar1_body(body_dict)
     elif pattern == "markov":
         body, aux = _build_markov_body(body_dict)
+    elif pattern == "event":
+        body, aux = _build_event_body(body_dict)
     else:  # pragma: no cover — guarded by _IMPLEMENTED_PATTERNS
         raise ValueError(f"{path.name}: unhandled pattern {pattern!r} in _load_one dispatch")
     noise = aux["noise"]
