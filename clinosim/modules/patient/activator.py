@@ -358,33 +358,33 @@ def _sample_insurance(demo: dict, age: int, rng: np.random.Generator) -> str:
 
 
 def _stage_at_year(person: PersonRecord, code_base: str, as_of_year: int | None) -> str:
-    """Issue #1581 encounter-time stage lookup.
+    """Phase 2 longitudinal (Issue #1696) — encounter-time stage lookup.
 
-    Semantics (precise):
-
-    * ``as_of_year`` is None → return ``person.disease_stages[code_
-      base]`` (legacy latest-only path, preserves pre-#1581 behaviour).
-    * ``as_of_year`` is provided and ``person.disease_stage_history
-      [code_base]`` is empty → fall back to the latest-only path
-      (test fixtures / codes outside the progression scope).
-    * ``as_of_year`` is provided and the history has at least one
-      entry ``≤ as_of_year`` → return the stage at the largest such
-      year (the stage AS OF the encounter year).
-    * ``as_of_year`` is provided but the history's earliest year is
-      ``> as_of_year`` → return ``""`` (empty). Clinically: the
-      person did not yet have this condition staged at the encounter
-      date, so the encounter should NOT display a Condition.stage —
-      the caller is expected to treat "" as "no stage".
+    Semantics:
+    * ``as_of_year`` is None → return the stage from the latest
+      ``person.longitudinal_history`` snapshot, or ``""`` if empty.
+    * ``as_of_year`` is provided and the person has a snapshot for
+      that year → return ``snap.chronic_stages.get(code_base, "")``.
+    * ``as_of_year`` is before the person's earliest snapshot year
+      → ``""`` (person did not yet have the condition staged).
+    * ``as_of_year`` is after the person's latest snapshot → use the
+      latest (clamp to history tail).
     """
-    if as_of_year is None:
-        return person.disease_stages.get(code_base, "")
-    history = getattr(person, "disease_stage_history", {}).get(code_base)
+    history = person.longitudinal_history or []
     if not history:
-        return person.disease_stages.get(code_base, "")
-    applicable_years = [y for y in history if y <= as_of_year]
-    if applicable_years:
-        return history[max(applicable_years)]
-    return ""
+        return ""
+    if as_of_year is None:
+        return history[-1].chronic_stages.get(code_base, "")
+    if as_of_year < history[0].year:
+        return ""
+    # Pick the latest snapshot with year ≤ as_of_year.
+    best = history[0]
+    for snap in history:
+        if snap.year <= as_of_year:
+            best = snap
+        else:
+            break
+    return best.chronic_stages.get(code_base, "")
 
 
 def _derive_chronic_conditions(
@@ -441,32 +441,23 @@ def _derive_chronic_conditions(
             stage = f"HbA1c {hba1c_val:.1f}%" if hba1c_val is not None else ""
         else:
             glycemic_control = None
-            # Issue #1572 Phase 2.5 body: when the aging-hook
-            # `_disease_progression` has already initialised (and
-            # possibly advanced) this disease's stage on the
-            # PersonRecord, prefer the aging-set value over a fresh
-            # sample. The ``rng.choice`` draw inside
-            # ``_generate_stage`` is still consumed (value discarded)
-            # so the per-patient RNG stream position for every
-            # following code is preserved — same technique the
-            # diabetes gc_draw branch uses above.
-            if person.disease_stages.get(code_base):
+            # Phase 2 longitudinal (Issue #1696): when the longitudinal
+            # engine owns this disease's stage (markov yaml under
+            # locale/shared/longitudinal/stage/), the engine is single
+            # source of truth. _generate_stage's rng.choice is still
+            # consumed (value discarded) so the per-patient RNG stream
+            # position for every following code is preserved — same
+            # technique the diabetes hba1c_val branch uses above.
+            engine_owns = any(code_base in snap.chronic_stages for snap in (person.longitudinal_history or []))
+            if engine_owns:
                 _ = _generate_stage(code, sev, rng)
                 stage = _stage_at_year(person, code_base, as_of_year)
-                if not stage:
-                    stage = person.disease_stages[code_base]
             else:
                 stage = _generate_stage(code, sev, rng)
-        # Issue #1572 Phase 2.5 prep: snapshot the staged value to
-        # ``person.disease_stages`` so the aging-hook disease-
-        # progression pass has a Layer-1 handle on current stage.
-        # The write is a no-op when the aging hook already set
-        # the same value (above branch); for codes outside the
-        # Phase 2.5 scope (I50, J45, I10, I25) this is the only
-        # path that populates the field, matching the prep PR
-        # semantics.
-        if stage:
-            person.disease_stages[code_base] = stage
+        # Phase 2 longitudinal: no mirror-write to person.disease_stages
+        # anymore — the engine is single source of truth, read via
+        # state_at / _stage_at_year. The field itself is retired in
+        # Phase 2 Task 11.
         # Draw both values in the exact same order/position as before this fix
         # (controlled, then the generic severity uniform), then substitute the
         # CKD-stage-derived score for N18 afterward — the uniform draw is
@@ -481,9 +472,10 @@ def _derive_chronic_conditions(
         # prefix not part of the KDIGO stage code itself, so it's the one
         # code needing the prefix stripped before the STAGE_SEVERITY lookup.
         severity_score = generic_severity_score
-        if code_base in STAGE_SEVERITY:
+        if code_base in STAGE_SEVERITY and stage:
             lookup_key = stage.removeprefix("CKD ") if code_base == "N18" else stage
-            severity_score = STAGE_SEVERITY[code_base][lookup_key]
+            if lookup_key in STAGE_SEVERITY[code_base]:
+                severity_score = STAGE_SEVERITY[code_base][lookup_key]
         # Issue #968: clamp the sampled onset so it never precedes the
         # patient's date_of_birth + per-disease minimum onset age. Prior
         # to this fix pediatric patients could receive chronic conditions
