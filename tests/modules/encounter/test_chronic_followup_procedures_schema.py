@@ -55,3 +55,37 @@ def test_cpap_snomed_still_resolves():
     result = resolve_procedure_snomed("cpap")
     assert result is not None
     assert result[0] == "47545007"
+
+
+def test_g47_33_central_apnea_does_not_activate_g47_30_block():
+    """Review Focus #1: G47.33 central sleep apnea must NOT share the OSA
+    block via prefix match. chronic_followup lookup is exact-key."""
+    data = load_chronic_followup()
+    assert "G47.30" in data
+    # Explicitly out-of-scope sibling codes must have no block entry here.
+    assert data.get("G47.33") is None
+    assert data.get("G47.31") is None
+
+
+def test_simulator_outpatient_chronic_followup_lookup_is_exact_key():
+    """Review Focus #1 adjunct: outpatient.py must NOT prefix-match
+    chronic codes against chronic_followup.yaml keys — exact dict.get
+    only."""
+    from pathlib import Path
+
+    src = (
+        Path(__file__).resolve().parents[3]
+        / "clinosim"
+        / "simulator"
+        / "outpatient.py"
+    ).read_text(encoding="utf-8")
+    # The forbidden pattern below is startswith-based iteration over the
+    # chronic_followup dict keys — if a future refactor introduces that,
+    # this test fires and the author decides whether sub-code match is
+    # intentional (and updates G47.30 scope accordingly).
+    forbidden_substrings = (
+        "for k in fu:\n            if chronic_code.startswith(k)",
+        "fu[next(k for k in fu if chronic_code.startswith(k))]",
+    )
+    for phrase in forbidden_substrings:
+        assert phrase not in src, f"prefix match crept in: {phrase!r}"
