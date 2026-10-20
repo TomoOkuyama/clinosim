@@ -847,6 +847,14 @@ def generate_population(
 
             _ls_rng = np.random.default_rng(aging_sub_seed(person.person_id, base_year, "longitudinal:init"))
             initial_snapshot(person, year=base_year, init_rng=_ls_rng)
+            # Phase 3 longitudinal (Issue #1705): seed the per-person
+            # BMI drift chain from the just-generated Layer-1 bmi value
+            # so the sim-start snapshot's continuous["bmi"] matches
+            # person.bmi exactly, instead of resampling from the yaml's
+            # dummy initial distribution. Only adults participate in
+            # BMI drift (yaml's requires_age_band: [18, 120]).
+            if person.longitudinal_history and person.age >= 18:
+                person.longitudinal_history[-1].continuous["bmi"] = float(person.bmi)
             hh.members.append(person)
             registry.persons[pid] = person
 
