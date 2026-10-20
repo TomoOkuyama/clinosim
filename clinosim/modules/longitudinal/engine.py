@@ -175,11 +175,30 @@ def _apply_pattern(
             context=context,
         )
         if result.fired:
-            snapshot.new_complications.append(result.emits_icd)
-            if result.emits_icd not in person.chronic_conditions:
-                person.chronic_conditions.append(result.emits_icd)
-            snapshot.med_additions.extend(result.med_additions)
+            if result.emits_icd:
+                snapshot.new_complications.append(result.emits_icd)
+                if result.emits_icd not in person.chronic_conditions:
+                    person.chronic_conditions.append(result.emits_icd)
+            # snapshot.med_additions carries the fire_marker when set (dedup
+            # token for Task 2's prior-year scan + CIF emit resolves back
+            # via fire_marker → spec lookup). When no fire_marker is set,
+            # fall back to drug names so a yaml-authoring omission still
+            # produces visible provenance.
+            fire_marker = getattr(spec.body, "fire_marker", "") or ""
+            if fire_marker:
+                snapshot.med_additions.append(fire_marker)
+            elif result.med_additions:
+                snapshot.med_additions.extend(result.med_additions)
             snapshot.med_removals.extend(result.med_removals)
+            if result.med_additions:
+                from clinosim.modules.longitudinal.med_lookup import resolve_med_name
+
+                existing_drug_names = {hm.drug_name for hm in person.current_medications}
+                for drug_name in result.med_additions:
+                    if drug_name in existing_drug_names:
+                        continue
+                    person.current_medications.append(resolve_med_name(drug_name))
+                    existing_drug_names.add(drug_name)
     else:  # pragma: no cover — guarded by _IMPLEMENTED_PATTERNS
         raise NotImplementedError(f"pattern {spec.pattern!r} not implemented")
 
