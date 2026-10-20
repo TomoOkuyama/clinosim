@@ -85,10 +85,21 @@ def _apply_pattern(
             else:
                 value = handler["step"](prev_value, rng, spec.body)
         snapshot.continuous[latent] = value
+    elif spec.pattern == "markov":
+        icd = spec.body.icd_base
+        if prev_snapshot is None:
+            value = handler["initial"](rng, spec.body)
+        else:
+            prev_value = prev_snapshot.chronic_stages.get(icd)
+            if prev_value is None:
+                # mid-sim scope entry: fall through to initial draw
+                value = handler["initial"](rng, spec.body)
+            else:
+                value = handler["step"](prev_value, rng, spec.body)
+        snapshot.chronic_stages[icd] = value
     else:
-        # Phase 2 adds markov → snapshot.chronic_stages;
         # Phase 3 adds event → snapshot.new_complications etc.
-        raise NotImplementedError(f"pattern {spec.pattern!r} not implemented in Phase 1")
+        raise NotImplementedError(f"pattern {spec.pattern!r} not implemented in Phase 2")
 
 
 def initial_snapshot(
