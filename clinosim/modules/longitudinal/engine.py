@@ -29,6 +29,8 @@ from clinosim.modules.longitudinal.loader import (
     topological_order,
 )
 from clinosim.modules.longitudinal.patterns import PATTERN_REGISTRY
+from clinosim.modules.longitudinal.patterns.ar1 import AR1Spec
+from clinosim.modules.longitudinal.patterns.markov import MarkovSpec
 from clinosim.modules.longitudinal.snapshot import YearSnapshot
 
 if TYPE_CHECKING:
@@ -95,6 +97,7 @@ def _select_markov_winners(
         if spec.pattern != "markov":
             winners.add(aid)
             continue
+        assert isinstance(spec.body, MarkovSpec)
         markov_by_icd.setdefault(spec.body.icd_base, []).append(aid)
     for icd, candidates in markov_by_icd.items():
         if len(candidates) == 1:
@@ -129,29 +132,33 @@ def _apply_pattern(
     """
     handler = PATTERN_REGISTRY[spec.pattern]
     if spec.pattern == "ar1":
+        assert isinstance(spec.body, AR1Spec)
         latent = spec.body.latent_name
+        ar1_value: float
         if prev_snapshot is None:
-            value = handler["initial"](rng, spec.body)
+            ar1_value = handler["initial"](rng, spec.body)
         else:
-            prev_value = prev_snapshot.continuous.get(latent)
-            if prev_value is None:
+            prev_cont = prev_snapshot.continuous.get(latent)
+            if prev_cont is None:
                 # mid-sim scope entry: fall through to initial draw
-                value = handler["initial"](rng, spec.body)
+                ar1_value = handler["initial"](rng, spec.body)
             else:
-                value = handler["step"](prev_value, rng, spec.body)
-        snapshot.continuous[latent] = value
+                ar1_value = handler["step"](prev_cont, rng, spec.body)
+        snapshot.continuous[latent] = ar1_value
     elif spec.pattern == "markov":
+        assert isinstance(spec.body, MarkovSpec)
         icd = spec.body.icd_base
+        stage_value: str
         if prev_snapshot is None:
-            value = handler["initial"](rng, spec.body)
+            stage_value = handler["initial"](rng, spec.body)
         else:
-            prev_value = prev_snapshot.chronic_stages.get(icd)
-            if prev_value is None:
+            prev_stage = prev_snapshot.chronic_stages.get(icd)
+            if prev_stage is None:
                 # mid-sim scope entry: fall through to initial draw
-                value = handler["initial"](rng, spec.body)
+                stage_value = handler["initial"](rng, spec.body)
             else:
-                value = handler["step"](prev_value, rng, spec.body, multiplier=multiplier)
-        snapshot.chronic_stages[icd] = value
+                stage_value = handler["step"](prev_stage, rng, spec.body, multiplier=multiplier)
+        snapshot.chronic_stages[icd] = stage_value
     elif spec.pattern == "event":
         # Events read same-year AR1 latents via the just-filled
         # snapshot.continuous; the engine iterates attributes in topo
@@ -248,6 +255,7 @@ def advance_one_year(
             continue
         spec = specs[aid]
         if spec.pattern == "markov" and multiplier_fn is not None:
+            assert isinstance(spec.body, MarkovSpec)
             mult = float(multiplier_fn(person, spec.body.icd_base, year))
         else:
             mult = 1.0

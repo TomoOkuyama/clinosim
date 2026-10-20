@@ -120,6 +120,7 @@ def _load_one(path: Path) -> AttributeSpec:
     body_dict: dict[str, Any] = {
         k: v for k, v in raw.items() if k not in {"attribute_id", "pattern", "depends_on", "clinical_scope"}
     }
+    body: AR1Spec | MarkovSpec | EventSpec
     if pattern == "ar1":
         body, aux = _build_ar1_body(body_dict)
     elif pattern == "markov":
