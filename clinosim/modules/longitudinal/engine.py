@@ -117,9 +117,11 @@ def _apply_pattern(
     *,
     prev_snapshot: YearSnapshot | None,
     multiplier: float = 1.0,
+    person: PersonRecord | None = None,
 ) -> None:
     """Dispatch to the pattern's `initial` (prev is None) or `step`
-    (prev provided). Mutates ``snapshot`` in place.
+    (prev provided). Mutates ``snapshot`` in place. Event-pattern
+    attributes also mutate ``person.chronic_conditions`` on fire.
 
     ``multiplier`` is passed into the Markov step as a per-icd rate
     scalar (AR1 ignores it in Phase 2; could compose later as drift
@@ -150,9 +152,29 @@ def _apply_pattern(
             else:
                 value = handler["step"](prev_value, rng, spec.body, multiplier=multiplier)
         snapshot.chronic_stages[icd] = value
-    else:
-        # Phase 3 adds event → snapshot.new_complications etc.
-        raise NotImplementedError(f"pattern {spec.pattern!r} not implemented in Phase 2")
+    elif spec.pattern == "event":
+        # Events read same-year AR1 latents via the just-filled
+        # snapshot.continuous; the engine iterates attributes in topo
+        # order, so hba1c executes before any event depending on it.
+        if person is None:
+            raise ValueError("event pattern dispatch requires person argument")
+        prior = person.longitudinal_history or []
+        context = {"continuous": dict(snapshot.continuous)}
+        result = handler["step"](
+            person.chronic_conditions,
+            prior,
+            rng,
+            spec.body,
+            context=context,
+        )
+        if result.fired:
+            snapshot.new_complications.append(result.emits_icd)
+            if result.emits_icd not in person.chronic_conditions:
+                person.chronic_conditions.append(result.emits_icd)
+            snapshot.med_additions.extend(result.med_additions)
+            snapshot.med_removals.extend(result.med_removals)
+    else:  # pragma: no cover — guarded by _IMPLEMENTED_PATTERNS
+        raise NotImplementedError(f"pattern {spec.pattern!r} not implemented")
 
 
 def initial_snapshot(
@@ -180,7 +202,7 @@ def initial_snapshot(
     for aid in order:
         if aid not in winners:
             continue
-        _apply_pattern(specs[aid], snap, init_rng, prev_snapshot=None)
+        _apply_pattern(specs[aid], snap, init_rng, prev_snapshot=None, person=person)
     person.longitudinal_history.append(snap)
     return snap
 
@@ -229,7 +251,7 @@ def advance_one_year(
             mult = float(multiplier_fn(person, spec.body.icd_base, year))
         else:
             mult = 1.0
-        _apply_pattern(spec, snap, year_rng, prev_snapshot=prev, multiplier=mult)
+        _apply_pattern(spec, snap, year_rng, prev_snapshot=prev, multiplier=mult, person=person)
     person.longitudinal_history.append(snap)
     return snap
 
