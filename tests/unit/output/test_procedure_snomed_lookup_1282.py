@@ -124,6 +124,9 @@ def test_only_verified_snomed_codes():
         # Phase 4d — OSA follow-up polysomnography (verified 2026-10-20 via
         # tx.fhir.org $lookup against SCT 20250201 Intl Edition).
         "60554003",  # Polysomnography
+        # Phase 4e — NCCN breast cancer surveillance (verified 2026-10-21
+        # via tx.fhir.org $lookup against SCT 20250201 Intl Edition).
+        "71651007",  # Mammography
     }
     for _match, snomed, _display in _load_entries():
         assert snomed in verified, (

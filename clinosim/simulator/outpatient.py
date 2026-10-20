@@ -668,11 +668,14 @@ def _simulate_outpatient_visit(
 
     # Phase 4d (#1701 partial) — emit chronic_followup.yaml procedures:
     # entries on this visit. Each entry carries {code, snomed, name_en,
-    # name_ja, frequency} where frequency is 'every_visit' (chronic
-    # ongoing therapy like CPAP) or 'baseline_only' (one-shot per patient
-    # like polysomnography). Dedup for baseline_only is tracked via a
-    # per-patient attribute attached by this simulator (plan Task 4
-    # Ruling — PatientProfile has no built-in encounter history field).
+    # name_ja, frequency} where frequency is one of:
+    #   'every_visit'   — chronic ongoing therapy (CPAP). Fires each visit.
+    #   'baseline_only' — one-shot per patient (polysomnography).
+    #   'annual'        — fires at most once per calendar year per patient
+    #                     per procedure (Phase 4e — oncology surveillance,
+    #                     e.g. C50 mammography).
+    # Dedup is tracked via per-patient attributes attached here (plan Task
+    # 4 Ruling — PatientProfile has no built-in encounter history field).
     _chronic_procedures = spec.get("procedures") if chronic_code else None
     if _chronic_procedures:
         from clinosim.types.procedure import ProcedureRecord
@@ -680,10 +683,16 @@ def _simulate_outpatient_visit(
         _baseline_set = getattr(patient, "_phase4d_baseline_procedures_emitted", None)
         if _baseline_set is None:
             _baseline_set = set()
+        _annual_map = getattr(patient, "_phase4e_annual_procedures_emitted", None)
+        if _annual_map is None:
+            _annual_map = {}
+        _visit_year = visit_date.year
         for _proc in _chronic_procedures:
             _snomed = str(_proc.get("snomed") or "")
             _frequency = str(_proc.get("frequency") or "")
             if _frequency == "baseline_only" and _snomed in _baseline_set:
+                continue
+            if _frequency == "annual" and _visit_year in _annual_map.get(_snomed, set()):
                 continue
             _code_us = str(_proc.get("code") or "")
             _proc_start = visit_date + timedelta(minutes=OUTPATIENT_LAB_ORDER_OFFSET_MIN)
@@ -702,13 +711,16 @@ def _simulate_outpatient_visit(
             )
             if _frequency == "baseline_only":
                 _baseline_set.add(_snomed)
+            elif _frequency == "annual":
+                _annual_map.setdefault(_snomed, set()).add(_visit_year)
         # PatientProfile is a non-frozen @dataclass so direct assignment
         # works at runtime; mypy flags the dynamic attribute because the
-        # dataclass does not declare this simulator-internal state carrier
-        # as a field. The alternative — declaring it on PatientProfile —
+        # dataclass does not declare these simulator-internal state carriers
+        # as fields. The alternative — declaring them on PatientProfile —
         # would promote private simulator bookkeeping to the public CIF
         # schema; the type:ignore keeps the state carrier where it belongs.
         patient._phase4d_baseline_procedures_emitted = _baseline_set  # type: ignore[attr-defined]
+        patient._phase4e_annual_procedures_emitted = _annual_map  # type: ignore[attr-defined]
 
     # Issue #957 Tier-3-A: chemotherapy administration Procedure emit +
     # per-cycle drug MedicationRequest (Order) + MedicationAdministration
