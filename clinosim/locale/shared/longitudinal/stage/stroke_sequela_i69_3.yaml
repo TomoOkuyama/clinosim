@@ -1,0 +1,43 @@
+# I69.3 Sequelae of Cerebral Infarction (ischemic) — Markov modified Rankin Scale.
+#
+# Phase 2 of the longitudinal state-evolution subsystem (Issue #1696).
+#
+# Longest-prefix precedence: an I69.3-carrying person engages THIS yaml,
+# not the base I69 fallback. See engine._select_markov_winners.
+#
+# Clinical basis: Hankey 2000 (Stroke 31:2080) 10-year post-stroke
+# outcome follow-up — mRS tends to deteriorate over time via recurrent
+# stroke (~5-10 %/yr), vascular cognitive decline, and immobility
+# complications. Rates reflect all-cohort baseline without conditioning
+# on secondary-prevention adherence. mRS 5 is terminal here; mRS 6
+# (dead) is handled by the reactive-mortality pass.
+
+attribute_id: stroke_sequela_stage_i69_3
+pattern: markov
+depends_on: []
+clinical_scope:
+  requires_chronic_codes: ["I69.3"]
+  requires_age_band: [0, 120]
+
+state_name: stroke_sequela_stage
+icd_base: I69
+states: ["mRS 0", "mRS 1", "mRS 2", "mRS 3", "mRS 4", "mRS 5"]
+initial_distribution:
+  "mRS 0": 0.10
+  "mRS 1": 0.20
+  "mRS 2": 0.25
+  "mRS 3": 0.20
+  "mRS 4": 0.15
+  "mRS 5": 0.10
+transitions:
+  "mRS 0": {"mRS 1": 0.080}
+  "mRS 1": {"mRS 2": 0.070}
+  "mRS 2": {"mRS 3": 0.060}
+  "mRS 3": {"mRS 4": 0.050}
+  "mRS 4": {"mRS 5": 0.040}
+  "mRS 5": {}
+narrative_label:
+  en: "modified Rankin Scale"
+  ja: "mRS 段階"
+source:
+  - "Hankey GJ et al. Long-term risk of first recurrent stroke in the Perth Community Stroke Study. Stroke 2000;31:2080."
