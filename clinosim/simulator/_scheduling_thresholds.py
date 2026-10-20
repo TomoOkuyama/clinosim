@@ -86,16 +86,33 @@ ED_RATE_PER_ADMITTED_DEFAULT: float = 3.0
 matching mixed-acuity US ED throughput data. Locale YAML overrides
 per-country."""
 
-ED_OCCUPATION_MISMATCH_FALLBACK: float = 0.05
+ED_OCCUPATION_MISMATCH_FALLBACK: float = 0.0
 """Occupation-risk multiplier applied when an ED condition has an
 occupation-risk table but the person's occupation is not in it.
 
-Empirical tuning for the synthetic simulator: 5% baseline residual
-risk for work-related ED conditions — lower than the
-:data:`OCCUPATION_MISMATCH_FALLBACK_MULTIPLIER` in
-``_population_workflow_thresholds.py`` (0.2) because ED work-related
-presentations are more specifically-occupation-tied than the
-monthly-events disease incidence."""
+Set to 0.0 — strict gate. Workplace-specific ED chief complaints
+(``chemical_exposure``, ``crush_injury_hand``, ``industrial_burn_severe``,
+``fall_from_height``, ``electrical_injury``, ``eye_foreign_body``) carry
+"at workplace" / "work-related" text and are only coherent on
+occupations whose workplace exposes the person to the hazard. For
+occupations whose workplace is an office / school / home / retirement
+(``office``, ``student``, ``retired``, ``unemployed``, ``homemaker``,
+``preschool``, ``infant``, ``education``), the workplace-exposure
+chief complaint is semantically a mis-fit — the person simply picks
+one of the non-work-related ED CCs instead.
+
+Audit s103 cohort finding: pre-fix a 5-sample pull surfaced an
+``occupation=office`` patient carrying ``chief_complaint="Chemical
+exposure at workplace"`` on an ED visit, which should not happen.
+Issue #1702. The pre-fix fallback was 0.05 (5 % residual rate for all
+workplace CCs across all occupations); setting it to 0.0 makes the
+occupation whitelist in ``demographics.yaml::occupation_risk_multipliers``
+authoritative.
+
+Separate from :data:`OCCUPATION_MISMATCH_FALLBACK_MULTIPLIER` in
+``_population_workflow_thresholds.py`` (0.2) — the monthly-events
+disease incidence path keeps its soft fallback for non-ED-CC paths
+where the semantic constraint is weaker."""
 
 ED_DAY_MIN: int = 1
 """Inclusive lower bound of the ED-visit day sampled by
