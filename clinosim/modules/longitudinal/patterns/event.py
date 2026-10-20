@@ -46,16 +46,32 @@ _OPERATORS = {
 
 
 class RateModifierWhen(BaseModel):
-    """Trigger clause for a rate modifier. Phase 3 ships ``attribute`` triggers only."""
+    """Trigger clause for a rate modifier.
+
+    Two mutually exclusive trigger shapes, exactly one must be populated:
+    * ``attribute + operator + value`` — same-year AR(1) latent threshold
+      (Phase 3). Fires when ``continuous[attribute] <op> value``.
+    * ``has_chronic`` — any-of-list membership check on the person's
+      ``chronic_conditions`` (Phase 4b.2.α). Fires when the person
+      carries ANY of the listed ICD codes. Used by somatic-comorbidity
+      multipliers (e.g. F32 depression onset ×3 when the person has
+      E11.9 or I50), replacing the Python helper
+      ``_mental_health_onset_multiplier``.
+    """
 
     model_config = ConfigDict(extra="forbid")
 
-    attribute: str
-    operator: str
-    value: float
+    attribute: str | None = None
+    operator: str | None = None
+    value: float | None = None
+    has_chronic: list[str] = Field(default_factory=list)
 
     def model_post_init(self, _ctx: Any) -> None:
-        if self.operator not in _OPERATORS:
+        has_attribute_trigger = self.attribute is not None and self.operator is not None and self.value is not None
+        has_chronic_trigger = bool(self.has_chronic)
+        if has_attribute_trigger == has_chronic_trigger:
+            raise ValueError("RateModifierWhen requires exactly one of (attribute + operator + value) or (has_chronic)")
+        if has_attribute_trigger and self.operator not in _OPERATORS:
             raise ValueError(f"RateModifier.when.operator {self.operator!r} not in {sorted(_OPERATORS)}")
 
 
@@ -68,6 +84,26 @@ class RateModifier(BaseModel):
     factor: float = Field(..., ge=0.0)
 
 
+class AgeBandRate(BaseModel):
+    """One per-age-band Bernoulli rate (Phase 4b.2.α).
+
+    Used by events whose base annual rate varies by age — e.g. chronic
+    onset incidence that climbs from ``[18, 44]: 0.001`` to
+    ``[65, 120]: 0.015``. The band is inclusive at both ends; age
+    outside every band yields rate 0 (no fire).
+    """
+
+    model_config = ConfigDict(extra="forbid")
+
+    age_lo: int = Field(..., ge=0)
+    age_hi: int = Field(..., ge=0)
+    rate: float = Field(..., ge=0.0, le=1.0)
+
+    def model_post_init(self, _ctx: Any) -> None:
+        if self.age_hi < self.age_lo:
+            raise ValueError(f"AgeBandRate: age_hi {self.age_hi} < age_lo {self.age_lo}")
+
+
 class EventSpec(BaseModel):
     """Parameters for a one-shot ICD-onset or med-emitting event attribute."""
 
@@ -77,30 +113,45 @@ class EventSpec(BaseModel):
     emits_icd: str
     emits_meds: list[str] = Field(default_factory=list)
     fire_marker: str = ""
-    base_annual_rate: float = Field(..., ge=0.0, le=1.0)
+    base_annual_rate: float = Field(default=0.0, ge=0.0, le=1.0)
+    base_rate_by_age_band: list[AgeBandRate] = Field(default_factory=list)
     rate_modifiers: list[RateModifier] = Field(default_factory=list)
     one_shot: bool = True
 
     def model_post_init(self, _ctx: Any) -> None:
         if self.emits_icd == "" and not self.emits_meds:
             raise ValueError(f"EventSpec {self.event_name!r}: emits_icd and emits_meds cannot both be empty")
+        # base_annual_rate=0.0 with no band is a legitimate "zero-fire"
+        # shape (e.g. a med-emitting event parked at 0 for activation-sampling
+        # purposes). The resolution precedence is: band + age-in-context first,
+        # then scalar base_annual_rate.
 
 
 def _modifier_matches(modifier: RateModifier, context: dict[str, Any]) -> bool:
     """Evaluate one ``when:`` trigger against ``context``.
 
-    Phase 3 ships ``attribute`` triggers only. An ``attribute`` whose
-    name is absent from ``context["continuous"]`` returns False (no-op) —
-    e.g. a non-DM person running against a yaml with an hba1c modifier.
-    Unknown operator strings raise at EventSpec validation time (not here).
+    Two trigger shapes (RateModifierWhen enforces exactly-one):
+    * ``attribute`` triggers — same-year AR(1) latent threshold (Phase 3).
+      An ``attribute`` absent from ``context["continuous"]`` returns
+      False (no-op) — e.g. a non-DM person running against a yaml with
+      an hba1c modifier.
+    * ``has_chronic`` triggers (Phase 4b.2.α) — fire when the person
+      carries ANY of the listed codes in ``context["chronic_conditions"]``.
+      Absent context key is treated as empty list (no match).
     """
+    when = modifier.when
+    if when.has_chronic:
+        chronic = (context or {}).get("chronic_conditions") or []
+        chronic_set = set(chronic)
+        return any(code in chronic_set for code in when.has_chronic)
+    # attribute trigger branch (validated: attribute/op/value all set).
     continuous = (context or {}).get("continuous") or {}
-    if modifier.when.attribute not in continuous:
+    if when.attribute not in continuous:
         return False
-    op_fn = _OPERATORS.get(modifier.when.operator)
+    op_fn = _OPERATORS.get(when.operator or "")
     if op_fn is None:  # pragma: no cover — EventSpec validation catches this earlier
         return False
-    return bool(op_fn(float(continuous[modifier.when.attribute]), float(modifier.when.value)))
+    return bool(op_fn(float(continuous[when.attribute]), float(when.value or 0.0)))
 
 
 def step(
@@ -132,7 +183,7 @@ def step(
             for snap in prev_history or []:
                 if spec.fire_marker in getattr(snap, "med_additions", []):
                     return EventResult(False, spec.emits_icd, [], [])
-    rate = float(spec.base_annual_rate)
+    rate = _resolve_base_rate(spec, context or {})
     for modifier in spec.rate_modifiers:
         if _modifier_matches(modifier, context or {}):
             rate *= float(modifier.factor)
@@ -141,3 +192,21 @@ def step(
     if fired:
         return EventResult(True, spec.emits_icd, list(spec.emits_meds), [])
     return EventResult(False, spec.emits_icd, [], [])
+
+
+def _resolve_base_rate(spec: EventSpec, context: dict[str, Any]) -> float:
+    """Pick the base annual rate for this event-year.
+
+    When ``base_rate_by_age_band`` is populated AND ``context["age"]``
+    is present, the band whose ``[age_lo, age_hi]`` includes the age
+    wins; age outside every band yields 0 (no fire). Otherwise falls
+    through to the scalar ``base_annual_rate`` for backwards compat
+    (Phase 3 / 4a / 4b.1 call sites).
+    """
+    if spec.base_rate_by_age_band and "age" in context:
+        age = int(context["age"])
+        for band in spec.base_rate_by_age_band:
+            if band.age_lo <= age <= band.age_hi:
+                return float(band.rate)
+        return 0.0
+    return float(spec.base_annual_rate)
