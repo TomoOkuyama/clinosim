@@ -21,10 +21,10 @@ base_rate_by_age_band:
   - {age_lo: 40, age_hi: 59, rate: 0.000000}
   - {age_lo: 60, age_hi: 99, rate: 0.000000}
 rate_modifiers:
-  - when: {has_chronic: ['E10', 'E11']}
-    factor: 1.5   # diabetes_anxiety (exact match, dormant for E11.9 cohort)
-  - when: {has_chronic: ['I50']}
-    factor: 1.5   # heart_failure_anxiety
+  - when: {has_chronic_prefix: ['E10', 'E11']}
+    factor: 1.5   # diabetes_anxiety (R3 revisit: prefix match covers E11.9 / E10.9 sub-codes)
+  - when: {has_chronic_prefix: ['I50']}
+    factor: 1.5   # heart_failure_anxiety (R3: prefix covers I50.9 sub-codes)
   - when: {has_chronic_prefix: ['C']}
     factor: 2.0   # cancer_anxiety
 one_shot: true

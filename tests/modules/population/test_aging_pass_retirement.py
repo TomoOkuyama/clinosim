@@ -32,6 +32,7 @@ def test_annual_incidence_helpers_are_removed():
 
 def test_advance_population_passes_no_longer_include_annual_chronic_onset():
     import inspect
+
     src = inspect.getsource(aging.advance_population)
     assert "_annual_chronic_onset" not in src
 
