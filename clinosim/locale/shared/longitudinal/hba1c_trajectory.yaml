@@ -1,0 +1,77 @@
+# HbA1c trajectory — AR(1) continuous latent for E11 / E10 adults.
+#
+# Phase 1 of the longitudinal state-evolution subsystem (Issue #1695).
+# See docs/superpowers/specs/2026-10-20-longitudinal-state-evolution-design.md
+# §4.2.1 for schema.
+#
+# Clinical primitive: HbA1c (%). Replaces the retired
+# PersonRecord.glycemic_trajectory proxy. Written annually by
+# clinosim.modules.longitudinal.engine.advance_one_year; read by the
+# per-encounter HbA1c lab emit in clinosim/modules/physiology/engine.py.
+#
+# Parameters calibrated against published long-term DM cohort data.
+# See `source:` list at the bottom.
+
+attribute_id: hba1c
+pattern: ar1
+depends_on: []
+clinical_scope:
+  requires_chronic_codes: ["E11", "E10"]
+  requires_age_band: [18, 120]
+
+latent_name: hba1c
+
+ar1:
+  # Annual autoregressive coefficient. 0.75 reflects within-individual
+  # HbA1c tracking persistence observed in EHR time-series (UKPDS 10y
+  # follow-up, pediatric T1DM Diabetic Medicine 2010 as the closest
+  # published lag-1 anchor). Best-estimate pending direct adult T2DM phi
+  # publication; validated against the ≤1.0 %/60d physiologic bound in
+  # tests/modules/longitudinal/test_hba1c_physiological_bounds.py.
+  phi: 0.75
+  # Annual innovation SD. Derived from Wu et al. 2023 meta-analysis
+  # (111 T2DM studies): within-subject CV median 0.083 → total SD ≈
+  # 0.62 % at mean A1c 7.5 %; subtracting measurement noise (0.20 %)
+  # in quadrature and solving the stationary-variance identity
+  # σ² = σ_innov² / (1 − φ²) with φ=0.75 gives σ_innov ≈ 0.40 %.
+  sigma: 0.40
+  # Long-run attractor. ADVANCE standard-arm 5-year trajectory
+  # plateaus at 7.3 %; ACCORD standard arm sits at 7.5 %. 7.3 %
+  # chosen to reflect primary-care E11 real-world attainment
+  # (ADA 2024 target < 7.0 % is the goal, not the mean).
+  mean_reversion_target: 7.3
+
+# Physiologic clamp. HbA1c < 4.0 % is sub-normal (anaemia / hemolysis
+# artefact territory, not DM-trajectory); > 15 % is a measurement
+# ceiling for most NGSP-certified assays.
+clamp: [4.0, 15.0]
+
+initial:
+  # Lognormal in log-scale for the sim-start cohort entry distribution.
+  # exp(1.95) ≈ 7.03 (median) with sigma=0.17 giving 95th percentile ≈
+  # exp(1.95 + 1.645*0.17) ≈ 9.3 — matches incident E11 (first-dx
+  # cohort) which skews lower than prevalent E11.
+  mu: 1.95
+  sigma: 0.17
+  clamp: [4.5, 14.0]
+
+# Per-encounter measurement noise, applied by the HbA1c lab emit at
+# clinosim/modules/physiology/engine.py. NGSP-certified assays have
+# analytical CV ≈ 2 %, which at mean HbA1c 7.5 % gives SD ≈ 0.15 %;
+# pre-analytical (sample handling, timing) adds another 0.05 % →
+# total 0.20 %.
+per_encounter_noise:
+  sigma: 0.20
+
+narrative_label:
+  en: "HbA1c trajectory"
+  ja: "HbA1c 推移"
+
+source:
+  - "DCCT/EDIC — Nathan DM et al., NEJM 2005;353:2643. Long-term HbA1c variability under intensive vs conventional therapy."
+  - "ADVANCE — Patel A et al., NEJM 2008;358:2560. 5-year HbA1c trajectory under tight glycemic control."
+  - "ACCORD — ACCORD Study Group, NEJM 2008;358:2545. Standard-arm baseline 8.1 % with latent-class analysis (Wang 2021, PMC6241305)."
+  - "UKPDS 35 — Stratton IM et al., BMJ 2000;321:405. 10-year within-individual tracking persistence."
+  - "Wu et al. 2023 — meta-analysis of 111 T2DM studies on within-subject HbA1c CV (PMC10395823)."
+  - "Nathan DM et al. 2010 — Diabetic Medicine. Pediatric T1DM lag-1 autocorrelation (used as proxy for adult T2DM phi)."
+  - "ADA Standards of Care 2024 — HbA1c target < 7 % + real-world attainment gap informing the mean-reversion target."
