@@ -1,0 +1,39 @@
+# Prostate cancer (C61) — AJCC 8 Markov stage ladder.
+#
+# Phase 4c of the longitudinal state-evolution subsystem (Issue #1701).
+# Among the slowest solid-tumor progression rates because androgen
+# deprivation therapy (ADT) + newer AR-targeted agents (abiraterone /
+# enzalutamide) extend progression-free intervals substantially.
+#
+# Initial — PSA screening + relatively indolent biology skew early-stage.
+
+attribute_id: prostate_cancer_stage_c61
+pattern: markov
+depends_on: []
+clinical_scope:
+  requires_chronic_codes: ["C61"]
+  requires_age_band: [0, 120]
+
+state_name: prostate_cancer_stage
+icd_base: C61
+states: ["AJCC I", "AJCC II", "AJCC III", "AJCC IV"]
+initial_distribution:
+  "AJCC I": 0.30
+  "AJCC II": 0.40
+  "AJCC III": 0.20
+  "AJCC IV": 0.10
+transitions:
+  "AJCC I":
+    "AJCC II": 0.05
+  "AJCC II":
+    "AJCC III": 0.04
+  "AJCC III":
+    "AJCC IV": 0.03
+  "AJCC IV": {}
+narrative_label:
+  en: "Prostate cancer stage"
+  ja: "前立腺癌 ステージ"
+source:
+  - "Amin MB et al. AJCC Cancer Staging Manual 8e, Prostate Chapter 58. Springer 2017."
+  - "NCCN Prostate Cancer Guidelines v2024."
+  - "Mohler JL et al. Prostate Cancer, Version 2.2019, NCCN Clinical Practice Guidelines. J Natl Compr Canc Netw 2019;17:479."

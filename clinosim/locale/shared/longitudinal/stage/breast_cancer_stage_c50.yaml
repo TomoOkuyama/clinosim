@@ -1,0 +1,40 @@
+# Breast cancer (C50) — AJCC 8 Markov stage ladder.
+#
+# Phase 4c of the longitudinal state-evolution subsystem (Issue #1701).
+# Progression rates are among the slowest of the solid tumors ladders
+# shipped here because endocrine therapy (tamoxifen / aromatase inhibitors)
+# and HER2-directed therapy are highly effective for the majority ER+
+# or HER2+ cohort.
+#
+# Initial — mammographic screening skews toward early-stage diagnosis.
+
+attribute_id: breast_cancer_stage_c50
+pattern: markov
+depends_on: []
+clinical_scope:
+  requires_chronic_codes: ["C50"]
+  requires_age_band: [0, 120]
+
+state_name: breast_cancer_stage
+icd_base: C50
+states: ["AJCC I", "AJCC II", "AJCC III", "AJCC IV"]
+initial_distribution:
+  "AJCC I": 0.35
+  "AJCC II": 0.35
+  "AJCC III": 0.20
+  "AJCC IV": 0.10
+transitions:
+  "AJCC I":
+    "AJCC II": 0.08
+  "AJCC II":
+    "AJCC III": 0.06
+  "AJCC III":
+    "AJCC IV": 0.05
+  "AJCC IV": {}
+narrative_label:
+  en: "Breast cancer stage"
+  ja: "乳癌 ステージ"
+source:
+  - "Amin MB et al. AJCC Cancer Staging Manual 8e, Breast Chapter 48. Springer 2017."
+  - "NCCN Breast Cancer Guidelines v2024."
+  - "Howlader N et al. SEER Cancer Statistics Review, 1975-2020. NCI 2024 (breast 5y relative survival)."
