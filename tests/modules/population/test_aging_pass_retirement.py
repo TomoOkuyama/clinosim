@@ -7,8 +7,8 @@ from datetime import date
 import numpy as np
 import pytest
 
-from clinosim.modules.population import aging
 from clinosim.modules.longitudinal.engine import advance_one_year, initial_snapshot
+from clinosim.modules.population import aging
 from clinosim.types.population import PersonRecord
 
 pytestmark = pytest.mark.unit
