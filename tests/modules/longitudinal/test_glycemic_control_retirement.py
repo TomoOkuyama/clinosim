@@ -48,7 +48,11 @@ def test_remaining_glycemic_control_references_are_whitelisted() -> None:
     repo_root = Path(__file__).resolve().parents[3]
     result = subprocess.run(
         [
-            "grep", "-rn", "-E", "--include=*.py", "--include=*.yaml",
+            "grep",
+            "-rn",
+            "-E",
+            "--include=*.py",
+            "--include=*.yaml",
             r"\bglycemic_control\b|\bglycemic_trajectory\b",
             str(repo_root / "clinosim"),
         ],
@@ -64,7 +68,8 @@ def test_remaining_glycemic_control_references_are_whitelisted() -> None:
         # DiseaseProtocol override hook — kept.
         r".*clinosim/modules/disease/protocol\.py:\d+:.*chronic_glycemic_control",
         # inpatient simulator protocol-override assignment — kept.
-        r".*clinosim/simulator/inpatient\.py:\d+:.*(?:chronic_glycemic_control|state\.glycemic_control|sampled glycemic_control)",
+        r".*clinosim/simulator/inpatient\.py:\d+:.*"
+        r"(?:chronic_glycemic_control|state\.glycemic_control|sampled glycemic_control)",
         # physiology.engine — the helper + fallback paths are kept.
         r".*clinosim/modules/physiology/engine\.py:\d+:.*(?:glycemic_control|_GLYCEMIC_)",
         # Activator local-only use (ChronicCondition.glycemic_control kwarg

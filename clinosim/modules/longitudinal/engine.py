@@ -46,16 +46,14 @@ def _chronic_codes_match(person_codes: list[str], required_prefixes: list[str]) 
     return False
 
 
-def _age_at_year(person: "PersonRecord", year: int) -> int:
+def _age_at_year(person: PersonRecord, year: int) -> int:
     """Age on Jan 1 of ``year`` by DOB-year arithmetic."""
     if person.date_of_birth is None:
         return person.age
     return year - person.date_of_birth.year
 
 
-def _attribute_in_scope(
-    spec: AttributeSpec, person: "PersonRecord", year: int
-) -> bool:
+def _attribute_in_scope(spec: AttributeSpec, person: PersonRecord, year: int) -> bool:
     """``clinical_scope`` evaluation. Both chronic-code prefix match
     and age-band containment must hold."""
     if not _chronic_codes_match(person.chronic_conditions, spec.clinical_scope.requires_chronic_codes):
@@ -94,7 +92,7 @@ def _apply_pattern(
 
 
 def initial_snapshot(
-    person: "PersonRecord",
+    person: PersonRecord,
     year: int,
     init_rng: np.random.Generator,
 ) -> YearSnapshot:
@@ -123,7 +121,7 @@ def initial_snapshot(
 
 
 def advance_one_year(
-    person: "PersonRecord",
+    person: PersonRecord,
     year: int,
     year_rng: np.random.Generator,
 ) -> YearSnapshot:
@@ -135,15 +133,10 @@ def advance_one_year(
     - ``ValueError`` on backward year (monotonicity contract).
     """
     if not person.longitudinal_history:
-        raise ValueError(
-            f"person {person.person_id!r} has empty state_history — "
-            f"call initial_snapshot first."
-        )
+        raise ValueError(f"person {person.person_id!r} has empty state_history — call initial_snapshot first.")
     last_year = person.longitudinal_history[-1].year
     if year == last_year:
-        raise ValueError(
-            f"person {person.person_id!r} already advanced to year {year}"
-        )
+        raise ValueError(f"person {person.person_id!r} already advanced to year {year}")
     if year < last_year:
         raise ValueError(
             f"person {person.person_id!r} cannot advance backward: "
@@ -163,16 +156,14 @@ def advance_one_year(
 
 
 def state_at(
-    person: "PersonRecord",
+    person: PersonRecord,
     when: datetime | date | int,
 ) -> YearSnapshot:
     """Return the YearSnapshot matching ``when.year`` (or ``when`` if
     int). Pure lookup; no RNG. Raises ``IndexError`` on empty history
     or out-of-range year."""
     if not person.longitudinal_history:
-        raise IndexError(
-            f"person {person.person_id!r} has empty state_history"
-        )
+        raise IndexError(f"person {person.person_id!r} has empty state_history")
     if isinstance(when, datetime):
         target_year = when.year
     elif isinstance(when, date):

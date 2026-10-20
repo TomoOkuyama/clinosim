@@ -42,10 +42,7 @@ def test_generate_population_populates_hba1c_for_dm_adults_only() -> None:
     for person in registry.persons.values():
         snap = person.longitudinal_history[0]
         has_hba1c = "hba1c" in snap.continuous
-        is_dm_adult = (
-            any(c.startswith(("E11", "E10")) for c in person.chronic_conditions)
-            and person.age >= 18
-        )
+        is_dm_adult = any(c.startswith(("E11", "E10")) for c in person.chronic_conditions) and person.age >= 18
         if is_dm_adult:
             dm_adults.append(has_hba1c)
         else:

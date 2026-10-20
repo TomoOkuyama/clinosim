@@ -12,7 +12,6 @@ from pathlib import Path
 import numpy as np
 import pytest
 
-from clinosim.modules.longitudinal import engine as engine_mod
 from clinosim.modules.longitudinal import loader as loader_mod
 from clinosim.modules.longitudinal.engine import (
     advance_one_year,
@@ -20,7 +19,6 @@ from clinosim.modules.longitudinal.engine import (
 )
 from clinosim.modules.longitudinal.loader import load_attribute_specs
 from clinosim.types.population import PersonRecord
-
 
 _HBA1C_YAML = """
 attribute_id: hba1c

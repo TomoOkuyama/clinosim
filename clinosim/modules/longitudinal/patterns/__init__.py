@@ -13,7 +13,6 @@ from typing import Any
 
 from clinosim.modules.longitudinal.patterns import ar1
 
-
 PATTERN_REGISTRY: dict[str, dict[str, Any]] = {
     "ar1": {
         "spec": ar1.AR1Spec,

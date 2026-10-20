@@ -15,10 +15,9 @@ from datetime import date
 import numpy as np
 import pytest
 
-from clinosim.modules.longitudinal.engine import initial_snapshot, state_at
+from clinosim.modules.longitudinal.engine import initial_snapshot
 from clinosim.modules.longitudinal.loader import load_attribute_specs
 from clinosim.modules.patient import activator as activator_mod
-from clinosim.types.patient import ChronicCondition
 from clinosim.types.population import PersonRecord
 
 
