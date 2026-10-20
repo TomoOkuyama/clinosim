@@ -410,14 +410,21 @@ def _comorbidity_multiplier(person: PersonRecord, target_icd: str, year: int) ->
     chronic = set(person.chronic_conditions or [])
     smoking = str(getattr(person, "smoking_status", "") or "")
     stages = person.disease_stages or {}
-    # glycemic_trajectory keyed by year (dict[int, float]); 1.0 is
-    # excellent chronic control, 0.0 is very poor. Reading year-1
-    # gives the control attained through the END of the prior year,
-    # which is the clinically appropriate predictor for year y's
-    # progression. Fallback 0.7 ≈ moderate control for a person
-    # without a trajectory recorded yet (e.g. year immediately after
-    # DM onset before the first glycemic_trajectory pass has run).
-    gc_prev = float((person.glycemic_trajectory or {}).get(year - 1, 0.7))
+    # Phase 1 longitudinal migration (Issue #1695): the prior year's
+    # glycemic control predictor now reads HbA1c from
+    # PersonRecord.longitudinal_history and inverts the Layer-2
+    # linearisation hba1c = 6 + (1 - gc) * 6, giving
+    # gc = clamp((12 - hba1c) / 6, 0, 1). Fallback 0.7 ≈ moderate
+    # control for a person without a longitudinal_history entry yet
+    # (test fixtures / pre-engine cohorts).
+    gc_prev = 0.7
+    for snap in reversed(person.longitudinal_history or []):
+        if snap.year > year - 1:
+            continue
+        hba1c = snap.continuous.get("hba1c")
+        if hba1c is not None:
+            gc_prev = max(0.0, min(1.0, (12.0 - float(hba1c)) / 6.0))
+        break
     out = 1.0
     for _rule_name, rule in rules.items():
         trigger_chronic = set(rule.get("requires_any_chronic") or ())

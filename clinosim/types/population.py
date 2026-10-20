@@ -127,22 +127,6 @@ class PersonRecord:
     # progression scope (CKD / COPD / HF / CCS / dementia) and for
     # test fixtures that bypass the aging path.
     disease_stage_history: dict[str, dict[int, str]] = field(default_factory=dict)
-    # Issue #1581 DM glycemic trajectory — year-indexed
-    # ``glycemic_control`` axis (0-1, where 1.0 is excellent chronic
-    # control and 0.0 is very poor). HbA1c is derived from this axis
-    # at encounter time via ``physiology.engine.hba1c_from_glycemic_
-    # control``. ``aging._disease_progression`` populates this per
-    # year for persons carrying E11 / E10 so a year-1 encounter
-    # reports a different HbA1c than a year-10 encounter, following
-    # the natural-history drift documented in ``locale/shared/
-    # glycemic_trajectory.yaml``. Empty dict when the person has no
-    # DM or the aging path has not fired yet (test fixtures).
-    #
-    # Phase 1 longitudinal migration (Issue #1695): retired in favour
-    # of ``state_history[y].continuous["hba1c"]``. The field is kept
-    # on the dataclass through Task 4-5 for backward compatibility with
-    # existing aging passes and is removed in Task 6.
-    glycemic_trajectory: dict[int, float] = field(default_factory=dict)
     # Phase 1 longitudinal state-evolution subsystem (Issue #1695,
     # ``docs/superpowers/specs/2026-10-20-longitudinal-state-evolution-design.md``).
     # One entry per sim year per alive person, populated by
