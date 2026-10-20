@@ -73,12 +73,7 @@ def test_simulator_outpatient_chronic_followup_lookup_is_exact_key():
     only."""
     from pathlib import Path
 
-    src = (
-        Path(__file__).resolve().parents[3]
-        / "clinosim"
-        / "simulator"
-        / "outpatient.py"
-    ).read_text(encoding="utf-8")
+    src = (Path(__file__).resolve().parents[3] / "clinosim" / "simulator" / "outpatient.py").read_text(encoding="utf-8")
     # The forbidden pattern below is startswith-based iteration over the
     # chronic_followup dict keys — if a future refactor introduces that,
     # this test fires and the author decides whether sub-code match is
