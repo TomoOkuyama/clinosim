@@ -835,6 +835,20 @@ def generate_population(
                 for _affected_code in _sgd_affected:
                     if _affected_code not in person.chronic_conditions:
                         person.chronic_conditions.append(_affected_code)
+            # Phase 1 longitudinal subsystem (Issue #1695) — seed each
+            # person's longitudinal_history at the sim-start year so
+            # per-encounter emit (physiology / activator) can read via
+            # ``state_at`` from year 1 onward. Non-DM persons get an
+            # empty snapshot (scope gate drops the HbA1c attribute);
+            # Phase 2 / 3 attributes populate additional continuous
+            # latents / stages / events here when they land.
+            from clinosim.modules.longitudinal.engine import initial_snapshot
+            from clinosim.modules.population.aging import aging_sub_seed
+
+            _ls_rng = np.random.default_rng(
+                aging_sub_seed(person.person_id, base_year, "longitudinal:init")
+            )
+            initial_snapshot(person, year=base_year, init_rng=_ls_rng)
             hh.members.append(person)
             registry.persons[pid] = person
 
