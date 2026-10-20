@@ -24,6 +24,13 @@ from clinosim.modules.longitudinal.patterns.ar1 import AR1Spec
 _LONGITUDINAL_DIR = Path(__file__).resolve().parents[2] / "locale" / "shared" / "longitudinal"
 
 
+# Review-pass I3: patterns the engine's _apply_pattern actually
+# dispatches. A pattern registered in PATTERN_REGISTRY but not here
+# is a half-wired state — loader fails fast at import rather than
+# letting advance_one_year raise NotImplementedError inside the sim.
+_IMPLEMENTED_PATTERNS: frozenset[str] = frozenset({"ar1"})
+
+
 class ClinicalScope(BaseModel):
     """Which patients the attribute runs for."""
 
@@ -49,6 +56,11 @@ def _load_one(path: Path) -> AttributeSpec:
     pattern = raw.get("pattern")
     if pattern not in PATTERN_REGISTRY:
         raise ValueError(f"{path.name}: unknown pattern {pattern!r} — registered patterns: {sorted(PATTERN_REGISTRY)}")
+    if pattern not in _IMPLEMENTED_PATTERNS:
+        raise ValueError(
+            f"{path.name}: pattern {pattern!r} is registered but not implemented in "
+            f"longitudinal.engine._apply_pattern — implemented: {sorted(_IMPLEMENTED_PATTERNS)}"
+        )
     body_cls = PATTERN_REGISTRY[pattern]["spec"]
     body_dict: dict[str, Any] = {
         k: v for k, v in raw.items() if k not in {"attribute_id", "pattern", "depends_on", "clinical_scope"}

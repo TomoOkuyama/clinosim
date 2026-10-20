@@ -136,7 +136,7 @@ class PersonRecord:
     # of truth for continuous latents (HbA1c, LDL in later phases) and
     # discrete stages (CKD, CCS, NYHA, CDR in later phases). Empty
     # list for pre-engine fixtures.
-    longitudinal_history: "list[YearSnapshot]" = field(default_factory=list)
+    longitudinal_history: list[YearSnapshot] = field(default_factory=list)
     # Issue #1581 Phase C.3 — single-gene disease carrier status.
     # Keyed by ICD code, valued with one of:
     #   "normal"   — no disease allele

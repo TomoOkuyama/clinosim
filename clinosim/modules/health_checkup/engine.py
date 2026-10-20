@@ -183,10 +183,20 @@ def _derive_checkup_values(patient: Any, rng: np.random.Generator) -> dict[str, 
             dm_condition = c
             break
     if dm_condition is not None:
-        gc = _o(dm_condition, "glycemic_control", None)
-        if gc is None:
-            gc = HBA1C_GC_FALLBACK  # 未設定時は中央値
-        hba1c_true = hba1c_from_glycemic_control(float(gc))
+        # Phase 1 longitudinal subsystem (Issue #1695): read HbA1c
+        # latent from patient.longitudinal_history via state_at;
+        # fall back to the GC-based derivation only if no latent is
+        # present (test fixtures that bypass generate_population).
+        from clinosim.modules.physiology.engine import hba1c_latent_at
+
+        _latent = hba1c_latent_at(patient, _o(patient, "checkup_date", None))
+        if _latent is not None:
+            hba1c_true = float(_latent)
+        else:
+            gc = _o(dm_condition, "glycemic_control", None)
+            if gc is None:
+                gc = HBA1C_GC_FALLBACK  # 未設定時は中央値
+            hba1c_true = hba1c_from_glycemic_control(float(gc))
         hba1c = float(
             np.clip(
                 hba1c_true + rng.normal(0.0, HBA1C_DM_MEASUREMENT_NOISE_SD),

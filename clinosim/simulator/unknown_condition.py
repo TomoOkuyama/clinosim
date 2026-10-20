@@ -305,12 +305,16 @@ def _simulate_unknown_condition(
             **scenario_flags_from_protocol(None),
             **medication_flags_from_context(patient),
         }
+        from clinosim.modules.physiology.engine import hba1c_latent_at as _hba1c_latent_at
+
+        _hba1c_latent = _hba1c_latent_at(patient, admission_time)
         true_labs = derive_lab_values(
             state,
             sex=patient.sex,
             age=patient.age,
             has_diabetes=has_diabetes,
             has_dyslipidemia=has_dyslipidemia,
+            hba1c_latent=_hba1c_latent,
             **_flags_unknown,
         )  # noqa: E501
         for order in all_orders:
