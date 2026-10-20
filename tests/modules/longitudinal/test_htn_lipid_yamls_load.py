@@ -67,3 +67,36 @@ def test_lipid_high_intensity_fires_at_ldl_above_160():
     r = step([], [], np.random.default_rng(2), spec, context={"continuous": {"ldl": 175.0}})
     assert r.fired
     assert r.med_additions == ["Rosuvastatin"]
+
+
+def test_lipid_ezetimibe_escalation_yaml_loads():
+    load_attribute_specs.cache_clear()
+    specs = load_attribute_specs()
+    assert "lipid_escalate_ezetimibe_e78" in specs
+    spec = specs["lipid_escalate_ezetimibe_e78"]
+    assert spec.pattern == "event"
+    assert spec.depends_on == ["ldl"]
+    body = spec.body
+    assert body.emits_meds == ["Ezetimibe"]
+    assert body.fire_marker == "lipid_escalate_ezetimibe_e78"
+    assert body.base_annual_rate == 0.30
+
+
+def test_lipid_ezetimibe_independent_of_high_intensity():
+    """Review Focus #4: Ezetimibe yaml does NOT depend_on
+    lipid_escalate_high_intensity_e78 — a patient at sustained LDL > 190
+    accumulates both agents independently each sim window."""
+    load_attribute_specs.cache_clear()
+    specs = load_attribute_specs()
+    ezet_deps = specs["lipid_escalate_ezetimibe_e78"].depends_on
+    assert "lipid_escalate_high_intensity_e78" not in ezet_deps
+    assert "ldl" in ezet_deps
+
+
+def test_lipid_ezetimibe_does_not_fire_at_ldl_180():
+    """Review Focus #4 pin: LDL=180 (above > 160 high-intensity threshold
+    but below > 190 ezetimibe threshold) must NOT fire ezetimibe."""
+    load_attribute_specs.cache_clear()
+    spec = load_attribute_specs()["lipid_escalate_ezetimibe_e78"].body
+    r = step([], [], np.random.default_rng(0), spec, context={"continuous": {"ldl": 180.0}})
+    assert not r.fired
