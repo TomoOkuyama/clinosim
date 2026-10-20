@@ -69,13 +69,23 @@ class RateModifier(BaseModel):
 
 
 class EventSpec(BaseModel):
-    """Parameters for a one-shot ICD-onset event attribute."""
+    """Parameters for a one-shot ICD-onset or med-emitting event attribute."""
+
+    model_config = ConfigDict(extra="forbid")
 
     event_name: str
     emits_icd: str
+    emits_meds: list[str] = Field(default_factory=list)
+    fire_marker: str = ""
     base_annual_rate: float = Field(..., ge=0.0, le=1.0)
     rate_modifiers: list[RateModifier] = Field(default_factory=list)
     one_shot: bool = True
+
+    def model_post_init(self, _ctx: Any) -> None:
+        if self.emits_icd == "" and not self.emits_meds:
+            raise ValueError(
+                f"EventSpec {self.event_name!r}: emits_icd and emits_meds cannot both be empty"
+            )
 
 
 def _modifier_matches(modifier: RateModifier, context: dict[str, Any]) -> bool:
@@ -123,4 +133,6 @@ def step(
             rate *= float(modifier.factor)
     rate = min(1.0, max(0.0, rate))
     fired = float(rng.random()) < rate
-    return EventResult(fired, spec.emits_icd, [], [])
+    if fired:
+        return EventResult(True, spec.emits_icd, list(spec.emits_meds), [])
+    return EventResult(False, spec.emits_icd, [], [])
