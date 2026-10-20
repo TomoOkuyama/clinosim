@@ -18,7 +18,7 @@ See the Phase 1 spec at
 from __future__ import annotations
 
 from datetime import date, datetime
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Callable
 
 import numpy as np
 
@@ -115,9 +115,15 @@ def _apply_pattern(
     rng: np.random.Generator,
     *,
     prev_snapshot: YearSnapshot | None,
+    multiplier: float = 1.0,
 ) -> None:
     """Dispatch to the pattern's `initial` (prev is None) or `step`
-    (prev provided). Mutates ``snapshot`` in place."""
+    (prev provided). Mutates ``snapshot`` in place.
+
+    ``multiplier`` is passed into the Markov step as a per-icd rate
+    scalar (AR1 ignores it in Phase 2; could compose later as drift
+    multiplier if ever needed). Default 1.0 preserves pre-Phase 2 behavior.
+    """
     handler = PATTERN_REGISTRY[spec.pattern]
     if spec.pattern == "ar1":
         latent = spec.body.latent_name
@@ -141,7 +147,7 @@ def _apply_pattern(
                 # mid-sim scope entry: fall through to initial draw
                 value = handler["initial"](rng, spec.body)
             else:
-                value = handler["step"](prev_value, rng, spec.body)
+                value = handler["step"](prev_value, rng, spec.body, multiplier=multiplier)
         snapshot.chronic_stages[icd] = value
     else:
         # Phase 3 adds event → snapshot.new_complications etc.
@@ -182,6 +188,8 @@ def advance_one_year(
     person: PersonRecord,
     year: int,
     year_rng: np.random.Generator,
+    *,
+    multiplier_fn: Callable[[PersonRecord, str, int], float] | None = None,
 ) -> YearSnapshot:
     """Advance ``person`` one year to ``year``.
 
@@ -189,6 +197,12 @@ def advance_one_year(
     - ``ValueError`` when ``state_history`` is empty (use ``initial_snapshot``).
     - ``ValueError`` on duplicate year (idempotency contract).
     - ``ValueError`` on backward year (monotonicity contract).
+
+    ``multiplier_fn`` scales Markov transition probabilities per-icd
+    per-year. Phase 2 wires ``aging._comorbidity_multiplier`` here so
+    comorbidity-interaction rules in
+    ``comorbidity_progression_multipliers.yaml`` compose with the Markov
+    step. ``None`` → multiplier 1.0 (base rate).
     """
     if not person.longitudinal_history:
         raise ValueError(f"person {person.person_id!r} has empty state_history — call initial_snapshot first.")
@@ -209,7 +223,12 @@ def advance_one_year(
     for aid in order:
         if aid not in winners:
             continue
-        _apply_pattern(specs[aid], snap, year_rng, prev_snapshot=prev)
+        spec = specs[aid]
+        if spec.pattern == "markov" and multiplier_fn is not None:
+            mult = float(multiplier_fn(person, spec.body.icd_base, year))
+        else:
+            mult = 1.0
+        _apply_pattern(spec, snap, year_rng, prev_snapshot=prev, multiplier=mult)
     person.longitudinal_history.append(snap)
     return snap
 
