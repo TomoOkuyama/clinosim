@@ -858,6 +858,7 @@ def activate_patient(
         # pregnancies via ``state_history("pregnancy")``. Shallow copy —
         # PatientProfile does not mutate periods.
         state_periods=list(getattr(person, "state_periods", []) or []),
+        longitudinal_history=list(getattr(person, "longitudinal_history", []) or []),
         # Issue #1114 C11g-4: forward the natural-death date sampled by
         # the ``natural_death`` POST_POPULATION enricher so downstream
         # FHIR emit (``_build_patient``) surfaces it as

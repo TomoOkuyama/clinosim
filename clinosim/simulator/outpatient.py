@@ -401,12 +401,14 @@ def _simulate_outpatient_visit(
     from clinosim.modules.observation.engine import BASELINE_LAB_NORMALS
     from clinosim.modules.physiology.engine import (
         derive_lab_values,
+        hba1c_latent_at,
         medication_flags_from_context,
         scenario_flags_from_protocol,
     )
 
     _has_dm = any("E11" in (getattr(c, "code", "") or "") for c in patient.chronic_conditions)
     _has_dyslipidemia = any("E78" in (getattr(c, "code", "") or "") for c in patient.chronic_conditions)
+    _hba1c_latent = hba1c_latent_at(patient, visit_date)
     # J5 (Phase 2a): outpatient follow-ups carry no acute scenario flag by
     # design — causes_vte / causes_myocardial_injury describe acute events
     # (ED / inpatient presentations), not chronic-disease monitoring visits.
@@ -419,7 +421,13 @@ def _simulate_outpatient_visit(
         **medication_flags_from_context(patient),
     }
     _true_labs = derive_lab_values(
-        _state, sex=patient.sex, age=patient.age, has_diabetes=_has_dm, has_dyslipidemia=_has_dyslipidemia, **_flags
+        _state,
+        sex=patient.sex,
+        age=patient.age,
+        has_diabetes=_has_dm,
+        has_dyslipidemia=_has_dyslipidemia,
+        hba1c_latent=_hba1c_latent,
+        **_flags,
     )
     # Reference-normal fallback for analytes physiology doesn't model (HbA1c, WBC, CRP, etc.
     # are physiology-modeled and resolve via _true_labs first). DET-6 single source.

@@ -161,9 +161,19 @@ def state_at(
 ) -> YearSnapshot:
     """Return the YearSnapshot matching ``when.year`` (or ``when`` if
     int). Pure lookup; no RNG. Raises ``IndexError`` on empty history
-    or out-of-range year."""
+    or out-of-range year.
+
+    Duck-typed on ``.longitudinal_history`` + ``.person_id`` /
+    ``.patient_id`` so both PersonRecord (Layer-1) and PatientProfile
+    (Layer-2, mirrored via activator) can be passed in."""
+    # bool is a subclass of int in Python — reject explicitly so a
+    # mistaken ``state_at(person, True)`` doesn't silently become
+    # ``year=1``.
+    if isinstance(when, bool):
+        raise TypeError(f"state_at: unsupported when type {type(when).__name__}")
+    _pid = getattr(person, "person_id", None) or getattr(person, "patient_id", "?")
     if not person.longitudinal_history:
-        raise IndexError(f"person {person.person_id!r} has empty state_history")
+        raise IndexError(f"person {_pid!r} has empty longitudinal_history")
     if isinstance(when, datetime):
         target_year = when.year
     elif isinstance(when, date):
@@ -176,7 +186,7 @@ def state_at(
         if snap.year == target_year:
             return snap
     raise IndexError(
-        f"person {person.person_id!r} has no state for year {target_year} "
+        f"person {_pid!r} has no state for year {target_year} "
         f"(range: {person.longitudinal_history[0].year}..{person.longitudinal_history[-1].year})"
     )
 

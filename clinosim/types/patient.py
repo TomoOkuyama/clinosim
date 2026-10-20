@@ -244,6 +244,15 @@ class PatientProfile:
     # patient activator so that FHIR emit adapters (Z37 past-birth marker
     # via ``state_history("pregnancy")``) can read it from the record dict.
     state_periods: list[TemporalStatePeriod] = field(default_factory=list)
+    # Phase 1 longitudinal subsystem (Issue #1695): mirror of
+    # ``PersonRecord.longitudinal_history`` copied through by
+    # ``activate_patient`` so per-encounter lab / stage emit on the
+    # simulator side (which only has `patient: PatientProfile`, not
+    # `person: PersonRecord`) can look up the year-matched HbA1c
+    # latent via ``clinosim.modules.longitudinal.engine.state_at``.
+    # The engine's ``state_at`` is duck-typed on ``.longitudinal_history``
+    # so both PersonRecord and PatientProfile work as inputs.
+    longitudinal_history: list[Any] = field(default_factory=list)
 
     def __post_init__(self) -> None:
         """Issue #452 PR 1 migration shim: accept legacy `list[str]` fixtures

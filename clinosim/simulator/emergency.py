@@ -197,8 +197,17 @@ def _simulate_ed_visit(
         **scenario_flags_from_protocol(protocol),
         **medication_flags_from_context(patient),
     }
+    from clinosim.modules.physiology.engine import hba1c_latent_at as _hba1c_latent_at
+
+    _hba1c_latent = _hba1c_latent_at(patient, visit_time)
     _true_labs = derive_lab_values(
-        _state, sex=patient.sex, age=patient.age, has_diabetes=_has_dm, has_dyslipidemia=_has_dyslipidemia, **_flags
+        _state,
+        sex=patient.sex,
+        age=patient.age,
+        has_diabetes=_has_dm,
+        has_dyslipidemia=_has_dyslipidemia,
+        hba1c_latent=_hba1c_latent,
+        **_flags,
     )
     # AD-16: per-lab-order sub-RNG so probability skips / noise / timing draws
     # cannot poison the patient master stream when derive_lab_values gains a new

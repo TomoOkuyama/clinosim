@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import math
 from datetime import datetime, timedelta
+from typing import Any
 
 import numpy as np
 
@@ -357,6 +358,34 @@ HBA1C_SPAN = 6.0  # %, added at glycemic_control = 0.0  -> 12.0% worst case
 HBA1C_MEASUREMENT_NOISE_SD = 0.20
 HBA1C_CLAMP_MIN = 4.0
 HBA1C_CLAMP_MAX = 15.0
+
+
+def hba1c_latent_at(patient: Any, when: Any) -> float | None:
+    """Phase 1 longitudinal subsystem (Issue #1695) helper.
+
+    Resolve the year-matched HbA1c latent for ``patient`` at
+    ``when`` from ``patient.longitudinal_history`` (populated by the
+    engine via Layer-1 ``initial_snapshot`` + yearly
+    ``advance_one_year``, mirrored onto PatientProfile at activation).
+
+    Returns ``None`` when the patient has no longitudinal history
+    (test fixtures that bypass ``generate_population``) or when the
+    requested year falls outside the stored range — the ``derive_lab_
+    values`` HbA1c branch falls through to the ``state.glycemic_control``
+    protocol-override path and the non-DM default.
+    """
+    history = getattr(patient, "longitudinal_history", None) or []
+    if not history:
+        return None
+    try:
+        from clinosim.modules.longitudinal.engine import state_at
+
+        snap = state_at(patient, when)
+    except (IndexError, TypeError):
+        return None
+    return snap.continuous.get("hba1c")
+
+
 # Diabetic fasting Glucose baseline as a function of glycemic control.
 GLU_DM_BEST = 120.0  # mg/dL at glycemic_control = 1.0
 GLU_DM_SPAN = 100.0  # mg/dL added at glycemic_control = 0.0 -> 220 worst

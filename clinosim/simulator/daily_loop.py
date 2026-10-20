@@ -283,6 +283,9 @@ def _run_daily_loop(
                 current_day=day,
             ),
         }
+        from clinosim.modules.physiology.engine import hba1c_latent_at
+
+        _hba1c_latent = hba1c_latent_at(patient, admission_time + __import__("datetime").timedelta(days=day))
         true_labs = derive_lab_values(
             state,
             sex=patient.sex,
@@ -290,6 +293,7 @@ def _run_daily_loop(
             has_diabetes=has_diabetes,
             has_dyslipidemia=has_dyslipidemia,
             hour=lab_hour,
+            hba1c_latent=_hba1c_latent,
             **flags,
         )  # noqa: E501
 
@@ -304,6 +308,7 @@ def _run_daily_loop(
                 has_diabetes=has_diabetes,
                 has_dyslipidemia=has_dyslipidemia,
                 hour=lab_hour,
+                hba1c_latent=_hba1c_latent,
                 **flags,
             )  # noqa: E501
             true_labs["CRP"] = lagged_labs.get("CRP", true_labs["CRP"])

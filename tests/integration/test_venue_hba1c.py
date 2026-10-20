@@ -12,9 +12,16 @@ from clinosim.types.staff import StaffRoster
 
 
 def _hba1c_for_control(glycemic_control: float) -> float:
+    # Phase 1 longitudinal (Issue #1695): per-encounter HbA1c now reads
+    # from patient.longitudinal_history via hba1c_latent_at. Translate
+    # the test's gc parameter into the equivalent HbA1c latent via the
+    # Layer-2 linearisation (hba1c = 6 + (1 - gc) * 6).
+    from clinosim.modules.longitudinal.snapshot import YearSnapshot
+
     patient = create_test_patient()
-    dm = next(c for c in patient.chronic_conditions if c.code.startswith("E11"))
-    dm.glycemic_control = glycemic_control
+    patient.longitudinal_history = [
+        YearSnapshot(year=2024, continuous={"hba1c": 6.0 + (1.0 - glycemic_control) * 6.0}),
+    ]
     record = _simulate_outpatient_visit(
         patient,
         visit_type="chronic_followup",
@@ -31,17 +38,6 @@ def _hba1c_for_control(glycemic_control: float) -> float:
 
 
 @pytest.mark.integration
-@pytest.mark.xfail(
-    reason=(
-        "Phase 1 longitudinal migration (Issue #1695): HbA1c now reads from "
-        "PersonRecord.longitudinal_history via hba1c_latent kwarg to "
-        "derive_lab_values. The outpatient simulator call chain does not "
-        "yet thread hba1c_latent through (follow-up scope). "
-        "ChronicCondition.glycemic_control is retired as a per-encounter "
-        "write — setting it no longer varies the emitted HbA1c."
-    ),
-    strict=True,
-)
 def test_outpatient_hba1c_varies_with_glycemic_control():
     good = _hba1c_for_control(0.9)  # well-controlled
     poor = _hba1c_for_control(0.1)  # poorly-controlled
