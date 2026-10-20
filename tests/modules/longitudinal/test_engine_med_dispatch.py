@@ -13,8 +13,6 @@ A med-only event firing in the engine must:
 
 from __future__ import annotations
 
-from pathlib import Path
-
 import numpy as np
 import pytest
 
