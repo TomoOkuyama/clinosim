@@ -13,7 +13,8 @@
 #   diuretic.{loop, thiazide, k_sparing}
 #   statin, cyp3a4_substrate, cyp3a4_inhibitor_strong
 #   xanthine_oxidase_inhibitor, thiopurine, immunosuppressant
-#   ssri, maoi, antidepressant, antiparkinsonian
+#   ssri, snri, maoi, antidepressant, antiparkinsonian
+#   benzodiazepine, anxiolytic
 #   analgesic.non_opioid, macrolide
 #   antihypertensive, antiarrhythmic.class4
 #
@@ -234,7 +235,67 @@ mappings:
     drug_ja: "セルトラリン"
     classes: ["ssri", "antidepressant"]
 
+  Escitalopram:
+    aliases: ["エスシタロプラム", "レクサプロ", "lexapro"]
+    drug_ja: "エスシタロプラム"
+    classes: ["ssri", "antidepressant"]
+
+  Fluoxetine:
+    aliases: ["フルオキセチン", "prozac", "プロザック"]
+    drug_ja: "フルオキセチン"
+    classes: ["ssri", "antidepressant"]
+
+  Paroxetine:
+    aliases: ["パロキセチン", "paxil", "パキシル"]
+    drug_ja: "パロキセチン"
+    classes: ["ssri", "antidepressant"]
+
+  # SNRI — concurrent SSRI + SNRI risks serotonin syndrome
+  # (common toxicity, mapped as "major" so the activator CPOE-gate drops
+  # the second one). See contraindications.yaml::ssri-plus-snri.
+  Duloxetine:
+    aliases: ["デュロキセチン", "cymbalta", "サインバルタ"]
+    drug_ja: "デュロキセチン"
+    classes: ["snri", "antidepressant"]
+
+  Venlafaxine:
+    aliases: ["ベンラファキシン", "effexor", "イフェクサー"]
+    drug_ja: "ベンラファキシン"
+    classes: ["snri", "antidepressant"]
+
+  # Atypical antidepressant — not serotonergic in the SSRI/SNRI sense;
+  # kept separate so it co-prescribes freely with SSRI/SNRI as the
+  # APA/VA-DoD depression guideline augmentation path intends.
+  Mirtazapine:
+    aliases: ["ミルタザピン", "remeron", "リフレックス", "レメロン"]
+    drug_ja: "ミルタザピン"
+    classes: ["atypical_antidepressant", "antidepressant"]
+
   Selegiline:
     aliases: ["セレギリン", "エフピー"]
     drug_ja: "セレギリン"
     classes: ["maoi", "antiparkinsonian"]
+
+  # Benzodiazepines — class mapping only (no contraindication rules
+  # firing on them yet). Short-term use for severe GAD / acute anxiety
+  # is per APA 2010 / NICE CG113 guidance; chronic daily BZD duration
+  # modelling is a separate follow-up PR.
+  Lorazepam:
+    aliases: ["ロラゼパム", "ativan", "ワイパックス"]
+    drug_ja: "ロラゼパム"
+    classes: ["benzodiazepine", "anxiolytic"]
+
+  Alprazolam:
+    aliases: ["アルプラゾラム", "xanax", "ソラナックス", "コンスタン"]
+    drug_ja: "アルプラゾラム"
+    classes: ["benzodiazepine", "anxiolytic"]
+
+  Diazepam:
+    aliases: ["ジアゼパム", "valium", "セルシン", "ホリゾン"]
+    drug_ja: "ジアゼパム"
+    classes: ["benzodiazepine", "anxiolytic"]
+
+  Clonazepam:
+    aliases: ["クロナゼパム", "klonopin", "リボトリール", "ランドセン"]
+    drug_ja: "クロナゼパム"
+    classes: ["benzodiazepine", "anxiolytic"]

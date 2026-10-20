@@ -95,6 +95,29 @@ rules:
     substitution_hint: null
     source: "APA 2010 major depressive disorder practice guideline"
 
+  # Audit s103 (p=2000 US 5y seed=42): POP-000601 (21M, GAD-7 severe)
+  # home_meds carried Sertraline (SSRI) + Duloxetine (SNRI) + Alprazolam
+  # concurrently. Chronic SSRI + SNRI co-prescription is not standard
+  # of care — both mechanisms raise 5-HT availability, so the pair
+  # multiplies serotonin-syndrome risk without evidence of additive
+  # efficacy. APA/VA-DoD depression guidelines recommend switching
+  # between SSRI and SNRI (with washout) rather than combining; the
+  # augmentation path at specialist clinics typically uses an atypical
+  # (Mirtazapine, Bupropion) on top of the primary serotonergic agent,
+  # not a second serotonergic agent. Mapped `major` so the activator
+  # CPOE-gate drops the second serotonergic candidate (SSRI stays as
+  # first-line; SNRI is skipped). Mirtazapine, Bupropion and other
+  # non-SSRI/SNRI antidepressants carry only the "antidepressant" tag
+  # and are therefore unaffected.
+  - id: ssri-plus-snri
+    lhs: ssri
+    rhs: snri
+    severity: major
+    rationale_en: "SSRI + SNRI concurrent raises 5-HT at both the reuptake and additional norepinephrine axes without added efficacy, multiplying serotonin-syndrome risk. Guideline practice is switching with washout, not combining. Augmentation of a serotonergic agent should use an atypical (Mirtazapine, Bupropion) or a non-serotonergic adjunct."
+    rationale_ja: "SSRI と SNRI の併用は 5-HT 再取り込み阻害が重なり、追加の効果上積みなくセロトニン症候群リスクを多重化する。ガイドライン実務は休薬期間を置いた切替であり、両剤同時併用は推奨されない。serotonergic 薬の増強には atypical (Mirtazapine 等) あるいは非 serotonergic 系の併用が標準。"
+    substitution_hint: null
+    source: "APA 2010 major depressive disorder practice guideline; VA/DoD 2022 MDD guideline"
+
   # Issue #1347 (META #1392 Cluster A part 4): same-class NSAID stacking
   # mutex. Multiple NSAIDs concurrently provide NO additional analgesia
   # (single receptor family, ceiling effect) but multiply GI bleed, renal
