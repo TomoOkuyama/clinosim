@@ -324,17 +324,6 @@ def _load_stage_transitions() -> dict[str, dict]:
 
 
 @lru_cache(maxsize=1)
-def _load_glycemic_trajectory_config() -> dict[str, dict]:
-    """Return the per-ICD glycemic-trajectory config from
-    ``glycemic_trajectory.yaml``. Cached singleton. Returns empty
-    dict when yaml is missing — DM pass becomes safe no-op."""
-    from clinosim.locale.loader import load_glycemic_trajectory
-
-    data = load_glycemic_trajectory()
-    return data.get("glycemic_trajectory") or {}
-
-
-@lru_cache(maxsize=1)
 def _load_mental_health_onset_multipliers() -> dict[str, dict]:
     """Return per-target-ICD onset multiplier rules from
     ``mental_health_onset_multipliers.yaml``. Cached singleton.
@@ -461,49 +450,13 @@ def _comorbidity_multiplier(person: PersonRecord, target_icd: str, year: int) ->
     return out
 
 
-# Diabetes ICD codes that drive the glycemic trajectory. Mirrors the
-# activator's E11/E10 branch set.
-_GLYCEMIC_ICDS: frozenset[str] = frozenset({"E11", "E10"})
-
-
-def _advance_glycemic_trajectory(
-    person: PersonRecord,
-    year: int,
-    prng: np.random.Generator,
-    dm_cfg: dict,
-) -> None:
-    """Per-person annual glycemic-control update for diabetes
-    (Issue #1581 DM extension).
-
-    First touch: sample initial ``gc`` matching the activator's
-    ``gc = 1 - rand()^3`` formula so Phase A initial-touch cohort
-    distribution matches the activator-only path.
-
-    Subsequent years: ``gc_next = clamp(gc_prev + rng.normal(mean,
-    sd), gc_min, gc_max)``. Dense per-year history so an encounter-
-    time lookup for any year finds the correct value.
-    """
-    history = person.glycemic_trajectory
-    gc_drift_mean = float(dm_cfg.get("gc_drift_mean", 0.0))
-    gc_drift_sd = float(dm_cfg.get("gc_drift_sd", 0.0))
-    gc_min = float(dm_cfg.get("gc_min", 0.0))
-    gc_max = float(dm_cfg.get("gc_max", 1.0))
-
-    if not history:
-        # First touch — mirror the activator's gc_draw formula so
-        # the per-cohort HbA1c distribution at year 0 matches what
-        # the activator-only path produced pre-#1581.
-        gc_draw = float(prng.random())
-        gc = 1.0 - gc_draw**3
-        gc = max(gc_min, min(gc_max, gc))
-        history[year] = gc
-        return
-
-    latest_year = max(history)
-    gc_prev = history[latest_year]
-    gc_next = gc_prev + float(prng.normal(gc_drift_mean, gc_drift_sd))
-    gc_next = max(gc_min, min(gc_max, gc_next))
-    history[year] = gc_next
+# Phase 1 longitudinal migration (Issue #1695): the diabetes glycemic
+# trajectory moved out of aging into
+# ``clinosim.modules.longitudinal.engine`` and is driven annually by
+# ``advance_one_year`` from ``advance_population``. The former
+# ``_GLYCEMIC_ICDS`` frozenset + ``_advance_glycemic_trajectory``
+# helper were retired here; _disease_progression skips E11 / E10 and
+# lets the longitudinal engine own the HbA1c latent.
 
 
 # Initial-stage weights for the stage-progression targets. Values
@@ -649,19 +602,16 @@ def _disease_progression(
     trajectory.yaml`` for the drift parameters.
     """
     cfg_all = _load_stage_transitions()
-    glycemic_cfg = _load_glycemic_trajectory_config()
-    if not cfg_all and not glycemic_cfg:
+    if not cfg_all:
         return
     for code in person.chronic_conditions:
         code_base = code.split(".")[0]
-        # Issue #1581 DM extension — glycemic trajectory for diabetes.
-        # Different data shape (continuous float year → gc) than the
-        # discrete stage-transition path, so handle it in a dedicated
-        # branch BEFORE the stage lookup.
-        if code_base in _GLYCEMIC_ICDS:
-            dm_cfg = glycemic_cfg.get(code_base)
-            if dm_cfg:
-                _advance_glycemic_trajectory(person, year, prng, dm_cfg)
+        # Phase 1 longitudinal migration (Issue #1695): E11 / E10 HbA1c
+        # trajectory moved out of _disease_progression and into the new
+        # longitudinal engine, driven annually by advance_one_year from
+        # advance_population below. Skip the DM branch here — the
+        # engine owns it.
+        if code_base in {"E11", "E10"}:
             continue
         # Try full ICD before falling back to base. Mirrors the
         # ``_INITIAL_STAGE_SAMPLERS`` dispatcher below so a per-sub-
@@ -1076,3 +1026,13 @@ def advance_population(
         ):
             pass_rng = np.random.default_rng(aging_sub_seed(person.person_id, year, pass_fn.__name__))
             pass_fn(person, year, pass_rng, incidence_table, locale=locale)
+        # Phase 1 longitudinal subsystem (Issue #1695) — advance the
+        # per-year state_history snapshot once the aging passes have
+        # finalised chronic_conditions for this year, so a mid-sim
+        # scope entry (e.g. new-onset E11 from _annual_chronic_onset)
+        # takes effect immediately.
+        from clinosim.modules.longitudinal.engine import advance_one_year
+
+        if person.longitudinal_history and person.longitudinal_history[-1].year < year:
+            _ls_rng = np.random.default_rng(aging_sub_seed(person.person_id, year, "longitudinal"))
+            advance_one_year(person, year=year, year_rng=_ls_rng)
