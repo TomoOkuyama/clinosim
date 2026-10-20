@@ -1,0 +1,35 @@
+# LDL cholesterol trajectory — AR(1) latent.
+#
+# Phase 4b.1 of the longitudinal state-evolution subsystem (Issue #1697).
+# Scoped to adults carrying E78 dyslipidemia chronic. No Layer-1 anchor
+# in Phase 4b.1 — the yaml initial: block seeds the sim-start value.
+#
+# Clinical calibration:
+#   phi 0.80       — statin response plateau (STELLAR trial within-individual stability)
+#   sigma 12 mg/dL — biological variability midpoint (ACC-AHA 2018 cites 10-15)
+#   target 165     — uncontrolled dyslipidemia cohort median under moderate-intensity statin
+#   clamp [60,300] — below-physiologic floor to familial-hypercholesterolemia ceiling
+
+attribute_id: ldl
+pattern: ar1
+depends_on: []
+clinical_scope:
+  requires_chronic_codes: ["E78"]
+  requires_age_band: [18, 120]
+
+latent_name: ldl
+ar1:
+  phi: 0.80
+  sigma: 12.0
+  mean_reversion_target: 165.0
+clamp: [60.0, 300.0]
+initial:
+  mu: 5.10    # exp(5.10) ≈ 164 — uncontrolled dyslipidemia entry median
+  sigma: 0.12
+narrative_label:
+  en: "LDL trajectory"
+  ja: "LDL コレステロール 推移"
+source:
+  - "Grundy SM et al. 2018 ACC/AHA Cholesterol Guideline. Circulation 2019;139:e1082."
+  - "STELLAR Trial — Jones PH et al. Am J Cardiol 2003;92:152 (Rosuvastatin vs Atorvastatin LDL response plateau)."
+  - "ACC-AHA 2018 Cholesterol Guideline supplementary data on within-individual LDL biological variability."
