@@ -4,7 +4,6 @@ from __future__ import annotations
 
 from clinosim.modules.longitudinal.loader import load_attribute_specs
 
-
 EXPECTED = {
     "dm_escalate_sglt2i_e11": {
         "emits_meds": ["Empagliflozin"],

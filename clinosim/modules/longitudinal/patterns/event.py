@@ -83,9 +83,7 @@ class EventSpec(BaseModel):
 
     def model_post_init(self, _ctx: Any) -> None:
         if self.emits_icd == "" and not self.emits_meds:
-            raise ValueError(
-                f"EventSpec {self.event_name!r}: emits_icd and emits_meds cannot both be empty"
-            )
+            raise ValueError(f"EventSpec {self.event_name!r}: emits_icd and emits_meds cannot both be empty")
 
 
 def _modifier_matches(modifier: RateModifier, context: dict[str, Any]) -> bool:

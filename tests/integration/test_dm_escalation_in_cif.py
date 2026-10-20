@@ -69,8 +69,7 @@ def test_non_dm_patients_never_gain_dm_escalation_drugs() -> None:
             continue
         on_forbidden = [hm.drug_name for hm in person.current_medications if hm.drug_name in forbidden]
         assert not on_forbidden, (
-            f"non-DM person {person.person_id} picked up {on_forbidden} — "
-            f"clinical_scope gate broken"
+            f"non-DM person {person.person_id} picked up {on_forbidden} — clinical_scope gate broken"
         )
 
 
