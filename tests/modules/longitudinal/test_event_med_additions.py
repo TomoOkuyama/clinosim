@@ -97,3 +97,65 @@ def test_event_spec_rejects_unknown_field():
             rate_modifiers=[],
             one_shot=True,
         )
+
+
+def test_step_med_only_one_shot_dedup_against_prior_med_additions():
+    """Review Focus #1: a med-only event that fired last year must not
+    re-fire this year, even at p=1.0."""
+    from clinosim.modules.longitudinal.snapshot import YearSnapshot
+
+    spec = EventSpec(
+        event_name="dm_escalate_sglt2i",
+        emits_icd="",
+        emits_meds=["Empagliflozin"],
+        fire_marker="dm_escalate_sglt2i",
+        base_annual_rate=1.0,
+        rate_modifiers=[],
+        one_shot=True,
+    )
+    rng = np.random.default_rng(0)
+    prior = [YearSnapshot(year=2024, med_additions=["dm_escalate_sglt2i"])]
+    result = step([], prior, rng, spec, context={})
+    assert not result.fired
+    assert result.med_additions == []
+
+
+def test_step_med_only_dedup_requires_fire_marker():
+    """Without fire_marker set, med-only event has no dedup key and
+    will re-fire every year — the yaml author must set fire_marker."""
+    from clinosim.modules.longitudinal.snapshot import YearSnapshot
+
+    spec = EventSpec(
+        event_name="x",
+        emits_icd="",
+        emits_meds=["Empagliflozin"],
+        fire_marker="",  # intentionally empty
+        base_annual_rate=1.0,
+        rate_modifiers=[],
+        one_shot=True,
+    )
+    rng = np.random.default_rng(0)
+    prior = [YearSnapshot(year=2024, med_additions=["Empagliflozin"])]
+    result = step([], prior, rng, spec, context={})
+    # Without a dedup key, event still fires — this is intentional
+    # (Phase 4a's yamls always set fire_marker; this test pins that
+    # the engine does not silently invent one).
+    assert result.fired
+
+
+def test_step_med_only_dedup_does_not_affect_icd_only_events():
+    """ICD-only events keep their Phase 3 dedup via emits_icd — the
+    new fire_marker logic doesn't interfere."""
+    from clinosim.modules.longitudinal.snapshot import YearSnapshot
+
+    spec = EventSpec(
+        event_name="x",
+        emits_icd="E11.21",
+        base_annual_rate=1.0,
+        rate_modifiers=[],
+        one_shot=True,
+    )
+    rng = np.random.default_rng(0)
+    prior = [YearSnapshot(year=2024, new_complications=["E11.21"])]
+    result = step([], prior, rng, spec, context={})
+    assert not result.fired

@@ -122,11 +122,18 @@ def step(
     where modifiers resolve.
     """
     if spec.one_shot:
-        if spec.emits_icd in person_chronic:
+        # ICD-emitting event: dedup against chronic_conditions + prior new_complications.
+        if spec.emits_icd and spec.emits_icd in person_chronic:
             return EventResult(False, spec.emits_icd, [], [])
-        for snap in prev_history or []:
-            if spec.emits_icd in getattr(snap, "new_complications", []):
-                return EventResult(False, spec.emits_icd, [], [])
+        if spec.emits_icd:
+            for snap in prev_history or []:
+                if spec.emits_icd in getattr(snap, "new_complications", []):
+                    return EventResult(False, spec.emits_icd, [], [])
+        # Med-emitting event: dedup against prior med_additions via fire_marker.
+        if spec.fire_marker:
+            for snap in prev_history or []:
+                if spec.fire_marker in getattr(snap, "med_additions", []):
+                    return EventResult(False, spec.emits_icd, [], [])
     rate = float(spec.base_annual_rate)
     for modifier in spec.rate_modifiers:
         if _modifier_matches(modifier, context or {}):
