@@ -1,0 +1,34 @@
+# Diabetic retinopathy onset (E11.311) — event pattern.
+#
+# Phase 3 of the longitudinal state-evolution subsystem (Issue #1697).
+#
+# Clinical basis: UKPDS 1998 NEJM 338:837; Klein R et al, Ophthalmology
+# 2006;113:1869 (Wisconsin Epidemiologic Study of Diabetic Retinopathy
+# 25-year follow-up); DCCT/EDIC 2016. Cumulative incidence ~2.5 %/yr in
+# early T2DM, climbing 4-6× under A1c > 9.0. Phase 3 uses E11.311
+# (background retinopathy without macular edema) as the first-touch
+# code; proliferative + macular edema progression lives in Phase 4.
+
+attribute_id: dm_retinopathy_onset_e11_311
+pattern: event
+depends_on: [hba1c]
+clinical_scope:
+  requires_chronic_codes: ["E11", "E10"]
+  requires_age_band: [18, 120]
+
+event_name: dm_retinopathy_onset
+emits_icd: E11.311
+base_annual_rate: 0.020
+rate_modifiers:
+  - when: {attribute: hba1c, operator: ">", value: 9.0}
+    factor: 4.0
+  - when: {attribute: hba1c, operator: ">", value: 7.5}
+    factor: 2.0
+one_shot: true
+narrative_label:
+  en: "Diabetic retinopathy onset"
+  ja: "糖尿病網膜症発症"
+source:
+  - "UK Prospective Diabetes Study (UKPDS) Group. NEJM 1998;338:837."
+  - "Klein R et al. Wisconsin Epidemiologic Study of Diabetic Retinopathy 25-year follow-up. Ophthalmology 2006;113:1869."
+  - "DCCT/EDIC Research Group. NEJM 2016;374:1507."
