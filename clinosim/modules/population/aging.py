@@ -4,14 +4,13 @@ Called by the engine at the top of each simulated year. Walks every
 alive person in the registry and lets per-person "aging passes" update
 their state before the year's events are generated:
 
-* :func:`_annual_chronic_onset` — age × sex incidence of newly acquired
-  chronic conditions. Band-diff derivation from the locale's existing
-  ``chronic_prevalence`` yaml: per-year incidence rate during band
-  ``[lo, hi]`` is derived from the point-prevalence of the next age
-  band so that a person who ages across the whole band accumulates
-  (P_next − P_this) new onset probability. Marginal-preserving by
-  construction: single source of truth stays
-  ``locale/*/demographics.yaml:chronic_prevalence``.
+* Chronic onset — Phase 4b.2.β (Issue #1697) retired the former
+  ``_annual_chronic_onset`` aging pass. All 30 adult-chronic ICDs now
+  live as event-pattern yamls under
+  ``locale/shared/longitudinal/event/<code>_onset.yaml`` and run from
+  the longitudinal engine's ``advance_one_year`` dispatch (which runs
+  after the aging passes). The band-diff formula + mental-health
+  comorbidity multipliers were migrated verbatim.
 * Stage progression — Phase 2 of the longitudinal subsystem (Issue
   #1696) retired the former ``_disease_progression`` aging pass and
   moved CKD / COPD / heart-failure / IHD / dementia / liver / Parkinson
@@ -48,7 +47,6 @@ Determinism contract:
 from __future__ import annotations
 
 import hashlib
-from dataclasses import dataclass
 from functools import lru_cache
 
 import numpy as np
@@ -64,15 +62,16 @@ __all__ = [
 
 
 _AGING_SEED_SALT = "clinosim:aging:v1"
-_MIN_INCIDENCE_AGE = 18  # Adult-chronic incidence only; pediatric is handled by pediatric calendar.
-# Codes that appear in `chronic_prevalence` yaml but are RNG-cursor
-# placeholders only — pregnancy-lifecycle lives in `state_periods`,
-# not in `chronic_conditions`. Mirrors
-# `clinosim.modules.population.engine._STATE_PERIOD_CHRONIC_CODES`.
-# `_annual_chronic_onset` must NOT append these to a person's
-# chronic_conditions mid-sim, same way `generate_population` skips
-# them at initial sampling.
-_STATE_PERIOD_ONSET_SKIP_CODES = frozenset({"Z34", "Z37"})
+# Phase 4b.2.β (Issue #1697): `_MIN_INCIDENCE_AGE`,
+# `_STATE_PERIOD_ONSET_SKIP_CODES`, `_ChronicIncidenceSpec`,
+# `_derive_annual_incidence_from_prevalence`,
+# `_load_annual_incidence_for_locale`, `_annual_chronic_onset`,
+# `_mental_health_onset_multiplier` and the mental-health yaml loader
+# were retired here when the 30 adult-chronic onset events migrated to
+# `clinosim.modules.longitudinal`. The longitudinal engine's event
+# dispatch now owns per-year Bernoulli onset via
+# `locale/shared/longitudinal/event/<code>_onset.yaml`. See
+# docs/superpowers/plans/2026-10-21-phase-4b2b-annual-chronic-onset-migration.md.
 
 
 def aging_sub_seed(person_id: str, year: int, pass_name: str) -> int:
@@ -80,122 +79,12 @@ def aging_sub_seed(person_id: str, year: int, pass_name: str) -> int:
 
     Derived from ``(person_id, year, pass_name)`` so every pass gets an
     isolated stream — a change inside one pass (or inside the Phase 2
-    longitudinal engine) cannot shift ``_annual_chronic_onset`` draws
-    for the same person, and a change for one person cannot shift
-    anyone else's streams.
+    longitudinal engine) cannot shift one pass's draws for the same
+    person, and a change for one person cannot shift anyone else's
+    streams.
     """
     key = f"{_AGING_SEED_SALT}|{person_id}|{year}|{pass_name}"
     return int(hashlib.sha256(key.encode()).hexdigest(), 16) % (2**32)
-
-
-# ---------------------------------------------------------------------------
-# Annual chronic-condition onset
-# ---------------------------------------------------------------------------
-
-
-@dataclass(frozen=True)
-class _ChronicIncidenceSpec:
-    """Per-ICD annual incidence table derived from locale prevalence yaml.
-
-    ``bands`` maps each age-band ``(lo, hi)`` to a per-year Bernoulli
-    probability for a person in that band who does NOT yet have the
-    condition. Derivation is band-diff: for the FROM band, the
-    susceptible fraction ``(1 - P_this)`` must become ``(1 - P_next)``
-    over the band width, which gives
-    ``λ = 1 - ((1 - P_next) / (1 - P_this)) ** (1 / width)``.
-    For the last band (or when the next band's prevalence is not
-    higher), ``λ = 0`` — the person's prevalence is already at the
-    terminal target.
-    """
-
-    sex: str  # "M", "F", or "" (any)
-    bands: dict[tuple[int, int], float]  # (lo, hi) → per-year Bernoulli λ
-
-    def rate_at(self, age: int) -> float:
-        for (lo, hi), rate in self.bands.items():
-            if lo <= age <= hi:
-                return rate
-        return 0.0
-
-
-def _derive_annual_incidence_from_prevalence(
-    age_prevalence: dict[tuple[int, int], float],
-) -> dict[tuple[int, int], float]:
-    """Band-diff derivation of per-year onset rate for a chronic
-    condition whose point-prevalence by age band is ``age_prevalence``.
-
-    Model: within a band ``[lo, hi]`` the point prevalence is flat at
-    ``P_this``; between consecutive bands the prevalence steps up to
-    ``P_next``. To spread that step over the FROM band so a person
-    ages continuously, solve for the per-year Bernoulli λ that takes
-    the susceptible fraction ``(1 - P_this)`` to ``(1 - P_next)`` over
-    the band width:
-        (1 - λ) ** width = (1 - P_next) / (1 - P_this)
-        λ = 1 - ((1 - P_next) / (1 - P_this)) ** (1 / width)
-
-    For the LAST (highest) band, λ = 0 — a person already in the
-    terminal band has accumulated the full target prevalence.
-    When ``P_next <= P_this`` (unusual; a band step down due to e.g.
-    survivorship), λ = 0.
-    """
-    sorted_bands = sorted(age_prevalence.items(), key=lambda kv: kv[0][0])
-    out: dict[tuple[int, int], float] = {}
-    for i, ((lo, hi), p_this) in enumerate(sorted_bands):
-        if i + 1 >= len(sorted_bands):
-            # Last band: no next prevalence to climb toward.
-            out[(lo, hi)] = 0.0
-            continue
-        _, p_next = sorted_bands[i + 1]
-        if p_next <= p_this or p_this >= 1.0:
-            out[(lo, hi)] = 0.0
-            continue
-        width = max(1, hi - lo + 1)
-        ratio = (1.0 - p_next) / (1.0 - p_this)
-        # ratio ∈ (0, 1); clamp numerically.
-        ratio = max(1e-12, min(1.0, ratio))
-        lam = 1.0 - ratio ** (1.0 / width)
-        out[(lo, hi)] = max(0.0, min(1.0, lam))
-    return out
-
-
-@lru_cache(maxsize=8)
-def _load_annual_incidence_for_locale(country: str) -> dict[str, _ChronicIncidenceSpec]:
-    """Build the annual-incidence table for every ICD declared in
-    ``locale/{country}/demographics.yaml:chronic_prevalence``.
-
-    Reads the SAME source of truth as initial-cohort sampling (no
-    duplicate yaml). Supports the legacy flat schema and the ``by_sex``
-    schema; for ``by_sex`` codes only the primary-sex bands are used
-    (augment-sex onset is a Phase 3 concern, kept narrow here).
-    """
-    demo = load_demographics(country)
-    raw = demo.get("chronic_prevalence") or {}
-    out: dict[str, _ChronicIncidenceSpec] = {}
-    for code, entry in raw.items():
-        if not isinstance(entry, dict):
-            continue
-
-        by_sex_raw = entry.get("by_sex")
-        if isinstance(by_sex_raw, dict):
-            # Pick the first sex key as primary (same convention as
-            # engine._parse_chronic_prevalence).
-            first_sex = next(iter(by_sex_raw.keys()), None)
-            if first_sex is None:
-                continue
-            bands_raw = by_sex_raw.get(first_sex) or {}
-            sex_filter = str(first_sex).upper()
-        else:
-            sex_filter = str(entry.get("sex", ""))
-            bands_raw = {k: v for k, v in entry.items() if k != "sex"}
-
-        age_prev: dict[tuple[int, int], float] = {}
-        for range_key, prev in bands_raw.items():
-            lo_str, hi_str = str(range_key).split("-")
-            age_prev[(int(lo_str), int(hi_str))] = float(prev)
-
-        bands = _derive_annual_incidence_from_prevalence(age_prev)
-        out[code] = _ChronicIncidenceSpec(sex=sex_filter, bands=bands)
-    return out
 
 
 # ---------------------------------------------------------------------------
@@ -235,71 +124,6 @@ def _current_age(person: PersonRecord, year: int) -> int:
     return year - person.date_of_birth.year
 
 
-def _annual_chronic_onset(
-    person: PersonRecord,
-    year: int,
-    prng: np.random.Generator,
-    incidence_table: dict[str, _ChronicIncidenceSpec],
-    locale: str = "us",
-) -> None:
-    """Per-person annual chronic-condition onset.
-
-    For every ICD declared in the locale's ``chronic_prevalence`` yaml:
-
-    * Skip if person is below :data:`_MIN_INCIDENCE_AGE` (adults only;
-      pediatric chronic acquisition is out of scope here).
-    * Skip if the condition is sex-locked and the person's sex does
-      not match.
-    * Skip if the person already has the condition.
-    * Draw ``prng.random() < λ(age_band)``; on hit, append the ICD
-      code to ``person.chronic_conditions``.
-
-    All draws come from the pass-isolated ``prng`` so adding or
-    reshuffling ICDs here cannot cascade into other passes or other
-    persons.
-    """
-    age = _current_age(person, year)
-    if age < _MIN_INCIDENCE_AGE:
-        return
-    existing = set(person.chronic_conditions)
-    for code, spec in incidence_table.items():
-        if code in existing:
-            continue
-        if spec.sex and spec.sex != person.sex:
-            continue
-        rate = spec.rate_at(age)
-        if rate <= 0.0:
-            # Advance the stream by one draw anyway so adding a new ICD
-            # with zero incidence to the yaml never shifts another
-            # ICD's draws. Pass-isolated sub-RNG means this is a cheap
-            # discipline, not a correctness requirement — the next ICD
-            # in iteration order will get a fresh draw regardless.
-            continue
-        # Issue #1137 — mental-health axis: scale the base onset
-        # rate by any applicable comorbidity multiplier
-        # (DM / HF / cancer / stroke-sequela → F32 / F33 / F41.1).
-        # Zero RNG cost — the multiplier only shifts the Bernoulli
-        # threshold, so byte-identity for cohorts without the
-        # triggering somatic chronic condition is preserved.
-        rate = rate * _mental_health_onset_multiplier(code, person)
-        rate = min(1.0, max(0.0, rate))
-        if prng.random() < rate:
-            # State-period markers (Z34 pregnancy, Z37 outcome-of-
-            # delivery) have per-age-band Bernoulli entries in
-            # `chronic_prevalence` only to preserve rng cursor
-            # byte-identity for codes iterated after them in the
-            # initial-cohort sampler — they are NOT real chronic
-            # entries. Mirror the initial sampler's skip here so
-            # mid-sim aging onset never injects a bogus Z34/Z37 into
-            # `person.chronic_conditions`. The pregnancy lifecycle
-            # lives in `person.state_periods` (perinatal lifecycle
-            # generator); FHIR Z37 past-birth marker is derived from
-            # state_history by the FHIR emit adapter.
-            if code in _STATE_PERIOD_ONSET_SKIP_CODES:
-                continue
-            person.chronic_conditions.append(code)
-
-
 # ---------------------------------------------------------------------------
 # Stubs (Phase 2 follow-up PRs attach behaviour)
 # ---------------------------------------------------------------------------
@@ -309,48 +133,6 @@ def _annual_chronic_onset(
 # Disease stage progression (Issue #1572 Phase 2.5 — CKD + COPD, plus HF
 # NYHA added as a yaml-pattern-fit extension)
 # ---------------------------------------------------------------------------
-
-
-@lru_cache(maxsize=1)
-def _load_mental_health_onset_multipliers() -> dict[str, dict]:
-    """Return per-target-ICD onset multiplier rules from
-    ``mental_health_onset_multipliers.yaml``. Cached singleton.
-    Empty dict when the yaml is missing — ``_mental_health_onset_
-    multiplier`` returns 1.0 for every lookup so onset behaviour
-    is unchanged for cohorts without the triggering comorbidities."""
-    from clinosim.locale.loader import load_mental_health_onset_multipliers
-
-    data = load_mental_health_onset_multipliers()
-    return data.get("mental_health_onset_multipliers") or {}
-
-
-def _mental_health_onset_multiplier(code: str, person: PersonRecord) -> float:
-    """Compound onset multiplier for mental-health chronic ``code``
-    under the person's currently-held somatic comorbidities. Returns
-    1.0 (no scaling) when the target has no rule or when no rule
-    fires.
-
-    Rule triggers (all applicable rules compound multiplicatively):
-        requires_any_chronic -> ANY-match against
-                                person.chronic_conditions (exact).
-        requires_any_chronic_prefix -> ANY-match via startswith on
-                                person.chronic_conditions.
-    """
-    rules = _load_mental_health_onset_multipliers().get(code)
-    if not rules:
-        return 1.0
-    chronic = person.chronic_conditions or []
-    chronic_set = set(chronic)
-    out = 1.0
-    for _rule_name, rule in rules.items():
-        exact = set(rule.get("requires_any_chronic") or ())
-        prefix = tuple(rule.get("requires_any_chronic_prefix") or ())
-        if exact and (exact & chronic_set):
-            out *= float(rule.get("multiplier", 1.0))
-            continue
-        if prefix and any(c.startswith(p) for c in chronic for p in prefix):
-            out *= float(rule.get("multiplier", 1.0))
-    return out
 
 
 @lru_cache(maxsize=1)
@@ -458,7 +240,6 @@ def _allergy_drift(
     person: PersonRecord,
     year: int,
     prng: np.random.Generator,
-    incidence_table: dict[str, _ChronicIncidenceSpec],
     locale: str = "us",
 ) -> None:
     """Per-person annual allergy drift.
@@ -653,7 +434,6 @@ def _condition_reactive_mortality(
     person: PersonRecord,
     year: int,
     prng: np.random.Generator,
-    incidence_table: dict[str, _ChronicIncidenceSpec],
     locale: str = "us",
 ) -> None:
     """Per-person annual condition-reactive mortality draw.
@@ -710,7 +490,6 @@ def _stroke_sequela_promotion(
     person: PersonRecord,
     year: int,
     prng: np.random.Generator,
-    incidence_table: dict[str, _ChronicIncidenceSpec],
     locale: str = "us",
 ) -> None:
     """Promote past stroke hospitalization(s) to chronic sequela
@@ -791,7 +570,6 @@ def advance_population(
 
     assert isinstance(registry, PopulationRegistry), "advance_population: registry must be a PopulationRegistry"
 
-    incidence_table = _load_annual_incidence_for_locale(locale)
     year_start = _date(year, 1, 1)
 
     for person in registry.persons.values():
@@ -805,19 +583,20 @@ def advance_population(
         # this filter does not shift any other person's draws.
         if not person.is_alive_at(year_start):
             continue
+        # Phase 4b.2.β moved the retired chronic-onset pass out of this
+        # tuple — the 30 adult-chronic onset events now dispatch from
+        # the longitudinal engine's `advance_one_year` call below.
         for pass_fn in (
-            _annual_chronic_onset,
             _stroke_sequela_promotion,
             _allergy_drift,
             _condition_reactive_mortality,
         ):
             pass_rng = np.random.default_rng(aging_sub_seed(person.person_id, year, pass_fn.__name__))
-            pass_fn(person, year, pass_rng, incidence_table, locale=locale)
+            pass_fn(person, year, pass_rng, locale=locale)
         # Phase 1 longitudinal subsystem (Issue #1695) — advance the
         # per-year state_history snapshot once the aging passes have
-        # finalised chronic_conditions for this year, so a mid-sim
-        # scope entry (e.g. new-onset E11 from _annual_chronic_onset)
-        # takes effect immediately.
+        # finalised chronic_conditions for this year. Phase 4b.2.β
+        # moved adult-chronic onset into this dispatch too.
         from clinosim.modules.longitudinal.engine import advance_one_year
 
         if person.longitudinal_history and person.longitudinal_history[-1].year < year:

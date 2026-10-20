@@ -335,29 +335,10 @@ def load_condition_mortality_smr() -> dict[str, Any]:
 # loaded by clinosim.modules.longitudinal.loader.load_attribute_specs.
 
 
-@lru_cache(maxsize=1)
-def load_mental_health_onset_multipliers() -> dict[str, Any]:
-    """Load comorbidity-conditional onset multipliers for mental-health
-    chronic conditions (F32 / F33 / F41.1). Consumed by
-    ``aging._annual_chronic_onset`` to scale the base per-year Bernoulli
-    rate upward when a somatic comorbidity (DM / HF / cancer / stroke
-    sequela) is already present on ``person.chronic_conditions``.
-
-    Issue #1137 — first axis of the mental-health cluster (closed as
-    axes 1-8 of META #1137 cluster 1). The axes landed into existing
-    modules (aging.py / outpatient.py / activator.py) rather than a
-    dedicated ``modules/mental_health/`` package — pure additive, no
-    sampling-schema change, no new FHIR emit.
-
-    Top-level shape:
-        mental_health_onset_multipliers.<target_icd>.<rule_name>
-          .requires_any_chronic -> list[str]  # exact ICD any-match
-          .requires_any_chronic_prefix -> list[str]  # ICD prefix any-match
-          .multiplier -> float  # scales base annual onset rate
-
-    Multiple applicable rules compound multiplicatively per target.
-    """
-    return _load_yaml(_LOCALE_DIR / "shared" / "mental_health_onset_multipliers.yaml", fallback={})
+# Phase 4b.2.β (Issue #1697) retired `load_mental_health_onset_multipliers`
+# together with its yaml. Mental-health comorbidity multipliers now live
+# as `rate_modifiers` on the F32 / F33 / F41.1 onset event yamls under
+# `clinosim/locale/shared/longitudinal/event/`.
 
 
 @lru_cache(maxsize=1)
