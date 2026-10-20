@@ -1,10 +1,11 @@
 # Systolic BP (SBP) trajectory — AR(1) latent.
 #
 # Phase 4b.1 of the longitudinal state-evolution subsystem (Issue #1697).
-# Scoped to adults carrying I10-I15 HTN chronic. Layer-1 anchor override
-# in population/engine.py (same pattern as bmi_drift) seeds
-# snapshot.continuous["sbp"] = float(person.systolic_bp) at base year;
-# yaml's initial: block is dummy to satisfy loader validation.
+# Scoped to adults carrying I10-I15 HTN chronic. Unlike bmi_drift, there
+# is no Layer-1 BP seed on PersonRecord (BP lives on PatientProfile only),
+# so the yaml initial: block is the actual base-year distribution for
+# every HTN adult. A future phase that adds PersonRecord.systolic_bp can
+# slot in a population/engine.py seed step mirroring the BMI pattern.
 #
 # Clinical calibration:
 #   phi 0.80       — within-individual annual SBP tracking (Framingham + ALLHAT)
@@ -26,7 +27,7 @@ ar1:
   mean_reversion_target: 145.0
 clamp: [90.0, 220.0]
 initial:
-  mu: 4.976   # exp(4.976) ≈ 145 (dummy — overridden by Layer-1 systolic_bp)
+  mu: 4.976   # exp(4.976) ≈ 145 — HTN cohort entry median (no Layer-1 anchor)
   sigma: 0.08
 narrative_label:
   en: "Systolic BP trajectory"
