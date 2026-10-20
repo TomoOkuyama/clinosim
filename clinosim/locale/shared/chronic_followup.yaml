@@ -471,10 +471,10 @@ _post_discharge_by_disease:
 
 G47.30:  # Obstructive sleep apnea, unspecified
   # Phase 4d (#1701 partial) — AASM 2024 CPAP as first-line for moderate-severe
-  # OSA (AHI ≥ 15), confirmed by polysomnography. CPAP is chronic ongoing
+  # OSA (AHI >= 15), confirmed by polysomnography. CPAP is chronic ongoing
   # therapy (every follow-up visit); polysomnography is a baseline-only
-  # one-shot per patient. AHI severity gating + annual re-titration are out
-  # of Phase 4d scope.
+  # one-shot per patient. Severity-gated prescribing and periodic
+  # re-titration are out of Phase 4d scope (future Phase 4e).
   visit_reason:
     en: "OSA / CPAP therapy follow-up"
     ja: "睡眠時無呼吸・CPAP 療法フォローアップ"
