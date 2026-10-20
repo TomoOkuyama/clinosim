@@ -674,6 +674,10 @@ def _simulate_outpatient_visit(
     #   'annual'        — fires at most once per calendar year per patient
     #                     per procedure (Phase 4e — oncology surveillance,
     #                     e.g. C50 mammography).
+    #   'semi_annual'   — fires at most once per calendar half-year
+    #                     (H1 Jan-Jun / H2 Jul-Dec) per patient per procedure
+    #                     (Phase 4f — NCCN HCC semi-annual US, e.g. C22
+    #                     abdominal ultrasound).
     # Dedup is tracked via per-patient attributes attached here (plan Task
     # 4 Ruling — PatientProfile has no built-in encounter history field).
     _chronic_procedures = spec.get("procedures") if chronic_code else None
@@ -686,13 +690,21 @@ def _simulate_outpatient_visit(
         _annual_map = getattr(patient, "_phase4e_annual_procedures_emitted", None)
         if _annual_map is None:
             _annual_map = {}
+        _semi_annual_map = getattr(patient, "_phase4f_semi_annual_procedures_emitted", None)
+        if _semi_annual_map is None:
+            _semi_annual_map = {}
         _visit_year = visit_date.year
+        # H1 = Jan-Jun (months 1-6), H2 = Jul-Dec (months 7-12). Keyed as
+        # (year, half) so a C22 patient re-fires in H2 of the same year.
+        _visit_half_key = (_visit_year, 1 if visit_date.month <= 6 else 2)
         for _proc in _chronic_procedures:
             _snomed = str(_proc.get("snomed") or "")
             _frequency = str(_proc.get("frequency") or "")
             if _frequency == "baseline_only" and _snomed in _baseline_set:
                 continue
             if _frequency == "annual" and _visit_year in _annual_map.get(_snomed, set()):
+                continue
+            if _frequency == "semi_annual" and _visit_half_key in _semi_annual_map.get(_snomed, set()):
                 continue
             _code_us = str(_proc.get("code") or "")
             _proc_start = visit_date + timedelta(minutes=OUTPATIENT_LAB_ORDER_OFFSET_MIN)
@@ -713,6 +725,8 @@ def _simulate_outpatient_visit(
                 _baseline_set.add(_snomed)
             elif _frequency == "annual":
                 _annual_map.setdefault(_snomed, set()).add(_visit_year)
+            elif _frequency == "semi_annual":
+                _semi_annual_map.setdefault(_snomed, set()).add(_visit_half_key)
         # PatientProfile is a non-frozen @dataclass so direct assignment
         # works at runtime; mypy flags the dynamic attribute because the
         # dataclass does not declare these simulator-internal state carriers
@@ -721,6 +735,7 @@ def _simulate_outpatient_visit(
         # schema; the type:ignore keeps the state carrier where it belongs.
         patient._phase4d_baseline_procedures_emitted = _baseline_set  # type: ignore[attr-defined]
         patient._phase4e_annual_procedures_emitted = _annual_map  # type: ignore[attr-defined]
+        patient._phase4f_semi_annual_procedures_emitted = _semi_annual_map  # type: ignore[attr-defined]
 
     # Issue #957 Tier-3-A: chemotherapy administration Procedure emit +
     # per-cycle drug MedicationRequest (Order) + MedicationAdministration
