@@ -102,8 +102,13 @@ def test_cif_dm_cohort_mean_hba1c_matches_mean_reversion_target(cif_dir: Path) -
     all_values = [v for vals in hba1c_by_pid.values() for v in vals]
     assert all_values
     mean = sum(all_values) / len(all_values)
-    assert abs(mean - 7.3) < 1.0, (
-        f"DM-cohort mean HbA1c {mean:.2f} is >1 % away from the "
+    # Phase 3 (Issue #1697 + #1705) widened the RNG shift for every DM
+    # patient (events + BMI drift), pulling the p=100 2y cohort mean a
+    # touch higher. The threshold is "latent reaches CIF, not collapsed
+    # to a constant" — mean within ±1.5 % of target rules out collapse
+    # without over-constraining AR(1) + per-encounter-noise sampling.
+    assert abs(mean - 7.3) < 1.5, (
+        f"DM-cohort mean HbA1c {mean:.2f} is >1.5 % away from the "
         f"mean_reversion_target 7.3. Latent-reaching-CIF path probably "
         f"collapsed to a constant."
     )
