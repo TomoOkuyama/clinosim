@@ -468,3 +468,24 @@ _post_discharge_by_disease:
       en: "Post-cholecystectomy follow-up, wound healing"
       ja: "胆嚢摘出術後フォローアップ・創傷治癒確認"
     labs: []
+
+G47.30:  # Obstructive sleep apnea, unspecified
+  # Phase 4d (#1701 partial) — AASM 2024 CPAP as first-line for moderate-severe
+  # OSA (AHI ≥ 15), confirmed by polysomnography. CPAP is chronic ongoing
+  # therapy (every follow-up visit); polysomnography is a baseline-only
+  # one-shot per patient. AHI severity gating + annual re-titration are out
+  # of Phase 4d scope.
+  visit_reason:
+    en: "OSA / CPAP therapy follow-up"
+    ja: "睡眠時無呼吸・CPAP 療法フォローアップ"
+  follow_up_interval_months: 6
+  labs: []
+  vitals: [systolic_bp, diastolic_bp, weight]
+  prescriptions_renewed: false
+  visit_duration_minutes: 20
+  procedures:
+    # CPAP therapy — SNOMED 47545007 already registered in
+    # clinosim/modules/output/fhir_r4/procedures/procedure_name_snomed.yaml.
+    - {code: "99503", snomed: "47545007", name_en: "CPAP therapy", name_ja: "CPAP 療法", frequency: "every_visit"}
+    # Polysomnography — SNOMED 70404000, newly registered in Phase 4d Task 2.
+    - {code: "95810", snomed: "70404000", name_en: "Polysomnography", name_ja: "ポリソムノグラフィー", frequency: "baseline_only"}
