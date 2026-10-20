@@ -30,9 +30,7 @@ def _clear_loader() -> None:
 def test_cancer_patients_gain_stage_history_across_5y():
     """A C-code adult must carry its icd_base key in
     longitudinal_history[-1].chronic_stages after 5 sim years."""
-    registry = generate_population(
-        size=200, country="US", rng=np.random.default_rng(42), base_year=2024
-    )
+    registry = generate_population(size=200, country="US", rng=np.random.default_rng(42), base_year=2024)
     for year in (2025, 2026, 2027, 2028):
         advance_population(registry, year=year, locale="US")
     found_counts = {b: 0 for b in CANCER_ICD_BASES}
@@ -44,18 +42,14 @@ def test_cancer_patients_gain_stage_history_across_5y():
             if any(c.startswith(b) for c in person.chronic_conditions):
                 assert b in last.chronic_stages, f"{person.person_id} missing {b} stage"
                 found_counts[b] += 1
-    assert sum(found_counts.values()) >= 1, (
-        f"sample has no cancer patients — bump size or seed: {found_counts}"
-    )
+    assert sum(found_counts.values()) >= 1, f"sample has no cancer patients — bump size or seed: {found_counts}"
 
 
 @pytest.mark.integration
 def test_non_cancer_patients_never_gain_cancer_stage_keys():
     """Review Focus #3: patient with no C-code never has any of the six
     icd_base keys in chronic_stages (clinical_scope gate)."""
-    registry = generate_population(
-        size=200, country="US", rng=np.random.default_rng(42), base_year=2024
-    )
+    registry = generate_population(size=200, country="US", rng=np.random.default_rng(42), base_year=2024)
     for year in (2025, 2026, 2027, 2028):
         advance_population(registry, year=year, locale="US")
     for person in registry.persons.values():
@@ -70,16 +64,12 @@ def test_non_cancer_patients_never_gain_cancer_stage_keys():
 def test_cancer_stage_icd_base_isolation():
     """Review Focus #4: single-cancer patient carries ONLY that icd_base
     in chronic_stages, not any other cancer's icd_base."""
-    registry = generate_population(
-        size=200, country="US", rng=np.random.default_rng(42), base_year=2024
-    )
+    registry = generate_population(size=200, country="US", rng=np.random.default_rng(42), base_year=2024)
     for year in (2025, 2026, 2027, 2028):
         advance_population(registry, year=year, locale="US")
     checked = 0
     for person in registry.persons.values():
-        c_prefixes = {
-            b for b in CANCER_ICD_BASES if any(c.startswith(b) for c in person.chronic_conditions)
-        }
+        c_prefixes = {b for b in CANCER_ICD_BASES if any(c.startswith(b) for c in person.chronic_conditions)}
         if len(c_prefixes) != 1:
             continue
         checked += 1
@@ -94,15 +84,11 @@ def test_cancer_stage_icd_base_isolation():
 def test_cancer_stage_terminal_is_absorbing_across_years():
     """Review Focus #5: once at AJCC IV (or BCLC D for C22), stage stays
     there for every subsequent snapshot."""
-    registry = generate_population(
-        size=200, country="US", rng=np.random.default_rng(42), base_year=2024
-    )
+    registry = generate_population(size=200, country="US", rng=np.random.default_rng(42), base_year=2024)
     for year in (2025, 2026, 2027, 2028):
         advance_population(registry, year=year, locale="US")
     for person in registry.persons.values():
-        c_prefixes = {
-            b for b in CANCER_ICD_BASES if any(c.startswith(b) for c in person.chronic_conditions)
-        }
+        c_prefixes = {b for b in CANCER_ICD_BASES if any(c.startswith(b) for c in person.chronic_conditions)}
         for b in c_prefixes:
             terminal = "BCLC D" if b == "C22" else "AJCC IV"
             hit = False
@@ -110,6 +96,4 @@ def test_cancer_stage_terminal_is_absorbing_across_years():
                 if snap.chronic_stages.get(b) == terminal:
                     hit = True
                 if hit:
-                    assert snap.chronic_stages.get(b) == terminal, (
-                        f"{person.person_id} ({b}) left terminal state"
-                    )
+                    assert snap.chronic_stages.get(b) == terminal, f"{person.person_id} ({b}) left terminal state"
