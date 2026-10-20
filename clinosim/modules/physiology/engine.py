@@ -319,9 +319,15 @@ def initialize_state(
             state.ph_status -= s * ASTHMA_PH_COUPLING  # mild respiratory effect
             state.respiratory_fraction = 1.0  # bronchospasm → respiratory axis
         elif code.startswith(("E11", "E10")):  # Diabetes — chronic glycemic control axis
-            gc = getattr(c, "glycemic_control", None)
-            if gc is not None:
-                state.glycemic_control = gc
+            # Phase 1 longitudinal migration (Issue #1695): HbA1c /
+            # glycemic latent moved to PersonRecord.longitudinal_history
+            # and read via longitudinal.engine.state_at at per-encounter
+            # emit time. ChronicCondition.glycemic_control is retired
+            # for per-encounter DM state; state.glycemic_control stays
+            # as a transient protocol-override hook populated by
+            # ``simulator/inpatient.py`` when a disease protocol forces
+            # the metabolic context (e.g. DKA).
+            pass
 
     # Perfusion tracks cardiac
     state.perfusion_status = clamp(
@@ -341,6 +347,16 @@ def initialize_state(
 HBA1C_NONDM_BASE = 5.1  # %, non-diabetic baseline (mild age term added at use site)
 HBA1C_BEST = 6.0  # %, diabetic at perfect control (glycemic_control = 1.0)
 HBA1C_SPAN = 6.0  # %, added at glycemic_control = 0.0  -> 12.0% worst case
+# Phase 1 longitudinal subsystem (Issue #1695). Mirrors
+# ``clinosim/locale/shared/longitudinal/hba1c_trajectory.yaml``:
+#   per_encounter_noise.sigma = 0.20
+#   clamp = [4.0, 15.0]
+# Kept as module constants here (not loaded via loader at module
+# scope) to keep physiology.engine import-cycle-free. A regression
+# test pins these against the yaml.
+HBA1C_MEASUREMENT_NOISE_SD = 0.20
+HBA1C_CLAMP_MIN = 4.0
+HBA1C_CLAMP_MAX = 15.0
 # Diabetic fasting Glucose baseline as a function of glycemic control.
 GLU_DM_BEST = 120.0  # mg/dL at glycemic_control = 1.0
 GLU_DM_SPAN = 100.0  # mg/dL added at glycemic_control = 0.0 -> 220 worst
@@ -610,8 +626,19 @@ def derive_lab_values(
     on_warfarin: bool = False,
     hai_inflammation_lift: float = 0.0,
     has_dyslipidemia: bool = False,
+    hba1c_latent: float | None = None,
 ) -> dict[str, float]:
-    """Derive lab values from physiological state. Returns 'true' values before noise."""
+    """Derive lab values from physiological state. Returns 'true' values before noise.
+
+    ``hba1c_latent`` (Phase 1 longitudinal subsystem, Issue #1695): the
+    per-year HbA1c value read from ``person.longitudinal_history`` via
+    ``clinosim.modules.longitudinal.engine.state_at``. When provided,
+    this overrides the ``glycemic_control``-derived HbA1c computation
+    at the emit site below; a per-encounter measurement-noise overlay
+    (sigma 0.20 %) is applied through ``rng``. When ``None``, the
+    emit falls back to the ``state.glycemic_control`` protocol-override
+    path (DKA / HHS forced metabolic context) and the non-DM default.
+    """
     labs: dict[str, float] = {}
     infl = state.inflammation_level
     renal = state.renal_function
@@ -942,7 +969,16 @@ def derive_lab_values(
     labs["Glucose"] = clamp(labs["Glucose"], GLU_CLAMP_MIN, GLU_CLAMP_MAX)  # physiological bounds
 
     # --- HbA1c (chronic glycemic control; ~3-month average, control-driven) ---
-    if is_diabetic:
+    if hba1c_latent is not None:
+        # Phase 1 longitudinal: per-year AR(1) latent + per-encounter
+        # measurement-noise overlay (sigma 0.20 % per hba1c_trajectory.yaml).
+        # Overrides any state.glycemic_control contribution.
+        noise = float(rng.standard_normal()) * HBA1C_MEASUREMENT_NOISE_SD if rng is not None else 0.0
+        labs["HbA1c"] = clamp(hba1c_latent + noise, HBA1C_CLAMP_MIN, HBA1C_CLAMP_MAX)
+    elif is_diabetic:
+        # Protocol override path (state.glycemic_control set by
+        # inpatient.py from protocol.chronic_glycemic_control) or
+        # legacy fallback when no longitudinal latent is available.
         labs["HbA1c"] = hba1c_from_glycemic_control(gc)
     else:
         labs["HbA1c"] = HBA1C_NONDM_BASE + max(0, age - HBA1C_NONDM_AGE_MIN) * HBA1C_NONDM_AGE_SCALE_LAB

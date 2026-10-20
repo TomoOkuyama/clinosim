@@ -557,11 +557,19 @@ class TestHbA1cGlycemicControl:
 
 
 @pytest.mark.unit
-def test_initialize_state_seeds_glycemic_control_from_e11():
+def test_initialize_state_does_not_seed_glycemic_control_from_e11():
+    """Phase 1 longitudinal migration (Issue #1695): the retired
+    ChronicCondition.glycemic_control axis no longer flows into
+    PhysiologicalState. Per-encounter HbA1c reads from
+    PersonRecord.longitudinal_history via the longitudinal engine;
+    state.glycemic_control is a transient protocol-override hook
+    only (populated by simulator/inpatient.py when a disease
+    protocol forces the metabolic context — e.g. DKA).
+    """
     prof = PatientPhysiologicalProfile()
     dm = ChronicCondition(code="E11.9", glycemic_control=0.2)
     st = initialize_state(prof, [dm], "pt-1")
-    assert st.glycemic_control == 0.2
+    assert st.glycemic_control is None
     # non-diabetic -> stays None
     st2 = initialize_state(prof, [], "pt-2")
     assert st2.glycemic_control is None
