@@ -15,6 +15,9 @@ from clinosim.types.identity import IdentityTimeline
 from clinosim.types.patient import HomeMedication, TemporalStatePeriod
 
 if TYPE_CHECKING:
+    from clinosim.modules.longitudinal.snapshot import YearSnapshot
+
+if TYPE_CHECKING:
     from clinosim.types.allergy import Allergy
 
 __all__ = ["HospitalizationSummary", "PersonRecord", "LifeEvent", "TemporalStatePeriod"]
@@ -134,7 +137,22 @@ class PersonRecord:
     # the natural-history drift documented in ``locale/shared/
     # glycemic_trajectory.yaml``. Empty dict when the person has no
     # DM or the aging path has not fired yet (test fixtures).
+    #
+    # Phase 1 longitudinal migration (Issue #1695): retired in favour
+    # of ``state_history[y].continuous["hba1c"]``. The field is kept
+    # on the dataclass through Task 4-5 for backward compatibility with
+    # existing aging passes and is removed in Task 6.
     glycemic_trajectory: dict[int, float] = field(default_factory=dict)
+    # Phase 1 longitudinal state-evolution subsystem (Issue #1695,
+    # ``docs/superpowers/specs/2026-10-20-longitudinal-state-evolution-design.md``).
+    # One entry per sim year per alive person, populated by
+    # ``clinosim.modules.longitudinal.engine.initial_snapshot`` at
+    # Layer-1 generation and ``advance_one_year`` from the aging
+    # driver. Replaces ``glycemic_trajectory`` as the single source
+    # of truth for continuous latents (HbA1c, LDL in later phases) and
+    # discrete stages (CKD, CCS, NYHA, CDR in later phases). Empty
+    # list for pre-engine fixtures.
+    longitudinal_history: "list[YearSnapshot]" = field(default_factory=list)
     # Issue #1581 Phase C.3 — single-gene disease carrier status.
     # Keyed by ICD code, valued with one of:
     #   "normal"   — no disease allele

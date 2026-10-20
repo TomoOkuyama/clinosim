@@ -7,9 +7,20 @@ HbA1c AR(1) attribute. Phase 2 adds Markov transitions
 (DM complication onset, treatment escalation, BMI drift).
 """
 
+from clinosim.modules.longitudinal.engine import (
+    advance_one_year,
+    initial_snapshot,
+    state_at,
+)
 from clinosim.modules.longitudinal.snapshot import (
     YearSnapshot,
     yearsnapshot_from_dict,
 )
 
-__all__ = ["YearSnapshot", "yearsnapshot_from_dict"]
+__all__ = [
+    "YearSnapshot",
+    "advance_one_year",
+    "initial_snapshot",
+    "state_at",
+    "yearsnapshot_from_dict",
+]
