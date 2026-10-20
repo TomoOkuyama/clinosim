@@ -702,8 +702,13 @@ def _simulate_outpatient_visit(
             )
             if _frequency == "baseline_only":
                 _baseline_set.add(_snomed)
-        # PatientProfile is a non-frozen @dataclass so direct assignment works.
-        patient._phase4d_baseline_procedures_emitted = _baseline_set
+        # PatientProfile is a non-frozen @dataclass so direct assignment
+        # works at runtime; mypy flags the dynamic attribute because the
+        # dataclass does not declare this simulator-internal state carrier
+        # as a field. The alternative — declaring it on PatientProfile —
+        # would promote private simulator bookkeeping to the public CIF
+        # schema; the type:ignore keeps the state carrier where it belongs.
+        patient._phase4d_baseline_procedures_emitted = _baseline_set  # type: ignore[attr-defined]
 
     # Issue #957 Tier-3-A: chemotherapy administration Procedure emit +
     # per-cycle drug MedicationRequest (Order) + MedicationAdministration
