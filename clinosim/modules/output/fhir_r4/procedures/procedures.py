@@ -114,9 +114,23 @@ def _build_procedure(
     if is_jp(country) and primary_display:
         primary_display = _localize_drug_name(primary_display, country)
 
+    # Issue #1701 Phase 4d.2: when running JP output on a Procedure whose
+    # CIF record carries only a CPT code (``procedure_code_us``) and no
+    # K-code (``procedure_code_jp``), emit the primary ``coding[]`` entry
+    # under the CPT system URI, not the K-codes URI. The K-codes URI is
+    # authoritative for K-codes only; stamping a CPT code (e.g. 99503 CPAP,
+    # 95810 polysomnography) under the K-codes URI is a semantic error that
+    # a strict JP-Core consumer would reject. Phase 4d (OSA follow-up)
+    # routed its CPT codes through this emit path for JP output; horizontal
+    # extensions reusing the Phase 4d / 4e ``procedures:`` yaml schema will
+    # too, so the fix lives at the common choke point.
+    _primary_system = code_system
+    if is_jp(country) and not proc_code_jp and proc_code_us and primary_code == proc_code_us:
+        _primary_system = get_system_uri("cpt")
+
     coding_entries: list[dict[str, Any]] = [
         {
-            "system": code_system,
+            "system": _primary_system,
             "code": primary_code,
             "display": primary_display,
         }
@@ -146,8 +160,12 @@ def _build_procedure(
                 }
             )
 
-    # Secondary coding: the OTHER country's code system for international interop
-    if is_jp(country) and proc_code_us:
+    # Secondary coding: the OTHER country's code system for international interop.
+    # Phase 4d.2: skip the secondary CPT entry when the primary coding is
+    # already under the CPT system URI (CPT-only JP output case above) —
+    # otherwise two identical ``{system: CPT, code: X, display: ...}``
+    # entries would land in ``coding[]``.
+    if is_jp(country) and proc_code_us and _primary_system != get_system_uri("cpt"):
         us_display = _procedure_display(proc_code_us, "en", fallback)
         coding_entries.append(
             {
