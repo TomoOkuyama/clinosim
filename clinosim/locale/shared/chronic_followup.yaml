@@ -242,6 +242,14 @@ C50:  # Breast cancer — female-dominant but ~1% male incidence (Issue #957);
   prescriptions_renewed: true
   radiation_therapy_eligible: true    # Issue #957 slice 3
   visit_duration_minutes: 20
+  # Phase 4e (#1701 partial) — NCCN v4.2024 Breast Cancer survivorship:
+  # mammography annually post-dx. First C50 cancer family to pilot the
+  # ``annual`` frequency semantics; horizontal extension to C34 chest CT,
+  # C18 colonoscopy, C16 EGD, C22 abdominal US tracked under #1701 残.
+  procedures:
+    # Mammography — SNOMED 71651007 (verified 2026-10-21 via tx.fhir.org
+    # $lookup against SCT 20250201 Intl Edition).
+    - {code: "77067", snomed: "71651007", name_en: "Mammography", name_ja: "乳房 X 線撮影（マンモグラフィー）", frequency: "annual"}
 
 C61:  # Prostate cancer (male-only per sex-gate)
   visit_reason:

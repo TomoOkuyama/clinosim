@@ -83,6 +83,22 @@ entries:
     snomed: "60554003"
     display_en: "Polysomnography"
 
+  # Oncology surveillance — mammography (NCCN v4.2024 Breast Cancer
+  # survivorship, Issue #1701 Phase 4e). SNOMED 71651007 verified
+  # 2026-10-21 via tx.fhir.org $lookup against SCT 20250201 Intl Edition.
+  - match: "mammography"
+    snomed: "71651007"
+    display_en: "Mammography"
+  - match: "mammogram"
+    snomed: "71651007"
+    display_en: "Mammography"
+  - match: "マンモグラフィー"
+    snomed: "71651007"
+    display_en: "Mammography"
+  - match: "乳房 x 線撮影"
+    snomed: "71651007"
+    display_en: "Mammography"
+
   # Wound care / debridement.
   - match: "wound care"
     snomed: "225358003"
