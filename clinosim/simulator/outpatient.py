@@ -702,7 +702,8 @@ def _simulate_outpatient_visit(
             )
             if _frequency == "baseline_only":
                 _baseline_set.add(_snomed)
-        object.__setattr__(patient, "_phase4d_baseline_procedures_emitted", _baseline_set)
+        # PatientProfile is a non-frozen @dataclass so direct assignment works.
+        patient._phase4d_baseline_procedures_emitted = _baseline_set
 
     # Issue #957 Tier-3-A: chemotherapy administration Procedure emit +
     # per-cycle drug MedicationRequest (Order) + MedicationAdministration

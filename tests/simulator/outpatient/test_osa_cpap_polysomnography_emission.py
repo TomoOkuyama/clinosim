@@ -78,3 +78,32 @@ def test_osa_second_followup_emits_cpap_only(osa_fu_spec):
     codes2 = {p.procedure_code for p in rec2.procedures}
     assert "99503" in codes2  # CPAP every visit
     assert "95810" not in codes2  # polysomnography already baselined
+
+
+def test_osa_followup_procedure_codes_are_cpt_only_today(osa_fu_spec):
+    """Phase 4d scope pin — the FHIR emit path currently codes OSA
+    procedures with CPT only (via ProcedureRecord.procedure_code_us).
+    SNOMED resolution + JP display on the CIF ProcedureRecord emit path
+    is deferred to Phase 4d.1. This test pins the current (CPT-only)
+    behavior so a future SNOMED-attachment landing is a deliberate
+    change, not a stealth drift."""
+    assert osa_fu_spec, "G47.30 block missing"
+    patient = _make_osa_patient()
+    rec = _simulate_outpatient_visit(
+        patient=patient,
+        visit_type="chronic_followup",
+        visit_date=datetime(2024, 6, 1, 10, 0),
+        roster=StaffRoster(),
+        rng=np.random.default_rng(0),
+        chronic_code="G47.30",
+        followup_spec=osa_fu_spec,
+        country="US",
+    )
+    # Each ProcedureRecord carries CPT code only in procedure_code / procedure_code_us.
+    # No SNOMED field exists on ProcedureRecord today; the yaml's snomed: value is
+    # plumbed through the simulator but dormant at FHIR emit (future Phase 4d.1).
+    for proc in rec.procedures:
+        if proc.procedure_code in {"99503", "95810"}:
+            assert proc.procedure_code_us == proc.procedure_code
+            # No snomed_code / snomed_cd attribute on ProcedureRecord.
+            assert not hasattr(proc, "snomed_code")
