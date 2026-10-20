@@ -1042,4 +1042,9 @@ def advance_population(
 
         if person.longitudinal_history and person.longitudinal_history[-1].year < year:
             _ls_rng = np.random.default_rng(aging_sub_seed(person.person_id, year, "longitudinal"))
-            advance_one_year(person, year=year, year_rng=_ls_rng)
+            advance_one_year(
+                person,
+                year=year,
+                year_rng=_ls_rng,
+                multiplier_fn=_comorbidity_multiplier,
+            )
