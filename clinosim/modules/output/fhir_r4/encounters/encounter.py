@@ -486,12 +486,26 @@ def _build_encounter(
                 _DIAGNOSIS_ROLE_DISPLAY_JA,
             )
             _primary_base = primary_dx_code.split(".")[0] if primary_dx_code else ""
+            _emitted_bases: set[str] = set()
             _rank = 2
             for _i, _ccode in enumerate(chronic_condition_codes):
                 if not _ccode:
                     continue
-                if _ccode.split(".")[0] == _primary_base:
+                _base = _ccode.split(".")[0]
+                if _base == _primary_base:
                     continue  # already emitted as primary rank=1
+                # Phase 3 longitudinal (Issue #1697): sub-code chronics
+                # (e.g. E11.21 nephropathy alongside E11.9 base DM) share
+                # a base with another chronic; the sibling conditions
+                # builder dedups emission by base so only one Condition
+                # exists per base. Skip the comorbidity ref for any
+                # already-seen base to avoid a dangling Condition
+                # reference. Clinical sub-code specificity is preserved
+                # at the CIF/activator layer and in the chronic
+                # Condition.stage / problem-list entry.
+                if _base in _emitted_bases:
+                    continue
+                _emitted_bases.add(_base)
                 # Issue #854 Bucket B (PR-condition): route through the
                 # shared resolver so this reference stays byte-consistent
                 # with the chronic Condition emit.

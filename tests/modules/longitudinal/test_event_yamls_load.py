@@ -6,7 +6,6 @@ import pytest
 
 from clinosim.modules.longitudinal.loader import load_attribute_specs
 
-
 EXPECTED: dict[str, str] = {
     "dm_nephropathy_onset_e11_21": "E11.21",
     "dm_retinopathy_onset_e11_311": "E11.311",

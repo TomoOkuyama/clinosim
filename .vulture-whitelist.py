@@ -604,3 +604,10 @@ _.chronic_stages  # modules/longitudinal/snapshot.py::YearSnapshot — written b
 _.new_complications  # modules/longitudinal/snapshot.py::YearSnapshot — written by Phase 3 event
 _.med_additions  # modules/longitudinal/snapshot.py::YearSnapshot — written by Phase 3 event
 _.med_removals  # modules/longitudinal/snapshot.py::YearSnapshot — written by Phase 3 event
+
+# Phase 3 longitudinal — EventSpec + RateModifierWhen pydantic fields.
+# event_name is yaml provenance (humans read it in logs / audit; the
+# engine dispatches via emits_icd + attribute_id). model_post_init is a
+# Pydantic lifecycle hook called by pydantic itself at construction time.
+_.event_name  # modules/longitudinal/patterns/event.py::EventSpec — yaml provenance / audit label
+_.model_post_init  # modules/longitudinal/patterns/event.py::RateModifierWhen — pydantic lifecycle hook

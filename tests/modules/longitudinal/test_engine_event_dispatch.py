@@ -11,9 +11,7 @@ import pytest
 from clinosim.modules.longitudinal import loader as loader_mod
 from clinosim.modules.longitudinal.engine import advance_one_year, initial_snapshot
 from clinosim.modules.longitudinal.loader import load_attribute_specs
-from clinosim.modules.longitudinal.snapshot import YearSnapshot
 from clinosim.types.population import PersonRecord
-
 
 _EVENT_YAML = """\
 attribute_id: test_event_e11_21
