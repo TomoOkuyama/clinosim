@@ -65,11 +65,15 @@ def _build_ar1_body(body_dict: dict[str, Any]) -> tuple[AR1Spec, dict[str, Any]]
     narrative = body_dict.pop("narrative_label", None)
     source = body_dict.pop("source", None)
     ar1_section = body_dict.pop("ar1", {}) or {}
+    # Phase 4b.2.β Final-review M3: .pop() instead of .get() on the
+    # top-level fallback paths so the unknown-key guard below sees a
+    # cleanly-consumed body_dict for yamls that declare phi/sigma/
+    # mean_reversion_target at top level (test-fixture + legacy shape).
     body_payload = {
         "latent_name": body_dict.pop("latent_name"),
-        "phi": ar1_section.get("phi", body_dict.get("phi")),
-        "sigma": ar1_section.get("sigma", body_dict.get("sigma")),
-        "mean_reversion_target": ar1_section.get("mean_reversion_target", body_dict.get("mean_reversion_target")),
+        "phi": ar1_section.get("phi", body_dict.pop("phi", None)),
+        "sigma": ar1_section.get("sigma", body_dict.pop("sigma", None)),
+        "mean_reversion_target": ar1_section.get("mean_reversion_target", body_dict.pop("mean_reversion_target", None)),
         "clamp": clamp,
         "initial_mu": initial.get("mu"),
         "initial_sigma": initial.get("sigma"),
@@ -99,7 +103,12 @@ def _build_markov_body(body_dict: dict[str, Any]) -> tuple[MarkovSpec, dict[str,
 
 def _build_event_body(body_dict: dict[str, Any]) -> tuple[EventSpec, dict[str, Any]]:
     """Build an EventSpec. Pulls out narrative_label + source for the
-    engine's auxiliary attachment."""
+    engine's auxiliary attachment.
+
+    Phase 4b.2.β Final-review C1: `base_rate_by_age_band` is wired here
+    too. Prior to this fix the loader silently dropped the field, which
+    rendered every migrated 30-ICD yaml inert at runtime.
+    """
     narrative = body_dict.pop("narrative_label", None)
     source = body_dict.pop("source", None)
     body_payload = {
@@ -107,7 +116,8 @@ def _build_event_body(body_dict: dict[str, Any]) -> tuple[EventSpec, dict[str, A
         "emits_icd": body_dict.pop("emits_icd"),
         "emits_meds": body_dict.pop("emits_meds", []) or [],
         "fire_marker": body_dict.pop("fire_marker", "") or "",
-        "base_annual_rate": body_dict.pop("base_annual_rate"),
+        "base_annual_rate": body_dict.pop("base_annual_rate", 0.0),
+        "base_rate_by_age_band": body_dict.pop("base_rate_by_age_band", []) or [],
         "rate_modifiers": body_dict.pop("rate_modifiers", []) or [],
         "one_shot": body_dict.pop("one_shot", True),
     }
@@ -139,6 +149,18 @@ def _load_one(path: Path) -> AttributeSpec:
         body, aux = _build_event_body(body_dict)
     else:  # pragma: no cover — guarded by _IMPLEMENTED_PATTERNS
         raise ValueError(f"{path.name}: unhandled pattern {pattern!r} in _load_one dispatch")
+    # Phase 4b.2.β Final-review M3: fail-fast on unknown keys left in
+    # body_dict after the pattern-specific builder popped the fields it
+    # recognises. A silent drop here is what let Phase 4b.2.β ship with
+    # `base_rate_by_age_band` disconnected from runtime (C1). The
+    # pattern builders pop every expected field, so any residue is a
+    # yaml-authoring or schema-extension mistake.
+    if body_dict:
+        raise ValueError(
+            f"{path.name}: unknown yaml keys for pattern {pattern!r}: "
+            f"{sorted(body_dict)}. Did you add a schema field without "
+            f"wiring the pattern's _build_<pattern>_body loader?"
+        )
     noise = aux["noise"]
     narrative = aux["narrative"]
     source = aux["source"]

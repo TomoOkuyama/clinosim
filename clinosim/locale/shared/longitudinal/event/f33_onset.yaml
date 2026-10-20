@@ -20,10 +20,10 @@ base_rate_by_age_band:
   - {age_lo: 40, age_hi: 59, rate: 0.000000}
   - {age_lo: 60, age_hi: 99, rate: 0.000000}
 rate_modifiers:
-  - when: {has_chronic: ['E10', 'E11']}
-    factor: 2.0   # diabetes_depression (exact match, dormant for E11.9 cohort)
-  - when: {has_chronic: ['I50']}
-    factor: 2.0   # heart_failure_depression
+  - when: {has_chronic_prefix: ['E10', 'E11']}
+    factor: 2.0   # diabetes_depression (R3 revisit: prefix match covers E11.9 / E10.9 sub-codes)
+  - when: {has_chronic_prefix: ['I50']}
+    factor: 2.0   # heart_failure_depression (R3: prefix covers I50.9 sub-codes)
   - when: {has_chronic_prefix: ['C']}
     factor: 2.5   # cancer_depression
   - when: {has_chronic: ['I69.3', 'I69.1']}

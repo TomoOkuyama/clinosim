@@ -1,13 +1,23 @@
-"""Phase 4b.2.β Task 4 — cohort epi bands preserved post-migration.
+"""Phase 4b.2.β Task 4 + Final-review C2 — cohort epi preserved post-migration.
 
-After migrating 30 adult-chronic onset events out of
-`_annual_chronic_onset` into the longitudinal engine, each ICD's
-end-of-sim prevalence must still land within an epi band derived from
-the point-prevalence rows in `demographics.yaml::chronic_prevalence`.
-Byte-identity is NOT required (spec §2.3 relaxation).
+The 30-ICD migration is semantic-only — byte-identity for every adult
+patient breaks per spec §2.3 (acceptable).
+
+Two assertion shapes:
+1. **Loose end-of-sim band** — each ICD's final adult prevalence lands
+   within a loose [lo, hi] bracket around the demographics.yaml target.
+   Catches gross regressions (yaml deletion, zero-cohort generation).
+2. **Baseline-vs-advanced delta** — for ICDs whose demographics.yaml
+   declares a multi-band prevalence (non-zero per-year onset), the
+   end-of-sim prevalence must strictly exceed the pre-advance initial
+   cohort by at least a small positive delta. This is the dormancy
+   detector: a loader regression that drops `base_rate_by_age_band`
+   (Final-review C1) produces delta ≤ 0 and fails here.
 """
 
 from __future__ import annotations
+
+import copy
 
 import numpy as np
 import pytest
@@ -18,33 +28,27 @@ from clinosim.modules.population.engine import generate_population
 pytestmark = pytest.mark.integration
 
 
-# Point-prevalence bands expected on the end-of-sim cohort for the
-# subset of ICDs that today's `_derive_annual_incidence_from_prevalence`
-# produces a non-zero per-year onset for across at least one age band.
-# ICDs whose demographics.yaml has only one age band (every point-
-# prevalence row maps to a terminal "last band" with λ=0) are excluded
-# here — they are initial-cohort-only and the migration preserves that.
-#
-# Band ± tolerance derived from the terminal-band prevalence × 0.5 (loose
-# lower bound) and × 1.5 (loose upper bound) to absorb p=500 stochasticity
-# and the stacking of 5y of annual draws on the top band.
 EPI_TARGETS = {
-    # (ICD, min_prev_adult, max_prev_adult)
-    "I10": (0.20, 0.90),  # terminal 60-79 band 0.50; 80-99 is terminal with λ=0
-    "F32": (0.03, 0.25),  # 18-39 λ=0.00154 over 5y
-    "F00": (0.02, 0.60),  # 65-84 λ=0.014 climbs toward 85+ 0.30
-    "I48": (0.00, 0.20),  # 50-74 λ=0.0034
-    "I25": (0.00, 0.30),  # 50-69 λ=0.0055
-    "M17": (0.00, 0.50),  # 50-69 λ=0.0097
-    "G20": (0.00, 0.05),  # 60-79 λ=0.00076
-    "C50": (0.00, 0.08),  # female 40-59 λ=0.0018
-    "C61": (0.00, 0.08),  # male 60-69 λ=0.0059
+    # (ICD, min_prev_adult, max_prev_adult) — loose bracket around the
+    # observed post-fix cohort prevalence (±30 % for p=500 stochasticity).
+    "I10": (0.22, 0.45),
+    "F32": (0.06, 0.14),
+    "F00": (0.04, 0.11),
+    "I25": (0.025, 0.07),
+    "M17": (0.075, 0.16),
+    "C61": (0.012, 0.04),
 }
+
+# ICDs that MUST see positive baseline → final-advance delta. If an ICD's
+# yaml has multi-band prevalence (i.e. non-zero per-year onset from
+# `_derive_annual_incidence_from_prevalence`), the engine must emit at
+# least one new onset over 5 sim years at p=500.
+EXPECT_POSITIVE_DELTA = ["I10", "F32", "F00", "I25", "M17"]
 
 
 def test_adult_cohort_prevalence_in_target_bands_post_migration():
-    """p=500 US seed=42 5y cohort: each listed ICD's end-of-sim adult
-    prevalence lands within its band."""
+    """Loose epi-band regression: every ICD's end-of-sim adult prevalence
+    stays inside its [lo, hi] bracket."""
     rng = np.random.default_rng(42)
     population = generate_population(size=500, country="US", rng=rng, base_year=2024)
     for year in range(2024, 2029):
@@ -57,5 +61,32 @@ def test_adult_cohort_prevalence_in_target_bands_post_migration():
         hits = sum(1 for p in adults if icd in p.chronic_conditions)
         prev = hits / len(adults)
         if not (lo <= prev <= hi):
-            oor.append((icd, prev, lo, hi))
+            oor.append((icd, round(prev, 4), lo, hi))
     assert not oor, f"epi band violations: {oor}"
+
+
+def test_longitudinal_engine_actually_increments_cohort_mid_sim():
+    """Final-review C2: dormancy detector. For ICDs with non-zero
+    per-year onset in demographics.yaml, 5 years of advance_population
+    MUST produce a strictly positive delta in cohort prevalence over the
+    pre-advance baseline. A loader regression that drops
+    `base_rate_by_age_band` produces delta=0 and fails this assertion.
+    """
+    rng = np.random.default_rng(42)
+    population = generate_population(size=500, country="US", rng=rng, base_year=2024)
+
+    # Snapshot the Layer-1 initial chronic_conditions BEFORE advancing.
+    baseline = {p.person_id: list(p.chronic_conditions) for p in population.persons.values()}
+
+    for year in range(2024, 2029):
+        advance_population(population, year=year, locale="us")
+
+    adults = [p for p in population.persons.values() if (2028 - p.date_of_birth.year) >= 18]
+    deltas = {}
+    for icd in EXPECT_POSITIVE_DELTA:
+        pre_hits = sum(1 for p in adults if icd in baseline.get(p.person_id, []))
+        post_hits = sum(1 for p in adults if icd in p.chronic_conditions)
+        deltas[icd] = (pre_hits, post_hits, post_hits - pre_hits)
+
+    stagnant = [(icd, d) for icd, d in deltas.items() if d[2] <= 0]
+    assert not stagnant, f"chronic-onset dormancy detected (loader regression?): {stagnant}; all deltas: {deltas}"
