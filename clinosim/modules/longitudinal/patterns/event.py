@@ -56,9 +56,7 @@ class RateModifierWhen(BaseModel):
 
     def model_post_init(self, _ctx: Any) -> None:
         if self.operator not in _OPERATORS:
-            raise ValueError(
-                f"RateModifier.when.operator {self.operator!r} not in {sorted(_OPERATORS)}"
-            )
+            raise ValueError(f"RateModifier.when.operator {self.operator!r} not in {sorted(_OPERATORS)}")
 
 
 class RateModifier(BaseModel):

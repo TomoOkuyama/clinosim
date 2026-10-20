@@ -61,8 +61,6 @@ def test_event_spec_accepts_well_formed_rate_modifier():
         event_name="x",
         emits_icd="E11.21",
         base_annual_rate=0.1,
-        rate_modifiers=[
-            {"when": {"attribute": "hba1c", "operator": ">", "value": 9.0}, "factor": 3.0}
-        ],
+        rate_modifiers=[{"when": {"attribute": "hba1c", "operator": ">", "value": 9.0}, "factor": 3.0}],
     )
     assert len(spec.rate_modifiers) == 1

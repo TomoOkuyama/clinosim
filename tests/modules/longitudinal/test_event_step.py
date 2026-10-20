@@ -68,9 +68,7 @@ def test_step_rate_modifier_multiplies():
         event_name="x",
         emits_icd="E11.21",
         base_annual_rate=0.1,
-        rate_modifiers=[
-            {"when": {"attribute": "hba1c", "operator": ">", "value": 9.0}, "factor": 3.0}
-        ],
+        rate_modifiers=[{"when": {"attribute": "hba1c", "operator": ">", "value": 9.0}, "factor": 3.0}],
         one_shot=True,
     )
     hits = 0
@@ -90,9 +88,7 @@ def test_step_rate_modifier_absent_latent_ignored():
         event_name="x",
         emits_icd="E11.21",
         base_annual_rate=0.1,
-        rate_modifiers=[
-            {"when": {"attribute": "hba1c", "operator": ">", "value": 9.0}, "factor": 3.0}
-        ],
+        rate_modifiers=[{"when": {"attribute": "hba1c", "operator": ">", "value": 9.0}, "factor": 3.0}],
         one_shot=True,
     )
     hits = 0
@@ -111,9 +107,7 @@ def test_step_rate_clamp_to_one():
         event_name="x",
         emits_icd="E11.21",
         base_annual_rate=0.5,
-        rate_modifiers=[
-            {"when": {"attribute": "hba1c", "operator": ">", "value": 9.0}, "factor": 3.0}
-        ],
+        rate_modifiers=[{"when": {"attribute": "hba1c", "operator": ">", "value": 9.0}, "factor": 3.0}],
         one_shot=True,
     )
     rng = np.random.default_rng(0)

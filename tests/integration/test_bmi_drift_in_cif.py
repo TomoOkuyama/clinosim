@@ -54,6 +54,5 @@ def test_bmi_drift_produces_cohort_variance_over_5_years() -> None:
     assert len(series_sds) >= 20, f"collected only {len(series_sds)} series with ≥2 points"
     cohort_mean_sd = float(np.mean(series_sds))
     assert cohort_mean_sd > 0.3, (
-        f"BMI drift mean per-person SD {cohort_mean_sd:.3f} ≤ 0.3 — "
-        f"AR(1) drift signal below pure-persistence floor"
+        f"BMI drift mean per-person SD {cohort_mean_sd:.3f} ≤ 0.3 — AR(1) drift signal below pure-persistence floor"
     )
