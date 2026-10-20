@@ -387,27 +387,37 @@ def _make_diabetic_person(age: int = 60) -> PersonRecord:
     return p
 
 
-def test_e11_stage_hba1c_matches_glycemic_control():
-    from clinosim.modules.physiology.engine import hba1c_from_glycemic_control
+def test_e11_stage_hba1c_matches_longitudinal_latent():
+    """Phase 1 longitudinal migration (Issue #1695): the stage
+    string is reconstructed from PersonRecord.longitudinal_history
+    via state_at, not from the retired ChronicCondition.glycemic_control.
+    """
+    from clinosim.modules.longitudinal.engine import initial_snapshot
 
     person = _make_diabetic_person()
+    initial_snapshot(person, year=2024, init_rng=np.random.default_rng(7))
+    person.longitudinal_history[0].continuous["hba1c"] = 8.4
+
     profile = activate_patient(person, np.random.default_rng(7), _minimal_demo_for_activate())
     dm = next(c for c in profile.chronic_conditions if c.code.startswith("E11"))
-    assert dm.glycemic_control is not None
-    assert 0.0 <= dm.glycemic_control <= 1.0
-    expected = f"HbA1c {hba1c_from_glycemic_control(dm.glycemic_control):.1f}%"
-    assert dm.stage == expected
+    # ChronicCondition.glycemic_control is retired as a per-encounter
+    # write — the activator no longer populates it.
+    assert dm.glycemic_control is None
+    assert dm.stage == "HbA1c 8.4%"
 
 
-def test_glycemic_control_deterministic_same_seed():
+def test_e11_hba1c_deterministic_same_seed():
+    """The longitudinal engine's initial draw is deterministic under
+    the same seed."""
+    from clinosim.modules.longitudinal.engine import initial_snapshot
+
     person1 = _make_diabetic_person()
     person2 = _make_diabetic_person()
-    demo = _minimal_demo_for_activate()
-    p1 = activate_patient(person1, np.random.default_rng(123), demo)
-    p2 = activate_patient(person2, np.random.default_rng(123), demo)
-    gc1 = next(c for c in p1.chronic_conditions if c.code.startswith("E11")).glycemic_control
-    gc2 = next(c for c in p2.chronic_conditions if c.code.startswith("E11")).glycemic_control
-    assert gc1 == gc2
+    initial_snapshot(person1, year=2024, init_rng=np.random.default_rng(123))
+    initial_snapshot(person2, year=2024, init_rng=np.random.default_rng(123))
+    h1 = person1.longitudinal_history[0].continuous["hba1c"]
+    h2 = person2.longitudinal_history[0].continuous["hba1c"]
+    assert h1 == h2
 
 
 def test_nondiabetic_condition_has_no_glycemic_control():
