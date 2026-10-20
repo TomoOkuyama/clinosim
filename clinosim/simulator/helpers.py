@@ -139,10 +139,22 @@ def _promote_stroke_sequela_at_discharge(person: Any, disease_id: str, record: A
     encounter_id = getattr(summary, "encounter_id", "") or ""
     salt = f"{getattr(person, 'person_id', '')}|stroke_mrs|{encounter_id}|v1"
     stage = _sha_weighted_choice(salt, I69_3_STAGES, weights)
-    person.disease_stages["I69"] = stage
-    stage_year = getattr(summary, "discharge_date", None)
-    if stage_year is not None:
-        person.disease_stage_history.setdefault("I69", {})[stage_year.year] = stage
+    # Phase 2 longitudinal (Issue #1696): stroke-sequela stage lives in
+    # the YearSnapshot owned by the longitudinal engine. Write into the
+    # snapshot matching the discharge year — the engine will advance it
+    # yearly thereafter via the stroke_sequela_i69_* Markov yamls.
+    stage_date = getattr(summary, "discharge_date", None)
+    stage_year = stage_date.year if stage_date is not None else None
+    if stage_year is not None and person.longitudinal_history:
+        for snap in person.longitudinal_history:
+            if snap.year == stage_year:
+                snap.chronic_stages["I69"] = stage
+                break
+        else:
+            # No snapshot for discharge_year yet: write into the latest
+            # (engine's advance_one_year typically fills ahead of
+            # mid-year hospital discharge).
+            person.longitudinal_history[-1].chronic_stages["I69"] = stage
 
 
 def _deactivate_to_layer1(

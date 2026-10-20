@@ -623,22 +623,23 @@ def test_comorbidity_multiplier_smoking_tier_dispatch_on_copd() -> None:
 def test_comorbidity_multiplier_ckd_g4plus_cardiorenal_step_up() -> None:
     """CKD G4/G5 bumps the baseline cardiorenal 1.5x on I50 up by
     an additional 1.4x compound (G1-G3 does NOT get the step-up).
-    Verifies the ``requires_chronic_stage_in`` trigger reads from
-    person.disease_stages[icd]."""
+    Phase 2 longitudinal (Issue #1696): ``requires_chronic_stage_in``
+    reads from the previous year's YearSnapshot.chronic_stages, not
+    the retired person.disease_stages."""
     from clinosim.modules.population.aging import _comorbidity_multiplier
 
     p = _alive("PT-CKD-STAGE", age=72)
     p.chronic_conditions = ["I50", "N18"]
-    p.disease_stages = {"N18": "CKD G3a"}
+    p.longitudinal_history = [YearSnapshot(year=2025, chronic_stages={"N18": "CKD G3a"})]
     # Only the baseline cardiorenal_ckd_to_hf (1.5x) fires at G3.
     assert _comorbidity_multiplier(p, "I50", 2026) == 1.5
 
-    p.disease_stages = {"N18": "CKD G4"}
+    p.longitudinal_history = [YearSnapshot(year=2025, chronic_stages={"N18": "CKD G4"})]
     # G4 — both the baseline cardiorenal AND the g4plus step-up fire.
     mult = _comorbidity_multiplier(p, "I50", 2026)
     assert abs(mult - (1.5 * 1.4)) < 1e-9, f"G4 CKD should compound 1.5 × 1.4 = 2.1 on I50, got {mult}"
 
-    p.disease_stages = {"N18": "CKD G5"}
+    p.longitudinal_history = [YearSnapshot(year=2025, chronic_stages={"N18": "CKD G5"})]
     mult_g5 = _comorbidity_multiplier(p, "I50", 2026)
     assert abs(mult_g5 - (1.5 * 1.4)) < 1e-9, f"G5 CKD should compound 1.5 × 1.4 = 2.1 on I50, got {mult_g5}"
 

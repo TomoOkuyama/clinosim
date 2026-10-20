@@ -1,11 +1,15 @@
 """Discharge-time stroke-sequela promotion (helpers.py).
 
 Verifies that ``_promote_stroke_sequela_at_discharge`` immediately
-appends the correct I69.3 / I69.1 chronic condition and samples an
-initial mRS stage on survival-at-discharge from a stroke encounter.
-Mirrors the aging-pass promotion test coverage in
-``test_aging_hook_1564`` but exercises the earlier (dispatch-path)
+appends the correct I69.3 / I69.1 chronic condition and writes an
+initial mRS stage into the person's longitudinal_history matching
+the discharge year. Mirrors the aging-pass promotion test coverage
+in ``test_aging_hook_1564`` but exercises the earlier (dispatch-path)
 promotion.
+
+Phase 2 longitudinal (Issue #1696): the write target migrated from
+the retired ``PersonRecord.disease_stages`` dict to the engine's
+``YearSnapshot.chronic_stages["I69"]`` under the matching year.
 """
 
 from __future__ import annotations
@@ -13,6 +17,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from datetime import date
 
+from clinosim.modules.longitudinal.snapshot import YearSnapshot
 from clinosim.simulator.helpers import (
     _promote_stroke_sequela_at_discharge,
     _sha_weighted_choice,
@@ -21,13 +26,21 @@ from clinosim.types.population import HospitalizationSummary, PersonRecord
 
 
 def _alive(pid: str = "PT-STROKE") -> PersonRecord:
-    return PersonRecord(
+    p = PersonRecord(
         person_id=pid,
         household_id="HH-1",
         age=70,
         sex="M",
         date_of_birth=date(1956, 1, 1),
     )
+    # Seed a YearSnapshot matching the discharge year used in _summary so
+    # the Phase 2 helper has a target to write chronic_stages into.
+    p.longitudinal_history.append(YearSnapshot(year=2025))
+    return p
+
+
+def _stage(p: PersonRecord) -> str:
+    return p.longitudinal_history[-1].chronic_stages.get("I69", "")
 
 
 @dataclass
@@ -60,7 +73,6 @@ def test_sha_weighted_choice_different_salts_can_differ() -> None:
     choices = ("mRS 0", "mRS 1", "mRS 2", "mRS 3", "mRS 4", "mRS 5")
     weights = (0.10, 0.20, 0.25, 0.20, 0.15, 0.10)
     seen = {_sha_weighted_choice(f"PT-{i}|stroke_mrs|ENC-A|v1", choices, weights) for i in range(50)}
-    # 50 distinct salts should produce at least 2 different stage draws.
     assert len(seen) >= 2
 
 
@@ -70,9 +82,7 @@ def test_promote_adds_i69_3_from_cerebral_infarction_survivor() -> None:
         p, "cerebral_infarction", _FakeRecord(deceased=False), _summary("cerebral_infarction")
     )
     assert "I69.3" in p.chronic_conditions
-    assert p.disease_stages.get("I69") in {"mRS 0", "mRS 1", "mRS 2", "mRS 3", "mRS 4", "mRS 5"}
-    # disease_stage_history also populated keyed by discharge year.
-    assert 2025 in (p.disease_stage_history.get("I69") or {})
+    assert _stage(p) in {"mRS 0", "mRS 1", "mRS 2", "mRS 3", "mRS 4", "mRS 5"}
 
 
 def test_promote_adds_i69_1_from_hemorrhagic_survivor() -> None:
@@ -81,14 +91,10 @@ def test_promote_adds_i69_1_from_hemorrhagic_survivor() -> None:
         p, "hemorrhagic_stroke", _FakeRecord(deceased=False), _summary("hemorrhagic_stroke")
     )
     assert "I69.1" in p.chronic_conditions
-    assert p.disease_stages.get("I69") in {"mRS 0", "mRS 1", "mRS 2", "mRS 3", "mRS 4", "mRS 5"}
+    assert _stage(p) in {"mRS 0", "mRS 1", "mRS 2", "mRS 3", "mRS 4", "mRS 5"}
 
 
 def test_promote_skips_on_deceased() -> None:
-    """A deceased stroke patient MUST NOT be promoted to a chronic
-    sequela — mRS 6 is death, handled by reactive mortality, and
-    appending a chronic condition to a dead patient would corrupt
-    downstream reporting."""
     p = _alive("PT-DEAD")
     _promote_stroke_sequela_at_discharge(
         p, "cerebral_infarction", _FakeRecord(deceased=True), _summary("cerebral_infarction")
@@ -97,23 +103,19 @@ def test_promote_skips_on_deceased() -> None:
 
 
 def test_promote_idempotent_on_repeat_discharge() -> None:
-    """A second stroke discharge (e.g. recurrent infarction) must
-    not re-append the sequela ICD nor re-sample the mRS stage —
-    the chronic condition is already tracked."""
     p = _alive("PT-REPEAT")
     _promote_stroke_sequela_at_discharge(
         p, "cerebral_infarction", _FakeRecord(deceased=False), _summary("cerebral_infarction", "ENC-FIRST")
     )
-    first_stage = p.disease_stages["I69"]
+    first_stage = _stage(p)
     _promote_stroke_sequela_at_discharge(
         p, "cerebral_infarction", _FakeRecord(deceased=False), _summary("cerebral_infarction", "ENC-SECOND")
     )
     assert p.chronic_conditions.count("I69.3") == 1
-    assert p.disease_stages["I69"] == first_stage
+    assert _stage(p) == first_stage
 
 
 def test_promote_noop_for_non_stroke_disease_id() -> None:
-    """Non-stroke encounters MUST NOT promote any sequela."""
     p = _alive("PT-UTI")
     _promote_stroke_sequela_at_discharge(
         p, "urinary_tract_infection", _FakeRecord(deceased=False), _summary("urinary_tract_infection")
@@ -124,8 +126,7 @@ def test_promote_noop_for_non_stroke_disease_id() -> None:
 
 def test_promote_uses_per_sub_code_mrs_distribution() -> None:
     """Monte-Carlo spot-check: hemorrhagic I69.1 cohort has mean mRS
-    index strictly above ischemic I69.3 cohort (same salt scheme,
-    different weight vectors)."""
+    index strictly above ischemic I69.3 cohort."""
     stage_idx = {"mRS 0": 0, "mRS 1": 1, "mRS 2": 2, "mRS 3": 3, "mRS 4": 4, "mRS 5": 5}
 
     def _mean(disease_id: str) -> float:
@@ -138,7 +139,7 @@ def test_promote_uses_per_sub_code_mrs_distribution() -> None:
                 _FakeRecord(deceased=False),
                 _summary(disease_id, f"ENC-{i}"),
             )
-            total += stage_idx[p.disease_stages["I69"]]
+            total += stage_idx[_stage(p)]
         return total / 500
 
     ischemic_mean = _mean("cerebral_infarction")
