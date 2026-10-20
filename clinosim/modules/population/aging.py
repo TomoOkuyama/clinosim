@@ -12,18 +12,16 @@ their state before the year's events are generated:
   (P_next − P_this) new onset probability. Marginal-preserving by
   construction: single source of truth stays
   ``locale/*/demographics.yaml:chronic_prevalence``.
-* :func:`_disease_progression` — stage advancement for CKD G1→G5,
-  COPD GOLD 1→4, heart failure NYHA I→IV, ischemic heart disease
-  CCS I→III, and dementia CDR 0.5→3. First touch of a disease on a
-  person initialises its stage from the activator-matching weight
-  vector (so Phase A sampling preserves cohort distribution);
-  subsequent years draw annual Bernoulli advancement from
-  ``locale/shared/stage_transition.yaml``. Activator prefers the
-  aging-set stage on the Phase B activation path (RNG draw burned
-  to preserve per-patient stream). Diabetes glycemic trajectory is
-  a planned follow-up — HbA1c is a continuous value not a discrete
-  stage, so it needs a trajectory model beyond the stage-string
-  pattern used here.
+* Stage progression — Phase 2 of the longitudinal subsystem (Issue
+  #1696) retired the former ``_disease_progression`` aging pass and
+  moved CKD / COPD / heart-failure / IHD / dementia / liver / Parkinson
+  / AF / MS / stroke-sequela stage advancement into the Markov
+  pattern under ``clinosim.modules.longitudinal.engine`` + the yamls
+  at ``locale/shared/longitudinal/stage/*.yaml``. The engine's
+  ``advance_one_year`` is called from ``advance_population`` after
+  the aging passes finalise chronic_conditions for the year, with
+  ``_comorbidity_multiplier`` threaded as ``multiplier_fn`` so
+  comorbidity-interaction rules still compose.
 * :func:`_allergy_drift` — childhood food-allergy resolution (flips
   ``clinical_status`` to ``resolved`` under the childhood resolution
   rate from ``allergens.yaml:aging``) and late-onset drug-sensitivity
@@ -81,9 +79,10 @@ def aging_sub_seed(person_id: str, year: int, pass_name: str) -> int:
     """Deterministic 32-bit sub-seed for one person × year × aging pass.
 
     Derived from ``(person_id, year, pass_name)`` so every pass gets an
-    isolated stream — a change inside ``_disease_progression`` cannot
-    shift ``_annual_chronic_onset`` draws for the same person, and a
-    change for one person cannot shift anyone else's streams.
+    isolated stream — a change inside one pass (or inside the Phase 2
+    longitudinal engine) cannot shift ``_annual_chronic_onset`` draws
+    for the same person, and a change for one person cannot shift
+    anyone else's streams.
     """
     key = f"{_AGING_SEED_SALT}|{person_id}|{year}|{pass_name}"
     return int(hashlib.sha256(key.encode()).hexdigest(), 16) % (2**32)
@@ -313,17 +312,6 @@ def _annual_chronic_onset(
 
 
 @lru_cache(maxsize=1)
-def _load_stage_transitions() -> dict[str, dict]:
-    """Return the per-ICD stage-transition config from
-    ``stage_transition.yaml``. Cached singleton. Returns empty dict
-    when yaml is missing — pass becomes safe no-op."""
-    from clinosim.locale.loader import load_stage_transition
-
-    data = load_stage_transition()
-    return data.get("stage_transitions") or {}
-
-
-@lru_cache(maxsize=1)
 def _load_mental_health_onset_multipliers() -> dict[str, dict]:
     """Return per-target-ICD onset multiplier rules from
     ``mental_health_onset_multipliers.yaml``. Cached singleton.
@@ -464,222 +452,6 @@ def _comorbidity_multiplier(person: PersonRecord, target_icd: str, year: int) ->
                 break
         out *= mult
     return out
-
-
-# Phase 1 longitudinal migration (Issue #1695): the diabetes glycemic
-# trajectory moved out of aging into
-# ``clinosim.modules.longitudinal.engine`` and is driven annually by
-# ``advance_one_year`` from ``advance_population``. The former
-# ``_GLYCEMIC_ICDS`` frozenset + ``_advance_glycemic_trajectory``
-# helper were retired here; _disease_progression skips E11 / E10 and
-# lets the longitudinal engine own the HbA1c latent.
-
-
-# Initial-stage weights for the stage-progression targets. Values
-# mirror ``clinosim.modules.patient._severity_activation`` so a cohort
-# whose stage is sampled at Phase A (aging init) matches, in
-# distribution, a cohort whose stage would have been sampled by the
-# activator at Phase B. The strings here match the format stored in
-# ``person.disease_stages`` (CKD prefix included; GOLD un-prefixed;
-# NYHA Roman-numeral form). For I50 the activator uses
-# severity-conditional MILD vs DEFAULT weights, but severity is a
-# Layer-2 PatientProfile concern not available in Phase A — we use the
-# DEFAULT weights here, which matches the activator's non-mild branch
-# (most of the catchment per I50_STAGE_WEIGHTS_DEFAULT comment).
-_INITIAL_STAGE_SAMPLERS: dict[str, tuple[tuple[str, ...], tuple[float, ...]]] = {
-    "N18": (
-        ("CKD G1", "CKD G2", "CKD G3a", "CKD G3b", "CKD G4", "CKD G5"),
-        (0.05, 0.30, 0.30, 0.20, 0.10, 0.05),
-    ),
-    "J44": (
-        ("GOLD 1", "GOLD 2", "GOLD 3", "GOLD 4"),
-        (0.20, 0.40, 0.30, 0.10),
-    ),
-    "I50": (
-        ("NYHA I", "NYHA II", "NYHA III", "NYHA IV"),
-        (0.10, 0.30, 0.40, 0.20),
-    ),
-    "I25": (
-        ("CCS I", "CCS II", "CCS III"),
-        (0.4, 0.4, 0.2),
-    ),
-    "F00": (
-        ("CDR 0.5", "CDR 1", "CDR 2", "CDR 3"),
-        (0.10, 0.40, 0.35, 0.15),
-    ),
-    "K70": (
-        ("Child-Pugh A", "Child-Pugh B", "Child-Pugh C"),
-        (0.55, 0.30, 0.15),
-    ),
-    "K74": (
-        ("Child-Pugh A", "Child-Pugh B", "Child-Pugh C"),
-        (0.55, 0.30, 0.15),
-    ),
-    "G20": (
-        ("H&Y 1", "H&Y 2", "H&Y 3", "H&Y 4", "H&Y 5"),
-        (0.30, 0.35, 0.20, 0.10, 0.05),
-    ),
-    "I48": (
-        ("Paroxysmal", "Persistent", "Long-standing persistent", "Permanent"),
-        (0.45, 0.25, 0.15, 0.15),
-    ),
-    "G35": (
-        ("EDSS 0-2", "EDSS 2.5-5", "EDSS 5.5-7", "EDSS 7.5-10"),
-        (0.45, 0.35, 0.15, 0.05),
-    ),
-    # I69.3 (ischemic sequela) and I69.1 (ICH sequela) carry
-    # different discharge-mRS distributions per Kleindorfer 2021
-    # Stroke AHA/ASA guideline + GWTG-Stroke subgroup data —
-    # hemorrhagic survivors have a rightward-shifted (worse) mRS
-    # distribution than ischemic. The dispatcher below tries the
-    # FULL code before falling back to base "I69", so these
-    # per-sub-code weights win over the shared base entry (which
-    # itself is kept for backward compatibility and for any
-    # future sub-code not explicitly broken out).
-    "I69.3": (
-        ("mRS 0", "mRS 1", "mRS 2", "mRS 3", "mRS 4", "mRS 5"),
-        (0.10, 0.20, 0.25, 0.20, 0.15, 0.10),
-    ),
-    "I69.1": (
-        ("mRS 0", "mRS 1", "mRS 2", "mRS 3", "mRS 4", "mRS 5"),
-        (0.05, 0.12, 0.18, 0.25, 0.25, 0.15),
-    ),
-    "I69": (
-        ("mRS 0", "mRS 1", "mRS 2", "mRS 3", "mRS 4", "mRS 5"),
-        (0.10, 0.20, 0.25, 0.20, 0.15, 0.10),
-    ),
-    # Issue #1137 — mental-health severity bands. F32/F33 share
-    # the PHQ-9 band structure; F41.1 uses the GAD-7 bands.
-    "F32": (
-        ("PHQ-9 none", "PHQ-9 mild", "PHQ-9 moderate", "PHQ-9 moderately severe", "PHQ-9 severe"),
-        (0.05, 0.20, 0.40, 0.25, 0.10),
-    ),
-    "F33": (
-        ("PHQ-9 none", "PHQ-9 mild", "PHQ-9 moderate", "PHQ-9 moderately severe", "PHQ-9 severe"),
-        (0.05, 0.20, 0.40, 0.25, 0.10),
-    ),
-    "F41.1": (
-        ("GAD-7 minimal", "GAD-7 mild", "GAD-7 moderate", "GAD-7 severe"),
-        (0.05, 0.30, 0.45, 0.20),
-    ),
-}
-
-
-def _weighted_sample(prng: np.random.Generator, choices: tuple[str, ...], weights: tuple[float, ...]) -> str:
-    """One-shot weighted sample. Mirrors ``rng.choice(choices, p=weights)``
-    but uses `prng.random()` so we stay on the pass-isolated stream and
-    don't call into the shared numpy choice path (which has a different
-    draw-count footprint)."""
-    total = float(sum(weights))
-    if total <= 0.0:
-        return choices[0]
-    u = float(prng.random()) * total
-    acc = 0.0
-    for c, w in zip(choices, weights, strict=False):
-        acc += float(w)
-        if u < acc:
-            return c
-    return choices[-1]
-
-
-def _disease_progression(
-    person: PersonRecord,
-    year: int,
-    prng: np.random.Generator,
-    incidence_table: dict[str, _ChronicIncidenceSpec],
-    locale: str = "us",
-) -> None:
-    """Per-person annual disease-stage advancement.
-
-    Mechanism:
-
-    * For each ICD on ``person.chronic_conditions`` whose base code
-      has a config entry in ``stage_transition.yaml`` AND an
-      ``_INITIAL_STAGE_SAMPLERS`` weighting:
-
-      1. **Initialize** on first touch — if the person has the ICD
-         but no entry in ``person.disease_stages`` yet, sample an
-         initial stage from the activator-matching weight vector.
-         No advancement in the init year to avoid a double step.
-      2. **Advance** — otherwise, draw a Bernoulli against the
-         yaml-declared annual_advance_probability for the current
-         stage and, on hit, move to the next entry in ``stages``.
-
-    All draws come from the pass-isolated ``prng``. The activator
-    (Phase B) prefers the aging-provided stage when
-    ``person.disease_stages[code_base]`` is non-empty, so the
-    advanced stage propagates downstream automatically (narrative,
-    FHIR Condition.stage, physiology severity_score).
-
-    Current scope: CKD (N18), COPD (J44), heart failure (I50), IHD
-    (I25), dementia (F00). Diabetes (E11 / E10) uses a continuous
-    glycemic-control trajectory instead of discrete stages — see
-    the E11/E10 branch below and ``locale/shared/glycemic_
-    trajectory.yaml`` for the drift parameters.
-    """
-    cfg_all = _load_stage_transitions()
-    if not cfg_all:
-        return
-    for code in person.chronic_conditions:
-        code_base = code.split(".")[0]
-        # Phase 1 longitudinal migration (Issue #1695): E11 / E10 HbA1c
-        # trajectory moved out of _disease_progression and into the new
-        # longitudinal engine, driven annually by advance_one_year from
-        # advance_population below. Skip the DM branch here — the
-        # engine owns it.
-        if code_base in {"E11", "E10"}:
-            continue
-        # Try full ICD before falling back to base. Mirrors the
-        # ``_INITIAL_STAGE_SAMPLERS`` dispatcher below so a per-sub-
-        # code annual_advance_probability (e.g. I69.1 hemorrhagic
-        # sequela carrying slower progression than I69.3 ischemic)
-        # wins over a shared base-code entry.
-        cfg = cfg_all.get(code) or cfg_all.get(code_base)
-        if cfg is None:
-            continue
-        stages = tuple(cfg.get("stages") or ())
-        if not stages:
-            continue
-        if code_base not in person.disease_stages:
-            # Try full ICD (e.g. "I69.1" / "I69.3" distinct discharge
-            # mRS distributions) before falling back to base. Lets a
-            # per-sub-code sampler win without disturbing conditions
-            # that only register a base-code entry.
-            sampler = _INITIAL_STAGE_SAMPLERS.get(code) or _INITIAL_STAGE_SAMPLERS.get(code_base)
-            if sampler is None:
-                continue
-            new_stage = _weighted_sample(prng, sampler[0], sampler[1])
-            person.disease_stages[code_base] = new_stage
-            person.disease_stage_history.setdefault(code_base, {})[year] = new_stage
-            continue
-        current = person.disease_stages[code_base]
-        if current not in stages:
-            continue
-        rate = float((cfg.get("annual_advance_probability") or {}).get(current, 0.0))
-        # Comorbidity acceleration (diabetic nephropathy etc.). The
-        # multiplier is 1.0 when no interaction rule fires, so this
-        # is RNG-neutral for cohorts that don't carry the triggering
-        # comorbidity. See
-        # ``locale/shared/comorbidity_progression_multipliers.yaml``.
-        rate = rate * _comorbidity_multiplier(person, code_base, year)
-        rate = min(1.0, max(0.0, rate))
-        # Issue #1581 — even on a no-advance year, record the current
-        # stage into the year-indexed history so a lookup for any
-        # year in the sim window finds the correct stage (the latest
-        # year ≤ query_year). Without this, years between advances
-        # would miss history entries and lookups would fall through
-        # to a prior-year advance stage, which is actually fine
-        # (sparse-history semantics), but writing dense entries keeps
-        # the data flow explicit and the lookup unambiguous.
-        person.disease_stage_history.setdefault(code_base, {})[year] = current
-        if rate <= 0.0:
-            continue
-        if float(prng.random()) < rate:
-            idx = stages.index(current)
-            if idx + 1 < len(stages):
-                new_stage = stages[idx + 1]
-                person.disease_stages[code_base] = new_stage
-                person.disease_stage_history.setdefault(code_base, {})[year] = new_stage
 
 
 def _allergy_drift(
@@ -1036,7 +808,6 @@ def advance_population(
         for pass_fn in (
             _annual_chronic_onset,
             _stroke_sequela_promotion,
-            _disease_progression,
             _allergy_drift,
             _condition_reactive_mortality,
         ):
