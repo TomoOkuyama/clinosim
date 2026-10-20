@@ -20,7 +20,10 @@ from clinosim.modules.population.engine import generate_population
 def test_sbp_populated_at_base_year_for_htn_adults():
     load_attribute_specs.cache_clear()
     registry = generate_population(
-        size=100, country="US", rng=np.random.default_rng(42), base_year=2024,
+        size=100,
+        country="US",
+        rng=np.random.default_rng(42),
+        base_year=2024,
     )
     found_htn = False
     for person in registry.persons.values():
