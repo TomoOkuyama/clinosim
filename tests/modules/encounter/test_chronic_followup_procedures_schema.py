@@ -27,3 +27,31 @@ def test_g47_30_procedures_declare_frequency():
     frequencies = {p["snomed"]: p["frequency"] for p in procedures}
     assert frequencies.get("47545007") == "every_visit"
     assert frequencies.get("70404000") == "baseline_only"
+
+
+def test_polysomnography_snomed_resolves_from_name():
+    """Phase 4d Task 2: polysomnography / sleep study → SNOMED 70404000
+    via the pre-existing procedure name → SNOMED resolver."""
+    from clinosim.modules.output.fhir_r4.procedures.procedure_name_snomed import (
+        resolve_procedure_snomed,
+    )
+
+    result = resolve_procedure_snomed("polysomnography")
+    assert result is not None
+    snomed, _display = result
+    assert snomed == "70404000"
+
+    result2 = resolve_procedure_snomed("sleep study")
+    assert result2 is not None
+    assert result2[0] == "70404000"
+
+
+def test_cpap_snomed_still_resolves():
+    """Phase 4d regression: pre-existing CPAP SNOMED path still works."""
+    from clinosim.modules.output.fhir_r4.procedures.procedure_name_snomed import (
+        resolve_procedure_snomed,
+    )
+
+    result = resolve_procedure_snomed("cpap")
+    assert result is not None
+    assert result[0] == "47545007"
