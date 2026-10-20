@@ -159,10 +159,16 @@ def _synthesize_vaccination_encounter(
     (fallback for callers that lack roster access).
     """
     occ = _get(imm, "occurrence_date", None)
-    cvx = str(_get(imm, "vaccine_cvx", "") or "")
     if not isinstance(occ, date):
         occ = date(2000, 1, 1)
-    _key = f"{patient_id}|{occ.isoformat()}|{cvx}|synth-vax".encode()
+    # Issue #1700: encounter id keyed on (patient, date) only — NOT the CVX.
+    # Multi-vaccine well-child visits (ACIP 2mo/4mo/6mo/12-15mo schedules
+    # routinely give 3-5 vaccines simultaneously) emit ONE Encounter with
+    # multiple Immunization resources, not one Encounter per CVX. All
+    # Immunizations occurring on the same calendar day for the same
+    # patient collapse to this single synthesized encounter_id via the
+    # caller's ``hosted`` dedup set.
+    _key = f"{patient_id}|{occ.isoformat()}|synth-vax".encode()
     _suffix = hashlib.sha256(_key).hexdigest()[:12]
     enc_id = f"ENC-VAX-{patient_id}-{_suffix}"
     adm = datetime(occ.year, occ.month, occ.day, 10, 0)
