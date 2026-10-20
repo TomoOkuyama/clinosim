@@ -1,0 +1,35 @@
+# Basal insulin initiation — event pattern.
+#
+# Phase 4a of the longitudinal state-evolution subsystem (Issue #1697).
+# Base rate 50 %/yr under severe uncontrolled HbA1c (> 10.0 %), gated
+# OUT when HbA1c ≤ 10.0 % via a factor-zero modifier. Independent of
+# the SGLT2i escalation yaml — a patient at sustained HbA1c > 10.0
+# accumulates both agents across sim years.
+#
+# Clinical basis: ADA Standards of Care in Diabetes 2024, §9 Figure 9.3
+# — insulin initiation when HbA1c > 10 %, severe symptomatic
+# hyperglycemia, or failure of oral intensification. Insulin glargine
+# ships as the representative long-acting basal; detemir / degludec
+# alternatives are a Phase 4b locale variant.
+
+attribute_id: dm_escalate_insulin_e11
+pattern: event
+depends_on: [hba1c]
+clinical_scope:
+  requires_chronic_codes: ["E11"]
+  requires_age_band: [18, 120]
+
+event_name: dm_escalate_insulin_e11
+emits_icd: ""
+emits_meds: ["Insulin glargine"]
+fire_marker: dm_escalate_insulin_e11
+base_annual_rate: 0.5
+rate_modifiers:
+  - when: {attribute: hba1c, operator: "<=", value: 10.0}
+    factor: 0.0
+one_shot: true
+narrative_label:
+  en: "DM insulin initiation"
+  ja: "糖尿病 インスリン導入"
+source:
+  - "American Diabetes Association. Standards of Care in Diabetes — 2024. Section 9: Pharmacologic Approaches to Glycemic Treatment. Diabetes Care 2024;47(Suppl 1):S158."
