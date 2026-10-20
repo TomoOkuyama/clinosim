@@ -1,0 +1,36 @@
+# Diabetic nephropathy onset (E11.21) — event pattern.
+#
+# Phase 3 of the longitudinal state-evolution subsystem (Issue #1697).
+# See docs/superpowers/specs/2026-10-20-longitudinal-state-evolution-design.md
+# §4.2.3 for schema.
+#
+# Clinical basis: Molitch ME et al, Diabetes Care 2004;27 Suppl1:S79
+# (DCCT/EDIC nephropathy incidence); UKPDS 1998 NEJM 358:837; Nathan DM
+# et al JAMA 2003;290:2159. Microalbuminuria onset ~2 %/yr base in
+# diagnosed T2DM, with 3-4× acceleration under uncontrolled glycemic
+# control (HbA1c > 9.0 %). Phase 3 lumps E11.2x into a single E11.21
+# "diabetic nephropathy" onset event per the ICD-10-CM parent code.
+
+attribute_id: dm_nephropathy_onset_e11_21
+pattern: event
+depends_on: [hba1c]
+clinical_scope:
+  requires_chronic_codes: ["E11", "E10"]
+  requires_age_band: [18, 120]
+
+event_name: dm_nephropathy_onset
+emits_icd: E11.21
+base_annual_rate: 0.015
+rate_modifiers:
+  - when: {attribute: hba1c, operator: ">", value: 9.0}
+    factor: 3.0
+  - when: {attribute: hba1c, operator: ">", value: 7.5}
+    factor: 1.5
+one_shot: true
+narrative_label:
+  en: "Diabetic nephropathy onset"
+  ja: "糖尿病性腎症発症"
+source:
+  - "Molitch ME et al. Nephropathy in diabetes. Diabetes Care 2004;27 Suppl1:S79."
+  - "UK Prospective Diabetes Study (UKPDS) Group. NEJM 1998;338:837."
+  - "Nathan DM et al. Intensive diabetes therapy and carotid intima-media thickness. JAMA 2003;290:2159."
