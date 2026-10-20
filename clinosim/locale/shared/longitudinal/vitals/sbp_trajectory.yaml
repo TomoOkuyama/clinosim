@@ -1,0 +1,37 @@
+# Systolic BP (SBP) trajectory — AR(1) latent.
+#
+# Phase 4b.1 of the longitudinal state-evolution subsystem (Issue #1697).
+# Scoped to adults carrying I10-I15 HTN chronic. Layer-1 anchor override
+# in population/engine.py (same pattern as bmi_drift) seeds
+# snapshot.continuous["sbp"] = float(person.systolic_bp) at base year;
+# yaml's initial: block is dummy to satisfy loader validation.
+#
+# Clinical calibration:
+#   phi 0.80       — within-individual annual SBP tracking (Framingham + ALLHAT)
+#   sigma 8 mmHg   — innovation SD (JNC 8 between-visit BP variability minus 3 mmHg measurement noise)
+#   target 145     — uncontrolled HTN cohort median (JNC 8 untreated stage-1 range)
+#   clamp [90,220] — hypotension floor to hypertensive-emergency ceiling
+
+attribute_id: sbp
+pattern: ar1
+depends_on: []
+clinical_scope:
+  requires_chronic_codes: ["I1"]
+  requires_age_band: [18, 120]
+
+latent_name: sbp
+ar1:
+  phi: 0.80
+  sigma: 8.0
+  mean_reversion_target: 145.0
+clamp: [90.0, 220.0]
+initial:
+  mu: 4.976   # exp(4.976) ≈ 145 (dummy — overridden by Layer-1 systolic_bp)
+  sigma: 0.08
+narrative_label:
+  en: "Systolic BP trajectory"
+  ja: "収縮期血圧 推移"
+source:
+  - "Whelton PK et al. 2017 ACC/AHA Hypertension Guideline. JACC 2018;71:e127."
+  - "James PA et al. JNC 8 report. JAMA 2014;311:507."
+  - "Framingham longitudinal BP tracking + ALLHAT 5y follow-up (ALLHAT Officers, JAMA 2002;288:2998)."
