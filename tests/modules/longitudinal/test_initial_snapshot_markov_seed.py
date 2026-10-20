@@ -31,7 +31,6 @@ from clinosim.modules.longitudinal.engine import advance_one_year, initial_snaps
 from clinosim.modules.longitudinal.loader import load_attribute_specs
 from clinosim.types.population import PersonRecord
 
-
 # Terminal yaml with p=0 anywhere, so after initial draw we observe the
 # distribution's single mass without further movement.
 _CKD_YAML_G3A_ONLY = """\
@@ -90,6 +89,5 @@ def test_mid_sim_scope_entry_draws_initial_distribution(ckd_only_loader: Path) -
     # year 2026 — N18 now in scope, no prior stage: draw from initial_distribution
     snap_2026 = advance_one_year(person, year=2026, year_rng=rng)
     assert snap_2026.chronic_stages.get("N18") == "CKD G3a", (
-        f"mid-sim scope entry failed; expected CKD G3a from init draw, "
-        f"got {snap_2026.chronic_stages.get('N18')!r}"
+        f"mid-sim scope entry failed; expected CKD G3a from init draw, got {snap_2026.chronic_stages.get('N18')!r}"
     )

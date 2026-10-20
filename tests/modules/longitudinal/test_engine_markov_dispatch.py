@@ -13,7 +13,6 @@ from clinosim.modules.longitudinal.engine import advance_one_year, initial_snaps
 from clinosim.modules.longitudinal.loader import load_attribute_specs
 from clinosim.types.population import PersonRecord
 
-
 _MARKOV_YAML = """\
 attribute_id: test_markov
 pattern: markov
