@@ -50,3 +50,28 @@ def test_resolve_insulin_glargine_full_metadata():
     assert hm.route == "SC"
     assert hm.frequency == "daily"
     assert hm.dose == "10U"
+
+
+def test_resolve_hydrochlorothiazide_full_metadata():
+    """Phase 4b.1 Task 6: HCTZ added under I10 with probability: 0.0."""
+    hm = resolve_med_name("Hydrochlorothiazide")
+    assert hm.drug_name == "Hydrochlorothiazide"
+    assert hm.route == "PO"
+    assert hm.frequency == "daily"
+    assert hm.dose == "25mg"
+
+
+def test_resolve_rosuvastatin_full_metadata():
+    hm = resolve_med_name("Rosuvastatin")
+    assert hm.drug_name == "Rosuvastatin"
+    assert hm.route == "PO"
+    assert hm.frequency == "daily"
+    assert hm.dose == "20mg"
+
+
+def test_resolve_ezetimibe_full_metadata():
+    hm = resolve_med_name("Ezetimibe")
+    assert hm.drug_name == "Ezetimibe"
+    assert hm.route == "PO"
+    assert hm.frequency == "daily"
+    assert hm.dose == "10mg"
