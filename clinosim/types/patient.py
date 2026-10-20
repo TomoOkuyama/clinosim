@@ -213,6 +213,16 @@ class PatientProfile:
     health_literacy: float = 0.7
 
     chronic_conditions: list[ChronicCondition] = field(default_factory=list)
+    # Issue #1699: perinatal-episode codes that do not persist as chronic.
+    # Holds Z38.x (liveborn admission dx), P07.x (preterm), P22.x (RDS),
+    # P59.x (neonatal jaundice) etc. Populated by
+    # ``clinosim.simulator.perinatal._build_newborn_patient`` and
+    # downstream readers (narrative birth-history summary, audit) consume
+    # it instead of ``chronic_conditions``. FHIR Condition emit does NOT
+    # walk this list — Z38 lives on the delivery Encounter.diagnosis;
+    # P-chapter codes are perinatal history that survives on the record
+    # for narrative lineage but not as active problem-list items.
+    perinatal_history: list[ChronicCondition] = field(default_factory=list)
     allergies: list[Allergy] = field(default_factory=list)
     current_medications: list[HomeMedication] = field(default_factory=list)
     # Issue #1066 (drug_safety): per-patient log of medication candidates that
