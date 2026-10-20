@@ -1,0 +1,34 @@
+# Lipid high-intensity statin switch — event pattern.
+#
+# Phase 4b.1 of the longitudinal state-evolution subsystem (Issue #1697).
+# Base rate 40 %/yr under uncontrolled LDL (> 160 mg/dL), gated OUT when
+# LDL ≤ 160 via a factor-zero modifier.
+#
+# Clinical basis: ACC-AHA 2018 Cholesterol Guideline (Grundy et al,
+# Circulation 2019), Section 4.4.1 intensification pathway. Rosuvastatin
+# 20mg is the representative high-intensity statin (equivalent to
+# Atorvastatin 40mg per STELLAR). Real-world uptake slower than guideline
+# due to statin intolerance and clinician inertia (NHANES LDL gap data).
+
+attribute_id: lipid_escalate_high_intensity_e78
+pattern: event
+depends_on: [ldl]
+clinical_scope:
+  requires_chronic_codes: ["E78"]
+  requires_age_band: [18, 120]
+
+event_name: lipid_escalate_high_intensity_e78
+emits_icd: ""
+emits_meds: ["Rosuvastatin"]
+fire_marker: lipid_escalate_high_intensity_e78
+base_annual_rate: 0.40
+rate_modifiers:
+  - when: {attribute: ldl, operator: "<=", value: 160.0}
+    factor: 0.0
+one_shot: true
+narrative_label:
+  en: "Lipid high-intensity statin switch"
+  ja: "脂質異常症 高強度スタチン 切替"
+source:
+  - "Grundy SM et al. 2018 ACC/AHA Cholesterol Guideline. Circulation 2019;139:e1082."
+  - "STELLAR Trial — Jones PH et al. Am J Cardiol 2003;92:152 (Rosuvastatin equivalence tables)."
