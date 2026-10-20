@@ -136,7 +136,6 @@ from clinosim.modules.patient._severity_activation import (
     N18_STAGES,
     STAGE_SEVERITY,
 )
-from clinosim.modules.physiology.engine import hba1c_from_glycemic_control
 from clinosim.modules.population._pediatric_anthropometry import (
     pediatric_height_params as _peds_height_params,
 )
@@ -352,28 +351,10 @@ def _sample_insurance(demo: dict, age: int, rng: np.random.Generator) -> str:
     return ""
 
 
-def _glycemic_control_at_year(person: PersonRecord, as_of_year: int | None) -> float | None:
-    """Issue #1581 DM extension — look up the glycemic-control value
-    on ``person.glycemic_trajectory`` for the encounter year, floor-
-    matching to the latest history year ≤ ``as_of_year``. Returns
-    ``None`` when the trajectory is empty (aging path has not fired
-    for this person — test fixtures / pre-#1581 cohorts) or when the
-    earliest history year is after ``as_of_year`` (the person had
-    not yet been staged at that date).
-
-    ``as_of_year=None`` returns the latest trajectory value (legacy
-    activator-only path when the engine does not thread encounter
-    year through).
-    """
-    trajectory = getattr(person, "glycemic_trajectory", {}) or {}
-    if not trajectory:
-        return None
-    if as_of_year is None:
-        return trajectory[max(trajectory)]
-    applicable_years = [y for y in trajectory if y <= as_of_year]
-    if not applicable_years:
-        return None
-    return trajectory[max(applicable_years)]
+# Phase 1 longitudinal migration (Issue #1695): _glycemic_control_at_year
+# retired. HbA1c lookup is now via
+# clinosim.modules.longitudinal.engine.state_at(person, when).continuous["hba1c"]
+# — see the E11 / E10 branch in _build_chronic_conditions below.
 
 
 def _stage_at_year(person: PersonRecord, code_base: str, as_of_year: int | None) -> str:
@@ -442,22 +423,22 @@ def _derive_chronic_conditions(
         # here) so the main RNG stream is unperturbed (AD-16).
         code_base = code.split(".")[0]
         if code_base in ("E11", "E10"):
-            gc_draw = float(rng.random())  # replaces the removed E11 stage uniform (1 draw)
-            # Issue #1581 — glycemic_trajectory is populated by the aging
-            # ``_disease_progression`` DM branch with a per-year gc value.
-            # When present and the encounter year has an applicable
-            # history entry, use it instead of a fresh gc_draw so the
-            # patient's HbA1c reflects the natural-history drift
-            # recorded for that specific year. ``gc_draw`` is still
-            # consumed (value discarded) to keep the per-patient RNG
-            # stream byte-identical with pre-#1581 cohorts for codes
-            # that aren't glycemic-trajectory-covered.
-            glycemic_control = _glycemic_control_at_year(person, as_of_year)
-            if glycemic_control is None:
-                # Cube skews control toward "good" (most diabetics are reasonably controlled):
-                # HbA1c median ~6.8%, ~55% < 7%, with a poorly-controlled tail to ~12%.
-                glycemic_control = 1.0 - gc_draw**3
-            stage = f"HbA1c {hba1c_from_glycemic_control(glycemic_control):.1f}%"
+            # Phase 1 longitudinal migration (Issue #1695): HbA1c is now
+            # a first-class latent on PersonRecord.longitudinal_history.
+            # Reconstruct the stage string from state_at(as_of_year).
+            # The retired gc_draw / _glycemic_control_at_year /
+            # hba1c_from_glycemic_control chain is gone.
+            from clinosim.modules.longitudinal.engine import state_at
+
+            hba1c_val: float | None = None
+            if person.longitudinal_history:
+                try:
+                    snap = state_at(person, as_of_year) if as_of_year is not None else person.longitudinal_history[-1]
+                    hba1c_val = snap.continuous.get("hba1c")
+                except IndexError:
+                    hba1c_val = None
+            glycemic_control = None  # retained field preserved for downstream readers
+            stage = f"HbA1c {hba1c_val:.1f}%" if hba1c_val is not None else ""
         else:
             glycemic_control = None
             # Issue #1572 Phase 2.5 body: when the aging-hook
