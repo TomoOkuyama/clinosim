@@ -1,0 +1,41 @@
+# G20 Parkinson's Disease — Markov Hoehn & Yahr 1-5.
+#
+# Phase 2 of the longitudinal state-evolution subsystem (Issue #1696).
+#
+# Clinical basis: Hoehn & Yahr 1967 (Neurology 17:427) original scale;
+# Zhao 2010 (Mov Disord) outpatient cohort progression data; Jankovic
+# 2008 (JNNP) natural history under modern levodopa therapy. Mean time
+# per stage in the Jankovic review is ~2-3 years for stages 1-3 and
+# lengthens at stage 4 as patients plateau on levodopa response plus
+# wheelchair use. Rates reflect all-cohort average without conditioning
+# on age at onset or levodopa-responder phenotype. H&Y 5 is terminal.
+
+attribute_id: parkinson_stage_g20
+pattern: markov
+depends_on: []
+clinical_scope:
+  requires_chronic_codes: ["G20"]
+  requires_age_band: [0, 120]
+
+state_name: parkinson_stage
+icd_base: G20
+states: ["H&Y 1", "H&Y 2", "H&Y 3", "H&Y 4", "H&Y 5"]
+initial_distribution:
+  "H&Y 1": 0.30
+  "H&Y 2": 0.35
+  "H&Y 3": 0.20
+  "H&Y 4": 0.10
+  "H&Y 5": 0.05
+transitions:
+  "H&Y 1": {"H&Y 2": 0.350}
+  "H&Y 2": {"H&Y 3": 0.300}
+  "H&Y 3": {"H&Y 4": 0.250}
+  "H&Y 4": {"H&Y 5": 0.180}
+  "H&Y 5": {}
+narrative_label:
+  en: "Hoehn & Yahr stage"
+  ja: "Hoehn-Yahr 重症度"
+source:
+  - "Hoehn MM, Yahr MD. Parkinsonism: onset, progression and mortality. Neurology 1967;17:427."
+  - "Zhao YJ et al. Progression of Parkinson's disease as evaluated by Hoehn and Yahr stage transition times. Mov Disord 2010;25:710."
+  - "Jankovic J. Parkinson's disease: clinical features and diagnosis. JNNP 2008;79:368."
