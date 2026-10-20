@@ -94,8 +94,7 @@ def test_cif_ckd_cohort_stage_distribution_populated(cif_dir: Path) -> None:
     regression)."""
     stages_by_pid = _ckd_stages_per_patient(cif_dir)
     assert len(stages_by_pid) >= 1, (
-        "no CKD patient emitted a stage string — Markov chronic_stages "
-        "not reaching CIF via activator"
+        "no CKD patient emitted a stage string — Markov chronic_stages not reaching CIF via activator"
     )
     all_stages = [s for vals in stages_by_pid.values() for s in vals]
     assert all_stages, "no CKD stage rows emitted on any patient"
@@ -115,6 +114,5 @@ def test_cif_ckd_stage_distribution_spans_multiple_bands(cif_dir: Path) -> None:
     stages_by_pid = _ckd_stages_per_patient(cif_dir)
     all_stages = {s for vals in stages_by_pid.values() for s in vals}
     assert len(all_stages) >= 3, (
-        f"CKD cohort spans only {sorted(all_stages)!r} bands (<3); "
-        f"initial_distribution sampling may be truncated"
+        f"CKD cohort spans only {sorted(all_stages)!r} bands (<3); initial_distribution sampling may be truncated"
     )
