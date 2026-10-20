@@ -24,6 +24,16 @@ from clinosim.modules.physiology.engine import (
 from clinosim.types.patient import PatientPhysiologicalProfile
 
 
+@pytest.fixture(autouse=True)
+def _clear_loader_cache() -> None:
+    """Isolate from any sibling test's monkeypatch of _LONGITUDINAL_DIR;
+    required for test_physio_hba1c_constants_match_longitudinal_yaml
+    to see the real yaml rather than a cached tmp_path spec."""
+    load_attribute_specs.cache_clear()
+    yield
+    load_attribute_specs.cache_clear()
+
+
 def _mk_state(conditions: list | None = None) -> physio.PhysiologicalState:
     """Baseline healthy state with no protocol override."""
     profile = PatientPhysiologicalProfile()
@@ -37,8 +47,12 @@ def test_hba1c_emit_reads_from_latent_when_provided() -> None:
     state = _mk_state()
     rng = np.random.default_rng(0)
     labs = derive_lab_values(
-        state=state, sex="M", age=55, has_diabetes=True,
-        rng=rng, hba1c_latent=9.1,
+        state=state,
+        sex="M",
+        age=55,
+        has_diabetes=True,
+        rng=rng,
+        hba1c_latent=9.1,
     )
     assert "HbA1c" in labs
     assert abs(labs["HbA1c"] - 9.1) < 3 * HBA1C_MEASUREMENT_NOISE_SD + 0.1
@@ -51,7 +65,10 @@ def test_hba1c_emit_without_latent_falls_through_to_protocol_override() -> None:
     state = _mk_state()
     state.glycemic_control = 0.3  # protocol forces poor control
     labs = derive_lab_values(
-        state=state, sex="M", age=55, has_diabetes=True,
+        state=state,
+        sex="M",
+        age=55,
+        has_diabetes=True,
         rng=np.random.default_rng(0),
     )
     expected = physio.hba1c_from_glycemic_control(0.3)
@@ -64,7 +81,10 @@ def test_hba1c_emit_without_latent_and_no_protocol_falls_through_to_non_dm() -> 
     baseline (around 5.4-5.9 depending on age)."""
     state = _mk_state()
     labs = derive_lab_values(
-        state=state, sex="M", age=55, has_diabetes=False,
+        state=state,
+        sex="M",
+        age=55,
+        has_diabetes=False,
         rng=np.random.default_rng(0),
     )
     assert "HbA1c" in labs
@@ -77,8 +97,12 @@ def test_hba1c_emit_latent_clamped_to_physiologic_range() -> None:
     clamps."""
     state = _mk_state()
     labs = derive_lab_values(
-        state=state, sex="M", age=55, has_diabetes=True,
-        rng=np.random.default_rng(0), hba1c_latent=20.0,
+        state=state,
+        sex="M",
+        age=55,
+        has_diabetes=True,
+        rng=np.random.default_rng(0),
+        hba1c_latent=20.0,
     )
     assert labs["HbA1c"] <= HBA1C_CLAMP_MAX
 
@@ -87,8 +111,12 @@ def test_hba1c_emit_latent_clamped_to_physiologic_range() -> None:
 def test_hba1c_emit_latent_clamped_below_floor() -> None:
     state = _mk_state()
     labs = derive_lab_values(
-        state=state, sex="M", age=55, has_diabetes=True,
-        rng=np.random.default_rng(0), hba1c_latent=2.0,
+        state=state,
+        sex="M",
+        age=55,
+        has_diabetes=True,
+        rng=np.random.default_rng(0),
+        hba1c_latent=2.0,
     )
     assert labs["HbA1c"] >= HBA1C_CLAMP_MIN
 

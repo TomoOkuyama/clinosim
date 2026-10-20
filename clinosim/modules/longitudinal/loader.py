@@ -21,7 +21,6 @@ from pydantic import BaseModel, Field
 from clinosim.modules.longitudinal.patterns import PATTERN_REGISTRY
 from clinosim.modules.longitudinal.patterns.ar1 import AR1Spec
 
-
 _LONGITUDINAL_DIR = Path(__file__).resolve().parents[2] / "locale" / "shared" / "longitudinal"
 
 
@@ -49,11 +48,11 @@ def _load_one(path: Path) -> AttributeSpec:
         raise ValueError(f"{path.name}: missing required field 'attribute_id'")
     pattern = raw.get("pattern")
     if pattern not in PATTERN_REGISTRY:
-        raise ValueError(
-            f"{path.name}: unknown pattern {pattern!r} — registered patterns: {sorted(PATTERN_REGISTRY)}"
-        )
+        raise ValueError(f"{path.name}: unknown pattern {pattern!r} — registered patterns: {sorted(PATTERN_REGISTRY)}")
     body_cls = PATTERN_REGISTRY[pattern]["spec"]
-    body_dict: dict[str, Any] = {k: v for k, v in raw.items() if k not in {"attribute_id", "pattern", "depends_on", "clinical_scope"}}
+    body_dict: dict[str, Any] = {
+        k: v for k, v in raw.items() if k not in {"attribute_id", "pattern", "depends_on", "clinical_scope"}
+    }
     initial = body_dict.pop("initial", {})
     clamp = body_dict.pop("clamp", None)
     noise = body_dict.pop("per_encounter_noise", None)  # read by callers, not AR1Spec
@@ -64,9 +63,7 @@ def _load_one(path: Path) -> AttributeSpec:
         "latent_name": body_dict.pop("latent_name"),
         "phi": ar1_section.get("phi", body_dict.get("phi")),
         "sigma": ar1_section.get("sigma", body_dict.get("sigma")),
-        "mean_reversion_target": ar1_section.get(
-            "mean_reversion_target", body_dict.get("mean_reversion_target")
-        ),
+        "mean_reversion_target": ar1_section.get("mean_reversion_target", body_dict.get("mean_reversion_target")),
         "clamp": clamp,
         "initial_mu": initial.get("mu"),
         "initial_sigma": initial.get("sigma"),

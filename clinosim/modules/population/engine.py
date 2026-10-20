@@ -845,9 +845,7 @@ def generate_population(
             from clinosim.modules.longitudinal.engine import initial_snapshot
             from clinosim.modules.population.aging import aging_sub_seed
 
-            _ls_rng = np.random.default_rng(
-                aging_sub_seed(person.person_id, base_year, "longitudinal:init")
-            )
+            _ls_rng = np.random.default_rng(aging_sub_seed(person.person_id, base_year, "longitudinal:init"))
             initial_snapshot(person, year=base_year, init_rng=_ls_rng)
             hh.members.append(person)
             registry.persons[pid] = person
