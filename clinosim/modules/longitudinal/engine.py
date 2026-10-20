@@ -166,7 +166,16 @@ def _apply_pattern(
         if person is None:
             raise ValueError("event pattern dispatch requires person argument")
         prior = person.longitudinal_history or []
-        context = {"continuous": dict(snapshot.continuous)}
+        # Phase 4b.2.α: context carries ``age`` (for age-band base rates)
+        # and ``chronic_conditions`` (for has_chronic rate modifiers)
+        # alongside the Phase 3 ``continuous`` latents. Keys unused by a
+        # given yaml are inert; Phase 3/4a/4b.1 yamls stay byte-identical.
+        _age = snapshot.year - person.date_of_birth.year if person.date_of_birth else 0
+        context = {
+            "continuous": dict(snapshot.continuous),
+            "age": _age,
+            "chronic_conditions": list(person.chronic_conditions),
+        }
         result = handler["step"](
             person.chronic_conditions,
             prior,
