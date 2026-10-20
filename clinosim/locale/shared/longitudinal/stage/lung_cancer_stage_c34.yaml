@@ -1,0 +1,40 @@
+# Lung cancer (C34) — AJCC 8 Markov stage ladder.
+#
+# Phase 4c of the longitudinal state-evolution subsystem (Issue #1701).
+# NSCLC natural history is more aggressive than most solid tumors;
+# transition rates higher than breast / colon / prostate reflect this.
+#
+# Initial — NSCLC diagnosed late (symptomatic presentation, screening
+#   programs limited in reach).
+# Progression — I→II: 0.18/yr, II→III: 0.12/yr, III→IV: 0.10/yr.
+
+attribute_id: lung_cancer_stage_c34
+pattern: markov
+depends_on: []
+clinical_scope:
+  requires_chronic_codes: ["C34"]
+  requires_age_band: [0, 120]
+
+state_name: lung_cancer_stage
+icd_base: C34
+states: ["AJCC I", "AJCC II", "AJCC III", "AJCC IV"]
+initial_distribution:
+  "AJCC I": 0.20
+  "AJCC II": 0.15
+  "AJCC III": 0.25
+  "AJCC IV": 0.40
+transitions:
+  "AJCC I":
+    "AJCC II": 0.18
+  "AJCC II":
+    "AJCC III": 0.12
+  "AJCC III":
+    "AJCC IV": 0.10
+  "AJCC IV": {}
+narrative_label:
+  en: "Lung cancer stage"
+  ja: "肺癌 ステージ"
+source:
+  - "Amin MB et al. AJCC Cancer Staging Manual 8e, Lung Chapter 36. Springer 2017."
+  - "NCCN Non-Small Cell Lung Cancer Guidelines v2024."
+  - "Goldstraw P et al. The IASLC Lung Cancer Staging Project: Proposals for Revision of the TNM Stage Groupings in the Forthcoming (Eighth) Edition. J Thorac Oncol 2016;11:39."

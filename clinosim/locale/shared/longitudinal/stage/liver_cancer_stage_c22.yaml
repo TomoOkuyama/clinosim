@@ -1,0 +1,51 @@
+# Liver cancer (C22) — BCLC Markov stage ladder.
+#
+# Phase 4c of the longitudinal state-evolution subsystem (Issue #1701).
+# BCLC (Barcelona Clinic Liver Cancer) staging is clinically authoritative
+# for HCC — NCCN, EASL, AASLD all cite BCLC for treatment allocation and
+# prognosis, so this attribute uses BCLC states instead of AJCC.
+#
+# States:
+#   BCLC 0 — very early (single ≤2 cm, Child-Pugh A, PS 0) → curative resection/ablation/transplant
+#   BCLC A — early (single or ≤3 nodules ≤3 cm) → curative options
+#   BCLC B — intermediate (multinodular, preserved function) → TACE
+#   BCLC C — advanced (vascular invasion / extra-hepatic) → systemic (sorafenib / lenvatinib / atezo-bev)
+#   BCLC D — terminal (Child-Pugh C or PS >2) → best supportive care; absorbing
+#
+# Initial — HCC often diagnosed intermediate-stage due to lack of
+#   screening in cirrhosis.
+# Progression — HCC natural history is faster than most solid tumors.
+
+attribute_id: liver_cancer_stage_c22
+pattern: markov
+depends_on: []
+clinical_scope:
+  requires_chronic_codes: ["C22"]
+  requires_age_band: [0, 120]
+
+state_name: liver_cancer_stage
+icd_base: C22
+states: ["BCLC 0", "BCLC A", "BCLC B", "BCLC C", "BCLC D"]
+initial_distribution:
+  "BCLC 0": 0.10
+  "BCLC A": 0.20
+  "BCLC B": 0.30
+  "BCLC C": 0.30
+  "BCLC D": 0.10
+transitions:
+  "BCLC 0":
+    "BCLC A": 0.20
+  "BCLC A":
+    "BCLC B": 0.18
+  "BCLC B":
+    "BCLC C": 0.15
+  "BCLC C":
+    "BCLC D": 0.20
+  "BCLC D": {}
+narrative_label:
+  en: "BCLC stage"
+  ja: "BCLC ステージ"
+source:
+  - "Reig M et al. BCLC strategy for prognosis prediction and treatment recommendation: 2022 update. J Hepatol 2022;76:681."
+  - "Singal AG et al. AASLD Practice Guidance on Prevention, Diagnosis, and Treatment of Hepatocellular Carcinoma. Hepatology 2023;78:1922."
+  - "EASL Clinical Practice Guidelines: Management of hepatocellular carcinoma. J Hepatol 2018;69:182."
