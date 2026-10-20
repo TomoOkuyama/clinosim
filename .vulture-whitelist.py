@@ -593,3 +593,14 @@ _.stopped_on_day  # modules/drug_safety/verdict.py::SafetySkipEntry — read via
 # cohort separately from mid-sim additions (newborns). Vulture only
 # scans `clinosim/`, so the test-only consumer is invisible to it.
 _.initial_person_ids  # modules/population/engine.py::PopulationRegistry — read via tests + follow-up newborn event pass
+
+# Phase 1 longitudinal subsystem (Issue #1695) — YearSnapshot dataclass
+# fields written by Phase 2 (Markov → chronic_stages) and Phase 3 (event →
+# new_complications / med_additions / med_removals). Serialised to CIF
+# via asdict() so vulture's call-graph scan does not see them, but
+# downstream readers (narrative, audit) consume them through the dict
+# form. See docs/superpowers/specs/2026-10-20-longitudinal-state-evolution-design.md §4.1.
+_.chronic_stages  # modules/longitudinal/snapshot.py::YearSnapshot — written by Phase 2 Markov
+_.new_complications  # modules/longitudinal/snapshot.py::YearSnapshot — written by Phase 3 event
+_.med_additions  # modules/longitudinal/snapshot.py::YearSnapshot — written by Phase 3 event
+_.med_removals  # modules/longitudinal/snapshot.py::YearSnapshot — written by Phase 3 event
