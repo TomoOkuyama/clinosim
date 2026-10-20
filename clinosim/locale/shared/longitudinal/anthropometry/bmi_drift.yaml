@@ -1,0 +1,41 @@
+# Adult BMI drift — AR(1) around the person's Layer-1 BMI anchor.
+#
+# Phase 3 of the longitudinal state-evolution subsystem (Issue #1705).
+#
+# Clinical basis: Rissanen AM et al, Int J Obes 1991;15:647 (Finnish
+# adult weight-change epidemiology) + Framingham longitudinal BMI
+# tracking. phi=0.95 reflects strong year-to-year persistence
+# (someone at BMI 32 this year will be ~32 next year, not 24).
+# sigma=0.6 BMI units matches the ~1 kg/yr adult drift SD after age
+# 30 (one BMI unit ≈ 2.9 kg at 170 cm, so ~0.6 BMI/yr SD matches
+# the published ~1 kg/yr).
+#
+# initial_distribution is NOT consumed under production — Layer-1
+# seeds snapshot.continuous["bmi"] = person.bmi directly after
+# initial_snapshot returns (see population/engine.py Phase 3 wiring).
+# The initial block below exists so the AttributeSpec validates;
+# values are a dummy lognormal around the US adult median.
+
+attribute_id: bmi_drift
+pattern: ar1
+depends_on: []
+clinical_scope:
+  requires_chronic_codes: []
+  requires_age_band: [18, 120]
+
+latent_name: bmi
+ar1:
+  phi: 0.95
+  sigma: 0.6
+  mean_reversion_target: 26.0
+clamp: [13.0, 70.0]
+initial:
+  mu: 3.258   # exp(3.258) ≈ 26.0 (dummy — overridden by Layer-1)
+  sigma: 0.15
+  clamp: [13.0, 70.0]
+narrative_label:
+  en: "BMI trajectory"
+  ja: "BMI 推移"
+source:
+  - "Rissanen AM et al. Determinants of weight gain and overweight in adult Finns. Int J Obes 1991;15:647."
+  - "Framingham Heart Study longitudinal BMI tracking (Kannel WB et al)."
