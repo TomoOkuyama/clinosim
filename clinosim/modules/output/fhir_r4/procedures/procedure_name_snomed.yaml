@@ -99,6 +99,55 @@ entries:
     snomed: "71651007"
     display_en: "Mammography"
 
+  # Oncology surveillance — colonoscopy (NCCN v3.2024 Colon §COL-E,
+  # Issue #1701 Phase 4e horizontal). SNOMED 73761001 verified
+  # 2026-10-21 via tx.fhir.org $lookup against SCT 20250201 Intl Edition.
+  - match: "colonoscopy"
+    snomed: "73761001"
+    display_en: "Colonoscopy"
+  - match: "大腸内視鏡"
+    snomed: "73761001"
+    display_en: "Colonoscopy"
+
+  # Oncology surveillance — CT of chest (NCCN v3.2024 NSCLC §FOLL-A,
+  # Issue #1701 Phase 4e horizontal). SNOMED 169069000 verified
+  # 2026-10-21 via tx.fhir.org $lookup against SCT 20250201 Intl Edition.
+  # NOTE: the "ct of chest" match goes before any broader "ct" entry
+  # if one is added later — first-match-wins ordering is load-bearing.
+  - match: "ct of chest"
+    snomed: "169069000"
+    display_en: "CT of chest"
+  - match: "胸部 ct"
+    snomed: "169069000"
+    display_en: "CT of chest"
+
+  # Oncology surveillance — esophagogastroduodenoscopy / EGD (NCCN
+  # v2.2024 Gastric §GAST-D, Issue #1701 Phase 4e horizontal). SNOMED
+  # 76009000 verified 2026-10-21 via tx.fhir.org $lookup against SCT
+  # 20250201 Intl Edition.
+  - match: "esophagogastroduodenoscopy"
+    snomed: "76009000"
+    display_en: "Esophagogastroduodenoscopy"
+  - match: "egd"
+    snomed: "76009000"
+    display_en: "Esophagogastroduodenoscopy"
+  - match: "上部消化管内視鏡"
+    snomed: "76009000"
+    display_en: "Esophagogastroduodenoscopy"
+
+  # Oncology surveillance — abdominal ultrasound (NCCN v2.2024 HCC
+  # §HCC-G, Issue #1701 Phase 4e horizontal). SNOMED 45036003 verified
+  # 2026-10-21 via tx.fhir.org $lookup against SCT 20250201 Intl Edition.
+  - match: "abdominal ultrasound"
+    snomed: "45036003"
+    display_en: "Ultrasonography of abdomen"
+  - match: "ultrasonography of abdomen"
+    snomed: "45036003"
+    display_en: "Ultrasonography of abdomen"
+  - match: "腹部超音波"
+    snomed: "45036003"
+    display_en: "Ultrasonography of abdomen"
+
   # Wound care / debridement.
   - match: "wound care"
     snomed: "225358003"
