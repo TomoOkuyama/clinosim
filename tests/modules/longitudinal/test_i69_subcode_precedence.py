@@ -29,7 +29,6 @@ from clinosim.modules.longitudinal.engine import advance_one_year, initial_snaps
 from clinosim.modules.longitudinal.loader import load_attribute_specs
 from clinosim.types.population import PersonRecord
 
-
 _SUB_YAML = """\
 attribute_id: stroke_sequela_stage_i69_3
 pattern: markov

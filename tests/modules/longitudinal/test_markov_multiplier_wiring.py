@@ -20,7 +20,6 @@ from clinosim.modules.longitudinal.engine import advance_one_year, initial_snaps
 from clinosim.modules.longitudinal.loader import load_attribute_specs
 from clinosim.types.population import PersonRecord
 
-
 # Base p=0.1 CKD advance; a multiplier of 3.0 → 0.3 effective rate.
 _CKD_YAML = """\
 attribute_id: ckd_stage_n18_mult_test

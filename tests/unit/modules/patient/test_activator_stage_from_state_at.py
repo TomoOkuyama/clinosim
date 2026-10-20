@@ -11,12 +11,12 @@ from __future__ import annotations
 
 from datetime import date
 
+import numpy as np
 import pytest
 
 from clinosim.modules.longitudinal.snapshot import YearSnapshot
 from clinosim.modules.patient.activator import _derive_chronic_conditions
 from clinosim.types.population import PersonRecord
-import numpy as np
 
 
 @pytest.mark.unit

@@ -62,16 +62,6 @@ class PersonRecord:
     phone_home: str = ""
     phone_mobile: str = ""
     chronic_conditions: list[str] = field(default_factory=list)
-    # Issue #1572 (Phase 2.5 prep for `_disease_progression`): per-ICD
-    # stage snapshot. Keyed by the base ICD prefix (e.g. ``"N18"``,
-    # ``"J44"``) and valued with the Layer-2 stage string
-    # (``"CKD G3a"``, ``"GOLD 2"``, etc.) sampled by
-    # ``clinosim.modules.patient.activator._generate_stage``. Written
-    # back by ``activate_patient`` the first time a disease is staged
-    # for the person so the aging-hook disease-progression pass has a
-    # Layer-1 handle on current stage. Empty for persons whose
-    # chronic conditions have no stage distribution (I10, F32, etc.).
-    disease_stages: dict[str, str] = field(default_factory=dict)
     current_medications: list[HomeMedication] = field(default_factory=list)  # active medications (see #452)
     # Occupation category (drives work-related injury risk); see PatientProfile.occupation
     occupation: str = "other"
@@ -117,16 +107,6 @@ class PersonRecord:
     # only observe the mother — a two-parent model would push toward
     # ~3-4x per the same literature (Phase C.2 follow-up).
     atopic_predisposition: float = 1.0
-    # Issue #1581 — year-indexed stage history. The latest-only
-    # ``disease_stages[code]`` dict (above) is kept for backward
-    # compatibility; this field adds a per-year append log written by
-    # ``aging._disease_progression`` so encounter-time readers can
-    # look up the stage AS OF the encounter year rather than always
-    # seeing the end-of-sim snapshot. Keyed as
-    # ``{code_base: {year: stage}}``. Empty for codes outside the
-    # progression scope (CKD / COPD / HF / CCS / dementia) and for
-    # test fixtures that bypass the aging path.
-    disease_stage_history: dict[str, dict[int, str]] = field(default_factory=dict)
     # Phase 1 longitudinal state-evolution subsystem (Issue #1695,
     # ``docs/superpowers/specs/2026-10-20-longitudinal-state-evolution-design.md``).
     # One entry per sim year per alive person, populated by

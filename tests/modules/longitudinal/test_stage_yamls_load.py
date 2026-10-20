@@ -6,7 +6,6 @@ import pytest
 
 from clinosim.modules.longitudinal.loader import load_attribute_specs
 
-
 # attribute_id → (icd_base, expected states list)
 EXPECTED: dict[str, tuple[str, list[str]]] = {
     "ckd_stage_n18": ("N18", ["CKD G1", "CKD G2", "CKD G3a", "CKD G3b", "CKD G4", "CKD G5"]),
