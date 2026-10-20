@@ -31,7 +31,5 @@ def test_bclc_step_from_early_may_progress():
     """Over many trials from BCLC 0 the step must sometimes return BCLC A."""
     load_attribute_specs.cache_clear()
     spec = load_attribute_specs()["liver_cancer_stage_c22"].body
-    progressed = sum(
-        1 for seed in range(100) if step("BCLC 0", np.random.default_rng(seed), spec) == "BCLC A"
-    )
+    progressed = sum(1 for seed in range(100) if step("BCLC 0", np.random.default_rng(seed), spec) == "BCLC A")
     assert progressed > 0, "BCLC 0 never progressed to BCLC A across 100 seeds — Markov row misread"
