@@ -127,6 +127,13 @@ def test_only_verified_snomed_codes():
         # Phase 4e — NCCN breast cancer surveillance (verified 2026-10-21
         # via tx.fhir.org $lookup against SCT 20250201 Intl Edition).
         "71651007",  # Mammography
+        # Phase 4e horizontal — NCCN oncology surveillance for 4 more
+        # cancer families (verified 2026-10-21 via tx.fhir.org $lookup
+        # against SCT 20250201 Intl Edition).
+        "73761001",  # Colonoscopy (C18 colon)
+        "169069000",  # CT of chest (C34 lung)
+        "76009000",  # Esophagogastroduodenoscopy / EGD (C16 gastric)
+        "45036003",  # Ultrasonography of abdomen (C22 liver HCC)
     }
     for _match, snomed, _display in _load_entries():
         assert snomed in verified, (

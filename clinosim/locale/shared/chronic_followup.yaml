@@ -204,6 +204,11 @@ C18:  # Colon cancer
   prescriptions_renewed: true
   radiation_therapy_eligible: true    # Issue #957 slice 3
   visit_duration_minutes: 20
+  # Phase 4e horizontal — NCCN v3.2024 Colon Cancer §COL-E: colonoscopy
+  # annually post-dx (CPT 45378, SNOMED 73761001 verified 2026-10-21 via
+  # tx.fhir.org $lookup against SCT 20250201 Intl Edition).
+  procedures:
+    - {code: "45378", snomed: "73761001", name_en: "Colonoscopy", name_ja: "大腸内視鏡検査", frequency: "annual"}
 
 C22:  # Liver cancer
   visit_reason:
@@ -216,6 +221,12 @@ C22:  # Liver cancer
   prescriptions_renewed: true
   radiation_therapy_eligible: true    # Issue #957 slice 3
   visit_duration_minutes: 20
+  # Phase 4e horizontal — NCCN v2.2024 HCC §HCC-G: abdominal US (ships
+  # as annual; semi-annual cadence tracked under #1701 残). CPT 76700,
+  # SNOMED 45036003 verified 2026-10-21 via tx.fhir.org $lookup against
+  # SCT 20250201 Intl Edition.
+  procedures:
+    - {code: "76700", snomed: "45036003", name_en: "Abdominal ultrasound", name_ja: "腹部超音波検査", frequency: "annual"}
 
 C34:  # Lung cancer
   visit_reason:
@@ -228,6 +239,11 @@ C34:  # Lung cancer
   prescriptions_renewed: true
   radiation_therapy_eligible: true    # Issue #957 slice 3
   visit_duration_minutes: 20
+  # Phase 4e horizontal — NCCN v3.2024 NSCLC §FOLL-A: CT chest annually
+  # post-dx. CPT 71250, SNOMED 169069000 verified 2026-10-21 via
+  # tx.fhir.org $lookup against SCT 20250201 Intl Edition.
+  procedures:
+    - {code: "71250", snomed: "169069000", name_en: "CT of chest", name_ja: "胸部 CT", frequency: "annual"}
 
 C50:  # Breast cancer — female-dominant but ~1% male incidence (Issue #957);
       # follow-up schedule shared (same tumor markers, same hormonal-therapy
@@ -287,6 +303,13 @@ C16:  # Gastric cancer follow-up
   prescriptions_renewed: true
   radiation_therapy_eligible: true    # Issue #957 slice 3
   visit_duration_minutes: 20
+  # Phase 4e horizontal — NCCN v2.2024 Gastric Cancer §GAST-D: EGD
+  # annually post-dx. CPT 43235, SNOMED 76009000 verified 2026-10-21 via
+  # tx.fhir.org $lookup against SCT 20250201 Intl Edition (plan-author
+  # candidate 1919006 was wrong — tx.fhir.org returned "Egyptians"
+  # instead of EGD, caught by this repo's SNOMED verification policy).
+  procedures:
+    - {code: "43235", snomed: "76009000", name_en: "Esophagogastroduodenoscopy", name_ja: "上部消化管内視鏡検査", frequency: "annual"}
 
 C25:  # Pancreatic cancer follow-up
   visit_reason:
