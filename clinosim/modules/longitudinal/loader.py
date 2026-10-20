@@ -69,7 +69,11 @@ def _build_ar1_body(body_dict: dict[str, Any]) -> tuple[AR1Spec, dict[str, Any]]
         "clamp": clamp,
         "initial_mu": initial.get("mu"),
         "initial_sigma": initial.get("sigma"),
-        "initial_clamp": initial.get("clamp"),
+        # Phase 3.5 polish: initial.clamp defaults to top-level clamp when
+        # omitted. The two values are typically identical (step clamp +
+        # initial draw clamp both enforce physiologic bounds), so the DRY
+        # default removes the redundancy + divergence risk.
+        "initial_clamp": initial.get("clamp") or clamp,
     }
     return AR1Spec(**body_payload), {"noise": noise, "narrative": narrative, "source": source}
 
