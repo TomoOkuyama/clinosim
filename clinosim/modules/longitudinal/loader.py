@@ -136,7 +136,7 @@ def load_attribute_specs() -> dict[str, AttributeSpec]:
     if not _LONGITUDINAL_DIR.exists():
         return {}
     specs: dict[str, AttributeSpec] = {}
-    for path in sorted(_LONGITUDINAL_DIR.glob("*.yaml")):
+    for path in sorted(_LONGITUDINAL_DIR.rglob("*.yaml")):
         spec = _load_one(path)
         specs[spec.attribute_id] = spec
     return specs

@@ -1,0 +1,38 @@
+# I25 Ischemic Heart Disease — Markov stage transitions (CCS I-III).
+#
+# Phase 2 of the longitudinal state-evolution subsystem (Issue #1696).
+#
+# Clinical basis: COURAGE optimal medical arm long-term follow-up
+# (Boden WE et al, NEJM 2007 and Sedlis SP et al, NEJM 2015); SOLVD
+# stable-angina natural history. CCS class reflects functional
+# limitation and worsens with CAD progression + suboptimal secondary
+# prevention. Rates reflect all-cohort average without conditioning on
+# revascularisation status, LVEF, or guideline-directed therapy
+# adherence. CCS IV (angina at rest) is intentionally omitted here —
+# CCS IV arrives via the disease-YAML encounter path as an active
+# acute-coronary scenario, not a chronic stage. CCS III is terminal.
+
+attribute_id: ischemic_heart_stage_i25
+pattern: markov
+depends_on: []
+clinical_scope:
+  requires_chronic_codes: ["I25"]
+  requires_age_band: [0, 120]
+
+state_name: ischemic_heart_stage
+icd_base: I25
+states: ["CCS I", "CCS II", "CCS III"]
+initial_distribution:
+  "CCS I": 0.40
+  "CCS II": 0.40
+  "CCS III": 0.20
+transitions:
+  "CCS I": {"CCS II": 0.050}
+  "CCS II": {"CCS III": 0.080}
+  "CCS III": {}
+narrative_label:
+  en: "CCS angina class"
+  ja: "CCS 狭心症分類"
+source:
+  - "Boden WE et al. Optimal medical therapy with or without PCI for stable coronary disease. NEJM 2007;356:1503."
+  - "Sedlis SP et al. Effect of PCI on long-term survival in patients with stable ischemic heart disease. NEJM 2015;373:1937."

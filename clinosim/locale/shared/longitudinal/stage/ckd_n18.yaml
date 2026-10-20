@@ -1,0 +1,48 @@
+# N18 Chronic Kidney Disease — Markov stage transitions (KDIGO G1-G5).
+#
+# Phase 2 of the longitudinal state-evolution subsystem (Issue #1696).
+# See docs/superpowers/specs/2026-10-20-longitudinal-state-evolution-design.md
+# §4.2.2 for schema.
+#
+# Clinical basis: Thompson S et al, Kidney Int 2013; CRIC cohort (Grams ME
+# et al, JASN 2013); NEPTUNE natural-history data. Progression accelerates
+# with stage; G4 → G5 is the fastest single-year transition in the natural
+# history. G5 is terminal here — further mortality is driven by
+# condition-reactive qx in `_condition_reactive_mortality` (Issue #1564
+# Phase 2).
+#
+# Modifier scaling (uncontrolled DM, HTN) is applied externally via the
+# engine's `multiplier_fn` kwarg (Phase 2 Task 7) sourced from
+# `comorbidity_progression_multipliers.yaml`.
+
+attribute_id: ckd_stage_n18
+pattern: markov
+depends_on: []
+clinical_scope:
+  requires_chronic_codes: ["N18"]
+  requires_age_band: [0, 120]
+
+state_name: ckd_stage
+icd_base: N18
+states: ["CKD G1", "CKD G2", "CKD G3a", "CKD G3b", "CKD G4", "CKD G5"]
+initial_distribution:
+  "CKD G1": 0.05
+  "CKD G2": 0.30
+  "CKD G3a": 0.30
+  "CKD G3b": 0.20
+  "CKD G4": 0.10
+  "CKD G5": 0.05
+transitions:
+  "CKD G1": {"CKD G2": 0.015}
+  "CKD G2": {"CKD G3a": 0.025}
+  "CKD G3a": {"CKD G3b": 0.050}
+  "CKD G3b": {"CKD G4": 0.080}
+  "CKD G4": {"CKD G5": 0.120}
+  "CKD G5": {}
+narrative_label:
+  en: "CKD stage"
+  ja: "CKD ステージ"
+source:
+  - "Thompson S et al. Cause of death in patients with reduced kidney function. Kidney Int 2013;84:1041."
+  - "Grams ME et al. CRIC cohort progression. JASN 2013;24:493."
+  - "KDIGO 2024 CKD Clinical Practice Guideline."
