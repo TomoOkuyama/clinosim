@@ -260,6 +260,25 @@ M17:  # Osteoarthritis
 # here as monthly chronic MRs without their regimen partners, producing
 # clinically-nonsensical monotherapy MedicationRequests (Oxaliplatin
 # 130 mg standalone every ~34 days for C18 patients, etc.).
+C16:  # Gastric cancer — oral fluoropyrimidine adjuvant (Capecitabine US / S-1 JP)
+  # Issue #1701: C16 chronic patients audited at p=2000 5y had zero
+  # medications. Standard adjuvant chemo for gastric cancer after
+  # curative resection is oral fluoropyrimidine (Capecitabine US /
+  # Tegafur-Gimeracil-Oteracil [S-1] JP) ± oxaliplatin / cisplatin
+  # cycles. The IV cycle partners (oxaliplatin, cisplatin, trastuzumab
+  # for HER2+) emit via chemo_regimens.yaml per Issue #1319 convention;
+  # only the oral monotherapy fits chronic home-med path.
+  #
+  # Clinical basis: NCCN Gastric Cancer v2.2024 (US); 胃癌治療ガイドライン
+  # 2021 第6版 (JP, JGCA). ToGA / ACTS-GC / CLASSIC adjuvant trials.
+  # fluoropyrimidine drug_class enables the active-regimen mutex in
+  # patient/activator._derive_home_medications (same guard C18 uses).
+  medications:
+    - {drug: "Capecitabine", drug_ja: "カペシタビン", dose: "1000mg/m2", drug_class: "fluoropyrimidine", route: "PO", frequency: "bid", probability: 0.35, locale_exclude: ["JP"]}
+    - {drug: "Tegafur-Gimeracil-Oteracil", drug_ja: "ティーエスワン", dose: "80mg", drug_class: "fluoropyrimidine", route: "PO", frequency: "bid", probability: 0.5, locale_exclude: ["US"]}
+  monitoring:
+    - {test: "Creatinine", frequency: "every_3_days", intent: "Chemotherapy renal function monitoring"}
+
 C18:  # Colon cancer — oral fluoropyrimidine (Capecitabine, XELOX/XELIRI adjuvant)
   # Issue #1329: `drug_class: fluoropyrimidine` on Capecitabine enables
   # the active-regimen mutex in `patient/activator._derive_home_medications`.
@@ -353,6 +372,29 @@ C61:  # Prostate cancer — androgen deprivation therapy (ADT)
 # path renders `MedicationRequest.medicationCodeableConcept.text`
 # only. A follow-up PR will add the codes; the emit path continues
 # to work in either state.
+
+F10:  # Alcohol use disorder — MAT (medication-assisted treatment)
+  # Issue #1701: F10.2x chronic patients audited at p=2000 5y had zero
+  # MAT medications. Standard-of-care for diagnosed AUD (SAMHSA TIP 49
+  # 2020; APA 2017 AUD guideline) is any of three FDA-approved agents
+  # — naltrexone first-line, acamprosate for maintenance, disulfiram
+  # for motivated patients. Real US MAT penetration is 10-20 % of
+  # diagnosed cohort (SAMHSA N-SSATS), reflecting under-prescribing.
+  # Non-pharm patients route to counselling / 12-step via encounter
+  # paths (deferred, tracked under #1698 specialty routing).
+  #
+  # JP context: 日本アルコール関連障害医学会 2018 治療指針 lists the
+  # same three agents (plus nalmefene via alcohol-reduction indication
+  # ネルメフェン, PMDA-approved 2019); Japan's AUD MAT prescribing rate
+  # is markedly lower (~2-5 % of diagnosed cohort per 厚生労働省
+  # アルコール使用障害調査) but the same agents are available.
+  medications:
+    - {drug: "Naltrexone", drug_ja: "ナルトレキソン", dose: "50mg", route: "PO", frequency: "daily", probability: 0.15}
+    - {drug: "Acamprosate", drug_ja: "アカンプロサート", dose: "666mg", route: "PO", frequency: "tid", probability: 0.08}
+    - {drug: "Disulfiram", drug_ja: "ジスルフィラム", dose: "250mg", route: "PO", frequency: "daily", probability: 0.03}
+  monitoring:
+    - {test: "AST", frequency: "every_3_days", intent: "AUD hepatic monitoring (hepatotoxicity + background liver injury)"}
+    - {test: "ALT", frequency: "every_3_days", intent: "AUD hepatic monitoring"}
 
 F32:  # Depressive episode (single)
   # Issue #1137 cluster axis 6 — severity-gated prescribing per
