@@ -605,6 +605,14 @@ _.new_complications  # modules/longitudinal/snapshot.py::YearSnapshot — writte
 _.med_additions  # modules/longitudinal/snapshot.py::YearSnapshot — written by Phase 3 event
 _.med_removals  # modules/longitudinal/snapshot.py::YearSnapshot — written by Phase 3 event
 
+# Issue #1699: PatientProfile.perinatal_history — populated by
+# simulator/perinatal.py::_build_newborn_patient with Z38.0 + sampled
+# P-chapter codes (preterm / RDS / jaundice). Downstream readers
+# (narrative birth-history summary, audit) consume it; FHIR Condition
+# emit does NOT walk it (Z38 lives on Encounter.diagnosis; P-chapter
+# codes are perinatal lineage, not chronic problem-list items).
+_.perinatal_history  # types/patient.py::PatientProfile — populated by perinatal._build_newborn_patient
+
 # Phase 3 longitudinal — EventSpec + RateModifierWhen pydantic fields.
 # event_name is yaml provenance (humans read it in logs / audit; the
 # engine dispatches via emits_icd + attribute_id). model_post_init is a

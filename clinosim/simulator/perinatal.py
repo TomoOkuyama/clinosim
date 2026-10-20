@@ -209,11 +209,28 @@ def _newborn_conditions_sub_seed(mother_id: str) -> int:
     return int.from_bytes(digest, "big") % (2**32)
 
 
-def _sample_newborn_conditions(mother_id: str, delivery_date: date) -> list[ChronicCondition]:
-    """Sample newborn perinatal conditions from ``perinatal.yaml::
-    newborn_conditions``. Returns a list of ChronicCondition entries
-    (each with ``onset_date = delivery_date``); the caller merges them
-    onto the newborn's ``PatientProfile.chronic_conditions``.
+def _is_perinatal_code(code: str) -> bool:
+    """Classify newborn condition code as perinatal-only vs persistent.
+
+    Issue #1699: codes starting with ``P`` (ICD-10 chapter XVI "Certain
+    conditions originating in the perinatal period") and ``Z38`` (liveborn
+    birth admission) are one-time episode codes that do not persist as
+    chronic. Everything else (L22 diaper dermatitis, L20.9 atopic dermatitis,
+    future first-year chronic additions) stays in ``chronic_conditions``.
+    """
+    return code.startswith("P") or code.startswith("Z38")
+
+
+def _sample_newborn_conditions(
+    mother_id: str, delivery_date: date
+) -> tuple[list[ChronicCondition], list[ChronicCondition]]:
+    """Sample newborn conditions from ``perinatal.yaml::newborn_conditions``.
+
+    Returns ``(persistent, perinatal)`` tuple. ``persistent`` entries land
+    on ``PatientProfile.chronic_conditions`` (first-year chronic that
+    carries forward); ``perinatal`` entries land on
+    ``PatientProfile.perinatal_history`` (one-time episode codes:
+    P-chapter + Z38, per Issue #1699).
 
     Per-mother sub-RNG (``_newborn_conditions_sub_seed``) makes the
     outcome deterministic per birth and RNG-neutral against every
@@ -221,11 +238,19 @@ def _sample_newborn_conditions(mother_id: str, delivery_date: date) -> list[Chro
     """
     cfg = load_perinatal_config()
     entries = cfg.get("newborn_conditions") or []
+    persistent: list[ChronicCondition] = []
+    perinatal: list[ChronicCondition] = []
     if not entries:
-        return []
+        return persistent, perinatal
     rng = np.random.default_rng(_newborn_conditions_sub_seed(mother_id))
     onset = delivery_date
-    out: list[ChronicCondition] = []
+
+    def _route(cond: ChronicCondition) -> None:
+        if _is_perinatal_code(cond.code):
+            perinatal.append(cond)
+        else:
+            persistent.append(cond)
+
     for entry in entries:
         if not isinstance(entry, dict):
             continue
@@ -235,7 +260,7 @@ def _sample_newborn_conditions(mother_id: str, delivery_date: date) -> list[Chro
         prob = float(entry.get("probability") or 0.0)
         if float(rng.random()) >= prob:
             continue
-        out.append(ChronicCondition(code=code, onset_date=onset))
+        _route(ChronicCondition(code=code, onset_date=onset))
         # Conditional triggers (e.g. preterm → RDS)
         for trig in entry.get("triggers") or []:
             if not isinstance(trig, dict):
@@ -243,8 +268,8 @@ def _sample_newborn_conditions(mother_id: str, delivery_date: date) -> list[Chro
             trig_code = str(trig.get("code") or "")
             trig_prob = float(trig.get("conditional_probability") or 0.0)
             if trig_code and float(rng.random()) < trig_prob:
-                out.append(ChronicCondition(code=trig_code, onset_date=onset))
-    return out
+                _route(ChronicCondition(code=trig_code, onset_date=onset))
+    return persistent, perinatal
 
 
 def _newborn_patient_id(mother_id: str) -> str:
@@ -395,6 +420,8 @@ def _build_newborn_patient(
     # need a dict lookup against the locale name pool and is a known
     # follow-up.
     newborn_phonetic = mother.name.phonetic if mother.name is not None else None
+    # Issue #1699: route sampled newborn conditions into chronic vs perinatal.
+    _newborn_persistent, _newborn_perinatal = _sample_newborn_conditions(mother.patient_id, delivery_date)
     return PatientProfile(
         patient_id=newborn_id,
         household_id=mother.household_id,
@@ -439,12 +466,19 @@ def _build_newborn_patient(
         #     father / other guardian is a follow-up scope).
         contact=_newborn_contact_from_mother(mother),
         preferred_language=mother.preferred_language,
-        # Z38.0 (single liveborn) is universal; add the sampled newborn
-        # conditions (jaundice / preterm / RDS gated on preterm / atopic
-        # + diaper dermatitis) from ``perinatal.yaml::newborn_conditions``.
-        chronic_conditions=[
+        # Issue #1699: Z38.0 (single liveborn admission dx) and perinatal
+        # P-chapter codes (P07 preterm, P22 RDS, P59 jaundice) are
+        # one-time episode codes — not chronic. They route to
+        # ``perinatal_history`` instead. First-year chronic entries
+        # (L22 diaper dermatitis, L20.9 atopic dermatitis) land on
+        # ``chronic_conditions`` as before. Z38 remains on the delivery
+        # Encounter.diagnosis via the ClinicalDiagnosis emit below, so
+        # FHIR output preserves the birth lineage without stamping it
+        # as an active indefinite problem-list item.
+        chronic_conditions=_newborn_persistent,
+        perinatal_history=[
             ChronicCondition(code="Z38.0", onset_date=delivery_date),
-            *_sample_newborn_conditions(mother.patient_id, delivery_date),
+            *_newborn_perinatal,
         ],
     )
 
