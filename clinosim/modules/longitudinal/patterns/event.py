@@ -23,7 +23,7 @@ import operator as _op
 from typing import Any, NamedTuple
 
 import numpy as np
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class EventResult(NamedTuple):
@@ -33,16 +33,6 @@ class EventResult(NamedTuple):
     emits_icd: str
     med_additions: list[str]
     med_removals: list[str]
-
-
-class EventSpec(BaseModel):
-    """Parameters for a one-shot ICD-onset event attribute."""
-
-    event_name: str
-    emits_icd: str
-    base_annual_rate: float = Field(..., ge=0.0, le=1.0)
-    rate_modifiers: list[dict[str, Any]] = Field(default_factory=list)
-    one_shot: bool = True
 
 
 _OPERATORS = {
@@ -55,24 +45,56 @@ _OPERATORS = {
 }
 
 
-def _modifier_matches(modifier: dict[str, Any], context: dict[str, Any]) -> bool:
+class RateModifierWhen(BaseModel):
+    """Trigger clause for a rate modifier. Phase 3 ships ``attribute`` triggers only."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    attribute: str
+    operator: str
+    value: float
+
+    def model_post_init(self, _ctx: Any) -> None:
+        if self.operator not in _OPERATORS:
+            raise ValueError(
+                f"RateModifier.when.operator {self.operator!r} not in {sorted(_OPERATORS)}"
+            )
+
+
+class RateModifier(BaseModel):
+    """One multiplicative factor on an event's base annual rate."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    when: RateModifierWhen
+    factor: float = Field(..., ge=0.0)
+
+
+class EventSpec(BaseModel):
+    """Parameters for a one-shot ICD-onset event attribute."""
+
+    event_name: str
+    emits_icd: str
+    base_annual_rate: float = Field(..., ge=0.0, le=1.0)
+    rate_modifiers: list[RateModifier] = Field(default_factory=list)
+    one_shot: bool = True
+
+
+def _modifier_matches(modifier: RateModifier, context: dict[str, Any]) -> bool:
     """Evaluate one ``when:`` trigger against ``context``.
 
-    Phase 3 ships ``attribute`` triggers only. An ``attribute`` key whose
-    name is absent from ``context["continuous"]`` returns False (no-op).
+    Phase 3 ships ``attribute`` triggers only. An ``attribute`` whose
+    name is absent from ``context["continuous"]`` returns False (no-op) —
+    e.g. a non-DM person running against a yaml with an hba1c modifier.
+    Unknown operator strings raise at EventSpec validation time (not here).
     """
-    when = modifier.get("when") or {}
-    attribute = when.get("attribute")
-    if attribute is not None:
-        continuous = (context or {}).get("continuous") or {}
-        if attribute not in continuous:
-            return False
-        op_sym = when.get("operator")
-        threshold = when.get("value")
-        if op_sym not in _OPERATORS:
-            return False
-        return bool(_OPERATORS[op_sym](float(continuous[attribute]), float(threshold)))
-    return False
+    continuous = (context or {}).get("continuous") or {}
+    if modifier.when.attribute not in continuous:
+        return False
+    op_fn = _OPERATORS.get(modifier.when.operator)
+    if op_fn is None:  # pragma: no cover — EventSpec validation catches this earlier
+        return False
+    return bool(op_fn(float(continuous[modifier.when.attribute]), float(modifier.when.value)))
 
 
 def step(
@@ -100,7 +122,7 @@ def step(
     rate = float(spec.base_annual_rate)
     for modifier in spec.rate_modifiers:
         if _modifier_matches(modifier, context or {}):
-            rate *= float(modifier.get("factor", 1.0))
+            rate *= float(modifier.factor)
     rate = min(1.0, max(0.0, rate))
     fired = float(rng.random()) < rate
     return EventResult(fired, spec.emits_icd, [], [])

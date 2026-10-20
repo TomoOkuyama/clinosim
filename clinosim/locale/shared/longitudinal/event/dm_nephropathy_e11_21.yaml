@@ -15,7 +15,11 @@ attribute_id: dm_nephropathy_onset_e11_21
 pattern: event
 depends_on: [hba1c]
 clinical_scope:
-  requires_chronic_codes: ["E11", "E10"]
+  # Phase 3 ships T2DM (E11) complications only. T1DM (E10) companion
+  # yamls that emit E10.21 / E10.311 / E10.42 are deferred to Phase 4
+  # — scoping E11-emitting events to E10 patients would route T2DM-
+  # coded nephropathy onto T1DM-only patients.
+  requires_chronic_codes: ["E11"]
   requires_age_band: [18, 120]
 
 event_name: dm_nephropathy_onset
