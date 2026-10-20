@@ -49,6 +49,13 @@ E11.9:  # Type 2 Diabetes
   medications:
     - {drug: "Metformin", drug_ja: "メトホルミン", dose: "500mg", route: "PO", frequency: "bid"}
     - {drug: "Sliding scale insulin", drug_ja: "スライディングスケール インスリン", dose: "", route: "SC", frequency: "qid", probability: 0.4}
+    # Phase 4a (#1697) — longitudinal escalation drugs. probability: 0.0
+    # keeps the activation sampler from ever picking them; only the
+    # longitudinal engine's dm_escalate_sglt2i_e11 / dm_escalate_insulin_e11
+    # event yamls add these via resolve_med_name lookup on fire.
+    - {drug: "Empagliflozin", drug_ja: "エンパグリフロジン", dose: "10mg", drug_class: "sglt2i", route: "PO", frequency: "daily", probability: 0.0}
+    - {drug: "Dapagliflozin", drug_ja: "ダパグリフロジン", dose: "10mg", drug_class: "sglt2i", route: "PO", frequency: "daily", probability: 0.0}
+    - {drug: "Insulin glargine", drug_ja: "インスリン グラルギン", dose: "10U", drug_class: "basal_insulin", route: "SC", frequency: "daily", probability: 0.0}
   monitoring:
     - {test: "Glucose", frequency: "qid", times: [6, 11, 17, 21], intent: "Blood glucose monitoring (DM)"}
   hold_conditions:

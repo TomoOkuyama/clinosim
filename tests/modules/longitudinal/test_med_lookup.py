@@ -33,3 +33,20 @@ def test_resolve_is_cached():
     hm1 = resolve_med_name("Metformin")
     hm2 = resolve_med_name("Metformin")
     assert hm1 == hm2
+
+
+def test_resolve_empagliflozin_full_metadata():
+    """Phase 4a Task 6: Empagliflozin added under E11.9 with probability: 0.0."""
+    hm = resolve_med_name("Empagliflozin")
+    assert hm.drug_name == "Empagliflozin"
+    assert hm.route == "PO"
+    assert hm.frequency == "daily"
+    assert hm.dose == "10mg"
+
+
+def test_resolve_insulin_glargine_full_metadata():
+    hm = resolve_med_name("Insulin glargine")
+    assert hm.drug_name == "Insulin glargine"
+    assert hm.route == "SC"
+    assert hm.frequency == "daily"
+    assert hm.dose == "10U"
