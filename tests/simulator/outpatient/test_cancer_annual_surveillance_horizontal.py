@@ -32,7 +32,6 @@ from clinosim.modules.staff.engine import StaffRoster
 from clinosim.simulator.outpatient import _simulate_outpatient_visit
 from clinosim.types.patient import PatientProfile
 
-
 CASES = [
     ("C34", "71250", "F", 68),  # lung CT
     ("C18", "45378", "F", 65),  # colonoscopy
