@@ -40,6 +40,64 @@ def load_newborn_config() -> dict[str, Any]:
         return yaml.safe_load(f) or {}
 
 
+# Issue #1736 — once-per-newborn baseline-screen dedup tracker. Mirrors
+# the Phase 4d ``_phase4d_baseline_procedures_emitted`` pattern in
+# ``clinosim/simulator/outpatient.py`` (CPAP / polysomnography), scoped
+# per-``patient_id`` and per-SNOMED-code. Attribute storage on the
+# baby's ``PatientProfile`` is unsuitable here because sibling deliveries
+# by the same mother share ``patient_id = f"{mother_id}-BABY"`` but each
+# receives a FRESH ``PatientProfile`` instance from the perinatal path,
+# so attribute-based dedup would silently miss the sibling re-fire —
+# which is exactly the shape the p=2000 US seed=42 5y audit surfaced
+# (14 % of ``-BABY`` subjects carried a duplicate hearing + metabolic
+# screen Procedure). The module-level dict is reset at the top of
+# ``run_beta`` (``clinosim/simulator/engine.py``) so each ``simulate()``
+# invocation starts fresh, and tests clear it per-test via the autouse
+# fixture in ``tests/conftest.py``.
+_PERINATAL_BASELINE_EMITTED: dict[str, set[str]] = {}
+
+# SNOMED CT concept ids of the once-per-newborn screens this tracker
+# gates: AABR hearing screen (232717001) + tandem-MS neonatal metabolic
+# screen (405058008). Any future CCHD pulse-ox Procedure code would join
+# this set.
+PERINATAL_BASELINE_SNOMEDS: frozenset[str] = frozenset({"232717001", "405058008"})
+
+
+def has_perinatal_baseline_emitted(patient_id: str, snomed: str) -> bool:
+    """True iff a once-per-newborn baseline screen with ``snomed`` has
+    already been emitted for ``patient_id`` within this simulation run.
+
+    Returns False for an empty ``patient_id`` (defensive — the enricher
+    then still goes through the normal emit path, so a mis-shaped record
+    is not silently dropped).
+    """
+    if not patient_id:
+        return False
+    return snomed in _PERINATAL_BASELINE_EMITTED.get(patient_id, frozenset())
+
+
+def mark_perinatal_baseline_emitted(patient_id: str, snomed: str) -> None:
+    """Record that a once-per-newborn baseline screen with ``snomed`` has
+    been emitted for ``patient_id``. No-op on an empty ``patient_id``.
+    """
+    if not patient_id:
+        return
+    _PERINATAL_BASELINE_EMITTED.setdefault(patient_id, set()).add(snomed)
+
+
+def reset_perinatal_baseline_tracker() -> None:
+    """Clear the once-per-newborn baseline dedup tracker.
+
+    Called:
+    * at the top of ``clinosim.simulator.engine.run_beta`` so each
+      ``simulate()`` invocation starts with an empty tracker;
+    * from the autouse pytest fixture in ``tests/conftest.py`` so tests
+      that re-run ``enrich_newborn`` on a shared ``POP-xxx-BABY`` id
+      across sibling tests do not see leaked state.
+    """
+    _PERINATAL_BASELINE_EMITTED.clear()
+
+
 def is_newborn_birth_record(record: Any) -> bool:
     """True iff this record represents a newborn's own birth admission
     (perinatal.py sets ``condition_event.condition_type = "newborn_birth"``

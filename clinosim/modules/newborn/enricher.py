@@ -30,7 +30,9 @@ from clinosim.modules.newborn.engine import (
     build_newborn_shift_vitals,
     build_ophthalmic_prophylaxis,
     build_vitamin_k_administrations,
+    has_perinatal_baseline_emitted,
     is_newborn_birth_record,
+    mark_perinatal_baseline_emitted,
 )
 
 logger = logging.getLogger(__name__)
@@ -60,6 +62,39 @@ def enrich_newborn(ctx: Any) -> None:
         except Exception:  # pragma: no cover — defensive
             logger.exception("newborn enricher failed on record; continuing")
             continue
+        # Issue #1736 — once-per-newborn dedup for the hearing (SNOMED
+        # 232717001) + metabolic (SNOMED 405058008) screens. A mother
+        # with ≥ 2 deliveries produces two newborn-side CIF records that
+        # share ``patient_id = f"{mother_id}-BABY"`` and both carry
+        # ``condition_type = "newborn_birth"``; absent dedup, both
+        # records emit the baseline screens under the shared ``-BABY``
+        # subject, so a FHIR consumer sees the once-per-newborn screens
+        # fire twice for the same ``Patient`` resource. The ``build_*``
+        # helpers above stay pure (they always compute the Procedure so
+        # the determinism / shape unit tests keep working); we only
+        # suppress the APPEND here when the tracker already records this
+        # ``(patient_id, snomed)`` pair. Mirrors Phase 4d
+        # ``baseline_only`` dedup in simulator/outpatient.py (CPAP /
+        # polysomnography).
+        _pid = str(_get(_get(record, "patient", None), "patient_id", "") or "")
+        if new_hearing is not None and _pid:
+            if has_perinatal_baseline_emitted(_pid, "232717001"):
+                new_hearing = None
+            else:
+                mark_perinatal_baseline_emitted(_pid, "232717001")
+        if new_metabolic is not None and _pid:
+            if has_perinatal_baseline_emitted(_pid, "405058008"):
+                # Keep the metabolic Procedure AND its sibling
+                # ServiceRequest / Specimen / DiagnosticReport workflow
+                # stash in lock-step — dropping the Procedure without
+                # dropping the workflow would ship SR / Specimen / DR
+                # without an accompanying Procedure, which is exactly
+                # the kind of split-emit split-brain the by-design
+                # registry forbids.
+                new_metabolic = None
+                new_metabolic_workflow = None
+            else:
+                mark_perinatal_baseline_emitted(_pid, "405058008")
         if new_bili or new_cchd or new_metabolic_workflow:
             ext = _get(record, "extensions", None)
             if ext is None:

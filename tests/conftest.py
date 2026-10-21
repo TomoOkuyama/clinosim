@@ -29,7 +29,24 @@ from datetime import date
 
 import pytest
 
+from clinosim.modules.newborn import reset_perinatal_baseline_tracker
 from clinosim.types.patient import ChronicCondition, HomeMedication, PatientProfile
+
+
+@pytest.fixture(autouse=True)
+def _reset_perinatal_baseline_tracker() -> None:
+    """Issue #1736 — the once-per-newborn hearing + metabolic screen
+    dedup tracker is module-level state in
+    ``clinosim.modules.newborn.engine``. Tests that re-run
+    ``enrich_newborn`` on a shared ``POP-xxx-BABY`` id across sibling
+    tests would otherwise see leaked state (the hearing / metabolic
+    Procedure silently suppressed on the second test because an earlier
+    test already fired for the same patient_id). Clear it before every
+    test so each test starts from a clean slate — same pattern as
+    production, where ``run_beta`` resets the tracker at the top of
+    every ``simulate()``.
+    """
+    reset_perinatal_baseline_tracker()
 
 
 @pytest.fixture
