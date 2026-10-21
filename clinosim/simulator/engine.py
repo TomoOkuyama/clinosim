@@ -966,6 +966,39 @@ def _run_healthcare_calendar_phase(
         patient_records.append(opd_record)
         n_calendar += 1
 
+        # Phase 1 of #1698 — specialty routing fan-out. For a chronic_followup
+        # tick (NOT pediatric / screening / vaccination), synthesise one
+        # additional outpatient encounter per matching (specialty, cadence
+        # period) that hasn't fired yet for this patient this year/half/quarter.
+        # Non-affected cohorts (patients with no chronic in
+        # ``specialty_routing.yaml``) see zero additional emits and stay
+        # byte-identical. The RNG draws for each specialty emit come from the
+        # same per-event ``ev_rng`` as the primary visit, so unrelated events
+        # on other patients remain untouched.
+        if event.event_type == "chronic_followup":
+            from clinosim.simulator.hospital_ops import resolve_department
+            from clinosim.simulator.outpatient import _specialty_fanout_tick
+
+            for specialty_name, _cadence, _period_key in _specialty_fanout_tick(patient, visit_time):
+                # Direct specialty → available-dept resolver (bypasses the
+                # chronic-code → specialty map in resolve_outpatient_department
+                # — we already KNOW the specialty name).
+                specialty_dept = resolve_department(specialty_name, hospital_ops)
+                specialty_record = _simulate_outpatient_visit(
+                    patient,
+                    "chronic_followup",
+                    visit_time,
+                    roster,
+                    ev_rng,
+                    chronic_code=event.disease_id,
+                    followup_spec={"labs": [], "visit_reason": f"{specialty_name} follow-up"},
+                    country=config.country,
+                    config=config,
+                    department_id=specialty_dept,
+                )
+                patient_records.append(specialty_record)
+                n_calendar += 1
+
     return len(calendar_events), n_calendar
 
 
