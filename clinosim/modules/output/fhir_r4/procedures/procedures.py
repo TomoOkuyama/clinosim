@@ -124,8 +124,20 @@ def _build_procedure(
     # routed its CPT codes through this emit path for JP output; horizontal
     # extensions reusing the Phase 4d / 4e ``procedures:`` yaml schema will
     # too, so the fix lives at the common choke point.
+    #
+    # Cycle-2 M2 (mirror case): when the CIF record pins
+    # ``procedure_system_key`` (e.g. "snomed-ct" for the newborn hearing
+    # screen 232717001 and newborn metabolic screen 405058008), honour it
+    # as the authoritative system URI — SNOMED concept ids stamped under
+    # the country default CPT / K-codes URI are rejected by a strict
+    # US-Core / JP-Core consumer. The pinned key wins over the Phase 4d.2
+    # inference below; it is strictly additive (empty key preserves the
+    # pre-#1701 country-default + Phase 4d.2 behaviour).
+    _primary_system_key_override = str(proc.get("procedure_system_key", "") or "")
     _primary_system = code_system
-    if is_jp(country) and not proc_code_jp and proc_code_us and primary_code == proc_code_us:
+    if _primary_system_key_override:
+        _primary_system = get_system_uri(_primary_system_key_override)
+    elif is_jp(country) and not proc_code_jp and proc_code_us and primary_code == proc_code_us:
         _primary_system = get_system_uri("cpt")
 
     coding_entries: list[dict[str, Any]] = [

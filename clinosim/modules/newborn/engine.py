@@ -320,6 +320,7 @@ def build_hearing_screen_procedure(record: Any) -> ProcedureRecord | None:
         encounter_id=enc_id,
         procedure_type="hearing_screen_aabr",
         procedure_code=proc_code,
+        procedure_system_key="snomed-ct",  # 232717001 is a SNOMED CT concept id, not CPT
         start_datetime=sched,
         end_datetime=sched + timedelta(minutes=15),
         duration_minutes=15,
@@ -403,6 +404,7 @@ def build_metabolic_screen_procedure(record: Any, country: str) -> ProcedureReco
         encounter_id=enc_id,
         procedure_type="metabolic_screen_tandem_ms",
         procedure_code=proc_code,
+        procedure_system_key="snomed-ct",  # 405058008 is a SNOMED CT concept id, not CPT
         start_datetime=sched,
         end_datetime=sched + timedelta(minutes=5),
         duration_minutes=5,
