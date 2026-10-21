@@ -186,6 +186,9 @@ jobs:
         uses: peter-evans/create-pull-request@v8
         with:
           # GITHUB_TOKEN suffices for same-repo PRs; no PAT needed.
+          # signoff: true appends `Signed-off-by:` so the PR passes the
+          # DCO check without a maintainer rebase (PR #1720 history).
+          signoff: true
           commit-message: |
             chore(ci): refresh .test_durations from nightly ubuntu CI
 
