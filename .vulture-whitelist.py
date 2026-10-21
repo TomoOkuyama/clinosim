@@ -238,6 +238,7 @@ _.procedure_code_jp  # types/procedure.py:28
 _.procedure_code_us  # types/procedure.py:29
 _.end_datetime  # types/procedure.py:35
 _.duration_minutes  # types/procedure.py:36 (also :79 for another class)
+_.procedure_system_key  # types/procedure.py:38 — read by fhir_r4/procedures/procedures.py::_build_procedure to pin SNOMED/LOINC URI on neonatal screens (cycle-2 M2)
 _.primary_surgeon_id  # types/procedure.py:39
 _.assistant_ids  # types/procedure.py:41
 _.estimated_blood_loss_ml  # types/procedure.py:48
