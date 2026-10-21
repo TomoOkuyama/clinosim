@@ -190,6 +190,20 @@ def _apply_pattern(
                 snapshot.new_complications.append(result.emits_icd)
                 if result.emits_icd not in person.chronic_conditions:
                     person.chronic_conditions.append(result.emits_icd)
+                # Clinical-coherence mutex: F33 (recurrent depressive
+                # disorder) subsumes F32 (depressive episode, single)
+                # per ICD-10-CM §F30-F39. When the F33 onset event
+                # fires on a person already carrying F32 from the
+                # initial-cohort sampler, drop F32 so the problem list
+                # reflects the subsumption. The sampler applies the
+                # same mutex at generation time; this call covers
+                # mid-sim onset. RNG-shape neutral (no rng draw).
+                # See ``clinosim/modules/population/condition_mutex.py``.
+                from clinosim.modules.population.condition_mutex import (
+                    apply_depression_mutex,
+                )
+
+                apply_depression_mutex(person.chronic_conditions)
             # snapshot.med_additions carries the fire_marker when set (dedup
             # token for Task 2's prior-year scan + CIF emit resolves back
             # via fire_marker → spec lookup). When no fire_marker is set,

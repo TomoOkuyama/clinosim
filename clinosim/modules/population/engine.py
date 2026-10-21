@@ -709,6 +709,21 @@ def generate_population(
                         continue  # temporal-state markers — see primary loop
                     conditions.append(code)
 
+            # Clinical-coherence mutex: F33 (recurrent depressive disorder)
+            # subsumes F32 (depressive episode, single) per ICD-10-CM
+            # §F30-F39. Both are drawn independently in the prevalence
+            # loop above (``F32`` ~10-13 %, ``F33`` ~3-4 % in US) so a
+            # non-trivial fraction of adults land with both. The mutex is
+            # applied AFTER both Bernoulli draws so the RNG cursor is
+            # byte-identical to the pre-mutex path — only the resulting
+            # ``conditions`` list is filtered, not the random stream.
+            # See ``clinosim/modules/population/condition_mutex.py``.
+            from clinosim.modules.population.condition_mutex import (
+                apply_depression_mutex,
+            )
+
+            apply_depression_mutex(conditions)
+
             # Issue #1126 (F-1 Obesity): BMI-derived Condition insertion.
             # Rationale: E66 has ~100 % clinical correlation with BMI ≥ 30 per
             # ICD-10-CM diagnostic criteria. Sampling E66 independently from a
