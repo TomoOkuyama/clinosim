@@ -112,6 +112,17 @@ class TestRunExports:
             def convert(self, cif_dir, out_dir, ctx):
                 seen.append(out_dir)
 
+        # Force builtin registration to run FIRST so the spy below actually
+        # replaces the builtin. `_ensure_builtins` fires lazily on the
+        # first `get_adapter` / `available_formats` call; without this
+        # eager touch, when this test runs isolated inside a pytest-split
+        # shard (sibling tests in the same file not loading the registry
+        # before us) the spy registers against an empty table, then
+        # `_run_exports` → `get_adapter` triggers `_ensure_builtins` which
+        # overrides the spy with the real builtin and the real FHIR
+        # exporter runs against an empty tmp_path, raising
+        # FileNotFoundError on `cif/structural/patients`.
+        available_formats()
         register_output_adapter(FhirSpy())  # replaces builtin for this test
         _run_exports(["fhir"], str(tmp_path / "cif"), str(tmp_path), "US")
         assert seen and seen[0].endswith("/fhir_r4")
