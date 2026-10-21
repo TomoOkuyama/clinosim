@@ -680,7 +680,40 @@ def _simulate_outpatient_visit(
     #                     abdominal ultrasound).
     # Dedup is tracked via per-patient attributes attached here (plan Task
     # 4 Ruling — PatientProfile has no built-in encounter history field).
-    _chronic_procedures = spec.get("procedures") if chronic_code else None
+    #
+    # Phase 4e cycle-2 (#1701 partial) — union ``procedures:`` from EVERY
+    # chronic_followup block the patient's ``chronic_conditions`` qualify
+    # for, not just the visit's primary ``spec``. Pre-fix a C34 lung
+    # patient whose chronic_visit landed on primary=I10 (yaml-order first
+    # chronic_followup match) never emitted CT 71250 because the I10 block
+    # has no ``procedures:``; surfaced by the p=2000 US seed=42 5y audit
+    # (C34 CT fired 0× across 10 patient-years while C50 / C18 / C16 / C22
+    # fired at ~70-100 %). Procedures are RNG-neutral (ProcedureRecord
+    # construction consumes no draws from ``rng``), so the union only adds
+    # records on affected visits and leaves cohorts without an unemitted
+    # surveillance procedure byte-identical.
+    _chronic_procedures: list = list(spec.get("procedures") or []) if chronic_code else []
+    # Phase 4e cycle-2 union is scoped to chronic_followup visits so a
+    # mammography_screening / annual_health_screening / pediatric_visit
+    # (which already share this dispatcher) does not accidentally fire a
+    # survivorship Procedure under a screening-event banner.
+    if chronic_code and visit_type == "chronic_followup":
+        _seen_snomeds = {str(p.get("snomed") or "") for p in _chronic_procedures}
+        from clinosim.locale.loader import load_chronic_followup as _load_chronic_followup
+
+        _fu_all = _load_chronic_followup()
+        for _cc in getattr(patient, "chronic_conditions", []) or []:
+            _cc_code = getattr(_cc, "code", None) or str(_cc)
+            if not _cc_code or _cc_code == chronic_code:
+                continue
+            _other_spec = _fu_all.get(_cc_code)
+            if not _other_spec:
+                continue
+            for _other_proc in _other_spec.get("procedures") or []:
+                _other_snomed = str(_other_proc.get("snomed") or "")
+                if _other_snomed and _other_snomed not in _seen_snomeds:
+                    _chronic_procedures.append(_other_proc)
+                    _seen_snomeds.add(_other_snomed)
     if _chronic_procedures:
         from clinosim.types.procedure import ProcedureRecord
 
