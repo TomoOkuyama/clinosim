@@ -52,7 +52,15 @@ I10:  # Hypertension
 E11.9:  # Type 2 Diabetes
   medications:
     - {drug: "Metformin", drug_ja: "メトホルミン", dose: "500mg", route: "PO", frequency: "bid"}
-    - {drug: "Sliding scale insulin", drug_ja: "スライディングスケール インスリン", dose: "", route: "SC", frequency: "qid", probability: 0.4}
+    # Cycle 2 M3 (#1739) — Sliding scale insulin removed from the home-med
+    # sampler. Sliding scale is an INPATIENT-ONLY PRN protocol (DKA / HHS /
+    # peri-op hyperglycemia) per ADA Standards of Care in Diabetes 2024 §9,
+    # which explicitly rejects sliding-scale for ambulatory chronic T2DM.
+    # The inpatient DKA protocol
+    # (`clinosim/modules/disease/reference_data/diabetic_ketoacidosis.yaml`)
+    # legitimately uses sliding scale during admission; the chronic home
+    # pathway below drives insulin via Phase 4a's dm_escalate_insulin_e11
+    # event (basal, Insulin glargine) at HbA1c > 10 instead.
     # Phase 4a (#1697) — longitudinal escalation drugs. probability: 0.0
     # keeps the activation sampler from ever picking them; only the
     # longitudinal engine's dm_escalate_sglt2i_e11 / dm_escalate_insulin_e11
