@@ -18,6 +18,14 @@
 #     [--poll-seconds N]     (default: 20)
 #     [--timeout-seconds N]  (default: 1800 = 30 min)
 #     [--exclude-pattern RE] (default: '(?i)informational')
+#     [--require-pattern RE] (default: '(?i)Unit tests|Integration tests')
+#                            A rollup check whose name matches this regex
+#                            MUST be present before SUCCESS is accepted.
+#                            Guards against the post-push race where the
+#                            light compliance / docs / DCO jobs finish seconds
+#                            after push while the heavy `CI` workflow is still
+#                            in queue-start limbo and its child jobs have not
+#                            yet populated into statusCheckRollup.
 #
 # Exit codes:
 #   0   — all required checks terminal + SUCCESS/SKIPPED/NEUTRAL
@@ -36,12 +44,22 @@ shift
 POLL=20
 TIMEOUT=1800
 EXCLUDE='(?i)informational'
+# Required-presence pattern — at least one rollup check whose `name` matches
+# this regex MUST be present before SUCCESS is accepted. Guards against the
+# post-push race where the compliance/docs/DCO jobs finish seconds after
+# push while the heavier `CI` workflow (Unit + Integration shards) is still
+# in queue-start limbo and its child jobs have not yet been populated into
+# `statusCheckRollup`. See
+# `~/.claude/.../memory/feedback_gh_pr_checks_watch_premature_exit.md`
+# (追補² — 2026-10-21 clinosim session s105, PR #1734 incident).
+REQUIRE='(?i)Unit tests|Integration tests'
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --poll-seconds)    POLL="$2";    shift 2 ;;
     --timeout-seconds) TIMEOUT="$2"; shift 2 ;;
     --exclude-pattern) EXCLUDE="$2"; shift 2 ;;
+    --require-pattern) REQUIRE="$2"; shift 2 ;;
     *) echo "unknown arg: $1" >&2; exit 2 ;;
   esac
 done
@@ -50,6 +68,13 @@ if ! [[ "$PR" =~ ^[0-9]+$ ]]; then
   echo "pr-number must be numeric, got: $PR" >&2
   exit 2
 fi
+
+# Capture the PR HEAD SHA at script start — if a new push lands mid-wait,
+# the fresh workflow run's checks will target a different headRefOid, and
+# we must restart the wait against that new HEAD rather than exit on the
+# obsolete rollup. (A guard, not a loop reset — surface the SHA shift via
+# log and continue polling; the new rollup replaces the old.)
+start_sha=$(gh pr view "$PR" --json headRefOid --jq .headRefOid)
 
 start=$(date +%s)
 
@@ -63,6 +88,12 @@ while :; do
     exit 124
   fi
 
+  current_sha=$(gh pr view "$PR" --json headRefOid --jq .headRefOid)
+  if [[ "$current_sha" != "$start_sha" ]]; then
+    echo "wait-pr-ci: PR #$PR HEAD shifted ${start_sha:0:8} → ${current_sha:0:8} — rebasing wait against new HEAD" >&2
+    start_sha="$current_sha"
+  fi
+
   rollup=$(gh pr view "$PR" --json statusCheckRollup --jq '.statusCheckRollup')
 
   pending_count=$(printf '%s' "$rollup" | jq --arg ex "$EXCLUDE" \
@@ -72,6 +103,19 @@ while :; do
     pending_names=$(printf '%s' "$rollup" | jq -r --arg ex "$EXCLUDE" \
       '[.[] | select((.name // "") | test($ex) | not) | select(.status != "COMPLETED") | .name] | join(", ")')
     echo "wait-pr-ci: PR #$PR pending=$pending_count ($pending_names) elapsed=${elapsed}s" >&2
+    sleep "$POLL"
+    continue
+  fi
+
+  # Required-presence guard. The rollup is "zero pending" — but is the
+  # heavy CI workflow actually represented? If the required pattern has
+  # zero matches among the current checks, those jobs have not yet
+  # populated into the rollup (post-push race), so keep waiting rather
+  # than falsely declaring SUCCESS.
+  require_hits=$(printf '%s' "$rollup" | jq --arg req "$REQUIRE" \
+    '[.[] | select((.name // "") | test($req))] | length')
+  if [[ "$require_hits" == "0" ]]; then
+    echo "wait-pr-ci: PR #$PR rollup has 0 checks matching --require-pattern /${REQUIRE}/ — likely post-push race, waiting elapsed=${elapsed}s" >&2
     sleep "$POLL"
     continue
   fi
