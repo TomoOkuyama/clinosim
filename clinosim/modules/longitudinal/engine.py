@@ -240,6 +240,23 @@ def initial_snapshot(
         if aid not in winners:
             continue
         _apply_pattern(specs[aid], snap, init_rng, prev_snapshot=None, person=person)
+    # Phase 4b.2.γ: see `advance_one_year` — an event may have added a
+    # chronic code mid-pass; dispatch any newly-in-scope Markov on the
+    # same snapshot via its initial draw.
+    post_scope = {aid for aid in order if _attribute_in_scope(specs[aid], person, year)}
+    newly_in_scope = post_scope - in_scope
+    if newly_in_scope:
+        post_winners = _select_markov_winners(specs, post_scope, person)
+        for aid in order:
+            if aid not in newly_in_scope or aid not in post_winners:
+                continue
+            spec = specs[aid]
+            if spec.pattern != "markov":
+                continue
+            assert isinstance(spec.body, MarkovSpec)
+            if spec.body.icd_base in snap.chronic_stages:
+                continue
+            _apply_pattern(spec, snap, init_rng, prev_snapshot=None, person=person)
     person.longitudinal_history.append(snap)
     return snap
 
@@ -298,6 +315,27 @@ def advance_one_year(
         else:
             mult = 1.0
         _apply_pattern(spec, snap, year_rng, prev_snapshot=prev, multiplier=mult, person=person)
+    # Phase 4b.2.γ: an event dispatched above may have appended a new
+    # chronic code to `person.chronic_conditions`; re-evaluate scope so a
+    # Markov attribute newly gated-in by that code dispatches its initial
+    # stage draw on this same year's snapshot, not next year's. RNG draws
+    # are strictly additive — attributes already dispatched above don't
+    # re-draw. Cohorts without a mid-sim event→Markov acquisition stay
+    # byte-identical.
+    post_scope = {aid for aid in order if _attribute_in_scope(specs[aid], person, year)}
+    newly_in_scope = post_scope - in_scope
+    if newly_in_scope:
+        post_winners = _select_markov_winners(specs, post_scope, person)
+        for aid in order:
+            if aid not in newly_in_scope or aid not in post_winners:
+                continue
+            spec = specs[aid]
+            if spec.pattern != "markov":
+                continue
+            assert isinstance(spec.body, MarkovSpec)
+            if spec.body.icd_base in snap.chronic_stages:
+                continue
+            _apply_pattern(spec, snap, year_rng, prev_snapshot=prev, multiplier=1.0, person=person)
     person.longitudinal_history.append(snap)
     return snap
 
