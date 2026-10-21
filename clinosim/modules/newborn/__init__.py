@@ -25,6 +25,7 @@ scope). See the #1252 issue comment for the module-boundary rationale.
 """
 
 from clinosim.modules.newborn.engine import (
+    PERINATAL_BASELINE_SNOMEDS,
     build_apgar_scores,
     build_bilirubin_observations,
     build_cchd_pulse_ox,
@@ -33,12 +34,16 @@ from clinosim.modules.newborn.engine import (
     build_newborn_shift_vitals,
     build_ophthalmic_prophylaxis,
     build_vitamin_k_administrations,
+    has_perinatal_baseline_emitted,
     is_newborn_birth_record,
     load_newborn_config,
+    mark_perinatal_baseline_emitted,
+    reset_perinatal_baseline_tracker,
 )
 from clinosim.modules.newborn.enricher import enrich_newborn
 
 __all__ = [
+    "PERINATAL_BASELINE_SNOMEDS",
     "build_apgar_scores",
     "build_bilirubin_observations",
     "build_cchd_pulse_ox",
@@ -48,6 +53,9 @@ __all__ = [
     "build_ophthalmic_prophylaxis",
     "build_vitamin_k_administrations",
     "enrich_newborn",
+    "has_perinatal_baseline_emitted",
     "is_newborn_birth_record",
     "load_newborn_config",
+    "mark_perinatal_baseline_emitted",
+    "reset_perinatal_baseline_tracker",
 ]

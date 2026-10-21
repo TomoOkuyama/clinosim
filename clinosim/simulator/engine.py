@@ -1504,6 +1504,15 @@ def run_beta(
     if config is None:
         config = SimulatorConfig()
 
+    # Issue #1736 — the newborn baseline-screen dedup tracker (hearing +
+    # metabolic once-per-newborn Procedures) is module-level state in
+    # ``clinosim.modules.newborn.engine``; clear it at the top of every
+    # ``run_beta`` call so a second ``simulate()`` within the same Python
+    # process starts from a clean slate.
+    from clinosim.modules.newborn import reset_perinatal_baseline_tracker as _reset_perinatal
+
+    _reset_perinatal()
+
     rng = determinism.default_rng(config.random_seed)
     # F1: P1/P2/P3/P4/P4' below derive per-key sub-seeds from
     # master_seed instead of consuming the shared `rng` stream, so that
