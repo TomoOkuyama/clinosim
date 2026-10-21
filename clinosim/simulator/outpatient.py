@@ -936,3 +936,88 @@ def _simulate_outpatient_visit(
         )
 
     return record
+
+
+# ---------------------------------------------------------------------
+# Phase 1 of #1698 — specialty routing fan-out helper.
+# ---------------------------------------------------------------------
+#
+# Called from the engine's chronic_followup dispatcher right after
+# ``patient_records.append(opd_record)`` to compute which specialty
+# encounters to synthesise additively on top of the primary care /
+# internal medicine visit stream. Returns a list of
+# ``(specialty, cadence, period_key)`` tuples that the caller then
+# fans out into fresh ``_simulate_outpatient_visit`` calls with the
+# resolved specialty department.
+#
+# Dedup state lives on the patient via a dynamic attribute
+# ``_phase1_specialty_visits_emitted`` of shape
+# ``set[tuple[specialty_name, year, period_slot | None]]`` where
+# ``period_slot`` is ``None`` for annual, ``1|2`` for semi_annual
+# (H1 Jan-Jun / H2 Jul-Dec), ``1..4`` for quarterly (Q1-Q4).
+#
+# RNG neutral: no draws here — the caller consumes RNG inside the
+# downstream ``_simulate_outpatient_visit`` call. Patients with zero
+# matching routes see an empty return, so the engine performs zero
+# additional emits and their byte-identity is preserved.
+def _specialty_fanout_tick(patient, chronic_event_time):  # noqa: ANN001 — PatientProfile not type-hinted to avoid circular import
+    """Return list of ``(specialty, cadence, period_key)`` tuples to
+    synthesise at this chronic_followup tick. Updates per-patient
+    dedup tracker in place."""
+    from clinosim.locale.loader import load_specialty_routing
+
+    routes = load_specialty_routing()
+    if not routes:
+        return []
+
+    chronic_codes = []
+    for c in getattr(patient, "chronic_conditions", []) or []:
+        code = getattr(c, "code", None) or (c if isinstance(c, str) else "")
+        if code:
+            chronic_codes.append(str(code))
+    if not chronic_codes:
+        return []
+
+    emitted = getattr(patient, "_phase1_specialty_visits_emitted", None)
+    if emitted is None:
+        emitted = set()
+        patient._phase1_specialty_visits_emitted = emitted
+
+    year = chronic_event_time.year
+    month = chronic_event_time.month
+
+    out: list[tuple[str, str, tuple[int, int | None]]] = []
+    seen_specialty_this_tick: set[str] = set()
+    for route in routes:
+        requires = list(route.get("requires_chronic") or [])
+        prefix = list(route.get("requires_chronic_prefix") or [])
+        matched = False
+        if requires:
+            matched = any(code in requires for code in chronic_codes)
+        if not matched and prefix:
+            matched = any(any(code.startswith(p) for p in prefix) for code in chronic_codes)
+        if not matched:
+            continue
+        specialty = str(route.get("specialty") or "")
+        cadence = str(route.get("cadence") or "")
+        if not specialty or not cadence:
+            continue
+        # Multi-cancer-family (C50 + C18) must not double-emit oncology on
+        # the same tick — guard before computing period_key.
+        if specialty in seen_specialty_this_tick:
+            continue
+        if cadence == "annual":
+            period_slot: int | None = None
+        elif cadence == "semi_annual":
+            period_slot = 1 if month <= 6 else 2
+        elif cadence == "quarterly":
+            period_slot = (month - 1) // 3 + 1
+        else:
+            continue
+        key = (specialty, year, period_slot)
+        if key in emitted:
+            continue
+        emitted.add(key)
+        seen_specialty_this_tick.add(specialty)
+        out.append((specialty, cadence, (year, period_slot)))
+    return out
