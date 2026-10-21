@@ -5,9 +5,10 @@ useless if psychiatry visits land on internal_medicine via the rollup.
 
 from __future__ import annotations
 
+from pathlib import Path
+
 import pytest
 import yaml
-from pathlib import Path
 
 from clinosim.simulator.hospital_ops import resolve_department
 
