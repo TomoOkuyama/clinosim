@@ -1,0 +1,49 @@
+# Specialty routing (Phase 1 — US, Issue #1698).
+#
+# Chronic condition → clinical specialty + guideline-based visit cadence.
+# The outpatient dispatcher reads this table on each chronic_followup
+# iteration and synthesises one additional per-(specialty, cadence period)
+# encounter per patient-year, additively on top of the primary care /
+# internal medicine chronic_followup stream.
+#
+# Phase 1 ships cadence-driven fan-out only. Phase 2 adds:
+#   - stage gating (CCS I → PCP only vs CCS III → cardio every 6 mo)
+#   - per-specialty chief-complaint catalog
+#   - JP locale split (JP 診療科 differ from US names)
+#   - ServiceRequest / Encounter.referralRequest emit
+# Phase 2 is tracked under META #1694.
+#
+# Cadence values match the Phase 4e / 4f tracker shape in
+# clinosim/simulator/outpatient.py:
+#   annual       — once per calendar year
+#   semi_annual  — once per calendar half (H1 Jan-Jun, H2 Jul-Dec)
+#   quarterly    — once per calendar quarter (Q1-Q4)
+
+routes:
+  # Oncology — all C-chapter chronic codes, annual survivorship surveillance.
+  # Multi-cancer-family patients (e.g. C50 + C18) see ONE oncology visit per
+  # calendar year, deduped at specialty level in the dispatcher tracker.
+  - requires_chronic_prefix: ["C"]
+    specialty: oncology
+    cadence: annual
+    clinical_basis: "NCCN survivorship guidelines (per cancer family — generic annual Phase 1 proxy; Phase 2 may add family-specific cadence overrides)"
+
+  # Cardiology — AFib, chronic HF, chronic IHD. Semi-annual stable follow-up.
+  - requires_chronic: ["I48", "I50", "I25"]
+    specialty: cardiology
+    cadence: semi_annual
+    clinical_basis: "ACC/AHA 2019 Chronic HF Guideline (I50) + 2019 Chronic Coronary Syndromes (I25) + ACC/AHA 2023 AFib Guideline (I48) — stable chronic cardiology follow-up"
+
+  # Psychiatry — depressive and anxiety disorders. Quarterly treatment-phase
+  # follow-up. Phase 1 fires regardless of severity; Phase 2 will stage-gate
+  # on PHQ-9 / GAD-7 bands.
+  - requires_chronic: ["F32", "F33", "F41.1"]
+    specialty: psychiatry
+    cadence: quarterly
+    clinical_basis: "APA 2010 Practice Guideline for the Treatment of Depressive Disorder + VA/DoD 2022 Clinical Practice Guideline for the Management of MDD — treatment-phase quarterly follow-up"
+
+  # Pulmonology — COPD. Annual stable follow-up.
+  - requires_chronic: ["J44"]
+    specialty: pulmonology
+    cadence: annual
+    clinical_basis: "GOLD 2024 — stable COPD maintenance follow-up (q6-12mo per GOLD stage; Phase 1 picks the annual lower bound)"
