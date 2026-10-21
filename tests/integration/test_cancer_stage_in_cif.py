@@ -28,21 +28,13 @@ def _clear_loader() -> None:
 
 @pytest.mark.integration
 def test_cancer_patients_gain_stage_history_across_5y():
-    """A C-code adult who carried the cancer at sim-start (initial
-    cohort) must carry its icd_base key in
-    longitudinal_history[-1].chronic_stages after 5 sim years.
-
-    Phase 4b.2.β carve-out: a person who ACQUIRES the cancer mid-sim
-    via the new onset-event dispatch is NOT required to have the stage
-    on the final snapshot — the engine's `in_scope` is computed at the
-    top of each year, before event dispatch fires, so a Markov
-    stage attribute only picks up a mid-sim-acquired cancer starting
-    the YEAR AFTER onset. This test narrows to initial-cohort cancers
-    for the final-snapshot stage assertion."""
+    """A C-code adult must carry its icd_base key in
+    longitudinal_history[-1].chronic_stages after 5 sim years, whether
+    the cancer was present at sim-start (initial cohort) or acquired
+    mid-sim via the Phase 4b.2.β onset-event dispatch (Phase 4b.2.γ
+    makes same-year Markov initial draw guaranteed via scope
+    re-evaluation after event fire)."""
     registry = generate_population(size=200, country="US", rng=np.random.default_rng(42), base_year=2024)
-    initial_c_codes = {}
-    for pid, person in registry.persons.items():
-        initial_c_codes[pid] = {b for b in CANCER_ICD_BASES if any(c.startswith(b) for c in person.chronic_conditions)}
     for year in (2025, 2026, 2027, 2028):
         advance_population(registry, year=year, locale="US")
     found_counts = {b: 0 for b in CANCER_ICD_BASES}
@@ -50,11 +42,9 @@ def test_cancer_patients_gain_stage_history_across_5y():
         if not person.longitudinal_history:
             continue
         last = person.longitudinal_history[-1]
-        initial = initial_c_codes.get(person.person_id, set())
         for b in CANCER_ICD_BASES:
             if any(c.startswith(b) for c in person.chronic_conditions):
-                if b in initial:
-                    assert b in last.chronic_stages, f"{person.person_id} missing {b} stage (initial cohort C-code)"
+                assert b in last.chronic_stages, f"{person.person_id} missing {b} stage"
                 found_counts[b] += 1
     assert sum(found_counts.values()) >= 1, f"sample has no cancer patients — bump size or seed: {found_counts}"
 
