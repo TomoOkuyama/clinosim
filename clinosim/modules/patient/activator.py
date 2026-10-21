@@ -850,7 +850,14 @@ def activate_patient(
         # pregnancies via ``state_history("pregnancy")``. Shallow copy —
         # PatientProfile does not mutate periods.
         state_periods=list(getattr(person, "state_periods", []) or []),
-        longitudinal_history=list(getattr(person, "longitudinal_history", []) or []),
+        # Cycle 2 H1 (#1735): alias (not shallow-copy) so that
+        # subsequent ``advance_one_year`` appends to the shared
+        # ``person.longitudinal_history`` list are visible on this
+        # cached ``PatientProfile`` too. Prior ``list(...)`` wrapper
+        # froze the inpatient-admit snapshot, so inpatient CIFs for
+        # mid-sim admits emitted a truncated history that lost every
+        # post-admit year's Phase 4a/4b/4c trajectory data.
+        longitudinal_history=getattr(person, "longitudinal_history", None) or [],
         # Issue #1114 C11g-4: forward the natural-death date sampled by
         # the ``natural_death`` POST_POPULATION enricher so downstream
         # FHIR emit (``_build_patient``) surfaces it as
