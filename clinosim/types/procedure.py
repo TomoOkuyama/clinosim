@@ -27,6 +27,15 @@ class ProcedureRecord:
     procedure_code: str = ""  # K-code (JP) or CPT (US) — primary code for this country
     procedure_code_jp: str = ""  # K-code (always populated if available)
     procedure_code_us: str = ""  # CPT (always populated if available)
+    # Explicit coding-system key for the primary ``procedure_code`` when it
+    # is NOT the country default (K-codes on JP / CPT on US). Example:
+    # SNOMED-authored neonatal screens (newborn hearing screen 232717001;
+    # newborn metabolic screen 405058008) set ``procedure_system_key=
+    # "snomed-ct"`` so the FHIR emit path stamps ``coding[0].system`` with
+    # the SNOMED CT URI instead of the CPT URI (M2, cycle-2). Empty string
+    # falls back to the country default + the Phase 4d.2 CPT-swap. Any
+    # key resolvable via ``clinosim.codes.get_system_uri`` is accepted.
+    procedure_system_key: str = ""
     # Per AD-30 (CIF is language-neutral), procedure display name is NOT stored
     # in CIF. Consumers resolve via code_lookup("k-codes"|"cpt", code, lang).
 
