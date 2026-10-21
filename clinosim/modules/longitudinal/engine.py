@@ -115,6 +115,43 @@ def _select_markov_winners(
     return winners
 
 
+def _add_base_chronic_meds_for_new_icd(person: PersonRecord, new_icd: str) -> None:
+    """Phase 4b.2.δ — invoke the chronic-medication activation sampler
+    for a single newly-acquired ICD and merge any sampled drugs into
+    ``person.current_medications``.
+
+    Uses the per-patient ``chronic_medication_seed`` sub-RNG that the
+    activator uses at base-year, so this call is RNG-shape neutral with
+    respect to the engine's ``year_rng`` and cross-cohort byte-identical
+    for patients who never acquire a new chronic mid-sim.
+    """
+    if not new_icd:
+        return
+    # Lazy imports: activator pulls in the full patient module graph; the
+    # longitudinal engine is intentionally lean. Also breaks any import
+    # cycle risk with population → longitudinal.
+    from clinosim.locale.loader import load_chronic_medications
+    from clinosim.modules.patient.activator import _derive_home_medications
+    from clinosim.types.patient import ChronicCondition
+
+    icd_base = new_icd.split(".")[0]
+    yaml_data = load_chronic_medications()
+    if new_icd not in yaml_data and icd_base not in yaml_data:
+        return
+    sampled = _derive_home_medications(
+        [ChronicCondition(code=new_icd, system="icd-10-cm")],
+        patient_id=person.person_id,
+        country="US",
+    )
+    if not sampled:
+        return
+    existing_drug_names = {hm.drug_name for hm in person.current_medications if hm.drug_name}
+    for hm in sampled:
+        if hm.drug_name and hm.drug_name not in existing_drug_names:
+            person.current_medications.append(hm)
+            existing_drug_names.add(hm.drug_name)
+
+
 def _apply_pattern(
     spec: AttributeSpec,
     snapshot: YearSnapshot,
@@ -204,6 +241,28 @@ def _apply_pattern(
                 )
 
                 apply_depression_mutex(person.chronic_conditions)
+
+                # Phase 4b.2.δ — activate base chronic medications for the
+                # newly-acquired ICD. The Phase 4b.2.β onset events (e.g.
+                # i10_onset, e11_9_onset, e03_onset) append the ICD to
+                # ``person.chronic_conditions`` mid-sim but nothing invoked
+                # the chronic-medication activation sampler for that single
+                # new code, so the base home regimen (Amlodipine for I10,
+                # Metformin for E11.9, Levothyroxine for E03, …) never
+                # populated. Then Phase 4a / 4b.1 escalation events — which
+                # gate on vitals/labs, not drug prerequisites — fired on top
+                # of nothing, producing implausible histories like HCTZ-only
+                # monotherapy for new-onset HTN (cycle-2 audit finding
+                # #1737, observed on POP-001334 in US seed=42 p=2000 5y).
+                #
+                # Mirror of the Phase 4b.2.γ scope re-evaluation pattern:
+                # the activation call uses a patient-id-seeded sub-RNG
+                # (``chronic_medication_seed``), so it is RNG-shape neutral
+                # with respect to ``year_rng`` — unrelated patients /
+                # unrelated code paths see no cursor shift. Dedup on
+                # ``drug_name`` prevents a duplicate when a patient already
+                # carries one of the base-regimen drugs from elsewhere.
+                _add_base_chronic_meds_for_new_icd(person, result.emits_icd)
             # snapshot.med_additions carries the fire_marker when set (dedup
             # token for Task 2's prior-year scan + CIF emit resolves back
             # via fire_marker → spec lookup). When no fire_marker is set,
