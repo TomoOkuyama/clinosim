@@ -58,7 +58,8 @@ def test_activator_adds_base_regimen_when_escalation_drug_already_present() -> N
     drug_names = {m.drug_name for m in profile.current_medications}
     assert "Hydrochlorothiazide" in drug_names, "pre-existing escalation drug must be preserved"
     assert "Amlodipine" in drug_names, (
-        f"base I10 regimen (Amlodipine, implicit prob=1.0) must be derived even when pre-existing meds present; got {sorted(drug_names)}"
+        "base I10 regimen (Amlodipine, implicit prob=1.0) must be derived "
+        f"even when pre-existing meds present; got {sorted(drug_names)}"
     )
 
 
