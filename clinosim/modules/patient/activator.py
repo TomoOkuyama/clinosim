@@ -654,41 +654,58 @@ def activate_patient(
     # below. Empty list when the person already carries meds is
     # fine — no skip events to log for a persisted set.
     _home_med_skip_log: list = []
-    if not current_meds:
-        # Derive home medications from chronic conditions via chronic_medications.yaml
-        # CIF stores English drug names (AD-30). JP names resolved at FHIR output.
-        #
-        # META #957 Incr 1: pregnancy prenatal supplements (folic acid,
-        # iron — indexed under the Z34 key in chronic_medications.yaml)
-        # were previously attached because Z34 was in chronic_conditions.
-        # Post-Incr-1 Z34 lives in `state_periods` instead; when the
-        # person has EVER conceived in this sim (state_history non-empty)
-        # we synthesize a virtual Z34 ChronicCondition for the med-
-        # derivation input ONLY so the supplement regimen still emits
-        # as a home medication. The problem-list Condition emit iterates
-        # the real `conditions` list (without this virtual entry) so no
-        # Z34 problem-list-item leaks back in.
-        #
-        # ARCHITECTURAL NOTE: this activator hook attaches supplements
-        # to the patient's persistent current_medications, which slightly
-        # over-emits (supplements persist past the pregnancy). Proper
-        # per-encounter MedicationRequest emission scoped to prenatal
-        # visits is Incr 1.5. Under-emit vs the pre-Incr-1 flow (which
-        # attached from Day 0 to any Z34-carrying woman, regardless of
-        # actual pregnancy timing) is a net data-quality gain.
-        _meds_input = conditions
-        _has_pregnancy_history = bool(
-            [p for p in getattr(person, "state_periods", []) or [] if getattr(p, "state_type", "") == "pregnancy"]
-        )
-        if _has_pregnancy_history:
-            _meds_input = list(conditions) + [ChronicCondition(code="Z34", system="icd-10-cm")]
-        current_meds = _derive_home_medications(
-            _meds_input,
-            patient_id=person.person_id,
-            country="US",
-            skip_log_out=_home_med_skip_log,
-            patient_age=age,
-        )
+    # Cycle 3 C3-NEW-1 (#1745): derive the chronic base regimen UNCONDITIONALLY
+    # and union with any Layer-1 pre-existing meds (dedup by drug_name).
+    # Previously this was gated behind `if not current_meds:` but the
+    # longitudinal engine's Phase 4a / 4b.1 escalation events
+    # (htn_escalate_third_agent_i10, dm_escalate_insulin_e11, lipid_escalate_*)
+    # can fire via `advance_population` BEFORE the first activate_patient
+    # call for a patient, pre-populating `person.current_medications` with
+    # just the escalation drug (e.g. HCTZ). The gate then skipped the base
+    # derivation and 48 % of multi-chronic adults ended with ≤1 med in a
+    # p=2000 US seed=42 5y audit. _derive_home_medications runs on a
+    # patient-id-seeded sub-RNG, so this is RNG-shape neutral w.r.t.
+    # year_rng — unrelated patients stay byte-identical.
+    #
+    # Derive home medications from chronic conditions via chronic_medications.yaml.
+    # CIF stores English drug names (AD-30). JP names resolved at FHIR output.
+    #
+    # META #957 Incr 1: pregnancy prenatal supplements (folic acid,
+    # iron — indexed under the Z34 key in chronic_medications.yaml)
+    # were previously attached because Z34 was in chronic_conditions.
+    # Post-Incr-1 Z34 lives in `state_periods` instead; when the
+    # person has EVER conceived in this sim (state_history non-empty)
+    # we synthesize a virtual Z34 ChronicCondition for the med-
+    # derivation input ONLY so the supplement regimen still emits
+    # as a home medication. The problem-list Condition emit iterates
+    # the real `conditions` list (without this virtual entry) so no
+    # Z34 problem-list-item leaks back in.
+    #
+    # ARCHITECTURAL NOTE: this activator hook attaches supplements
+    # to the patient's persistent current_medications, which slightly
+    # over-emits (supplements persist past the pregnancy). Proper
+    # per-encounter MedicationRequest emission scoped to prenatal
+    # visits is Incr 1.5. Under-emit vs the pre-Incr-1 flow (which
+    # attached from Day 0 to any Z34-carrying woman, regardless of
+    # actual pregnancy timing) is a net data-quality gain.
+    _meds_input = conditions
+    _has_pregnancy_history = bool(
+        [p for p in getattr(person, "state_periods", []) or [] if getattr(p, "state_type", "") == "pregnancy"]
+    )
+    if _has_pregnancy_history:
+        _meds_input = list(conditions) + [ChronicCondition(code="Z34", system="icd-10-cm")]
+    _derived_meds = _derive_home_medications(
+        _meds_input,
+        patient_id=person.person_id,
+        country="US",
+        skip_log_out=_home_med_skip_log,
+        patient_age=age,
+    )
+    _seen = {m.drug_name for m in current_meds if m.drug_name}
+    for _hm in _derived_meds:
+        if _hm.drug_name and _hm.drug_name not in _seen:
+            current_meds.append(_hm)
+            _seen.add(_hm.drug_name)
 
     # Address and contact from Layer 1
     from clinosim.types.patient import Address, ContactInfo
