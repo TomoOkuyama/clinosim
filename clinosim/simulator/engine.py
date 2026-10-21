@@ -975,10 +975,25 @@ def _run_healthcare_calendar_phase(
         # byte-identical. The RNG draws for each specialty emit come from the
         # same per-event ``ev_rng`` as the primary visit, so unrelated events
         # on other patients remain untouched.
-        if event.event_type == "chronic_followup":
+        # Phase 1 of #1698 fan-out — LifeEvent emits `event_type="chronic_visit"`
+        # (sibling `condition_type` is `"chronic_followup"`); the earlier gate
+        # on "chronic_followup" was dead code (final-review Critical). Keep
+        # the gate aligned with the dispatcher at `event.event_type ==
+        # "chronic_visit"` match on line 802 above.
+        if event.event_type == "chronic_visit":
             from clinosim.simulator.hospital_ops import resolve_department
             from clinosim.simulator.outpatient import _specialty_fanout_tick
 
+            # Final-review Important: en+ja visit_reason map so JP output
+            # doesn't leak "oncology follow-up" as the chief_complaint on
+            # JP Encounters. Routed via `_simulate_outpatient_visit` →
+            # `resolve_text` which localizes `{en, ja}` dict payloads.
+            _specialty_visit_reason = {
+                "oncology": {"en": "Oncology survivorship follow-up", "ja": "腫瘍内科 サバイバーシップ外来"},
+                "cardiology": {"en": "Cardiology stable follow-up", "ja": "循環器内科 定期外来"},
+                "psychiatry": {"en": "Psychiatry treatment-phase follow-up", "ja": "精神科 治療期外来"},
+                "pulmonology": {"en": "Pulmonology stable COPD follow-up", "ja": "呼吸器内科 COPD 定期外来"},
+            }
             for specialty_name, _cadence, _period_key in _specialty_fanout_tick(patient, visit_time):
                 # Direct specialty → available-dept resolver (bypasses the
                 # chronic-code → specialty map in resolve_outpatient_department
@@ -991,7 +1006,13 @@ def _run_healthcare_calendar_phase(
                     roster,
                     ev_rng,
                     chronic_code=event.disease_id,
-                    followup_spec={"labs": [], "visit_reason": f"{specialty_name} follow-up"},
+                    followup_spec={
+                        "labs": [],
+                        "visit_reason": _specialty_visit_reason.get(
+                            specialty_name,
+                            {"en": f"{specialty_name} follow-up", "ja": f"{specialty_name} 外来"},
+                        ),
+                    },
                     country=config.country,
                     config=config,
                     department_id=specialty_dept,
