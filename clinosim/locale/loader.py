@@ -231,6 +231,22 @@ def load_demographics(country: str) -> dict[str, Any]:
 
 
 @lru_cache(maxsize=1)
+def load_specialty_routing() -> list[dict[str, Any]]:
+    """Load Phase 1 specialty-routing table (chronic → specialty + cadence).
+
+    Issue #1698 Phase 1. Returns the ``routes:`` list from
+    ``clinosim/locale/shared/specialty_routing.yaml`` or ``[]`` when the
+    file is missing / malformed. Each row carries ``requires_chronic`` or
+    ``requires_chronic_prefix`` (list[str]) + ``specialty`` (str) +
+    ``cadence`` (str ∈ {"annual", "semi_annual", "quarterly"}) +
+    ``clinical_basis`` (free-text citation).
+    """
+    data = _load_yaml(_LOCALE_DIR / "shared" / "specialty_routing.yaml", fallback={})
+    routes = data.get("routes") if isinstance(data, dict) else None
+    return list(routes) if isinstance(routes, list) else []
+
+
+@lru_cache(maxsize=1)
 def load_chronic_medications() -> dict[str, Any]:
     """Load chronic condition home medications and monitoring rules.
 
