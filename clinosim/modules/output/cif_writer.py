@@ -26,6 +26,7 @@ def _apply_baby_snapshot_anthropometry(
     patient_dict: dict[str, Any],
     snapshot_date: str | None,
     country: str,
+    admission_datetime: datetime | None = None,
 ) -> None:
     """Mid-sim-born pediatric patients (``POP-NNNNN-BABY``) have a
     ``PatientProfile`` initialised at delivery with newborn
@@ -38,6 +39,14 @@ def _apply_baby_snapshot_anthropometry(
     ``snapshot_date`` so direct consumers of the CIF JSON see a
     plausible age-matched profile.
 
+    Issue #1759 — ``admission_datetime`` guard: when the record being
+    written represents the DELIVERY encounter (admission within one
+    day of DOB), the patch is suppressed and the hardcoded newborn
+    scalars are preserved. Pre-fix this pass back-propagated the
+    end-of-sim age / height / weight onto the delivery record,
+    producing records like ``age=3, h=97.0, w=14.7`` on an encounter
+    whose own admission_datetime landed in the DOB month.
+
     Scope: ``patient_id`` ending in ``"-BABY"`` only — these are the
     perinatal.py mid-sim-birth records whose stored anthropometry is
     unambiguously frozen at birth. Pre-sim pediatric persons (sampled
@@ -48,7 +57,8 @@ def _apply_baby_snapshot_anthropometry(
 
     No-op when ``snapshot_date`` is missing, when the DOB is missing,
     when the baby is already at or past the pediatric upper age at
-    snapshot time, or when the growth-chart has no row for that age.
+    snapshot time, when the growth-chart has no row for that age, or
+    (Issue #1759) when ``admission_datetime`` is within one day of DOB.
     """
     pid = patient_dict.get("patient_id") or ""
     if not pid.endswith("-BABY"):
@@ -63,6 +73,21 @@ def _apply_baby_snapshot_anthropometry(
         snap_d = date.fromisoformat(str(snapshot_date)[:10])
     except ValueError:
         return
+    # Issue #1759: delivery encounter guard. Preserve the newborn scalars
+    # when the record's own admission landed within one day of DOB — the
+    # catch-up is for LATER encounters of the same baby, not the one that
+    # recorded the birth itself.
+    if admission_datetime is not None:
+        try:
+            adm_d = (
+                admission_datetime.date()
+                if hasattr(admission_datetime, "date")
+                else date.fromisoformat(str(admission_datetime)[:10])
+            )
+        except (ValueError, AttributeError):
+            adm_d = None
+        if adm_d is not None and adm_d >= dob_d and (adm_d - dob_d) <= timedelta(days=1):
+            return
     if snap_d < dob_d:
         return
     age = snap_d.year - dob_d.year - ((snap_d.month, snap_d.day) < (dob_d.month, dob_d.day))
@@ -137,10 +162,16 @@ def write_cif(dataset: CIFDataset, output_dir: str) -> None:
         patient_id = patient_record.patient.patient_id
         enc_id = patient_record.encounters[0].encounter_id if patient_record.encounters else f"{patient_id}-{idx:04d}"
         record_dict = asdict(patient_record)
+        # Issue #1759: pass the record's own first-encounter admission
+        # datetime so ``_apply_baby_snapshot_anthropometry`` can
+        # suppress the catch-up on the delivery encounter (admission
+        # within one day of DOB).
+        _first_adm = patient_record.encounters[0].admission_datetime if patient_record.encounters else None
         _apply_baby_snapshot_anthropometry(
             record_dict.get("patient") or {},
             dataset.metadata.snapshot_date,
             dataset.metadata.country,
+            admission_datetime=_first_adm,
         )
         # AD-65: strip narrative content from documents (Stage 2 writes separately)
         for doc in record_dict.get("documents", []) or []:
