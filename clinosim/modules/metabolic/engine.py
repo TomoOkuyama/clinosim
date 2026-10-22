@@ -331,6 +331,18 @@ def g47_30_osa_enricher(ctx: Any) -> None:
     for person in ctx.population.persons.values():
         if _OSA_CODE in person.chronic_conditions:
             continue
+        # Issue #1779: G47.30 (Sleep apnea, unspecified) is the adult
+        # OSA code — pediatric OSA has its own leaf (G47.33) and a
+        # much lower prevalence (~1-2% vs the 25-45% adult rate at
+        # higher BMI tiers). The audit found 335 / 2553 pediatric
+        # patients (13%, ~6-20× the US pediatric ICD-coded reference)
+        # because this enricher applied the adult BMI-weighted
+        # Bernoulli to anyone regardless of age. Gating by age ≥ 18
+        # keeps the adult cohort unchanged while removing the
+        # inappropriate pediatric assignment.
+        age = int(getattr(person, "age", 0) or 0)
+        if age < 18:
+            continue
         bmi = float(getattr(person, "bmi", 0.0) or 0.0)
         sex = str(getattr(person, "sex", "") or "")
         code = _derive_osa_assignment(person.person_id, bmi, sex)
