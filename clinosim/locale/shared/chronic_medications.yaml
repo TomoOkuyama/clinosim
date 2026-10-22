@@ -45,6 +45,12 @@ I10:  # Hypertension
     # keeps activation sampling from picking it; only the longitudinal
     # engine's htn_escalate_third_agent_i10 event adds it via resolve_med_name.
     - {drug: "Hydrochlorothiazide", drug_ja: "ヒドロクロロチアジド", dose: "25mg", drug_class: "thiazide", route: "PO", frequency: "daily", probability: 0.0}
+    # Issue #1762 — 4th-agent escalation (mineralocorticoid-receptor
+    # antagonist for resistant HTN per PATHWAY-2 / ACC-AHA 2017).
+    # probability: 0.0 keeps the activation sampler from ever picking it;
+    # only the longitudinal engine's htn_escalate_fourth_agent_i10 event
+    # adds it via resolve_med_name.
+    - {drug: "Spironolactone", drug_ja: "スピロノラクトン", dose: "25mg", drug_class: "diuretic.k_sparing", route: "PO", frequency: "daily", probability: 0.0}
   hold_conditions:
     - {drug: "Amlodipine", condition: "SBP < 90", field: "systolic_bp", threshold: 90, direction: "below"}
     - {drug: "Candesartan", condition: "SBP < 90", field: "systolic_bp", threshold: 90, direction: "below"}

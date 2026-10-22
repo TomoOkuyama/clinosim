@@ -1,0 +1,48 @@
+# HTN fourth-agent treatment escalation — event pattern (Issue #1762).
+#
+# Follows `htn_escalate_third_agent_i10.yaml` (Phase 4b.1). When a
+# patient's SBP remains > 150 mmHg despite the third agent (thiazide)
+# plus the CCB + ARB/ACEi baseline, ACC-AHA 2017 guidelines recommend
+# adding a mineralocorticoid-receptor antagonist (Spironolactone) as
+# the preferred fourth agent for resistant hypertension (PATHWAY-2
+# trial, 2015).
+#
+# Issue #1762 motivation: 650 patients in the US p=10k seed=42 5y
+# cohort had I10 + SBP > 150 for 3+ consecutive years AFTER the
+# third-agent event already fired. Pre-fix no escalation existed to
+# add a 4th-line agent; patients drifted uncontrolled across the full
+# sim window.
+#
+# Scope: this event alone covers HTN 4th agent. DM 2nd-line (GLP-1,
+# prandial insulin) and Lipid 2nd-line (PCSK9) escalations are
+# separate events deferred to follow-up PRs under META #1762.
+
+attribute_id: htn_escalate_fourth_agent_i10
+pattern: event
+depends_on: [sbp]
+clinical_scope:
+  requires_chronic_codes: ["I1"]
+  requires_age_band: [18, 120]
+
+event_name: htn_escalate_fourth_agent_i10
+emits_icd: ""
+emits_meds: ["Spironolactone"]
+fire_marker: htn_escalate_fourth_agent_i10
+# Lower annual rate than the 3rd-agent event (0.55) — 4th-line
+# escalation is less common and reserved for persistent uncontrolled
+# SBP. ~30% / year of resistant-HTN patients receive an MRA per
+# PATHWAY-2 real-world uptake.
+base_annual_rate: 0.30
+rate_modifiers:
+  # Gate OUT when SBP is <= 150 (threshold higher than 3rd-agent's 140
+  # because 4th-line is for persistent resistance, not just elevation).
+  - when: {attribute: sbp, operator: "<=", value: 150.0}
+    factor: 0.0
+one_shot: true
+narrative_label:
+  en: "HTN fourth-agent escalation (resistant hypertension)"
+  ja: "高血圧 第四薬剤 追加 (治療抵抗性)"
+source:
+  - "Whelton PK et al. 2017 ACC/AHA Hypertension Guideline. JACC 2018;71:e127. (resistant HTN pathway)"
+  - "Williams B et al. PATHWAY-2: spironolactone vs placebo in resistant HTN. Lancet 2015;386:2059."
+  - "Carey RM et al. AHA Scientific Statement on Resistant Hypertension. Hypertension 2018;72:e53."
