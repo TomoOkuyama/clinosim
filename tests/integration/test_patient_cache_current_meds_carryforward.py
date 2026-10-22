@@ -178,8 +178,15 @@ def test_anticoag_from_admission1_carries_forward_to_admission2_home_meds():
     # age-eligible person in ``_annual_chronic_onset``, cascading
     # downstream chronic draws → seed=56 lost the fixture. Re-scouted
     # 56..100 → seed=64 (POP-000129).
+    # 2026-10-22 (#1778 J44 age-weighted band split): splitting the J44
+    # prevalence from one band `"40-99"` to three disjoint bands
+    # `"40-49"` / `"50-59"` / `"60-99"` leaves the per-patient rng call
+    # count byte-identical but changes which rng draws turn into J44
+    # (band-specific probability), cascading to joint chronic sampling
+    # for comorbid codes → seed=64 lost the fixture. Re-scouted 64..150
+    # → seed=65 (POP-000146).
     config = SimulatorConfig(
-        random_seed=64,
+        random_seed=65,
         catchment_population=500,
         country="US",
         time_range=("2025-01", "2026-01"),
