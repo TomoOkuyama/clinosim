@@ -88,8 +88,22 @@ chronic_prevalence:
     "40-99": 0.16
   E78:      # Dyslipidemia — CDC high cholesterol ~40%; cohort target ~55% (Medicare)
     "40-99": 0.44
-  J44:      # COPD — CDC ~6% general; cohort target ~12% (Medicare-user)
-    "40-99": 0.10
+  # Issue #1778: J44 onset was shifted to young adulthood (46% of
+  # patients < age 50 vs US reference < 5%) because the single
+  # "40-99" age band assigned the same 10% prevalence to every age
+  # from 40 upward. COPD is a disease of post-50 chronic smokers;
+  # pre-50 incidence is dominated by α1-antitrypsin deficiency and
+  # severe childhood asthma, neither of which the simulator models.
+  # Rebalance to age-weighted bands matching CDC BRFSS by age
+  # (overall adult prevalence stays ~6.5% in line with the general
+  # population). RNG-shape neutral: age 40-99 patients still make
+  # ONE rng.random() draw against the matching band — only the
+  # band-specific probability differs — because the three bands are
+  # disjoint and cover the same union [40, 99].
+  J44:      # COPD — CDC ~6% general by age band (BRFSS 2022)
+    "40-49": 0.03   # ~3% ref (early onset: smoking + α1AT)
+    "50-59": 0.10   # ~10% ref
+    "60-99": 0.20   # ~20% ref (65+ ≈ 25%; 60-64 ≈ 15%)
   N18:      # CKD — CDC ~14% of adults; cohort target ~17% (Medicare-user).
     # Issue #1113 (C11f, 2026-09-05): band raised 0.14 → 0.28 to land the
     # emitted cohort in the (10, 20) benchmark band in verify_medical_stats.py
