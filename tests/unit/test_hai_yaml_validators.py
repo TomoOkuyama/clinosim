@@ -11,6 +11,7 @@ import yaml
 
 from clinosim.codes import stage_to_snomed
 from clinosim.codes.loader import _load_system
+from clinosim.locale import loader as locale_loader
 from clinosim.modules.device.engine import load_devices_config
 from clinosim.modules.hai import engine as hai_engine
 
@@ -49,12 +50,14 @@ def _clear_hai_caches():
     load_devices_config.cache_clear()
     _load_system.cache_clear()
     stage_to_snomed._load_catalog.cache_clear()  # Phase 3.β.6 catalog
+    locale_loader.load_chief_complaint_translations.cache_clear()  # Phase 3.β.1
     load_devices_config()  # pre-warm with real yaml (before monkeypatch)
     _load_system("icd-10-cm")  # pre-warm icd-10-cm.yaml (_validate_hai_codes)
     _load_system("icd-10")  # pre-warm icd-10.yaml (JP WHO ICD-10, _validate_hai_codes)
     _load_system("snomed-ct")  # pre-warm snomed-ct.yaml (_validate_hai_codes + _validate_hai_specimens)
     _load_system("loinc")  # pre-warm loinc.yaml (_validate_hai_specimens test_loinc cross-ref)
     stage_to_snomed._load_catalog()  # pre-warm clinosim-stage-to-snomed.yaml
+    locale_loader.load_chief_complaint_translations()  # pre-warm chief_complaint_translations.yaml
     yield
     hai_engine.load_hai_rates.cache_clear()
     hai_engine.load_hai_codes.cache_clear()
