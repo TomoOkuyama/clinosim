@@ -104,6 +104,19 @@ codes:
   G45.9:
     en: Transient cerebral ischemic attack, unspecified
     ja: 一過性脳虚血発作，詳細不明
+  # Issue #1777: narrative emit leaked raw ICD codes (G35, G47.30, G47.33,
+  # I69.1, I69.3, K76.0) in free text because display lookup missed —
+  # none of these were registered in this yaml. en displays verified
+  # 2026-10-22 via tx.fhir.org $lookup against icd-10-cm.
+  G35:
+    en: Multiple sclerosis
+    ja: 多発性硬化症
+  G47.30:
+    en: Sleep apnea, unspecified
+    ja: 睡眠時無呼吸，詳細不明
+  G47.33:
+    en: Obstructive sleep apnea (adult) (pediatric)
+    ja: 閉塞性睡眠時無呼吸症候群
   I10:
     en: Essential (primary) hypertension
     ja: 本態性高血圧症
@@ -206,6 +219,13 @@ codes:
   I63.9:
     en: Cerebral infarction, unspecified
     ja: 脳梗塞，詳細不明
+  # Issue #1777: I69.* sequelae codes drive the stroke-followup narrative.
+  I69.1:
+    en: Sequelae of nontraumatic intracerebral hemorrhage
+    ja: 非外傷性脳内出血の続発・後遺症
+  I69.3:
+    en: Sequelae of cerebral infarction
+    ja: 脳梗塞の続発・後遺症
   I66.0:
     en: Occlusion and stenosis of middle cerebral artery
     ja: 中大脳動脈の閉塞および狭窄
@@ -395,6 +415,10 @@ codes:
   K74.69:
     en: Other cirrhosis of liver
     ja: その他の肝硬変
+  # Issue #1777: K76.0 drives the fatty-liver narrative (metabolic chronic).
+  K76.0:
+    en: Fatty (change of) liver, not elsewhere classified
+    ja: 脂肪肝（他に分類されないもの）
   K76.6:
     en: Portal hypertension
     ja: 門脈圧亢進症

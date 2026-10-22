@@ -1664,7 +1664,14 @@ class TemplateNarrativeGenerator:
             if display and display != code:
                 lines.append(t("list_item.numbered_dx_with_code", lang, idx=idx, display=display, code=code))
             else:
-                lines.append(f"{idx}. {code}")
+                # Issue #1777: when the display lookup misses, bracket the
+                # code so it reads as a code reference rather than
+                # free-text ("1. [G47.30]" instead of "1. G47.30"). The
+                # admission-diagnosis list cannot be silently dropped —
+                # the diagnosis WAS admitted so the entry must stay —
+                # but the brackets stop downstream readers (and LLMs)
+                # from parsing it as a word.
+                lines.append(f"{idx}. [{code}]")
         if not lines:
             return t("section_none.admission_diagnoses", lang), facts
         return "\n".join(lines), facts
@@ -1778,7 +1785,12 @@ class TemplateNarrativeGenerator:
             if display and display != code:
                 dx_lines.append(t("list_item.numbered_dx_with_code", lang, idx=idx, display=display, code=code))
             else:
-                dx_lines.append(f"{idx}. {code}")
+                # Issue #1777: bracket the code so it reads as a code
+                # reference rather than free-text. The discharge-diagnosis
+                # list cannot be silently dropped (diagnosis was discharged
+                # with the encounter) but the brackets prevent LLM / NLP
+                # tooling from treating "G47.30" as a word.
+                dx_lines.append(f"{idx}. [{code}]")
         if dx_lines:
             facts.append("ctx.diagnoses")
 
@@ -3457,7 +3469,14 @@ class TemplateNarrativeGenerator:
                 continue
             emit_code = _map_diagnosis_code(code, country) or code
             key = _label("code_system_icd_display", "primary", lang)
-            disp = _code_lookup(key, emit_code, lang) or emit_code
+            disp = _code_lookup(key, emit_code, lang)
+            # Issue #1777: when the display lookup misses, SKIP the entry
+            # rather than leak the raw ICD code into narrative free text.
+            # The prose sentence "Follow-up of chronic conditions: G47.30"
+            # reads as a coding sheet, not a clinical note; a shorter list
+            # with only resolvable items reads correctly.
+            if not disp or disp == emit_code:
+                continue
             chronic_labels.append(disp)
         # Compose
         parts: list[str] = []
