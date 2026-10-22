@@ -220,14 +220,38 @@ def test_direct_baby_aged_past_pediatric_upper_bound_updates_age_only():
 
 @pytest.mark.unit
 def test_write_cif_baby_profile_updated_on_disk(tmp_path):
-    """E2E: a BABY record goes through write_cif → the on-disk JSON
-    carries the updated age + anthropometry, not the birth values."""
+    """E2E: a BABY record whose encounter is a LATER encounter (not the
+    delivery) goes through write_cif → the on-disk JSON carries the
+    updated age + anthropometry. Issue #1759: the admission_datetime
+    is used to decide whether the catch-up applies — a record whose
+    admission is >1 day after DOB (as here: 2025-10-01 is well after
+    the 2023-08-04 DOB) sees the catch-up, while a delivery-encounter
+    record (admission == DOB) does not."""
     rec = _baby_record("POP-000054-BABY", date(2023, 8, 4))
+    # Override the delivery-encounter admission to simulate a later
+    # encounter of the same baby — e.g. a 2-year well-child visit.
+    rec.encounters[0].admission_datetime = datetime(2025, 10, 1, 10, 0)
     data = _write_and_read(rec, tmp_path, snapshot_date="2025-12-31", country="US")
     pat = data["patient"]
     assert pat["age"] == 2
     assert pat["height_cm"] == 91.0
     assert pat["weight_kg"] == 13.3
+
+
+@pytest.mark.unit
+def test_write_cif_delivery_encounter_record_preserves_newborn_scalars(tmp_path):
+    """Issue #1759 regression gate: a BABY record whose encounter is
+    the DELIVERY encounter (admission == DOB) must NOT be aged forward
+    to the sim snapshot date. The record keeps the hardcoded newborn
+    scalars (age=0, h=50, w=3.2) that ``perinatal._build_newborn_patient``
+    sets."""
+    rec = _baby_record("POP-000445-BABY", date(2025, 4, 16))
+    data = _write_and_read(rec, tmp_path, snapshot_date="2028-12-31", country="US")
+    pat = data["patient"]
+    assert pat["age"] == 0, f"delivery encounter must stay age=0, got {pat['age']}"
+    assert pat["height_cm"] == 50.0
+    assert pat["weight_kg"] == 3.2
+    assert pat["bmi"] == 12.8
 
 
 @pytest.mark.unit
