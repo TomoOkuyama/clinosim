@@ -1,0 +1,77 @@
+# Clinosim Stage-string → SNOMED CT concept map (Phase 3.β.6, #1808 follow-up).
+#
+# This file is the clinosim-internal catalog that maps each clinical
+# stage *label* (as sampled by the activator's severity ladder — CKD
+# KDIGO G1-G5, NYHA I-IV, COPD GOLD 1-4, J45 asthma severity, HTN
+# ACC/AHA Stage 1-2, CCS angina I-IV) to the canonical SNOMED CT
+# concept that the FHIR Condition.stage.summary coding emits.
+#
+# Design (mirrors META #1792 / drugs.yaml):
+#   - The clinical stage label is clinosim-internal (chosen by the
+#     activator's severity sampler), not an authority code.
+#   - The SNOMED pointer resolves against clinosim/codes/data/snomed-ct.yaml;
+#     the authority yaml stays the canonical home of SNOMED displays.
+#   - Downstream (fhir_r4/conditions/conditions.py) reads this catalog
+#     and uses code_lookup("snomed-ct", <code>, lang) for the display,
+#     so a label edit here never drifts the SNOMED coding.
+#
+# Every SNOMED code verified via tx.fhir.org $lookup; see the
+# per-group comment headers below for the clinical references the
+# original ladder used.
+#
+# Scope: non-cancer clinical stages that have a verified SNOMED
+# concept at the stage granularity. Cancer stage ladders (AJCC / BCLC)
+# are tracked separately — the former SNOMED 385356007 "Tumor stage
+# finding" coding was intentionally retired as clinically wrong for
+# non-cancer stages.
+
+metadata:
+  name: Clinosim Stage → SNOMED CT Catalog
+  description: >
+    Internal clinical-stage label → SNOMED CT concept pointers for
+    Condition.stage.summary coding. Authority codes resolve against
+    snomed-ct.yaml.
+  version: '0.1'
+  source: >
+    SNOMED CT International Edition. Every concept verified via
+    tx.fhir.org $lookup. Clinical sources per domain:
+    KDIGO 2024 CKD Guideline; AHA/ACC/HFSA 2022 HF Guideline (NYHA);
+    GOLD 2024 Report (COPD); GINA 2024 (asthma 4-tier severity);
+    ACC-AHA 2017 Hypertension Guideline (Stage 1/2);
+    Campeau CCS 1976 (angina class).
+
+stages:
+  # KDIGO CKD stage (N18)
+  "CKD G1": "431855005"
+  "CKD G2": "431856006"
+  "CKD G3a": "700378005"
+  "CKD G3b": "700379002"
+  "CKD G4": "431857002"
+  "CKD G5": "433146000"
+  # NYHA functional class (I50 heart failure)
+  "NYHA I": "420300004"
+  "NYHA II": "421704003"
+  "NYHA III": "420913000"
+  "NYHA IV": "422293003"
+  # COPD severity — GOLD 1/2/3 verified. GOLD 4 mapped to SNOMED
+  # 135836000 "End stage COPD" (clinical equivalence; no distinct
+  # "Very severe COPD" concept exists in SNOMED CT International
+  # Edition).
+  "GOLD 1": "313296004"
+  "GOLD 2": "313297008"
+  "GOLD 3": "313299006"
+  "GOLD 4": "135836000"
+  # Asthma severity 4-tier (J45)
+  "Mild intermittent": "427679007"
+  "Mild persistent": "426979002"
+  "Moderate persistent": "427295004"
+  "Severe persistent": "426656000"
+  # Hypertension stage (I10) — Stage 1/2 per ACC/AHA 2017 boundaries
+  "Stage 1": "827069000"
+  "Stage 2": "827068008"
+  # CCS angina class (I25) — Canadian Cardiovascular Society I-IV
+  # (activator currently emits I/II/III only; IV registered forward-compat)
+  "CCS I": "61490001"
+  "CCS II": "41334000"
+  "CCS III": "85284003"
+  "CCS IV": "89323001"
