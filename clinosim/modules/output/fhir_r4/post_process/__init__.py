@@ -27,11 +27,7 @@ __all__ = [
     "_normalize_dt_and_fill_practitioner_display",
     "_normalize_dt_fields",
     # populate
-    "_ALLERGY_CLINICAL_DISPLAY",
-    "_ALLERGY_VER_STATUS_DISPLAY",
     "_CLINOSIM_OBSERVATION_ID_SYSTEM",
-    "_CONDITION_CLINICAL_DISPLAY",
-    "_CONDITION_VER_STATUS_DISPLAY",
     "_ECS_IDENTIFIER_SYSTEMS",
     "_FHIR_URI_TO_CODE_SYSTEM_KEY",
     "_HL7_V3_SUBSTITUTION_SYSTEM",
@@ -94,11 +90,7 @@ from clinosim.modules.output.fhir_r4.post_process.datetime_normalize import (  #
     _normalize_dt_fields,
 )
 from clinosim.modules.output.fhir_r4.post_process.populate import (  # noqa: E402, F401
-    _ALLERGY_CLINICAL_DISPLAY,
-    _ALLERGY_VER_STATUS_DISPLAY,
     _CLINOSIM_OBSERVATION_ID_SYSTEM,
-    _CONDITION_CLINICAL_DISPLAY,
-    _CONDITION_VER_STATUS_DISPLAY,
     _ECS_IDENTIFIER_SYSTEMS,
     _FHIR_URI_TO_CODE_SYSTEM_KEY,
     _HL7_V3_SUBSTITUTION_SYSTEM,

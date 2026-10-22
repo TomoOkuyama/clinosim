@@ -707,3 +707,13 @@ codes:
   55757-9:
     en: Patient Health Questionnaire 2 item (PHQ-2)
     ja: PHQ-2 うつ病2項目版
+  # Phase 3.α (#1807-follow-up) — blood-type LOINC codes previously
+  # mirrored in a fallback dict inside fhir_r4/labs/blood_type.py.
+  # Moved to the authority yaml so `code_lookup("loinc", ...)` resolves
+  # them without the module-local fallback.
+  883-9:
+    en: ABO group [Type] in Blood
+    ja: ABO 血液型
+  10331-7:
+    en: Rh [Type] in Blood
+    ja: Rh 血液型

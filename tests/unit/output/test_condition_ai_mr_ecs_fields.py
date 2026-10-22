@@ -374,7 +374,14 @@ def test_jp_mr_effective_status_idempotent_across_double_pass():
 
 
 def test_populate_status_coding_display_unknown_code_untouched():
-    """A code not in the display map is left alone (no fabrication)."""
+    """A code not in the authority yaml is left alone (no fabrication).
+
+    Phase 3.α: the helper signature switched from
+    ``(coding_dict, display_map)`` to
+    ``(coding_dict, system_key, lang)`` — the authority yaml is now
+    consulted instead of a module-local dict. ``hl7-condition-clinical``
+    is a real system key with no ``unknown-code-xyz`` entry, so the
+    lookup falls through to leaving ``display`` unset."""
     cd: dict = {"coding": [{"system": "hl7-cs", "code": "unknown-code-xyz"}]}
-    _populate_status_coding_display(cd, {"active": "Active"})
+    _populate_status_coding_display(cd, "hl7-condition-clinical", "en")
     assert "display" not in cd["coding"][0]
