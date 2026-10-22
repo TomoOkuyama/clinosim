@@ -306,8 +306,12 @@ codes:
   '303408005':
     en: Sulfonamide-legacy  # not present in SNOMED CT International 2026-06-01
     ja: サルファ剤 (legacy)
-  '373270004':
-    en: Substance with penicillin structure
+  # SNOMED 373270004 (Substance with penicillin structure) was marked
+  # INACTIVE in SNOMED CT International Edition (verified 2026-10-22 via
+  # tx.fhir.org $lookup — `inactive: true`). Active replacement is
+  # 764146007 ("Penicillin"). See Issue #1768.
+  '764146007':
+    en: Penicillin
     ja: ペニシリン
   '387458008':
     en: Aspirin             # FSN: Aspirin (substance)
