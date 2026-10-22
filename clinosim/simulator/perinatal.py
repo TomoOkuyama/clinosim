@@ -272,13 +272,26 @@ def _sample_newborn_conditions(
     return persistent, perinatal
 
 
-def _newborn_patient_id(mother_id: str) -> str:
-    """Derive a stable newborn PatientId from the mother's ID. Format:
-    ``<mother_id>-BABY`` — deterministic and mother-linkable via string
-    inspection when needed. Multi-parity across a multi-year sim is
-    still a scope limitation (each delivery reuses the same suffix); a
-    ``period_seq``-based disambiguator is deferred to Incr 1.5."""
-    return f"{mother_id}-BABY"
+def _newborn_patient_id(mother_id: str, birth_order: int = 1) -> str:
+    """Derive a stable newborn PatientId from the mother's ID.
+
+    Format (Issue #1758):
+      * ``birth_order == 1`` → ``<mother_id>-BABY`` (backward compat
+        with the pre-#1758 cohort snapshot and every ``endswith("-BABY")``
+        downstream hook).
+      * ``birth_order >= 2`` → ``<mother_id>-<N>-BABY`` (the ordinal is
+        a prefix before the ``-BABY`` suffix so the suffix invariant
+        — exercised by ``modules/output/cif_writer.py`` for growth-chart
+        anthropometry and by narrative baby-detection — stays satisfied).
+
+    Birth-order is one-indexed. 0 or negative values are a caller bug
+    (never a legitimate parity) and raise ``ValueError``.
+    """
+    if birth_order < 1:
+        raise ValueError(f"_newborn_patient_id: birth_order must be >= 1 (got {birth_order})")
+    if birth_order == 1:
+        return f"{mother_id}-BABY"
+    return f"{mother_id}-{birth_order}-BABY"
 
 
 _NEWBORN_NAMING_WINDOW_DAYS: int = 14
@@ -348,6 +361,7 @@ def _build_newborn_patient(
     sex: str,
     snapshot_date: date | None = None,
     country: str = "US",
+    birth_order: int = 1,
 ) -> PatientProfile:
     """Build the newborn's PatientProfile — enough fields for the FHIR
     Patient emit to produce a valid resource (id, name, sex, DOB,
@@ -376,7 +390,7 @@ def _build_newborn_patient(
     )
     from clinosim.types.patient import Address, BaselineVitals, PersonName
 
-    newborn_id = _newborn_patient_id(mother.patient_id)
+    newborn_id = _newborn_patient_id(mother.patient_id, birth_order=birth_order)
     newborn_blood_type = derive_newborn_blood_type(
         newborn_id,
         getattr(mother, "blood_type", "A") or "A",
@@ -971,7 +985,31 @@ def simulate_delivery_encounter(
             _snap = date.fromisoformat(_snap[:10])
         except ValueError:
             _snap = None
-    newborn = _build_newborn_patient(patient, delivery_date, baby_sex, snapshot_date=_snap, country=country)
+    # Issue #1758: disambiguate ``POP-NNN-BABY`` for multi-parity mothers.
+    # Count existing registered newborns on the shared registry whose id
+    # already matches the mother's -BABY pattern; the next delivery is
+    # one past that count. Without a registry (test fixtures invoking the
+    # builder in isolation) birth_order stays 1 — collisions only happen
+    # for multi-parity mothers running through the full population loop,
+    # which always carries a registry.
+    _birth_order = 1
+    if population_registry is not None and hasattr(population_registry, "persons"):
+        _mother_pid = patient.patient_id
+        _bare = f"{_mother_pid}-BABY"
+        _prefix = f"{_mother_pid}-"
+        for _existing_pid in population_registry.persons:
+            if _existing_pid == _bare or (
+                _existing_pid.startswith(_prefix) and _existing_pid.endswith("-BABY") and _existing_pid != _bare
+            ):
+                _birth_order += 1
+    newborn = _build_newborn_patient(
+        patient,
+        delivery_date,
+        baby_sex,
+        snapshot_date=_snap,
+        country=country,
+        birth_order=_birth_order,
+    )
 
     # Issue #1564 Phase 1: promote the newborn to a long-lived
     # ``PersonRecord`` on the shared population registry when the caller
