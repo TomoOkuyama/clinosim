@@ -116,11 +116,15 @@ fhir_coverage:
   # US-Core Coverage profile URL (StructureDefinition).
   # https://www.hl7.org/fhir/us/core/StructureDefinition-us-core-coverage.html
   profile: "http://hl7.org/fhir/us/core/StructureDefinition/us-core-coverage"
-  # Placeholder identifier system for the composite subscriber ID.
-  # No US-wide "national insurer number system" exists; this URI is
-  # scoped to the clinosim synthetic cohort.
-  member_id_system: "urn:oid:2.16.840.1.113883.3.564.5.10.clinosim.us.coverage"
-  insurer_number_system: "urn:oid:2.16.840.1.113883.3.564.5.10.clinosim.us.payer"
+  # Identifier systems for the composite subscriber ID + insurer.
+  # No US-wide "national insurer number system" exists; these URIs are
+  # scoped to the clinosim synthetic cohort. HTTPS URLs under the
+  # project-controlled domain are used instead of placeholder OIDs
+  # because the previous ``urn:oid:…clinosim.us.coverage`` is an invalid
+  # OID (OID components must be numeric per ISO 9834-1 / RFC 3061, and
+  # ``clinosim.us.coverage`` contains letters). Issue #1767.
+  member_id_system: "https://clinosim.io/fhir/us/coverage/member-id"
+  insurer_number_system: "https://clinosim.io/fhir/us/coverage/insurer-id"
   # US Coverage has no 記号/番号/枝番 extensions — leave blank so the
   # emitter skips the JP-Core-specific extension block.
   ext_symbol: ""

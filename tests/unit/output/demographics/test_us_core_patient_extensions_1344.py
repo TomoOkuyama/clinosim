@@ -124,3 +124,46 @@ class TestPatientBuilderWiring:
         exts = result.get("extension") or []
         urls = {e["url"].rsplit("/", 1)[-1] for e in exts}
         assert "us-core-race" not in urls
+
+
+class TestPatientMRNIdentifierSystem:
+    """Issue #1763: Patient.identifier[].system must not use the reserved
+    ``example.org`` URL (RFC 2606 reserves it for documentation only — the
+    FHIR validator rejects it at ERROR severity in production data)."""
+
+    def _base_patient(self) -> dict:
+        return {
+            "patient_id": "POP-000001",
+            "name": {"family_name": "Doe", "given_name": "Jane"},
+            "sex": "F",
+            "date_of_birth": "1970-01-01",
+            "race": "white",
+            "ethnicity": "not_hispanic",
+        }
+
+    def test_us_patient_mrn_system_is_not_example_org(self) -> None:
+        """`example.org` is reserved by RFC 2606 — must not appear in any
+        Patient.identifier.system on US output."""
+        result = _build_patient(self._base_patient(), country="US")
+        for ident in result.get("identifier", []):
+            sys_uri = ident.get("system", "")
+            assert "example.org" not in sys_uri, (
+                f"Patient.identifier.system must not use the reserved example.org domain; got {sys_uri!r}"
+            )
+
+    def test_us_patient_mrn_system_is_project_controlled_url(self) -> None:
+        """The MRN system on US output should be an https URL under
+        ``clinosim.io`` (or a valid non-OID URN) to make the simulated
+        organization identifiable without colliding with real hospitals."""
+        result = _build_patient(self._base_patient(), country="US")
+        mrn_idents = [
+            ident
+            for ident in result.get("identifier", [])
+            if ident.get("system", "").endswith("mrn") or "/mrn" in ident.get("system", "")
+        ]
+        assert mrn_idents, "US Patient must emit an MRN identifier"
+        for ident in mrn_idents:
+            sys_uri = ident["system"]
+            assert sys_uri.startswith("https://clinosim.io/") or (
+                sys_uri.startswith("urn:") and not sys_uri.startswith("urn:oid:")
+            ), f"MRN system must be a clinosim-controlled URL/URN; got {sys_uri!r}"

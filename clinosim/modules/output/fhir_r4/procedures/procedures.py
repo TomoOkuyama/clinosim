@@ -38,6 +38,30 @@ from clinosim.modules.output.fhir_r4.lib.localization import _localize_drug_name
 # string-parsing the (now opaque) id.
 PROCEDURE_KEY_SYSTEM = structural_key_system("procedure-key")
 
+# Issue #1766: a few call sites set ``ProcedureRecord.procedure_type`` to a
+# snake_case classifier key (``chemotherapy_administration``,
+# ``hearing_screen_aabr``, ``metabolic_screen_tandem_ms``,
+# ``radiation_therapy``, ``pregnancy_termination``). The classifier is
+# consumed by narrative + screening logic (kept stable), but the FHIR
+# builder uses the same string as the ``coding[].display`` fallback when
+# per-country code lookup (CPT / K-code) misses. A snake_case display
+# fails the HL7 validator's binding at ERROR severity, so the humanizer
+# below converts the key to a human-readable Title Case label before it
+# reaches ``coding[].display``. Specific acronyms (AABR, MS) retain
+# upper-case; everything else is simple ``.replace("_", " ").capitalize()``.
+_PROCEDURE_TYPE_ACRONYMS = ("aabr", "crp", "mri", "ms", "cpap", "ecg", "ekg", "us")
+
+
+def _humanize_procedure_type(proc_type: str) -> str:
+    """Convert a snake_case ``procedure_type`` classifier key to a
+    human-readable display fallback. Issue #1766."""
+    if not proc_type or "_" not in proc_type:
+        return proc_type
+    parts = proc_type.split("_")
+    first = parts[0].capitalize()
+    rest = [p.upper() if p.lower() in _PROCEDURE_TYPE_ACRONYMS else p for p in parts[1:]]
+    return " ".join([first, *rest])
+
 
 def _resolve_procedure_id(structural_key: str) -> str:
     """Return the FHIR Procedure.id for any Procedure emit source (Issue #854).
@@ -88,7 +112,9 @@ def _build_procedure(
     proc_code_us = proc.get("procedure_code_us", "")
     primary_code = proc.get("procedure_code", "")
     proc_type = proc.get("procedure_type", "")
-    fallback = proc_type or "(procedure)"
+    # Issue #1766: when the display lookup misses, the fallback must not
+    # leak the raw snake_case classifier key to ``coding[].display``.
+    fallback = _humanize_procedure_type(proc_type) or "(procedure)"
 
     # Resolve displays via code dictionaries (k-codes.yaml / cpt.yaml)
     primary_lang = resolve_lang(country)
