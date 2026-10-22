@@ -1,0 +1,40 @@
+# OMB Race categories — authority code system for US Core Patient
+# ``us-core-race`` extension (Phase 3.γ, #1808 follow-up).
+#
+# Authoritative source: CDC race+ethnicity CodeSystem (OID
+# 2.16.840.1.113883.6.238). Codes verified against the OMB Statistical
+# Policy Directive No. 15 + the HL7 US Core Patient profile value set
+# http://hl7.org/fhir/us/core/StructureDefinition-us-core-race.html.
+#
+# JA displays follow MHLW convention / 国民生活基礎調査 wording for
+# race / ethnicity, where applicable; omitted for categories without
+# a canonical JA equivalent — the display lookup falls through to EN
+# via resolve_localized_display's standard chain.
+metadata:
+  name: OMB Race Categories (CDC race+ethnicity CodeSystem)
+  uri: urn:oid:2.16.840.1.113883.6.238
+  version: '2024'
+  source: >
+    CDC race+ethnicity CodeSystem OID 2.16.840.1.113883.6.238; HL7 US
+    Core Patient value set us-core-omb-race-category; OMB Statistical
+    Policy Directive No. 15.
+  description: OMB-defined race categories for US Core us-core-race extension.
+codes:
+  '2106-3':
+    en: White
+    ja: 白人
+  '2054-5':
+    en: Black or African American
+    ja: 黒人・アフリカ系アメリカ人
+  '2028-9':
+    en: Asian
+    ja: アジア系
+  '1002-5':
+    en: American Indian or Alaska Native
+    ja: ネイティブアメリカン・アラスカ先住民
+  '2076-8':
+    en: Native Hawaiian or Other Pacific Islander
+    ja: ハワイ先住民・太平洋諸島系
+  '2131-1':
+    en: Other Race
+    ja: その他の人種
