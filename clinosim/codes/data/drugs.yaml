@@ -799,3 +799,18 @@ drugs:
     codes:
       rxnorm: "6876"
     classes: ["antihypertensive.central_alpha_agonist"]
+  carboplatin:
+    names: {en: "Carboplatin", ja: "カルボプラチン"}
+    codes:
+      rxnorm: "40048"
+    classes: ["chemo.platinum"]
+  pemetrexed:
+    names: {en: "Pemetrexed", ja: "ペメトレキセド"}
+    codes:
+      rxnorm: "68446"
+    classes: ["chemo.antifolate"]
+  paclitaxel:
+    names: {en: "Paclitaxel", ja: "パクリタキセル"}
+    codes:
+      rxnorm: "56946"
+    classes: ["chemo.taxane"]

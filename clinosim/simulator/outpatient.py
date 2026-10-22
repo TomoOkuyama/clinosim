@@ -841,12 +841,24 @@ def _simulate_outpatient_visit(
         for _i, _drug in enumerate(_cycle_orders):
             if not isinstance(_drug, dict):
                 continue
-            _drug_name = str(_drug.get("drug") or "")
+            # META #1804 Phase 2.c: prefer catalog resolve_drug when the
+            # cycle order carries drug_id; fall back to legacy drug /
+            # drug_ja fields for entries not yet migrated
+            # (Nab-paclitaxel SBD-formulation, BCG non-RXNORM-IN).
+            _drug_id = str(_drug.get("drug_id") or "")
+            if _drug_id:
+                from clinosim.codes.drugs import resolve_drug
+
+                _rec = resolve_drug(_drug_id)
+                _drug_name = _rec.names.get("en", "") or ""
+                _drug_ja = _rec.names.get("ja", "") or _drug_name
+            else:
+                _drug_name = str(_drug.get("drug") or "")
+                _drug_ja = str(_drug.get("drug_ja") or "")
             if not _drug_name:
                 continue
             _dose = str(_drug.get("dose") or "")
             _route = str(_drug.get("route") or "IV")
-            _drug_ja = str(_drug.get("drug_ja") or "")
             _order_id = f"ORD-{encounter.encounter_id}-CHEMO-M{_i:02d}"
             _admin_time = _chemo_start + timedelta(minutes=_i * 5)  # stagger 5-min per drug
             _order = Order(
