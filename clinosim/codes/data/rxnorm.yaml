@@ -481,3 +481,37 @@ codes:
   '9997':
     en: Spironolactone
     ja: スピロノラクトン
+  # META #1792 Phase 2.a (#1804) — drugs referenced only by
+  # chronic_medications.yaml but not yet in rxnorm.yaml. Every RxCUI
+  # verified via NLM RxNav /REST/rxcui/<cui>/properties.json → tty=IN
+  # (ingredient) unless noted otherwise.
+  '596':
+    en: Alprazolam
+    ja: アルプラゾラム
+  '84857':
+    en: Anastrozole
+    ja: アナストロゾール
+  '83008':
+    en: Bicalutamide
+    ja: ビカルタミド
+  '3554':
+    en: Disulfiram
+    ja: ジスルフィラム
+  '24941':
+    en: Ferrous fumarate
+    ja: フマル酸第一鉄
+  '4511':
+    en: Folic acid
+    ja: 葉酸
+  '1603296':
+    en: Lenvatinib
+    ja: レンバチニブ
+  '6470':
+    en: Lorazepam
+    ja: ロラゼパム
+  '495881':
+    en: Sorafenib
+    ja: ソラフェニブ
+  '10324':
+    en: Tamoxifen
+    ja: タモキシフェン

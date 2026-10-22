@@ -39,25 +39,25 @@
 
 I10:  # Hypertension
   medications:
-    - {drug: "Amlodipine", drug_ja: "アムロジピン", dose: "5mg", route: "PO", frequency: "daily"}
-    - {drug: "Candesartan", drug_ja: "カンデサルタン", dose: "8mg", route: "PO", frequency: "daily", probability: 0.5}
+    - {drug_id: amlodipine, dose: "5mg", route: "PO", frequency: "daily"}
+    - {drug_id: candesartan, dose: "8mg", route: "PO", frequency: "daily", probability: 0.5}
     # Phase 4b.1 (#1697) — longitudinal escalation drug. probability: 0.0
     # keeps activation sampling from picking it; only the longitudinal
     # engine's htn_escalate_third_agent_i10 event adds it via resolve_med_name.
-    - {drug: "Hydrochlorothiazide", drug_ja: "ヒドロクロロチアジド", dose: "25mg", drug_class: "thiazide", route: "PO", frequency: "daily", probability: 0.0}
+    - {drug_id: hydrochlorothiazide, dose: "25mg", drug_class: "thiazide", route: "PO", frequency: "daily", probability: 0.0}
     # Issue #1762 — 4th-agent escalation (mineralocorticoid-receptor
     # antagonist for resistant HTN per PATHWAY-2 / ACC-AHA 2017).
     # probability: 0.0 keeps the activation sampler from ever picking it;
     # only the longitudinal engine's htn_escalate_fourth_agent_i10 event
     # adds it via resolve_med_name.
-    - {drug: "Spironolactone", drug_ja: "スピロノラクトン", dose: "25mg", drug_class: "diuretic.k_sparing", route: "PO", frequency: "daily", probability: 0.0}
+    - {drug_id: spironolactone, dose: "25mg", drug_class: "diuretic.k_sparing", route: "PO", frequency: "daily", probability: 0.0}
   hold_conditions:
     - {drug: "Amlodipine", condition: "SBP < 90", field: "systolic_bp", threshold: 90, direction: "below"}
     - {drug: "Candesartan", condition: "SBP < 90", field: "systolic_bp", threshold: 90, direction: "below"}
 
 E11.9:  # Type 2 Diabetes
   medications:
-    - {drug: "Metformin", drug_ja: "メトホルミン", dose: "500mg", route: "PO", frequency: "bid"}
+    - {drug_id: metformin, dose: "500mg", route: "PO", frequency: "bid"}
     # Cycle 2 M3 (#1739) — Sliding scale insulin removed from the home-med
     # sampler. Sliding scale is an INPATIENT-ONLY PRN protocol (DKA / HHS /
     # peri-op hyperglycemia) per ADA Standards of Care in Diabetes 2024 §9,
@@ -71,9 +71,9 @@ E11.9:  # Type 2 Diabetes
     # keeps the activation sampler from ever picking them; only the
     # longitudinal engine's dm_escalate_sglt2i_e11 / dm_escalate_insulin_e11
     # event yamls add these via resolve_med_name lookup on fire.
-    - {drug: "Empagliflozin", drug_ja: "エンパグリフロジン", dose: "10mg", drug_class: "sglt2i", route: "PO", frequency: "daily", probability: 0.0}
-    - {drug: "Dapagliflozin", drug_ja: "ダパグリフロジン", dose: "10mg", drug_class: "sglt2i", route: "PO", frequency: "daily", probability: 0.0}
-    - {drug: "Insulin glargine", drug_ja: "インスリン グラルギン", dose: "10U", drug_class: "basal_insulin", route: "SC", frequency: "daily", probability: 0.0}
+    - {drug_id: empagliflozin, dose: "10mg", drug_class: "sglt2i", route: "PO", frequency: "daily", probability: 0.0}
+    - {drug_id: dapagliflozin, dose: "10mg", drug_class: "sglt2i", route: "PO", frequency: "daily", probability: 0.0}
+    - {drug_id: insulin_glargine, dose: "10U", drug_class: "basal_insulin", route: "SC", frequency: "daily", probability: 0.0}
   monitoring:
     - {test: "Glucose", frequency: "qid", times: [6, 11, 17, 21], intent: "Blood glucose monitoring (DM)"}
   hold_conditions:
@@ -81,20 +81,20 @@ E11.9:  # Type 2 Diabetes
 
 E78:  # Dyslipidemia
   medications:
-    - {drug: "Atorvastatin", drug_ja: "アトルバスタチン", dose: "10mg", route: "PO", frequency: "daily"}
+    - {drug_id: atorvastatin, dose: "10mg", route: "PO", frequency: "daily"}
     # Phase 4b.1 (#1697) — longitudinal escalation drugs. probability: 0.0
     # keeps activation sampling from picking them; only the longitudinal
     # engine's lipid_escalate_* event yamls add them via resolve_med_name.
-    - {drug: "Rosuvastatin", drug_ja: "ロスバスタチン", dose: "20mg", drug_class: "high_intensity_statin", route: "PO", frequency: "daily", probability: 0.0}
-    - {drug: "Ezetimibe", drug_ja: "エゼチミブ", dose: "10mg", drug_class: "cholesterol_absorption_inhibitor", route: "PO", frequency: "daily", probability: 0.0}
+    - {drug_id: rosuvastatin, dose: "20mg", drug_class: "high_intensity_statin", route: "PO", frequency: "daily", probability: 0.0}
+    - {drug_id: ezetimibe, dose: "10mg", drug_class: "cholesterol_absorption_inhibitor", route: "PO", frequency: "daily", probability: 0.0}
   monitoring:
     - {test: "AST", frequency: "every_3_days", intent: "Statin hepatotoxicity monitoring"}
     - {test: "ALT", frequency: "every_3_days", intent: "Statin hepatotoxicity monitoring"}
 
 J44:  # COPD
   medications:
-    - {drug: "Tiotropium", drug_ja: "チオトロピウム", dose: "18mcg", route: "INH", frequency: "daily"}
-    - {drug: "Salbutamol", drug_ja: "サルブタモール", dose: "100mcg", route: "INH", frequency: "prn"}
+    - {drug_id: tiotropium, dose: "18mcg", route: "INH", frequency: "daily"}
+    - {drug_id: albuterol, dose: "100mcg", route: "INH", frequency: "prn"}
   monitoring:
     - {test: "SpO2", frequency: "tid", intent: "COPD SpO2 monitoring (target 88-92%)"}
   vital_adjustments:
@@ -103,7 +103,7 @@ J44:  # COPD
 
 N18:  # CKD
   medications:
-    - {drug: "Sodium bicarbonate", drug_ja: "炭酸水素ナトリウム", dose: "500mg", route: "PO", frequency: "tid", probability: 0.3}
+    - {drug_id: sodium_bicarbonate, dose: "500mg", route: "PO", frequency: "tid", probability: 0.3}
   monitoring:
     - {test: "Creatinine", frequency: "daily", intent: "Renal function monitoring (CKD)"}
     - {test: "K", frequency: "daily", intent: "Potassium monitoring (CKD)"}
@@ -114,9 +114,9 @@ N18:  # CKD
 
 I50:  # Heart failure
   medications:
-    - {drug: "Furosemide", drug_ja: "フロセミド", dose: "20mg", route: "PO", frequency: "daily"}
-    - {drug: "Carvedilol", drug_ja: "カルベジロール", dose: "2.5mg", route: "PO", frequency: "bid", probability: 0.6}
-    - {drug: "Enalapril", drug_ja: "エナラプリル", dose: "5mg", route: "PO", frequency: "daily", probability: 0.5}
+    - {drug_id: furosemide, dose: "20mg", route: "PO", frequency: "daily"}
+    - {drug_id: carvedilol, dose: "2.5mg", route: "PO", frequency: "bid", probability: 0.6}
+    - {drug_id: enalapril, dose: "5mg", route: "PO", frequency: "daily", probability: 0.5}
   monitoring:
     - {test: "BNP", frequency: "every_3_days", intent: "Heart failure monitoring"}
     - {test: "K", frequency: "daily", intent: "Electrolyte monitoring (diuretic)"}
@@ -132,8 +132,8 @@ I48:  # Atrial fibrillation
   # `exclusive_classes` (Issue #432).
   exclusive_classes: ["anticoagulant"]
   medications:
-    - {drug: "Warfarin", drug_ja: "ワルファリン", dose: "3mg", drug_class: "anticoagulant", route: "PO", frequency: "daily", probability: 0.5}
-    - {drug: "Apixaban", drug_ja: "アピキサバン", dose: "5mg", drug_class: "anticoagulant", route: "PO", frequency: "bid", probability: 0.5}
+    - {drug_id: warfarin, dose: "3mg", drug_class: "anticoagulant", route: "PO", frequency: "daily", probability: 0.5}
+    - {drug_id: apixaban_2, dose: "5mg", drug_class: "anticoagulant", route: "PO", frequency: "bid", probability: 0.5}
   monitoring:
     - {test: "PT-INR", frequency: "daily", intent: "Anticoagulation monitoring"}
   hold_conditions:
@@ -141,7 +141,7 @@ I48:  # Atrial fibrillation
 
 I25:  # Ischemic heart disease / Coronary artery disease
   medications:
-    - {drug: "Aspirin", drug_ja: "アスピリン", dose: "100mg", route: "PO", frequency: "daily"}
+    - {drug_id: aspirin, dose: "100mg", route: "PO", frequency: "daily"}
     # Issue #1330: chronic Clopidogrel (as DAPT with Aspirin) is only
     # indicated within 6-12 mo of PCI / ACS per ACC/AHA + ESC + JCS 2022;
     # long-term chronic DAPT >12 mo is exceptional. The prior 0.40
@@ -154,7 +154,7 @@ I25:  # Ischemic heart disease / Coronary artery disease
     # 6-12 mo post-PCI window; add a note as an anchor for the
     # follow-up post-PCI-driven event flag (deferred — needs a
     # ``recent_pci_within_12mo`` sim feature).
-    - {drug: "Clopidogrel", drug_ja: "クロピドグレル", dose: "75mg", route: "PO", frequency: "daily", probability: 0.10, note: "Chronic DAPT with Aspirin (assumed within 12 mo of PCI); truly chronic >12 mo is exceptional"}
+    - {drug_id: clopidogrel_2, dose: "75mg", route: "PO", frequency: "daily", probability: 0.10, note: "Chronic DAPT with Aspirin (assumed within 12 mo of PCI); truly chronic >12 mo is exceptional"}
     # Issue #1338: high-intensity statin for CAD secondary prevention is
     # Class-I evidence in every guideline body (ACC/AHA 2018, ESC 2019,
     # JAS 2022). Prior sim modelled statin ONLY under E78 (dyslipidemia
@@ -166,21 +166,21 @@ I25:  # Ischemic heart disease / Coronary artery disease
     # who also carry E78 will collide with the E78 block's 10 mg entry —
     # chronic-med dedup keeps a single Atorvastatin at whichever dose
     # activator picks up first, avoiding dual-emit.
-    - {drug: "Atorvastatin", drug_ja: "アトルバスタチン", dose: "40mg", route: "PO", frequency: "daily", probability: 0.90, note: "CAD secondary prevention (Class I)"}
+    - {drug_id: atorvastatin, dose: "40mg", route: "PO", frequency: "daily", probability: 0.90, note: "CAD secondary prevention (Class I)"}
   hold_conditions:
     - {drug: "Aspirin", condition: "Pre-surgical", note: "Hold pre-surgery"}
     - {drug: "Clopidogrel", condition: "Pre-surgical", note: "Hold pre-surgery"}
 
 M81:  # Osteoporosis
   medications:
-    - {drug: "Alendronate", drug_ja: "アレンドロネート", dose: "35mg", route: "PO", frequency: "weekly", probability: 0.6, note: "Empty stomach, 30min before meals"}
-    - {drug: "Vitamin D", drug_ja: "ビタミンD", dose: "1000IU", route: "PO", frequency: "daily"}
+    - {drug_id: alendronate, dose: "35mg", route: "PO", frequency: "weekly", probability: 0.6, note: "Empty stomach, 30min before meals"}
+    - {drug_id: vitamin_d, dose: "1000IU", route: "PO", frequency: "daily"}
   monitoring:
     - {test: "Ca", frequency: "every_3_days", intent: "Calcium monitoring (osteoporosis)"}
 
 F00:  # Dementia / Alzheimer's
   medications:
-    - {drug: "Donepezil", drug_ja: "ドネペジル", dose: "5mg", route: "PO", frequency: "daily", probability: 0.5}
+    - {drug_id: donepezil, dose: "5mg", route: "PO", frequency: "daily", probability: 0.5}
   notes:
     - "Increased delirium risk during hospitalization"
 
@@ -204,8 +204,8 @@ I26:  # Pulmonary embolism — post-discharge AC (>=3 mo, indefinite if unprovok
   exclusive_classes: ["anticoagulant"]
   medications:
     - {drug: "Rivaroxaban 20mg", drug_ja: "リバーロキサバン15mg", drug_class: "anticoagulant", route: "PO", frequency: "daily", probability: 0.5}
-    - {drug: "Apixaban", drug_ja: "アピキサバン", dose: "5mg", drug_class: "anticoagulant", route: "PO", frequency: "bid", probability: 0.3}
-    - {drug: "Warfarin", drug_ja: "ワルファリン", dose: "3mg", drug_class: "anticoagulant", route: "PO", frequency: "daily", probability: 0.2}
+    - {drug_id: apixaban_2, dose: "5mg", drug_class: "anticoagulant", route: "PO", frequency: "bid", probability: 0.3}
+    - {drug_id: warfarin, dose: "3mg", drug_class: "anticoagulant", route: "PO", frequency: "daily", probability: 0.2}
   monitoring:
     - {test: "PT-INR", frequency: "monthly", intent: "Warfarin therapeutic monitoring (if on warfarin)"}
     - {test: "Cr", frequency: "every_6_months", intent: "DOAC renal monitoring (if on DOAC)"}
@@ -214,8 +214,8 @@ I82:  # Deep vein thrombosis — same duration logic as I26
   exclusive_classes: ["anticoagulant"]
   medications:
     - {drug: "Rivaroxaban 20mg", drug_ja: "リバーロキサバン15mg", drug_class: "anticoagulant", route: "PO", frequency: "daily", probability: 0.5}
-    - {drug: "Apixaban", drug_ja: "アピキサバン", dose: "5mg", drug_class: "anticoagulant", route: "PO", frequency: "bid", probability: 0.3}
-    - {drug: "Warfarin", drug_ja: "ワルファリン", dose: "3mg", drug_class: "anticoagulant", route: "PO", frequency: "daily", probability: 0.2}
+    - {drug_id: apixaban_2, dose: "5mg", drug_class: "anticoagulant", route: "PO", frequency: "bid", probability: 0.3}
+    - {drug_id: warfarin, dose: "3mg", drug_class: "anticoagulant", route: "PO", frequency: "daily", probability: 0.2}
   monitoring:
     - {test: "PT-INR", frequency: "monthly", intent: "Warfarin therapeutic monitoring (if on warfarin)"}
 
@@ -225,28 +225,28 @@ I63:  # Cerebral infarction — embolic source (AF/cardiac) gets AC; non-embolic
   # clinically valid for select stroke subtypes / early phase).
   exclusive_classes: ["anticoagulant"]
   medications:
-    - {drug: "Warfarin", drug_ja: "ワルファリン", dose: "3mg", drug_class: "anticoagulant", route: "PO", frequency: "daily", probability: 0.3}
-    - {drug: "Apixaban", drug_ja: "アピキサバン", dose: "5mg", drug_class: "anticoagulant", route: "PO", frequency: "bid", probability: 0.3}
-    - {drug: "Aspirin", drug_ja: "アスピリン", dose: "100mg", route: "PO", frequency: "daily", probability: 0.7}
-    - {drug: "Clopidogrel", drug_ja: "クロピドグレル", dose: "75mg", route: "PO", frequency: "daily", probability: 0.3}
+    - {drug_id: warfarin, dose: "3mg", drug_class: "anticoagulant", route: "PO", frequency: "daily", probability: 0.3}
+    - {drug_id: apixaban_2, dose: "5mg", drug_class: "anticoagulant", route: "PO", frequency: "bid", probability: 0.3}
+    - {drug_id: aspirin, dose: "100mg", route: "PO", frequency: "daily", probability: 0.7}
+    - {drug_id: clopidogrel_2, dose: "75mg", route: "PO", frequency: "daily", probability: 0.3}
   monitoring:
     - {test: "PT-INR", frequency: "monthly", intent: "Warfarin therapeutic monitoring (if on warfarin)"}
 
 G20:  # Parkinson's disease
   medications:
-    - {drug: "Levodopa/Carbidopa", drug_ja: "レボドパ・カルビドパ", dose: "100/25mg", route: "PO", frequency: "tid"}
+    - {drug_id: levodopa_carbidopa, dose: "100/25mg", route: "PO", frequency: "tid"}
   hold_conditions:
     - {drug: "Levodopa/Carbidopa", condition: "CRITICAL — must continue on schedule, never abruptly stop"}
 
 E03:  # Hypothyroidism
   medications:
-    - {drug: "Levothyroxine", drug_ja: "レボチロキシン", dose: "50mcg", route: "PO", frequency: "daily"}
+    - {drug_id: levothyroxine, dose: "50mcg", route: "PO", frequency: "daily"}
   monitoring:
     - {test: "TSH", frequency: "every_3_days", intent: "Thyroid monitoring (if hospitalized >7 days)"}
 
 K21:  # GERD
   medications:
-    - {drug: "Lansoprazole", drug_ja: "ランソプラゾール", dose: "15mg", route: "PO", frequency: "daily"}
+    - {drug_id: lansoprazole, dose: "15mg", route: "PO", frequency: "daily"}
 
 J45:  # Asthma
   medications:
@@ -254,23 +254,23 @@ J45:  # Asthma
     # フルチカゾンプロピオン酸エステル 250 μg / サルメテロール 50 μg 配合、
     # 1回1吸入・1日2回 (通常維持量、成人)。The 250μg fluticasone strength is
     # the reference strength that FHIR consumers use for dispensing.
-    - {drug: "Fluticasone/Salmeterol", drug_ja: "フルチカゾン/サルメテロール", dose: "250mcg", route: "INH", frequency: "bid"}
+    - {drug_id: fluticasone_salmeterol, dose: "250mcg", route: "INH", frequency: "bid"}
     # Salbutamol pMDI (サルタノール / ベネトリン): 1 puff = 100 μg salbutamol、
     # 発作時 1-2 puff 頓用 (成人)、添付文書: サルタノールインヘラー 100μg.
-    - {drug: "Salbutamol", drug_ja: "サルブタモール", dose: "100mcg", route: "INH", frequency: "prn"}
+    - {drug_id: albuterol, dose: "100mcg", route: "INH", frequency: "prn"}
   monitoring:
     - {test: "SpO2", frequency: "tid", intent: "SpO2 monitoring if respiratory complaint"}
 
 N40:  # BPH
   medications:
-    - {drug: "Tamsulosin", drug_ja: "タムスロシン", dose: "0.2mg", route: "PO", frequency: "daily"}
+    - {drug_id: tamsulosin, dose: "0.2mg", route: "PO", frequency: "daily"}
   hold_conditions:
     - {drug: "Tamsulosin", condition: "Pre-surgical", note: "Hold pre-surgery (risk of floppy iris syndrome)"}
 
 M17:  # Osteoarthritis
   medications:
-    - {drug: "Acetaminophen", drug_ja: "アセトアミノフェン", dose: "500mg", route: "PO", frequency: "tid", probability: 0.7}
-    - {drug: "Celecoxib", drug_ja: "セレコキシブ", dose: "200mg", route: "PO", frequency: "daily", probability: 0.3}
+    - {drug_id: acetaminophen, dose: "500mg", route: "PO", frequency: "tid", probability: 0.7}
+    - {drug_id: celecoxib, dose: "200mg", route: "PO", frequency: "daily", probability: 0.3}
   monitoring:
     - {test: "Creatinine", frequency: "every_3_days", intent: "Renal function monitoring (if on NSAID)"}
   hold_conditions:
@@ -304,7 +304,7 @@ C16:  # Gastric cancer — oral fluoropyrimidine adjuvant (Capecitabine US / S-1
   # fluoropyrimidine drug_class enables the active-regimen mutex in
   # patient/activator._derive_home_medications (same guard C18 uses).
   medications:
-    - {drug: "Capecitabine", drug_ja: "カペシタビン", dose: "1000mg/m2", drug_class: "fluoropyrimidine", route: "PO", frequency: "bid", probability: 0.35, locale_exclude: ["JP"]}
+    - {drug_id: capecitabine, dose: "1000mg/m2", drug_class: "fluoropyrimidine", route: "PO", frequency: "bid", probability: 0.35, locale_exclude: ["JP"]}
     - {drug: "Tegafur-Gimeracil-Oteracil", drug_ja: "ティーエスワン", dose: "80mg", drug_class: "fluoropyrimidine", route: "PO", frequency: "bid", probability: 0.5, locale_exclude: ["US"]}
   monitoring:
     - {test: "Creatinine", frequency: "every_3_days", intent: "Chemotherapy renal function monitoring"}
@@ -318,7 +318,7 @@ C18:  # Colon cancer — oral fluoropyrimidine (Capecitabine, XELOX/XELIRI adjuv
   # double 5-FU exposure (oral Capecitabine + IV 5-FU) observed in
   # p=10k random-sample review.
   medications:
-    - {drug: "Capecitabine", drug_ja: "カペシタビン", dose: "1250mg/m2", drug_class: "fluoropyrimidine", route: "PO", frequency: "bid", probability: 0.5}
+    - {drug_id: capecitabine, dose: "1250mg/m2", drug_class: "fluoropyrimidine", route: "PO", frequency: "bid", probability: 0.5}
     # Oxaliplatin (IV q3weeks) removed per Issue #1319 — cycle-based
     # chemo, emitted via chemo_regimens.yaml (FOLFOX) not as a daily
     # home med. Prior probability 0.3 produced ~196 excess standalone-
@@ -328,15 +328,15 @@ C18:  # Colon cancer — oral fluoropyrimidine (Capecitabine, XELOX/XELIRI adjuv
 
 C22:  # Liver cancer — first-line oral TKI or immunotherapy
   medications:
-    - {drug: "Sorafenib", drug_ja: "ソラフェニブ", dose: "400mg", route: "PO", frequency: "bid", probability: 0.5}
-    - {drug: "Lenvatinib", drug_ja: "レンバチニブ", dose: "12mg", route: "PO", frequency: "daily", probability: 0.3}
+    - {drug_id: sorafenib, dose: "400mg", route: "PO", frequency: "bid", probability: 0.5}
+    - {drug_id: lenvatinib, dose: "12mg", route: "PO", frequency: "daily", probability: 0.3}
   monitoring:
     - {test: "AST", frequency: "every_3_days", intent: "TKI hepatotoxicity monitoring"}
     - {test: "ALT", frequency: "every_3_days", intent: "TKI hepatotoxicity monitoring"}
 
 C34:  # Lung cancer — EGFR-TKI first-line for adeno; platinum doublet otherwise
   medications:
-    - {drug: "Osimertinib", drug_ja: "オシメルチニブ", dose: "80mg", route: "PO", frequency: "daily", probability: 0.4}
+    - {drug_id: osimertinib, dose: "80mg", route: "PO", frequency: "daily", probability: 0.4}
     # Pemetrexed + Carboplatin (both IV q3weeks) removed per Issue #1319 —
     # cycle-based chemo, emitted via chemo_regimens.yaml (CarboPem
     # regimen) not as daily home meds. Prior standalone chronic MRs
@@ -346,8 +346,8 @@ C34:  # Lung cancer — EGFR-TKI first-line for adeno; platinum doublet otherwis
 
 C50:  # Breast cancer — endocrine therapy (majority ER+); trastuzumab for HER2+
   medications:
-    - {drug: "Tamoxifen", drug_ja: "タモキシフェン", dose: "20mg", route: "PO", frequency: "daily", probability: 0.4}
-    - {drug: "Anastrozole", drug_ja: "アナストロゾール", dose: "1mg", route: "PO", frequency: "daily", probability: 0.3}
+    - {drug_id: tamoxifen, dose: "20mg", route: "PO", frequency: "daily", probability: 0.4}
+    - {drug_id: anastrozole, dose: "1mg", route: "PO", frequency: "daily", probability: 0.3}
     # Trastuzumab (IV q3weeks) removed per Issue #1319 — cycle-based
     # anti-HER2 biologic, must emit via chemo_regimens.yaml as an IV
     # cycle regimen (a Trastuzumab regimen entry there would be the
@@ -358,8 +358,8 @@ C50:  # Breast cancer — endocrine therapy (majority ER+); trastuzumab for HER2
 
 C61:  # Prostate cancer — androgen deprivation therapy (ADT)
   medications:
-    - {drug: "Bicalutamide", drug_ja: "ビカルタミド", dose: "80mg", route: "PO", frequency: "daily", probability: 0.5}
-    - {drug: "Leuprorelin", drug_ja: "リュープロレリン", dose: "3.75mg", route: "SC", frequency: "monthly", probability: 0.35}
+    - {drug_id: bicalutamide, dose: "80mg", route: "PO", frequency: "daily", probability: 0.5}
+    - {drug_id: leuprolide, dose: "3.75mg", route: "SC", frequency: "monthly", probability: 0.35}
   monitoring:
     - {test: "AST", frequency: "every_3_days", intent: "Anti-androgen hepatic monitoring"}
 
@@ -419,9 +419,9 @@ F10:  # Alcohol use disorder — MAT (medication-assisted treatment)
   # is markedly lower (~2-5 % of diagnosed cohort per 厚生労働省
   # アルコール使用障害調査) but the same agents are available.
   medications:
-    - {drug: "Naltrexone", drug_ja: "ナルトレキソン", dose: "50mg", route: "PO", frequency: "daily", probability: 0.15}
-    - {drug: "Acamprosate", drug_ja: "アカンプロサート", dose: "666mg", route: "PO", frequency: "tid", probability: 0.08}
-    - {drug: "Disulfiram", drug_ja: "ジスルフィラム", dose: "250mg", route: "PO", frequency: "daily", probability: 0.03}
+    - {drug_id: naltrexone, dose: "50mg", route: "PO", frequency: "daily", probability: 0.15}
+    - {drug_id: acamprosate, dose: "666mg", route: "PO", frequency: "tid", probability: 0.08}
+    - {drug_id: disulfiram, dose: "250mg", route: "PO", frequency: "daily", probability: 0.03}
   monitoring:
     - {test: "AST", frequency: "every_3_days", intent: "AUD hepatic monitoring (hepatotoxicity + background liver injury)"}
     - {test: "ALT", frequency: "every_3_days", intent: "AUD hepatic monitoring"}
@@ -443,8 +443,8 @@ F32:  # Depressive episode (single)
   # exclusive class.
   exclusive_classes: ["ssri", "snri", "atypical_ad"]
   medications:
-    - {drug: "Sertraline", drug_ja: "セルトラリン", dose: "50mg", drug_class: "ssri", route: "PO", frequency: "daily", probability: 0.32}
-    - {drug: "Escitalopram", drug_ja: "エスシタロプラム", dose: "10mg", drug_class: "ssri", route: "PO", frequency: "daily", probability: 0.22}
+    - {drug_id: sertraline, dose: "50mg", drug_class: "ssri", route: "PO", frequency: "daily", probability: 0.32}
+    - {drug_id: escitalopram, dose: "10mg", drug_class: "ssri", route: "PO", frequency: "daily", probability: 0.22}
     # Issue #1314: Fluoxetine is NOT PMDA-approved for Japan (0 hits
     # in the bundled JP_MedicationCodeYJ_CS_full.json master under
     # フルオキセチン / プロザック). ``locale_exclude`` filters this
@@ -452,12 +452,12 @@ F32:  # Depressive episode (single)
     # placeholder MR emits; residual probability grows the "no ssri"
     # branch (Sertraline / Escitalopram — both PMDA-approved — remain
     # the JP first-line).
-    - {drug: "Fluoxetine", drug_ja: "フルオキセチン", dose: "20mg", drug_class: "ssri", route: "PO", frequency: "daily", probability: 0.11, locale_exclude: ["JP"]}
+    - {drug_id: fluoxetine, dose: "20mg", drug_class: "ssri", route: "PO", frequency: "daily", probability: 0.11, locale_exclude: ["JP"]}
     # SNRI augmentation — moderate+ severity only (STAR*D step 2+).
-    - {drug: "Venlafaxine", drug_ja: "ベンラファキシン", dose: "75mg", drug_class: "snri", route: "PO", frequency: "daily", probability: 0.08, requires_stage_in: ["PHQ-9 moderate", "PHQ-9 moderately severe", "PHQ-9 severe"]}
-    - {drug: "Duloxetine", drug_ja: "デュロキセチン", dose: "30mg", drug_class: "snri", route: "PO", frequency: "daily", probability: 0.07, requires_stage_in: ["PHQ-9 moderate", "PHQ-9 moderately severe", "PHQ-9 severe"]}
+    - {drug_id: venlafaxine, dose: "75mg", drug_class: "snri", route: "PO", frequency: "daily", probability: 0.08, requires_stage_in: ["PHQ-9 moderate", "PHQ-9 moderately severe", "PHQ-9 severe"]}
+    - {drug_id: duloxetine, dose: "30mg", drug_class: "snri", route: "PO", frequency: "daily", probability: 0.07, requires_stage_in: ["PHQ-9 moderate", "PHQ-9 moderately severe", "PHQ-9 severe"]}
     # Atypical augmentation — moderately severe / severe only.
-    - {drug: "Mirtazapine", drug_ja: "ミルタザピン", dose: "15mg", drug_class: "atypical_ad", route: "PO", frequency: "nightly", probability: 0.06, requires_stage_in: ["PHQ-9 moderately severe", "PHQ-9 severe"]}
+    - {drug_id: mirtazapine, dose: "15mg", drug_class: "atypical_ad", route: "PO", frequency: "nightly", probability: 0.06, requires_stage_in: ["PHQ-9 moderately severe", "PHQ-9 severe"]}
 
 F33:  # Recurrent depressive disorder — same three-class shape + severity gates as F32
   # Recurrent-episode cohort has slightly elevated augmentation
@@ -467,13 +467,13 @@ F33:  # Recurrent depressive disorder — same three-class shape + severity gate
   # atypical at moderately severe+.
   exclusive_classes: ["ssri", "snri", "atypical_ad"]
   medications:
-    - {drug: "Sertraline", drug_ja: "セルトラリン", dose: "50mg", drug_class: "ssri", route: "PO", frequency: "daily", probability: 0.35}
-    - {drug: "Escitalopram", drug_ja: "エスシタロプラム", dose: "10mg", drug_class: "ssri", route: "PO", frequency: "daily", probability: 0.25}
+    - {drug_id: sertraline, dose: "50mg", drug_class: "ssri", route: "PO", frequency: "daily", probability: 0.35}
+    - {drug_id: escitalopram, dose: "10mg", drug_class: "ssri", route: "PO", frequency: "daily", probability: 0.25}
     # Issue #1314: Fluoxetine NOT PMDA-approved (see F32 note above).
-    - {drug: "Fluoxetine", drug_ja: "フルオキセチン", dose: "20mg", drug_class: "ssri", route: "PO", frequency: "daily", probability: 0.12, locale_exclude: ["JP"]}
-    - {drug: "Venlafaxine", drug_ja: "ベンラファキシン", dose: "75mg", drug_class: "snri", route: "PO", frequency: "daily", probability: 0.10, requires_stage_in: ["PHQ-9 moderate", "PHQ-9 moderately severe", "PHQ-9 severe"]}
-    - {drug: "Duloxetine", drug_ja: "デュロキセチン", dose: "30mg", drug_class: "snri", route: "PO", frequency: "daily", probability: 0.08, requires_stage_in: ["PHQ-9 moderate", "PHQ-9 moderately severe", "PHQ-9 severe"]}
-    - {drug: "Mirtazapine", drug_ja: "ミルタザピン", dose: "15mg", drug_class: "atypical_ad", route: "PO", frequency: "nightly", probability: 0.08, requires_stage_in: ["PHQ-9 moderately severe", "PHQ-9 severe"]}
+    - {drug_id: fluoxetine, dose: "20mg", drug_class: "ssri", route: "PO", frequency: "daily", probability: 0.12, locale_exclude: ["JP"]}
+    - {drug_id: venlafaxine, dose: "75mg", drug_class: "snri", route: "PO", frequency: "daily", probability: 0.10, requires_stage_in: ["PHQ-9 moderate", "PHQ-9 moderately severe", "PHQ-9 severe"]}
+    - {drug_id: duloxetine, dose: "30mg", drug_class: "snri", route: "PO", frequency: "daily", probability: 0.08, requires_stage_in: ["PHQ-9 moderate", "PHQ-9 moderately severe", "PHQ-9 severe"]}
+    - {drug_id: mirtazapine, dose: "15mg", drug_class: "atypical_ad", route: "PO", frequency: "nightly", probability: 0.08, requires_stage_in: ["PHQ-9 moderately severe", "PHQ-9 severe"]}
 
 F41.1:  # Generalized anxiety disorder — SSRI + SNRI both first-line
   # APA / VA-DoD GAD guidelines: SNRI (Venlafaxine / Duloxetine)
@@ -492,8 +492,8 @@ F41.1:  # Generalized anxiety disorder — SSRI + SNRI both first-line
   # elderly guidance (cognitive impairment + fall risk).
   exclusive_classes: ["ssri", "snri", "benzodiazepine"]
   medications:
-    - {drug: "Escitalopram", drug_ja: "エスシタロプラム", dose: "10mg", drug_class: "ssri", route: "PO", frequency: "daily", probability: 0.28}
-    - {drug: "Sertraline", drug_ja: "セルトラリン", dose: "50mg", drug_class: "ssri", route: "PO", frequency: "daily", probability: 0.22}
+    - {drug_id: escitalopram, dose: "10mg", drug_class: "ssri", route: "PO", frequency: "daily", probability: 0.28}
+    - {drug_id: sertraline, dose: "50mg", drug_class: "ssri", route: "PO", frequency: "daily", probability: 0.22}
     # Issue #1325: Paroxetine is on the AGS Beers Criteria 2023 "avoid"
     # list for adults age ≥ 65 (high anticholinergic burden → cognitive
     # impairment, orthostatic hypotension → fall risk). ``age_max: 64``
@@ -501,9 +501,9 @@ F41.1:  # Generalized anxiety disorder — SSRI + SNRI both first-line
     # patient is 65+; the residual probability mass increases the
     # "no ssri" branch for elderly cohort (Sertraline + Escitalopram
     # are the geriatric first-line, sampled unchanged).
-    - {drug: "Paroxetine", drug_ja: "パロキセチン", dose: "20mg", drug_class: "ssri", route: "PO", frequency: "daily", probability: 0.10, age_max: 64}
-    - {drug: "Venlafaxine", drug_ja: "ベンラファキシン", dose: "75mg", drug_class: "snri", route: "PO", frequency: "daily", probability: 0.15, requires_stage_in: ["GAD-7 moderate", "GAD-7 severe"]}
-    - {drug: "Duloxetine", drug_ja: "デュロキセチン", dose: "30mg", drug_class: "snri", route: "PO", frequency: "daily", probability: 0.10, requires_stage_in: ["GAD-7 moderate", "GAD-7 severe"]}
+    - {drug_id: paroxetine, dose: "20mg", drug_class: "ssri", route: "PO", frequency: "daily", probability: 0.10, age_max: 64}
+    - {drug_id: venlafaxine, dose: "75mg", drug_class: "snri", route: "PO", frequency: "daily", probability: 0.15, requires_stage_in: ["GAD-7 moderate", "GAD-7 severe"]}
+    - {drug_id: duloxetine, dose: "30mg", drug_class: "snri", route: "PO", frequency: "daily", probability: 0.10, requires_stage_in: ["GAD-7 moderate", "GAD-7 severe"]}
     # Issue #1137 cluster axis 8 — benzodiazepine as short-term
     # rescue therapy for GAD-7 severe. APA / VA-DoD guidance:
     # benzodiazepines are NOT first-line for GAD (dependence +
@@ -513,13 +513,13 @@ F41.1:  # Generalized anxiety disorder — SSRI + SNRI both first-line
     # classes`` already contains ssri + snri; the new benzo class
     # is a THIRD exclusive bucket (at most one benzodiazepine per
     # patient) emitted only on GAD-7 severe cohort.
-    - {drug: "Lorazepam", drug_ja: "ロラゼパム", dose: "0.5mg", drug_class: "benzodiazepine", route: "PO", frequency: "as needed", probability: 0.25, requires_stage_in: ["GAD-7 severe"], age_max: 64}
-    - {drug: "Alprazolam", drug_ja: "アルプラゾラム", dose: "0.25mg", drug_class: "benzodiazepine", route: "PO", frequency: "as needed", probability: 0.20, requires_stage_in: ["GAD-7 severe"], age_max: 64}
+    - {drug_id: lorazepam, dose: "0.5mg", drug_class: "benzodiazepine", route: "PO", frequency: "as needed", probability: 0.25, requires_stage_in: ["GAD-7 severe"], age_max: 64}
+    - {drug_id: alprazolam, dose: "0.25mg", drug_class: "benzodiazepine", route: "PO", frequency: "as needed", probability: 0.20, requires_stage_in: ["GAD-7 severe"], age_max: 64}
 
 Z34:  # Encounter for supervision of normal pregnancy
   medications:
-    - {drug: "Folic acid", drug_ja: "葉酸", dose: "0.4mg", route: "PO", frequency: "daily"}
-    - {drug: "Ferrous fumarate", drug_ja: "フマル酸第一鉄", dose: "50mg", route: "PO", frequency: "daily", probability: 0.6}
+    - {drug_id: folic_acid, dose: "0.4mg", route: "PO", frequency: "daily"}
+    - {drug_id: ferrous_fumarate, dose: "50mg", route: "PO", frequency: "daily", probability: 0.6}
   monitoring:
     - {test: "Hb", frequency: "monthly", intent: "Prenatal hemoglobin monitoring"}
 
@@ -533,8 +533,8 @@ E66.9:  # Obesity, unspecified — BMI 30-40
   # gets at most one GLP-1 agent, not multiple.
   exclusive_classes: ["glp1"]
   medications:
-    - {drug: "Semaglutide", drug_ja: "セマグルチド", dose: "1mg", drug_class: "glp1", route: "SC", frequency: "weekly", probability: 0.05}
-    - {drug: "Liraglutide", drug_ja: "リラグルチド", dose: "1.2mg", drug_class: "glp1", route: "SC", frequency: "daily", probability: 0.03}
+    - {drug_id: semaglutide, dose: "1mg", drug_class: "glp1", route: "SC", frequency: "weekly", probability: 0.05}
+    - {drug_id: liraglutide, dose: "1.2mg", drug_class: "glp1", route: "SC", frequency: "daily", probability: 0.03}
 
 E66.01:  # Morbid obesity, BMI >= 40
   # GLP-1 utilization is substantially higher in the morbid-obesity
@@ -544,6 +544,6 @@ E66.01:  # Morbid obesity, BMI >= 40
   # path, not emitted here.
   exclusive_classes: ["glp1"]
   medications:
-    - {drug: "Semaglutide", drug_ja: "セマグルチド", dose: "2.4mg", drug_class: "glp1", route: "SC", frequency: "weekly", probability: 0.15}
-    - {drug: "Tirzepatide", drug_ja: "チルゼパチド", dose: "10mg", drug_class: "glp1", route: "SC", frequency: "weekly", probability: 0.10}
-    - {drug: "Liraglutide", drug_ja: "リラグルチド", dose: "3mg", drug_class: "glp1", route: "SC", frequency: "daily", probability: 0.05}
+    - {drug_id: semaglutide, dose: "2.4mg", drug_class: "glp1", route: "SC", frequency: "weekly", probability: 0.15}
+    - {drug_id: tirzepatide, dose: "10mg", drug_class: "glp1", route: "SC", frequency: "weekly", probability: 0.10}
+    - {drug_id: liraglutide, dose: "3mg", drug_class: "glp1", route: "SC", frequency: "daily", probability: 0.05}

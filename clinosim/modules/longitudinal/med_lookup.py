@@ -25,11 +25,21 @@ from clinosim.types.patient import HomeMedication
 @cache
 def resolve_med_name(drug_name: str) -> HomeMedication:
     """Return a HomeMedication for ``drug_name`` by looking up the first
-    matching ``drug:`` entry in ``chronic_medications.yaml``.
+    matching entry in ``chronic_medications.yaml``.
+
+    Issue #1804 Phase 2.a: entries now carry ``drug_id`` instead of
+    ``drug`` / ``drug_ja`` where a catalog mapping exists. The lookup
+    walks both migrated and legacy entries:
+
+      * Legacy entry → match ``entry["drug"]`` against ``drug_name``.
+      * Migrated entry → resolve the catalog's ``names.en`` for
+        ``entry["drug_id"]`` and compare to ``drug_name``.
 
     Lookup is cached (unbounded) — the yaml itself is small and the set
     of distinct drug names is bounded by the yaml's own entries.
     """
+    from clinosim.codes.drugs import get_drug
+
     data = load_chronic_medications()
     for icd_block in _iter_icd_blocks(data):
         meds = icd_block.get("medications") if isinstance(icd_block, dict) else None
@@ -38,6 +48,20 @@ def resolve_med_name(drug_name: str) -> HomeMedication:
         for entry in meds:
             if not isinstance(entry, dict):
                 continue
+            drug_id = entry.get("drug_id") or ""
+            if drug_id:
+                rec = get_drug(str(drug_id))
+                if rec is None or rec.names.get("en", "") != drug_name:
+                    continue
+                return HomeMedication(
+                    drug_name=rec.names.get("en", "") or drug_name,
+                    drug_name_ja=rec.names.get("ja", ""),
+                    route=str(entry.get("route", "PO")),
+                    dose=str(entry.get("dose", "")),
+                    frequency=str(entry.get("frequency", "daily")),
+                )
+            # Legacy entry (drug_id absent — Rivaroxaban dose-embedded,
+            # Tegafur-Gimeracil-Oteracil combo). Match by legacy drug field.
             if entry.get("drug") == drug_name:
                 return HomeMedication(
                     drug_name=str(entry["drug"]),

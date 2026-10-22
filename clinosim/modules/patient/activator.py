@@ -1063,8 +1063,22 @@ def _derive_home_medications(
             context=f"chronic_medications ICD {code}",
             patient_age=patient_age,
         ):
-            drug_en = picked.get("drug", "")
-            drug_ja = picked.get("drug_ja", "")
+            # Issue #1804 Phase 2.a: prefer the catalog's resolve_drug when
+            # the yaml entry carries drug_id; fall back to the legacy
+            # drug / drug_ja fields for entries not yet migrated
+            # (Rivaroxaban dose-embedded, Tegafur-Gimeracil-Oteracil combo).
+            # The catalog is the display SoT once a drug_id is set;
+            # legacy entries render from their inline yaml strings.
+            drug_id = picked.get("drug_id") or ""
+            if drug_id:
+                from clinosim.codes.drugs import resolve_drug
+
+                _rec = resolve_drug(drug_id)
+                drug_en = _rec.names.get("en", "") or ""
+                drug_ja = _rec.names.get("ja", "") or ""
+            else:
+                drug_en = picked.get("drug", "")
+                drug_ja = picked.get("drug_ja", "")
             # CIF stores English drug names (AD-30). JP display picks up drug_ja
             # at output time. Selection key uses the string that reaches the
             # display side so JP and US dedup identically.
