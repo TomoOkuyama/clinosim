@@ -643,3 +643,8 @@ _.all_stage_labels  # codes/stage_to_snomed.py — audit/integrity API
 # Phase 3.β.3 — oxygen device-mode → SNOMED catalog loader. Audit-side
 # API invisible to vulture (tests are not scanned).
 _.all_device_modes  # codes/oxygen_device_to_snomed.py — audit/integrity API
+
+# Phase 3.β.2 — blood-group ABO/Rh → SNOMED catalog loader. Audit-side
+# APIs invisible to vulture (tests are not scanned).
+_.all_abo_keys  # codes/blood_group_to_snomed.py — audit/integrity API
+_.all_rh_keys  # codes/blood_group_to_snomed.py — audit/integrity API
