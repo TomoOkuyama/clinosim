@@ -1,0 +1,27 @@
+# OMB Ethnicity categories — authority code system for US Core Patient
+# ``us-core-ethnicity`` extension (Phase 3.γ, #1808 follow-up).
+#
+# Shares the CDC race+ethnicity CodeSystem URI with omb-race.yaml
+# (OID 2.16.840.1.113883.6.238); FHIR US Core splits the ValueSet into
+# two profile slots (``us-core-ethnicity-category`` + ``us-core-race-category``)
+# but the underlying CodeSystem is one.
+#
+# Authoritative source: CDC race+ethnicity CodeSystem (OID
+# 2.16.840.1.113883.6.238); HL7 US Core Patient value set
+# http://hl7.org/fhir/us/core/StructureDefinition-us-core-ethnicity.html.
+metadata:
+  name: OMB Ethnicity Categories (CDC race+ethnicity CodeSystem)
+  uri: urn:oid:2.16.840.1.113883.6.238
+  version: '2024'
+  source: >
+    CDC race+ethnicity CodeSystem OID 2.16.840.1.113883.6.238; HL7 US
+    Core Patient value set us-core-omb-ethnicity-category; OMB
+    Statistical Policy Directive No. 15.
+  description: OMB-defined ethnicity categories for US Core us-core-ethnicity extension.
+codes:
+  '2135-2':
+    en: Hispanic or Latino
+    ja: ヒスパニック・ラテン系
+  '2186-5':
+    en: Not Hispanic or Latino
+    ja: 非ヒスパニック・非ラテン系

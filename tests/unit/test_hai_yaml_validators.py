@@ -58,6 +58,8 @@ def _clear_hai_caches():
     _load_system("loinc")  # pre-warm loinc.yaml (_validate_hai_specimens test_loinc cross-ref)
     stage_to_snomed._load_catalog()  # pre-warm clinosim-stage-to-snomed.yaml
     locale_loader.load_chief_complaint_translations()  # pre-warm chief_complaint_translations.yaml
+    _load_system("omb-race")  # Phase 3.γ pre-warm
+    _load_system("omb-ethnicity")  # Phase 3.γ pre-warm
     yield
     hai_engine.load_hai_rates.cache_clear()
     hai_engine.load_hai_codes.cache_clear()

@@ -55,31 +55,41 @@ _US_CORE_ETHNICITY_URL = "http://hl7.org/fhir/us/core/StructureDefinition/us-cor
 _US_CORE_BIRTHSEX_URL = "http://hl7.org/fhir/us/core/StructureDefinition/us-core-birthsex"
 _OMB_RACE_ETHNICITY_SYSTEM = "urn:oid:2.16.840.1.113883.6.238"
 
-_OMB_RACE_CODE_DISPLAY: dict[str, tuple[str, str]] = {
-    "white": ("2106-3", "White"),
-    "black": ("2054-5", "Black or African American"),
-    "asian": ("2028-9", "Asian"),
-    "native_american": ("1002-5", "American Indian or Alaska Native"),
-    "pacific_islander": ("2076-8", "Native Hawaiian or Other Pacific Islander"),
-    "other": ("2131-1", "Other Race"),
+# Phase 3.γ (#1808 follow-up): display SoT moved to the authority
+# yamls `clinosim/codes/data/omb-race.yaml` + `omb-ethnicity.yaml`.
+# This module keeps only the clinosim-internal slug → OMB code
+# mapping; `_build_us_core_*_extension` resolves display via
+# `code_lookup(<system>, code, lang)` so JA + future locale displays
+# emerge from the authority yaml.
+_OMB_RACE_SLUG_TO_CODE: dict[str, str] = {
+    "white": "2106-3",
+    "black": "2054-5",
+    "asian": "2028-9",
+    "native_american": "1002-5",
+    "pacific_islander": "2076-8",
+    "other": "2131-1",
 }
-_OMB_ETHNICITY_CODE_DISPLAY: dict[str, tuple[str, str]] = {
-    "hispanic": ("2135-2", "Hispanic or Latino"),
-    "not_hispanic": ("2186-5", "Not Hispanic or Latino"),
+_OMB_ETHNICITY_SLUG_TO_CODE: dict[str, str] = {
+    "hispanic": "2135-2",
+    "not_hispanic": "2186-5",
 }
 
 
-def _build_us_core_race_extension(race: str) -> dict[str, Any] | None:
+def _build_us_core_race_extension(race: str, lang: str = "en") -> dict[str, Any] | None:
     """Build a us-core-race Extension for the given internal race slug.
 
     Returns None when the slug is empty or unrecognised — the extension is
     only emitted when a real OMB category is available (fabricating one
     would be worse than omitting per feedback_empty_vs_wrong_assertion).
+
+    Phase 3.γ: display resolves via `code_lookup("omb-race", code, lang)`
+    against `codes/data/omb-race.yaml` so JA + future-locale displays
+    emerge from the authority yaml instead of a module-local map.
     """
-    entry = _OMB_RACE_CODE_DISPLAY.get(race or "")
-    if not entry:
+    code = _OMB_RACE_SLUG_TO_CODE.get(race or "")
+    if not code:
         return None
-    code, display = entry
+    display = code_lookup("omb-race", code, lang) or code
     return {
         "url": _US_CORE_RACE_URL,
         "extension": [
@@ -96,11 +106,13 @@ def _build_us_core_race_extension(race: str) -> dict[str, Any] | None:
     }
 
 
-def _build_us_core_ethnicity_extension(ethnicity: str) -> dict[str, Any] | None:
-    entry = _OMB_ETHNICITY_CODE_DISPLAY.get(ethnicity or "")
-    if not entry:
+def _build_us_core_ethnicity_extension(ethnicity: str, lang: str = "en") -> dict[str, Any] | None:
+    """Build a us-core-ethnicity Extension — Phase 3.γ: display via
+    `code_lookup("omb-ethnicity", code, lang)` against the authority yaml."""
+    code = _OMB_ETHNICITY_SLUG_TO_CODE.get(ethnicity or "")
+    if not code:
         return None
-    code, display = entry
+    display = code_lookup("omb-ethnicity", code, lang) or code
     return {
         "url": _US_CORE_ETHNICITY_URL,
         "extension": [
