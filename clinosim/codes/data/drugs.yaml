@@ -794,3 +794,8 @@ drugs:
     codes:
       rxnorm: "10324"
     classes: ["serm"]
+  methyldopa:
+    names: {en: "Methyldopa", ja: "メチルドパ"}
+    codes:
+      rxnorm: "6876"
+    classes: ["antihypertensive.central_alpha_agonist"]
