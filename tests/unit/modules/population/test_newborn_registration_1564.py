@@ -376,7 +376,7 @@ def test_newborn_atopic_predisposition_two_atopic_parents() -> None:
     father.allergies = [
         Allergy(
             allergy_id="ALG-F-PCN",
-            allergen_code="373270004",
+            allergen_code="764146007",
             category="medication",
             criticality="high",
             verification_status="confirmed",
@@ -410,7 +410,7 @@ def test_newborn_atopic_predisposition_father_only_atopic() -> None:
     father.allergies = [
         Allergy(
             allergy_id="ALG-F-PCN",
-            allergen_code="373270004",
+            allergen_code="764146007",
             category="medication",
             criticality="high",
             verification_status="confirmed",

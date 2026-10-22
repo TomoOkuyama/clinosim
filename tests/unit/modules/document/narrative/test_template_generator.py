@@ -578,12 +578,13 @@ def test_allergies_listed_in_admission_hp() -> None:
     """Allergies in ctx must appear in allergies section of ADMISSION_HP,
     resolved via code_lookup (AD-30). Session 57 v3: Penicillin's
     allergen_code was swapped from 387207008 (Ibuprofen in SNOMED CT
-    International 2026-06-01) to 373270004 (Substance with penicillin
-    structure); the ja display "ペニシリン" is registered against 373270004
-    in clinosim/codes/data/snomed-ct.yaml."""
+    International 2026-06-01) to 764146007 ("Penicillin"; the previous
+    choice 373270004 became INACTIVE and was swapped for Issue #1768).
+    The ja display "ペニシリン" is registered against 764146007 in
+    clinosim/codes/data/snomed-ct.yaml."""
     from clinosim.types.allergy import Allergy
 
-    allergy = Allergy(allergen_code="373270004", criticality="high", category="medication")
+    allergy = Allergy(allergen_code="764146007", criticality="high", category="medication")
     protocol = load_disease_protocol("bacterial_pneumonia")
     spec = _get_spec(DocumentType.ADMISSION_HP)
     ctx = _make_ctx(

@@ -249,7 +249,7 @@ def test_no_reactions_omits_reaction_field():
 
 
 def test_jp_locale_resolves_snomed_display_to_ja():
-    """JP cohort: allergen_code 373270004 (Penicillin) resolved to ペニシリン via code_lookup.
+    """JP cohort: allergen_code 764146007 (Penicillin) resolved to ペニシリン via code_lookup.
 
     Session 58 #263 → session 59 #293 evolution:
       #263: JP output emits [JFAGY primary, SNOMED secondary] with SNOMED
@@ -261,7 +261,7 @@ def test_jp_locale_resolves_snomed_display_to_ja():
             channel for downstream consumers.
     """
     a = _sample_allergy_dataclass()
-    a.allergen_code = "373270004"
+    a.allergen_code = "764146007"
     ctx = _make_ctx([a], country="JP")
     r = _bb_allergy_intolerances(ctx)[0]
     codings = r["code"]["coding"]
@@ -277,7 +277,7 @@ def test_jp_locale_resolves_snomed_display_to_ja():
 def test_jp_locale_resolves_reaction_manifestation_to_ja():
     """JP cohort: manifestation_snomed 247472004 (Rash) resolved to 発疹 via code_lookup."""
     a = _sample_allergy_dataclass()
-    a.allergen_code = "373270004"
+    a.allergen_code = "764146007"
     a.reactions = [
         AllergyReaction(
             manifestation_snomed="271807003",
@@ -298,7 +298,7 @@ def test_jp_locale_resolves_reaction_manifestation_to_ja():
 def test_jp_medication_allergen_gets_jfagy_medication_cs_primary():
     """Medication category → JFAGY YCM medication allergen CS (00M / 医薬品)."""
     a = _sample_allergy_dataclass()
-    a.allergen_code = "373270004"
+    a.allergen_code = "764146007"
     a.category = "medication"
     ctx = _make_ctx([a], country="JP")
     r = _bb_allergy_intolerances(ctx)[0]
@@ -335,14 +335,14 @@ def test_jp_environment_allergen_gets_jfagy_non_food_non_medication_cs_primary()
 def test_us_output_keeps_snomed_primary_and_no_jfagy():
     """US output has no JP Core VS constraint. Continue emitting SNOMED alone."""
     a = _sample_allergy_dataclass()
-    a.allergen_code = "373270004"
+    a.allergen_code = "764146007"
     a.category = "medication"
     ctx = _make_ctx([a], country="US")
     r = _bb_allergy_intolerances(ctx)[0]
     codings = r["code"]["coding"]
     assert len(codings) == 1
     assert codings[0]["system"] == "http://snomed.info/sct"
-    assert codings[0]["code"] == "373270004"
+    assert codings[0]["code"] == "764146007"
 
 
 def test_jp_output_drops_snomed_secondary_when_jfagy_primary_available():
@@ -353,7 +353,7 @@ def test_jp_output_drops_snomed_secondary_when_jfagy_primary_available():
     しても downstream JP consumer には影響しない。US は SNOMED 単独維持。
     """
     a = _sample_allergy_dataclass()
-    a.allergen_code = "373270004"
+    a.allergen_code = "764146007"
     a.category = "medication"
     ctx = _make_ctx([a], country="JP")
     r = _bb_allergy_intolerances(ctx)[0]
@@ -388,7 +388,7 @@ def test_multiple_allergies_all_emitted():
     a1 = _sample_allergy_dataclass()
     a2 = _sample_allergy_dataclass()
     a2.allergy_id = "a02"
-    a2.allergen_code = "373270004"
+    a2.allergen_code = "764146007"
     ctx = _make_ctx([a1, a2])
     resources = _bb_allergy_intolerances(ctx)
     assert len(resources) == 2

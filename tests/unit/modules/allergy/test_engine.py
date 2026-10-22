@@ -32,8 +32,8 @@ def test_medication_allergen_has_penicillin():
     assert pen
     # Session 57 v3: allergens.yaml swapped the Penicillin code from
     # 387207008 (Ibuprofen in SNOMED CT International 2026-06-01) to
-    # 373270004 (Substance with penicillin structure).
-    assert pen[0]["allergen_code"] == "373270004"
+    # 764146007 ("Penicillin"; replaces inactive 373270004 — Issue #1768).
+    assert pen[0]["allergen_code"] == "764146007"
 
 
 def test_enricher_populates_allergies_per_patient():

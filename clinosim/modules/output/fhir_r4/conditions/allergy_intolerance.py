@@ -76,7 +76,7 @@ _VALID_CATEGORIES = {"medication", "food", "environment", "biologic"}
 # `AllergyIntolerance.code` to a required CodeSystem set that includes only
 # the JFAGY family — SNOMED is NOT admissible on this binding, producing 40
 # v4 errors on the 3 medication allergen codes emitted at cohort scale
-# (115556009 / 387458008 / 373270004).
+# (115556009 / 387458008 / 764146007).
 #
 # The tx-server ships the JFAGY CodeSystems as `content=fragment`, with only
 # the top-level generic codes loaded:

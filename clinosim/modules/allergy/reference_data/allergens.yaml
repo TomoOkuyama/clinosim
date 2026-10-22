@@ -32,8 +32,11 @@
 allergens:
   medication:
     # Session 57 v3 fix: 387207008 is Ibuprofen in SNOMED CT International
-    # 2026-06-01 — swap to 373270004 (Substance with penicillin structure).
-    - allergen_code: "373270004"
+    # 2026-06-01 — swap to 764146007 ("Penicillin"). The previous choice
+    # 373270004 ("Substance with penicillin structure") became INACTIVE
+    # in SNOMED CT International; verified 2026-10-22 via tx.fhir.org
+    # $lookup. 764146007 is the active replacement (Issue #1768).
+    - allergen_code: "764146007"
       allergen_display_en: "Penicillin"
       allergen_display_ja: "ペニシリン"
       prevalence:
@@ -204,7 +207,7 @@ polyallergy:
 # document additional medication allergies than food/environment ones.
 # ---------------------------------------------------------------------------
 cross_reactivity:
-  - trigger_allergen_codes: ["373270004"]   # Penicillin
+  - trigger_allergen_codes: ["764146007"]   # Penicillin
     boost_category: "medication"
     boost_weight_bonus: 0.20                # +20% conditional boost on medication category
 
