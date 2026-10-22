@@ -1300,8 +1300,23 @@ def _run_ed_slot_phase(
         )
 
         occupation = getattr(person, "occupation", "other")
+        # Issue #1760: encounter yamls carry optional `min_age` / `max_age`
+        # fields to gate age-inappropriate chief complaints (e.g. "Chest
+        # pain, rule out ACS" has `min_age: 18` because pediatric ACS
+        # prevalence is near zero). Filter here by zeroing the weight —
+        # the probability list length stays at N so the `slot_rng.choice`
+        # draw is RNG-neutral across the age gate's introduction.
+        person_age = int(getattr(person, "age", 0) or 0)
         ed_probs = []
         for name, spec in ed_conditions:
+            cond_min_age = spec.get("min_age")
+            cond_max_age = spec.get("max_age")
+            if cond_min_age is not None and person_age < int(cond_min_age):
+                ed_probs.append(0.0)
+                continue
+            if cond_max_age is not None and person_age > int(cond_max_age):
+                ed_probs.append(0.0)
+                continue
             base_p = spec.get("probability", 0.05)
             seasonal = spec.get("seasonal", {})
             seasonal_mod = float(seasonal.get(visit_month, seasonal.get(str(visit_month), 1.0)))

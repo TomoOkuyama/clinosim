@@ -10,6 +10,12 @@ chief_complaint:
 encounter_type: emergency
 department: emergency_medicine
 disposition: discharge_home
+# Issue #1760: adult panic phenomenology. Pediatric chest-tightness /
+# anxiety presentations route to a different diagnostic pathway
+# (growing pains, foreign body, viral myocarditis workup, …) and
+# F41.0 Panic disorder is clinically rare in children. Age-gated at
+# the sampler per the same RNG-neutral pattern as chest_pain_noncardiac.
+min_age: 15
 
 severity_distribution:
   mild: 0.40
