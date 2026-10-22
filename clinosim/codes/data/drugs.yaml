@@ -123,3 +123,620 @@ drugs:
     codes:
       rxnorm: "161"
     classes: ["analgesic.non_opioid"]
+# ---- META #1792 Phase 1b additions (auto-generated from rxnorm.yaml) ----
+# This section mirrors every entry in rxnorm.yaml not already in drugs.yaml.
+# drug_id = snake_case(en-stripped-trade-name). names.en/ja = displays
+# with trailing (TradeName) parenthesisation stripped. codes.rxnorm
+# resolves against rxnorm.yaml (integrity enforced by
+# test_every_rxnorm_pointer_resolves_against_rxnorm_yaml).
+
+  losartan:
+    names: {en: "Losartan", ja: "ロサルタン"}
+    codes:
+      rxnorm: "10156"
+    classes: []
+  levodopa_carbidopa:
+    names: {en: "Levodopa/Carbidopa", ja: "レボドパ/カルビドパ"}
+    codes:
+      rxnorm: "103919"
+    classes: []
+  fluticasone_salmeterol:
+    names: {en: "Fluticasone/Salmeterol", ja: "フルチカゾン/サルメテロール"}
+    codes:
+      rxnorm: "108761"
+    classes: []
+  vancomycin:
+    names: {en: "Vancomycin", ja: "バンコマイシン"}
+    codes:
+      rxnorm: "11124"
+    classes: []
+  ampicillin_sulbactam_injectable_product:
+    names: {en: "Ampicillin / Sulbactam Injectable Product", ja: "アンピシリン・スルバクタム注"}
+    codes:
+      rxnorm: "1116635"
+    classes: []
+  vitamin_d:
+    names: {en: "Vitamin D", ja: "ビタミンD"}
+    codes:
+      rxnorm: "11253"
+    classes: []
+  warfarin:
+    names: {en: "Warfarin", ja: "ワルファリン"}
+    codes:
+      rxnorm: "11289"
+    classes: ['anticoagulant.vka', 'anticoagulant']
+  carperitide:
+    names: {en: "Carperitide", ja: "カルペリチド"}
+    codes:
+      rxnorm: "1310738"
+    classes: []
+  donepezil:
+    names: {en: "Donepezil", ja: "ドネペジル"}
+    codes:
+      rxnorm: "135447"
+    classes: []
+  moxifloxacin:
+    names: {en: "Moxifloxacin", ja: "モキシフロキサシン"}
+    codes:
+      rxnorm: "139462"
+    classes: []
+  celecoxib:
+    names: {en: "Celecoxib", ja: "セレコキシブ"}
+    codes:
+      rxnorm: "140587"
+    classes: []
+  09_sodium_chloride_injectable_solution:
+    names: {en: "0.9% Sodium Chloride injectable solution", ja: "生理食塩水"}
+    codes:
+      rxnorm: "1807627"
+    classes: []
+  azithromycin:
+    names: {en: "Azithromycin", ja: "アジスロマイシン"}
+    codes:
+      rxnorm: "18631"
+    classes: []
+  amoxicillin_clavulanate:
+    names: {en: "Amoxicillin / Clavulanate", ja: "アモキシシリン/クラブラン酸"}
+    codes:
+      rxnorm: "19711"
+    classes: []
+  levofloxacin:
+    names: {en: "Levofloxacin", ja: "レボフロキサシン"}
+    codes:
+      rxnorm: "202488"
+    classes: []
+  carvedilol:
+    names: {en: "Carvedilol", ja: "カルベジロール"}
+    codes:
+      rxnorm: "20352"
+    classes: []
+  prednisolone:
+    names: {en: "Prednisolone", ja: "プレドニゾロン"}
+    codes:
+      rxnorm: "212995"
+    classes: []
+  ceftriaxone:
+    names: {en: "Ceftriaxone", ja: "セフトリアキソン"}
+    codes:
+      rxnorm: "2193"
+    classes: []
+  rivaroxaban:
+    names: {en: "Rivaroxaban", ja: "リバーロキサバン"}
+    codes:
+      rxnorm: "221147"
+    classes: ['anticoagulant.doac', 'anticoagulant']
+  meropenem:
+    names: {en: "Meropenem", ja: "メロペネム"}
+    codes:
+      rxnorm: "227224"
+    classes: []
+  chlorhexidine:
+    names: {en: "Chlorhexidine", ja: "クロルヘキシジン"}
+    codes:
+      rxnorm: "2592"
+    classes: []
+  clopidogrel:
+    names: {en: "Clopidogrel", ja: "クロピドグレル"}
+    codes:
+      rxnorm: "2670"
+    classes: ['antiplatelet.p2y12', 'antiplatelet']
+  tiotropium:
+    names: {en: "Tiotropium", ja: "チオトロピウム"}
+    codes:
+      rxnorm: "274766"
+    classes: []
+  lisinopril:
+    names: {en: "Lisinopril", ja: "リシノプリル"}
+    codes:
+      rxnorm: "29046"
+    classes: []
+  meropenem_2:
+    names: {en: "Meropenem", ja: "メロペネム"}
+    codes:
+      rxnorm: "29561"
+    classes: []
+  alendronate:
+    names: {en: "Alendronate", ja: "アレンドロン酸"}
+    codes:
+      rxnorm: "3002"
+    classes: []
+  ampicillin_sulbactam:
+    names: {en: "Ampicillin/Sulbactam", ja: "アンピシリン/スルバクタム"}
+    codes:
+      rxnorm: "308182"
+    classes: []
+  ceftriaxone_1_g_injection:
+    names: {en: "Ceftriaxone 1 G Injection", ja: "セフトリアキソン1g注"}
+    codes:
+      rxnorm: "309090"
+    classes: []
+  apixaban_2:
+    names: {en: "Apixaban", ja: "アピキサバン"}
+    codes:
+      rxnorm: "321064"
+    classes: []
+  clopidogrel_2:
+    names: {en: "Clopidogrel", ja: "クロピドグレル"}
+    codes:
+      rxnorm: "32968"
+    classes: []
+  hydromorphone:
+    names: {en: "Hydromorphone", ja: "ヒドロモルフォン"}
+    codes:
+      rxnorm: "3423"
+    classes: []
+  diltiazem:
+    names: {en: "Diltiazem", ja: "ジルチアゼム"}
+    codes:
+      rxnorm: "3443"
+    classes: []
+  simvastatin:
+    names: {en: "Simvastatin", ja: "シンバスタチン"}
+    codes:
+      rxnorm: "36567"
+    classes: []
+  enalapril:
+    names: {en: "Enalapril", ja: "エナラプリル"}
+    codes:
+      rxnorm: "3827"
+    classes: []
+  erythromycin:
+    names: {en: "Erythromycin", ja: "エリスロマイシン"}
+    codes:
+      rxnorm: "4053"
+    classes: []
+  fentanyl:
+    names: {en: "Fentanyl", ja: "フェンタニル"}
+    codes:
+      rxnorm: "4337"
+    classes: []
+  albuterol:
+    names: {en: "Albuterol", ja: "サルブタモール"}
+    codes:
+      rxnorm: "435"
+    classes: []
+  lactated_ringer_solution:
+    names: {en: "Lactated Ringer solution", ja: "乳酸リンゲル液"}
+    codes:
+      rxnorm: "47613"
+    classes: []
+  hydrocortisone:
+    names: {en: "Hydrocortisone", ja: "ヒドロコルチゾン"}
+    codes:
+      rxnorm: "4850"
+    classes: []
+  nitroglycerin:
+    names: {en: "Nitroglycerin", ja: "ニトログリセリン"}
+    codes:
+      rxnorm: "4917"
+    classes: []
+  ibuprofen:
+    names: {en: "Ibuprofen", ja: "イブプロフェン"}
+    codes:
+      rxnorm: "5640"
+    classes: []
+  sliding_scale_insulin:
+    names: {en: "Sliding scale insulin", ja: "スライディングスケールインスリン"}
+    codes:
+      rxnorm: "5856"
+    classes: []
+  levetiracetam:
+    names: {en: "Levetiracetam", ja: "レベチラセタム"}
+    codes:
+      rxnorm: "6373"
+    classes: []
+  enoxaparin:
+    names: {en: "Enoxaparin", ja: "エノキサパリン"}
+    codes:
+      rxnorm: "67108"
+    classes: ['anticoagulant.heparin', 'anticoagulant']
+  methylprednisolone:
+    names: {en: "Methylprednisolone", ja: "メチルプレドニゾロン"}
+    codes:
+      rxnorm: "6902"
+    classes: []
+  midazolam:
+    names: {en: "Midazolam", ja: "ミダゾラム"}
+    codes:
+      rxnorm: "6960"
+    classes: []
+  morphine:
+    names: {en: "Morphine", ja: "モルヒネ"}
+    codes:
+      rxnorm: "7052"
+    classes: []
+  amoxicillin:
+    names: {en: "Amoxicillin", ja: "アモキシシリン"}
+    codes:
+      rxnorm: "723"
+    classes: []
+  norepinephrine:
+    names: {en: "Norepinephrine", ja: "ノルエピネフリン"}
+    codes:
+      rxnorm: "7512"
+    classes: []
+  omeprazole:
+    names: {en: "Omeprazole", ja: "オメプラゾール"}
+    codes:
+      rxnorm: "7646"
+    classes: []
+  tamsulosin:
+    names: {en: "Tamsulosin", ja: "タムスロシン"}
+    codes:
+      rxnorm: "77492"
+    classes: []
+  naloxone:
+    names: {en: "Naloxone", ja: "ナロキソン"}
+    codes:
+      rxnorm: "7771"
+    classes: []
+  oxycodone:
+    names: {en: "Oxycodone", ja: "オキシコドン"}
+    codes:
+      rxnorm: "7804"
+    classes: []
+  nitroglycerin_2:
+    names: {en: "Nitroglycerin", ja: "ニトログリセリン"}
+    codes:
+      rxnorm: "7806"
+    classes: []
+  penicillin_g:
+    names: {en: "Penicillin G", ja: "ペニシリンG"}
+    codes:
+      rxnorm: "7980"
+    classes: []
+  ondansetron_4_mg_oral_tablet:
+    names: {en: "Ondansetron 4 MG Oral Tablet", ja: "オンダンセトロン4mg錠"}
+    codes:
+      rxnorm: "8163"
+    classes: []
+  levofloxacin_2:
+    names: {en: "Levofloxacin", ja: "レボフロキサシン"}
+    codes:
+      rxnorm: "82122"
+    classes: []
+  ondansetron:
+    names: {en: "Ondansetron", ja: "オンダンセトロン"}
+    codes:
+      rxnorm: "8896"
+    classes: []
+  sodium_bicarbonate:
+    names: {en: "Sodium bicarbonate", ja: "炭酸水素ナトリウム"}
+    codes:
+      rxnorm: "9796"
+    classes: []
+  heparin:
+    names: {en: "Heparin", ja: "ヘパリン"}
+    codes:
+      rxnorm: "5224"
+    classes: ['anticoagulant.heparin', 'anticoagulant']
+  phytonadione:
+    names: {en: "Phytonadione", ja: "フィトナジオン"}
+    codes:
+      rxnorm: "8308"
+    classes: []
+  aztreonam:
+    names: {en: "Aztreonam", ja: "アズトレオナム"}
+    codes:
+      rxnorm: "1272"
+    classes: []
+  piperacillin_tazobactam:
+    names: {en: "Piperacillin/Tazobactam", ja: "ピペラシリン/タゾバクタム"}
+    codes:
+      rxnorm: "74169"
+    classes: []
+  kcentra:
+    names: {en: "Kcentra", ja: "ケイセントラ"}
+    codes:
+      rxnorm: "1484959"
+    classes: []
+  cefotaxime:
+    names: {en: "Cefotaxime", ja: "セフォタキシム"}
+    codes:
+      rxnorm: "2186"
+    classes: []
+  albumin_human_usp:
+    names: {en: "Albumin human, USP", ja: "人血清アルブミン"}
+    codes:
+      rxnorm: "828529"
+    classes: []
+  cefepime:
+    names: {en: "Cefepime", ja: "セフェピム"}
+    codes:
+      rxnorm: "20481"
+    classes: []
+  ampicillin:
+    names: {en: "Ampicillin", ja: "アンピシリン"}
+    codes:
+      rxnorm: "733"
+    classes: []
+  cefazolin:
+    names: {en: "Cefazolin", ja: "セファゾリン"}
+    codes:
+      rxnorm: "2180"
+    classes: []
+  gentamicin:
+    names: {en: "Gentamicin", ja: "ゲンタマイシン"}
+    codes:
+      rxnorm: "1596450"
+    classes: []
+  ciprofloxacin:
+    names: {en: "Ciprofloxacin", ja: "シプロフロキサシン"}
+    codes:
+      rxnorm: "2551"
+    classes: []
+  sulfamethoxazole_trimethoprim:
+    names: {en: "Sulfamethoxazole / Trimethoprim", ja: "スルファメトキサゾール／トリメトプリム"}
+    codes:
+      rxnorm: "10831"
+    classes: []
+  insulin_regular_human:
+    names: {en: "Insulin, Regular, Human", ja: "レギュラーインスリン"}
+    codes:
+      rxnorm: "253182"
+    classes: []
+  sodium_chloride_9_mg_ml_injectable_solution:
+    names: {en: "Sodium Chloride 9 MG/ML Injectable Solution", ja: "生理食塩液"}
+    codes:
+      rxnorm: "313002"
+    classes: []
+  prednisolone_2:
+    names: {en: "Prednisolone", ja: "プレドニゾロン"}
+    codes:
+      rxnorm: "8638"
+    classes: []
+  potassium_chloride:
+    names: {en: "Potassium Chloride", ja: "塩化カリウム"}
+    codes:
+      rxnorm: "8591"
+    classes: []
+  insulin_glargine:
+    names: {en: "Insulin Glargine", ja: "インスリングラルギン"}
+    codes:
+      rxnorm: "274783"
+    classes: ['basal_insulin']
+  dobutamine:
+    names: {en: "Dobutamine", ja: "ドブタミン"}
+    codes:
+      rxnorm: "3616"
+    classes: []
+  trastuzumab:
+    names: {en: "Trastuzumab", ja: "トラスツズマブ"}
+    codes:
+      rxnorm: "224905"
+    classes: []
+  capecitabine:
+    names: {en: "Capecitabine", ja: "カペシタビン"}
+    codes:
+      rxnorm: "194000"
+    classes: []
+  oxaliplatin:
+    names: {en: "Oxaliplatin", ja: "オキサリプラチン"}
+    codes:
+      rxnorm: "32592"
+    classes: []
+  ticagrelor:
+    names: {en: "Ticagrelor", ja: "チカグレロル"}
+    codes:
+      rxnorm: "1116632"
+    classes: []
+  leucovorin:
+    names: {en: "Leucovorin", ja: "ロイコボリン"}
+    codes:
+      rxnorm: "6313"
+    classes: []
+  fluorouracil:
+    names: {en: "Fluorouracil", ja: "フルオロウラシル"}
+    codes:
+      rxnorm: "4492"
+    classes: []
+  cefmetazole:
+    names: {en: "Cefmetazole", ja: "セフメタゾール"}
+    codes:
+      rxnorm: "2182"
+    classes: []
+  leuprolide:
+    names: {en: "Leuprolide", ja: "リュープロレリン"}
+    codes:
+      rxnorm: "42375"
+    classes: []
+  mannitol:
+    names: {en: "Mannitol", ja: "マンニトール"}
+    codes:
+      rxnorm: "6628"
+    classes: []
+  lactated_ringers_injectable_solution:
+    names: {en: "lactated Ringers Injectable Solution", ja: "乳酸リンゲル液"}
+    codes:
+      rxnorm: "847630"
+    classes: []
+  osimertinib:
+    names: {en: "Osimertinib", ja: "オシメルチニブ"}
+    codes:
+      rxnorm: "1721560"
+    classes: []
+  sodium_chloride_234_injectable_solution:
+    names: {en: "Sodium Chloride 23.4% Injectable Solution", ja: "塩化ナトリウム 23.4% 注射液"}
+    codes:
+      rxnorm: "2587736"
+    classes: []
+  05_ml_vitamin_k1_2_mg_ml_injection:
+    names: {en: "0.5 ML vitamin K1 2 MG/ML Injection", ja: "ビタミンK1 2 mg/mL 注射液 0.5 mL"}
+    codes:
+      rxnorm: "312424"
+    classes: []
+  erythromycin_0005_mg_mg_ophthalmic_ointment:
+    names: {en: "erythromycin 0.005 MG/MG Ophthalmic Ointment", ja: "エリスロマイシン 0.005 mg/mg 眼軟膏"}
+    codes:
+      rxnorm: "310149"
+    classes: []
+  sertraline:
+    names: {en: "sertraline", ja: "セルトラリン"}
+    codes:
+      rxnorm: "36437"
+    classes: []
+  escitalopram:
+    names: {en: "escitalopram", ja: "エスシタロプラム"}
+    codes:
+      rxnorm: "321988"
+    classes: []
+  fluoxetine:
+    names: {en: "fluoxetine", ja: "フルオキセチン"}
+    codes:
+      rxnorm: "4493"
+    classes: []
+  paroxetine:
+    names: {en: "paroxetine", ja: "パロキセチン"}
+    codes:
+      rxnorm: "32937"
+    classes: []
+  citalopram:
+    names: {en: "citalopram", ja: "シタロプラム"}
+    codes:
+      rxnorm: "2556"
+    classes: []
+  oxytocin:
+    names: {en: "oxytocin", ja: "オキシトシン"}
+    codes:
+      rxnorm: "7824"
+    classes: []
+  bupivacaine:
+    names: {en: "bupivacaine", ja: "ブピバカイン"}
+    codes:
+      rxnorm: "1815"
+    classes: []
+  ondansetron_2:
+    names: {en: "ondansetron", ja: "オンダンセトロン"}
+    codes:
+      rxnorm: "26225"
+    classes: []
+  ketorolac:
+    names: {en: "ketorolac", ja: "ケトロラク"}
+    codes:
+      rxnorm: "35827"
+    classes: []
+  fluvoxamine:
+    names: {en: "fluvoxamine", ja: "フルボキサミン"}
+    codes:
+      rxnorm: "42355"
+    classes: []
+  milnacipran_hydrochloride:
+    names: {en: "milnacipran hydrochloride", ja: "ミルナシプラン塩酸塩"}
+    codes:
+      rxnorm: "30003"
+    classes: []
+  duloxetine:
+    names: {en: "duloxetine", ja: "デュロキセチン"}
+    codes:
+      rxnorm: "72625"
+    classes: []
+  venlafaxine:
+    names: {en: "venlafaxine", ja: "ベンラファキシン"}
+    codes:
+      rxnorm: "39786"
+    classes: []
+  mirtazapine:
+    names: {en: "mirtazapine", ja: "ミルタザピン"}
+    codes:
+      rxnorm: "15996"
+    classes: []
+  gemcitabine:
+    names: {en: "gemcitabine", ja: "ゲムシタビン"}
+    codes:
+      rxnorm: "12574"
+    classes: []
+  irinotecan:
+    names: {en: "irinotecan", ja: "イリノテカン"}
+    codes:
+      rxnorm: "51499"
+    classes: []
+  paclitaxel_proteinbound:
+    names: {en: "paclitaxel protein-bound", ja: "ナブパクリタキセル"}
+    codes:
+      rxnorm: "486610"
+    classes: []
+  temozolomide:
+    names: {en: "temozolomide", ja: "テモゾロミド"}
+    codes:
+      rxnorm: "37776"
+    classes: []
+  bcg_vaccine:
+    names: {en: "BCG Vaccine", ja: "BCG膀胱内注入療法"}
+    codes:
+      rxnorm: "1344"
+    classes: []
+  empagliflozin:
+    names: {en: "Empagliflozin", ja: "エンパグリフロジン"}
+    codes:
+      rxnorm: "1545653"
+    classes: ['sglt2i', 'antidiabetic']
+  dapagliflozin:
+    names: {en: "Dapagliflozin", ja: "ダパグリフロジン"}
+    codes:
+      rxnorm: "1488564"
+    classes: ['sglt2i', 'antidiabetic']
+  semaglutide:
+    names: {en: "Semaglutide", ja: "セマグルチド"}
+    codes:
+      rxnorm: "1991302"
+    classes: ['glp1_agonist', 'antidiabetic']
+  liraglutide:
+    names: {en: "Liraglutide", ja: "リラグルチド"}
+    codes:
+      rxnorm: "475968"
+    classes: ['glp1_agonist', 'antidiabetic']
+  tirzepatide:
+    names: {en: "Tirzepatide", ja: "チルゼパチド"}
+    codes:
+      rxnorm: "2601723"
+    classes: ['gip_glp1_agonist', 'antidiabetic']
+  rosuvastatin:
+    names: {en: "Rosuvastatin", ja: "ロスバスタチン"}
+    codes:
+      rxnorm: "301542"
+    classes: ['statin']
+  ezetimibe:
+    names: {en: "Ezetimibe", ja: "エゼチミブ"}
+    codes:
+      rxnorm: "341248"
+    classes: ['cholesterol_absorption_inhibitor']
+  naltrexone:
+    names: {en: "Naltrexone", ja: "ナルトレキソン"}
+    codes:
+      rxnorm: "7243"
+    classes: ['opioid_antagonist']
+  acamprosate:
+    names: {en: "Acamprosate", ja: "アカンプロサート"}
+    codes:
+      rxnorm: "82819"
+    classes: ['alcohol_use_disorder_adjunct']
+  hydrochlorothiazide:
+    names: {en: "Hydrochlorothiazide", ja: "ヒドロクロロチアジド"}
+    codes:
+      rxnorm: "5487"
+    classes: ['diuretic.thiazide']
+  spironolactone:
+    names: {en: "Spironolactone", ja: "スピロノラクトン"}
+    codes:
+      rxnorm: "9997"
+    classes: ['diuretic.k_sparing']
