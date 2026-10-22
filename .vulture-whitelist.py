@@ -632,3 +632,10 @@ _.resolve_drug  # codes/drugs.py — public API consumed by tests + Phase 2+ mig
 _.get_drug  # codes/drugs.py — public API consumed by tests + Phase 2+ migration PRs
 _.all_drug_ids  # codes/drugs.py — public API consumed by tests + integrity audit
 _.display_for  # codes/drugs.py::DrugIdentity — public API consumed by tests + Phase 2+ callers
+
+# Phase 3.β.6 — stage → SNOMED catalog loader. ``all_stage_labels`` is
+# the audit-side API used by tests + future integrity checks that
+# cross-reference every registered stage against the activator's
+# severity ladder. Vulture only scans clinosim/ so the test consumer
+# is invisible.
+_.all_stage_labels  # codes/stage_to_snomed.py — audit/integrity API

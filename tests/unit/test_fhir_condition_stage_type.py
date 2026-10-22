@@ -139,8 +139,13 @@ def test_extended_staging_snomed_coding(code, stage_text, snomed, en):
 def test_every_generated_stage_is_mapped():
     """Drift guard: every stage string _generate_stage can produce must be in
     the stage->SNOMED map, or the coding silently drops (the whitelist-drift bug
-    class). Fails loud if activator adds a stage value without a code."""
-    from clinosim.modules.output.fhir_r4.conditions.conditions import _STAGE_SUMMARY_SNOMED
+    class). Fails loud if activator adds a stage value without a code.
+
+    Phase 3.β.6: the map lives in
+    ``clinosim/codes/data/clinosim-stage-to-snomed.yaml`` and is read
+    via ``resolve_stage_snomed`` instead of the retired module-local
+    ``_STAGE_SUMMARY_SNOMED`` dict."""
+    from clinosim.codes.stage_to_snomed import resolve_stage_snomed
 
     ckd = [f"CKD {g}" for g in ("G1", "G2", "G3a", "G3b", "G4", "G5")]
     nyha = [f"NYHA {c}" for c in ("I", "II", "III", "IV")]
@@ -149,4 +154,4 @@ def test_every_generated_stage_is_mapped():
     htn = ["Stage 1", "Stage 2"]
     ccs = [f"CCS {n}" for n in ("I", "II", "III")]  # activator emits I-III; IV is forward-compat
     for s in ckd + nyha + gold + asthma + htn + ccs:
-        assert s in _STAGE_SUMMARY_SNOMED, f"unmapped generated stage: {s}"
+        assert resolve_stage_snomed(s), f"unmapped generated stage: {s}"

@@ -10,6 +10,7 @@ from typing import Any
 
 from clinosim.codes import get_system_uri, system_key_for
 from clinosim.codes import lookup as code_lookup
+from clinosim.codes.stage_to_snomed import resolve_stage_snomed
 from clinosim.modules._shared import get_attr_or_key, is_jp, resolve_lang
 from clinosim.modules.diagnosis.nonspecific_codes import is_visit_reason_zcode
 from clinosim.modules.output.fhir_r4.conditions.primary_ref import (
@@ -52,41 +53,12 @@ from clinosim.modules.output.fhir_r4.lib.localization import (
 #
 # Post-CO-6 (Chain 4, 2026-07-11): every stage system used by _generate_stage now
 # has a verified SNOMED coding. Previously-text-only entries (GOLD 4, asthma
-# severity 4-tier, hypertension stage 1-2, CCS angina I-III) verified via
-# tx.fhir.org $lookup this session.
-_STAGE_SUMMARY_SNOMED: dict[str, str] = {
-    "CKD G1": "431855005",
-    "CKD G2": "431856006",
-    "CKD G3a": "700378005",
-    "CKD G3b": "700379002",
-    "CKD G4": "431857002",
-    "CKD G5": "433146000",
-    "NYHA I": "420300004",
-    "NYHA II": "421704003",
-    "NYHA III": "420913000",
-    "NYHA IV": "422293003",
-    # COPD severity — GOLD 1/2/3 verified (RM-4); GOLD 4 mapped
-    # to SNOMED 135836000 "End stage COPD" (clinical equivalence; no distinct
-    # "Very severe COPD" concept exists in SNOMED CT International Edition).
-    "GOLD 1": "313296004",
-    "GOLD 2": "313297008",
-    "GOLD 3": "313299006",
-    "GOLD 4": "135836000",
-    # Asthma severity 4-tier (J45)
-    "Mild intermittent": "427679007",
-    "Mild persistent": "426979002",
-    "Moderate persistent": "427295004",
-    "Severe persistent": "426656000",
-    # Hypertension stage (I10) — Stage 1/2 per ACC/AHA 2017 boundaries
-    "Stage 1": "827069000",
-    "Stage 2": "827068008",
-    # CCS angina class (I25) — Canadian Cardiovascular Society I-IV
-    # (activator currently emits I/II/III only; IV registered forward-compat)
-    "CCS I": "61490001",
-    "CCS II": "41334000",
-    "CCS III": "85284003",
-    "CCS IV": "89323001",
-}
+# severity 4-tier, hypertension stage 1-2, CCS angina I-III). Phase 3.β.6
+# (#1808 follow-up): the 24-entry stage → SNOMED mapping now lives in
+# `clinosim/codes/data/clinosim-stage-to-snomed.yaml` and resolves via
+# `clinosim.codes.stage_to_snomed.resolve_stage_snomed(label)`. The
+# authority SNOMED display stays in snomed-ct.yaml and is still fetched
+# via `code_lookup("snomed-ct", code, lang)` at emit time.
 
 # CY8-23 fix:Condition.bodySite mapping。
 # 特定の解剖学的部位を持つ疾患について SNOMED body structure コードを付与。
@@ -394,7 +366,7 @@ def _build_conditions(record: dict, patient_id: str, country: str) -> list[dict]
             _stg = chronic_stage_by_base.get(base_code, "")
             if _stg:
                 summary: dict[str, Any] = {"text": _stg}
-                stage_snomed = _STAGE_SUMMARY_SNOMED.get(_stg)
+                stage_snomed = resolve_stage_snomed(_stg)
                 if stage_snomed:
                     summary["coding"] = [
                         {
@@ -803,12 +775,13 @@ def _build_conditions(record: dict, patient_id: str, country: str) -> list[dict]
         # Stage (NYHA class, CKD G, GOLD, hypertension Stage, CCS, etc.) — c_stage set
         # in the branch above. The stage VALUE is carried by summary.text (always) plus
         # a summary.coding when the staging system has a verified SNOMED CT concept
-        # (_STAGE_SUMMARY_SNOMED — CKD / NYHA). type.type is left as a plain-text label:
-        # these are non-cancer clinical stages, so the former SNOMED 385356007 "Tumor
-        # stage finding" coding was clinically wrong and is intentionally NOT emitted.
+        # (resolve_stage_snomed — CKD / NYHA / GOLD / asthma severity / HTN / CCS).
+        # type.type is left as a plain-text label: these are non-cancer clinical
+        # stages, so the former SNOMED 385356007 "Tumor stage finding" coding was
+        # clinically wrong and is intentionally NOT emitted.
         if c_stage:
             summary = {"text": c_stage}
-            stage_snomed = _STAGE_SUMMARY_SNOMED.get(c_stage)
+            stage_snomed = resolve_stage_snomed(c_stage)
             if stage_snomed:
                 summary["coding"] = [
                     {
