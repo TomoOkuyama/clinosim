@@ -1,17 +1,19 @@
-"""Observation-aware fallback in Assessment — Issue #1181.
+"""Observation-aware fallback in Assessment — Issue #1181 (updated by #1776).
 
-Before the fix, `_compose_chronic_assessment_integrated` emitted the
-stub `本日測定なし、次回受診時再評価。` for every chronic condition
-not covered by the per-ICD-prefix dispatch (I10 / E10-11 / E78 / N18
-/ J44 / J45). In the 2026-09-07 build 87.7% of outpatient SOAP notes
-carried this stub. In a random n=300 sample, 100% of those
-encounters actually had ≥1 Observation on the same day (mean ~18
-Observations). The Assessment therefore contradicted the encounter's
-own structured resources.
+Issue #1181's original fix cited today-measured vitals in the Assessment
+fallback so the note did not contradict the Objective section's
+observations by claiming "not measured". Issue #1776 strengthens that
+contract: the Assessment fallback must NOT re-quote the Objective-section
+vitals at all AND must not emit the "defer focused review" boilerplate
+that saturated 74% of populated narratives. The new structured-data
+fallback uses the chronic condition's ``stage`` (populated by the
+longitudinal engine as of #1753) or a bare "noted on problem list; no
+acute change" stub.
 
-The fix quotes the today-measured vital signs (and the first two
-lab values) in the fallback line instead of asserting "not
-measured" whenever any Observation exists.
+The #1181 spirit — do not contradict Objective by claiming no measurement
+when one exists — is preserved: the new fallback neither claims "not
+measured" nor contradicts anything. These tests encode the post-#1776
+contract.
 """
 
 from __future__ import annotations
@@ -78,48 +80,56 @@ def _run(ctx: NarrativeContext) -> str:
 
 
 def test_condition_without_specific_dispatch_and_no_measurements_still_stubs() -> None:
-    # A condition with no monitoring lab in the dispatch and no vitals/labs
-    # today keeps the honest "本日測定なし" stub.
+    # #1776: a condition with no stage emits the structured "noted on
+    # problem list; no acute change" stub (not "本日測定なし" anymore).
+    # The spirit of #1181 — do not claim "not measured" and so
+    # contradict Objective — is preserved by the new phrase, which
+    # neither claims measurement nor its absence.
     ctx = _mk_ctx_with_condition_and_vitals("F32.9", vitals=None, labs=None)
     text = _run(ctx)
-    assert "本日測定なし" in text
+    assert "本日測定なし" not in text
+    assert "問題リスト" in text or "noted on problem list" in text.lower()
 
 
-def test_condition_without_specific_dispatch_but_vitals_present_cites_vitals() -> None:
-    # F32.9 (depression) has no per-ICD dispatch; but the encounter has
-    # today's vitals. Assessment must not assert "not measured today".
+def test_condition_without_specific_dispatch_but_vitals_present_does_not_requote_vitals() -> None:
+    # #1776: Assessment must not re-quote Objective-section vitals.
+    # #1181 spirit preserved by not claiming "not measured".
     ctx = _mk_ctx_with_condition_and_vitals(
         "F32.9",
         vitals={"sbp": 118, "dbp": 76, "hr": 72, "temp": 36.5, "spo2": 98},
     )
     text = _run(ctx)
     assert "本日測定なし" not in text
-    # Should cite at least one vital
-    for token in ("BP", "HR", "T ", "SpO2"):
-        if token in text:
-            break
-    else:
-        raise AssertionError(f"expected at least one vital token in {text!r}")
+    for token in ("BP 118/76", "HR 72", "T 36.5", "SpO2 98"):
+        assert token not in text, f"post-#1776 Assessment fallback must not re-quote {token!r}: {text!r}"
 
 
-def test_condition_without_specific_dispatch_but_lab_present_cites_lab() -> None:
+def test_condition_without_specific_dispatch_but_lab_present_does_not_requote_lab() -> None:
+    # #1776: labs also belong in Objective; Assessment fallback should
+    # not re-quote them under the chronic line.
     labs = [SimpleNamespace(lab_name="AST", value=42, unit="U/L")]
     ctx = _mk_ctx_with_condition_and_vitals("K76.0", vitals=None, labs=labs)
     text = _run(ctx)
     assert "本日測定なし" not in text
-    assert "ast" in text.lower() or "AST" in text
+    assert "ast" not in text.lower() and "AST" not in text, (
+        f"post-#1776 Assessment fallback must not re-quote the AST lab value: {text!r}"
+    )
 
 
 def test_condition_without_specific_dispatch_english_fallback() -> None:
+    # #1776: EN fallback emits the structured stub, not the "today's
+    # measurements ... not condition-specific; defer focused review"
+    # boilerplate.
     ctx = _mk_ctx_with_condition_and_vitals(
         "F32.9",
         vitals={"sbp": 118, "dbp": 76, "hr": 72, "temp": 36.5, "spo2": 98},
         lang="en",
     )
     text = _run(ctx)
-    # EN fallback wording per PR B3
     assert "no measurement today" not in text
-    assert "today's measurements" in text.lower() or "measurements" in text.lower()
+    assert "not condition-specific" not in text
+    assert "focused review" not in text.lower()
+    assert "noted on problem list" in text.lower() or "no acute change" in text.lower()
 
 
 def test_hypertension_i10_dispatch_still_wins() -> None:

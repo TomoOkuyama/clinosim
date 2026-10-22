@@ -4502,70 +4502,31 @@ class TemplateNarrativeGenerator:
             if interp:
                 lines.append(f"{i}. {label}: {interp}")
             else:
-                # Issue #1181 (87.7% of SOAP notes contradicted by their
-                # own encounter's Observations): before falling back to
-                # "本日測定なし", check whether *any* vitals or labs were
-                # actually captured on this encounter. If so, cite the
-                # top three general observations rather than assert
-                # "not measured" — the same encounter carries the
-                # measurements verbatim.
-                obs_bits: list[str] = []
-                if sbp is not None and dbp is not None:
-                    obs_bits.append(f"BP {int(sbp)}/{int(dbp)} mmHg")
-                if hr_f is not None:
-                    obs_bits.append(t("chronic_labs.hr_per_min", lang, value=int(round(hr_f))))
-                if temp_f is not None:
-                    obs_bits.append(f"T {temp_f:.1f}°C")
-                if spo2_f is not None:
-                    obs_bits.append(f"SpO2 {spo2_f:.0f}%")
-                # Fold in the first two lab_by_name entries not already
-                # cited by the condition dispatch (kept generic — the
-                # condition-specific labs would have fired `interp`).
-                # Issue #1188 F4 verify 2nd pass: apply the same Nathan
-                # gate here so a stray `glucose N mg/dL` that would
-                # contradict the paired HbA1c (poorly-controlled patient
-                # with normoglycemic reading) is not surfaced under an
-                # unrelated condition's fallback line either.
-                _hba1c_val_gate: float | None = None
-                if lab_by_name:
-                    _hba1c_pair = lab_by_name.get("hba1c")
-                    if _hba1c_pair is not None:
-                        try:
-                            _hba1c_val_gate = float(_hba1c_pair[0])
-                        except (TypeError, ValueError):
-                            _hba1c_val_gate = None
-                if lab_by_name:
-                    for name in list(lab_by_name.keys())[:2]:
-                        v, u = lab_by_name[name]
-                        # Nathan gate for glucose in the generic fallback.
-                        if name.lower() == "glucose" and _hba1c_val_gate is not None and _hba1c_val_gate >= 8.0:
-                            try:
-                                _g = float(v)
-                                _expected_eag = 28.7 * _hba1c_val_gate - 46.7
-                                if _g + 60 < _expected_eag:
-                                    continue  # skip Nathan-inconsistent glucose
-                            except (TypeError, ValueError):
-                                pass
-                        # Phase 1c-2 (2026-09-22): the JP p=500 audit
-                        # surfaced 863 lowercase lab-name slugs
-                        # ("creatinine 0.69 mg/dL、k 4.9 mmol/L") in
-                        # outpatient assessment fallback lines. Localise
-                        # each name via ``_localize_lab_name`` so JA output
-                        # reads 「クレアチニン 0.69 mg/dL、K 4.9 mmol/L」
-                        # and EN output canonicalises abbreviation casing.
-                        _u_disp = _format_lab_unit_for_prose(u)
-                        _lab_disp = _localize_lab_name(name, ctx.target_lang)
-                        # Phase 1d-80: unit=name dedupe (pH case).
-                        if _u_disp and _u_disp.lower() == str(_lab_disp).lower():
-                            _u_disp = ""
-                        obs_bits.append(f"{_lab_disp} {v}{f' {_u_disp}' if _u_disp else ''}")
-                if obs_bits:
-                    joined = t("list_sep.serial", lang).join(obs_bits[:4])
-                    follow = t("chronic_assessment.followup_deferred", lang, joined=joined, label=label)
-                    lines.append(f"{i}. {label}: {follow}")
+                # Issue #1776: the pre-fix fallback re-cited Objective-
+                # section vitals (BP / HR / T / SpO2) and emitted a
+                # "today's measurements not condition-specific; defer
+                # focused review" clause that admitted no clinical
+                # reasoning fired. That phrase saturated 74% of
+                # populated narratives (197k / 263k on US p=10k seed=42
+                # 5y) and taught downstream LLMs a procrastination
+                # pattern. Replace with a structured-data fallback that
+                # reads the chronic condition's ``stage`` (populated by
+                # the longitudinal engine as of #1753): staged → cite
+                # the stage; stageless → acknowledge the problem-list
+                # entry with no acute change. Neither phrase re-quotes
+                # the vitals and neither defers the judgement.
+                condition_stage = str(_o(c, "stage", "") or "").strip()
+                if condition_stage:
+                    follow = t(
+                        "chronic_assessment.chronic_stage_stable",
+                        lang,
+                        label=label,
+                        stage=condition_stage,
+                    )
+                    lines.append(follow)
                 else:
-                    stub = t("control_status.no_measurement_reassess", lang)
-                    lines.append(f"{i}. {label}: {stub}")
+                    follow = t("chronic_assessment.chronic_noted", lang, label=label)
+                    lines.append(f"{i}. {follow}")
 
         # Issue #1183: Assessment previously ignored abnormal vitals that
         # were not paired with a matching chronic condition. Tachycardia
