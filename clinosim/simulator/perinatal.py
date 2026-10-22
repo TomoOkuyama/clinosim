@@ -466,6 +466,18 @@ def _build_newborn_patient(
         #     father / other guardian is a follow-up scope).
         contact=_newborn_contact_from_mother(mother),
         preferred_language=mother.preferred_language,
+        # Issue #1751: forward mother's race + ethnicity to the newborn
+        # PatientProfile so the delivery-day Patient resource emits with
+        # the us-core-race / us-core-ethnicity extensions. The audit at
+        # p=10000 5y US found 80% of `-BABY` patients had `race=''`
+        # because this construction path skipped the inheritance even
+        # though PR #1588 added it to the PersonRecord shape. Empty
+        # mother race → empty baby race (don't fabricate; honour the
+        # `feedback_empty_vs_wrong_assertion` rule). `getattr` default
+        # handles the duck-typed `_FakeMother` test stub without an
+        # attribute (older tests predate the race / ethnicity shape).
+        race=getattr(mother, "race", "") or "",
+        ethnicity=getattr(mother, "ethnicity", "") or "",
         # Issue #1699: Z38.0 (single liveborn admission dx) and perinatal
         # P-chapter codes (P07 preterm, P22 RDS, P59 jaundice) are
         # one-time episode codes — not chronic. They route to
