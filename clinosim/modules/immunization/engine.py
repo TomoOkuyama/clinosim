@@ -49,6 +49,75 @@ def _det_hash(*args: object) -> int:
     return int(hashlib.sha256(key).hexdigest(), 16)
 
 
+# Issue #1771 — canonical well-child visit anchor ages, in days from
+# birth. ACIP recommends routine infant vaccinations be co-administered
+# at the well-child visits scheduled at 2 / 4 / 6 / 9 / 12 / 15 / 18
+# months and the pre-school 4-6-year visit. The pediatric_series dose
+# windows in `locale/{us,jp}/immunization_schedule.yaml` are drawn
+# around these anchors; snapping to the anchor collapses the ~5 per-dose
+# random offsets into one per-anchor date so the same-day consolidator
+# (PR #1714) bundles all co-administered CVXs into one encounter.
+_WELL_CHILD_ANCHOR_AGE_DAYS: tuple[int, ...] = (
+    60,  # 2 months
+    120,  # 4 months
+    180,  # 6 months
+    270,  # 9 months
+    365,  # 12 months
+    455,  # 15 months
+    540,  # 18 months
+    730,  # 24 months
+    1825,  # 5 years (4-6y window pre-school visit)
+)
+
+
+def _well_child_anchor_for_window(d_min: int, d_max: int) -> int | None:
+    """Return the first canonical well-child anchor age (days) that
+    falls inside ``[d_min, d_max]``, or None when the window contains
+    no canonical anchor (caller falls through to the pre-fix random
+    offset path)."""
+    for anchor in _WELL_CHILD_ANCHOR_AGE_DAYS:
+        if d_min <= anchor <= d_max:
+            return anchor
+    return None
+
+
+def _snap_dose_date_to_well_child(dob: date, d_min: int, d_max: int, pid: str) -> date:
+    """Return the occurrence date for a pediatric_series dose, snapped
+    to a well-child visit anchor when the window contains one.
+
+    Doses whose windows share the same canonical anchor (e.g. DTaP + Hib
+    + PCV13 + IPV all at [60, 90]) land on the SAME date for the same
+    patient — PR #1714's same-day consolidator folds them into one
+    encounter. Different anchors (2mo vs 4mo) stay on different days,
+    so the schedule still produces the expected well-child visit cadence.
+
+    A 0..+6-day deterministic scatter keyed by ``(pid, anchor)``
+    prevents every infant in the cohort from being vaccinated on
+    byte-identical anchor days (real well-child visits scatter past the
+    anchor age by 0-2 weeks). The scatter is one-sided (0..+6, not
+    ±3) so that doses whose d_min equals the anchor age (e.g. [60, 90]
+    with anchor 60) do not have part of their scatter clamped away —
+    that would make them diverge by 1 day from doses with d_min < anchor
+    (e.g. [30, 90]) even though both target the same well-child visit,
+    producing a spurious ~1-day-apart pair of encounters.
+
+    No well-child anchor in the window → the dob + d_min floor is used
+    (the pre-#1771 random-offset path, after the caller discards its
+    rng draw to preserve cursor identity).
+    """
+    anchor = _well_child_anchor_for_window(d_min, d_max)
+    if anchor is None:
+        # Window outside the ACIP well-child regime (e.g. a late booster
+        # scheduled only at 1500-1600 days). Caller already discarded
+        # the rng draw; land at d_min for determinism.
+        return date.fromordinal(dob.toordinal() + d_min)
+    scatter = _det_hash(pid, anchor) % 7  # 0..+6 days
+    anchor_target = dob.toordinal() + anchor + scatter
+    # Clamp into the yaml-declared window.
+    anchor_target = max(dob.toordinal() + d_min, min(dob.toordinal() + d_max, anchor_target))
+    return date.fromordinal(anchor_target)
+
+
 _HERE = Path(__file__).resolve().parent
 _LOCALE = _HERE.parents[1] / "locale"
 
@@ -413,8 +482,17 @@ def generate_immunizations(
                     # would fabricate a documented refusal event).
                     continue
                 span = (eff_end - eff_start).days
-                offset = int(rng.integers(0, span + 1)) if span > 0 else 0
-                occ = date.fromordinal(eff_start.toordinal() + offset)
+                # Issue #1771: still consume the rng draw to preserve the
+                # cross-series / cross-patient RNG cursor identity, but
+                # DISCARD the drawn offset and snap to the canonical
+                # well-child anchor instead so all co-administered CVXs
+                # at the same anchor age bundle onto one date.
+                _ = int(rng.integers(0, span + 1)) if span > 0 else 0
+                snapped = _snap_dose_date_to_well_child(dob, d_min, d_max, pid)
+                # Clamp into the effective window (eff_start/eff_end may
+                # tighten the yaml window when the sim's [start, as_of]
+                # bounds cut into it).
+                occ = max(eff_start, min(eff_end, snapped))
                 age_at = _age_on(dob, occ, base_age)
                 cov = dose.get("coverage_by_sex") or {}
                 cov_val = float(cov.get(sex, next(iter(cov.values()), 0.0))) if cov else 0.0
