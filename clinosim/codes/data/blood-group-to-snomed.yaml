@@ -1,0 +1,39 @@
+# Clinosim Blood-group-key → SNOMED CT concept map (Phase 3.β.2, #1808 follow-up).
+#
+# This file is the clinosim-internal catalog that maps each ABO blood-type
+# letter and each Rh factor glyph (as sampled by the patient activator) to
+# the canonical SNOMED CT "finding" concept that the FHIR
+# Observation.valueCodeableConcept emits (LOINC 883-9 for ABO,
+# LOINC 10331-7 for Rh).
+#
+# Design (mirrors META #1792 / drugs.yaml and Phase 3.β.6 stage-to-snomed):
+#   - The ABO letter ('A', 'B', 'O', 'AB') and Rh glyph ('+', '-', 'positive',
+#     'negative') are clinosim-internal, not authority codes.
+#   - The SNOMED pointer resolves against clinosim/codes/data/snomed-ct.yaml;
+#     the authority yaml stays the canonical home of SNOMED displays.
+#   - Downstream (fhir_r4/labs/blood_type.py) reads this catalog and uses
+#     code_lookup("snomed-ct", <code>, lang) for the display, so a key edit
+#     here never drifts the SNOMED coding.
+#
+# Every SNOMED code verified via tx.fhir.org $lookup against the
+# International Edition; see snomed-ct.yaml entries 112144000 /
+# 165743006 / 165744000 / 165742001 / 165747007 / 165748002.
+
+metadata:
+  name: Clinosim Blood-group → SNOMED CT Catalog
+  description: >
+    Internal ABO letter / Rh glyph → SNOMED CT finding-concept pointers
+    used by the FHIR blood-type Observation emitter. The authority
+    displays live in snomed-ct.yaml.
+
+abo:
+  A: '112144000'
+  B: '165743006'
+  O: '165744000'
+  AB: '165742001'
+
+rh:
+  '+': '165747007'
+  '-': '165748002'
+  positive: '165747007'
+  negative: '165748002'
