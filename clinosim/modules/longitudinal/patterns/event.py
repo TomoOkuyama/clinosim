@@ -45,6 +45,28 @@ _OPERATORS = {
 }
 
 
+def _chronic_codes(chronic: Any) -> set[str]:
+    """Normalise a chronic-conditions container to a set of ICD code
+    strings. Accepts either bare ``str`` entries (the shape
+    ``PersonRecord.chronic_conditions`` carries) or ``ChronicCondition``-
+    shaped objects with a ``.code`` attribute (the shape
+    ``PatientProfile.chronic_conditions`` carries). Issue #1757: the
+    one_shot dedup and the ``has_chronic`` rate-modifier matcher must
+    accept both shapes so that a caller passing the Patient-side view by
+    mistake, or a mixed list, cannot silently bypass the self-ICD guard.
+    """
+    out: set[str] = set()
+    for entry in chronic or ():
+        if entry is None:
+            continue
+        code = getattr(entry, "code", None)
+        if code:
+            out.add(str(code))
+        else:
+            out.add(str(entry))
+    return out
+
+
 class RateModifierWhen(BaseModel):
     """Trigger clause for a rate modifier.
 
@@ -150,12 +172,11 @@ def _modifier_matches(modifier: RateModifier, context: dict[str, Any]) -> bool:
     """
     when = modifier.when
     if when.has_chronic:
-        chronic = (context or {}).get("chronic_conditions") or []
-        chronic_set = set(chronic)
+        chronic_set = _chronic_codes((context or {}).get("chronic_conditions"))
         return any(code in chronic_set for code in when.has_chronic)
     if when.has_chronic_prefix:
-        chronic = (context or {}).get("chronic_conditions") or []
-        return any(code.startswith(p) for code in chronic for p in when.has_chronic_prefix)
+        chronic_set = _chronic_codes((context or {}).get("chronic_conditions"))
+        return any(code.startswith(p) for code in chronic_set for p in when.has_chronic_prefix)
     # attribute trigger branch (validated: attribute/op/value all set).
     continuous = (context or {}).get("continuous") or {}
     if when.attribute not in continuous:
@@ -184,11 +205,16 @@ def step(
     """
     if spec.one_shot:
         # ICD-emitting event: dedup against chronic_conditions + prior new_complications.
-        if spec.emits_icd and spec.emits_icd in person_chronic:
-            return EventResult(False, spec.emits_icd, [], [])
+        # Issue #1757: normalise via _chronic_codes so a ``ChronicCondition``-
+        # shaped list element (``.code`` attribute) matches the bare-string
+        # emits_icd — a plain ``in`` test would silently miss it.
         if spec.emits_icd:
+            chronic_codes = _chronic_codes(person_chronic)
+            if spec.emits_icd in chronic_codes:
+                return EventResult(False, spec.emits_icd, [], [])
             for snap in prev_history or []:
-                if spec.emits_icd in getattr(snap, "new_complications", []):
+                prior_complications = _chronic_codes(getattr(snap, "new_complications", []))
+                if spec.emits_icd in prior_complications:
                     return EventResult(False, spec.emits_icd, [], [])
         # Med-emitting event: dedup against prior med_additions via fire_marker.
         if spec.fire_marker:
