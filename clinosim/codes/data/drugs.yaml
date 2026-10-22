@@ -1,0 +1,125 @@
+# Clinosim Drug Identity Catalog — Single Source of Truth for drug display
+# and the pointers from an internal (authority-neutral) drug_id to the
+# authoritative code-system tables.
+#
+# META #1792 Phase 1a. Downstream yamls (chronic_medications.yaml,
+# drug_substitution.yaml, disease yaml discharge_oral lists, …) will migrate
+# to `drug_id` references in Phase 2+. Until then, this file is a parallel
+# catalog that unblocks #1765 and defines the schema; the display SoT
+# invariant is enforced only after the Phase 2 migration lands.
+#
+# Design constraints (user-stated, documented on META #1792):
+#   - This file does NOT consolidate the authority code tables. The
+#     NLM RxNorm / MHLW YJ / MEDIS HOT7 code maps stay in their own
+#     files (clinosim/codes/data/{rxnorm,yj,hot7}.yaml) because they
+#     carry authority-specific `metadata.source` provenance.
+#   - This file only names which codes identify a drug and what to
+#     display to a reader.
+#
+# Schema:
+#   drug_id:                           # internal snake_case key
+#     names:                           # display SoT (bare generic form)
+#       en: "<English>"                # required
+#       ja: "<Japanese>"               # required (clinosim ships EN + JA)
+#     codes:                           # pointers into authority tables
+#       rxnorm: "<RxCUI>"              # optional — resolves against rxnorm.yaml
+#       yj: "<YJ12>"                   # optional — resolves against yj.yaml
+#       hot7: "<HOT7>"                 # optional — resolves against hot7.yaml
+#     classes: ["statin", "..."]       # optional, drug-class pointers
+#
+# Display rules:
+#   - `names.en` is the bare generic form (no trade-name parenthesisation).
+#     RxNorm trade-name decoration like "Atorvastatin (Lipitor)" belongs in
+#     rxnorm.yaml as the RxCUI's own display and is stripped at FHIR emit
+#     time (`_TRADE_NAME_SUFFIX_RE`, Issue #1766).
+#   - `names.ja` is the bare generic Japanese (katakana / hiragana generic
+#     name, no 商品名 decoration).
+#
+# Integrity invariants (enforced by tests under tests/unit/codes/):
+#   - Every `codes.rxnorm` resolves against rxnorm.yaml.
+#   - Every `codes.yj` resolves against yj.yaml.
+#   - Every `codes.hot7` resolves against hot7.yaml.
+#   - Every drug_id is unique and snake_case.
+
+metadata:
+  name: Clinosim Drug Identity Catalog
+  description: >
+    Internal drug_id -> display + authority-code pointers. See META #1792
+    for the Phase 1-6 migration plan from the current three-source
+    duplication (rxnorm.yaml display + drug_names_ja.yaml alias +
+    chronic_medications.yaml::drug_ja) to this single-source catalog.
+  version: '0.1'
+  phase: '1a-bootstrap'
+  source: >
+    This file is the clinosim-internal catalog; the authority codes it
+    references are issued by NLM RxNorm (US), MHLW YJ (JP), and MEDIS
+    HOT7 (JP). Each code pointer must resolve against its authority
+    table — unresolved pointers fail an integrity test at CI time.
+
+drugs:
+  # Representative set for Phase 1a (10 drugs across chronic classes).
+  # Phase 1b expands to full coverage (~130 drugs) alongside the #1765 RxCUI
+  # gap closure.
+
+  atorvastatin:
+    names: {en: "Atorvastatin", ja: "アトルバスタチン"}
+    codes:
+      rxnorm: "83367"
+    classes: ["statin"]
+
+  amlodipine:
+    names: {en: "Amlodipine", ja: "アムロジピン"}
+    codes:
+      rxnorm: "17767"
+    classes: ["ccb", "antihypertensive"]
+
+  candesartan:
+    names: {en: "Candesartan", ja: "カンデサルタン"}
+    codes:
+      rxnorm: "214354"
+    classes: ["arb", "antihypertensive"]
+
+  metformin:
+    names: {en: "Metformin", ja: "メトホルミン"}
+    codes:
+      rxnorm: "6809"
+      yj: "3962002F2027"
+    classes: ["biguanide"]
+
+  apixaban:
+    names: {en: "Apixaban", ja: "アピキサバン"}
+    codes:
+      rxnorm: "1364430"
+    classes: ["anticoagulant.doac", "anticoagulant"]
+
+  furosemide:
+    names: {en: "Furosemide", ja: "フロセミド"}
+    codes:
+      rxnorm: "4603"
+    classes: ["diuretic.loop"]
+
+  levothyroxine:
+    names: {en: "Levothyroxine", ja: "レボチロキシン"}
+    codes:
+      rxnorm: "10582"
+      yj: "2431004F1021"
+    classes: []
+
+  aspirin:
+    names: {en: "Aspirin", ja: "アスピリン"}
+    codes:
+      rxnorm: "1191"
+    classes: ["antiplatelet.cox_inhibitor", "antiplatelet"]
+
+  lansoprazole:
+    names: {en: "Lansoprazole", ja: "ランソプラゾール"}
+    codes:
+      rxnorm: "17128"
+      yj: "2329023F1020"
+    classes: []
+
+  acetaminophen:
+    names: {en: "Acetaminophen", ja: "アセトアミノフェン"}
+    codes:
+      rxnorm: "161"
+    classes: ["analgesic.non_opioid"]

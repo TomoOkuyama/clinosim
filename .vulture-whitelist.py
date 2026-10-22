@@ -620,3 +620,15 @@ _.perinatal_history  # types/patient.py::PatientProfile — populated by perinat
 # Pydantic lifecycle hook called by pydantic itself at construction time.
 _.event_name  # modules/longitudinal/patterns/event.py::EventSpec — yaml provenance / audit label
 _.model_post_init  # modules/longitudinal/patterns/event.py::RateModifierWhen — pydantic lifecycle hook
+
+# META #1792 Phase 1a — drug identity catalog public API. The loader
+# functions and the DrugIdentity.display_for helper are called from
+# tests under tests/unit/test_drugs_catalog_1792.py and will be called
+# from downstream migration PRs (chronic_medications yaml, drug_substitution
+# yaml, disease yaml discharge_oral). Vulture only scans clinosim/, so
+# the test-only consumers are invisible to it; the migration PRs will
+# turn these into regular in-production call sites.
+_.resolve_drug  # codes/drugs.py — public API consumed by tests + Phase 2+ migration PRs
+_.get_drug  # codes/drugs.py — public API consumed by tests + Phase 2+ migration PRs
+_.all_drug_ids  # codes/drugs.py — public API consumed by tests + integrity audit
+_.display_for  # codes/drugs.py::DrugIdentity — public API consumed by tests + Phase 2+ callers
