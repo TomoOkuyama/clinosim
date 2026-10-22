@@ -766,6 +766,18 @@ chronic_assessment:
   followup_deferred:
     ja: "本日測定 ({joined}) は病態特異的モニタリング項目に該当せず、次回受診時に {label} 特化評価を追加検討。"
     en: "today's measurements ({joined}) not condition-specific; defer {label} focused review to next visit."
+  # Issue #1776 — structured-data fallback. Replaces the followup_deferred
+  # phrase at the per-chronic Assessment fallback site: the staged form
+  # cites the condition's chronic_conditions[].stage directly instead of
+  # re-quoting Objective-section vitals, and the stageless form just
+  # acknowledges the problem-list entry with no acute change. Neither
+  # phrase defers the clinical judgement.
+  chronic_stage_stable:
+    ja: "{label}（{stage}）、本日は増悪所見なく、現行管理継続。"
+    en: "{label} ({stage}); management continued, no acute change this visit."
+  chronic_noted:
+    ja: "{label}: 問題リスト登録、本日の増悪所見なし。"
+    en: "{label}: noted on problem list; no acute change this visit."
   tachycardia:
     ja: "頻脈: HR {hr} 回/分、動悸・脱水評価要。"
     en: "Tachycardia: HR {hr} /min, assess volume + arrhythmia."
