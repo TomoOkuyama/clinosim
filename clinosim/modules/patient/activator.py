@@ -1070,8 +1070,19 @@ def _derive_home_medications(
             # N18) or with subcode (N18.4 for CKD-4 carriers); the
             # ``check_candidate_against_disease_state`` predicate matcher
             # accepts both via prefix match.
-            active_condition_codes = [cond.code for cond in chronic_conditions if hasattr(cond, "code") and cond.code]
-            disease_verdicts = drug_safety.check_candidate_against_disease_state(candidate_drug, active_condition_codes)
+            # Issue #1769: pass (code, stage) tuples so a stage-contingent
+            # rule (Metformin + CKD G3b-G5) can distinguish the N18
+            # severity bands. Bare-string code is retained for conditions
+            # without a staged ``.stage`` attribute (fail-closed on
+            # ``stage_in`` rules, no behavior change for others).
+            active_condition_entries = [
+                (cond.code, getattr(cond, "stage", "") or "")
+                for cond in chronic_conditions
+                if hasattr(cond, "code") and cond.code
+            ]
+            disease_verdicts = drug_safety.check_candidate_against_disease_state(
+                candidate_drug, active_condition_entries
+            )
             verdicts = list(drug_verdicts) + list(disease_verdicts)
             worst = max(
                 (v for v in verdicts if not v.is_allowed),

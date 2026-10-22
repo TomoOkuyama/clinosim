@@ -144,33 +144,64 @@ def _load_disease_rules() -> list[dict[str, Any]]:
     return list(data.get("rules", []))
 
 
-def _condition_matches_predicate(condition_code: str, predicate: dict[str, Any]) -> bool:
-    """Prefix-match a single ``condition_code`` (e.g. ``"I50.32"``) against
-    a ``disease_predicate`` block. Currently supports only
-    ``icd_prefix`` (list of strings); extend here for future predicate
-    kinds (``sex``, ``age_min``, chronic-condition flags, etc.)."""
+def _condition_matches_predicate(condition_entry: Any, predicate: dict[str, Any]) -> bool:
+    """Match one condition entry against a ``disease_predicate`` block.
+
+    ``condition_entry`` is either a bare ICD code string (``"I50.32"``,
+    the pre-#1769 shape) or a ``(code, stage)`` tuple carrying the
+    chronic condition's staged severity (``("N18", "CKD G3b")``). The
+    predicate supports:
+
+    * ``icd_prefix`` (list of strings) — ANY entry's ``code`` begins
+      with ANY listed prefix. Required.
+    * ``stage_in`` (list of strings, Issue #1769) — when present, the
+      entry MUST carry a stage AND the stage MUST appear in the list.
+      A bare-string entry (no stage) FAILS the predicate — fail-closed
+      is correct: a caller that lost stage context should not get a
+      stage-contingent rule to fire by accident.
+
+    Rules without ``stage_in`` keep the pre-#1769 code-only semantics
+    for both bare-string and tuple entries (tuple entry falls through
+    to code match). Extend here for future predicate kinds
+    (``sex``, ``age_min``, chronic-condition flags, etc.).
+    """
     prefixes = predicate.get("icd_prefix") or []
-    if not condition_code:
+    if isinstance(condition_entry, tuple):
+        code = condition_entry[0] if condition_entry else ""
+        stage = condition_entry[1] if len(condition_entry) >= 2 else ""
+    else:
+        code = condition_entry or ""
+        stage = ""
+    if not code:
         return False
-    for p in prefixes:
-        if condition_code.startswith(str(p)):
-            return True
-    return False
+    if not any(str(code).startswith(str(p)) for p in prefixes):
+        return False
+    stage_in = predicate.get("stage_in")
+    if stage_in:
+        return bool(stage) and str(stage) in {str(s) for s in stage_in}
+    return True
 
 
 def check_candidate_against_disease_state(
     candidate: str,
-    active_condition_codes: Sequence[str],
+    active_conditions: Sequence[Any],
 ) -> list[SafetyVerdict]:
     """Return the list of non-allowed drug-vs-disease-state verdicts.
 
     ``candidate`` is a drug name (canonical or alias). Its expanded
     class list (``resolve_classes``) is intersected against each rule's
     ``drug_class`` filter; matching rules then check whether any
-    ``active_condition_codes`` entry (chronic-condition ICD codes) meets
-    the rule's ``disease_predicate``. Every triggered rule appears as a
-    :class:`SafetyVerdict` in the returned list — callers pick the
-    highest-severity entry to drive skip / warn.
+    ``active_conditions`` entry meets the rule's ``disease_predicate``.
+    Every triggered rule appears as a :class:`SafetyVerdict` in the
+    returned list — callers pick the highest-severity entry to drive
+    skip / warn.
+
+    Each entry in ``active_conditions`` is either a bare ICD code
+    (``"I50"``, ``"N18.4"``) OR a ``(code, stage)`` tuple carrying the
+    patient's staged chronic severity. Rules with a ``stage_in``
+    predicate (Issue #1769) only fire when a tuple entry's stage falls
+    in the listed set; rules without ``stage_in`` keep the pre-#1769
+    code-prefix semantics for both shapes.
 
     Empty return value = no drug-vs-disease-state rule triggered; the
     candidate may still hit a drug-vs-drug rule via
@@ -189,18 +220,22 @@ def check_candidate_against_disease_state(
         if rule_class and rule_class not in class_set:
             continue
         predicate = rule.get("disease_predicate") or {}
-        matched_condition = next(
-            (code for code in active_condition_codes if _condition_matches_predicate(str(code), predicate)),
+        matched_entry = next(
+            (entry for entry in active_conditions if _condition_matches_predicate(entry, predicate)),
             None,
         )
-        if matched_condition is None:
+        if matched_entry is None:
             continue
+        # Record the code portion for backward-compat parity with the
+        # pre-#1769 ``matched_classes`` tuple format (callers see the
+        # ICD code, not the stage).
+        matched_code = matched_entry[0] if isinstance(matched_entry, tuple) else matched_entry
         severity: Severity = rule.get("severity", "moderate")
         out.append(
             SafetyVerdict(
                 severity=severity,
                 rule_id=rule.get("id"),
-                matched_classes=(rule_class, matched_condition),
+                matched_classes=(rule_class, str(matched_code)),
                 matched_active_drug=None,
                 rationale_en=rule.get("rationale_en"),
                 rationale_ja=rule.get("rationale_ja"),
