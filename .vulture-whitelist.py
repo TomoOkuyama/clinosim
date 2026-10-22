@@ -639,3 +639,7 @@ _.display_for  # codes/drugs.py::DrugIdentity — public API consumed by tests +
 # severity ladder. Vulture only scans clinosim/ so the test consumer
 # is invisible.
 _.all_stage_labels  # codes/stage_to_snomed.py — audit/integrity API
+
+# Phase 3.β.3 — oxygen device-mode → SNOMED catalog loader. Audit-side
+# API invisible to vulture (tests are not scanned).
+_.all_device_modes  # codes/oxygen_device_to_snomed.py — audit/integrity API
