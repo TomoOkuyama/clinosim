@@ -75,6 +75,7 @@ from typing import Any
 
 from clinosim.codes import get_system_uri
 from clinosim.codes import lookup as code_lookup
+from clinosim.codes.oxygen_device_to_snomed import resolve_device_snomed
 from clinosim.modules._shared import get_attr_or_key as _o
 from clinosim.modules._shared import is_jp, resolve_lang
 from clinosim.modules.output.fhir_r4.conditions.primary_ref import primary_condition_ref
@@ -104,17 +105,12 @@ _SINGLE_TIMESTAMP_DWELL = timedelta(minutes=15)
 # codes/data/snomed-ct.yaml so `code_lookup` resolves the JA/EN display.
 _SNOMED_OXYGEN_THERAPY = "57485005"
 
-# SNOMED CT concepts for delivery devices — registered in
-# codes/data/snomed-ct.yaml. Used only for `Procedure.usedCode[]`.
-_SNOMED_DEVICE_BY_MODE: dict[str, str] = {
-    "nasal_cannula": "336623009",  # Nasal cannula (physical object)
-    "simple_mask": "425574000",  # Simple face mask (physical object)
-    "venturi": "336623009",  # No dedicated SNOMED — fallback to nasal cannula concept
-    "non-rebreather": "425574000",  # Non-rebreather variant of face mask concept
-    "HFNC": "336623009",  # No dedicated HFNC SNOMED — fallback
-    "BiPAP": "26412008",  # Ventilator concept (BiPAP is NPPV)
-    "ventilator": "26412008",  # Mechanical ventilator (physical object)
-}
+# SNOMED CT concepts for delivery devices are now sourced from
+# clinosim/codes/data/oxygen-device-to-snomed.yaml via the
+# clinosim.codes.oxygen_device_to_snomed resolver (Phase 3.β.3, #1808
+# follow-up). Displays resolve through `code_lookup("snomed-ct", …)`
+# against the authority yaml, so this module no longer carries any
+# SNOMED code constants for delivery devices.
 
 
 def is_oxygen_order(order: Any) -> bool:
@@ -477,7 +473,7 @@ def _bb_oxygen_therapy(ctx: BundleContext) -> list[dict]:
         # Procedure.usedCode carries the delivery device concept without
         # requiring a Device resource — CodeableConcept, min=0, max=* in
         # Procedure R4. Emit only when the vitals actually name a device.
-        device_snomed = _SNOMED_DEVICE_BY_MODE.get(device_mode) if device_mode else ""
+        device_snomed = resolve_device_snomed(device_mode) if device_mode else None
         if device_snomed:
             device_display = code_lookup("snomed-ct", device_snomed, lang) or device_mode
             procedure["usedCode"] = [
