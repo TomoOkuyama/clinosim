@@ -95,6 +95,65 @@ _HL7_OBSERVATION_CATEGORY_SYSTEMS = frozenset(
 )
 
 
+# US Core v9.0 profile URLs — Issue #1768 (Cluster E T8a).
+# Mirrors `_JP_CORE_PROFILES`: single-profile resource types where no
+# sub-type dispatch is needed. Condition and Observation are omitted
+# because US Core publishes multiple variants per resource type keyed on
+# category (problem-list vs encounter-diagnosis; lab vs vital-signs vs
+# social-history); their category-dispatched profile selection is a
+# separate work item (T8b).
+#
+# URLs quoted verbatim from the ``hl7.fhir.us.core@9.0.0`` IG package
+# (``package/StructureDefinition-us-core-*.json`` ``.url`` fixedUri)
+# per the repo convention of citing fixedUri rather than guessing
+# (``feedback_verify_fhir_profile_uri_from_spec``).
+_US_CORE_PROFILES: dict[str, list[str]] = {
+    "Patient": ["http://hl7.org/fhir/us/core/StructureDefinition/us-core-patient"],
+    "Coverage": ["http://hl7.org/fhir/us/core/StructureDefinition/us-core-coverage"],
+    "MedicationRequest": [
+        "http://hl7.org/fhir/us/core/StructureDefinition/us-core-medicationrequest",
+    ],
+    "Immunization": ["http://hl7.org/fhir/us/core/StructureDefinition/us-core-immunization"],
+    "AllergyIntolerance": [
+        "http://hl7.org/fhir/us/core/StructureDefinition/us-core-allergyintolerance",
+    ],
+    "Procedure": ["http://hl7.org/fhir/us/core/StructureDefinition/us-core-procedure"],
+    "Practitioner": ["http://hl7.org/fhir/us/core/StructureDefinition/us-core-practitioner"],
+    "Organization": ["http://hl7.org/fhir/us/core/StructureDefinition/us-core-organization"],
+    "Encounter": ["http://hl7.org/fhir/us/core/StructureDefinition/us-core-encounter"],
+}
+
+
+def _apply_us_core_profile(resource: dict) -> None:
+    """Attach the US Core v9 profile URL for the resource's type when absent.
+
+    Mirrors ``_apply_jp_core_profile``: idempotent, preserves existing
+    ``meta.profile[]`` entries, silently no-ops for resource types that
+    are not in the single-profile registry (Condition / Observation /
+    DiagnosticReport need category-dispatched profile selection, tracked
+    for T8b).
+
+    Issue #1768: declaring the US Core profile URL lets the HL7 FHIR
+    validator check the resource against US Core v9 constraints rather
+    than base R4 only. The precondition is data-completeness
+    (``feedback_profile_assertion_requires_data_completeness``) — each
+    resource type registered here has already had its US Core
+    must-support fields emitted by the per-resource builders (Patient
+    race / ethnicity / birthsex via ``demographics/patient.py``,
+    Coverage profile already declared inline in ``identity.yaml`` and
+    the extensions block already stripped empty, etc.).
+    """
+    rt = resource.get("resourceType", "")
+    profiles = _US_CORE_PROFILES.get(rt)
+    if not profiles:
+        return
+    meta = resource.setdefault("meta", {})
+    profs = meta.setdefault("profile", [])
+    for profile in profiles:
+        if profile not in profs:
+            profs.append(profile)
+
+
 def _apply_jp_core_profile(resource: dict) -> None:
     """Attach the JP Core profile URLs for the resource's type when absent.
 

@@ -91,6 +91,7 @@ from clinosim.modules.output.fhir_r4.lib.inline_bb import (
 from clinosim.modules.output.fhir_r4.post_process import (
     _apply_jp_clins_profile,
     _apply_jp_core_profile,
+    _apply_us_core_profile,
     _build_companion_specimen,
     _lab_observation_needs_specimen,
     _normalize_dt_and_fill_practitioner_display,
@@ -269,6 +270,11 @@ def convert_cif_to_fhir(
                 # uncoded dummy usage code that satisfies R5020). No-op on the
                 # facility bundle since it emits no MedicationRequests.
                 _populate_jp_medication_dosage_ecs_fields(resource)
+            else:
+                # Issue #1768 Cluster E T8a: US Core v9 profile URLs for the
+                # facility bundle (Organization / Location / Device). Same
+                # scope + rationale as the main bundle loop below.
+                _apply_us_core_profile(resource)
             # Runs regardless of country: identifier / meta.lastUpdated are
             # base-FHIR-optional but JP-eCS-required; universal emission keeps
             # US output consistent and cost-free.
@@ -666,6 +672,15 @@ def _build_bundle(
             if is_jp(ctx.country):
                 _apply_jp_core_profile(resource)
                 _apply_jp_clins_profile(resource)
+            else:
+                # Issue #1768 Cluster E T8a: declare US Core v9 profile URL
+                # on every resource type for which US Core publishes a
+                # single, unambiguous profile (Patient / Coverage /
+                # MedicationRequest / Immunization / AllergyIntolerance /
+                # Procedure / Practitioner / Organization / Encounter).
+                # Condition and Observation need category-dispatched
+                # profile selection and are tracked for T8b.
+                _apply_us_core_profile(resource)
                 # JP Core は Observation.category:first slice に
                 # JP_SimpleObservationCategory_CS を、HL7 base Vital Signs
                 # profile(bp / heartrate / oxygensat / bodytemp / resprate)は
