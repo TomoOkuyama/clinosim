@@ -108,6 +108,13 @@ _NAFLD_OBESE_PREVALENCE = 0.60
 _NAFLD_MORBID_PREVALENCE = 0.85
 _NAFLD_DM_UPLIFT = 1.15
 _NAFLD_SALT = "metabolic.nafld.v1"
+# Issue #1756: K76.0 (nonalcoholic fatty liver disease) is mutually
+# exclusive with F10 (alcohol use disorder) by definition. For an F10
+# patient with the fatty-liver phenotype, the clinically correct ICD
+# is K70.x (alcoholic liver disease), tracked separately under #1608.
+# This prefix tuple gates the K76.0 enricher so it never adds the
+# contradictory code; K70 assignment for F10 patients is a follow-up.
+_F10_PREFIXES: tuple[str, ...] = ("F10",)
 
 # G47.30 OSA BMI tier prevalence (male / female separately).
 _OSA_CODE = "G47.30"
@@ -245,7 +252,17 @@ def _draw_nafld(person_id: str, probability: float) -> bool:
 def _derive_nafld_assignment(person_id: str, bmi: float, chronic: list[str]) -> str | None:
     """Return "K76.0" when the SHA-salted per-person draw assigns
     NAFLD under the BMI + DM-weighted probability, otherwise ``None``.
+
+    Issue #1756: suppress the assignment entirely when the person
+    already carries F10.x on their problem list — K76.0 (nonalcoholic
+    fatty liver) and F10 (alcohol use disorder) are mutually exclusive
+    by ICD definition, and 305 patients in the US p=10k seed=42 5y
+    cohort carried both pre-fix. The SHA Bernoulli draw is skipped on
+    the gated path; the enricher is already RNG-neutral so no cursor
+    bookkeeping is required.
     """
+    if has_icd_prefix(chronic, _F10_PREFIXES):
+        return None
     probability = _nafld_probability(bmi, has_icd_prefix(chronic, _DM_PREFIXES))
     return _NAFLD_CODE if _draw_nafld(person_id, probability) else None
 
