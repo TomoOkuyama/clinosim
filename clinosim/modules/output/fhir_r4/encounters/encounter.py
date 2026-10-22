@@ -13,6 +13,7 @@ from typing import Any
 
 from clinosim.codes import get_system_uri, system_key_for
 from clinosim.codes import lookup as code_lookup
+from clinosim.codes.encounter_type_to_snomed import resolve_encounter_type_snomed
 from clinosim.codes.hl7_encounter import ActPriority
 from clinosim.modules._shared import is_jp, pick_localized_field, resolve_lang
 from clinosim.modules.diagnosis.nonspecific_codes import is_visit_reason_zcode
@@ -38,7 +39,6 @@ from clinosim.modules.output.fhir_r4.lib.localization import (
     _dept_display,
     _localize_display,
 )
-from clinosim.modules.output.fhir_r4.lib.reference_data import _ENCOUNTER_TYPE_SNOMED_CODE
 
 # === Issue #854 Bucket B (PR-encounter): opaque Encounter.id ===
 # LEAK ROOT of the compound-id anti-pattern — the pre-#854 shape
@@ -203,7 +203,7 @@ def _build_encounter(
     # the vast majority of outpatient visits, 初診 (first-visit consultation)
     # is a small minority, and screening/immunization visits keep the generic
     # patient-initiated code.
-    type_code = _ENCOUNTER_TYPE_SNOMED_CODE.get(enc_type)
+    type_code = resolve_encounter_type_snomed(enc_type)
     if enc_type == "outpatient":
         _cc = str(enc.get("chief_complaint", "") or "")
         # Health screening / annual check / immunization → keep the generic
