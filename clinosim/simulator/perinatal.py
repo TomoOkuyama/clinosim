@@ -478,6 +478,17 @@ def _build_newborn_patient(
         # attribute (older tests predate the race / ethnicity shape).
         race=getattr(mother, "race", "") or "",
         ethnicity=getattr(mother, "ethnicity", "") or "",
+        # Issue #1772: forward mother's insurance_type too. The
+        # PatientProfile dataclass defaults ``insurance_type`` to
+        # the JP sentinel ``"NHI_employee"`` because the field was
+        # originally added for the JP cohort; without an explicit
+        # forward here, US-cohort babies inherited the dataclass
+        # default and 80% of -BABY patients in the audit emitted
+        # with JP insurance (`NHI_employee`) even though their
+        # mothers carried US insurance (`private_employer`,
+        # `medicaid`, `uninsured`, …). Same `getattr` defensive
+        # access pattern as race / ethnicity above.
+        insurance_type=getattr(mother, "insurance_type", "") or "",
         # Issue #1699: Z38.0 (single liveborn admission dx) and perinatal
         # P-chapter codes (P07 preterm, P22 RDS, P59 jaundice) are
         # one-time episode codes — not chronic. They route to
