@@ -1685,7 +1685,14 @@ fallback:
 immunization_fhir:
   patient_refused: {ja: "患者拒否", en: "Patient refused"}
   vaccination_routine: {ja: "予防接種（定期接種）", en: "Vaccination (routine)"}
-  left_deltoid: {ja: "左三角筋", en: "Left deltoid"}
+  # Issue #1766: EN displays must match SNOMED CT canonical preferred terms.
+  # Verified against tx.fhir.org $lookup for SNOMED CT International
+  # Edition. The validator rejected the short vernacular form
+  # (``Left deltoid``) as a display mismatch against 368208006. JA
+  # localizations stay as the common clinical short form — the JP
+  # SNOMED fragment is lenient on display, and the short form is what
+  # clinicians read in Japanese charting.
+  left_deltoid: {ja: "左三角筋", en: "Structure of left deltoid muscle"}
   intramuscular_route: {ja: "筋肉内注射", en: "Intramuscular route"}
 
 # FHIR emit-side microbiology labels + prose (Phase 1d-50).

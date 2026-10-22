@@ -269,3 +269,32 @@ def test_multiple_immunizations_count():
     resources = _bb_immunizations(ctx)
 
     assert len(resources) == 3
+
+
+# ---------------------------------------------------------------------------
+# Issue #1766: Immunization.site.display must be SNOMED canonical for US output
+# ---------------------------------------------------------------------------
+
+
+def test_us_immunization_site_display_is_snomed_canonical():
+    """``Immunization.site.coding[0].display`` for SNOMED code ``368208006``
+    must be the canonical preferred term ``Structure of left deltoid muscle``.
+    The validator rejects ``Left deltoid`` (short vernacular form) as a
+    non-canonical display against the SNOMED binding."""
+    from clinosim.modules.output.fhir_r4.procedures.immunization import _bb_immunizations
+
+    ctx = _make_ctx(_record(), country="US")
+    resources = _bb_immunizations(ctx)
+
+    assert resources
+    for r in resources:
+        site = r.get("site")
+        if not site:
+            # ``not-done`` entries skip site; we aren't asserting on those.
+            continue
+        coding = site["coding"][0]
+        assert coding["code"] == "368208006"
+        # Issue #1766: not the short-form "Left deltoid" alone.
+        assert coding["display"] == "Structure of left deltoid muscle", (
+            f"US Immunization.site.display must be SNOMED canonical for 368208006; got {coding['display']!r}"
+        )

@@ -168,3 +168,45 @@ def test_mhlw_codeable_concept_carries_canonical_display(code: str, expected_ja:
     validator inspects."""
     cc = build_diagnosis_codeable_concept(code, "icd-10-mhlw", "JP")
     assert cc["coding"][0]["display"] == expected_ja
+
+
+# === Issue #1766: unknown code → display is OMITTED, not literal placeholder ===
+
+
+def test_unknown_code_omits_display_rather_than_literal_placeholder_us() -> None:
+    """Issue #1766: when neither the primary system nor the icd-10-cm
+    cross-fallback can resolve a display for a code, the FHIR builder must
+    OMIT the ``display`` key from the coding entry rather than emit the
+    literal placeholder string ``(display unavailable)``. FHIR R4 permits
+    a bare (system, code) coding with no display; the validator rejects
+    the placeholder as a non-canonical display."""
+    # ``ZZZZZZ.unknown`` is deliberately not registered in any ICD table.
+    cc = build_diagnosis_codeable_concept("ZZZZZZ.unknown", "icd-10-cm", "US")
+    # The coding entry exists (system + code preserved)
+    assert cc["coding"][0]["system"] == "http://hl7.org/fhir/sid/icd-10-cm"
+    assert cc["coding"][0]["code"] == "ZZZZZZ.unknown"
+    # But display MUST be absent — not the literal "(display unavailable)".
+    assert "display" not in cc["coding"][0], (
+        f"Unknown codes must omit the `display` key; got {cc['coding'][0].get('display')!r}"
+    )
+
+
+def test_unknown_code_omits_display_rather_than_literal_placeholder_jp() -> None:
+    """JP path: same invariant on the icd-10 (WHO) code system."""
+    cc = build_diagnosis_codeable_concept("ZZZZZZ.unknown", "icd-10", "JP")
+    assert cc["coding"][0]["system"] == "http://hl7.org/fhir/sid/icd-10"
+    assert cc["coding"][0]["code"] == "ZZZZZZ.unknown"
+    assert "display" not in cc["coding"][0], (
+        f"Unknown codes must omit the `display` key; got {cc['coding'][0].get('display')!r}"
+    )
+
+
+def test_literal_placeholder_string_never_appears_in_any_coding() -> None:
+    """Hardcoded safety net: the string ``(display unavailable)`` must never
+    appear anywhere in the built CodeableConcept — neither in display
+    fields nor in ``text``."""
+    import json
+
+    cc = build_diagnosis_codeable_concept("ZZZZZZ.unknown", "icd-10-cm", "US")
+    blob = json.dumps(cc, ensure_ascii=False)
+    assert "(display unavailable)" not in blob, f"Literal `(display unavailable)` leaked into CodeableConcept: {blob!r}"

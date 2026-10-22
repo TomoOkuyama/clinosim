@@ -126,14 +126,46 @@ class TestCoverageBuilder:
         }
         resources = _build_coverage_resources(us_patient, "US")
         coverages = [r for r in resources if r["resourceType"] == "Coverage"]
+        orgs = [r for r in resources if r["resourceType"] == "Organization"]
         assert coverages, "US enrollment should produce at least one Coverage row"
         # US-Core profile URL declared
         assert any(
             "us-core-coverage" in (p or "") for cov in coverages for p in cov.get("meta", {}).get("profile", [])
         ), "US Coverage should carry the us-core-coverage profile URL"
-        # No JP 記号/枝番 extensions leaked in
+        # Issue #1767: no JP 記号/枝番 extensions emit as empty `[]` — the
+        # whole `extension` property must be absent on US Coverage (FHIR R4
+        # cardinality: an empty 0..* array must be omitted, not emitted
+        # as []). The validator rejects `extension: []` at ERROR severity.
         for cov in coverages:
-            assert cov.get("extension", []) == [], "US Coverage should have no JP-specific extensions"
+            assert "extension" not in cov, (
+                "US Coverage must omit `extension` entirely when no JP-core "
+                "extensions apply (FHIR R4: empty array must be absent)"
+            )
+        # Issue #1767: Coverage.identifier.system must be a valid URN or URL.
+        # The pre-fix string ``urn:oid:2.16.840.1.113883.3.564.5.10.clinosim.us.coverage``
+        # fails FHIR OID validation because OID components must be numeric.
+        for cov in coverages:
+            for ident in cov.get("identifier", []):
+                sys_uri = ident.get("system", "")
+                assert "clinosim.us.coverage" not in sys_uri, (
+                    f"Coverage.identifier.system must not use the invalid non-numeric OID suffix; got {sys_uri!r}"
+                )
+                # Positive assertion: either an https URL under clinosim.io
+                # OR a non-OID URN with a scheme name.
+                assert (
+                    sys_uri.startswith("https://clinosim.io/")
+                    or (sys_uri.startswith("urn:") and not sys_uri.startswith("urn:oid:"))
+                    or sys_uri == ""
+                    or sys_uri.startswith("urn:oid:")
+                    and all(part.isdigit() for part in sys_uri[len("urn:oid:") :].split("."))
+                ), f"Coverage.identifier.system must be a valid URN/URL; got {sys_uri!r}"
+        # Same for payer Organization.identifier.system
+        for org in orgs:
+            for ident in org.get("identifier", []):
+                sys_uri = ident.get("system", "")
+                assert "clinosim.us.payer" not in sys_uri, (
+                    f"Organization.identifier.system must not use the invalid non-numeric OID suffix; got {sys_uri!r}"
+                )
 
 
 @pytest.mark.unit

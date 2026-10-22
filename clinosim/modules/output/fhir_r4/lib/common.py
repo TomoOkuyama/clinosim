@@ -463,50 +463,62 @@ def build_diagnosis_codeable_concept(code: str, system_key: str, country: str) -
       ``code.text`` (in JA locales that is the JA short name) or look up
       via ``clinosim.codes.lookup(system_key, code, "en")`` themselves.
     - code.text: primary language display (local charting expression)
-    - Never emits display==code: falls back to "(display unavailable)"
+    - Never emits display==code and never emits the literal placeholder
+      ``(display unavailable)``. Issue #1766: when the display cannot be
+      resolved from the primary system or the icd-10-cm cross-fallback,
+      the ``display`` key is OMITTED from the coding entry entirely
+      (FHIR R4 permits a bare (system, code) coding). The validator
+      rejects placeholder displays as non-canonical, so emission omits
+      the field rather than lying.
 
     Falls back to icd-10-cm lookup if the code isn't in the country's system
     (e.g. JP using icd-10 but code only in icd-10-cm).
 
     code.text is set to a clinical short-name / abbreviation when available
     (e.g. "COPD" instead of "Other chronic obstructive pulmonary disease"),
-    enabling search by common clinical abbreviations.
+    enabling search by common clinical abbreviations. When no display is
+    resolvable, ``text`` falls back to the raw code so narrative renderers
+    have something to show.
     """
     from clinosim.codes.loader import is_japanese_only_display_system
 
     primary_lang = resolve_lang(country)
     primary_system = get_system_uri(system_key)
 
-    # Look up display in primary language (with cross-system fallback)
-    primary_display = code_lookup(system_key, code, primary_lang) if code else ""
+    # Look up display in primary language (with cross-system fallback).
+    primary_display: str | None = code_lookup(system_key, code, primary_lang) if code else ""
     # If primary system has no entry, try icd-10-cm which is more comprehensive
     if (not primary_display or primary_display == code) and system_key != "icd-10-cm":
         alt = code_lookup("icd-10-cm", code, primary_lang)
         if alt and alt != code:
             primary_display = alt
-    # Last-resort fallback: never emit display==code
+    # Issue #1766: unresolved → omit (``None``), never a placeholder string.
     if not primary_display or primary_display == code:
-        primary_display = "(display unavailable)"
+        primary_display = None
 
-    # English display (for interop secondary coding)
-    en_display = code_lookup(system_key, code, "en") if code else ""
+    # English display (for interop secondary coding).
+    en_display: str | None = code_lookup(system_key, code, "en") if code else ""
     if (not en_display or en_display == code) and system_key != "icd-10-cm":
         alt_en = code_lookup("icd-10-cm", code, "en")
         if alt_en and alt_en != code:
             en_display = alt_en
     if not en_display or en_display == code:
-        en_display = "(display unavailable)"
+        en_display = None
 
-    coding = [
-        {
-            "system": primary_system,
-            "code": code,
-            "display": primary_display,
-        }
-    ]
+    primary_coding: dict[str, Any] = {"system": primary_system, "code": code}
+    if primary_display:
+        primary_coding["display"] = primary_display
+    coding = [primary_coding]
     # Add English coding for multilingual interop when primary is not English.
     # Skip for Japanese-only registries (Issue #358) — see docstring.
-    if primary_lang != "en" and en_display != primary_display and not is_japanese_only_display_system(system_key):
+    # Issue #1766: also skip when the English display is unresolved (don't
+    # emit a bare second coding with no display just for the sake of it).
+    if (
+        primary_lang != "en"
+        and en_display
+        and en_display != primary_display
+        and not is_japanese_only_display_system(system_key)
+    ):
         coding.append(
             {
                 "system": primary_system,  # same code system, different display
@@ -517,9 +529,15 @@ def build_diagnosis_codeable_concept(code: str, system_key: str, country: str) -
 
     # code.text: clinical short-name / abbreviation for search friendliness.
     # coding[].display remains the official ICD name; text is what clinicians type.
+    # Fallback chain: short-name → primary_display → raw code.
     base_code = code.split(".")[0] if code else ""
     short_name = code_lookup("condition-short-name", base_code, primary_lang) if base_code else ""
-    text = short_name if short_name and short_name != base_code else primary_display
+    if short_name and short_name != base_code:
+        text = short_name
+    elif primary_display:
+        text = primary_display
+    else:
+        text = code
 
     return {
         "coding": coding,

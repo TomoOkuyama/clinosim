@@ -584,7 +584,6 @@ def _build_coverage_resources(
             coverage: dict[str, Any] = {
                 "resourceType": "Coverage",
                 "id": _resolve_coverage_id(_cov_structural_key),
-                "extension": extensions,
                 "identifier": [
                     {"system": cfg.get("member_id_system", ""), "value": composite},
                     wrap_as_identifier(_cov_structural_key, COVERAGE_KEY_SYSTEM),
@@ -602,6 +601,11 @@ def _build_coverage_resources(
                 "beneficiary": patient_ref(pid),
                 "payor": [{"reference": f"Organization/{payer_org_id}"}],
             }
+            # Issue #1767: emit `extension` only when non-empty — FHIR R4
+            # requires empty 0..* arrays to be absent, not `[]`. US locales
+            # (no JP 記号/番号/枝番) therefore skip the key entirely.
+            if extensions:
+                coverage["extension"] = extensions
             if cfg.get("profile"):
                 coverage["meta"] = {"profile": [cfg["profile"]]}
             if use_branch:
@@ -770,11 +774,16 @@ def _build_patient(p: dict, country: str) -> dict:
     names[0]  # kept for legacy readers below
 
     pid = p.get("patient_id", str(uuid.uuid4()))
-    # Hospital MRN identifier system (country-specific)
+    # Hospital MRN identifier system (country-specific).
+    # Issue #1763: ``http://hospital.example.org/…`` is RFC 2606 reserved
+    # for documentation and is rejected by the FHIR validator at ERROR
+    # severity. US output now uses an https URL under the project-owned
+    # ``clinosim.io`` domain. JP keeps the sample OID (unaffected by the
+    # issue — JP output rejected only on US validator runs).
     mrn_system = (
         "urn:oid:1.2.392.100495.20.3.51.1"  # JP example MRN OID
         if is_jp(country)
-        else "http://hospital.example.org/identifiers/mrn"
+        else "https://clinosim.io/fhir/us/mrn"
     )
     resource: dict[str, Any] = {
         "resourceType": "Patient",
@@ -942,9 +951,19 @@ def _build_patient(p: dict, country: str) -> dict:
     # Communication / preferred language
     lang = p.get("preferred_language", "")
     if lang:
-        # BCP-47 (`urn:ietf:bcp:47`) is English-only per the fhir-jp-validator
-        # tx-server loadout — the ja localization is not a registered synonym.
-        # Emit the English display regardless of country.
+        # BCP-47 (`urn:ietf:bcp:47`) is English-only per both validators'
+        # tx-server loadouts, but the two we target expect different
+        # English displays. Issue #1764: HL7 base + US Core v9 require
+        # the IETF canonical form (`English (United States)`, with a
+        # space), while fhir-jp-validator registered the no-space form
+        # (`English(US)`). Pick the field by output locale.
+        _lang_display_field = "en" if is_jp(country) else "en_canonical"
+        _lang_display = code_lookup("bcp-47-language", lang, _lang_display_field)
+        # Fallback: unregistered language tag — fall back to the `en`
+        # field (jp-validator form) so JP flows that already pass stay
+        # pinned, and so US flows at least emit something resolvable.
+        if not _lang_display or _lang_display == lang:
+            _lang_display = code_lookup("bcp-47-language", lang, "en")
         resource["communication"] = [
             {
                 "language": {
@@ -952,7 +971,7 @@ def _build_patient(p: dict, country: str) -> dict:
                         {
                             "system": get_system_uri("bcp-47-language"),
                             "code": lang,
-                            "display": code_lookup("bcp-47-language", lang, "en"),
+                            "display": _lang_display,
                         }
                     ],
                 },

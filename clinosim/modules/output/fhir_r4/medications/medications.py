@@ -51,6 +51,13 @@ from clinosim.modules.output.fhir_r4.lib.localization import (
 _MR_CATEGORY_SYSTEM = "http://terminology.hl7.org/CodeSystem/medicationrequest-category"
 _MR_COURSE_OF_THERAPY_SYSTEM = "http://terminology.hl7.org/CodeSystem/medicationrequest-course-of-therapy"
 
+# Issue #1766: strip trailing `` (TradeName)`` from US RxNorm displays
+# before emitting ``MedicationRequest.medicationCodeableConcept.coding[].display``.
+# The source yaml tables (``rxnorm.yaml``, ``hot7.yaml``) decorate the
+# generic name with the US trade name for clinician search ergonomics,
+# but the RxNorm binding expects the canonical generic form alone.
+_TRADE_NAME_SUFFIX_RE = re.compile(r"\s*\([^)]+\)\s*$")
+
 
 def _build_category_block(code: str, display: str) -> list[dict]:
     """Return the standard ``MedicationRequest.category`` block for a
@@ -635,6 +642,17 @@ def _resolve_medication_concept(
     display = code_lookup(drug_system_key, code_value, lang) if code_value else clean_drug_name
     if display == code_value:
         display = clean_drug_name
+    # Issue #1766: strip trailing trade-name parenthetical (e.g.
+    # ``Enoxaparin (Lovenox)`` → ``Enoxaparin``) on US output. The
+    # RxNorm canonical display for a drug's ingredient CUI is the
+    # generic name alone; the trade-name decoration in our yaml tables
+    # exists for clinician-friendly search but is rejected by the HL7
+    # FHIR validator against the RxNorm binding. JP output is left
+    # unchanged — the JP tx-server accepts the Japanese 括弧付き
+    # annotation form (``アセトアミノフェン（カロナール）``), and the YJ /
+    # HOT CodeSystems have different display conventions.
+    if not is_jp(country_code) and display:
+        display = _TRADE_NAME_SUFFIX_RE.sub("", display).strip()
     # F-1: JP は code 形式ごとに HOT7/HOT9/HOT13/YJ URI へ dispatch。
     # US は従来通り RxNorm URI。
     if is_jp(country_code) and drug_system_key == "yj" and code_value:

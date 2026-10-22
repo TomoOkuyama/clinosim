@@ -40,20 +40,31 @@ def test_all_marital_codes_resolve_us(patient_dict_factory, code, en):
     assert resource["maritalStatus"]["coding"][0]["display"] == en
 
 
-def test_language_display(patient_dict_factory):
-    # Session 58 Chain #7: Patient.communication.language always emits the
-    # English display (BCP-47 is English-only per the validator's terminology).
+def test_language_display_us(patient_dict_factory):
+    # Issue #1764: US output must use the BCP-47 canonical display
+    # (`English (United States)`, with a space before the paren) — the
+    # US Core v9 / HL7 FHIR validator's BCP-47 binding rejects the
+    # fhir-jp-validator form `English(US)` as a display mismatch.
     resource = _build_patient(patient_dict_factory(lang="en-US"), "US")
     coding = resource["communication"][0]["language"]["coding"][0]
-    assert coding["display"] == "English(US)"
+    assert coding["display"] == "English (United States)"
 
 
-def test_language_display_ja(patient_dict_factory):
-    # Even for JP output, the emitted display is the English form the tx-server
-    # accepts (session 58 Chain #7 — 580 v4 errors resolved by this shift).
+def test_language_display_jp(patient_dict_factory):
+    # JP output continues to emit the fhir-jp-validator-registered form
+    # (no space before paren) — session 58 Chain #7 resolved 580 v4 errors
+    # against the jp-validator tx-server by shifting to this spelling.
     resource = _build_patient(patient_dict_factory(lang="ja-JP"), "JP")
     coding = resource["communication"][0]["language"]["coding"][0]
     assert coding["display"] == "Japanese(Japan)"
+
+
+def test_language_display_jp_en_us(patient_dict_factory):
+    # Mixed case: a JP-locale patient whose preferred_language is en-US
+    # should still receive the jp-validator form on JP output.
+    resource = _build_patient(patient_dict_factory(lang="en-US"), "JP")
+    coding = resource["communication"][0]["language"]["coding"][0]
+    assert coding["display"] == "English(US)"
 
 
 def test_marital_status_yaml_matches_direct_lookup():
@@ -62,5 +73,9 @@ def test_marital_status_yaml_matches_direct_lookup():
 
 
 def test_language_yaml_matches_direct_lookup():
+    # `en` field keeps the jp-validator form (JP output path).
     assert lookup("bcp-47-language", "en-US", "en") == "English(US)"
     assert lookup("bcp-47-language", "ja-JP", "en") == "Japanese(Japan)"
+    # `en_canonical` holds the BCP-47 canonical form (US output path).
+    assert lookup("bcp-47-language", "en-US", "en_canonical") == "English (United States)"
+    assert lookup("bcp-47-language", "ja-JP", "en_canonical") == "Japanese (Japan)"
