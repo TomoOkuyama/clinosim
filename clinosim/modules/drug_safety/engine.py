@@ -261,18 +261,38 @@ def _alt_is_safe(alt_drug: str, active_meds: Sequence[str]) -> bool:
     return not check_candidate_against_active(alt_drug, active_meds)
 
 
+def _resolve_substitution_display(entry: dict[str, Any]) -> tuple[str, str]:
+    """Resolve (en, ja) display for a drug_substitution.yaml alternative.
+
+    META #1804 Phase 2.b: prefer the catalog's resolve_drug when the
+    entry carries ``drug_id``; fall back to the legacy ``drug`` /
+    ``drug_ja`` fields for entries not yet migrated. The catalog is
+    the display SoT once a drug_id is set.
+    """
+    drug_id = str(entry.get("drug_id") or "")
+    if drug_id:
+        from clinosim.codes.drugs import resolve_drug
+
+        rec = resolve_drug(drug_id)
+        en = rec.names.get("en", "") or ""
+        ja = rec.names.get("ja", "") or en
+        return en, ja
+    legacy_en = str(entry.get("drug", "") or "")
+    return legacy_en, str(entry.get("drug_ja", "") or legacy_en)
+
+
 def _shared_pool_pick(indication: str, active_meds: Sequence[str]) -> AlternativeDrug | None:
     shared = _load_shared_substitutions()
     block = shared.get(indication)
     if not block:
         return None
     for idx, entry in enumerate(block.get("alternatives", []) or []):
-        drug = entry.get("drug")
-        if not drug or not _alt_is_safe(drug, active_meds):
+        drug_en, drug_ja = _resolve_substitution_display(entry)
+        if not drug_en or not _alt_is_safe(drug_en, active_meds):
             continue
         return AlternativeDrug(
-            drug=drug,
-            drug_ja=entry.get("drug_ja", drug),
+            drug=drug_en,
+            drug_ja=drug_ja,
             default_dose=entry.get("default_dose", ""),
             default_route=entry.get("default_route", "PO"),
             default_frequency=entry.get("default_frequency", "daily"),

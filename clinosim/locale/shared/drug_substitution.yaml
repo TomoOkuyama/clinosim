@@ -7,13 +7,17 @@
 # Every candidate is re-checked via check_pair against the caller's active_meds
 # list, so an alternative that would form its own contraindication is skipped
 # and the iterator moves to the next entry.
+#
+# Phase 2.b of META #1804: entries carry ``drug_id`` references into
+# clinosim/codes/data/drugs.yaml; the engine resolves display (en + ja)
+# via clinosim.codes.drugs.resolve_drug so this file no longer
+# duplicates names.
 
 indications:
   pain_management:
     description: "General analgesia when NSAID or opioid is contraindicated."
     alternatives:
-      - drug: "Acetaminophen"
-        drug_ja: "アセトアミノフェン"
+      - drug_id: acetaminophen
         default_dose: "500mg"
         default_route: "PO"
         default_frequency: "q6h_prn"
@@ -21,13 +25,11 @@ indications:
   hypertension_or_rate_control:
     description: "BP or heart-rate control when a specific antihypertensive class is contraindicated."
     alternatives:
-      - drug: "Amlodipine"
-        drug_ja: "アムロジピン"
+      - drug_id: amlodipine
         default_dose: "5mg"
         default_route: "PO"
         default_frequency: "daily"
-      - drug: "Candesartan"
-        drug_ja: "カンデサルタン"
+      - drug_id: candesartan
         default_dose: "8mg"
         default_route: "PO"
         default_frequency: "daily"
