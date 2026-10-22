@@ -124,14 +124,51 @@ _US_CORE_PROFILES: dict[str, list[str]] = {
 }
 
 
+# US Core Condition category-dispatched profile URLs — Issue #1768 T8b-1.
+# US Core v9 publishes two Condition profiles keyed on category:
+#   - encounter-diagnosis  → us-core-condition-encounter-diagnosis
+#   - problem-list-item    → us-core-condition-problems-health-concerns
+# Dispatch inspects ``category.coding[].code``; a Condition without a
+# recognized code gets no profile claim (data-completeness
+# precondition — see `feedback_profile_assertion_requires_data_completeness`).
+_US_CORE_CONDITION_CATEGORY_PROFILES: dict[str, str] = {
+    "encounter-diagnosis": ("http://hl7.org/fhir/us/core/StructureDefinition/us-core-condition-encounter-diagnosis"),
+    "problem-list-item": ("http://hl7.org/fhir/us/core/StructureDefinition/us-core-condition-problems-health-concerns"),
+}
+
+
+def _apply_us_core_condition_profile(resource: dict) -> None:
+    """Dispatch a Condition to its US Core variant by category coding.
+
+    No-op when ``category.coding[].code`` matches neither variant — a
+    profile claim without the corresponding category coding would
+    violate the data-completeness precondition.
+    """
+    for cat in resource.get("category", []) or []:
+        for coding in cat.get("coding", []) or []:
+            code = coding.get("code")
+            url = _US_CORE_CONDITION_CATEGORY_PROFILES.get(code or "")
+            if url:
+                meta = resource.setdefault("meta", {})
+                profs = meta.setdefault("profile", [])
+                if url not in profs:
+                    profs.append(url)
+                return
+
+
 def _apply_us_core_profile(resource: dict) -> None:
     """Attach the US Core v9 profile URL for the resource's type when absent.
 
     Mirrors ``_apply_jp_core_profile``: idempotent, preserves existing
     ``meta.profile[]`` entries, silently no-ops for resource types that
-    are not in the single-profile registry (Condition / Observation /
-    DiagnosticReport need category-dispatched profile selection, tracked
-    for T8b).
+    are not in the single-profile registry.
+
+    Dispatches category-sensitive resource types to their variant-aware
+    helpers:
+
+    * Condition → ``_apply_us_core_condition_profile`` (T8b-1).
+    * Observation / DiagnosticReport → still deferred (T8b-2 / later),
+      the single-profile registry excludes them.
 
     Issue #1768: declaring the US Core profile URL lets the HL7 FHIR
     validator check the resource against US Core v9 constraints rather
@@ -144,6 +181,9 @@ def _apply_us_core_profile(resource: dict) -> None:
     the extensions block already stripped empty, etc.).
     """
     rt = resource.get("resourceType", "")
+    if rt == "Condition":
+        _apply_us_core_condition_profile(resource)
+        return
     profiles = _US_CORE_PROFILES.get(rt)
     if not profiles:
         return
