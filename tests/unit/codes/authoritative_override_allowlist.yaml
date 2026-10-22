@@ -654,11 +654,9 @@ loinc:
       is a semantically equivalent short form of LOINC LONG_COMMON_NAME 'Hospital
       Discharge instructions' (specimen / units / method suffix elided for readability).
     registered_at: 2026-07-19
-  8716-3:
-    lang: en
-    clinosim_display: Vital signs
-    authoritative_display: Vital signs note
-    rationale: Clinical shorthand. Curated 'Vital signs' is a semantically equivalent
-      short form of LOINC LONG_COMMON_NAME 'Vital signs note' (specimen / units /
-      method suffix elided for readability).
-    registered_at: 2026-07-19
+  # Issue #1766: `8716-3` entry removed 2026-10-22 — the LOINC canonical
+  # display `Vital signs note` is now used verbatim in `loinc.yaml`, so
+  # no override is needed. The validator rejected the former shorthand
+  # `Vital signs` on 14/20 Composition samples; aligning to canonical
+  # resolves the Wrong Display Name error without needing an allowlist
+  # exception.
