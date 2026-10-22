@@ -360,31 +360,57 @@ def _sample_insurance(demo: dict, age: int, rng: np.random.Generator) -> str:
 def _stage_at_year(person: PersonRecord, code_base: str, as_of_year: int | None) -> str:
     """Phase 2 longitudinal (Issue #1696) — encounter-time stage lookup.
 
-    Semantics:
-    * ``as_of_year`` is None → return the stage from the latest
-      ``person.longitudinal_history`` snapshot, or ``""`` if empty.
-    * ``as_of_year`` is provided and the person has a snapshot for
-      that year → return ``snap.chronic_stages.get(code_base, "")``.
-    * ``as_of_year`` is before the person's earliest snapshot year
-      → ``""`` (person did not yet have the condition staged).
-    * ``as_of_year`` is after the person's latest snapshot → use the
-      latest (clamp to history tail).
+    Walks ``person.longitudinal_history`` for the stage of ``code_base``.
+    The engine's Markov pattern writes a stage only on the year(s) it
+    re-draws (dense for CKD / COPD / HbA1c; sparse for F00 dementia,
+    I48 AFib permanent, C-chapter cancer AJCC) so a strict year-exact
+    lookup produces 93-100 % empty-stage writeback for sparse codes
+    (Issue #1753). Semantics:
+
+    * ``as_of_year`` is None → return the stage from the LATEST snapshot
+      whose ``chronic_stages`` contains ``code_base``, or ``""`` if no
+      snapshot ever did.
+    * ``as_of_year`` is provided → return the stage from the latest
+      snapshot ``s`` such that ``s.year <= as_of_year`` AND
+      ``code_base in s.chronic_stages``. When no snapshot ``<= as_of_year``
+      carries the stage, forward-clamp to the EARLIEST snapshot that
+      does (the chronic condition is already on the problem list; the
+      engine's first assignment is a better proxy than ``""``, which
+      renders as "stage unknown" downstream).
+    * Empty history or code never staged → ``""``.
     """
     history = person.longitudinal_history or []
     if not history:
         return ""
-    if as_of_year is None:
-        return history[-1].chronic_stages.get(code_base, "")
-    if as_of_year < history[0].year:
+    # Pre-scope guard: an as_of year that precedes the person's earliest
+    # snapshot year (the longitudinal engine had not yet entered scope)
+    # correctly returns ``""`` — the person did not yet carry the staged
+    # condition at that year, regardless of what later snapshots say.
+    if as_of_year is not None and as_of_year < history[0].year:
         return ""
-    # Pick the latest snapshot with year ≤ as_of_year.
-    best = history[0]
+    # Walk history for the latest snapshot <= as_of_year that CONTAINS
+    # the code. Issue #1753: pre-fix picked the latest snapshot regardless
+    # of whether it carried the code, so a sparse Markov writer (F00,
+    # C-chapter cancer AJCC, I48 Permanent) returned ``""`` even when
+    # the stage was present in an earlier snapshot within scope.
+    best_prior: str = ""
+    earliest_hit: str = ""
     for snap in history:
-        if snap.year <= as_of_year:
-            best = snap
-        else:
-            break
-    return best.chronic_stages.get(code_base, "")
+        stage = snap.chronic_stages.get(code_base)
+        if not stage:
+            continue
+        if not earliest_hit:
+            earliest_hit = stage
+        if as_of_year is None or snap.year <= as_of_year:
+            best_prior = stage
+    if best_prior:
+        return best_prior
+    # No snapshot <= as_of_year carries the stage, but a LATER snapshot
+    # within scope does. Forward-clamp to that earliest hit — the chronic
+    # condition is already on the problem list and the engine's first
+    # assignment is a better proxy than ``""`` (which renders as "stage
+    # unknown" downstream).
+    return earliest_hit
 
 
 def _derive_chronic_conditions(
