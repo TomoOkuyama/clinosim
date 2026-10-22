@@ -814,3 +814,8 @@ drugs:
     codes:
       rxnorm: "56946"
     classes: ["chemo.taxane"]
+  prednisone:
+    names: {en: "Prednisone", ja: "プレドニゾン"}
+    codes:
+      rxnorm: "8640"
+    classes: ["corticosteroid"]
