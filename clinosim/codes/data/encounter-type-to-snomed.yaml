@@ -1,0 +1,30 @@
+# Clinosim Encounter-type → SNOMED CT concept map (Phase 3.β.4, #1808 follow-up).
+#
+# This file is the clinosim-internal catalog that maps each encounter
+# type string (the simulator's internal enum: inpatient / emergency /
+# outpatient / icu) to the SNOMED CT concept that the FHIR
+# Encounter.type[].coding emits.
+#
+# Design (mirrors META #1792 / drugs.yaml and Phase 3.β.2/3/6):
+#   - The encounter-type key is clinosim-internal, not an authority code.
+#   - The SNOMED pointer resolves against clinosim/codes/data/snomed-ct.yaml;
+#     the authority yaml stays the canonical home of SNOMED displays.
+#   - Downstream (fhir_r4/encounters/encounter.py) reads this catalog
+#     and uses code_lookup("snomed-ct", <code>, lang) for the display,
+#     so a key edit here never drifts the SNOMED coding.
+#
+# Codes preserved verbatim from the pre-refactor
+# ``_ENCOUNTER_TYPE_SNOMED_CODE`` dict (fhir_r4/lib/reference_data.py).
+
+metadata:
+  name: Clinosim Encounter-type → SNOMED CT Catalog
+  description: >
+    Internal encounter-type enum → SNOMED CT concept-id pointers used
+    by the FHIR Encounter.type[] emitter. The authority displays live
+    in snomed-ct.yaml.
+
+encounter_types:
+  inpatient: '32485007'
+  emergency: '50849002'
+  outpatient: '270427003'
+  icu: '183452005'

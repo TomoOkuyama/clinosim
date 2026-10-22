@@ -99,16 +99,13 @@ _PREFECTURE_CODE: dict[str, str] = {
 }
 
 
-# Encounter type -> SNOMED code. Display text (en/ja) lives in
-# codes/data/snomed-ct.yaml, resolved via code_lookup — not duplicated here
-# (display-dict migration; this mapping itself, enum -> code, is
-# not display text and stays in Python).
-_ENCOUNTER_TYPE_SNOMED_CODE: dict[str, str] = {
-    "inpatient": "32485007",
-    "emergency": "50849002",
-    "outpatient": "270427003",
-    "icu": "183452005",
-}
+# Encounter type -> SNOMED code lives in
+# clinosim/codes/data/encounter-type-to-snomed.yaml via the
+# clinosim.codes.encounter_type_to_snomed resolver (Phase 3.β.4,
+# #1808 follow-up). Displays resolve through
+# `code_lookup("snomed-ct", …)` against the authority yaml; this
+# module no longer carries any SNOMED code constants for encounter
+# types.
 
 
 _ROUTE_SNOMED: dict[str, dict[str, str]] = {
