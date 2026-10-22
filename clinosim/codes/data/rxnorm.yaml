@@ -442,3 +442,42 @@ codes:
   '1344':
     en: BCG Vaccine
     ja: BCG膀胱内注入療法（免疫療法）
+  # META #1792 Phase 1b (#1765 coverage closure) — Phase 4 escalation
+  # drugs that were previously missing from rxnorm.yaml despite being
+  # emitted by Phase 4a (DM) / Phase 4b.1 (HTN + lipid) / #1632 (GLP-1
+  # for E66) / #1715 (F10 chronic meds) longitudinal events + chronic
+  # medication yaml entries. Every RxCUI verified via NLM RxNav
+  # /REST/rxcui/<cui>/properties.json → tty=IN (ingredient).
+  '1545653':
+    en: Empagliflozin
+    ja: エンパグリフロジン
+  '1488564':
+    en: Dapagliflozin
+    ja: ダパグリフロジン
+  '1991302':
+    en: Semaglutide
+    ja: セマグルチド
+  '475968':
+    en: Liraglutide
+    ja: リラグルチド
+  '2601723':
+    en: Tirzepatide
+    ja: チルゼパチド
+  '301542':
+    en: Rosuvastatin
+    ja: ロスバスタチン
+  '341248':
+    en: Ezetimibe
+    ja: エゼチミブ
+  '7243':
+    en: Naltrexone
+    ja: ナルトレキソン
+  '82819':
+    en: Acamprosate
+    ja: アカンプロサート
+  '5487':
+    en: Hydrochlorothiazide
+    ja: ヒドロクロロチアジド
+  '9997':
+    en: Spironolactone
+    ja: スピロノラクトン
