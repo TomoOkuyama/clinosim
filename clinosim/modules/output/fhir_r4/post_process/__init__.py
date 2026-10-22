@@ -64,8 +64,10 @@ __all__ = [
     "_JP_CLINS_PROFILES",
     "_JP_CORE_PROFILES",
     "_JP_OBSERVATION_CATEGORY_SYSTEM",
+    "_US_CORE_PROFILES",
     "_apply_jp_clins_profile",
     "_apply_jp_core_profile",
+    "_apply_us_core_profile",
     "_is_lab_observation",
     "_medication_request_satisfies_ecs",
     # specimen
@@ -130,8 +132,10 @@ from clinosim.modules.output.fhir_r4.post_process.profile import (  # noqa: E402
     _JP_CLINS_PROFILES,
     _JP_CORE_PROFILES,
     _JP_OBSERVATION_CATEGORY_SYSTEM,
+    _US_CORE_PROFILES,
     _apply_jp_clins_profile,
     _apply_jp_core_profile,
+    _apply_us_core_profile,
     _is_lab_observation,
     _medication_request_satisfies_ecs,
 )
