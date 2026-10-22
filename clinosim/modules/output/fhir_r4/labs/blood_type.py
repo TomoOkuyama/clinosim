@@ -91,12 +91,11 @@ def _resolve_blood_rh_id(structural_key: str) -> str:
 # strings are LOINC LONG_COMMON_NAME entries verified against the current
 # LOINC release; hard-coded here because `codes/data/loinc.yaml` carries
 # only clinosim's actively-emitted analyte set and these codes are
-# specific to the blood-type emit path (kept as a single source of truth
-# for both the coding.display and the code_lookup fallback).
+# specific to the blood-type emit path. Display strings resolve via
+# `code_lookup("loinc", ...)` against clinosim/codes/data/loinc.yaml
+# (Phase 3.α); the pre-fix module-local fallback dict is retired.
 _LOINC_ABO_GROUP = "883-9"
-_LOINC_ABO_GROUP_DISPLAY_EN = "ABO group [Type] in Blood"
 _LOINC_RH_GROUP = "10331-7"
-_LOINC_RH_GROUP_DISPLAY_EN = "Rh [Type] in Blood"
 
 # SNOMED CT finding concepts for blood-group results. Registered in
 # codes/data/snomed-ct.yaml so `code_lookup("snomed-ct", …)` resolves
@@ -161,12 +160,6 @@ def _blood_type_performer_ref(ctx: BundleContext) -> str:
     return ""
 
 
-_LOINC_DISPLAY_EN_BY_CODE: dict[str, str] = {
-    _LOINC_ABO_GROUP: _LOINC_ABO_GROUP_DISPLAY_EN,
-    _LOINC_RH_GROUP: _LOINC_RH_GROUP_DISPLAY_EN,
-}
-
-
 def _build_blood_type_obs(
     obs_id: str,
     country: str,
@@ -178,18 +171,15 @@ def _build_blood_type_obs(
 
     Shared shape for ABO + RhD emissions — they differ only in the
     LOINC code, the human-readable text, and the SNOMED value.
+
+    Phase 3.α (#1807-follow-up): the module-local
+    ``_LOINC_DISPLAY_EN_BY_CODE`` fallback dict is retired. ABO + Rh
+    LOINC codes now live in ``clinosim/codes/data/loinc.yaml``; the
+    authority lookup is sufficient on its own.
     """
     lang = resolve_lang(country)
     snomed_display = code_lookup("snomed-ct", snomed_code, lang) or snomed_code
-    # code_lookup("loinc", ...) returns the code itself when the code is
-    # not in clinosim/codes/data/loinc.yaml (which covers only the actively-
-    # emitted analyte set). Fall back to the canonical LOINC LONG_COMMON_NAME
-    # from the local table for the specific blood-type codes we emit.
-    loinc_display_lookup = code_lookup("loinc", loinc_code, "en")
-    if not loinc_display_lookup or loinc_display_lookup == loinc_code:
-        loinc_display = _LOINC_DISPLAY_EN_BY_CODE.get(loinc_code, loinc_code)
-    else:
-        loinc_display = loinc_display_lookup
+    loinc_display = code_lookup("loinc", loinc_code, "en") or loinc_code
     return {
         "resourceType": "Observation",
         "id": obs_id,

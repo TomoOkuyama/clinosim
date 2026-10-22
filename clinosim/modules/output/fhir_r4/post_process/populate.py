@@ -684,43 +684,18 @@ def _medis_crosswalk_lookup(icd_code: str) -> tuple[str, str] | None:
     return None
 
 
-# HL7 condition-clinical / condition-ver-status display map. The tiny code
-# vocabulary is not in clinosim/codes/data/ (they are HL7 spec CS, not
-# clinical codes) so we keep the English display map inline.
-_CONDITION_CLINICAL_DISPLAY: dict[str, str] = {
-    "active": "Active",
-    "recurrence": "Recurrence",
-    "relapse": "Relapse",
-    "inactive": "Inactive",
-    "remission": "Remission",
-    "resolved": "Resolved",
-}
-
-
-_CONDITION_VER_STATUS_DISPLAY: dict[str, str] = {
-    "unconfirmed": "Unconfirmed",
-    "provisional": "Provisional",
-    "differential": "Differential",
-    "confirmed": "Confirmed",
-    "refuted": "Refuted",
-    "entered-in-error": "Entered in Error",
-}
-
-
-_ALLERGY_CLINICAL_DISPLAY: dict[str, str] = {
-    "active": "Active",
-    "inactive": "Inactive",
-    "resolved": "Resolved",
-}
-
-
-_ALLERGY_VER_STATUS_DISPLAY: dict[str, str] = {
-    "unconfirmed": "Unconfirmed",
-    "presumed": "Presumed",
-    "confirmed": "Confirmed",
-    "refuted": "Refuted",
-    "entered-in-error": "Entered in Error",
-}
+# Phase 3.α (#1807-follow-up): the four module-local dicts that
+# previously mirrored the clinicalStatus / verificationStatus HL7
+# ValueSets (``_CONDITION_CLINICAL_DISPLAY`` / ``_CONDITION_VER_STATUS_DISPLAY``
+# / ``_ALLERGY_CLINICAL_DISPLAY`` / ``_ALLERGY_VER_STATUS_DISPLAY``) are
+# retired. ``_populate_status_coding_display`` now consults the
+# authority yamls directly:
+#   clinosim/codes/data/hl7-condition-clinical.yaml
+#   clinosim/codes/data/hl7-condition-ver-status.yaml
+#   clinosim/codes/data/hl7-allergyintolerance-clinical.yaml
+#   clinosim/codes/data/hl7-allergyintolerance-verification.yaml
+# JA display becomes available on JP output as a side-effect (the
+# removed hardcoded dicts were EN-only).
 
 
 # Reverse map: FHIR system URI → clinosim system key (for `code_lookup`).
@@ -1041,24 +1016,39 @@ def _copy_display_from_sibling_coding(codings: list, lang: str = "en") -> None:
                 c["display"] = display
 
 
-def _populate_status_coding_display(coding_dict: Any, display_map: dict[str, str]) -> None:
-    """Populate `.coding[].display` from a static map when missing.
+def _populate_status_coding_display(coding_dict: Any, system_key: str, lang: str) -> None:
+    """Populate ``.coding[].display`` from an authority yaml when missing.
 
-    Used on `clinicalStatus` / `verificationStatus` where the HL7 CodeSystem
-    values are a fixed small vocabulary (active / confirmed / ...) that is
-    not carried in clinosim/codes/data/.
+    Phase 3.α (#1807-follow-up): previously consulted a module-local
+    ``display_map: dict[str, str]`` for each status vocabulary — the
+    small HL7 ValueSets (``condition-clinical`` / ``condition-verification``
+    / ``allergyintolerance-clinical`` / ``allergyintolerance-verification``)
+    were in fact already shipped under
+    ``clinosim/codes/data/hl7-<vocab>.yaml``. The hardcoded maps
+    duplicated those authority entries and were EN-only — JA display
+    never surfaced on JP output. Routing through
+    :func:`clinosim.codes.lookup` picks up both EN and JA from the
+    authority yaml with a single call.
     """
     if not isinstance(coding_dict, dict):
         return
     codings = coding_dict.get("coding")
     if not isinstance(codings, list):
         return
+    from clinosim.codes import lookup as _code_lookup
+
     for c in codings:
         if not isinstance(c, dict) or c.get("display"):
             continue
         code_ = c.get("code")
-        if isinstance(code_, str) and code_ in display_map:
-            c["display"] = display_map[code_]
+        if not isinstance(code_, str) or not code_:
+            continue
+        resolved = _code_lookup(system_key, code_, lang=lang)
+        # ``_code_lookup`` falls back to returning the code itself when
+        # the code is not in the authority yaml — treat that as a miss
+        # (do not fabricate a display equal to the raw code string).
+        if resolved and resolved != code_:
+            c["display"] = resolved
 
 
 def _populate_cc_text_from_coding_lookup(node: Any, lang: str) -> None:
@@ -1218,12 +1208,17 @@ def _populate_condition_ai_mr_ecs_fields(resource: dict, country: str = "US") ->
             meta["lastUpdated"] = ts
 
     # (3) clinicalStatus / verificationStatus displays.
+    _display_lang = "ja" if is_jp(country) else "en"
     if rt == "Condition":
-        _populate_status_coding_display(resource.get("clinicalStatus"), _CONDITION_CLINICAL_DISPLAY)
-        _populate_status_coding_display(resource.get("verificationStatus"), _CONDITION_VER_STATUS_DISPLAY)
+        _populate_status_coding_display(resource.get("clinicalStatus"), "hl7-condition-clinical", _display_lang)
+        _populate_status_coding_display(resource.get("verificationStatus"), "hl7-condition-ver-status", _display_lang)
     elif rt == "AllergyIntolerance":
-        _populate_status_coding_display(resource.get("clinicalStatus"), _ALLERGY_CLINICAL_DISPLAY)
-        _populate_status_coding_display(resource.get("verificationStatus"), _ALLERGY_VER_STATUS_DISPLAY)
+        _populate_status_coding_display(
+            resource.get("clinicalStatus"), "hl7-allergyintolerance-clinical", _display_lang
+        )
+        _populate_status_coding_display(
+            resource.get("verificationStatus"), "hl7-allergyintolerance-verification", _display_lang
+        )
 
     # (4) code.coding[].display sibling-copy (Condition / AllergyIntolerance).
     # JP output prefers JP display via `code_lookup(..., "ja")`; US uses "en".

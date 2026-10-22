@@ -10,5 +10,10 @@ metadata:
 codes:
   confirmed: {en: "Confirmed", ja: "確認済"}
   unconfirmed: {en: "Unconfirmed", ja: "未確認"}
+  # Phase 3.α (#1807-follow-up): ``presumed`` was carried by the retired
+  # module-local _ALLERGY_VER_STATUS_DISPLAY dict but missing from this
+  # authority yaml. Added so the dict can be retired without losing a
+  # display mapping.
+  presumed: {en: "Presumed", ja: "推定"}
   refuted: {en: "Refuted", ja: "否定"}
   entered-in-error: {en: "Entered in Error", ja: "誤入力"}
