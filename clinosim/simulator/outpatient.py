@@ -73,8 +73,18 @@ def _log_pregnancy_substitution(
         SafetyVerdict,
     )
 
-    substitute = str(substitution_entry.get("substitute") or "")
-    substitute_ja = str(substitution_entry.get("substitute_ja") or substitute)
+    # META #1804 Phase 2.c: prefer catalog drug_id when present; fall
+    # back to legacy substitute / substitute_ja fields.
+    sub_drug_id = str(substitution_entry.get("substitute_drug_id") or "")
+    if sub_drug_id:
+        from clinosim.codes.drugs import resolve_drug
+
+        _rec = resolve_drug(sub_drug_id)
+        substitute = _rec.names.get("en", "") or ""
+        substitute_ja = _rec.names.get("ja", "") or substitute
+    else:
+        substitute = str(substitution_entry.get("substitute") or "")
+        substitute_ja = str(substitution_entry.get("substitute_ja") or substitute)
     rationale_en = str(substitution_entry.get("rationale_en") or "pregnancy-safe substitution")
     rationale_ja = str(substitution_entry.get("rationale_ja") or "妊娠中の胎児安全性代替")
     verdict = SafetyVerdict(
@@ -536,9 +546,24 @@ def _simulate_outpatient_visit(
                 # narrate "妊娠中のため Amlodipine を Methyldopa に切替".
                 # ACOG 2019 first-line pregnancy HTN.
                 _log_pregnancy_substitution(patient, encounter, med, entry, visit_date)
+                # META #1804 Phase 2.c: prefer the catalog's resolve_drug
+                # when the entry carries substitute_drug_id; fall back to
+                # the legacy substitute / substitute_ja fields for
+                # hand-crafted / not-yet-migrated entries. The catalog is
+                # the display SoT.
+                sub_drug_id = str(entry.get("substitute_drug_id") or "")
+                if sub_drug_id:
+                    from clinosim.codes.drugs import resolve_drug
+
+                    _rec = resolve_drug(sub_drug_id)
+                    sub_en = _rec.names.get("en", "") or med.drug_name
+                    sub_ja = _rec.names.get("ja", "") or sub_en
+                else:
+                    sub_en = str(entry.get("substitute") or med.drug_name)
+                    sub_ja = str(entry.get("substitute_ja") or med.drug_name_ja)
                 return {
-                    "drug_name": str(entry.get("substitute") or med.drug_name),
-                    "drug_name_ja": str(entry.get("substitute_ja") or med.drug_name_ja),
+                    "drug_name": sub_en,
+                    "drug_name_ja": sub_ja,
                     "dose": str(entry.get("dose") or med.dose),
                     "route": str(entry.get("route") or med.route),
                     "frequency": str(entry.get("frequency") or med.frequency),

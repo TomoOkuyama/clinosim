@@ -13,7 +13,24 @@ per-visit — ``patient.current_medications`` is unchanged.
 
 from __future__ import annotations
 
+from clinosim.codes.drugs import resolve_drug
 from clinosim.locale.loader import load_pregnancy_substitutions
+
+
+def _resolve_substitute(entry: dict) -> tuple[str, str]:
+    """Phase 2.c (#1804): substitutes now carry ``substitute_drug_id``
+    into the drugs.yaml catalog; this helper resolves display EN+JA via
+    the catalog, falling back to the legacy fields when present (not
+    used after this migration, but kept so a hand-crafted test entry
+    can still verify the pre-migration shape)."""
+    sub_drug_id = str(entry.get("substitute_drug_id") or "")
+    if sub_drug_id:
+        rec = resolve_drug(sub_drug_id)
+        en = rec.names.get("en", "") or ""
+        ja = rec.names.get("ja", "") or en
+        return en, ja
+    en = str(entry.get("substitute") or "")
+    return en, str(entry.get("substitute_ja") or en)
 
 
 def test_pregnancy_substitutions_yaml_loads():
@@ -24,7 +41,8 @@ def test_pregnancy_substitutions_yaml_loads():
 def test_amlodipine_substituted_to_methyldopa():
     """Finding case (pt-192d90bc7df0): Amlodipine on prenatal visits."""
     subs = load_pregnancy_substitutions()
-    assert subs["Amlodipine"]["substitute"] == "Methyldopa"
+    sub_en, _ = _resolve_substitute(subs["Amlodipine"])
+    assert sub_en == "Methyldopa"
     assert subs["Amlodipine"]["dose"]
     assert subs["Amlodipine"]["route"] == "PO"
 
@@ -36,7 +54,8 @@ def test_acei_substituted_to_methyldopa():
     subs = load_pregnancy_substitutions()
     for acei in ("Enalapril", "Lisinopril", "Captopril"):
         assert acei in subs, f"ACE-I {acei} missing pregnancy substitute"
-        assert subs[acei]["substitute"] == "Methyldopa"
+        sub_en, _ = _resolve_substitute(subs[acei])
+        assert sub_en == "Methyldopa"
 
 
 def test_arb_substituted_to_methyldopa():
@@ -44,14 +63,17 @@ def test_arb_substituted_to_methyldopa():
     subs = load_pregnancy_substitutions()
     for arb in ("Losartan", "Valsartan", "Candesartan"):
         assert arb in subs
-        assert subs[arb]["substitute"] == "Methyldopa"
+        sub_en, _ = _resolve_substitute(subs[arb])
+        assert sub_en == "Methyldopa"
 
 
 def test_all_substitutes_carry_ja_name():
-    """JP cohort emit needs ``drug_name_ja`` — every entry must have it."""
+    """JP cohort emit needs ``drug_name_ja`` — every entry's resolved
+    substitute (via the catalog) must have it."""
     subs = load_pregnancy_substitutions()
     for orig, entry in subs.items():
-        assert entry.get("substitute_ja"), f"{orig} substitute missing substitute_ja"
+        _, sub_ja = _resolve_substitute(entry)
+        assert sub_ja, f"{orig} substitute has no JA display"
 
 
 def test_all_substitutes_carry_rationale():
