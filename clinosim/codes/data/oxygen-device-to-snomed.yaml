@@ -1,0 +1,43 @@
+# Clinosim Oxygen-device-mode → SNOMED CT concept map (Phase 3.β.3, #1808 follow-up).
+#
+# This file is the clinosim-internal catalog that maps each oxygen
+# delivery-device mode string (as emitted by the supportive-order path
+# in modules/order/engine.py) to the canonical SNOMED CT concept that
+# the FHIR Procedure.usedCode[] coding emits.
+#
+# Design (mirrors META #1792 / drugs.yaml and Phase 3.β.6 stage-to-snomed /
+# Phase 3.β.2 blood-group-to-snomed):
+#   - The device-mode key is clinosim-internal, not an authority code.
+#   - The SNOMED pointer resolves against clinosim/codes/data/snomed-ct.yaml;
+#     the authority yaml stays the canonical home of SNOMED displays.
+#   - Downstream (fhir_r4/procedures/oxygen_therapy.py) reads this
+#     catalog and uses code_lookup("snomed-ct", <code>, lang) for the
+#     display, so a key edit here never drifts the SNOMED coding.
+#
+# Fallback notes (clinical choices documented inline, not design regression):
+#   - venturi / HFNC → nasal cannula concept (336623009). SNOMED has
+#     no dedicated finding at this granularity in the free International
+#     Edition; the mask-vs-cannula distinction is retained upstream in
+#     the Order's display_name.
+#   - non-rebreather → face mask concept (425574000); SNOMED non-
+#     rebreather concepts exist but require the SNOMED CT Pharmacy /
+#     Device supplement that is not in the base International Edition.
+#   - BiPAP → mechanical-ventilator concept (26412008); BiPAP is a
+#     non-invasive ventilation modality.
+
+metadata:
+  name: Clinosim Oxygen Device-mode → SNOMED CT Catalog
+  description: >
+    Internal oxygen-delivery device-mode → SNOMED CT device concept
+    pointers used by the FHIR Procedure.usedCode[] emitter in
+    fhir_r4/procedures/oxygen_therapy.py. The authority displays live
+    in snomed-ct.yaml.
+
+devices:
+  nasal_cannula: '336623009'
+  simple_mask: '425574000'
+  venturi: '336623009'
+  non-rebreather: '425574000'
+  HFNC: '336623009'
+  BiPAP: '26412008'
+  ventilator: '26412008'
