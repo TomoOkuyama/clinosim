@@ -672,15 +672,6 @@ def _build_bundle(
             if is_jp(ctx.country):
                 _apply_jp_core_profile(resource)
                 _apply_jp_clins_profile(resource)
-            else:
-                # Issue #1768 Cluster E T8a: declare US Core v9 profile URL
-                # on every resource type for which US Core publishes a
-                # single, unambiguous profile (Patient / Coverage /
-                # MedicationRequest / Immunization / AllergyIntolerance /
-                # Procedure / Practitioner / Organization / Encounter).
-                # Condition and Observation need category-dispatched
-                # profile selection and are tracked for T8b.
-                _apply_us_core_profile(resource)
                 # JP Core は Observation.category:first slice に
                 # JP_SimpleObservationCategory_CS を、HL7 base Vital Signs
                 # profile(bp / heartrate / oxygensat / bodytemp / resprate)は
@@ -701,6 +692,15 @@ def _build_bundle(
                 # PR-I (2026-07-17): populate JP-CLINS MedicationDosage_eCS
                 # required fields on MedicationRequest.dosageInstruction[].
                 _populate_jp_medication_dosage_ecs_fields(resource)
+            else:
+                # Issue #1768 Cluster E T8a: declare US Core v9 profile URL
+                # on every resource type for which US Core publishes a
+                # single, unambiguous profile (Patient / Coverage /
+                # MedicationRequest / Immunization / AllergyIntolerance /
+                # Procedure / Practitioner / Organization / Encounter).
+                # Condition and Observation need category-dispatched
+                # profile selection and are tracked for T8b.
+                _apply_us_core_profile(resource)
             # PR-D (2026-07-17): populate Observation.identifier + meta.lastUpdated
             # (JP eCS min=1). Universal — safe on US output.
             _populate_observation_identifier_and_last_updated(resource, country)
