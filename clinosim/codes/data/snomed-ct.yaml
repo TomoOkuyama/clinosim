@@ -417,8 +417,13 @@ codes:
   # emitted by clinosim/modules/output/_fhir_encounter.py. Cycle 1 fix note
   # claimed to add these, but they were never committed (silent regression
   # discovered as C2-01 in cycle 2, session 42). Verified via SNOMED CT $lookup.
+  # Issue #1766: canonical SNOMED CT preferred term is "Encounter for
+  # check up" (no hyphen) — verified 2026-10-22 via tx.fhir.org $lookup.
+  # The hyphenated form "Encounter for check-up" is a legacy variant
+  # not registered against the Encounter.type binding, so the validator
+  # rejected it as a Wrong Display Name on 16/20 Encounter samples.
   '185349003':
-    en: Encounter for check-up
+    en: Encounter for check up
     ja: 定期健診外来受診
   '11429006':
     en: Consultation

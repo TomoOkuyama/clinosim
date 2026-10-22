@@ -219,9 +219,15 @@ codes:
   8653-8:
     en: Hospital discharge instructions Narrative
     ja: 退院時指示
+  # Issue #1766: LOINC 8716-3 canonical SHORT_NAME is "Vital signs note"
+  # (verified 2026-10-22 via tx.fhir.org $lookup against LOINC). The
+  # short form "Vital signs" was rejected by the validator on 14/20
+  # Composition samples as a Wrong Display Name against the loinc
+  # binding; adding "note" matches the canonical term.
   8716-3:
-    en: Vital signs
+    en: Vital signs note
     ja: バイタルサイン
+
   # === Lab codes ===
   11580-8:
     en: Thyroid stimulating hormone [Units/volume] in Serum or Plasma

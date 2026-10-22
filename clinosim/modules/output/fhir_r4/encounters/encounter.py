@@ -211,7 +211,7 @@ def _build_encounter(
         if any(kw in _cc for kw in ("健康診断", "screening", "予防接種", "vaccination")):
             type_code = "270427003"
         elif _cc.startswith("Follow-up") or _cc.startswith("フォローアップ") or _cc.startswith("Post-discharge"):
-            type_code = "185349003"  # Encounter for check-up
+            type_code = "185349003"  # Encounter for check up (SNOMED canonical, no hyphen)
         elif primary_dx_code:
             # Default for chronic-condition outpatient visits: check-up
             # (follow-up). Consultation (11429006) reserved for the rare
