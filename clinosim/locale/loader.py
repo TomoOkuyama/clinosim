@@ -579,6 +579,18 @@ def load_narrative_complications() -> dict[str, dict[str, str]]:
 
 
 @lru_cache(maxsize=1)
+def load_chief_complaint_translations() -> dict[str, dict[str, str]]:
+    """Load the EN → JA chief-complaint translation table (Phase 3.β.1).
+
+    Returned shape ``{<english_phrase>: {<lang>: <display>}}``. Keyed
+    by the exact EN phrase (case-sensitive); multi-locale extensible
+    via additional ``<lang>`` columns per row.
+    """
+    raw = _load_yaml(_LOCALE_DIR / "shared" / "chief_complaint_translations.yaml", fallback={})
+    return raw.get("chief_complaints", {}) or {}
+
+
+@lru_cache(maxsize=1)
 def load_narrative_lab_names() -> dict[str, dict[str, str]]:
     raw = _load_yaml(_LOCALE_DIR / "shared" / "narrative_lab_names.yaml", fallback={})
     return raw.get("lab_names", {}) or {}

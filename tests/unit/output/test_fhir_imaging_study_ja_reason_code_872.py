@@ -26,8 +26,8 @@ from typing import Any
 
 import pytest
 
+from clinosim.locale.loader import load_chief_complaint_translations
 from clinosim.modules.output.fhir_r4.labs.imaging_study import (
-    _CHIEF_COMPLAINT_JA,
     _bb_imaging_studies,
     _localize_chief_complaint,
 )
@@ -125,20 +125,25 @@ def test_all_30_iris4h_ai_2026_08_26_flagged_vignettes_covered() -> None:
     assert len(iris4h_ai_2026_08_26_flagged) == 30, (
         f"expected 30 distinct vignettes from deploy; got {len(iris4h_ai_2026_08_26_flagged)}"
     )
-    missing = iris4h_ai_2026_08_26_flagged - _CHIEF_COMPLAINT_JA.keys()
+    # Phase 3.β.1: translations live in
+    # ``clinosim/locale/shared/chief_complaint_translations.yaml``,
+    # loaded by ``load_chief_complaint_translations``.
+    catalog = load_chief_complaint_translations()
+    missing = iris4h_ai_2026_08_26_flagged - catalog.keys()
     assert not missing, (
-        f"EN vignettes flagged by iris4h-ai 2026-08-26 verify but missing from _CHIEF_COMPLAINT_JA: {sorted(missing)}"
+        f"EN vignettes flagged by iris4h-ai 2026-08-26 verify but missing from catalog: {sorted(missing)}"
     )
 
 
 def test_no_dict_entry_is_still_english() -> None:
-    """Guard against an accidentally-EN JA value in the dict — every mapped
-    JA string must contain at least one Japanese character."""
+    """Guard against an accidentally-EN JA value in the catalog — every
+    mapped JA string must contain at least one Japanese character."""
     import re
 
     ja_char_re = re.compile(r"[぀-ゟ゠-ヿ一-鿿]")
-    offenders = [(en, ja) for en, ja in _CHIEF_COMPLAINT_JA.items() if not ja_char_re.search(ja)]
-    assert not offenders, f"dict entries with no Japanese characters: {offenders}"
+    catalog = load_chief_complaint_translations()
+    offenders = [(en, row.get("ja", "")) for en, row in catalog.items() if not ja_char_re.search(row.get("ja") or "")]
+    assert not offenders, f"catalog entries with no Japanese characters: {offenders}"
 
 
 # === End-to-end via _bb_imaging_studies ===
