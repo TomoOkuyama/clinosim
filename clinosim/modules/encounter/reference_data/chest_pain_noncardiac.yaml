@@ -10,6 +10,13 @@ chief_complaint:
 encounter_type: emergency
 department: emergency_medicine
 disposition: discharge_home
+# Issue #1760: adult-pattern cardiac workup. Rule-out ACS is not
+# clinically indicated for patients under 18 (pediatric ACS prevalence
+# is near zero), so the sampler at `simulator/engine.py` filters this
+# condition out when `person.age < min_age`. The gate is RNG-neutral:
+# the condition remains in the probability list with weight 0 for
+# minors, so the length-N `slot_rng.choice` stays stable.
+min_age: 18
 
 severity_distribution:
   mild: 0.30
