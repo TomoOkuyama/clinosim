@@ -518,3 +518,12 @@ codes:
   '6876':
     en: Methyldopa
     ja: メチルドパ
+  '40048':
+    en: Carboplatin
+    ja: カルボプラチン
+  '68446':
+    en: Pemetrexed
+    ja: ペメトレキセド
+  '56946':
+    en: Paclitaxel
+    ja: パクリタキセル
