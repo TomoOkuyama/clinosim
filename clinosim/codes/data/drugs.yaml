@@ -740,3 +740,57 @@ drugs:
     codes:
       rxnorm: "9997"
     classes: ['diuretic.k_sparing']
+
+  # META #1792 Phase 2.a (#1804) — drugs that chronic_medications.yaml
+  # references but which were absent from the Phase 1b auto-mirror
+  # (because they had no RxCUI in rxnorm.yaml at mirror time).
+  alprazolam:
+    names: {en: "Alprazolam", ja: "アルプラゾラム"}
+    codes:
+      rxnorm: "596"
+    classes: ["benzodiazepine", "anxiolytic"]
+  anastrozole:
+    names: {en: "Anastrozole", ja: "アナストロゾール"}
+    codes:
+      rxnorm: "84857"
+    classes: ["aromatase_inhibitor"]
+  bicalutamide:
+    names: {en: "Bicalutamide", ja: "ビカルタミド"}
+    codes:
+      rxnorm: "83008"
+    classes: ["anti_androgen"]
+  disulfiram:
+    names: {en: "Disulfiram", ja: "ジスルフィラム"}
+    codes:
+      rxnorm: "3554"
+    classes: ["aldh_inhibitor"]
+  ferrous_fumarate:
+    names: {en: "Ferrous fumarate", ja: "フマル酸第一鉄"}
+    codes:
+      rxnorm: "24941"
+    classes: ["iron_supplement"]
+  folic_acid:
+    names: {en: "Folic acid", ja: "葉酸"}
+    codes:
+      rxnorm: "4511"
+    classes: ["vitamin"]
+  lenvatinib:
+    names: {en: "Lenvatinib", ja: "レンバチニブ"}
+    codes:
+      rxnorm: "1603296"
+    classes: ["tki"]
+  lorazepam:
+    names: {en: "Lorazepam", ja: "ロラゼパム"}
+    codes:
+      rxnorm: "6470"
+    classes: ["benzodiazepine", "anxiolytic"]
+  sorafenib:
+    names: {en: "Sorafenib", ja: "ソラフェニブ"}
+    codes:
+      rxnorm: "495881"
+    classes: ["tki"]
+  tamoxifen:
+    names: {en: "Tamoxifen", ja: "タモキシフェン"}
+    codes:
+      rxnorm: "10324"
+    classes: ["serm"]

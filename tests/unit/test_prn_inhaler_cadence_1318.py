@@ -92,14 +92,20 @@ def test_empty_frequency_never_dropped():
 
 def test_salbutamol_yaml_entry_carries_prn_frequency():
     """Regression against silent YAML edits that would revert Salbutamol
-    to a scheduled frequency and defeat the filter."""
+    to a scheduled frequency and defeat the filter.
+
+    #1804 Phase 2.a: Salbutamol (INN) was migrated to drug_id
+    ``albuterol`` (USAN). Match by drug_id first, with a legacy drug
+    fallback for Phase 2.a.ii-era yaml authors."""
     from clinosim.locale.loader import load_chronic_medications
 
     data = load_chronic_medications()
     # Salbutamol appears in J44 (COPD) chronic med block; may also appear in J45 (asthma).
     j44 = data.get("J44", {})
     meds = j44.get("medications", [])
-    salbutamol_entries = [m for m in meds if m.get("drug") == "Salbutamol"]
+    salbutamol_entries = [
+        m for m in meds if (m.get("drug_id") or "") == "albuterol" or (m.get("drug") or "") == "Salbutamol"
+    ]
     assert salbutamol_entries, "J44 chronic block must list Salbutamol"
     for m in salbutamol_entries:
         assert m.get("frequency", "").lower() == "prn", (

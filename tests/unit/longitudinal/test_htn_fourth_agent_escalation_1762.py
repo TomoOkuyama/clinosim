@@ -131,7 +131,15 @@ def test_spironolactone_registered_in_i10_with_zero_probability():
     )
     data = yaml.safe_load(yaml_path.read_text(encoding="utf-8"))
     i10_meds = (data.get("I10") or {}).get("medications") or []
-    spiro = next((m for m in i10_meds if (m.get("drug") or "").lower() == "spironolactone"), None)
+    # #1804 Phase 2.a: entries carry drug_id; keep legacy drug fallback.
+    spiro = next(
+        (
+            m
+            for m in i10_meds
+            if (m.get("drug_id") or "") == "spironolactone" or (m.get("drug") or "").lower() == "spironolactone"
+        ),
+        None,
+    )
     assert spiro is not None, "I10 chronic_medications block must list Spironolactone"
     assert float(spiro.get("probability", 1.0)) == 0.0, (
         f"Spironolactone must carry probability: 0.0 to keep the "
