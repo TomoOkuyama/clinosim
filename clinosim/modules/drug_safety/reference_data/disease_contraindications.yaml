@@ -57,3 +57,24 @@ rules:
     rationale_en: "NSAIDs cause afferent arteriolar vasoconstriction and are contraindicated at eGFR < 30 mL/min/1.73m2 (KDIGO CKD stage 4-5). Substitute with acetaminophen or topical NSAID; opioids with dose reduction."
     rationale_ja: "NSAID は腎輸入細動脈収縮により eGFR < 30 (CKD ステージ 4-5) では禁忌。アセトアミノフェンまたは外用 NSAID に切替、オピオイドは減量投与。"
     source: "KDIGO 2024 CKD Guideline; 日本腎臓学会 CKD 診療ガイドライン 2023"
+
+  # Issue #1769 — Metformin at advanced CKD. The predicate uses the
+  # stage_in field (introduced in this PR) because the simulator carries
+  # CKD severity in the chronic condition's ``stage`` string
+  # ("CKD G3b" / "G4" / "G5"), not in the ICD code subcode. The N18
+  # chronic row is often stored as the base code with the stage next to
+  # it, so prefix-only matching against ``N18.4/5/6`` would miss these
+  # patients. FDA labelling contraindicates Metformin at eGFR < 30
+  # (G4-G5) and advises caution / dose-reduce at eGFR 30-45 (G3b);
+  # KDIGO 2024 preferred strategy at G3b-G5 is to discontinue and
+  # substitute (DPP-4 like linagliptin, basal insulin, repaglinide).
+  - id: metformin-in-ckd-stage-3b-5
+    drug_class: biguanide
+    disease_predicate:
+      icd_prefix: ["N18"]
+      stage_in: ["CKD G3b", "CKD G4", "CKD G5"]
+    severity: contraindicated
+    substitution_hint: null
+    rationale_en: "Metformin is contraindicated at eGFR < 30 (CKD stage 4-5) per the FDA label (lactic acidosis risk) and discouraged at CKD stage 3b (eGFR 30-44); KDIGO 2024 preferred strategy is to substitute with a renal-safe DM agent (DPP-4 inhibitor like linagliptin, basal insulin, or repaglinide)."
+    rationale_ja: "メトホルミンは eGFR < 30 (CKD ステージ 4-5) で禁忌 (FDA 添付文書、乳酸アシドーシスリスク)。eGFR 30-44 (CKD ステージ 3b) でも推奨されない (KDIGO 2024)。腎機能障害時は DPP-4 阻害薬 (リナグリプチン等)・基礎インスリン・レパグリニドへの切替を推奨。"
+    source: "FDA Metformin label (contraindication at eGFR < 30); KDIGO 2024 Diabetes Management in CKD; 日本糖尿病学会 糖尿病診療ガイドライン 2024"

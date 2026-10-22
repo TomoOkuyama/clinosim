@@ -299,3 +299,9 @@ mappings:
     aliases: ["クロナゼパム", "klonopin", "リボトリール", "ランドセン"]
     drug_ja: "クロナゼパム"
     classes: ["benzodiazepine", "anxiolytic"]
+
+  # Antidiabetic / 糖尿病治療薬
+  Metformin:
+    aliases: ["メトホルミン", "glucophage", "メトグルコ"]
+    drug_ja: "メトホルミン"
+    classes: ["biguanide"]
