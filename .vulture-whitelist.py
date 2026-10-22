@@ -648,3 +648,7 @@ _.all_device_modes  # codes/oxygen_device_to_snomed.py — audit/integrity API
 # APIs invisible to vulture (tests are not scanned).
 _.all_abo_keys  # codes/blood_group_to_snomed.py — audit/integrity API
 _.all_rh_keys  # codes/blood_group_to_snomed.py — audit/integrity API
+
+# Phase 3.β.4 — encounter-type → SNOMED catalog loader. Audit-side API
+# invisible to vulture (tests are not scanned).
+_.all_encounter_types  # codes/encounter_type_to_snomed.py — audit/integrity API
