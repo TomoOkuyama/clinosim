@@ -261,7 +261,20 @@ def build_discharge_rx(
         the next admission's home-medication orders. Explicit
         ``duration_days`` in the YAML always wins over the default.
         """
-        drug_name = drug_spec.get("drug", "")
+        # META #1804 Phase 2.d: prefer catalog resolve_drug when the
+        # drug_spec carries drug_id; fall back to legacy drug / drug_ja
+        # fields for entries not yet migrated. The catalog is the
+        # display SoT once drug_id is set.
+        _drug_id = str(drug_spec.get("drug_id") or "")
+        if _drug_id:
+            from clinosim.codes.drugs import resolve_drug
+
+            _rec = resolve_drug(_drug_id)
+            drug_name = _rec.names.get("en", "") or ""
+            drug_name_ja = _rec.names.get("ja", "") or drug_name
+        else:
+            drug_name = drug_spec.get("drug", "")
+            drug_name_ja = drug_spec.get("drug_ja", "")
         if not drug_name:
             return
         if final_renal_function < DISCHARGE_RENAL_HOLD_THRESHOLD and any(
@@ -274,7 +287,7 @@ def build_discharge_rx(
                 patient,
                 encounter_id=encounter_id,
                 held_drug_name=drug_name,
-                held_drug_name_ja=drug_spec.get("drug_ja", "") or drug_name,
+                held_drug_name_ja=drug_name_ja or drug_name,
                 hold_reason="renal function impairment",
                 hold_reason_ja="腎機能低下",
                 timestamp=admission_time,
@@ -290,7 +303,7 @@ def build_discharge_rx(
                 patient,
                 encounter_id=encounter_id,
                 held_drug_name=drug_name,
-                held_drug_name_ja=drug_spec.get("drug_ja", "") or drug_name,
+                held_drug_name_ja=drug_name_ja or drug_name,
                 hold_reason=_discharge_protocol_hold_reason_en(disease_id),
                 hold_reason_ja=_discharge_protocol_hold_reason_ja(disease_id),
                 timestamp=admission_time,
@@ -338,7 +351,7 @@ def build_discharge_rx(
         items.append(
             {
                 "drug_name": drug_name,
-                "drug_name_ja": drug_spec.get("drug_ja", ""),
+                "drug_name_ja": drug_name_ja,
                 "dose": drug_spec.get("dose", ""),
                 "duration_days": drug_spec.get("duration_days", default_duration),
                 "route": drug_spec.get("route", "PO"),
