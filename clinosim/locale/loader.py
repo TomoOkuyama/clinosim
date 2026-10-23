@@ -199,8 +199,37 @@ def load_code_mapping(domain: str, country: str) -> dict[str, str]:
     """Load code mapping for a domain.
 
     Example: load_code_mapping("lab", "JP") -> {"CRP": "5C070", ...}
+
+    META #1804 Phase 2.e (#1765 close): for ``domain == "drug"``, the
+    returned mapping is now UNIONed with the Phase 1b drug-identity
+    catalog (``clinosim/codes/data/drugs.yaml``). The legacy
+    ``code_mapping_drug.yaml`` entries win on key collision for
+    backwards compat; catalog entries fill the gap for drug names the
+    legacy yaml never registered. Pre-Phase 2.e the US cohort emit path
+    missed RxNorm coding on ~26 % of MedicationRequests because 78 of
+    the catalog's 147 drug_ids had no matching legacy name entry.
     """
-    return _load_yaml(_country_dir(country) / f"code_mapping_{domain}.yaml", fallback={})
+    legacy = _load_yaml(_country_dir(country) / f"code_mapping_{domain}.yaml", fallback={})
+    if domain != "drug":
+        return legacy
+    # Union with catalog (legacy wins on conflict).
+    code_field = "rxnorm" if country.lower() == "us" else "yj"
+    merged: dict[str, str] = {}
+    try:
+        from clinosim.codes.drugs import all_drug_ids, resolve_drug
+    except Exception:
+        return legacy
+    for drug_id in all_drug_ids():
+        try:
+            rec = resolve_drug(drug_id)
+        except Exception:
+            continue
+        en = (rec.names.get("en") or "").strip()
+        code = (rec.codes.get(code_field) or "").strip()
+        if en and code and en not in legacy:
+            merged[en] = code
+    merged.update(legacy)
+    return merged
 
 
 @lru_cache(maxsize=8)
