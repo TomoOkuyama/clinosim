@@ -189,7 +189,15 @@ def _deactivate_to_layer1(
     dx_code = record.clinical_diagnosis.discharge_diagnosis_code
     if dx_code:
         base_code = dx_code.split(".")[0] if "." in dx_code else dx_code
-        chronic_prefixes = ("I", "E", "J44", "J45", "N18", "M", "G20", "F00", "K21", "N40")
+        # Issue #1752: K70 (alcoholic liver) + K74 (fibrosis/cirrhosis non-
+        # alcoholic) must propagate to PersonRecord.chronic_conditions on
+        # discharge so the longitudinal Markov engine's
+        # ``fibrosis_liver_stage_k74`` (and sibling alcoholic_liver_k70)
+        # attribute enters scope next year. Pre-fix the K-prefix allowlist
+        # had only "K21" (GERD), silently dropping every K70/K74 discharge
+        # — K74 patients ended up with empty Child-Pugh stage on 100 % of
+        # the cohort (42/42 patients in US p=10k 5y).
+        chronic_prefixes = ("I", "E", "J44", "J45", "N18", "M", "G20", "F00", "K21", "K70", "K74", "N40")
         # Issue #947: sex-lock table moved to
         # `clinosim/locale/shared/icd10_sex_restrictions.yaml`. Any
         # anatomy-locked discharge-Dx (BPH N40, prostatitis N41, female-
