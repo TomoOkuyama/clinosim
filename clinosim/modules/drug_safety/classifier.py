@@ -25,6 +25,30 @@ def _load_mappings() -> dict[str, dict[str, Any]]:
 
 
 @lru_cache(maxsize=1)
+def _catalog_en_to_drug_id() -> dict[str, str]:
+    """Reverse index: catalog EN name (case-insensitive) → drug_id.
+
+    Built once at first use. Used by ``japanese_display`` to resolve the
+    JA display through the Phase 1b catalog instead of the pre-Phase-2.f
+    ``drug_ja`` field in ``drug_classes.yaml`` (META #1804).
+    """
+    try:
+        from clinosim.codes.drugs import all_drug_ids, resolve_drug
+    except Exception:
+        return {}
+    out: dict[str, str] = {}
+    for drug_id in all_drug_ids():
+        try:
+            rec = resolve_drug(drug_id)
+        except Exception:
+            continue
+        en = (rec.names.get("en") or "").strip()
+        if en:
+            out[en.lower()] = drug_id
+    return out
+
+
+@lru_cache(maxsize=1)
 def _build_alias_index() -> list[tuple[str, str]]:
     """Return [(lowercased-alias-or-canonical, canonical), ...] sorted by length desc.
 
@@ -72,8 +96,28 @@ def resolve_classes(drug_name: str) -> list[str]:
 
 
 def japanese_display(drug_name: str) -> str | None:
+    """Resolve the JA display for ``drug_name``.
+
+    META #1804 Phase 2.f: dual-path resolver — prefer the Phase 1b
+    drug-identity catalog (``clinosim/codes/data/drugs.yaml``) when the
+    canonical name resolves there, fall back to the legacy
+    ``drug_ja`` field in ``drug_classes.yaml`` for drugs the catalog
+    does not yet register. The catalog is the display SoT; the legacy
+    field stays wired for the 18 drugs the catalog has not yet
+    enrolled (Dabigatran, Edoxaban, Prasugrel, several NSAIDs, …).
+    """
     canonical = canonical_name(drug_name)
     if canonical is None:
         return None
+    drug_id = _catalog_en_to_drug_id().get(canonical.lower())
+    if drug_id:
+        try:
+            from clinosim.codes.drugs import resolve_drug
+
+            ja = resolve_drug(drug_id).names.get("ja")
+            if ja:
+                return ja
+        except Exception:
+            pass
     entry = _load_mappings().get(canonical, {})
     return entry.get("drug_ja")
