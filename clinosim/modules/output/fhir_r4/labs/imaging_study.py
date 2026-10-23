@@ -156,10 +156,12 @@ def _build_imaging_study(
     status + subject + basedOn 最小構成で spec-valid。SR がある限り「オーダー
     はあった」ことを FHIR consumer に伝達可能。
     """
-    modalities = load_modalities()
+    load_modalities()  # fail-loud validate; structural data not consumed here
     modality_code = _o(study, "modality_code", "")
-    mod_def = modalities.get(modality_code, {}) if modality_code else {}
-    modality_display = mod_def.get(f"display_{lang}") or mod_def.get("display_en", modality_code)
+    # META #1805 Phase C: DICOM modality display resolves against the
+    # dicom-modality authority yaml (code_lookup) — the inline
+    # display_en/ja on modalities.yaml were retired.
+    modality_display = code_lookup("dicom-modality", modality_code, lang) if modality_code else modality_code
 
     series_list = _o(study, "series", []) or []
     series_resources = [_build_series(s, lang) for s in series_list]
@@ -378,8 +380,9 @@ def _build_series(series: Any, lang: str) -> dict[str, Any]:
     body_site_display = code_lookup("snomed-ct", body_site_snomed, lang)
     modalities = load_modalities()
     modality_code = _o(series, "modality_code", "")
-    mod_def = modalities.get(modality_code, {})
-    modality_display = mod_def.get(f"display_{lang}") or mod_def.get("display_en", modality_code)
+    mod_def = modalities.get(modality_code, {})  # noqa: F841 — kept for parity with series validator contract
+    # META #1805 Phase C: DICOM modality display via dicom-modality authority.
+    modality_display = code_lookup("dicom-modality", modality_code, lang) if modality_code else modality_code
     return {
         "uid": _o(series, "series_uid", ""),
         "number": _o(series, "series_number", 1),

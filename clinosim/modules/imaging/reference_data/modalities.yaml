@@ -11,8 +11,6 @@
 modalities:
   CR:                                            # Computed Radiography (plain X-ray)
     dicom_code: "CR"
-    display_en: "Plain X-ray"
-    display_ja: "単純X線撮影"
     typical_instances_per_view_range: [1, 1]     # 1 view = 1 instance
     default_views_by_body_site:
       chest: ["PA", "Lateral"]
@@ -24,8 +22,6 @@ modalities:
 
   CT:                                            # Computed Tomography
     dicom_code: "CT"
-    display_en: "Computed Tomography"
-    display_ja: "コンピュータ断層撮影"
     typical_instances_per_series_range:
       head: [180, 280]                           # axial 5mm ≈ ~200 slices
       chest: [220, 340]                          # axial 1mm ≈ ~280 slices
@@ -45,8 +41,6 @@ modalities:
 
   MR:                                            # Magnetic Resonance
     dicom_code: "MR"
-    display_en: "Magnetic Resonance Imaging"
-    display_ja: "磁気共鳴画像"
     typical_instances_per_series_range:
       head: [140, 220]                           # DWI/FLAIR/T1/T2 typical
       spine: [120, 200]
@@ -58,8 +52,6 @@ modalities:
 
   US:                                            # Ultrasound
     dicom_code: "US"
-    display_en: "Ultrasound"
-    display_ja: "超音波検査"
     typical_instances_per_series_range:
       abdomen: [12, 30]                          # ~20 static frames
       kidney: [8, 20]
@@ -77,8 +69,6 @@ modalities:
 
   XA:                                            # X-Ray Angiography (coronary angiography)
     dicom_code: "XA"
-    display_en: "X-Ray Angiography"
-    display_ja: "血管造影撮影"
     typical_instances_per_series_range:
       chest: [300, 800]                          # cine runs, multiple projections
     default_views_by_body_site:
@@ -86,8 +76,6 @@ modalities:
 
   ECG:                                           # Electrocardiography (DICOM waveform)
     dicom_code: "ECG"
-    display_en: "Electrocardiography"
-    display_ja: "心電図検査"
     typical_instances_per_view_range: [1, 1]     # 1 waveform object
     default_views_by_body_site:
       chest: ["12-lead"]

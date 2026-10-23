@@ -146,8 +146,9 @@ def _validate_modalities(data: dict[str, Any]) -> None:
     for mod_key, mod in modalities.items():
         if not mod.get("dicom_code"):
             raise ValueError(f"modalities.yaml[{mod_key}]: missing dicom_code")
-        if not mod.get("display_en") or not mod.get("display_ja"):
-            raise ValueError(f"modalities.yaml[{mod_key}]: display_en + display_ja required")
+        # META #1805 Phase C: display_en + display_ja retired. Displays
+        # live in clinosim/codes/data/dicom-modality.yaml and resolve
+        # via code_lookup("dicom-modality", code, lang) at emit time.
         # CR uses per-view range; CT uses per-series range.
         per_view = mod.get("typical_instances_per_view_range")
         per_series = mod.get("typical_instances_per_series_range")
