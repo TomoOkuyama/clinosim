@@ -509,8 +509,21 @@ def generate_population(
             # existing single-probability behaviour (RNG-shape neutral).
             male_prob = _sex_ratio_male_probability(demo, age)
             sex = "M" if rng.random() < male_prob else "F"
+            # Issue #1774: age-0 initial-cohort patients had DOB sampled in
+            # ``base_year`` with random month/day, so ~50 % landed with DOB
+            # after sim-start (Jan 1 of base_year) — semantically wrong
+            # (they are "cohort members at sim-start", not future
+            # perinatal-event newborns), and the downstream filter
+            # ``pid.endswith("-BABY")`` systematically missed these 120 /
+            # p=10k patients because their id was ``POP-NNNNNN`` (initial-
+            # cohort pattern) not ``POP-NNNNNN-BABY`` (perinatal pattern).
+            # Fix: for age==0, shift DOB year back one so DOB is always in
+            # ``base_year - 1`` — the baby is unambiguously already born at
+            # sim-start, which matches real-cohort snapshot semantics.
+            # RNG-neutral: same two draws (month + day) regardless of age.
+            _dob_year = base_year - age - 1 if age == 0 else base_year - age
             dob = date(
-                base_year - age,
+                _dob_year,
                 int(rng.integers(RANDOM_MONTH_MIN, RANDOM_MONTH_MAX_EXCLUSIVE)),
                 int(rng.integers(DOB_DAY_MIN, DOB_DAY_MAX_EXCLUSIVE)),
             )
