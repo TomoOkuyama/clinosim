@@ -652,3 +652,7 @@ _.all_rh_keys  # codes/blood_group_to_snomed.py — audit/integrity API
 # Phase 3.β.4 — encounter-type → SNOMED catalog loader. Audit-side API
 # invisible to vulture (tests are not scanned).
 _.all_encounter_types  # codes/encounter_type_to_snomed.py — audit/integrity API
+
+# Phase 3.β.5 / #1815 — CCHD screening-site → SNOMED catalog loader.
+# Audit-side API invisible to vulture (tests are not scanned).
+_.all_cchd_sites  # codes/cchd_site_to_snomed.py — audit/integrity API
