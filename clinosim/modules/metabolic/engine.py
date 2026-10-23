@@ -169,16 +169,54 @@ def _derive_e66_code(bmi: float) -> str | None:
     return None
 
 
+# Issue #1773: real-EHR ICD-coding rates for BMI-derived obesity.
+# Pre-fix every BMI-eligible adult was ICD-coded, driving E66 prevalence
+# to 77 % of adults (CDC NHANES 2017-2020 benchmark: 42 % BMI-phenotype,
+# with ~30-50 % of those actually ICD-coded in US EHRs — real-world
+# chart-abstraction studies e.g. Kuhlemeier 2023 (JGIM) report
+# 35-50 % E66 documentation rate among BMI≥30 adults). The per-tier
+# rates below collapse the phenotype→coding gap:
+#   - Overweight (E66.3): ~20 % — clinicians rarely formally code
+#     overweight unless it's a prevention-focused encounter.
+#   - Obesity (E66.9) and morbid obesity (E66.01): ~65 % — somewhat
+#     higher because class-II/III obesity is more likely to drive a
+#     comorbidity-focused encounter where E66 lands on the problem list.
+# Draws are per-person SHA Bernoulli so cohort reproducibility is
+# preserved and no master-stream RNG is consumed.
+_E66_ICD_CODING_RATE_OVERWEIGHT = 0.20
+_E66_ICD_CODING_RATE_OBESITY = 0.65
+_E66_ICD_CODING_SALT = "metabolic.e66.icd_coding.v1"
+
+
+def _is_e66_icd_coded(person_id: str, code: str) -> bool:
+    """Per-person deterministic coin: should this BMI-eligible person
+    receive the E66 ICD code on their chart?
+
+    RNG-neutral: no master-stream draw. Uses ``sha_bernoulli`` with a
+    stable salt so the coin is bit-reproducible across platforms and
+    runs. ``code`` picks the per-tier rate.
+    """
+    if code == "E66.3":
+        rate = _E66_ICD_CODING_RATE_OVERWEIGHT
+    else:
+        rate = _E66_ICD_CODING_RATE_OBESITY
+    return sha_bernoulli(f"{_E66_ICD_CODING_SALT}|{person_id}|{code}", rate)
+
+
 def e66_bmi_enricher(ctx: Any) -> None:
     """POST_POPULATION enricher: append the BMI-derived E66 sub-code
-    to every person's ``chronic_conditions`` list.
+    to the chronic_conditions list for the subset of BMI-eligible
+    persons who would be ICD-coded in real-world US EHR practice
+    (Issue #1773).
 
     Idempotent — a person who already carries the derived code
     (e.g. imported from a cache snapshot or legacy demographics
     yaml) is left untouched. Mutually exclusive: a person is
     assigned AT MOST ONE E66 sub-code even if several thresholds
     are nominally crossed (the function returns the highest-tier
-    code since the if-chain goes severe → mild).
+    code since the if-chain goes severe → mild). The BMI
+    phenotype on ``person.bmi`` is unchanged — only the ICD slot
+    is gated.
     """
     for person in ctx.population.persons.values():
         bmi = float(getattr(person, "bmi", 0.0) or 0.0)
@@ -196,6 +234,10 @@ def e66_bmi_enricher(ctx: Any) -> None:
         # out-of-scope for Phase A (patient-level BMI drift lives
         # on the aging-pass trajectory roadmap).
         if any(c.startswith("E66") for c in person.chronic_conditions):
+            continue
+        # Issue #1773: real-EHR coding-rate gate.
+        person_id = getattr(person, "person_id", "") or ""
+        if not person_id or not _is_e66_icd_coded(person_id, code):
             continue
         person.chronic_conditions.append(code)
 
