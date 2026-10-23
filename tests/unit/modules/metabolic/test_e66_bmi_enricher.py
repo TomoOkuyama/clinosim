@@ -79,24 +79,43 @@ def test_derive_e66_boundary_exact_values() -> None:
 
 
 def test_enricher_appends_e66_3_for_overweight() -> None:
-    p = _person("PT-OW", bmi=27.0)
+    """When the Issue #1773 SHA Bernoulli ICD-coding gate passes, the
+    enricher appends E66.3 for a BMI 25-30 person. ``PT-sample-7`` is
+    the first stable id (by iteration) known to pass the 20 %
+    overweight gate — a reproducibility pin, not a magic value."""
+    p = _person("PT-sample-7", bmi=27.0)
     ctx = _Ctx(population=_Pop({p.person_id: p}))
     e66_bmi_enricher(ctx)
     assert "E66.3" in p.chronic_conditions
 
 
 def test_enricher_appends_e66_9_for_obesity() -> None:
-    p = _person("PT-OB", bmi=32.0)
+    """When the Issue #1773 gate passes, enricher appends E66.9 for a
+    BMI 30-40 person. ``PT-sample-0`` passes the 65 % obesity gate."""
+    p = _person("PT-sample-0", bmi=32.0)
     ctx = _Ctx(population=_Pop({p.person_id: p}))
     e66_bmi_enricher(ctx)
     assert "E66.9" in p.chronic_conditions
 
 
 def test_enricher_appends_e66_01_for_morbid_obesity() -> None:
-    p = _person("PT-MO", bmi=42.0)
+    """When the Issue #1773 gate passes, enricher appends E66.01 for a
+    BMI ≥ 40 person. ``PT-sample-3`` passes the 65 % morbid gate."""
+    p = _person("PT-sample-3", bmi=42.0)
     ctx = _Ctx(population=_Pop({p.person_id: p}))
     e66_bmi_enricher(ctx)
     assert "E66.01" in p.chronic_conditions
+
+
+def test_enricher_skips_when_coding_gate_rejects() -> None:
+    """Issue #1773: a BMI-eligible person whose SHA coin falls on the
+    skip side does NOT receive an E66 code — the enricher honours the
+    coding-rate gate. ``PT-OB`` is a stable id that lands on the
+    reject side of the 65 % obesity gate."""
+    p = _person("PT-OB", bmi=32.0)
+    ctx = _Ctx(population=_Pop({p.person_id: p}))
+    e66_bmi_enricher(ctx)
+    assert "E66.9" not in p.chronic_conditions
 
 
 def test_enricher_leaves_normal_bmi_untouched() -> None:
@@ -132,11 +151,14 @@ def test_enricher_idempotent_on_repeat_call() -> None:
 
 def test_enricher_mixed_cohort() -> None:
     """A multi-person cohort with varied BMI gets per-person E66
-    classification (normal / overweight / obesity / morbid)."""
+    classification (normal / overweight / obesity / morbid). Issue
+    #1773: the person_ids chosen for overweight / obesity / morbid
+    are stable ones that pass the ICD-coding gate — normal persons
+    skip regardless."""
     normal = _person("PT-N", bmi=23.0)
-    overweight = _person("PT-OW", bmi=28.0)
-    obesity = _person("PT-OB", bmi=35.0)
-    morbid = _person("PT-MO", bmi=45.0)
+    overweight = _person("PT-sample-7", bmi=28.0)
+    obesity = _person("PT-sample-0", bmi=35.0)
+    morbid = _person("PT-sample-3", bmi=45.0)
     ctx = _Ctx(
         population=_Pop(
             {
