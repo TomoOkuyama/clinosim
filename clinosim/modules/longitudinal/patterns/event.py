@@ -136,13 +136,22 @@ class AgeBandRate(BaseModel):
 
 
 class EventSpec(BaseModel):
-    """Parameters for a one-shot ICD-onset or med-emitting event attribute."""
+    """Parameters for a one-shot ICD-onset or med-emitting event attribute.
+
+    #1754 added ``removes_meds``: a parallel list of drug names that are
+    retracted from ``person.current_medications`` when the event fires.
+    Used by substitution events (statin-intensity switch, pregnancy HTN
+    swap, etc.) so a therapeutic substitution does not stack with the
+    baseline agent. Empty by default — purely additive events (new ICD
+    with its own base regimen, PRN rescue, …) remain unchanged.
+    """
 
     model_config = ConfigDict(extra="forbid")
 
     event_name: str
     emits_icd: str
     emits_meds: list[str] = Field(default_factory=list)
+    removes_meds: list[str] = Field(default_factory=list)
     fire_marker: str = ""
     base_annual_rate: float = Field(default=0.0, ge=0.0, le=1.0)
     base_rate_by_age_band: list[AgeBandRate] = Field(default_factory=list)
@@ -228,7 +237,7 @@ def step(
     rate = min(1.0, max(0.0, rate))
     fired = float(rng.random()) < rate
     if fired:
-        return EventResult(True, spec.emits_icd, list(spec.emits_meds), [])
+        return EventResult(True, spec.emits_icd, list(spec.emits_meds), list(spec.removes_meds))
     return EventResult(False, spec.emits_icd, [], [])
 
 

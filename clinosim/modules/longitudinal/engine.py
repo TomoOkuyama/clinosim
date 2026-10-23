@@ -274,6 +274,16 @@ def _apply_pattern(
             elif result.med_additions:
                 snapshot.med_additions.extend(result.med_additions)
             snapshot.med_removals.extend(result.med_removals)
+            # #1754: retract baseline agents replaced by this event (e.g.
+            # Atorvastatin removed when Rosuvastatin fires in the
+            # high-intensity statin switch). Removals happen BEFORE
+            # additions so a substitution where the add is the same as
+            # the removal is a no-op rather than a double-remove.
+            if result.med_removals:
+                _retract = {str(name) for name in result.med_removals}
+                person.current_medications = [
+                    hm for hm in person.current_medications if (hm.drug_name or "") not in _retract
+                ]
             if result.med_additions:
                 from clinosim.modules.longitudinal.med_lookup import resolve_med_name
 
