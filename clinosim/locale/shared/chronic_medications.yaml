@@ -40,7 +40,14 @@
 I10:  # Hypertension
   medications:
     - {drug_id: amlodipine, dose: "5mg", route: "PO", frequency: "daily"}
-    - {drug_id: candesartan, dose: "8mg", route: "PO", frequency: "daily", probability: 0.5}
+    # Issue #1770 fix: ARB (ACE/ARB class) is a first-line pillar of
+    # chronic HTN therapy per ACC/AHA 2017 + JNC 8 + ESC/ESH 2023. Pre-
+    # fix the 50 % sampling probability left 46 % of escalated triple-
+    # therapy patients without any ACE/ARB (880 / 1903 of p=10k 5y US
+    # cohort). Raising to 1.0 makes ACE/ARB default; RNG-neutral because
+    # Bernoulli sampler consumes the same draw regardless of the
+    # probability value (per activator.py ``probability=0`` comment).
+    - {drug_id: candesartan, dose: "8mg", route: "PO", frequency: "daily", probability: 1.0}
     # Phase 4b.1 (#1697) — longitudinal escalation drug. probability: 0.0
     # keeps activation sampling from picking it; only the longitudinal
     # engine's htn_escalate_third_agent_i10 event adds it via resolve_med_name.
