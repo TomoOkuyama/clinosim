@@ -28,7 +28,9 @@ def test_load_allergens_returns_3_categories():
 def test_medication_allergen_has_penicillin():
     a = load_allergens()
     med = a["medication"]
-    pen = [e for e in med if e["allergen_display_en"] == "Penicillin"]
+    # META #1805 Phase A: allergen_display_en retired; look up by
+    # SNOMED authority instead. 764146007 is the Penicillin pointer.
+    pen = [e for e in med if e["allergen_code"] == "764146007"]
     assert pen
     # Session 57 v3: allergens.yaml swapped the Penicillin code from
     # 387207008 (Ibuprofen in SNOMED CT International 2026-06-01) to

@@ -37,8 +37,6 @@ allergens:
     # in SNOMED CT International; verified 2026-10-22 via tx.fhir.org
     # $lookup. 764146007 is the active replacement (Issue #1768).
     - allergen_code: "764146007"
-      allergen_display_en: "Penicillin"
-      allergen_display_ja: "ペニシリン"
       prevalence:
         adult: 0.08              # 8% population
       criticality: high
@@ -46,72 +44,50 @@ allergens:
         # Session 57 v3 fix: 247472004 is Weal in SNOMED CT International
         # 2026-06-01 — swap to 271807003 (Eruption of skin) for "Rash".
         - manifestation_snomed: "271807003"
-          manifestation_display_en: "Rash"
-          manifestation_display_ja: "発疹"
           severity: mild
         - manifestation_snomed: "39579001"
-          manifestation_display_en: "Anaphylaxis"
-          manifestation_display_ja: "アナフィラキシー"
           severity: severe
     # Session 57 v3 fix: 372687004 is Amoxicillin in SNOMED CT International
     # 2026-06-01 — swap to 387458008 (Aspirin, substance).
     - allergen_code: "387458008"
-      allergen_display_en: "Aspirin"
-      allergen_display_ja: "アスピリン"
       prevalence:
         adult: 0.03
       criticality: low
       common_reactions:
         - manifestation_snomed: "271807003"
-          manifestation_display_en: "Rash"
-          manifestation_display_ja: "発疹"
           severity: mild
     # Session 57 v3 fix: 303408005 is not present in SNOMED CT International
     # 2026-06-01 — swap to 115556009 (Sulfonamide, substance).
     - allergen_code: "115556009"
-      allergen_display_en: "Sulfa drugs"
-      allergen_display_ja: "サルファ剤"
       prevalence:
         adult: 0.03
       criticality: high
       common_reactions:
         - manifestation_snomed: "271807003"
-          manifestation_display_en: "Rash"
-          manifestation_display_ja: "発疹"
           severity: moderate
 
   food:
     # feedback FB-F8 (session 48 cycle 8): SNOMED CT 227037002 は inactive、
     # active substance code 735038006 "Egg protein (substance)" に更新。
     - allergen_code: "735038006"
-      allergen_display_en: "Egg protein"
-      allergen_display_ja: "卵タンパク"
       prevalence:
         adult: 0.02
       criticality: low
       common_reactions:
         - manifestation_snomed: "271807003"
-          manifestation_display_en: "Rash"
-          manifestation_display_ja: "発疹"
           severity: mild
     # feedback FB-F8: SNOMED CT 256349002 は inactive、
     # active substance code 735029006 "Wheat (substance)" に更新。
     - allergen_code: "735029006"
-      allergen_display_en: "Wheat"
-      allergen_display_ja: "小麦"
       prevalence:
         adult: 0.01
       criticality: low
       common_reactions:
         - manifestation_snomed: "21522001"
-          manifestation_display_en: "Abdominal pain"
-          manifestation_display_ja: "腹痛"
           severity: mild
 
   environment:
     - allergen_code: "256262001"
-      allergen_display_en: "Pollen"
-      allergen_display_ja: "花粉"
       prevalence:
         adult: 0.20              # 20% — 高頻度
       criticality: low
@@ -119,12 +95,8 @@ allergens:
         # Session 57 v3 fix: 21719001 is Pollinosis in SNOMED CT International
         # 2026-06-01 — swap to 61582004 (Allergic rhinitis, disorder).
         - manifestation_snomed: "61582004"
-          manifestation_display_en: "Allergic rhinitis"
-          manifestation_display_ja: "アレルギー性鼻炎"
           severity: mild
     - allergen_code: "260219005"
-      allergen_display_en: "House dust mite"
-      allergen_display_ja: "ハウスダスト・ダニ"
       prevalence:
         adult: 0.15
       criticality: low
@@ -132,8 +104,6 @@ allergens:
         # Session 57 v3 fix: 21719001 is Pollinosis in SNOMED CT International
         # 2026-06-01 — swap to 61582004 (Allergic rhinitis, disorder).
         - manifestation_snomed: "61582004"
-          manifestation_display_en: "Allergic rhinitis"
-          manifestation_display_ja: "アレルギー性鼻炎"
           severity: mild
 
 # ---------------------------------------------------------------------------
@@ -149,9 +119,10 @@ allergens:
 # meanings and must not collapse into the same signal.
 # ---------------------------------------------------------------------------
 nka:
+  # META #1805 Phase A: allergen_code points to snomed-ct.yaml authority;
+  # EN+JA displays live there (716186003 → "No known allergy" / "アレルギー歴なし")
+  # and resolve via code_lookup("snomed-ct", code, lang) at emit time.
   allergen_code: "716186003"    # SNOMED CT: No known allergy
-  code_text_ja: "アレルギー歴なし"
-  code_text_en: "No known allergies"
   clinical_status: "resolved"    # per Issue #942 spec (NKA is not an active problem)
   verification_status: "confirmed"
 
