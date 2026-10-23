@@ -53,6 +53,22 @@ codes:
   F10: 15   # Alcohol use / dependence — DSM-5 AUD rare < 15
   F17: 16   # Nicotine dependence — dependence-level dx typically ≥ 16
 
+  # === Mood / anxiety disorders (Issue #1761) ===
+  # DSM-5-TR + APA practice guidance:
+  # - F32 (major depressive disorder, single episode): typical onset
+  #   15-25 years; pediatric MDD exists but is rare before 12 and
+  #   usually distinct pediatric codes (F93.x) apply at younger ages.
+  # - F33 (recurrent MDD): mirrors F32.
+  # - F41 (anxiety disorders; F41.1 generalized anxiety disorder):
+  #   adolescent-adult onset; separation anxiety F93.0 is the
+  #   childhood code at younger ages.
+  # Pre-fix the chronic-onset sampler gave 58 pediatric cases
+  # (youngest 2.8 y). These floors clamp onset to the earliest
+  # clinically plausible age.
+  F32: 12   # MDD single — DSM-5 typical onset range 15-25, floor at adolescence
+  F33: 12   # MDD recurrent — mirrors F32
+  F41: 13   # Anxiety disorders (incl. F41.1 GAD) — childhood anxiety uses F93.0
+
   # === Musculoskeletal ===
   M17: 40   # Knee OA — degenerative
 
