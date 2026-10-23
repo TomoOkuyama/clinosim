@@ -255,10 +255,14 @@ def _bb_newborn_bilirubin(ctx: Any) -> list[dict]:
     return out
 
 
-_CCHD_SITE_SNOMED: dict[str, tuple[str, str]] = {
-    "right_hand": ("368208006", "Right upper arm"),
-    "foot": ("22335008", "Foot"),
-}
+# #1815 fix: the pre-fix _CCHD_SITE_SNOMED dict mapped right_hand →
+# 368208006 (SNOMED "Left upper arm structure") and foot → 22335008
+# (SNOMED "Structure of left foot"), both wrong-sided for CCHD
+# screening. The replacement catalog
+# ``clinosim/codes/data/cchd-site-to-snomed.yaml`` carries the correct
+# codes verified against tx.fhir.org (368209003 Right upper arm
+# structure / 56459004 Foot structure); displays resolve through
+# ``code_lookup("snomed-ct", …)`` against the authority yaml.
 
 # Phase 1d-16: CCHD per-site display moved to narrative_labels.yaml
 # (``newborn_cchd_site`` and ``newborn_cchd_body_site`` sections).
@@ -291,12 +295,16 @@ def _bb_newborn_cchd_pulse_ox(ctx: Any) -> list[dict]:
     lang = resolve_lang(country)
     key_system = "urn:clinosim:identifier:newborn-cchd-key"
 
+    from clinosim.codes import lookup as code_lookup
+    from clinosim.codes.cchd_site_to_snomed import resolve_cchd_site_snomed
+
     out: list[dict] = []
     for e in entries:
         site = str(e.get("site") or "")
-        site_snomed = _CCHD_SITE_SNOMED.get(site)
-        if site_snomed is None:
+        site_code = resolve_cchd_site_snomed(site)
+        if site_code is None:
             continue
+        site_display = code_lookup("snomed-ct", site_code, lang) or site
         value = int(e.get("value_pct", 0) or 0)
         loinc = str(e.get("loinc") or "59408-5")
         struct_key = f"{patient_id}-cchd-{site}"
@@ -325,7 +333,7 @@ def _bb_newborn_cchd_pulse_ox(ctx: Any) -> list[dict]:
                         "display": "Oxygen saturation in Arterial blood by Pulse oximetry",
                     }
                 ],
-                "text": _label("newborn_cchd_site", site, lang, fallback=site_snomed[1]),
+                "text": _label("newborn_cchd_site", site, lang, fallback=site_display),
             },
             "subject": patient_ref(patient_id),
             "valueQuantity": {
@@ -338,11 +346,11 @@ def _bb_newborn_cchd_pulse_ox(ctx: Any) -> list[dict]:
                 "coding": [
                     {
                         "system": get_system_uri("snomed-ct"),
-                        "code": site_snomed[0],
-                        "display": site_snomed[1],
+                        "code": site_code,
+                        "display": site_display,
                     }
                 ],
-                "text": _label("newborn_cchd_body_site", site, lang, fallback=site_snomed[1]),
+                "text": _label("newborn_cchd_body_site", site, lang, fallback=site_display),
             },
         }
         ts = e.get("timestamp")

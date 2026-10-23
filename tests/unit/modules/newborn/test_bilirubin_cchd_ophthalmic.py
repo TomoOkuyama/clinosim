@@ -219,8 +219,12 @@ def test_cchd_bundle_builder_renders_two_observations_with_bodysite() -> None:
     obs_list = _bb_newborn_cchd_pulse_ox(_BundleCtx())
     assert len(obs_list) == 2
     body_sites = {c.get("code") for o in obs_list for c in o.get("bodySite", {}).get("coding", [])}
-    # SNOMED right upper arm 368208006 / foot 22335008
-    assert body_sites == {"368208006", "22335008"}
+    # #1815 fix: SNOMED right upper arm 368209003 / foot 56459004.
+    # Pre-fix the dict carried 368208006 (Left upper arm structure) /
+    # 22335008 (Structure of left foot) — both wrong-sided for CCHD
+    # screening (right hand = pre-ductal, either foot = post-ductal
+    # per AAP/AHA 2011 algorithm).
+    assert body_sites == {"368209003", "56459004"}
     for o in obs_list:
         loincs = [c.get("code") for c in o.get("code", {}).get("coding", [])]
         assert "59408-5" in loincs

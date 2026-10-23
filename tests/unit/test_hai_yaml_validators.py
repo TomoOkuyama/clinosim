@@ -11,6 +11,7 @@ import yaml
 
 from clinosim.codes import (
     blood_group_to_snomed,
+    cchd_site_to_snomed,
     encounter_type_to_snomed,
     oxygen_device_to_snomed,
     stage_to_snomed,
@@ -58,6 +59,7 @@ def _clear_hai_caches():
     blood_group_to_snomed._load_catalog.cache_clear()  # Phase 3.β.2 catalog
     oxygen_device_to_snomed._load_catalog.cache_clear()  # Phase 3.β.3 catalog
     encounter_type_to_snomed._load_catalog.cache_clear()  # Phase 3.β.4 catalog
+    cchd_site_to_snomed._load_catalog.cache_clear()  # #1815 fix / Phase 3.β.5 catalog
     locale_loader.load_chief_complaint_translations.cache_clear()  # Phase 3.β.1
     load_devices_config()  # pre-warm with real yaml (before monkeypatch)
     _load_system("icd-10-cm")  # pre-warm icd-10-cm.yaml (_validate_hai_codes)
@@ -68,6 +70,7 @@ def _clear_hai_caches():
     blood_group_to_snomed._load_catalog()  # pre-warm blood-group-to-snomed.yaml
     oxygen_device_to_snomed._load_catalog()  # pre-warm oxygen-device-to-snomed.yaml
     encounter_type_to_snomed._load_catalog()  # pre-warm encounter-type-to-snomed.yaml
+    cchd_site_to_snomed._load_catalog()  # pre-warm cchd-site-to-snomed.yaml
     locale_loader.load_chief_complaint_translations()  # pre-warm chief_complaint_translations.yaml
     _load_system("omb-race")  # Phase 3.γ pre-warm
     _load_system("omb-ethnicity")  # Phase 3.γ pre-warm

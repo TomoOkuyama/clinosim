@@ -1,0 +1,39 @@
+# Clinosim CCHD-screening-site → SNOMED CT concept map (#1815 fix / Phase 3.β.5).
+#
+# This file is the clinosim-internal catalog that maps each CCHD
+# pulse-oximetry screening site (as sampled by the newborn CCHD
+# screening engine) to the SNOMED CT body-site concept that the FHIR
+# Observation.bodySite emits.
+#
+# Design (mirrors Phase 3.β.2/3/4/6):
+#   - The site key is clinosim-internal (right_hand / foot), not an
+#     authority code.
+#   - The SNOMED pointer resolves against clinosim/codes/data/snomed-ct.yaml;
+#     the authority yaml stays the canonical home of SNOMED displays.
+#   - Downstream (modules/newborn/fhir_emit.py) reads this catalog and
+#     uses code_lookup("snomed-ct", <code>, lang) for the display, so a
+#     key edit here never drifts the SNOMED coding.
+#
+# Codes verified via tx.fhir.org $lookup against the SNOMED CT
+# International Edition. This fix retires the pre-#1815 dict which
+# emitted:
+#   right_hand → 368208006 (Left upper arm structure)   ← wrong-sided
+#   foot       → 22335008  (Structure of left foot)     ← wrong-sided
+#
+# Clinical convention (AAP/AHA 2011 CCHD screening algorithm):
+#   - Right hand measures pre-ductal (right upper extremity) SpO2.
+#   - Either foot measures post-ductal (lower extremity) SpO2. The
+#     laterality-neutral SNOMED concept 56459004 "Foot structure"
+#     matches this convention.
+
+metadata:
+  name: Clinosim CCHD Screening-site → SNOMED CT Catalog
+  description: >
+    Internal CCHD screening site → SNOMED CT body-site concept
+    pointers used by the newborn CCHD pulse-oximetry FHIR Observation
+    emitter. Fix for #1815 (pre-fix dict mapped to Left-sided
+    laterality SNOMED concepts).
+
+sites:
+  right_hand: '368209003'  # Right upper arm structure
+  foot: '56459004'         # Foot structure (laterality-neutral)
