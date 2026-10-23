@@ -352,9 +352,19 @@ C34:  # Lung cancer — EGFR-TKI first-line for adeno; platinum doublet otherwis
     - {test: "Creatinine", frequency: "every_3_days", intent: "Platinum renal function monitoring"}
 
 C50:  # Breast cancer — endocrine therapy (majority ER+); trastuzumab for HER2+
+  # Issue #1755 fix: tamoxifen (SERM) and anastrozole (aromatase
+  # inhibitor) are mutually exclusive endocrine-therapy options for ER+
+  # breast cancer — NCCN / ASCO guidelines pick one, not both. Prior to
+  # the ``exclusive_classes`` mutex 0.4 × 0.3 = 12 % of C50 patients
+  # ended up on dual therapy (17/108 observed). Anastrozole additionally
+  # carries ``age_min: 50`` because aromatase inhibitors require a
+  # post-menopausal state (NCCN: contraindicated in premenopausal women
+  # without ovarian suppression; the pre-fix cohort had 8 premenopausal
+  # anastrozole prescriptions, youngest 36 y).
+  exclusive_classes: ["breast_endocrine_therapy"]
   medications:
-    - {drug_id: tamoxifen, dose: "20mg", route: "PO", frequency: "daily", probability: 0.4}
-    - {drug_id: anastrozole, dose: "1mg", route: "PO", frequency: "daily", probability: 0.3}
+    - {drug_id: tamoxifen, dose: "20mg", drug_class: "breast_endocrine_therapy", route: "PO", frequency: "daily", probability: 0.4}
+    - {drug_id: anastrozole, dose: "1mg", drug_class: "breast_endocrine_therapy", route: "PO", frequency: "daily", probability: 0.3, age_min: 50}
     # Trastuzumab (IV q3weeks) removed per Issue #1319 — cycle-based
     # anti-HER2 biologic, must emit via chemo_regimens.yaml as an IV
     # cycle regimen (a Trastuzumab regimen entry there would be the
