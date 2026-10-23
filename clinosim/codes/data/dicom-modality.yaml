@@ -1,0 +1,40 @@
+# DICOM Modality code authority (META #1805 Phase C).
+#
+# Source: DICOM PS3.3 Table C.7-1 (Modality attribute). The authority
+# URI is ``http://dicom.nema.org/resources/ontology/DCM`` as registered
+# in clinosim/codes/loader.py::_BUILTIN_URIS.
+#
+# Scope: the six modalities emitted by the simulator's ImagingStudy
+# builder. Pre-#1805 Phase C the EN+JA displays lived inline on each
+# modality row in clinosim/modules/imaging/reference_data/modalities.yaml,
+# duplicating the DICOM authority and inviting drift. This authority
+# yaml is the SoT; downstream emit resolves via
+# code_lookup("dicom-modality", code, lang).
+#
+# JA displays are the common JIS / JRS (Japan Radiological Society)
+# katakana forms used in clinical practice.
+
+metadata:
+  name: DICOM Modality
+  uri: "http://dicom.nema.org/resources/ontology/DCM"
+  source: "DICOM PS3.3 Table C.7-1"
+
+codes:
+  CR:
+    en: Plain X-ray
+    ja: 単純X線撮影
+  CT:
+    en: Computed Tomography
+    ja: コンピュータ断層撮影
+  MR:
+    en: Magnetic Resonance Imaging
+    ja: 磁気共鳴画像
+  US:
+    en: Ultrasound
+    ja: 超音波検査
+  XA:
+    en: X-Ray Angiography
+    ja: 血管造影撮影
+  ECG:
+    en: Electrocardiography
+    ja: 心電図検査
