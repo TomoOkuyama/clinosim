@@ -90,10 +90,11 @@ def _validate_allergens(data: dict[str, Any]) -> None:
         raise ValueError(
             f"allergens.yaml ↔ SUPPORTED_ALLERGEN_CATEGORIES drift: missing={sorted(missing)}, extra={sorted(extra)}"
         )
+    # META #1805 Phase A: ``allergen_display_en`` / ``allergen_display_ja``
+    # retired — displays live in clinosim/codes/data/snomed-ct.yaml and
+    # resolve at emit time via code_lookup("snomed-ct", code, lang).
     required_entry_fields = (
         "allergen_code",
-        "allergen_display_en",
-        "allergen_display_ja",
         "prevalence",
         "criticality",
         "common_reactions",
@@ -165,7 +166,10 @@ def _validate_nka_and_polyallergy(data: dict[str, Any]) -> None:
     nka = data.get("nka")
     if not nka or not isinstance(nka, dict):
         raise ValueError("allergens.yaml: missing 'nka' block (Issue #942)")
-    for k in ("allergen_code", "code_text_ja", "code_text_en", "clinical_status", "verification_status"):
+    # META #1805 Phase A: ``code_text_ja`` / ``code_text_en`` retired —
+    # NKA display resolves at emit time via
+    # ``code_lookup("snomed-ct", nka.allergen_code, lang)``.
+    for k in ("allergen_code", "clinical_status", "verification_status"):
         if k not in nka:
             raise ValueError(f"allergens.yaml.nka: missing {k!r}")
     if not _code_in_data("snomed-ct", nka["allergen_code"]):
