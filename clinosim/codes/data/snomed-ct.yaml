@@ -620,3 +620,15 @@ codes:
   '165748002':
     en: Rh negative
     ja: Rh陰性
+
+  # CCHD pulse-oximetry screening body sites (#1815 fix). Right upper
+  # arm = pre-ductal; foot = post-ductal (either foot per AAP/AHA 2011
+  # CCHD screening algorithm — the laterality-neutral SNOMED concept
+  # 56459004 matches the clinical convention). Verified against
+  # tx.fhir.org $lookup (SNOMED CT International Edition).
+  '368209003':
+    en: Right upper arm structure
+    ja: 右上腕
+  '56459004':
+    en: Foot structure
+    ja: 足部
