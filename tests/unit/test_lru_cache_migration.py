@@ -162,16 +162,28 @@ def test_load_med_terms_ja_fallback_when_yaml_missing(monkeypatch):
 
 
 def test_load_drug_names_ja_fallback_when_yaml_missing(monkeypatch):
-    """When the optional drug_names_ja.yaml is missing, return an empty dict."""
+    """When the optional drug_names_ja.yaml is missing AND the Phase 1b
+    catalog is also unreachable, the loader returns an empty dict without
+    crashing.
+
+    META #1804 Phase 2.g updated the loader to UNION with the drug-identity
+    catalog (clinosim/codes/data/drugs.yaml) when the legacy yaml is thin
+    or missing. Monkeypatching ``Path.exists`` to False makes BOTH files
+    appear missing — the catalog loader fails loud internally and the
+    loader's try/except falls back to the legacy branch, which also sees
+    an empty yaml → empty merged dict."""
     from pathlib import Path
 
+    from clinosim.codes.drugs import _load_catalog as _catalog_loader
     from clinosim.modules.output.fhir_r4.lib import localization as _fhir_localization
 
     _fhir_localization._load_drug_names_ja.cache_clear()
+    _catalog_loader.cache_clear()
     monkeypatch.setattr(Path, "exists", lambda self: False)
     data = _fhir_localization._load_drug_names_ja()
     assert data == {}
     _fhir_localization._load_drug_names_ja.cache_clear()
+    _catalog_loader.cache_clear()
 
 
 def test_load_department_display_fallback_when_yaml_missing(monkeypatch):

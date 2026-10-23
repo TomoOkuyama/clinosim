@@ -217,9 +217,11 @@ def load_code_mapping(domain: str, country: str) -> dict[str, str]:
     merged: dict[str, str] = {}
     try:
         from clinosim.codes.drugs import all_drug_ids, resolve_drug
+
+        drug_ids = all_drug_ids()
     except Exception:
         return legacy
-    for drug_id in all_drug_ids():
+    for drug_id in drug_ids:
         try:
             rec = resolve_drug(drug_id)
         except Exception:
@@ -571,9 +573,36 @@ def load_med_terms_ja() -> dict[str, dict[str, str]]:
 
 @lru_cache(maxsize=1)
 def load_drug_names_ja() -> dict[str, str]:
-    """Load English→Japanese drug name mapping (case-insensitive lowercased keys)."""
+    """Load English→Japanese drug name mapping (case-insensitive lowercased keys).
+
+    META #1804 Phase 2.g: the returned mapping is now UNIONed with the
+    Phase 1b drug-identity catalog (``clinosim/codes/data/drugs.yaml``).
+    Legacy ``drug_names_ja.yaml`` entries win on key collision for
+    backwards compat; catalog entries fill the gap for drug names the
+    legacy yaml never registered. 45 of the catalog's 140 unique EN
+    names were missing from the legacy yaml pre-Phase-2.g — those drugs
+    now surface a JA display through the same lookup API every caller
+    (``_fhir_medications``, discharge_oral emit, imaging_study
+    chief-complaint resolution, …) already uses.
+    """
     raw = _load_yaml(_LOCALE_DIR / "shared" / "drug_names_ja.yaml", fallback={})
-    return {k.lower(): v for k, v in raw.items()}
+    merged = {k.lower(): v for k, v in raw.items()}
+    try:
+        from clinosim.codes.drugs import all_drug_ids, resolve_drug
+
+        drug_ids = all_drug_ids()
+    except Exception:
+        return merged
+    for drug_id in drug_ids:
+        try:
+            rec = resolve_drug(drug_id)
+        except Exception:
+            continue
+        en_lower = (rec.names.get("en") or "").strip().lower()
+        ja = (rec.names.get("ja") or "").strip()
+        if en_lower and ja and en_lower not in merged:
+            merged[en_lower] = ja
+    return merged
 
 
 @lru_cache(maxsize=1)
