@@ -115,6 +115,7 @@ def _build_event_body(body_dict: dict[str, Any]) -> tuple[EventSpec, dict[str, A
         "event_name": body_dict.pop("event_name"),
         "emits_icd": body_dict.pop("emits_icd"),
         "emits_meds": body_dict.pop("emits_meds", []) or [],
+        "removes_meds": body_dict.pop("removes_meds", []) or [],  # #1754
         "fire_marker": body_dict.pop("fire_marker", "") or "",
         "base_annual_rate": body_dict.pop("base_annual_rate", 0.0),
         "base_rate_by_age_band": body_dict.pop("base_rate_by_age_band", []) or [],

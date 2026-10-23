@@ -20,6 +20,19 @@ clinical_scope:
 event_name: lipid_escalate_high_intensity_e78
 emits_icd: ""
 emits_meds: ["Rosuvastatin"]
+# #1754 fix: statin intensification is a SUBSTITUTION, not a stack.
+# ACC/AHA 2018 Cholesterol Guideline specifies switching from moderate-
+# intensity (Atorvastatin 10-20 mg) to high-intensity (Rosuvastatin
+# 20-40 mg or Atorvastatin 40-80 mg) — concurrent prescribing of two
+# statins is a therapeutic duplication (increased myopathy /
+# rhabdomyolysis risk without added LDL benefit). Pre-fix the cohort
+# carried dual Atorvastatin + Rosuvastatin in 14.7 % of p=10k 5y US
+# patients because this event emitted the new agent without retracting
+# the baseline. ``removes_meds`` names the baseline agent carried by
+# the chronic_medications.yaml E78 regimen (Atorvastatin), which the
+# engine retracts from ``person.current_medications`` when the event
+# fires.
+removes_meds: ["Atorvastatin"]
 fire_marker: lipid_escalate_high_intensity_e78
 base_annual_rate: 0.40
 rate_modifiers:
