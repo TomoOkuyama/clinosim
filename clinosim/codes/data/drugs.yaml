@@ -819,3 +819,31 @@ drugs:
     codes:
       rxnorm: "8640"
     classes: ["corticosteroid"]
+  # META #1804 Phase 2.d catalog add — unblocks remaining disease
+  # yaml discharge_oral migrations. RxCUIs verified against NLM
+  # RxNav /REST/rxcui/<cui>/properties.json (TTY=IN).
+  edoxaban:
+    names: {en: "Edoxaban", ja: "エドキサバン"}
+    codes:
+      rxnorm: "1599538"
+    classes: ["anticoagulant", "anticoagulant.doac"]
+  oseltamivir:
+    names: {en: "Oseltamivir", ja: "オセルタミビル"}
+    codes:
+      rxnorm: "260101"
+    classes: ["antiviral"]
+  metoclopramide:
+    names: {en: "Metoclopramide", ja: "メトクロプラミド"}
+    codes:
+      rxnorm: "6915"
+    classes: ["prokinetic"]
+  pantoprazole:
+    names: {en: "Pantoprazole", ja: "パントプラゾール"}
+    codes:
+      rxnorm: "40790"
+    classes: ["ppi"]
+  cephalexin:
+    names: {en: "Cephalexin", ja: "セファレキシン"}
+    codes:
+      rxnorm: "2231"
+    classes: ["antibiotic.cephalosporin"]
