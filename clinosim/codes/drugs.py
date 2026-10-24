@@ -48,13 +48,18 @@ class DrugIdentity:
     maps authority keys (``rxnorm`` / ``yj`` / ``hot7``) to the code
     strings that identify this drug in each registry; omitted when the
     drug has no code in that registry. ``classes`` carries drug-class
-    tags (optional, free-form).
+    tags (optional, free-form). ``aliases`` carries alternate English
+    name forms (synonyms, trade-name variants, salt-form variants) that
+    all resolve to this drug_id — the loader unions them into the shared
+    `_load_drug_names_ja` return value so free-text display translation
+    picks them up (META #1849 Phase 5 Step 2.g).
     """
 
     drug_id: str
     names: dict[str, str]
     codes: dict[str, str] = field(default_factory=dict)
     classes: tuple[str, ...] = ()
+    aliases: tuple[str, ...] = ()
 
     def display_for(self, country: str) -> str:
         """Return the locale-appropriate bare generic name.
@@ -92,11 +97,15 @@ def _parse_catalog(raw: dict[str, Any]) -> dict[str, DrugIdentity]:
         classes = body.get("classes") or []
         if not isinstance(classes, list):
             raise ValueError(f"drugs.yaml: {drug_id!r} classes must be a list")
+        aliases = body.get("aliases") or []
+        if not isinstance(aliases, list):
+            raise ValueError(f"drugs.yaml: {drug_id!r} aliases must be a list")
         out[str(drug_id)] = DrugIdentity(
             drug_id=str(drug_id),
             names={str(k): str(v) for k, v in names.items()},
             codes={str(k): str(v) for k, v in codes.items() if v},
             classes=tuple(str(c) for c in classes),
+            aliases=tuple(str(a) for a in aliases if a),
         )
     return out
 

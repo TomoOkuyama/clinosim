@@ -29,7 +29,7 @@ Unfractionated Heparin: "未分画ヘパリン"
 
 # --- Respiratory / 呼吸器系 ---
 Ipratropium: "イプラトロピウム"
-Salbutamol: "サルブタモール"
+# Salbutamol → albuterol aliases (META #1849 Phase 5 Step 2.g).
 
 # --- GI / 消化器系 ---
 Buscopan: "ブチルスコポラミン"
@@ -81,7 +81,7 @@ Nafamostat: "ナファモスタット"
 # verify).
 BCG: "BCG（膀胱内注入療法）"                # MHLW HOT7 (BCG 膀胱内注入用、Issue #1310)
 "BCG intravesical": "BCG（膀胱内注入療法）" # disease-YAML alias form
-Leuprorelin: "リュープロレリン"            # MHLW YJ 2499407G2034 (リュープロレリン3.75mg、Issue #1233)
+# Leuprorelin → leuprolide aliases (META #1849 Phase 5 Step 2.g).
 "Nab-paclitaxel": "ナブパクリタキセル"     # MHLW HOT7 (パクリタキセル、アルブミン懸濁型、Issue #1310)
 Nab_paclitaxel: "ナブパクリタキセル"       # underscore-form used inside a few disease YAMLs
 "nab-Paclitaxel": "ナブパクリタキセル"     # case-variant alias
@@ -98,7 +98,7 @@ Ringers: "リンゲル液"                       # MHLW YJ 3319539A1082 (リン�
 LR: "乳酸リンゲル液"
 Hypertonic Saline: "高張食塩液"
 Crystalloid: "晶質液"
-KCl: "塩化カリウム"
+# KCl → potassium_chloride aliases (META #1849 Phase 5 Step 2.g).
 
 # --- Sedation/Anesthesia / 鎮静・麻酔 ---
 

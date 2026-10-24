@@ -603,6 +603,13 @@ def load_drug_names_ja() -> dict[str, str]:
         ja = (rec.names.get("ja") or "").strip()
         if en_lower and ja and en_lower not in merged:
             merged[en_lower] = ja
+        # META #1849 Phase 5 Step 2.g: alternate EN forms (synonyms,
+        # trade-name variants, salt-form variants) that resolve to the
+        # same drug_id.
+        for alias in rec.aliases:
+            alias_lower = (alias or "").strip().lower()
+            if alias_lower and ja and alias_lower not in merged:
+                merged[alias_lower] = ja
     # META #1849 Phase 5 Step 2.e: imaging exam name display catalog.
     _IMAGING_EXAM_CATALOG = _LOCALE_DIR.parent / "codes" / "data" / "clinosim-imaging-exam-name.yaml"
     exam_raw = _load_yaml(_IMAGING_EXAM_CATALOG, fallback={})

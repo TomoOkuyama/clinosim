@@ -26,6 +26,11 @@
 #       yj: "<YJ12>"                   # optional — resolves against yj.yaml
 #       hot7: "<HOT7>"                 # optional — resolves against hot7.yaml
 #     classes: ["statin", "..."]       # optional, drug-class pointers
+#     aliases: ["Adrenaline", "..."]   # optional, alternate EN name forms —
+#                                       # synonyms / trade / salt-form variants
+#                                       # that all resolve to this drug_id in
+#                                       # `_load_drug_names_ja` free-text lookup
+#                                       # (META #1849 Phase 5 Step 2.g).
 #
 # Display rules:
 #   - `names.en` is the bare generic form (no trade-name parenthesisation).
@@ -316,6 +321,7 @@ drugs:
     codes:
       rxnorm: "435"
     classes: []
+    aliases: ["Salbutamol"]            # INN form; "Albuterol" is USAN. META #1849 Phase 5 Step 2.g.
   lactated_ringer_solution:
     names: {en: "Lactated Ringer solution", ja: "乳酸リンゲル液"}
     codes:
@@ -836,6 +842,7 @@ drugs:
     codes:
       rxnorm: "8591"
     classes: []
+    aliases: ["KCl"]                   # chemical-abbreviation form. META #1849 Phase 5 Step 2.g.
   insulin_glargine:
     names: {en: "Insulin Glargine", ja: "インスリングラルギン"}
     codes:
@@ -886,6 +893,7 @@ drugs:
     codes:
       rxnorm: "42375"
     classes: []
+    aliases: ["Leuprorelin"]           # INN form; "Leuprolide" is USAN. MHLW YJ 2499407G2034. META #1849 Phase 5 Step 2.g.
   mannitol:
     names: {en: "Mannitol", ja: "マンニトール"}
     codes:
