@@ -484,6 +484,10 @@ drugs:
     codes:
       rxnorm: "3992"
     classes: ["catecholamine", "vasopressor"]
+    aliases: ["Adrenaline"]            # INN form; "Epinephrine" is USAN. JP PMDA
+                                       # 現在推奨は "エピネフリン" (旧呼称 "アドレナリン"
+                                       # は 2006 年公定書改訂で統一)。MHLW YJ 2451400A1030.
+                                       # META #1849 Phase 5 Step 2.
   amiodarone:
     names: {en: "Amiodarone", ja: "アミオダロン"}
     codes:
@@ -717,11 +721,20 @@ drugs:
     codes:
       rxnorm: "1851"
     classes: ["antispasmodic.anticholinergic"]
+    aliases: ["Butylscopolamine", "Buscopan"]  # bare chemical / JP trade name; both
+                                               # resolve to the bromide-salt catalog entry.
+                                               # META #1849 Phase 5 Step 2. MHLW YJ 1242002F1330.
   albumin_human:
     names: {en: "Albumin human, USP", ja: "人血清アルブミン"}
     codes:
       rxnorm: "828529"
     classes: ["blood_product.plasma_protein"]
+    aliases: ["Human serum albumin"]   # chemical name alias (same JA). MHLW YJ 6343410X1088
+                                       # (献血アルブミン). META #1849 Phase 5 Step 2.
+                                       # Note: "Albumin" bare form is intentionally NOT aliased
+                                       # here — it is ambiguous with the lab measurement
+                                       # "Albumin" (serum albumin level) which uses the
+                                       # separate `_localize_lab_name` path with display "アルブミン".
   # META #1849 Phase 5 Step 2 batch 6 — respiratory / GI / hemostasis
   # cluster. 5 ingredient drugs.
   aminophylline:
