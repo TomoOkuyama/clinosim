@@ -575,15 +575,16 @@ def load_med_terms_ja() -> dict[str, dict[str, str]]:
 def load_drug_names_ja() -> dict[str, str]:
     """Load English→Japanese drug name mapping (case-insensitive lowercased keys).
 
-    META #1804 Phase 2.g: the returned mapping is now UNIONed with the
+    META #1804 Phase 2.g: the returned mapping is UNIONed with the
     Phase 1b drug-identity catalog (``clinosim/codes/data/drugs.yaml``).
+    META #1849 Phase 5 Step 2.e: additionally UNIONed with the imaging-
+    exam-name display catalog (``clinosim-imaging-exam-name.yaml``) —
+    the free-text imaging exam names (ECG / Echocardiogram / FAST
+    Ultrasound / …) that used to live in the legacy drug_names_ja.yaml
+    file now live in their semantic home.
     Legacy ``drug_names_ja.yaml`` entries win on key collision for
-    backwards compat; catalog entries fill the gap for drug names the
-    legacy yaml never registered. 45 of the catalog's 140 unique EN
-    names were missing from the legacy yaml pre-Phase-2.g — those drugs
-    now surface a JA display through the same lookup API every caller
-    (``_fhir_medications``, discharge_oral emit, imaging_study
-    chief-complaint resolution, …) already uses.
+    backwards compat; catalog entries fill the gap for names the
+    legacy yaml never registered.
     """
     raw = _load_yaml(_LOCALE_DIR / "shared" / "drug_names_ja.yaml", fallback={})
     merged = {k.lower(): v for k, v in raw.items()}
@@ -592,7 +593,7 @@ def load_drug_names_ja() -> dict[str, str]:
 
         drug_ids = all_drug_ids()
     except Exception:
-        return merged
+        drug_ids = []
     for drug_id in drug_ids:
         try:
             rec = resolve_drug(drug_id)
@@ -602,6 +603,14 @@ def load_drug_names_ja() -> dict[str, str]:
         ja = (rec.names.get("ja") or "").strip()
         if en_lower and ja and en_lower not in merged:
             merged[en_lower] = ja
+    # META #1849 Phase 5 Step 2.e: imaging exam name display catalog.
+    _IMAGING_EXAM_CATALOG = _LOCALE_DIR.parent / "codes" / "data" / "clinosim-imaging-exam-name.yaml"
+    exam_raw = _load_yaml(_IMAGING_EXAM_CATALOG, fallback={})
+    for en, ja in (exam_raw.get("exams", {}) or {}).items():
+        en_lower = (en or "").strip().lower()
+        ja_val = (ja or "").strip() if isinstance(ja, str) else ""
+        if en_lower and ja_val and en_lower not in merged:
+            merged[en_lower] = ja_val
     return merged
 
 
