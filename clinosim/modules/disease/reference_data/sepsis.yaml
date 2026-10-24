@@ -604,15 +604,16 @@ drugs:
       note: "Stress-dose steroids; taper after shock resolution"
 
   discharge_oral:
+    # META #1804 Phase 2.d sepsis cluster: discharge_oral entries carry
+    # drug_id into clinosim/codes/data/drugs.yaml. Display resolved via
+    # the catalog.
     japan:
-      - drug: "Levofloxacin"
-        code_yj: "6241013"
+      - drug_id: levofloxacin
         dose: "500mg PO daily"
         duration_days: 7
         note: "Guided by culture results; total ABx course 7-14 days"
     us:
-      - drug: "Levofloxacin"
-        code_rxnorm: "82122"
+      - drug_id: levofloxacin
         dose: "750mg PO daily"
         duration_days: 7
         note: "Guided by culture results; total ABx course 7-14 days"
