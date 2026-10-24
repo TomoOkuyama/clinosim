@@ -516,35 +516,34 @@ drugs:
         indication: "cardiogenic_shock_with_hypotension"
 
   discharge_oral:
+    # META #1804 Phase 2.d cardiac cluster: discharge_oral entries carry
+    # drug_id into clinosim/codes/data/drugs.yaml. Legacy drug/drug_ja/
+    # code_yj/code_rxnorm fields were unused by the discharge-Rx emit
+    # path (code_* only applied to admission orders) and are retired
+    # here; the display is resolved via the catalog.
     japan:
-      - drug: "Aspirin"
-        code_yj: "3399007"
+      - drug_id: aspirin
         dose: "100mg PO daily"
         duration_days: 365
         note: "indefinite"
-      - drug: "Clopidogrel"
-        code_yj: "3399008"
+      - drug_id: clopidogrel
         dose: "75mg PO daily"
         duration_days: 365
         note: "DAPT for 12 months post-PCI"
-      - drug: "Atorvastatin"
-        code_yj: "2189015"
+      - drug_id: atorvastatin
         dose: "20mg PO daily"
         duration_days: 365
         note: "indefinite"
     us:
-      - drug: "Aspirin"
-        code_rxnorm: "1191"
+      - drug_id: aspirin
         dose: "81mg PO daily"
         duration_days: 365
         note: "indefinite"
-      - drug: "Ticagrelor"
-        code_rxnorm: "1116632"
+      - drug_id: ticagrelor
         dose: "90mg PO BID"
         duration_days: 365
         note: "DAPT for 12 months post-PCI"
-      - drug: "Atorvastatin"
-        code_rxnorm: "83367"
+      - drug_id: atorvastatin
         dose: "80mg PO daily"
         duration_days: 365
         note: "indefinite"
