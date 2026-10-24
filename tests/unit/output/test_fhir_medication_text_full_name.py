@@ -37,7 +37,9 @@ def test_localize_multi_word_drug_names_hit_ja_dict():
         ("Lactated Ringer", "乳酸リンゲル液"),
         ("Hypertonic Saline", "高張食塩液"),
         ("Unfractionated Heparin", "未分画ヘパリン"),
-        ("Calcium/Vitamin D", "カルシウム/ビタミンD"),
+        # META #1849 Phase 5 Step 2 (combo products): resolves via
+        # calcium_carbonate_vitamin_d catalog alias → carbonate-specific JA.
+        ("Calcium/Vitamin D", "炭酸カルシウム/ビタミンD"),
         ("ICS/LABA inhaler", "吸入ステロイド／β2刺激薬配合吸入剤"),
     ]
     for en, expected_ja in cases:

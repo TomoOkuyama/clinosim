@@ -771,3 +771,15 @@ codes:
   '798306':
     en: Tetanus toxoid vaccine, inactivated
     ja: 破傷風トキソイド (不活化ワクチン)
+
+  # ─── META #1849 Phase 5 Step 2 combo products — RxCUIs verified via
+  # NLM RxNav /REST/rxcui/<cui>/properties.json (2026-10-24).
+  '817579':
+    en: Acetaminophen / Codeine
+    ja: アセトアミノフェン/コデイン
+  '1897':
+    en: Calcium Carbonate
+    ja: 炭酸カルシウム
+  '608343':
+    en: Calcium Carbonate / Cholecalciferol
+    ja: 炭酸カルシウム/ビタミンD

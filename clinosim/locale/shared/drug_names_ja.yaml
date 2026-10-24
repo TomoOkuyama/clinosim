@@ -5,19 +5,17 @@
 # Sources: 医薬品添付文書 (PMDA), 薬価基準収載医薬品コード (YJ code)
 
 # --- Antibiotics / 抗菌薬 ---
-Amoxicillin/Clavulanate: "アモキシシリン/クラブラン酸"
+# Amoxicillin/Clavulanate → amoxicillin_clavulanate catalog + alias (META #1849 Phase 5 Step 2).
 # Cefcapene pivoxil → cefcapene_pivoxil catalog drug_id (META #1849 Phase 5 Step 2.b; MHLW YJ 6132016F2038, フロモックス).
 Cefditoren pivoxil: "セフジトレンピボキシル"
-# DEPRECATED 2026-06-27 — Trimethoprim-sulfamethoxazole hyphen form is legacy
-# alias; use slash form Trimethoprim/Sulfamethoxazole everywhere. Remove this
-# alias after one release cycle if no new callers appear.
-Trimethoprim-sulfamethoxazole: "スルファメトキサゾール/トリメトプリム"
-Trimethoprim/Sulfamethoxazole: "スルファメトキサゾール/トリメトプリム"
+# Trimethoprim-sulfamethoxazole (deprecated hyphen) + Trimethoprim/Sulfamethoxazole (slash)
+# → trimethoprim_sulfamethoxazole catalog + aliases (META #1849 Phase 5 Step 2).
+# JA display unifies to catalog "スルファメトキサゾール／トリメトプリム" (fullwidth slash) — cosmetic diff from legacy halfwidth form, no clinical difference.
 
 # --- Antiviral / 抗ウイルス薬 ---
 
 # --- Analgesics / 鎮痛薬 ---
-Acetaminophen/codeine: "アセトアミノフェン/コデイン"
+# Acetaminophen/codeine → acetaminophen_codeine catalog + alias (META #1849 Phase 5 Step 2).
 NSAID: "ロキソプロフェン"                  # code_mapping substitutes NSAID → Loxoprofen (YJ 1149019C1149)
 
 # --- Cardiovascular / 循環器系 ---
@@ -49,9 +47,8 @@ Regular human insulin: "ヒトインスリン"    # MHLW YJ 2492403A4051 (ヒュ
 # health cadence (see narrative_seed_bundle.yaml Issue #1405 mapping).
 
 # --- Bone / 骨代謝 ---
-Calcium/Vitamin D: "カルシウム/ビタミンD"
+# Calcium/Vitamin D + Calcium carbonate + vitamin D → calcium_carbonate_vitamin_d catalog + aliases (META #1849 Phase 5 Step 2).
 Calcitonin nasal spray: "カルシトニン点鼻"
-Calcium carbonate + vitamin D: "炭酸カルシウム/ビタミンD"
 # Calcium gluconate → calcium_gluconate catalog drug_id (META #1849 Phase 5 Step 2.a; MHLW YJ 3213001X1010 カルチコール).
 # Elcatonin → elcatonin catalog drug_id (META #1849 Phase 5 Step 2.b; MHLW YJ 3999401A1200, エルシトニン).
 
