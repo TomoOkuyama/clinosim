@@ -238,7 +238,13 @@ drugs:
   clopidogrel:
     names: {en: "Clopidogrel", ja: "クロピドグレル"}
     codes:
-      rxnorm: "2670"
+      # #1856 batch 3: pre-existing bug fix — the inherited RxCUI 2670
+      # resolves to codeine on NLM RxNav (not Clopidogrel). The correct
+      # Clopidogrel RxCUI is 32968 (TTY=IN, verified via
+      # /REST/rxcui/32968/properties.json). The duplicate `clopidogrel_2`
+      # drug_id that carried 32968 as a work-around is retired in the
+      # same PR; its 2 chronic_medications.yaml references migrate here.
+      rxnorm: "32968"
     classes: ['antiplatelet.p2y12', 'antiplatelet']
   tiotropium:
     names: {en: "Tiotropium", ja: "チオトロピウム"}
@@ -274,11 +280,6 @@ drugs:
     names: {en: "Apixaban", ja: "アピキサバン"}
     codes:
       rxnorm: "321064"
-    classes: []
-  clopidogrel_2:
-    names: {en: "Clopidogrel", ja: "クロピドグレル"}
-    codes:
-      rxnorm: "32968"
     classes: []
   hydromorphone:
     names: {en: "Hydromorphone", ja: "ヒドロモルフォン"}
@@ -540,6 +541,71 @@ drugs:
     codes:
       rxnorm: "11055"
     classes: ["thrombolytic"]
+  # META #1849 Phase 5 Step 2 batch 3 — analgesia / anti-emetic /
+  # gastric / neuroleptic cluster. 12 ingredient drugs promoted
+  # from legacy drug_names_ja.yaml to the catalog. RxCUIs verified
+  # via NLM RxNav (TTY=IN). Codeine (2670) reuses the slot freed
+  # by the pre-existing Clopidogrel misassignment fix in this PR.
+  codeine:
+    names: {en: "Codeine", ja: "コデイン"}
+    codes:
+      rxnorm: "2670"
+    classes: ["opioid"]
+  diclofenac:
+    names: {en: "Diclofenac", ja: "ジクロフェナク"}
+    codes:
+      rxnorm: "3355"
+    classes: ["nsaid"]
+  tramadol:
+    names: {en: "Tramadol", ja: "トラマドール"}
+    codes:
+      rxnorm: "10689"
+    classes: ["opioid.weak"]
+  pregabalin:
+    names: {en: "Pregabalin", ja: "プレガバリン"}
+    codes:
+      rxnorm: "187832"
+    classes: ["anticonvulsant", "analgesic.neuropathic"]
+  cyclobenzaprine:
+    names: {en: "Cyclobenzaprine", ja: "シクロベンザプリン"}
+    codes:
+      rxnorm: "21949"
+    classes: ["muscle_relaxant"]
+  lidocaine:
+    names: {en: "Lidocaine", ja: "リドカイン"}
+    codes:
+      rxnorm: "6387"
+    classes: ["local_anesthetic", "antiarrhythmic.class_ib"]
+  ketamine:
+    names: {en: "Ketamine", ja: "ケタミン"}
+    codes:
+      rxnorm: "6130"
+    classes: ["anesthetic.dissociative"]
+  propofol:
+    names: {en: "Propofol", ja: "プロポフォール"}
+    codes:
+      rxnorm: "8782"
+    classes: ["anesthetic.sedative_hypnotic"]
+  famotidine:
+    names: {en: "Famotidine", ja: "ファモチジン"}
+    codes:
+      rxnorm: "4278"
+    classes: ["h2_blocker"]
+  diphenhydramine:
+    names: {en: "Diphenhydramine", ja: "ジフェンヒドラミン"}
+    codes:
+      rxnorm: "3498"
+    classes: ["antihistamine.h1_first_generation"]
+  octreotide:
+    names: {en: "Octreotide", ja: "オクトレオチド"}
+    codes:
+      rxnorm: "7617"
+    classes: ["somatostatin_analogue"]
+  phenazopyridine:
+    names: {en: "Phenazopyridine", ja: "フェナゾピリジン"}
+    codes:
+      rxnorm: "8120"
+    classes: ["urinary_analgesic"]
   heparin:
     names: {en: "Heparin", ja: "ヘパリン"}
     codes:

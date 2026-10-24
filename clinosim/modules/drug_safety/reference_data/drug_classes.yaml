@@ -87,7 +87,6 @@ mappings:
 
   Diclofenac:
     aliases: ["ジクロフェナク", "ボルタレン"]
-    drug_ja: "ジクロフェナク"
     classes: ["nsaid.non_selective", "nsaid"]
 
   # Ketorolac — very common IV/IM NSAID (post-op / ED pain).
