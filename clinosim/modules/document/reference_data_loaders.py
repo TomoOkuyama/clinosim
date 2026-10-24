@@ -34,9 +34,9 @@ _REF_DIR = _HERE / "reference_data"
 # Kept beside `narrative/template_generator.py` because the content is
 # narrative-only (not consumed by FHIR or enrichment paths).
 _NARRATIVE_REF_DIR = _HERE / "narrative" / "reference_data"
-# META #1805 Phase D: nursing-content SoT catalog moved to
-# `clinosim/codes/data/clinosim-nursing-content.yaml` so authority-adjacent
-# reference tables live beside the other `clinosim-*.yaml` catalogs
+# META #1805 Phase D/E: authority-adjacent reference tables (nursing-content,
+# discharge-instructions) now live under `clinosim/codes/data/clinosim-*.yaml`
+# alongside the other `clinosim-*.yaml` catalogs
 # (`clinosim-nursing-scores.yaml`, `clinosim-stage-to-snomed.yaml`).
 _CODES_DATA_DIR = _HERE.parent.parent / "codes" / "data"
 
@@ -210,7 +210,7 @@ def load_discharge_instructions() -> dict[str, Any]:
     Task 6 TemplateNarrativeGenerator merges baseline + disease_specific entries,
     with disease_specific taking precedence for shared keys.
     """
-    with (_REF_DIR / "discharge_instructions.yaml").open(encoding="utf-8") as f:
+    with (_CODES_DATA_DIR / "clinosim-discharge-instruction.yaml").open(encoding="utf-8") as f:
         data: dict[str, Any] = yaml.safe_load(f)
     _validate_discharge_instructions(data)
     return data
