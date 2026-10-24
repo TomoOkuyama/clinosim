@@ -503,16 +503,19 @@ drugs:
         indication: "same"
 
   discharge_oral:
+    # META #1804 Phase 2.d liver-cardiac-renal cluster: discharge_oral
+    # entries carry drug_id into clinosim/codes/data/drugs.yaml.
+    # sodium_bicarbonate was added to the catalog by #1843 (RxCUI
+    # 36676, TTY=IN, verified via NLM RxNav — corrected from the
+    # pre-existing misassignment to 9796 which resolves to simethicone).
     japan:
-      - drug: "Sodium_bicarbonate_oral"
-        code_yj: "2344004"
+      - drug_id: sodium_bicarbonate
         dose: "1-2g PO TID"
         duration_days: 30
         note: "If persistent mild metabolic acidosis"
         probability: 0.30
     us:
-      - drug: "Sodium_bicarbonate_oral"
-        code_rxnorm: "9863"
+      - drug_id: sodium_bicarbonate
         dose: "650mg PO TID"
         duration_days: 30
         probability: 0.25
