@@ -34,6 +34,11 @@ _REF_DIR = _HERE / "reference_data"
 # Kept beside `narrative/template_generator.py` because the content is
 # narrative-only (not consumed by FHIR or enrichment paths).
 _NARRATIVE_REF_DIR = _HERE / "narrative" / "reference_data"
+# META #1805 Phase D: nursing-content SoT catalog moved to
+# `clinosim/codes/data/clinosim-nursing-content.yaml` so authority-adjacent
+# reference tables live beside the other `clinosim-*.yaml` catalogs
+# (`clinosim-nursing-scores.yaml`, `clinosim-stage-to-snomed.yaml`).
+_CODES_DATA_DIR = _HERE.parent.parent / "codes" / "data"
 
 # Required top-level keys for baseline and the minimum archetype.
 _PHYSICAL_EXAM_REQUIRED_BASELINE_ARCHETYPE = "uncomplicated_improvement"
@@ -415,7 +420,7 @@ def load_nursing_content() -> dict[str, Any]:
     merge acute-first then chronic-second, per-lang, deduplicating and
     capping the merged list.
     """
-    with (_REF_DIR / "nursing_content.yaml").open(encoding="utf-8") as f:
+    with (_CODES_DATA_DIR / "clinosim-nursing-content.yaml").open(encoding="utf-8") as f:
         data: dict[str, Any] = yaml.safe_load(f)
     _validate_nursing_content(data)
     return data
