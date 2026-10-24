@@ -55,8 +55,11 @@ def test_places_cr_chest_order_on_admission_day():
     assert o.imaging_views == ["PA", "Lateral"]
     assert o.urgency == "routine"
     assert o.clinical_intent == "Suspected pneumonia"
-    # order_code must be the resolved procedure code (LOINC for default lookup, e.g. CR_PA_Lateral)
-    assert o.order_code == "36572-6"  # LOINC for "Chest X-ray PA and Lateral"
+    # order_code must be the resolved procedure code (LOINC for default lookup, e.g. CR_PA_Lateral).
+    # #1851 chest 2-view/1-view split: CR_PA_Lateral (2-view standing) now
+    # resolves to 42272-5 (XR Chest PA and Lateral); CR_PA (1-view portable
+    # AP) still resolves to 36572-6.
+    assert o.order_code == "42272-5"
     assert o.imaging_spec_meta == {
         "abnormal_rate_by_severity": {"mild": 0.85, "moderate": 0.95, "severe": 1.0},
         "contrast": False,

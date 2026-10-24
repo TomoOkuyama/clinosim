@@ -743,8 +743,14 @@ codes:
     en: CT Hip WO contrast
     ja: 股関節CT 単純
   36572-6:
+    # LOINC 36572-6 is `XR Chest AP` — a single AP (anteroposterior)
+    # projection, typically portable/supine. The JA was authored as
+    # "正面・側面" (AP+Lateral) in Phase B.2 Part 1 at a time when
+    # body_sites.yaml used this LOINC for the 2-view standing variant;
+    # #1851 split the 2-view variant to 42272-5, and 36572-6's JA now
+    # correctly reads as 1-view AP.
     en: XR Chest AP
-    ja: 胸部単純X線撮影 正面・側面
+    ja: 胸部単純X線撮影 正面 (AP)
   # 29252-4 (CT Chest WO contrast) and 24628-0 (CT Chest W contrast IV)
   # are already registered above (session 58 Issue #264 — Chest CT
   # replacement for retired 30794-3). Not duplicated here.
@@ -766,6 +772,34 @@ codes:
   41806-1:
     en: CT Abdomen
     ja: 腹部CT 単純
+  # #1851 abdomen CT contrast-state split (follow-up of Phase B.2 Part 2).
+  # body_sites.yaml used 41806-1 (CT Abdomen, no contrast qualifier) for
+  # both the CT_non_contrast and CT_contrast variants, so the LOINC
+  # canonical display converged on "CT Abdomen" for both and the
+  # contrast-state semantic was lost. Mirrors the chest split (29252-4
+  # WO + 24628-0 W). Verified via NLM Clinical Table Search Service.
+  36424-0:
+    en: CT Abdomen WO contrast
+    ja: 腹部CT 単純
+  79103-8:
+    en: CT Abdomen W contrast IV
+    ja: 腹部CT 造影
+  # #1851 chest 2-view-vs-1-view split. body_sites.yaml used 36572-6
+  # (XR Chest AP — AP projection, portable supine) for both the
+  # CR_PA_Lateral (standing 2-view) and CR_PA (portable 1-view) variants.
+  # 42272-5 is the LOINC for the 2-view standing exam.
+  42272-5:
+    en: XR Chest PA and Lateral
+    ja: 胸部単純X線撮影 PA・側面
+  # #1851 wrist view-count split. body_sites.yaml used 24619-9 (XR Wrist
+  # Views, no view-count qualifier) for both 2-view and 3-view variants.
+  # Distinct LOINCs now carry the view-count semantic.
+  37925-5:
+    en: XR Wrist 2 Views
+    ja: 手関節単純X線撮影 2方向
+  37926-3:
+    en: XR Wrist 3 Views
+    ja: 手関節単純X線撮影 3方向
   24558-9:
     en: US Abdomen
     ja: 腹部超音波検査

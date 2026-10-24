@@ -28,7 +28,12 @@ _EXPECTED = {
     # EN = LOINC Long Common Name (authoritative via NLM / Regenstrief
     # 2.82 snapshot). JA = clinosim-curated translation of the current
     # emit-time composite label.
-    "36572-6": ("XR Chest AP", "胸部単純X線撮影 正面・側面"),
+    # #1851 chest 2-view/1-view split: 36572-6 is `XR Chest AP` — a
+    # single AP (anteroposterior) projection. The JA was authored as
+    # "正面・側面" (AP+Lateral) in Phase B.2 Part 1 when body_sites.yaml
+    # used this LOINC for the 2-view variant; the 2-view variant now
+    # maps to 42272-5 and 36572-6's JA reads as 1-view AP.
+    "36572-6": ("XR Chest AP", "胸部単純X線撮影 正面 (AP)"),
     "29252-4": ("CT Chest WO contrast", "胸部CT 単純"),
     "24628-0": ("CT Chest W contrast IV", "胸部CT 造影"),
     "30799-1": ("CT Head WO contrast", "頭部CT 単純"),
