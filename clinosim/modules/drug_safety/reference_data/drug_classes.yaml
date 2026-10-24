@@ -25,17 +25,14 @@ mappings:
   # Anticoagulants
   Warfarin:
     aliases: ["ワルファリン", "coumadin", "warf"]
-    drug_ja: "ワルファリン"
     classes: ["anticoagulant.vka", "anticoagulant"]
 
   Apixaban:
     aliases: ["アピキサバン", "eliquis"]
-    drug_ja: "アピキサバン"
     classes: ["anticoagulant.doac", "anticoagulant"]
 
   Rivaroxaban:
     aliases: ["リバーロキサバン", "xarelto"]
-    drug_ja: "リバーロキサバン"
     classes: ["anticoagulant.doac", "anticoagulant"]
 
   Dabigatran:
@@ -50,23 +47,19 @@ mappings:
 
   Enoxaparin:
     aliases: ["エノキサパリン", "lovenox"]
-    drug_ja: "エノキサパリン"
     classes: ["anticoagulant.heparin", "anticoagulant"]
 
   Heparin:
     aliases: ["ヘパリン"]
-    drug_ja: "ヘパリン"
     classes: ["anticoagulant.heparin", "anticoagulant"]
 
   # Antiplatelets — aspirin is dual-class (antiplatelet AND nsaid)
   Aspirin:
     aliases: ["アスピリン", "ASA", "バイアスピリン"]
-    drug_ja: "アスピリン"
     classes: ["antiplatelet.cox_inhibitor", "antiplatelet", "nsaid.non_selective", "nsaid"]
 
   Clopidogrel:
     aliases: ["クロピドグレル", "plavix", "プラビックス"]
-    drug_ja: "クロピドグレル"
     classes: ["antiplatelet.p2y12", "antiplatelet"]
 
   Prasugrel:
@@ -76,13 +69,11 @@ mappings:
 
   Ticagrelor:
     aliases: ["チカグレロル", "brilinta"]
-    drug_ja: "チカグレロル"
     classes: ["antiplatelet.p2y12", "antiplatelet"]
 
   # NSAIDs (non-antiplatelet)
   Ibuprofen:
     aliases: ["イブプロフェン"]
-    drug_ja: "イブプロフェン"
     classes: ["nsaid.non_selective", "nsaid"]
 
   Loxoprofen:
@@ -104,7 +95,6 @@ mappings:
   # #1087 (C1): omission let anticoag+NSAID pairs slip past the gate.
   Ketorolac:
     aliases: ["ケトロラック", "toradol"]
-    drug_ja: "ケトロラック"
     classes: ["nsaid.non_selective", "nsaid"]
 
   Meloxicam:
@@ -119,13 +109,11 @@ mappings:
 
   Celecoxib:
     aliases: ["セレコキシブ", "celebrex"]
-    drug_ja: "セレコキシブ"
     classes: ["nsaid.cox2_selective", "nsaid"]
 
   # Analgesic (non-NSAID) — pain_management substitution target
   Acetaminophen:
     aliases: ["アセトアミノフェン", "paracetamol", "tylenol", "カロナール"]
-    drug_ja: "アセトアミノフェン"
     classes: ["analgesic.non_opioid"]
 
   # β-blockers
@@ -136,7 +124,6 @@ mappings:
 
   Carvedilol:
     aliases: ["カルベジロール", "アーチスト"]
-    drug_ja: "カルベジロール"
     classes: ["beta_blocker.non_selective", "beta_blocker", "antihypertensive"]
 
   Bisoprolol:
@@ -147,7 +134,6 @@ mappings:
   # CCBs — DHP is generally safe with BB; non-DHP is the interaction risk
   Amlodipine:
     aliases: ["アムロジピン"]
-    drug_ja: "アムロジピン"
     classes: ["ccb.dhp", "ccb", "antihypertensive"]
 
   Nifedipine:
@@ -162,56 +148,46 @@ mappings:
 
   Diltiazem:
     aliases: ["ジルチアゼム", "ヘルベッサー"]
-    drug_ja: "ジルチアゼム"
     classes: ["ccb.non_dhp", "ccb", "antihypertensive"]
 
   # ACEi / ARB (unified via acei_arb tag)
   Candesartan:
     aliases: ["カンデサルタン", "ブロプレス"]
-    drug_ja: "カンデサルタン"
     classes: ["arb", "acei_arb", "antihypertensive"]
 
   Losartan:
     aliases: ["ロサルタン", "ニューロタン"]
-    drug_ja: "ロサルタン"
     classes: ["arb", "acei_arb", "antihypertensive"]
 
   Enalapril:
     aliases: ["エナラプリル", "レニベース"]
-    drug_ja: "エナラプリル"
     classes: ["acei", "acei_arb", "antihypertensive"]
 
   Lisinopril:
     aliases: ["リシノプリル"]
-    drug_ja: "リシノプリル"
     classes: ["acei", "acei_arb", "antihypertensive"]
 
   # Potassium (interaction target for ACEi/ARB)
   "Potassium chloride":
     aliases: ["KCl", "K-Dur", "塩化カリウム", "スローケー"]
-    drug_ja: "塩化カリウム"
     classes: ["potassium_supplement", "electrolyte_supplement"]
 
   # Diuretics
   Furosemide:
     aliases: ["フロセミド", "ラシックス"]
-    drug_ja: "フロセミド"
     classes: ["diuretic.loop"]
 
   Spironolactone:
     aliases: ["スピロノラクトン", "アルダクトン"]
-    drug_ja: "スピロノラクトン"
     classes: ["diuretic.k_sparing"]
 
   # Statins + CYP3A4 inhibitors
   Atorvastatin:
     aliases: ["アトルバスタチン", "リピトール"]
-    drug_ja: "アトルバスタチン"
     classes: ["statin", "cyp3a4_substrate"]
 
   Simvastatin:
     aliases: ["シンバスタチン", "リポバス"]
-    drug_ja: "シンバスタチン"
     classes: ["statin", "cyp3a4_substrate"]
 
   Clarithromycin:
@@ -232,22 +208,18 @@ mappings:
 
   Sertraline:
     aliases: ["セルトラリン", "ジェイゾロフト"]
-    drug_ja: "セルトラリン"
     classes: ["ssri", "antidepressant"]
 
   Escitalopram:
     aliases: ["エスシタロプラム", "レクサプロ", "lexapro"]
-    drug_ja: "エスシタロプラム"
     classes: ["ssri", "antidepressant"]
 
   Fluoxetine:
     aliases: ["フルオキセチン", "prozac", "プロザック"]
-    drug_ja: "フルオキセチン"
     classes: ["ssri", "antidepressant"]
 
   Paroxetine:
     aliases: ["パロキセチン", "paxil", "パキシル"]
-    drug_ja: "パロキセチン"
     classes: ["ssri", "antidepressant"]
 
   # SNRI — concurrent SSRI + SNRI risks serotonin syndrome
@@ -255,12 +227,10 @@ mappings:
   # the second one). See contraindications.yaml::ssri-plus-snri.
   Duloxetine:
     aliases: ["デュロキセチン", "cymbalta", "サインバルタ"]
-    drug_ja: "デュロキセチン"
     classes: ["snri", "antidepressant"]
 
   Venlafaxine:
     aliases: ["ベンラファキシン", "effexor", "イフェクサー"]
-    drug_ja: "ベンラファキシン"
     classes: ["snri", "antidepressant"]
 
   # Atypical antidepressant — not serotonergic in the SSRI/SNRI sense;
@@ -268,7 +238,6 @@ mappings:
   # APA/VA-DoD depression guideline augmentation path intends.
   Mirtazapine:
     aliases: ["ミルタザピン", "remeron", "リフレックス", "レメロン"]
-    drug_ja: "ミルタザピン"
     classes: ["atypical_antidepressant", "antidepressant"]
 
   Selegiline:
@@ -282,12 +251,10 @@ mappings:
   # modelling is a separate follow-up PR.
   Lorazepam:
     aliases: ["ロラゼパム", "ativan", "ワイパックス"]
-    drug_ja: "ロラゼパム"
     classes: ["benzodiazepine", "anxiolytic"]
 
   Alprazolam:
     aliases: ["アルプラゾラム", "xanax", "ソラナックス", "コンスタン"]
-    drug_ja: "アルプラゾラム"
     classes: ["benzodiazepine", "anxiolytic"]
 
   Diazepam:
@@ -303,5 +270,4 @@ mappings:
   # Antidiabetic / 糖尿病治療薬
   Metformin:
     aliases: ["メトホルミン", "glucophage", "メトグルコ"]
-    drug_ja: "メトホルミン"
     classes: ["biguanide"]
