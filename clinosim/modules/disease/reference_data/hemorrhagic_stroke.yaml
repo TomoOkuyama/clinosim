@@ -435,25 +435,24 @@ drugs:
     us: []
 
   discharge_oral:
+    # META #1804 Phase 2.d neuro-metabolic cluster: discharge_oral
+    # entries carry drug_id into clinosim/codes/data/drugs.yaml.
+    # Display resolved via the catalog.
     japan:
-      - drug: "Amlodipine"
-        code_yj: "2149114"
+      - drug_id: amlodipine
         dose: "5-10mg PO daily"
         duration_days: 90
         note: "Long-term BP control"
-      - drug: "Levetiracetam"
-        code_yj: "1139010"
+      - drug_id: levetiracetam
         dose: "500mg PO BID"
         duration_days: 30
         note: "Only if seizure occurred during hospitalization"
         probability: 0.15
     us:
-      - drug: "Amlodipine"
-        code_rxnorm: "17767"
+      - drug_id: amlodipine
         dose: "5-10mg PO daily"
         duration_days: 90
-      - drug: "Levetiracetam"
-        code_rxnorm: "39998"
+      - drug_id: levetiracetam
         dose: "500mg PO BID"
         duration_days: 30
         probability: 0.15
