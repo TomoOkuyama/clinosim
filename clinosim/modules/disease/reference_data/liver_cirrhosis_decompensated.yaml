@@ -514,39 +514,35 @@ drugs:
         route: IV
 
   discharge_oral:
+    # META #1804 Phase 2.d liver-cardiac-renal cluster: discharge_oral
+    # entries carry drug_id into clinosim/codes/data/drugs.yaml. All
+    # 4 drug_ids registered in the catalog (lactulose + rifaximin
+    # added by #1843).
     japan:
-      - drug: "Spironolactone"
-        code_yj: "2133002"
+      - drug_id: spironolactone
         dose: "50-100mg PO daily"
         duration_days: 0   # chronic
-      - drug: "Furosemide"
-        code_yj: "2139002"
+      - drug_id: furosemide
         dose: "20-40mg PO daily"
         duration_days: 0
-      - drug: "Lactulose"
-        code_yj: "2359003"
+      - drug_id: lactulose
         dose: "30mL PO TID"
         duration_days: 0
-      - drug: "Rifaximin"
-        code_yj: "6199001"
+      - drug_id: rifaximin
         dose: "400mg PO TID"
         duration_days: 0
         probability: 0.50
     us:
-      - drug: "Spironolactone"
-        code_rxnorm: "9997"
+      - drug_id: spironolactone
         dose: "100mg PO daily"
         duration_days: 0
-      - drug: "Furosemide"
-        code_rxnorm: "4603"
+      - drug_id: furosemide
         dose: "40mg PO daily"
         duration_days: 0
-      - drug: "Lactulose"
-        code_rxnorm: "6026"
+      - drug_id: lactulose
         dose: "30mL PO TID"
         duration_days: 0
-      - drug: "Rifaximin"
-        code_rxnorm: "194501"
+      - drug_id: rifaximin
         dose: "550mg PO BID"
         duration_days: 0
         probability: 0.60

@@ -407,24 +407,28 @@ drugs:
         pregnancy_safe: false
 
   discharge_oral:
+    # META #1804 Phase 2.d liver-cardiac-renal cluster: discharge_oral
+    # entries carry drug_id into clinosim/codes/data/drugs.yaml. All
+    # 4 drug_ids registered in the catalog (bisoprolol +
+    # metoprolol_succinate added by #1843; edoxaban added by #1839).
+    # Note: the legacy code_rxnorm 6918 (ingredient metoprolol) is
+    # intentionally replaced by the catalog's metoprolol_succinate
+    # pointer 221124 (PIN precise ingredient), which better reflects
+    # the long-acting succinate salt the yaml names in `drug:`.
     japan:
-      - drug: "Bisoprolol"
-        code_yj: "2149700"
+      - drug_id: bisoprolol
         dose: "2.5-5mg PO daily"
         duration_days: 0   # chronic
         note: "Rate control maintenance"
-      - drug: "Edoxaban"
-        code_yj: "3339002"
+      - drug_id: edoxaban
         dose: "60mg PO daily"
         duration_days: 0   # chronic
         note: "If CHA2DS2-VASc indicates anticoagulation"
     us:
-      - drug: "Metoprolol_succinate"
-        code_rxnorm: "6918"
+      - drug_id: metoprolol_succinate
         dose: "25-100mg PO daily"
         duration_days: 0
-      - drug: "Apixaban"
-        code_rxnorm: "1364430"
+      - drug_id: apixaban
         dose: "5mg PO BID"
         duration_days: 0
         note: "If CHA2DS2-VASc indicates anticoagulation"
