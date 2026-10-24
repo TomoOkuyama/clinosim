@@ -733,6 +733,15 @@ codes:
   # A follow-up PR (Phase B.2 Part 2) will switch the emit-side source
   # from body_sites.yaml composites to code_lookup("loinc", code, lang)
   # — displays will track whichever branch matches the output locale.
+  # #1851 hip CT modality correction (follow-up of META #1805 Phase B.2 Part 2):
+  # body_sites.yaml hip CT_non_contrast previously pointed at 36663-3
+  # (`XR Hip 2 Views`) — an XR LOINC used for a CT procedure. Replaced
+  # with 36484-4 (`CT Hip WO contrast`, Multisection^WO contrast) verified
+  # via NLM Clinical Table Search Service
+  # (clinicaltables.nlm.nih.gov/api/loinc_items/v3/search?terms=CT+Hip+WO+contrast).
+  36484-4:
+    en: CT Hip WO contrast
+    ja: 股関節CT 単純
   36572-6:
     en: XR Chest AP
     ja: 胸部単純X線撮影 正面・側面
