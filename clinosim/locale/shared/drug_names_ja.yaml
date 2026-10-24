@@ -105,85 +105,18 @@ KCl: "塩化カリウム"
 # --- Vaccines / ワクチン ---
 Tetanus toxoid: "破傷風トキソイド"
 
-# --- PE/DVT treatment / 血栓症治療 ---
-Sequential compression devices: "間欠的空気圧迫装置"
-therapeutic_anticoagulation: "治療的抗凝固療法"
-therapeutic anticoagulation: "治療的抗凝固療法"
+# --- PE/DVT treatment procedures + non-drug procedures + dialysis +
+#     ventilation + interventional procedures + ED procedures +
+#     order-derived procedures ---
+# Migrated to `clinosim/codes/data/clinosim-procedure-phrase.yaml` under
+# META #1849 Phase 5 Step 2.d. Loader `_load_drug_names_ja` unions that
+# catalog into the returned dict so no caller change was needed.
+# `Broad spectrum antibiotic` is a drug-class label (not a procedure);
+# left here pending Phase 5 Step 2.f (drug class labels → drug_classes.yaml).
 Broad spectrum antibiotic: "広域スペクトラム抗菌薬"
-
-# --- Non-drug orders (procedures classified as medication in CIF) ---
-# These should ideally not be MedicationRequests, but translate for consistency
-Ice pack application: "氷嚢貼付"
-Ice pack to affected area: "患部への氷嚢貼付"
-Heat pack application: "温罨法"
-Suture closure: "縫合閉創"
-Skin staples: "スキンステープル"
-Tissue adhesive: "組織接着剤"
-Nasal packing: "鼻腔パッキング"
-Cervical collar application: "頸椎カラー装着"
-Cardiac monitoring: "心電図モニタリング"
-Closed reduction: "徒手整復"
-Neurological observation: "神経学的観察"
-Sling immobilization: "三角巾固定"
-Short arm splint: "前腕シーネ固定"
-Posterior splint: "後方シーネ固定"
-Sugar-tong splint pending surgery: "術前シュガートングシーネ固定"
-Short arm cast: "前腕ギプス固定"
-Elastic bandage wrap: "弾性包帯巻"
-Non-adherent dressing: "非固着性ドレッシング"
-Reassurance and breathing exercises: "安心させる言葉かけと呼吸訓練"
-Incentive spirometry instruction: "インセンティブ・スパイロメトリー指導"
-Observation and monitoring: "経過観察"
-Observation: "経過観察"
-Oral fluids encouraged: "経口水分摂取励行"
-Dark room rest: "暗室安静"
-Cool water irrigation: "冷水洗浄"
-Wound irrigation with normal saline: "生理食塩液による創部洗浄"
-
-# --- Dialysis / 透析 ---
-Hemodialysis: "血液透析"
-
-# --- Ventilation / 呼吸管理 ---
-NIV_BiPAP: "非侵襲的陽圧換気 (BiPAP)"
-NIV BiPAP: "非侵襲的陽圧換気 (BiPAP)"
-Intubation and mechanical ventilation: "気管挿管・人工呼吸管理"
-# Issue #1701 Phase 4d.1 — chronic OSA follow-up (G47.30 cohort).
-CPAP therapy: "CPAP 療法"
-Polysomnography: "ポリソムノグラフィー"
-
-# --- Interventional procedures / 手技 ---
-Vertebroplasty: "椎体形成術"
-Percutaneous vertebroplasty: "経皮的椎体形成術"
-Silver nitrate cauterization: "硝酸銀による焼灼"
-Procedural sedation: "手技時鎮静"
-Catheter-directed thrombolysis: "カテーテル血栓溶解療法"
-Foley catheter insertion: "膀胱留置カテーテル挿入"
-# Compound-phrase entries (Phase 1d-65) — cover the high-frequency
-# procedure_orders `detail` phrases that leak partially localized
-# (`urinary カテーテル: フォーリーカテーテル の perioperative period`)
-# through the drug-name substring matcher. Adding whole-phrase entries
-# gives the matcher a longer, higher-precedence hit.
-Foley catheter for perioperative period: "周術期の膀胱留置カテーテル"
-urinary catheter: "膀胱留置カテーテル"
-perioperative period: "周術期"
 
 # --- Ophthalmic / 眼科用薬 ---
 Ofloxacin ophthalmic: "オフロキサシン点眼"
-
-# --- Procedures (ED) / 処置 ---
-Foreign body removal with 25G needle: "25G針による異物除去"
-Rust ring removal with burr: "バーによる錆輪除去"
-
-# --- Procedures (order-derived, Issue #861) / 処置(オーダー由来) ---
-# The 3 order-derived Procedure kinds whose CIF Order.display_name
-# ships as "key: description" and hit the FHIR emit site at
-# clinosim/modules/output/fhir_r4/lib/inline_bb.py:697 without any
-# JA localization prior to this addition. `_localize_drug_name` strips
-# the "key:" prefix and looks up the cleaned form here, so the entries
-# below key on the post-strip form.
-"Graduated compression stocking on unaffected leg": "弾性ストッキング(患側外・段階的圧迫)"
-"Cervical collar until cleared": "頚椎固定(頚椎カラー・画像判定まで)"
-"Emergent dialysis stat": "緊急透析"
 
 # --- Imaging exam names (Issue #862) / 画像検査名 ---
 # Migrated to `clinosim/codes/data/clinosim-imaging-exam-name.yaml` under
