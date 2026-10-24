@@ -717,3 +717,73 @@ codes:
   10331-7:
     en: Rh [Type] in Blood
     ja: Rh 血液型
+
+  # === Imaging procedure codes (META #1805 Phase B.2) ===
+  # Pre-#1805 Phase B.2 the EN+JA imaging-procedure displays lived
+  # inline on body_sites.yaml::procedure_codes[*].display_en/ja. These
+  # 19 LOINC codes are the authority counterparts.
+  #
+  # EN values are the LOINC Long Common Name (LCN) from the
+  # authoritative snapshot ``tests/unit/codes/snapshots/
+  # loinc_2_82_tx.json`` (NLM / Regenstrief 2.82). JA values are the
+  # clinosim-curated translations currently emitted by the simulator
+  # (body_sites.yaml composite labels), kept here as the single source
+  # of truth and byte-preserving current FHIR output.
+  #
+  # A follow-up PR (Phase B.2 Part 2) will switch the emit-side source
+  # from body_sites.yaml composites to code_lookup("loinc", code, lang)
+  # — displays will track whichever branch matches the output locale.
+  36572-6:
+    en: XR Chest AP
+    ja: 胸部単純X線撮影 正面・側面
+  # 29252-4 (CT Chest WO contrast) and 24628-0 (CT Chest W contrast IV)
+  # are already registered above (session 58 Issue #264 — Chest CT
+  # replacement for retired 30794-3). Not duplicated here.
+  30799-1:
+    en: CT Head WO contrast
+    ja: 頭部CT 単純
+  24725-4:
+    en: CT Head
+    ja: 頭部CT
+  30657-1:
+    en: MR Brain WO contrast
+    ja: 頭部MRI 単純
+  24799-9:
+    en: XR Abdomen AP
+    ja: 腹部単純X線撮影 正面
+  37636-8:
+    en: XR Abdomen Views
+    ja: 腹部単純X線撮影 臥位・立位
+  41806-1:
+    en: CT Abdomen
+    ja: 腹部CT 単純
+  24558-9:
+    en: US Abdomen
+    ja: 腹部超音波検査
+  38036-0:
+    en: US Kidney
+    ja: 腎臓超音波検査
+  99607-4:
+    en: US.doppler Lower extremity vein - bilateral for venous mapping
+    ja: 下肢静脈超音波検査（DVT評価）
+  80861-8:
+    en: US Lower extremity soft tissue
+    ja: 軟部組織超音波検査
+  24722-1:
+    en: XR Hand 3 Views
+    ja: 手部単純X線撮影 3方向
+  36663-3:
+    en: XR Hip 2 Views
+    ja: 股関節単純X線撮影 正面・側面
+  44203-8:
+    en: Portable XR Cervical and thoracic and lumbar spine Views
+    ja: 脊椎単純X線撮影 正面・側面
+  24932-6:
+    en: CT Cervical spine
+    ja: 脊椎CT 単純
+  24968-0:
+    en: MR Lumbar spine
+    ja: 脊椎MRI 単純
+  24619-9:
+    en: XR Wrist Views
+    ja: 手関節単純X線撮影 3方向
