@@ -471,10 +471,13 @@ drugs:
     # unconditionally (72/92 UTI admissions in audit v0.5.0 received the
     # 4-drug template Ceftriaxone + Cefcapene + Meropenem + Levofloxacin;
     # the two oral options fanning out here are the primary contributor).
+    # META #1804 Phase 2.d partial US cluster: entries covered by the
+    # catalog carry drug_id. JP-side "Cefcapene pivoxil" is a JP-only
+    # oral cephalosporin (not in NLM RxNorm) and stays on legacy
+    # fields; the dual-path resolver preserves its emit path.
     exclusive_classes: ["oral_antibiotic"]
     japan:
-      - drug: "Levofloxacin"
-        code_yj: "6241013"
+      - drug_id: levofloxacin
         dose: "500mg PO daily"
         duration_days: 7
         drug_class: "oral_antibiotic"
@@ -487,14 +490,12 @@ drugs:
         drug_class: "oral_antibiotic"
         probability: 0.35
     us:
-      - drug: "Ciprofloxacin"
-        code_rxnorm: "309308"
+      - drug_id: ciprofloxacin
         dose: "500mg PO BID"
         duration_days: 7
         drug_class: "oral_antibiotic"
         probability: 0.55
-      - drug: "Trimethoprim/Sulfamethoxazole"
-        code_rxnorm: "198335"
+      - drug_id: trimethoprim_sulfamethoxazole
         dose: "160/800mg PO BID"
         duration_days: 14
         note: "If susceptible on culture"
