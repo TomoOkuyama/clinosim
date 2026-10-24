@@ -742,6 +742,11 @@ drugs:
     codes:
       rxnorm: "28908"
     classes: ["nsaid.non_selective", "nsaid"]
+    aliases: ["NSAID"]                 # `locale/jp/code_mapping_drug.yaml` substitutes
+                                       # the generic "NSAID" placeholder to Loxoprofen
+                                       # (YJ 1149019C1149); the alias keeps that
+                                       # free-text lookup intact after legacy drop.
+                                       # META #1849 Phase 5 Step 2.
   butylscopolamine:
     # PIN of the clinically dispensed bromide salt (same convention
     # as Landiolol in batch 2 using the HCl PIN).
@@ -791,10 +796,17 @@ drugs:
   prothrombin_complex_concentrate:
     # NLM canonical EN is "Factor IX complex" (the 4F-PCC product);
     # clinically known as "Prothrombin complex concentrate" / PCC.
-    names: {en: "Factor IX complex", ja: "プロトロンビン複合体製剤 (4F-PCC)"}
+    # JA unified to "乾燥濃縮人プロトロンビン複合体" (same form used in
+    # hot7.yaml and matching legacy drug_names_ja; replaces earlier
+    # "プロトロンビン複合体製剤 (4F-PCC)" which was NLM-translation-
+    # style). MHLW YJ 6343449D1024 (ケイセントラ). META #1849 Phase 5.
+    names: {en: "Factor IX complex", ja: "乾燥濃縮人プロトロンビン複合体"}
     codes:
       rxnorm: "1670383"
     classes: ["blood_product.clotting_factor", "antidote.warfarin_reversal"]
+    aliases: ["Prothrombin complex concentrate",
+              "Prothrombin complex concentrate (4F-PCC)",
+              "4-factor PCC (Kcentra)"]
   # (phytonadione already registered elsewhere in this file — the
   # pre-existing entry with RxCUI 8308 is reused. drug_names_ja.yaml
   # drop handled below.)

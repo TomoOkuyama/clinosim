@@ -16,15 +16,17 @@
 
 # --- Analgesics / 鎮痛薬 ---
 # Acetaminophen/codeine → acetaminophen_codeine catalog + alias (META #1849 Phase 5 Step 2).
-NSAID: "ロキソプロフェン"                  # code_mapping substitutes NSAID → Loxoprofen (YJ 1149019C1149)
+# NSAID → loxoprofen catalog alias (META #1849 Phase 5 Step 2;
+# `locale/jp/code_mapping_drug.yaml` substitutes "NSAID" → Loxoprofen).
 
 # --- Cardiovascular / 循環器系 ---
 # Adrenaline → epinephrine catalog alias (META #1849 Phase 5 Step 2).
 # JA display unifies to catalog "エピネフリン" (PMDA preferred current;
 # "アドレナリン" is legacy pre-2006 公定書). MHLW YJ 2451400A1030.
-Prothrombin complex concentrate: "乾燥濃縮人プロトロンビン複合体"   # MHLW YJ 6343449D1024 (ケイセントラ)
-Prothrombin complex concentrate (4F-PCC): "乾燥濃縮人プロトロンビン複合体"
-4-factor PCC (Kcentra): "乾燥濃縮人プロトロンビン複合体"
+# Prothrombin complex concentrate / (4F-PCC) / 4-factor PCC (Kcentra)
+# → prothrombin_complex_concentrate catalog + aliases (META #1849 Phase 5 Step 2).
+# Catalog JA unified to "乾燥濃縮人プロトロンビン複合体" (matches hot7.yaml).
+# MHLW YJ 6343449D1024 (ケイセントラ).
 # Unfractionated Heparin → clinosim-admin-form-display.yaml (META #1849 Phase 5 Step 2 admin-form; catalog heparin JA bare "ヘパリン" loses UFH/LMWH distinction).
 
 # --- Respiratory / 呼吸器系 ---

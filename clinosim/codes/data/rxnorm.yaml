@@ -743,7 +743,7 @@ codes:
     ja: セフジトレン
   '1670383':
     en: Factor IX complex
-    ja: プロトロンビン複合体製剤 (4F-PCC)
+    ja: 乾燥濃縮人プロトロンビン複合体
   # (8308 Phytonadione / Vitamin K1 already registered earlier —
   # drugs.yaml phytonadione reuses the pre-existing entry.)
   # (828529 Albumin human, USP already registered earlier — drugs.yaml
