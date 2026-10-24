@@ -439,14 +439,15 @@ drugs:
         note: "Added if lung abscess or empyema suspected"
 
   discharge_oral:
+    # META #1804 Phase 2.d pneumonia cluster: discharge_oral entries
+    # carry drug_id into clinosim/codes/data/drugs.yaml. Display
+    # resolved via the catalog.
     japan:
-      - drug: "Amoxicillin/Clavulanate"
-        code_yj: "6139100F1048"
+      - drug_id: amoxicillin_clavulanate
         dose: "500/125mg PO TID"
         duration_days: 7
     us:
-      - drug: "Amoxicillin/Clavulanate"
-        code_rxnorm: "562251"
+      - drug_id: amoxicillin_clavulanate
         dose: "875/125mg PO BID"
         duration_days: 7
 
