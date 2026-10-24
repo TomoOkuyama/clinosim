@@ -219,14 +219,17 @@ def _validate_body_sites(data: dict[str, Any]) -> None:
             raise ValueError(f"body_sites.yaml[{bs_key}].snomed {bs['snomed']!r} not in codes/data/snomed-ct.yaml")
         # META #1805 Phase B: top-level display_en + display_ja retired —
         # displays live in snomed-ct.yaml and resolve at emit time via
-        # code_lookup("snomed-ct", bs.snomed, lang). The nested
-        # procedure_codes[*].display_en / display_ja below are COMPOSITE
-        # procedure descriptions (not a direct code SoT) and stay.
+        # code_lookup("snomed-ct", bs.snomed, lang).
+        # META #1805 Phase B.2 Part 2: the nested
+        # procedure_codes[*].display_en / display_ja fields are now also
+        # retired. Displays resolve via code_lookup("loinc", pc.loinc,
+        # lang) against the LOINC authority (clinosim/codes/data/loinc.yaml,
+        # populated by Phase B.2 Part 1 #1835).
         pcs = bs.get("procedure_codes") or {}
         if not pcs:
             raise ValueError(f"body_sites.yaml[{bs_key}]: missing procedure_codes")
         for proc_key, proc in pcs.items():
-            for required in ("loinc", "cpt", "jp_k_code", "display_en", "display_ja"):
+            for required in ("loinc", "cpt", "jp_k_code"):
                 if not proc.get(required):
                     raise ValueError(f"body_sites.yaml[{bs_key}].procedure_codes[{proc_key}]: missing {required}")
 

@@ -179,13 +179,22 @@ def place_imaging_orders(
             days=day_index,
             minutes=int(rng.normal(DAILY_IMAGING_PLACEMENT_MEAN_MIN, DAILY_IMAGING_PLACEMENT_STD_MIN)),
         )
+        # META #1805 Phase B.2 Part 2: body_sites procedure_codes[*].
+        # display_en / display_ja fields were retired. The imaging Order's
+        # display_name resolves via the LOINC authority
+        # (clinosim/codes/data/loinc.yaml) with code_lookup against the
+        # procedure's loinc field. Fall back to the loinc code string
+        # when the authority has no entry (forward-compat).
+        from clinosim.codes import lookup as _code_lookup
+
+        _order_display = _code_lookup("loinc", proc["loinc"], "en") or proc["loinc"]
         order = Order(
             order_id=f"ORD-{encounter_id}-I{sequence_counter['I']:02d}",
             encounter_id=encounter_id,
             patient_id=patient_id,
             order_type=OrderType.IMAGING,
             order_code=proc["loinc"],
-            display_name=proc["display_en"],
+            display_name=_order_display,
             urgency=urgency,
             clinical_intent=clinical_indication,
             clinical_intent_ja=clinical_indication_ja,

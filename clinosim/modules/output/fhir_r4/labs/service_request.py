@@ -665,34 +665,30 @@ def _build_imaging_sr(
     loinc_code = _o(order, "order_code", "")
 
     body_site_display = ""
-    proc_display_from_bs = ""
     for bs_def in body_sites.values():
         if bs_def["snomed"] == body_site_snomed:
             # META #1805 Phase B: top-level body_site display_en/ja retired;
             # resolve via snomed-ct.yaml authority instead.
             body_site_display = code_lookup("snomed-ct", body_site_snomed, lang) or body_site_snomed
-            # Also try to find procedure display from procedure_codes for this
-            # body site — exact LOINC match preferred; first entry as fallback.
-            for pc in bs_def.get("procedure_codes", {}).values():
-                if pc.get("loinc") == loinc_code:
-                    proc_display_from_bs = pc.get(f"display_{lang}") or pc["display_en"]
-                    break
-            if not proc_display_from_bs:
-                # Fallback: first procedure_codes entry for this body site + lang.
-                for pc in bs_def.get("procedure_codes", {}).values():
-                    proc_display_from_bs = pc.get(f"display_{lang}") or pc["display_en"]
-                    break
+            # META #1805 Phase B.2 Part 2: procedure_codes[*].display_en/
+            # display_ja retired. The LOINC authority
+            # (clinosim/codes/data/loinc.yaml) carries the canonical EN
+            # (Long Common Name) + clinosim-curated JA for every
+            # procedure_code loinc used here; resolve via code_lookup
+            # directly in the main display cascade below instead of
+            # from the body_sites inline fields.
             break
 
-    # Display resolution: LOINC lookup → body_sites procedure display → Order.display_name.
-    # For imaging LOINC codes not in clinosim/codes/data/loinc.yaml, the lookup
-    # returns the code itself (not a meaningful display); body_sites.yaml is more
-    # authoritative for the supported (modality, body_site) combos.
+    # Display resolution: LOINC authority (loinc.yaml) → Order.display_name.
+    # META #1805 Phase B.2 Part 2: body_sites procedure_codes[*].display_en/
+    # display_ja fields retired — the LOINC authority holds the canonical
+    # EN + clinosim-curated JA for every used procedure LOINC. For imaging
+    # LOINC codes not in clinosim/codes/data/loinc.yaml, code_lookup
+    # returns the code itself (not a meaningful display); fall back to
+    # the order's own display_name in that case.
     raw_loinc_display = code_lookup("loinc", loinc_code, lang)
     loinc_display = (
-        raw_loinc_display
-        if (raw_loinc_display and raw_loinc_display != loinc_code)
-        else (proc_display_from_bs or _o(order, "display_name", ""))
+        raw_loinc_display if (raw_loinc_display and raw_loinc_display != loinc_code) else _o(order, "display_name", "")
     )
 
     snomed_imaging_display = code_lookup("snomed-ct", IMAGING_CATEGORY_SNOMED, lang) or (
