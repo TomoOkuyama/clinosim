@@ -328,6 +328,33 @@ drugs:
     codes:
       rxnorm: "47613"
     classes: []
+    aliases: ["Lactated Ringer", "Lactated Ringers", "Lactated Ringer's",
+              "Lactated Ringer's solution", "LR"]
+            # Plural / apostrophe / abbreviation variants used in disease YAMLs
+            # (MHLW YJ 3319534A4046 = ラクテック注). META #1849 Phase 5 Step 2.
+  normal_saline:
+    # 0.9% sodium chloride (physiologic saline). RxCUI 9863 is the NLM
+    # TTY=IN ingredient; specific concentration-based SCDC CUIs
+    # (e.g. 615106 for 0.154 MEQ/ML) exist but are inappropriate for a
+    # catalog display-identity row — the ingredient-level resolution
+    # matches the display SoT convention.
+    names: {en: "Normal Saline", ja: "生理食塩液"}
+    codes:
+      rxnorm: "9863"                    # NLM TTY=IN (sodium chloride ingredient)
+    classes: ["electrolyte_solution"]
+    aliases: ["Normal saline", "IV normal saline", "NS"]
+                                        # case + prefix + abbreviation variants
+                                        # used across disease / order YAMLs.
+                                        # META #1849 Phase 5 Step 2.
+  ringer_solution:
+    # Non-lactated Ringer's solution. No NLM TTY=IN with a clean
+    # single-ingredient CUI; carried as YJ-only per the JP-only drug
+    # pattern established in Phase 5 Step 2.b.
+    names: {en: "Ringer's solution", ja: "リンゲル液"}
+    codes:
+      yj: "3319539A1082"                # MHLW リンゲル液 YJ. No RxCUI.
+    classes: ["electrolyte_solution"]
+    aliases: ["Ringers"]                # plural form used in disease YAMLs
   hydrocortisone:
     names: {en: "Hydrocortisone", ja: "ヒドロコルチゾン"}
     codes:

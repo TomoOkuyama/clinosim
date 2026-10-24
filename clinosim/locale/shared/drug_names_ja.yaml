@@ -88,16 +88,10 @@ BCG: "BCG（膀胱内注入療法）"                # MHLW HOT7 (BCG 膀胱内�
 # (META #1849 Phase 5 Step 2.a; MHLW HOT7, アルブミン懸濁型 Issue #1310).
 
 # --- IV fluids / 輸液 ---
-IV normal saline: "生理食塩液"
-Normal saline: "生理食塩液"
-NS: "生理食塩液"
-Lactated Ringer: "乳酸リンゲル液"
-Lactated Ringers: "乳酸リンゲル液"          # plural alias (MHLW YJ 3319534A4046 = ラクテック注)
-Lactated Ringer's: "乳酸リンゲル液"          # apostrophe alias
-Lactated Ringer's solution: "乳酸リンゲル液"
-Ringers: "リンゲル液"                       # MHLW YJ 3319539A1082 (リンゲル液)
-LR: "乳酸リンゲル液"
-# Hypertonic Saline → clinosim-admin-form-display.yaml (META #1849 Phase 5 Step 2; 3% NaCl concentration variant, distinct from normal_saline).
+# Normal saline / NS / IV normal saline → normal_saline catalog + aliases (META #1849 Phase 5 Step 2; RxCUI 9863 sodium chloride IN).
+# Lactated Ringer / Lactated Ringers / Lactated Ringer's / Lactated Ringer's solution / LR → lactated_ringer_solution catalog + aliases (META #1849 Phase 5 Step 2).
+# Ringers → ringer_solution catalog + alias (META #1849 Phase 5 Step 2; MHLW YJ 3319539A1082).
+# Hypertonic Saline → clinosim-admin-form-display.yaml (META #1849 Phase 5 Step 2; 3% NaCl concentration variant).
 # Crystalloid → clinosim-admin-form-display.yaml (META #1849 Phase 5 Step 2; IV fluid class label).
 # KCl → potassium_chloride aliases (META #1849 Phase 5 Step 2.g).
 
