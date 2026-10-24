@@ -429,6 +429,10 @@ drugs:
         indication: "gangrenous_cholecystitis_or_sepsis"
 
   discharge_oral:
+    # META #1804 Phase 2.d partial US cluster: US entries carry drug_id.
+    # JP-side "Cefditoren pivoxil" + "Loxoprofen" are JP-only drugs
+    # (not in NLM RxNorm) and stay on legacy fields; the dual-path
+    # resolver preserves their emit path byte-identical.
     japan:
       - drug: "Cefditoren pivoxil"
         code_yj: "6132814"
@@ -440,13 +444,11 @@ drugs:
         dose: "60mg PO TID PRN"
         duration_days: 5
     us:
-      - drug: "Amoxicillin/Clavulanate"
-        code_rxnorm: "562251"
+      - drug_id: amoxicillin_clavulanate
         dose: "875/125mg PO BID"
         duration_days: 5
         note: "Only if complicated"
-      - drug: "Ibuprofen"
-        code_rxnorm: "5640"
+      - drug_id: ibuprofen
         dose: "400mg PO q6h PRN"
         duration_days: 5
 

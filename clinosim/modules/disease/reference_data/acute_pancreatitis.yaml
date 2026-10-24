@@ -424,9 +424,13 @@ drugs:
         indication: "alternative for infected necrosis"
 
   discharge_oral:
+    # META #1804 Phase 2.d partial US cluster: entries covered by the
+    # catalog carry drug_id. "Camostat mesilate" is a JP-specific
+    # protease inhibitor (not in NLM RxNorm) and stays on the legacy
+    # drug / code_yj fields; the dual-path resolver preserves its
+    # emit path byte-identical.
     japan:
-      - drug: "Acetaminophen"
-        code_yj: "1141001"
+      - drug_id: acetaminophen
         dose: "500mg PO q6h PRN"
         duration_days: 7
       - drug: "Camostat mesilate"
@@ -435,8 +439,7 @@ drugs:
         duration_days: 14
         note: "Protease inhibitor (JP-specific, for recurrence prevention)"
     us:
-      - drug: "Acetaminophen"
-        code_rxnorm: "161"
+      - drug_id: acetaminophen
         dose: "500mg PO q6h PRN"
         duration_days: 7
 
