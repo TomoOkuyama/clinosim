@@ -66,7 +66,7 @@ Prothrombin complex concentrate (4F-PCC): "乾燥濃縮人プロトロンビン�
 # drug-side generic "アルブミン" display intentionally distinguished from
 # albumin_human catalog entry "人血清アルブミン" plasma product; lab-side
 # "Albumin → アルブミン" uses the separate `_localize_lab_name` path).
-Camostat mesilate: "カモスタットメシル酸塩"
+# Camostat mesilate → camostat_mesilate catalog drug_id (META #1849 Phase 5 Step 2; MEDIS-HOT7 3999003 フオイパン).
 # Human serum albumin → albumin_human catalog alias (META #1849 Phase 5 Step 2; MHLW YJ 6343410X1088 献血アルブミン).
 # Magnesium Sulfate / Magnesium sulfate → magnesium_sulfate catalog drug_id + alias (META #1849 Phase 5 Step 2.a; MHLW YJ 2355002X1075).
 # Nafamostat → nafamostat catalog drug_id (META #1849 Phase 5 Step 2.b; MHLW YJ 3999407D1181, 注射用フサン).
@@ -81,8 +81,8 @@ Camostat mesilate: "カモスタットメシル酸塩"
 # leaked bare English names into JP output (Osimertinib 11× /
 # Sorafenib 9× / Lenvatinib 9× observed in the session-104 H100 p=100
 # verify).
-BCG: "BCG（膀胱内注入療法）"                # MHLW HOT7 (BCG 膀胱内注入用、Issue #1310)
-"BCG intravesical": "BCG（膀胱内注入療法）" # disease-YAML alias form
+# BCG / BCG intravesical → bcg_intravesical catalog drug_id + alias
+# (META #1849 Phase 5 Step 2; MEDIS-HOT7 6323400; NLM RxCUI NotCurrent).
 # Leuprorelin → leuprolide aliases (META #1849 Phase 5 Step 2.g).
 # Nab-paclitaxel / Nab_paclitaxel / nab-Paclitaxel → nab_paclitaxel catalog drug_id + aliases
 # (META #1849 Phase 5 Step 2.a; MHLW HOT7, アルブミン懸濁型 Issue #1310).

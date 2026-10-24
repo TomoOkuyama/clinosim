@@ -92,26 +92,32 @@ def test_every_drug_id_reference_resolves_against_catalog() -> None:
 
 def test_every_catalog_drug_has_authority_pointer() -> None:
     """Catalog shape invariant: every drug_id in drugs.yaml carries at
-    least ONE authority code pointer — ``codes.rxnorm`` (US-NLM) and/or
-    ``codes.yj`` (JP MHLW).
+    least ONE authority code pointer — ``codes.rxnorm`` (US-NLM),
+    ``codes.yj`` (JP MHLW), or ``codes.hot7`` (JP MEDIS clinical master).
 
     US-locale FHIR output resolves ``MedicationRequest.medicationCode``
     from ``codes.rxnorm``; JP-locale FHIR output resolves it from
-    ``codes.yj``. A drug_id with neither pointer would land on the
-    pre-#1765 silent-drop path for its target locale. This invariant
-    freezes the coverage #1820 (Phase 2.e) achieved while admitting
-    the JP-only drug catalog scope opened by META #1849 Phase 5
-    Step 2.b (Cefcapene pivoxil / Nafamostat / Elcatonin / Daikenchuto /
-    etc. — drugs with MHLW YJ registration but no NLM RxCUI).
+    ``codes.yj`` or ``codes.hot7`` (the FHIR emit path dispatches to the
+    correct canonical URI per code format). A drug_id with none of the
+    three pointers would land on the pre-#1765 silent-drop path for its
+    target locale. This invariant freezes the coverage #1820 (Phase 2.e)
+    achieved while admitting:
+      - JP-only drugs with YJ registration (Cefcapene pivoxil /
+        Nafamostat / Elcatonin / Daikenchuto, META #1849 Phase 5
+        Step 2.b);
+      - JP-only drugs with HOT7-only registration (Camostat mesilate,
+        BCG intravesical — RxCUI NotCurrent or absent, YJ not
+        registered for the specific clinical form; META #1849 Phase 5
+        Step 2 HOT7 fallback).
     """
     offenders: list[str] = []
     for drug_id in all_drug_ids():
         rec = resolve_drug(drug_id)
-        if not rec.codes.get("rxnorm") and not rec.codes.get("yj"):
+        if not any(rec.codes.get(key) for key in ("rxnorm", "yj", "hot7")):
             offenders.append(drug_id)
     assert not offenders, (
-        "catalog drug_ids missing BOTH codes.rxnorm AND codes.yj "
-        "(cannot resolve under either locale):\n  " + "\n  ".join(offenders)
+        "catalog drug_ids missing ALL authority pointers "
+        "(codes.rxnorm / codes.yj / codes.hot7 — cannot resolve under either locale):\n  " + "\n  ".join(offenders)
     )
 
 
