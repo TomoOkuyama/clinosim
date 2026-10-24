@@ -11,8 +11,6 @@
 body_sites:
   chest:
     snomed: "51185008"
-    display_en: "Thoracic structure"
-    display_ja: "胸部"
     procedure_codes:
       CR_PA_Lateral:                             # 2-view chest X-ray
         loinc: "36572-6"                         # NLM clinicaltables verified
@@ -43,8 +41,6 @@ body_sites:
 
   head:
     snomed: "69536005"
-    display_en: "Head structure"
-    display_ja: "頭部"
     procedure_codes:
       CT_non_contrast:
         loinc: "30799-1"
@@ -69,8 +65,6 @@ body_sites:
 
   abdomen:
     snomed: "818983003"                          # Abdomen (structure) — SNOMED CT
-    display_en: "Abdomen"
-    display_ja: "腹部"
     procedure_codes:
       CR_AP:                                     # KUB / X-ray abdomen
         loinc: "24799-9"                         # XR Abdomen AP — NLM verified
@@ -105,8 +99,6 @@ body_sites:
 
   kidney:
     snomed: "64033007"                           # Kidney (structure)
-    display_en: "Kidney"
-    display_ja: "腎臓"
     procedure_codes:
       US:
         loinc: "38036-0"                         # US Kidney — NLM verified
@@ -117,8 +109,6 @@ body_sites:
 
   leg:
     snomed: "61685007"                           # Lower extremity
-    display_en: "Lower extremity"
-    display_ja: "下肢"
     procedure_codes:
       US_Doppler:                                # US doppler leg (DVT workup)
         loinc: "99607-4"                         # US Doppler Lower extremity vein bilateral — NLM verified
@@ -129,8 +119,6 @@ body_sites:
 
   skin:
     snomed: "39937001"                           # Skin structure
-    display_en: "Skin"
-    display_ja: "皮膚"
     procedure_codes:
       US:                                        # US soft tissue (skin/subcutaneous)
         loinc: "80861-8"                         # US Lower extremity soft tissue — NLM verified (used as proxy for skin/soft tissue US)
@@ -141,8 +129,6 @@ body_sites:
 
   hand:
     snomed: "85562004"                           # Hand
-    display_en: "Hand"
-    display_ja: "手"
     procedure_codes:
       CR_PA_Oblique_Lateral:                     # 3-view hand
         loinc: "24722-1"                         # XR Hand 3 Views — NLM verified
@@ -153,8 +139,6 @@ body_sites:
 
   hip:
     snomed: "29836001"                           # Hip region
-    display_en: "Hip region"
-    display_ja: "股関節部"
     procedure_codes:
       CR_AP_Lateral:                             # 2-view hip
         loinc: "36663-3"                         # XR Hip 2 Views — NLM verified
@@ -171,8 +155,6 @@ body_sites:
 
   spine:
     snomed: "421060004"                          # Vertebral column
-    display_en: "Vertebral column"
-    display_ja: "脊椎"
     procedure_codes:
       CR_AP_Lateral:                             # 2-view spine (typical trauma workup)
         loinc: "44203-8"                         # Portable XR Cervical/Thoracic/Lumbar spine — NLM verified
@@ -195,8 +177,6 @@ body_sites:
 
   wrist:
     snomed: "8205005"                            # Wrist region
-    display_en: "Wrist region"
-    display_ja: "手関節部"
     procedure_codes:
       CR_PA_Lateral_Oblique:                     # 3-view wrist
         loinc: "24619-9"                         # XR Wrist Views — NLM verified
