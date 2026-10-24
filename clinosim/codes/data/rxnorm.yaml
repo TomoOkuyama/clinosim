@@ -91,6 +91,9 @@ codes:
   '2193':
     en: Ceftriaxone (Rocephin)
     ja: セフトリアキソン（ロセフィン）
+  '221124':
+    en: Metoprolol succinate
+    ja: コハク酸メトプロロール
   '221147':
     en: Rivaroxaban
     ja: リバーロキサバン
@@ -142,6 +145,9 @@ codes:
   '36567':
     en: Simvastatin
     ja: シンバスタチン
+  '36676':
+    en: Sodium bicarbonate
+    ja: 炭酸水素ナトリウム
   '3827':
     en: Enalapril (Vasotec)
     ja: エナラプリル（レニベース）
@@ -238,9 +244,6 @@ codes:
   '8896':
     en: Ondansetron
     ja: オンダンセトロン
-  '9796':
-    en: Sodium bicarbonate
-    ja: 炭酸水素ナトリウム（メイロン）
   # session 45 authoritative additions (NLM RxNav verified 2026-07-11).
   '5224':
     en: Heparin
@@ -254,6 +257,9 @@ codes:
   '74169':
     en: Piperacillin/Tazobactam (Zosyn)
     ja: ピペラシリン/タゾバクタム（ゾシン）
+  '7454':
+    en: Nitrofurantoin
+    ja: ニトロフラントイン
   '1484959':
     en: Kcentra (4-Factor Prothrombin Complex Concentrate)
     ja: ケイセントラ（4因子プロトロンビン複合体製剤）
@@ -316,6 +322,9 @@ codes:
   '194000':
     en: Capecitabine
     ja: カペシタビン（ゼローダ）
+  '19484':
+    en: Bisoprolol
+    ja: ビソプロロール
   '32592':
     en: Oxaliplatin
     ja: オキサリプラチン（エルプラット）
@@ -503,6 +512,9 @@ codes:
   '596':
     en: Alprazolam
     ja: アルプラゾラム
+  '6218':
+    en: Lactulose
+    ja: ラクツロース
   '84857':
     en: Anastrozole
     ja: アナストロゾール
@@ -512,9 +524,15 @@ codes:
   '3554':
     en: Disulfiram
     ja: ジスルフィラム
+  '35619':
+    en: Rifaximin
+    ja: リファキシミン
   '24941':
     en: Ferrous fumarate
     ja: フマル酸第一鉄
+  '24947':
+    en: Ferrous sulfate
+    ja: 硫酸第一鉄
   '4511':
     en: Folic acid
     ja: 葉酸
