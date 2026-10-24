@@ -669,3 +669,36 @@ codes:
   '187832':
     en: Pregabalin
     ja: プレガバリン
+  # META #1849 Phase 5 Step 2 batch 4 — endocrine (insulin + bone) +
+  # hemostasis + miscellaneous cluster. 11 new ingredient drugs.
+  # RxCUIs verified via NLM RxNav (TTY=IN unless noted).
+  # Note: 253182 (Insulin regular) and 42375 (Leuprolide) are already
+  # registered above in an earlier section; drugs.yaml points at
+  # those existing entries directly, no re-registration needed here.
+  '51428':
+    en: Insulin aspart, human
+    ja: インスリン アスパルト
+  '86009':
+    en: Insulin lispro
+    ja: インスリン リスプロ
+  '12062':
+    en: Alfacalcidol
+    ja: アルファカルシドール
+  '993449':
+    en: Denosumab
+    ja: デノスマブ
+  '1716191':
+    en: Idarucizumab
+    ja: イダルシズマブ
+  '11258':
+    en: Vitamin K
+    ja: ビタミンK
+  '588250':
+    en: Milnacipran
+    ja: ミルナシプラン
+  '6676':
+    en: Meclizine
+    ja: メクリジン
+  '42955':
+    en: Levocarnitine
+    ja: レボカルニチン

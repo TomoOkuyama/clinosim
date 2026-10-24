@@ -606,6 +606,69 @@ drugs:
     codes:
       rxnorm: "8120"
     classes: ["urinary_analgesic"]
+  # META #1849 Phase 5 Step 2 batch 4 — endocrine (insulin + bone) +
+  # hemostasis + miscellaneous cluster. 11 ingredient drugs promoted
+  # from legacy drug_names_ja.yaml to the catalog. RxCUIs verified
+  # via NLM RxNav (TTY=IN). Elcatonin (JP-only, no NLM registration)
+  # intentionally stays on the legacy drug_names_ja.yaml path.
+  insulin:
+    # Catalog EN uses the NLM canonical "Insulin, regular, human"
+    # (RxCUI 253182); the yaml-level en display drops the modifier
+    # to match clinosim's existing emit convention (`Insulin` alone).
+    names: {en: "Insulin", ja: "インスリン"}
+    codes:
+      rxnorm: "253182"
+    classes: ["insulin.rapid_short_acting"]
+  insulin_aspart:
+    names: {en: "Insulin aspart", ja: "インスリン アスパルト"}
+    codes:
+      rxnorm: "51428"
+    classes: ["insulin.rapid_short_acting", "insulin.analog"]
+  insulin_lispro:
+    names: {en: "Insulin lispro", ja: "インスリン リスプロ"}
+    codes:
+      rxnorm: "86009"
+    classes: ["insulin.rapid_short_acting", "insulin.analog"]
+  alfacalcidol:
+    names: {en: "Alfacalcidol", ja: "アルファカルシドール"}
+    codes:
+      rxnorm: "12062"
+    classes: ["vitamin_d_analogue"]
+  denosumab:
+    names: {en: "Denosumab", ja: "デノスマブ"}
+    codes:
+      rxnorm: "993449"
+    classes: ["monoclonal_antibody", "osteoporosis.rankl_inhibitor"]
+  # (leuprolide already registered elsewhere in this file; its entry
+  # is reused — this slot intentionally omitted to avoid drug_id
+  # duplication. The legacy `Leuprorelin` entry in drug_names_ja.yaml
+  # is intentionally kept as a JP-alias referrer since catalog EN
+  # won't resolve under the alias spelling.)
+  idarucizumab:
+    names: {en: "Idarucizumab", ja: "イダルシズマブ"}
+    codes:
+      rxnorm: "1716191"
+    classes: ["monoclonal_antibody", "antidote.dabigatran_reversal"]
+  vitamin_k:
+    names: {en: "Vitamin K", ja: "ビタミンK"}
+    codes:
+      rxnorm: "11258"
+    classes: ["vitamin", "antidote.warfarin_reversal"]
+  milnacipran:
+    names: {en: "Milnacipran", ja: "ミルナシプラン"}
+    codes:
+      rxnorm: "588250"
+    classes: ["antidepressant.snri"]
+  meclizine:
+    names: {en: "Meclizine", ja: "メクリジン"}
+    codes:
+      rxnorm: "6676"
+    classes: ["antihistamine.h1_first_generation", "antiemetic.vestibular"]
+  levocarnitine:
+    names: {en: "Levocarnitine", ja: "レボカルニチン"}
+    codes:
+      rxnorm: "42955"
+    classes: ["carnitine_supplement"]
   heparin:
     names: {en: "Heparin", ja: "ヘパリン"}
     codes:

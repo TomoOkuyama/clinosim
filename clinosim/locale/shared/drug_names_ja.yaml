@@ -23,7 +23,6 @@ NSAID: "ロキソプロフェン"                  # code_mapping substitutes NS
 
 # --- Cardiovascular / 循環器系 ---
 Adrenaline: "アドレナリン"                 # MHLW YJ 2451400A1030 (alias of Epinephrine)
-Idarucizumab: "イダルシズマブ"             # MHLW YJ 3399412A1027 (プリズバインド; 遺伝子組換え)
 Prothrombin complex concentrate: "乾燥濃縮人プロトロンビン複合体"   # MHLW YJ 6343449D1024 (ケイセントラ)
 Prothrombin complex concentrate (4F-PCC): "乾燥濃縮人プロトロンビン複合体"
 4-factor PCC (Kcentra): "乾燥濃縮人プロトロンビン複合体"
@@ -43,15 +42,10 @@ Mosapride: "モサプリド"
 Sodium bicarbonate oral: "経口炭酸水素ナトリウム"
 
 # --- Endocrine / 内分泌系 ---
-Insulin: "インスリン"                      # generic insulin fallback
-Insulin aspart: "インスリンアスパルト"     # MHLW YJ 2492415A3031 (ノボラピッド)
-Insulin lispro: "インスリンリスプロ"       # MHLW YJ 2492414A2030 (ヒューマログ)
 Regular insulin: "レギュラーインスリン"
 Regular human insulin: "ヒトインスリン"    # MHLW YJ 2492403A4051 (ヒューマリンR; 遺伝子組換え)
 
 # --- Neurology / 神経系 ---
-Levocarnitine: "レボカルニチン"            # MHLW YJ 3999033F1026 (エルカルチンFF)
-Milnacipran: "ミルナシプラン"              # MHLW YJ 1179040F2108
 
 # --- Psychotropic / 向精神薬 (SSRI / SNRI / atypical antidepressant + anxiolytic) ---
 # Phase 1c-4 (2026-09-23): observed as JA ed_workup investigational-drug
@@ -59,19 +53,15 @@ Milnacipran: "ミルナシプラン"              # MHLW YJ 1179040F2108
 # health cadence (see narrative_seed_bundle.yaml Issue #1405 mapping).
 
 # --- Bone / 骨代謝 ---
-Alfacalcidol: "アルファカルシドール"
 Calcium/Vitamin D: "カルシウム/ビタミンD"
 Calcitonin nasal spray: "カルシトニン点鼻"
 Calcium carbonate + vitamin D: "炭酸カルシウム/ビタミンD"
 Calcium gluconate: "グルコン酸カルシウム"  # MHLW YJ 3213001X1010 (カルチコール; 水和物)
-Denosumab: "デノスマブ"
 Elcatonin: "エルカトニン"
-Vitamin K: "ビタミンK"                     # generic; MHLW authoritative product = フィトナジオン (カチーフN)
 
 # --- Urology / 泌尿器系 ---
 
 # --- Antihistamines / 抗ヒスタミン薬 ---
-Meclizine: "メクリジン"
 Oxymetazoline: "オキシメタゾリン"
 Silver nitrate: "硝酸銀"
 
