@@ -90,30 +90,28 @@ def test_every_drug_id_reference_resolves_against_catalog() -> None:
     )
 
 
-def test_every_catalog_drug_has_rxnorm_pointer() -> None:
-    """Catalog shape invariant: every drug_id in drugs.yaml carries a
-    ``codes.rxnorm`` pointer.
+def test_every_catalog_drug_has_authority_pointer() -> None:
+    """Catalog shape invariant: every drug_id in drugs.yaml carries at
+    least ONE authority code pointer — ``codes.rxnorm`` (US-NLM) and/or
+    ``codes.yj`` (JP MHLW).
 
     US-locale FHIR output resolves ``MedicationRequest.medicationCode``
-    from the catalog's RxNorm code. A drug_id without one would land
-    on the pre-#1765 silent-drop path. This invariant freezes the
-    coverage #1820 (Phase 2.e) achieved.
-
-    JP-only drugs (not registered in NLM RxNorm, e.g. mosapride,
-    camostat_mesilate) intentionally stay on the legacy
-    drug / code_yj fields of the referring disease yaml and are
-    NOT in the catalog, so this invariant does not need an
-    exception list.
+    from ``codes.rxnorm``; JP-locale FHIR output resolves it from
+    ``codes.yj``. A drug_id with neither pointer would land on the
+    pre-#1765 silent-drop path for its target locale. This invariant
+    freezes the coverage #1820 (Phase 2.e) achieved while admitting
+    the JP-only drug catalog scope opened by META #1849 Phase 5
+    Step 2.b (Cefcapene pivoxil / Nafamostat / Elcatonin / Daikenchuto /
+    etc. — drugs with MHLW YJ registration but no NLM RxCUI).
     """
     offenders: list[str] = []
     for drug_id in all_drug_ids():
         rec = resolve_drug(drug_id)
-        rx = rec.codes.get("rxnorm")
-        if not rx:
+        if not rec.codes.get("rxnorm") and not rec.codes.get("yj"):
             offenders.append(drug_id)
     assert not offenders, (
-        "catalog drug_ids missing a codes.rxnorm pointer "
-        "(US-locale FHIR coverage regression):\n  " + "\n  ".join(offenders)
+        "catalog drug_ids missing BOTH codes.rxnorm AND codes.yj "
+        "(cannot resolve under either locale):\n  " + "\n  ".join(offenders)
     )
 
 

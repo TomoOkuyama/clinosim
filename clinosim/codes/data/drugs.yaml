@@ -1264,3 +1264,40 @@ drugs:
       rxnorm: "486610"                 # NLM TTY=PIN (paclitaxel protein-bound). MHLW HOT7 (アルブミン懸濁型, Issue #1310).
     classes: ["chemotherapy.taxane"]
     aliases: ["Nab_paclitaxel", "nab-Paclitaxel"]  # underscore / case variants used inside disease YAMLs
+
+  # META #1849 Phase 5 Step 2.b batch 1 — JP-only drugs (no US-NLM RxNorm
+  # registration). Each `codes.yj` resolves against yj.yaml under the
+  # Phase 6 catalog referential-integrity CI gate; `codes.rxnorm` is
+  # intentionally omitted per the Phase 5 Step 2.b design decision
+  # (JP-only drugs sit beside US-NLM drugs in `drugs.yaml` with the
+  # authority code set they actually have).
+  cefcapene_pivoxil:
+    # JP-only cephalosporin prodrug (フロモックス). The parent cefcapene
+    # (NLM RxCUI 1469851) is NotCurrent in RxNorm; this entry carries
+    # the MHLW-registered pivoxil ester as a JP-only drug.
+    names: {en: "Cefcapene pivoxil", ja: "セフカペンピボキシル"}
+    codes:
+      yj: "6132016F2038"               # Cefcapene pivoxil 100mg tablet
+    classes: ["antibiotic.cephalosporin"]
+  nafamostat:
+    # JP-only serine protease inhibitor (フサン). Used for pancreatitis,
+    # DIC, and CRRT anticoagulation.
+    names: {en: "Nafamostat", ja: "ナファモスタット"}
+    codes:
+      yj: "3999407D1181"               # Nafamostat mesylate injection (Fusan)
+    classes: ["protease_inhibitor", "anticoagulant.serine_protease"]
+  elcatonin:
+    # JP-only calcitonin derivative (エルシトニン). Used for osteoporosis
+    # and malignancy-related hypercalcemia in JP practice.
+    names: {en: "Elcatonin", ja: "エルカトニン"}
+    codes:
+      yj: "3999401A1200"               # Elcatonin injection (Elcitonin)
+    classes: ["bone_resorption_inhibitor"]
+  daikenchuto:
+    # JP Kampo formulation (大建中湯). Prescribed for post-operative ileus
+    # and chronic constipation per JP clinical practice.
+    names: {en: "Dai-kenchu-to", ja: "大建中湯"}
+    codes:
+      yj: "5200092C1025"               # Dai-kenchu-to extract
+    classes: ["kampo"]
+    aliases: ["Daikenchuto"]           # non-hyphenated form used in disease YAMLs
