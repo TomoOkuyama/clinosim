@@ -460,22 +460,23 @@ drugs:
       indication: "Factor Xa inhibitor reversal (rivaroxaban, apixaban)"
 
   discharge_oral:
+    # META #1804 Phase 2.d antibiotic-GI cluster: discharge_oral entries
+    # carry drug_id into clinosim/codes/data/drugs.yaml. pantoprazole +
+    # ferrous_sulfate registered by #1843; omeprazole + ferrous_fumarate
+    # pre-existing in the catalog.
     japan:
-      - drug: "Omeprazole"
-        code_yj: "2329022"
+      - drug_id: omeprazole
         dose: "20mg PO daily"
         duration_days: 56  # 8 weeks for ulcer healing
-      - drug: "Ferrous_fumarate"
+      - drug_id: ferrous_fumarate
         dose: "200mg PO daily"
         duration_days: 90
         note: "Iron supplementation for anemia recovery"
     us:
-      - drug: "Pantoprazole"
-        code_rxnorm: "261257"
+      - drug_id: pantoprazole
         dose: "40mg PO daily"
         duration_days: 56
-      - drug: "Ferrous_sulfate"
-        code_rxnorm: "310325"
+      - drug_id: ferrous_sulfate
         dose: "325mg PO daily"
         duration_days: 90
 
