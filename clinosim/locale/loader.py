@@ -12,7 +12,15 @@ Directory structure (country-based):
       (same shape as jp/)
     shared/
       naming_rules.yaml, chronic_medications.yaml, chronic_followup.yaml,
-      drug_names_ja.yaml
+      narrative_*.yaml, chief_complaint_translations.yaml
+
+Note: `drug_names_ja.yaml` was deleted under META #1849 Phase 5 Step 4
+(2026-10-24). The drug-name EN→JA display mapping now lives in the
+authority catalogs under `clinosim/codes/data/` (drugs.yaml +
+clinosim-{imaging-exam-name,procedure-phrase,allergen-substance,
+admin-form-display}.yaml); `load_drug_names_ja()` kept as a backwards-
+compat shim that UNIONs them into the same dict shape callers have
+always used.
 """
 
 from __future__ import annotations
@@ -575,19 +583,29 @@ def load_med_terms_ja() -> dict[str, dict[str, str]]:
 def load_drug_names_ja() -> dict[str, str]:
     """Load English→Japanese drug name mapping (case-insensitive lowercased keys).
 
-    META #1804 Phase 2.g: the returned mapping is UNIONed with the
-    Phase 1b drug-identity catalog (``clinosim/codes/data/drugs.yaml``).
-    META #1849 Phase 5 Step 2.e: additionally UNIONed with the imaging-
-    exam-name display catalog (``clinosim-imaging-exam-name.yaml``) —
-    the free-text imaging exam names (ECG / Echocardiogram / FAST
-    Ultrasound / …) that used to live in the legacy drug_names_ja.yaml
-    file now live in their semantic home.
-    Legacy ``drug_names_ja.yaml`` entries win on key collision for
-    backwards compat; catalog entries fill the gap for names the
-    legacy yaml never registered.
+    META #1849 Phase 5 Step 4: the legacy ``clinosim/locale/shared/
+    drug_names_ja.yaml`` file was deleted after every entry it carried
+    migrated into one of the authority-adjacent catalogs. The returned
+    mapping is now the UNION of five catalogs:
+
+      1. ``clinosim/codes/data/drugs.yaml`` — drug_id → names + aliases
+         (META #1804 Phase 2.g UNION pattern, META #1849 Phase 5 Step 2.g
+         aliases extension).
+      2. ``clinosim-imaging-exam-name.yaml`` — ECG / Echocardiogram /
+         FAST Ultrasound / … (META #1849 Phase 5 Step 2.e).
+      3. ``clinosim-procedure-phrase.yaml`` — Suture closure / Hemodialysis /
+         CPAP therapy / … (META #1849 Phase 5 Step 2.d).
+      4. ``clinosim-allergen-substance.yaml`` — Penicillin / Latex / Egg /
+         Iodinated contrast / … (META #1849 Phase 5 Step 2.c).
+      5. ``clinosim-admin-form-display.yaml`` — Calcitonin nasal spray /
+         Hypertonic Saline / ICS/LABA inhaler / … (META #1849 Phase 5
+         Step 2 admin-form).
+
+    Function name retained for backwards-compat with ~15 call sites across
+    FHIR emit / narrative / order modules; the dict shape (lower-case EN
+    key → JA display) is unchanged.
     """
-    raw = _load_yaml(_LOCALE_DIR / "shared" / "drug_names_ja.yaml", fallback={})
-    merged = {k.lower(): v for k, v in raw.items()}
+    merged: dict[str, str] = {}
     try:
         from clinosim.codes.drugs import all_drug_ids, resolve_drug
 
