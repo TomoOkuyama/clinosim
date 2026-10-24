@@ -378,18 +378,18 @@ drugs:
         indication: "no_improvement_48h_or_polymicrobial_concern"
 
   discharge_oral:
+    # META #1804 Phase 2.d antibiotic-GI cluster: discharge_oral entries
+    # carry drug_id into clinosim/codes/data/drugs.yaml. cephalexin +
+    # trimethoprim_sulfamethoxazole registered by #1843.
     japan:
-      - drug: "Cephalexin"
-        code_yj: "6132002"
+      - drug_id: cephalexin
         dose: "500mg PO QID"
         duration_days: 7
     us:
-      - drug: "Cephalexin"
-        code_rxnorm: "197454"
+      - drug_id: cephalexin
         dose: "500mg PO QID"
         duration_days: 7
-      - drug: "Trimethoprim/Sulfamethoxazole"
-        code_rxnorm: "10831"
+      - drug_id: trimethoprim_sulfamethoxazole
         dose: "DS 1 tab PO BID"
         duration_days: 7
         note: "Added if MRSA concern"

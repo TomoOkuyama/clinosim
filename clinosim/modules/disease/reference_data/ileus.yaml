@@ -372,14 +372,19 @@ drugs:
         indication: "suspected bowel ischemia or perforation"
 
   discharge_oral:
+    # META #1804 Phase 2.d antibiotic-GI cluster: the US-side
+    # metoclopramide entry carries drug_id (registered by #1843). The
+    # JP-side Mosapride entry stays on the legacy drug / code_yj
+    # fields — mosapride is a JP-only prokinetic (not in NLM RxNorm)
+    # and is not yet registered in the catalog; the dual-path
+    # resolver keeps its emit path byte-identical to pre-PR output.
     japan:
       - drug: "Mosapride"
         code_yj: "2399010"
         dose: "5mg PO TID"
         duration_days: 7
     us:
-      - drug: "Metoclopramide"
-        code_rxnorm: "6915"
+      - drug_id: metoclopramide
         dose: "10mg PO TID before meals"
         duration_days: 5
 
