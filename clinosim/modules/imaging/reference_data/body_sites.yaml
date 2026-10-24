@@ -12,12 +12,15 @@ body_sites:
   chest:
     snomed: "51185008"
     procedure_codes:
-      CR_PA_Lateral:                             # 2-view chest X-ray
-        loinc: "36572-6"                         # NLM clinicaltables verified
+      CR_PA_Lateral:                             # 2-view chest X-ray (standing PA + lateral)
+        # #1851 split from 36572-6 (XR Chest AP, portable supine) to the
+        # 2-view LOINC 42272-5 (XR Chest PA and Lateral) which matches
+        # the standing-exam clinical variant.
+        loinc: "42272-5"
         cpt: "71046"                             # AMA verified
         jp_k_code: "E001"                        # MHLW 単純撮影
-      CR_PA:                                     # 1-view chest X-ray (portable / bed-side)
-        loinc: "36572-6"
+      CR_PA:                                     # 1-view chest X-ray (portable / bed-side AP)
+        loinc: "36572-6"                         # XR Chest AP — portable supine, NLM verified
         cpt: "71045"
         jp_k_code: "E001"
       CT_non_contrast:
@@ -61,11 +64,15 @@ body_sites:
         cpt: "74022"                             # X-ray abdomen with chest — AMA
         jp_k_code: "E001"
       CT_non_contrast:
-        loinc: "41806-1"                         # CT Abdomen — NLM verified
+        # #1851 abdomen CT contrast-state split (mirrors chest 29252-4/
+        # 24628-0 pattern). Previously both variants used 41806-1
+        # (CT Abdomen generic). 36424-0 is `CT Abdomen WO contrast`.
+        loinc: "36424-0"
         cpt: "74150"                             # CT abdomen WO contrast — AMA
         jp_k_code: "E200"
       CT_contrast:
-        loinc: "41806-1"
+        # 79103-8 is `CT Abdomen W contrast IV` (NLM verified).
+        loinc: "79103-8"
         cpt: "74160"                             # CT abdomen W contrast — AMA
         jp_k_code: "E200"
       US:                                        # US abdomen (complete)
@@ -141,10 +148,13 @@ body_sites:
     snomed: "8205005"                            # Wrist region
     procedure_codes:
       CR_PA_Lateral_Oblique:                     # 3-view wrist
-        loinc: "24619-9"                         # XR Wrist Views — NLM verified
+        # #1851 split from the generic 24619-9 (XR Wrist Views) to the
+        # view-count-specific LOINCs. 37926-3 is `XR Wrist 3 Views`.
+        loinc: "37926-3"
         cpt: "73110"                             # X-ray wrist complete 3 views — AMA
         jp_k_code: "E001"
       CR_PA_Lateral:                             # 2-view wrist (post-op check)
-        loinc: "24619-9"
+        # 37925-5 is `XR Wrist 2 Views` (NLM verified).
+        loinc: "37925-5"
         cpt: "73100"                             # X-ray wrist 2 views — AMA
         jp_k_code: "E001"
