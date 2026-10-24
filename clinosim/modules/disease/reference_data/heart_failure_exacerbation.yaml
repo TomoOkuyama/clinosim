@@ -287,14 +287,17 @@ drugs:
     us:
       - {drug: "Nitroglycerin", code_rxnorm: "4917", dose: "5-200ug/min IV drip"}
   discharge_oral:
+    # META #1804 Phase 2.d cardiac cluster: discharge_oral entries carry
+    # drug_id into clinosim/codes/data/drugs.yaml. Display resolved via
+    # the catalog.
     japan:
-      - {drug: "Furosemide", dose: "20mg PO daily"}
-      - {drug: "Enalapril", dose: "5mg PO daily"}
-      - {drug: "Carvedilol", dose: "2.5mg PO BID"}
+      - {drug_id: furosemide, dose: "20mg PO daily"}
+      - {drug_id: enalapril, dose: "5mg PO daily"}
+      - {drug_id: carvedilol, dose: "2.5mg PO BID"}
     us:
-      - {drug: "Furosemide", dose: "40mg PO daily"}
-      - {drug: "Lisinopril", dose: "10mg PO daily"}
-      - {drug: "Carvedilol", dose: "6.25mg PO BID"}
+      - {drug_id: furosemide, dose: "40mg PO daily"}
+      - {drug_id: lisinopril, dose: "10mg PO daily"}
+      - {drug_id: carvedilol, dose: "6.25mg PO BID"}
 
 target_los:
   japan:
