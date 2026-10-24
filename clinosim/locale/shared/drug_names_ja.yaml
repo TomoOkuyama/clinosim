@@ -28,7 +28,7 @@ Prothrombin complex concentrate (4F-PCC): "乾燥濃縮人プロトロンビン�
 Unfractionated Heparin: "未分画ヘパリン"
 
 # --- Respiratory / 呼吸器系 ---
-Ipratropium: "イプラトロピウム"
+# Ipratropium → catalog drug_id (META #1849 Phase 5 Step 2.a).
 # Salbutamol → albuterol aliases (META #1849 Phase 5 Step 2.g).
 
 # --- GI / 消化器系 ---
@@ -53,20 +53,19 @@ Regular human insulin: "ヒトインスリン"    # MHLW YJ 2492403A4051 (ヒュ
 Calcium/Vitamin D: "カルシウム/ビタミンD"
 Calcitonin nasal spray: "カルシトニン点鼻"
 Calcium carbonate + vitamin D: "炭酸カルシウム/ビタミンD"
-Calcium gluconate: "グルコン酸カルシウム"  # MHLW YJ 3213001X1010 (カルチコール; 水和物)
+# Calcium gluconate → calcium_gluconate catalog drug_id (META #1849 Phase 5 Step 2.a; MHLW YJ 3213001X1010 カルチコール).
 Elcatonin: "エルカトニン"
 
 # --- Urology / 泌尿器系 ---
 
 # --- Antihistamines / 抗ヒスタミン薬 ---
-Silver nitrate: "硝酸銀"
+# Silver nitrate → silver_nitrate catalog drug_id (META #1849 Phase 5 Step 2.a).
 
 # --- Others / その他 ---
 Albumin: "アルブミン"
 Camostat mesilate: "カモスタットメシル酸塩"
 Human serum albumin: "人血清アルブミン"    # MHLW YJ 6343410X1088 (献血アルブミン)
-Magnesium Sulfate: "硫酸マグネシウム"
-Magnesium sulfate: "硫酸マグネシウム"      # lowercase alias (MHLW YJ 2355002X1075)
+# Magnesium Sulfate / Magnesium sulfate → magnesium_sulfate catalog drug_id + alias (META #1849 Phase 5 Step 2.a; MHLW YJ 2355002X1075).
 Nafamostat: "ナファモスタット"
 
 # --- Oncology / 抗癌剤・分子標的薬 (session 104 Issue #1168) ---
@@ -82,9 +81,8 @@ Nafamostat: "ナファモスタット"
 BCG: "BCG（膀胱内注入療法）"                # MHLW HOT7 (BCG 膀胱内注入用、Issue #1310)
 "BCG intravesical": "BCG（膀胱内注入療法）" # disease-YAML alias form
 # Leuprorelin → leuprolide aliases (META #1849 Phase 5 Step 2.g).
-"Nab-paclitaxel": "ナブパクリタキセル"     # MHLW HOT7 (パクリタキセル、アルブミン懸濁型、Issue #1310)
-Nab_paclitaxel: "ナブパクリタキセル"       # underscore-form used inside a few disease YAMLs
-"nab-Paclitaxel": "ナブパクリタキセル"     # case-variant alias
+# Nab-paclitaxel / Nab_paclitaxel / nab-Paclitaxel → nab_paclitaxel catalog drug_id + aliases
+# (META #1849 Phase 5 Step 2.a; MHLW HOT7, アルブミン懸濁型 Issue #1310).
 
 # --- IV fluids / 輸液 ---
 IV normal saline: "生理食塩液"
@@ -103,7 +101,7 @@ Crystalloid: "晶質液"
 # --- Sedation/Anesthesia / 鎮静・麻酔 ---
 
 # --- Vaccines / ワクチン ---
-Tetanus toxoid: "破傷風トキソイド"
+# Tetanus toxoid → tetanus_toxoid catalog drug_id (META #1849 Phase 5 Step 2.a).
 
 # --- PE/DVT treatment procedures + non-drug procedures + dialysis +
 #     ventilation + interventional procedures + ED procedures +
