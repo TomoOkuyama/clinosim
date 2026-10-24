@@ -702,3 +702,30 @@ codes:
   '42955':
     en: Levocarnitine
     ja: レボカルニチン
+  # META #1849 Phase 5 Step 2 batch 5 — ophthalmic / decongestant /
+  # K-binder / JP NSAID / albumin cluster. RxCUIs verified via NLM
+  # RxNav (TTY=IN except butylscopolamine which is PIN of the bromide
+  # salt — the clinically dispensed form).
+  '7812':
+    en: Oxymetazoline
+    ja: オキシメタゾリン
+  '34905':
+    en: Proparacaine
+    ja: プロパラカイン
+  '3001':
+    en: Cyclopentolate
+    ja: シクロペントラート
+  '1716203':
+    en: Patiromer
+    ja: パチロマー
+  '56512':
+    en: Sodium polystyrene sulfonate
+    ja: ポリスチレンスルホン酸ナトリウム
+  '28908':
+    en: Loxoprofen
+    ja: ロキソプロフェン
+  '1851':
+    en: Butylscopolamine bromide
+    ja: ブチルスコポラミン臭化物
+  # (828529 Albumin human, USP already registered earlier — drugs.yaml
+  # albumin_human points at the existing entry directly.)

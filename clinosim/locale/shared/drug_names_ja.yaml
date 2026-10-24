@@ -18,7 +18,6 @@ Trimethoprim/Sulfamethoxazole: "スルファメトキサゾール/トリメト�
 
 # --- Analgesics / 鎮痛薬 ---
 Acetaminophen/codeine: "アセトアミノフェン/コデイン"
-Loxoprofen: "ロキソプロフェン"
 NSAID: "ロキソプロフェン"                  # code_mapping substitutes NSAID → Loxoprofen (YJ 1149019C1149)
 
 # --- Cardiovascular / 循環器系 ---
@@ -62,7 +61,6 @@ Elcatonin: "エルカトニン"
 # --- Urology / 泌尿器系 ---
 
 # --- Antihistamines / 抗ヒスタミン薬 ---
-Oxymetazoline: "オキシメタゾリン"
 Silver nitrate: "硝酸銀"
 
 # --- Others / その他 ---
@@ -72,8 +70,6 @@ Human serum albumin: "人血清アルブミン"    # MHLW YJ 6343410X1088 (献�
 Magnesium Sulfate: "硫酸マグネシウム"
 Magnesium sulfate: "硫酸マグネシウム"      # lowercase alias (MHLW YJ 2355002X1075)
 Nafamostat: "ナファモスタット"
-Patiromer: "パチロマー"                    # MHLW YJ 2190046B1028 (ビルタサ; パチロマーソルビテクスカルシウム)
-Sodium polystyrene sulfonate: "ポリスチレンスルホン酸ナトリウム"  # MHLW YJ 2190009A1048 (ケイキサレート)
 
 # --- Oncology / 抗癌剤・分子標的薬 (session 104 Issue #1168) ---
 # Entries mirror the drug_ja fields already declared in
@@ -174,8 +170,6 @@ urinary catheter: "膀胱留置カテーテル"
 perioperative period: "周術期"
 
 # --- Ophthalmic / 眼科用薬 ---
-Proparacaine: "プロパラカイン"
-Cyclopentolate: "シクロペントラート"
 Ofloxacin ophthalmic: "オフロキサシン点眼"
 
 # --- Procedures (ED) / 処置 ---

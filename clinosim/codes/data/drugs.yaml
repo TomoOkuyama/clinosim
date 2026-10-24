@@ -669,6 +669,53 @@ drugs:
     codes:
       rxnorm: "42955"
     classes: ["carnitine_supplement"]
+  # META #1849 Phase 5 Step 2 batch 5 — ophthalmic / decongestant /
+  # K-binder / JP NSAID / albumin cluster. 8 ingredient drugs.
+  oxymetazoline:
+    names: {en: "Oxymetazoline", ja: "オキシメタゾリン"}
+    codes:
+      rxnorm: "7812"
+    classes: ["decongestant.alpha_adrenergic"]
+  proparacaine:
+    names: {en: "Proparacaine", ja: "プロパラカイン"}
+    codes:
+      rxnorm: "34905"
+    classes: ["local_anesthetic.ophthalmic"]
+  cyclopentolate:
+    names: {en: "Cyclopentolate", ja: "シクロペントラート"}
+    codes:
+      rxnorm: "3001"
+    classes: ["mydriatic.anticholinergic"]
+  patiromer:
+    names: {en: "Patiromer", ja: "パチロマー"}
+    codes:
+      rxnorm: "1716203"
+    classes: ["potassium_binder"]
+  sodium_polystyrene_sulfonate:
+    names: {en: "Sodium polystyrene sulfonate", ja: "ポリスチレンスルホン酸ナトリウム"}
+    codes:
+      rxnorm: "56512"
+    classes: ["potassium_binder"]
+  loxoprofen:
+    # Note: loxoprofen IS in NLM RxNorm as RxCUI 28908 (TTY=IN),
+    # despite being clinically most prevalent in JP. Promoted here
+    # with its NLM-authoritative pointer.
+    names: {en: "Loxoprofen", ja: "ロキソプロフェン"}
+    codes:
+      rxnorm: "28908"
+    classes: ["nsaid.non_selective", "nsaid"]
+  butylscopolamine:
+    # PIN of the clinically dispensed bromide salt (same convention
+    # as Landiolol in batch 2 using the HCl PIN).
+    names: {en: "Butylscopolamine bromide", ja: "ブチルスコポラミン臭化物"}
+    codes:
+      rxnorm: "1851"
+    classes: ["antispasmodic.anticholinergic"]
+  albumin_human:
+    names: {en: "Albumin human, USP", ja: "人血清アルブミン"}
+    codes:
+      rxnorm: "828529"
+    classes: ["blood_product.plasma_protein"]
   heparin:
     names: {en: "Heparin", ja: "ヘパリン"}
     codes:
