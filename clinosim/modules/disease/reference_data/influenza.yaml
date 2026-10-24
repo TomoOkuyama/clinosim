@@ -358,15 +358,15 @@ drugs:
         indication: "atypical_coverage"
 
   discharge_oral:
+    # META #1804 Phase 2.d anticoagulant-antiviral cluster: discharge_oral
+    # entries carry drug_id into clinosim/codes/data/drugs.yaml.
     japan:
-      - drug: "Oseltamivir"
-        code_yj: "6250021"
+      - drug_id: oseltamivir
         dose: "75mg PO BID"
         duration_days: 5
         note: "Continue to complete 5-day course if started late"
     us:
-      - drug: "Oseltamivir"
-        code_rxnorm: "352018"
+      - drug_id: oseltamivir
         dose: "75mg PO BID"
         duration_days: 5
 

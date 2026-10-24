@@ -420,15 +420,15 @@ drugs:
     us: []
 
   discharge_oral:
+    # META #1804 Phase 2.d anticoagulant-antiviral cluster: discharge_oral
+    # entries carry drug_id into clinosim/codes/data/drugs.yaml.
     japan:
-      - drug: "Edoxaban"
-        code_yj: "3339002"
+      - drug_id: edoxaban
         dose: "60mg PO daily"
         duration_days: 90
         note: "Minimum 3 months; extend if unprovoked or ongoing risk"
     us:
-      - drug: "Rivaroxaban"
-        code_rxnorm: "1114195"
+      - drug_id: rivaroxaban
         dose: "20mg PO daily with food"
         duration_days: 90
         note: "Minimum 3 months; consider extended for unprovoked DVT"
