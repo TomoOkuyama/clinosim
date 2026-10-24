@@ -113,7 +113,11 @@ body_sites:
         cpt: "73510"                             # X-ray hip complete 2 views — AMA
         jp_k_code: "E001"
       CT_non_contrast:
-        loinc: "36663-3"                         # closest LOINC family
+        # #1851 modality correction: previously 36663-3 (XR Hip 2 Views)
+        # was reused for the CT variant — XR LOINC on a CT procedure.
+        # 36484-4 is `CT Hip WO contrast` (Multisection^WO contrast)
+        # verified via NLM Clinical Table Search Service.
+        loinc: "36484-4"
         cpt: "73700"                             # CT lower extremity — AMA
         jp_k_code: "E200"
 
