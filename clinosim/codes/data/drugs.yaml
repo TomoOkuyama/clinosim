@@ -1380,3 +1380,25 @@ drugs:
       rxnorm: "608343"                 # NLM TTY=MIN
     classes: ["electrolyte_supplement", "vitamin"]
     aliases: ["Calcium carbonate + vitamin D", "Calcium/Vitamin D"]
+
+  # META #1849 Phase 5 Step 2 — HOT7-only JP-only drugs. NLM RxCUIs are
+  # either NotCurrent (BCG 1344 → inactive) or absent; MHLW YJ is also
+  # not registered for these clinical forms. The clinical-master MEDIS
+  # HOT7 code is the only authoritative identifier available in-tree.
+  # Phase 6 CI gate widened to accept HOT7 as a valid authority pointer.
+  camostat_mesilate:
+    # JP-only serine protease inhibitor (フオイパン). Used for chronic
+    # pancreatitis and post-operative reflux esophagitis.
+    names: {en: "Camostat mesilate", ja: "カモスタットメシル酸塩"}
+    codes:
+      hot7: "3999003"                  # MEDIS-HOT7 (Camostat mesilate)
+    classes: ["protease_inhibitor"]
+  bcg_intravesical:
+    # BCG vaccine for intravesical bladder-cancer therapy. NLM RxCUI
+    # 1344 (Bacillus Calmette-Guerin vaccine, IN) and 42579
+    # (MYCOBACTERIUM BOVIS BCG) are both NotCurrent in RxNorm.
+    names: {en: "BCG (intravesical)", ja: "BCG（膀胱内注入療法）"}
+    codes:
+      hot7: "6323400"                  # MEDIS-HOT7 (BCG intravesical)
+    classes: ["immunotherapy", "oncology.bladder"]
+    aliases: ["BCG", "BCG intravesical"]
