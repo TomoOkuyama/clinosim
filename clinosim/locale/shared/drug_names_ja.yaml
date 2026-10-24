@@ -8,10 +8,6 @@
 Amoxicillin/Clavulanate: "アモキシシリン/クラブラン酸"
 Cefcapene pivoxil: "セフカペンピボキシル"
 Cefditoren pivoxil: "セフジトレンピボキシル"
-Clindamycin: "クリンダマイシン"
-Fluconazole: "フルコナゾール"              # MHLW YJ 6290002M1020 (ジフルカン)
-Metronidazole: "メトロニダゾール"
-Micafungin: "ミカファンギン"
 # DEPRECATED 2026-06-27 — Trimethoprim-sulfamethoxazole hyphen form is legacy
 # alias; use slash form Trimethoprim/Sulfamethoxazole everywhere. Remove this
 # alias after one release cycle if no new callers appear.
@@ -19,7 +15,6 @@ Trimethoprim-sulfamethoxazole: "スルファメトキサゾール/トリメト�
 Trimethoprim/Sulfamethoxazole: "スルファメトキサゾール/トリメトプリム"
 
 # --- Antiviral / 抗ウイルス薬 ---
-Peramivir: "ペラミビル"                    # MHLW YJ 6250405A1032 (ラピアクタ)
 
 # --- Analgesics / 鎮痛薬 ---
 Acetaminophen/codeine: "アセトアミノフェン/コデイン"
@@ -98,7 +93,6 @@ Phenazopyridine: "フェナゾピリジン"
 # --- Antihistamines / 抗ヒスタミン薬 ---
 Meclizine: "メクリジン"
 Oxymetazoline: "オキシメタゾリン"
-Silver sulfadiazine: "スルファジアジン銀"
 Silver nitrate: "硝酸銀"
 
 # --- Others / その他 ---
@@ -217,7 +211,6 @@ perioperative period: "周術期"
 # --- Ophthalmic / 眼科用薬 ---
 Proparacaine: "プロパラカイン"
 Cyclopentolate: "シクロペントラート"
-Ofloxacin: "オフロキサシン"
 Ofloxacin ophthalmic: "オフロキサシン点眼"
 
 # --- Procedures (ED) / 処置 ---

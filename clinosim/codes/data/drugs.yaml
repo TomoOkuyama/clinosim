@@ -428,6 +428,45 @@ drugs:
       # to 36676 (TTY=IN sodium bicarbonate, verified via NLM).
       rxnorm: "36676"
     classes: ["electrolyte"]
+  # META #1849 Phase 5 Step 2 batch 1 — antimicrobial cluster.
+  # 7 ingredient drugs promoted from legacy drug_names_ja.yaml to the
+  # catalog. Every RxCUI verified against NLM RxNav
+  # /REST/rxcui/<cui>/properties.json (all TTY=IN ingredient).
+  clindamycin:
+    names: {en: "Clindamycin", ja: "クリンダマイシン"}
+    codes:
+      rxnorm: "2582"
+    classes: ["antibiotic.lincosamide"]
+  metronidazole:
+    names: {en: "Metronidazole", ja: "メトロニダゾール"}
+    codes:
+      rxnorm: "6922"
+    classes: ["antibiotic.nitroimidazole"]
+  fluconazole:
+    names: {en: "Fluconazole", ja: "フルコナゾール"}
+    codes:
+      rxnorm: "4450"
+    classes: ["antifungal.triazole"]
+  micafungin:
+    names: {en: "Micafungin", ja: "ミカファンギン"}
+    codes:
+      rxnorm: "325887"
+    classes: ["antifungal.echinocandin"]
+  peramivir:
+    names: {en: "Peramivir", ja: "ペラミビル"}
+    codes:
+      rxnorm: "619693"
+    classes: ["antiviral"]
+  ofloxacin:
+    names: {en: "Ofloxacin", ja: "オフロキサシン"}
+    codes:
+      rxnorm: "7623"
+    classes: ["antibiotic.fluoroquinolone"]
+  silver_sulfadiazine:
+    names: {en: "Silver sulfadiazine", ja: "スルファジアジン銀"}
+    codes:
+      rxnorm: "9793"
+    classes: ["antibiotic.sulfonamide.topical"]
   heparin:
     names: {en: "Heparin", ja: "ヘパリン"}
     codes:

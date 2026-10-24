@@ -169,6 +169,9 @@ codes:
   '435':
     en: Albuterol (ProAir / Ventolin)
     ja: サルブタモール（サルタノール/ベネトリン）
+  '4450':
+    en: Fluconazole
+    ja: フルコナゾール
   '4603':
     en: Furosemide (Lasix)
     ja: フロセミド（ラシックス）
@@ -202,6 +205,9 @@ codes:
   '6915':
     en: Metoclopramide
     ja: メトクロプラミド
+  '6922':
+    en: Metronidazole
+    ja: メトロニダゾール
   '6960':
     en: Midazolam
     ja: ミダゾラム
@@ -214,6 +220,9 @@ codes:
   '7512':
     en: Norepinephrine (Levophed)
     ja: ノルエピネフリン（ノルアドリナリン）
+  '7623':
+    en: Ofloxacin
+    ja: オフロキサシン
   '7646':
     en: Omeprazole
     ja: オメプラゾール
@@ -244,6 +253,9 @@ codes:
   '8896':
     en: Ondansetron
     ja: オンダンセトロン
+  '9793':
+    en: Silver sulfadiazine
+    ja: スルファジアジン銀
   # session 45 authoritative additions (NLM RxNav verified 2026-07-11).
   '5224':
     en: Heparin
@@ -382,6 +394,9 @@ codes:
   '321988':
     en: escitalopram
     ja: エスシタロプラム
+  '325887':
+    en: Micafungin
+    ja: ミカファンギン
   '4493':
     en: fluoxetine
     ja: フルオキセチン
@@ -391,6 +406,9 @@ codes:
   '2556':
     en: citalopram
     ja: シタロプラム
+  '2582':
+    en: Clindamycin
+    ja: クリンダマイシン
 
   # Cesarean intraoperative bundle (#1285 sub-scope). RXCUIs
   # NLM-verified 2026-09-12 via tx.fhir.org $lookup (TTY=IN).
@@ -512,6 +530,9 @@ codes:
   '596':
     en: Alprazolam
     ja: アルプラゾラム
+  '619693':
+    en: Peramivir
+    ja: ペラミビル
   '6218':
     en: Lactulose
     ja: ラクツロース
