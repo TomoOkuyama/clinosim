@@ -6,7 +6,7 @@
 
 # --- Antibiotics / 抗菌薬 ---
 Amoxicillin/Clavulanate: "アモキシシリン/クラブラン酸"
-Cefcapene pivoxil: "セフカペンピボキシル"
+# Cefcapene pivoxil → cefcapene_pivoxil catalog drug_id (META #1849 Phase 5 Step 2.b; MHLW YJ 6132016F2038, フロモックス).
 Cefditoren pivoxil: "セフジトレンピボキシル"
 # DEPRECATED 2026-06-27 — Trimethoprim-sulfamethoxazole hyphen form is legacy
 # alias; use slash form Trimethoprim/Sulfamethoxazole everywhere. Remove this
@@ -34,8 +34,7 @@ Unfractionated Heparin: "未分画ヘパリン"
 # --- GI / 消化器系 ---
 Buscopan: "ブチルスコポラミン"
 Butylscopolamine: "ブチルスコポラミン"     # MHLW YJ 1242002F1330 (ブスコパン; 臭化物) — chemical-name alias of Buscopan
-Daikenchuto: "大建中湯"
-Dai-kenchu-to: "大建中湯"                  # hyphenated alias
+# Daikenchuto / Dai-kenchu-to → daikenchuto catalog drug_id + alias (META #1849 Phase 5 Step 2.b; MHLW YJ 5200092C1025, JP Kampo).
 Sodium bicarbonate oral: "経口炭酸水素ナトリウム"
 
 # --- Endocrine / 内分泌系 ---
@@ -54,7 +53,7 @@ Calcium/Vitamin D: "カルシウム/ビタミンD"
 Calcitonin nasal spray: "カルシトニン点鼻"
 Calcium carbonate + vitamin D: "炭酸カルシウム/ビタミンD"
 # Calcium gluconate → calcium_gluconate catalog drug_id (META #1849 Phase 5 Step 2.a; MHLW YJ 3213001X1010 カルチコール).
-Elcatonin: "エルカトニン"
+# Elcatonin → elcatonin catalog drug_id (META #1849 Phase 5 Step 2.b; MHLW YJ 3999401A1200, エルシトニン).
 
 # --- Urology / 泌尿器系 ---
 
@@ -66,7 +65,7 @@ Albumin: "アルブミン"
 Camostat mesilate: "カモスタットメシル酸塩"
 Human serum albumin: "人血清アルブミン"    # MHLW YJ 6343410X1088 (献血アルブミン)
 # Magnesium Sulfate / Magnesium sulfate → magnesium_sulfate catalog drug_id + alias (META #1849 Phase 5 Step 2.a; MHLW YJ 2355002X1075).
-Nafamostat: "ナファモスタット"
+# Nafamostat → nafamostat catalog drug_id (META #1849 Phase 5 Step 2.b; MHLW YJ 3999407D1181, 注射用フサン).
 
 # --- Oncology / 抗癌剤・分子標的薬 (session 104 Issue #1168) ---
 # Entries mirror the drug_ja fields already declared in
