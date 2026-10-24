@@ -3,8 +3,11 @@
 META #1805 Phase B: top-level body_site display_en / display_ja fields
 retired. Displays live in clinosim/codes/data/snomed-ct.yaml and
 resolve at emit time via code_lookup("snomed-ct", bs.snomed, lang).
-Nested procedure_codes[*].display_en/ja are COMPOSITE procedure
-descriptions (not a direct code SoT) and remain.
+
+META #1805 Phase B.2 Part 2: nested procedure_codes[*].display_en /
+display_ja fields also retired. Displays live in
+clinosim/codes/data/loinc.yaml (registered in Part 1 #1835) and
+resolve at emit time via code_lookup("loinc", pc.loinc, lang).
 """
 
 from __future__ import annotations
@@ -83,8 +86,6 @@ def test_validate_body_sites_raises_on_unregistered_snomed():
                     "loinc": "24725-4",
                     "cpt": "70450",
                     "jp_k_code": "K002",
-                    "display_en": "stub",
-                    "display_ja": "stub",
                 },
             },
         }
@@ -98,8 +99,6 @@ def test_validate_body_sites_raises_on_unregistered_snomed():
                         "loinc": "36554-4",
                         "cpt": "71046",
                         "jp_k_code": "K001",
-                        "display_en": "X-ray",
-                        "display_ja": "X線",
                     },
                 },
             },

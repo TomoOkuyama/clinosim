@@ -252,7 +252,15 @@ def _build_imaging_study(
             _ck = _resolve_imaging_procedure_code_key(modality_code, _bs_key, [], _contrast)
             _proc = (body_sites[_bs_key].get("procedure_codes") or {}).get(_ck, {})
             _proc_loinc = _proc.get("loinc", "")
-            _proc_display = _proc.get(f"display_{lang}") or _proc.get("display_en", "")
+            # META #1805 Phase B.2 Part 2: display resolves via the LOINC
+            # authority (clinosim/codes/data/loinc.yaml), not the body_sites
+            # procedure_codes[*].display_en/display_ja fields (retired).
+            # LOINC canonical EN (Long Common Name) + clinosim-curated JA
+            # were registered in Phase B.2 Part 1 (#1835) for every
+            # procedure_code loinc used here.
+            _proc_display = code_lookup("loinc", _proc_loinc, lang) if _proc_loinc else ""
+            if not _proc_display or _proc_display == _proc_loinc:
+                _proc_display = ""
             # Issue #779: ImagingStudy.description = clinical procedure name.
             # Pre-fix behaviour: 0/90 studies (JP p=500) had a populated
             # description; consumer viewers could only fall back to DICOM

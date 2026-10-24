@@ -922,7 +922,12 @@ def _build_radiology_dr(study: Any, report: Any, ctx: Any) -> dict:
             code_key = _resolve_imaging_procedure_code_key(modality_code, _body_site_key, [], contrast)
             _proc = (body_sites[_body_site_key].get("procedure_codes") or {}).get(code_key, {})
             proc_code = _proc.get("loinc", "")
-            proc_display = _proc.get(f"display_{lang}") or _proc.get("display_en", "")
+            # META #1805 Phase B.2 Part 2: display resolves via the LOINC
+            # authority (clinosim/codes/data/loinc.yaml), not the body_sites
+            # procedure_codes[*].display_en/display_ja fields (retired).
+            proc_display = _codes_lookup("loinc", proc_code, lang) if proc_code else ""
+            if proc_display == proc_code:
+                proc_display = ""
         except ValueError:
             pass  # Unknown combination — proc_code stays ""; forward-compat for new modalities
 
