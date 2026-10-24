@@ -127,7 +127,6 @@ mappings:
 
   Bisoprolol:
     aliases: ["ビソプロロール", "メインテート"]
-    drug_ja: "ビソプロロール"
     classes: ["beta_blocker.cardioselective", "beta_blocker", "antihypertensive"]
 
   # CCBs — DHP is generally safe with BB; non-DHP is the interaction risk

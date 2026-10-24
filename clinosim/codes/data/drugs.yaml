@@ -423,8 +423,11 @@ drugs:
   sodium_bicarbonate:
     names: {en: "Sodium bicarbonate", ja: "炭酸水素ナトリウム"}
     codes:
-      rxnorm: "9796"
-    classes: []
+      # #1839 2nd batch: corrected the pre-existing RxCUI 9796 (which
+      # resolves to simethicone on NLM RxNav, not Sodium bicarbonate)
+      # to 36676 (TTY=IN sodium bicarbonate, verified via NLM).
+      rxnorm: "36676"
+    classes: ["electrolyte"]
   heparin:
     names: {en: "Heparin", ja: "ヘパリン"}
     codes:
@@ -847,3 +850,42 @@ drugs:
     codes:
       rxnorm: "2231"
     classes: ["antibiotic.cephalosporin"]
+  # META #1804 Phase 2.d catalog add (batch 2) — unblocks the remaining
+  # cluster migrations (atrial_fibrillation_rvr, cellulitis, uti,
+  # gi_bleeding, acute_kidney_injury, liver_cirrhosis_decompensated).
+  # RxCUIs verified against NLM RxNav /REST/rxcui/<cui>/properties.json.
+  bisoprolol:
+    names: {en: "Bisoprolol", ja: "ビソプロロール"}
+    codes:
+      rxnorm: "19484"
+    classes: ["beta_blocker"]
+  metoprolol_succinate:
+    names: {en: "Metoprolol succinate", ja: "コハク酸メトプロロール"}
+    codes:
+      rxnorm: "221124"
+    classes: ["beta_blocker"]
+  nitrofurantoin:
+    names: {en: "Nitrofurantoin", ja: "ニトロフラントイン"}
+    codes:
+      rxnorm: "7454"
+    classes: ["antibiotic"]
+  lactulose:
+    names: {en: "Lactulose", ja: "ラクツロース"}
+    codes:
+      rxnorm: "6218"
+    classes: ["laxative"]
+  rifaximin:
+    names: {en: "Rifaximin", ja: "リファキシミン"}
+    codes:
+      rxnorm: "35619"
+    classes: ["antibiotic"]
+  trimethoprim_sulfamethoxazole:
+    names: {en: "Sulfamethoxazole / Trimethoprim", ja: "スルファメトキサゾール／トリメトプリム"}
+    codes:
+      rxnorm: "10831"
+    classes: ["antibiotic.sulfonamide"]
+  ferrous_sulfate:
+    names: {en: "Ferrous sulfate", ja: "硫酸第一鉄"}
+    codes:
+      rxnorm: "24947"
+    classes: ["iron_supplement"]

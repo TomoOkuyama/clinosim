@@ -57,7 +57,7 @@ Fluticasone/Salmeterol: "108761"
 
 # GI / Other
 Lansoprazole: "17128"
-Sodium bicarbonate: "9796"
+Sodium bicarbonate: "36676"  # #1839 2nd batch: corrected from 9796 (resolves to simethicone on NLM RxNav) to 36676 (TTY=IN sodium bicarbonate).
 Vitamin D: "11253"
 Phytonadione: "8308"
 Kcentra: "1484959"
