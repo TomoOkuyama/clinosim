@@ -28,7 +28,6 @@ Prothrombin complex concentrate (4F-PCC): "乾燥濃縮人プロトロンビン�
 Unfractionated Heparin: "未分画ヘパリン"
 
 # --- Respiratory / 呼吸器系 ---
-Aminophylline: "アミノフィリン"
 Ipratropium: "イプラトロピウム"
 Salbutamol: "サルブタモール"
 
@@ -37,7 +36,6 @@ Buscopan: "ブチルスコポラミン"
 Butylscopolamine: "ブチルスコポラミン"     # MHLW YJ 1242002F1330 (ブスコパン; 臭化物) — chemical-name alias of Buscopan
 Daikenchuto: "大建中湯"
 Dai-kenchu-to: "大建中湯"                  # hyphenated alias
-Mosapride: "モサプリド"
 Sodium bicarbonate oral: "経口炭酸水素ナトリウム"
 
 # --- Endocrine / 内分泌系 ---

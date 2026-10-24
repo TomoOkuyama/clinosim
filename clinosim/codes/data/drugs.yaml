@@ -716,6 +716,41 @@ drugs:
     codes:
       rxnorm: "828529"
     classes: ["blood_product.plasma_protein"]
+  # META #1849 Phase 5 Step 2 batch 6 — respiratory / GI / hemostasis
+  # cluster. 5 ingredient drugs.
+  aminophylline:
+    names: {en: "Aminophylline", ja: "アミノフィリン"}
+    codes:
+      rxnorm: "689"
+    classes: ["xanthine.bronchodilator"]
+  mosapride:
+    # JP prokinetic (5-HT4 agonist). Despite being JP-prevalent,
+    # it IS registered in NLM RxNorm (TTY=IN 135091) — promoted
+    # from legacy drug_names_ja.yaml.
+    names: {en: "Mosapride", ja: "モサプリド"}
+    codes:
+      rxnorm: "135091"
+    classes: ["prokinetic.5ht4_agonist"]
+  cefditoren:
+    # NLM canonical EN is "cefditoren"; JP clinical form is
+    # "Cefditoren pivoxil" (the prodrug ester). Legacy
+    # drug_names_ja.yaml "Cefditoren pivoxil" entry intentionally
+    # kept as a JP alias (en-mismatch; same keep-alias pattern
+    # as Butylscopolamine → Butylscopolamine bromide).
+    names: {en: "Cefditoren", ja: "セフジトレン"}
+    codes:
+      rxnorm: "83682"
+    classes: ["antibiotic.cephalosporin.oral"]
+  prothrombin_complex_concentrate:
+    # NLM canonical EN is "Factor IX complex" (the 4F-PCC product);
+    # clinically known as "Prothrombin complex concentrate" / PCC.
+    names: {en: "Factor IX complex", ja: "プロトロンビン複合体製剤 (4F-PCC)"}
+    codes:
+      rxnorm: "1670383"
+    classes: ["blood_product.clotting_factor", "antidote.warfarin_reversal"]
+  # (phytonadione already registered elsewhere in this file — the
+  # pre-existing entry with RxCUI 8308 is reused. drug_names_ja.yaml
+  # drop handled below.)
   heparin:
     names: {en: "Heparin", ja: "ヘパリン"}
     codes:
