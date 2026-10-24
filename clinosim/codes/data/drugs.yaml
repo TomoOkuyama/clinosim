@@ -467,6 +467,79 @@ drugs:
     codes:
       rxnorm: "9793"
     classes: ["antibiotic.sulfonamide.topical"]
+  # META #1849 Phase 5 Step 2 batch 2 — cardio-emergency / vasoactive /
+  # thrombolytic cluster. 13 ingredient drugs promoted from legacy
+  # drug_names_ja.yaml to the catalog. Every RxCUI verified against
+  # NLM RxNav /REST/rxcui/<cui>/properties.json (TTY=IN unless
+  # noted; landiolol is PIN of the HCl salt — the distributed form).
+  epinephrine:
+    names: {en: "Epinephrine", ja: "エピネフリン"}
+    codes:
+      rxnorm: "3992"
+    classes: ["catecholamine", "vasopressor"]
+  amiodarone:
+    names: {en: "Amiodarone", ja: "アミオダロン"}
+    codes:
+      rxnorm: "703"
+    classes: ["antiarrhythmic.class_iii"]
+  atropine:
+    names: {en: "Atropine", ja: "アトロピン"}
+    codes:
+      rxnorm: "1223"
+    classes: ["anticholinergic"]
+  digoxin:
+    names: {en: "Digoxin", ja: "ジゴキシン"}
+    codes:
+      rxnorm: "3407"
+    classes: ["cardiac_glycoside"]
+  disopyramide:
+    names: {en: "Disopyramide", ja: "ジソピラミド"}
+    codes:
+      rxnorm: "3541"
+    classes: ["antiarrhythmic.class_ia"]
+  labetalol:
+    names: {en: "Labetalol", ja: "ラベタロール"}
+    codes:
+      rxnorm: "6185"
+    classes: ["beta_blocker.mixed", "antihypertensive"]
+  landiolol:
+    names: {en: "Landiolol hydrochloride", ja: "ランジオロール塩酸塩"}
+    codes:
+      rxnorm: "2712069"
+    classes: ["beta_blocker.cardioselective"]
+  metoprolol:
+    # Plain-ingredient Metoprolol (immediate-release / tartrate forms).
+    # Distinct from `metoprolol_succinate` (221124, long-acting) added
+    # in #1843.
+    names: {en: "Metoprolol", ja: "メトプロロール"}
+    codes:
+      rxnorm: "6918"
+    classes: ["beta_blocker.cardioselective", "antihypertensive"]
+  midodrine:
+    names: {en: "Midodrine", ja: "ミドドリン"}
+    codes:
+      rxnorm: "6963"
+    classes: ["vasopressor.oral"]
+  nicardipine:
+    names: {en: "Nicardipine", ja: "ニカルジピン"}
+    codes:
+      rxnorm: "7396"
+    classes: ["calcium_channel_blocker.dihydropyridine", "antihypertensive"]
+  vasopressin:
+    names: {en: "Vasopressin", ja: "バソプレシン"}
+    codes:
+      rxnorm: "11149"
+    classes: ["vasopressor"]
+  alteplase:
+    names: {en: "Alteplase", ja: "アルテプラーゼ"}
+    codes:
+      rxnorm: "8410"
+    classes: ["thrombolytic"]
+  urokinase:
+    names: {en: "Urokinase", ja: "ウロキナーゼ"}
+    codes:
+      rxnorm: "11055"
+    classes: ["thrombolytic"]
   heparin:
     names: {en: "Heparin", ja: "ヘパリン"}
     codes:

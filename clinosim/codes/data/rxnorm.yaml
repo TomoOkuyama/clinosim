@@ -23,6 +23,9 @@ codes:
   '108761':
     en: Fluticasone/Salmeterol (Advair)
     ja: フルチカゾン/サルメテロール（アドエア）
+  '11055':
+    en: Urokinase
+    ja: ウロキナーゼ
   '11124':
     # NLM RxNav verified 2026-06-25 (PR3b-1 Task 5): name=vancomycin, tty=IN.
     # Authoritative endpoint: /REST/rxcui/11124/properties.json. Existing
@@ -31,6 +34,9 @@ codes:
     # bug (Warfarin's correct CUI is 11289, already mapped elsewhere).
     en: Vancomycin
     ja: バンコマイシン
+  '11149':
+    en: Vasopressin
+    ja: バソプレシン
   '1116635':
     en: Ampicillin / Sulbactam Injectable Product
     ja: アンピシリン・スルバクタム注
@@ -43,6 +49,9 @@ codes:
   '1191':
     en: Aspirin
     ja: アスピリン（バイアスピリン）
+  '1223':
+    en: Atropine
+    ja: アトロピン
   '1310738':
     en: Carperitide
     ja: カルペリチド（ハンプ）
@@ -112,6 +121,9 @@ codes:
   '2670':
     en: Clopidogrel
     ja: クロピドグレル
+  '2712069':
+    en: Landiolol hydrochloride
+    ja: ランジオロール塩酸塩
   '274766':
     en: Tiotropium (Spiriva)
     ja: チオトロピウム（スピリーバ）
@@ -136,12 +148,18 @@ codes:
   '32968':
     en: Clopidogrel (Plavix)
     ja: クロピドグレル（プラビックス）
+  '3407':
+    en: Digoxin
+    ja: ジゴキシン
   '3423':
     en: Hydromorphone (Dilaudid)
     ja: ヒドロモルフォン（ジラウジド）
   '3443':
     en: Diltiazem (Cardizem)
     ja: ジルチアゼム（ヘルベッサー）
+  '3541':
+    en: Disopyramide
+    ja: ジソピラミド
   '36567':
     en: Simvastatin
     ja: シンバスタチン
@@ -205,12 +223,21 @@ codes:
   '6915':
     en: Metoclopramide
     ja: メトクロプラミド
+  '6918':
+    en: Metoprolol
+    ja: メトプロロール
   '6922':
     en: Metronidazole
     ja: メトロニダゾール
   '6960':
     en: Midazolam
     ja: ミダゾラム
+  '6963':
+    en: Midodrine
+    ja: ミドドリン
+  '703':
+    en: Amiodarone
+    ja: アミオダロン
   '7052':
     en: Morphine
     ja: モルヒネ
@@ -250,6 +277,9 @@ codes:
   '83367':
     en: Atorvastatin (Lipitor)
     ja: アトルバスタチン（リピトール）
+  '8410':
+    en: Alteplase
+    ja: アルテプラーゼ
   '8896':
     en: Ondansetron
     ja: オンダンセトロン
@@ -288,6 +318,9 @@ codes:
   '733':
     en: Ampicillin
     ja: アンピシリン
+  '7396':
+    en: Nicardipine
+    ja: ニカルジピン
   '2180':
     en: Cefazolin (Ancef)
     ja: セファゾリン
@@ -448,6 +481,9 @@ codes:
   '39786':
     en: venlafaxine
     ja: ベンラファキシン
+  '3992':
+    en: Epinephrine
+    ja: エピネフリン
   '15996':
     en: mirtazapine
     ja: ミルタザピン
@@ -530,6 +566,9 @@ codes:
   '596':
     en: Alprazolam
     ja: アルプラゾラム
+  '6185':
+    en: Labetalol
+    ja: ラベタロール
   '619693':
     en: Peramivir
     ja: ペラミビル
