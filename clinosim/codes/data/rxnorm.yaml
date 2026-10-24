@@ -727,5 +727,24 @@ codes:
   '1851':
     en: Butylscopolamine bromide
     ja: ブチルスコポラミン臭化物
+  # META #1849 Phase 5 Step 2 batch 6 — respiratory/GI/hemostasis
+  # cluster. 5 ingredient drugs. All RxCUIs verified via NLM
+  # (TTY=IN). Note: Mosapride (JP prokinetic) and Cefditoren
+  # (JP cephalosporin) are both NLM-registered despite being
+  # JP-prevalent; promoted to the catalog here.
+  '689':
+    en: Aminophylline
+    ja: アミノフィリン
+  '135091':
+    en: Mosapride
+    ja: モサプリド
+  '83682':
+    en: Cefditoren
+    ja: セフジトレン
+  '1670383':
+    en: Factor IX complex
+    ja: プロトロンビン複合体製剤 (4F-PCC)
+  # (8308 Phytonadione / Vitamin K1 already registered earlier —
+  # drugs.yaml phytonadione reuses the pre-existing entry.)
   # (828529 Albumin human, USP already registered earlier — drugs.yaml
   # albumin_human points at the existing entry directly.)
