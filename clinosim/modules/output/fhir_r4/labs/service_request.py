@@ -668,7 +668,9 @@ def _build_imaging_sr(
     proc_display_from_bs = ""
     for bs_def in body_sites.values():
         if bs_def["snomed"] == body_site_snomed:
-            body_site_display = bs_def.get(f"display_{lang}") or bs_def["display_en"]
+            # META #1805 Phase B: top-level body_site display_en/ja retired;
+            # resolve via snomed-ct.yaml authority instead.
+            body_site_display = code_lookup("snomed-ct", body_site_snomed, lang) or body_site_snomed
             # Also try to find procedure display from procedure_codes for this
             # body site — exact LOINC match preferred; first entry as fallback.
             for pc in bs_def.get("procedure_codes", {}).values():

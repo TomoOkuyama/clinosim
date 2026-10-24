@@ -217,8 +217,11 @@ def _validate_body_sites(data: dict[str, Any]) -> None:
             raise ValueError(f"body_sites.yaml[{bs_key}]: missing snomed")
         if not _code_in_data("snomed-ct", bs["snomed"]):
             raise ValueError(f"body_sites.yaml[{bs_key}].snomed {bs['snomed']!r} not in codes/data/snomed-ct.yaml")
-        if not bs.get("display_en") or not bs.get("display_ja"):
-            raise ValueError(f"body_sites.yaml[{bs_key}]: display_en + display_ja required")
+        # META #1805 Phase B: top-level display_en + display_ja retired —
+        # displays live in snomed-ct.yaml and resolve at emit time via
+        # code_lookup("snomed-ct", bs.snomed, lang). The nested
+        # procedure_codes[*].display_en / display_ja below are COMPOSITE
+        # procedure descriptions (not a direct code SoT) and stay.
         pcs = bs.get("procedure_codes") or {}
         if not pcs:
             raise ValueError(f"body_sites.yaml[{bs_key}]: missing procedure_codes")
