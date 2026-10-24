@@ -42,7 +42,6 @@ mappings:
 
   Edoxaban:
     aliases: ["エドキサバン", "リクシアナ", "savaysa"]
-    drug_ja: "エドキサバン"
     classes: ["anticoagulant.doac", "anticoagulant"]
 
   Enoxaparin:

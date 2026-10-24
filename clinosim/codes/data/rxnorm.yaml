@@ -94,12 +94,18 @@ codes:
   '221147':
     en: Rivaroxaban
     ja: リバーロキサバン
+  '2231':
+    en: Cephalexin
+    ja: セファレキシン
   '227224':
     en: Meropenem
     ja: メロペネム
   '2592':
     en: Chlorhexidine
     ja: クロルヘキシジン
+  '260101':
+    en: Oseltamivir
+    ja: オセルタミビル
   '2670':
     en: Clopidogrel
     ja: クロピドグレル
@@ -142,6 +148,9 @@ codes:
   '4053':
     en: Erythromycin
     ja: エリスロマイシン
+  '40790':
+    en: Pantoprazole
+    ja: パントプラゾール
   '4337':
     # C2 / #1088: pre-C2 this entry was mislabeled as "Ceftriaxone" — a
     # copy-paste from an old edit. NLM RxNav authoritative name for RxCUI
@@ -184,6 +193,9 @@ codes:
   '6902':
     en: Methylprednisolone
     ja: メチルプレドニゾロン
+  '6915':
+    en: Metoclopramide
+    ja: メトクロプラミド
   '6960':
     en: Midazolam
     ja: ミダゾラム
@@ -264,6 +276,9 @@ codes:
   '1596450':
     en: Gentamicin
     ja: ゲンタマイシン
+  '1599538':
+    en: Edoxaban
+    ja: エドキサバン
   '2551':
     en: Ciprofloxacin (Cipro)
     ja: シプロフロキサシン
