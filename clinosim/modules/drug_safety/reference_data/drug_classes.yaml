@@ -77,7 +77,6 @@ mappings:
 
   Loxoprofen:
     aliases: ["ロキソプロフェン", "ロキソニン"]
-    drug_ja: "ロキソプロフェン"
     classes: ["nsaid.non_selective", "nsaid"]
 
   Naproxen:
