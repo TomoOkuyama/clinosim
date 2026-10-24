@@ -410,14 +410,15 @@ drugs:
         indication: "same"
 
   discharge_oral:
+    # META #1804 Phase 2.d pneumonia cluster: discharge_oral entries
+    # carry drug_id into clinosim/codes/data/drugs.yaml. Display
+    # resolved via the catalog.
     japan:
-      - drug: "Amoxicillin"
-        code_yj: "6131001"
+      - drug_id: amoxicillin
         dose: "250mg PO TID"
         duration_days: 5
     us:
-      - drug: "Amoxicillin/Clavulanate"
-        code_rxnorm: "562251"
+      - drug_id: amoxicillin_clavulanate
         dose: "875/125mg PO BID"
         duration_days: 5
 
