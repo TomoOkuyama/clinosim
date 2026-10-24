@@ -371,9 +371,18 @@ drugs:
     us: []
 
   discharge_oral:
+    # META #1804 Phase 2.d asthma cluster: the systemic corticosteroid
+    # entries carry drug_id into clinosim/codes/data/drugs.yaml. The
+    # "ICS/LABA inhaler" rows stay on the legacy drug / code_yj /
+    # code_rxnorm fields — "ICS/LABA inhaler" is a generic category
+    # label, not a specific RxNorm concept, and migrating it to a
+    # concrete drug_id (e.g. fluticasone_salmeterol) would silently
+    # upgrade the emitted MedicationRequest.coding to a specific
+    # product. That is a separate, intentional refactor and is left
+    # out of this mechanical rename PR; the dual-path resolver keeps
+    # the ICS/LABA inhaler emit path unchanged.
     japan:
-      - drug: "Prednisolone"
-        code_yj: "2456001"
+      - drug_id: prednisolone
         dose: "30-40mg PO daily"
         duration_days: 5
         note: "Taper over 5-7 days"
@@ -395,8 +404,7 @@ drugs:
                        # "PO" which falsely asserts oral administration.
         note: "Ensure step-up from pre-exacerbation level"
     us:
-      - drug: "Prednisone"
-        code_rxnorm: "8640"
+      - drug_id: prednisone
         dose: "40-50mg PO daily"
         duration_days: 5
       - drug: "ICS/LABA inhaler"
