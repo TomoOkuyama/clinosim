@@ -7,7 +7,7 @@
 # --- Antibiotics / 抗菌薬 ---
 # Amoxicillin/Clavulanate → amoxicillin_clavulanate catalog + alias (META #1849 Phase 5 Step 2).
 # Cefcapene pivoxil → cefcapene_pivoxil catalog drug_id (META #1849 Phase 5 Step 2.b; MHLW YJ 6132016F2038, フロモックス).
-Cefditoren pivoxil: "セフジトレンピボキシル"
+# Cefditoren pivoxil → clinosim-admin-form-display.yaml (META #1849 Phase 5 Step 2 admin-form; catalog cefditoren JA bare "セフジトレン" lacks pivoxil specificity).
 # Trimethoprim-sulfamethoxazole (deprecated hyphen) + Trimethoprim/Sulfamethoxazole (slash)
 # → trimethoprim_sulfamethoxazole catalog + aliases (META #1849 Phase 5 Step 2).
 # JA display unifies to catalog "スルファメトキサゾール／トリメトプリム" (fullwidth slash) — cosmetic diff from legacy halfwidth form, no clinical difference.
@@ -25,7 +25,7 @@ NSAID: "ロキソプロフェン"                  # code_mapping substitutes NS
 Prothrombin complex concentrate: "乾燥濃縮人プロトロンビン複合体"   # MHLW YJ 6343449D1024 (ケイセントラ)
 Prothrombin complex concentrate (4F-PCC): "乾燥濃縮人プロトロンビン複合体"
 4-factor PCC (Kcentra): "乾燥濃縮人プロトロンビン複合体"
-Unfractionated Heparin: "未分画ヘパリン"
+# Unfractionated Heparin → clinosim-admin-form-display.yaml (META #1849 Phase 5 Step 2 admin-form; catalog heparin JA bare "ヘパリン" loses UFH/LMWH distinction).
 
 # --- Respiratory / 呼吸器系 ---
 # Ipratropium → catalog drug_id (META #1849 Phase 5 Step 2.a).
@@ -36,11 +36,12 @@ Unfractionated Heparin: "未分画ヘパリン"
 # JA display unifies to catalog "ブチルスコポラミン臭化物" (bromide-salt-specific — chemical
 # refinement over legacy generic "ブチルスコポラミン"). MHLW YJ 1242002F1330.
 # Daikenchuto / Dai-kenchu-to → daikenchuto catalog drug_id + alias (META #1849 Phase 5 Step 2.b; MHLW YJ 5200092C1025, JP Kampo).
-Sodium bicarbonate oral: "経口炭酸水素ナトリウム"
+# Sodium bicarbonate oral → clinosim-admin-form-display.yaml (META #1849 Phase 5 Step 2 admin-form; oral-route specific).
 
 # --- Endocrine / 内分泌系 ---
-Regular insulin: "レギュラーインスリン"
-Regular human insulin: "ヒトインスリン"    # MHLW YJ 2492403A4051 (ヒューマリンR; 遺伝子組換え)
+# Regular insulin / Regular human insulin → clinosim-admin-form-display.yaml
+# (META #1849 Phase 5 Step 2 admin-form; specific formulations distinct from
+# catalog insulin bare "インスリン"). MHLW YJ 2492403A4051 (ヒューマリンR).
 
 # --- Neurology / 神経系 ---
 
@@ -51,7 +52,7 @@ Regular human insulin: "ヒトインスリン"    # MHLW YJ 2492403A4051 (ヒュ
 
 # --- Bone / 骨代謝 ---
 # Calcium/Vitamin D + Calcium carbonate + vitamin D → calcium_carbonate_vitamin_d catalog + aliases (META #1849 Phase 5 Step 2).
-Calcitonin nasal spray: "カルシトニン点鼻"
+# Calcitonin nasal spray → clinosim-admin-form-display.yaml (META #1849 Phase 5 Step 2 admin-form; nasal-route specific).
 # Calcium gluconate → calcium_gluconate catalog drug_id (META #1849 Phase 5 Step 2.a; MHLW YJ 3213001X1010 カルチコール).
 # Elcatonin → elcatonin catalog drug_id (META #1849 Phase 5 Step 2.b; MHLW YJ 3999401A1200, エルシトニン).
 
@@ -61,7 +62,10 @@ Calcitonin nasal spray: "カルシトニン点鼻"
 # Silver nitrate → silver_nitrate catalog drug_id (META #1849 Phase 5 Step 2.a).
 
 # --- Others / その他 ---
-Albumin: "アルブミン"                     # Lab-side display kept; drug-side migrates via albumin_human alias "Human serum albumin".
+# Albumin → clinosim-admin-form-display.yaml (META #1849 Phase 5 Step 2;
+# drug-side generic "アルブミン" display intentionally distinguished from
+# albumin_human catalog entry "人血清アルブミン" plasma product; lab-side
+# "Albumin → アルブミン" uses the separate `_localize_lab_name` path).
 Camostat mesilate: "カモスタットメシル酸塩"
 # Human serum albumin → albumin_human catalog alias (META #1849 Phase 5 Step 2; MHLW YJ 6343410X1088 献血アルブミン).
 # Magnesium Sulfate / Magnesium sulfate → magnesium_sulfate catalog drug_id + alias (META #1849 Phase 5 Step 2.a; MHLW YJ 2355002X1075).
@@ -93,8 +97,8 @@ Lactated Ringer's: "乳酸リンゲル液"          # apostrophe alias
 Lactated Ringer's solution: "乳酸リンゲル液"
 Ringers: "リンゲル液"                       # MHLW YJ 3319539A1082 (リンゲル液)
 LR: "乳酸リンゲル液"
-Hypertonic Saline: "高張食塩液"
-Crystalloid: "晶質液"
+# Hypertonic Saline → clinosim-admin-form-display.yaml (META #1849 Phase 5 Step 2; 3% NaCl concentration variant, distinct from normal_saline).
+# Crystalloid → clinosim-admin-form-display.yaml (META #1849 Phase 5 Step 2; IV fluid class label).
 # KCl → potassium_chloride aliases (META #1849 Phase 5 Step 2.g).
 
 # --- Sedation/Anesthesia / 鎮静・麻酔 ---
@@ -110,10 +114,10 @@ Crystalloid: "晶質液"
 # catalog into the returned dict so no caller change was needed.
 # `Broad spectrum antibiotic` is a drug-class label (not a procedure);
 # left here pending Phase 5 Step 2.f (drug class labels → drug_classes.yaml).
-Broad spectrum antibiotic: "広域スペクトラム抗菌薬"
+# Broad spectrum antibiotic → clinosim-admin-form-display.yaml (META #1849 Phase 5 Step 2; vague class label).
 
 # --- Ophthalmic / 眼科用薬 ---
-Ofloxacin ophthalmic: "オフロキサシン点眼"
+# Ofloxacin ophthalmic → clinosim-admin-form-display.yaml (META #1849 Phase 5 Step 2 admin-form; ophthalmic-route specific).
 
 # --- Imaging exam names (Issue #862) / 画像検査名 ---
 # Migrated to `clinosim/codes/data/clinosim-imaging-exam-name.yaml` under
@@ -121,12 +125,8 @@ Ofloxacin ophthalmic: "オフロキサシン点眼"
 # catalog into the returned dict so no caller change was needed.
 
 # --- Combination inhalers / 配合吸入剤 (Issue #852) ---
-# `ICS/LABA inhaler` appears verbatim in asthma_exacerbation.yaml as the
-# regimen order. Map both the full multi-word form and the "ICS/LABA"
-# short form so any downstream text that carries the short form still
-# localizes correctly.
-"ICS/LABA inhaler": "吸入ステロイド／β2刺激薬配合吸入剤"
-"ICS/LABA": "吸入ステロイド／β2刺激薬配合"
+# ICS/LABA inhaler + ICS/LABA → clinosim-admin-form-display.yaml
+# (META #1849 Phase 5 Step 2; combo inhaler class labels used in asthma_exacerbation.yaml).
 
 # --- Allergens / アレルゲン ---
 # Migrated to `clinosim/codes/data/clinosim-allergen-substance.yaml` under

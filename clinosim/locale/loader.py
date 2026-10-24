@@ -634,6 +634,14 @@ def load_drug_names_ja() -> dict[str, str]:
         ja_val = (ja or "").strip() if isinstance(ja, str) else ""
         if en_lower and ja_val and en_lower not in merged:
             merged[en_lower] = ja_val
+    # META #1849 Phase 5 Step 2: admin-form / narrative display catalog.
+    _ADMIN_FORM_CATALOG = _LOCALE_DIR.parent / "codes" / "data" / "clinosim-admin-form-display.yaml"
+    disp_raw = _load_yaml(_ADMIN_FORM_CATALOG, fallback={})
+    for en, ja in (disp_raw.get("displays", {}) or {}).items():
+        en_lower = (en or "").strip().lower()
+        ja_val = (ja or "").strip() if isinstance(ja, str) else ""
+        if en_lower and ja_val and en_lower not in merged:
+            merged[en_lower] = ja_val
     return merged
 
 
