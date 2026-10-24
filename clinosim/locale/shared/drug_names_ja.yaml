@@ -130,13 +130,6 @@ Ofloxacin ophthalmic: "オフロキサシン点眼"
 "ICS/LABA": "吸入ステロイド／β2刺激薬配合"
 
 # --- Allergens / アレルゲン ---
-Penicillin: "ペニシリン"
-Cephalosporin: "セフェム系抗菌薬"
-Sulfonamide: "サルファ剤"
-NSAIDs: "NSAIDs（非ステロイド性抗炎症薬）"
-Aspirin allergy: "アスピリンアレルギー"
-Iodinated contrast: "ヨード造影剤"
-Latex: "ラテックス"
-Peanut: "ピーナッツ"
-Shellfish: "甲殻類"
-Egg: "鶏卵"
+# Migrated to `clinosim/codes/data/clinosim-allergen-substance.yaml` under
+# META #1849 Phase 5 Step 2.c. Loader `_load_drug_names_ja` unions that
+# catalog into the returned dict so no caller change was needed.

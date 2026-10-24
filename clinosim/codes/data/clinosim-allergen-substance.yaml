@@ -1,0 +1,52 @@
+# clinosim Allergen / Substance Display Catalog — EN ↔ JA display mapping
+# for the free-text allergen and substance names that reach the FHIR
+# AllergyIntolerance emit path and other narrative sites without a SNOMED
+# allergen_code binding.
+#
+# META #1849 Phase 5 Step 2.c + partial 2.f: these entries used to live
+# in `clinosim/locale/shared/drug_names_ja.yaml` under the "Allergens"
+# comment block. They are not drugs; the mapping was tactically placed
+# in that file because `_localize_drug_name` is the generic string-
+# translation helper the FHIR narrative emit paths fall back to.
+#
+# This catalog is the semantic home for these entries. Loader unions it
+# into the same `_load_drug_names_ja()` return value so no caller change
+# is required.
+#
+# Scope: free-text allergen class and allergen food/environmental names
+# appearing in CIF AllergyIntoleranceRecord.substance_display and
+# narrative references. The structured allergen catalog
+# (`modules/allergy/reference_data/allergens.yaml`) remains the authority
+# for sampling-time allergen selection with its SNOMED allergen_code + JA
+# display via snomed-ct.yaml; this catalog only covers free-text display
+# translation for narrative use.
+#
+# Non-goals:
+#   - SNOMED binding on individual entries. Entries that gain a SNOMED
+#     code (Latex 111088007, Peanut 762952008, Shellfish 44027008,
+#     Egg 102263004) can migrate into snomed-ct.yaml as a follow-up.
+#   - Change to allergen sampling in `modules/allergy/engine.py`.
+
+metadata:
+  name: clinosim Allergen / Substance Display Catalog
+  description: >
+    EN → JA display mapping for free-text allergen and substance names.
+    Not a FHIR CodeSystem — this catalog exists only for display
+    localization at FHIR narrative emit time.
+
+substances:
+  # --- Drug class allergens (medication category) ---
+  Penicillin: "ペニシリン"
+  Cephalosporin: "セフェム系抗菌薬"
+  Sulfonamide: "サルファ剤"
+  NSAIDs: "NSAIDs（非ステロイド性抗炎症薬）"
+  Aspirin allergy: "アスピリンアレルギー"
+
+  # --- Contrast / imaging substance ---
+  Iodinated contrast: "ヨード造影剤"
+
+  # --- Environmental / food allergens ---
+  Latex: "ラテックス"
+  Peanut: "ピーナッツ"
+  Shellfish: "甲殻類"
+  Egg: "鶏卵"
