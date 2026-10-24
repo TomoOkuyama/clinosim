@@ -119,8 +119,16 @@ codes:
     en: Oseltamivir
     ja: オセルタミビル
   '2670':
-    en: Clopidogrel
-    ja: クロピドグレル
+    # #1856 batch 3: pre-existing bug fix — RxCUI 2670 was labelled
+    # Clopidogrel inherited from an earlier mis-assignment (same
+    # pattern as the Sodium bicarbonate 9796 → 36676 fix in #1843).
+    # NLM RxNav /REST/rxcui/2670/properties.json returns
+    # tty=IN name=codeine. The true Clopidogrel RxCUI is 32968
+    # (already registered below). This entry now holds its NLM-correct
+    # Codeine mapping; drugs.yaml::clopidogrel's rxnorm pointer is
+    # updated to 32968 in the same PR.
+    en: Codeine
+    ja: コデイン
   '2712069':
     en: Landiolol hydrochloride
     ja: ランジオロール塩酸塩
@@ -623,3 +631,41 @@ codes:
   '8640':
     en: Prednisone
     ja: プレドニゾン
+  # META #1849 Phase 5 Step 2 batch 3 — analgesia/anti-emetic/gastric
+  # cluster. 11 new ingredient drugs (Codeine registered via the
+  # 2670 entry above as part of the Clopidogrel misassignment fix).
+  # Every RxCUI verified against NLM RxNav
+  # /REST/rxcui/<cui>/properties.json (TTY=IN).
+  '3355':
+    en: Diclofenac
+    ja: ジクロフェナク
+  '3498':
+    en: Diphenhydramine
+    ja: ジフェンヒドラミン
+  '4278':
+    en: Famotidine
+    ja: ファモチジン
+  '6130':
+    en: Ketamine
+    ja: ケタミン
+  '6387':
+    en: Lidocaine
+    ja: リドカイン
+  '7617':
+    en: Octreotide
+    ja: オクトレオチド
+  '8120':
+    en: Phenazopyridine
+    ja: フェナゾピリジン
+  '8782':
+    en: Propofol
+    ja: プロポフォール
+  '10689':
+    en: Tramadol
+    ja: トラマドール
+  '21949':
+    en: Cyclobenzaprine
+    ja: シクロベンザプリン
+  '187832':
+    en: Pregabalin
+    ja: プレガバリン

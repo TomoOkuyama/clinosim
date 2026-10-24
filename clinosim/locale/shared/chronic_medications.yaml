@@ -161,7 +161,7 @@ I25:  # Ischemic heart disease / Coronary artery disease
     # 6-12 mo post-PCI window; add a note as an anchor for the
     # follow-up post-PCI-driven event flag (deferred — needs a
     # ``recent_pci_within_12mo`` sim feature).
-    - {drug_id: clopidogrel_2, dose: "75mg", route: "PO", frequency: "daily", probability: 0.10, note: "Chronic DAPT with Aspirin (assumed within 12 mo of PCI); truly chronic >12 mo is exceptional"}
+    - {drug_id: clopidogrel, dose: "75mg", route: "PO", frequency: "daily", probability: 0.10, note: "Chronic DAPT with Aspirin (assumed within 12 mo of PCI); truly chronic >12 mo is exceptional"}
     # Issue #1338: high-intensity statin for CAD secondary prevention is
     # Class-I evidence in every guideline body (ACC/AHA 2018, ESC 2019,
     # JAS 2022). Prior sim modelled statin ONLY under E78 (dyslipidemia
@@ -235,7 +235,7 @@ I63:  # Cerebral infarction — embolic source (AF/cardiac) gets AC; non-embolic
     - {drug_id: warfarin, dose: "3mg", drug_class: "anticoagulant", route: "PO", frequency: "daily", probability: 0.3}
     - {drug_id: apixaban_2, dose: "5mg", drug_class: "anticoagulant", route: "PO", frequency: "bid", probability: 0.3}
     - {drug_id: aspirin, dose: "100mg", route: "PO", frequency: "daily", probability: 0.7}
-    - {drug_id: clopidogrel_2, dose: "75mg", route: "PO", frequency: "daily", probability: 0.3}
+    - {drug_id: clopidogrel, dose: "75mg", route: "PO", frequency: "daily", probability: 0.3}
   monitoring:
     - {test: "PT-INR", frequency: "monthly", intent: "Warfarin therapeutic monitoring (if on warfarin)"}
 
