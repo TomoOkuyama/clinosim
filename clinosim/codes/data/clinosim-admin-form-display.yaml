@@ -1,0 +1,71 @@
+# clinosim Administration-Form / Narrative Display Catalog — EN ↔ JA
+# display mapping for drug / substance entries whose display carries an
+# administration route, specific formulation, or vague class label that
+# their generic catalog drug_id does not capture.
+#
+# META #1849 Phase 5 Step 2 admin-form display: these entries used to
+# live in `clinosim/locale/shared/drug_names_ja.yaml`. They are display
+# variants where the JA includes a route-decoration ("点鼻", "点眼",
+# "経口"), concentration qualifier ("高張", "レギュラー", "ヒト"), or
+# class-level qualifier ("広域スペクトラム", "配合"). The underlying
+# active ingredient is already in `drugs.yaml` (sodium_bicarbonate,
+# insulin, calcitonin, ofloxacin, normal_saline, …) — these entries
+# are not drug identities but narrative display decorations the
+# `_localize_drug_name` free-text helper looks up when a non-canonical
+# string appears in the generated text.
+#
+# This catalog is the semantic home for those display variants. Loader
+# unions it into the `_load_drug_names_ja()` return value so no caller
+# change is required.
+#
+# Non-goals:
+#   - This catalog does NOT carry FHIR codes. The underlying drug_ids
+#     in `drugs.yaml` carry the RxNorm / YJ / HOT7 pointers; look up
+#     the base ingredient (sodium_bicarbonate / insulin / calcitonin /
+#     ofloxacin / normal_saline / loxoprofen / heparin) if you need the
+#     authority code.
+#   - This catalog does NOT replace drug-class aliases on drugs.yaml.
+#     Class-level labels (NSAID, Broad spectrum antibiotic, ICS/LABA,
+#     Crystalloid) land here only because the free-text matcher needs
+#     a JA for the exact-text form that appears in disease YAMLs; the
+#     NSAID → loxoprofen substitution is handled by
+#     `locale/jp/code_mapping_drug.yaml` + loxoprofen alias.
+#   - This catalog is not a long-term class-label SoT. If
+#     drug_classes.yaml gains a display-string column, class-label
+#     entries migrate there.
+
+metadata:
+  name: clinosim Admin-Form / Narrative Display Catalog
+  description: >
+    EN → JA display mapping for drug / substance narrative display
+    variants whose JA carries a route / formulation / class qualifier
+    that the base drug_id's generic JA does not. Not a FHIR CodeSystem.
+
+displays:
+  # --- Administration-route decorations ---
+  Sodium bicarbonate oral: "経口炭酸水素ナトリウム"
+  Calcitonin nasal spray: "カルシトニン点鼻"
+  Ofloxacin ophthalmic: "オフロキサシン点眼"
+
+  # --- Insulin formulation variants ---
+  Regular insulin: "レギュラーインスリン"
+  Regular human insulin: "ヒトインスリン"       # MHLW YJ 2492403A4051 (ヒューマリンR; 遺伝子組換え)
+
+  # --- Saline concentration variant ---
+  Hypertonic Saline: "高張食塩液"               # typically 3% NaCl; distinct from normal_saline
+
+  # --- Class / vague labels ---
+  Crystalloid: "晶質液"                         # IV fluid class
+  Broad spectrum antibiotic: "広域スペクトラム抗菌薬"
+  "ICS/LABA inhaler": "吸入ステロイド／β2刺激薬配合吸入剤"
+  "ICS/LABA": "吸入ステロイド／β2刺激薬配合"
+
+  # --- Heparin specificity (unfractionated vs LMWH) ---
+  Unfractionated Heparin: "未分画ヘパリン"      # catalog heparin JA is generic "ヘパリン"
+
+  # --- JP ester prodrug form ---
+  Cefditoren pivoxil: "セフジトレンピボキシル"  # catalog cefditoren JA is bare "セフジトレン"
+
+  # --- Lab-side vs drug-side disambiguation ---
+  Albumin: "アルブミン"                         # drug display intentionally generic;
+                                                # see albumin_human catalog entry note.
