@@ -205,6 +205,7 @@ drugs:
     codes:
       rxnorm: "19711"
     classes: []
+    aliases: ["Amoxicillin/Clavulanate"] # slash-no-space form used in disease YAMLs. META #1849 Phase 5 Step 2.
   levofloxacin:
     names: {en: "Levofloxacin", ja: "レボフロキサシン"}
     codes:
@@ -1215,6 +1216,7 @@ drugs:
     codes:
       rxnorm: "10831"
     classes: ["antibiotic.sulfonamide"]
+    aliases: ["Trimethoprim/Sulfamethoxazole", "Trimethoprim-sulfamethoxazole"]  # slash + deprecated hyphen forms. META #1849 Phase 5 Step 2.
   ferrous_sulfate:
     names: {en: "Ferrous sulfate", ja: "硫酸第一鉄"}
     codes:
@@ -1301,3 +1303,28 @@ drugs:
       yj: "5200092C1025"               # Dai-kenchu-to extract
     classes: ["kampo"]
     aliases: ["Daikenchuto"]           # non-hyphenated form used in disease YAMLs
+
+  # META #1849 Phase 5 Step 2 combo products — multi-ingredient products
+  # that previously only lived in `drug_names_ja.yaml`. All RxCUIs verified
+  # against NLM RxNav /REST/rxcui/<cui>/properties.json (2026-10-24).
+  acetaminophen_codeine:
+    names: {en: "Acetaminophen / Codeine", ja: "アセトアミノフェン/コデイン"}
+    codes:
+      rxnorm: "817579"                 # NLM TTY=MIN (multi-ingredient)
+    classes: ["analgesic.opioid", "analgesic.non_opioid"]
+    aliases: ["Acetaminophen/codeine"] # slash form used in disease YAMLs
+  calcium_carbonate:
+    names: {en: "Calcium Carbonate", ja: "炭酸カルシウム"}
+    codes:
+      rxnorm: "1897"                   # NLM TTY=IN
+    classes: ["electrolyte_supplement", "antacid"]
+  calcium_carbonate_vitamin_d:
+    # Calcium carbonate + cholecalciferol (Vitamin D3) combination
+    # product. RxCUI 608343 (TTY=MIN) is the multi-ingredient form;
+    # the inactive "Calcium/Vitamin D" generic reference (NLM RxCUI
+    # 215839 NotCurrent) resolves here via the alias.
+    names: {en: "Calcium Carbonate / Cholecalciferol", ja: "炭酸カルシウム/ビタミンD"}
+    codes:
+      rxnorm: "608343"                 # NLM TTY=MIN
+    classes: ["electrolyte_supplement", "vitamin"]
+    aliases: ["Calcium carbonate + vitamin D", "Calcium/Vitamin D"]
