@@ -96,8 +96,13 @@ def test_no_shipped_entry_contradicts_its_block_fallback():
 def test_known_subcutaneous_discharge_entries_declare_sc():
     """The three entries missed by PR #457 now declare `route: "SC"`.
 
-    Keyed on (drug, dose) rather than list index so YAML reordering is safe.
+    Keyed on (drug_name, dose) rather than list index so YAML reordering
+    is safe. META #1804 Phase 2.d: an entry's drug display may come from
+    the legacy ``drug:`` field or from the catalog via ``drug_id:``;
+    both forms are resolved to the EN display name before matching.
     """
+    from clinosim.codes.drugs import resolve_drug
+
     expected = {
         ("Enoxaparin", "2000IU SC daily"),
         ("Enoxaparin", "40mg SC daily"),
@@ -105,7 +110,13 @@ def test_known_subcutaneous_discharge_entries_declare_sc():
     }
     seen = set()
     for _fname, _ck, entry in _block_entries("discharge_oral"):
-        key = (str(entry.get("drug", "")), str(entry.get("dose", "")))
+        drug_name = str(entry.get("drug", ""))
+        if not drug_name and entry.get("drug_id"):
+            try:
+                drug_name = resolve_drug(str(entry["drug_id"])).names.get("en", "") or ""
+            except Exception:
+                drug_name = ""
+        key = (drug_name, str(entry.get("dose", "")))
         if key in expected:
             seen.add(key)
             assert str(entry.get("route", "")).upper() == "SC", (
