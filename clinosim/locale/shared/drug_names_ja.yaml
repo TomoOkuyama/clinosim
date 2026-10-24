@@ -19,7 +19,9 @@ Cefditoren pivoxil: "セフジトレンピボキシル"
 NSAID: "ロキソプロフェン"                  # code_mapping substitutes NSAID → Loxoprofen (YJ 1149019C1149)
 
 # --- Cardiovascular / 循環器系 ---
-Adrenaline: "アドレナリン"                 # MHLW YJ 2451400A1030 (alias of Epinephrine)
+# Adrenaline → epinephrine catalog alias (META #1849 Phase 5 Step 2).
+# JA display unifies to catalog "エピネフリン" (PMDA preferred current;
+# "アドレナリン" is legacy pre-2006 公定書). MHLW YJ 2451400A1030.
 Prothrombin complex concentrate: "乾燥濃縮人プロトロンビン複合体"   # MHLW YJ 6343449D1024 (ケイセントラ)
 Prothrombin complex concentrate (4F-PCC): "乾燥濃縮人プロトロンビン複合体"
 4-factor PCC (Kcentra): "乾燥濃縮人プロトロンビン複合体"
@@ -30,8 +32,9 @@ Unfractionated Heparin: "未分画ヘパリン"
 # Salbutamol → albuterol aliases (META #1849 Phase 5 Step 2.g).
 
 # --- GI / 消化器系 ---
-Buscopan: "ブチルスコポラミン"
-Butylscopolamine: "ブチルスコポラミン"     # MHLW YJ 1242002F1330 (ブスコパン; 臭化物) — chemical-name alias of Buscopan
+# Buscopan / Butylscopolamine → butylscopolamine catalog aliases (META #1849 Phase 5 Step 2).
+# JA display unifies to catalog "ブチルスコポラミン臭化物" (bromide-salt-specific — chemical
+# refinement over legacy generic "ブチルスコポラミン"). MHLW YJ 1242002F1330.
 # Daikenchuto / Dai-kenchu-to → daikenchuto catalog drug_id + alias (META #1849 Phase 5 Step 2.b; MHLW YJ 5200092C1025, JP Kampo).
 Sodium bicarbonate oral: "経口炭酸水素ナトリウム"
 
@@ -58,9 +61,9 @@ Calcitonin nasal spray: "カルシトニン点鼻"
 # Silver nitrate → silver_nitrate catalog drug_id (META #1849 Phase 5 Step 2.a).
 
 # --- Others / その他 ---
-Albumin: "アルブミン"
+Albumin: "アルブミン"                     # Lab-side display kept; drug-side migrates via albumin_human alias "Human serum albumin".
 Camostat mesilate: "カモスタットメシル酸塩"
-Human serum albumin: "人血清アルブミン"    # MHLW YJ 6343410X1088 (献血アルブミン)
+# Human serum albumin → albumin_human catalog alias (META #1849 Phase 5 Step 2; MHLW YJ 6343410X1088 献血アルブミン).
 # Magnesium Sulfate / Magnesium sulfate → magnesium_sulfate catalog drug_id + alias (META #1849 Phase 5 Step 2.a; MHLW YJ 2355002X1075).
 # Nafamostat → nafamostat catalog drug_id (META #1849 Phase 5 Step 2.b; MHLW YJ 3999407D1181, 注射用フサン).
 
