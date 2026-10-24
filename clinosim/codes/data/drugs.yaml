@@ -1220,3 +1220,47 @@ drugs:
     codes:
       rxnorm: "24947"
     classes: ["iron_supplement"]
+
+  # META #1849 Phase 5 Step 2.a batch 1 — US-NLM ingredient drugs
+  # previously only present in `drug_names_ja.yaml`. Each RxCUI verified
+  # against NLM RxNav `/REST/rxcui/<cui>/properties.json` (2026-10-24).
+  ipratropium:
+    names: {en: "Ipratropium", ja: "イプラトロピウム"}
+    codes:
+      rxnorm: "7213"                   # NLM TTY=IN
+    classes: ["anticholinergic.inhaled"]
+  magnesium_sulfate:
+    names: {en: "Magnesium Sulfate", ja: "硫酸マグネシウム"}
+    codes:
+      rxnorm: "6585"                   # NLM TTY=IN
+    classes: ["electrolyte_supplement"]
+    aliases: ["Magnesium sulfate"]     # lowercase form (MHLW YJ 2355002X1075)
+  calcium_gluconate:
+    names: {en: "Calcium Gluconate", ja: "グルコン酸カルシウム"}
+    codes:
+      rxnorm: "1908"                   # NLM TTY=IN. MHLW YJ 3213001X1010 (カルチコール; 水和物)
+    classes: ["electrolyte_supplement"]
+  silver_nitrate:
+    names: {en: "Silver Nitrate", ja: "硝酸銀"}
+    codes:
+      rxnorm: "9789"                   # NLM TTY=IN
+    classes: ["topical_cautery"]
+  calcitonin:
+    names: {en: "Calcitonin", ja: "カルシトニン"}
+    codes:
+      rxnorm: "1311287"                # NLM TTY=IN
+    classes: ["bone_resorption_inhibitor"]
+  tetanus_toxoid:
+    names: {en: "Tetanus toxoid", ja: "破傷風トキソイド"}
+    codes:
+      rxnorm: "798306"                 # NLM TTY=IN (tetanus toxoid vaccine, inactivated)
+    classes: ["vaccine"]
+  nab_paclitaxel:
+    # Nab-paclitaxel is a specific albumin-bound formulation of paclitaxel
+    # (Abraxane). Registered as its own drug_id because the chemo_regimens
+    # treat it as a distinct agent from standard paclitaxel.
+    names: {en: "Nab-paclitaxel", ja: "ナブパクリタキセル"}
+    codes:
+      rxnorm: "486610"                 # NLM TTY=PIN (paclitaxel protein-bound). MHLW HOT7 (アルブミン懸濁型, Issue #1310).
+    classes: ["chemotherapy.taxane"]
+    aliases: ["Nab_paclitaxel", "nab-Paclitaxel"]  # underscore / case variants used inside disease YAMLs

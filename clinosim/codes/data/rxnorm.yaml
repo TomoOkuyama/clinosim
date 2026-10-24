@@ -748,3 +748,26 @@ codes:
   # drugs.yaml phytonadione reuses the pre-existing entry.)
   # (828529 Albumin human, USP already registered earlier — drugs.yaml
   # albumin_human points at the existing entry directly.)
+
+  # ─── META #1849 Phase 5 Step 2.a batch 1 — 6 US-NLM ingredient drugs
+  # previously only in drug_names_ja.yaml. All RxCUIs verified via NLM
+  # RxNav /REST/rxcui/<cui>/properties.json (2026-10-24, TTY=IN unless
+  # noted). RxCUI 486610 (Nab-paclitaxel PIN) already registered above.
+  '7213':
+    en: Ipratropium
+    ja: イプラトロピウム
+  '6585':
+    en: Magnesium Sulfate
+    ja: 硫酸マグネシウム
+  '1908':
+    en: Calcium Gluconate
+    ja: グルコン酸カルシウム
+  '9789':
+    en: Silver Nitrate
+    ja: 硝酸銀
+  '1311287':
+    en: Calcitonin
+    ja: カルシトニン
+  '798306':
+    en: Tetanus toxoid vaccine, inactivated
+    ja: 破傷風トキソイド (不活化ワクチン)
