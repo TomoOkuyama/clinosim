@@ -62,17 +62,40 @@ def test_merged_mapping_adds_catalog_only_entries() -> None:
     assert added > 0, "no catalog-only entries surfaced — regression"
 
 
-def test_legacy_wins_on_key_collision() -> None:
+def test_legacy_wins_on_key_collision(monkeypatch) -> None:
     """When a lowercased EN name exists in BOTH the legacy yaml and
     the catalog with DIFFERENT JA values, the legacy entry stays.
 
-    Known drift surfaced by the audit: Alendronate yaml
-    ``アレンドロネート`` vs catalog ``アレンドロン酸``. Legacy wins,
-    preserving pre-Phase-2.g display for every caller that already
-    read drug_names_ja.yaml.
+    #1849 Phase 5 Step 1 (drug_names_ja.yaml safe-drop): the two
+    known collisions in the live data (Alendronate legacy
+    ``アレンドロネート`` vs catalog ``アレンドロン酸``; Ferrous sulfate
+    legacy ``硫酸鉄`` vs catalog ``硫酸第一鉄``) were both resolved by
+    dropping the legacy entries — the catalog carries the official
+    PMDA / clinical form on each. After the drop the live data no
+    longer contains a collision pair, so the loader's
+    "legacy wins on key collision" semantic is exercised here via a
+    synthetic mock that injects a legacy entry whose EN matches a
+    catalog entry with a different JA.
     """
-    merged = load_drug_names_ja()
-    assert merged.get("alendronate") == "アレンドロネート"
+    from clinosim.locale import loader as _loader
+
+    # Clear caches so the mocked _load_yaml takes effect.
+    _loader.load_drug_names_ja.cache_clear()
+    original = _loader._load_yaml
+
+    def _mock_load_yaml(path, fallback=None):
+        if path.name == "drug_names_ja.yaml":
+            # Catalog carries aspirin → "アスピリン"; legacy injects
+            # the mock JA, which must win over the catalog value.
+            return {"Aspirin": "LEGACY-MOCK-JA"}
+        return original(path, fallback=fallback)
+
+    monkeypatch.setattr(_loader, "_load_yaml", _mock_load_yaml)
+    try:
+        merged = load_drug_names_ja()
+        assert merged.get("aspirin") == "LEGACY-MOCK-JA"
+    finally:
+        _loader.load_drug_names_ja.cache_clear()
 
 
 # ----------------------------------------------------------------------------
