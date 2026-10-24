@@ -27,22 +27,11 @@ Tramadol: "トラマドール"                   # MHLW YJ 1149038F1024 (トラ�
 
 # --- Cardiovascular / 循環器系 ---
 Adrenaline: "アドレナリン"                 # MHLW YJ 2451400A1030 (alias of Epinephrine)
-Alteplase: "アルテプラーゼ"                # MHLW YJ 3959402D1027 (アクチバシン; 遺伝子組換え)
-Amiodarone: "アミオダロン"                 # MHLW YJ 2129410A1028 (アンカロン)
-Atropine: "アトロピン"                     # MHLW YJ 1242008X1066 (アトロピン硫酸塩水和物)
-Digoxin: "ジゴキシン"
-Disopyramide: "ジソピラミド"               # MHLW YJ 2129005F1145 (リン酸ジソピラミド)
 Idarucizumab: "イダルシズマブ"             # MHLW YJ 3399412A1027 (プリズバインド; 遺伝子組換え)
-Labetalol: "ラベタロール"                  # MHLW YJ 2149009F1030 (トランデート)
-Landiolol: "ランジオロール"
-Metoprolol: "メトプロロール"               # MHLW YJ 2149010F1017 (セロケン)
-Midodrine: "ミドドリン"                    # MHLW YJ 2160002F1028 (メトリジン; 塩酸塩)
-Nicardipine: "ニカルジピン"
 Prothrombin complex concentrate: "乾燥濃縮人プロトロンビン複合体"   # MHLW YJ 6343449D1024 (ケイセントラ)
 Prothrombin complex concentrate (4F-PCC): "乾燥濃縮人プロトロンビン複合体"
 4-factor PCC (Kcentra): "乾燥濃縮人プロトロンビン複合体"
 Unfractionated Heparin: "未分画ヘパリン"
-Vasopressin: "バソプレシン"                # MHLW YJ 2414402A1035 (バソプレシン注射液)
 
 # --- Respiratory / 呼吸器系 ---
 Aminophylline: "アミノフィリン"
@@ -99,7 +88,6 @@ Silver nitrate: "硝酸銀"
 Albumin: "アルブミン"
 Camostat mesilate: "カモスタットメシル酸塩"
 Diphenhydramine: "ジフェンヒドラミン"
-Epinephrine: "エピネフリン"
 Human serum albumin: "人血清アルブミン"    # MHLW YJ 6343410X1088 (献血アルブミン)
 Lidocaine: "リドカイン"
 Magnesium Sulfate: "硫酸マグネシウム"
@@ -146,7 +134,6 @@ Propofol: "プロポフォール"
 Tetanus toxoid: "破傷風トキソイド"
 
 # --- PE/DVT treatment / 血栓症治療 ---
-Urokinase: "ウロキナーゼ"
 Sequential compression devices: "間欠的空気圧迫装置"
 therapeutic_anticoagulation: "治療的抗凝固療法"
 therapeutic anticoagulation: "治療的抗凝固療法"

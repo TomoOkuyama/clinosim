@@ -118,7 +118,6 @@ mappings:
   # β-blockers
   Metoprolol:
     aliases: ["メトプロロール", "ロプレソール"]
-    drug_ja: "メトプロロール"
     classes: ["beta_blocker.cardioselective", "beta_blocker", "antihypertensive"]
 
   Carvedilol:
