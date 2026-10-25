@@ -271,7 +271,9 @@ class VitalSignRecord:
     consciousness_level: str = "A"  # AVPU: A=Alert, V=Voice, P=Pain, U=Unresponsive (NEWS2)
     on_supplemental_oxygen: bool = False
     oxygen_flow_rate_lpm: float | None = None  # liters per minute, if on O2
-    oxygen_delivery_device: str = ""  # "nasal_cannula" | "simple_mask" | "venturi" | "non-rebreather" | "HFNC" | "BiPAP" | "ventilator"  # noqa: E501
+    oxygen_delivery_device: str = (
+        ""  # "nasal_cannula" | "simple_mask" | "venturi" | "non-rebreather" | "HFNC" | "BiPAP" | "ventilator"  # noqa: E501
+    )
     nursing_note: str = ""  # brief nursing assessment
     measured_by: str = ""  # nurse staff_id
     data_source: str = "manual"  # "manual" | "device_auto"
