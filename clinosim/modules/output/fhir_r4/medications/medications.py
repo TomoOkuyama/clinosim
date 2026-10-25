@@ -1069,6 +1069,107 @@ def _supply_duration_days(raw: Any) -> int | None:
     return days if days > 0 else None
 
 
+# ============================================================
+# _build_discharge_medication_request sub-step helpers (Phase B7)
+# ============================================================
+
+
+def _build_discharge_rx_dispense(authored_on: str, duration_days: int | None, country_code: str) -> dict[str, Any]:
+    """Compose MR.dispenseRequest for a discharge prescription item.
+
+    Carries validityPeriod.start = authored_on and
+    expectedSupplyDuration when the CIF supplied `duration_days`.
+    `numberOfRepeatsAllowed` is intentionally absent (CIF carries no
+    refill count — see the original inline comment).
+    """
+    dispense: dict[str, Any] = {}
+    if authored_on:
+        dispense["validityPeriod"] = {"start": authored_on}
+    if duration_days is not None:
+        dispense["expectedSupplyDuration"] = {
+            "value": duration_days,
+            "unit": _SUPPLY_DURATION_UNIT_JP if country_code == "JP" else _SUPPLY_DURATION_UNIT_US,
+            "system": get_system_uri("ucum"),
+            "code": _SUPPLY_DURATION_CODE,
+        }
+    return dispense
+
+
+def _build_discharge_rx_dosage(
+    item: Any,
+    dose: str,
+    route: str,
+    drug_name: str,
+    rate_adjustment_note: str,
+    country: str,
+) -> dict[str, Any]:
+    """Compose MR.dosageInstruction[0] for a discharge prescription item.
+
+    Order of operations preserved verbatim from the inline site:
+      1. route via `build_route_concept`
+      2. text — authored `dose_ja` / `dose_en` wins (Issue #476),
+         else auto-derived from `dose` + `rate_adjustment_note` with
+         `_localize_dosage_terms` applied
+      3. doseAndRate.doseQuantity + timing from `parse_dose_string` +
+         `resolve_timing_repeat` (Issue #920 / #1348), only when the
+         author did NOT supply authored_text (preserves "既存の
+         インスリンレジメンどおり" instruction-only semantics)
+      4. IV augmentation via `augment_iv_dosage_with_rate`
+         (Issue #966)
+
+    Returns the dosage dict (empty when none of the sources yield a
+    field — orchestrator skips the element in that case).
+    """
+    dosage: dict[str, Any] = {}
+    route_concept = build_route_concept(route, country)
+    if route_concept:
+        dosage["route"] = route_concept
+    # Issue #476: authored dose_ja / dose_en wins over auto-derived text.
+    dose_text_ja = str(get_attr_or_key(item, "dose_ja", "") or "")
+    dose_text_en = str(get_attr_or_key(item, "dose_en", "") or "")
+    authored_text = dose_text_ja if is_jp(country) else dose_text_en
+    if authored_text:
+        dosage["text"] = authored_text
+    else:
+        dose_parts = [p for p in (dose, rate_adjustment_note) if p]
+        if dose_parts:
+            dose_text = " ".join(dose_parts)
+            dosage["text"] = _localize_dosage_terms(dose_text, resolve_lang(country))
+
+    # Issue #920 / #1348: emit structured doseAndRate + timing from the
+    # same dose/frequency fields. Skipped when authored_text is set so
+    # instruction-only prescriptions (e.g. "既存のインスリンレジメン
+    # どおり") don't get an inferred numeric dose.
+    if not authored_text and dose:
+        from clinosim.modules.order.engine import parse_dose_string
+        from clinosim.modules.output.fhir_r4.lib.common import resolve_timing_repeat
+
+        _parsed = parse_dose_string(dose)
+        _qty = _parsed.get("dose_quantity")
+        _unit = _parsed.get("dose_unit", "")
+        if _qty is not None and _unit:
+            dosage["doseAndRate"] = [{"doseQuantity": build_ucum_quantity(_qty, _unit)}]
+        _freq_raw = str(get_attr_or_key(item, "frequency", "") or "").strip()
+        if not _freq_raw and _parsed.get("frequency"):
+            _freq_raw = str(_parsed["frequency"])
+        _freq_per_day = _parsed.get("frequency_per_day")
+        _repeat, _is_prn = resolve_timing_repeat(_freq_raw, _freq_per_day)
+        if _repeat:
+            dosage["timing"] = {"repeat": _repeat}
+        if _is_prn:
+            dosage["asNeededBoolean"] = True
+
+    # Issue #966: IV augmentation (continuous → rateQuantity; bolus →
+    # timing.repeat.duration). Per-drug defaults from
+    # iv_infusion_defaults.yaml.
+    from clinosim.modules.output.fhir_r4.lib.common import (
+        augment_iv_dosage_with_rate as _augment_iv,
+    )
+
+    _augment_iv(dosage, dose_text=dose or "", route=route, display_name=drug_name or "")
+    return dosage
+
+
 def _build_discharge_medication_request(
     item: Any,
     patient_id: str,
@@ -1182,109 +1283,21 @@ def _build_discharge_medication_request(
     course_code, course_display = _course_for_discharge(_is_discharge, duration_days)
     resource["courseOfTherapyType"] = _build_course_of_therapy_block(course_code, course_display)
 
-    dispense: dict[str, Any] = {}
-    if authored_on:
-        dispense["validityPeriod"] = {"start": authored_on}
-    if duration_days is not None:
-        dispense["expectedSupplyDuration"] = {
-            "value": duration_days,
-            "unit": _SUPPLY_DURATION_UNIT_JP if country_code == "JP" else _SUPPLY_DURATION_UNIT_US,
-            "system": get_system_uri("ucum"),
-            "code": _SUPPLY_DURATION_CODE,
-        }
-    # `numberOfRepeatsAllowed` is intentionally absent: CIF carries no refill count, and
-    # guessing one would assert a dispensing policy the simulation never modelled.
+    # dispenseRequest — composed by _build_discharge_rx_dispense.
+    # `numberOfRepeatsAllowed` intentionally absent (CIF carries no refill count).
+    dispense = _build_discharge_rx_dispense(authored_on, duration_days, country_code)
     if dispense:
         resource["dispenseRequest"] = dispense
 
-    # dosageInstruction is emitted ONLY from information the CIF actually holds. Items
-    # transcribed from `patient.current_medications` have neither dose nor route (both are
-    # lost upstream — Issue #452); for those the element is omitted rather than filled
-    # with the drug name, which would restate `medicationCodeableConcept.text` as if it
-    # were a dosage. `_apply_jp_clins_profile` withholds the eCS profile from exactly
-    # these resources, because eCS raises `dosageInstruction` to min=1.
-    dosage: dict[str, Any] = {}
-    route_concept = build_route_concept(route, country)
-    if route_concept:
-        dosage["route"] = route_concept
-    # Issue #476: when the disease-YAML author provided an explicit
-    # country-scoped instruction (`dose_ja` / `dose_en` on the drug entry →
-    # threaded through `_build_discharge_rx._append_item` into the item dict),
-    # emit it as the dosage text. This wins over the auto-derived summary
-    # (`dose` field text) because the authored text is what carries the
-    # clinical meaning for instruction-only doses (e.g. "既存のインスリン
-    # レジメンどおり" for insulin glargine restart at DKA discharge).
-    dose_text_ja = str(get_attr_or_key(item, "dose_ja", "") or "")
-    dose_text_en = str(get_attr_or_key(item, "dose_en", "") or "")
-    authored_text = dose_text_ja if is_jp(country) else dose_text_en
-    if authored_text:
-        dosage["text"] = authored_text
-    else:
-        dose_parts = [p for p in (dose, rate_adjustment_note) if p]
-        if dose_parts:
-            dose_text = " ".join(dose_parts)
-            dosage["text"] = _localize_dosage_terms(dose_text, resolve_lang(country))
-
-    # Issue #920: emit structured `doseAndRate.doseQuantity` + `timing` from
-    # the same fields we already put in `.text`. Pre-fix, 91% of MR carried a
-    # route + free-text dose but no numeric doseQuantity — a JP prescription
-    # without a dose is legally invalid and downstream dispensing / dose-range
-    # safety analytics cannot function against an empty dose. Chronic-care
-    # regimens flow through this discharge/outpatient-renewal builder for
-    # every follow-up visit (~1.5k of 1.7k MR per typical run) so the fix
-    # here is high-leverage. `item.dose` is a language-neutral numeric+unit
-    # string ("5mg", "500mg BID"); `item.frequency` is the separate cadence
-    # field ("daily", "bid"); we route both through `parse_dose_string` /
-    # `_FREQ_PER_DAY` from the order engine so the parsing rules stay
-    # single-sourced with the inpatient path (`build_dosage_instruction` in
-    # lib/common.py). Semantic-correctness rule (feedback_semantic_correctness
-    # _over_coverage): unparseable dose → leave doseQuantity empty; better an
-    # honest 80% coverage than a fabricated 100%.
-    if not authored_text and dose:
-        from clinosim.modules.order.engine import parse_dose_string
-        from clinosim.modules.output.fhir_r4.lib.common import resolve_timing_repeat
-
-        _parsed = parse_dose_string(dose)
-        _qty = _parsed.get("dose_quantity")
-        _unit = _parsed.get("dose_unit", "")
-        if _qty is not None and _unit:
-            dosage["doseAndRate"] = [{"doseQuantity": build_ucum_quantity(_qty, _unit)}]
-        # Timing: prefer the item's separate `frequency` field (canonical shape
-        # used by chronic-transcribe and outpatient-renewal paths); fall back
-        # to whatever `parse_dose_string` peeled out of the dose string (the
-        # protocol `discharge_oral` shape bakes "20mg PO daily" into `dose`).
-        # Route through the shared ``resolve_timing_repeat`` helper (Issue
-        # #1348) so weekly / monthly / per-cycle / nightly labels get a
-        # structured `timing.repeat` here too, not just on the inpatient
-        # ``build_dosage_instruction`` path.
-        _freq_raw = str(get_attr_or_key(item, "frequency", "") or "").strip()
-        if not _freq_raw and _parsed.get("frequency"):
-            _freq_raw = str(_parsed["frequency"])
-        _freq_per_day = _parsed.get("frequency_per_day")
-        _repeat, _is_prn = resolve_timing_repeat(_freq_raw, _freq_per_day)
-        if _repeat:
-            dosage["timing"] = {"repeat": _repeat}
-        if _is_prn:
-            dosage["asNeededBoolean"] = True
-
-    # Issue #966: IV-route drugs need an infusion rate (or timing.duration)
-    # in addition to doseQuantity. Superseded the previous ad-hoc
-    # "/H"/"CONTINUOUS"/"DRIP" detection which appended "/h" to the parsed
-    # dose unit — that was correct for a handful of drips but did not fire
-    # for the 421 non-continuous IV orders (antibiotic bolus, PPI infusion,
-    # blood-product transfusion) that make up the bulk of hospital IV MRs.
-    # The new helper resolves per-drug defaults from
-    # `iv_infusion_defaults.yaml` (continuous → rateQuantity; bolus →
-    # timing.repeat.duration in minutes; push → intentional no-op).
-    from clinosim.modules.output.fhir_r4.lib.common import augment_iv_dosage_with_rate as _augment_iv
-
-    _augment_iv(
-        dosage,
-        dose_text=dose or "",
-        route=route,
-        display_name=drug_name or "",
-    )
-
+    # dosageInstruction — composed by _build_discharge_rx_dosage.
+    # Order: route → authored_text wins over auto-derived (Issue #476) →
+    # doseAndRate + timing from parse_dose_string (Issue #920 / #1348) →
+    # IV augmentation (Issue #966). dosageInstruction is OMITTED entirely
+    # when the CIF has neither dose nor route — items transcribed from
+    # `patient.current_medications` lose both upstream (Issue #452), and
+    # `_apply_jp_clins_profile` withholds the eCS profile from those
+    # resources so eCS min=1 is not violated.
+    dosage = _build_discharge_rx_dosage(item, dose, route, drug_name, rate_adjustment_note, country)
     if dosage:
         resource["dosageInstruction"] = [dosage]
 
