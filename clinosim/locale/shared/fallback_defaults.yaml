@@ -1,0 +1,72 @@
+# fallback_defaults.yaml — cross-locale fallback payloads returned when
+# a per-country locale yaml is absent.
+#
+# Consumed by `clinosim/locale/loader.py` as the `fallback=` argument on
+# the respective loaders (`load_names`, `load_formatting`,
+# `load_demographics`, `load_encounter_disposition_defaults`). The
+# country-level yaml (e.g. `locale/jp/names.yaml`) takes precedence; this
+# file supplies a safe default so a newly-registered locale without a
+# full population of yamls still boots.
+#
+# Policy (hardcoded-review Phase A14):
+# the semantics stay identical to the pre-A14 Python literal defaults —
+# a missing per-country yaml returns the fallback block below, so
+# downstream code doesn't KeyError on dict access. The data was never
+# clinically-tuned; these are "generic reasonable defaults" that keep
+# the fixture-pipeline working for an unfinished locale.
+#
+# A reviewer who wants a strict fail-loud policy on missing per-locale
+# yamls can delete the matching block here and change the loader
+# `fallback=` argument to `None`; a follow-up PR is tracked for that
+# migration once every active locale has its yamls populated.
+
+metadata:
+  source: >-
+    clinosim/locale/loader.py (_FALLBACK_NAMES, _FALLBACK_FORMATTING,
+    _FALLBACK_DEMOGRAPHICS, _FALLBACK_ENCOUNTER_DISPOSITION) prior to
+    hardcoded-review Phase A14.
+
+names:
+  surnames:
+    - {name: Test, weight: 1}
+  given_names_male:
+    - {name: John, weight: 1}
+  given_names_female:
+    - {name: Jane, weight: 1}
+
+formatting:
+  date_format: yyyy-MM-dd
+  time_format: 24h
+  temperature_unit: C
+  weight_unit: kg
+  height_unit: cm
+
+demographics:
+  average_household_size: 2.5
+  age_distribution:
+    "0-14": 0.18
+    "15-24": 0.13
+    "25-34": 0.14
+    "35-44": 0.13
+    "45-54": 0.13
+    "55-64": 0.13
+    "65-74": 0.09
+    "75-84": 0.05
+    "85-99": 0.02
+  blood_type:
+    O: 0.44
+    A: 0.42
+    B: 0.10
+    AB: 0.04
+  chronic_prevalence: {}
+
+encounter_disposition:
+  admit_source:
+    system_key: hl7-admit-source
+    jp_clins_value_set: http://jpfhir.jp/fhir/core/ValueSet/JP_AdmitSource_VS
+    fallback_code: other
+  discharge_disposition:
+    system_key: hl7-discharge-disposition
+    jp_clins_value_set: http://jpfhir.jp/fhir/core/ValueSet/JP_DischargeDisposition_VS
+    fallback_code: home
+    deceased_code: exp
