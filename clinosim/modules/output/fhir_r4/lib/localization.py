@@ -489,52 +489,35 @@ def _localize_interp(coded: dict[str, str], country: str) -> dict[str, str]:
     return d
 
 
-# Keys MUST be _ROUTE_SNOMED canonical form (or SNOMED-less exceptions like `NG`).
-# Alias forms (`INH`, `INHALATION`, `NEB` — see `_ROUTE_ALIASES`) MUST NOT appear here:
-# `build_route_concept` resolves alias → canonical BEFORE this lookup, so alias entries
-# are dead code that misleads future authors into thinking coverage exists.
-# Guarded at import time by `_validate_route_maps()` in `_fhir_common.py`.
-_ROUTE_JA: dict[str, str] = {
-    "PO": "経口",
-    "IV": "静注",
-    "SC": "皮下注",
-    "IM": "筋注",
-    "SL": "舌下",
-    "PR": "直腸",
-    "TOPICAL": "外用",
-    "NG": "経鼻",
-    "INHALED": "吸入",
-    "NEBULIZED": "ネブライザー",
-    "OPH": "点眼",  # #1265: eye-drop / eye-ointment (点眼薬)
-}
-_FREQ_JA: dict[str, str] = {
-    "DAILY": "1日1回",
-    "BID": "1日2回",
-    "TID": "1日3回",
-    "QID": "1日4回",
-    "Q4H": "4時間毎",
-    "Q6H": "6時間毎",
-    "Q8H": "8時間毎",
-    "Q12H": "12時間毎",
-    "PRN": "必要時",
-    "STAT": "緊急",
-    "ONCE": "1回",
-    "1x/day": "1日1回",
-    "2x/day": "1日2回",
-    "3x/day": "1日3回",
-    "4x/day": "1日4回",
-}
+# FHIR JA label registries (_ROUTE_JA / _FREQ_JA / _FIXED_LABEL_JA) now
+# live in `clinosim/codes/data/fhir-ja-labels.yaml`. The module-level
+# aliases below are computed from the yaml at import time so existing
+# consumers (`common.py::_validate_route_maps`, `build_route_concept`,
+# `localize_fixed_label`) keep working with no call-site changes.
+#
+# Invariants still hold:
+#   - Keys for `routes:` MUST be `_ROUTE_SNOMED` canonical form
+#     (`_ROUTE_ALIASES` entries would be dead code).
+#   - `_validate_route_maps()` in `common.py` guards both at import time.
 
-# FHIR fixed-label JA dictionary (FP-UNIFY-3): centralizes short
-# free-text FHIR field labels that used to be scattered as inline conditionals
-# ("放射線科" if lang == "ja" else "Radiology"). Add a new EN → JA row here rather
-# than reintroducing an inline conditional. Consumed via ``localize_fixed_label``.
-_FIXED_LABEL_JA: dict[str, str] = {
-    "Radiology": "放射線科",
-    "No growth": "発育なし",
-    "Imaging procedure": "画像診断",
-    "Laboratory procedure": "臨床検査",
-}
+
+@cache
+def _fhir_ja_labels() -> dict[str, dict[str, str]]:
+    import yaml
+
+    path = Path(__file__).resolve().parents[4] / "codes" / "data" / "fhir-ja-labels.yaml"
+    with path.open(encoding="utf-8") as fh:
+        raw = yaml.safe_load(fh) or {}
+    out: dict[str, dict[str, str]] = {}
+    for section in ("routes", "frequencies", "fixed_labels"):
+        rows = raw.get(section) or {}
+        out[section] = {str(k): str(v) for k, v in rows.items() if isinstance(k, str)}
+    return out
+
+
+_ROUTE_JA: dict[str, str] = _fhir_ja_labels()["routes"]
+_FREQ_JA: dict[str, str] = _fhir_ja_labels()["frequencies"]
+_FIXED_LABEL_JA: dict[str, str] = _fhir_ja_labels()["fixed_labels"]
 
 
 def localize_fixed_label(en_label: str, country: str) -> str:
