@@ -1,0 +1,87 @@
+# Frequency token catalog — EN cadence tokens → FHIR Timing.repeat
+# (frequency / period / periodUnit) + simple per-day summary.
+#
+# Clinical cadence vocabulary (qd / bid / tid / qod / weekly / q3wks /
+# etc.) consumed by:
+#   - `clinosim/modules/order/engine.py` (per-day count for order
+#     scheduling)
+#   - `clinosim/modules/output/fhir_r4/lib/common.py::resolve_timing_repeat`
+#     (full FHIR Timing.repeat with period + periodUnit)
+#
+# Pre-#1880 both call sites held parallel copies of the same taxonomy
+# (`_FREQ_PER_DAY` 14 rows + `_FREQ_LABEL_TIMING` 40+ rows) and drifted
+# whenever a new token was added. Consolidated here under the post-#1849
+# review (hardcoded-audit Finding 20).
+#
+# Row shape:
+#   <token>:
+#     frequency: <int>      # count per period
+#     period: <int>         # period magnitude
+#     period_unit: <str>    # FHIR period-unit (d / wk / mo / etc.)
+#
+# `_FREQ_PER_DAY` derives from this by filtering `period_unit == "d"`
+# and taking `frequency / period`; `_FREQ_LABEL_TIMING` is a direct
+# triple return.
+
+tokens:
+  # Once daily
+  qd:                   {frequency: 1,  period: 1, period_unit: d}
+  q24h:                 {frequency: 1,  period: 1, period_unit: d}
+  once:                 {frequency: 1,  period: 1, period_unit: d}
+  "once daily":         {frequency: 1,  period: 1, period_unit: d}
+  daily:                {frequency: 1,  period: 1, period_unit: d}
+  "1x/day":             {frequency: 1,  period: 1, period_unit: d}
+  qhs:                  {frequency: 1,  period: 1, period_unit: d}
+  bedtime:              {frequency: 1,  period: 1, period_unit: d}
+  "at bedtime":         {frequency: 1,  period: 1, period_unit: d}
+  hs:                   {frequency: 1,  period: 1, period_unit: d}
+  nightly:              {frequency: 1,  period: 1, period_unit: d}
+  qam:                  {frequency: 1,  period: 1, period_unit: d}
+  qpm:                  {frequency: 1,  period: 1, period_unit: d}
+
+  # Multiple times per day
+  bid:                  {frequency: 2,  period: 1, period_unit: d}
+  q12h:                 {frequency: 2,  period: 1, period_unit: d}
+  "twice daily":        {frequency: 2,  period: 1, period_unit: d}
+  "2x/day":             {frequency: 2,  period: 1, period_unit: d}
+  tid:                  {frequency: 3,  period: 1, period_unit: d}
+  q8h:                  {frequency: 3,  period: 1, period_unit: d}
+  "three times daily":  {frequency: 3,  period: 1, period_unit: d}
+  "3x/day":             {frequency: 3,  period: 1, period_unit: d}
+  qid:                  {frequency: 4,  period: 1, period_unit: d}
+  q6h:                  {frequency: 4,  period: 1, period_unit: d}
+  "four times daily":   {frequency: 4,  period: 1, period_unit: d}
+  "4x/day":             {frequency: 4,  period: 1, period_unit: d}
+  q4h:                  {frequency: 6,  period: 1, period_unit: d}
+  q3h:                  {frequency: 8,  period: 1, period_unit: d}
+  q2h:                  {frequency: 12, period: 1, period_unit: d}
+  q1h:                  {frequency: 24, period: 1, period_unit: d}
+  continuous:           {frequency: 24, period: 1, period_unit: d}
+  drip:                 {frequency: 24, period: 1, period_unit: d}
+
+  # Multi-day cadence (once per N days)
+  every_other_day:      {frequency: 1,  period: 2, period_unit: d}
+  qod:                  {frequency: 1,  period: 2, period_unit: d}
+  "every other day":    {frequency: 1,  period: 2, period_unit: d}
+  every_3_days:         {frequency: 1,  period: 3, period_unit: d}
+  "every 3 days":       {frequency: 1,  period: 3, period_unit: d}
+
+  # Weekly
+  weekly:               {frequency: 1,  period: 1, period_unit: wk}
+  "1x/week":            {frequency: 1,  period: 1, period_unit: wk}
+  qweek:                {frequency: 1,  period: 1, period_unit: wk}
+  qwk:                  {frequency: 1,  period: 1, period_unit: wk}
+  "once weekly":        {frequency: 1,  period: 1, period_unit: wk}
+
+  # Monthly
+  monthly:              {frequency: 1,  period: 1, period_unit: mo}
+  "1x/month":           {frequency: 1,  period: 1, period_unit: mo}
+  qmonth:               {frequency: 1,  period: 1, period_unit: mo}
+
+  # Chemo per-cycle cadence
+  q3weeks:              {frequency: 1,  period: 3, period_unit: wk}
+  q3wks:                {frequency: 1,  period: 3, period_unit: wk}
+  "every 3 weeks":      {frequency: 1,  period: 3, period_unit: wk}
+  q4weeks:              {frequency: 1,  period: 4, period_unit: wk}
+  q4wks:                {frequency: 1,  period: 4, period_unit: wk}
+  "every 4 weeks":      {frequency: 1,  period: 4, period_unit: wk}
