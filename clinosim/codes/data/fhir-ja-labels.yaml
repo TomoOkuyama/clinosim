@@ -1,0 +1,62 @@
+---
+# fhir-ja-labels.yaml — Japanese display labels for FHIR output
+#
+# Consolidates three previously-inline EN → JA dictionaries in
+# `clinosim/modules/output/fhir_r4/lib/localization.py`:
+#
+#   * `routes:`   — canonical SNOMED route key → JA label
+#                   (consumed by `build_route_concept` after alias
+#                   resolution to the canonical form; invariants
+#                   enforced at import time by
+#                   `_validate_route_maps()` in `common.py`).
+#   * `frequencies:` — frequency token → JA label (used for
+#                      MedicationRequest.dosageInstruction.text and
+#                      the companion `nx1x/day` aliases).
+#   * `fixed_labels:` — short free-text EN → JA labels for FHIR
+#                       fields that would otherwise carry an inline
+#                       `"<ja>" if is_jp else "<en>"` conditional.
+#
+# Keys MUST be canonical SNOMED form for `routes:` (alias forms like
+# `INH`, `NEB` are resolved upstream by `_ROUTE_ALIASES`).
+
+metadata:
+  source: >-
+    clinosim/modules/output/fhir_r4/lib/localization.py
+    (_ROUTE_JA / _FREQ_JA / _FIXED_LABEL_JA)
+    prior to hardcoded-audit Finding 7.
+
+routes:
+  PO: 経口
+  IV: 静注
+  SC: 皮下注
+  IM: 筋注
+  SL: 舌下
+  PR: 直腸
+  TOPICAL: 外用
+  NG: 経鼻
+  INHALED: 吸入
+  NEBULIZED: ネブライザー
+  OPH: 点眼  # #1265: eye-drop / eye-ointment (点眼薬)
+
+frequencies:
+  DAILY: 1日1回
+  BID: 1日2回
+  TID: 1日3回
+  QID: 1日4回
+  Q4H: 4時間毎
+  Q6H: 6時間毎
+  Q8H: 8時間毎
+  Q12H: 12時間毎
+  PRN: 必要時
+  STAT: 緊急
+  ONCE: 1回
+  "1x/day": 1日1回
+  "2x/day": 1日2回
+  "3x/day": 1日3回
+  "4x/day": 1日4回
+
+fixed_labels:
+  Radiology: 放射線科
+  "No growth": 発育なし
+  "Imaging procedure": 画像診断
+  "Laboratory procedure": 臨床検査
