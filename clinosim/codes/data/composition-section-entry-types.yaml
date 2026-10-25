@@ -1,0 +1,79 @@
+# composition-section-entry-types.yaml — Composition.section[].entry
+# resource-type eligibility registry.
+#
+# Consumed by `clinosim/modules/output/fhir_r4/documents/composition.py::
+# _derive_section_entries`. For each section title (keyed by the
+# section title used in `_bb_compositions`), the emit site filters the
+# encounter-scoped resource index by the listed resource types; a
+# section with an empty list emits no `entry[]` at all.
+#
+# Why these live in yaml (hardcoded-review Phase A6):
+# the registry is a formal declaration of which resource types a given
+# section is allowed to carry — matching the FHIR Composition section
+# profile constraints. Treating it as authoritative data (one row per
+# section) rather than a Python literal makes the surface auditable
+# and lets a reviewer check it against upstream profile guidance.
+#
+# Membership policy:
+#   * one row per section title; an empty list `[]` means "no entry[]"
+#   * resource-type strings are FHIR R4 resource names, verbatim
+#   * add a new section here when the composition builder needs to
+#     emit `entry[]` under a new section title
+#
+# Downstream dispatch (unknown section titles fall through to `()`
+# via `.get(k, ())`) stays as-is.
+
+metadata:
+  source: >-
+    clinosim/modules/output/fhir_r4/documents/composition.py
+    (_SECTION_ENTRY_TYPES) prior to hardcoded-review Phase A6.
+
+sections:
+  # SOAP outpatient / progress notes
+  subjective: []
+  objective: [Observation, DiagnosticReport]
+  assessment: [Condition]
+  plan: [MedicationRequest, ServiceRequest, Procedure]
+
+  # Admission H&P / progress
+  chief_complaint: []
+  hpi: []
+  past_medical_history: [Condition]
+  medications_at_home: [MedicationRequest]
+  physical_exam: [Observation]
+  physical_examination: [Observation]
+  triage_details: [Observation]
+
+  # Discharge summary (US path — JP eDS uses jp-clins-eds-section-codes.yaml)
+  admission_summary: []
+  hospital_course: [Procedure, Observation]
+  discharge_diagnoses: [Condition]
+  discharge_medications: [MedicationRequest]
+  discharge_evaluation: [Observation]
+  discharge_readiness: [Observation]
+
+  # Nursing / rehab
+  nursing_history: []
+  nursing_diagnosis: [Condition]
+  nursing_interventions_provided: [Procedure]
+  admission_status: [Observation]
+  adl_assessment: [Observation]
+  risk_assessments: [Observation]
+  care_plan: [MedicationRequest, ServiceRequest, Procedure]
+
+  # Ward-info & plan sections
+  diagnosis: [Condition]
+
+  # ED / inpatient planning
+  ed_workup: [ServiceRequest, Observation, DiagnosticReport]
+  assessment_and_plan: [Condition, MedicationRequest, ServiceRequest, Procedure]
+  treatment_plan: [MedicationRequest, ServiceRequest, Procedure]
+  test_schedule: [ServiceRequest]
+  surgery_schedule: [Procedure, ServiceRequest]
+  other_plans: [MedicationRequest, ServiceRequest, Procedure]
+  follow_up: [ServiceRequest]
+  discharge_instructions: []
+
+  # Rehab
+  functional_status: [Observation]
+  basic_movement: [Observation]

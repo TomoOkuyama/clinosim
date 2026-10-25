@@ -381,52 +381,30 @@ def _build_encounter_resource_index(
 #  - medications_at_home: MedicationRequest (pre-visit / home Rx).
 #  - hospital_course / admission_status: Procedure + Observation.
 #  - ed_workup: ServiceRequest + Observation + DiagnosticReport.
-_SECTION_ENTRY_TYPES: dict[str, tuple[str, ...]] = {
-    # SOAP outpatient / progress notes
-    "subjective": (),
-    "objective": ("Observation", "DiagnosticReport"),
-    "assessment": ("Condition",),
-    "plan": ("MedicationRequest", "ServiceRequest", "Procedure"),
-    # Admission H&P / progress
-    "chief_complaint": (),
-    "hpi": (),
-    "past_medical_history": ("Condition",),
-    "medications_at_home": ("MedicationRequest",),
-    "physical_exam": ("Observation",),
-    "physical_examination": ("Observation",),
-    "triage_details": ("Observation",),
-    # Discharge summary (US path — JP eDS uses `_JP_DS_SECTION_CODE`)
-    "admission_summary": (),
-    "hospital_course": ("Procedure", "Observation"),
-    "discharge_diagnoses": ("Condition",),
-    "discharge_medications": ("MedicationRequest",),
-    "discharge_evaluation": ("Observation",),
-    "discharge_readiness": ("Observation",),
-    # Nursing / rehab
-    "nursing_history": (),
-    "nursing_diagnosis": ("Condition",),
-    "nursing_interventions_provided": ("Procedure",),
-    "admission_status": ("Observation",),
-    "adl_assessment": ("Observation",),
-    "risk_assessments": ("Observation",),
-    "care_plan": ("MedicationRequest", "ServiceRequest", "Procedure"),
-    # Ward-info & plan sections
-    "diagnosis": ("Condition",),
-    # ED / inpatient planning
-    "ed_workup": ("ServiceRequest", "Observation", "DiagnosticReport"),
-    "assessment_and_plan": ("Condition", "MedicationRequest", "ServiceRequest", "Procedure"),
-    "treatment_plan": ("MedicationRequest", "ServiceRequest", "Procedure"),
-    "test_schedule": ("ServiceRequest",),
-    "surgery_schedule": ("Procedure", "ServiceRequest"),
-    "other_plans": ("MedicationRequest", "ServiceRequest", "Procedure"),
-    "follow_up": ("ServiceRequest",),
-    "discharge_instructions": (),
-    # Rehab
-    "functional_status": ("Observation",),
-    "basic_movement": ("Observation",),
-    # Narrative-only remainder (kept explicit so a future author can see
-    # the intent — an unknown key falls through to `()` via `.get(k, ())`).
-}
+#
+# Full registry (plus per-section rationale and extension protocol)
+# lives in `clinosim/codes/data/composition-section-entry-types.yaml`
+# (hardcoded-review Phase A6). The alias below preserves the Python
+# symbol name so every call site in `_derive_section_entries` stays
+# unchanged; a section title not in the yaml falls through to the
+# existing `.get(k, ())` default.
+
+
+@cache
+def _section_entry_types() -> dict[str, tuple[str, ...]]:
+    """Load the Composition.section[].entry resource-type registry."""
+    import yaml
+
+    path = Path(__file__).resolve().parents[4] / "codes" / "data" / "composition-section-entry-types.yaml"
+    with path.open(encoding="utf-8") as fh:
+        raw = yaml.safe_load(fh) or {}
+    out: dict[str, tuple[str, ...]] = {}
+    for section, types in (raw.get("sections", {}) or {}).items():
+        out[str(section)] = tuple(str(rt) for rt in (types or []))
+    return out
+
+
+_SECTION_ENTRY_TYPES: dict[str, tuple[str, ...]] = _section_entry_types()
 
 
 def _derive_section_entries(
