@@ -1,0 +1,35 @@
+# Hospital diet-type display catalog — slug → {en, ja} localization
+# pairs for inpatient diet orders emitted on FHIR
+# Encounter.hospitalization.dietPreference.text.
+#
+# The order engine emits the slug (e.g. "diabetic_diet"); this catalog
+# carries the display pair for JA / EN narrative output. Parallel to
+# `department_display.yaml` and `occupation_display.yaml`.
+#
+# Migrated from the inline `_diet_labels` conditional in
+# `clinosim/modules/output/fhir_r4/encounters/encounter.py` under the
+# post-#1849 review (hardcoded-audit Finding 13). Multi-locale extension
+# (`zh`, `ko`, …) is a column add here, not a Python edit.
+
+diet_types:
+  NPO:
+    en: NPO (nothing by mouth)
+    ja: 絶食
+  clear_liquid:
+    en: Clear liquids
+    ja: 流動食
+  soft_diet:
+    en: Soft diet
+    ja: 軟菜食
+  regular_diet:
+    en: Regular diet
+    ja: 常食
+  diabetic_diet:
+    en: Diabetic diet
+    ja: 糖尿病食
+  low_sodium:
+    en: Low-sodium diet
+    ja: 減塩食
+  renal_diet:
+    en: Renal diet
+    ja: 腎臓食
