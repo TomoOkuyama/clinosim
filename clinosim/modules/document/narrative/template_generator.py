@@ -969,11 +969,18 @@ class TemplateNarrativeGenerator:
         parts: list[str] = []
         age = _age_at(ctx) if patient else None
         sex = _o(patient, "sex", None) if patient else ""
-        sex_ja = {"M": "男性", "F": "女性"}.get(str(sex).upper(), "")
-        if age and sex_ja:
-            parts.append(f"{age}歳{sex_ja}患者。")
+        # This branch only fires for JA output (early return above), so
+        # we pin lang=ja for the yaml lookup. hardcoded-review Phase A15.
+        sex_label = t(f"patient_demographics.sex_display.{str(sex).lower()}", "ja") if sex else ""
+        # When the lookup misses (unknown sex code), t() falls through to
+        # the raw key, which we don't want in the preamble. Treat a
+        # dotted-key passthrough as empty so the age-only branch fires.
+        if "." in sex_label:
+            sex_label = ""
+        if age and sex_label:
+            parts.append(t("patient_demographics.patient_preamble_with_sex", "ja", age=age, sex=sex_label))
         elif age:
-            parts.append(f"{age}歳患者。")
+            parts.append(t("patient_demographics.patient_preamble_age_only", "ja", age=age))
         # chief_complaint from encounter (真の CIF、v9 bug fix)
         cc = ""
         if enc is not None:
@@ -1391,7 +1398,7 @@ class TemplateNarrativeGenerator:
             if (traj_p and traj_p not in _placeholders)
             else (self._compose_ap_plan_from_state(ctx) or _generic_p)
         )
-        text = f"【評価】{assessment}\n【方針】{plan}"
+        text = t("ap_combined.assessment_plan_block", lang, assessment=assessment, plan=plan)
         return text, facts
 
     def _compose_ap_assessment_from_state(self, ctx: NarrativeContext) -> str:
