@@ -1,0 +1,57 @@
+# lab-plausibility-bounds.yaml — physiological upper/lower bounds per
+# (LOINC, unit) pair for the clinical eval axis.
+#
+# Consumed by `clinosim/eval/axes/clinical.py::
+# _check_lab_values_physiological_range` (via `_LAB_BOUNDS_BY_UNIT`).
+# For each emitted Observation with a LOINC listed below, the matching
+# unit's bounds define the window a value MUST lie within for the
+# emission to be plausible; a value outside the bounds counts as a
+# physiologically-implausible defect.
+#
+# Why multiple unit rows per LOINC: FHIR Observation.valueQuantity carries
+# `unit` (human-readable string) + `code` (UCUM). The check site tries
+# both in order (unit → code), so each LOINC enumerates every
+# representation clinosim emits. Example: WBC (6690-2) → both the raw
+# count form `/uL` / `/μL` (0..500,000) and the SI count form
+# `10^9/L` / `10*9/L` (0..500).
+#
+# Why PT-INR has an empty-string key: some emitters omit the unit on
+# UCUM-unitless codes (`{INR}`). The empty-string fallback keeps the
+# check from degrading to "unknown unit" on legitimate output.
+#
+# Membership policy:
+#   * one row per LOINC × unit the simulator actually emits (verified
+#     against validation reports)
+#   * bounds are the generous outer envelope — anything outside is
+#     physiologically impossible, not just unusual
+#   * extension requires authoring here + a smoke test in the
+#     clinical eval axis suite
+
+metadata:
+  source: >-
+    clinosim/eval/axes/clinical.py (_LAB_BOUNDS_BY_UNIT) prior to
+    hardcoded-review Phase A13.
+
+loincs:
+  "6690-2":  # WBC
+    "/uL":    [0.0, 500000.0]
+    "/μL":    [0.0, 500000.0]
+    "10^9/L": [0.0, 500.0]
+    "10*9/L": [0.0, 500.0]   # UCUM canonical form
+  "718-7":   # Hemoglobin
+    "g/dL": [0.0, 25.0]
+  "2160-0":  # Serum creatinine
+    "mg/dL": [0.0, 30.0]
+  "2345-7":  # Serum glucose
+    "mg/dL": [0.0, 1500.0]
+  "2823-3":  # Serum potassium
+    "mmol/L": [0.0, 10.0]
+    "mEq/L":  [0.0, 10.0]
+  "2951-2":  # Serum sodium
+    "mmol/L": [0.0, 200.0]
+    "mEq/L":  [0.0, 200.0]
+  "1975-2":  # Total bilirubin
+    "mg/dL": [0.0, 50.0]
+  "6301-6":  # PT-INR
+    "{INR}": [0.5, 20.0]
+    "":      [0.5, 20.0]   # unitless fallback (some emitters omit unit)
