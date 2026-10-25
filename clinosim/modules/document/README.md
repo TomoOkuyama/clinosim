@@ -162,7 +162,8 @@ clinosim/modules/document/
   reference_data/
     document_type_specs.yaml         per-document-type registry
     physical_exam_findings.yaml      per-disease PE findings (baseline + override)
-    discharge_instructions.yaml      per-disease discharge instructions
+    # discharge_instructions.yaml moved to `clinosim/codes/data/clinosim-discharge-instruction.yaml`
+    # under META #1805 Phase E (#1862) — the file lives beside the other `clinosim-*` catalogs.
     chronic_soap_templates.yaml      chronic-condition SOAP note templates
     hedging_phrases.yaml             narrative hedging phrase pool
   narrative/                         narrative subpackage (Stage 2 pipeline) — see narrative/README.md

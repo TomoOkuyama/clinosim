@@ -2646,7 +2646,7 @@ class TemplateNarrativeGenerator:
         Session-104 Tier 2: acute-disease axis (from
         ``ctx.disease_protocol.disease_id``) is consulted BEFORE the
         chronic-ICD10 axis via ``_lookup_nursing_content``. Both axes
-        are backed by ``nursing_content.yaml`` — the 6 chronic
+        are backed by ``clinosim-nursing-content.yaml`` — the 6 chronic
         prefixes are carried over verbatim, so byte-diff on encounters
         without a pilot acute match is zero.
 
@@ -4980,7 +4980,7 @@ class TemplateNarrativeGenerator:
             parts.append(t("ed_workup.imaging_head", lang) + t("list_sep.serial", lang).join(imaging_display))
         if med_names:
             # Phase 1c-3 (2026-09-22): localize med display names to
-            # katakana JA via the shared ``drug_names_ja`` table used by
+            # katakana JA via the shared `load_narrative_display_dict` catalog used by
             # the FHIR emit path. Pre-fix 183 JP ed_workup lines carried
             # 「投薬: Ibuprofen 400mg、Acetaminophen 500mg」 verbatim.
             med_display = med_names[:6]

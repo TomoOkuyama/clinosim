@@ -454,7 +454,7 @@ in `clinosim/modules/_shared.py` — shared-logic unification
   `if lang == "ja":` gate needed. Underlying `_localize_drug_name`
   (country-parameter form) remains for callers on the country
   seam; both are backed by the canonical cached loaders
-  `clinosim/locale/loader.py:load_drug_names_ja()` /
+  `clinosim/locale/loader.py:load_narrative_display_dict()` /
   `load_med_terms_ja()` — no raw-YAML reads inside the builder
   (E.3).
 - Department display = `_dept_display()` (backed by
@@ -528,11 +528,11 @@ def _bb_foo(ctx):
 
 **Precedent (shared-logic unification 2026-07-02)**:
 `_fhir_localization.py` used to load locale's shared YAML
-(`med_terms_ja.yaml` / `drug_names_ja.yaml` /
+(`med_terms_ja.yaml` / the retired `drug_names_ja.yaml` (deleted #1876; replaced by `load_narrative_display_dict` catalog UNION) /
 `department_display.yaml`) with inline `yaml.safe_load` from inside
 the builder — this has been moved to the canonical cached loaders
 in `clinosim/locale/loader.py` (`load_med_terms_ja()` /
-`load_drug_names_ja()` / `load_department_display()`). Builders
+`load_narrative_display_dict()` / `load_department_display()`). Builders
 that need locale data now import these — do not write new inline
 YAML reads in a builder. Cached loader return values are shared
 instances (mutation forbidden).
@@ -718,6 +718,6 @@ classic silent-no-op (PR-90 class): no audit gate → downstream NLP
 | **Tier 1 #3 α-min-2 OUTPATIENT_SOAP (2026-07-01)** | **LOINC 34131-3** (corrected from 11488-4 per a LOINC-DB query). `encounter_types_supported: [outpatient]`. Production wiring: `outpatient.py` calls `run_stage(POST_ENCOUNTER)` (α-min-2 Task 14 fix; verified 2026-07-02 — 1,841 Composition at US p=500 seed=42). |
 | **Tier 1 #3 α-min-2 ED_NOTE + ED_TRIAGE_NOTE (2026-07-01)** | **ED_NOTE = LOINC 34878-9** (corrected from 51847-2), **ED_TRIAGE_NOTE = LOINC 54094-8** (checked and confirmed correct). `encounter_types_supported: [emergency]`. Production wiring: `emergency.py` calls `run_stage(POST_ENCOUNTER)` (α-min-2 Task 14 fix; verified 2026-07-02 — ED_NOTE 210 Composition + ED_TRIAGE_NOTE 210 DocumentReference at US p=500 seed=42). |
 | **Tier 1 #2 Imaging (2026-06-30)** | **New `_fhir_imaging_study.py` + `_fhir_endpoint.py` + polymorphic `_fhir_service_request.py` imaging dispatch + radiology `_fhir_diagnostic_report.py` variant + canonical constants `IMAGING_CATEGORY_SNOMED` / `DICOM_UID_SYSTEM` / `ENDPOINT_ID_PREFIX` / `DICOM_WADO_RS_CONNECTION_TYPE` / `IMAGING_SR_ID_PREFIX` + CIF→FHIR no-drop invariant (1:1 ImagingStudyRecord → ImagingStudy + Endpoint + radiology DR + imaging SR) + AD-62 ADR + `encounter_id` invariant (all orders in `CIFPatientRecord.orders` must have non-empty `encounter_id` before FHIR export — inpatient.py unknown-condition fix 2026-06-30)** |
-| **Common-logic unification (2026-07-02)** | **Established `is_jp` / `resolve_lang` (`modules/_shared.py`) as the sole canonical idiom for JP-gating / display-language selection (replaced 5 divergent idioms — E.10) + `system_key_for(kind, country)` (`clinosim.codes`) = the single source of truth for country → code-system selection (E.11) + migrated `_fhir_localization.py`'s 3 inline YAML loaders to the canonical cached loaders in `clinosim/locale/loader.py` (`load_med_terms_ja` / `load_drug_names_ja` / `load_department_display`; E.3 precedent) + added `hl7-endpoint-connection-type` / `hl7-endpoint-payload-type` / `hl7-subscriber-relationship` to `_BUILTIN_URIS` + moved aggregate loaders to their owner module (`load_all_disease_protocols` → `modules/disease/protocol.py`) + `@lru_cache`d the protocol / config loaders (shared instances = mutation forbidden)** |
+| **Common-logic unification (2026-07-02)** | **Established `is_jp` / `resolve_lang` (`modules/_shared.py`) as the sole canonical idiom for JP-gating / display-language selection (replaced 5 divergent idioms — E.10) + `system_key_for(kind, country)` (`clinosim.codes`) = the single source of truth for country → code-system selection (E.11) + migrated `_fhir_localization.py`'s 3 inline YAML loaders to the canonical cached loaders in `clinosim/locale/loader.py` (`load_med_terms_ja` / `load_narrative_display_dict` / `load_department_display`; E.3 precedent) + added `hl7-endpoint-connection-type` / `hl7-endpoint-payload-type` / `hl7-subscriber-relationship` to `_BUILTIN_URIS` + moved aggregate loaders to their owner module (`load_all_disease_protocols` → `modules/disease/protocol.py`) + `@lru_cache`d the protocol / config loaders (shared instances = mutation forbidden)** |
 
 Japanese counterpart: [`fhir-data-generation-logic.ja.md`](fhir-data-generation-logic.ja.md).

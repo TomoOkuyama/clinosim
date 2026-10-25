@@ -76,24 +76,15 @@ codes:
   '17767':
     en: Amlodipine (Norvasc)
     ja: アムロジピン（アムロジン/ノルバスク）
-  '1807627':
-    en: 0.9% Sodium Chloride injectable solution
-    ja: 生理食塩水
   '18631':
     en: Azithromycin (Zithromax)
     ja: アジスロマイシン（ジスロマック）
   '19711':
     en: Amoxicillin / Clavulanate (Augmentin)
     ja: アモキシシリン/クラブラン酸（オーグメンチン）
-  '202488':
-    en: Levofloxacin
-    ja: レボフロキサシン
   '20352':
     en: Carvedilol (Coreg)
     ja: カルベジロール（アーチスト）
-  '212995':
-    en: Prednisolone
-    ja: プレドニゾロン
   '214354':
     en: Candesartan (Atacand)
     ja: カンデサルタン（ブロプレス）
@@ -109,9 +100,6 @@ codes:
   '2231':
     en: Cephalexin
     ja: セファレキシン
-  '227224':
-    en: Meropenem
-    ja: メロペネム
   '2592':
     en: Chlorhexidine
     ja: クロルヘキシジン
@@ -138,9 +126,6 @@ codes:
   '29046':
     en: Lisinopril (Zestril)
     ja: リシノプリル（ゼストリル）
-  '29561':
-    en: Meropenem (Merrem)
-    ja: メロペネム（メロペン）
   '3002':
     en: Alendronate (Fosamax)
     ja: アレンドロン酸（フォサマック/ボナロン）
@@ -150,9 +135,6 @@ codes:
   '309090':
     en: Ceftriaxone 1 G Injection
     ja: セフトリアキソン1g注
-  '321064':
-    en: Apixaban
-    ja: アピキサバン
   '32968':
     en: Clopidogrel (Plavix)
     ja: クロピドグレル（プラビックス）
@@ -270,27 +252,18 @@ codes:
   '7804':
     en: Oxycodone (OxyContin)
     ja: オキシコドン（オキシコンチン）
-  '7806':
-    en: Nitroglycerin
-    ja: ニトログリセリン
   '7980':
     en: Penicillin G
     ja: ペニシリンG
   '8163':
     en: Ondansetron 4 MG Oral Tablet
     ja: オンダンセトロン4mg錠
-  '82122':
-    en: Levofloxacin (Levaquin)
-    ja: レボフロキサシン（クラビット）
   '83367':
     en: Atorvastatin (Lipitor)
     ja: アトルバスタチン（リピトール）
   '8410':
     en: Alteplase
     ja: アルテプラーゼ
-  '8896':
-    en: Ondansetron
-    ja: オンダンセトロン
   '9793':
     en: Silver sulfadiazine
     ja: スルファジアジン銀
@@ -357,9 +330,6 @@ codes:
   '313002':
     en: Sodium Chloride 9 MG/ML Injectable Solution
     ja: 生理食塩液
-  '8638':
-    en: Prednisolone
-    ja: プレドニゾロン
   '8591':
     en: Potassium Chloride
     ja: 塩化カリウム
@@ -416,9 +386,6 @@ codes:
   # 2026-09-11 via /REST/rxcui/<cui>.json (both TTY=SCD). Replaces the
   # fabricated 977786 / 313418 declared in newborn_screening.yaml at
   # #1256 / #1262 (never actually reached emit until #1264).
-  '312424':
-    en: 0.5 ML vitamin K1 2 MG/ML Injection
-    ja: ビタミンK1 2 mg/mL 注射液 0.5 mL
   '310149':
     en: erythromycin 0.005 MG/MG Ophthalmic Ointment
     ja: エリスロマイシン 0.005 mg/mg 眼軟膏
@@ -464,9 +431,6 @@ codes:
   '1815':
     en: bupivacaine
     ja: ブピバカイン
-  '26225':
-    en: ondansetron
-    ja: オンダンセトロン
   '35827':
     en: ketorolac
     ja: ケトロラク
@@ -750,9 +714,11 @@ codes:
   # albumin_human points at the existing entry directly.)
 
   # ─── META #1849 Phase 5 Step 2.a batch 1 — 6 US-NLM ingredient drugs
-  # previously only in drug_names_ja.yaml. All RxCUIs verified via NLM
-  # RxNav /REST/rxcui/<cui>/properties.json (2026-10-24, TTY=IN unless
-  # noted). RxCUI 486610 (Nab-paclitaxel PIN) already registered above.
+  # previously surfaced only through the legacy drug_names_ja.yaml
+  # translation layer (file deleted in META #1849 Phase 5 Step 4, #1876).
+  # All RxCUIs verified via NLM RxNav /REST/rxcui/<cui>/properties.json
+  # (2026-10-24, TTY=IN unless noted). RxCUI 486610 (Nab-paclitaxel PIN)
+  # already registered above.
   '7213':
     en: Ipratropium
     ja: イプラトロピウム
@@ -771,6 +737,29 @@ codes:
   '798306':
     en: Tetanus toxoid vaccine, inactivated
     ja: 破傷風トキソイド (不活化ワクチン)
+
+  # Retained as SBD-level pointer for the newborn Vit K1 workup (#1252);
+  # distinct from the ingredient-level RxCUI 8308 Phytonadione.
+  '312424':
+    en: 0.5 ML vitamin K1 2 MG/ML Injection
+    ja: ビタミンK1注 (0.5 mL / 2 mg/mL)
+
+  # Post-#1849 review correction (2026-10-25): restored 4 IN-level RxCUIs
+  # that the deleted `_2` drug_ids correctly pointed to (the former 'canonical'
+  # rows named these drugs but held WRONG CUIs — 227224 → fluoxetine HCl,
+  # 202488 → Motrin BN, 212995 → NotCurrent, 8896 → pseudoephedrine).
+  '29561':
+    en: Meropenem
+    ja: メロペネム
+  '82122':
+    en: Levofloxacin
+    ja: レボフロキサシン
+  '8638':
+    en: Prednisolone
+    ja: プレドニゾロン
+  '26225':
+    en: Ondansetron
+    ja: オンダンセトロン
 
   # ─── META #1849 Phase 5 Step 2 combo products — RxCUIs verified via
   # NLM RxNav /REST/rxcui/<cui>/properties.json (2026-10-24).

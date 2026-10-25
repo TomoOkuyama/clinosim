@@ -235,10 +235,11 @@ def localize_drug_name(drug_name: str, lang: str) -> str:
     ``"ja"``). For ``lang == "ja"``, delegates to
     ``_localize_drug_name`` with the JP country signal.
 
-    Adding a new target locale is a data-only extension: drop a new
-    ``drug_names_<lang>.yaml`` next to ``drug_names_ja.yaml`` and
-    extend this dispatcher (single-site edit) — no code change at
-    the ~15 callers spread across ``template_generator`` /
+    Adding a new target locale is a column add on each narrative display
+    catalog (``names.<lang>`` on `drugs.yaml`, ``<lang>: display`` on each
+    `clinosim-{imaging-exam-name,procedure-phrase,allergen-substance,
+    admin-form-display}.yaml`) plus this dispatcher's branch — no code
+    change at the ~15 callers spread across ``template_generator`` /
     ``replacement_strategy`` / FHIR emitters.
     """
     if not drug_name or lang != "ja":

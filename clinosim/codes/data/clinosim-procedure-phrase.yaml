@@ -13,7 +13,7 @@
 # back to when no SNOMED/CPT/K-code binding is available.
 #
 # This catalog is the semantic home for these entries. Loader unions it
-# into the same `_load_drug_names_ja()` return value so no caller change
+# into the same `_load_narrative_display_dict()` return value so no caller change
 # is required.
 #
 # Scope: the free-text procedure phrases appearing in CIF

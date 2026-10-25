@@ -195,8 +195,8 @@ def enrich_discontinue_flip(ctx: EnricherContext) -> None:
                     # modifications entries don't). Pre-fix
                     # "Ampicillin/Sulbactam" / "Ceftriaxone" leaked as
                     # the raw English display in the JA plan-section
-                    # narratives. Uses the same shared drug_names_ja
-                    # table the FHIR emit path uses.
+                    # narratives. Uses the same shared narrative display
+                    # dict (`load_narrative_display_dict`) the FHIR emit path uses.
                     _ja_display = getattr(o, "display_name_ja", "") or ""
                     if not _ja_display:
                         try:
@@ -414,7 +414,7 @@ def _log_treatment_change(
     )
     ts = timestamp.isoformat() if hasattr(timestamp, "isoformat") else str(timestamp or "")
     # Phase 1c-3 (2026-09-22): resolve the replacement-agent drug name to
-    # katakana JA via the shared ``drug_names_ja`` table so the narrative
+    # katakana JA via the shared `load_narrative_display_dict` catalog so the narrative
     # renderer's ``substituted_with_ja`` clause emits 「メロペネム 1g 静注
     # 8時間毎」 rather than the raw English "Meropenem 1g IV q8h" that
     # leaked into 46 JP p=500 plan-section narratives pre-fix.

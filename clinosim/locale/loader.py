@@ -19,7 +19,7 @@ Note: `drug_names_ja.yaml` was deleted under META #1849 Phase 5 Step 4
 authority catalogs under `clinosim/codes/data/` (drugs.yaml +
 clinosim-{imaging-exam-name,procedure-phrase,allergen-substance,
 admin-form-display}.yaml); the free-text EN → JA display helper
-`load_narrative_display_dict()` (renamed from `load_narrative_display_dict` in
+`load_narrative_display_dict()` (renamed from `load_drug_names_ja` in
 Phase 5 Step 3) UNIONs those catalogs into the dict shape callers
 have always used.
 """
@@ -602,7 +602,7 @@ def load_narrative_display_dict() -> dict[str, str]:
          Step 2 admin-form).
 
     Phase 5 Step 3 (META #1849, 2026-10-25): renamed from the historical
-    ``load_narrative_display_dict`` because its scope grew well beyond drug names
+    ``load_drug_names_ja`` because its scope grew well beyond drug names
     (procedure phrases, imaging exam names, allergen substances, admin-
     form display variants). The underlying legacy
     ``clinosim/locale/shared/drug_names_ja.yaml`` was deleted in Phase 5

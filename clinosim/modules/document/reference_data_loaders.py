@@ -133,12 +133,12 @@ def load_physical_exam_findings() -> dict[str, Any]:
 
 
 # ─────────────────────────────────────────────────────────────────
-# discharge_instructions.yaml
+# clinosim-discharge-instruction.yaml
 # ─────────────────────────────────────────────────────────────────
 
 
 def _validate_discharge_instructions(data: dict[str, Any]) -> None:
-    """Fail-loud 6-layer validation of discharge_instructions.yaml.
+    """Fail-loud 6-layer validation of clinosim-discharge-instruction.yaml.
 
     Layer 1: empty top-level guard
     Layer 2: missing 'baseline' key guard
@@ -148,32 +148,32 @@ def _validate_discharge_instructions(data: dict[str, Any]) -> None:
     Layer 6: 'disease_specific' top-level key presence (may be empty)
     """
     if not data:
-        raise ValueError("discharge_instructions.yaml: empty top-level")
+        raise ValueError("clinosim-discharge-instruction.yaml: empty top-level")
 
     if "baseline" not in data:
-        raise ValueError("discharge_instructions.yaml: missing 'baseline' key")
+        raise ValueError("clinosim-discharge-instruction.yaml: missing 'baseline' key")
 
     baseline = data["baseline"]
     if not baseline or not isinstance(baseline, dict):
-        raise ValueError("discharge_instructions.yaml: 'baseline' is empty or not a mapping")
+        raise ValueError("clinosim-discharge-instruction.yaml: 'baseline' is empty or not a mapping")
 
     # Layer 4 — required keys
     for req_key in _DISCHARGE_BASELINE_REQUIRED_KEYS:
         if req_key not in baseline:
-            raise ValueError(f"discharge_instructions.yaml: baseline missing required key '{req_key}'")
+            raise ValueError(f"clinosim-discharge-instruction.yaml: baseline missing required key '{req_key}'")
 
     # Layer 5 — each entry must have 'en' and 'ja'
     for key, entry in baseline.items():
         if not entry or not isinstance(entry, dict):
-            raise ValueError(f"discharge_instructions.yaml: baseline[{key!r}] is empty or not a mapping")
+            raise ValueError(f"clinosim-discharge-instruction.yaml: baseline[{key!r}] is empty or not a mapping")
         if "en" not in entry:
-            raise ValueError(f"discharge_instructions.yaml: baseline[{key!r}] missing 'en'")
+            raise ValueError(f"clinosim-discharge-instruction.yaml: baseline[{key!r}] missing 'en'")
         if "ja" not in entry:
-            raise ValueError(f"discharge_instructions.yaml: baseline[{key!r}] missing 'ja'")
+            raise ValueError(f"clinosim-discharge-instruction.yaml: baseline[{key!r}] missing 'ja'")
 
     # Layer 6 — disease_specific section must be present
     if "disease_specific" not in data:
-        raise ValueError("discharge_instructions.yaml: missing 'disease_specific' key")
+        raise ValueError("clinosim-discharge-instruction.yaml: missing 'disease_specific' key")
 
     # Validate each disease_specific entry if present
     disease_specific = data.get("disease_specific") or {}
@@ -183,28 +183,28 @@ def _validate_discharge_instructions(data: dict[str, Any]) -> None:
                 continue  # empty disease entry is allowed (no-op)
             if not isinstance(overrides, dict):
                 raise ValueError(
-                    f"discharge_instructions.yaml: disease_specific[{disease_id!r}] must be a mapping or null"
+                    f"clinosim-discharge-instruction.yaml: disease_specific[{disease_id!r}] must be a mapping or null"
                 )
             for key, entry in overrides.items():
                 if not entry or not isinstance(entry, dict):
                     raise ValueError(
-                        f"discharge_instructions.yaml: "
+                        f"clinosim-discharge-instruction.yaml: "
                         f"disease_specific[{disease_id!r}][{key!r}] "
                         f"is empty or not a mapping"
                     )
                 if "en" not in entry:
                     raise ValueError(
-                        f"discharge_instructions.yaml: disease_specific[{disease_id!r}][{key!r}] missing 'en'"
+                        f"clinosim-discharge-instruction.yaml: disease_specific[{disease_id!r}][{key!r}] missing 'en'"
                     )
                 if "ja" not in entry:
                     raise ValueError(
-                        f"discharge_instructions.yaml: disease_specific[{disease_id!r}][{key!r}] missing 'ja'"
+                        f"clinosim-discharge-instruction.yaml: disease_specific[{disease_id!r}][{key!r}] missing 'ja'"
                     )
 
 
 @lru_cache(maxsize=1)
 def load_discharge_instructions() -> dict[str, Any]:
-    """Load discharge_instructions.yaml + validate. Cached singleton.
+    """Load clinosim-discharge-instruction.yaml + validate. Cached singleton.
 
     Returns the full top-level dict (with 'baseline' and 'disease_specific' keys).
     Task 6 TemplateNarrativeGenerator merges baseline + disease_specific entries,
@@ -357,7 +357,7 @@ def load_bedside_procedure_codes() -> dict[str, frozenset[str]]:
 
 
 # ─────────────────────────────────────────────────────────────────
-# nursing_content.yaml (Session 104 Tier 2)
+# clinosim-nursing-content.yaml (Session 104 Tier 2)
 # ─────────────────────────────────────────────────────────────────
 
 _NURSING_CONTENT_FIELDS = ("nursing_diagnoses", "care_plan", "patient_education")
@@ -365,7 +365,7 @@ _NURSING_CONTENT_LANGS = ("ja", "en")
 
 
 def _validate_nursing_content(data: dict[str, Any]) -> None:
-    """Fail-loud 6-layer validation of nursing_content.yaml (session-104 Tier 2).
+    """Fail-loud 6-layer validation of clinosim-nursing-content.yaml (session-104 Tier 2).
 
     Layer 1: empty top-level guard
     Layer 2: at least one axis (`acute_disease` or `chronic_icd10`)
@@ -375,37 +375,42 @@ def _validate_nursing_content(data: dict[str, Any]) -> None:
     Layer 6: every list is non-empty (silent-no-op prevention)
     """
     if not data:
-        raise ValueError("nursing_content.yaml: empty top-level")
+        raise ValueError("clinosim-nursing-content.yaml: empty top-level")
 
     axes = [ax for ax in ("acute_disease", "chronic_icd10") if ax in data]
     if not axes:
-        raise ValueError("nursing_content.yaml: missing both 'acute_disease' and 'chronic_icd10' top-level axes")
+        raise ValueError(
+            "clinosim-nursing-content.yaml: missing both 'acute_disease' and 'chronic_icd10' top-level axes"
+        )
 
     for axis in axes:
         entries = data[axis]
         if not entries or not isinstance(entries, dict):
-            raise ValueError(f"nursing_content.yaml: '{axis}' is empty or not a mapping")
+            raise ValueError(f"clinosim-nursing-content.yaml: '{axis}' is empty or not a mapping")
         for key, entry in entries.items():
             if not entry or not isinstance(entry, dict):
-                raise ValueError(f"nursing_content.yaml: {axis}[{key!r}] is empty or not a mapping")
+                raise ValueError(f"clinosim-nursing-content.yaml: {axis}[{key!r}] is empty or not a mapping")
             for field in _NURSING_CONTENT_FIELDS:
                 if field not in entry:
-                    raise ValueError(f"nursing_content.yaml: {axis}[{key!r}] missing '{field}'")
+                    raise ValueError(f"clinosim-nursing-content.yaml: {axis}[{key!r}] missing '{field}'")
                 block = entry[field]
                 if not block or not isinstance(block, dict):
-                    raise ValueError(f"nursing_content.yaml: {axis}[{key!r}][{field!r}] is empty or not a mapping")
+                    raise ValueError(
+                        f"clinosim-nursing-content.yaml: {axis}[{key!r}][{field!r}] is empty or not a mapping"
+                    )
                 for lang in _NURSING_CONTENT_LANGS:
                     if lang not in block:
-                        raise ValueError(f"nursing_content.yaml: {axis}[{key!r}][{field!r}] missing '{lang}'")
+                        raise ValueError(f"clinosim-nursing-content.yaml: {axis}[{key!r}][{field!r}] missing '{lang}'")
                     items = block[lang]
                     if not items or not isinstance(items, list):
                         raise ValueError(
-                            f"nursing_content.yaml: {axis}[{key!r}][{field!r}][{lang!r}] is empty or not a list"
+                            f"clinosim-nursing-content.yaml: {axis}[{key!r}][{field!r}][{lang!r}]"
+                            f" is empty or not a list"
                         )
                     for i, item in enumerate(items):
                         if not isinstance(item, str) or not item.strip():
                             raise ValueError(
-                                f"nursing_content.yaml: "
+                                f"clinosim-nursing-content.yaml: "
                                 f"{axis}[{key!r}][{field!r}][{lang!r}][{i}] "
                                 f"must be a non-empty string"
                             )
@@ -413,7 +418,7 @@ def _validate_nursing_content(data: dict[str, Any]) -> None:
 
 @lru_cache(maxsize=1)
 def load_nursing_content() -> dict[str, Any]:
-    """Load nursing_content.yaml + validate. Cached singleton.
+    """Load clinosim-nursing-content.yaml + validate. Cached singleton.
 
     Returns the full top-level dict with `acute_disease` and
     `chronic_icd10` axes. Consumers (`template_generator._build_nursing_*`)

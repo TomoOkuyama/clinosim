@@ -904,8 +904,9 @@ def _bb_procedures(ctx: BundleContext) -> list[dict]:
         # Issue #474: localize the Order display for JP so treatment-side
         # procedures (splint/bandage/wound-care/O2 etc.) don't leak English
         # into JP `Procedure.code.text`. `_localize_drug_name` is the
-        # phrase-level translator that consults `drug_names_ja.yaml` (which
-        # already carries entries like "Ice pack application" → "氷嚢貼付",
+        # phrase-level translator that consults `clinosim-procedure-phrase.yaml`
+        # via `load_narrative_display_dict()` (which already carries entries
+        # like "Ice pack application" → "氷嚢貼付",
         # "Wound irrigation with normal saline" → "生理食塩液による創部洗浄")
         # and internally chains dosage-abbrev translation (O2 → 酸素投与 etc.).
         # US path unchanged (helper is a no-op for is_us(country)).

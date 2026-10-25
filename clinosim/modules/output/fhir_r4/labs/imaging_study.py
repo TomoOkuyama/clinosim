@@ -323,7 +323,7 @@ def _build_imaging_study(
             # sourced from disease-YAML `- {test: "..."}` items. On JP output,
             # 22.4% of ImagingStudy resources (1,060 / 4,735) leaked the raw
             # English form because `body_sites` lookup was a miss and no
-            # localization applied. Look up the JA form in `drug_names_ja.yaml`
+            # localization applied. Look up the JA form via `load_narrative_display_dict()`
             # (the shared localization dict — see the "Imaging exam names"
             # section); normalize `_` → ` ` first to match the space-keyed
             # yaml entries. Passthrough on US (`lang != "ja"`) and on any
@@ -339,9 +339,11 @@ def _localize_imaging_exam_name(exam_name: str) -> str:
 
     Normalizes underscores to spaces (matching how the CIF disease-YAML
     ``- {test: "FAST_Ultrasound"}`` shape maps to the space-keyed
-    ``drug_names_ja.yaml`` entries), then does a case-insensitive exact-match
-    lookup. Unknown keys pass through as-is so the JA-locale surface
-    degrades gracefully to the CIF English name instead of a placeholder.
+    `clinosim-imaging-exam-name.yaml` entries, resolved via
+    `load_narrative_display_dict()`), then does a case-insensitive
+    exact-match lookup. Unknown keys pass through as-is so the JA-locale
+    surface degrades gracefully to the CIF English name instead of a
+    placeholder.
     """
     from clinosim.locale.loader import load_narrative_display_dict
 

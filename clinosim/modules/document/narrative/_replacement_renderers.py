@@ -253,7 +253,7 @@ def _render_med_names(meds: list, lang: str = "en") -> str:
     """List of medication display names, deduplicated, comma-joined.
 
     v7 (2026-08-17): when ``lang == "ja"``, resolves each drug name
-    against the shared ``drug_names_ja.yaml`` dictionary (same source
+    against the shared `load_narrative_display_dict` catalog (same source
     the FHIR emit uses). v6 fed raw English drug names into the JA
     prompt, so the LLM invented katakana approximations (アトロバスタチン
     ← Atorvastatin, エンラプリル ← Enalapril, カルベドロール ←

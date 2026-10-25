@@ -173,7 +173,7 @@ call site では `_REF_DIR / "X.yaml"` / `_LOCALE / country / "X.yaml"` で path
 
 `maxsize` は eviction policy にしか効きませんが、**意図を読みやすくする load-bearing な signal** です。`maxsize=4` を country-only loader に付けるとレビュアーが「将来 4 国対応?」と誤解します。
 
-**PR-B1 (2026-06-27) + adversarial fix で完成**: 残存していた hand-rolled cache pattern(`global X; if X is None: ... else return X` を **6 loader**で使用)を撤廃し、全 module の loader が `@lru_cache` 標準。touch 対象は `clinosim/modules/encounter/protocol.py:load_all_encounter_conditions` / `clinosim/simulator/helpers.py:_load_all_disease_protocols` / `clinosim/modules/output/fhir_r4/labs/diagnostic_report.py:load_panel_groups` / `clinosim/modules/output/fhir_r4/lib/common.py` (localization helpers) の `_load_med_terms_ja` + `_load_drug_names_ja` + `_load_department_display`。新規 module で global mutable `_cache` 変数を導入することは禁止(`test_*` で `load_X.cache_clear()` を使う標準テスト pattern と相反するため)。同 PR で `clinosim/simulator/helpers.py:_load_all_disease_protocols` の `try/except pass` silent skip も削除済(silent-no-op 防御強化、PR #102 silent-no-op 防御 3 層との整合)。**brainstorming Step 1 での sweep grep は `grep -i "cache\ |state\ |memo"` 等の意味フィルタを使わず、`grep -E "^_[A-Za-z_]+: *.+ *= *None"` の generic sentinel pattern を必ず使うこと**(PR-B1 adversarial review 教訓: 意味フィルタが `_drug_names_ja` 等の cache を false-negative)。
+**PR-B1 (2026-06-27) + adversarial fix で完成**: 残存していた hand-rolled cache pattern(`global X; if X is None: ... else return X` を **6 loader**で使用)を撤廃し、全 module の loader が `@lru_cache` 標準。touch 対象は `clinosim/modules/encounter/protocol.py:load_all_encounter_conditions` / `clinosim/simulator/helpers.py:_load_all_disease_protocols` / `clinosim/modules/output/fhir_r4/labs/diagnostic_report.py:load_panel_groups` / `clinosim/modules/output/fhir_r4/lib/common.py` (localization helpers) の `_load_med_terms_ja` + `_load_narrative_display_dict` + `_load_department_display`。新規 module で global mutable `_cache` 変数を導入することは禁止(`test_*` で `load_X.cache_clear()` を使う標準テスト pattern と相反するため)。同 PR で `clinosim/simulator/helpers.py:_load_all_disease_protocols` の `try/except pass` silent skip も削除済(silent-no-op 防御強化、PR #102 silent-no-op 防御 3 層との整合)。**brainstorming Step 1 での sweep grep は `grep -i "cache\ |state\ |memo"` 等の意味フィルタを使わず、`grep -E "^_[A-Za-z_]+: *.+ *= *None"` の generic sentinel pattern を必ず使うこと**(PR-B1 adversarial review 教訓: 意味フィルタが `_drug_names_ja` 等の cache を false-negative)。
 
 **共通ロジック統一 (2026-07-02) で protocol / config loader も `@lru_cache` 化済**: `load_disease_protocol(disease_id)`(maxsize=64)/ `load_encounter_condition(condition_id)`(maxsize=64)/ `load_healthcare_config(country)`(maxsize=2)/ `load_hospital_operations()`(maxsize=1)。
 
@@ -604,7 +604,7 @@ system = system_key_for("procedure", country)  # JP → "k-codes", 他 → "cpt"
 `clinosim/locale/loader.py` には shared locale データの cached loader が揃っています。**canonical loader が存在する YAML を module 内 / FHIR builder 内で raw `yaml.safe_load` するのは禁止**(共通ロジック統一 2026-07-02 で `fhir_r4/lib/common.py` (localization helpers) と `patient/activator.py` の inline 読み込みを全て loader 経由に移行済):
 
 - `load_med_terms_ja()` — JP 薬剤用語テーブル(categories + terms、YAML 順序保持 = 置換 order-sensitive)
-- `load_drug_names_ja()` — 英→日 薬剤名 mapping(key は lowercase 正規化済)
+- `load_narrative_display_dict()` — 英→日 薬剤名 mapping(key は lowercase 正規化済)
 - `load_department_display()` — 診療科 display テーブル(`{key: {en, ja}}`)
 - `load_chronic_medications()` — 慢性疾患→常用薬(patient activator が消費)
 
