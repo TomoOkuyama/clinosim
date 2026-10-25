@@ -1576,23 +1576,32 @@ def _build_jp_clins_referral_note_composition(
 _JP_ECHECKUP_GENERAL_PROFILE = "http://jpfhir.jp/fhir/eCheckup/StructureDefinition/JP_Composition_eCheckupGeneral"
 _JPFHIR_ECHECKUP_SECTION_SYSTEM = "http://jpfhir.jp/fhir/eCheckup/CodeSystem/section-code"
 
-# eCheckup General の section キー + 健診種別 → jpfhir eCheckup 番号 code(sub-PR-D)
-# checkup_type("occupational"/"specific"/"regional_union")と section key
-# (checkup_lab_results / checkup_questionnaire)の組で dispatch する。
-_JP_ECHECKUP_SECTION_CODE_MATRIX: dict[str, dict[str, str]] = {
-    "occupational": {
-        "checkup_lab_results": "01031",  # 事業者健診検査結果セクション
-        "checkup_questionnaire": "01032",  # 事業者健診問診結果セクション
-    },
-    "specific": {
-        "checkup_lab_results": "01011",  # 特定健診検査結果セクション
-        "checkup_questionnaire": "01012",  # 特定健診問診結果セクション
-    },
-    "regional_union": {
-        "checkup_lab_results": "01021",  # 広域連合保健事業検査結果セクション
-        "checkup_questionnaire": "01022",  # 広域連合保健事業問診結果セクション
-    },
-}
+# eCheckup General の section キー + 健診種別 → jpfhir eCheckup 番号 code
+# (sub-PR-D)。checkup_type ("occupational" / "specific" / "regional_union")
+# と section key (checkup_lab_results / checkup_questionnaire) の組で
+# dispatch する。
+#
+# hardcoded-review Phase A3 で matrix を
+# `clinosim/codes/data/mhlw-echeckup-section-codes.yaml` に authoritative
+# 分離。既存 symbol 名は維持し、下流 lookup はそのまま使える。
+
+
+@cache
+def _jp_echeckup_section_code_matrix() -> dict[str, dict[str, str]]:
+    """Load the jpfhir eCheckup section-code matrix from yaml."""
+    import yaml
+
+    path = Path(__file__).resolve().parents[4] / "codes" / "data" / "mhlw-echeckup-section-codes.yaml"
+    with path.open(encoding="utf-8") as fh:
+        raw = yaml.safe_load(fh) or {}
+    out: dict[str, dict[str, str]] = {}
+    for checkup_type, section_map in (raw.get("sections", {}) or {}).items():
+        if isinstance(section_map, dict):
+            out[str(checkup_type)] = {str(k): str(v) for k, v in section_map.items()}
+    return out
+
+
+_JP_ECHECKUP_SECTION_CODE_MATRIX: dict[str, dict[str, str]] = _jp_echeckup_section_code_matrix()
 
 # 既存 test 互換 alias。checkup_type 未指定時は事業者健診として dispatch。
 _JP_ECHECKUP_SECTION_CODE: dict[str, str] = _JP_ECHECKUP_SECTION_CODE_MATRIX["occupational"]
