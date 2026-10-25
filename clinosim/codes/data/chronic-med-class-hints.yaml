@@ -1,0 +1,58 @@
+---
+# chronic-med-class-hints.yaml — chronic-assessment medication-class
+# search hints
+#
+# Consumed by `template_generator.py::_render_chronic_assessment` via the
+# `_pick_med_containing` helper, which searches a patient's
+# `current_medications` for a drug name that contains any hint for the
+# condition being written up. Hints are bi-lingual because the search
+# is run on the locale-rendered name — a US assessment matches on
+# English tokens (Metformin, Statin) and a JP assessment matches on
+# katakana (メトホルミン, スタチン). Both locales MUST be provided per
+# entry: a missing locale yields a silent "no med cited" branch.
+#
+# `prefix` is the ICD-10 prefix on which the entry fires. Entries
+# fire via `str.startswith(prefix)` against the uppercased code
+# before the dot — so `I10` fires for I10, I10.1, I10.9, etc., and
+# `E78` fires for the whole dyslipidemia family.
+#
+# Hint lists are case-sensitive substring matches on the rendered
+# drug name; keep them in prescribing-frequency order so the
+# most-likely match wins when a patient is on multiple class members.
+
+metadata:
+  source: >-
+    clinosim/modules/document/narrative/template_generator.py
+    (6 inline `_pick_med_containing(en_hints=..., ja_hints=...)`
+    call sites) prior to hardcoded-audit Finding 12.
+
+classes:
+  hypertension:
+    prefix: I10
+    en: [Amlodipine, Enalapril, Losartan, Telmisartan]
+    ja: [アムロジピン, エナラプリル, ロサルタン, テルミサルタン]
+
+  diabetes:
+    prefix: E1  # E10 (T1DM) + E11 (T2DM) share the same antidiabetic class
+    en: [Metformin, Glimepiride, Insulin, Sitagliptin, DPP]
+    ja: [メトホルミン, グリメピリド, インスリン, シタグリプチン, DPP]
+
+  dyslipidemia:
+    prefix: E78
+    en: [statin, Rosuvastatin, Atorvastatin, Ezetimibe]
+    ja: [スタチン, ロスバスタチン, アトルバスタチン, エゼチミブ]
+
+  afib_anticoagulation:
+    prefix: I48
+    en: [Warfarin, Apixaban, Rivaroxaban, Edoxaban, Dabigatran]
+    ja: [ワルファリン, アピキサバン, リバーロキサバン, エドキサバン, ダビガトラン]
+
+  copd:
+    prefix: J44
+    en: [LABA, LAMA, Tiotropium, Salmeterol]
+    ja: [LABA, LAMA, チオトロピウム, サルメテロール]
+
+  asthma:
+    prefix: J45
+    en: [ICS, Salmeterol, Montelukast]
+    ja: [ICS, サルメテロール, モンテルカスト]

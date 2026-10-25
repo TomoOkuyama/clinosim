@@ -31,6 +31,8 @@ from __future__ import annotations
 import hashlib
 import logging
 from datetime import datetime
+from functools import cache
+from pathlib import Path
 from typing import Any
 
 from clinosim.codes import get_display as code_display
@@ -180,6 +182,39 @@ from clinosim.modules.document.reference_data_loaders import (
 from clinosim.types.document import DocumentType, FormatType, NarrativeContext, NarrativeOutput
 
 logger = logging.getLogger(__name__)
+
+
+@cache
+def _chronic_med_class_hints_raw() -> dict[str, dict[str, Any]]:
+    """Load `clinosim/codes/data/chronic-med-class-hints.yaml`.
+
+    Returns a `{class_key: {prefix, en: [...], ja: [...]}}` dict.
+    """
+    import yaml
+
+    path = Path(__file__).resolve().parents[3] / "codes" / "data" / "chronic-med-class-hints.yaml"
+    with path.open(encoding="utf-8") as fh:
+        raw = yaml.safe_load(fh) or {}
+    classes = raw.get("classes") or {}
+    out: dict[str, dict[str, Any]] = {}
+    for class_key, row in classes.items():
+        if isinstance(row, dict):
+            out[str(class_key)] = row
+    return out
+
+
+def _chronic_med_class_hints(class_key: str) -> tuple[tuple[str, ...], tuple[str, ...]]:
+    """Return `(en_hints, ja_hints)` tuple for a chronic-condition class.
+
+    Looked up in `chronic-med-class-hints.yaml` by `class_key`
+    (`hypertension`, `diabetes`, `dyslipidemia`, `afib_anticoagulation`,
+    `copd`, `asthma`). Missing locale lists return `()` — the caller's
+    `_pick_med_containing` treats that as "no med cited".
+    """
+    row = _chronic_med_class_hints_raw().get(class_key) or {}
+    en = tuple(str(h) for h in (row.get("en") or []) if isinstance(h, str))
+    ja = tuple(str(h) for h in (row.get("ja") or []) if isinstance(h, str))
+    return (en, ja)
 
 
 class TemplateNarrativeGenerator:
@@ -4268,6 +4303,11 @@ class TemplateNarrativeGenerator:
         med_names_display = [_render_home_med_name(m, lang=ctx.target_lang) for m in cur_meds]
         med_names_display = [n for n in med_names_display if n]
 
+        def _pick_med_by_class(class_key: str) -> str | None:
+            """Shorthand for `_pick_med_containing(*_chronic_med_class_hints(key))`."""
+            en, ja = _chronic_med_class_hints(class_key)
+            return _pick_med_containing(en_hints=en, ja_hints=ja)
+
         def _pick_med_containing(en_hints: tuple[str, ...], ja_hints: tuple[str, ...]) -> str | None:
             """Return the first current-med whose (locale-rendered) name
             contains any hint. Hints must be provided for both locales — the
@@ -4304,10 +4344,7 @@ class TemplateNarrativeGenerator:
                     sbp=NARRATIVE_BP_HYPERTENSION_SBP_THRESHOLD,
                     dbp=NARRATIVE_BP_HYPERTENSION_DBP_THRESHOLD,
                 )
-                med = _pick_med_containing(
-                    en_hints=("Amlodipine", "Enalapril", "Losartan", "Telmisartan"),
-                    ja_hints=("アムロジピン", "エナラプリル", "ロサルタン", "テルミサルタン"),
-                )
+                med = _pick_med_by_class("hypertension")
                 med_tail = t("chronic_assessment.med_continue_tail", lang, med=med) if med else ""
                 interp = f"BP {int(sbp)}/{int(dbp)} mmHg — {target} — {ctrl}{med_tail}" + t("list_sep.period", lang)
 
@@ -4365,10 +4402,7 @@ class TemplateNarrativeGenerator:
                             pass
                     if _emit_glucose:
                         parts_dm.append(t("chronic_labs.glucose_line", lang, value=v_g, unit=u_g or "mg/dL"))
-                med = _pick_med_containing(
-                    en_hints=("Metformin", "Glimepiride", "Insulin", "Sitagliptin", "DPP"),
-                    ja_hints=("メトホルミン", "グリメピリド", "インスリン", "シタグリプチン", "DPP"),
-                )
+                med = _pick_med_by_class("diabetes")
                 if med:
                     parts_dm.append(t("prescription.medication_continue", lang, med=med))
                 if parts_dm:
@@ -4396,10 +4430,7 @@ class TemplateNarrativeGenerator:
                         lang,
                         ldl=NARRATIVE_LDL_ELEVATED_THRESHOLD,
                     )
-                    med = _pick_med_containing(
-                        en_hints=("statin", "Rosuvastatin", "Atorvastatin", "Ezetimibe"),
-                        ja_hints=("スタチン", "ロスバスタチン", "アトルバスタチン", "エゼチミブ"),
-                    )
+                    med = _pick_med_by_class("dyslipidemia")
                     med_tail = t("chronic_assessment.med_continue_tail", lang, med=med) if med else ""
                     interp = f"LDL {v} {u or 'mg/dL'} — {target} — {ctrl}{med_tail}" + t("list_sep.period", lang)
 
@@ -4460,10 +4491,7 @@ class TemplateNarrativeGenerator:
                         ctrl = ""
                     target = t("chronic_assessment.inr_target_standard", lang)
                     parts_afib.append(f"PT-INR {v} — {target} — {ctrl}" if ctrl else f"PT-INR {v} — {target}")
-                med = _pick_med_containing(
-                    en_hints=("Warfarin", "Apixaban", "Rivaroxaban", "Edoxaban", "Dabigatran"),
-                    ja_hints=("ワルファリン", "アピキサバン", "リバーロキサバン", "エドキサバン", "ダビガトラン"),
-                )
+                med = _pick_med_by_class("afib_anticoagulation")
                 if med:
                     parts_afib.append(t("prescription.medication_continue", lang, med=med))
                 if parts_afib:
@@ -4475,10 +4503,7 @@ class TemplateNarrativeGenerator:
                 bits: list[str] = []
                 if spo2:
                     bits.append(f"SpO2 {float(spo2):.0f}%")
-                med = _pick_med_containing(
-                    en_hints=("LABA", "LAMA", "Tiotropium", "Salmeterol"),
-                    ja_hints=("LABA", "LAMA", "チオトロピウム", "サルメテロール"),
-                )
+                med = _pick_med_by_class("copd")
                 if med:
                     bits.append(t("prescription.medication_inhalation_continue", lang, med=med))
                 if bits:
@@ -4490,10 +4515,7 @@ class TemplateNarrativeGenerator:
                 bits2: list[str] = []
                 if spo2:
                     bits2.append(f"SpO2 {float(spo2):.0f}%")
-                med = _pick_med_containing(
-                    en_hints=("ICS", "Salmeterol", "Montelukast"),
-                    ja_hints=("ICS", "サルメテロール", "モンテルカスト"),
-                )
+                med = _pick_med_by_class("asthma")
                 if med:
                     bits2.append(t("prescription.medication_continue", lang, med=med))
                 if bits2:
