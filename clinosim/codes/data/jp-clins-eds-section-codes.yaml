@@ -1,0 +1,88 @@
+# JP-CLINS eDischargeSummary (eDS) section slice registry.
+#
+# Each section slice carries:
+#   `code`                   : the slice `code.coding[0].code` (from
+#                              `JP_Composition_eDischargeSummary` spec).
+#   `title`                  : the slice `title` patternString (JP spec
+#                              value — spec forbids drift).
+#   `multi_entry_types`      : optional. Resource types whose encounter-
+#                              indexed instances are appended to the
+#                              slice's `entry[]` (additive to any
+#                              `entry_ref` templated reference). Issue
+#                              #925.
+#   `entry_ref`              : optional. `(resource_type, template)`
+#                              shape. Templates receive `encounter_id`,
+#                              `primary_cond_id`, `free_text_doc_id`
+#                              as `str.format` kwargs.
+#
+# Section-key rationale (per JP-CLINS eDS spec + Issue #925):
+# - admission_diagnoses (342): Condition entries for the encounter
+#   (empty in the base map; mirrors 344 for the primary Condition).
+# - discharge_diagnoses (344): additional Conditions beyond the primary
+#   (comorbidities recorded at discharge).
+# - discharge_medications (444): every MedicationRequest on the encounter
+#   (inpatient orders finished at discharge + discharge Rx). Spec
+#   `medicationOnDischargeSection.entry` targetProfile is
+#   JP_MedicationRequest_eCS, cardinality 0..* — safe to append.
+# - hospital_course (333) is INTENTIONALLY omitted from `multi_entry_types`:
+#   JP-CLINS eDS constrains `hospitalCourseSection.entry` to
+#   JP_DocumentReference (a single free-text note); adding
+#   Procedure/Observation there would violate the profile slicing.
+#
+# Migrated from the inline `_JP_DS_SECTION_CODE` +
+# `_JP_DS_MULTI_ENTRY_TYPES` + `_JP_DS_SECTION_ENTRY_REFERENCES` dicts
+# in `clinosim/modules/output/fhir_r4/documents/composition.py` under
+# the post-#1849 review (hardcoded-audit Finding 10).
+
+metadata:
+  name: JP-CLINS eDischargeSummary Section Codes
+  description: >
+    10-slice composition section registry for JP-CLINS eDS, with per-
+    slice code, title patternString, multi-entry resource-type whitelist,
+    and templated single-entry references.
+  source: clinical-information-sharing#1.13.0/package/StructureDefinition-JP-Composition-eDischargeSummary.json
+  version: '1.13.0'
+
+sections:
+  # ─── Admission side (5 slices) ───
+  admission_reason:
+    code: "312"
+    title: 入院理由                   # reasonForAdmissionSection
+  admission_details:
+    code: "322"
+    title: 入院時詳細                 # detailsOnAdmissionSection
+    entry_ref: ["Encounter", "Encounter/{encounter_id}"]
+  admission_diagnoses:
+    code: "342"
+    title: 入院時診断                 # diagnosesOnAdmissionSection
+    multi_entry_types: [Condition]
+  chief_complaint:
+    code: "352"
+    title: 主訴                       # chiefComplaintsSection
+  present_illness:
+    code: "360"
+    title: 現病歴                     # presentIllnessSection
+
+  # ─── Discharge side (5 slices) ───
+  hospital_course:
+    code: "333"
+    title: 入院中経過                 # hospitalCourseSection
+    entry_ref: ["DocumentReference", "DocumentReference/{free_text_doc_id}"]
+    # NOTE: hospital_course is INTENTIONALLY omitted from multi_entry_types
+    # because JP-CLINS constrains .entry to a single JP_DocumentReference.
+  discharge_details:
+    code: "324"
+    title: 退院時詳細                 # detailsOnDischargeSection
+    entry_ref: ["Encounter", "Encounter/{encounter_id}"]
+  discharge_diagnoses:
+    code: "344"
+    title: 退院時診断                 # diagnosesOnDischargeSection
+    entry_ref: ["Condition", "Condition/{primary_cond_id}"]
+    multi_entry_types: [Condition]
+  discharge_medications:
+    code: "444"
+    title: 退院時投薬指示             # medicationOnDischargeSection
+    multi_entry_types: [MedicationRequest]
+  discharge_instructions:
+    code: "424"
+    title: 退院時方針指示             # instructionOnDischargeSection
