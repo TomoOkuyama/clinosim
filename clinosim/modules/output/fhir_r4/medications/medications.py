@@ -750,6 +750,115 @@ def _clamp_authored_to_earliest_admin(authored_naive: str, earliest_admin_dt: st
     return earliest_admin_dt
 
 
+# ============================================================
+# _build_medication_request sub-step helpers (hardcoded-review Phase B6)
+# ============================================================
+# Three logical sub-steps extracted from the 298-line
+# _build_medication_request orchestrator:
+#   * _resolve_mr_status_and_intent — status + intent + stop-order gate
+#   * _build_mr_dispense_request    — dispenseRequest fragment
+#   * _build_mr_notes               — stop-order rationale + order notes
+# Each helper takes explicit parameters; the main function stays as
+# the orchestrator wiring them together.
+
+
+def _resolve_mr_status_and_intent(
+    order: dict,
+    encounter_type: str,
+    structural_key: str,
+    is_home_med: bool,
+    is_episodic: bool,
+) -> tuple[str, str, bool]:
+    """Return (status, intent, is_stop_order) for an MR.
+
+    Encodes the full status / intent dispatch described inline in
+    `_build_medication_request`:
+      * intent via `_mr_intent_from_order` (C2-14).
+      * status via `_map_order_status_to_fhir`, promoted to
+        ``completed`` when the course has an end_datetime, when the
+        outpatient encounter closes, when the inpatient order is
+        episodic (RM-2), or when the emergency encounter closes
+        (C7a / #1099) and the order is not a home-med continuation.
+      * `is_stop_order` detected via MED_STOP_ORDER_ID_MARKER on the
+        structural key; when true the status is clamped to ``stopped``
+        (Issue #436 F1'; JP eCS re-overrides to ``completed`` later).
+    """
+    intent_val = _mr_intent_from_order(order, encounter_type)
+    status_val = _map_order_status_to_fhir(order.get("status", ""))
+    if status_val == "active" and (
+        order.get("end_datetime")
+        or (encounter_type == "outpatient" and order.get("encounter_id"))
+        or (is_episodic and encounter_type == "inpatient" and order.get("encounter_id"))
+        or (encounter_type == "emergency" and order.get("encounter_id") and not is_home_med)
+    ):
+        status_val = "completed"
+    is_stop_order = MED_STOP_ORDER_ID_MARKER in structural_key
+    if is_stop_order:
+        status_val = "stopped"
+    return status_val, intent_val, is_stop_order
+
+
+def _build_mr_dispense_request(
+    order: dict,
+    authored: str,
+    is_home_med: bool,
+    encounter_type: str,
+    country: str,
+) -> dict[str, Any]:
+    """Return the MR.dispenseRequest fragment.
+
+    Carries validityPeriod (clamped `authoredOn` to CIF `end_datetime`
+    when present), `numberOfRepeatsAllowed` default (3 chronic / 0
+    acute / 0 inpatient-ED), and `expectedSupplyDuration` for home-
+    med / outpatient Rx windows (Issue #1175 JP-CLINS eCS fix).
+    """
+    _end = order.get("end_datetime", "") or ""
+    disp: dict[str, Any] = {}
+    if authored and _end:
+        disp["validityPeriod"] = {"start": str(authored), "end": str(_end)}
+    elif authored:
+        disp["validityPeriod"] = {"start": str(authored)}
+    if is_home_med:
+        disp["numberOfRepeatsAllowed"] = 3
+    elif encounter_type == "outpatient":
+        disp["numberOfRepeatsAllowed"] = 0
+    elif encounter_type in ("inpatient", "emergency"):
+        disp["numberOfRepeatsAllowed"] = 0  # inpatient/ED dispense once per order
+    _days = order.get("days_supply") or 0
+    if not _days and (is_home_med or encounter_type == "outpatient"):
+        _days = 30  # standard chronic-Rx cycle
+    if _days and _days > 0:
+        disp["expectedSupplyDuration"] = {
+            "value": int(_days),
+            "unit": _SUPPLY_DURATION_UNIT_JP if is_jp(country) else _SUPPLY_DURATION_UNIT_US,
+            "system": get_system_uri("ucum"),
+            "code": _SUPPLY_DURATION_CODE,
+        }
+    return disp
+
+
+def _build_mr_notes(order: dict, is_stop_order: bool) -> list[dict[str, Any]]:
+    """Compose `MedicationRequest.note` entries.
+
+    Combines the Issue #436 F3 stop-order rationale (STOP orders carry
+    `clinical_intent` naming WHY the med was discontinued) and the
+    Issue #1066 drug_safety order-level note dicts (CPOE-style
+    moderate-DDI cautions). Returns an empty list when neither source
+    is populated so the orchestrator skips the field.
+    """
+    notes: list[dict[str, Any]] = []
+    if is_stop_order:
+        _stop_intent = str(order.get("clinical_intent", "") or "").strip()
+        if _stop_intent:
+            notes.append({"text": _stop_intent})
+    _order_notes = order.get("notes")
+    if _order_notes:
+        for entry in _order_notes:
+            if isinstance(entry, dict) and entry.get("text"):
+                notes.append(entry)
+    return notes
+
+
 def _build_medication_request(
     order: dict,
     patient_id: str,
@@ -795,70 +904,17 @@ def _build_medication_request(
     _structural_key = order.get("order_id") or str(uuid.uuid4())
     resource_id = _resolve_mr_id(_structural_key)
 
-    # C2-14: MR.intent context-aware — mirrors C1-16 which
-    # applied the same idea to ServiceRequest. Chronic-management refills →
-    # `instance-order`; discharge take-home meds → `original-order`; the rest
-    # remain `order`.
-    intent_val = _mr_intent_from_order(order, encounter_type)
-    # C2-16: finished courses get status=completed. `end_datetime`
-    # (or `discontinuation_datetime`) is populated in CIF when the course is
-    # deliberately stopped or naturally ends; fall through to whatever
-    # _map_order_status_to_fhir returns otherwise.
-    # CO-9: also complete when the encounter itself is
-    # finished (outpatient Rx end at encounter close in JP practice).
-    # RM-2: episodic inpatient orders (Supportive / ED treatment /
-    # antibiotics keyed on clinical_intent phrasing) complete at discharge.
-    # Home-medication orders REMAIN active because chronic-meds continue
-    # post-discharge.
-    status_val = _map_order_status_to_fhir(order.get("status", ""))
+    # Status / intent / stop-order resolution (hardcoded-review Phase B6).
+    # The helper owns the full C2-14 / C2-16 / RM-2 / C7a / Issue #436 F1'
+    # dispatch; see its docstring for the clause-by-clause mapping.
     medication_intent = order.get("medication_intent", "")  # Issue #349 Phase 2
     _ci_lower = str(order.get("clinical_intent", "") or "").lower()
     _episodic_kw = ("supportive:", "ed treatment:", "day ", "dvt_prophylaxis", "antibiotic", "escalation")
     _is_home_med = "home medication" in _ci_lower
     _is_episodic = (not _is_home_med) and any(kw in _ci_lower for kw in _episodic_kw)
-    if status_val == "active" and (
-        order.get("end_datetime")
-        or (encounter_type == "outpatient" and order.get("encounter_id"))
-        or (_is_episodic and encounter_type == "inpatient" and order.get("encounter_id"))
-        # C7a / #1099: ED-course meds complete at ED encounter close.
-        # Anything ordered during an emergency encounter is per-encounter
-        # (IV ketorolac, IM ibuprofen, single-dose IV antibiotic, PRN
-        # ondansetron, …). Home-medication continuation orders that
-        # happen to be recorded at ED intake are excluded (patient is
-        # still on them post-discharge). Pre-C7a these meds stayed
-        # ``status="active"`` forever, feeding false cross-encounter
-        # active-med signals into drug_safety analysis and creating
-        # spurious contraindicated pairs (89 % of #1087 residual).
-        or (encounter_type == "emergency" and order.get("encounter_id") and not _is_home_med)
-    ):
-        status_val = "completed"
-
-    # Issue #436 F1': daily-loop STOP (discontinuation) orders are
-    # emitted with the ``MED_STOP_ORDER_ID_MARKER`` id marker (see
-    # ``clinosim/modules/_shared.py``). FHIR MedicationRequest.status
-    # for these orders is set to ``"stopped"`` so downstream consumers
-    # cannot mistake a discontinuation for an active prescription. The
-    # override is at the emit layer only (F1', not F1) — investigation
-    # showed that reassigning ``OrderStatus.STOPPED`` at Order creation
-    # shifts ``_generate_mar``'s per-order rng cursor
-    # and violates AD-16 determinism (+6 ServiceRequest / +7 Specimen /
-    # +1 DiagnosticReport cascade). The id-based override at emit is
-    # rng-neutral: the Order iteration order is unchanged.
-    #
-    # JP asymmetry: JP_MedicationRequest_eCS pins ``status`` =
-    # patternCode ``"completed"`` per the JP-CLINS spec, so
-    # ``fhir_r4_adapter._normalize_ecs_metadata`` (around
-    # ``fhir_r4_adapter.py:1978``) forcibly re-overrides JP output
-    # back to ``"completed"``. On JP, F1' is effectively no-op and
-    # the STOP intent survives only via F3 (``note[].text`` below,
-    # which the eCS profile does not restrict). On US, both F1' and
-    # F3 survive.
-    # STOP-marker check remains on the structural key (not resource_id) — the
-    # opaque id has no substring recoverability. This uses the raw compound key
-    # that was hashed to derive resource_id.
-    _is_stop_order = MED_STOP_ORDER_ID_MARKER in _structural_key
-    if _is_stop_order:
-        status_val = "stopped"
+    status_val, intent_val, _is_stop_order = _resolve_mr_status_and_intent(
+        order, encounter_type, _structural_key, _is_home_med, _is_episodic
+    )
     resource: dict[str, Any] = {
         "resourceType": "MedicationRequest",
         "id": resource_id,
@@ -967,53 +1023,12 @@ def _build_medication_request(
             }
         ]
 
-    # C4-15: dispenseRequest for outpatient / discharge
-    # scripts. FHIR R4 MedicationRequest.dispenseRequest is 0..1; JP Core
-    # recommends population for meaningful pharmacy dispense workflow. We
-    # emit a light-weight dispenseRequest describing typical validity period
-    # for chronic-med / discharge orders (was 100% missing in baseline).
-    # CY7-07 (Chain-7): also emit dispenseRequest for inpatient orders — JP
-    # 入院処方 has a distinct dispense track (病棟薬剤師 dispensing per shift).
-    # Default 0 refills for acute, 3 for chronic home-med, 1 for inpatient
-    # (single scheduled dispense per order).
-    # Issue #967: reuse the clamped authored value here so `dispenseRequest.
-    # validityPeriod.start` never precedes the pharmacy's own ``authoredOn``.
+    # dispenseRequest — composed by _build_mr_dispense_request.
+    # Validity period uses the clamped authoredOn (Issue #967).
+    # Encodes C4-15 outpatient/discharge + CY7-07 inpatient tracks and
+    # Issue #1175 expectedSupplyDuration JP-CLINS eCS workaround.
     _authored = _clamp_authored_to_earliest_admin(str(order.get("ordered_datetime", "") or ""), earliest_admin_dt)
-    _end = order.get("end_datetime", "") or ""
-    disp: dict[str, Any] = {}
-    if _authored and _end:
-        disp["validityPeriod"] = {"start": str(_authored), "end": str(_end)}
-    elif _authored:
-        disp["validityPeriod"] = {"start": str(_authored)}
-    if _is_home_med:
-        disp["numberOfRepeatsAllowed"] = 3
-    elif encounter_type == "outpatient":
-        disp["numberOfRepeatsAllowed"] = 0
-    elif encounter_type in ("inpatient", "emergency"):
-        disp["numberOfRepeatsAllowed"] = 0  # inpatient/ED dispense once per order
-    # Issue #1175: JP-CLINS eCS pins MedicationRequest.status = "completed"
-    # (patternCode), which masks the true operational state. The extension +
-    # note carrier at post_process/populate.py preserves intent for
-    # extension-aware consumers, but naive consumers filtering
-    # `MedicationRequest?status=active` see no active meds for any patient.
-    # Emit `expectedSupplyDuration` for home-med + outpatient orders so a
-    # consumer can compute (authoredOn + supplyDuration * (1 +
-    # numberOfRepeatsAllowed)) and treat the Rx as active while inside that
-    # window. Falls back to the CIF-provided `days_supply` when present, else
-    # a chronic-med default of 30 days per script (JP outpatient standard
-    # cycle). JP-CLINS eCS requires unit=`日` + system=UCUM + code=`d`.
-    _days = order.get("days_supply") or 0
-    if not _days:
-        if _is_home_med or encounter_type == "outpatient":
-            _days = 30  # standard chronic-Rx cycle
-    if _days and _days > 0:
-        disp["expectedSupplyDuration"] = {
-            "value": int(_days),
-            "unit": _SUPPLY_DURATION_UNIT_JP if is_jp(country) else _SUPPLY_DURATION_UNIT_US,
-            "system": get_system_uri("ucum"),
-            "code": _SUPPLY_DURATION_CODE,
-        }
-    resource["dispenseRequest"] = disp
+    resource["dispenseRequest"] = _build_mr_dispense_request(order, _authored, _is_home_med, encounter_type, country)
 
     # C5-23: MedicationRequest.substitution (0..1)
     # for generic substitution allowance. JP GE 促進 policy allows generic
@@ -1022,28 +1037,13 @@ def _build_medication_request(
     if encounter_type == "outpatient" or _is_home_med:
         resource["substitution"] = {"allowedBoolean": True}
 
-    # Issue #436 F3: STOP orders' ``clinical_intent`` (e.g. "Day 2
-    # sudden_deterioration: stop Warfarin") is otherwise dropped by the
-    # emit path. Copy it into ``note[].text`` so downstream FHIR readers
-    # (human or machine) can see WHY the medication was discontinued.
-    # F1' (above) makes ``status="stopped"`` machine-actionable; F3 adds
-    # the human-facing rationale. Emitted only for STOP orders — no-op
-    # for regular orders (keeps their emit shape byte-identical).
-    if _is_stop_order:
-        _stop_intent = str(order.get("clinical_intent", "") or "").strip()
-        if _stop_intent:
-            resource["note"] = [{"text": _stop_intent}]
-
-    # Issue #1066 (drug_safety): pass through any order-level note dicts
-    # attached by the CPOE-style gate (moderate DDI cautions).
-    # Each note is already MR.note-shaped ({"text": ..., "authorReference":
-    # {"display": "clinosim drug_safety v1"}}) so we just extend the list.
-    _order_notes = order.get("notes")
-    if _order_notes:
-        existing_notes = resource.setdefault("note", [])
-        for entry in _order_notes:
-            if isinstance(entry, dict) and entry.get("text"):
-                existing_notes.append(entry)
+    # Notes — composed by _build_mr_notes. Combines the Issue #436 F3
+    # stop-order rationale with the Issue #1066 drug_safety order-level
+    # DDI caution dicts. Only emitted when at least one entry exists so
+    # the resource shape stays byte-identical for regular orders.
+    _notes = _build_mr_notes(order, _is_stop_order)
+    if _notes:
+        resource["note"] = _notes
 
     return resource
 
