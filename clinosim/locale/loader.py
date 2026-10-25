@@ -613,9 +613,9 @@ def load_narrative_display_dict() -> dict[str, str]:
     try:
         from clinosim.codes.drugs import all_drug_ids, resolve_drug
 
-        drug_ids = all_drug_ids()
+        drug_ids: tuple[str, ...] = all_drug_ids()
     except Exception:
-        drug_ids = []
+        drug_ids = ()
     for drug_id in drug_ids:
         try:
             rec = resolve_drug(drug_id)
