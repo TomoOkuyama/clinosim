@@ -1,0 +1,98 @@
+# procedure-snomed-metadata.yaml — SNOMED CT category + body-site codes
+# per clinosim procedure type, plus the complication-type SNOMED
+# dispatch and the three outcome-code sentinels.
+#
+# Authoritative source: SNOMED CT International
+#   URI: http://snomed.info/sct
+#   Browser: https://browser.ihtsdotools.org/
+#
+# Consumed by `clinosim/modules/procedure/engine.py` at the Procedure
+# resource emit sites (`simulate_surgery`, `generate_bedside_procedures`).
+# The emit sites look up by `procedure_type` and read:
+#   * `category_code` → `Procedure.category.coding[].code`
+#   * `body_site_code` → `Procedure.bodySite.coding[].code` (empty =
+#      omit the field entirely rather than emit a wrong value)
+#
+# Complication table is a flat `complication_key → SNOMED code` map
+# consumed by `_map_complications`.
+#
+# Outcome codes are the three sentinel values dispatched by
+# `_derive_outcome` (success / partial-success / unsuccess).
+#
+# All codes verified against the SNOMED CT International browser at
+# the time of authoring; a reviewer updating a mapping touches one row
+# of one file.
+#
+# Membership policy:
+#   * one row per `procedure_type` that `engine.py` activates
+#   * `body_site_code: ''` means no SNOMED body site (empty is a
+#     deliberate declaration, not a missing value)
+#   * extension requires authoring here + confirmation against the
+#     SNOMED browser
+
+metadata:
+  source: >-
+    clinosim/modules/procedure/engine.py (_PROCEDURE_METADATA +
+    _COMPLICATION_SCT + _SCT_CATEGORY_* + _SCT_OUTCOME_*) prior to
+    hardcoded-review Phase A9.
+  authority: SNOMED CT International (browser.ihtsdotools.org)
+
+# SNOMED Procedure.category codes (the three roots used by this module).
+category:
+  surgical: '387713003'
+  diagnostic: '386053000'
+  therapeutic: '277132007'
+
+# SNOMED Procedure.outcome sentinels used by _derive_outcome.
+outcome:
+  success: '385669000'
+  partial: '385670004'
+  unsuccess: '385671000'
+
+# Complication key → SNOMED code (Procedure.complication[]).
+complications:
+  excessive_bleeding: '131148009'          # Bleeding
+  anesthesia_hypotension: '45007003'       # Hypotension
+  surgical_site_infection: '87317003'
+  ards: '67782005'
+
+# Per-procedure_type category + body-site dispatch.
+# `category` is one of the keys above (surgical / diagnostic / therapeutic).
+# `body_site` is a SNOMED CT body-site code; '' = omit Procedure.bodySite.
+procedures:
+  # --- Surgeries ---
+  ORIF:                 {category: surgical,    body_site: '71341001'}     # femur
+  hemiarthroplasty:     {category: surgical,    body_site: '29836001'}     # hip region
+  surgery:              {category: surgical,    body_site: ''}
+
+  # --- Bedside / routine ---
+  urinary_catheter:     {category: therapeutic, body_site: '89837001'}     # bladder
+  central_line:         {category: therapeutic, body_site: '113257007'}    # cardiovascular
+  arterial_line:        {category: therapeutic, body_site: '58602004'}     # peripheral vascular
+  lumbar_puncture:      {category: diagnostic,  body_site: '32713005'}     # vertebral column
+  thoracentesis:        {category: therapeutic, body_site: '118375008'}    # intrathoracic
+  paracentesis:         {category: therapeutic, body_site: '818983003'}    # abdomen
+  intubation:           {category: therapeutic, body_site: '74262004'}     # oral cavity
+  nasogastric_tube:     {category: therapeutic, body_site: '74262004'}     # oral cavity
+  chest_tube:           {category: therapeutic, body_site: '118375008'}    # intrathoracic
+  wound_debridement:    {category: therapeutic, body_site: '87642003'}     # skin/subcut
+  cardioversion:        {category: therapeutic, body_site: '113257007'}    # cardiovascular
+  blood_transfusion:    {category: therapeutic, body_site: '38266002'}     # entire body
+  dialysis_acute:       {category: therapeutic, body_site: '80581009'}     # upper urinary tract
+  bronchoscopy:         {category: diagnostic,  body_site: '39607008'}     # lung
+  echocardiography:     {category: diagnostic,  body_site: '113257007'}    # cardiovascular
+
+  # --- CO-3: ED procedures ---
+  ecg_12lead:           {category: diagnostic,  body_site: '80891009'}     # heart
+  iv_line:              {category: therapeutic, body_site: '58602004'}     # peripheral vascular
+  wound_care:           {category: therapeutic, body_site: '87642003'}     # skin
+  short_arm_splint:     {category: therapeutic, body_site: '8205005'}      # wrist
+  reduction_closed:     {category: therapeutic, body_site: '8205005'}      # wrist
+  oxygen_therapy:       {category: therapeutic, body_site: '39607008'}     # lung
+
+  # --- Issue #939: standard-of-care interventions ---
+  coronary_pci:                   {category: surgical,    body_site: '41801008'}     # coronary artery
+  pacemaker_implant:              {category: surgical,    body_site: '80891009'}     # heart
+  craniotomy_hematoma_evacuation: {category: surgical,    body_site: '12738006'}     # brain
+  ileus_tube_placement:           {category: therapeutic, body_site: '26107004'}     # small intestine
+  bowel_resection:                {category: surgical,    body_site: '30315005'}     # large intestine

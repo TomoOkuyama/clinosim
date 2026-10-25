@@ -8,9 +8,12 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import datetime, timedelta
+from functools import cache
+from pathlib import Path
 from typing import Any
 
 import numpy as np
+import yaml
 
 from clinosim import determinism
 from clinosim.modules._shared import is_jp
@@ -244,23 +247,51 @@ def simulate_surgery(
 # ============================================================
 # SNOMED CT codes used by this module (resolved via clinosim.codes at output time)
 # ============================================================
-_SCT_CATEGORY_SURGICAL = "387713003"
-# feedback FB-F8: SNOMED 103693007 は inactive、active 386053000 "Evaluation
-# procedure" に更新(cycle 8 拡張)。
-_SCT_CATEGORY_DIAGNOSTIC = "386053000"
-_SCT_CATEGORY_THERAPEUTIC = "277132007"
+# SNOMED CT category / outcome sentinels, complication map, and the
+# per-procedure_type metadata table all live in
+# `clinosim/codes/data/procedure-snomed-metadata.yaml` (hardcoded-review
+# Phase A9). The module-level aliases below preserve the historical
+# Python names so every call site (`simulate_surgery`,
+# `generate_bedside_procedures`, `_map_complications`, `_derive_outcome`)
+# stays unchanged.
+#
+# feedback FB-F8: SNOMED 103693007 is inactive; active 386053000
+# "Evaluation procedure" replaces it (cycle 8 extension). The replacement
+# is applied in the yaml.
 
-_SCT_OUTCOME_SUCCESS = "385669000"
-_SCT_OUTCOME_PARTIAL = "385670004"
-_SCT_OUTCOME_UNSUCCESS = "385671000"
 
-# Complication type → SNOMED code
-_COMPLICATION_SCT: dict[str, str] = {
-    "excessive_bleeding": "131148009",  # Bleeding
-    "anesthesia_hypotension": "45007003",  # Hypotension
-    "surgical_site_infection": "87317003",
-    "ards": "67782005",
-}
+@cache
+def _procedure_snomed_metadata() -> dict[str, Any]:
+    """Load the procedure-SNOMED metadata authority yaml."""
+    path = Path(__file__).resolve().parents[2] / "codes" / "data" / "procedure-snomed-metadata.yaml"
+    with path.open(encoding="utf-8") as fh:
+        return yaml.safe_load(fh) or {}
+
+
+def _sct_category(key: str) -> str:
+    return str((_procedure_snomed_metadata().get("category") or {}).get(key) or "")
+
+
+def _sct_outcome(key: str) -> str:
+    return str((_procedure_snomed_metadata().get("outcome") or {}).get(key) or "")
+
+
+_SCT_CATEGORY_SURGICAL = _sct_category("surgical")
+_SCT_CATEGORY_DIAGNOSTIC = _sct_category("diagnostic")
+_SCT_CATEGORY_THERAPEUTIC = _sct_category("therapeutic")
+
+_SCT_OUTCOME_SUCCESS = _sct_outcome("success")
+_SCT_OUTCOME_PARTIAL = _sct_outcome("partial")
+_SCT_OUTCOME_UNSUCCESS = _sct_outcome("unsuccess")
+
+
+# Complication key → SNOMED code.
+def _complication_sct_from_yaml() -> dict[str, str]:
+    raw = _procedure_snomed_metadata().get("complications", {}) or {}
+    return {str(k): str(v) for k, v in raw.items()}
+
+
+_COMPLICATION_SCT: dict[str, str] = _complication_sct_from_yaml()
 
 
 # ============================================================
@@ -275,43 +306,22 @@ class ProcedureMeta:
     body_site_code: str = ""  # SNOMED body site (empty if n/a)
 
 
-_PROCEDURE_METADATA: dict[str, ProcedureMeta] = {
-    # --- Surgeries ---
-    "ORIF": ProcedureMeta(_SCT_CATEGORY_SURGICAL, "71341001"),  # femur
-    "hemiarthroplasty": ProcedureMeta(_SCT_CATEGORY_SURGICAL, "29836001"),  # hip region
-    "surgery": ProcedureMeta(_SCT_CATEGORY_SURGICAL, ""),
-    # --- Bedside / routine ---
-    "urinary_catheter": ProcedureMeta(_SCT_CATEGORY_THERAPEUTIC, "89837001"),  # bladder
-    "central_line": ProcedureMeta(_SCT_CATEGORY_THERAPEUTIC, "113257007"),  # cardiovascular
-    "arterial_line": ProcedureMeta(_SCT_CATEGORY_THERAPEUTIC, "58602004"),  # peripheral vascular
-    "lumbar_puncture": ProcedureMeta(_SCT_CATEGORY_DIAGNOSTIC, "32713005"),  # vertebral column
-    "thoracentesis": ProcedureMeta(_SCT_CATEGORY_THERAPEUTIC, "118375008"),  # intrathoracic
-    "paracentesis": ProcedureMeta(_SCT_CATEGORY_THERAPEUTIC, "818983003"),  # abdomen
-    "intubation": ProcedureMeta(_SCT_CATEGORY_THERAPEUTIC, "74262004"),  # oral cavity
-    "nasogastric_tube": ProcedureMeta(_SCT_CATEGORY_THERAPEUTIC, "74262004"),  # oral cavity
-    "chest_tube": ProcedureMeta(_SCT_CATEGORY_THERAPEUTIC, "118375008"),  # intrathoracic
-    "wound_debridement": ProcedureMeta(_SCT_CATEGORY_THERAPEUTIC, "87642003"),  # skin/subcut
-    "cardioversion": ProcedureMeta(_SCT_CATEGORY_THERAPEUTIC, "113257007"),  # cardiovascular
-    "blood_transfusion": ProcedureMeta(_SCT_CATEGORY_THERAPEUTIC, "38266002"),  # entire body
-    "dialysis_acute": ProcedureMeta(_SCT_CATEGORY_THERAPEUTIC, "80581009"),  # upper urinary tract
-    "bronchoscopy": ProcedureMeta(_SCT_CATEGORY_DIAGNOSTIC, "39607008"),  # lung
-    "echocardiography": ProcedureMeta(_SCT_CATEGORY_DIAGNOSTIC, "113257007"),  # cardiovascular
-    # CO-3: ED procedures.
-    "ecg_12lead": ProcedureMeta(_SCT_CATEGORY_DIAGNOSTIC, "80891009"),  # heart
-    "iv_line": ProcedureMeta(_SCT_CATEGORY_THERAPEUTIC, "58602004"),  # peripheral vascular
-    "wound_care": ProcedureMeta(_SCT_CATEGORY_THERAPEUTIC, "87642003"),  # skin
-    "short_arm_splint": ProcedureMeta(_SCT_CATEGORY_THERAPEUTIC, "8205005"),  # wrist
-    "reduction_closed": ProcedureMeta(_SCT_CATEGORY_THERAPEUTIC, "8205005"),  # wrist
-    "oxygen_therapy": ProcedureMeta(_SCT_CATEGORY_THERAPEUTIC, "39607008"),  # lung
-    # Issue #939: standard-of-care interventions for cardiology / neurosurgery
-    # / GI-obstruction admissions. SNOMED body-site codes verified against
-    # the SNOMED International browser (browser.ihtsdotools.org).
-    "coronary_pci": ProcedureMeta(_SCT_CATEGORY_SURGICAL, "41801008"),  # coronary artery
-    "pacemaker_implant": ProcedureMeta(_SCT_CATEGORY_SURGICAL, "80891009"),  # heart
-    "craniotomy_hematoma_evacuation": ProcedureMeta(_SCT_CATEGORY_SURGICAL, "12738006"),  # brain
-    "ileus_tube_placement": ProcedureMeta(_SCT_CATEGORY_THERAPEUTIC, "26107004"),  # small intestine
-    "bowel_resection": ProcedureMeta(_SCT_CATEGORY_SURGICAL, "30315005"),  # large intestine
-}
+def _procedure_metadata_from_yaml() -> dict[str, ProcedureMeta]:
+    raw = _procedure_snomed_metadata()
+    cat_map: dict[str, str] = {str(k): str(v) for k, v in (raw.get("category") or {}).items()}
+    out: dict[str, ProcedureMeta] = {}
+    for key, row in (raw.get("procedures", {}) or {}).items():
+        if not isinstance(row, dict):
+            continue
+        cat_key = str(row.get("category") or "")
+        out[str(key)] = ProcedureMeta(
+            category_code=cat_map.get(cat_key, ""),
+            body_site_code=str(row.get("body_site") or ""),
+        )
+    return out
+
+
+_PROCEDURE_METADATA: dict[str, ProcedureMeta] = _procedure_metadata_from_yaml()
 
 
 def _derive_outcome(complications: list[str]) -> str:
