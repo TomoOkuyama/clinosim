@@ -133,19 +133,19 @@ def test_jp_localize_compression_stocking_full_string() -> None:
     """The Issue #861 offender ``"compression stocking: Graduated compression stocking on unaffected leg"``
     now resolves to JA via drug_names_ja.yaml exact-match on the cleaned
     (post-":") form."""
-    from clinosim.locale.loader import load_drug_names_ja
+    from clinosim.locale.loader import load_narrative_display_dict
     from clinosim.modules.output.fhir_r4.lib.localization import _localize_drug_name
 
-    load_drug_names_ja.cache_clear()
+    load_narrative_display_dict.cache_clear()
     result = _localize_drug_name("compression stocking: Graduated compression stocking on unaffected leg", "JP")
     assert result == "弾性ストッキング(患側外・段階的圧迫)", f"got {result!r}"
 
 
 def test_jp_localize_cervical_collar_full_string() -> None:
-    from clinosim.locale.loader import load_drug_names_ja
+    from clinosim.locale.loader import load_narrative_display_dict
     from clinosim.modules.output.fhir_r4.lib.localization import _localize_drug_name
 
-    load_drug_names_ja.cache_clear()
+    load_narrative_display_dict.cache_clear()
     result = _localize_drug_name("cervical immobilization: Cervical collar until cleared", "JP")
     assert result == "頚椎固定(頚椎カラー・画像判定まで)", f"got {result!r}"
 
@@ -153,10 +153,10 @@ def test_jp_localize_cervical_collar_full_string() -> None:
 def test_jp_localize_emergent_dialysis_stat() -> None:
     """No ``:`` prefix here — the exact-match on the whole normalized string
     resolves at step 1 of _localize_drug_name."""
-    from clinosim.locale.loader import load_drug_names_ja
+    from clinosim.locale.loader import load_narrative_display_dict
     from clinosim.modules.output.fhir_r4.lib.localization import _localize_drug_name
 
-    load_drug_names_ja.cache_clear()
+    load_narrative_display_dict.cache_clear()
     result = _localize_drug_name("Emergent dialysis stat", "JP")
     assert result == "緊急透析", f"got {result!r}"
 
@@ -164,10 +164,10 @@ def test_jp_localize_emergent_dialysis_stat() -> None:
 def test_us_issue_861_strings_pass_through_unchanged() -> None:
     """US output must NOT translate these — the English form is the correct
     surface for US charts."""
-    from clinosim.locale.loader import load_drug_names_ja
+    from clinosim.locale.loader import load_narrative_display_dict
     from clinosim.modules.output.fhir_r4.lib.localization import _localize_drug_name
 
-    load_drug_names_ja.cache_clear()
+    load_narrative_display_dict.cache_clear()
     for en in (
         "compression stocking: Graduated compression stocking on unaffected leg",
         "cervical immobilization: Cervical collar until cleared",
@@ -178,10 +178,10 @@ def test_us_issue_861_strings_pass_through_unchanged() -> None:
 
 def test_drug_names_ja_contains_all_issue_861_forms() -> None:
     """Every Issue #861 phrase has a cleaned-form entry in the yaml."""
-    from clinosim.locale.loader import load_drug_names_ja
+    from clinosim.locale.loader import load_narrative_display_dict
 
-    load_drug_names_ja.cache_clear()
-    ja_dict = load_drug_names_ja()
+    load_narrative_display_dict.cache_clear()
+    ja_dict = load_narrative_display_dict()
     for cleaned in (
         "graduated compression stocking on unaffected leg",
         "cervical collar until cleared",

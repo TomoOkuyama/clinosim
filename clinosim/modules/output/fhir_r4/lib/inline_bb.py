@@ -144,7 +144,7 @@ from clinosim.modules.output.fhir_r4.lib.localization import (  # noqa: F401
     _SEVERITY_DISPLAY_JA,
     _dept_display,
     _load_department_display,
-    _load_drug_names_ja,
+    _load_narrative_display_dict,
     _load_med_terms_ja,
     _localize_display,
     _localize_dosage_terms,

@@ -18,9 +18,10 @@ Note: `drug_names_ja.yaml` was deleted under META #1849 Phase 5 Step 4
 (2026-10-24). The drug-name EN→JA display mapping now lives in the
 authority catalogs under `clinosim/codes/data/` (drugs.yaml +
 clinosim-{imaging-exam-name,procedure-phrase,allergen-substance,
-admin-form-display}.yaml); `load_drug_names_ja()` kept as a backwards-
-compat shim that UNIONs them into the same dict shape callers have
-always used.
+admin-form-display}.yaml); the free-text EN → JA display helper
+`load_narrative_display_dict()` (renamed from `load_narrative_display_dict` in
+Phase 5 Step 3) UNIONs those catalogs into the dict shape callers
+have always used.
 """
 
 from __future__ import annotations
@@ -580,15 +581,14 @@ def load_med_terms_ja() -> dict[str, dict[str, str]]:
 
 
 @lru_cache(maxsize=1)
-def load_drug_names_ja() -> dict[str, str]:
-    """Load English→Japanese drug name mapping (case-insensitive lowercased keys).
+def load_narrative_display_dict() -> dict[str, str]:
+    """Load free-text English → Japanese display mapping used by the FHIR /
+    narrative emit paths as a last-resort translation helper.
 
-    META #1849 Phase 5 Step 4: the legacy ``clinosim/locale/shared/
-    drug_names_ja.yaml`` file was deleted after every entry it carried
-    migrated into one of the authority-adjacent catalogs. The returned
-    mapping is now the UNION of five catalogs:
+    Returns a `{lower-case EN key: JA display}` dict UNIONed from the five
+    authority-adjacent catalogs (all under `clinosim/codes/data/`):
 
-      1. ``clinosim/codes/data/drugs.yaml`` — drug_id → names + aliases
+      1. ``drugs.yaml`` — drug_id → names + aliases
          (META #1804 Phase 2.g UNION pattern, META #1849 Phase 5 Step 2.g
          aliases extension).
       2. ``clinosim-imaging-exam-name.yaml`` — ECG / Echocardiogram /
@@ -601,9 +601,13 @@ def load_drug_names_ja() -> dict[str, str]:
          Hypertonic Saline / ICS/LABA inhaler / … (META #1849 Phase 5
          Step 2 admin-form).
 
-    Function name retained for backwards-compat with ~15 call sites across
-    FHIR emit / narrative / order modules; the dict shape (lower-case EN
-    key → JA display) is unchanged.
+    Phase 5 Step 3 (META #1849, 2026-10-25): renamed from the historical
+    ``load_narrative_display_dict`` because its scope grew well beyond drug names
+    (procedure phrases, imaging exam names, allergen substances, admin-
+    form display variants). The underlying legacy
+    ``clinosim/locale/shared/drug_names_ja.yaml`` was deleted in Phase 5
+    Step 4 (#1876); this function now populates its dict from catalogs
+    only.
     """
     merged: dict[str, str] = {}
     try:

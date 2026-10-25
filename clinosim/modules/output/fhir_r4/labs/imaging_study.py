@@ -343,9 +343,9 @@ def _localize_imaging_exam_name(exam_name: str) -> str:
     lookup. Unknown keys pass through as-is so the JA-locale surface
     degrades gracefully to the CIF English name instead of a placeholder.
     """
-    from clinosim.locale.loader import load_drug_names_ja
+    from clinosim.locale.loader import load_narrative_display_dict
 
-    ja_dict = load_drug_names_ja()
+    ja_dict = load_narrative_display_dict()
     normalized = exam_name.replace("_", " ")
     return ja_dict.get(normalized.lower(), exam_name)
 

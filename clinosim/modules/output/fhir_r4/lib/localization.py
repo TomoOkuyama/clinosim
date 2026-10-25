@@ -14,7 +14,7 @@ import re
 
 from clinosim.codes import lookup as code_lookup
 from clinosim.locale.loader import load_department_display as _load_department_display
-from clinosim.locale.loader import load_drug_names_ja as _load_drug_names_ja
+from clinosim.locale.loader import load_narrative_display_dict as _load_narrative_display_dict
 from clinosim.locale.loader import load_med_terms as _load_med_terms
 from clinosim.locale.loader import load_med_terms_ja as _load_med_terms_ja
 from clinosim.locale.loader import resolve_localized_display
@@ -24,7 +24,7 @@ from clinosim.modules._shared import is_jp, is_us, resolve_lang
 # check passes at fhir_r4_adapter.py's import site.
 __all__ = [
     "_load_department_display",
-    "_load_drug_names_ja",
+    "_load_narrative_display_dict",
     "_load_med_terms",
     "_load_med_terms_ja",
     "code_lookup",
@@ -33,7 +33,7 @@ __all__ = [
     "resolve_lang",
 ]
 
-# ``_load_med_terms_ja`` / ``_load_drug_names_ja`` / ``_load_department_display``
+# ``_load_med_terms_ja`` / ``_load_narrative_display_dict`` / ``_load_department_display``
 # are thin re-export aliases of the canonical cached locale loaders. They are
 # re-exported by ``fhir_r4_adapter.py`` (public import path) and exercised by
 # tests via ``.cache_clear()`` / ``.cache_info()`` — sharing the underlying
@@ -173,7 +173,7 @@ def _drug_name_patterns() -> tuple[tuple[re.Pattern[str], str], ...]:
     fall-through path to a plain list iteration + `pattern.subn` per entry.
     Cache-invalidation notes on ``_DOSAGE_PATTERNS_CACHE`` apply here too.
     """
-    ja_dict = _load_drug_names_ja()
+    ja_dict = _load_narrative_display_dict()
     if _DRUG_PATTERNS_CACHE["dict_id"] == id(ja_dict):
         return _DRUG_PATTERNS_CACHE["value"]  # type: ignore[return-value]
     compiled = tuple(
@@ -195,7 +195,7 @@ def _localize_drug_name(drug_name: str, country: str) -> str:
     """
     if is_us(country) or not drug_name:
         return drug_name
-    ja_dict = _load_drug_names_ja()
+    ja_dict = _load_narrative_display_dict()
     # Normalize underscores to spaces for matching
     normalized = drug_name.replace("_", " ")
     # Try exact match on normalized (case-insensitive)

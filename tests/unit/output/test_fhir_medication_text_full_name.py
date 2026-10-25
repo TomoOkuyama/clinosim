@@ -19,7 +19,7 @@ localized form.
 
 from __future__ import annotations
 
-from clinosim.locale.loader import load_drug_names_ja
+from clinosim.locale.loader import load_narrative_display_dict
 from clinosim.modules.output.fhir_r4.lib.localization import _localize_drug_name
 
 # --- localizer resolves the multi-word product-family names ---
@@ -62,14 +62,14 @@ def test_localize_us_passes_through():
 
 
 def test_drug_names_ja_contains_ics_laba_entries():
-    ja_dict = load_drug_names_ja()
+    ja_dict = load_narrative_display_dict()
     assert "ics/laba inhaler" in ja_dict
     assert "ics/laba" in ja_dict
 
 
 def test_drug_names_ja_contains_all_issue_852_full_forms():
     """Every drug the Issue #852 sweep flagged has a full-form JA entry."""
-    ja_dict = load_drug_names_ja()
+    ja_dict = load_narrative_display_dict()
     for full_name in (
         "cefcapene pivoxil",
         "cefditoren pivoxil",

@@ -17,7 +17,7 @@ from typing import Any
 
 import pytest
 
-from clinosim.locale.loader import load_drug_names_ja
+from clinosim.locale.loader import load_narrative_display_dict
 from clinosim.modules.output.fhir_r4.labs.imaging_study import (
     _build_imaging_study,
     _localize_imaging_exam_name,
@@ -29,7 +29,7 @@ pytestmark = pytest.mark.unit
 @pytest.fixture(autouse=True)
 def _clear_drug_names_ja_cache() -> None:
     """Ensure each test sees the current drug_names_ja.yaml (this PR edits it)."""
-    load_drug_names_ja.cache_clear()
+    load_narrative_display_dict.cache_clear()
 
 
 def _stub_study(description: str) -> dict[str, Any]:
@@ -132,7 +132,7 @@ def test_drug_names_ja_covers_all_issue_862_top_15() -> None:
     are also covered by the yaml (see other tests) but the top-15 gate
     catches regressions on the highest-volume kinds first.
     """
-    ja_dict = load_drug_names_ja()
+    ja_dict = load_narrative_display_dict()
     for cleaned in (
         "ecg",
         "echocardiogram",

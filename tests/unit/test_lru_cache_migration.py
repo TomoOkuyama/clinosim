@@ -99,15 +99,15 @@ def test_l4_load_med_terms_ja_uses_lru_cache():
     assert data1 is data2
 
 
-def test_l5_load_drug_names_ja_uses_lru_cache():
-    from clinosim.modules.output.fhir_r4.lib.localization import _load_drug_names_ja
+def test_l5_load_narrative_display_dict_uses_lru_cache():
+    from clinosim.modules.output.fhir_r4.lib.localization import _load_narrative_display_dict
 
-    _load_drug_names_ja.cache_clear()
-    info0 = _load_drug_names_ja.cache_info()
+    _load_narrative_display_dict.cache_clear()
+    info0 = _load_narrative_display_dict.cache_info()
     assert info0.hits == 0
-    data1 = _load_drug_names_ja()
-    data2 = _load_drug_names_ja()
-    info1 = _load_drug_names_ja.cache_info()
+    data1 = _load_narrative_display_dict()
+    data2 = _load_narrative_display_dict()
+    info1 = _load_narrative_display_dict.cache_info()
     assert info1.hits >= 1
     assert data1 is data2
 
@@ -161,7 +161,7 @@ def test_load_med_terms_ja_fallback_when_yaml_missing(monkeypatch):
     _fhir_localization._load_med_terms_ja.cache_clear()
 
 
-def test_load_drug_names_ja_fallback_when_yaml_missing(monkeypatch):
+def test_load_narrative_display_dict_fallback_when_catalogs_missing(monkeypatch):
     """When the optional drug_names_ja.yaml is missing AND the Phase 1b
     catalog is also unreachable, the loader returns an empty dict without
     crashing.
@@ -177,12 +177,12 @@ def test_load_drug_names_ja_fallback_when_yaml_missing(monkeypatch):
     from clinosim.codes.drugs import _load_catalog as _catalog_loader
     from clinosim.modules.output.fhir_r4.lib import localization as _fhir_localization
 
-    _fhir_localization._load_drug_names_ja.cache_clear()
+    _fhir_localization._load_narrative_display_dict.cache_clear()
     _catalog_loader.cache_clear()
     monkeypatch.setattr(Path, "exists", lambda self: False)
-    data = _fhir_localization._load_drug_names_ja()
+    data = _fhir_localization._load_narrative_display_dict()
     assert data == {}
-    _fhir_localization._load_drug_names_ja.cache_clear()
+    _fhir_localization._load_narrative_display_dict.cache_clear()
     _catalog_loader.cache_clear()
 
 
