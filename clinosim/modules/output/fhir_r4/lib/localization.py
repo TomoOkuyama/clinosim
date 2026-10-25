@@ -279,181 +279,51 @@ def _occupation_display_en() -> dict[str, str]:
 
 
 # --- Shared display dictionaries for JP localization ---
+#
+# The eleven HL7-adjacent JA display registries previously inlined here
+# now live in `clinosim/codes/data/hl7-display-ja.yaml`. The module-level
+# aliases below are computed from the yaml at import time so every
+# existing consumer (`_localize_display`, downstream builder modules
+# importing by name) keeps working with no call-site changes.
 
-_CLASS_DISPLAY_JA: dict[str, str] = {
-    "AMB": "外来",
-    "ambulatory": "外来",
-    "IMP": "入院",
-    "inpatient encounter": "入院",
-    "EMER": "救急",
-    "emergency": "救急",
-    "HH": "訪問看護",
-    "home health": "訪問看護",
-    "FLD": "現地訪問",
-    "field": "現地訪問",
-    # C5-22: classHistory transition labels.
-    "inpatient ward": "一般病棟",
-    "ICU": "集中治療室",
-    "ACUTE": "集中治療室",
-}
 
-_CATEGORY_DISPLAY_JA: dict[str, str] = {
-    "laboratory": "検体検査",
-    "Laboratory": "検体検査",
-    "vital-signs": "バイタルサイン",
-    "Vital Signs": "バイタルサイン",
-    "social-history": "社会歴",
-    "Social History": "社会歴",
-    "encounter-diagnosis": "エンカウンター診断",
-    "Encounter Diagnosis": "エンカウンター診断",
-    "problem-list-item": "問題リスト",
-    "Problem List Item": "問題リスト",
-    "imaging": "画像検査",
-    "Imaging": "画像検査",
-    "procedure": "処置",
-    "Procedure": "処置",
-}
+@cache
+def _hl7_display_ja() -> dict[str, dict[str, str]]:
+    import yaml
 
-_SEVERITY_DISPLAY_JA: dict[str, str] = {
-    "Mild": "軽度",
-    "mild": "軽度",
-    "24484000": "軽度",
-    "Moderate": "中等度",
-    "moderate": "中等度",
-    "6736007": "中等度",
-    "Severe": "重度",
-    "severe": "重度",
-    "24484000|severe": "重度",
-    "255604002": "重度",
-}
+    path = Path(__file__).resolve().parents[4] / "codes" / "data" / "hl7-display-ja.yaml"
+    with path.open(encoding="utf-8") as fh:
+        raw = yaml.safe_load(fh) or {}
+    out: dict[str, dict[str, str]] = {}
+    for section in (
+        "class_display",
+        "category_display",
+        "severity_display",
+        "interpretation_display",
+        "relationship_display",
+        "org_type_display",
+        "location_type_display",
+        "location_name",
+        "participation_type_display",
+        "act_priority_display",
+        "diagnosis_role_display",
+    ):
+        rows = raw.get(section) or {}
+        out[section] = {str(k): str(v) for k, v in rows.items() if isinstance(k, str)}
+    return out
 
-_INTERPRETATION_DISPLAY_JA: dict[str, str] = {
-    "N": "正常",
-    "Normal": "正常",
-    "H": "高値",
-    "High": "高値",
-    "L": "低値",
-    "Low": "低値",
-    "HH": "パニック高値",
-    "Critical high": "パニック高値",
-    "LL": "パニック低値",
-    "Critical low": "パニック低値",
-    "A": "異常",
-    "Abnormal": "異常",
-    "AA": "パニック異常",
-    "Critical abnormal": "パニック異常",
-    "HU": "測定上限超",
-    "LU": "測定下限未満",
-    "POS": "陽性",
-    "NEG": "陰性",
-    # R/S/I (susceptibility) intentionally NOT here — this dict's only two
-    # callers (_fhir_observations.py's lab-flag interpretation and
-    # _localize_interp) never produce those codes; susceptibility display now
-    # lives solely in codes/data/hl7-observation-interpretation.yaml, consumed
-    # by _fhir_microbiology.py via code_lookup (2026-07-05 dedup).
-}
 
-_RELATIONSHIP_DISPLAY_JA: dict[str, str] = {
-    "spouse": "配偶者",
-    "child": "子",
-    "parent": "親",
-    "sibling": "同胞",
-    "partner": "パートナー",
-    "grandchild": "孫",
-    "grandparent": "祖父母",
-    "friend": "友人",
-    "guardian": "後見人",
-}
-
-_ORG_TYPE_DISPLAY_JA: dict[str, str] = {
-    "Hospital Department": "診療科",
-    "Healthcare Provider": "医療機関",
-    "prov": "医療機関",
-    "dept": "診療科",
-}
-
-_LOCATION_TYPE_DISPLAY_JA: dict[str, str] = {
-    "Operating Room": "手術室",
-    "Emergency Room": "救急外来",
-    "Outpatient Clinic": "外来",
-    "Ward": "病棟",
-    "Bed": "病床",
-    "Inpatient Ward": "入院病棟",
-}
-
-_LOCATION_NAME_JA: dict[str, str] = {
-    "Emergency Room": "救急外来",
-    "Outpatient Clinic": "外来",
-}
-
-# C5-02: HL7 v3-ParticipationType displays used by
-# Encounter.participant.type.coding.display. English default per HL7 leaks
-# to JP output; localize here.
-_PARTICIPATION_TYPE_DISPLAY_JA: dict[str, str] = {
-    "ATND": "担当医",
-    "attender": "担当医",
-    "ADM": "入院担当医",
-    "admitter": "入院担当医",
-    "DIS": "退院担当医",
-    "discharger": "退院担当医",
-    "CON": "コンサルタント",
-    "consultant": "コンサルタント",
-    "REF": "紹介元",
-    "referrer": "紹介元",
-    "PART": "参加者",
-    "Participation": "参加者",
-}
-
-# C5-03: HL7 v3-ActPriority displays used by
-# Encounter.priority.coding.display.
-_ACT_PRIORITY_DISPLAY_JA: dict[str, str] = {
-    "R": "通常",
-    "routine": "通常",
-    # Issue #616: "EM" is a priority-level value (emergency-priority), not
-    # a class-level value. "救急" is the class label (used for _CLASS_DISPLAY_JA
-    # ["EMER"]); "緊急" is the accurate priority-level label. Rendering both slots
-    # with the same "救急" made priority.display visually indistinguishable
-    # from class.display in JP-facing consumers.
-    "EM": "緊急",
-    "emergency": "緊急",
-    "S": "予定",
-    "stat": "至急",
-    "UR": "至急",
-    "urgent": "至急",
-    "A": "至急要求",
-    "ASAP": "至急要求",
-    "CS": "予定手術",
-    "callback for scheduling": "予定手術",
-    "CR": "コールバック",
-    "callback results": "コールバック",
-    "EL": "選択的",
-    "elective": "選択的",
-    "P": "予防",
-    "preop": "予防",
-    "T": "予定",
-    "timing critical": "予定",
-    "PRN": "頓用",
-    "as needed": "頓用",
-}
-
-# C5-04: HL7 diagnosis-role displays used by
-# Encounter.diagnosis.use.coding.display.
-_DIAGNOSIS_ROLE_DISPLAY_JA: dict[str, str] = {
-    "AD": "入院時診断",
-    "Admission diagnosis": "入院時診断",
-    "DD": "退院時診断",
-    "Discharge diagnosis": "退院時診断",
-    "CC": "主訴",
-    "Chief complaint": "主訴",
-    "CM": "併存疾患",
-    "Comorbidity diagnosis": "併存疾患",
-    "pre-op": "術前診断",
-    "pre-op diagnosis": "術前診断",
-    "post-op": "術後診断",
-    "post-op diagnosis": "術後診断",
-    "billing": "請求診断",
-    "Billing": "請求診断",
-}
+_CLASS_DISPLAY_JA: dict[str, str] = _hl7_display_ja()["class_display"]
+_CATEGORY_DISPLAY_JA: dict[str, str] = _hl7_display_ja()["category_display"]
+_SEVERITY_DISPLAY_JA: dict[str, str] = _hl7_display_ja()["severity_display"]
+_INTERPRETATION_DISPLAY_JA: dict[str, str] = _hl7_display_ja()["interpretation_display"]
+_RELATIONSHIP_DISPLAY_JA: dict[str, str] = _hl7_display_ja()["relationship_display"]
+_ORG_TYPE_DISPLAY_JA: dict[str, str] = _hl7_display_ja()["org_type_display"]
+_LOCATION_TYPE_DISPLAY_JA: dict[str, str] = _hl7_display_ja()["location_type_display"]
+_LOCATION_NAME_JA: dict[str, str] = _hl7_display_ja()["location_name"]
+_PARTICIPATION_TYPE_DISPLAY_JA: dict[str, str] = _hl7_display_ja()["participation_type_display"]
+_ACT_PRIORITY_DISPLAY_JA: dict[str, str] = _hl7_display_ja()["act_priority_display"]
+_DIAGNOSIS_ROLE_DISPLAY_JA: dict[str, str] = _hl7_display_ja()["diagnosis_role_display"]
 
 
 # Procedure names (from disease YAML procedure.type) — EN→JA
