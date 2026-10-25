@@ -656,3 +656,12 @@ _.all_encounter_types  # codes/encounter_type_to_snomed.py — audit/integrity A
 # Phase 3.β.5 / #1815 — CCHD screening-site → SNOMED catalog loader.
 # Audit-side API invisible to vulture (tests are not scanned).
 _.all_cchd_sites  # codes/cchd_site_to_snomed.py — audit/integrity API
+
+# hardcoded-review Phase A10 — LLMTaskType enum values dispatched
+# through yaml. CLINICAL_JUDGMENT and CONSISTENCY_REVIEW are referenced
+# in `clinosim/modules/llm_service/reference_data/task_categories.yaml`
+# (loader-based dispatch) and in test fixtures (which vulture doesn't
+# scan). The provider-selection code paths will call them via
+# `LLMTaskType(<yaml string>)` at runtime once the judgment path lands.
+_.CLINICAL_JUDGMENT  # llm_service/engine.py::LLMTaskType — yaml-dispatched enum value
+_.CONSISTENCY_REVIEW  # llm_service/engine.py::LLMTaskType — yaml-dispatched enum value
