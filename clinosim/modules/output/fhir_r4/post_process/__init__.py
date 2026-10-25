@@ -68,8 +68,8 @@ __all__ = [
     "_medication_request_satisfies_ecs",
     # specimen
     "_COMPANION_SPECIMEN_ID_PREFIX",
-    "_SPECIMEN_TYPE_BLOOD",
-    "_SPECIMEN_TYPE_URINE",
+    "_SPECIMEN_SNOMED_BLOOD",
+    "_SPECIMEN_SNOMED_URINE",
     "_build_companion_specimen",
     "_lab_observation_needs_specimen",
     "_pick_specimen_type_for_lab",
@@ -133,8 +133,8 @@ from clinosim.modules.output.fhir_r4.post_process.profile import (  # noqa: E402
 )
 from clinosim.modules.output.fhir_r4.post_process.specimen import (  # noqa: E402, F401
     _COMPANION_SPECIMEN_ID_PREFIX,
-    _SPECIMEN_TYPE_BLOOD,
-    _SPECIMEN_TYPE_URINE,
+    _SPECIMEN_SNOMED_BLOOD,
+    _SPECIMEN_SNOMED_URINE,
     _build_companion_specimen,
     _lab_observation_needs_specimen,
     _pick_specimen_type_for_lab,

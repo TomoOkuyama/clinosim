@@ -12,6 +12,7 @@ from __future__ import annotations
 from typing import Any
 
 from clinosim.codes import get_system_uri
+from clinosim.codes.loader import lookup as code_lookup
 from clinosim.modules._shared import is_jp
 from clinosim.modules.output.fhir_r4.lib.ids import (
     derive_opaque_id,
@@ -61,13 +62,13 @@ def _resolve_specimen_id(structural_key: str) -> str:
     return derive_opaque_id(SPECIMEN_ID_PREFIX, structural_key)
 
 
-# Default specimen: blood (SNOMED 119297000) — matches the majority of clinosim's
-# lab output (CBC / chem panel / LFT / cardiac markers / coagulation / ...).
-_SPECIMEN_TYPE_BLOOD = {"code": "119297000", "display_en": "Blood specimen", "display_ja": "血液検体"}
-
-
-# Urine specimen (SNOMED 122575003) — for Urinalysis / urine dipstick tests.
-_SPECIMEN_TYPE_URINE = {"code": "122575003", "display_en": "Urine specimen", "display_ja": "尿検体"}
+# Specimen SNOMED code constants. Displays resolve via code_lookup against
+# `clinosim/codes/data/snomed-ct.yaml`:
+#   119297000 → Blood specimen / 血液検体 — default for lab output
+#     (CBC / chem panel / LFT / cardiac markers / coagulation / ...).
+#   122575003 → Urine specimen / 尿検体 — Urinalysis / urine dipstick tests.
+_SPECIMEN_SNOMED_BLOOD = "119297000"
+_SPECIMEN_SNOMED_URINE = "122575003"
 
 
 def _lab_observation_needs_specimen(resource: dict) -> bool:
@@ -87,9 +88,9 @@ def _lab_observation_needs_specimen(resource: dict) -> bool:
     return isinstance(rid, str) and rid.startswith("lab-")
 
 
-def _pick_specimen_type_for_lab(observation: dict) -> dict:
-    """Pick the Specimen.type coding for a lab Observation. Blood is the
-    default; Urinalysis-style tests get urine specimen.
+def _pick_specimen_type_for_lab(observation: dict) -> str:
+    """Pick the Specimen.type SNOMED code for a lab Observation. Blood is
+    the default; Urinalysis-style tests get urine specimen.
 
     The rule is intentionally conservative — only names that clearly indicate
     a non-blood specimen switch away from blood. Anything else stays blood so
@@ -100,10 +101,10 @@ def _pick_specimen_type_for_lab(observation: dict) -> dict:
     for coding in code_field.get("coding", []) or []:
         display = str(coding.get("display", "") or "").lower()
         if "urin" in display or "urine" in display:
-            return _SPECIMEN_TYPE_URINE
+            return _SPECIMEN_SNOMED_URINE
     if "urin" in text or "urine" in text:
-        return _SPECIMEN_TYPE_URINE
-    return _SPECIMEN_TYPE_BLOOD
+        return _SPECIMEN_SNOMED_URINE
+    return _SPECIMEN_SNOMED_BLOOD
 
 
 def _build_companion_specimen(observation: dict, country: str) -> dict:
@@ -127,8 +128,8 @@ def _build_companion_specimen(observation: dict, country: str) -> dict:
     _spec_structural_key = obs_id
     spec_id = _resolve_specimen_id(_spec_structural_key)
     subject = observation.get("subject", {}) or {}
-    type_entry = _pick_specimen_type_for_lab(observation)
-    display = type_entry["display_ja"] if is_jp(country) else type_entry["display_en"]
+    specimen_snomed = _pick_specimen_type_for_lab(observation)
+    display = code_lookup("snomed-ct", specimen_snomed, "ja" if is_jp(country) else "en")
     specimen: dict[str, Any] = {
         "resourceType": "Specimen",
         "id": spec_id,
@@ -138,7 +139,7 @@ def _build_companion_specimen(observation: dict, country: str) -> dict:
         ],
         "subject": subject,
         "type": {
-            "coding": [{"system": get_system_uri("snomed-ct"), "code": type_entry["code"], "display": display}],
+            "coding": [{"system": get_system_uri("snomed-ct"), "code": specimen_snomed, "display": display}],
             "text": display,
         },
         "status": "available",

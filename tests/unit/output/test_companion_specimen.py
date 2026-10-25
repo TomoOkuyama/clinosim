@@ -57,20 +57,17 @@ def test_lab_observation_skipped_when_not_observation():
 
 def test_pick_specimen_type_defaults_to_blood():
     r = {"code": {"text": "White blood cell count", "coding": [{"display": "WBC count"}]}}
-    entry = _pick_specimen_type_for_lab(r)
-    assert entry["code"] == "119297000"
+    assert _pick_specimen_type_for_lab(r) == "119297000"
 
 
 def test_pick_specimen_type_urine_for_urinalysis():
     r = {"code": {"text": "Urinalysis", "coding": []}}
-    entry = _pick_specimen_type_for_lab(r)
-    assert entry["code"] == "122575003"
+    assert _pick_specimen_type_for_lab(r) == "122575003"
 
 
 def test_pick_specimen_type_urine_from_coding_display():
     r = {"code": {"text": "", "coding": [{"display": "Urine glucose"}]}}
-    entry = _pick_specimen_type_for_lab(r)
-    assert entry["code"] == "122575003"
+    assert _pick_specimen_type_for_lab(r) == "122575003"
 
 
 # ---------------------------------------------------------------------------
