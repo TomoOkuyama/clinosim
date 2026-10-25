@@ -2497,56 +2497,17 @@ class TemplateNarrativeGenerator:
         )
 
     def _render_ed_triage_note_text(self, ctx: NarrativeContext, spec: DocumentTypeSpec) -> NarrativeOutput:
-        """Build ED_TRIAGE_NOTE as free text from encounter.triage_data.
-
-        Reads TriageData fields (level, level_system, arrival_mode,
-        chief_complaint_summary). Gracefully falls back to a generic phrase
-        when triage_data is None.
-
-        EN locale note: arrival_mode and chief_complaint_summary from CIF are
-        used directly; level_system labels (ESI/JTAS) are system codes (no
-        translation needed). EN output uses the same field values but with
-        English grammatical framing.
+        """Build ED_TRIAGE_NOTE as free text. Delegates to the
+        standalone renderer at
+        ``clinosim/modules/document/narrative/renderers/ed_triage_note.py``
+        (full-review Phase B8 — the pilot for the per-document-type
+        renderer split of this god class, CRITICAL C1).
         """
-        facts: list[str] = []
-        lang = ctx.target_lang
-
-        triage = _o(ctx.encounter, "triage_data", None)
-
-        if triage is None:
-            raw_text = t("fallback.triage_fallback", lang)
-            return NarrativeOutput(
-                raw_text=raw_text,
-                metadata={"generator": "template", "lang": lang},
-                facts_used=facts,
-            )
-
-        facts.append("encounter.triage_data")
-
-        level = _o(triage, "level", "") or ""
-        level_system = _o(triage, "level_system", "") or ""
-        arrival_mode = _o(triage, "arrival_mode", "") or ""
-        cc_summary = _o(triage, "chief_complaint_summary", "") or ""
-        arrival_display = _label("arrival_mode", arrival_mode, lang, fallback=arrival_mode)
-
-        level_line = (
-            t("triage_note.level_line_with_data", lang, system=level_system, level=level)
-            if level_system and level
-            else t("triage_note.level_line_none", lang)
+        from clinosim.modules.document.narrative.renderers.ed_triage_note import (
+            render_ed_triage_note,
         )
-        arrival_line = (
-            t("triage_note.arrival_line", lang, mode=arrival_display)
-            if arrival_display
-            else t("triage_note.arrival_line_none", lang)
-        )
-        cc_line = t("triage_note.cc_line", lang, cc=cc_summary) if cc_summary else t("triage_note.cc_line_none", lang)
-        raw_text = "\n".join([level_line, arrival_line, cc_line])
 
-        return NarrativeOutput(
-            raw_text=raw_text,
-            metadata={"generator": "template", "lang": lang},
-            facts_used=facts,
-        )
+        return render_ed_triage_note(ctx, spec)
 
     # ─────────────────────────────────────────────────────────────────
     # ADMISSION_NURSING_ASSESSMENT section builders
