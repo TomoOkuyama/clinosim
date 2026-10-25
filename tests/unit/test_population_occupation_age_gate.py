@@ -32,8 +32,8 @@ import numpy as np
 import pytest
 
 from clinosim.modules.output.fhir_r4.lib.localization import (
-    _OCCUPATION_DISPLAY_EN,
-    _OCCUPATION_DISPLAY_JA,
+    _occupation_display_en,
+    _occupation_display_ja,
 )
 from clinosim.modules.population.engine import _sample_occupation
 
@@ -144,5 +144,5 @@ def test_new_occupation_labels_have_localizations(occupation: str, ja: str, en: 
     Clinical Cockpit UI would fall back to the raw slug (defeating the
     G7 fix by replacing "学生" with "elementary_student" on the JP
     chart)."""
-    assert _OCCUPATION_DISPLAY_JA.get(occupation) == ja
-    assert _OCCUPATION_DISPLAY_EN.get(occupation) == en
+    assert _occupation_display_ja().get(occupation) == ja
+    assert _occupation_display_en().get(occupation) == en

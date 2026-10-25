@@ -135,8 +135,6 @@ from clinosim.modules.output.fhir_r4.lib.localization import (  # noqa: F401
     _INTERPRETATION_DISPLAY_JA,
     _LOCATION_NAME_JA,
     _LOCATION_TYPE_DISPLAY_JA,
-    _OCCUPATION_DISPLAY_EN,
-    _OCCUPATION_DISPLAY_JA,
     _ORG_TYPE_DISPLAY_JA,
     _RELATIONSHIP_DISPLAY_JA,
     _ROLE_PREFIX_MAP_JA,

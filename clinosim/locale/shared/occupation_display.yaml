@@ -1,0 +1,73 @@
+# Occupation display catalog — slug → {en, ja} localization pairs for
+# patient occupation labels emitted on FHIR Patient.extension and
+# narrative sites. Parallel to `department_display.yaml`.
+#
+# The population sampler at `clinosim/modules/population/engine.py` emits
+# the slug (`"manufacturing"`); this catalog carries the display pair for
+# JA / EN narrative output.
+#
+# Issue #360 G7 (2026-07-22): developmental-stage labels for minors.
+# Pre-fix `_sample_occupation` collapsed every age ≤ 14 to "student" —
+# a 2-year-old rendered as 学生 on JP UI was clinically nonsensical.
+#
+# Migrated from the inline `_OCCUPATION_DISPLAY_JA` + `_OCCUPATION_DISPLAY_EN`
+# dicts in `clinosim/modules/output/fhir_r4/lib/localization.py` under the
+# post-#1849 review (hardcoded-audit Finding 5). Multi-locale extension
+# (`zh`, `ko`, …) is a column add here, not a Python edit.
+
+occupations:
+  manufacturing:
+    en: Manufacturing worker
+    ja: 製造業
+  construction:
+    en: Construction worker
+    ja: 建設業
+  agriculture:
+    en: Agricultural worker
+    ja: 農林水産業
+  healthcare:
+    en: Healthcare worker
+    ja: 医療・福祉
+  service:
+    en: Service/retail worker
+    ja: サービス・小売
+  office:
+    en: Office/professional worker
+    ja: 事務・専門職
+  transportation:
+    en: Transportation worker
+    ja: 運輸業
+  education:
+    en: Education worker
+    ja: 教育
+  homemaker:
+    en: Homemaker
+    ja: 主婦/主夫
+  student:
+    en: Student
+    ja: 学生
+  retired:
+    en: Retired
+    ja: 退職
+  unemployed:
+    en: Unemployed
+    ja: 無職
+  other:
+    en: Other occupation
+    ja: その他
+  # Issue #360 G7 developmental-stage labels for minors.
+  infant:
+    en: Infant
+    ja: 乳児
+  preschool:
+    en: Preschool child
+    ja: 未就学児
+  elementary_student:
+    en: Elementary school student
+    ja: 小学生
+  middle_school_student:
+    en: Middle school student
+    ja: 中学生
+  high_school_student:
+    en: High school student
+    ja: 高校生
