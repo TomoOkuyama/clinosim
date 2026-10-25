@@ -1,0 +1,85 @@
+# icd10-condition-display.yaml — short bilingual display labels for the
+# ICD-10 codes that `clinosim/modules/patient/activator.py` activates
+# as chronic / incident conditions.
+#
+# Consumed by:
+#   * `clinosim/modules/patient/activator.py::CONDITION_NAMES`
+#     (chronic activation path: diagnosis display for FHIR Condition
+#      resources)
+#   * `clinosim/simulator/outpatient.py` (chronic outpatient visit
+#     reason composition)
+#
+# Why this is a separate yaml from `codes/data/icd-10.yaml`:
+# the ICD-10 canonical yaml carries the full WHO heading (e.g.
+# "Essential (primary) hypertension", "Other chronic obstructive
+# pulmonary disease"), which is too long for simulated narratives.
+# Clinosim's chronic activator uses a short conventional label
+# ("Essential hypertension", "COPD") for narrative legibility. This
+# yaml holds the short labels authoritatively; the ICD-10 canonical
+# yaml is unchanged.
+#
+# Membership policy:
+#   * include only codes that `activator.py` activates (the chronic +
+#     incident pool authored at that layer)
+#   * `en:` is the short narrative label (NOT the ICD-10 canonical
+#     heading)
+#   * `ja:` is the MHLW / clinical convention; see note below
+#
+# Why JA was EN-only before: `CONDITION_NAMES` was authored EN-only
+# because no JA caller consumed it. Phase 3.γ chronic-narrative rollout
+# surfaced JA chronic conditions in SOAP output; this yaml closes the
+# locale gap.
+
+metadata:
+  source: >-
+    clinosim/modules/patient/activator.py (CONDITION_NAMES) prior to
+    hardcoded-review Phase A8. JA displays sourced from `codes/data/
+    icd-10.yaml` canonical with shortening to match EN conventions.
+
+codes:
+  I10: {en: Essential hypertension, ja: 本態性高血圧症}
+  E11.9: {en: Type 2 diabetes mellitus, ja: 2型糖尿病}
+  E78: {en: Dyslipidemia, ja: 脂質異常症}
+  J44: {en: COPD, ja: 慢性閉塞性肺疾患}
+  N18: {en: Chronic kidney disease, ja: 慢性腎臓病}
+  I50: {en: Heart failure, ja: 心不全}
+  I48: {en: Atrial fibrillation, ja: 心房細動}
+  I25: {en: Ischemic heart disease, ja: 虚血性心疾患}
+  M81: {en: Osteoporosis, ja: 骨粗鬆症}
+  F00: {en: Dementia, ja: 認知症}
+  G20: {en: Parkinson's disease, ja: パーキンソン病}
+  E03: {en: Hypothyroidism, ja: 甲状腺機能低下症}
+  K21: {en: GERD, ja: 胃食道逆流症}
+  J45: {en: Asthma, ja: 喘息}
+  N40: {en: Benign prostatic hyperplasia, ja: 前立腺肥大症}
+  M17: {en: Osteoarthritis, ja: 変形性膝関節症}
+  I63: {en: Cerebral infarction, ja: 脳梗塞}
+  I21: {en: Acute myocardial infarction, ja: 急性心筋梗塞}
+  K92: {en: Gastrointestinal hemorrhage, ja: 消化管出血}
+  K25: {en: Gastric ulcer, ja: 胃潰瘍}
+  K26: {en: Duodenal ulcer, ja: 十二指腸潰瘍}
+  E10: {en: Type 1 diabetes mellitus, ja: 1型糖尿病}
+  R65: {en: Sepsis/SIRS, ja: 全身性炎症反応症候群}
+  A41: {en: Sepsis, ja: 敗血症}
+  K56: {en: Intestinal obstruction, ja: 腸閉塞}
+  K85: {en: Acute pancreatitis, ja: 急性膵炎}
+  K35: {en: Acute appendicitis, ja: 急性虫垂炎}
+  I26: {en: Pulmonary embolism, ja: 肺塞栓症}
+  K81: {en: Acute cholecystitis, ja: 急性胆嚢炎}
+  K80: {en: Cholelithiasis, ja: 胆石症}
+  L03: {en: Cellulitis, ja: 蜂窩織炎}
+  N17: {en: Acute kidney injury, ja: 急性腎障害}
+  K74: {en: Cirrhosis of liver, ja: 肝硬変}
+  K70: {en: Alcoholic liver disease, ja: アルコール性肝疾患}
+  J69: {en: Aspiration pneumonia, ja: 誤嚥性肺炎}
+  J10: {en: Influenza, ja: インフルエンザ}
+  J11: {en: Influenza, ja: インフルエンザ}
+  I61: {en: Intracerebral hemorrhage, ja: 脳内出血}
+  M80: {en: Osteoporotic fracture, ja: 骨粗鬆症性骨折}
+  M48: {en: Vertebral collapse, ja: 椎体圧迫骨折}
+  I80: {en: Deep vein thrombosis, ja: 深部静脈血栓症}
+  I82: {en: Venous thromboembolism, ja: 静脈血栓塞栓症}
+  T07: {en: Multiple injuries, ja: 多発外傷}
+  S52: {en: Forearm fracture, ja: 前腕骨折}
+  S06: {en: Intracranial injury, ja: 頭蓋内損傷}
+  S22: {en: Rib fracture, ja: 肋骨骨折}
