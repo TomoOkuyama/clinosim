@@ -1,0 +1,94 @@
+---
+# imaging-impression-keywords.yaml — radiology impression classifier
+#
+# Governs the Normal/Abnormal `conclusionCode` on radiology
+# DiagnosticReport resources (see
+# `clinosim/modules/output/fhir_r4/labs/diagnostic_report.py::
+# _derive_imaging_conclusion_code`).
+#
+# Two lists:
+#
+#   * `normal` — negation phrases ("認めず", "no evidence of") plus
+#     explicit normal verdicts ("正常", "unremarkable"). Consulted
+#     FIRST so a "no acute consolidation" impression is not
+#     mis-classified by the "consolidation" substring in `abnormal`.
+#   * `abnormal` — radiologist descriptor phrases that flag a report
+#     as Abnormal. ASCII entries match case-insensitively; CJK
+#     entries match verbatim.
+#
+# Issue #846 fu motivates the explicit negation list; Issue #1324
+# motivates the CXR/chest-imaging descriptor extension.
+
+metadata:
+  source: >-
+    clinosim/modules/output/fhir_r4/labs/diagnostic_report.py
+    (_IMAGING_NORMAL_IMPRESSION_PATTERNS +
+     _IMAGING_ABNORMAL_IMPRESSION_PATTERNS)
+    prior to hardcoded-audit Finding 15.
+
+normal:
+  # Japanese negation / normal-verdict phrases
+  - 認めず
+  - 認めない
+  - 指摘し得ず
+  - 指摘できず
+  - 指摘できない
+  - 所見なし
+  - 異常なし
+  - 問題なし
+  - 正常
+  # English negation / normal-verdict phrases
+  - no acute
+  - no evidence of
+  - negative for
+  - unremarkable
+  - within normal limits
+  - normal study
+
+abnormal:
+  # Japanese abnormal markers
+  - 異常
+  - 認め
+  - 所見あり
+  - 疑い
+  - 陽性
+  - 骨折
+  - 梗塞
+  - 出血
+  - 結節
+  - 腫瘤
+  - 腫大
+  - 浸潤
+  - 肥大
+  # Issue #1324: CXR / chest-imaging CJK descriptors
+  - 過膨張  # hyperinflation (COPD emphysema)
+  - 過膨脹  # hyperinflation (alternate JIS form)
+  - 平坦化  # flattening (diaphragm — COPD)
+  - 胸骨後腔拡大  # increased retrosternal airspace (COPD)
+  - 気胸  # pneumothorax
+  - 心拡大  # cardiomegaly
+  - 胸水  # pleural effusion
+  - 肺水腫  # pulmonary edema
+  - 無気肺  # atelectasis
+  - 透過性  # increased/decreased radiolucency
+  # English abnormal markers
+  - abnormal
+  - consolidation
+  - fracture
+  - mass
+  - hemorrhage
+  - infarct
+  - opacity
+  - effusion
+  - nodule
+  # Issue #1324: English CXR / chest-imaging descriptors
+  - hyperinflation
+  - flattened diaphragm
+  - retrosternal
+  - pneumothorax
+  - cardiomegaly
+  - pleural effusion
+  - pulmonary edema
+  - atelectasis
+  - infiltrate
+  - lesion

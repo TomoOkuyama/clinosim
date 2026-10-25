@@ -22,6 +22,8 @@ Panel YAML + canonical loader live in ``clinosim.modules.order.panel_grouping``
 from __future__ import annotations
 
 from collections import defaultdict
+from functools import cache
+from pathlib import Path
 from typing import Any, NamedTuple
 
 from clinosim.codes import get_system_uri
@@ -354,23 +356,23 @@ _ABNORMAL_LAB_FLAGS: frozenset[str] = frozenset({"H", "L", "HH", "LL", "A", "AA"
 # impression such as "急性期異常所見を認めず" because the prior
 # substring search matched "異常" and "認め" without noticing the
 # negation. Case-insensitive on the ASCII patterns.
-_IMAGING_NORMAL_IMPRESSION_PATTERNS: tuple[str, ...] = (
-    "認めず",
-    "認めない",
-    "指摘し得ず",
-    "指摘できず",
-    "指摘できない",
-    "所見なし",
-    "異常なし",
-    "問題なし",
-    "正常",
-    "no acute",
-    "no evidence of",
-    "negative for",
-    "unremarkable",
-    "within normal limits",
-    "normal study",
-)
+@cache
+def _imaging_impression_keywords() -> dict[str, tuple[str, ...]]:
+    """Load `clinosim/codes/data/imaging-impression-keywords.yaml` as
+    `{"normal": (...), "abnormal": (...)}`."""
+    import yaml
+
+    path = Path(__file__).resolve().parents[4] / "codes" / "data" / "imaging-impression-keywords.yaml"
+    with path.open(encoding="utf-8") as fh:
+        raw = yaml.safe_load(fh) or {}
+    return {
+        "normal": tuple(str(p) for p in (raw.get("normal") or []) if isinstance(p, str)),
+        "abnormal": tuple(str(p) for p in (raw.get("abnormal") or []) if isinstance(p, str)),
+    }
+
+
+def _imaging_normal_impression_patterns() -> tuple[str, ...]:
+    return _imaging_impression_keywords()["normal"]
 
 
 # Radiology impression phrases that flag the report as Abnormal. Consulted
@@ -386,52 +388,8 @@ _IMAGING_NORMAL_IMPRESSION_PATTERNS: tuple[str, ...] = (
 # misclassified as Normal because none of the listed substrings matched.
 # The extended list captures the descriptor-only impressions that
 # radiologists use for chronic parenchymal disease.
-_IMAGING_ABNORMAL_IMPRESSION_PATTERNS: tuple[str, ...] = (
-    "異常",
-    "認め",
-    "所見あり",
-    "疑い",
-    "陽性",
-    "骨折",
-    "梗塞",
-    "出血",
-    "結節",
-    "腫瘤",
-    "腫大",
-    "浸潤",
-    "肥大",
-    # === Issue #1324: CXR / chest-imaging descriptor keywords ===
-    "過膨張",  # hyperinflation (COPD emphysema)
-    "過膨脹",  # hyperinflation (alternate JIS form)
-    "平坦化",  # flattening (diaphragm — COPD)
-    "胸骨後腔拡大",  # increased retrosternal airspace (COPD)
-    "気胸",  # pneumothorax
-    "心拡大",  # cardiomegaly
-    "胸水",  # pleural effusion
-    "肺水腫",  # pulmonary edema
-    "無気肺",  # atelectasis
-    "透過性",  # increased/decreased radiolucency
-    "abnormal",
-    "consolidation",
-    "fracture",
-    "mass",
-    "hemorrhage",
-    "infarct",
-    "opacity",
-    "effusion",
-    "nodule",
-    # === Issue #1324: English CXR / chest-imaging descriptors ===
-    "hyperinflation",
-    "flattened diaphragm",
-    "retrosternal",
-    "pneumothorax",
-    "cardiomegaly",
-    "pleural effusion",
-    "pulmonary edema",
-    "atelectasis",
-    "infiltrate",
-    "lesion",
-)
+def _imaging_abnormal_impression_patterns() -> tuple[str, ...]:
+    return _imaging_impression_keywords()["abnormal"]
 
 
 def _derive_imaging_conclusion_code(impression_text: str, lang: str) -> dict:
@@ -449,9 +407,9 @@ def _derive_imaging_conclusion_code(impression_text: str, lang: str) -> dict:
         code = "17621005"
     else:
         low = text.lower()
-        if any(p in text if not p.isascii() else p in low for p in _IMAGING_NORMAL_IMPRESSION_PATTERNS):
+        if any(p in text if not p.isascii() else p in low for p in _imaging_normal_impression_patterns()):
             code = "17621005"
-        elif any(p in text if not p.isascii() else p in low for p in _IMAGING_ABNORMAL_IMPRESSION_PATTERNS):
+        elif any(p in text if not p.isascii() else p in low for p in _imaging_abnormal_impression_patterns()):
             code = "263654008"
         else:
             code = "17621005"
