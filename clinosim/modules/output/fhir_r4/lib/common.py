@@ -78,7 +78,7 @@ from typing import Any
 
 from clinosim.codes import get_system_uri
 from clinosim.codes import lookup as code_lookup
-from clinosim.locale.loader import load_code_mapping, load_reference_ranges
+from clinosim.locale.loader import load_code_mapping, load_prefecture_jis_x_0401_map, load_reference_ranges
 from clinosim.modules._shared import is_jp, resolve_lang, strip_protocol_prefix
 from clinosim.modules.output.fhir_r4.lib.localization import (
     _CATEGORY_DISPLAY_JA,
@@ -90,7 +90,6 @@ from clinosim.modules.output.fhir_r4.lib.localization import (
 )
 from clinosim.modules.output.fhir_r4.lib.reference_data import (
     _JP_CONDITION_SEVERITY_CS,
-    _PREFECTURE_CODE,
     _ROUTE_ALIASES,
     _ROUTE_SNOMED,
     _SEVERITY_JP,
@@ -692,7 +691,7 @@ def build_address(addr: dict, country: str) -> dict[str, Any] | None:
 
     # State: use code for JP (JIS X 0401), abbreviation for US
     if is_jp(country_code):
-        code = _PREFECTURE_CODE.get(state_name, "")
+        code = load_prefecture_jis_x_0401_map().get(state_name, "")
         if code:
             fhir_addr["state"] = code
     elif state_name:

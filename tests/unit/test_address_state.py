@@ -4,7 +4,8 @@ Guards the country-specific state encoding in build_address:
   - US: USPS two-letter abbreviation (US Core convention) — NOT a FIPS numeric
     code. A FIPS lookup table (_US_STATE_CODE) was removed as dead data; this
     test pins the abbreviation behaviour so the FIPS path is not reintroduced.
-  - JP: JIS X 0401 prefecture numeric code (via _PREFECTURE_CODE).
+  - JP: JIS X 0401 prefecture numeric code (via `load_prefecture_jis_x_0401_map()`
+    reading `clinosim/codes/data/jis-x-0401-prefectures.yaml`).
 """
 
 import pytest

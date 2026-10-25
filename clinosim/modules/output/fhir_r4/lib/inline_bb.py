@@ -153,7 +153,6 @@ from clinosim.modules.output.fhir_r4.lib.localization import (  # noqa: F401
     _procedure_display,
 )
 from clinosim.modules.output.fhir_r4.lib.reference_data import (  # noqa: F401
-    _PREFECTURE_CODE,
     _ROLE_PREFIX_MAP,
     _ROUTE_SNOMED,
     _SEVERITY_SNOMED,
