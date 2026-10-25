@@ -1,0 +1,64 @@
+# task_loincs.yaml — LLMTaskType → LOINC document type code.
+#
+# Consumed by `clinosim/modules/llm_service/engine.py` (`DOCUMENT_LOINC`).
+# The emit site resolves each narrative task to its LOINC document
+# code, which later lands on `Composition.type.coding[]` or
+# `DocumentReference.type.coding[]` on the generated FHIR resource.
+#
+# Why this is NOT just document_type_specs.yaml:
+#   * `document_type_specs.yaml` is scoped to document-pipeline doc
+#     types (18 of them); those run through the two-pass narrative
+#     generator and emit a Composition / DocumentReference.
+#   * `DEATH_SUMMARY` is a template-only LLM task (fires inside
+#     `_death_summary_template`) and does not go through the document
+#     pipeline, but it still carries a LOINC for inclusion when its
+#     text is rendered.
+#   * The 18 overlapping entries MUST agree with
+#     `document_type_specs.yaml::specs[name].loinc_code`; the sync
+#     test `tests/unit/test_llm_task_enum_sync.py::
+#     test_document_loinc_matches_document_type_specs_yaml` enforces
+#     that agreement at test time.
+#
+# LOINC codes sourced from Regenstrief LOINC Reference
+# (https://loinc.org/); α-min-2 additions NLM-verified 2026-07.
+#
+# Membership policy:
+#   * one row per LLMTaskType that has a LOINC document code
+#   * TASK types that are judgment (DIAGNOSTIC_REASONING, etc.) or
+#     non-document narrative (CHIEF_COMPLAINT, ED_TRIAGE_NOTE's
+#     siblings) MUST NOT appear here — the sync test enforces that
+#     every DOCUMENT_LOINC key is a NARRATIVE task
+
+metadata:
+  source: >-
+    clinosim/modules/llm_service/engine.py (DOCUMENT_LOINC) prior to
+    hardcoded-review Phase A10. Overlaps with
+    document_type_specs.yaml for the 18 document-pipeline doc types;
+    DEATH_SUMMARY is template-only and lives only here.
+
+loincs:
+  admission_hp: '34117-2'                 # History and physical note
+  progress_note: '11506-3'                # Progress note
+  discharge_summary: '18842-5'            # Discharge summary note
+  death_summary: '69730-0'                # Death note (template-only)
+  operative_note: '11504-8'               # Surgical operation note
+  procedure_note: '28570-0'               # Procedure note
+  admission_nursing_assessment: '78390-2' # Nursing admission evaluation note
+  nursing_shift_note: '34746-8'           # Nurse Note
+  nursing_discharge_summary: '34745-0'    # Nurse Discharge summary
+  outpatient_soap: '34131-3'              # Outpatient Note
+  ed_note: '34878-9'                      # Emergency medicine Note
+  ed_triage_note: '54094-8'               # Emergency department Triage note
+  admission_care_plan: '18776-5'          # Plan of care note
+  nutrition_care_plan: '80791-7'          # Nutrition and dietetics Plan of care note
+  rehabilitation_plan: '34823-5'          # Physical medicine and rehab Note
+  referral_note: '57133-1'                # Referral note (JP-CLINS 診療情報提供書)
+  health_checkup_report: '53576-5'        # Health checkup report (JP-eCheckup 検診・健診報告書)
+  death_certificate: '64297-5'            # Death certificate (医師法第 20 条 mandated 死亡診断書)
+  # LOINC 18842-5 is the international "Discharge summary" code; JP
+  # hospitals use the same code with a specialized template (title =
+  # 死亡退院サマリー) for the deceased-inpatient path. Same code as
+  # discharge_summary — the Composition dispatcher branches on
+  # `doc.task_type` to pick the death-variant builder that overrides
+  # `type.text` / `title`.
+  death_discharge_summary: '18842-5'      # Discharge summary (死亡退院サマリー)
