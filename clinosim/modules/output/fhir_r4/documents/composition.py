@@ -46,6 +46,8 @@ from __future__ import annotations
 
 import logging
 import re
+from functools import cache
+from pathlib import Path
 from typing import Any
 
 from clinosim.codes import get_system_uri
@@ -983,28 +985,47 @@ _JPFHIR_DOC_SECTION_SYSTEM = "http://jpfhir.jp/fhir/clins/CodeSystem/document-se
 # on a specific ClinicalDocument (older narrative pass version), the builder
 # emits the slice with an empty div — the slice is present with min=1 which
 # is what the spec requires; per-slice `text` content is optional.
-_JP_DS_SECTION_CODE: dict[str, str] = {
-    # Admission side (5 slices — spec `patternString` for title)
-    "admission_reason": "312",  # reasonForAdmissionSection / 入院理由
-    "admission_details": "322",  # detailsOnAdmissionSection / 入院時詳細
-    "admission_diagnoses": "342",  # diagnosesOnAdmissionSection / 入院時診断
-    "chief_complaint": "352",  # chiefComplaintsSection / 主訴
-    "present_illness": "360",  # presentIllnessSection / 現病歴
-    # Discharge side (5 slices — additions)
-    # #286: sections dict の key を `medication_on_discharge` /
-    # `instruction_on_discharge` から narrative generator の実キー
-    # `discharge_medications` / `discharge_instructions` に修正。前者は
-    # slice 名(medicationOnDischarge)を key にしたためだが narrative
-    # pass 側は `_build_discharge_medications` /
-    # `_build_discharge_instructions` を α-min-1 から流用しており key 名
-    # が `discharge_medications` / `discharge_instructions`。key drift で
-    # sections.get(...) が常に空になり FHIR R4 `txt-2` 違反 260+ 件。
-    "hospital_course": "333",  # hospitalCourseSection / 入院中経過
-    "discharge_details": "324",  # detailsOnDischargeSection / 退院時詳細
-    "discharge_diagnoses": "344",  # diagnosesOnDischargeSection / 退院時診断
-    "discharge_medications": "444",  # medicationOnDischargeSection / 退院時投薬指示
-    "discharge_instructions": "424",  # instructionOnDischargeSection / 退院時方針指示
-}
+# JP-CLINS eDS section registry moved to
+# `clinosim/codes/data/jp-clins-eds-section-codes.yaml` under the
+# post-#1880 review (hardcoded-audit Finding 10). The yaml carries code,
+# title, multi_entry_types, and entry_ref per section in one row.
+
+
+@cache
+def _jp_ds_sections() -> dict[str, dict[str, Any]]:
+    """Load the JP-CLINS eDS section slice registry."""
+    import yaml
+
+    path = Path(__file__).resolve().parents[4] / "codes" / "data" / "jp-clins-eds-section-codes.yaml"
+    with path.open(encoding="utf-8") as fh:
+        raw = yaml.safe_load(fh) or {}
+    out: dict[str, dict[str, Any]] = {}
+    for k, v in (raw.get("sections", {}) or {}).items():
+        if isinstance(v, dict):
+            out[str(k)] = v
+    return out
+
+
+def _jp_ds_section_code() -> dict[str, str]:
+    return {k: str(row["code"]) for k, row in _jp_ds_sections().items() if "code" in row}
+
+
+def _jp_ds_multi_entry_types() -> dict[str, tuple[str, ...]]:
+    out: dict[str, tuple[str, ...]] = {}
+    for k, row in _jp_ds_sections().items():
+        types = row.get("multi_entry_types") or []
+        if types:
+            out[k] = tuple(str(rt) for rt in types)
+    return out
+
+
+def _jp_ds_section_entry_references() -> dict[str, tuple[str, str]]:
+    out: dict[str, tuple[str, str]] = {}
+    for k, row in _jp_ds_sections().items():
+        ref = row.get("entry_ref")
+        if isinstance(ref, list) and len(ref) == 2:
+            out[k] = (str(ref[0]), str(ref[1]))
+    return out
 
 
 # Follow-up (#267): section slices with a required `entry`
@@ -1035,32 +1056,11 @@ _JP_DS_SECTION_CODE: dict[str, str] = {
 #    JP-CLINS eDS constrains `hospitalCourseSection.entry` to
 #    JP_DocumentReference (a single free-text note); adding
 #    Procedure/Observation there would violate the profile slicing.
-_JP_DS_MULTI_ENTRY_TYPES: dict[str, tuple[str, ...]] = {
-    "admission_diagnoses": ("Condition",),
-    "discharge_diagnoses": ("Condition",),
-    "discharge_medications": ("MedicationRequest",),
-}
-
-
-_JP_DS_SECTION_ENTRY_REFERENCES: dict[str, tuple[str, str]] = {
-    # detailsOnAdmissionSection.entry min=1 max=1 → JP_Encounter
-    "admission_details": ("Encounter", "Encounter/{encounter_id}"),
-    # detailsOnDischargeSection.entry min=1 max=1 → JP_Encounter
-    "discharge_details": ("Encounter", "Encounter/{encounter_id}"),
-    # diagnosesOnDischargeSection.entry min=1 → JP_Condition (primary dx).
-    # `{primary_cond_id}` is resolved by `_bb_compositions` via
-    # `primary_condition_ref` so chronic-primary encounters point at the
-    # patient-scoped chronic Condition instead of a suppressed
-    # `cond-{enc}-primary` (session 88j Condition dedup).
-    "discharge_diagnoses": ("Condition", "Condition/{primary_cond_id}"),
-    # #278:hospitalCourseSection.entry min=1 → JP_DocumentReference
-    # 同一 encounter の progress note(LOINC 11506-3)or hospital course
-    # note(LOINC 8648-8)などの free-text DocumentReference id を precompute
-    # で解決。id は `_bb_compositions` が構築する enc_to_free_text map から
-    # `{free_text_doc_id}` として供給。map hit しない場合は never-fabricate
-    # rule に従い entry を emit しない。
-    "hospital_course": ("DocumentReference", "DocumentReference/{free_text_doc_id}"),
-}
+# `_JP_DS_MULTI_ENTRY_TYPES` + `_JP_DS_SECTION_ENTRY_REFERENCES` moved to
+# the same yaml under `multi_entry_types:` / `entry_ref:` keys per
+# section (post-#1880 review, Finding 10 — see `jp-clins-eds-section-codes.yaml`).
+# Templates for `entry_ref` receive `encounter_id`, `primary_cond_id`,
+# `free_text_doc_id` as `str.format` kwargs.
 
 
 def _build_jp_clins_discharge_summary_composition(
@@ -1197,7 +1197,7 @@ def _build_jp_clins_discharge_summary_composition(
     }
 
     child_sections: list[dict[str, Any]] = []
-    for key, code in _JP_DS_SECTION_CODE.items():
+    for key, code in _jp_ds_section_code().items():
         disp_c = code_lookup("jpfhir-doc-section", code, lang) or key
         title_c = _section_title_from_section_display(disp_c)
         text_val = sections.get(key, "") or ""
@@ -1225,7 +1225,7 @@ def _build_jp_clins_discharge_summary_composition(
         # id is derivable (encounter_id / document_id present); a missing
         # source leaves the entry off so we never fabricate a broken
         # reference.
-        entry_spec = _JP_DS_SECTION_ENTRY_REFERENCES.get(key)
+        entry_spec = _jp_ds_section_entry_references().get(key)
         if entry_spec is not None:
             _, ref_template = entry_spec
             try:
@@ -1252,7 +1252,7 @@ def _build_jp_clins_discharge_summary_composition(
         # when the eDS has no separately-tracked admission Condition
         # resource — clinosim's `clinical_diagnosis` typically carries
         # a single primary shared by admission and discharge.
-        _multi_types = _JP_DS_MULTI_ENTRY_TYPES.get(key, ())
+        _multi_types = _jp_ds_multi_entry_types().get(key, ())
         if _multi_types and encounter_index is not None and _enc_id:
             _existing_refs = {e.get("reference") for e in section_obj.get("entry", [])}
             # The index is keyed on OPAQUE encounter ids (built from
