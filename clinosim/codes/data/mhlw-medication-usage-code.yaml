@@ -1,0 +1,95 @@
+# mhlw-medication-usage-code.yaml — MHLW MedicationUsage_ePrescription
+# CS code dispatch tables.
+#
+# Authoritative source: MHLW medication-usage CS
+#   CS URI: jpfhir-terminology#2.2606.0 (MedicationUsage_ePrescription)
+#   Reference: https://jpfhir.jp/fhir/eprescription/
+#
+# Consumed by `clinosim/modules/output/fhir_r4/post_process/populate.py::
+# _resolve_mhlw_usage_code`. Three independent tables with distinct
+# dispatch semantics:
+#
+#   * `default_meal_context_by_freq`: fallback meal-context by daily
+#     frequency when the specific drug has no entry in
+#     `clinosim-drug-dosing-conventions.yaml` (hardcoded-audit Finding 2).
+#     Values are the JA outpatient dosing convention and are used only
+#     to produce a spec-legit (freq, meal_context) tuple for the
+#     table below.
+#
+#   * `freq_context_to_code`: the primary dispatch — the (freq,
+#     meal_context) pair resolves to a MedicationUsage_ePrescription CS
+#     code + its JA display. Codes verified against JP-CLINS 1.13.0
+#     example fixtures.
+#
+#   * `hourly_cadence_by_freq`: a DIFFERENT family of codes used when
+#     `timing.repeat` carries a strict N-times-per-day cadence with
+#     equal spacing (Q3H / Q6H / Q8H / Q12H) and NO meal marker. These
+#     codes do not go through the meal-context table.
+#
+# Rationale for moving these out of Python (hardcoded-review Phase A5):
+# the three tables are authoritative CS code references, not
+# drug-specific dosing conventions (the drug-specific side already
+# lives in `clinosim-drug-dosing-conventions.yaml`). Co-locating them
+# in `codes/data/` beside the other MHLW CS yamls makes the authority
+# layout consistent.
+
+metadata:
+  source: >-
+    clinosim/modules/output/fhir_r4/post_process/populate.py
+    (_DEFAULT_MEAL_CONTEXT_BY_FREQ, _FREQ_CONTEXT_TO_MHLW_CODE,
+     _HOURLY_CADENCE_MHLW_CODE) prior to hardcoded-review Phase A5.
+  cs_uri: jpfhir-terminology#2.2606.0
+  version: '2.2606.0'
+
+# Fallback meal context per daily frequency (QD / BID / TID / QID).
+default_meal_context_by_freq:
+  1: 朝食後        # QD
+  2: 朝夕食後      # BID
+  3: 朝昼夕食後    # TID
+  4: 朝昼夕食後と就寝前   # QID
+
+# (frequency, meal-context) → (code, display) dispatch.
+# Keys are serialized as `<freq>|<meal_context>` so yaml stays flat.
+freq_context_to_code:
+  '1|朝食後':
+    code: '1011000400000000'
+    display: １日１回朝食後　服用
+  '1|夕食後':
+    code: '1011040000000000'
+    display: １日１回夕食後　服用
+  '1|就寝前':
+    code: '1011100000000000'
+    display: １日１回就寝前　服用
+  '1|朝食前':
+    code: '1011000100000000'
+    display: １日１回朝食前　服用
+  '1|起床時':
+    code: '1011000090000000'
+    display: １日１回起床時　服用
+  '2|朝夕食後':
+    code: '1012040400000000'
+    display: １日２回朝夕食後　服用
+  '2|朝食後と就寝前':
+    code: '1012100400000000'
+    display: １日２回朝食後と就寝前　服用
+  '3|朝昼夕食後':
+    code: '1013044400000000'
+    display: １日３回朝昼夕食後　服用
+  '4|朝昼夕食後と就寝前':
+    code: '1014144400000000'
+    display: １日４回朝昼夕食後と就寝前　服用
+
+# Hourly-cadence (equal-spacing, no meal marker) dispatch by frequency.
+hourly_cadence_by_freq:
+  2:
+    code: '1022000000000000'
+    display: １日２回　１２時間毎　服用    # Q12H
+  3:
+    code: '1023000000000000'
+    display: １日３回　８時間毎　服用      # Q8H
+  4:
+    code: '1024000000000000'
+    display: １日４回　６時間毎　服用      # Q6H
+  8:
+    code: '1028000000000000'
+    display: １日８回　３時間毎　服用      # Q3H
