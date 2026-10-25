@@ -51,7 +51,7 @@ class DrugIdentity:
     tags (optional, free-form). ``aliases`` carries alternate English
     name forms (synonyms, trade-name variants, salt-form variants) that
     all resolve to this drug_id — the loader unions them into the shared
-    `_load_drug_names_ja` return value so free-text display translation
+    `_load_narrative_display_dict` return value so free-text display translation
     picks them up (META #1849 Phase 5 Step 2.g).
     """
 

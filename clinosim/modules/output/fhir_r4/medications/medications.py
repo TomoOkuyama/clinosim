@@ -608,7 +608,7 @@ def _resolve_medication_concept(
     # ``code_value`` up front and would otherwise skip the extension,
     # leaving ``.text`` as the single-token "Magnesium".
     if tokens:
-        from clinosim.locale.loader import load_drug_names_ja as _load_ja_dict
+        from clinosim.locale.loader import load_narrative_display_dict as _load_ja_dict
 
         _ja_dict = _load_ja_dict()
         _first_token = tokens[0]
@@ -1352,7 +1352,7 @@ def _build_medication_admin(
     # ``base_name`` token are considered so dose / route / freq tails do not
     # leak into ``.text`` (Issue #775 invariant).
     if tokens:
-        from clinosim.locale.loader import load_drug_names_ja as _load_ja_dict
+        from clinosim.locale.loader import load_narrative_display_dict as _load_ja_dict
 
         _ja_dict = _load_ja_dict()
         _first_token = tokens[0]
