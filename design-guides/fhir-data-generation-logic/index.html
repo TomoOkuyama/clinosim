@@ -3823,7 +3823,7 @@ in <code>clinosim/modules/_shared.py</code> — shared-logic unification
   <code>if lang == "ja":</code> gate needed. Underlying <code>_localize_drug_name</code>
   (country-parameter form) remains for callers on the country
   seam; both are backed by the canonical cached loaders
-  <code>clinosim/locale/loader.py:load_drug_names_ja()</code> /
+  <code>clinosim/locale/loader.py:load_narrative_display_dict()</code> /
   <code>load_med_terms_ja()</code> — no raw-YAML reads inside the builder
   (E.3).</li>
 <li>Department display = <code>_dept_display()</code> (backed by
@@ -3872,11 +3872,11 @@ consistency at output).</p>
 (<code>from clinosim.modules.order.panel_grouping import load_panel_definitions</code>).</p>
 <p><strong>Precedent (shared-logic unification 2026-07-02)</strong>:
 <code>_fhir_localization.py</code> used to load locale's shared YAML
-(<code>med_terms_ja.yaml</code> / <code>drug_names_ja.yaml</code> /
+(<code>med_terms_ja.yaml</code> / the retired <code>drug_names_ja.yaml</code> (deleted #1876; replaced by <code>load_narrative_display_dict</code> catalog UNION) /
 <code>department_display.yaml</code>) with inline <code>yaml.safe_load</code> from inside
 the builder — this has been moved to the canonical cached loaders
 in <code>clinosim/locale/loader.py</code> (<code>load_med_terms_ja()</code> /
-<code>load_drug_names_ja()</code> / <code>load_department_display()</code>). Builders
+<code>load_narrative_display_dict()</code> / <code>load_department_display()</code>). Builders
 that need locale data now import these — do not write new inline
 YAML reads in a builder. Cached loader return values are shared
 instances (mutation forbidden).</p>
@@ -4072,7 +4072,7 @@ classic silent-no-op (PR-90 class): no audit gate → downstream NLP
 </tr>
 <tr>
 <td><strong>Common-logic unification (2026-07-02)</strong></td>
-<td><strong>Established <code>is_jp</code> / <code>resolve_lang</code> (<code>modules/_shared.py</code>) as the sole canonical idiom for JP-gating / display-language selection (replaced 5 divergent idioms — E.10) + <code>system_key_for(kind, country)</code> (<code>clinosim.codes</code>) = the single source of truth for country → code-system selection (E.11) + migrated <code>_fhir_localization.py</code>'s 3 inline YAML loaders to the canonical cached loaders in <code>clinosim/locale/loader.py</code> (<code>load_med_terms_ja</code> / <code>load_drug_names_ja</code> / <code>load_department_display</code>; E.3 precedent) + added <code>hl7-endpoint-connection-type</code> / <code>hl7-endpoint-payload-type</code> / <code>hl7-subscriber-relationship</code> to <code>_BUILTIN_URIS</code> + moved aggregate loaders to their owner module (<code>load_all_disease_protocols</code> → <code>modules/disease/protocol.py</code>) + <code>@lru_cache</code>d the protocol / config loaders (shared instances = mutation forbidden)</strong></td>
+<td><strong>Established <code>is_jp</code> / <code>resolve_lang</code> (<code>modules/_shared.py</code>) as the sole canonical idiom for JP-gating / display-language selection (replaced 5 divergent idioms — E.10) + <code>system_key_for(kind, country)</code> (<code>clinosim.codes</code>) = the single source of truth for country → code-system selection (E.11) + migrated <code>_fhir_localization.py</code>'s 3 inline YAML loaders to the canonical cached loaders in <code>clinosim/locale/loader.py</code> (<code>load_med_terms_ja</code> / <code>load_narrative_display_dict</code> / <code>load_department_display</code>; E.3 precedent) + added <code>hl7-endpoint-connection-type</code> / <code>hl7-endpoint-payload-type</code> / <code>hl7-subscriber-relationship</code> to <code>_BUILTIN_URIS</code> + moved aggregate loaders to their owner module (<code>load_all_disease_protocols</code> → <code>modules/disease/protocol.py</code>) + <code>@lru_cache</code>d the protocol / config loaders (shared instances = mutation forbidden)</strong></td>
 </tr>
 </tbody>
 </table>

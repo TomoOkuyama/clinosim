@@ -3905,7 +3905,7 @@ uses <code>@lru_cache</code> as the standard. Touch targets were
 <code>clinosim/simulator/helpers.py:_load_all_disease_protocols</code> /
 <code>clinosim/modules/output/fhir_r4/labs/diagnostic_report.py:load_panel_groups</code> /
 <code>clinosim/modules/output/fhir_r4/lib/common.py</code> (localization helpers)'s <code>_load_med_terms_ja</code>
-+ <code>_load_drug_names_ja</code> + <code>_load_department_display</code>. Introducing a
++ <code>_load_narrative_display_dict</code> + <code>_load_department_display</code>. Introducing a
 global mutable <code>_cache</code> variable in a new module is forbidden (it
 conflicts with the standard test pattern that uses
 <code>load_X.cache_clear()</code> in <code>test_*</code> fixtures). The same PR also
@@ -4620,7 +4620,7 @@ loaders):</p>
 <ul>
 <li><code>load_med_terms_ja()</code> — JP medical-terms table (categories +
   terms; preserves YAML order = order-sensitive substitution).</li>
-<li><code>load_drug_names_ja()</code> — EN → JA drug-name mapping (keys are
+<li><code>load_narrative_display_dict()</code> — EN → JA drug-name mapping (keys are
   lowercase-normalised).</li>
 <li><code>load_department_display()</code> — department display table
   (<code>{key: {en, ja}}</code>).</li>
