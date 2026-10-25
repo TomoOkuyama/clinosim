@@ -516,19 +516,28 @@ def load_iv_infusion_defaults() -> dict[str, Any]:
     return _load_yaml(_LOCALE_DIR / "shared" / "iv_infusion_defaults.yaml", fallback={})
 
 
-_FALLBACK_ENCOUNTER_DISPOSITION: dict[str, Any] = {
-    "admit_source": {
-        "system_key": "hl7-admit-source",
-        "jp_clins_value_set": "http://jpfhir.jp/fhir/core/ValueSet/JP_AdmitSource_VS",
-        "fallback_code": "other",
-    },
-    "discharge_disposition": {
-        "system_key": "hl7-discharge-disposition",
-        "jp_clins_value_set": "http://jpfhir.jp/fhir/core/ValueSet/JP_DischargeDisposition_VS",
-        "fallback_code": "home",
-        "deceased_code": "exp",
-    },
-}
+# Cross-locale fallback defaults — authoritative yaml at
+# `clinosim/locale/shared/fallback_defaults.yaml` (hardcoded-review
+# Phase A14). The yaml carries all four fallback blocks
+# (names / formatting / demographics / encounter_disposition); the
+# Python aliases below preserve the historical module-level symbols so
+# every call site stays unchanged. Loaded with a direct yaml.safe_load
+# because `_load_yaml` is defined later in the file and these aliases
+# evaluate at module-import time.
+_FALLBACK_DEFAULTS_PATH = _LOCALE_DIR / "shared" / "fallback_defaults.yaml"
+
+
+def _read_fallback_defaults() -> dict[str, Any]:
+    if not _FALLBACK_DEFAULTS_PATH.exists():
+        return {}
+    with open(_FALLBACK_DEFAULTS_PATH, encoding="utf-8") as f:
+        raw = yaml.safe_load(f) or {}
+    return raw if isinstance(raw, dict) else {}
+
+
+_FALLBACK_DEFAULTS: dict[str, Any] = _read_fallback_defaults()
+
+_FALLBACK_ENCOUNTER_DISPOSITION: dict[str, Any] = _FALLBACK_DEFAULTS.get("encounter_disposition", {}) or {}
 
 
 @lru_cache(maxsize=1)
@@ -1104,33 +1113,10 @@ def _load_yaml(path: Path, fallback: Any = None) -> Any:
     return fallback if fallback is not None else {}
 
 
-_FALLBACK_NAMES: dict[str, Any] = {
-    "surnames": [{"name": "Test", "weight": 1}],
-    "given_names_male": [{"name": "John", "weight": 1}],
-    "given_names_female": [{"name": "Jane", "weight": 1}],
-}
-
-_FALLBACK_FORMATTING: dict[str, Any] = {
-    "date_format": "yyyy-MM-dd",
-    "time_format": "24h",
-    "temperature_unit": "C",
-    "weight_unit": "kg",
-    "height_unit": "cm",
-}
-
-_FALLBACK_DEMOGRAPHICS: dict[str, Any] = {
-    "average_household_size": 2.5,
-    "age_distribution": {
-        "0-14": 0.18,
-        "15-24": 0.13,
-        "25-34": 0.14,
-        "35-44": 0.13,
-        "45-54": 0.13,
-        "55-64": 0.13,
-        "65-74": 0.09,
-        "75-84": 0.05,
-        "85-99": 0.02,
-    },
-    "blood_type": {"O": 0.44, "A": 0.42, "B": 0.10, "AB": 0.04},
-    "chronic_prevalence": {},
-}
+# Fallback payloads for per-country yaml absence — same semantics as
+# before (returned when `locale/<cc>/<name>.yaml` is missing). Authority
+# yaml at `clinosim/locale/shared/fallback_defaults.yaml`
+# (hardcoded-review Phase A14).
+_FALLBACK_NAMES: dict[str, Any] = _FALLBACK_DEFAULTS.get("names", {}) or {}
+_FALLBACK_FORMATTING: dict[str, Any] = _FALLBACK_DEFAULTS.get("formatting", {}) or {}
+_FALLBACK_DEMOGRAPHICS: dict[str, Any] = _FALLBACK_DEFAULTS.get("demographics", {}) or {}
