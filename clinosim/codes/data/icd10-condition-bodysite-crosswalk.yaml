@@ -1,0 +1,48 @@
+# ICD-10 → SNOMED body-site crosswalk for FHIR Condition.bodySite emit.
+#
+# Keyed by the 3-character ICD-10 prefix (upper-cased, no dot). The
+# value is the SNOMED CT concept id that identifies the anatomical
+# body site; displays resolve via `code_lookup("snomed-ct", code, lang)`
+# against `snomed-ct.yaml`.
+#
+# Scope: only clinically meaningful site-attributable ICD-10 prefixes
+# are included (~15 prefixes). Non-site conditions (HTN I10 / DM E11 /
+# etc.) are intentionally absent — the resolver returns None for them
+# and `Condition.bodySite` is omitted (no fabrication).
+#
+# Migrated from the inline `_CONDITION_BODY_SITE` dict in
+# `clinosim/modules/output/fhir_r4/conditions/conditions.py` under the
+# post-#1849 review (hardcoded-audit Finding 9). Previously each row
+# duplicated the SNOMED display (en + ja); now the display is pulled
+# from `snomed-ct.yaml`, so adding a 16th prefix is a 2-line yaml edit.
+
+metadata:
+  name: ICD-10 Condition Body-Site Crosswalk
+  description: >
+    3-char ICD-10 prefix → SNOMED CT body-site code. Displays resolve
+    via `code_lookup("snomed-ct", code, lang)`.
+  source: clinosim-authored (clinical review 2026-07; no external authority binding)
+
+crosswalk:
+  # Respiratory
+  J18: "39607008"   # Lung structure / 肺
+  J13: "39607008"
+  J14: "39607008"
+  J15: "39607008"
+  J44: "39607008"
+  J45: "955009"     # Bronchial structure / 気管支
+  # Cardiovascular
+  I21: "80891009"   # Heart structure / 心臓
+  I25: "80891009"
+  I50: "80891009"
+  # Cerebrovascular
+  I63: "12738006"   # Brain structure / 脳
+  I61: "12738006"
+  I60: "12738006"
+  # Urinary
+  N10: "64033007"   # Kidney structure / 腎臓
+  N17: "64033007"
+  N39: "89837001"   # Urinary bladder structure / 膀胱
+  N30: "89837001"
+  # Skin / soft tissue
+  L03: "39937001"   # Skin structure / 皮膚
