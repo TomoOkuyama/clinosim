@@ -633,32 +633,32 @@ def load_narrative_display_dict() -> dict[str, str]:
             if alias_lower and ja and alias_lower not in merged:
                 merged[alias_lower] = ja
     # META #1849 Phase 5 Step 2.e: imaging exam name display catalog.
-    _IMAGING_EXAM_CATALOG = _LOCALE_DIR.parent / "codes" / "data" / "clinosim-imaging-exam-name.yaml"
-    exam_raw = _load_yaml(_IMAGING_EXAM_CATALOG, fallback={})
+    _imaging_exam_catalog = _LOCALE_DIR.parent / "codes" / "data" / "clinosim-imaging-exam-name.yaml"
+    exam_raw = _load_yaml(_imaging_exam_catalog, fallback={})
     for en, ja in (exam_raw.get("exams", {}) or {}).items():
         en_lower = (en or "").strip().lower()
         ja_val = (ja or "").strip() if isinstance(ja, str) else ""
         if en_lower and ja_val and en_lower not in merged:
             merged[en_lower] = ja_val
     # META #1849 Phase 5 Step 2.d: procedure phrase display catalog.
-    _PROCEDURE_CATALOG = _LOCALE_DIR.parent / "codes" / "data" / "clinosim-procedure-phrase.yaml"
-    proc_raw = _load_yaml(_PROCEDURE_CATALOG, fallback={})
+    _procedure_catalog = _LOCALE_DIR.parent / "codes" / "data" / "clinosim-procedure-phrase.yaml"
+    proc_raw = _load_yaml(_procedure_catalog, fallback={})
     for en, ja in (proc_raw.get("procedures", {}) or {}).items():
         en_lower = (en or "").strip().lower()
         ja_val = (ja or "").strip() if isinstance(ja, str) else ""
         if en_lower and ja_val and en_lower not in merged:
             merged[en_lower] = ja_val
     # META #1849 Phase 5 Step 2.c: allergen / substance display catalog.
-    _ALLERGEN_SUBSTANCE_CATALOG = _LOCALE_DIR.parent / "codes" / "data" / "clinosim-allergen-substance.yaml"
-    subs_raw = _load_yaml(_ALLERGEN_SUBSTANCE_CATALOG, fallback={})
+    _allergen_substance_catalog = _LOCALE_DIR.parent / "codes" / "data" / "clinosim-allergen-substance.yaml"
+    subs_raw = _load_yaml(_allergen_substance_catalog, fallback={})
     for en, ja in (subs_raw.get("substances", {}) or {}).items():
         en_lower = (en or "").strip().lower()
         ja_val = (ja or "").strip() if isinstance(ja, str) else ""
         if en_lower and ja_val and en_lower not in merged:
             merged[en_lower] = ja_val
     # META #1849 Phase 5 Step 2: admin-form / narrative display catalog.
-    _ADMIN_FORM_CATALOG = _LOCALE_DIR.parent / "codes" / "data" / "clinosim-admin-form-display.yaml"
-    disp_raw = _load_yaml(_ADMIN_FORM_CATALOG, fallback={})
+    _admin_form_catalog = _LOCALE_DIR.parent / "codes" / "data" / "clinosim-admin-form-display.yaml"
+    disp_raw = _load_yaml(_admin_form_catalog, fallback={})
     for en, ja in (disp_raw.get("displays", {}) or {}).items():
         en_lower = (en or "").strip().lower()
         ja_val = (ja or "").strip() if isinstance(ja, str) else ""
