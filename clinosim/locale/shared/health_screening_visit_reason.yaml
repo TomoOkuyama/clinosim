@@ -1,0 +1,43 @@
+# health_screening_visit_reason.yaml — cross-locale visit-reason display
+# per `event_type == "health_screening"` sub-kind.
+#
+# Consumed by `clinosim/simulator/engine.py` at the point where
+# `generate_healthcare_calendar` emits a `health_screening` event. The
+# screening sub-kind (`event.disease_id`) selects a row; the chosen
+# row's `en:` / `ja:` fields become the encounter's visit reason.
+#
+# Design (Phase 3.β / Phase A7 of hardcoded-review):
+#   * Why not a disease YAML field: health screenings aren't disease
+#     protocols — they are population-level calendar events that lack
+#     a disease YAML home.
+#   * Why not per-locale (locale/jp/, locale/us/): the data is a direct
+#     EN↔JA translation pair, so one shared row keeps display drift
+#     impossible. Adding a third locale is a column add per row.
+#   * The emit site uses `.get(event.disease_id, fallback)` so a new
+#     screening kind without an entry falls through to the fallback;
+#     adding a row here is strictly additive.
+#
+# Membership: one row per screening sub-kind that `generate_
+# healthcare_calendar` emits (verified against the P4 calendar loop
+# `ev_key` branches in `simulator/engine.py`).
+
+metadata:
+  source: >-
+    clinosim/simulator/engine.py (_HEALTH_SCREENING_VISIT_REASON,
+    _HEALTH_SCREENING_VISIT_REASON_FALLBACK) prior to hardcoded-review
+    Phase A7.
+
+screenings:
+  annual_health_screening:
+    en: Annual health screening
+    ja: 年次健診
+  colonoscopy_screening:
+    en: Colonoscopy screening
+    ja: 大腸内視鏡検診
+  mammography_screening:
+    en: Mammography screening
+    ja: マンモグラフィー検診
+
+fallback:
+  en: Annual health screening
+  ja: 年次健診

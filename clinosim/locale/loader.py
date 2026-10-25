@@ -476,6 +476,22 @@ def load_chronic_followup() -> dict[str, Any]:
 
 
 @lru_cache(maxsize=1)
+def load_health_screening_visit_reason() -> dict[str, Any]:
+    """Load cross-locale visit-reason display for `health_screening` events.
+
+    Keyed by screening sub-kind (`event.disease_id`); each entry carries
+    `en` + `ja` display. A `fallback` key supplies the generic bilingual
+    pair when a sub-kind has no explicit row. Consumed by
+    ``clinosim/simulator/engine.py`` at the `generate_healthcare_calendar`
+    emission point — hardcoded-review Phase A7.
+    """
+    return _load_yaml(
+        _LOCALE_DIR / "shared" / "health_screening_visit_reason.yaml",
+        fallback={},
+    )
+
+
+@lru_cache(maxsize=1)
 def load_iv_infusion_defaults() -> dict[str, Any]:
     """Load per-drug default IV infusion rate / bolus duration catalog.
 
