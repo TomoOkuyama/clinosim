@@ -13,6 +13,7 @@ here than to weave through every resource-specific builder. Also owns
 from __future__ import annotations
 
 import functools
+from functools import cache
 from pathlib import Path
 from typing import Any
 
@@ -304,47 +305,20 @@ _HOURLY_CADENCE_MHLW_CODE: dict[int, tuple[str, str]] = {
 # When adding topical / sublingual / etc. per-route mapping tables in
 # the future, remove those markers from this set and add the matching
 # family-specific resolver above.
-_NON_ORAL_ROUTE_MARKERS: frozenset[str] = frozenset(
-    {
-        # Injection (0 CS entries — never mappable)
-        "静注",
-        "皮下注",
-        "筋注",
-        "IV",
-        "SC",
-        "IM",
-        "静脈内",
-        "点滴",
-        "経静脈",
-        # Inhalation — MHLW CS has no inhalation-specific family
-        "吸入",
-        "ネブライザー",
-        "経鼻吸入",
-        # Sublingual — CS has 11* family (9 codes) but we do not emit them
-        "舌下",
-        # Rectal / suppository — CS has 2R* / 2S* families
-        "直腸",
-        "座剤",
-        "経直腸",
-        # Topical — CS has 2B* / 2A* / etc. families
-        "塗布",
-        "貼付",
-        "経皮",
-        # Ophthalmic / nasal / otic — CS has 2H* / 2J* / 2K* families
-        "点眼",
-        "点鼻",
-        "点耳",
-        # Enteral / gastric / oral topical (not swallowed)
-        "経腸",
-        "経管",
-        "胃管",
-        "経鼻胃管",
-        "口腔内塗布",
-        # Vaginal / urethral
-        "膣",
-        "尿道",
-    }
-)
+# MHLW eCS non-oral route markers moved to
+# `clinosim/codes/data/mhlw-ecs-non-oral-route-markers.yaml` under the
+# post-#1880 review (hardcoded-audit Finding 3). Loaded once via the
+# `@cache`-ed helper below.
+
+
+@cache
+def _non_oral_route_markers() -> frozenset[str]:
+    import yaml
+
+    path = Path(__file__).resolve().parents[4] / "codes" / "data" / "mhlw-ecs-non-oral-route-markers.yaml"
+    with path.open(encoding="utf-8") as fh:
+        raw = yaml.safe_load(fh) or {}
+    return frozenset(str(m) for m in (raw.get("non_oral_route_markers", []) or []))
 
 
 # Drug → typical daily-freq inference. Used when the dosage carries no
@@ -497,7 +471,7 @@ def _resolve_mhlw_usage_code(
     # CS is oral/topical/sublingual only; 0 injection codes exist.
     if route_text:
         rt = route_text.strip()
-        if rt in _NON_ORAL_ROUTE_MARKERS:
+        if rt in _non_oral_route_markers():
             return None
 
     # Path 2: PRN condition-based codes bypass the (freq, meal-context)

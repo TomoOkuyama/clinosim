@@ -1,0 +1,66 @@
+# MHLW eCS prescription non-oral route marker catalog.
+#
+# JA tokens that identify routes **ineligible** for MHLW eCS
+# usage-code emission. The MHLW eCS CS covers oral + oral-topical
+# routes (0*/1*/2* family prefixes); routes in this list have either
+# no CS coverage at all (IV / SC / IM / inhalation / etc.) or CS
+# coverage that clinosim intentionally does not emit (sublingual /
+# rectal / topical / ophthalmic / etc.).
+#
+# When a dosage's `route.text` or any `coding[].display` contains any
+# token from this list, the MHLW eCS `prescription.usage` CodeableConcept
+# is suppressed; the dosage emits with the FHIR R4 route coding alone.
+#
+# Grouped by family for reviewer context. Order inside a group has no
+# effect on the lookup (frozenset-equivalent "contains" check).
+#
+# Migrated from the inline `_NON_ORAL_ROUTE_MARKERS` frozenset in
+# `clinosim/modules/output/fhir_r4/post_process/populate.py` under the
+# post-#1849 review (hardcoded-audit Finding 3). Adding a new route
+# token becomes a yaml edit rather than a Python module edit.
+
+metadata:
+  name: MHLW eCS Non-Oral Route Markers
+  description: >
+    JA route tokens that disqualify a dosage from MHLW eCS
+    prescription-usage-code emission.
+  source: clinosim-authored (post-#1849 cleanup)
+
+non_oral_route_markers:
+  # Injection (0 CS entries — never mappable)
+  - 静注
+  - 皮下注
+  - 筋注
+  - IV
+  - SC
+  - IM
+  - 静脈内
+  - 点滴
+  - 経静脈
+  # Inhalation — MHLW CS has no inhalation-specific family
+  - 吸入
+  - ネブライザー
+  - 経鼻吸入
+  # Sublingual — CS has 11* family (9 codes) but we do not emit them
+  - 舌下
+  # Rectal / suppository — CS has 2R* / 2S* families
+  - 直腸
+  - 座剤
+  - 経直腸
+  # Topical — CS has 2B* / 2A* / etc. families
+  - 塗布
+  - 貼付
+  - 経皮
+  # Ophthalmic / nasal / otic — CS has 2H* / 2J* / 2K* families
+  - 点眼
+  - 点鼻
+  - 点耳
+  # Enteral / gastric / oral topical (not swallowed)
+  - 経腸
+  - 経管
+  - 胃管
+  - 経鼻胃管
+  - 口腔内塗布
+  # Vaginal / urethral
+  - 膣
+  - 尿道
