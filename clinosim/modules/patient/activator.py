@@ -212,55 +212,41 @@ def _generate_stage(code: str, severity: str, rng: np.random.Generator) -> str:
     return ""
 
 
-CONDITION_NAMES = {
-    "I10": "Essential hypertension",
-    "E11.9": "Type 2 diabetes mellitus",
-    "E78": "Dyslipidemia",
-    "J44": "COPD",
-    "N18": "Chronic kidney disease",
-    "I50": "Heart failure",
-    "I48": "Atrial fibrillation",
-    "I25": "Ischemic heart disease",
-    "M81": "Osteoporosis",
-    "F00": "Dementia",
-    "G20": "Parkinson's disease",
-    "E03": "Hypothyroidism",
-    "K21": "GERD",
-    "J45": "Asthma",
-    "N40": "Benign prostatic hyperplasia",
-    "M17": "Osteoarthritis",
-    "I63": "Cerebral infarction",
-    "I21": "Acute myocardial infarction",
-    "K92": "Gastrointestinal hemorrhage",
-    "K25": "Gastric ulcer",
-    "K26": "Duodenal ulcer",
-    "E10": "Type 1 diabetes mellitus",
-    "R65": "Sepsis/SIRS",
-    "A41": "Sepsis",
-    "K56": "Intestinal obstruction",
-    "K85": "Acute pancreatitis",
-    "K35": "Acute appendicitis",
-    "I26": "Pulmonary embolism",
-    "K81": "Acute cholecystitis",
-    "K80": "Cholelithiasis",
-    "L03": "Cellulitis",
-    "N17": "Acute kidney injury",
-    "K74": "Cirrhosis of liver",
-    "K70": "Alcoholic liver disease",
-    "J69": "Aspiration pneumonia",
-    "J10": "Influenza",
-    "J11": "Influenza",
-    # lint: "J45": "Asthma" was duplicated (declared earlier in this dict); dropped.
-    "I61": "Intracerebral hemorrhage",
-    "M80": "Osteoporotic fracture",
-    "M48": "Vertebral collapse",
-    "I80": "Deep vein thrombosis",
-    "I82": "Venous thromboembolism",
-    "T07": "Multiple injuries",
-    "S52": "Forearm fracture",
-    "S06": "Intracranial injury",
-    "S22": "Rib fracture",
-}
+# Short bilingual display per ICD-10 code — authoritative yaml at
+# `clinosim/codes/data/icd10-condition-display.yaml` (hardcoded-review
+# Phase A8). The yaml carries both `en` and `ja`; this `CONDITION_NAMES`
+# alias preserves the historical EN-only shape so every existing call
+# site (activator.py chronic-activation path + outpatient.py chronic
+# visit-reason composition) stays unchanged.
+
+
+_ICD10_CONDITION_DISPLAY_PATH = Path(__file__).resolve().parents[2] / "codes" / "data" / "icd10-condition-display.yaml"
+
+
+@lru_cache(maxsize=1)
+def _icd10_condition_display() -> dict[str, dict[str, str]]:
+    """Load bilingual chronic/incident condition display from yaml."""
+    with open(_ICD10_CONDITION_DISPLAY_PATH, encoding="utf-8") as f:
+        data = yaml.safe_load(f) or {}
+    out: dict[str, dict[str, str]] = {}
+    for code, row in (data.get("codes") or {}).items():
+        if isinstance(row, dict):
+            out[str(code)] = {str(k): str(v) for k, v in row.items()}
+    return out
+
+
+def _condition_display(code: str, lang: str = "en") -> str:
+    """Return the short display label for ``code`` in ``lang``.
+
+    Falls back to the English label when `lang` is missing from the
+    row, then to the raw code — same contract as `code_lookup` so
+    callers can swap this in without special-casing missing JA.
+    """
+    row = _icd10_condition_display().get(code, {})
+    return row.get(lang) or row.get("en") or code
+
+
+CONDITION_NAMES: dict[str, str] = {code: _condition_display(code, "en") for code in _icd10_condition_display()}
 
 
 _CHRONIC_ONSET_MIN_AGE_PATH = Path(__file__).resolve().parents[2] / "locale" / "shared" / "chronic_onset_min_age.yaml"
