@@ -8,9 +8,12 @@ from __future__ import annotations
 
 import math
 from datetime import datetime, timedelta
+from functools import cache
+from pathlib import Path
 from typing import Any
 
 import numpy as np
+import yaml
 
 from clinosim.modules.physiology._coupling_coefficients import (
     AFIB_CARDIAC_COUPLING,
@@ -344,20 +347,29 @@ def initialize_state(
     return state
 
 
-# HbA1c model (chronic glycemic control). Coefficients fixed by generation audit.
-HBA1C_NONDM_BASE = 5.1  # %, non-diabetic baseline (mild age term added at use site)
-HBA1C_BEST = 6.0  # %, diabetic at perfect control (glycemic_control = 1.0)
-HBA1C_SPAN = 6.0  # %, added at glycemic_control = 0.0  -> 12.0% worst case
-# Phase 1 longitudinal subsystem (Issue #1695). Mirrors
-# ``clinosim/locale/shared/longitudinal/hba1c_trajectory.yaml``:
-#   per_encounter_noise.sigma = 0.20
-#   clamp = [4.0, 15.0]
-# Kept as module constants here (not loaded via loader at module
-# scope) to keep physiology.engine import-cycle-free. A regression
-# test pins these against the yaml.
-HBA1C_MEASUREMENT_NOISE_SD = 0.20
-HBA1C_CLAMP_MIN = 4.0
-HBA1C_CLAMP_MAX = 15.0
+# HbA1c / glucose / acid-base thresholds — authoritative yaml at
+# `clinosim/modules/physiology/reference_data/chronic_glycemic_thresholds.yaml`
+# (hardcoded-review Phase A12). Module-level constants preserved so
+# every call site + external importer (e.g. health_checkup/engine.py
+# imports HBA1C_NONDM_BASE) stays unchanged.
+
+
+@cache
+def _chronic_glycemic_thresholds_raw() -> dict[str, Any]:
+    path = Path(__file__).resolve().parent / "reference_data" / "chronic_glycemic_thresholds.yaml"
+    with path.open(encoding="utf-8") as fh:
+        return yaml.safe_load(fh) or {}
+
+
+_HBA1C_YAML = _chronic_glycemic_thresholds_raw().get("hba1c", {}) or {}
+_GLUCOSE_YAML = _chronic_glycemic_thresholds_raw().get("glucose", {}) or {}
+
+HBA1C_NONDM_BASE: float = float(_HBA1C_YAML["nondm_base"])
+HBA1C_BEST: float = float(_HBA1C_YAML["best"])
+HBA1C_SPAN: float = float(_HBA1C_YAML["span"])
+HBA1C_MEASUREMENT_NOISE_SD: float = float(_HBA1C_YAML["measurement_noise_sd"])
+HBA1C_CLAMP_MIN: float = float(_HBA1C_YAML["clamp_min"])
+HBA1C_CLAMP_MAX: float = float(_HBA1C_YAML["clamp_max"])
 
 
 def hba1c_latent_at(patient: Any, when: Any) -> float | None:
@@ -387,9 +399,10 @@ def hba1c_latent_at(patient: Any, when: Any) -> float | None:
 
 
 # Diabetic fasting Glucose baseline as a function of glycemic control.
-GLU_DM_BEST = 120.0  # mg/dL at glycemic_control = 1.0
-GLU_DM_SPAN = 100.0  # mg/dL added at glycemic_control = 0.0 -> 220 worst
-GLYCEMIC_CONTROL_DEFAULT = 0.5  # fallback when has_diabetes but axis unset (e.g. new-onset)
+# Scalars resolved from `chronic_glycemic_thresholds.yaml` (Phase A12).
+GLU_DM_BEST: float = float(_GLUCOSE_YAML["dm_best"])
+GLU_DM_SPAN: float = float(_GLUCOSE_YAML["dm_span"])
+GLYCEMIC_CONTROL_DEFAULT: float = float(_GLUCOSE_YAML["default_glycemic_control"])
 
 
 def hba1c_from_glycemic_control(glycemic_control: float) -> float:
@@ -401,7 +414,12 @@ def hba1c_from_glycemic_control(glycemic_control: float) -> float:
     return HBA1C_BEST + (1.0 - gc) * HBA1C_SPAN
 
 
-_ACID_BASE_RESPIRATORY_FRACTION = {"metabolic": 0.0, "mixed": 0.5, "respiratory": 1.0}
+# Acid-base phenotype → respiratory_fraction. Yaml authority
+# `reference_data/chronic_glycemic_thresholds.yaml`.
+_ACID_BASE_RESPIRATORY_FRACTION: dict[str, float] = {
+    str(k): float(v)
+    for k, v in (_chronic_glycemic_thresholds_raw().get("acid_base_respiratory_fraction", {}) or {}).items()
+}
 
 
 def apply_state_delta(state: PhysiologicalState, var: str, delta: float) -> None:
@@ -1136,25 +1154,28 @@ def derive_observed_vitals(
 # ---------------------------------------------------------------------------
 
 # Single source of truth for canonical delta-driven state-var ranges.
-# Anion gap axis: negative = non-AG (hyperchloremic, GI loss), positive =
-# high-AG (ketone/lactate/uremia). Missing here previously meant the
-# (0.0, 1.0) default silently clamped every GI condition's negative axis
-# to 0.0 in apply_disease_onset (degenerate hyperchloremia).
-_VARIABLE_RANGES: dict[str, tuple[float, float]] = {
-    "inflammation_level": (0.0, 1.0),
-    "renal_function": (0.0, 1.0),
-    "cardiac_function": (0.0, 1.0),
-    "hepatic_function": (0.0, 1.0),
-    "anemia_level": (0.0, 1.0),
-    "coagulation_status": (0.0, 1.0),
-    "volume_status": (-1.0, 1.0),
-    "perfusion_status": (0.0, 1.0),
-    "ph_status": (-1.0, 1.0),
-    "respiratory_fraction": (0.0, 1.0),
-    "glucose_status": (-1.0, 1.0),
-    "sodium_status": (-1.0, 1.0),
-    "anion_gap_status": (-1.0, 1.0),
-}
+# Yaml authority at
+# `clinosim/modules/physiology/reference_data/state_variable_ranges.yaml`
+# (hardcoded-review Phase A12). Anion gap axis: negative = non-AG
+# (hyperchloremic, GI loss), positive = high-AG (ketone/lactate/uremia).
+# Missing here previously meant the (0.0, 1.0) default silently
+# clamped every GI condition's negative axis to 0.0 in
+# apply_disease_onset (degenerate hyperchloremia).
+
+
+@cache
+def _state_variable_ranges_from_yaml() -> dict[str, tuple[float, float]]:
+    path = Path(__file__).resolve().parent / "reference_data" / "state_variable_ranges.yaml"
+    with path.open(encoding="utf-8") as fh:
+        raw = yaml.safe_load(fh) or {}
+    out: dict[str, tuple[float, float]] = {}
+    for name, row in (raw.get("variables", {}) or {}).items():
+        if isinstance(row, dict) and "min" in row and "max" in row:
+            out[str(name)] = (float(row["min"]), float(row["max"]))
+    return out
+
+
+_VARIABLE_RANGES: dict[str, tuple[float, float]] = _state_variable_ranges_from_yaml()
 
 
 def _variable_range(var: str) -> tuple[float, float]:

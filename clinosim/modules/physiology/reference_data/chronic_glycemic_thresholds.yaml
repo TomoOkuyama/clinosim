@@ -1,0 +1,60 @@
+# chronic_glycemic_thresholds.yaml — HbA1c / glucose / acid-base
+# chronic-model thresholds.
+#
+# Consumed by `clinosim/modules/physiology/engine.py` (HbA1c + glucose
+# derivation path, acid-base phenotype dispatch) and by
+# `clinosim/modules/health_checkup/engine.py` (`HBA1C_NONDM_BASE` is
+# imported to compute checkup-time HbA1c).
+#
+# Each threshold is a scalar tuned by the physiology audit; moving
+# them to yaml (hardcoded-review Phase A12) surfaces the clinical
+# parameters so a reviewer can update a value (e.g. "worst-case
+# HbA1c should cap at 14 % not 15 %") without touching Python.
+#
+# The HbA1c measurement-noise + clamp pair mirror
+# `locale/shared/longitudinal/hba1c_trajectory.yaml` (the longitudinal
+# subsystem authors a per-encounter HbA1c trajectory with the same
+# sigma + clamp; `tests/unit/test_physiology_longitudinal_sync.py`
+# pins the agreement).
+#
+# Acid-base `respiratory_fraction` is the share of the acid-base
+# disturbance attributable to respiration vs metabolism; the three
+# categories (metabolic / mixed / respiratory) are MHLW convention.
+
+metadata:
+  source: >-
+    clinosim/modules/physiology/engine.py (HBA1C_* + GLU_DM_* +
+    GLYCEMIC_CONTROL_DEFAULT + _ACID_BASE_RESPIRATORY_FRACTION) prior
+    to hardcoded-review Phase A12.
+
+hba1c:
+  # Non-diabetic baseline (%); a mild age term is added at the use site.
+  nondm_base: 5.1
+  # Diabetic HbA1c at glycemic_control = 1.0 (perfect control).
+  best: 6.0
+  # Added to `best` at glycemic_control = 0.0 → 12.0 % worst case.
+  span: 6.0
+  # Per-measurement Gaussian noise σ (%). Mirrors
+  # locale/shared/longitudinal/hba1c_trajectory.yaml::
+  # per_encounter_noise.sigma = 0.20.
+  measurement_noise_sd: 0.20
+  # HbA1c physiological clamp. Mirrors locale/shared/longitudinal/
+  # hba1c_trajectory.yaml::clamp [4.0, 15.0].
+  clamp_min: 4.0
+  clamp_max: 15.0
+
+glucose:
+  # Diabetic fasting glucose (mg/dL) at glycemic_control = 1.0.
+  dm_best: 120.0
+  # Added at glycemic_control = 0.0 → 220 mg/dL worst.
+  dm_span: 100.0
+  # Fallback when has_diabetes but axis is unset (e.g. new-onset).
+  default_glycemic_control: 0.5
+
+# Acid-base phenotype → respiratory_fraction. The share of the
+# acid-base disturbance attributable to respiratory vs metabolic
+# component. Keys are the phenotype labels authored on PhysiologicalState.
+acid_base_respiratory_fraction:
+  metabolic: 0.0
+  mixed: 0.5
+  respiratory: 1.0
