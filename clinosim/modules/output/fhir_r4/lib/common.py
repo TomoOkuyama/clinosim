@@ -1248,61 +1248,17 @@ def augment_iv_dosage_with_rate(
 # `nightly` is once-daily at hs; not a distinct cadence from `qhs` but the label
 # is common in disease-YAML mental-health / chronic-med lists so it gets an
 # explicit entry.
-_FREQ_LABEL_TIMING: dict[str, tuple[int, int, str]] = {
-    # Once daily
-    "qd": (1, 1, "d"),
-    "q24h": (1, 1, "d"),
-    "once daily": (1, 1, "d"),
-    "daily": (1, 1, "d"),
-    "1x/day": (1, 1, "d"),
-    "qhs": (1, 1, "d"),
-    "bedtime": (1, 1, "d"),
-    "at bedtime": (1, 1, "d"),
-    "hs": (1, 1, "d"),
-    "nightly": (1, 1, "d"),
-    "qam": (1, 1, "d"),
-    "qpm": (1, 1, "d"),
-    # Multiple times per day
-    "bid": (2, 1, "d"),
-    "q12h": (2, 1, "d"),
-    "twice daily": (2, 1, "d"),
-    "2x/day": (2, 1, "d"),
-    "tid": (3, 1, "d"),
-    "q8h": (3, 1, "d"),
-    "three times daily": (3, 1, "d"),
-    "3x/day": (3, 1, "d"),
-    "qid": (4, 1, "d"),
-    "q6h": (4, 1, "d"),
-    "four times daily": (4, 1, "d"),
-    "4x/day": (4, 1, "d"),
-    "q4h": (6, 1, "d"),
-    "q3h": (8, 1, "d"),
-    "q2h": (12, 1, "d"),
-    "q1h": (24, 1, "d"),
-    # Multi-day cadence (once per N days)
-    "every_other_day": (1, 2, "d"),
-    "qod": (1, 2, "d"),
-    "every other day": (1, 2, "d"),
-    "every_3_days": (1, 3, "d"),
-    "every 3 days": (1, 3, "d"),
-    # Weekly
-    "weekly": (1, 1, "wk"),
-    "1x/week": (1, 1, "wk"),
-    "qweek": (1, 1, "wk"),
-    "qwk": (1, 1, "wk"),
-    "once weekly": (1, 1, "wk"),
-    # Monthly
-    "monthly": (1, 1, "mo"),
-    "1x/month": (1, 1, "mo"),
-    "qmonth": (1, 1, "mo"),
-    # Chemo per-cycle cadence
-    "q3weeks": (1, 3, "wk"),
-    "q3wks": (1, 3, "wk"),
-    "every 3 weeks": (1, 3, "wk"),
-    "q4weeks": (1, 4, "wk"),
-    "q4wks": (1, 4, "wk"),
-    "every 4 weeks": (1, 4, "wk"),
-}
+# Frequency label → FHIR Timing.repeat (frequency, period, periodUnit).
+# Backed by `clinosim/codes/data/frequency-tokens.yaml` (post-#1880
+# review, hardcoded-audit Finding 20) — the same yaml the order
+# engine's `_freq_per_day()` reads, so cadence vocabulary stays
+# consistent across the two paths.
+
+
+def _freq_label_timing() -> dict[str, tuple[int, int, str]]:
+    from clinosim.locale.loader import load_frequency_tokens
+
+    return dict(load_frequency_tokens())
 
 
 def _split_prn_suffix(flow: str) -> tuple[str, bool]:
@@ -1345,7 +1301,7 @@ def resolve_timing_repeat(
     _flow, _prn = _split_prn_suffix(freq_raw.lower().strip())
     if _flow in ("prn", "as needed", "when required", ""):
         return None, True
-    _timing = _FREQ_LABEL_TIMING.get(_flow)
+    _timing = _freq_label_timing().get(_flow)
     if _timing is None:
         # Unknown label — fall back to caller-supplied freq_per_day if any.
         if freq_per_day:

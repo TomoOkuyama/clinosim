@@ -675,6 +675,32 @@ def load_department_display() -> dict[str, dict[str, str]]:
 
 
 @lru_cache(maxsize=1)
+def load_frequency_tokens() -> dict[str, tuple[int, int, str]]:
+    """Load the frequency-token catalog.
+
+    Returns `{token: (frequency, period, period_unit)}`. Reads
+    `clinosim/codes/data/frequency-tokens.yaml`, consolidated under
+    post-#1880 review (hardcoded-audit Finding 20) from the parallel
+    `_FREQ_PER_DAY` (`clinosim/modules/order/engine.py`) and
+    `_FREQ_LABEL_TIMING` (`clinosim/modules/output/fhir_r4/lib/common.py`)
+    dicts.
+    """
+    path = _LOCALE_DIR.parent / "codes" / "data" / "frequency-tokens.yaml"
+    raw = _load_yaml(path, fallback={})
+    tokens = raw.get("tokens", {}) or {}
+    out: dict[str, tuple[int, int, str]] = {}
+    for key, row in tokens.items():
+        if not isinstance(row, dict):
+            continue
+        out[str(key)] = (
+            int(row.get("frequency", 0)),
+            int(row.get("period", 1)),
+            str(row.get("period_unit", "d")),
+        )
+    return out
+
+
+@lru_cache(maxsize=1)
 def load_allergen_rxnorm_map() -> dict[str, str]:
     """Load the EN allergen substance → RxNorm ingredient CUI mapping.
 

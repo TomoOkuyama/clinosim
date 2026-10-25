@@ -83,23 +83,20 @@ from clinosim.modules.order.panel_grouping import classify_lab_specs, load_panel
 from clinosim.modules.order.treatment_classifier import classify_inpatient_supportive
 from clinosim.types.encounter import Order, OrderStatus, OrderType
 
-# Mapping: text frequency token → times per day
-_FREQ_PER_DAY: dict[str, int] = {
-    "once": 1,
-    "qd": 1,
-    "daily": 1,
-    "bid": 2,
-    "q12h": 2,
-    "tid": 3,
-    "q8h": 3,
-    "qid": 4,
-    "q6h": 4,
-    "q4h": 6,
-    "q3h": 8,
-    "q2h": 12,
-    "continuous": 24,
-    "drip": 24,
-}
+# Text frequency token → times per day. Backed by
+# `clinosim/codes/data/frequency-tokens.yaml` (post-#1880 review,
+# hardcoded-audit Finding 20) — the same yaml the FHIR Timing.repeat
+# resolver uses, so the two paths stay in sync automatically.
+
+
+def _freq_per_day() -> dict[str, int]:
+    from clinosim.locale.loader import load_frequency_tokens
+
+    out: dict[str, int] = {}
+    for token, (freq, period, unit) in load_frequency_tokens().items():
+        if unit == "d" and period == 1 and freq >= 1:
+            out[token] = freq
+    return out
 
 
 def place_imaging_orders(
@@ -238,7 +235,7 @@ def enrich_medication_order(order: Order, dose_str: str = "") -> Order:
     # …). Fill from the label directly here when parse_dose_string missed.
     if order.frequency_per_day is None and order.frequency:
         _label = str(order.frequency).lower().strip()
-        _derived = _FREQ_PER_DAY.get(_label)
+        _derived = _freq_per_day().get(_label)
         if _derived is not None:
             order.frequency_per_day = _derived
     if not order.route and parsed.get("route"):
@@ -301,7 +298,7 @@ def parse_dose_string(dose_str: str) -> dict[str, Any]:
 
     # Frequency tokens
     s_lower = s.lower()
-    for token, per_day in _FREQ_PER_DAY.items():
+    for token, per_day in _freq_per_day().items():
         # Use word boundaries for safety
         if re.search(rf"\b{re.escape(token)}\b", s_lower):
             result["frequency"] = token.upper()
