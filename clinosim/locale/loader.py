@@ -702,6 +702,19 @@ def load_prefecture_jis_x_0401_map() -> dict[str, str]:
     return {str(k): str(v) for k, v in (raw.get("prefectures", {}) or {}).items()}
 
 
+@lru_cache(maxsize=1)
+def load_occupation_display() -> dict[str, dict[str, str]]:
+    """Load occupation display table ({slug: {en, ja}}).
+
+    Reads `clinosim/locale/shared/occupation_display.yaml` (migrated from
+    the inline `_OCCUPATION_DISPLAY_{JA,EN}` dicts in
+    `clinosim/modules/output/fhir_r4/lib/localization.py` under the
+    post-#1849 review, hardcoded-audit Finding 5).
+    """
+    raw = _load_yaml(_LOCALE_DIR / "shared" / "occupation_display.yaml", fallback={})
+    return raw.get("occupations", {}) or {}
+
+
 # ---------------------------------------------------------------------------
 # Narrative-renderer vocabulary loaders (Phase 1d-1, 2026-09-23)
 #

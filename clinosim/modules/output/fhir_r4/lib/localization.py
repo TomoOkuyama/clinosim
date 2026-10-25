@@ -257,53 +257,23 @@ def _dept_display(dept: str, country: str) -> str:
     return entry.get(lang) or dept.replace("_", " ").title()
 
 
-_OCCUPATION_DISPLAY_JA: dict[str, str] = {
-    "manufacturing": "製造業",
-    "construction": "建設業",
-    "agriculture": "農林水産業",
-    "healthcare": "医療・福祉",
-    "service": "サービス・小売",
-    "office": "事務・専門職",
-    "transportation": "運輸業",
-    "education": "教育",
-    "homemaker": "主婦/主夫",
-    "student": "学生",
-    "retired": "退職",
-    "unemployed": "無職",
-    "other": "その他",
-    # Issue #360 G7 (2026-07-22): developmental-stage occupation labels for
-    # minors. Pre-fix _sample_occupation collapsed every age ≤ 14 to
-    # "student" — a 2-year-old rendered as 学生 on JP UI was clinically
-    # nonsensical. See clinosim/modules/population/engine.py.
-    "infant": "乳児",
-    "preschool": "未就学児",
-    "elementary_student": "小学生",
-    "middle_school_student": "中学生",
-    "high_school_student": "高校生",
-}
+# Occupation display is now in `clinosim/locale/shared/occupation_display.yaml`
+# — load via `clinosim.locale.loader.load_occupation_display()` which returns
+# `{slug: {en, ja}}` (post-#1880 review, hardcoded-audit Finding 5).
 
-_OCCUPATION_DISPLAY_EN: dict[str, str] = {
-    "manufacturing": "Manufacturing worker",
-    "construction": "Construction worker",
-    "agriculture": "Agricultural worker",
-    "healthcare": "Healthcare worker",
-    "service": "Service/retail worker",
-    "office": "Office/professional worker",
-    "transportation": "Transportation worker",
-    "education": "Education worker",
-    "homemaker": "Homemaker",
-    "student": "Student",
-    "retired": "Retired",
-    "unemployed": "Unemployed",
-    "other": "Other occupation",
-    # Issue #360 G7 (2026-07-22): developmental-stage occupation labels for
-    # minors — English counterpart to the JA dict above.
-    "infant": "Infant",
-    "preschool": "Preschool child",
-    "elementary_student": "Elementary school student",
-    "middle_school_student": "Middle school student",
-    "high_school_student": "High school student",
-}
+
+def _occupation_display_ja() -> dict[str, str]:
+    """Flatten the slug → ja string view of `occupation_display.yaml`."""
+    from clinosim.locale.loader import load_occupation_display
+
+    return {slug: row.get("ja", slug) for slug, row in load_occupation_display().items()}
+
+
+def _occupation_display_en() -> dict[str, str]:
+    """Flatten the slug → en string view of `occupation_display.yaml`."""
+    from clinosim.locale.loader import load_occupation_display
+
+    return {slug: row.get("en", slug) for slug, row in load_occupation_display().items()}
 
 
 # --- Shared display dictionaries for JP localization ---

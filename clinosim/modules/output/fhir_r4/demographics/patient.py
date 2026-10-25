@@ -32,11 +32,11 @@ from clinosim.modules.output.fhir_r4.lib.ids import (
     wrap_as_identifier,
 )
 from clinosim.modules.output.fhir_r4.lib.localization import (
-    _OCCUPATION_DISPLAY_EN,
-    _OCCUPATION_DISPLAY_JA,
     _RELATIONSHIP_DISPLAY_JA,
     _localize_display,
     _localize_drug_name,
+    _occupation_display_en,
+    _occupation_display_ja,
 )
 
 # === Issue #1344: US Core Patient extensions ===
@@ -1051,7 +1051,7 @@ def _build_occupation_observation(
     """
     if not occupation:
         return None
-    display_map = _OCCUPATION_DISPLAY_JA if is_jp(country) else _OCCUPATION_DISPLAY_EN
+    display_map = _occupation_display_ja() if is_jp(country) else _occupation_display_en()
     display = display_map.get(occupation, occupation.title())
     _occupation_key = patient_id
     return {
