@@ -1,0 +1,38 @@
+# ja_only_fallback_sections.yaml — US ADMISSION_HP narrative sections
+# whose template-side builders emit Japanese text as the authored
+# fallback (not a locale-routing regression).
+#
+# Consumed by `clinosim/modules/document/audit.py` (`_count_us_hp_ja_chars`
+# → the US HP-note Bug A residual-gap counter) and by
+# `clinosim/modules/document/narrative/semantic_check.py` (the per-section
+# composition walker). The audit counts Japanese chars in every
+# ADMISSION_HP section EXCEPT the ones listed here; the Japanese chars in
+# an excluded section are the intentional :ja_only_fallback output of
+# `_build_<section>` and must not be treated as a regression.
+#
+# Membership is opt-in: add a section slug ONLY when its builder is
+# documented to tag `:ja_only_fallback` at generation time and the
+# underlying source data (disease YAML course_archetypes, HPI templates,
+# etc.) has no per-language split. The paired commentary lives in
+# audit.py's module-level docstring (see "AD-65 Bug A code fix" + the
+# β-JP-1 chain 1a extension).
+#
+# Current entries:
+#   - hpi: `_build_hpi` fallback — pre-F-3 HPI generation emitted ja
+#     text whenever disease YAML HPI templates were absent (which is
+#     every disease at the time of audit).
+#   - physical_examination: `_build_physical_examination` fallback —
+#     same source gap, matching builder.
+#   - assessment_and_plan: `_build_assessment_and_plan` fallback added
+#     at β-JP-1 chain 1a once `ctx.disease_protocol` wiring surfaced
+#     the same per-section data-authoring gap.
+
+metadata:
+  source: >-
+    clinosim/modules/document/audit.py (KNOWN_JA_ONLY_FALLBACK_SECTIONS
+    frozenset) prior to hardcoded-review Phase A2.
+
+sections:
+  - hpi
+  - physical_examination
+  - assessment_and_plan

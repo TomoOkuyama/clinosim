@@ -105,7 +105,11 @@ import json
 import os
 import re
 import tempfile
+from functools import cache
+from pathlib import Path
 from typing import Any
+
+import yaml
 
 from clinosim import __version__ as _clinosim_version
 from clinosim.audit.registry import ModuleAuditSpec, register_audit_module
@@ -123,33 +127,29 @@ from clinosim.modules.output.fhir_r4.encounters.care_team import CARE_TEAM_ID_PR
 # both this module's gate and tests/integration/test_bug_a_us_hp_english_only.py.
 _JA_CHAR_RE = re.compile(r"[぀-ゟ゠-ヿ一-鿿]")
 
-# Two ADMISSION_HP composition_sections ("hpi", "physical_examination") draw
-# from disease-YAML source data (`hpi_template.onset_pattern` /
-# `physical_exam_findings`) that carries no per-language split at all — a
-# separate, tracked, deferred data-authoring gap discovered while
-# implementing the AD-65 Bug A code fix (see
-# .superpowers/sdd/task-9-report.md §6 concern 2 and task-10-report.md §7;
-# TODO.md follow-up entry). Both builder sites tag `facts_used` with the
-# module's documented `:ja_only_fallback` suffix at generation time
-# (`clinosim/modules/document/narrative/template_generator.py`
-# `_build_hpi` / `_build_physical_examination`). These sections are
-# therefore excluded from the ja-char count below; Japanese chars in any
-# OTHER ADMISSION_HP section indicate a genuine Bug-A-class locale-routing
-# regression and ARE counted.
-#
-# β-JP-1 chain 1a: "assessment_and_plan" joins the set. Its source
-# (`course_archetypes[*].daily_trajectory` in disease YAMLs) has the same
-# no-per-language-split data-authoring gap; the section only started
-# emitting that text once ctx.disease_protocol was wired (pre-1a it always
-# fell back to generic English). `_build_assessment_and_plan` tags
-# `:ja_only_fallback` at generation time, mirroring `_build_hpi`.
-KNOWN_JA_ONLY_FALLBACK_SECTIONS = frozenset(
-    {
-        "hpi",
-        "physical_examination",
-        "assessment_and_plan",
-    }
-)
+# ADMISSION_HP composition_sections whose builders emit Japanese text as
+# their :ja_only_fallback output (see audit.py module docstring, the
+# "AD-65 Bug A residual gap" section, and β-JP-1 chain 1a extension for
+# the per-section rationale). The membership list is authoritative data
+# — adding a new section here is a formal "excuse this section from the
+# ja-char regression gate" declaration — so it lives in
+# `reference_data/ja_only_fallback_sections.yaml` and is loaded through
+# a `@cache` loader. The Python symbol name is preserved so every
+# consumer (`semantic_check.py`, `tests/integration/test_bug_a_*`, …)
+# continues to work unchanged.
+
+
+@cache
+def _ja_only_fallback_sections() -> frozenset[str]:
+    """Load the KNOWN_JA_ONLY_FALLBACK_SECTIONS registry from yaml."""
+    path = Path(__file__).resolve().parent / "reference_data" / "ja_only_fallback_sections.yaml"
+    with open(path, encoding="utf-8") as f:
+        data = yaml.safe_load(f) or {}
+    sections = data.get("sections", []) or []
+    return frozenset(str(s) for s in sections)
+
+
+KNOWN_JA_ONLY_FALLBACK_SECTIONS: frozenset[str] = _ja_only_fallback_sections()
 
 
 def _count_us_hp_ja_chars(cif_dir: str) -> int:
