@@ -715,6 +715,19 @@ def load_occupation_display() -> dict[str, dict[str, str]]:
     return raw.get("occupations", {}) or {}
 
 
+@lru_cache(maxsize=1)
+def load_diet_type_display() -> dict[str, dict[str, str]]:
+    """Load diet-type display table ({slug: {en, ja}}).
+
+    Reads `clinosim/locale/shared/diet_type_display.yaml` (migrated from
+    the inline `_diet_labels` conditional in
+    `clinosim/modules/output/fhir_r4/encounters/encounter.py` under the
+    post-#1880 review, hardcoded-audit Finding 13).
+    """
+    raw = _load_yaml(_LOCALE_DIR / "shared" / "diet_type_display.yaml", fallback={})
+    return raw.get("diet_types", {}) or {}
+
+
 # ---------------------------------------------------------------------------
 # Narrative-renderer vocabulary loaders (Phase 1d-1, 2026-09-23)
 #

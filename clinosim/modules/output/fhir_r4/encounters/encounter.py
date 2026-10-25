@@ -662,15 +662,10 @@ def _build_encounter(
             and (o.get("encounter_id") if isinstance(o, dict) else getattr(o, "encounter_id", "")) == encounter_id
         ]
         if diet_orders:
-            _diet_labels = {
-                "NPO": "絶食" if is_jp(country) else "NPO (nothing by mouth)",
-                "clear_liquid": "流動食" if is_jp(country) else "Clear liquids",
-                "soft_diet": "軟菜食" if is_jp(country) else "Soft diet",
-                "regular_diet": "常食" if is_jp(country) else "Regular diet",
-                "diabetic_diet": "糖尿病食" if is_jp(country) else "Diabetic diet",
-                "low_sodium": "減塩食" if is_jp(country) else "Low-sodium diet",
-                "renal_diet": "腎臓食" if is_jp(country) else "Renal diet",
-            }
+            from clinosim.locale.loader import load_diet_type_display
+
+            lang = "ja" if is_jp(country) else "en"
+            _diet_labels = {slug: row.get(lang, slug) for slug, row in load_diet_type_display().items()}
             seen = []
             for o in diet_orders:
                 name = str(o.get("display_name") if isinstance(o, dict) else getattr(o, "display_name", ""))
