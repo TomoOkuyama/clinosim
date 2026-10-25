@@ -41,13 +41,13 @@ import time as _time
 from collections.abc import Callable
 
 from clinosim.modules.document.narrative._extra_context_builder import (
-    _BIOMETRICS_DOC_TYPES as _BIOMETRICS_DOC_TYPES,
-)
-from clinosim.modules.document.narrative._extra_context_builder import (
-    _HEALTH_LITERACY_DOC_TYPES as _HEALTH_LITERACY_DOC_TYPES,
+    _biometrics_doc_types as _biometrics_doc_types,
 )
 from clinosim.modules.document.narrative._extra_context_builder import (
     _build_extra_context as _build_extra_context,
+)
+from clinosim.modules.document.narrative._extra_context_builder import (
+    _health_literacy_doc_types as _health_literacy_doc_types,
 )
 from clinosim.modules.document.narrative._extra_context_builder import (
     _writing_day_of as _writing_day_of,
