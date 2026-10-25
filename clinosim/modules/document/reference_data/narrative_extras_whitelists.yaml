@@ -1,0 +1,44 @@
+---
+# narrative_extras_whitelists.yaml — per-doc-type extras eligibility
+#
+# Governs which `type_key` values receive which optional context payloads
+# in the narrative LLM prompt (see `clinosim/modules/document/narrative/
+# _extra_context_builder.py::_build_extra_context`).
+#
+# Each list is a frozenset expressed in yaml form: one `type_key` per
+# row. Membership rules:
+#
+# * `biometrics` — doc types where the patient's biometric facts
+#   (height / weight / BMI / blood type) are narratively load-bearing:
+#   surgical, anaesthesia, procedure, and discharge-planning contexts.
+#   These are populated via `_render_patient_biometrics` and inserted
+#   into `extra["patient_biometrics"]`.
+#
+# * `health_literacy` — doc types that generate patient- or
+#   family-facing text (admission H&P, discharge summary, referral
+#   note, and death discharge summary). Other doc types are
+#   physician-to-physician and the tone is invariant, so the tag is
+#   omitted to keep prompt payload small.
+#
+# Both sets are strict allow-lists: a `type_key` not listed here never
+# receives that extra, regardless of its DocumentTypeSpec fields.
+
+metadata:
+  source: >-
+    clinosim/modules/document/narrative/_extra_context_builder.py
+    (prior to hardcoded-audit Finding 18 migration)
+  purpose: >-
+    Allow-list membership for narrative LLM prompt-extras per doc type.
+
+biometrics:
+  - admission_hp
+  - operative_note
+  - procedure_note
+  - discharge_summary
+  - death_discharge_summary
+
+health_literacy:
+  - admission_hp
+  - discharge_summary
+  - referral_note
+  - death_discharge_summary

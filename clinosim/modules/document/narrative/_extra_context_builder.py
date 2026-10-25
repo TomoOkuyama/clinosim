@@ -14,6 +14,9 @@ names via explicit ``from … import X as X`` aliases.
 
 from __future__ import annotations
 
+from functools import cache
+from pathlib import Path
+
 from clinosim.locale.i18n import t
 from clinosim.modules._shared import pick_localized_field
 from clinosim.modules.document.narrative._patient_info_renderers import (
@@ -45,30 +48,34 @@ from clinosim.modules.document.narrative._replacement_renderers import (
 )
 from clinosim.types.document import DocumentTypeSpec, NarrativeContext
 
-# Doc types that get patient_biometrics (Ht/Wt/BMI/blood type).
-# Surgical + anaesthesia + procedure + discharge-planning contexts
-# where these facts are narratively load-bearing.
-_BIOMETRICS_DOC_TYPES: frozenset[str] = frozenset(
-    {
-        "admission_hp",
-        "operative_note",
-        "procedure_note",
-        "discharge_summary",
-        "death_discharge_summary",
-    }
-)
+# Per-doc-type extras eligibility — biometrics (Ht/Wt/BMI/blood type) and
+# health_literacy_tag — is defined in
+# `clinosim/modules/document/reference_data/narrative_extras_whitelists.yaml`.
+# `_biometrics_doc_types()` / `_health_literacy_doc_types()` load the two
+# allow-lists lazily and `@cache`-memoize them; call them at the use site
+# instead of the former module-level constants.
 
-# Doc types that get health_literacy_tag. Patient/family-facing text
-# lives in these; other doc types are physician-to-physician and the
-# tone is invariant.
-_HEALTH_LITERACY_DOC_TYPES: frozenset[str] = frozenset(
-    {
-        "admission_hp",
-        "discharge_summary",
-        "referral_note",
-        "death_discharge_summary",
-    }
-)
+
+@cache
+def _narrative_extras_whitelists() -> dict[str, frozenset[str]]:
+    import yaml
+
+    path = Path(__file__).resolve().parents[1] / "reference_data" / "narrative_extras_whitelists.yaml"
+    with path.open(encoding="utf-8") as fh:
+        raw = yaml.safe_load(fh) or {}
+    out: dict[str, frozenset[str]] = {}
+    for key in ("biometrics", "health_literacy"):
+        rows = raw.get(key) or []
+        out[key] = frozenset(str(r) for r in rows if isinstance(r, str))
+    return out
+
+
+def _biometrics_doc_types() -> frozenset[str]:
+    return _narrative_extras_whitelists()["biometrics"]
+
+
+def _health_literacy_doc_types() -> frozenset[str]:
+    return _narrative_extras_whitelists()["health_literacy"]
 
 
 def _writing_day_of(spec: DocumentTypeSpec, ctx: NarrativeContext) -> int | None:
@@ -153,7 +160,7 @@ def _build_extra_context(
         # planning). Also emit whenever the template does NOT already
         # render `physical_examination` (which typically states vitals
         # but not height / weight / blood type).
-        if doc_type in _BIOMETRICS_DOC_TYPES:
+        if doc_type in _biometrics_doc_types():
             _bio = _render_patient_biometrics(p, lang=ctx.target_lang)
             if _bio:
                 extra["patient_biometrics"] = _bio
@@ -161,7 +168,7 @@ def _build_extra_context(
         # patient-facing narrative (discharge_instructions, referral
         # letter courtesy, family_communication register). LOCALE-INVARIANT
         # tag — the prompt localises the tone rules per language.
-        if doc_type in _HEALTH_LITERACY_DOC_TYPES:
+        if doc_type in _health_literacy_doc_types():
             _hl = _health_literacy_tag(p)
             if _hl:
                 extra["health_literacy_tag"] = _hl
