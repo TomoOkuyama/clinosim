@@ -1,0 +1,48 @@
+# US Core profile URLs — resource_type → [profile_url, ...].
+#
+# URLs quoted verbatim from the `hl7.fhir.us.core@9.0.0` IG package
+# (`package/StructureDefinition-us-core-*.json` `.url` fixedUri) per the
+# repo convention (`feedback_verify_fhir_profile_uri_from_spec`).
+#
+# Migrated from the inline `_US_CORE_PROFILES` + `_US_CORE_CONDITION_CATEGORY_PROFILES`
+# dicts in `clinosim/modules/output/fhir_r4/post_process/profile.py` under
+# the post-#1849 review (hardcoded-audit Finding 11).
+
+metadata:
+  name: US Core Profile URLs
+  description: >
+    Resource type → US Core v9 profile URL mapping used by
+    `_apply_us_core_profile`. Includes a category-dispatch block for
+    Condition (encounter-diagnosis vs problem-list-item) because US
+    Core v9 publishes multiple variants keyed on `category.coding[].code`.
+  source: hl7.fhir.us.core@9.0.0 IG package
+  version: '9.0.0'
+
+# Single-profile resource types (no category dispatch).
+profiles:
+  Patient:
+    - http://hl7.org/fhir/us/core/StructureDefinition/us-core-patient
+  Coverage:
+    - http://hl7.org/fhir/us/core/StructureDefinition/us-core-coverage
+  MedicationRequest:
+    - http://hl7.org/fhir/us/core/StructureDefinition/us-core-medicationrequest
+  Immunization:
+    - http://hl7.org/fhir/us/core/StructureDefinition/us-core-immunization
+  AllergyIntolerance:
+    - http://hl7.org/fhir/us/core/StructureDefinition/us-core-allergyintolerance
+  Procedure:
+    - http://hl7.org/fhir/us/core/StructureDefinition/us-core-procedure
+  Practitioner:
+    - http://hl7.org/fhir/us/core/StructureDefinition/us-core-practitioner
+  Organization:
+    - http://hl7.org/fhir/us/core/StructureDefinition/us-core-organization
+  Encounter:
+    - http://hl7.org/fhir/us/core/StructureDefinition/us-core-encounter
+
+# Condition category-dispatched profile URLs (Issue #1768 T8b-1).
+# Dispatch inspects `category.coding[].code`. A Condition without a
+# recognized code gets no profile claim (data-completeness precondition —
+# see `feedback_profile_assertion_requires_data_completeness`).
+condition_category_profiles:
+  encounter-diagnosis: http://hl7.org/fhir/us/core/StructureDefinition/us-core-condition-encounter-diagnosis
+  problem-list-item: http://hl7.org/fhir/us/core/StructureDefinition/us-core-condition-problems-health-concerns

@@ -167,8 +167,8 @@ class TestJpClinsProfileEmissionInvariants:
 
     def test_jp_bacterial_pneumonia_cohort_has_clins_profiles(self, jp_bacterial_pneumonia_resources):
         from clinosim.modules.output.fhir_r4.post_process import (
-            _JP_CLINS_PROFILES,
             _is_lab_observation,
+            _jp_clins_profiles,
         )
 
         # Dense JP-CLINS resource types for an inpatient bacterial pneumonia
@@ -179,12 +179,12 @@ class TestJpClinsProfileEmissionInvariants:
 
         for r in jp_bacterial_pneumonia_resources:
             rt = r["resourceType"]
-            if rt not in _JP_CLINS_PROFILES:
+            if rt not in _jp_clins_profiles():
                 continue
             if rt == "Observation" and not _is_lab_observation(r):
                 continue
             profs = r.get("meta", {}).get("profile", [])
-            expected = _JP_CLINS_PROFILES[rt][0]
+            expected = _jp_clins_profiles()[rt][0]
             assert expected in profs, f"{rt}/{r.get('id')} missing {expected}, got {profs}"
             if rt in expected_dense:
                 seen_dense.add(rt)

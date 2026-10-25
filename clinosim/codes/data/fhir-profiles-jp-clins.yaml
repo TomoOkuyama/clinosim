@@ -1,0 +1,48 @@
+# JP-CLINS eCS profile URLs — resource_type → [profile_url, ...].
+#
+# URLs verified against jpfhir.jp/fhir/clins/igv1/artifacts.html
+# (v1.13.0, 2026-02-16) on 2026-07-12. Canonical URLs use /fhir/eCS/
+# path.
+#
+# JP-CLINS v1.13.0 publishes 5 profiles covering the "6 information
+# items" domain: 傷病名 + 感染症 share JP_Condition_eCS; DiagnosticReport
+# is not in JP-CLINS scope (lab results emitted only as
+# Observation.LabResult).
+#
+# Migrated from the inline `_JP_CLINS_PROFILES` dict in
+# `clinosim/modules/output/fhir_r4/post_process/profile.py` under the
+# post-#1849 review (hardcoded-audit Finding 11).
+
+metadata:
+  name: JP-CLINS eCS Profile URLs
+  description: >
+    Resource type → JP-CLINS eCS profile URL mapping used by
+    `_apply_jp_clins_profile`. Issue #745 (Wave 3) added four
+    additional eCS profiles whose must-support is either zero
+    (DocumentReference / Device / DeviceUseStatement) or satisfiable
+    by a single deterministic field (Immunization →
+    meta.lastUpdated). Encounter_eCS (64 MS) + FamilyMemberHistory_eCS
+    (26 MS) deferred to follow-up per the memory rule
+    `[★★★★ Profile assertion は data-completeness verify 後]`.
+  source: jpfhir.jp/fhir/clins/igv1 (JP-CLINS v1.13.0)
+  version: '1.13.0'
+
+profiles:
+  Condition:
+    - http://jpfhir.jp/fhir/eCS/StructureDefinition/JP_Condition_eCS
+  AllergyIntolerance:
+    - http://jpfhir.jp/fhir/eCS/StructureDefinition/JP_AllergyIntolerance_eCS
+  Observation:
+    - http://jpfhir.jp/fhir/eCS/StructureDefinition/JP_Observation_LabResult_eCS
+  MedicationRequest:
+    - http://jpfhir.jp/fhir/eCS/StructureDefinition/JP_MedicationRequest_eCS
+  Procedure:
+    - http://jpfhir.jp/fhir/eCS/StructureDefinition/JP_Procedure_eCS
+  DocumentReference:
+    - http://jpfhir.jp/fhir/eCS/StructureDefinition/JP_DocumentReference_eCS
+  Immunization:
+    - http://jpfhir.jp/fhir/eCS/StructureDefinition/JP_Immunization_eCS
+  Device:
+    - http://jpfhir.jp/fhir/eCS/StructureDefinition/JP_Device_eCS
+  DeviceUseStatement:
+    - http://jpfhir.jp/fhir/eCS/StructureDefinition/JP_DeviceUseStatement_eCS

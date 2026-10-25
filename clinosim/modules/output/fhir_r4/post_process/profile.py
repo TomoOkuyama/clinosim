@@ -13,6 +13,8 @@ data-completeness verification".
 from __future__ import annotations
 
 import re
+from functools import cache
+from pathlib import Path
 
 # FHIR R4 `Resource.id` type: `[A-Za-z0-9\-\.]{1,64}`. iris4h-ai P0 finding
 # (2026-07-17): 812,606 ids across the export violated this spec — `_` in id
@@ -30,50 +32,54 @@ _FHIR_ID_PATTERN = re.compile(r"^[A-Za-z0-9\-\.]{1,64}$")
 # shape matches `_JP_CLINS_PROFILES` below. Future JP Core release with
 # multiple sibling profiles per resource type (e.g. JP_Observation_Common
 # + JP_Observation_Vital) can be listed here without an accessor change.
-_JP_CORE_PROFILES: dict[str, list[str]] = {
-    # Resources with a canonical JP Core profile URL (JPFHIR core 1.1+).
-    # Verified via https://jpfhir.jp/fhir/core/
-    "Patient": ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_Patient"],
-    "Encounter": ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_Encounter"],
-    "Condition": ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_Condition"],
-    "Coverage": ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_Coverage"],
-    "Observation": ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_Observation_Common"],
-    "MedicationRequest": ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_MedicationRequest"],
-    "MedicationAdministration": ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_MedicationAdministration"],
-    "AllergyIntolerance": ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_AllergyIntolerance"],
-    "Immunization": ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_Immunization"],
-    "Practitioner": ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_Practitioner"],
-    "PractitionerRole": ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_PractitionerRole"],
-    "Organization": ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_Organization"],
-    "DiagnosticReport": ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_DiagnosticReport_Common"],
-    # RM-6c: Procedure profile so RECORD-based and ORDER-based
-    # Procedure emissions both carry JP Core conformance.
-    "Procedure": ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_Procedure"],
-    # (#145): additional JP Core StructureDefinition URLs — spec
-    # `.url` fixedUri copied verbatim from
-    # iris4h-ai/jp_core/package/StructureDefinition-jp-*.json.
-    # JP Core 1.2.0 does NOT publish profiles for CareTeam / Composition /
-    # ClinicalImpression / Endpoint, so those four resource types remain on
-    # base FHIR R4 (Composition still carries per-doc-type JP-CLINS profiles
-    # emitted at the composition builder level; see _JP_CLINS_PROFILES
-    # attach logic in _apply_jp_clins_profile).
-    "ServiceRequest": ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_ServiceRequest_Common"],
-    "DocumentReference": ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_DocumentReference"],
-    "FamilyMemberHistory": ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_FamilyMemberHistory"],
-    # ImagingStudy has two JP Core profiles (_Radiology + _Endoscopy).
-    # clinosim only emits radiology studies (CT/CXR/MRI via `imaging` module,
-    # AD-62 — endoscopy is out of scope), so only the radiology profile is
-    # attached.
-    "ImagingStudy": ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_ImagingStudy_Radiology"],
-    # Issue #745 (Wave 3): add JP Core parents for Device / DeviceUseStatement
-    # so their JP-CLINS eCS profiles (`JP_Device_eCS` / `JP_DeviceUseStatement_eCS`)
-    # have their `baseDefinition` chain intact. Neither eCS profile adds any
-    # must-support beyond the FHIR-R4 base, so declaring both is safe (no
-    # data-completeness risk per `[★★★★ Profile assertion は data-completeness
-    # verify 後]`).
-    "Device": ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_Device"],
-    "DeviceUseStatement": ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_DeviceUseStatement"],
-}
+# JP Core / US Core / JP-CLINS profile URL registries moved under
+# post-#1880 review (hardcoded-audit Finding 11) to:
+#   - clinosim/codes/data/fhir-profiles-jp-core.yaml
+#   - clinosim/codes/data/fhir-profiles-us-core.yaml
+#   - clinosim/codes/data/fhir-profiles-jp-clins.yaml
+# Each yaml carries `metadata.source` provenance (IG package + version)
+# and is loaded once per process via the module-level `@cache`-ed
+# helpers below.
+
+
+@cache
+def _jp_core_profiles() -> dict[str, list[str]]:
+    import yaml
+
+    path = Path(__file__).resolve().parents[4] / "codes" / "data" / "fhir-profiles-jp-core.yaml"
+    with path.open(encoding="utf-8") as fh:
+        raw = yaml.safe_load(fh) or {}
+    return {str(rt): [str(u) for u in urls] for rt, urls in (raw.get("profiles", {}) or {}).items()}
+
+
+@cache
+def _us_core_profiles() -> dict[str, list[str]]:
+    import yaml
+
+    path = Path(__file__).resolve().parents[4] / "codes" / "data" / "fhir-profiles-us-core.yaml"
+    with path.open(encoding="utf-8") as fh:
+        raw = yaml.safe_load(fh) or {}
+    return {str(rt): [str(u) for u in urls] for rt, urls in (raw.get("profiles", {}) or {}).items()}
+
+
+@cache
+def _us_core_condition_category_profiles() -> dict[str, str]:
+    import yaml
+
+    path = Path(__file__).resolve().parents[4] / "codes" / "data" / "fhir-profiles-us-core.yaml"
+    with path.open(encoding="utf-8") as fh:
+        raw = yaml.safe_load(fh) or {}
+    return {str(k): str(v) for k, v in (raw.get("condition_category_profiles", {}) or {}).items()}
+
+
+@cache
+def _jp_clins_profiles() -> dict[str, list[str]]:
+    import yaml
+
+    path = Path(__file__).resolve().parents[4] / "codes" / "data" / "fhir-profiles-jp-clins.yaml"
+    with path.open(encoding="utf-8") as fh:
+        raw = yaml.safe_load(fh) or {}
+    return {str(rt): [str(u) for u in urls] for rt, urls in (raw.get("profiles", {}) or {}).items()}
 
 
 # JP Core Observation.category の canonical CodeSystem URI(spec fixedUri
@@ -107,34 +113,11 @@ _HL7_OBSERVATION_CATEGORY_SYSTEMS = frozenset(
 # (``package/StructureDefinition-us-core-*.json`` ``.url`` fixedUri)
 # per the repo convention of citing fixedUri rather than guessing
 # (``feedback_verify_fhir_profile_uri_from_spec``).
-_US_CORE_PROFILES: dict[str, list[str]] = {
-    "Patient": ["http://hl7.org/fhir/us/core/StructureDefinition/us-core-patient"],
-    "Coverage": ["http://hl7.org/fhir/us/core/StructureDefinition/us-core-coverage"],
-    "MedicationRequest": [
-        "http://hl7.org/fhir/us/core/StructureDefinition/us-core-medicationrequest",
-    ],
-    "Immunization": ["http://hl7.org/fhir/us/core/StructureDefinition/us-core-immunization"],
-    "AllergyIntolerance": [
-        "http://hl7.org/fhir/us/core/StructureDefinition/us-core-allergyintolerance",
-    ],
-    "Procedure": ["http://hl7.org/fhir/us/core/StructureDefinition/us-core-procedure"],
-    "Practitioner": ["http://hl7.org/fhir/us/core/StructureDefinition/us-core-practitioner"],
-    "Organization": ["http://hl7.org/fhir/us/core/StructureDefinition/us-core-organization"],
-    "Encounter": ["http://hl7.org/fhir/us/core/StructureDefinition/us-core-encounter"],
-}
-
-
-# US Core Condition category-dispatched profile URLs — Issue #1768 T8b-1.
-# US Core v9 publishes two Condition profiles keyed on category:
-#   - encounter-diagnosis  → us-core-condition-encounter-diagnosis
-#   - problem-list-item    → us-core-condition-problems-health-concerns
-# Dispatch inspects ``category.coding[].code``; a Condition without a
-# recognized code gets no profile claim (data-completeness
+# US Core profiles + category-dispatched Condition profiles moved to
+# `clinosim/codes/data/fhir-profiles-us-core.yaml` (post-#1880 review,
+# Finding 11). Dispatch inspects `category.coding[].code`; a Condition
+# without a recognized code gets no profile claim (data-completeness
 # precondition — see `feedback_profile_assertion_requires_data_completeness`).
-_US_CORE_CONDITION_CATEGORY_PROFILES: dict[str, str] = {
-    "encounter-diagnosis": ("http://hl7.org/fhir/us/core/StructureDefinition/us-core-condition-encounter-diagnosis"),
-    "problem-list-item": ("http://hl7.org/fhir/us/core/StructureDefinition/us-core-condition-problems-health-concerns"),
-}
 
 
 def _apply_us_core_condition_profile(resource: dict) -> None:
@@ -147,7 +130,7 @@ def _apply_us_core_condition_profile(resource: dict) -> None:
     for cat in resource.get("category", []) or []:
         for coding in cat.get("coding", []) or []:
             code = coding.get("code")
-            url = _US_CORE_CONDITION_CATEGORY_PROFILES.get(code or "")
+            url = _us_core_condition_category_profiles().get(code or "")
             if url:
                 meta = resource.setdefault("meta", {})
                 profs = meta.setdefault("profile", [])
@@ -184,7 +167,7 @@ def _apply_us_core_profile(resource: dict) -> None:
     if rt == "Condition":
         _apply_us_core_condition_profile(resource)
         return
-    profiles = _US_CORE_PROFILES.get(rt)
+    profiles = _us_core_profiles().get(rt)
     if not profiles:
         return
     meta = resource.setdefault("meta", {})
@@ -209,7 +192,7 @@ def _apply_jp_core_profile(resource: dict) -> None:
     variant profile が set 済なら generic Common の追加をスキップ。
     """
     rt = resource.get("resourceType", "")
-    profiles = _JP_CORE_PROFILES.get(rt)
+    profiles = _jp_core_profiles().get(rt)
     if not profiles:
         return
     meta = resource.setdefault("meta", {})
@@ -233,42 +216,10 @@ def _apply_jp_core_profile(resource: dict) -> None:
 # JP-CLINS v1.13.0 publishes 5 profiles covering the "6 information items"
 # domain: 傷病名 + 感染症 share JP_Condition_eCS; DiagnosticReport is not in
 # JP-CLINS scope (lab results emitted only as Observation.LabResult).
-_JP_CLINS_PROFILES: dict[str, list[str]] = {
-    "Condition": [
-        "http://jpfhir.jp/fhir/eCS/StructureDefinition/JP_Condition_eCS",
-    ],
-    "AllergyIntolerance": [
-        "http://jpfhir.jp/fhir/eCS/StructureDefinition/JP_AllergyIntolerance_eCS",
-    ],
-    "Observation": [
-        "http://jpfhir.jp/fhir/eCS/StructureDefinition/JP_Observation_LabResult_eCS",
-    ],
-    "MedicationRequest": [
-        "http://jpfhir.jp/fhir/eCS/StructureDefinition/JP_MedicationRequest_eCS",
-    ],
-    "Procedure": [
-        "http://jpfhir.jp/fhir/eCS/StructureDefinition/JP_Procedure_eCS",
-    ],
-    # Issue #745 (Wave 3): four additional eCS profiles whose must-support
-    # requirements are either zero (DocumentReference / Device /
-    # DeviceUseStatement) or satisfiable by a single deterministic field
-    # (Immunization → meta.lastUpdated, handled in the emit branch below).
-    # Encounter_eCS (64 MS) and FamilyMemberHistory_eCS (26 MS incl. many
-    # per-encounter fields at 0% coverage) are deferred to follow-up per the
-    # memory rule `[★★★★ Profile assertion は data-completeness verify 後]`.
-    "DocumentReference": [
-        "http://jpfhir.jp/fhir/eCS/StructureDefinition/JP_DocumentReference_eCS",
-    ],
-    "Immunization": [
-        "http://jpfhir.jp/fhir/eCS/StructureDefinition/JP_Immunization_eCS",
-    ],
-    "Device": [
-        "http://jpfhir.jp/fhir/eCS/StructureDefinition/JP_Device_eCS",
-    ],
-    "DeviceUseStatement": [
-        "http://jpfhir.jp/fhir/eCS/StructureDefinition/JP_DeviceUseStatement_eCS",
-    ],
-}
+# JP-CLINS eCS profile URLs moved to
+# `clinosim/codes/data/fhir-profiles-jp-clins.yaml` (post-#1880 review,
+# Finding 11). Issue #745 (Wave 3) extensions + the Encounter_eCS /
+# FamilyMemberHistory_eCS deferral rationale are captured there.
 
 # Static deterministic placeholder for `meta.lastUpdated` used to satisfy the
 # JP-CLINS eCS must-support requirement on resources whose CIF source data
@@ -306,7 +257,7 @@ def _apply_jp_clins_profile(resource: dict) -> None:
     from clinosim.modules.output.fhir_r4.lib.common import attach_ecs_institutional_extensions
 
     rt = resource.get("resourceType", "")
-    profiles = _JP_CLINS_PROFILES.get(rt)
+    profiles = _jp_clins_profiles().get(rt)
     if not profiles:
         return
     if rt == "Observation" and not _is_lab_observation(resource):

@@ -1,4 +1,4 @@
-"""Pin tests for `_JP_CORE_PROFILES` registry(session 53 issue #145 追加分)。
+"""Pin tests for `_jp_core_profiles` registry(session 53 issue #145 追加分)。
 
 JP Core StructureDefinition URL は iris4h-ai/jp_core/package/
 StructureDefinition-jp-*.json の `.url` fixedUri を直接引用する
@@ -23,16 +23,16 @@ import pytest
 )
 def test_jp_core_profile_registered_for_resource(resource_type: str, expected_url: str) -> None:
     """Session 53 (#145): 4 追加 resource type に JP Core profile が登録されている。"""
-    from clinosim.modules.output.fhir_r4.post_process import _JP_CORE_PROFILES
+    from clinosim.modules.output.fhir_r4.post_process import _jp_core_profiles
 
-    profiles = _JP_CORE_PROFILES.get(resource_type)
-    assert profiles is not None, f"{resource_type} missing from _JP_CORE_PROFILES registry"
+    profiles = _jp_core_profiles().get(resource_type)
+    assert profiles is not None, f"{resource_type} missing from _jp_core_profiles registry"
     assert expected_url in profiles, f"{resource_type} profiles={profiles} does not include {expected_url}"
 
 
 def test_jp_core_profile_registry_no_regression() -> None:
     """既存 14 resource type + 追加 4 = 18 resource type が全て存在。"""
-    from clinosim.modules.output.fhir_r4.post_process import _JP_CORE_PROFILES
+    from clinosim.modules.output.fhir_r4.post_process import _jp_core_profiles
 
     expected = {
         "Patient",
@@ -55,7 +55,7 @@ def test_jp_core_profile_registry_no_regression() -> None:
         "FamilyMemberHistory",
         "ImagingStudy",
     }
-    missing = expected - set(_JP_CORE_PROFILES.keys())
+    missing = expected - set(_jp_core_profiles().keys())
     assert not missing, f"registry lost resource types: {missing}"
 
 
@@ -86,7 +86,7 @@ def test_apply_jp_core_profile_is_idempotent() -> None:
 
 def test_jp_core_profile_not_applied_to_resource_without_registry() -> None:
     """JP Core が profile を publish していない CareTeam / Composition /
-    ClinicalImpression / Endpoint には _JP_CORE_PROFILES 経由の profile は
+    ClinicalImpression / Endpoint には _jp_core_profiles 経由の profile は
     付与されない(Composition は builder 側で JP-CLINS profile を別途 attach)。"""
     from clinosim.modules.output.fhir_r4.post_process import _apply_jp_core_profile
 
