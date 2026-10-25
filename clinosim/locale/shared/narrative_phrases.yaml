@@ -143,6 +143,14 @@ ap_plan:
     ja: "経過観察・症状に応じた対応。"
     en: "Observation with symptom-directed management."
 
+# admission_hp assessment+plan merged body (Phase A15 hardcoded-review).
+# Used by `_build_assessment_and_plan` to compose the final `【評価】` /
+# `【方針】` block from the two sub-templates.
+ap_combined:
+  assessment_plan_block:
+    ja: "【評価】{assessment}\n【方針】{plan}"
+    en: "Assessment: {assessment}\nPlan: {plan}"
+
 # Discharge-summary admission_summary head (Phase 1d-18).
 # From template_generator._build_admission_summary.
 admission_summary:
@@ -648,6 +656,26 @@ patient_demographics:
   age_only:
     ja: "{age}歳"
     en: "{age} y/o"
+  # Short bilingual sex-code display, keyed by lowercased sex code
+  # (`m`, `f`). Used by `template_generator._build_patient_summary` and
+  # elsewhere a short JA sex label is composed inline (hardcoded-review
+  # Phase A15).
+  sex_display:
+    m:
+      ja: 男性
+      en: male
+    f:
+      ja: 女性
+      en: female
+  # Phase A15: short JA patient preamble sentence used by the JA
+  # patient-summary preamble (`{age}歳{sex}患者。` / `{age}歳患者。`).
+  # Keeps the "歳" + "患者。" scaffolding out of Python.
+  patient_preamble_with_sex:
+    ja: "{age}歳{sex}患者。"
+    en: "{age} y/o {sex} patient."
+  patient_preamble_age_only:
+    ja: "{age}歳患者。"
+    en: "{age} y/o patient."
 
 patient_biometrics:
   height_weight_neonate:
