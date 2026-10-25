@@ -392,13 +392,28 @@ def _render_safety_skips_line(skips: list[dict], lang: str) -> str:
 # `hpi_template.onset_pattern` is Japanese-only, so the EN locale must
 # synthesize its own text rather than fall back to the Japanese source
 # (which would leak CJK into US Composition `.section[].text.div`).
-# Per-disease English wording quality is deferred to the LLM narrative
-# pass; these generic phrases are clinically neutral and locale-appropriate.
-_HPI_ONSET_EN: dict[str, str] = {
-    "mild": "Patient reports gradual onset of symptoms over the preceding days.",
-    "moderate": "Patient reports symptoms developing over several days with progressive worsening.",
-    "severe": "Patient reports rapid symptom worsening prompting today's presentation.",
-}
+# HPI onset templates now live in
+# `clinosim/locale/shared/narrative_phrases.yaml::hpi.onset.{mild,moderate,severe}`
+# (post-#1880 review, hardcoded-audit Finding 17). Resolved via
+# `clinosim.locale.i18n.t("hpi.onset.<severity>", lang="en")`.
+
+
+def _hpi_onset_en(severity: str) -> str:
+    """Resolve an EN HPI onset template by severity via narrative_phrases.yaml.
+
+    Falls back to the "moderate" phrasing when the severity is unknown,
+    matching the pre-#1880 `_HPI_ONSET_EN.get(ctx.severity) or
+    _HPI_ONSET_EN["moderate"]` idiom at the one call site in
+    `template_generator._render_hpi_onset`.
+    """
+    from clinosim.locale.i18n import t
+
+    phrase = t(f"hpi.onset.{severity}", "en")
+    if phrase.startswith("hpi.onset."):
+        # i18n miss returns the key verbatim — fall back to "moderate".
+        phrase = t("hpi.onset.moderate", "en")
+    return phrase
+
 
 # Nursing section fallback phrases
 

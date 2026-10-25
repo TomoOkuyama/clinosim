@@ -141,9 +141,6 @@ from clinosim.modules.document.narrative._template_helpers import (
     _GENERIC_PLAN_JA as _GENERIC_PLAN_JA,
 )
 from clinosim.modules.document.narrative._template_helpers import (
-    _HPI_ONSET_EN as _HPI_ONSET_EN,
-)
-from clinosim.modules.document.narrative._template_helpers import (
     _KNOWN_PLACEHOLDERS as _KNOWN_PLACEHOLDERS,
 )
 from clinosim.modules.document.narrative._template_helpers import (
@@ -151,6 +148,9 @@ from clinosim.modules.document.narrative._template_helpers import (
 )
 from clinosim.modules.document.narrative._template_helpers import (
     _format_vital_value as _format_vital_value,
+)
+from clinosim.modules.document.narrative._template_helpers import (
+    _hpi_onset_en as _hpi_onset_en,
 )
 from clinosim.modules.document.narrative._template_helpers import (
     _label as _label,
@@ -878,7 +878,7 @@ class TemplateNarrativeGenerator:
         # deferred to the LLM narrative pass — a functional fallback beats
         # a locale leak).
         if lang != "ja":
-            onset_text_en = _HPI_ONSET_EN.get(ctx.severity) or _HPI_ONSET_EN["moderate"]
+            onset_text_en = _hpi_onset_en(ctx.severity)
             facts.append(f"generic:hpi_onset_en.{ctx.severity}")
             return onset_text_en, facts
 

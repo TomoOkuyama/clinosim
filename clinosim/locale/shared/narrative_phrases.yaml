@@ -1148,6 +1148,18 @@ hpi:
   ref_no_severity:
     ja: "受診となった。"
     en: "Patient presented for evaluation."
+  # Generic onset templates by severity (hardcoded-audit Finding 17).
+  # Used by `template_generator._render_hpi_onset` when `lang != "ja"`
+  # and the disease YAML has no `onset_pattern` override. Per-disease
+  # English wording quality is deferred to the LLM narrative pass;
+  # these generic phrases are clinically neutral and locale-appropriate.
+  onset:
+    mild:
+      en: "Patient reports gradual onset of symptoms over the preceding days."
+    moderate:
+      en: "Patient reports symptoms developing over several days with progressive worsening."
+    severe:
+      en: "Patient reports rapid symptom worsening prompting today's presentation."
 
 # Diagnoses + chief-complaint compound section (JP-CLINS referral 340).
 # From template_generator._build_diagnoses_and_complaint.
