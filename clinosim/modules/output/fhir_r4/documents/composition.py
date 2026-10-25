@@ -70,6 +70,7 @@ from clinosim.modules.output.fhir_r4.documents.referral_orgs import (
 from clinosim.modules.output.fhir_r4.encounters.encounter import encounter_ref, resolve_encounter_id
 from clinosim.modules.output.fhir_r4.lib.common import BundleContext, _escape_html, derive_meta_last_updated
 from clinosim.modules.output.fhir_r4.lib.ids import derive_opaque_id
+from clinosim.modules.output.fhir_r4.lib.localization import _clinician_role_rows
 
 # === Issue #854 Bucket B (PR-composition): opaque Composition.id ===
 # Same pattern as PR #357 / #863 / #867 / #868 / #869 / #878 / #879 /
@@ -138,26 +139,30 @@ _STAFF_ID_RE = re.compile(r"\b([A-Z]{2})-[A-Z]{2}-\d{3}\b")
 # and "physician" in EN; nurse ids (`NS-*` / `CN-*`) render with "看護師"
 # etc. Prefixes not listed here render name-only (no suffix) so unknown
 # staff roles do not silently fabricate a role.
-_STAFF_ROLE_SUFFIX_JA: dict[str, str] = {
-    "DR": "医師",
-    "NS": "看護師",
-    "CN": "看護師",  # certified nurse
-    "RT": "呼吸療法士",
-    "PT": "理学療法士",
-    "OT": "作業療法士",
-    "ST": "言語聴覚士",
-    "PH": "薬剤師",
-}
-_STAFF_ROLE_SUFFIX_EN: dict[str, str] = {
-    "DR": "physician",
-    "NS": "nurse",
-    "CN": "nurse",
-    "RT": "respiratory therapist",
-    "PT": "physical therapist",
-    "OT": "occupational therapist",
-    "ST": "speech therapist",
-    "PH": "pharmacist",
-}
+# Staff id-prefix → role-suffix maps are derived from
+# `clinosim/codes/data/clinosim-clinician-role.yaml` (JP + EN columns on
+# the same row). Call `_staff_role_suffix_ja()` / `_staff_role_suffix_en()`
+# at the use site instead of a module-level constant.
+
+
+def _staff_role_suffix_ja() -> dict[str, str]:
+    out: dict[str, str] = {}
+    for row in _clinician_role_rows().values():
+        prefix = row.get("staff_prefix") if isinstance(row, dict) else None
+        suffix = row.get("suffix_ja") if isinstance(row, dict) else None
+        if isinstance(prefix, str) and isinstance(suffix, str):
+            out[prefix] = suffix
+    return out
+
+
+def _staff_role_suffix_en() -> dict[str, str]:
+    out: dict[str, str] = {}
+    for row in _clinician_role_rows().values():
+        prefix = row.get("staff_prefix") if isinstance(row, dict) else None
+        suffix = row.get("suffix_en") if isinstance(row, dict) else None
+        if isinstance(prefix, str) and isinstance(suffix, str):
+            out[prefix] = suffix
+    return out
 
 
 def _localize_practitioner_ids_in_text(text: str, roster_map: dict[str, dict], country: str) -> str:
@@ -172,7 +177,7 @@ def _localize_practitioner_ids_in_text(text: str, roster_map: dict[str, dict], c
     """
     if not text or not roster_map:
         return text
-    suffix_map = _STAFF_ROLE_SUFFIX_JA if is_jp(country) else _STAFF_ROLE_SUFFIX_EN
+    suffix_map = _staff_role_suffix_ja() if is_jp(country) else _staff_role_suffix_en()
 
     def _sub(m: re.Match) -> str:
         sid = m.group(0)

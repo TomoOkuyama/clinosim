@@ -11,6 +11,8 @@ This module must NOT import ``fhir_r4_adapter`` (no circular import).
 from __future__ import annotations
 
 import re
+from functools import cache
+from pathlib import Path
 
 from clinosim.codes import lookup as code_lookup
 from clinosim.locale.loader import load_department_display as _load_department_display
@@ -551,16 +553,46 @@ def localize_fixed_label(en_label: str, country: str) -> str:
     return en_label
 
 
-_ROLE_PREFIX_MAP_JA: dict[str, dict[str, str]] = {
-    "physician": {"qual_code": "MD", "qual_display": "医師", "prefix": ""},
-    "nurse": {"qual_code": "RN", "qual_display": "看護師", "prefix": ""},
-    "lab_technician": {"qual_code": "MT", "qual_display": "臨床検査技師", "prefix": ""},
-    "radiologist": {"qual_code": "MD", "qual_display": "放射線科医", "prefix": ""},
-    "pharmacist": {"qual_code": "PharmD", "qual_display": "薬剤師", "prefix": ""},
-    # CY6-02 (Chain-6): allied-health qualifications (C5-25 roster).
-    "physical_therapist": {"qual_code": "PT", "qual_display": "理学療法士", "prefix": ""},
-    "occupational_therapist": {"qual_code": "OT", "qual_display": "作業療法士", "prefix": ""},
-    "speech_therapist": {"qual_code": "ST", "qual_display": "言語聴覚士", "prefix": ""},
-    "medical_social_worker": {"qual_code": "MSW", "qual_display": "医療ソーシャルワーカー", "prefix": ""},
-    "dietitian": {"qual_code": "RD", "qual_display": "管理栄養士", "prefix": ""},
-}
+@cache
+def _clinician_role_rows() -> dict[str, dict[str, object]]:
+    """Load `clinosim/codes/data/clinosim-clinician-role.yaml` as a
+    role_key → row dict map."""
+    import yaml
+
+    path = Path(__file__).resolve().parents[4] / "codes" / "data" / "clinosim-clinician-role.yaml"
+    with path.open(encoding="utf-8") as fh:
+        raw = yaml.safe_load(fh) or {}
+    rows = raw.get("roles") or {}
+    out: dict[str, dict[str, object]] = {}
+    for role_key, row in rows.items():
+        if isinstance(row, dict):
+            out[str(role_key)] = row
+    return out
+
+
+def _role_prefix_map_ja() -> dict[str, dict[str, str]]:
+    """Return the role → {qual_code, qual_display, prefix} map derived
+    from `clinosim/codes/data/clinosim-clinician-role.yaml`. Rows without
+    a `qualification:` entry (narrative-only roles like certified_nurse)
+    are omitted; callers already treat a missing key as "no FHIR
+    qualification materialised".
+    """
+    rows = _clinician_role_rows()
+    out: dict[str, dict[str, str]] = {}
+    for role_key, row in rows.items():
+        qual = row.get("qualification") if isinstance(row, dict) else None
+        if not isinstance(qual, dict):
+            continue
+        out[role_key] = {
+            "qual_code": str(qual.get("code", "")),
+            "qual_display": str(qual.get("display", "")),
+            "prefix": "",
+        }
+    return out
+
+
+# BACKWARDS-COMPAT: `_ROLE_PREFIX_MAP_JA` is retained as a thin
+# module-level attribute computed from the yaml so existing imports in
+# `demographics/practitioner.py` and `fhir_r4/lib/inline_bb.py` keep
+# working. New code should call `_role_prefix_map_ja()` directly.
+_ROLE_PREFIX_MAP_JA: dict[str, dict[str, str]] = _role_prefix_map_ja()
