@@ -246,7 +246,7 @@ jobs:
       - name: Install pinned ruff
         # Match the version pinned in the informational Quality job so
         # findings reproduce byte-identically across the two jobs.
-        run: uv pip install --system "ruff==0.16.3"
+        run: uv pip install --system "ruff==0.17.1"
       - name: ruff check --select F401,F841 clinosim/ tests/
         run: ruff check --select F401,F841 clinosim/ tests/
 
@@ -309,7 +309,7 @@ jobs:
         # across machines. Bumping this line = intentional lint-config change.
         # Kept in sync with pyproject.toml's dev-extras ruff spec so local
         # `uv pip install -e .[dev]` and CI resolve to the same version.
-        run: uv pip install --system "ruff==0.16.9"
+        run: uv pip install --system "ruff==0.17.1"
       - name: ruff check
         run: ruff check clinosim/ tests/
       - name: ruff format --check
