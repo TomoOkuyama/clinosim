@@ -1,0 +1,61 @@
+---
+# cc-pe-consistency-keywords.yaml — chief-complaint ↔ physical-exam
+# consistency rails
+#
+# Governs `_apply_cc_pe_consistency` in
+# `clinosim/modules/document/narrative/_narrative_utils.py`. Two clinical
+# rails: an altered-consciousness CC should never co-exist with a
+# 「意識清明」 PE finding, and a severe-dyspnea CC should never co-exist
+# with a 「呼吸音清明」 PE finding. When the CC keyword is present AND
+# not negated by a right-adjacent `negation_tokens.right` token, the
+# PE prose is rewritten with a clinically plausible finding drawn
+# deterministically from the matching replacement pool (SHA256 keyed
+# on encounter_id — RNG-neutral).
+#
+# All patterns are JP-only; English narrative is handled upstream by
+# a different renderer. ASCII negation tokens would never match CC
+# text here.
+
+metadata:
+  source: >-
+    clinosim/modules/document/narrative/_narrative_utils.py
+    (_CC_ALTERED_CONSCIOUSNESS_KEYWORDS,
+     _CC_SEVERE_DYSPNEA_KEYWORDS,
+     _CC_NEGATION_TOKENS_RIGHT,
+     _PE_ALTERED_CONSCIOUSNESS_POOL_JA,
+     _PE_SEVERE_DYSPNEA_POOL_JA)
+    prior to hardcoded-audit Finding 16.
+
+cc_keywords:
+  altered_consciousness:
+    - 意識障害
+    - 意識消失
+    - 意識レベル低下
+    - 意識もうろう
+    - 昏睡
+  severe_dyspnea:
+    - 呼吸困難
+    - 息苦しさ
+    - 息苦しい
+    - 喘鳴
+
+negation_tokens:
+  right:
+    - なし
+    - 無し
+    - 認めず
+    - 認めない
+    - 否定
+    - なく
+
+pe_replacement_pool:
+  altered_consciousness:
+    - GCS E3V4M5 (12/15)、JCS I-2 相当の応答遅延あり
+    - JCS I-2、簡単な問いかけには応答するも見当識低下あり
+    - GCS E3V5M6 (14/15)、傾眠傾向
+    - JCS II-10、呼びかけで開眼、内容曖昧
+  severe_dyspnea:
+    - 両肺 wheeze 聴取、呼気延長あり
+    - 呼吸促迫、両側 crackles 聴取
+    - 呼気時 wheeze 著明、SpO2 低下
+    - 頻呼吸、努力呼吸あり、両側 rhonchi 聴取

@@ -22,6 +22,8 @@ from __future__ import annotations
 
 import hashlib
 from datetime import datetime
+from functools import cache
+from pathlib import Path
 from typing import Any
 
 from clinosim.modules._shared import get_attr_or_key as _o
@@ -296,57 +298,47 @@ def _parse_iso_datetime(raw: Any) -> datetime | None:
 # keeps the transform deterministic and RNG-neutral
 # (feedback_rng_neutral_additive_field).
 
-# Consciousness keywords in the chief_complaint that should invalidate a
-# subsequent 「意識清明」 in the physical exam. Matched as literal substrings
-# on the JP chief_complaint text.
-_CC_ALTERED_CONSCIOUSNESS_KEYWORDS: tuple[str, ...] = (
-    "意識障害",
-    "意識消失",
-    "意識レベル低下",
-    "意識もうろう",
-    "昏睡",
-)
+# CC keyword / PE replacement pools now live in
+# `clinosim/codes/data/cc-pe-consistency-keywords.yaml`. The accessors
+# below load them lazily; the clinical rationale (altered consciousness
+# CC must not co-exist with 「意識清明」 PE; severe dyspnea CC must not
+# co-exist with 「呼吸音清明」 PE; replacement is deterministic via
+# SHA256(encounter_id)) is captured in the yaml's metadata block.
 
-# Severe-dyspnea keywords that should invalidate a subsequent 「呼吸音清明」.
-_CC_SEVERE_DYSPNEA_KEYWORDS: tuple[str, ...] = (
-    "呼吸困難",
-    "息苦しさ",
-    "息苦しい",
-    "喘鳴",
-)
 
-# Right-side negation tokens: if any of these follows the keyword within the
-# next few characters, treat the keyword as negated (「意識障害なし」等) and
-# leave PE prose unchanged.
-_CC_NEGATION_TOKENS_RIGHT: tuple[str, ...] = (
-    "なし",
-    "無し",
-    "認めず",
-    "認めない",
-    "否定",
-    "なく",
-)
-# Left-side negation prefixes are rare in JP chief_complaint text but included
-# for defensiveness (「否定的な意識障害」等 is uncommon; usually stated as
-# postfixed 「なし」).
+@cache
+def _cc_pe_consistency_keywords() -> dict[str, Any]:
+    """Load `clinosim/codes/data/cc-pe-consistency-keywords.yaml`."""
+    import yaml
 
-# PE prose fragments to replace. We match the exact catalog text emitted by
-# `_format_physical_exam` (per `clinosim/modules/document/reference_data/
-# physical_exam_findings.yaml` + disease YAML). "意識清明" appears both alone
-# and inside longer phrases; the replacement rewrites the whole clause up to
-# the next 、/。/, .
-_PE_ALTERED_CONSCIOUSNESS_POOL_JA: tuple[str, ...] = (
-    "GCS E3V4M5 (12/15)、JCS I-2 相当の応答遅延あり",
-    "JCS I-2、簡単な問いかけには応答するも見当識低下あり",
-    "GCS E3V5M6 (14/15)、傾眠傾向",
-    "JCS II-10、呼びかけで開眼、内容曖昧",
-)
-_PE_SEVERE_DYSPNEA_POOL_JA: tuple[str, ...] = (
-    "両肺 wheeze 聴取、呼気延長あり",
-    "呼吸促迫、両側 crackles 聴取",
-    "呼気時 wheeze 著明、SpO2 低下",
-    "頻呼吸、努力呼吸あり、両側 rhonchi 聴取",
-)
+    path = Path(__file__).resolve().parents[3] / "codes" / "data" / "cc-pe-consistency-keywords.yaml"
+    with path.open(encoding="utf-8") as fh:
+        return yaml.safe_load(fh) or {}
+
+
+def _cc_altered_consciousness_keywords() -> tuple[str, ...]:
+    rows = (_cc_pe_consistency_keywords().get("cc_keywords") or {}).get("altered_consciousness") or []
+    return tuple(str(r) for r in rows if isinstance(r, str))
+
+
+def _cc_severe_dyspnea_keywords() -> tuple[str, ...]:
+    rows = (_cc_pe_consistency_keywords().get("cc_keywords") or {}).get("severe_dyspnea") or []
+    return tuple(str(r) for r in rows if isinstance(r, str))
+
+
+def _cc_negation_tokens_right() -> tuple[str, ...]:
+    rows = (_cc_pe_consistency_keywords().get("negation_tokens") or {}).get("right") or []
+    return tuple(str(r) for r in rows if isinstance(r, str))
+
+
+def _pe_altered_consciousness_pool_ja() -> tuple[str, ...]:
+    rows = (_cc_pe_consistency_keywords().get("pe_replacement_pool") or {}).get("altered_consciousness") or []
+    return tuple(str(r) for r in rows if isinstance(r, str))
+
+
+def _pe_severe_dyspnea_pool_ja() -> tuple[str, ...]:
+    rows = (_cc_pe_consistency_keywords().get("pe_replacement_pool") or {}).get("severe_dyspnea") or []
+    return tuple(str(r) for r in rows if isinstance(r, str))
 
 
 def _cc_keyword_positively_present(cc_text: str, keywords: tuple[str, ...]) -> bool:
@@ -367,7 +359,7 @@ def _cc_keyword_positively_present(cc_text: str, keywords: tuple[str, ...]) -> b
                 break
             end = idx + len(kw)
             tail = cc_text[end : end + 6]
-            if not any(neg in tail for neg in _CC_NEGATION_TOKENS_RIGHT):
+            if not any(neg in tail for neg in _cc_negation_tokens_right()):
                 return True
             start = end
     return False
