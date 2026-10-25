@@ -84,19 +84,7 @@ from clinosim.modules.document.narrative._narrative_interpretation_thresholds im
     NUTRITION_PROTEIN_G_PER_KG_MIDPOINT,
 )
 from clinosim.modules.document.narrative._narrative_utils import (
-    _CC_ALTERED_CONSCIOUSNESS_KEYWORDS as _CC_ALTERED_CONSCIOUSNESS_KEYWORDS,
-)
-from clinosim.modules.document.narrative._narrative_utils import (
-    _CC_SEVERE_DYSPNEA_KEYWORDS as _CC_SEVERE_DYSPNEA_KEYWORDS,
-)
-from clinosim.modules.document.narrative._narrative_utils import (
     _DDS_AUTOPSY_PROB_CUTOFF as _DDS_AUTOPSY_PROB_CUTOFF,
-)
-from clinosim.modules.document.narrative._narrative_utils import (
-    _PE_ALTERED_CONSCIOUSNESS_POOL_JA as _PE_ALTERED_CONSCIOUSNESS_POOL_JA,
-)
-from clinosim.modules.document.narrative._narrative_utils import (
-    _PE_SEVERE_DYSPNEA_POOL_JA as _PE_SEVERE_DYSPNEA_POOL_JA,
 )
 from clinosim.modules.document.narrative._narrative_utils import (
     _age_at as _age_at,
@@ -105,7 +93,13 @@ from clinosim.modules.document.narrative._narrative_utils import (
     _autopsy_performed_sha256 as _autopsy_performed_sha256,
 )
 from clinosim.modules.document.narrative._narrative_utils import (
+    _cc_altered_consciousness_keywords as _cc_altered_consciousness_keywords,
+)
+from clinosim.modules.document.narrative._narrative_utils import (
     _cc_keyword_positively_present as _cc_keyword_positively_present,
+)
+from clinosim.modules.document.narrative._narrative_utils import (
+    _cc_severe_dyspnea_keywords as _cc_severe_dyspnea_keywords,
 )
 from clinosim.modules.document.narrative._narrative_utils import (
     _filter_vitals_for_day as _filter_vitals_for_day,
@@ -115,6 +109,12 @@ from clinosim.modules.document.narrative._narrative_utils import (
 )
 from clinosim.modules.document.narrative._narrative_utils import (
     _parse_iso_datetime as _parse_iso_datetime,
+)
+from clinosim.modules.document.narrative._narrative_utils import (
+    _pe_altered_consciousness_pool_ja as _pe_altered_consciousness_pool_ja,
+)
+from clinosim.modules.document.narrative._narrative_utils import (
+    _pe_severe_dyspnea_pool_ja as _pe_severe_dyspnea_pool_ja,
 )
 from clinosim.modules.document.narrative._narrative_utils import (
     _pick_from_pool_by_encounter as _pick_from_pool_by_encounter,
@@ -3947,15 +3947,15 @@ class TemplateNarrativeGenerator:
 
         enc_id = _o(enc, "encounter_id", "") or ""
 
-        if _cc_keyword_positively_present(cc, _CC_ALTERED_CONSCIOUSNESS_KEYWORDS):
-            replacement = _pick_from_pool_by_encounter(_PE_ALTERED_CONSCIOUSNESS_POOL_JA, enc_id, "pe_consciousness")
+        if _cc_keyword_positively_present(cc, _cc_altered_consciousness_keywords()):
+            replacement = _pick_from_pool_by_encounter(_pe_altered_consciousness_pool_ja(), enc_id, "pe_consciousness")
             new_text = _rewrite_pe_clause(text, ("意識清明",), replacement)
             if new_text != text:
                 facts.append("cc_pe_consistency:consciousness")
                 text = new_text
 
-        if _cc_keyword_positively_present(cc, _CC_SEVERE_DYSPNEA_KEYWORDS):
-            replacement = _pick_from_pool_by_encounter(_PE_SEVERE_DYSPNEA_POOL_JA, enc_id, "pe_respiratory")
+        if _cc_keyword_positively_present(cc, _cc_severe_dyspnea_keywords()):
+            replacement = _pick_from_pool_by_encounter(_pe_severe_dyspnea_pool_ja(), enc_id, "pe_respiratory")
             new_text = _rewrite_pe_clause(text, ("呼吸音清明",), replacement)
             if new_text != text:
                 facts.append("cc_pe_consistency:respiratory")
