@@ -674,6 +674,20 @@ def load_department_display() -> dict[str, dict[str, str]]:
     return raw.get("departments", {}) or {}
 
 
+@lru_cache(maxsize=1)
+def load_allergen_rxnorm_map() -> dict[str, str]:
+    """Load the EN allergen substance → RxNorm ingredient CUI mapping.
+
+    Reads the `allergen_rxnorm` block of `clinosim/codes/data/
+    clinosim-allergen-substance.yaml`, migrated from the pre-#1880
+    `clinosim/modules/output/fhir_r4/lib/reference_data.py::_ALLERGEN_RXNORM`
+    inline dict (hardcoded-audit Finding 14).
+    """
+    _allergen_substance_catalog = _LOCALE_DIR.parent / "codes" / "data" / "clinosim-allergen-substance.yaml"
+    raw = _load_yaml(_allergen_substance_catalog, fallback={})
+    return {str(k): str(v) for k, v in (raw.get("allergen_rxnorm", {}) or {}).items()}
+
+
 # ---------------------------------------------------------------------------
 # Narrative-renderer vocabulary loaders (Phase 1d-1, 2026-09-23)
 #
