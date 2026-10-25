@@ -407,15 +407,26 @@ def _replay_cached_admission_queue(
 # ev_key comment in the P4 calendar loop below). Each needs its own visit
 # reason text so two screenings landing on the same calendar date don't
 # collapse into indistinguishable encounters.
-_HEALTH_SCREENING_VISIT_REASON: dict[str, dict[str, str]] = {
-    "annual_health_screening": {"en": "Annual health screening", "ja": "年次健診"},
-    "colonoscopy_screening": {"en": "Colonoscopy screening", "ja": "大腸内視鏡検診"},
-    "mammography_screening": {"en": "Mammography screening", "ja": "マンモグラフィー検診"},
-}
-_HEALTH_SCREENING_VISIT_REASON_FALLBACK: dict[str, str] = {
-    "en": "Annual health screening",
-    "ja": "年次健診",
-}
+# Visit-reason display per screening sub-kind — authoritative yaml at
+# `clinosim/locale/shared/health_screening_visit_reason.yaml`
+# (hardcoded-review Phase A7). Loader-backed module-level aliases so
+# every call site and the pin test (tests/unit/simulator/
+# test_chief_complaint_localization.py) stays unchanged.
+def _load_health_screening_visit_reason() -> tuple[dict[str, dict[str, str]], dict[str, str]]:
+    from clinosim.locale.loader import load_health_screening_visit_reason
+
+    raw = load_health_screening_visit_reason()
+    screenings_raw = raw.get("screenings", {}) or {}
+    screenings: dict[str, dict[str, str]] = {}
+    for key, row in screenings_raw.items():
+        if isinstance(row, dict):
+            screenings[str(key)] = {lang: str(txt) for lang, txt in row.items()}
+    fallback_raw = raw.get("fallback", {}) or {}
+    fallback: dict[str, str] = {str(k): str(v) for k, v in fallback_raw.items()}
+    return screenings, fallback
+
+
+_HEALTH_SCREENING_VISIT_REASON, _HEALTH_SCREENING_VISIT_REASON_FALLBACK = _load_health_screening_visit_reason()
 
 
 def _pediatric_visit_reason(disease_id: str) -> str | dict[str, str]:
