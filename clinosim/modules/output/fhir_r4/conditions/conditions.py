@@ -6,6 +6,8 @@ leaf data, shared helpers, and stdlib/first-party deps — never the adapter.
 
 from __future__ import annotations
 
+from functools import cache
+from pathlib import Path
 from typing import Any
 
 from clinosim.codes import get_system_uri, system_key_for
@@ -64,30 +66,22 @@ from clinosim.modules.output.fhir_r4.lib.localization import (
 # 特定の解剖学的部位を持つ疾患について SNOMED body structure コードを付与。
 # 非部位性(高血圧・糖尿病等)は bodySite emit しない = 100% 化はせず
 # 臨床的に意味のある約 15 疾患に絞る。ICD prefix で match、no fabrication。
-_CONDITION_BODY_SITE: dict[str, dict[str, str]] = {
-    # 呼吸器
-    "J18": {"code": "39607008", "display_en": "Lung structure", "display_ja": "肺"},
-    "J13": {"code": "39607008", "display_en": "Lung structure", "display_ja": "肺"},
-    "J14": {"code": "39607008", "display_en": "Lung structure", "display_ja": "肺"},
-    "J15": {"code": "39607008", "display_en": "Lung structure", "display_ja": "肺"},
-    "J44": {"code": "39607008", "display_en": "Lung structure", "display_ja": "肺"},
-    "J45": {"code": "955009", "display_en": "Bronchial structure", "display_ja": "気管支"},
-    # 心血管
-    "I21": {"code": "80891009", "display_en": "Heart structure", "display_ja": "心臓"},
-    "I25": {"code": "80891009", "display_en": "Heart structure", "display_ja": "心臓"},
-    "I50": {"code": "80891009", "display_en": "Heart structure", "display_ja": "心臓"},
-    # 脳血管
-    "I63": {"code": "12738006", "display_en": "Brain structure", "display_ja": "脳"},
-    "I61": {"code": "12738006", "display_en": "Brain structure", "display_ja": "脳"},
-    "I60": {"code": "12738006", "display_en": "Brain structure", "display_ja": "脳"},
-    # 泌尿器
-    "N10": {"code": "64033007", "display_en": "Kidney structure", "display_ja": "腎臓"},
-    "N17": {"code": "64033007", "display_en": "Kidney structure", "display_ja": "腎臓"},
-    "N39": {"code": "89837001", "display_en": "Urinary bladder structure", "display_ja": "膀胱"},
-    "N30": {"code": "89837001", "display_en": "Urinary bladder structure", "display_ja": "膀胱"},
-    # 皮膚・軟部
-    "L03": {"code": "39937001", "display_en": "Skin structure", "display_ja": "皮膚"},
-}
+# Crosswalk + display SoT moved under META #1849 post-review:
+#   `clinosim/codes/data/icd10-condition-bodysite-crosswalk.yaml` holds
+#   the 15 ICD-10 prefix → SNOMED body-site mapping; displays resolve
+#   via `code_lookup("snomed-ct", code, lang)` against snomed-ct.yaml.
+#   (hardcoded-audit Finding 9).
+
+
+@cache
+def _icd10_condition_bodysite_map() -> dict[str, str]:
+    """Load the ICD-10 prefix → SNOMED body-site crosswalk."""
+    import yaml
+
+    path = Path(__file__).resolve().parents[4] / "codes" / "data" / "icd10-condition-bodysite-crosswalk.yaml"
+    with path.open(encoding="utf-8") as fh:
+        raw = yaml.safe_load(fh) or {}
+    return {str(k).upper(): str(v) for k, v in (raw.get("crosswalk", {}) or {}).items()}
 
 
 # Issue #744: JP-CLINS eCS DiagnosisType extension family.
@@ -156,15 +150,16 @@ def _bodysite_for(code: str, country: str) -> dict | None:
     if not code:
         return None
     key3 = code.split(".")[0].upper()
-    entry = _CONDITION_BODY_SITE.get(key3)
-    if not entry:
+    snomed_code = _icd10_condition_bodysite_map().get(key3)
+    if not snomed_code:
         return None
-    disp = entry["display_ja"] if is_jp(country) else entry["display_en"]
+    lang = "ja" if is_jp(country) else "en"
+    disp = code_lookup("snomed-ct", snomed_code, lang)
     return {
         "coding": [
             {
                 "system": get_system_uri("snomed-ct"),
-                "code": entry["code"],
+                "code": snomed_code,
                 "display": disp,
             }
         ],

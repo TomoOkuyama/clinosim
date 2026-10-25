@@ -85,6 +85,11 @@ codes:
   '39607008':
     en: Lung structure
     ja: 肺
+  # Added under post-#1880 review (hardcoded-audit Finding 9 — ICD-10
+  # body-site crosswalk needs this SNOMED code for J45 Asthma mapping).
+  '955009':
+    en: Bronchial structure
+    ja: 気管支
   '80581009':
     en: Upper urinary tract structure
     ja: 上部尿路
