@@ -66,9 +66,20 @@ from clinosim.modules.output.fhir_r4.documents.jp_clins.discharge_summary import
     _build_jp_clins_discharge_summary_composition,
 )
 from clinosim.modules.output.fhir_r4.documents.jp_clins.echeckup_general import (
+    _JP_ECHECKUP_GENERAL_PROFILE,  # noqa: F401 — re-exported for test / downstream use
+    _JP_ECHECKUP_SECTION_CODE,  # noqa: F401 — re-exported for test / downstream use
+    _JP_ECHECKUP_SECTION_CODE_MATRIX,  # noqa: F401 — re-exported for test / downstream use
+    _JPFHIR_ECHECKUP_SECTION_SYSTEM,  # noqa: F401 — re-exported for test / downstream use
     _build_jp_eCheckup_general_composition,
 )
 from clinosim.modules.output.fhir_r4.documents.jp_clins.referral_note import (
+    _JP_CLINS_REFERRAL_PROFILE,  # noqa: F401 — re-exported for test / downstream use
+    _JP_ER_CATEGORY_CODE,  # noqa: F401 — re-exported for test / downstream use
+    _JP_ER_CATEGORY_DISPLAY_JA,  # noqa: F401 — re-exported for test / downstream use
+    _JP_ER_EVENT_CODE_TEXT_JA,  # noqa: F401 — re-exported for test / downstream use
+    _JP_ER_REFERRING_FROM_REF,  # noqa: F401 — re-exported for test / downstream use
+    _JP_REFERRAL_STRUCTURAL_CHILDREN,  # noqa: F401 — re-exported for test / downstream use
+    _JP_REFERRAL_TOP_LEVEL,  # noqa: F401 — re-exported for test / downstream use
     _build_jp_clins_referral_note_composition,
 )
 from clinosim.modules.output.fhir_r4.documents.referral_orgs import (
