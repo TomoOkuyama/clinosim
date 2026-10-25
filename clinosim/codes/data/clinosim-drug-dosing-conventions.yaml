@@ -1,0 +1,131 @@
+---
+# clinosim-drug-dosing-conventions.yaml — JA outpatient / inpatient
+# dosing conventions used when the FHIR MedicationRequest Dosage
+# carries incomplete timing information.
+#
+# Four previously-inline Python dicts in
+# `clinosim/modules/output/fhir_r4/post_process/populate.py` are
+# consolidated here under one row per drug. Each row carries:
+#
+#   * `freq_implied` — scheduled daily frequency (`qd` / `bid` / `tid`)
+#     inferred when the dosage has no `timing.repeat.frequency` at all.
+#     Only well-defined conventions appear; genuinely variable schedules
+#     are intentionally omitted so the resolver falls back to dummy.
+#
+#   * `meal_context` — JA outpatient dosing time matching
+#     `freq_implied`. Consumed to resolve the
+#     MHLW `MedicationUsage_ePrescription` CS code via the
+#     `(freq, meal_context) → code` table (which stays in Python; it is
+#     a 1:1 CS code mapping, not drug-specific data).
+#
+#   * `prn_mhlw` — optional. Drugs with no scheduled cadence but a
+#     well-defined PRN condition code in MHLW CS. Codes verified against
+#     `jpfhir-terminology#2.2606.0`.
+#
+# A drug may define both `freq_implied` + `meal_context` AND `prn_mhlw`;
+# the resolver consults `prn_mhlw` first (PRN beats cadence).
+
+metadata:
+  source: >-
+    clinosim/modules/output/fhir_r4/post_process/populate.py
+    (_DRUG_QD_MEAL_CONTEXT, _DRUG_BID_MEAL_CONTEXT, _DRUG_TID_MEAL_CONTEXT,
+     _DRUG_IMPLIED_FREQ_QD/BID/TID, _DRUG_PRN_MHLW_CODE)
+    prior to hardcoded-audit Finding 2.
+  mhlw_cs_version: jpfhir-terminology#2.2606.0
+
+drugs:
+  # ============== Statins (HMG-CoA reductase inhibitors) ==============
+  アトルバスタチン: {freq_implied: qd, meal_context: 就寝前}
+  ロスバスタチン:   {freq_implied: qd, meal_context: 就寝前}
+  プラバスタチン:   {freq_implied: qd, meal_context: 就寝前}
+  ピタバスタチン:   {freq_implied: qd, meal_context: 就寝前}
+  シンバスタチン:   {freq_implied: qd, meal_context: 就寝前}
+
+  # ============== PPIs (proton pump inhibitors) ==============
+  ランソプラゾール: {freq_implied: qd, meal_context: 朝食前}
+  オメプラゾール:   {freq_implied: qd, meal_context: 朝食前}
+  ラベプラゾール:   {freq_implied: qd, meal_context: 朝食前}
+  エソメプラゾール: {freq_implied: qd, meal_context: 朝食前}
+  ボノプラザン:     {freq_implied: qd, meal_context: 朝食前}
+
+  # ============== Bisphosphonates ==============
+  アレンドロネート: {freq_implied: qd, meal_context: 起床時}
+  リセドロネート:   {freq_implied: qd, meal_context: 起床時}
+  ミノドロン酸:     {freq_implied: qd, meal_context: 起床時}
+
+  # ============== Diuretics ==============
+  フロセミド:         {freq_implied: qd, meal_context: 朝食後}
+  ヒドロクロロチアジド: {freq_implied: qd, meal_context: 朝食後}
+  スピロノラクトン:   {freq_implied: qd, meal_context: 朝食後}
+  トラセミド:         {freq_implied: qd, meal_context: 朝食後}
+
+  # ============== Antihypertensives (ARB / ACE-i / CCB / α-blocker) ==============
+  アムロジピン:   {freq_implied: qd, meal_context: 朝食後}
+  カンデサルタン: {freq_implied: qd, meal_context: 朝食後}
+  オルメサルタン: {freq_implied: qd, meal_context: 朝食後}
+  テルミサルタン: {freq_implied: qd, meal_context: 朝食後}
+  エナラプリル:   {freq_implied: qd, meal_context: 朝食後}
+  リシノプリル:   {freq_implied: qd, meal_context: 朝食後}
+  タムスロシン:   {freq_implied: qd, meal_context: 朝食後}
+  シロドシン:     {freq_implied: qd, meal_context: 朝食後}
+
+  # ============== Anticoagulant / antiplatelet QD ==============
+  アスピリン:         {freq_implied: qd, meal_context: 朝食後}
+  クロピドグレル:     {freq_implied: qd, meal_context: 朝食後}
+  ワルファリン:       {freq_implied: qd, meal_context: 夕食後}
+  リバーロキサバン:   {freq_implied: qd, meal_context: 朝食後}
+  エドキサバン:       {freq_implied: qd, meal_context: 朝食後}
+
+  # ============== Corticosteroids (chronic maintenance) ==============
+  プレドニゾロン:         {freq_implied: qd, meal_context: 朝食後}
+  メチルプレドニゾロン:   {freq_implied: qd, meal_context: 朝食後}
+
+  # ============== Endocrine ==============
+  レボチロキシン:       {freq_implied: qd, meal_context: 朝食前}
+  ビタミンD:            {freq_implied: qd, meal_context: 朝食後}
+  アルファカルシドール: {freq_implied: qd, meal_context: 朝食後}
+  ビタミンK:            {freq_implied: qd, meal_context: 朝食後}
+  Calcium/Vitamin:      {freq_implied: qd, meal_context: 朝食後}
+
+  # ============== Inhaled bronchodilators (maintenance) ==============
+  チオトロピウム:       {freq_implied: qd, meal_context: 朝食後}
+
+  # ============== AChE inhibitors (Alzheimer's) ==============
+  ドネペジル:           {freq_implied: qd, meal_context: 朝食後}
+
+  # ============== Basal insulin ==============
+  インスリングラルギン: {freq_implied: qd, meal_context: 就寝前}
+
+  # ============== Fluoroquinolones ==============
+  レボフロキサシン:     {freq_implied: qd, meal_context: 朝食後}
+
+  # ============== Iron supplementation ==============
+  フマル酸第一鉄:       {freq_implied: qd, meal_context: 朝食後}
+
+  # ============== BID typical ==============
+  メトホルミン:           {freq_implied: bid, meal_context: 朝夕食後}
+  カルベジロール:         {freq_implied: bid, meal_context: 朝夕食後}
+  ビソプロロール:         {freq_implied: bid, meal_context: 朝夕食後}
+  エプレレノン:           {freq_implied: bid, meal_context: 朝夕食後}
+  セレコキシブ:           {freq_implied: bid, meal_context: 朝夕食後}
+  アピキサバン:           {freq_implied: bid, meal_context: 朝夕食後}
+  オセルタミビル:         {freq_implied: bid, meal_context: 朝夕食後}
+  フルチカゾン/サルメテロール: {freq_implied: bid, meal_context: 朝夕食後}
+  ICS/LABA:               {freq_implied: bid, meal_context: 朝夕食後}
+  レベチラセタム:         {freq_implied: bid, meal_context: 朝夕食後}
+
+  # ============== TID typical (毎食後) ==============
+  アモキシシリン:                 {freq_implied: tid, meal_context: 朝昼夕食後}
+  アモキシシリン/クラブラン酸:    {freq_implied: tid, meal_context: 朝昼夕食後}
+  Cefcapene:                      {freq_implied: tid, meal_context: 朝昼夕食後}
+  レボドパ/カルビドパ:            {freq_implied: tid, meal_context: 朝昼夕食後}
+  炭酸水素ナトリウム:             {freq_implied: tid, meal_context: 朝昼夕食後}
+  カモスタットメシル酸塩:         {freq_implied: tid, meal_context: 朝昼夕食後}
+  Cefditoren:                     {freq_implied: tid, meal_context: 朝昼夕食後}
+  ロキソプロフェン:               {freq_implied: tid, meal_context: 朝昼夕食後}
+
+  # ============== PRN (as-needed) drugs ==============
+  サルブタモール:
+    prn_mhlw: {code: "1050220000000000", display: "喘息発作時　服用"}
+  アセトアミノフェン:
+    prn_mhlw: {code: "1050710000000000", display: "発熱時　服用"}

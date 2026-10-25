@@ -148,108 +148,73 @@ _JP_MHLW_MEDICATION_USAGE_EPRESCRIPTION_CS = "http://jpfhir.jp/fhir/core/mhlw/Co
 # JP-CLINS example fixture displays exactly, so the reverse (context →
 # code) lookup uses the same tokens as the CS's `.display` values.
 
-# QD (1日1回, frequency=1 period=1 periodUnit=d) — drug-specific defaults.
-# Statins → bedtime (peak endogenous cholesterol synthesis at night); PPIs
-# → before breakfast (empty stomach); bisphosphonates → 起床時 (empty
-# stomach, upright + water); everything else with a clear QD convention
-# → 朝食後 (post-breakfast, the default JA outpatient dosing time).
-_DRUG_QD_MEAL_CONTEXT: dict[str, str] = {
-    # Statins (HMG-CoA reductase inhibitors) — bedtime
-    "アトルバスタチン": "就寝前",
-    "ロスバスタチン": "就寝前",
-    "プラバスタチン": "就寝前",
-    "ピタバスタチン": "就寝前",
-    "シンバスタチン": "就寝前",
-    # PPIs — before breakfast
-    "ランソプラゾール": "朝食前",
-    "オメプラゾール": "朝食前",
-    "ラベプラゾール": "朝食前",
-    "エソメプラゾール": "朝食前",
-    "ボノプラザン": "朝食前",
-    # Bisphosphonates — 起床時
-    "アレンドロネート": "起床時",
-    "リセドロネート": "起床時",
-    "ミノドロン酸": "起床時",
-    # Diuretics — 朝食後 (avoid nocturia)
-    "フロセミド": "朝食後",
-    "ヒドロクロロチアジド": "朝食後",
-    "スピロノラクトン": "朝食後",
-    "トラセミド": "朝食後",
-    # Antihypertensives (ARB / ACE-i / CCB / α-blocker) — 朝食後
-    "アムロジピン": "朝食後",
-    "カンデサルタン": "朝食後",
-    "オルメサルタン": "朝食後",
-    "テルミサルタン": "朝食後",
-    "エナラプリル": "朝食後",
-    "リシノプリル": "朝食後",
-    "タムスロシン": "朝食後",
-    "シロドシン": "朝食後",
-    # Anticoagulant / antiplatelet QD — 朝食後 (ワルファリン → 夕食後
-    # per JA clinical convention)
-    "アスピリン": "朝食後",
-    "クロピドグレル": "朝食後",
-    "ワルファリン": "夕食後",
-    "リバーロキサバン": "朝食後",
-    "エドキサバン": "朝食後",  # DOAC QD
-    # Corticosteroids — 朝食後 (mimic diurnal cortisol)
-    "プレドニゾロン": "朝食後",
-    "メチルプレドニゾロン": "朝食後",
-    # Endocrine
-    "レボチロキシン": "朝食前",
-    "ビタミンD": "朝食後",
-    "アルファカルシドール": "朝食後",
-    "ビタミンK": "朝食後",
-    "Calcium/Vitamin": "朝食後",
-    # Inhaled bronchodilators — QD morning
-    "チオトロピウム": "朝食後",  # LAMA (Spiriva) — 1× 朝の吸入
-    # AChE inhibitors (Alzheimer's) — QD morning
-    "ドネペジル": "朝食後",
-    # Basal insulin — QD 就寝前
-    "インスリングラルギン": "就寝前",
-    # Fluoroquinolones — QD (usually 朝食後)
-    "レボフロキサシン": "朝食後",
-    # Iron supplementation — QD (with vitamin C-containing meal, e.g. 朝食後)
-    "フマル酸第一鉄": "朝食後",
-}
+# Drug-specific JA dosing conventions (QD/BID/TID meal-context,
+# QD/BID/TID implied-freq, and PRN MHLW condition codes) are
+# consolidated in `clinosim/codes/data/clinosim-drug-dosing-conventions.yaml`.
+# The module-level dicts below are retained as thin yaml-backed
+# aliases so every existing consumer (`_resolve_mhlw_usage_code` and
+# `_resolve_implied_freq`) keeps working with no call-site changes.
 
-# BID (1日2回, frequency=2 period=1 periodUnit=d)
-_DRUG_BID_MEAL_CONTEXT: dict[str, str] = {
-    # Biguanide — with meals
-    "メトホルミン": "朝夕食後",
-    # β-blockers (twice daily variants) — with meals
-    "カルベジロール": "朝夕食後",
-    "ビソプロロール": "朝夕食後",
-    # Additional cardio
-    "エプレレノン": "朝夕食後",
-    # COX-2 NSAIDs — BID with meals (GI protection)
-    "セレコキシブ": "朝夕食後",
-    # DOAC BID
-    "アピキサバン": "朝夕食後",
-    # Antiviral (5-day course, BID)
-    "オセルタミビル": "朝夕食後",
-    # ICS/LABA inhalers — BID 朝夕
-    "フルチカゾン/サルメテロール": "朝夕食後",
-    "ICS/LABA": "朝夕食後",
-    # Antiepileptic — BID
-    "レベチラセタム": "朝夕食後",
-}
 
-# TID-typical drugs — every meal (毎食後)
-_DRUG_TID_MEAL_CONTEXT: dict[str, str] = {
-    # Antibiotics — TID with meals for GI tolerance
-    "アモキシシリン": "朝昼夕食後",
-    "アモキシシリン/クラブラン酸": "朝昼夕食後",
-    "Cefcapene": "朝昼夕食後",
-    # Parkinson's L-DOPA — TID (often before meals to avoid protein
-    # competition, but simplified to after-meal for JA convention)
-    "レボドパ/カルビドパ": "朝昼夕食後",
-    # Sodium bicarbonate — TID (uric acid regulation / acidosis)
-    "炭酸水素ナトリウム": "朝昼夕食後",
-    # Additional TID oral drugs (Issue #817 follow-up 2)
-    "カモスタットメシル酸塩": "朝昼夕食後",  # chronic pancreatitis
-    "Cefditoren": "朝昼夕食後",  # oral cephalosporin
-    "ロキソプロフェン": "朝昼夕食後",  # NSAID scheduled TID
-}
+@cache
+def _drug_dosing_conventions() -> dict[str, dict[str, Any]]:
+    import yaml
+
+    path = Path(__file__).resolve().parents[4] / "codes" / "data" / "clinosim-drug-dosing-conventions.yaml"
+    with path.open(encoding="utf-8") as fh:
+        raw = yaml.safe_load(fh) or {}
+    drugs = raw.get("drugs") or {}
+    out: dict[str, dict[str, Any]] = {}
+    for name, row in drugs.items():
+        if isinstance(row, dict):
+            out[str(name)] = row
+    return out
+
+
+def _drug_meal_context_by_freq(freq_label: str) -> dict[str, str]:
+    out: dict[str, str] = {}
+    for name, row in _drug_dosing_conventions().items():
+        if row.get("freq_implied") == freq_label and isinstance(row.get("meal_context"), str):
+            out[name] = str(row["meal_context"])
+    return out
+
+
+def _drug_implied_freq_set(freq_label: str) -> set[str]:
+    return {name for name, row in _drug_dosing_conventions().items() if row.get("freq_implied") == freq_label}
+
+
+def _drug_prn_mhlw_code() -> dict[str, tuple[str, str]]:
+    out: dict[str, tuple[str, str]] = {}
+    for name, row in _drug_dosing_conventions().items():
+        prn = row.get("prn_mhlw") if isinstance(row, dict) else None
+        if isinstance(prn, dict) and "code" in prn and "display" in prn:
+            out[name] = (str(prn["code"]), str(prn["display"]))
+    return out
+
+
+# QD (1日1回) — statins → 就寝前, PPIs → 朝食前, bisphosphonates →
+# 起床時, everything else → 朝食後 (JA outpatient default). Row details
+# live in the yaml.
+_DRUG_QD_MEAL_CONTEXT: dict[str, str] = _drug_meal_context_by_freq("qd")
+_DRUG_BID_MEAL_CONTEXT: dict[str, str] = _drug_meal_context_by_freq("bid")
+_DRUG_TID_MEAL_CONTEXT: dict[str, str] = _drug_meal_context_by_freq("tid")
+_DRUG_IMPLIED_FREQ_QD: set[str] = _drug_implied_freq_set("qd")
+_DRUG_IMPLIED_FREQ_BID: set[str] = _drug_implied_freq_set("bid")
+_DRUG_IMPLIED_FREQ_TID: set[str] = _drug_implied_freq_set("tid")
+_DRUG_PRN_MHLW_CODE: dict[str, tuple[str, str]] = _drug_prn_mhlw_code()
+
+
+# MHLW eCS non-oral route markers live in
+# `clinosim/codes/data/mhlw-ecs-non-oral-route-markers.yaml` (Finding 3).
+@cache
+def _non_oral_route_markers() -> frozenset[str]:
+    import yaml
+
+    path = Path(__file__).resolve().parents[4] / "codes" / "data" / "mhlw-ecs-non-oral-route-markers.yaml"
+    with path.open(encoding="utf-8") as fh:
+        raw = yaml.safe_load(fh) or {}
+    return frozenset(str(m) for m in (raw.get("non_oral_route_markers", []) or []))
+
 
 # Default (unmapped drug) meal-context per frequency. Every FHIR
 # emission at these cadences becomes a spec-legit code; when the specific
@@ -285,156 +250,6 @@ _HOURLY_CADENCE_MHLW_CODE: dict[int, tuple[str, str]] = {
     3: ("1023000000000000", "１日３回　８時間毎　服用"),  # Q8H
     4: ("1024000000000000", "１日４回　６時間毎　服用"),  # Q6H
     8: ("1028000000000000", "１日８回　３時間毎　服用"),  # Q3H
-}
-
-# Non-oral route markers — these drugs' timing.code must NOT emit an
-# MHLW `MedicationUsage_ePrescription` code with an oral prefix
-# (`10*` = 内服/服用).
-#
-# The CS has separate code families for some non-oral routes (11* 舌下,
-# 12* バッカル, 13* 口腔内塗布, 2A* 貼付, 2B* 塗布, 2H* 点眼, …), but
-# the emit path only covers 10* oral meal-context codes. Emitting an
-# oral code for any non-oral route is semantically wrong ("furosemide
-# IV to be swallowed after breakfast"), so we return None and let the
-# dummy `0X0XXXXXXXXX0000` fallback kick in (spec-legit per JP-CLINS
-# fixture — R5020 satisfied).
-#
-# Injection routes (3* family) have 0 CS entries at all — even a
-# family-specific resolver would still emit dummy.
-#
-# When adding topical / sublingual / etc. per-route mapping tables in
-# the future, remove those markers from this set and add the matching
-# family-specific resolver above.
-# MHLW eCS non-oral route markers moved to
-# `clinosim/codes/data/mhlw-ecs-non-oral-route-markers.yaml` under the
-# post-#1880 review (hardcoded-audit Finding 3). Loaded once via the
-# `@cache`-ed helper below.
-
-
-@cache
-def _non_oral_route_markers() -> frozenset[str]:
-    import yaml
-
-    path = Path(__file__).resolve().parents[4] / "codes" / "data" / "mhlw-ecs-non-oral-route-markers.yaml"
-    with path.open(encoding="utf-8") as fh:
-        raw = yaml.safe_load(fh) or {}
-    return frozenset(str(m) for m in (raw.get("non_oral_route_markers", []) or []))
-
-
-# Drug → typical daily-freq inference. Used when the dosage carries no
-# `timing.repeat.frequency` at all (a substantial subset of the CIF —
-# especially inpatient continuation orders and discharge prescriptions
-# where the timing structure isn't populated). Every entry is a
-# clinical convention with a well-defined typical schedule; anything
-# with genuinely variable dosing is intentionally excluded so the
-# resolver falls back to dummy rather than fabricating.
-#
-# QD-only drugs — no clinical BID/TID variant in JA outpatient practice.
-_DRUG_IMPLIED_FREQ_QD: set[str] = {
-    # Statins — always QD
-    "アトルバスタチン",
-    "ロスバスタチン",
-    "プラバスタチン",
-    "ピタバスタチン",
-    "シンバスタチン",
-    # PPIs — usually QD (BID for erosive esophagitis is out of scope)
-    "ランソプラゾール",
-    "オメプラゾール",
-    "ラベプラゾール",
-    "エソメプラゾール",
-    "ボノプラザン",
-    # Bisphosphonates — weekly/daily variants both use "morning empty stomach", QD baseline
-    "アレンドロネート",
-    "リセドロネート",
-    "ミノドロン酸",
-    # Diuretics — QD baseline
-    "フロセミド",
-    "ヒドロクロロチアジド",
-    "スピロノラクトン",
-    "トラセミド",
-    # Antihypertensives (once-daily long-acting)
-    "アムロジピン",
-    "カンデサルタン",
-    "オルメサルタン",
-    "テルミサルタン",
-    "エナラプリル",
-    "リシノプリル",
-    "タムスロシン",
-    "シロドシン",
-    # Anticoagulant / antiplatelet — QD
-    "アスピリン",
-    "クロピドグレル",
-    "ワルファリン",
-    "リバーロキサバン",
-    "エドキサバン",  # DOAC QD
-    # Corticosteroids (chronic maintenance) — QD morning
-    "プレドニゾロン",
-    "メチルプレドニゾロン",
-    # Endocrine
-    "レボチロキシン",
-    "ビタミンD",
-    "アルファカルシドール",
-    "ビタミンK",
-    "Calcium/Vitamin",
-    # Inhaled bronchodilators (maintenance) — QD morning
-    "チオトロピウム",  # LAMA
-    # AChE inhibitors (Alzheimer's) — QD morning
-    "ドネペジル",
-    # Basal insulin — QD bedtime
-    "インスリングラルギン",
-    # Fluoroquinolone antibiotic — QD
-    "レボフロキサシン",
-    # Iron supplementation — QD (Issue #817 fu 2)
-    "フマル酸第一鉄",
-}
-
-# BID-typical drugs
-_DRUG_IMPLIED_FREQ_BID: set[str] = {
-    "メトホルミン",  # BID with meals (JA clinical convention)
-    "カルベジロール",
-    "ビソプロロール",
-    "エプレレノン",
-    # COX-2 NSAID
-    "セレコキシブ",
-    # DOAC BID
-    "アピキサバン",
-    # Antiviral (5-day course, BID)
-    "オセルタミビル",
-    # ICS/LABA maintenance inhalers
-    "フルチカゾン/サルメテロール",
-    "ICS/LABA",
-    # Antiepileptic — BID (Issue #817 fu 2)
-    "レベチラセタム",
-}
-
-# TID-typical drugs (毎食後 with meals)
-_DRUG_IMPLIED_FREQ_TID: set[str] = {
-    # Antibiotics — TID with meals
-    "アモキシシリン",
-    "アモキシシリン/クラブラン酸",
-    "Cefcapene",
-    # Parkinson's L-DOPA — TID
-    "レボドパ/カルビドパ",
-    # Sodium bicarbonate — TID (uric acid regulation / acidosis)
-    "炭酸水素ナトリウム",
-    # Additional TID oral (Issue #817 fu 2)
-    "カモスタットメシル酸塩",
-    "Cefditoren",
-    "ロキソプロフェン",
-}
-
-# PRN (as-needed) drug → condition-based MHLW code map. These drugs
-# have no scheduled cadence in clinosim; their clinical indication is
-# a well-defined trigger the MHLW CS carries a dedicated code for.
-# Emits directly, bypassing the (freq, meal-context) table.
-#
-# Codes verified against `jpfhir-terminology#2.2606.0` CS.
-_DRUG_PRN_MHLW_CODE: dict[str, tuple[str, str]] = {
-    # Bronchodilator inhaler — used for 喘鳴 (wheeze) / 喘息発作
-    "サルブタモール": ("1050220000000000", "喘息発作時　服用"),
-    # Analgesic / antipyretic PRN — アセトアミノフェン's most common
-    # single indication is 発熱 in the JA outpatient convention.
-    "アセトアミノフェン": ("1050710000000000", "発熱時　服用"),
 }
 
 
