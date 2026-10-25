@@ -38,3 +38,16 @@ codes:
   '2131-1':
     en: Other Race
     ja: その他の人種
+
+# clinosim-internal slug → OMB code map. The slug is the key emitted by
+# upstream demographic sampling (`white`, `black`, `asian`, …); the
+# `_build_us_core_race_extension` emit site resolves the OMB code via
+# this table and then resolves display via `code_lookup("omb-race", code,
+# lang)` against the `codes:` block above.
+slug_to_code:
+  white: '2106-3'
+  black: '2054-5'
+  asian: '2028-9'
+  native_american: '1002-5'
+  pacific_islander: '2076-8'
+  other: '2131-1'

@@ -19,7 +19,14 @@ Unlike locale/, this module is NOT locale-scoped. Code systems are
 international standards; translations are one of the code's attributes.
 """
 
-from clinosim.codes.loader import CodeSystem, get_display, get_system_uri, lookup, system_key_for
+from clinosim.codes.loader import (
+    CodeSystem,
+    get_display,
+    get_system_uri,
+    lookup,
+    slug_to_code,
+    system_key_for,
+)
 from clinosim.codes.match import has_icd_prefix
 
 __all__ = [
@@ -28,5 +35,6 @@ __all__ = [
     "get_system_uri",
     "has_icd_prefix",
     "lookup",
+    "slug_to_code",
     "system_key_for",
 ]

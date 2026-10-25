@@ -236,6 +236,31 @@ def get_system_uri(system: str) -> str:
     return _BUILTIN_URIS.get(system, f"urn:clinosim:{system}")
 
 
+@cache
+def slug_to_code(system_key: str) -> dict[str, str]:
+    """Return the clinosim-internal slug → authoritative-code map from
+    a code system yaml's optional ``slug_to_code:`` block.
+
+    Some code systems (OMB race/ethnicity, …) are consumed by emit code
+    through a stable short slug (``"white"``, ``"hispanic"``) rather
+    than the authority code itself. Co-locating the slug table with
+    the yaml that defines the codes keeps both faces of the same
+    code system in one authoritative file; this helper surfaces that
+    block without ``_load_system``'s ``codes:``-specific parsing.
+
+    Returns an empty dict when the yaml is missing or has no
+    ``slug_to_code:`` block, so callers can treat absence as "no slugs
+    defined" uniformly.
+    """
+    data_key = _SYSTEM_DATA_ALIASES.get(system_key, system_key)
+    path = _DATA_DIR / f"{data_key}.yaml"
+    if not path.exists():
+        return {}
+    with open(path, encoding="utf-8") as f:
+        data = yaml.safe_load(f) or {}
+    return dict(data.get("slug_to_code", {}) or {})
+
+
 # Country → code-system key selection for clinical data kinds (common-logic
 # unification, 2026-07-02). Single source of truth for the "JP uses
 # JLAC10 / ICD-10 / YJ / K-codes, everyone else uses LOINC / ICD-10-CM /

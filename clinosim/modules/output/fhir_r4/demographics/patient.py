@@ -14,7 +14,7 @@ from datetime import date
 from functools import lru_cache
 from typing import Any
 
-from clinosim.codes import get_system_uri
+from clinosim.codes import get_system_uri, slug_to_code
 from clinosim.codes import lookup as code_lookup
 from clinosim.locale.loader import load_allergen_rxnorm_map, load_identity_config
 from clinosim.modules._shared import is_jp, resolve_lang
@@ -54,24 +54,17 @@ _US_CORE_ETHNICITY_URL = "http://hl7.org/fhir/us/core/StructureDefinition/us-cor
 _US_CORE_BIRTHSEX_URL = "http://hl7.org/fhir/us/core/StructureDefinition/us-core-birthsex"
 _OMB_RACE_ETHNICITY_SYSTEM = "urn:oid:2.16.840.1.113883.6.238"
 
-# Phase 3.γ (#1808 follow-up): display SoT moved to the authority
-# yamls `clinosim/codes/data/omb-race.yaml` + `omb-ethnicity.yaml`.
-# This module keeps only the clinosim-internal slug → OMB code
-# mapping; `_build_us_core_*_extension` resolves display via
-# `code_lookup(<system>, code, lang)` so JA + future locale displays
-# emerge from the authority yaml.
-_OMB_RACE_SLUG_TO_CODE: dict[str, str] = {
-    "white": "2106-3",
-    "black": "2054-5",
-    "asian": "2028-9",
-    "native_american": "1002-5",
-    "pacific_islander": "2076-8",
-    "other": "2131-1",
-}
-_OMB_ETHNICITY_SLUG_TO_CODE: dict[str, str] = {
-    "hispanic": "2135-2",
-    "not_hispanic": "2186-5",
-}
+# Phase 3.γ (#1808 follow-up) + hardcoded-audit Phase A1 (#1900+1):
+# both the slug → OMB code map and the display SoT now live in the
+# authority yamls `clinosim/codes/data/omb-race.yaml` +
+# `omb-ethnicity.yaml` (`slug_to_code:` + `codes:` blocks). This
+# module keeps only the thin `@cache`-backed aliases so existing call
+# sites (`_OMB_RACE_SLUG_TO_CODE.get(...)`) stay unchanged; display is
+# resolved via `code_lookup(<system>, code, lang)` against the same
+# yaml's `codes:` block, so JA + future locale displays emerge from
+# the authority yaml.
+_OMB_RACE_SLUG_TO_CODE: dict[str, str] = slug_to_code("omb-race")
+_OMB_ETHNICITY_SLUG_TO_CODE: dict[str, str] = slug_to_code("omb-ethnicity")
 
 
 def _build_us_core_race_extension(race: str, lang: str = "en") -> dict[str, Any] | None:
