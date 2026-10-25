@@ -1291,6 +1291,184 @@ def _build_discharge_medication_request(
     return resource
 
 
+# ============================================================
+# _build_medication_admin sub-step helpers (hardcoded-review Phase B5)
+# ============================================================
+# The historical _build_medication_admin was 408 lines; three logical
+# sub-steps are extracted as free-standing helpers so the orchestrator
+# stays readable:
+#   * _build_ma_dosage_block — dose/route/rate composition + mad-1 gate
+#   * _build_ma_reason_block — reasonReference + reasonCode wiring
+#   * _build_ma_device_block — infusion-pump Device reference
+# Each helper receives explicit parameters (no shared mutable state)
+# and returns the fragment the orchestrator attaches. Behavior is
+# byte-identical to the pre-refactor function.
+
+
+def _build_ma_dosage_block(
+    mar: dict,
+    parent_order: dict | None,
+    drug_name_raw: str,
+    drug_name_clean: str,
+    drug_name: str,
+    rate_adjustment_note: str,
+    country: str,
+) -> dict[str, Any] | None:
+    """Compose the ``MedicationAdministration.dosage`` fragment.
+
+    Returns the fragment when it carries any of: structured dose,
+    rateQuantity, route, or a meaningful text (mad-1 SHOULD-emit gate
+    per Issue #851). Returns ``None`` when nothing meaningful was
+    composed so the orchestrator can omit the element entirely.
+    """
+    _mar_dose_raw = str(mar.get("dose", "") or "").strip()
+    _mar_dose_is_drug_name = _mar_dose_raw == drug_name_raw or _mar_dose_raw == drug_name_clean
+    if not _mar_dose_raw or _mar_dose_is_drug_name:
+        # Backfill: use parent Order.dose_quantity/unit if we have them,
+        # else derive from route + frequency as a route-aware summary.
+        _po = parent_order or {}
+        _pd_qty = _po.get("dose_quantity")
+        _pd_unit = _po.get("dose_unit", "") or ""
+        _pd_freq = _po.get("frequency", "") or ""
+        _pd_route = _po.get("route", "") or mar.get("route", "") or ""
+        _text_parts: list[str] = []
+        if _pd_qty is not None and _pd_unit:
+            _q_txt = f"{int(_pd_qty)}" if isinstance(_pd_qty, float) and _pd_qty.is_integer() else str(_pd_qty)
+            _text_parts.append(f"{_q_txt}{_pd_unit}")
+        if _pd_route:
+            _text_parts.append(_pd_route)
+        if _pd_freq:
+            _text_parts.append(_pd_freq)
+        dose_text = " ".join(_text_parts) if _text_parts else _mar_dose_raw
+        dose_str = dose_text
+    else:
+        dose_text = _mar_dose_raw
+        dose_str = _mar_dose_raw
+    parsed = _parse_dose_for_mar(dose_str or drug_name)
+    # C3 / Issue #1089: bolus IV drugs backfill from parent Order when
+    # the MAR text parse found no numeric dose_quantity.
+    if parsed.get("dose_quantity") is None:
+        _po_backfill = parent_order or {}
+        _po_qty = _po_backfill.get("dose_quantity")
+        _po_unit = _po_backfill.get("dose_unit", "") or ""
+        if _po_qty is not None and _po_unit:
+            parsed["dose_quantity"] = float(_po_qty)
+            parsed["dose_unit"] = _po_unit
+            _q_txt = f"{int(_po_qty)}" if isinstance(_po_qty, float) and _po_qty.is_integer() else str(_po_qty)
+            _dose_summary = f"{_q_txt}{_po_unit}"
+            if _dose_summary not in dose_text:
+                dose_text = f"{_dose_summary} {dose_text}".strip() if dose_text.strip() else _dose_summary
+    # Attach rate-adjustment note peeled off drug_name to dose_text so
+    # continuous-infusion titration intent surfaces in the dosage record.
+    if rate_adjustment_note:
+        rate_note_localized = _localize_rate_adjustment(rate_adjustment_note, country)
+        dose_text = f"{dose_text} ({rate_note_localized})".strip() if dose_text.strip() else rate_note_localized
+    # Issue #472: localize at the assignment only — `dose_text` itself stays English
+    # because the continuous-infusion detection below matches on "CONTINUOUS" / "DRIP".
+    dosage: dict[str, Any] = {"text": _localize_dosage_terms(dose_text, resolve_lang(country))}
+    if parsed.get("dose_quantity") is not None and parsed.get("dose_unit"):
+        dosage["dose"] = build_ucum_quantity(parsed["dose_quantity"], parsed["dose_unit"])
+    # Rate for continuous infusions
+    if "CONTINUOUS" in dose_text.upper() or "DRIP" in dose_text.upper() or "/h" in dose_text:
+        rate_value = parsed.get("dose_quantity") or 1
+        rate_unit = parsed.get("dose_unit", "mL") + "/h"
+        dosage["rateQuantity"] = build_ucum_quantity(rate_value, rate_unit)
+
+    # Issue #1067 B2: IV-route drugs missing a structured dose get the same
+    # catalog-based rate/duration augmentation the MR builder gets.
+    from clinosim.modules.output.fhir_r4.lib.common import (
+        augment_iv_dosage_with_rate as _augment_iv,
+    )
+
+    _augment_iv(
+        dosage,
+        dose_text=dose_text or "",
+        route=mar.get("route") or parsed.get("route"),
+        display_name=drug_name_clean or "",
+    )
+    # Route — shared helper so the MAR and MR paths cannot drift (Issue #458).
+    route_concept = build_route_concept(mar.get("route") or parsed.get("route"), country)
+    if route_concept:
+        dosage["route"] = route_concept
+    # Issue #851: mad-1 SHOULD-emit gate. Emit dosage when it carries
+    # at least a route or a meaningful non-empty text, OR has structured
+    # dose / rate. Text that merely repeats the drug name is treated as
+    # empty.
+    _dosage_text_val = str(dosage.get("text") or "").strip()
+    _text_meaningful = bool(_dosage_text_val) and _dosage_text_val not in (
+        drug_name_raw,
+        drug_name_clean,
+        drug_name,
+    )
+    if "dose" in dosage or "rateQuantity" in dosage or dosage.get("route") or _text_meaningful:
+        return dosage
+    return None
+
+
+def _build_ma_reason_block(
+    primary_dx_code: str,
+    chronic_condition_codes: list[str] | None,
+    patient_id: str,
+    encounter_id: str,
+    country_code: str,
+    patient_sex: str,
+) -> tuple[list[dict[str, Any]], list[dict[str, Any]]] | None:
+    """Compose (reasonReference, reasonCode) MA fragments from the
+    primary diagnosis code. Returns ``None`` when ``primary_dx_code``
+    is empty so the orchestrator can skip both fields.
+    """
+    if not primary_dx_code:
+        return None
+    from clinosim.modules.output.fhir_r4.conditions.primary_ref import (
+        primary_condition_ref_from_codes,
+    )
+
+    cond_ref = primary_condition_ref_from_codes(primary_dx_code, chronic_condition_codes, patient_id, encounter_id)
+    reason_reference = [{"reference": f"Condition/{cond_ref}"}]
+    # Issue #350: route through system_key_for("diagnosis", country).
+    _icd_system = get_system_uri(system_key_for("diagnosis", country_code))
+    _mapped_dx_code = map_diagnosis_code(primary_dx_code, country_code, sex=patient_sex)
+    reason_code = [
+        {
+            "coding": [
+                {
+                    "system": _icd_system,
+                    "code": _mapped_dx_code,
+                }
+            ],
+        }
+    ]
+    return reason_reference, reason_code
+
+
+def _build_ma_device_block(
+    mar: dict,
+    parsed_route: str | None,
+    country_code: str,
+) -> list[dict[str, Any]] | None:
+    """Return the infusion-pump ``device`` fragment for continuous-IV
+    administrations, or ``None`` to skip the element.
+
+    Gates on the CANONICAL route key (alias-aware via
+    ``canonicalize_route``) so JP-localized ``静注`` + alias-prefixed
+    ``INTRAVENOUS`` both route through the IV branch — see Issue
+    #479 dual-slot rationale in the original inline comment.
+    """
+    _canonical_route = canonicalize_route(mar.get("route") or parsed_route)
+    _dose_text_up = (mar.get("dose") or "").upper()
+    _is_infusion = _canonical_route == "IV" and (
+        "CONTINUOUS" in _dose_text_up or "DRIP" in _dose_text_up or "/H" in _dose_text_up
+    )
+    if not _is_infusion:
+        return None
+    return [
+        {
+            "reference": "Device/dev-infusion-pump",
+            "display": "汎用輸液ポンプ" if is_jp(country_code) else "Generic infusion pump",
+        }
+    ]
+
+
 def _build_medication_admin(
     mar: dict,
     patient_id: str,
@@ -1490,213 +1668,51 @@ def _build_medication_admin(
     if mar.get("administered_by"):
         resource["performer"] = [{"actor": {"reference": f"Practitioner/{mar['administered_by']}"}}]
 
-    # Dosage with structured dose + route
-    #
-    # Issue #851: 23,543 (6.56 %) MedicationAdministration records
-    # shipped without any `.dosage` element because ``mar.dose`` was
-    # empty (or a fallback to ``drug_name``) so ``_parse_dose_for_mar``
-    # yielded no structured dose_quantity, and the FHIR R4 mad-1
-    # gate (SHOULD dose or rate exist when dosage is present) dropped
-    # the whole element — losing the free-text description AND the
-    # route that the parent MedicationRequest correctly carried. Fix:
-    # backfill from ``parent_order`` when the MA fields are missing so
-    # dosage.text, dosage.route, dosage.dose (numeric when available),
-    # and the frequency-derived timing are all populated. Also relax
-    # the mad-1 emit gate so text+route alone can carry the dosage
-    # element for continue-home-med / sliding-scale / PRN orders where
-    # no structured dose exists at either MA or MR level (the emitted
-    # dosage is still meaningful for eMAR rendering; mad-1 is SHOULD
-    # in R4).
-    _mar_dose_raw = str(mar.get("dose", "") or "").strip()
-    _mar_dose_is_drug_name = _mar_dose_raw == drug_name_raw or _mar_dose_raw == drug_name_clean
-    if not _mar_dose_raw or _mar_dose_is_drug_name:
-        # Backfill: use parent Order.dose_quantity/unit if we have them,
-        # else derive from route + frequency as a route-aware summary.
-        _po = parent_order or {}
-        _pd_qty = _po.get("dose_quantity")
-        _pd_unit = _po.get("dose_unit", "") or ""
-        _pd_freq = _po.get("frequency", "") or ""
-        _pd_route = _po.get("route", "") or mar.get("route", "") or ""
-        _text_parts: list[str] = []
-        if _pd_qty is not None and _pd_unit:
-            _q_txt = f"{int(_pd_qty)}" if isinstance(_pd_qty, float) and _pd_qty.is_integer() else str(_pd_qty)
-            _text_parts.append(f"{_q_txt}{_pd_unit}")
-        if _pd_route:
-            _text_parts.append(_pd_route)
-        if _pd_freq:
-            _text_parts.append(_pd_freq)
-        dose_text = " ".join(_text_parts) if _text_parts else _mar_dose_raw
-        # Parse the composed text so `_parse_dose_for_mar` can extract
-        # numeric dose + unit when available (same path as before).
-        dose_str = dose_text
-    else:
-        dose_text = _mar_dose_raw
-        dose_str = _mar_dose_raw
-    parsed = _parse_dose_for_mar(dose_str or drug_name)
-    # C3 / Issue #1089: bolus IV drugs (cephalosporins, chemotherapy
-    # agents) frequently reach here with ``mar.dose = "IV"`` (a route
-    # hint only) or with a text form the regex above cannot parse. In
-    # both cases the parent Order carries the real dose (parsed from
-    # ``dose: "1g IV q8h"`` in the disease YAML) — backfill from there
-    # so the MA does not emit an empty-dose element for
-    # augment-catalog-covered bolus meds (Cefmetazole 87 US / Carboplatin
-    # 44 US on the p=10k s=1000 cohort). MAR-specified doses win: only
-    # backfill when the parse found no numeric dose_quantity.
-    if parsed.get("dose_quantity") is None:
-        _po_backfill = parent_order or {}
-        _po_qty = _po_backfill.get("dose_quantity")
-        _po_unit = _po_backfill.get("dose_unit", "") or ""
-        if _po_qty is not None and _po_unit:
-            parsed["dose_quantity"] = float(_po_qty)
-            parsed["dose_unit"] = _po_unit
-            _q_txt = f"{int(_po_qty)}" if isinstance(_po_qty, float) and _po_qty.is_integer() else str(_po_qty)
-            _dose_summary = f"{_q_txt}{_po_unit}"
-            if _dose_summary not in dose_text:
-                dose_text = f"{_dose_summary} {dose_text}".strip() if dose_text.strip() else _dose_summary
-    # attach any rate-adjustment note peeled off drug_name to dose_text
-    # so continuous-infusion titration intent surfaces in the dosage record.
-    if rate_adjustment_note:
-        rate_note_localized = _localize_rate_adjustment(rate_adjustment_note, country)
-        dose_text = f"{dose_text} ({rate_note_localized})".strip() if dose_text.strip() else rate_note_localized
-    # Issue #472: localize at the assignment only — `dose_text` itself stays English
-    # because the continuous-infusion detection below matches on "CONTINUOUS" / "DRIP".
-    # The MedicationRequest sibling applies the same call on its own dosage["text"].
-    dosage: dict[str, Any] = {"text": _localize_dosage_terms(dose_text, resolve_lang(country))}
-    if parsed.get("dose_quantity") is not None and parsed.get("dose_unit"):
-        # Route through build_ucum_quantity so `code` is populated (JP-CLINS
-        # eCS profiles require it — feedback fix PR-A, 2026-07-16).
-        dosage["dose"] = build_ucum_quantity(parsed["dose_quantity"], parsed["dose_unit"])
-    # Rate for continuous infusions
-    if "CONTINUOUS" in dose_text.upper() or "DRIP" in dose_text.upper() or "/h" in dose_text:
-        rate_value = parsed.get("dose_quantity") or 1
-        rate_unit = parsed.get("dose_unit", "mL") + "/h"
-        dosage["rateQuantity"] = build_ucum_quantity(rate_value, rate_unit)
-
-    # Issue #1067 B2: IV-route drugs missing a structured dose need the same
-    # catalog-based rate/duration augmentation the MR builder gets via
-    # ``augment_iv_dosage_with_rate`` (Issue #966). Previously MA path only
-    # handled the ad-hoc "CONTINUOUS"/"DRIP"/"/h" cases above, leaving
-    # protocol-string IV meds (KCl range, sliding-scale insulin, NS bolus
-    # without an explicit rate) with an empty dose. Same helper, same
-    # semantics — dose_text and display_name flow the same way. Emit-side
-    # only, no CIF rewrite.
-    from clinosim.modules.output.fhir_r4.lib.common import (
-        augment_iv_dosage_with_rate as _augment_iv,
-    )
-
-    _augment_iv(
-        dosage,
-        dose_text=dose_text or "",
-        route=mar.get("route") or parsed.get("route"),
-        display_name=drug_name_clean or "",
-    )
-    # Route — resolved through the shared helper so the MAR and MR paths cannot drift
-    # apart again (Issue #458: the missing `INH` / `NEB` aliases produced 166 text-only
-    # elements here versus 6 on the MR path). `.upper()` now lives in the helper.
-    route_concept = build_route_concept(mar.get("route") or parsed.get("route"), country)
-    if route_concept:
-        dosage["route"] = route_concept
-    # v3 (Chain-11, v3 feedback §保留 3 真因判明): FHIR R4
-    # `mad-1` says `dosage.dose.exists() or dosage.rate.exists()` when a
-    # dosage element is present. Sliding-scale insulin / PRN / infusion
-    # bolus orders that only carry a `dosage.text` (no parsable numeric
-    # dose) tripped 3,005 MedicationAdministration resources in the
-    # original Chain-11 report.
-    #
-    # Issue #851 update: mad-1 is SHOULD (not SHALL) in FHIR R4, and
-    # dropping the entire dosage element loses the parent order's route
-    # and free-text description as well — 23,543 (6.56 %) MAs in the JP
-    # p=10000 s500 sample shipped without ANY dosage element for
-    # exactly this reason. The eMAR-rendering need (what was
-    # administered and how) outweighs the mad-1 preference; emit the
-    # dosage element when it carries at least a route or a meaningful
-    # non-empty text, and keep the original ``dose | rate`` gate as an
-    # OR-clause so structured-dose paths are unchanged. Text that
-    # merely repeats the drug name is treated as empty (avoid
-    # ``.dosage.text = <drug name>`` shadow of ``medicationCodeableConcept.text``).
-    _dosage_text_val = str(dosage.get("text") or "").strip()
-    _text_meaningful = bool(_dosage_text_val) and _dosage_text_val not in (
+    # Dosage block — composed by _build_ma_dosage_block (sub-step helper).
+    # The helper handles the full mad-1 SHOULD-emit logic (Issue #851)
+    # including parent_order backfill (Issue #1089), rate-adjustment note
+    # localization, IV augmentation (Issue #1067 B2), and the "drop
+    # dosage.text that shadows drug name" guard.
+    dosage_block = _build_ma_dosage_block(
+        mar,
+        parent_order,
         drug_name_raw,
         drug_name_clean,
         drug_name,
+        rate_adjustment_note,
+        country,
     )
-    if "dose" in dosage or "rateQuantity" in dosage or dosage.get("route") or _text_meaningful:
-        resource["dosage"] = dosage
+    if dosage_block is not None:
+        resource["dosage"] = dosage_block
 
-    # Reason reference (link to primary diagnosis). Chronic-primary
-    # encounters resolve to the patient-scoped chronic Condition; acute
-    # ones keep the encounter-scoped id.
-    if primary_dx_code:
-        from clinosim.modules.output.fhir_r4.conditions.primary_ref import (
-            primary_condition_ref_from_codes,
-        )
-
-        cond_ref = primary_condition_ref_from_codes(primary_dx_code, chronic_condition_codes, patient_id, encounter_id)
-        resource["reasonReference"] = [
-            {
-                "reference": f"Condition/{cond_ref}",
-            }
-        ]
-        # CY8-19 fix: MAR.reasonCode — primary diagnosis
-        # ICD code を CodeableConcept で並置(reasonReference との duplication は
-        # FHIR R4 で recommended:code と reference は互いに補完)。
-        # US = icd-10-cm、JP = icd-10。
-        #
-        # #208 (2026-07-17):`primary_dx_code` は CIF の
-        # `admission_diagnosis_code` にセットされる disease-YAML の
-        # `icd_codes.primary` 値を由来として、しばしば CM-granular な
-        # 表現(S72.00 / E11.65 / …)を含む。JP output では
-        # `map_diagnosis_code` を通して WHO ICD-10 3-4 桁の親コードへ
-        # 畳み込む必要がある(fhir-jp-validator 2026-07-17 §【最優先 6】
-        # 7,652 errors)。US では identity(既に CM billable leaf に
-        # `code_mapping_diagnosis/us.yaml` で解決済み)。他 builder
-        # (Encounter.reasonCode / Condition.code / FamilyMemberHistory.code)
-        # は同 seam を既に通しており、これで漏れ経路が閉じる。
-        # Issue #350: route through `system_key_for("diagnosis",
-        # country)` — single source of truth for the JP → MHLW / US → ICD-10-CM
-        # mapping. Previously this site hardcoded `"icd-10-cm" if US else
-        # "icd-10"` which bypassed the country-key registry and emitted the
-        # WHO URI on JP output (JP Core `jp-condition-diagnosis` required
-        # binding violation, ~7,600 errors on a p=200 6mo JP cohort).
-        _icd_system = get_system_uri(system_key_for("diagnosis", country_code))
-        _mapped_dx_code = map_diagnosis_code(primary_dx_code, country_code, sex=patient_sex)
-        resource["reasonCode"] = [
-            {
-                "coding": [
-                    {
-                        "system": _icd_system,
-                        "code": _mapped_dx_code,
-                    }
-                ],
-            }
-        ]
-
-    # CY8-20 fix: MAR.device — 持続点滴 (continuous
-    # infusion / drip) のとき infusion pump Device を参照。route=IV かつ
-    # rate指定ある/CONTINUOUS/DRIP を含む admin のみ pump 参照 emit。
-    # Device resource 自体は既存 hospital-main の generic infusion pump を
-    # 参照(実 EHR 実装と同様、pump を patient に固有発行しない運用)。
-    # Gate the infusion-pump reference on the CANONICAL route key, resolved through
-    # `canonicalize_route` (alias-aware). Two distinct failure modes this closes:
-    #  (i) `route_concept["text"]` is localized under Issue #479 dual-slot rule —
-    #      `"静注"` on JP would fail `== "IV"` and drop every IV continuous-infusion
-    #      `resource["device"]`. Same J5 pattern as PR #475 (`dose_text` localization
-    #      dropping `rateQuantity`).
-    #  (ii) A future alias for IV (e.g. `INTRAVENOUS: "IV"` in `_ROUTE_ALIASES`) would
-    #      break a raw-upper comparison the same way — the raw `"INTRAVENOUS"` fails
-    #      `== "IV"` even though it means IV. `canonicalize_route` resolves the alias.
-    _canonical_route = canonicalize_route(mar.get("route") or parsed.get("route"))
-    _dose_text_up = (mar.get("dose") or "").upper()
-    _is_infusion = _canonical_route == "IV" and (
-        "CONTINUOUS" in _dose_text_up or "DRIP" in _dose_text_up or "/H" in _dose_text_up
+    # Reason reference + reasonCode — composed by _build_ma_reason_block.
+    # Routes `primary_dx_code` through `system_key_for("diagnosis",
+    # country)` + `map_diagnosis_code` so JP output lands on MHLW ICD-10
+    # 3-4 digit parent codes (Issue #208, #350).
+    reason_pair = _build_ma_reason_block(
+        primary_dx_code,
+        chronic_condition_codes,
+        patient_id,
+        encounter_id,
+        country_code,
+        patient_sex,
     )
-    if _is_infusion:
-        resource["device"] = [
-            {
-                "reference": "Device/dev-infusion-pump",
-                "display": "汎用輸液ポンプ" if is_jp(country_code) else "Generic infusion pump",
-            }
-        ]
+    if reason_pair is not None:
+        resource["reasonReference"], resource["reasonCode"] = reason_pair
+
+    # Device reference — composed by _build_ma_device_block for
+    # continuous-IV administrations (CY8-20). Gates on canonical route
+    # key via `canonicalize_route` so JP-localized `静注` + alias
+    # `INTRAVENOUS` both route through the IV branch.
+    _parsed_route_for_device: str | None = None
+    if dosage_block is not None:
+        # The helper above already computed `parsed["route"]`; redo the
+        # same parse here to keep the signature free of orchestrator state.
+        _p = _parse_dose_for_mar(str(mar.get("dose", "") or drug_name))
+        _parsed_route_for_device = _p.get("route")
+    device_block = _build_ma_device_block(mar, _parsed_route_for_device, country_code)
+    if device_block is not None:
+        resource["device"] = device_block
 
     return resource
 
