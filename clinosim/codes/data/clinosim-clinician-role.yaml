@@ -1,0 +1,106 @@
+---
+# clinosim-clinician-role.yaml — clinician role registry
+#
+# Consolidates three previously-inline Python dicts into one yaml table
+# keyed by a clinosim role_key:
+#
+#   * `staff_prefix` — the 2-letter Practitioner id prefix used in
+#     narrative text (`DR-CA-002` etc.) that `_localize_practitioner_ids_
+#     in_text` recognises. Not every role has one (allied-health roster
+#     entries are generated after the narrative pass).
+#   * `suffix_ja` / `suffix_en` — the role suffix appended to a
+#     practitioner's name when their id is substituted into narrative
+#     text (`加瀬 幸男 医師` in JP, `Kase Yukio (physician)` in EN).
+#   * `qualification` — FHIR Practitioner.qualification.coding.code +
+#     display pair used when materialising a practitioner Resource
+#     from the roster.
+#
+# The role_key is the canonical slug every module uses to look up any
+# of the three facets; adding a new clinician role is one yaml row,
+# not three Python edits across two files.
+
+metadata:
+  source: >-
+    clinosim/modules/output/fhir_r4/documents/composition.py
+    (_STAFF_ROLE_SUFFIX_JA / _STAFF_ROLE_SUFFIX_EN)
+    and clinosim/modules/output/fhir_r4/lib/localization.py
+    (_ROLE_PREFIX_MAP_JA) prior to hardcoded-audit Finding 8.
+
+roles:
+  physician:
+    staff_prefix: DR
+    suffix_ja: 医師
+    suffix_en: physician
+    qualification:
+      code: MD
+      display: 医師
+
+  nurse:
+    staff_prefix: NS
+    suffix_ja: 看護師
+    suffix_en: nurse
+    qualification:
+      code: RN
+      display: 看護師
+
+  certified_nurse:
+    staff_prefix: CN
+    suffix_ja: 看護師
+    suffix_en: nurse
+
+  respiratory_therapist:
+    staff_prefix: RT
+    suffix_ja: 呼吸療法士
+    suffix_en: respiratory therapist
+
+  physical_therapist:
+    staff_prefix: PT
+    suffix_ja: 理学療法士
+    suffix_en: physical therapist
+    qualification:
+      code: PT
+      display: 理学療法士
+
+  occupational_therapist:
+    staff_prefix: OT
+    suffix_ja: 作業療法士
+    suffix_en: occupational therapist
+    qualification:
+      code: OT
+      display: 作業療法士
+
+  speech_therapist:
+    staff_prefix: ST
+    suffix_ja: 言語聴覚士
+    suffix_en: speech therapist
+    qualification:
+      code: ST
+      display: 言語聴覚士
+
+  pharmacist:
+    staff_prefix: PH
+    suffix_ja: 薬剤師
+    suffix_en: pharmacist
+    qualification:
+      code: PharmD
+      display: 薬剤師
+
+  lab_technician:
+    qualification:
+      code: MT
+      display: 臨床検査技師
+
+  radiologist:
+    qualification:
+      code: MD
+      display: 放射線科医
+
+  medical_social_worker:
+    qualification:
+      code: MSW
+      display: 医療ソーシャルワーカー
+
+  dietitian:
+    qualification:
+      code: RD
+      display: 管理栄養士
