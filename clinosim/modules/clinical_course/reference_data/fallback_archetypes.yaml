@@ -1,0 +1,81 @@
+# fallback_archetypes.yaml — course-archetype trajectories + per-archetype
+# probability priors used when a disease YAML does NOT define its own
+# `course_archetypes` block.
+#
+# Consumed by `clinosim/modules/clinical_course/engine.py` (via
+# `_fallback_trajectories()` + `_fallback_probabilities()`) and by
+# `clinosim/modules/disease/protocol.py` (archetype-name coverage
+# check when `course_archetypes:` is absent in a disease yaml).
+#
+# Six built-in archetypes cover the recovery / deterioration shapes
+# clinosim's clinical course engine simulates. Each archetype carries:
+#   * one `trajectory:` block per state variable (`inflammation_level`,
+#     `volume_status`, `renal_function`, `perfusion_status`, …) —
+#     keyed by day number, values are additive deltas per day.
+#   * one `probability:` prior (used when `_apply_severity_multiplier`
+#     has to pick a baseline for an archetype not present in the
+#     disease's own `probs` dict).
+#
+# Why this is yaml, not Python literal (hardcoded-review Phase A11):
+# the six archetypes are the authoritative trajectory shapes clinosim
+# simulates, with per-day deltas tuned to the clinical literature.
+# Treating them as data rather than code lets a clinical reviewer
+# update one row (e.g. "sudden_deterioration should ramp sooner")
+# without touching Python.
+#
+# Membership policy:
+#   * six archetypes, keyed by name; the names are what
+#     `_apply_severity_multiplier` dispatches on
+#   * trajectory day keys are integers; the engine linearly
+#     interpolates between adjacent days
+#   * probabilities sum to 1.0 (verified at load time)
+
+metadata:
+  source: >-
+    clinosim/modules/clinical_course/engine.py
+    (_FALLBACK_TRAJECTORIES + _FALLBACK_PROBABILITIES) prior to
+    hardcoded-review Phase A11.
+
+archetypes:
+  smooth_recovery:
+    probability: 0.55
+    trajectory:
+      inflammation_level: {0: 0.05, 1: -0.02, 2: -0.08, 3: -0.08, 5: -0.06, 7: -0.06, 10: -0.04, 14: -0.02}
+      volume_status: {0: 0.02, 1: 0.03, 2: 0.03, 3: 0.02, 5: 0.01, 7: 0.01}
+      renal_function: {0: 0.00, 2: 0.01, 5: 0.01, 10: 0.01}
+      perfusion_status: {0: 0.00, 2: 0.01, 5: 0.00}
+
+  dip_then_recovery:
+    probability: 0.20
+    trajectory:
+      inflammation_level: {0: 0.10, 1: 0.05, 2: 0.02, 3: -0.02, 5: -0.08, 7: -0.10, 10: -0.08, 14: -0.05}
+      volume_status: {0: -0.05, 1: -0.03, 2: 0.02, 3: 0.03, 5: 0.02}
+      renal_function: {0: -0.02, 1: -0.01, 3: 0.01, 5: 0.01}
+      perfusion_status: {0: -0.03, 1: -0.02, 3: 0.01, 5: 0.01}
+
+  plateau_then_recovery:
+    probability: 0.10
+    trajectory:
+      inflammation_level: {0: 0.03, 1: 0.02, 3: 0.00, 5: 0.00, 7: -0.08, 10: -0.10, 14: -0.05}
+      volume_status: {0: 0.01, 1: 0.01, 5: 0.00, 7: 0.01}
+
+  treatment_resistant:
+    probability: 0.08
+    trajectory:
+      inflammation_level: {0: 0.08, 1: 0.05, 2: 0.05, 3: 0.02, 5: -0.02, 7: -0.05, 10: -0.10, 14: -0.08}
+      volume_status: {0: -0.03, 1: -0.02, 3: 0.00, 5: 0.02}
+      renal_function: {0: -0.02, 1: -0.01, 3: 0.00, 5: 0.01}
+
+  gradual_deterioration:
+    probability: 0.05
+    trajectory:
+      inflammation_level: {0: 0.10, 1: 0.08, 2: 0.08, 3: 0.05, 5: 0.05, 7: 0.03}
+      perfusion_status: {0: -0.05, 1: -0.05, 2: -0.03, 3: -0.03, 5: -0.02}
+      renal_function: {0: -0.03, 1: -0.03, 2: -0.02, 3: -0.02, 5: -0.01}
+
+  sudden_deterioration:
+    probability: 0.02
+    trajectory:
+      inflammation_level: {0: 0.05, 1: -0.02, 2: 0.30, 3: 0.10, 5: -0.05, 7: -0.08}
+      perfusion_status: {0: 0.00, 1: 0.00, 2: -0.30, 3: -0.05, 5: 0.05}
+      renal_function: {0: 0.00, 1: 0.00, 2: -0.15, 3: -0.05, 5: 0.02}

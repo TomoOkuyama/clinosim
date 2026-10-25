@@ -7,9 +7,12 @@ defaults if YAML doesn't define them. Supports complication evaluation.
 from __future__ import annotations
 
 import re
+from functools import cache
+from pathlib import Path
 from typing import Any
 
 import numpy as np
+import yaml
 
 from clinosim.modules._shared import normalize_probabilities
 from clinosim.modules.clinical_course._archetype_modifiers import (
@@ -246,76 +249,49 @@ def _validate_archetype_modifiers(disease_id: str, modifiers: list[dict[str, Any
 # ============================================================
 # Built-in fallback archetypes (used when YAML doesn't define trajectories)
 # ============================================================
+# Authoritative yaml:
+# `clinosim/modules/clinical_course/reference_data/fallback_archetypes.yaml`
+# (hardcoded-review Phase A11). The yaml carries both the per-archetype
+# day-keyed trajectory tables and the probability priors; the module-
+# level aliases below preserve the Python names so every call site —
+# including `clinosim/modules/disease/protocol.py` which imports
+# `_FALLBACK_PROBABILITIES` from this module — stays unchanged.
 
-_FALLBACK_TRAJECTORIES: dict[str, dict[str, dict[int, float]]] = {
-    "smooth_recovery": {
-        "inflammation_level": {
-            0: 0.05,
-            1: -0.02,
-            2: -0.08,
-            3: -0.08,
-            5: -0.06,
-            7: -0.06,
-            10: -0.04,
-            14: -0.02,
-        },
-        "volume_status": {0: 0.02, 1: 0.03, 2: 0.03, 3: 0.02, 5: 0.01, 7: 0.01},
-        "renal_function": {0: 0.00, 2: 0.01, 5: 0.01, 10: 0.01},
-        "perfusion_status": {0: 0.00, 2: 0.01, 5: 0.00},
-    },
-    "dip_then_recovery": {
-        "inflammation_level": {
-            0: 0.10,
-            1: 0.05,
-            2: 0.02,
-            3: -0.02,
-            5: -0.08,
-            7: -0.10,
-            10: -0.08,
-            14: -0.05,
-        },
-        "volume_status": {0: -0.05, 1: -0.03, 2: 0.02, 3: 0.03, 5: 0.02},
-        "renal_function": {0: -0.02, 1: -0.01, 3: 0.01, 5: 0.01},
-        "perfusion_status": {0: -0.03, 1: -0.02, 3: 0.01, 5: 0.01},
-    },
-    "plateau_then_recovery": {
-        "inflammation_level": {0: 0.03, 1: 0.02, 3: 0.00, 5: 0.00, 7: -0.08, 10: -0.10, 14: -0.05},
-        "volume_status": {0: 0.01, 1: 0.01, 5: 0.00, 7: 0.01},
-    },
-    "treatment_resistant": {
-        "inflammation_level": {
-            0: 0.08,
-            1: 0.05,
-            2: 0.05,
-            3: 0.02,
-            5: -0.02,
-            7: -0.05,
-            10: -0.10,
-            14: -0.08,
-        },
-        "volume_status": {0: -0.03, 1: -0.02, 3: 0.00, 5: 0.02},
-        "renal_function": {0: -0.02, 1: -0.01, 3: 0.00, 5: 0.01},
-    },
-    "gradual_deterioration": {
-        "inflammation_level": {0: 0.10, 1: 0.08, 2: 0.08, 3: 0.05, 5: 0.05, 7: 0.03},
-        "perfusion_status": {0: -0.05, 1: -0.05, 2: -0.03, 3: -0.03, 5: -0.02},
-        "renal_function": {0: -0.03, 1: -0.03, 2: -0.02, 3: -0.02, 5: -0.01},
-    },
-    "sudden_deterioration": {
-        "inflammation_level": {0: 0.05, 1: -0.02, 2: 0.30, 3: 0.10, 5: -0.05, 7: -0.08},
-        "perfusion_status": {0: 0.00, 1: 0.00, 2: -0.30, 3: -0.05, 5: 0.05},
-        "renal_function": {0: 0.00, 1: 0.00, 2: -0.15, 3: -0.05, 5: 0.02},
-    },
-}
 
-_FALLBACK_PROBABILITIES = {
-    "smooth_recovery": 0.55,
-    "dip_then_recovery": 0.20,
-    "plateau_then_recovery": 0.10,
-    "treatment_resistant": 0.08,
-    "gradual_deterioration": 0.05,
-    "sudden_deterioration": 0.02,
-}
+@cache
+def _fallback_archetypes_raw() -> dict[str, Any]:
+    path = Path(__file__).resolve().parent / "reference_data" / "fallback_archetypes.yaml"
+    with path.open(encoding="utf-8") as fh:
+        return yaml.safe_load(fh) or {}
+
+
+def _fallback_trajectories_from_yaml() -> dict[str, dict[str, dict[int, float]]]:
+    archetypes = _fallback_archetypes_raw().get("archetypes", {}) or {}
+    out: dict[str, dict[str, dict[int, float]]] = {}
+    for name, row in archetypes.items():
+        if not isinstance(row, dict):
+            continue
+        trajectories = row.get("trajectory", {}) or {}
+        per_var: dict[str, dict[int, float]] = {}
+        for state_var, points in trajectories.items():
+            if not isinstance(points, dict):
+                continue
+            per_var[str(state_var)] = {int(day): float(delta) for day, delta in points.items()}
+        out[str(name)] = per_var
+    return out
+
+
+def _fallback_probabilities_from_yaml() -> dict[str, float]:
+    archetypes = _fallback_archetypes_raw().get("archetypes", {}) or {}
+    return {
+        str(name): float(row["probability"])
+        for name, row in archetypes.items()
+        if isinstance(row, dict) and "probability" in row
+    }
+
+
+_FALLBACK_TRAJECTORIES: dict[str, dict[str, dict[int, float]]] = _fallback_trajectories_from_yaml()
+_FALLBACK_PROBABILITIES: dict[str, float] = _fallback_probabilities_from_yaml()
 
 
 def _apply_severity_multiplier(probs: dict[str, float], archetype: str, multiplier: float) -> None:
