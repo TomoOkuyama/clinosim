@@ -1,0 +1,74 @@
+# JP Core profile URLs — resource_type → [profile_url, ...].
+#
+# URLs quoted verbatim from the `jp_core@1.2.0` IG package
+# (`iris4h-ai/jp_core/package/StructureDefinition-jp-*.json` `.url`
+# fixedUri) per the repo convention of citing fixedUri rather than
+# guessing (`feedback_verify_fhir_profile_uri_from_spec`).
+#
+# Migrated from the inline `_JP_CORE_PROFILES` dict in
+# `clinosim/modules/output/fhir_r4/post_process/profile.py` under the
+# post-#1849 review (hardcoded-audit Finding 11).
+
+metadata:
+  name: JP Core Profile URLs
+  description: >
+    Resource type → JP Core v1.1+ profile URL mapping used by
+    `_apply_jp_core_profile`. One row per resource type whose JP
+    Core profile is single (no category-based dispatch).
+  source: jp_core@1.2.0 IG package (jpfhir.jp/fhir/core/)
+  version: '1.2.0'
+
+profiles:
+  Patient:
+    - http://jpfhir.jp/fhir/core/StructureDefinition/JP_Patient
+  Encounter:
+    - http://jpfhir.jp/fhir/core/StructureDefinition/JP_Encounter
+  Condition:
+    - http://jpfhir.jp/fhir/core/StructureDefinition/JP_Condition
+  Coverage:
+    - http://jpfhir.jp/fhir/core/StructureDefinition/JP_Coverage
+  Observation:
+    - http://jpfhir.jp/fhir/core/StructureDefinition/JP_Observation_Common
+  MedicationRequest:
+    - http://jpfhir.jp/fhir/core/StructureDefinition/JP_MedicationRequest
+  MedicationAdministration:
+    - http://jpfhir.jp/fhir/core/StructureDefinition/JP_MedicationAdministration
+  AllergyIntolerance:
+    - http://jpfhir.jp/fhir/core/StructureDefinition/JP_AllergyIntolerance
+  Immunization:
+    - http://jpfhir.jp/fhir/core/StructureDefinition/JP_Immunization
+  Practitioner:
+    - http://jpfhir.jp/fhir/core/StructureDefinition/JP_Practitioner
+  PractitionerRole:
+    - http://jpfhir.jp/fhir/core/StructureDefinition/JP_PractitionerRole
+  Organization:
+    - http://jpfhir.jp/fhir/core/StructureDefinition/JP_Organization
+  DiagnosticReport:
+    - http://jpfhir.jp/fhir/core/StructureDefinition/JP_DiagnosticReport_Common
+  # RM-6c: Procedure profile so RECORD-based and ORDER-based
+  # Procedure emissions both carry JP Core conformance.
+  Procedure:
+    - http://jpfhir.jp/fhir/core/StructureDefinition/JP_Procedure
+  # Additional JP Core StructureDefinition URLs (#145). JP Core 1.2.0
+  # does NOT publish profiles for CareTeam / Composition /
+  # ClinicalImpression / Endpoint; those stay on base FHIR R4 (Composition
+  # still carries per-doc-type JP-CLINS profiles emitted at the composition
+  # builder level).
+  ServiceRequest:
+    - http://jpfhir.jp/fhir/core/StructureDefinition/JP_ServiceRequest_Common
+  DocumentReference:
+    - http://jpfhir.jp/fhir/core/StructureDefinition/JP_DocumentReference
+  FamilyMemberHistory:
+    - http://jpfhir.jp/fhir/core/StructureDefinition/JP_FamilyMemberHistory
+  # ImagingStudy has two JP Core profiles (_Radiology + _Endoscopy). clinosim
+  # only emits radiology studies (CT/CXR/MRI via `imaging` module, AD-62 —
+  # endoscopy is out of scope).
+  ImagingStudy:
+    - http://jpfhir.jp/fhir/core/StructureDefinition/JP_ImagingStudy_Radiology
+  # Issue #745 (Wave 3): JP Core parents for Device / DeviceUseStatement
+  # so their JP-CLINS eCS profiles (`JP_Device_eCS` / `JP_DeviceUseStatement_eCS`)
+  # have their `baseDefinition` chain intact.
+  Device:
+    - http://jpfhir.jp/fhir/core/StructureDefinition/JP_Device
+  DeviceUseStatement:
+    - http://jpfhir.jp/fhir/core/StructureDefinition/JP_DeviceUseStatement

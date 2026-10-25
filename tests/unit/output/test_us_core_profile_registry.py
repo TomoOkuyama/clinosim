@@ -1,4 +1,4 @@
-"""Pin tests for `_US_CORE_PROFILES` registry (Issue #1768 — Cluster E T8a).
+"""Pin tests for `_us_core_profiles` registry (Issue #1768 — Cluster E T8a).
 
 US Core v9.0 StructureDefinition URLs are quoted verbatim from
 ``hl7.fhir.us.core@9.0.0`` IG package (``package/StructureDefinition-us-core-*.json``
@@ -60,10 +60,10 @@ import pytest
 )
 def test_us_core_profile_registered_for_resource(resource_type: str, expected_url: str) -> None:
     """Issue #1768: single-profile US Core v9 resource types registered."""
-    from clinosim.modules.output.fhir_r4.post_process import _US_CORE_PROFILES
+    from clinosim.modules.output.fhir_r4.post_process import _us_core_profiles
 
-    profiles = _US_CORE_PROFILES.get(resource_type)
-    assert profiles is not None, f"{resource_type} missing from _US_CORE_PROFILES registry"
+    profiles = _us_core_profiles().get(resource_type)
+    assert profiles is not None, f"{resource_type} missing from _us_core_profiles registry"
     assert expected_url in profiles, f"{resource_type} profiles={profiles} does not include {expected_url}"
 
 
@@ -110,7 +110,7 @@ def test_apply_us_core_profile_preserves_existing_profiles() -> None:
 
 
 def test_apply_us_core_profile_skips_unregistered_resource_type() -> None:
-    """Resource types not in ``_US_CORE_PROFILES`` leave meta untouched —
+    """Resource types not in ``_us_core_profiles`` leave meta untouched —
     silent no-op mirrors the JP Core helper's behaviour."""
     from clinosim.modules.output.fhir_r4.post_process import _apply_us_core_profile
 
