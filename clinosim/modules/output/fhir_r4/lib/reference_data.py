@@ -7,14 +7,10 @@ other adapter symbols) and are re-exported by fhir_r4_adapter as a facade.
 
 from __future__ import annotations
 
-_ALLERGEN_RXNORM: dict[str, str] = {
-    # RxNorm ingredient codes for common drug allergens
-    "Penicillin": "7980",
-    "Sulfonamide": "10180",
-    "NSAIDs": "5640",  # ibuprofen as representative
-    "Cephalosporin": "2173",
-    "Aspirin": "1191",
-}
+# Allergen RxNorm mapping now lives in
+# `clinosim/codes/data/clinosim-allergen-substance.yaml::allergen_rxnorm`
+# (post-#1880 review, hardcoded-audit Finding 14) — load via
+# `clinosim.locale.loader.load_allergen_rxnorm_map()`.
 
 
 _SEVERITY_SNOMED: dict[str, dict[str, str]] = {

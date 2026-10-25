@@ -16,7 +16,7 @@ from typing import Any
 
 from clinosim.codes import get_system_uri
 from clinosim.codes import lookup as code_lookup
-from clinosim.locale.loader import load_identity_config
+from clinosim.locale.loader import load_allergen_rxnorm_map, load_identity_config
 from clinosim.modules._shared import is_jp, resolve_lang
 from clinosim.modules.output.fhir_r4.lib.common import (
     _coding_with_display,
@@ -38,7 +38,6 @@ from clinosim.modules.output.fhir_r4.lib.localization import (
     _localize_display,
     _localize_drug_name,
 )
-from clinosim.modules.output.fhir_r4.lib.reference_data import _ALLERGEN_RXNORM
 
 # === Issue #1344: US Core Patient extensions ===
 # https://hl7.org/fhir/us/core/StructureDefinition-us-core-race.html
@@ -1105,7 +1104,7 @@ def _build_allergy_intolerance(
     # Localize substance display for JP
     substance_display = _localize_drug_name(substance, country) if is_jp(country) else substance
 
-    rxnorm = _ALLERGEN_RXNORM.get(substance, "")
+    rxnorm = load_allergen_rxnorm_map().get(substance, "")
     code: dict[str, Any] = {"text": substance_display}
     if rxnorm:
         code["coding"] = [

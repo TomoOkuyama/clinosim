@@ -50,3 +50,17 @@ substances:
   Peanut: "ピーナッツ"
   Shellfish: "甲殻類"
   Egg: "鶏卵"
+
+# RxNorm ingredient-level mapping for drug-category allergens. Previously
+# lived in `clinosim/modules/output/fhir_r4/lib/reference_data.py::_ALLERGEN_RXNORM`;
+# migrated here under the post-#1849 review (hardcoded-audit Finding 14)
+# so the allergen SoT carries both display and authority code in one row.
+# Keyed by the EN substance_display the FHIR AllergyIntolerance emit path
+# receives (not by SNOMED allergen_code — the structured allergen catalog
+# `modules/allergy/reference_data/allergens.yaml` owns that binding).
+allergen_rxnorm:
+  Penicillin: "7980"
+  Sulfonamide: "10180"
+  NSAIDs: "5640"           # ibuprofen as representative
+  Cephalosporin: "2173"
+  Aspirin: "1191"
