@@ -1,0 +1,45 @@
+# state_variable_ranges.yaml — canonical clamp ranges for delta-driven
+# physiological state variables.
+#
+# Consumed by `clinosim/modules/physiology/engine.py` (`_VARIABLE_RANGES`
+# / `_variable_range` / `canonical_state_vars`). Any variable receiving
+# a disease-authored delta is clamped to its range after application.
+#
+# `canonical_state_vars()` returns the key set, which
+# `_validate_initial_state_impact` consumes to reject typo'd / unmodeled
+# state-var keys in disease yamls at author time (FP-DELTA-VALIDATE
+# invariant). An unlisted var falls through to the default `(0.0, 1.0)`
+# in `_variable_range`; declaring it here is how a state variable
+# becomes "known" to the engine.
+#
+# Range convention:
+#   * [0.0, 1.0]: a one-sided axis where 0 = baseline healthy and 1 =
+#     maximum perturbation (inflammation / renal / cardiac / hepatic /
+#     anemia / coagulation / perfusion / respiratory_fraction).
+#   * [-1.0, 1.0]: a two-sided axis where negative and positive are
+#     clinically distinct phenotypes (volume_status: hypo- vs hyper-
+#     volemia; ph_status: acidosis vs alkalosis; glucose_status:
+#     hypo- vs hyperglycemia; sodium_status: hypo- vs hypernatremia;
+#     anion_gap_status: non-AG vs high-AG — a missing negative
+#     clamp here previously silently coerced every GI condition's
+#     negative axis to 0 in `apply_disease_onset`).
+
+metadata:
+  source: >-
+    clinosim/modules/physiology/engine.py (_VARIABLE_RANGES) prior to
+    hardcoded-review Phase A12.
+
+variables:
+  inflammation_level:   {min: 0.0, max: 1.0}
+  renal_function:       {min: 0.0, max: 1.0}
+  cardiac_function:     {min: 0.0, max: 1.0}
+  hepatic_function:     {min: 0.0, max: 1.0}
+  anemia_level:         {min: 0.0, max: 1.0}
+  coagulation_status:   {min: 0.0, max: 1.0}
+  volume_status:        {min: -1.0, max: 1.0}
+  perfusion_status:     {min: 0.0, max: 1.0}
+  ph_status:            {min: -1.0, max: 1.0}
+  respiratory_fraction: {min: 0.0, max: 1.0}
+  glucose_status:       {min: -1.0, max: 1.0}
+  sodium_status:        {min: -1.0, max: 1.0}
+  anion_gap_status:     {min: -1.0, max: 1.0}
