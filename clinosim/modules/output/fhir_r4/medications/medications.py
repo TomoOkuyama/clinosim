@@ -8,6 +8,8 @@ from __future__ import annotations
 
 import re
 import uuid
+from functools import cache
+from pathlib import Path
 from typing import Any
 
 from clinosim.codes import (
@@ -1723,84 +1725,49 @@ def _build_medication_admin(
 # falls through as its own class ("_uncovered") and is never dropped
 # by this guard.
 
-_MEDICATION_CLASS_MEMBERS: dict[str, tuple[str, ...]] = {
-    "ppi": (
-        "omeprazole",
-        "esomeprazole",
-        "lansoprazole",
-        "rabeprazole",
-        "pantoprazole",
-        "オメプラゾール",
-        "エソメプラゾール",
-        "ランソプラゾール",
-        "ラベプラゾール",
-        "パントプラゾール",
-    ),
-    "nsaid": (
-        "ibuprofen",
-        "diclofenac",
-        "naproxen",
-        "celecoxib",
-        "loxoprofen",
-        "meloxicam",
-        "indomethacin",
-        "イブプロフェン",
-        "ジクロフェナク",
-        "ナプロキセン",
-        "セレコキシブ",
-        "ロキソプロフェン",
-        "メロキシカム",
-        "インドメタシン",
-    ),
-    "anticoagulant": (
-        "warfarin",
-        "edoxaban",
-        "apixaban",
-        "rivaroxaban",
-        "dabigatran",
-        "ワルファリン",
-        "エドキサバン",
-        "アピキサバン",
-        "リバーロキサバン",
-        "ダビガトラン",
-    ),
-    "ace_inhibitor": (
-        "enalapril",
-        "lisinopril",
-        "perindopril",
-        "ramipril",
-        "captopril",
-        "エナラプリル",
-        "リシノプリル",
-        "ペリンドプリル",
-        "ラミプリル",
-        "カプトプリル",
-    ),
-    "arb": (
-        "candesartan",
-        "losartan",
-        "telmisartan",
-        "olmesartan",
-        "valsartan",
-        "azilsartan",
-        "irbesartan",
-        "カンデサルタン",
-        "ロサルタン",
-        "テルミサルタン",
-        "オルメサルタン",
-        "バルサルタン",
-        "アジルサルタン",
-        "イルベサルタン",
-    ),
-}
-# Classes that are clinically incompatible when co-prescribed on the same day
-# (dual RAAS blockade = ACE-I + ARB; dual anticoagulation = 2 different DOACs
-# or DOAC + warfarin). ACE_i and ARB share a `raas` supergroup — treat as
-# same class for dedup purposes.
-_MEDICATION_CLASS_SUPERGROUPS: dict[str, str] = {
-    "ace_inhibitor": "raas",
-    "arb": "raas",
-}
+# Therapeutic-class membership + raas supergroup live in
+# `clinosim/codes/data/medication-class-members.yaml`. Module-level
+# aliases below are computed from the yaml at import time so every
+# existing consumer (`_classify_medication` / `_dedup_same_class_orders`
+# and anything importing the names) keeps working with no call-site
+# changes.
+
+
+@cache
+def _medication_class_rows() -> dict[str, dict[str, Any]]:
+    import yaml
+
+    path = Path(__file__).resolve().parents[4] / "codes" / "data" / "medication-class-members.yaml"
+    with path.open(encoding="utf-8") as fh:
+        raw = yaml.safe_load(fh) or {}
+    classes = raw.get("classes") or {}
+    out: dict[str, dict[str, Any]] = {}
+    for name, row in classes.items():
+        if isinstance(row, dict):
+            out[str(name)] = row
+    return out
+
+
+def _medication_class_members_dict() -> dict[str, tuple[str, ...]]:
+    out: dict[str, tuple[str, ...]] = {}
+    for name, row in _medication_class_rows().items():
+        en = tuple(str(m) for m in (row.get("en") or []) if isinstance(m, str))
+        ja = tuple(str(m) for m in (row.get("ja") or []) if isinstance(m, str))
+        out[name] = en + ja
+    return out
+
+
+def _medication_class_supergroups_dict() -> dict[str, str]:
+    out: dict[str, str] = {}
+    for name, row in _medication_class_rows().items():
+        sg = row.get("supergroup")
+        if isinstance(sg, str):
+            out[name] = sg
+    return out
+
+
+_MEDICATION_CLASS_MEMBERS: dict[str, tuple[str, ...]] = _medication_class_members_dict()
+_MEDICATION_CLASS_SUPERGROUPS: dict[str, str] = _medication_class_supergroups_dict()
 
 
 def _classify_medication(med_text: str) -> str:

@@ -1,0 +1,104 @@
+---
+# medication-class-members.yaml — therapeutic-class membership for
+# the FHIR MedicationRequest same-class dedup guard
+#
+# Consumed by
+# `clinosim/modules/output/fhir_r4/medications/medications.py::
+# _classify_medication` → `_dedup_same_class_orders`. Matching is
+# intentionally conservative: a drug whose rendered text contains any
+# listed member (case-insensitive on ASCII, verbatim on CJK) is
+# classified; everything else returns "" and is never dropped by the
+# dedup guard.
+#
+# Issue motivation:
+#   * #1176 — dual RAAS blockade (ACE-I + ARB) seen on 70 orders /
+#     19 patients. ACE_inhibitor and arb share a `raas` supergroup.
+#   * #1179 — same-class same-day duplicates: PPI+PPI (26 buckets),
+#     NSAID+NSAID (11), anticoagulant+anticoagulant (29).
+
+metadata:
+  source: >-
+    clinosim/modules/output/fhir_r4/medications/medications.py
+    (_MEDICATION_CLASS_MEMBERS, _MEDICATION_CLASS_SUPERGROUPS)
+    prior to hardcoded-audit Finding 1.
+
+classes:
+  ppi:
+    en:
+      - omeprazole
+      - esomeprazole
+      - lansoprazole
+      - rabeprazole
+      - pantoprazole
+    ja:
+      - オメプラゾール
+      - エソメプラゾール
+      - ランソプラゾール
+      - ラベプラゾール
+      - パントプラゾール
+
+  nsaid:
+    en:
+      - ibuprofen
+      - diclofenac
+      - naproxen
+      - celecoxib
+      - loxoprofen
+      - meloxicam
+      - indomethacin
+    ja:
+      - イブプロフェン
+      - ジクロフェナク
+      - ナプロキセン
+      - セレコキシブ
+      - ロキソプロフェン
+      - メロキシカム
+      - インドメタシン
+
+  anticoagulant:
+    en:
+      - warfarin
+      - edoxaban
+      - apixaban
+      - rivaroxaban
+      - dabigatran
+    ja:
+      - ワルファリン
+      - エドキサバン
+      - アピキサバン
+      - リバーロキサバン
+      - ダビガトラン
+
+  ace_inhibitor:
+    supergroup: raas
+    en:
+      - enalapril
+      - lisinopril
+      - perindopril
+      - ramipril
+      - captopril
+    ja:
+      - エナラプリル
+      - リシノプリル
+      - ペリンドプリル
+      - ラミプリル
+      - カプトプリル
+
+  arb:
+    supergroup: raas
+    en:
+      - candesartan
+      - losartan
+      - telmisartan
+      - olmesartan
+      - valsartan
+      - azilsartan
+      - irbesartan
+    ja:
+      - カンデサルタン
+      - ロサルタン
+      - テルミサルタン
+      - オルメサルタン
+      - バルサルタン
+      - アジルサルタン
+      - イルベサルタン
