@@ -216,41 +216,50 @@ def _non_oral_route_markers() -> frozenset[str]:
     return frozenset(str(m) for m in (raw.get("non_oral_route_markers", []) or []))
 
 
-# Default (unmapped drug) meal-context per frequency. Every FHIR
-# emission at these cadences becomes a spec-legit code; when the specific
-# drug is unknown the fallback is the JA outpatient convention.
-_DEFAULT_MEAL_CONTEXT_BY_FREQ: dict[int, str] = {
-    1: "朝食後",  # QD
-    2: "朝夕食後",  # BID
-    3: "朝昼夕食後",  # TID
-    4: "朝昼夕食後と就寝前",  # QID
-}
+# MHLW MedicationUsage_ePrescription CS dispatch tables. Authority yaml:
+# `clinosim/codes/data/mhlw-medication-usage-code.yaml` (hardcoded-
+# review Phase A5). Three independent dispatch families kept as
+# module-level aliases so every call site stays unchanged.
 
-# (frequency, meal-context) → MHLW MedicationUsage_ePrescription code.
-# Codes verified against JP-CLINS 1.13.0 example fixtures + the
-# authoritative `jpfhir-terminology#2.2606.0` CS.
-_FREQ_CONTEXT_TO_MHLW_CODE: dict[tuple[int, str], tuple[str, str]] = {
-    (1, "朝食後"): ("1011000400000000", "１日１回朝食後　服用"),
-    (1, "夕食後"): ("1011040000000000", "１日１回夕食後　服用"),
-    (1, "就寝前"): ("1011100000000000", "１日１回就寝前　服用"),
-    (1, "朝食前"): ("1011000100000000", "１日１回朝食前　服用"),
-    (1, "起床時"): ("1011000090000000", "１日１回起床時　服用"),
-    (2, "朝夕食後"): ("1012040400000000", "１日２回朝夕食後　服用"),
-    (2, "朝食後と就寝前"): ("1012100400000000", "１日２回朝食後と就寝前　服用"),
-    (3, "朝昼夕食後"): ("1013044400000000", "１日３回朝昼夕食後　服用"),
-    (4, "朝昼夕食後と就寝前"): ("1014144400000000", "１日４回朝昼夕食後と就寝前　服用"),
-}
 
-# Fixed-interval hourly-cadence oral codes. Different family from the
-# meal-context codes above — these emit when `timing.repeat` carries
-# a strict N-times-per-day cadence with equal spacing (Q3H / Q6H /
-# Q8H / Q12H), without any meal marker.
-_HOURLY_CADENCE_MHLW_CODE: dict[int, tuple[str, str]] = {
-    2: ("1022000000000000", "１日２回　１２時間毎　服用"),  # Q12H
-    3: ("1023000000000000", "１日３回　８時間毎　服用"),  # Q8H
-    4: ("1024000000000000", "１日４回　６時間毎　服用"),  # Q6H
-    8: ("1028000000000000", "１日８回　３時間毎　服用"),  # Q3H
-}
+@cache
+def _mhlw_medication_usage_code_raw() -> dict[str, Any]:
+    """Load the MHLW medication-usage CS dispatch yaml."""
+    import yaml
+
+    path = Path(__file__).resolve().parents[4] / "codes" / "data" / "mhlw-medication-usage-code.yaml"
+    with path.open(encoding="utf-8") as fh:
+        return yaml.safe_load(fh) or {}
+
+
+def _default_meal_context_by_freq_from_yaml() -> dict[int, str]:
+    raw = _mhlw_medication_usage_code_raw().get("default_meal_context_by_freq", {}) or {}
+    return {int(k): str(v) for k, v in raw.items()}
+
+
+def _freq_context_to_mhlw_code_from_yaml() -> dict[tuple[int, str], tuple[str, str]]:
+    raw = _mhlw_medication_usage_code_raw().get("freq_context_to_code", {}) or {}
+    out: dict[tuple[int, str], tuple[str, str]] = {}
+    for key, row in raw.items():
+        if not isinstance(row, dict):
+            continue
+        freq_str, _, meal = str(key).partition("|")
+        out[(int(freq_str), meal)] = (str(row.get("code") or ""), str(row.get("display") or ""))
+    return out
+
+
+def _hourly_cadence_mhlw_code_from_yaml() -> dict[int, tuple[str, str]]:
+    raw = _mhlw_medication_usage_code_raw().get("hourly_cadence_by_freq", {}) or {}
+    out: dict[int, tuple[str, str]] = {}
+    for k, row in raw.items():
+        if isinstance(row, dict):
+            out[int(k)] = (str(row.get("code") or ""), str(row.get("display") or ""))
+    return out
+
+
+_DEFAULT_MEAL_CONTEXT_BY_FREQ: dict[int, str] = _default_meal_context_by_freq_from_yaml()
+_FREQ_CONTEXT_TO_MHLW_CODE: dict[tuple[int, str], tuple[str, str]] = _freq_context_to_mhlw_code_from_yaml()
+_HOURLY_CADENCE_MHLW_CODE: dict[int, tuple[str, str]] = _hourly_cadence_mhlw_code_from_yaml()
 
 
 def _resolve_mhlw_usage_code(
