@@ -25,3 +25,12 @@ codes:
   '2186-5':
     en: Not Hispanic or Latino
     ja: 非ヒスパニック・非ラテン系
+
+# clinosim-internal slug → OMB code map. The slug is the key emitted by
+# upstream demographic sampling (`hispanic`, `not_hispanic`); the
+# `_build_us_core_ethnicity_extension` emit site resolves the OMB code
+# via this table and then resolves display via
+# `code_lookup("omb-ethnicity", code, lang)` against the `codes:` block.
+slug_to_code:
+  hispanic: '2135-2'
+  not_hispanic: '2186-5'
