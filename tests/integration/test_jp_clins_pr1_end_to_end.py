@@ -56,7 +56,7 @@ def test_jp_p100_carries_clins_profiles_on_five_types(tmp_path):
     resources_by_type = _load_resources(outdir)
 
     from clinosim.modules.output.fhir_r4.post_process import (
-        _JP_CLINS_PROFILES,
+        _jp_clins_profiles,
         _is_lab_observation,
         _medication_request_satisfies_ecs,
     )
@@ -65,7 +65,7 @@ def test_jp_p100_carries_clins_profiles_on_five_types(tmp_path):
     dense_types = {"Condition", "Observation", "MedicationRequest", "Procedure"}
     # AllergyIntolerance is sparse (single-digit % prevalence in the general
     # population); the profile check is vacuous if the pool is empty.
-    for rt in _JP_CLINS_PROFILES:
+    for rt in _jp_clins_profiles():
         pool = resources_by_type.get(rt, [])
         if rt == "Observation":
             pool = [r for r in pool if _is_lab_observation(r)]
@@ -94,7 +94,7 @@ def test_jp_p100_carries_clins_profiles_on_five_types(tmp_path):
             jp_core_mr = "http://jpfhir.jp/fhir/core/StructureDefinition/JP_MedicationRequest"
             for r in ecs_ineligible:
                 profs = r.get("meta", {}).get("profile", [])
-                assert _JP_CLINS_PROFILES[rt][0] not in profs, (
+                assert _jp_clins_profiles()[rt][0] not in profs, (
                     f"{rt}/{r.get('id')} claims eCS with no dosageInstruction (min=1 violation)"
                 )
                 assert jp_core_mr in profs, f"{rt}/{r.get('id')} lost the parent JP Core profile"
@@ -102,7 +102,7 @@ def test_jp_p100_carries_clins_profiles_on_five_types(tmp_path):
             assert pool, f"expected dense JP-CLINS type {rt} non-empty at p=100 JP"
         for r in pool:
             profs = r.get("meta", {}).get("profile", [])
-            expected = _JP_CLINS_PROFILES[rt][0]
+            expected = _jp_clins_profiles()[rt][0]
             assert expected in profs, f"{rt}/{r.get('id')} missing {expected}"
 
 
