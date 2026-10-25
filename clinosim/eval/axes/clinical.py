@@ -4,7 +4,11 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import date, timedelta
+from functools import cache
+from pathlib import Path
 from typing import Any
+
+import yaml
 
 from clinosim.audit.types import Cohort
 from clinosim.codes import get_system_uri
@@ -57,34 +61,31 @@ _JP_MEDICATION_SYSTEM_URIS: frozenset[str] = frozenset(get_system_uri(k) for k i
 #   - Cre / Glucose / Hb / Bili: only one unit observed
 #     (``mg/dL`` / ``g/dL``); no alias.
 #   - PT-INR: unit-less (``{INR}`` in UCUM); value taken as-is.
-_LAB_BOUNDS_BY_UNIT: dict[str, dict[str, tuple[float, float]]] = {
-    # LOINC → {unit_string: (min, max)}
-    # ``unit_string`` matches either ``valueQuantity.unit`` (human-readable)
-    # or ``.code`` (UCUM); the check site tries both in the order ``unit``
-    # then ``code``.
-    "6690-2": {  # WBC
-        "/uL": (0.0, 500_000.0),
-        "/μL": (0.0, 500_000.0),
-        "10^9/L": (0.0, 500.0),
-        "10*9/L": (0.0, 500.0),  # UCUM canonical form.
-    },
-    "718-7": {"g/dL": (0.0, 25.0)},  # Hemoglobin
-    "2160-0": {"mg/dL": (0.0, 30.0)},  # Serum creatinine
-    "2345-7": {"mg/dL": (0.0, 1500.0)},  # Serum glucose
-    "2823-3": {  # Serum potassium
-        "mmol/L": (0.0, 10.0),
-        "mEq/L": (0.0, 10.0),
-    },
-    "2951-2": {  # Serum sodium
-        "mmol/L": (0.0, 200.0),
-        "mEq/L": (0.0, 200.0),
-    },
-    "1975-2": {"mg/dL": (0.0, 50.0)},  # Total bilirubin
-    "6301-6": {  # PT-INR
-        "{INR}": (0.5, 20.0),
-        "": (0.5, 20.0),  # unitless fallback (some emitters omit unit for INR)
-    },
-}
+# LOINC → {unit_string: (min, max)} — authoritative yaml at
+# `clinosim/codes/data/lab-plausibility-bounds.yaml`
+# (hardcoded-review Phase A13, CRITICAL C6). The emit site tries both
+# `valueQuantity.unit` (human-readable) and `.code` (UCUM) in order,
+# so each LOINC enumerates every representation clinosim emits.
+
+
+@cache
+def _lab_bounds_from_yaml() -> dict[str, dict[str, tuple[float, float]]]:
+    path = Path(__file__).resolve().parents[2] / "codes" / "data" / "lab-plausibility-bounds.yaml"
+    with path.open(encoding="utf-8") as fh:
+        raw = yaml.safe_load(fh) or {}
+    out: dict[str, dict[str, tuple[float, float]]] = {}
+    for loinc, unit_map in (raw.get("loincs", {}) or {}).items():
+        if not isinstance(unit_map, dict):
+            continue
+        inner: dict[str, tuple[float, float]] = {}
+        for unit, bounds in unit_map.items():
+            if isinstance(bounds, (list, tuple)) and len(bounds) == 2:
+                inner[str(unit)] = (float(bounds[0]), float(bounds[1]))
+        out[str(loinc)] = inner
+    return out
+
+
+_LAB_BOUNDS_BY_UNIT: dict[str, dict[str, tuple[float, float]]] = _lab_bounds_from_yaml()
 
 
 # --------------------------------------------------------------------------- #
@@ -117,72 +118,38 @@ class _CondLabPairing:
 _LAB_WINDOW_DAYS = 7
 
 
-_CONDITION_LAB_PAIRINGS: tuple[_CondLabPairing, ...] = (
-    _CondLabPairing(
-        name="sepsis_lactate",
-        icd_prefixes=("A41",),
-        loinc="2524-7",  # Serum lactate (there are multiple LOINCs; this is the venous one clinosim emits)
-        expected_band=(2.0, 100.0),
-        direction="high",
-        rationale="Surviving Sepsis 2021: lactate > 2 mmol/L is a defining feature of sepsis with tissue hypoperfusion.",  # noqa: E501
-    ),
-    _CondLabPairing(
-        name="dka_hco3",
-        icd_prefixes=("E10.10", "E10.11", "E11.10", "E11.11"),
-        loinc="1963-8",  # HCO3 serum
-        expected_band=(0.0, 18.0),
-        direction="low",
-        rationale="ADA severity criteria: HCO3 < 18 mEq/L on presentation defines mild-to-severe DKA.",
-    ),
-    _CondLabPairing(
-        name="acute_mi_troponin",
-        icd_prefixes=("I21", "I22"),
-        loinc="10839-9",  # Troponin I
-        expected_band=(0.04, 100.0),
-        direction="high",
-        rationale="Universal Definition of MI: Troponin I above 99th-percentile URL (0.04 ng/mL for most assays).",
-    ),
-    _CondLabPairing(
-        name="ckd_stage_creatinine",
-        icd_prefixes=("N18.3", "N18.4", "N18.5"),
-        loinc="2160-0",  # Serum creatinine
-        expected_band=(1.3, 20.0),
-        direction="high",
-        rationale="KDIGO 2012: CKD stage 3+ corresponds to eGFR ≤ 60 mL/min/1.73m², which typically implies Cr > 1.3 mg/dL in most adult body sizes.",  # noqa: E501
-    ),
-    _CondLabPairing(
-        name="t2dm_hba1c",
-        icd_prefixes=("E11.9",),
-        loinc="4548-4",  # HbA1c
-        expected_band=(6.5, 20.0),
-        direction="high",
-        rationale="ADA: HbA1c ≥ 6.5% is diagnostic threshold for type-2 diabetes.",
-    ),
-    _CondLabPairing(
-        name="bacterial_pneumonia_wbc",
-        icd_prefixes=("J13", "J14", "J15"),
-        loinc="6690-2",  # WBC
-        expected_band=(11.0, 500.0),
-        direction="high",
-        rationale="Infection response: WBC > 11 × 10^9/L is one of the SIRS criteria and typical of bacterial pneumonia.",  # noqa: E501
-    ),
-    _CondLabPairing(
-        name="anemia_hgb",
-        icd_prefixes=("D50", "D51", "D52", "D53", "D62", "D63", "D64"),
-        loinc="718-7",  # Hb
-        expected_band=(0.0, 12.0),
-        direction="low",
-        rationale="WHO anemia cutoffs: Hgb < 12 g/dL (non-pregnant adult female) / < 13 g/dL (male). Using the more permissive cutoff to avoid false positives on borderline male cases.",  # noqa: E501
-    ),
-    _CondLabPairing(
-        name="chf_bnp",
-        icd_prefixes=("I50",),
-        loinc="30934-4",  # BNP serum
-        expected_band=(100.0, 5000.0),
-        direction="high",
-        rationale="Framingham / ACC-AHA heart failure criteria: BNP > 100 pg/mL supports acute HF diagnosis.",
-    ),
-)
+# Condition × lab pairings — authoritative yaml at
+# `clinosim/codes/data/condition-lab-pairings.yaml`
+# (hardcoded-review Phase A13, CRITICAL C6). Each entry preserves the
+# original tuple shape consumed by _check_condition_lab_coherence.
+
+
+@cache
+def _condition_lab_pairings_from_yaml() -> tuple[_CondLabPairing, ...]:
+    path = Path(__file__).resolve().parents[2] / "codes" / "data" / "condition-lab-pairings.yaml"
+    with path.open(encoding="utf-8") as fh:
+        raw = yaml.safe_load(fh) or {}
+    out: list[_CondLabPairing] = []
+    for name, row in (raw.get("pairings", {}) or {}).items():
+        if not isinstance(row, dict):
+            continue
+        band = row.get("expected_band") or []
+        if not (isinstance(band, (list, tuple)) and len(band) == 2):
+            continue
+        out.append(
+            _CondLabPairing(
+                name=str(name),
+                icd_prefixes=tuple(str(p) for p in (row.get("icd_prefixes") or [])),
+                loinc=str(row.get("loinc") or ""),
+                expected_band=(float(band[0]), float(band[1])),
+                direction=str(row.get("direction") or ""),
+                rationale=str(row.get("rationale") or ""),
+            )
+        )
+    return tuple(out)
+
+
+_CONDITION_LAB_PAIRINGS: tuple[_CondLabPairing, ...] = _condition_lab_pairings_from_yaml()
 
 
 # Warfarin monitoring pairing (medication-driven). Warfarin's RxNorm code
