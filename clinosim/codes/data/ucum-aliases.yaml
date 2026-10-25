@@ -1,0 +1,37 @@
+# ucum-aliases.yaml — clinosim-emitted unit tokens → UCUM canonical codes.
+#
+# Consumed by `clinosim/modules/output/fhir_r4/lib/common.py::_to_ucum_code`
+# (scalar + compound-via-`/`-split). Idempotent: a token already in the
+# UCUM canonical form passes through unchanged.
+#
+# Membership policy (hardcoded-review Phase A4 — the earlier module-
+# docstring text in common.py already said this, repeated here so the
+# yaml is self-describing):
+#   * include only tokens clinosim actually emits (verified against the
+#     2026-07-17 validation report)
+#   * adding a token that never appears is dead code
+#   * missing a token leaves an error path open
+#   * extension protocol: add the token here AND a per-token pin test in
+#     `tests/unit/output/test_ucum_code_canonicalization.py`
+#
+# Authoritative source: UCUM (Unified Code for Units of Measure)
+#   Spec: https://ucum.org/
+#   Rendering guide: https://ucum.org/ucum.html
+
+metadata:
+  source: >-
+    clinosim/modules/output/fhir_r4/lib/common.py (_UCUM_CODE_MAP) prior
+    to hardcoded-review Phase A4.
+  authority: ucum.org
+  version: '2.1'
+
+aliases:
+  mcg: ug                 # microgram
+  IU: '[iU]'              # international unit (biological assay)
+  iu: '[iU]'
+  mIU: 'm[iU]'
+  u: U                    # informal insulin unit → UCUM Unit
+  units: U
+  unit: U
+  mEq: meq                # milliequivalent (UCUM arbitrary unit)
+  mmHg: 'mm[Hg]'          # base FHIR canonical for pressure

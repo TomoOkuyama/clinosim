@@ -1,0 +1,114 @@
+# patient_instructions_ja.yaml — JA FHIR MedicationRequest.dosageInstruction
+# patient-instruction (`patientInstruction`) phrase templates.
+#
+# Consumed by `clinosim/modules/output/fhir_r4/lib/common.py::
+# _resolve_patient_instruction_ja`. The emit site matches a localized
+# route string substring against `route_families[*].markers` and emits
+# the paired JA phrase; interval-based frequency labels get a
+# `interval_prefix` prepended before the route-dispatched verb.
+#
+# JA phrase authoring policy:
+#   * Route markers are matched against ``route.text`` after
+#     ``build_route_concept`` (Japanese for JP output). Matching is
+#     substring-based so composite tokens like "IV drip" / "点滴静注"
+#     both resolve to the parenteral verb.
+#   * The oral template contains `{freq_ph}`, which the emit site
+#     replaces with a frequency placeholder. All other templates are
+#     fixed strings.
+#   * `route_families` ORDER MATTERS: more-specific markers must
+#     appear BEFORE more-generic ones. The oral family is intentionally
+#     last so parenteral / inhalation / sublingual / topical markers
+#     take precedence when a route string carries multiple tokens.
+#
+# Why these came out of Python literals (hardcoded-review Phase A4):
+# the markers + template bodies are JA display data (not clinical code
+# system data), so they belong in locale/jp/ beside the other JA
+# display tables (names, formatting, demographics labels).
+
+metadata:
+  source: >-
+    clinosim/modules/output/fhir_r4/lib/common.py
+    (_PI_ROUTE_FAMILIES_JA, _INTERVAL_FREQ_PREFIX_JA) prior to
+    hardcoded-review Phase A4.
+
+route_families:
+  # Parenteral (nurse-administered under physician orders)
+  - markers:
+      - 静注
+      - 点滴
+      - 皮下注
+      - 皮下
+      - 筋注
+      - 筋肉内
+      - 静脈
+      - IV
+      - IV DRIP
+      - DRIP
+      - IM
+      - SC
+      - SQ
+      - SUBCUT
+      - SUBCUTANEOUS
+      - INTRAMUSCULAR
+      - INTRAVENOUS
+      - INFUSION
+    template: 医師の指示のもと、看護師が投与します
+
+  # Inhalation
+  - markers:
+      - 吸入
+      - ネブライザー
+      - ネブライザ
+      - INH
+      - INHALATION
+      - INHALE
+      - NEB
+      - NEBULIZER
+    template: 指示された方法で吸入してください
+
+  # Sublingual (patient-administered but under-tongue, not swallowed)
+  - markers: [舌下, SL, SUBLINGUAL]
+    template: 指示された時に舌下に投与してください
+
+  # Rectal
+  - markers: [直腸, 坐薬, 座薬, PR, RECTAL, SUPPOSITORY]
+    template: 指示された時間に直腸内に挿入してください
+
+  # Transdermal patch
+  - markers: [貼付, パッチ, TRANSDERMAL, PATCH, TDS]
+    template: 指示された部位に貼付してください
+
+  # Topical ointment / cream / external
+  - markers: [塗布, 外用, 軟膏, TOPICAL, TOP, OINTMENT, CREAM]
+    template: 指示された部位に塗布してください
+
+  # Eye drop
+  - markers: [点眼, OPHTH, OPHTHALMIC, EYE]
+    template: 指示された時間に点眼してください
+
+  # Nasal drop / spray
+  - markers: [点鼻, NASAL, NAS]
+    template: 指示された時間に点鼻してください
+
+  # Enteral / NG / gastrostomy tube (not oral swallowing, but goes through GI)
+  - markers: [経腸, 経管, NG, NASOGASTRIC, PEG, ENTERAL]
+    template: 看護師が経管より投与します
+
+  # Oral (swallowed) — last so more-specific markers above win first
+  - markers: [経口, 内服, PO, ORAL, BY MOUTH]
+    template: 毎日{freq_ph}指示された時間帯に内服してください
+
+# Interval-based frequency labels → JA phrase (no `毎日` prefix). These
+# are route-independent when composed with the appropriate verb, so
+# the emit site checks them BEFORE the route dispatch and appends the
+# route verb afterwards.
+interval_prefix:
+  6時間ごと: 6時間ごとに
+  8時間ごと: 8時間ごとに
+  12時間ごと: 12時間ごとに
+  q2h: 2時間ごとに
+  q3h: 3時間ごとに
+  q4h: 4時間ごとに
+  q6h: 6時間ごとに
+  q8h: 8時間ごとに
+  q12h: 12時間ごとに

@@ -74,7 +74,11 @@ import re
 import uuid
 from dataclasses import dataclass
 from datetime import date, datetime
+from functools import cache
+from pathlib import Path
 from typing import Any
+
+import yaml
 
 from clinosim.codes import get_system_uri
 from clinosim.codes import lookup as code_lookup
@@ -174,17 +178,18 @@ class BundleContext:
 # is dead code; missing one leaves an error path open. Extension policy:
 # add a new token here + a per-token pin test in
 # tests/unit/output/test_ucum_code_canonicalization.py.
-_UCUM_CODE_MAP: dict[str, str] = {
-    "mcg": "ug",  # microgram
-    "IU": "[iU]",  # international unit (biological assay)
-    "iu": "[iU]",
-    "mIU": "m[iU]",
-    "u": "U",  # informal insulin unit → UCUM Unit
-    "units": "U",
-    "unit": "U",
-    "mEq": "meq",  # milliequivalent (UCUM arbitrary unit)
-    "mmHg": "mm[Hg]",  # ↔ base FHIR canonical for pressure
-}
+@cache
+def _ucum_aliases_from_yaml() -> dict[str, str]:
+    """Load the clinosim-emitted token → UCUM canonical code map from yaml."""
+    path = Path(__file__).resolve().parents[4] / "codes" / "data" / "ucum-aliases.yaml"
+    with path.open(encoding="utf-8") as fh:
+        raw = yaml.safe_load(fh) or {}
+    return {str(k): str(v) for k, v in (raw.get("aliases", {}) or {}).items()}
+
+
+# Rationale, extension policy, and authority source live in the yaml
+# header; see codes/data/ucum-aliases.yaml.
+_UCUM_CODE_MAP: dict[str, str] = _ucum_aliases_from_yaml()
 
 
 def _to_ucum_code(unit: str) -> str:
@@ -921,70 +926,39 @@ _validate_route_maps()
 # (``route.text`` after ``build_route_concept`` — Japanese for JP
 # output). Matching is substring-based so composite tokens like
 # "IV drip" / "点滴静注" both resolve to the parenteral verb.
-_PI_ROUTE_FAMILIES_JA: tuple[tuple[tuple[str, ...], str], ...] = (
-    # Parenteral (nurse-administered under physician orders)
-    (
-        (
-            "静注",
-            "点滴",
-            "皮下注",
-            "皮下",
-            "筋注",
-            "筋肉内",
-            "静脈",
-            "IV",
-            "IV DRIP",
-            "DRIP",
-            "IM",
-            "SC",
-            "SQ",
-            "SUBCUT",
-            "SUBCUTANEOUS",
-            "INTRAMUSCULAR",
-            "INTRAVENOUS",
-            "INFUSION",
-        ),
-        "医師の指示のもと、看護師が投与します",
-    ),
-    # Inhalation
-    (
-        ("吸入", "ネブライザー", "ネブライザ", "INH", "INHALATION", "INHALE", "NEB", "NEBULIZER"),
-        "指示された方法で吸入してください",
-    ),
-    # Sublingual (patient-administered but under-tongue, not swallowed)
-    (("舌下", "SL", "SUBLINGUAL"), "指示された時に舌下に投与してください"),
-    # Rectal
-    (("直腸", "坐薬", "座薬", "PR", "RECTAL", "SUPPOSITORY"), "指示された時間に直腸内に挿入してください"),
-    # Transdermal patch
-    (("貼付", "パッチ", "TRANSDERMAL", "PATCH", "TDS"), "指示された部位に貼付してください"),
-    # Topical ointment / cream / external
-    (("塗布", "外用", "軟膏", "TOPICAL", "TOP", "OINTMENT", "CREAM"), "指示された部位に塗布してください"),
-    # Eye drop
-    (("点眼", "OPHTH", "OPHTHALMIC", "EYE"), "指示された時間に点眼してください"),
-    # Nasal drop / spray
-    (("点鼻", "NASAL", "NAS"), "指示された時間に点鼻してください"),
-    # Enteral / NG / gastrostomy tube (not oral swallowing, but does go through GI)
-    (("経腸", "経管", "NG", "NASOGASTRIC", "PEG", "ENTERAL"), "看護師が経管より投与します"),
-    # Oral (swallowed) — last so more-specific markers above win first
-    (("経口", "内服", "PO", "ORAL", "BY MOUTH"), "毎日{freq_ph}指示された時間帯に内服してください"),
-)
+@cache
+def _patient_instructions_ja_from_yaml() -> dict[str, Any]:
+    """Load the JA patient-instruction route-family + interval-prefix tables."""
+    path = Path(__file__).resolve().parents[4] / "locale" / "jp" / "patient_instructions_ja.yaml"
+    with path.open(encoding="utf-8") as fh:
+        return yaml.safe_load(fh) or {}
 
 
-# Interval-based frequency labels → JA phrase (no `毎日` prefix). These
-# are route-independent when composed with the appropriate verb, so we
-# check them BEFORE the route dispatch and append the route verb
-# afterwards.
-_INTERVAL_FREQ_PREFIX_JA: dict[str, str] = {
-    "6時間ごと": "6時間ごとに",
-    "8時間ごと": "8時間ごとに",
-    "12時間ごと": "12時間ごとに",
-    "q2h": "2時間ごとに",
-    "q3h": "3時間ごとに",
-    "q4h": "4時間ごとに",
-    "q6h": "6時間ごとに",
-    "q8h": "8時間ごとに",
-    "q12h": "12時間ごとに",
-}
+def _pi_route_families_ja_from_yaml() -> tuple[tuple[tuple[str, ...], str], ...]:
+    """Build the route-family dispatch tuple preserving yaml ordering."""
+    raw = _patient_instructions_ja_from_yaml().get("route_families", []) or []
+    out: list[tuple[tuple[str, ...], str]] = []
+    for row in raw:
+        if not isinstance(row, dict):
+            continue
+        markers = tuple(str(m) for m in (row.get("markers") or []))
+        template = str(row.get("template") or "")
+        if markers and template:
+            out.append((markers, template))
+    return tuple(out)
+
+
+def _interval_freq_prefix_ja_from_yaml() -> dict[str, str]:
+    raw = _patient_instructions_ja_from_yaml().get("interval_prefix", {}) or {}
+    return {str(k): str(v) for k, v in raw.items()}
+
+
+# Route-family dispatch + interval-based frequency prefix now live in
+# `clinosim/locale/jp/patient_instructions_ja.yaml`; the aliases below
+# keep the Python symbols stable so every call site in this module
+# stays unchanged.
+_PI_ROUTE_FAMILIES_JA: tuple[tuple[tuple[str, ...], str], ...] = _pi_route_families_ja_from_yaml()
+_INTERVAL_FREQ_PREFIX_JA: dict[str, str] = _interval_freq_prefix_ja_from_yaml()
 
 
 def _resolve_patient_instruction_ja(route: str, freq: str, freq_per_day: int | None) -> str:
