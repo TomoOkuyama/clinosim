@@ -14,9 +14,9 @@ import re
 
 from clinosim.codes import lookup as code_lookup
 from clinosim.locale.loader import load_department_display as _load_department_display
-from clinosim.locale.loader import load_narrative_display_dict as _load_narrative_display_dict
 from clinosim.locale.loader import load_med_terms as _load_med_terms
 from clinosim.locale.loader import load_med_terms_ja as _load_med_terms_ja
+from clinosim.locale.loader import load_narrative_display_dict as _load_narrative_display_dict
 from clinosim.locale.loader import resolve_localized_display
 from clinosim.modules._shared import is_jp, is_us, resolve_lang
 
