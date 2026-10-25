@@ -157,7 +157,7 @@ description: |
 
     No RNG effect for either fix. Companion PR adds Osimertinib /
     Sorafenib / Lenvatinib (and 10 sibling oncology drugs) to
-    `clinosim/locale/shared/drug_names_ja.yaml`, fixing the
+    `clinosim/codes/data/drugs.yaml + the clinosim-{imaging-exam-name,procedure-phrase,allergen-substance,admin-form-display}.yaml catalogs under clinosim/codes/data/`, fixing the
     canonical-katakana leak surfaced in the same verify run.
 
   v15 changes (2026-09-06, session 104 realism uplift Tier 1):

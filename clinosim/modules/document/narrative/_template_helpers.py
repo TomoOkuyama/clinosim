@@ -330,7 +330,7 @@ def _render_safety_skips_line(skips: list[dict], lang: str) -> str:
     lines: list[str] = []
 
     # Phase 1c-5 (2026-09-23): JA drug-name localization is a locale-
-    # specific data pipeline (katakana translation via drug_names_ja.yaml)
+    # specific data pipeline (katakana translation via `load_narrative_display_dict`)
     # — kept behind a ``lang == "ja"`` gate. Two pre-fix failure modes:
     # (1) ``considered_ja`` / ``substituted_with_ja`` sometimes unset;
     # (2) when set, sometimes falls back to raw English (chronic_medications.

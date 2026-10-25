@@ -140,7 +140,7 @@ I48:  # Atrial fibrillation
   exclusive_classes: ["anticoagulant"]
   medications:
     - {drug_id: warfarin, dose: "3mg", drug_class: "anticoagulant", route: "PO", frequency: "daily", probability: 0.5}
-    - {drug_id: apixaban_2, dose: "5mg", drug_class: "anticoagulant", route: "PO", frequency: "bid", probability: 0.5}
+    - {drug_id: apixaban, dose: "5mg", drug_class: "anticoagulant", route: "PO", frequency: "bid", probability: 0.5}
   monitoring:
     - {test: "PT-INR", frequency: "daily", intent: "Anticoagulation monitoring"}
   hold_conditions:
@@ -211,7 +211,7 @@ I26:  # Pulmonary embolism — post-discharge AC (>=3 mo, indefinite if unprovok
   exclusive_classes: ["anticoagulant"]
   medications:
     - {drug: "Rivaroxaban 20mg", drug_ja: "リバーロキサバン15mg", drug_class: "anticoagulant", route: "PO", frequency: "daily", probability: 0.5}
-    - {drug_id: apixaban_2, dose: "5mg", drug_class: "anticoagulant", route: "PO", frequency: "bid", probability: 0.3}
+    - {drug_id: apixaban, dose: "5mg", drug_class: "anticoagulant", route: "PO", frequency: "bid", probability: 0.3}
     - {drug_id: warfarin, dose: "3mg", drug_class: "anticoagulant", route: "PO", frequency: "daily", probability: 0.2}
   monitoring:
     - {test: "PT-INR", frequency: "monthly", intent: "Warfarin therapeutic monitoring (if on warfarin)"}
@@ -221,7 +221,7 @@ I82:  # Deep vein thrombosis — same duration logic as I26
   exclusive_classes: ["anticoagulant"]
   medications:
     - {drug: "Rivaroxaban 20mg", drug_ja: "リバーロキサバン15mg", drug_class: "anticoagulant", route: "PO", frequency: "daily", probability: 0.5}
-    - {drug_id: apixaban_2, dose: "5mg", drug_class: "anticoagulant", route: "PO", frequency: "bid", probability: 0.3}
+    - {drug_id: apixaban, dose: "5mg", drug_class: "anticoagulant", route: "PO", frequency: "bid", probability: 0.3}
     - {drug_id: warfarin, dose: "3mg", drug_class: "anticoagulant", route: "PO", frequency: "daily", probability: 0.2}
   monitoring:
     - {test: "PT-INR", frequency: "monthly", intent: "Warfarin therapeutic monitoring (if on warfarin)"}
@@ -233,7 +233,7 @@ I63:  # Cerebral infarction — embolic source (AF/cardiac) gets AC; non-embolic
   exclusive_classes: ["anticoagulant"]
   medications:
     - {drug_id: warfarin, dose: "3mg", drug_class: "anticoagulant", route: "PO", frequency: "daily", probability: 0.3}
-    - {drug_id: apixaban_2, dose: "5mg", drug_class: "anticoagulant", route: "PO", frequency: "bid", probability: 0.3}
+    - {drug_id: apixaban, dose: "5mg", drug_class: "anticoagulant", route: "PO", frequency: "bid", probability: 0.3}
     - {drug_id: aspirin, dose: "100mg", route: "PO", frequency: "daily", probability: 0.7}
     - {drug_id: clopidogrel, dose: "75mg", route: "PO", frequency: "daily", probability: 0.3}
   monitoring:

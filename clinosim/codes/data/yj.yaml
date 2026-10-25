@@ -184,8 +184,9 @@ codes:
     ja: フェンタニル（デュロテップMTパッチ）
   # Issue #1233: oncology + endocrine + supplement drugs sourced from
   # MEDIS 医薬品HOTコードマスター (2026-08-31 版) — replaces the previously
-  # fictitious YJ codes recorded in drug_names_ja.yaml comments and cures
-  # 3.36% MR NOCODED / 0.97% MA NOCODED at JP p=10k.
+  # fictitious YJ codes recorded in the now-retired drug_names_ja.yaml
+  # (deleted in META #1849 Phase 5 Step 4, #1876) and cures 3.36% MR
+  # NOCODED / 0.97% MA NOCODED at JP p=10k.
   # Oncology
   4291410A2084:
     en: Oxaliplatin injection 100mg

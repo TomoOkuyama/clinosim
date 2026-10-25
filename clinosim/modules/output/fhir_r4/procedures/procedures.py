@@ -127,7 +127,8 @@ def _build_procedure(
     #
     # Route the JP fallback through `_localize_drug_name` — despite its name,
     # this function is the phrase-level translator that consults
-    # `drug_names_ja.yaml` (which already carries procedure phrases like
+    # `clinosim-procedure-phrase.yaml` via `load_narrative_display_dict()`
+    # (which already carries procedure phrases like
     # "Ice pack application" → "氷嚢貼付") and internally chains
     # `_localize_dosage_terms` for prefix / abbrev translation
     # (O2 → 酸素投与, PO → 経口, etc.).

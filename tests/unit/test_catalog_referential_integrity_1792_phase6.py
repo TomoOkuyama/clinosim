@@ -7,11 +7,15 @@ Two invariants locked at CI time:
    that spells ``drug_id: nonexistant_drug`` would otherwise emit a
    silent empty item via the dual-path resolver's catalog miss.
 
-2. **Every drug_id in the catalog must carry a ``codes.rxnorm``
-   pointer.** US-locale FHIR output's ``MedicationRequest.
-   medicationCodeableConcept.coding`` resolves from the catalog's
-   RxNorm field; a missing one causes the 26% coverage gap that
-   #1765 was filed for. The invariant now prevents regression.
+2. **Every drug_id in the catalog must carry at least ONE authority
+   code pointer — ``codes.rxnorm`` (US-NLM), ``codes.yj`` (JP MHLW),
+   or ``codes.hot7`` (JP MEDIS clinical master).** US-locale FHIR
+   output resolves ``MedicationRequest.medicationCodeableConcept.coding``
+   from ``codes.rxnorm``; JP-locale resolves it from ``codes.yj`` /
+   ``codes.hot7``. A drug_id with none of the three would land on
+   the pre-#1765 silent-drop path for its target locale. The invariant
+   now admits JP-only drugs (META #1849 Phase 5 Step 2.b YJ-only +
+   Step 2 HOT7-only fallback for drugs whose NLM RxCUI is NotCurrent).
 """
 
 from __future__ import annotations

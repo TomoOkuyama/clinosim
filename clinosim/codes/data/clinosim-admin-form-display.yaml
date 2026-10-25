@@ -15,7 +15,7 @@
 # string appears in the generated text.
 #
 # This catalog is the semantic home for those display variants. Loader
-# unions it into the `_load_drug_names_ja()` return value so no caller
+# unions it into the `_load_narrative_display_dict()` return value so no caller
 # change is required.
 #
 # Non-goals:

@@ -53,7 +53,7 @@ from clinosim.locale.loader import (
     load_chronic_medications,       # () -> dict[str, Any] (shared)
     load_chronic_followup,          # () -> dict[str, Any] (shared)
     load_med_terms_ja,              # () -> dict[str, dict[str, str]] (shared)
-    load_drug_names_ja,             # () -> dict[str, str] (shared)
+    load_narrative_display_dict,             # () -> dict[str, str] (shared)
     load_department_display,        # () -> dict[str, dict[str, str]] (shared)
 )
 from clinosim.locale.text import (
@@ -134,7 +134,7 @@ clinosim/locale/
                                    LHRH q28d), chronic_followup (incl. Z39
                                    postpartum), chronic_medications,
                                    chronic_onset_min_age, department_display,
-                                   drug_names_ja, encounter_disposition_defaults,
+                                   encounter_disposition_defaults,
                                    icd10_sex_restrictions,
                                    iv_infusion_defaults, med_terms_ja,
                                    naming_rules, perinatal (delivery

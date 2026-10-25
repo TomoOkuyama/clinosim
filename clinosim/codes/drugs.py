@@ -1,4 +1,5 @@
-"""Drug identity catalog loader — META #1792 Phase 1a.
+"""Drug identity catalog loader — single source of truth for drug display
++ authority code pointers.
 
 Resolves an internal, authority-neutral ``drug_id`` (snake_case key)
 to the display SoT and the pointers into the authority code-system
@@ -10,11 +11,13 @@ authority code tables themselves (``rxnorm.yaml``, ``yj.yaml``,
 their own ``metadata.source`` provenance — this module only names which
 codes identify a given drug and what to display.
 
-Downstream yamls migrate to ``drug_id`` references in Phase 2+ of
-META #1792. Until then this catalog runs in parallel with the existing
-``chronic_medications.yaml::drug_ja`` / ``drug_names_ja.yaml`` display
-sources; the display-SoT invariant is enforced after the Phase 2
-migration lands.
+History: META #1792 established the catalog + migrated downstream yamls
+to ``drug_id`` references (Phases 1-6, closed). META #1849 Phase 5
+retired the legacy ``clinosim/locale/shared/drug_names_ja.yaml``
+display source (deleted in #1876) in favour of this catalog + the
+four narrative display catalogs under ``clinosim/codes/data/`` — the
+free-text EN→JA lookup `load_narrative_display_dict()` in
+`clinosim/locale/loader.py` UNIONs them all.
 
 Usage::
 

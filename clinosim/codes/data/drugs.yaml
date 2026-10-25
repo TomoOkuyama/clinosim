@@ -29,7 +29,7 @@
 #     aliases: ["Adrenaline", "..."]   # optional, alternate EN name forms —
 #                                       # synonyms / trade / salt-form variants
 #                                       # that all resolve to this drug_id in
-#                                       # `_load_drug_names_ja` free-text lookup
+#                                       # `_load_narrative_display_dict` free-text lookup
 #                                       # (META #1849 Phase 5 Step 2.g).
 #
 # Display rules:
@@ -49,12 +49,16 @@
 metadata:
   name: Clinosim Drug Identity Catalog
   description: >
-    Internal drug_id -> display + authority-code pointers. See META #1792
-    for the Phase 1-6 migration plan from the current three-source
-    duplication (rxnorm.yaml display + drug_names_ja.yaml alias +
-    chronic_medications.yaml::drug_ja) to this single-source catalog.
+    Internal drug_id -> display + authority-code pointers. META #1792
+    (Phases 1-6) + META #1849 (Phase 5) retired the pre-catalog three-
+    source duplication (rxnorm.yaml display + the deleted
+    drug_names_ja.yaml alias layer + chronic_medications.yaml::drug_ja);
+    this file is now the single source of truth, with
+    `load_narrative_display_dict()` providing free-text EN→JA lookup via
+    this catalog + the four narrative display catalogs under
+    `clinosim/codes/data/clinosim-*.yaml`.
   version: '0.1'
-  phase: '1a-bootstrap'
+  phase: 'phase-6-sot-established'
   source: >
     This file is the clinosim-internal catalog; the authority codes it
     references are issued by NLM RxNorm (US), MHLW YJ (JP), and MEDIS
@@ -190,11 +194,6 @@ drugs:
     codes:
       rxnorm: "140587"
     classes: []
-  09_sodium_chloride_injectable_solution:
-    names: {en: "0.9% Sodium Chloride injectable solution", ja: "生理食塩水"}
-    codes:
-      rxnorm: "1807627"
-    classes: []
   azithromycin:
     names: {en: "Azithromycin", ja: "アジスロマイシン"}
     codes:
@@ -209,7 +208,7 @@ drugs:
   levofloxacin:
     names: {en: "Levofloxacin", ja: "レボフロキサシン"}
     codes:
-      rxnorm: "202488"
+      rxnorm: "82122"
     classes: []
   carvedilol:
     names: {en: "Carvedilol", ja: "カルベジロール"}
@@ -219,7 +218,7 @@ drugs:
   prednisolone:
     names: {en: "Prednisolone", ja: "プレドニゾロン"}
     codes:
-      rxnorm: "212995"
+      rxnorm: "8638"
     classes: []
   ceftriaxone:
     names: {en: "Ceftriaxone", ja: "セフトリアキソン"}
@@ -234,7 +233,7 @@ drugs:
   meropenem:
     names: {en: "Meropenem", ja: "メロペネム"}
     codes:
-      rxnorm: "227224"
+      rxnorm: "29561"
     classes: []
   chlorhexidine:
     names: {en: "Chlorhexidine", ja: "クロルヘキシジン"}
@@ -262,11 +261,6 @@ drugs:
     codes:
       rxnorm: "29046"
     classes: []
-  meropenem_2:
-    names: {en: "Meropenem", ja: "メロペネム"}
-    codes:
-      rxnorm: "29561"
-    classes: []
   alendronate:
     names: {en: "Alendronate", ja: "アレンドロン酸"}
     codes:
@@ -281,11 +275,6 @@ drugs:
     names: {en: "Ceftriaxone 1 G Injection", ja: "セフトリアキソン1g注"}
     codes:
       rxnorm: "309090"
-    classes: []
-  apixaban_2:
-    names: {en: "Apixaban", ja: "アピキサバン"}
-    codes:
-      rxnorm: "321064"
     classes: []
   hydromorphone:
     names: {en: "Hydromorphone", ja: "ヒドロモルフォン"}
@@ -342,9 +331,11 @@ drugs:
     codes:
       rxnorm: "9863"                    # NLM TTY=IN (sodium chloride ingredient)
     classes: ["electrolyte_solution"]
-    aliases: ["Normal saline", "IV normal saline", "NS"]
-                                        # case + prefix + abbreviation variants
-                                        # used across disease / order YAMLs.
+    aliases: ["IV normal saline", "NS"]
+                                        # prefix + abbreviation variants used
+                                        # across disease / order YAMLs
+                                        # ("Normal saline" is lower-case match
+                                        # of catalog EN "Normal Saline" — no alias needed).
                                         # META #1849 Phase 5 Step 2.
   ringer_solution:
     # Non-lactated Ringer's solution. No NLM TTY=IN with a clean
@@ -430,11 +421,6 @@ drugs:
     codes:
       rxnorm: "7804"
     classes: []
-  nitroglycerin_2:
-    names: {en: "Nitroglycerin", ja: "ニトログリセリン"}
-    codes:
-      rxnorm: "7806"
-    classes: []
   penicillin_g:
     names: {en: "Penicillin G", ja: "ペニシリンG"}
     codes:
@@ -445,15 +431,10 @@ drugs:
     codes:
       rxnorm: "8163"
     classes: []
-  levofloxacin_2:
-    names: {en: "Levofloxacin", ja: "レボフロキサシン"}
-    codes:
-      rxnorm: "82122"
-    classes: []
   ondansetron:
     names: {en: "Ondansetron", ja: "オンダンセトロン"}
     codes:
-      rxnorm: "8896"
+      rxnorm: "26225"
     classes: []
   sodium_bicarbonate:
     names: {en: "Sodium bicarbonate", ja: "炭酸水素ナトリウム"}
@@ -820,6 +801,17 @@ drugs:
     codes:
       rxnorm: "8308"
     classes: []
+  vitamin_k1_injection:
+    # SBD-level pointer for the newborn Vit K1 injection workup (#1252).
+    # Distinct from the ingredient-level `phytonadione` (RxCUI 8308) —
+    # the CIF `"Vitamin K1 (phytonadione) 1 mg IM"` text matches the
+    # longest-prefix form "Vitamin K1 (phytonadione)" via
+    # `locale/us/code_mapping_drug.yaml` to this SBD RxCUI.
+    names: {en: "Vitamin K1 (phytonadione)", ja: "ビタミンK1注 (0.5 mL / 2 mg/mL)"}
+    codes:
+      rxnorm: "312424"                 # SBD: 0.5 ML vitamin K1 2 MG/ML Injection
+    classes: ["vitamin"]
+    aliases: ["Vitamin K1 injection"]
   aztreonam:
     names: {en: "Aztreonam", ja: "アズトレオナム"}
     codes:
@@ -839,11 +831,6 @@ drugs:
     names: {en: "Cefotaxime", ja: "セフォタキシム"}
     codes:
       rxnorm: "2186"
-    classes: []
-  albumin_human_usp:
-    names: {en: "Albumin human, USP", ja: "人血清アルブミン"}
-    codes:
-      rxnorm: "828529"
     classes: []
   cefepime:
     names: {en: "Cefepime", ja: "セフェピム"}
@@ -870,11 +857,6 @@ drugs:
     codes:
       rxnorm: "2551"
     classes: []
-  sulfamethoxazole_trimethoprim:
-    names: {en: "Sulfamethoxazole / Trimethoprim", ja: "スルファメトキサゾール／トリメトプリム"}
-    codes:
-      rxnorm: "10831"
-    classes: []
   insulin_regular_human:
     names: {en: "Insulin, Regular, Human", ja: "レギュラーインスリン"}
     codes:
@@ -884,11 +866,6 @@ drugs:
     names: {en: "Sodium Chloride 9 MG/ML Injectable Solution", ja: "生理食塩液"}
     codes:
       rxnorm: "313002"
-    classes: []
-  prednisolone_2:
-    names: {en: "Prednisolone", ja: "プレドニゾロン"}
-    codes:
-      rxnorm: "8638"
     classes: []
   potassium_chloride:
     names: {en: "Potassium Chloride", ja: "塩化カリウム"}
@@ -967,11 +944,6 @@ drugs:
     codes:
       rxnorm: "2587736"
     classes: []
-  05_ml_vitamin_k1_2_mg_ml_injection:
-    names: {en: "0.5 ML vitamin K1 2 MG/ML Injection", ja: "ビタミンK1 2 mg/mL 注射液 0.5 mL"}
-    codes:
-      rxnorm: "312424"
-    classes: []
   erythromycin_0005_mg_mg_ophthalmic_ointment:
     names: {en: "erythromycin 0.005 MG/MG Ophthalmic Ointment", ja: "エリスロマイシン 0.005 mg/mg 眼軟膏"}
     codes:
@@ -1011,11 +983,6 @@ drugs:
     names: {en: "bupivacaine", ja: "ブピバカイン"}
     codes:
       rxnorm: "1815"
-    classes: []
-  ondansetron_2:
-    names: {en: "ondansetron", ja: "オンダンセトロン"}
-    codes:
-      rxnorm: "26225"
     classes: []
   ketorolac:
     names: {en: "ketorolac", ja: "ケトロラク"}
@@ -1284,11 +1251,13 @@ drugs:
       rxnorm: "7213"                   # NLM TTY=IN
     classes: ["anticholinergic.inhaled"]
   magnesium_sulfate:
+    # "Magnesium sulfate" (lowercase) and "Magnesium Sulfate" collapse to
+    # the same lowercase key in `_build_narrative_display_dict`; no explicit
+    # alias row needed. MHLW YJ 2355002X1075.
     names: {en: "Magnesium Sulfate", ja: "硫酸マグネシウム"}
     codes:
       rxnorm: "6585"                   # NLM TTY=IN
     classes: ["electrolyte_supplement"]
-    aliases: ["Magnesium sulfate"]     # lowercase form (MHLW YJ 2355002X1075)
   calcium_gluconate:
     names: {en: "Calcium Gluconate", ja: "グルコン酸カルシウム"}
     codes:
@@ -1317,7 +1286,9 @@ drugs:
     codes:
       rxnorm: "486610"                 # NLM TTY=PIN (paclitaxel protein-bound). MHLW HOT7 (アルブミン懸濁型, Issue #1310).
     classes: ["chemotherapy.taxane"]
-    aliases: ["Nab_paclitaxel", "nab-Paclitaxel"]  # underscore / case variants used inside disease YAMLs
+    aliases: ["Nab_paclitaxel"]        # underscore variant used inside disease YAMLs
+                                       # ("nab-Paclitaxel" lower-cases to the same
+                                       # key as catalog EN "Nab-paclitaxel").
 
   # META #1849 Phase 5 Step 2.b batch 1 — JP-only drugs (no US-NLM RxNorm
   # registration). Each `codes.yj` resolves against yj.yaml under the
