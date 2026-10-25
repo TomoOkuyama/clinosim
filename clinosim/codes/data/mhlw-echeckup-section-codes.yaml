@@ -1,0 +1,36 @@
+# mhlw-echeckup-section-codes.yaml — jpfhir eCheckup section codes
+# dispatched by (checkup_type, section_key) tuple.
+#
+# Authoritative source: jpfhir eCheckup Implementation Guide v1.7.0
+#   CodeSystem URI: http://jpfhir.jp/fhir/eCheckup/CodeSystem/section-code
+#   Spec: https://jpfhir.jp/fhir/eCheckup/
+#
+# Consumed by
+# `clinosim/modules/output/fhir_r4/documents/composition.py::
+# _build_jp_eCheckup_general_composition`. The emit site picks a row by
+# the Composition subject's `checkup_type` (`occupational` by default)
+# and emits two sections: `checkup_lab_results` + `checkup_questionnaire`.
+#
+# JP-eCheckup General compositions require the flat 2-section pattern
+# below; nesting is NOT allowed. The three checkup types are
+# authoritative subsets of the eCheckup section-code CodeSystem; adding
+# a new (checkup_type, section_key) row here is a formal declaration
+# that the pair exists in the upstream CS.
+
+metadata:
+  source: >-
+    clinosim/modules/output/fhir_r4/documents/composition.py
+    (_JP_ECHECKUP_SECTION_CODE_MATRIX) prior to hardcoded-review Phase A3.
+  cs_uri: http://jpfhir.jp/fhir/eCheckup/CodeSystem/section-code
+  version: jpfhir-eCheckup#1.7.0
+
+sections:
+  occupational:
+    checkup_lab_results: '01031'      # 事業者健診検査結果セクション
+    checkup_questionnaire: '01032'    # 事業者健診問診結果セクション
+  specific:
+    checkup_lab_results: '01011'      # 特定健診検査結果セクション
+    checkup_questionnaire: '01012'    # 特定健診問診結果セクション
+  regional_union:
+    checkup_lab_results: '01021'      # 広域連合保健事業検査結果セクション
+    checkup_questionnaire: '01022'    # 広域連合保健事業問診結果セクション
