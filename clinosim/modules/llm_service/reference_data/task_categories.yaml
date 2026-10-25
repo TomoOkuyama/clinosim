@@ -1,0 +1,58 @@
+# task_categories.yaml — LLMTaskType → LLMTaskCategory classification.
+#
+# Consumed by `clinosim/modules/llm_service/engine.py`
+# (`TASK_CATEGORY`). Each row declares whether a task runs through the
+# `judgment` or `narrative` provider pool. The classification is
+# authoritative dispatch data — adding a new `LLMTaskType` requires a
+# row here so `get_provider(task)` can resolve it.
+#
+# Pre-A10 the data lived in a 24-row Python dict inside engine.py.
+# hardcoded-review Phase A10 lifts it to yaml beside the other
+# llm_service dispatch metadata; the Python `TASK_CATEGORY` symbol
+# stays intact so every call site is unchanged.
+#
+# Membership policy:
+#   * one row per `LLMTaskType`; the loader fails loud (ImportError
+#     via `_validate_document_task_sync`) on partial coverage so a
+#     new enum value without a row is caught at import time
+#   * values are `judgment` or `narrative` (lowercased to match the
+#     `LLMTaskCategory` StrEnum values)
+#
+# Why this is not inside `document_type_specs.yaml`: that file is
+# scoped to document-producing tasks only, and all judgment tasks
+# (`diagnostic_reasoning`, `treatment_decision`,
+# `clinical_judgment`, `consistency_review`) are NOT document types.
+# Keeping their classification together with the narrative ones here
+# makes the dispatch table complete in one place.
+
+metadata:
+  source: >-
+    clinosim/modules/llm_service/engine.py (TASK_CATEGORY) prior to
+    hardcoded-review Phase A10.
+
+categories:
+  diagnostic_reasoning: judgment
+  treatment_decision: judgment
+  clinical_judgment: judgment
+  consistency_review: judgment
+
+  chief_complaint: narrative
+  admission_hp: narrative
+  progress_note: narrative
+  discharge_summary: narrative
+  death_summary: narrative
+  operative_note: narrative
+  procedure_note: narrative
+  admission_nursing_assessment: narrative
+  nursing_shift_note: narrative
+  nursing_discharge_summary: narrative
+  outpatient_soap: narrative
+  ed_note: narrative
+  ed_triage_note: narrative
+  admission_care_plan: narrative
+  nutrition_care_plan: narrative
+  rehabilitation_plan: narrative
+  referral_note: narrative
+  health_checkup_report: narrative
+  death_certificate: narrative
+  death_discharge_summary: narrative

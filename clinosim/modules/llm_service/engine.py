@@ -11,7 +11,11 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from enum import StrEnum
+from functools import cache
+from pathlib import Path
 from typing import Any
+
+import yaml
 
 # Re-export ProviderResponse from the new providers subpackage so existing
 # imports keep working. New code should import from .providers directly.
@@ -75,68 +79,91 @@ class LLMTaskType(StrEnum):
     DEATH_DISCHARGE_SUMMARY = "death_discharge_summary"  # LOINC 18842-5 (specialized title)
 
 
-TASK_CATEGORY: dict[LLMTaskType, LLMTaskCategory] = {
-    LLMTaskType.DIAGNOSTIC_REASONING: LLMTaskCategory.JUDGMENT,
-    LLMTaskType.TREATMENT_DECISION: LLMTaskCategory.JUDGMENT,
-    LLMTaskType.CLINICAL_JUDGMENT: LLMTaskCategory.JUDGMENT,
-    LLMTaskType.CONSISTENCY_REVIEW: LLMTaskCategory.JUDGMENT,
-    LLMTaskType.CHIEF_COMPLAINT: LLMTaskCategory.NARRATIVE,
-    LLMTaskType.ADMISSION_HP: LLMTaskCategory.NARRATIVE,
-    LLMTaskType.PROGRESS_NOTE: LLMTaskCategory.NARRATIVE,
-    LLMTaskType.DISCHARGE_SUMMARY: LLMTaskCategory.NARRATIVE,
-    LLMTaskType.DEATH_SUMMARY: LLMTaskCategory.NARRATIVE,
-    LLMTaskType.OPERATIVE_NOTE: LLMTaskCategory.NARRATIVE,
-    LLMTaskType.PROCEDURE_NOTE: LLMTaskCategory.NARRATIVE,
-    LLMTaskType.ADMISSION_NURSING_ASSESSMENT: LLMTaskCategory.NARRATIVE,
-    LLMTaskType.NURSING_SHIFT_NOTE: LLMTaskCategory.NARRATIVE,
-    LLMTaskType.NURSING_DISCHARGE_SUMMARY: LLMTaskCategory.NARRATIVE,
-    LLMTaskType.OUTPATIENT_SOAP: LLMTaskCategory.NARRATIVE,
-    LLMTaskType.ED_NOTE: LLMTaskCategory.NARRATIVE,
-    LLMTaskType.ED_TRIAGE_NOTE: LLMTaskCategory.NARRATIVE,
-    LLMTaskType.ADMISSION_CARE_PLAN: LLMTaskCategory.NARRATIVE,
-    LLMTaskType.NUTRITION_CARE_PLAN: LLMTaskCategory.NARRATIVE,
-    LLMTaskType.REHABILITATION_PLAN: LLMTaskCategory.NARRATIVE,
-    LLMTaskType.REFERRAL_NOTE: LLMTaskCategory.NARRATIVE,
-    LLMTaskType.HEALTH_CHECKUP_REPORT: LLMTaskCategory.NARRATIVE,
-    LLMTaskType.DEATH_CERTIFICATE: LLMTaskCategory.NARRATIVE,
-    LLMTaskType.DEATH_DISCHARGE_SUMMARY: LLMTaskCategory.NARRATIVE,
-}
+# LLMTaskType → LLMTaskCategory dispatch classification.
+# Authority yaml: `clinosim/modules/llm_service/reference_data/
+# task_categories.yaml` (hardcoded-review Phase A10). The loader
+# validates coverage at import time — a new LLMTaskType enum value
+# without a corresponding yaml row raises ImportError.
+
+
+@cache
+def _task_categories_raw() -> dict[str, str]:
+    path = Path(__file__).resolve().parent / "reference_data" / "task_categories.yaml"
+    with path.open(encoding="utf-8") as fh:
+        data = yaml.safe_load(fh) or {}
+    return {str(k): str(v) for k, v in (data.get("categories", {}) or {}).items()}
+
+
+def _task_category_from_yaml() -> dict[LLMTaskType, LLMTaskCategory]:
+    out: dict[LLMTaskType, LLMTaskCategory] = {}
+    unknown: list[str] = []
+    for key, value in _task_categories_raw().items():
+        try:
+            task = LLMTaskType(key)
+            cat = LLMTaskCategory(value)
+        except ValueError:
+            unknown.append(key)
+            continue
+        out[task] = cat
+    missing = {t for t in LLMTaskType} - set(out)
+    if missing or unknown:
+        detail = ""
+        if missing:
+            detail += f" missing categories for: {sorted(t.value for t in missing)}"
+        if unknown:
+            detail += f" unknown task_categories keys: {sorted(unknown)}"
+        raise ImportError(
+            "LLMTaskCategory yaml coverage check failed:"
+            + detail
+            + " (edit clinosim/modules/llm_service/reference_data/task_categories.yaml)"
+        )
+    return out
+
+
+TASK_CATEGORY: dict[LLMTaskType, LLMTaskCategory] = _task_category_from_yaml()
 
 
 # ============================================================
 # Clinical document metadata
-# LOINC codes from Regenstrief LOINC Reference (https://loinc.org/)
-# α-min-2 additions NLM-verified 2026-07 (Task 8); values MUST match
-# clinosim/modules/document/reference_data/document_type_specs.yaml —
-# pinned by tests/unit/test_llm_task_enum_sync.py.
+# LOINC codes from Regenstrief LOINC Reference (https://loinc.org/).
+# Authority yaml: `clinosim/modules/llm_service/reference_data/
+# task_loincs.yaml` (hardcoded-review Phase A10). The sync test
+# `tests/unit/test_llm_task_enum_sync.py::test_document_loinc_
+# matches_document_type_specs_yaml` continues to enforce agreement
+# with the 18 overlapping entries in `document_type_specs.yaml`;
+# DEATH_SUMMARY is template-only (not in the document pipeline) and
+# lives only in task_loincs.yaml.
 # ============================================================
 
-DOCUMENT_LOINC: dict[LLMTaskType, str] = {
-    LLMTaskType.ADMISSION_HP: "34117-2",  # History and physical note
-    LLMTaskType.PROGRESS_NOTE: "11506-3",  # Progress note
-    LLMTaskType.DISCHARGE_SUMMARY: "18842-5",  # Discharge summary note
-    LLMTaskType.DEATH_SUMMARY: "69730-0",  # Death note
-    LLMTaskType.OPERATIVE_NOTE: "11504-8",  # Surgical operation note
-    LLMTaskType.PROCEDURE_NOTE: "28570-0",  # Procedure note
-    LLMTaskType.ADMISSION_NURSING_ASSESSMENT: "78390-2",  # Nursing admission evaluation note
-    LLMTaskType.NURSING_SHIFT_NOTE: "34746-8",  # Nurse Note
-    LLMTaskType.NURSING_DISCHARGE_SUMMARY: "34745-0",  # Nurse Discharge summary
-    LLMTaskType.OUTPATIENT_SOAP: "34131-3",  # Outpatient Note
-    LLMTaskType.ED_NOTE: "34878-9",  # Emergency medicine Note
-    LLMTaskType.ED_TRIAGE_NOTE: "54094-8",  # Emergency department Triage note
-    LLMTaskType.ADMISSION_CARE_PLAN: "18776-5",  # Plan of care note
-    LLMTaskType.NUTRITION_CARE_PLAN: "80791-7",  # Nutrition and dietetics Plan of care note
-    LLMTaskType.REHABILITATION_PLAN: "34823-5",  # Physical medicine and rehab Note
-    LLMTaskType.REFERRAL_NOTE: "57133-1",  # Referral note (JP-CLINS 診療情報提供書)
-    LLMTaskType.HEALTH_CHECKUP_REPORT: "53576-5",  # Health checkup report (JP-eCheckup 検診・健診報告書)
-    LLMTaskType.DEATH_CERTIFICATE: "64297-5",  # Death certificate (医師法第 20 条 mandated 死亡診断書)
-    # LOINC 18842-5 is the international "Discharge summary" code; JP hospitals
-    # use the same code with a specialized template (title = 死亡退院サマリー)
-    # for the deceased-inpatient path. Same code as DISCHARGE_SUMMARY — the
-    # Composition dispatcher (composition.py) branches on `doc.task_type` to
-    # pick the death-variant builder that overrides `type.text` / `title`.
-    LLMTaskType.DEATH_DISCHARGE_SUMMARY: "18842-5",  # Discharge summary (死亡退院サマリー)
-}
+
+@cache
+def _task_loincs_raw() -> dict[str, str]:
+    path = Path(__file__).resolve().parent / "reference_data" / "task_loincs.yaml"
+    with path.open(encoding="utf-8") as fh:
+        data = yaml.safe_load(fh) or {}
+    return {str(k): str(v) for k, v in (data.get("loincs", {}) or {}).items()}
+
+
+def _document_loinc_from_yaml() -> dict[LLMTaskType, str]:
+    out: dict[LLMTaskType, str] = {}
+    unknown: list[str] = []
+    for key, code in _task_loincs_raw().items():
+        try:
+            task = LLMTaskType(key)
+        except ValueError:
+            unknown.append(key)
+            continue
+        out[task] = code
+    if unknown:
+        raise ImportError(
+            "DOCUMENT_LOINC yaml references unknown LLMTaskType values: "
+            f"{sorted(unknown)} (edit clinosim/modules/llm_service/"
+            "reference_data/task_loincs.yaml)"
+        )
+    return out
+
+
+DOCUMENT_LOINC: dict[LLMTaskType, str] = _document_loinc_from_yaml()
 
 
 def loinc_for(task_type: LLMTaskType) -> str | None:
