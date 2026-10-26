@@ -31,8 +31,6 @@ from __future__ import annotations
 import logging
 from typing import Any
 
-from clinosim.locale.i18n import t
-from clinosim.modules._shared import get_attr_or_key as _o
 from clinosim.modules.disease.localization import target_los_config
 from clinosim.modules.document.narrative._localization import (
     _format_lab_unit_for_prose as _format_lab_unit_for_prose,
