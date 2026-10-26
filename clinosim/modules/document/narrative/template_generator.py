@@ -151,10 +151,6 @@ from clinosim.modules.document.narrative._template_helpers import (
     _resolve_vital_placeholders as _resolve_vital_placeholders,
 )
 from clinosim.modules.document.narrative.registry import DocumentTypeSpec
-from clinosim.modules.document.reference_data_loaders import (
-    load_discharge_instructions,
-    load_physical_exam_findings,
-)
 from clinosim.types.document import DocumentType, FormatType, NarrativeContext, NarrativeOutput
 
 logger = logging.getLogger(__name__)
@@ -1537,166 +1533,34 @@ class TemplateNarrativeGenerator:
     # ─────────────────────────────────────────────────────────────────
 
     def _resolve_physical_exam(self, ctx: NarrativeContext, archetype: str, day_index: int) -> dict[str, Any]:
-        """Multi-step fallback chain for per-day physical exam findings.
+        from clinosim.modules.document.narrative.renderers._resolvers import (
+            resolve_physical_exam,
+        )
 
-        Fallback priority:
-          1. disease_protocol.narrative.physical_exam_findings[archetype][day_N] (Pydantic)
-          2. reference_data.findings[disease_id][archetype][day_N]
-          3. Steps 1-2 at prior days (N-1 ... 0)
-          4. baseline.reference_data[archetype][day_N] with same fallback
-          5. Returns {} (caller uses generic phrase)
-        """
-        # Try days from current down to 0
-        candidate_days = list(range(day_index, -1, -1))
-
-        # Source 1+2: disease protocol narrative + reference_data.findings
-        disease_id = _o(ctx.disease_protocol, "disease_id", None) if ctx.disease_protocol else None
-        narrative = _o(ctx.disease_protocol, "narrative", None) if ctx.disease_protocol else None
-        pex_data = load_physical_exam_findings()
-
-        for day in candidate_days:
-            day_key = f"day_{day}"
-
-            # Source 1: disease_protocol.narrative.physical_exam_findings[archetype][day_N]
-            if narrative is not None:
-                proto_pex = _o(narrative, "physical_exam_findings", {})
-                if isinstance(proto_pex, dict):
-                    arch_day = proto_pex.get(archetype, {})
-                    if isinstance(arch_day, dict):
-                        day_findings = arch_day.get(day_key)
-                        if day_findings is not None:
-                            return self._pydantic_day_findings_to_dict(day_findings)
-
-            # Source 2: reference_data.findings[disease_id][archetype][day_N]
-            if disease_id:
-                ref_findings = pex_data.get("findings", {})
-                disease_findings = ref_findings.get(disease_id, {})
-                arch_findings = disease_findings.get(archetype, {})
-                day_entry = arch_findings.get(day_key)
-                if day_entry is not None:
-                    return day_entry if isinstance(day_entry, dict) else {}
-
-        # Source 3+4: baseline reference data
-        baseline = pex_data.get("baseline", {})
-
-        # Try archetype directly
-        arch_baseline = baseline.get(archetype, {})
-        for day in candidate_days:
-            day_key = f"day_{day}"
-            day_entry = arch_baseline.get(day_key)
-            if day_entry is not None:
-                return day_entry if isinstance(day_entry, dict) else {}
-
-        # Try similar archetypes (graceful fallback across archetype names)
-        for alt_arch, alt_data in baseline.items():
-            if not isinstance(alt_data, dict):
-                continue
-            for day in candidate_days:
-                day_key = f"day_{day}"
-                day_entry = alt_data.get(day_key)
-                if day_entry is not None:
-                    return day_entry if isinstance(day_entry, dict) else {}
-
-        return {}
+        return resolve_physical_exam(self, ctx, archetype, day_index)
 
     def _resolve_daily_trajectory(self, ctx: NarrativeContext, archetype: str, day_index: int) -> dict[str, str]:
-        """Fallback chain for SOAP-structured daily trajectory.
+        from clinosim.modules.document.narrative.renderers._resolvers import (
+            resolve_daily_trajectory,
+        )
 
-        Fallback priority:
-          1. disease_protocol.course_archetypes[archetype].daily_trajectory[day_N]
-          2. Same at prior days (N-1 ... 0)
-          3. Generic SOAP entry (always succeeds)
-        """
-        traj, _ = self._resolve_daily_trajectory_with_source(ctx, archetype, day_index)
-        return traj
+        return resolve_daily_trajectory(self, ctx, archetype, day_index)
 
     def _resolve_daily_trajectory_with_source(
         self, ctx: NarrativeContext, archetype: str, day_index: int
     ) -> tuple[dict[str, str], str]:
-        """Like _resolve_daily_trajectory but also returns source path for facts_used.
+        from clinosim.modules.document.narrative.renderers._resolvers import (
+            resolve_daily_trajectory_with_source,
+        )
 
-        Returns (trajectory_dict, source_path) where source_path is an empty string
-        when the generic fallback is used (not from disease YAML).
-        """
-        proto = ctx.disease_protocol
-        if proto is None:
-            return self._generic_trajectory(ctx), ""
-
-        course_archetypes = _o(proto, "course_archetypes", {}) or {}
-        archetype_data = course_archetypes.get(archetype) or {}
-
-        daily_trajectory: dict[str, Any] = {}
-        if isinstance(archetype_data, dict):
-            daily_trajectory = archetype_data.get("daily_trajectory") or {}
-        else:
-            # Pydantic model — try attribute
-            daily_trajectory = _o(archetype_data, "daily_trajectory", {}) or {}
-
-        candidate_days = list(range(day_index, -1, -1))
-        for day in candidate_days:
-            day_key = f"day_{day}"
-            entry = daily_trajectory.get(day_key)
-            if entry is not None:
-                source = f"disease_protocol.course_archetypes.{archetype}.daily_trajectory.{day_key}"
-                if isinstance(entry, dict):
-                    return entry, source
-                # Pydantic DailyTrajectoryEntry
-                return {
-                    "subjective": _o(entry, "subjective", ""),
-                    "objective": _o(entry, "objective", ""),
-                    "assessment": _o(entry, "assessment", ""),
-                    "plan": _o(entry, "plan", ""),
-                }, source
-
-        # No trajectory entry found — return generic with no source
-        return self._generic_trajectory(ctx), ""
-
-    def _generic_trajectory(self, ctx: NarrativeContext) -> dict[str, str]:
-        """Return generic SOAP entry for when no trajectory data is available."""
-        lang = ctx.target_lang
-        return {
-            "subjective": t("fallback.generic_fallback", lang),
-            "objective": t("fallback.generic_fallback", lang),
-            "assessment": t("fallback.generic_assessment", lang),
-            "plan": t("fallback.generic_plan", lang),
-        }
+        return resolve_daily_trajectory_with_source(self, ctx, archetype, day_index)
 
     def _resolve_discharge_instructions(self, ctx: NarrativeContext) -> dict[str, dict[str, str]]:
-        """Merge baseline + disease_specific discharge instructions.
+        from clinosim.modules.document.narrative.renderers._resolvers import (
+            resolve_discharge_instructions,
+        )
 
-        disease_specific entries take precedence over baseline for shared keys.
-        Returns a flat dict {key: {en: "...", ja: "..."}}.
-        """
-        di_data = load_discharge_instructions()
-        baseline: dict[str, Any] = di_data.get("baseline") or {}
-        disease_specific: dict[str, Any] = di_data.get("disease_specific") or {}
-
-        # Start with baseline
-        merged: dict[str, dict[str, str]] = {}
-        for key, entry in baseline.items():
-            if isinstance(entry, dict):
-                merged[key] = dict(entry)
-
-        # Override / supplement with disease_specific
-        disease_id = _o(ctx.disease_protocol, "disease_id", None) if ctx.disease_protocol else None
-        if disease_id and disease_id in disease_specific:
-            overrides = disease_specific[disease_id] or {}
-            for key, entry in overrides.items():
-                if isinstance(entry, dict):
-                    merged[key] = dict(entry)
-
-        # Also check disease YAML's own discharge_instructions (highest priority)
-        narrative = _o(ctx.disease_protocol, "narrative", None) if ctx.disease_protocol else None
-        if narrative is not None:
-            proto_di = _o(narrative, "discharge_instructions", None)
-            if proto_di is not None:
-                _di_sections = ("follow_up", "activity", "medications", "emergency", "diet_lifestyle")
-                for section in _di_sections:
-                    sec_data = _o(proto_di, section, {})
-                    if isinstance(sec_data, dict) and (sec_data.get("en") or sec_data.get("ja")):
-                        merged[section] = dict(sec_data)
-
-        return merged
+        return resolve_discharge_instructions(ctx)
 
     # ─────────────────────────────────────────────────────────────────
     # DEATH_CERTIFICATE sections (LOINC 64297-5) — Issue #961
