@@ -29,10 +29,8 @@ complex date arithmetic.
 from __future__ import annotations
 
 import logging
-from datetime import datetime
 from typing import Any
 
-from clinosim.codes import lookup as code_lookup
 from clinosim.locale.i18n import t
 from clinosim.modules._shared import get_attr_or_key as _o
 from clinosim.modules.disease.localization import target_los_config
@@ -1243,45 +1241,18 @@ class TemplateNarrativeGenerator:
     # module-level ``_localize_op_approach`` / ``_localize_op_implant``.
 
     def _primary_surgical_procedure(self, ctx: NarrativeContext) -> Any | None:
-        """Return the encounter's earliest surgical ProcedureRecord (or None).
+        from clinosim.modules.document.narrative.renderers._shared_helpers import (
+            primary_surgical_procedure,
+        )
 
-        Mirrors the engine's ``per_surgical_encounter`` selection: filter
-        ``ctx.procedures`` to entries whose ``encounter_id`` matches the
-        current encounter AND whose SNOMED ``category_code == "387713003"``
-        (surgical procedure), then pick the earliest by ``start_datetime``.
-        Bedside/diagnostic/therapeutic procedures never satisfy the
-        category filter, so this is safe to call on non-surgical encounters
-        (returns None). The engine's own choice of primary is deterministic
-        and independent, so template + engine agree on which procedure
-        the note describes.
-        """
-        enc_id = _o(ctx.encounter, "encounter_id", "") or ""
-        candidates = [
-            p
-            for p in (ctx.procedures or [])
-            if _o(p, "encounter_id", "") == enc_id and str(_o(p, "category_code", "") or "") == "387713003"
-        ]
-        if not candidates:
-            return None
-        return min(candidates, key=lambda p: _o(p, "start_datetime", None) or datetime(2000, 1, 1))
+        return primary_surgical_procedure(ctx)
 
     def _resolve_procedure_display(self, proc: Any, lang: str) -> str:
-        """Resolve procedure display via code_lookup (k-codes / cpt).
+        from clinosim.modules.document.narrative.renderers._shared_helpers import (
+            resolve_procedure_display,
+        )
 
-        Mirrors ``clinosim/modules/output/hospital_course_extractor._resolve_procedure_name``
-        so the operative note reads the same authoritative code catalog as
-        the FHIR emit path — a single edit of the k-codes yaml updates both
-        (single-edit-point rule).
-        """
-        for key in ("procedure_code", "procedure_code_jp", "procedure_code_us"):
-            code = _o(proc, key, "") or ""
-            if not code:
-                continue
-            for system_key in ("k-codes", "cpt"):
-                disp = code_lookup(system_key, code, lang)
-                if disp and disp != code:
-                    return disp
-        return str(_o(proc, "procedure_type", "") or "")
+        return resolve_procedure_display(proc, lang)
 
     # ─────────────────────────────────────────────────────────────────
     # OPERATIVE_NOTE + PROCEDURE_NOTE section builders — thin delegators
@@ -1416,64 +1387,15 @@ class TemplateNarrativeGenerator:
     # ─────────────────────────────────────────────────────────────────
 
     def _pydantic_day_findings_to_dict(self, day_findings: Any) -> dict[str, Any]:
-        """Convert a Pydantic PhysicalExamDayFindings to a plain dict."""
-        if isinstance(day_findings, dict):
-            return day_findings
-        # Pydantic model: extract body system fields
-        result: dict[str, Any] = {}
-        for sys_key in ("general", "cardiovascular", "respiratory", "abdominal", "neurological"):
-            val = _o(day_findings, sys_key, None)
-            if val is not None:
-                if isinstance(val, str):
-                    result[sys_key] = val
-                else:
-                    # PhysicalExamSystemFindings Pydantic model
-                    result[sys_key] = {
-                        "mild": _o(val, "mild", ""),
-                        "moderate": _o(val, "moderate", ""),
-                        "severe": _o(val, "severe", ""),
-                        "all": _o(val, "all", None),
-                    }
-        return result
+        from clinosim.modules.document.narrative.renderers._shared_helpers import (
+            pydantic_day_findings_to_dict,
+        )
+
+        return pydantic_day_findings_to_dict(day_findings)
 
     def _format_physical_exam(self, phys_exam: dict[str, Any], severity: str, lang: str) -> str:
-        """Format a physical exam findings dict to a single text string.
+        from clinosim.modules.document.narrative.renderers._shared_helpers import (
+            format_physical_exam,
+        )
 
-        Picks the most appropriate severity level per system:
-          - prefer "all" (severity-agnostic) if present
-          - else pick severity-matched text (mild/moderate/severe)
-          - else pick any non-empty text
-        """
-        if not phys_exam:
-            return ""
-
-        # Phase 1d-16: per-body-system labels moved to
-        # ``narrative_labels.yaml::body_system``. Adding a new language
-        # extends each entry with ``<lang>: <display>`` — no code change.
-
-        parts = []
-        for sys_key in ("general", "cardiovascular", "respiratory", "abdominal", "neurological"):
-            entry = phys_exam.get(sys_key)
-            if entry is None:
-                continue
-            if isinstance(entry, str):
-                text = entry
-            elif isinstance(entry, dict):
-                # Pick severity-specific text
-                text = (
-                    entry.get("all")
-                    or entry.get(severity)
-                    or entry.get("moderate")
-                    or entry.get("mild")
-                    or entry.get("severe")
-                    or ""
-                )
-                if text is None:
-                    text = ""
-            else:
-                text = ""
-            if text:
-                label = _label("body_system", sys_key, lang, fallback=sys_key)
-                parts.append(f"{label}: {text}")
-
-        return t("list_sep.period_space", lang).join(parts)
+        return format_physical_exam(phys_exam, severity, lang)
