@@ -57,6 +57,16 @@ from clinosim.locale.loaders.clinical import (
     load_single_gene_diseases,
     load_specialty_routing,
 )
+from clinosim.locale.loaders.medical_display import (
+    load_allergen_rxnorm_map,
+    load_department_display,
+    load_diet_type_display,
+    load_frequency_tokens,
+    load_med_terms,
+    load_med_terms_ja,
+    load_occupation_display,
+    load_prefecture_jis_x_0401_map,
+)
 from clinosim.locale.loaders.narrative import (
     _load_country_language_map,
     load_chief_complaint_translations,
@@ -81,16 +91,22 @@ __all__ = [
     "_load_country_language_map",
     "_validate_chronic_medications_route_vocabulary",
     "load_actuarial_life_table",
+    "load_allergen_rxnorm_map",
     "load_chemo_regimens",
     "load_chief_complaint_translations",
     "load_chronic_followup",
     "load_chronic_medications",
     "load_comorbidity_progression_multipliers",
     "load_condition_mortality_smr",
+    "load_department_display",
+    "load_diet_type_display",
+    "load_frequency_tokens",
     "load_health_screening_visit_reason",
     "load_inpatient_subjective_pool",
     "load_iv_infusion_defaults",
     "load_llm_prompt_labels",
+    "load_med_terms",
+    "load_med_terms_ja",
     "load_narrative_archetypes",
     "load_narrative_complications",
     "load_narrative_display_dict",
@@ -101,7 +117,9 @@ __all__ = [
     "load_narrative_op_approach",
     "load_narrative_op_implants",
     "load_narrative_stage_tokens",
+    "load_occupation_display",
     "load_perinatal_config",
+    "load_prefecture_jis_x_0401_map",
     "load_pregnancy_substitutions",
     "load_reference_ranges",
     "load_single_gene_diseases",
@@ -383,137 +401,6 @@ def load_encounter_disposition_defaults() -> dict[str, Any]:
             entry = {}
         merged[slot] = {**defaults, **entry}
     return merged
-
-
-@lru_cache(maxsize=1)
-def load_med_terms() -> dict[str, dict[str, dict[str, str]]]:
-    """Load the multi-language medication dosage / term catalog.
-
-    Structure: ``{"categories": {slug: {lang: display}}, "terms":
-    {slug: {lang: display}}}`` — same shape as the Phase 1d-1
-    ``narrative_*.yaml`` and Phase 1d-2 ``llm_prompt_labels.yaml``
-    files. Order is preserved from the YAML (substitutions are
-    order-sensitive: longer keys must be tried first).
-
-    Backing file: ``clinosim/locale/shared/med_terms.yaml`` (Phase
-    1d-3, 2026-09-23). Adding a new locale (fr / zh / …) is a data
-    change here — extend each entry with ``<lang>: <display>``.
-    """
-    raw = _load_yaml(_LOCALE_DIR / "shared" / "med_terms.yaml", fallback={})
-    return {
-        "categories": raw.get("categories", {}) or {},
-        "terms": raw.get("terms", {}) or {},
-    }
-
-
-@lru_cache(maxsize=1)
-def load_med_terms_ja() -> dict[str, dict[str, str]]:
-    """Deprecated alias — returns a ``{"categories": {slug: ja_value},
-    "terms": {slug: ja_value}}`` view of the multi-language catalog for
-    callers that predate Phase 1d-3.
-
-    Use ``load_med_terms`` for new code. This shim projects each
-    per-slot dict to its ``ja`` slot only; callers that need
-    ``lang="en"`` (etc.) must migrate to ``load_med_terms`` and
-    resolve via ``resolve_localized_display``.
-    """
-    ml = load_med_terms()
-    return {
-        "categories": {k: entry.get("ja", "") for k, entry in ml["categories"].items()},
-        "terms": {k: entry.get("ja", "") for k, entry in ml["terms"].items()},
-    }
-
-
-# load_narrative_display_dict() moved to loaders/narrative.py
-# (hardcoded-review Phase B1); re-exported at module scope via the
-# `from clinosim.locale.loaders.narrative import *` at the top of the file.
-
-
-@lru_cache(maxsize=1)
-def load_department_display() -> dict[str, dict[str, str]]:
-    """Load department display table ({key: {en, ja}})."""
-    raw = _load_yaml(_LOCALE_DIR / "shared" / "department_display.yaml", fallback={})
-    return raw.get("departments", {}) or {}
-
-
-@lru_cache(maxsize=1)
-def load_frequency_tokens() -> dict[str, tuple[int, int, str]]:
-    """Load the frequency-token catalog.
-
-    Returns `{token: (frequency, period, period_unit)}`. Reads
-    `clinosim/codes/data/frequency-tokens.yaml`, consolidated under
-    post-#1880 review (hardcoded-audit Finding 20) from the parallel
-    `_FREQ_PER_DAY` (`clinosim/modules/order/engine.py`) and
-    `_FREQ_LABEL_TIMING` (`clinosim/modules/output/fhir_r4/lib/common.py`)
-    dicts.
-    """
-    path = _LOCALE_DIR.parent / "codes" / "data" / "frequency-tokens.yaml"
-    raw = _load_yaml(path, fallback={})
-    tokens = raw.get("tokens", {}) or {}
-    out: dict[str, tuple[int, int, str]] = {}
-    for key, row in tokens.items():
-        if not isinstance(row, dict):
-            continue
-        out[str(key)] = (
-            int(row.get("frequency", 0)),
-            int(row.get("period", 1)),
-            str(row.get("period_unit", "d")),
-        )
-    return out
-
-
-@lru_cache(maxsize=1)
-def load_allergen_rxnorm_map() -> dict[str, str]:
-    """Load the EN allergen substance → RxNorm ingredient CUI mapping.
-
-    Reads the `allergen_rxnorm` block of `clinosim/codes/data/
-    clinosim-allergen-substance.yaml`, migrated from the pre-#1880
-    `clinosim/modules/output/fhir_r4/lib/reference_data.py::_ALLERGEN_RXNORM`
-    inline dict (hardcoded-audit Finding 14).
-    """
-    _allergen_substance_catalog = _LOCALE_DIR.parent / "codes" / "data" / "clinosim-allergen-substance.yaml"
-    raw = _load_yaml(_allergen_substance_catalog, fallback={})
-    return {str(k): str(v) for k, v in (raw.get("allergen_rxnorm", {}) or {}).items()}
-
-
-@lru_cache(maxsize=1)
-def load_prefecture_jis_x_0401_map() -> dict[str, str]:
-    """Load the JP prefecture → JIS X 0401 2-digit code mapping.
-
-    Reads `clinosim/codes/data/jis-x-0401-prefectures.yaml` under the
-    `prefectures:` block (post-#1880 review, hardcoded-audit Finding 4;
-    migrated from `clinosim/modules/output/fhir_r4/lib/reference_data.py::
-    _PREFECTURE_CODE`).
-    """
-    path = _LOCALE_DIR.parent / "codes" / "data" / "jis-x-0401-prefectures.yaml"
-    raw = _load_yaml(path, fallback={})
-    return {str(k): str(v) for k, v in (raw.get("prefectures", {}) or {}).items()}
-
-
-@lru_cache(maxsize=1)
-def load_occupation_display() -> dict[str, dict[str, str]]:
-    """Load occupation display table ({slug: {en, ja}}).
-
-    Reads `clinosim/locale/shared/occupation_display.yaml` (migrated from
-    the inline `_OCCUPATION_DISPLAY_{JA,EN}` dicts in
-    `clinosim/modules/output/fhir_r4/lib/localization.py` under the
-    post-#1849 review, hardcoded-audit Finding 5).
-    """
-    raw = _load_yaml(_LOCALE_DIR / "shared" / "occupation_display.yaml", fallback={})
-    return raw.get("occupations", {}) or {}
-
-
-@lru_cache(maxsize=1)
-def load_diet_type_display() -> dict[str, dict[str, str]]:
-    """Load diet-type display table ({slug: {en, ja}}).
-
-    Reads `clinosim/locale/shared/diet_type_display.yaml` (migrated from
-    the inline `_diet_labels` conditional in
-    `clinosim/modules/output/fhir_r4/encounters/encounter.py` under the
-    post-#1880 review, hardcoded-audit Finding 13).
-    """
-    raw = _load_yaml(_LOCALE_DIR / "shared" / "diet_type_display.yaml", fallback={})
-    return raw.get("diet_types", {}) or {}
 
 
 # ---------------------------------------------------------------------------
