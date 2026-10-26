@@ -197,7 +197,7 @@ Note: 健診 IG は JP-CLINS と別に発行 (JP-eCheckup General v1.7.0、
   セットを選び、各患者に 1 CHECKUP encounter (1 日完結) + 法定健診
   5 項目 ObservationRecord + HEALTH_CHECKUP_REPORT stub を追加する。
   narrative content は Stage 2 の TemplateNarrativePass が populate、
-  FHIR emit は `_build_jp_eCheckup_general_composition` が担う。
+  FHIR emit は `_build_jp_echeckup_general_composition` が担う。
 - **法定健診 5 項目の実測値個別化 (sub-PR-B 高度化、session 48)**:
   かつては固定値 (BMI 22.5 / SBP 118 / DBP 76 / HbA1c 5.4 /
   LDL 118) だったが、`_derive_checkup_values(patient, rng)` が

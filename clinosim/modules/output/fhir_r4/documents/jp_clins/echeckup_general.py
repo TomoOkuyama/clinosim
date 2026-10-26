@@ -1,6 +1,6 @@
 """JP-eCheckup General v1.7.0 Composition builder (健診結果報告書).
 
-Extracted from ``composition.py::_build_jp_eCheckup_general_composition``
+Extracted from ``composition.py::_build_jp_echeckup_general_composition``
 (full-review Phase B4, CRITICAL C5c). Same lazy-import pattern as the
 discharge-summary / eReferral splits — the builder reuses
 ``_build_composition_generic`` + ``_section_title_from_section_display``
@@ -59,7 +59,7 @@ _JP_ECHECKUP_SECTION_CODE_MATRIX: dict[str, dict[str, str]] = _jp_echeckup_secti
 _JP_ECHECKUP_SECTION_CODE: dict[str, str] = _JP_ECHECKUP_SECTION_CODE_MATRIX["occupational"]
 
 
-def _build_jp_eCheckup_general_composition(
+def _build_jp_echeckup_general_composition(
     doc: Any,
     sections: dict[str, str],
     lang: str,

@@ -69,7 +69,7 @@ from clinosim.modules.output.fhir_r4.documents.jp_clins.echeckup_general import 
     _JP_ECHECKUP_GENERAL_PROFILE,  # noqa: F401 — re-exported for test / downstream use
     _JP_ECHECKUP_SECTION_CODE_MATRIX,  # noqa: F401 — re-exported for test / downstream use
     _JPFHIR_ECHECKUP_SECTION_SYSTEM,  # noqa: F401 — re-exported for test / downstream use
-    _build_jp_eCheckup_general_composition,
+    _build_jp_echeckup_general_composition,
 )
 from clinosim.modules.output.fhir_r4.documents.jp_clins.referral_note import (
     _JP_CLINS_REFERRAL_PROFILE,  # noqa: F401 — re-exported for test / downstream use
@@ -665,7 +665,7 @@ def _build_composition(
             return _build_jp_clins_referral_note_composition(doc, sections, lang, roster_map=roster_map)
         # P2-13 PR3:JP-eCheckup General
         if loinc == "53576-5":
-            return _build_jp_eCheckup_general_composition(doc, sections, lang, roster_map=roster_map)
+            return _build_jp_echeckup_general_composition(doc, sections, lang, roster_map=roster_map)
         # Issue #961:死亡診断書 (Death certificate). Emit under jpfhir
         # doc-typecodes (per JP dispatch convention for JP-authored
         # documents) plus a CodeableConcept.text carrying 死亡診断書.
@@ -1010,7 +1010,7 @@ _JPFHIR_DOC_SECTION_SYSTEM = "http://jpfhir.jp/fhir/clins/CodeSystem/document-se
 # clinosim/modules/output/fhir_r4/documents/jp_clins/referral_note.py
 # (full-review Phase B3, CRITICAL C5b).
 
-# _build_jp_eCheckup_general_composition moved to
+# _build_jp_echeckup_general_composition moved to
 # clinosim/modules/output/fhir_r4/documents/jp_clins/echeckup_general.py
 # (full-review Phase B4, CRITICAL C5c).
 

@@ -23,7 +23,7 @@ eCheckup) は各々 `composition.py` に template 特化 builder を持つ。
   fallback;JP-CLINS 特化 builder 3 種
   (`_build_jp_clins_discharge_summary_composition`,
   `_build_jp_clins_referral_note_composition`,
-  `_build_jp_eCheckup_general_composition`);
+  `_build_jp_echeckup_general_composition`);
   `_localize_section_title` + `_section_title_from_section_display`
   (α-min-1 adv-1 Lens 3 I-3 TODO: JP section title の locale は
   β-JP-1 に deferred、key は英語 snake_case のまま);
@@ -52,7 +52,7 @@ from clinosim.modules.output.fhir_r4.documents.composition import (
     _build_composition_generic,                  # 汎用 fallback
     _build_jp_clins_discharge_summary_composition,
     _build_jp_clins_referral_note_composition,
-    _build_jp_eCheckup_general_composition,
+    _build_jp_echeckup_general_composition,
     _localize_section_title,                     # (section_title, lang) -> localised title (JP は β-JP-1 に deferred)
     _section_title_from_section_display,
 )
