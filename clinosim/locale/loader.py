@@ -29,12 +29,15 @@ from __future__ import annotations
 from functools import lru_cache
 from typing import Any
 
-import yaml
-
 # Shared yaml-reading primitives — factored out so submodules under
 # `clinosim/locale/loaders/` can import them without a cycle back
 # through this module (hardcoded-review Phase B1).
-from clinosim.locale._io import _COUNTRY_DIR_MAP, _LOCALE_DIR, _country_dir, _load_yaml
+from clinosim.locale._io import (
+    _FALLBACK_ENCOUNTER_DISPOSITION,
+    _LOCALE_DIR,
+    _country_dir,
+    _load_yaml,
+)
 
 # Narrative-renderer loader cluster — moved into
 # `clinosim/locale/loaders/narrative.py` (hardcoded-review Phase B1).
@@ -56,6 +59,19 @@ from clinosim.locale.loaders.clinical import (
     load_reference_ranges,
     load_single_gene_diseases,
     load_specialty_routing,
+)
+from clinosim.locale.loaders.demographics import (
+    _load_demographics_cached,
+    _validate_addresses,
+    _validate_demographics,
+    _validate_names,
+    load_addresses,
+    load_code_mapping,
+    load_demographics,
+    load_formatting,
+    load_names,
+    load_naming_rules,
+    load_terminology,
 )
 from clinosim.locale.loaders.medical_display import (
     load_allergen_rxnorm_map,
@@ -89,17 +105,25 @@ __all__ = [
     "_country_dir",
     "_iter_route_values",
     "_load_country_language_map",
+    "_load_demographics_cached",
+    "_validate_addresses",
     "_validate_chronic_medications_route_vocabulary",
+    "_validate_demographics",
+    "_validate_names",
     "load_actuarial_life_table",
+    "load_addresses",
     "load_allergen_rxnorm_map",
     "load_chemo_regimens",
     "load_chief_complaint_translations",
     "load_chronic_followup",
     "load_chronic_medications",
+    "load_code_mapping",
     "load_comorbidity_progression_multipliers",
     "load_condition_mortality_smr",
+    "load_demographics",
     "load_department_display",
     "load_diet_type_display",
+    "load_formatting",
     "load_frequency_tokens",
     "load_health_screening_visit_reason",
     "load_inpatient_subjective_pool",
@@ -107,6 +131,8 @@ __all__ = [
     "load_llm_prompt_labels",
     "load_med_terms",
     "load_med_terms_ja",
+    "load_names",
+    "load_naming_rules",
     "load_narrative_archetypes",
     "load_narrative_complications",
     "load_narrative_display_dict",
@@ -124,257 +150,9 @@ __all__ = [
     "load_reference_ranges",
     "load_single_gene_diseases",
     "load_specialty_routing",
+    "load_terminology",
     "resolve_localized_display",
 ]
-
-
-def _validate_demographics(data: dict) -> None:
-    """Validate demographics.yaml at load time — fail loud on weight violations.
-
-    Checks the OPTIONAL lifestyle_distribution block (smoking + alcohol per
-    sex_key). The fallback ``_FALLBACK_DEMOGRAPHICS`` has no lifestyle block,
-    so a missing block is a valid state (skip). When the block IS present,
-    validate that each distribution has only non-negative weights with sum > 0 —
-    these are the preconditions for
-    ``normalize_probabilities(..., fallback="raise")`` at the
-    ``population/engine.py`` callsites (smoking_dist :170, alcohol_dist :180).
-    """
-    if not isinstance(data, dict):
-        raise ValueError(f"demographics.yaml: top-level must be a dict, got {type(data).__name__}")
-    lifestyle = data.get("lifestyle_distribution")
-    if lifestyle is None:
-        return  # OK: optional block absent
-    if not isinstance(lifestyle, dict):
-        raise ValueError(f"demographics.yaml: lifestyle_distribution must be a dict, got {type(lifestyle).__name__}")
-    for behavior in ("smoking", "alcohol"):
-        per_sex = lifestyle.get(behavior)
-        if per_sex is None:
-            continue  # OK: behavior absent
-        if not isinstance(per_sex, dict):
-            raise ValueError(
-                f"demographics.yaml: lifestyle_distribution.{behavior} must be a dict, got {type(per_sex).__name__}"
-            )
-        for sex_key, dist in per_sex.items():
-            if not isinstance(dist, dict):
-                raise ValueError(
-                    f"demographics.yaml: lifestyle_distribution.{behavior}."
-                    f"{sex_key!r} must be a dict, got {type(dist).__name__}"
-                )
-            weights: list[float] = []
-            for level, w in dist.items():
-                try:
-                    w_f = float(w)
-                except (TypeError, ValueError) as exc:
-                    raise ValueError(
-                        f"demographics.yaml: lifestyle_distribution.{behavior}."
-                        f"{sex_key!r}.{level!r} weight non-numeric: {w!r}"
-                    ) from exc
-                if w_f < 0:
-                    raise ValueError(
-                        f"demographics.yaml: lifestyle_distribution.{behavior}."
-                        f"{sex_key!r}.{level!r} has negative weight {w_f}"
-                    )
-                weights.append(w_f)
-            if weights and sum(weights) <= 0:
-                raise ValueError(
-                    f"demographics.yaml: lifestyle_distribution.{behavior}.{sex_key!r} has zero-sum weights {weights}"
-                )
-
-
-def _validate_names(data: dict) -> None:
-    """Validate names.yaml — surnames + given_names lists with non-negative weights.
-
-    Tolerates the ``_FALLBACK_NAMES`` dict (which has small but valid weights).
-    For each list present (``surnames`` / ``given_names_male`` /
-    ``given_names_female``), requires each weight to be non-negative and the sum
-    to be > 0 (precondition for ``normalize_probabilities(..., fallback="raise")``
-    in population/engine.py callsites :485 and :517). An absent list is OK
-    (validator does not require all three).
-    """
-    if not isinstance(data, dict):
-        raise ValueError(f"names.yaml: top-level must be a dict, got {type(data).__name__}")
-    for key in ("surnames", "given_names_male", "given_names_female"):
-        items = data.get(key)
-        if items is None:
-            continue  # OK: optional list absent
-        if not isinstance(items, list):
-            raise ValueError(f"names.yaml: {key!r} must be a list, got {type(items).__name__}")
-        if not items:
-            continue  # OK: empty list (upstream normalize_probabilities raises on empty)
-        weights: list[float] = []
-        for entry in items:
-            if not isinstance(entry, dict):
-                raise ValueError(f"names.yaml: {key!r} entry must be a dict, got {entry!r}")
-            try:
-                w = float(entry.get("weight", 0))
-            except (TypeError, ValueError) as exc:
-                raise ValueError(
-                    f"names.yaml: {key!r}.{entry.get('name')!r} weight non-numeric: {entry.get('weight')!r}"
-                ) from exc
-            if w < 0:
-                raise ValueError(f"names.yaml: {key!r}.{entry.get('name')!r} has negative weight {w}")
-            weights.append(w)
-        if weights and sum(weights) <= 0:
-            raise ValueError(f"names.yaml: {key!r} has zero-sum weights")
-
-
-def _validate_addresses(data: dict) -> None:
-    """Validate addresses.yaml — cities list with non-negative weights.
-
-    Tolerates missing / empty cities (upstream ``_generate_household_address``
-    has a ``if not cities: return`` guard). When cities are present, requires
-    non-negative weights with sum > 0 (precondition for
-    ``normalize_probabilities(..., fallback="raise")`` at
-    population/engine.py:664).
-    """
-    if not isinstance(data, dict):
-        raise ValueError(f"addresses.yaml: top-level must be a dict, got {type(data).__name__}")
-    cities = data.get("cities")
-    if cities is None:
-        return  # OK: empty fallback ({}) takes this path
-    if not isinstance(cities, list):
-        raise ValueError(f"addresses.yaml: 'cities' must be a list, got {type(cities).__name__}")
-    if not cities:
-        return  # OK: empty list (upstream guards against use)
-    weights: list[float] = []
-    for entry in cities:
-        if not isinstance(entry, dict):
-            raise ValueError(f"addresses.yaml: cities entry must be a dict, got {entry!r}")
-        try:
-            w = float(entry.get("weight", 1))
-        except (TypeError, ValueError) as exc:
-            raise ValueError(
-                f"addresses.yaml: cities entry {entry.get('city')!r} weight non-numeric: {entry.get('weight')!r}"
-            ) from exc
-        if w < 0:
-            raise ValueError(f"addresses.yaml: cities entry {entry.get('city')!r} has negative weight {w}")
-        weights.append(w)
-    if sum(weights) <= 0:
-        raise ValueError("addresses.yaml: cities has zero-sum weights")
-
-
-@lru_cache(maxsize=16)
-def load_names(country: str) -> dict[str, Any]:
-    """Load person name data for a country."""
-    data = _load_yaml(_country_dir(country) / "names.yaml", fallback=_FALLBACK_NAMES)
-    _validate_names(data)
-    return data
-
-
-@lru_cache(maxsize=16)
-def load_naming_rules(country: str) -> dict[str, Any]:
-    """Load naming rules for a country from shared/naming_rules.yaml."""
-    all_rules = _load_yaml(_LOCALE_DIR / "shared" / "naming_rules.yaml", fallback={})
-    dir_name = _COUNTRY_DIR_MAP.get(country, country.lower())
-    return all_rules.get(dir_name, all_rules.get("us", {}))
-
-
-@lru_cache(maxsize=32)
-def load_terminology(domain: str, country: str) -> dict[str, str]:
-    """Load display names for a domain (lab, diagnosis, drug, procedure).
-
-    Example: load_terminology("lab", "JP") -> {"CRP": "C反応性蛋白", ...}
-    """
-    return _load_yaml(_country_dir(country) / f"terminology_{domain}.yaml", fallback={})
-
-
-@lru_cache(maxsize=32)
-def load_code_mapping(domain: str, country: str) -> dict[str, str]:
-    """Load code mapping for a domain.
-
-    Example: load_code_mapping("lab", "JP") -> {"CRP": "5C070", ...}
-
-    META #1804 Phase 2.e (#1765 close): for ``domain == "drug"``, the
-    returned mapping is now UNIONed with the Phase 1b drug-identity
-    catalog (``clinosim/codes/data/drugs.yaml``). The legacy
-    ``code_mapping_drug.yaml`` entries win on key collision for
-    backwards compat; catalog entries fill the gap for drug names the
-    legacy yaml never registered. Pre-Phase 2.e the US cohort emit path
-    missed RxNorm coding on ~26 % of MedicationRequests because 78 of
-    the catalog's 147 drug_ids had no matching legacy name entry.
-    """
-    legacy = _load_yaml(_country_dir(country) / f"code_mapping_{domain}.yaml", fallback={})
-    if domain != "drug":
-        return legacy
-    # Union with catalog (legacy wins on conflict).
-    code_field = "rxnorm" if country.lower() == "us" else "yj"
-    merged: dict[str, str] = {}
-    try:
-        from clinosim.codes.drugs import all_drug_ids, resolve_drug
-
-        drug_ids = all_drug_ids()
-    except Exception:
-        return legacy
-    for drug_id in drug_ids:
-        try:
-            rec = resolve_drug(drug_id)
-        except Exception:
-            continue
-        en = (rec.names.get("en") or "").strip()
-        code = (rec.codes.get(code_field) or "").strip()
-        if en and code and en not in legacy:
-            merged[en] = code
-    merged.update(legacy)
-    return merged
-
-
-@lru_cache(maxsize=8)
-def load_formatting(country: str) -> dict[str, Any]:
-    """Load formatting rules for a country (date, time, units)."""
-    return _load_yaml(_country_dir(country) / "formatting.yaml", fallback=_FALLBACK_FORMATTING)
-
-
-@lru_cache(maxsize=8)
-def _load_demographics_cached(country: str) -> dict[str, Any]:
-    """Internal cached loader for raw demographics YAML (no mutation)."""
-    data = _load_yaml(_country_dir(country) / "demographics.yaml", fallback=_FALLBACK_DEMOGRAPHICS)
-    _validate_demographics(data)
-    return data
-
-
-def load_demographics(country: str) -> dict[str, Any]:
-    """Load demographic data for population generation.
-
-    Injects ``_country`` into the returned dict so downstream consumers
-    (e.g. activate_patient) can determine locale without an extra argument.
-    The underlying YAML is cached; this function returns a fresh shallow copy
-    each call so callers may safely mutate the top-level dict.
-    """
-    result = dict(_load_demographics_cached(country))
-    result["_country"] = country
-    return result
-
-
-@lru_cache(maxsize=8)
-def load_addresses(country: str) -> dict[str, Any]:
-    """Load address/phone data for a country."""
-    data = _load_yaml(_country_dir(country) / "addresses.yaml", fallback={})
-    _validate_addresses(data)
-    return data
-
-
-# Cross-locale fallback defaults — authoritative yaml at
-# `clinosim/locale/shared/fallback_defaults.yaml` (hardcoded-review
-# Phase A14). The yaml carries all four fallback blocks
-# (names / formatting / demographics / encounter_disposition); the
-# Python aliases below preserve the historical module-level symbols so
-# every call site stays unchanged. Loaded with a direct yaml.safe_load
-# because `_load_yaml` is defined later in the file and these aliases
-# evaluate at module-import time.
-_FALLBACK_DEFAULTS_PATH = _LOCALE_DIR / "shared" / "fallback_defaults.yaml"
-
-
-def _read_fallback_defaults() -> dict[str, Any]:
-    if not _FALLBACK_DEFAULTS_PATH.exists():
-        return {}
-    with open(_FALLBACK_DEFAULTS_PATH, encoding="utf-8") as f:
-        raw = yaml.safe_load(f) or {}
-    return raw if isinstance(raw, dict) else {}
-
-
-_FALLBACK_DEFAULTS: dict[str, Any] = _read_fallback_defaults()
-
-_FALLBACK_ENCOUNTER_DISPOSITION: dict[str, Any] = _FALLBACK_DEFAULTS.get("encounter_disposition", {}) or {}
 
 
 @lru_cache(maxsize=1)
@@ -553,12 +331,3 @@ def load_identity_config(country: str) -> dict[str, Any]:
 
 # _load_yaml moved to clinosim/locale/_io.py (hardcoded-review Phase B1)
 # and imported at the top of this module.
-
-
-# Fallback payloads for per-country yaml absence — same semantics as
-# before (returned when `locale/<cc>/<name>.yaml` is missing). Authority
-# yaml at `clinosim/locale/shared/fallback_defaults.yaml`
-# (hardcoded-review Phase A14).
-_FALLBACK_NAMES: dict[str, Any] = _FALLBACK_DEFAULTS.get("names", {}) or {}
-_FALLBACK_FORMATTING: dict[str, Any] = _FALLBACK_DEFAULTS.get("formatting", {}) or {}
-_FALLBACK_DEMOGRAPHICS: dict[str, Any] = _FALLBACK_DEFAULTS.get("demographics", {}) or {}

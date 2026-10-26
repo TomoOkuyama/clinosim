@@ -45,3 +45,30 @@ def _load_yaml(path: Path, fallback: Any = None) -> Any:
         with open(path, encoding="utf-8") as f:
             return yaml.safe_load(f) or fallback
     return fallback if fallback is not None else {}
+
+
+# Cross-locale fallback defaults — authoritative yaml at
+# ``clinosim/locale/shared/fallback_defaults.yaml`` (hardcoded-review
+# Phase A14). The yaml carries all four fallback blocks (names /
+# formatting / demographics / encounter_disposition); the Python
+# constants below preserve the historical module-level symbols so every
+# call site stays unchanged. They live in ``_io.py`` so that submodules
+# under ``clinosim/locale/loaders/`` can import them without a cycle
+# back through ``loader.py`` (hardcoded-review Phase C2c).
+_FALLBACK_DEFAULTS_PATH = _LOCALE_DIR / "shared" / "fallback_defaults.yaml"
+
+
+def _read_fallback_defaults() -> dict[str, Any]:
+    if not _FALLBACK_DEFAULTS_PATH.exists():
+        return {}
+    with open(_FALLBACK_DEFAULTS_PATH, encoding="utf-8") as f:
+        raw = yaml.safe_load(f) or {}
+    return raw if isinstance(raw, dict) else {}
+
+
+_FALLBACK_DEFAULTS: dict[str, Any] = _read_fallback_defaults()
+
+_FALLBACK_NAMES: dict[str, Any] = _FALLBACK_DEFAULTS.get("names", {}) or {}
+_FALLBACK_FORMATTING: dict[str, Any] = _FALLBACK_DEFAULTS.get("formatting", {}) or {}
+_FALLBACK_DEMOGRAPHICS: dict[str, Any] = _FALLBACK_DEFAULTS.get("demographics", {}) or {}
+_FALLBACK_ENCOUNTER_DISPOSITION: dict[str, Any] = _FALLBACK_DEFAULTS.get("encounter_disposition", {}) or {}
