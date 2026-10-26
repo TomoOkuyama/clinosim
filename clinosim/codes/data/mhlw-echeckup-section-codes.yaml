@@ -7,7 +7,7 @@
 #
 # Consumed by
 # `clinosim/modules/output/fhir_r4/documents/composition.py::
-# _build_jp_eCheckup_general_composition`. The emit site picks a row by
+# _build_jp_echeckup_general_composition`. The emit site picks a row by
 # the Composition subject's `checkup_type` (`occupational` by default)
 # and emits two sections: `checkup_lab_results` + `checkup_questionnaire`.
 #

@@ -27,7 +27,7 @@ eCheckup) each have their own template-specialised builder in
   fallback; three JP-CLINS specialised builders
   (`_build_jp_clins_discharge_summary_composition`,
   `_build_jp_clins_referral_note_composition`,
-  `_build_jp_eCheckup_general_composition`);
+  `_build_jp_echeckup_general_composition`);
   `_localize_section_title` + `_section_title_from_section_display`
   (α-min-1 adv-1 Lens 3 I-3 TODO: JP section-title locale is
   deferred to β-JP-1, keys remain English snake_case for now);
@@ -56,7 +56,7 @@ from clinosim.modules.output.fhir_r4.documents.composition import (
     _build_composition_generic,                  # generic-shape fallback
     _build_jp_clins_discharge_summary_composition,
     _build_jp_clins_referral_note_composition,
-    _build_jp_eCheckup_general_composition,
+    _build_jp_echeckup_general_composition,
     _localize_section_title,                     # (section_title, lang) -> localised title (JP deferred to β-JP-1)
     _section_title_from_section_display,
 )
