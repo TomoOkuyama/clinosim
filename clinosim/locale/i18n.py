@@ -36,7 +36,8 @@ from typing import Any
 
 import yaml
 
-from clinosim.locale.loader import _LOCALE_DIR, resolve_localized_display
+from clinosim.locale._io import _LOCALE_DIR
+from clinosim.locale.loader import resolve_localized_display
 
 
 class _DuplicateKeyError(ValueError):
