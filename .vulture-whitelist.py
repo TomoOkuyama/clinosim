@@ -315,6 +315,7 @@ _.ed_note_template  # encounter/protocol.py:67
 _.ed_triage_template  # encounter/protocol.py:68
 _.model_config  # encounter/protocol.py:85 (Pydantic ConfigDict)
 _.icd10_code  # encounter/protocol.py:88
+_.requires_chronic_prefix  # encounter/protocol.py:95 (YAML schema field; read from the spec dict in simulator/phases/_ed_slot.py)
 
 # ----- clinosim/modules/facility/hospital_state.py (dataclass) -----
 # Hospital-operational-state fields — read by scheduler / enricher /
