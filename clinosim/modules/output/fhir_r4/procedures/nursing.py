@@ -284,6 +284,11 @@ def _bb_nursing_observations(ctx: BundleContext) -> list[dict]:
                 ],
                 "text": _news2_display,
             }
+            # LOINC 2.83 carries a generic early-warning-score total (115635-5,
+            # method EWS); NEWS2 is one such method, so US output adds it as a
+            # second coding. JP is left as-is: JP validators pin older LOINC.
+            if not is_jp(ctx.country):
+                obs["code"]["coding"].append(loinc_coding("115635-5", lang))
             obs["valueInteger"] = int(news2)
             out.append(obs)
 

@@ -608,6 +608,12 @@ codes:
   # 600-7 (Blood), 630-4 (Urine), 619-7 (Sputum) are already registered
   # above in the existing microbiology block; PR-B reuses those rather
   # than introducing duplicates.
+  # tx.fhir.org LOINC 2.83 $lookup verified 2026-10-27 (COMPONENT
+  # "Early warning score", METHOD_TYP "EWS", STATUS ACTIVE). Generic EWS
+  # total, emitted alongside the clinosim NEWS2 code on US output.
+  115635-5:
+    en: Early warning score EWS
+    ja: 早期警告スコア
   # session 58 Issue #269: 90557-9 removed — NEWS2 does not have a
   # canonical LOINC 2.82 code (the earlier session 42 verification comment
   # was mistaken). Now emitted under the clinosim-owned `nursing-scores`
