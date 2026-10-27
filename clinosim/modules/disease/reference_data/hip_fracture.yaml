@@ -308,6 +308,7 @@ drugs:
 
 # Surgical procedure info
 procedure:
+  postoperative_pain_level: 0.7   # operative-day pain floor (Issue #2080)
   type: "ORIF or hemiarthroplasty"
   procedure_code_jp: "K0461"   # 骨折観血的手術（大腿）
   procedure_code_us: "27236"   # CPT: open treatment femoral fracture

@@ -13,6 +13,7 @@ minimum_severity: moderate
 readmission_eligible: false
 
 procedure:
+  postoperative_pain_level: 0.5   # operative-day pain floor (Issue #2080)
   type: "laparoscopic appendectomy"
   procedure_code_jp: "K718-2"
   procedure_code_us: "44970"   # CPT: Laparoscopic appendectomy
