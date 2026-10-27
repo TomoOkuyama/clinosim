@@ -25,6 +25,7 @@ from clinosim.simulator._discharge_gate_thresholds import (
     DISCHARGE_JP_PH_ABS_MAX,
     DISCHARGE_JP_RENAL_MIN,
     DISCHARGE_JP_VOLUME_ABS_MAX,
+    DISCHARGE_SYMPATHETIC_MAX,
     DISCHARGE_US_INFLAMMATION_MAX,
     DISCHARGE_US_PERFUSION_MIN,
     DISCHARGE_US_PH_ABS_MAX,
@@ -161,6 +162,8 @@ def _check_discharge_ready(
     # anemia_level < 0.60 ≈ Hgb > 7.0 g/dL for females and > 8.7 for males —
     # no patient should be discharged with Hgb below transfusion trigger.
     anemia_ok = state.anemia_level < DISCHARGE_ANEMIA_MAX
+    # Autonomic symptoms (e.g. alcohol withdrawal) controlled before discharge.
+    symptoms_ok = state.sympathetic_activation < DISCHARGE_SYMPATHETIC_MAX
 
     if country_key == "us":
         return (
@@ -170,6 +173,7 @@ def _check_discharge_ready(
             and abs(state.volume_status) < DISCHARGE_US_VOLUME_ABS_MAX
             and abs(state.ph_status) < DISCHARGE_US_PH_ABS_MAX
             and anemia_ok
+            and symptoms_ok
         )
     return (
         state.inflammation_level < DISCHARGE_JP_INFLAMMATION_MAX
@@ -178,7 +182,20 @@ def _check_discharge_ready(
         and abs(state.volume_status) < DISCHARGE_JP_VOLUME_ABS_MAX
         and abs(state.ph_status) < DISCHARGE_JP_PH_ABS_MAX
         and anemia_ok
+        and symptoms_ok
     )
+
+
+def extend_stay_for_symptoms(state: PhysiologicalState, los_ceiling: int, max_los: int | None) -> bool:
+    """Whether to keep the patient one more day past the sampled stay.
+
+    The sampled target LOS caps the daily loop; a patient whose autonomic
+    symptoms are still uncontrolled at that point (e.g. alcohol withdrawal
+    peaking on day 2-3) stays on, one day at a time, up to the protocol's
+    maximum LOS. Conditions that never raise ``sympathetic_activation``
+    never extend.
+    """
+    return max_los is not None and los_ceiling < max_los and state.sympathetic_activation >= DISCHARGE_SYMPATHETIC_MAX
 
 
 def _mortality_day_weight(day: int) -> float:

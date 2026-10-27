@@ -70,6 +70,7 @@ __all__ = [
     "READMISSION_SEVERITY_LIFT_MAX",
     "READMISSION_SEVERITY_LIFT_MIN",
     "DISCHARGE_ANEMIA_MAX",
+    "DISCHARGE_SYMPATHETIC_MAX",
 ]
 
 
@@ -201,6 +202,13 @@ anemia_level < 0.60 corresponds to Hgb > ~7.0 g/dL for females and
 > ~8.7 g/dL for males — no patient should be discharged with Hgb
 below the transfusion trigger. This is a clinical hard-floor, not a
 locale variant."""
+
+DISCHARGE_SYMPATHETIC_MAX: float = 0.25
+"""Maximum ``sympathetic_activation`` (strictly less than) at which
+discharge is allowed, applied to both US and JP. 0.25 is a residual
+HR rise of ~9 bpm, i.e. withdrawal symptoms controlled (CIWA-Ar < 8-10
+off scheduled benzodiazepines). Conditions that do not raise the axis
+stay at 0 and are unaffected."""
 
 
 # ---------------------------------------------------------------------------

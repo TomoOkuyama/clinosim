@@ -882,6 +882,7 @@ def _simulate_patient(
         severity=severity,
         imaging_seq_counter=imaging_seq_counter,
         symptom_floor=symptom_floor,
+        max_los=int(los_cfg.get("max", target_los)),
     )
 
     # Unpack results
