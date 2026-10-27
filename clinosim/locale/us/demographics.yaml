@@ -576,11 +576,12 @@ mixed_conditions:
 # not move with the admission case mix. CDC NCHS Data Brief 478: 43 ED visits
 # per 100 people in 2021 (46.6 in 2019), of which roughly 1 in 8 end in
 # admission -> ~380 treated-and-released visits per 1,000 person-years.
-# The slot count uses residents x window years, which overstates observed
-# person-years (births, deaths) by ~17% at US p=5000 over five years
-# (380 configured gave 443 observed), so the configured value is 325.
+# Measured at US p=5000 over five years: 380 gives ~398 treated-and-released
+# and ~435 total ED visits per 1,000 observed person-years. (Total ED in FHIR
+# = all EMER Encounters, which already include the `-ED` companion of every
+# ED-origin admission; do not add ED admissions again.)
 ed_visit_not_admitted:
-  rate_per_1000_person_years: 325
+  rate_per_1000_person_years: 380
   rate_per_admitted: 3.5  # legacy fallback when the per-person-year rate is absent
 
 # Occupation distribution for working-age population (15-64)
