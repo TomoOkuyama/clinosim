@@ -44,6 +44,7 @@ __all__ = [
     "DISTRIBUTIVE_SBP_COEFF",
     "DISTRIBUTIVE_THRESHOLD",
     "HR_ANEMIA_SCALE",
+    "HR_HYPOVOLEMIA_SCALE",
     "HR_CLAMP_MAX",
     "HR_CLAMP_MIN",
     "HR_FEVER_REFERENCE_TEMP_C",
@@ -131,6 +132,12 @@ HR_ANEMIA_SCALE: int = 15
 
 Empirical tuning for the synthetic simulator: 15 bpm at severe anemia
 matches the anemia-tachycardia compensatory response."""
+
+HR_HYPOVOLEMIA_SCALE: int = 55
+"""Heart-rate rise per unit of volume depletion (negative ``volume_status``):
+baroreflex compensatory tachycardia. -0.25 adds ~14 bpm, -0.4 ~22 bpm,
+-0.6 ~33 bpm, so moderate DKA / class II hemorrhage reach ~100-110 and
+severe depletion ~120. Volume overload does not raise heart rate."""
 
 HR_CLAMP_MIN: int = 40
 """Physiologic minimum HR (bpm) — matches severe bradycardia floor."""
