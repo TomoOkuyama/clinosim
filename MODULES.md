@@ -1,6 +1,6 @@
 # clinosim Module Map
 
-A single-page overview of clinosim's **38 modules** (counting rule:
+A single-page overview of clinosim's **39 modules** (counting rule:
 top-level packages under `clinosim/modules/`; non-package files like
 `_shared.py` excluded, and `nursing_assignment` shares
 `clinosim/modules/nursing/` with the observation-layer nursing
@@ -26,7 +26,7 @@ Output surfaces / Testing / Ownership) — see the module index at
 ## TL;DR
 
 clinosim is a population-driven, physiology-based synthetic EHR data
-simulator, organized into **38 themed modules** (packages under
+simulator, organized into **39 themed modules** (packages under
 `clinosim/modules/`) across four layers:
 
 1. **Foundation** — `clinosim/codes/` + `clinosim/locale/` +
@@ -43,9 +43,10 @@ enrichers → CIF (canonical intermediate format) → output adapter`.
 
 **Project goal**: convert CIF data into **FHIR R4 + JP Core compliant**
 output while preserving clinical realism and JP localisation quality.
-The AD-60 audit framework (six per-module plug-ins today: `hai`,
-`antibiotic`, `order`, `imaging`, `document`, `triage`) is the
-load-bearing verification gate that protects this goal.
+The AD-60 audit framework (seven per-module plug-ins today:
+`antibiotic`, `document`, `drug_safety`, `hai`, `imaging`, `order`,
+`triage`) is the load-bearing verification gate that protects this
+goal.
 
 ## Layered architecture
 
@@ -115,7 +116,7 @@ load-bearing verification gate that protects this goal.
 
 ## Module inventory
 
-38 modules total (top-level packages under `clinosim/modules/`; the
+39 modules total (top-level packages under `clinosim/modules/`; the
 table below additionally lists the `codes` / `locale` foundation
 packages). Every entry links to the per-module README (which follows
 the canonical 11-section structure).
@@ -132,6 +133,7 @@ the canonical 11-section structure).
 | [procedure](clinosim/modules/procedure/README.md) | surgery + bedside + rehab generation | simulation | — (uses caller RNG) | — |
 | [encounter](clinosim/modules/encounter/README.md) | encounter registry (46 YAML) + inpatient daily-cycle timeline | simulation | — | — |
 | [disease](clinosim/modules/disease/README.md) | disease registry (32 YAML) + severity + acuity + drug-vocabulary | simulation | — | — |
+| [longitudinal](clinosim/modules/longitudinal/README.md) | year-indexed trajectory engine (AR(1) HbA1c / Markov stage ladders / event firing — Phase 4a-4d chronic evolution) | simulation | — (uses caller RNG per `advance_one_year`) | — (library, consumed by aging pass) |
 | [population](clinosim/modules/population/README.md) | demographics + life events (Layer 1) | population | — (pipeline head) | — |
 | [patient](clinosim/modules/patient/README.md) | Layer 1 → Layer 2 activation + chronic meds | population | — (caller-owned cache) | — |
 | [identity](clinosim/modules/identity/README.md) | JP insurance + national ID (opt-in) | population | `540054` (decimal, grandfathered) | POST_POPULATION 10 (JP-gated) |
@@ -139,6 +141,8 @@ the canonical 11-section structure).
 | [staff](clinosim/modules/staff/README.md) | roster + `assign_staff` per-event dispatch | population | — (uses caller RNG) | — |
 | [facility](clinosim/modules/facility/README.md) | hospital operational state + M/M/1-style queueing | population | — | — |
 | [healthcare_system](clinosim/modules/healthcare_system/README.md) | country-config loader (leaf) | population | — | — |
+| [natural_death](clinosim/modules/natural_death/README.md) | actuarial mortality sampling (US CDC + JP MHLW life tables) + `is_alive_at` gating (Issue #1114) | population | `0x4E44` ("ND") | POST_POPULATION 20 |
+| [metabolic](clinosim/modules/metabolic/README.md) | BMI-derived chronic conditions (E66 obesity / E88.81 syndrome / K76.0 NAFLD / G47.30 OSA) — Issue #1137 cluster 2 | enrichment | — (deterministic SHA Bernoulli) | POST_POPULATION 15-18 (4 axes) |
 | [family_history](clinosim/modules/family_history/README.md) | first-degree relative disease history | enrichment | `0x4648` ("FH") | POST_RECORDS 40 |
 | [sdoh](clinosim/modules/sdoh/README.md) | smoking + alcohol SNOMED reference (data-only) | enrichment | — | — |
 | [allergy](clinosim/modules/allergy/README.md) | SNOMED-coded allergy sampling (15% overall gate) | enrichment | `0x414C` ("AL") | POST_POPULATION 10 |
@@ -147,6 +151,7 @@ the canonical 11-section structure).
 | [antibiotic](clinosim/modules/antibiotic/README.md) | HAI empirical + narrow ladder + AD-60 audit | enrichment | `0x4142` ("AB") | POST_ENCOUNTER 85 |
 | [imaging](clinosim/modules/imaging/README.md) | ImagingStudy metadata chain + AD-60 audit (AD-62) | enrichment | `0x4947` ("IG") | POST_ENCOUNTER 90 |
 | [triage](clinosim/modules/triage/README.md) | JTAS / ESI triage sampling + AD-60 audit (ED-only, AD-64) | enrichment | `0x5452` ("TR") | POST_ENCOUNTER 93 |
+| [newborn](clinosim/modules/newborn/README.md) | birth-admission clinical workup (Vitamin K, newborn screens) — Issue #1252 | enrichment | — (per-encounter deterministic) | POST_ENCOUNTER 92 |
 | [nursing](clinosim/modules/nursing/README.md) (`nursing_assignment`) | primary nurse assignment (inpatient/ICU/rehab; AD-64) | enrichment | `0x4E55` ("NU") | POST_ENCOUNTER 94 |
 | [document](clinosim/modules/document/README.md) | stub emission + AD-60 audit + Stage 2 narrative subpackage | enrichment | `0x444F` ("DO") | POST_ENCOUNTER 95 |
 | [immunization](clinosim/modules/immunization/README.md) | CVX adult vaccine history | enrichment | `0x494D` ("IM") | POST_RECORDS 30 |

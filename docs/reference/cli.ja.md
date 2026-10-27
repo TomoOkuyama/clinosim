@@ -214,8 +214,9 @@ AD-66 α-min-2c golden narrative bootstrap。
 
 ## `clinosim audit` — per-Module PR ゲート
 
-AD-60 audit フレームワーク — 現在 6 つの per-module プラグイン
-(`hai`、`antibiotic`、`order`、`imaging`、`document`、`triage`)。
+AD-60 audit フレームワーク — 現在 7 つの per-module プラグイン
+(`antibiotic`、`document`、`drug_safety`、`hai`、`imaging`、`order`、
+`triage`)。
 `clinosim/audit/README.ja.md` と
 [`../audit-cycles/`](../audit-cycles/README.ja.md) の workflow 参照。
 

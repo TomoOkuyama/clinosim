@@ -296,8 +296,12 @@ user_template: |          # ユーザープロンプト、${variable} プレー�
 
 ### タスク別利用可能変数
 
-変数名は `document_generator.py` で定義され、YAML テンプレートの
-プレースホルダと一致する必要あり。完全リスト:
+変数名はプロンプト yaml の `variables:` ブロック
+(`clinosim/modules/llm_service/prompts/<lang>/<task>.yaml`) と、
+narrative pipeline の入力ビルダー
+(`clinosim/modules/document/narrative/` — `renderers/section_builders/`
+配下の per-section ビルダー + composition dispatcher) で宣言される。
+現 master 時点のタスク別完全リスト (ライブ宣言は各プロンプト yaml 参照):
 
 **discharge_summary**:
 `age, sex, admission_date, discharge_date, los_days, disposition,
@@ -336,9 +340,10 @@ specimens_obtained, complications, outcome`
 1. **`version:` フィールドを bump。** version 番号は各生成文書
    (`ClinicalDocument.prompt_version`) に記録され、どの version が
    各 note を生成したかを監査可能。
-2. **変数名変更禁止** — `document_generator.py` 更新なしで。生成器
-   はテンプレートがコードの提供しない変数を参照すると `KeyError`
-   を発生させる。
+2. **変数名変更禁止** — `clinosim/modules/document/narrative/` 内の
+   対応する入力ビルダーとプロンプト yaml の `variables:` ブロック
+   両方を更新しないと使えない。生成器はテンプレートがコードの
+   提供しない変数を参照すると `KeyError` を発生させる。
 3. **LLM token を消費せずレンダリング検証するためテンプレートモード
    で先にテスト**:
    ```bash
@@ -447,40 +452,51 @@ Consultation Note、シフト別追加 note) を追加する際は、スコー�
    DOCUMENT_LOINC[LLMTaskType.CONSULTATION_NOTE] = "11488-4"
    ```
 
-3. **英語プロンプト YAML 作成**
-   `clinosim/modules/llm_service/prompts/en/consultation_note.yaml`
-   を上述テンプレートに従って作成。
+3. **task_loincs.yaml + task_categories.yaml に登録**
+   (`clinosim/modules/llm_service/reference_data/`)。engine は
+   import 時に完全被覆を検証 — `task_loincs.yaml` に行がない新
+   `LLMTaskType` 値は fail-loud。
 
-4. **入力ビルダーを追加** —
-   `clinosim/modules/output/document_generator.py`:
-   ```python
-   def _build_consultation_note(record, encounter, llm, language):
-       variables = {
-           "age": ...,
-           "sex": ...,
-           "consulting_service": ...,
-           "reason_for_consult": ...,
-           ...
-       }
-       stub = _make_stub(
-           task_type=LLMTaskType.CONSULTATION_NOTE,
-           patient_id=...,
-           encounter_id=...,
-           ...,
-       )
-       return _fill_text(stub, llm, variables)
+4. **`DocumentTypeSpec` を登録** —
+   `clinosim/modules/document/reference_data/document_type_specs.yaml`:
+   ```yaml
+   consultation_note:
+     loinc_code: "11488-4"
+     format_type: free_text              # または `composition`
+     countries_supported: [us, jp]
+     encounter_types_supported: [outpatient]
+     generation_frequency: per_encounter # or `admission_once` / `daily` ...
+     composition_sections:               # `format_type: composition` 時のみ
+       - reason_for_consult
+       - findings
+       - recommendation
+     stage2_strategy: template_seed_bundle
+     llm_enabled_sections: [recommendation]
    ```
+   `format_type: composition` は named `section[]` 付き
+   `Composition` を emit、`free_text` は本文全体を
+   `content.attachment.data` に収めた `DocumentReference` を emit。
 
-5. **ビルダーを `_generate_for_record` に配線**。
+5. **英語プロンプト YAML 作成**
+   `clinosim/modules/llm_service/prompts/en/consultation_note.yaml`
+   を上述テンプレートに従って作成。プロンプトが参照する変数は
+   yaml の `variables:` ブロックに全て宣言する。
 
-6. **`_resolve_enabled_tasks()` に追加** してデフォルトセットに出現
-   させる。
+6. **Section builder を実装** —
+   `clinosim/modules/document/narrative/renderers/section_builders/<section>.py`
+   に `build_<section>(generator, ctx)` 自由関数として実装。C1a-s
+   分割後、per-section ロジックは全てここに置く
+   (`template_generator.py` はビルダーを re-export する thin façade)。
+   `format_type: free_text` タスクは単一 body builder、`composition`
+   は `composition_sections` 1 エントリにつき 1 builder。dispatcher の
+   配線は `clinosim/modules/document/narrative/renderers/composition_sections.py`。
 
-7. **単体テスト追加** — `tests/unit/test_clinical_documents.py` の
-   既存 `TestDocumentGeneratorE2E` パターンに従う。
+7. **単体テスト追加** —
+   `tests/unit/document/narrative/` (per-section builder テスト) と
+   `tests/unit/test_clinical_documents.py` (end-to-end emit)。
 
-8. **このドキュメント** (`docs/clinical_documents.md`) と
-   `README.md` / `DESIGN.md` を更新。
+8. **このドキュメント** (`docs/clinical_documents.ja.md`) と
+   `README.ja.md`、EN sibling を更新。
 
 ---
 

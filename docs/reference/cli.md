@@ -215,8 +215,9 @@ byte-diff does not apply. Exit 0 = pass, 1 = findings.
 
 ## `clinosim audit` — per-Module PR gate
 
-AD-60 audit framework — six per-module plug-ins today (`hai`,
-`antibiotic`, `order`, `imaging`, `document`, `triage`). See
+AD-60 audit framework — seven per-module plug-ins today
+(`antibiotic`, `document`, `drug_safety`, `hai`, `imaging`, `order`,
+`triage`). See
 `clinosim/audit/README.md` and [`../audit-cycles/`](../audit-cycles/README.md)
 for the workflow.
 

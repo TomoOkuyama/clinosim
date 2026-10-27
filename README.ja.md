@@ -78,7 +78,7 @@ JP のワーファリン服用患者では、clinosim の生理学エンジン�
 | --- | --- |
 | ドキュメントサイト (英語) | <https://tomookuyama.github.io/clinosim/> |
 | アーキテクチャリファレンス | [`docs/architecture/`](docs/architecture/README.ja.md) |
-| モジュール索引 (33 モジュール) | [`clinosim/modules/`](clinosim/modules/README.ja.md) |
+| モジュール索引 (39 モジュール) | [`clinosim/modules/`](clinosim/modules/README.ja.md) |
 | データ品質・評価 | [`docs/eval.md`](docs/eval.ja.md) |
 | JP-CLINS プロファイル対応 | [`docs/jp-clins.md`](docs/jp-clins.ja.md) |
 | コントリビュート | [`CONTRIBUTING.md`](CONTRIBUTING.ja.md) |

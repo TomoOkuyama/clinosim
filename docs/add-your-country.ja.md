@@ -36,7 +36,7 @@ cp -R clinosim/locale/jp clinosim/locale/xx
 
 # 2. 各 YAML を locale 適合値に置換 (スキーマは下記参照)
 # 3. 国マップに登録:
-#    clinosim/locale/loader.py:_COUNTRY_DIR_MAP を編集
+#    clinosim/locale/_io.py:_COUNTRY_DIR_MAP を編集
 ```
 
 そして:
@@ -122,10 +122,10 @@ full な挙動 + downstream の sex-conditional 請求コード mapping:
 
 ## コード登録
 
-### 1. `loader.py` に国を登録
+### 1. `_io.py` に国を登録
 
 ```python
-# clinosim/locale/loader.py
+# clinosim/locale/_io.py
 _COUNTRY_DIR_MAP = {"JP": "jp", "US": "us", "XX": "xx"}
 ```
 

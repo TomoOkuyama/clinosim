@@ -1,6 +1,6 @@
 # clinosim モジュールマップ
 
-clinosim の **35 モジュール** (数え方: `clinosim/modules/` 配下の
+clinosim の **39 モジュール** (数え方: `clinosim/modules/` 配下の
 top-level package。`_shared.py` 等の非 package file は除く。
 `nursing_assignment` は observation-layer nursing flowsheet enricher
 と `clinosim/modules/nursing/` を共有) を 1 ページで俯瞰する。プロジェクト
@@ -26,7 +26,7 @@ Output surfaces / Testing / Ownership) に従う `README.md` +
 ## TL;DR
 
 clinosim は population 駆動 / physiology ベースの合成 EHR data
-simulator。`clinosim/modules/` 配下 **33 テーマ別モジュール**を
+simulator。`clinosim/modules/` 配下 **39 テーマ別モジュール**を
 4 層に組織:
 
 1. **Foundation** — `clinosim/codes/` + `clinosim/locale/` +
@@ -43,8 +43,9 @@ enrichers → CIF (canonical intermediate format) → output adapter`。
 
 **プロジェクト目標**: CIF データを **FHIR R4 + JP Core 準拠**に変換
 しつつ、臨床リアリズム + JP localisation 品質を保つ。AD-60 audit
-framework (現在 6 per-module plug-in: `hai`, `antibiotic`, `order`,
-`imaging`, `document`, `triage`) が本目標を守る load-bearing 検証 gate。
+framework (現在 7 per-module plug-in: `antibiotic`, `document`,
+`drug_safety`, `hai`, `imaging`, `order`, `triage`) が本目標を守る
+load-bearing 検証 gate。
 
 ## レイヤー構造
 
@@ -113,7 +114,7 @@ framework (現在 6 per-module plug-in: `hai`, `antibiotic`, `order`,
 
 ## モジュール索引
 
-計 35 モジュール (`clinosim/modules/` 配下 top-level package;
+計 39 モジュール (`clinosim/modules/` 配下 top-level package;
 下表は追加で foundation の `codes` / `locale` も列挙)。各エントリは
 canonical 11-section 構造に従う per-module README にリンクする。
 
@@ -129,6 +130,7 @@ canonical 11-section 構造に従う per-module README にリンクする。
 | [procedure](clinosim/modules/procedure/README.ja.md) | 手術 + bedside + rehab 生成 | simulation | — (caller RNG) | — |
 | [encounter](clinosim/modules/encounter/README.ja.md) | encounter registry (46 YAML) + 入院日次 cycle timeline | simulation | — | — |
 | [disease](clinosim/modules/disease/README.ja.md) | 疾患 registry (32 YAML) + 重症度 + acuity + 薬剤 vocabulary | simulation | — | — |
+| [longitudinal](clinosim/modules/longitudinal/README.ja.md) | 年次 trajectory engine (AR(1) HbA1c / Markov stage ladder / event firing — Phase 4a-4d 慢性進展) | simulation | — (`advance_one_year` に caller RNG) | — (library、aging pass が利用) |
 | [population](clinosim/modules/population/README.ja.md) | demographics + life event (Layer 1) | population | — (pipeline 頭) | — |
 | [patient](clinosim/modules/patient/README.ja.md) | Layer 1 → Layer 2 activation + 常用薬 | population | — (caller cache) | — |
 | [identity](clinosim/modules/identity/README.ja.md) | JP 保険 + national ID (opt-in) | population | `540054` (decimal、grandfathered) | POST_POPULATION 10 (JP gate) |
@@ -136,6 +138,8 @@ canonical 11-section 構造に従う per-module README にリンクする。
 | [staff](clinosim/modules/staff/README.ja.md) | roster + per-event `assign_staff` dispatch | population | — (caller RNG) | — |
 | [facility](clinosim/modules/facility/README.ja.md) | 病院運用 state + M/M/1 風 queueing | population | — | — |
 | [healthcare_system](clinosim/modules/healthcare_system/README.ja.md) | 国 config loader (leaf) | population | — | — |
+| [natural_death](clinosim/modules/natural_death/README.ja.md) | actuarial 死亡サンプリング (US CDC + JP MHLW 生命表) + `is_alive_at` gating (Issue #1114) | population | `0x4E44` ("ND") | POST_POPULATION 20 |
+| [metabolic](clinosim/modules/metabolic/README.ja.md) | BMI 由来慢性疾患 (E66 肥満 / E88.81 メタボリック症候群 / K76.0 NAFLD / G47.30 OSA) — Issue #1137 cluster 2 | enrichment | — (deterministic SHA Bernoulli) | POST_POPULATION 15-18 (4 axes) |
 | [family_history](clinosim/modules/family_history/README.ja.md) | 第 1 度近親歴 | enrichment | `0x4648` ("FH") | POST_RECORDS 40 |
 | [sdoh](clinosim/modules/sdoh/README.ja.md) | smoking + alcohol SNOMED reference (data-only) | enrichment | — | — |
 | [allergy](clinosim/modules/allergy/README.ja.md) | SNOMED-coded アレルギーサンプリング (15% gate) | enrichment | `0x414C` ("AL") | POST_POPULATION 10 |
@@ -144,6 +148,7 @@ canonical 11-section 構造に従う per-module README にリンクする。
 | [antibiotic](clinosim/modules/antibiotic/README.ja.md) | HAI empirical + narrow ladder + AD-60 audit | enrichment | `0x4142` ("AB") | POST_ENCOUNTER 85 |
 | [imaging](clinosim/modules/imaging/README.ja.md) | ImagingStudy metadata chain + AD-60 audit (AD-62) | enrichment | `0x4947` ("IG") | POST_ENCOUNTER 90 |
 | [triage](clinosim/modules/triage/README.ja.md) | JTAS / ESI triage サンプリング + AD-60 audit (ED-only、AD-64) | enrichment | `0x5452` ("TR") | POST_ENCOUNTER 93 |
+| [newborn](clinosim/modules/newborn/README.md) | 出生入院時の臨床ワークアップ (ビタミン K / 新生児スクリーニング) — Issue #1252 | enrichment | — (encounter 単位 deterministic) | POST_ENCOUNTER 92 |
 | [nursing](clinosim/modules/nursing/README.ja.md) (`nursing_assignment`) | 主担当看護師割当 (inpatient/ICU/rehab、AD-64) | enrichment | `0x4E55` ("NU") | POST_ENCOUNTER 94 |
 | [document](clinosim/modules/document/README.ja.md) | stub emission + AD-60 audit + Stage 2 narrative subpackage | enrichment | `0x444F` ("DO") | POST_ENCOUNTER 95 |
 | [immunization](clinosim/modules/immunization/README.ja.md) | CVX 成人ワクチン接種歴 | enrichment | `0x494D` ("IM") | POST_RECORDS 30 |

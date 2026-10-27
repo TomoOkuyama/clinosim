@@ -116,6 +116,30 @@
 | `no_japanese_leakage` | CRITICAL |
 | `us_practitioner_name_order` | MINOR |
 
+## JP-CLINS lab compliance 軸 (JP コホートのみ)
+
+`JP_Observation_LabResult_eCS` 準拠を
+`Observation.code.coding` + `Observation.specimen` + `Specimen.type`
+で測定。閾値: 100 % at master invariant に対し strict 1.0 (eCS は
+`code.coding` が Open slicing で discriminator=system+display なので
+validator pass 数単独では不十分 — `clinosim/eval/axes/jp_clins_lab_compliance.py` 参照)。
+
+## JP Core compliance 軸 (JP コホートのみ)
+
+JP Core Patient / Encounter / MedicationRequest の must-support
+element への narrow-gate 準拠測定。閾値 1.0 at 100 %-at-master
+invariant のみ。Kana (SYL) 表現 coverage の拡張は別途管理。full HL7
+FHIR Validator 走行 (`jp-validate.yml`) は on-demand の authoritative
+compliance surface。`clinosim/eval/axes/jp_core_compliance.py` 参照。
+
+## US Core compliance 軸 (US コホートのみ)
+
+US Core AllPatients / Encounter / Condition の must-support element
+への narrow-gate 準拠測定。閾値 1.0 at 100 %-at-master invariant
+のみ (race/ethnicity extension coverage のような拡張は別途管理)。
+Phase 3 の full validator 走行 (`us-validate.yml`) は on-demand の
+authoritative compliance surface。`clinosim/eval/axes/us_core_compliance.py` 参照。
+
 ---
 
 ## ルール追加

@@ -37,7 +37,7 @@ clinosim narrate --cif-dir ./output/cif \
 ### AWS Bedrock (EC2)
 
 ```bash
-pip install 'clinosim[bedrock]'   # installs boto3
+pip install boto3   # bedrock runtime deps are not bundled as a clinosim extra
 
 # On an EC2 instance with an IAM role that grants bedrock:Converse:
 clinosim narrate --cif-dir ./cif \

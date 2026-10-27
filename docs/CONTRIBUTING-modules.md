@@ -1148,8 +1148,8 @@ pass structural / narrative CIF separation is
    # Verify structural CIF has correct encounter/patient data
    ```
 
-2. **Fix** in code: `clinosim/modules/document/narrative/template_generator.py`
-   - Locate builder function (`_build_hpi`, `_build_physical_examination`)
+2. **Fix** in code: trace from the thin `_build_hpi` / `_build_physical_examination` delegator in `clinosim/modules/document/narrative/template_generator.py` into its backing section builder under `clinosim/modules/document/narrative/renderers/section_builders/` (e.g. `hpi.py::_build_hpi_core`, `chief_complaint.py`, `assessment_and_plan.py`). Post-C1a-s split, `template_generator.py` is a thin façade and the real body lives in the per-section builder files.
+   - Locate the `build_<section>(generator, ctx)` free function in the appropriate `renderers/section_builders/<section>.py`
    - Check `_pick_localized(tmpl, key, lang)` call is routing to `en` field for US language
    - Verify Disease YAML `narrative.physical_examination_en` field is populated
 

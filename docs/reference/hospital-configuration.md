@@ -11,7 +11,10 @@ recommended_population:
   JP: 10000     # 50 beds × 365 × 0.80 / 14d LOS ≈ 1,043 admits/yr; JP 100/1000/yr → 10K catchment
   default: 40000
 
-available_departments:           # Available specialties
+imaging:                        # Imaging infrastructure
+  wado_base_url: "https://wado.clinosim.example/dicomweb"
+
+available_departments:           # Available specialties (50-bed community hospital)
   - internal_medicine
   - cardiology
   - gastroenterology
@@ -19,6 +22,10 @@ available_departments:           # Available specialties
   - orthopedics
   - emergency_medicine
   - primary_care
+  - rehabilitation              # PT/OT/ST (allied-health, co-located w/ ortho ward)
+  - nutrition                   # RD (allied-health)
+  - medical_social_work         # MSW (allied-health)
+  - oncology                    # Chemo + cancer follow-up routes here (Issue #1280 Sub-A)
 
 department_rollup:              # Sub-specialty → available department
   pulmonology: internal_medicine

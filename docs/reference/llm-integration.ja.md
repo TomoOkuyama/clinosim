@@ -44,7 +44,7 @@ clinosim narrate --cif-dir ./output/cif \
 ### AWS Bedrock (EC2)
 
 ```bash
-pip install 'clinosim[bedrock]'   # boto3 をインストール
+pip install boto3   # bedrock runtime deps は clinosim の extras には含まれない
 
 # bedrock:Converse を許可する IAM ロール付きの EC2 インスタンスで:
 clinosim narrate --cif-dir ./cif \

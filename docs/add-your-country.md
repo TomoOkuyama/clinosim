@@ -36,7 +36,7 @@ cp -R clinosim/locale/jp clinosim/locale/xx
 
 # 2. Replace each YAML with locale-appropriate values (see schemas below)
 # 3. Register in the country map:
-#    Edit clinosim/locale/loader.py:_COUNTRY_DIR_MAP
+#    Edit clinosim/locale/_io.py:_COUNTRY_DIR_MAP
 ```
 
 Then:
@@ -121,10 +121,10 @@ Only add these when your country supports a specific opt-in module:
 
 ## Code registration
 
-### 1. Register the country in `loader.py`
+### 1. Register the country in `_io.py`
 
 ```python
-# clinosim/locale/loader.py
+# clinosim/locale/_io.py
 _COUNTRY_DIR_MAP = {"JP": "jp", "US": "us", "XX": "xx"}
 ```
 

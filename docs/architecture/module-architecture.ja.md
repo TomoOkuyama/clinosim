@@ -12,9 +12,10 @@
 ```
 clinosim/
 ├── codes/                    # ★ 国際コードシステム + 多言語 display (locale 非依存)
-│   ├── data/                 # 32 YAML (icd-10-cm / icd-10 / loinc / jlac10 /
+│   ├── data/                 # 72 YAML (icd-10-cm / icd-10 / loinc / jlac10 /
 │   │                         #          rxnorm / yj / cpt / k-codes / snomed-ct /
-│   │                         #          hot7 / cvx / HL7 terminology / JP-CLINS eCS 等)
+│   │                         #          hot7 / cvx / HL7 terminology / JP-CLINS eCS /
+│   │                         #          A1-A15 migration cohort — clinosim/codes/README.md 参照)
 │   └── loader.py             # lookup(system, code, lang) API
 │
 ├── locale/                   # 国/文化固有データ
@@ -47,7 +48,7 @@ clinosim/
 │   ├── identity.py           # NationalIdentity, InsuranceEnrollment, IdentityTimeline
 │   └── output.py             # CIFDataset, CIFPatientRecord, CIFMetadata
 │
-├── modules/                  # 機能モジュール (33 パッケージ、各 README 有)
+├── modules/                  # 機能モジュール (39 パッケージ、各 README 有)
 │   ├── disease/              # 疾患 YAML プロトコル
 │   ├── encounter/            # 46 ED/外来症例 YAML
 │   ├── physiology/           # 14 状態モデル + lab/vital 導出
@@ -94,11 +95,19 @@ clinosim/
 │   │           └── … (clinosim/modules/llm_service/prompts/en/ 参照)
 │   └── validator/            # 公開ベンチマークとの比較
 │
-├── simulator/                # トップレベルオーケストレーション
-│   ├── engine.py             # run_beta, run_forced
-│   ├── inpatient.py          # 入院シミュレーション
+├── simulator/                # トップレベルオーケストレーション (〜50 ファイルを phase / pipeline / dispatch 別に分割)
+│   ├── engine.py             # run_beta, run_forced (C2 分割後の thin façade)
+│   ├── _setup.py             # pre-flight / cohort cache / time-range helpers (C2a)
+│   ├── _dispatch.py          # 病院イベント dispatcher + overlap 処理 (C2b)
+│   ├── phases/               # phase runner (C2c-f): healthcare_calendar, post_discharge, readmission, ed_slot
+│   ├── inpatient.py          # 入院シミュレーション (_simulate_patient)
 │   ├── emergency.py          # ED 訪問
 │   ├── outpatient.py         # 外来訪問
+│   ├── perinatal.py          # 産科 / 新生児 encounter shell
+│   ├── enrichers.py          # Enricher registry (POST_POPULATION / POST_ENCOUNTER / POST_RECORDS)
+│   ├── daily_loop.py         # 入院日次 tick
+│   ├── discharge_gate.py     # 退院可否評価
+│   ├── vitals_pipeline.py / medication_pipeline.py / lab_pipeline.py  # 日次 pipeline
 │   ├── helpers.py            # Ward/department resolver、mortality 等
 │   └── cli.py                # CLI エントリ (simulate/generate、narrate、export-fhir、…)
 │

@@ -31,6 +31,10 @@
   / 保険を標準装備。
 - **YAML 駆動拡張。** 32 の入院疾患 + 46 の ED / 外来症例は全て
   データファイルであり、コードではありません。
+- **経年状態進展。** AR(1) HbA1c 軌道、Markov stage ladder (CKD /
+  CCS / NYHA / CDR / GOLD / 癌 AJCC/BCLC)、HTN + 脂質治療 escalation、
+  OSA G47.30 CPAP デバイス + ポリソムノグラフィ — 全て属性別 yaml
+  宣言に対する単一エンジンで合成 (`clinosim/modules/longitudinal/`)。
 
 ---
 

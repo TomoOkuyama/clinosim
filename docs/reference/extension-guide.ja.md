@@ -11,7 +11,7 @@
 3. **`icd_codes` 全値 (primary + variants) をコードデータに登録** —
    US billable leaves は `clinosim/codes/data/icd-10-cm.yaml`、JP WHO
    コードは `clinosim/codes/data/icd-10.yaml`、CM 粒度を WHO 親コード
-   に折り畳む場合等は `clinosim/codes/data/code_mapping_diagnosis/<country>.yaml`
+   に折り畳む場合等は `clinosim/locale/<country>/code_mapping_diagnosis.yaml`
    に mapping エントリを追加。未登録だと FHIR Condition display が
    prefix 近似 fallback に落ちる。`AGENTS.md` 「Diagnosis code
    coverage」参照。

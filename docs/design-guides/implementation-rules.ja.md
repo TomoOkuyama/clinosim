@@ -82,7 +82,7 @@
 | imaging orders | `place_imaging_orders`(`order/engine.py`) |
 | 薬剤 protocol prefix 除去 | `strip_protocol_prefix`(`_shared.py`。FHIR と narrative の共用) |
 | LOS 計算 | `document/engine._compute_los_days`(in-progress proxy 込み) |
-| locale 表示テーブル | `locale/loader.py` の cached loaders(`load_med_terms_ja` 等)。Layer 4 での raw YAML open 禁止 |
+| locale 表示テーブル | `locale/loaders/` の cached loaders(`locale/loader.py` 経由で後方互換 re-export)。`medical_display.py:load_med_terms_ja`、`narrative.py:load_narrative_display_dict`、`clinical.py`、`demographics.py`、`fhir_identity.py`。Layer 4 での raw YAML open 禁止 |
 
 新しい共通処理が 2 module に必要になったら `_shared.py` か owner module に 1 箇所定義し
 双方 import。**第三の消費者が現れても import、再定義しない。**
