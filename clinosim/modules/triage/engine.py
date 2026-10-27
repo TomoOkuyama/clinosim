@@ -84,6 +84,44 @@ def pick_triage_level(severity: str, level_system: str, rng: np.random.Generator
     return str(rng.choice(levels, p=probs))
 
 
+# Issue #2082: physiological floor on top of the severity-based draw (ESI /
+# JTAS share the 1-5 numbering). Thresholds follow ESI v4 danger-zone vitals.
+TRIAGE_DANGER_ZONE_HR: int = 100
+TRIAGE_DANGER_ZONE_RR: int = 20
+TRIAGE_DANGER_ZONE_SPO2: float = 92.0
+TRIAGE_CRITICAL_SPO2: float = 90.0
+TRIAGE_CRITICAL_SBP: int = 90
+TRIAGE_SEVERE_PAIN: int = 7
+
+
+def triage_level_cap(vitals: Any) -> int:
+    """Highest (least urgent) level compatible with the triage vitals: 1 for an
+    unresponsive patient; 2 for AVPU P, SpO2 < 90 or SBP < 90; 3 for
+    danger-zone HR / RR / SpO2 or pain >= 7; otherwise 5 (no cap)."""
+    loc = str(_o(vitals, "consciousness_level", "") or "")
+    hr = _o(vitals, "heart_rate", None)
+    rr = _o(vitals, "respiratory_rate", None)
+    spo2 = _o(vitals, "spo2", None)
+    sbp = _o(vitals, "systolic_bp", None)
+    pain = _o(vitals, "pain_score", None)
+    if loc == "U":
+        return 1
+    if (
+        loc == "P"
+        or (spo2 is not None and spo2 < TRIAGE_CRITICAL_SPO2)
+        or (sbp is not None and sbp < TRIAGE_CRITICAL_SBP)
+    ):
+        return 2
+    if (
+        (hr is not None and hr > TRIAGE_DANGER_ZONE_HR)
+        or (rr is not None and rr > TRIAGE_DANGER_ZONE_RR)
+        or (spo2 is not None and spo2 < TRIAGE_DANGER_ZONE_SPO2)
+        or (pain is not None and pain > TRIAGE_SEVERE_PAIN - 1)
+    ):
+        return 3
+    return 5
+
+
 def pick_arrival_mode(severity: str, rng: np.random.Generator) -> str:
     """Sample arrival mode given severity."""
     protocols = load_triage_protocols()
@@ -141,6 +179,11 @@ def triage_enricher(ctx: Any) -> None:
             sub_seed = derive_sub_seed(ctx.master_seed, ENRICHER_SEED_OFFSETS["triage"], enc_id)
             rng = np.random.default_rng(sub_seed)
             level = pick_triage_level(severity, level_system, rng)
+            # Issue #2082: never less urgent than the arrival vitals allow.
+            enc_vitals = [v for v in (_o(record, "vital_signs", []) or []) if _o(v, "timestamp", None) is not None]
+            if enc_vitals:
+                arrival = min(enc_vitals, key=lambda v: _o(v, "timestamp", None))
+                level = str(min(int(level), triage_level_cap(arrival)))
             arrival_mode = pick_arrival_mode(severity, rng)
             admission_dt = _o(enc, "admission_datetime", None)
             triage_time = admission_dt if isinstance(admission_dt, datetime) else None
