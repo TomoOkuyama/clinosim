@@ -127,6 +127,10 @@ def render_progress_note(
         if phys_exam:
             facts.append(f"physical_exam_findings.{ctx.clinical_course_archetype}.day_{ctx.day_index}")
         phys_summary = generator._format_physical_exam(phys_exam, ctx.severity, lang)
+        # Issue #2086: same consciousness / CC consistency rewrite as the H&P PE.
+        if phys_summary:
+            phys_summary, pe_facts = generator._apply_cc_pe_consistency(phys_summary, ctx)
+            facts.extend(pe_facts)
         if phys_summary:
             objective = f"{objective}。{phys_summary}"
 

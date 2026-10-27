@@ -30,6 +30,7 @@ from clinosim.modules.document.narrative._narrative_utils import (
     _filter_vitals_for_day,
     _parse_iso_datetime,
     _pe_altered_consciousness_pool_ja,
+    _pe_consciousness_pool_by_avpu_ja,
     _pe_severe_dyspnea_pool_ja,
     _pick_from_pool_by_encounter,
     _rewrite_pe_clause,
@@ -388,12 +389,27 @@ def apply_cc_pe_consistency(text: str, ctx: NarrativeContext) -> tuple[str, list
     enc = ctx.encounter
     if enc is None:
         return text, facts
+    enc_id = _o(enc, "encounter_id", "") or ""
+
+    # Issue #2086: the consciousness clause must agree with the day's recorded
+    # AVPU (worst of the day), independent of the chief complaint.
+    day_avpu = {
+        str(_o(v, "consciousness_level", "") or "")
+        for v in _filter_vitals_for_day(list(getattr(ctx, "vitals", None) or []), ctx.day_index, enc)
+    }
+    worst = next((lvl for lvl in ("U", "P", "V") if lvl in day_avpu), "")
+    if worst:
+        pool = _pe_consciousness_pool_by_avpu_ja(worst)
+        if pool:
+            new_text = _rewrite_pe_clause(text, ("意識清明",), _pick_from_pool_by_encounter(pool, enc_id, "pe_avpu"))
+            if new_text != text:
+                facts.append("avpu_pe_consistency:consciousness")
+                text = new_text
+
     cc = _o(enc, "chief_complaint_ja", None) or _o(enc, "chief_complaint", None) or ""
     cc = str(cc)
     if not cc:
         return text, facts
-
-    enc_id = _o(enc, "encounter_id", "") or ""
 
     if _cc_keyword_positively_present(cc, _cc_altered_consciousness_keywords()):
         replacement = _pick_from_pool_by_encounter(_pe_altered_consciousness_pool_ja(), enc_id, "pe_consciousness")
