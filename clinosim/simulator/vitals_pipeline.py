@@ -64,6 +64,12 @@ from clinosim.modules.observation.vitals_thresholds import (
     FEVER_THRESHOLD_C,
     HIGH_FEVER_RECHECK_C,
 )
+from clinosim.modules.physiology._vital_signs_thresholds import (
+    CONSCIOUSNESS_AVPU_P_THRESHOLD,
+    CONSCIOUSNESS_AVPU_U_THRESHOLD,
+    CONSCIOUSNESS_AVPU_V_THRESHOLD,
+    PAIN_SCORE_SCALE,
+)
 from clinosim.modules.physiology.engine import derive_observed_vitals
 from clinosim.simulator._adl_thresholds import (
     ADL_ASSESSMENT_INTERVAL_DAYS,
@@ -313,6 +319,13 @@ def _o2_for(spo2, disease_id, rng):
 
 def _loc_for(state, disease_id, day, rng):
     """Infer AVPU consciousness level."""
+    impaired = getattr(state, "consciousness_impairment", 0.0)
+    if impaired >= CONSCIOUSNESS_AVPU_U_THRESHOLD:
+        return "U"
+    if impaired >= CONSCIOUSNESS_AVPU_P_THRESHOLD:
+        return "P"
+    if impaired >= CONSCIOUSNESS_AVPU_V_THRESHOLD:
+        return "V"
     if state.perfusion_status < LOC_REFRACTORY_SHOCK_THRESHOLD:
         # Refractory shock / severe neuro insult — matches the sepsis.yaml
         # severe-septic-shock complication threshold (perfusion_status < 0.2).
@@ -324,6 +337,19 @@ def _loc_for(state, disease_id, day, rng):
     if disease_id in NEURO_LOC_MONITORING_DISEASES and day <= LOC_NEURO_EARLY_DAY_MAX:
         return str(rng.choice(["A", "V", "P"], p=LOC_NEURO_EARLY_WEIGHTS_AVP))
     return "A"
+
+
+def _pain_score(state, day, rng) -> int:
+    """Numeric pain score (0-10): inflammation proxy with one noise draw, floored
+    by the explicit ``pain_level`` axis when a condition sets it."""
+    base_pain = state.inflammation_level * VITALS_PAIN_INFLAMMATION_SCALE
+    if day <= VITALS_EARLY_DAY_MAX:
+        base_pain += VITALS_PAIN_EARLY_DAY_LIFT
+    pain = int(max(VITALS_PAIN_MIN, min(VITALS_PAIN_MAX, rng.normal(base_pain, VITALS_PAIN_NOISE_SD))))
+    level = getattr(state, "pain_level", 0.0)
+    if level:
+        pain = max(pain, int(min(VITALS_PAIN_MAX, round(level * PAIN_SCORE_SCALE))))
+    return pain
 
 
 def _generate_vitals(
@@ -409,10 +435,7 @@ def _generate_vitals(
         # Pain only with full set
         pain = None
         if "pain" in fields:
-            base_pain = state.inflammation_level * VITALS_PAIN_INFLAMMATION_SCALE
-            if day <= VITALS_EARLY_DAY_MAX:
-                base_pain += VITALS_PAIN_EARLY_DAY_LIFT
-            pain = int(max(VITALS_PAIN_MIN, min(VITALS_PAIN_MAX, rng.normal(base_pain, VITALS_PAIN_NOISE_SD))))
+            pain = _pain_score(state, day, rng)
         vitals.append(
             VitalSignRecord(
                 timestamp=time,

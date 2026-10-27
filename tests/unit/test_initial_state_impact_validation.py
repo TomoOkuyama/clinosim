@@ -210,6 +210,11 @@ class TestTrajectoryStateVarsDerivedFromCanonical:
             "glucose_status",
             "sodium_status",
             "anion_gap_status",
+            # Issue #2053: appended at the end; absent keys draw no RNG.
+            "sympathetic_activation",
+            "pain_level",
+            "oxygenation_impairment",
+            "consciousness_impairment",
         )
 
 

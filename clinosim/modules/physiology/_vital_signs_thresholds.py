@@ -19,6 +19,19 @@ does exactly.
 from __future__ import annotations
 
 __all__ = [
+    "CONSCIOUSNESS_AVPU_P_THRESHOLD",
+    "CONSCIOUSNESS_AVPU_U_THRESHOLD",
+    "CONSCIOUSNESS_AVPU_V_THRESHOLD",
+    "OXYGENATION_HR_SCALE",
+    "OXYGENATION_RR_SCALE",
+    "OXYGENATION_SPO2_SCALE",
+    "PAIN_SCORE_SCALE",
+    "PAIN_SYMPATHETIC_WEIGHT",
+    "SYMPATHETIC_DBP_SCALE",
+    "SYMPATHETIC_HR_SCALE",
+    "SYMPATHETIC_RR_SCALE",
+    "SYMPATHETIC_SBP_SCALE",
+    "SYMPATHETIC_TEMPERATURE_SCALE",
     "BP_DBP_CLAMP_MAX",
     "BP_DBP_CLAMP_MIN",
     "BP_DBP_DISTRIBUTIVE_RATIO",
@@ -278,3 +291,51 @@ are non-clinical / device-artifact territory)."""
 OBSERVED_SPO2_CLAMP_MAX: float = 100.0
 """Physiologic SpO2 (%) upper re-clamp applied AFTER the observation
 noise draw — SpO2 cannot exceed 100% by definition."""
+
+
+# ---------------------------------------------------------------------------
+# Issue #2053 axes: sympathetic activation, pain, oxygenation, consciousness
+# ---------------------------------------------------------------------------
+
+SYMPATHETIC_HR_SCALE: float = 35.0
+"""HR rise (bpm) at full sympathetic activation (1.0). 0.5 ≈ +17 bpm, the
+typical moderate alcohol-withdrawal / acute-pain picture."""
+
+SYMPATHETIC_SBP_SCALE: float = 30.0
+"""SBP rise (mmHg) at full sympathetic activation."""
+
+SYMPATHETIC_DBP_SCALE: float = 15.0
+"""DBP rise (mmHg) at full sympathetic activation."""
+
+SYMPATHETIC_RR_SCALE: float = 6.0
+"""Respiratory-rate rise (breaths/min) at full sympathetic activation."""
+
+SYMPATHETIC_TEMPERATURE_SCALE: float = 0.8
+"""Temperature rise (°C) at full sympathetic activation (e.g. delirium
+tremens low-grade fever)."""
+
+PAIN_SYMPATHETIC_WEIGHT: float = 0.5
+"""Fraction of ``pain_level`` added to the sympathetic drive used for
+vitals (severe pain alone ≈ half of maximal activation)."""
+
+PAIN_SCORE_SCALE: float = 10.0
+"""Numeric rating scale points per unit ``pain_level`` (0-10 scale)."""
+
+OXYGENATION_SPO2_SCALE: float = 25.0
+"""SpO2 drop (percentage points) at full oxygenation impairment; 0.4 ≈ -10
+points (SpO2 ~88% from a 98% baseline)."""
+
+OXYGENATION_RR_SCALE: float = 14.0
+"""Respiratory-rate rise at full oxygenation impairment."""
+
+OXYGENATION_HR_SCALE: float = 20.0
+"""HR rise (bpm) at full oxygenation impairment (hypoxic tachycardia)."""
+
+CONSCIOUSNESS_AVPU_V_THRESHOLD: float = 0.25
+"""``consciousness_impairment`` at or above which AVPU is at least V."""
+
+CONSCIOUSNESS_AVPU_P_THRESHOLD: float = 0.5
+"""``consciousness_impairment`` at or above which AVPU is at least P."""
+
+CONSCIOUSNESS_AVPU_U_THRESHOLD: float = 0.75
+"""``consciousness_impairment`` at or above which AVPU is U."""

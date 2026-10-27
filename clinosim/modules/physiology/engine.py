@@ -242,6 +242,10 @@ from clinosim.modules.physiology._vital_signs_thresholds import (
     OBSERVED_SPO2_CLAMP_MIN,
     OBSERVED_TEMPERATURE_NOISE_SD,
     OBSERVED_VITALS_NOISE_SD_DEFAULT,
+    OXYGENATION_HR_SCALE,
+    OXYGENATION_RR_SCALE,
+    OXYGENATION_SPO2_SCALE,
+    PAIN_SYMPATHETIC_WEIGHT,
     RR_CLAMP_MAX,
     RR_CLAMP_MIN,
     RR_INFLAMMATION_SCALE,
@@ -254,6 +258,11 @@ from clinosim.modules.physiology._vital_signs_thresholds import (
     SPO2_INFLAMMATION_THRESHOLD,
     SPO2_VOLUME_OVERLOAD_SCALE,
     SPO2_VOLUME_OVERLOAD_THRESHOLD,
+    SYMPATHETIC_DBP_SCALE,
+    SYMPATHETIC_HR_SCALE,
+    SYMPATHETIC_RR_SCALE,
+    SYMPATHETIC_SBP_SCALE,
+    SYMPATHETIC_TEMPERATURE_SCALE,
     TEMPERATURE_CIRCADIAN_HOUR_OFFSET,
     TEMPERATURE_CIRCADIAN_HOUR_PERIOD,
     TEMPERATURE_CIRCADIAN_SCALE,
@@ -1054,6 +1063,9 @@ def derive_vital_signs(
     infl = state.inflammation_level
     perf = state.perfusion_status
     vol = state.volume_status
+    # Sympathetic drive: direct activation plus part of the pain response.
+    symp = clamp(state.sympathetic_activation + state.pain_level * PAIN_SYMPATHETIC_WEIGHT, 0.0, 1.0)
+    oxy = state.oxygenation_impairment
 
     # Temperature: inflammation + circadian
     hour = timestamp.hour
@@ -1061,6 +1073,8 @@ def derive_vital_signs(
         -math.cos((hour - TEMPERATURE_CIRCADIAN_HOUR_OFFSET) * math.pi / TEMPERATURE_CIRCADIAN_HOUR_PERIOD)
     )
     temperature = baseline.temperature + infl * TEMPERATURE_INFLAMMATION_SCALE + circadian
+    if symp:
+        temperature += symp * SYMPATHETIC_TEMPERATURE_SCALE
     temperature = clamp(temperature, TEMPERATURE_CLAMP_MIN, TEMPERATURE_CLAMP_MAX)
 
     # Heart rate
@@ -1068,6 +1082,10 @@ def derive_vital_signs(
     perfusion_effect = max(0, (1.0 - perf)) * HR_PERFUSION_SCALE
     anemia_effect = state.anemia_level * HR_ANEMIA_SCALE
     hr = baseline.heart_rate + temp_effect + perfusion_effect + anemia_effect
+    if symp:
+        hr += symp * SYMPATHETIC_HR_SCALE
+    if oxy:
+        hr += oxy * OXYGENATION_HR_SCALE
     hr = clamp(hr, HR_CLAMP_MIN, HR_CLAMP_MAX)
 
     # Blood pressure
@@ -1080,6 +1098,8 @@ def derive_vital_signs(
     sbp: float = (
         baseline.systolic_bp + vol * BP_SBP_VOLUME_SCALE - (1 - perf) * BP_SBP_PERFUSION_SCALE - distributive_drop
     )
+    if symp:
+        sbp += symp * SYMPATHETIC_SBP_SCALE
     sbp = clamp(sbp, BP_SBP_CLAMP_MIN, BP_SBP_CLAMP_MAX)
     dbp: float = (
         baseline.diastolic_bp
@@ -1087,6 +1107,8 @@ def derive_vital_signs(
         - (1 - perf) * BP_DBP_PERFUSION_SCALE
         - distributive_drop * BP_DBP_DISTRIBUTIVE_RATIO
     )
+    if symp:
+        dbp += symp * SYMPATHETIC_DBP_SCALE
     dbp = clamp(dbp, BP_DBP_CLAMP_MIN, BP_DBP_CLAMP_MAX)
 
     # Respiratory rate
@@ -1095,6 +1117,10 @@ def derive_vital_signs(
     rr += infl * RR_INFLAMMATION_SCALE
     if vol > RR_VOLUME_OVERLOAD_THRESHOLD:
         rr += (vol - RR_VOLUME_OVERLOAD_THRESHOLD) * RR_VOLUME_OVERLOAD_SCALE
+    if symp:
+        rr += symp * SYMPATHETIC_RR_SCALE
+    if oxy:
+        rr += oxy * OXYGENATION_RR_SCALE
     rr = clamp(rr, RR_CLAMP_MIN, RR_CLAMP_MAX)
 
     # SpO2
@@ -1103,6 +1129,8 @@ def derive_vital_signs(
         spo2 -= (infl - SPO2_INFLAMMATION_THRESHOLD) * SPO2_INFLAMMATION_SCALE
     if vol > SPO2_VOLUME_OVERLOAD_THRESHOLD:
         spo2 -= (vol - SPO2_VOLUME_OVERLOAD_THRESHOLD) * SPO2_VOLUME_OVERLOAD_SCALE
+    if oxy:
+        spo2 -= oxy * OXYGENATION_SPO2_SCALE
     spo2 = clamp(spo2, SPO2_CLAMP_MIN, SPO2_CLAMP_MAX)
 
     return {

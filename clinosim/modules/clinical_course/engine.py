@@ -96,6 +96,10 @@ TRAJECTORY_STATE_VARS: tuple[str, ...] = (
     "glucose_status",
     "sodium_status",
     "anion_gap_status",
+    "sympathetic_activation",
+    "pain_level",
+    "oxygenation_impairment",
+    "consciousness_impairment",
 )
 assert frozenset(TRAJECTORY_STATE_VARS) == canonical_state_vars() - {"respiratory_fraction"}, (
     "TRAJECTORY_STATE_VARS drifted from canonical_state_vars — extend the tuple "
