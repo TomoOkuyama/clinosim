@@ -17,6 +17,7 @@ modalities:
       abdomen: ["AP"]
       hand: ["PA", "Oblique", "Lateral"]
       hip: ["AP", "Lateral"]
+      knee: ["AP", "Lateral"]
       spine: ["AP", "Lateral"]
       wrist: ["PA", "Lateral"]
 

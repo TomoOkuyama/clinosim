@@ -11,6 +11,7 @@ from datetime import date, timedelta
 
 import numpy as np
 
+from clinosim import determinism
 from clinosim.modules._shared import normalize_probabilities
 from clinosim.modules.disease.protocol import load_disease_protocol
 from clinosim.modules.disease.severity import sample_severity
@@ -717,8 +718,15 @@ def generate_monthly_events(
     rng: np.random.Generator,
     country: str = "US",
     demo: dict | None = None,
+    master_seed: int | None = None,
 ) -> list[LifeEvent]:
     """Generate life events for one month across the population. All Phase 1 diseases.
+
+    ``disease_incidence`` entries flagged ``rng_isolated: true`` draw their
+    onset, severity and day jitter from a stream keyed on
+    ``(master_seed, month, person, disease)`` instead of ``rng``, so adding
+    such a disease leaves every other event unchanged. Without
+    ``master_seed`` they fall back to ``rng``.
 
     Iterates every person in the registry. Newborns registered mid-sim
     (perinatal delivery handler → ``register_newborn``) are picked up
@@ -819,13 +827,20 @@ def generate_monthly_events(
             bmi_mult_lm = float((bmi_lm_cfg.get(bmi_cat_lm) or {}).get(disease_id, 1.0)) if bmi_cat_lm else 1.0
             rate *= smoking_mult_lm * bmi_mult_lm
 
-            if rng.random() >= rate:
-                continue
+            if disease_spec.get("rng_isolated") and master_seed is not None:
+                salt = f"incidence|{master_seed}|{year:04d}-{month:02d}|{person.person_id}|{disease_id}"
+                if determinism.sha_quantile(salt) >= rate:
+                    continue
+                event_rng = determinism.default_rng(int(determinism.sha_quantile(salt, byte_offset=8) * 2**63))
+            else:
+                if rng.random() >= rate:
+                    continue
+                event_rng = rng
 
             # Severity from the disease-YAML distribution × comorbidity modifiers
             # (FP-SEV-MODEL, c2). The continuous score feeds the hospitalization gate
             # below and re-derives the same category via category_from_score.
-            _category, severity = sample_severity(load_disease_protocol(disease_id), person, rng)
+            _category, severity = sample_severity(load_disease_protocol(disease_id), person, event_rng)
 
             # Hospitalization decision
             event_type = disease_spec.get("event_type", "acute_disease_onset")
@@ -851,7 +866,7 @@ def generate_monthly_events(
                     person_id=person.person_id,
                     event_type=event_type,
                     timestamp=event_date
-                    + timedelta(days=int(rng.integers(EVENT_DAY_JITTER_START, EVENT_DAY_JITTER_END_EXCLUSIVE))),
+                    + timedelta(days=int(event_rng.integers(EVENT_DAY_JITTER_START, EVENT_DAY_JITTER_END_EXCLUSIVE))),
                     severity=severity,
                     disease_id=disease_id,
                     requires_hospital=requires_hospital,

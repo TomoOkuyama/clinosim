@@ -828,6 +828,9 @@ codes:
   36663-3:
     en: XR Hip 2 Views
     ja: 股関節単純X線撮影 正面・側面
+  44198-0:
+    en: XR Knee 1 or 2 Views
+    ja: 膝関節単純X線撮影 正面・側面
   44203-8:
     en: Portable XR Cervical and thoracic and lumbar spine Views
     ja: 脊椎単純X線撮影 正面・側面

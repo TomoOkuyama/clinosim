@@ -297,6 +297,19 @@ disease_incidence:
     event_type: chronic_exacerbation
     prerequisite_condition: I50  # requires prior HF diagnosis
     hospitalization_threshold_modifier: 0.8  # lower threshold → easier to hospitalize
+  elective_knee_arthroplasty:
+    # Issue #2044: scheduled total knee arthroplasty among patients with knee
+    # osteoarthritis (M17); rates per 100k M17 patients / yr. ~790k US TKAs
+    # a year (~2.4 per 1,000 population; HCUP SB #277 lists osteoarthritis
+    # among the top principal diagnoses), ~60% female, peaking at 65-74.
+    # rng_isolated: drawn from its own stream so adding it leaves every
+    # other event in the cohort unchanged.
+    age_rates: {50: 2500, 65: 3500, 75: 2700, 85: 850}
+    sex_ratio_female: 1.4
+    event_type: elective_admission
+    prerequisite_condition: M17
+    always_hospitalize: true
+    rng_isolated: true
   hip_fracture:
     age_rates: {0: 2, 45: 5, 55: 20, 65: 70, 75: 250, 85: 600}
     sex_ratio_female: 2.5

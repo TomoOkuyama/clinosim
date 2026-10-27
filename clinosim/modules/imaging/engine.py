@@ -56,6 +56,7 @@ SUPPORTED_BODY_SITES: frozenset[str] = frozenset(
         "skin",
         "hand",
         "hip",
+        "knee",
         "spine",
         "wrist",
     }
@@ -329,7 +330,7 @@ def _resolve_imaging_procedure_code_key(
             return "CR_Supine_Upright" if len(views) >= 2 else "CR_AP"
         if body_site == "hand":
             return "CR_PA_Oblique_Lateral"
-        if body_site in ("hip", "spine"):
+        if body_site in ("hip", "knee", "spine"):
             return "CR_AP_Lateral"
         if body_site == "wrist":
             return "CR_PA_Lateral_Oblique" if len(views) >= 3 else "CR_PA_Lateral"

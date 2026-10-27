@@ -109,6 +109,7 @@ def test_validate_body_sites_raises_on_unregistered_snomed():
             "skin": _stub("39937001"),
             "hand": _stub("85562004"),
             "hip": _stub("29836001"),
+            "knee": _stub("72696002"),
             "spine": _stub("421060004"),
             "wrist": _stub("8205005"),
         }
