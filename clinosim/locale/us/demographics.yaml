@@ -310,6 +310,19 @@ disease_incidence:
     prerequisite_condition: M17
     always_hospitalize: true
     rng_isolated: true
+  alcohol_withdrawal:
+    # Issue #2066: alcohol withdrawal admissions among patients with alcohol
+    # dependence (F10.20, ~15% of adults in the cohort); rates per 100k
+    # F10.20 patients / yr. HCUP: alcohol-related disorders ~0.9 principal-
+    # diagnosis stays per 1,000 population, withdrawal about half, i.e.
+    # ~0.45 per 1,000 person-years, peaking at 45-64 and ~75% male (the
+    # prerequisite is already ~62% male; female x0.55 brings it to ~75%).
+    age_rates: {18: 250, 30: 400, 45: 600, 65: 350, 75: 150}
+    sex_ratio_female: 0.55
+    event_type: acute_disease_onset
+    prerequisite_condition: F10.20
+    always_hospitalize: true
+    rng_isolated: true
   hip_fracture:
     age_rates: {0: 2, 45: 5, 55: 20, 65: 70, 75: 250, 85: 600}
     sex_ratio_female: 2.5
