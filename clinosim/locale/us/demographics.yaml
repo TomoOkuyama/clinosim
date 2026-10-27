@@ -362,8 +362,11 @@ disease_incidence:
     event_type: acute_disease_onset
     always_hospitalize: true
   diabetic_ketoacidosis:
-    # US: ~30/100k among diabetics. Source: CDC Diabetes Statistics
-    age_rates: {0: 2000, 15: 3000, 25: 4000, 35: 5000, 45: 6000, 55: 5000, 65: 4000, 75: 3000, 85: 2000}
+    # DKA admissions among patients with diabetes (per 100k / yr). Issue #2030:
+    # the earlier 2,000-6,000 rates made DKA 9.3% of US stays (NIS: ~184k DKA
+    # events in 2014 incl. ED, against >35M stays). Rates x0.08 give ~0.5
+    # admissions per 1,000 person-years and ~0.8% of stays.
+    age_rates: {0: 160, 15: 240, 25: 320, 35: 400, 45: 480, 55: 400, 65: 320, 75: 240, 85: 160}
     sex_ratio_female: 1.1
     event_type: acute_disease_onset
     prerequisite_condition: E11.9  # requires diabetes
