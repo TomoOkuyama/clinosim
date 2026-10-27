@@ -9,6 +9,8 @@ immobility_days>N) so none silently no-op.
 
 import pytest
 
+from clinosim.modules.clinical_course._complication_risk_conditions import CONTEXT_CONDITIONS
+from clinosim.modules.clinical_course.engine import is_supported_risk_condition
 from clinosim.modules.disease.protocol import load_disease_protocol
 
 pytestmark = pytest.mark.unit
@@ -21,15 +23,6 @@ _CANONICAL = {
     "gradual_deterioration",
     "sudden_deterioration",
 }
-_SUPPORTED_RISK_PREFIXES = (
-    "severity_severe",
-    "age_over_",
-    "renal_function",
-    "volume_status",
-    "perfusion_status",
-    "delirium_susceptibility",
-    "immobility_days",
-)
 
 
 def test_subdural_has_course_archetypes():
@@ -68,7 +61,7 @@ def test_subdural_complications_use_supported_risk_conditions():
     for c in p.complications:
         for rf in c.get("risk_factors", []):
             cond = rf.get("condition", "")
-            assert cond.startswith(_SUPPORTED_RISK_PREFIXES), (
+            assert is_supported_risk_condition(cond) or cond in CONTEXT_CONDITIONS, (
                 f"{c.get('name')}: risk condition {cond!r} is not supported by "
                 f"_evaluate_risk_condition (would silently no-op)"
             )

@@ -858,6 +858,7 @@ complications:
     probability_per_day: 0.012
     onset_day_range: [1, 10]
     risk_factors:
+      - {condition: "consciousness_impairment >= 0.25", multiplier: 2.5}  # Issue #2094
       - {condition: "dysphagia", multiplier: 4.0}
       - {condition: "decreased_consciousness", multiplier: 3.0}
       - {condition: "age_over_75", multiplier: 1.5}

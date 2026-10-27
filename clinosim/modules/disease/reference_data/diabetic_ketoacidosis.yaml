@@ -867,6 +867,7 @@ complications:
     probability_per_day: 0.005
     onset_day_range: [0, 2]
     risk_factors:
+      - {condition: "consciousness_impairment >= 0.25", multiplier: 2.5}  # Issue #2094
       - {condition: "altered_consciousness", multiplier: 5.0}
       - {condition: "active_vomiting", multiplier: 3.0}
       - {condition: "severe_DKA", multiplier: 2.0}
