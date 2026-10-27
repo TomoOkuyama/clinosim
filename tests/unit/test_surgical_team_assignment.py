@@ -68,3 +68,13 @@ def test_anesthesiologists_are_never_fallback_attendings() -> None:
     for _ in range(50):
         attending = assign_staff("admission", "dermatology", roster, rng)["attending_physician"]
         assert _dept_of(roster, attending) != "anesthesiology"
+
+
+def test_facility_emits_an_organization_for_every_roster_department() -> None:
+    from clinosim.modules.output.fhir_r4.encounters.facility import _build_facility_bundle
+
+    bundle = _build_facility_bundle(_HOSPITAL, "US")
+    org_ids = {e["resource"]["id"] for e in bundle["entry"] if e["resource"]["resourceType"] == "Organization"}
+    roster = generate_roster("medium", "US", np.random.default_rng(3), hospital_config=_HOSPITAL)
+    for dept in {m.department for m in roster.members if m.role == "physician"}:
+        assert f"dept-{dept.replace('_', '-')}" in org_ids
