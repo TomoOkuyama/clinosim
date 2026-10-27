@@ -59,3 +59,17 @@ pe_replacement_pool:
     - 呼吸促迫、両側 crackles 聴取
     - 呼気時 wheeze 著明、SpO2 低下
     - 頻呼吸、努力呼吸あり、両側 rhonchi 聴取
+
+# Issue #2086: PE consciousness clause by the day's recorded AVPU (worst of the
+# day). JCS only — the recorded GCS carries the numeric score.
+pe_replacement_pool_by_avpu:
+  V:
+    - JCS I-3、呼びかけに応答するも見当識障害あり
+    - 傾眠傾向、呼びかけで開眼 (JCS I-2)
+    - JCS I-1、ややぼんやりしている
+  P:
+    - JCS II-20、大きな声または揺さぶりで開眼
+    - JCS II-30、痛み刺激で辛うじて開眼
+  U:
+    - JCS III-300、痛み刺激に反応なし
+    - JCS III-200、痛み刺激で四肢をわずかに動かすのみ

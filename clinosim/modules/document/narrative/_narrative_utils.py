@@ -336,6 +336,12 @@ def _pe_altered_consciousness_pool_ja() -> tuple[str, ...]:
     return tuple(str(r) for r in rows if isinstance(r, str))
 
 
+def _pe_consciousness_pool_by_avpu_ja(avpu: str) -> tuple[str, ...]:
+    """JA PE consciousness phrases for a recorded AVPU level (Issue #2086)."""
+    rows = (_cc_pe_consistency_keywords().get("pe_replacement_pool_by_avpu") or {}).get(avpu) or []
+    return tuple(str(r) for r in rows if isinstance(r, str))
+
+
 def _pe_severe_dyspnea_pool_ja() -> tuple[str, ...]:
     rows = (_cc_pe_consistency_keywords().get("pe_replacement_pool") or {}).get("severe_dyspnea") or []
     return tuple(str(r) for r in rows if isinstance(r, str))
