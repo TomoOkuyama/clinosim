@@ -51,6 +51,10 @@ __all__ = [
     "MORTALITY_DAY_MID_WEIGHT",
     "MORTALITY_DEFAULT_AGE",
     "MORTALITY_INDIVIDUAL_MOD_CAP",
+    "MORTALITY_COMA_MULTIPLIER",
+    "MORTALITY_STUPOR_MULTIPLIER",
+    "MORTALITY_SEVERE_HYPOXEMIA_MULTIPLIER",
+    "MORTALITY_HYPOXEMIA_MULTIPLIER",
     "MORTALITY_LOW_PERFUSION_MULTIPLIER",
     "MORTALITY_LOW_PERFUSION_THRESHOLD",
     "MORTALITY_YAML_AGE85_MULTIPLIER",
@@ -351,14 +355,32 @@ Empirical tuning for the synthetic simulator: +30% mortality risk
 matches the well-documented hemodynamic-instability mortality
 association."""
 
-MORTALITY_INDIVIDUAL_MOD_CAP: float = 1.8
+MORTALITY_INDIVIDUAL_MOD_CAP: float = 3.0
 """Ceiling on the combined individual mortality modifier (age ×
 perfusion, YAML-benchmark path).
 
 Empirical tuning for the synthetic simulator: 1.8× keeps the effective
 daily rate from doubling even when multiple risk factors are present —
 prevents pathological cases where an old patient with low perfusion
-would exceed the benchmark expectation by too much."""
+would exceed the benchmark expectation by too much.
+
+Issue #2098: raised from 1.8 so deep coma / refractory hypoxemia can
+stratify risk; the previous age x perfusion product, 1.56, is unaffected."""
+
+MORTALITY_COMA_MULTIPLIER: float = 2.5
+"""Daily hazard multiplier at ``consciousness_impairment`` >= 0.75 (AVPU U,
+GCS <= 8): the dominant mortality predictor in ICH (ICH score) and in
+septic / hepatic encephalopathy."""
+
+MORTALITY_STUPOR_MULTIPLIER: float = 1.6
+"""Daily hazard multiplier at ``consciousness_impairment`` >= 0.5 (AVPU P)."""
+
+MORTALITY_SEVERE_HYPOXEMIA_MULTIPLIER: float = 2.2
+"""Daily hazard multiplier at ``oxygenation_impairment`` >= 0.7 (refractory
+hypoxemia, ARDS-range)."""
+
+MORTALITY_HYPOXEMIA_MULTIPLIER: float = 1.6
+"""Daily hazard multiplier at ``oxygenation_impairment`` >= 0.5."""
 
 MORTALITY_DAILY_SEVERE_RATE: float = 0.003
 """Fallback daily mortality rate applied to ``severity == "severe"``

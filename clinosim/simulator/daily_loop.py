@@ -76,7 +76,11 @@ from clinosim.simulator._daily_loop_thresholds import (
     TREATMENT_ESCALATION_INFLAMMATION_MIN,
 )
 from clinosim.simulator.complications import build_complication
-from clinosim.simulator.discharge_gate import extend_stay_for_symptoms
+from clinosim.simulator.discharge_gate import (
+    expected_state_multiplier,
+    extend_stay_for_symptoms,
+    mortality_state_multiplier,
+)
 from clinosim.simulator.helpers import _check_discharge_ready, _evaluate_mortality
 from clinosim.simulator.lab_pipeline import _run_lab_result_pipeline
 from clinosim.simulator.medication_pipeline import (
@@ -176,6 +180,7 @@ def _run_daily_loop(
     all_io: list = []
     all_adl: list = []
     state_history = [deepcopy(state)]
+    expected_mortality_multiplier = expected_state_multiplier(protocol)
     active_complications: set[str] = set()
     # Phase 1a schema: entries are dicts with onset_day / onset_datetime /
     # source (see clinosim.simulator.complications for the canonical shape).
@@ -807,6 +812,13 @@ def _run_daily_loop(
             rng=rng,
             disease_mortality_rate=benchmark_mortality,
             target_los=target_los,
+            # Issue #2098: worst consciousness / oxygenation so far, relative to
+            # the disease's presentation mix (keeps the benchmark average).
+            state_relative_risk=mortality_state_multiplier(
+                max(s.consciousness_impairment for s in state_history),
+                max(s.oxygenation_impairment for s in state_history),
+            )
+            / expected_mortality_multiplier,
         ):
             death_occurred = True
             break
