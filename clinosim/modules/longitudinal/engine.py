@@ -188,13 +188,14 @@ def _apply_pattern(
         assert isinstance(spec.body, MarkovSpec)
         icd = spec.body.icd_base
         stage_value: str
+        age = _age_at_year(person, snapshot.year) if person is not None else None
         if prev_snapshot is None:
-            stage_value = handler["initial"](rng, spec.body)
+            stage_value = handler["initial"](rng, spec.body, age=age)
         else:
             prev_stage = prev_snapshot.chronic_stages.get(icd)
             if prev_stage is None:
                 # mid-sim scope entry: fall through to initial draw
-                stage_value = handler["initial"](rng, spec.body)
+                stage_value = handler["initial"](rng, spec.body, age=age)
             else:
                 stage_value = handler["step"](prev_stage, rng, spec.body, multiplier=multiplier)
         snapshot.chronic_stages[icd] = stage_value

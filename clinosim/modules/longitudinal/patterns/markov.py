@@ -17,6 +17,14 @@ import numpy as np
 from pydantic import BaseModel, Field
 
 
+class AgeBandDistribution(BaseModel):
+    """Sim-start stage distribution for persons aged ``age_lo``..``age_hi``."""
+
+    age_lo: int
+    age_hi: int
+    distribution: dict[str, float] = Field(..., min_length=1)
+
+
 class MarkovSpec(BaseModel):
     """Parameters for a discrete-stage Markov attribute."""
 
@@ -24,6 +32,8 @@ class MarkovSpec(BaseModel):
     icd_base: str
     states: list[str] = Field(..., min_length=1)
     initial_distribution: dict[str, float] = Field(..., min_length=1)
+    # Optional age-band overrides of ``initial_distribution`` (first match wins).
+    initial_distribution_by_age: list[AgeBandDistribution] = Field(default_factory=list)
     transitions: dict[str, dict[str, float]] = Field(default_factory=dict)
 
 
@@ -56,18 +66,27 @@ def step(
     return prev
 
 
-def initial(rng: np.random.Generator, spec: MarkovSpec) -> str:
+def initial(rng: np.random.Generator, spec: MarkovSpec, *, age: int | None = None) -> str:
     """Draw the sim-start stage from the categorical ``initial_distribution``.
+
+    When ``age`` falls in an ``initial_distribution_by_age`` band, that band's
+    distribution is used instead; either way exactly one uniform is drawn.
 
     States absent from ``initial_distribution`` carry implicit weight
     0. Weights are consumed in dict-insertion order; if the uniform
     draw falls past the cumulative sum, the last keyed state is
     returned (guards against float-sum rounding).
     """
+    distribution = spec.initial_distribution
+    if age is not None:
+        for band in spec.initial_distribution_by_age:
+            if band.age_lo <= age <= band.age_hi:
+                distribution = band.distribution
+                break
     u = float(rng.random())
     cum = 0.0
-    last_state = next(iter(spec.initial_distribution))
-    for state, weight in spec.initial_distribution.items():
+    last_state = next(iter(distribution))
+    for state, weight in distribution.items():
         cum += float(weight)
         last_state = state
         if u < cum:

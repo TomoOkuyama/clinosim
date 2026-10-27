@@ -240,3 +240,10 @@ def load_iv_infusion_defaults() -> dict[str, Any]:
     only mode dispatch logic and the fallback default block.
     """
     return _load_yaml(_LOCALE_DIR / "shared" / "iv_infusion_defaults.yaml", fallback={})
+
+
+@lru_cache(maxsize=4)
+def load_ckd_under60_prevalence(country: str) -> list[dict[str, Any]]:
+    """Age bands for RNG-neutral N18 assignment below 60 (empty when absent)."""
+    data = _load_yaml(_country_dir(country) / "ckd_under60_prevalence.yaml", fallback={})
+    return list((data or {}).get("bands") or [])
