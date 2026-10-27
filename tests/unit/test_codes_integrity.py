@@ -60,7 +60,65 @@ class TestDrugMapping:
         by_code: dict[str, list[str]] = {}
         for name, code in us.items():
             by_code.setdefault(code, []).append(name)
-        collisions = {c: names for c, names in by_code.items() if len(names) > 1}
+        # Issue #1994: deliberate alias sets where multiple sim display
+        # names (route-qualified, dose-qualified, case variants, slash
+        # forms, brand aliases, class-term representatives) share one
+        # canonical RxCUI. The guard still catches accidental cross-drug
+        # collisions — a new drug landing on an in-use CUI without being
+        # listed here will still fail the test.
+        _alias_sets: dict[str, set[str]] = {
+            "19711": {  # Amoxicillin/Clavulanate — case + dose variants
+                "Amoxicillin/Clavulanate",
+                "Amoxicillin/clavulanate",
+                "Amoxicillin/clavulanate 500/125mg",
+                "Amoxicillin/clavulanate 875/125mg",
+            },
+            "74169": {  # Piperacillin/Tazobactam — + "Broad spectrum antibiotic" class representative
+                "Piperacillin/Tazobactam",
+                "Broad spectrum antibiotic",
+            },
+            "7804": {  # Oxycodone — + Oxycodone/Acetaminophen slash-form (opioid IN pin)
+                "Oxycodone",
+                "Oxycodone/Acetaminophen",
+            },
+            "435": {  # Albuterol / Salbutamol — + Nebulized variants
+                "Salbutamol",
+                "Nebulized salbutamol",
+                "Nebulized salbutamol 2.5mg",
+                "Nebulized Salbutamol",
+            },
+            "108761": {  # Fluticasone/Salmeterol — + "ICS/LABA inhaler" class representative
+                "Fluticasone/Salmeterol",
+                "ICS/LABA inhaler",
+            },
+            "313002": {  # NS (Sodium Chloride 0.9%) — + IV normal saline variants + Crystalloid representative
+                "NS",
+                "IV normal saline",
+                "IV normal saline 500mL",
+                "IV normal saline 1000mL",
+                "IV normal saline 1L",
+                "Crystalloid",
+            },
+            "1851": {  # Butylscopolamine (Buscopan) — brand + dose variants
+                "Buscopan",
+                "Buscopan 10mg",
+                "Buscopan 20mg",
+            },
+            "2587736": {  # Sodium Chloride 23.4% — covers both 23.4% and 3% hypertonic variants
+                "Hypertonic Saline",
+                "Hypertonic Saline 23.4%",
+                "Hypertonic saline",
+                "Hypertonic saline 3%",
+            },
+        }
+        collisions = {}
+        for code, names in by_code.items():
+            if len(names) <= 1:
+                continue
+            allowed = _alias_sets.get(code)
+            if allowed is not None and set(names) <= allowed:
+                continue
+            collisions[code] = names
         assert not collisions, f"distinct drugs mapped to the same RxCUI: {collisions}"
 
 

@@ -144,3 +144,84 @@ Irinotecan: "51499"
 "Nab-paclitaxel": "486610"     # RxNorm publishes as "paclitaxel protein-bound" (486610); nab- prefix is the clinical alias
 Temozolomide: "37776"
 BCG: "1344"                    # BCG Vaccine RxCUI — intravesical bladder immunotherapy uses the same organism
+
+# === Issue #1994: raise MedicationRequest RxNorm coverage from 98.98 % to 100 % ===
+# Session-aggregate-QA on the US s=342 p=10000 cohort found 4,719 of
+# 462,333 MR (1.02 %) emitting without an RxNorm coding. Buckets:
+#   * route/formulation prefixes ("IV normal saline …", "Nebulized …")
+#     that the resolver's prefix+suffix match could not resolve against
+#     the bare-ingredient map;
+#   * combo-product slash-form names ("Acetaminophen/codeine",
+#     "Calcium/Vitamin D") whose combo CUIs already live in rxnorm.yaml
+#     but were not keyed under the sim's slash form;
+#   * case variants ("Amoxicillin/clavulanate" vs the registered
+#     "Amoxicillin/Clavulanate", lowercase "Hypertonic saline");
+#   * brand-only names ("Buscopan") not keyed under their US alias;
+#   * class terms ("ICS/LABA inhaler", "Broad spectrum antibiotic",
+#     "Crystalloid") mapped to a representative drug.
+# Every RxCUI below reuses an entry already registered in
+# clinosim/codes/data/rxnorm.yaml (NLM-verified at that site). "Packed_RBC"
+# (1 of 4,719) is handled separately — it is a blood product, not a drug;
+# the FHIR MR builder filters it out of MR emission (RxNorm does not
+# model packed red cells cleanly; blood products belong in SupplyRequest
+# / BiologicallyDerivedProduct).
+
+# IV normal saline — route-qualified alias for NS (sodium chloride 0.9 %),
+# same CUI the bare "NS" alias already uses.
+"IV normal saline": "313002"
+"IV normal saline 500mL": "313002"
+"IV normal saline 1000mL": "313002"
+"IV normal saline 1L": "313002"
+
+# Nebulized salbutamol — "salbutamol" (INN) = "albuterol" (USAN); same
+# ingredient CUI (435) the capitalized "Salbutamol" entry resolves to.
+"Nebulized salbutamol": "435"
+"Nebulized salbutamol 2.5mg": "435"
+"Nebulized Salbutamol": "435"
+
+# Amoxicillin/clavulanate — lowercase-c + dose-qualified forms used by
+# the animal_bite disease yaml. Mixed-case "Amoxicillin/Clavulanate"
+# already resolves above (lookup is case-sensitive).
+"Amoxicillin/clavulanate": "19711"
+"Amoxicillin/clavulanate 500/125mg": "19711"
+"Amoxicillin/clavulanate 875/125mg": "19711"
+
+# Buscopan — JP brand name for butylscopolamine, used by the
+# abdominal_pain_nonspecific disease yaml which is shared JP/US. RxCUI
+# 1851 (Butylscopolamine bromide) is the dispensed-form PIN.
+"Buscopan": "1851"
+"Buscopan 10mg": "1851"
+"Buscopan 20mg": "1851"
+
+# Combo products — the combo CUI already lives in rxnorm.yaml; only
+# the slash-form sim name needs a mapping key.
+"Acetaminophen/codeine": "817579"
+"Calcium/Vitamin D": "608343"
+# Oxycodone/Acetaminophen — RxNorm's acetaminophen+oxycodone combos are
+# SCDs (dose-specific tablets), not an IN/MIN. Point to the opioid
+# ingredient (7804 Oxycodone) as the clinically distinguishing
+# component — same convention as the JP catalog's acetaminophen+codeine
+# representative (ingredient-only pin).
+"Oxycodone/Acetaminophen": "7804"
+
+# Hypertonic saline — pre-#1994 rxnorm.yaml 2587736 (Sodium Chloride
+# 23.4 %) covers the sim's 23.4 % and 3 % variants, matching JP's
+# existing representative pin.
+"Hypertonic Saline": "2587736"
+"Hypertonic Saline 23.4%": "2587736"
+"Hypertonic saline": "2587736"
+"Hypertonic saline 3%": "2587736"
+
+# Calcium gluconate — ingredient entry already in rxnorm.yaml (1908).
+"Calcium gluconate": "1908"
+
+# Class terms mapped to a representative drug:
+#  * ICS/LABA inhaler → Fluticasone/Salmeterol combo (108761);
+#  * Broad spectrum antibiotic → Piperacillin/Tazobactam (74169, the
+#    workhorse empiric broad-spectrum IV antibiotic);
+#  * Crystalloid → NS (313002), matching the convention noted in the JP
+#    catalog's existing "Crystalloid intentionally omitted — resolve to
+#    NS or Lactated Ringer" comment.
+"ICS/LABA inhaler": "108761"
+"Broad spectrum antibiotic": "74169"
+"Crystalloid": "313002"
