@@ -412,6 +412,41 @@ def _bb_vitals(ctx: BundleContext) -> list[dict]:
     return out
 
 
+# Issue #1994: blood-product sentinels that disease yamls carry under
+# ``treatment_modifications.*.start[].drug``. RxNorm does not model
+# packed red cells / platelet concentrate / FFP as drug concepts, so
+# emitting them as MedicationRequest produces an uncoded
+# ``medicationCodeableConcept`` that fails the US 100 %-RxNorm invariant.
+# Blood products belong in SupplyRequest / BiologicallyDerivedProduct,
+# not MedicationRequest; the FHIR MR / MA builders skip these display
+# names at emit time (the CIF Order is retained for narrative purposes).
+_BLOOD_PRODUCT_DRUG_TOKENS: frozenset[str] = frozenset(
+    {
+        "packed_rbc",
+        "packed rbc",
+        "packed red blood cells",
+        "fresh frozen plasma",
+        "platelet concentrate",
+    }
+)
+
+
+def _is_blood_product_drug_name(display_name: str) -> bool:
+    """Return True when ``display_name`` names a blood product that the FHIR
+    MR builder must skip (Issue #1994).
+
+    Match is case-insensitive and token-prefix only — "Packed_RBC transfuse to
+    Hb 7" from the ``liver_cirrhosis_decompensated.yaml`` escalation path
+    starts with the "packed_rbc" sentinel and resolves True; a real drug
+    whose name happens to contain the substring further in the string does
+    not.
+    """
+    if not display_name:
+        return False
+    lowered = str(display_name).strip().lower()
+    return any(lowered == tok or lowered.startswith(f"{tok} ") for tok in _BLOOD_PRODUCT_DRUG_TOKENS)
+
+
 def _bb_medication_requests(ctx: BundleContext) -> list[dict]:
     out: list[dict] = []
     # CO-7: propagate encounter_type for MR.intent
@@ -460,6 +495,11 @@ def _bb_medication_requests(ctx: BundleContext) -> list[dict]:
             # medication_pipeline._generate_mar so the FHIR view is
             # consistent — no phantom MR, no phantom MA.
             if (order.get("display_name") or "").startswith("DISCONTINUE:"):
+                continue
+            # Issue #1994: blood products are not RxNorm drug concepts;
+            # skip them so the US 100 %-RxNorm invariant holds. The CIF
+            # Order is retained for narrative / discharge-summary paths.
+            if _is_blood_product_drug_name(order.get("display_name") or ""):
                 continue
             if not order.get("ordered_by"):
                 _eid = order.get("encounter_id", "") or ctx.primary_enc_id
@@ -640,6 +680,9 @@ def _bb_discharge_medication_requests(ctx: BundleContext) -> list[dict]:
     for item in items:
         if not str(get_attr_or_key(item, "drug_name", "") or "").strip():
             continue  # blank drug name (CIF data quality) — same skip as _bb_medication_requests
+        # Issue #1994: skip blood products from discharge Rx too.
+        if _is_blood_product_drug_name(str(get_attr_or_key(item, "drug_name", "") or "")):
+            continue
         seq += 1
         out.append(
             _build_discharge_medication_request(
@@ -734,6 +777,11 @@ def _bb_medication_admins(ctx: BundleContext) -> list[dict]:
     _order_by_oid = {o.get("order_id"): o for o in (ctx.record.get("orders") or []) if o.get("order_id")}
     for i, mar in enumerate(ctx.record.get("medication_administrations", [])):
         if not (mar.get("drug_name") or "").strip():
+            continue
+        # Issue #1994: blood products are not RxNorm drug concepts; skip
+        # the MA-side emission too so the parent MR filter stays
+        # MR / MA parity-consistent.
+        if _is_blood_product_drug_name(mar.get("drug_name") or ""):
             continue
         # Inject the parent Order's code_yj so MAR emits authoritative coding.
         _oid = mar.get("order_id", "") or ""
