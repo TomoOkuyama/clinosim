@@ -71,6 +71,7 @@ from clinosim.simulator._daily_loop_thresholds import (
     TREATMENT_ESCALATION_INFLAMMATION_MIN,
 )
 from clinosim.simulator.complications import build_complication
+from clinosim.simulator.discharge_gate import extend_stay_for_symptoms
 from clinosim.simulator.helpers import _check_discharge_ready, _evaluate_mortality
 from clinosim.simulator.lab_pipeline import _run_lab_result_pipeline
 from clinosim.simulator.medication_pipeline import _generate_mar, _place_chronic_monitoring_orders
@@ -136,6 +137,7 @@ def _run_daily_loop(
     encounter_id: str = "",
     imaging_seq_counter: dict[str, int] | None = None,
     symptom_floor: dict[str, float] | None = None,
+    max_los: int | None = None,
 ) -> dict:
     """Run the day-by-day simulation loop. Returns all generated data."""
 
@@ -159,7 +161,11 @@ def _run_daily_loop(
     icu_transferred_day_local: int = -1  # C5-22: day of ICU transfer
 
     prev_diet = ""  # last diet ordered for this patient; threaded through the day loop
-    for day in range(target_los):
+    # The sampled target LOS is the stay ceiling; it is extended one day at a
+    # time (up to max_los) while autonomic symptoms are uncontrolled. Stays
+    # that never extend run exactly ``target_los`` days as before.
+    los_ceiling = target_los
+    for day in range(max(target_los, max_los or 0)):
         # State update with diagnosis-treatment feedback
         directive = get_daily_directive(
             archetype,
@@ -747,6 +753,11 @@ def _run_daily_loop(
         if day >= min_los and not death_occurred:
             if _check_discharge_ready(state, day, country_key):
                 break  # actual_los = day + 1
+
+        if day + 1 >= los_ceiling:
+            if not extend_stay_for_symptoms(state, los_ceiling, max_los):
+                break
+            los_ceiling += 1
 
     try:
         actual_los = day + 1
