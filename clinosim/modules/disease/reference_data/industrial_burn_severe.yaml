@@ -254,6 +254,7 @@ drugs:
       - {drug: "Enoxaparin", dose: "40mg SC daily"}
 
 procedure:
+  postoperative_pain_level: 0.7   # operative-day pain floor (Issue #2080)
   type: "debridement and skin grafting"
   procedure_code_jp: "K013"
   procedure_code_us: "15100"

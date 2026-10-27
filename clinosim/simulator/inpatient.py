@@ -802,6 +802,7 @@ def _simulate_patient(
     icu_transferred, death_occurred = False, False
 
     # Surgery (protocol-driven: requires_surgery flag in YAML)
+    surgery_pain: tuple[int, float] | None = None  # Issue #2080: (operative day, pain level)
     if protocol.requires_surgery:
         # Surgeon from the owning surgical department, anesthesiologist from
         # anesthesiology (Issue #2068)
@@ -824,6 +825,9 @@ def _simulate_patient(
         procedures.append(proc)
         for var, delta in impacts.items():
             apply_state_delta(state, var, delta)
+        _postop_pain = (protocol.procedure or {}).get("postoperative_pain_level")
+        if _postop_pain is not None:
+            surgery_pain = ((proc.start_datetime.date() - admission_time.date()).days, float(_postop_pain))
         rehab_sessions = generate_rehab_sessions(
             patient.patient_id,
             encounter.encounter_id,
@@ -889,6 +893,7 @@ def _simulate_patient(
         imaging_seq_counter=imaging_seq_counter,
         symptom_floor=symptom_floor,
         max_los=int(los_cfg.get("max", target_los)),
+        surgery=surgery_pain,
     )
 
     # Unpack results

@@ -326,6 +326,7 @@ drugs:
       - {drug: "Enoxaparin", dose: "40mg SC daily"}
 
 procedure:
+  postoperative_pain_level: 0.65   # operative-day pain floor (Issue #2080)
   type: "exploratory laparotomy"
   procedure_code_jp: "K636"
   procedure_code_us: "49000"   # CPT: Exploratory laparotomy

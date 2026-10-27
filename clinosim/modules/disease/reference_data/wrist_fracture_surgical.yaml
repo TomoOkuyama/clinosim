@@ -237,6 +237,7 @@ drugs:
       - {drug: "Ibuprofen", dose: "400mg PO tid"}
 
 procedure:
+  postoperative_pain_level: 0.6   # operative-day pain floor (Issue #2080)
   type: "ORIF with volar locking plate"
   procedure_code_jp: "K0462"   # 骨折観血的手術（前腕）
   procedure_code_us: "25607"   # CPT: ORIF distal radius

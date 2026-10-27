@@ -216,6 +216,7 @@ drugs:
       - {drug: "Cephalexin", dose: "500mg PO qid x7d"}
 
 procedure:
+  postoperative_pain_level: 0.6   # operative-day pain floor (Issue #2080)
   type: "complex hand surgery / replantation"
   procedure_code_jp: "K089"
   procedure_code_us: "20838"

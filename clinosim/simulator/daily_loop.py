@@ -127,6 +127,13 @@ SYMPTOM_AXES: tuple[str, ...] = (
 )
 
 
+def apply_postoperative_pain(state: PhysiologicalState, day: int, surgery: tuple[int, float] | None) -> None:
+    """Raise pain to the procedure's post-operative level on the operative day
+    (Issue #2080); daily recovery lowers it afterwards."""
+    if surgery is not None and day == surgery[0] and state.pain_level < surgery[1]:
+        state.pain_level = surgery[1]
+
+
 def apply_symptom_floor(state: PhysiologicalState, floor: dict[str, float]) -> None:
     """Keep symptom axes at or above the patient's chronic baseline.
 
@@ -165,6 +172,7 @@ def _run_daily_loop(
     imaging_seq_counter: dict[str, int] | None = None,
     symptom_floor: dict[str, float] | None = None,
     max_los: int | None = None,
+    surgery: tuple[int, float] | None = None,
 ) -> dict:
     """Run the day-by-day simulation loop. Returns all generated data."""
 
@@ -270,6 +278,7 @@ def _run_daily_loop(
         state = update(state, directive, timedelta(days=1))
         if symptom_floor:
             apply_symptom_floor(state, symptom_floor)
+        apply_postoperative_pain(state, day, surgery)
         state_history.append(deepcopy(state))
 
         # Daily lab orders (from Day 1) with context-dependent frequency

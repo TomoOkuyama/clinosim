@@ -288,6 +288,7 @@ drugs:
       - {drug: "Enoxaparin", dose: "40mg SC daily", note: "DVT prophylaxis, start POD 1-2"}
 
 procedure:
+  postoperative_pain_level: 0.4   # operative-day pain floor (Issue #2080)
   type: "Craniotomy or burr hole evacuation"
   procedure_code_jp: "K164-2"  # 慢性硬膜下血腫穿孔洗浄術 / K1642
   procedure_code_us: "61312"   # CPT: craniotomy for subdural hematoma

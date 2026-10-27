@@ -39,12 +39,12 @@ severity:
 
 initial_state_impact:
   moderate:
-    pain_level: 0.5
+    pain_level: 0.35
     inflammation_level: 0.08
     anemia_level: 0.05       # intra-operative blood loss
     volume_status: -0.05
   severe:
-    pain_level: 0.6
+    pain_level: 0.45
     inflammation_level: 0.12
     anemia_level: 0.10
     volume_status: -0.10
@@ -206,6 +206,7 @@ drugs:
       - {drug: "Oxycodone", dose: "5mg PO q4-6h PRN", duration_days: 7}
 
 procedure:
+  postoperative_pain_level: 0.7   # operative-day pain floor (Issue #2080)
   type: "Total knee arthroplasty"
   procedure_code_jp: "K0821"   # 人工関節置換術（肩、股、膝）
   procedure_code_us: "27447"   # CPT: total knee arthroplasty
