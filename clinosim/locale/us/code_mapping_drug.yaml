@@ -161,10 +161,8 @@ BCG: "1344"                    # BCG Vaccine RxCUI — intravesical bladder immu
 #     "Crystalloid") mapped to a representative drug.
 # Every RxCUI below reuses an entry already registered in
 # clinosim/codes/data/rxnorm.yaml (NLM-verified at that site). "Packed_RBC"
-# (1 of 4,719) is handled separately — it is a blood product, not a drug;
-# the FHIR MR builder filters it out of MR emission (RxNorm does not
-# model packed red cells cleanly; blood products belong in SupplyRequest
-# / BiologicallyDerivedProduct).
+# (1 of 4,719) is a blood product with no RxNorm drug concept; it stays
+# emitted text-only rather than being dropped or given a fabricated code.
 
 # IV normal saline — route-qualified alias for NS (sodium chloride 0.9 %),
 # same CUI the bare "NS" alias already uses.

@@ -20,10 +20,9 @@ on missing rows):
 * class terms (``"ICS/LABA inhaler"``, ``"Broad spectrum antibiotic"``,
   ``"Crystalloid"``) mapped to a representative drug.
 
-The ``"Packed_RBC"`` entry (1 of 4,719) is a blood product — RxNorm does
-not model packed red cells cleanly, so the FHIR builder filters it out
-of MedicationRequest emission (blood products belong in
-``SupplyRequest``/``BiologicallyDerivedProduct``, not ``MedicationRequest``).
+The ``"Packed_RBC"`` entry (1 of 4,719) is a blood product with no RxNorm
+drug concept; it stays emitted text-only (CIF-to-FHIR no-drop) and is out
+of scope for this mapping closure.
 
 This test pins the specific drug_name → RxCUI mapping for the 1,994
 coverage closure. Every RxCUI below reuses an entry already registered
@@ -137,20 +136,3 @@ def test_coverage_1994_rxcuis_registered_in_rxnorm_yaml() -> None:
     rxnorm = _load_rxnorm_codes()
     missing = sorted({cui for cui in _COVERAGE_1994.values() if cui not in rxnorm})
     assert not missing, f"rxnorm.yaml missing display entries for #1994 RxCUIs: {missing}"
-
-
-def test_packed_rbc_skipped_from_medication_request_emission() -> None:
-    """``Packed_RBC`` is a blood product, not a drug — ``_bb_medication_requests``
-    skips it so no uncoded MedicationRequest reaches the Bundle. Blood
-    products belong in ``SupplyRequest`` / ``BiologicallyDerivedProduct``,
-    not ``MedicationRequest``, and RxNorm does not model packed red
-    cells cleanly.
-    """
-    from clinosim.modules.output.fhir_r4.lib.inline_bb import _is_blood_product_drug_name
-
-    assert _is_blood_product_drug_name("Packed_RBC") is True
-    assert _is_blood_product_drug_name("Packed_RBC transfuse to Hb 7") is True
-    assert _is_blood_product_drug_name("packed_rbc") is True
-    # Negative: real drugs must not be filtered.
-    assert _is_blood_product_drug_name("Acetaminophen 500mg") is False
-    assert _is_blood_product_drug_name("IV normal saline") is False
