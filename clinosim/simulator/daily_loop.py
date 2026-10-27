@@ -258,6 +258,7 @@ def _run_daily_loop(
             disease_id,
             severity,
             patient.physiological_profile,
+            treatment_effectiveness=effectiveness,
         )
         for var, delta in nat_directive.changes.items():
             directive.changes[var] = directive.changes.get(var, 0.0) + delta
