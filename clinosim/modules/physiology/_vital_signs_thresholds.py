@@ -26,6 +26,7 @@ __all__ = [
     "OXYGENATION_RR_SCALE",
     "OXYGENATION_SPO2_SCALE",
     "PAIN_SCORE_SCALE",
+    "PAIN_SYMPATHETIC_THRESHOLD",
     "PAIN_SYMPATHETIC_WEIGHT",
     "SYMPATHETIC_DBP_SCALE",
     "SYMPATHETIC_HR_SCALE",
@@ -321,9 +322,16 @@ SYMPATHETIC_TEMPERATURE_SCALE: float = 0.8
 """Temperature rise (°C) at full sympathetic activation (e.g. delirium
 tremens low-grade fever)."""
 
-PAIN_SYMPATHETIC_WEIGHT: float = 0.5
-"""Fraction of ``pain_level`` added to the sympathetic drive used for
-vitals (severe pain alone ≈ half of maximal activation)."""
+PAIN_SYMPATHETIC_THRESHOLD: float = 0.4
+"""``pain_level`` at or below which pain adds no sympathetic drive (Issue
+#2061): mild / chronic pain (NRS <= 4, e.g. osteoarthritis at follow-up)
+does not cause tachycardia or hypertension; moderate-severe acute pain
+does."""
+
+PAIN_SYMPATHETIC_WEIGHT: float = 0.8
+"""Fraction of ``pain_level`` above ``PAIN_SYMPATHETIC_THRESHOLD`` added to
+the sympathetic drive used for vitals: pain 0.75 → +0.28 (HR ~+10 bpm),
+0.9 → +0.40 (~+14 bpm), 1.0 → +0.48 (~+17 bpm)."""
 
 PAIN_SCORE_SCALE: float = 10.0
 """Numeric rating scale points per unit ``pain_level`` (0-10 scale)."""

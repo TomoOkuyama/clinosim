@@ -91,6 +91,24 @@ from clinosim.types.encounter import (
 )
 from clinosim.types.patient import PatientProfile
 
+SYMPTOM_AXES: tuple[str, ...] = (
+    "sympathetic_activation",
+    "pain_level",
+    "oxygenation_impairment",
+    "consciousness_impairment",
+)
+
+
+def apply_symptom_floor(state: PhysiologicalState, floor: dict[str, float]) -> None:
+    """Keep symptom axes at or above the patient's chronic baseline.
+
+    Daily recovery lowers the symptom axes toward 0; a patient with chronic
+    hypoxemia or joint pain returns to that baseline, not to 0 (Issue #2061).
+    """
+    for axis, value in floor.items():
+        if getattr(state, axis) < value:
+            setattr(state, axis, value)
+
 
 def _run_daily_loop(
     state: PhysiologicalState,
@@ -117,6 +135,7 @@ def _run_daily_loop(
     severity: str = "moderate",
     encounter_id: str = "",
     imaging_seq_counter: dict[str, int] | None = None,
+    symptom_floor: dict[str, float] | None = None,
 ) -> dict:
     """Run the day-by-day simulation loop. Returns all generated data."""
 
@@ -196,6 +215,8 @@ def _run_daily_loop(
         # computed value and nothing else.
         _lab_state_pre_update = deepcopy(state) if (day == 0 and disease_id == "diabetic_ketoacidosis") else None
         state = update(state, directive, timedelta(days=1))
+        if symptom_floor:
+            apply_symptom_floor(state, symptom_floor)
         state_history.append(deepcopy(state))
 
         # Daily lab orders (from Day 1) with context-dependent frequency
