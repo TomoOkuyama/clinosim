@@ -690,7 +690,10 @@ outcome_benchmarks:
   us:
     median_los: 12
     los_iqr: [8, 18]
-    in_hospital_mortality: 0.20
+    # HCUP SB #306: in-hospital deaths per 100 stays with sepsis as the
+    # principal diagnosis, 11.9 (2019) to 13.7 (2021) excluding COVID-19;
+    # Rhee et al. JAMA 2017 ~15%. Was 0.20.
+    in_hospital_mortality: 0.14
     icu_admission_rate: 0.55
     thirty_day_readmission: 0.22
     blood_culture_positivity: 0.30
