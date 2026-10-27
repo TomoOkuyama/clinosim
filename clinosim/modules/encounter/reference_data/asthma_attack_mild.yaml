@@ -25,9 +25,9 @@ ed_stay_hours:
 # alkalosis (low pCO2, high pH). The respiratory axis routes the disturbance to pCO2.
 acid_base_type: respiratory
 initial_state_impact:
-  mild:     {ph_status: 0.04}
-  moderate: {ph_status: 0.08, inflammation_level: 0.03}
-  severe:   {ph_status: 0.12, inflammation_level: 0.05}
+  mild: {ph_status: 0.04, oxygenation_impairment: 0.12}
+  moderate: {ph_status: 0.08, inflammation_level: 0.03, oxygenation_impairment: 0.2}
+  severe: {ph_status: 0.12, inflammation_level: 0.05, oxygenation_impairment: 0.3}
 
 workup:
   vitals: true

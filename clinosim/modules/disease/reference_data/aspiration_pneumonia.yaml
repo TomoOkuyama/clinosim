@@ -110,11 +110,13 @@ severity:
 # ============================================================
 initial_state_impact:
   mild:
+    oxygenation_impairment: 0.14
     inflammation_level: 0.25
     volume_status: -0.05
     sodium_status: -0.10
     anion_gap_status: 0.0     # AG axis: mild pneumonia — no AG shift
   moderate:
+    oxygenation_impairment: 0.18
     inflammation_level: 0.50
     volume_status: -0.15
     perfusion_status: -0.10
@@ -122,6 +124,7 @@ initial_state_impact:
     sodium_status: -0.25
     anion_gap_status: 0.2     # AG axis: moderate sepsis-like contribution
   severe:
+    oxygenation_impairment: 0.24
     inflammation_level: 0.75
     volume_status: -0.25
     perfusion_status: -0.25
