@@ -27,10 +27,7 @@ from __future__ import annotations
 
 import pytest
 
-# Side-effect import — registers the HAI ModuleAuditSpec in the audit
-# registry so ``get_registered()["hai"].clinical_acceptance`` is populated.
-import clinosim.modules.hai.audit  # noqa: F401
-from clinosim.audit.registry import get_registered
+from clinosim.audit.registry import discover, get_registered
 from clinosim.modules.hai.lab_lift import _hai_lift_delta, load_hai_lab_lift_config
 from clinosim.types.clinical import PhysiologicalState
 
@@ -53,6 +50,9 @@ _HEADROOM = 1.3
 
 
 def _audit_floor(hai_type: str, analyte: str) -> float:
+    # Other audit tests clear the registry with _reset_for_test(); discover()
+    # re-registers every module audit spec regardless of prior import state.
+    discover()
     spec = get_registered()["hai"]
     return float(spec.clinical_acceptance[hai_type][f"{analyte}_delta_p50"])
 
