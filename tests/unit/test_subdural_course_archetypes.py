@@ -51,6 +51,8 @@ def test_subdural_trajectories_use_recognized_state_vars():
         "ph_status",
         "renal_function",
         "volume_status",
+        "oxygenation_impairment",
+        "consciousness_impairment",
     }
     p = load_disease_protocol("subdural_hematoma")
     for name, a in p.course_archetypes.items():

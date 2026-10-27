@@ -613,6 +613,7 @@ course_archetypes:
     probability: 0.12
     description: "Lung abscess formation or necrotizing pneumonia requiring antibiotic change"
     trajectory:
+      oxygenation_impairment: {0: 0.08, 1: 0.08, 2: 0.06, 3: 0.04, 5: 0.00}
       inflammation_level: {0: 0.10, 1: 0.06, 2: 0.04, 3: 0.02, 5: -0.02, 7: -0.04, 10: -0.08, 14: -0.06, 21: -0.04}
       volume_status: {0: -0.03, 1: -0.02, 2: -0.01, 3: 0.00, 5: 0.02, 7: 0.02, 10: 0.01, 14: 0.00, 21: 0.00}
       renal_function: {0: -0.02, 1: -0.01, 2: -0.01, 3: 0.00, 5: 0.01, 7: 0.01, 10: 0.01, 14: 0.00, 21: 0.00}
@@ -636,6 +637,7 @@ course_archetypes:
     probability: 0.12
     description: "Progressive respiratory failure, recurrent aspiration, sepsis"
     trajectory:
+      oxygenation_impairment: {0: 0.12, 1: 0.16, 2: 0.14, 3: 0.08, 5: 0.00}
       inflammation_level: {0: 0.12, 1: 0.08, 2: 0.06, 3: 0.05, 5: 0.03, 7: 0.01, 10: 0.00, 14: -0.02, 21: -0.02}
       perfusion_status: {0: -0.08, 1: -0.05, 2: -0.03, 3: -0.03, 5: -0.02, 7: 0.00, 10: 0.01, 14: 0.01, 21: 0.01}
       renal_function: {0: -0.05, 1: -0.03, 2: -0.02, 3: -0.01, 5: 0.00, 7: 0.01, 10: 0.01, 14: 0.01, 21: 0.00}
@@ -664,6 +666,7 @@ course_archetypes:
     probability: 0.06
     description: "Massive aspiration or acute respiratory failure on Day 1-2"
     trajectory:
+      oxygenation_impairment: {0: 0.10, 1: 0.40, 2: 0.20, 3: 0.05, 5: 0.00}
       inflammation_level: {0: 0.08, 1: 0.30, 2: 0.10, 3: -0.05, 5: -0.08, 7: -0.06, 10: -0.05, 14: -0.03, 21: -0.02}
       perfusion_status: {0: -0.05, 1: -0.30, 2: -0.05, 3: 0.05, 5: 0.05, 7: 0.03, 10: 0.02, 14: 0.01, 21: 0.01}
       renal_function: {0: 0.00, 1: -0.15, 2: -0.05, 3: 0.02, 5: 0.02, 7: 0.02, 10: 0.01, 14: 0.01, 21: 0.00}

@@ -482,14 +482,14 @@ _PROCEDURE_RULES: list[tuple[str | list[str], list[tuple[str, float]]]] = [
     (["atrial_fibrillation_rvr"], [("cardioversion", 0.25), ("echocardiography", 0.60)]),
     # Pancreatitis: nasogastric tube
     (["acute_pancreatitis"], [("nasogastric_tube", 0.40), ("central_line", 0.20)]),
-    # Trauma: central line, arterial line, blood transfusion
+    # Trauma: central line, arterial line, blood transfusion. Intubation
+    # follows consciousness / oxygenation in the daily loop (Issues #2091, #2079).
     (
         ["traffic_accident_severe"],
         [
             ("central_line", 0.70),
             ("arterial_line", 0.60),
             ("blood_transfusion", 0.50),
-            ("intubation", 0.30),
             ("chest_tube", 0.25),
         ],
     ),
