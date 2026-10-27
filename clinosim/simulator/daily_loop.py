@@ -182,6 +182,19 @@ def _run_daily_loop(
         for var, delta in nat_directive.changes.items():
             directive.changes[var] = directive.changes.get(var, 0.0) + delta
 
+        # Issue #1988: for DKA, snapshot the pre-day-0 physiological state
+        # so that the admission ABG / BMP orders resolve against the
+        # acute-presentation ph_status (-0.35 moderate / -0.60 severe)
+        # rather than the end-of-day-0 state, which has already recovered
+        # ~0.1 ph_status units toward normal and pushes the admission HCO3
+        # above the ADA severity threshold (< 18 mEq/L defines DKA on
+        # presentation; eval axis clinical.condition_lab_coherence.dka_hco3
+        # measured 15 % of DKA encounters violating this before the fix).
+        # Scoped to DKA — non-DKA cohorts stay byte-identical because the
+        # per-order sub-RNG pipeline (see lab_pipeline.py) does not consume
+        # master RNG, so swapping the lab-derivation state only shifts the
+        # computed value and nothing else.
+        _lab_state_pre_update = deepcopy(state) if (day == 0 and disease_id == "diabetic_ketoacidosis") else None
         state = update(state, directive, timedelta(days=1))
         state_history.append(deepcopy(state))
 
@@ -286,8 +299,12 @@ def _run_daily_loop(
         from clinosim.modules.physiology.engine import hba1c_latent_at
 
         _hba1c_latent = hba1c_latent_at(patient, admission_time + __import__("datetime").timedelta(days=day))
+        # Issue #1988: on day 0 of a DKA encounter, resolve admission labs
+        # against the pre-update state so the ABG HCO3 reflects the acute
+        # presentation rather than ~1 day of recovery.
+        _true_labs_state = _lab_state_pre_update if _lab_state_pre_update is not None else state
         true_labs = derive_lab_values(
-            state,
+            _true_labs_state,
             sex=patient.sex,
             age=patient.age,
             has_diabetes=has_diabetes,
