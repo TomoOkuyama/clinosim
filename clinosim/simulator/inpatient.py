@@ -894,6 +894,7 @@ def _simulate_patient(
         symptom_floor=symptom_floor,
         max_los=int(los_cfg.get("max", target_los)),
         surgery=surgery_pain,
+        prior_procedures=procedures,
     )
 
     # Unpack results

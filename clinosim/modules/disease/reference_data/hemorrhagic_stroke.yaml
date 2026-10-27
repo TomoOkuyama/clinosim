@@ -777,7 +777,7 @@ complications:
 
   - name: "dvt"
     description: "Deep vein thrombosis from immobility"
-    probability_per_day: 0.008
+    probability_per_day: 0.004  # Issue #2101: base rate with the context risk factors live
     onset_day_range: [3, 21]
     risk_factors:
       - {condition: "immobility", multiplier: 3.0}

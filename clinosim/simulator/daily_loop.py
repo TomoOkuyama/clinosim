@@ -18,6 +18,7 @@ from typing import Any
 import numpy as np
 
 from clinosim.modules._shared import MED_STOP_ORDER_ID_MARKER, sanitize_id_token
+from clinosim.modules.clinical_course._complication_risk_conditions import DRUG_CLASSES, ComplicationContext
 from clinosim.modules.clinical_course.engine import (
     apply_diagnosis_modifier,
     compute_diagnosis_effectiveness,
@@ -109,6 +110,52 @@ from clinosim.types.encounter import (
 from clinosim.types.patient import PatientProfile
 
 
+def _planned_dvt_prophylaxis(patient: Any, protocol: Any, admission_time: datetime, target_los: int) -> bool:
+    """Whether the prophylaxis module will order pharmacologic VTE prophylaxis
+    for this stay (its order is added after the loop): same skip rules,
+    evaluated with the planned LOS and the protocol's primary diagnosis."""
+    from types import SimpleNamespace
+
+    from clinosim.modules.prophylaxis.engine import should_skip_dvt_prophylaxis
+
+    encounter = SimpleNamespace(
+        admission_datetime=admission_time, discharge_datetime=admission_time + timedelta(days=max(target_los, 1))
+    )
+    primary = str(((getattr(protocol, "icd_codes", None) or {}).get("primary")) or "")
+    skip, _reason = should_skip_dvt_prophylaxis(patient=patient, encounter=encounter, admission_dx_code=primary)
+    return not skip
+
+
+def _complication_context(
+    patient: Any,
+    orders: list,
+    admission_time: datetime,
+    *,
+    icu_day: int | None,
+    intubated_day: int | None,
+    surgery_day: int | None,
+    procedures: list,
+    dvt_prophylaxis: bool | None = None,
+) -> ComplicationContext:
+    """Stay context for context-dependent complication risk factors (Issue #2101)."""
+    meds = [o for o in orders if o.order_type == OrderType.MEDICATION and o.status == OrderStatus.PLACED]
+    antibiotic_days = [
+        (o.ordered_datetime.date() - admission_time.date()).days
+        for o in meds
+        if any(sub in (o.display_name or "").upper() for sub in DRUG_CLASSES["antibiotic"])
+    ]
+    return ComplicationContext(
+        icu_day=icu_day,
+        intubated_day=intubated_day,
+        surgery_day=surgery_day,
+        antibiotic_start_day=min(antibiotic_days) if antibiotic_days else None,
+        medications={(o.display_name or "").upper() for o in meds},
+        home_medications={(m.drug_name or "").upper() for m in getattr(patient, "current_medications", []) or []},
+        procedure_types={getattr(p, "procedure_type", "") for p in procedures},
+        dvt_prophylaxis=dvt_prophylaxis,
+    )
+
+
 def airway_escalation_needed(state: PhysiologicalState) -> bool:
     """GCS <= 8 range or refractory hypoxemia: secure the airway (Issue #2091)."""
     return (
@@ -185,6 +232,7 @@ def _run_daily_loop(
     symptom_floor: dict[str, float] | None = None,
     max_los: int | None = None,
     surgery: tuple[int, float] | None = None,
+    prior_procedures: list | None = None,
 ) -> dict:
     """Run the day-by-day simulation loop. Returns all generated data."""
 
@@ -209,11 +257,14 @@ def _run_daily_loop(
     icu_transferred = False
     icu_transferred_day_local: int = -1  # C5-22: day of ICU transfer
     intubated = False
+    intubated_day: int | None = None  # Issue #2101: complication context
+    dvt_prophylaxis_planned = _planned_dvt_prophylaxis(patient, protocol, admission_time, target_los)
     escalation_procedures: list = []  # Issue #2091: state-driven intubation records
     # Presentation already beyond the airway / ICU thresholds (e.g. GCS <= 8 on
     # arrival): intubate and transfer on the admission day.
     if airway_escalation_needed(state):
         intubated = True
+        intubated_day = 0
         escalation_procedures.append(
             build_intubation_procedure(
                 patient.patient_id,
@@ -770,6 +821,16 @@ def _run_daily_loop(
                 active_complications,
                 rng,
                 severity=severity,
+                context=_complication_context(
+                    patient,
+                    all_orders,
+                    admission_time,
+                    icu_day=icu_transferred_day_local if icu_transferred else None,
+                    intubated_day=intubated_day,
+                    surgery_day=surgery[0] if surgery else None,
+                    procedures=list(prior_procedures or []) + escalation_procedures,
+                    dvt_prophylaxis=dvt_prophylaxis_planned,
+                ),
             )
             for comp in triggered:
                 for var, delta in comp.get("state_impact", {}).items():
@@ -811,6 +872,7 @@ def _run_daily_loop(
         # day the airway threshold is crossed, ICU transfer for airway or shock.
         if not intubated and airway_escalation_needed(state):
             intubated = True
+            intubated_day = day
             escalation_procedures.append(
                 build_intubation_procedure(
                     patient.patient_id,
