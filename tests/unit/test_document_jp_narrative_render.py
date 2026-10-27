@@ -46,7 +46,9 @@ def jp_bacterial_pneumonia_documents():
     docs = []
     for record in reader.iter_patients():
         for doc in record.get("documents", []) or []:
-            if doc.get("loinc_code") == "18842-5":
+            # Death discharge summaries share LOINC 18842-5 but carry the
+            # death-specific section set; this fixture covers survivors.
+            if doc.get("loinc_code") == "18842-5" and doc.get("task_type") != "death_discharge_summary":
                 docs.append(doc)
     return docs
 
