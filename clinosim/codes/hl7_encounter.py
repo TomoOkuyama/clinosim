@@ -57,6 +57,10 @@ class DischargeDisposition(StrEnum):
     EXP = "exp"
     """Expired — patient died during the encounter (#299:HL7 authoritative)."""
 
+    SNF = "snf"
+    """Skilled nursing facility — survivor not safe for home at the maximum stay
+    (persistent hypoxemia, impaired consciousness or hypoperfusion; Issue #2084)."""
+
 
 class ActPriority(StrEnum):
     """HL7 v3 ActPriority ``http://terminology.hl7.org/CodeSystem/v3-ActPriority``."""

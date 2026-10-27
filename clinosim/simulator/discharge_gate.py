@@ -16,15 +16,19 @@ from typing import Any
 
 import numpy as np
 
+from clinosim.codes.hl7_encounter import DischargeDisposition
 from clinosim.modules.disease.protocol import DiseaseProtocol
 from clinosim.modules.population.engine import LifeEvent
 from clinosim.simulator._discharge_gate_thresholds import (
     DISCHARGE_ANEMIA_MAX,
+    DISCHARGE_CONSCIOUSNESS_EXCESS_MAX,
     DISCHARGE_JP_INFLAMMATION_MAX,
     DISCHARGE_JP_PERFUSION_MIN,
     DISCHARGE_JP_PH_ABS_MAX,
     DISCHARGE_JP_RENAL_MIN,
     DISCHARGE_JP_VOLUME_ABS_MAX,
+    DISCHARGE_OXYGENATION_EXCESS_MAX,
+    DISCHARGE_PERFUSION_SAFE_MIN,
     DISCHARGE_SYMPATHETIC_MAX,
     DISCHARGE_US_INFLAMMATION_MAX,
     DISCHARGE_US_PERFUSION_MIN,
@@ -147,10 +151,37 @@ def _evaluate_readmission(
     )
 
 
+def unsafe_for_home(state: PhysiologicalState, symptom_floor: dict[str, float] | None) -> bool:
+    """True while the patient cannot be sent home (Issues #2055, #2084):
+    uncontrolled autonomic symptoms, hypoxemia or impaired consciousness beyond
+    the chronic baseline, or hypoperfusion."""
+    floor = symptom_floor or {}
+    return (
+        state.sympathetic_activation >= DISCHARGE_SYMPATHETIC_MAX
+        or state.oxygenation_impairment - floor.get("oxygenation_impairment", 0.0) > DISCHARGE_OXYGENATION_EXCESS_MAX
+        or state.consciousness_impairment - floor.get("consciousness_impairment", 0.0)
+        >= DISCHARGE_CONSCIOUSNESS_EXCESS_MAX
+        or state.perfusion_status < DISCHARGE_PERFUSION_SAFE_MIN
+    )
+
+
+def discharge_disposition_for(
+    final_state: PhysiologicalState, symptom_floor: dict[str, float] | None, died: bool
+) -> DischargeDisposition:
+    """Expired, skilled nursing facility (still unsafe at the end of the stay),
+    or home (Issue #2084)."""
+    if died:
+        return DischargeDisposition.EXP
+    if unsafe_for_home(final_state, symptom_floor):
+        return DischargeDisposition.SNF
+    return DischargeDisposition.HOME
+
+
 def _check_discharge_ready(
     state: PhysiologicalState,
     day: int,
     country_key: str,
+    symptom_floor: dict[str, float] | None = None,
 ) -> bool:
     """Check if patient meets state-based discharge criteria.
 
@@ -162,8 +193,8 @@ def _check_discharge_ready(
     # anemia_level < 0.60 ≈ Hgb > 7.0 g/dL for females and > 8.7 for males —
     # no patient should be discharged with Hgb below transfusion trigger.
     anemia_ok = state.anemia_level < DISCHARGE_ANEMIA_MAX
-    # Autonomic symptoms (e.g. alcohol withdrawal) controlled before discharge.
-    symptoms_ok = state.sympathetic_activation < DISCHARGE_SYMPATHETIC_MAX
+    # Autonomic symptoms, oxygenation, consciousness and perfusion safe for home.
+    symptoms_ok = not unsafe_for_home(state, symptom_floor)
 
     if country_key == "us":
         return (
@@ -186,7 +217,12 @@ def _check_discharge_ready(
     )
 
 
-def extend_stay_for_symptoms(state: PhysiologicalState, los_ceiling: int, max_los: int | None) -> bool:
+def extend_stay_for_symptoms(
+    state: PhysiologicalState,
+    los_ceiling: int,
+    max_los: int | None,
+    symptom_floor: dict[str, float] | None = None,
+) -> bool:
     """Whether to keep the patient one more day past the sampled stay.
 
     The sampled target LOS caps the daily loop; a patient whose autonomic
@@ -195,7 +231,7 @@ def extend_stay_for_symptoms(state: PhysiologicalState, los_ceiling: int, max_lo
     maximum LOS. Conditions that never raise ``sympathetic_activation``
     never extend.
     """
-    return max_los is not None and los_ceiling < max_los and state.sympathetic_activation >= DISCHARGE_SYMPATHETIC_MAX
+    return max_los is not None and los_ceiling < max_los and unsafe_for_home(state, symptom_floor)
 
 
 def _mortality_day_weight(day: int) -> float:
