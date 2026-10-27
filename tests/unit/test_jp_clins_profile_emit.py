@@ -279,3 +279,36 @@ class TestIsLabObservation:
 
     def test_false_for_missing_category(self):
         assert _is_lab_observation({}) is False
+
+    def test_false_for_microbiology_id_prefixes(self):
+        """Culture / susceptibility Observations are category=laboratory
+        but out of eCS scope — excluded by id prefix."""
+        base = {"category": [{"coding": [{"code": "laboratory"}]}]}
+        assert _is_lab_observation({**base, "id": "mb-org-abcdef012345"}) is False
+        assert _is_lab_observation({**base, "id": "mb-sus-abcdef012345"}) is False
+
+    def test_false_for_blood_type_id_prefixes(self):
+        """Issue #2003: patient-lifetime ABO / RhD Observations carry
+        LOINC + SNOMED only (no JP-CLINS CoreLabo / LocalCode
+        co-emission) and so cannot satisfy the eCS applicability rule.
+        Excluded by id prefix to keep the eCS stacking gate green —
+        prior to Issue #2003 the mis-cased v2-0074 ``LAB`` category code
+        silently (and accidentally) excluded them."""
+        base = {"category": [{"coding": [{"code": "laboratory"}]}]}
+        assert _is_lab_observation({**base, "id": "blood-abo-abcdef012345"}) is False
+        assert _is_lab_observation({**base, "id": "blood-rh-abcdef012345"}) is False
+
+    def test_exclusion_uses_shared_by_design_registry(self):
+        """``_is_lab_observation`` reads the exclusion prefix set from
+        the ``NON_ORDER_DRIVEN_LAB_OBS_ID_PREFIXES`` by-design registry
+        in ``labs/service_request.py`` so a new non-order-driven lab
+        family added to the registry is picked up here automatically."""
+        from clinosim.modules.output.fhir_r4.labs.service_request import (
+            NON_ORDER_DRIVEN_LAB_OBS_ID_PREFIXES,
+        )
+
+        base = {"category": [{"coding": [{"code": "laboratory"}]}]}
+        for prefix in NON_ORDER_DRIVEN_LAB_OBS_ID_PREFIXES:
+            assert _is_lab_observation({**base, "id": f"{prefix}abcdef012345"}) is False, (
+                f"registry prefix {prefix!r} must exclude the Observation from eCS stacking"
+            )

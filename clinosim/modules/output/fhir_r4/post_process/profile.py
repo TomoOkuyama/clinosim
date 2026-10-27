@@ -329,6 +329,24 @@ def _is_lab_observation(resource: dict) -> bool:
     results carry ``laboratory``), while profile stacking is a spec-scope
     concern that requires the finer distinction.
 
+    Also excludes the patient-lifetime blood-type ABO/RhD Observations
+    emitted by ``labs/blood_type.py`` (``blood-abo-*`` / ``blood-rh-*``
+    ids): they carry only LOINC codings for the group and the SNOMED CT
+    result concept — no JP-CLINS CoreLabo / LocalCode co-emission — and
+    so cannot satisfy the eCS applicability rule. The
+    ``NON_ORDER_DRIVEN_LAB_OBS_ID_PREFIXES`` by-design registry in
+    ``labs/service_request.py`` is the shared source of truth for
+    non-order-driven lab Observation families; this predicate routes
+    through it so a new family added to the registry is excluded from
+    eCS stacking automatically (same "profile assertion must follow
+    data completeness" invariant).
+
+    Prior to Issue #2003 the blood-type Observations emitted the
+    non-canonical v2-0074 ``LAB`` code on ``category.coding`` and so
+    were silently (and accidentally) excluded by the ``== "laboratory"``
+    category test below; this change restores that exclusion
+    explicitly, now that the canonical ``laboratory`` code is in use.
+
     NOTE: this predicate ONLY governs eCS stacking. The parent
     ``JP_Observation_LabResult`` (JP Core) is still emitted on
     microbiology Observations by ``_fhir_microbiology.py`` line ~227 —
@@ -338,11 +356,15 @@ def _is_lab_observation(resource: dict) -> bool:
     fix minimally invasive; the full profile-declaration fix is a
     separate work item.
     """
+    from clinosim.modules.output.fhir_r4.labs.service_request import (
+        NON_ORDER_DRIVEN_LAB_OBS_ID_PREFIXES,
+    )
+
     for cat in resource.get("category", []) or []:
         for coding in cat.get("coding", []) or []:
             if coding.get("code") == "laboratory":
                 rid = resource.get("id", "")
-                if rid.startswith("mb-org-") or rid.startswith("mb-sus-"):
+                if any(rid.startswith(p) for p in NON_ORDER_DRIVEN_LAB_OBS_ID_PREFIXES):
                     return False
                 return True
     return False
