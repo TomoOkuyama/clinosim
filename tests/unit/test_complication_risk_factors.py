@@ -64,3 +64,10 @@ def test_every_yaml_risk_factor_is_supported_or_declared_context() -> None:
 
 def test_context_conditions_do_not_overlap_supported_ones() -> None:
     assert not {c for c in CONTEXT_CONDITIONS if is_supported_risk_condition(c)}
+
+
+def test_unknown_risk_factor_fails_at_load() -> None:
+    from clinosim.modules.clinical_course.engine import validate_complication_risk_factors
+
+    with pytest.raises(ValueError, match="dementai"):
+        validate_complication_risk_factors("x", [{"name": "delirium", "risk_factors": [{"condition": "dementai"}]}])

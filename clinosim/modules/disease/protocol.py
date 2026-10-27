@@ -590,7 +590,11 @@ def load_disease_protocol(disease_id: str) -> DiseaseProtocol:
     from clinosim.modules.clinical_course.engine import (
         _FALLBACK_PROBABILITIES,
         _validate_archetype_modifiers,
+        validate_complication_risk_factors,
     )
+
+    # Fail-loud complication risk-factor vocabulary (Issue #2093).
+    validate_complication_risk_factors(disease_id, data.get("complications") or [])
 
     arch_names = set((data.get("course_archetypes") or {}).keys()) or set(_FALLBACK_PROBABILITIES)
     _validate_archetype_modifiers(disease_id, data.get("archetype_modifiers", []), arch_names)
