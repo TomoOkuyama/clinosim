@@ -356,15 +356,17 @@ def _is_lab_observation(resource: dict) -> bool:
     fix minimally invasive; the full profile-declaration fix is a
     separate work item.
     """
+    from clinosim.modules.newborn.fhir_emit import METABOLIC_SCREEN_OBS_ID_PREFIX
     from clinosim.modules.output.fhir_r4.labs.service_request import (
         NON_ORDER_DRIVEN_LAB_OBS_ID_PREFIXES,
     )
 
+    excluded_prefixes = (*NON_ORDER_DRIVEN_LAB_OBS_ID_PREFIXES, METABOLIC_SCREEN_OBS_ID_PREFIX)
     for cat in resource.get("category", []) or []:
         for coding in cat.get("coding", []) or []:
             if coding.get("code") == "laboratory":
                 rid = resource.get("id", "")
-                if any(rid.startswith(p) for p in NON_ORDER_DRIVEN_LAB_OBS_ID_PREFIXES):
+                if any(rid.startswith(p) for p in excluded_prefixes):
                     return False
                 return True
     return False

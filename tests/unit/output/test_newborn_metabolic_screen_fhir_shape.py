@@ -225,3 +225,60 @@ def test_metabolic_screen_bundle_builders_no_op_on_non_newborn() -> None:
     assert _bb_newborn_metabolic_screen_service_request(ctx) == []
     assert _bb_newborn_metabolic_screen_specimen(ctx) == []
     assert _bb_newborn_metabolic_screen_diagnostic_report(ctx) == []
+
+
+# ---------------------------------------------------------------- overall-interpretation Observation
+
+
+@pytest.mark.parametrize("country", ["US", "JP"])
+def test_metabolic_screen_dr_result_references_overall_interpretation_observation(country: str) -> None:
+    from clinosim.modules.newborn.fhir_emit import _bb_newborn_metabolic_screen_observation
+
+    rec = _newborn_record()
+    _run_enricher(rec, country=country)
+    ctx = _build_ctx(rec, country=country)
+    obs_list = _bb_newborn_metabolic_screen_observation(ctx)
+    assert len(obs_list) == 1
+    obs = obs_list[0]
+    assert obs["resourceType"] == "Observation"
+    assert obs["code"]["coding"][0] == {
+        "system": "http://loinc.org",
+        "code": "57130-7",
+        "display": "Newborn screening report - overall interpretation",
+    }
+    assert [c["code"] for cat in obs["category"] for c in cat["coding"]] == ["laboratory"]
+    dr = _bb_newborn_metabolic_screen_diagnostic_report(ctx)[0]
+    assert dr["result"] == [{"reference": f"Observation/{obs['id']}"}]
+    assert obs["valueCodeableConcept"]["coding"][0]["code"] == dr["conclusionCode"][0]["coding"][0]["code"]
+    assert obs["basedOn"] == dr["basedOn"]
+    assert obs["specimen"] == dr["specimen"][0]
+
+
+def test_metabolic_screen_observation_excluded_from_jp_ecs_lab_stacking() -> None:
+    from clinosim.modules.newborn.fhir_emit import _bb_newborn_metabolic_screen_observation
+    from clinosim.modules.output.fhir_r4.post_process.profile import _is_lab_observation
+
+    rec = _newborn_record()
+    _run_enricher(rec, country="JP")
+    obs = _bb_newborn_metabolic_screen_observation(_build_ctx(rec, country="JP"))[0]
+    assert _is_lab_observation(obs) is False
+
+
+def test_metabolic_screen_observation_no_op_on_non_newborn() -> None:
+    from clinosim.modules.newborn.fhir_emit import _bb_newborn_metabolic_screen_observation
+
+    adult = CIFPatientRecord(
+        patient=PatientProfile(patient_id="POP-ADULT", sex="F", age=45),
+        encounters=[
+            Encounter(
+                encounter_id="ENC-ADULT-01",
+                patient_id="POP-ADULT",
+                encounter_type=EncounterType.INPATIENT,
+                admission_datetime=datetime(2026, 6, 1, 10, 0),
+                discharge_datetime=datetime(2026, 6, 3, 10, 0),
+            )
+        ],
+        condition_event=ConditionEvent(condition_type="pneumonia_acute"),
+    )
+    _run_enricher(adult, country="JP")
+    assert _bb_newborn_metabolic_screen_observation(_build_ctx(adult, country="JP")) == []

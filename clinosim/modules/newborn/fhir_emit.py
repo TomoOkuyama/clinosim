@@ -81,6 +81,16 @@ def _metabolic_screen_dr_id(patient_id: str) -> str:
     return f"dr-{hashlib.sha256(key).hexdigest()[:12]}"
 
 
+# JP-CLINS eCS lab profile covers hospital chemistry / hematology / serology;
+# newborn mass screening is out of scope, so profile stacking skips this prefix.
+METABOLIC_SCREEN_OBS_ID_PREFIX = "nmscr-"
+
+
+def _metabolic_screen_observation_id(patient_id: str) -> str:
+    key = f"nmscr-obs|{patient_id}".encode()
+    return f"{METABOLIC_SCREEN_OBS_ID_PREFIX}{hashlib.sha256(key).hexdigest()[:12]}"
+
+
 def _bb_newborn_apgar(ctx: Any) -> list[dict]:
     """Emit Apgar score `Observation` resources for newborns.
 
@@ -549,14 +559,119 @@ def _bb_newborn_metabolic_screen_specimen(ctx: Any) -> list[dict]:
     return [resource]
 
 
+def _metabolic_screen_outcome_concept(ext: dict[str, Any], lang: str) -> dict[str, Any] | None:
+    from clinosim.codes import get_system_uri
+
+    outcome_code = str(ext.get("outcome_code") or "")
+    if not outcome_code:
+        return None
+    outcome_key = "pass" if str(ext.get("outcome_key") or "") == "pass" else "refer"
+    return {
+        "coding": [
+            {
+                "system": get_system_uri("snomed-ct"),
+                "code": outcome_code,
+                # SNOMED outcome displays match the hearing-screen and
+                # Procedure.outcome slots emitted elsewhere for the same
+                # codes (385669000 / 385671000).
+                "display": "Successful" if outcome_key == "pass" else "Unsuccessful",
+            }
+        ],
+        "text": _label("newborn_screen_outcome_text", outcome_key, lang),
+    }
+
+
+def _metabolic_screen_timing(ext: dict[str, Any]) -> dict[str, str]:
+    """effectiveDateTime = heel-stick collection; issued = collection + 1 h.
+
+    Nominal tandem-MS turnaround is 24-72 h; 1 h keeps the timestamps inside
+    the birth-admission window regardless of LOS. ``collected`` is a datetime
+    on the in-memory enricher path and a naive ISO string after a CIF JSON
+    round-trip.
+    """
+    from datetime import datetime as _dt
+    from datetime import timedelta as _td
+
+    collected = ext.get("collected_datetime")
+    if collected is None:
+        return {}
+    if isinstance(collected, _dt):
+        issued_dt: _dt | None = collected + _td(hours=1)
+    else:
+        try:
+            issued_dt = _dt.fromisoformat(str(collected)) + _td(hours=1)
+        except ValueError:
+            issued_dt = None
+    return {
+        "effectiveDateTime": _iso(collected),
+        "issued": _iso(issued_dt) if issued_dt is not None else _iso(collected),
+    }
+
+
+def _bb_newborn_metabolic_screen_observation(ctx: Any) -> list[dict]:
+    """Overall-interpretation Observation (LOINC 57130-7) referenced from the
+    metabolic-screen DiagnosticReport ``result[]``. Carries the same pass /
+    refer outcome as the DR ``conclusionCode``.
+    """
+    from clinosim.codes import get_system_uri
+    from clinosim.codes import lookup as code_lookup
+    from clinosim.locale.i18n import t
+    from clinosim.modules.output.fhir_r4.demographics.patient import patient_ref
+
+    parsed = _read_metabolic_screen_ext(ctx)
+    if parsed is None:
+        return []
+    ext, patient_id, encounter_id, lang = parsed
+
+    loinc = "57130-7"
+    display_en = "Newborn screening report - overall interpretation"
+    category_display = "Laboratory"
+    resource: dict[str, Any] = {
+        "resourceType": "Observation",
+        "id": _metabolic_screen_observation_id(patient_id),
+        "status": "final",
+        "category": [
+            {
+                "coding": [
+                    {
+                        "system": get_system_uri("hl7-observation-category"),
+                        "code": "laboratory",
+                        "display": category_display,
+                    }
+                ],
+                "text": category_display,
+            }
+        ],
+        "code": {
+            "coding": [{"system": get_system_uri("loinc"), "code": loinc, "display": display_en}],
+            "text": code_lookup("loinc", loinc, lang) or display_en,
+        },
+        "subject": patient_ref(patient_id),
+        "basedOn": [{"reference": f"ServiceRequest/{_metabolic_screen_sr_id(patient_id)}"}],
+        "specimen": {"reference": f"Specimen/{_metabolic_screen_specimen_id(patient_id)}"},
+    }
+    outcome_concept = _metabolic_screen_outcome_concept(ext, lang)
+    if outcome_concept is not None:
+        resource["valueCodeableConcept"] = outcome_concept
+    else:
+        outcome_key = str(ext.get("outcome_key") or "")
+        resource["valueString"] = t(
+            "newborn_screen.conclusion_pass" if outcome_key == "pass" else "newborn_screen.conclusion_refer",
+            lang,
+        )
+    resource.update(_metabolic_screen_timing(ext))
+    if encounter_id:
+        resource["encounter"] = _encounter_ref(encounter_id)
+    return [resource]
+
+
 def _bb_newborn_metabolic_screen_diagnostic_report(ctx: Any) -> list[dict]:
     """Emit the aggregate `DiagnosticReport` for the newborn tandem-MS
     metabolic screen (#1252 N6b). LOINC 54089-8, category laboratory
-    (hl7 v2-0074 "LAB"), `conclusionCode` carrying the SNOMED
-    pass / refer outcome from the shared sub-seed
-    (`build_metabolic_screen_workflow_data`). Per-analyte results
-    (`.result[]`) are a follow-up sub-scope; this report ships the
-    overall verdict.
+    (hl7 v2-0074 "LAB"), `conclusionCode` carrying the SNOMED pass / refer
+    outcome from the shared sub-seed (`build_metabolic_screen_workflow_data`).
+    `result[]` references the overall-interpretation Observation (57130-7);
+    per-analyte results are not modelled.
     """
     from clinosim.codes import get_system_uri
     from clinosim.locale.i18n import t
@@ -579,7 +694,6 @@ def _bb_newborn_metabolic_screen_diagnostic_report(ctx: Any) -> list[dict]:
     dr_cat_code = str(ext.get("dr_category_code") or "LAB")
     dr_cat_display = str(ext.get("dr_category_display") or "Laboratory")
 
-    outcome_code = str(ext.get("outcome_code") or "")
     outcome_key = str(ext.get("outcome_key") or "")
     conclusion = t(
         "newborn_screen.conclusion_pass" if outcome_key == "pass" else "newborn_screen.conclusion_refer",
@@ -623,43 +737,11 @@ def _bb_newborn_metabolic_screen_diagnostic_report(ctx: Any) -> list[dict]:
         "specimen": [{"reference": f"Specimen/{spec_id}"}],
         "conclusion": conclusion,
     }
-    if outcome_code:
-        outcome_text_key = "pass" if outcome_key == "pass" else "refer"
-        resource["conclusionCode"] = [
-            {
-                "coding": [
-                    {
-                        "system": get_system_uri("snomed-ct"),
-                        "code": outcome_code,
-                        # SNOMED outcome displays match the hearing-screen
-                        # and Procedure.outcome slots emitted elsewhere
-                        # for the same codes (385669000 / 385671000).
-                        "display": ("Successful" if outcome_key == "pass" else "Unsuccessful"),
-                    }
-                ],
-                "text": _label("newborn_screen_outcome_text", outcome_text_key, lang),
-            }
-        ]
-    collected = ext.get("collected_datetime")
-    if collected is not None:
-        resource["effectiveDateTime"] = _iso(collected)
-        # Report issued 1 h after collection (nominal tandem-MS turnaround
-        # is 24-72 h; this MVP slice uses 1 h so the timestamps stay
-        # inside the birth-admission window regardless of LOS). Handle
-        # both datetime (in-memory enricher path) and str (post-CIF-JSON
-        # round-trip path) inputs — CIFReader deserializes datetimes as
-        # naive ISO strings, so we parse before adding.
-        from datetime import datetime as _dt
-        from datetime import timedelta as _td
-
-        if isinstance(collected, _dt):
-            issued_dt = collected + _td(hours=1)
-        else:
-            try:
-                issued_dt = _dt.fromisoformat(str(collected)) + _td(hours=1)
-            except ValueError:
-                issued_dt = None
-        resource["issued"] = _iso(issued_dt) if issued_dt is not None else _iso(collected)
+    outcome_concept = _metabolic_screen_outcome_concept(ext, lang)
+    if outcome_concept is not None:
+        resource["conclusionCode"] = [outcome_concept]
+    resource["result"] = [{"reference": f"Observation/{_metabolic_screen_observation_id(patient_id)}"}]
+    resource.update(_metabolic_screen_timing(ext))
     if encounter_id:
         resource["encounter"] = _encounter_ref(encounter_id)
     return [resource]
