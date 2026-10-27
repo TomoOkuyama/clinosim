@@ -35,6 +35,11 @@ K59: "K59.0"      # Constipation (dominant chronic use of K59).
 H26: "H26.9"      # Cataract, unspecified.
 M54: "M54.5"      # Low back pain (dominant chronic use of M54 per MHLW 患者調査).
 F32: "F32.9"      # Depressive episode, unspecified (mirrors US-side #1356).
+# Issue #2049: ICD-10-CM alcohol-withdrawal leaves fold to WHO F10.3
+# (withdrawal state) / F10.4 (withdrawal state with delirium).
+F10.230: "F10.3"
+F10.239: "F10.3"
+F10.231: "F10.4"
 F33: "F33.9"      # Recurrent depressive disorder, unspecified (mirrors #1356).
 
 # --- Oncology / obstetric chronic conditions (Issue #943 + #1320 + #1358) ---

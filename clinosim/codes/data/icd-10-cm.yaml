@@ -74,6 +74,16 @@ codes:
   F10.20:
     en: Alcohol dependence, uncomplicated
     ja: アルコール依存症（合併症なし）
+  # Issue #2049 alcohol withdrawal; verified via NLM Clinical Tables 2026-10-27.
+  F10.230:
+    en: Alcohol dependence with withdrawal, uncomplicated
+    ja: アルコール依存症（離脱、合併症なし）
+  F10.231:
+    en: Alcohol dependence with withdrawal delirium
+    ja: アルコール依存症（離脱せん妄）
+  F10.239:
+    en: Alcohol dependence with withdrawal, unspecified
+    ja: アルコール依存症（離脱、詳細不明）
   F17.210:
     en: Nicotine dependence, cigarettes, uncomplicated
     ja: ニコチン依存症（紙巻きたばこ、合併症なし）

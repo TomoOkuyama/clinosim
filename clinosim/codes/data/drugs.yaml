@@ -1128,6 +1128,11 @@ drugs:
     codes:
       rxnorm: "4511"
     classes: ["vitamin"]
+  thiamine:
+    names: {en: "Thiamine", ja: "チアミン"}
+    codes:
+      rxnorm: "10454"
+    classes: ["vitamin"]
   lenvatinib:
     names: {en: "Lenvatinib", ja: "レンバチニブ"}
     codes:

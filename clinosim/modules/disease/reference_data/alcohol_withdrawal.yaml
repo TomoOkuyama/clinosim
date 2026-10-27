@@ -1,0 +1,246 @@
+# Alcohol Withdrawal Syndrome — Reference Data
+# Admitted through the ED to internal medicine (no psychiatric unit needed).
+# Sources: HCUP Statistical Brief #249 (2016 NIS: alcohol-related disorders
+# 18.5% of principal mental / substance-use stays, mean LOS 4.9 days),
+# ASAM Clinical Practice Guideline on Alcohol Withdrawal Management (2020).
+# Codes verified 2026-10-27: ICD-10-CM F10.239 / F10.230 / F10.231 (NLM
+# Clinical Tables); lorazepam 6470, thiamine 10454, folic acid 4511 (RxNav).
+
+disease_id: alcohol_withdrawal
+chief_complaint:
+  en: "Tremor, sweating and anxiety after stopping alcohol"
+  ja: "飲酒中断後の振戦・発汗・不安"
+department: internal_medicine
+encounter_type: medical
+minimum_severity: moderate
+
+icd_codes:
+  primary: "F10.239"
+  variants:
+    - {code: "F10.239", name: "Alcohol dependence with withdrawal, unspecified", probability: 0.55}
+    - {code: "F10.230", name: "Alcohol dependence with withdrawal, uncomplicated", probability: 0.40}
+    - {code: "F10.231", name: "Alcohol dependence with withdrawal delirium", probability: 0.05}
+
+incidence:
+  # Admissions among patients with alcohol dependence (F10.20). The per-country
+  # rate lives in locale/<cc>/demographics.yaml disease_incidence; without it
+  # the pathway generates no stays.
+  trigger_type: "acute"
+  prerequisite_condition: "F10.20"
+
+severity:
+  distribution:
+    mild: 0.0
+    moderate: 0.80   # symptom-triggered benzodiazepine on the ward
+    severe: 0.20     # high CIWA scores, history of seizures or delirium tremens
+  modifiers:
+    - {condition: "age_over_65", severe_multiplier: 1.5}
+
+initial_state_impact:
+  moderate:
+    volume_status: -0.10       # poor intake, vomiting, diaphoresis
+    hepatic_function: -0.05    # AST / ALT / GGT elevation
+    sodium_status: -0.04
+    glucose_status: -0.03
+    inflammation_level: 0.02
+  severe:
+    volume_status: -0.18
+    hepatic_function: -0.10
+    sodium_status: -0.08
+    glucose_status: -0.05
+    inflammation_level: 0.04
+    perfusion_status: -0.03
+
+presenting_symptoms:
+  - {name: "tremor", probability: 0.95, severity_range: [0.4, 0.9]}
+  - {name: "diaphoresis", probability: 0.80, severity_range: [0.3, 0.8]}
+  - {name: "anxiety", probability: 0.80, severity_range: [0.3, 0.8]}
+  - {name: "nausea_vomiting", probability: 0.60, severity_range: [0.3, 0.7]}
+  - {name: "insomnia", probability: 0.60, severity_range: [0.3, 0.7]}
+  - {name: "visual_hallucinations", probability: 0.10, severity_range: [0.5, 0.9]}
+
+# ============================================================
+# COURSE ARCHETYPES — withdrawal peaks at 24-72 h, then resolves
+# ============================================================
+course_archetypes:
+  smooth_recovery:
+    probability: 0.70
+    description: "Symptoms controlled with symptom-triggered lorazepam; resolve by day 3-4"
+    trajectory:
+      volume_status:      {0: 0.00, 1: 0.05, 2: 0.06, 3: 0.04, 5: 0.02}
+      hepatic_function:   {0: 0.00, 1: 0.01, 2: 0.02, 3: 0.02, 5: 0.02}
+      sodium_status:      {0: 0.00, 1: 0.02, 2: 0.02, 3: 0.01, 5: 0.00}
+    order_modifications: {}
+    treatment_modifications: {}
+
+  plateau_then_recovery:
+    probability: 0.20
+    description: "Withdrawal peaks on day 2-3 with higher benzodiazepine needs, then resolves"
+    trajectory:
+      volume_status:      {0: -0.02, 1: -0.02, 2: 0.02, 3: 0.04, 5: 0.03}
+      inflammation_level: {0: 0.02, 1: 0.02, 2: 0.01, 3: 0.00, 5: -0.01}
+    order_modifications:
+      day_2:
+        add_labs: ["Mg", "Phosphate", "K"]
+
+  gradual_deterioration:
+    probability: 0.10
+    description: "Progression to delirium tremens; ICU-level monitoring"
+    trajectory:
+      volume_status:      {0: -0.03, 1: -0.05, 2: -0.04, 3: -0.02, 5: 0.01}
+      perfusion_status:   {0: -0.02, 1: -0.04, 2: -0.03, 3: -0.01, 5: 0.01}
+      inflammation_level: {0: 0.02, 1: 0.03, 2: 0.03, 3: 0.02, 5: 0.00}
+
+complications:
+  - name: "delirium_tremens"
+    description: "Alcohol withdrawal delirium (confusion, hallucinations, autonomic instability)"
+    probability_per_day: 0.012
+    onset_day_range: [1, 4]
+    risk_factors:
+      - {condition: "severity_severe", multiplier: 3.0}
+      - {condition: "age_over_65", multiplier: 1.5}
+    state_impact:
+      perfusion_status: -0.05
+      volume_status: -0.05
+    detection:
+      test: "cam_icu"
+      finding: "delirium"
+    actions: ["icu_transfer", "order_delirium_assessment"]
+
+  - name: "withdrawal_seizure"
+    description: "Generalised tonic-clonic seizure 6-48 h after the last drink"
+    probability_per_day: 0.01
+    onset_day_range: [0, 2]
+    risk_factors:
+      - {condition: "severity_severe", multiplier: 2.5}
+    state_impact:
+      inflammation_level: 0.01
+    actions: ["order_ecg"]
+
+order_protocols:
+  admission_orders:
+    labs:
+      - {test: "WBC", urgency: "stat"}
+      - {test: "Hb", urgency: "stat"}
+      - {test: "Plt", urgency: "stat"}
+      - {test: "Na", urgency: "stat"}
+      - {test: "K", urgency: "stat"}
+      - {test: "Mg", urgency: "stat"}
+      - {test: "Phosphate", urgency: "stat"}
+      - {test: "Glucose", urgency: "stat"}
+      - {test: "Creatinine", urgency: "stat"}
+      - {test: "AST", urgency: "stat"}
+      - {test: "ALT", urgency: "stat"}
+      - {test: "GGT", urgency: "routine"}
+      - {test: "Albumin", urgency: "routine"}
+      - {test: "PT_INR", urgency: "routine"}
+    imaging: []
+    supportive:
+      - {type: "IV_fluid", detail: "NS or D5NS with thiamine given first"}
+      - {type: "withdrawal_monitoring", detail: "CIWA-Ar assessment q4h; symptom-triggered lorazepam"}
+      - {type: "fall_precautions", detail: "Seizure and fall precautions"}
+  daily_monitoring:
+    labs:
+      - {test: "Na", frequency: "daily"}
+      - {test: "K", frequency: "daily"}
+      - {test: "Mg", frequency: "daily"}
+      - {test: "Glucose", frequency: "daily"}
+    vitals:
+      stable: "q4h"
+  discharge_criteria:
+    japan:
+      - "Withdrawal symptoms resolved without benzodiazepine for 24 h"
+      - "Eating and drinking adequately"
+      - "Referral to addiction services arranged"
+    us:
+      - "CIWA-Ar < 8 off benzodiazepines for 24 h"
+      - "Tolerating oral intake, electrolytes corrected"
+      - "Outpatient addiction treatment referral in place"
+
+drugs:
+  first_line:
+    japan:
+      - {drug: "Lorazepam", dose: "1-2mg IV q1h PRN per CIWA-Ar", route: "IV"}
+      - {drug: "Folic acid", dose: "1mg PO daily"}
+    us:
+      - {drug: "Lorazepam", dose: "1-2mg IV q1h PRN per CIWA-Ar", route: "IV"}
+      - {drug: "Thiamine", dose: "100mg IV daily x3 days", route: "IV", note: "before glucose"}
+      - {drug: "Folic acid", dose: "1mg PO daily"}
+  discharge_oral:
+    japan:
+      - {drug: "Folic acid", dose: "1mg PO daily", duration_days: 30}
+    us:
+      - {drug: "Thiamine", dose: "100mg PO daily", duration_days: 30}
+      - {drug: "Folic acid", dose: "1mg PO daily", duration_days: 30}
+
+target_los:
+  japan:
+    moderate: {mean: 10, sd: 3, min: 5, max: 21}
+    severe: {mean: 16, sd: 5, min: 7, max: 30}
+  us:
+    moderate: {mean: 4, sd: 1, min: 2, max: 7}
+    severe: {mean: 6, sd: 2, min: 3, max: 12}
+
+diagnostic:
+  diagnostic_difficulty: 0.1
+  differential:
+    - {disease: "alcohol_withdrawal", icd: "F10.239", name: "Alcohol withdrawal", prior: 0.85}
+    - {disease: "hepatic_encephalopathy", icd: "K72.90", name: "Hepatic encephalopathy", prior: 0.05}
+    - {disease: "hypoglycemia", icd: "E16.2", name: "Hypoglycemia", prior: 0.05}
+    - {disease: "other", icd: "R41.0", name: "Disorientation, unspecified", prior: 0.05}
+  confirmation_threshold: 0.90
+  diagnosis_progression:
+    alcohol_withdrawal:
+      - [0.0, "F10.239", "Alcohol dependence with withdrawal, unspecified"]
+
+outcome_benchmarks:
+  japan:
+    median_los: 10
+    in_hospital_mortality: 0.005
+    thirty_day_readmission: 0.15
+    delirium_tremens_rate: 0.05
+    mean_age_admitted: 55
+    male_ratio: 0.85
+  us:
+    median_los: 4
+    in_hospital_mortality: 0.005
+    thirty_day_readmission: 0.18
+    delirium_tremens_rate: 0.05
+    mean_age_admitted: 48
+    male_ratio: 0.75
+
+narrative:
+  hpi_template:
+    onset_pattern:
+      mild: "飲酒中断翌日より軽度の振戦が出現。"
+      moderate: "飲酒中断後 1-2 日で振戦・発汗・不安が出現し増悪。"
+      severe: "飲酒中断後に振戦が増悪し、幻視・見当識障害を伴う。"
+    trigger_options:
+      - "飲酒中断"
+  physical_exam_findings:
+    smooth_recovery:
+      day_0:
+        general:
+          all: "意識清明、発汗あり、手指振戦あり"
+        cardiovascular:
+          all: "頻脈、心雑音なし"
+        respiratory:
+          all: "肺音清明"
+        abdominal: "平坦、軟、肝を触知せず"
+        neurological: "手指振戦あり、項部硬直なし"
+  discharge_instructions:
+    follow_up:
+      en: "Follow up with your primary care doctor and the addiction clinic within 1 week."
+      ja: "1 週間以内にかかりつけ医と依存症外来を受診してください。"
+    activity:
+      en: "Resume normal activity; do not drive until cleared."
+      ja: "通常の生活に戻って構いませんが、許可が出るまで運転は控えてください。"
+    medications:
+      en: "Take thiamine and folic acid daily."
+      ja: "チアミンと葉酸を毎日服用してください。"
+    emergency:
+      en: "Return to ER for seizures, confusion, hallucinations or chest pain."
+      ja: "けいれん、意識の混乱、幻覚、胸痛があれば救急受診してください。"
+    diet_lifestyle:
+      en: "Avoid alcohol completely; join a support program."
+      ja: "飲酒は完全に控え、自助グループなどの支援を利用してください。"
