@@ -3544,12 +3544,12 @@ URI 等)を hard-coded literal で書かないこと。<strong>writer 側 module
 </span></code></pre></div></p>
 </li>
 <li>
-<p><strong>Fix</strong> in code: <code>clinosim/modules/document/narrative/template_generator.py</code></p>
+<p><strong>Fix</strong> in code: <code>clinosim/modules/document/narrative/template_generator.py</code> の薄い delegator (<code>_build_hpi</code> / <code>_build_physical_examination</code>) から、該当 section の <code>clinosim/modules/document/narrative/renderers/section_builders/&lt;section&gt;.py</code> (例: <code>hpi.py::_build_hpi_core</code>、<code>chief_complaint.py</code>、<code>assessment_and_plan.py</code>) に辿る。C1a-s 分割後、<code>template_generator.py</code> は thin façade で本体は per-section builder に移った。</p>
 </li>
-<li>Locate builder function (<code>_build_hpi</code>, <code>_build_physical_examination</code>)</li>
-<li>Check <code>_pick_localized(tmpl, key, lang)</code> call is routing to <code>en</code> field for US language</li>
+<li>該当 <code>renderers/section_builders/&lt;section&gt;.py</code> 内の <code>build_&lt;section&gt;(generator, ctx)</code> 自由関数を特定</li>
+<li><code>_pick_localized(tmpl, key, lang)</code> が US 言語で <code>en</code> field を参照しているか確認</li>
 <li>
-<p>Verify Disease YAML <code>narrative.physical_examination_en</code> field is populated</p>
+<p>Disease YAML の <code>narrative.physical_examination_en</code> field が埋まっているか確認</p>
 </li>
 <li>
 <p><strong>Verify fix</strong> via fast Stage 2 regen (skip expensive full cohort):

@@ -2525,10 +2525,14 @@
 
 
 <h1 id="clinosim-eval--public-evaluation-framework"><code>clinosim eval</code> — public evaluation framework<a class="headerlink" href="#clinosim-eval--public-evaluation-framework" title="Permanent link">&para;</a></h1>
-<p><code>clinosim eval</code> scores a generated cohort against three axes —
-<strong>structural</strong>, <strong>clinical</strong>, <strong>locale</strong> — and emits a JSON + Markdown
-report with per-check outcomes, an axis score (0–100), and an overall
-score.</p>
+<p><code>clinosim eval</code> scores a generated cohort against six axes — three
+universal (<strong>structural</strong>, <strong>clinical</strong>, <strong>locale</strong>) and three
+country-conditional (<strong>jp_clins_lab_compliance</strong>,
+<strong>jp_core_compliance</strong>, <strong>us_core_compliance</strong>) — and emits a JSON +
+Markdown report with per-check outcomes, an axis score (0–100), and
+an overall score. Country-conditional axes activate only for cohorts
+whose locale matches; see <code>clinosim/eval/axes/</code> for the live plug-in
+discovery convention (established META #1633 P8).</p>
 <p>It is <strong>not</strong> <code>clinosim audit run</code> (see
 <a href="../CONTRIBUTING-modules/"><code>docs/CONTRIBUTING-modules.md</code></a> "PR 検証ガイド"):</p>
 <table>
@@ -2587,9 +2591,13 @@ score.</p>
 <h2 id="axes">Axes<a class="headerlink" href="#axes" title="Permanent link">&para;</a></h2>
 <p>Structural + locale hold 5 checks each; clinical holds 7 (5 MVP +
 2 coherence, added in P1-9). More checks land through issues tagged
-<code>good first issue</code> on GitHub. A country-specific axis
-(<code>jp_clins_lab_compliance</code>) activates for JP cohorts only — see
-<a href="../clinosim/eval/README.md"><code>clinosim.eval</code></a> for the full axis list.</p>
+<code>good first issue</code> on GitHub. Country-conditional axes activate per
+cohort locale: <code>jp_clins_lab_compliance</code> and <code>jp_core_compliance</code>
+run for JP cohorts, <code>us_core_compliance</code> for US cohorts. The
+compliance axes anchor on country-core profiles' must-support
+elements (Patient / Encounter / Condition) with a 1.0 threshold at
+master-is-invariant. See <a href="../clinosim/eval/README.md"><code>clinosim.eval</code></a>
+and <code>clinosim/eval/axes/</code> for the live full axis list.</p>
 <h3 id="structural-fhir-compliance">Structural (FHIR compliance)<a class="headerlink" href="#structural-fhir-compliance" title="Permanent link">&para;</a></h3>
 <table>
 <thead>
@@ -2745,9 +2753,10 @@ or JP Core meta.profile presence).</p>
 <li>Severity weights: <strong>CRITICAL = 3, MAJOR = 2, MINOR = 1</strong>.</li>
 <li>Outcome weights: <strong>PASS = 1.0, WARN = 0.5, FAIL / N/A = 0.0</strong>.</li>
 </ul>
-<p>Overall score = arithmetic mean of the three axis scores. Overall
-status is <code>FAIL</code> if any check on any axis is FAIL, else <code>WARN</code> if any
-is WARN, else <code>PASS</code>.</p>
+<p>Overall score = arithmetic mean of every active axis's score (3
+universal + 1–2 country-conditional, depending on cohort locale).
+Overall status is <code>FAIL</code> if any check on any axis is FAIL, else
+<code>WARN</code> if any is WARN, else <code>PASS</code>.</p>
 <h2 id="json-output-shape">JSON output shape<a class="headerlink" href="#json-output-shape" title="Permanent link">&para;</a></h2>
 <div class="highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="p">{</span>
 </span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="w">  </span><span class="nt">"eval_version"</span><span class="p">:</span><span class="w"> </span><span class="s2">"1"</span><span class="p">,</span>

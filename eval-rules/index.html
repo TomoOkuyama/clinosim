@@ -1489,6 +1489,39 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#jp-clins-lab-compliance-axis-jp-cohorts-only" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        JP-CLINS lab compliance axis (JP cohorts only)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#jp-core-compliance-axis-jp-cohorts-only" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        JP Core compliance axis (JP cohorts only)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#us-core-compliance-axis-us-cohorts-only" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        US Core compliance axis (US cohorts only)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#adding-a-rule" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2501,6 +2534,39 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#jp-clins-lab-compliance-axis-jp-cohorts-only" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        JP-CLINS lab compliance axis (JP cohorts only)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#jp-core-compliance-axis-jp-cohorts-only" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        JP Core compliance axis (JP cohorts only)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#us-core-compliance-axis-us-cohorts-only" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        US Core compliance axis (US cohorts only)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#adding-a-rule" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2799,6 +2865,27 @@ with <code>--country US</code> / <code>--country JP</code>.</p>
 </tr>
 </tbody>
 </table>
+<h2 id="jp-clins-lab-compliance-axis-jp-cohorts-only">JP-CLINS lab compliance axis (JP cohorts only)<a class="headerlink" href="#jp-clins-lab-compliance-axis-jp-cohorts-only" title="Permanent link">&para;</a></h2>
+<p>Measures <code>JP_Observation_LabResult_eCS</code> compliance on
+<code>Observation.code.coding</code> + <code>Observation.specimen</code> + <code>Specimen.type</code>.
+Gate: strict 1.0 at 100 %-at-master invariants (Open-slicing discriminator-
+system+display, so validator pass counts alone are insufficient — see
+<code>clinosim/eval/axes/jp_clins_lab_compliance.py</code>).</p>
+<h2 id="jp-core-compliance-axis-jp-cohorts-only">JP Core compliance axis (JP cohorts only)<a class="headerlink" href="#jp-core-compliance-axis-jp-cohorts-only" title="Permanent link">&para;</a></h2>
+<p>Narrow-gate must-support element compliance on JP Core
+Patient / Encounter / MedicationRequest. Threshold 1.0 at
+invariants that already hold at 100 % on master. Kana-representation
+(SYL) coverage expansion is tracked separately. The full HL7 FHIR
+Validator run (<code>jp-validate.yml</code>) remains the authoritative
+on-demand compliance surface. See
+<code>clinosim/eval/axes/jp_core_compliance.py</code>.</p>
+<h2 id="us-core-compliance-axis-us-cohorts-only">US Core compliance axis (US cohorts only)<a class="headerlink" href="#us-core-compliance-axis-us-cohorts-only" title="Permanent link">&para;</a></h2>
+<p>Narrow-gate must-support element compliance on US Core
+AllPatients / Encounter / Condition. Threshold 1.0 at 100 %-at-master
+invariants (not race/ethnicity extension coverage, which is tracked
+separately). Full validator run (<code>us-validate.yml</code>, Phase 3) is the
+authoritative on-demand compliance surface. See
+<code>clinosim/eval/axes/us_core_compliance.py</code>.</p>
 <hr />
 <h2 id="adding-a-rule">Adding a rule<a class="headerlink" href="#adding-a-rule" title="Permanent link">&para;</a></h2>
 <ol>

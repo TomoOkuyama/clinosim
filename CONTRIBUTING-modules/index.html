@@ -4762,9 +4762,9 @@ pass structural / narrative CIF separation is
 </span></code></pre></div></p>
 </li>
 <li>
-<p><strong>Fix</strong> in code: <code>clinosim/modules/document/narrative/template_generator.py</code></p>
+<p><strong>Fix</strong> in code: trace from the thin <code>_build_hpi</code> / <code>_build_physical_examination</code> delegator in <code>clinosim/modules/document/narrative/template_generator.py</code> into its backing section builder under <code>clinosim/modules/document/narrative/renderers/section_builders/</code> (e.g. <code>hpi.py::_build_hpi_core</code>, <code>chief_complaint.py</code>, <code>assessment_and_plan.py</code>). Post-C1a-s split, <code>template_generator.py</code> is a thin façade and the real body lives in the per-section builder files.</p>
 </li>
-<li>Locate builder function (<code>_build_hpi</code>, <code>_build_physical_examination</code>)</li>
+<li>Locate the <code>build_&lt;section&gt;(generator, ctx)</code> free function in the appropriate <code>renderers/section_builders/&lt;section&gt;.py</code></li>
 <li>Check <code>_pick_localized(tmpl, key, lang)</code> call is routing to <code>en</code> field for US language</li>
 <li>
 <p>Verify Disease YAML <code>narrative.physical_examination_en</code> field is populated</p>

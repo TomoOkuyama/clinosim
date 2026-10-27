@@ -2778,7 +2778,7 @@ and use the helpers below:</p>
 </tr>
 <tr>
 <td>Locale display tables</td>
-<td>The cached loaders in <code>locale/loader.py</code> (<code>load_med_terms_ja</code>, etc.). Opening raw YAML in Layer 4 is forbidden.</td>
+<td>The cached loaders in <code>locale/loaders/</code> (re-exported from <code>locale/loader.py</code> façade): <code>medical_display.py:load_med_terms_ja</code>, <code>narrative.py:load_narrative_display_dict</code>, <code>clinical.py</code>, <code>demographics.py</code>, <code>fhir_identity.py</code>. Opening raw YAML in Layer 4 is forbidden.</td>
 </tr>
 </tbody>
 </table>

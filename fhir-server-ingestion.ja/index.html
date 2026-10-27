@@ -2438,16 +2438,21 @@ NDJSON — <code>resourceType</code> ごとに 1 ファイル — を emit し�
 </ul>
 <h2 id="出力形状の確認">出力形状の確認<a class="headerlink" href="#出力形状の確認" title="Permanent link">&para;</a></h2>
 <div class="highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>$<span class="w"> </span>ls<span class="w"> </span>jp-100/fhir_r4/
-</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>AllergyIntolerance.ndjson<span class="w">    </span>Encounter.ndjson<span class="w">             </span>Location.ndjson
-</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>CareTeam.ndjson<span class="w">              </span>Endpoint.ndjson<span class="w">              </span>MedicationAdministration.ndjson
-</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>ClinicalImpression.ndjson<span class="w">    </span>FamilyMemberHistory.ndjson<span class="w">   </span>MedicationRequest.ndjson
-</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>Composition.ndjson<span class="w">           </span>ImagingStudy.ndjson<span class="w">          </span>Observation.ndjson
-</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>Condition.ndjson<span class="w">             </span>Immunization.ndjson<span class="w">          </span>Organization.ndjson
-</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>Coverage.ndjson<span class="w">              </span>Patient.ndjson<span class="w">               </span>PractitionerRole.ndjson
-</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>DiagnosticReport.ndjson<span class="w">      </span>Practitioner.ndjson<span class="w">          </span>Procedure.ndjson
-</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>DocumentReference.ndjson<span class="w">                                  </span>ServiceRequest.ndjson
-</span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>manifest.json
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>AllergyIntolerance.ndjson<span class="w">    </span>DocumentReference.ndjson<span class="w">     </span>Observation.ndjson
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>CareTeam.ndjson<span class="w">              </span>Encounter.ndjson<span class="w">             </span>Organization.ndjson
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>ClinicalImpression.ndjson<span class="w">    </span>Endpoint.ndjson<span class="w">              </span>Patient.ndjson
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>Composition.ndjson<span class="w">           </span>FamilyMemberHistory.ndjson<span class="w">   </span>Practitioner.ndjson
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>Condition.ndjson<span class="w">             </span>ImagingStudy.ndjson<span class="w">          </span>PractitionerRole.ndjson
+</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>Coverage.ndjson<span class="w">              </span>Immunization.ndjson<span class="w">          </span>Procedure.ndjson
+</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>Device.ndjson<span class="w">                </span>Location.ndjson<span class="w">              </span>ServiceRequest.ndjson
+</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>DeviceUseStatement.ndjson<span class="w">    </span>MedicationAdministration.ndjson<span class="w">  </span>Specimen.ndjson
+</span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>DiagnosticReport.ndjson<span class="w">      </span>MedicationRequest.ndjson
+</span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>manifest.json
 </span></code></pre></div>
+<p>実際のファイル集合はコホートで発火するモジュールに依存する —
+<code>Device.ndjson</code> / <code>DeviceUseStatement.ndjson</code> は G47.30 CPAP 患者
+が存在する時のみ emit (disease prevalence 経由の opt-in)、
+<code>Specimen.ndjson</code> は 微生物培養 encounter chain が発火した時のみ emit。</p>
 <p>各 <code>.ndjson</code> は 1 行 1 FHIR リソース。<code>manifest.json</code> はそれら
 ファイルを指す Bulk Data descriptor。</p>
 <h2 id="option-a--local-hapi-fhir-docker">Option A — Local HAPI FHIR (Docker)<a class="headerlink" href="#option-a--local-hapi-fhir-docker" title="Permanent link">&para;</a></h2>

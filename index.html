@@ -2450,6 +2450,11 @@ vital / medication is derived from that state.</p>
   insurance out of the box.</li>
 <li><strong>YAML-driven extension.</strong> 32 inpatient diseases + 46 ED / outpatient
   conditions are all data files, not code.</li>
+<li><strong>Longitudinal state evolution.</strong> AR(1) HbA1c trajectory, Markov
+  stage ladders (CKD / CCS / NYHA / CDR / GOLD / cancer AJCC/BCLC),
+  HTN + lipid treatment escalation, and OSA G47.30 CPAP device +
+  polysomnography — all composed from one engine against per-attribute
+  yaml declarations (<code>clinosim/modules/longitudinal/</code>).</li>
 </ul>
 <hr />
 <h2 id="get-started-in-30-seconds">Get started in 30 seconds<a class="headerlink" href="#get-started-in-30-seconds" title="Permanent link">&para;</a></h2>

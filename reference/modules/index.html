@@ -2271,7 +2271,7 @@
 
 <h1 id="modules">Modules<a class="headerlink" href="#modules" title="Permanent link">&para;</a></h1>
 <h1 id="clinosim-module-map">clinosim Module Map<a class="headerlink" href="#clinosim-module-map" title="Permanent link">&para;</a></h1>
-<p>A single-page overview of clinosim's <strong>38 modules</strong> (counting rule:
+<p>A single-page overview of clinosim's <strong>39 modules</strong> (counting rule:
 top-level packages under <code>clinosim/modules/</code>; non-package files like
 <code>_shared.py</code> excluded, and <code>nursing_assignment</code> shares
 <code>clinosim/modules/nursing/</code> with the observation-layer nursing
@@ -2315,7 +2315,7 @@ Output surfaces / Testing / Ownership) — see the module index at
 </table>
 <h2 id="tldr">TL;DR<a class="headerlink" href="#tldr" title="Permanent link">&para;</a></h2>
 <p>clinosim is a population-driven, physiology-based synthetic EHR data
-simulator, organized into <strong>38 themed modules</strong> (packages under
+simulator, organized into <strong>39 themed modules</strong> (packages under
 <code>clinosim/modules/</code>) across four layers:</p>
 <ol>
 <li><strong>Foundation</strong> — <code>clinosim/codes/</code> + <code>clinosim/locale/</code> +
@@ -2331,9 +2331,10 @@ simulator, organized into <strong>38 themed modules</strong> (packages under
 enrichers → CIF (canonical intermediate format) → output adapter</code>.</p>
 <p><strong>Project goal</strong>: convert CIF data into <strong>FHIR R4 + JP Core compliant</strong>
 output while preserving clinical realism and JP localisation quality.
-The AD-60 audit framework (six per-module plug-ins today: <code>hai</code>,
-<code>antibiotic</code>, <code>order</code>, <code>imaging</code>, <code>document</code>, <code>triage</code>) is the
-load-bearing verification gate that protects this goal.</p>
+The AD-60 audit framework (seven per-module plug-ins today:
+<code>antibiotic</code>, <code>document</code>, <code>drug_safety</code>, <code>hai</code>, <code>imaging</code>, <code>order</code>,
+<code>triage</code>) is the load-bearing verification gate that protects this
+goal.</p>
 <h2 id="layered-architecture">Layered architecture<a class="headerlink" href="#layered-architecture" title="Permanent link">&para;</a></h2>
 <div class="highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>┌─ Foundation (no clinosim deps) ──────────────────────────┐
 </span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>│  clinosim/codes/       international code systems        │
@@ -2398,7 +2399,7 @@ load-bearing verification gate that protects this goal.</p>
 </span><span id="__span-0-61"><a id="__codelineno-0-61" name="__codelineno-0-61" href="#__codelineno-0-61"></a>└──────────────────────────────────────────────────────────┘
 </span></code></pre></div>
 <h2 id="module-inventory">Module inventory<a class="headerlink" href="#module-inventory" title="Permanent link">&para;</a></h2>
-<p>38 modules total (top-level packages under <code>clinosim/modules/</code>; the
+<p>39 modules total (top-level packages under <code>clinosim/modules/</code>; the
 table below additionally lists the <code>codes</code> / <code>locale</code> foundation
 packages). Every entry links to the per-module README (which follows
 the canonical 11-section structure).</p>
@@ -2484,6 +2485,13 @@ the canonical 11-section structure).</p>
 <td>—</td>
 </tr>
 <tr>
+<td><a href="../../clinosim/modules/longitudinal/README.md">longitudinal</a></td>
+<td>year-indexed trajectory engine (AR(1) HbA1c / Markov stage ladders / event firing — Phase 4a-4d chronic evolution)</td>
+<td>simulation</td>
+<td>— (uses caller RNG per <code>advance_one_year</code>)</td>
+<td>— (library, consumed by aging pass)</td>
+</tr>
+<tr>
 <td><a href="../../clinosim/modules/population/README.md">population</a></td>
 <td>demographics + life events (Layer 1)</td>
 <td>population</td>
@@ -2531,6 +2539,20 @@ the canonical 11-section structure).</p>
 <td>population</td>
 <td>—</td>
 <td>—</td>
+</tr>
+<tr>
+<td><a href="../../clinosim/modules/natural_death/README.md">natural_death</a></td>
+<td>actuarial mortality sampling (US CDC + JP MHLW life tables) + <code>is_alive_at</code> gating (Issue #1114)</td>
+<td>population</td>
+<td><code>0x4E44</code> ("ND")</td>
+<td>POST_POPULATION 20</td>
+</tr>
+<tr>
+<td><a href="../../clinosim/modules/metabolic/README.md">metabolic</a></td>
+<td>BMI-derived chronic conditions (E66 obesity / E88.81 syndrome / K76.0 NAFLD / G47.30 OSA) — Issue #1137 cluster 2</td>
+<td>enrichment</td>
+<td>— (deterministic SHA Bernoulli)</td>
+<td>POST_POPULATION 15-18 (4 axes)</td>
 </tr>
 <tr>
 <td><a href="../../clinosim/modules/family_history/README.md">family_history</a></td>
@@ -2587,6 +2609,13 @@ the canonical 11-section structure).</p>
 <td>enrichment</td>
 <td><code>0x5452</code> ("TR")</td>
 <td>POST_ENCOUNTER 93</td>
+</tr>
+<tr>
+<td><a href="../../clinosim/modules/newborn/README.md">newborn</a></td>
+<td>birth-admission clinical workup (Vitamin K, newborn screens) — Issue #1252</td>
+<td>enrichment</td>
+<td>— (per-encounter deterministic)</td>
+<td>POST_ENCOUNTER 92</td>
 </tr>
 <tr>
 <td><a href="../../clinosim/modules/nursing/README.md">nursing</a> (<code>nursing_assignment</code>)</td>

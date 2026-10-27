@@ -2364,9 +2364,13 @@
 
 
 <h1 id="clinosim-eval--公開評価フレームワーク"><code>clinosim eval</code> — 公開評価フレームワーク<a class="headerlink" href="#clinosim-eval--公開評価フレームワーク" title="Permanent link">&para;</a></h1>
-<p><code>clinosim eval</code> は生成コホートを 3 軸 (<strong>structural</strong> / <strong>clinical</strong>
-/ <strong>locale</strong>) でスコア化し、check ごとの outcome、軸スコア (0–100)、
-overall score を含む JSON + Markdown レポートを emit します。</p>
+<p><code>clinosim eval</code> は生成コホートを 6 軸 — 普遍 3 軸 (<strong>structural</strong> /
+<strong>clinical</strong> / <strong>locale</strong>) + 国 条件 3 軸
+(<strong>jp_clins_lab_compliance</strong> / <strong>jp_core_compliance</strong> /
+<strong>us_core_compliance</strong>) — でスコア化し、check ごとの outcome、
+軸スコア (0–100)、overall score を含む JSON + Markdown レポートを
+emit します。国 条件軸はコホートの locale に合致するもののみ有効化
+(ライブの plug-in discovery は <code>clinosim/eval/axes/</code> で確立 — META #1633 P8)。</p>
 <p><strong><code>clinosim audit run</code> とは異なります</strong> (詳細は
 <a href="../CONTRIBUTING-modules.ja/"><code>docs/CONTRIBUTING-modules.md</code></a>「PR 検証
 ガイド」参照):</p>
@@ -2584,9 +2588,9 @@ JP Core meta.profile 存在から自動検出)。</p>
 <li>Severity 重み: <strong>CRITICAL = 3、MAJOR = 2、MINOR = 1</strong></li>
 <li>Outcome 重み: <strong>PASS = 1.0、WARN = 0.5、FAIL / N/A = 0.0</strong></li>
 </ul>
-<p>Overall score = 3 軸スコアの算術平均。Overall status はいずれかの軸
-のいずれかの check が FAIL なら <code>FAIL</code>、いずれか WARN なら <code>WARN</code>、
-それ以外は <code>PASS</code>。</p>
+<p>Overall score = 有効軸 (普遍 3 + 国 条件 1–2、locale に依存) スコア
+の算術平均。Overall status はいずれかの軸のいずれかの check が
+FAIL なら <code>FAIL</code>、いずれか WARN なら <code>WARN</code>、それ以外は <code>PASS</code>。</p>
 <h2 id="json-出力形状">JSON 出力形状<a class="headerlink" href="#json-出力形状" title="Permanent link">&para;</a></h2>
 <div class="highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="p">{</span>
 </span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="w">  </span><span class="nt">"eval_version"</span><span class="p">:</span><span class="w"> </span><span class="s2">"1"</span><span class="p">,</span>

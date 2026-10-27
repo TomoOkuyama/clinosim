@@ -2986,8 +2986,12 @@ narrative タスク用に加えてランタイムで使用される
 <code>"discharge_medications": ["Amoxicillin 500mg PO BID x 7 days"]</code> を
 渡せば、テンプレートは自動的に bullet リストとしてレンダリングする。</p>
 <h3 id="タスク別利用可能変数">タスク別利用可能変数<a class="headerlink" href="#タスク別利用可能変数" title="Permanent link">&para;</a></h3>
-<p>変数名は <code>document_generator.py</code> で定義され、YAML テンプレートの
-プレースホルダと一致する必要あり。完全リスト:</p>
+<p>変数名はプロンプト yaml の <code>variables:</code> ブロック
+(<code>clinosim/modules/llm_service/prompts/&lt;lang&gt;/&lt;task&gt;.yaml</code>) と、
+narrative pipeline の入力ビルダー
+(<code>clinosim/modules/document/narrative/</code> — <code>renderers/section_builders/</code>
+配下の per-section ビルダー + composition dispatcher) で宣言される。
+現 master 時点のタスク別完全リスト (ライブ宣言は各プロンプト yaml 参照):</p>
 <p><strong>discharge_summary</strong>:
 <code>age, sex, admission_date, discharge_date, los_days, disposition,
 attending_physician, chief_complaint, past_medical_history,
@@ -3019,9 +3023,10 @@ specimens_obtained, complications, outcome</code></p>
 <li><strong><code>version:</code> フィールドを bump。</strong> version 番号は各生成文書
    (<code>ClinicalDocument.prompt_version</code>) に記録され、どの version が
    各 note を生成したかを監査可能。</li>
-<li><strong>変数名変更禁止</strong> — <code>document_generator.py</code> 更新なしで。生成器
-   はテンプレートがコードの提供しない変数を参照すると <code>KeyError</code>
-   を発生させる。</li>
+<li><strong>変数名変更禁止</strong> — <code>clinosim/modules/document/narrative/</code> 内の
+   対応する入力ビルダーとプロンプト yaml の <code>variables:</code> ブロック
+   両方を更新しないと使えない。生成器はテンプレートがコードの
+   提供しない変数を参照すると <code>KeyError</code> を発生させる。</li>
 <li><strong>LLM token を消費せずレンダリング検証するためテンプレートモード
    で先にテスト</strong>:
    <div class="highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>clinosim<span class="w"> </span>narrate<span class="w"> </span>--cif-dir<span class="w"> </span>./output/cif<span class="w"> </span>--version-id<span class="w"> </span>prompt_v2_test
@@ -3121,44 +3126,55 @@ Consultation Note、シフト別追加 note) を追加する際は、スコー�
 </span></code></pre></div></p>
 </li>
 <li>
+<p><strong>task_loincs.yaml + task_categories.yaml に登録</strong>
+   (<code>clinosim/modules/llm_service/reference_data/</code>)。engine は
+   import 時に完全被覆を検証 — <code>task_loincs.yaml</code> に行がない新
+   <code>LLMTaskType</code> 値は fail-loud。</p>
+</li>
+<li>
+<p><strong><code>DocumentTypeSpec</code> を登録</strong> —
+   <code>clinosim/modules/document/reference_data/document_type_specs.yaml</code>:
+   <div class="highlight"><pre><span></span><code><span id="__span-14-1"><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a><span class="nt">consultation_note</span><span class="p">:</span>
+</span><span id="__span-14-2"><a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a><span class="w">  </span><span class="nt">loinc_code</span><span class="p">:</span><span class="w"> </span><span class="s">"11488-4"</span>
+</span><span id="__span-14-3"><a id="__codelineno-14-3" name="__codelineno-14-3" href="#__codelineno-14-3"></a><span class="w">  </span><span class="nt">format_type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">free_text</span><span class="w">              </span><span class="c1"># または `composition`</span>
+</span><span id="__span-14-4"><a id="__codelineno-14-4" name="__codelineno-14-4" href="#__codelineno-14-4"></a><span class="w">  </span><span class="nt">countries_supported</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">us</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">jp</span><span class="p p-Indicator">]</span>
+</span><span id="__span-14-5"><a id="__codelineno-14-5" name="__codelineno-14-5" href="#__codelineno-14-5"></a><span class="w">  </span><span class="nt">encounter_types_supported</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">outpatient</span><span class="p p-Indicator">]</span>
+</span><span id="__span-14-6"><a id="__codelineno-14-6" name="__codelineno-14-6" href="#__codelineno-14-6"></a><span class="w">  </span><span class="nt">generation_frequency</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">per_encounter</span><span class="w"> </span><span class="c1"># or `admission_once` / `daily` ...</span>
+</span><span id="__span-14-7"><a id="__codelineno-14-7" name="__codelineno-14-7" href="#__codelineno-14-7"></a><span class="w">  </span><span class="nt">composition_sections</span><span class="p">:</span><span class="w">               </span><span class="c1"># `format_type: composition` 時のみ</span>
+</span><span id="__span-14-8"><a id="__codelineno-14-8" name="__codelineno-14-8" href="#__codelineno-14-8"></a><span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">reason_for_consult</span>
+</span><span id="__span-14-9"><a id="__codelineno-14-9" name="__codelineno-14-9" href="#__codelineno-14-9"></a><span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">findings</span>
+</span><span id="__span-14-10"><a id="__codelineno-14-10" name="__codelineno-14-10" href="#__codelineno-14-10"></a><span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">recommendation</span>
+</span><span id="__span-14-11"><a id="__codelineno-14-11" name="__codelineno-14-11" href="#__codelineno-14-11"></a><span class="w">  </span><span class="nt">stage2_strategy</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">template_seed_bundle</span>
+</span><span id="__span-14-12"><a id="__codelineno-14-12" name="__codelineno-14-12" href="#__codelineno-14-12"></a><span class="w">  </span><span class="nt">llm_enabled_sections</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">recommendation</span><span class="p p-Indicator">]</span>
+</span></code></pre></div>
+   <code>format_type: composition</code> は named <code>section[]</code> 付き
+   <code>Composition</code> を emit、<code>free_text</code> は本文全体を
+   <code>content.attachment.data</code> に収めた <code>DocumentReference</code> を emit。</p>
+</li>
+<li>
 <p><strong>英語プロンプト YAML 作成</strong>
    <code>clinosim/modules/llm_service/prompts/en/consultation_note.yaml</code>
-   を上述テンプレートに従って作成。</p>
+   を上述テンプレートに従って作成。プロンプトが参照する変数は
+   yaml の <code>variables:</code> ブロックに全て宣言する。</p>
 </li>
 <li>
-<p><strong>入力ビルダーを追加</strong> —
-   <code>clinosim/modules/output/document_generator.py</code>:
-   <div class="highlight"><pre><span></span><code><span id="__span-14-1"><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a><span class="k">def</span><span class="w"> </span><span class="nf">_build_consultation_note</span><span class="p">(</span><span class="n">record</span><span class="p">,</span> <span class="n">encounter</span><span class="p">,</span> <span class="n">llm</span><span class="p">,</span> <span class="n">language</span><span class="p">):</span>
-</span><span id="__span-14-2"><a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a>    <span class="n">variables</span> <span class="o">=</span> <span class="p">{</span>
-</span><span id="__span-14-3"><a id="__codelineno-14-3" name="__codelineno-14-3" href="#__codelineno-14-3"></a>        <span class="s2">"age"</span><span class="p">:</span> <span class="o">...</span><span class="p">,</span>
-</span><span id="__span-14-4"><a id="__codelineno-14-4" name="__codelineno-14-4" href="#__codelineno-14-4"></a>        <span class="s2">"sex"</span><span class="p">:</span> <span class="o">...</span><span class="p">,</span>
-</span><span id="__span-14-5"><a id="__codelineno-14-5" name="__codelineno-14-5" href="#__codelineno-14-5"></a>        <span class="s2">"consulting_service"</span><span class="p">:</span> <span class="o">...</span><span class="p">,</span>
-</span><span id="__span-14-6"><a id="__codelineno-14-6" name="__codelineno-14-6" href="#__codelineno-14-6"></a>        <span class="s2">"reason_for_consult"</span><span class="p">:</span> <span class="o">...</span><span class="p">,</span>
-</span><span id="__span-14-7"><a id="__codelineno-14-7" name="__codelineno-14-7" href="#__codelineno-14-7"></a>        <span class="o">...</span>
-</span><span id="__span-14-8"><a id="__codelineno-14-8" name="__codelineno-14-8" href="#__codelineno-14-8"></a>    <span class="p">}</span>
-</span><span id="__span-14-9"><a id="__codelineno-14-9" name="__codelineno-14-9" href="#__codelineno-14-9"></a>    <span class="n">stub</span> <span class="o">=</span> <span class="n">_make_stub</span><span class="p">(</span>
-</span><span id="__span-14-10"><a id="__codelineno-14-10" name="__codelineno-14-10" href="#__codelineno-14-10"></a>        <span class="n">task_type</span><span class="o">=</span><span class="n">LLMTaskType</span><span class="o">.</span><span class="n">CONSULTATION_NOTE</span><span class="p">,</span>
-</span><span id="__span-14-11"><a id="__codelineno-14-11" name="__codelineno-14-11" href="#__codelineno-14-11"></a>        <span class="n">patient_id</span><span class="o">=...</span><span class="p">,</span>
-</span><span id="__span-14-12"><a id="__codelineno-14-12" name="__codelineno-14-12" href="#__codelineno-14-12"></a>        <span class="n">encounter_id</span><span class="o">=...</span><span class="p">,</span>
-</span><span id="__span-14-13"><a id="__codelineno-14-13" name="__codelineno-14-13" href="#__codelineno-14-13"></a>        <span class="o">...</span><span class="p">,</span>
-</span><span id="__span-14-14"><a id="__codelineno-14-14" name="__codelineno-14-14" href="#__codelineno-14-14"></a>    <span class="p">)</span>
-</span><span id="__span-14-15"><a id="__codelineno-14-15" name="__codelineno-14-15" href="#__codelineno-14-15"></a>    <span class="k">return</span> <span class="n">_fill_text</span><span class="p">(</span><span class="n">stub</span><span class="p">,</span> <span class="n">llm</span><span class="p">,</span> <span class="n">variables</span><span class="p">)</span>
-</span></code></pre></div></p>
+<p><strong>Section builder を実装</strong> —
+   <code>clinosim/modules/document/narrative/renderers/section_builders/&lt;section&gt;.py</code>
+   に <code>build_&lt;section&gt;(generator, ctx)</code> 自由関数として実装。C1a-s
+   分割後、per-section ロジックは全てここに置く
+   (<code>template_generator.py</code> はビルダーを re-export する thin façade)。
+   <code>format_type: free_text</code> タスクは単一 body builder、<code>composition</code>
+   は <code>composition_sections</code> 1 エントリにつき 1 builder。dispatcher の
+   配線は <code>clinosim/modules/document/narrative/renderers/composition_sections.py</code>。</p>
 </li>
 <li>
-<p><strong>ビルダーを <code>_generate_for_record</code> に配線</strong>。</p>
+<p><strong>単体テスト追加</strong> —
+   <code>tests/unit/document/narrative/</code> (per-section builder テスト) と
+   <code>tests/unit/test_clinical_documents.py</code> (end-to-end emit)。</p>
 </li>
 <li>
-<p><strong><code>_resolve_enabled_tasks()</code> に追加</strong> してデフォルトセットに出現
-   させる。</p>
-</li>
-<li>
-<p><strong>単体テスト追加</strong> — <code>tests/unit/test_clinical_documents.py</code> の
-   既存 <code>TestDocumentGeneratorE2E</code> パターンに従う。</p>
-</li>
-<li>
-<p><strong>このドキュメント</strong> (<code>docs/clinical_documents.md</code>) と
-   <code>README.md</code> / <code>DESIGN.md</code> を更新。</p>
+<p><strong>このドキュメント</strong> (<code>docs/clinical_documents.ja.md</code>) と
+   <code>README.ja.md</code>、EN sibling を更新。</p>
 </li>
 </ol>
 <hr />

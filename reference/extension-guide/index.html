@@ -2409,7 +2409,7 @@
 <ol>
 <li>Create <code>clinosim/modules/disease/reference_data/&lt;disease_id&gt;.yaml</code> (use existing disease as template).</li>
 <li>Add to incidence list in <code>clinosim/locale/&lt;country&gt;/demographics.yaml</code>.</li>
-<li><strong>Register every <code>icd_codes</code> value (primary AND variants) in the code data</strong> — US billable leaves in <code>clinosim/codes/data/icd-10-cm.yaml</code>, JP WHO codes in <code>clinosim/codes/data/icd-10.yaml</code>, with a mapping entry in <code>clinosim/codes/data/code_mapping_diagnosis/&lt;country&gt;.yaml</code> when the disease code needs folding (e.g. CM-granularity → WHO parent). Skipping this makes the FHIR Condition display fall back to approximate prefix-matched text. See <code>AGENTS.md</code> → "Diagnosis code coverage".</li>
+<li><strong>Register every <code>icd_codes</code> value (primary AND variants) in the code data</strong> — US billable leaves in <code>clinosim/codes/data/icd-10-cm.yaml</code>, JP WHO codes in <code>clinosim/codes/data/icd-10.yaml</code>, with a mapping entry in <code>clinosim/locale/&lt;country&gt;/code_mapping_diagnosis.yaml</code> when the disease code needs folding (e.g. CM-granularity → WHO parent). Skipping this makes the FHIR Condition display fall back to approximate prefix-matched text. See <code>AGENTS.md</code> → "Diagnosis code coverage".</li>
 <li>Test: <code>clinosim test-disease &lt;disease_id&gt;</code> and <code>pytest tests/unit/test_diagnosis_code_coverage.py</code>.</li>
 </ol>
 <p>Details: <code>clinosim/modules/disease/README.md</code></p>

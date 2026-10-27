@@ -2252,7 +2252,7 @@
 
 <h1 id="モジュール">モジュール<a class="headerlink" href="#モジュール" title="Permanent link">&para;</a></h1>
 <h1 id="clinosim-モジュールマップ">clinosim モジュールマップ<a class="headerlink" href="#clinosim-モジュールマップ" title="Permanent link">&para;</a></h1>
-<p>clinosim の <strong>35 モジュール</strong> (数え方: <code>clinosim/modules/</code> 配下の
+<p>clinosim の <strong>39 モジュール</strong> (数え方: <code>clinosim/modules/</code> 配下の
 top-level package。<code>_shared.py</code> 等の非 package file は除く。
 <code>nursing_assignment</code> は observation-layer nursing flowsheet enricher
 と <code>clinosim/modules/nursing/</code> を共有) を 1 ページで俯瞰する。プロジェクト
@@ -2296,7 +2296,7 @@ Output surfaces / Testing / Ownership) に従う <code>README.md</code> +
 </table>
 <h2 id="tldr">TL;DR<a class="headerlink" href="#tldr" title="Permanent link">&para;</a></h2>
 <p>clinosim は population 駆動 / physiology ベースの合成 EHR data
-simulator。<code>clinosim/modules/</code> 配下 <strong>33 テーマ別モジュール</strong>を
+simulator。<code>clinosim/modules/</code> 配下 <strong>39 テーマ別モジュール</strong>を
 4 層に組織:</p>
 <ol>
 <li><strong>Foundation</strong> — <code>clinosim/codes/</code> + <code>clinosim/locale/</code> +
@@ -2312,8 +2312,9 @@ simulator。<code>clinosim/modules/</code> 配下 <strong>33 テーマ別モジ�
 enrichers → CIF (canonical intermediate format) → output adapter</code>。</p>
 <p><strong>プロジェクト目標</strong>: CIF データを <strong>FHIR R4 + JP Core 準拠</strong>に変換
 しつつ、臨床リアリズム + JP localisation 品質を保つ。AD-60 audit
-framework (現在 6 per-module plug-in: <code>hai</code>, <code>antibiotic</code>, <code>order</code>,
-<code>imaging</code>, <code>document</code>, <code>triage</code>) が本目標を守る load-bearing 検証 gate。</p>
+framework (現在 7 per-module plug-in: <code>antibiotic</code>, <code>document</code>,
+<code>drug_safety</code>, <code>hai</code>, <code>imaging</code>, <code>order</code>, <code>triage</code>) が本目標を守る
+load-bearing 検証 gate。</p>
 <h2 id="レイヤー構造">レイヤー構造<a class="headerlink" href="#レイヤー構造" title="Permanent link">&para;</a></h2>
 <div class="highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>┌─ Foundation (clinosim 相互依存なし) ─────────────────────┐
 </span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>│  clinosim/codes/       国際コード体系                    │
@@ -2377,7 +2378,7 @@ framework (現在 6 per-module plug-in: <code>hai</code>, <code>antibiotic</code
 </span><span id="__span-0-60"><a id="__codelineno-0-60" name="__codelineno-0-60" href="#__codelineno-0-60"></a>└──────────────────────────────────────────────────────────┘
 </span></code></pre></div>
 <h2 id="モジュール索引">モジュール索引<a class="headerlink" href="#モジュール索引" title="Permanent link">&para;</a></h2>
-<p>計 35 モジュール (<code>clinosim/modules/</code> 配下 top-level package;
+<p>計 39 モジュール (<code>clinosim/modules/</code> 配下 top-level package;
 下表は追加で foundation の <code>codes</code> / <code>locale</code> も列挙)。各エントリは
 canonical 11-section 構造に従う per-module README にリンクする。</p>
 <table>
@@ -2462,6 +2463,13 @@ canonical 11-section 構造に従う per-module README にリンクする。</p>
 <td>—</td>
 </tr>
 <tr>
+<td><a href="../../clinosim/modules/longitudinal/README.ja.md">longitudinal</a></td>
+<td>年次 trajectory engine (AR(1) HbA1c / Markov stage ladder / event firing — Phase 4a-4d 慢性進展)</td>
+<td>simulation</td>
+<td>— (<code>advance_one_year</code> に caller RNG)</td>
+<td>— (library、aging pass が利用)</td>
+</tr>
+<tr>
 <td><a href="../../clinosim/modules/population/README.ja.md">population</a></td>
 <td>demographics + life event (Layer 1)</td>
 <td>population</td>
@@ -2509,6 +2517,20 @@ canonical 11-section 構造に従う per-module README にリンクする。</p>
 <td>population</td>
 <td>—</td>
 <td>—</td>
+</tr>
+<tr>
+<td><a href="../../clinosim/modules/natural_death/README.ja.md">natural_death</a></td>
+<td>actuarial 死亡サンプリング (US CDC + JP MHLW 生命表) + <code>is_alive_at</code> gating (Issue #1114)</td>
+<td>population</td>
+<td><code>0x4E44</code> ("ND")</td>
+<td>POST_POPULATION 20</td>
+</tr>
+<tr>
+<td><a href="../../clinosim/modules/metabolic/README.ja.md">metabolic</a></td>
+<td>BMI 由来慢性疾患 (E66 肥満 / E88.81 メタボリック症候群 / K76.0 NAFLD / G47.30 OSA) — Issue #1137 cluster 2</td>
+<td>enrichment</td>
+<td>— (deterministic SHA Bernoulli)</td>
+<td>POST_POPULATION 15-18 (4 axes)</td>
 </tr>
 <tr>
 <td><a href="../../clinosim/modules/family_history/README.ja.md">family_history</a></td>
@@ -2565,6 +2587,13 @@ canonical 11-section 構造に従う per-module README にリンクする。</p>
 <td>enrichment</td>
 <td><code>0x5452</code> ("TR")</td>
 <td>POST_ENCOUNTER 93</td>
+</tr>
+<tr>
+<td><a href="../../clinosim/modules/newborn/README.md">newborn</a></td>
+<td>出生入院時の臨床ワークアップ (ビタミン K / 新生児スクリーニング) — Issue #1252</td>
+<td>enrichment</td>
+<td>— (encounter 単位 deterministic)</td>
+<td>POST_ENCOUNTER 92</td>
 </tr>
 <tr>
 <td><a href="../../clinosim/modules/nursing/README.ja.md">nursing</a> (<code>nursing_assignment</code>)</td>

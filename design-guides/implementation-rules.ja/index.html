@@ -2557,7 +2557,7 @@
 </tr>
 <tr>
 <td>locale 表示テーブル</td>
-<td><code>locale/loader.py</code> の cached loaders(<code>load_med_terms_ja</code> 等)。Layer 4 での raw YAML open 禁止</td>
+<td><code>locale/loaders/</code> の cached loaders(<code>locale/loader.py</code> 経由で後方互換 re-export)。<code>medical_display.py:load_med_terms_ja</code>、<code>narrative.py:load_narrative_display_dict</code>、<code>clinical.py</code>、<code>demographics.py</code>、<code>fhir_identity.py</code>。Layer 4 での raw YAML open 禁止</td>
 </tr>
 </tbody>
 </table>

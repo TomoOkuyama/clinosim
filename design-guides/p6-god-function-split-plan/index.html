@@ -2476,41 +2476,60 @@
 
 <h1 id="p6-god-function-split-plan--proposed-phase-boundaries-for-_simulate_patient-run_beta-and-narrative">P6 god-function split plan — proposed phase boundaries for <code>_simulate_patient</code>, <code>run_beta</code>, and <code>narrative/</code><a class="headerlink" href="#p6-god-function-split-plan--proposed-phase-boundaries-for-_simulate_patient-run_beta-and-narrative" title="Permanent link">&para;</a></h1>
 <blockquote>
-<p><strong>Status (2026-10-16 close)</strong>: this design was executed in-session. The LOC counts in the table below reflect the <strong>pre-split baseline</strong>; the extractions actually shipped are listed per section. The one remaining dedicated-session item is the <code>TemplateNarrativeGenerator</code> god class decomposition (161 methods, now ~6540 LOC in <code>template_generator.py</code> after the pre-class helpers were lifted into <code>_localization.py</code> / <code>_template_helpers.py</code> / <code>_narrative_utils.py</code> siblings).</p>
-</blockquote>
-<p>Context: META #1633 code review (2026-10-15) flagged five god functions / files in the simulator + narrative sub-tree. Three were handled in-session (<code>activate_patient</code> → <code>_derive_chronic_conditions</code> extraction, <code>fhir_r4/__init__.py</code> → <code>builder.py</code> + facade split). The remaining four are substantial refactors that need design review before mechanical extraction can proceed safely:</p>
+<p><strong>Status (2026-10-27)</strong>: three of the four targets are fully split; one (<code>_simulate_patient</code>) is partially split. The sections that follow are kept as historical plan — the executed split differs from the per-disease proposal for <code>template_generator.py</code> and from the proposed <code>_run_beta_*</code> phase names for <code>run_beta</code>. See each section's <strong>Shipped execution</strong> callout for what actually landed.</p>
 <table>
 <thead>
 <tr>
 <th>Target</th>
-<th>LOC</th>
-<th>Risk class</th>
+<th style="text-align: right;">Pre-split LOC</th>
+<th style="text-align: right;">Current LOC</th>
+<th>Shipped</th>
 </tr>
 </thead>
 <tbody>
 <tr>
 <td><code>clinosim/simulator/inpatient.py:_simulate_patient</code></td>
-<td>707</td>
-<td><strong>RNG hot path</strong> — any extraction that changes consumption order breaks fingerprint byte-identity</td>
+<td style="text-align: right;">707</td>
+<td style="text-align: right;">~461</td>
+<td><strong>Partial</strong> — <code>_derive_microbiology</code> / <code>_finalize_discharge</code> / <code>_run_post_encounter_stage</code> lifted; remaining body stays in <code>inpatient.py</code> pending separate RNG-byte-identity waiver</td>
 </tr>
 <tr>
 <td><code>clinosim/simulator/engine.py:run_beta</code></td>
-<td>1147</td>
-<td><strong>RNG hot path + multi-stage loop</strong> — month-tick / dispatch / writeback phases interact via shared state</td>
+<td style="text-align: right;">2059 (file) / 1147 (function)</td>
+<td style="text-align: right;">632 (file) / 138-onward (function)</td>
+<td><strong>Shipped as C2a-C2f</strong> — see §<code>run_beta</code> <strong>Shipped execution</strong></td>
 </tr>
 <tr>
 <td><code>clinosim/modules/document/narrative/template_generator.py</code></td>
-<td>7551</td>
-<td><strong>Not RNG-sensitive but structurally huge</strong> — needs per-disease / per-document-type split design</td>
+<td style="text-align: right;">7551 → 6539 (pre-C1)</td>
+<td style="text-align: right;">1399</td>
+<td><strong>Shipped as C1a-C1s</strong> — <strong>per-section-builder</strong> split under <code>renderers/section_builders/</code> + <code>_resolvers</code> / <code>_composers</code> / <code>_ed_helpers</code> / <code>_shared_helpers</code>, not per-disease. See §<code>template_generator.py</code> <strong>Shipped execution</strong></td>
 </tr>
 <tr>
 <td><code>clinosim/modules/document/narrative/replacement_strategy.py</code></td>
-<td>2221</td>
-<td>Same package; splits alongside <code>template_generator.py</code></td>
+<td style="text-align: right;">2221</td>
+<td style="text-align: right;">791</td>
+<td><strong>Shipped alongside C1 narrative extraction</strong></td>
+</tr>
+<tr>
+<td><code>clinosim/modules/population/engine.py</code> (added mid-review as CRITICAL C3)</td>
+<td style="text-align: right;">2066</td>
+<td style="text-align: right;">1157</td>
+<td><strong>Shipped as C3a-C3e</strong> — see §new entry below</td>
 </tr>
 </tbody>
 </table>
-<p>This document records the proposed split for each, so a follow-up PR can execute the extraction with a reviewed design in hand rather than deciding boundaries on the fly.</p>
+</blockquote>
+<p>Context: META #1633 code review (2026-10-15) flagged five god functions / files in the simulator + narrative sub-tree. Three were handled in-session (<code>activate_patient</code> → <code>_derive_chronic_conditions</code> extraction, <code>fhir_r4/__init__.py</code> → <code>builder.py</code> + facade split). The remaining four were worked through C1 (narrative, 2026-10-15..26), C2 (simulator/engine, 2026-10-25..26), and C3 (modules/population/engine, 2026-10-26), reaching the completion state captured in the table above.</p>
+<p>The sections that follow are the original plan proposals. They remain for history; the actual shipped split for each target is called out inline.</p>
+<p><strong>Shipped execution — <code>_simulate_patient</code></strong> (partial):
+<code>_derive_microbiology</code>, <code>_finalize_discharge</code>, and <code>_run_post_encounter_stage</code> were extracted earlier; the rest of the admit / tick / discharge body stays in <code>inpatient.py</code> because any further extraction would require a reviewed RNG-byte-identity waiver.</p>
+<p><strong>Shipped execution — <code>run_beta</code></strong> (C2a-C2f, 2026-10-25..26):
+instead of the <code>_run_beta_prepare</code> / <code>_run_beta_month_tick</code> / <code>_run_beta_dispatch_window</code> / <code>_run_beta_writeback</code> names below, the actual split produced <code>clinosim/simulator/_setup.py</code> (C2a — pre-flight / cohort cache / time-range helpers), <code>clinosim/simulator/_dispatch.py</code> (C2b — hospital-event dispatcher + overlap handling), and <code>clinosim/simulator/phases/</code> (C2c-f — <code>_healthcare_calendar.py</code>, <code>_post_discharge.py</code>, <code>_readmission.py</code>, <code>_ed_slot.py</code>). Byte-identity verified against master via <code>scripts/engine-fingerprint.sh</code> on US p=500 seed=42 + JP p=500 seed=17.</p>
+<p><strong>Shipped execution — <code>template_generator.py</code> + <code>replacement_strategy.py</code></strong> (C1a-C1s, 2026-10-15..26):
+instead of the per-disease split proposed below, the actual split was <strong>per-document-section</strong> — 12 section builders under <code>clinosim/modules/document/narrative/renderers/section_builders/</code> (<code>assessment_and_plan.py</code>, <code>care_plans.py</code>, <code>chief_complaint.py</code>, <code>discharge_summary.py</code>, <code>ed_note.py</code>, <code>hpi.py</code>, <code>jp_clins.py</code>, <code>mortality.py</code>, <code>nursing.py</code>, <code>op_pn_notes.py</code>, <code>outpatient_soap.py</code>, <code>patient_history.py</code>) plus 4 per-cluster shared-helper modules (<code>_resolvers.py</code>, <code>_composers.py</code>, <code>_ed_helpers.py</code>, <code>_shared_helpers.py</code>), all re-exported through the thin façade at <code>template_generator.py</code>. The per-disease / per-document-type proposals below were not adopted.</p>
+<p><strong>Shipped execution — <code>modules/population/engine.py</code></strong> (C3a-C3e, 2026-10-26):
+added mid-review as the fifth target. Split into <code>clinosim/modules/population/_chronic.py</code> (C3a — chronic prevalence cluster), <code>_demographics.py</code> (C3b — demographics sampling), <code>_identity.py</code> (C3c — name / occupation / household address / phone sampling), <code>_pregnancy.py</code> (C3d — pregnancy / perinatal lifecycle), <code>_chemo.py</code> (C3e — chemo cycle scheduler). Re-exported through the engine façade; byte-identity verified.</p>
 <h2 id="_simulate_patient-707-loc--admit--tick--discharge-phases"><code>_simulate_patient</code> (707 LOC) — admit / tick / discharge phases<a class="headerlink" href="#_simulate_patient-707-loc--admit--tick--discharge-phases" title="Permanent link">&para;</a></h2>
 <h3 id="phase-boundaries-proposed">Phase boundaries proposed<a class="headerlink" href="#phase-boundaries-proposed" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>_simulate_patient(patient, event, disease_id, protocol, …) -&gt; CIFPatientRecord

@@ -3823,9 +3823,11 @@ in <code>clinosim/modules/_shared.py</code> — shared-logic unification
   <code>if lang == "ja":</code> gate needed. Underlying <code>_localize_drug_name</code>
   (country-parameter form) remains for callers on the country
   seam; both are backed by the canonical cached loaders
-  <code>clinosim/locale/loader.py:load_narrative_display_dict()</code> /
-  <code>load_med_terms_ja()</code> — no raw-YAML reads inside the builder
-  (E.3).</li>
+  <code>clinosim/locale/loaders/narrative.py:load_narrative_display_dict()</code> /
+  <code>clinosim/locale/loaders/medical_display.py:load_med_terms_ja()</code>
+  (both still re-exported from <code>clinosim/locale/loader.py</code> as a
+  compatibility façade post-B1/B2b split) — no raw-YAML reads
+  inside the builder (E.3).</li>
 <li>Department display = <code>_dept_display()</code> (backed by
   <code>load_department_display()</code>).</li>
 <li>If no translation exists → EN fallback + audit warn list.</li>
@@ -3874,12 +3876,14 @@ consistency at output).</p>
 <code>_fhir_localization.py</code> used to load locale's shared YAML
 (<code>med_terms_ja.yaml</code> / the retired <code>drug_names_ja.yaml</code> (deleted #1876; replaced by <code>load_narrative_display_dict</code> catalog UNION) /
 <code>department_display.yaml</code>) with inline <code>yaml.safe_load</code> from inside
-the builder — this has been moved to the canonical cached loaders
-in <code>clinosim/locale/loader.py</code> (<code>load_med_terms_ja()</code> /
-<code>load_narrative_display_dict()</code> / <code>load_department_display()</code>). Builders
-that need locale data now import these — do not write new inline
-YAML reads in a builder. Cached loader return values are shared
-instances (mutation forbidden).</p>
+the builder — this has been moved to the canonical cached loaders in
+<code>clinosim/locale/loaders/</code> (<code>medical_display.py:load_med_terms_ja()</code> /
+<code>narrative.py:load_narrative_display_dict()</code> /
+<code>medical_display.py:load_department_display()</code>), all re-exported
+from <code>clinosim/locale/loader.py</code> for backward compatibility.
+Builders that need locale data now import these — do not write
+new inline YAML reads in a builder. Cached loader return values
+are shared instances (mutation forbidden).</p>
 <h3 id="e4--writing-display-strings-into-cif-ad-30-violation">E.4 ❌ Writing display strings into CIF (AD-30 violation)<a class="headerlink" href="#e4--writing-display-strings-into-cif-ad-30-violation" title="Permanent link">&para;</a></h3>
 <p>An anti-pattern on the CIF-generation side, but the temptation to
 mutate CIF from a FHIR builder is the same:</p>

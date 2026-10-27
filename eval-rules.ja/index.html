@@ -2334,6 +2334,39 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#jp-clins-lab-compliance-軸-jp-コホートのみ" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        JP-CLINS lab compliance 軸 (JP コホートのみ)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#jp-core-compliance-軸-jp-コホートのみ" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        JP Core compliance 軸 (JP コホートのみ)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#us-core-compliance-軸-us-コホートのみ" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        US Core compliance 軸 (US コホートのみ)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#ルール追加" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2627,6 +2660,24 @@
 </tr>
 </tbody>
 </table>
+<h2 id="jp-clins-lab-compliance-軸-jp-コホートのみ">JP-CLINS lab compliance 軸 (JP コホートのみ)<a class="headerlink" href="#jp-clins-lab-compliance-軸-jp-コホートのみ" title="Permanent link">&para;</a></h2>
+<p><code>JP_Observation_LabResult_eCS</code> 準拠を
+<code>Observation.code.coding</code> + <code>Observation.specimen</code> + <code>Specimen.type</code>
+で測定。閾値: 100 % at master invariant に対し strict 1.0 (eCS は
+<code>code.coding</code> が Open slicing で discriminator=system+display なので
+validator pass 数単独では不十分 — <code>clinosim/eval/axes/jp_clins_lab_compliance.py</code> 参照)。</p>
+<h2 id="jp-core-compliance-軸-jp-コホートのみ">JP Core compliance 軸 (JP コホートのみ)<a class="headerlink" href="#jp-core-compliance-軸-jp-コホートのみ" title="Permanent link">&para;</a></h2>
+<p>JP Core Patient / Encounter / MedicationRequest の must-support
+element への narrow-gate 準拠測定。閾値 1.0 at 100 %-at-master
+invariant のみ。Kana (SYL) 表現 coverage の拡張は別途管理。full HL7
+FHIR Validator 走行 (<code>jp-validate.yml</code>) は on-demand の authoritative
+compliance surface。<code>clinosim/eval/axes/jp_core_compliance.py</code> 参照。</p>
+<h2 id="us-core-compliance-軸-us-コホートのみ">US Core compliance 軸 (US コホートのみ)<a class="headerlink" href="#us-core-compliance-軸-us-コホートのみ" title="Permanent link">&para;</a></h2>
+<p>US Core AllPatients / Encounter / Condition の must-support element
+への narrow-gate 準拠測定。閾値 1.0 at 100 %-at-master invariant
+のみ (race/ethnicity extension coverage のような拡張は別途管理)。
+Phase 3 の full validator 走行 (<code>us-validate.yml</code>) は on-demand の
+authoritative compliance surface。<code>clinosim/eval/axes/us_core_compliance.py</code> 参照。</p>
 <hr />
 <h2 id="ルール追加">ルール追加<a class="headerlink" href="#ルール追加" title="Permanent link">&para;</a></h2>
 <ol>

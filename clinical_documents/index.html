@@ -3322,8 +3322,13 @@ that drives the multi-document bundle path used at runtime:</p>
 <code>"discharge_medications": ["Amoxicillin 500mg PO BID x 7 days"]</code> and the
 template will render it as a bullet list automatically.</p>
 <h3 id="available-variables-per-task">Available variables per task<a class="headerlink" href="#available-variables-per-task" title="Permanent link">&para;</a></h3>
-<p>Variable names are defined by <code>document_generator.py</code> and must match the
-placeholders in the YAML templates. The complete lists are:</p>
+<p>Variable names are declared in the prompt yaml's <code>variables:</code> block
+(<code>clinosim/modules/llm_service/prompts/&lt;lang&gt;/&lt;task&gt;.yaml</code>) and the
+matching input builder in the narrative pipeline
+(<code>clinosim/modules/document/narrative/</code> — the per-section builders
+under <code>renderers/section_builders/</code> plus the composition dispatcher).
+The complete lists per task (as of the current master; see each prompt
+yaml for the live declaration):</p>
 <p><strong>discharge_summary</strong>:
 <code>age, sex, admission_date, discharge_date, los_days, disposition,
 attending_physician, chief_complaint, past_medical_history, admission_diagnosis,
@@ -3352,9 +3357,11 @@ complications, outcome</code></p>
 <li><strong>Bump the <code>version:</code> field.</strong> The version number is recorded on every
    generated document (<code>ClinicalDocument.prompt_version</code>) so you can audit
    which version produced each note.</li>
-<li><strong>Do not rename variables</strong> without updating <code>document_generator.py</code>. The
-   generator raises <code>KeyError</code> if a template references a variable the code
-   does not provide.</li>
+<li><strong>Do not rename variables</strong> without updating the matching input
+   builder in <code>clinosim/modules/document/narrative/</code> + the
+   <code>variables:</code> block in the prompt yaml. The generator raises
+   <code>KeyError</code> if a template references a variable the code does
+   not provide.</li>
 <li><strong>Test in template mode first</strong> to verify rendering without spending LLM
    tokens:
    <div class="highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>clinosim<span class="w"> </span>narrate<span class="w"> </span>--cif-dir<span class="w"> </span>./output/cif<span class="w"> </span>--version-id<span class="w"> </span>prompt_v2_test
@@ -3451,42 +3458,56 @@ FHIR export.</p>
 </span></code></pre></div></p>
 </li>
 <li>
+<p><strong>Register task_loincs.yaml + task_categories.yaml</strong>
+   (<code>clinosim/modules/llm_service/reference_data/</code>). The engine
+   validates full coverage at import — a new <code>LLMTaskType</code> value
+   with no row in <code>task_loincs.yaml</code> fails loud.</p>
+</li>
+<li>
+<p><strong>Register the <code>DocumentTypeSpec</code></strong> in
+   <code>clinosim/modules/document/reference_data/document_type_specs.yaml</code>:
+   <div class="highlight"><pre><span></span><code><span id="__span-14-1"><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a><span class="nt">consultation_note</span><span class="p">:</span>
+</span><span id="__span-14-2"><a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a><span class="w">  </span><span class="nt">loinc_code</span><span class="p">:</span><span class="w"> </span><span class="s">"11488-4"</span>
+</span><span id="__span-14-3"><a id="__codelineno-14-3" name="__codelineno-14-3" href="#__codelineno-14-3"></a><span class="w">  </span><span class="nt">format_type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">free_text</span><span class="w">              </span><span class="c1"># or `composition`</span>
+</span><span id="__span-14-4"><a id="__codelineno-14-4" name="__codelineno-14-4" href="#__codelineno-14-4"></a><span class="w">  </span><span class="nt">countries_supported</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">us</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">jp</span><span class="p p-Indicator">]</span>
+</span><span id="__span-14-5"><a id="__codelineno-14-5" name="__codelineno-14-5" href="#__codelineno-14-5"></a><span class="w">  </span><span class="nt">encounter_types_supported</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">outpatient</span><span class="p p-Indicator">]</span>
+</span><span id="__span-14-6"><a id="__codelineno-14-6" name="__codelineno-14-6" href="#__codelineno-14-6"></a><span class="w">  </span><span class="nt">generation_frequency</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">per_encounter</span><span class="w"> </span><span class="c1"># or `admission_once` / `daily` / ...</span>
+</span><span id="__span-14-7"><a id="__codelineno-14-7" name="__codelineno-14-7" href="#__codelineno-14-7"></a><span class="w">  </span><span class="nt">composition_sections</span><span class="p">:</span><span class="w">               </span><span class="c1"># only when format_type: composition</span>
+</span><span id="__span-14-8"><a id="__codelineno-14-8" name="__codelineno-14-8" href="#__codelineno-14-8"></a><span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">reason_for_consult</span>
+</span><span id="__span-14-9"><a id="__codelineno-14-9" name="__codelineno-14-9" href="#__codelineno-14-9"></a><span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">findings</span>
+</span><span id="__span-14-10"><a id="__codelineno-14-10" name="__codelineno-14-10" href="#__codelineno-14-10"></a><span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">recommendation</span>
+</span><span id="__span-14-11"><a id="__codelineno-14-11" name="__codelineno-14-11" href="#__codelineno-14-11"></a><span class="w">  </span><span class="nt">stage2_strategy</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">template_seed_bundle</span>
+</span><span id="__span-14-12"><a id="__codelineno-14-12" name="__codelineno-14-12" href="#__codelineno-14-12"></a><span class="w">  </span><span class="nt">llm_enabled_sections</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">recommendation</span><span class="p p-Indicator">]</span>
+</span></code></pre></div>
+   <code>format_type: composition</code> lands the doc on <code>Composition</code> with
+   named <code>section[]</code> entries; <code>free_text</code> lands on
+   <code>DocumentReference</code> with the full body in <code>content.attachment.data</code>.</p>
+</li>
+<li>
 <p><strong>Create the English prompt YAML</strong>
    <code>clinosim/modules/llm_service/prompts/en/consultation_note.yaml</code>
-   following the template above.</p>
+   following the template above. Declare every variable the prompt
+   references in the yaml's <code>variables:</code> block.</p>
 </li>
 <li>
-<p><strong>Add an input builder</strong> in
-   <code>clinosim/modules/output/document_generator.py</code>:
-   <div class="highlight"><pre><span></span><code><span id="__span-14-1"><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a><span class="k">def</span><span class="w"> </span><span class="nf">_build_consultation_note</span><span class="p">(</span><span class="n">record</span><span class="p">,</span> <span class="n">encounter</span><span class="p">,</span> <span class="n">llm</span><span class="p">,</span> <span class="n">language</span><span class="p">):</span>
-</span><span id="__span-14-2"><a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a>    <span class="n">variables</span> <span class="o">=</span> <span class="p">{</span>
-</span><span id="__span-14-3"><a id="__codelineno-14-3" name="__codelineno-14-3" href="#__codelineno-14-3"></a>        <span class="s2">"age"</span><span class="p">:</span> <span class="o">...</span><span class="p">,</span>
-</span><span id="__span-14-4"><a id="__codelineno-14-4" name="__codelineno-14-4" href="#__codelineno-14-4"></a>        <span class="s2">"sex"</span><span class="p">:</span> <span class="o">...</span><span class="p">,</span>
-</span><span id="__span-14-5"><a id="__codelineno-14-5" name="__codelineno-14-5" href="#__codelineno-14-5"></a>        <span class="s2">"consulting_service"</span><span class="p">:</span> <span class="o">...</span><span class="p">,</span>
-</span><span id="__span-14-6"><a id="__codelineno-14-6" name="__codelineno-14-6" href="#__codelineno-14-6"></a>        <span class="s2">"reason_for_consult"</span><span class="p">:</span> <span class="o">...</span><span class="p">,</span>
-</span><span id="__span-14-7"><a id="__codelineno-14-7" name="__codelineno-14-7" href="#__codelineno-14-7"></a>        <span class="o">...</span>
-</span><span id="__span-14-8"><a id="__codelineno-14-8" name="__codelineno-14-8" href="#__codelineno-14-8"></a>    <span class="p">}</span>
-</span><span id="__span-14-9"><a id="__codelineno-14-9" name="__codelineno-14-9" href="#__codelineno-14-9"></a>    <span class="n">stub</span> <span class="o">=</span> <span class="n">_make_stub</span><span class="p">(</span>
-</span><span id="__span-14-10"><a id="__codelineno-14-10" name="__codelineno-14-10" href="#__codelineno-14-10"></a>        <span class="n">task_type</span><span class="o">=</span><span class="n">LLMTaskType</span><span class="o">.</span><span class="n">CONSULTATION_NOTE</span><span class="p">,</span>
-</span><span id="__span-14-11"><a id="__codelineno-14-11" name="__codelineno-14-11" href="#__codelineno-14-11"></a>        <span class="n">patient_id</span><span class="o">=...</span><span class="p">,</span>
-</span><span id="__span-14-12"><a id="__codelineno-14-12" name="__codelineno-14-12" href="#__codelineno-14-12"></a>        <span class="n">encounter_id</span><span class="o">=...</span><span class="p">,</span>
-</span><span id="__span-14-13"><a id="__codelineno-14-13" name="__codelineno-14-13" href="#__codelineno-14-13"></a>        <span class="o">...</span><span class="p">,</span>
-</span><span id="__span-14-14"><a id="__codelineno-14-14" name="__codelineno-14-14" href="#__codelineno-14-14"></a>    <span class="p">)</span>
-</span><span id="__span-14-15"><a id="__codelineno-14-15" name="__codelineno-14-15" href="#__codelineno-14-15"></a>    <span class="k">return</span> <span class="n">_fill_text</span><span class="p">(</span><span class="n">stub</span><span class="p">,</span> <span class="n">llm</span><span class="p">,</span> <span class="n">variables</span><span class="p">)</span>
-</span></code></pre></div></p>
+<p><strong>Implement the section builder(s)</strong> under
+   <code>clinosim/modules/document/narrative/renderers/section_builders/&lt;section&gt;.py</code>
+   as free functions <code>build_&lt;section&gt;(generator, ctx)</code> returning the
+   rendered section text. The post-C1a-s split places all per-section
+   logic here; <code>template_generator.py</code> is a thin façade that re-exports
+   the builders. For <code>format_type: free_text</code> tasks, implement a
+   single body builder; for <code>composition</code>, one builder per entry in
+   <code>composition_sections</code>. Wire the dispatcher in
+   <code>clinosim/modules/document/narrative/renderers/composition_sections.py</code>.</p>
 </li>
 <li>
-<p><strong>Wire the builder into <code>_generate_for_record</code></strong>.</p>
+<p><strong>Add unit tests</strong> under <code>tests/unit/document/narrative/</code> (per-section
+   builder tests) and <code>tests/unit/test_clinical_documents.py</code>
+   (end-to-end emit).</p>
 </li>
 <li>
-<p><strong>Add it to <code>_resolve_enabled_tasks()</code></strong> so it appears in the default set.</p>
-</li>
-<li>
-<p><strong>Add unit tests</strong> in <code>tests/unit/test_clinical_documents.py</code> following the
-   existing <code>TestDocumentGeneratorE2E</code> pattern.</p>
-</li>
-<li>
-<p><strong>Update this doc</strong> (<code>docs/clinical_documents.md</code>), <code>README.md</code>, and <code>DESIGN.md</code>.</p>
+<p><strong>Update this doc</strong> (<code>docs/clinical_documents.md</code>), <code>README.md</code>,
+   and the matching <code>.ja.md</code> siblings.</p>
 </li>
 </ol>
 <hr />
