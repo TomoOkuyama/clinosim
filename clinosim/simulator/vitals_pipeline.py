@@ -135,9 +135,14 @@ from clinosim.simulator._oxygen_therapy_thresholds import (
     SPO2_TARGET_COPD,
 )
 from clinosim.simulator._vitals_schedule_thresholds import (
+    VITALS_ACUITY_CONSCIOUSNESS_CRITICAL,
+    VITALS_ACUITY_CONSCIOUSNESS_UNSTABLE,
     VITALS_ACUITY_INFLAMMATION_UNSTABLE_THRESHOLD,
+    VITALS_ACUITY_OXYGENATION_CRITICAL,
+    VITALS_ACUITY_OXYGENATION_UNSTABLE,
     VITALS_ACUITY_PERFUSION_CRITICAL_THRESHOLD,
     VITALS_ACUITY_PERFUSION_UNSTABLE_THRESHOLD,
+    VITALS_ACUITY_SYMPATHETIC_UNSTABLE,
     VITALS_BID_STABLE_HOURS,
     VITALS_BID_STABLE_INFLAMMATION_MAX,
     VITALS_BID_STABLE_MIN_DAY,
@@ -359,6 +364,31 @@ def _pain_score(state, day, rng) -> int:
     return pain
 
 
+def monitoring_tier(state: PhysiologicalState, disease_id: str, day: int) -> str:
+    """ "critical" (q2h), "unstable" (q4h) or "routine" vitals rounds.
+
+    Perfusion / inflammation thresholds and the early-day critical-disease list
+    as before, plus the state axes (Issue #2092): consciousness V / P, room-air
+    hypoxemia, severe autonomic activation.
+    """
+    if (
+        state.perfusion_status < VITALS_ACUITY_PERFUSION_CRITICAL_THRESHOLD
+        or state.consciousness_impairment >= VITALS_ACUITY_CONSCIOUSNESS_CRITICAL
+        or state.oxygenation_impairment >= VITALS_ACUITY_OXYGENATION_CRITICAL
+        or (disease_id in CRITICAL_MONITORING_DISEASES and day <= VITALS_CRITICAL_DAY_MAX)
+    ):
+        return "critical"
+    if (
+        state.perfusion_status < VITALS_ACUITY_PERFUSION_UNSTABLE_THRESHOLD
+        or state.inflammation_level > VITALS_ACUITY_INFLAMMATION_UNSTABLE_THRESHOLD
+        or state.consciousness_impairment >= VITALS_ACUITY_CONSCIOUSNESS_UNSTABLE
+        or state.oxygenation_impairment >= VITALS_ACUITY_OXYGENATION_UNSTABLE
+        or state.sympathetic_activation >= VITALS_ACUITY_SYMPATHETIC_UNSTABLE
+    ):
+        return "unstable"
+    return "routine"
+
+
 def _generate_vitals(
     state: PhysiologicalState,
     patient: PatientProfile,
@@ -378,11 +408,13 @@ def _generate_vitals(
     - Within-set time offsets (BP/HR same moment, Temp ±30s, RR ±60s)
     """
     vitals: list[VitalSignRecord] = []
-    is_unstable = (
-        state.perfusion_status < VITALS_ACUITY_PERFUSION_UNSTABLE_THRESHOLD
-        or state.inflammation_level > VITALS_ACUITY_INFLAMMATION_UNSTABLE_THRESHOLD
+    tier = monitoring_tier(state, disease_id, day)
+    is_unstable = tier == "unstable"
+    is_respiratory = (
+        disease_id in _RESPIRATORY_DISEASES
+        or disease_id == "heart_failure_exacerbation"
+        or state.oxygenation_impairment >= VITALS_ACUITY_OXYGENATION_UNSTABLE
     )
-    is_respiratory = disease_id in _RESPIRATORY_DISEASES or disease_id == "heart_failure_exacerbation"
 
     # Issue #911: stabilize AVPU per (patient, day) to eliminate intra-day
     # AVPU fluctuation. Without this, ``_loc_for`` samples per-vital and
@@ -411,11 +443,7 @@ def _generate_vitals(
     # hematoma, severe trauma): q1-2h. Set defined in
     # `clinosim.modules.disease.acuity.CRITICAL_MONITORING_DISEASES` — Issue
     # #563 added `subdural_hematoma` to close the drift with EMERGENCY_PRIORITY.
-    is_critical = (
-        state.perfusion_status < VITALS_ACUITY_PERFUSION_CRITICAL_THRESHOLD
-        or disease_id in CRITICAL_MONITORING_DISEASES
-    )
-    if is_critical and day <= VITALS_CRITICAL_DAY_MAX:
+    if tier == "critical":
         full_hours = list(range(VITALS_Q2H_HOURS_START, VITALS_Q2H_HOURS_END_EXCLUSIVE, VITALS_Q2H_HOURS_STEP))
     elif is_unstable:
         full_hours = list(VITALS_Q4H_HOURS)
@@ -502,7 +530,7 @@ def _generate_vitals(
 
     # 2. Continuous bedside monitoring (HR + SpO2 only) every ~2h
     #    for unstable / respiratory / cardiac patients
-    if is_unstable or is_respiratory:
+    if tier != "routine" or is_respiratory:
         full_hour_set = set(full_hours)
         # Pick hours not already covered by full vitals
         monitor_hours = [
