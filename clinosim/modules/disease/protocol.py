@@ -6,7 +6,7 @@ import re
 from collections.abc import Iterator
 from functools import lru_cache
 from pathlib import Path
-from typing import Any
+from typing import Any, Literal
 
 import yaml
 from pydantic import BaseModel, ConfigDict, Field
@@ -526,6 +526,9 @@ class DiseaseProtocol(BaseModel):
     requires_surgery: bool = False
     minimum_severity: str | None = None  # force minimum severity (e.g. "moderate" for fracture)
     readmission_eligible: bool = True  # False for surgical conditions like fractures
+    # "elective" = scheduled admission (admit source outp, priority EL, no ED
+    # companion); "emergency" = admitted through the ED (default).
+    admission_route: Literal["emergency", "elective"] = "emergency"
     procedure: dict[str, Any] = {}  # Surgical procedure details (approach, duration, etc.)
     medication_holds: list[dict[str, Any]] = []  # Home medications to hold during this admission
     # Acute coronary syndrome → primary myocardial necrosis (drives high troponin/CK-MB,

@@ -82,6 +82,13 @@ codes:
   '29836001':
     en: Hip region structure
     ja: 股関節部
+  # Issue #2043 elective knee arthroplasty; verified via tx.fhir.org $lookup 2026-10-27.
+  '49076000':
+    en: Knee joint structure
+    ja: 膝関節
+  '609588000':
+    en: Total knee replacement
+    ja: 人工膝関節全置換術
   '39607008':
     en: Lung structure
     ja: 肺

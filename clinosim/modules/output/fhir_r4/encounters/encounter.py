@@ -236,6 +236,7 @@ def _build_encounter(
             ActPriority.EM.value: "emergency",
             ActPriority.UR.value: "urgent",
             ActPriority.R.value: "routine",
+            ActPriority.EL.value: "elective",
         }.get(priority, "")
         # C5-03: localize priority display for JP output.
         from clinosim.modules.output.fhir_r4.lib.localization import (

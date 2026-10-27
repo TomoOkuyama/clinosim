@@ -69,3 +69,6 @@ class ActPriority(StrEnum):
 
     R = "R"
     """Routine — outpatient encounters."""
+
+    EL = "EL"
+    """Elective — scheduled inpatient admissions (e.g. joint replacement)."""

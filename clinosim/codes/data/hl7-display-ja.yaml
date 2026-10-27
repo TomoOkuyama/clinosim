@@ -152,6 +152,8 @@ participation_type_display:
 act_priority_display:
   R: 通常
   routine: 通常
+  EL: 待機
+  elective: 待機
   EM: 緊急
   emergency: 緊急
   S: 予定

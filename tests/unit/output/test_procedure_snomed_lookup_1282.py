@@ -101,6 +101,7 @@ def test_only_verified_snomed_codes():
     from clinosim.modules.output.fhir_r4.procedures.procedure_name_snomed import _load_entries
 
     verified = {
+        "609588000",  # Total knee replacement (Issue #2043)
         "233581009",  # Haemofiltration
         "302497006",  # Haemodialysis
         "233573008",  # ECMO

@@ -1,0 +1,299 @@
+# Elective Total Knee Arthroplasty for Primary Knee Osteoarthritis — Reference Data
+# Scheduled admission (admission_route: elective): no ED visit, surgery on
+# the day of admission, short US stay.
+# Sources: HCUP Statistical Brief #277 (osteoarthritis ~4% of US stays, 2018 NIS),
+# AAOS clinical practice guidelines, Japanese Orthopaedic Association / DPC data.
+# Codes verified 2026-10-27: ICD-10-CM M17.9 (NLM Clinical Tables), SNOMED CT
+# 609588000 / 49076000 (tx.fhir.org $lookup).
+
+disease_id: elective_knee_arthroplasty
+chief_complaint:
+  en: "Scheduled admission for total knee arthroplasty (knee osteoarthritis)"
+  ja: "変形性膝関節症に対する人工膝関節置換術目的の予定入院"
+department: orthopedics
+encounter_type: surgical
+requires_surgery: true
+minimum_severity: moderate
+readmission_eligible: false
+admission_route: elective
+
+icd_codes:
+  primary: "M17.9"
+  variants:
+    - {code: "M17.9", name: "Osteoarthritis of knee, unspecified", probability: 1.0}
+
+incidence:
+  # Scheduled admissions for patients with knee osteoarthritis (M17). The
+  # per-country rate lives in locale/<cc>/demographics.yaml disease_incidence
+  # (US: Issue #2044); without it the pathway generates no stays.
+  trigger_type: "elective"
+  prerequisite_condition: "M17"
+
+severity:
+  distribution:
+    mild: 0.0
+    moderate: 0.90   # standard primary TKA
+    severe: 0.10     # comorbid / bilateral / complex deformity
+  modifiers:
+    - {condition: "age_over_85", severe_multiplier: 1.5}
+
+initial_state_impact:
+  moderate:
+    inflammation_level: 0.08
+    anemia_level: 0.05       # intra-operative blood loss
+    volume_status: -0.05
+  severe:
+    inflammation_level: 0.12
+    anemia_level: 0.10
+    volume_status: -0.10
+    perfusion_status: -0.03
+
+presenting_symptoms:
+  - {name: "knee_pain", probability: 1.0, severity_range: [0.5, 0.8]}
+  - {name: "joint_stiffness", probability: 0.8, severity_range: [0.4, 0.7]}
+  - {name: "limited_mobility", probability: 0.7, severity_range: [0.4, 0.7]}
+
+# ============================================================
+# COURSE ARCHETYPES — post-operative recovery after elective TKA
+# ============================================================
+course_archetypes:
+  smooth_recovery:
+    probability: 0.85
+    description: "Uneventful post-op recovery; mobilised day 0-1, discharged on schedule"
+    trajectory:
+      inflammation_level: {0: 0.02, 1: 0.00, 2: -0.03, 3: -0.04, 5: -0.04}
+      anemia_level:       {0: 0.02, 1: 0.01, 2: 0.00, 3: -0.01, 5: -0.01}
+      volume_status:      {0: 0.00, 1: 0.03, 2: 0.03, 3: 0.02, 5: 0.01}
+    order_modifications: {}
+    treatment_modifications: {}
+
+  dip_then_recovery:
+    probability: 0.10
+    description: "Post-op anaemia / hypotension on day 1, corrects with fluids, then recovers"
+    trajectory:
+      anemia_level:       {0: 0.04, 1: 0.05, 2: 0.02, 3: -0.01, 5: -0.02}
+      volume_status:      {0: -0.04, 1: -0.04, 2: 0.00, 3: 0.03, 5: 0.02}
+      perfusion_status:   {0: -0.02, 1: -0.02, 2: 0.00, 3: 0.02, 5: 0.01}
+    order_modifications:
+      day_1:
+        add_labs: ["Hb"]
+
+  plateau_then_recovery:
+    probability: 0.05
+    description: "Slow mobilisation / pain control delays discharge by 1-2 days"
+    trajectory:
+      inflammation_level: {0: 0.03, 1: 0.03, 2: 0.02, 3: 0.00, 5: -0.03}
+      anemia_level:       {0: 0.03, 1: 0.03, 3: 0.01, 5: -0.01}
+    order_modifications:
+      day_2:
+        add_labs: ["Hb", "CRP"]
+
+complications:
+  - name: "venous_thromboembolism"
+    description: "DVT / PE after lower-limb arthroplasty"
+    probability_per_day: 0.002
+    onset_day_range: [1, 14]
+    risk_factors:
+      - {condition: "age_over_75", multiplier: 1.3}
+    state_impact:
+      perfusion_status: -0.03
+    detection:
+      test: "lower_extremity_doppler"
+      finding: "deep_vein_thrombosis"
+    actions: ["order_doppler"]
+
+  - name: "surgical_site_infection"
+    description: "Superficial or deep wound infection after arthroplasty"
+    probability_per_day: 0.001
+    onset_day_range: [2, 14]
+    risk_factors:
+      - {condition: "severity_severe", multiplier: 2.0}
+    state_impact:
+      inflammation_level: 0.08
+    detection:
+      test: "CRP"
+      finding: "rising_inflammatory_markers"
+    actions: ["order_wound_culture", "start_antibiotics"]
+
+  - name: "postoperative_hemorrhage"
+    description: "Post-operative blood loss with symptomatic anaemia"
+    probability_per_day: 0.003
+    onset_day_range: [0, 2]
+    risk_factors:
+      - {condition: "age_over_75", multiplier: 1.3}
+    state_impact:
+      anemia_level: 0.08
+      volume_status: -0.05
+    detection:
+      test: "Hb"
+      finding: "falling_hemoglobin"
+    actions: ["order_cbc"]
+
+  - name: "postoperative_delirium"
+    description: "Post-operative delirium in older patients"
+    probability_per_day: 0.01
+    onset_day_range: [0, 3]
+    risk_factors:
+      - {condition: "age_over_75", multiplier: 2.0}
+    state_impact:
+      inflammation_level: 0.01
+    detection:
+      test: "cam_icu"
+      finding: "delirium"
+    actions: ["order_delirium_assessment", "nonpharmacologic_measures"]
+
+order_protocols:
+  admission_orders:
+    labs:
+      - {test: "WBC", urgency: "routine"}
+      - {test: "Hb", urgency: "routine"}
+      - {test: "Plt", urgency: "routine"}
+      - {test: "Creatinine", urgency: "routine"}
+      - {test: "Na", urgency: "routine"}
+      - {test: "K", urgency: "routine"}
+      - {test: "Glucose", urgency: "routine"}
+      - {test: "PT_INR", urgency: "routine"}
+    imaging:
+      - {test: "Chest_Xray_preop", urgency: "routine"}
+    supportive:
+      - {type: "IV_fluid", detail: "Lactated Ringer's 75-100 mL/h until oral intake"}
+      - {type: "pain_management", detail: "Multimodal analgesia: acetaminophen scheduled + celecoxib + PRN opioid"}
+      - {type: "DVT_prophylaxis", detail: "Enoxaparin SC or aspirin starting post-op day 1"}
+  daily_monitoring:
+    labs:
+      - {test: "Hb", frequency: "daily", note: "post-operative anaemia"}
+      - {test: "Creatinine", frequency: "daily"}
+    vitals:
+      stable: "q4h"
+      post_op_24h: "q2h"
+  discharge_criteria:
+    japan:
+      - "Pain controlled with oral analgesics"
+      - "Independent gait with cane, stairs practised"
+      - "Knee flexion goal reached in rehabilitation"
+      - "Wound clean, no signs of infection"
+    us:
+      - "Ambulating safely with walker"
+      - "Pain controlled on oral medication"
+      - "Wound clean and dry"
+      - "VTE prophylaxis plan in place"
+
+drugs:
+  first_line:
+    japan:
+      - {drug: "Cefazolin", dose: "1g IV within 60 min before incision", route: "IV", note: "surgical prophylaxis"}
+      - {drug: "Acetaminophen", dose: "1000mg IV q6h", route: "IV"}
+    us:
+      - {drug: "Cefazolin", dose: "2g IV within 60 min before incision", route: "IV", note: "surgical prophylaxis"}
+      - {drug: "Acetaminophen", dose: "1000mg IV q6h", route: "IV"}
+  post_op:
+    japan:
+      - {drug: "Celecoxib", dose: "200mg PO daily"}
+      - {drug: "Enoxaparin", dose: "2000IU SC daily", route: "SC"}
+    us:
+      - {drug: "Oxycodone", dose: "5mg PO q4-6h PRN"}
+      - {drug: "Enoxaparin", dose: "40mg SC daily", route: "SC"}
+  discharge_oral:
+    japan:
+      - {drug_id: celecoxib, dose: "200mg PO daily", duration_days: 14}
+      - {drug_id: acetaminophen, dose: "500mg PO q6h PRN", duration_days: 28}
+    us:
+      - {drug_id: acetaminophen, dose: "1000mg PO q8h", duration_days: 28}
+      - {drug_id: aspirin, dose: "81mg PO BID", duration_days: 35, note: "VTE prophylaxis"}
+      - {drug: "Oxycodone", dose: "5mg PO q4-6h PRN", duration_days: 7}
+
+procedure:
+  type: "Total knee arthroplasty"
+  procedure_code_jp: "K0821"   # 人工関節置換術（肩、股、膝）
+  procedure_code_us: "27447"   # CPT: total knee arthroplasty
+  typical_duration_minutes: {mean: 100, sd: 20, min: 60, max: 180}
+  anesthesia: "spinal or general"
+  estimated_blood_loss_ml: {mean: 250, sd: 100, min: 50, max: 700}
+  approach:
+    Total knee arthroplasty: "medial parapatellar approach"
+  time_to_surgery:
+    japan: {mean_hours: 24, sd_hours: 8, note: "admitted the day before surgery"}
+    us: {mean_hours: 3, sd_hours: 1, note: "same-day admission and surgery"}
+
+target_los:
+  japan:
+    moderate: {mean: 21, sd: 5, min: 14, max: 35}
+    severe: {mean: 28, sd: 7, min: 18, max: 45}
+  us:
+    moderate: {mean: 2, sd: 1, min: 1, max: 4}
+    severe: {mean: 3, sd: 1, min: 2, max: 6}
+
+diagnostic:
+  diagnostic_difficulty: 0.0   # diagnosis established before the scheduled admission
+  differential:
+    - {disease: "elective_knee_arthroplasty", icd: "M17.9", name: "Osteoarthritis of knee", prior: 1.0}
+  confirmation_threshold: 0.95
+  diagnosis_progression:
+    elective_knee_arthroplasty:
+      - [0.0, "M17.9", "Osteoarthritis of knee, unspecified"]
+
+outcome_benchmarks:
+  japan:
+    median_los: 21
+    in_hospital_mortality: 0.001
+    thirty_day_readmission: 0.03
+    surgical_site_infection_rate: 0.01
+    dvt_rate: 0.02
+    mean_age_admitted: 74
+    female_ratio: 0.80
+  us:
+    median_los: 2
+    in_hospital_mortality: 0.001
+    thirty_day_readmission: 0.04
+    surgical_site_infection_rate: 0.01
+    dvt_rate: 0.01
+    mean_age_admitted: 67
+    female_ratio: 0.60
+
+narrative:
+  hpi_template:
+    onset_pattern:
+      mild: "数年来の膝関節痛あり、保存療法に抵抗性。"
+      moderate: "数年来の膝関節痛が増悪し、保存療法に抵抗性のため手術目的に入院。"
+      severe: "高度の膝関節変形と疼痛により歩行困難、手術目的に入院。"
+    trigger_options:
+      - "予定入院"
+  physical_exam_findings:
+    smooth_recovery:
+      day_0:
+        general:
+          all: "意識清明、全身状態良好"
+        cardiovascular:
+          all: "整、心雑音なし"
+        respiratory:
+          all: "肺音清明"
+        abdominal: "平坦、軟、圧痛なし"
+        neurological: "麻痺なし"
+  discharge_instructions:
+    follow_up:
+      en: "Follow up with orthopedics in 2 weeks for wound check."
+      ja: "術後 2 週間で整形外科外来を受診してください。"
+    activity:
+      en: "Continue the home exercise program; walk with a walker or cane."
+      ja: "自宅でのリハビリを継続し、杖や歩行器を使って歩行してください。"
+    medications:
+      en: "Take pain medication and VTE prophylaxis as prescribed."
+      ja: "鎮痛薬と血栓予防薬を指示通り服用してください。"
+    emergency:
+      en: "Return to ER for calf swelling, chest pain, fever, or wound drainage."
+      ja: "ふくらはぎの腫れ、胸痛、発熱、創部からの浸出があれば救急受診してください。"
+    diet_lifestyle:
+      en: "Maintain a balanced diet and stay hydrated."
+      ja: "バランスの良い食事と十分な水分摂取を心がけてください。"
+
+imaging_orders:
+  - modality: CR
+    body_site: leg
+    views: [AP, Lateral]
+    urgency: routine
+    clinical_indication: "Post-operative check of knee prosthesis"
+    day: 1
+    abnormal_rate_by_severity:
+      mild: 0.0
+      moderate: 0.05
+      severe: 0.1

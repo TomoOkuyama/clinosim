@@ -29,6 +29,11 @@
 # lowercase `display_name`; Japanese pattern strings match verbatim
 # (Python str.lower() is idempotent on kana/kanji).
 entries:
+  # Issue #2043 elective knee arthroplasty (verified tx.fhir.org $lookup 2026-10-27).
+  - match: "total knee arthroplasty"
+    snomed: "609588000"
+    display_en: "Total knee replacement"
+
   # CRRT / hemofiltration — check before generic "hemodial" match.
   - match: "crrt"
     snomed: "233581009"

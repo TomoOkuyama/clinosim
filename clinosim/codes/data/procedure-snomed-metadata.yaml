@@ -63,6 +63,7 @@ procedures:
   # --- Surgeries ---
   ORIF:                 {category: surgical,    body_site: '71341001'}     # femur
   hemiarthroplasty:     {category: surgical,    body_site: '29836001'}     # hip region
+  Total knee arthroplasty: {category: surgical, body_site: '49076000'}   # knee joint
   surgery:              {category: surgical,    body_site: ''}
 
   # --- Bedside / routine ---
