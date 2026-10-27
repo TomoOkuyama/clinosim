@@ -65,6 +65,27 @@ def test_sample_hai_onset_returns_false_for_short_line_days():
     assert occurred is False
 
 
+def test_sample_hai_onset_two_day_line_has_no_onset_day_but_keeps_draw():
+    # Onset is sampled from [2, line_days); a 2-day line has no valid day.
+    # The firing draw is still consumed so the RNG stream matches the
+    # pre-fix path for lines that do not fire.
+    device = DeviceRecord(
+        device_id="d",
+        encounter_id="e",
+        device_type="cvc",
+        snomed_code="52124006",
+        placement_date="2026-01-01",
+        removal_date="2026-01-03",
+        placement_indication="severity_moderate_plus",
+    )
+    rng = np.random.default_rng(42)
+    occurred, onset = sample_hai_onset(device, {"per_day_risk": 1.0}, rng)
+    assert (occurred, onset) == (False, None)
+    reference = np.random.default_rng(42)
+    reference.random()
+    assert rng.random() == reference.random()
+
+
 def test_sample_hai_onset_returns_true_for_long_line_days_high_risk():
     device = DeviceRecord(
         device_id="d",

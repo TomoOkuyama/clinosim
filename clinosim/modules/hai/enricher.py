@@ -144,6 +144,10 @@ def enrich_hai(ctx) -> None:
                     continue
                 # Mirror sample_hai_onset's exact draws (firing branch)
                 _ = rng.random()
+                if line_days <= 2:
+                    # sample_hai_onset returns after the firing draw here
+                    # (no eligible onset day), so no further draws.
+                    continue
                 _ = rng.integers(2, line_days)
                 # Mirror _sample_organism's exact draw via choice with
                 # the matching weight distribution for this hai_type
