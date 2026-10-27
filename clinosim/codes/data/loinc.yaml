@@ -692,6 +692,10 @@ codes:
   # (PHQ-9 / GAD-7 / C-SSRS; closed under axes 2, 3, 7 of cluster 1).
   # The axes landed as additions to the existing observation emit
   # path rather than a dedicated ``modules/mental_health/`` package.
+  # NLM Clinical Tables LOINC API verified 2026-10-27.
+  57130-7:
+    en: Newborn screening report - overall interpretation
+    ja: 新生児マススクリーニング 総合判定
   44249-1:
     en: PHQ-9 quick depression assessment panel
     ja: PHQ-9 うつ病質問票 総合スコア
