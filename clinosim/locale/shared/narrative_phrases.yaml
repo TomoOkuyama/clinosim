@@ -75,6 +75,34 @@ progress:
   spo2_recovering:
     ja: "SpO2 改善 (前日 {ps:.0f}% → 本日 {s:.0f}%)。"
     en: "SpO2 recovering (prev {ps:.0f}% → today {s:.0f}%)."
+  # Issue #2095: pain / consciousness / withdrawal trends from recorded vitals.
+  pain_improving:
+    ja: "疼痛改善傾向 (NRS 前日 {p} → 本日 {q})。"
+    en: "Pain improving (NRS {p} → {q})."
+  pain_worsening:
+    ja: "疼痛増強 (NRS 前日 {p} → 本日 {q})。"
+    en: "Pain worsening (NRS {p} → {q})."
+  pain_persistent:
+    ja: "疼痛持続 (NRS {q})。"
+    en: "Pain persists (NRS {q})."
+  pain_controlled:
+    ja: "疼痛コントロール良好 (NRS {p} → {q})。"
+    en: "Pain well controlled (NRS {p} → {q})."
+  confusion_new:
+    ja: "意識レベル低下あり (AVPU {a})、見当識の確認を継続。"
+    en: "New decrease in level of consciousness (AVPU {a}); orientation being monitored."
+  confusion_persistent:
+    ja: "意識レベル低下持続 (AVPU {a})。"
+    en: "Level of consciousness remains decreased (AVPU {a})."
+  consciousness_improved:
+    ja: "意識レベル改善、清明 (前日 AVPU {a})。"
+    en: "Level of consciousness improved, now alert (prev AVPU {a})."
+  withdrawal_active:
+    ja: "振戦・発汗あり、離脱症状持続 (HR {hr})。"
+    en: "Tremor and diaphoresis, withdrawal symptoms ongoing (HR {hr})."
+  withdrawal_settling:
+    ja: "振戦・発汗軽快、離脱症状は改善傾向 (HR {hr})。"
+    en: "Tremor and sweating settling, withdrawal improving (HR {hr})."
   # From template_generator._compose_progress_plan_from_state (Phase 1d-20).
   # Per-day inpatient plan lines: continue-meds list, today's procs,
   # observation fallback.
