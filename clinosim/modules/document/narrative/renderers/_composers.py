@@ -118,10 +118,63 @@ def compose_progress_subjective_from_state(ctx: NarrativeContext) -> str:
             parts.append(t("progress.spo2_recovering", lang, ps=prev_spo2, s=spo2_f))
             abnormal_added = True
 
+    symptom_parts = _progress_symptom_phrases(ctx, picks, prev, lang)
+    parts.extend(symptom_parts)
+    abnormal_added = abnormal_added or bool(symptom_parts)
+
     if not abnormal_added:
         phrase = pick_stable_progress_phrase(ctx, lang=lang)
         parts.append(phrase)
     return t("list_sep.chunk", lang).join(parts)
+
+
+_AVPU_ORDER = {"A": 0, "V": 1, "P": 2, "U": 3}
+_SUBJ_PAIN_NOTABLE = 4
+_SUBJ_PAIN_CHANGE = 2
+_SUBJ_WITHDRAWAL_HR = 100
+
+
+def _progress_symptom_phrases(ctx: NarrativeContext, today: list, prev: list, lang: str) -> list[str]:
+    """Pain trend, consciousness change and withdrawal symptoms from the
+    recorded vitals of today vs the previous day (Issue #2095)."""
+    out: list[str] = []
+
+    def _max(rows: list, key: str) -> int | None:
+        vals = [int(x) for x in (_o(r, key, None) for r in rows) if x is not None]
+        return max(vals) if vals else None
+
+    def _worst_avpu(rows: list) -> str:
+        levels = [str(_o(r, "consciousness_level", "") or "") for r in rows]
+        levels = [lv for lv in levels if lv in _AVPU_ORDER]
+        return max(levels, key=_AVPU_ORDER.__getitem__) if levels else ""
+
+    pain, prev_pain = _max(today, "pain_score"), _max(prev, "pain_score")
+    if pain is not None:
+        if prev_pain is not None and prev_pain >= _SUBJ_PAIN_NOTABLE and pain < _SUBJ_PAIN_NOTABLE:
+            out.append(t("progress.pain_controlled", lang, p=prev_pain, q=pain))
+        elif pain >= _SUBJ_PAIN_NOTABLE:
+            if prev_pain is not None and pain <= prev_pain - _SUBJ_PAIN_CHANGE:
+                out.append(t("progress.pain_improving", lang, p=prev_pain, q=pain))
+            elif prev_pain is not None and pain >= prev_pain + _SUBJ_PAIN_CHANGE:
+                out.append(t("progress.pain_worsening", lang, p=prev_pain, q=pain))
+            else:
+                out.append(t("progress.pain_persistent", lang, q=pain))
+
+    avpu, prev_avpu = _worst_avpu(today), _worst_avpu(prev)
+    if avpu and avpu != "A":
+        key = "progress.confusion_persistent" if prev_avpu and prev_avpu != "A" else "progress.confusion_new"
+        out.append(t(key, lang, a=avpu))
+    elif avpu == "A" and prev_avpu and prev_avpu != "A":
+        out.append(t("progress.consciousness_improved", lang, a=prev_avpu))
+
+    disease_id = getattr(getattr(ctx, "disease_protocol", None), "disease_id", "") or ""
+    if disease_id == "alcohol_withdrawal":
+        hr, prev_hr = _max(today, "heart_rate"), _max(prev, "heart_rate")
+        if hr is not None and hr > _SUBJ_WITHDRAWAL_HR:
+            out.append(t("progress.withdrawal_active", lang, hr=hr))
+        elif hr is not None and prev_hr is not None and prev_hr > _SUBJ_WITHDRAWAL_HR:
+            out.append(t("progress.withdrawal_settling", lang, hr=hr))
+    return out
 
 
 def pick_stable_progress_phrase(ctx: NarrativeContext, *, lang: str) -> str:
