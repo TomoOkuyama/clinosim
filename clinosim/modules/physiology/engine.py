@@ -125,6 +125,7 @@ from clinosim.modules.physiology._lab_derivation_thresholds import (
     HDL_BASELINE_FEMALE_MG_DL,
     HDL_BASELINE_MALE_MG_DL,
     HDL_DYSLIPIDEMIA_SCALE,
+    LAB_REFERENCE_SAO2_PCT,
     LACTATE_BASELINE_MMOL_L,
     LACTATE_PERFUSION_SCALE,
     LDH_BASELINE_U_L,
@@ -134,6 +135,7 @@ from clinosim.modules.physiology._lab_derivation_thresholds import (
     PCO2_BASELINE_MMHG,
     PCO2_CLAMP_MAX,
     PCO2_CLAMP_MIN,
+    PCO2_HYPOXIC_HYPERVENTILATION_MMHG,
     PCO2_RESPIRATORY_GAIN,
     PCO2_WINTERS_COMPENSATION_RATIO,
     PCO2_WINTERS_HCO3_COEFF,
@@ -147,10 +149,8 @@ from clinosim.modules.physiology._lab_derivation_thresholds import (
     PLT_BASELINE,
     PLT_COAGULATION_SCALE,
     PLT_FLOOR,
-    PO2_BASELINE_MMHG,
     PO2_CLAMP_MAX,
     PO2_CLAMP_MIN,
-    PO2_INFLAMMATION_SCALE,
     POTASSIUM_ACIDOSIS_SCALE,
     POTASSIUM_BASE_MEQ_L,
     POTASSIUM_MAX_MEQ_L,
@@ -676,6 +676,38 @@ def medication_flags_from_context(
     return {"on_warfarin": on_warfarin}
 
 
+def room_air_saturation(state: PhysiologicalState, baseline_spo2: float) -> float:
+    """Room-air arterial saturation (%) implied by the state: inflammation
+    (lung involvement), volume overload and ``oxygenation_impairment``. Shared
+    by the SpO2 vital and blood-gas pO2 so the two agree (Issue #2088)."""
+    infl = state.inflammation_level
+    vol = state.volume_status
+    oxy = state.oxygenation_impairment
+    spo2 = baseline_spo2
+    if infl > SPO2_INFLAMMATION_THRESHOLD:
+        spo2 -= (infl - SPO2_INFLAMMATION_THRESHOLD) * SPO2_INFLAMMATION_SCALE
+    if vol > SPO2_VOLUME_OVERLOAD_THRESHOLD:
+        spo2 -= (vol - SPO2_VOLUME_OVERLOAD_THRESHOLD) * SPO2_VOLUME_OVERLOAD_SCALE
+    if oxy:
+        spo2 -= oxy * OXYGENATION_SPO2_SCALE
+    return clamp(spo2, SPO2_CLAMP_MIN, SPO2_CLAMP_MAX)
+
+
+def po2_from_saturation(saturation_pct: float) -> float:
+    """pO2 (mmHg) at a given saturation (%) on the Severinghaus oxyhemoglobin
+    dissociation curve, S = 1 / (23400 / (P^3 + 150 P) + 1), inverted by
+    bisection (deterministic, no RNG)."""
+    target = min(max(saturation_pct / 100.0, 0.01), 0.999)
+    lo, hi = 1.0, 600.0
+    for _ in range(60):
+        mid = (lo + hi) / 2
+        if 1.0 / (23400.0 / (mid**3 + 150.0 * mid) + 1.0) < target:
+            lo = mid
+        else:
+            hi = mid
+    return (lo + hi) / 2
+
+
 def derive_lab_values(
     state: PhysiologicalState,
     sex: str,
@@ -965,6 +997,8 @@ def derive_lab_values(
     if rf > 0.0 and ph != 0.0:
         # Renal (metabolic) compensation for a respiratory disturbance (~0.35 mEq/mmHg).
         hco3 += HCO3_RENAL_COMPENSATION_RATIO * (pco2 - PCO2_BASELINE_MMHG)
+    # Hypoxic hyperventilation lowers pCO2 except in CO2 retainers (Issue #2088).
+    pco2 -= state.oxygenation_impairment * mf * PCO2_HYPOXIC_HYPERVENTILATION_MMHG
     pco2 = clamp(pco2, PCO2_CLAMP_MIN, PCO2_CLAMP_MAX)
     hco3 = clamp(hco3, HCO3_CLAMP_MIN, HCO3_CLAMP_MAX)
     labs["HCO3"] = hco3
@@ -974,9 +1008,11 @@ def derive_lab_values(
         PH_CLAMP_MIN,
         PH_CLAMP_MAX,
     )
-    # pO2: reduced by pulmonary involvement (inflammation as a lung-injury proxy until a
-    # dedicated respiratory/oxygenation state variable exists — AD-57 follow-up).
-    labs["pO2"] = clamp(PO2_BASELINE_MMHG - infl * PO2_INFLAMMATION_SCALE, PO2_CLAMP_MIN, PO2_CLAMP_MAX)  # mm[Hg]
+    # pO2 from the same room-air saturation the SpO2 vital uses, inverted through
+    # the oxyhemoglobin dissociation curve, so SpO2 and pO2 agree (Issue #2088).
+    labs["pO2"] = clamp(
+        po2_from_saturation(room_air_saturation(state, LAB_REFERENCE_SAO2_PCT)), PO2_CLAMP_MIN, PO2_CLAMP_MAX
+    )  # mm[Hg]
 
     # --- Electrolytes: Cl and Ca complete BMP canonical 8 ---
     # Cl reflects (a) Na linkage (electroneutrality) and (b) HCO3 reciprocity:
@@ -1132,14 +1168,7 @@ def derive_vital_signs(
     rr = clamp(rr, RR_CLAMP_MIN, RR_CLAMP_MAX)
 
     # SpO2
-    spo2 = baseline.spo2
-    if infl > SPO2_INFLAMMATION_THRESHOLD:
-        spo2 -= (infl - SPO2_INFLAMMATION_THRESHOLD) * SPO2_INFLAMMATION_SCALE
-    if vol > SPO2_VOLUME_OVERLOAD_THRESHOLD:
-        spo2 -= (vol - SPO2_VOLUME_OVERLOAD_THRESHOLD) * SPO2_VOLUME_OVERLOAD_SCALE
-    if oxy:
-        spo2 -= oxy * OXYGENATION_SPO2_SCALE
-    spo2 = clamp(spo2, SPO2_CLAMP_MIN, SPO2_CLAMP_MAX)
+    spo2 = room_air_saturation(state, baseline.spo2)
 
     return {
         "temperature": round(temperature, 1),

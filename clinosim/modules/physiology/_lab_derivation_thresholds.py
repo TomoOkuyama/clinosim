@@ -80,7 +80,8 @@ __all__ = [
     "PO2_BASELINE_MMHG",
     "PO2_CLAMP_MAX",
     "PO2_CLAMP_MIN",
-    "PO2_INFLAMMATION_SCALE",
+    "LAB_REFERENCE_SAO2_PCT",
+    "PCO2_HYPOXIC_HYPERVENTILATION_MMHG",
     "WBC_CIRCADIAN_AMPLITUDE",
     "WBC_CIRCADIAN_HOUR_OFFSET",
     "WBC_CIRCADIAN_HOUR_PERIOD",
@@ -792,10 +793,16 @@ PO2_BASELINE_MMHG: float = 95.0
 """Baseline arterial pO2 (mmHg) at zero pulmonary involvement —
 matches healthy young-adult resting sea-level."""
 
-PO2_INFLAMMATION_SCALE: float = 45.0
-"""pO2 drop (mmHg per unit inflammation) — reflects pulmonary
-involvement (inflammation as a lung-injury proxy until a dedicated
-respiratory/oxygenation state variable exists)."""
+LAB_REFERENCE_SAO2_PCT: float = 97.4
+"""Room-air arterial saturation (%) of a healthy reference patient used to
+derive blood-gas pO2 (Issue #2088). 97.4% sits at pO2 ~95 mmHg on the
+Severinghaus dissociation curve, i.e. ``PO2_BASELINE_MMHG``."""
+
+PCO2_HYPOXIC_HYPERVENTILATION_MMHG: float = 18.0
+"""pCO2 fall (mmHg) at full ``oxygenation_impairment`` from hypoxic
+hyperventilation, scaled by the metabolic fraction so CO2 retainers
+(COPD / severe asthma, respiratory_fraction 1) do not hyperventilate.
+PE with impairment 0.44 → pCO2 ~32 mmHg (Issue #2088)."""
 
 PO2_CLAMP_MIN: float = 45.0
 """Physiologic minimum pO2 (mmHg) — matches severe hypoxemia floor
