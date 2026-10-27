@@ -33,8 +33,9 @@ datetime when one exists (Type & Screen is a routine admission order),
 otherwise the earliest encounter — matches EHR reality where a blood
 type record is anchored to the first known workup.
 
-`category = laboratory` (per HL7 v2-0074) so consumers filter these
-alongside CBC / BMP results, not alongside social-history observations.
+`category = laboratory` (from the canonical HL7 Observation Category
+CodeSystem — Issue #2003) so consumers filter these alongside CBC / BMP
+results, not alongside social-history observations.
 
 The specimen (whole blood) is a fixed clinical reality — the emit
 carries it via `specimen` reference only when the record already
@@ -105,9 +106,15 @@ _LOINC_RH_GROUP = "10331-7"
 # `code_lookup("snomed-ct", …)` against the authority yaml, so this
 # module no longer carries any SNOMED code constants.
 
-# HL7 v2-0074 laboratory category (shared with lab Observations).
-_V2_0074_SYSTEM = "http://terminology.hl7.org/CodeSystem/v2-0074"
-_LAB_CATEGORY_V2_0074 = "LAB"
+# Canonical HL7 Observation Category CodeSystem — the correct value-set
+# for FHIR ``Observation.category`` (Issue #2003). The v2-0074
+# "Diagnostic Service Section" code system (``LAB`` upper-case) was the
+# wrong CodeSystem choice here — it is the one DiagnosticReport.category
+# and ServiceRequest.category draw from, not Observation.category.
+# Resolved through ``get_system_uri("hl7-observation-category")`` so the
+# system URI stays sourced from the canonical registry
+# (``clinosim/codes/loader.py``) rather than being hard-coded.
+_LAB_CATEGORY_CODE = "laboratory"
 
 
 def _blood_type_effective_datetime(ctx: BundleContext) -> str:
@@ -186,8 +193,8 @@ def _build_blood_type_obs(
             {
                 "coding": [
                     {
-                        "system": _V2_0074_SYSTEM,
-                        "code": _LAB_CATEGORY_V2_0074,
+                        "system": get_system_uri("hl7-observation-category"),
+                        "code": _LAB_CATEGORY_CODE,
                         "display": "Laboratory",
                     }
                 ],
