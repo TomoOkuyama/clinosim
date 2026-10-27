@@ -132,13 +132,14 @@ def test_no_hai_events_no_changes():
 def test_clabsi_full_lift_at_day_2_uses_closed_form_and_draw_hour():
     """Day 4 obs (2 days past onset) → full ramp.
 
-    The closed-form delta should be:
-      WBC pre-circadian (eff=0.75) - WBC pre-circadian (infl=0.4)
-        = (7000 + 0.75 * 12000) - (7000 + 0.4 * 12000)
-        = 16000 - 11800 = 4200
+    Issue #1987 retune: clabsi lift 0.35 -> 0.40 (eff_infl=0.80, the
+    WBC_HIGH_INFLAMMATION_THRESHOLD peak). Closed-form delta becomes:
+      WBC pre-circadian (eff=0.80) - WBC pre-circadian (infl=0.4)
+        = (7000 + 0.80 * 12000) - (7000 + 0.4 * 12000)
+        = 16600 - 11800 = 4800
       circadian(6) = 1.0 + 0.10 * (-cos((6-4) * pi / 12)) ~= 0.9134
-      delta_WBC = 4200 * circadian(6)
-    CRP: 400 * (0.75^3 - 0.4^3) = 400 * (0.421875 - 0.064) = 143.15
+      delta_WBC = 4800 * circadian(6)
+    CRP: 400 * (0.80^3 - 0.4^3) = 400 * (0.512 - 0.064) = 179.2
     """
     admission = datetime(2026, 1, 8, 0)
     state_history = _build_state_history([0.4] * 8)
@@ -161,13 +162,13 @@ def test_clabsi_full_lift_at_day_2_uses_closed_form_and_draw_hour():
 
     n = apply_hai_lab_lift(record, _encounter(), state_history, admission)
     assert n == 2
-    assert wbc_obs.value == pytest.approx(11760 + 4200 * _circadian_wbc(6), abs=1.0)
+    assert wbc_obs.value == pytest.approx(11760 + 4800 * _circadian_wbc(6), abs=1.0)
     assert crp_obs.value == pytest.approx(
-        25.9 + 400 * (0.75**3 - 0.4**3),
+        25.9 + 400 * (0.80**3 - 0.4**3),
         abs=0.5,
     )
-    # Flag recomputed: lifted CRP ~169 mg/L is high (default ref 0-3),
-    # lifted WBC ~16100 is high (default ref ~4500-11000).
+    # Flag recomputed: lifted CRP ~205 mg/L is high (default ref 0-3),
+    # lifted WBC ~16400 is high (default ref ~4500-11000).
     assert crp_obs.flag in ("H", "critical")
     assert wbc_obs.flag in ("H", "critical")
 
@@ -196,8 +197,12 @@ def test_pre_onset_observation_unchanged():
 
 
 @pytest.mark.integration
-def test_ramp_at_day_1_is_half_lift():
-    """day 1 past onset → ramp_factor = 1/2 = 0.5 → effective_lift = 0.175."""
+def test_ramp_at_day_1_is_full_lift():
+    """day 1 past onset → ramp_factor = min(1, 1/1) = 1.0 → full lift.
+
+    Issue #1987 retune: ramp_peak_days 2 -> 1, so day 1 obs now get
+    full lift (not half). effective_lift = clabsi_lift (0.40).
+    """
     admission = datetime(2026, 1, 8, 0)
     state_history = _build_state_history([0.4] * 5)
     obs, order = _ordered_obs(
@@ -211,7 +216,7 @@ def test_ramp_at_day_1_is_half_lift():
         [order],
     )
     apply_hai_lab_lift(record, _encounter(), state_history, admission)
-    expected_delta = 400 * ((0.4 + 0.175) ** 3 - 0.4**3)
+    expected_delta = 400 * ((0.4 + 0.40) ** 3 - 0.4**3)
     assert obs.value == pytest.approx(25.9 + expected_delta, abs=0.5)
 
 
@@ -255,7 +260,7 @@ def test_non_wbc_crp_observation_untouched():
 
 @pytest.mark.integration
 def test_multi_event_takes_max_not_sum():
-    """CLABSI 0.35 + CAUTI 0.20 same day → max 0.35, not 0.55."""
+    """CLABSI 0.40 + CAUTI 0.20 same day → max 0.40, not 0.60."""
     admission = datetime(2026, 1, 8, 0)
     state_history = _build_state_history([0.4] * 8)
     obs, order = _ordered_obs("CRP", datetime(2026, 1, 12, 8), 25.9)
@@ -265,9 +270,9 @@ def test_multi_event_takes_max_not_sum():
     ]
     record = _record(events, [obs], [order])
     apply_hai_lab_lift(record, _encounter(), state_history, admission)
-    # Expected = baseline + delta_for_max_lift_0.35 (NOT delta_for_0.55)
-    expected_delta_max = 400 * (0.75**3 - 0.4**3)
-    expected_delta_sum = 400 * (0.95**3 - 0.4**3)
+    # Expected = baseline + delta_for_max_lift_0.40 (NOT delta_for_0.60)
+    expected_delta_max = 400 * (0.80**3 - 0.4**3)
+    expected_delta_sum = 400 * (1.00**3 - 0.4**3)
     assert obs.value == pytest.approx(25.9 + expected_delta_max, abs=0.5)
     assert obs.value < 25.9 + expected_delta_sum  # NOT additive
 
@@ -311,8 +316,9 @@ def test_wbc_uses_order_draw_hour_not_result_hour():
         [order],
     )
     apply_hai_lab_lift(record, _encounter(), state_history, admission)
-    # delta = 4200 * circadian(6), NOT circadian(10) (the result hour)
-    expected_delta = 4200 * _circadian_wbc(6)
+    # Issue #1987: clabsi lift 0.40 → eff_infl=0.80, pre_circ delta = 4800.
+    # delta = 4800 * circadian(6), NOT circadian(10) (the result hour)
+    expected_delta = 4800 * _circadian_wbc(6)
     assert obs.value == pytest.approx(11760 + expected_delta, abs=1.0)
     assert _circadian_wbc(6) != pytest.approx(_circadian_wbc(10), abs=0.01)
 
