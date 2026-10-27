@@ -25,16 +25,23 @@ FHIR-R4-conformant servers work the same way).
 
 ```bash
 $ ls jp-100/fhir_r4/
-AllergyIntolerance.ndjson    Encounter.ndjson             Location.ndjson
-CareTeam.ndjson              Endpoint.ndjson              MedicationAdministration.ndjson
-ClinicalImpression.ndjson    FamilyMemberHistory.ndjson   MedicationRequest.ndjson
-Composition.ndjson           ImagingStudy.ndjson          Observation.ndjson
-Condition.ndjson             Immunization.ndjson          Organization.ndjson
-Coverage.ndjson              Patient.ndjson               PractitionerRole.ndjson
-DiagnosticReport.ndjson      Practitioner.ndjson          Procedure.ndjson
-DocumentReference.ndjson                                  ServiceRequest.ndjson
+AllergyIntolerance.ndjson    DocumentReference.ndjson     Observation.ndjson
+CareTeam.ndjson              Encounter.ndjson             Organization.ndjson
+ClinicalImpression.ndjson    Endpoint.ndjson              Patient.ndjson
+Composition.ndjson           FamilyMemberHistory.ndjson   Practitioner.ndjson
+Condition.ndjson             ImagingStudy.ndjson          PractitionerRole.ndjson
+Coverage.ndjson              Immunization.ndjson          Procedure.ndjson
+Device.ndjson                Location.ndjson              ServiceRequest.ndjson
+DeviceUseStatement.ndjson    MedicationAdministration.ndjson  Specimen.ndjson
+DiagnosticReport.ndjson      MedicationRequest.ndjson
 manifest.json
 ```
+
+The exact file set depends on which modules fire for the cohort —
+`Device.ndjson` / `DeviceUseStatement.ndjson` emit only when G47.30
+CPAP patients are present (opt-in via disease prevalence), and
+`Specimen.ndjson` only when microbiology-cultures encounter chain
+fires.
 
 Each `.ndjson` is one FHIR resource per line. `manifest.json` is the
 Bulk Data descriptor pointing at those files.

@@ -11,9 +11,10 @@
 ```
 clinosim/
 ├── codes/                    # ★ International code systems + multilingual display (locale-independent)
-│   ├── data/                 # 32 YAML (icd-10-cm / icd-10 / loinc / jlac10 /
+│   ├── data/                 # 72 YAML (icd-10-cm / icd-10 / loinc / jlac10 /
 │   │                         #          rxnorm / yj / cpt / k-codes / snomed-ct /
-│   │                         #          hot7 / cvx / HL7 terminology / JP-CLINS eCS ...)
+│   │                         #          hot7 / cvx / HL7 terminology / JP-CLINS eCS /
+│   │                         #          A1-A15 migration cohort — see clinosim/codes/README.md)
 │   └── loader.py             # lookup(system, code, lang) API
 │
 ├── locale/                   # Country/culture-specific data
@@ -46,7 +47,7 @@ clinosim/
 │   ├── identity.py           # NationalIdentity, InsuranceEnrollment, IdentityTimeline
 │   └── output.py             # CIFDataset, CIFPatientRecord, CIFMetadata
 │
-├── modules/                  # Functional modules (33 packages, each with README)
+├── modules/                  # Functional modules (39 packages, each with README)
 │   ├── disease/              # disease YAML protocols
 │   ├── encounter/            # 46 ED/outpatient condition YAMLs
 │   ├── physiology/           # 14-state model + lab/vital derivation
@@ -94,11 +95,19 @@ clinosim/
 │   │           └── ... (see clinosim/modules/llm_service/prompts/en/)
 │   └── validator/            # Comparison against published benchmarks
 │
-├── simulator/                # Top-level orchestration
-│   ├── engine.py             # run_beta, run_forced
-│   ├── inpatient.py          # Inpatient simulation
+├── simulator/                # Top-level orchestration (~50 files split by phase / pipeline / dispatch)
+│   ├── engine.py             # run_beta, run_forced (thin façade post-C2 split)
+│   ├── _setup.py             # pre-flight / cohort cache / time-range helpers (C2a)
+│   ├── _dispatch.py          # hospital-event dispatcher + overlap handling (C2b)
+│   ├── phases/               # per-phase runners (C2c-f): healthcare_calendar, post_discharge, readmission, ed_slot
+│   ├── inpatient.py          # Inpatient simulation (_simulate_patient)
 │   ├── emergency.py          # ED visit
 │   ├── outpatient.py         # Outpatient visit
+│   ├── perinatal.py          # Obstetric / newborn encounter shells
+│   ├── enrichers.py          # Enricher registry (POST_POPULATION / POST_ENCOUNTER / POST_RECORDS)
+│   ├── daily_loop.py         # Per-day inpatient tick
+│   ├── discharge_gate.py     # Discharge readiness evaluation
+│   ├── vitals_pipeline.py / medication_pipeline.py / lab_pipeline.py  # Per-day pipelines
 │   ├── helpers.py            # Ward/department resolver, mortality, etc.
 │   └── cli.py                # CLI entry point (simulate/generate, narrate, export-fhir, ...)
 │

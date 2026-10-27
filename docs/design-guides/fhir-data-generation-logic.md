@@ -454,9 +454,11 @@ in `clinosim/modules/_shared.py` — shared-logic unification
   `if lang == "ja":` gate needed. Underlying `_localize_drug_name`
   (country-parameter form) remains for callers on the country
   seam; both are backed by the canonical cached loaders
-  `clinosim/locale/loader.py:load_narrative_display_dict()` /
-  `load_med_terms_ja()` — no raw-YAML reads inside the builder
-  (E.3).
+  `clinosim/locale/loaders/narrative.py:load_narrative_display_dict()` /
+  `clinosim/locale/loaders/medical_display.py:load_med_terms_ja()`
+  (both still re-exported from `clinosim/locale/loader.py` as a
+  compatibility façade post-B1/B2b split) — no raw-YAML reads
+  inside the builder (E.3).
 - Department display = `_dept_display()` (backed by
   `load_department_display()`).
 - If no translation exists → EN fallback + audit warn list.
@@ -530,12 +532,14 @@ def _bb_foo(ctx):
 `_fhir_localization.py` used to load locale's shared YAML
 (`med_terms_ja.yaml` / the retired `drug_names_ja.yaml` (deleted #1876; replaced by `load_narrative_display_dict` catalog UNION) /
 `department_display.yaml`) with inline `yaml.safe_load` from inside
-the builder — this has been moved to the canonical cached loaders
-in `clinosim/locale/loader.py` (`load_med_terms_ja()` /
-`load_narrative_display_dict()` / `load_department_display()`). Builders
-that need locale data now import these — do not write new inline
-YAML reads in a builder. Cached loader return values are shared
-instances (mutation forbidden).
+the builder — this has been moved to the canonical cached loaders in
+`clinosim/locale/loaders/` (`medical_display.py:load_med_terms_ja()` /
+`narrative.py:load_narrative_display_dict()` /
+`medical_display.py:load_department_display()`), all re-exported
+from `clinosim/locale/loader.py` for backward compatibility.
+Builders that need locale data now import these — do not write
+new inline YAML reads in a builder. Cached loader return values
+are shared instances (mutation forbidden).
 
 ### E.4 ❌ Writing display strings into CIF (AD-30 violation)
 

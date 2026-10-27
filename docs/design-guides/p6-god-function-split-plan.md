@@ -1,17 +1,30 @@
 # P6 god-function split plan — proposed phase boundaries for `_simulate_patient`, `run_beta`, and `narrative/`
 
-> **Status (2026-10-16 close)**: this design was executed in-session. The LOC counts in the table below reflect the **pre-split baseline**; the extractions actually shipped are listed per section. The one remaining dedicated-session item is the `TemplateNarrativeGenerator` god class decomposition (161 methods, now ~6540 LOC in `template_generator.py` after the pre-class helpers were lifted into `_localization.py` / `_template_helpers.py` / `_narrative_utils.py` siblings).
+> **Status (2026-10-27)**: three of the four targets are fully split; one (`_simulate_patient`) is partially split. The sections that follow are kept as historical plan — the executed split differs from the per-disease proposal for `template_generator.py` and from the proposed `_run_beta_*` phase names for `run_beta`. See each section's **Shipped execution** callout for what actually landed.
+>
+> | Target | Pre-split LOC | Current LOC | Shipped |
+> |---|---:|---:|---|
+> | `clinosim/simulator/inpatient.py:_simulate_patient` | 707 | ~461 | **Partial** — `_derive_microbiology` / `_finalize_discharge` / `_run_post_encounter_stage` lifted; remaining body stays in `inpatient.py` pending separate RNG-byte-identity waiver |
+> | `clinosim/simulator/engine.py:run_beta` | 2059 (file) / 1147 (function) | 632 (file) / 138-onward (function) | **Shipped as C2a-C2f** — see §`run_beta` **Shipped execution** |
+> | `clinosim/modules/document/narrative/template_generator.py` | 7551 → 6539 (pre-C1) | 1399 | **Shipped as C1a-C1s** — **per-section-builder** split under `renderers/section_builders/` + `_resolvers` / `_composers` / `_ed_helpers` / `_shared_helpers`, not per-disease. See §`template_generator.py` **Shipped execution** |
+> | `clinosim/modules/document/narrative/replacement_strategy.py` | 2221 | 791 | **Shipped alongside C1 narrative extraction** |
+> | `clinosim/modules/population/engine.py` (added mid-review as CRITICAL C3) | 2066 | 1157 | **Shipped as C3a-C3e** — see §new entry below |
 
-Context: META #1633 code review (2026-10-15) flagged five god functions / files in the simulator + narrative sub-tree. Three were handled in-session (`activate_patient` → `_derive_chronic_conditions` extraction, `fhir_r4/__init__.py` → `builder.py` + facade split). The remaining four are substantial refactors that need design review before mechanical extraction can proceed safely:
+Context: META #1633 code review (2026-10-15) flagged five god functions / files in the simulator + narrative sub-tree. Three were handled in-session (`activate_patient` → `_derive_chronic_conditions` extraction, `fhir_r4/__init__.py` → `builder.py` + facade split). The remaining four were worked through C1 (narrative, 2026-10-15..26), C2 (simulator/engine, 2026-10-25..26), and C3 (modules/population/engine, 2026-10-26), reaching the completion state captured in the table above.
 
-| Target | LOC | Risk class |
-|---|---|---|
-| `clinosim/simulator/inpatient.py:_simulate_patient` | 707 | **RNG hot path** — any extraction that changes consumption order breaks fingerprint byte-identity |
-| `clinosim/simulator/engine.py:run_beta` | 1147 | **RNG hot path + multi-stage loop** — month-tick / dispatch / writeback phases interact via shared state |
-| `clinosim/modules/document/narrative/template_generator.py` | 7551 | **Not RNG-sensitive but structurally huge** — needs per-disease / per-document-type split design |
-| `clinosim/modules/document/narrative/replacement_strategy.py` | 2221 | Same package; splits alongside `template_generator.py` |
+The sections that follow are the original plan proposals. They remain for history; the actual shipped split for each target is called out inline.
 
-This document records the proposed split for each, so a follow-up PR can execute the extraction with a reviewed design in hand rather than deciding boundaries on the fly.
+**Shipped execution — `_simulate_patient`** (partial):
+`_derive_microbiology`, `_finalize_discharge`, and `_run_post_encounter_stage` were extracted earlier; the rest of the admit / tick / discharge body stays in `inpatient.py` because any further extraction would require a reviewed RNG-byte-identity waiver.
+
+**Shipped execution — `run_beta`** (C2a-C2f, 2026-10-25..26):
+instead of the `_run_beta_prepare` / `_run_beta_month_tick` / `_run_beta_dispatch_window` / `_run_beta_writeback` names below, the actual split produced `clinosim/simulator/_setup.py` (C2a — pre-flight / cohort cache / time-range helpers), `clinosim/simulator/_dispatch.py` (C2b — hospital-event dispatcher + overlap handling), and `clinosim/simulator/phases/` (C2c-f — `_healthcare_calendar.py`, `_post_discharge.py`, `_readmission.py`, `_ed_slot.py`). Byte-identity verified against master via `scripts/engine-fingerprint.sh` on US p=500 seed=42 + JP p=500 seed=17.
+
+**Shipped execution — `template_generator.py` + `replacement_strategy.py`** (C1a-C1s, 2026-10-15..26):
+instead of the per-disease split proposed below, the actual split was **per-document-section** — 12 section builders under `clinosim/modules/document/narrative/renderers/section_builders/` (`assessment_and_plan.py`, `care_plans.py`, `chief_complaint.py`, `discharge_summary.py`, `ed_note.py`, `hpi.py`, `jp_clins.py`, `mortality.py`, `nursing.py`, `op_pn_notes.py`, `outpatient_soap.py`, `patient_history.py`) plus 4 per-cluster shared-helper modules (`_resolvers.py`, `_composers.py`, `_ed_helpers.py`, `_shared_helpers.py`), all re-exported through the thin façade at `template_generator.py`. The per-disease / per-document-type proposals below were not adopted.
+
+**Shipped execution — `modules/population/engine.py`** (C3a-C3e, 2026-10-26):
+added mid-review as the fifth target. Split into `clinosim/modules/population/_chronic.py` (C3a — chronic prevalence cluster), `_demographics.py` (C3b — demographics sampling), `_identity.py` (C3c — name / occupation / household address / phone sampling), `_pregnancy.py` (C3d — pregnancy / perinatal lifecycle), `_chemo.py` (C3e — chemo cycle scheduler). Re-exported through the engine façade; byte-identity verified.
 
 ## `_simulate_patient` (707 LOC) — admit / tick / discharge phases
 

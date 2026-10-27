@@ -667,10 +667,10 @@ The two-pass CIF generation architecture (`clinosim simulate` → Stage 1 struct
    # Verify structural CIF has correct encounter/patient data
    ```
 
-2. **Fix** in code: `clinosim/modules/document/narrative/template_generator.py`
-   - Locate builder function (`_build_hpi`, `_build_physical_examination`)
-   - Check `_pick_localized(tmpl, key, lang)` call is routing to `en` field for US language
-   - Verify Disease YAML `narrative.physical_examination_en` field is populated
+2. **Fix** in code: `clinosim/modules/document/narrative/template_generator.py` の薄い delegator (`_build_hpi` / `_build_physical_examination`) から、該当 section の `clinosim/modules/document/narrative/renderers/section_builders/<section>.py` (例: `hpi.py::_build_hpi_core`、`chief_complaint.py`、`assessment_and_plan.py`) に辿る。C1a-s 分割後、`template_generator.py` は thin façade で本体は per-section builder に移った。
+   - 該当 `renderers/section_builders/<section>.py` 内の `build_<section>(generator, ctx)` 自由関数を特定
+   - `_pick_localized(tmpl, key, lang)` が US 言語で `en` field を参照しているか確認
+   - Disease YAML の `narrative.physical_examination_en` field が埋まっているか確認
 
 3. **Verify fix** via fast Stage 2 regen (skip expensive full cohort):
    ```bash

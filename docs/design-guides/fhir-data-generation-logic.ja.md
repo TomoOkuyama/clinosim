@@ -385,7 +385,7 @@ JP cohort の判定は **`is_jp(ctx.country)`**、display 言語は **`resolve_l
 - 全 `display`, `text`, `name` field = 日本語(`code_lookup(..., resolve_lang(ctx.country))` 経由)
 - 国依存の code system 選択(JLAC10 vs LOINC 等)= `system_key_for(kind, ctx.country)`(E.11)
 - enum 値(severity / route / category 等)= `_localize_display()`(既存 helper、`clinosim/modules/output/fhir_r4/lib/common.py (localization helpers)`)
-- 薬剤 / 手技名 = `code_lookup()` または lang-aware wrapper `localize_drug_name(name, lang)` (`output/fhir_r4/lib/localization.py`、Phase 1d-61)。wrapper は lookup table を持たない locale では no-op なので、`if lang == "ja":` gate 不要で単一 code path。基底 `_localize_drug_name` (country 引数版) は country seam 経由の caller 用に残存。いずれも canonical cached loader (`load_narrative_display_dict()` / `load_med_terms_ja()`) 経由 — builder 内 raw YAML read 禁止 (E.3)。
+- 薬剤 / 手技名 = `code_lookup()` または lang-aware wrapper `localize_drug_name(name, lang)` (`output/fhir_r4/lib/localization.py`、Phase 1d-61)。wrapper は lookup table を持たない locale では no-op なので、`if lang == "ja":` gate 不要で単一 code path。基底 `_localize_drug_name` (country 引数版) は country seam 経由の caller 用に残存。いずれも canonical cached loader (`clinosim/locale/loaders/narrative.py:load_narrative_display_dict()` / `clinosim/locale/loaders/medical_display.py:load_med_terms_ja()`、両者とも B1/B2b 分割後 `clinosim/locale/loader.py` 経由で後方互換 re-export) — builder 内 raw YAML read 禁止 (E.3)。
 - 診療科 display = `_dept_display()`(裏側は `load_department_display()`)
 - 翻訳不在の場合 = en fallback + audit warn list
 
@@ -450,7 +450,7 @@ def _bb_foo(ctx):
 
 **Fix**: Layer 2 canonical loader を import(`from clinosim.modules.order.panel_grouping import load_panel_definitions`)。
 
-**Precedent(共通ロジック統一 2026-07-02)**: `_fhir_localization.py` は locale の shared YAML(`med_terms_ja.yaml` / the retired `drug_names_ja.yaml` (deleted #1876; replaced by `load_narrative_display_dict` catalog UNION) / `department_display.yaml`)を builder 内 `yaml.safe_load` で inline 読みしていたが、`clinosim/locale/loader.py` の canonical cached loader(`load_med_terms_ja()` / `load_narrative_display_dict()` / `load_department_display()`)に移設済。locale データが必要な builder はこれらを import する — 新たな inline YAML read を builder に書かない。cached loader の戻り値は共有 instance につき mutate 禁止。
+**Precedent(共通ロジック統一 2026-07-02)**: `_fhir_localization.py` は locale の shared YAML(`med_terms_ja.yaml` / the retired `drug_names_ja.yaml` (deleted #1876; replaced by `load_narrative_display_dict` catalog UNION) / `department_display.yaml`)を builder 内 `yaml.safe_load` で inline 読みしていたが、`clinosim/locale/loaders/` の canonical cached loader(`medical_display.py:load_med_terms_ja()` / `narrative.py:load_narrative_display_dict()` / `medical_display.py:load_department_display()`、いずれも `clinosim/locale/loader.py` 経由で後方互換 re-export)に移設済。locale データが必要な builder はこれらを import する — 新たな inline YAML read を builder に書かない。cached loader の戻り値は共有 instance につき mutate 禁止。
 
 ### E.4 ❌ CIF に display 文字列を書き込む(AD-30 違反)
 

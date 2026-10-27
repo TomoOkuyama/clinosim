@@ -1,8 +1,12 @@
 # `clinosim eval` — 公開評価フレームワーク
 
-`clinosim eval` は生成コホートを 3 軸 (**structural** / **clinical**
-/ **locale**) でスコア化し、check ごとの outcome、軸スコア (0–100)、
-overall score を含む JSON + Markdown レポートを emit します。
+`clinosim eval` は生成コホートを 6 軸 — 普遍 3 軸 (**structural** /
+**clinical** / **locale**) + 国 条件 3 軸
+(**jp_clins_lab_compliance** / **jp_core_compliance** /
+**us_core_compliance**) — でスコア化し、check ごとの outcome、
+軸スコア (0–100)、overall score を含む JSON + Markdown レポートを
+emit します。国 条件軸はコホートの locale に合致するもののみ有効化
+(ライブの plug-in discovery は `clinosim/eval/axes/` で確立 — META #1633 P8)。
 
 **`clinosim audit run` とは異なります** (詳細は
 [`docs/CONTRIBUTING-modules.md`](CONTRIBUTING-modules.ja.md)「PR 検証
@@ -101,9 +105,9 @@ JP Core meta.profile 存在から自動検出)。
 - Severity 重み: **CRITICAL = 3、MAJOR = 2、MINOR = 1**
 - Outcome 重み: **PASS = 1.0、WARN = 0.5、FAIL / N/A = 0.0**
 
-Overall score = 3 軸スコアの算術平均。Overall status はいずれかの軸
-のいずれかの check が FAIL なら `FAIL`、いずれか WARN なら `WARN`、
-それ以外は `PASS`。
+Overall score = 有効軸 (普遍 3 + 国 条件 1–2、locale に依存) スコア
+の算術平均。Overall status はいずれかの軸のいずれかの check が
+FAIL なら `FAIL`、いずれか WARN なら `WARN`、それ以外は `PASS`。
 
 ## JSON 出力形状
 

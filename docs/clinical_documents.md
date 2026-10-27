@@ -294,8 +294,13 @@ template will render it as a bullet list automatically.
 
 ### Available variables per task
 
-Variable names are defined by `document_generator.py` and must match the
-placeholders in the YAML templates. The complete lists are:
+Variable names are declared in the prompt yaml's `variables:` block
+(`clinosim/modules/llm_service/prompts/<lang>/<task>.yaml`) and the
+matching input builder in the narrative pipeline
+(`clinosim/modules/document/narrative/` — the per-section builders
+under `renderers/section_builders/` plus the composition dispatcher).
+The complete lists per task (as of the current master; see each prompt
+yaml for the live declaration):
 
 **discharge_summary**:
 `age, sex, admission_date, discharge_date, los_days, disposition,
@@ -331,9 +336,11 @@ When you improve a prompt template:
 1. **Bump the `version:` field.** The version number is recorded on every
    generated document (`ClinicalDocument.prompt_version`) so you can audit
    which version produced each note.
-2. **Do not rename variables** without updating `document_generator.py`. The
-   generator raises `KeyError` if a template references a variable the code
-   does not provide.
+2. **Do not rename variables** without updating the matching input
+   builder in `clinosim/modules/document/narrative/` + the
+   `variables:` block in the prompt yaml. The generator raises
+   `KeyError` if a template references a variable the code does
+   not provide.
 3. **Test in template mode first** to verify rendering without spending LLM
    tokens:
    ```bash
@@ -439,38 +446,52 @@ FHIR export.
    DOCUMENT_LOINC[LLMTaskType.CONSULTATION_NOTE] = "11488-4"
    ```
 
-3. **Create the English prompt YAML**
-   `clinosim/modules/llm_service/prompts/en/consultation_note.yaml`
-   following the template above.
+3. **Register task_loincs.yaml + task_categories.yaml**
+   (`clinosim/modules/llm_service/reference_data/`). The engine
+   validates full coverage at import — a new `LLMTaskType` value
+   with no row in `task_loincs.yaml` fails loud.
 
-4. **Add an input builder** in
-   `clinosim/modules/output/document_generator.py`:
-   ```python
-   def _build_consultation_note(record, encounter, llm, language):
-       variables = {
-           "age": ...,
-           "sex": ...,
-           "consulting_service": ...,
-           "reason_for_consult": ...,
-           ...
-       }
-       stub = _make_stub(
-           task_type=LLMTaskType.CONSULTATION_NOTE,
-           patient_id=...,
-           encounter_id=...,
-           ...,
-       )
-       return _fill_text(stub, llm, variables)
+4. **Register the `DocumentTypeSpec`** in
+   `clinosim/modules/document/reference_data/document_type_specs.yaml`:
+   ```yaml
+   consultation_note:
+     loinc_code: "11488-4"
+     format_type: free_text              # or `composition`
+     countries_supported: [us, jp]
+     encounter_types_supported: [outpatient]
+     generation_frequency: per_encounter # or `admission_once` / `daily` / ...
+     composition_sections:               # only when format_type: composition
+       - reason_for_consult
+       - findings
+       - recommendation
+     stage2_strategy: template_seed_bundle
+     llm_enabled_sections: [recommendation]
    ```
+   `format_type: composition` lands the doc on `Composition` with
+   named `section[]` entries; `free_text` lands on
+   `DocumentReference` with the full body in `content.attachment.data`.
 
-5. **Wire the builder into `_generate_for_record`**.
+5. **Create the English prompt YAML**
+   `clinosim/modules/llm_service/prompts/en/consultation_note.yaml`
+   following the template above. Declare every variable the prompt
+   references in the yaml's `variables:` block.
 
-6. **Add it to `_resolve_enabled_tasks()`** so it appears in the default set.
+6. **Implement the section builder(s)** under
+   `clinosim/modules/document/narrative/renderers/section_builders/<section>.py`
+   as free functions `build_<section>(generator, ctx)` returning the
+   rendered section text. The post-C1a-s split places all per-section
+   logic here; `template_generator.py` is a thin façade that re-exports
+   the builders. For `format_type: free_text` tasks, implement a
+   single body builder; for `composition`, one builder per entry in
+   `composition_sections`. Wire the dispatcher in
+   `clinosim/modules/document/narrative/renderers/composition_sections.py`.
 
-7. **Add unit tests** in `tests/unit/test_clinical_documents.py` following the
-   existing `TestDocumentGeneratorE2E` pattern.
+7. **Add unit tests** under `tests/unit/document/narrative/` (per-section
+   builder tests) and `tests/unit/test_clinical_documents.py`
+   (end-to-end emit).
 
-8. **Update this doc** (`docs/clinical_documents.md`), `README.md`, and `DESIGN.md`.
+8. **Update this doc** (`docs/clinical_documents.md`), `README.md`,
+   and the matching `.ja.md` siblings.
 
 ---
 

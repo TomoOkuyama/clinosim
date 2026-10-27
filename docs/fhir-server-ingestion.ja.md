@@ -26,16 +26,22 @@ NDJSON — `resourceType` ごとに 1 ファイル — を emit します。こ�
 
 ```bash
 $ ls jp-100/fhir_r4/
-AllergyIntolerance.ndjson    Encounter.ndjson             Location.ndjson
-CareTeam.ndjson              Endpoint.ndjson              MedicationAdministration.ndjson
-ClinicalImpression.ndjson    FamilyMemberHistory.ndjson   MedicationRequest.ndjson
-Composition.ndjson           ImagingStudy.ndjson          Observation.ndjson
-Condition.ndjson             Immunization.ndjson          Organization.ndjson
-Coverage.ndjson              Patient.ndjson               PractitionerRole.ndjson
-DiagnosticReport.ndjson      Practitioner.ndjson          Procedure.ndjson
-DocumentReference.ndjson                                  ServiceRequest.ndjson
+AllergyIntolerance.ndjson    DocumentReference.ndjson     Observation.ndjson
+CareTeam.ndjson              Encounter.ndjson             Organization.ndjson
+ClinicalImpression.ndjson    Endpoint.ndjson              Patient.ndjson
+Composition.ndjson           FamilyMemberHistory.ndjson   Practitioner.ndjson
+Condition.ndjson             ImagingStudy.ndjson          PractitionerRole.ndjson
+Coverage.ndjson              Immunization.ndjson          Procedure.ndjson
+Device.ndjson                Location.ndjson              ServiceRequest.ndjson
+DeviceUseStatement.ndjson    MedicationAdministration.ndjson  Specimen.ndjson
+DiagnosticReport.ndjson      MedicationRequest.ndjson
 manifest.json
 ```
+
+実際のファイル集合はコホートで発火するモジュールに依存する —
+`Device.ndjson` / `DeviceUseStatement.ndjson` は G47.30 CPAP 患者
+が存在する時のみ emit (disease prevalence 経由の opt-in)、
+`Specimen.ndjson` は 微生物培養 encounter chain が発火した時のみ emit。
 
 各 `.ndjson` は 1 行 1 FHIR リソース。`manifest.json` はそれら
 ファイルを指す Bulk Data descriptor。

@@ -12,7 +12,10 @@ recommended_population:
   JP: 10000     # 50 床 × 365 × 0.80 / 14d LOS ≈ 1,043 入院/年; JP 100/1000/年 → 10K catchment
   default: 40000
 
-available_departments:           # 利用可能な診療科
+imaging:                        # 画像インフラ
+  wado_base_url: "https://wado.clinosim.example/dicomweb"
+
+available_departments:           # 利用可能な診療科 (50 床コミュニティ病院)
   - internal_medicine
   - cardiology
   - gastroenterology
@@ -20,6 +23,10 @@ available_departments:           # 利用可能な診療科
   - orthopedics
   - emergency_medicine
   - primary_care
+  - rehabilitation              # リハビリ (PT/OT/ST、整形病棟と同室)
+  - nutrition                   # 栄養管理 (RD)
+  - medical_social_work         # 医療社会事業 (MSW)
+  - oncology                    # 化学療法 + 癌 follow-up のルーティング先 (Issue #1280 Sub-A)
 
 department_rollup:              # サブ専門科 → 利用可能な診療科
   pulmonology: internal_medicine

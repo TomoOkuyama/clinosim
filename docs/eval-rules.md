@@ -121,6 +121,33 @@ with `--country US` / `--country JP`.
 | `no_japanese_leakage` | CRITICAL |
 | `us_practitioner_name_order` | MINOR |
 
+## JP-CLINS lab compliance axis (JP cohorts only)
+
+Measures `JP_Observation_LabResult_eCS` compliance on
+`Observation.code.coding` + `Observation.specimen` + `Specimen.type`.
+Gate: strict 1.0 at 100 %-at-master invariants (Open-slicing discriminator-
+system+display, so validator pass counts alone are insufficient — see
+`clinosim/eval/axes/jp_clins_lab_compliance.py`).
+
+## JP Core compliance axis (JP cohorts only)
+
+Narrow-gate must-support element compliance on JP Core
+Patient / Encounter / MedicationRequest. Threshold 1.0 at
+invariants that already hold at 100 % on master. Kana-representation
+(SYL) coverage expansion is tracked separately. The full HL7 FHIR
+Validator run (`jp-validate.yml`) remains the authoritative
+on-demand compliance surface. See
+`clinosim/eval/axes/jp_core_compliance.py`.
+
+## US Core compliance axis (US cohorts only)
+
+Narrow-gate must-support element compliance on US Core
+AllPatients / Encounter / Condition. Threshold 1.0 at 100 %-at-master
+invariants (not race/ethnicity extension coverage, which is tracked
+separately). Full validator run (`us-validate.yml`, Phase 3) is the
+authoritative on-demand compliance surface. See
+`clinosim/eval/axes/us_core_compliance.py`.
+
 ---
 
 ## Adding a rule

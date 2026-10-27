@@ -104,7 +104,7 @@ and use the helpers below:
 | Imaging orders | `place_imaging_orders` (`order/engine.py`). |
 | Drug protocol prefix stripping | `strip_protocol_prefix` (`_shared.py`; shared between FHIR and narrative). |
 | LOS computation | `document/engine._compute_los_days` (including the in-progress proxy). |
-| Locale display tables | The cached loaders in `locale/loader.py` (`load_med_terms_ja`, etc.). Opening raw YAML in Layer 4 is forbidden. |
+| Locale display tables | The cached loaders in `locale/loaders/` (re-exported from `locale/loader.py` façade): `medical_display.py:load_med_terms_ja`, `narrative.py:load_narrative_display_dict`, `clinical.py`, `demographics.py`, `fhir_identity.py`. Opening raw YAML in Layer 4 is forbidden. |
 
 If the same shared logic is needed in a second module, define it
 once in `_shared.py` or the owner module and import from both.

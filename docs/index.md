@@ -32,6 +32,11 @@ Three concrete differentiators:
   insurance out of the box.
 - **YAML-driven extension.** 32 inpatient diseases + 46 ED / outpatient
   conditions are all data files, not code.
+- **Longitudinal state evolution.** AR(1) HbA1c trajectory, Markov
+  stage ladders (CKD / CCS / NYHA / CDR / GOLD / cancer AJCC/BCLC),
+  HTN + lipid treatment escalation, and OSA G47.30 CPAP device +
+  polysomnography — all composed from one engine against per-attribute
+  yaml declarations (`clinosim/modules/longitudinal/`).
 
 ---
 

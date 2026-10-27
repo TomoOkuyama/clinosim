@@ -1,9 +1,13 @@
 # `clinosim eval` — public evaluation framework
 
-`clinosim eval` scores a generated cohort against three axes —
-**structural**, **clinical**, **locale** — and emits a JSON + Markdown
-report with per-check outcomes, an axis score (0–100), and an overall
-score.
+`clinosim eval` scores a generated cohort against six axes — three
+universal (**structural**, **clinical**, **locale**) and three
+country-conditional (**jp_clins_lab_compliance**,
+**jp_core_compliance**, **us_core_compliance**) — and emits a JSON +
+Markdown report with per-check outcomes, an axis score (0–100), and
+an overall score. Country-conditional axes activate only for cohorts
+whose locale matches; see `clinosim/eval/axes/` for the live plug-in
+discovery convention (established META #1633 P8).
 
 It is **not** `clinosim audit run` (see
 [`docs/CONTRIBUTING-modules.md`](CONTRIBUTING-modules.md) "PR 検証ガイド"):
@@ -43,9 +47,13 @@ clinosim eval
 
 Structural + locale hold 5 checks each; clinical holds 7 (5 MVP +
 2 coherence, added in P1-9). More checks land through issues tagged
-`good first issue` on GitHub. A country-specific axis
-(`jp_clins_lab_compliance`) activates for JP cohorts only — see
-[`clinosim.eval`](../clinosim/eval/README.md) for the full axis list.
+`good first issue` on GitHub. Country-conditional axes activate per
+cohort locale: `jp_clins_lab_compliance` and `jp_core_compliance`
+run for JP cohorts, `us_core_compliance` for US cohorts. The
+compliance axes anchor on country-core profiles' must-support
+elements (Patient / Encounter / Condition) with a 1.0 threshold at
+master-is-invariant. See [`clinosim.eval`](../clinosim/eval/README.md)
+and `clinosim/eval/axes/` for the live full axis list.
 
 ### Structural (FHIR compliance)
 
@@ -101,9 +109,10 @@ Per-axis score = 100 × Σ(pass-weight) / Σ(total-weight), where:
 - Severity weights: **CRITICAL = 3, MAJOR = 2, MINOR = 1**.
 - Outcome weights: **PASS = 1.0, WARN = 0.5, FAIL / N/A = 0.0**.
 
-Overall score = arithmetic mean of the three axis scores. Overall
-status is `FAIL` if any check on any axis is FAIL, else `WARN` if any
-is WARN, else `PASS`.
+Overall score = arithmetic mean of every active axis's score (3
+universal + 1–2 country-conditional, depending on cohort locale).
+Overall status is `FAIL` if any check on any axis is FAIL, else
+`WARN` if any is WARN, else `PASS`.
 
 ## JSON output shape
 
