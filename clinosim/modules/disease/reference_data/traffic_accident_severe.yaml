@@ -182,6 +182,7 @@ complications:
       - {condition: "severity_severe", multiplier: 2.5}
       - {condition: "perfusion_status < 0.3", multiplier: 1.8}
     state_impact:
+      oxygenation_impairment: 0.6
       perfusion_status: -0.15
       inflammation_level: 0.05
     detection:

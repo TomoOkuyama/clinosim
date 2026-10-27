@@ -616,6 +616,7 @@ complications:
     parent_complication: "viral_pneumonia"
     onset_days_after_parent: [1, 4]
     state_impact:
+      oxygenation_impairment: 0.65
       perfusion_status: -0.25
       ph_status: -0.10
       inflammation_level: 0.10

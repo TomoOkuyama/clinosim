@@ -902,6 +902,8 @@ def _simulate_patient(
     complications_occurred = loop_result["complications"]
     death_occurred = loop_result["death_occurred"]
     icu_transferred = loop_result["icu_transferred"]
+    # Issue #2091: intubation performed when the state crossed the airway threshold.
+    procedures.extend(loop_result.get("escalation_procedures", []))
     icu_transferred_day = loop_result.get("icu_transferred_day", -1)
     differential = loop_result["differential"]
     actual_los = loop_result["actual_los"]

@@ -451,13 +451,14 @@ _PROCEDURE_RULES: list[tuple[str | list[str], list[tuple[str, float]]]] = [
     (["acute_mi"], [("arterial_line", 0.60), ("central_line", 0.40), ("echocardiography", 0.90)]),
     # Stroke: nasogastric tube (dysphagia risk), lumbar puncture
     (["cerebral_infarction", "hemorrhagic_stroke"], [("nasogastric_tube", 0.30), ("echocardiography", 0.50)]),
-    # Hemorrhagic stroke / subdural: intubation. Same 2-disease pair as
+    # Hemorrhagic stroke / subdural: invasive lines. Same 2-disease pair as
     # `NEURO_LOC_MONITORING_DISEASES` — kept as `list(...)` because the outer
     # rule table's item type is `list[str]`, but membership stays synced with
-    # the canonical set.
+    # the canonical set. Intubation follows the consciousness state in the
+    # daily loop (Issue #2091), not this table.
     (
         list(NEURO_LOC_MONITORING_DISEASES),
-        [("intubation", 0.40), ("central_line", 0.50), ("arterial_line", 0.40)],
+        [("central_line", 0.50), ("arterial_line", 0.40)],
     ),
     # GI bleeding: nasogastric tube, blood transfusion
     (["gi_bleeding"], [("nasogastric_tube", 0.50), ("blood_transfusion", 0.60), ("central_line", 0.30)]),
@@ -466,8 +467,9 @@ _PROCEDURE_RULES: list[tuple[str | list[str], list[tuple[str, float]]]] = [
         ["liver_cirrhosis_decompensated"],
         [("paracentesis", 0.70), ("nasogastric_tube", 0.25), ("blood_transfusion", 0.30)],
     ),
-    # Pneumonia/aspiration: bronchoscopy in severe cases
-    (["bacterial_pneumonia", "aspiration_pneumonia"], [("bronchoscopy", 0.15), ("intubation", 0.10)]),
+    # Pneumonia/aspiration: bronchoscopy in severe cases. Intubation follows
+    # the oxygenation state in the daily loop (Issue #2091).
+    (["bacterial_pneumonia", "aspiration_pneumonia"], [("bronchoscopy", 0.15)]),
     # DKA: central line, arterial line
     (["diabetic_ketoacidosis"], [("central_line", 0.35), ("arterial_line", 0.20)]),
     # Pulmonary embolism: echo
@@ -541,6 +543,36 @@ _ISSUE939_PROCEDURE_RULES: list[tuple[list[str], list[tuple[str, float]]]] = [
 _ISSUE939_PROCEDURE_TYPES: frozenset[str] = frozenset(
     proc_type for _match, rules in _ISSUE939_PROCEDURE_RULES for proc_type, _prob in rules
 )
+
+
+def build_intubation_procedure(
+    patient_id: str, encounter_id: str, start: datetime, country: str, procedure_id: str
+) -> ProcedureRecord:
+    """Endotracheal intubation performed when the state crosses the airway
+    threshold (Issue #2091): CPT 31500 / K-code J044, sedation, fixed duration
+    (no RNG draw)."""
+    spec = {p[0]: p for p in _BEDSIDE_PROCEDURES}["intubation"]
+    _, cpt, kcode, _name_en, _name_ja, anesthesia = spec
+    meta = _PROCEDURE_METADATA.get("intubation")
+    return ProcedureRecord(
+        procedure_id=procedure_id,
+        patient_id=patient_id,
+        encounter_id=encounter_id,
+        procedure_type="intubation",
+        procedure_code=kcode if is_jp(country) else cpt,
+        procedure_code_jp=kcode,
+        procedure_code_us=cpt,
+        start_datetime=start,
+        end_datetime=start + timedelta(minutes=int(BEDSIDE_DURATION_MEAN_MIN)),
+        duration_minutes=int(BEDSIDE_DURATION_MEAN_MIN),
+        primary_surgeon_id="",
+        anesthesia_type=anesthesia,
+        category_code=meta.category_code if meta else _SCT_CATEGORY_THERAPEUTIC,
+        body_site_code=meta.body_site_code if meta else "",
+        outcome_code=_SCT_OUTCOME_SUCCESS,
+        complication_codes=[],
+        location_id="",
+    )
 
 
 def generate_bedside_procedures(

@@ -22,6 +22,10 @@ arguments come from literals or module-scope constants.
 from __future__ import annotations
 
 __all__ = [
+    "AIRWAY_CONSCIOUSNESS_MIN",
+    "AIRWAY_ESCALATION_HOUR",
+    "AIRWAY_OXYGENATION_MIN",
+    "ICU_SHOCK_PERFUSION_MAX",
     "ARCHETYPE_DAY_SHIFT_PROBABILITY",
     "DIET_CLEAR_LIQUID_INFLAMMATION_THRESHOLD",
     "DIET_SOFT_INFLAMMATION_THRESHOLD",
@@ -193,3 +197,26 @@ stay on soft diet (below advances to regular diet).
 
 Empirical tuning for the synthetic simulator: 0.2 marks the boundary
 below which resolved acute inflammation allows normal diet."""
+
+
+# ---------------------------------------------------------------------------
+# State-driven airway / ICU escalation (Issue #2091)
+# ---------------------------------------------------------------------------
+
+AIRWAY_CONSCIOUSNESS_MIN: float = 0.62
+"""``consciousness_impairment`` at or above which the airway is secured
+(deep P / U range, GCS <= 8): intubation + ICU transfer. Just above the
+severe hemorrhagic-stroke presentation (0.60), so severe cases are intubated
+when they deteriorate (hematoma expansion, edema, herniation)."""
+
+AIRWAY_OXYGENATION_MIN: float = 0.6
+"""``oxygenation_impairment`` at or above which hypoxemia is refractory
+(room-air SpO2 ~80%, poor response to oxygen): intubation + ICU transfer."""
+
+ICU_SHOCK_PERFUSION_MAX: float = 0.3
+"""``perfusion_status`` below which the patient is in shock and is
+transferred to the ICU (vasopressor-level care)."""
+
+AIRWAY_ESCALATION_HOUR: int = 10
+"""Hour of the hospital day at which a state-driven escalation is
+recorded (the daily loop is per-day)."""
