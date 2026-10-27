@@ -347,7 +347,7 @@ def generate_roster(
 
     # Anesthesiology team (Issue #2068). Generated last so every roster draw
     # above, and therefore every existing staff member, is unchanged.
-    if any(dept in available for dept in SURGICAL_DEPARTMENTS):
+    if "anesthesiology" in roster_departments(hospital_config):
         operating_rooms = int(hospital_config.get("resource_capacity", {}).get("operating_rooms", 0) or 0)
         for idx in range(1, max(MIN_ANESTHESIOLOGISTS, operating_rooms) + 1):
             _add_physician("anesthesiology", idx)
@@ -403,6 +403,16 @@ def assign_staff(
                 assignments["administering_nurse"] = rng.choice(nurses).staff_id
 
     return assignments
+
+
+def roster_departments(hospital_config: dict) -> list[str]:
+    """Departments that have staff on the roster: the configured ones plus
+    anesthesiology when the hospital operates (Issue #2068). Facility output
+    emits an Organization for each, so every PractitionerRole resolves."""
+    available = list(hospital_config.get("available_departments", []) or [])
+    if "anesthesiology" not in available and any(dept in available for dept in SURGICAL_DEPARTMENTS):
+        available.append("anesthesiology")
+    return available
 
 
 def select_surgical_team(roster: StaffRoster, department: str, rng: np.random.Generator) -> tuple[str, str]:

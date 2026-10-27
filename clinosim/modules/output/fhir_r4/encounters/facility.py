@@ -16,12 +16,14 @@ from clinosim.modules.output.fhir_r4.lib.localization import (
     _dept_display,
     _localize_display,
 )
+from clinosim.modules.staff.engine import roster_departments
 
 
 def _build_facility_bundle(hospital_config: dict, country: str) -> dict:
     """Build a FHIR Bundle containing Organization + Location for the hospital."""
     entries: list[dict] = []
-    available = hospital_config.get("available_departments", []) or []
+    # Departments with roster staff (adds anesthesiology for operating hospitals)
+    available = roster_departments(hospital_config)
     wards_map = hospital_config.get("wards", {}) or {}
     beds = hospital_config.get("resource_capacity", {}).get("inpatient_beds", 0)
 
