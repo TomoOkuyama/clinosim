@@ -13,13 +13,80 @@ from typing import Any
 from clinosim.codes import get_system_uri
 from clinosim.codes import lookup as code_lookup
 from clinosim.locale.loader import load_practitioner_qualifications
-from clinosim.modules._shared import is_jp, resolve_lang
+from clinosim.modules._shared import is_jp, is_us, resolve_lang
 from clinosim.modules.output.fhir_r4.lib.common import _coding_with_display
 from clinosim.modules.output.fhir_r4.lib.localization import _ROLE_PREFIX_MAP_JA
 from clinosim.modules.output.fhir_r4.lib.reference_data import (
     _ROLE_PREFIX_MAP,
     _SPECIALTY_SNOMED,
 )
+
+# Issue #1986: US Core 6.1.0 Practitioner profile marks the NPI
+# identifier slice as must-support. System URI is the HL7-registered
+# NPI OID alias; see http://hl7.org/fhir/sid/us-npi.
+_US_NPI_SYSTEM = "http://hl7.org/fhir/sid/us-npi"
+_US_NPI_SALT = "practitioner-npi"
+# NPPES-canonical NPI prefix (ISO Issuer Identifier for US healthcare
+# providers) — used as the Luhn checksum anchor; the published NPI
+# is the trailing 10 digits only.
+_NPI_LUHN_PREFIX = "80840"
+
+
+def _npi_luhn_check_digit(base9: str) -> str:
+    """Compute the NPI Luhn check digit over ``80840 + base9`` (CMS NPPES).
+
+    The published NPI is ``base9 + check_digit`` — a 10-digit numeric
+    string that validates with the Luhn mod-10 algorithm when prefixed
+    by ``80840`` (ISO Issuer Identifier for US healthcare providers).
+    """
+    assert len(base9) == 9 and base9.isdigit()
+    total = 0
+    # Doubled positions (counting from the right, starting with the
+    # position immediately left of the check digit) alternate from the
+    # last digit of base9 backward through the 80840 prefix.
+    anchored = _NPI_LUHN_PREFIX + base9
+    for i, ch in enumerate(reversed(anchored)):
+        n = int(ch)
+        # i=0 is the digit immediately left of the (yet-to-be-set)
+        # check digit — doubled per standard Luhn.
+        if i % 2 == 0:
+            n *= 2
+            if n > 9:
+                n -= 9
+        total += n
+    return str((10 - (total % 10)) % 10)
+
+
+def _build_us_npi(staff_id: str) -> str:
+    """Deterministic synthetic NPI for a US-cohort Practitioner (Issue #1986).
+
+    Derives a 9-digit base from ``sha256(salt + staff_id)`` and appends
+    the NPPES Luhn check digit. RNG-neutral additive field per
+    :file:`feedback_rng_neutral_additive_field.md` — never consumes the
+    master RNG, so re-runs are byte-identical.
+    """
+    digest = hashlib.sha256(f"{_US_NPI_SALT}:{staff_id}".encode()).hexdigest()
+    base9 = f"{int(digest[:16], 16) % 10**9:09d}"
+    return base9 + _npi_luhn_check_digit(base9)
+
+
+def _build_us_npi_identifier(staff_id: str) -> dict[str, Any]:
+    """Build the US NPI ``identifier`` entry (Issue #1986)."""
+    return {
+        "use": "official",
+        "type": {
+            "coding": [
+                {
+                    "system": "http://terminology.hl7.org/CodeSystem/v2-0203",
+                    "code": "NPI",
+                    "display": "National provider identifier",
+                }
+            ],
+            "text": "NPI",
+        },
+        "system": _US_NPI_SYSTEM,
+        "value": _build_us_npi(staff_id),
+    }
 
 
 def _license_number(staff_id: str, salt: str, digits: int) -> str:
@@ -146,6 +213,12 @@ def _build_practitioner(staff_id: str, roster_map: dict[str, dict] | None = None
         lic_ident = _build_jp_license_identifier(staff, staff_id)
         if lic_ident:
             resource["identifier"].append(lic_ident)
+    # Issue #1986: US Core requires an NPI identifier on every
+    # Practitioner. Deterministic per-staff_id (SHA-256 salted + Luhn
+    # check digit), RNG-neutral. Emitted independently of the roster
+    # entry so every US Practitioner reference resolves to an NPI.
+    if is_us(country):
+        resource["identifier"].append(_build_us_npi_identifier(staff_id))
     if staff:
         full_name = staff.get("name", "")
         role = staff.get("role", "")
