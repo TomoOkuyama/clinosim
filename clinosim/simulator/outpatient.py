@@ -376,6 +376,7 @@ def _simulate_outpatient_visit(
     # Vitals — physiology-driven via the same derivation path as inpatient/ED (AD-57):
     # true values from the comorbidity-adjusted state, then measurement noise. The
     # measured subset (`fields`) still depends on visit type / chronic condition.
+    from clinosim.modules.physiology._vital_signs_thresholds import PAIN_SCORE_SCALE
     from clinosim.modules.physiology.engine import (
         derive_observed_vitals,
         initialize_state,
@@ -396,6 +397,8 @@ def _simulate_outpatient_visit(
             diastolic_bp=int(round(raw["diastolic_bp"])) if "bp" in fields else None,
             respiratory_rate=int(round(raw["respiratory_rate"])) if "rr" in fields else None,
             spo2=round(raw["spo2"], 1) if "spo2" in fields else None,
+            # Chronic pain (e.g. osteoarthritis) is scored at the visit (Issue #2061).
+            pain_score=int(round(_state.pain_level * PAIN_SCORE_SCALE)) if _state.pain_level else None,
             measured_by=opd_nurse_id,
             data_source="manual",
         )

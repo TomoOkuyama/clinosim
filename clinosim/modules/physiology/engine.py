@@ -31,6 +31,8 @@ from clinosim.modules.physiology._coupling_coefficients import (
     HF_SEVERE_VOLUME_COUPLING,
     HF_SODIUM_COUPLING,
     IHD_CARDIAC_COUPLING,
+    OA_PAIN_BASE,
+    OA_PAIN_COUPLING,
 )
 from clinosim.modules.physiology._lab_derivation_thresholds import (
     ALBUMIN_BASELINE,
@@ -246,6 +248,7 @@ from clinosim.modules.physiology._vital_signs_thresholds import (
     OXYGENATION_HR_SCALE,
     OXYGENATION_RR_SCALE,
     OXYGENATION_SPO2_SCALE,
+    PAIN_SYMPATHETIC_THRESHOLD,
     PAIN_SYMPATHETIC_WEIGHT,
     RR_CLAMP_MAX,
     RR_CLAMP_MIN,
@@ -322,6 +325,8 @@ def initialize_state(
         elif code.startswith("J44"):  # COPD
             state.ph_status -= s * COPD_PH_COUPLING
             state.respiratory_fraction = 1.0  # chronic CO2 retention → respiratory axis
+        elif code.startswith(("M16", "M17")):  # Hip / knee osteoarthritis
+            state.pain_level += OA_PAIN_BASE + s * OA_PAIN_COUPLING  # chronic joint pain
         elif code.startswith("I25"):  # Ischemic heart disease
             state.cardiac_function *= 1.0 - s * IHD_CARDIAC_COUPLING
         elif code.startswith("I48"):  # Atrial fibrillation
@@ -1065,7 +1070,8 @@ def derive_vital_signs(
     perf = state.perfusion_status
     vol = state.volume_status
     # Sympathetic drive: direct activation plus part of the pain response.
-    symp = clamp(state.sympathetic_activation + state.pain_level * PAIN_SYMPATHETIC_WEIGHT, 0.0, 1.0)
+    acute_pain = max(0.0, state.pain_level - PAIN_SYMPATHETIC_THRESHOLD)
+    symp = clamp(state.sympathetic_activation + acute_pain * PAIN_SYMPATHETIC_WEIGHT, 0.0, 1.0)
     oxy = state.oxygenation_impairment
 
     # Temperature: inflammation + circadian

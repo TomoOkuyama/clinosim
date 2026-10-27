@@ -72,6 +72,7 @@ from clinosim.simulator._stay_thresholds import (
 # this re-import; new call sites should import directly from
 # `daily_loop`.
 from clinosim.simulator.daily_loop import (  # noqa: E402, F401
+    SYMPTOM_AXES,
     _extract_findings,
     _run_daily_loop,
 )
@@ -625,6 +626,9 @@ def _simulate_patient(
 
     # Initialize physiological state
     state = initialize_state(patient.physiological_profile, patient.chronic_conditions, patient.patient_id)
+    # Chronic symptom baselines (e.g. COPD hypoxemia, osteoarthritis pain) that
+    # in-hospital recovery must not erase (Issue #2061).
+    symptom_floor = {axis: getattr(state, axis) for axis in SYMPTOM_AXES if getattr(state, axis)}
 
     # Readmission: carry over residual state from prior hospitalization
     if is_readmission:
@@ -877,6 +881,7 @@ def _simulate_patient(
         department=department,
         severity=severity,
         imaging_seq_counter=imaging_seq_counter,
+        symptom_floor=symptom_floor,
     )
 
     # Unpack results

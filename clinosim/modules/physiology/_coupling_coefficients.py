@@ -47,6 +47,9 @@ __all__ = [
     "CIRRHOSIS_SODIUM_COUPLING",
     # J44 COPD
     "COPD_PH_COUPLING",
+    # M16 / M17 Osteoarthritis
+    "OA_PAIN_BASE",
+    "OA_PAIN_COUPLING",
     # I25 Ischemic heart disease
     "IHD_CARDIAC_COUPLING",
     # I48 Atrial fibrillation
@@ -193,6 +196,14 @@ COPD patients are metabolically compensated (elevated HCO3-); acute
 exacerbations that acutely lower pH are handled separately in the
 disease-course engine, not at initialization.
 """
+
+OA_PAIN_BASE: float = 0.1
+"""Baseline ``pain_level`` floor for hip / knee osteoarthritis (Issue #2061)."""
+
+OA_PAIN_COUPLING: float = 0.8
+"""Severity-scaled ``pain_level`` above ``OA_PAIN_BASE`` for hip / knee
+osteoarthritis (Issue #2061): severity 0.12 / 0.25 / 0.37 (p10 / median /
+p90 of the US cohort) gives NRS ~2 / 3 / 4 at follow-up visits."""
 
 
 # ---------------------------------------------------------------------------
