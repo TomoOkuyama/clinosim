@@ -109,11 +109,11 @@ from clinosim.simulator.phases._ed_slot import (
 from clinosim.simulator.phases._healthcare_calendar import (
     _run_healthcare_calendar_phase as _run_healthcare_calendar_phase,
 )
-from clinosim.simulator.phases._readmission import (
-    _run_readmission_phase as _run_readmission_phase,
-)
 from clinosim.simulator.phases._post_discharge import (
     _run_post_discharge_phase as _run_post_discharge_phase,
+)
+from clinosim.simulator.phases._readmission import (
+    _run_readmission_phase as _run_readmission_phase,
 )
 from clinosim.types.config import ForcedScenario, SimulatorConfig
 from clinosim.types.encounter import EncounterType

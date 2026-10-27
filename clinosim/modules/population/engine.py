@@ -14,8 +14,32 @@ import numpy as np
 from clinosim.modules._shared import normalize_probabilities
 from clinosim.modules.disease.protocol import load_disease_protocol
 from clinosim.modules.disease.severity import sample_severity
+from clinosim.modules.population._chemo import (
+    _chemo_cycle_events as _chemo_cycle_events,
+)
+from clinosim.modules.population._chemo import (
+    pick_active_chemo_regimen as pick_active_chemo_regimen,
+)
 from clinosim.modules.population._chronic import (
     ChronicConditionSpec as ChronicConditionSpec,
+)
+from clinosim.modules.population._chronic import (
+    _bmi_category_probabilities as _bmi_category_probabilities,
+)
+from clinosim.modules.population._chronic import (
+    _expected_comorbidity_multiplier as _expected_comorbidity_multiplier,
+)
+from clinosim.modules.population._chronic import (
+    _expected_lifestyle_multiplier as _expected_lifestyle_multiplier,
+)
+from clinosim.modules.population._chronic import (
+    _parse_chronic_prevalence as _parse_chronic_prevalence,
+)
+from clinosim.modules.population._chronic import (
+    _smoking_status_probabilities as _smoking_status_probabilities,
+)
+from clinosim.modules.population._chronic import (
+    _target_prev_at_age_legacy as _target_prev_at_age_legacy,
 )
 from clinosim.modules.population._demographics import (
     _care_seeking_threshold_mean as _care_seeking_threshold_mean,
@@ -47,6 +71,14 @@ from clinosim.modules.population._demographics import (
 from clinosim.modules.population._demographics import (
     _sex_ratio_male_probability as _sex_ratio_male_probability,
 )
+from clinosim.modules.population._household_thresholds import (
+    AVG_HOUSEHOLD_SIZE_DEFAULT,
+    DOB_DAY_MAX_EXCLUSIVE,
+    DOB_DAY_MIN,
+    HOUSEHOLD_LANDLINE_PROBABILITY_DEFAULT,
+    HOUSEHOLD_SIZE_WEIGHTED_CHOICES,
+    WIFE_KEEPS_MAIDEN_PROBABILITY_DEFAULT,
+)
 from clinosim.modules.population._identity import (
     _generate_household_address as _generate_household_address,
 )
@@ -62,58 +94,8 @@ from clinosim.modules.population._identity import (
 from clinosim.modules.population._identity import (
     _sample_occupation as _sample_occupation,
 )
-from clinosim.modules.population._chemo import (
-    _chemo_cycle_events as _chemo_cycle_events,
-)
-from clinosim.modules.population._chemo import (
-    pick_active_chemo_regimen as pick_active_chemo_regimen,
-)
 from clinosim.modules.population._identity import (
     _sample_surname as _sample_surname,
-)
-from clinosim.modules.population._pregnancy import (
-    _PERINATAL_STAGE_COUNTERS as _PERINATAL_STAGE_COUNTERS,
-)
-from clinosim.modules.population._pregnancy import (
-    _PREGNANCY_ELIGIBLE_MAX_AGE as _PREGNANCY_ELIGIBLE_MAX_AGE,
-)
-from clinosim.modules.population._pregnancy import (
-    _PREGNANCY_ELIGIBLE_MIN_AGE as _PREGNANCY_ELIGIBLE_MIN_AGE,
-)
-from clinosim.modules.population._pregnancy import (
-    _annual_conception_rate as _annual_conception_rate,
-)
-from clinosim.modules.population._pregnancy import (
-    _perinatal_stage_incr as _perinatal_stage_incr,
-)
-from clinosim.modules.population._pregnancy import (
-    _pregnancy_lifecycle_events as _pregnancy_lifecycle_events,
-)
-from clinosim.modules.population._chronic import (
-    _bmi_category_probabilities as _bmi_category_probabilities,
-)
-from clinosim.modules.population._chronic import (
-    _expected_comorbidity_multiplier as _expected_comorbidity_multiplier,
-)
-from clinosim.modules.population._chronic import (
-    _expected_lifestyle_multiplier as _expected_lifestyle_multiplier,
-)
-from clinosim.modules.population._chronic import (
-    _parse_chronic_prevalence as _parse_chronic_prevalence,
-)
-from clinosim.modules.population._chronic import (
-    _smoking_status_probabilities as _smoking_status_probabilities,
-)
-from clinosim.modules.population._chronic import (
-    _target_prev_at_age_legacy as _target_prev_at_age_legacy,
-)
-from clinosim.modules.population._household_thresholds import (
-    AVG_HOUSEHOLD_SIZE_DEFAULT,
-    DOB_DAY_MAX_EXCLUSIVE,
-    DOB_DAY_MIN,
-    HOUSEHOLD_LANDLINE_PROBABILITY_DEFAULT,
-    HOUSEHOLD_SIZE_WEIGHTED_CHOICES,
-    WIFE_KEEPS_MAIDEN_PROBABILITY_DEFAULT,
 )
 from clinosim.modules.population._pediatric_anthropometry import (
     pediatric_bmi_params as _peds_bmi_params,
@@ -181,6 +163,24 @@ from clinosim.modules.population._population_workflow_thresholds import (
     UNKNOWN_CONDITION_PATTERNS_FALLBACK,
     UNKNOWN_CONDITION_SEVERITY_BETA_ALPHA,
     UNKNOWN_CONDITION_SEVERITY_BETA_BETA,
+)
+from clinosim.modules.population._pregnancy import (
+    _PERINATAL_STAGE_COUNTERS as _PERINATAL_STAGE_COUNTERS,
+)
+from clinosim.modules.population._pregnancy import (
+    _PREGNANCY_ELIGIBLE_MAX_AGE as _PREGNANCY_ELIGIBLE_MAX_AGE,
+)
+from clinosim.modules.population._pregnancy import (
+    _PREGNANCY_ELIGIBLE_MIN_AGE as _PREGNANCY_ELIGIBLE_MIN_AGE,
+)
+from clinosim.modules.population._pregnancy import (
+    _annual_conception_rate as _annual_conception_rate,
+)
+from clinosim.modules.population._pregnancy import (
+    _perinatal_stage_incr as _perinatal_stage_incr,
+)
+from clinosim.modules.population._pregnancy import (
+    _pregnancy_lifecycle_events as _pregnancy_lifecycle_events,
 )
 from clinosim.seeding import chronic_augment_sex_seed
 from clinosim.types.population import (
