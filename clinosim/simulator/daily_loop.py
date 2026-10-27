@@ -79,7 +79,11 @@ from clinosim.simulator.complications import build_complication
 from clinosim.simulator.discharge_gate import extend_stay_for_symptoms
 from clinosim.simulator.helpers import _check_discharge_ready, _evaluate_mortality
 from clinosim.simulator.lab_pipeline import _run_lab_result_pipeline
-from clinosim.simulator.medication_pipeline import _generate_mar, _place_chronic_monitoring_orders
+from clinosim.simulator.medication_pipeline import (
+    _generate_mar,
+    _place_chronic_monitoring_orders,
+    generate_prn_administrations,
+)
 from clinosim.simulator.vitals_pipeline import (
     _generate_adl_assessment,
     _generate_daily_io,
@@ -168,6 +172,7 @@ def _run_daily_loop(
     all_lab_results: list[OrderResult] = []
     all_vitals: list[VitalSignRecord] = []
     all_mars: list[MedicationAdministration] = []
+    prn_last_given: dict[str, datetime] = {}  # Issue #2085: PRN order -> last dose time
     all_io: list = []
     all_adl: list = []
     state_history = [deepcopy(state)]
@@ -714,6 +719,9 @@ def _run_daily_loop(
             country=vitals_country,
         )  # noqa: E501
         all_vitals.extend(vitals_today)
+        # Issue #2085: PRN analgesia / benzodiazepines on demand from today's
+        # pain scores and autonomic state.
+        all_mars.extend(generate_prn_administrations(all_orders, vitals_today, state, prn_last_given))
 
         # Daily I/O record
         io_record = _generate_daily_io(state, patient, day, admission_time, rng)
