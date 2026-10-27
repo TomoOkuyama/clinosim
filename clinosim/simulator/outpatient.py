@@ -399,6 +399,7 @@ def _simulate_outpatient_visit(
             spo2=round(raw["spo2"], 1) if "spo2" in fields else None,
             # Chronic pain (e.g. osteoarthritis) is scored at the visit (Issue #2061).
             pain_score=int(round(_state.pain_level * PAIN_SCORE_SCALE)) if _state.pain_level else None,
+            consciousness_level="",  # not assessed at clinic visits (Issue #2081)
             measured_by=opd_nurse_id,
             data_source="manual",
         )

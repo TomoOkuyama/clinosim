@@ -433,6 +433,15 @@ def _simulate_ed_visit(
     pain = int(max(ED_PAIN_MIN, min(ED_PAIN_MAX, rng.normal(_pain_mean, ED_PAIN_NOISE_STD))))
     if _state.pain_level:
         pain = max(pain, int(min(ED_PAIN_MAX, round(_state.pain_level * PAIN_SCORE_SCALE))))
+    # AVPU (Issue #2081): ED triage assesses consciousness from the state
+    # (consciousness axis, then perfusion); scheduled clinic visits do not
+    # assess it, so no AVPU / GCS is recorded for them.
+    if proto_enc_type == "outpatient":
+        avpu = ""
+    else:
+        from clinosim.simulator.vitals_pipeline import _loc_for
+
+        avpu = _loc_for(_state, "", 0, rng)
     vitals = [
         VitalSignRecord(
             timestamp=vit_time,
@@ -443,6 +452,7 @@ def _simulate_ed_visit(
             respiratory_rate=int(round(raw["respiratory_rate"])),
             spo2=round(raw["spo2"], 1),
             pain_score=pain,
+            consciousness_level=avpu,
             measured_by=ed_nurse_id,
             data_source="manual",
         )
