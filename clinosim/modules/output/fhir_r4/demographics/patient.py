@@ -9,6 +9,7 @@ reference/localization + _fhir_common helper modules (no adapter import cycle).
 
 from __future__ import annotations
 
+import hashlib
 import uuid
 from datetime import date
 from functools import lru_cache
@@ -150,6 +151,37 @@ def _build_us_core_birthsex_extension(sex: str) -> dict[str, Any] | None:
 # directly.
 PATIENT_ID_PREFIX = "pt-"
 POPULATION_SLUG_KEY_SYSTEM = structural_key_system("population-slug")
+
+
+_US_SSN_SYSTEM = "http://hl7.org/fhir/sid/us-ssn"
+_US_SSN_SALT = "patient-ssn"
+
+
+def _build_us_ssn(cif_patient_id: str) -> str:
+    """Deterministic synthetic SSN in the never-issued 9xx area (no real SSN can collide)."""
+    n = int(hashlib.sha256(f"{_US_SSN_SALT}:{cif_patient_id}".encode()).hexdigest()[:16], 16)
+    area = 900 + n % 100
+    group = 1 + (n // 100) % 99
+    serial = 1 + (n // 9900) % 9999
+    return f"{area:03d}-{group:02d}-{serial:04d}"
+
+
+def _build_us_ssn_identifier(cif_patient_id: str) -> dict[str, Any]:
+    return {
+        "use": "official",
+        "type": {
+            "coding": [
+                {
+                    "system": get_system_uri("hl7-v2-0203"),
+                    "code": "SS",
+                    "display": "Social Security number",
+                }
+            ],
+            "text": "SSN",
+        },
+        "system": _US_SSN_SYSTEM,
+        "value": _build_us_ssn(cif_patient_id),
+    }
 
 
 def resolve_patient_id(cif_patient_id: str) -> str:
@@ -857,6 +889,9 @@ def _build_patient(p: dict, country: str) -> dict:
         "name": names,
         "gender": gender,
     }
+
+    if not is_jp(country) and p.get("patient_id"):
+        resource["identifier"].append(_build_us_ssn_identifier(pid))
 
     if dob:
         resource["birthDate"] = to_fhir_date(dob)
