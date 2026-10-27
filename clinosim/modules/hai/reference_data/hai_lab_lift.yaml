@@ -15,16 +15,26 @@
 #   cauti  = urinary tract    (moderate, often localized)
 #
 # Calibration (baseline infl=0.4, typical inpatient):
-#   clabsi/vap lift 0.35 -> effective_infl=0.75 -> CRP ~169 mg/L, WBC ~16,000
+#   clabsi/vap lift 0.40 -> effective_infl=0.80 -> CRP ~205 mg/L, WBC ~16,600
+#     Chosen to land eff_infl at the WBC_HIGH_INFLAMMATION_THRESHOLD=0.8 peak
+#     — the WBC physiology formula tops out there and begins the leukopenia
+#     descent above 0.8. Peak delta pre-circadian = 4,800 WBC / 179 CRP,
+#     giving a comfortable margin over the audit clinical-axis floor
+#     (CLABSI/VAP WBC Δp50 ≥ 3000, CRP Δp50 ≥ 50; see modules/hai/audit.py).
+#     Issue #1987 raised these from 0.35 after cross-cohort median dilution
+#     (pre-onset + ramp-partial observations in the HAI cohort) landed the
+#     measured delta p50 at 1428 WBC / 28.5 CRP on US s=342 p=10000.
 #   cauti      lift 0.20 -> effective_infl=0.60 -> CRP ~87 mg/L,  WBC ~14,200
 #
 # Ramp: lift_factor = min(1.0, max(0, days_since_onset) / ramp_peak_days)
 #   day 0 (onset)  -> 0.0 lift
-#   day 1          -> 0.5 lift
-#   day 2+ (peak)  -> 1.0 lift (no decay in Phase 3a; antibiotic chain -> Phase 3b)
-ramp_peak_days: 2
+#   day 1+ (peak)  -> 1.0 lift
+# Issue #1987: ramp_peak_days 2 -> 1 so day-1 post-onset observations get
+# full lift (not half), reducing the cross-cohort median dilution the audit
+# clinical axis measures. No decay in Phase 3a; antibiotic chain -> Phase 3b.
+ramp_peak_days: 1
 
 hai_lift:
-  clabsi: 0.35
-  vap: 0.35
+  clabsi: 0.40
+  vap: 0.40
   cauti: 0.20
