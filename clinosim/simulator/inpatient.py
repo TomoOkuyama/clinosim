@@ -43,6 +43,7 @@ from clinosim.modules.staff.engine import (
     FALLBACK_PHYSICIAN_ID,
     StaffRoster,
     assign_staff,
+    select_surgical_team,
 )
 from clinosim.simulator._stay_thresholds import (
     ELECTIVE_SURGERY_ADMISSION_HOUR_WEIGHTS,
@@ -798,10 +799,11 @@ def _simulate_patient(
 
     # Surgery (protocol-driven: requires_surgery flag in YAML)
     if protocol.requires_surgery:
-        # Pick a surgeon and anesthesiologist from the roster
-        surgeons = [m for m in roster.members if m.role == "physician"]
-        surgeon_id = str(rng.choice(surgeons).staff_id) if surgeons else attending_id
-        anes_id = str(rng.choice(surgeons).staff_id) if surgeons else attending_id
+        # Surgeon from the owning surgical department, anesthesiologist from
+        # anesthesiology (Issue #2068)
+        surgeon_id, anes_id = select_surgical_team(roster, department, rng)
+        surgeon_id = surgeon_id or attending_id
+        anes_id = anes_id or attending_id
         operating_rooms = int((hospital_ops or {}).get("resource_capacity", {}).get("operating_rooms", 2))
         proc, impacts = simulate_surgery(
             patient,

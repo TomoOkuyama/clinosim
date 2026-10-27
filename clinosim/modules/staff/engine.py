@@ -27,6 +27,7 @@ from clinosim.modules.staff._staff_thresholds import (
     JP_PHONE_PREFIX_MAX_EXCLUSIVE,
     JP_PHONE_PREFIX_MIN,
     LAB_TECH_COUNT,
+    MIN_ANESTHESIOLOGISTS,
     MIN_BEDS_PER_WARD,
     MIN_ED_PHYSICIANS,
     MIN_INTERNAL_MED_PHYSICIANS,
@@ -48,6 +49,7 @@ from clinosim.modules.staff._staff_thresholds import (
     RADIOLOGIST_QUALIFICATION_YEAR_START,
     STAFF_ID_FALLBACK_MAX_EXCLUSIVE,
     STAFF_ID_FALLBACK_MIN,
+    SURGICAL_DEPARTMENTS,
     TECH_QUALIFICATION_YEAR_END_EXCLUSIVE,
     TECH_QUALIFICATION_YEAR_START,
     US_PHONE_AREA_MAX_EXCLUSIVE,
@@ -116,6 +118,7 @@ _DEPT_PREFIX: dict[str, str] = {
     "primary_care": "PC",
     "obstetrics_gynecology": "OB",
     "pediatrics": "PD",
+    "anesthesiology": "AN",
 }
 
 
@@ -342,6 +345,13 @@ def generate_roster(
                 )
             )
 
+    # Anesthesiology team (Issue #2068). Generated last so every roster draw
+    # above, and therefore every existing staff member, is unchanged.
+    if any(dept in available for dept in SURGICAL_DEPARTMENTS):
+        operating_rooms = int(hospital_config.get("resource_capacity", {}).get("operating_rooms", 0) or 0)
+        for idx in range(1, max(MIN_ANESTHESIOLOGISTS, operating_rooms) + 1):
+            _add_physician("anesthesiology", idx)
+
     return roster
 
 
@@ -366,8 +376,9 @@ def assign_staff(
                     if m.role == "physician" and (m.specialty == department or department in m.specialty)
                 ]
             if not physicians:
-                # Fall back to any physician
-                physicians = roster.get_by_role("physician")
+                # Fall back to any physician (anesthesiologists do not take
+                # ward patients)
+                physicians = [m for m in roster.get_by_role("physician") if m.department != "anesthesiology"]
             if physicians:
                 assignments["attending_physician"] = rng.choice(physicians).staff_id
             nurses = roster.get_by_role("nurse", department)
@@ -392,6 +403,28 @@ def assign_staff(
                 assignments["administering_nurse"] = rng.choice(nurses).staff_id
 
     return assignments
+
+
+def select_surgical_team(roster: StaffRoster, department: str, rng: np.random.Generator) -> tuple[str, str]:
+    """Return ``(surgeon_id, anesthesiologist_id)`` for an operation (Issue #2068).
+
+    The surgeon comes from the owning department when it is a surgical one,
+    else from general surgery, else any non-anesthesiology physician. The
+    anesthesiologist comes from anesthesiology, else from the remaining
+    physicians other than the surgeon. One ``rng.choice`` per role.
+    """
+    physicians = roster.get_by_role("physician")
+    surgeons = [m for m in physicians if department in SURGICAL_DEPARTMENTS and m.department == department]
+    if not surgeons:
+        surgeons = [m for m in physicians if m.department == "general_surgery"]
+    if not surgeons:
+        surgeons = [m for m in physicians if m.department != "anesthesiology"]
+    surgeon_id = str(rng.choice(surgeons).staff_id) if surgeons else ""
+    anesthetists = [m for m in physicians if m.department == "anesthesiology"]
+    if not anesthetists:
+        anesthetists = [m for m in physicians if m.staff_id != surgeon_id]
+    anesthesiologist_id = str(rng.choice(anesthetists).staff_id) if anesthetists else surgeon_id
+    return surgeon_id, anesthesiologist_id
 
 
 def _generate_name(sex: str, country: str, rng: np.random.Generator) -> str:
