@@ -56,6 +56,12 @@ codes:
   F10:
     en: Mental and behavioural disorders due to use of alcohol
     ja: アルコール使用障害
+  F10.3:
+    en: Mental and behavioural disorders due to use of alcohol, withdrawal state
+    ja: アルコール使用による精神及び行動の障害（離脱状態）
+  F10.4:
+    en: Mental and behavioural disorders due to use of alcohol, withdrawal state with delirium
+    ja: アルコール使用による精神及び行動の障害（せん妄を伴う離脱状態）
   F32:
     en: Depressive episode
     ja: うつ病エピソード

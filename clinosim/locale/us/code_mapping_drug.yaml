@@ -223,3 +223,9 @@ BCG: "1344"                    # BCG Vaccine RxCUI — intravesical bladder immu
 "ICS/LABA inhaler": "108761"
 "Broad spectrum antibiotic": "74169"
 "Crystalloid": "313002"
+
+# Issue #2049 alcohol withdrawal pathway. Ingredient RxCUIs verified via
+# NLM RxNav /REST/rxcui/<cui>/properties.json (TTY IN) on 2026-10-27.
+Lorazepam: "6470"
+Thiamine: "10454"
+"Folic acid": "4511"
