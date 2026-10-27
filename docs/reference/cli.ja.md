@@ -151,7 +151,7 @@ clinosim test-encounter migraine --age 35 --sex F
 ## `clinosim list-diseases`
 
 全 32 入院疾患プロトコル (`clinosim/modules/disease/reference_data/*.yaml`)
-+ 46 ED / 外来 encounter 症状
++ 47 ED / 外来 encounter 症状
 (`clinosim/modules/encounter/reference_data/*.yaml`) を表示。
 
 ## `clinosim enumerate` — 網羅的デバッグ (Issue #345)

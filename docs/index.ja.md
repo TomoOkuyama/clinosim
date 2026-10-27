@@ -29,7 +29,7 @@
 - **JP + US ネイティブ対応。** 16 の主要 FHIR リソース型に対する
   JP Core プロファイル準拠、JLAC10 / MHLW YJ コード、JP 氏名 / 住所
   / 保険を標準装備。
-- **YAML 駆動拡張。** 32 の入院疾患 + 46 の ED / 外来症例は全て
+- **YAML 駆動拡張。** 32 の入院疾患 + 47 の ED / 外来症例は全て
   データファイルであり、コードではありません。
 - **経年状態進展。** AR(1) HbA1c 軌道、Markov stage ladder (CKD /
   CCS / NYHA / CDR / GOLD / 癌 AJCC/BCLC)、HTN + 脂質治療 escalation、

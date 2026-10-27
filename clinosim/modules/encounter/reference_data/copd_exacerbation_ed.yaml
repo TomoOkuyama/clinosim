@@ -1,0 +1,96 @@
+# COPD exacerbation (treated and released) — ED visit protocol
+# Moderate exacerbation managed in the ED: short-acting bronchodilators,
+# systemic corticosteroid, antibiotic when sputum is purulent (GOLD 2024).
+# Severe exacerbations are admitted through the disease-level
+# copd_exacerbation pathway, not here.
+
+condition_id: copd_exacerbation_ed
+icd10_code: "J44.1"
+icd10_display: "Chronic obstructive pulmonary disease with (acute) exacerbation"
+chief_complaint:
+  en: "Worsening dyspnea, cough and sputum"
+  ja: "呼吸困難・咳嗽・喀痰の増悪"
+encounter_type: emergency
+department: emergency_medicine
+disposition: discharge_home
+min_age: 40
+# Exacerbation of a chronic disease: only drawn for residents with a COPD
+# diagnosis. The weight is divided by the COPD share at runtime, so 0.017
+# of the ~1.86 catalog total puts COPD at ~0.9% of non-admitted ED visits
+# (NHAMCS 2005-2018: ~17.8M COPD ED visits among adults 35+, ~1.27M/yr).
+requires_chronic_prefix: ["J44"]
+
+severity_distribution:
+  mild: 0.40
+  moderate: 0.50
+  severe: 0.10    # observation before discharge
+
+ed_stay_hours:
+  mild: {mean: 3, sd: 1}
+  moderate: {mean: 4, sd: 1.5}
+  severe: {mean: 7, sd: 2}
+
+# Hypoxemia and mild CO2 retention push towards respiratory acidosis.
+acid_base_type: respiratory
+initial_state_impact:
+  mild:     {ph_status: -0.03, inflammation_level: 0.03}
+  moderate: {ph_status: -0.06, inflammation_level: 0.06}
+  severe:   {ph_status: -0.10, inflammation_level: 0.10}
+
+workup:
+  vitals: true
+  labs:
+    - {test: "WBC", probability: 0.7}
+    - {test: "CRP", probability: 0.4}
+    - {test: "Creatinine", probability: 0.6}
+    - {test: "BNP", probability: 0.3}
+  imaging:
+    - {test: "Chest_Xray", probability: 0.85}
+
+treatment:
+  - {name: "Nebulized salbutamol 2.5mg", probability: 0.95, route: "INH", intent: "bronchodilation"}
+  - {name: "Ipratropium bromide 0.5mg nebulized", probability: 0.8, route: "INH", intent: "bronchodilation"}
+  - name: "Prednisolone 40mg"
+    locale_name:
+      jp: "Prednisolone 40mg"
+      us: "Prednisone 40mg"
+    probability: 0.85
+    route: "PO"
+    intent: "anti-inflammatory"
+
+discharge_instructions:
+  - "Improved after bronchodilator therapy, oxygen saturation stable on room air"
+  - "Complete the prednisone and antibiotic course as prescribed"
+  - "Continue maintenance inhalers; use rescue inhaler as needed"
+  - "Follow up with PCP or pulmonologist within 1 week"
+  - "Return if breathing worsens, lips turn blue, or confusion develops"
+
+discharge_prescriptions:
+  - {drug: "Prednisone 40mg", route: "PO", frequency: "daily", duration_days: 5, probability: 0.85}
+  - {drug: "Azithromycin 250mg", route: "PO", frequency: "daily", duration_days: 5, probability: 0.5}
+  - {drug: "Albuterol MDI", route: "INH", frequency: "Q4-6H PRN", duration_days: 30, probability: 0.4}
+
+incidence_modifier: 1.0
+probability: 0.017
+age_distribution: adults
+sex_ratio_female: 0.5
+seasonal: {1: 1.5, 2: 1.3, 3: 1.1, 4: 0.9, 5: 0.8, 6: 0.7, 7: 0.7, 8: 0.8, 9: 0.9, 10: 1.0, 11: 1.2, 12: 1.5}
+
+narrative:
+  ed_note_template:
+    chief_complaint_ja: '{chief_complaint_ja}の訴え'
+    hpi_ja: '{onset_days}日前より{chief_complaint_ja}が出現・増悪'
+    physical_exam_ja:
+      general: 意識清明、苦痛様
+    ed_workup_summary_ja: '{lab_summary_ja}、{imaging_summary_ja}'
+    disposition_ja: '{disposition_display_ja}'
+    chief_complaint_en: '{chief_complaint_en} complaint'
+    hpi_en: 'Onset {onset_days} day(s) ago: {chief_complaint_en}, progressively worsening.'
+    physical_exam_en:
+      general: Alert and oriented, in visible distress
+    ed_workup_summary_en: '{lab_summary_en}, {imaging_summary_en}'
+    disposition_en: '{disposition_display_en}'
+  ed_triage_template:
+    common_triage_levels:
+    - '3'
+    - '4'

@@ -66,8 +66,13 @@ def _run_ed_slot_phase(
         (name, spec) for name, spec in all_enc_conditions.items() if spec.get("encounter_type") == "emergency"
     ]
     ed_demo = demo.get("ed_visit_not_admitted", {})
-    ed_rate = ed_demo.get("rate_per_admitted", ED_RATE_PER_ADMITTED_DEFAULT)
-    n_ed = int(len(inpatient_records) * ed_rate)
+    total_months = (bounds.raw_end_y - bounds.start_y) * 12 + (bounds.raw_end_m - bounds.start_m) + 1
+    n_ed = _ed_visit_count(
+        ed_demo,
+        n_inpatient=len(inpatient_records),
+        n_persons=len(population.persons),
+        total_months=total_months,
+    )
     if not ed_conditions or n_ed <= 0:
         return 0
 
@@ -80,7 +85,6 @@ def _run_ed_slot_phase(
         slot_key = f"{config.country}|ed-slot-{slot:06d}"
         slot_rng = derive_phase_rng(master_seed, PHASE_ED_VISIT, slot_key)
 
-        total_months = (bounds.raw_end_y - bounds.start_y) * 12 + (bounds.raw_end_m - bounds.start_m) + 1
         month_offset = int(slot_rng.integers(0, total_months))
         visit_month = ((bounds.start_m - 1 + month_offset) % 12) + 1
         visit_year = bounds.start_y + (bounds.start_m - 1 + month_offset) // 12
@@ -183,3 +187,16 @@ def _ed_condition_weight(
     if occ_mults:
         weight *= occ_mults.get(getattr(person, "occupation", "other"), ED_OCCUPATION_MISMATCH_FALLBACK)
     return weight
+
+
+def _ed_visit_count(ed_demo: dict[str, Any], *, n_inpatient: int, n_persons: int, total_months: int) -> int:
+    """Number of ED-visit slots for the run.
+
+    ``rate_per_1000_person_years`` (national ED visit rate, independent of the
+    admission mix) takes precedence; otherwise the legacy
+    ``rate_per_admitted`` multiple of inpatient records is used.
+    """
+    per_py = ed_demo.get("rate_per_1000_person_years")
+    if per_py is not None:
+        return int(n_persons * total_months / 12 * float(per_py) / 1000)
+    return int(n_inpatient * ed_demo.get("rate_per_admitted", ED_RATE_PER_ADMITTED_DEFAULT))
