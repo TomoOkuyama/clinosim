@@ -90,6 +90,10 @@ class EncounterConditionProtocol(BaseModel):
     encounter_type: str
     department: str
 
+    # Chronic-code prefixes a resident must carry for this condition to be
+    # drawn (exacerbations of a chronic disease, e.g. ["J45"] for asthma).
+    requires_chronic_prefix: list[str] = []
+
     # Narrative spec (Tier 1 #3 α-min-2 Task 6): per-encounter-type narrative
     # templates.  Optional default = None so existing encounter YAMLs without a
     # narrative: block continue to validate without error.
