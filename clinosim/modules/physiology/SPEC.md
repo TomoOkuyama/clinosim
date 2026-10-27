@@ -35,6 +35,35 @@ Define the hidden physiological state variables that represent a patient's clini
 | `volume_status` | -1.0–+1.0 | -1 = dehydration, +1 = overload | BUN/Cr ratio, urine specific gravity, Na, Hct (hemoconcentration) |
 | `perfusion_status` | 0.0–1.0 | 1 = normal, 0 = shock | Lactate, base excess, urine output |
 | `ph_status` | -1.0–+1.0 | -1 = acidosis, +1 = alkalosis | pH, pCO2, HCO3, base excess, anion gap |
+| `sympathetic_activation` | 0.0–1.0 | 0 = none, 1 = maximal autonomic hyperactivity | HR, BP, RR, temperature |
+| `pain_level` | 0.0–1.0 | 0 = none, 1 = worst pain (NRS ≈ 10 × value) | pain score; HR / BP above 0.4 |
+| `oxygenation_impairment` | 0.0–1.0 | 0 = normal gas exchange, 1 = severe hypoxemia | SpO2, pO2, RR, HR, pCO2 (hyperventilation) |
+| `consciousness_impairment` | 0.0–1.0 | 0 = alert, 1 = unresponsive | AVPU (→ GCS, NEWS2, Braden, Morse), JCS phrases |
+
+#### Symptom axes (Issue #2052 and follow-ups)
+
+The four symptom axes default to 0, are clamped to their range by `state_variable_ranges.yaml`, and contribute nothing at 0.
+
+- **Set by**:
+  - disease / encounter YAML `initial_state_impact` (by severity)
+  - `course_archetypes[].trajectory` deltas
+  - complication `state_impact`
+  - chronic baselines in `initialize_state` (hip / knee osteoarthritis → `pain_level = 0.1 + 0.8 × severity`)
+- **Recovery**: `natural_recovery_directive` lowers them daily (`SYMPTOM_AXIS_DAILY_RECOVERY`: pain and sympathetic 0.12, oxygenation 0.08, consciousness 0.05). The daily loop keeps them at or above the chronic baseline captured before the acute impact (`apply_symptom_floor`).
+- **Vitals** (`_vital_signs_thresholds.py`):
+  - sympathetic → HR +35, SBP +30, DBP +15, RR +6, T +0.8 °C at 1.0
+  - pain adds `0.8 × max(0, pain − 0.4)` to the sympathetic drive, so mild / chronic pain does not raise HR / BP
+  - oxygenation → SpO2 −25, RR +14, HR +20 at 1.0
+  - `room_air_saturation()` is shared by the SpO2 vital and blood-gas pO2 (Severinghaus inversion); oxygenation also lowers pCO2 (hyperventilation) unless CO2 is retained
+- **Observations**:
+  - pain score = max(noise draw, round(10 × pain_level)) for inpatient / ED; outpatient records it when set; FHIR LOINC 72514-3
+  - AVPU = consciousness + N(0, 0.12) mapped to V ≥ 0.25, P ≥ 0.5, U ≥ 0.75 (inpatient and ED; clinic visits do not assess it)
+- **Decisions**:
+  - discharge is unsafe while sympathetic ≥ 0.25, oxygenation > baseline + 0.12, consciousness ≥ baseline + 0.25 or perfusion < 0.5; the stay extends to the protocol maximum, then discharge goes to SNF
+  - oxygen starts below SpO2 92% (88% for COPD) and raises the recorded SpO2
+  - ED release requires reassessment within limits
+  - complication risk factors accept `<axis> <op> <value>`
+  - airway / ICU escalation at consciousness ≥ 0.62 or oxygenation ≥ 0.6
 
 ---
 

@@ -135,6 +135,16 @@ from clinosim.modules.physiology.engine import (
 - **Vital-signs formulae** ([`_vital_signs_thresholds.py`](_vital_signs_thresholds.py))
   — coupling + noise constants for `derive_vital_signs` /
   `derive_observed_vitals` (HR, SBP, DBP, RR, SpO₂, temperature).
+- **Symptom axes** (`sympathetic_activation`, `pain_level`,
+  `oxygenation_impairment`, `consciousness_impairment`; Issue #2052):
+  vital couplings and AVPU / pain-score scales in
+  [`_vital_signs_thresholds.py`](_vital_signs_thresholds.py), the OA pain
+  baseline in [`_coupling_coefficients.py`](_coupling_coefficients.py),
+  blood-gas constants (`LAB_REFERENCE_SAO2_PCT`,
+  `PCO2_HYPOXIC_HYPERVENTILATION_MMHG`) in
+  [`_lab_derivation_thresholds.py`](_lab_derivation_thresholds.py). Daily
+  recovery, chronic floor, discharge / oxygen / escalation rules are
+  summarised in [`SPEC.md`](SPEC.md) under "Symptom axes".
 - **Dehydration thresholds** ([`dehydration_thresholds.py`](dehydration_thresholds.py),
   Issue #561): the canonical `volume_status` cutoffs that gate
   dehydration → BUN / hypernatremia derivation across the module.

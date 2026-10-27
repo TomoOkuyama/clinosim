@@ -130,6 +130,16 @@ from clinosim.modules.physiology.engine import (
 - **Vital 導出式** ([`_vital_signs_thresholds.py`](_vital_signs_thresholds.py))
   — `derive_vital_signs` / `derive_observed_vitals` の coupling +
   noise 定数 (HR, SBP, DBP, RR, SpO₂, 体温)。
+- **症状軸** (`sympathetic_activation`, `pain_level`,
+  `oxygenation_impairment`, `consciousness_impairment`、Issue #2052):
+  vital への coupling と AVPU / pain score の尺度は
+  [`_vital_signs_thresholds.py`](_vital_signs_thresholds.py)、OA の慢性疼痛
+  baseline は [`_coupling_coefficients.py`](_coupling_coefficients.py)、
+  血液ガス定数 (`LAB_REFERENCE_SAO2_PCT`、
+  `PCO2_HYPOXIC_HYPERVENTILATION_MMHG`) は
+  [`_lab_derivation_thresholds.py`](_lab_derivation_thresholds.py)。日次回復・
+  慢性 floor・退院 / 酸素 / エスカレーション規則は [`SPEC.md`](SPEC.md) の
+  "Symptom axes" にまとめている。
 - **Dehydration 閾値** ([`dehydration_thresholds.py`](dehydration_thresholds.py)、
   Issue #561): モジュール全体で dehydration → BUN /
   hypernatremia 導出を gate する canonical `volume_status` 閾値。
