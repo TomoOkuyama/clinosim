@@ -100,10 +100,13 @@ chronic_prevalence:
   # ONE rng.random() draw against the matching band — only the
   # band-specific probability differs — because the three bands are
   # disjoint and cover the same union [40, 99].
-  J44:      # COPD — CDC ~6% general by age band (BRFSS 2022)
-    "40-49": 0.03   # ~3% ref (early onset: smoking + α1AT)
-    "50-59": 0.10   # ~10% ref
-    "60-99": 0.20   # ~20% ref (65+ ≈ 25%; 60-64 ≈ 15%)
+  J44:      # COPD — CDC BRFSS national tables: 35-44 3.6 %, 45-54 6.7 %,
+    # 55-64 ~8.6-9 %, 65+ 11.6-12.3 %; adults ~6.0-6.5 % (2011-2021 stable).
+    # Issue #1996: 60-99 was 0.20 (65+ landed at ~20 %, ~1.7x BRFSS);
+    # values lowered, band structure unchanged (same rng draws).
+    "40-49": 0.045
+    "50-59": 0.08
+    "60-99": 0.12
   N18:      # CKD — CDC ~14% of adults; cohort target ~17% (Medicare-user).
     # Issue #1113 (C11f, 2026-09-05): band raised 0.14 → 0.28 to land the
     # emitted cohort in the (10, 20) benchmark band in verify_medical_stats.py
