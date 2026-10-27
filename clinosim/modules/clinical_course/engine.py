@@ -70,6 +70,14 @@ from clinosim.modules.clinical_course._clinical_course_thresholds import (
     SYMPTOM_AXIS_DAILY_RECOVERY,
     VOLUME_RECOVERY_RATE_PER_UNIT_SEVERITY,
 )
+from clinosim.modules.clinical_course._complication_risk_conditions import (
+    IMMOBILITY_DEFAULT_DAYS,
+    MALNUTRITION_BMI_MAX,
+    PATIENT_ICD_ALIASES,
+    SEVERITY_ALIASES,
+    STATE_ALIASES,
+)
+from clinosim.modules.disease.severity import EVALUABLE_CONDITIONS as PERSON_CONDITIONS
 from clinosim.modules.disease.severity import _evaluate_condition as _severity_condition
 from clinosim.modules.physiology.engine import canonical_state_vars
 from clinosim.types.clinical import StateChangeDirective
@@ -501,6 +509,50 @@ def evaluate_complications(
     return triggered
 
 
+_STATE_THRESHOLD_RE = re.compile(r"^\s*([a-z_]+)\s*(<=|>=|<|>)\s*(-?\d+(?:\.\d+)?)\s*$")
+_COMPARE = {
+    "<": lambda a, b: a < b,
+    "<=": lambda a, b: a <= b,
+    ">": lambda a, b: a > b,
+    ">=": lambda a, b: a >= b,
+}
+_PROFILE_SUSCEPTIBILITIES = ("delirium_susceptibility", "dvt_susceptibility")
+
+
+def _patient_codes(patient: Any) -> list[str]:
+    return [str(getattr(c, "code", c) or "") for c in (getattr(patient, "chronic_conditions", None) or [])]
+
+
+def _person_view(patient: Any) -> Any:
+    """``severity._evaluate_condition`` expects ICD strings in ``chronic_conditions``;
+    inpatient patients carry ``ChronicCondition`` objects."""
+    from types import SimpleNamespace
+
+    return SimpleNamespace(
+        age=getattr(patient, "age", 0),
+        sex=getattr(patient, "sex", ""),
+        bmi=getattr(patient, "bmi", 0.0),
+        smoking_status=getattr(patient, "smoking_status", "never"),
+        chronic_conditions=_patient_codes(patient),
+    )
+
+
+def is_supported_risk_condition(condition: str) -> bool:
+    """True iff ``_evaluate_risk_condition`` can resolve ``condition`` (Issue #2093)."""
+    if condition.startswith(("age_over_", "age_under_")) or condition in ("severity_severe", "female"):
+        return True
+    if condition.startswith("immobility_days") or condition == "immobility":
+        return True
+    m = _STATE_THRESHOLD_RE.match(condition)
+    if m and (m.group(1) in canonical_state_vars() or m.group(1) in _PROFILE_SUSCEPTIBILITIES):
+        return True
+    if condition in STATE_ALIASES or condition in PATIENT_ICD_ALIASES or condition in SEVERITY_ALIASES:
+        return True
+    if condition in ("malnutrition", "baseline_malnutrition"):
+        return True
+    return condition in PERSON_CONDITIONS
+
+
 def _evaluate_risk_condition(
     condition: str,
     state: Any,
@@ -508,33 +560,43 @@ def _evaluate_risk_condition(
     day: int,
     severity: str,
 ) -> bool:
-    """Evaluate a risk factor condition string against current state/patient."""
+    """Evaluate a complication risk-factor condition against the day's state and the patient.
+
+    Vocabulary and resolution order: ``_complication_risk_conditions`` (Issue #2093).
+    Declared context conditions and anything unsupported evaluate False.
+    """
     try:
         if condition.startswith("age_over_"):
-            threshold = int(condition.split("_")[-1])
-            return patient.age >= threshold if hasattr(patient, "age") else False
-        if condition == "severity_severe":
+            return int(getattr(patient, "age", 0)) >= int(condition.split("_")[-1])
+        if condition.startswith("age_under_"):
+            return int(getattr(patient, "age", 999)) < int(condition.split("_")[-1])
+        if condition == "severity_severe" or condition in SEVERITY_ALIASES:
             return severity == "severe"
-        if "renal_function" in condition:
-            parts = condition.split("<")
-            if len(parts) == 2:
-                return state.renal_function < float(parts[1].strip())
-        if "volume_status" in condition:
-            parts = condition.split("<")
-            if len(parts) == 2:
-                return state.volume_status < float(parts[1].strip())
-        if "perfusion_status" in condition:
-            parts = condition.split("<")
-            if len(parts) == 2:
-                return state.perfusion_status < float(parts[1].strip())
-        if "delirium_susceptibility" in condition:
+        if condition == "female":
+            return getattr(patient, "sex", "") == "F"
+        if condition == "immobility":
+            return day > IMMOBILITY_DEFAULT_DAYS
+        if condition.startswith("immobility_days"):
             parts = condition.split(">")
-            if len(parts) == 2 and hasattr(patient, "physiological_profile"):
-                return patient.physiological_profile.delirium_susceptibility > float(parts[1].strip())
-        if "immobility_days" in condition:
-            parts = condition.split(">")
-            if len(parts) == 2:
-                return day > int(parts[1].strip())
+            return len(parts) == 2 and day > int(parts[1].strip())
+        m = _STATE_THRESHOLD_RE.match(condition)
+        if m:
+            var, op, value = m.group(1), m.group(2), float(m.group(3))
+            if var in _PROFILE_SUSCEPTIBILITIES:
+                profile = getattr(patient, "physiological_profile", None)
+                return profile is not None and _COMPARE[op](float(getattr(profile, var)), value)
+            if var in canonical_state_vars():
+                return _COMPARE[op](float(getattr(state, var)), value)
+            return False
+        if condition in STATE_ALIASES:
+            var, op, value = STATE_ALIASES[condition]
+            return _COMPARE[op](float(getattr(state, var)), value)
+        if condition in PATIENT_ICD_ALIASES:
+            return any(code.startswith(PATIENT_ICD_ALIASES[condition]) for code in _patient_codes(patient))
+        if condition in ("malnutrition", "baseline_malnutrition"):
+            return 0 < float(getattr(patient, "bmi", 0.0) or 0.0) < MALNUTRITION_BMI_MAX
+        if condition in PERSON_CONDITIONS:
+            return _severity_condition(condition, _person_view(patient))
     except (ValueError, AttributeError):
         pass
     return False
