@@ -181,6 +181,14 @@ def _check_discharge_ready(
     )
 
 
+def _mortality_day_weight(day: int) -> float:
+    if MORTALITY_DAY_EARLY_START <= day <= MORTALITY_DAY_EARLY_END:
+        return MORTALITY_DAY_EARLY_WEIGHT
+    if day > MORTALITY_DAY_LATE_START:
+        return MORTALITY_DAY_LATE_WEIGHT
+    return MORTALITY_DAY_MID_WEIGHT
+
+
 def _evaluate_mortality(
     state: PhysiologicalState,
     patient: Any,
@@ -193,16 +201,14 @@ def _evaluate_mortality(
     """Daily mortality evaluation using disease-specific benchmark rates.
 
     If ``disease_mortality_rate`` is provided (from YAML outcome_benchmarks),
-    it is used as the total in-hospital mortality rate and spread across LOS.
+    it is the cumulative in-hospital mortality over a ``target_los`` stay,
+    spread across days by the day weights.
     """
     if disease_mortality_rate > 0:
-        if MORTALITY_DAY_EARLY_START <= day <= MORTALITY_DAY_EARLY_END:
-            day_weight = MORTALITY_DAY_EARLY_WEIGHT
-        elif day > MORTALITY_DAY_LATE_START:
-            day_weight = MORTALITY_DAY_LATE_WEIGHT
-        else:
-            day_weight = MORTALITY_DAY_MID_WEIGHT
-        daily_base = disease_mortality_rate / max(target_los, 1) * day_weight
+        # Normalise by the weight total over the planned stay so the summed
+        # daily hazard over target_los equals the YAML cumulative rate.
+        weight_total = sum(_mortality_day_weight(d) for d in range(max(target_los, 1)))
+        daily_base = disease_mortality_rate * _mortality_day_weight(day) / weight_total
         age = patient.age if hasattr(patient, "age") else MORTALITY_DEFAULT_AGE
         individual_mod = 1.0
         if age >= MORTALITY_AGE_OLDEST_THRESHOLD:
