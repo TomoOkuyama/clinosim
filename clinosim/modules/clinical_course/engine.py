@@ -68,6 +68,7 @@ from clinosim.modules.clinical_course._clinical_course_thresholds import (
     NATURAL_RECOVERY_SEVERITY_MULT_FALLBACK,
     NATURAL_RECOVERY_SEVERITY_SEVERE,
     SYMPTOM_AXIS_DAILY_RECOVERY,
+    SYMPTOM_AXIS_SPONTANEOUS_FRACTION,
     VOLUME_RECOVERY_RATE_PER_UNIT_SEVERITY,
 )
 from clinosim.modules.clinical_course._complication_risk_conditions import (
@@ -767,8 +768,13 @@ def natural_recovery_directive(
     disease_id: str,
     severity: str,
     profile: PatientPhysiologicalProfile,
+    treatment_effectiveness: float = 1.0,
 ) -> StateChangeDirective:
     """Compute small baseline recovery independent of treatment.
+
+    The symptom-axis part (pain, sympathetic, oxygenation, consciousness)
+    reflects standard care and scales with ``treatment_effectiveness``
+    above a spontaneous share (Issue #2097).
 
     Models the body's innate healing — immune response, homeostatic regulation.
     """
@@ -794,13 +800,15 @@ def natural_recovery_directive(
     if day >= ANEMIA_RECOVERY_STEADY_MIN_DAY:
         anemia_recovery = ANEMIA_RECOVERY_STEADY_RATE * severity_scale  # steady-state production
 
+    effectiveness = min(1.0, max(0.0, treatment_effectiveness))
+    symptom_scale = SYMPTOM_AXIS_SPONTANEOUS_FRACTION + (1.0 - SYMPTOM_AXIS_SPONTANEOUS_FRACTION) * effectiveness
     return StateChangeDirective(
         source="natural_recovery",
         changes={
             "inflammation_level": -base,
             "volume_status": -VOLUME_RECOVERY_RATE_PER_UNIT_SEVERITY * severity_scale,  # toward 0
             "anemia_level": -anemia_recovery,  # bone marrow erythropoiesis
-            **{axis: -rate for axis, rate in SYMPTOM_AXIS_DAILY_RECOVERY.items()},
+            **{axis: -rate * symptom_scale for axis, rate in SYMPTOM_AXIS_DAILY_RECOVERY.items()},
         },
         reason=f"Natural recovery (immune={immune:.2f}, severity={severity})",
     )

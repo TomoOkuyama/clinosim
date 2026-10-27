@@ -63,6 +63,7 @@ __all__ = [
     "NATURAL_RECOVERY_SEVERITY_SEVERE",
     "VOLUME_RECOVERY_RATE_PER_UNIT_SEVERITY",
     "SYMPTOM_AXIS_DAILY_RECOVERY",
+    "SYMPTOM_AXIS_SPONTANEOUS_FRACTION",
 ]
 
 
@@ -355,3 +356,9 @@ care: analgesia (~1-2 pain points per day), symptom-triggered sedation,
 oxygen / bronchodilator therapy, neurological recovery. Conditions with a
 sustained course override this with positive trajectory deltas. Axes at 0
 stay at 0 (clamped), so conditions that do not set them are unaffected."""
+
+SYMPTOM_AXIS_SPONTANEOUS_FRACTION: float = 0.4
+"""Share of ``SYMPTOM_AXIS_DAILY_RECOVERY`` that happens without effective
+treatment (spontaneous resolution); the rest scales with the day's
+diagnosis / treatment effectiveness (Issue #2097), so a missed diagnosis
+leaves pain, hypoxemia and confusion improving more slowly."""
