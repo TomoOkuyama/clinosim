@@ -102,16 +102,19 @@ severity:
 # ============================================================
 initial_state_impact:
   mild:
+    pain_level: 0.3
     inflammation_level: 0.10
     volume_status: -0.10
     anion_gap_status: 0.0     # AG axis: mild ileus — no AG shift
   moderate:
+    pain_level: 0.45
     inflammation_level: 0.25
     volume_status: -0.25
     perfusion_status: -0.05
     renal_function: -0.05
     anion_gap_status: 0.2     # AG axis: dehydration + early lactate
   severe:
+    pain_level: 0.55
     inflammation_level: 0.50
     volume_status: -0.35
     perfusion_status: -0.15

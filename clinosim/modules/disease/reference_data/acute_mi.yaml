@@ -104,12 +104,14 @@ severity:
 # ============================================================
 initial_state_impact:
   moderate:
+    pain_level: 0.6
     cardiac_function: -0.30
     perfusion_status: -0.15
     inflammation_level: 0.15
     ph_status: -0.03
     anion_gap_status: 0.1     # AG axis: minimal AG contribution (mild lactate)
   severe:
+    pain_level: 0.7
     cardiac_function: -0.50
     perfusion_status: -0.30
     inflammation_level: 0.25

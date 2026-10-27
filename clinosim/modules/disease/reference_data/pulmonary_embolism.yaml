@@ -104,10 +104,12 @@ severity:
 # ============================================================
 initial_state_impact:
   mild:
+    pain_level: 0.25
     inflammation_level: 0.10
     perfusion_status: -0.05
     anion_gap_status: 0.0     # AG axis: mild PE — no AG shift
   moderate:
+    pain_level: 0.35
     inflammation_level: 0.20
     perfusion_status: -0.20
     volume_status: -0.05
@@ -115,6 +117,7 @@ initial_state_impact:
     ph_status: -0.05
     anion_gap_status: 0.2     # AG axis: moderate PE with mild lactate
   severe:
+    pain_level: 0.4
     inflammation_level: 0.35
     perfusion_status: -0.40
     volume_status: -0.10

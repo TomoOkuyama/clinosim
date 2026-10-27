@@ -62,6 +62,7 @@ __all__ = [
     "NATURAL_RECOVERY_SEVERITY_MULT_FALLBACK",
     "NATURAL_RECOVERY_SEVERITY_SEVERE",
     "VOLUME_RECOVERY_RATE_PER_UNIT_SEVERITY",
+    "SYMPTOM_AXIS_DAILY_RECOVERY",
 ]
 
 
@@ -341,3 +342,16 @@ COMPLICATION_RISK_MULTIPLIER_DEFAULT: float = 1.0
 """Default multiplier for a complication risk factor that omits
 ``multiplier`` — 1.0 is a no-op so an under-specified risk factor
 neither raises nor lowers the base probability."""
+
+
+SYMPTOM_AXIS_DAILY_RECOVERY: dict[str, float] = {
+    "pain_level": 0.12,
+    "sympathetic_activation": 0.12,
+    "oxygenation_impairment": 0.08,
+    "consciousness_impairment": 0.05,
+}
+"""Daily decline (toward 0) of the Issue #2053 symptom axes under standard
+care: analgesia (~1-2 pain points per day), symptom-triggered sedation,
+oxygen / bronchodilator therapy, neurological recovery. Conditions with a
+sustained course override this with positive trajectory deltas. Axes at 0
+stay at 0 (clamped), so conditions that do not set them are unaffected."""

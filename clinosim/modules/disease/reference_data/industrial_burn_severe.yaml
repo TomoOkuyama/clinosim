@@ -35,6 +35,7 @@ severity:
 
 initial_state_impact:
   moderate:
+    pain_level: 0.8
     inflammation_level: 0.40
     anemia_level: 0.10
     volume_status: -0.35    # massive fluid loss
@@ -42,6 +43,7 @@ initial_state_impact:
     renal_function: -0.10
     anion_gap_status: 0.4     # AG axis: tissue hypoperfusion + lactate (AG 14-18)
   severe:
+    pain_level: 0.9
     inflammation_level: 0.60
     anemia_level: 0.20
     volume_status: -0.55

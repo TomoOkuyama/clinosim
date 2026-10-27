@@ -21,6 +21,11 @@ ed_stay_hours:
   moderate: {mean: 4, sd: 1}
   severe: {mean: 6, sd: 1.5}
 
+initial_state_impact:
+  mild: {pain_level: 0.4}
+  moderate: {pain_level: 0.55}
+  severe: {pain_level: 0.7}
+
 workup:
   vitals: true
   labs:

@@ -112,10 +112,12 @@ severity:
 initial_state_impact:
   mild: {}  # Not used (minimum_severity = moderate)
   moderate:
+    pain_level: 0.6
     inflammation_level: 0.30
     volume_status: -0.10
     anion_gap_status: 0.2     # AG axis: biliary inflammation / mild cholangitis
   severe:
+    pain_level: 0.7
     inflammation_level: 0.55
     volume_status: -0.20
     perfusion_status: -0.10

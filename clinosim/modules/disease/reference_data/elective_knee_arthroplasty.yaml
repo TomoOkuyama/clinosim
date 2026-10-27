@@ -39,10 +39,12 @@ severity:
 
 initial_state_impact:
   moderate:
+    pain_level: 0.5
     inflammation_level: 0.08
     anemia_level: 0.05       # intra-operative blood loss
     volume_status: -0.05
   severe:
+    pain_level: 0.6
     inflammation_level: 0.12
     anemia_level: 0.10
     volume_status: -0.10

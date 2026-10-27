@@ -35,6 +35,7 @@ severity:
 
 initial_state_impact:
   moderate:
+    pain_level: 0.5
     inflammation_level: 0.25
     anemia_level: 0.05
     volume_status: -0.15    # rhabdomyolysis volume loss
@@ -42,6 +43,7 @@ initial_state_impact:
     renal_function: -0.10   # myoglobinuria risk
     anion_gap_status: 0.3     # AG axis: rhabdomyolysis (SO4/PO4) + lactate
   severe:
+    pain_level: 0.6
     inflammation_level: 0.45
     anemia_level: 0.15
     volume_status: -0.30
