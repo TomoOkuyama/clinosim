@@ -40,11 +40,16 @@ def test_antibiotic_always_on_emits_medications(cauti_forced_scenario):
     """Always-on enricher: a CAUTI HAI event triggers Ceftriaxone Order + 7 MAR."""
     cfg = SimulatorConfig(country="US", random_seed=42)
     ds = run_forced(cauti_forced_scenario, config=cfg)
-    rec_with_abx = None
-    for rec in ds.patients:
-        if rec.extensions.get("antibiotic"):
-            rec_with_abx = rec
-            break
+
+    # The empirical ceftriaxone may be narrowed (stopped and switched) once the
+    # culture reports, and the MAR stops at discharge / death; check the patient
+    # with the longest HAI antibiotic course (empirical + narrowed regimens).
+    def _course_doses(rec) -> int:
+        order_ids = {f"req-{r.regimen_id}" for r in rec.extensions.get("antibiotic", [])}
+        return sum(m.order_id in order_ids for m in rec.medication_administrations)
+
+    with_abx = [rec for rec in ds.patients if rec.extensions.get("antibiotic")]
+    rec_with_abx = max(with_abx, key=_course_doses, default=None)
     if rec_with_abx is None:
         pytest.skip(
             "100 severe-sepsis patients at seed=42 produced no antibiotic "
@@ -61,7 +66,8 @@ def test_antibiotic_always_on_emits_medications(cauti_forced_scenario):
     ]
     assert len(cef_orders) >= 1
     cef_mar = [m for m in rec_with_abx.medication_administrations if m.drug_name == "Ceftriaxone"]
-    assert len(cef_mar) >= 7  # at least one full course (possibly more if multiple HAI events)
+    assert cef_mar  # empirical therapy started
+    assert _course_doses(rec_with_abx) >= 7  # a full course across empirical + narrowed regimens
 
 
 @pytest.mark.integration
