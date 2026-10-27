@@ -1,8 +1,8 @@
 """G47.30 OSA enricher (Issue #1137 cluster 2 axis 4).
 
-BMI tier × biological sex SHA Bernoulli — RNG-neutral per-person
-assignment of the G47.30 chronic condition. Male / female tables
-differ by ~2× (Peppard 2013). Mirrors axis-3 (K76.0) pattern
+BMI tier x biological sex x age-factor SHA Bernoulli — RNG-neutral
+per-person assignment of the G47.30 chronic condition, calibrated to
+moderate-to-severe OSA (Peppard 2013). Mirrors axis-3 (K76.0) pattern
 (POST_POPULATION, idempotent, byte-identity preserving for
 cohorts that happen to hash under the threshold).
 """
@@ -67,31 +67,37 @@ def test_bmi_tier_boundaries() -> None:
 
 
 def test_prob_male_tier_anchors() -> None:
-    assert _osa_probability(22.0, "M") == 0.05
-    assert _osa_probability(27.0, "M") == 0.20
-    assert _osa_probability(33.0, "M") == 0.50
-    assert _osa_probability(42.0, "M") == 0.75
+    assert _osa_probability(22.0, "M") == 0.02
+    assert _osa_probability(27.0, "M") == 0.085
+    assert _osa_probability(33.0, "M") == 0.21
+    assert _osa_probability(42.0, "M") == 0.315
 
 
 def test_prob_female_tier_anchors() -> None:
-    assert _osa_probability(22.0, "F") == 0.02
-    assert _osa_probability(27.0, "F") == 0.10
-    assert _osa_probability(33.0, "F") == 0.25
-    assert _osa_probability(42.0, "F") == 0.45
+    assert _osa_probability(22.0, "F") == 0.0065
+    assert _osa_probability(27.0, "F") == 0.032
+    assert _osa_probability(33.0, "F") == 0.08
+    assert _osa_probability(42.0, "F") == 0.145
 
 
 def test_prob_male_approximately_double_female() -> None:
-    """Peppard 2013 anchor: at the obese tier male prevalence is
-    ~2× female (0.50 vs 0.25)."""
-    assert _osa_probability(33.0, "M") == 2 * _osa_probability(33.0, "F")
+    """Peppard 2013 anchor: at ages 50-70 male moderate-to-severe OSA
+    is ~2x female (17% vs 9%)."""
+    ratio = _osa_probability(33.0, "M", 55) / _osa_probability(33.0, "F", 55)
+    assert 1.8 <= ratio <= 2.3
+
+
+def test_prob_age_factor_raises_older_adults() -> None:
+    assert _osa_probability(33.0, "M", 55) > _osa_probability(33.0, "M", 40)
+    assert _osa_probability(33.0, "F", 55) > _osa_probability(33.0, "F", 40)
 
 
 def test_prob_unknown_sex_falls_back_to_female() -> None:
     """Any non-M-starting value uses the female (conservative)
     table — simulator reserves "M" / "F"; a legacy "unknown"
     should under-identify rather than over-identify."""
-    assert _osa_probability(33.0, "X") == 0.25
-    assert _osa_probability(33.0, "") == 0.25
+    assert _osa_probability(33.0, "X") == 0.08
+    assert _osa_probability(33.0, "") == 0.08
 
 
 # ---------------------------------------------------------------------------
@@ -135,15 +141,15 @@ def test_draw_osa_vs_nafld_salts_differ() -> None:
 
 
 def test_derive_reference_bmi_mostly_absent() -> None:
-    """BMI < 25 male prevalence = 5 % — expect ~25 / 500 assigned."""
+    """BMI < 25 male prevalence = 2 % — expect ~10 / 500 assigned."""
     yes = sum(1 for i in range(500) if _derive_osa_assignment(f"PT-R-{i}", 22.0, "M") == "G47.30")
-    assert 10 <= yes <= 50, f"got {yes} / 500 (expected ~25 ±25)"
+    assert 2 <= yes <= 25, f"got {yes} / 500 (expected ~10)"
 
 
 def test_derive_morbid_male_high_rate() -> None:
-    """Morbid obese male prevalence = 75 %."""
+    """Morbid obese male prevalence = 31.5 %."""
     yes = sum(1 for i in range(200) if _derive_osa_assignment(f"PT-M-{i}", 42.0, "M") == "G47.30")
-    assert 130 <= yes <= 170, f"got {yes} / 200 (expected ~150 ±20)"
+    assert 45 <= yes <= 85, f"got {yes} / 200 (expected ~63)"
 
 
 # ---------------------------------------------------------------------------
@@ -162,13 +168,13 @@ def test_enricher_idempotent_on_repeat_call() -> None:
 
 
 def test_enricher_mixed_cohort_prevalence_in_band() -> None:
-    """A 500-person obese-male cohort should assign G47.30 to
-    roughly 50 % of patients. Allow ±10 % band."""
+    """A 500-person obese-male cohort aged 55 should assign G47.30 to
+    roughly 28 % of patients (0.21 x age factor 1.35)."""
     persons = {f"PT-OB-M-{i}": _person(f"PT-OB-M-{i}", bmi=33.0, sex="M") for i in range(500)}
     ctx = _Ctx(population=_Pop(persons))
     g47_30_osa_enricher(ctx)
     assigned = sum(1 for p in persons.values() if "G47.30" in p.chronic_conditions)
-    assert 200 <= assigned <= 300, f"got {assigned} / 500 (expected ~250 ±50)"
+    assert 110 <= assigned <= 175, f"got {assigned} / 500 (expected ~142)"
 
 
 def test_enricher_sex_gradient_visible() -> None:

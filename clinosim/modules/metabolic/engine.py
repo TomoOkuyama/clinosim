@@ -116,20 +116,27 @@ _NAFLD_SALT = "metabolic.nafld.v1"
 # contradictory code; K70 assignment for F10 patients is a follow-up.
 _F10_PREFIXES: tuple[str, ...] = ("F10",)
 
-# G47.30 OSA BMI tier prevalence (male / female separately).
+# G47.30 OSA BMI tier prevalence (male / female separately), times an
+# age factor. Calibrated to moderate-to-severe OSA (AHI >= 15, the level
+# that is diagnosed and treated) from Peppard et al. 2013: men 30-49 10%,
+# 50-70 17%; women 30-49 3%, 50-70 9%. The earlier table matched any
+# sleep-disordered breathing (AHI >= 5: men 34%, women 17%).
 _OSA_CODE = "G47.30"
 _OSA_PREVALENCE_MALE: dict[str, float] = {
-    "reference": 0.05,
-    "overweight": 0.20,
-    "obese": 0.50,
-    "morbid": 0.75,
+    "reference": 0.02,
+    "overweight": 0.085,
+    "obese": 0.21,
+    "morbid": 0.315,
 }
 _OSA_PREVALENCE_FEMALE: dict[str, float] = {
-    "reference": 0.02,
-    "overweight": 0.10,
-    "obese": 0.25,
-    "morbid": 0.45,
+    "reference": 0.0065,
+    "overweight": 0.032,
+    "obese": 0.08,
+    "morbid": 0.145,
 }
+_OSA_AGE_SPLIT = 50
+_OSA_AGE_FACTOR_MALE = (0.8, 1.35)
+_OSA_AGE_FACTOR_FEMALE = (0.6, 1.75)
 _OSA_SALT = "metabolic.osa.v1"
 
 
@@ -342,17 +349,21 @@ def _bmi_tier(bmi: float) -> str:
     return "reference"
 
 
-def _osa_probability(bmi: float, sex: str) -> float:
+def _osa_probability(bmi: float, sex: str, age: int | None = None) -> float:
     """Return the G47.30 assignment probability for a given BMI
-    tier + biological sex.
+    tier + biological sex, scaled by the age factor when ``age`` is given.
 
     Sex coding follows the simulator's ``PersonRecord.sex`` field
     ("M" / "F"); any other value falls back to the female table
     (lower prevalence, conservative under-identification rather
     than inflated misses).
     """
-    table = _OSA_PREVALENCE_MALE if sex.upper().startswith("M") else _OSA_PREVALENCE_FEMALE
-    return table[_bmi_tier(bmi)]
+    male = sex.upper().startswith("M")
+    base = (_OSA_PREVALENCE_MALE if male else _OSA_PREVALENCE_FEMALE)[_bmi_tier(bmi)]
+    if age is None:
+        return base
+    young, old = _OSA_AGE_FACTOR_MALE if male else _OSA_AGE_FACTOR_FEMALE
+    return base * (old if age >= _OSA_AGE_SPLIT else young)
 
 
 def _draw_osa(person_id: str, probability: float) -> bool:
@@ -366,12 +377,12 @@ def _draw_osa(person_id: str, probability: float) -> bool:
     return sha_bernoulli(f"{_OSA_SALT}|{person_id}", probability)
 
 
-def _derive_osa_assignment(person_id: str, bmi: float, sex: str) -> str | None:
+def _derive_osa_assignment(person_id: str, bmi: float, sex: str, age: int | None = None) -> str | None:
     """Return "G47.30" when the SHA-salted per-person draw assigns
-    OSA under the BMI + sex-weighted probability, otherwise
+    OSA under the BMI + sex + age-weighted probability, otherwise
     ``None``.
     """
-    probability = _osa_probability(bmi, sex)
+    probability = _osa_probability(bmi, sex, age)
     return _OSA_CODE if _draw_osa(person_id, probability) else None
 
 
@@ -404,7 +415,7 @@ def g47_30_osa_enricher(ctx: Any) -> None:
             continue
         bmi = float(getattr(person, "bmi", 0.0) or 0.0)
         sex = str(getattr(person, "sex", "") or "")
-        code = _derive_osa_assignment(person.person_id, bmi, sex)
+        code = _derive_osa_assignment(person.person_id, bmi, sex, age)
         if code is None:
             continue
         person.chronic_conditions.append(code)
