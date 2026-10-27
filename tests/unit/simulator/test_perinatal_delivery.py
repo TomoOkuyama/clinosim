@@ -1040,3 +1040,29 @@ def test_jp_cesarean_discharge_prescription_populated_1313() -> None:
     drug_names = {i["drug_name"] for i in rx.items}
     assert "Acetaminophen" in drug_names
     assert "Ibuprofen" in drug_names
+
+
+@pytest.mark.parametrize("country", ["US", "JP"])
+def test_birth_record_newborn_carries_registered_identity(country: str) -> None:
+    """The birth-admission PatientProfile must carry the IdentityTimeline that
+    registration assigns, so the delivery-day Patient gets a Coverage even when
+    the baby never has a later encounter."""
+    from types import SimpleNamespace
+
+    mother = _make_person("POP-000001", "F", 28)
+    reg = _seed_registry([mother])
+    records = simulate_delivery_encounter(
+        patient=_make_patient(),
+        visit_date=datetime(2024, 7, 15, 10, 0),
+        roster=StaffRoster(),
+        rng=np.random.default_rng(42),
+        country=country,
+        config=SimpleNamespace(country=country, random_seed=7),
+        hospital_ops={},
+        population_registry=reg,
+    )
+    newborn_profile = records[1].patient
+    registered = reg.persons[newborn_profile.patient_id]
+    assert registered.identity is not None and registered.identity.enrollments
+    assert newborn_profile.identity is registered.identity
+    assert newborn_profile.insurance_type == registered.identity.current_enrollment().category

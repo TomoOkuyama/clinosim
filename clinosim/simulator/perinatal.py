@@ -1029,6 +1029,17 @@ def simulate_delivery_encounter(
         _mother_record = population_registry.persons.get(patient.patient_id)
         if _mother_record is not None:
             _register_newborn(population_registry, _mother_record, newborn, config=config)
+            # The birth record's profile was built before registration assigned
+            # the identity; copy it over (and align insurance_type with the
+            # enrollment, as the activator does) so the delivery-day Patient
+            # gets a Coverage even if the baby is never seen again.
+            _registered = population_registry.persons.get(newborn.patient_id)
+            _identity = getattr(_registered, "identity", None)
+            if _identity is not None:
+                newborn.identity = _identity
+                _enrollment = _identity.current_enrollment()
+                if _enrollment is not None and _enrollment.category:
+                    newborn.insurance_type = _enrollment.category
 
     newborn_encounter = create_inpatient_encounter(
         newborn.patient_id,
