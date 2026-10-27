@@ -846,6 +846,7 @@ complications:
       - {condition: "hypercapnia_baseline", multiplier: 2.5}
       - {condition: "age_over_75", multiplier: 1.5}
     state_impact:
+      oxygenation_impairment: 0.2
       ph_status: -0.10
       perfusion_status: -0.05
     detection:

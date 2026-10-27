@@ -42,6 +42,7 @@ def _evaluate_indications(
     state: PhysiologicalState,
     severity_moderate_plus: bool,
     altered_consciousness: bool,
+    intubated: bool = False,
 ) -> set[str]:
     """Return the set of indication tokens met at ICU transfer time.
 
@@ -61,8 +62,12 @@ def _evaluate_indications(
         indications.add("severity_moderate_plus")
     if altered_consciousness:
         indications.add("altered_consciousness")
-    if state.perfusion_status < 0.4:
+    # Issue #2091: hypoxia from the oxygenation axis (or shock-level perfusion);
+    # the ventilator is tied to an actual intubation.
+    if state.perfusion_status < 0.4 or state.oxygenation_impairment >= 0.6:
         indications.add("hypoxia")
+    if intubated:
+        indications.add("intubated")
     if state.respiratory_fraction > 0.7:
         indications.add("high_respiratory_demand")
     return indications
@@ -91,14 +96,18 @@ def _altered_consciousness_for_encounter(record: CIFPatientRecord, encounter: En
 
 
 def _peak_state_for_encounter(record: CIFPatientRecord, encounter: Encounter) -> PhysiologicalState:
-    """Pick a representative PhysiologicalState for the encounter.
-
-    Phase 1 simplification: use the first recorded state; falls back to a
-    default PhysiologicalState when the patient has none.
-    """
-    if record.physiological_states:
-        return record.physiological_states[0]
-    return PhysiologicalState(timestamp=encounter.admission_datetime)
+    """Worst state of the stay (Issue #2091): lowest perfusion, highest
+    oxygenation impairment, highest respiratory fraction. Falls back to a
+    default PhysiologicalState when the patient has none."""
+    states = record.physiological_states or []
+    if not states:
+        return PhysiologicalState(timestamp=encounter.admission_datetime)
+    return PhysiologicalState(
+        timestamp=states[0].timestamp,
+        perfusion_status=min(s.perfusion_status for s in states),
+        oxygenation_impairment=max(s.oxygenation_impairment for s in states),
+        respiratory_fraction=max(s.respiratory_fraction for s in states),
+    )
 
 
 def place_devices_for_encounter(
@@ -121,7 +130,11 @@ def place_devices_for_encounter(
     severity_moderate_plus = True  # ICU transfer ≈ severity moderate+
     altered = _altered_consciousness_for_encounter(record, encounter)
     state = _peak_state_for_encounter(record, encounter)
-    indications = _evaluate_indications(state, severity_moderate_plus, altered)
+    intubated = any(
+        getattr(p, "procedure_type", "") == "intubation" and getattr(p, "encounter_id", "") == encounter.encounter_id
+        for p in (record.procedures or [])
+    )
+    indications = _evaluate_indications(state, severity_moderate_plus, altered, intubated=intubated)
     placement = encounter.admission_datetime.date().isoformat()
     removal = encounter.discharge_datetime.date().isoformat() if encounter.discharge_datetime else None
     out: list[DeviceRecord] = []

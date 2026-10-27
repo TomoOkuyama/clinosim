@@ -19,5 +19,7 @@ devices:
     snomed_code: "706172005"
     snomed_display_en: "Ventilator"
     snomed_display_ja: "人工呼吸器"
+    # Issue #2091: only intubated patients are ventilated (intubation follows
+    # the consciousness / oxygenation state in the daily loop).
     placement_criteria:
-      - any: ["hypoxia", "high_respiratory_demand"]
+      - any: ["intubated"]

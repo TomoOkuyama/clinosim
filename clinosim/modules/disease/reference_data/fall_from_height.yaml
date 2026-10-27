@@ -159,6 +159,7 @@ complications:
     risk_factors:
       - {condition: "severity_severe", multiplier: 3.5}
     state_impact:
+      oxygenation_impairment: 0.6
       perfusion_status: -0.12
       inflammation_level: 0.05
     detection:

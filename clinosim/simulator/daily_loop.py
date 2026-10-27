@@ -40,15 +40,20 @@ from clinosim.modules.physiology.engine import (
     scenario_flags_from_protocol,
     update,
 )
+from clinosim.modules.procedure.engine import build_intubation_procedure
 from clinosim.modules.staff.engine import (
     FALLBACK_NURSE_ID,
     StaffRoster,
     assign_staff,
 )
 from clinosim.simulator._daily_loop_thresholds import (
+    AIRWAY_CONSCIOUSNESS_MIN,
+    AIRWAY_ESCALATION_HOUR,
+    AIRWAY_OXYGENATION_MIN,
     ARCHETYPE_DAY_SHIFT_PROBABILITY,
     DIET_CLEAR_LIQUID_INFLAMMATION_THRESHOLD,
     DIET_SOFT_INFLAMMATION_THRESHOLD,
+    ICU_SHOCK_PERFUSION_MAX,
     LAB_EARLY_MORNING_HOUR,
     LAB_EARLY_MORNING_MIN_END_EXCLUSIVE,
     LAB_EARLY_MORNING_MIN_START,
@@ -91,6 +96,20 @@ from clinosim.types.encounter import (
     VitalSignRecord,
 )
 from clinosim.types.patient import PatientProfile
+
+
+def airway_escalation_needed(state: PhysiologicalState) -> bool:
+    """GCS <= 8 range or refractory hypoxemia: secure the airway (Issue #2091)."""
+    return (
+        state.consciousness_impairment >= AIRWAY_CONSCIOUSNESS_MIN
+        or state.oxygenation_impairment >= AIRWAY_OXYGENATION_MIN
+    )
+
+
+def icu_escalation_needed(state: PhysiologicalState) -> bool:
+    """Airway escalation or shock-level perfusion: ICU care (Issue #2091)."""
+    return airway_escalation_needed(state) or state.perfusion_status < ICU_SHOCK_PERFUSION_MAX
+
 
 SYMPTOM_AXES: tuple[str, ...] = (
     "sympathetic_activation",
@@ -159,6 +178,24 @@ def _run_daily_loop(
     death_occurred = False
     icu_transferred = False
     icu_transferred_day_local: int = -1  # C5-22: day of ICU transfer
+    intubated = False
+    escalation_procedures: list = []  # Issue #2091: state-driven intubation records
+    # Presentation already beyond the airway / ICU thresholds (e.g. GCS <= 8 on
+    # arrival): intubate and transfer on the admission day.
+    if airway_escalation_needed(state):
+        intubated = True
+        escalation_procedures.append(
+            build_intubation_procedure(
+                patient.patient_id,
+                encounter_id,
+                admission_time + timedelta(hours=1),
+                "JP" if country_key == "japan" else "US",
+                f"PROC-{patient.patient_id}-AIR00",
+            )
+        )
+    if icu_escalation_needed(state):
+        icu_transferred = True
+        icu_transferred_day_local = 0
 
     prev_diet = ""  # last diet ordered for this patient; threaded through the day loop
     # The sampled target LOS is the stay ceiling; it is extended one day at a
@@ -735,6 +772,23 @@ def _run_daily_loop(
                             if "metformin" in (o.display_name or "").lower():
                                 o.status = OrderStatus.CANCELLED
 
+        # State-driven airway / ICU escalation (Issue #2091): intubation on the
+        # day the airway threshold is crossed, ICU transfer for airway or shock.
+        if not intubated and airway_escalation_needed(state):
+            intubated = True
+            escalation_procedures.append(
+                build_intubation_procedure(
+                    patient.patient_id,
+                    encounter_id,
+                    admission_time + timedelta(days=day, hours=AIRWAY_ESCALATION_HOUR),
+                    "JP" if country_key == "japan" else "US",
+                    f"PROC-{patient.patient_id}-AIR{day:02d}",
+                )
+            )
+        if not icu_transferred and icu_escalation_needed(state):
+            icu_transferred_day_local = day
+            icu_transferred = True
+
         # Mortality (disease-specific rate from YAML benchmarks)
         benchmark_mortality = protocol.outcome_benchmarks.get(country_key, {}).get("in_hospital_mortality", 0.0)
         if _evaluate_mortality(
@@ -805,6 +859,7 @@ def _run_daily_loop(
         "death_occurred": death_occurred,
         "icu_transferred": icu_transferred,
         "icu_transferred_day": icu_transferred_day_local,  # C5-22
+        "escalation_procedures": escalation_procedures,
         "differential": differential,
         "actual_los": actual_los,
     }

@@ -143,19 +143,24 @@ def test_place_devices_for_encounter_icu_inpatient_emits_cvc_and_catheter():
     assert "mechanical_ventilator" not in types
 
 
-def test_place_devices_for_encounter_includes_ventilator_when_respiratory():
-    rec = CIFPatientRecord()
-    rec.icu_transferred = True
-    rec.physiological_states = [PhysiologicalState(respiratory_fraction=0.8)]
+def test_place_devices_for_encounter_includes_ventilator_when_intubated():
+    # Issue #2091: the ventilator follows an actual intubation, not CO2 retention.
+    from clinosim.modules.procedure.engine import build_intubation_procedure
+
     enc = Encounter(
         encounter_id="enc1",
         encounter_type=EncounterType.INPATIENT,
         admission_datetime=datetime(2026, 1, 1),
         discharge_datetime=datetime(2026, 1, 10),
     )
-    rng = np.random.default_rng(42)
     cfg = load_devices_config()
-    out = place_devices_for_encounter(rec, enc, rng, cfg)
+    rec = CIFPatientRecord()
+    rec.icu_transferred = True
+    rec.physiological_states = [PhysiologicalState(respiratory_fraction=0.8)]
+    out = place_devices_for_encounter(rec, enc, np.random.default_rng(42), cfg)
+    assert not any(d.device_type == "mechanical_ventilator" for d in out)
+    rec.procedures = [build_intubation_procedure("P1", "enc1", datetime(2026, 1, 2, 10), "US", "PROC-P1-AIR01")]
+    out = place_devices_for_encounter(rec, enc, np.random.default_rng(42), cfg)
     assert any(d.device_type == "mechanical_ventilator" for d in out)
 
 
