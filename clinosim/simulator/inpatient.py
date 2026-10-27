@@ -365,6 +365,18 @@ def _derive_microbiology(
     return microbiology
 
 
+def _admission_route_fields(protocol: Any, disease_id: str) -> tuple[AdmitSource, ActPriority]:
+    """Admit source and priority for an inpatient stay of ``disease_id``.
+
+    Elective (scheduled) admissions come from the outpatient clinic with
+    priority EL; everything else is admitted through the ED (EM for
+    emergency-priority diseases, UR otherwise).
+    """
+    if getattr(protocol, "admission_route", "emergency") == "elective":
+        return AdmitSource.OUTP, ActPriority.EL
+    return AdmitSource.EMD, ActPriority.EM if disease_id in EMERGENCY_PRIORITY_DISEASES else ActPriority.UR
+
+
 def _finalize_discharge(
     *,
     patient: PatientProfile,
@@ -429,8 +441,9 @@ def _finalize_discharge(
     # Set encounter discharge fields
     encounter.discharging_physician_id = attending_id
     encounter.admitting_physician_id = attending_id
+    route_source, route_priority = _admission_route_fields(protocol, disease_id)
     if not encounter.admit_source:
-        encounter.admit_source = AdmitSource.EMD  # Most inpatients come via ED
+        encounter.admit_source = route_source
     # CY7-05 (structural fix, 2026-07-11): populate `admit_source_encounter_id`
     # on the inpatient encounter so the FHIR adapter can emit a synthetic ED
     # Encounter with Encounter.partOf → IMP. Only sets the ID (a deterministic
@@ -446,7 +459,7 @@ def _finalize_discharge(
         else:
             encounter.discharge_disposition = DischargeDisposition.HOME
     if not encounter.priority:
-        encounter.priority = ActPriority.EM if disease_id in EMERGENCY_PRIORITY_DISEASES else ActPriority.UR
+        encounter.priority = route_priority
 
     return discharge_rx
 

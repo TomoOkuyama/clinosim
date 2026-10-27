@@ -53,6 +53,7 @@ def test_act_priority_wire_values() -> None:
         ActPriority.EM: "EM",
         ActPriority.UR: "UR",
         ActPriority.R: "R",
+        ActPriority.EL: "EL",
     }
     for member, code in expected.items():
         assert member.value == code, f"{member.name}.value must be {code!r}"

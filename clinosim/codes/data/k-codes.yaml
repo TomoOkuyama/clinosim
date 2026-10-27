@@ -46,6 +46,9 @@ codes:
   K0811:
     en: Hemiarthroplasty, femoral head
     ja: 大腿骨頭人工骨頭置換術
+  K0821:
+    en: Arthroplasty (shoulder, hip, knee)
+    ja: 人工関節置換術（肩、股、膝）
   # Issue #939: percutaneous coronary intervention (PCI) for STEMI/NSTEMI.
   # Source: MHLW 診療報酬点数表 (令和6年度) K546 経皮的冠動脈形成術.
   K546:

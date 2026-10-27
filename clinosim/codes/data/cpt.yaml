@@ -23,6 +23,9 @@ codes:
   '27236':
     en: Open treatment of femoral fracture, proximal end, neck (ORIF)
     ja: 骨折観血的手術（大腿）
+  '27447':
+    en: Arthroplasty, knee, condyle and plateau; medial and lateral compartments (total knee arthroplasty)
+    ja: 人工膝関節全置換術
   '31500':
     en: Intubation, endotracheal, emergency procedure
     ja: 気管挿管（救急）
