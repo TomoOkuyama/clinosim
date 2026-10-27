@@ -288,7 +288,7 @@ narrative:
 
 imaging_orders:
   - modality: CR
-    body_site: leg
+    body_site: knee
     views: [AP, Lateral]
     urgency: routine
     clinical_indication: "Post-operative check of knee prosthesis"

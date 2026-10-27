@@ -82,6 +82,10 @@ codes:
   '29836001':
     en: Hip region structure
     ja: 股関節部
+  # Issue #2044 knee radiograph body site; verified via tx.fhir.org $lookup 2026-10-27.
+  '72696002':
+    en: Knee region structure
+    ja: 膝関節部
   # Issue #2043 elective knee arthroplasty; verified via tx.fhir.org $lookup 2026-10-27.
   '49076000':
     en: Knee joint structure

@@ -307,7 +307,9 @@ def run_beta(
             advance_population(population, _dy, config.country)
         _month_key = f"{_dy:04d}-{_dm:02d}"
         _month_rng = derive_phase_rng(master_seed, PHASE_LIFE_EVENT, _month_key)
-        _monthly = generate_monthly_events(population, _dy, _dm, _month_rng, country=config.country)
+        _monthly = generate_monthly_events(
+            population, _dy, _dm, _month_rng, country=config.country, master_seed=master_seed
+        )
         # Per-month equivalents of the pre-#1596 global snapshot_dt +
         # ``_start_dt_lb`` filters. Equivalent because the global
         # filters were RNG-neutral and purely date-based.
