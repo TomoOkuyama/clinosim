@@ -17,6 +17,9 @@ event_name: n18_onset
 emits_icd: N18
 base_annual_rate: 0.0
 base_rate_by_age_band:
+  # Issue #2023: prevalence rises from 6.3% (20-39) to 10.4% (40-59) in
+  # USRDS 2018 Table 1.2, ~0.2 pt per year of age among people without CKD.
+  - {age_lo: 18, age_hi: 59, rate: 0.002}
   - {age_lo: 60, age_hi: 99, rate: 0.000000}
 one_shot: true
 narrative_label: n18_onset

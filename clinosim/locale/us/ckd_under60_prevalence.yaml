@@ -1,0 +1,13 @@
+# CKD (N18) baseline prevalence below age 60 for the US catchment.
+#
+# demographics.yaml chronic_prevalence.N18 covers 60-99 only; adding younger
+# bands there would add master-RNG draws for every younger resident. These
+# bands are applied instead with a per-person SHA Bernoulli at population
+# generation (RNG-neutral), before the longitudinal snapshot so the CKD stage
+# ladder initialises with the age-dependent stage distribution.
+#
+# Source: USRDS 2018 Annual Data Report Vol 1, Table 1.2 (NHANES 2013-2016),
+# all CKD (eGFR < 60 or ACR >= 30): 20-39 6.3%, 40-59 10.4%.
+bands:
+  - {age_lo: 18, age_hi: 39, prevalence: 0.063}
+  - {age_lo: 40, age_hi: 59, prevalence: 0.104}

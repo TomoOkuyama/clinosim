@@ -32,6 +32,18 @@ initial_distribution:
   "CKD G3b": 0.20
   "CKD G4": 0.10
   "CKD G5": 0.05
+# Younger CKD is mostly albuminuria with preserved eGFR. USRDS 2018 ADR
+# Vol 1 (NHANES 2013-2016): Table 1.2 eGFR<60 share of all CKD is 0.4/6.3
+# (6%) at 20-39 and 2.8/10.4 (27%) at 40-59 vs 66% at 60+ (matching the
+# default above). Within early / reduced-eGFR CKD the split follows
+# Table 1.1 (G1:G2 = 59:41; G3a:G3b:G4:G5 = 68:25:5:2).
+initial_distribution_by_age:
+  - age_lo: 0
+    age_hi: 39
+    distribution: {"CKD G1": 0.555, "CKD G2": 0.385, "CKD G3a": 0.041, "CKD G3b": 0.015, "CKD G4": 0.003, "CKD G5": 0.001}
+  - age_lo: 40
+    age_hi: 59
+    distribution: {"CKD G1": 0.431, "CKD G2": 0.299, "CKD G3a": 0.184, "CKD G3b": 0.068, "CKD G4": 0.015, "CKD G5": 0.003}
 transitions:
   "CKD G1": {"CKD G2": 0.015}
   "CKD G2": {"CKD G3a": 0.025}

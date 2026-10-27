@@ -670,6 +670,12 @@ def generate_population(
                 for _affected_code in _sgd_affected:
                     if _affected_code not in person.chronic_conditions:
                         person.chronic_conditions.append(_affected_code)
+            # CKD below 60 (Issue #2023): RNG-neutral SHA Bernoulli per the
+            # locale's ckd_under60_prevalence.yaml, applied before the
+            # longitudinal snapshot so the stage ladder sees the code.
+            from clinosim.modules.population._ckd_under60 import assign_ckd_under60
+
+            assign_ckd_under60(person, country)
             # Phase 1 longitudinal subsystem (Issue #1695) — seed each
             # person's longitudinal_history at the sim-start year so
             # per-encounter emit (physiology / activator) can read via

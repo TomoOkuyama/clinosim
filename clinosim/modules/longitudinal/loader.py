@@ -96,6 +96,7 @@ def _build_markov_body(body_dict: dict[str, Any]) -> tuple[MarkovSpec, dict[str,
         "icd_base": body_dict.pop("icd_base"),
         "states": body_dict.pop("states"),
         "initial_distribution": body_dict.pop("initial_distribution"),
+        "initial_distribution_by_age": body_dict.pop("initial_distribution_by_age", []) or [],
         "transitions": body_dict.pop("transitions", {}) or {},
     }
     return MarkovSpec(**body_payload), {"noise": None, "narrative": narrative, "source": source}
