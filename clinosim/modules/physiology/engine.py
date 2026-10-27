@@ -236,6 +236,7 @@ from clinosim.modules.physiology._vital_signs_thresholds import (
     HR_CLAMP_MAX,
     HR_CLAMP_MIN,
     HR_FEVER_REFERENCE_TEMP_C,
+    HR_HYPOVOLEMIA_SCALE,
     HR_PERFUSION_SCALE,
     HR_TEMPERATURE_SCALE,
     OBSERVED_SPO2_CLAMP_MAX,
@@ -1081,7 +1082,8 @@ def derive_vital_signs(
     temp_effect = max(0, (temperature - HR_FEVER_REFERENCE_TEMP_C)) * HR_TEMPERATURE_SCALE
     perfusion_effect = max(0, (1.0 - perf)) * HR_PERFUSION_SCALE
     anemia_effect = state.anemia_level * HR_ANEMIA_SCALE
-    hr = baseline.heart_rate + temp_effect + perfusion_effect + anemia_effect
+    hypovolemia_effect = max(0.0, -vol) * HR_HYPOVOLEMIA_SCALE
+    hr = baseline.heart_rate + temp_effect + perfusion_effect + anemia_effect + hypovolemia_effect
     if symp:
         hr += symp * SYMPATHETIC_HR_SCALE
     if oxy:
