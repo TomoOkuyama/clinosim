@@ -303,7 +303,9 @@ disease_incidence:
     event_type: trauma
     always_hospitalize: true
   urinary_tract_infection:
-    age_rates: {0: 30, 15: 50, 25: 80, 35: 100, 45: 120, 55: 200, 65: 400, 75: 800, 85: 1500}
+    # Issue #2032: rates x0.35 bring pyelonephritis / UTI admissions to
+    # ~1.4 per 1,000 person-years (HCUP: outside the top five, < 2% of stays).
+    age_rates: {0: 10, 15: 18, 25: 28, 35: 35, 45: 42, 55: 70, 65: 140, 75: 280, 85: 525}
     sex_ratio_female: 3.0
     event_type: acute_disease_onset
     hospitalization_threshold_modifier_by_age:
