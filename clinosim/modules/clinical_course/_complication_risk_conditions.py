@@ -18,7 +18,10 @@ so a typo can no longer silently disable a risk factor.
 
 from __future__ import annotations
 
+from dataclasses import dataclass, field
+
 PATIENT_ICD_ALIASES: dict[str, tuple[str, ...]] = {
+    "immunosuppressed": ("B20", "D80", "D81", "D82", "D83", "D84", "Z94"),
     "CKD_baseline": ("N18",),
     "pre_existing_CKD": ("N18",),
     "pre_existing_heart_failure": ("I50",),
@@ -60,62 +63,32 @@ SEVERITY_ALIASES: frozenset[str] = frozenset({"severe_DKA"})
 CONTEXT_CONDITIONS: frozenset[str] = frozenset(
     {
         # drug exposure / treatment
-        "ACE_inhibitor_use",
-        "NSAID_use",
-        "PPI_use",
         "aggressive_insulin_without_K_monitoring",
-        "anticoagulant_use",
-        "anticoagulation",
-        "antibiotic_duration_over_7_days",
-        "benzodiazepine_use",
-        "broad_spectrum_antibiotic_over_7_days",
-        "clindamycin_use",
         "concurrent_antiplatelet",
         "concurrent_beta_blocker_and_ccb",
         "contrast_volume_high",
-        "corticosteroid_use",
         "delayed_antibiotic",
-        "diuretic_use",
         "excessive_IV_fluid",
         "excessive_diuresis",
-        "fluoroquinolone_use",
         "high_vasopressor_dose",
         "massive_fluid_resuscitation",
         "multiple_transfusions",
         "nephrotoxic_drugs",
-        "no_anticoagulation",
-        "no_dvt_prophylaxis",
-        "no_pharmacologic_dvt_prophylaxis",
         "no_ppi",
         "no_reperfusion",
         "not_switched_to_D5_timely",
-        "opioid_use",
-        "steroid_use",
         "subtherapeutic_anticoagulation",
         "thrombolysis_given",
         "tpa_received",
         "triple_therapy",
-        "unfractionated_heparin_use",
-        "chronic_steroid_use",
-        "immunosuppressed",
         # devices / procedures / setting
-        "central_line_present",
         "cbd_exploration",
         "conversion_to_open",
         "ercp_performed",
-        "icu_stay",
-        "icu_stay_over_7_days",
-        "indwelling_catheter",
-        "intubation",
-        "mechanical_ventilation",
-        "mechanical_ventilation_over_7_days",
         "ng_tube_high_output",
         "open_surgery",
         "procedure_recent",
         "prolonged_NPO",
-        "recent_surgery",
-        "surgical_patient",
-        "urinary_catheter",
         "no_preoperative_mrcp",
         "incomplete_appendectomy",
         "prior_vertebroplasty",
@@ -225,3 +198,118 @@ CONTEXT_CONDITIONS: frozenset[str] = frozenset(
 )
 """Conditions that need stay / scenario context not yet available to the
 complication evaluator; they evaluate False until that context is wired."""
+
+
+@dataclass
+class ComplicationContext:
+    """Stay context for complication risk factors (Issue #2101): day indices
+    of ICU transfer / intubation / surgery / first antibiotic, active
+    medication and home-medication names (upper case), procedure types."""
+
+    icu_day: int | None = None
+    intubated_day: int | None = None
+    surgery_day: int | None = None
+    antibiotic_start_day: int | None = None
+    medications: set[str] = field(default_factory=set)
+    home_medications: set[str] = field(default_factory=set)
+    procedure_types: set[str] = field(default_factory=set)
+    dvt_prophylaxis: bool | None = None
+    """Planned pharmacologic VTE prophylaxis (the prophylaxis module adds the
+    order after the stay, so it is decided up front); None = unknown."""
+
+
+DRUG_CLASSES: dict[str, tuple[str, ...]] = {
+    "opioid": ("MORPHINE", "OXYCODONE", "HYDROMORPHONE", "FENTANYL", "TRAMADOL", "PENTAZOCINE"),
+    "nsaid": ("IBUPROFEN", "KETOROLAC", "LOXOPROFEN", "NAPROXEN", "DICLOFENAC", "CELECOXIB"),
+    "fluoroquinolone": ("LEVOFLOXACIN", "CIPROFLOXACIN", "MOXIFLOXACIN"),
+    "clindamycin": ("CLINDAMYCIN",),
+    "anticoagulant": (
+        "HEPARIN",
+        "ENOXAPARIN",
+        "WARFARIN",
+        "APIXABAN",
+        "RIVAROXABAN",
+        "DABIGATRAN",
+        "EDOXABAN",
+        "FONDAPARINUX",
+    ),
+    "therapeutic_anticoagulant": ("WARFARIN", "APIXABAN", "RIVAROXABAN", "DABIGATRAN", "EDOXABAN"),
+    "heparin": ("HEPARIN",),
+    "steroid": ("PREDNISOLONE", "PREDNISONE", "METHYLPREDNISOLONE", "HYDROCORTISONE", "DEXAMETHASONE"),
+    "ppi": ("OMEPRAZOLE", "ESOMEPRAZOLE", "LANSOPRAZOLE", "PANTOPRAZOLE", "RABEPRAZOLE", "VONOPRAZAN"),
+    "benzodiazepine": ("LORAZEPAM", "DIAZEPAM", "MIDAZOLAM", "CHLORDIAZEPOXIDE", "ALPRAZOLAM"),
+    "diuretic": ("FUROSEMIDE", "TORSEMIDE", "BUMETANIDE", "HYDROCHLOROTHIAZIDE", "SPIRONOLACTONE"),
+    "ace_inhibitor": ("LISINOPRIL", "ENALAPRIL", "RAMIPRIL", "CAPTOPRIL", "PERINDOPRIL", "IMIDAPRIL"),
+    "antibiotic": (
+        "CEFTRIAXONE",
+        "CEFAZOLIN",
+        "CEFEPIME",
+        "CEFTAZIDIME",
+        "MEROPENEM",
+        "PIPERACILLIN",
+        "AMPICILLIN",
+        "VANCOMYCIN",
+        "LEVOFLOXACIN",
+        "CIPROFLOXACIN",
+        "AZITHROMYCIN",
+        "CLINDAMYCIN",
+        "METRONIDAZOLE",
+        "AMOXICILLIN",
+        "DOXYCYCLINE",
+        "SULFAMETHOXAZOLE",
+    ),
+}
+"""Drug-name substrings per class for medication-exposure risk factors."""
+
+# condition -> (kind, argument)
+CONTEXT_RESOLVED: dict[str, tuple[str, str]] = {
+    "icu_stay": ("since", "icu_day"),
+    "icu_stay_over_7_days": ("over7", "icu_day"),
+    "mechanical_ventilation": ("since", "intubated_day"),
+    "intubation": ("since", "intubated_day"),
+    "mechanical_ventilation_over_7_days": ("over7", "intubated_day"),
+    "surgical_patient": ("since", "surgery_day"),
+    "recent_surgery": ("since", "surgery_day"),
+    "antibiotic_duration_over_7_days": ("over7", "antibiotic_start_day"),
+    "broad_spectrum_antibiotic_over_7_days": ("over7", "antibiotic_start_day"),
+    "opioid_use": ("drug", "opioid"),
+    "NSAID_use": ("drug", "nsaid"),
+    "fluoroquinolone_use": ("drug", "fluoroquinolone"),
+    "clindamycin_use": ("drug", "clindamycin"),
+    "anticoagulation": ("drug", "therapeutic_anticoagulant"),
+    "anticoagulant_use": ("drug", "therapeutic_anticoagulant"),
+    "unfractionated_heparin_use": ("drug", "heparin"),
+    "corticosteroid_use": ("drug", "steroid"),
+    "steroid_use": ("drug", "steroid"),
+    "chronic_steroid_use": ("home_drug", "steroid"),
+    "PPI_use": ("drug", "ppi"),
+    "benzodiazepine_use": ("drug", "benzodiazepine"),
+    "diuretic_use": ("drug", "diuretic"),
+    "ACE_inhibitor_use": ("drug", "ace_inhibitor"),
+    "no_dvt_prophylaxis": ("no_drug", "anticoagulant"),
+    "no_pharmacologic_dvt_prophylaxis": ("no_drug", "anticoagulant"),
+    "no_anticoagulation": ("no_drug", "anticoagulant"),
+    "urinary_catheter": ("procedure", "urinary_catheter"),
+    "indwelling_catheter": ("procedure", "urinary_catheter"),
+    "central_line_present": ("procedure", "central_line"),
+}
+"""Context conditions resolved from :class:`ComplicationContext` (Issue #2101)."""
+
+
+def resolve_context_condition(condition: str, ctx: ComplicationContext | None, day: int) -> bool:
+    """Evaluate a :data:`CONTEXT_RESOLVED` condition; False without context."""
+    if ctx is None:
+        return False
+    kind, arg = CONTEXT_RESOLVED[condition]
+    if kind in ("since", "over7"):
+        start = getattr(ctx, arg)
+        if start is None:
+            return False
+        return day >= start if kind == "since" else day - start > 7
+    if kind in ("drug", "no_drug", "home_drug"):
+        names = ctx.home_medications if kind == "home_drug" else ctx.medications | ctx.home_medications
+        present = any(sub in name for name in names for sub in DRUG_CLASSES[arg])
+        if arg == "anticoagulant" and kind == "no_drug" and ctx.dvt_prophylaxis:
+            present = True  # planned prophylaxis counts only against "no prophylaxis"
+        return not present if kind == "no_drug" else present
+    return arg in ctx.procedure_types

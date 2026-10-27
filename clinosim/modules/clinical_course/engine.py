@@ -73,11 +73,14 @@ from clinosim.modules.clinical_course._clinical_course_thresholds import (
 )
 from clinosim.modules.clinical_course._complication_risk_conditions import (
     CONTEXT_CONDITIONS,
+    CONTEXT_RESOLVED,
     IMMOBILITY_DEFAULT_DAYS,
     MALNUTRITION_BMI_MAX,
     PATIENT_ICD_ALIASES,
     SEVERITY_ALIASES,
     STATE_ALIASES,
+    ComplicationContext,
+    resolve_context_condition,
 )
 from clinosim.modules.disease.severity import EVALUABLE_CONDITIONS as PERSON_CONDITIONS
 from clinosim.modules.disease.severity import _evaluate_condition as _severity_condition
@@ -469,6 +472,7 @@ def evaluate_complications(
     active_complications: set[str],
     rng: np.random.Generator,
     severity: str = "moderate",
+    context: ComplicationContext | None = None,
 ) -> list[dict[str, Any]]:
     """Evaluate whether any complications trigger on this day.
 
@@ -501,7 +505,7 @@ def evaluate_complications(
         for rf in comp.get("risk_factors", []):
             condition = rf.get("condition", "")
             mult = rf.get("multiplier", COMPLICATION_RISK_MULTIPLIER_DEFAULT)
-            if _evaluate_risk_condition(condition, state, patient, day, severity):
+            if _evaluate_risk_condition(condition, state, patient, day, severity, context):
                 prob *= mult
 
         if rng.random() < prob:
@@ -550,6 +554,8 @@ def is_supported_risk_condition(condition: str) -> bool:
         return True
     if condition in STATE_ALIASES or condition in PATIENT_ICD_ALIASES or condition in SEVERITY_ALIASES:
         return True
+    if condition in CONTEXT_RESOLVED:
+        return True
     if condition in ("malnutrition", "baseline_malnutrition"):
         return True
     return condition in PERSON_CONDITIONS
@@ -575,6 +581,7 @@ def _evaluate_risk_condition(
     patient: Any,
     day: int,
     severity: str,
+    context: ComplicationContext | None = None,
 ) -> bool:
     """Evaluate a complication risk-factor condition against the day's state and the patient.
 
@@ -607,6 +614,8 @@ def _evaluate_risk_condition(
         if condition in STATE_ALIASES:
             var, op, value = STATE_ALIASES[condition]
             return _COMPARE[op](float(getattr(state, var)), value)
+        if condition in CONTEXT_RESOLVED:
+            return resolve_context_condition(condition, context, day)
         if condition in PATIENT_ICD_ALIASES:
             return any(code.startswith(PATIENT_ICD_ALIASES[condition]) for code in _patient_codes(patient))
         if condition in ("malnutrition", "baseline_malnutrition"):

@@ -667,3 +667,4 @@ _.all_cchd_sites  # codes/cchd_site_to_snomed.py — audit/integrity API
 # `LLMTaskType(<yaml string>)` at runtime once the judgment path lands.
 _.CLINICAL_JUDGMENT  # llm_service/engine.py::LLMTaskType — yaml-dispatched enum value
 _.CONSISTENCY_REVIEW  # llm_service/engine.py::LLMTaskType — yaml-dispatched enum value
+_.antibiotic_start_day  # modules/clinical_course/_complication_risk_conditions.py (read via getattr in resolve_context_condition)
