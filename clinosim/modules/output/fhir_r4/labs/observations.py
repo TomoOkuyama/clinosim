@@ -721,6 +721,56 @@ def _build_vital_observations(
             loc_obs["performer"] = [{"reference": f"Practitioner/{_perf}"}]
         entries.append(entry(loc_obs))
 
+    # Pain score (Issue #2089): LOINC 72514-3, 0-10 numeric rating, reported.
+    # Verified via tx.fhir.org $lookup (LOINC 2.83).
+    pain = vs.get("pain_score")
+    if pain is not None:
+        _pain_structural_key = f"{encounter_id or patient_id}-{index:04d}-pain"
+        pain_obs: dict[str, Any] = {
+            "resourceType": "Observation",
+            "id": _resolve_vital_sign_observation_id(_pain_structural_key),
+            "identifier": [wrap_as_identifier(_pain_structural_key, VITAL_SIGN_OBSERVATION_KEY_SYSTEM)],
+            **(
+                {"meta": {"profile": ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_Observation_Common"]}}
+                if is_jp(country)
+                else {}
+            ),
+            "status": "final",
+            "category": [
+                {
+                    "coding": [
+                        {
+                            "system": get_system_uri("hl7-observation-category"),
+                            "code": "vital-signs",
+                            "display": _localize_display("Vital Signs", country, _CATEGORY_DISPLAY_JA),
+                        }
+                    ],
+                    "text": _localize_display("Vital Signs", country, _CATEGORY_DISPLAY_JA),
+                }
+            ],
+            "code": {
+                "coding": [
+                    {
+                        "system": get_system_uri("loinc"),
+                        "code": "72514-3",
+                        "display": "Pain severity - 0-10 verbal numeric rating [Score] - Reported",
+                    }
+                ],
+                "text": "疼痛スケール (NRS 0-10)" if is_jp(country) else "Pain score (0-10)",
+            },
+            "subject": patient_ref(patient_id),
+            "valueInteger": int(pain),
+        }
+        timestamp = vs.get("timestamp")
+        if timestamp:
+            pain_obs["effectiveDateTime"] = to_fhir_datetime(timestamp)
+        if encounter_id:
+            pain_obs["encounter"] = encounter_ref(encounter_id)
+        _perf = vs.get("measured_by", "")
+        if _perf:
+            pain_obs["performer"] = [{"reference": f"Practitioner/{_perf}"}]
+        entries.append(entry(pain_obs))
+
     # Supplemental oxygen (LOINC 3151-8 = inhaled oxygen flow rate)
     if vs.get("on_supplemental_oxygen"):
         flow = vs.get("oxygen_flow_rate_lpm")
