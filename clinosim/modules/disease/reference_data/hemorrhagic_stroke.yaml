@@ -624,6 +624,7 @@ course_archetypes:
     probability: 0.13
     description: "Progressive cerebral edema, declining consciousness, ICU course, high mortality"
     trajectory:
+      consciousness_impairment: {0: 0.04, 1: 0.08, 2: 0.06, 3: 0.03, 5: 0.00}
       inflammation_level: {0: 0.10, 1: 0.08, 2: 0.06, 3: 0.05, 5: 0.03, 7: 0.02, 14: 0.00, 21: -0.01, 28: -0.01}
       # NOTE (FP-DELTA-VALIDATE, session 40): neurological_status trajectory
       # removed — silently dropped. See smooth_recovery archetype.
@@ -650,6 +651,7 @@ course_archetypes:
     probability: 0.10
     description: "Catastrophic hematoma expansion or herniation — ICU, possible surgical evacuation"
     trajectory:
+      consciousness_impairment: {0: 0.03, 1: 0.22, 2: 0.10, 3: 0.00, 5: 0.00}
       inflammation_level: {0: 0.08, 1: 0.20, 2: 0.10, 3: 0.00, 5: -0.03, 7: -0.05, 14: -0.03, 21: -0.02, 28: -0.01}
       # NOTE (FP-DELTA-VALIDATE, session 40): neurological_status trajectory
       # removed — silently dropped. See smooth_recovery archetype.

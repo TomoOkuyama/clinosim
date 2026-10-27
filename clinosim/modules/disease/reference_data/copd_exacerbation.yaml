@@ -721,6 +721,7 @@ course_archetypes:
     probability: 0.10
     description: "Poor response to bronchodilators/steroids; may need NIV and antibiotic escalation"
     trajectory:
+      oxygenation_impairment: {0: 0.08, 1: 0.08, 2: 0.06, 3: 0.04, 5: 0.00}
       inflammation_level: {0: 0.08, 1: 0.05, 2: 0.03, 3: 0.02, 5: -0.01, 7: -0.04, 10: -0.08, 14: -0.06}
       ph_status: {0: -0.05, 1: -0.03, 2: -0.02, 3: 0.00, 5: 0.02, 7: 0.03, 10: 0.03, 14: 0.02}
       volume_status: {0: -0.03, 1: -0.02, 2: -0.01, 3: 0.00, 5: 0.01, 7: 0.01, 10: 0.01, 14: 0.00}
@@ -748,6 +749,7 @@ course_archetypes:
     probability: 0.07
     description: "Slow worsening despite treatment -> ICU transfer, NIV or intubation"
     trajectory:
+      oxygenation_impairment: {0: 0.08, 1: 0.12, 2: 0.10, 3: 0.05, 5: 0.00}
       inflammation_level: {0: 0.08, 1: 0.06, 2: 0.05, 3: 0.04, 5: 0.03, 7: 0.02, 10: 0.00, 14: -0.02}
       ph_status: {0: -0.06, 1: -0.04, 2: -0.03, 3: -0.02, 5: -0.01, 7: 0.01, 10: 0.02, 14: 0.02}
       perfusion_status: {0: -0.03, 1: -0.03, 2: -0.02, 3: -0.02, 5: -0.01, 7: 0.00, 10: 0.01, 14: 0.01}
@@ -777,6 +779,7 @@ course_archetypes:
     probability: 0.03
     description: "Sudden critical worsening (pneumothorax, PE, acute respiratory failure) on Day 1-2"
     trajectory:
+      oxygenation_impairment: {0: 0.06, 1: 0.22, 2: 0.12, 3: 0.04, 5: 0.00}
       inflammation_level: {0: 0.05, 1: -0.01, 2: 0.20, 3: 0.08, 5: -0.03, 7: -0.06, 10: -0.05, 14: -0.03}
       ph_status: {0: -0.03, 1: 0.01, 2: -0.20, 3: -0.05, 5: 0.05, 7: 0.05, 10: 0.03, 14: 0.01}
       perfusion_status: {0: 0.00, 1: 0.00, 2: -0.25, 3: -0.05, 5: 0.05, 7: 0.04, 10: 0.02, 14: 0.01}

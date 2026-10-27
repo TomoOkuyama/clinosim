@@ -40,6 +40,8 @@ def test_hf_trajectories_use_recognized_state_vars():
         "ph_status",
         "renal_function",
         "volume_status",
+        "oxygenation_impairment",
+        "consciousness_impairment",
     }
     p = load_disease_protocol("heart_failure_exacerbation")
     for name, a in p.course_archetypes.items():

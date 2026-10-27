@@ -38,6 +38,7 @@ severity:
 
 initial_state_impact:
   moderate:
+    consciousness_impairment: 0.1
     pain_level: 0.7
     inflammation_level: 0.40
     anemia_level: 0.25
@@ -46,6 +47,7 @@ initial_state_impact:
     renal_function: -0.05
     anion_gap_status: 0.2     # AG axis: hemorrhagic shock contribution
   severe:
+    consciousness_impairment: 0.3
     pain_level: 0.8
     inflammation_level: 0.60
     anemia_level: 0.40
