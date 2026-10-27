@@ -260,9 +260,9 @@ def sample_hai_onset(
 ) -> tuple[bool, int | None]:
     """Return (occurred, onset_day_offset) for this device.
 
-    Returns (False, None) when (a) line_days<2 (CDC >=48h rule) or
+    Returns (False, None) when (a) line_days<2 (CDC >=48h rule),
     (b) rng draw exceeds cumulative probability over the device's
-    line-days.
+    line-days, or (c) line_days == 2 (no eligible onset day in [2, 2)).
 
     Returns (True, k) when onset occurs on placement_date + k days,
     k uniformly drawn from [2, line_days).
@@ -280,6 +280,10 @@ def sample_hai_onset(
     per_day_risk = rate_cfg["per_day_risk"]
     cumulative = 1 - (1 - per_day_risk) ** line_days
     if rng.random() >= cumulative:
+        return (False, None)
+    if line_days <= 2:
+        # Onset is drawn from [2, line_days); a 2-day line has no eligible
+        # day. The firing draw above is still consumed (RNG stream unchanged).
         return (False, None)
     onset_offset = int(rng.integers(2, line_days))
     return (True, onset_offset)
