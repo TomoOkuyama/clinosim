@@ -1,6 +1,6 @@
 # `clinosim.modules.metabolic` — BMI 由来・代謝関連慢性疾患
 
-`PersonRecord.bmi` から E66 肥満 ICD コードを決定論的に導出する POST_POPULATION enricher (軸 1) + BMI + HTN + 脂質異常症 + DM の 4 要素 AND から **E88.81 代謝症候群** を導出する POST_POPULATION enricher (軸 2) + BMI + DM で重み付けた SHA Bernoulli で **K76.0 NAFLD** を割り当てる POST_POPULATION enricher (軸 3) + BMI × 性別で重み付けた SHA Bernoulli で **G47.30 OSA** を割り当てる POST_POPULATION enricher (軸 4) + E66.9 / E66.01 患者向けに Semaglutide / Tirzepatide / Liraglutide を `chronic_medications.yaml` 経由で経口 (皮下) 投与する **GLP-1 作動薬薬物療法** (軸 5) を提供する代謝クラスタ関連の慢性疾患エンリッチモジュール。これで META #1137 クラスタ 2 の全軸 (5 軸) が完了。
+`PersonRecord.bmi` から E66 肥満 ICD コードを決定論的に導出する POST_POPULATION enricher (軸 1) + BMI + HTN + 脂質異常症 + DM の 4 要素 AND から **E88.81 代謝症候群** を導出する POST_POPULATION enricher (軸 2) + BMI + DM で重み付けた SHA Bernoulli で **K76.0 NAFLD** を割り当てる POST_POPULATION enricher (軸 3) + BMI × 性別 × 年齢で重み付けた SHA Bernoulli (中等症以上の OSA に較正) で **G47.30 OSA** を割り当てる POST_POPULATION enricher (軸 4) + E66.9 / E66.01 患者向けに Semaglutide / Tirzepatide / Liraglutide を `chronic_medications.yaml` 経由で経口 (皮下) 投与する **GLP-1 作動薬薬物療法** (軸 5) を提供する代謝クラスタ関連の慢性疾患エンリッチモジュール。これで META #1137 クラスタ 2 の全軸 (5 軸) が完了。
 
 ## 目的
 
@@ -10,7 +10,7 @@ Session-102 コホート監査で identify された完結性ギャップを埋�
 
 ## スコープ
 
-- **スコープ内**: E66 肥満 ICD 導出 (BMI → E66.3 / E66.9 / E66.01)、E88.81 代謝症候群 4 要素 AND、K76.0 NAFLD BMI + DM Bernoulli、G47.30 OSA BMI + 性別 Bernoulli、E66.9 / E66.01 患者の GLP-1 薬物療法 yaml エントリ。
+- **スコープ内**: E66 肥満 ICD 導出 (BMI → E66.3 / E66.9 / E66.01)、E88.81 代謝症候群 4 要素 AND、K76.0 NAFLD BMI + DM Bernoulli、G47.30 OSA BMI + 性別 + 年齢 Bernoulli、E66.9 / E66.01 患者の GLP-1 薬物療法 yaml エントリ。
 - **スコープ外**: FHIR 直列化 ([`output`](../output/README.md))、コード表示解決 ([`codes`](../../codes/))、ロケールテキスト ([`locale`](../../locale/README.md))、POP_GENERATION 時 chronic_prevalence Bernoulli サンプル (`demographics.yaml`)、BMI 経年推移 (deferred)、K76.0 → ALT/AST ベースライン連動 (deferred, follow-up として追跡)、肥満外科紹介 encounter + 減量カウンセリング procedure コード (deferred, follow-up として追跡)。
 
 ## 公開 API
@@ -51,7 +51,7 @@ from clinosim.modules.metabolic import (
 - `_BMI_OVERWEIGHT_THRESHOLD = 25.0`, `_BMI_OBESITY_THRESHOLD = 30.0`, `_BMI_MORBID_THRESHOLD = 40.0` — WHO BMI 階層境界 (軸 1-4 の `_bmi_tier` で共用)。
 - `_SYNDROME_BMI_THRESHOLD = 30.0`, `_HTN_PREFIXES`, `_DYSLIPIDEMIA_PREFIXES`, `_DM_PREFIXES`, `_SYNDROME_CODE = "E88.81"` — 軸 2 AND 基準。
 - `_NAFLD_CODE = "K76.0"`, `_NAFLD_OBESE_PREVALENCE = 0.60`, `_NAFLD_MORBID_PREVALENCE = 0.85`, `_NAFLD_DM_UPLIFT = 1.15`, `_NAFLD_SALT = "metabolic.nafld.v1"` — 軸 3 アンカー (Younossi 2016 肥満サブコホート)。
-- `_OSA_CODE = "G47.30"`, `_OSA_PREVALENCE_MALE`, `_OSA_PREVALENCE_FEMALE`, `_OSA_SALT = "metabolic.osa.v1"` — 軸 4 アンカー (Peppard 2013 BMI 階層 × 性別テーブル)。
+- `_OSA_CODE = "G47.30"`, `_OSA_PREVALENCE_MALE`, `_OSA_PREVALENCE_FEMALE`, `_OSA_AGE_SPLIT`, `_OSA_AGE_FACTOR_MALE` / `_FEMALE`, `_OSA_SALT = "metabolic.osa.v1"` — 軸 4 アンカー (BMI 階層 × 性別テーブル × 年齢係数、Peppard 2013 AHI ≥ 15 に較正)。
 
 軸 5 定数は `locale/shared/chronic_medications.yaml` の `E66.9:` / `E66.01:` ブロック (drug 名、用量、route、probability、`exclusive_classes: ["glp1"]`)。将来 NCEP ATP III 3-of-5 緩和を追加する際は軸 2 AND 基準を `reference_data/metabolic_syndrome_criteria.yaml` に外出し可能。
 

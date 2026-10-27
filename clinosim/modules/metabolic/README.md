@@ -1,6 +1,6 @@
 # `clinosim.modules.metabolic` — BMI-derived and metabolic-cluster chronic conditions
 
-Deterministic chronic-condition enrichment for metabolic syndrome components. Axis 1 is **E66 obesity ICD derivation** from `PersonRecord.bmi`; axis 2 is **E88.81 metabolic syndrome** from the 4-way AND over BMI + HTN + Dyslipidemia + DM; axis 3 is **K76.0 NAFLD** from a BMI + DM-weighted SHA Bernoulli (RNG-neutral per-person assignment); axis 4 is **G47.30 OSA** from a BMI + sex-weighted SHA Bernoulli; axis 5 is **GLP-1 agonist pharmacotherapy** for the E66.9 / E66.01 cohort via new entries in `chronic_medications.yaml` (Semaglutide / Tirzepatide / Liraglutide, SC, exclusive-class). All five axes close out the META #1137 cluster 2 scope.
+Deterministic chronic-condition enrichment for metabolic syndrome components. Axis 1 is **E66 obesity ICD derivation** from `PersonRecord.bmi`; axis 2 is **E88.81 metabolic syndrome** from the 4-way AND over BMI + HTN + Dyslipidemia + DM; axis 3 is **K76.0 NAFLD** from a BMI + DM-weighted SHA Bernoulli (RNG-neutral per-person assignment); axis 4 is **G47.30 OSA** from a BMI + sex + age-weighted SHA Bernoulli calibrated to moderate-to-severe OSA; axis 5 is **GLP-1 agonist pharmacotherapy** for the E66.9 / E66.01 cohort via new entries in `chronic_medications.yaml` (Semaglutide / Tirzepatide / Liraglutide, SC, exclusive-class). All five axes close out the META #1137 cluster 2 scope.
 
 ## Purpose
 
@@ -10,7 +10,7 @@ Fields written: appends ICD-10 codes to `PersonRecord.chronic_conditions`. Does 
 
 ## Scope
 
-- **In scope**: E66 obesity ICD derivation (BMI → E66.3 / E66.9 / E66.01), E88.81 metabolic syndrome 4-way AND, K76.0 NAFLD BMI + DM Bernoulli, G47.30 OSA BMI + sex Bernoulli, GLP-1 pharmacotherapy yaml entries for E66.9 / E66.01.
+- **In scope**: E66 obesity ICD derivation (BMI → E66.3 / E66.9 / E66.01), E88.81 metabolic syndrome 4-way AND, K76.0 NAFLD BMI + DM Bernoulli, G47.30 OSA BMI + sex + age Bernoulli, GLP-1 pharmacotherapy yaml entries for E66.9 / E66.01.
 - **Out of scope**: FHIR serialisation ([`output`](../output/README.md)); code-display lookups ([`codes`](../../codes/)); locale text ([`locale`](../../locale/README.md)); chronic-prevalence Bernoulli sampling at POP_GENERATION (`demographics.yaml`); BMI trajectory year-over-year drift (deferred); K76.0 → ALT/AST baseline tie-in (deferred, tracked as a follow-up); bariatric surgery referral encounter + weight-loss counseling procedure codes (deferred, tracked as a follow-up).
 
 ## Public API
@@ -51,7 +51,7 @@ Thresholds live as module-level constants in `engine.py` rather than yaml so the
 - `_BMI_OVERWEIGHT_THRESHOLD = 25.0`, `_BMI_OBESITY_THRESHOLD = 30.0`, `_BMI_MORBID_THRESHOLD = 40.0` — WHO BMI tier bounds (also used by `_bmi_tier` across axes 1-4).
 - `_SYNDROME_BMI_THRESHOLD = 30.0`, `_HTN_PREFIXES`, `_DYSLIPIDEMIA_PREFIXES`, `_DM_PREFIXES`, `_SYNDROME_CODE = "E88.81"` — axis 2 AND criteria.
 - `_NAFLD_CODE = "K76.0"`, `_NAFLD_OBESE_PREVALENCE = 0.60`, `_NAFLD_MORBID_PREVALENCE = 0.85`, `_NAFLD_DM_UPLIFT = 1.15`, `_NAFLD_SALT = "metabolic.nafld.v1"` — axis 3 anchors (Younossi 2016 obese sub-cohort).
-- `_OSA_CODE = "G47.30"`, `_OSA_PREVALENCE_MALE`, `_OSA_PREVALENCE_FEMALE`, `_OSA_SALT = "metabolic.osa.v1"` — axis 4 anchors (Peppard 2013 BMI tier × sex table).
+- `_OSA_CODE = "G47.30"`, `_OSA_PREVALENCE_MALE`, `_OSA_PREVALENCE_FEMALE`, `_OSA_AGE_SPLIT`, `_OSA_AGE_FACTOR_MALE` / `_FEMALE`, `_OSA_SALT = "metabolic.osa.v1"` — axis 4 anchors (BMI tier × sex table × age factor, calibrated to Peppard 2013 AHI ≥ 15).
 
 Axis 5 constants live in `locale/shared/chronic_medications.yaml` under the `E66.9:` / `E66.01:` blocks (drug names, doses, routes, probabilities, `exclusive_classes: ["glp1"]`). A later refinement can externalise axis 2's AND criteria into `reference_data/metabolic_syndrome_criteria.yaml` if a 3-of-5 NCEP ATP III relaxation is ever added.
 
