@@ -146,62 +146,32 @@ def _order_type_value(o: Any) -> str:
     return str(ot)
 
 
+_FIXTURE_SEEDS = tuple(range(60, 160))
+
+
 @pytest.mark.integration
 def test_anticoag_from_admission1_carries_forward_to_admission2_home_meds():
     """Engine-layer gate for A' Phase 1 (Issue #440)."""
-    # Fixed cohort scouted to reliably contain the POP-000257-style fixture.
-    # Do NOT tighten seed/config without also re-verifying the candidate set
-    # exists.
-    #
-    # 2026-08-28 (B-3): the marginal-preserving chronic-condition sampler
-    # reshapes chronic_conditions across the population, so seed=42 lost the
-    # AFib + 2-admission + newly-started-anticoag candidate. Re-scouted to
-    # seed=43 which retains one such patient under the new engine.
-    # 2026-08-28 (cross-platform determinism): the bit-reproducible
-    # Marsaglia-Tsang / Box-Muller variates in ``clinosim.determinism``
-    # consume rng at a different cadence than numpy's Cheng-BB / Ziggurat,
-    # so seed=43 lost the fixture again. Re-scouted to seed=45.
-    # 2026-08-29 (#933 B-3 phase 2): restoring the US chronic_prevalence
-    # base_prev to hospital-cohort targets (E11.9/E78/J44/N18) reshapes
-    # the sampled marginals, so seed=45 lost the AFib + 2-admission +
-    # newly-started-anticoag fixture again. Re-scouted to seed=49 (first
-    # non-zero candidate seed in the 45-100 sweep on the post-#933 engine).
-    # 2026-08-30 (#943 oncology + obstetric service lines): adding C-chapter
-    # cancer + Z-chapter obstetric prevalence to US demographics.yaml and
-    # rebalancing I10 down shifts the cohort again, so seed=49 lost the
-    # fixture. Re-scouted 49..120 → seed=55 (POP-000424).
-    # 2026-08-30 (#969 stats-tune): reducing US comorbidity_correlations
-    # multipliers ~15% shifts joint chronic sampling; seed=55 lost the
-    # fixture. Re-scouted 55..150 → seed=56 (POP-000167).
-    # 2026-10-14 (G35 MS catalog addition — PR #1611): adding G35 to
-    # ``chronic_prevalence`` consumes one additional ``prng.random()`` per
-    # age-eligible person in ``_annual_chronic_onset``, cascading
-    # downstream chronic draws → seed=56 lost the fixture. Re-scouted
-    # 56..100 → seed=64 (POP-000129).
-    # 2026-10-22 (#1778 J44 age-weighted band split): splitting the J44
-    # prevalence from one band `"40-99"` to three disjoint bands
-    # `"40-49"` / `"50-59"` / `"60-99"` leaves the per-patient rng call
-    # count byte-identical but changes which rng draws turn into J44
-    # (band-specific probability), cascading to joint chronic sampling
-    # for comorbid codes → seed=64 lost the fixture. Re-scouted 64..150
-    # → seed=65 (POP-000146). #1996 lowered the US COPD prevalence bands,
-    # which reshapes chronic sampling; seed=65 lost the fixture. Re-scouted
-    # 65..200 → seed=66 (POP-000348). #2024 lowered COPD exacerbation
-    # admissions, which removes many second admissions; seed=66 lost the
-    # fixture. Re-scouted 66..250 → seed=70 (POP-000431).
-    config = SimulatorConfig(
-        random_seed=70,
-        catchment_population=500,
-        country="US",
-        time_range=("2025-01", "2026-01"),
-    )
-    ds = run_beta(config)
-
-    candidates = _find_carryforward_candidates(ds.patients)
+    # The invariant needs a patient with 2+ admissions and an anticoagulant
+    # newly started at admission #1. Any calibration change reshapes the
+    # cohort, so a single pinned seed kept losing its candidate (re-scouted
+    # ten times, 42 → 70). Scan a fixed seed list and test the first cohort
+    # that contains a candidate; fail only if none does.
+    candidates: list = []
+    for seed in _FIXTURE_SEEDS:
+        config = SimulatorConfig(
+            random_seed=seed,
+            catchment_population=500,
+            country="US",
+            time_range=("2025-01", "2026-01"),
+        )
+        candidates = _find_carryforward_candidates(run_beta(config).patients)
+        if candidates:
+            break
 
     if not candidates:
         pytest.fail(
-            "test cohort no longer contains any patient with (2+ inpatient "
+            "none of the fixture seeds yields a patient with (2+ inpatient "
             "admissions AND anticoag newly-started at admission #1). The "
             "A' invariant premise is lost — do NOT skip. Either update the "
             "seed/config to a cohort that reliably contains such a patient, "
