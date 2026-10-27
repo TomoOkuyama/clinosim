@@ -2281,16 +2281,21 @@
 
 
 <h1 id="バージョニングとリリース">バージョニングとリリース<a class="headerlink" href="#バージョニングとリリース" title="Permanent link">&para;</a></h1>
-<p>clinosim は <a href="https://semver.org/spec/v2.0.0.html">Semantic Versioning 2.0.0</a>
-に従います:</p>
+<p>clinosim の SemVer scope は generic SemVer のモジュール境界ではなく
+<strong>CIF ↔ narrative-CIF 整合性</strong> に anchoring している。正準ルールは
+<a href="../../development/changelog/"><code>CHANGELOG.md</code></a> 冒頭「Versioning policy
+(from v0.4.0 onward)」が持つ。要約:</p>
 <ul>
-<li><strong>MAJOR</strong> — 非互換な API / CIF / FHIR スキーマ変更。</li>
-<li><strong>MINOR</strong> — 後方互換な機能追加 (新モジュール、新リソース型、追加
-  locale サポート)。同 seed でもバイト単位で出力が変わり得る。</li>
-<li><strong>PATCH</strong> — 後方互換なバグ修正 + CIF/FHIR スキーマを保つデータ
-  品質訂正。<strong>同 MINOR line 内の PATCH リリースでは、同 seed に対
-  するバイト同一出力が hard guarantee。</strong></li>
+<li><strong>MAJOR</strong> — Python API 破壊 (import path、public 関数シグネチャ、
+  scripted 利用者を壊す CLI オプション削除等)。</li>
+<li><strong>MINOR</strong> — CIF ↔ narrative-CIF 整合性を破壊する変更
+  (CIF schema 変更、narrative-CIF drift、CIF 構造 field を伴う新規
+  resource type 等)。同 seed でも bite 単位で出力が変わり得る。</li>
+<li><strong>PATCH</strong> — CIF ↔ narrative-CIF 整合性を保つ変更
+  (FHIR-emit-only 修正、locale 表示訂正、CIF / narrative-CIF 構造
+  field に触れないデータ品質訂正を含む)。</li>
 </ul>
+<p>完全なポリシーと各リリースの判断理由は <code>CHANGELOG.md</code> を参照。</p>
 <h2 id="リリース切り出し">リリース切り出し<a class="headerlink" href="#リリース切り出し" title="Permanent link">&para;</a></h2>
 <p>Version は 1 箇所に集約: <code>clinosim/__init__.py::__version__</code>。
 <code>pyproject.toml</code> は動的に読み込む (<code>[tool.hatch.version]</code>) ので、

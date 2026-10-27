@@ -4144,13 +4144,14 @@ Present generated records alongside real (anonymized) records to clinicians. If 
 </span></code></pre></div>
 <h4 id="layer-1-person-names-population-staff">Layer 1: Person names (population, staff)<a class="headerlink" href="#layer-1-person-names-population-staff" title="Permanent link">&para;</a></h4>
 <p>Names are part of identity — generated once at creation, stored in CIF.</p>
-<div class="highlight"><pre><span></span><code><span id="__span-21-1"><a id="__codelineno-21-1" name="__codelineno-21-1" href="#__codelineno-21-1"></a>modules/population/names/
-</span><span id="__span-21-2"><a id="__codelineno-21-2" name="__codelineno-21-2" href="#__codelineno-21-2"></a>  japan.yaml          # surnames (weighted), given names (M/F, era-appropriate)
-</span><span id="__span-21-3"><a id="__codelineno-21-3" name="__codelineno-21-3" href="#__codelineno-21-3"></a>  us.yaml             # surnames (census), given names (M/F, decade-appropriate)
-</span><span id="__span-21-4"><a id="__codelineno-21-4" name="__codelineno-21-4" href="#__codelineno-21-4"></a>
-</span><span id="__span-21-5"><a id="__codelineno-21-5" name="__codelineno-21-5" href="#__codelineno-21-5"></a>modules/staff/names/
-</span><span id="__span-21-6"><a id="__codelineno-21-6" name="__codelineno-21-6" href="#__codelineno-21-6"></a>  (same structure — may share with population)
+<div class="highlight"><pre><span></span><code><span id="__span-21-1"><a id="__codelineno-21-1" name="__codelineno-21-1" href="#__codelineno-21-1"></a>clinosim/locale/jp/names.yaml   # surnames (weighted), given names (M/F, era-appropriate)
+</span><span id="__span-21-2"><a id="__codelineno-21-2" name="__codelineno-21-2" href="#__codelineno-21-2"></a>clinosim/locale/us/names.yaml   # surnames (census), given names (M/F, decade-appropriate)
 </span></code></pre></div>
+<p>Both population and staff name sampling draw from the same locale yaml
+(there is no separate <code>modules/*/names/</code> directory — the data lives
+under <code>clinosim/locale/&lt;country&gt;/names.yaml</code> and loaders in
+<code>clinosim/locale/loaders/demographics.py</code> + <code>clinosim/modules/staff/</code>
+pull from it).</p>
 <p>Name structure by country:</p>
 <table>
 <thead>

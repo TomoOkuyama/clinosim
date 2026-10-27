@@ -4062,7 +4062,7 @@ state</strong> を表現する汎用 <code>TemporalStatePeriod</code> dataclass 
   <code>abortion_date</code> + <code>abortion_dx</code>)。</p>
 <p><strong>Generator contract (state_type ごと):</strong>
 - 1 つの owner モジュールが state の <code>state_periods</code> に書く。妊娠 =
-  <code>population/engine.py::_pregnancy_lifecycle_events</code>。
+  <code>modules/population/_pregnancy.py::_pregnancy_lifecycle_events</code> (C3d 分割後 <code>population/engine.py</code> façade から re-export)。
 - Draw は state-scoped deterministic sub-RNG を使う (妊娠は現在
   <code>perinatal_delivery_seed(person_id, year)</code>; がんは
   <code>chemotherapy_regimen_seed(person_id, cancer_code)</code>; 将来の state
@@ -4147,7 +4147,7 @@ match)。</p>
 <ul>
 <li>Types: <code>clinosim/types/patient.py::TemporalStatePeriod</code></li>
 <li>Query API: <code>clinosim/types/population.py::PersonRecord.has_active_state / get_active_state / state_history</code></li>
-<li>Generator: <code>clinosim/modules/population/engine.py::_pregnancy_lifecycle_events</code></li>
+<li>Generator: <code>clinosim/modules/population/_pregnancy.py::_pregnancy_lifecycle_events</code> (C3d 分割後 <code>clinosim/modules/population/engine.py</code> façade から re-export)</li>
 <li>FHIR adapter: <code>clinosim/modules/output/fhir_r4/conditions/conditions.py</code> (past-pregnancies block)</li>
 <li>Config: <code>clinosim/locale/shared/perinatal.yaml::lifecycle</code></li>
 </ul>

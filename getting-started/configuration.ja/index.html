@@ -2369,6 +2369,16 @@ machine-readable リストは <code>clinosim simulate --help</code> を実行。
 <td>JP-CLINS パッケージディレクトリへのパス (JP-CLINS lab-compliance gate 必須; <a href="../../jp-clins.ja/"><code>jp-clins.ja.md</code></a> 参照)</td>
 </tr>
 <tr>
+<td><code>CLINOSIM_LOG_LEVEL</code></td>
+<td><code>INFO</code></td>
+<td>シミュレータの Python logging level (<code>DEBUG</code> / <code>INFO</code> / <code>WARNING</code> / <code>ERROR</code>)</td>
+</tr>
+<tr>
+<td><code>CLINOSIM_ALLOW_LEGACY_JP_CLINS_PKG</code></td>
+<td>未設定</td>
+<td><code>1</code> を設定すると CLI の <code>--allow-legacy</code> と等価 (JP-CLINS パッケージバージョン pin を ad-hoc 走行向けにバイパス)</td>
+</tr>
+<tr>
 <td><code>AWS_REGION</code>, <code>AWS_ACCESS_KEY_ID</code>, <code>AWS_SECRET_ACCESS_KEY</code></td>
 <td>AWS デフォルトチェーン</td>
 <td>AWS Bedrock narrative provider (<code>--provider bedrock</code>) にのみ必要</td>

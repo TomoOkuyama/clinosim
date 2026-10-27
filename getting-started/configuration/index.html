@@ -2467,6 +2467,16 @@
 <td>Path to the JP-CLINS package directory (required for JP-CLINS lab-compliance gate; see <a href="../../jp-clins/"><code>jp-clins.md</code></a>)</td>
 </tr>
 <tr>
+<td><code>CLINOSIM_LOG_LEVEL</code></td>
+<td><code>INFO</code></td>
+<td>Python logging level for the simulator (<code>DEBUG</code> / <code>INFO</code> / <code>WARNING</code> / <code>ERROR</code>)</td>
+</tr>
+<tr>
+<td><code>CLINOSIM_ALLOW_LEGACY_JP_CLINS_PKG</code></td>
+<td>unset</td>
+<td>When set to <code>1</code>, equivalent to passing <code>--allow-legacy</code> to the CLI (bypasses JP-CLINS package-version pin for ad-hoc runs)</td>
+</tr>
+<tr>
 <td><code>AWS_REGION</code>, <code>AWS_ACCESS_KEY_ID</code>, <code>AWS_SECRET_ACCESS_KEY</code></td>
 <td>AWS default chain</td>
 <td>Only needed for AWS Bedrock narrative provider (<code>--provider bedrock</code>)</td>
