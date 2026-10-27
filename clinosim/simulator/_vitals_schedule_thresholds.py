@@ -18,6 +18,11 @@ arguments come from literals or module-scope constants.
 from __future__ import annotations
 
 __all__ = [
+    "VITALS_ACUITY_CONSCIOUSNESS_CRITICAL",
+    "VITALS_ACUITY_CONSCIOUSNESS_UNSTABLE",
+    "VITALS_ACUITY_OXYGENATION_CRITICAL",
+    "VITALS_ACUITY_OXYGENATION_UNSTABLE",
+    "VITALS_ACUITY_SYMPATHETIC_UNSTABLE",
     "VITALS_ACUITY_INFLAMMATION_UNSTABLE_THRESHOLD",
     "VITALS_ACUITY_PERFUSION_CRITICAL_THRESHOLD",
     "VITALS_ACUITY_PERFUSION_UNSTABLE_THRESHOLD",
@@ -232,3 +237,21 @@ note can fire — combined with the inflammation cutoff above.
 Empirical tuning for the synthetic simulator: PODs 0-2 are too early
 for a meaningful "improving" observation; from POD 3 onward the
 trend is documentable in nursing notes."""
+
+
+# Issue #2092: monitoring intensity from the state axes.
+VITALS_ACUITY_CONSCIOUSNESS_UNSTABLE: float = 0.25
+"""``consciousness_impairment`` (AVPU V) at which rounds become q4h."""
+
+VITALS_ACUITY_CONSCIOUSNESS_CRITICAL: float = 0.5
+"""``consciousness_impairment`` (AVPU P) at which rounds become q2h (neuro checks)."""
+
+VITALS_ACUITY_OXYGENATION_UNSTABLE: float = 0.3
+"""``oxygenation_impairment`` (room-air SpO2 below ~92%) at which rounds
+become q4h with continuous SpO2 monitoring."""
+
+VITALS_ACUITY_OXYGENATION_CRITICAL: float = 0.5
+"""``oxygenation_impairment`` (SpO2 below ~88%) at which rounds become q2h."""
+
+VITALS_ACUITY_SYMPATHETIC_UNSTABLE: float = 0.5
+"""``sympathetic_activation`` (e.g. severe withdrawal) at which rounds become q4h."""
