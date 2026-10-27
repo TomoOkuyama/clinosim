@@ -308,8 +308,14 @@ disease_incidence:
       65: 0.5
       0: 0.7
   copd_exacerbation:
-    # Exacerbation rate among COPD patients. Source: GOLD report, CDC
-    age_rates: {0: 3000, 45: 12000, 55: 18000, 65: 22000, 75: 28000, 85: 32000}
+    # Hospital-level exacerbations among COPD patients (per 100k COPD
+    # patients / yr, before smoking and comorbidity multipliers). US
+    # principal-diagnosis COPD stays are ~0.5-0.7M / yr against ~15M adults
+    # with diagnosed COPD (~0.04-0.1 per patient-year). Issue #2024: the
+    # earlier 3,000-32,000 rates gave ~0.5 admissions per COPD patient-year;
+    # treated-and-released exacerbations come from the ED condition
+    # copd_exacerbation_ed.
+    age_rates: {0: 600, 45: 2400, 55: 3600, 65: 4400, 75: 5600, 85: 6400}
     sex_ratio_female: 0.9
     event_type: chronic_exacerbation
     prerequisite_condition: J44  # requires prior COPD diagnosis
@@ -566,9 +572,13 @@ mixed_conditions:
 
 # ED visits that don't result in admission
 # Conditions are auto-loaded from encounter/reference_data/*.yaml (encounter_type: emergency)
-# Only rate_per_admitted is country-specific
+# rate_per_1000_person_years sets the volume from the population so it does
+# not move with the admission case mix. CDC NCHS Data Brief 478: 43 ED visits
+# per 100 people in 2021 (46.6 in 2019), of which roughly 1 in 8 end in
+# admission -> ~380 treated-and-released visits per 1,000 person-years.
 ed_visit_not_admitted:
-  rate_per_admitted: 3.5  # for every admission, 3.5 ED visits go home
+  rate_per_1000_person_years: 380
+  rate_per_admitted: 3.5  # legacy fallback when the per-person-year rate is absent
 
 # Occupation distribution for working-age population (15-64)
 # Source: US BLS Occupational Employment Statistics

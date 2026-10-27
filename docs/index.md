@@ -30,7 +30,7 @@ Three concrete differentiators:
 - **JP + US natively.** JP Core profile compliance for 16 primary FHIR
   resource types, JLAC10 / MHLW YJ codes, JP names / addresses /
   insurance out of the box.
-- **YAML-driven extension.** 32 inpatient diseases + 46 ED / outpatient
+- **YAML-driven extension.** 32 inpatient diseases + 47 ED / outpatient
   conditions are all data files, not code.
 - **Longitudinal state evolution.** AR(1) HbA1c trajectory, Markov
   stage ladders (CKD / CCS / NYHA / CDR / GOLD / cancer AJCC/BCLC),

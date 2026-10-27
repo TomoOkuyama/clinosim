@@ -49,7 +49,7 @@ clinosim/
 │
 ├── modules/                  # Functional modules (39 packages, each with README)
 │   ├── disease/              # disease YAML protocols
-│   ├── encounter/            # 46 ED/outpatient condition YAMLs
+│   ├── encounter/            # 47 ED/outpatient condition YAMLs
 │   ├── physiology/           # 14-state model + lab/vital derivation
 │   ├── clinical_course/      # 6 archetypes + complications + diagnosis feedback
 │   ├── diagnosis/            # Bayesian differential (LR table)
