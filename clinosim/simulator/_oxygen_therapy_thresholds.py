@@ -18,14 +18,17 @@ module-scope constants.
 from __future__ import annotations
 
 __all__ = [
-    "O2_MILD_FLOW_LPM_MAX",
-    "O2_MILD_FLOW_LPM_MIN",
+    "O2_COPD_SPO2_CAP",
+    "O2_REFRACTORY_SHUNT_FACTOR",
+    "O2_SPO2_CAP",
+    "O2_SPO2_GAIN_PER_LPM",
     "O2_MODERATE_FLOW_LPM_MAX",
     "O2_MODERATE_FLOW_LPM_MIN",
     "O2_NASAL_CANNULA_FLOW_MAX_LPM",
     "O2_NON_REBREATHER_FLOW_MIN_LPM",
     "O2_SEVERE_FLOW_LPM_MAX",
     "O2_SEVERE_FLOW_LPM_MIN",
+    "SPO2_TARGET_COPD",
 ]
 
 
@@ -87,18 +90,26 @@ where nasal-cannula humidification is less routine."""
 
 
 # ---------------------------------------------------------------------------
-# Mild / prophylactic supplemental oxygen (respiratory-condition
-# patients who don't meet a specific hypoxemia threshold)
+# Targets and response (Issue #2083)
 # ---------------------------------------------------------------------------
 
-O2_MILD_FLOW_LPM_MIN: float = 1.0
-"""Minimum oxygen flow (L/min) sampled for mild / prophylactic O2."""
+SPO2_TARGET_COPD: float = 88.0
+"""Oxygen trigger for COPD exacerbation: titrate to 88-92% (GOLD / BTS) to
+avoid hypercapnia, so oxygen starts below 88% rather than 92%."""
 
-O2_MILD_FLOW_LPM_MAX: float = 3.0
-"""Maximum oxygen flow (L/min) sampled for mild / prophylactic O2.
+O2_SPO2_GAIN_PER_LPM: float = 1.5
+"""SpO2 rise (points) per L/min of supplemental oxygen in responsive
+(V/Q-mismatch) hypoxemia: 2-5 L/min nasal cannula lifts 89% to ~92-96%,
+6-10 L/min mask lifts 85% to ~94-98% (ward target 94-98%)."""
 
-Empirical tuning for the synthetic simulator: 1-3 L/min nasal cannula
-is the standard "keep sats up" prophylactic supplementation for
-respiratory patients who are borderline hypoxic — matches clinical
-practice for post-op patients, mild COPD, or heart failure with
-preserved SpO2."""
+O2_REFRACTORY_SHUNT_FACTOR: float = 0.7
+"""Fraction of the oxygen response lost at full ``oxygenation_impairment``
+(shunt physiology: ARDS / severe pneumonia respond poorly to oxygen)."""
+
+O2_SPO2_CAP: float = 98.0
+"""Highest SpO2 recorded on supplemental oxygen: flow is titrated down once
+above the 94-98% target range (BTS)."""
+
+O2_COPD_SPO2_CAP: float = 94.0
+"""COPD patients are titrated down once above the 88-92% target band; a
+recorded SpO2 above ~94% on oxygen is not sustained."""

@@ -122,14 +122,17 @@ from clinosim.simulator._loc_thresholds import (
     LOC_REFRACTORY_U_OVER_P_PROBABILITY,
 )
 from clinosim.simulator._oxygen_therapy_thresholds import (
-    O2_MILD_FLOW_LPM_MAX,
-    O2_MILD_FLOW_LPM_MIN,
+    O2_COPD_SPO2_CAP,
     O2_MODERATE_FLOW_LPM_MAX,
     O2_MODERATE_FLOW_LPM_MIN,
     O2_NASAL_CANNULA_FLOW_MAX_LPM,
     O2_NON_REBREATHER_FLOW_MIN_LPM,
+    O2_REFRACTORY_SHUNT_FACTOR,
     O2_SEVERE_FLOW_LPM_MAX,
     O2_SEVERE_FLOW_LPM_MIN,
+    O2_SPO2_CAP,
+    O2_SPO2_GAIN_PER_LPM,
+    SPO2_TARGET_COPD,
 )
 from clinosim.simulator._vitals_schedule_thresholds import (
     VITALS_ACUITY_INFLAMMATION_UNSTABLE_THRESHOLD,
@@ -293,24 +296,32 @@ def _make_raw(state, patient, vit_time, rng):
 
 
 def _o2_for(spo2, disease_id, rng):
-    """Return (on_o2, flow, device)."""
-    needs = (
-        spo2 < SPO2_HYPOXEMIA_TRIGGER
-        or disease_id in _RESPIRATORY_DISEASES
-        or disease_id == "heart_failure_exacerbation"
-    )
-    if not needs:
+    """Return (on_o2, flow, device) for a room-air SpO2 reading.
+
+    Oxygen starts only below the target (92%; 88% for COPD exacerbation) and is
+    weaned as the room-air SpO2 recovers (Issue #2083). Previously every
+    respiratory / heart-failure patient received oxygen at every round.
+    """
+    target = SPO2_TARGET_COPD if disease_id == "copd_exacerbation" else SPO2_HYPOXEMIA_TRIGGER
+    if spo2 >= target:
         return False, None, ""
-    if spo2 < SPO2_SEVERE_HYPOXEMIA:
+    if spo2 < SPO2_SEVERE_HYPOXEMIA and disease_id != "copd_exacerbation":
         flow = float(rng.uniform(O2_SEVERE_FLOW_LPM_MIN, O2_SEVERE_FLOW_LPM_MAX))
         device = "non-rebreather" if flow >= O2_NON_REBREATHER_FLOW_MIN_LPM else "simple_mask"
-    elif spo2 < SPO2_HYPOXEMIA_TRIGGER:
+    else:
         flow = float(rng.uniform(O2_MODERATE_FLOW_LPM_MIN, O2_MODERATE_FLOW_LPM_MAX))
         device = "nasal_cannula" if flow <= O2_NASAL_CANNULA_FLOW_MAX_LPM else "simple_mask"
-    else:
-        flow = float(rng.uniform(O2_MILD_FLOW_LPM_MIN, O2_MILD_FLOW_LPM_MAX))
-        device = "nasal_cannula"
     return True, flow, device
+
+
+def spo2_on_oxygen(room_air_spo2: float, flow: float, state, disease_id: str) -> float:
+    """SpO2 recorded on supplemental oxygen (Issue #2083): the room-air value
+    plus a flow-proportional rise, reduced in shunt physiology (high
+    ``oxygenation_impairment``); COPD is titrated to the 88-92% band."""
+    impairment = getattr(state, "oxygenation_impairment", 0.0)
+    gain = flow * O2_SPO2_GAIN_PER_LPM * (1.0 - impairment * O2_REFRACTORY_SHUNT_FACTOR)
+    cap = O2_COPD_SPO2_CAP if disease_id == "copd_exacerbation" else O2_SPO2_CAP
+    return max(room_air_spo2, min(cap, room_air_spo2 + gain))
 
 
 def _loc_for(state, disease_id, day, rng):
@@ -420,6 +431,8 @@ def _generate_vitals(
         on_o2, o2_flow, o2_device = (False, None, "")
         if "spo2" in fields:
             on_o2, o2_flow, o2_device = _o2_for(raw["spo2"], disease_id, rng)
+            if on_o2:
+                raw = {**raw, "spo2": spo2_on_oxygen(raw["spo2"], o2_flow, state, disease_id)}
         # Issue #911: preserve master-rng consumption for downstream
         # determinism (call _loc_for and discard) but return the per-day
         # stable AVPU. See the ``_stable_day_avpu`` derivation above.
