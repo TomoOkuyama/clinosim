@@ -290,7 +290,9 @@ disease_incidence:
     sex_ratio_female: 0.70
     event_type: acute_disease_onset
   heart_failure_exacerbation:
-    age_rates: {0: 5000, 45: 18000, 65: 22000, 75: 28000, 85: 35000}
+    # Issue #2031: rates x0.73 bring HF admissions to ~4.0 per 1,000
+    # person-years (HCUP SB #277: heart failure ~4% of ~108 stays per 1,000).
+    age_rates: {0: 3650, 45: 13100, 65: 16000, 75: 20400, 85: 25500}
     sex_ratio_female: 1.0
     event_type: chronic_exacerbation
     prerequisite_condition: I50  # requires prior HF diagnosis
