@@ -7,8 +7,8 @@ repository state. Where the emission ships in incremental slices,
 each slice's scope is stated explicitly along with the follow-up
 that carries the rest.*
 
-**Status:** current as of the v0.6.0 release-gate window. Sibling
-Japanese doc: [`oncology-obstetric-service-lines.ja.md`](oncology-obstetric-service-lines.ja.md).
+**Status:** current as of v0.6.5. Sibling Japanese doc:
+[`oncology-obstetric-service-lines.ja.md`](oncology-obstetric-service-lines.ja.md).
 
 ---
 

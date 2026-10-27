@@ -847,8 +847,8 @@ active; (3) 統計的に誤り — Z34 は ~18 % で sample されるが実 MHLW
 - Query API: `has_active_state(state_type, at_date=None)` /
   `get_active_state(state_type, at_date=None)` /
   `state_history(state_type)` (on `PersonRecord`)。
-- **state_type 毎に単一 owner**: 妊娠は `population/engine.py::_pregnancy_lifecycle_events`
-  が owner。がん active-treatment / 抗凝固コース / 寛解は将来 owner。
+- **state_type 毎に単一 owner**: 妊娠は `modules/population/_pregnancy.py::_pregnancy_lifecycle_events`
+  (C3d 分割後 `population/engine.py` façade から re-export) が owner。がん active-treatment / 抗凝固コース / 寛解は将来 owner。
 - **state-scoped sub-RNG**: draw は per-state deterministic sub-seed
   を使う (妊娠は既存 `perinatal_delivery_seed(pid, year)`; がんは
   `chemotherapy_regimen_seed(pid, cancer_code)` を再利用予定)。

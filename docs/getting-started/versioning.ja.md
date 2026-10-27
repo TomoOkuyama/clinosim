@@ -1,14 +1,20 @@
 # バージョニングとリリース
 
-clinosim は [Semantic Versioning 2.0.0](https://semver.org/spec/v2.0.0.html)
-に従います:
+clinosim の SemVer scope は generic SemVer のモジュール境界ではなく
+**CIF ↔ narrative-CIF 整合性** に anchoring している。正準ルールは
+[`CHANGELOG.md`](../development/changelog.md) 冒頭「Versioning policy
+(from v0.4.0 onward)」が持つ。要約:
 
-- **MAJOR** — 非互換な API / CIF / FHIR スキーマ変更。
-- **MINOR** — 後方互換な機能追加 (新モジュール、新リソース型、追加
-  locale サポート)。同 seed でもバイト単位で出力が変わり得る。
-- **PATCH** — 後方互換なバグ修正 + CIF/FHIR スキーマを保つデータ
-  品質訂正。**同 MINOR line 内の PATCH リリースでは、同 seed に対
-  するバイト同一出力が hard guarantee。**
+- **MAJOR** — Python API 破壊 (import path、public 関数シグネチャ、
+  scripted 利用者を壊す CLI オプション削除等)。
+- **MINOR** — CIF ↔ narrative-CIF 整合性を破壊する変更
+  (CIF schema 変更、narrative-CIF drift、CIF 構造 field を伴う新規
+  resource type 等)。同 seed でも bite 単位で出力が変わり得る。
+- **PATCH** — CIF ↔ narrative-CIF 整合性を保つ変更
+  (FHIR-emit-only 修正、locale 表示訂正、CIF / narrative-CIF 構造
+  field に触れないデータ品質訂正を含む)。
+
+完全なポリシーと各リリースの判断理由は `CHANGELOG.md` を参照。
 
 ## リリース切り出し
 

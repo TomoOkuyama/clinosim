@@ -1,15 +1,22 @@
 # Versioning & releases
 
-clinosim follows [Semantic Versioning 2.0.0](https://semver.org/spec/v2.0.0.html):
+clinosim's SemVer scoping anchors on **CIF ↔ narrative-CIF consistency**,
+not the generic SemVer spec's module boundary. The canonical rules live
+in [`CHANGELOG.md`](../development/changelog.md) ("Versioning policy
+(from v0.4.0 onward)" at the top of that file); in short:
 
-- **MAJOR** — incompatible API / CIF / FHIR schema changes.
-- **MINOR** — backward-compatible feature additions (new modules, new
-  resource types, additional locale support). May change output
-  byte-for-byte even at the same seed.
-- **PATCH** — backward-compatible bug fixes and data-quality corrections
-  that preserve the CIF/FHIR schema. **Byte-identical output within the
-  same seed is a hard guarantee for PATCH releases within one MINOR
-  line.**
+- **MAJOR** — Python-API breaks (import paths, public function
+  signatures, CLI option removals that break scripted users).
+- **MINOR** — a change that breaks CIF ↔ narrative-CIF consistency
+  (CIF schema change, narrative-CIF drift, new resource type that
+  carries structural fields through CIF). May change output byte-
+  for-byte even at the same seed.
+- **PATCH** — a change that preserves CIF ↔ narrative-CIF consistency,
+  including FHIR-emit-only fixes, locale display corrections, and
+  data-quality corrections that touch neither CIF nor narrative-CIF
+  structural fields.
+
+See `CHANGELOG.md` for the full policy and the per-release reasoning.
 
 ## Cutting a release
 

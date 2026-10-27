@@ -714,7 +714,7 @@ per-state generator ownership model.
   `get_active_state(state_type, at_date=None)` / `state_history(state_type)` on
   `PersonRecord`.
 - **Single owner per state_type**: pregnancy is owned by
-  `_pregnancy_lifecycle_events` in `population/engine.py`. Cancer active-treatment /
+  `_pregnancy_lifecycle_events` in `modules/population/_pregnancy.py` (re-exported from `population/engine.py` façade post-C3d). Cancer active-treatment /
   anticoagulation courses / remission are future owners.
 - **State-scoped sub-RNG**: draws use a per-state deterministic sub-seed (pregnancy uses
   the existing `perinatal_delivery_seed(pid, year)`; cancer will use

@@ -9,7 +9,7 @@ source .venv/bin/activate
 pytest -x
 
 # カテゴリ別
-pytest -m unit                   # 単体テスト (~3900 test 関数、パラメタライズ含み 5100+ ケース)
+pytest -m unit                   # 単体テスト (~4500 test 関数、tests/unit/ 配下で ~7100 collected ケース)
 pytest -m integration            # cross-module (reproduce.sh gate 含む)
 pytest -m e2e                    # E2E + golden テスト
 

@@ -21,6 +21,8 @@ machine-readable リストは `clinosim simulate --help` を実行。
 | 変数 | Default | 意味 |
 | --- | --- | --- |
 | `CLINOSIM_JP_CLINS_PKG_DIR` | 未設定 | JP-CLINS パッケージディレクトリへのパス (JP-CLINS lab-compliance gate 必須; [`jp-clins.ja.md`](../jp-clins.ja.md) 参照) |
+| `CLINOSIM_LOG_LEVEL` | `INFO` | シミュレータの Python logging level (`DEBUG` / `INFO` / `WARNING` / `ERROR`) |
+| `CLINOSIM_ALLOW_LEGACY_JP_CLINS_PKG` | 未設定 | `1` を設定すると CLI の `--allow-legacy` と等価 (JP-CLINS パッケージバージョン pin を ad-hoc 走行向けにバイパス) |
 | `AWS_REGION`, `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY` | AWS デフォルトチェーン | AWS Bedrock narrative provider (`--provider bedrock`) にのみ必要 |
 
 ## 名前付きプリセットデータセット
