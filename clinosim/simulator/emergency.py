@@ -27,16 +27,25 @@ from clinosim.simulator._ed_thresholds import (
     ED_LAB_ORDER_OFFSET_STD_MIN,
     ED_LAB_RESULT_OFFSET_MEAN_MIN,
     ED_LAB_RESULT_OFFSET_STD_MIN,
+    ED_OBSERVATION_EXTENSION_HOURS,
+    ED_OBSERVATION_MAX_EXTENSIONS,
     ED_PAIN_BASELINE,
     ED_PAIN_INFLAMMATION_SCALE,
     ED_PAIN_MAX,
     ED_PAIN_MIN,
     ED_PAIN_NOISE_STD,
+    ED_REASSESS_BEFORE_DISCHARGE_MIN,
+    ED_RELEASE_PAIN_MAX,
+    ED_RELEASE_SBP_MIN,
+    ED_RELEASE_SPO2_MIN,
+    ED_RELEASE_SPO2_MIN_COPD,
     ED_TREATMENT_ORDER_OFFSET_MEAN_MIN,
     ED_TREATMENT_ORDER_OFFSET_STD_MIN,
+    ED_TREATMENT_RESPONSE_FACTOR,
     ED_VITALS_OFFSET_MIN,
 )
-from clinosim.types.clinical import ClinicalDiagnosis, ConditionEvent
+from clinosim.simulator.vitals_pipeline import _loc_for
+from clinosim.types.clinical import ClinicalDiagnosis, ConditionEvent, PhysiologicalState
 from clinosim.types.encounter import (
     EncounterStatus,
     EncounterType,
@@ -48,6 +57,29 @@ from clinosim.types.encounter import (
 )
 from clinosim.types.output import CIFPatientRecord
 from clinosim.types.patient import PatientProfile
+
+_ED_SYMPTOM_AXES = ("pain_level", "oxygenation_impairment", "sympathetic_activation", "consciousness_impairment")
+
+
+def ed_treatment_response(state: PhysiologicalState) -> PhysiologicalState:
+    """State after one round of ED treatment (Issue #2090): symptom axes and a
+    volume deficit fall by ``ED_TREATMENT_RESPONSE_FACTOR``; perfusion recovers
+    by the same fraction of its deficit. Returns a copy."""
+    from copy import deepcopy
+
+    after = deepcopy(state)
+    for axis in _ED_SYMPTOM_AXES:
+        setattr(after, axis, getattr(after, axis) * ED_TREATMENT_RESPONSE_FACTOR)
+    if after.volume_status < 0:
+        after.volume_status *= ED_TREATMENT_RESPONSE_FACTOR
+    after.perfusion_status = 1.0 - (1.0 - after.perfusion_status) * ED_TREATMENT_RESPONSE_FACTOR
+    return after
+
+
+def ed_release_safe(*, spo2: float, sbp: int, avpu: str, pain: int, copd: bool) -> bool:
+    """Treat-and-release criteria on the reassessment vitals (Issue #2090)."""
+    spo2_min = ED_RELEASE_SPO2_MIN_COPD if copd else ED_RELEASE_SPO2_MIN
+    return spo2 >= spo2_min and sbp >= ED_RELEASE_SBP_MIN and avpu in ("A", "") and pain <= ED_RELEASE_PAIN_MAX
 
 
 def _simulate_ed_visit(
@@ -439,8 +471,6 @@ def _simulate_ed_visit(
     if proto_enc_type == "outpatient":
         avpu = ""
     else:
-        from clinosim.simulator.vitals_pipeline import _loc_for
-
         avpu = _loc_for(_state, "", 0, rng)
     vitals = [
         VitalSignRecord(
@@ -457,6 +487,43 @@ def _simulate_ed_visit(
             data_source="manual",
         )
     ]
+
+    # Post-treatment reassessment before treat-and-release (Issue #2090): one
+    # treatment round, reassessment vitals shortly before departure, and
+    # observation extensions (with another treatment round) until the release
+    # criteria are met. Scheduled clinic visits are not reassessed.
+    if proto_enc_type != "outpatient":
+        _cond_id = str((protocol or condition).get("condition_id") or cond_name)
+        _copd = _cond_id.startswith("copd")
+        _reassess = ed_treatment_response(_state)
+        for _round in range(ED_OBSERVATION_MAX_EXTENSIONS + 1):
+            _t = encounter.discharge_datetime - timedelta(minutes=ED_REASSESS_BEFORE_DISCHARGE_MIN)
+            _t = max(_t, vit_time + timedelta(minutes=ED_REASSESS_BEFORE_DISCHARGE_MIN))
+            _raw = derive_observed_vitals(_reassess, patient.baseline_vitals, _t, rng)
+            _pain = int(min(ED_PAIN_MAX, max(ED_PAIN_MIN, round(_reassess.pain_level * PAIN_SCORE_SCALE))))
+            _avpu = _loc_for(_reassess, "", 0, rng)
+            vitals.append(
+                VitalSignRecord(
+                    timestamp=_t,
+                    temperature_celsius=round(_raw["temperature"], 1),
+                    heart_rate=int(round(_raw["heart_rate"])),
+                    systolic_bp=int(round(_raw["systolic_bp"])),
+                    diastolic_bp=int(round(_raw["diastolic_bp"])),
+                    respiratory_rate=int(round(_raw["respiratory_rate"])),
+                    spo2=round(_raw["spo2"], 1),
+                    pain_score=_pain,
+                    consciousness_level=_avpu,
+                    measured_by=ed_nurse_id,
+                    data_source="manual",
+                    nursing_note="reassessment",
+                )
+            )
+            if _round == ED_OBSERVATION_MAX_EXTENSIONS or ed_release_safe(
+                spo2=_raw["spo2"], sbp=int(round(_raw["systolic_bp"])), avpu=_avpu, pain=_pain, copd=_copd
+            ):
+                break
+            encounter.discharge_datetime += timedelta(hours=ED_OBSERVATION_EXTENSION_HOURS)
+            _reassess = ed_treatment_response(_reassess)
 
     # Enrich medication orders + assign encounter_id
     from clinosim.modules.order.engine import enrich_medication_order
