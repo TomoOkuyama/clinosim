@@ -751,11 +751,11 @@ def _run_daily_loop(
 
         # Early discharge: if state-based criteria met before target_los
         if day >= min_los and not death_occurred:
-            if _check_discharge_ready(state, day, country_key):
+            if _check_discharge_ready(state, day, country_key, symptom_floor):
                 break  # actual_los = day + 1
 
         if day + 1 >= los_ceiling:
-            if not extend_stay_for_symptoms(state, los_ceiling, max_los):
+            if not extend_stay_for_symptoms(state, los_ceiling, max_los, symptom_floor):
                 break
             los_ceiling += 1
 

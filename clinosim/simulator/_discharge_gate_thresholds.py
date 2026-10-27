@@ -71,6 +71,9 @@ __all__ = [
     "READMISSION_SEVERITY_LIFT_MIN",
     "DISCHARGE_ANEMIA_MAX",
     "DISCHARGE_SYMPATHETIC_MAX",
+    "DISCHARGE_OXYGENATION_EXCESS_MAX",
+    "DISCHARGE_CONSCIOUSNESS_EXCESS_MAX",
+    "DISCHARGE_PERFUSION_SAFE_MIN",
 ]
 
 
@@ -209,6 +212,19 @@ discharge is allowed, applied to both US and JP. 0.25 is a residual
 HR rise of ~9 bpm, i.e. withdrawal symptoms controlled (CIWA-Ar < 8-10
 off scheduled benzodiazepines). Conditions that do not raise the axis
 stay at 0 and are unaffected."""
+
+DISCHARGE_OXYGENATION_EXCESS_MAX: float = 0.12
+"""Maximum ``oxygenation_impairment`` above the patient's chronic baseline at
+which a patient is safe for home (Issue #2084): 0.12 is a room-air SpO2 ~3
+points below their usual value."""
+
+DISCHARGE_CONSCIOUSNESS_EXCESS_MAX: float = 0.25
+"""``consciousness_impairment`` above the chronic baseline at or beyond which
+a patient is not safe for home: the AVPU "V" cut-off (Issue #2084)."""
+
+DISCHARGE_PERFUSION_SAFE_MIN: float = 0.5
+"""``perfusion_status`` below which a patient is hemodynamically unsafe for
+home (Issue #2084); the moderate-hypoperfusion AVPU band starts at 0.4."""
 
 
 # ---------------------------------------------------------------------------

@@ -42,6 +42,7 @@ def test_discharge_disposition_wire_values() -> None:
     expected = {
         DischargeDisposition.HOME: "home",
         DischargeDisposition.EXP: "exp",
+        DischargeDisposition.SNF: "snf",
     }
     for member, code in expected.items():
         assert member.value == code, f"{member.name}.value must be {code!r}"

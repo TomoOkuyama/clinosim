@@ -8,7 +8,7 @@ from typing import Any
 import numpy as np
 
 from clinosim.codes import has_icd_prefix, system_key_for
-from clinosim.codes.hl7_encounter import ActPriority, AdmitSource, DischargeDisposition
+from clinosim.codes.hl7_encounter import ActPriority, AdmitSource
 from clinosim.modules.clinical_course.engine import (
     select_archetype,
 )
@@ -77,6 +77,7 @@ from clinosim.simulator.daily_loop import (  # noqa: E402, F401
     _extract_findings,
     _run_daily_loop,
 )
+from clinosim.simulator.discharge_gate import discharge_disposition_for
 from clinosim.simulator.discharge_rx import build_discharge_rx
 from clinosim.simulator.helpers import (  # noqa: I001
     _country_to_yaml_key,
@@ -391,6 +392,8 @@ def _finalize_discharge(
     state: Any,
     all_orders: list,
     death_occurred: bool,
+    final_state: Any = None,
+    symptom_floor: dict[str, float] | None = None,
 ) -> Any:
     """Build the discharge prescription + populate discharge-related
     ``encounter`` fields (physicians, admit source, disposition,
@@ -456,10 +459,11 @@ def _finalize_discharge(
     if encounter.admit_source == AdmitSource.EMD and not encounter.admit_source_encounter_id:
         encounter.admit_source_encounter_id = f"{encounter.encounter_id}-ED"
     if not encounter.discharge_disposition:
-        if death_occurred:
-            encounter.discharge_disposition = DischargeDisposition.EXP  # #299:HL7 authoritative
-        else:
-            encounter.discharge_disposition = DischargeDisposition.HOME
+        # EXP on death (#299), SNF when still unsafe for home at the end of
+        # the stay (Issue #2084), otherwise HOME.
+        encounter.discharge_disposition = discharge_disposition_for(
+            final_state if final_state is not None else state, symptom_floor, death_occurred
+        )
     if not encounter.priority:
         encounter.priority = route_priority
 
@@ -937,6 +941,8 @@ def _simulate_patient(
         state=state,
         all_orders=all_orders,
         death_occurred=death_occurred,
+        final_state=state_history[-1] if state_history else None,
+        symptom_floor=symptom_floor,
     )
 
     # Discharge time: daytime (09-16) for planned discharge, any time for death

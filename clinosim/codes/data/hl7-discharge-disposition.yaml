@@ -13,3 +13,5 @@ codes:
   # session 59 #299:HL7 authoritative code is "exp" (not "expired"). See
   # tx-server-build/.../CodeSystem-discharge-disposition.json 権威 concept。
   exp: {en: "Expired", ja: "死亡退院"}
+  # Issue #2084: unresolved hypoxemia / consciousness / perfusion at the maximum stay.
+  snf: {en: "Skilled nursing facility", ja: "介護・療養施設"}
