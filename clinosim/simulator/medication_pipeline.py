@@ -43,11 +43,13 @@ from clinosim.simulator._mar_thresholds import (
     MAR_STAT_FIRST_DOSE_DELAY_MIN,
 )
 from clinosim.simulator.helpers import _determine_route
+from clinosim.types.clinical import PhysiologicalState
 from clinosim.types.encounter import (
     MedicationAdministration,
     Order,
     OrderStatus,
     OrderType,
+    VitalSignRecord,
 )
 from clinosim.types.patient import PatientProfile
 
@@ -525,6 +527,88 @@ def _place_chronic_monitoring_orders(
     return orders
 
 
+_PRN_NON_OPIOIDS = ("ACETAMINOPHEN", "PARACETAMOL", "IBUPROFEN", "KETOROLAC", "LOXOPROFEN")
+_PRN_OPIOIDS = ("MORPHINE", "OXYCODONE", "HYDROMORPHONE", "FENTANYL", "TRAMADOL", "PENTAZOCINE")
+_PRN_BENZODIAZEPINES = ("LORAZEPAM", "DIAZEPAM", "MIDAZOLAM", "CHLORDIAZEPOXIDE")
+PRN_PAIN_NON_OPIOID_MIN: int = 4
+PRN_PAIN_OPIOID_MIN: int = 7
+PRN_SYMPATHETIC_MIN: float = 0.25
+PRN_ADMIN_DELAY_MIN: int = 10
+
+
+def prn_category(drug_name: str) -> str | None:
+    """Trigger class of a PRN drug (Issue #2085): non_opioid / opioid analgesics
+    follow the pain score, benzodiazepines follow autonomic symptoms (CIWA)."""
+    upper = (drug_name or "").upper()
+    if any(d in upper for d in _PRN_OPIOIDS):
+        return "opioid"
+    if any(d in upper for d in _PRN_NON_OPIOIDS):
+        return "non_opioid"
+    if any(d in upper for d in _PRN_BENZODIAZEPINES):
+        return "benzodiazepine"
+    return None
+
+
+def _is_triggered_prn(order: Order) -> bool:
+    return "PRN" in str(getattr(order, "frequency", "") or "").upper() and prn_category(order.display_name) is not None
+
+
+def generate_prn_administrations(
+    orders: list[Order],
+    vitals_today: list[VitalSignRecord],
+    state: PhysiologicalState,
+    last_given: dict[str, datetime],
+) -> list[MedicationAdministration]:
+    """On-demand doses of PRN analgesics / benzodiazepines (Issue #2085).
+
+    At each vitals round: non-opioids when pain >= 4, opioids when pain >= 7,
+    benzodiazepines while ``sympathetic_activation`` >= 0.25 (CIWA-Ar >= 8-10).
+    The order's frequency is the minimum interval; ``last_given`` (order_id ->
+    last dose time) carries it across days. Deterministic (no RNG draw).
+    """
+    out: list[MedicationAdministration] = []
+    prn_orders = [
+        o
+        for o in orders
+        if o.order_type == OrderType.MEDICATION and o.status == OrderStatus.PLACED and _is_triggered_prn(o)
+    ]
+    if not prn_orders:
+        return out
+    for vs in sorted(vitals_today, key=lambda v: v.timestamp):
+        pain = vs.pain_score
+        for order in prn_orders:
+            cat = prn_category(order.display_name)
+            if cat == "non_opioid":
+                due = pain is not None and pain >= PRN_PAIN_NON_OPIOID_MIN
+            elif cat == "opioid":
+                due = pain is not None and pain >= PRN_PAIN_OPIOID_MIN
+            else:
+                due = state.sympathetic_activation >= PRN_SYMPATHETIC_MIN
+            if not due:
+                continue
+            per_day = int(getattr(order, "frequency_per_day", None) or 4)
+            interval = timedelta(hours=24 / max(per_day, 1))
+            prev = last_given.get(order.order_id)
+            given_at = vs.timestamp + timedelta(minutes=PRN_ADMIN_DELAY_MIN)
+            if prev is not None and given_at - prev < interval:
+                continue
+            last_given[order.order_id] = given_at
+            dose = f"{order.dose_quantity}{order.dose_unit}" if order.dose_quantity is not None else ""
+            out.append(
+                MedicationAdministration(
+                    order_id=order.order_id,
+                    drug_name=order.display_name,
+                    scheduled_datetime=given_at,
+                    actual_datetime=given_at,
+                    status="given",
+                    dose=f"{dose} PRN".strip(),
+                    route=order.route or "",
+                    administered_by=vs.measured_by or "",
+                )
+            )
+    return out
+
+
 def _generate_mar(
     patient: PatientProfile,
     orders: list[Order],
@@ -568,6 +652,8 @@ def _generate_mar(
 
     for order in med_orders:
         drug_name = order.display_name
+        if _is_triggered_prn(order):
+            continue  # given on demand by generate_prn_administrations (Issue #2085)
         # Determine administration times based on drug and route
         route = _determine_route(drug_name, order.clinical_intent)
 

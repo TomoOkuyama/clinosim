@@ -304,6 +304,10 @@ def parse_dose_string(dose_str: str) -> dict[str, Any]:
             result["frequency"] = token.upper()
             result["frequency_per_day"] = per_day
             break
+    # Issue #2085: keep the PRN qualifier ("1000mg IV q6h PRN" -> "Q6H PRN") so
+    # the MAR gives the drug on demand and FHIR emits asNeededBoolean.
+    if re.search(r"\bprn\b", s_lower):
+        result["frequency"] = f"{result.get('frequency', '')} PRN".strip()
 
     return result
 
