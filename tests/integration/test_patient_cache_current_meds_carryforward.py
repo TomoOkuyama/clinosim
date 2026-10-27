@@ -184,9 +184,11 @@ def test_anticoag_from_admission1_carries_forward_to_admission2_home_meds():
     # count byte-identical but changes which rng draws turn into J44
     # (band-specific probability), cascading to joint chronic sampling
     # for comorbid codes → seed=64 lost the fixture. Re-scouted 64..150
-    # → seed=65 (POP-000146).
+    # → seed=65 (POP-000146). #1996 lowered the US COPD prevalence bands,
+    # which reshapes chronic sampling; seed=65 lost the fixture. Re-scouted
+    # 65..200 → seed=66 (POP-000348).
     config = SimulatorConfig(
-        random_seed=65,
+        random_seed=66,
         catchment_population=500,
         country="US",
         time_range=("2025-01", "2026-01"),
