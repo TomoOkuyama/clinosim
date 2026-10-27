@@ -155,6 +155,7 @@ nav:
       - Extension guide: reference/extension-guide.md
       - Multi-country: reference/multi-country.md
       - Oncology + obstetric service lines: reference/oncology-obstetric-service-lines.md
+      - Longitudinal state evolution: reference/longitudinal.md
       - Evaluation: eval.md
       - Evaluation rules: eval-rules.md
       - Modules: reference/modules.md
