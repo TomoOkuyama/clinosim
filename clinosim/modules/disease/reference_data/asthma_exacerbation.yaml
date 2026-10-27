@@ -101,13 +101,16 @@ severity:
 # ============================================================
 initial_state_impact:
   mild:
+    oxygenation_impairment: 0.22
     inflammation_level: 0.15
     ph_status: -0.03
   moderate:
+    oxygenation_impairment: 0.3
     inflammation_level: 0.30
     ph_status: -0.08
     perfusion_status: -0.03
   severe:
+    oxygenation_impairment: 0.4
     inflammation_level: 0.45
     ph_status: -0.15
     perfusion_status: -0.10
