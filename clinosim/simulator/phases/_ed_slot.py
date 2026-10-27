@@ -72,6 +72,10 @@ def _run_ed_slot_phase(
         return 0
 
     occ_mult_table = demo.get("occupation_risk_multipliers", {})
+    prefix_share = _chronic_prefix_share(
+        population,
+        sorted({px for _name, spec in ed_conditions for px in spec.get("requires_chronic_prefix") or []}),
+    )
     for slot in range(n_ed):
         slot_key = f"{config.country}|ed-slot-{slot:06d}"
         slot_rng = derive_phase_rng(master_seed, PHASE_ED_VISIT, slot_key)
@@ -93,27 +97,10 @@ def _run_ed_slot_phase(
             demo=demo,
         )
 
-        occupation = getattr(person, "occupation", "other")
-        person_age = int(getattr(person, "age", 0) or 0)
-        ed_probs = []
-        for name, spec in ed_conditions:
-            cond_min_age = spec.get("min_age")
-            cond_max_age = spec.get("max_age")
-            if cond_min_age is not None and person_age < int(cond_min_age):
-                ed_probs.append(0.0)
-                continue
-            if cond_max_age is not None and person_age > int(cond_max_age):
-                ed_probs.append(0.0)
-                continue
-            base_p = spec.get("probability", 0.05)
-            seasonal = spec.get("seasonal", {})
-            seasonal_mod = float(seasonal.get(visit_month, seasonal.get(str(visit_month), 1.0)))
-            occ_mults = occ_mult_table.get(name, {})
-            if occ_mults:
-                occ_mod = occ_mults.get(occupation, ED_OCCUPATION_MISMATCH_FALLBACK)
-            else:
-                occ_mod = 1.0
-            ed_probs.append(base_p * seasonal_mod * occ_mod)
+        ed_probs = [
+            _ed_condition_weight(name, spec, person, visit_month, occ_mult_table, prefix_share)
+            for name, spec in ed_conditions
+        ]
         total_p = sum(ed_probs)
         if total_p <= 0:
             continue
@@ -146,3 +133,53 @@ def _run_ed_slot_phase(
         )
         patient_records.append(ed_record)
     return n_ed
+
+
+def _has_chronic_prefix(person: Any, prefix: str) -> bool:
+    return any(str(getattr(c, "code", c)).startswith(prefix) for c in getattr(person, "chronic_conditions", []) or [])
+
+
+def _chronic_prefix_share(population: Any, prefixes: list[str]) -> dict[str, float]:
+    """Share of living residents carrying each chronic-code prefix (no RNG)."""
+    alive = [p for p in population.persons.values() if getattr(p, "is_alive", True)]
+    if not alive:
+        return {px: 0.0 for px in prefixes}
+    return {px: sum(_has_chronic_prefix(p, px) for p in alive) / len(alive) for px in prefixes}
+
+
+def _ed_condition_weight(
+    name: str,
+    spec: dict[str, Any],
+    person: Any,
+    visit_month: int,
+    occ_mult_table: dict[str, Any],
+    prefix_share: dict[str, float],
+) -> float:
+    """Selection weight of one ED condition for one resident.
+
+    Conditions with ``requires_chronic_prefix`` (exacerbations of a chronic
+    disease) are only drawn for residents who carry one of the prefixes; their
+    weight is divided by the qualifying share of residents so the condition's
+    overall share of ED visits matches its ``probability``.
+    """
+    person_age = int(getattr(person, "age", 0) or 0)
+    if spec.get("min_age") is not None and person_age < int(spec["min_age"]):
+        return 0.0
+    if spec.get("max_age") is not None and person_age > int(spec["max_age"]):
+        return 0.0
+    weight = float(spec.get("probability", 0.05))
+    required = spec.get("requires_chronic_prefix") or []
+    if required:
+        matched = [px for px in required if _has_chronic_prefix(person, px)]
+        if not matched:
+            return 0.0
+        share = sum(prefix_share.get(px, 0.0) for px in required)
+        if share <= 0.0:
+            return 0.0
+        weight /= share
+    seasonal = spec.get("seasonal", {})
+    weight *= float(seasonal.get(visit_month, seasonal.get(str(visit_month), 1.0)))
+    occ_mults = occ_mult_table.get(name, {})
+    if occ_mults:
+        weight *= occ_mults.get(getattr(person, "occupation", "other"), ED_OCCUPATION_MISMATCH_FALLBACK)
+    return weight

@@ -260,6 +260,7 @@ ENCOUNTER_TOP_KEYS = frozenset(
         "acid_base_type",
         # Consumer-wired special cases
         "prescriptions_renewed",  # consumed by outpatient.py:212
+        "requires_chronic_prefix",  # consumed by simulator/phases/_ed_slot.py
         # Age gates — consumed by simulator/engine.py ED visit sampler
         # (Issue #1760 Cluster D). min_age / max_age filter the condition
         # from the per-person probability pool when the person's age is
