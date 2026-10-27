@@ -33,6 +33,14 @@ literals or module-scope floats.
 from __future__ import annotations
 
 __all__ = [
+    "ED_OBSERVATION_EXTENSION_HOURS",
+    "ED_OBSERVATION_MAX_EXTENSIONS",
+    "ED_REASSESS_BEFORE_DISCHARGE_MIN",
+    "ED_RELEASE_PAIN_MAX",
+    "ED_RELEASE_SBP_MIN",
+    "ED_RELEASE_SPO2_MIN",
+    "ED_RELEASE_SPO2_MIN_COPD",
+    "ED_TREATMENT_RESPONSE_FACTOR",
     "DEFAULT_TRIAGE_LAB_PANEL",
     "DEFAULT_TRIAGE_LAB_PROBABILITY",
     "ED_IMAGING_ORDER_OFFSET_MEAN_MIN",
@@ -164,3 +172,35 @@ ED_PAIN_NOISE_STD: float = 1.5
 the subjectivity of self-reported NRS pain — the same clinical
 substrate can be scored 1-2 points apart depending on patient
 demographics, reporting bias, and time of day."""
+
+
+# ---------------------------------------------------------------------------
+# Post-treatment reassessment before treat-and-release (Issue #2090)
+# ---------------------------------------------------------------------------
+
+ED_TREATMENT_RESPONSE_FACTOR: float = 0.5
+"""Fraction of each symptom axis (pain, oxygenation, sympathetic,
+consciousness) and of a volume deficit left after one round of ED treatment
+(analgesia, bronchodilators / oxygen, benzodiazepines, IV fluids)."""
+
+ED_REASSESS_BEFORE_DISCHARGE_MIN: int = 20
+"""Minutes before ED departure at which the reassessment vitals are taken."""
+
+ED_OBSERVATION_EXTENSION_HOURS: float = 4.0
+"""Additional ED observation (and another treatment round) when the
+reassessment does not meet release criteria."""
+
+ED_OBSERVATION_MAX_EXTENSIONS: int = 2
+"""Maximum observation extensions (up to ~8 extra hours) before release."""
+
+ED_RELEASE_SPO2_MIN: float = 92.0
+"""Room-air SpO2 required for release (asthma / pneumonia / general)."""
+
+ED_RELEASE_SPO2_MIN_COPD: float = 88.0
+"""Room-air SpO2 required for release in COPD (88-92% target band)."""
+
+ED_RELEASE_SBP_MIN: int = 90
+"""Systolic BP required for release."""
+
+ED_RELEASE_PAIN_MAX: int = 7
+"""Highest pain score (NRS) compatible with release; 8+ is not controlled."""
