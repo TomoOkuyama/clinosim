@@ -10,13 +10,13 @@ output/cif/
 ├── hospital.json                             # スタッフ roster + 病院設定
 ├── structural/                               # Stage 1 出力 (immutable)
 │   └── patients/
-│       └── ENC-POP-XXXXXX-NNNNNN.json        # encounter ごとに 1 ファイル
+│       └── ENC-POP-<person-6d>-<enc-12d>.json # encounter ごとに 1 ファイル (6 桁 person + 12 桁 encounter)
 └── narratives/                               # Stage 2 出力 (再実行可能)
     ├── current_version.txt                   # 最新 version id へのポインタ
     ├── <version_id>/
     │   ├── manifest.json                     # LLM config、model、コストレポート、count
     │   └── documents/
-    │       └── ENC-POP-XXXXXX-NNNNNN/
+    │       └── ENC-POP-<person-6d>-<enc-12d>/
     │           ├── admission_hp.json
     │           ├── discharge_summary.json
     │           ├── death_summary.json        # 死亡時のみ

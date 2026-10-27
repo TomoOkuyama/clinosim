@@ -6,8 +6,8 @@
 機能については各スライスのスコープと残りをカバーする follow-up
 を明記する。*
 
-**ステータス:** v0.6.0 リリースゲート時点の最新。英語版:
-[`oncology-obstetric-service-lines.md`](oncology-obstetric-service-lines.ja.md)。
+**ステータス:** v0.6.5 時点の最新。英語版:
+[`oncology-obstetric-service-lines.md`](oncology-obstetric-service-lines.md)。
 
 ---
 

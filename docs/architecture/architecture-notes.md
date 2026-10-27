@@ -944,7 +944,7 @@ class TemporalStatePeriod:
 
 **Generator contract (per state_type):**
 - A single owner module writes to `state_periods` for the state.
-  Pregnancy = `_pregnancy_lifecycle_events` in `population/engine.py`.
+  Pregnancy = `_pregnancy_lifecycle_events` in `modules/population/_pregnancy.py` (re-exported from `population/engine.py` façade post-C3d).
 - Draws use a state-scoped deterministic sub-RNG (pregnancy currently
   uses `perinatal_delivery_seed(person_id, year)`; cancer will use
   `chemotherapy_regimen_seed(person_id, cancer_code)`; future states
@@ -1013,7 +1013,7 @@ byte-identity vs master (596/596 persons matched).
 
 - Types: `clinosim/types/patient.py::TemporalStatePeriod`
 - Query API: `clinosim/types/population.py::PersonRecord.has_active_state / get_active_state / state_history`
-- Generator: `clinosim/modules/population/engine.py::_pregnancy_lifecycle_events`
+- Generator: `clinosim/modules/population/_pregnancy.py::_pregnancy_lifecycle_events` (re-exported from `clinosim/modules/population/engine.py` façade post-C3d)
 - FHIR adapter: `clinosim/modules/output/fhir_r4/conditions/conditions.py` (past-pregnancies block)
 - Config: `clinosim/locale/shared/perinatal.yaml::lifecycle`
 

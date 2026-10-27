@@ -19,6 +19,8 @@ Runtime configuration is loaded from `clinosim/config/*.yaml`. The tables below 
 | Variable | Default | Meaning |
 |---|---|---|
 | `CLINOSIM_JP_CLINS_PKG_DIR` | unset | Path to the JP-CLINS package directory (required for JP-CLINS lab-compliance gate; see [`jp-clins.md`](../jp-clins.md)) |
+| `CLINOSIM_LOG_LEVEL` | `INFO` | Python logging level for the simulator (`DEBUG` / `INFO` / `WARNING` / `ERROR`) |
+| `CLINOSIM_ALLOW_LEGACY_JP_CLINS_PKG` | unset | When set to `1`, equivalent to passing `--allow-legacy` to the CLI (bypasses JP-CLINS package-version pin for ad-hoc runs) |
 | `AWS_REGION`, `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY` | AWS default chain | Only needed for AWS Bedrock narrative provider (`--provider bedrock`) |
 
 ## Named-preset datasets

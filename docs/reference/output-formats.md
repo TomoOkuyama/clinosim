@@ -10,13 +10,13 @@ output/cif/
 ├── hospital.json                             # Staff roster + hospital config
 ├── structural/                               # Stage 1 output (immutable)
 │   └── patients/
-│       └── ENC-POP-XXXXXX-NNNNNN.json        # One file per encounter
+│       └── ENC-POP-<person-6d>-<enc-12d>.json # One file per encounter (6-digit person + 12-digit encounter)
 └── narratives/                               # Stage 2 output (re-runnable)
     ├── current_version.txt                   # Pointer to the latest version id
     ├── <version_id>/
     │   ├── manifest.json                     # LLM config, model, cost report, counts
     │   └── documents/
-    │       └── ENC-POP-XXXXXX-NNNNNN/
+    │       └── ENC-POP-<person-6d>-<enc-12d>/
     │           ├── admission_hp.json
     │           ├── discharge_summary.json
     │           ├── death_summary.json        # only if deceased

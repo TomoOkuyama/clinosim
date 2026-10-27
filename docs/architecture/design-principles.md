@@ -679,13 +679,15 @@ Layer 4: Narrative text     -- generated at Stage 2 by llm_service (target langu
 Names are part of identity — generated once at creation, stored in CIF.
 
 ```
-modules/population/names/
-  japan.yaml          # surnames (weighted), given names (M/F, era-appropriate)
-  us.yaml             # surnames (census), given names (M/F, decade-appropriate)
-
-modules/staff/names/
-  (same structure — may share with population)
+clinosim/locale/jp/names.yaml   # surnames (weighted), given names (M/F, era-appropriate)
+clinosim/locale/us/names.yaml   # surnames (census), given names (M/F, decade-appropriate)
 ```
+
+Both population and staff name sampling draw from the same locale yaml
+(there is no separate `modules/*/names/` directory — the data lives
+under `clinosim/locale/<country>/names.yaml` and loaders in
+`clinosim/locale/loaders/demographics.py` + `clinosim/modules/staff/`
+pull from it).
 
 Name structure by country:
 
