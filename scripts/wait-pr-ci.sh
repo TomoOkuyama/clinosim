@@ -19,8 +19,11 @@
 #     [--timeout-seconds N]  (default: 1800 = 30 min)
 #     [--exclude-pattern RE] (default: '(?i)informational')
 #     [--require-pattern RE] (default: '(?i)Unit tests|Integration tests')
-#                            A rollup check whose name matches this regex
-#                            MUST be present before SUCCESS is accepted.
+#                            Split on `|`; EVERY alternative must match at
+#                            least one rollup check before SUCCESS is
+#                            accepted. Retargeting a PR's base to master does
+#                            not start the CI workflow — push a commit after
+#                            retargeting, or the wait times out.
 #                            Guards against the post-push race where the
 #                            light compliance / docs / DCO jobs finish seconds
 #                            after push while the heavy `CI` workflow is still
@@ -112,10 +115,16 @@ while :; do
   # zero matches among the current checks, those jobs have not yet
   # populated into the rollup (post-push race), so keep waiting rather
   # than falsely declaring SUCCESS.
-  require_hits=$(printf '%s' "$rollup" | jq --arg req "$REQUIRE" \
-    '[.[] | select((.name // "") | test($req))] | length')
-  if [[ "$require_hits" == "0" ]]; then
-    echo "wait-pr-ci: PR #$PR rollup has 0 checks matching --require-pattern /${REQUIRE}/ — likely post-push race, waiting elapsed=${elapsed}s" >&2
+  # Every `|`-separated alternative must match at least one check: a single
+  # light job (e.g. the DCO check) must not satisfy a list that also names
+  # the heavy Unit / Integration jobs.
+  missing=$(printf '%s' "$rollup" | jq -r --arg req "$REQUIRE" '
+    ($req | sub("^\\(\\?i\\)"; "") | split("|")) as $alts
+    | [ $alts[] as $a
+        | select([.[] | select((.name // "") | test($a; "i"))] | length == 0)
+        | $a ] | join(", ")')
+  if [[ -n "$missing" ]]; then
+    echo "wait-pr-ci: PR #$PR rollup has no check for required: ${missing} — CI not started yet (or not triggered), waiting elapsed=${elapsed}s" >&2
     sleep "$POLL"
     continue
   fi
