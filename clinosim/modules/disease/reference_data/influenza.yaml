@@ -650,6 +650,7 @@ complications:
     probability_per_day: 0.012
     onset_day_range: [1, 5]
     risk_factors:
+      - {condition: "oxygenation_impairment > 0.3", multiplier: 1.5}  # Issue #2094
       - {condition: "age_over_75", multiplier: 2.5}
       - {condition: "dementia", multiplier: 3.0}
     state_impact: {consciousness_impairment: 0.2}

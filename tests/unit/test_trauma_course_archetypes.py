@@ -6,6 +6,8 @@ and complication risk conditions restricted to those _evaluate_risk_condition su
 
 import pytest
 
+from clinosim.modules.clinical_course._complication_risk_conditions import CONTEXT_CONDITIONS
+from clinosim.modules.clinical_course.engine import is_supported_risk_condition
 from clinosim.modules.disease.protocol import load_disease_protocol
 
 pytestmark = pytest.mark.unit
@@ -40,15 +42,6 @@ _RECOGNIZED_VARS = {
     "volume_status",
 }
 # risk_factor conditions _evaluate_risk_condition actually supports (else silent-no-op)
-_SUPPORTED_RISK_PREFIXES = (
-    "severity_severe",
-    "age_over_",
-    "renal_function",
-    "volume_status",
-    "perfusion_status",
-    "delirium_susceptibility",
-    "immobility_days",
-)
 
 
 @pytest.mark.parametrize("disease_id", _TRAUMA)
@@ -75,7 +68,7 @@ def test_trauma_complications_supported_and_present(disease_id):
     for c in p.complications:
         for rf in c.get("risk_factors", []):
             cond = rf.get("condition", "")
-            assert cond.startswith(_SUPPORTED_RISK_PREFIXES), (
+            assert is_supported_risk_condition(cond) or cond in CONTEXT_CONDITIONS, (
                 f"{disease_id}/{c.get('name')}: risk condition {cond!r} unsupported "
                 f"by _evaluate_risk_condition (silent-no-op)"
             )

@@ -618,6 +618,7 @@ complications:
     probability_per_day: 0.008
     onset_day_range: [0, 5]
     risk_factors:
+      - {condition: "consciousness_impairment >= 0.25", multiplier: 2.5}  # Issue #2094
       - {condition: "vomiting_persistent", multiplier: 3.0}
       - {condition: "dementia", multiplier: 2.0}
       - {condition: "age_over_75", multiplier: 1.5}

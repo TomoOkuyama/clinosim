@@ -789,6 +789,7 @@ complications:
     probability_per_day: 0.025
     onset_day_range: [0, 7]
     risk_factors:
+      - {condition: "oxygenation_impairment > 0.3", multiplier: 1.5}  # Issue #2094
       - {condition: "dementia", multiplier: 3.0}
       - {condition: "age_over_80", multiplier: 2.5}
       - {condition: "icu_stay", multiplier: 2.0}

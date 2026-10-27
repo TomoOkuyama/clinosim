@@ -136,6 +136,7 @@ complications:
     probability_per_day: 0.01
     onset_day_range: [0, 3]
     risk_factors:
+      - {condition: "pain_level > 0.6", multiplier: 1.5}  # Issue #2094
       - {condition: "age_over_75", multiplier: 2.0}
     state_impact:
       consciousness_impairment: 0.2

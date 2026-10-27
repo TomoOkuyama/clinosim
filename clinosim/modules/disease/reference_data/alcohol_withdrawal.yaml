@@ -102,6 +102,7 @@ complications:
     probability_per_day: 0.012
     onset_day_range: [1, 4]
     risk_factors:
+      - {condition: "sympathetic_activation > 0.55", multiplier: 3.0}  # Issue #2094
       - {condition: "severity_severe", multiplier: 3.0}
       - {condition: "age_over_65", multiplier: 1.5}
     state_impact:
@@ -119,6 +120,7 @@ complications:
     probability_per_day: 0.01
     onset_day_range: [0, 2]
     risk_factors:
+      - {condition: "sympathetic_activation > 0.5", multiplier: 2.5}  # Issue #2094
       - {condition: "severity_severe", multiplier: 2.5}
     state_impact:
       consciousness_impairment: 0.15

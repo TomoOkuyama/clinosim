@@ -164,6 +164,7 @@ complications:
     probability_per_day: 0.06
     onset_day_range: [0, 7]
     risk_factors:
+      - {condition: "pain_level > 0.6", multiplier: 1.5}  # Issue #2094
       - {condition: "age_over_75", multiplier: 1.6}
       - {condition: "delirium_susceptibility > 0.3", multiplier: 1.5}
     state_impact:
