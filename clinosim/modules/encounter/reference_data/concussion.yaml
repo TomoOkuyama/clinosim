@@ -22,9 +22,9 @@ ed_stay_hours:
   severe: {mean: 6.0, sd: 1.5}
 
 initial_state_impact:
-  mild: {pain_level: 0.25}
-  moderate: {pain_level: 0.35}
-  severe: {pain_level: 0.45}
+  mild: {pain_level: 0.25, consciousness_impairment: 0.05}
+  moderate: {pain_level: 0.35, consciousness_impairment: 0.12}
+  severe: {pain_level: 0.45, consciousness_impairment: 0.25}
 
 workup:
   vitals: true
