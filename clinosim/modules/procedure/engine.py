@@ -85,6 +85,28 @@ from clinosim.types.procedure import ProcedureRecord, RehabSession
 __all__ = ["ProcedureRecord", "RehabSession"]
 
 
+def _hours_to_surgery(proc_data: dict, country: str, rng: np.random.Generator) -> float:
+    """Hours from admission to incision: one normal draw.
+
+    Uses the disease YAML's ``procedure.time_to_surgery.<us|japan>``
+    (``mean_hours`` / ``sd_hours``) when present (Issue #2067), otherwise the
+    country defaults. The floor is the country default floor, lowered to half
+    the declared mean for emergent / same-day pathways (acute SDH ~3 h,
+    elective TKA ~3 h); YAMLs that declare the defaults draw identically.
+    """
+    if is_jp(country):
+        mean, sd, floor = JP_TIME_TO_SURGERY_MEAN_HOURS, JP_TIME_TO_SURGERY_STD_HOURS, JP_TIME_TO_SURGERY_FLOOR_HOURS
+        declared = (proc_data.get("time_to_surgery") or {}).get("japan")
+    else:
+        mean, sd, floor = US_TIME_TO_SURGERY_MEAN_HOURS, US_TIME_TO_SURGERY_STD_HOURS, US_TIME_TO_SURGERY_FLOOR_HOURS
+        declared = (proc_data.get("time_to_surgery") or {}).get("us")
+    if declared:
+        mean = float(declared.get("mean_hours", mean))
+        sd = float(declared.get("sd_hours", sd))
+        floor = min(floor, mean / 2)
+    return max(floor, float(rng.normal(mean, sd)))
+
+
 def simulate_surgery(
     patient: Any,
     disease_id: str,
@@ -103,17 +125,7 @@ def simulate_surgery(
     """
     proc_data = protocol.procedure if hasattr(protocol, "procedure") and protocol.procedure else {}
 
-    # Time to surgery
-    if is_jp(country):
-        hours_to_surgery = max(
-            JP_TIME_TO_SURGERY_FLOOR_HOURS,
-            float(rng.normal(JP_TIME_TO_SURGERY_MEAN_HOURS, JP_TIME_TO_SURGERY_STD_HOURS)),
-        )
-    else:
-        hours_to_surgery = max(
-            US_TIME_TO_SURGERY_FLOOR_HOURS,
-            float(rng.normal(US_TIME_TO_SURGERY_MEAN_HOURS, US_TIME_TO_SURGERY_STD_HOURS)),
-        )
+    hours_to_surgery = _hours_to_surgery(proc_data, country, rng)
 
     surgery_start = admission_time + timedelta(hours=hours_to_surgery)
 
