@@ -663,6 +663,7 @@ complications:
       - {condition: "no_anticoagulation", multiplier: 5.0}
       - {condition: "age_over_75", multiplier: 2.0}
     state_impact:
+      consciousness_impairment: 0.15
       perfusion_status: -0.20
     detection:
       test: "neurological_exam"
@@ -723,7 +724,7 @@ complications:
     risk_factors:
       - {condition: "age_over_75", multiplier: 2.5}
       - {condition: "dementia", multiplier: 3.0}
-    state_impact: {}
+    state_impact: {consciousness_impairment: 0.2}
     detection:
       test: "CAM_screening"
       finding: "positive"

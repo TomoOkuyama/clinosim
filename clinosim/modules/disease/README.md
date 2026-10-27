@@ -126,7 +126,7 @@ from clinosim.modules.disease.severity import (
 from clinosim.modules.disease.acuity import (
     EMERGENCY_PRIORITY_DISEASES,      # Encounter.priority = "EM"
     CRITICAL_MONITORING_DISEASES,     # q1-2h vitals
-    NEURO_LOC_MONITORING_DISEASES,    # LOC (AVPU) admission days 0-2
+    NEURO_LOC_MONITORING_DISEASES,    # airway / invasive-line procedure rule
 )
 
 # Localization helpers (country → YAML key, chief complaint, department)

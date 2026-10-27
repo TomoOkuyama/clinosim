@@ -103,12 +103,14 @@ severity:
 # ============================================================
 initial_state_impact:
   mild:
+    consciousness_impairment: 0.05
     inflammation_level: 0.15
     volume_status: 0.15          # ascites/fluid retention
     hepatic_function: -0.30
     perfusion_status: -0.05
     anion_gap_status: 0.2     # AG axis: impaired lactate clearance (mild)
   moderate:
+    consciousness_impairment: 0.15
     inflammation_level: 0.30
     volume_status: 0.25
     hepatic_function: -0.50
@@ -117,6 +119,7 @@ initial_state_impact:
     coagulation_status: -0.15
     anion_gap_status: 0.3     # AG axis: lactate accumulation + HRS contribution
   severe:
+    consciousness_impairment: 0.3
     inflammation_level: 0.45
     volume_status: 0.35
     hepatic_function: -0.70
@@ -829,7 +832,7 @@ complications:
       - {condition: "infection", multiplier: 2.5}
       - {condition: "constipation", multiplier: 2.0}
       - {condition: "hypokalemia", multiplier: 1.5}
-    state_impact: {}
+    state_impact: {consciousness_impairment: 0.35}
     detection:
       test: "neurological_exam_and_ammonia"
       finding: "west_haven_grade_3_or_4"
@@ -873,7 +876,7 @@ complications:
     risk_factors:
       - {condition: "age_over_75", multiplier: 2.0}
       - {condition: "alcohol_withdrawal", multiplier: 5.0}
-    state_impact: {}
+    state_impact: {consciousness_impairment: 0.2}
     detection:
       test: "CAM_screening"
       finding: "positive"

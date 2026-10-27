@@ -642,7 +642,7 @@ complications:
     risk_factors:
       - {condition: "age_over_75", multiplier: 2.5}
       - {condition: "dementia", multiplier: 3.0}
-    state_impact: {}
+    state_impact: {consciousness_impairment: 0.2}
     detection:
       test: "CAM_screening"
       finding: "positive"

@@ -240,6 +240,7 @@ complications:
       - {condition: "age_over_75", multiplier: 1.6}
       - {condition: "delirium_susceptibility > 0.3", multiplier: 1.5}
     state_impact:
+      consciousness_impairment: 0.2
       inflammation_level: 0.02
     detection:
       test: "cam_icu"

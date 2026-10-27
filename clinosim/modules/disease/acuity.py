@@ -6,8 +6,8 @@ encode a related but distinct clinical routing:
 
 * **EMERGENCY_PRIORITY_DISEASES** — `Encounter.priority = "EM"`
 * **CRITICAL_MONITORING_DISEASES** — q1-2h vital-sign sampling
-* **NEURO_LOC_MONITORING_DISEASES** — LOC (AVPU) randomisation on
-  admission days 0-2
+* **NEURO_LOC_MONITORING_DISEASES** — airway / invasive-line procedure
+  rule for neurosurgical emergencies
 
 Inlining them meant the priority code, the vitals frequency, and the
 neuro-monitoring pattern could drift silently. Issue #563 uncovered exactly
@@ -21,7 +21,7 @@ adding or removing an entry is a data-quality PR, not a refactor.
 The neuro-perfusion set (`_NEURO_DISEASES` in `inpatient.py`) is a
 different concept (perfusion-based LOC assessment across 6 diseases) —
 intentionally NOT unified with `NEURO_LOC_MONITORING_DISEASES` (2 diseases,
-admission days 0-2 only).
+procedure rule only).
 """
 
 from __future__ import annotations
@@ -66,10 +66,10 @@ NEURO_LOC_MONITORING_DISEASES: frozenset[str] = frozenset(
         "subdural_hematoma",
     }
 )
-"""Diseases triggering LOC (AVPU) randomisation on admission days 0-2.
+"""Neurosurgical-emergency diseases that drive the intubation / central-line
+/ arterial-line rule in ``clinosim/modules/procedure/engine.py``.
 
-Consumers:
-- ``clinosim/simulator/inpatient.py::_loc_for`` (line around 1909)
-- ``clinosim/modules/procedure/engine.py`` — the intubation / central-line
-  / arterial-line rule for the same 2-disease pair (line around 305)
+Their AVPU no longer comes from this set: ``_loc_for`` reads the
+``consciousness_impairment`` state axis set by the disease YAML
+(Issue #2058).
 """

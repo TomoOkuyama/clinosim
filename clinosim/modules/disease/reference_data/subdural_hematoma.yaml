@@ -61,12 +61,14 @@ severity:
 
 initial_state_impact:
   moderate:
+    consciousness_impairment: 0.2
     inflammation_level: 0.25
     anemia_level: 0.05
     volume_status: -0.10
     perfusion_status: -0.10
     renal_function: -0.05
   severe:
+    consciousness_impairment: 0.45
     inflammation_level: 0.35
     anemia_level: 0.10
     volume_status: -0.20
@@ -170,6 +172,7 @@ complications:
       - {condition: "age_over_75", multiplier: 1.6}
       - {condition: "delirium_susceptibility > 0.3", multiplier: 1.5}
     state_impact:
+      consciousness_impairment: 0.2
       inflammation_level: 0.02
     detection:
       test: "cam_icu"
@@ -183,6 +186,7 @@ complications:
     risk_factors:
       - {condition: "severity_severe", multiplier: 2.0}
     state_impact:
+      consciousness_impairment: 0.15
       perfusion_status: -0.03
     detection:
       test: "eeg"
@@ -197,6 +201,7 @@ complications:
       - {condition: "severity_severe", multiplier: 5.0}
       - {condition: "perfusion_status < 0.3", multiplier: 3.0}
     state_impact:
+      consciousness_impairment: 0.55
       perfusion_status: -0.20
     actions: ["icu_transfer", "emergent_decompression"]
 

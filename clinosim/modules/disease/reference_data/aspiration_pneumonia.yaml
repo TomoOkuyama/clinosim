@@ -788,7 +788,7 @@ complications:
       - {condition: "dementia", multiplier: 3.0}
       - {condition: "age_over_80", multiplier: 2.5}
       - {condition: "icu_stay", multiplier: 2.0}
-    state_impact: {}
+    state_impact: {consciousness_impairment: 0.2}
     detection:
       test: "CAM_screening"
       finding: "positive"

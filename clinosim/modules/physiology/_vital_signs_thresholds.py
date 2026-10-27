@@ -19,6 +19,7 @@ does exactly.
 from __future__ import annotations
 
 __all__ = [
+    "CONSCIOUSNESS_AVPU_NOISE_SD",
     "CONSCIOUSNESS_AVPU_P_THRESHOLD",
     "CONSCIOUSNESS_AVPU_U_THRESHOLD",
     "CONSCIOUSNESS_AVPU_V_THRESHOLD",
@@ -345,6 +346,11 @@ OXYGENATION_RR_SCALE: float = 14.0
 
 OXYGENATION_HR_SCALE: float = 20.0
 """HR rise (bpm) at full oxygenation impairment (hypoxic tachycardia)."""
+
+CONSCIOUSNESS_AVPU_NOISE_SD: float = 0.12
+"""Bedside variability of the observed AVPU around ``consciousness_impairment``
+(one normal draw per assessment, only for impaired patients): patients with
+the same underlying impairment fluctuate by about one AVPU level."""
 
 CONSCIOUSNESS_AVPU_V_THRESHOLD: float = 0.25
 """``consciousness_impairment`` at or above which AVPU is at least V."""
