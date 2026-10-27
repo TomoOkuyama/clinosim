@@ -25,6 +25,9 @@ __all__ = [
     "AIRWAY_CONSCIOUSNESS_MIN",
     "AIRWAY_ESCALATION_HOUR",
     "AIRWAY_OXYGENATION_MIN",
+    "ICU_DISTRIBUTIVE_SHOCK_INFLAMMATION",
+    "ICU_DISTRIBUTIVE_SHOCK_PERFUSION_MAX",
+    "ICU_HIGH_FLOW_OXYGENATION",
     "ICU_SHOCK_PERFUSION_MAX",
     "ARCHETYPE_DAY_SHIFT_PROBABILITY",
     "DIET_CLEAR_LIQUID_INFLAMMATION_THRESHOLD",
@@ -220,3 +223,19 @@ transferred to the ICU (vasopressor-level care)."""
 AIRWAY_ESCALATION_HOUR: int = 10
 """Hour of the hospital day at which a state-driven escalation is
 recorded (the daily loop is per-day)."""
+
+ICU_DISTRIBUTIVE_SHOCK_INFLAMMATION: float = 0.98
+"""``inflammation_level`` at or above which distributive (septic) shock needs
+vasopressors and ICU care (Issue #2110). Septic hypotension is applied to
+the displayed BP (``DISTRIBUTIVE_SBP_COEFF``) rather than to
+``perfusion_status``, so the perfusion threshold alone never caught it."""
+
+ICU_HIGH_FLOW_OXYGENATION: float = 0.5
+"""``oxygenation_impairment`` at or above which the oxygen requirement needs
+high-flow / non-invasive ventilation in an ICU or step-down setting
+(room-air SpO2 below ~85%), short of intubation (Issue #2110)."""
+
+ICU_DISTRIBUTIVE_SHOCK_PERFUSION_MAX: float = 0.8
+"""Distributive shock also requires some hypoperfusion (``perfusion_status``
+below 0.8, lactate rising): maximal inflammation with preserved perfusion
+is treated on the ward (Issue #2110)."""

@@ -53,6 +53,9 @@ from clinosim.simulator._daily_loop_thresholds import (
     ARCHETYPE_DAY_SHIFT_PROBABILITY,
     DIET_CLEAR_LIQUID_INFLAMMATION_THRESHOLD,
     DIET_SOFT_INFLAMMATION_THRESHOLD,
+    ICU_DISTRIBUTIVE_SHOCK_INFLAMMATION,
+    ICU_DISTRIBUTIVE_SHOCK_PERFUSION_MAX,
+    ICU_HIGH_FLOW_OXYGENATION,
     ICU_SHOCK_PERFUSION_MAX,
     LAB_EARLY_MORNING_HOUR,
     LAB_EARLY_MORNING_MIN_END_EXCLUSIVE,
@@ -115,8 +118,17 @@ def airway_escalation_needed(state: PhysiologicalState) -> bool:
 
 
 def icu_escalation_needed(state: PhysiologicalState) -> bool:
-    """Airway escalation or shock-level perfusion: ICU care (Issue #2091)."""
-    return airway_escalation_needed(state) or state.perfusion_status < ICU_SHOCK_PERFUSION_MAX
+    """Airway escalation, shock-level perfusion, distributive shock or a
+    high-flow oxygen requirement: ICU care (Issues #2091, #2110)."""
+    return (
+        airway_escalation_needed(state)
+        or state.perfusion_status < ICU_SHOCK_PERFUSION_MAX
+        or (
+            state.inflammation_level >= ICU_DISTRIBUTIVE_SHOCK_INFLAMMATION
+            and state.perfusion_status < ICU_DISTRIBUTIVE_SHOCK_PERFUSION_MAX
+        )
+        or state.oxygenation_impairment >= ICU_HIGH_FLOW_OXYGENATION
+    )
 
 
 SYMPTOM_AXES: tuple[str, ...] = (
