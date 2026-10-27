@@ -67,6 +67,7 @@ from clinosim.modules.clinical_course._clinical_course_thresholds import (
     NATURAL_RECOVERY_SEVERITY_MODERATE,
     NATURAL_RECOVERY_SEVERITY_MULT_FALLBACK,
     NATURAL_RECOVERY_SEVERITY_SEVERE,
+    SYMPTOM_AXIS_DAILY_RECOVERY,
     VOLUME_RECOVERY_RATE_PER_UNIT_SEVERITY,
 )
 from clinosim.modules.disease.severity import _evaluate_condition as _severity_condition
@@ -722,6 +723,7 @@ def natural_recovery_directive(
             "inflammation_level": -base,
             "volume_status": -VOLUME_RECOVERY_RATE_PER_UNIT_SEVERITY * severity_scale,  # toward 0
             "anemia_level": -anemia_recovery,  # bone marrow erythropoiesis
+            **{axis: -rate for axis, rate in SYMPTOM_AXIS_DAILY_RECOVERY.items()},
         },
         reason=f"Natural recovery (immune={immune:.2f}, severity={severity})",
     )

@@ -21,6 +21,11 @@ ed_stay_hours:
   moderate: {mean: 3.5, sd: 1.0}
   severe: {mean: 4.5, sd: 1.0}
 
+initial_state_impact:
+  mild: {pain_level: 0.65}
+  moderate: {pain_level: 0.75}
+  severe: {pain_level: 0.85}
+
 workup:
   vitals: true
   labs: []  # no routine labs unless sedation planned

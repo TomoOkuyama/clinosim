@@ -21,6 +21,11 @@ ed_stay_hours:
   moderate: {mean: 4.5, sd: 1.0}
   severe: {mean: 6.0, sd: 1.5}
 
+initial_state_impact:
+  mild: {pain_level: 0.25}
+  moderate: {pain_level: 0.35}
+  severe: {pain_level: 0.45}
+
 workup:
   vitals: true
   labs: []  # no routine labs for isolated concussion

@@ -61,11 +61,13 @@ severity:
 
 initial_state_impact:
   moderate:
+    pain_level: 0.75
     inflammation_level: 0.20
     anemia_level: 0.10       # fracture site bleeding
     volume_status: -0.15     # blood loss + fasting
     perfusion_status: -0.05
   severe:
+    pain_level: 0.85
     inflammation_level: 0.30
     anemia_level: 0.20
     volume_status: -0.25

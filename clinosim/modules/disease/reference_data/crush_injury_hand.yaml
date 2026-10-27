@@ -35,12 +35,14 @@ severity:
 
 initial_state_impact:
   moderate:
+    pain_level: 0.75
     inflammation_level: 0.25
     anemia_level: 0.10
     volume_status: -0.05
     perfusion_status: -0.05
     anion_gap_status: 0.3     # AG axis: rhabdomyolysis (SO4/PO4 from muscle)
   severe:
+    pain_level: 0.85
     inflammation_level: 0.45
     anemia_level: 0.25
     volume_status: -0.15

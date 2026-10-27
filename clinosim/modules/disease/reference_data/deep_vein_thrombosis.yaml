@@ -105,13 +105,16 @@ severity:
 # ============================================================
 initial_state_impact:
   mild:
+    pain_level: 0.25
     inflammation_level: 0.10
     coagulation_status: 0.10
   moderate:
+    pain_level: 0.35
     inflammation_level: 0.18
     coagulation_status: 0.15
     volume_status: -0.05
   severe:
+    pain_level: 0.45
     inflammation_level: 0.30
     coagulation_status: 0.25
     volume_status: -0.10
