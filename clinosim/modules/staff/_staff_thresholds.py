@@ -27,6 +27,8 @@ __all__ = [
     "ALLIED_HEALTH_QUALIFICATION_YEAR_END_EXCLUSIVE",
     "ALLIED_HEALTH_QUALIFICATION_YEAR_START",
     "DEFAULT_DOCTORS_PER_DEPT",
+    "MIN_ANESTHESIOLOGISTS",
+    "SURGICAL_DEPARTMENTS",
     "DEFAULT_INPATIENT_BEDS",
     "DOCTORS_PER_DEPT_FIXED",
     "DOCTORS_PER_ED_BED_DIVISOR",
@@ -266,6 +268,22 @@ DEFAULT_DOCTORS_PER_DEPT: int = 2
 """Fallback doctor count for a department not listed in
 :data:`DOCTORS_PER_DEPT_FIXED` and not one of the bed-scaled special
 cases (IM / surgery / ED)."""
+
+SURGICAL_DEPARTMENTS: tuple[str, ...] = (
+    "general_surgery",
+    "orthopedics",
+    "neurosurgery",
+    "trauma_surgery",
+    "obstetrics_gynecology",
+)
+"""Departments whose physicians operate (Issue #2068). A hospital with any
+of them gets an anesthesiology team, and a surgery's surgeon is drawn from
+the owning department when it is one of these, else from general surgery."""
+
+MIN_ANESTHESIOLOGISTS: int = 2
+"""Minimum anesthesiologists for a hospital with surgical departments; the
+team is ``max(MIN_ANESTHESIOLOGISTS, operating_rooms)`` (one per running
+operating room)."""
 
 MIN_BEDS_PER_WARD: int = 6
 """Minimum inpatient beds assumed per ward when distributing

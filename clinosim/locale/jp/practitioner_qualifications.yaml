@@ -87,6 +87,7 @@ physician_specialty_boards:
   neurosurgery:          {code: NeurosurgerySpecialist,     display: 脳神経外科専門医}
   trauma_surgery:        {code: SurgerySpecialist,          display: 外科専門医}
   emergency_medicine:    {code: EmergencySpecialist,        display: 救急科専門医}
+  anesthesiology:        {code: AnesthesiologySpecialist,   display: 麻酔科専門医}
   primary_care:          {code: InternalMedicineSpecialist, display: 総合内科専門医}
   internal_medicine:     {code: InternalMedicineSpecialist, display: 総合内科専門医}
   obstetrics_gynecology: {code: ObstetricsGynecologySpecialist, display: 産婦人科専門医}

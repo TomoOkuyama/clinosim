@@ -20,6 +20,7 @@ departments:
   neurosurgery: {en: "Neurosurgery", ja: "脳神経外科"}
   trauma_surgery: {en: "Trauma Surgery", ja: "外傷外科"}
   emergency_medicine: {en: "Emergency Medicine", ja: "救急科"}
+  anesthesiology: {en: "Anesthesiology", ja: "麻酔科"}
   primary_care: {en: "Primary Care", ja: "総合診療科"}
   obstetrics_gynecology: {en: "Obstetrics and Gynecology", ja: "産婦人科"}
   pediatrics: {en: "Pediatrics", ja: "小児科"}
