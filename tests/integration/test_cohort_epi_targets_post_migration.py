@@ -71,7 +71,10 @@ def test_longitudinal_engine_actually_increments_cohort_mid_sim():
     `base_rate_by_age_band` produces delta=0 and fails this assertion.
     """
     rng = np.random.default_rng(42)
-    population = generate_population(size=500, country="US", rng=rng, base_year=2024)
+    # 5,000 residents: at 500 the expected 5-year net F32 / I25 onset is only
+    # 1-2 cases, so delta=0 happens by chance (also on master for some seeds)
+    # and the dormancy check cannot tell chance from a loader regression.
+    population = generate_population(size=5000, country="US", rng=rng, base_year=2024)
 
     # Snapshot the Layer-1 initial chronic_conditions BEFORE advancing.
     baseline = {p.person_id: list(p.chronic_conditions) for p in population.persons.values()}
