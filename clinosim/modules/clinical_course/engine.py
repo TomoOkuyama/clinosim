@@ -71,6 +71,7 @@ from clinosim.modules.clinical_course._clinical_course_thresholds import (
     VOLUME_RECOVERY_RATE_PER_UNIT_SEVERITY,
 )
 from clinosim.modules.clinical_course._complication_risk_conditions import (
+    CONTEXT_CONDITIONS,
     IMMOBILITY_DEFAULT_DAYS,
     MALNUTRITION_BMI_MAX,
     PATIENT_ICD_ALIASES,
@@ -551,6 +552,20 @@ def is_supported_risk_condition(condition: str) -> bool:
     if condition in ("malnutrition", "baseline_malnutrition"):
         return True
     return condition in PERSON_CONDITIONS
+
+
+def validate_complication_risk_factors(disease_id: str, complications: list[dict[str, Any]]) -> None:
+    """Fail loud on a complication risk-factor condition that is neither
+    resolvable nor declared context (Issue #2093): a typo used to disable the
+    factor silently."""
+    for comp in complications or []:
+        for rf in comp.get("risk_factors") or []:
+            cond = str(rf.get("condition", ""))
+            if not is_supported_risk_condition(cond) and cond not in CONTEXT_CONDITIONS:
+                raise ValueError(
+                    f"{disease_id}: complication {comp.get('name')!r} has unknown risk factor {cond!r} "
+                    "(add it to _complication_risk_conditions.py)"
+                )
 
 
 def _evaluate_risk_condition(

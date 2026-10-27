@@ -209,6 +209,7 @@ _.death_day  # types/output.py:81
 _.drug_metabolism_rate  # types/patient.py:17 (physiology field)
 _.symptom_reporting_bias  # types/patient.py:22
 _.dvt_susceptibility  # types/patient.py:24
+_.delirium_susceptibility  # types/patient.py:80 (read via getattr in complication risk factors)
 _.line1  # types/patient.py:46 (address)
 _.line2  # types/patient.py:47
 _.phone_primary  # types/patient.py:57
