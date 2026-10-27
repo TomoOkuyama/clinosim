@@ -35,6 +35,7 @@ from clinosim.modules.output.fhir_r4.lib.common import (
     BundleContext,
     build_reference_range,
     entry,
+    survey_category,
     to_fhir_datetime,
 )
 from clinosim.modules.output.fhir_r4.lib.ids import (
@@ -95,6 +96,12 @@ def _resolve_vital_sign_observation_id(structural_key: str) -> str:
     :data:`VITAL_SIGN_OBSERVATION_KEY_SYSTEM` for round-trip.
     """
     return derive_opaque_id(VITAL_SIGN_OBSERVATION_ID_PREFIX, structural_key)
+
+
+# Questionnaire total scores scheduled through the lab pipeline (chronic_followup
+# labs_quarterly). They are instrument scores, so FHIR category is survey and no
+# laboratory referenceRange applies.
+_QUESTIONNAIRE_SCORE_ANALYTES = frozenset({"PHQ-9", "GAD-7", "C-SSRS"})
 
 
 def _build_lab_observation(
@@ -185,7 +192,9 @@ def _build_lab_observation(
         # feedback FB-F6: 該当 LOINC の standard profile も stack 追加。
         **({"meta": {"profile": _profiles}} if _profiles else {}),
         "status": "final",
-        "category": [
+        "category": survey_category()
+        if lab_name in _QUESTIONNAIRE_SCORE_ANALYTES
+        else [
             {
                 "coding": [
                     {
