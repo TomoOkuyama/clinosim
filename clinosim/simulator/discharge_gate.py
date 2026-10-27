@@ -39,6 +39,7 @@ from clinosim.simulator._discharge_gate_thresholds import (
     MORTALITY_AGE_OLD_THRESHOLD,
     MORTALITY_AGE_OLDEST_MULTIPLIER,
     MORTALITY_AGE_OLDEST_THRESHOLD,
+    MORTALITY_COMA_MULTIPLIER,
     MORTALITY_DAILY_MODERATE_RATE,
     MORTALITY_DAILY_RATE_FALLBACK,
     MORTALITY_DAILY_SEVERE_RATE,
@@ -49,9 +50,12 @@ from clinosim.simulator._discharge_gate_thresholds import (
     MORTALITY_DAY_LATE_WEIGHT,
     MORTALITY_DAY_MID_WEIGHT,
     MORTALITY_DEFAULT_AGE,
+    MORTALITY_HYPOXEMIA_MULTIPLIER,
     MORTALITY_INDIVIDUAL_MOD_CAP,
     MORTALITY_LOW_PERFUSION_MULTIPLIER,
     MORTALITY_LOW_PERFUSION_THRESHOLD,
+    MORTALITY_SEVERE_HYPOXEMIA_MULTIPLIER,
+    MORTALITY_STUPOR_MULTIPLIER,
     MORTALITY_YAML_AGE85_MULTIPLIER,
     READMISSION_AGE_OLDER_MULTIPLIER,
     READMISSION_AGE_OLDER_THRESHOLD,
@@ -242,6 +246,46 @@ def _mortality_day_weight(day: int) -> float:
     return MORTALITY_DAY_MID_WEIGHT
 
 
+def mortality_state_multiplier(peak_consciousness: float, peak_oxygenation: float) -> float:
+    """Mortality multiplier from the worst consciousness / oxygenation of the
+    stay so far (Issue #2098): coma (GCS <= 8 range) and refractory hypoxemia
+    carry the risk even after partial recovery, like the ICH score's GCS."""
+    mult = 1.0
+    if peak_consciousness >= 0.75:
+        mult *= MORTALITY_COMA_MULTIPLIER
+    elif peak_consciousness >= 0.5:
+        mult *= MORTALITY_STUPOR_MULTIPLIER
+    if peak_oxygenation >= 0.7:
+        mult *= MORTALITY_SEVERE_HYPOXEMIA_MULTIPLIER
+    elif peak_oxygenation >= 0.5:
+        mult *= MORTALITY_HYPOXEMIA_MULTIPLIER
+    return mult
+
+
+def expected_state_multiplier(protocol: Any) -> float:
+    """Average multiplier over the disease's severity mix at presentation
+    (``initial_state_impact``), used to renormalise so the disease's overall
+    mortality stays at its benchmark while deaths shift to impaired patients."""
+    dist = (getattr(protocol, "severity", None) or {}).get("distribution", {}) or {}
+    impact = getattr(protocol, "initial_state_impact", None) or {}
+    total = sum(float(w) for w in dist.values() if w)
+    if total <= 0:
+        return 1.0
+    expected = 0.0
+    for sev, w in dist.items():
+        if not w:
+            continue
+        imp = impact.get(sev) or {}
+        expected += (
+            float(w)
+            / total
+            * mortality_state_multiplier(
+                float(imp.get("consciousness_impairment", 0.0)), float(imp.get("oxygenation_impairment", 0.0))
+            )
+        )
+    return expected or 1.0
+
+
 def _evaluate_mortality(
     state: PhysiologicalState,
     patient: Any,
@@ -250,6 +294,7 @@ def _evaluate_mortality(
     rng: np.random.Generator,
     disease_mortality_rate: float = 0.0,
     target_los: int = 14,
+    state_relative_risk: float = 1.0,
 ) -> bool:
     """Daily mortality evaluation using disease-specific benchmark rates.
 
@@ -268,6 +313,7 @@ def _evaluate_mortality(
             individual_mod *= MORTALITY_YAML_AGE85_MULTIPLIER
         if state.perfusion_status < MORTALITY_LOW_PERFUSION_THRESHOLD:
             individual_mod *= MORTALITY_LOW_PERFUSION_MULTIPLIER
+        individual_mod *= state_relative_risk
         individual_mod = min(individual_mod, MORTALITY_INDIVIDUAL_MOD_CAP)
         return bool(rng.random() < daily_base * individual_mod)
     daily_base = {"severe": MORTALITY_DAILY_SEVERE_RATE, "moderate": MORTALITY_DAILY_MODERATE_RATE}.get(
