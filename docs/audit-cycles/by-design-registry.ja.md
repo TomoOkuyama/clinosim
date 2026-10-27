@@ -402,6 +402,26 @@
   delivery encounter `period.start` 以降であることを確認(Z39 scheduler は同じ
   delivery event に由来する `state_period.metadata.delivered_on` を読むため cascade 無し)。
 
+### s118-prior-admit-cache-encounter-start-before-window
+
+- **id**: `s118-prior-admit-cache-encounter-start-before-window`
+- **observation**: `Encounter.ndjson` のごく一部 (US p=10000 で 142/234,425 = 0.06%) が、入力 `--start` (window 開始日) より前の `period.start` を持つ。例: window `2021-10-27 → 2026-10-27` で `period.start` が最も早いもので `2021-10-01` (window 開始の 26 日前)。該当レコードの `period.end` はすべて window 内。
+- **by_design_reason**: `clinosim/simulator/_setup.py::_load_prev_admission_cache` が prior-admission cache を作り、window 開始時点で既に入院中の患者が初日に「入院中の状態で発生」しないようにしている。`clinosim/simulator/_dispatch.py::_replay_cached_admission_queue` はその入院を本来の (window 前の) 入院日と window 内の退院日で emit する。index date 時点の実際の EHR スナップショットと同じく、進行中の入院は切り詰めない本来の `period.start` を持つ。`max(period.start, window_start)` で切ると実入院日が失われ、持ち越し患者の在院日数を過小評価するため、意図的に保持している。対象は初年度の入院 cache のみで、総 encounter の 1% を十分下回る。
+- **signature**: `period.start < window_start` の Encounter はすべて `class.code in {"IMP", "EMER"}` かつ `period.end >= window_start` で、prior-admit cache replay 経路由来。件数は総 encounter の 1% 以下 (US p=10000 seed=342 で 0.06%)。`class.code == "AMB"` で `period.start < window_start`、または `period.end < window_start` (完全に window 前) のものは真のバグ。
+- **established_session**: session 118, 2026-10-27 (Issue #2005)
+- **established_pr**: #2007
+- **revalidation_check**: `period.start < window_start` の Encounter を数え、(a) 総数比 1% 以下、(b) すべて `class.code in {"IMP", "EMER"}`、(c) すべて `period.end >= window_start` を確認。いずれかが崩れたら prior-admit cache の drift か別経路の混入。
+
+### s118-patient-emit-requires-encounter
+
+- **id**: `s118-patient-emit-requires-encounter`
+- **observation**: `Patient.ndjson` の行数が `-p` の人口を下回る。US `s=342 p=10000 2021-10-27..2026-10-27` では 9,832 Patient (catchment 住民 10,000 人中 9,206 人 + 新生児 626 人 `POP-*-BABY`)。残り 794 人 (7.9%) は Patient resource を持たない。
+- **by_design_reason**: FHIR 出力は病院 EHR であり、EHR には受診した人しか載らない。FHIR Patient は CIF の患者レコードから作られ、CIF 患者レコードは window 内に 1 回以上 encounter がある住民にのみ存在する。window 中に一度も受診しなかった住民は simulate された catchment の一員 (有病率・発生率の draw に寄与) だがカルテを持たない。死亡者は落とされない: 1 回以上受診した後に死亡した患者は `deceasedDateTime` 付きで emit される。
+- **signature**: `Encounter.subject` の集合と Patient id の集合が完全一致 (Encounter のない Patient も、Patient のない Encounter subject も無い)。`Patient.ndjson` に無い catchment id (`-BABY` 接尾辞なしの `POP-NNNNNN`) はすべて Encounter を持たない。いずれかの resource の subject に現れるのに Patient が無い、または CIF encounter があるのに Patient が無い場合は真のバグ。
+- **established_session**: session 118, 2026-10-27 (Issue #2004)
+- **established_pr**: #2004 (issue) — this PR (`docs/patient-emit-requires-encounter` branch).
+- **revalidation_check**: (a) `set(Encounter.subject) == set(Patient ids)`; (b) `Patient.ndjson` に含まれる catchment id を数え、5 年 window で非受診者比率が 1 桁 % に収まることを確認; (c) `deceasedDateTime` を持つ Patient を数え、死亡者が除去されず存在することを確認。
+
 ---
 
 ## Non-Entries (真のバグ、Registry 対象外)
@@ -458,3 +478,5 @@
   delivery date が過去になりうる)が、emit path と population semantic が
   変化: delivered pregnancy period 毎に Z37 problem-list-item 1 件。
   合計 **26 entries**(in-place 更新、add/remove なし)。
+- 2026-10-27 (session 118, Issue #2005): `s118-prior-admit-cache-encounter-start-before-window` を追加。US `s=342 p=10000 2021-10-27..2026-10-27` の aggregate QA で window 開始前の `period.start` を持つ Encounter 142/234,425 件 (0.06%) を検出し、prior-admit cache の意図した出力と確認。
+- 2026-10-27 (session 118, Issue #2004): `s118-patient-emit-requires-encounter` を追加。`Patient.ndjson` が `-p 10000` に対し 9,832 件である件を調査し、window 内に 1 回以上 encounter がある住民のみカルテを持つ (住民 9,206 人 + 新生児 626 人) こと、死亡者は `deceasedDateTime` 付きで残ることを確認。

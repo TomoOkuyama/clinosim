@@ -350,6 +350,16 @@ Each entry has six fields:
 - **established_pr**: #2005 (issue) — this PR (`docs/prior-admit-cache-by-design` branch).
 - **revalidation_check**: Count Encounters with `period.start < window_start` and confirm (a) count / total encounters ≤ 1%, (b) every such encounter has `class.code in {"IMP", "EMER"}`, (c) every such encounter has `period.end >= window_start`. If any of these fails, the prior-admit cache has drifted or an unrelated path is emitting pre-window starts.
 
+### s118-patient-emit-requires-encounter
+
+- **id**: `s118-patient-emit-requires-encounter`
+- **observation**: `Patient.ndjson` row count is below the `-p` population. US `s=342 p=10000 2021-10-27..2026-10-27` emits 9,832 Patients: 9,206 of the 10,000 catchment residents plus 626 newborns (`POP-*-BABY`). The other 794 residents (7.9%) have no Patient resource.
+- **by_design_reason**: The FHIR export is the hospital EHR, and an EHR only holds people who were seen. FHIR Patients are built from CIF patient records, which exist only for residents with at least one encounter in the window. Residents who never visited the hospital during the window are part of the simulated catchment (they shape prevalence and incidence draws) but have no chart. Deceased patients are not dropped: a patient who died after at least one encounter is emitted with `deceasedDateTime`.
+- **signature**: The set of `Encounter.subject` references equals the set of Patient ids exactly (no Patient without an Encounter, no Encounter subject without a Patient). Every catchment id missing from `Patient.ndjson` (`POP-NNNNNN` without a `-BABY` suffix) has no Encounter. A missing Patient whose id appears as any resource's subject, or a resident with CIF encounters but no Patient, is a real bug.
+- **established_session**: session 118, 2026-10-27 (Issue #2004)
+- **established_pr**: #2004 (issue) — this PR (`docs/patient-emit-requires-encounter` branch).
+- **revalidation_check**: (a) `set(Encounter.subject) == set(Patient ids)`; (b) count catchment ids present in `Patient.ndjson` and confirm the non-visitor share stays in single digits for a 5-year window; (c) count Patients with `deceasedDateTime` and confirm deaths are present rather than removed.
+
 ---
 
 ## Non-Entries (real bugs, out of scope for this registry)
@@ -384,3 +394,4 @@ The following are **not eligible for registration**. If detected during audit, r
 - 2026-09-01 (session 97, META #957 Incr 1): updated `s95-z37-past-birth-marker-stale-onset` — Z37 chronic-sample proxy retired in favor of a `state_periods`-derived FHIR emit adapter. The stale-onset pattern still exists (delivery date can be historic if the sim ran multi-year) but the emit path and population semantics changed: one Z37 problem-list-item per actually-delivered pregnancy. Total **26 entries** (in-place update, no add/remove).
 - 2026-09-13 (session 113, Issue #1353): added `s112-n10-pyelonephritis-vs-ain-single-code`. Random-sample review flagged an antibiotic-escalated N10 case as an AIN mistreatment; clarified in-YAML that WHO N10 spans both etiologies and the sim's N10 path is pyelonephritis by design. The AKI YAML `interstitial_nephritis` differential row renamed to `N14.1` (ICD-10-CM drug-induced) so the two codes are now disjoint at the emit layer. Distinct AIN modeling as its own disease branch is deferred. Total **27 entries**.
 - 2026-10-27 (session 118, Issue #2005): added `s118-prior-admit-cache-encounter-start-before-window`. Aggregate QA on US `s=342 p=10000 2021-10-27..2026-10-27` flagged 142/234,425 Encounters (0.06%) with `period.start` before the window-open date. Confirmed as the intended output of the prior-admit cache (`clinosim/simulator/_setup.py::_load_prev_admission_cache` + `clinosim/simulator/_dispatch.py::_replay_cached_admission_queue`), which preserves the true admission date of patients already admitted at window-open. Total **28 entries**.
+- 2026-10-27 (session 118, Issue #2004): added `s118-patient-emit-requires-encounter`. Aggregate QA flagged `Patient.ndjson` at 9,832 against `-p 10000`; confirmed that only residents with at least one encounter in the window get a chart (9,206 residents + 626 newborns), and deceased patients remain emitted with `deceasedDateTime`. Total **29 entries**.
