@@ -165,6 +165,7 @@ nav:
       - Module architecture: architecture/module-architecture.md
       - Data flow: architecture/data-flow.md
       - Module dependency graph: architecture/module-dependency-graph.md
+      - Post-C refactor layout (narrative + simulator + population engine split): architecture/post-c-refactor-split.md
   - Guides:
       - Adding a module: CONTRIBUTING-modules.md
       - Clinical documents: clinical_documents.md
