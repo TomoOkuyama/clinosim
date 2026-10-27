@@ -12,6 +12,7 @@ from clinosim.modules.disease.severity import sample_severity_category
 from clinosim.modules.encounter.engine import create_inpatient_encounter
 from clinosim.modules.observation.engine import get_lab_unit
 from clinosim.modules.order.treatment_classifier import classify_encounter_treatment
+from clinosim.modules.physiology._vital_signs_thresholds import PAIN_SCORE_SCALE
 from clinosim.modules.staff.engine import (
     FALLBACK_PHYSICIAN_ID,
     StaffRoster,
@@ -430,6 +431,8 @@ def _simulate_ed_visit(
     # ED presentations are acute → pain skews higher, scaled by inflammation.
     _pain_mean = _state.inflammation_level * ED_PAIN_INFLAMMATION_SCALE + ED_PAIN_BASELINE
     pain = int(max(ED_PAIN_MIN, min(ED_PAIN_MAX, rng.normal(_pain_mean, ED_PAIN_NOISE_STD))))
+    if _state.pain_level:
+        pain = max(pain, int(min(ED_PAIN_MAX, round(_state.pain_level * PAIN_SCORE_SCALE))))
     vitals = [
         VitalSignRecord(
             timestamp=vit_time,

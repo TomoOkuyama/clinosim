@@ -43,3 +43,8 @@ variables:
   glucose_status:       {min: -1.0, max: 1.0}
   sodium_status:        {min: -1.0, max: 1.0}
   anion_gap_status:     {min: -1.0, max: 1.0}
+  # Issue #2053: autonomic / symptom / gas-exchange / neurological axes (0 = absent).
+  sympathetic_activation:   {min: 0.0, max: 1.0}
+  pain_level:               {min: 0.0, max: 1.0}
+  oxygenation_impairment:   {min: 0.0, max: 1.0}
+  consciousness_impairment: {min: 0.0, max: 1.0}
