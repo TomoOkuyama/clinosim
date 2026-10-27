@@ -63,8 +63,11 @@ def test_abo_observation_shape(abo: str, expected_snomed: str):
         "display": "ABO group [Type] in Blood",
     }
     assert abo_obs["valueCodeableConcept"]["coding"][0]["code"] == expected_snomed
-    # Category is laboratory (not social-history)
-    assert abo_obs["category"][0]["coding"][0]["code"] == "LAB"
+    # Category is laboratory (not social-history). Issue #2003: the
+    # canonical HL7 Observation Category CodeSystem uses lower-case
+    # ``laboratory`` — the v2-0074 ``LAB`` was the wrong value-set.
+    assert abo_obs["category"][0]["coding"][0]["code"] == "laboratory"
+    assert abo_obs["category"][0]["coding"][0]["system"] == "http://terminology.hl7.org/CodeSystem/observation-category"
 
 
 @pytest.mark.parametrize(
