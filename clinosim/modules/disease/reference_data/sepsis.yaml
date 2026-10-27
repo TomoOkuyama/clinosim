@@ -119,6 +119,7 @@ severity:
 # ============================================================
 initial_state_impact:
   moderate:
+    consciousness_impairment: 0.1
     inflammation_level: 0.65
     volume_status: -0.25
     perfusion_status: -0.15
@@ -128,6 +129,7 @@ initial_state_impact:
     ph_status: -0.05
     anion_gap_status: 0.6       # AG axis: lactic acidosis from hypoperfusion (AG 15-20)
   severe:
+    consciousness_impairment: 0.3
     inflammation_level: 0.85
     volume_status: -0.40
     perfusion_status: -0.35
@@ -1032,7 +1034,7 @@ complications:
       - {condition: "mechanical_ventilation", multiplier: 2.5}
       - {condition: "benzodiazepine_use", multiplier: 2.0}
       - {condition: "delirium_susceptibility > 0.3", multiplier: 2.0}
-    state_impact: {}  # delirium doesn't directly change physiological state
+    state_impact: {consciousness_impairment: 0.2}  # delirium doesn't directly change physiological state
     detection:
       test: "CAM_ICU_screening"
       finding: "positive"

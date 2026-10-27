@@ -2,15 +2,14 @@
 
 ``clinosim/simulator/vitals_pipeline.py::_loc_for`` infers a discrete
 AVPU consciousness level (Alert / Verbal / Pain / Unresponsive) from
-the patient's perfusion status, disease context, and length of stay.
-The dispatch is a cascading if-chain: severe perfusion drop → likely
-U/P, moderate → V/P, mild in a neuro cohort → V/A, and early days of
-a neuro-monitored disease → A/V/P weighted sample.
+the ``consciousness_impairment`` state axis first (Issue #2058), then
+the patient's perfusion status and disease context. The perfusion
+dispatch is a cascading if-chain: severe perfusion drop → likely U/P,
+moderate → V/P, mild in a neuro cohort → V/A.
 
 Every scalar the function previously carried inline is lifted here per
 policy §5. The perfusion cutoffs are cross-referenced to the sepsis
-protocol (``sepsis.yaml``) and the neuro-monitoring day window
-(2 days post-admission).
+protocol (``sepsis.yaml``).
 
 Byte-diff verification: swapping the inline literals for these named
 constants MUST NOT change any RNG-consuming call. ``rng.random`` /
@@ -23,8 +22,6 @@ from __future__ import annotations
 __all__ = [
     "LOC_MODERATE_HYPOPERFUSION_THRESHOLD",
     "LOC_MODERATE_V_OVER_P_PROBABILITY",
-    "LOC_NEURO_EARLY_DAY_MAX",
-    "LOC_NEURO_EARLY_WEIGHTS_AVP",
     "LOC_NEURO_MILD_HYPOPERFUSION_THRESHOLD",
     "LOC_NEURO_MILD_V_OVER_A_PROBABILITY",
     "LOC_REFRACTORY_SHOCK_THRESHOLD",
@@ -91,28 +88,3 @@ hypoperfusion band with a neuro disease.
 Empirical tuning for the synthetic simulator: 50/50 split reflects
 the day-to-day fluctuation seen in neuro patients — some days alert,
 some days drowsy — with any given assessment landing on either."""
-
-
-# ---------------------------------------------------------------------------
-# Early post-admission neuro monitoring — A/V/P weighted sample
-# ---------------------------------------------------------------------------
-
-LOC_NEURO_EARLY_DAY_MAX: int = 2
-"""Maximum day (inclusive) post-admission at which the neuro-monitored
-disease cohort undergoes the weighted A/V/P sampling — beyond this
-day, they default back to "A"lert unless perfusion drops.
-
-Empirical tuning for the synthetic simulator: 2 days matches the
-neuro-monitoring window used elsewhere in the pipeline (see
-``NEURO_LOC_MONITORING_DISEASES``), reflecting the immediate post-
-admission observation period for hemorrhagic stroke / subdural
-hematoma etc."""
-
-LOC_NEURO_EARLY_WEIGHTS_AVP: tuple[float, float, float] = (0.4, 0.4, 0.2)
-"""Sampling weights for ("A", "V", "P") during the early post-
-admission neuro-monitoring window.
-
-Empirical tuning for the synthetic simulator: (40%, 40%, 20%) reflects
-the observation that early neuro patients are often either alert or
-verbally responsive, with a smaller fraction dropping to pain-only
-response."""

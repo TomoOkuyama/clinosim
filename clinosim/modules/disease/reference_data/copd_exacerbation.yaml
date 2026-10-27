@@ -923,7 +923,7 @@ complications:
       - {condition: "dementia", multiplier: 3.0}
       - {condition: "hypercapnia", multiplier: 2.0}
       - {condition: "steroid_use", multiplier: 1.5}
-    state_impact: {}
+    state_impact: {consciousness_impairment: 0.2}
     detection:
       test: "CAM_screening"
       finding: "positive"

@@ -107,6 +107,7 @@ severity:
 # ============================================================
 initial_state_impact:
   moderate:
+    consciousness_impairment: 0.3
     inflammation_level: 0.20
     perfusion_status: -0.10
     volume_status: -0.05
@@ -119,6 +120,7 @@ initial_state_impact:
     # axis (severity → GCS → observation coding) is deferred to a
     # physiological-model extension.
   severe:
+    consciousness_impairment: 0.6
     inflammation_level: 0.35
     perfusion_status: -0.25
     volume_status: -0.10
@@ -698,6 +700,7 @@ complications:
       - {condition: "spot_sign_on_CTA", multiplier: 4.0}
       - {condition: "large_initial_volume", multiplier: 2.0}
     state_impact:
+      consciousness_impairment: 0.2
       perfusion_status: -0.05
     detection:
       test: "ct_head_repeat"
@@ -711,7 +714,7 @@ complications:
     risk_factors:
       - {condition: "large_hematoma", multiplier: 2.5}
       - {condition: "intraventricular_hemorrhage", multiplier: 2.0}
-    state_impact: {}
+    state_impact: {consciousness_impairment: 0.25}
     detection:
       test: "ct_head_repeat"
       finding: "significant_edema_with_midline_shift"
@@ -724,6 +727,7 @@ complications:
     parent_complication: "cerebral_edema"
     onset_days_after_parent: [0, 3]
     state_impact:
+      consciousness_impairment: 0.55
       perfusion_status: -0.15
     actions: ["emergent_osmotic_therapy", "emergent_surgical_evacuation", "intubation"]
 
@@ -746,7 +750,7 @@ complications:
     risk_factors:
       - {condition: "cortical_location", multiplier: 3.0}
       - {condition: "large_hematoma", multiplier: 1.5}
-    state_impact: {}
+    state_impact: {consciousness_impairment: 0.15}
     detection:
       test: "clinical_observation_or_EEG"
       finding: "seizure_activity"
@@ -801,7 +805,7 @@ complications:
       - {condition: "age_over_75", multiplier: 2.5}
       - {condition: "dementia", multiplier: 3.0}
       - {condition: "large_hematoma", multiplier: 2.0}
-    state_impact: {}
+    state_impact: {consciousness_impairment: 0.2}
     detection:
       test: "CAM_screening"
       finding: "positive"

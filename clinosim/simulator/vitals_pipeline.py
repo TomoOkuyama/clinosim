@@ -32,8 +32,8 @@ Supporting sets:
   (which is the priority-code / q1-2h set) — the two intentionally
   diverge (see Issue #563 for the aligned pair vs this respiratory set).
 * ``_NEURO_DISEASES`` — the 6-disease perfusion-based LOC assessment set.
-  Different from ``NEURO_LOC_MONITORING_DISEASES`` (2 diseases, days
-  0-2 only — see the acuity module docstring).
+  Disease-driven impairment itself comes from the
+  ``consciousness_impairment`` state axis (Issue #2058).
 """
 
 from __future__ import annotations
@@ -43,10 +43,7 @@ from datetime import datetime, timedelta
 
 import numpy as np
 
-from clinosim.modules.disease.acuity import (
-    CRITICAL_MONITORING_DISEASES,
-    NEURO_LOC_MONITORING_DISEASES,
-)
+from clinosim.modules.disease.acuity import CRITICAL_MONITORING_DISEASES
 from clinosim.modules.observation.fluid_balance import (
     AGGRESSIVE_IV_ML,
     AGGRESSIVE_IV_SD,
@@ -65,6 +62,7 @@ from clinosim.modules.observation.vitals_thresholds import (
     HIGH_FEVER_RECHECK_C,
 )
 from clinosim.modules.physiology._vital_signs_thresholds import (
+    CONSCIOUSNESS_AVPU_NOISE_SD,
     CONSCIOUSNESS_AVPU_P_THRESHOLD,
     CONSCIOUSNESS_AVPU_U_THRESHOLD,
     CONSCIOUSNESS_AVPU_V_THRESHOLD,
@@ -118,8 +116,6 @@ from clinosim.simulator._daily_io_thresholds import (
 from clinosim.simulator._loc_thresholds import (
     LOC_MODERATE_HYPOPERFUSION_THRESHOLD,
     LOC_MODERATE_V_OVER_P_PROBABILITY,
-    LOC_NEURO_EARLY_DAY_MAX,
-    LOC_NEURO_EARLY_WEIGHTS_AVP,
     LOC_NEURO_MILD_HYPOPERFUSION_THRESHOLD,
     LOC_NEURO_MILD_V_OVER_A_PROBABILITY,
     LOC_REFRACTORY_SHOCK_THRESHOLD,
@@ -320,12 +316,14 @@ def _o2_for(spo2, disease_id, rng):
 def _loc_for(state, disease_id, day, rng):
     """Infer AVPU consciousness level."""
     impaired = getattr(state, "consciousness_impairment", 0.0)
-    if impaired >= CONSCIOUSNESS_AVPU_U_THRESHOLD:
-        return "U"
-    if impaired >= CONSCIOUSNESS_AVPU_P_THRESHOLD:
-        return "P"
-    if impaired >= CONSCIOUSNESS_AVPU_V_THRESHOLD:
-        return "V"
+    if impaired:
+        observed = impaired + float(rng.normal(0.0, CONSCIOUSNESS_AVPU_NOISE_SD))
+        if observed >= CONSCIOUSNESS_AVPU_U_THRESHOLD:
+            return "U"
+        if observed >= CONSCIOUSNESS_AVPU_P_THRESHOLD:
+            return "P"
+        if observed >= CONSCIOUSNESS_AVPU_V_THRESHOLD:
+            return "V"
     if state.perfusion_status < LOC_REFRACTORY_SHOCK_THRESHOLD:
         # Refractory shock / severe neuro insult — matches the sepsis.yaml
         # severe-septic-shock complication threshold (perfusion_status < 0.2).
@@ -334,8 +332,6 @@ def _loc_for(state, disease_id, day, rng):
         return "V" if rng.random() < LOC_MODERATE_V_OVER_P_PROBABILITY else "P"
     if state.perfusion_status < LOC_NEURO_MILD_HYPOPERFUSION_THRESHOLD and disease_id in _NEURO_DISEASES:
         return "V" if rng.random() < LOC_NEURO_MILD_V_OVER_A_PROBABILITY else "A"
-    if disease_id in NEURO_LOC_MONITORING_DISEASES and day <= LOC_NEURO_EARLY_DAY_MAX:
-        return str(rng.choice(["A", "V", "P"], p=LOC_NEURO_EARLY_WEIGHTS_AVP))
     return "A"
 
 

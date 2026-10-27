@@ -138,6 +138,7 @@ complications:
     risk_factors:
       - {condition: "age_over_75", multiplier: 2.0}
     state_impact:
+      consciousness_impairment: 0.2
       inflammation_level: 0.01
     detection:
       test: "cam_icu"

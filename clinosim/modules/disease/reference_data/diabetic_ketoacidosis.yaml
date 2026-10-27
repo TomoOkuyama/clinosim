@@ -111,6 +111,7 @@ severity:
 # ============================================================
 initial_state_impact:
   moderate:
+    consciousness_impairment: 0.08
     ph_status: -0.35            # major: metabolic acidosis (pH 7.00-7.24)
     volume_status: -0.40        # severe dehydration (3-6L deficit typical)
     glucose_status: 0.60        # markedly elevated (300-500 mg/dL)
@@ -123,6 +124,7 @@ initial_state_impact:
     # kinetics (insulin-driven cellular uptake, phosphate depletion) requires a
     # new state axis + coupling — deferred to a physiological-model extension.
   severe:
+    consciousness_impairment: 0.3
     ph_status: -0.60            # severe acidosis (pH <7.00)
     volume_status: -0.60        # severe dehydration (6-9L deficit)
     glucose_status: 0.80        # very high (>500 mg/dL)
@@ -812,6 +814,7 @@ complications:
       - {condition: "renal_impairment", multiplier: 1.5}
       - {condition: "poor_oral_intake", multiplier: 1.5}
     state_impact:
+      consciousness_impairment: 0.2
       glucose_status: -0.30
       # NOTE (FP-DELTA-VALIDATE, session 40): consciousness silent-drop removed
       # — not a canonical state var. Consciousness/GCS is produced independently
@@ -832,6 +835,7 @@ complications:
       - {condition: "severe_acidosis_pH_below_7.0", multiplier: 2.0}
       - {condition: "rapid_glucose_drop_over_100_per_hour", multiplier: 2.5}
     state_impact:
+      consciousness_impairment: 0.25
       perfusion_status: -0.10
       # NOTE (FP-DELTA-VALIDATE, session 40): consciousness silent-drop removed
       # — not a canonical state var. See hypoglycemia complication above.
