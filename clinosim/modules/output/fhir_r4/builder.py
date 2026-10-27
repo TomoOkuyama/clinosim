@@ -11,9 +11,11 @@ directly from ``clinosim.modules.output.fhir_r4``.
 
 from __future__ import annotations
 
+import heapq
 import json
 import os
 import re
+import tempfile
 import uuid
 from collections.abc import Callable
 from datetime import datetime
@@ -469,31 +471,146 @@ def _extract_fhir_id(line: str) -> str:
         return ""
 
 
+# Lines-per-chunk for the external merge sort path. Each chunk is read,
+# sorted in RAM, and spilled to a temp file; the final merge is a
+# bounded-memory ``heapq.merge`` across all chunk files. 200_000 lines
+# at ~1KB/line keeps per-chunk RAM near 200MB, which fits on a dev
+# laptop even while the rest of the simulator is still live.
+# Override via ``CLINOSIM_NDJSON_SORT_CHUNK_LINES`` for perf tuning.
+_NDJSON_SORT_CHUNK_LINES = int(os.environ.get("CLINOSIM_NDJSON_SORT_CHUNK_LINES", "200000"))
+
+
 def _sort_ndjson_by_id_inplace(path: str) -> None:
     """Rewrite an NDJSON file in place with lines sorted by resource id ascending.
 
-    F2: sorting removes cursor-dependent (patient_records
-    iteration order) row ordering so that a line diff between two snapshots
-    surfaces only genuine new / changed / removed resources, not spurious
-    "line moved" noise.
+    F2: sorting removes cursor-dependent (patient_records iteration
+    order) row ordering so that a line diff between two snapshots
+    surfaces only genuine new / changed / removed resources, not
+    spurious "line moved" noise.
 
-    Reads the whole file into memory, so RAM usage scales with file size —
-    at p=10k total NDJSON output is ~4.7GB, with the largest single file
-    (Observation.ndjson) in the multi-GB range. This is acceptable for
-    Phase A; a future JP p=500k scale may need to replace this with an
-    external merge sort, but in-memory sort is sufficient for now.
+    **Streaming external merge sort** (2026-10-27): reads at most
+    ``_NDJSON_SORT_CHUNK_LINES`` lines into RAM at a time, spills
+    each sorted chunk to a tempfile alongside ``path``, then merges
+    chunks with ``heapq.merge``. Peak RAM is bounded by one chunk
+    (default ~200MB) regardless of input file size, so p=10k × 5-year
+    cohorts with multi-GB ``Observation.ndjson`` no longer OOM on Mac
+    dev machines. Files that fit in a single chunk take the historical
+    read-all-into-memory fast path so small cohorts carry zero temp-
+    file overhead.
 
     Perf (2026-10-17): sort key extraction via regex instead of
-    ``json.loads(line).get("id","")`` — the FHIR Resource.id regex path
-    is ~50× faster per line, which drops the p=10k sort pass from 194s
-    to the file-IO-bound floor.
+    ``json.loads(line).get("id","")`` — the FHIR Resource.id regex
+    path is ~50× faster per line, which drops the p=10k single-chunk
+    sort pass from 194s to the file-IO-bound floor.
+
+    Byte-identical fingerprint is preserved: a sort is a sort,
+    regardless of whether it happens in RAM or across chunk files.
     """
+    chunk_limit = max(1, _NDJSON_SORT_CHUNK_LINES)
+
     with open(path, encoding="utf-8") as f:
-        lines = [line for line in f.read().splitlines() if line.strip()]
-    lines.sort(key=_extract_fhir_id)
-    with open(path, "w", encoding="utf-8") as f:
-        for line in lines:
-            f.write(line + "\n")
+        first_chunk: list[str] = []
+        for _ in range(chunk_limit):
+            line = f.readline()
+            if not line:
+                break
+            stripped = line.rstrip("\n")
+            if stripped:
+                first_chunk.append(stripped)
+
+        peek = f.readline()
+        if not peek:
+            # Whole file fit in one chunk — in-memory fast path, no temp files.
+            first_chunk.sort(key=_extract_fhir_id)
+            with open(path, "w", encoding="utf-8") as out:
+                for line in first_chunk:
+                    out.write(line + "\n")
+            return
+
+        # External merge sort: spill first_chunk, then stream the rest
+        # into further sorted chunks.
+        tmp_dir = os.path.dirname(path) or None
+        tmp_files: list[str] = []
+        try:
+            first_chunk.sort(key=_extract_fhir_id)
+            tmp_files.append(_spill_sorted_chunk(first_chunk, tmp_dir))
+            first_chunk.clear()
+
+            # The peeked line is the first line of the next chunk.
+            next_chunk: list[str] = []
+            stripped_peek = peek.rstrip("\n")
+            if stripped_peek:
+                next_chunk.append(stripped_peek)
+
+            while True:
+                while len(next_chunk) < chunk_limit:
+                    line = f.readline()
+                    if not line:
+                        break
+                    stripped = line.rstrip("\n")
+                    if stripped:
+                        next_chunk.append(stripped)
+                if not next_chunk:
+                    break
+                next_chunk.sort(key=_extract_fhir_id)
+                tmp_files.append(_spill_sorted_chunk(next_chunk, tmp_dir))
+                if len(next_chunk) < chunk_limit:
+                    # Reader hit EOF mid-chunk; nothing left to batch.
+                    next_chunk = []
+                    break
+                next_chunk = []
+
+            _merge_sorted_chunks(tmp_files, path)
+        finally:
+            for name in tmp_files:
+                try:
+                    os.unlink(name)
+                except OSError:
+                    pass
+
+
+def _spill_sorted_chunk(sorted_lines: list[str], tmp_dir: str | None) -> str:
+    """Spill a sorted chunk to a temp NDJSON file next to the target output.
+
+    Co-locating temp files with the output keeps the merge rename cheap
+    (same filesystem). Caller owns the returned path.
+    """
+    tmp = tempfile.NamedTemporaryFile(
+        mode="w",
+        encoding="utf-8",
+        suffix=".ndjson",
+        prefix="._sort_chunk_",
+        delete=False,
+        dir=tmp_dir,
+    )
+    try:
+        for line in sorted_lines:
+            tmp.write(line + "\n")
+    finally:
+        tmp.close()
+    return tmp.name
+
+
+def _merge_sorted_chunks(chunk_paths: list[str], out_path: str) -> None:
+    """``heapq.merge`` chunk files by FHIR id into ``out_path`` (overwrite).
+
+    Each chunk file is a NDJSON already sorted by ``_extract_fhir_id``;
+    ``heapq.merge`` streams a global sorted order with bounded memory.
+    """
+    openers = [open(p, encoding="utf-8") for p in chunk_paths]
+    try:
+        merged = heapq.merge(
+            *openers,
+            key=lambda line: _extract_fhir_id(line.rstrip("\n")),
+        )
+        with open(out_path, "w", encoding="utf-8") as out:
+            for line in merged:
+                stripped = line.rstrip("\n")
+                if stripped:
+                    out.write(stripped + "\n")
+    finally:
+        for fh in openers:
+            fh.close()
 
 
 # --- Resource builders: (ctx) -> list[resource]. Order here == emission order. ---
