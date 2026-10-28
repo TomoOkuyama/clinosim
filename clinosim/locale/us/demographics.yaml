@@ -192,6 +192,11 @@ chronic_prevalence:
   F33:      # Recurrent depressive disorder — ~30% of F32 cohort per DSM registry data
     "40-59": 0.04
     "60-99": 0.03
+  F11.20:   # Opioid use disorder — NSDUH 2022 2.2% of age 12+; recorded diagnosis ~1% of adults (Issue #2146). US only.
+    rng_isolated: true  # sub-RNG draw: adding F11.20 leaves other residents' conditions unchanged
+    "18-39": 0.012
+    "40-59": 0.010
+    "60-99": 0.004
   F20:      # Schizophrenia — NIMH 0.25-0.64% (schizophrenia + related psychotic disorders); Issue #2140
     rng_isolated: true  # sub-RNG draw: adding F20 leaves other residents' conditions unchanged
     "18-39": 0.005

@@ -240,3 +240,7 @@ Quetiapine: "51272"
 "Lithium carbonate": "42351"
 "Valproic acid": "11118"
 "Lamotrigine": "28439"
+
+# Issue #2146: medication for opioid use disorder (RxNorm, tx.fhir.org).
+"Buprenorphine/Naloxone": "352364"
+"Methadone": "6813"

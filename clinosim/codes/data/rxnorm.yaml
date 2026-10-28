@@ -802,3 +802,10 @@ codes:
   '28439':
     en: lamotrigine
     ja: ラモトリギン
+  # Issue #2146: MOUD (tx.fhir.org $lookup).
+  '352364':
+    en: buprenorphine / naloxone
+    ja: ブプレノルフィン・ナロキソン
+  '6813':
+    en: methadone
+    ja: メサドン

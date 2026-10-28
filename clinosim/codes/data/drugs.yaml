@@ -1464,3 +1464,15 @@ drugs:
       rxnorm: "28439"
       hot7: "1139009"
     classes: ["mood_stabilizer"]
+  # Issue #2146: medication for opioid use disorder (RxNorm verified on tx.fhir.org).
+  buprenorphine_naloxone:
+    names: {en: "Buprenorphine/Naloxone", ja: "ブプレノルフィン・ナロキソン"}
+    codes:
+      rxnorm: "352364"
+    classes: ["moud"]
+    aliases: ["Suboxone"]
+  methadone:
+    names: {en: "Methadone", ja: "メサドン"}
+    codes:
+      rxnorm: "6813"
+    classes: ["moud", "opioid"]

@@ -444,6 +444,15 @@ F10:  # Alcohol use disorder — MAT (medication-assisted treatment)
     - {test: "AST", frequency: "every_3_days", intent: "AUD hepatic monitoring (hepatotoxicity + background liver injury)"}
     - {test: "ALT", frequency: "every_3_days", intent: "AUD hepatic monitoring"}
 
+F11:  # Opioid use disorder (Issue #2146)
+  # Medication for opioid use disorder (MOUD): about a quarter of US adults
+  # with OUD received MOUD in the past year (NSDUH 2022). One agent.
+  exclusive_classes: ["moud"]
+  medications:
+    - {drug_id: buprenorphine_naloxone, dose: "16mg/4mg", drug_class: "moud", route: "SL", frequency: "daily", probability: 0.14}
+    - {drug_id: methadone, dose: "80mg", drug_class: "moud", route: "PO", frequency: "daily", probability: 0.08, locale_exclude: ["JP"]}
+    - {drug_id: naltrexone, dose: "380mg", drug_class: "moud", route: "IM", frequency: "monthly", probability: 0.04, locale_exclude: ["JP"]}
+
 F20:  # Schizophrenia (Issue #2140)
   # Maintenance second-generation antipsychotic monotherapy (APA 2020;
   # 日本神経精神薬理学会 統合失調症薬物治療ガイドライン 2022). About 80-85 %
