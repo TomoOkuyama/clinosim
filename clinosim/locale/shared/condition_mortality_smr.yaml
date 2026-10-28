@@ -48,6 +48,7 @@ smr_table:
   "N18": 2.0     # CKD (any stage, pooled)
   # Mental / behavioural
   "F03": 2.0     # Dementia, unspecified
+  "F11.20": 6.0  # Opioid dependence — all-cause SMR 6-10 (Larney 2020 JAMA Psychiatry; Issue #2146)
   "F17.210": 1.4 # Nicotine dependence, cigarettes
   "F20": 2.5     # Schizophrenia — all-cause SMR ~2-3 (Saha 2007 Arch Gen Psychiatry; Issue #2140)
   "F31": 2.0     # Bipolar disorder — all-cause SMR ~2 (Hayes 2015 World Psychiatry; Issue #2142)

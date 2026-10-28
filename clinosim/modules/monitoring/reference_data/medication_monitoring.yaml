@@ -212,3 +212,24 @@ mappings:
         rationale: "Valproate thrombocytopenia — platelet count periodically."
         rationale_ja: "バルプロ酸による血小板減少 — 血小板数を定期的に。"
 
+  # Issue #2146: agonist MOUD — urine drug screen to confirm adherence and
+  # detect other substance use (SAMHSA TIP 63).
+  Buprenorphine/Naloxone:
+    aliases: ["Suboxone", "buprenorphine"]
+    drug_ja: "ブプレノルフィン・ナロキソン"
+    monitoring:
+      - lab: Urine_drug_screen
+        interval_months: 1
+        loinc: "69739-1"
+        rationale: "Urine drug screen — adherence to buprenorphine and other substance use (SAMHSA TIP 63)."
+        rationale_ja: "尿中薬物スクリーニング — ブプレノルフィンの服薬確認と他物質の使用確認。"
+  Methadone:
+    aliases: ["methadone"]
+    drug_ja: "メサドン"
+    monitoring:
+      - lab: Urine_drug_screen
+        interval_months: 1
+        loinc: "69739-1"
+        rationale: "Urine drug screen — opioid treatment program monitoring (SAMHSA TIP 63)."
+        rationale_ja: "尿中薬物スクリーニング — オピオイド治療プログラムでの確認。"
+

@@ -119,6 +119,13 @@ M81:  # Osteoporosis
   prescriptions_renewed: true
   visit_duration_minutes: 10
 
+"F11.20":  # Opioid use disorder (Issue #2146)
+  visit_reason:
+    en: "Opioid use disorder follow-up: recovery support, medication for opioid use disorder"
+    ja: "オピオイド使用障害フォローアップ・回復支援・治療薬の管理"
+  follow_up_interval_months: 3
+  labs: []
+
 F20:  # Schizophrenia (Issue #2140)
   visit_reason:
     en: "Schizophrenia follow-up: symptom and adherence review, antipsychotic side-effect monitoring"

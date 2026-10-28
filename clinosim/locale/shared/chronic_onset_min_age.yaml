@@ -51,6 +51,7 @@ codes:
   # from placing dependence-code onsets years before the patient became
   # of legal age (Issue #1349 exemplar: F10.20 with onsetDateTime at age 9).
   F10: 15   # Alcohol use / dependence — DSM-5 AUD rare < 15
+  F11: 15   # Opioid use disorder — adolescent onset rare (Issue #2146)
   F17: 16   # Nicotine dependence — dependence-level dx typically ≥ 16
 
   # === Mood / anxiety disorders (Issue #1761) ===
