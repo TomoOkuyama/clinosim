@@ -235,3 +235,8 @@ Aripiprazole: "89013"
 Risperidone: "35636"
 Olanzapine: "61381"
 Quetiapine: "51272"
+
+# Issue #2142: mood stabilizers (RxNorm IN, tx.fhir.org).
+"Lithium carbonate": "42351"
+"Valproic acid": "11118"
+"Lamotrigine": "28439"

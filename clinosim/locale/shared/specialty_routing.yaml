@@ -49,6 +49,13 @@ routes:
     cadence: quarterly
     clinical_basis: "APA 2020 Practice Guideline for the Treatment of Patients With Schizophrenia — ongoing assessment of symptoms, adherence and antipsychotic side effects"
 
+  # Psychiatry — bipolar disorder (Issue #2142). Maintenance mood-stabilizer
+  # treatment with mood-episode and drug-level review.
+  - requires_chronic: ["F31"]
+    specialty: psychiatry
+    cadence: quarterly
+    clinical_basis: "CANMAT / ISBD 2018 Guidelines for the Management of Patients With Bipolar Disorder — maintenance-phase monitoring of mood, adherence and mood-stabilizer safety labs"
+
   # Pulmonology — COPD. Annual stable follow-up.
   - requires_chronic: ["J44"]
     specialty: pulmonology

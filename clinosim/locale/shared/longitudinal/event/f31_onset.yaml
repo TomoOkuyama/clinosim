@@ -1,0 +1,26 @@
+# F31 adult onset — event pattern (Issue #2142).
+#
+# Bipolar disorder — onset peaks in late adolescence / young adulthood;
+# annual incidence roughly 30 per 100,000 at 18-39 and lower after 40
+# (Kroon 2013 Bipolar Disord; Carlborg 2015 Bipolar Disord).
+
+attribute_id: f31_onset
+pattern: event
+clinical_scope:
+  requires_age_band: [18, 120]
+
+event_name: f31_onset
+emits_icd: F31
+base_annual_rate: 0.0
+base_rate_by_age_band:
+  - {age_lo: 18, age_hi: 39, rate: 0.000300}
+  - {age_lo: 40, age_hi: 59, rate: 0.000100}
+  - {age_lo: 60, age_hi: 99, rate: 0.000000}
+rate_modifiers: []
+one_shot: true
+# Own sub-RNG: adding this event leaves every other onset draw unchanged.
+rng_isolated: true
+narrative_label: f31_onset
+source: >
+  Issue #2142. Kroon JS et al. Incidence rates and risk factors of
+  bipolar disorder in the general population. Bipolar Disord 2013;15:306.

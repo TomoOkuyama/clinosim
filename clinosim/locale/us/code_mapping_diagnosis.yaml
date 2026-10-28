@@ -39,6 +39,7 @@ M17: "M17.9"        # Osteoarthritis of knee, unspecified
 # does not distinguish severity / recurrence pattern. Matches the sim's
 # current clinical modeling depth (mood cohort without severity subtyping).
 F20: "F20.9"        # Schizophrenia, unspecified (Issue #2140)
+F31: "F31.9"        # Bipolar disorder, unspecified (Issue #2142)
 F32: "F32.9"        # Depressive episode, unspecified
 F33: "F33.9"        # Major depressive disorder, recurrent, unspecified
 

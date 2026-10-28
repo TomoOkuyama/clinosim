@@ -197,6 +197,11 @@ chronic_prevalence:
     "18-39": 0.005
     "40-59": 0.006
     "60-99": 0.004
+  F31:      # Bipolar disorder — NIMH 12-mo 2.8%; ~1% with a recorded diagnosis (Issue #2142)
+    rng_isolated: true  # sub-RNG draw: adding F31 leaves other residents' conditions unchanged
+    "18-39": 0.012
+    "40-59": 0.010
+    "60-99": 0.005
   F41.1:    # Generalized anxiety disorder (GAD) — NIMH ~3.1% adult 12-mo
     "18-39": 0.04
     "40-59": 0.03

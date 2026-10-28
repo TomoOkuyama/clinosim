@@ -478,3 +478,14 @@ codes:
   '1179042':
     en: Quetiapine
     ja: クエチアピンフマル酸塩
+
+  # Issue #2142: mood stabilizers.
+  '1179017':
+    en: Lithium carbonate
+    ja: 炭酸リチウム
+  '1139004':
+    en: Valproic acid
+    ja: バルプロ酸ナトリウム
+  '1139009':
+    en: Lamotrigine
+    ja: ラモトリギン

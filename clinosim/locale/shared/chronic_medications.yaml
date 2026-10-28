@@ -455,6 +455,20 @@ F20:  # Schizophrenia (Issue #2140)
     - {drug_id: olanzapine, dose: "10mg", drug_class: "antipsychotic", route: "PO", frequency: "nightly", probability: 0.20}
     - {drug_id: quetiapine, dose: "300mg", drug_class: "antipsychotic", route: "PO", frequency: "bid", probability: 0.08}
 
+F31:  # Bipolar disorder (Issue #2142)
+  # Maintenance: one mood stabilizer (lithium first-line; valproate,
+  # lamotrigine) and / or a second-generation antipsychotic (quetiapine,
+  # aripiprazole, olanzapine) — CANMAT / ISBD 2018; 日本うつ病学会 双極性障害
+  # 治療ガイドライン 2023.
+  exclusive_classes: ["mood_stabilizer", "antipsychotic"]
+  medications:
+    - {drug_id: lithium_carbonate, dose: "600mg", drug_class: "mood_stabilizer", route: "PO", frequency: "bid", probability: 0.30}
+    - {drug_id: valproic_acid, dose: "500mg", drug_class: "mood_stabilizer", route: "PO", frequency: "bid", probability: 0.20}
+    - {drug_id: lamotrigine, dose: "200mg", drug_class: "mood_stabilizer", route: "PO", frequency: "daily", probability: 0.15}
+    - {drug_id: quetiapine, dose: "300mg", drug_class: "antipsychotic", route: "PO", frequency: "nightly", probability: 0.15}
+    - {drug_id: aripiprazole, dose: "10mg", drug_class: "antipsychotic", route: "PO", frequency: "daily", probability: 0.12}
+    - {drug_id: olanzapine, dose: "10mg", drug_class: "antipsychotic", route: "PO", frequency: "nightly", probability: 0.05}
+
 F32:  # Depressive episode (single)
   # Issue #1137 cluster axis 6 — severity-gated prescribing per
   # STAR*D / APA / VA-DoD tiered guidance:

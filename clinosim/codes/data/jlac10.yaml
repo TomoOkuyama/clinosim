@@ -182,3 +182,7 @@ codes:
   3L970:
     en: Drug abuse screening
     ja: 乱用薬物スクリーニング
+  # --- Drug level (Issue #2142; JSLM v137 分析物コード) ---
+  3L320:
+    en: Lithium
+    ja: リチウム
