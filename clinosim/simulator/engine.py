@@ -189,7 +189,9 @@ def run_beta(
     # RNG state (population / life events). Mirrors the AD-16 sub-seed
     # pattern used by module enrichers.
     _roster_rng = determinism.default_rng(config.random_seed ^ 0x524F5354)  # "ROST"
-    roster = generate_roster(config.hospital_scale, config.country, _roster_rng, hospital_config=hospital_ops)
+    # Issue #2128: the hospital config names its own scale.
+    hospital_scale = str(hospital_ops.get("hospital_scale") or config.hospital_scale)
+    roster = generate_roster(hospital_scale, config.country, _roster_rng, hospital_config=hospital_ops)
     hospital_state = HospitalState()
 
     pop_size = _resolve_pop_size(hospital_ops, config)
@@ -481,7 +483,7 @@ def run_beta(
         clinosim_version=_clinosim_version,
         random_seed=config.random_seed,
         country=config.country,
-        hospital_scale=config.hospital_scale,
+        hospital_scale=hospital_scale,
         snapshot_date=config.snapshot_date,
         total_patients_generated=len(patient_records),
         llm_mode=config.llm.judgment.mode,
