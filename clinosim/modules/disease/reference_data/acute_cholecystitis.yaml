@@ -117,6 +117,7 @@ initial_state_impact:
     inflammation_level: 0.30
     volume_status: -0.10
     anion_gap_status: 0.2     # AG axis: biliary inflammation / mild cholangitis
+    hepatic_function: -0.08  # Issue #2125: liver test elevation below the injury floor (mild cholestatic / transaminase rise)
   severe:
     pain_level: 0.7
     inflammation_level: 0.55
@@ -124,6 +125,7 @@ initial_state_impact:
     perfusion_status: -0.10
     renal_function: -0.10
     anion_gap_status: 0.3     # AG axis: cholangitis sepsis-like (AG 13-16)
+    hepatic_function: -0.15  # Issue #2125: liver test elevation below the injury floor
 
 # ============================================================
 # ORDER PROTOCOLS

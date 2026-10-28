@@ -108,6 +108,7 @@ initial_state_impact:
     inflammation_level: 0.20
     volume_status: -0.15
     anion_gap_status: 0.1     # AG axis: mild SIRS contribution
+    hepatic_function: -0.04  # Issue #2125: liver test elevation below the injury floor (gallstone aetiology ~40%)
   moderate:
     pain_level: 0.75
     inflammation_level: 0.45
@@ -115,6 +116,7 @@ initial_state_impact:
     perfusion_status: -0.10
     renal_function: -0.10
     anion_gap_status: 0.3     # AG axis: moderate SIRS / lactic acidosis
+    hepatic_function: -0.15  # Issue #2125: liver test elevation below the injury floor
   severe:
     pain_level: 0.85
     inflammation_level: 0.70
@@ -123,6 +125,7 @@ initial_state_impact:
     renal_function: -0.20
     ph_status: -0.10
     anion_gap_status: 0.5     # AG axis: severe necrotising pancreatitis (AG 15-20)
+    hepatic_function: -0.22  # Issue #2125: liver test elevation below the injury floor
 
 # ============================================================
 # ORDER PROTOCOLS

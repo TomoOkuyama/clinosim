@@ -40,14 +40,14 @@ initial_state_impact:
   moderate:
     sympathetic_activation: 0.45  # tremor, tachycardia, hypertension, diaphoresis (CIWA-Ar 10-15)
     volume_status: -0.10       # poor intake, vomiting, diaphoresis
-    hepatic_function: -0.05    # AST / ALT / GGT elevation
+    hepatic_function: -0.17    # AST / ALT / GGT elevation (below the injury floor, Issue #2125)
     sodium_status: -0.04
     glucose_status: -0.03
     inflammation_level: 0.02
   severe:
     sympathetic_activation: 0.65  # CIWA-Ar >= 16: HR ~110-120, SBP ~150-160
     volume_status: -0.18
-    hepatic_function: -0.10
+    hepatic_function: -0.35
     sodium_status: -0.08
     glucose_status: -0.05
     inflammation_level: 0.04

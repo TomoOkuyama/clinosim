@@ -44,6 +44,7 @@ __all__ = [
     # K74 Cirrhosis
     "CIRRHOSIS_HEPATIC_COUPLING",
     "CIRRHOSIS_COAGULATION_COUPLING",
+    "FATTY_LIVER_HEPATIC_COUPLING",
     "CIRRHOSIS_SODIUM_COUPLING",
     # J44 COPD
     "COPD_PH_COUPLING",
@@ -161,6 +162,18 @@ coefficients — cirrhosis reserves fall off more slowly than nephron loss
 but faster than compensated cardiomyopathy on this simulator's scale.
 Downstream drives INR (via hepatic synthetic function), albumin, and
 bilirubin.
+"""
+
+FATTY_LIVER_HEPATIC_COUPLING: float = 0.9
+"""Multiplicative hepatic-function shift per unit severity for fatty liver
+disease (K76.0) and alcohol use (F10) — Issue #2125.
+
+``hepatic_function *= 1.0 - severity_score * FATTY_LIVER_HEPATIC_COUPLING``.
+Sized so the upper third of the severity range (score > ~0.3) falls below
+``HEPATIC_INJURY_FLOOR`` and raises AST / ALT, the rest stays in range:
+about 10% of adults with ALT above the upper limit (NHANES). Larger than the
+cirrhosis coefficient because the transaminases react to steatohepatitis
+before synthetic function (albumin, INR) declines.
 """
 
 CIRRHOSIS_COAGULATION_COUPLING: float = 0.2

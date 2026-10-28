@@ -138,6 +138,7 @@ __all__ = [
     "TROPONIN_TYPE2_INJURY_CUBE_SCALE",
     "T_BIL_BASELINE_MG_DL",
     "T_BIL_HEPATIC_SCALE",
+    "HEPATIC_INJURY_FLOOR",
     "ALBUMIN_BASELINE",
     "ALBUMIN_FLOOR",
     "ALBUMIN_HEPATIC_SCALE",
@@ -481,6 +482,13 @@ consistent with the CK-MB-to-troponin ratio in acute MI)."""
 # ---------------------------------------------------------------------------
 # Hepatic panel — AST + ALT + T_Bil
 # ---------------------------------------------------------------------------
+
+HEPATIC_INJURY_FLOOR: float = 0.70
+"""Hepatic function below which the liver injury / cholestasis markers (AST,
+ALT, T_Bil, ALP, GGT, LDH) rise (Issue #2125). The scales below apply to
+``(HEPATIC_INJURY_FLOOR - hepatic_function) / HEPATIC_INJURY_FLOOR``, so the
+age-reduced reserve of a healthy patient (Beta(30, 2) minus up to ~0.2 at 90)
+keeps them in the reference range, and hepatic=0 still reaches the peaks."""
 
 AST_BASELINE_U_L: int = 25
 """Baseline AST (U/L) at full hepatic function — mid-range of the
