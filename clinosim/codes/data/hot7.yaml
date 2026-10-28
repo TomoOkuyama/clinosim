@@ -161,7 +161,7 @@ codes:
   '2499403':
     en: Octreotide
     ja: オクトレオチド酢酸塩
-  '2590009':
+  '2590008':  # Issue #2134: was 2590009
     en: Tamsulosin (Flomax)
     ja: タムスロシン（ハルナール）
   '3112001':
@@ -278,9 +278,6 @@ codes:
   '6134407':
     en: Gentamicin
     ja: ゲンタマイシン硫酸塩
-  '6139002':
-    en: Meropenem (Merrem)
-    ja: メロペネム（メロペン）
   '6139400':
     en: Meropenem
     ja: メロペネム水和物
@@ -330,35 +327,31 @@ codes:
   # per the pattern the rest of this file uses (12-char per-SKU
   # codes live in yj.yaml). Skips Fluoxetine + Citalopram — neither
   # is PMDA-approved in Japan.
-  '1179044':
+  '1179046':  # Issue #2134: was 1179044
     en: Sertraline
     ja: セルトラリン塩酸塩
-  '1179052':
+  '1179054':  # Issue #2134: was 1179052
     en: Escitalopram
     ja: エスシタロプラム シュウ酸塩
-  '1179040':
+  '1179041':  # Issue #2134: was 1179040
     en: Paroxetine
     ja: パロキセチン塩酸塩水和物
 
   # Cesarean intraoperative bundle (#1285 sub-scope). 7-digit class
-  # representatives per MHLW 薬効分類. `2499401` (子宮収縮薬 →
-  # オキシトシン) and `1214402` (局所麻酔剤 → ブピバカイン塩酸塩)
+  # representatives per MHLW 薬効分類. `2414400` (オキシトシン) and
+  # `1214403` (局所麻酔剤 → ブピバカイン塩酸塩; codes corrected in #2134)
   # follow the same class-stand-in convention every other 7-digit
   # entry in this file uses (12-char per-SKU codes live in yj.yaml).
-  # Ketorolac (`1149029`, 解熱鎮痛消炎剤) and Ondansetron
-  # (`2391003`, 制吐薬) fill the silent gap left when the JP
+  # Ondansetron (`2391003`, 制吐薬) fills the silent gap left when the JP
   # code_mapping already referenced these codes but hot7.yaml had
   # no display entry — the fallback drug-code lookup returned the
   # code itself as display, which is now the JP-standard label.
-  '2499401':
+  '2414400':  # Issue #2134: was 2499401
     en: Oxytocin
     ja: オキシトシン
-  '1214402':
+  '1214403':  # Issue #2134: was 1214402
     en: Bupivacaine
     ja: ブピバカイン塩酸塩水和物
-  '1149029':
-    en: Ketorolac
-    ja: ケトロラクトロメタミン
   '2391003':
     en: Ondansetron
     ja: オンダンセトロン塩酸塩水和物
@@ -366,7 +359,7 @@ codes:
   # JP-approved SSRI backup (#1281 second follow-up). Class 1179
   # 精神神経用剤 product 038 = フルボキサミンマレイン酸塩
   # (widely cited MHLW 薬価基準品目; デプロメール / ルボックス).
-  '1179038':
+  '1179039':  # Issue #2134: was 1179038
     en: Fluvoxamine
     ja: フルボキサミンマレイン酸塩
 
@@ -381,15 +374,30 @@ codes:
   '4224400':
     en: Gemcitabine
     ja: ゲムシタビン塩酸塩
-  '4240401':
+  '4240404':  # Issue #2134: was 4240401
     en: Irinotecan
     ja: イリノテカン塩酸塩水和物
-  '4291423':
+  '4240409':  # Issue #2134: was 4291423
     en: Nab-paclitaxel
     ja: パクリタキセル（アルブミン懸濁型）
-  '4291023':
+  '4219004':  # Issue #2134: was 4291023
     en: Temozolomide
     ja: テモゾロミド
   '6323400':
     en: BCG (intravesical)
     ja: BCG膀胱内注入用
+
+  # Issue #2134: injection classes for IV use, and duloxetine (its class
+  # 1179052 was labelled escitalopram).
+  '1179052':
+    en: Duloxetine
+    ja: デュロキセチン塩酸塩
+  '6131400':
+    en: Ampicillin
+    ja: アンピシリンナトリウム
+  '2451401':
+    en: Norepinephrine
+    ja: ノルアドレナリン
+  '8114401':
+    en: Morphine
+    ja: モルヒネ塩酸塩水和物

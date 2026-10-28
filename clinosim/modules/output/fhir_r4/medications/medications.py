@@ -524,6 +524,14 @@ def _mr_intent_from_order(order: dict, encounter_type: str = "") -> str:
     return "order"
 
 
+def _case_insensitive_code(drug_codes: dict[str, str], name: str) -> tuple[str, str] | None:
+    """``(code, key)`` for the mapping keys equal to ``name`` ignoring case,
+    when they all carry one code; None when absent or ambiguous."""
+    keys = [k for k in drug_codes if k.lower() == name.lower()]
+    codes = {drug_codes[k] for k in keys}
+    return (codes.pop(), keys[0]) if len(codes) == 1 else None
+
+
 def _resolve_medication_concept(
     display_name_raw: str,
     order_code: str,
@@ -597,6 +605,15 @@ def _resolve_medication_concept(
                     break
         if not code_value:
             code_value = drug_codes.get(base_name.replace("_", " "), "")
+        if not code_value:
+            # Issue #2134: chronic medications carry lowercase drug ids
+            # ("sertraline"); fall back to a case-insensitive match when it
+            # names exactly one code (exact-case keys still win above).
+            for n_tokens in range(len(tokens), 0, -1):
+                hit = _case_insensitive_code(drug_codes, " ".join(tokens[:n_tokens]))
+                if hit:
+                    code_value, base_name = hit
+                    break
     # Issue #852: extend base_name to the longest multi-word prefix that has
     # a JA-dict entry (``Cefcapene pivoxil`` / ``Magnesium Sulfate`` /
     # ``Regular insulin`` / ``ICS/LABA inhaler`` / …), so ``.text``
@@ -1537,6 +1554,15 @@ def _build_medication_admin(
                     break
         if not code_value:
             code_value = drug_codes.get(base_name.replace("_", " "), "")
+        if not code_value:
+            # Issue #2134: chronic medications carry lowercase drug ids
+            # ("sertraline"); fall back to a case-insensitive match when it
+            # names exactly one code (exact-case keys still win above).
+            for n_tokens in range(len(tokens), 0, -1):
+                hit = _case_insensitive_code(drug_codes, " ".join(tokens[:n_tokens]))
+                if hit:
+                    code_value, base_name = hit
+                    break
     # Issue #852: extend base_name to the longest multi-word prefix that has
     # a JA-dict entry so ``.text`` localization hits multi-word product-family
     # names even when Order.order_code was pre-set from the disease YAML

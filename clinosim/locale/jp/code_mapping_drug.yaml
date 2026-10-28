@@ -75,7 +75,7 @@ Alendronate: "3999018F1196"
 Donepezil: "1190012"
 Levodopa/Carbidopa: "1169101F1120"
 Levothyroxine: "2431004F1021"
-Tamsulosin: "2590009"
+Tamsulosin: "2590008"  # Issue #2134: was 2590009
 
 # === CO-8 authoritative subset (session 43 secondary-dx continuation) ===
 # Top uncoded drugs from JP p=10000 baseline (MR codeless 37.3%). Each entry
@@ -88,7 +88,8 @@ Tamsulosin: "2590009"
 #
 # 解熱鎮痛消炎剤 (1149)
 Ibuprofen: "1149001"           # イブプロフェン
-Ketorolac: "1149029"           # ケトロラク
+# Ketorolac: not marketed in Japan — no YJ code (Issue #2134; the former
+# 1149029 is a zaltoprofen class). JP ED treatments use IV acetaminophen.
 # 副腎ホルモン剤 (2456)
 Prednisolone: "2456001"        # プレドニゾロン
 Methylprednisolone: "2456003"  # メチルプレドニゾロン
@@ -98,7 +99,7 @@ Metoclopramide: "2399004"      # メトクロプラミド
 # 抗ヒスタミン剤 (4411)
 Diphenhydramine: "4411001"     # ジフェンヒドラミン
 # 麻薬性鎮痛剤 (8114)
-Morphine: "8114001"            # モルヒネ
+Morphine: "8114401"            # モルヒネ (Issue #2134: was 8114001)
 # 局所麻酔剤 (1211)
 Lidocaine: "1211002"           # リドカイン
 # 気管支拡張剤 (2259)
@@ -116,14 +117,14 @@ Lactated Ringers: "3319534A4046"    # 乳酸リンゲル液
 LR: "3319534A4046"                  # (alias)
 # 血圧上昇剤 (2119)
 Dobutamine: "2119404"          # ドブタミン
-Norepinephrine: "2119002"      # ノルエピネフリン
+Norepinephrine: "2451401"      # ノルエピネフリン (Issue #2134: was 2119002)
 # 抗凝血剤 (3334)
 Heparin: "3334400"             # ヘパリン (Unfractionated Heparin also resolves here via suffix-match fallback in _fhir_medications; session 45)
 # 抗真菌剤 (6179)
 Micafungin: "6179400"          # ミカファンギン
 Fluconazole: "6290002M1020"         # フルコナゾール
 # ペニシリン系 (6131)
-Ampicillin: "6131001"          # アンピシリン
+Ampicillin: "6131400"          # アンピシリン (Issue #2134: was 6131001)
 # 消化性潰瘍治療剤 (2325)
 Famotidine: "2325007"          # ファモチジン
 Omeprazole: "2329022"          # オメプラゾール
@@ -234,8 +235,8 @@ Hydromorphone:                         "8119002B2023"  # ヒドロモルフォ�
 # Broad-spectrum antibiotic category label (CY7-28) — assign a representative
 # broad-spectrum agent (Meropenem carbapenem) as a defensible fallback.
 # The clinical text "広域スペクトラム抗菌薬" is a shortcut in disease YAMLs.
-"広域スペクトラム抗菌薬":               "6139002"        # → Meropenem (existing)
-"Broad spectrum antibiotic":           "6139002"
+"広域スペクトラム抗菌薬":               "6139400"        # → Meropenem (existing) (Issue #2134: was 6139002)
+"Broad spectrum antibiotic":           "6139400"  # Issue #2134: was 6139002
 
 # === C6-C7 residual sweep (2026-07-11) ===
 # Amiodarone injection form (アンカロン注150 — the standard IV bolus for
@@ -358,19 +359,18 @@ lactulose:                               "3999001Q2058"  # (lowercase alias for 
 # omitted — neither is PMDA-approved in Japan; if the emit path draws
 # either for a JP patient the FHIR MedicationRequest falls back to
 # text-only coding (same shape as any unregistered chronic med).
-"Sertraline": "1179044"
-"Escitalopram": "1179052"
-"Paroxetine": "1179040"
+"Sertraline": "1179046"  # Issue #2134: was 1179044
+"Escitalopram": "1179054"  # Issue #2134: was 1179052
+"Paroxetine": "1179041"  # Issue #2134: was 1179040
 
 # Cesarean intraoperative bundle (#1285 sub-scope). 7-digit class
 # representatives per MHLW 薬効分類:
-#   2499 = 子宮収縮薬 (Oxytocin)
+#   2414 = 脳下垂体ホルモン剤 (Oxytocin)
 #   1214 = 局所麻酔剤 (Bupivacaine — for spinal anesthesia)
-# Ketorolac (1149029) and Ondansetron (2391003) are already listed
-# above; the hot7.yaml side now carries their JA displays so the
-# lookup no longer silently returns the bare code.
-"Oxytocin": "2499401"
-"Bupivacaine": "1214402"
+# Ondansetron (2391003) is already listed above; the hot7.yaml side
+# carries its JA display so the lookup does not return the bare code.
+"Oxytocin": "2414400"  # Issue #2134: was 2499401
+"Bupivacaine": "1214403"  # Issue #2134: was 1214402
 
 # Oncology chemo catalog expansion (#1280 sub-C). 7-digit class
 # representatives per MHLW 薬効分類. All drugs PMDA-approved.
@@ -378,9 +378,9 @@ lactulose:                               "3999001Q2058"  # (lowercase alias for 
 # is deferred to a separate follow-up requiring oncology clinical
 # review.
 "Gemcitabine": "4224400"          # ジェムザール
-"Irinotecan": "4240401"           # カンプト / トポテシン
-"Nab-paclitaxel": "4291423"       # アブラキサン
-"Temozolomide": "4291023"         # テモダール
+"Irinotecan": "4240404"           # カンプト / トポテシン (Issue #2134: was 4240401)
+"Nab-paclitaxel": "4240409"       # アブラキサン (Issue #2134: was 4291423)
+"Temozolomide": "4219004"         # テモダール (Issue #2134: was 4291023)
 "BCG": "6323400"                  # イムノブラダー (intravesical)
 
 # SNRI + atypical antidepressants (#1281 second follow-up + #1314).
@@ -401,14 +401,14 @@ lactulose:                               "3999001Q2058"  # (lowercase alias for 
 #   1179052 — Duloxetine (デュロキセチン, generic since 2014)
 #   1179051 — Mirtazapine (ミルタザピン / brand リフレックス・レメロン)
 #   1179055 — Venlafaxine (brand イフェクサーSR, 2015 approval)
-#   1179038 — Fluvoxamine (デプロメール / ルボックス — pre-existing)
+#   1179039 — Fluvoxamine (デプロメール / ルボックス; 1179038 is risperidone, #2134)
 #   1179040F2108 — Milnacipran (12-char yj.yaml entry alias)
 #
 # Master-source: ``clinosim/codes/authoritative/JP_MedicationCodeYJ_CS_full.json``
 # (MHLW 薬価基準 fragment). Each 7-digit code was verified to have
 # ≥ 1 product-level entry in that master before adding here (a wet
 # audit gate for "no fabrication of codes").
-"Fluvoxamine": "1179038"
+"Fluvoxamine": "1179039"  # Issue #2134: was 1179038
 "Milnacipran": "1179040F2108"
 "Duloxetine": "1179052"
 "Mirtazapine": "1179051"

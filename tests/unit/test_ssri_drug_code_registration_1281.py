@@ -48,9 +48,9 @@ def test_us_rxnorm_registration(drug, rxcui, display_en):
 @pytest.mark.parametrize(
     "drug, yj_code",
     [
-        ("Sertraline", "1179044"),
-        ("Escitalopram", "1179052"),
-        ("Paroxetine", "1179040"),
+        ("Sertraline", "1179046"),
+        ("Escitalopram", "1179054"),
+        ("Paroxetine", "1179041"),
     ],
 )
 def test_jp_yj_registration_pmda_approved(drug, yj_code):

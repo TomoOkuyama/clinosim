@@ -51,9 +51,9 @@ def test_us_chemo_rxnorm_registration_1280(drug, rxcui, display_substr):
     "drug, yj_code, ja_substr",
     [
         ("Gemcitabine", "4224400", "ゲムシタビン"),
-        ("Irinotecan", "4240401", "イリノテカン"),
-        ("Nab-paclitaxel", "4291423", "パクリタキセル"),
-        ("Temozolomide", "4291023", "テモゾロミド"),
+        ("Irinotecan", "4240404", "イリノテカン"),
+        ("Nab-paclitaxel", "4240409", "パクリタキセル"),
+        ("Temozolomide", "4219004", "テモゾロミド"),
         ("BCG", "6323400", "BCG"),
     ],
 )

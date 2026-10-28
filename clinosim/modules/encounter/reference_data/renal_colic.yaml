@@ -37,8 +37,10 @@ workup:
     - {test: "CT_abdomen_pelvis_noncontrast", probability: 0.7}
     - {test: "Renal_ultrasound", probability: 0.3}
 
+# Issue #2134: ketorolac is not marketed in Japan; JP ED analgesia is IV
+# acetaminophen (アセリオ).
 treatment:
-  - {name: "Ketorolac 30mg IV", probability: 0.8, route: "IV", intent: "NSAID analgesia (first-line)"}
+  - {name: "Ketorolac 30mg IV", locale_name: {jp: "Acetaminophen 1000mg", us: "Ketorolac 30mg IV"}, probability: 0.8, route: "IV", intent: "NSAID analgesia (first-line)"}
   - {name: "Morphine 4mg IV", probability: 0.3, route: "IV", intent: "opioid if NSAID insufficient"}
   - {name: "Ondansetron 4mg IV", probability: 0.5, route: "IV", intent: "antiemetic"}
   - {name: "IV normal saline 1000mL", probability: 0.7, route: "IV", intent: "hydration"}
