@@ -16,7 +16,7 @@ from clinosim.codes import lookup as code_lookup
 from clinosim.codes.encounter_type_to_snomed import resolve_encounter_type_snomed
 from clinosim.codes.hl7_encounter import ActPriority
 from clinosim.modules._shared import is_jp, pick_localized_field, resolve_lang
-from clinosim.modules.diagnosis.nonspecific_codes import is_visit_reason_zcode
+from clinosim.modules.diagnosis.nonspecific_codes import is_never_principal_dx, is_visit_reason_zcode
 from clinosim.modules.output.fhir_r4.conditions.primary_ref import (
     encounter_admission_condition_id,
     needs_admission_diagnosis_condition,
@@ -579,6 +579,13 @@ def _build_encounter(
                     "rank": _rank,
                 }
             )
+            # Issue #2157: the discharge dx of delivery (Z37.0) and septic
+            # shock (R65.21) stays may not be principal; the admission dx
+            # (O80 / A41.9) is, so it takes rank 1.
+            if is_never_principal_dx(primary_dx_code):
+                diagnosis_list.insert(0, diagnosis_list.pop())
+                for _r, _entry in enumerate(diagnosis_list, start=1):
+                    _entry["rank"] = _r
         resource["diagnosis"] = diagnosis_list
 
     # Hospitalization (admit source / discharge disposition / re-admission).
