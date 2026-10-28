@@ -1,6 +1,9 @@
 # Small hospital / clinic with inpatient beds (~10 beds)
 # Limited resources, some services (CT/MRI) referred to regional hospital.
 
+# Staff-roster / metadata scale (Issue #2128).
+hospital_scale: small
+
 recommended_population: 12000  # 10-bed clinic, ~80% occupancy
 
 # Imaging infrastructure (WADO base URL for Endpoint emission)

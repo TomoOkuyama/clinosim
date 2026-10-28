@@ -7,6 +7,9 @@
 
 # Recommended catchment population for this hospital size
 # This is the default if -p is not specified on CLI
+# Staff-roster / metadata scale (Issue #2128).
+hospital_scale: medium
+
 recommended_population:
   US: 40000   # 50 beds ÷ 130 beds/100K ≈ 38K, rounded to 40K for ~80% occupancy
   JP: 10000   # Based on admission throughput: 50 beds × 365d × 0.80 / 14d avg LOS

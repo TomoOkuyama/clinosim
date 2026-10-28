@@ -1,11 +1,84 @@
 # Large regional hospital (200 beds)
 # Full service: MRI, multiple CTs, full OR capacity
 
+# Staff-roster / metadata scale (Issue #2128).
+hospital_scale: large
+
 recommended_population: 50000
 
 # Imaging infrastructure (WADO base URL for Endpoint emission)
 imaging:
   wado_base_url: "https://pacs.large-hospital.clinosim.example/dicomweb"
+
+# Issue #2128: a 200-bed regional hospital staffs the medical and surgical
+# sub-specialties that the 50-bed hospital rolls up into internal medicine /
+# general surgery, each with its own ward. Psychiatry is an outpatient
+# service line here; its inpatient unit is #2045 step 2.
+available_departments:
+  - internal_medicine    # 内科
+  - cardiology           # 循環器内科
+  - pulmonology          # 呼吸器内科
+  - gastroenterology     # 消化器内科
+  - neurology            # 脳神経内科 (stroke unit)
+  - nephrology           # 腎臓内科
+  - general_surgery      # 外科
+  - neurosurgery         # 脳神経外科
+  - orthopedics          # 整形外科
+  - emergency_medicine   # 救急
+  - primary_care         # プライマリケア (outpatient)
+  - rehabilitation       # リハビリテーション科 (PT/OT/ST)
+  - nutrition            # 栄養管理科 (RD)
+  - medical_social_work  # 医療社会事業科 (MSW)
+  - oncology             # 腫瘍内科 / 化学療法室
+  - psychiatry           # 精神科 (outpatient)
+
+department_rollup:
+  endocrinology: internal_medicine
+  hematology: internal_medicine
+  infectious_disease: internal_medicine
+  trauma_surgery: general_surgery
+  cardiovascular_surgery: general_surgery
+  vascular_surgery: general_surgery
+  # Outpatient-only lines without a dedicated service (as at the 50-bed
+  # hospital; the perinatal / pediatric pathways run separately).
+  pediatrics: primary_care
+  obgyn: primary_care
+  dermatology: primary_care
+  oncology_infusion: oncology
+  radiation_oncology: oncology
+  hematology_oncology: oncology
+  medical_oncology: oncology
+
+wards:
+  internal_medicine: ["4E", "4W"]
+  cardiology: ["5E"]
+  pulmonology: ["5W"]
+  gastroenterology: ["6E"]
+  neurology: ["6W"]
+  nephrology: ["7E"]
+  general_surgery: ["3E"]
+  neurosurgery: ["7W"]
+  orthopedics: ["3W"]
+  emergency_medicine: ["ER"]
+  primary_care: ["OPD"]
+  oncology: ["OPD-ONC"]
+  psychiatry: ["OPD-PSY"]
+
+# Bed capacity per ward (sums to resource_capacity.inpatient_beds)
+# Sized to the simulated admission mix (US, 20,000 persons, 2024: internal
+# medicine 32%, pulmonology 18%, cardiology 16%, orthopedics 8%, neurology 5%,
+# GI 3%, general surgery 3%, nephrology 2%, neurosurgery 1%).
+ward_capacity:
+  "4E": 28
+  "4W": 28
+  "5E": 28
+  "5W": 30
+  "6E": 18
+  "6W": 18
+  "7E": 8
+  "3E": 16
+  "7W": 8
+  "3W": 18
 
 resource_capacity:
   lab_analyzers: 5

@@ -182,14 +182,20 @@ def _load_hospital_ops(hospital_config_path: str | None) -> dict[str, Any]:
     ``None`` the default ``config/hospital_operations.yaml`` is loaded via
     the facility loader.
     """
+    from clinosim.simulator.hospital_ops import validate_hospital_ops
+
     if hospital_config_path:
         import yaml
 
         with open(Path(hospital_config_path), encoding="utf-8") as f:
-            return yaml.safe_load(f) or {}
+            ops = yaml.safe_load(f) or {}
+        validate_hospital_ops(ops, str(hospital_config_path))
+        return ops
     from clinosim.modules.facility.hospital_state import load_hospital_operations
 
-    return load_hospital_operations()
+    ops = load_hospital_operations()
+    validate_hospital_ops(ops, "config/hospital_operations.yaml")
+    return ops
 
 
 def _resolve_pop_size(hospital_ops: dict[str, Any], config: SimulatorConfig) -> int:
