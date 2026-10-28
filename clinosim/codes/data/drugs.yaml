@@ -943,7 +943,13 @@ drugs:
   sodium_chloride_234_injectable_solution:
     names: {en: "Sodium Chloride 23.4% Injectable Solution", ja: "塩化ナトリウム 23.4% 注射液"}
     codes:
-      rxnorm: "2587736"
+      rxnorm: "313016"  # Issue #2152: was 2587736 (oral solution)
+    classes: []
+  sodium_chloride_3_injection:
+    # Issue #2152: 3 % hypertonic saline, first-line IV product.
+    names: {en: "Sodium Chloride 3% Injection", ja: "塩化ナトリウム 3% 注射液"}
+    codes:
+      rxnorm: "730781"
     classes: []
   erythromycin_0005_mg_mg_ophthalmic_ointment:
     names: {en: "erythromycin 0.005 MG/MG Ophthalmic Ointment", ja: "エリスロマイシン 0.005 mg/mg 眼軟膏"}
