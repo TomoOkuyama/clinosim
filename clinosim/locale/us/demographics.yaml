@@ -392,10 +392,11 @@ disease_incidence:
     prerequisite_condition: J44  # requires prior COPD diagnosis
     hospitalization_threshold_modifier: 0.7
   sepsis:
-    # Issue #2033: rates x7 bring sepsis admissions to ~9-10 per 1,000
-    # person-years. HCUP SB #277: septicemia is the most frequent principal
-    # diagnosis, ~8% of ~108 stays per 1,000 population.
-    age_rates: {0: 35, 15: 56, 25: 70, 35: 105, 45: 210, 55: 560, 65: 1400, 75: 3500, 85: 7000}
+    # Issue #2033 raised the rates x7. Issue #2158: x0.75 brings sepsis
+    # admissions from ~9.1 to ~6.8 per 1,000 person-years. HCUP SB #277
+    # (2018 NIS): 2.22M septicemia stays, 8.0% of nonmaternal, nonneonatal
+    # stays, ~6.8 per 1,000 US population.
+    age_rates: {0: 26, 15: 42, 25: 52, 35: 79, 45: 158, 55: 420, 65: 1050, 75: 2625, 85: 5250}
     sex_ratio_female: 0.85
     event_type: acute_disease_onset
     always_hospitalize: true
