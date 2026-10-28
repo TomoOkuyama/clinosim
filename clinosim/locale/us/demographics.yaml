@@ -385,8 +385,11 @@ disease_incidence:
     # with diagnosed COPD (~0.04-0.1 per patient-year). Issue #2024: the
     # earlier 3,000-32,000 rates gave ~0.5 admissions per COPD patient-year;
     # treated-and-released exacerbations come from the ED condition
-    # copd_exacerbation_ed.
-    age_rates: {0: 600, 45: 2400, 55: 3600, 65: 4400, 75: 5600, 85: 6400}
+    # copd_exacerbation_ed. Issue #2160: x0.55 brings COPD admissions from
+    # ~4.4 to ~1.7 per 1,000 person-years (HCUP SB #277, 2018 NIS: 569,600
+    # COPD and bronchiectasis stays, 2.0% of nonmaternal, nonneonatal
+    # stays, ~1.7 per 1,000 US population).
+    age_rates: {0: 330, 45: 1320, 55: 1980, 65: 2420, 75: 3080, 85: 3520}
     sex_ratio_female: 0.9
     event_type: chronic_exacerbation
     prerequisite_condition: J44  # requires prior COPD diagnosis
