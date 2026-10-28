@@ -70,6 +70,10 @@ codes:
   F32.9:
     en: Depressive episode, unspecified
     ja: うつ病エピソード、詳細不明
+  # Issue #2124: ED psychiatric crisis (suicidal ideation in a severe episode).
+  F32.2:
+    en: Severe depressive episode without psychotic symptoms
+    ja: 精神病症状を伴わない重症うつ病エピソード
   # Issue #1239 (2026-09-10): F33/F41.1 追加 (JP demographics.yaml で
   # chronic prevalence 定義追加に伴い icd-10 catalog にも登録、無いと
   # Condition emit が display lookup 失敗で dangling ref 発生)。
@@ -79,6 +83,9 @@ codes:
   F33.9:
     en: Recurrent depressive disorder, unspecified
     ja: 反復性うつ病性障害、詳細不明
+  F33.2:
+    en: Recurrent depressive disorder, current episode severe without psychotic symptoms
+    ja: 反復性うつ病性障害，現在精神病症状を伴わない重症エピソード
   F41.0:
     en: Panic disorder [episodic paroxysmal anxiety]
     ja: パニック障害

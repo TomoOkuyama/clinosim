@@ -1712,6 +1712,7 @@ fallback:
   # is scale-agnostic; only the label differs.
   ed_disposition_home: {en: 'Discharged home (ESI level {level}, {reason})', ja: '自宅退院（JTAS レベル {level}、{reason}）'}
   ed_disposition_transfer: {en: 'Transferred to another facility ({reason})', ja: '他院転送（{reason}）'}
+  ed_disposition_psychiatric_transfer: {en: 'Transferred to a psychiatric facility for inpatient care ({reason})', ja: '精神科病院へ転院（{reason}）'}
   ed_workup_fallback: {en: 'ED workup: no significant findings', ja: 検査・処置：特記事項なし}
   family_history_deceased_suffix: {en: ' (deceased)', ja: （故人）}
   family_history_fallback: {en: No significant family history, ja: 特記家族歴なし}

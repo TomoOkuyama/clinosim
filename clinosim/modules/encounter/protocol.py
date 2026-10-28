@@ -5,7 +5,7 @@ from __future__ import annotations
 from collections.abc import Iterator
 from functools import lru_cache
 from pathlib import Path
-from typing import Any
+from typing import Any, Literal
 
 import yaml
 from pydantic import BaseModel, ConfigDict, Field
@@ -93,6 +93,15 @@ class EncounterConditionProtocol(BaseModel):
     # Chronic-code prefixes a resident must carry for this condition to be
     # drawn (exacerbations of a chronic disease, e.g. ["J45"] for asthma).
     requires_chronic_prefix: list[str] = []
+
+    # Per-severity disposition (``discharge_home`` / ``transfer_psychiatric``)
+    # and per-chronic-prefix diagnosis code overrides (Issue #2124).
+    disposition_by_severity: dict[str, Literal["discharge_home", "transfer_psychiatric"]] = {}
+    icd10_code_by_chronic_prefix: dict[str, str] = {}
+    # Most / least urgent triage level the condition allows before the vitals
+    # floor (ESI / JTAS 1-5).
+    triage_level_min: int | None = Field(default=None, ge=1, le=5)
+    triage_level_max: int | None = Field(default=None, ge=1, le=5)
 
     # Narrative spec (Tier 1 #3 α-min-2 Task 6): per-encounter-type narrative
     # templates.  Optional default = None so existing encounter YAMLs without a

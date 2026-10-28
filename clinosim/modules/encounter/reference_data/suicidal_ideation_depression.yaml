@@ -1,0 +1,100 @@
+# Suicidal ideation in a severe depressive episode — ED visit protocol (Issue #2124)
+# The default hospital has no inpatient psychiatric unit, so patients who need
+# inpatient psychiatric care are evaluated in the ED (medical clearance, risk
+# assessment, 1:1 observation) and transferred to a psychiatric facility.
+# Benchmark: HCUP Statistical Brief #220 (NEDS 2006-2013) — about 1% of adult
+# ED visits involve suicidal ideation; 72% end in admission or transfer.
+
+condition_id: suicidal_ideation_depression
+icd10_code: "F32.2"
+icd10_display: "Major depressive disorder, single episode, severe without psychotic features"
+# Recurrent depression (F33) codes the current severe episode as F33.2.
+icd10_code_by_chronic_prefix:
+  F33: "F33.2"
+chief_complaint:
+  en: "Suicidal ideation, depressed mood"
+  ja: "希死念慮・抑うつ気分"
+encounter_type: emergency
+department: emergency_medicine
+# Mild: no plan or intent, safety plan and outpatient follow-up. Moderate /
+# severe: transfer for inpatient psychiatric care (~70% overall, SB #220).
+disposition: discharge_home
+disposition_by_severity:
+  mild: discharge_home
+  moderate: transfer_psychiatric
+  severe: transfer_psychiatric
+# Suicidal ideation is an ESI v4 high-risk situation (decision point B): ESI 2,
+# and level 1 only when the arrival vitals require it; JTAS shares the numbering.
+triage_level_min: 2
+triage_level_max: 2
+# SB #220 counts adults; adolescent crises follow a pediatric pathway.
+min_age: 18
+# Crisis in a known depressive disorder (F32 / F33 sampled in the population).
+requires_chronic_prefix: ["F32", "F33"]
+
+severity_distribution:
+  mild: 0.30
+  moderate: 0.50
+  severe: 0.20
+
+# Transfers board in the ED while a psychiatric bed is found.
+ed_stay_hours:
+  mild: {mean: 4, sd: 1}
+  moderate: {mean: 9, sd: 3}
+  severe: {mean: 12, sd: 4}
+
+initial_state_impact:
+  mild: {sympathetic_activation: 0.2}
+  moderate: {sympathetic_activation: 0.3}
+  severe: {sympathetic_activation: 0.4}
+
+# Medical clearance before transfer.
+workup:
+  vitals: true
+  labs:
+    - {test: "WBC", probability: 0.8}
+    - {test: "Hb", probability: 0.8}
+    - {test: "Na", probability: 0.8}
+    - {test: "K", probability: 0.8}
+    - {test: "Creatinine", probability: 0.8}
+    - {test: "Glucose", probability: 0.8}
+    - {test: "TSH", probability: 0.3}
+  imaging:
+    - {test: "ECG", probability: 0.4}
+
+treatment:
+  - {name: "Psychiatric evaluation and suicide risk assessment", probability: 1.0, route: "non-pharmacologic"}
+  - {name: "1:1 safety observation", probability: 0.7, route: "non-pharmacologic"}
+  - {name: "Lorazepam 0.5mg", probability: 0.25, route: "PO", intent: "anxiolytic"}
+
+discharge_instructions:
+  - "Safety plan reviewed with patient and family"
+  - "Remove access to firearms and stockpiled medications"
+  - "Crisis line information provided"
+  - "Follow up with psychiatry within 7 days"
+  - "Return immediately if suicidal thoughts worsen or a plan develops"
+
+incidence_modifier: 1.0
+probability: 0.018  # ~1% of ED visits (weights sum to ~1.8)
+age_distribution: adults
+sex_ratio_female: 1.0
+seasonal: {1: 1.0, 2: 1.0, 3: 1.0, 4: 1.0, 5: 1.05, 6: 1.05, 7: 1.0, 8: 1.0, 9: 1.0, 10: 1.0, 11: 0.95, 12: 0.95}
+
+narrative:
+  ed_note_template:
+    chief_complaint_ja: '{chief_complaint_ja}の訴え'
+    hpi_ja: '{onset_days}日前より抑うつ気分が増悪し、希死念慮が出現'
+    physical_exam_ja:
+      general: 意識清明、表情乏しく抑うつ的
+    ed_workup_summary_ja: '{lab_summary_ja}、{imaging_summary_ja}'
+    disposition_ja: '{disposition_display_ja}'
+    chief_complaint_en: '{chief_complaint_en}'
+    hpi_en: 'Worsening depressed mood over {onset_days} day(s) with new suicidal ideation.'
+    physical_exam_en:
+      general: Alert and oriented, flat affect, depressed mood
+    ed_workup_summary_en: '{lab_summary_en}, {imaging_summary_en}'
+    disposition_en: '{disposition_display_en}'
+  ed_triage_template:
+    common_triage_levels:
+    - '2'
+    - '3'

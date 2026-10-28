@@ -15,3 +15,5 @@ codes:
   exp: {en: "Expired", ja: "死亡退院"}
   # Issue #2084: unresolved hypoxemia / consciousness / perfusion at the maximum stay.
   snf: {en: "Skilled nursing facility", ja: "介護・療養施設"}
+  # Issue #2124: ED psychiatric crisis transferred to a psychiatric facility.
+  psy: {en: "Psychiatric hospital", ja: "精神科病院"}

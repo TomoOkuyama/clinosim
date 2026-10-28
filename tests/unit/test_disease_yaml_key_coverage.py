@@ -237,8 +237,12 @@ ENCOUNTER_TOP_KEYS = frozenset(
         "condition_id",
         "department",
         "disposition",
+        "disposition_by_severity",  # Issue #2124 (simulator/emergency.py ed_disposition)
         "encounter_type",
         "icd10_code",
+        "icd10_code_by_chronic_prefix",  # Issue #2124 (simulator/emergency.py ed_diagnosis_code)
+        "triage_level_max",  # Issue #2124 (triage/engine.py condition_triage_bounds)
+        "triage_level_min",  # Issue #2124 (triage/engine.py condition_triage_bounds)
         "icd10_display",
         "incidence_modifier",
         "narrative",
