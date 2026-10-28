@@ -846,3 +846,16 @@ codes:
   24619-9:
     en: XR Wrist Views
     ja: 手関節単純X線撮影 3方向
+  # Issue #2138: toxicology screen (NLM Clinical Tables, LOINC 2.82).
+  5643-2:
+    en: Ethanol [Mass/volume] in Serum or Plasma
+    ja: エタノール (血清)
+  3298-7:
+    en: Acetaminophen [Mass/volume] in Serum or Plasma
+    ja: アセトアミノフェン血中濃度
+  4024-6:
+    en: Salicylates [Mass/volume] in Serum or Plasma
+    ja: サリチル酸血中濃度
+  69739-1:
+    en: Drugs of abuse panel - Urine by Screen method
+    ja: 尿中乱用薬物スクリーニング

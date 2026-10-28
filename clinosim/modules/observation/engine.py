@@ -19,6 +19,7 @@ from clinosim.modules.observation._variability_defaults import (
     TETANUS_STATUS_RESULT_DIST,
     URINALYSIS_RESULT_DIST,
     URINE_CULTURE_RESULT_DIST,
+    URINE_DRUG_SCREEN_RESULT_DIST,
 )
 
 _HERE = Path(__file__).resolve().parent
@@ -197,6 +198,10 @@ PRECISION: dict[str, int] = {
     "GAD-7": 0,
     # C-SSRS ideation severity is an integer 0-5.
     "C-SSRS": 0,
+    # Issue #2138: toxicology screen (integer reporting).
+    "Ethanol": 0,
+    "Acetaminophen_level": 0,
+    "Salicylate": 0,
 }
 
 
@@ -292,6 +297,11 @@ LAB_UNITS: dict[str, str] = {
     # active ideation with method, plan AND intent. Emitted at
     # F32 / F33 OP follow-up for severity-screened safety planning.
     "C-SSRS": "{score}",
+    # Issue #2138: psychiatric / overdose medical clearance.
+    "Ethanol": "mg/dL",
+    "Acetaminophen_level": "ug/mL",
+    "Salicylate": "mg/dL",
+    "Urine_drug_screen": "{qualitative}",
 }
 
 
@@ -335,6 +345,10 @@ PHYSIOLOGIC_LIMITS: dict[str, tuple[float, float]] = {
     # ideation", 5 is the maximum "active ideation with method,
     # plan AND intent" tier.
     "C-SSRS": (0.0, 5.0),
+    # Issue #2138: lethal ranges bound the toxicology levels.
+    "Ethanol": (0.0, 800.0),
+    "Acetaminophen_level": (0.0, 1000.0),
+    "Salicylate": (0.0, 150.0),
 }
 
 
@@ -388,6 +402,11 @@ BASELINE_LAB_NORMALS: dict[str, float] = {
     # conditioned value when the patient's PHQ-9 band is known
     # (axis 5 pattern) — baseline here is only used as a fallback.
     "C-SSRS": 1.0,
+    # Issue #2138: toxicology screen in medical clearance — not detected
+    # without an ingestion (reported below the assay's detection limit).
+    "Ethanol": 0.0,
+    "Acetaminophen_level": 0.0,
+    "Salicylate": 0.0,
     # Issue #757 remaining mappings: drug-level monitoring analytes.
     # Baseline values sit in the mid-therapeutic band for each drug, so a
     # patient on stable dosing shows a "therapeutic-range" (interpretation=N)
@@ -449,7 +468,12 @@ def round_to_precision(lab_name: str, value: float) -> float:
     return round(value, decimals)
 
 
-_QUALITATIVE_TESTS = {"Urinalysis", "Urine_culture", "Rapid_Strep", "Tetanus_status"}
+_QUALITATIVE_TESTS = {"Urinalysis", "Urine_culture", "Rapid_Strep", "Tetanus_status", "Urine_drug_screen"}
+
+
+def is_qualitative_test(lab_name: str) -> bool:
+    """Whether the analyte reports a categorical result (no numeric baseline)."""
+    return lab_name in _QUALITATIVE_TESTS
 
 
 def generate_lab_result(
@@ -477,6 +501,8 @@ def _generate_qualitative_result(lab_name: str, rng: np.random.Generator) -> str
         return str(rng.choice(URINE_CULTURE_RESULT_DIST.options, p=URINE_CULTURE_RESULT_DIST.weights))
     if lab_name == "Rapid_Strep":
         return str(rng.choice(RAPID_STREP_RESULT_DIST.options, p=RAPID_STREP_RESULT_DIST.weights))
+    if lab_name == "Urine_drug_screen":
+        return str(rng.choice(URINE_DRUG_SCREEN_RESULT_DIST.options, p=URINE_DRUG_SCREEN_RESULT_DIST.weights))
     if lab_name == "Tetanus_status":
         return str(rng.choice(TETANUS_STATUS_RESULT_DIST.options, p=TETANUS_STATUS_RESULT_DIST.weights))
     return "Negative"

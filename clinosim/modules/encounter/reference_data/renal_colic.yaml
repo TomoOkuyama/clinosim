@@ -31,7 +31,12 @@ workup:
   labs:
     - {test: "Creatinine", probability: 0.8}
     - {test: "WBC", probability: 0.6}
-    - {test: "Urinalysis", probability: 0.95}
+    # Issue #2138: microscopic / dipstick hematuria in ~85% of ureteral stones.
+    - test: "Urinalysis"
+      probability: 0.95
+      result_distribution:
+        options: ["3+ blood", "2+ blood", "1+ blood", "Normal"]
+        weights: [0.30, 0.35, 0.20, 0.15]
     - {test: "Ca", probability: 0.3}
   imaging:
     - {test: "CT_abdomen_pelvis_noncontrast", probability: 0.7}

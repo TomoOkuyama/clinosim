@@ -98,3 +98,10 @@ GAD-7: "70274-6"
 # ideation severity scale (score 0-5). Posner 2011 Am J Psychiatry.
 # LOINC 93372-1 (lifetime suicidal ideation severity scale).
 C-SSRS: "93372-1"
+
+# Issue #2138: toxicology screen for psychiatric / overdose medical
+# clearance. LOINC verified via NLM Clinical Tables (LOINC 2.82).
+Ethanol: "5643-2"              # Ethanol [Mass/volume] in Serum or Plasma
+Acetaminophen_level: "3298-7"  # Acetaminophen [Mass/volume] in Serum or Plasma
+Salicylate: "4024-6"           # Salicylates [Mass/volume] in Serum or Plasma
+Urine_drug_screen: "69739-1"   # Drugs of abuse panel - Urine by Screen method

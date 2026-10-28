@@ -144,6 +144,14 @@ ranges:
   TSH:
     - {low: 0.5, high: 5.0, unit: "m[IU]/L", text: "一般基準値"}
 
+  # === 毒物検査 (Issue #2138) ===
+  Ethanol:
+    - {low: 0, high: 10, unit: "mg/dL", text: "検出せず (<10 mg/dL)"}
+  Acetaminophen_level:
+    - {low: 0, high: 20, unit: "ug/mL", text: "スクリーニング (治療域 10-30)"}
+  Salicylate:
+    - {low: 0, high: 30, unit: "mg/dL", text: "スクリーニング (中毒域 >30)"}
+
   # === その他 ===
   Cortisol:
     - {low: 6.24, high: 18.0, unit: "ug/dL", text: "早朝基準値"}

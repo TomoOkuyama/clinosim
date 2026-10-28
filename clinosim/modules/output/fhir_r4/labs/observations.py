@@ -24,7 +24,7 @@ from clinosim.modules.output.fhir_r4.labs._reference_ranges import (
     STANDALONE_VITAL_SIGNS,
     BloodPressureComponentReferenceRange,
 )
-from clinosim.modules.output.fhir_r4.labs.coding_strategy import select_lab_coding_strategy
+from clinosim.modules.output.fhir_r4.labs.coding_strategy import select_lab_coding_strategy, uncoded_analyte_display
 from clinosim.modules.output.fhir_r4.labs.diagnostic_report import (
     LAB_OBSERVATION_KEY_SYSTEM,
     _lab_observation_structural_key,
@@ -146,9 +146,12 @@ def _build_lab_observation(
     # a LocalCode coding).
     if _localcode is not None and _localcode.get("display"):
         display_name = _localcode["display"]
-    else:
+    elif codings:
         display_name = codings[0]["display"]
-    code_value = codings[0]["code"]
+    else:
+        # No standard code at all (Issue #2138): text-only code, in Japanese on JP.
+        display_name = uncoded_analyte_display(lab_name) if is_jp(country) else lab_name
+    code_value = codings[0]["code"] if codings else ""
 
     # encounter_id must be non-empty: the production path always provides
     # ctx.primary_enc_id, and it participates in the opaque-id structural key
@@ -206,10 +209,7 @@ def _build_lab_observation(
                 "text": _localize_display("Laboratory", country, _CATEGORY_DISPLAY_JA),
             }
         ],
-        "code": {
-            "coding": codings,
-            "text": display_name,
-        },
+        "code": {"coding": codings, "text": display_name} if codings else {"text": display_name},
         "subject": patient_ref(patient_id),
         # Session-98 F11 fix. `effectiveDateTime` on a lab Observation is
         # the *sample collection* time (FHIR spec: "The time or time-period

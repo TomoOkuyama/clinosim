@@ -7,8 +7,8 @@
     "source_content_note": "The LOINC master ships complete (~109k codes). The snapshot filters to codes clinosim emits so shipped size stays small. Codes marked missing indicate clinosim references a LOINC code that does not exist in LOINC 2.82 (retired / renumbered / fabricated) — treat as regression and open an issue.",
     "fetched_from": "https://github.com/iryohjoho/fhir-jp-validator tx-server-build/loinc-src/",
     "extracted_at": "2026-07-19",
-    "clinosim_codes_total": 169,
-    "clinosim_codes_in_source": 167,
+    "clinosim_codes_total": 173,
+    "clinosim_codes_in_source": 171,
     "clinosim_codes_missing_from_source": [
       "42346-6",
       "45391-8"
@@ -62,15 +62,15 @@
       "status": "ACTIVE"
     },
     {
-      "code": "72514-3",
-      "display": "Pain severity - 0-10 verbal numeric rating [Score] - Reported",
-      "short_display": "Pain severity 0-10 Scre Reported",
-      "status": "ACTIVE"
-    },
-    {
       "code": "104816-4",
       "display": "Beta hydroxybutyrate [Moles/volume] in Blood",
       "short_display": "B-OH-Butyr Bld-sCnc",
+      "status": "ACTIVE"
+    },
+    {
+      "code": "107117-4",
+      "display": "Method of oxygen delivery",
+      "short_display": "Oxygen delivery method",
       "status": "ACTIVE"
     },
     {
@@ -566,6 +566,12 @@
       "status": "ACTIVE"
     },
     {
+      "code": "3298-7",
+      "display": "Acetaminophen [Mass/volume] in Serum or Plasma",
+      "short_display": "APAP SerPl-mCnc",
+      "status": "ACTIVE"
+    },
+    {
       "code": "33452-4",
       "display": "Maximum expiratory gas flow Respiratory system airway",
       "short_display": "PEF Airway",
@@ -647,6 +653,12 @@
       "code": "38227-5",
       "display": "Braden scale total score",
       "short_display": "Braden Scale Total Score",
+      "status": "ACTIVE"
+    },
+    {
+      "code": "4024-6",
+      "display": "Salicylates [Mass/volume] in Serum or Plasma",
+      "short_display": "Salicylates SerPl-mCnc",
       "status": "ACTIVE"
     },
     {
@@ -770,6 +782,12 @@
       "status": "ACTIVE"
     },
     {
+      "code": "5643-2",
+      "display": "Ethanol [Mass/volume] in Serum or Plasma",
+      "short_display": "Ethanol SerPl-mCnc",
+      "status": "ACTIVE"
+    },
+    {
       "code": "57133-1",
       "display": "Referral note",
       "short_display": "Referral note",
@@ -872,6 +890,12 @@
       "status": "ACTIVE"
     },
     {
+      "code": "69739-1",
+      "display": "Drugs of abuse panel - Urine by Screen method",
+      "short_display": "Drugs of abuse Pnl Ur Scn",
+      "status": "ACTIVE"
+    },
+    {
       "code": "718-7",
       "display": "Hemoglobin [Mass/volume] in Blood",
       "short_display": "Hgb Bld-mCnc",
@@ -881,6 +905,12 @@
       "code": "72166-2",
       "display": "Tobacco smoking status",
       "short_display": "Tobac smoke stat",
+      "status": "ACTIVE"
+    },
+    {
+      "code": "72514-3",
+      "display": "Pain severity - 0-10 verbal numeric rating [Score] - Reported",
+      "short_display": "Pain severity 0-10 Scre Reported",
       "status": "ACTIVE"
     },
     {
@@ -1019,12 +1049,6 @@
       "code": "99607-4",
       "display": "US.doppler Lower extremity vein - bilateral for venous mapping",
       "short_display": "DOP LE v-Bl for venous map",
-      "status": "ACTIVE"
-    },
-    {
-      "code": "107117-4",
-      "display": "Method of oxygen delivery",
-      "short_display": "Oxygen delivery method",
       "status": "ACTIVE"
     }
   ]

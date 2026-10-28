@@ -65,6 +65,12 @@ workup:
     - {test: "Creatinine", probability: 0.8}
     - {test: "Glucose", probability: 0.8}
     - {test: "TSH", probability: 0.3}
+    # Toxicology screen (Issue #2138): alcohol and drug co-use, and a
+    # co-ingestion screen even without a reported overdose.
+    - {test: "Ethanol", probability: 0.8}
+    - {test: "Urine_drug_screen", probability: 0.75}
+    - {test: "Acetaminophen_level", probability: 0.6}
+    - {test: "Salicylate", probability: 0.5}
     # Structured suicide risk screen (Issue #2129). C-SSRS ideation severity:
     # 2 non-specific active thoughts, 4 active ideation with some intent,
     # 5 with a specific plan and intent. PHQ-9 in the severe range.
