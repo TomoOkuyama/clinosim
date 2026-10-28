@@ -78,3 +78,10 @@ PCT: "5C215"
 # Uncoded/LocalCode dual-slice path and break the profile invariant.
 # LOINC coding is still emitted alongside via the strategy's US-mapping
 # fallback (mirrors the LegacyJSLM / CoreLabo dual-coding pattern).
+
+# Issue #2138: 毒物検査 (精神科救急の身体的除外)。JLAC10 分析物コードは
+# JSLM 検査項目コード表 v137 (137jlac10_1.xlsx, 分析物コード) で確認。
+Ethanol: "3Z040"              # エタノール
+Acetaminophen_level: "3L005"  # アセトアミノフェン
+Salicylate: "3M205"           # サリチル酸
+Urine_drug_screen: "3L970"    # 乱用薬物スクリーニング

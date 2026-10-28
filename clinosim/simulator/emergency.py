@@ -143,6 +143,7 @@ def _simulate_ed_visit(
         canonical_lab_name,
         determine_flag,
         generate_lab_result,
+        is_qualitative_test,
     )
     from clinosim.modules.physiology.engine import (
         apply_disease_onset,
@@ -298,7 +299,9 @@ def _simulate_ed_visit(
         # Skip non-quantitative diagnostics (e.g. ECG) misfiled under labs — not lab
         # analytes, must not get a fabricated value (AD-57 cleanup).
         canon = canonical_lab_name(test)
-        if canon not in _true_labs and canon not in baseline_values:
+        # Qualitative tests (urinalysis, urine drug screen, …) have no numeric
+        # baseline but are real results (Issue #2138: previously dropped).
+        if canon not in _true_labs and canon not in baseline_values and not is_qualitative_test(canon):
             continue
         order = Order(
             order_id=order_id,
@@ -315,7 +318,13 @@ def _simulate_ed_visit(
             status=OrderStatus.PLACED,
         )
         true_val = ed_lab_true_value(lab_spec, severity, _true_labs.get(canon, baseline_values.get(canon, 1.0)))
-        observed = generate_lab_result(canon, true_val, lab_rng)
+        dist = lab_spec.get("result_distribution")
+        if dist and is_qualitative_test(canon):
+            # Condition-specific categorical result (Issue #2138), e.g. pyuria
+            # in cystitis rather than the generic dipstick mix.
+            observed = str(lab_rng.choice(list(dist["options"]), p=list(dist["weights"])))
+        else:
+            observed = generate_lab_result(canon, true_val, lab_rng)
         flag = determine_flag(canon, observed, sex=patient.sex, country=country)
         order.result = OrderResult(
             result_datetime=visit_time

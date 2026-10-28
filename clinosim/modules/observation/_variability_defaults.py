@@ -38,6 +38,7 @@ __all__ = [
     "DEFAULT_ANALYTICAL_CV",
     "DEFAULT_BIOLOGICAL_CV",
     "RAPID_STREP_RESULT_DIST",
+    "URINE_DRUG_SCREEN_RESULT_DIST",
     "TETANUS_STATUS_RESULT_DIST",
     "URINALYSIS_RESULT_DIST",
     "URINE_CULTURE_RESULT_DIST",
@@ -170,3 +171,20 @@ populations sits in the 55-70 % "up-to-date" band with a large
 "unknown" tail because self-reported / chart-reviewed status is
 frequently missing. This distribution feeds the ED / wound-care
 pathway's Tdap-booster decision logic."""
+
+
+URINE_DRUG_SCREEN_RESULT_DIST = QualitativeResultDistribution(
+    options=(
+        "Negative",
+        "Positive: cannabinoids",
+        "Positive: benzodiazepines",
+        "Positive: amphetamines",
+        "Positive: cocaine",
+        "Positive: opiates",
+    ),
+    weights=(0.72, 0.12, 0.08, 0.04, 0.02, 0.02),
+)
+"""Urine drug-of-abuse screen result in psychiatric ED medical clearance
+(Issue #2138). Roughly a quarter of adult suicidal-ideation / psychiatric
+ED visits screen positive, cannabinoids and (prescribed) benzodiazepines
+most often; a positive class reports the first-ranked one only."""

@@ -135,6 +135,14 @@ ranges:
   TSH:
     - {low: 0.27, high: 4.2, unit: "m[IU]/L", text: "Standard reference interval (Mayo)"}
 
+  # === Toxicology (Issue #2138) ===
+  Ethanol:
+    - {low: 0, high: 10, unit: "mg/dL", text: "Not detected (<10 mg/dL)"}
+  Acetaminophen_level:
+    - {low: 0, high: 20, unit: "ug/mL", text: "Screening; therapeutic 10-30, toxic per nomogram"}
+  Salicylate:
+    - {low: 0, high: 30, unit: "mg/dL", text: "Screening; toxic >30 mg/dL"}
+
   # === Other ===
   Cortisol:
     - {low: 6.2, high: 19.4, unit: "ug/dL", text: "AM reference interval (Mayo)"}

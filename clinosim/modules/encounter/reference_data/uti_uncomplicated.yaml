@@ -31,8 +31,18 @@ initial_state_impact:
 workup:
   vitals: true
   labs:
-    - {test: "Urinalysis", probability: 0.9}
-    - {test: "Urine_culture", probability: 0.5}
+    # Issue #2138: cystitis results — pyuria / nitrite in nearly all
+    # dipsticks; uropathogen growth in most cultures (E. coli ~75-80%).
+    - test: "Urinalysis"
+      probability: 0.9
+      result_distribution:
+        options: ["2+ leukocytes, nitrite positive", "3+ leukocytes, nitrite positive", "2+ leukocytes, trace blood", "1+ leukocytes"]
+        weights: [0.35, 0.25, 0.25, 0.15]
+    - test: "Urine_culture"
+      probability: 0.5
+      result_distribution:
+        options: ["E. coli >100,000 CFU/mL", "Klebsiella >100,000 CFU/mL", "Mixed flora (contaminated)", "No growth"]
+        weights: [0.65, 0.10, 0.15, 0.10]
     - {test: "WBC", probability: 0.3}
     - {test: "Creatinine", probability: 0.2}
   imaging:

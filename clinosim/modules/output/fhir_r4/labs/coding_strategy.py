@@ -84,6 +84,11 @@ from clinosim.modules.output.fhir_r4.labs.coding_package import LabCodeCandidate
 # + `display = "動脈血pH"`, both correct for their respective slots).
 
 
+def uncoded_analyte_display(lab_name: str) -> str:
+    """Japanese display of an analyte, or the analyte name when unlisted."""
+    return _UNCODED_ANALYTE_JA_DISPLAY.get(lab_name, lab_name)
+
+
 def _sanitize_localcode_display(text: str) -> str:
     """Apply JP-CLINS LocalCode display rules to a Japanese analyte name.
 
@@ -123,6 +128,14 @@ _UNCODED_ANALYTE_JA_DISPLAY: dict[str, str] = {
     "Lactate": "乳酸",
     "PCT": "プロカルシトニン",
     "TSH": "甲状腺刺激ホルモン",
+    "Ethanol": "エタノール",
+    "Acetaminophen_level": "アセトアミノフェン血中濃度",
+    "Salicylate": "サリチル酸血中濃度",
+    "Urine_drug_screen": "尿中乱用薬物スクリーニング",
+    "Urinalysis": "尿定性",
+    "Urine_culture": "尿培養",
+    "Rapid_Strep": "A群溶連菌迅速抗原",
+    "Tetanus_status": "破傷風予防接種歴",
     "Fibrinogen": "フィブリノゲン",
     "eGFR": "推算糸球体濾過量",
     "Glucose": "血糖",
@@ -224,12 +237,11 @@ class LegacyJSLMStrategy:
         display_name = code_lookup(code_system_key, code_value, lang) if code_value else None
         if not display_name or display_name == code_value:
             display_name = lab_name
-        primary: dict[str, Any] = {
-            "system": get_system_uri(code_system_key),
-            "code": code_value,
-            "display": display_name,
-        }
-        codings: list[dict] = [primary]
+        # Issue #2138: an unmapped analyte without an order code has no primary
+        # code — emit only the LOINC secondary instead of an empty-code coding.
+        codings: list[dict] = []
+        if code_value:
+            codings.append({"system": get_system_uri(code_system_key), "code": code_value, "display": display_name})
         # JP dual coding: append LOINC secondary when a US-side mapping exists
         # and it differs from the primary code_value.
         us_code_map = load_code_mapping("lab", "US")

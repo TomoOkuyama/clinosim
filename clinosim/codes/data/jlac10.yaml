@@ -169,3 +169,16 @@ codes:
   6C010:
     en: Drug susceptibility test (common bacteria)
     ja: 薬剤感受性検査(一般細菌)
+  # --- Toxicology (Issue #2138; JSLM v137 分析物コード) ---
+  3Z040:
+    en: Ethanol
+    ja: エタノール
+  3L005:
+    en: Acetaminophen
+    ja: アセトアミノフェン
+  3M205:
+    en: Salicylic acid
+    ja: サリチル酸
+  3L970:
+    en: Drug abuse screening
+    ja: 乱用薬物スクリーニング
