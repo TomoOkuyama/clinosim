@@ -36,6 +36,7 @@ from clinosim.modules.observation.engine import (
     canonical_lab_name,
     generate_lab_result,
     get_lab_unit,
+    is_qualitative_test,
 )
 from clinosim.modules.observation.engine import determine_flag as _determine_flag
 from clinosim.seeding import ENRICHER_SEED_OFFSETS, derive_sub_seed, individual_lab_seed
@@ -277,9 +278,15 @@ def _inject_one_lab(
 
     # Compute observed value via the shared 3-layer noise + physiologic-limit
     # clamp used everywhere else (`clinosim/modules/observation/engine.py`).
-    if true_value is None or true_value <= 0:
-        return
-    observed = generate_lab_result(analyte, float(true_value), lab_rng)
+    observed: float | str
+    if is_qualitative_test(analyte):
+        # Categorical result (e.g. urine drug screen, Issue #2146): no numeric
+        # true value; the analyte's result distribution decides.
+        observed = generate_lab_result(analyte, 0.0, lab_rng)
+    else:
+        if true_value is None or true_value <= 0:
+            return
+        observed = generate_lab_result(analyte, float(true_value), lab_rng)
     flag = _determine_flag(analyte, observed, sex=getattr(patient, "sex", "M"), country=country)
 
     # Issue #871: bilingual `clinical_intent` — EN stays as the CIF canonical

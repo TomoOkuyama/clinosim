@@ -83,3 +83,30 @@ def test_adding_f11_leaves_other_conditions_unchanged() -> None:
         }
 
     assert histories(drop=False) == histories(drop=True)
+
+
+def test_monitoring_injects_the_qualitative_drug_screen() -> None:
+    from datetime import datetime
+    from types import SimpleNamespace
+
+    from clinosim.modules.monitoring.enricher import enrich_medication_monitoring
+    from clinosim.types.encounter import EncounterType
+    from clinosim.types.patient import HomeMedication
+
+    patient = SimpleNamespace(
+        patient_id="POP-000901",
+        sex="M",
+        age=35,
+        current_medications=[HomeMedication(drug_name="Buprenorphine/Naloxone 16mg/4mg", route="SL")],
+        chronic_conditions=[],
+    )
+    enc = SimpleNamespace(
+        encounter_id="ENC-901",
+        encounter_type=EncounterType.OUTPATIENT,
+        admission_datetime=datetime(2024, 5, 1, 9, 0),
+        attending_physician_id="STAFF-DOC-001",
+    )
+    record = SimpleNamespace(patient=patient, encounters=[enc], orders=[], lab_results=[])
+    enrich_medication_monitoring(SimpleNamespace(config=SimpleNamespace(country="US"), master_seed=1, records=[record]))
+    results = [r for r in record.lab_results if r.lab_name == "Urine_drug_screen"]
+    assert results and isinstance(results[0].value, str)
