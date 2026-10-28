@@ -1,0 +1,209 @@
+# Acute Psychotic or Manic Episode — Reference Data (Issue #2148)
+# Exacerbation of schizophrenia (F20) or bipolar disorder (F31) admitted to
+# the psychiatric unit; only hospitals with an inpatient psychiatry ward
+# admit (the large configuration). Elsewhere the crisis is an ED visit
+# with transfer (encounter condition psychotic_manic_crisis).
+# Sources: HCUP Statistical Brief #249 (2016 NIS: schizophrenia and related
+# disorders mean LOS 10.5 days, bipolar disorder 7.6 days); MHLW Patient
+# Survey 2023 (schizophrenia mean stay 569.5 days in all hospitals,
+# dominated by long-stay psychiatric hospitals; general-hospital units are
+# far shorter); APA 2020 schizophrenia and CANMAT / ISBD 2018 bipolar
+# guidelines. Codes verified: F20.9 / F31.9 (tx.fhir.org); haloperidol
+# RxNorm 5093 / YJ 1179404; second-generation antipsychotics from #2140.
+
+disease_id: psychosis_inpatient
+chief_complaint:
+  en: "Agitation with hallucinations, delusions or mania"
+  ja: "幻覚・妄想・躁状態を伴う興奮"
+department: psychiatry
+encounter_type: medical
+minimum_severity: moderate
+# Recovery (psychotic symptoms, mania) is not a physiological state: the
+# stay follows the sampled LOS rather than the generic physiological criteria.
+state_based_discharge: false
+
+icd_codes:
+  primary: "F20.9"
+  # Bipolar disorder codes the episode under F31.
+  by_chronic_prefix:
+    F31: "F31.9"
+  variants:
+    - {code: "F20.9", name: "Schizophrenia, unspecified", probability: 1.0}
+
+incidence:
+  # Admissions among patients with schizophrenia or bipolar disorder. The
+  # per-country rate lives in locale/<cc>/demographics.yaml disease_incidence,
+  # which also requires a psychiatric ward at the hospital.
+  trigger_type: "acute"
+  prerequisite_condition: "F20"
+
+severity:
+  distribution:
+    mild: 0.0
+    moderate: 0.60
+    severe: 0.40
+  modifiers: []
+
+initial_state_impact:
+  moderate:
+    sympathetic_activation: 0.40  # agitation, insomnia
+    volume_status: -0.05
+  severe:
+    sympathetic_activation: 0.55
+    volume_status: -0.10
+
+presenting_symptoms:
+  - {name: "agitation", probability: 0.90, severity_range: [0.5, 1.0]}
+  - {name: "auditory_hallucinations", probability: 0.60, severity_range: [0.4, 0.9]}
+  - {name: "persecutory_delusions", probability: 0.60, severity_range: [0.4, 0.9]}
+  - {name: "insomnia", probability: 0.85, severity_range: [0.4, 0.9]}
+  - {name: "pressured_speech", probability: 0.35, severity_range: [0.4, 0.9]}
+  - {name: "disorganized_behavior", probability: 0.50, severity_range: [0.3, 0.8]}
+
+# ============================================================
+# COURSE ARCHETYPES — antipsychotic response over 1-3 weeks
+# ============================================================
+course_archetypes:
+  smooth_recovery:
+    probability: 0.65
+    description: "Agitation settles within days; psychotic / manic symptoms remit with antipsychotic adjustment"
+    trajectory:
+      sympathetic_activation: {0: -0.02, 2: -0.05, 5: -0.04, 10: -0.02}
+      volume_status:          {0: 0.00, 2: 0.02, 5: 0.02}
+    order_modifications: {}
+    treatment_modifications: {}
+
+  plateau_then_recovery:
+    probability: 0.30
+    description: "Persistent symptoms needing dose escalation or a switch before response"
+    trajectory:
+      sympathetic_activation: {0: 0.02, 3: 0.00, 7: -0.04, 14: -0.04}
+      volume_status:          {0: -0.01, 3: 0.00, 7: 0.02}
+
+  gradual_deterioration:
+    probability: 0.05
+    description: "Escalating agitation in the first days before response"
+    trajectory:
+      sympathetic_activation: {0: 0.05, 2: 0.04, 5: -0.02, 10: -0.05}
+      volume_status:          {0: -0.02, 2: -0.02, 5: 0.01, 10: 0.02}
+
+complications: []
+
+order_protocols:
+  admission_orders:
+    labs:
+      - {test: "WBC", urgency: "routine"}
+      - {test: "Hb", urgency: "routine"}
+      - {test: "Na", urgency: "routine"}
+      - {test: "K", urgency: "routine"}
+      - {test: "Creatinine", urgency: "routine"}
+      - {test: "Glucose", urgency: "routine"}
+      - {test: "AST", urgency: "routine"}
+      - {test: "ALT", urgency: "routine"}
+      - {test: "CK", urgency: "routine"}
+    imaging: []
+    supportive:
+      - {type: "safety_observation", detail: "Observation level per risk of harm to self or others"}
+      - {type: "monitoring", detail: "Agitation scale each shift; seclusion / restraint only per protocol"}
+  daily_monitoring:
+    labs: []
+    vitals:
+      stable: "q8h"
+  discharge_criteria:
+    japan:
+      - "精神症状が安定し、自傷他害のおそれがない"
+      - "服薬アドヒアランスと外来通院先が確保されている"
+    us:
+      - "Psychotic / manic symptoms controlled; no danger to self or others"
+      - "Adherent to oral regimen; psychiatry follow-up within 7 days"
+
+drugs:
+  first_line:
+    japan:
+      - {drug: "Olanzapine", dose: "10-20mg PO daily", route: "PO"}
+      - {drug: "Haloperidol", dose: "5mg IM PRN agitation", route: "IM"}
+      - {drug: "Lorazepam", dose: "1-2mg PRN agitation", route: "IV"}
+    us:
+      - {drug: "Olanzapine", dose: "10-20mg PO daily", route: "PO"}
+      - {drug: "Haloperidol", dose: "5mg IM PRN agitation", route: "IM"}
+      - {drug: "Lorazepam", dose: "1-2mg PRN agitation", route: "IV"}
+  discharge_oral:
+    japan:
+      - {drug: "Olanzapine", dose: "10mg PO daily", duration_days: 30}
+    us:
+      - {drug: "Olanzapine", dose: "10mg PO daily", duration_days: 30}
+
+# JP: general-hospital psychiatric unit, far shorter than the all-hospital mean.
+target_los:
+  japan:
+    moderate: {mean: 60, sd: 20, min: 30, max: 120}
+    severe: {mean: 90, sd: 30, min: 40, max: 150}
+  us:
+    moderate: {mean: 9, sd: 3, min: 4, max: 21}
+    severe: {mean: 12, sd: 4, min: 6, max: 28}
+
+diagnostic:
+  diagnostic_difficulty: 0.15
+  differential:
+    - {disease: "psychosis_inpatient", icd: "F20.9", name: "Schizophrenia, unspecified", prior: 0.90}
+    - {disease: "generalized_anxiety", icd: "F41.1", name: "Generalized anxiety disorder", prior: 0.10}
+  confirmation_threshold: 0.90
+  diagnosis_progression:
+    psychosis_inpatient:
+      - [0.0, "F20.9", "Schizophrenia, unspecified"]
+
+outcome_benchmarks:
+  japan:
+    median_los: 60
+    in_hospital_mortality: 0.002
+    thirty_day_readmission: 0.12
+    mean_age_admitted: 52
+  us:
+    median_los: 9
+    in_hospital_mortality: 0.001
+    thirty_day_readmission: 0.15
+    mean_age_admitted: 40
+
+narrative:
+  hpi_template:
+    onset_pattern:
+      moderate: "数週間前より服薬が途絶え、不眠・興奮が増悪し幻覚・妄想が出現。"
+      severe: "興奮が著しく、幻覚・妄想に左右された行動や躁状態がみられる。"
+    trigger_options:
+      - "服薬中断"
+      - "心理社会的ストレス"
+  physical_exam_findings:
+    smooth_recovery:
+      day_0:
+        general:
+          all: "意識清明、興奮状態"
+        cardiovascular:
+          all: "頻脈傾向、雑音なし"
+        respiratory:
+          all: "肺音清明"
+        abdominal: "平坦、軟"
+        neurological: "明らかな神経学的異常所見なし"
+        psychiatric:
+          moderate: "易刺激的、会話はまとまりを欠く、幻聴・被害妄想あり、病識欠如"
+          severe: "著しい興奮、思考は滅裂、幻覚・妄想に支配された行動または躁状態、病識・判断力欠如"
+      day_5:
+        general:
+          all: "意識清明、落ち着いて過ごしている"
+        psychiatric:
+          all: "興奮は鎮静、幻覚・妄想は減弱、睡眠回復"
+  discharge_instructions:
+    follow_up:
+      en: "See your psychiatrist within 7 days of discharge."
+      ja: "退院後 7 日以内に精神科外来を受診してください。"
+    activity:
+      en: "Keep a regular daily routine and sleep schedule."
+      ja: "規則正しい生活リズムと睡眠を心がけてください。"
+    medications:
+      en: "Take your antipsychotic or mood stabilizer every day; do not stop it on your own."
+      ja: "抗精神病薬・気分安定薬は毎日服用し、自己判断で中断しないでください。"
+    emergency:
+      en: "If hallucinations, agitation or thoughts of harm return, contact the clinic or come to the ER."
+      ja: "幻覚・興奮・自傷他害の考えが再燃したら、外来に連絡するか救急外来を受診してください。"
+    diet_lifestyle:
+      en: "Avoid alcohol and recreational drugs."
+      ja: "飲酒や薬物の使用は控えてください。"

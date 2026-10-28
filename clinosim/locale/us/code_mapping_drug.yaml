@@ -244,3 +244,6 @@ Quetiapine: "51272"
 # Issue #2146: medication for opioid use disorder (RxNorm, tx.fhir.org).
 "Buprenorphine/Naloxone": "352364"
 "Methadone": "6813"
+
+# Issue #2148: haloperidol for acute agitation (RxNorm IN, tx.fhir.org).
+Haloperidol: "5093"

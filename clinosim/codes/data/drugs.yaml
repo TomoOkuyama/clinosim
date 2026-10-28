@@ -1476,3 +1476,11 @@ drugs:
     codes:
       rxnorm: "6813"
     classes: ["moud", "opioid"]
+  # Issue #2148: haloperidol for acute agitation (IM). RxNorm IN verified on
+  # tx.fhir.org; JP HOT7 1179404 = injection class (セレネース注).
+  haloperidol:
+    names: {en: "Haloperidol", ja: "ハロペリドール"}
+    codes:
+      rxnorm: "5093"
+      hot7: "1179404"
+    classes: ["antipsychotic.first_generation"]
