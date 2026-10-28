@@ -122,6 +122,7 @@ def _build_event_body(body_dict: dict[str, Any]) -> tuple[EventSpec, dict[str, A
         "base_rate_by_age_band": body_dict.pop("base_rate_by_age_band", []) or [],
         "rate_modifiers": body_dict.pop("rate_modifiers", []) or [],
         "one_shot": body_dict.pop("one_shot", True),
+        "rng_isolated": body_dict.pop("rng_isolated", False),  # Issue #2140
     }
     return EventSpec(**body_payload), {"noise": None, "narrative": narrative, "source": source}
 

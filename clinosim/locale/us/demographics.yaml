@@ -192,6 +192,11 @@ chronic_prevalence:
   F33:      # Recurrent depressive disorder — ~30% of F32 cohort per DSM registry data
     "40-59": 0.04
     "60-99": 0.03
+  F20:      # Schizophrenia — NIMH 0.25-0.64% (schizophrenia + related psychotic disorders); Issue #2140
+    rng_isolated: true  # sub-RNG draw: adding F20 leaves other residents' conditions unchanged
+    "18-39": 0.005
+    "40-59": 0.006
+    "60-99": 0.004
   F41.1:    # Generalized anxiety disorder (GAD) — NIMH ~3.1% adult 12-mo
     "18-39": 0.04
     "40-59": 0.03

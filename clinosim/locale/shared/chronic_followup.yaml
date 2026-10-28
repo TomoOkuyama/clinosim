@@ -119,6 +119,16 @@ M81:  # Osteoporosis
   prescriptions_renewed: true
   visit_duration_minutes: 10
 
+F20:  # Schizophrenia (Issue #2140)
+  visit_reason:
+    en: "Schizophrenia follow-up: symptom and adherence review, antipsychotic side-effect monitoring"
+    ja: "統合失調症フォローアップ・症状と服薬アドヒアランスの確認・抗精神病薬の副作用評価"
+  follow_up_interval_months: 2
+  # ADA / APA consensus metabolic monitoring for second-generation
+  # antipsychotics (glucose at each review; HbA1c / lipids yearly).
+  labs: [Glucose]
+  labs_annual: [HbA1c, TC, TG, LDL]
+
 F32:  # Depression — single episode (Issue #1137 cluster axis 2)
   visit_reason:
     en: "Depression symptom monitoring, PHQ-9 scoring, antidepressant management"

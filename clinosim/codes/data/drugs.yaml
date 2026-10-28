@@ -1418,3 +1418,29 @@ drugs:
       hot7: "4229101"
     classes: ["antineoplastic.fluoropyrimidine"]
     aliases: ["S-1"]
+  # Issue #2140: second-generation antipsychotics (schizophrenia maintenance).
+  # RxNorm IN verified on tx.fhir.org; HOT7 class codes against the YJ master.
+  aripiprazole:
+    names: {en: "Aripiprazole", ja: "アリピプラゾール"}
+    codes:
+      rxnorm: "89013"
+      hot7: "1179045"
+    classes: ["antipsychotic.second_generation"]
+  risperidone:
+    names: {en: "Risperidone", ja: "リスペリドン"}
+    codes:
+      rxnorm: "35636"
+      hot7: "1179038"
+    classes: ["antipsychotic.second_generation"]
+  olanzapine:
+    names: {en: "Olanzapine", ja: "オランザピン"}
+    codes:
+      rxnorm: "61381"
+      hot7: "1179044"
+    classes: ["antipsychotic.second_generation"]
+  quetiapine:
+    names: {en: "Quetiapine", ja: "クエチアピンフマル酸塩"}
+    codes:
+      rxnorm: "51272"
+      hot7: "1179042"
+    classes: ["antipsychotic.second_generation"]

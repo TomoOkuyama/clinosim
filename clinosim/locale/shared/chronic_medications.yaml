@@ -444,6 +444,17 @@ F10:  # Alcohol use disorder — MAT (medication-assisted treatment)
     - {test: "AST", frequency: "every_3_days", intent: "AUD hepatic monitoring (hepatotoxicity + background liver injury)"}
     - {test: "ALT", frequency: "every_3_days", intent: "AUD hepatic monitoring"}
 
+F20:  # Schizophrenia (Issue #2140)
+  # Maintenance second-generation antipsychotic monotherapy (APA 2020;
+  # 日本神経精神薬理学会 統合失調症薬物治療ガイドライン 2022). About 80-85 %
+  # of diagnosed patients are on an antipsychotic; one agent per patient.
+  exclusive_classes: ["antipsychotic"]
+  medications:
+    - {drug_id: aripiprazole, dose: "15mg", drug_class: "antipsychotic", route: "PO", frequency: "daily", probability: 0.30}
+    - {drug_id: risperidone, dose: "4mg", drug_class: "antipsychotic", route: "PO", frequency: "daily", probability: 0.25}
+    - {drug_id: olanzapine, dose: "10mg", drug_class: "antipsychotic", route: "PO", frequency: "nightly", probability: 0.20}
+    - {drug_id: quetiapine, dose: "300mg", drug_class: "antipsychotic", route: "PO", frequency: "bid", probability: 0.08}
+
 F32:  # Depressive episode (single)
   # Issue #1137 cluster axis 6 — severity-gated prescribing per
   # STAR*D / APA / VA-DoD tiered guidance:

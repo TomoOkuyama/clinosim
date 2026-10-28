@@ -167,6 +167,25 @@ def chronic_augment_sex_seed(patient_id: str, code: str) -> int:
     return int.from_bytes(digest, "big") % (2**32)
 
 
+def longitudinal_event_seed(person_id: str, year: int, event_name: str) -> int:
+    """Per-(person, year, event) sub-seed for longitudinal event patterns
+    flagged ``rng_isolated`` (Issue #2140): their draw does not consume the
+    shared per-person-year stream, so adding the event shifts no other."""
+    salt = "clinosim:longitudinal-event:v1"
+    digest = hashlib.sha256(f"{salt}|{person_id}|{year}|{event_name}".encode()).digest()[:6]
+    return int.from_bytes(digest, "big") % (2**32)
+
+
+def chronic_isolated_seed(patient_id: str, code: str) -> int:
+    """Per-(patient, code) sub-seed for ``chronic_prevalence`` codes flagged
+    ``rng_isolated`` (Issue #2140): their Bernoulli draw does not consume
+    the master population RNG, so adding such a code shifts no other
+    resident's conditions."""
+    salt = "clinosim:chronic-isolated:v1"
+    digest = hashlib.sha256(f"{salt}|{patient_id}|{code}".encode()).digest()[:6]
+    return int.from_bytes(digest, "big") % (2**32)
+
+
 def perinatal_delivery_seed(patient_id: str, year: int) -> int:
     """Per-(patient, year) deterministic sub-seed for the pregnancy
     lifecycle generator (Issue #957 Tier-3-B, extended by META #957

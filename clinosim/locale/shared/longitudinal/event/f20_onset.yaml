@@ -1,0 +1,27 @@
+# F20 adult onset — event pattern (Issue #2140).
+#
+# Schizophrenia — onset concentrated in late adolescence / young
+# adulthood; incidence ~15 per 100,000 per year (McGrath 2008 Epidemiol
+# Rev, median 15.2/100k). Later-life onset is rare, so prevalence is
+# carried by the point-prevalence rows in demographics.yaml.
+
+attribute_id: f20_onset
+pattern: event
+clinical_scope:
+  requires_age_band: [18, 120]
+
+event_name: f20_onset
+emits_icd: F20
+base_annual_rate: 0.0
+base_rate_by_age_band:
+  - {age_lo: 18, age_hi: 39, rate: 0.000150}
+  - {age_lo: 40, age_hi: 59, rate: 0.000000}
+  - {age_lo: 60, age_hi: 99, rate: 0.000000}
+rate_modifiers: []
+one_shot: true
+# Own sub-RNG: adding this event leaves every other onset draw unchanged.
+rng_isolated: true
+narrative_label: f20_onset
+source: >
+  Issue #2140. McGrath J et al. Schizophrenia: a concise overview of
+  incidence, prevalence, and mortality. Epidemiol Rev 2008;30:67-76.

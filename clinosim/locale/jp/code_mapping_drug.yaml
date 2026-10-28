@@ -428,3 +428,10 @@ Oxybuprocaine: "1313700"                  # ベノキシール点眼液 (instead
 Naphazoline: "1324704"                    # プリビナ液 (nasal; instead of oxymetazoline)
 Nalmefene: "1190025"                      # セリンクロ (instead of naltrexone)
 "Tegafur-Gimeracil-Oteracil": "4229101"  # ティーエスワン (S-1); reaches JP patients once activation uses the patient country
+
+# Issue #2140: second-generation antipsychotics (7-digit classes verified
+# against JP_MedicationCodeYJ_CS_full.json).
+Aripiprazole: "1179045"  # アリピプラゾール
+Risperidone: "1179038"  # リスペリドン
+Olanzapine: "1179044"  # オランザピン
+Quetiapine: "1179042"  # クエチアピンフマル酸塩

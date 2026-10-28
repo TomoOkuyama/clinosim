@@ -779,3 +779,16 @@ codes:
   '9863':
     en: Sodium Chloride
     ja: 塩化ナトリウム
+  # Issue #2140: second-generation antipsychotics (tx.fhir.org $lookup, TTY=IN).
+  '89013':
+    en: aripiprazole
+    ja: アリピプラゾール
+  '35636':
+    en: risperidone
+    ja: リスペリドン
+  '61381':
+    en: olanzapine
+    ja: オランザピン
+  '51272':
+    en: quetiapine
+    ja: クエチアピンフマル酸塩
