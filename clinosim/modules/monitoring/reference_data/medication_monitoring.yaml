@@ -26,12 +26,16 @@
 # are NOT in the schema yet — pass 2 of Issue #757 ships one injection per
 # eligible encounter. Follow-up PRs will introduce `frequency:` handling.
 
+# interval_months (Issue #2143): minimum months between draws of the lab for
+# a patient on the drug; the enricher skips an encounter when the lab was
+# drawn (ordered or resulted) within the interval.
 mappings:
   Warfarin:
     aliases: ["ワルファリン", "coumadin"]
     drug_ja: "ワルファリン"
     monitoring:
       - lab: PT_INR
+        interval_months: 1
         loinc: "6301-6"
         rationale: "Anticoagulation therapeutic monitoring — INR target 2.0-3.0 (or 2.5-3.5 for mechanical valves)."
         rationale_ja: "抗凝固療法の治療域モニタリング — INR 目標 2.0-3.0 (機械弁は 2.5-3.5)。"
@@ -41,6 +45,7 @@ mappings:
     drug_ja: "レボチロキシン"
     monitoring:
       - lab: TSH
+        interval_months: 6
         loinc: "3016-3"
         rationale: "Thyroid replacement titration — TSH target 0.5-4.0 mIU/L (broader in older adults). ATA / JES guideline: 6-8 weeks after any dose change, then every 6-12 months once stable."
         rationale_ja: "甲状腺補充療法の投与量調整 — TSH 目標 0.5-4.0 mIU/L (高齢者はやや広め)。ATA / JES ガイドライン: 用量変更後 6-8 週で再検、安定後は 6-12 か月毎。"
@@ -58,6 +63,7 @@ mappings:
     drug_ja: "メトホルミン"
     monitoring:
       - lab: HbA1c
+        interval_months: 3
         loinc: "4548-4"
         rationale: "Chronic glycemic control monitoring — HbA1c target <7% (ADA/JDS individualized). Guideline: every 3-6 months on stable therapy, every 3 months during titration."
         rationale_ja: "慢性血糖コントロールモニタリング — HbA1c 目標 <7% (ADA/JDS 個別化)。ガイドライン: 安定治療下は 3-6 か月毎、用量調整期は 3 か月毎。"
@@ -67,6 +73,7 @@ mappings:
     drug_ja: "インスリン"
     monitoring:
       - lab: HbA1c
+        interval_months: 3
         loinc: "4548-4"
         rationale: "Chronic glycemic control monitoring on insulin — HbA1c target <7% (ADA/JDS individualized). Guideline: every 3-6 months on stable therapy, every 3 months during titration."
         rationale_ja: "インスリン療法下の慢性血糖コントロールモニタリング — HbA1c 目標 <7% (ADA/JDS 個別化)。ガイドライン: 安定治療下は 3-6 か月毎、用量調整期は 3 か月毎。"
@@ -83,10 +90,12 @@ mappings:
     drug_ja: "アトルバスタチン"
     monitoring:
       - lab: AST
+        interval_months: 12
         loinc: "1920-8"
         rationale: "Statin hepatotoxicity monitoring — AST/ALT baseline + as clinically indicated (myalgia, muscle-weakness). ACC/AHA 2018 + JAS 2022 guideline."
         rationale_ja: "スタチン肝毒性モニタリング — AST/ALT はベースライン取得後、筋痛・筋力低下等の臨床所見が出た時に再検。ACC/AHA 2018 + JAS 2022 ガイドライン準拠。"
       - lab: ALT
+        interval_months: 12
         loinc: "1742-6"
         rationale: "Statin hepatotoxicity monitoring — companion to AST. Discontinue if AST/ALT > 3× upper limit of normal."
         rationale_ja: "スタチン肝毒性モニタリング — AST と対で評価。AST/ALT が基準値上限の 3 倍を超えたら中止。"
@@ -104,10 +113,12 @@ mappings:
     drug_ja: "カンデサルタン"
     monitoring:
       - lab: K
+        interval_months: 6
         loinc: "2823-3"
         rationale: "ARB/ACE-i renal-safety monitoring — K rise reflects RAAS blockade + reduced aldosterone-driven K excretion. Hold if K > 5.5 mmol/L or Cr rises > 30% baseline."
         rationale_ja: "ARB/ACE-i 腎安全性モニタリング — K 上昇は RAAS 遮断とアルドステロン低下による K 排泄減少を反映。K > 5.5 mmol/L または Cr がベースライン比 30% 以上上昇した場合は中止。"
       - lab: Creatinine
+        interval_months: 6
         loinc: "2160-0"
         rationale: "ARB/ACE-i renal-safety monitoring — companion to K. Expected 10-20% Cr rise at start (efferent arteriolar vasodilation); > 30% requires dose reduction."
         rationale_ja: "ARB/ACE-i 腎安全性モニタリング — K と対で評価。開始時に Cr が 10-20% 上昇するのは輸出細動脈の血管拡張による想定内変化。30% 超は減量が必要。"
@@ -126,6 +137,7 @@ mappings:
     drug_ja: "アピキサバン"
     monitoring:
       - lab: eGFR
+        interval_months: 6
         loinc: "77147-7"
         rationale: "DOAC (Apixaban) renal-clearance monitoring — dose adjustment CrCl < 30 (5 mg BID → 2.5 mg BID). At minimum q6 months on stable therapy per Chest 2018 / JCS 2020."
         rationale_ja: "DOAC (アピキサバン) の腎排泄モニタリング — CrCl <30 で減量 (5 mg 1日2回 → 2.5 mg 1日2回)。Chest 2018 / JCS 2020 に基づき安定期は 6 か月毎の測定を最低推奨。"
@@ -135,6 +147,7 @@ mappings:
     drug_ja: "リバーロキサバン"
     monitoring:
       - lab: eGFR
+        interval_months: 6
         loinc: "77147-7"
         rationale: "DOAC (Rivaroxaban) renal-clearance monitoring — contraindicated CrCl < 15, dose adjustment CrCl 15-49 (20 mg qd → 15 mg qd). At minimum q6 months per Chest 2018."
         rationale_ja: "DOAC (リバーロキサバン) の腎排泄モニタリング — CrCl <15 で禁忌、CrCl 15-49 で減量 (20 mg 1日1回 → 15 mg 1日1回)。Chest 2018 に基づき 6 か月毎測定を最低推奨。"
@@ -144,6 +157,7 @@ mappings:
     drug_ja: "ダビガトラン"
     monitoring:
       - lab: eGFR
+        interval_months: 6
         loinc: "77147-7"
         rationale: "DOAC (Dabigatran) renal-clearance monitoring — most renally-dependent of the DOACs (~80% renal). Contraindicated CrCl < 30, dose adjustment CrCl 30-50 (150 mg BID → 110 mg BID). Recheck q3-6 months."
         rationale_ja: "DOAC (ダビガトラン) の腎排泄モニタリング — 4 剤中最も腎依存 (約 80% 腎排泄)。CrCl <30 で禁忌、CrCl 30-50 で減量 (150 mg 1日2回 → 110 mg 1日2回)。3-6 か月毎に再検。"
@@ -153,6 +167,7 @@ mappings:
     drug_ja: "エドキサバン"
     monitoring:
       - lab: eGFR
+        interval_months: 6
         loinc: "77147-7"
         rationale: "DOAC (Edoxaban) renal-clearance monitoring — dose adjustment CrCl 15-50 (60 mg qd → 30 mg qd). Contraindicated CrCl < 15 or > 95 (paradoxical stroke risk). At minimum q6 months per JCS 2020."
         rationale_ja: "DOAC (エドキサバン) の腎排泄モニタリング — CrCl 15-50 で減量 (60 mg 1日1回 → 30 mg 1日1回)。CrCl <15 または >95 は禁忌 (逆説的脳卒中リスク)。JCS 2020 に基づき 6 か月毎測定を最低推奨。"
@@ -163,14 +178,17 @@ mappings:
     drug_ja: "炭酸リチウム"
     monitoring:
       - lab: Lithium
+        interval_months: 3
         loinc: "14334-7"
         rationale: "Serum lithium level — maintenance range 0.6-1.2 mmol/L, narrow therapeutic index."
         rationale_ja: "リチウム血中濃度 — 維持域 0.6-1.2 mmol/L、治療域が狭い。"
       - lab: TSH
+        interval_months: 6
         loinc: "3016-3"
         rationale: "Lithium-induced hypothyroidism — TSH every 6-12 months."
         rationale_ja: "リチウムによる甲状腺機能低下 — TSH を 6-12 か月毎。"
       - lab: Creatinine
+        interval_months: 6
         loinc: "2160-0"
         rationale: "Lithium nephrotoxicity — renal function every 6-12 months."
         rationale_ja: "リチウムの腎毒性 — 腎機能を 6-12 か月毎。"
@@ -179,14 +197,17 @@ mappings:
     drug_ja: "バルプロ酸ナトリウム"
     monitoring:
       - lab: AST
+        interval_months: 6
         loinc: "1920-8"
         rationale: "Valproate hepatotoxicity — liver enzymes at baseline and periodically."
         rationale_ja: "バルプロ酸の肝毒性 — 肝酵素を開始時と定期的に。"
       - lab: ALT
+        interval_months: 6
         loinc: "1742-6"
         rationale: "Valproate hepatotoxicity — liver enzymes at baseline and periodically."
         rationale_ja: "バルプロ酸の肝毒性 — 肝酵素を開始時と定期的に。"
       - lab: Plt
+        interval_months: 6
         loinc: "777-3"
         rationale: "Valproate thrombocytopenia — platelet count periodically."
         rationale_ja: "バルプロ酸による血小板減少 — 血小板数を定期的に。"

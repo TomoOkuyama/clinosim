@@ -58,6 +58,12 @@ def load_medication_monitoring(path: Path | None = None) -> dict[str, Any]:
                 raise ValueError(f"medication_monitoring.yaml: drug '{drug}' monitoring[{i}] missing required 'lab'")
             if not m.get("loinc"):
                 raise ValueError(f"medication_monitoring.yaml: drug '{drug}' monitoring[{i}] missing required 'loinc'")
+            interval = m.get("interval_months")
+            if not isinstance(interval, int) or isinstance(interval, bool) or interval < 1:
+                raise ValueError(
+                    f"medication_monitoring.yaml: drug '{drug}' monitoring[{i}] needs an integer "
+                    f"'interval_months' >= 1 (Issue #2143), got {interval!r}"
+                )
     return mappings
 
 

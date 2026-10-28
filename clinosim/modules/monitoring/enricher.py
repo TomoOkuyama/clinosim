@@ -26,7 +26,7 @@ Dedup:
 
 from __future__ import annotations
 
-from datetime import timedelta
+from datetime import datetime, timedelta
 from typing import Any
 
 import numpy as np
@@ -63,11 +63,35 @@ def enrich_medication_monitoring(ctx: Any) -> None:
     if cfg is not None:
         country = _get(cfg, "country", "US") or "US"
 
-    for record in _get(ctx, "records", []) or []:
-        _inject_for_record(record, mapping, ctx.master_seed, country, match_drugs)
+    # Issue #2143: walk each patient's records in time order and remember when
+    # every analyte was last drawn, so labs follow their guideline interval
+    # instead of repeating at every encounter.
+    last_drawn: dict[tuple[str, str], datetime] = {}
+    for record in sorted(_get(ctx, "records", []) or [], key=_record_sort_key):
+        _inject_for_record(record, mapping, ctx.master_seed, country, match_drugs, last_drawn)
 
 
-def _inject_for_record(record: Any, mapping: dict, master_seed: int, country: str, match_drugs) -> None:
+def _record_sort_key(record: Any) -> tuple[str, datetime]:
+    patient = _get(record, "patient")
+    encounter = _pick_target_encounter(record)
+    when = getattr(encounter, "admission_datetime", None) if encounter is not None else None
+    return (str(getattr(patient, "patient_id", "") or ""), when or datetime.min)
+
+
+def months_between(earlier: datetime, later: datetime) -> int:
+    """Whole calendar months from ``earlier`` to ``later`` (day-of-month aware)."""
+    months = (later.year - earlier.year) * 12 + later.month - earlier.month
+    return months - 1 if later.day < earlier.day else months
+
+
+def _inject_for_record(
+    record: Any,
+    mapping: dict,
+    master_seed: int,
+    country: str,
+    match_drugs,
+    last_drawn: dict[tuple[str, str], datetime] | None = None,
+) -> None:
     """Handle one CIFPatientRecord: match drugs, inject each missing monitoring lab."""
     patient = _get(record, "patient")
     if patient is None:
@@ -89,6 +113,13 @@ def _inject_for_record(record: Any, mapping: dict, master_seed: int, country: st
     # on canonical analyte name (e.g. "PT-INR" ↔ "PT_INR" collapse via
     # `canonical_lab_name`).
     existing = _existing_analytes(record)
+    pid_key = str(getattr(patient, "patient_id", "") or "")
+    enc_dt = getattr(encounter, "admission_datetime", None)
+    if last_drawn is None:
+        last_drawn = {}
+    if enc_dt is not None:
+        for analyte in existing:
+            last_drawn[(pid_key, analyte)] = enc_dt
 
     # Per-patient sub-RNG for enricher-scoped micro-decisions (currently only
     # scheduling jitter within the encounter). Master RNG is untouched.
@@ -110,6 +141,10 @@ def _inject_for_record(record: Any, mapping: dict, master_seed: int, country: st
             analyte = canonical_lab_name(str(lab_spec.get("lab") or ""))
             if not analyte or analyte in existing:
                 continue
+            interval = int(lab_spec.get("interval_months") or 0)
+            previous = last_drawn.get((pid_key, analyte))
+            if interval and enc_dt is not None and previous is not None and months_between(previous, enc_dt) < interval:
+                continue  # drawn within the guideline interval
             _inject_one_lab(
                 record=record,
                 encounter=encounter,
@@ -131,6 +166,8 @@ def _inject_for_record(record: Any, mapping: dict, master_seed: int, country: st
                 injected_index=injected_count,
             )
             existing.add(analyte)
+            if enc_dt is not None:
+                last_drawn[(pid_key, analyte)] = enc_dt
             injected_count += 1
 
 
