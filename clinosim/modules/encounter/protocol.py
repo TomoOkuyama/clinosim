@@ -99,6 +99,9 @@ class EncounterConditionProtocol(BaseModel):
     # and per-chronic-prefix diagnosis code overrides (Issue #2124).
     disposition_by_severity: dict[str, Literal["discharge_home", "transfer_psychiatric"]] = {}
     icd10_code_by_chronic_prefix: dict[str, str] = {}
+    # Severities a hospital with an inpatient unit of ``department`` admits
+    # instead of treating in the ED (Issue #2132): {department, severities}.
+    admitted_with_inpatient_unit: dict[str, Any] = {}
     # Most / least urgent triage level the condition allows before the vitals
     # floor (ESI / JTAS 1-5).
     triage_level_min: int | None = Field(default=None, ge=1, le=5)

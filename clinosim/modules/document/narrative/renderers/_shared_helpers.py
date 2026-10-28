@@ -25,7 +25,7 @@ def pydantic_day_findings_to_dict(day_findings: Any) -> dict[str, Any]:
     if isinstance(day_findings, dict):
         return day_findings
     result: dict[str, Any] = {}
-    for sys_key in ("general", "cardiovascular", "respiratory", "abdominal", "neurological"):
+    for sys_key in ("general", "cardiovascular", "respiratory", "abdominal", "neurological", "psychiatric"):
         val = _o(day_findings, sys_key, None)
         if val is not None:
             if isinstance(val, str):
@@ -52,7 +52,7 @@ def format_physical_exam(phys_exam: dict[str, Any], severity: str, lang: str) ->
         return ""
 
     parts = []
-    for sys_key in ("general", "cardiovascular", "respiratory", "abdominal", "neurological"):
+    for sys_key in ("general", "cardiovascular", "respiratory", "abdominal", "neurological", "psychiatric"):
         entry = phys_exam.get(sys_key)
         if entry is None:
             continue

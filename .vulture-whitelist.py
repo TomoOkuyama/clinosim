@@ -673,3 +673,4 @@ _.disposition_by_severity  # modules/encounter/protocol.py (Pydantic field; read
 _.icd10_code_by_chronic_prefix  # modules/encounter/protocol.py (Pydantic field; read from the YAML dict in simulator/emergency.py)
 _.triage_level_max  # modules/encounter/protocol.py (Pydantic field; read from the YAML dict in triage/engine.py)
 _.triage_level_min  # modules/encounter/protocol.py (Pydantic field; read from the YAML dict in triage/engine.py)
+_.admitted_with_inpatient_unit  # modules/encounter/protocol.py (Pydantic field; read from the YAML dict in phases/_ed_slot.py)

@@ -719,8 +719,14 @@ def generate_monthly_events(
     country: str = "US",
     demo: dict | None = None,
     master_seed: int | None = None,
+    inpatient_departments: frozenset[str] | None = None,
 ) -> list[LifeEvent]:
     """Generate life events for one month across the population. All Phase 1 diseases.
+
+    ``disease_incidence`` entries with ``requires_inpatient_ward: <dept>``
+    (admissions only a unit of that department takes, e.g. psychiatry,
+    Issue #2132) fire only when ``inpatient_departments`` contains it.
+    ``prerequisite_condition`` may list several codes (any one qualifies).
 
     ``disease_incidence`` entries flagged ``rng_isolated: true`` draw their
     onset, severity and day jitter from a stream keyed on
@@ -790,10 +796,16 @@ def generate_monthly_events(
             if not sorted_age_rates:
                 continue
 
+            required_ward = disease_spec.get("requires_inpatient_ward")
+            if required_ward and required_ward not in (inpatient_departments or ()):
+                continue
+
             # Prerequisite check (e.g., HF exacerbation requires I50)
             prereq = disease_spec.get("prerequisite_condition")
-            if prereq and prereq not in person.chronic_conditions:
-                continue
+            if prereq:
+                prereqs = [prereq] if isinstance(prereq, str) else list(prereq)
+                if not any(p in person.chronic_conditions for p in prereqs):
+                    continue
 
             sex_ratio = disease_spec.get("sex_ratio_female", 1.0)
             disease_seasonal = seasonal.get(disease_id, {})

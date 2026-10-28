@@ -191,6 +191,9 @@ def run_beta(
     _roster_rng = determinism.default_rng(config.random_seed ^ 0x524F5354)  # "ROST"
     # Issue #2128: the hospital config names its own scale.
     hospital_scale = str(hospital_ops.get("hospital_scale") or config.hospital_scale)
+    from clinosim.simulator.hospital_ops import inpatient_departments
+
+    _inpatient_depts = inpatient_departments(hospital_ops)
     roster = generate_roster(hospital_scale, config.country, _roster_rng, hospital_config=hospital_ops)
     hospital_state = HospitalState()
 
@@ -310,7 +313,13 @@ def run_beta(
         _month_key = f"{_dy:04d}-{_dm:02d}"
         _month_rng = derive_phase_rng(master_seed, PHASE_LIFE_EVENT, _month_key)
         _monthly = generate_monthly_events(
-            population, _dy, _dm, _month_rng, country=config.country, master_seed=master_seed
+            population,
+            _dy,
+            _dm,
+            _month_rng,
+            country=config.country,
+            master_seed=master_seed,
+            inpatient_departments=_inpatient_depts,
         )
         # Per-month equivalents of the pre-#1596 global snapshot_dt +
         # ``_start_dt_lb`` filters. Equivalent because the global
@@ -459,6 +468,7 @@ def run_beta(
         bounds=bounds,
         master_seed=master_seed,
         patient_cache=patient_cache,
+        hospital_ops=hospital_ops,
     )
     if n_ed > 0:
         print(f"  ED visits (not admitted): {n_ed} generated", flush=True)

@@ -46,6 +46,7 @@ def _run_ed_slot_phase(
     bounds: _TimeRangeBounds,
     master_seed: int,
     patient_cache: dict[tuple[str, int | None], PatientProfile],
+    hospital_ops: dict[str, Any] | None = None,
 ) -> int:
     """Emit the "ED visits (not admitted)" slot-based phase.
 
@@ -76,6 +77,10 @@ def _run_ed_slot_phase(
     if not ed_conditions or n_ed <= 0:
         return 0
 
+    from clinosim.simulator.hospital_ops import inpatient_departments
+
+    _depts = inpatient_departments(hospital_ops)
+    restrictions = [ed_severity_restriction(spec, _depts) for _name, spec in ed_conditions]
     occ_mult_table = demo.get("occupation_risk_multipliers", {})
     prefix_share = _chronic_prefix_share(
         population,
@@ -102,8 +107,8 @@ def _run_ed_slot_phase(
         )
 
         ed_probs = [
-            _ed_condition_weight(name, spec, person, visit_month, occ_mult_table, prefix_share)
-            for name, spec in ed_conditions
+            _ed_condition_weight(name, spec, person, visit_month, occ_mult_table, prefix_share) * share
+            for (name, spec), (_allowed, share) in zip(ed_conditions, restrictions, strict=True)
         ]
         total_p = sum(ed_probs)
         if total_p <= 0:
@@ -134,9 +139,31 @@ def _run_ed_slot_phase(
             slot_rng,
             country=config.country,
             config=config,
+            allowed_severities=restrictions[cond_idx][0],
         )
         patient_records.append(ed_record)
     return n_ed
+
+
+def ed_severity_restriction(
+    spec: dict[str, Any], inpatient_depts: frozenset[str]
+) -> tuple[tuple[str, ...] | None, float]:
+    """Severities an ED condition keeps as ED-only visits at this hospital
+    (Issue #2132), and the share of its weight they carry.
+
+    ``admitted_with_inpatient_unit: {department, severities}`` names the
+    severities that a hospital with an inpatient unit of ``department``
+    admits instead (they arrive as that unit's admissions, e.g. depression
+    admissions to psychiatry); the ED condition then keeps the remaining
+    severities only. ``(None, 1.0)`` when nothing is restricted.
+    """
+    rule = spec.get("admitted_with_inpatient_unit") or {}
+    if not rule or rule.get("department") not in inpatient_depts:
+        return None, 1.0
+    admitted = set(rule.get("severities") or [])
+    dist = spec.get("severity_distribution") or {}
+    kept = tuple(s for s in dist if s not in admitted and float(dist[s]) > 0)
+    return kept, sum(float(dist[s]) for s in kept)
 
 
 def _has_chronic_prefix(person: Any, prefix: str) -> bool:
