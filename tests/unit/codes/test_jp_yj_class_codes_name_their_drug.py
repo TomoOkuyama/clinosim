@@ -71,6 +71,9 @@ _BRANDS: dict[str, tuple[str, ...]] = {
     "Nalmefene": ("セリンクロ",),
     "Naphazoline": ("プリビナ",),
     "Semaglutide": ("オゼンピック",),
+    # Issue #2155 additions.
+    "Hydroxyzine": ("アタラックス",),
+    "Naproxen": ("ナイキサン",),
 }
 
 

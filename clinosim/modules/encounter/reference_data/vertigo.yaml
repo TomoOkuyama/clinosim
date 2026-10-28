@@ -42,7 +42,7 @@ discharge_instructions:
   - "Perform Epley maneuver at home as instructed"
 
 discharge_prescriptions:
-  - {drug: "Meclizine 25mg", route: "PO", frequency: "TID PRN", duration_days: 7, probability: 0.6}
+  - {drug: "Meclizine 25mg", locale_name: {jp: "Betahistine 6mg"}, route: "PO", frequency: "TID PRN", duration_days: 7, probability: 0.6}
   - {drug: "Ondansetron 4mg ODT", route: "PO", frequency: "Q8H PRN", duration_days: 5, probability: 0.3}
 
 incidence_modifier: 1.0

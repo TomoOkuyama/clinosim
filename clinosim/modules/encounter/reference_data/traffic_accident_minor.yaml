@@ -53,7 +53,7 @@ discharge_instructions:
 discharge_prescriptions:
   - {drug: "Ibuprofen 400mg", route: "PO", frequency: "tid", duration_days: 7, probability: 0.7}
   - {drug: "Acetaminophen 500mg", route: "PO", frequency: "tid PRN", duration_days: 7, probability: 0.5}
-  - {drug: "Cyclobenzaprine 5mg", route: "PO", frequency: "tid PRN", duration_days: 5, probability: 0.3}
+  - {drug: "Cyclobenzaprine 5mg", locale_name: {jp: "Eperisone 50mg"}, route: "PO", frequency: "tid PRN", duration_days: 5, probability: 0.3}
 
 incidence_modifier: 1.0
 probability: 0.05  # relative frequency among ED visits

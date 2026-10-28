@@ -51,7 +51,7 @@ discharge_instructions:
 discharge_prescriptions:
   - {drug: "Ibuprofen 400mg", route: "PO", frequency: "tid", duration_days: 7, probability: 0.7}
   - {drug: "Acetaminophen 500mg", route: "PO", frequency: "tid PRN", duration_days: 7, probability: 0.5}
-  - {drug: "Oxycodone 5mg", route: "PO", frequency: "q6h PRN", duration_days: 3, probability: 0.2}
+  - {drug: "Oxycodone 5mg", locale_exclude: [JP], route: "PO", frequency: "q6h PRN", duration_days: 3, probability: 0.2}
 
 # NOTE (FP-YAML-KEY-COVERAGE, session 40): surgical_referral was authored as
 # {probability: 0.20, criteria: "...", referral_to: "wrist_fracture_surgical"}

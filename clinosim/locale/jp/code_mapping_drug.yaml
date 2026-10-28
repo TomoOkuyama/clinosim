@@ -427,6 +427,15 @@ Eperisone: "1249009"                      # ミオナール (instead of cycloben
 Oxybuprocaine: "1313700"                  # ベノキシール点眼液 (instead of proparacaine)
 Naphazoline: "1324704"                    # プリビナ液 (nasal; instead of oxymetazoline)
 Nalmefene: "1190025"                      # セリンクロ (instead of naltrexone)
+
+# Issue #2155: ED discharge prescriptions. 7-digit class codes verified
+# against JP_MedicationCodeYJ_CS_full.json.
+Cetirizine: "4490020"                     # セチリジン塩酸塩 (ジルテック)
+Hydroxyzine: "1179005"                    # ヒドロキシジン塩酸塩 (アタラックス)
+Loperamide: "2319001"                     # ロペラミド塩酸塩 (ロペミン)
+Sumatriptan: "2160003"                    # スマトリプタン (イミグラン)
+Naproxen: "1149007"                       # ナプロキセン (ナイキサン)
+Dextromethorphan: "2223001"               # デキストロメトルファン臭化水素酸塩 (メジコン)
 "Tegafur-Gimeracil-Oteracil": "4229101"  # ティーエスワン (S-1); reaches JP patients once activation uses the patient country
 
 # Issue #2140: second-generation antipsychotics (7-digit classes verified

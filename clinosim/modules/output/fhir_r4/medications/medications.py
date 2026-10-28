@@ -1255,11 +1255,13 @@ def _build_discharge_medication_request(
         # JP-CLINS `orderInRp` uniqueness expectation. Model the
         # discharge prescription as a distinct Rp group (`rpNumber=2`)
         # on inpatient encounters. Outpatient renewal has no inpatient
-        # orders to collide with, so `rpNumber=1` remains correct.
+        # orders to collide with, so `rpNumber=1` remains correct. ED
+        # treatment orders take Rp group 1 too, so an ED take-home
+        # prescription (Issue #2155) is group 2 as on inpatient discharge.
         **_build_medication_request_identifiers(
             _structural_key,
             country_code,
-            "2" if encounter_type == "inpatient" else "1",
+            "2" if encounter_type in ("inpatient", "emergency") else "1",
             str(seq),
         ),
         "status": "active",

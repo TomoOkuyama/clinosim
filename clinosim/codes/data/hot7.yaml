@@ -494,3 +494,23 @@ codes:
   '1179404':
     en: Haloperidol (injection)
     ja: ハロペリドール注
+
+  # Issue #2155: ED discharge prescriptions.
+  '4490020':
+    en: Cetirizine
+    ja: セチリジン塩酸塩
+  '1179005':
+    en: Hydroxyzine
+    ja: ヒドロキシジン塩酸塩
+  '2319001':
+    en: Loperamide
+    ja: ロペラミド塩酸塩
+  '2160003':
+    en: Sumatriptan
+    ja: スマトリプタン
+  '1149007':
+    en: Naproxen
+    ja: ナプロキセン
+  '2223001':
+    en: Dextromethorphan
+    ja: デキストロメトルファン臭化水素酸塩水和物

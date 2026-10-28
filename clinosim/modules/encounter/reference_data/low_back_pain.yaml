@@ -55,7 +55,7 @@ discharge_instructions:
 
 discharge_prescriptions:
   - {drug: "Ibuprofen 600mg", route: "PO", frequency: "tid", duration_days: 10, probability: 0.7}
-  - {drug: "Cyclobenzaprine 10mg", route: "PO", frequency: "tid PRN", duration_days: 7, probability: 0.5}
+  - {drug: "Cyclobenzaprine 10mg", locale_name: {jp: "Eperisone 50mg"}, route: "PO", frequency: "tid PRN", duration_days: 7, probability: 0.5}
   - {drug: "Acetaminophen 500mg", route: "PO", frequency: "q6h PRN", duration_days: 10, probability: 0.4}
 
 scenarios:

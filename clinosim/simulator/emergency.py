@@ -2,10 +2,12 @@
 
 from __future__ import annotations
 
+import re
 from datetime import datetime, timedelta
 
 import numpy as np
 
+from clinosim import determinism
 from clinosim.codes import system_key_for
 from clinosim.codes.hl7_encounter import ActPriority, AdmitSource, DischargeDisposition
 from clinosim.modules.disease.severity import sample_severity_category
@@ -47,12 +49,14 @@ from clinosim.simulator._ed_thresholds import (
 from clinosim.simulator.vitals_pipeline import _loc_for
 from clinosim.types.clinical import ClinicalDiagnosis, ConditionEvent, PhysiologicalState
 from clinosim.types.encounter import (
+    Encounter,
     EncounterStatus,
     EncounterType,
     Order,
     OrderResult,
     OrderStatus,
     OrderType,
+    PrescriptionRecord,
     VitalSignRecord,
 )
 from clinosim.types.output import CIFPatientRecord
@@ -122,6 +126,177 @@ def ed_lab_true_value(lab_spec: dict, severity: str, derived: float) -> float:
     if severity in by_severity:
         return float(by_severity[severity])
     return derived
+
+
+def _ed_medication_skipped(
+    drug_name: str,
+    patient: PatientProfile,
+    indication_codes: list[str],
+    active_drugs: list[str],
+    encounter_id: str,
+    visit_time: datetime,
+    cond_name: str,
+    hint: str,
+) -> bool:
+    """Demographic and drug-drug gates for an ED medication (ED treatment
+    orders and, Issue #2155, discharge prescriptions). Logs the skip on
+    ``patient.safety_skip_log`` and returns True when the drug is dropped."""
+    from clinosim.modules import drug_safety
+    from clinosim.modules.drug_safety import check_demographic_gate
+    from clinosim.modules.drug_safety.verdict import SEVERITY_RANK, SafetySkipEntry, SafetyVerdict
+
+    _gate = check_demographic_gate(
+        drug_name,
+        patient_age=patient.age,
+        patient_sex=patient.sex,
+        indication_codes=indication_codes,
+    )
+    if _gate.should_skip:
+        # Log the skip so downstream verification / audit can prove the
+        # gate fired instead of the drug silently disappearing. Reuse
+        # the existing SafetySkipEntry container to share provenance
+        # tooling with the DDI gate (drug_safety.check_pair).
+        _wrapped = SafetyVerdict(
+            severity=_gate.severity,
+            rule_id=_gate.rule_id,
+            matched_classes=None,
+            matched_active_drug=None,
+            rationale_en=_gate.rationale_en,
+            rationale_ja=_gate.rationale_ja,
+            substitution_hint=None,
+        )
+        _matched = _gate.matched_drug_name or drug_name
+        patient.safety_skip_log.append(
+            SafetySkipEntry(
+                encounter_id=encounter_id,
+                candidate_drug=drug_name,
+                candidate_drug_ja=drug_name,
+                active_conflict=f"demographic:age={patient.age},sex={patient.sex}",
+                active_conflict_ja=f"適応外:年齢={patient.age},性別={patient.sex}",
+                verdict=_wrapped,
+                substituted_with=None,
+                substituted_with_ja=None,
+                context_hint=f"{hint}_dispatch:{cond_name}:matched={_matched}",
+                timestamp=visit_time.isoformat(),
+            )
+        )
+        return True
+    # Issue #1347 (META #1392 Cluster A part 4): drug-drug pair
+    # gate for ED order emit. Prior to this pass the ED order
+    # dispatcher only checked the demographic gate (age/sex
+    # rules); it did NOT call ``check_candidate_against_active``
+    # so a patient on chronic Rivaroxaban + Celecoxib could
+    # receive Ketorolac IV + Ibuprofen PO in the same ED visit
+    # (3-NSAID stacking on top of anticoag — massive GI-bleed
+    # risk). ``active_drugs`` is the caller's active med set (chronic
+    # medications plus the drugs already ordered or prescribed).
+    # Drops on "skip" severity (major / contraindicated); logs
+    # a SafetySkipEntry so downstream verification can prove the
+    # gate fired instead of the drug silently disappearing.
+    _ddi_verdicts = drug_safety.check_candidate_against_active(drug_name, active_drugs)
+    _ddi_worst = max(
+        (v for v in _ddi_verdicts if not v.is_allowed),
+        key=lambda v: SEVERITY_RANK[v.severity],
+        default=None,
+    )
+    if _ddi_worst is not None and _ddi_worst.default_action == "skip":
+        patient.safety_skip_log.append(
+            SafetySkipEntry(
+                encounter_id=encounter_id,
+                candidate_drug=drug_name,
+                candidate_drug_ja=(drug_safety.japanese_display(drug_name) or drug_name),
+                active_conflict=_ddi_worst.matched_active_drug or "",
+                active_conflict_ja=(
+                    drug_safety.japanese_display(_ddi_worst.matched_active_drug or "")
+                    or (_ddi_worst.matched_active_drug or "")
+                ),
+                verdict=_ddi_worst,
+                substituted_with=None,
+                substituted_with_ja=None,
+                context_hint=f"{hint}_ddi:{cond_name}",
+                timestamp=visit_time.isoformat(),
+            )
+        )
+        return True
+    return False
+
+
+# Strength written into a protocol drug name ("Ibuprofen 600mg",
+# "Amoxicillin/clavulanate 875/125mg"); a discharge prescription item
+# carries it as ``dose`` unless the entry declares one.
+_DOSE_IN_NAME = re.compile(r"\d[\d.]*(?:/\d[\d.]*)*\s*(?:mg|mcg|g|mL|%)", re.IGNORECASE)
+
+
+def _ed_discharge_prescription(
+    protocol: dict | None,
+    patient: PatientProfile,
+    encounter: Encounter,
+    indication_codes: list[str],
+    country: str,
+    cond_name: str,
+) -> PrescriptionRecord | None:
+    """Take-home prescriptions of a treat-and-release visit (Issue #2155).
+
+    Each ``discharge_prescriptions[]`` entry is drawn with its
+    ``probability`` from a per-encounter sub-seed (the inpatient discharge
+    seed, AD-16), so the draw leaves every other event of the cohort
+    unchanged. ``locale_exclude`` / ``locale_name`` work as on
+    ``treatment[]``; the demographic and drug-drug gates of ED treatment
+    orders apply against the chronic medications and the drugs already
+    prescribed. Visits that do not end at home carry no prescription.
+    """
+    from clinosim.modules import drug_safety
+    from clinosim.seeding import discharge_prescription_seed
+
+    specs = (protocol or {}).get("discharge_prescriptions") or []
+    if not specs or encounter.discharge_disposition != DischargeDisposition.HOME:
+        return None
+    issued = encounter.discharge_datetime or encounter.admission_datetime
+    rng = determinism.default_rng(discharge_prescription_seed(patient.patient_id, encounter.encounter_id))
+    country_key = "jp" if str(country).lower() in ("jp", "japan") else "us"
+    active = [m.drug_name for m in (patient.current_medications or []) if m.drug_name]
+    items: list[dict] = []
+    for spec in specs:
+        if rng.random() > spec.get("probability", 1.0):
+            continue
+        if country.upper() in {str(c).upper() for c in spec.get("locale_exclude") or []}:
+            continue  # not marketed in this country; drawn above to keep the stream
+        name = str((spec.get("locale_name") or {}).get(country_key) or spec.get("drug", ""))
+        if not name or _ed_medication_skipped(
+            name,
+            patient,
+            indication_codes,
+            active,
+            encounter.encounter_id,
+            issued,
+            cond_name,
+            "ed_discharge_rx",
+        ):
+            continue
+        active.append(name)
+        # Item shape of the inpatient discharge prescription: the drug name
+        # without its strength, which goes in ``dose``.
+        strength = m.group(0) if (m := _DOSE_IN_NAME.search(name)) else ""
+        drug = " ".join(_DOSE_IN_NAME.sub("", name).split()) or name
+        items.append(
+            {
+                "drug_name": drug,
+                "drug_name_ja": drug_safety.japanese_display(drug) or "",
+                "dose": str(spec.get("dose") or strength),
+                "route": str(spec.get("route", "PO")),
+                "frequency": str(spec.get("frequency", "")),
+                "duration_days": spec.get("duration_days"),
+            }
+        )
+    if not items:
+        return None
+    return PrescriptionRecord(
+        prescription_id=f"RX-{patient.patient_id}-{encounter.encounter_id}",
+        patient_id=patient.patient_id,
+        prescriber_id=encounter.attending_physician_id,
+        issue_date=issued,
+        items=items,
+    )
 
 
 def _simulate_ed_visit(
@@ -377,8 +552,6 @@ def _simulate_ed_visit(
     # in the current catalog. Gate rules are declarative
     # (drug_safety/reference_data/demographic_gates.yaml); adding a new
     # rule requires no changes to this dispatcher.
-    from clinosim.modules.drug_safety import check_demographic_gate
-    from clinosim.modules.drug_safety.verdict import SafetySkipEntry, SafetyVerdict
 
     _proto_icd = (protocol or condition).get("icd10_code")
     _indication_codes: list[str] = []
@@ -409,86 +582,19 @@ def _simulate_ed_visit(
         _tx_name = str(_locale_name.get(_tx_country_key) or tx.get("name", ""))
         _order_type = classify_encounter_treatment(_tx_name)
         if _order_type == OrderType.MEDICATION:
-            _gate = check_demographic_gate(
-                _tx_name,
-                patient_age=patient.age,
-                patient_sex=patient.sex,
-                indication_codes=_indication_codes,
-            )
-            if _gate.should_skip:
-                # Log the skip so downstream verification / audit can prove the
-                # gate fired instead of the drug silently disappearing. Reuse
-                # the existing SafetySkipEntry container to share provenance
-                # tooling with the DDI gate (drug_safety.check_pair).
-                _wrapped = SafetyVerdict(
-                    severity=_gate.severity,
-                    rule_id=_gate.rule_id,
-                    matched_classes=None,
-                    matched_active_drug=None,
-                    rationale_en=_gate.rationale_en,
-                    rationale_ja=_gate.rationale_ja,
-                    substitution_hint=None,
-                )
-                _matched = _gate.matched_drug_name or _tx_name
-                patient.safety_skip_log.append(
-                    SafetySkipEntry(
-                        encounter_id=encounter.encounter_id,
-                        candidate_drug=_tx_name,
-                        candidate_drug_ja=_tx_name,
-                        active_conflict=f"demographic:age={patient.age},sex={patient.sex}",
-                        active_conflict_ja=f"適応外:年齢={patient.age},性別={patient.sex}",
-                        verdict=_wrapped,
-                        substituted_with=None,
-                        substituted_with_ja=None,
-                        context_hint=f"ed_treatment_dispatch:{cond_name}:matched={_matched}",
-                        timestamp=visit_time.isoformat(),
-                    )
-                )
-                continue
-            # Issue #1347 (META #1392 Cluster A part 4): drug-drug pair
-            # gate for ED order emit. Prior to this pass the ED order
-            # dispatcher only checked the demographic gate (age/sex
-            # rules); it did NOT call ``check_candidate_against_active``
-            # so a patient on chronic Rivaroxaban + Celecoxib could
-            # receive Ketorolac IV + Ibuprofen PO in the same ED visit
-            # (3-NSAID stacking on top of anticoag — massive GI-bleed
-            # risk). The active med set is
-            #   patient.current_medications
-            #   + drug names already appended to ``orders`` this loop
-            # so both chronic-vs-new and new-vs-new pairs are caught.
-            # Drops on "skip" severity (major / contraindicated); logs
-            # a SafetySkipEntry so downstream verification can prove the
-            # gate fired instead of the drug silently disappearing.
-            from clinosim.modules import drug_safety
-            from clinosim.modules.drug_safety.verdict import SEVERITY_RANK
-
             _active_ed = [m.drug_name for m in (patient.current_medications or []) if m.drug_name] + [
                 str(o.display_name) for o in orders if o.order_type == OrderType.MEDICATION and o.display_name
             ]
-            _ddi_verdicts = drug_safety.check_candidate_against_active(_tx_name, _active_ed)
-            _ddi_worst = max(
-                (v for v in _ddi_verdicts if not v.is_allowed),
-                key=lambda v: SEVERITY_RANK[v.severity],
-                default=None,
-            )
-            if _ddi_worst is not None and _ddi_worst.default_action == "skip":
-                patient.safety_skip_log.append(
-                    SafetySkipEntry(
-                        encounter_id=encounter.encounter_id,
-                        candidate_drug=_tx_name,
-                        candidate_drug_ja=(drug_safety.japanese_display(_tx_name) or _tx_name),
-                        active_conflict=_ddi_worst.matched_active_drug or "",
-                        active_conflict_ja=(
-                            drug_safety.japanese_display(_ddi_worst.matched_active_drug or "")
-                            or (_ddi_worst.matched_active_drug or "")
-                        ),
-                        verdict=_ddi_worst,
-                        substituted_with=None,
-                        substituted_with_ja=None,
-                        context_hint=f"ed_treatment_ddi:{cond_name}",
-                        timestamp=visit_time.isoformat(),
-                    )
-                )
+            if _ed_medication_skipped(
+                _tx_name,
+                patient,
+                _indication_codes,
+                _active_ed,
+                encounter.encounter_id,
+                visit_time,
+                cond_name,
+                "ed_treatment",
+            ):
                 continue
         orders.append(
             Order(
@@ -598,6 +704,7 @@ def _simulate_ed_visit(
     encounter.priority = ActPriority.EM
     encounter.admitting_physician_id = encounter.attending_physician_id
     encounter.discharging_physician_id = encounter.attending_physician_id
+    discharge_rx = _ed_discharge_prescription(protocol, patient, encounter, _indication_codes, country, cond_name)
 
     # Use ICD-10 from encounter YAML (required by FHIR R4)
     icd_code = ed_diagnosis_code(protocol or condition, patient)
@@ -630,6 +737,7 @@ def _simulate_ed_visit(
         vital_signs=vitals,
         lab_results=lab_results,
         procedures=ed_procedures,
+        discharge_prescription=discharge_rx,
         condition_event=ConditionEvent(
             condition_id=f"COND-{patient.patient_id}-ED",
             condition_type="ed_visit",
