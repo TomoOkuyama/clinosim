@@ -131,3 +131,18 @@ def encounter_primary_dx_code(record: dict | None, encounter_id: str) -> str:
             break
     dx = record.get("clinical_diagnosis") or {}
     return str(dx.get("discharge_diagnosis_code") or dx.get("admission_diagnosis_code", "") or "")
+
+
+# Issue #2157: codes the ICD-10-CM Official Guidelines never allow as the
+# principal diagnosis. Z37.- (outcome of delivery) is a secondary code on
+# the mother's record (I.C.15.b / I.C.15.n); R65.1- / R65.2- (SIRS, severe
+# sepsis) follow the underlying condition or infection (I.C.18.g /
+# I.C.1.d.4). Matched on the ICD-10 base.
+_NEVER_PRINCIPAL_DX_BASES: frozenset[str] = frozenset({"Z37", "R65"})
+
+
+def is_never_principal_dx(code: str) -> bool:
+    """Return True when ``code`` may not be ranked as the principal diagnosis."""
+    if not code:
+        return False
+    return code.split(".", 1)[0] in _NEVER_PRINCIPAL_DX_BASES
