@@ -1,0 +1,99 @@
+# Opioid withdrawal — ED visit protocol (Issue #2154)
+# Withdrawal in a patient with opioid use disorder (F11): anxiety, myalgia,
+# vomiting, diarrhea and sympathetic activation. The ED starts buprenorphine
+# (ED-initiated buprenorphine raises engagement in treatment at 30 days,
+# D'Onofrio 2015 JAMA), treats symptoms and links to outpatient MOUD.
+# Benchmark: opioid withdrawal ~0.1% of US ED visits (NHAMCS / NEDS opioid-
+# related visits); withdrawal is managed as an outpatient condition.
+
+condition_id: opioid_withdrawal
+icd10_code: "F11.23"
+icd10_display: "Opioid dependence with withdrawal"
+chief_complaint:
+  en: "Opioid withdrawal: body aches, vomiting, anxiety"
+  ja: "オピオイド離脱症状（全身痛・嘔吐・不安）"
+encounter_type: emergency
+department: emergency_medicine
+disposition: discharge_home
+# Distressed but stable: ESI 3-4.
+triage_level_min: 3
+triage_level_max: 4
+min_age: 18
+requires_chronic_prefix: ["F11"]
+
+severity_distribution:
+  mild: 0.40
+  moderate: 0.45
+  severe: 0.15
+
+ed_stay_hours:
+  mild: {mean: 3, sd: 1}
+  moderate: {mean: 4, sd: 1}
+  severe: {mean: 5, sd: 1.5}
+
+initial_state_impact:
+  mild: {sympathetic_activation: 0.25, pain_level: 0.3}
+  moderate: {sympathetic_activation: 0.4, pain_level: 0.4, volume_status: -0.1}
+  severe: {sympathetic_activation: 0.55, pain_level: 0.5, volume_status: -0.2}
+
+workup:
+  vitals: true
+  labs:
+    - {test: "Na", probability: 0.5}
+    - {test: "K", probability: 0.5}
+    - {test: "Creatinine", probability: 0.5}
+    - {test: "Glucose", probability: 0.5}
+    - test: "Urine_drug_screen"
+      probability: 0.5
+      result_distribution:
+        options: ["Positive: fentanyl", "Positive: opiates", "Positive: fentanyl, opiates", "Negative"]
+        weights: [0.45, 0.2, 0.15, 0.2]
+
+treatment:
+  - {name: "Buprenorphine/Naloxone 8mg/2mg", probability: 0.5, route: "SL", intent: "ED-initiated buprenorphine for withdrawal"}
+  - {name: "Clonidine 0.1mg", probability: 0.4, route: "PO", intent: "withdrawal sympathetic symptoms"}
+  - {name: "Ondansetron 4mg", probability: 0.6, route: "IV", intent: "nausea / vomiting"}
+  - {name: "NS 1000mL", probability: 0.4, route: "IV", intent: "dehydration"}
+  - {name: "Referral for medication for opioid use disorder", probability: 0.8, route: "non-pharmacologic"}
+
+discharge_instructions:
+  - "Take buprenorphine as prescribed until your addiction medicine appointment"
+  - "Do not use other opioids, alcohol or sedatives with buprenorphine"
+  - "Carry naloxone"
+  - "Return for chest pain, fainting or inability to keep fluids down"
+
+discharge_prescriptions:
+  - {drug: "Buprenorphine/Naloxone 8mg/2mg", route: "SL", frequency: "daily", duration_days: 7, probability: 0.45}
+  - {drug: "Clonidine 0.1mg", route: "PO", frequency: "q6h PRN", duration_days: 5, probability: 0.3}
+  - {drug: "Ondansetron 4mg", route: "PO", frequency: "q8h PRN", duration_days: 5, probability: 0.4}
+  - {drug: "Naloxone 4mg nasal spray", route: "nasal", frequency: "once PRN overdose (may repeat)", duration_days: 30, probability: 0.4}
+
+incidence_modifier: 1.0
+# The visit's resident is drawn before the condition, so a chronic-gated
+# weight only re-mixes the visits of F11 residents (~0.7% of the population):
+# overdose + withdrawal take ~40% of those visits, ~0.3% of all ED visits.
+probability: 0.003  # ~0.1% of ED visits
+age_distribution: adults
+sex_ratio_female: 0.45
+seasonal: {1: 1.0, 2: 1.0, 3: 1.0, 4: 1.0, 5: 1.0, 6: 1.0, 7: 1.0, 8: 1.0, 9: 1.0, 10: 1.0, 11: 1.0, 12: 1.0}
+
+narrative:
+  ed_note_template:
+    chief_complaint_ja: '{chief_complaint_ja}'
+    hpi_ja: '最終使用から約{onset_days}日、全身痛・嘔吐・下痢・不安・不眠が出現'
+    physical_exam_ja:
+      general: 不穏、発汗、あくび・流涙・鼻漏あり
+      neuro: 散瞳、振戦、立毛
+    ed_workup_summary_ja: '{lab_summary_ja}'
+    disposition_ja: '{disposition_display_ja}'
+    chief_complaint_en: '{chief_complaint_en}'
+    hpi_en: 'Body aches, vomiting, diarrhea, anxiety and insomnia starting about {onset_days} day(s) after last opioid use.'
+    physical_exam_en:
+      general: Restless and diaphoretic, yawning, lacrimation and rhinorrhea
+      neuro: Mydriasis, tremor, piloerection
+    ed_workup_summary_en: '{lab_summary_en}'
+    disposition_en: '{disposition_display_en}'
+  ed_triage_template:
+    common_triage_levels:
+    - '3'
+    - '4'

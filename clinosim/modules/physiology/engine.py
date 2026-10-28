@@ -252,6 +252,7 @@ from clinosim.modules.physiology._vital_signs_thresholds import (
     OXYGENATION_SPO2_SCALE,
     PAIN_SYMPATHETIC_THRESHOLD,
     PAIN_SYMPATHETIC_WEIGHT,
+    RESPIRATORY_DEPRESSION_RR_SCALE,
     RR_CLAMP_MAX,
     RR_CLAMP_MIN,
     RR_INFLAMMATION_SCALE,
@@ -1172,6 +1173,8 @@ def derive_vital_signs(
         rr += symp * SYMPATHETIC_RR_SCALE
     if oxy:
         rr += oxy * OXYGENATION_RR_SCALE
+    if state.respiratory_depression:
+        rr -= state.respiratory_depression * RESPIRATORY_DEPRESSION_RR_SCALE
     rr = clamp(rr, RR_CLAMP_MIN, RR_CLAMP_MAX)
 
     # SpO2

@@ -1,0 +1,116 @@
+# Opioid overdose — ED visit protocol (Issue #2154)
+# Nonfatal overdose in a patient with opioid use disorder (F11), now mostly
+# illicitly manufactured fentanyl. Arrives with a depressed level of
+# consciousness and hypoventilation (often after prehospital naloxone); the
+# ED titrates naloxone, supports oxygenation, observes for re-sedation and
+# discharges with a take-home naloxone kit and a referral for medication for
+# opioid use disorder. Overdoses needing ICU care are out of scope.
+# Benchmark: CDC DOSE — nonfatal opioid overdose about 0.2% of US ED visits;
+# ACEP clinical policy (2020) and SAMHSA Overdose Prevention Toolkit for
+# naloxone distribution at discharge.
+
+condition_id: opioid_overdose
+icd10_code: "T40.411A"
+icd10_display: "Poisoning by fentanyl or fentanyl analogs, accidental (unintentional), initial encounter"
+chief_complaint:
+  en: "Unresponsive, suspected opioid overdose"
+  ja: "意識障害（オピオイド過量摂取疑い）"
+encounter_type: emergency
+department: emergency_medicine
+disposition: discharge_home
+# Depressed consciousness / hypoventilation needing naloxone is ESI 1-2.
+triage_level_min: 1
+triage_level_max: 2
+min_age: 18
+requires_chronic_prefix: ["F11"]
+
+# Mild: roused by prehospital naloxone; moderate: still sedated and
+# hypoventilating on arrival.
+severity_distribution:
+  mild: 0.55
+  moderate: 0.45
+
+# Observation for re-sedation after the last naloxone dose (fentanyl and
+# long-acting opioids outlast naloxone).
+ed_stay_hours:
+  mild: {mean: 4, sd: 1}
+  moderate: {mean: 6, sd: 1.5}
+
+initial_state_impact:
+  mild: {consciousness_impairment: 0.2, respiratory_depression: 0.3, oxygenation_impairment: 0.1}
+  moderate: {consciousness_impairment: 0.45, respiratory_depression: 0.55, oxygenation_impairment: 0.25}
+
+workup:
+  vitals: true
+  labs:
+    - {test: "Glucose", probability: 0.9}
+    - {test: "Na", probability: 0.6}
+    - {test: "K", probability: 0.6}
+    - {test: "Creatinine", probability: 0.6}
+    - {test: "CK", probability: 0.3}
+    # Co-ingestion screen. The standard opiate immunoassay misses fentanyl;
+    # panels with a fentanyl assay report it separately.
+    - {test: "Ethanol", probability: 0.6}
+    - {test: "Acetaminophen_level", probability: 0.5}
+    - {test: "Salicylate", probability: 0.3}
+    - test: "Urine_drug_screen"
+      probability: 0.6
+      result_distribution:
+        options:
+          - "Positive: fentanyl"
+          - "Positive: fentanyl, opiates"
+          - "Positive: fentanyl, benzodiazepines"
+          - "Positive: fentanyl, cocaine"
+          - "Positive: opiates"
+          - "Negative"
+        weights: [0.45, 0.15, 0.10, 0.10, 0.15, 0.05]
+  imaging:
+    - {test: "ECG", probability: 0.6}
+
+treatment:
+  - {name: "Naloxone 0.4mg", probability: 0.75, route: "IV", intent: "opioid reversal (titrated)"}
+  - {name: "Oxygen therapy", probability: 0.6, route: "inhalation", intent: "hypoxemia"}
+  - {name: "Cardiac and pulse oximetry monitoring", probability: 1.0, route: "non-pharmacologic"}
+  - {name: "Overdose education and naloxone counseling", probability: 0.8, route: "non-pharmacologic"}
+  - {name: "Referral for medication for opioid use disorder", probability: 0.6, route: "non-pharmacologic"}
+
+discharge_instructions:
+  - "Carry naloxone and tell family or friends how to use it"
+  - "Do not use alone; avoid mixing opioids with alcohol or benzodiazepines"
+  - "Follow up with addiction medicine for buprenorphine or methadone"
+  - "Return or call 911 for drowsiness, slow breathing or chest pain"
+
+discharge_prescriptions:
+  - {drug: "Naloxone 4mg nasal spray", route: "nasal", frequency: "once PRN overdose (may repeat)", duration_days: 30, probability: 0.6}
+
+incidence_modifier: 1.0
+# The visit's resident is drawn before the condition, so a chronic-gated
+# weight only re-mixes the visits of F11 residents (~0.7% of the population):
+# overdose + withdrawal take ~40% of those visits, ~0.3% of all ED visits.
+probability: 0.006  # ~0.2% of ED visits
+age_distribution: adults
+sex_ratio_female: 0.45
+seasonal: {1: 1.0, 2: 1.0, 3: 1.0, 4: 1.0, 5: 1.05, 6: 1.05, 7: 1.05, 8: 1.05, 9: 1.0, 10: 1.0, 11: 0.95, 12: 0.95}
+
+narrative:
+  ed_note_template:
+    chief_complaint_ja: '{chief_complaint_ja}'
+    hpi_ja: 'オピオイド使用後に反応が乏しくなっているところを発見され救急搬送。呼吸数低下を認めた'
+    physical_exam_ja:
+      general: 傾眠、呼びかけに反応鈍い
+      neuro: 縮瞳、意識レベル低下
+      respiratory: 呼吸数低下、浅い呼吸
+    ed_workup_summary_ja: '{lab_summary_ja}、{imaging_summary_ja}'
+    disposition_ja: '{disposition_display_ja}'
+    chief_complaint_en: '{chief_complaint_en}'
+    hpi_en: 'Found minimally responsive after opioid use; slow, shallow breathing noted by bystanders or EMS.'
+    physical_exam_en:
+      general: Somnolent, slow to respond to voice
+      neuro: Pinpoint pupils, depressed level of consciousness
+      respiratory: Bradypnea with shallow respirations
+    ed_workup_summary_en: '{lab_summary_en}, {imaging_summary_en}'
+    disposition_en: '{disposition_display_en}'
+  ed_triage_template:
+    common_triage_levels:
+    - '1'
+    - '2'

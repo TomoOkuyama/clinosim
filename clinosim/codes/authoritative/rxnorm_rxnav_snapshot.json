@@ -450,6 +450,12 @@
    "tty": "IN"
   },
   {
+   "code": "2599",
+   "status": "Active",
+   "name": "clonidine",
+   "tty": "IN"
+  },
+  {
    "code": "260101",
    "status": "Active",
    "name": "oseltamivir",

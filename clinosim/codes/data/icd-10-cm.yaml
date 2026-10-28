@@ -91,6 +91,10 @@ codes:
   F11.20:
     en: Opioid dependence, uncomplicated
     ja: オピオイド依存症（合併症なし）
+  # Issue #2154: opioid withdrawal ED visit (tx.fhir.org $lookup).
+  F11.23:
+    en: Opioid dependence with withdrawal
+    ja: オピオイド依存症（離脱症状を伴う）
   F17.210:
     en: Nicotine dependence, cigarettes, uncomplicated
     ja: ニコチン依存症（紙巻きたばこ、合併症なし）
@@ -807,6 +811,10 @@ codes:
   T31.3:
     en: Burns involving 30-39% of body surface
     ja: 体表面積30-39%の熱傷
+  # Issue #2154: opioid overdose ED visit (tx.fhir.org $lookup).
+  T40.411A:
+    en: Poisoning by fentanyl or fentanyl analogs, accidental (unintentional), initial encounter
+    ja: フェンタニル又はフェンタニル類似体による中毒（不慮）、初回診療
   T54.3:
     en: Toxic effect of corrosive alkalis and alkali-like substances
     ja: 腐食性アルカリ・アルカリ様物質の毒性

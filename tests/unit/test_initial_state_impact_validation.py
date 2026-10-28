@@ -215,6 +215,8 @@ class TestTrajectoryStateVarsDerivedFromCanonical:
             "pain_level",
             "oxygenation_impairment",
             "consciousness_impairment",
+            # Issue #2154: appended at the end; absent keys draw no RNG.
+            "respiratory_depression",
         )
 
 

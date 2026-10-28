@@ -114,6 +114,8 @@ TRAJECTORY_STATE_VARS: tuple[str, ...] = (
     "pain_level",
     "oxygenation_impairment",
     "consciousness_impairment",
+    # Appended (Issue #2154): no trajectory lists it yet, so no RNG draw moves.
+    "respiratory_depression",
 )
 assert frozenset(TRAJECTORY_STATE_VARS) == canonical_state_vars() - {"respiratory_fraction"}, (
     "TRAJECTORY_STATE_VARS drifted from canonical_state_vars — extend the tuple "

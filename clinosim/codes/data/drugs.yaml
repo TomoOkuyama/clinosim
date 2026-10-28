@@ -412,6 +412,12 @@ drugs:
     codes:
       rxnorm: "77492"
     classes: []
+  clonidine:
+    # Issue #2154: opioid withdrawal adjunct.
+    names: {en: "Clonidine", ja: "クロニジン"}
+    codes:
+      rxnorm: "2599"
+    classes: []
   naloxone:
     names: {en: "Naloxone", ja: "ナロキソン"}
     codes:

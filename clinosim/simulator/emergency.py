@@ -58,7 +58,13 @@ from clinosim.types.encounter import (
 from clinosim.types.output import CIFPatientRecord
 from clinosim.types.patient import PatientProfile
 
-_ED_SYMPTOM_AXES = ("pain_level", "oxygenation_impairment", "sympathetic_activation", "consciousness_impairment")
+_ED_SYMPTOM_AXES = (
+    "pain_level",
+    "oxygenation_impairment",
+    "sympathetic_activation",
+    "consciousness_impairment",
+    "respiratory_depression",  # naloxone reversal (Issue #2154)
+)
 
 
 def ed_treatment_response(state: PhysiologicalState) -> PhysiologicalState:
