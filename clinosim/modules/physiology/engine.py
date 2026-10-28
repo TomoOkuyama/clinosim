@@ -26,6 +26,7 @@ from clinosim.modules.physiology._coupling_coefficients import (
     CKD_SEVERE_PH_COUPLING,
     CKD_SEVERE_THRESHOLD,
     COPD_PH_COUPLING,
+    FATTY_LIVER_HEPATIC_COUPLING,
     HF_CARDIAC_COUPLING,
     HF_SEVERE_THRESHOLD,
     HF_SEVERE_VOLUME_COUPLING,
@@ -125,6 +126,7 @@ from clinosim.modules.physiology._lab_derivation_thresholds import (
     HDL_BASELINE_FEMALE_MG_DL,
     HDL_BASELINE_MALE_MG_DL,
     HDL_DYSLIPIDEMIA_SCALE,
+    HEPATIC_INJURY_FLOOR,
     LAB_REFERENCE_SAO2_PCT,
     LACTATE_BASELINE_MMOL_L,
     LACTATE_PERFUSION_SCALE,
@@ -322,6 +324,8 @@ def initialize_state(
             state.hepatic_function *= 1.0 - s * CIRRHOSIS_HEPATIC_COUPLING
             state.coagulation_status += s * CIRRHOSIS_COAGULATION_COUPLING
             state.sodium_status -= s * CIRRHOSIS_SODIUM_COUPLING  # dilutional hyponatremia
+        elif code.startswith(("K76.0", "F10")):  # Fatty liver / alcohol use (Issue #2125)
+            state.hepatic_function *= 1.0 - s * FATTY_LIVER_HEPATIC_COUPLING
         elif code.startswith("J44"):  # COPD
             state.ph_status -= s * COPD_PH_COUPLING
             state.respiratory_fraction = 1.0  # chronic CO2 retention → respiratory axis
@@ -867,16 +871,19 @@ def derive_lab_values(
     labs["CK_MB"] = ckmb  # ng/mL (normal < 5)
 
     # --- Hepatic ---
-    labs["AST"] = AST_BASELINE_U_L + (1 - hepatic) * AST_HEPATIC_SCALE
-    labs["ALT"] = ALT_BASELINE_U_L + (1 - hepatic) * ALT_HEPATIC_SCALE
-    labs["T_Bil"] = T_BIL_BASELINE_MG_DL + (1 - hepatic) * T_BIL_HEPATIC_SCALE
+    # Injury / cholestasis markers rise only below the healthy reserve range
+    # (Issue #2125): the age-reduced reserve is not hepatocellular injury.
+    hep_injury = max(0.0, HEPATIC_INJURY_FLOOR - hepatic) / HEPATIC_INJURY_FLOOR
+    labs["AST"] = AST_BASELINE_U_L + hep_injury * AST_HEPATIC_SCALE
+    labs["ALT"] = ALT_BASELINE_U_L + hep_injury * ALT_HEPATIC_SCALE
+    labs["T_Bil"] = T_BIL_BASELINE_MG_DL + hep_injury * T_BIL_HEPATIC_SCALE
     # Issue #1073 B8: extended LFT — ALP + GGT + TP + LDH now derived so the
     # LFT panel emits all 8 components instead of silent-dropping to 2/8.
-    labs["ALP"] = ALP_BASELINE_U_L + (1 - hepatic) * ALP_HEPATIC_SCALE
+    labs["ALP"] = ALP_BASELINE_U_L + hep_injury * ALP_HEPATIC_SCALE
     _ggt_base = GGT_BASELINE_MALE_U_L if sex == "M" else GGT_BASELINE_FEMALE_U_L
-    labs["GGT"] = _ggt_base + (1 - hepatic) * GGT_HEPATIC_SCALE
+    labs["GGT"] = _ggt_base + hep_injury * GGT_HEPATIC_SCALE
     labs["TP"] = max(TP_FLOOR_G_DL, TP_BASELINE_G_DL - (1 - hepatic) * TP_HEPATIC_SCALE)
-    labs["LDH"] = LDH_BASELINE_U_L + (1 - hepatic) * LDH_HEPATIC_SCALE
+    labs["LDH"] = LDH_BASELINE_U_L + hep_injury * LDH_HEPATIC_SCALE
 
     # --- Lipid ---
     # Issue #1073 B8: lipid panel — TC + LDL + HDL + TG. Baseline modulated by

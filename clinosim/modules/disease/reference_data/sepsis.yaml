@@ -134,7 +134,7 @@ initial_state_impact:
     volume_status: -0.40
     perfusion_status: -0.35
     renal_function: -0.25
-    hepatic_function: -0.15
+    hepatic_function: -0.12  # Issue #2125: with the injury floor and fatty-liver / alcohol background
     coagulation_status: -0.15
     ph_status: -0.15
     anion_gap_status: 0.8       # AG axis: severe sepsis / septic shock (AG 18-25)
