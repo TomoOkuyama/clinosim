@@ -35,7 +35,7 @@ pytestmark = pytest.mark.unit
         # sim name is "Nab-paclitaxel" (clinical alias).
         ("Nab-paclitaxel", "486610", "paclitaxel"),
         ("Temozolomide", "37776", "temozolomide"),
-        ("BCG", "1344", "BCG"),
+        ("BCG", "221050", "BCG"),  # Issue #2150: 1344 is not current
     ],
 )
 def test_us_chemo_rxnorm_registration_1280(drug, rxcui, display_substr):
@@ -66,10 +66,10 @@ def test_jp_chemo_yj_registration_1280(drug, yj_code, ja_substr):
 
 
 def test_bcg_is_registered_as_immunotherapy_shape():
-    """BCG lands under RxNorm CUI 1344 (BCG Vaccine) — the same organism
-    used for intravesical bladder immunotherapy. Guard against a future
-    edit that would swap it to a different CUI (e.g. a specific SKU)."""
+    """BCG lands under RxNorm CUI 221050 (BCG, live, Tice strain — the US
+    intravesical bladder immunotherapy product). Issue #2150: the former
+    1344 (BCG Vaccine) is not current in RxNorm."""
     us_map = load_code_mapping("drug", "US")
-    assert us_map.get("BCG") == "1344"
-    en = lookup("rxnorm", "1344", "en")
+    assert us_map.get("BCG") == "221050"
+    en = lookup("rxnorm", "221050", "en")
     assert "BCG" in en

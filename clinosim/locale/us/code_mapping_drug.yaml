@@ -4,7 +4,7 @@
 
 # Antibiotics
 Ampicillin: "733"
-Ampicillin/Sulbactam: "308182"
+Ampicillin/Sulbactam: "1009148"
 Amoxicillin: "723"
 Amoxicillin/Clavulanate: "19711"
 Aztreonam: "1272"
@@ -30,7 +30,7 @@ Lisinopril: "29046"
 Amlodipine: "17767"
 Candesartan: "214354"
 Nitroglycerin: "4917"
-Carperitide: "1310738"
+# Carperitide: JP-only (not marketed in the US; RxCUI 1310738 is not current) — no US code (Issue #2150).
 Enoxaparin: "67108"
 Heparin: "5224"
 Warfarin: "11289"
@@ -48,12 +48,12 @@ Oxycodone: "7804"
 
 # Diabetes
 Metformin: "6809"
-Sliding scale insulin: "5856"
+Sliding scale insulin: "253182"
 
 # Respiratory
-Tiotropium: "274766"
+Tiotropium: "69120"
 Salbutamol: "435"
-Fluticasone/Salmeterol: "108761"
+Fluticasone/Salmeterol: "284635"
 
 # GI / Other
 Lansoprazole: "17128"
@@ -62,9 +62,9 @@ Vitamin D: "11253"
 Phytonadione: "8308"
 Kcentra: "1484959"
 Albumin: "828529"
-Alendronate: "3002"
+Alendronate: "46041"
 Donepezil: "135447"
-Levodopa/Carbidopa: "103919"
+Levodopa/Carbidopa: "103990"
 Levothyroxine: "10582"
 Tamsulosin: "77492"
 
@@ -143,7 +143,7 @@ Gemcitabine: "12574"
 Irinotecan: "51499"
 "Nab-paclitaxel": "486610"     # RxNorm publishes as "paclitaxel protein-bound" (486610); nab- prefix is the clinical alias
 Temozolomide: "37776"
-BCG: "1344"                    # BCG Vaccine RxCUI — intravesical bladder immunotherapy uses the same organism
+BCG: "221050"                    # BCG Vaccine RxCUI — intravesical bladder immunotherapy uses the same organism
 
 # === Issue #1994: raise MedicationRequest RxNorm coverage from 98.98 % to 100 % ===
 # Session-aggregate-QA on the US s=342 p=10000 cohort found 4,719 of
@@ -214,13 +214,13 @@ BCG: "1344"                    # BCG Vaccine RxCUI — intravesical bladder immu
 "Calcium gluconate": "1908"
 
 # Class terms mapped to a representative drug:
-#  * ICS/LABA inhaler → Fluticasone/Salmeterol combo (108761);
+#  * ICS/LABA inhaler → Fluticasone/Salmeterol combo (284635);
 #  * Broad spectrum antibiotic → Piperacillin/Tazobactam (74169, the
 #    workhorse empiric broad-spectrum IV antibiotic);
 #  * Crystalloid → NS (313002), matching the convention noted in the JP
 #    catalog's existing "Crystalloid intentionally omitted — resolve to
 #    NS or Lactated Ringer" comment.
-"ICS/LABA inhaler": "108761"
+"ICS/LABA inhaler": "284635"
 "Broad spectrum antibiotic": "74169"
 "Crystalloid": "313002"
 

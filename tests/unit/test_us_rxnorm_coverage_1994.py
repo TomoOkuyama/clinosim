@@ -89,12 +89,12 @@ _COVERAGE_1994 = {
     # Calcium gluconate — ingredient entry already in rxnorm.yaml under 1908.
     "Calcium gluconate": "1908",
     # Class terms mapped to representative drug:
-    # - ICS/LABA inhaler → Fluticasone/Salmeterol combo (108761);
+    # - ICS/LABA inhaler → Fluticasone/Salmeterol combo (284635; Issue #2150, was 108761);
     # - Broad spectrum antibiotic → Piperacillin/Tazobactam (74169, the
     #   workhorse empiric broad-spectrum IV antibiotic);
     # - Crystalloid → NS (313002), matching the convention noted in the
     #   JP catalog's existing crystalloid comment.
-    "ICS/LABA inhaler": "108761",
+    "ICS/LABA inhaler": "284635",
     "Broad spectrum antibiotic": "74169",
     "Crystalloid": "313002",
 }

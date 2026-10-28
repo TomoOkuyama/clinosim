@@ -1,0 +1,1335 @@
+{
+ "metadata": {
+  "source": "RxNav (NLM) /REST/rxcui/{code}/historystatus",
+  "fetched_at": "2026-10-28",
+  "note": "RxNorm status / name / term type for every RxCUI clinosim ships (rxnorm.yaml, drugs.yaml, US drug mapping). Used offline by tests/unit/codes/test_rxnorm_codes_name_their_drug.py (Issue #2150)."
+ },
+ "concept": [
+  {
+   "code": "1008377",
+   "status": "Active",
+   "name": "calcium chloride / lactate / potassium chloride / sodium chloride",
+   "tty": "MIN"
+  },
+  {
+   "code": "1009148",
+   "status": "Active",
+   "name": "ampicillin / sulbactam",
+   "tty": "MIN"
+  },
+  {
+   "code": "10324",
+   "status": "Active",
+   "name": "tamoxifen",
+   "tty": "IN"
+  },
+  {
+   "code": "103990",
+   "status": "Active",
+   "name": "carbidopa / levodopa",
+   "tty": "MIN"
+  },
+  {
+   "code": "10454",
+   "status": "Active",
+   "name": "thiamine",
+   "tty": "IN"
+  },
+  {
+   "code": "10582",
+   "status": "Active",
+   "name": "levothyroxine",
+   "tty": "IN"
+  },
+  {
+   "code": "10689",
+   "status": "Active",
+   "name": "tramadol",
+   "tty": "IN"
+  },
+  {
+   "code": "10831",
+   "status": "Active",
+   "name": "sulfamethoxazole / trimethoprim",
+   "tty": "MIN"
+  },
+  {
+   "code": "11055",
+   "status": "Active",
+   "name": "urokinase",
+   "tty": "IN"
+  },
+  {
+   "code": "11118",
+   "status": "Active",
+   "name": "valproic acid",
+   "tty": "PIN"
+  },
+  {
+   "code": "11124",
+   "status": "Active",
+   "name": "vancomycin",
+   "tty": "IN"
+  },
+  {
+   "code": "1114195",
+   "status": "Active",
+   "name": "rivaroxaban",
+   "tty": "IN"
+  },
+  {
+   "code": "11149",
+   "status": "Active",
+   "name": "vasopressin (USP)",
+   "tty": "IN"
+  },
+  {
+   "code": "1116632",
+   "status": "Active",
+   "name": "ticagrelor",
+   "tty": "IN"
+  },
+  {
+   "code": "11253",
+   "status": "Active",
+   "name": "vitamin D",
+   "tty": "IN"
+  },
+  {
+   "code": "11258",
+   "status": "Active",
+   "name": "vitamin K",
+   "tty": "IN"
+  },
+  {
+   "code": "11289",
+   "status": "Active",
+   "name": "warfarin",
+   "tty": "IN"
+  },
+  {
+   "code": "114477",
+   "status": "Active",
+   "name": "levetiracetam",
+   "tty": "IN"
+  },
+  {
+   "code": "1153190",
+   "status": "Active",
+   "name": "ampicillin / sulbactam Injectable Product",
+   "tty": "SCDG"
+  },
+  {
+   "code": "1191",
+   "status": "Active",
+   "name": "aspirin",
+   "tty": "IN"
+  },
+  {
+   "code": "12062",
+   "status": "Active",
+   "name": "alfacalcidol",
+   "tty": "IN"
+  },
+  {
+   "code": "1223",
+   "status": "Active",
+   "name": "atropine",
+   "tty": "IN"
+  },
+  {
+   "code": "12574",
+   "status": "Active",
+   "name": "gemcitabine",
+   "tty": "IN"
+  },
+  {
+   "code": "1272",
+   "status": "Active",
+   "name": "aztreonam",
+   "tty": "IN"
+  },
+  {
+   "code": "1311287",
+   "status": "Active",
+   "name": "calcitonin",
+   "tty": "IN"
+  },
+  {
+   "code": "135091",
+   "status": "Active",
+   "name": "mosapride",
+   "tty": "IN"
+  },
+  {
+   "code": "135447",
+   "status": "Active",
+   "name": "donepezil",
+   "tty": "IN"
+  },
+  {
+   "code": "1364430",
+   "status": "Active",
+   "name": "apixaban",
+   "tty": "IN"
+  },
+  {
+   "code": "139462",
+   "status": "Active",
+   "name": "moxifloxacin",
+   "tty": "IN"
+  },
+  {
+   "code": "140587",
+   "status": "Active",
+   "name": "celecoxib",
+   "tty": "IN"
+  },
+  {
+   "code": "1484959",
+   "status": "Active",
+   "name": "Kcentra",
+   "tty": "BN"
+  },
+  {
+   "code": "1488564",
+   "status": "Active",
+   "name": "dapagliflozin",
+   "tty": "IN"
+  },
+  {
+   "code": "1545653",
+   "status": "Active",
+   "name": "empagliflozin",
+   "tty": "IN"
+  },
+  {
+   "code": "1596450",
+   "status": "Active",
+   "name": "gentamicin",
+   "tty": "IN"
+  },
+  {
+   "code": "1599538",
+   "status": "Active",
+   "name": "edoxaban",
+   "tty": "IN"
+  },
+  {
+   "code": "15996",
+   "status": "Active",
+   "name": "mirtazapine",
+   "tty": "IN"
+  },
+  {
+   "code": "1603296",
+   "status": "Active",
+   "name": "lenvatinib",
+   "tty": "IN"
+  },
+  {
+   "code": "161",
+   "status": "Active",
+   "name": "acetaminophen",
+   "tty": "IN"
+  },
+  {
+   "code": "1670383",
+   "status": "Active",
+   "name": "factor IX complex",
+   "tty": "IN"
+  },
+  {
+   "code": "17128",
+   "status": "Active",
+   "name": "lansoprazole",
+   "tty": "IN"
+  },
+  {
+   "code": "1716191",
+   "status": "Active",
+   "name": "idarucizumab",
+   "tty": "IN"
+  },
+  {
+   "code": "1716203",
+   "status": "Active",
+   "name": "patiromer",
+   "tty": "IN"
+  },
+  {
+   "code": "1721560",
+   "status": "Active",
+   "name": "osimertinib",
+   "tty": "IN"
+  },
+  {
+   "code": "17767",
+   "status": "Active",
+   "name": "amlodipine",
+   "tty": "IN"
+  },
+  {
+   "code": "1815",
+   "status": "Active",
+   "name": "bupivacaine",
+   "tty": "IN"
+  },
+  {
+   "code": "1851",
+   "status": "Active",
+   "name": "butylscopolamine bromide",
+   "tty": "PIN"
+  },
+  {
+   "code": "18631",
+   "status": "Active",
+   "name": "azithromycin",
+   "tty": "IN"
+  },
+  {
+   "code": "187832",
+   "status": "Active",
+   "name": "pregabalin",
+   "tty": "IN"
+  },
+  {
+   "code": "1897",
+   "status": "Active",
+   "name": "calcium carbonate",
+   "tty": "IN"
+  },
+  {
+   "code": "1908",
+   "status": "Active",
+   "name": "calcium gluconate",
+   "tty": "IN"
+  },
+  {
+   "code": "194000",
+   "status": "Active",
+   "name": "capecitabine",
+   "tty": "IN"
+  },
+  {
+   "code": "19484",
+   "status": "Active",
+   "name": "bisoprolol",
+   "tty": "IN"
+  },
+  {
+   "code": "19711",
+   "status": "Active",
+   "name": "amoxicillin / clavulanate",
+   "tty": "MIN"
+  },
+  {
+   "code": "198052",
+   "status": "Active",
+   "name": "ondansetron 4 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "1991302",
+   "status": "Active",
+   "name": "semaglutide",
+   "tty": "IN"
+  },
+  {
+   "code": "20352",
+   "status": "Active",
+   "name": "carvedilol",
+   "tty": "IN"
+  },
+  {
+   "code": "20481",
+   "status": "Active",
+   "name": "cefepime",
+   "tty": "IN"
+  },
+  {
+   "code": "214354",
+   "status": "Active",
+   "name": "candesartan",
+   "tty": "IN"
+  },
+  {
+   "code": "2180",
+   "status": "Active",
+   "name": "cefazolin",
+   "tty": "IN"
+  },
+  {
+   "code": "2182",
+   "status": "Active",
+   "name": "cefmetazole",
+   "tty": "IN"
+  },
+  {
+   "code": "2186",
+   "status": "Active",
+   "name": "cefotaxime",
+   "tty": "IN"
+  },
+  {
+   "code": "2193",
+   "status": "Active",
+   "name": "ceftriaxone",
+   "tty": "IN"
+  },
+  {
+   "code": "21949",
+   "status": "Active",
+   "name": "cyclobenzaprine",
+   "tty": "IN"
+  },
+  {
+   "code": "221050",
+   "status": "Active",
+   "name": "BCG, live, Tice strain",
+   "tty": "IN"
+  },
+  {
+   "code": "221124",
+   "status": "Active",
+   "name": "metoprolol succinate",
+   "tty": "PIN"
+  },
+  {
+   "code": "2231",
+   "status": "Active",
+   "name": "cephalexin",
+   "tty": "IN"
+  },
+  {
+   "code": "224905",
+   "status": "Active",
+   "name": "trastuzumab",
+   "tty": "IN"
+  },
+  {
+   "code": "2358",
+   "status": "Active",
+   "name": "chlorhexidine",
+   "tty": "IN"
+  },
+  {
+   "code": "24941",
+   "status": "Active",
+   "name": "ferrous fumarate",
+   "tty": "IN"
+  },
+  {
+   "code": "24947",
+   "status": "Active",
+   "name": "ferrous sulfate",
+   "tty": "IN"
+  },
+  {
+   "code": "253182",
+   "status": "Active",
+   "name": "insulin, regular, human",
+   "tty": "IN"
+  },
+  {
+   "code": "2551",
+   "status": "Active",
+   "name": "ciprofloxacin",
+   "tty": "IN"
+  },
+  {
+   "code": "2556",
+   "status": "Active",
+   "name": "citalopram",
+   "tty": "IN"
+  },
+  {
+   "code": "2582",
+   "status": "Active",
+   "name": "clindamycin",
+   "tty": "IN"
+  },
+  {
+   "code": "2587736",
+   "status": "Active",
+   "name": "sodium chloride 4 MEQ/ML Oral Solution",
+   "tty": "SCD"
+  },
+  {
+   "code": "260101",
+   "status": "Active",
+   "name": "oseltamivir",
+   "tty": "IN"
+  },
+  {
+   "code": "2601723",
+   "status": "Active",
+   "name": "tirzepatide",
+   "tty": "IN"
+  },
+  {
+   "code": "26225",
+   "status": "Active",
+   "name": "ondansetron",
+   "tty": "IN"
+  },
+  {
+   "code": "2670",
+   "status": "Active",
+   "name": "codeine",
+   "tty": "IN"
+  },
+  {
+   "code": "2712069",
+   "status": "Active",
+   "name": "landiolol hydrochloride",
+   "tty": "PIN"
+  },
+  {
+   "code": "274783",
+   "status": "Active",
+   "name": "insulin glargine",
+   "tty": "IN"
+  },
+  {
+   "code": "28439",
+   "status": "Active",
+   "name": "lamotrigine",
+   "tty": "IN"
+  },
+  {
+   "code": "284635",
+   "status": "Active",
+   "name": "fluticasone / salmeterol",
+   "tty": "MIN"
+  },
+  {
+   "code": "28908",
+   "status": "Active",
+   "name": "loxoprofen",
+   "tty": "IN"
+  },
+  {
+   "code": "29046",
+   "status": "Active",
+   "name": "lisinopril",
+   "tty": "IN"
+  },
+  {
+   "code": "29561",
+   "status": "Active",
+   "name": "meropenem",
+   "tty": "IN"
+  },
+  {
+   "code": "30003",
+   "status": "Active",
+   "name": "milnacipran hydrochloride",
+   "tty": "PIN"
+  },
+  {
+   "code": "3001",
+   "status": "Active",
+   "name": "cyclopentolate",
+   "tty": "IN"
+  },
+  {
+   "code": "301542",
+   "status": "Active",
+   "name": "rosuvastatin",
+   "tty": "IN"
+  },
+  {
+   "code": "309090",
+   "status": "Active",
+   "name": "ceftriaxone 100 MG/ML Injectable Solution",
+   "tty": "SCD"
+  },
+  {
+   "code": "310149",
+   "status": "Active",
+   "name": "erythromycin 0.005 MG/MG Ophthalmic Ointment",
+   "tty": "SCD"
+  },
+  {
+   "code": "312424",
+   "status": "Active",
+   "name": "0.5 ML vitamin K1 2 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "313002",
+   "status": "Active",
+   "name": "sodium chloride 9 MG/ML Injectable Solution",
+   "tty": "SCD"
+  },
+  {
+   "code": "321988",
+   "status": "Active",
+   "name": "escitalopram",
+   "tty": "IN"
+  },
+  {
+   "code": "325887",
+   "status": "Active",
+   "name": "micafungin",
+   "tty": "IN"
+  },
+  {
+   "code": "32592",
+   "status": "Active",
+   "name": "oxaliplatin",
+   "tty": "IN"
+  },
+  {
+   "code": "32937",
+   "status": "Active",
+   "name": "paroxetine",
+   "tty": "IN"
+  },
+  {
+   "code": "32968",
+   "status": "Active",
+   "name": "clopidogrel",
+   "tty": "IN"
+  },
+  {
+   "code": "3355",
+   "status": "Active",
+   "name": "diclofenac",
+   "tty": "IN"
+  },
+  {
+   "code": "3407",
+   "status": "Active",
+   "name": "digoxin",
+   "tty": "IN"
+  },
+  {
+   "code": "341248",
+   "status": "Active",
+   "name": "ezetimibe",
+   "tty": "IN"
+  },
+  {
+   "code": "3423",
+   "status": "Active",
+   "name": "hydromorphone",
+   "tty": "IN"
+  },
+  {
+   "code": "3443",
+   "status": "Active",
+   "name": "diltiazem",
+   "tty": "IN"
+  },
+  {
+   "code": "34905",
+   "status": "Active",
+   "name": "proparacaine",
+   "tty": "IN"
+  },
+  {
+   "code": "3498",
+   "status": "Active",
+   "name": "diphenhydramine",
+   "tty": "IN"
+  },
+  {
+   "code": "352364",
+   "status": "Active",
+   "name": "buprenorphine / naloxone",
+   "tty": "MIN"
+  },
+  {
+   "code": "3541",
+   "status": "Active",
+   "name": "disopyramide",
+   "tty": "IN"
+  },
+  {
+   "code": "3554",
+   "status": "Active",
+   "name": "disulfiram",
+   "tty": "IN"
+  },
+  {
+   "code": "35619",
+   "status": "Active",
+   "name": "rifaximin",
+   "tty": "IN"
+  },
+  {
+   "code": "35636",
+   "status": "Active",
+   "name": "risperidone",
+   "tty": "IN"
+  },
+  {
+   "code": "35827",
+   "status": "Active",
+   "name": "ketorolac",
+   "tty": "IN"
+  },
+  {
+   "code": "3616",
+   "status": "Active",
+   "name": "dobutamine",
+   "tty": "IN"
+  },
+  {
+   "code": "36437",
+   "status": "Active",
+   "name": "sertraline",
+   "tty": "IN"
+  },
+  {
+   "code": "36567",
+   "status": "Active",
+   "name": "simvastatin",
+   "tty": "IN"
+  },
+  {
+   "code": "36676",
+   "status": "Active",
+   "name": "sodium bicarbonate",
+   "tty": "IN"
+  },
+  {
+   "code": "37776",
+   "status": "Active",
+   "name": "temozolomide",
+   "tty": "IN"
+  },
+  {
+   "code": "3827",
+   "status": "Active",
+   "name": "enalapril",
+   "tty": "IN"
+  },
+  {
+   "code": "39786",
+   "status": "Active",
+   "name": "venlafaxine",
+   "tty": "IN"
+  },
+  {
+   "code": "3992",
+   "status": "Active",
+   "name": "epinephrine",
+   "tty": "IN"
+  },
+  {
+   "code": "40048",
+   "status": "Active",
+   "name": "carboplatin",
+   "tty": "IN"
+  },
+  {
+   "code": "4053",
+   "status": "Active",
+   "name": "erythromycin",
+   "tty": "IN"
+  },
+  {
+   "code": "40790",
+   "status": "Active",
+   "name": "pantoprazole",
+   "tty": "IN"
+  },
+  {
+   "code": "42351",
+   "status": "Active",
+   "name": "lithium carbonate",
+   "tty": "IN"
+  },
+  {
+   "code": "42355",
+   "status": "Active",
+   "name": "fluvoxamine",
+   "tty": "IN"
+  },
+  {
+   "code": "42375",
+   "status": "Active",
+   "name": "leuprolide",
+   "tty": "IN"
+  },
+  {
+   "code": "4278",
+   "status": "Active",
+   "name": "famotidine",
+   "tty": "IN"
+  },
+  {
+   "code": "42955",
+   "status": "Active",
+   "name": "levocarnitine",
+   "tty": "IN"
+  },
+  {
+   "code": "4337",
+   "status": "Active",
+   "name": "fentanyl",
+   "tty": "IN"
+  },
+  {
+   "code": "435",
+   "status": "Active",
+   "name": "albuterol",
+   "tty": "IN"
+  },
+  {
+   "code": "4450",
+   "status": "Active",
+   "name": "fluconazole",
+   "tty": "IN"
+  },
+  {
+   "code": "4492",
+   "status": "Active",
+   "name": "fluorouracil",
+   "tty": "IN"
+  },
+  {
+   "code": "4493",
+   "status": "Active",
+   "name": "fluoxetine",
+   "tty": "IN"
+  },
+  {
+   "code": "4511",
+   "status": "Active",
+   "name": "folic acid",
+   "tty": "IN"
+  },
+  {
+   "code": "4603",
+   "status": "Active",
+   "name": "furosemide",
+   "tty": "IN"
+  },
+  {
+   "code": "46041",
+   "status": "Active",
+   "name": "alendronate",
+   "tty": "IN"
+  },
+  {
+   "code": "475968",
+   "status": "Active",
+   "name": "liraglutide",
+   "tty": "IN"
+  },
+  {
+   "code": "486610",
+   "status": "Active",
+   "name": "paclitaxel protein-bound",
+   "tty": "PIN"
+  },
+  {
+   "code": "4917",
+   "status": "Active",
+   "name": "nitroglycerin",
+   "tty": "IN"
+  },
+  {
+   "code": "495881",
+   "status": "Active",
+   "name": "sorafenib",
+   "tty": "IN"
+  },
+  {
+   "code": "5093",
+   "status": "Active",
+   "name": "haloperidol",
+   "tty": "IN"
+  },
+  {
+   "code": "51272",
+   "status": "Active",
+   "name": "quetiapine",
+   "tty": "IN"
+  },
+  {
+   "code": "51428",
+   "status": "Active",
+   "name": "insulin aspart, human",
+   "tty": "IN"
+  },
+  {
+   "code": "51499",
+   "status": "Active",
+   "name": "irinotecan",
+   "tty": "IN"
+  },
+  {
+   "code": "52175",
+   "status": "Active",
+   "name": "losartan",
+   "tty": "IN"
+  },
+  {
+   "code": "5224",
+   "status": "Active",
+   "name": "heparin",
+   "tty": "IN"
+  },
+  {
+   "code": "5487",
+   "status": "Active",
+   "name": "hydrochlorothiazide",
+   "tty": "IN"
+  },
+  {
+   "code": "5492",
+   "status": "Active",
+   "name": "hydrocortisone",
+   "tty": "IN"
+  },
+  {
+   "code": "5640",
+   "status": "Active",
+   "name": "ibuprofen",
+   "tty": "IN"
+  },
+  {
+   "code": "56512",
+   "status": "Active",
+   "name": "sodium polystyrene sulfonate",
+   "tty": "IN"
+  },
+  {
+   "code": "56946",
+   "status": "Active",
+   "name": "paclitaxel",
+   "tty": "IN"
+  },
+  {
+   "code": "588250",
+   "status": "Active",
+   "name": "milnacipran",
+   "tty": "IN"
+  },
+  {
+   "code": "596",
+   "status": "Active",
+   "name": "alprazolam",
+   "tty": "IN"
+  },
+  {
+   "code": "608343",
+   "status": "Active",
+   "name": "calcium carbonate / cholecalciferol",
+   "tty": "MIN"
+  },
+  {
+   "code": "6130",
+   "status": "Active",
+   "name": "ketamine",
+   "tty": "IN"
+  },
+  {
+   "code": "61381",
+   "status": "Active",
+   "name": "olanzapine",
+   "tty": "IN"
+  },
+  {
+   "code": "6185",
+   "status": "Active",
+   "name": "labetalol",
+   "tty": "IN"
+  },
+  {
+   "code": "619693",
+   "status": "Active",
+   "name": "peramivir",
+   "tty": "IN"
+  },
+  {
+   "code": "6218",
+   "status": "Active",
+   "name": "lactulose",
+   "tty": "IN"
+  },
+  {
+   "code": "6313",
+   "status": "Active",
+   "name": "leucovorin",
+   "tty": "IN"
+  },
+  {
+   "code": "6387",
+   "status": "Active",
+   "name": "lidocaine",
+   "tty": "IN"
+  },
+  {
+   "code": "6470",
+   "status": "Active",
+   "name": "lorazepam",
+   "tty": "IN"
+  },
+  {
+   "code": "6585",
+   "status": "Active",
+   "name": "magnesium sulfate",
+   "tty": "IN"
+  },
+  {
+   "code": "6628",
+   "status": "Active",
+   "name": "mannitol",
+   "tty": "IN"
+  },
+  {
+   "code": "6676",
+   "status": "Active",
+   "name": "meclizine",
+   "tty": "IN"
+  },
+  {
+   "code": "67108",
+   "status": "Active",
+   "name": "enoxaparin",
+   "tty": "IN"
+  },
+  {
+   "code": "6809",
+   "status": "Active",
+   "name": "metformin",
+   "tty": "IN"
+  },
+  {
+   "code": "6813",
+   "status": "Active",
+   "name": "methadone",
+   "tty": "IN"
+  },
+  {
+   "code": "68446",
+   "status": "Active",
+   "name": "pemetrexed",
+   "tty": "IN"
+  },
+  {
+   "code": "6876",
+   "status": "Active",
+   "name": "methyldopa",
+   "tty": "IN"
+  },
+  {
+   "code": "689",
+   "status": "Active",
+   "name": "aminophylline",
+   "tty": "IN"
+  },
+  {
+   "code": "6902",
+   "status": "Active",
+   "name": "methylprednisolone",
+   "tty": "IN"
+  },
+  {
+   "code": "69120",
+   "status": "Active",
+   "name": "tiotropium",
+   "tty": "IN"
+  },
+  {
+   "code": "6915",
+   "status": "Active",
+   "name": "metoclopramide",
+   "tty": "IN"
+  },
+  {
+   "code": "6918",
+   "status": "Active",
+   "name": "metoprolol",
+   "tty": "IN"
+  },
+  {
+   "code": "6922",
+   "status": "Active",
+   "name": "metronidazole",
+   "tty": "IN"
+  },
+  {
+   "code": "6960",
+   "status": "Active",
+   "name": "midazolam",
+   "tty": "IN"
+  },
+  {
+   "code": "6963",
+   "status": "Active",
+   "name": "midodrine",
+   "tty": "IN"
+  },
+  {
+   "code": "703",
+   "status": "Active",
+   "name": "amiodarone",
+   "tty": "IN"
+  },
+  {
+   "code": "7052",
+   "status": "Active",
+   "name": "morphine",
+   "tty": "IN"
+  },
+  {
+   "code": "7213",
+   "status": "Active",
+   "name": "ipratropium",
+   "tty": "IN"
+  },
+  {
+   "code": "723",
+   "status": "Active",
+   "name": "amoxicillin",
+   "tty": "IN"
+  },
+  {
+   "code": "7242",
+   "status": "Active",
+   "name": "naloxone",
+   "tty": "IN"
+  },
+  {
+   "code": "7243",
+   "status": "Active",
+   "name": "naltrexone",
+   "tty": "IN"
+  },
+  {
+   "code": "72625",
+   "status": "Active",
+   "name": "duloxetine",
+   "tty": "IN"
+  },
+  {
+   "code": "733",
+   "status": "Active",
+   "name": "ampicillin",
+   "tty": "IN"
+  },
+  {
+   "code": "7396",
+   "status": "Active",
+   "name": "nicardipine",
+   "tty": "IN"
+  },
+  {
+   "code": "74169",
+   "status": "Active",
+   "name": "piperacillin / tazobactam",
+   "tty": "MIN"
+  },
+  {
+   "code": "7454",
+   "status": "Active",
+   "name": "nitrofurantoin",
+   "tty": "IN"
+  },
+  {
+   "code": "7512",
+   "status": "Active",
+   "name": "norepinephrine",
+   "tty": "IN"
+  },
+  {
+   "code": "7617",
+   "status": "Active",
+   "name": "octreotide",
+   "tty": "IN"
+  },
+  {
+   "code": "7623",
+   "status": "Active",
+   "name": "ofloxacin",
+   "tty": "IN"
+  },
+  {
+   "code": "7646",
+   "status": "Active",
+   "name": "omeprazole",
+   "tty": "IN"
+  },
+  {
+   "code": "77492",
+   "status": "Active",
+   "name": "tamsulosin",
+   "tty": "IN"
+  },
+  {
+   "code": "7804",
+   "status": "Active",
+   "name": "oxycodone",
+   "tty": "IN"
+  },
+  {
+   "code": "7812",
+   "status": "Active",
+   "name": "oxymetazoline",
+   "tty": "IN"
+  },
+  {
+   "code": "7824",
+   "status": "Active",
+   "name": "oxytocin",
+   "tty": "IN"
+  },
+  {
+   "code": "7980",
+   "status": "Active",
+   "name": "penicillin G",
+   "tty": "IN"
+  },
+  {
+   "code": "798306",
+   "status": "Active",
+   "name": "tetanus toxoid vaccine, inactivated",
+   "tty": "IN"
+  },
+  {
+   "code": "8120",
+   "status": "Active",
+   "name": "phenazopyridine",
+   "tty": "IN"
+  },
+  {
+   "code": "817579",
+   "status": "Active",
+   "name": "acetaminophen / codeine",
+   "tty": "MIN"
+  },
+  {
+   "code": "82122",
+   "status": "Active",
+   "name": "levofloxacin",
+   "tty": "IN"
+  },
+  {
+   "code": "82819",
+   "status": "Active",
+   "name": "acamprosate",
+   "tty": "IN"
+  },
+  {
+   "code": "828529",
+   "status": "Active",
+   "name": "albumin human, USP",
+   "tty": "IN"
+  },
+  {
+   "code": "83008",
+   "status": "Active",
+   "name": "bicalutamide",
+   "tty": "IN"
+  },
+  {
+   "code": "8308",
+   "status": "Active",
+   "name": "vitamin K1",
+   "tty": "IN"
+  },
+  {
+   "code": "83367",
+   "status": "Active",
+   "name": "atorvastatin",
+   "tty": "IN"
+  },
+  {
+   "code": "83682",
+   "status": "Active",
+   "name": "cefditoren",
+   "tty": "IN"
+  },
+  {
+   "code": "8410",
+   "status": "Active",
+   "name": "alteplase",
+   "tty": "IN"
+  },
+  {
+   "code": "847630",
+   "status": "Active",
+   "name": "calcium chloride 0.2 MG/ML / potassium chloride 0.3 MG/ML / sodium chloride 6 MG/ML / sodium lactate 3.1 MG/ML Injectable Solution",
+   "tty": "SCD"
+  },
+  {
+   "code": "84857",
+   "status": "Active",
+   "name": "anastrozole",
+   "tty": "IN"
+  },
+  {
+   "code": "8591",
+   "status": "Active",
+   "name": "potassium chloride",
+   "tty": "IN"
+  },
+  {
+   "code": "86009",
+   "status": "Active",
+   "name": "insulin lispro",
+   "tty": "IN"
+  },
+  {
+   "code": "8638",
+   "status": "Active",
+   "name": "prednisolone",
+   "tty": "IN"
+  },
+  {
+   "code": "8640",
+   "status": "Active",
+   "name": "prednisone",
+   "tty": "IN"
+  },
+  {
+   "code": "8782",
+   "status": "Active",
+   "name": "propofol",
+   "tty": "IN"
+  },
+  {
+   "code": "89013",
+   "status": "Active",
+   "name": "aripiprazole",
+   "tty": "IN"
+  },
+  {
+   "code": "9789",
+   "status": "Active",
+   "name": "silver nitrate",
+   "tty": "IN"
+  },
+  {
+   "code": "9793",
+   "status": "Active",
+   "name": "silver sulfadiazine",
+   "tty": "IN"
+  },
+  {
+   "code": "9863",
+   "status": "Active",
+   "name": "sodium chloride",
+   "tty": "IN"
+  },
+  {
+   "code": "993449",
+   "status": "Active",
+   "name": "denosumab",
+   "tty": "IN"
+  },
+  {
+   "code": "9997",
+   "status": "Active",
+   "name": "spironolactone",
+   "tty": "IN"
+  }
+ ]
+}
