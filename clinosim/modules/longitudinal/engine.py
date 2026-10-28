@@ -30,6 +30,7 @@ from clinosim.modules.longitudinal.loader import (
 )
 from clinosim.modules.longitudinal.patterns import PATTERN_REGISTRY
 from clinosim.modules.longitudinal.patterns.ar1 import AR1Spec
+from clinosim.modules.longitudinal.patterns.event import EventSpec
 from clinosim.modules.longitudinal.patterns.markov import MarkovSpec
 from clinosim.modules.longitudinal.snapshot import YearSnapshot
 from clinosim.seeding import longitudinal_event_seed
@@ -217,9 +218,12 @@ def _apply_pattern(
             "age": _age,
             "chronic_conditions": list(person.chronic_conditions),
         }
+        event_body = spec.body
+        if not isinstance(event_body, EventSpec):
+            raise TypeError(f"event pattern {spec.attribute_id!r} carries a {type(event_body).__name__} body")
         event_rng = (
-            np.random.default_rng(longitudinal_event_seed(person.person_id, snapshot.year, spec.body.event_name))
-            if spec.body.rng_isolated
+            np.random.default_rng(longitudinal_event_seed(person.person_id, snapshot.year, event_body.event_name))
+            if event_body.rng_isolated
             else rng
         )
         result = handler["step"](

@@ -319,6 +319,7 @@ def _simulate_ed_visit(
         )
         true_val = ed_lab_true_value(lab_spec, severity, _true_labs.get(canon, baseline_values.get(canon, 1.0)))
         dist = lab_spec.get("result_distribution")
+        observed: float | str
         if dist and is_qualitative_test(canon):
             # Condition-specific categorical result (Issue #2138), e.g. pyuria
             # in cystitis rather than the generic dipstick mix.
