@@ -96,11 +96,13 @@ class TestFileSeparation:
           Japan; 6139002 — a tebipenem class labelled meropenem), +4
           (Duloxetine 1179052, Ampicillin 6131400, Norepinephrine
           2451401, Morphine 8114401) → 121.
+        - #2136 (JP NOCODED drugs + JP alternatives for drugs not marketed
+          in Japan): +20 (incl. S-1 4229101) → 141.
         """
         yj_n = len(_load(_YJ_FILE).get("codes") or {})
         hot7_n = len(_load(_HOT7_FILE).get("codes") or {})
         assert yj_n == 76, f"yj.yaml YJ12 count expected 76, got {yj_n}"
-        assert hot7_n == 121, f"hot7.yaml HOT7 count expected 121, got {hot7_n}"
+        assert hot7_n == 141, f"hot7.yaml HOT7 count expected 141, got {hot7_n}"
 
 
 # ────────────────────────────────────────────────────────────────────

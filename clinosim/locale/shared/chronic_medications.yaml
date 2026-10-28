@@ -430,13 +430,14 @@ F10:  # Alcohol use disorder — MAT (medication-assisted treatment)
   # Non-pharm patients route to counselling / 12-step via encounter
   # paths (deferred, tracked under #1698 specialty routing).
   #
-  # JP context: 日本アルコール関連障害医学会 2018 治療指針 lists the
-  # same three agents (plus nalmefene via alcohol-reduction indication
-  # ネルメフェン, PMDA-approved 2019); Japan's AUD MAT prescribing rate
-  # is markedly lower (~2-5 % of diagnosed cohort per 厚生労働省
-  # アルコール使用障害調査) but the same agents are available.
+  # JP context (Issue #2136): oral naltrexone is not marketed in Japan.
+  # 新アルコール・薬物使用障害の診断治療ガイドライン (2018) lists
+  # acamprosate (レグテクト), disulfiram (ノックビン), cyanamide and,
+  # for drinking reduction, nalmefene (セリンクロ, PMDA-approved 2019);
+  # Japan's AUD MAT prescribing rate is markedly lower than the US.
   medications:
-    - {drug_id: naltrexone, dose: "50mg", route: "PO", frequency: "daily", probability: 0.15}
+    - {drug_id: naltrexone, dose: "50mg", route: "PO", frequency: "daily", probability: 0.15, locale_exclude: ["JP"]}
+    - {drug_id: nalmefene, dose: "10mg", route: "PO", frequency: "daily", probability: 0.08, locale_exclude: ["US"]}
     - {drug_id: acamprosate, dose: "666mg", route: "PO", frequency: "tid", probability: 0.08}
     - {drug_id: disulfiram, dose: "250mg", route: "PO", frequency: "daily", probability: 0.03}
   monitoring:

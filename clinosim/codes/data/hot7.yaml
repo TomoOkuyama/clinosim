@@ -401,3 +401,66 @@ codes:
   '8114401':
     en: Morphine
     ja: モルヒネ塩酸塩水和物
+
+  # Issue #2136: JP drugs that emitted the eCS NOCODED slice, and JP
+  # alternatives for drugs not marketed in Japan.
+  '2132004':
+    en: Hydrochlorothiazide
+    ja: ヒドロクロロチアジド
+  '2189017':
+    en: Rosuvastatin
+    ja: ロスバスタチンカルシウム
+  '2189018':
+    en: Ezetimibe
+    ja: エゼチミブ
+  '3969023':
+    en: Empagliflozin
+    ja: エンパグリフロジン
+  '2499407':
+    en: Leuprorelin
+    ja: リュープロレリン酢酸塩
+  '1190022':
+    en: Acamprosate
+    ja: アカンプロサートカルシウム
+  '2499418':
+    en: Semaglutide
+    ja: セマグルチド
+  '3939001':
+    en: Disulfiram
+    ja: ジスルフィラム
+  '2499410':
+    en: Liraglutide
+    ja: リラグルチド
+  '2145001':
+    en: Methyldopa
+    ja: メチルドパ水和物
+  '6132015':
+    en: Cefditoren pivoxil
+    ja: セフジトレンピボキシル
+  '1319722':
+    en: Ofloxacin (ophthalmic)
+    ja: オフロキサシン点眼液
+  '1311701':
+    en: Cyclopentolate
+    ja: シクロペントラート塩酸塩
+  '3160002':
+    en: Menatetrenone
+    ja: メナテトレノン
+  '1339005':
+    en: Betahistine
+    ja: ベタヒスチンメシル酸塩
+  '1249009':
+    en: Eperisone
+    ja: エペリゾン塩酸塩
+  '1313700':
+    en: Oxybuprocaine
+    ja: オキシブプロカイン塩酸塩
+  '1324704':
+    en: Naphazoline (nasal)
+    ja: ナファゾリン硝酸塩
+  '1190025':
+    en: Nalmefene
+    ja: ナルメフェン塩酸塩水和物
+  '4229101':
+    en: Tegafur-Gimeracil-Oteracil (S-1)
+    ja: テガフール・ギメラシル・オテラシルカリウム

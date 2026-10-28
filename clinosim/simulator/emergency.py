@@ -387,6 +387,8 @@ def _simulate_ed_visit(
     for i, tx in enumerate((protocol or {}).get("treatment", [])):
         if rng.random() > tx.get("probability", 1.0):
             continue
+        if country.upper() in {str(c).upper() for c in tx.get("locale_exclude") or []}:
+            continue  # not marketed in this country (Issue #2136); drawn above to keep the stream
         _locale_name = tx.get("locale_name") or {}
         _tx_name = str(_locale_name.get(_tx_country_key) or tx.get("name", ""))
         _order_type = classify_encounter_treatment(_tx_name)
