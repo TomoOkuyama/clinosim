@@ -183,7 +183,7 @@ from clinosim.modules.population._pregnancy import (
 from clinosim.modules.population._pregnancy import (
     _pregnancy_lifecycle_events as _pregnancy_lifecycle_events,
 )
-from clinosim.seeding import chronic_augment_sex_seed
+from clinosim.seeding import chronic_augment_sex_seed, chronic_isolated_seed
 from clinosim.types.population import (
     HospitalizationSummary,
     LifeEvent,
@@ -479,7 +479,8 @@ def generate_population(
                     # marginal). Guard against pathological zero.
                     scaled_base = base_prev / e_compound if e_compound > 0.0 else base_prev
                     final_prev = min(1.0, scaled_base * corr_mult * life_mult)
-                    if rng.random() < final_prev:
+                    draw_rng = np.random.default_rng(chronic_isolated_seed(pid, code)) if spec.rng_isolated else rng
+                    if draw_rng.random() < final_prev:
                         # META #957 Incr 1: Z34 (encounter for supervision of
                         # normal pregnancy) and Z37 (outcome of delivery) are
                         # temporal-state markers, not chronic conditions.

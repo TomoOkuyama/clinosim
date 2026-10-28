@@ -106,6 +106,7 @@ _CHRONIC_DISEASE_SPECIALTY: dict[str, str] = {
     # `hospital_ops::department_rollup` maps `psychiatry` back to
     # `internal_medicine` (matches real primary-care management of
     # stable, mild-to-moderate MDD / GAD).
+    "F20": "psychiatry",  # Schizophrenia (Issue #2140)
     "F32": "psychiatry",  # Depressive episode
     "F33": "psychiatry",  # Recurrent depressive disorder
     "F41.1": "psychiatry",  # Generalized anxiety disorder

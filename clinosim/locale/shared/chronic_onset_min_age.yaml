@@ -65,6 +65,7 @@ codes:
   # Pre-fix the chronic-onset sampler gave 58 pediatric cases
   # (youngest 2.8 y). These floors clamp onset to the earliest
   # clinically plausible age.
+  F20: 13   # Schizophrenia — onset typically late teens to early 30s; childhood-onset is rare (Issue #2140)
   F32: 12   # MDD single — DSM-5 typical onset range 15-25, floor at adolescence
   F33: 12   # MDD recurrent — mirrors F32
   F41: 13   # Anxiety disorders (incl. F41.1 GAD) — childhood anxiety uses F93.0

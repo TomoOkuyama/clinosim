@@ -62,6 +62,13 @@ codes:
   F10.4:
     en: Mental and behavioural disorders due to use of alcohol, withdrawal state with delirium
     ja: アルコール使用による精神及び行動の障害（せん妄を伴う離脱状態）
+  # Issue #2140: schizophrenia (verified on tx.fhir.org).
+  F20:
+    en: Schizophrenia
+    ja: 統合失調症
+  F20.9:
+    en: Schizophrenia, unspecified
+    ja: 統合失調症、詳細不明
   F32:
     en: Depressive episode
     ja: うつ病エピソード

@@ -59,6 +59,10 @@ class ChronicConditionSpec:
     age_ranges: dict[tuple[int, int], float]
     sex: str
     augment_sex_bands: dict[str, dict[tuple[int, int], float]] = field(default_factory=dict)
+    # Issue #2140: drawn from a per-(patient, code) sub-RNG instead of the
+    # master stream, so adding the code leaves every other condition of
+    # every resident byte-identical (YAML ``rng_isolated: true``).
+    rng_isolated: bool = False
 
     def augment_prevalence_at(self, age: int, sex: str) -> float:
         """Return the augmentation-sex target marginal prevalence at
@@ -259,9 +263,11 @@ def _parse_chronic_prevalence(demo: dict) -> dict[str, ChronicConditionSpec]:
         sex_filter = str(entry.get("sex", ""))
         age_ranges: dict[tuple[int, int], float] = {}
         for key, prev in entry.items():
-            if key == "sex":
+            if key in ("sex", "rng_isolated"):
                 continue
             lo, hi = str(key).split("-")
             age_ranges[(int(lo), int(hi))] = float(prev)
-        result[code] = ChronicConditionSpec(age_ranges=age_ranges, sex=sex_filter)
+        result[code] = ChronicConditionSpec(
+            age_ranges=age_ranges, sex=sex_filter, rng_isolated=bool(entry.get("rng_isolated", False))
+        )
     return result

@@ -464,3 +464,17 @@ codes:
   '4229101':
     en: Tegafur-Gimeracil-Oteracil (S-1)
     ja: テガフール・ギメラシル・オテラシルカリウム
+
+  # Issue #2140: second-generation antipsychotics.
+  '1179045':
+    en: Aripiprazole
+    ja: アリピプラゾール
+  '1179038':
+    en: Risperidone
+    ja: リスペリドン
+  '1179044':
+    en: Olanzapine
+    ja: オランザピン
+  '1179042':
+    en: Quetiapine
+    ja: クエチアピンフマル酸塩

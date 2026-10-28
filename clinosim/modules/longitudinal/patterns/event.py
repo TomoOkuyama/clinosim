@@ -157,6 +157,10 @@ class EventSpec(BaseModel):
     base_rate_by_age_band: list[AgeBandRate] = Field(default_factory=list)
     rate_modifiers: list[RateModifier] = Field(default_factory=list)
     one_shot: bool = True
+    # Issue #2140: draw from a per-(person, year, event) sub-RNG instead of
+    # the shared ``year_rng``, so adding the event shifts no other event's
+    # draw for the same person-year.
+    rng_isolated: bool = False
 
     def model_post_init(self, _ctx: Any) -> None:
         if self.emits_icd == "" and not self.emits_meds:

@@ -229,3 +229,9 @@ BCG: "1344"                    # BCG Vaccine RxCUI — intravesical bladder immu
 Lorazepam: "6470"
 Thiamine: "10454"
 "Folic acid": "4511"
+
+# Issue #2140: second-generation antipsychotics (RxNorm IN, tx.fhir.org).
+Aripiprazole: "89013"
+Risperidone: "35636"
+Olanzapine: "61381"
+Quetiapine: "51272"

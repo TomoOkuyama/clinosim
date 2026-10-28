@@ -32,6 +32,7 @@ from clinosim.modules.longitudinal.patterns import PATTERN_REGISTRY
 from clinosim.modules.longitudinal.patterns.ar1 import AR1Spec
 from clinosim.modules.longitudinal.patterns.markov import MarkovSpec
 from clinosim.modules.longitudinal.snapshot import YearSnapshot
+from clinosim.seeding import longitudinal_event_seed
 
 if TYPE_CHECKING:
     from clinosim.types.population import PersonRecord
@@ -216,10 +217,15 @@ def _apply_pattern(
             "age": _age,
             "chronic_conditions": list(person.chronic_conditions),
         }
+        event_rng = (
+            np.random.default_rng(longitudinal_event_seed(person.person_id, snapshot.year, spec.body.event_name))
+            if spec.body.rng_isolated
+            else rng
+        )
         result = handler["step"](
             person.chronic_conditions,
             prior,
-            rng,
+            event_rng,
             spec.body,
             context=context,
         )
