@@ -373,9 +373,13 @@ codes:
   # NLM-verified via /REST/approximateTerm ? term=Sodium%20Chloride%2023.4%25
   # (RXNORM top match), replacing a pre-C2 fabrication that pointed at
   # 313002 (0.9% NaCl NS).
-  '2587736':
-    en: Sodium Chloride 23.4% Injectable Solution
+  # Issue #2152: 2587736 was an oral 4 mEq/mL solution; IV products below.
+  '313016':
+    en: sodium chloride 234 MG/ML Injectable Solution
     ja: 塩化ナトリウム 23.4% 注射液
+  '730781':
+    en: 500 ML sodium chloride 30 MG/ML Injection
+    ja: 塩化ナトリウム 3% 注射液 500 mL
   # Newborn birth-admission workup (#1252 / #1264). RXCUIs NLM-verified
   # 2026-09-11 via /REST/rxcui/<cui>.json (both TTY=SCD). Replaces the
   # fabricated 977786 / 313418 declared in newborn_screening.yaml at

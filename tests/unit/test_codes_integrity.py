@@ -108,9 +108,8 @@ class TestDrugMapping:
                 "Buscopan 10mg",
                 "Buscopan 20mg",
             },
-            "2587736": {  # Sodium Chloride 23.4% — covers both 23.4% and 3% hypertonic variants
+            "730781": {  # 3 % sodium chloride injection — unspecified + 3 % hypertonic saline (Issue #2152)
                 "Hypertonic Saline",
-                "Hypertonic Saline 23.4%",
                 "Hypertonic saline",
                 "Hypertonic saline 3%",
             },

@@ -79,13 +79,13 @@ _COVERAGE_1994 = {
     # component — same convention JP's code_mapping_drug.yaml uses for
     # the Acetaminophen/codeine representative (ingredient-only pin).
     "Oxycodone/Acetaminophen": "7804",
-    # Hypertonic saline — rxnorm.yaml 2587736 covers Sodium Chloride
-    # 23.4 %, which both the 23.4 % and the 3 % sim variants resolve to
-    # on the JP side (per that locale's existing pin).
-    "Hypertonic Saline": "2587736",
-    "Hypertonic Saline 23.4%": "2587736",
-    "Hypertonic saline": "2587736",
-    "Hypertonic saline 3%": "2587736",
+    # Hypertonic saline — injectable products by concentration: 730781
+    # (3 %, also the unspecified name) and 313016 (23.4 %). Issue #2152:
+    # the former 2587736 was an oral 4 mEq/mL solution.
+    "Hypertonic Saline": "730781",
+    "Hypertonic Saline 23.4%": "313016",
+    "Hypertonic saline": "730781",
+    "Hypertonic saline 3%": "730781",
     # Calcium gluconate — ingredient entry already in rxnorm.yaml under 1908.
     "Calcium gluconate": "1908",
     # Class terms mapped to representative drug:

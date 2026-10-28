@@ -450,12 +450,6 @@
    "tty": "IN"
   },
   {
-   "code": "2587736",
-   "status": "Active",
-   "name": "sodium chloride 4 MEQ/ML Oral Solution",
-   "tty": "SCD"
-  },
-  {
    "code": "260101",
    "status": "Active",
    "name": "oseltamivir",
@@ -561,6 +555,12 @@
    "code": "313002",
    "status": "Active",
    "name": "sodium chloride 9 MG/ML Injectable Solution",
+   "tty": "SCD"
+  },
+  {
+   "code": "313016",
+   "status": "Active",
+   "name": "sodium chloride 234 MG/ML Injectable Solution",
    "tty": "SCD"
   },
   {
@@ -1108,6 +1108,12 @@
    "status": "Active",
    "name": "duloxetine",
    "tty": "IN"
+  },
+  {
+   "code": "730781",
+   "status": "Active",
+   "name": "500 ML sodium chloride 30 MG/ML Injection",
+   "tty": "SCD"
   },
   {
    "code": "733",
