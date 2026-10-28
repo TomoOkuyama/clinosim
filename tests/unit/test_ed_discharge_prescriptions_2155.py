@@ -125,3 +125,18 @@ def test_discharge_prescription_rp_group_does_not_collide_with_visit_orders(enco
     mr = _build_discharge_medication_request(item, "P-1", "JP", "ENC-1", encounter_type, 1, "2024-06-01T16:00:00")
     rp_ids = [i["value"] for i in mr["identifier"] if i["system"].endswith("Medication-RPGroupNumber")]
     assert rp_ids == [rp]
+
+
+@pytest.mark.parametrize(("name", "at_departure"), [("renal_colic", True), ("orthopedic_injection", False)])
+def test_issue_date_follows_the_visit_kind(monkeypatch: pytest.MonkeyPatch, name: str, at_departure: bool) -> None:
+    # An ED take-home script is written when the patient leaves; a clinic
+    # visit's prescription is dated at the visit start, as the outpatient
+    # renewal prescription is.
+    import clinosim.modules.encounter.protocol as protocol_mod
+
+    cond = _all_certain(name)
+    monkeypatch.setattr(protocol_mod, "load_encounter_condition", lambda _cid: cond)
+    record = _visit(cond)
+    enc = record.encounters[0]
+    expected = enc.discharge_datetime if at_departure else enc.admission_datetime
+    assert record.discharge_prescription.issue_date == expected
