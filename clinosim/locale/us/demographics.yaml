@@ -323,6 +323,19 @@ disease_incidence:
     prerequisite_condition: F10.20
     always_hospitalize: true
     rng_isolated: true
+  depression_inpatient:
+    # Issue #2132: severe depressive episode admitted to a psychiatric unit,
+    # among patients with depression (F32 / F33, ~10% of the cohort). Only
+    # hospitals with an inpatient psychiatry ward (requires_inpatient_ward)
+    # admit; elsewhere the crisis is an ED visit with transfer.
+    # HCUP SB #249: depressive disorders 26.1% of 2.17M principal mental / substance-use stays (2016 NIS) = ~1.75 per 1,000 person-years; per 100k F32 / F33 patients / yr, declining with age.
+    age_rates: {18: 2400, 30: 2150, 45: 1700, 65: 1100, 80: 850}
+    sex_ratio_female: 1.0
+    event_type: acute_disease_onset
+    prerequisite_condition: [F32, F33]
+    requires_inpatient_ward: psychiatry
+    always_hospitalize: true
+    rng_isolated: true
   hip_fracture:
     age_rates: {0: 2, 45: 5, 55: 20, 65: 70, 75: 250, 85: 600}
     sex_ratio_female: 2.5

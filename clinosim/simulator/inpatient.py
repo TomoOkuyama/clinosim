@@ -151,6 +151,21 @@ def _planned_discharge_datetime(admission_time: datetime, actual_los: int, dc_ho
     return (admission_time + timedelta(days=actual_los)).replace(hour=dc_hour, minute=admission_time.minute)
 
 
+def diagnosis_code_for_patient(protocol: Any, patient: Any, code: str) -> str:
+    """Refine the protocol's primary code by the patient's chronic history
+    (Issue #2132): ``icd_codes.by_chronic_prefix`` maps a chronic-code prefix
+    to the code that replaces the primary one, e.g. recurrent depression
+    (F33) → F33.2 instead of F32.2. Other codes pass through unchanged."""
+    icd = getattr(protocol, "icd_codes", None) or {}
+    if code != icd.get("primary"):
+        return code
+    chronic = [str(getattr(c, "code", c)) for c in getattr(patient, "chronic_conditions", []) or []]
+    for prefix, refined in (icd.get("by_chronic_prefix") or {}).items():
+        if any(c.startswith(prefix) for c in chronic):
+            return str(refined)
+    return code
+
+
 def _derive_final_diagnosis(
     *,
     differential: Any,
@@ -184,6 +199,11 @@ def _derive_final_diagnosis(
         protocol_progression=yaml_progression,
         patient_sex=patient.sex,
     )
+    refined = diagnosis_code_for_patient(protocol, patient, dx_code)
+    if refined != dx_code:
+        from clinosim.codes import lookup
+
+        dx_code, dx_name = refined, lookup("icd-10-cm", refined, "en")
 
     # Diagnosis correctness and missed diagnoses (AD-29)
     missed: list[str] = []
@@ -200,7 +220,7 @@ def _derive_final_diagnosis(
     # diagnosis_system was inconsistent across encounter types.
     icd_sys = system_key_for("diagnosis", config.country)
     clinical_diagnosis = ClinicalDiagnosis(
-        admission_diagnosis_code=protocol.icd_codes.get("primary", ""),
+        admission_diagnosis_code=diagnosis_code_for_patient(protocol, patient, protocol.icd_codes.get("primary", "")),
         admission_diagnosis_system=icd_sys,
         discharge_diagnosis_code=dx_code,
         discharge_diagnosis_system=icd_sys,

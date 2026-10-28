@@ -159,6 +159,7 @@ body_system:
   respiratory: {en: Respiratory, ja: 呼吸器}
   abdominal: {en: Abdomen, ja: 腹部}
   neurological: {en: Neurological, ja: 神経}
+  psychiatric: {en: Mental status, ja: 精神状態}
 
 # Sex-label vocabulary used in patient demographics prose.
 # Keys mirror the values ``PatientProfile.sex`` may carry

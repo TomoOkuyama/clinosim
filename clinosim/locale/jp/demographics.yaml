@@ -401,6 +401,19 @@ comorbidity_correlations:
 # Disease incidence rates per 100,000/year by age group
 # Source: MHLW Patient Survey, Japanese Orthopedic Association
 disease_incidence:
+  depression_inpatient:
+    # Issue #2132: severe depressive episode admitted to a psychiatric unit,
+    # among patients with depression (F32 / F33, ~10% of the cohort). Only
+    # hospitals with an inpatient psychiatry ward (requires_inpatient_ward)
+    # admit; elsewhere the crisis is an ED visit with transfer.
+    # MHLW Patient Survey 2023: 26.6k mood-disorder inpatients, mean stay 118.2 days = ~82k admissions / yr = ~0.66 per 1,000 person-years; per 100k F32 / F33 patients / yr, declining with age.
+    age_rates: {18: 2400, 30: 2150, 45: 1700, 65: 1100, 80: 850}
+    sex_ratio_female: 1.0
+    event_type: acute_disease_onset
+    prerequisite_condition: [F32, F33]
+    requires_inpatient_ward: psychiatry
+    always_hospitalize: true
+    rng_isolated: true
   bacterial_pneumonia:
     age_rates: {0: 700, 5: 130, 15: 50, 25: 60, 35: 80, 45: 120, 55: 200, 65: 500, 75: 1200, 85: 2500}
     sex_ratio_female: 0.75

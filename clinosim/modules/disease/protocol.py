@@ -411,6 +411,8 @@ class PhysicalExamDayFindings(BaseModel):
     respiratory: PhysicalExamSystemFindings = Field(default_factory=PhysicalExamSystemFindings)
     abdominal: str = ""
     neurological: str = ""
+    # Mental status examination (Issue #2132), severity-specific like general.
+    psychiatric: PhysicalExamSystemFindings = Field(default_factory=PhysicalExamSystemFindings)
 
 
 class HpiTemplate(BaseModel):
@@ -525,6 +527,11 @@ class DiseaseProtocol(BaseModel):
     encounter_type: str = "medical"  # "medical" | "surgical" | "trauma"
     requires_surgery: bool = False
     minimum_severity: str | None = None  # force minimum severity (e.g. "moderate" for fracture)
+    # Issue #2132: False keeps the patient to the sampled LOS instead of
+    # discharging once the physiology meets the generic criteria — for
+    # admissions whose recovery (mood, suicidal ideation) is not a
+    # physiological state.
+    state_based_discharge: bool = True
     readmission_eligible: bool = True  # False for surgical conditions like fractures
     # "elective" = scheduled admission (admit source outp, priority EL, no ED
     # companion); "emergency" = admitted through the ED (default).

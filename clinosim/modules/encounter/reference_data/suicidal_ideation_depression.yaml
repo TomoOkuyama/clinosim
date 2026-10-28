@@ -23,6 +23,12 @@ disposition_by_severity:
   mild: discharge_home
   moderate: transfer_psychiatric
   severe: transfer_psychiatric
+# A hospital with an inpatient psychiatric unit admits the moderate / severe
+# crises (disease depression_inpatient, Issue #2132); only the discharged
+# share remains an ED-only visit there.
+admitted_with_inpatient_unit:
+  department: psychiatry
+  severities: [moderate, severe]
 # Suicidal ideation is an ESI v4 high-risk situation (decision point B): ESI 2,
 # and level 1 only when the arrival vitals require it; JTAS shares the numbering.
 triage_level_min: 2

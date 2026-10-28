@@ -18,6 +18,7 @@ import numpy as np
 
 from clinosim.codes.hl7_encounter import DischargeDisposition
 from clinosim.modules.disease.protocol import DiseaseProtocol
+from clinosim.modules.disease.severity import SEVERITY_SCORE_RANGES
 from clinosim.modules.population.engine import LifeEvent
 from clinosim.simulator._discharge_gate_thresholds import (
     DISCHARGE_ANEMIA_MAX,
@@ -140,6 +141,11 @@ def _evaluate_readmission(
     readmit_severity = min(
         1.0, original_severity + float(rng.uniform(READMISSION_SEVERITY_LIFT_MIN, READMISSION_SEVERITY_LIFT_MAX))
     )
+    # Issue #2132: the inflammation proxy is ~0 for non-inflammatory admissions
+    # (depression, alcohol withdrawal); never below the disease's minimum.
+    minimum = getattr(protocol, "minimum_severity", None)
+    if minimum in SEVERITY_SCORE_RANGES:
+        readmit_severity = max(readmit_severity, SEVERITY_SCORE_RANGES[minimum][0])
 
     return LifeEvent(
         person_id=person.person_id,

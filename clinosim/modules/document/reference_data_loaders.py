@@ -43,7 +43,9 @@ _CODES_DATA_DIR = _HERE.parent.parent / "codes" / "data"
 # Required top-level keys for baseline and the minimum archetype.
 _PHYSICAL_EXAM_REQUIRED_BASELINE_ARCHETYPE = "uncomplicated_improvement"
 _PHYSICAL_EXAM_REQUIRED_BASELINE_DAY = "day_0"
-_PHYSICAL_EXAM_BODY_SYSTEMS = frozenset({"general", "cardiovascular", "respiratory", "abdominal", "neurological"})
+_PHYSICAL_EXAM_BODY_SYSTEMS = frozenset(
+    {"general", "cardiovascular", "respiratory", "abdominal", "neurological", "psychiatric"}
+)
 
 # Required keys in baseline for discharge instructions.
 _DISCHARGE_BASELINE_REQUIRED_KEYS = ("hydrate", "rest", "follow_up")

@@ -127,6 +127,7 @@ def _simulate_ed_visit(
     country: str = "US",
     config: object | None = None,
     force_severity: str | None = None,
+    allowed_severities: tuple[str, ...] | None = None,
 ) -> CIFPatientRecord:
     """Simulate an ED visit using YAML protocol if available, else basic.
 
@@ -205,6 +206,9 @@ def _simulate_ed_visit(
             severity = force_severity
         else:
             sev_dist = protocol.get("severity_distribution", {})
+            if allowed_severities is not None:
+                # Issue #2132: severities the hospital admits are not ED-only visits.
+                sev_dist = {s: (p if s in allowed_severities else 0.0) for s, p in sev_dist.items()}
             severity = sample_severity_category(sev_dist, [], patient, rng, None)
         stay_cfg = protocol.get("ed_stay_hours", {}).get(severity, {"mean": 3, "sd": 1})
         ed_hours = float(rng.normal(stay_cfg["mean"], stay_cfg["sd"]))

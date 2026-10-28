@@ -1,0 +1,214 @@
+# Severe Depressive Episode with Suicidal Ideation — Reference Data (Issue #2132)
+# Admitted to the psychiatric unit, which only hospitals with an inpatient
+# psychiatry ward have (the large configuration); elsewhere the crisis is an
+# ED visit with transfer (encounter condition suicidal_ideation_depression).
+# Sources: HCUP Statistical Brief #249 (2016 NIS: depressive disorders 26.1%
+# of principal mental / substance-use stays, mean LOS 6.1 days); MHLW Patient
+# Survey 2023 table 6 (mood disorders, mean stay of discharged patients 118.2
+# days in all hospitals including long-stay psychiatric hospitals; shorter in
+# general-hospital psychiatric units); APA Practice Guideline for Major
+# Depressive Disorder (3rd ed.).
+# Codes verified 2026-10-28: F32.2 / F33.2 on tx.fhir.org (ICD-10-CM and WHO
+# ICD-10); sertraline, escitalopram, mirtazapine and lorazepam already mapped
+# in both locales.
+
+disease_id: depression_inpatient
+chief_complaint:
+  en: "Depressed mood with suicidal ideation"
+  ja: "抑うつ気分・希死念慮"
+department: psychiatry
+encounter_type: medical
+minimum_severity: moderate
+# Recovery (mood, suicidal ideation) is not a physiological state: the stay
+# follows the sampled LOS rather than the generic physiological criteria.
+state_based_discharge: false
+
+icd_codes:
+  primary: "F32.2"
+  # Recurrent depression (F33) codes the current severe episode as F33.2.
+  by_chronic_prefix:
+    F33: "F33.2"
+  variants:
+    - {code: "F32.2", name: "Major depressive disorder, single episode, severe without psychotic features", probability: 1.0}
+
+incidence:
+  # Admissions among patients with depression (F32 / F33). The per-country
+  # rate lives in locale/<cc>/demographics.yaml disease_incidence, which also
+  # requires a psychiatric ward at the hospital.
+  trigger_type: "acute"
+  prerequisite_condition: "F32"
+
+severity:
+  distribution:
+    mild: 0.0
+    moderate: 0.70   # suicidal ideation, not acutely dangerous on the unit
+    severe: 0.30     # plan / attempt, psychomotor retardation, poor intake
+  modifiers: []
+
+initial_state_impact:
+  moderate:
+    sympathetic_activation: 0.20  # anxiety, insomnia
+    volume_status: -0.04          # reduced oral intake
+  severe:
+    sympathetic_activation: 0.30
+    volume_status: -0.10
+    glucose_status: -0.02
+
+presenting_symptoms:
+  - {name: "depressed_mood", probability: 1.0, severity_range: [0.6, 1.0]}
+  - {name: "suicidal_ideation", probability: 1.0, severity_range: [0.5, 1.0]}
+  - {name: "anhedonia", probability: 0.90, severity_range: [0.5, 0.9]}
+  - {name: "insomnia", probability: 0.80, severity_range: [0.4, 0.9]}
+  - {name: "poor_appetite", probability: 0.70, severity_range: [0.3, 0.8]}
+  - {name: "fatigue", probability: 0.80, severity_range: [0.4, 0.8]}
+  - {name: "psychomotor_retardation", probability: 0.50, severity_range: [0.3, 0.8]}
+
+# ============================================================
+# COURSE ARCHETYPES — antidepressant response over 1-3 weeks
+# ============================================================
+course_archetypes:
+  smooth_recovery:
+    probability: 0.70
+    description: "Mood and sleep improve with antidepressant optimisation; ideation resolves"
+    trajectory:
+      sympathetic_activation: {0: 0.00, 2: -0.02, 5: -0.03, 10: -0.02}
+      volume_status:          {0: 0.00, 2: 0.02, 5: 0.02}
+    order_modifications: {}
+    treatment_modifications: {}
+
+  plateau_then_recovery:
+    probability: 0.25
+    description: "Slow early response; augmentation before improvement"
+    trajectory:
+      sympathetic_activation: {0: 0.02, 3: 0.00, 7: -0.02, 14: -0.03}
+      volume_status:          {0: -0.01, 3: 0.00, 7: 0.02}
+
+  gradual_deterioration:
+    probability: 0.05
+    description: "Worsening agitation and intake before response"
+    trajectory:
+      sympathetic_activation: {0: 0.04, 2: 0.05, 5: 0.00, 10: -0.04}
+      volume_status:          {0: -0.02, 2: -0.02, 5: 0.01, 10: 0.02}
+
+complications: []
+
+order_protocols:
+  admission_orders:
+    labs:
+      - {test: "WBC", urgency: "routine"}
+      - {test: "Hb", urgency: "routine"}
+      - {test: "Na", urgency: "routine"}
+      - {test: "K", urgency: "routine"}
+      - {test: "Creatinine", urgency: "routine"}
+      - {test: "Glucose", urgency: "routine"}
+      - {test: "TSH", urgency: "routine"}
+    imaging: []
+    supportive:
+      - {type: "suicide_precautions", detail: "Ligature-safe room, belongings search, observation level per risk"}
+      - {type: "monitoring", detail: "1:1 or q15min checks until suicide risk reassessed"}
+  daily_monitoring:
+    labs: []
+    vitals:
+      stable: "q8h"
+  discharge_criteria:
+    japan:
+      - "希死念慮が消失し、安全計画を共有できている"
+      - "睡眠・食事が回復している"
+      - "外来通院先が確保されている"
+    us:
+      - "No active suicidal ideation; safety plan in place"
+      - "Sleep and oral intake restored"
+      - "Outpatient psychiatry follow-up within 7 days"
+
+drugs:
+  first_line:
+    japan:
+      - {drug: "Sertraline", dose: "50-100mg PO daily", route: "PO"}
+      - {drug: "Mirtazapine", dose: "15mg PO at bedtime", route: "PO"}
+      - {drug: "Lorazepam", dose: "0.5mg PO PRN anxiety", route: "PO"}
+    us:
+      - {drug: "Escitalopram", dose: "10-20mg PO daily", route: "PO"}
+      - {drug: "Mirtazapine", dose: "15mg PO at bedtime", route: "PO"}
+      - {drug: "Lorazepam", dose: "0.5mg PO PRN anxiety", route: "PO"}
+  discharge_oral:
+    japan:
+      - {drug: "Sertraline", dose: "100mg PO daily", duration_days: 30}
+      - {drug: "Mirtazapine", dose: "15mg PO at bedtime", duration_days: 30}
+    us:
+      - {drug: "Escitalopram", dose: "20mg PO daily", duration_days: 30}
+      - {drug: "Mirtazapine", dose: "15mg PO at bedtime", duration_days: 30}
+
+# JP: general-hospital psychiatric unit, shorter than the all-hospital 118 days.
+target_los:
+  japan:
+    moderate: {mean: 45, sd: 15, min: 21, max: 90}
+    severe: {mean: 65, sd: 20, min: 30, max: 120}
+  us:
+    moderate: {mean: 6, sd: 2, min: 3, max: 12}
+    severe: {mean: 9, sd: 3, min: 4, max: 18}
+
+diagnostic:
+  diagnostic_difficulty: 0.1
+  differential:
+    - {disease: "depression_inpatient", icd: "F32.2", name: "Severe depressive episode", prior: 0.90}
+    - {disease: "generalized_anxiety", icd: "F41.1", name: "Generalized anxiety disorder", prior: 0.10}
+  confirmation_threshold: 0.90
+  diagnosis_progression:
+    depression_inpatient:
+      - [0.0, "F32.2", "Major depressive disorder, single episode, severe without psychotic features"]
+
+outcome_benchmarks:
+  japan:
+    median_los: 45
+    in_hospital_mortality: 0.001
+    thirty_day_readmission: 0.10
+    mean_age_admitted: 55
+  us:
+    median_los: 6
+    in_hospital_mortality: 0.001
+    thirty_day_readmission: 0.12
+    mean_age_admitted: 42
+
+narrative:
+  hpi_template:
+    onset_pattern:
+      moderate: "数週間前より抑うつ気分・不眠・食欲低下が増悪し、希死念慮が出現。"
+      severe: "抑うつ気分が増悪し、具体的な自殺計画を伴う希死念慮が出現。"
+    trigger_options:
+      - "心理社会的ストレス"
+      - "抗うつ薬の自己中断"
+  physical_exam_findings:
+    smooth_recovery:
+      day_0:
+        general:
+          all: "意識清明、表情乏しく抑うつ的"
+        cardiovascular:
+          all: "心音整、雑音なし"
+        respiratory:
+          all: "肺音清明"
+        abdominal: "平坦、軟"
+        neurological: "明らかな神経学的異常所見なし"
+        psychiatric:
+          moderate: "協力的、精神運動制止あり、気分は抑うつ的、感情は狭小化、思考内容に希死念慮あり（具体的計画なし）、幻覚・妄想なし、病識は部分的"
+          severe: "精神運動制止著明、発語乏しい、絶望感が強く、具体的計画を伴う希死念慮あり、幻覚・妄想なし、病識・判断力は低下"
+      day_5:
+        general:
+          all: "意識清明、表情はやや明るくなった"
+        psychiatric:
+          all: "気分は改善傾向、睡眠・食欲回復、希死念慮は減弱"
+  discharge_instructions:
+    follow_up:
+      en: "See your psychiatrist within 7 days of discharge."
+      ja: "退院後 7 日以内に精神科外来を受診してください。"
+    activity:
+      en: "Resume daily activities gradually; keep a regular sleep schedule."
+      ja: "日常生活は少しずつ再開し、規則正しい睡眠を心がけてください。"
+    medications:
+      en: "Take your antidepressant every day; do not stop it without talking to your doctor."
+      ja: "抗うつ薬は毎日服用し、自己判断で中断しないでください。"
+    emergency:
+      en: "If thoughts of suicide return, follow your safety plan and call the crisis line or come to the ER."
+      ja: "希死念慮が再燃したら安全計画に従い、相談窓口に連絡するか救急外来を受診してください。"
+    diet_lifestyle:
+      en: "Avoid alcohol; stay in touch with family or supporters."
+      ja: "飲酒は控え、家族や支援者との連絡を保ってください。"

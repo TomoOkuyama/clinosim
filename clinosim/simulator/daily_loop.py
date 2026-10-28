@@ -908,7 +908,9 @@ def _run_daily_loop(
             break
 
         # Early discharge: if state-based criteria met before target_los
-        if day >= min_los and not death_occurred:
+        # (not for protocols whose recovery the physiology does not model,
+        # e.g. psychiatric admissions, Issue #2132).
+        if day >= min_los and not death_occurred and getattr(protocol, "state_based_discharge", True):
             if _check_discharge_ready(state, day, country_key, symptom_floor):
                 break  # actual_los = day + 1
 

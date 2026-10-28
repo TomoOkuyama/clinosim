@@ -51,6 +51,13 @@ def pick_ward(department: str, hospital_ops: dict | None, rng: Any) -> str:
     return "4E"
 
 
+def inpatient_departments(hospital_ops: dict | None) -> frozenset[str]:
+    """Departments with at least one inpatient ward (Issue #2132): an
+    outpatient-only service line (``OPD-*``) does not admit."""
+    wards = (hospital_ops or {}).get("wards", {}) or {}
+    return frozenset(d for d, ws in wards.items() if any(not _is_outpatient_area(w) for w in ws))
+
+
 _REQUIRED_KEYS = ("available_departments", "department_rollup", "wards", "ward_capacity", "resource_capacity")
 
 
