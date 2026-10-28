@@ -35,8 +35,10 @@ workup:
     - {test: "Lumbar_Xray", probability: 0.3}
     - {test: "MRI_Lumbar", probability: 0.05}  # red flags: saddle anesthesia, weakness, bladder dysfunction
 
+# Issue #2134: ketorolac is not marketed in Japan; JP ED analgesia is IV
+# acetaminophen (アセリオ).
 treatment:
-  - {name: "Ketorolac 30mg", probability: 0.6, route: "IV", intent: "analgesic"}
+  - {name: "Ketorolac 30mg", locale_name: {jp: "Acetaminophen 1000mg", us: "Ketorolac 30mg"}, probability: 0.6, route: "IV", intent: "analgesic"}
   - {name: "Ibuprofen 600mg", probability: 0.4, route: "PO", intent: "anti-inflammatory"}
   - {name: "Cyclobenzaprine 10mg", probability: 0.4, route: "PO", intent: "muscle relaxant"}
   - {name: "Acetaminophen 1000mg", probability: 0.3, route: "PO", intent: "analgesic"}

@@ -792,15 +792,11 @@ def simulate_delivery_encounter(
                 timedelta(minutes=10),
             ),
             # Issue #1315: postop analgesic slot. Ketorolac (US ERAS
-            # obstetric standard) is registered in the JP drug catalog
-            # (YJ 1149029) but is not the JP-typical postop analgesic —
-            # PMDA-approved use exists, yet real JP obstetric practice
-            # defaults to IV Acetaminophen (アセリオ 1 g IV) as the
-            # multimodal-analgesia primary, often paired with a PR NSAID.
-            # Use Acetaminophen for JP; keep Ketorolac for US (the
-            # unchanged ERAS default). Both drugs already have RxNorm /
-            # YJ codes registered so FHIR emit renders
-            # medicationCodeableConcept.coding on either branch.
+            # obstetric standard) is not marketed in Japan (no YJ code,
+            # #2134); JP obstetric practice uses IV Acetaminophen
+            # (アセリオ 1 g IV) as the multimodal-analgesia primary, often
+            # paired with a PR NSAID. Use Acetaminophen for JP; keep
+            # Ketorolac (RxNorm) for US (the unchanged ERAS default).
             #
             # US uses the pre-#1315 suffix "CSKT" so US CIF Order ids +
             # downstream opaque FHIR ids are byte-preserved; JP gets a

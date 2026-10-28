@@ -91,11 +91,16 @@ class TestFileSeparation:
           Temozolomide 4291023 / BCG 6323400). All PMDA-approved
           oncology drugs. Regimen wiring for C22 / C25 / C67 / C71
           deferred to follow-up. → 119.
+        - #2134 (YJ class codes naming another drug): entries re-keyed to
+          the correct classes; −2 (Ketorolac 1149029 — not marketed in
+          Japan; 6139002 — a tebipenem class labelled meropenem), +4
+          (Duloxetine 1179052, Ampicillin 6131400, Norepinephrine
+          2451401, Morphine 8114401) → 121.
         """
         yj_n = len(_load(_YJ_FILE).get("codes") or {})
         hot7_n = len(_load(_HOT7_FILE).get("codes") or {})
         assert yj_n == 76, f"yj.yaml YJ12 count expected 76, got {yj_n}"
-        assert hot7_n == 119, f"hot7.yaml HOT7 count expected 119, got {hot7_n}"
+        assert hot7_n == 121, f"hot7.yaml HOT7 count expected 121, got {hot7_n}"
 
 
 # ────────────────────────────────────────────────────────────────────

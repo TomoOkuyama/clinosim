@@ -34,8 +34,10 @@ workup:
   imaging:
     - {test: "CT_Head", probability: 0.3}  # rule out SAH if worst headache, first episode, or atypical features
 
+# Issue #2134: ketorolac is not marketed in Japan; JP ED analgesia is IV
+# acetaminophen (アセリオ).
 treatment:
-  - {name: "Ketorolac 30mg", probability: 0.7, route: "IV", intent: "analgesic"}
+  - {name: "Ketorolac 30mg", locale_name: {jp: "Acetaminophen 1000mg", us: "Ketorolac 30mg"}, probability: 0.7, route: "IV", intent: "analgesic"}
   - {name: "Metoclopramide 10mg", probability: 0.6, route: "IV", intent: "antiemetic/migraine adjunct"}
   - {name: "Ondansetron 4mg", probability: 0.3, route: "IV", intent: "antiemetic"}
   - {name: "IV normal saline 1000mL", probability: 0.5, route: "IV", intent: "rehydration"}
