@@ -51,7 +51,7 @@ discharge_instructions:
 
 discharge_prescriptions:
   - {drug: "Acetaminophen 500mg", route: "PO", frequency: "q6h PRN", duration_days: 5, probability: 0.5}
-  - {drug: "Dextromethorphan/Guaifenesin", route: "PO", frequency: "q6h PRN", duration_days: 5, probability: 0.3}
+  - {drug: "Dextromethorphan/Guaifenesin", locale_name: {jp: "Dextromethorphan 15mg"}, route: "PO", frequency: "q6h PRN", duration_days: 5, probability: 0.3}
 
 scenarios:
   simple_viral:

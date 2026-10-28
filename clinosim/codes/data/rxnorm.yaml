@@ -240,6 +240,25 @@ codes:
   '77492':
     en: Tamsulosin (Flomax)
     ja: タムスロシン（ハルナール）
+  # Issue #2155: ED discharge prescriptions (RxNav Active IN / MIN).
+  '20610':
+    en: cetirizine
+    ja: セチリジン
+  '5553':
+    en: hydroxyzine
+    ja: ヒドロキシジン
+  '6468':
+    en: loperamide
+    ja: ロペラミド
+  '37418':
+    en: sumatriptan
+    ja: スマトリプタン
+  '7258':
+    en: naproxen
+    ja: ナプロキセン
+  '214488':
+    en: dextromethorphan / guaifenesin
+    ja: デキストロメトルファン・グアイフェネシン
   # Issue #2154: opioid withdrawal adjunct (RxNav Active IN).
   '2599':
     en: clonidine

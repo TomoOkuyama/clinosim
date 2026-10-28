@@ -250,3 +250,11 @@ Haloperidol: "5093"
 
 # Issue #2154: adjunct for opioid withdrawal (RxNorm IN, RxNav Active).
 Clonidine: "2599"
+
+# Issue #2155: ED discharge prescriptions (RxNorm IN / MIN, RxNav Active).
+Cetirizine: "20610"
+Hydroxyzine: "5553"
+Loperamide: "6468"
+Sumatriptan: "37418"
+Naproxen: "7258"
+Dextromethorphan/Guaifenesin: "214488"

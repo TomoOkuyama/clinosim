@@ -58,7 +58,7 @@ discharge_instructions:
   - "Return if worsening dyspnea, inability to speak in full sentences, or no relief from inhaler"
 
 discharge_prescriptions:
-  - {drug: "Prednisone 40mg", route: "PO", frequency: "daily", duration_days: 5, probability: 0.7}
+  - {drug: "Prednisone 40mg", locale_name: {jp: "Prednisolone 30mg"}, route: "PO", frequency: "daily", duration_days: 5, probability: 0.7}
   - {drug: "Albuterol MDI", route: "INH", frequency: "Q4-6H PRN", duration_days: 30, probability: 0.5}
 
 incidence_modifier: 1.0

@@ -412,6 +412,54 @@ drugs:
     codes:
       rxnorm: "77492"
     classes: []
+  cetirizine:
+    # Issue #2155: ED discharge prescription.
+    names: {en: "Cetirizine", ja: "セチリジン塩酸塩"}
+    codes:
+      rxnorm: "20610"
+      hot7: "4490020"
+    classes: []
+  hydroxyzine:
+    # Issue #2155: ED discharge prescription.
+    names: {en: "Hydroxyzine", ja: "ヒドロキシジン塩酸塩"}
+    codes:
+      rxnorm: "5553"
+      hot7: "1179005"
+    classes: []
+  loperamide:
+    # Issue #2155: ED discharge prescription.
+    names: {en: "Loperamide", ja: "ロペラミド塩酸塩"}
+    codes:
+      rxnorm: "6468"
+      hot7: "2319001"
+    classes: []
+  sumatriptan:
+    # Issue #2155: ED discharge prescription.
+    names: {en: "Sumatriptan", ja: "スマトリプタン"}
+    codes:
+      rxnorm: "37418"
+      hot7: "2160003"
+    classes: []
+  naproxen:
+    # Issue #2155: ED discharge prescription.
+    names: {en: "Naproxen", ja: "ナプロキセン"}
+    codes:
+      rxnorm: "7258"
+      hot7: "1149007"
+    classes: []
+  dextromethorphan_guaifenesin:
+    # Issue #2155: ED discharge prescription.
+    names: {en: "Dextromethorphan/Guaifenesin", ja: "デキストロメトルファン・グアイフェネシン"}
+    codes:
+      rxnorm: "214488"
+    classes: []
+  dextromethorphan:
+    # Issue #2155: JP cough suppressant (メジコン) in place of the US
+    # dextromethorphan / guaifenesin combination.
+    names: {en: "Dextromethorphan", ja: "デキストロメトルファン臭化水素酸塩水和物"}
+    codes:
+      hot7: "2223001"
+    classes: []
   clonidine:
     # Issue #2154: opioid withdrawal adjunct.
     names: {en: "Clonidine", ja: "クロニジン"}

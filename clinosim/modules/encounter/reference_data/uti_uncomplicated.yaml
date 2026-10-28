@@ -65,9 +65,9 @@ discharge_instructions:
 
 discharge_prescriptions:
   - {drug: "Trimethoprim/Sulfamethoxazole 160/800mg", route: "PO", frequency: "bid", duration_days: 3, probability: 0.4}
-  - {drug: "Nitrofurantoin 100mg", route: "PO", frequency: "bid", duration_days: 5, probability: 0.35}
+  - {drug: "Nitrofurantoin 100mg", locale_exclude: [JP], route: "PO", frequency: "bid", duration_days: 5, probability: 0.35}
   - {drug: "Ciprofloxacin 500mg", route: "PO", frequency: "bid", duration_days: 3, probability: 0.15}
-  - {drug: "Phenazopyridine 200mg", route: "PO", frequency: "tid", duration_days: 2, probability: 0.3}
+  - {drug: "Phenazopyridine 200mg", locale_exclude: [JP], route: "PO", frequency: "tid", duration_days: 2, probability: 0.3}
 
 incidence_modifier: 1.0
 probability: 0.05  # relative frequency among ED visits

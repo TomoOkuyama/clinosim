@@ -81,7 +81,6 @@ mappings:
 
   Naproxen:
     aliases: ["ナプロキセン"]
-    drug_ja: "ナプロキセン"
     classes: ["nsaid.non_selective", "nsaid"]
 
   Diclofenac:

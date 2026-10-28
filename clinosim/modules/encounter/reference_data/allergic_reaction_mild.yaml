@@ -42,7 +42,7 @@ discharge_instructions:
 
 discharge_prescriptions:
   - {drug: "Cetirizine 10mg", route: "PO", frequency: "daily", duration_days: 7, probability: 0.7}
-  - {drug: "Prednisone 40mg", route: "PO", frequency: "daily", duration_days: 5, probability: 0.3}
+  - {drug: "Prednisone 40mg", locale_name: {jp: "Prednisolone 30mg"}, route: "PO", frequency: "daily", duration_days: 5, probability: 0.3}
   - {drug: "Epinephrine auto-injector", route: "IM", frequency: "PRN emergency", duration_days: 365, probability: 0.2}
 
 scenarios:

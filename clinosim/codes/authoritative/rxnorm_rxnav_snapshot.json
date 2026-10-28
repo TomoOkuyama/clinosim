@@ -1342,6 +1342,42 @@
    "status": "Active",
    "name": "spironolactone",
    "tty": "IN"
+  },
+  {
+   "code": "20610",
+   "status": "Active",
+   "name": "cetirizine",
+   "tty": "IN"
+  },
+  {
+   "code": "5553",
+   "status": "Active",
+   "name": "hydroxyzine",
+   "tty": "IN"
+  },
+  {
+   "code": "6468",
+   "status": "Active",
+   "name": "loperamide",
+   "tty": "IN"
+  },
+  {
+   "code": "37418",
+   "status": "Active",
+   "name": "sumatriptan",
+   "tty": "IN"
+  },
+  {
+   "code": "7258",
+   "status": "Active",
+   "name": "naproxen",
+   "tty": "IN"
+  },
+  {
+   "code": "214488",
+   "status": "Active",
+   "name": "dextromethorphan / guaifenesin",
+   "tty": "MIN"
   }
  ]
 }

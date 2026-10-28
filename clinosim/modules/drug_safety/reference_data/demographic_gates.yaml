@@ -74,6 +74,12 @@ rules:
     drug_names: [Tamsulosin, "タムスロシン", "ハルナール", "flomax"]
     min_age: 50
     sex: male
+    exception_indications:
+      # Issue #2155: medical expulsive therapy for a ureteral stone is
+      # indicated in adults of either sex (AUA 2016 surgical management
+      # of stones guideline).
+      - "N20"
+      - "N23"
     severity: contraindicated
     rationale_en: >-
       Tamsulosin (α1a-adrenergic blocker) is approved only for

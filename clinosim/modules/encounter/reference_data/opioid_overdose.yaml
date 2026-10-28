@@ -81,7 +81,7 @@ discharge_instructions:
   - "Return or call 911 for drowsiness, slow breathing or chest pain"
 
 discharge_prescriptions:
-  - {drug: "Naloxone 4mg nasal spray", route: "nasal", frequency: "once PRN overdose (may repeat)", duration_days: 30, probability: 0.6}
+  - {drug: "Naloxone 4mg nasal spray", locale_exclude: [JP], route: "nasal", frequency: "once PRN overdose (may repeat)", duration_days: 30, probability: 0.6}
 
 incidence_modifier: 1.0
 # The visit's resident is drawn before the condition, so a chronic-gated
