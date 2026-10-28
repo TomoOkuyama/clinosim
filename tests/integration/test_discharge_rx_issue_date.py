@@ -13,10 +13,12 @@ Guards two invariants:
 
   1. **Inpatient**: `discharge_prescription.issue_date == discharge_datetime`
      (the backfill assignment fires).
-  2. **Outpatient / ED**: `discharge_prescription.issue_date` is unchanged
+  2. **Outpatient**: `discharge_prescription.issue_date` is unchanged
      — should still equal the visit start (`admission_datetime`), since the
      backfill runs only on the completed-inpatient branch of
      `_simulate_patient`.
+  3. **ED** (Issue #2155): the take-home prescription is written when the
+     patient leaves, so `issue_date == discharge_datetime`.
 """
 
 from __future__ import annotations
@@ -67,7 +69,7 @@ def test_inpatient_discharge_rx_issue_date_equals_discharge_datetime(_jp_cohort_
         if r.discharge_prescription.issue_date != enc.discharge_datetime:
             offenders.append(
                 (
-                    r.patient_id,
+                    r.patient.patient_id,
                     r.discharge_prescription.issue_date,
                     enc.discharge_datetime,
                     enc.admission_datetime,
@@ -99,19 +101,20 @@ def test_outpatient_discharge_rx_issue_date_still_matches_visit_start(_jp_cohort
         if r.discharge_prescription is None:
             continue
         checked += 1
-        if r.discharge_prescription.issue_date != enc.admission_datetime:
+        expected = enc.discharge_datetime if enc.encounter_type == EncounterType.EMERGENCY else enc.admission_datetime
+        if r.discharge_prescription.issue_date != expected:
             offenders.append(
                 (
-                    r.patient_id,
+                    r.patient.patient_id,
                     str(enc.encounter_type),
                     r.discharge_prescription.issue_date,
-                    enc.admission_datetime,
+                    expected,
                 )
             )
 
     # No assertion on `checked > 0` here — outpatient/ED discharge_prescription
     # emission is subject to Issue #445; on some cohorts none appear.
     assert not offenders, (
-        f"{len(offenders)}/{checked} outpatient discharge_prescription.issue_date shifted from visit start "
+        f"{len(offenders)}/{checked} outpatient / ED discharge_prescription.issue_date off its visit time "
         f"(Issue #466 fix over-reached into outpatient path). Examples: {offenders[:3]}"
     )

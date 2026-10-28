@@ -235,7 +235,7 @@ def _ed_discharge_prescription(
     country: str,
     cond_name: str,
 ) -> PrescriptionRecord | None:
-    """Take-home prescriptions of a treat-and-release visit (Issue #2155).
+    """Take-home prescriptions of a treat-and-release or clinic visit (Issue #2155).
 
     Each ``discharge_prescriptions[]`` entry is drawn with its
     ``probability`` from a per-encounter sub-seed (the inpatient discharge
@@ -251,7 +251,13 @@ def _ed_discharge_prescription(
     specs = (protocol or {}).get("discharge_prescriptions") or []
     if not specs or encounter.discharge_disposition != DischargeDisposition.HOME:
         return None
-    issued = encounter.discharge_datetime or encounter.admission_datetime
+    # An ED take-home script is written at departure; a clinic visit's
+    # prescription is dated at the visit start, like the outpatient renewal.
+    issued = (
+        encounter.discharge_datetime or encounter.admission_datetime
+        if encounter.encounter_type == EncounterType.EMERGENCY
+        else encounter.admission_datetime
+    )
     rng = determinism.default_rng(discharge_prescription_seed(patient.patient_id, encounter.encounter_id))
     country_key = "jp" if str(country).lower() in ("jp", "japan") else "us"
     active = [m.drug_name for m in (patient.current_medications or []) if m.drug_name]
