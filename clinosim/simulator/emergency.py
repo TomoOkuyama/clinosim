@@ -82,6 +82,32 @@ def ed_release_safe(*, spo2: float, sbp: int, avpu: str, pain: int, copd: bool) 
     return spo2 >= spo2_min and sbp >= ED_RELEASE_SBP_MIN and avpu in ("A", "") and pain <= ED_RELEASE_PAIN_MAX
 
 
+_ED_DISPOSITIONS = {
+    "discharge_home": DischargeDisposition.HOME,
+    "transfer_psychiatric": DischargeDisposition.PSY,
+}
+
+
+def ed_disposition(protocol: dict | None, severity: str) -> DischargeDisposition:
+    """Discharge disposition of an ED visit (Issue #2124): the YAML's
+    ``disposition_by_severity`` entry for the sampled severity, else its
+    ``disposition``; home when neither maps to a known code."""
+    spec = protocol or {}
+    key = (spec.get("disposition_by_severity") or {}).get(severity) or spec.get("disposition") or ""
+    return _ED_DISPOSITIONS.get(key, DischargeDisposition.HOME)
+
+
+def ed_diagnosis_code(spec: dict, patient: PatientProfile) -> str:
+    """ICD-10 code of an ED visit: the first ``icd10_code_by_chronic_prefix``
+    entry whose prefix the patient carries (e.g. recurrent vs single-episode
+    depression, Issue #2124), else ``icd10_code``."""
+    chronic = [str(getattr(c, "code", c)) for c in getattr(patient, "chronic_conditions", []) or []]
+    for prefix, code in (spec.get("icd10_code_by_chronic_prefix") or {}).items():
+        if any(c.startswith(prefix) for c in chronic):
+            return str(code)
+    return str(spec.get("icd10_code", "R69"))  # R69 = Illness, unspecified
+
+
 def _simulate_ed_visit(
     patient: PatientProfile,
     condition: dict,
@@ -536,13 +562,13 @@ def _simulate_ed_visit(
 
     # ED encounter metadata
     encounter.admit_source = AdmitSource.OUTP
-    encounter.discharge_disposition = DischargeDisposition.HOME
+    encounter.discharge_disposition = ed_disposition(protocol, severity)
     encounter.priority = ActPriority.EM
     encounter.admitting_physician_id = encounter.attending_physician_id
     encounter.discharging_physician_id = encounter.attending_physician_id
 
     # Use ICD-10 from encounter YAML (required by FHIR R4)
-    icd_code = (protocol or condition).get("icd10_code", "R69")  # R69 = Illness, unspecified
+    icd_code = ed_diagnosis_code(protocol or condition, patient)
     (protocol or condition).get("icd10_display", chief or cond_name)
 
     # C1-09: emit bedside procedures for ED severe cases.

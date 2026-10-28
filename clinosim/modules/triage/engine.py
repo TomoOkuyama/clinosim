@@ -146,6 +146,20 @@ from clinosim.types.triage import TriageData  # noqa: E402
 ED_ENCOUNTER_TYPES: frozenset[str] = frozenset({"emergency"})
 
 
+def condition_triage_bounds(record: Any) -> tuple[int, int]:
+    """(most, least) urgent level the ED condition allows (Issue #2124): the
+    encounter YAML's ``triage_level_min`` / ``triage_level_max`` (suicidal
+    ideation is an ESI v4 high-risk situation, level 2 but not 1 without
+    unstable vitals); (1, 5) when unset or the condition is unknown."""
+    from clinosim.modules.encounter.protocol import load_all_encounter_conditions
+
+    event = _o(record, "condition_event", None)
+    names = _o(event, "ground_truth_diseases", None) or []
+    spec = load_all_encounter_conditions().get(str(names[0])) if names else None
+    spec = spec or {}
+    return int(spec.get("triage_level_min") or 1), int(spec.get("triage_level_max") or 5)
+
+
 def triage_enricher(ctx: Any) -> None:
     """POST_ENCOUNTER enricher: populate triage_data on ED encounters.
 
@@ -179,6 +193,8 @@ def triage_enricher(ctx: Any) -> None:
             sub_seed = derive_sub_seed(ctx.master_seed, ENRICHER_SEED_OFFSETS["triage"], enc_id)
             rng = np.random.default_rng(sub_seed)
             level = pick_triage_level(severity, level_system, rng)
+            lo, hi = condition_triage_bounds(record)
+            level = str(min(max(int(level), lo), hi))
             # Issue #2082: never less urgent than the arrival vitals allow.
             enc_vitals = [v for v in (_o(record, "vital_signs", []) or []) if _o(v, "timestamp", None) is not None]
             if enc_vitals:

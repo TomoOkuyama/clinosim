@@ -22,7 +22,7 @@ def test_well_formed_yaml_validates() -> None:
 def test_all_shipped_conditions_validate() -> None:
     """Every shipped encounter YAML passes validation (no silent skips)."""
     conditions = load_all_encounter_conditions()
-    assert len(conditions) == 47
+    assert len(conditions) == 48
     for cid, data in conditions.items():
         # model_validate is what the loaders run; re-assert it stays valid.
         EncounterConditionProtocol.model_validate(data)

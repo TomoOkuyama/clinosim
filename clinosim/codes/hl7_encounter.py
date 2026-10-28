@@ -61,6 +61,10 @@ class DischargeDisposition(StrEnum):
     """Skilled nursing facility — survivor not safe for home at the maximum stay
     (persistent hypoxemia, impaired consciousness or hypoperfusion; Issue #2084)."""
 
+    PSY = "psy"
+    """Psychiatric hospital — ED psychiatric crisis transferred out because the
+    hospital has no inpatient psychiatric unit (Issue #2124)."""
+
 
 class ActPriority(StrEnum):
     """HL7 v3 ActPriority ``http://terminology.hl7.org/CodeSystem/v3-ActPriority``."""

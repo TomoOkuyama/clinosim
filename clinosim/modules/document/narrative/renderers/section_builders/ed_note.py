@@ -387,6 +387,9 @@ def build_ed_disposition(generator: TemplateNarrativeGenerator, ctx: NarrativeCo
             return tmpl.format(reason=reason), facts
         if dispo == "exp":
             return (t("fallback.ed_disposition_expired", lang)), facts
+        if dispo == "psy":
+            tmpl = t("fallback.ed_disposition_psychiatric_transfer", lang)
+            return tmpl.format(reason=reason), facts
         if dispo in ("other-hcf", "snf"):
             tmpl = t("fallback.ed_disposition_transfer", lang)
             return tmpl.format(reason=reason), facts
