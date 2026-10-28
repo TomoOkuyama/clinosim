@@ -108,6 +108,16 @@ def ed_diagnosis_code(spec: dict, patient: PatientProfile) -> str:
     return str(spec.get("icd10_code", "R69"))  # R69 = Illness, unspecified
 
 
+def ed_lab_true_value(lab_spec: dict, severity: str, derived: float) -> float:
+    """True value of one ED workup analyte: the spec's ``value_by_severity``
+    entry for the sampled severity (screening scores such as C-SSRS / PHQ-9
+    that the physiology does not model, Issue #2129), else ``derived``."""
+    by_severity = lab_spec.get("value_by_severity") or {}
+    if severity in by_severity:
+        return float(by_severity[severity])
+    return derived
+
+
 def _simulate_ed_visit(
     patient: PatientProfile,
     condition: dict,
@@ -300,7 +310,7 @@ def _simulate_ed_visit(
             ordered_by=encounter.attending_physician_id,
             status=OrderStatus.PLACED,
         )
-        true_val = _true_labs.get(canon, baseline_values.get(canon, 1.0))
+        true_val = ed_lab_true_value(lab_spec, severity, _true_labs.get(canon, baseline_values.get(canon, 1.0)))
         observed = generate_lab_result(canon, true_val, lab_rng)
         flag = determine_flag(canon, observed, sex=patient.sex, country=country)
         order.result = OrderResult(

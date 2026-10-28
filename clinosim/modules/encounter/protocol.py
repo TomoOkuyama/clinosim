@@ -37,6 +37,7 @@ class EdPhysicalExam(BaseModel):
     abdominal: str = ""
     neurological: str = ""
     musculoskeletal: str = ""
+    psychiatric: str = ""  # mental status examination (Issue #2129)
 
 
 class EdNoteTemplate(BaseModel):

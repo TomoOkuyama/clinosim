@@ -59,6 +59,11 @@ workup:
     - {test: "Creatinine", probability: 0.8}
     - {test: "Glucose", probability: 0.8}
     - {test: "TSH", probability: 0.3}
+    # Structured suicide risk screen (Issue #2129). C-SSRS ideation severity:
+    # 2 non-specific active thoughts, 4 active ideation with some intent,
+    # 5 with a specific plan and intent. PHQ-9 in the severe range.
+    - {test: "C-SSRS", probability: 1.0, value_by_severity: {mild: 2, moderate: 4, severe: 5}}
+    - {test: "PHQ-9", probability: 0.7, value_by_severity: {mild: 17, moderate: 21, severe: 24}}
   imaging:
     - {test: "ECG", probability: 0.4}
 
@@ -86,12 +91,14 @@ narrative:
     hpi_ja: '{onset_days}日前より抑うつ気分が増悪し、希死念慮が出現'
     physical_exam_ja:
       general: 意識清明、表情乏しく抑うつ的
+      psychiatric: 精神状態：協力的、精神運動制止あり、発語は小声で緩徐、気分は抑うつ的で絶望感を訴える、感情は狭小化、思考過程はまとまっている、思考内容に希死念慮あり、幻覚・妄想なし、病識・判断力は部分的
     ed_workup_summary_ja: '{lab_summary_ja}、{imaging_summary_ja}'
     disposition_ja: '{disposition_display_ja}'
     chief_complaint_en: '{chief_complaint_en}'
     hpi_en: 'Worsening depressed mood over {onset_days} day(s) with new suicidal ideation.'
     physical_exam_en:
       general: Alert and oriented, flat affect, depressed mood
+      psychiatric: 'Mental status: cooperative, psychomotor retardation, speech soft and slow, mood "hopeless", affect constricted, thought process linear, thought content notable for suicidal ideation, no hallucinations or delusions, insight and judgment partial'
     ed_workup_summary_en: '{lab_summary_en}, {imaging_summary_en}'
     disposition_en: '{disposition_display_en}'
   ed_triage_template:

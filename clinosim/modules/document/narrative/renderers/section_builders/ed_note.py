@@ -111,7 +111,7 @@ def build_ed_physical_exam(generator: TemplateNarrativeGenerator, ctx: Narrative
     # a part whose unknown placeholders collapsed it to the generic phrase
     # carries no information and would repeat per body system — drop it;
     # if every part collapses, the section-level fallback below fires once.
-    systems = ("general", "cardiovascular", "respiratory", "abdominal", "neurological")
+    systems = ("general", "cardiovascular", "respiratory", "abdominal", "neurological", "psychiatric")
     parts = []
     for sys_key in systems:
         val = _o(pe, sys_key, "") or ""
