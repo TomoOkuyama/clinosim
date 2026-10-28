@@ -1378,3 +1378,43 @@ drugs:
       hot7: "6323400"                  # MEDIS-HOT7 (BCG intravesical)
     classes: ["immunotherapy", "oncology.bladder"]
     aliases: ["BCG", "BCG intravesical"]
+  # Issue #2136: JP alternatives for drugs not marketed in Japan. HOT7
+  # 7-digit class codes verified against JP_MedicationCodeYJ_CS_full.json.
+  betahistine:
+    # Vertigo (メリスロン) — replaces meclizine on JP.
+    names: {en: "Betahistine", ja: "ベタヒスチンメシル酸塩"}
+    codes:
+      hot7: "1339005"
+    classes: ["antivertigo"]
+  eperisone:
+    # Centrally acting muscle relaxant (ミオナール) — replaces cyclobenzaprine on JP.
+    names: {en: "Eperisone", ja: "エペリゾン塩酸塩"}
+    codes:
+      hot7: "1249009"
+    classes: ["muscle_relaxant"]
+  oxybuprocaine:
+    # Topical ophthalmic anaesthetic (ベノキシール) — replaces proparacaine on JP.
+    names: {en: "Oxybuprocaine", ja: "オキシブプロカイン塩酸塩"}
+    codes:
+      hot7: "1313700"
+    classes: ["anesthetic.local_ophthalmic"]
+  naphazoline:
+    # Nasal vasoconstrictor (プリビナ液) — replaces oxymetazoline on JP.
+    names: {en: "Naphazoline", ja: "ナファゾリン硝酸塩"}
+    codes:
+      hot7: "1324704"
+    classes: ["decongestant.nasal"]
+  nalmefene:
+    # Drinking-reduction agent for alcohol dependence (セリンクロ, PMDA 2019);
+    # oral naltrexone is not marketed in Japan.
+    names: {en: "Nalmefene", ja: "ナルメフェン塩酸塩水和物"}
+    codes:
+      hot7: "1190025"
+    classes: ["aud_treatment"]
+  tegafur_gimeracil_oteracil:
+    # S-1 (ティーエスワン), JP-only oral fluoropyrimidine (Issue #2136).
+    names: {en: "Tegafur-Gimeracil-Oteracil", ja: "テガフール・ギメラシル・オテラシルカリウム"}
+    codes:
+      hot7: "4229101"
+    classes: ["antineoplastic.fluoropyrimidine"]
+    aliases: ["S-1"]

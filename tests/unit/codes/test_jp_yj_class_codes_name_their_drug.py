@@ -62,6 +62,15 @@ _BRANDS: dict[str, tuple[str, ...]] = {
     "4-Factor PCC (Kcentra)": ("ケイセントラ",),
     "Prothrombin Complex Concentrate (4F-PCC)": ("ケイセントラ",),
     "Ferrous_sulfate": ("フェログラデュメット",),
+    # Issue #2136 additions.
+    "Acamprosate": ("レグテクト",),
+    "Cyclopentolate": ("サイプレジン",),
+    "Disulfiram": ("ノックビン",),
+    "Empagliflozin": ("ジャディアンス",),
+    "Liraglutide": ("ビクトーザ",),
+    "Nalmefene": ("セリンクロ",),
+    "Naphazoline": ("プリビナ",),
+    "Semaglutide": ("オゼンピック",),
 }
 
 

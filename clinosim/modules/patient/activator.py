@@ -709,7 +709,9 @@ def activate_patient(
     _derived_meds = _derive_home_medications(
         _meds_input,
         patient_id=person.person_id,
-        country="US",
+        # Issue #2136: the patient's country, so ``locale_exclude`` keeps
+        # drugs not marketed there (e.g. fluoxetine in JP) off the list.
+        country=country,
         skip_log_out=_home_med_skip_log,
         patient_age=age,
     )

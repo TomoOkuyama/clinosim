@@ -28,8 +28,10 @@ workup:
   imaging:
     - {test: "CT_Head", probability: 0.2}
 
+# Issue #2136: drugs not marketed in Japan carry a JP alternative
+# (locale_name) or are not given on JP (locale_exclude).
 treatment:
-  - {name: "Meclizine 25mg", probability: 0.7, route: "PO", intent: "antivertiginous"}
+  - {name: "Meclizine 25mg", locale_name: {jp: "Betahistine 12mg", us: "Meclizine 25mg"}, probability: 0.7, route: "PO", intent: "antivertiginous"}
   - {name: "Ondansetron 4mg", probability: 0.5, route: "IV", intent: "antiemetic"}
   - {name: "IV normal saline", probability: 0.3, route: "IV", intent: "hydration"}
 

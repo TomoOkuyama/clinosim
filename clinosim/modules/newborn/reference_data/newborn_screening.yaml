@@ -226,13 +226,14 @@ shift_vitals:
 # Sub-scope PR N2 (this file's first slice): Vitamin K prophylaxis only.
 vitamin_k:
   jp:
-    # Konakion Syrup (K2, phytomenadione syrup 0.2 %). MHLW 新生児
+    # Kaytwo Syrup (ケイツーシロップ 0.2 %, menatetrenone = vitamin K2;
+    # Issue #2136 — not phytonadione, which is K1). MHLW 新生児
     # ビタミン K 欠乏性出血症予防 (2011 改訂) — 3 oral doses at
     # (birth-day, day 7 before discharge, 1-month checkup). Only the
     # first two land inside the birth admission (LOS 3-7 d in JP), the
     # third is a post-discharge outpatient event owned by the
     # outpatient / calendar layer (out of scope for this PR).
-    drug_name: "ケイツーシロップ (フィトナジオン 2 mg 経口)"
+    drug_name: "ケイツーシロップ (メナテトレノン 2 mg 経口)"
     dose: "2 mg"
     route: "PO"
     schedule_days: [0, 7]   # days after birth; skipped if past discharge

@@ -27,10 +27,12 @@ workup:
     - {test: "PT_INR", probability: 0.5}
     - {test: "Hb", probability: 0.4}
 
+# Issue #2136: drugs not marketed in Japan carry a JP alternative
+# (locale_name) or are not given on JP (locale_exclude).
 treatment:
   - {name: "Nasal packing (anterior)", probability: 0.5, route: "topical", intent: "hemostasis"}
   - {name: "Silver nitrate cauterization", probability: 0.3, route: "topical", intent: "hemostasis"}
-  - {name: "Oxymetazoline nasal spray", probability: 0.4, route: "nasal", intent: "vasoconstriction"}
+  - {name: "Oxymetazoline nasal spray", locale_name: {jp: "Naphazoline nasal drops", us: "Oxymetazoline nasal spray"}, probability: 0.4, route: "nasal", intent: "vasoconstriction"}
 
 discharge_instructions:
   - "Bleeding controlled with packing/cauterization"

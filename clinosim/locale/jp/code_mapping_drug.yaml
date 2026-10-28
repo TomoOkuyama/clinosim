@@ -39,10 +39,8 @@ Apixaban: "3339004"
 Aspirin: "1143001"
 Clopidogrel: "3399008"
 Atorvastatin: "2189015"
-Norepinephrine: "2451401A1034"
 
 # 鎮痛・消炎
-Acetaminophen: "1141001"
 Celecoxib: "1149037F1020"
 Oxycodone: "8119002B2023"
 
@@ -64,8 +62,6 @@ Metformin: "3962002F2027"
 
 # 呼吸器系
 Tiotropium: "2259709G1027"
-Salbutamol: "2254001"
-Fluticasone/Salmeterol: "2290800"
 
 # 消化器・その他
 Lansoprazole: "2329023F1020"
@@ -113,8 +109,6 @@ KCl: "3319004"                 # (alias)
 # 血液代用剤 (3311) — normal saline / IV fluids
 Normal saline: "3311401"       # 生理食塩液
 NS: "3311401"                  # (alias)
-Lactated Ringers: "3319534A4046"    # 乳酸リンゲル液
-LR: "3319534A4046"                  # (alias)
 # 血圧上昇剤 (2119)
 Dobutamine: "2119404"          # ドブタミン
 Norepinephrine: "2451401"      # ノルエピネフリン (Issue #2134: was 2119002)
@@ -165,7 +159,6 @@ Albumin:                "6343410X1088"  # (alias)
 Octreotide:             "2499403"  # オクトレオチド酢酸塩
 Levetiracetam:          "1139010"  # レベチラセタム
 Loxoprofen:             "1149019"  # ロキソプロフェンナトリウム水和物
-Milnacipran:            "1179040F2108"  # ミルナシプラン塩酸塩
 Propofol:               "1119402A1022"  # プロポフォール
 Fentanyl:               "8219700"  # フェンタニル
 Levocarnitine:          "3999033F1026"  # レボカルニチン
@@ -193,7 +186,6 @@ Crystalloid:            "3319534A4046"       # → Lactated Ringers (乳酸リ�
 # `drug: "NSAID (Loxoprofen)"` resolves via alias to the underlying
 # Loxoprofen entry (already added in CO-8, 1149019C1149). Also handle the
 # bare "NSAID" keyword as a compound-index fallback.
-"NSAID (Loxoprofen)":   "1149019C1149"  # → Loxoprofen sodium hydrate
 NSAID:                  "1149019C1149"  # (bare compound → representative NSAID)
 NSAIDs:                 "1149019C1149"  # (plural alias)
 # CY6-17 (Chain-6): "Amoxicillin/Clavulanate 875/125mg" — the "/"-form
@@ -228,7 +220,6 @@ Landiolol:              "2123404"  # ランジオロール塩酸塩 (オノア�
 "アモキシシリン/クラブラン酸 500/125mg": "6139100F1048"  # → オーグメンチン配合錠125SS
 "ブチルスコポラミン 20mg":            "1242002F1330"  # → ブスコパン(既存 alias の JP-full form)
 "乳酸リンゲル液 125-250 mL/h":         "3319534A4046"       # → Lactated Ringers rate variant
-"乳酸リンゲル液 250-500 mL/h":         "3319534A4046"       # → Lactated Ringers aggressive
 "乳酸リンゲル液":                     "3319534A4046"       # → bare JP text alias
 Hydromorphone:                         "8119002B2023"  # ヒドロモルフォン塩酸塩 (ナルラピド錠1mg)
 "ヒドロモルフォン":                    "8119003F1023"  # → JP alias
@@ -413,3 +404,27 @@ lactulose:                               "3999001Q2058"  # (lowercase alias for 
 "Duloxetine": "1179052"
 "Mirtazapine": "1179051"
 "Venlafaxine": "1179055"
+
+# Issue #2136: drugs JP patients receive that had no mapping (eCS NOCODED).
+# 7-digit class codes verified against JP_MedicationCodeYJ_CS_full.json.
+Hydrochlorothiazide: "2132004"            # ヒドロクロロチアジド (single agent; 2149110/2149113 are ARB combinations)
+Rosuvastatin: "2189017"                   # クレストール
+Ezetimibe: "2189018"                      # ゼチーア
+Empagliflozin: "3969023"                  # ジャディアンス
+Leuprolide: "2499407"                     # リュープリン注射用
+Acamprosate: "1190022"                    # レグテクト
+Semaglutide: "2499418"                    # オゼンピック皮下注 (weekly SC)
+Disulfiram: "3939001"                     # ノックビン
+Liraglutide: "2499410"                    # ビクトーザ皮下注
+Methyldopa: "2145001"                     # メチルドパ
+"Cefditoren pivoxil": "6132015"           # メイアクト
+"Ofloxacin ophthalmic drops": "1319722"   # タリビッド点眼液
+Cyclopentolate: "1311701"                 # サイプレジン点眼液
+"ケイツーシロップ": "3160002"               # メナテトレノン (vitamin K2) — newborn prophylaxis
+# JP alternatives for drugs not marketed in Japan (Issue #2136).
+Betahistine: "1339005"                    # メリスロン (instead of meclizine)
+Eperisone: "1249009"                      # ミオナール (instead of cyclobenzaprine)
+Oxybuprocaine: "1313700"                  # ベノキシール点眼液 (instead of proparacaine)
+Naphazoline: "1324704"                    # プリビナ液 (nasal; instead of oxymetazoline)
+Nalmefene: "1190025"                      # セリンクロ (instead of naltrexone)
+"Tegafur-Gimeracil-Oteracil": "4229101"  # ティーエスワン (S-1); reaches JP patients once activation uses the patient country
