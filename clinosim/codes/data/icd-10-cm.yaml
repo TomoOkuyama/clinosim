@@ -94,6 +94,13 @@ codes:
   F20.9:
     en: Schizophrenia, unspecified
     ja: 統合失調症、詳細不明
+  # Issue #2142: bipolar disorder (verified on tx.fhir.org).
+  F31:
+    en: Bipolar disorder
+    ja: 双極性障害
+  F31.9:
+    en: Bipolar disorder, unspecified
+    ja: 双極性障害、詳細不明
   F32:
     en: Depressive episode
     ja: うつ病

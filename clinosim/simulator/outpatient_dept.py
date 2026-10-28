@@ -107,6 +107,7 @@ _CHRONIC_DISEASE_SPECIALTY: dict[str, str] = {
     # `internal_medicine` (matches real primary-care management of
     # stable, mild-to-moderate MDD / GAD).
     "F20": "psychiatry",  # Schizophrenia (Issue #2140)
+    "F31": "psychiatry",  # Bipolar disorder (Issue #2142)
     "F32": "psychiatry",  # Depressive episode
     "F33": "psychiatry",  # Recurrent depressive disorder
     "F41.1": "psychiatry",  # Generalized anxiety disorder

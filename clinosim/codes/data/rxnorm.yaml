@@ -792,3 +792,13 @@ codes:
   '51272':
     en: quetiapine
     ja: クエチアピンフマル酸塩
+  # Issue #2142: mood stabilizers (tx.fhir.org $lookup, TTY=IN).
+  '42351':
+    en: lithium carbonate
+    ja: 炭酸リチウム
+  '11118':
+    en: valproic acid
+    ja: バルプロ酸ナトリウム
+  '28439':
+    en: lamotrigine
+    ja: ラモトリギン

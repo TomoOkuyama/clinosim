@@ -1444,3 +1444,23 @@ drugs:
       rxnorm: "51272"
       hot7: "1179042"
     classes: ["antipsychotic.second_generation"]
+  # Issue #2142: mood stabilizers (bipolar maintenance). RxNorm IN verified on
+  # tx.fhir.org; HOT7 class codes against the YJ master.
+  lithium_carbonate:
+    names: {en: "Lithium carbonate", ja: "炭酸リチウム"}
+    codes:
+      rxnorm: "42351"
+      hot7: "1179017"
+    classes: ["mood_stabilizer"]
+  valproic_acid:
+    names: {en: "Valproic acid", ja: "バルプロ酸ナトリウム"}
+    codes:
+      rxnorm: "11118"
+      hot7: "1139004"
+    classes: ["mood_stabilizer"]
+  lamotrigine:
+    names: {en: "Lamotrigine", ja: "ラモトリギン"}
+    codes:
+      rxnorm: "28439"
+      hot7: "1139009"
+    classes: ["mood_stabilizer"]

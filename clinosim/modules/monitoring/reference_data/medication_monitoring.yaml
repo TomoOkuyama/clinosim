@@ -156,3 +156,38 @@ mappings:
         loinc: "77147-7"
         rationale: "DOAC (Edoxaban) renal-clearance monitoring — dose adjustment CrCl 15-50 (60 mg qd → 30 mg qd). Contraindicated CrCl < 15 or > 95 (paradoxical stroke risk). At minimum q6 months per JCS 2020."
         rationale_ja: "DOAC (エドキサバン) の腎排泄モニタリング — CrCl 15-50 で減量 (60 mg 1日1回 → 30 mg 1日1回)。CrCl <15 または >95 は禁忌 (逆説的脳卒中リスク)。JCS 2020 に基づき 6 か月毎測定を最低推奨。"
+
+  # Issue #2142: mood stabilizers (CANMAT / ISBD 2018 safety monitoring).
+  Lithium carbonate:
+    aliases: ["Lithium", "炭酸リチウム", "リーマス"]
+    drug_ja: "炭酸リチウム"
+    monitoring:
+      - lab: Lithium
+        loinc: "14334-7"
+        rationale: "Serum lithium level — maintenance range 0.6-1.2 mmol/L, narrow therapeutic index."
+        rationale_ja: "リチウム血中濃度 — 維持域 0.6-1.2 mmol/L、治療域が狭い。"
+      - lab: TSH
+        loinc: "3016-3"
+        rationale: "Lithium-induced hypothyroidism — TSH every 6-12 months."
+        rationale_ja: "リチウムによる甲状腺機能低下 — TSH を 6-12 か月毎。"
+      - lab: Creatinine
+        loinc: "2160-0"
+        rationale: "Lithium nephrotoxicity — renal function every 6-12 months."
+        rationale_ja: "リチウムの腎毒性 — 腎機能を 6-12 か月毎。"
+  Valproic acid:
+    aliases: ["Valproate", "Divalproex", "バルプロ酸ナトリウム", "デパケン"]
+    drug_ja: "バルプロ酸ナトリウム"
+    monitoring:
+      - lab: AST
+        loinc: "1920-8"
+        rationale: "Valproate hepatotoxicity — liver enzymes at baseline and periodically."
+        rationale_ja: "バルプロ酸の肝毒性 — 肝酵素を開始時と定期的に。"
+      - lab: ALT
+        loinc: "1742-6"
+        rationale: "Valproate hepatotoxicity — liver enzymes at baseline and periodically."
+        rationale_ja: "バルプロ酸の肝毒性 — 肝酵素を開始時と定期的に。"
+      - lab: Plt
+        loinc: "777-3"
+        rationale: "Valproate thrombocytopenia — platelet count periodically."
+        rationale_ja: "バルプロ酸による血小板減少 — 血小板数を定期的に。"
+

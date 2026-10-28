@@ -129,6 +129,15 @@ F20:  # Schizophrenia (Issue #2140)
   labs: [Glucose]
   labs_annual: [HbA1c, TC, TG, LDL]
 
+F31:  # Bipolar disorder (Issue #2142)
+  visit_reason:
+    en: "Bipolar disorder follow-up: mood episode review, mood-stabilizer management"
+    ja: "双極性障害フォローアップ・気分エピソードの確認・気分安定薬の調整"
+  follow_up_interval_months: 2
+  # Drug-specific safety labs (lithium level / TSH / creatinine, valproate
+  # liver enzymes) come from medication_monitoring.yaml.
+  labs: []
+
 F32:  # Depression — single episode (Issue #1137 cluster axis 2)
   visit_reason:
     en: "Depression symptom monitoring, PHQ-9 scoring, antidepressant management"

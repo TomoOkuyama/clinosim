@@ -435,3 +435,8 @@ Aripiprazole: "1179045"  # アリピプラゾール
 Risperidone: "1179038"  # リスペリドン
 Olanzapine: "1179044"  # オランザピン
 Quetiapine: "1179042"  # クエチアピンフマル酸塩
+
+# Issue #2142: 気分安定薬 (7 桁分類コードは JP_MedicationCodeYJ_CS_full.json で確認)。
+"Lithium carbonate": "1179017"  # 炭酸リチウム
+"Valproic acid": "1139004"  # バルプロ酸ナトリウム
+"Lamotrigine": "1139009"  # ラモトリギン
