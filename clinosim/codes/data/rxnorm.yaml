@@ -809,3 +809,7 @@ codes:
   '6813':
     en: methadone
     ja: メサドン
+  # Issue #2148: haloperidol (tx.fhir.org $lookup, TTY=IN).
+  '5093':
+    en: haloperidol
+    ja: ハロペリドール

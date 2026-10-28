@@ -338,6 +338,19 @@ disease_incidence:
     prerequisite_condition: F10.20
     always_hospitalize: true
     rng_isolated: true
+  psychosis_inpatient:
+    # Issue #2148: acute psychotic / manic episode admitted to a psychiatric
+    # unit among patients with schizophrenia or bipolar disorder. Only
+    # hospitals with an inpatient psychiatry ward admit; elsewhere the
+    # crisis is an ED visit with transfer (psychotic_manic_crisis).
+    # HCUP SB #249: schizophrenia ~1.2 and bipolar ~0.8 stays per 1,000 person-years; per F20 / F31 patient ~15% / yr; per 100k F20 / F31 patients / yr.
+    age_rates: {18: 17000, 40: 15000, 65: 10000}
+    sex_ratio_female: 1.0
+    event_type: acute_disease_onset
+    prerequisite_condition: [F20, F31]
+    requires_inpatient_ward: psychiatry
+    always_hospitalize: true
+    rng_isolated: true
   depression_inpatient:
     # Issue #2132: severe depressive episode admitted to a psychiatric unit,
     # among patients with depression (F32 / F33, ~10% of the cohort). Only

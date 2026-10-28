@@ -489,3 +489,8 @@ codes:
   '1139009':
     en: Lamotrigine
     ja: ラモトリギン
+
+  # Issue #2148: haloperidol injection.
+  '1179404':
+    en: Haloperidol (injection)
+    ja: ハロペリドール注

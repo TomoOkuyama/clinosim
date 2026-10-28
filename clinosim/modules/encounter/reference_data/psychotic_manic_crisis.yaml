@@ -1,0 +1,104 @@
+# Psychotic or manic crisis — ED visit protocol (Issue #2148)
+# Acute exacerbation of schizophrenia (F20) or bipolar disorder (F31):
+# agitation, hallucinations / delusions or mania. The ED de-escalates
+# (IM antipsychotic ± benzodiazepine), clears medically, and transfers to a
+# psychiatric facility — or, at a hospital with an inpatient psychiatric
+# unit, the moderate / severe crises are admitted there instead (disease
+# psychosis_inpatient).
+# Benchmark: HCUP Statistical Brief #249 (schizophrenia 18.2% and bipolar
+# 12.5% of principal mental / substance-use stays) and US ED visits with a
+# psychotic or bipolar primary diagnosis (~0.75% of ED visits).
+
+condition_id: psychotic_manic_crisis
+icd10_code: "F20.9"
+icd10_display: "Schizophrenia, unspecified"
+# Bipolar disorder codes the crisis under F31.
+icd10_code_by_chronic_prefix:
+  F31: "F31.9"
+chief_complaint:
+  en: "Agitation, hallucinations or bizarre behavior"
+  ja: "興奮・幻覚・異常行動"
+encounter_type: emergency
+department: emergency_medicine
+disposition: discharge_home
+disposition_by_severity:
+  mild: discharge_home
+  moderate: transfer_psychiatric
+  severe: transfer_psychiatric
+admitted_with_inpatient_unit:
+  department: psychiatry
+  severities: [moderate, severe]
+# Agitation with psychosis is ESI 2-3 (danger to self / others).
+triage_level_min: 2
+triage_level_max: 3
+min_age: 18
+requires_chronic_prefix: ["F20", "F31"]
+
+severity_distribution:
+  mild: 0.25
+  moderate: 0.45
+  severe: 0.30
+
+# Transfers board in the ED while a psychiatric bed is found.
+ed_stay_hours:
+  mild: {mean: 5, sd: 1.5}
+  moderate: {mean: 10, sd: 3}
+  severe: {mean: 14, sd: 4}
+
+initial_state_impact:
+  mild: {sympathetic_activation: 0.3}
+  moderate: {sympathetic_activation: 0.45}
+  severe: {sympathetic_activation: 0.6}
+
+# Medical clearance and co-ingestion screen.
+workup:
+  vitals: true
+  labs:
+    - {test: "WBC", probability: 0.8}
+    - {test: "Hb", probability: 0.8}
+    - {test: "Na", probability: 0.8}
+    - {test: "K", probability: 0.8}
+    - {test: "Creatinine", probability: 0.8}
+    - {test: "Glucose", probability: 0.8}
+    - {test: "Ethanol", probability: 0.7}
+    - {test: "Urine_drug_screen", probability: 0.75}
+  imaging:
+    - {test: "ECG", probability: 0.5}
+
+treatment:
+  - {name: "Psychiatric evaluation", probability: 1.0, route: "non-pharmacologic"}
+  - {name: "Verbal de-escalation and 1:1 observation", probability: 0.8, route: "non-pharmacologic"}
+  - {name: "Haloperidol 5mg", probability: 0.6, route: "IM", intent: "acute agitation"}
+  - {name: "Lorazepam 2mg", probability: 0.5, route: "IM", intent: "acute agitation"}
+
+discharge_instructions:
+  - "Resume antipsychotic / mood stabilizer as prescribed"
+  - "Follow up with psychiatry within 7 days"
+  - "Return if agitation, hallucinations or thoughts of harm recur"
+
+incidence_modifier: 1.0
+probability: 0.0135  # ~0.75% of ED visits (weights sum to ~1.8)
+age_distribution: adults
+sex_ratio_female: 1.0
+seasonal: {1: 1.0, 2: 1.0, 3: 1.0, 4: 1.0, 5: 1.05, 6: 1.05, 7: 1.05, 8: 1.0, 9: 1.0, 10: 1.0, 11: 0.95, 12: 0.95}
+
+narrative:
+  ed_note_template:
+    chief_complaint_ja: '{chief_complaint_ja}'
+    hpi_ja: '{onset_days}日前より不眠と興奮が増悪し、幻覚・被害妄想を伴う異常行動が出現'
+    physical_exam_ja:
+      general: 意識清明、興奮状態、落ち着きなし
+      psychiatric: 精神状態：易刺激的・興奮、会話はまとまりを欠く、幻聴・被害妄想あり、気分は高揚または易怒的、病識・判断力欠如
+    ed_workup_summary_ja: '{lab_summary_ja}、{imaging_summary_ja}'
+    disposition_ja: '{disposition_display_ja}'
+    chief_complaint_en: '{chief_complaint_en}'
+    hpi_en: 'Escalating insomnia and agitation over {onset_days} day(s) with hallucinations, paranoid delusions and bizarre behavior.'
+    physical_exam_en:
+      general: Alert, agitated, restless
+      psychiatric: 'Mental status: irritable and agitated, disorganized speech, auditory hallucinations and paranoid delusions, elevated or irritable mood, no insight, impaired judgment'
+    ed_workup_summary_en: '{lab_summary_en}, {imaging_summary_en}'
+    disposition_en: '{disposition_display_en}'
+  ed_triage_template:
+    common_triage_levels:
+    - '2'
+    - '3'

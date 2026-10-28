@@ -100,11 +100,12 @@ class TestFileSeparation:
           in Japan): +20 (incl. S-1 4229101) → 141.
         - #2140 (schizophrenia): +4 second-generation antipsychotics → 145.
         - #2142 (bipolar disorder): +3 mood stabilizers → 148.
+        - #2148 (psychotic / manic crisis): +1 haloperidol injection → 149.
         """
         yj_n = len(_load(_YJ_FILE).get("codes") or {})
         hot7_n = len(_load(_HOT7_FILE).get("codes") or {})
         assert yj_n == 76, f"yj.yaml YJ12 count expected 76, got {yj_n}"
-        assert hot7_n == 148, f"hot7.yaml HOT7 count expected 148, got {hot7_n}"
+        assert hot7_n == 149, f"hot7.yaml HOT7 count expected 149, got {hot7_n}"
 
 
 # ────────────────────────────────────────────────────────────────────

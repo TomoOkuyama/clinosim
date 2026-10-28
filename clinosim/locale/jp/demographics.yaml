@@ -411,6 +411,19 @@ comorbidity_correlations:
 # Disease incidence rates per 100,000/year by age group
 # Source: MHLW Patient Survey, Japanese Orthopedic Association
 disease_incidence:
+  psychosis_inpatient:
+    # Issue #2148: acute psychotic / manic episode admitted to a psychiatric
+    # unit among patients with schizophrenia or bipolar disorder. Only
+    # hospitals with an inpatient psychiatry ward admit; elsewhere the
+    # crisis is an ED visit with transfer (psychotic_manic_crisis).
+    # 患者調査 2023: 統合失調症の入院 ~8 万件 / 年 (推計入院患者 12.6 万人 × 365 / 平均在院 569 日)、F20 / F31 患者あたり ~6.5% / 年; per 100k F20 / F31 patients / yr.
+    age_rates: {18: 7500, 40: 6500, 65: 4500}
+    sex_ratio_female: 1.0
+    event_type: acute_disease_onset
+    prerequisite_condition: [F20, F31]
+    requires_inpatient_ward: psychiatry
+    always_hospitalize: true
+    rng_isolated: true
   depression_inpatient:
     # Issue #2132: severe depressive episode admitted to a psychiatric unit,
     # among patients with depression (F32 / F33, ~10% of the cohort). Only
