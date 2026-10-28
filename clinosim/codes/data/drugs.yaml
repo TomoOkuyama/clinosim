@@ -142,17 +142,17 @@ drugs:
   losartan:
     names: {en: "Losartan", ja: "ロサルタン"}
     codes:
-      rxnorm: "10156"
+      rxnorm: "52175"  # Issue #2150: was 10156
     classes: []
   levodopa_carbidopa:
     names: {en: "Levodopa/Carbidopa", ja: "レボドパ/カルビドパ"}
     codes:
-      rxnorm: "103919"
+      rxnorm: "103990"  # Issue #2150: was 103919
     classes: []
   fluticasone_salmeterol:
     names: {en: "Fluticasone/Salmeterol", ja: "フルチカゾン/サルメテロール"}
     codes:
-      rxnorm: "108761"
+      rxnorm: "284635"  # Issue #2150: was 108761
     classes: []
   vancomycin:
     names: {en: "Vancomycin", ja: "バンコマイシン"}
@@ -162,7 +162,7 @@ drugs:
   ampicillin_sulbactam_injectable_product:
     names: {en: "Ampicillin / Sulbactam Injectable Product", ja: "アンピシリン・スルバクタム注"}
     codes:
-      rxnorm: "1116635"
+      rxnorm: "1153190"  # Issue #2150: was 1116635
     classes: []
   vitamin_d:
     names: {en: "Vitamin D", ja: "ビタミンD"}
@@ -175,9 +175,10 @@ drugs:
       rxnorm: "11289"
     classes: ['anticoagulant.vka', 'anticoagulant']
   carperitide:
+    # JP-only (ハンプ); not marketed in the US — no RxNorm code (Issue #2150).
     names: {en: "Carperitide", ja: "カルペリチド"}
     codes:
-      rxnorm: "1310738"
+      yj: "2179400D1022"
     classes: []
   donepezil:
     names: {en: "Donepezil", ja: "ドネペジル"}
@@ -228,7 +229,7 @@ drugs:
   rivaroxaban:
     names: {en: "Rivaroxaban", ja: "リバーロキサバン"}
     codes:
-      rxnorm: "221147"
+      rxnorm: "1114195"  # Issue #2150: was 221147
     classes: ['anticoagulant.doac', 'anticoagulant']
   meropenem:
     names: {en: "Meropenem", ja: "メロペネム"}
@@ -238,7 +239,7 @@ drugs:
   chlorhexidine:
     names: {en: "Chlorhexidine", ja: "クロルヘキシジン"}
     codes:
-      rxnorm: "2592"
+      rxnorm: "2358"  # Issue #2150: was 2592
     classes: []
   clopidogrel:
     names: {en: "Clopidogrel", ja: "クロピドグレル"}
@@ -254,7 +255,7 @@ drugs:
   tiotropium:
     names: {en: "Tiotropium", ja: "チオトロピウム"}
     codes:
-      rxnorm: "274766"
+      rxnorm: "69120"  # Issue #2150: was 274766
     classes: []
   lisinopril:
     names: {en: "Lisinopril", ja: "リシノプリル"}
@@ -264,12 +265,12 @@ drugs:
   alendronate:
     names: {en: "Alendronate", ja: "アレンドロン酸"}
     codes:
-      rxnorm: "3002"
+      rxnorm: "46041"  # Issue #2150: was 3002
     classes: []
   ampicillin_sulbactam:
     names: {en: "Ampicillin/Sulbactam", ja: "アンピシリン/スルバクタム"}
     codes:
-      rxnorm: "308182"
+      rxnorm: "1009148"  # Issue #2150: was 308182
     classes: []
   ceftriaxone_1_g_injection:
     names: {en: "Ceftriaxone 1 G Injection", ja: "セフトリアキソン1g注"}
@@ -315,7 +316,7 @@ drugs:
   lactated_ringer_solution:
     names: {en: "Lactated Ringer solution", ja: "乳酸リンゲル液"}
     codes:
-      rxnorm: "47613"
+      rxnorm: "1008377"  # Issue #2150: was 47613
     classes: []
     aliases: ["Lactated Ringer", "Lactated Ringers", "Lactated Ringer's",
               "Lactated Ringer's solution", "LR"]
@@ -349,7 +350,7 @@ drugs:
   hydrocortisone:
     names: {en: "Hydrocortisone", ja: "ヒドロコルチゾン"}
     codes:
-      rxnorm: "4850"
+      rxnorm: "5492"  # Issue #2150: was 4850
     classes: []
   nitroglycerin:
     names: {en: "Nitroglycerin", ja: "ニトログリセリン"}
@@ -364,12 +365,12 @@ drugs:
   sliding_scale_insulin:
     names: {en: "Sliding scale insulin", ja: "スライディングスケールインスリン"}
     codes:
-      rxnorm: "5856"
+      rxnorm: "253182"  # Issue #2150: was 5856 (not current)
     classes: []
   levetiracetam:
     names: {en: "Levetiracetam", ja: "レベチラセタム"}
     codes:
-      rxnorm: "6373"
+      rxnorm: "114477"  # Issue #2150: was 6373
     classes: []
   enoxaparin:
     names: {en: "Enoxaparin", ja: "エノキサパリン"}
@@ -414,7 +415,7 @@ drugs:
   naloxone:
     names: {en: "Naloxone", ja: "ナロキソン"}
     codes:
-      rxnorm: "7771"
+      rxnorm: "7242"  # Issue #2150: was 7771
     classes: []
   oxycodone:
     names: {en: "Oxycodone", ja: "オキシコドン"}
@@ -429,7 +430,7 @@ drugs:
   ondansetron_4_mg_oral_tablet:
     names: {en: "Ondansetron 4 MG Oral Tablet", ja: "オンダンセトロン4mg錠"}
     codes:
-      rxnorm: "8163"
+      rxnorm: "198052"  # Issue #2150: was 8163
     classes: []
   ondansetron:
     names: {en: "Ondansetron", ja: "オンダンセトロン"}
@@ -1037,7 +1038,7 @@ drugs:
   bcg_vaccine:
     names: {en: "BCG Vaccine", ja: "BCG膀胱内注入療法"}
     codes:
-      rxnorm: "1344"
+      rxnorm: "221050"  # Issue #2150: was 1344
     classes: []
   empagliflozin:
     names: {en: "Empagliflozin", ja: "エンパグリフロジン"}

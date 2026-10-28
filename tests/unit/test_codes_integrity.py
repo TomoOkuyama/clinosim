@@ -87,7 +87,11 @@ class TestDrugMapping:
                 "Nebulized salbutamol 2.5mg",
                 "Nebulized Salbutamol",
             },
-            "108761": {  # Fluticasone/Salmeterol — + "ICS/LABA inhaler" class representative
+            "253182": {  # Insulin, regular, human — sliding-scale display alias (Issue #2150: was 5856, not current)
+                "Regular insulin",
+                "Sliding scale insulin",
+            },
+            "284635": {  # Fluticasone/Salmeterol — + "ICS/LABA inhaler" class representative (Issue #2150: was 108761)
                 "Fluticasone/Salmeterol",
                 "ICS/LABA inhaler",
             },

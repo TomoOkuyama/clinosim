@@ -11,17 +11,17 @@ metadata:
   source: "NLM RxNorm; RXCUIs verifiable via NLM RxNav API"
   description: RxNorm (US NLM)
 codes:
-  '10156':
-    en: Losartan
+  '52175':  # Issue #2150: was 10156 (RxNav: wrong / unknown code)
+    en: losartan
     ja: ロサルタン
-  '103919':
-    en: Levodopa/Carbidopa (Sinemet)
+  '103990':  # Issue #2150: was 103919 (RxNav: wrong / unknown code)
+    en: carbidopa / levodopa
     ja: レボドパ/カルビドパ（ネオドパストン/メネシット）
   '10582':
     en: Levothyroxine (Synthroid)
     ja: レボチロキシン（チラーヂンS）
-  '108761':
-    en: Fluticasone/Salmeterol (Advair)
+  '284635':  # Issue #2150: was 108761 (RxNav: wrong / unknown code)
+    en: fluticasone / salmeterol
     ja: フルチカゾン/サルメテロール（アドエア）
   '11055':
     en: Urokinase
@@ -37,8 +37,8 @@ codes:
   '11149':
     en: Vasopressin
     ja: バソプレシン
-  '1116635':
-    en: Ampicillin / Sulbactam Injectable Product
+  '1153190':  # Issue #2150: was 1116635 (RxNav: wrong / unknown code)
+    en: ampicillin / sulbactam Injectable Product
     ja: アンピシリン・スルバクタム注
   '11253':
     en: Vitamin D (Cholecalciferol)
@@ -52,9 +52,6 @@ codes:
   '1223':
     en: Atropine
     ja: アトロピン
-  '1310738':
-    en: Carperitide
-    ja: カルペリチド（ハンプ）
   '135447':
     en: Donepezil (Aricept)
     ja: ドネペジル（アリセプト）
@@ -94,14 +91,14 @@ codes:
   '221124':
     en: Metoprolol succinate
     ja: コハク酸メトプロロール
-  '221147':
-    en: Rivaroxaban
+  '1114195':  # Issue #2150: was 221147 (RxNav: wrong / unknown code)
+    en: rivaroxaban
     ja: リバーロキサバン
   '2231':
     en: Cephalexin
     ja: セファレキシン
-  '2592':
-    en: Chlorhexidine
+  '2358':  # Issue #2150: was 2592 (RxNav: wrong / unknown code)
+    en: chlorhexidine
     ja: クロルヘキシジン
   '260101':
     en: Oseltamivir
@@ -120,17 +117,17 @@ codes:
   '2712069':
     en: Landiolol hydrochloride
     ja: ランジオロール塩酸塩
-  '274766':
-    en: Tiotropium (Spiriva)
+  '69120':  # Issue #2150: was 274766 (RxNav: wrong / unknown code)
+    en: tiotropium
     ja: チオトロピウム（スピリーバ）
   '29046':
     en: Lisinopril (Zestril)
     ja: リシノプリル（ゼストリル）
-  '3002':
-    en: Alendronate (Fosamax)
+  '46041':  # Issue #2150: was 3002 (RxNav: wrong / unknown code)
+    en: alendronate
     ja: アレンドロン酸（フォサマック/ボナロン）
-  '308182':
-    en: Ampicillin/Sulbactam (Unasyn)
+  '1009148':  # Issue #2150: was 308182 (RxNav: wrong / unknown code)
+    en: ampicillin / sulbactam
     ja: アンピシリン/スルバクタム（ユナシン）
   '309090':
     en: Ceftriaxone 1 G Injection
@@ -183,11 +180,11 @@ codes:
   '4603':
     en: Furosemide (Lasix)
     ja: フロセミド（ラシックス）
-  '47613':
-    en: Lactated Ringer solution
+  '1008377':  # Issue #2150: was 47613 (RxNav: wrong / unknown code)
+    en: calcium chloride / lactate / potassium chloride / sodium chloride
     ja: 乳酸リンゲル液
-  '4850':
-    en: Hydrocortisone
+  '5492':  # Issue #2150: was 4850 (RxNav: wrong / unknown code)
+    en: hydrocortisone
     ja: ヒドロコルチゾン
   '4917':
     en: Nitroglycerin (Nitrostat)
@@ -195,11 +192,8 @@ codes:
   '5640':
     en: Ibuprofen
     ja: イブプロフェン
-  '5856':
-    en: Sliding scale insulin (Regular insulin)
-    ja: スライディングスケールインスリン（ヒューマリンR）
-  '6373':
-    en: Levetiracetam
+  '114477':  # Issue #2150: was 6373 (RxNav: wrong / unknown code)
+    en: levetiracetam
     ja: レベチラセタム
   '67108':
     en: Enoxaparin (Lovenox)
@@ -246,8 +240,8 @@ codes:
   '77492':
     en: Tamsulosin (Flomax)
     ja: タムスロシン（ハルナール）
-  '7771':
-    en: Naloxone
+  '7242':  # Issue #2150: was 7771 (RxNav: wrong / unknown code)
+    en: naloxone
     ja: ナロキソン
   '7804':
     en: Oxycodone (OxyContin)
@@ -255,8 +249,8 @@ codes:
   '7980':
     en: Penicillin G
     ja: ペニシリンG
-  '8163':
-    en: Ondansetron 4 MG Oral Tablet
+  '198052':  # Issue #2150: was 8163 (RxNav: wrong / unknown code)
+    en: ondansetron 4 MG Oral Tablet
     ja: オンダンセトロン4mg錠
   '83367':
     en: Atorvastatin (Lipitor)
@@ -489,8 +483,8 @@ codes:
   '37776':
     en: temozolomide
     ja: テモゾロミド
-  '1344':
-    en: BCG Vaccine
+  '221050':  # Issue #2150: was 1344 (RxNav: wrong / unknown code)
+    en: BCG, live, Tice strain
     ja: BCG膀胱内注入療法（免疫療法）
   # META #1792 Phase 1b (#1765 coverage closure) — Phase 4 escalation
   # drugs that were previously missing from rxnorm.yaml despite being
