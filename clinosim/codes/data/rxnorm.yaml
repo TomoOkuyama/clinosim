@@ -240,6 +240,10 @@ codes:
   '77492':
     en: Tamsulosin (Flomax)
     ja: タムスロシン（ハルナール）
+  # Issue #2154: opioid withdrawal adjunct (RxNav Active IN).
+  '2599':
+    en: clonidine
+    ja: クロニジン
   '7242':  # Issue #2150: was 7771 (RxNav: wrong / unknown code)
     en: naloxone
     ja: ナロキソン

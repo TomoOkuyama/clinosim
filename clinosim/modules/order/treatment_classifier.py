@@ -133,6 +133,7 @@ THERAPY_KEYWORDS: tuple[str, ...] = (
     # Consultation / assessment / screening
     "consult",
     "consultation",
+    "referral",  # Issue #2154: "Referral for medication for opioid use disorder"
     "assessment",
     "screening",
     "evaluation",

@@ -59,6 +59,10 @@ codes:
   F10.3:
     en: Mental and behavioural disorders due to use of alcohol, withdrawal state
     ja: アルコール使用による精神及び行動の障害（離脱状態）
+  # Issue #2154 (tx.fhir.org $lookup).
+  F11.3:
+    en: Mental and behavioural disorders due to use of opioids, withdrawal state
+    ja: アヘン類使用による精神及び行動の障害（離脱状態）
   F10.4:
     en: Mental and behavioural disorders due to use of alcohol, withdrawal state with delirium
     ja: アルコール使用による精神及び行動の障害（せん妄を伴う離脱状態）
@@ -475,6 +479,10 @@ codes:
   T31.3:
     en: Burns involving 30-39% of body surface
     ja: 体表面積30-39%の熱傷
+  # Issue #2154 (tx.fhir.org $lookup): fentanyl poisoning folds here.
+  T40.4:
+    en: Other synthetic narcotics
+    ja: その他の合成麻薬による中毒
   T54.3:
     en: Corrosive alkalis and alkali-like substances
     ja: 腐食性アルカリ・アルカリ様物質の毒性

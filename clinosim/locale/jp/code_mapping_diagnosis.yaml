@@ -42,6 +42,11 @@ F32: "F32.9"      # Depressive episode, unspecified (mirrors US-side #1356).
 F10.230: "F10.3"
 F10.239: "F10.3"
 F10.231: "F10.4"
+# Issue #2154: opioid ED visits (US-only F11 population; folds kept for the
+# WHO-format guard). F11.23 → F11.3 withdrawal state; T40.411A (fentanyl) →
+# T40.4 other synthetic narcotics.
+F11.23: "F11.3"
+T40.411A: "T40.4"
 F33: "F33.9"      # Recurrent depressive disorder, unspecified (mirrors #1356).
 
 # --- Oncology / obstetric chronic conditions (Issue #943 + #1320 + #1358) ---

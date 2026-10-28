@@ -344,6 +344,12 @@ points (SpO2 ~88% from a 98% baseline)."""
 OXYGENATION_RR_SCALE: float = 14.0
 """Respiratory-rate rise at full oxygenation impairment."""
 
+RESPIRATORY_DEPRESSION_RR_SCALE: float = 16.0
+"""Respiratory-rate fall at full ``respiratory_depression`` (Issue #2154):
+opioid toxicity suppresses the respiratory drive, so hypoxia comes with
+bradypnea rather than tachypnea; 0.5 brings a 16/min baseline with mild
+hypoxia to ~10/min (overdose criterion RR <= 12)."""
+
 OXYGENATION_HR_SCALE: float = 20.0
 """HR rise (bpm) at full oxygenation impairment (hypoxic tachycardia)."""
 

@@ -60,6 +60,7 @@ class PhysiologicalState:
     oxygenation_impairment: float = 0.0  # 0.0–1.0
     # Reduced level of consciousness: >= 0.25 V, >= 0.5 P, >= 0.75 U on AVPU.
     consciousness_impairment: float = 0.0  # 0.0–1.0
+    respiratory_depression: float = 0.0  # 0.0–1.0  (opioid / sedative hypoventilation, Issue #2154)
     # Chronic glycemic control for diabetics: 1.0 = excellent (HbA1c ~6%), 0.0 = very poor
     # (HbA1c ~12%). None = non-diabetic. Patient-stable; seeded from the E11 ChronicCondition
     # by initialize_state and NOT moved by acute disease onset (HbA1c is a ~3-month average).

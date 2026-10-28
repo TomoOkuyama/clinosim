@@ -247,3 +247,6 @@ Quetiapine: "51272"
 
 # Issue #2148: haloperidol for acute agitation (RxNorm IN, tx.fhir.org).
 Haloperidol: "5093"
+
+# Issue #2154: adjunct for opioid withdrawal (RxNorm IN, RxNav Active).
+Clonidine: "2599"
