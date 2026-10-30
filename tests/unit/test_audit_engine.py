@@ -102,3 +102,31 @@ def test_engine_overall_status_pass_on_empty(tmp_path: Path):
     result = engine.run()
     # All axes return N/A on empty + no spec config → overall PASS
     assert result.overall_status() in ("PASS", "WARN")
+
+
+@pytest.mark.unit
+def test_unknown_module_name_is_reported(tmp_path: Path):
+    """Issue #2201: an unregistered --module must not silently audit nothing."""
+    register_audit_module(ModuleAuditSpec(name="order_service_request"))
+    engine = AuditEngine(cohort_dir=_empty_cohort(tmp_path), modules=["order"])
+    with pytest.raises(ValueError, match="order_service_request"):
+        engine.run()
+
+
+@pytest.mark.unit
+def test_unknown_axis_name_is_reported(tmp_path: Path):
+    engine = AuditEngine(cohort_dir=_empty_cohort(tmp_path), axes=["structual"])
+    with pytest.raises(ValueError, match="structural"):
+        engine.run()
+
+
+@pytest.mark.unit
+def test_cli_exits_2_on_unknown_module(tmp_path: Path, capsys):
+    from types import SimpleNamespace
+
+    from clinosim.audit.cli import _dispatch_run
+
+    register_audit_module(ModuleAuditSpec(name="hai"))
+    args = SimpleNamespace(cohort_dir=_empty_cohort(tmp_path), module=["nope"], axis=None, report=None)
+    assert _dispatch_run(args) == 2
+    assert "nope" in capsys.readouterr().err

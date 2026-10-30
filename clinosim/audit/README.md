@@ -105,7 +105,9 @@ same cohort + the same registered modules always produce the same
   [--axis AXIS]... [--report PATH]` (Markdown to stdout, and to
   `--report` when given); `clinosim audit smoke -d DIR` runs
   `silent_no_op` only; `clinosim audit list` prints the registered
-  modules and their checks.
+  modules and their checks. An unregistered `--module` name or an
+  unknown `--axis` exits with status 2 and lists the valid names
+  (#2201); it no longer audits nothing silently.
 
 ## Directory contents
 
