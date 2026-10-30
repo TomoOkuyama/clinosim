@@ -153,8 +153,7 @@ clinosim narrate    →   cif/narratives/<ver>/documents/*.json (Stage 2)
 clinosim export-fhir →  fhir_r4/*.ndjson (DocumentReference.ndjson 含む)  (Stage 3)
 ```
 
-CLI 完全リファレンスはメインの
-[README.md](../README.ja.md#cli-reference) 参照。
+オプションの完全な一覧は [CLI リファレンス](reference/cli.ja.md) 参照。
 
 ### テンプレートモード (LLM なし)
 
@@ -174,7 +173,7 @@ clinosim narrate --cif-dir ./output/cif --version-id template_v1
 ```bash
 ollama pull llama3.1:8b
 clinosim narrate --cif-dir ./output/cif \
-    --llm-config clinosim/config/llm_service.yaml \
+    --provider ollama --llm-config clinosim/config/llm_service.yaml \
     --version-id ollama_en_v1
 ```
 
@@ -185,24 +184,25 @@ EC2 + IAM の完全セットアップは
 
 ```bash
 clinosim narrate --cif-dir ./cif \
-    --llm-config clinosim/config/llm_service.bedrock.yaml \
+    --provider bedrock --llm-config clinosim/config/llm_service.bedrock.yaml \
     --version-id bedrock_sonnet_en_v1
 ```
 
 ### サブセットのみ生成
 
 ```bash
-# 法的必須文書 (Tier A) のみ
+# 退院・死亡・手術の文書のみ
+# (値は registry の type_key 名)
 clinosim narrate --cif-dir ./output/cif \
-    --tasks discharge_summary,death_summary,operative_note
+    --tasks discharge_summary,death_discharge_summary,death_certificate,operative_note
 ```
 
 ### 同一 structural CIF から複数 narrative version
 
 ```bash
 clinosim narrate --cif-dir ./cif --version-id template_v1
-clinosim narrate --cif-dir ./cif --version-id ollama_en_v1 --llm-config clinosim/config/llm_service.yaml
-clinosim narrate --cif-dir ./cif --version-id bedrock_en_v1 --llm-config clinosim/config/llm_service.bedrock.yaml
+clinosim narrate --cif-dir ./cif --version-id ollama_en_v1 --provider ollama --llm-config clinosim/config/llm_service.yaml
+clinosim narrate --cif-dir ./cif --version-id bedrock_en_v1 --provider bedrock --llm-config clinosim/config/llm_service.bedrock.yaml
 
 # version ごとに FHIR をエクスポート
 clinosim export-fhir --cif-dir ./cif --narrative-version template_v1 -o ./fhir_template
@@ -408,7 +408,7 @@ narrative version の `manifest.json` はこれらを集約:
     "discharge_summary": 171,
     "operative_note": 11,
     "procedure_note": 19,
-    "death_summary": 2
+    "death_discharge_summary": 2
   },
   "total_documents": 374,
   "llm_cost_report": {
@@ -441,15 +441,13 @@ Consultation Note、シフト別追加 note) を追加する際は、スコー�
      ja: 診療依頼書
    ```
 
-2. **タスク種別を enum と LOINC map に追加** — 場所は
-   `clinosim/modules/llm_service/engine.py`:
+2. **タスク種別を enum に追加** — 場所は
+   `clinosim/modules/llm_service/engine.py` (`TASK_CATEGORY` と
+   `DOCUMENT_LOINC` は手順 3 の yaml から構築される):
    ```python
-   class LLMTaskType(str, Enum):
+   class LLMTaskType(StrEnum):
        ...
        CONSULTATION_NOTE = "consultation_note"  # LOINC 11488-4
-
-   TASK_CATEGORY[LLMTaskType.CONSULTATION_NOTE] = LLMTaskCategory.NARRATIVE
-   DOCUMENT_LOINC[LLMTaskType.CONSULTATION_NOTE] = "11488-4"
    ```
 
 3. **task_loincs.yaml + task_categories.yaml に登録**
@@ -492,7 +490,7 @@ Consultation Note、シフト別追加 note) を追加する際は、スコー�
    配線は `clinosim/modules/document/narrative/renderers/composition_sections.py`。
 
 7. **単体テスト追加** —
-   `tests/unit/document/narrative/` (per-section builder テスト) と
+   `tests/unit/modules/document/narrative/` (per-section builder テスト) と
    `tests/unit/test_clinical_documents.py` (end-to-end emit)。
 
 8. **このドキュメント** (`docs/clinical_documents.ja.md`) と
@@ -515,7 +513,9 @@ Consultation Note、シフト別追加 note) を追加する際は、スコー�
    プロンプト YAML ファイルを作成。対象言語のネイティブスピーカー
    の臨床医が各テンプレートを review すべき。
 
-3. `clinosim narrate --language <lang>` で新規プロンプトをテスト。
+3. `clinosim narrate --cif-dir <cif> --country <XX>` で新規プロンプトをテスト。
+   `narrate` に `--language` フラグは無い: 文書言語は国 (`--country`、
+   省略時は `cif/metadata.json` から自動検出) に従う。
 
 4. プロンプトレジストリは特定プロンプトファイルが欠けている場合
    自動的に英語にフォールバックするので、部分翻訳は安全。

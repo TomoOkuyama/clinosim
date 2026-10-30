@@ -154,7 +154,7 @@ clinosim narrate    →   cif/narratives/<ver>/documents/*.json (Stage 2)
 clinosim export-fhir →  fhir_r4/*.ndjson (incl. DocumentReference.ndjson)  (Stage 3)
 ```
 
-See the main [README.md](../README.md#cli-reference) for full CLI reference.
+See the [CLI reference](reference/cli.md) for the full option list.
 
 ### Template mode (no LLM)
 
@@ -174,7 +174,7 @@ Useful for:
 ```bash
 ollama pull llama3.1:8b
 clinosim narrate --cif-dir ./output/cif \
-    --llm-config clinosim/config/llm_service.yaml \
+    --provider ollama --llm-config clinosim/config/llm_service.yaml \
     --version-id ollama_en_v1
 ```
 
@@ -184,24 +184,25 @@ See [bedrock_setup.md](bedrock_setup.md) for the full EC2 + IAM setup.
 
 ```bash
 clinosim narrate --cif-dir ./cif \
-    --llm-config clinosim/config/llm_service.bedrock.yaml \
+    --provider bedrock --llm-config clinosim/config/llm_service.bedrock.yaml \
     --version-id bedrock_sonnet_en_v1
 ```
 
 ### Generating only a subset
 
 ```bash
-# Only the legally mandatory documents (Tier A)
+# Only discharge, death and operative documents
+# (values are registry type_key names)
 clinosim narrate --cif-dir ./output/cif \
-    --tasks discharge_summary,death_summary,operative_note
+    --tasks discharge_summary,death_discharge_summary,death_certificate,operative_note
 ```
 
 ### Multiple narrative versions from the same structural CIF
 
 ```bash
 clinosim narrate --cif-dir ./cif --version-id template_v1
-clinosim narrate --cif-dir ./cif --version-id ollama_en_v1 --llm-config clinosim/config/llm_service.yaml
-clinosim narrate --cif-dir ./cif --version-id bedrock_en_v1 --llm-config clinosim/config/llm_service.bedrock.yaml
+clinosim narrate --cif-dir ./cif --version-id ollama_en_v1 --provider ollama --llm-config clinosim/config/llm_service.yaml
+clinosim narrate --cif-dir ./cif --version-id bedrock_en_v1 --provider bedrock --llm-config clinosim/config/llm_service.bedrock.yaml
 
 # Export FHIR with each version separately
 clinosim export-fhir --cif-dir ./cif --narrative-version template_v1 -o ./fhir_template
@@ -403,7 +404,7 @@ The narrative version's `manifest.json` aggregates these into:
     "discharge_summary": 171,
     "operative_note": 11,
     "procedure_note": 19,
-    "death_summary": 2
+    "death_discharge_summary": 2
   },
   "total_documents": 374,
   "llm_cost_report": {
@@ -435,15 +436,13 @@ FHIR export.
      ja: 診療依頼書
    ```
 
-2. **Add the task type to the enum and LOINC map** in
-   `clinosim/modules/llm_service/engine.py`:
+2. **Add the task type to the enum** in
+   `clinosim/modules/llm_service/engine.py` (`TASK_CATEGORY` and
+   `DOCUMENT_LOINC` are built from the yaml files in step 3):
    ```python
-   class LLMTaskType(str, Enum):
+   class LLMTaskType(StrEnum):
        ...
        CONSULTATION_NOTE = "consultation_note"  # LOINC 11488-4
-
-   TASK_CATEGORY[LLMTaskType.CONSULTATION_NOTE] = LLMTaskCategory.NARRATIVE
-   DOCUMENT_LOINC[LLMTaskType.CONSULTATION_NOTE] = "11488-4"
    ```
 
 3. **Register task_loincs.yaml + task_categories.yaml**
@@ -486,7 +485,7 @@ FHIR export.
    `composition_sections`. Wire the dispatcher in
    `clinosim/modules/document/narrative/renderers/composition_sections.py`.
 
-7. **Add unit tests** under `tests/unit/document/narrative/` (per-section
+7. **Add unit tests** under `tests/unit/modules/document/narrative/` (per-section
    builder tests) and `tests/unit/test_clinical_documents.py`
    (end-to-end emit).
 
@@ -510,7 +509,9 @@ FHIR export.
    `clinosim/modules/llm_service/prompts/<lang>/`. A clinician who is a native
    speaker of the target language should review each template.
 
-3. Run `clinosim narrate --language <lang>` to test the new prompts.
+3. Test the new prompts with `clinosim narrate --cif-dir <cif> --country <XX>`.
+   `narrate` has no `--language` flag: the document language follows
+   the country (`--country`, auto-detected from `cif/metadata.json`).
 
 4. The prompt registry automatically falls back to English if a specific prompt
    file is missing, so partial translations are safe.

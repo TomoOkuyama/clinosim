@@ -50,12 +50,17 @@ clinosim simulate --country XX --population 100 --seed 42 --format fhir-r4 \
 
 The `xx/` directory MUST contain the following. See the `_template/` scaffold
 (`clinosim/locale/_template/`) for schema comments and skeleton values.
+Note that `_template/demographics.yaml` uses key names the loader does not
+read (`sex_distribution`, `blood_type_distribution`,
+`chronic_condition_prevalence`); take key names from
+`clinosim/locale/us/demographics.yaml` / `jp/demographics.yaml`
+(`sex_ratio`, `blood_type`, `chronic_prevalence`, ...).
 
 | File | Purpose | Authoritative source hint |
 |---|---|---|
 | `names.yaml` | Family + given names with frequency weights | National statistics office / civil registry |
 | `addresses.yaml` | Regions (state / prefecture / province) + postal codes | National postal service |
-| `demographics.yaml` | Age distribution, blood type, chronic-disease prevalence (see schema note below), disease incidence, lifestyle | Government census / disease surveillance |
+| `demographics.yaml` | Age distribution, blood type, chronic-disease prevalence (see schema note below), disease incidence, lifestyle, ED-only visit rate (`ed_visit_not_admitted.rate_per_1000_person_years`) | Government census / disease surveillance / national ED utilization survey |
 | `formatting.yaml` | Date / time / number formatting | Local convention |
 | `code_mapping_diagnosis.yaml` | Internal disease id → national diagnosis code | Local coding scheme |
 | `code_mapping_lab.yaml` | Internal lab name → national lab code | Local lab code system (JLAC10 / LOINC / national) |
@@ -105,6 +110,31 @@ Two accepted shapes per entry:
 Full behavior + downstream sex-conditional billing-code mapping:
 [`reference/oncology-obstetric-service-lines.md`](reference/oncology-obstetric-service-lines.md) §3.
 
+### `demographics.yaml::ed_visit_not_admitted`
+
+Rate of ED visits that end without admission, per 1,000 person-years.
+The forward month loop draws the month's ED-visit count from it
+(`clinosim/simulator/phases/_ed_slot.py`). A missing key means a rate
+of 0 — the cohort gets no ED-only visits.
+
+```yaml
+ed_visit_not_admitted:
+  rate_per_1000_person_years: 380   # US value; JP ships 150
+```
+
+### Mortality (`locale/shared/actuarial_life_table.yaml`)
+
+Community deaths (outside the simulated inpatient stays) are drawn
+forward per person per year by `clinosim/modules/population/mortality.py`:
+life-table `qx` (age band × sex) × the person's relative chronic-condition
+SMR × `community_death_share`. Both `annual_mortality_qx` and
+`community_death_share` are keyed by locale (`us`, `jp`) in the shared
+yaml. **Current limitation:** `mortality.py::_locale_key` maps every
+non-JP country to `us`, so a new locale uses the US life table and US
+`community_death_share` until that function is extended to read an
+`xx` block. Adding a locale with its own mortality therefore needs an
+`xx` entry under both yaml keys plus that code change.
+
 ## Optional YAML files (opt-in modules)
 
 Only add these when your country supports a specific opt-in module:
@@ -118,6 +148,7 @@ Only add these when your country supports a specific opt-in module:
 | `code_status_rates.yaml` | Resuscitation status distribution | `code_status` |
 | `family_history_prevalence.yaml` | First-degree relative disease prevalence | `family_history` |
 | `immunization_schedule.yaml` | Local vaccination schedule | `immunization` |
+| `ambulatory_visit_length.yaml` | Outpatient visit-length distributions per visit type | outpatient simulator (falls back to a flat 15/25/45-minute triangle) |
 
 ## Code registration
 
@@ -135,24 +166,30 @@ completeness / discoverability.
 ### 2. FHIR profile emission (optional)
 
 If your country has a national FHIR IG (JP Core / US Core / German Basisprofil
-/ AU Core / etc.), decide whether to emit its profile URLs. The current code
-emits JP Core profiles when `country == "JP"` via
-`_apply_jp_core_profile` in `clinosim/modules/output/fhir_r4_adapter.py`.
+/ AU Core / etc.), decide whether to emit its profile URLs. Profile stacking
+happens in `_build_bundle` (`clinosim/modules/output/fhir_r4/builder.py`),
+which branches on `is_jp(country)`: JP output gets `_apply_jp_core_profile`
++ `_apply_jp_clins_profile`, and **every other country** gets
+`_apply_us_core_profile` (helpers in
+`clinosim/modules/output/fhir_r4/post_process/profile.py`). The URL
+registries are yaml files:
+`clinosim/codes/data/fhir-profiles-{jp-core,us-core,jp-clins}.yaml`.
 
 For a new country you can:
 
-1. Skip country-specific profile emission (safe default; resources are
-   base FHIR R4 compliant)
-2. Add a `_XX_CORE_PROFILES: dict[str, list[str]]` registry mirroring the
-   JP Core one (session 48 g.1 unified the shape) and dispatch via
-   `if country == "XX": _apply_xx_core_profile(resource)` in
-   `_build_bundle`.
+1. Add a `clinosim/codes/data/fhir-profiles-xx-core.yaml` registry
+   mirroring the JP Core / US Core ones, an `_apply_xx_core_profile`
+   helper, and a branch for your country in `_build_bundle`.
+2. Otherwise your bundles are emitted on the non-JP path and declare
+   US Core profile URLs, which is wrong for a non-US country — at minimum
+   add a branch that skips `_apply_us_core_profile` for it.
 
 ### 3. Country-specific opt-in modules
 
 Some enrichers gate on country in `register_builtin_enrichers`:
 
-- `identity` — active for JP (国民健康保険 numbering); adapt or disable
+- `identity` — always on for non-JP countries (JP honours `--no-jp-insurance`);
+  `assign_identities` no-ops when the locale has no `identity.yaml`
 - `care_level` — JP-only; skip
 - `health_checkup` — JP-eCheckup; skip unless designing an equivalent
 

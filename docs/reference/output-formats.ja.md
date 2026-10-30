@@ -17,11 +17,9 @@ output/cif/
     │   ├── manifest.json                     # LLM config、model、コストレポート、count
     │   └── documents/
     │       └── ENC-POP-<person-6d>-<enc-12d>/
-    │           ├── admission_hp.json
-    │           ├── discharge_summary.json
-    │           ├── death_summary.json        # 死亡時のみ
-    │           ├── operative_note_001.json   # 手術ごと
-    │           └── procedure_note_<type>.json
+    │           ├── doc-<encounter_id>-01.json        # 文書ごとに 1 ファイル、順に連番
+    │           ├── doc-<encounter_id>-02-day.json    # 看護勤務帯記録は -day / -evening / -night 付き
+    │           └── doc-<encounter_id>-03-pn.json     # 処置記録は -pn 付き
     └── <another_version_id>/                 # 複数 version が共存可能
         └── ...
 ```
@@ -29,7 +27,7 @@ output/cif/
 - `structural/` はシミュレーションの **immutable な中間形式**。全
   structural FHIR/CSV リソースはこれから派生。
 - `narratives/<version>/documents/` は **narrative レイヤ** — 臨床
-  文書ごとに 1 JSON、`clinosim/types/clinical.py` の
+  文書ごとに 1 JSON (文書型はファイル名ではなくファイル内に記録)、`clinosim/types/clinical.py` の
   `ClinicalDocument` 型に準拠。各ファイルは LOINC code、プレーン
   テキスト内容、references、provenance (LLM model、tokens、cache
   hit、prompt version、generated_at) を含む。
@@ -65,8 +63,11 @@ output/fhir_r4/
 ├── MedicationAdministration.ndjson  # MAR 記録
 ├── Procedure.ndjson                 # 手術 + ベッドサイド手技 (CPT / K-code + SNOMED CT メタデータ)
 ├── DocumentReference.ndjson         # 臨床文書 (narrative version 指定時のみ)
+├── Composition.ndjson               # セクション付き臨床文書 (format が `composition` の文書。H&P、退院・看護サマリー、外来 SOAP、ED note 等)
+├── ClinicalImpression.ndjson        # 医師の臨床評価 (CIF の `clinical_impressions` record ごとに 1 件)
+├── CareTeam.ndjson                  # encounter ごとに 1 件 (主治医 + 担当看護師)
 ├── AllergyIntolerance.ndjson        # 患者レベル (重複排除済み)
-├── Coverage.ndjson                  # 保険加入 (JP のみ; JP Core 被保険者番号/記号/番号/枝番)
+├── Coverage.ndjson                  # 保険加入 (US は payor; JP は JP Core 被保険者番号/記号/番号/枝番)
 ├── Practitioner.ndjson              # 医師、看護師、技師
 ├── PractitionerRole.ndjson          # 専門科 + organization + 病棟位置
 ├── Organization.ndjson              # 病院 + 診療科 + 保険者 (保険者、JP)
@@ -81,7 +82,7 @@ Reference integrity を維持。
 `TemplateNarrativePass` が維持する `current_version.txt` ポインタ
 経由) に emit される。narrative version が存在しないときは残りの
 リソース型は通常通り生成。`Coverage.ndjson` (+ 保険者
-`Organization`) は JP かつ保険有効時のみ emit
+`Organization`) は US では常に、JP では保険有効時に emit
 (`--jp-insurance`、デフォルト on)。
 
 ### 縦断サービスライン emit (v0.5 → v0.6.0)
@@ -95,7 +96,8 @@ Reference integrity を維持。
   C61 / C67 / C71、C50 の ~1 % 男性乳がん含む):
   - がん慢性マーカー → `Condition` (ICD-10)。
   - `chemo_visit` LifeEvent (config: `locale/shared/chemo_regimens.yaml`
-    — FOLFOX q14d、CarboPem q21d、Trastuzumab q3w、LHRH q28d) →
+    — FOLFOX q14d、CarboPem q21d、Trastuzumab q3w、LHRH q28d、GemNabP q28d、
+    BCG 膀胱内注入 q7d、Temozolomide Stupp q28d) →
     外来 `Encounter` + regimen の各薬剤について per-cycle
     `MedicationRequest` + `MedicationAdministration`。
   - 放射線治療 → `Procedure`。
@@ -115,19 +117,24 @@ Reference integrity を維持。
     encounter reason Z34。Z34 は problem-list-item Condition を
     emit しない (妊娠は state、慢性状態ではない)。
   - 母親側分娩 `Encounter` (IMP 入院、admit dx O80、discharge dx
-    Z37.0、分娩 `Procedure` — JP K894 / US CPT 59400)。
+    Z37.0、分娩 `Procedure` — JP K894 / US CPT 59400)。帝王切開
+    (US 32.1 % / JP 20.4 %、`perinatal.yaml::cesarean`) では admit dx
+    O82、JP K898 / US CPT 59510 を代わりに使用。
   - 産褥 `Encounter` × 2 (分娩後 7 d と 28 d、encounter reason
     `Z39`、obgyn)。
   - 中絶 outcome (age-gate 15-19 → 35-44) — 外来日帰り手術
     `Encounter` with O03.9 (自然) or O04.5 (人工)。発火時は
     delivery + newborn chain を skip、period は `outcome="aborted"`
     で close。
-  - 新生児 `Patient` (id `<mother>-BABY`) を delivery ごとに生成、
+  - 新生児 `Patient` (id `<mother>-BABY`。同じ母親の N 人目は
+    `<mother>-<N>-BABY`) を delivery ごとに生成、
     世帯 + 出生日を母親から継承、性別は per-mother sub-RNG から
-    サンプリング。新生児 `Encounter` は
-    `admit_source = born` (新規 `AdmitSource.BORN` enum member) と
+    サンプリング。新生児の出生 `Encounter` は
+    `admit_source = born` (`AdmitSource.BORN`) と
     `Encounter.partOf → Encounter/<母親側 delivery encounter>` で
-    link back、discharge dx は `Z38.0`。
+    link back、discharge dx は `Z38.0`。新生児は出生入院の退院翌日に
+    シミュレーション人口へ加入し (`PersonRecord.enrolled_from`)、
+    以降は他の人と同様にシミュレーションされる。
   - 過去出産 `Condition` — delivered pregnancy period ごとに Z37
     `problem-list-item` 1 件、`onsetDateTime = delivery_date`
     (emit 時に `state_history("pregnancy")` から導出;
@@ -147,7 +154,7 @@ Reference integrity を維持。
 | MedicationRequest | medicationCodeableConcept (RxNorm)、dosageInstruction (text + doseAndRate + timing repeat + route SNOMED)、encounter、requester、reasonReference |
 | MedicationAdministration | dosage (dose SimpleQuantity + route + rateQuantity for continuous)、context、performer、reasonReference |
 | Procedure | code (CPT / K-code)、category (SNOMED: surgical/diagnostic/therapeutic)、encounter、performedPeriod、performer[] with function (surgeon/anaesthetist)、recorder、reasonReference、bodySite (SNOMED)、location (手術室)、outcome (SNOMED)、complication (SNOMED) |
-| DocumentReference | type (LOINC: 18842-5 / 69730-0 / 11504-8 / 34117-2 / 28570-0)、category (clinical-note)、subject、date、author、content.attachment (base64 text/plain、size、sha1 hash)、context (encounter period、related Procedure) |
+| DocumentReference | type (LOINC; 文書ごとのコードは [`../clinical_documents.md`](../clinical_documents.md#document-scope) を参照)、category (clinical-note)、subject、date、author、content.attachment (base64 text/plain、size、sha1 hash)、context (encounter period、related Procedure) |
 | Practitioner | name (with prefix)、gender、telecom、qualification |
 | PractitionerRole | practitioner、organization (dept)、location (ward)、specialty (SNOMED) |
 | Location | physicalType (wa=ward、bd=bed、area、ro=operating room)、partOf (bed→ward)、managingOrganization |
@@ -159,7 +166,7 @@ Reference integrity を維持。
 output/csv/
 ├── patients.csv
 ├── encounters.csv
-├── conditions.csv
+├── diagnoses.csv
 ├── lab_results.csv
 ├── vital_signs.csv
 ├── orders.csv

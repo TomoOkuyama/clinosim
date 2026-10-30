@@ -47,9 +47,9 @@
 2. **Bedrock → Model access** へ。
 3. **Manage model access** をクリックし、使用予定の Anthropic Claude
    モデルへのアクセスをリクエスト。例:
-   - `anthropic.claude-3-5-haiku-20241022-v1:0`
-   - `anthropic.claude-3-5-sonnet-20241022-v2:0`
-   - `anthropic.claude-3-opus-20240229-v1:0`
+   - `anthropic.claude-haiku-4-5-20251001-v1:0`
+   - `anthropic.claude-sonnet-4-20250514-v1:0`
+   - `anthropic.claude-opus-4-20250514-v1:0`
 4. 承認を待つ (Claude モデルは通常即時、数時間かかる場合もあり)。
 
 > **Cross-region inference profile**
@@ -78,9 +78,9 @@ clinosim Stage 2 が必要とする最小権限:
         "bedrock:ConverseStream"
       ],
       "Resource": [
-        "arn:aws:bedrock:us-east-1::foundation-model/anthropic.claude-3-5-haiku-20241022-v1:0",
-        "arn:aws:bedrock:us-east-1::foundation-model/anthropic.claude-3-5-sonnet-20241022-v2:0",
-        "arn:aws:bedrock:us-east-1::foundation-model/anthropic.claude-3-opus-20240229-v1:0"
+        "arn:aws:bedrock:us-east-1::foundation-model/anthropic.claude-haiku-4-5-20251001-v1:0",
+        "arn:aws:bedrock:us-east-1::foundation-model/anthropic.claude-sonnet-4-20250514-v1:0",
+        "arn:aws:bedrock:us-east-1::foundation-model/anthropic.claude-opus-4-20250514-v1:0"
       ]
     },
     {
@@ -95,6 +95,10 @@ clinosim Stage 2 が必要とする最小権限:
 
 cross-region inference profile を使う場合、foundation model ARN と
 ともにその ARN を `Resource` リストに追加。
+同梱の `llm_service.bedrock.yaml` は `us.` 接頭辞の model ID (cross-region
+inference profile) を使うので、対応する
+`arn:aws:bedrock:<region>:<account>:inference-profile/us.anthropic...` ARN
+も追加する。
 
 1. **IAM → Roles → Create role → AWS service → EC2**
 2. 上記 JSON でカスタムポリシーを attach (`ClinosimBedrockAccess`
@@ -158,12 +162,12 @@ narrative:
   bedrock:
     region: "us-east-1"
     profile: null                 # null → デフォルト credential chain (EC2 role)
-    model_id: "anthropic.claude-3-5-sonnet-20241022-v2:0"
+    model_id: "us.anthropic.claude-sonnet-4-20250514-v1:0"
     # inference_profile_arn: "arn:aws:bedrock:..."
   model_map:
-    small: "anthropic.claude-3-5-haiku-20241022-v1:0"
-    medium: "anthropic.claude-3-5-sonnet-20241022-v2:0"
-    large: "anthropic.claude-3-opus-20240229-v1:0"
+    small: "us.anthropic.claude-haiku-4-5-20251001-v1:0"
+    medium: "us.anthropic.claude-sonnet-4-20250514-v1:0"
+    large: "us.anthropic.claude-opus-4-20250514-v1:0"
   timeout_seconds: 60
   retry_attempts: 3
   retry_backoff_seconds: 2
@@ -215,35 +219,21 @@ aws s3 sync s3://my-bucket/clinosim_runs/<run_id>/cif/ /home/ec2-user/clinosim_c
 source .venv/bin/activate
 clinosim narrate \
     --cif-dir /home/ec2-user/clinosim_cif \
+    --provider bedrock \
     --llm-config ./llm_service.bedrock.yaml \
-    --language en \
     --version-id bedrock_sonnet_en_v1
 ```
 
-期待出力:
+期待出力 (末尾):
 
 ```
-clinosim narrate: loading LLM config ./llm_service.bedrock.yaml
-  CIF directory: /home/ec2-user/clinosim_cif
-  Language:      en
-  Mode:          llm
-  Tasks:         all Tier A+B
-
-  === Narrative Generation Summary ===
-  Version ID:       bedrock_sonnet_en_v1
-  Patients:         171
-  Total documents:  374
-    admission_hp         171
-    discharge_summary    171
-    operative_note       11
-    procedure_note       19
-    death_summary        2
-  LLM calls:        374
-  LLM input tokens: 412,389
-  LLM output tokens:58,041
-  Fallbacks:        0
-  Cache hits:       0
+narrate: wrote <N> narrative documents across <M> encounters → narratives/bedrock_sonnet_en_v1/
 ```
+
+文書言語は CIF の国に従う (`cif/metadata.json` から自動検出。
+`--language` フラグは無い)。LLM provider は `--set-current` を渡さない
+限り `current_version.txt` を書き換えないので、`export-fhir` には
+`--narrative-version` を明示する (7 節)。
 
 ### 再実行 (cache hit)
 
@@ -253,6 +243,7 @@ Cache は (system prompt + user prompt + model) の SHA256 でキー化。
 ```bash
 clinosim narrate \
     --cif-dir /home/ec2-user/clinosim_cif \
+    --provider bedrock \
     --llm-config ./llm_service.bedrock.yaml \
     --version-id bedrock_sonnet_en_v2
 # → LLM calls: 0, Cache hits: 374
@@ -261,11 +252,12 @@ clinosim narrate \
 ### タスクサブセットの実行
 
 ```bash
-# 法的必須文書 (Tier A) のみ
+# 退院・死亡・手術の文書のみ (registry の type_key 名)
 clinosim narrate \
     --cif-dir /home/ec2-user/clinosim_cif \
+    --provider bedrock \
     --llm-config ./llm_service.bedrock.yaml \
-    --tasks discharge_summary,death_summary,operative_note \
+    --tasks discharge_summary,death_discharge_summary,death_certificate,operative_note \
     --version-id bedrock_tier_a_only
 ```
 
@@ -308,7 +300,13 @@ clinosim export-fhir \
 
 ## コスト見積り
 
-clinosim は入院エンカウンター 1 件あたり **約 2.2 Tier A+B 文書** を
+> **注:** 以下のエンカウンターあたりの数値と計算例は、医師文書 5 種のみを
+> 生成していた以前のリリース時点のもの。現行リリースは登録済の全文書種
+> (US 13 種、JP 18 種 — [clinical_documents.ja.md](clinical_documents.ja.md)
+> 参照) を生成するため、エンカウンターあたりの文書数はここより多い。
+> 予算を立てる前に小規模 run で実測すること。
+
+以前のリリースは入院エンカウンター 1 件あたり **約 2.2 文書** を
 シミュレート (入院 H&P 1 + 退院サマリー 1 + ~0.2 その他)。文書あたり
 トークン数はエンカウンターの複雑さに依存するが、典型範囲:
 
@@ -395,7 +393,7 @@ Cache hit は無料。cache を有効化し実験ごとにプロンプトを再�
 
 - [clinical_documents.ja.md](clinical_documents.ja.md) — 臨床文書
   ガイド全体
-- [README.md § LLM Integration](../README.ja.md#llm-integration-optional) —
+- [LLM 統合](reference/llm-integration.ja.md) —
   プロバイダ概要
 - [../DESIGN.md § 7](../DESIGN.ja.md) — アーキテクチャ判断 (AD-36〜AD-41)
 - [AWS Bedrock ドキュメント](https://docs.aws.amazon.com/bedrock/latest/userguide/)

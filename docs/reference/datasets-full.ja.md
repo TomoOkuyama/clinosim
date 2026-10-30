@@ -3,7 +3,7 @@
 # データセット
 
 4 つの名前付きデータセットプリセットが
-[`datasets/`](datasets/) 配下に配置 — smoke テストとデモ用の小規模
+[`datasets/`](https://github.com/TomoOkuyama/clinosim/tree/master/datasets/) 配下に配置 — smoke テストとデモ用の小規模
 (US/JP × 100)、ML 開発用の中規模 (US/JP × 1000)。全 seed 42 で
 CLI から再現可能にビルド可能:
 
@@ -14,10 +14,10 @@ clinosim dataset build jp-100 --output ./jp-100          # プリセット 1 件
 
 | Preset | Country | Patients | Period | サイズ目安 |
 | --- | --- | ---: | ---: | ---: |
-| [`us-100`](datasets/us-100/)   | US | 100  | 3 ヶ月 | ~2 MB   |
-| [`us-1000`](datasets/us-1000/) | US | 1000 | 6 ヶ月 | ~30 MB  |
-| [`jp-100`](datasets/jp-100/)   | JP | 100  | 3 ヶ月 | ~2 MB   |
-| [`jp-1000`](datasets/jp-1000/) | JP | 1000 | 6 ヶ月 | ~30 MB  |
+| [`us-100`](https://github.com/TomoOkuyama/clinosim/tree/master/datasets/us-100/)   | US | 100  | 3 ヶ月 | ~2 MB   |
+| [`us-1000`](https://github.com/TomoOkuyama/clinosim/tree/master/datasets/us-1000/) | US | 1000 | 6 ヶ月 | ~30 MB  |
+| [`jp-100`](https://github.com/TomoOkuyama/clinosim/tree/master/datasets/jp-100/)   | JP | 100  | 3 ヶ月 | ~2 MB   |
+| [`jp-1000`](https://github.com/TomoOkuyama/clinosim/tree/master/datasets/jp-1000/) | JP | 1000 | 6 ヶ月 | ~30 MB  |
 
 各プリセットは HuggingFace 形式のデータセットカード
 (`datasets/<name>/README.md`) を同梱し、メタデータ手直しなしで HF

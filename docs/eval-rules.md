@@ -13,7 +13,10 @@ For every axis:
 - **Check weight** = severity: CRITICAL = 3, MAJOR = 2, MINOR = 1
 - **Pass-weight** = PASS 1.0, WARN 0.5, FAIL 0.0, N/A 0.0
 
-**Overall score** = arithmetic mean of the three axis scores.
+**Overall score** = arithmetic mean of the score of every axis result
+in the report (one per axis × country subdirectory). A
+country-conditional axis that does not apply to the cohort's locale
+returns no checks, scores 0.0, and is still included in the mean.
 **Overall status** = worst of FAIL / WARN / PASS across axes.
 
 ---
@@ -76,17 +79,21 @@ from the diagnosis label.
 | `anemia_hgb` | D50–D64 (excluding D54–D61 uncommon) | 718-7 (Hb) | **< 12.0 g/dL** | [WHO anemia cutoffs](https://www.who.int/publications/i/item/9789240088542) |
 | `chf_bnp` | I50.* | 30934-4 (BNP) | **> 100 pg/mL** | Framingham / [ACC-AHA HF guidelines](https://www.acc.org/latest-in-cardiology/ten-points-to-remember/2022/04/06/12/57/2022-aha-acc-hfsa-guideline-for-the-management-of-hf) |
 
-To add a pairing: append to `_CONDITION_LAB_PAIRINGS` in
-[`clinosim/eval/axes/clinical.py`](https://github.com/TomoOkuyama/clinosim/blob/master/clinosim/eval/axes/clinical.py)
-and cite the source here.
+The pairings are loaded from
+[`clinosim/codes/data/condition-lab-pairings.yaml`](https://github.com/TomoOkuyama/clinosim/blob/master/clinosim/codes/data/condition-lab-pairings.yaml)
+(the `lab_values_physiological_range` bounds likewise from
+`clinosim/codes/data/lab-plausibility-bounds.yaml`). To add a pairing,
+add an entry under `pairings:` in that yaml and cite the source here.
 
 ### `medication_lab_coherence_warfarin` (MAJOR)
 
 When a patient carries a MedicationRequest for warfarin (RxNorm
 `11289` OR YJ code prefix `3332001`), every PT-INR observation
-(LOINC `6301-6`) drawn **on or after** the earliest warfarin
-`authoredOn` must sit in **2.0–3.5**. Rates use the same
-5% / 25% thresholds as the pairings above.
+(LOINC `6301-6`) drawn **5 or more days after** the earliest warfarin
+`authoredOn` must sit in **2.0–3.5**. Draws inside the first 5 days
+(the induction window, while INR is still climbing from baseline) are
+excluded. Rates use the same 5% / 25% thresholds as the pairings
+above.
 
 The band is broader than the 2.0–3.0 target of the AF stroke-prevention
 indication because comorbidities (cirrhosis, DIC) legitimately shift
@@ -97,9 +104,12 @@ engine (AD-57) is calibrated to match.
 
 ## Locale axis (5 checks)
 
-Cohort-country is auto-detected from `Patient.address.country` or the
-presence of a JP Core `meta.profile` on the first Patient. Override
-with `--country US` / `--country JP`.
+Cohort-country is the country subdirectory name for the
+`<root>/<country>/fhir_r4/` layout; for the flat `<root>/fhir_r4/`
+layout it is auto-detected from the first Patient's
+`address.country` or the presence of a JP Core `meta.profile`
+(fallback: US). `--country` selects which country subdirectories are
+scored; it does not override the detected locale.
 
 ### JP cohorts
 
@@ -123,11 +133,18 @@ with `--country US` / `--country JP`.
 
 ## JP-CLINS lab compliance axis (JP cohorts only)
 
-Measures `JP_Observation_LabResult_eCS` compliance on
-`Observation.code.coding` + `Observation.specimen` + `Specimen.type`.
-Gate: strict 1.0 at 100 %-at-master invariants (Open-slicing discriminator-
-system+display, so validator pass counts alone are insufficient — see
-`clinosim/eval/axes/jp_clins_lab_compliance.py`).
+Measures `JP_Observation_LabResult_eCS` compliance on lab
+`Observation.code.coding`. Gate: strict 1.0 at 100 %-at-master
+invariants (Open-slicing discriminator-system+display, so validator
+pass counts alone are insufficient — see
+`clinosim/eval/axes/jp_clins_lab_compliance.py`). All checks are MAJOR;
+each returns N/A when the cohort has no lab Observations.
+
+| Name | Passes when |
+|---|---|
+| `jp_clins_lab_cs_usage` | Every lab Observation carries a JP-CLINS-defined CodeSystem |
+| `jp_clins_lab_fixed_display` | Every slice-typed coding carries the eCS fixed display |
+| `jp_clins_lab_rule_satisfaction` | Every lab Observation carries `localLaboCode` + one typed coding |
 
 ## JP Core compliance axis (JP cohorts only)
 
@@ -137,7 +154,11 @@ invariants that already hold at 100 % on master. Kana-representation
 (SYL) coverage expansion is tracked separately. The full HL7 FHIR
 Validator run (`jp-validate.yml`) remains the authoritative
 on-demand compliance surface. See
-`clinosim/eval/axes/jp_core_compliance.py`.
+`clinosim/eval/axes/jp_core_compliance.py`. Checks (all MAJOR):
+`jp_core_patient_profile_declared`, `jp_core_patient_identifier_present`,
+`jp_core_patient_name_family_given`, `jp_core_patient_kanji_representation`,
+`jp_core_encounter_class_present`, `jp_core_encounter_period_present`,
+`jp_core_medicationrequest_medication_coding_present`.
 
 ## US Core compliance axis (US cohorts only)
 
@@ -146,7 +167,12 @@ AllPatients / Encounter / Condition. Threshold 1.0 at 100 %-at-master
 invariants (not race/ethnicity extension coverage, which is tracked
 separately). Full validator run (`us-validate.yml`, Phase 3) is the
 authoritative on-demand compliance surface. See
-`clinosim/eval/axes/us_core_compliance.py`.
+`clinosim/eval/axes/us_core_compliance.py`. Checks (all MAJOR):
+`us_core_patient_identifier_present`, `us_core_patient_name_family_given`,
+`us_core_patient_birthsex_extension_valid`,
+`us_core_patient_race_extension_shape`,
+`us_core_patient_ethnicity_extension_shape`,
+`us_core_encounter_class_v3_actcode`, `us_core_condition_category_system`.
 
 ---
 

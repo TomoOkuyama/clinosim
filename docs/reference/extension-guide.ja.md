@@ -24,7 +24,7 @@
 
 1. `clinosim/modules/encounter/reference_data/<condition_id>.yaml`
    を作成。
-2. `icd10_code` と `icd10_display` を含める。
+2. `icd10_code` と `icd10_display` を含める (`emergency` の condition で対象年齢を制限する場合は `min_age` / `max_age` を設定 — ED の抽選は受診年の年齢で gate する)。
 3. `icd10_code` を「新規疾患追加」ステップ 3 に従って登録。
 4. テスト: `clinosim test-encounter <condition_id>` および
    `pytest tests/unit/test_diagnosis_code_coverage.py`。
@@ -33,9 +33,11 @@
 
 1. `clinosim/locale/<country_code>/` フォルダを作成
 2. `names.yaml`、`addresses.yaml`、`demographics.yaml`、
-   `reference_range_lab.yaml`、`formatting.yaml` を追加
+   `reference_range_lab.yaml`、`formatting.yaml` と `code_mapping_*.yaml` を追加
 3. `clinosim/locale/shared/naming_rules.yaml` にエントリ追加
 4. (オプション) 国固有コードシステムを `codes/data/` に追加
+
+完全なチェックリスト: [`../add-your-country.ja.md`](../add-your-country.ja.md)。
 
 ### 新規言語追加
 

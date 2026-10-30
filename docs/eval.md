@@ -6,11 +6,12 @@ country-conditional (**jp_clins_lab_compliance**,
 **jp_core_compliance**, **us_core_compliance**) — and emits a JSON +
 Markdown report with per-check outcomes, an axis score (0–100), and
 an overall score. Country-conditional axes activate only for cohorts
-whose locale matches; see `clinosim/eval/axes/` for the live plug-in
-discovery convention (established META #1633 P8).
+whose locale matches. The axis set is the `axes` dict in
+`clinosim/eval/engine.py::EvalEngine`; each axis lives in
+`clinosim/eval/axes/`.
 
 It is **not** `clinosim audit run` (see
-[`docs/CONTRIBUTING-modules.md`](CONTRIBUTING-modules.md) "PR 検証ガイド"):
+[`docs/CONTRIBUTING-modules.md`](CONTRIBUTING-modules.md) "PR verification guide"):
 
 |  | `clinosim eval` | `clinosim audit run` |
 |---|---|---|
@@ -34,13 +35,23 @@ Options:
 
 ```
 clinosim eval
-  -d/--cohort-dir DIR    Root of the generated cohort (contains fhir_r4/)
-  --json PATH            Write JSON report to PATH
-  --md PATH              Write Markdown report to PATH
-  --country US|JP        Force the locale axis to run US or JP checks
-                         (defaults to auto-detect from Patient.address.country
-                         or JP Core meta.profile presence)
-  --strict               Exit 1 if any axis reports a FAIL check
+  -d/--cohort-dir DIR      Root of the generated cohort (contains fhir_r4/), or a
+                           Synthea fhir/ output directory (auto-detected and
+                           normalized before scoring)
+  --json PATH              Write JSON report to PATH
+  --md PATH                Write Markdown report to PATH
+  --country CODE           Limit to one or more country subdirectories
+                           (<cohort-dir>/<CODE>/fhir_r4/; repeat the flag).
+                           Default: every discovered subdirectory. The locale
+                           lens itself is taken from the subdirectory name, or
+                           auto-detected from the first Patient's
+                           address.country / JP Core meta.profile for the flat
+                           <cohort-dir>/fhir_r4/ layout (fallback: US)
+  --only-axes LIST         Comma-separated axis ids to run (e.g.
+                           clinical,locale); unknown ids fail fast
+  --synthea-normalize DIR  Where to write the normalized Synthea layout
+                           (default: <cohort-dir>/../synthea-normalized/)
+  --strict                 Exit 1 if any axis reports a FAIL check
 ```
 
 ## Axes
@@ -50,9 +61,11 @@ Structural + locale hold 5 checks each; clinical holds 7 (5 MVP +
 `good first issue` on GitHub. Country-conditional axes activate per
 cohort locale: `jp_clins_lab_compliance` and `jp_core_compliance`
 run for JP cohorts, `us_core_compliance` for US cohorts. The
-compliance axes anchor on country-core profiles' must-support
-elements (Patient / Encounter / Condition) with a 1.0 threshold at
-master-is-invariant. See [`clinosim.eval`](../clinosim/eval/README.md)
+compliance axes hold 3 (`jp_clins_lab_compliance`), 7
+(`jp_core_compliance`: Patient / Encounter / MedicationRequest) and 7
+(`us_core_compliance`: Patient / Encounter / Condition) checks, each
+gated on invariants that hold at 100 % on master. See
+[eval-rules.md](eval-rules.md) for the per-check list. See [`clinosim.eval`](../clinosim/eval/README.md)
 and `clinosim/eval/axes/` for the live full axis list.
 
 ### Structural (FHIR compliance)
@@ -79,8 +92,10 @@ and `clinosim/eval/axes/` for the live full axis list.
 
 ### Locale (language + code system)
 
-Dispatched by cohort country (auto-detected from Patient.address.country
-or JP Core meta.profile presence).
+Dispatched by cohort country: the country subdirectory name when the
+cohort uses the `<root>/<country>/fhir_r4/` layout, otherwise
+auto-detected from the first Patient's `address.country` or JP Core
+`meta.profile` presence (fallback: US).
 
 **JP checks:**
 
@@ -109,8 +124,11 @@ Per-axis score = 100 × Σ(pass-weight) / Σ(total-weight), where:
 - Severity weights: **CRITICAL = 3, MAJOR = 2, MINOR = 1**.
 - Outcome weights: **PASS = 1.0, WARN = 0.5, FAIL / N/A = 0.0**.
 
-Overall score = arithmetic mean of every active axis's score (3
-universal + 1–2 country-conditional, depending on cohort locale).
+Overall score = arithmetic mean of the score of every axis result in
+the report (one result per axis × country subdirectory). A
+country-conditional axis that does not apply to the cohort's locale
+still appears in the report with an empty `checks` list and a score of
+0.0, and it is included in that mean.
 Overall status is `FAIL` if any check on any axis is FAIL, else
 `WARN` if any is WARN, else `PASS`.
 

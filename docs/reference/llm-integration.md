@@ -11,7 +11,7 @@ clinosim uses LLMs only for **clinical documents** (Stage 2). All structural dat
   - **JUDGMENT** — clinical reasoning, always English, structured output (reserved for future use).
   - **NARRATIVE** — clinical documents, target language, free text.
 - Pluggable providers via `clinosim.modules.llm_service.providers`:
-  - `ollama` — local Ollama server (default)
+  - `ollama` (alias `local`) — local Ollama server (default in `llm_service.yaml`)
   - `bedrock` — AWS Bedrock via Converse API (for EC2 deployment)
   - `vllm` — OpenAI-compatible `/v1/chat/completions` endpoint
     (vLLM, SGLang, or any other OpenAI-compatible server; supports
@@ -29,7 +29,7 @@ brew install ollama
 ollama serve
 ollama pull llama3.1:8b
 
-clinosim narrate --cif-dir ./output/cif \
+clinosim narrate --cif-dir ./output/cif --provider ollama \
   --llm-config clinosim/config/llm_service.yaml \
   --version-id ollama_en_v1
 ```
@@ -40,7 +40,7 @@ clinosim narrate --cif-dir ./output/cif \
 pip install boto3   # bedrock runtime deps are not bundled as a clinosim extra
 
 # On an EC2 instance with an IAM role that grants bedrock:Converse:
-clinosim narrate --cif-dir ./cif \
+clinosim narrate --cif-dir ./cif --provider bedrock \
   --llm-config clinosim/config/llm_service.bedrock.yaml \
   --version-id bedrock_sonnet_en_v1
 ```
@@ -53,7 +53,7 @@ See [../bedrock_setup.md](../bedrock_setup.md) for full EC2 + IAM setup.
 clinosim narrate --cif-dir ./output/cif --version-id template_v1
 ```
 
-Template mode runs Stage 2 without any network call and produces deterministic placeholder content. Useful for CI, reproducibility tests, and sanity checks.
+Template mode runs Stage 2 without any network call and produces deterministic placeholder content. `--provider` defaults to `template`, so an LLM run must pass `--provider` explicitly (`--llm-config` alone does not switch to an LLM). Useful for CI, reproducibility tests, and sanity checks.
 
 ### Extending to new providers
 
@@ -68,7 +68,7 @@ class MyProvider:
 register_provider("my_provider", lambda cfg: MyProvider(cfg))
 ```
 
-Then reference `provider: my_provider` in your `llm_service.yaml`.
+Then reference `provider: my_provider` in your `llm_service.yaml`. When `--llm-config` is given, `clinosim narrate` builds the provider from that YAML (any non-`template` `--provider` value selects the LLM path), and the `register_provider()` call must run in the same Python process before `narrate` starts — the `--provider` flag itself only accepts the built-in names.
 
 Details: [../clinical_documents.md](../clinical_documents.md), `clinosim/modules/llm_service/README.md`
 

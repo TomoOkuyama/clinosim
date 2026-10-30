@@ -19,7 +19,7 @@ data from a virtual hospital.
 
 Most synthetic-EHR tools produce records by sampling from disease
 distributions. **clinosim runs the disease.** Every patient carries a
-hidden 14-variable physiological state
+hidden 19-variable physiological state
 (`clinosim/types/clinical.py::PhysiologicalState`), and every lab /
 vital / medication is derived from that state.
 
@@ -30,7 +30,7 @@ Three concrete differentiators:
 - **JP + US natively.** JP Core profile compliance for 16 primary FHIR
   resource types, JLAC10 / MHLW YJ codes, JP names / addresses /
   insurance out of the box.
-- **YAML-driven extension.** 32 inpatient diseases + 47 ED / outpatient
+- **YAML-driven extension.** 36 inpatient diseases + 51 ED / outpatient
   conditions are all data files, not code.
 - **Longitudinal state evolution.** AR(1) HbA1c trajectory, Markov
   stage ladders (CKD / CCS / NYHA / CDR / GOLD / cancer AJCC/BCLC),
@@ -100,7 +100,7 @@ Full walk-through: [Installation](getting-started/installation.md) →
 
 [Synthea](https://synthetichealth.github.io/synthea/) tackles synthetic
 EHR from a state-transition angle; clinosim from a physiology-simulation
-angle. Full side-by-side in the [README](https://github.com/TomoOkuyama/clinosim#how-clinosim-compares-to-synthea).
+angle. Full side-by-side in [Synthea comparison](synthea-comparison.md).
 
 ---
 

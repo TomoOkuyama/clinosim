@@ -36,15 +36,18 @@ department_rollup:              # サブ専門科 → 利用可能な診療科
 wards:                          # 診療科ごとの病棟
   internal_medicine: ["4E", "4W"]
   cardiology: ["5E"]
+  gastroenterology: ["5W"]
   general_surgery: ["3E"]
   orthopedics: ["3W"]
   emergency_medicine: ["ER"]
   primary_care: ["OPD"]
+  oncology: ["OPD-ONC"]
 
 ward_capacity:                  # 病棟ごとのベッド数
   "4E": 10
   "4W": 10
   "5E": 8
+  "5W": 8
   "3E": 8
   "3W": 6
 
@@ -64,7 +67,7 @@ staffing:                       # シフトごとのスタッフ比率
 - 自動的な 疾患 → 診療科 → 病棟 → ベッド ルーティング
 - 動的検査結果遅延を持つ M/M/1 待ち行列モデル
 - 病棟ごとの看護師割り当て (PractitionerRole.location)
-- 切り替え可能な病院テンプレート (大 / 中 / クリニック)
+- 切り替え可能な病院テンプレート: `hospital_large.yaml` (200 床)、`hospital_operations.yaml` (50 床、デフォルト)、`hospital_small.yaml` (~10 床のクリニック)。`--hospital-config` で選択
 
 `clinosim/modules/facility/README.md` 参照。
 

@@ -4,12 +4,12 @@
 
 > **本書は CIF 生成 layer(Layers 1-3 = 参照 YAML、loader、CIF generation module)が中心** です。**FHIR builder layer(Layer 4 = `fhir_r4/<domain>/*.py`)を追加・拡張する場合は** [`docs/design-guides/fhir-data-generation-logic.md`](design-guides/fhir-data-generation-logic.ja.md) を参照してください(BundleContext / code_lookup / 多言語 display / identifier system 規約 / register_bundle_builder)。
 
-> **新規モジュール作成時**: [`.github/TEMPLATE_MODULE_README.md`](../.github/TEMPLATE_MODULE_README.md) をコピーして開始。全 33 module(counting rule: `clinosim/modules/` 配下の package 数。`_shared.py` 等の非 package ファイルは含まない)の俯瞰は [`MODULES.md`](../MODULES.ja.md) を参照。PR 検証手段の選び方は本書の「PR 検証ガイド: byte-diff vs 3-axis DQR」セクション参照。読む順序の全体像は [`docs/design-guides/README.md`](design-guides/README.ja.md) を参照。
+> **新規モジュール作成時**: [`.github/TEMPLATE_MODULE_README.md`](../.github/TEMPLATE_MODULE_README.md) をコピーして開始。全 38 module(counting rule: `clinosim/modules/` 配下の package 数。`_shared.py` 等の非 package ファイルは含まない)の俯瞰は [`MODULES.md`](../MODULES.ja.md) を参照。PR 検証手段の選び方は本書の「PR 検証ガイド: byte-diff vs 3-axis DQR」セクション参照。読む順序の全体像は [`docs/design-guides/README.md`](design-guides/README.ja.md) を参照。
 
 実コードの正本パス:
 - Enricher registry: `clinosim/simulator/enrichers.py`
 - Output adapter registry: `clinosim/modules/output/adapter.py`
-- FHIR bundle builder registry: `clinosim/modules/output/fhir_r4_adapter.py`
+- FHIR bundle builder registry: `clinosim/modules/output/fhir_r4/builder.py` (`fhir_r4_adapter.py` は後方互換 shim)
 - 共有型: `clinosim/types/`
 - コードシステム: `clinosim/codes/`
 - locale データ: `clinosim/locale/`
@@ -41,7 +41,7 @@
 - `hai` (PR-B): CDC NHSN HAI サンプリング (POST_ENCOUNTER order=80)。`extensions["device"]` の存在を前提。
 - `antibiotic` (PR3b-1): HAI 経験的抗菌薬 (POST_ENCOUNTER order=85)。`extensions["hai"]` の存在を前提。
 - `imaging` (Tier 1 #2, AD-62): 画像診断メタデータチェーン (POST_ENCOUNTER order=90)。disease YAML の `imaging_orders` が存在する encounter でのみ `extensions["imaging"]` を生成し、ImagingStudy + Endpoint + 放射線科 DR + imaging SR を emit する。upstream extensions に依存しない (device/hai とは独立)。
-- `allergy` (Tier 1 #3, AD-63): AllergyIntolerance 8-field SNOMED-coded スキーマ upgrade (POST_RECORDS order=65)。`PersonRecord.allergies: list[Allergy] | None` に 15% prevalence で allergy サンプリングし、`fhir_r4/conditions/allergy_intolerance.py` builder が emit。activator.py inline sampling を置換。
+- `allergy` (Tier 1 #3, AD-63): AllergyIntolerance 8-field SNOMED-coded スキーマ upgrade (POST_POPULATION order=10)。`PersonRecord.allergies: list[Allergy] | None` に 15% prevalence で allergy サンプリングし、`fhir_r4/conditions/allergy_intolerance.py` builder が emit。activator.py inline sampling を置換。
 - `document` (Tier 1 #3, AD-63): Stage 1 テンプレート起動の臨床文書 emit (POST_ENCOUNTER order=95)。`extensions["document"]` + `extensions["clinical_impressions"]` に ClinicalDocument / ClinicalImpressionRecord を書き込み、3 FHIR builder (`fhir_r4/documents/documents.py` / `fhir_r4/documents/composition.py` / `fhir_r4/conditions/clinical_impression.py`) が emit。`enabled=lambda c: True`、upstream `extensions["allergy"]` に依存しない(患者アレルギー情報はビルダーが `patient.allergies` を直接参照)。
 - `triage` (Tier 1 #3 α-min-2, AD-64): ED encounter の triage level (JTAS/JP・ESI/US) + arrival_mode + acuity_score を sample (POST_ENCOUNTER order=93)。`EncounterRecord.triage_data` に書き込み、`document_enricher` が `ED_TRIAGE_NOTE` (LOINC 54094-8) dispatch に使用。`enabled=lambda c: True`、ED-only (非 ED encounter は no-op early return)。
 - `nursing_assignment` (Tier 1 #3 α-min-2, AD-64): 入院/ICU/rehab encounter に primary nurse を assign (POST_ENCOUNTER order=94)。`EncounterRecord.primary_nurse_id` に書き込み、`fhir_r4/encounters/care_team.py` builder が CareTeam.participant[1] に使用。`enabled=lambda c: True`。**注意**: このモジュールは `modules/nursing/` ディレクトリだが POST_ENCOUNTER 担当の nursing_enricher 関数(primary nurse 割当)。同ディレクトリには POST_RECORDS の nursing flowsheet 担当 enricher (NEWS2/GCS/Braden/Morse) も存在する。混同注意。
@@ -67,15 +67,15 @@ opt-in module は `Enricher.enabled` で gate します。`config.module_enabled
 ```python
 # clinosim/simulator/enrichers.py の register_builtin_enrichers() 内
 register_enricher(Enricher(
-    name="immunization",
+    name="my_module",
     stage=POST_RECORDS,
-    run=run_immunization_enricher,
+    run=run_my_module_enricher,
     order=200,
-    enabled=lambda c: c.module_enabled("immunization", default=True),
+    enabled=lambda c: c.module_enabled("my_module", default=True),
 ))
 ```
 
-> **注意 (EXT-5):** 現状 `module_enabled()` は production で未配線で、`modules` dict は dead key になっています。新規 module は上記のように `module_enabled` 経由で gate し、advertised な AD-56 ゲートを実際に有効化してください。`default=True` を保てば既存 golden は不変です。
+> **注意 (EXT-5):** `SimulatorConfig.modules` はプログラムからのみ設定 (CLI フラグなし) され、現在 `module_enabled()` で gate する built-in enricher は `health_checkup` (JP、既定 off) のみです。他の built-in enricher は `enabled=lambda c: True` か国判定です。新規 opt-in module は上記のように `module_enabled` 経由で gate してください。`default=True` を保てば既存 golden は不変です。
 
 ### locale 依存の signature 規約
 
@@ -183,7 +183,7 @@ call site では `_REF_DIR / "X.yaml"` / `_LOCALE / country / "X.yaml"` で path
 
 他 module の `reference_data/` を glob / 走査する aggregate loader を simulator 等の外部 package に書かない。**reference_data の layout と validation は owner module の責務**(責任分解点)であり、外部 package が path 構造を知っていると layout 変更時に silent break する。
 
-- 正準例: `load_all_disease_protocols()` は `clinosim/modules/disease/protocol.py`(owner)に定義。`clinosim/simulator/helpers.py:_load_all_disease_protocols` は同 lru_cache object の thin re-export alias で、既存 caller と `.cache_clear()` テスト pattern を不変に保つ。
+- 正準例: `load_all_disease_protocols()` は `clinosim/modules/disease/protocol.py`(owner)に定義。`clinosim/simulator/helpers.py` は同 lru_cache object を同名で re-export する (旧 `_load_all_disease_protocols` alias は deprecation 期間後に削除済) ので、`.cache_clear()` テスト pattern はそのまま使える。
 - 同様に、他 module の YAML を直接 path join で読むのも禁止 — owner module の public accessor を使う(例: `modules/antibiotic` は `microbiology.yaml` を直接読まず `clinosim.modules.observation.microbiology.antibiotic_loinc_lookup()` を import する)。
 
 ### 確率サンプリング規約(PR-A 2026-06-26 で確立)
@@ -214,7 +214,7 @@ YAML data に外部 ID(SNOMED / LOINC / antibiotic key 等)を埋めるモジュ
 - `clinosim/modules/observation/microbiology.py:_validate_microbiology` — organism antibiogram key を `antibiotics` set と照合(PR-A 2026-06-26 で silent skip から ValueError へ移行、Fix #100/#101 で 7 cross-refs に拡張)
 - `clinosim/modules/antibiotic/audit.py:_validate_nhsn_resistance_bands` — `_NHSN_RESISTANCE_BANDS` の cohort/antibiotic を canonical に対し検証
 - `clinosim/modules/hai/engine.py:_validate_hai_organisms` — `hai_organisms.yaml` を `HAI_TYPES` × SNOMED non-empty × non-negative weight × non-zero-sum で検証(本 PR 2026-06-27)
-- `clinosim/locale/loader.py:_validate_demographics` / `_validate_names` / `_validate_addresses` — `demographics.yaml` の lifestyle_distribution + `names.yaml` の surnames/given_names + `addresses.yaml` の cities を、各 weight の非負 + sum > 0 で検証(本 PR 2026-06-27、4 主要 loader 完備)
+- `clinosim/locale/loaders/demographics.py:_validate_demographics` / `_validate_names` / `_validate_addresses` — `demographics.yaml` の lifestyle_distribution + `names.yaml` の surnames/given_names + `addresses.yaml` の cities を、各 weight の非負 + sum > 0 で検証(本 PR 2026-06-27、4 主要 loader 完備)
 - `clinosim/modules/antibiotic/engine.py:_validate_narrow_ladder` — `narrow_ladder.yaml` を **4-way 検証**: `HAI_TYPES` × `hai_antibiogram.yaml` (forward + reverse-coverage) × `ANTIBIOTIC_DRUGS` + 空コンテナ(top-level / drug list)拒否(PR3b-3 + adversarial-2 stage-3、reverse-coverage は新組織追加時の silent-no-op 防御)
 - `clinosim/modules/antibiotic/audit.py:_validate_narrow_rate_bands` — `_NARROW_RATE_BANDS` cohort string format (per-hai_type のみ、no slash) + 必須 key + [0, 1] 範囲 + 空 list 拒否(PR3b-3 adversarial-1 / 2、cohort string typo 防御)
 - `clinosim/modules/hai/engine.py:_validate_hai_rates` — `per_day_risk ∈ [0, 1]` + `source_device_type ∈ load_devices_config()["devices"]` (HAI sibling sweep 2026-06-29)
@@ -376,7 +376,7 @@ order → canonical_lab_name → generate_lab_result(true_value, rng) → determ
 各 enricher/module は **master seed から自分専用の sub-stream を導出** し、メイン random stream には触れません。derive 式は `clinosim/seeding.py:derive_sub_seed(master, module_offset, key)` に集約済 (AD-16 / AD-59)。
 
 ```python
-from clinosim.simulator.seeding import ENRICHER_SEED_OFFSETS, derive_sub_seed
+from clinosim.seeding import ENRICHER_SEED_OFFSETS, derive_sub_seed
 
 # 患者/encounter ごとに fresh な Generator を作る
 rng = np.random.default_rng(
@@ -397,7 +397,9 @@ ENRICHER_SEED_OFFSETS = {
     "family_history": 0x4648,     # "FH"
     "care_level":     0x434C,     # "CL"
     "nursing":        0x4E55,     # "NU"
-    # 新モジュール例: "device" = 0x4456 ("DV"), "hai" = 0x4841 ("HA")
+    "device":         0x4445,     # "DE"
+    "hai":            0x4841,     # "HA"
+    # ... (全リストは clinosim/seeding.py)
 }
 ```
 
@@ -448,10 +450,12 @@ rec.my_typed_field = [asdict(r) for r in my_records]
 
 ### A. FHIR リソースを追加する (`register_bundle_builder`, AD-56)
 
-`_build_bundle()` を編集しない。builder は `(ctx: BundleContext) -> list[dict]` の pure 関数で raw resource を返します (Bundle entry でラップしない — registry が `_entry()` で一律ラップする)。
+`_build_bundle()` を編集しない。builder は `(ctx: BundleContext) -> list[dict]` の pure 関数で raw resource を返します (Bundle entry でラップしない — `_build_bundle()` が builder の返す resource を一律ラップする)。built-in builder は `clinosim/modules/output/fhir_r4/builder.py` の `_BUNDLE_BUILDERS` に列挙 (リスト順 = emit 順)、`register_bundle_builder()` は外部 builder をその後ろに追加する。
 
 ```python
-# clinosim/modules/output/fhir_r4_adapter.py
+from clinosim.modules.output.fhir_r4 import register_bundle_builder
+from clinosim.modules.output.fhir_r4.lib.common import BundleContext
+
 def _bb_my_resource(ctx: BundleContext) -> list[dict]:
     # ctx fields: record, country, roster_map, hospital_config, patient_data,
     #             patient_id, primary_dx_code, admit_dx_code, primary_enc_id, patient_sex, ...
@@ -462,27 +466,29 @@ def _bb_my_resource(ctx: BundleContext) -> list[dict]:
 register_bundle_builder(_bb_my_resource)
 ```
 
-- 命名は `_bb_*` prefix で統一 (EXT-6: `_build_nursing_observations` 等は旧式)。
+- 命名は `_bb_*` prefix で統一 (EXT-6)。`_BUNDLE_BUILDERS` は import 時に assert、`register_bundle_builder()` も prefix を検査する。
 - `Resource.id` は型内で globally unique に。encounter-scoped id (`lab-{encounter_id}-...`) を使う (FA-7)。
-- **double-wrap 注意 (FA-3):** builder は raw resource dict を返す。`_entry()` を builder 内で呼ばない。
+- **double-wrap 注意 (FA-3):** builder は raw resource dict を返す。builder 内で Bundle `entry` ラッパを作らない。
 
 **Canonical example — `_bb_service_requests` (PR1, 2026-06-29, `fhir_r4/labs/service_request.py`):**
 
 ```python
-# clinosim/modules/output/fhir_r4/labs/service_request.py
-from clinosim.modules.output.fhir_r4_adapter import register_bundle_builder, BundleContext
-from clinosim.modules.order.panel_grouping import classify_lab_specs
+# clinosim/modules/output/fhir_r4/labs/service_request.py (簡略化)
+from clinosim.modules.output.fhir_r4.lib.common import BundleContext
 
 def _bb_service_requests(ctx: BundleContext) -> list[dict]:
-    """Emit 1 ServiceRequest per panel instance + 1 per stand-alone lab order."""
+    """Emit ServiceRequest resources for LAB + IMAGING orders."""
+    orders = ctx.record.get("orders", []) or []
     resources: list[dict] = []
-    orders = _collect_lab_orders(ctx.record)       # walk all encounters' orders
-    for group_key, group_orders in _group_by_panel(orders):
-        sr = _build_service_request(group_key, group_orders, ctx)
-        resources.append(sr)
+    lab_orders = [o for o in orders if _o(o, "order_type") in (OrderType.LAB, "lab")]
+    if lab_orders:   # panel 単位: panel instance ごと 1 SR + 単独 order ごと 1 SR
+        resources.extend(_build_lab_service_requests(lab_orders, ctx, ...))
+    imaging_orders = [o for o in orders if _o(o, "order_type") in (OrderType.IMAGING, "imaging")]
+    if imaging_orders:   # 1 Order = 1 SR
+        resources.extend(_build_imaging_service_requests(imaging_orders, ctx, ...))
     return resources
 
-register_bundle_builder(_bb_service_requests)
+# built-in: fhir_r4/builder.py の _BUNDLE_BUILDERS に列挙
 ```
 
 Key patterns illustrated:
@@ -490,10 +496,10 @@ Key patterns illustrated:
   Always access fields via `_o(order, "field_name", default)` (`get_attr_or_key` wrapper, see
   `clinosim/modules/_shared.py`) to support both paths — unit tests may pass dataclass
   instances while the production path deserializes to dict.
-- Panel grouping logic lives in `clinosim/modules/order/panel_grouping.py:classify_lab_specs`.
+- Panel grouping logic lives in `clinosim/modules/order/panel_grouping.py` (`load_panel_definitions` / `classify_lab_specs`).
   Never inline a panel-detection if/elif in the builder. [AD-61]
 - Both dict-path and dataclass-path MUST be covered by tests: a subprocess integration smoke
-  test exercises the production dict path (see `tests/integration/test_service_request.py`).
+  test exercises the production dict path (see `tests/integration/test_servicerequest_chain.py`).
 
 See [`clinosim/modules/output/fhir_r4/labs/service_request.py`](../clinosim/modules/output/fhir_r4/labs/service_request.py) for the full implementation.
 
@@ -531,22 +537,22 @@ builtin は `_ensure_builtins()` が `adapters_builtin` を import して self-r
 # Enricher(name, stage, run: Callable[[EnricherContext], None], order=100, enabled=lambda c: True)
 
 def run_my_pass(ctx: EnricherContext) -> None:
-    # ctx fields: config, master_seed, population, records
-    rng_seed = _sub_seed(ctx.master_seed, "my-pass")  # 自前 sub-seed (メイン stream に触れない)
+    # ctx fields: config, master_seed, population, records, roster
+    rng_seed = derive_sub_seed(ctx.master_seed, ENRICHER_SEED_OFFSETS["my_module"], key)  # 自前 sub-seed (メイン stream に触れない)
     for rec in ctx.records:
         rec.extensions["my_module"] = ...
 
 register_enricher(Enricher(
     name="my_module",
-    stage=POST_RECORDS,                 # or POST_POPULATION
+    stage=POST_RECORDS,                 # or POST_POPULATION / POST_ENCOUNTER
     run=run_my_pass,
     order=300,                          # 昇順実行。order は固定 = 決定論
     enabled=lambda c: c.module_enabled("my_module", default=True),
 ))
 ```
 
-- stage は `POST_POPULATION` (population 生成後/simulation 前、`ctx.population` を mutate) または `POST_RECORDS` (record 生成後、`ctx.records` を読み/extend)。
-- registry は name で idempotent。order 整数が実行順 = 決定論を支配します。
+- stage は `POST_POPULATION` (population 生成後/simulation 前、`ctx.population` を mutate)、`POST_ENCOUNTER` (encounter simulator 内で各 encounter の daily loop 直後、`ctx.records` はその 1 件の partial record のみ)、または `POST_RECORDS` (全 record 生成後、`ctx.records` を読み/extend)。
+- registry は name をキーとする (後勝ち、警告あり)。stage 内は `(order, name)` 順で実行 = 決定論を支配します。
 
 ---
 
@@ -649,9 +655,9 @@ The two-pass CIF generation architecture (`clinosim simulate` → Stage 1 struct
 | Change target | Fastest regen command | Estimated time | Notes |
 | --- | --- | --- | --- |
 | **Simulator engine / enricher** (population, disease, encounter logic) | `clinosim simulate -p N -o /tmp/cX` | 5-50 min | Full cohort → CIF output. Proportional to N. |
-| **Template narrative generator** (TemplateNarrativeGenerator, bug A pattern) | `clinosim narrate --cif-dir /tmp/cX --version-id template` → `clinosim export-fhir --cif-dir /tmp/cX` | ~30 sec + 5 min | Reuse existing structural CIF. Stage 2 only. |
-| **FHIR builder** (bug C pattern) | `clinosim export-fhir --cif-dir /tmp/cX` | ~5 min | Reuse existing CIF. Stage 3 only. |
-| **Locale display / code resolution** | `clinosim export-fhir --cif-dir /tmp/cX` | ~5 min | No CIF change, Stage 3 only. |
+| **Template narrative generator** (TemplateNarrativeGenerator, bug A pattern) | `clinosim narrate --cif-dir /tmp/cX/cif --version-id template` → `clinosim export-fhir --cif-dir /tmp/cX/cif` | ~30 sec + 5 min | Reuse existing structural CIF. Stage 2 only. |
+| **FHIR builder** (bug C pattern) | `clinosim export-fhir --cif-dir /tmp/cX/cif` | ~5 min | Reuse existing CIF. Stage 3 only. |
+| **Locale display / code resolution** | `clinosim export-fhir --cif-dir /tmp/cX/cif` | ~5 min | No CIF change, Stage 3 only. |
 | **1 disease scenario** (bug B pattern: structural CIF bug within 1 disease) | `clinosim test-disease <disease_id> -n 5 --format all -o /tmp/verify` | ~10 seconds | Structural CIF + Stage 2 narratives + Stage 3 FHIR, 5 patients. |
 | **1 encounter condition** (bug B pattern: structural CIF bug within 1 ED/outpatient condition) | `clinosim test-encounter <condition_id> --format all -o /tmp/verify` | ~5 seconds | Same 3 stages, ~3 patients. |
 
@@ -670,20 +676,20 @@ The two-pass CIF generation architecture (`clinosim simulate` → Stage 1 struct
 2. **Fix** in code: `clinosim/modules/document/narrative/template_generator.py` の薄い delegator (`_build_hpi` / `_build_physical_examination`) から、該当 section の `clinosim/modules/document/narrative/renderers/section_builders/<section>.py` (例: `hpi.py::_build_hpi_core`、`chief_complaint.py`、`assessment_and_plan.py`) に辿る。C1a-s 分割後、`template_generator.py` は thin façade で本体は per-section builder に移った。
    - 該当 `renderers/section_builders/<section>.py` 内の `build_<section>(generator, ctx)` 自由関数を特定
    - `_pick_localized(tmpl, key, lang)` が US 言語で `en` field を参照しているか確認
-   - Disease YAML の `narrative.physical_examination_en` field が埋まっているか確認
+   - Disease YAML の `narrative.physical_exam_findings` ブロックが埋まっているか確認
 
 3. **Verify fix** via fast Stage 2 regen (skip expensive full cohort):
    ```bash
    # Reuse structural CIF from step 1
-   clinosim narrate --cif-dir /tmp/test --version-id template
-   clinosim export-fhir --cif-dir /tmp/test
+   clinosim narrate --cif-dir /tmp/test/cif --version-id template
+   clinosim export-fhir --cif-dir /tmp/test/cif
    # Check output Composition resource's text field has zero Japanese
    ```
 
 4. **Full validation** (once confident):
    ```bash
-   clinosim simulate -p 500 --country US -o /tmp/us500
-   clinosim audit run --cif-dir /tmp/us500
+   clinosim simulate -p 500 --country US --format cif fhir-r4 -o /tmp/us500
+   clinosim audit run -d /tmp/us500
    # Gate: "us_admission_hp_zero_ja_chars" = 0
    ```
 
@@ -704,7 +710,7 @@ The two-pass CIF generation architecture (`clinosim simulate` → Stage 1 struct
    ```
 
 2. **Fix** in code: `clinosim/modules/document/engine.py`
-   - Locate `_emit_doc()` function
+   - Locate the per-document stub construction in `document_enricher()`
    - Replace hardcoded `attending_id = encounter.attending_physician_id`
    - Call helper `_pick_document_author(spec, encounter)` instead
 
@@ -717,8 +723,8 @@ The two-pass CIF generation architecture (`clinosim simulate` → Stage 1 struct
 
 4. **Integration test** on production cohort:
    ```bash
-   clinosim simulate -p 500 --country US -o /tmp/us500
-   clinosim audit run --cif-dir /tmp/us500
+   clinosim simulate -p 500 --country US --format cif fhir-r4 -o /tmp/us500
+   clinosim audit run -d /tmp/us500
    # Gate: "nursing_doc_author_is_nurse_ratio" = 1.0
    ```
 
@@ -734,7 +740,7 @@ The two-pass CIF generation architecture (`clinosim simulate` → Stage 1 struct
 
 1. **Diagnose** via unit test on builder:
    ```bash
-   pytest tests/unit/test_fhir_composition.py -xvs -k "missing_section"
+   pytest tests/unit/output/test_fhir_composition.py -xvs -k "section"
    # Unit test on builder logic
    ```
 
@@ -745,14 +751,14 @@ The two-pass CIF generation architecture (`clinosim simulate` → Stage 1 struct
 3. **Quick structural check** (FHIR builder doesn't change structural CIF):
    ```bash
    # Reuse existing /tmp/us500 CIF from case 2
-   clinosim export-fhir --cif-dir /tmp/us500
+   clinosim export-fhir --cif-dir /tmp/us500/cif
    # Inspect Composition.ndjson for correct section[] content
    ```
 
 4. **Validation**:
    ```bash
-   pytest tests/unit/test_fhir_composition.py -xvs
-   pytest -m integration -xvs tests/integration/test_fhir_reference_integrity.py
+   pytest tests/unit/output/test_fhir_composition.py -xvs
+   clinosim eval -d /tmp/us500 --only-axes structural   # includes the reference-integrity check
    ```
 
 **Total iteration time:** ~5 minutes per fix attempt (all Stage 3 only, no CIF regen).

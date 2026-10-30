@@ -16,7 +16,7 @@ on **HOW-TO**.
 
 > **When creating a new module**: start by copying
 > [`.github/TEMPLATE_MODULE_README.md`](../.github/TEMPLATE_MODULE_README.md).
-> For an overview of all 33 modules (counting rule: packages under
+> For an overview of all 38 modules (counting rule: packages under
 > `clinosim/modules/`; non-package files such as `_shared.py` are
 > excluded), see [`MODULES.md`](../MODULES.md). For picking the PR
 > verification approach, see the "PR verification guide: byte-diff
@@ -26,7 +26,7 @@ on **HOW-TO**.
 Canonical source-code paths:
 - Enricher registry: `clinosim/simulator/enrichers.py`
 - Output-adapter registry: `clinosim/modules/output/adapter.py`
-- FHIR bundle-builder registry: `clinosim/modules/output/fhir_r4_adapter.py`
+- FHIR bundle-builder registry: `clinosim/modules/output/fhir_r4/builder.py` (`fhir_r4_adapter.py` is a backwards-compat shim)
 - Shared types: `clinosim/types/`
 - Code systems: `clinosim/codes/`
 - Locale data: `clinosim/locale/`
@@ -74,7 +74,7 @@ roadmap = [`docs/design-notes/2026-06-30-tier1-document-and-event-density-master
   emits ImagingStudy + Endpoint + radiology DR + imaging SR. Does
   not depend on upstream extensions (independent from device / hai).
 - `allergy` (Tier 1 #3, AD-63): AllergyIntolerance 8-field SNOMED-
-  coded schema upgrade (POST_RECORDS order=65). Samples allergies at
+  coded schema upgrade (POST_POPULATION order=10). Samples allergies at
   a 15 % prevalence into `PersonRecord.allergies: list[Allergy] | None`;
   `fhir_r4/conditions/allergy_intolerance.py` emits them. Replaces the inline
   sampling in `activator.py`.
@@ -133,19 +133,21 @@ is `config.module_enabled(name, default=...)` (AD-56).
 ```python
 # in register_builtin_enrichers() in clinosim/simulator/enrichers.py
 register_enricher(Enricher(
-    name="immunization",
+    name="my_module",
     stage=POST_RECORDS,
-    run=run_immunization_enricher,
+    run=run_my_module_enricher,
     order=200,
-    enabled=lambda c: c.module_enabled("immunization", default=True),
+    enabled=lambda c: c.module_enabled("my_module", default=True),
 ))
 ```
 
-> **Note (EXT-5):** `module_enabled()` is currently not wired in
-> production; the `modules` dict is a dead key. New modules should
-> gate via `module_enabled` as shown above so the advertised AD-56
-> gate is actually active. Keeping `default=True` preserves the
-> existing goldens.
+> **Note (EXT-5):** `SimulatorConfig.modules` is only set
+> programmatically (there is no CLI flag), and the one built-in
+> enricher that gates on `module_enabled()` today is `health_checkup`
+> (JP, default off). The other built-in enrichers use
+> `enabled=lambda c: True` or a country check. New opt-in modules
+> should gate via `module_enabled` as shown above; keeping
+> `default=True` preserves the existing goldens.
 
 ### Locale-dependent signature convention
 
@@ -334,9 +336,10 @@ things silently.
 
 - Canonical example: `load_all_disease_protocols()` is defined on
   `clinosim/modules/disease/protocol.py` (owner).
-  `clinosim/simulator/helpers.py:_load_all_disease_protocols` is a
-  thin re-export alias of the same `lru_cache` object, so existing
-  callers and the `.cache_clear()` test pattern remain unchanged.
+  `clinosim/simulator/helpers.py` re-exports the same `lru_cache`
+  object under that name (the old `_load_all_disease_protocols` alias
+  was removed after its deprecation cycle), so the `.cache_clear()`
+  test pattern still works.
 - Likewise, reading another module's YAML by direct path join is
   forbidden — use the owner module's public accessor (e.g. `modules/antibiotic`
   does not read `microbiology.yaml` directly; it imports
@@ -391,7 +394,7 @@ Precedents:
 - `clinosim/modules/hai/engine.py:_validate_hai_organisms` —
   validates `hai_organisms.yaml` on `HAI_TYPES` × SNOMED-non-empty
   × non-negative-weight × non-zero-sum (this PR 2026-06-27).
-- `clinosim/locale/loader.py:_validate_demographics` /
+- `clinosim/locale/loaders/demographics.py:_validate_demographics` /
   `_validate_names` / `_validate_addresses` — validate
   `demographics.yaml`'s `lifestyle_distribution`, `names.yaml`'s
   `surnames` / `given_names`, and `addresses.yaml`'s `cities` on
@@ -733,7 +736,7 @@ formula is centralised in
 (AD-16 / AD-59).
 
 ```python
-from clinosim.simulator.seeding import ENRICHER_SEED_OFFSETS, derive_sub_seed
+from clinosim.seeding import ENRICHER_SEED_OFFSETS, derive_sub_seed
 
 # a fresh Generator per patient / encounter
 rng = np.random.default_rng(
@@ -761,7 +764,9 @@ ENRICHER_SEED_OFFSETS = {
     "family_history": 0x4648,     # "FH"
     "care_level":     0x434C,     # "CL"
     "nursing":        0x4E55,     # "NU"
-    # New module examples: "device" = 0x4456 ("DV"), "hai" = 0x4841 ("HA")
+    "device":         0x4445,     # "DE"
+    "hai":            0x4841,     # "HA"
+    # ... (see clinosim/seeding.py for the full list)
 }
 ```
 
@@ -826,11 +831,16 @@ core dispatch.**
 
 Do not edit `_build_bundle()`. A builder is a pure function
 `(ctx: BundleContext) -> list[dict]` that returns raw resources (do
-not wrap in a Bundle entry — the registry uniformly wraps them via
-`_entry()`).
+not wrap in a Bundle entry — `_build_bundle()` wraps every resource a
+builder returns). Built-in builders are listed in `_BUNDLE_BUILDERS`
+in `clinosim/modules/output/fhir_r4/builder.py` (list order = emission
+order); `register_bundle_builder()` appends an external builder after
+them.
 
 ```python
-# clinosim/modules/output/fhir_r4_adapter.py
+from clinosim.modules.output.fhir_r4 import register_bundle_builder
+from clinosim.modules.output.fhir_r4.lib.common import BundleContext
+
 def _bb_my_resource(ctx: BundleContext) -> list[dict]:
     # ctx fields: record, country, roster_map, hospital_config, patient_data,
     #             patient_id, primary_dx_code, admit_dx_code, primary_enc_id, patient_sex, ...
@@ -841,31 +851,34 @@ def _bb_my_resource(ctx: BundleContext) -> list[dict]:
 register_bundle_builder(_bb_my_resource)
 ```
 
-- Naming is unified with the `_bb_*` prefix (EXT-6:
-  `_build_nursing_observations` etc. are legacy).
+- Naming is unified with the `_bb_*` prefix (EXT-6); the prefix is
+  asserted at import for `_BUNDLE_BUILDERS` and checked by
+  `register_bundle_builder()`.
 - `Resource.id` must be globally unique within its type. Use
   encounter-scoped ids (`lab-{encounter_id}-...`) — FA-7.
 - **Double-wrap caveat (FA-3):** the builder returns a raw resource
-  dict. Do not call `_entry()` inside the builder.
+  dict. Do not build Bundle `entry` wrappers inside the builder.
 
 **Canonical example — `_bb_service_requests` (PR1, 2026-06-29,
 `fhir_r4/labs/service_request.py`):**
 
 ```python
-# clinosim/modules/output/fhir_r4/labs/service_request.py
-from clinosim.modules.output.fhir_r4_adapter import register_bundle_builder, BundleContext
-from clinosim.modules.order.panel_grouping import classify_lab_specs
+# clinosim/modules/output/fhir_r4/labs/service_request.py (simplified)
+from clinosim.modules.output.fhir_r4.lib.common import BundleContext
 
 def _bb_service_requests(ctx: BundleContext) -> list[dict]:
-    """Emit 1 ServiceRequest per panel instance + 1 per stand-alone lab order."""
+    """Emit ServiceRequest resources for LAB + IMAGING orders."""
+    orders = ctx.record.get("orders", []) or []
     resources: list[dict] = []
-    orders = _collect_lab_orders(ctx.record)       # walk all encounters' orders
-    for group_key, group_orders in _group_by_panel(orders):
-        sr = _build_service_request(group_key, group_orders, ctx)
-        resources.append(sr)
+    lab_orders = [o for o in orders if _o(o, "order_type") in (OrderType.LAB, "lab")]
+    if lab_orders:   # panel-aware grouping: 1 SR per panel instance + 1 per stand-alone order
+        resources.extend(_build_lab_service_requests(lab_orders, ctx, ...))
+    imaging_orders = [o for o in orders if _o(o, "order_type") in (OrderType.IMAGING, "imaging")]
+    if imaging_orders:   # 1 Order = 1 SR
+        resources.extend(_build_imaging_service_requests(imaging_orders, ctx, ...))
     return resources
 
-register_bundle_builder(_bb_service_requests)
+# built-in: listed in _BUNDLE_BUILDERS in fhir_r4/builder.py
 ```
 
 Key patterns illustrated:
@@ -876,11 +889,11 @@ Key patterns illustrated:
   tests may pass dataclass instances while the production path
   deserialises to dict.
 - Panel-grouping logic lives in
-  `clinosim/modules/order/panel_grouping.py:classify_lab_specs`.
+  `clinosim/modules/order/panel_grouping.py` (`load_panel_definitions` / `classify_lab_specs`).
   Never inline a panel-detection if/elif inside a builder. [AD-61]
 - Both dict-path and dataclass-path MUST be covered by tests: a
   subprocess integration smoke test exercises the production dict
-  path (see `tests/integration/test_service_request.py`).
+  path (see `tests/integration/test_servicerequest_chain.py`).
 
 See [`clinosim/modules/output/fhir_r4/labs/service_request.py`](../clinosim/modules/output/fhir_r4/labs/service_request.py)
 for the full implementation.
@@ -926,14 +939,14 @@ Do not inline into `run_beta`. Register the `Enricher` in
 # Enricher(name, stage, run: Callable[[EnricherContext], None], order=100, enabled=lambda c: True)
 
 def run_my_pass(ctx: EnricherContext) -> None:
-    # ctx fields: config, master_seed, population, records
-    rng_seed = _sub_seed(ctx.master_seed, "my-pass")  # own sub-seed (do not touch the main stream)
+    # ctx fields: config, master_seed, population, records, roster
+    rng_seed = derive_sub_seed(ctx.master_seed, ENRICHER_SEED_OFFSETS["my_module"], key)  # own sub-seed (do not touch the main stream)
     for rec in ctx.records:
         rec.extensions["my_module"] = ...
 
 register_enricher(Enricher(
     name="my_module",
-    stage=POST_RECORDS,                 # or POST_POPULATION
+    stage=POST_RECORDS,                 # or POST_POPULATION / POST_ENCOUNTER
     run=run_my_pass,
     order=300,                          # ascending execution. Fixed order = determinism.
     enabled=lambda c: c.module_enabled("my_module", default=True),
@@ -941,10 +954,14 @@ register_enricher(Enricher(
 ```
 
 - `stage` is `POST_POPULATION` (after population generation, before
-  simulation — mutates `ctx.population`) or `POST_RECORDS` (after
-  record generation — reads / extends `ctx.records`).
-- The registry is idempotent by name. The integer `order` controls
-  execution order = governs determinism.
+  simulation — mutates `ctx.population`), `POST_ENCOUNTER` (per
+  encounter, right after its daily loop inside the encounter
+  simulator — `ctx.records` holds exactly that one partial record), or
+  `POST_RECORDS` (after all records are simulated — reads / extends
+  `ctx.records`).
+- The registry is keyed by name (last registration wins, with a
+  warning). Enrichers run sorted by `(order, name)` within a stage =
+  governs determinism.
 
 ---
 
@@ -1130,9 +1147,9 @@ pass structural / narrative CIF separation is
 | Change target | Fastest regen command | Estimated time | Notes |
 |---|---|---|---|
 | **Simulator engine / enricher** (population, disease, encounter logic) | `clinosim simulate -p N -o /tmp/cX` | 5-50 min | Full cohort → CIF output. Proportional to N. |
-| **Template narrative generator** (TemplateNarrativeGenerator, bug A pattern) | `clinosim narrate --cif-dir /tmp/cX --version-id template` → `clinosim export-fhir --cif-dir /tmp/cX` | ~30 sec + 5 min | Reuse existing structural CIF. Stage 2 only. |
-| **FHIR builder** (bug C pattern) | `clinosim export-fhir --cif-dir /tmp/cX` | ~5 min | Reuse existing CIF. Stage 3 only. |
-| **Locale display / code resolution** | `clinosim export-fhir --cif-dir /tmp/cX` | ~5 min | No CIF change, Stage 3 only. |
+| **Template narrative generator** (TemplateNarrativeGenerator, bug A pattern) | `clinosim narrate --cif-dir /tmp/cX/cif --version-id template` → `clinosim export-fhir --cif-dir /tmp/cX/cif` | ~30 sec + 5 min | Reuse existing structural CIF. Stage 2 only. |
+| **FHIR builder** (bug C pattern) | `clinosim export-fhir --cif-dir /tmp/cX/cif` | ~5 min | Reuse existing CIF. Stage 3 only. |
+| **Locale display / code resolution** | `clinosim export-fhir --cif-dir /tmp/cX/cif` | ~5 min | No CIF change, Stage 3 only. |
 | **1 disease scenario** (bug B pattern: structural CIF bug within 1 disease) | `clinosim test-disease <disease_id> -n 5 --format all -o /tmp/verify` | ~10 seconds | Structural CIF + Stage 2 narratives + Stage 3 FHIR, 5 patients. |
 | **1 encounter condition** (bug B pattern: structural CIF bug within 1 ED/outpatient condition) | `clinosim test-encounter <condition_id> --format all -o /tmp/verify` | ~5 seconds | Same 3 stages, ~3 patients. |
 
@@ -1151,20 +1168,20 @@ pass structural / narrative CIF separation is
 2. **Fix** in code: trace from the thin `_build_hpi` / `_build_physical_examination` delegator in `clinosim/modules/document/narrative/template_generator.py` into its backing section builder under `clinosim/modules/document/narrative/renderers/section_builders/` (e.g. `hpi.py::_build_hpi_core`, `chief_complaint.py`, `assessment_and_plan.py`). Post-C1a-s split, `template_generator.py` is a thin façade and the real body lives in the per-section builder files.
    - Locate the `build_<section>(generator, ctx)` free function in the appropriate `renderers/section_builders/<section>.py`
    - Check `_pick_localized(tmpl, key, lang)` call is routing to `en` field for US language
-   - Verify Disease YAML `narrative.physical_examination_en` field is populated
+   - Verify the Disease YAML `narrative.physical_exam_findings` block is populated
 
 3. **Verify fix** via fast Stage 2 regen (skip expensive full cohort):
    ```bash
    # Reuse structural CIF from step 1
-   clinosim narrate --cif-dir /tmp/test --version-id template
-   clinosim export-fhir --cif-dir /tmp/test
+   clinosim narrate --cif-dir /tmp/test/cif --version-id template
+   clinosim export-fhir --cif-dir /tmp/test/cif
    # Check output Composition resource's text field has zero Japanese
    ```
 
 4. **Full validation** (once confident):
    ```bash
-   clinosim simulate -p 500 --country US -o /tmp/us500
-   clinosim audit run --cif-dir /tmp/us500
+   clinosim simulate -p 500 --country US --format cif fhir-r4 -o /tmp/us500
+   clinosim audit run -d /tmp/us500
    # Gate: "us_admission_hp_zero_ja_chars" = 0
    ```
 
@@ -1185,7 +1202,7 @@ pass structural / narrative CIF separation is
    ```
 
 2. **Fix** in code: `clinosim/modules/document/engine.py`
-   - Locate `_emit_doc()` function
+   - Locate the per-document stub construction in `document_enricher()`
    - Replace hardcoded `attending_id = encounter.attending_physician_id`
    - Call helper `_pick_document_author(spec, encounter)` instead
 
@@ -1198,8 +1215,8 @@ pass structural / narrative CIF separation is
 
 4. **Integration test** on production cohort:
    ```bash
-   clinosim simulate -p 500 --country US -o /tmp/us500
-   clinosim audit run --cif-dir /tmp/us500
+   clinosim simulate -p 500 --country US --format cif fhir-r4 -o /tmp/us500
+   clinosim audit run -d /tmp/us500
    # Gate: "nursing_doc_author_is_nurse_ratio" = 1.0
    ```
 
@@ -1215,7 +1232,7 @@ pass structural / narrative CIF separation is
 
 1. **Diagnose** via unit test on builder:
    ```bash
-   pytest tests/unit/test_fhir_composition.py -xvs -k "missing_section"
+   pytest tests/unit/output/test_fhir_composition.py -xvs -k "section"
    # Unit test on builder logic
    ```
 
@@ -1226,14 +1243,14 @@ pass structural / narrative CIF separation is
 3. **Quick structural check** (FHIR builder doesn't change structural CIF):
    ```bash
    # Reuse existing /tmp/us500 CIF from case 2
-   clinosim export-fhir --cif-dir /tmp/us500
+   clinosim export-fhir --cif-dir /tmp/us500/cif
    # Inspect Composition.ndjson for correct section[] content
    ```
 
 4. **Validation**:
    ```bash
-   pytest tests/unit/test_fhir_composition.py -xvs
-   pytest -m integration -xvs tests/integration/test_fhir_reference_integrity.py
+   pytest tests/unit/output/test_fhir_composition.py -xvs
+   clinosim eval -d /tmp/us500 --only-axes structural   # includes the reference-integrity check
    ```
 
 **Total iteration time:** ~5 minutes per fix attempt (all Stage 3 only, no CIF regen).
@@ -1306,22 +1323,22 @@ Quick summary:
 - Profile YAML changes MUST regenerate golden + commit both together
 - Unexpected `git diff` on goldens after intentional template changes = regression suspicion
 
-## Plugin discovery convention: `audit/axes/` + `eval/axes/`
+## Axis convention: `audit/axes/` + `eval/axes/`
 
-The audit and eval pipelines both auto-discover their per-axis
-check runners from an `axes/` sub-package rather than requiring
-hand-edited registries. Any new axis module dropped into one of
-these directories is picked up on the next pipeline run:
+The audit and eval pipelines keep their per-axis check runners in an
+`axes/` sub-package, one module per axis. The runners are wired into
+an explicit table in each engine — there is no auto-discovery, so a
+new axis file must also be registered there:
 
 ```
-clinosim/audit/axes/         # audit axes
-├── __init__.py              # one-line package marker
+clinosim/audit/axes/         # audit axes (registered in clinosim/audit/engine.py)
+├── __init__.py
 ├── clinical.py              # one axis per file
 ├── jp_language.py
 ├── silent_no_op.py
 └── structural.py
 
-clinosim/eval/axes/          # eval axes
+clinosim/eval/axes/          # eval axes (registered in clinosim/eval/engine.py::EvalEngine)
 ├── __init__.py
 ├── clinical.py
 ├── jp_clins_lab_compliance.py
@@ -1334,18 +1351,15 @@ clinosim/eval/axes/          # eval axes
 ### Convention
 
 - **File per axis.** Each axis gets its own `.py` under the
-  appropriate `axes/` directory. Grouping axes into shared files
-  is intentionally not supported — the discovery iterates one
-  module at a time.
-- **Public `run(cohort, country) -> list[...]` entry point.**
-  `audit/axes/*.py` exposes a `run` callable returning
-  `list[AuditFinding]`; `eval/axes/*.py` exposes one returning
-  `list[EvalCheck]`. The pipeline imports the module and calls
-  `module.run(...)` — no registration decorator required.
-- **No cross-axis imports.** An axis module imports from
-  `clinosim.*` as needed, but not from a sibling axis file.
-  Shared helpers go into `clinosim/audit/_shared.py` /
-  `clinosim/eval/_shared.py` instead.
+  appropriate `axes/` directory.
+- **Public `run(...)` entry point.**
+  `eval/axes/*.py` exposes `run(cohort, country) -> list[EvalCheck]`;
+  `EvalEngine.__init__` imports the module and maps the axis id to
+  `module.run`. `audit/axes/*.py` exposes
+  `run(spec, cohort) -> AxisResult` (`spec` is the
+  `ModuleAuditSpec`, or `None` for cohort-level axes); the audit
+  engine lists it in `_BUILTIN_AXES` plus `_PER_MODULE_RUNNERS` or
+  `_COHORT_RUNNERS`.
 - **README mirror.** Each `axes/` directory ships a `README.md`
   + `README.ja.md` enumerating the current axes with a one-line
   summary; keep these current when adding a new axis.
@@ -1358,13 +1372,16 @@ touch clinosim/eval/axes/my_new_axis.py
 
 # 2. Implement `run(cohort, country) -> list[EvalCheck]`
 
-# 3. Add a one-line entry to clinosim/eval/axes/README.md +
+# 3. Register it in the axes dict in clinosim/eval/engine.py::EvalEngine
+
+# 4. Add a one-line entry to clinosim/eval/axes/README.md +
 #    README.ja.md
 
-# 4. Run the pipeline; the axis is auto-discovered
-clinosim eval ./out
+# 5. Run the pipeline
+clinosim eval --cohort-dir ./out
 ```
 
-The audit path is identical with `audit/axes/` + `AuditFinding`.
+The audit path is the same with `audit/axes/`, `AxisResult`, and the
+runner tables in `clinosim/audit/engine.py`.
 
 Japanese counterpart: [`CONTRIBUTING-modules.ja.md`](CONTRIBUTING-modules.ja.md).

@@ -42,10 +42,9 @@ prompt に PHI を載せる場合の運用上の注意は末尾を参照。
 
 ## 1. Provision the Sakura GPU VM (usacloud)
 
-usacloud CLI + プロファイル整備は
-[[sakura-cloud|entities/sakura-cloud]] / 参考 repo
-`~/workspace/sakura-iris/docs/01-usacloud-setup.md` にまとまっている。
-本セクションは要点のみ:
+Installing the usacloud CLI and setting up its profile are covered in
+the official usacloud documentation (https://docs.usacloud.jp/usacloud/).
+This section lists only the essentials:
 
 ```bash
 # usacloud プロファイル (既に iris-verify プロファイルがあれば流用可)
@@ -176,6 +175,7 @@ clinosim simulate --country JP --population 1 --seed 42 --format cif \
     -o /tmp/sakura-smoke
 clinosim narrate \
     --cif-dir /tmp/sakura-smoke/cif \
+    --provider ollama \
     --llm-config clinosim/config/llm_service.sakura.yaml \
     --version-id sakura_qwen3_32b_smoke \
     --country JP \
@@ -186,6 +186,7 @@ clinosim simulate --country JP --population 100 --seed 42 --format cif \
     -o /tmp/sakura-eval100
 clinosim narrate \
     --cif-dir /tmp/sakura-eval100/cif \
+    --provider ollama \
     --llm-config clinosim/config/llm_service.sakura.yaml \
     --version-id sakura_qwen3_32b_eval100 \
     --country JP \

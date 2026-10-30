@@ -50,13 +50,17 @@ clinosim simulate --country XX --population 100 --seed 42 --format fhir-r4 \
 
 `xx/` ディレクトリは以下を **必ず** 含める必要あり。スキーマコメントと
 skeleton 値は `_template/` scaffold (`clinosim/locale/_template/`)
-参照。
+参照。ただし `_template/demographics.yaml` の key 名
+(`sex_distribution`、`blood_type_distribution`、
+`chronic_condition_prevalence`) はローダーが読まない名前なので、key 名は
+`clinosim/locale/us/demographics.yaml` / `jp/demographics.yaml`
+(`sex_ratio`、`blood_type`、`chronic_prevalence` ...) から取ること。
 
 | File | 目的 | 権威ソースヒント |
 | --- | --- | --- |
 | `names.yaml` | 姓 + 名 と頻度重み | 国家統計局 / 戸籍 |
 | `addresses.yaml` | 地域 (都道府県 / 県 / 州) + 郵便コード | 国営郵便サービス |
-| `demographics.yaml` | 年齢分布、血液型、慢性疾患 prevalence (下記スキーマ注記参照)、疾患 incidence、生活習慣 | 政府センサス / 疾患サーベイランス |
+| `demographics.yaml` | 年齢分布、血液型、慢性疾患 prevalence (下記スキーマ注記参照)、疾患 incidence、生活習慣、入院に至らない ED 受診率 (`ed_visit_not_admitted.rate_per_1000_person_years`) | 政府センサス / 疾患サーベイランス / 国の救急利用統計 |
 | `formatting.yaml` | 日付 / 時刻 / 数値フォーマット | 現地慣習 |
 | `code_mapping_diagnosis.yaml` | 内部疾患 id → 国別診断コード | 現地コーディングスキーム |
 | `code_mapping_lab.yaml` | 内部検査名 → 国別検査コード | 現地検査コードシステム (JLAC10 / LOINC / 国別) |
@@ -106,6 +110,30 @@ skeleton 値は `_template/` scaffold (`clinosim/locale/_template/`)
 full な挙動 + downstream の sex-conditional 請求コード mapping:
 [`reference/oncology-obstetric-service-lines.ja.md`](reference/oncology-obstetric-service-lines.ja.md) §3。
 
+### `demographics.yaml::ed_visit_not_admitted`
+
+入院に至らない ED 受診の率 (1,000 人年あたり)。forward month loop が
+これから各月の ED 受診数を引く (`clinosim/simulator/phases/_ed_slot.py`)。
+key が無いと率 0 扱いとなり、ED のみの受診は生成されない。
+
+```yaml
+ed_visit_not_admitted:
+  rate_per_1000_person_years: 380   # US の値。JP は 150
+```
+
+### 死亡 (`locale/shared/actuarial_life_table.yaml`)
+
+院外死亡 (シミュレートされた入院以外での死亡) は
+`clinosim/modules/population/mortality.py` が人ごと・年ごとに前向きに
+引く: 生命表 `qx` (年齢帯 × 性別) × その人の慢性疾患による相対 SMR ×
+`community_death_share`。`annual_mortality_qx` と `community_death_share`
+はどちらも共有 yaml 内で locale (`us`、`jp`) を key とする。
+**現状の制約:** `mortality.py::_locale_key` は JP 以外の国をすべて `us`
+に写すため、新しい locale は同関数が `xx` ブロックを読むよう拡張される
+まで US の生命表と US の `community_death_share` を使う。独自の死亡率を
+持つ locale を追加するには、両 yaml key への `xx` エントリと、その
+コード変更が必要。
+
 ## 任意 YAML ファイル (opt-in モジュール)
 
 対応国が特定 opt-in モジュールをサポートする場合のみ追加:
@@ -119,6 +147,7 @@ full な挙動 + downstream の sex-conditional 請求コード mapping:
 | `code_status_rates.yaml` | 蘇生ステータス分布 | `code_status` |
 | `family_history_prevalence.yaml` | 一親等家族疾患 prevalence | `family_history` |
 | `immunization_schedule.yaml` | 現地予防接種スケジュール | `immunization` |
+| `ambulatory_visit_length.yaml` | 外来受診種別ごとの受診時間分布 | 外来 simulator (無ければ 15/25/45 分の一律三角分布にフォールバック) |
 
 ## コード登録
 
@@ -135,27 +164,31 @@ _COUNTRY_DIR_MAP = {"JP": "jp", "US": "us", "XX": "xx"}
 ### 2. FHIR プロファイル emit (任意)
 
 国が国別 FHIR IG (JP Core / US Core / German Basisprofil / AU Core
-等) を持つ場合、そのプロファイル URL を emit するかを判断。現状の
-コードは `clinosim/modules/output/fhir_r4_adapter.py` の
-`_apply_jp_core_profile` 経由で `country == "JP"` のときに JP Core
-プロファイルを emit。
+等) を持つ場合、そのプロファイル URL を emit するかを判断。プロファイル
+付与は `_build_bundle` (`clinosim/modules/output/fhir_r4/builder.py`) で
+`is_jp(country)` により分岐する: JP 出力は `_apply_jp_core_profile` +
+`_apply_jp_clins_profile`、**それ以外の全ての国**は
+`_apply_us_core_profile` (helper は
+`clinosim/modules/output/fhir_r4/post_process/profile.py`)。URL
+レジストリは yaml:
+`clinosim/codes/data/fhir-profiles-{jp-core,us-core,jp-clins}.yaml`。
 
 新規国の場合の選択肢:
 
-1. 国別プロファイル emit をスキップ (安全なデフォルト; リソースは
-   ベース FHIR R4 準拠)
-2. JP Core と同形状の `_XX_CORE_PROFILES: dict[str, list[str]]`
-   レジストリを追加し (session 48 g.1 で形状を統一)、
-   `_build_bundle` 内で
-   `if country == "XX": _apply_xx_core_profile(resource)` により
-   dispatch
+1. JP Core / US Core と同形状の
+   `clinosim/codes/data/fhir-profiles-xx-core.yaml` レジストリ、
+   `_apply_xx_core_profile` helper、`_build_bundle` 内の自国分岐を追加。
+2. そうしない場合、bundle は非 JP 経路で emit され US Core プロファイル
+   URL を宣言する。米国以外の国としては誤りなので、最低限その国では
+   `_apply_us_core_profile` を skip する分岐を追加する。
 
 ### 3. 国別 opt-in モジュール
 
 一部の enricher は `register_builtin_enrichers` 内で country に
 gate:
 
-- `identity` — JP でアクティブ (国民健康保険番号); 適応または無効化
+- `identity` — JP 以外の国では常に有効 (JP は `--no-jp-insurance` に従う)。
+  locale に `identity.yaml` が無ければ `assign_identities` は no-op
 - `care_level` — JP のみ; スキップ
 - `health_checkup` — JP-eCheckup; 同等物を設計する場合以外はスキップ
 

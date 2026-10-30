@@ -10,7 +10,7 @@
 | 手技コード | CPT | K codes |
 | Display 言語 | 英語 | 日本語 (英語フォールバック) |
 | 患者氏名 | 英語 | 漢字 + カナ拡張 |
-| 住所 | 50 US 州 | 47 都道府県 (JIS X 0401) |
+| 住所 | マサチューセッツ州 (人口加重の 15 市町) | 東京近郊 (東京都 / 埼玉県 / 神奈川県 / 千葉県)。都道府県コードは JIS X 0401 |
 | 検査 reference range | Tietz/Mayo | JCCLS Reference Intervals 2022 |
 | Marital status | HL7 v3 (S/M/D/W) | 同じ |
 | 言語 | en-US | ja-JP |

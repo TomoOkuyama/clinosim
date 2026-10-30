@@ -17,17 +17,15 @@ output/cif/
     │   ├── manifest.json                     # LLM config, model, cost report, counts
     │   └── documents/
     │       └── ENC-POP-<person-6d>-<enc-12d>/
-    │           ├── admission_hp.json
-    │           ├── discharge_summary.json
-    │           ├── death_summary.json        # only if deceased
-    │           ├── operative_note_001.json   # per surgery
-    │           └── procedure_note_<type>.json
+    │           ├── doc-<encounter_id>-01.json        # one file per document, numbered in order
+    │           ├── doc-<encounter_id>-02-day.json    # nursing shift notes carry -day / -evening / -night
+    │           └── doc-<encounter_id>-03-pn.json     # procedure notes carry -pn
     └── <another_version_id>/                 # multiple versions coexist
         └── ...
 ```
 
 - `structural/` is the **immutable intermediate format** of the simulation. All structural FHIR/CSV resources derive from this.
-- `narratives/<version>/documents/` is the **narrative layer** — one JSON per clinical document, conforming to the `ClinicalDocument` type in `clinosim/types/clinical.py`. Each file contains the LOINC code, plain-text content, references, and provenance (LLM model, tokens, cache hit, prompt version, generated_at).
+- `narratives/<version>/documents/` is the **narrative layer** — one JSON per clinical document (the document type is recorded inside the file, not in the file name), conforming to the `ClinicalDocument` type in `clinosim/types/clinical.py`. Each file contains the LOINC code, plain-text content, references, and provenance (LLM model, tokens, cache hit, prompt version, generated_at).
 - Multiple narrative versions can coexist: e.g. `template_v1`, `ollama_en_v1`, `bedrock_sonnet_en_v1` — all generated from the same structural CIF.
 
 ### FHIR R4 — Bulk Data Export NDJSON Format
@@ -58,8 +56,11 @@ output/fhir_r4/
 ├── MedicationAdministration.ndjson  # MAR records
 ├── Procedure.ndjson                 # Surgery + bedside procedures (CPT / K-code + SNOMED CT metadata)
 ├── DocumentReference.ndjson         # Clinical documents (only when a narrative version is provided)
+├── Composition.ndjson               # Sectioned clinical documents (documents whose format is `composition`, e.g. H&P, discharge / nursing summaries, outpatient SOAP, ED note)
+├── ClinicalImpression.ndjson        # Physician clinical impressions (one per CIF `clinical_impressions` record)
+├── CareTeam.ndjson                  # 1 per encounter (attending physician + primary nurse)
 ├── AllergyIntolerance.ndjson        # Patient-level (deduplicated)
-├── Coverage.ndjson                  # Insurance enrollment (JP only; JP Core 被保険者番号/記号/番号/枝番)
+├── Coverage.ndjson                  # Insurance enrollment (US payors; JP Core 被保険者番号/記号/番号/枝番 for JP)
 ├── Practitioner.ndjson              # Doctors, nurses, technicians
 ├── PractitionerRole.ndjson          # Specialty + organization + ward location
 ├── Organization.ndjson              # Hospital + departments + insurers (保険者, JP)
@@ -73,8 +74,8 @@ resolves to a version directory (default: `current`, backed by the
 `current_version.txt` pointer that Stage 1's `TemplateNarrativePass`
 maintains). Without any narrative version present the remaining
 resource types are produced normally. `Coverage.ndjson` (+ insurer
-`Organization`) is emitted only for JP with insurance enabled
-(`--jp-insurance`, default on).
+`Organization`) is emitted for US always and for JP when insurance
+is enabled (`--jp-insurance`, default on).
 
 ### Longitudinal service-line emit (v0.5 → v0.6.0)
 
@@ -87,7 +88,8 @@ described in
   C61 / C67 / C71, including male breast at ~1 % of C50):
   - Cancer chronic marker → `Condition` (ICD-10).
   - `chemo_visit` LifeEvents (config: `locale/shared/chemo_regimens.yaml`
-    — FOLFOX q14d, CarboPem q21d, Trastuzumab q3w, LHRH q28d) →
+    — FOLFOX q14d, CarboPem q21d, Trastuzumab q3w, LHRH q28d, GemNabP q28d,
+    BCG intravesical q7d, Temozolomide Stupp q28d) →
     outpatient `Encounter` + per-cycle `MedicationRequest` +
     `MedicationAdministration` per drug on the regimen.
   - Radiation therapy → `Procedure`.
@@ -109,19 +111,24 @@ described in
     chronic condition).
   - Mother-side delivery `Encounter` (IMP admission, admit dx O80,
     discharge dx Z37.0, delivery `Procedure` — JP K894 / US CPT
-    59400).
+    59400). Cesarean deliveries (US 32.1 % / JP 20.4 %,
+    `perinatal.yaml::cesarean`) use admit dx O82 and JP K898 / US CPT
+    59510 instead.
   - Postpartum `Encounter`s × 2 at 7 d and 28 d after delivery with
     encounter reason `Z39` (obgyn).
   - Abortion outcome (age-gated 15-19 → 35-44) — outpatient
     day-surgery `Encounter` with O03.9 (spontaneous) or O04.5
     (induced). If fired, delivery + newborn chain are skipped and
     the period closes with `outcome="aborted"`.
-  - Newborn `Patient` (id `<mother>-BABY`) generated per delivery,
+  - Newborn `Patient` (id `<mother>-BABY`; `<mother>-<N>-BABY` for
+    the N-th birth of the same mother) generated per delivery,
     household + birthDate inherited, sex sampled via per-mother
-    sub-RNG. Newborn `Encounter` links back via
-    `admit_source = born` (new `AdmitSource.BORN` enum member) and
+    sub-RNG. Newborn birth `Encounter` links back via
+    `admit_source = born` (`AdmitSource.BORN`) and
     `Encounter.partOf → Encounter/<mother-delivery-encounter>`, with
-    discharge dx `Z38.0`.
+    discharge dx `Z38.0`. The newborn joins the simulated population
+    the day after the birth stay ends (`PersonRecord.enrolled_from`)
+    and is simulated like every other person from then on.
   - Past-birth `Condition` — one Z37 `problem-list-item` per
     delivered pregnancy period, `onsetDateTime = delivery_date`
     (derived at emit time from `state_history("pregnancy")`;
@@ -141,7 +148,7 @@ described in
 | MedicationRequest | medicationCodeableConcept (RxNorm), dosageInstruction (text + doseAndRate + timing repeat + route SNOMED), encounter, requester, reasonReference |
 | MedicationAdministration | dosage (dose SimpleQuantity + route + rateQuantity for continuous), context, performer, reasonReference |
 | Procedure | code (CPT / K-code), category (SNOMED: surgical/diagnostic/therapeutic), encounter, performedPeriod, performer[] with function (surgeon/anaesthetist), recorder, reasonReference, bodySite (SNOMED), location (operating room), outcome (SNOMED), complication (SNOMED) |
-| DocumentReference | type (LOINC: 18842-5 / 69730-0 / 11504-8 / 34117-2 / 28570-0), category (clinical-note), subject, date, author, content.attachment (base64 text/plain, size, sha1 hash), context (encounter period, related Procedure) |
+| DocumentReference | type (LOINC; see [`../clinical_documents.md`](../clinical_documents.md#document-scope) for the per-document codes), category (clinical-note), subject, date, author, content.attachment (base64 text/plain, size, sha1 hash), context (encounter period, related Procedure) |
 | Practitioner | name (with prefix), gender, telecom, qualification |
 | PractitionerRole | practitioner, organization (dept), location (ward), specialty (SNOMED) |
 | Location | physicalType (wa=ward, bd=bed, area, ro=operating room), partOf (bed→ward), managingOrganization |
@@ -153,7 +160,7 @@ described in
 output/csv/
 ├── patients.csv
 ├── encounters.csv
-├── conditions.csv
+├── diagnoses.csv
 ├── lab_results.csv
 ├── vital_signs.csv
 ├── orders.csv

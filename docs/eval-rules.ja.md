@@ -13,7 +13,9 @@
 - **Check weight** = severity: CRITICAL = 3、MAJOR = 2、MINOR = 1
 - **Pass-weight** = PASS 1.0、WARN 0.5、FAIL 0.0、N/A 0.0
 
-**Overall score** = 3 軸スコアの算術平均。
+**Overall score** = レポート中の全軸結果 (軸 × 国サブディレクトリごと
+に 1 件) のスコアの算術平均。コホートの locale に該当しない国 条件軸は
+check を返さず score 0.0 となり、それでもこの平均に含まれる。
 **Overall status** = 軸横断で FAIL / WARN / PASS の最悪。
 
 ---
@@ -71,17 +73,21 @@
 | `anemia_hgb` | D50–D64 (D54–D61 除く) | 718-7 (Hb) | **< 12.0 g/dL** | [WHO 貧血 cutoff](https://www.who.int/publications/i/item/9789240088542) |
 | `chf_bnp` | I50.* | 30934-4 (BNP) | **> 100 pg/mL** | Framingham / [ACC-AHA HF ガイドライン](https://www.acc.org/latest-in-cardiology/ten-points-to-remember/2022/04/06/12/57/2022-aha-acc-hfsa-guideline-for-the-management-of-hf) |
 
-ペアリング追加:
-[`clinosim/eval/axes/clinical.py`](https://github.com/TomoOkuyama/clinosim/blob/master/clinosim/eval/axes/clinical.py)
-の `_CONDITION_LAB_PAIRINGS` に append し、このページにソースを引用。
+ペアリングは
+[`clinosim/codes/data/condition-lab-pairings.yaml`](https://github.com/TomoOkuyama/clinosim/blob/master/clinosim/codes/data/condition-lab-pairings.yaml)
+から読み込まれる (`lab_values_physiological_range` の範囲も同様に
+`clinosim/codes/data/lab-plausibility-bounds.yaml` から)。ペアリング
+追加はこの yaml の `pairings:` 配下にエントリを追加し、このページに
+ソースを引用。
 
 ### `medication_lab_coherence_warfarin` (MAJOR)
 
 患者が warfarin (RxNorm `11289` または YJ code プレフィックス
 `3332001`) の MedicationRequest を持つ場合、最も早い warfarin
-`authoredOn` **以降** に採取された全 PT-INR observation (LOINC
-`6301-6`) は **2.0–3.5** の範囲内でなければならない。違反率は
-ペアリングと同じ 5% / 25% 閾値。
+`authoredOn` から **5 日以上後** に採取された全 PT-INR observation
+(LOINC `6301-6`) は **2.0–3.5** の範囲内でなければならない。最初の
+5 日間 (INR がまだベースラインから上昇中の導入期) の採取は除外。
+違反率はペアリングと同じ 5% / 25% 閾値。
 
 このバンドは AF 脳卒中予防適応の 2.0–3.0 目標より広い。合併症
 (肝硬変、DIC) が正当に INR を 3.0–3.5 側にシフトするため。生理
@@ -92,9 +98,11 @@
 
 ## Locale 軸 (5 checks)
 
-コホート country は `Patient.address.country` または最初の Patient
-の JP Core `meta.profile` の有無から自動検出。`--country US` /
-`--country JP` で上書き可能。
+コホート country は `<root>/<country>/fhir_r4/` レイアウトでは国
+サブディレクトリ名、フラットな `<root>/fhir_r4/` レイアウトでは最初の
+Patient の `address.country` または JP Core `meta.profile` の有無から
+自動検出 (fallback: US)。`--country` は採点対象の国サブディレクトリを
+選ぶもので、検出された locale を上書きはしない。
 
 ### JP コホート
 
@@ -118,11 +126,18 @@
 
 ## JP-CLINS lab compliance 軸 (JP コホートのみ)
 
-`JP_Observation_LabResult_eCS` 準拠を
-`Observation.code.coding` + `Observation.specimen` + `Specimen.type`
-で測定。閾値: 100 % at master invariant に対し strict 1.0 (eCS は
-`code.coding` が Open slicing で discriminator=system+display なので
-validator pass 数単独では不十分 — `clinosim/eval/axes/jp_clins_lab_compliance.py` 参照)。
+`JP_Observation_LabResult_eCS` 準拠を検査 Observation の
+`code.coding` で測定。閾値: 100 % at master invariant に対し strict 1.0
+(eCS は `code.coding` が Open slicing で discriminator=system+display
+なので validator pass 数単独では不十分 —
+`clinosim/eval/axes/jp_clins_lab_compliance.py` 参照)。全 check は
+MAJOR、検査 Observation が無いコホートでは各 check が N/A。
+
+| Name | Passes when |
+| --- | --- |
+| `jp_clins_lab_cs_usage` | 全検査 Observation が JP-CLINS 定義の CodeSystem を持つ |
+| `jp_clins_lab_fixed_display` | slice 型の全 coding が eCS の固定 display を持つ |
+| `jp_clins_lab_rule_satisfaction` | 全検査 Observation が `localLaboCode` + typed coding 1 つを持つ |
 
 ## JP Core compliance 軸 (JP コホートのみ)
 
@@ -131,6 +146,11 @@ element への narrow-gate 準拠測定。閾値 1.0 at 100 %-at-master
 invariant のみ。Kana (SYL) 表現 coverage の拡張は別途管理。full HL7
 FHIR Validator 走行 (`jp-validate.yml`) は on-demand の authoritative
 compliance surface。`clinosim/eval/axes/jp_core_compliance.py` 参照。
+Check (全て MAJOR): `jp_core_patient_profile_declared`、
+`jp_core_patient_identifier_present`、`jp_core_patient_name_family_given`、
+`jp_core_patient_kanji_representation`、`jp_core_encounter_class_present`、
+`jp_core_encounter_period_present`、
+`jp_core_medicationrequest_medication_coding_present`。
 
 ## US Core compliance 軸 (US コホートのみ)
 
@@ -139,6 +159,10 @@ US Core AllPatients / Encounter / Condition の must-support element
 のみ (race/ethnicity extension coverage のような拡張は別途管理)。
 Phase 3 の full validator 走行 (`us-validate.yml`) は on-demand の
 authoritative compliance surface。`clinosim/eval/axes/us_core_compliance.py` 参照。
+Check (全て MAJOR): `us_core_patient_identifier_present`、
+`us_core_patient_name_family_given`、`us_core_patient_birthsex_extension_valid`、
+`us_core_patient_race_extension_shape`、`us_core_patient_ethnicity_extension_shape`、
+`us_core_encounter_class_v3_actcode`、`us_core_condition_category_system`。
 
 ---
 

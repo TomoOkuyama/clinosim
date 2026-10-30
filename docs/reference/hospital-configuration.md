@@ -35,15 +35,18 @@ department_rollup:              # Sub-specialty → available department
 wards:                          # Wards per department
   internal_medicine: ["4E", "4W"]
   cardiology: ["5E"]
+  gastroenterology: ["5W"]
   general_surgery: ["3E"]
   orthopedics: ["3W"]
   emergency_medicine: ["ER"]
   primary_care: ["OPD"]
+  oncology: ["OPD-ONC"]
 
 ward_capacity:                  # Bed count per ward
   "4E": 10
   "4W": 10
   "5E": 8
+  "5W": 8
   "3E": 8
   "3W": 6
 
@@ -63,7 +66,7 @@ This enables:
 - Automatic disease → department → ward → bed routing
 - M/M/1 queueing model with dynamic test result delays
 - Nurses assigned per ward (PractitionerRole.location)
-- Switchable hospital templates (large / mid-size / clinic)
+- Switchable hospital templates: `hospital_large.yaml` (200 beds), `hospital_operations.yaml` (50 beds, default), `hospital_small.yaml` (~10-bed clinic); pick one with `--hospital-config`
 
 See `clinosim/modules/facility/README.md`.
 

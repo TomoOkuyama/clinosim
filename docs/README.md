@@ -34,10 +34,10 @@ Start here if you're evaluating or using clinosim:
 - **[synthea-comparison.md](synthea-comparison.md)** — how clinosim
   differs from [Synthea](https://synthetichealth.github.io/synthea/)
   and when to reach for which.
-- **[benchmarks.md](benchmarks.md)** — cohort size / seed / runtime
-  benchmarks.
-- **[add-your-country.md](add-your-country.md)** — proposal template for
-  adding a new country (US-Core / USCDI etc.).
+- **[benchmarks.md](benchmarks.md)** — `clinosim benchmark`: baseline
+  ML prediction benchmarks (sepsis, AKI onset) over generated cohorts.
+- **[add-your-country.md](add-your-country.md)** — how to add a new
+  country locale pack (YAML files, registration, FHIR profiles).
 
 ## For contributors
 
