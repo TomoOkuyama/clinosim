@@ -25,7 +25,9 @@ prompt cache、provider 選択を所有する。
   `PromptRegistry` + `PromptSpec` (task 別 prompt manifest)、
   `PromptCache` (再現性 + Stage 2 再実行の economy のための
   SHA-256 keyed disk cache)、`build_from_config` +
-  `build_from_config_file` factory、`providers/` 配下の 6 provider。
+  `build_from_config_file` factory、`providers/` 配下の 4 bundled
+  provider (`bedrock`, `ollama`, `vllm`, `mock`) とその alias
+  (`local` → `ollama`, `openai_compatible` → `vllm`)。
 - **Out of scope**: narrative content 組立 / template rendering
   ([`clinosim.modules.document.narrative`](../document/narrative/README.ja.md)
   が 2-pass narrative を所有し `LLMService` を import する)、
@@ -34,15 +36,15 @@ prompt cache、provider 選択を所有する。
 
 ## Public API
 
-全 downstream module は package root から import する。下記 17
-symbol が公開 surface の全て:
+全 downstream module は package root から import する。下記 18
+symbol (`__all__`) が公開 surface の全て:
 
 ```python
 from clinosim.modules.llm_service import (
     # Core
     LLMService,                  # top-level gateway (sync + concurrency-safe)
-    LLMTaskType,                 # StrEnum task 一覧 (document + reasoning task ごと)
-    LLMTaskCategory,             # StrEnum {"document", "reasoning", …}
+    LLMTaskType,                 # StrEnum task 一覧 (judgment + narrative task ごと)
+    LLMTaskCategory,             # StrEnum {"judgment", "narrative"}
     LLMResponse,                 # 正規化 response dataclass
     LLMCompletionError,          # RuntimeError subclass
 
@@ -71,15 +73,17 @@ from clinosim.modules.llm_service import (
 
 ## 決定論
 
-- `LLMService.complete(...)` 経路は `PromptCache` 有効かつ underlying
-  provider が `MockProvider` または `temperature=0` の実 provider
-  のときに決定論的。cache key は
-  `sha256(prompt + task_type + model + temperature + …)` で
-  content-addressed。
-- 並行安全: `LLMService` は各 provider 呼び出しに lock を用い、
-  prompt / response state の interleave を防ぐ。
+- `LLMService.generate(...)` / `LLMService.complete_prompt(...)` 経路は
+  `PromptCache` 有効かつ underlying provider が `MockProvider` または
+  `temperature=0` の実 provider のときに決定論的。cache key は
+  `sha256(system_prompt + user_prompt + model)` (`PromptCache._hash`。
+  task type と temperature は key に含まれない) で content-addressed。
+- 並行安全: `PromptCache` は counter を `threading.Lock` で保護し、
+  entry を atomic に書き込む (temp file + `os.replace`)。`LLMService`
+  自体は呼び出しごとの lock を持たない。
   `tests/unit/test_narrate_concurrency_byte_identity.py` が
-  single-thread と 4-thread narrate の byte-identity 契約を pin する。
+  `concurrency=1` と `concurrency=8` の narrate の byte-identity 契約を
+  pin する。
 - Stage 2 再実行 economy: narrate 失敗後の同一 prompt は LLM を
   再呼び出しせず `PromptCache` が既 JSON entry を返す。on-disk 配置は
   [`cache.py`](cache.py) 参照 (`<cache_dir>/<sha256_prefix>/<sha256>.json`)。
@@ -99,43 +103,60 @@ from clinosim.modules.llm_service import (
 ## 定数と設定
 
 - **`LLMTaskType`** (StrEnum) — 完全な task 列挙
-  (document 種別: `progress_note`, `admission_hp`,
-  `discharge_summary`, `death_summary`, `operative_note`,
-  `procedure_note`, `chief_complaint_jp`, `chief_complaint_en`、
-  および reasoning task `diagnostic_reasoning`, `treatment_decision` 等)。
+  (24 値: judgment task 4 個 — `diagnostic_reasoning`,
+  `treatment_decision`, `clinical_judgment`, `consistency_review` —
+  と narrative task 20 個。例: `chief_complaint`, `admission_hp`,
+  `progress_note`, `discharge_summary`, `death_summary`,
+  `operative_note`, `procedure_note`、看護 / ED / 計画書系 document
+  type、`referral_note`, `health_checkup_report`,
+  `death_certificate`, `death_discharge_summary`)。
+  `clinosim.types.document.DocumentType` の全値がここに存在する必要が
+  ある (`_validate_document_task_sync` が import 時に検査)。
 - **`TASK_CATEGORY`** — `{LLMTaskType: LLMTaskCategory}` mapping。
-  caller が task list を hard-code せず category (document vs
-  reasoning) で gate できる。
+  caller が task list を hard-code せず category (judgment vs
+  narrative) で gate でき、judgment / narrative provider の選択にも
+  使われる。データは
+  [`reference_data/task_categories.yaml`](reference_data/task_categories.yaml)。
 - **`DOCUMENT_LOINC`** — document 生成 task ごとの LOINC code。
   FHIR builder は `loinc_for(task_type)` で参照するため、新 document
   type は LOINC を 1 度だけ登録し全 consumer が同 map から lookup する。
+  データは [`reference_data/task_loincs.yaml`](reference_data/task_loincs.yaml)。
 - **Prompt manifest**: [`prompts/{en,ja}/`](prompts/) — 言語別
   prompt file を `PromptRegistry` が load。新言語追加は folder +
   `PromptSpec` entry を足すだけで engine code 変更不要。
-- **Config schema** (`build_from_config` が消費):
-  [`clinosim/types/config.py`](../../types/config.py) の
-  `LLMProviderConfig` を参照。`provider` (`"bedrock_gateway" |
-  "anthropic_direct" | "openai_compatible" | "local" | "none"`)、
-  `mode` (`"llm" | "template" | "none"`)、`model_map` (`small` /
-  `medium` / `large` → 実 model ID)、provider 別 config dict。
+- **Config schema** (`build_from_config` が消費。例は
+  [`clinosim/config/llm_service*.yaml`](../../config/)): top-level の
+  `judgment` / `narrative` section。各 section は `provider`
+  (`providers/` の registry key: `local` / `ollama` / `bedrock` /
+  `vllm` / `openai_compatible` / `mock`、または `register_provider`
+  で追加したもの)、`mode` (`"llm" | "template" | "none"`。`template` /
+  `none` では provider を build しない)、`model_map` (`small` /
+  `medium` / `large` → 実 model ID)、provider key と同名の provider 別
+  sub-block、(narrative section の) `retry_attempts` /
+  `retry_backoff_seconds` を持つ。加えて `cache` (`enabled`,
+  `directory` / `cache_dir`, `max_entries`) と
+  `prompts.registry_path`。
 
 ## ディレクトリ構造
 
 ```
 clinosim/modules/llm_service/
-  __init__.py                    公開 API surface (17 symbol)
-  engine.py                      LLMService + task enum + prompt builder (900 LOC)
+  __init__.py                    公開 API surface (18 symbol)
+  engine.py                      LLMService + task enum + prompt builder (~950 LOC)
   factory.py                     build_from_config + build_from_config_file
   prompt_registry.py             PromptRegistry + PromptSpec
   cache.py                       PromptCache (SHA-256 keyed disk cache)
   prompts/
     en/                          英語 prompt manifest
     ja/                          日本語 prompt manifest
+  reference_data/
+    task_categories.yaml         LLMTaskType -> judgment / narrative (TASK_CATEGORY)
+    task_loincs.yaml             LLMTaskType -> LOINC (DOCUMENT_LOINC)
   providers/                     LLMProvider Protocol + 4 concrete provider (bedrock/ollama/vllm/mock)。anthropic_direct は bundle 外 (register_provider で追加)
   SPEC.md                        拡張設計参考 (runtime data ではない)
 ```
 
-**`audit.py` / `enricher.py` / `reference_data/` は存在しない**。
+**`audit.py` / `enricher.py` は存在しない**。
 
 ## Enricher 配線
 
@@ -147,8 +168,8 @@ library。`register_builtin_enrichers` に登録なく、`ENRICHER_SEED_OFFSETS`
 
 | Consumer | 場所 | 役割 |
 | --- | --- | --- |
-| Narrative pass | [`clinosim/modules/document/narrative/llm_generator.py`](../document/narrative/llm_generator.py), [`replacement_strategy.py`](../document/narrative/replacement_strategy.py), [`passes.py`](../document/narrative/passes.py) | Stage 2 narrative 生成が document 種別ごとに `LLMService.complete(...)` を呼び出す。 |
-| CLI `narrate` subcommand | [`clinosim/simulator/cli_narrate.py`](../../simulator/cli_narrate.py) | boot 時に `--llm-config` から `LLMService` を build、`NarrativePass` を invoke、`PromptCache` を配線。 |
+| Narrative pass | [`clinosim/modules/document/narrative/llm_generator.py`](../document/narrative/llm_generator.py), [`replacement_strategy.py`](../document/narrative/replacement_strategy.py), [`passes.py`](../document/narrative/passes.py) | Stage 2 narrative 生成が document 種別ごとに `LLMService.complete_prompt(...)` を呼び出す。 |
+| CLI `narrate` subcommand | [`clinosim/simulator/cli_narrate.py`](../../simulator/cli_narrate.py) | boot 時に `--llm-config` (無ければ `--provider` に応じ同梱 `config/llm_service*.yaml` または in-code `MockProvider`) から `LLMService` を build (`PromptCache` は `build_from_config` が配線)、`LLMNarrativePass` を実行。 |
 
 ## テスト
 
@@ -159,16 +180,16 @@ pytest tests/unit -k "llm" -q
 個別ファイル:
 
 - [`tests/unit/test_llm_service.py`](../../../tests/unit/test_llm_service.py)
-  — `LLMService.complete` orchestration。
+  — `LLMService.generate` orchestration。
 - [`tests/unit/test_llm_service_complete_prompt.py`](../../../tests/unit/test_llm_service_complete_prompt.py)
-  — task-type 別 prompt-builder dispatch。
+  — `LLMService.complete_prompt` (retry、PromptCache、template fallback なし)。
 - [`tests/unit/test_llm_task_enum_sync.py`](../../../tests/unit/test_llm_task_enum_sync.py)
   — `LLMTaskType` ↔ `TASK_CATEGORY` ↔ `DOCUMENT_LOINC` の coverage
   invariant。
 - [`tests/unit/test_llm_narrative_pass.py`](../../../tests/unit/test_llm_narrative_pass.py)
   — narrative-pass の `LLMService` 経由 integration。
 - [`tests/unit/test_narrate_concurrency_byte_identity.py`](../../../tests/unit/test_narrate_concurrency_byte_identity.py)
-  — 並行安全 (1-thread vs 4-thread narrate が同一出力)。
+  — 並行安全 (`concurrency=1` vs `concurrency=8` narrate が同一出力)。
 - [`tests/unit/test_clinical_documents.py`](../../../tests/unit/test_clinical_documents.py)
   — cross-module document emission guard。
 - [`tests/fixtures/patient_profiles/`](../../../tests/fixtures/patient_profiles/)
@@ -179,6 +200,6 @@ pytest tests/unit -k "llm" -q
 ## Ownership
 
 `maintainers@` — 詳細は
-[`CONTRIBUTING.md`](../../../CONTRIBUTING.ja.md)。
+[`CONTRIBUTING.ja.md`](../../../CONTRIBUTING.ja.md)。
 
-英語版: [`README.md`](README.ja.md)。
+英語版: [`README.md`](README.md)。

@@ -15,20 +15,28 @@ Define the structure of a simulated hospital: scale category, departments, bed c
 
 ## Internal Design
 
-The module is YAML-driven: one template per (country × scale) combination. At initialization, a template is loaded, randomized within ranges, and any user overrides applied.
+The original design was one YAML template per (country × scale) combination,
+loaded, randomized within ranges, and overridden by the user. As implemented,
+there is no `templates/` directory and no `HospitalProfile` type: the hospital
+is described by one country-agnostic YAML per scale under `clinosim/config/`,
+and this module only holds the operational-state model.
 
 ```
 modules/facility/
 ├── SPEC.md
-├── templates/
-│   ├── japan_small.yaml
-│   ├── japan_medium.yaml
-│   ├── japan_large.yaml
-│   ├── us_small.yaml
-│   ├── us_medium.yaml
-│   └── us_large.yaml
-└── (implementation files)
+├── README.md / README.ja.md
+├── __init__.py                       ← empty
+├── hospital_state.py                 ← HospitalState + load_hospital_operations()
+└── _hospital_state_thresholds.py     ← named shift / queueing constants
+
+clinosim/config/
+├── hospital_small.yaml               ← hospital_scale: small
+├── hospital_operations.yaml          ← hospital_scale: medium (default; loaded by load_hospital_operations)
+└── hospital_large.yaml               ← hospital_scale: large (select with --hospital-config PATH)
 ```
+
+The sections below are the original design reference; see `README.md` for
+what the code implements.
 
 ---
 

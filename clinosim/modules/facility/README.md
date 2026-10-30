@@ -48,10 +48,10 @@ from clinosim.modules.facility.hospital_state import (
 
 | Method | Contract |
 |---|---|
-| `update_for_time(dt, hospital_ops)` | Sets shift-based staffing (`day` / `evening` / `night`), applies weekend modifier when `weekday >= WEEKEND_WEEKDAY_MIN`, then applies each `daily_patterns.*` YAML entry whose `hours` window and `weekday` filter match. |
+| `update_for_time(dt, hospital_ops)` | Sets shift-based staffing (`day` / `evening` / `night`), applies weekend modifier to lab / radiology / pharmacy / OR staff (nursing is unscaled) when `weekday >= WEEKEND_WEEKDAY_MIN`, then applies each `daily_patterns.*` YAML entry whose `hours` window and `weekday` filter match. |
 | `calculate_delay(resource, urgency, hospital_ops)` | Returns delay in minutes for the given resource + urgency using `base × (1 / (1 - utilization)) × (1 / staff) + reporting_time × (1 / staff)`, with congestion + staff factors clamped by `DELAY_CONGESTION_CAP` + `DELAY_STAFF_CAP`, and the whole answer capped by `DELAY_MAX_DELAY_{STAT,ROUTINE}_MIN`. |
 | `add_to_queue(resource, hospital_ops)` | Bumps `<resource>_queue` by `1/capacity` for that resource. |
-| `release_from_queue(resource, hospital_ops)` | Drops `<resource>_queue` by `1/capacity`. |
+| `release_from_queue(resource, hospital_ops)` | Drops `<resource>_queue` by `1/capacity`. Currently has no caller in the codebase. |
 
 ## Determinism
 
@@ -139,8 +139,9 @@ computed.
 
 | Consumer | Where | Role |
 |---|---|---|
-| Simulator boot | [`clinosim/simulator/engine.py`](../../simulator/engine.py) (`~L191`) | Loads `hospital_ops` (either from `--hospital-config PATH` or from `load_hospital_operations()`) and constructs a per-run `HospitalState`. |
-| Order-result timing | [`clinosim/modules/order/engine.py`](../order/engine.py) (`calculate_result_time_from_state`, ~L795) | Uses `HospitalState.calculate_delay` to timestamp lab / imaging / OR results. Called by `simulator/lab_pipeline.py` + `simulator/unknown_condition.py`. |
+| Simulator boot | [`clinosim/simulator/_setup.py`](../../simulator/_setup.py) (`_load_hospital_ops`) + [`clinosim/simulator/engine.py`](../../simulator/engine.py) | `_load_hospital_ops` loads `hospital_ops` (either from `--hospital-config PATH` or from `load_hospital_operations()`) and validates it; `engine.py` constructs one per-run `HospitalState`. |
+| Order-result timing | [`clinosim/modules/order/engine.py`](../order/engine.py) (`calculate_result_time_from_state`) | Calls `update_for_time`, `calculate_delay` and `add_to_queue` to timestamp lab / imaging / OR results. Called by `simulator/lab_pipeline.py` + `simulator/unknown_condition.py`. |
+| Event dispatch | [`clinosim/simulator/_dispatch.py`](../../simulator/_dispatch.py) | Calls `update_for_time` at each dispatched event time. |
 | Order queue-replay test | [`tests/unit/test_order_queue_replay.py`](../../../tests/unit/test_order_queue_replay.py) | Loads `HospitalState` + `load_hospital_operations()` to replay queue add / release semantics. |
 | Wall-clock sentinel test | [`tests/unit/test_wallclock_sentinel_defaults.py`](../../../tests/unit/test_wallclock_sentinel_defaults.py) | Asserts the `_UNSET_DATETIME` sentinel default. |
 

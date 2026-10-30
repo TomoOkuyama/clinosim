@@ -2,8 +2,8 @@
 
 ## 概要
 
-POST_ENCOUNTER always-on の AD-55 Module。適格な入院 / ICU /
-rehab-inpatient encounter に対して ICU デバイス (中心静脈カテーテル、
+POST_ENCOUNTER always-on の AD-55 Module。ICU 転棟した患者の入院
+encounter に対して ICU デバイス (中心静脈カテーテル、
 膀胱留置カテーテル、機械換気) を配置し、結果を
 `CIFPatientRecord.extensions["device"]` に書き込む。下流の
 [`clinosim.modules.hai`](../hai/README.ja.md) が line-days を消費する
@@ -12,8 +12,9 @@ rehab-inpatient encounter に対して ICU デバイス (中心静脈カテー�
 ## Scope
 
 - **In scope**: `place_devices_for_encounter` の per-encounter 評価
-  (peak physiology state + altered-consciousness flag + YAML 条件
-  → device 集合)、`load_devices_config` YAML loader、POST_ENCOUNTER
+  (入院中の最悪 physiology state + 意識障害 (GCS < 13) + 挿管 procedure
+  + YAML 条件 → device 集合。留置日 / 抜去日 = encounter の入院日 /
+  退院日)、`load_devices_config` YAML loader、POST_ENCOUNTER
   `enrich_device` enricher。
 - **Out of scope**: デバイス line-days からの HAI event サンプリング
   ([`clinosim.modules.hai`](../hai/README.ja.md))、デバイス関連抗菌薬
@@ -26,7 +27,7 @@ rehab-inpatient encounter に対して ICU デバイス (中心静脈カテー�
 ```python
 from clinosim.modules.device import (
     load_devices_config,             # () -> dict (@lru_cache)
-    place_devices_for_encounter,     # (record, encounter, rng) -> list[Device]
+    place_devices_for_encounter,     # (record, encounter, rng, devices_config) -> list[DeviceRecord]
 )
 from clinosim.modules.device.enricher import enrich_device
 ```
@@ -40,17 +41,20 @@ from clinosim.modules.device.enricher import enrich_device
 - サブ seed オフセット `0x4445` (`"DE"`, PR-A) —
   [`clinosim/seeding.py`](../../seeding.py) の
   `ENRICHER_SEED_OFFSETS["device"]` に登録済み。
-- Per-encounter RNG:
-  `derive_sub_seed(master_seed, offset, encounter_id)` — 同 encounter
-  は常に同 device 集合をサンプリング。患者主 RNG は乱さない (AD-16)。
+- enricher は患者単位 RNG
+  (`derive_sub_seed(master_seed, offset, patient_id)`) を作り
+  `place_devices_for_encounter` に渡すが、現状の配置処理はそこから
+  draw しない — device 集合は record の決定論的関数。患者主 RNG は
+  乱さない (AD-16)。
 
 ## 依存
 
 - `clinosim.modules._shared` — `get_attr_or_key`,
-  `normalize_probabilities`。
+  `get_or_create_container`。
 - `clinosim.seeding` — `ENRICHER_SEED_OFFSETS`, `derive_sub_seed`。
-- `clinosim.types.encounter` — `Device`, `Encounter`,
-  `CIFPatientRecord`。
+- `clinosim.types.device` — `DeviceRecord`。
+- `clinosim.types.encounter` — `Encounter`, `EncounterType`。
+- `clinosim.types.output` — `CIFPatientRecord`。
 - `clinosim.types.clinical` — `PhysiologicalState` (peak state
   評価入力)。
 - `numpy`, `yaml`。
@@ -58,12 +62,23 @@ from clinosim.modules.device.enricher import enrich_device
 ## 定数と設定
 
 - [`reference_data/devices.yaml`](reference_data/devices.yaml) —
-  デバイスカタログ。各 entry が indication criteria (physiology
-  state 閾値、altered-consciousness gate、admission source filter)、
-  配置確率、期待 line-days 分布を持つ。
-- Encounter-type gate: `INPATIENT_ENCOUNTER_TYPES =
-  {"inpatient", "icu", "rehab_inpatient"}` (nursing 参照集合と同じ)
-  でのみ発火。
+  デバイスカタログ (`cvc`, `indwelling_catheter`,
+  `mechanical_ventilator`)。各 entry は `snomed_code`、
+  `snomed_display_en` / `_ja`、`any: [token, ...]` 節の list である
+  `placement_criteria` を持つ (いずれかの節のいずれかの token が
+  成立すれば配置)。現状の条件: CVC ← `severity_moderate_plus`、
+  膀胱留置カテーテル ← `severity_moderate_plus` または
+  `altered_consciousness`、人工呼吸器 ← `intubated`。配置確率や
+  line-days 分布は持たない。
+- indication token (`_evaluate_indications`):
+  `severity_moderate_plus` (gate 通過時は常に真)、
+  `altered_consciousness` (encounter の vital に GCS < 13 がある)、
+  `hypoxia` (最悪 perfusion < 0.4 または oxygenation impairment ≥ 0.6)、
+  `intubated` (encounter に `intubation` procedure がある)、
+  `high_respiratory_demand` (respiratory fraction > 0.7)。`hypoxia` と
+  `high_respiratory_demand` は算出されるが現状どの yaml 条件も使わない。
+- Gate: `record.icu_transferred` が真かつ encounter type が
+  `EncounterType.INPATIENT` の場合のみ発火。
 
 ## ディレクトリ構造
 
@@ -81,7 +96,7 @@ clinosim/modules/device/
 ## Enricher 配線
 
 [`clinosim/simulator/enrichers.py`](../../simulator/enrichers.py)
-(`L237-246` 付近) で登録:
+(`L310-320` 付近) で登録:
 
 - `name="device"`, `stage=POST_ENCOUNTER`, `order=70`,
   `enabled=lambda c: True`。
@@ -92,9 +107,9 @@ clinosim/modules/device/
 
 | Consumer | 場所 | 役割 |
 | --- | --- | --- |
-| Enricher registry | [`clinosim/simulator/enrichers.py:241`](../../simulator/enrichers.py) | POST_ENCOUNTER order=70 登録。 |
-| HAI enricher | [`clinosim/modules/hai/engine.py`](../hai/engine.py) | `extensions["device"]` の line-days を CDC NHSN per-line-day HAI onset サンプリングに使用 (Phase 2)。 |
-| FHIR `Device` builder | [`clinosim/modules/output/fhir_r4/`](../output/fhir_r4/) | `extensions["device"]` から `Device` + `DeviceUseStatement` を emit。 |
+| Enricher registry | [`clinosim/simulator/enrichers.py:316`](../../simulator/enrichers.py) | POST_ENCOUNTER order=70 登録。 |
+| HAI enricher | [`clinosim/modules/hai/enricher.py`](../hai/enricher.py) | `extensions["device"]` の line-days を CDC NHSN per-line-day HAI onset サンプリングに使用 (Phase 2)。 |
+| FHIR `Device` builder | [`clinosim/modules/output/fhir_r4/procedures/device.py`](../output/fhir_r4/procedures/device.py) | `extensions["device"]` の entry ごとに `Device` + `DeviceUseStatement` を 1 件ずつ emit (id は `DeviceRecord.device_id` から導出した opaque id)。 |
 
 ## テスト
 
@@ -114,4 +129,4 @@ pytest tests/unit -k "device_engine or device_enricher" -q
 `maintainers@` — 詳細は
 [`CONTRIBUTING.md`](../../../CONTRIBUTING.ja.md)。
 
-英語版: [`README.md`](README.ja.md)。
+英語版: [`README.md`](README.md)。

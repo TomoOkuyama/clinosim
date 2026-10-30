@@ -8,20 +8,27 @@
 併用を防ぐのと同様に、生成される CIF/FHIR 記録に禁忌併用が現れないよう
 にする。 修正前は US p=10,000 コホートで ~150 件の禁忌ペア
 (warfarin+aspirin、warfarin+NSAID、β遮断薬+非DHP CCB、ACEi/ARB+K 補充)
-が発生していたが、`order` および `patient` モジュールから呼び出される
-class ベースの rule engine によって 0 件に低減する。
+が発生していたが、simulator の処方経路 (入院時 / daily loop / ED /
+退院処方 / 予防投与) と `patient` activator から呼び出される class ベースの
+rule engine によって 0 件に低減する。薬剤 × 疾患状態
+(`check_candidate_against_disease_state`) と薬剤 × 年齢/性別
+(`check_demographic_gate`) の禁忌 gate も併せて提供する。
 
 ## 2. スコープ
 
 **含まれる**:
 - Rule engine: class × class 禁忌 lookup と severity 判定
   (allowed / minor / moderate / major / contraindicated)。
+- 薬剤 class × 慢性疾患状態 rule (`disease_contraindications.yaml`、
+  Issue #1392 / #1350、stage 条件 `stage_in` は Issue #1769)。
+- 年齢 / 性別 gate (`demographic_gates.yaml`、Issue #1316 / #1328)、
+  ICD prefix の `exception_indications` で bypass。
 - 代替薬 substitution: Issue #437 の dead-data `alternative_*` block
   を revive + 新規 `locale/shared/drug_substitution.yaml`。
 - CIF trace (`PatientProfile.safety_skip_log`)。
 - Narrative 統合 (4 layer 全て)。
 - MedicationRequest.note[] passthrough (moderate DDI caution)。
-- AD-60 スタイルの audit plug-in。
+- AD-60 スタイルの audit 関数 (stand-alone、audit registry には未登録)。
 
 **含まれない (post-MVP)**:
 - `DetectedIssue` FHIR リソースの emit (実 CPOE は skip した order の

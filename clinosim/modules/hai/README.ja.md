@@ -19,17 +19,23 @@ HAI cascade の中核。
 ## Scope
 
 - **In scope**: `sample_hai_onset` — `extensions["device"]` line-days
-  上で HAI type ごとに CDC NHSN per-line-day risk サンプリング;
+  上で device ごとに CDC NHSN per-line-day risk サンプリング (`cvc` →
+  CLABSI、`indwelling_catheter` → CAUTI、`mechanical_ventilator` →
+  VAP。累積 risk `1 - (1 - per_day_risk)^line_days`、onset 日は
+  `[2, line_days)` で uniform、抜去日なしは line_days = 7);
   `_sample_organism` — `hai_organisms.yaml` からの organism 選択;
   `_add_days` date helper; `apply_hai_lab_lift` — Phase 3a の
   closed-form WBC + CRP 順方向 delta。`_hai_lift_delta` は
   `derive_lab_values` の CRP + WBC 式を鏡像化 (state snapshot は
   `state_history[day_index + 1]` から取り、`round_to_precision` +
-  `determine_flag` を再適用); 6 load 時 YAML validator
-  (`_validate_hai_organisms` / `_validate_hai_rates` /
-  `_validate_hai_codes` / `_validate_hai_specimens` +
-  antibiogram loader 内 `_validate_hai_antibiogram` +
-  `_validate_hai_lab_lift`); `HAI_TYPES` canonical 定数。
+  `determine_flag` を再適用。enricher ではなく
+  `clinosim/simulator/inpatient.py` が AD-32 切り詰め後に呼ぶ); 6 YAML
+  すべての load 時検証 (`engine.py` の `_validate_hai_organisms` /
+  `_validate_hai_rates` / `_validate_hai_codes` /
+  `_validate_hai_specimens`、`__init__.py` の `load_hai_antibiogram`
+  内 inline check、`lab_lift.py` の `_validate_hai_lab_lift_config`);
+  `hai_antibiogram.yaml` による culture ごとの S/I/R susceptibility
+  draw; `HAI_TYPES` canonical 定数。
 - **In scope (audit)**: [`audit.py`](audit.py) — 最初の per-Module
   AD-60 audit plug-in。合成 CAUTI の `lift_firing_proof` を登録し
   runtime が生成する closed-form delta を再現 (PR-90 が欠いていた
@@ -49,18 +55,21 @@ HAI cascade の中核。
 ## Public API
 
 ```python
-from clinosim.modules.hai import HAI_TYPES         # ("clabsi", "cauti", "vap")
+from clinosim.modules.hai import (
+    HAI_TYPES,                                     # ("clabsi", "cauti", "vap")
+    load_hai_antibiogram,                          # () -> dict (@lru_cache, validated)
+)
 from clinosim.modules.hai.engine import (
-    sample_hai_onset,                              # (encounter, devices, rng) -> list[HAIEvent]
+    sample_hai_onset,                              # (device, rate_cfg, rng) -> (occurred, onset_day_offset | None)
     load_hai_rates,                                # () -> dict (@lru_cache)
     load_hai_codes,                                # () -> dict (@lru_cache)
     load_hai_organisms,                            # () -> dict (@lru_cache)
     load_hai_specimens,                            # () -> dict (@lru_cache)
-    load_hai_antibiogram,                          # () -> dict (@lru_cache)
 )
 from clinosim.modules.hai.enricher import enrich_hai   # POST_ENCOUNTER entry
 from clinosim.modules.hai.lab_lift import (
-    apply_hai_lab_lift,                            # (record) -> None (observations を mutate)
+    apply_hai_lab_lift,                            # (record, encounter, state_history, admission_time, country="US")
+                                                   #   -> int (変更した observation 数。lab_results を mutate)
     _hai_lift_delta,                               # closed-form WBC / CRP delta
 )
 ```
@@ -85,14 +94,18 @@ from clinosim.modules.hai.lab_lift import (
 
 - `clinosim.modules._shared` — `get_attr_or_key`,
   `get_or_create_container`, `normalize_probabilities`。
+- `clinosim.modules.physiology._lab_derivation_thresholds` —
+  `derive_lab_values` と共有する WBC 式定数。
 - `clinosim.seeding` — `ENRICHER_SEED_OFFSETS`, `derive_sub_seed`。
 - `clinosim.modules.antibiotic` — `ANTIBIOTIC_LOINC_LOOKUP`
-  (enricher が culture 書込時に消費)。
+  (enricher が culture の susceptibility 書込時に、
+  `load_hai_antibiogram` が検証時に消費)。
 - `clinosim.modules.observation.engine` — `round_to_precision`,
   `determine_flag` (lift 後に再適用)。
 - `clinosim.audit.registry` (`audit.py` 経由) — AD-60 audit 登録。
-- `clinosim.types.encounter` — `Device`, `HAIEvent`,
-  `MicrobiologyResult`。
+- `clinosim.types.device` — `DeviceRecord`、`clinosim.types.hai` —
+  `HAIEvent`、`clinosim.types.microbiology` — `MicrobiologyResult`,
+  `SusceptibilityResult`。
 - `numpy`, `yaml`。
 
 ## 定数と設定
@@ -106,7 +119,8 @@ from clinosim.modules.hai.lab_lift import (
   - `hai_codes.yaml` — HAI type 別 condition コード (ICD-10 + SNOMED)。
   - `hai_specimens.yaml` — HAI type 別 specimen type。
   - `hai_antibiogram.yaml` — organism × antibiotic S/I/R rate
-    (antibiotic モジュールが load。`HAI_TYPES` + `hai_organisms.yaml`
+    (`__init__.py` の `load_hai_antibiogram` が load し、hai enricher と
+    antibiotic の narrow ladder validator が消費。`HAI_TYPES` + `hai_organisms.yaml`
     + `ANTIBIOTIC_LOINC_LOOKUP` に対し 3-way validate)。
   - `hai_lab_lift.yaml` — `_hai_lift_delta` が使う HAI type 別
     WBC + CRP delta parameter。
@@ -120,7 +134,7 @@ from clinosim.modules.hai.lab_lift import (
 
 ```
 clinosim/modules/hai/
-  __init__.py                    HAI_TYPES canonical 定数 + loader stub
+  __init__.py                    HAI_TYPES canonical 定数 + load_hai_antibiogram
   engine.py                      sample_hai_onset + loader + validator + _sample_organism
   enricher.py                    POST_ENCOUNTER enrich_hai
   lab_lift.py                    apply_hai_lab_lift + _hai_lift_delta (Phase 3a)
@@ -151,6 +165,7 @@ clinosim/modules/hai/
 | Enricher registry | [`clinosim/simulator/enrichers.py`](../../simulator/enrichers.py) | POST_ENCOUNTER order=80 登録。 |
 | Audit registry | [`clinosim/modules/hai/audit.py`](audit.py) | AD-60 audit plug-in — lift_firing_proof + canonical / structural / clinical check。 |
 | Antibiotic enricher | [`clinosim/modules/antibiotic/enricher.py`](../antibiotic/enricher.py) | empirical regimen 選択のため `extensions["hai"]` を read。 |
+| Inpatient simulator | [`clinosim/simulator/inpatient.py`](../../simulator/inpatient.py) | snapshot 以降の HAI event / culture を切り詰めた後 `apply_hai_lab_lift` を呼ぶ。 |
 | Observation microbiology emitter | [`clinosim/modules/observation/microbiology.py`](../observation/microbiology.py) | HAI 由来 culture に `Observation.specimen.reference` と `HAI_EVENT_ID_SYSTEM` identifier を emit。 |
 | FHIR microbiology / diagnostic-report / servicerequest / document chain | 下記 integration test 参照 | HAI cascade emission の end-to-end。 |
 
@@ -189,4 +204,4 @@ clinosim audit run -d <cohort_dir> --module hai
 `maintainers@` — 詳細は
 [`CONTRIBUTING.md`](../../../CONTRIBUTING.ja.md)。
 
-英語版: [`README.md`](README.ja.md)。
+英語版: [`README.md`](README.md)。

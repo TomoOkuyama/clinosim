@@ -84,9 +84,10 @@ from clinosim.modules.code_status.enricher import enrich_code_status
   [`clinosim/locale/jp/code_status_rates.yaml`](../../locale/jp/code_status_rates.yaml)
   — 国別 `weights[context][age_band] = [full, dnr, dnr_dni, comfort]`。
   合計 1 になる確率分布。`load_rates` は unsupported country に対して
-  `{}` を返し、enricher は空 map を「付与なし」として扱うため、新規国が
-  黙って US レートを継承することはない (2026-07-02 grand-design review
-  で確定した契約)。
+  `{}` を返すため、新規国が黙って US レートを継承することはない
+  (2026-07-02 grand-design review で確定した契約)。ただし対象 encounter
+  では `assign_code_status` が `""` を返さず `KeyError('routine')` を
+  送出する。
 
 ## ディレクトリ構造
 
@@ -117,8 +118,8 @@ clinosim/modules/code_status/
 | Consumer | 場所 | 役割 |
 | --- | --- | --- |
 | CSV adapter | [`clinosim/modules/output/csv_adapter.py`](../output/csv_adapter.py) (`L358` 付近, `L419` 付近) | `record["code_status"]` から `code_status.csv` を書き出し。 |
-| FHIR `Observation` builder | [`clinosim/modules/output/fhir_r4/conditions/code_status.py`](../output/fhir_r4/conditions/code_status.py) (`_bb_code_status`) | survey カテゴリの `Observation`、id `codestatus-{enc_id}`、`code` = observable 304251008、`valueCodeableConcept` = tier SNOMED、`effectiveDateTime` = 入院日時。JP encounter は追加で `meta.profile = JP_Observation_Common` を付与。 |
-| Enricher registry | [`clinosim/simulator/enrichers.py:188`](../../simulator/enrichers.py) | POST_RECORDS 登録。 |
+| FHIR `Observation` builder | [`clinosim/modules/output/fhir_r4/conditions/code_status.py`](../output/fhir_r4/conditions/code_status.py) (`_bb_code_status`) | survey カテゴリの `Observation`、id は encounter id から導出した opaque な `codestatus-<hash>` (identifier に元 key を保持)、`code` = observable 304251008、`valueCodeableConcept` = tier SNOMED、`effectiveDateTime` = 入院日時。JP encounter は追加で `meta.profile = JP_Observation_Common` を付与。 |
+| Enricher registry | [`clinosim/simulator/enrichers.py:267`](../../simulator/enrichers.py) | POST_RECORDS 登録。 |
 
 ## テスト
 
@@ -147,4 +148,4 @@ pytest tests/integration -k code_status -q  # enricher + FHIR 出力
 `maintainers@` — 詳細は
 [`CONTRIBUTING.md`](../../../CONTRIBUTING.ja.md)。
 
-英語版: [`README.md`](README.ja.md)。
+英語版: [`README.md`](README.md)。

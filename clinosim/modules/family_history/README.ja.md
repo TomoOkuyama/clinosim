@@ -12,7 +12,7 @@
 ## Scope
 
 - **In scope**: 母 + 父 + 兄弟姉妹 0-2 人。近親年齢は本人年齢から導出
-  (親は設定可能なオフセット加算、兄弟姉妹は ± オフセット)、親の死亡は
+  (親は設定可能なオフセット加算、兄弟姉妹は ± オフセット)、親の死亡 (兄弟姉妹は常に生存扱い) は
   年齢に応じ確率上昇。疾患ごとに locale prevalence × heritability boost。
 - **モデル対象疾患**: 心血管代謝系 (`E11` 糖尿病、`I10` 高血圧、
   `I25` 虚血性心疾患、`I63`/`I64` 脳卒中、`E78` 脂質異常症) + 主要がん
@@ -74,7 +74,7 @@ uppercase + `.` 分割で ICD ベースを抽出する。与えられた `rng` �
   - `relationships` — `MTH` / `FTH` / `NSIB` の v3-RoleCode エントリと
     per-code の EN + JA 表示。**JA 正規表示はコード個別**
     (MTH は `"母"`、FTH は `"父"`、NSIB は `"natural sibling"` /
-    `"実兄弟姉妹"`) であり、**兄弟コードから推測してはならない**
+    `"兄弟姉妹"`) であり、**兄弟コードから推測してはならない**
     — file 冒頭コメント (Issue #369、v23 regression) が PR #372 の
     drift を詳述している。
   - `conditions` — ICD ごとの `{sex, heritability}`。
@@ -125,8 +125,8 @@ clinosim/modules/family_history/
 | Consumer | 場所 | 役割 |
 | --- | --- | --- |
 | CSV adapter | [`clinosim/modules/output/csv_adapter.py`](../output/csv_adapter.py) (`L341` 付近, `L418` 付近) | `record["family_history"]` から `family_history.csv` を書き出し (患者単位)。 |
-| FHIR `FamilyMemberHistory` builder | [`clinosim/modules/output/fhir_r4/demographics/family_history.py`](../output/fhir_r4/demographics/family_history.py) | 近親ごとに `FamilyMemberHistory` を 1 件出力。id は `fmh-{patient_id}-NN` で write 時 de-dup。 |
-| Enricher registry | [`clinosim/simulator/enrichers.py:175`](../../simulator/enrichers.py) | POST_RECORDS 登録。 |
+| FHIR `FamilyMemberHistory` builder | [`clinosim/modules/output/fhir_r4/demographics/family_history.py`](../output/fhir_r4/demographics/family_history.py) | 近親ごとに `FamilyMemberHistory` を 1 件出力。id は structural key `{patient_id}-NN` (identifier に保持) から導出した opaque な `fmh-<12hex>` で write 時 de-dup。 |
+| Enricher registry | [`clinosim/simulator/enrichers.py:254`](../../simulator/enrichers.py) | POST_RECORDS 登録。 |
 
 ## テスト
 
@@ -159,4 +159,4 @@ pytest tests/integration -k family_history -q  # enricher + FHIR 出力
 `maintainers@` — 詳細は
 [`CONTRIBUTING.md`](../../../CONTRIBUTING.ja.md)。
 
-英語版: [`README.md`](README.ja.md)。
+英語版: [`README.md`](README.md)。

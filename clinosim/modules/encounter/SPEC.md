@@ -39,6 +39,13 @@ Define the types of clinical encounters (outpatient, ED, inpatient, ICU, day sur
 | `nicu` | Newborn requiring intensive care | Days–weeks | Admission → stabilization → monitoring → growth → discharge |
 | `abortion_procedure` | Induced termination | 2–6h | Consent → procedure → recovery → discharge (day surgery or short stay) |
 
+Implementation note: the runtime enum is `EncounterType` in
+`clinosim/types/encounter.py` — `outpatient`, `emergency`, `inpatient`, `icu`,
+`day_surgery`, `rehab_inpatient`, `prenatal_visit`, `delivery`, `nicu`, plus
+`checkup` (JP health checkup, opt-in). There is no `abortion_procedure` member;
+abortion is emitted as an outpatient day-surgery encounter configured in
+`clinosim/locale/shared/perinatal.yaml::abortion`.
+
 ### Encounter workflow state machines
 
 #### Outpatient
@@ -195,6 +202,13 @@ Compliance correlates with:
 ---
 
 ## Internal Design
+
+The state machines and `module.function(...)` calls below are design
+pseudocode, not real function names. The encounter flow is implemented in
+`clinosim/simulator/` (`inpatient.py`, `emergency.py`, `outpatient.py`,
+`perinatal.py`, `daily_loop.py`, driven by the forward month loop in
+`phases/_forward_loop.py`); this module only provides the protocol registry
+and the inpatient daily-cycle primitives (see `README.md`).
 
 ### Core Concept: Encounter as Timeline Driver
 

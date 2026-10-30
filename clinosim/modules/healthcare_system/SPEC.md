@@ -15,16 +15,26 @@ Provide country-specific parameters that influence clinical behavior across all 
 
 ## Internal Design
 
-The module is implemented as a **YAML-based configuration system** with one file per country. At initialization, the country file is loaded and any user overrides are applied.
+The module is implemented as a **YAML-based configuration system** with one file per country. The country file is loaded by `loader.py::load_healthcare_config` (no user-override layer is implemented).
 
 ```
 modules/healthcare_system/
 ├── SPEC.md
-├── configs/
-│   ├── japan.yaml
-│   └── us.yaml
-└── (implementation files)
+├── README.md / README.ja.md
+├── __init__.py          ← empty
+└── loader.py            ← load_healthcare_config(country)
+
+clinosim/config/
+├── japan.yaml           ← country config files live here, not under the module
+└── us.yaml
 ```
+
+The runtime `HealthcareSystemConfig` (`clinosim/types/config.py`) carries only
+`country`, `lab_frequency_multiplier`, `discharge_criteria`,
+`target_los_multiplier` and the four `*_code_system` fields. The parameter
+tables below are the original design reference; most of them are not fields
+of `HealthcareSystemConfig` (demographics, mortality, insurance, etc. live in
+locale data under `clinosim/locale/<country>/`).
 
 ---
 

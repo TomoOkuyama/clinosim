@@ -6,8 +6,9 @@ Opt-in POST_RECORDS enricher that adds Japanese employer-provided
 annual health-checkup encounters (**事業者健診**, mandated by the
 Industrial Safety and Health Act 労働安全衛生法) to a JP cohort.
 Selects a deterministic 30 % subset of adult patients (age ≥ 40) via
-SHA-256 hash on `patient_id`, emits one `CHECKUP` encounter per year
-anchored before the simulation snapshot, five statutory measurements
+SHA-256 hash on `patient_id`, emits one `CHECKUP` encounter per selected
+patient (dated 90 days before the simulation snapshot), five statutory
+measurements
 (BMI, systolic BP, diastolic BP, HbA1c, LDL cholesterol), and a
 `HEALTH_CHECKUP_REPORT` `ClinicalDocument` stub whose narrative
 [`document.narrative`](../document/narrative/README.md) fills in
@@ -20,13 +21,17 @@ Off keeps the simulator's default acute-hospital shape unchanged.
 ## Scope
 
 - **In scope**: patient subset selection (age gate + deterministic
-  hash), snapshot-anchored checkup-date pick (approximately 90 days
-  before snapshot, so multi-year snapshots produce multiple
-  checkups), age-tier checkup-type dispatch
+  hash), snapshot-anchored checkup-date pick (exactly 90 days
+  before the snapshot, falling back to 2026-12-31 when no snapshot is
+  set; one checkup per patient regardless of simulation length), age-tier checkup-type dispatch
   (40-64 → 事業者健診, 65-74 → 特定健診, 75+ → 広域連合健診 —
   MVP single-tier dispatch; insurance-based refinement deferred to a
-  future sub-PR), CHECKUP encounter build (single-day admission +
-  discharge), five statutory measurements with per-analyte
+  future sub-PR), CHECKUP encounter build (`CHK-{patient_id}-001`,
+  09:00-11:00 the same day, department `health_checkup`), five LAB
+  `Order`s sharing `panel_key="Checkup"` (→ 1 ServiceRequest + 1
+  DiagnosticReport + 5 Observations), all appended as a new
+  standalone `CIFPatientRecord` per patient (so the narrative pass
+  sees the CHECKUP encounter as `encounters[0]`), five statutory measurements with per-analyte
   measurement noise, per-analyte interpretation (normal / high) with
   reference-range strings, `HEALTH_CHECKUP_REPORT`
   `ClinicalDocument` stub with `narrative=None` for Stage 2 fill.
@@ -69,7 +74,7 @@ age-tier thresholds (`CHECKUP_TYPE_SPECIFIC_AGE_MIN = 65`,
   per-patient measurement noise on the five checkup labs; the main
   population RNG stream is not consumed (AD-16).
 - The checkup date is a deterministic offset from the snapshot date
-  (~90 days before), not a random draw.
+  (90 days before), not a random draw.
 
 ## Dependencies
 
@@ -83,6 +88,8 @@ age-tier thresholds (`CHECKUP_TYPE_SPECIFIC_AGE_MIN = 65`,
 - `clinosim.types.clinical` — `ClinicalDocument`.
 - `clinosim.types.encounter` — `Encounter`, `EncounterStatus`,
   `EncounterType`, `Order`, `OrderResult`, `OrderStatus`, `OrderType`.
+- `clinosim.types.output` — `CIFPatientRecord` (the new checkup
+  record).
 - `hashlib.sha256` — patient selection.
 - `numpy` — `np.random.Generator` for measurement noise.
 - No dependency on any other `clinosim.modules.*`.
@@ -124,7 +131,7 @@ in `engine.py` and reference values are constants, not YAML.
 
 Registered in
 [`clinosim/simulator/enrichers.py`](../../simulator/enrichers.py)
-(`~L350-380`) under `register_builtin_enrichers`:
+(`~L510-540`) under `register_builtin_enrichers`:
 
 - `name="health_checkup"`, `stage=POST_RECORDS`, `order=70`.
 - `enabled=_health_checkup_enabled` — requires
@@ -133,17 +140,17 @@ Registered in
   registry-helper tests with `ctx.config=None` still pass.
 - Runs after every other POST_RECORDS enricher (nursing 20 /
   immunization 30 / family_history 40 / code_status 50 /
-  care_level 60), so the CHECKUP encounter cannot shift the RNG
+  care_level 60 / medication_monitoring 65), so the CHECKUP encounter cannot shift the RNG
   stream those earlier enrichers depend on.
 
 ## Output surfaces (consumers)
 
 | Consumer | Where | Role |
 |---|---|---|
-| Enricher registry | [`clinosim/simulator/enrichers.py:373`](../../simulator/enrichers.py) | POST_RECORDS order=70 registration. |
-| Encounter type mapping | [`clinosim/modules/output/fhir_r4/encounters/encounter.py`](../output/fhir_r4/encounters/encounter.py) | Maps `EncounterType.CHECKUP` → JP-eCheckup `class` + `type`. |
-| FHIR DocumentReference builder | [`clinosim/modules/output/fhir_r4/documents/document_reference_checkup.py`](../output/fhir_r4/documents/document_reference_checkup.py) | Emits the `HEALTH_CHECKUP_REPORT` stub as `DocumentReference` (or Composition once narrative is populated). |
-| Narrative Stage 2 | [`clinosim/modules/document/narrative/passes.py`](../document/narrative/passes.py) | Fills the stub's `narrative.sections` with the per-value interpretation + Q4-summary text. |
+| Enricher registry | [`clinosim/simulator/enrichers.py:534`](../../simulator/enrichers.py) | POST_RECORDS order=70 registration. |
+| FHIR Composition builder | [`clinosim/modules/output/fhir_r4/documents/jp_clins/echeckup_general.py`](../output/fhir_r4/documents/jp_clins/echeckup_general.py) (via `documents/composition.py`) | Emits the populated `HEALTH_CHECKUP_REPORT` as a JP-eCheckup General `Composition`. |
+| FHIR DocumentReference builder | [`clinosim/modules/output/fhir_r4/documents/document_reference_checkup.py`](../output/fhir_r4/documents/document_reference_checkup.py) | Emits a companion `DocumentReference` (`drf-<document_id>`) that references the Composition; skipped while `narrative` is `None`. |
+| Narrative Stage 2 | [`clinosim/modules/document/narrative/`](../document/narrative/README.md) (`registry.py`, `template_generator.py`) | Fills the stub's `narrative.sections` with the per-value interpretation + Q4-summary text. |
 
 ## Testing
 

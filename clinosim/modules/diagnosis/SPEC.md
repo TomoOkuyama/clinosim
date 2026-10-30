@@ -67,6 +67,19 @@ P(Disease|Test) ∝ P(Test|Disease) × P(Disease)
 
 ## Internal Design
 
+> **Implementation status.** The pseudo-code below is the original
+> design. The shipped engine (`engine.py`) differs: the signatures are
+> `initialize_differential(disease_id, age, protocol_diagnostic=None)`,
+> `update_differential(diff, findings, confirmation_threshold=0.90,
+> protocol_lr_table=None)` with `findings: list[(name, is_positive)]`,
+> and `get_current_diagnosis_code(diff, protocol_progression=None,
+> patient_sex=None)`, which walks a confidence-keyed
+> `[(threshold, icd)]` progression table and sex-gates candidates.
+> The age adjustment applies only to `heart_failure` (age >= 75, x1.5);
+> referral-based prior adjustment, therapeutic trials,
+> `apply_diagnostic_drift`, `review_status()` and the LLM integration
+> points are not implemented. See [`README.md`](README.md).
+
 ### Bayesian update engine
 
 ```python

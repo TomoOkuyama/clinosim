@@ -27,7 +27,9 @@ FHIR resource ID prefixes every consumer imports.
   instead of `attending_physician_id`); reference-data loaders
   ([`reference_data_loaders.py`](reference_data_loaders.py) —
   `load_physical_exam_findings`, `load_discharge_instructions`
-  with 6-layer validators); per-encounter document-type dispatch
+  with 6-layer validators, plus `load_hpi_pertinent_negatives`,
+  `load_chief_complaint_variants`, `load_bedside_procedure_codes`,
+  `load_nursing_content`); per-encounter document-type dispatch
   (`_pick_document_author`, `_referral_note_fires`,
   `_enc_type_value`, `_enc_status_value`, `_compute_los_days`,
   `_make_doc_stub`).
@@ -87,45 +89,51 @@ from clinosim.modules.document.engine import document_enricher
 
 ## Determinism
 
-- Sub-seed offset `0x444F` (`"DO"`, Tier 1 #3 α-min-1 PR1) —
-  registered in [`clinosim/seeding.py`](../../seeding.py) via
-  `ENRICHER_SEED_OFFSETS["document"]`.
-- Per-encounter sub-RNG:
-  `derive_sub_seed(master_seed, offset, encounter_id)` — main
-  patient RNG untouched (AD-16).
+- `document_enricher` draws no random numbers. The only
+  stochastic-looking choice — whether an eligible discharge emits a
+  referral note (`REFERRAL_NOTE_FIRE_RATE = 0.20`) — is a stable
+  `sha256(f"{encounter_id}::{patient_id}")` threshold
+  (`_referral_note_fires`), so no RNG stream is consumed (AD-16).
+- A sub-seed offset `0x444F` (`"DO"`) is registered as
+  `ENRICHER_SEED_OFFSETS["document"]` in
+  [`clinosim/seeding.py`](../../seeding.py), but no code reads it.
 - Two-pass contract (AD-65): `document_enricher` produces stubs
   with `narrative=None`; populating narrative during the same
   simulation pass would silently no-op the Stage 2 differ. The
-  contract is guarded by `test_narrative_populates_only_stage2`.
+  contract is guarded by
+  `tests/unit/test_document_enricher_stub_only.py`
+  (`test_enricher_produces_stub_with_narrative_none`).
 
 ## Dependencies
 
-- `clinosim.modules._shared` — `get_attr_or_key`,
-  `set_attr_or_key`, `is_jp`.
+- `clinosim.modules._shared` — `get_attr_or_key`, `is_jp`,
+  `resolve_lang`.
 - `clinosim.modules.document.narrative.registry` — spec loaders +
   filters.
 - `clinosim.modules.document.reference_data_loaders` — physical
   exam findings + discharge instructions.
-- `clinosim.seeding` — `ENRICHER_SEED_OFFSETS`, `derive_sub_seed`.
 - `clinosim.audit.registry` (via `audit.py`) — AD-60 audit
   registration.
 - `clinosim.types.document` — `DocumentType`, `FormatType`,
   `NarrativeContext`, `NarrativeOutput`.
 - `clinosim.types.clinical` — `ClinicalDocument`,
-  `ClinicalDocumentNarrative`.
+  `ClinicalImpressionRecord`.
 - `clinosim.types.encounter` — encounter types + primary_nurse_id
   / attending_physician_id fields.
-- `yaml`, `numpy`.
+- `yaml`.
 
 ## Constants and configuration
 
 - **Canonical ID prefixes** (writer-owned; every FHIR builder
   imports these): `DOC_REFERENCE_ID_PREFIX`,
   `COMPOSITION_ID_PREFIX`, `ALLERGY_ID_PREFIX`,
-  `CLINICAL_IMPRESSION_ID_PREFIX`. `fhir_r4/demographics/patient.py` still writes
-  `allergy-{patient_id}-{index:02d}` inline; the constant here
-  canonicalises the prefix for Task 9 FHIR builders (concern
-  logged; unification tracked).
+  `CLINICAL_IMPRESSION_ID_PREFIX`. The FHIR builders in
+  `output/fhir_r4/documents/` (`documents.py`, `composition.py`) and
+  `output/fhir_r4/conditions/` (`allergy_intolerance.py`,
+  `clinical_impression.py`) pass them to `derive_opaque_id`.
+  `fhir_r4/demographics/patient.py` still contains an uncalled
+  legacy `_build_allergy_intolerance` that writes
+  `allergy-{patient_id}-{index:02d}` inline.
 - **`NURSING_LOINCS`** (frozenset, loaded via `_load_nursing_loincs`
   from `engine.py`) — LOINC codes for nursing-authored documents.
   `_pick_document_author` dispatches to
@@ -133,14 +141,17 @@ from clinosim.modules.document.engine import document_enricher
   set, else to `attending_physician_id` (AD-65 Bug B fix).
 - **Document-type specs**
   ([`reference_data/document_type_specs.yaml`](reference_data/document_type_specs.yaml))
-  — per-document-type registry entries. Each carries LOINC,
-  `format_type` (`"free_text"` / `"composition"`),
+  — per-document-type registry entries (`DocumentTypeSpec` in
+  `clinosim/types/document.py`). Each carries `loinc_code`,
+  `format_type` (`"free_text"` / `"composition"` /
+  `"questionnaire_response"`), `countries_supported`,
+  `generation_frequency`, composition sections, `stage2_strategy`,
   `encounter_types_supported` allowlist (AD-64 α-min-2 — an EMPTY
   tuple means "matches ALL encounter types", so specs for
   inpatient-only documents MUST declare
   `[inpatient, icu, rehab_inpatient]` explicitly to avoid leaking
-  into outpatient / ED encounters), country gate, author-role
-  hint.
+  into outpatient / ED encounters). Author dispatch is by LOINC
+  (`NURSING_LOINCS`), not a spec field.
 - **6-layer reference-data validators** (Task 5 pattern) —
   `_validate_physical_exam_findings` and
   `_validate_discharge_instructions` run empty-top / missing-key /
@@ -157,11 +168,16 @@ from clinosim.modules.document.engine import document_enricher
 clinosim/modules/document/
   __init__.py                        public API + canonical ID prefixes
   engine.py                          document_enricher + doc-stub helpers + NURSING_LOINCS
-  reference_data_loaders.py          load_physical_exam_findings + load_discharge_instructions (6-layer)
+  reference_data_loaders.py          load_physical_exam_findings + load_discharge_instructions (6-layer) + other cached loaders
   audit.py                           AD-60 audit plug-in #5 — 49-check lift_firing_proof
   reference_data/
     document_type_specs.yaml         per-document-type registry
+    section_catalog.yaml             Composition section slug catalog (narrative/registry.py, composition.py)
     physical_exam_findings.yaml      per-disease PE findings (baseline + override)
+    hpi_pertinent_negatives.yaml     HPI pertinent negatives (load_hpi_pertinent_negatives)
+    bedside_procedure_codes.yaml     bedside procedure codes (load_bedside_procedure_codes)
+    narrative_extras_whitelists.yaml narrative extra-context whitelists (narrative/_extra_context_builder.py)
+    ja_only_fallback_sections.yaml   sections exempt from the US H&P JA-char audit (audit.py)
     # discharge_instructions.yaml moved to `clinosim/codes/data/clinosim-discharge-instruction.yaml`
     # under META #1805 Phase E (#1862) — the file lives beside the other `clinosim-*` catalogs.
     chronic_soap_templates.yaml      chronic-condition SOAP note templates
@@ -173,7 +189,7 @@ clinosim/modules/document/
 
 Registered in
 [`clinosim/simulator/enrichers.py`](../../simulator/enrichers.py)
-(`~L340-348`):
+(`~L497-508`):
 
 - `name="document"`, `stage=POST_ENCOUNTER`, `order=95`,
   `enabled=lambda c: True`. Runs LAST in POST_ENCOUNTER (after
@@ -186,7 +202,7 @@ Registered in
 
 | Consumer | Where | Role |
 |---|---|---|
-| Enricher registry | [`clinosim/simulator/enrichers.py:344`](../../simulator/enrichers.py) | POST_ENCOUNTER order=95 registration. |
+| Enricher registry | [`clinosim/simulator/enrichers.py:503`](../../simulator/enrichers.py) | POST_ENCOUNTER order=95 registration. |
 | Audit registry | [`clinosim/modules/document/audit.py`](audit.py) | AD-60 audit plug-in — 49-check lift_firing_proof + clinical_acceptance. |
 | Narrative Stage 2 | [`clinosim/modules/document/narrative/passes.py`](narrative/passes.py) | Fills `narrative.sections` on every stub emitted here. |
 | FHIR document builders | [`clinosim/modules/output/fhir_r4/documents/`](../output/fhir_r4/documents/README.md) | Emit `DocumentReference` / `Composition` / `ClinicalImpression` from the stubs + populated narratives. |
@@ -196,7 +212,7 @@ Registered in
 ```bash
 pytest tests/unit -k "document" -q
 pytest tests/integration -k "document_chain" -q
-clinosim audit run -d <cohort_dir> --module document
+clinosim audit run -d <cohort_dir> --module document_chain
 ```
 
 Coverage: extensive — search `tests/unit -k document` for the

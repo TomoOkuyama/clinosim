@@ -32,13 +32,19 @@ multi-series expansion logic MUST live in
   `_build_generic_negative_report`); `inference` submodule (case-D
   fallback that infers modality / body-site from `Order.display_name`
   using a whitelist regex — no guessing, missing pattern returns
-  `None` and the enricher emits a text-only stub).
+  `None` and the enricher emits a stub study with no series, carrying
+  `description = display_name` and a generic negative-findings
+  report); per-encounter duplicate suppression (same start time +
+  canonicalised display name, Issue #822) and series-as-studies
+  consolidation (same CT / MR / US / XA modality + body site within
+  60 min, Issue #918).
 - **In scope (audit)**: [`audit.py`](audit.py) — fourth per-module
-  AD-60 plug-in (after hai, antibiotic, order). 15-check
-  `lift_firing_proof` guards canonical constants (`IMAGING_STUDY_ID_PREFIX`
+  AD-60 plug-in (after hai, antibiotic, order). Registers 7
+  `canonical_constants` (`IMAGING_STUDY_ID_PREFIX`
   / `ENDPOINT_ID_PREFIX` / `RADIOLOGY_REPORT_ID_PREFIX` /
   `IMAGING_CATEGORY_SNOMED` / `IMAGING_CATEGORY_V2_0074` /
-  `DICOM_UID_SYSTEM` / `DICOM_WADO_RS_CONNECTION_TYPE`), 3 emission
+  `DICOM_UID_SYSTEM` / `DICOM_WADO_RS_CONNECTION_TYPE`); its 15-check
+  `lift_firing_proof` covers 4 canonical-constant checks, 3 emission
   counts, 3 reference-integrity checks, and 5 no-drop invariants
   from the Section 3.4 emission matrix. `imaging_basedon_coverage`
   clinical axis requires 100 % of `ImagingStudy.basedOn` +
@@ -74,22 +80,26 @@ from clinosim.modules.imaging.inference import (
 - Sub-seed offset `0x4947` (`"IG"`, Tier 1 #2 PR1) — registered in
   [`clinosim/seeding.py`](../../seeding.py) via
   `ENRICHER_SEED_OFFSETS["imaging"]`.
-- Per-encounter sub-RNG:
-  `derive_sub_seed(master_seed, offset, encounter_id)` — main patient
+- Per-order sub-RNG:
+  `derive_sub_seed(master_seed, offset, order_id)` — main patient
   RNG untouched (AD-16).
 - DICOM Study Instance UIDs are derived from the sub-seed
-  (`_study_uid_from(sub_seed, kind="study")`) so the same encounter
-  always produces the same UID across runs.
+  (`_study_uid_from(sub_seed, kind="study")`; series UIDs from
+  `sub_seed + i`) so the same order always produces the same UID
+  across runs.
 
 ## Dependencies
 
-- `clinosim.modules._shared` — `get_attr_or_key`,
-  `get_or_create_container`, `is_jp`, `resolve_lang`.
+- `clinosim.modules._shared` — `get_attr_or_key`.
 - `clinosim.seeding` — `ENRICHER_SEED_OFFSETS`, `derive_sub_seed`.
 - `clinosim.codes.loader._load_system` — `_code_in_data` validator
   helper (matches `hai/engine.py` pattern).
 - `clinosim.audit.registry` (via `audit.py`) — AD-60 audit
   registration.
+- `clinosim.modules.output.fhir_r4` (via `audit.py` only) — canonical
+  category / DICOM constants and the builders the firing proof
+  exercises.
+- `clinosim.types.encounter` — `OrderType`, `OrderStatus`.
 - `clinosim.types.imaging` — `ImagingSeries`, `ImagingStudyRecord`,
   `RadiologyReport` (re-exported via `__init__.py`).
 - `numpy`, `yaml`.
@@ -106,14 +116,20 @@ from clinosim.modules.imaging.inference import (
   required keys, forward + reverse coverage, per-entry required
   fields, cross-reference to SNOMED / LOINC / body-site canonical
   sets).
-- **Canonical id + system constants** (owned by the FHIR builder,
-  imported here for audit): `IMAGING_STUDY_ID_PREFIX`,
-  `ENDPOINT_ID_PREFIX`, `RADIOLOGY_REPORT_ID_PREFIX`,
+- **Canonical id + system constants**: the ID prefixes
+  `IMAGING_STUDY_ID_PREFIX` (`"imgst-"`), `ENDPOINT_ID_PREFIX`
+  (`"endpoint-"`), `RADIOLOGY_REPORT_ID_PREFIX` (`"imgrpt-"`) are
+  owned by `engine.py` (writer side; the FHIR builders import them);
   `IMAGING_CATEGORY_SNOMED`, `IMAGING_CATEGORY_V2_0074`,
-  `DICOM_UID_SYSTEM`, `DICOM_WADO_RS_CONNECTION_TYPE`.
+  `DICOM_UID_SYSTEM`, `DICOM_WADO_RS_CONNECTION_TYPE` are owned by the
+  FHIR builders and imported by `audit.py`.
+- **Consolidation** (`engine.py`): `_SERIES_AS_STUDIES_WINDOW_MIN = 60`,
+  `_CONSOLIDATABLE_MODALITIES = {CT, MR, US, XA}` (CR is never
+  consolidated — same-shift portable films are legitimate).
 - **Inference whitelist** (`inference.py`): patterns MUST match on
   substring to fire; a missed match returns `None` so the enricher
-  emits a text-only stub rather than dropping the order silently.
+  emits a stub study (no series, generic negative report) rather than
+  dropping the order silently.
 
 ## Directory contents
 
@@ -136,7 +152,7 @@ The module has **no `enricher.py`** — the enricher entry lives in
 
 Registered in
 [`clinosim/simulator/enrichers.py`](../../simulator/enrichers.py)
-(`~L286-299`):
+(`~L380-391`):
 
 - `name="imaging"`, `stage=POST_ENCOUNTER`, `order=90`,
   `enabled=lambda c: True`. Runs after `antibiotic` (order=85) and
@@ -149,7 +165,7 @@ Registered in
 
 | Consumer | Where | Role |
 |---|---|---|
-| Enricher registry | [`clinosim/simulator/enrichers.py:294`](../../simulator/enrichers.py) | POST_ENCOUNTER order=90 registration. |
+| Enricher registry | [`clinosim/simulator/enrichers.py:385`](../../simulator/enrichers.py) | POST_ENCOUNTER order=90 registration. |
 | Audit registry | [`clinosim/modules/imaging/audit.py`](audit.py) | AD-60 audit plug-in. |
 | FHIR `ImagingStudy` / `Endpoint` / radiology `DiagnosticReport` / `ServiceRequest` builders | [`clinosim/modules/output/fhir_r4/`](../output/fhir_r4/) | Emit the four resource families from `extensions["imaging"]`. |
 | Order module | [`clinosim/modules/order/engine.py`](../order/engine.py) | `place_imaging_orders` reads modality catalog's `default_views_by_body_site` for empty-views fallback. |

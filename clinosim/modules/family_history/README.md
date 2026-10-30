@@ -15,7 +15,7 @@ and CSV adapters emit `FamilyMemberHistory` resources and a
 - **In scope**: mother + father + 0-2 siblings per patient, with per-
   relative age derived from the patient's age (parents older by a
   configurable offset, siblings ± an offset), parent-deceased sampling
-  that rises with age, and per-disease sampling using
+  that rises with age (siblings are always recorded as living), and per-disease sampling using
   `base_prevalence(disease, relative_sex, relative_age_band) ×
   heritability(disease)` when the patient carries the code.
 - **Diseases modelled**: cardiovascular / metabolic
@@ -84,7 +84,7 @@ the ICD base by uppercase-splitting on `.`. Deterministic for a given
   - `relationships` — v3-RoleCode entries for `MTH`, `FTH`, `NSIB`
     with per-code EN + JA display. **The JA canonical display strings
     are code-by-code** (`"母"` for MTH, `"父"` for FTH, `"natural
-    sibling"` / `"実兄弟姉妹"` for NSIB) and MUST NOT be inferred
+    sibling"` / `"兄弟姉妹"` for NSIB) and MUST NOT be inferred
     from a sibling code — see the file header comment (Issue #369
     v23 regression) for the exact drift that broke PR #372.
   - `conditions` — per-ICD `{sex, heritability}`.
@@ -135,8 +135,8 @@ Registered in
 | Consumer | Where | Role |
 |---|---|---|
 | CSV adapter | [`clinosim/modules/output/csv_adapter.py`](../output/csv_adapter.py) (`~L341`, `~L418`) | Writes `family_history.csv` from `record["family_history"]` (patient-unique). |
-| FHIR `FamilyMemberHistory` builder | [`clinosim/modules/output/fhir_r4/demographics/family_history.py`](../output/fhir_r4/demographics/family_history.py) | Emits one `FamilyMemberHistory` per relative; ids are `fmh-{patient_id}-NN` for write-time de-dup. |
-| Enricher registry | [`clinosim/simulator/enrichers.py:175`](../../simulator/enrichers.py) | POST_RECORDS registration. |
+| FHIR `FamilyMemberHistory` builder | [`clinosim/modules/output/fhir_r4/demographics/family_history.py`](../output/fhir_r4/demographics/family_history.py) | Emits one `FamilyMemberHistory` per relative; ids are opaque `fmh-<12hex>` derived from the structural key `{patient_id}-NN` (kept as an identifier) for write-time de-dup. |
+| Enricher registry | [`clinosim/simulator/enrichers.py:254`](../../simulator/enrichers.py) | POST_RECORDS registration. |
 
 ## Testing
 

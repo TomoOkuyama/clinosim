@@ -29,7 +29,9 @@ modules:
 [`clinosim.modules.population`](../population/README.md) schedules
 `chemo_visit` LifeEvents on the year calendar using
 [`clinosim/locale/shared/chemo_regimens.yaml`](../../locale/shared/chemo_regimens.yaml)
-regimens (FOLFOX q14d, CarboPem q21d, Trastuzumab q3w, LHRH q28d);
+regimens (e.g. FOLFOX q14d, CarboPem q21d, Trastuzumab q3w, LHRH q28d,
+GemNabP, BCG intravesical, Temozolomide Stupp; C22 has no chemo regimen
+yet and is treated through chronic oral TKIs);
 [`clinosim.modules.order`](../order/README.md) emits per-cycle
 MedicationRequest + MedicationAdministration for each Day-1 drug in
 the regimen's `cycle_orders`;
@@ -72,7 +74,13 @@ slice list): [`docs/reference/oncology-obstetric-service-lines.md`](../../../doc
   through Pydantic (`extra="forbid"`) and additional
   `_validate_drug_*` passes reject dose ↔ route contradictions
   (fallback-relative), invalid escalation `type` values, missing
-  duration in long-interval doses, and localised-dose-key typos.
+  duration in long-interval doses, localised-dose-key typos, and
+  `route:` values outside the shared route vocabulary. The loader also
+  fails loud on invalid severity blocks (`severity._validate_severity_block`),
+  `archetype_modifiers` / `course_archetypes` / complication risk-factor
+  vocabulary (validators in `clinosim.modules.clinical_course.engine`),
+  and unknown state-var keys in `initial_state_impact` / `complications`
+  (validators in `clinosim.modules.physiology.engine`).
 - **Out of scope**: the physiology-state update mechanics that read
   a protocol at simulation time
   ([`clinosim.modules.physiology`](../physiology/README.md)),
@@ -108,6 +116,8 @@ from clinosim.modules.disease.protocol import (
     dose_route_tokens,
     dose_contradicts_fallback,
     dose_names_long_interval,
+    # Alternative-drug lookup (drug_safety.suggest_alternative)
+    alternatives_by_indication,   # (protocol, indication_tag, country) -> list[dict]
 )
 
 # Severity model
@@ -115,7 +125,7 @@ from clinosim.modules.disease.severity import (
     SEVERITY_CATEGORIES,          # ("mild", "moderate", "severe")
     SEVERITY_SCORE_RANGES,        # canonical half-open ranges
     category_from_score,          # (score) -> "mild"|"moderate"|"severe"
-    sample_severity_category,     # (dist, modifiers, minimum, person, rng)
+    sample_severity_category,     # (distribution, modifiers, person, rng, minimum) -> str
     sample_severity,              # (protocol, person, rng) -> (category, score)
     EVALUABLE_CONDITIONS,
     RESERVED_INTRINSIC_CONDITIONS,
@@ -147,9 +157,10 @@ any schema or validation failure.
 ## Determinism
 
 - Severity sampling (`sample_severity_category`, `sample_severity`)
-  is deterministic in `rng`; the caller (`clinosim.modules.population`
-  hospitalization gate + `clinosim.modules.patient.activator`) owns
-  the seed derivation. No sub-seed offset is registered because this
+  is deterministic in `rng`; the callers (`clinosim.modules.population`
+  hospitalization gate via `sample_severity`, and the ED path in
+  `clinosim/simulator/emergency.py` via `sample_severity_category`)
+  own the seed derivation. No sub-seed offset is registered because this
   module is not an enricher — it is imported directly by whoever
   needs the sampler.
 - Everything else (loaders, validators, drug-vocabulary helpers,
@@ -162,13 +173,19 @@ any schema or validation failure.
 - `numpy` — `np.random.Generator` for severity sampling.
 - `clinosim.modules._shared` — `normalize_probabilities`
   (`fallback="raise"`).
+- Lazy (in-function) imports used by the loader-time validators and
+  localization: `clinosim.modules.clinical_course.engine`,
+  `clinosim.modules.physiology.engine`,
+  `clinosim.modules.output.fhir_r4.lib.reference_data`
+  (`validate_yaml_route_value`), `clinosim.locale.text`
+  (`resolve_text`).
 - No dependency on `clinosim.simulator` (strict one-way boundary —
   simulator reads disease, never the other way).
 
 ## Constants and configuration
 
 - **Disease YAML registry**: [`reference_data/`](reference_data/) —
-  32 files today (one per disease id; filename = disease_id +
+  36 files today (one per disease id; filename = disease_id +
   `.yaml`). Each carries country-specific epidemiology, severity
   distribution + modifiers, presenting symptoms, physiology impact,
   daily trajectory archetypes, complications, order protocols
@@ -228,7 +245,7 @@ clinosim/modules/disease/
   acuity.py                       EMERGENCY_PRIORITY / CRITICAL_MONITORING / NEURO_LOC sets
   localization.py                 country → YAML key + chief complaint + department + target_los
   reference_data/
-    <disease_id>.yaml             32 files (one per disease)
+    <disease_id>.yaml             36 files (one per disease)
   SPEC.md                         extended design reference (not runtime)
 ```
 
@@ -246,11 +263,14 @@ what it needs directly.
 
 | Consumer | Where | Role |
 |---|---|---|
-| Simulator boot | [`clinosim/simulator/engine.py`](../../simulator/engine.py) | Loads `load_all_disease_protocols()` once per run. |
+| Simulator boot | [`clinosim/simulator/engine.py`](../../simulator/engine.py) | Loads `load_all_disease_protocols()` once per run (imported via the `simulator/helpers.py` re-export). |
 | Inpatient encounter | [`clinosim/simulator/inpatient.py`](../../simulator/inpatient.py) | Reads `DiseaseProtocol` for admission orders, daily trajectory, drug protocols, target LOS; consults the acuity-tier sets to gate `Encounter.priority` and vitals sampling frequency. |
-| Emergency / outpatient / daily loop | [`clinosim/simulator/{emergency,outpatient,daily_loop,vitals_pipeline}.py`](../../simulator/) | Same read pattern as inpatient at their respective encounter tiers. |
+| Emergency / daily loop / vitals | [`clinosim/simulator/{emergency,daily_loop,vitals_pipeline}.py`](../../simulator/) | ED severity draw (`sample_severity_category`), `DiseaseProtocol` reads in the daily loop, `CRITICAL_MONITORING_DISEASES` for vitals frequency. |
 | Discharge gate + rx | [`clinosim/simulator/{discharge_gate,discharge_rx}.py`](../../simulator/) | Uses `DiseaseProtocol.discharge_criteria` + `discharge_oral` drug block. |
-| Simulator helpers | [`clinosim/simulator/helpers.py`](../../simulator/helpers.py) | Re-exports `disease.localization` helpers for one deprecation cycle (Issue #544). |
+| Simulator helpers | [`clinosim/simulator/helpers.py`](../../simulator/helpers.py) | Backward-compat re-export of `disease.localization` helpers + `load_all_disease_protocols` (Issue #544). |
+| Population | [`clinosim/modules/population/engine.py`](../population/engine.py) | `sample_severity` for the hospitalization gate. |
+| Drug safety | [`clinosim/modules/drug_safety/engine.py`](../drug_safety/engine.py) | `alternatives_by_indication` for `suggest_alternative`. |
+| Clinical course / procedure | [`clinosim/modules/clinical_course/engine.py`](../clinical_course/engine.py), [`clinosim/modules/procedure/engine.py`](../procedure/engine.py) | Modifier-condition vocabulary (`EVALUABLE_CONDITIONS`, `KNOWN_MODIFIER_CONDITIONS`); `NEURO_LOC_MONITORING_DISEASES`. |
 | Narrative | [`clinosim/modules/document/narrative/{passes,template_generator}.py`](../document/narrative/) | Reads `DiseaseProtocol.narrative` templates + `HpiTemplate` + `DischargeInstructions`. |
 
 ## Testing
@@ -264,7 +284,7 @@ Individual files:
 - [`tests/unit/test_disease_yaml_drug_code_consistency.py`](../../../tests/unit/test_disease_yaml_drug_code_consistency.py)
   — every drug entry's code resolves in `clinosim/codes/`.
 - [`tests/unit/test_disease_yaml_key_coverage.py`](../../../tests/unit/test_disease_yaml_key_coverage.py)
-  — canonical key coverage across the 32 YAMLs.
+  — canonical key coverage across the 36 YAMLs.
 - [`tests/unit/test_disease_protocol_extra_forbid.py`](../../../tests/unit/test_disease_protocol_extra_forbid.py)
   — Pydantic `extra="forbid"` guard on unknown keys.
 - [`tests/unit/test_cli_test_disease_format.py`](../../../tests/unit/test_cli_test_disease_format.py)

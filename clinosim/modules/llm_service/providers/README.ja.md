@@ -11,7 +11,7 @@ task-type dispatch) を所有、本 subpackage は実装 + registry を所有す
 ## Scope
 
 - **In scope**: `LLMProvider` Protocol (`base.py`)、`ProviderResponse`
-  dataclass、bundle されている 5 provider 実装 (`mock`、
+  dataclass、bundle されている 4 provider 実装 (`mock`、
   `ollama` + `local` alias、`bedrock`、`vllm` + `openai_compatible`
   alias)、`_REGISTRY` mapping、plug-in 面
   (`register_provider` + `build_provider`)。
@@ -51,9 +51,12 @@ provider builder を map:
 
 ## 決定論
 
-- `MockProvider` は完全決定論的 (prompt hash / manifest lookup に
-  基づく canned text を返す)。`call_count`、`last_prompt`、`last_model`
-  を記録し test が assert できる。
+- `MockProvider` は同一呼び出し順序に対して決定論的 (I/O なし)。
+  通し呼び出し番号・model・prompt 先頭行を埋め込んだ stub を返す。
+  prompt に `<rewritten section body>` の JSON schema placeholder が
+  あれば、要求 key ごとに stub 値を持つ JSON object を返す。
+  `call_count`、`last_prompt`、`last_system_prompt`、`last_model` を
+  記録し test が assert できる。
 - 3 network provider は設定 `temperature=0` かつ backend が同 model
   version を serve するときのみ決定論的。親層の `PromptCache` は
   content-addressed なので、両条件が揃えば再実行間の byte-identity を
@@ -63,17 +66,19 @@ provider builder を map:
 
 - `base.py` + `mock.py` + `__init__.py` は標準ライブラリのみ。
 - `boto3` — `bedrock.py` で lazy import
-  (`BedrockProvider.__init__` 内で `import boto3`)。Bedrock を使わない
+  (初回使用時に `BedrockProvider._ensure_client` 内で `import boto3`)。Bedrock を使わない
   host では clinosim boot に AWS SDK が要らない。
-- `httpx` — `ollama.py` + `vllm.py` の HTTP 呼び出しに必須。
+- `httpx` — `ollama.py` + `vllm.py` の HTTP 呼び出しに必須
+  (呼び出し method 内で import)。
 - 他の `clinosim.modules.*` に依存しない。`llm_service` 上位にも
   依存しない (pure implementation 層)。
 
 ## 定数と設定
 
 - **`LLMProvider` Protocol** (`base.py`) — `@runtime_checkable`、
-  method 1 つ `complete(prompt, model, max_tokens, system_prompt,
-  temperature, stop_sequences) -> ProviderResponse`。実装は error 時に
+  method 2 つ: `complete(prompt, model, max_tokens, system_prompt,
+  temperature, stop_sequences) -> ProviderResponse` と
+  `health_check() -> bool` (raise しない)。実装は error 時に
   raise、caller (`LLMService`) が retry / fallback / cost tally を扱う。
 - **`ProviderResponse` field** — `text`, `input_tokens`,
   `output_tokens`, `model`, `latency_ms`, `metadata`
@@ -125,6 +130,6 @@ translation、retry 意味論) は低コストの follow-up。
 ## Ownership
 
 `maintainers@` — 詳細は
-[`CONTRIBUTING.md`](../../../../CONTRIBUTING.ja.md)。
+[`CONTRIBUTING.ja.md`](../../../../CONTRIBUTING.ja.md)。
 
-英語版: [`README.md`](README.ja.md)。
+英語版: [`README.md`](README.md)。

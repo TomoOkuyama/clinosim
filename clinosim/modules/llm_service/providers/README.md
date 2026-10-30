@@ -12,7 +12,7 @@ dispatch); this subpackage owns implementations + the registry.
 ## Scope
 
 - **In scope**: `LLMProvider` Protocol (`base.py`), `ProviderResponse`
-  dataclass, the five bundled provider implementations (`mock`,
+  dataclass, the four bundled provider implementations (`mock`,
   `ollama` + `local` alias, `bedrock`, `vllm` + `openai_compatible`
   alias), the `_REGISTRY` mapping, and the plug-in surface
   (`register_provider` + `build_provider`).
@@ -52,9 +52,13 @@ via `register_provider("anthropic_direct", builder)`.
 
 ## Determinism
 
-- `MockProvider` is fully deterministic (returns canned text based on
-  the prompt hash / manifest lookup); it records `call_count`,
-  `last_prompt`, `last_model` so tests can assert.
+- `MockProvider` is deterministic for a given call sequence (no I/O):
+  it returns a stub embedding its running call number, the model and
+  the first prompt line — or, when the prompt carries the
+  `<rewritten section body>` JSON-schema placeholder, a JSON object
+  with one stub value per requested key. It records `call_count`,
+  `last_prompt`, `last_system_prompt`, `last_model` so tests can
+  assert.
 - The three networked providers are deterministic ONLY when the
   configured `temperature=0` AND the same model version is served
   by the backend. The parent-level `PromptCache` layer restores
@@ -65,17 +69,19 @@ via `register_provider("anthropic_direct", builder)`.
 
 - Standard library only for `base.py` + `mock.py` + `__init__.py`.
 - `boto3` — lazily imported by `bedrock.py` (`import boto3` is inside
-  `BedrockProvider.__init__`) so clinosim boot does not require the
+  `BedrockProvider._ensure_client`, on first use) so clinosim boot does not require the
   AWS SDK on hosts that never use Bedrock.
-- `httpx` — required by `ollama.py` + `vllm.py` for HTTP calls.
+- `httpx` — required by `ollama.py` + `vllm.py` for HTTP calls
+  (imported inside the call methods).
 - No dependency on any other `clinosim.modules.*`; no dependency on
   the rest of `llm_service` (this is a pure-implementation layer).
 
 ## Constants and configuration
 
 - **`LLMProvider` Protocol** (`base.py`) — `@runtime_checkable`,
-  single method `complete(prompt, model, max_tokens, system_prompt,
-  temperature, stop_sequences) -> ProviderResponse`. Implementations
+  two methods: `complete(prompt, model, max_tokens, system_prompt,
+  temperature, stop_sequences) -> ProviderResponse` and
+  `health_check() -> bool` (must not raise). Implementations
   raise on error; the caller (`LLMService`) handles retry / fallback
   / cost tallying.
 - **`ProviderResponse` fields** — `text`, `input_tokens`,

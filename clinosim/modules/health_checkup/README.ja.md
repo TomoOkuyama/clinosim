@@ -5,8 +5,8 @@
 日本の労働安全衛生法に基づく **事業者健診** (annual employer-provided
 health checkup) を JP コホートに追加する opt-in POST_RECORDS enricher。
 40 歳以上成人から SHA-256 hash by `patient_id` で決定論的に 30 %
-サブセットを選定し、simulation snapshot の手前日付に 1 年 1 回の
-`CHECKUP` encounter、法定健診項目 5 種 (BMI、収縮期 BP、拡張期 BP、
+サブセットを選定し、選定患者ごとに 1 件 (simulation snapshot の
+90 日前) の `CHECKUP` encounter、法定健診項目 5 種 (BMI、収縮期 BP、拡張期 BP、
 HbA1c、LDL コレステロール)、および `HEALTH_CHECKUP_REPORT` の
 `ClinicalDocument` stub (narrative は
 [`document.narrative`](../document/narrative/README.ja.md) が Stage 2
@@ -19,11 +19,16 @@ HbA1c、LDL コレステロール)、および `HEALTH_CHECKUP_REPORT` の
 ## Scope
 
 - **In scope**: 患者サブセット選定 (年齢 gate + 決定論 hash)、
-  snapshot 基点の健診日決定 (~90 日前、複数年 snapshot では複数
-  checkup 生成)、年齢層別 checkup type dispatch (40-64 → 事業者健診、
+  snapshot 基点の健診日決定 (snapshot のちょうど 90 日前、snapshot
+  未設定時は 2026-12-31 基準。simulation 期間に関わらず患者あたり
+  1 回)、年齢層別 checkup type dispatch (40-64 → 事業者健診、
   65-74 → 特定健診、75+ → 広域連合健診 — MVP 単一 tier dispatch、
   保険種別による精緻化は将来 sub-PR)、CHECKUP encounter 構築
-  (単日 admission + discharge)、per-analyte 測定ノイズ付きの
+  (`CHK-{patient_id}-001`、同日 09:00-11:00、department
+  `health_checkup`)、`panel_key="Checkup"` を共有する LAB `Order` 5 件
+  (→ ServiceRequest 1 + DiagnosticReport 1 + Observation 5)、これらを
+  患者ごとに新規の独立 `CIFPatientRecord` として追加 (narrative pass が
+  CHECKUP encounter を `encounters[0]` として認識するため)、per-analyte 測定ノイズ付きの
   法定 5 項目、per-analyte 解釈 (normal / high) + reference-range
   文字列、`HEALTH_CHECKUP_REPORT` の `ClinicalDocument` stub
   (narrative=None、Stage 2 fill 用)。
@@ -64,7 +69,7 @@ tier 閾値 (`CHECKUP_TYPE_SPECIFIC_AGE_MIN = 65`,
   `ENRICHER_SEED_OFFSETS["health_checkup"]` に登録済み。5 項目の
   per-patient 測定ノイズに使い、population 主 RNG 列は消費しない
   (AD-16)。
-- 健診日は snapshot 日からの決定論オフセット (~90 日前) であり、
+- 健診日は snapshot 日からの決定論オフセット (90 日前) であり、
   random draw ではない。
 
 ## 依存
@@ -78,6 +83,7 @@ tier 閾値 (`CHECKUP_TYPE_SPECIFIC_AGE_MIN = 65`,
 - `clinosim.types.clinical` — `ClinicalDocument`。
 - `clinosim.types.encounter` — `Encounter`, `EncounterStatus`,
   `EncounterType`, `Order`, `OrderResult`, `OrderStatus`, `OrderType`。
+- `clinosim.types.output` — `CIFPatientRecord` (新規健診 record)。
 - `hashlib.sha256` — 患者選定。
 - `numpy` — 測定ノイズ用 `np.random.Generator`。
 - 他の `clinosim.modules.*` には依存しない。
@@ -118,7 +124,7 @@ enricher entry は `engine.py` の `enrich_health_checkup`、reference
 ## Enricher 配線
 
 [`clinosim/simulator/enrichers.py`](../../simulator/enrichers.py)
-(`L350-380` 付近) の `register_builtin_enrichers` で登録:
+(`L510-540` 付近) の `register_builtin_enrichers` で登録:
 
 - `name="health_checkup"`, `stage=POST_RECORDS`, `order=70`。
 - `enabled=_health_checkup_enabled` —
@@ -127,17 +133,18 @@ enricher entry は `engine.py` の `enrich_health_checkup`、reference
   `None`-safe fallback (care_level pattern) により registry-helper
   test の `ctx.config=None` にも耐える。
 - POST_RECORDS の全 enricher (nursing 20 / immunization 30 /
-  family_history 40 / code_status 50 / care_level 60) の後に実行し、
+  family_history 40 / code_status 50 / care_level 60 /
+  medication_monitoring 65) の後に実行し、
   CHECKUP encounter が先行 enricher の RNG stream を乱さないようにする。
 
 ## Output surface (consumers)
 
 | Consumer | 場所 | 役割 |
 | --- | --- | --- |
-| Enricher registry | [`clinosim/simulator/enrichers.py:373`](../../simulator/enrichers.py) | POST_RECORDS order=70 登録。 |
-| Encounter type mapping | [`clinosim/modules/output/fhir_r4/encounters/encounter.py`](../output/fhir_r4/encounters/encounter.py) | `EncounterType.CHECKUP` を JP-eCheckup の `class` + `type` に写像。 |
-| FHIR DocumentReference builder | [`clinosim/modules/output/fhir_r4/documents/document_reference_checkup.py`](../output/fhir_r4/documents/document_reference_checkup.py) | `HEALTH_CHECKUP_REPORT` stub を `DocumentReference` として emit (narrative populate 後は Composition 相当)。 |
-| Narrative Stage 2 | [`clinosim/modules/document/narrative/passes.py`](../document/narrative/passes.py) | stub の `narrative.sections` を per-value 解釈 + Q4 summary で埋める。 |
+| Enricher registry | [`clinosim/simulator/enrichers.py:534`](../../simulator/enrichers.py) | POST_RECORDS order=70 登録。 |
+| FHIR Composition builder | [`clinosim/modules/output/fhir_r4/documents/jp_clins/echeckup_general.py`](../output/fhir_r4/documents/jp_clins/echeckup_general.py) (`documents/composition.py` 経由) | populate 済み `HEALTH_CHECKUP_REPORT` を JP-eCheckup General `Composition` として emit。 |
+| FHIR DocumentReference builder | [`clinosim/modules/output/fhir_r4/documents/document_reference_checkup.py`](../output/fhir_r4/documents/document_reference_checkup.py) | Composition を参照する付随 `DocumentReference` (`drf-<document_id>`) を emit。`narrative` が `None` の間は skip。 |
+| Narrative Stage 2 | [`clinosim/modules/document/narrative/`](../document/narrative/README.ja.md) (`registry.py`、`template_generator.py`) | stub の `narrative.sections` を per-value 解釈 + Q4 summary で埋める。 |
 
 ## テスト
 
@@ -161,4 +168,4 @@ pytest tests/unit -k "health_checkup or checkup" -q
 `maintainers@` — 詳細は
 [`CONTRIBUTING.md`](../../../CONTRIBUTING.ja.md)。
 
-英語版: [`README.md`](README.ja.md)。
+英語版: [`README.md`](README.md)。
