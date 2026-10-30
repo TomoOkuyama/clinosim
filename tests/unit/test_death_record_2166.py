@@ -111,3 +111,21 @@ def test_sync_profile_death_dates_hides_deaths_after_the_cutoff() -> None:
     rec = CIFPatientRecord(patient=PatientProfile(patient_id="P1", date_of_death=date(2026, 6, 1)))
     sync_profile_death_dates([rec], reg, as_of=date(2026, 3, 31))
     assert rec.patient.date_of_death is None
+
+
+def test_death_counts_by_place_counts_deaths_inside_the_window() -> None:
+    from clinosim.modules.population.vital_status import death_counts_by_place
+
+    reg = PopulationRegistry()
+    for pid, when, place in [
+        ("A", date(2025, 1, 5), "hospital"),
+        ("B", date(2025, 7, 1), "community"),
+        ("C", date(2025, 8, 1), "community"),
+        ("D", date(2027, 1, 1), "community"),  # after the window
+        ("E", None, None),
+    ]:
+        p = _person(pid)
+        if when is not None:
+            p.record_death(when, place)
+        reg.persons[pid] = p
+    assert death_counts_by_place(reg, date(2025, 1, 1), date(2026, 12, 31)) == {"hospital": 1, "community": 2}
