@@ -112,3 +112,10 @@ verify/boot_*/*_artifacts.tar.gz
 
 # LLM response cache written by `clinosim narrate` (config `cache.directory`).
 .llm_cache/
+# Session hand-off notes of the narrate-throughput investigation (#2211).
+# Kept locally under docs/session-resume/; never track them again.
+verify/NEXT_SESSION.md
+verify/WORK.md
+verify/BOOT_11_INFLIGHT.md
+verify/cleanup_paths.txt
+verify/sakura_ops.md

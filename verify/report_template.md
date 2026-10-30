@@ -97,7 +97,7 @@ From nvidia-smi dmon (SM occupancy):
 
 ## Recommended improvements
 
-**Constraint**: quality-preserving only. See `verify/WORK.md` quality
+**Constraint**: quality-preserving only. See the quality
 guardrails section. Rule 3 ICD VERBATIM, JA localization rules,
 per-doc-type block structure MUST NOT be removed.
 
@@ -116,7 +116,7 @@ Priority-ordered:
 - **Removing JA output localization**: makes Delirium → 谵妄 leak,
   drug canonical katakana breaks, Kanji headings degrade. Blocks
   ナラティブ文書としての適切さ requirement.
-- **Permanent switch to EN prompt (Case A' → prod)**: `[[feedback_llm_prompt_matches_output_language]]`
+- **Permanent switch to EN prompt (Case A' → prod)**: violates the rule that the prompt language matches the output language
   (S113→S114 rule). Case A' is a diagnostic tool only.
 
 ## Next steps

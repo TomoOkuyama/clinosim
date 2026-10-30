@@ -129,7 +129,7 @@ find /usr /opt -name "cccl*" -type d 2>/dev/null | head -5
 # 0. Boot & connect
 usacloud server boot -y --zone=is1a clinosim-bench-h100
 sleep 30
-ssh -i ~/.ssh/sakura_iris_ed25519 ubuntu@133.242.22.166
+ssh -i <your-key> ubuntu@<vm-ip>
 
 # 1. H1 (JIT cache remnants)
 ls -la ~/.cache/flashinfer/ 2>&1 | head -5

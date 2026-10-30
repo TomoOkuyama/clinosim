@@ -19,7 +19,7 @@
 (EngineCore pid=1688) Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
 (EngineCore pid=1688) [ERROR] `min_frames` is part of Qwen3VLVideoProcessorInitKwargs, but not documented. Make sure to add it to the docstring of the function in /home/ubuntu/vllm-env/lib/python3.12/site-packages/transformers/models/qwen3_vl/video_processing_qwen3_vl.py.
 (EngineCore pid=1688) [ERROR] `max_frames` is part of Qwen3VLVideoProcessorInitKwargs, but not documented. Make sure to add it to the docstring of the function in /home/ubuntu/vllm-env/lib/python3.12/site-packages/transformers/models/qwen3_vl/video_processing_qwen3_vl.py.
-(EngineCore pid=1688) INFO 09-17 12:39:09 [parallel_state.py:1640] world_size=1 rank=0 local_rank=0 distributed_init_method=tcp://133.242.22.166:60241 backend=nccl
+(EngineCore pid=1688) INFO 09-17 12:39:09 [parallel_state.py:1640] world_size=1 rank=0 local_rank=0 distributed_init_method=tcp://<vm-ip>:60241 backend=nccl
 (EngineCore pid=1688) INFO 09-17 12:39:09 [parallel_state.py:1977] rank 0 in world size 1 is assigned as DP rank 0, PP rank 0, PCP rank 0, TP rank 0, EP rank N/A, EPLB rank N/A
 (EngineCore pid=1688) INFO 09-17 12:39:13 [topk_topp_sampler.py:62] Using FlashInfer for top-p & top-k sampling.
 (EngineCore pid=1688) [transformers] The `use_fast` parameter is deprecated and will be removed in a future version. Use `backend="torchvision"` instead of `use_fast=True`, or `backend="pil"` instead of `use_fast=False`.
