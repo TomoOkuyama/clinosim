@@ -10,6 +10,7 @@ Subcommands:
 from __future__ import annotations
 
 import argparse
+import sys
 from pathlib import Path
 
 from clinosim.audit.engine import AuditEngine
@@ -45,7 +46,11 @@ def _dispatch_run(args) -> int:
         modules=args.module,
         axes=args.axis,
     )
-    result = engine.run()
+    try:
+        result = engine.run()
+    except ValueError as exc:
+        print(f"error: {exc}", file=sys.stderr)
+        return 2
     print(render_markdown(result))
     if args.report:
         write_markdown(result, args.report)

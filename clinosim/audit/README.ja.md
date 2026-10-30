@@ -105,6 +105,8 @@ register_audit_module(ModuleAuditSpec(
   `--report` 指定時はファイルにも出力)。`clinosim audit smoke -d DIR`
   は `silent_no_op` のみ。`clinosim audit list` は登録 module と
   そのチェックを表示。
+  未登録の `--module` 名や未知の `--axis` は、有効な名前を示して
+  終了コード 2 で終わる (#2201)。黙って何も監査しないことはない。
 
 ## ディレクトリ構成
 

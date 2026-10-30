@@ -51,8 +51,17 @@ class AuditEngine:
         if self.module_filter is None:
             selected_modules = list(registered)
         else:
-            selected_modules = [m for m in self.module_filter if m in registered]
+            # Issue #2201: an unregistered name used to be dropped silently,
+            # so a typo audited nothing and still looked like a pass.
+            unknown = [m for m in self.module_filter if m not in registered]
+            if unknown:
+                raise ValueError(f"unknown audit module(s) {unknown}; registered: {sorted(registered)}")
+            selected_modules = list(self.module_filter)
         axes_to_run = self.axis_filter or list(_BUILTIN_AXES)
+        available_axes = sorted(set(_PER_MODULE_RUNNERS) | set(_COHORT_RUNNERS))
+        unknown_axes = [a for a in axes_to_run if a not in available_axes]
+        if unknown_axes:
+            raise ValueError(f"unknown audit axis/axes {unknown_axes}; available: {available_axes}")
 
         # ``result.modules`` gets the cohort-level sentinel appended
         # below when a cohort-level axis runs. Pass a fresh copy so we
