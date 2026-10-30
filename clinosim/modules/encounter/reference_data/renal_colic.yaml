@@ -8,6 +8,7 @@ chief_complaint:
   en: "Severe flank pain radiating to groin, nausea, hematuria"
   ja: "激しい側腹部痛（鼠径部放散）・嘔気・血尿"
 encounter_type: emergency
+min_age: 16  # Issue #2174: presentation not drawn for younger children
 department: emergency_medicine
 disposition: discharge_home
 

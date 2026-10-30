@@ -8,6 +8,7 @@ chief_complaint:
   en: "Loss of consciousness, fainting episode"
   ja: "意識消失・失神エピソード"
 encounter_type: emergency
+min_age: 6  # Issue #2174: presentation not drawn for younger children
 department: emergency_medicine
 disposition: discharge_home
 

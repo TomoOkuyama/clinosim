@@ -8,6 +8,7 @@ chief_complaint:
   en: "Nosebleed, unable to stop with pressure"
   ja: "鼻出血（圧迫止血困難）"
 encounter_type: emergency
+min_age: 2  # Issue #2174: presentation not drawn for younger children
 department: emergency_medicine
 disposition: discharge_home
 

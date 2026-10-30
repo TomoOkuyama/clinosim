@@ -7,6 +7,7 @@ chief_complaint:
   en: "Foreign body sensation in eye, work-related"
   ja: "眼内異物（労災・作業中に発生）"
 encounter_type: emergency
+min_age: 3  # Issue #2174: presentation not drawn for younger children
 department: emergency_medicine
 disposition: discharge_home
 

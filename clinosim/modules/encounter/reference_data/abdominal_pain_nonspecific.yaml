@@ -8,6 +8,7 @@ chief_complaint:
   en: "Abdominal pain, nausea"
   ja: "腹痛・嘔気"
 encounter_type: emergency
+min_age: 2  # Issue #2174: presentation not drawn for younger children
 department: emergency_medicine
 disposition: discharge_home
 

@@ -8,6 +8,7 @@ chief_complaint:
   en: "Fall at home, no loss of consciousness"
   ja: "自宅での転倒（意識消失なし）"
 encounter_type: emergency
+min_age: 65  # Issue #2174: presentation not drawn for younger children
 department: emergency_medicine
 disposition: discharge_home
 

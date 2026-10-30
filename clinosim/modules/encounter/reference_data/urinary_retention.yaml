@@ -8,6 +8,7 @@ chief_complaint:
   en: "Unable to urinate, suprapubic pain and distension"
   ja: "排尿不能・恥骨上部痛・腹部膨満"
 encounter_type: emergency
+min_age: 18  # Issue #2174: presentation not drawn for younger children
 department: emergency_medicine
 disposition: discharge_home
 
