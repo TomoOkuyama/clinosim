@@ -2933,26 +2933,38 @@ The delegator is a 2-line shim; the real body is in the per-section file.</p>
 </tr>
 <tr>
 <td><code>clinosim/simulator/phases/_healthcare_calendar.py</code></td>
-<td><code>_run_healthcare_calendar_phase</code> (per-year scheduler)</td>
+<td><code>calendar_events_for_year</code>, <code>newborn_calendar_events</code>, <code>dispatch_calendar_event</code></td>
 <td>C2c</td>
 </tr>
 <tr>
 <td><code>clinosim/simulator/phases/_post_discharge.py</code></td>
-<td><code>_run_post_discharge_phase</code></td>
+<td><code>schedule_post_discharge</code>, <code>dispatch_post_discharge</code></td>
 <td>C2d</td>
 </tr>
 <tr>
 <td><code>clinosim/simulator/phases/_readmission.py</code></td>
-<td><code>_run_readmission_phase</code></td>
+<td><code>schedule_readmission</code>, <code>dispatch_readmission</code></td>
 <td>C2e</td>
 </tr>
 <tr>
 <td><code>clinosim/simulator/phases/_ed_slot.py</code></td>
-<td><code>_run_ed_slot_phase</code></td>
+<td><code>EDSlotSampler</code>, <code>dispatch_ed_slot</code></td>
 <td>C2f</td>
+</tr>
+<tr>
+<td><code>clinosim/simulator/phases/_forward_loop.py</code></td>
+<td><code>ForwardContext</code>, <code>EventQueue</code>, <code>run_forward_loop</code></td>
+<td>#2169</td>
 </tr>
 </tbody>
 </table>
+<p>Since Issue #2169 the four phases are no longer post-loop runners. Each one
+exposes a <em>schedule</em> step and a <em>dispatch</em> step, and <code>run_forward_loop</code>
+advances all of them month by month through one date-ordered event queue
+(year boundary → monthly life events → ED slots → dispatch). A delivery
+therefore registers a newborn before that newborn's own calendar and life
+events are generated, and a death recorded in any phase gates every later
+event of that person.</p>
 <h3 id="why-these-boundaries-vs-the-original-proposal">Why these boundaries (vs the original proposal)<a class="headerlink" href="#why-these-boundaries-vs-the-original-proposal" title="Permanent link">&para;</a></h3>
 <p>The pre-C2 plan at <a href="../../design-guides/p6-god-function-split-plan/"><code>../design-guides/p6-god-function-split-plan.md</code></a>
 proposed phase names <code>_run_beta_prepare</code> / <code>_run_beta_month_tick</code> /

@@ -2706,26 +2706,37 @@ import) は全て動作し続ける。</p>
 </tr>
 <tr>
 <td><code>clinosim/simulator/phases/_healthcare_calendar.py</code></td>
-<td><code>_run_healthcare_calendar_phase</code> (年次 scheduler)</td>
+<td><code>calendar_events_for_year</code>、<code>newborn_calendar_events</code>、<code>dispatch_calendar_event</code></td>
 <td>C2c</td>
 </tr>
 <tr>
 <td><code>clinosim/simulator/phases/_post_discharge.py</code></td>
-<td><code>_run_post_discharge_phase</code></td>
+<td><code>schedule_post_discharge</code>、<code>dispatch_post_discharge</code></td>
 <td>C2d</td>
 </tr>
 <tr>
 <td><code>clinosim/simulator/phases/_readmission.py</code></td>
-<td><code>_run_readmission_phase</code></td>
+<td><code>schedule_readmission</code>、<code>dispatch_readmission</code></td>
 <td>C2e</td>
 </tr>
 <tr>
 <td><code>clinosim/simulator/phases/_ed_slot.py</code></td>
-<td><code>_run_ed_slot_phase</code></td>
+<td><code>EDSlotSampler</code>、<code>dispatch_ed_slot</code></td>
 <td>C2f</td>
+</tr>
+<tr>
+<td><code>clinosim/simulator/phases/_forward_loop.py</code></td>
+<td><code>ForwardContext</code>、<code>EventQueue</code>、<code>run_forward_loop</code></td>
+<td>#2169</td>
 </tr>
 </tbody>
 </table>
+<p>Issue #2169 以降、4 つの phase はループ後の runner ではない。各 phase は
+<em>schedule</em> と <em>dispatch</em> の 2 段を公開し、<code>run_forward_loop</code> が日付順の
+イベントキュー 1 本で全 phase を月単位に進める (年境界 → 月次ライフ
+イベント → ED 枠 → dispatch)。そのため出産で登録された新生児は、自身の
+受診予定とライフイベントが作られる前に集団へ加わり、どの phase で記録
+された死亡もその人の以後のイベントをすべて止める。</p>
 <h3 id="なぜこの境界か-原案との差">なぜこの境界か (原案との差)<a class="headerlink" href="#なぜこの境界か-原案との差" title="Permanent link">&para;</a></h3>
 <p>C2 前の計画書
 <a href="../../design-guides/p6-god-function-split-plan/"><code>../design-guides/p6-god-function-split-plan.md</code></a>
