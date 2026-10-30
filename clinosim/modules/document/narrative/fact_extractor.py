@@ -1,8 +1,9 @@
 """Deterministic fact-first extraction (AD-65 E2).
 
-Materializes a list of FactTag entries from structural CIF. Generators
-use this list to constrain narrative output — β-JP-1 LLMNarrativePass
-will refuse to emit numbers not present in materialized_facts.
+Materializes a list of FactTag entries from structural CIF and stores it on
+the narrative context (``ctx.materialized_facts``) as grounding data for
+generators. Nothing currently rejects generated numbers that are absent from
+it; the LLM-path guard is ``check_narratives`` (Issue #2210).
 """
 
 from __future__ import annotations
