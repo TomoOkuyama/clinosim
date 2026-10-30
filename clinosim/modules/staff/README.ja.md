@@ -19,9 +19,14 @@ staff identity の単一情報源。
   [`_staff_thresholds.py`](_staff_thresholds.py) の divisor + min 表
   を参照)、病棟別看護師数、ED / OPD 看護師プール、検査技師 /
   放射線科医 / 薬剤師 固定数、追加 allied-health 職種
-  (β-JP-1 CareTeam 拡張の C5-25 Chain 3)、国別姓名 (JP は kanji +
-  kana pair) と電話 / メール生成、`assign_staff` の event-type →
-  staff-role dispatch。
+  (β-JP-1 CareTeam 拡張の C5-25 Chain 3)、麻酔科チーム (Issue #2068:
+  `SURGICAL_DEPARTMENTS` のいずれかが設定されている場合に
+  `max(MIN_ANESTHESIOLOGISTS, resource_capacity.operating_rooms)` 名を
+  追加、既存 roster draw を変えないよう最後に生成)、allied-health 専用の
+  `nutrition` / `medical_social_work` 部門には医師を作らない
+  (Issue #915)、国別姓名 (JP は kanji + kana pair) と電話 / メール生成、
+  `assign_staff` の event-type → staff-role dispatch、
+  `select_surgical_team` による術者 + 麻酔科医の選出。
 - **In scope (fallback ID)**: `FALLBACK_PHYSICIAN_ID = "DR-001"`、
   `FALLBACK_NURSE_ID = "NS-001"`、`FALLBACK_TECH_ID = "TECH-001"`
   (Issue #562) — roster が空 (test fixture / smoke run) のときのみ
@@ -51,13 +56,16 @@ from clinosim.modules.staff.engine import (
     FALLBACK_PHYSICIAN_ID,             # "DR-001"
     FALLBACK_NURSE_ID,                 # "NS-001"
     FALLBACK_TECH_ID,                  # "TECH-001"
+    select_surgical_team,              # (roster, department, rng) -> (surgeon_id, anesthesiologist_id)
+    roster_departments,                # (hospital_config) -> list[str] (設定部門 + anesthesiology)
 )
 ```
 
 `assign_staff` は `match event_type` で dispatch:
 
 - `"admission" | "rounds" | "discharge"` → attending physician
-  (specialty マッチ、失敗時 graceful fallback) + primary nurse。
+  (部門 → specialty マッチ → 麻酔科以外の任意医師) + primary nurse
+  (部門、無ければ任意の看護師)。
 - `"lab_collection" | "lab_result"` → performing technician。
 - `"imaging_interpretation"` → interpreting radiologist。
 - `"medication_administration"` → 発注部門所属の administering nurse。
@@ -97,7 +105,10 @@ from clinosim.modules.staff.engine import (
     `DOCTORS_PER_SURGERY_BED_DIVISOR`、
     `DOCTORS_PER_ED_BED_DIVISOR`) と min
     (`MIN_INTERNAL_MED_PHYSICIANS`、`MIN_SURGERY_PHYSICIANS`、
-    `MIN_ED_PHYSICIANS`); その他部門は `DOCTORS_PER_DEPT_FIXED`。
+    `MIN_ED_PHYSICIANS`); その他部門は `DOCTORS_PER_DEPT_FIXED`、
+    未掲載部門は `DEFAULT_DOCTORS_PER_DEPT`; `inpatient_beds` 未設定時は
+    `DEFAULT_INPATIENT_BEDS`。
+  - 麻酔科: `SURGICAL_DEPARTMENTS`、`MIN_ANESTHESIOLOGISTS`。
   - 看護 scaling: `NURSES_PER_BED_DIVISOR`、`NURSES_PER_BED_BUFFER`、
     `NURSES_PER_WARD_MIN`、`MIN_BEDS_PER_WARD`、
     `FALLBACK_BEDS_PER_WARD`、`ED_OPD_NURSES_PER_AREA`。
@@ -118,7 +129,8 @@ from clinosim.modules.staff.engine import (
   `general_surgery → "GS"`, `orthopedics → "OR"`,
   `neurosurgery → "NS"`, `trauma_surgery → "TS"`,
   `emergency_medicine → "EM"`, `primary_care → "PC"`,
-  `obstetrics_gynecology → "OB"`, `pediatrics → "PD"`。未知部門は
+  `obstetrics_gynecology → "OB"`, `pediatrics → "PD"`,
+  `anesthesiology → "AN"`。未知部門は
   `dept[:2].upper()` に fallback。
 - **JP 姓名 pair** (`_generate_name_pair`): `(kanji, kana)` を返す
   ため `StaffMember.name_phonetic` に kana を populate でき、
@@ -130,7 +142,7 @@ from clinosim.modules.staff.engine import (
 ```
 clinosim/modules/staff/
   __init__.py                     public API (StaffMember, StaffRoster, generate_roster, assign_staff)
-  engine.py                       roster 生成 + assign_staff dispatch + name / phone / email helper
+  engine.py                       roster 生成 + assign_staff / select_surgical_team + name / phone / email helper
   _staff_thresholds.py            named threshold 定数 (Issue #562)
   SPEC.md                         v1+ 設計参考 (役職 / lifecycle / 資格 — runtime data ではない)
 ```
@@ -148,10 +160,13 @@ simulator が run あたり 1 回構築し、`assign_staff` は下記 encounter
 
 | Consumer | 場所 | 役割 |
 | --- | --- | --- |
-| Encounter builder (inpatient) | [`clinosim/simulator/inpatient.py`](../../simulator/inpatient.py) (`L45` 付近, `L260` 付近) | `assign_staff("admission", department, roster, rng)` で attending + primary nurse を選出。 |
-| Encounter builder (outpatient) | [`clinosim/simulator/outpatient.py`](../../simulator/outpatient.py) (`L21`, `L109`, `L161`, `L177` 付近) | 回診 / 投薬 / 検査採取の割当。 |
-| Lab pipeline | [`clinosim/simulator/lab_pipeline.py`](../../simulator/lab_pipeline.py) (`L51`, `L113`, `L131`, `L166` 付近) | `assign_staff("lab_result", …)` で performing / result 技師を選出、roster 空時は `FALLBACK_TECH_ID`。 |
-| CLI single-encounter driver | [`clinosim/simulator/cli_test_encounter.py`](../../simulator/cli_test_encounter.py) (`L16`, `L80` 付近) | smoke run で `generate_roster("medium", country, rng)` を呼ぶ。 |
+| Simulator engine | [`clinosim/simulator/engine.py`](../../simulator/engine.py) | `generate_roster(..., hospital_config=hospital_ops)` で run の roster を構築。 |
+| Encounter builder (inpatient) | [`clinosim/simulator/inpatient.py`](../../simulator/inpatient.py) | `assign_staff("admission", department, roster, rng)` で attending + primary nurse、`select_surgical_team` で術者 + 麻酔科医を選出。 |
+| Encounter builder (outpatient / ED / perinatal / unknown-condition) | [`outpatient.py`](../../simulator/outpatient.py)、[`emergency.py`](../../simulator/emergency.py)、[`perinatal.py`](../../simulator/perinatal.py)、[`unknown_condition.py`](../../simulator/unknown_condition.py) | 回診 / 入院 / 投薬 / 検査採取の割当 (`FALLBACK_*` 既定値付き)。 |
+| Daily loop + medication pipeline | [`daily_loop.py`](../../simulator/daily_loop.py)、[`medication_pipeline.py`](../../simulator/medication_pipeline.py) | `assign_staff("medication_administration", …)`、fallback は `FALLBACK_NURSE_ID`。 |
+| Lab pipeline | [`clinosim/simulator/lab_pipeline.py`](../../simulator/lab_pipeline.py) | `assign_staff("lab_result", …)` で performing 技師を選出、roster 空時は `FALLBACK_TECH_ID`。 |
+| CLI single-encounter driver / enumerate | [`cli_test_encounter.py`](../../simulator/cli_test_encounter.py)、[`enumerate.py`](../../simulator/enumerate.py) | smoke run で `generate_roster("medium", country, rng)` を呼ぶ。 |
+| FHIR facility builder | [`clinosim/modules/output/fhir_r4/encounters/facility.py`](../output/fhir_r4/encounters/facility.py) | `roster_departments(hospital_config)` で全 PractitionerRole の部門に Organization を用意。 |
 | Nursing 主担当看護師 enricher | [`clinosim/modules/nursing/engine.py`](../nursing/engine.py) | `roster.get_by_role("nurse")` で主担当看護師を選出 (本モジュール生成 roster を transit 消費)。 |
 | FHIR `Practitioner` + `PractitionerRole` builder | [`clinosim/modules/output/fhir_r4/`](../output/fhir_r4/) | `StaffMember` field を `Practitioner` (name / kana / telecom / qualification) と `PractitionerRole` (department / specialty) に emit。 |
 
@@ -167,9 +182,12 @@ pytest tests/unit -k staff -q      # types + fallback 定数
   — `StaffMember` / `StaffRoster` dataclass shape。
 - [`tests/unit/modules/test_staff_fallback_constants.py`](../../../tests/unit/modules/test_staff_fallback_constants.py)
   — `FALLBACK_*` 定数 + module-level 命名 (Issue #562)。
+- [`tests/unit/test_surgical_team_assignment.py`](../../../tests/unit/test_surgical_team_assignment.py)
+  — 麻酔科 roster、`select_surgical_team`、麻酔科医を除く attending
+  fallback (Issue #2068。`-k staff` には一致しない)。
 
-**coverage gap**: roster 生成と `assign_staff` dispatch に専用 unit
-test は無く、integration / e2e で間接カバーされている。`generate_roster`
+**coverage gap**: 上記の麻酔科ケース以外、roster 生成と `assign_staff`
+dispatch に専用 unit test は無く、integration / e2e で間接カバーされている。`generate_roster`
 (scale 不変量、ID 一意性、追加 role 混入) と `assign_staff` (event-type
 別 dispatch、empty roster fallback) に対する専用 unit test file の追加は
 低コストの follow-up。
@@ -179,4 +197,4 @@ test は無く、integration / e2e で間接カバーされている。`generate
 `maintainers@` — 詳細は
 [`CONTRIBUTING.md`](../../../CONTRIBUTING.ja.md)。
 
-英語版: [`README.md`](README.ja.md)。
+英語版: [`README.md`](README.md)。

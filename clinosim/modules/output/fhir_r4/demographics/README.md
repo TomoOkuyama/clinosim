@@ -3,21 +3,23 @@
 ## Purpose
 
 Emits every FHIR R4 resource in the demographics + social-history
-family: `Patient` (with JP Core Coverage + payor Organization +
-occupation Observation + inline AllergyIntolerance),
+family: `Patient`, the `Coverage` + payor `Organization` resources
+and the occupation `Observation` (all built in `patient.py`; their
+registry wrappers `_bb_patient` / `_bb_coverage` / `_bb_occupation`
+live in [`../lib/inline_bb.py`](../lib/inline_bb.py)),
 `Practitioner` + `PractitionerRole`, `FamilyMemberHistory`, and the
 smoking / alcohol social-history `Observation`s. The
 [`../conditions/`](../conditions/README.md) `AllergyIntolerance`
-builder handles the standalone allergy path; the inline
-`_build_allergy_intolerance` in `patient.py` is a legacy Patient-embed
-kept for one release cycle.
+builder is the only allergy emit path; the legacy
+`_build_allergy_intolerance` in `patient.py` is retained but not
+called.
 
 ## Scope
 
 - **In scope**: `_build_patient` (Patient with birthDate / sex /
-  address / telecom / marital + language + coverage + occupation +
-  inline allergy) + Coverage / payor Organization construction +
-  occupation Observation + inline allergy;
+  address / telecom / marital + language) + Coverage / payor
+  Organization construction (`_build_coverage_resources`) +
+  occupation Observation (`_build_occupation_observation`);
   `_build_practitioner` + `_build_practitioner_role`;
   `_bb_family_history` + `_resolve_family_history_code` +
   `_build_relationship_codeable`; `_bb_smoking_status` +
@@ -36,8 +38,9 @@ kept for one release cycle.
 
 Perinatal-delivery LifeEvents produce a paired newborn
 `PatientProfile` in the CIF (see
-[`../../patient/README.md`](../../patient/README.md) —
-`id = "<mother_id>-BABY"`, `birthDate` = delivery date, household
+[`../../../patient/README.md`](../../../patient/README.md) —
+`id = "<mother_id>-BABY"` (`<mother_id>-<N>-BABY` for later births
+of a multiple delivery), `birthDate` = delivery date, household
 inherited). No new Patient builder is needed — the existing
 `_build_patient` picks the newborn up from the CIF like any other
 patient. The mother-newborn linkage is expressed on the newborn's
@@ -49,15 +52,15 @@ here.
 ## Public API
 
 Every builder is registered with the parent facade
-(`_BUNDLE_BUILDERS` in [`../__init__.py`](../__init__.py)).
+(`_BUNDLE_BUILDERS` in [`../builder.py`](../builder.py)).
 Direct-import surface:
 
 ```python
 from clinosim.modules.output.fhir_r4.demographics.patient import (
     _build_patient,                     # (patient_dict, country) -> Patient dict
-    _build_coverage_resources,          # (patient_dict, country) -> [Coverage, payor Organization, ...]
+    _build_coverage_resources,          # (patient_dict, country, encounters=None, snapshot_date=None) -> [Coverage, payor Organization, ...]
     _build_occupation_observation,      # -> occupation Observation
-    _build_allergy_intolerance,         # legacy Patient-embed (see conditions/ for the standalone path)
+    _build_allergy_intolerance,         # legacy, not called (conditions/ is the emit path)
 )
 from clinosim.modules.output.fhir_r4.demographics.practitioner import (
     _build_practitioner,                # (staff_id, roster_map, country) -> Practitioner dict
@@ -95,7 +98,10 @@ facade sorts NDJSON by id post-write.
 - `clinosim.codes` — `get_system_uri`, `lookup` for LOINC / SNOMED /
   ICD / JP-Core / HL7 v3-RoleCode.
 - `clinosim.locale.loader` — `load_identity_config` for JP payor +
-  coverage constants.
+  coverage constants, `load_practitioner_qualifications`.
+- `clinosim.modules.family_history.engine.load_reference`,
+  `clinosim.modules.sdoh.load_social_history` — display / code
+  reference data.
 
 ## Constants and configuration
 
@@ -106,8 +112,11 @@ facade sorts NDJSON by id post-write.
 - **Marital / language / coverage displays** — inline in `patient.py`
   (per-country display maps for the two enumerable resources that
   do not fit the standard `clinosim.codes` lookup pattern).
-- **JP Core profile URIs** — attached via `attach_ecs_institutional_extensions`
-  and the JP Core Coverage profile URI (jpfhir.jp).
+- **Profile URIs** — `practitioner.py` sets `JP_Practitioner` /
+  `JP_PractitionerRole` inline on JP output; other JP Core /
+  JP-CLINS / US Core profile URIs are stacked by
+  [`../post_process/profile.py`](../post_process/profile.py). US
+  Patients carry the US Core race / ethnicity / birthsex extensions.
 - **Family-history relationship coding** — HL7 v3-RoleCode (see the
   Issue #369 v23 regression rule documented in the
   [`family_history` module README](../../../family_history/README.md)
@@ -121,8 +130,8 @@ facade sorts NDJSON by id post-write.
 
 ```
 clinosim/modules/output/fhir_r4/demographics/
-  __init__.py                    empty (builders imported by parent __init__)
-  patient.py                     _build_patient + Coverage + payor Org + occupation + inline allergy (~600 LOC)
+  __init__.py                    namespace stub (builders imported by ../builder.py / ../lib/inline_bb.py)
+  patient.py                     _build_patient + Coverage + payor Org + occupation + patient_ref + legacy allergy (~1,200 LOC)
   practitioner.py                _build_practitioner + _build_practitioner_role
   family_history.py              _bb_family_history + _resolve_family_history_code + _build_relationship_codeable
   smoking_alcohol.py             _bb_smoking_status + _bb_alcohol_use + _sdoh_effective_datetime + _sdoh_performer_ref

@@ -7,14 +7,17 @@ Emits the two medication FHIR R4 resources:
 outflow, outpatient) and `MedicationAdministration` (MAR entry per
 administered dose). JP path emits YJ code + optional MEDIS
 `NOCODED` fallback per JP-CLINS Medication profile; US path emits
-RxNorm. The JP `MedicationRequest.status='completed'` invariant
-(imposed by JP eCS Medication_Common) is enforced at emit time —
-the module documents this in
-[`project_jp_ecs_forces_status_completed`](../../../../../..) memory
-entry and the [`clinosim.modules.antibiotic`](../../../antibiotic/README.md)
-`discontinuation_datetime` slot works around it via
-`MedicationRequest.statusReason` when a regimen is narrowed /
-stopped.
+RxNorm. The JP `MedicationRequest.status='completed'` /
+`intent='order'` pattern pin (imposed by `JP_MedicationRequest_eCS`)
+is applied after the builder by
+`_populate_condition_ai_mr_ecs_fields` in
+[`../post_process/populate.py`](../post_process/populate.py); when
+the builder-set status differs (e.g. `active`, or `stopped` for a
+narrowed / discontinued
+[`antibiotic`](../../../antibiotic/README.md) regimen), the original
+status is preserved in the
+`urn:clinosim:medicationrequest-effective-status` extension plus a
+`note[]` text (no `statusReason` is emitted).
 
 ## Scope
 
@@ -40,7 +43,7 @@ stopped.
   [`simulator`](../../../../simulator/),
   [`antibiotic`](../../../antibiotic/README.md));
   drug code registries
-  ([`clinosim/codes/data/{rxnorm,yj,hot,jp-medis-drug-uncoded}.yaml`](../../../../codes/data/));
+  ([`clinosim/codes/data/{rxnorm,yj,hot7}.yaml`](../../../../codes/data/));
   discharge-medication reason / narrow-target dose defaults
   ([`antibiotic/_narrow_dose_defaults.py`](../../../antibiotic/_narrow_dose_defaults.py)).
 
@@ -51,8 +54,7 @@ emits one `MedicationRequest` plus one `MedicationAdministration` per
 regimen `cycle_orders` drug — sharing the same `order_id` so this
 subpackage's `_bb_medication_requests` / `_bb_medication_admins`
 builders pair them cleanly at emit time. The JP path continues to
-enforce the `MedicationRequest.status = "completed"` invariant (see
-memory `project_jp_ecs_forces_status_completed`); the MAR side
+pin `MedicationRequest.status = "completed"` (see Purpose); the MAR side
 carries `effectiveDateTime` = the cycle Day-1 administration
 timestamp. Multi-day infusion drug expansion (e.g. FOLFOX's 46-h
 5-FU) is a follow-up slice — the current MVP emits one MAR per
@@ -61,7 +63,7 @@ Day-1 drug.
 ## Public API
 
 Every builder is registered with the parent facade
-(`_BUNDLE_BUILDERS` in [`../__init__.py`](../__init__.py)) as
+(`_BUNDLE_BUILDERS` in [`../builder.py`](../builder.py)) as
 `_bb_medication_requests`, `_bb_discharge_medication_requests`,
 and `_bb_medication_admins` — the low-level `_build_*` functions
 live in `medications.py`:
@@ -79,6 +81,7 @@ from clinosim.modules.output.fhir_r4.medications.medications import (
     DISCHARGE_RX_ID_PREFIX,               # "rxdc-"
     OUTPATIENT_RX_ID_PREFIX,              # "rxopd-"
     MEDICATION_REQUEST_KEY_SYSTEM,        # structural key system URI
+    MEDICATION_ADMINISTRATION_ID_PREFIX,  # "mar-"
 )
 ```
 
@@ -97,23 +100,29 @@ Not applicable — pure builders over CIF orders + MAR records.
 
 - `clinosim.modules._shared` — `is_jp`, `resolve_lang`,
   `get_attr_or_key`.
-- `clinosim.modules.output.fhir_r4.lib.common` — `BundleContext`,
-  `_coding_with_display`, `build_ucum_quantity`,
-  `attach_ecs_institutional_extensions`.
-- `clinosim.modules.output.fhir_r4.lib.ids` —
-  `structural_key_system` for the medication-request key system URI.
+- `clinosim.modules.output.fhir_r4.lib.common` — `build_ucum_quantity`,
+  dosage / route / status helpers.
+- `clinosim.modules.output.fhir_r4.lib.ids` — `derive_opaque_id` +
+  `structural_key_system`.
 - `clinosim.modules.output.fhir_r4.conditions.primary_ref` —
-  `primary_condition_ref` for `MedicationRequest.reasonReference`.
-- `clinosim.codes` — RxNorm / YJ / HOT display lookup.
-- `clinosim.types.encounter` — `Order`, `OrderStatus`, `OrderType`,
-  `MedicationAdministration`.
+  `primary_condition_ref_from_codes` for
+  `MedicationRequest.reasonReference` /
+  `MedicationAdministration.reasonReference` (lazy import).
+- `..demographics.patient.patient_ref`,
+  `..encounters.encounter.encounter_ref`.
+- `clinosim.codes` — RxNorm / YJ / HOT display lookup;
+  `clinosim.locale.loader.load_code_mapping`.
+- Orders / MAR records are read as CIF dicts; no `clinosim.types`
+  classes are imported.
 
 ## Constants and configuration
 
-- **ID prefixes**: inpatient MedicationRequest uses the
-  `rx-{encounter_id}-{seq}` shape; discharge outflow uses
+- **ID prefixes**: order-derived MedicationRequest ids are opaque
+  `mr-{sha256(order_id)[:12]}` (`_resolve_mr_id`, Issue #853; the
+  structural key survives in `identifier[]`); discharge outflow uses
   `DISCHARGE_RX_ID_PREFIX = "rxdc-"`; outpatient uses
-  `OUTPATIENT_RX_ID_PREFIX = "rxopd-"`. The
+  `OUTPATIENT_RX_ID_PREFIX = "rxopd-"`; MedicationAdministration
+  uses `MEDICATION_ADMINISTRATION_ID_PREFIX = "mar-"`. The
   [`antibiotic`](../../../antibiotic/README.md) module additionally
   emits its regimens under `ABX_ORDER_REQ_PREFIX` /
   `ABX_NARROW_SUFFIX` — those live in
@@ -133,17 +142,20 @@ Not applicable — pure builders over CIF orders + MAR records.
   Medication_Common `NOCODED` fallback
   (`_JP_MEDICATION_CODE_NOCODED_CS`, `_JP_MEDICATION_CODE_NOCODED_CODE
   = "NOCODED"`, display `"標準コードなし"`).
-- **JP `MedicationRequest.status = "completed"`** — enforced by JP
-  eCS Medication_Common profile at emit time; status intent
-  (`stopped` / `active` / `on-hold`) is instead carried in
-  `MedicationRequest.statusReason` when the enricher marks the
-  regimen as discontinued (antibiotic narrowing path).
+- **JP `MedicationRequest.status = "completed"`** — pinned on JP
+  output by `post_process/populate.py`
+  (`_populate_condition_ai_mr_ecs_fields`) per
+  `JP_MedicationRequest_eCS`; a differing builder status (`active`,
+  `stopped`, …) is kept in the
+  `urn:clinosim:medicationrequest-effective-status` extension
+  (`valueCode`) and a Japanese `note[]` text. The builder itself
+  sets `stopped` for stop orders (`MED_STOP_ORDER_ID_MARKER`).
 
 ## Directory contents
 
 ```
 clinosim/modules/output/fhir_r4/medications/
-  __init__.py                        empty (builders imported by parent __init__)
+  __init__.py                        namespace stub (builders imported by ../builder.py / ../lib/inline_bb.py)
   medications.py                     _build_medication_request + _build_discharge_medication_request + _build_medication_admin + JP eCS fragments
 ```
 

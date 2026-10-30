@@ -1,6 +1,6 @@
 # `clinosim.modules.metabolic` — BMI-derived and metabolic-cluster chronic conditions
 
-Deterministic chronic-condition enrichment for metabolic syndrome components. Axis 1 is **E66 obesity ICD derivation** from `PersonRecord.bmi`; axis 2 is **E88.81 metabolic syndrome** from the 4-way AND over BMI + HTN + Dyslipidemia + DM; axis 3 is **K76.0 NAFLD** from a BMI + DM-weighted SHA Bernoulli (RNG-neutral per-person assignment); axis 4 is **G47.30 OSA** from a BMI + sex + age-weighted SHA Bernoulli calibrated to moderate-to-severe OSA; axis 5 is **GLP-1 agonist pharmacotherapy** for the E66.9 / E66.01 cohort via new entries in `chronic_medications.yaml` (Semaglutide / Tirzepatide / Liraglutide, SC, exclusive-class). All five axes close out the META #1137 cluster 2 scope.
+Deterministic chronic-condition enrichment for metabolic syndrome components. Axis 1 is **E66 obesity ICD derivation** from `PersonRecord.bmi` (gated by a per-person SHA coding-rate coin, Issue #1773); axis 2 is **E88.81 metabolic syndrome** from the 4-way AND over BMI + HTN + Dyslipidemia + DM; axis 3 is **K76.0 NAFLD** from a BMI + DM-weighted SHA Bernoulli (RNG-neutral per-person assignment; suppressed for F10 alcohol-use-disorder patients, Issue #1756); axis 4 is **G47.30 OSA** from a BMI + sex + age-weighted SHA Bernoulli calibrated to moderate-to-severe OSA (adults age ≥ 18 only, Issue #1779); axis 5 is **GLP-1 agonist pharmacotherapy** for the E66.9 / E66.01 cohort via new entries in `chronic_medications.yaml` (Semaglutide / Tirzepatide / Liraglutide, SC, exclusive-class). All five axes close out the META #1137 cluster 2 scope.
 
 ## Purpose
 
@@ -26,12 +26,13 @@ from clinosim.modules.metabolic import (
 
 The four enrichers are the module's only Python-facing public surface. Axis 5 ships as yaml entries (`locale/shared/chronic_medications.yaml` E66.9 / E66.01 blocks) and has no Python export. All four enrichers accept the standard `ctx` (with `.population.persons`) and mutate `PersonRecord.chronic_conditions` in place.
 
-Internal derivation primitives (`_derive_e66_code`, `_derive_metabolic_syndrome`, `_nafld_probability`, `_draw_nafld`, `_derive_nafld_assignment`, `_bmi_tier`, `_osa_probability`, `_draw_osa`, `_derive_osa_assignment`) are leading-underscore and intended to stay testable but not stable — call sites outside `clinosim/modules/metabolic/` should go through the enrichers. The former `_has_code_with_prefix` module-local helper has been replaced by the shared `clinosim.codes.has_icd_prefix`.
+Internal derivation primitives (`_derive_e66_code`, `_is_e66_icd_coded`, `_derive_metabolic_syndrome`, `_nafld_probability`, `_draw_nafld`, `_derive_nafld_assignment`, `_bmi_tier`, `_osa_probability`, `_draw_osa`, `_derive_osa_assignment`) are leading-underscore and intended to stay testable but not stable — call sites outside `clinosim/modules/metabolic/` should go through the enrichers. The former `_has_code_with_prefix` module-local helper has been replaced by the shared `clinosim.codes.has_icd_prefix`.
 
 ## Determinism
 
-- **Axes 1-2**: pure deterministic functions of BMI + chronic-condition set. Zero RNG consumption. Byte-identity preserved for cohorts whose BMI distribution never crosses an E66 threshold or whose chronic-condition set never satisfies the E88.81 4-way AND.
-- **Axes 3-4**: SHA-256 per-person Bernoulli. Each enricher hashes `<module salt>|<person_id>` to a 64-bit quantile, compares against the BMI (+ DM / sex)-weighted probability. **RNG-neutral — the master simulation stream is never consumed**, so adding these enrichers preserves byte-identity for cohorts under their respective thresholds. Separate salts (`metabolic.nafld.v1` vs `metabolic.osa.v1`) make a given patient's NAFLD / OSA assignments statistically independent, not perfectly correlated.
+- **Axis 1**: the E66 tier is a pure function of BMI (`_derive_e66_code`); whether a BMI-eligible person actually receives the code is a per-person SHA Bernoulli (`_is_e66_icd_coded`, salt `metabolic.e66.icd_coding.v1`, rate `_E66_ICD_CODING_RATE_OVERWEIGHT = 0.20` for E66.3 and `_E66_ICD_CODING_RATE_OBESITY = 0.65` for E66.9 / E66.01 — Issue #1773 real-EHR coding rate). RNG-neutral — no master-stream draw.
+- **Axis 2**: pure deterministic function of BMI + chronic-condition set. Zero RNG consumption. Byte-identity preserved for cohorts whose chronic-condition set never satisfies the E88.81 4-way AND.
+- **Axes 3-4**: SHA-256 per-person Bernoulli via `clinosim.determinism.sha_bernoulli`. Each enricher hashes `<module salt>|<person_id>` to a 64-bit quantile, compares against the BMI (+ DM / sex)-weighted probability. **RNG-neutral — the master simulation stream is never consumed**, so adding these enrichers preserves byte-identity for cohorts under their respective thresholds. Separate salts (`metabolic.nafld.v1` vs `metabolic.osa.v1`) make a given patient's NAFLD / OSA assignments statistically independent, not perfectly correlated.
 - **Axis 5**: served by the chronic-medications activator pipeline, which uses the shared per-patient sub-RNG. Already governed by `ENRICHER_SEED_OFFSETS["chronic_medications"]` upstream; the metabolic module does not register its own sub-seed.
 
 No entry in `ENRICHER_SEED_OFFSETS` is required for axes 1-4 (SHA-based or RNG-free).
@@ -39,18 +40,21 @@ No entry in `ENRICHER_SEED_OFFSETS` is required for axes 1-4 (SHA-based or RNG-f
 ## Dependencies
 
 - `clinosim.types.population.PersonRecord` — reads `.bmi`, `.sex`, `.person_id`; mutates `.chronic_conditions`.
-- `hashlib` (stdlib) — SHA-256 for the axis 3 / 4 Bernoulli draw.
+- `clinosim.determinism.sha_bernoulli` — SHA-256 per-person Bernoulli for the axis 1 coding coin and the axis 3 / 4 draws.
+- `clinosim.codes.has_icd_prefix` — ICD prefix matching on the chronic-condition list.
+- `clinosim.modules.population` — WHO BMI tier constants (`BMI_OVERWEIGHT_THRESHOLD`, `BMI_OBESE_THRESHOLD`, `BMI_MORBID_OBESITY_THRESHOLD`, defined in `population/_population_thresholds.py`).
 - Downstream, axis 5 depends on `clinosim.modules.patient.activator` reading the yaml entries at patient activation.
 
-No cross-module clinosim imports. Register side (`clinosim/simulator/enrichers.py`) imports the four enrichers.
+No other cross-module clinosim imports. Register side (`clinosim/simulator/enrichers.py`) imports the four enrichers.
 
 ## Constants and configuration
 
 Thresholds live as module-level constants in `engine.py` rather than yaml so the deterministic-derivation invariant stays co-located with the derivation code:
 
-- `_BMI_OVERWEIGHT_THRESHOLD = 25.0`, `_BMI_OBESITY_THRESHOLD = 30.0`, `_BMI_MORBID_THRESHOLD = 40.0` — WHO BMI tier bounds (also used by `_bmi_tier` across axes 1-4).
+- `_BMI_OVERWEIGHT_THRESHOLD` (25.0), `_BMI_OBESITY_THRESHOLD` (30.0), `_BMI_MORBID_THRESHOLD` (40.0) — WHO BMI tier bounds, imported as local aliases of the `clinosim.modules.population` constants `BMI_OVERWEIGHT_THRESHOLD` / `BMI_OBESE_THRESHOLD` / `BMI_MORBID_OBESITY_THRESHOLD` (single source of truth; also used by `_bmi_tier` across axes 1-4).
+- `_E66_ICD_CODING_RATE_OVERWEIGHT = 0.20`, `_E66_ICD_CODING_RATE_OBESITY = 0.65`, `_E66_ICD_CODING_SALT = "metabolic.e66.icd_coding.v1"` — axis 1 real-EHR coding-rate gate (Issue #1773).
 - `_SYNDROME_BMI_THRESHOLD = 30.0`, `_HTN_PREFIXES`, `_DYSLIPIDEMIA_PREFIXES`, `_DM_PREFIXES`, `_SYNDROME_CODE = "E88.81"` — axis 2 AND criteria.
-- `_NAFLD_CODE = "K76.0"`, `_NAFLD_OBESE_PREVALENCE = 0.60`, `_NAFLD_MORBID_PREVALENCE = 0.85`, `_NAFLD_DM_UPLIFT = 1.15`, `_NAFLD_SALT = "metabolic.nafld.v1"` — axis 3 anchors (Younossi 2016 obese sub-cohort).
+- `_NAFLD_CODE = "K76.0"`, `_NAFLD_OBESE_PREVALENCE = 0.60`, `_NAFLD_MORBID_PREVALENCE = 0.85`, `_NAFLD_DM_UPLIFT = 1.15`, `_NAFLD_SALT = "metabolic.nafld.v1"`, `_F10_PREFIXES = ("F10",)` — axis 3 anchors (Younossi 2016 obese sub-cohort) and the F10 exclusion gate (Issue #1756).
 - `_OSA_CODE = "G47.30"`, `_OSA_PREVALENCE_MALE`, `_OSA_PREVALENCE_FEMALE`, `_OSA_AGE_SPLIT`, `_OSA_AGE_FACTOR_MALE` / `_FEMALE`, `_OSA_SALT = "metabolic.osa.v1"` — axis 4 anchors (BMI tier × sex table × age factor, calibrated to Peppard 2013 AHI ≥ 15).
 
 Axis 5 constants live in `locale/shared/chronic_medications.yaml` under the `E66.9:` / `E66.01:` blocks (drug names, doses, routes, probabilities, `exclusive_classes: ["glp1"]`). A later refinement can externalise axis 2's AND criteria into `reference_data/metabolic_syndrome_criteria.yaml` if a 3-of-5 NCEP ATP III relaxation is ever added.
@@ -76,7 +80,7 @@ Registered in `clinosim.simulator.enrichers.register_builtin_enrichers`:
 | `e66_bmi_enricher` | `POST_POPULATION` | 15 | BMI finalised at POP_GENERATION |
 | `e88_81_syndrome_enricher` | `POST_POPULATION` | 16 | chronic_prevalence sampler (HTN/DM/Dyslipidemia) + E66 enricher |
 | `k76_0_nafld_enricher` | `POST_POPULATION` | 17 | BMI + DM finalised |
-| `g47_30_osa_enricher` | `POST_POPULATION` | 18 | BMI + sex finalised |
+| `g47_30_osa_enricher` | `POST_POPULATION` | 18 | BMI + sex + age finalised (age < 18 skipped) |
 
 All four run after allergy / identity (order 10). All are always-on (no locale or config gate) — the thresholds themselves gate emission.
 
@@ -87,7 +91,7 @@ Axis 5 is served by the standard medication activator reading `chronic_medicatio
 - `PersonRecord.chronic_conditions` — appended ICD-10 codes flow into every downstream consumer that reads chronic conditions, including:
   - FHIR Condition serialisation ([`output/fhir_r4/documents/composition.py`](../output/fhir_r4/documents/composition.py))
   - Narrative generation ([`document/narrative/`](../document/narrative/))
-  - Risk multiplier lookups in `population/aging.py`, `simulator/outpatient.py`
+  - Community-mortality comorbidity SMR in `population/mortality.py` (drawn from `population/aging.py::advance_population`) and risk lookups in `simulator/outpatient.py`
   - DR + consistency validators ([`validator/`](../validator/))
 - `locale/shared/chronic_medications.yaml` E66.9 / E66.01 blocks (axis 5) are consumed by `modules/patient/activator.py` → `HomeMedication.drug_name` → downstream prescription paths.
 
@@ -95,18 +99,21 @@ Axis 5 is served by the standard medication activator reading `chronic_medicatio
 
 `tests/unit/modules/metabolic/`:
 
-- `test_e66_bmi_enricher.py` — 5 derivation boundary tests + 5 enricher-behavior tests + 1 mixed-cohort smoke + 1 pre-existing-variant pass-through.
-- `test_e88_81_syndrome_enricher.py` — 8 derivation AND-criteria tests + 5 enricher-behavior tests + 1 mixed-cohort smoke.
-- `test_k76_0_nafld_enricher.py` — 4 probability anchor + DM-uplift + 4 SHA-draw + 2 derivation-wrapper + 4 enricher-behavior (incl. 500-person prevalence band + RNG-neutral cross-seed).
-- `test_g47_30_osa_enricher.py` — 1 BMI-tier boundary + 4 prevalence anchor (M / F / 2:1 ratio / unknown-sex fallback) + 4 SHA-draw (incl. salt separation from K76.0) + 2 derivation-wrapper + 4 enricher-behavior (incl. sex-gradient visibility + RNG-neutral cross-seed).
+- `test_e66_bmi_enricher.py` (13) — derivation boundary tests, enricher-behavior tests (incl. the #1773 coding-rate gate), mixed-cohort smoke, pre-existing-variant pass-through.
+- `test_e88_81_syndrome_enricher.py` (14) — 8 derivation AND-criteria tests + 5 enricher-behavior tests + 1 mixed-cohort smoke.
+- `test_k76_0_nafld_enricher.py` (14) — 4 probability anchor + DM-uplift + 4 SHA-draw + 2 derivation-wrapper + 4 enricher-behavior (incl. 500-person prevalence band + RNG-neutral cross-seed).
+- `test_g47_30_osa_enricher.py` (16) — BMI-tier boundary, prevalence anchors (M / F / ratio / unknown-sex fallback), SHA-draw (incl. salt separation from K76.0), derivation-wrapper, enricher-behavior (incl. sex-gradient visibility + RNG-neutral cross-seed).
+- `test_k76_f10_contradiction_gate_1756.py` (6) — K76.0 / F10 mutual-exclusion gate (Issue #1756).
+- `test_osa_age_gate_1779.py` (8) — adult-only OSA gate (Issue #1779).
+- `test_osa_prevalence_peppard.py` (4) — parametrised expected-prevalence check against Peppard 2013 bands.
 
-Total: 55 tests. All run in < 1 s; no fixtures beyond local `_person` + `_Ctx` dataclasses.
+Total: 75 collected tests. All run in < 1 s; no fixtures beyond local `_person` + `_Ctx` dataclasses.
 
 End-to-end verification uses `scripts/engine-fingerprint.sh` on the US s42 + JP s17 p=500 cohort pair — the per-axis commit history records byte-identity-preserving TOTAL hashes before / after.
 
 ## Ownership
 
-Maintained alongside the META #1137 cluster-2 scope. Primary audit touchpoint: the clinical anchors (Younossi 2016, Peppard 2013) in `engine.py`'s module docstring. Future axes should land as sibling axis files once the module exceeds ~600 LOC — the current single `engine.py` is review-friendly at ~430 LOC but will need a per-axis split (`e66.py`, `e88_81.py`, …) if cluster 2 grows further.
+Maintained alongside the META #1137 cluster-2 scope. Primary audit touchpoint: the clinical anchors (Younossi 2016, Peppard 2013) in `engine.py`'s module docstring. Future axes should land as sibling axis files once the module exceeds ~600 LOC — the current single `engine.py` is review-friendly at ~420 LOC but will need a per-axis split (`e66.py`, `e88_81.py`, …) if cluster 2 grows further.
 
 Follow-ups (both former tracking METAs — #1137 and #1633 — are now closed; these items are open future work with no dedicated META):
 

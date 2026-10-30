@@ -152,9 +152,9 @@ Registered in
 | Consumer | Where | Role |
 |---|---|---|
 | FHIR `CareTeam` builder | [`clinosim/modules/output/fhir_r4/encounters/care_team.py`](../output/fhir_r4/encounters/care_team.py) | Emits `primary_nurse_id` as `CareTeam.participant[1].member` — only when non-empty (attending physician is participant[0]). |
-| FHIR nursing flowsheet performer fallback | [`clinosim/modules/output/fhir_r4/procedures/nursing.py`](../output/fhir_r4/procedures/nursing.py) (`~L47`) | RM-1: uses `primary_nurse_id` as the default `performer` on nursing survey Observations when no per-observation performer is set. |
-| FHIR nursing observation performer fallback | [`clinosim/modules/output/fhir_r4/lib/inline_bb.py`](../output/fhir_r4/lib/inline_bb.py) (`~L785`) | Same RM-1 fallback for inline nursing observation builders. |
-| Enricher registry (`nursing_assignment`) | [`clinosim/simulator/enrichers.py:323`](../../simulator/enrichers.py) | POST_ENCOUNTER order=94 registration. |
+| FHIR nursing flowsheet performer fallback | [`clinosim/modules/output/fhir_r4/procedures/nursing.py`](../output/fhir_r4/procedures/nursing.py) (`~L222`) | RM-1: uses `primary_nurse_id` as the default `performer` on nursing survey Observations when no per-observation performer is set. |
+| FHIR nursing observation performer fallback | [`clinosim/modules/output/fhir_r4/lib/inline_bb.py`](../output/fhir_r4/lib/inline_bb.py) (`~L1092`) | Same RM-1 fallback for inline nursing observation builders. |
+| Enricher registry (`nursing_assignment`) | [`clinosim/simulator/enrichers.py:418`](../../simulator/enrichers.py) | POST_ENCOUNTER order=94 registration. |
 
 ## Testing
 

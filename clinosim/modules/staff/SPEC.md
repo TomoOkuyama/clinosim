@@ -1,5 +1,17 @@
 # staff — Healthcare Staff Generation & Assignment
 
+> **Implementation status.** This SPEC is a design reference; most of it
+> (`HospitalProfile` / `HealthcareSystemConfig` inputs, `StaffProfile`,
+> `StaffAssignment`, `StaffLifecycleEvent`, shift schedules, lifecycle /
+> turnover, workload-balanced attending selection, consultant assignment)
+> is **not implemented**. The implemented API is
+> `engine.generate_roster(hospital_scale, country, rng, hospital_config=None)`
+> (returns `types.staff.StaffRoster` of `StaffMember`), `assign_staff(event_type,
+> department, roster, rng) -> dict[str, str]` (event types `admission` /
+> `rounds` / `discharge` / `lab_collection` / `lab_result` /
+> `imaging_interpretation` / `medication_administration`), and
+> `select_surgical_team(roster, department, rng)`. See [`README.md`](README.md).
+
 ## Purpose
 Generate realistic healthcare staff (physicians, nurses, technicians, pharmacists, etc.) with individual personas, manage their lifecycle (hiring, retirement, transfer), and assign them to clinical events with consistency — ensuring that EHR records carry plausible "who did this" attribution.
 

@@ -1,6 +1,6 @@
 # `clinosim.modules.metabolic` — BMI 由来・代謝関連慢性疾患
 
-`PersonRecord.bmi` から E66 肥満 ICD コードを決定論的に導出する POST_POPULATION enricher (軸 1) + BMI + HTN + 脂質異常症 + DM の 4 要素 AND から **E88.81 代謝症候群** を導出する POST_POPULATION enricher (軸 2) + BMI + DM で重み付けた SHA Bernoulli で **K76.0 NAFLD** を割り当てる POST_POPULATION enricher (軸 3) + BMI × 性別 × 年齢で重み付けた SHA Bernoulli (中等症以上の OSA に較正) で **G47.30 OSA** を割り当てる POST_POPULATION enricher (軸 4) + E66.9 / E66.01 患者向けに Semaglutide / Tirzepatide / Liraglutide を `chronic_medications.yaml` 経由で経口 (皮下) 投与する **GLP-1 作動薬薬物療法** (軸 5) を提供する代謝クラスタ関連の慢性疾患エンリッチモジュール。これで META #1137 クラスタ 2 の全軸 (5 軸) が完了。
+`PersonRecord.bmi` から E66 肥満 ICD コードを導出する POST_POPULATION enricher (軸 1、per-person SHA の coding-rate コインで gate、Issue #1773) + BMI + HTN + 脂質異常症 + DM の 4 要素 AND から **E88.81 代謝症候群** を導出する POST_POPULATION enricher (軸 2) + BMI + DM で重み付けた SHA Bernoulli で **K76.0 NAFLD** を割り当てる POST_POPULATION enricher (軸 3、F10 アルコール使用障害患者は除外、Issue #1756) + BMI × 性別 × 年齢で重み付けた SHA Bernoulli (中等症以上の OSA に較正) で **G47.30 OSA** を割り当てる POST_POPULATION enricher (軸 4、18 歳以上の成人のみ、Issue #1779) + E66.9 / E66.01 患者向けに Semaglutide / Tirzepatide / Liraglutide を `chronic_medications.yaml` 経由で皮下 (SC) 投与する **GLP-1 作動薬薬物療法** (軸 5) を提供する代謝クラスタ関連の慢性疾患エンリッチモジュール。これで META #1137 クラスタ 2 の全軸 (5 軸) が完了。
 
 ## 目的
 
@@ -26,12 +26,13 @@ from clinosim.modules.metabolic import (
 
 4 enricher がモジュールの Python 側唯一の公開面。軸 5 は yaml エントリ (`locale/shared/chronic_medications.yaml` E66.9 / E66.01 ブロック) として ship され Python export を持たない。各 enricher は標準 `ctx` (`.population.persons` を持つ) を受け取り `PersonRecord.chronic_conditions` を in-place で変更する。
 
-内部導出プリミティブ (`_derive_e66_code`, `_derive_metabolic_syndrome`, `_nafld_probability`, `_draw_nafld`, `_derive_nafld_assignment`, `_bmi_tier`, `_osa_probability`, `_draw_osa`, `_derive_osa_assignment`) は leading-underscore でテスト可能だが安定 API ではない — `clinosim/modules/metabolic/` 外からの呼び出しは enricher 経由にする。旧 `_has_code_with_prefix` モジュールローカルヘルパーは共有 `clinosim.codes.has_icd_prefix` に置換済。
+内部導出プリミティブ (`_derive_e66_code`, `_is_e66_icd_coded`, `_derive_metabolic_syndrome`, `_nafld_probability`, `_draw_nafld`, `_derive_nafld_assignment`, `_bmi_tier`, `_osa_probability`, `_draw_osa`, `_derive_osa_assignment`) は leading-underscore でテスト可能だが安定 API ではない — `clinosim/modules/metabolic/` 外からの呼び出しは enricher 経由にする。旧 `_has_code_with_prefix` モジュールローカルヘルパーは共有 `clinosim.codes.has_icd_prefix` に置換済。
 
 ## 決定論
 
-- **軸 1-2**: BMI + chronic-condition set の純粋決定論的関数。RNG 消費ゼロ。E66 閾値を跨がない BMI 分布のコホート、または E88.81 4 要素 AND を満たさない chronic-condition set を持つコホートについてバイト同一性を保持。
-- **軸 3-4**: SHA-256 per-person Bernoulli。各 enricher は `<module salt>|<person_id>` を 64-bit 分位点にハッシュし、BMI (+ DM / 性別) で重み付けた確率と比較。**RNG-neutral — マスターシミュレーションストリームを一切消費しない**ので、閾値を跨がないコホートではバイト同一性保持。別 salt (`metabolic.nafld.v1` vs `metabolic.osa.v1`) により同一患者の NAFLD / OSA 割り当ては完全相関ではなく統計的独立。
+- **軸 1**: E66 階層は BMI の純粋関数 (`_derive_e66_code`)。BMI 該当者が実際にコードを付与されるかは per-person SHA Bernoulli (`_is_e66_icd_coded`、salt `metabolic.e66.icd_coding.v1`、E66.3 は `_E66_ICD_CODING_RATE_OVERWEIGHT = 0.20`、E66.9 / E66.01 は `_E66_ICD_CODING_RATE_OBESITY = 0.65` — Issue #1773 実 EHR コーディング率)。RNG-neutral — マスターストリーム消費なし。
+- **軸 2**: BMI + chronic-condition set の純粋決定論的関数。RNG 消費ゼロ。E88.81 4 要素 AND を満たさない chronic-condition set を持つコホートについてバイト同一性を保持。
+- **軸 3-4**: `clinosim.determinism.sha_bernoulli` による SHA-256 per-person Bernoulli。各 enricher は `<module salt>|<person_id>` を 64-bit 分位点にハッシュし、BMI (+ DM / 性別) で重み付けた確率と比較。**RNG-neutral — マスターシミュレーションストリームを一切消費しない**ので、閾値を跨がないコホートではバイト同一性保持。別 salt (`metabolic.nafld.v1` vs `metabolic.osa.v1`) により同一患者の NAFLD / OSA 割り当ては完全相関ではなく統計的独立。
 - **軸 5**: chronic-medications activator パイプラインが提供し、共有 per-patient sub-RNG を使用。上流で `ENRICHER_SEED_OFFSETS["chronic_medications"]` に支配されており本モジュールは独自の sub-seed を登録しない。
 
 軸 1-4 で `ENRICHER_SEED_OFFSETS` エントリは不要 (SHA ベースまたは RNG-free)。
@@ -39,18 +40,21 @@ from clinosim.modules.metabolic import (
 ## 依存関係
 
 - `clinosim.types.population.PersonRecord` — `.bmi`, `.sex`, `.person_id` を読み `.chronic_conditions` を変更。
-- `hashlib` (stdlib) — 軸 3 / 4 Bernoulli draw 用 SHA-256。
+- `clinosim.determinism.sha_bernoulli` — 軸 1 coding コインと軸 3 / 4 draw 用の SHA-256 per-person Bernoulli。
+- `clinosim.codes.has_icd_prefix` — chronic-condition リストの ICD prefix 照合。
+- `clinosim.modules.population` — WHO BMI 階層定数 (`BMI_OVERWEIGHT_THRESHOLD`, `BMI_OBESE_THRESHOLD`, `BMI_MORBID_OBESITY_THRESHOLD`、定義は `population/_population_thresholds.py`)。
 - 下流で軸 5 は `clinosim.modules.patient.activator` が patient activation 時に yaml エントリを読む点に依存。
 
-モジュール間 clinosim import なし。登録側 (`clinosim/simulator/enrichers.py`) が 4 enricher を import する。
+上記以外のモジュール間 clinosim import なし。登録側 (`clinosim/simulator/enrichers.py`) が 4 enricher を import する。
 
 ## 定数と設定
 
 閾値は決定論導出の不変条件を導出コードと近接させるため、yaml ではなく `engine.py` 内のモジュールレベル定数に保持:
 
-- `_BMI_OVERWEIGHT_THRESHOLD = 25.0`, `_BMI_OBESITY_THRESHOLD = 30.0`, `_BMI_MORBID_THRESHOLD = 40.0` — WHO BMI 階層境界 (軸 1-4 の `_bmi_tier` で共用)。
+- `_BMI_OVERWEIGHT_THRESHOLD` (25.0), `_BMI_OBESITY_THRESHOLD` (30.0), `_BMI_MORBID_THRESHOLD` (40.0) — WHO BMI 階層境界。`clinosim.modules.population` の `BMI_OVERWEIGHT_THRESHOLD` / `BMI_OBESE_THRESHOLD` / `BMI_MORBID_OBESITY_THRESHOLD` のローカル alias として import (single source of truth、軸 1-4 の `_bmi_tier` で共用)。
+- `_E66_ICD_CODING_RATE_OVERWEIGHT = 0.20`, `_E66_ICD_CODING_RATE_OBESITY = 0.65`, `_E66_ICD_CODING_SALT = "metabolic.e66.icd_coding.v1"` — 軸 1 実 EHR コーディング率 gate (Issue #1773)。
 - `_SYNDROME_BMI_THRESHOLD = 30.0`, `_HTN_PREFIXES`, `_DYSLIPIDEMIA_PREFIXES`, `_DM_PREFIXES`, `_SYNDROME_CODE = "E88.81"` — 軸 2 AND 基準。
-- `_NAFLD_CODE = "K76.0"`, `_NAFLD_OBESE_PREVALENCE = 0.60`, `_NAFLD_MORBID_PREVALENCE = 0.85`, `_NAFLD_DM_UPLIFT = 1.15`, `_NAFLD_SALT = "metabolic.nafld.v1"` — 軸 3 アンカー (Younossi 2016 肥満サブコホート)。
+- `_NAFLD_CODE = "K76.0"`, `_NAFLD_OBESE_PREVALENCE = 0.60`, `_NAFLD_MORBID_PREVALENCE = 0.85`, `_NAFLD_DM_UPLIFT = 1.15`, `_NAFLD_SALT = "metabolic.nafld.v1"`, `_F10_PREFIXES = ("F10",)` — 軸 3 アンカー (Younossi 2016 肥満サブコホート) と F10 除外 gate (Issue #1756)。
 - `_OSA_CODE = "G47.30"`, `_OSA_PREVALENCE_MALE`, `_OSA_PREVALENCE_FEMALE`, `_OSA_AGE_SPLIT`, `_OSA_AGE_FACTOR_MALE` / `_FEMALE`, `_OSA_SALT = "metabolic.osa.v1"` — 軸 4 アンカー (BMI 階層 × 性別テーブル × 年齢係数、Peppard 2013 AHI ≥ 15 に較正)。
 
 軸 5 定数は `locale/shared/chronic_medications.yaml` の `E66.9:` / `E66.01:` ブロック (drug 名、用量、route、probability、`exclusive_classes: ["glp1"]`)。将来 NCEP ATP III 3-of-5 緩和を追加する際は軸 2 AND 基準を `reference_data/metabolic_syndrome_criteria.yaml` に外出し可能。
@@ -76,7 +80,7 @@ clinosim/modules/metabolic/
 | `e66_bmi_enricher` | `POST_POPULATION` | 15 | POP_GENERATION で BMI finalise |
 | `e88_81_syndrome_enricher` | `POST_POPULATION` | 16 | chronic_prevalence sampler (HTN/DM/脂質) + E66 enricher |
 | `k76_0_nafld_enricher` | `POST_POPULATION` | 17 | BMI + DM finalise |
-| `g47_30_osa_enricher` | `POST_POPULATION` | 18 | BMI + 性別 finalise |
+| `g47_30_osa_enricher` | `POST_POPULATION` | 18 | BMI + 性別 + 年齢 finalise (18 歳未満は skip) |
 
 4 enricher すべてが allergy / identity (order 10) の後に走る。全常時 on (ロケール/設定 gate なし) — 閾値自体が emit を gate する。
 
@@ -87,7 +91,7 @@ clinosim/modules/metabolic/
 - `PersonRecord.chronic_conditions` — append された ICD-10 コードは chronic conditions を読む下流消費者全てに流れる:
   - FHIR Condition 直列化 ([`output/fhir_r4/documents/composition.py`](../output/fhir_r4/documents/composition.py))
   - ナラティブ生成 ([`document/narrative/`](../document/narrative/))
-  - `population/aging.py`, `simulator/outpatient.py` のリスク乗数検索
+  - `population/mortality.py` の地域死亡 comorbidity SMR (`population/aging.py::advance_population` から抽選) と `simulator/outpatient.py` のリスク検索
   - DR + consistency validator ([`validator/`](../validator/))
 - `locale/shared/chronic_medications.yaml` E66.9 / E66.01 ブロック (軸 5) は `modules/patient/activator.py` → `HomeMedication.drug_name` → 下流処方経路で消費される。
 
@@ -95,18 +99,21 @@ clinosim/modules/metabolic/
 
 `tests/unit/modules/metabolic/`:
 
-- `test_e66_bmi_enricher.py` — 導出境界 5 + enricher 動作 5 + 混合コホート smoke 1 + 既存バリアント通過 1 = 12 件。
+- `test_e66_bmi_enricher.py` (13) — 導出境界、enricher 動作 (#1773 coding-rate gate 含む)、混合コホート smoke、既存バリアント通過。
 - `test_e88_81_syndrome_enricher.py` — 導出 AND 基準 8 + enricher 動作 5 + 混合コホート smoke 1 = 14 件。
 - `test_k76_0_nafld_enricher.py` — 確率アンカー + DM-uplift 4 + SHA-draw 4 + 導出 wrapper 2 + enricher 動作 4 (500 人有病率帯 + RNG-neutral cross-seed 含む) = 14 件。
-- `test_g47_30_osa_enricher.py` — BMI-tier 境界 1 + 有病率アンカー 4 (M / F / 2:1 比 / 不明性フォールバック) + SHA-draw 4 (K76.0 との salt 分離含む) + 導出 wrapper 2 + enricher 動作 4 (性別勾配可視化 + RNG-neutral cross-seed 含む) = 15 件。
+- `test_g47_30_osa_enricher.py` (16) — BMI-tier 境界、有病率アンカー (M / F / 比 / 不明性フォールバック)、SHA-draw (K76.0 との salt 分離含む)、導出 wrapper、enricher 動作 (性別勾配可視化 + RNG-neutral cross-seed 含む)。
+- `test_k76_f10_contradiction_gate_1756.py` (6) — K76.0 / F10 相互排他 gate (Issue #1756)。
+- `test_osa_age_gate_1779.py` (8) — 成人限定 OSA gate (Issue #1779)。
+- `test_osa_prevalence_peppard.py` (4) — Peppard 2013 帯に対する期待有病率のパラメタライズ検査。
 
-合計 55 件。全 1 秒未満で実行完了; local `_person` + `_Ctx` dataclass 以外の fixture なし。
+合計 75 件 (collect 数)。全 1 秒未満で実行完了; local `_person` + `_Ctx` dataclass 以外の fixture なし。
 
 E2E 検証は `scripts/engine-fingerprint.sh` を US s42 + JP s17 p=500 コホートペアに実行 — 軸毎の commit 履歴にバイト同一性保持の TOTAL ハッシュ before / after を記録。
 
 ## オーナーシップ
 
-META #1137 クラスタ-2 スコープと一緒にメンテ。主監査ポイント: `engine.py` モジュール docstring 内の臨床アンカー (Younossi 2016, Peppard 2013)。モジュールが ~600 LOC を超えたら将来軸は sibling axis ファイルで ship すべき — 現 `engine.py` 単一構成は ~430 LOC でレビュー容易だが、クラスタ 2 が更に成長する場合は per-axis split (`e66.py`, `e88_81.py`, …) が必要。
+META #1137 クラスタ-2 スコープと一緒にメンテ。主監査ポイント: `engine.py` モジュール docstring 内の臨床アンカー (Younossi 2016, Peppard 2013)。モジュールが ~600 LOC を超えたら将来軸は sibling axis ファイルで ship すべき — 現 `engine.py` 単一構成は ~420 LOC でレビュー容易だが、クラスタ 2 が更に成長する場合は per-axis split (`e66.py`, `e88_81.py`, …) が必要。
 
 Follow-up (追跡していた META #1137 と #1633 は共に close 済み。以下は専用 META のない将来作業):
 

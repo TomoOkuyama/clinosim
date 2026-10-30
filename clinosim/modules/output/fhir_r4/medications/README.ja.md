@@ -6,12 +6,16 @@
 — 入院 inflow、退院 outflow、外来) と `MedicationAdministration`
 (投与 dose ごとの MAR entry)。JP path は YJ コード + JP-CLINS
 Medication profile の MEDIS `NOCODED` fallback を emit、US path は
-RxNorm。JP `MedicationRequest.status='completed'` invariant
-(JP eCS Medication_Common が要求) を emit 時に強制する — memory
-[`project_jp_ecs_forces_status_completed`](../../../../../..) 参照。
-[`clinosim.modules.antibiotic`](../../../antibiotic/README.ja.md) の
-`discontinuation_datetime` slot は narrow / stop 時に
-`MedicationRequest.statusReason` に情報を寄せて workaround する。
+RxNorm。JP `MedicationRequest.status='completed'` /
+`intent='order'` の pattern 固定 (`JP_MedicationRequest_eCS` が要求)
+は builder の後で
+[`../post_process/populate.py`](../post_process/populate.py) の
+`_populate_condition_ai_mr_ecs_fields` が適用する。builder が設定した
+status が異なる場合 (`active`、narrow / 中止された
+[`antibiotic`](../../../antibiotic/README.ja.md) regimen の
+`stopped` 等)、元の status は
+`urn:clinosim:medicationrequest-effective-status` extension と
+`note[]` text に保持される (`statusReason` は emit しない)。
 
 ## Scope
 
@@ -37,7 +41,7 @@ RxNorm。JP `MedicationRequest.status='completed'` invariant
   ([`order`](../../../order/README.ja.md)、
   [`simulator`](../../../../simulator/)、
   [`antibiotic`](../../../antibiotic/README.ja.md));薬剤 code registry
-  ([`clinosim/codes/data/{rxnorm,yj,hot,jp-medis-drug-uncoded}.yaml`](../../../../codes/data/));
+  ([`clinosim/codes/data/{rxnorm,yj,hot7}.yaml`](../../../../codes/data/));
   退院薬理由 / narrow-target 用量 default
   ([`antibiotic/_narrow_dose_defaults.py`](../../../antibiotic/_narrow_dose_defaults.py))。
 
@@ -48,8 +52,8 @@ RxNorm。JP `MedicationRequest.status='completed'` invariant
 `MedicationAdministration` を **同一 `order_id`** で 1 対 emit する。
 これにより本 subpackage の `_bb_medication_requests` /
 `_bb_medication_admins` builder が emit 時に自然に対を成す。JP path
-は引き続き `MedicationRequest.status = "completed"` invariant を
-enforce (詳細: memory `project_jp_ecs_forces_status_completed`)。MAR
+は引き続き `MedicationRequest.status = "completed"` を固定 (概要
+参照)。MAR
 側は `effectiveDateTime` に cycle Day-1 投与 timestamp を持つ。
 FOLFOX の 46 時間 5-FU 等の複日 infusion 薬の展開は follow-up slice —
 現 MVP は Day-1 薬剤ごとに 1 MAR。
@@ -57,7 +61,7 @@ FOLFOX の 46 時間 5-FU 等の複日 infusion 薬の展開は follow-up slice 
 ## Public API
 
 各 builder は親 facade (`_BUNDLE_BUILDERS` in
-[`../__init__.py`](../__init__.py)) に `_bb_medication_requests`,
+[`../builder.py`](../builder.py)) に `_bb_medication_requests`,
 `_bb_discharge_medication_requests`, `_bb_medication_admins` として
 登録済み。low-level `_build_*` 関数は `medications.py`:
 
@@ -74,6 +78,7 @@ from clinosim.modules.output.fhir_r4.medications.medications import (
     DISCHARGE_RX_ID_PREFIX,               # "rxdc-"
     OUTPATIENT_RX_ID_PREFIX,              # "rxopd-"
     MEDICATION_REQUEST_KEY_SYSTEM,        # structural key system URI
+    MEDICATION_ADMINISTRATION_ID_PREFIX,  # "mar-"
 )
 ```
 
@@ -92,22 +97,28 @@ fragment builder のみを移し、`_bb_*` 登録は inline_bb に残した。
 - `clinosim.modules._shared` — `is_jp`, `resolve_lang`,
   `get_attr_or_key`。
 - `clinosim.modules.output.fhir_r4.lib.common` — `BundleContext`,
-  `_coding_with_display`, `build_ucum_quantity`,
-  `attach_ecs_institutional_extensions`。
-- `clinosim.modules.output.fhir_r4.lib.ids` — medication-request
-  key system URI 用 `structural_key_system`。
+  `build_ucum_quantity`、dosage / route / status helper。
+- `clinosim.modules.output.fhir_r4.lib.ids` — `derive_opaque_id` +
+  `structural_key_system`。
 - `clinosim.modules.output.fhir_r4.conditions.primary_ref` —
-  `MedicationRequest.reasonReference` 用 `primary_condition_ref`。
-- `clinosim.codes` — RxNorm / YJ / HOT 表示 lookup。
-- `clinosim.types.encounter` — `Order`, `OrderStatus`, `OrderType`,
-  `MedicationAdministration`。
+  `MedicationRequest.reasonReference` /
+  `MedicationAdministration.reasonReference` 用
+  `primary_condition_ref_from_codes` (lazy import)。
+- `..demographics.patient.patient_ref`、
+  `..encounters.encounter.encounter_ref`。
+- `clinosim.codes` — RxNorm / YJ / HOT 表示 lookup、
+  `clinosim.locale.loader.load_code_mapping`。
+- order / MAR record は CIF dict として読み、`clinosim.types` の
+  class は import しない。
 
 ## 定数と設定
 
-- **ID prefix**: 入院 MedicationRequest は
-  `rx-{encounter_id}-{seq}` 形状。退院 outflow は
+- **ID prefix**: order 由来 MedicationRequest id は opaque な
+  `mr-{sha256(order_id)[:12]}` (`_resolve_mr_id`、Issue #853。
+  structural key は `identifier[]` に残る)。退院 outflow は
   `DISCHARGE_RX_ID_PREFIX = "rxdc-"`、外来は
-  `OUTPATIENT_RX_ID_PREFIX = "rxopd-"`。
+  `OUTPATIENT_RX_ID_PREFIX = "rxopd-"`、MedicationAdministration は
+  `MEDICATION_ADMINISTRATION_ID_PREFIX = "mar-"`。
   [`antibiotic`](../../../antibiotic/README.ja.md) module は regimen を
   `ABX_ORDER_REQ_PREFIX` / `ABX_NARROW_SUFFIX` で追加 emit する
   ([`antibiotic/engine.py`](../../../antibiotic/engine.py))。
@@ -128,17 +139,19 @@ fragment builder のみを移し、`_bb_*` 登録は inline_bb に残した。
   `NOCODED` fallback (`_JP_MEDICATION_CODE_NOCODED_CS`,
   `_JP_MEDICATION_CODE_NOCODED_CODE = "NOCODED"`、表示
   `"標準コードなし"`) を emit。
-- **JP `MedicationRequest.status = "completed"`** — JP eCS
-  Medication_Common profile が emit 時に強制。`stopped` / `active`
-  / `on-hold` 等の意図は enricher が regimen 中断を marking したとき
-  `MedicationRequest.statusReason` に寄せる (antibiotic narrowing
-  path)。
+- **JP `MedicationRequest.status = "completed"`** — JP 出力で
+  `post_process/populate.py` (`_populate_condition_ai_mr_ecs_fields`)
+  が `JP_MedicationRequest_eCS` に従い固定。builder の status が
+  異なる場合 (`active`、`stopped` 等) は
+  `urn:clinosim:medicationrequest-effective-status` extension
+  (`valueCode`) と日本語 `note[]` text に保持。builder 自体は stop
+  order (`MED_STOP_ORDER_ID_MARKER`) に `stopped` を設定する。
 
 ## ディレクトリ構造
 
 ```
 clinosim/modules/output/fhir_r4/medications/
-  __init__.py                        空 (builder は親 __init__ が import)
+  __init__.py                        namespace stub (builder は ../builder.py / ../lib/inline_bb.py が import)
   medications.py                     _build_medication_request + _build_discharge_medication_request + _build_medication_admin + JP eCS fragment
 ```
 
@@ -159,4 +172,4 @@ pytest tests/integration -k "antibiotic or servicerequest_chain" -q
 `maintainers@` — 詳細は
 [`CONTRIBUTING.md`](../../../../../CONTRIBUTING.ja.md)。
 
-英語版: [`README.md`](README.ja.md)。
+英語版: [`README.md`](README.md)。

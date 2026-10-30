@@ -15,7 +15,11 @@ Composition dispatch is **format-type driven**: only
 Compositions; the rest emit `DocumentReference`. JP-CLINS
 Composition variants (DISCHARGE_SUMMARY / REFERRAL_NOTE /
 eCheckup) each have their own template-specialised builder in
-`composition.py`.
+[`jp_clins/`](jp_clins/) (dispatched from `composition.py`).
+`imaging_report.py` emits a section-structured imaging-report
+Composition per `RadiologyReport`, and `referral_orgs.py` supplies
+the external referring / receiving `Organization` resources for JP
+referral letters (LOINC 57133-1).
 
 ## Scope
 
@@ -24,13 +28,15 @@ eCheckup) each have their own template-specialised builder in
   `narrative` is still `None` — the Stage 2 pass has not yet run —
   with a warning rather than emitting an empty Composition);
   `_build_composition` root builder + `_build_composition_generic`
-  fallback; three JP-CLINS specialised builders
+  fallback; three JP-CLINS specialised builders in `jp_clins/`
   (`_build_jp_clins_discharge_summary_composition`,
   `_build_jp_clins_referral_note_composition`,
-  `_build_jp_echeckup_general_composition`);
-  `_localize_section_title` + `_section_title_from_section_display`
-  (α-min-1 adv-1 Lens 3 I-3 TODO: JP section-title locale is
-  deferred to β-JP-1, keys remain English snake_case for now);
+  `_build_jp_echeckup_general_composition`) plus the JP death
+  certificate (LOINC 64297-5) and death-discharge-summary builders in
+  `composition.py`; `_bb_imaging_report_compositions`
+  (`imaging_report.py`); `_localize_section_title` +
+  `_section_title_from_section_display` (titles resolved from
+  `clinosim/modules/document/reference_data/section_catalog.yaml`);
   `_bb_document_references` + `_build_dref_from_clinical_doc` +
   `_build_prior_doc_chain` (`DocumentReference` builder with prior
   document chain); `_bb_document_references_checkup` +
@@ -47,17 +53,17 @@ eCheckup) each have their own template-specialised builder in
 ## Public API
 
 Every builder is registered with the parent facade
-(`_BUNDLE_BUILDERS` in [`../__init__.py`](../__init__.py)).
+(`_BUNDLE_BUILDERS` in [`../builder.py`](../builder.py)).
 
 ```python
 from clinosim.modules.output.fhir_r4.documents.composition import (
     _bb_compositions,                            # bundle-builder (ctx: BundleContext)
     _build_composition,                          # root Composition builder (dispatches to specialised builders)
     _build_composition_generic,                  # generic-shape fallback
-    _build_jp_clins_discharge_summary_composition,
-    _build_jp_clins_referral_note_composition,
-    _build_jp_echeckup_general_composition,
-    _localize_section_title,                     # (section_title, lang) -> localised title (JP deferred to β-JP-1)
+    _build_jp_clins_discharge_summary_composition,   # defined in jp_clins/discharge_summary.py
+    _build_jp_clins_referral_note_composition,       # defined in jp_clins/referral_note.py
+    _build_jp_echeckup_general_composition,          # defined in jp_clins/echeckup_general.py
+    _localize_section_title,                     # (section_title, lang) -> localised title via section_catalog.yaml
     _section_title_from_section_display,
 )
 from clinosim.modules.output.fhir_r4.documents.documents import (
@@ -68,8 +74,9 @@ from clinosim.modules.output.fhir_r4.documents.documents import (
 from clinosim.modules.output.fhir_r4.documents.document_reference_checkup import (
     _bb_document_references_checkup,             # eCheckup-specialised bundle-builder
     _build_dref,                                 # eCheckup per-record DocumentReference
-    _fhir_instant_or_empty,                      # safe ISO-instant conversion
+    _fhir_instant_or_empty,                      # safe ISO-instant conversion (also defined in documents.py)
 )
+from clinosim.modules.output.fhir_r4.documents.imaging_report import _bb_imaging_report_compositions
 ```
 
 ## Determinism
@@ -83,15 +90,17 @@ gate replaces byte-diff (see
 ## Dependencies
 
 - `clinosim.modules._shared` — `is_jp`, `resolve_lang`.
-- `clinosim.modules.output.fhir_r4.lib.common` — `_coding_with_display`,
-  `loinc_coding`, `BundleContext`, `entry`,
-  `attach_ecs_institutional_extensions`.
+- `clinosim.modules.output.fhir_r4.lib.common` — `BundleContext`,
+  `_escape_html`, `derive_meta_last_updated`, `to_fhir_instant`;
+  `lib.ids` — opaque ids.
 - `clinosim.modules.output.fhir_r4.conditions.primary_ref` —
-  `primary_condition_ref` for Composition `Composition.subject` /
-  `Composition.encounter` linkage cross-checks.
+  `primary_condition_ref` for the per-encounter primary Condition
+  referenced from Composition sections.
+- `clinosim.modules.document` — `COMPOSITION_ID_PREFIX`,
+  `DOC_REFERENCE_ID_PREFIX`; `clinosim.modules.document.narrative.registry`.
 - `clinosim.codes` — LOINC lookup for document-type codes.
-- `clinosim.types.clinical` — `ClinicalDocument`,
-  `ClinicalDocumentNarrative`.
+- Documents are read as merged CIF dicts (via `CIFReader`); no
+  `clinosim.types` classes are imported.
 
 ## Constants and configuration
 
@@ -101,17 +110,21 @@ gate replaces byte-diff (see
   via `_bb_document_references` instead.
 - **JP-CLINS Composition variants** — dispatched inside
   `_build_composition` by document-type LOINC:
-  - `18842-5` DISCHARGE_SUMMARY → JP-CLINS discharge-summary builder.
-  - REFERRAL_NOTE → JP-CLINS referral-note builder.
-  - eCheckup (JP 事業者健診) → JP-eCheckup general builder.
+  - death-discharge-summary task type → death discharge-summary
+    builder (all locales, checked first).
+  - JP-CLINS output only: `18842-5` DISCHARGE_SUMMARY → JP-CLINS
+    discharge-summary builder; `57133-1` REFERRAL_NOTE → JP-CLINS
+    referral-note builder; `53576-5` eCheckup (JP 事業者健診) →
+    JP-eCheckup general builder; `64297-5` → JP death-certificate
+    builder.
   - Other document types (ADMISSION_HP `34117-2`,
     ADMISSION_NURSING_ASSESSMENT `78390-2`,
     NURSING_DISCHARGE_SUMMARY `34745-0`,
     OUTPATIENT_SOAP `34131-3`, ED_NOTE `34878-9`) → generic builder.
-- **Section-title language** — α-min-1 adv-1 Lens 3 I-3 TODO:
-  section titles remain English snake_case keys; JP localisation is
-  deferred to β-JP-1. `_localize_section_title` currently returns
-  the input unchanged for JP.
+- **Section-title language** — `_localize_section_title` resolves
+  the display title for the language from
+  `document/reference_data/section_catalog.yaml`; on a catalog miss
+  JP passes the slug through unchanged and US humanises it.
 - **Prior-doc chain** — `_build_prior_doc_chain` walks
   `raw_docs` to build the `DocumentReference.relatesTo` chain
   (progress-note ↔ discharge-summary linkage, ADMISSION_HP ↔
@@ -126,10 +139,13 @@ gate replaces byte-diff (see
 
 ```
 clinosim/modules/output/fhir_r4/documents/
-  __init__.py                        empty (builders imported by parent __init__)
-  composition.py                     _bb_compositions + generic + 3 JP-CLINS specialised builders (~1200 LOC)
+  __init__.py                        namespace stub (builders imported by ../builder.py / ../lib/inline_bb.py)
+  composition.py                     _bb_compositions + _build_composition dispatch + generic + death-certificate / death-discharge-summary builders (~1,200 LOC)
+  jp_clins/                          JP-CLINS per-profile builders (discharge_summary / referral_note / echeckup_general)
   documents.py                       _bb_document_references + prior-doc chain
   document_reference_checkup.py      _bb_document_references_checkup (JP-eCheckup)
+  imaging_report.py                  _bb_imaging_report_compositions (imaging-report Composition, Issue #818)
+  referral_orgs.py                   external referring / receiving Organization catalog for JP referral letters
 ```
 
 ## Testing

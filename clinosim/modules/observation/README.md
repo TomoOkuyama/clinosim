@@ -8,9 +8,11 @@ Owns three related emission-layer concerns for observed clinical data:
    panel decomposition (`lab_aliases.yaml`, `lab_panels.yaml`),
    sex-banded reference ranges, physiologic clamping,
    noise / variability injection, precision rounding, and reference-
-   range flag assignment. `generate_lab_result` is the single
-   emission point every simulator uses to write a lab
-   `OrderResult`.
+   range flag assignment. `generate_lab_result` is the shared
+   value-generation step (variability + rounding, or a categorical
+   draw for qualitative tests) the simulators call before building
+   a lab `OrderResult`; `determine_flag` assigns the H / L /
+   critical flag.
 2. **Nursing flowsheet observations** (`nursing.py` +
    `nursing_enricher.py`) — NEWS2 / GCS / Braden pressure-ulcer /
    Morse fall-risk score computation from vital + ADL data, plus
@@ -21,8 +23,9 @@ Owns three related emission-layer concerns for observed clinical data:
    assigns `primary_nurse_id`.)
 3. **Microbiology cultures + susceptibility** (`microbiology.py`) —
    deterministic culture organism sampling, S/I/R susceptibility
-   generation from the antibiogram, HAI-event backref via
-   `hai_event_id` (PR3b-2 chain).
+   generation from the antibiogram. (The `MicrobiologyResult.hai_event_id`
+   backref for HAI-derived cultures is set by
+   [`clinosim.modules.hai`](../hai/README.md), not here.)
 
 Companion threshold files (`fluid_balance.py`, `oxygenation.py`,
 `pre_analytical.py`, `vitals_thresholds.py`,
@@ -33,8 +36,9 @@ every previously-inline scalar so a single edit propagates.
 
 - **In scope**: `canonical_lab_name` + `lab_panel_components`
   (single edit points for lab-alias resolution and panel expansion);
-  `generate_lab_result` (baseline + noise + clamp + rounding +
-  reference-range flag); `apply_realistic_variability`,
+  `generate_lab_result` (noise + clamp + rounding, or categorical
+  result for qualitative tests); `is_qualitative_test`;
+  `apply_realistic_variability`,
   `clamp_to_physiologic_limits`, `round_to_precision`,
   `determine_flag`, `_generate_qualitative_result`,
   `_reference_ranges_by_sex`; `get_lab_unit`;
@@ -43,7 +47,7 @@ every previously-inline scalar so a single edit propagates.
   `enrich_nursing` POST_RECORDS enricher (fills NEWS2/GCS on each
   vital, generates daily Braden/Morse);
   `has_microbiology(disease_id)` + `generate_microbiology(...)` +
-  `antibiotic_loinc_lookup()`; four threshold sub-modules with
+  `antibiotic_loinc_lookup()`; the threshold sub-modules with
   clinical citations.
 - **Out of scope**: physiology state that drives lab values
   ([`physiology`](../physiology/README.md)); order placement
@@ -55,7 +59,7 @@ every previously-inline scalar so a single edit propagates.
 
 ## Public API
 
-`__init__.py` is empty; consumers import from the four submodules
+`__init__.py` is empty; consumers import from the submodules
 directly:
 
 ```python
@@ -65,10 +69,11 @@ from clinosim.modules.observation.engine import (
     lab_panel_components,                # (panel_name) -> list[str]
     get_lab_unit,                        # (lab_name) -> unit str
     clamp_to_physiologic_limits,         # (lab_name, value) -> float
-    apply_realistic_variability,         # (lab_name, value, rng) -> float
+    apply_realistic_variability,         # (lab_name, true_value, rng) -> float
     round_to_precision,                  # (lab_name, value) -> float
-    generate_lab_result,                 # (lab_name, state, patient, rng, **flags) -> OrderResult
-    determine_flag,                      # (lab_name, value, sex, country) -> "L" | "H" | ""
+    is_qualitative_test,                 # (lab_name) -> bool
+    generate_lab_result,                 # (lab_name, true_value, rng) -> float | str
+    determine_flag,                      # (lab_name, value, sex="F", country="US") -> "L" | "H" | "critical" | None
 )
 
 # Nursing flowsheet
@@ -76,14 +81,14 @@ from clinosim.modules.observation.nursing import (
     compute_news2,                       # (vs: dict) -> int
     compute_gcs,                         # (consciousness_level, perfusion_status, rng) -> int
     compute_braden,                      # (adl, consciousness_level, volume_status, rng) -> dict
-    compute_morse_fall_risk,             # (…) -> dict
+    compute_morse_fall_risk,             # (age, adl, consciousness_level, has_iv, rng) -> (score, risk_level)
 )
 from clinosim.modules.observation.nursing_enricher import enrich_nursing
 
 # Microbiology
 from clinosim.modules.observation.microbiology import (
     has_microbiology,                    # (disease_id) -> bool
-    generate_microbiology,               # (…) -> list[MicrobiologyResult]
+    generate_microbiology,               # (disease_id, collected_datetime, encounter_id, master_seed) -> list[MicrobiologyResult]
     antibiotic_loinc_lookup,             # () -> dict[antibiotic_key, LOINC code]
 )
 ```
@@ -97,32 +102,32 @@ from clinosim.modules.observation.microbiology import (
   `name="nursing"`) and the primary-nurse enricher in
   [`clinosim.modules.nursing`](../nursing/README.md)
   (POST_ENCOUNTER order=94, registered as `name="nursing_assignment"`).
-  The two enrichers run in different stages, so the shared offset
+  `enrich_nursing` keys the sub-seed on `patient_id`, the
+  primary-nurse enricher on `encounter_id`, so the shared offset
   does not conflict.
 - Microbiology sampling uses an **encounter-scoped** sub-seed
-  derived per `hai_event_id` / encounter, so `generate_microbiology`
-  can be extended with new organisms without shifting unrelated
-  patients' streams (PR3b-2 pattern).
+  `derive_sub_seed(master_seed, ENRICHER_SEED_OFFSETS["microbiology"]
+  (770_077), encounter_id)`, so `generate_microbiology` can be
+  extended with new organisms without shifting unrelated patients'
+  streams.
 - Lab-result variability is called with a **per-order** RNG
-  (`simulator/seeding.py:panel_specimen_seed` /
+  (`clinosim/seeding.py:panel_specimen_seed` /
   `individual_lab_seed` — AD-59), not the patient master RNG, so
   YAML edits adding a new analyte are byte-clean for unrelated
   patients.
 
 ## Dependencies
 
-- `clinosim.modules._shared` — `get_attr_or_key`, `set_attr_or_key`,
-  `is_jp`, `is_us`, `normalize_probabilities`.
+- `clinosim.modules._shared` — `get_attr_or_key`, `set_attr_or_key`
+  (nursing enricher), `normalize_probabilities` (microbiology).
 - `clinosim.modules.observation.{fluid_balance,oxygenation,pre_analytical,vitals_thresholds,_nursing_score_thresholds,_variability_defaults}`
   — every clamp / noise / trigger threshold used by the three
   engines above (Issue #561 + #637 sweeps).
-- `clinosim.locale.loader` — sex-banded reference-range YAMLs
-  (`reference_range_lab.yaml`) and lab code mapping
-  (`code_mapping_lab.yaml`).
+- `clinosim.locale.loader` — `load_reference_ranges` for the
+  sex-banded reference-range YAMLs (`reference_range_lab.yaml`).
 - `clinosim.seeding` — `ENRICHER_SEED_OFFSETS`, `derive_sub_seed`.
-- `clinosim.types.encounter` — `OrderResult`, `MicrobiologyResult`.
-- `clinosim.types.clinical` — `PhysiologicalState` (input for lab
-  derivation).
+- `clinosim.types` — `MicrobiologyResult`, `SusceptibilityResult`;
+  `clinosim.types.encounter` — `NursingRiskAssessment`.
 - `yaml`, `numpy`.
 
 ## Constants and configuration
@@ -134,9 +139,10 @@ from clinosim.modules.observation.microbiology import (
     (`lab_panel_components`).
   - `microbiology.yaml` — culture organism catalog + susceptibility
     distributions + `antibiotic_loinc_lookup` source. Validated at
-    import via `_validate_microbiology` with 7 cross-references
-    against `HAI_TYPES` / `ANTIBIOTIC_DRUGS` / SNOMED / LOINC
-    canonical sets (PR-A pattern).
+    load via `_validate_microbiology` with 7 checks: antibiogram →
+    `antibiotics` keys, disease organisms → `organisms` keys, culture
+    specimens → `specimens` keys, and non-empty organism / specimen
+    SNOMED and specimen / antibiotic LOINC strings.
   - `nursing_scores.yaml` — authoritative published-instrument
     bands for NEWS2, GCS, Braden, Morse (loaded by `_scores`,
     consumed by the `compute_*` functions).
@@ -150,15 +156,18 @@ from clinosim.modules.observation.microbiology import (
     (`SPO2_HYPOXEMIA_TRIGGER = 92 %`,
     `SPO2_SEVERE_HYPOXEMIA = 88 %`).
   - [`pre_analytical.py`](pre_analytical.py) (Issue #561) —
-    specimen-rejection / hemolysis / technician-error rates lifted
-    from two sites in `inpatient.py` so a tuning change propagates.
-  - [`vitals_thresholds.py`](vitals_thresholds.py) — per-vital
-    physiologic min / max clamps and reference bands.
+    specimen-rejection / hemolysis / technician-error rates, consumed
+    by `simulator/lab_pipeline.py`.
+  - [`vitals_thresholds.py`](vitals_thresholds.py) (Issue #561) —
+    fever detection and febrile-recheck cadence
+    (`FEVER_THRESHOLD_C = 38.0`, `HIGH_FEVER_RECHECK_C = 38.5`,
+    `FEBRILE_RECHECK_PROB`, `FEBRILE_RECHECK_WINDOW_MIN`).
   - [`_nursing_score_thresholds.py`](_nursing_score_thresholds.py)
     — score-band boundaries for the compute_* functions.
   - [`_variability_defaults.py`](_variability_defaults.py) —
-    per-analyte default variability SDs when the reference YAML
-    lacks a specific entry.
+    fallback biological / analytical CVs (`DEFAULT_BIOLOGICAL_CV`,
+    `DEFAULT_ANALYTICAL_CV`) for analytes without a per-lab CV, plus
+    the categorical result distributions for qualitative tests.
 
 ## Directory contents
 
@@ -172,9 +181,9 @@ clinosim/modules/observation/
   fluid_balance.py                   IV regimen + urine-output thresholds (Issue #561)
   oxygenation.py                     SpO₂ escalation triggers (Issue #561)
   pre_analytical.py                  specimen-error rates (Issue #561)
-  vitals_thresholds.py               per-vital clamps + bands
+  vitals_thresholds.py               fever / febrile-recheck thresholds (Issue #561)
   _nursing_score_thresholds.py       score-band boundaries (Issue #637)
-  _variability_defaults.py           default variability SDs (Issue #637)
+  _variability_defaults.py           default CVs + qualitative distributions (Issue #637)
   reference_data/
     lab_aliases.yaml                 canonical lab-name aliases
     lab_panels.yaml                  panel → components
@@ -183,7 +192,7 @@ clinosim/modules/observation/
   SPEC.md                            extended design reference (not runtime)
 ```
 
-The module has **no `audit.py`** — verification is import-time
+The module has **no `audit.py`** — verification is load-time
 (`_validate_microbiology`) plus the tests below.
 
 ## Enricher wiring
@@ -199,19 +208,20 @@ Registered in
 The `nursing_assignment` enricher registered by
 [`clinosim.modules.nursing`](../nursing/README.md) (POST_ENCOUNTER
 order=94) is a distinct enricher; both share the `0x4E55` sub-seed
-offset but run in different stages so there is no conflict.
+offset but key it on different ids (`patient_id` vs `encounter_id`)
+and run in different stages, so there is no conflict.
 
 ## Output surfaces (consumers)
 
 | Consumer | Where | Role |
 |---|---|---|
-| Enricher registry | [`clinosim/simulator/enrichers.py:148`](../../simulator/enrichers.py) | POST_RECORDS `nursing` registration. |
+| Enricher registry | [`clinosim/simulator/enrichers.py:228`](../../simulator/enrichers.py) | POST_RECORDS `nursing` registration. |
 | Lab pipeline | [`clinosim/simulator/lab_pipeline.py`](../../simulator/lab_pipeline.py) | Calls `generate_lab_result` per placed lab order. |
 | Vitals pipeline | [`clinosim/simulator/vitals_pipeline.py`](../../simulator/vitals_pipeline.py) | Consumes `fluid_balance.py` + `oxygenation.py` thresholds. |
-| Inpatient / outpatient / emergency / daily_loop / unknown_condition | [`clinosim/simulator/*.py`](../../simulator/) | Consumes lab canonicalisation, nursing compute_*, and microbiology helpers. |
-| Order module | [`clinosim/modules/order/panel_grouping.py`](../order/panel_grouping.py) | Consumes `lab_panel_components` to expand panel orders. |
-| HAI lab lift | [`clinosim/modules/hai/lab_lift.py`](../hai/lab_lift.py) | Reads lab result WBC / CRP fields after `enrich_nursing`. |
-| Monitoring enricher | [`clinosim/modules/monitoring/enricher.py`](../monitoring/enricher.py) | Consumes lab result flags for chronic-medication monitoring. |
+| Inpatient / outpatient / emergency / daily_loop / unknown_condition | [`clinosim/simulator/*.py`](../../simulator/) | Consume lab canonicalisation / result generation; `inpatient.py` calls `generate_microbiology`. |
+| Order module | [`clinosim/modules/order/panel_grouping.py`](../order/panel_grouping.py) | Load-time cross-validation (Layer 6b) of `lab_panel_groups.yaml` components against `lab_panel_components`. |
+| HAI lab lift | [`clinosim/modules/hai/lab_lift.py`](../hai/lab_lift.py) | Re-flags / re-rounds lifted WBC / CRP values via `determine_flag` + `round_to_precision`. |
+| Monitoring enricher | [`clinosim/modules/monitoring/enricher.py`](../monitoring/enricher.py) | Uses `canonical_lab_name`, `generate_lab_result`, `get_lab_unit`, `determine_flag` for injected monitoring labs. |
 | Antibiotic module | [`clinosim/modules/antibiotic/__init__.py`](../antibiotic/__init__.py) | Consumes `antibiotic_loinc_lookup` for regimen coding. |
 
 ## Testing

@@ -4,14 +4,18 @@
 
 検査 + 観測ファミリの FHIR R4 resource 全てを emit (fhir_r4/
 subsystem 内で最も JP-locale 特化が重い): `Observation` (labs +
-vitals + ABO/RhD + microbiology)、`DiagnosticReport`、
+vitals + ABO/RhD + microbiology + 身体計測 + 慢性疾患 stage scale)、`DiagnosticReport`、
 `ServiceRequest`、`ImagingStudy`、そして emit 時に JLAC10 五軸
 コードを解決する JP-CLINS lab-code loader (`coding_package`) +
 dispatcher (`coding_strategy`)。
 
 ## Scope
 
-- **In scope**: `_bb_labs` (lab + vitals Observation)、
+- **In scope**: `_bb_labs` (lab Observation) + `_build_vital_observations`
+  (vitals。registry wrapper `_bb_vitals` は
+  [`../lib/inline_bb.py`](../lib/inline_bb.py))、`_bb_anthropometrics`
+  (身長 / 体重 / BMI / 頭囲、Issue #946)、
+  `_bb_stage_scale_observations` (mRS / H&Y / EDSS / CDR stage scale)、
   `_bb_diagnostic_reports`、`_bb_service_requests` (canonical 定数
   `SR_ID_PREFIX` + `PLACER_ORDER_NUMBER_SYSTEM` +
   `LAB_CATEGORY_SNOMED` + `LAB_CATEGORY_V2_0074` を保持、
@@ -37,7 +41,7 @@ dispatcher (`coding_strategy`)。
 ## Public API
 
 各 builder は親 facade (`_BUNDLE_BUILDERS` in
-[`../__init__.py`](../__init__.py)) に登録済み。直接 import:
+[`../builder.py`](../builder.py)) に登録済み。直接 import:
 
 ```python
 from clinosim.modules.output.fhir_r4.labs.observations import _bb_labs
@@ -55,14 +59,18 @@ from clinosim.modules.output.fhir_r4.labs.imaging_study import (
     _build_imaging_study,
     _build_series,
     DICOM_UID_SYSTEM,                     # "urn:dicom:uid"
+)
+from clinosim.modules.output.fhir_r4.labs.diagnostic_report import (
     RADIOLOGY_DR_ID_PREFIX,               # RADIOLOGY_REPORT_ID_PREFIX の alias
 )
 from clinosim.modules.output.fhir_r4.labs.blood_type import (
     _bb_blood_type,
     _build_blood_type_obs,
 )
-from clinosim.modules.output.fhir_r4.labs.coding_package import load_jp_clins_terminology
-from clinosim.modules.output.fhir_r4.labs.coding_strategy import resolve_lab_code
+from clinosim.modules.output.fhir_r4.labs.anthropometrics import _bb_anthropometrics
+from clinosim.modules.output.fhir_r4.labs.stage_scale_observations import _bb_stage_scale_observations
+from clinosim.modules.output.fhir_r4.labs.coding_package import load_lab_coding_package          # () -> LabCodingPackage
+from clinosim.modules.output.fhir_r4.labs.coding_strategy import select_lab_coding_strategy     # (lab_name, country) -> LabCodingStrategy
 from clinosim.modules.output.fhir_r4.labs._reference_ranges import (
     VITAL_HEART_RATE,
     VITAL_TEMPERATURE,
@@ -81,9 +89,12 @@ from clinosim.modules.output.fhir_r4.labs._reference_ranges import (
 - `clinosim.modules._shared` — `is_jp`, `resolve_lang`。
 - `clinosim.modules.output.fhir_r4.lib.common` — `BundleContext`、
   fragment helper。
-- `clinosim.modules.output.fhir_r4.conditions.primary_ref` — lab /
-  microbiology `Observation.encounter` + `basedOn` reference 用の
-  `primary_condition_ref`。
+- `..demographics.patient.patient_ref`、
+  `..encounters.encounter.encounter_ref` — subject / encounter
+  reference。`basedOn` は `service_request.order_to_sr_id` 由来。
+- `clinosim.modules.imaging.engine` (id prefix、modality)、
+  `clinosim.modules.order.panel_grouping`、
+  `clinosim.types.encounter.Order` / `OrderType`。
 - `clinosim.codes` — LOINC / SNOMED / JLAC10 表示 lookup。
 - `clinosim.locale.loader` — `code_mapping_lab.yaml`
   (国別 JLAC10 五軸コード mapping)。
@@ -117,7 +128,9 @@ from clinosim.modules.output.fhir_r4.labs._reference_ranges import (
     "http://jpfhir.jp/fhir/core/CodeSystem/JP_ObservationSampleMaterialCodeJLAC10_CS"`。
   - 環境 override: `CLINOSIM_JP_CLINS_PKG_DIR` (`_ENV_PKG_DIR`)
     が loader を local FHIR package cache に向ける。
-- **JP-CLINS lab-code dispatch** (`coding_strategy.py`):
+- **JP-CLINS lab-code dispatch** (`coding_strategy.py` の
+  `select_lab_coding_strategy`。下記 code-system 定数は
+  `coding_package.py` で定義):
   - 標準 JLAC10 → `code_mapping_lab.yaml` の 17 桁コード。
   - 未標準化 → `_UNCODED_SYSTEM =
     "http://jpfhir.jp/fhir/clins/CodeSystem/JP_CLINS_ObsLabResult_Uncoded_CS"`
@@ -130,9 +143,11 @@ from clinosim.modules.output.fhir_r4.labs._reference_ranges import (
 
 ```
 clinosim/modules/output/fhir_r4/labs/
-  __init__.py                    空 (builder は親 __init__ が import)
-  observations.py                _bb_labs (lab + vitals Observation)
-  diagnostic_report.py           _bb_diagnostic_reports
+  __init__.py                    namespace stub (builder は ../builder.py / ../lib/inline_bb.py が import)
+  observations.py                _bb_labs (lab Observation) + _build_vital_observations
+  anthropometrics.py             _bb_anthropometrics (身長 / 体重 / BMI / 頭囲)
+  stage_scale_observations.py    _bb_stage_scale_observations (慢性疾患 stage scale)
+  diagnostic_report.py           _bb_diagnostic_reports + RADIOLOGY_DR_ID_PREFIX
   service_request.py             _bb_service_requests + canonical 定数 (SR_ID_PREFIX / PLACER_ORDER_NUMBER_SYSTEM / LAB_CATEGORY_*)
   microbiology.py                _bb_microbiology (culture + susceptibility)
   imaging_study.py               _bb_imaging_studies + _build_imaging_study + _build_series + DICOM_UID_SYSTEM
@@ -157,4 +172,4 @@ clinosim audit run -d <cohort_dir> --module hai        # microbiology 上の HAI
 `maintainers@` — 詳細は
 [`CONTRIBUTING.md`](../../../../../CONTRIBUTING.ja.md)。
 
-英語版: [`README.md`](README.ja.md)。
+英語版: [`README.md`](README.md)。

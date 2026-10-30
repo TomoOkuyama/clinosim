@@ -21,12 +21,17 @@ calendar (月次 acute-disease event、慢性フォロー visit、screening、
   RNG 非消費)、季節 / lifestyle / 職業リスク乗数付きの月次 acute
   event サンプリング、年次 healthcare calendar 生成 (慢性フォロー、
   mammography / colonoscopy / diabetic retinopathy / flu ワクチン
-  screening、小児 visit、**周産期分娩 (perinatal delivery)** LifeEvent
-  Z34 保有女性 1 人/妊娠年 について `_perinatal_delivery_events` が
-  発火、**化学療法サイクル (chemo cycle)** LifeEvent オンコロジー
+  screening、小児 visit、15–49 歳女性の **妊娠ライフサイクル** —
+  `shared/perinatal.yaml::lifecycle.annual_conception_rate` に対する
+  年次受胎 Bernoulli の後、妊婦健診、分娩 + 産後 visit または中絶
+  event を `_pregnancy.py::_pregnancy_lifecycle_events` が発火、
+  **化学療法サイクル (chemo cycle)** LifeEvent オンコロジー
   マーカー患者について `clinosim/locale/shared/chemo_regimens.yaml`
-  を読む `_chemo_cycle_events` が regimen ごとの cycle interval で
-  発火)。
+  を読む `_chemo.py::_chemo_cycle_events` が regimen ごとの cycle
+  interval で発火)、年次加齢ステップ (`aging.py::advance_population`)、
+  前進型院外死亡 (`mortality.py`)、死亡記録 (`vital_status.py`)、
+  新生児登録 / 遺伝 (`newborn.py`, `person_init.py`,
+  `inheritance.py`, `single_gene_inheritance.py`)。
 - **In scope (慢性 prevalence schema)**: `chronic_prevalence` は各
   code につき 2 形式を許容 — 単性別 code (`N40` BPH、`Z34` 妊娠、
   `C61` 前立腺等) 用の従来 `sex: M|F` + `bands` 形式と、C50 のような
@@ -55,10 +60,12 @@ calendar (月次 acute-disease event、慢性フォロー visit、screening、
 
 1. **初期集団** — `generate_population` が期間開始時点の世帯と人を作り、
    POST_POPULATION enricher が ID・アレルギー・代謝系コードを付ける。
-2. **年境界** — `aging.advance_population`: 加齢パス (脳卒中後遺症、
-   アレルギー変化)、1 人 1 回の前進型**院外死亡**判定 (`mortality.py`:
-   生命表 qx × 併存疾患の相対 SMR × ロケールの `community_death_share`)、
-   経年 stage / 発症ステップ。その年の受診予定もここで作る。
+2. **年境界** — `aging.advance_population`: その年のうち模擬対象かつ
+   生存している期間について 1 人 1 回の前進型**院外死亡**判定
+   (`mortality.py`: 生命表 qx × 併存疾患 SMR / 同じ年齢帯・性別の平均 SMR
+   × ロケールの `community_death_share`)、加齢パス (脳卒中後遺症、
+   アレルギー変化)、経年 stage / 発症ステップ。続いて前進ループがその年の
+   受診予定を作りキューに積む。
 3. **毎月** — ライフイベント、その月の ED 受診、キューに積まれた全イベント
    (入院、再入院、フォローアップ、受診予定、出産) を日付順に処理する。
 4. **死亡** — 1 人 1 件で記録する (`PersonRecord.record_death`、
@@ -79,18 +86,29 @@ from clinosim.modules.population import (
     HospitalizationSummary,             # dataclass (types.population)
     LifeEvent,                          # dataclass (types.population)
     generate_population,                # (size, country, rng, base_year=2024, demo=None) -> PopulationRegistry
-    generate_monthly_events,            # (registry, year, month, rng, country="US", demo=None) -> list[LifeEvent]
+    generate_monthly_events,            # (registry, year, month, rng, country="US", demo=None,
+                                        #  master_seed=None, inpatient_departments=None) -> list[LifeEvent]
     generate_healthcare_calendar,       # (registry, year, country, rng) -> list[LifeEvent]
+    BMI_OVERWEIGHT_THRESHOLD,           # float 定数 (_population_thresholds)
+    BMI_OBESE_THRESHOLD,
+    BMI_MORBID_OBESITY_THRESHOLD,
 )
 ```
 
+simulator が使う submodule の入口 (再 export なし、path で import):
+`aging.advance_population(registry, year, locale, window=None)`、
+`mortality.draw_community_death` / `annual_death_probability`、
+`vital_status.record_hospital_death` / `sync_profile_death_dates` /
+`death_counts_by_place`、`newborn.register_newborn`。
+
 再 export されない内部 helper (把握しておく価値のあるもの):
 `engine.py` の `Household` + `PopulationRegistry` dataclass、
-慢性 prevalence 解析用の frozen `ChronicConditionSpec`、Rh factor
-SHA-256 導出 `_derive_rh_factor(person_id, country)` (Issue #795
-pattern)、多数の `_sample_*` helper (`_sample_age_band`,
-`_sex_ratio_male_probability`, `_sample_blood_type`,
-`_sample_surname`, `_sample_given_name`, `_sample_occupation`)。
+慢性 prevalence 解析用の frozen `ChronicConditionSpec` (`_chronic.py`)、
+Rh factor SHA-256 導出 `_derive_rh_factor(person_id, country)` (Issue #795
+pattern、`_demographics.py`)、多数の `_sample_*` helper
+(`_demographics.py` の `_sample_age_band`, `_sex_ratio_male_probability`,
+`_sample_blood_type`、`_identity.py` の `_sample_surname`,
+`_sample_given_name`, `_sample_occupation`)。
 
 ## Cohort skew vs sampled population
 
@@ -143,12 +161,13 @@ comorbidity correlation multiplier と lifestyle (BMI + smoking) multiplier
 population marginal は `base_prev` に収束し、multiplier は「どの患者が
 その condition を得るか」の shape 決定にのみ働く。
 
-Helper 関数 (すべて pure、新規 tunable 定数なし。yaml 側の
+`_chronic.py` の helper 関数 (すべて pure、新規 tunable 定数なし。yaml 側の
 `chronic_prevalence` / `comorbidity_correlations` /
 `lifestyle_risk_multipliers` / `physiology.bmi` /
 `lifestyle_distribution.smoking` からのみ導出):
 
-- `_target_prev_at_age(spec, age)` — `age` を含む band を返す、無ければ 0。
+- `_target_prev_at_age_legacy(spec, age)` — `age` を含む primary 性の band を
+  返す (`augment_sex_bands` は無視)、無ければ 0。
 - `_bmi_category_probabilities(demo, sex_key)` — `(mean, std)` の解析的
   Normal CDF を `overweight` / `obese` 閾値に当てる。
 - `_smoking_status_probabilities(demo, sex_key, age)` — yaml 分布を正規化。
@@ -167,8 +186,15 @@ Helper 関数 (すべて pure、新規 tunable 定数なし。yaml 側の
 
 - **`ENRICHER_SEED_OFFSETS` にサブ seed 未登録**。本モジュールは
   pipeline の頭。CLI が master seed を供給し、下流の enricher
-  各々が master に対して自身のサブ seed を導出する (AD-16)。population
-  サンプリングは master `rng` を直接使う。
+  各々が master に対して自身のサブ seed を導出する (AD-16)。
+  `generate_population` は master `rng` を直接使う。前進ループは
+  `generate_monthly_events` に月ごと、`generate_healthcare_calendar`
+  に年ごと (新生児の残り期間 calendar は人ごと) の RNG を
+  `clinosim.seeding.derive_phase_rng` から渡す。
+- **加齢 / 死亡のサブ seed**: `aging.aging_sub_seed(person_id, year,
+  pass_name)` が各加齢パス、院外死亡判定 (`"mortality"`)、経年ステップに
+  (person, year) ごとの RNG を与えるため、ある人の追加・skip で他人の
+  draw はずれない。
 - **RNG-neutral な additive 導出**: 新規の per-person field
   (`rh_factor`、および今後同 pattern に従う生物学属性) は
   `sha256(person_id + salt)` から計算し master RNG を消費しない。
@@ -180,14 +206,16 @@ Helper 関数 (すべて pure、新規 tunable 定数なし。yaml 側の
   横):`chronic_augment_sex_seed(patient_id, code)` は `by_sex` の
   opposite-sex 増加を独立 sub-RNG で gate し master 慢性 prevalence
   RNG stream を augmentation 前と byte-identical に保つ。
-  `perinatal_delivery_seed(patient_id, year)` は Z34 保有女性の
-  分娩月を sampling。`chemotherapy_regimen_seed(patient_id, cancer_code)`
+  `chronic_isolated_seed(patient_id, code)` は `rng_isolated: true`
+  の code を master stream 外で抽選。
+  `perinatal_delivery_seed(patient_id, year)` は妊娠ライフサイクルの
+  抽選 (受胎、分娩日 jitter) を担う。`chemotherapy_regimen_seed(patient_id, cancer_code)`
   は `chemo_regimens.yaml` から regimen を選択し cycle-1 開始日を決定。
   新生児周産期条件 (P59.9 / P07.3 → P22.0 / L22 / L20.9) と中絶
   outcome (O03.9 / O04.5) の sampling は
   [`clinosim/simulator/perinatal.py`](../../simulator/perinatal.py)
   が保持する兄弟 per-patient サブ seed 経由。
-- 月次 event / calendar は決定論的 person / 疾患 / 順序で `rng` を
+- 月次 event / calendar は決定論的 person / 疾患 / 順序で各自の `rng` を
   逐次消費する — YAML 編集で incidence を追加 / 並替えると下流 stream
   位置が shift しうる。これは想定挙動で、caller 境界で明示する。
 
@@ -211,7 +239,19 @@ Helper 関数 (すべて pure、新規 tunable 定数なし。yaml 側の
   範囲、unknown-condition rate parameter、mixed-conditions 確率、
   prior-hospitalization recurrence 乗数。
 - `clinosim.locale.loader` — `load_demographics`, `load_names`,
-  `load_addresses`, `load_naming_rules`, `load_chronic_followup`。
+  `load_addresses`, `load_naming_rules`, `load_chronic_followup`,
+  `load_perinatal_config`, `load_chemo_regimens`,
+  `load_actuarial_life_table`, `load_condition_mortality_smr`,
+  `load_comorbidity_progression_multipliers`,
+  `load_single_gene_diseases`。`clinosim.locale.loaders.clinical` —
+  `load_ckd_under60_prevalence`。
+- `clinosim.modules.longitudinal.engine` — `initial_snapshot`,
+  `advance_one_year`。
+- `clinosim.modules.allergy.engine`, `clinosim.modules.identity.assign`
+  — アレルギー変化と新生児 identity。
+- `clinosim.seeding` — per-patient サブ seed。
+  `clinosim.simulator.perinatal.resolve_pregnancy_outcome` — 妊娠
+  ライフサイクルの中絶判定。
 - `clinosim.modules.pediatric.calendar` — `generate_healthcare_calendar`
   内で遅延 import される `generate_pediatric_events`。
 - `clinosim.types.population` — `PersonRecord`,
@@ -241,13 +281,34 @@ Helper 関数 (すべて pure、新規 tunable 定数なし。yaml 側の
     世帯の姓名 + 住所 pool。
   - `chronic_followup.yaml` (locale-shared) — 疾患ごとの慢性 visit
     follow-up cadence。
+  - `shared/actuarial_life_table.yaml` (locale / 性別 / 5 歳帯別 qx と
+    locale 別 `community_death_share`)、
+    `shared/condition_mortality_smr.yaml` (`smr_table`,
+    `combine_method`) — 前進型院外死亡。
+  - `shared/perinatal.yaml` (`lifecycle`)、`shared/chemo_regimens.yaml`
+    — 妊娠ライフサイクルと化学療法サイクル。
 
 ## ディレクトリ構造
 
 ```
 clinosim/modules/population/
-  __init__.py                          Person/Life/Hospitalization + 3 generator を再 export
+  __init__.py                          Person/Life/Hospitalization + 3 generator + BMI 閾値を再 export
   engine.py                            registry 構築 + 月次 event + calendar
+  aging.py                             advance_population — 年次死亡判定 + 加齢パス + 経年ステップ
+  mortality.py                         前進型院外死亡 (生命表 qx × 相対 SMR × community share)
+  vital_status.py                      院内死亡記録 + profile 死亡日同期 + 死亡数集計
+  newborn.py                           register_newborn — 分娩から新生児 PersonRecord
+  person_init.py                       新生児の biology / identity / care-seeking + 出生年の死亡判定
+  inheritance.py                       新生児血液型 / Rh 遺伝 (RNG 非消費)
+  single_gene_inheritance.py           単一遺伝子疾患 carrier status (初期集団 + 新生児)
+  condition_mutex.py                   相互排他な慢性 code ルール
+  _chronic.py                          ChronicConditionSpec + marginal 保存 prevalence helper
+  _demographics.py                     年齢 / 性別 / 人種 / 血液型 / care-seeking サンプリング
+  _identity.py                         氏名 / 職業 / 住所 / 電話 サンプリング
+  _pregnancy.py                        妊娠ライフサイクル scheduler
+  _chemo.py                            化学療法 regimen 選択 + cycle event
+  _ckd_under60.py                      60 歳未満 CKD (N18) の RNG 非消費付与
+  _pediatric_anthropometry.py          小児身長 / BMI 参照 lookup
   _household_thresholds.py             世帯 / 住所 / 電話 / 命名 default
   _population_thresholds.py            体格 + lifestyle + care-seeking default
   _population_workflow_thresholds.py   screening / 慢性 visit / event 日 スケジュール
@@ -263,17 +324,21 @@ data source は locale YAML、pipeline 頭は
 該当なし — 本モジュールはシミュレーション pipeline の頭であり
 enricher ではない。`register_builtin_enrichers` に登録なく、
 `ENRICHER_SEED_OFFSETS` にも seed 未登録。simulator boot が
-CLI master RNG で `generate_population`, `generate_monthly_events`,
-`generate_healthcare_calendar` を直接呼び出す。
+CLI master RNG で `generate_population` を呼び、前進ループが
+`advance_population`、`generate_monthly_events`、
+(`phases/_healthcare_calendar.py` 経由で) `generate_healthcare_calendar`
+を派生 RNG で直接呼び出す。
 
 ## Output surface (consumers)
 
 | Consumer | 場所 | 役割 |
 | --- | --- | --- |
-| Simulator boot | [`clinosim/simulator/engine.py`](../../simulator/engine.py) | `generate_population` を 1 回、次に年ごとに `generate_monthly_events` + `generate_healthcare_calendar` を呼び出す。 |
+| Simulator boot | [`clinosim/simulator/engine.py`](../../simulator/engine.py) | `generate_population` を 1 回。ループ後に `sync_profile_death_dates` + `death_counts_by_place`。 |
+| 前進ループ | [`clinosim/simulator/phases/_forward_loop.py`](../../simulator/phases/_forward_loop.py)、[`_healthcare_calendar.py`](../../simulator/phases/_healthcare_calendar.py) | 年境界ごとに `advance_population` + calendar、毎月 `generate_monthly_events`。 |
+| 院内死亡 | [`clinosim/simulator/_dispatch.py`](../../simulator/_dispatch.py)、[`phases/_readmission.py`](../../simulator/phases/_readmission.py) | 死亡で終わる入院に `record_hospital_death`。 |
+| 周産期 | [`clinosim/simulator/perinatal.py`](../../simulator/perinatal.py) | 分娩時に `register_newborn`、`enrolled_from` を出生入院の退院翌日に設定。 |
 | Inpatient / discharge encounter | [`clinosim/simulator/{inpatient,discharge_gate,unknown_condition}.py`](../../simulator/) | `PersonRecord` + `HospitalizationSummary` の field (慢性疾患、既往入院、care-seeking threshold、lifestyle) を read。 |
-| Enumeration | [`clinosim/simulator/enumerate.py`](../../simulator/enumerate.py) | `PopulationRegistry` を walk して per-person iterator を構築。 |
-| CLI single-encounter driver | [`clinosim/simulator/cli_test_encounter.py`](../../simulator/cli_test_encounter.py) | smoke run で `generate_population(1, …)` を使用。 |
+| Enumeration / CLI single-encounter driver | [`clinosim/simulator/enumerate.py`](../../simulator/enumerate.py)、[`cli_test_encounter.py`](../../simulator/cli_test_encounter.py) | forced / smoke case 用に `PersonRecord` を直接構築 (`PopulationRegistry` は使わない)。 |
 | Pediatric 統合 | [`clinosim/modules/pediatric/calendar.py`](../pediatric/calendar.py) | `generate_healthcare_calendar` から (person, year) ごとに呼ばれて小児 visit を追加。 |
 
 ## テスト
@@ -294,8 +359,7 @@ pytest tests/integration -k population -q
 - [`tests/unit/test_population_minor_smoking_alcohol_gate.py`](../../../tests/unit/test_population_minor_smoking_alcohol_gate.py)
   — `LEGAL_ADULT_AGE` gate の喫煙 / 飲酒 サンプリング。
 - [`tests/unit/test_population_occupation_age_gate.py`](../../../tests/unit/test_population_occupation_age_gate.py)
-  — 職業サンプリングが `MIXED_CONDITIONS_MIN_AGE_DEFAULT` +
-  OCCUPATION_MISMATCH fallback を守る。
+  — 未成年の発達段階別職業ラベル (`_sample_occupation` の年齢区分)。
 - [`tests/unit/test_cli_population_no_sentinel.py`](../../../tests/unit/test_cli_population_no_sentinel.py)
   — CLI が sentinel leak を出さない。
 - [`tests/integration/test_population_severity_source.py`](../../../tests/integration/test_population_severity_source.py)
@@ -303,10 +367,19 @@ pytest tests/integration -k population -q
   ここに hard-code されていない。
 - [`tests/integration/test_bug_d_explicit_population.py`](../../../tests/integration/test_bug_d_explicit_population.py)
   — explicit-population regression guard。
+- [`tests/unit/test_death_record_2166.py`](../../../tests/unit/test_death_record_2166.py)
+  — `record_death` / `is_alive` / `vital_status` の死亡記録。
+- [`tests/unit/test_forward_mortality_2167.py`](../../../tests/unit/test_forward_mortality_2167.py)
+  — `advance_population` の前進型院外死亡判定。
+- [`tests/unit/test_newborn_enrollment_2168.py`](../../../tests/unit/test_newborn_enrollment_2168.py)
+  — 出生入院退院時の新生児 enroll。
+- [`tests/integration/test_forward_loop_lifecycle_2169.py`](../../../tests/integration/test_forward_loop_lifecycle_2169.py)
+  — 前進ループのライフサイクル不変量 (死亡後 encounter なし、
+  新生児の集団参加)。
 
 ## Ownership
 
 `maintainers@` — 詳細は
 [`CONTRIBUTING.md`](../../../CONTRIBUTING.ja.md)。
 
-英語版: [`README.md`](README.ja.md)。
+英語版: [`README.md`](README.md)。

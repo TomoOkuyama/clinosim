@@ -4,7 +4,7 @@
 
 Provides the enum → SNOMED + LOINC reference mapping for the social
 determinants of health (SDOH) attributes the simulator populates on
-`PatientProfile` during activation — currently `smoking_status`
+`PatientProfile` — currently `smoking_status`
 (US Core LOINC 72166-2) and `alcohol_use` (LOINC 11331-6). Downstream
 FHIR builders read this data to emit `Observation` resources under
 category `social-history`.
@@ -12,17 +12,22 @@ category `social-history`.
 The module is a **data-only variant** (see the "Data-only module
 variant" section of [`docs/CONTRIBUTING-modules.md`](../../../docs/CONTRIBUTING-modules.md)):
 no `enricher.py`, no `assign_*` function, no random-generator use.
-Attribute assignment happens at patient activation via
-`patient/activator.py` reading `locale/{us,jp}/demographics.yaml`.
+Attribute assignment happens at population generation in
+`population/engine.py` (sex-specific `lifestyle_distribution` in
+`locale/{country}/demographics.yaml`, falling back to the
+`SMOKING_FALLBACK_*` / `ALCOHOL_FALLBACK_*` constants; minors are forced
+to `never` / `none`); `patient/activator.py` copies the values from the
+`PersonRecord` onto `PatientProfile`.
 
 ## Scope
 
 - **In scope**: publishing the SNOMED code → enum key mapping for
   smoking + alcohol tiers and the LOINC observation code for each
-  topic, keyed by SDOH topic and enum value.
+  topic, keyed by SDOH topic and enum value, plus the minimum emission
+  age per topic (`age_gates`).
 - **Out of scope**: patient-level assignment of `smoking_status` /
   `alcohol_use` (lives in
-  [`clinosim.modules.patient`](../patient/README.md) activator +
+  [`clinosim.modules.population`](../population/README.md) engine +
   [`clinosim/locale/{us,jp}/demographics.yaml`](../../locale/)),
   FHIR `Observation` emission (in
   [`clinosim.modules.output.fhir_r4.demographics.smoking_alcohol`](../output/fhir_r4/demographics/smoking_alcohol.py)),
@@ -50,7 +55,7 @@ are free. It is the module's only public export (re-exported through
 Not applicable — this module makes no random draws. Its only public
 function is a cached YAML loader; the smoking / alcohol assignment
 that determines which enum ends up on `PatientProfile` runs in
-[`clinosim.modules.patient`](../patient/README.md) and is seeded
+[`clinosim.modules.population`](../population/README.md) and is seeded
 there.
 
 ## Dependencies
@@ -64,7 +69,7 @@ there.
 ## Constants and configuration
 
 - [`reference_data/social_history.yaml`](reference_data/social_history.yaml)
-  — country-neutral. Two topics currently:
+  — country-neutral. Two topics plus an age-gate block currently:
   - `smoking_status` — LOINC `72166-2`, category `social-history`,
     three enum values: `never` (SNOMED 266919005), `former`
     (8517006), `current` (449868002). US Core profile
@@ -73,6 +78,9 @@ there.
     three enum values: `none` (SNOMED 105542008), `social`
     (28127009), `heavy` (86933000). HL7 social-history pattern
     (no US Core profile).
+  - `age_gates` — `smoking_min_age: 15`, `alcohol_min_age: 15`
+    (Issue #938): below these ages the FHIR builder emits no
+    smoking / alcohol `Observation`.
 - All 6 SNOMED codes are cross-checked against
   [`clinosim/codes/data/snomed-ct.yaml`](../../codes/data/snomed-ct.yaml)
   (both `en` and `ja` displays present) — verified by PR #68 SNOMED
@@ -85,7 +93,7 @@ clinosim/modules/sdoh/
   __init__.py                     re-exports load_social_history
   engine.py                       load_social_history (single loader)
   reference_data/
-    social_history.yaml           smoking + alcohol enum → SNOMED + LOINC
+    social_history.yaml           smoking + alcohol enum → SNOMED + LOINC, age_gates
 ```
 
 The module has **no `enricher.py`, no `audit.py`, and no seed
@@ -97,12 +105,13 @@ integration tests below.
 Not applicable — this module is a data-only reference variant. It is
 not registered with `register_builtin_enrichers` and has no seed
 offset in `ENRICHER_SEED_OFFSETS`. Attribute assignment for
-`smoking_status` / `alcohol_use` happens at patient activation via
-[`clinosim.modules.patient.activator`](../patient/README.md) reading
-[`clinosim/locale/{us,jp}/demographics.yaml`](../../locale/), and the
-FHIR emission runs off the resulting `PatientProfile` fields — this
-module only provides the enum → SNOMED + LOINC table those consumers
-resolve against.
+`smoking_status` / `alcohol_use` happens at population generation in
+[`clinosim.modules.population`](../population/README.md) (reading
+[`clinosim/locale/{us,jp}/demographics.yaml`](../../locale/)), the
+patient activator copies it onto `PatientProfile`, and the FHIR
+emission runs off the resulting `PatientProfile` fields — this
+module only provides the enum → SNOMED + LOINC table (and age gates)
+those consumers resolve against.
 
 ## Extending
 
@@ -129,7 +138,7 @@ non-trivial SDOH work.
 
 | Consumer | Where | Role |
 |---|---|---|
-| FHIR `Observation` builders | [`clinosim/modules/output/fhir_r4/demographics/smoking_alcohol.py`](../output/fhir_r4/demographics/smoking_alcohol.py) | Reads `load_social_history()`, emits two social-history `Observation` resources (smoking + alcohol) with the LOINC observation code and the SNOMED `valueCodeableConcept` per enum. |
+| FHIR `Observation` builders | [`clinosim/modules/output/fhir_r4/demographics/smoking_alcohol.py`](../output/fhir_r4/demographics/smoking_alcohol.py) | Reads `load_social_history()`, emits up to two social-history `Observation` resources (smoking + alcohol) with the LOINC observation code and the SNOMED `valueCodeableConcept` per enum, skipping each below its `age_gates` minimum age. |
 
 There is no CSV column dedicated to SDOH; smoking / alcohol travel
 inside the patient CSV row.

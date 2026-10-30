@@ -39,6 +39,17 @@ Define the hidden physiological state variables that represent a patient's clini
 | `pain_level` | 0.0–1.0 | 0 = none, 1 = worst pain (NRS ≈ 10 × value) | pain score; HR / BP above 0.4 |
 | `oxygenation_impairment` | 0.0–1.0 | 0 = normal gas exchange, 1 = severe hypoxemia | SpO2, pO2, RR, HR, pCO2 (hyperventilation) |
 | `consciousness_impairment` | 0.0–1.0 | 0 = alert, 1 = unresponsive | AVPU (→ GCS, NEWS2, Braden, Morse), JCS phrases |
+| `respiratory_fraction` | 0.0–1.0 | routes `ph_status` between metabolic (0) and respiratory (1) axes | HCO3 vs pCO2 |
+| `glucose_status` | -1.0–+1.0 | acute glycemic drive (+ = hyperglycemia, e.g. DKA / HHS) | Glucose |
+| `sodium_status` | -1.0–+1.0 | - = hyponatremia, + = hypernatremia | Na, Cl, Ca |
+| `anion_gap_status` | -1.0–+1.0 | -1 = non-AG hyperchloremic, +1 = high-AG acidosis | Cl (anion gap) |
+| `respiratory_depression` | 0.0–1.0 | opioid / sedative hypoventilation (Issue #2154) | RR |
+
+The 18 variables above are the canonical set returned by
+`engine.canonical_state_vars()`; their ranges live in
+`reference_data/state_variable_ranges.yaml`. `PhysiologicalState` also
+carries `glycemic_control: float | None` (chronic diabetic control, not
+a delta-driven axis).
 
 #### Symptom axes (Issue #2052 and follow-ups)
 
@@ -68,6 +79,21 @@ The four symptom axes default to 0, are clamped to their range by `state_variabl
 ---
 
 ### Baseline state initialization
+
+> **Implementation status.** The pseudo-code from here to "Temporal lag
+> model" is the original design. Shipped signatures (`engine.py`):
+> `initialize_state(profile, conditions, patient_id="")` (no
+> `pregnancy` argument; chronic couplings are applied inline from
+> `_coupling_coefficients.py`, there is no `apply_chronic_condition`),
+> `derive_lab_values(state, sex, age, has_diabetes=False, rng=None,
+> hour=6, myocardial_injury=False, causes_vte=False, on_warfarin=False,
+> hai_inflammation_lift=0.0, has_dyslipidemia=False, hba1c_latent=None)`
+> (circadian variation is applied inside it), `derive_vital_signs(state,
+> baseline, timestamp)` and `derive_observed_vitals(state, baseline,
+> timestamp, rng)`. `apply_circadian_variation`, `apply_intervention`,
+> `get_effective_state_for_lab`, `get_baseline_vitals_pediatric` and
+> `derive_lab_values_pediatric_adjustment` do not exist. See
+> [`README.md`](README.md).
 
 ```python
 def initialize_state(profile: PatientPhysiologicalProfile, 

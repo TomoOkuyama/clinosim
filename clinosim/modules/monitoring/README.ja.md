@@ -16,9 +16,11 @@ discharge protocol、および antibiotic 起点 order の 3 系統だけで、
 
 - **In scope**: POST_RECORDS 時点で各患者の `current_medications` を
   読み、`medication_monitoring.yaml` の drug + alias に対して
-  case-insensitive 部分一致で match し、適格 encounter 1 件あたり
-  monitoring lab を 1 件注入 (MVP scope — 頻度 / cadence
-  スケジューリングは META #757 の後続 PR で対応)、per-encounter
+  case-insensitive 部分一致で match し、mapping 上の各 monitoring lab を
+  record の target encounter (最初の外来 encounter、無ければ最初の
+  encounter) に注入 — ただし同 analyte が lab ごとの `interval_months`
+  以内に採取済みなら skip (Issue #2143 — record は患者ごとに時系列順で
+  走査)、per-encounter
   dedup により disease YAML flow (sepsis / PE / GI bleed) が正当に
   同 analyte を発注しているケースを尊重して二重発行しない。
 - **Out of scope**: 慢性薬付与
@@ -29,34 +31,46 @@ discharge protocol、および antibiotic 起点 order の 3 系統だけで、
   ([`clinosim.modules.observation`](../observation/README.ja.md))、
   FHIR emission
   ([`clinosim.modules.output`](../output/README.ja.md))、
-  頻度 scheduling (daily vs monthly、induction vs maintenance) —
-  META #757 pass 3+ 予定。
+  induction vs maintenance の cadence (lab ごとの固定最小
+  `interval_months` のみモデル化)。
 
 ## Public API
 
-`__init__.py` は package docstring のみ。呼び出し側は submodule から
-直接 import:
+本モジュールは独立した 2 経路を持つ:
 
 ```python
+# 1. POST_RECORDS enricher 経路 (medication_monitoring.yaml)
 from clinosim.modules.monitoring.enricher import enrich_medication_monitoring
 from clinosim.modules.monitoring.mapping import (
-    load_medication_monitoring,      # () -> {drug_name: {aliases, monitoring: [...]}}
-    match_drugs,                     # (current_medications) -> list[matched drug entry]
+    load_medication_monitoring,      # (path=None) -> {drug_name: {aliases, drug_ja, monitoring: [...]}}
+    match_drugs,                     # (current_medications, mapping) -> list[str] canonical drug 名
+)
+
+# 2. 慢性外来 lab リスト経路 (med_lab_mapping.yaml)、__init__.py から re-export
+from clinosim.modules.monitoring import (
+    load_medication_lab_mapping,     # () -> {entry: {matches, labs, per_visit_probability}} (lru_cache)
+    monitoring_labs_for_patient,     # (current_medications, rng) -> list[str] lab 名
 )
 ```
+
+`monitoring_labs_for_patient` (`engine.py`) は
+`clinosim/simulator/phases/_healthcare_calendar.py` から `chronic_visit`
+event ごとに呼ばれ、返り値の lab を visit の `visit_labs` に merge する。
+各 mapping entry は visit の `ev_rng` 上で `per_visit_probability` gate
+される (enricher sub-seed ではなく visit RNG stream を消費)。
 
 ## 決定論
 
 - サブ seed オフセット `0x4D4D` (`"MM"`) —
   [`clinosim/seeding.py`](../../seeding.py) の
   `ENRICHER_SEED_OFFSETS["medication_monitoring"]` に登録済み。
-- 患者単位サブ RNG:
+- enricher 経路の患者単位サブ RNG:
   `derive_sub_seed(master_seed, offset, patient_id)` — master RNG
   未消費 (care_level / family_history pattern に一致)。
 - per-lab noise draw は `individual_lab_seed(order_id)`
   ([`clinosim/seeding.py`](../../seeding.py)) — `outpatient.py`,
   `inpatient.py` Pass 1 と同じ AD-59 per-order 分離。
-- 合成 order id は content 由来 (`<encounter_id>-MED-MON-<idx>`)
+- 合成 order id は content 由来 (`ORD-<encounter_id>-MED-MON-<NN>`)
   なので同 seed の repeated run で安定。
 
 ## 依存
@@ -71,17 +85,25 @@ from clinosim.modules.monitoring.mapping import (
   `OrderResult`, `OrderStatus`。
 - `yaml`, `numpy`。
 
+呼び出し側: `clinosim/simulator/enrichers.py` (enricher 登録) と
+`clinosim/simulator/phases/_healthcare_calendar.py`
+(`monitoring_labs_for_patient`)。
+
 ## 定数と設定
 
 - [`reference_data/medication_monitoring.yaml`](reference_data/medication_monitoring.yaml)
-  — drug → labs mapping。各 entry:
+  — enricher 用 drug → labs mapping (top-level `mappings:` key 配下)。各 entry:
   ```yaml
-  <Drug canonical name>:
-    aliases:        [<optional case-insensitive 部分一致>]
-    monitoring:
-      - lab:        <observation engine 内部 analyte 名>
-        loinc:      "<LOINC code>"
-        rationale:  "<1 文の臨床根拠>"
+  mappings:
+    <Drug canonical name>:
+      aliases:        [<optional case-insensitive 部分一致>]
+      drug_ja:        "<薬剤の日本語表示>"                  # 任意 (Issue #871)
+      monitoring:
+        - lab:             <observation engine 内部 analyte 名>
+          interval_months: <整数 >= 1、採取間の最小月数 (Issue #2143)>
+          loinc:           "<LOINC code>"
+          rationale:       "<1 文の臨床根拠>"
+          rationale_ja:    "<日本語の臨床根拠>"              # 任意 (Issue #871)
   ```
   alias は case-insensitive 部分一致で `physiology.engine._WARFARIN_NAMES`
   と同じ pattern を踏襲 — `"Warfarin 3mg PO"`, `"ワルファリン"`,
@@ -90,26 +112,34 @@ from clinosim.modules.monitoring.mapping import (
   (小 file、POST_RECORDS pass あたり 1 回のみ呼ばれる)、Pydantic を
   使わず plain dict に parse (sibling `sdoh.load_social_history`
   loader style)。必須 key 欠落は fail-loud — YAML typo は load 時に
-  顕在化し「drug never matched」の silent 症状にならない。
+  顕在化し「drug never matched」の silent 症状にならない (monitoring 行ごとに
+  `lab`, `loinc`, 整数 `interval_months >= 1` が必須)。
+- [`reference_data/med_lab_mapping.yaml`](reference_data/med_lab_mapping.yaml)
+  — `monitoring_labs_for_patient` 用の慢性外来 mapping (top-level
+  `medication_lab_mapping:` key 配下)。各 entry は `matches`
+  (`drug_name` / `drug_name_ja` への部分一致 pattern)、`labs`
+  (canonical analyte 名)、`per_visit_probability` を持つ。
+  `engine.load_medication_lab_mapping` が load (cache あり、fail-loud)。
 
 ## ディレクトリ構造
 
 ```
 clinosim/modules/monitoring/
-  __init__.py                        package docstring のみ
+  __init__.py                        load_medication_lab_mapping + monitoring_labs_for_patient を re-export
+  engine.py                          load_medication_lab_mapping + monitoring_labs_for_patient (慢性外来経路)
   enricher.py                        enrich_medication_monitoring (POST_RECORDS)
   mapping.py                         load_medication_monitoring + match_drugs
   reference_data/
-    medication_monitoring.yaml       drug → monitoring-labs mapping
+    medication_monitoring.yaml       drug → monitoring-labs mapping (enricher)
+    med_lab_mapping.yaml             薬剤 → 慢性外来 lab mapping (engine)
 ```
 
-**`engine.py` / `audit.py` は存在しない** — enricher entry は
-`enricher.py`、mapping helper は `mapping.py`。
+**`audit.py` は存在しない**。
 
 ## Enricher 配線
 
 [`clinosim/simulator/enrichers.py`](../../simulator/enrichers.py)
-(`L213-231` 付近) で登録:
+(`L288-308` 付近) で登録:
 
 - `name="medication_monitoring"`, `stage=POST_RECORDS`, `order=65`,
   `enabled=lambda c: True`。
@@ -122,7 +152,8 @@ clinosim/modules/monitoring/
 
 | Consumer | 場所 | 役割 |
 | --- | --- | --- |
-| Enricher registry | [`clinosim/simulator/enrichers.py:226`](../../simulator/enrichers.py) | POST_RECORDS order=65 登録。 |
+| Enricher registry | [`clinosim/simulator/enrichers.py:301`](../../simulator/enrichers.py) | POST_RECORDS order=65 登録。 |
+| 慢性外来スケジューラ | [`clinosim/simulator/phases/_healthcare_calendar.py`](../../simulator/phases/_healthcare_calendar.py) | `chronic_visit` event ごとに `monitoring_labs_for_patient` を呼ぶ。 |
 | Observation engine | [`clinosim/modules/observation/engine.py`](../observation/engine.py) | `generate_lab_result` + `determine_flag` + `get_lab_unit` が emit lab 値を生成。 |
 | 下流 FHIR + CSV | (生成される `Order` / `OrderResult` 経由) | 注入 order が標準 lab-emission path を流れる。 |
 
@@ -137,10 +168,14 @@ pytest tests/unit -k medication_monitoring -q
 - [`tests/unit/test_medication_monitoring.py`](../../../tests/unit/test_medication_monitoring.py)
   — mapping load、drug matching (case + JA)、per-encounter dedup、
   決定論。
+- [`tests/unit/test_monitoring_intervals.py`](../../../tests/unit/test_monitoring_intervals.py)
+  — `interval_months` スケジューリング (Issue #2143)。
+- [`tests/unit/test_monitoring_doac.py`](../../../tests/unit/test_monitoring_doac.py)
+  — DOAC → eGFR mapping。
 
 ## Ownership
 
 `maintainers@` — 詳細は
 [`CONTRIBUTING.md`](../../../CONTRIBUTING.ja.md)。
 
-英語版: [`README.md`](README.ja.md)。
+英語版: [`README.md`](README.md)。

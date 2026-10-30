@@ -38,10 +38,18 @@ from clinosim.modules.pediatric.calendar import (
 ```
 
 `load_pediatric_schedule` は load 時に file を validate し、schema
-違反 (必須 field 欠落、`visits_per_year` が list でない、`age_min >
-age_max`、`encounters` top-level が dict でない) はすべて `ValueError`
-を raise。`generate_pediatric_events` は schedule が空、または person
-の年齢がどの entry の band にも一致しないときに no-op。
+違反 (必須 field `age_min` / `age_max` / `visits_per_year` /
+`encounter_type` / `disease_id` の欠落、`visits_per_year` が list で
+ない or 空、`age_min > age_max`、`encounters` top-level が dict でない)
+はすべて `ValueError` を raise。`generate_pediatric_events` は
+年齢を `year - date_of_birth.year` (無ければ static `person.age`) で
+算出し、schedule が空、年齢が `> 18` or `< 0` (未出生)、または
+per-person 参加 draw `prng.random() < person.care_seeking_threshold`
+(default 0.20) でその年全体を skip する場合 (Issue #922) に `[]` を
+返す。一致 entry ごとに
+`LifeEvent(event_type="pediatric_visit", severity=0.0,
+condition_type="pediatric", protocol_source="pediatric:<key>")` を
+年内に均等配置 (日付 jitter 付) で emit する。
 
 ## 決定論
 
@@ -51,13 +59,16 @@ age_max`、`encounters` top-level が dict でない) はすべて `ValueError`
   `np.random.Generator`) から `prng` を受け取るため、YAML 編集の
   影響は該当 pediatric 患者の下流 stream 位置のみに閉じ、無関係な
   成人には波及しない。
-- `load_pediatric_schedule` は意図的に **`@lru_cache` 無し** —
-  test の hot-reload に配慮。反復コストが気になる caller は自身で
-  cache する。
+- `load_pediatric_schedule` は `path` 引数ごとに
+  `@lru_cache(maxsize=8)` で cache される (以前は未 cache で
+  per-patient calendar loop の hot spot だった)。schedule file を
+  書き換える test は `load_pediatric_schedule.cache_clear()` で
+  無効化する。
 
 ## 依存
 
-- `numpy` — `np.random.Generator` (`prng.choice`, `prng.integers`)。
+- `numpy` — `np.random.Generator` (`prng.random`, `prng.choice`,
+  `prng.integers`)。
 - `yaml` — YAML パーサ。
 - `clinosim.modules.population.engine` — `LifeEvent`
   (`generate_pediatric_events` 内で遅延 import)。
@@ -73,9 +84,9 @@ age_max`、`encounters` top-level が dict でない) はすべて `ValueError`
 | `age_min` | 含む下限 (歳)。 |
 | `age_max` | 含む上限 (歳)。 |
 | `visits_per_year` | 非空 `list[int]` — 患者 × 年ごとに uniform sampling し patient 間の分散を与える。 |
-| `encounter_type` | `"outpatient"` / `"emergency"` / `"inpatient"` — engine dispatch key。 |
-| `disease_id` | engine dispatch で visit の clinical protocol を識別するのに再利用。 |
-| `visit_reason` | human-readable、encounter の chief complaint に emit。 |
+| `encounter_type` | `"outpatient"` / `"emergency"` / `"inpatient"` — `LifeEvent.encounter_type` に copy (default `"outpatient"`、現行 entry は全て outpatient)。 |
+| `disease_id` | `LifeEvent.disease_id` に copy。診療科解決と visit-reason lookup に使用。 |
+| `visit_reason` | 任意。bilingual `{en, ja}` dict または文字列。`simulator/_setup.py::_pediatric_visit_reason` が読み、encounter の chief complaint に emit。 |
 
 schedule 拡張は **純粋 YAML 編集** — code 変更不要。不正 entry は
 load 時に `ValueError` として顕在化する。
@@ -102,7 +113,7 @@ clinosim/modules/pediatric/
 
 Integration は
 [`clinosim/modules/population/engine.py`](../population/engine.py)
-(`L807-815` 付近):
+(`L995-997` 付近):
 `generate_healthcare_calendar` が per-person spawn 済み `prng` を
 渡して `generate_pediatric_events` を呼び、返却 `LifeEvent` list を
 calendar `events` list に merge する。以降のパイプラインは
@@ -112,8 +123,10 @@ pediatric event を他の calendar event と同等に扱う。
 
 | Consumer | 場所 | 役割 |
 | --- | --- | --- |
-| Population calendar loop | [`clinosim/modules/population/engine.py`](../population/engine.py) (`L807-815` 付近、`generate_healthcare_calendar` 内) | (person, year) ごとに `generate_pediatric_events(person, year, prng)` を呼び、返却 `LifeEvent` を calendar `events` list に追加。 |
-| Encounter engine dispatch | [`clinosim.modules.encounter`](../encounter/README.ja.md) | encounter build 時に `LifeEvent.encounter_type` / `disease_id` / `protocol_source` (prefix `"pediatric:"`) を読んで pediatric 訪問を識別する。 |
+| Population calendar loop | [`clinosim/modules/population/engine.py`](../population/engine.py) (`L995-997` 付近、`generate_healthcare_calendar` 内) | (person, year) ごとに `generate_pediatric_events(person, year, prng)` を呼び、返却 `LifeEvent` を calendar `events` list に追加。 |
+| Healthcare-calendar dispatch | [`clinosim/simulator/phases/_healthcare_calendar.py`](../../simulator/phases/_healthcare_calendar.py) | `event_type == "pediatric_visit"` を外来受診に振り分け (診療科は `resolve_outpatient_department`、主訴は `_pediatric_visit_reason(disease_id)`)。 |
+| Visit-reason lookup | [`clinosim/simulator/_setup.py`](../../simulator/_setup.py) (`_pediatric_visit_reason`) | `load_pediatric_schedule()` から `visit_reason` を読む。 |
+| Outpatient encounter | [`clinosim/simulator/outpatient.py`](../../simulator/outpatient.py), [`outpatient_dept.py`](../../simulator/outpatient_dept.py) | `visit_type == "pediatric_visit"` 分岐。 |
 
 ## テスト
 
@@ -130,4 +143,4 @@ malformed entry で fail-loud) と `generate_pediatric_events` の挙動
 `maintainers@` — 詳細は
 [`CONTRIBUTING.md`](../../../CONTRIBUTING.ja.md)。
 
-英語版: [`README.md`](README.ja.md)。
+英語版: [`README.md`](README.md)。

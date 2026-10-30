@@ -20,10 +20,22 @@ Key properties:
 | SPEC section | Status | Notes |
 |---|---|---|
 | Stage 1: CIF Writer | ✅ IMPLEMENTED | `cif_writer.py`, structural only |
-| Stage 2: Narrative Generation | ✅ IMPLEMENTED (AD-65) | `document/narrative/passes.py:TemplateNarrativePass` |
-| Stage 3: Format Adapters | ✅ IMPLEMENTED | `fhir_r4_adapter.py` (via `cif_reader.py`), `csv_adapter.py` |
-| Folder structure | ✅ MATCHES SPEC | `cif/{structural,narratives/{template,<v>}}` |
-| CIFReader | ✅ IMPLEMENTED | AD-65: `cif_reader.py` new, `narrative_version="current"` selector |
+| Stage 2: Narrative Generation | ✅ IMPLEMENTED (AD-65) | `document/narrative/passes.py:TemplateNarrativePass` / `LLMNarrativePass` |
+| Stage 3: Format Adapters | ✅ IMPLEMENTED | `adapter.py` registry (`OutputAdapter` Protocol, `get_adapter`) + `adapters_builtin.py` (`CsvAdapter` → `csv_adapter.py`, `FhirR4Adapter` → `fhir_r4/` subpackage); both read via `cif_reader.py` |
+| CIF on-disk layout | ⚠️ PARTIAL | `cif/{metadata.json,hospital.json,structural/patients/<enc_id>.json,narratives/{current_version.txt,<version>/{manifest.json,documents/<enc>/<doc>.json}}}` — see "As implemented" below |
+| Module folder structure | ❌ DESIGN ONLY | flat module (`cif_writer.py`, `cif_reader.py`, `adapter.py`, …); the `cif/`, `adapters/`, `code_mapping/` tree below was never built |
+| CIFReader | ✅ IMPLEMENTED | AD-65: `cif_reader.py`, `narrative_version="current"` selector |
+| JSON-only serialization | ✅ IMPLEMENTED | MessagePack / Parquet formats are design only |
+
+### As implemented (read this before the design sections)
+
+The sections under "Internal Design" are the original design sketch. Where they differ from the code, the code wins:
+
+- **CIF writer**: a function, `write_cif(dataset: CIFDataset, output_dir)`, not a `CIFWriter` class. It writes `metadata.json`, `hospital.json` (`{"staff": [...], "config": {...}}`, only when a roster or ops config exists) and one JSON file per patient record at `structural/patients/<first encounter_id>.json`, with `documents[].narrative` stripped to `None`. No `population_summary.json` / `validation_report.json` is written, and the real `CIFDataset` (`clinosim/types/output.py`) has only `metadata`, `patients`, `hospital_roster`, `hospital_config`.
+- **Narrative layer**: `NarrativePass` subclasses in `document/narrative/passes.py` write `narratives/<version>/manifest.json` and `narratives/<version>/documents/<enc>/<doc>.json`. The active version is named by the `narratives/current_version.txt` pointer file (not a `current/` symlink); `"template"` is the fallback.
+- **CIFReader**: `CIFReader(cif_dir, narrative_version="current").iter_patients()` yields merged raw dicts (no `read_patient` / typed `CIFPatientRecord`). An explicitly named or pointer-named version that is missing raises `FileNotFoundError`; with no pointer and no `template` dir it warns and runs structural-only.
+- **Adapters**: an `OutputAdapter` Protocol (`format_id`, `description`, `subdir` attributes + `convert(cif_dir, out_dir, ctx: OutputContext)`) registered with `register_output_adapter`; there is no `FormatAdapter` ABC, `OutputService` or `HealthcareSystemConfig` argument. Built-in format ids are `"csv"` and `"fhir-r4"` (output subdirs `csv/`, `fhir_r4/`).
+- **Code mapping**: there is no `CodeMapper` / `code_mapping/mappings/`; code lookup goes through `clinosim.codes` and the per-locale `clinosim/locale/<cc>/code_mapping_*.yaml` files.
 
 ## Inputs
 - Stage 1: `SimulationResult` (from simulator — in-memory)

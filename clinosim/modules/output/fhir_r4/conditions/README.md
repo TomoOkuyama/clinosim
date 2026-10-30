@@ -14,8 +14,9 @@ primary reason points at the SAME `Condition.id` everywhere.
 
 ## Scope
 
-- **In scope**: `_bb_conditions` (primary + secondary + chronic
-  Condition builder); `_bb_allergy_intolerances`;
+- **In scope**: `_build_conditions` (primary + secondary + chronic
+  Condition builder; its registry wrapper `_bb_conditions` lives in
+  [`../lib/inline_bb.py`](../lib/inline_bb.py)); `_bb_allergy_intolerances`;
   `_bb_clinical_impressions`; `_bb_hai_conditions` (HAI-derived
   Condition from `extensions["hai"]`); `_bb_code_status` (custom
   survey `Observation`, JP encounters carry
@@ -42,11 +43,12 @@ primary reason points at the SAME `Condition.id` everywhere.
 
 Every builder is registered with the parent facade
 (`_BUNDLE_BUILDERS` in
-[`../__init__.py`](../__init__.py)); outside callers rarely import
+[`../builder.py`](../builder.py)); outside callers rarely import
 them directly. Named builder functions:
 
 ```python
-from clinosim.modules.output.fhir_r4.conditions.conditions import _bb_conditions
+from clinosim.modules.output.fhir_r4.conditions.conditions import _build_conditions  # (record, patient_id, country) -> list[dict]
+from clinosim.modules.output.fhir_r4.lib.inline_bb import _bb_conditions            # registry wrapper
 from clinosim.modules.output.fhir_r4.conditions.allergy_intolerance import _bb_allergy_intolerances
 from clinosim.modules.output.fhir_r4.conditions.clinical_impression import _bb_clinical_impressions
 from clinosim.modules.output.fhir_r4.conditions.hai import _bb_hai_conditions
@@ -57,6 +59,8 @@ from clinosim.modules.output.fhir_r4.conditions.primary_ref import (
     primary_condition_ref,             # (record, patient_id, encounter_id) -> Condition.id
     primary_condition_ref_from_codes,  # (record, patient_id, encounter_id, primary_code, admission_code)
     is_chronic_primary,                # (record) -> bool  (encounter primary is a chronic problem)
+    chronic_condition_id,              # (patient_id, idx) -> opaque Condition.id
+    encounter_primary_condition_id,    # (patient_id, encounter_id) -> opaque Condition.id
 )
 ```
 
@@ -77,12 +81,19 @@ the emitted NDJSON by resource id so line order is deterministic.
 - `clinosim.modules.output.fhir_r4.lib.localization` — JP display
   localisation helpers.
 - `clinosim.codes` — `get_system_uri`, `system_key_for`, `lookup`
-  for ICD-10 / ICD-10-CM / SNOMED / RxNorm / JP-Core `jp-core-*`
+  for ICD-10 / ICD-10-CM / SNOMED / JP-Core `jp-core-*`
   code display.
-- `clinosim.types.diagnosis` — `DiagnosisRecord`.
-- `clinosim.types.allergy` — `Allergy`, `AllergyReaction`.
-- `clinosim.types.clinical` — `ClinicalImpressionRecord`.
-- `clinosim.types.encounter` — `HAIEvent`.
+- `clinosim.modules.output.fhir_r4.lib.ids` — opaque id derivation
+  (`derive_opaque_id`, `structural_key_system`).
+- `..demographics.patient.patient_ref`,
+  `..encounters.encounter.encounter_ref` — reference helpers.
+- `clinosim.modules.document` — `ALLERGY_ID_PREFIX`,
+  `CLINICAL_IMPRESSION_ID_PREFIX`;
+  `clinosim.modules.code_status.engine.load_reference`;
+  `clinosim.modules.diagnosis.nonspecific_codes.is_visit_reason_zcode`;
+  `clinosim.codes.stage_to_snomed.resolve_stage_snomed`.
+- Builders read CIF records as dicts / attribute objects via
+  `get_attr_or_key`; they import no `clinosim.types` classes.
 - No dependency on the parent `__init__.py` (no cycle back through
   the adapter facade).
 
@@ -94,11 +105,13 @@ the emitted NDJSON by resource id so line order is deterministic.
     (or admission-code fallback), compare its 3-char ICD base
     against the patient's `chronic_conditions[].code` bases.
   - **Match** → return the patient-scoped chronic Condition id
-    (`cond-chronic-{patient_id}-{index:02d}`). Emitting a parallel
-    `cond-{enc}-primary` would duplicate the row and drift ICD
-    granularity (e.g. I50 vs I50.9).
-  - **No match** → return the encounter-scoped id
-    (`cond-{enc}-primary`).
+    (structural key `chronic-{patient_id}-{index:02d}`). Emitting a
+    parallel encounter-primary Condition would duplicate the row and
+    drift ICD granularity (e.g. I50 vs I50.9).
+  - **No match** → return the encounter-scoped id (structural key
+    `{encounter_id}-primary`).
+  - Ids are opaque (Issue #854): `cond-` + 12 hex chars of
+    sha256(structural key), via `_resolve_condition_id`.
   - Every downstream builder that references the encounter's
     primary reason MUST call `primary_condition_ref` so the
     reference always points at the SAME emitted `Condition.id`.
@@ -106,14 +119,18 @@ the emitted NDJSON by resource id so line order is deterministic.
   WHO ICD-10 4-char (JP-Core convention). The mapping lives in
   [`clinosim/locale/jp/code_mapping_diagnosis.yaml`](../../../../locale/jp/code_mapping_diagnosis.yaml).
 - **Allergen coding**: SNOMED CT (allergens + reaction manifestations).
-  RxNorm remains the US drug-allergy code system (via
-  `_jfagy_coding_for_category` when the allergen is drug-typed).
+  On JP-CLINS output `AllergyIntolerance.code` instead carries the
+  JFAGY generic category coding from `_jfagy_coding_for_category`
+  (medication `00M` / food `00F` / environment + biologic `00N`),
+  falling back to SNOMED when the category has no mapping. No RxNorm
+  coding is emitted.
 - **HAI coding**: ICD-10-CM (US billable) + WHO ICD-10 (JP) +
   SNOMED CT International — dual-coded per the AGENTS.md
   `dual-slot` convention.
 - **JP eCS diagnosis-type extension**: `_ecs_diagnosis_type_extension`
-  emits the JP-CLINS `JP_Condition_eCS` diagnosis-type extension
-  for chronic Conditions.
+  emits the JP-CLINS `JP_Condition_eCS` diagnosis-type extension on
+  JP Conditions (`principal`, `admitting`, `differential`,
+  `clinical`).
 - **CodeStatus profile**: JP encounters gain
   `meta.profile = "http://jpfhir.jp/fhir/core/StructureDefinition/JP_Observation_Common"`
   on the custom survey Observation.
@@ -122,13 +139,13 @@ the emitted NDJSON by resource id so line order is deterministic.
 
 ```
 clinosim/modules/output/fhir_r4/conditions/
-  __init__.py                    empty (builders imported by parent __init__)
-  conditions.py                  _bb_conditions (primary + secondary + chronic)
+  __init__.py                    namespace stub (builders imported by ../builder.py and ../lib/inline_bb.py)
+  conditions.py                  _build_conditions (primary + secondary + chronic) + JP eCS diagnosis-type / bodySite helpers
   allergy_intolerance.py         _bb_allergy_intolerances + JP fagy category coding
   clinical_impression.py         _bb_clinical_impressions
   hai.py                         _bb_hai_conditions (from extensions["hai"])
   code_status.py                 _bb_code_status (custom survey Observation)
-  primary_ref.py                 primary_condition_ref + is_chronic_primary + _icd_base (canonical resolver)
+  primary_ref.py                 primary_condition_ref + is_chronic_primary + _icd_base + opaque Condition id helpers (canonical resolver)
 ```
 
 ## Testing

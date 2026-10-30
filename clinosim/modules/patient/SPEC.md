@@ -22,6 +22,21 @@ Activate a person from the population registry (Layer 1) into a full clinical pa
 
 ## Internal Design
 
+> **Implementation status.** The algorithms below are the original
+> design. The shipped module has one entry point,
+> `activator.activate_patient(person, rng, demo, as_of_year=None)`;
+> there is no separate reactivation path — the simulator caches one
+> profile per `(person_id, as_of_year)` in
+> `simulator/_setup.py::_activate_cached_person` and activates fresh on
+> a miss. `generate_physiological_profile`, `generate_body_metrics`,
+> `derive_baseline_vitals`, `apply_pregnancy_adjustments` and
+> `create_newborn` do not exist: reserves / vitals are computed inline
+> in `activate_patient`, allergies are copied from `person.allergies`
+> (set by the `allergy` POST_POPULATION enricher), and newborns are
+> built by `simulator/perinatal.py::_build_newborn_patient` and
+> registered via `population/newborn.py::register_newborn`. See
+> [`README.md`](README.md).
+
 ### Activation Flow
 
 ```

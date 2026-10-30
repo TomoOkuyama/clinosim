@@ -6,7 +6,7 @@ Emits every FHIR R4 resource in the encounter + operational-context
 family: `Encounter`, `CareTeam` (attending physician + primary nurse
 — 2-name scope per AGENTS.md AD-64), `Endpoint` (DICOM WADO base
 URL per imaging study), `Location` + `Organization` for the
-facility (loaded as a facility Bundle at CIF write time), and the
+facility (built once as a facility Bundle at FHIR export time), and the
 custom JP `CareLevel` (要介護度) social-history `Observation`.
 
 ## Scope
@@ -38,16 +38,19 @@ custom JP `CareLevel` (要介護度) social-history `Observation`.
 
 `_build_encounter` now handles the extra encounter shapes from the
 longitudinal service lines (see
-[`../../encounter/README.md`](../../encounter/README.md) §
+[`../../../encounter/README.md`](../../../encounter/README.md) §
 "Longitudinal service-line encounter shapes"):
 
 - **Newborn-side link** — when the CIF encounter carries
-  `admit_source = "born"` (new `AdmitSource.BORN` value in
-  [`clinosim/types/encounter.py`](../../../../types/encounter.py)),
+  `admit_source = "born"` (`AdmitSource.BORN` value in
+  [`clinosim/codes/hl7_encounter.py`](../../../../codes/hl7_encounter.py)),
   `Encounter.hospitalization.admitSource` maps that via
   `_build_hosp_concept("hl7-admit-source", ...)` and the sibling
   `admit_source_encounter_id` becomes the newborn's `Encounter.partOf`
-  → mother's delivery encounter. Same `admit_source_encounter_id`
+  → mother's delivery encounter. The partOf link and the synthetic
+  ED bridge Encounter are added by `_bb_encounters` in
+  [`../lib/inline_bb.py`](../lib/inline_bb.py), not by
+  `_build_encounter` (which only sets partOf for readmissions). Same `admit_source_encounter_id`
   slot is reused for the historical ED→inpatient linkage (CY7-05).
 - **Delivery encounter (mother side)** — a standard inpatient
   Encounter with `type` reflecting the OB visit reason (from
@@ -63,7 +66,7 @@ longitudinal service lines (see
 ## Public API
 
 Every builder is registered with the parent facade
-(`_BUNDLE_BUILDERS` in [`../__init__.py`](../__init__.py)). Direct
+(`_BUNDLE_BUILDERS` in [`../builder.py`](../builder.py)). Direct
 imports for cross-family consumers:
 
 ```python
@@ -100,8 +103,14 @@ NDJSON by id.
 - `clinosim.modules.output.fhir_r4.demographics.smoking_alcohol` —
   `_sdoh_effective_datetime` (care_level reuses the SDOH anchor).
 - `clinosim.codes` — LOINC + SNOMED display lookup.
-- `clinosim.types.encounter` — `Encounter`, `EncounterStatus`,
-  `EncounterType`, `TriageData`.
+- `..demographics.patient.patient_ref`; `..lib.ids` (opaque ids).
+- `clinosim.codes.hl7_encounter.ActPriority`,
+  `clinosim.codes.encounter_type_to_snomed`,
+  `clinosim.modules.diagnosis.nonspecific_codes`,
+  `clinosim.modules.imaging.engine.ENDPOINT_ID_PREFIX`,
+  `clinosim.modules.staff.engine.roster_departments`.
+- CIF encounters are read as dicts; no `clinosim.types` classes are
+  imported.
 
 ## Constants and configuration
 
@@ -120,18 +129,20 @@ NDJSON by id.
 - **`DICOM_WADO_RS_CONNECTION_TYPE = "dicom-wado-rs"`** —
   `Endpoint.connectionType.code`. `_DEFAULT_WADO_BASE_URL`
   (`https://wado.clinosim.example/dicomweb`) is the placeholder
-  base URL emitted when the encounter does not carry a facility-
-  specific PACS.
+  base URL emitted when `hospital_config.imaging.wado_base_url` is
+  not set.
 - **Facility Bundle**: `_build_facility_bundle` composes one
   Location + Organization Bundle from `hospital_config` at
-  cohort-export time (written to `_facility.json` per AD-31
-  master-bundle convention).
+  cohort-export time; `convert_cif_to_fhir` applies the same
+  post-process passes to each entry and writes them into the
+  per-resource-type NDJSON files (there is no separate
+  `_facility.json`).
 
 ## Directory contents
 
 ```
 clinosim/modules/output/fhir_r4/encounters/
-  __init__.py                    empty (builders imported by parent __init__)
+  __init__.py                    namespace stub (builders imported by ../builder.py / ../lib/inline_bb.py)
   encounter.py                   _build_encounter root builder
   care_team.py                   _bb_care_teams + _build_care_team + CARE_TEAM_ID_PREFIX
   care_level.py                  _bb_care_level (custom Observation, JP 要介護度)

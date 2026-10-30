@@ -54,10 +54,14 @@ from clinosim.modules.output.fhir_r4.lib.common import (
 )
 ```
 
-Every `_bb_*` bundle-builder function (~30 across the seven
-domain subpackages) implements the same signature:
-`_bb_<resource>(ctx: BundleContext) -> list[dict]`. Domain-README
-files enumerate the per-family builders.
+Every `_bb_*` bundle-builder function implements the same signature:
+`_bb_<resource>(ctx: BundleContext) -> list[dict]`. The default
+registry holds 45 builders: 27 in the seven domain subpackages, 11 in
+`lib/inline_bb.py` (Patient, Coverage, Encounter, Condition,
+Occupation, vitals, MedicationRequest / discharge MedicationRequest,
+MedicationAdministration, Procedure, Practitioner) and 7 newborn
+builders in [`clinosim/modules/newborn/fhir_emit.py`](../../newborn/fhir_emit.py).
+Domain-README files enumerate the per-family builders.
 
 ## Determinism
 
@@ -69,40 +73,54 @@ files enumerate the per-family builders.
 - `_sort_ndjson_by_id_inplace` sorts each written NDJSON by resource
   id post-write so line order is deterministic regardless of
   traversal order.
-- `_fhir_id_is_spec_valid` enforces the FHIR spec 64-char id +
-  `[A-Za-z0-9\-\.]` character class at every emission site.
+- `_fhir_id_is_spec_valid` checks the FHIR spec 64-char id +
+  `[A-Za-z0-9\-\.]` character class in the NDJSON writer of
+  `convert_cif_to_fhir`; it is fail-soft (invalid ids are counted
+  per resource type and logged as a warning, the write proceeds).
 
 ## Dependencies
 
-- `clinosim.modules._shared` — `is_jp`, `is_us`, `resolve_lang`.
+- `clinosim.modules._shared` — `is_jp`, `resolve_lang` (and other
+  helpers in individual builders).
 - `clinosim.modules.output.cif_reader` — `CIFReader` for structural
   + narrative-version-merged CIF load.
 - `clinosim.codes` — code-system URI + display lookup.
 - `clinosim.locale.loader` — locale-scoped code-mapping YAMLs.
+- `clinosim.modules.newborn.fhir_emit` — the seven `_bb_newborn_*`
+  builders in the registry.
+- `clinosim.simulator.log` — export progress events.
 - Every domain subpackage imports `lib.common.BundleContext` +
-  shared fragment helpers (no cycle — `lib/` depends only on
-  `clinosim.codes` + `clinosim.locale`).
-- `json`, `os`, `re`, `uuid` — standard library serialisation.
+  shared fragment helpers. `lib/common.py` itself has no domain
+  imports, but `lib/inline_bb.py` imports builder helpers from the
+  domain subpackages (and `lib/ed_reattribution.py` from
+  `encounters/`), so `lib/` as a whole is not a leaf.
+- `heapq`, `json`, `os`, `re`, `tempfile`, `uuid` — standard library
+  (serialisation + the external-merge NDJSON sort).
 
 ## Constants and configuration
 
 - **Bundle-builder registry** — `_BUNDLE_BUILDERS: list[Callable]`
-  in `__init__.py`. Every `_bb_*` builder used by
-  `_build_bundle` is imported at module top and appended.
-  `register_bundle_builder` appends a new builder without editing
-  the file (AD-56).
-- **FHIR resource-id shape**: every builder produces
-  `{resource_type_lower}-{encounter_id or patient_id}-{seq}`; the
-  ID prefix constants are owned by their respective modules
+  in `builder.py` (re-exported by `__init__.py`). List order is
+  emission order. Every `_bb_*` builder used by `_build_bundle` is
+  imported at module top and listed; an import-time assert enforces
+  the `_bb_` prefix. `register_bundle_builder` appends a new builder
+  without editing the file (AD-56), rejects names without the `_bb_`
+  prefix (`ValueError`) and de-duplicates by function name.
+- **FHIR resource-id shape**: each builder owns its id scheme (e.g.
+  `allergy-{patient_id}-{nn}`, `loc-ward-{ward}`, `sr-…`, `doc-…`;
+  `lib/ids.py` derives opaque ids); the ID prefix constants are owned
+  by their respective modules
   (`DOC_REFERENCE_ID_PREFIX` etc. in
   [`clinosim.modules.document`](../../document/README.md);
   `SR_ID_PREFIX` / `PLACER_ORDER_NUMBER_SYSTEM` etc. in the
   `labs/service_request.py` file).
 - **`BundleContext`** (`lib/common.py`): the read-only context
-  passed to every `_bb_*` builder. Fields include `record`,
-  `country`, `patient_id`, `primary_enc_id`, plus resolved
-  language + code-mapping caches so builders do not repeat
-  locale lookups.
+  passed to every `_bb_*` builder. Fields: `record`, `country`,
+  `roster_map`, `hospital_config`, `patient_data`, `patient_id`,
+  `is_readmission`, `prior_encounter_id`, `primary_dx_code`,
+  `admit_dx_code`, `admit_dx_system`, `primary_enc_id`,
+  `patient_sex`, `encounter_resource_index`, `snapshot_date`,
+  `emitted_mr_ids`.
 - **JP-CLINS extensions** (`lib/common.py`):
   `build_ecs_institution_extension`,
   `build_ecs_department_extension`,
@@ -118,15 +136,16 @@ files enumerate the per-family builders.
 
 ```
 clinosim/modules/output/fhir_r4/
-  __init__.py                        convert_cif_to_fhir + registry + _bb_* wiring (581 LOC)
+  __init__.py                        thin re-export facade (public + back-compat private names)
+  builder.py                         convert_cif_to_fhir + _BUNDLE_BUILDERS registry + _build_bundle + snapshot / death reconciliation + NDJSON sort
   lib/                               shared FHIR fragment helpers (common / localization / reference_data / inline_bb / generator_metadata / ids / ed_reattribution)
   demographics/                      Patient / Practitioner / FamilyMemberHistory / smoking + alcohol Observation
   encounters/                        Encounter / CareTeam / CareLevel / Location + Organization (facility) / Endpoint
   medications/                       MedicationRequest + MedicationAdministration
-  labs/                              Observation (lab + vitals) / DiagnosticReport / ServiceRequest / microbiology / ImagingStudy / blood_type / coding_package + coding_strategy
-  procedures/                        Procedure / Immunization / Device + DeviceUseStatement / nursing (survey Observation)
-  conditions/                        Condition / AllergyIntolerance / ClinicalImpression / HAI Condition / CodeStatus (custom Observation)
-  documents/                         Composition / DocumentReference / DocumentReference (checkup / eCheckup)
+  labs/                              Observation (lab + vitals) / DiagnosticReport / ServiceRequest / microbiology / ImagingStudy / blood_type / anthropometrics / stage_scale_observations / _reference_ranges / coding_package + coding_strategy
+  procedures/                        Procedure / Immunization / Device + DeviceUseStatement / nursing (survey Observation) / oxygen_therapy / procedure_name_snomed (.py + .yaml)
+  conditions/                        Condition / AllergyIntolerance / ClinicalImpression / HAI Condition / CodeStatus (custom Observation) / primary_ref
+  documents/                         Composition / DocumentReference / DocumentReference (checkup / eCheckup) / imaging_report / referral_orgs / jp_clins/ (per-document JP-CLINS section builders)
   post_process/                      bundle-level pipeline (datetime normalise / profile / specimen / strip / populate)
 ```
 
@@ -134,7 +153,9 @@ clinosim/modules/output/fhir_r4/
 
 | FHIR resource | Domain module |
 |---|---|
-| Patient | `demographics/patient.py` |
+| Patient | `demographics/patient.py` (registry entry `_bb_patient` in `lib/inline_bb.py`) |
+| Coverage | `lib/inline_bb.py` (`_bb_coverage`) |
+| Observation (occupation) | `lib/inline_bb.py` (`_bb_occupation`) |
 | Practitioner + PractitionerRole | `demographics/practitioner.py` |
 | FamilyMemberHistory | `demographics/family_history.py` |
 | Observation (smoking / alcohol / social) | `demographics/smoking_alcohol.py` |
@@ -143,8 +164,11 @@ clinosim/modules/output/fhir_r4/
 | CareLevel (custom `jp-care-level` Observation) | `encounters/care_level.py` |
 | Location + Organization | `encounters/facility.py` |
 | Endpoint | `encounters/endpoint.py` |
-| MedicationRequest + MedicationAdministration | `medications/medications.py` |
-| Observation (lab + vitals) | `labs/observations.py` |
+| MedicationRequest + MedicationAdministration | `medications/medications.py` (registry entries in `lib/inline_bb.py`) |
+| Observation (lab + vitals) | `labs/observations.py` (`_bb_vitals` registry entry in `lib/inline_bb.py`) |
+| Observation (height / weight / BMI / head circumference) | `labs/anthropometrics.py` |
+| Observation (chronic-disease stage scale) | `labs/stage_scale_observations.py` |
+| Newborn Apgar / bilirubin / CCHD Observation; metabolic-screen ServiceRequest / Specimen / Observation / DiagnosticReport | [`clinosim/modules/newborn/fhir_emit.py`](../../newborn/fhir_emit.py) |
 | DiagnosticReport | `labs/diagnostic_report.py` |
 | ServiceRequest | `labs/service_request.py` |
 | Observation (microbiology) | `labs/microbiology.py` |
@@ -152,7 +176,8 @@ clinosim/modules/output/fhir_r4/
 | Observation (ABO + RhD) | `labs/blood_type.py` |
 | — (JP-CLINS lab code loader) | `labs/coding_package.py` |
 | — (JP-CLINS lab code dispatch) | `labs/coding_strategy.py` |
-| Procedure | `procedures/procedures.py` |
+| Procedure | `procedures/procedures.py` (registry entry `_bb_procedures` in `lib/inline_bb.py`) |
+| Procedure (oxygen-therapy session) | `procedures/oxygen_therapy.py` |
 | Immunization | `procedures/immunization.py` |
 | Device + DeviceUseStatement | `procedures/device.py` |
 | Observation (nursing flowsheet) | `procedures/nursing.py` |
@@ -164,6 +189,7 @@ clinosim/modules/output/fhir_r4/
 | Composition | `documents/composition.py` |
 | DocumentReference | `documents/documents.py` |
 | DocumentReference (checkup / eCheckup) | `documents/document_reference_checkup.py` |
+| Composition (imaging report) | `documents/imaging_report.py` |
 
 ## Enricher wiring
 
@@ -187,9 +213,9 @@ pytest tests/integration -k "fhir or export or servicerequest_chain or document_
 ```
 
 Each domain subpackage has its own README + tests; audit runs
-(`clinosim audit run`) exercise the five AD-60 plug-ins (hai /
-antibiotic / order / imaging / document) that cross-verify FHIR
-emission contracts.
+(`clinosim audit run`) exercise the AD-60 module audit plug-ins
+(hai / antibiotic / order / imaging / document / triage), several of
+which cross-verify FHIR emission contracts.
 
 ## Ownership
 

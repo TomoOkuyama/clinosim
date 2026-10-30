@@ -4,26 +4,31 @@
 
 Two orthogonal validators applied to a generated cohort:
 
-- **Realism benchmarks** (`benchmarks.py`) — cross-check cohort-level
-  statistics (LOS distributions, mortality rates, complication rates,
-  chronic-condition prevalences) against published clinical
-  benchmarks (JAMA / NEJM clinical guideline summaries, AHRQ HCUP for
-  US, 厚生労働省 患者調査 for JP, OECD Health Data).
+- **Realism benchmarks** (`benchmarks.py`) — six cohort-level
+  statistics compared against hard-coded expected values / ranges:
+  `mean_age`, `male_ratio`, `median_los` and `mean_los` (inpatient;
+  JP and US ranges differ), `mean_labs_per_patient`,
+  `mean_vitals_per_patient`.
 - **Consistency checks** (`consistency.py`) — internal rule-based
-  invariants that need no LLM: physiologic value ranges, discharge
-  criteria, medication holds, procedure required fields, deceased
-  status, lab ↔ physiology trajectory alignment, LOS consistency,
-  sex-specific conditions.
+  invariants that need no LLM, run on records whose first encounter
+  is inpatient: discharge Hgb (derived from the final
+  `anemia_level`), deceased status vs disposition, lab value ranges,
+  medication holds (anticoagulant in ICH, metformin in DKA / sepsis /
+  pancreatitis / AKI), surgery code / approach fields, LOS
+  consistency, vital ranges, sex-specific conditions.
 
-Consumed by the `clinosim validate` CLI subcommand. Validators
-report only — they do not fix issues.
+The only in-repo caller is the e2e test (see Output surfaces); the
+`clinosim validate` CLI subcommand runs its own checks
+(`simulator/cli_common._run_quality_checks`) and does not call this
+module. Validators report only — they do not fix issues.
 
 ## Scope
 
 - **In scope**: `run_benchmarks(dataset, country="JP") -> BenchmarkReport`
   with per-row `BenchmarkResult` (name / metric / generated value /
   expected value / expected range / `pass` / `warn` / `fail` status /
-  deviation %); `run_consistency_checks(dataset) -> ConsistencyReport`
+  deviation %); `run_consistency_checks(dataset, country="US") -> ConsistencyReport`
+  (`country` is currently unused)
   with per-issue `ConsistencyIssue` (`error` / `warning` severity);
   eight private consistency helpers (`_check_discharge_hgb`,
   `_check_deceased_status`, `_check_lab_ranges`,
@@ -50,7 +55,7 @@ from clinosim.modules.validator.benchmarks import (
 from clinosim.modules.validator.consistency import (
     ConsistencyIssue,            # dataclass: patient_id / severity / check_name / message
     ConsistencyReport,           # roll-up per run
-    run_consistency_checks,      # (dataset) -> ConsistencyReport
+    run_consistency_checks,      # (dataset, country="US") -> ConsistencyReport
 )
 ```
 
@@ -67,24 +72,21 @@ reports.
 
 ## Dependencies
 
-- `clinosim.modules._shared` — `is_jp` for country dispatch.
+- `clinosim.modules._shared` — `is_jp` for country dispatch
+  (benchmarks).
+- `clinosim.simulator.complications` — `complication_names`
+  (consistency metformin-hold check).
 - `clinosim.types.output` — `CIFDataset`, `CIFPatientRecord`.
-- `clinosim.types.encounter` — encounter records read by the
-  consistency helpers.
-- Standard library only (no `numpy` / `yaml`).
+- Otherwise standard library only (no `numpy` / `yaml`).
 
 ## Constants and configuration
 
 - Benchmark expected values + acceptance ranges live inline in
-  `benchmarks.py` with per-benchmark source citation
-  (JAMA / NEJM / HCUP / 患者調査 / OECD). Threshold extraction to a
-  `_benchmark_thresholds.py` sibling is tracked in
-  [`docs/reviews/2026-08-09-constants-audit.md`](../../../docs/reviews/2026-08-09-constants-audit.md).
+  `benchmarks.py` (no per-benchmark source citations in the code).
 - Consistency-check ranges are similarly inline; they anchor
-  hemoglobin discharge floors, anticoagulant / ICH holds,
-  metformin / DKA holds, and per-vital physiologic bounds.
-- No YAML — validation is code-first because ranges are cited from
-  named clinical references, not tuned parameters.
+  the hemoglobin discharge floor (7.0 g/dL), anticoagulant / ICH
+  holds, metformin holds, and per-vital physiologic bounds.
+- No YAML.
 
 ## Directory contents
 
@@ -101,7 +103,8 @@ The module has **no `audit.py`, no `enricher.py`, no
 
 ## Enricher wiring
 
-Not applicable — this module is invoked by the CLI, not by
+Not applicable — this module is imported directly by its caller
+(currently only `tests/e2e/test_beta.py`), not registered with
 `register_builtin_enrichers`. It has no seed offset in
 `ENRICHER_SEED_OFFSETS`.
 
@@ -109,19 +112,16 @@ Not applicable — this module is invoked by the CLI, not by
 
 | Consumer | Where | Role |
 |---|---|---|
-| CLI `validate` subcommand | [`clinosim/simulator/cli.py`](../../simulator/cli.py) (`~L224-225`, `~L660-680`) | Argparse subparser + dispatch. Loads the generated dataset, calls `run_benchmarks` + `run_consistency_checks`, prints the roll-up. |
 | E2E test | [`tests/e2e/test_beta.py`](../../../tests/e2e/test_beta.py) | Runs `run_benchmarks` on a real cohort to guard the realism envelope end-to-end. |
 
 ## Testing
 
 ```bash
-pytest tests/unit -k validator -q
 pytest tests/e2e -k test_beta -q     # runs run_benchmarks on a real cohort
 ```
 
-Coverage gap: `run_consistency_checks` has no dedicated unit test
-file today; it is exercised transitively through the `clinosim
-validate` CLI test path. A per-check unit file (each of the eight
+Coverage gap: there is no unit test for this module, and
+`run_consistency_checks` has no caller or test at all today. A per-check unit file (each of the eight
 `_check_*` helpers with fixture patients that trip each rule) would
 be a low-cost follow-up.
 

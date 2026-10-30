@@ -4,7 +4,8 @@
 
 Emits every FHIR R4 resource in the laboratory + observation family
 (the heaviest JP-locale specialisation in the whole `fhir_r4/`
-subsystem): `Observation` (labs + vitals + ABO/RhD + microbiology),
+subsystem): `Observation` (labs + vitals + ABO/RhD + microbiology +
+anthropometrics + chronic-disease stage scales),
 `DiagnosticReport`, `ServiceRequest`, `ImagingStudy`, plus the
 JP-CLINS lab-code loader (`coding_package`) and dispatcher
 (`coding_strategy`) that resolve JLAC10 five-axis codes at emit
@@ -12,7 +13,12 @@ time.
 
 ## Scope
 
-- **In scope**: `_bb_labs` (lab + vitals Observation), `_bb_diagnostic_reports`,
+- **In scope**: `_bb_labs` (lab Observation) + `_build_vital_observations`
+  (vitals; registry wrapper `_bb_vitals` in
+  [`../lib/inline_bb.py`](../lib/inline_bb.py)), `_bb_anthropometrics`
+  (height / weight / BMI / head circumference, Issue #946),
+  `_bb_stage_scale_observations` (mRS / H&Y / EDSS / CDR stage
+  scales), `_bb_diagnostic_reports`,
   `_bb_service_requests` (with the `SR_ID_PREFIX` +
   `PLACER_ORDER_NUMBER_SYSTEM` + `LAB_CATEGORY_SNOMED` +
   `LAB_CATEGORY_V2_0074` canonical constants — cross-verified by
@@ -39,7 +45,7 @@ time.
 ## Public API
 
 Every builder is registered with the parent facade
-(`_BUNDLE_BUILDERS` in [`../__init__.py`](../__init__.py)).
+(`_BUNDLE_BUILDERS` in [`../builder.py`](../builder.py)).
 Direct imports:
 
 ```python
@@ -58,14 +64,18 @@ from clinosim.modules.output.fhir_r4.labs.imaging_study import (
     _build_imaging_study,
     _build_series,
     DICOM_UID_SYSTEM,                     # "urn:dicom:uid"
+)
+from clinosim.modules.output.fhir_r4.labs.diagnostic_report import (
     RADIOLOGY_DR_ID_PREFIX,               # alias of RADIOLOGY_REPORT_ID_PREFIX
 )
 from clinosim.modules.output.fhir_r4.labs.blood_type import (
     _bb_blood_type,
     _build_blood_type_obs,
 )
-from clinosim.modules.output.fhir_r4.labs.coding_package import load_jp_clins_terminology
-from clinosim.modules.output.fhir_r4.labs.coding_strategy import resolve_lab_code
+from clinosim.modules.output.fhir_r4.labs.anthropometrics import _bb_anthropometrics
+from clinosim.modules.output.fhir_r4.labs.stage_scale_observations import _bb_stage_scale_observations
+from clinosim.modules.output.fhir_r4.labs.coding_package import load_lab_coding_package          # () -> LabCodingPackage
+from clinosim.modules.output.fhir_r4.labs.coding_strategy import select_lab_coding_strategy     # (lab_name, country) -> LabCodingStrategy
 from clinosim.modules.output.fhir_r4.labs._reference_ranges import (
     VITAL_HEART_RATE,
     VITAL_TEMPERATURE,
@@ -84,9 +94,12 @@ Not applicable — pure builders over CIF + reference-range tables.
 - `clinosim.modules._shared` — `is_jp`, `resolve_lang`.
 - `clinosim.modules.output.fhir_r4.lib.common` — `BundleContext`,
   fragment helpers.
-- `clinosim.modules.output.fhir_r4.conditions.primary_ref` —
-  `primary_condition_ref` for lab / microbiology
-  `Observation.encounter` + `basedOn` references.
+- `..demographics.patient.patient_ref`,
+  `..encounters.encounter.encounter_ref` — subject / encounter
+  references; `basedOn` comes from `service_request.order_to_sr_id`.
+- `clinosim.modules.imaging.engine` (id prefixes, modalities),
+  `clinosim.modules.order.panel_grouping`,
+  `clinosim.types.encounter.Order` / `OrderType`.
 - `clinosim.codes` — LOINC / SNOMED / JLAC10 display lookup.
 - `clinosim.locale.loader` — `code_mapping_lab.yaml` (JLAC10 five-axis
   code mapping per country).
@@ -117,7 +130,9 @@ Not applicable — pure builders over CIF + reference-range tables.
   - `_SPECIMEN_MATERIAL_CS_URI = "http://jpfhir.jp/fhir/core/CodeSystem/JP_ObservationSampleMaterialCodeJLAC10_CS"`.
   - Environment override: `CLINOSIM_JP_CLINS_PKG_DIR` (`_ENV_PKG_DIR`)
     points the loader at a local FHIR package cache.
-- **JP-CLINS lab-code dispatch** (`coding_strategy.py`):
+- **JP-CLINS lab-code dispatch** (`coding_strategy.py`
+  `select_lab_coding_strategy`; the code-system constants below are
+  defined in `coding_package.py`):
   - Standard JLAC10 → 17-digit code from
     `code_mapping_lab.yaml`.
   - Not-standardised → `_UNCODED_SYSTEM =
@@ -131,9 +146,11 @@ Not applicable — pure builders over CIF + reference-range tables.
 
 ```
 clinosim/modules/output/fhir_r4/labs/
-  __init__.py                    empty (builders imported by parent __init__)
-  observations.py                _bb_labs (lab + vitals Observation)
-  diagnostic_report.py           _bb_diagnostic_reports
+  __init__.py                    namespace stub (builders imported by ../builder.py / ../lib/inline_bb.py)
+  observations.py                _bb_labs (lab Observation) + _build_vital_observations
+  anthropometrics.py             _bb_anthropometrics (height / weight / BMI / head circumference)
+  stage_scale_observations.py    _bb_stage_scale_observations (chronic-disease stage scales)
+  diagnostic_report.py           _bb_diagnostic_reports + RADIOLOGY_DR_ID_PREFIX
   service_request.py             _bb_service_requests + canonical constants (SR_ID_PREFIX / PLACER_ORDER_NUMBER_SYSTEM / LAB_CATEGORY_*)
   microbiology.py                _bb_microbiology (culture + susceptibility)
   imaging_study.py               _bb_imaging_studies + _build_imaging_study + _build_series + DICOM_UID_SYSTEM

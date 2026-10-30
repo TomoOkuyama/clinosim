@@ -124,6 +124,21 @@ Order processing time depends on equipment throughput (defined in `facility`):
 
 ## Internal Design
 
+> **Implementation status.** This section is the original design. The
+> shipped module does not implement `place_from_protocol`,
+> `calculate_order_timeline`, `TimingDistribution`,
+> `on_specimen_collected` or `expand_medication_schedule`, nor the
+> per-transition lifecycle above: `OrderStatus` is only `placed` /
+> `accepted` / `in_progress` / `resulted` / `reviewed` / `cancelled` /
+> `stopped`, and `OrderType` has no `nutrition_consult`. Orders are
+> built by `engine.place_admission_orders` / `place_daily_lab_orders` /
+> `place_imaging_orders`; result times come from
+> `calculate_result_time_from_state` (hospital-state queue delay, or
+> `calculate_lab_result_time` with night deferral of non-STAT orders
+> when no hospital state is passed). Timing scalars live in the
+> `_*_timing.py` / `_state_delay_thresholds.py` files, not YAML. See
+> [`README.md`](README.md).
+
 ### Core concept: Order as time-bound event stream
 
 The order module converts clinical decisions into a stream of time-stamped events. Each order creates multiple events (placed, collected, resulted, reviewed) with realistic time gaps. This event stream drives the observation module (when to generate lab values) and the nursing module (when to administer medications).
