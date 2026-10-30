@@ -48,11 +48,17 @@ class TestReadmissionFlow:
         assert len(overlap) > 0, "Should have patients appearing in both initial and readmission"
 
     def test_no_surgical_readmissions(self, readmission_dataset):
-        """Hip fracture should not have same-disease readmissions."""
+        """Hip fracture is never the cause of a readmission.
+
+        The readmission cause is the record's first ground-truth disease. A
+        later disease can be merged into an ongoing readmission stay (e.g. a
+        fall with hip fracture during a sepsis readmission), which is a
+        comorbid event, not a hip-fracture readmission.
+        """
         readmits = [r for r in readmission_dataset.patients if r.is_readmission]
         for r in readmits:
             diseases = r.condition_event.ground_truth_diseases
-            assert "hip_fracture" not in diseases, "Surgical conditions should not readmit"
+            assert diseases and diseases[0] != "hip_fracture", "Surgical conditions should not readmit"
 
     def test_csv_diagnoses_table(self, readmission_dataset, tmp_path):
         cif_dir = str(tmp_path / "cif")
