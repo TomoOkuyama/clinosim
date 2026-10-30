@@ -12,6 +12,7 @@ no shared global generator is read.
 
 from __future__ import annotations
 
+import calendar
 from datetime import date, datetime
 from typing import TYPE_CHECKING, Any
 
@@ -96,7 +97,10 @@ def _run_ed_slot_phase(
 
         person_id = slot_rng.choice(list(population.persons.keys()))
         person = population.get_person(person_id)
-        if not person or not person.is_alive_at(date(visit_year, visit_month, 1)):
+        if not person or not person.in_population_during(
+            date(visit_year, visit_month, 1),
+            date(visit_year, visit_month, calendar.monthrange(visit_year, visit_month)[1]),
+        ):
             continue
         patient = _activate_cached_person(
             person,
@@ -128,7 +132,7 @@ def _run_ed_slot_phase(
         )
         if bounds.snapshot_dt and ed_time > bounds.snapshot_dt:
             continue
-        if not person.is_alive_at(ed_time.date()):
+        if not person.in_population_at(ed_time.date()):
             continue
 
         ed_record = _simulate_ed_visit(

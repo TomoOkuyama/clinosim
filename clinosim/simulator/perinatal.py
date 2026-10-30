@@ -1093,6 +1093,10 @@ def simulate_delivery_encounter(
             )
             _nb_person.last_encounter_id = newborn_encounter.encounter_id
             _nb_person.last_discharge_date = _discharge_date
+            # Issue #2168: the newborn joins the simulated population the
+            # day after the birth stay ends; the stay itself (including
+            # birth-dose vaccines) belongs to this birth encounter.
+            _nb_person.enrolled_from = _discharge_date + timedelta(days=1)
             _nb_person.has_visited_hospital = True
             _nb_person.visit_count = max(1, _nb_person.visit_count + 1)
 
