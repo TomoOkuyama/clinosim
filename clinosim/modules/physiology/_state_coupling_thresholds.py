@@ -176,23 +176,27 @@ drift to plausible values (max ~0.03/day at extreme physiology)."""
 
 COAG_DIC_INFLAMMATION_THRESHOLD: float = 0.7
 """``inflammation_level`` strictly above which DIC-like coagulopathy
-begins accumulating."""
+appears."""
 
-COAG_DIC_INFLAMMATION_SCALE: float = 0.15
-"""Scaling factor for DIC-like coagulopathy accumulation:
-``dic = (inflammation - 0.7) * scale``.
+COAG_DIC_INFLAMMATION_SCALE: float = 1.0
+"""Scaling factor for the DIC-like coagulopathy floor:
+``coagulation_status >= (inflammation - 0.7) * scale`` (Issue #2237 —
+a level, no longer added on every tick).
 
-Empirical tuning for the synthetic simulator: matches the sepsis-DIC
-progression seen in severe sepsis patients (inflammation → cytokine
-storm → coagulation cascade activation)."""
+Inflammation 0.8 gives 0.10, 0.9 gives 0.20, and maximal inflammation
+(1.0) gives 0.30 — an INR lift of about 0.45 and a platelet drop of
+about 60/uL, the sepsis-induced-coagulopathy range, while moderate
+sepsis stays mild."""
 
 COAG_HEPATIC_DYSFUNCTION_THRESHOLD: float = 0.4
 """``hepatic_function`` strictly below which hepatic-origin
-coagulopathy begins accumulating (deficient clotting-factor synthesis)."""
+coagulopathy appears (deficient clotting-factor synthesis)."""
 
-COAG_HEPATIC_DYSFUNCTION_SCALE: float = 0.1
-"""Scaling factor for hepatic-origin coagulopathy:
-``coagulation += (0.4 - hepatic_function) * scale``."""
+COAG_HEPATIC_DYSFUNCTION_SCALE: float = 1.0
+"""Scaling factor for the hepatic-origin coagulopathy floor:
+``coagulation_status >= (0.4 - hepatic_function) * scale`` (Issue #2237 —
+a level, no longer added on every tick). Hepatic 0.2 gives 0.2; the INR
+derivation adds its own hepatic term on top."""
 
 
 # ---------------------------------------------------------------------------

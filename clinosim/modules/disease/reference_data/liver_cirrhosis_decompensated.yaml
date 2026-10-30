@@ -116,7 +116,7 @@ initial_state_impact:
     hepatic_function: -0.50
     perfusion_status: -0.10
     renal_function: -0.10
-    coagulation_status: -0.15
+    coagulation_status: 0.15
     anion_gap_status: 0.3     # AG axis: lactate accumulation + HRS contribution
   severe:
     consciousness_impairment: 0.3
@@ -125,7 +125,7 @@ initial_state_impact:
     hepatic_function: -0.70
     perfusion_status: -0.20
     renal_function: -0.25
-    coagulation_status: -0.25
+    coagulation_status: 0.25
     ph_status: -0.05
     anion_gap_status: 0.4     # AG axis: severe HRS + lactate (AG 15-20)
 
