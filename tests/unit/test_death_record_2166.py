@@ -129,3 +129,14 @@ def test_death_counts_by_place_counts_deaths_inside_the_window() -> None:
             p.record_death(when, place)
         reg.persons[pid] = p
     assert death_counts_by_place(reg, date(2025, 1, 1), date(2026, 12, 31)) == {"hospital": 1, "community": 2}
+
+
+def test_run_beta_accepts_month_precision_time_range() -> None:
+    """The end-of-run death sync must parse ``YYYY-MM`` bounds (test fixtures use them)."""
+    from clinosim.simulator.engine import run_beta
+    from clinosim.types.config import SimulatorConfig
+
+    ds = run_beta(
+        SimulatorConfig(country="US", catchment_population=50, random_seed=3, time_range=("2025-01", "2025-02"))
+    )
+    assert ds.metadata.country == "US"
