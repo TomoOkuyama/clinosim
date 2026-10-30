@@ -111,7 +111,8 @@ def _run_ed_slot_phase(
         )
 
         ed_probs = [
-            _ed_condition_weight(name, spec, person, visit_month, occ_mult_table, prefix_share) * share
+            _ed_condition_weight(name, spec, person, visit_month, occ_mult_table, prefix_share, visit_year=visit_year)
+            * share
             for (name, spec), (_allowed, share) in zip(ed_conditions, restrictions, strict=True)
         ]
         total_p = sum(ed_probs)
@@ -189,8 +190,13 @@ def _ed_condition_weight(
     visit_month: int,
     occ_mult_table: dict[str, Any],
     prefix_share: dict[str, float],
+    visit_year: int | None = None,
 ) -> float:
     """Selection weight of one ED condition for one resident.
+
+    The ``min_age`` / ``max_age`` gate uses the age reached in ``visit_year``
+    (Issue #2174); ``person.age`` is the static age at generation and does
+    not advance over the window (a newborn stays 0).
 
     Conditions with ``requires_chronic_prefix`` (exacerbations of a chronic
     disease) are only drawn for residents who carry one of the prefixes; their
@@ -198,6 +204,9 @@ def _ed_condition_weight(
     overall share of ED visits matches its ``probability``.
     """
     person_age = int(getattr(person, "age", 0) or 0)
+    dob = getattr(person, "date_of_birth", None)
+    if visit_year is not None and dob is not None:
+        person_age = visit_year - dob.year
     if spec.get("min_age") is not None and person_age < int(spec["min_age"]):
         return 0.0
     if spec.get("max_age") is not None and person_age > int(spec["max_age"]):

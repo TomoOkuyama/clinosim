@@ -8,6 +8,7 @@ chief_complaint:
   en: "Fall on outstretched hand, wrist pain and swelling"
   ja: "転倒後の手関節痛・腫脹"
 encounter_type: emergency
+min_age: 4  # Issue #2174: presentation not drawn for younger children
 department: orthopedics
 disposition: discharge_home
 

@@ -8,6 +8,7 @@ chief_complaint:
   en: "Shoulder injury after fall, unable to move arm"
   ja: "転倒後の肩関節損傷（上肢挙上不能）"
 encounter_type: emergency
+min_age: 12  # Issue #2174: presentation not drawn for younger children
 department: orthopedics
 disposition: discharge_home
 

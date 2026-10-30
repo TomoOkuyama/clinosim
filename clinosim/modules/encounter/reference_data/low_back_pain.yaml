@@ -8,6 +8,7 @@ chief_complaint:
   en: "Acute low back pain, onset after lifting"
   ja: "急性腰痛（挙上時発症）"
 encounter_type: emergency
+min_age: 16  # Issue #2174: presentation not drawn for younger children
 department: emergency_medicine
 disposition: discharge_home
 
