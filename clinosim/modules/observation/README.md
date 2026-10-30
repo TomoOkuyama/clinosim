@@ -12,7 +12,9 @@ Owns three related emission-layer concerns for observed clinical data:
    value-generation step (variability + rounding, or a categorical
    draw for qualitative tests) the simulators call before building
    a lab `OrderResult`; `determine_flag` assigns the H / L /
-   critical flag.
+   critical flag. A patient on a drug listed under `therapeutic_ranges`
+   in `reference_range_lab.yaml` (INR on warfarin) is judged against that
+   therapeutic range instead (`therapeutic_range`, #2205).
 2. **Nursing flowsheet observations** (`nursing.py` +
    `nursing_enricher.py`) — NEWS2 / GCS / Braden pressure-ulcer /
    Morse fall-risk score computation from vital + ADL data, plus
@@ -73,7 +75,8 @@ from clinosim.modules.observation.engine import (
     round_to_precision,                  # (lab_name, value) -> float
     is_qualitative_test,                 # (lab_name) -> bool
     generate_lab_result,                 # (lab_name, true_value, rng) -> float | str
-    determine_flag,                      # (lab_name, value, sex="F", country="US") -> "L" | "H" | "critical" | None
+    determine_flag,                      # (lab_name, value, sex="F", country="US", *, medications=None, age=None) -> "L" | "H" | "critical" | None
+    therapeutic_range,                   # (lab_name, country, *, medications, age) -> (low, high, text) | None
 )
 
 # Nursing flowsheet

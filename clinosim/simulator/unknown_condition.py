@@ -332,6 +332,8 @@ def _simulate_unknown_condition(
                     observed,
                     sex=patient.sex,
                     country=config.country if config else "US",
+                    medications=patient.current_medications,
+                    age=patient.age,
                 )
                 tech_id = assign_staff("lab_result", "", roster, rng).get("performing_technician", FALLBACK_TECH_ID)
                 order.result = OrderResult(

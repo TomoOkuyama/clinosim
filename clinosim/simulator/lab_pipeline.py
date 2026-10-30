@@ -126,7 +126,14 @@ def _run_lab_result_pipeline(
 
             result_time = calculate_result_time_from_state(order, hospital_state, hospital_ops or {}, lab_rng)
             observed = generate_lab_result(canon, true_labs[canon], lab_rng)
-            flag = determine_flag(canon, observed, sex=patient.sex, country="JP" if country_key == "japan" else "US")
+            flag = determine_flag(
+                canon,
+                observed,
+                sex=patient.sex,
+                country="JP" if country_key == "japan" else "US",
+                medications=patient.current_medications,
+                age=patient.age,
+            )
             lab_tech = assign_staff("lab_result", "", roster, lab_rng).get("performing_technician", FALLBACK_TECH_ID)
             order.result = OrderResult(
                 result_datetime=result_time,
@@ -183,7 +190,12 @@ def _run_lab_result_pipeline(
             else:
                 observed = generate_lab_result(canon, true_labs[canon], sub_rng)
                 flag = determine_flag(
-                    canon, observed, sex=patient.sex, country="JP" if country_key == "japan" else "US"
+                    canon,
+                    observed,
+                    sex=patient.sex,
+                    country="JP" if country_key == "japan" else "US",
+                    medications=patient.current_medications,
+                    age=patient.age,
                 )
                 child.result = OrderResult(
                     result_datetime=result_time,

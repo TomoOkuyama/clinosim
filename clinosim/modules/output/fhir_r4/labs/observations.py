@@ -112,6 +112,8 @@ def _build_lab_observation(
     country: str,
     patient_sex: str = "",
     encounter_id: str = "",
+    patient_medications: Any = None,
+    patient_age: int | None = None,
 ) -> dict | None:
     """Build FHIR Observation resource for a lab result."""
     value = result.get("value")
@@ -241,7 +243,9 @@ def _build_lab_observation(
         resource["valueString"] = str(value)
 
     # Reference range (JP: JCCLS共用基準範囲)
-    ref_range = build_reference_range(lab_name, patient_sex, country_code)
+    ref_range = build_reference_range(
+        lab_name, patient_sex, country_code, medications=patient_medications, age=patient_age
+    )
     if ref_range:
         resource["referenceRange"] = ref_range
 
@@ -258,13 +262,17 @@ def _build_lab_observation(
     }
     coded: dict[str, str] | None = None
     if isinstance(value, (int, float)) and ref_range:
-        # Find normal range (type=normal or unlabeled first entry)
+        # Find normal range (type=normal or unlabeled first entry); a
+        # therapeutic range, present only for patients on the matching drug,
+        # takes precedence (Issue #2205).
         normal_rng = None
         for rng in ref_range:
             tc = (rng.get("type") or {}).get("coding", [{}])[0].get("code", "")
-            if tc == "normal" or not tc:
+            if tc == "therapeutic":
                 normal_rng = rng
                 break
+            if (tc == "normal" or not tc) and normal_rng is None:
+                normal_rng = rng
         if normal_rng:
             low_v = (normal_rng.get("low") or {}).get("value")
             high_v = (normal_rng.get("high") or {}).get("value")
@@ -906,6 +914,8 @@ def _bb_labs(ctx: BundleContext) -> list[dict[str, Any]]:
             ctx.country,
             ctx.patient_sex,
             ctx.primary_enc_id,
+            patient_medications=(ctx.patient_data or {}).get("current_medications"),
+            patient_age=(ctx.patient_data or {}).get("age"),
         )
         if obs:
             if sr_id is not None:

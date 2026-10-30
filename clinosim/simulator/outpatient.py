@@ -491,7 +491,9 @@ def _simulate_outpatient_visit(
             if band_baseline is not None:
                 true_val = band_baseline
         observed = generate_lab_result(canon, true_val, lab_rng)
-        flag = determine_flag(canon, observed, sex=patient.sex, country=country)
+        flag = determine_flag(
+            canon, observed, sex=patient.sex, country=country, medications=patient.current_medications, age=patient.age
+        )
         result = OrderResult(
             result_datetime=visit_date + timedelta(hours=OUTPATIENT_LAB_RESULT_OFFSET_HOURS),
             performed_by=lab_tech_id,
