@@ -66,6 +66,10 @@ lifestyle_risk_multipliers:                  # optional: see us/demographics.yam
   smoking:
     current: {J44: __TODO__}
 
+preventive_care:                             # optional; omitted keys keep the defaults
+  annual_screening_participation: __TODO__   # share of the screening age band screened per year
+  flu_vaccination_probability: __TODO__      # share of eligible adults (65+ / comorbid) vaccinated per season
+
 care_seeking:                                # threshold for seeking care (0..1)
   threshold_mean: __TODO__
   threshold_sd: __TODO__

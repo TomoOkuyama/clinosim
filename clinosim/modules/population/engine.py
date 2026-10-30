@@ -966,6 +966,13 @@ def generate_healthcare_calendar(
     persons = list(registry.persons.values())
     person_rngs = rng.spawn(len(persons)) if persons else []
 
+    # Issue #2245: locale participation rates (demographics.yaml
+    # ``preventive_care``). Screening participation defaults to 1.0 (no
+    # extra draw, the former behaviour) where the locale gives none.
+    _preventive = _load_demographics(country).get("preventive_care") or {}
+    screening_participation = float(_preventive.get("annual_screening_participation", 1.0))
+    flu_vax_probability = float(_preventive.get("flu_vaccination_probability", FLU_VAX_PROBABILITY))
+
     for person, prng in zip(persons, person_rngs):
         # Issue #2168: anyone in the population at some point of the year;
         # each event is gated on its own date by the calendar phase.
@@ -1047,7 +1054,8 @@ def generate_healthcare_calendar(
         if _age_at_year >= HEALTH_SCREENING_MIN_AGE:
             screening_month = int(prng.integers(HEALTH_SCREENING_MONTH_START, HEALTH_SCREENING_MONTH_END_EXCLUSIVE))
             screening_day = random_day_of_month(prng, year, screening_month)
-            if _age_at_year <= HEALTH_SCREENING_MAX_AGE:
+            participates = screening_participation >= 1.0 or prng.random() < screening_participation
+            if _age_at_year <= HEALTH_SCREENING_MAX_AGE and participates:
                 screening_date = date(year, screening_month, screening_day)
                 events.append(
                     LifeEvent(
@@ -1064,7 +1072,7 @@ def generate_healthcare_calendar(
 
         # --- Flu vaccination (age 65+ or chronic conditions, Oct-Dec) ---
         if person.age >= FLU_VAX_ADULT_AGE_THRESHOLD or len(person.chronic_conditions) >= FLU_VAX_COMORBIDITY_MIN:
-            if prng.random() < FLU_VAX_PROBABILITY:
+            if prng.random() < flu_vax_probability:
                 vax_month = int(prng.choice(FLU_VAX_MONTHS))
                 events.append(
                     LifeEvent(
