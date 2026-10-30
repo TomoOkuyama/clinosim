@@ -22,7 +22,6 @@ from clinosim.modules.order.engine import replay_order_to_state
 from clinosim.modules.population.engine import LifeEvent
 from clinosim.modules.population.vital_status import record_hospital_death
 from clinosim.seeding import PHASE_INPATIENT_SIM, derive_phase_rng
-from clinosim.simulator import log as sim_log
 from clinosim.simulator.complications import build_complication
 from clinosim.simulator.helpers import _deactivate_to_layer1, _select_secondary_disease
 from clinosim.simulator.inpatient import _simulate_patient
@@ -356,22 +355,18 @@ class _DispatchState:
     - ``active_discharges``: FIFO of ``(discharge_date, beds_freed)``
       tuples the loop replays on each event to free beds whose
       discharge dates have passed.
-    - ``progress_cumul``: cumulative dispatched-event counter — the
-      Issue #1596 Step 1 fix for per-chunk cadence; triggers the
-      ``inpatient_progress`` sim_log event every 50 events plus at
-      each chunk's terminal event (``== total``).
+
+    Progress is reported per month by the forward loop
+    (``forward_progress``), not per dispatched event.
     """
 
     concurrent_patients: int = 0
     active_discharges: list[tuple] = field(default_factory=list)
-    progress_cumul: int = 0
 
 
 def _dispatch_hospital_events(
     *,
     events: list[LifeEvent],
-    total: int,
-    label: str,
     state: _DispatchState,
     patient_records: list[CIFPatientRecord],
     patient_cache: dict[tuple[str, int | None], PatientProfile],
@@ -397,31 +392,10 @@ def _dispatch_hospital_events(
     ``prev_admission_cache``, ``hospital_state``) propagates through
     object references and dict / list mutation; nothing else is
     rebound.
-
-    The per-chunk ``total`` argument carries the running cumulative
-    hospital-event count for the progress-cadence log line (Issue
-    #1596 Step 1); the helper itself does not re-derive it.
     """
     from clinosim.simulator.engine import _activate_cached_person
 
     for event in events:
-        state.progress_cumul += 1
-        if state.progress_cumul % 50 == 0 or state.progress_cumul == total:
-            print(
-                f"  Simulating {label} {state.progress_cumul}/{total} "
-                f"(concurrent={state.concurrent_patients}, "
-                f"bed_occ={hospital_state.bed_occupancy:.0%})...",
-                flush=True,
-            )
-            sim_log.info(
-                "engine",
-                f"{label}_progress",
-                processed=state.progress_cumul,
-                target=total,
-                concurrent=state.concurrent_patients,
-                bed_occupancy=round(hospital_state.bed_occupancy, 3),
-            )
-
         event_time = datetime(event.timestamp.year, event.timestamp.month, event.timestamp.day, 12, 0)
         hospital_state.update_for_time(event_time, hospital_ops)
         new_active = []

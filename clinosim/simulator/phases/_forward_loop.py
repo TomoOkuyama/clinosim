@@ -31,6 +31,7 @@ from __future__ import annotations
 import heapq
 import itertools
 import math
+import time
 from collections.abc import Iterator
 from dataclasses import dataclass, field
 from datetime import date, datetime
@@ -129,6 +130,7 @@ def run_forward_loop(ctx: ForwardContext, months: list[tuple[int, int]]) -> None
     from clinosim.simulator.phases._post_discharge import dispatch_post_discharge, schedule_post_discharge
     from clinosim.simulator.phases._readmission import dispatch_readmission, schedule_readmission
 
+    t0 = time.perf_counter()
     queue = EventQueue()
     ed_sampler = EDSlotSampler(ctx)
     known_persons = set(ctx.population.persons)
@@ -203,9 +205,26 @@ def run_forward_loop(ctx: ForwardContext, months: list[tuple[int, int]]) -> None
                 dispatch_ed_slot(item.payload, ed_sampler)
             enroll_new_persons(year)
 
+        print(
+            f"  {year:04d}-{month:02d}: {len(ctx.patient_records)} records, "
+            f"{ctx.n_hospital_events} hospital events (concurrent={ctx.dispatch_state.concurrent_patients}, "
+            f"bed_occ={ctx.hospital_state.bed_occupancy:.0%})",
+            flush=True,
+        )
+        sim_log.info(
+            "engine",
+            "forward_progress",
+            month=f"{year:04d}-{month:02d}",
+            records=len(ctx.patient_records),
+            hospital_events=ctx.n_hospital_events,
+            concurrent=ctx.dispatch_state.concurrent_patients,
+            bed_occupancy=round(ctx.hospital_state.bed_occupancy, 3),
+        )
+
     sim_log.info(
         "engine",
         "forward_loop_done",
+        elapsed_s=round(time.perf_counter() - t0, 3),
         records=len(ctx.patient_records),
         life_events=ctx.n_life_events,
         hospital_events=ctx.n_hospital_events,
@@ -217,8 +236,6 @@ def run_forward_loop(ctx: ForwardContext, months: list[tuple[int, int]]) -> None
 def _dispatch_one_life_event(event: LifeEvent, ctx: ForwardContext) -> None:
     _dispatch_hospital_events(
         events=[event],
-        total=ctx.n_hospital_events,
-        label="inpatient",
         state=ctx.dispatch_state,
         patient_records=ctx.patient_records,
         patient_cache=ctx.patient_cache,

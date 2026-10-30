@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import calendar
-import time
 from datetime import date
 from pathlib import Path
 
@@ -270,14 +269,12 @@ def run_beta(
         _dy, _dm = (_dy + 1, 1) if _dm == 12 else (_dy, _dm + 1)
 
     sim_log.info("engine", "forward_loop_start", months=len(months))
-    _t0 = time.perf_counter()
     run_forward_loop(ctx, months)
     print(
         f"  Forward loop done: {len(patient_records)} records, {ctx.n_hospital_events} hospital events "
         f"(peak concurrent: {ctx.dispatch_state.concurrent_patients})",
         flush=True,
     )
-    sim_log.info("engine", "forward_loop_elapsed", elapsed_s=round(time.perf_counter() - _t0, 3))
 
     # Issue #2166: every profile of a person carries the person's one death
     # date (as known at the snapshot or window end), including profiles that
