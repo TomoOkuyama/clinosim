@@ -5,7 +5,8 @@
 resource builder. Canonical layout: builders live under
 `clinosim/modules/output/fhir_r4/` (per-domain sub-packages —
 `conditions/`, `labs/`, `procedures/`, `documents/`, …); the
-`_BUNDLE_BUILDERS` registry + `register_bundle_builder()` are in
+`_BUNDLE_BUILDERS` registry + `register_bundle_builder()` are defined in
+`clinosim/modules/output/fhir_r4/builder.py` and re-exported from
 `clinosim/modules/output/fhir_r4/__init__.py`. The historical
 `clinosim/modules/output/fhir_r4_adapter.py` is now a thin
 compatibility re-export.
@@ -72,7 +73,7 @@ reference material.
 | 3 | Define canonical constants (ID prefix, identifier system) inside the builder | Section B.3 |
 | 4 | Implement resource-skeleton functions (via `code_lookup` / `get_system_uri`) | Section B.4 |
 | 5 | Implement the builder entry point `_bb_<topic>(ctx: BundleContext) -> list[dict]` | Section B.5 |
-| 6 | Register in `clinosim/modules/output/fhir_r4/__init__.py:_BUNDLE_BUILDERS` OR add via `register_bundle_builder()` | Section B.6 |
+| 6 | Register in `clinosim/modules/output/fhir_r4/builder.py:_BUNDLE_BUILDERS` OR add via `register_bundle_builder()` | Section B.6 |
 | 7 | Add unit + integration + e2e golden + audit `lift_firing_proof` | Section C |
 
 ### B.2 File template
@@ -227,7 +228,7 @@ AD-16).
 `_BUNDLE_BUILDERS` list directly:
 
 ```python
-# clinosim/modules/output/fhir_r4/__init__.py
+# clinosim/modules/output/fhir_r4/builder.py
 from clinosim.modules.output.fhir_r4.<domain>.<topic> import _bb_<topic>
 
 _BUNDLE_BUILDERS: list[Callable[[BundleContext], list[dict]]] = [
@@ -529,7 +530,7 @@ def _bb_foo(ctx):
 (`from clinosim.modules.order.panel_grouping import load_panel_definitions`).
 
 **Precedent (shared-logic unification 2026-07-02)**:
-`_fhir_localization.py` used to load locale's shared YAML
+`_fhir_localization.py` (now `fhir_r4/lib/localization.py`) used to load locale's shared YAML
 (`med_terms_ja.yaml` / the retired `drug_names_ja.yaml` (deleted #1876; replaced by `load_narrative_display_dict` catalog UNION) /
 `department_display.yaml`) with inline `yaml.safe_load` from inside
 the builder — this has been moved to the canonical cached loaders in
@@ -566,15 +567,15 @@ sr["id"] = f"sr-{order.order_id}"  # NG — "sr-" is a literal
 ### E.6 ❌ Two builders re-computing the same display
 
 ```python
-# _fhir_observations.py
+# fhir_r4/labs/observations.py
 display_a = code_lookup("loinc", "58410-2", "ja")
-# _fhir_diagnostic_report.py
+# fhir_r4/labs/diagnostic_report.py
 display_b = code_lookup("loinc", "58410-2", "ja")
 ```
 
 Technically fine, but if display post-processing (shortening,
 formatting) is needed in both builders, factor it out into a shared
-helper (e.g. in `_fhir_common.py`).
+helper (e.g. in `fhir_r4/lib/common.py`).
 
 ### E.7 ❌ Ignoring Resource-id collisions
 

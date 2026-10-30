@@ -42,7 +42,8 @@ clinosim export-fhir   →  FHIR R4 NDJSON     fhir_r4/<ResourceType>.ndjson + m
 - Other subcommands: `test-disease <id>` (single-disease debug
   generation with printed output) / `test-encounter` / `audit run`
   (4-axis verification) / `validate` / `regenerate-goldens` /
-  `check-narratives` / `list-diseases`.
+  `check-narratives` / `list-diseases` / `enumerate` / `diff` /
+  `eval`.
 - `clinosim generate` remains as a deprecated alias for
   `clinosim simulate`.
 
@@ -64,14 +65,55 @@ smoking / alcohol, care-seeking thresholds. The epidemiological data
 rate) is read from `locale/<country>/demographics.yaml` (no
 epidemiology values hard-coded in code).
 
-### 1b. Life-event firing — `generate_monthly_events`
+### 1b. The forward month loop and life events — `run_forward_loop` / `generate_monthly_events`
 
-`run_beta` cycles the `time_range` (default 1 year) through a
-**year × month loop**, calling
-`generate_monthly_events(registry, year, month, rng, country)`
-each month. For each resident, it evaluates disease incidence (rate
-× age × seasonality × lifestyle risk) and decides disease onset via
-`rng.random() < rate`. On onset:
+`run_beta` hands the months of `time_range` (default 1 year) to
+`run_forward_loop` (`simulator/phases/_forward_loop.py`). **One
+loop advances every phase month by month**; each month runs these
+steps in order:
+
+1. **Year boundary** (January, and the window's first month):
+   `advance_population` (`population/aging.py`) runs the aging
+   passes (stroke-sequela promotion, allergy drift), draws this
+   year's **community deaths** forward (`population/mortality.py`:
+   life-table `qx` × the person's chronic-condition SMR, normalised
+   within age band × sex), and advances the longitudinal state
+   (adult chronic onset). Then the year's healthcare calendar
+   (§1b.2) is generated and queued.
+2. **Monthly life events**: `generate_monthly_events(registry,
+   year, month, rng, country, master_seed=…,
+   inpatient_departments=…)` (below); events that need the hospital
+   are queued.
+3. **ED visits**: the month's ED slots are drawn from the persons in
+   the population that month. The volume is
+   `ed_visit_not_admitted.rate_per_1000_person_years` in
+   `locale/<country>/demographics.yaml` (JP 150, US 380), so it
+   follows the population as it grows and shrinks.
+4. **Dispatch**: queued events dated in the month are simulated in
+   date order (admissions lead their day). Dispatch queues new
+   events: an index admission or readmission queues its
+   post-discharge follow-up, an index admission queues its
+   readmission when one fires, and a **delivery registers a
+   newborn**, who joins the population the day after the birth-stay
+   discharge (`PersonRecord.enrolled_from`) and gets a rest-of-year
+   calendar.
+
+**Lifecycle.** Every death — in-hospital (recorded when the stay is
+dispatched) or community — goes through
+`PersonRecord.record_death(when, place)` (the earliest death wins;
+`is_alive` is derived from it). Every event is gated on
+`in_population_at(<event date>)` (alive and enrolled), so nobody has
+an encounter after death, and a newborn takes part in everything
+from enrollment on. All draws use event-keyed sub-RNGs
+(`derive_phase_rng`), so dispatch order does not shift any event's
+own randomness.
+
+**Life events.** For each person in the population on the month's
+event date, `generate_monthly_events` evaluates disease incidence
+(rate × age × seasonality × lifestyle risk) and decides disease
+onset via `rng.random() < rate` (entries flagged `rng_isolated` draw
+from a stream keyed on master seed, month, person and disease
+instead). On onset:
 
 - **Severity** is decided by
   `disease.severity.sample_severity(load_disease_protocol(disease_id), person, rng)`
@@ -81,7 +123,9 @@ each month. For each resident, it evaluates disease incidence (rate
   disease YAML** (the old `severity_beta` has been removed).
 - **Whether hospitalisation is required** is decided from the
   continuous score and the care-seeking threshold
-  (`severity > care_seeking_threshold`).
+  (`severity > care_seeking_threshold`, scaled by the incidence
+  entry's `hospitalization_threshold_modifier[_by_age]`; entries
+  with `always_hospitalize` always admit).
 - Emits a `LifeEvent` (`person_id` / `disease_id` / `timestamp` /
   `severity` / `requires_hospital`).
 
@@ -106,10 +150,10 @@ schedule cannot cascade into unrelated patients' timelines
 
 | `event_type` | Fires for | Cadence source | Dispatch target |
 |---|---|---|---|
-| `chronic_visit` | Anyone with a chronic condition present in `locale/shared/chronic_followup.yaml` (16 chronic codes + flu vaccination + diabetic retinopathy screening) | `follow_up_interval_months` per chronic entry; capped at 6/year | `_simulate_outpatient_visit(visit_type="chronic_followup")` |
+| `chronic_visit` | Anyone with a chronic condition present in `locale/shared/chronic_followup.yaml` (29 chronic codes, plus the Z34 / Z39 pregnancy entries) + flu vaccination (age ≥ 65 or ≥ 2 chronic conditions, 50 %, Oct-Dec) + diabetic retinopathy screening (60 %/yr) | `follow_up_interval_months` per chronic entry; capped at 6/year | `_simulate_outpatient_visit(visit_type="chronic_followup")` |
 | `pediatric_visit` | Anyone with an active well-child schedule item (`modules/pediatric/calendar.py`) | Age-conditional per JP MHLW / US CDC well-child schedule | `_simulate_outpatient_visit(visit_type="pediatric_visit")` |
-| `health_screening` | Age ≥ 40 (annual) + age ≥ 50 colonoscopy (10-year interval → 10 %/yr) + female age ≥ 40 mammography (60 %/yr) | Population thresholds in `_population_workflow_thresholds` | `_simulate_outpatient_visit(visit_type="health_screening")` |
-| `chemo_visit` | Chronic-cancer carriers whose per-(patient, cancer_code) sub-RNG assigns an active regimen from `chemo_regimens.yaml` | `cycle_interval_days` per regimen (FOLFOX q14d / CarboPem q21d / Trastuzumab q3w / LHRH q28d), capped by `course_cycles` | `_simulate_outpatient_visit(visit_type="chemo_visit")` — emits Encounter + `chemotherapy_administration` Procedure |
+| `health_screening` | Age 40-89 (annual) + age 50-75 colonoscopy (8 %/yr) + female age 40-74 mammography (40 %/yr) | Population thresholds in `_population_workflow_thresholds` | `_simulate_outpatient_visit(visit_type="health_screening")` |
+| `chemo_visit` | Chronic-cancer carriers whose per-(patient, cancer_code) sub-RNG assigns an active regimen from `chemo_regimens.yaml` | `cycle_interval_days` per regimen (7 regimens, e.g. FOLFOX q14d / CarboPem q21d / Trastuzumab q3w / LHRH q28d), capped by `course_cycles` | `_simulate_outpatient_visit(visit_type="chemo_visit")` — emits Encounter + `chemotherapy_administration` Procedure |
 | `chronic_visit` (`condition_type="prenatal_visit"`, `disease_id="Z34"`) | Women 15-49 with an active `TemporalStatePeriod(state_type="pregnancy")` | Gestational weeks 12 / 24 / 36 from LMP, from `perinatal.yaml::lifecycle.prenatal_visit_gestational_weeks` | `_simulate_outpatient_visit(visit_type="chronic_followup")` routed to `obgyn` via `_CHRONIC_DISEASE_SPECIALTY` |
 | `delivery` | Women whose active pregnancy period's `planned_delivery_date` (EDD ± 7 d jitter) falls in the sim year — opened by an annual conception Bernoulli against `perinatal.yaml::lifecycle.annual_conception_rate.{jp,us}` | One event per delivered pregnancy period, per-`(person_id, year)` sub-RNG (`perinatal_delivery_seed`) | `simulator/perinatal.py::simulate_delivery_encounter` — emits IMP Encounter with `O80` admission dx / `Z37.0` discharge dx + delivery Procedure + newborn Patient chain |
 | `chronic_visit` (`condition_type="postpartum"`, `disease_id="Z39"`) | Same delivered pregnancy periods | 7 d + 28 d after `delivery_date`, from `perinatal.yaml::lifecycle.postpartum_visit_offsets_days` | `_simulate_outpatient_visit(visit_type="chronic_followup")` routed to `obgyn` |
@@ -133,7 +177,13 @@ lifecycle) uses a dedicated per-patient sub-seed
 consuming the calendar's shared per-person stream. Adding or tuning
 these emissions is byte-identical for every patient except the ones
 the new event directly targets — verified p=1000 US non-obstetric
-595/595 identity vs pre-Incr-1 master.
+596/596 identity vs pre-Incr-1 master.
+
+Note that in `generate_healthcare_calendar` only the pediatric and
+pregnancy-lifecycle events fire for everyone; chronic visits, flu
+vaccination, the screenings and chemo cycles are generated only for
+persons with at least one condition listed in
+`chronic_followup.yaml` (the loop skips a person without one).
 
 Full schema + slice scope for the oncology + obstetric events:
 [`../reference/oncology-obstetric-service-lines.md`](../reference/oncology-obstetric-service-lines.md).
@@ -201,16 +251,20 @@ Around the Base encounter simulation, **opt-in / always-on
 modules** run in three stages:
 
 - **POST_POPULATION** (after population generation, before
-  simulation): e.g. `identity` (JP My Number / insurance).
+  simulation): `allergy(10)` / `identity(10)` (JP My Number /
+  insurance) / `e66_bmi(15)` / `e88_81_syndrome(16)` /
+  `k76_0_nafld(17)` / `g47_30_osa(18)`.
 - **POST_ENCOUNTER** (right after one visit's daily loop, inside
   the encounter simulator): the clinical cascade. Order is fixed:
-  `device(70) → hai(80) → antibiotic(85) → imaging(90) →
-  triage(93) → nursing_assignment(94) → document(95)`. Later
-  stages read `extensions[X]` written by earlier ones (no HAI
-  without a device, etc.).
+  `device(70) → prophylaxis(75) → hai(80) → antibiotic(85) →
+  imaging(90) → discontinue_flip(91) → newborn(92) → triage(93) →
+  lab_derived_dx(94) → nursing_assignment(94) → document(95)`
+  (ties sort by name). Later stages read `extensions[X]` written by
+  earlier ones (no HAI without a device, etc.).
 - **POST_RECORDS** (after all patients are simulated): cross-record.
-  `nursing flowsheet` / `immunization` / `family_history` /
-  `code_status` / `care_level`.
+  `nursing(20)` flowsheet / `immunization(30)` /
+  `family_history(40)` / `code_status(50)` / `care_level(60)` /
+  `medication_monitoring(65)` / `health_checkup(70)`.
 
 Modules write only into `CIFPatientRecord.extensions[<module>]`
 (new typed fields on core types are Base-only). Adding a module =
@@ -229,7 +283,7 @@ actual free text arrives in Stage 2 (AD-65).
 
 ## 2. Stage 2 = `narrate`: narrative generation (the swappable layer)
 
-`narrate --provider template|mock|ollama|bedrock --version-id <id>`
+`narrate --provider template|mock|ollama|bedrock|vllm|openai_compatible --version-id <id>`
 writes `cif/narratives/<version>/documents/<enc>/<doc>.json`.
 
 - `NarrativePass` (`document/narrative/passes.py`, an ABC) reads
@@ -249,8 +303,9 @@ writes `cif/narratives/<version>/documents/<enc>/<doc>.json`.
 ## 3. Stage 3 = `export-fhir`: CIF → FHIR R4
 
 `export-fhir --narrative-version <id>` merges structural + narrative
-via `CIFReader`, and the `_fhir_*` builders (`modules/output/`)
-assemble FHIR resources.
+via `CIFReader`, and the per-theme builders under
+`modules/output/fhir_r4/` (`conditions/`, `labs/`, `medications/`,
+`encounters/`, `documents/`, …) assemble FHIR resources.
 
 - **Bulk Data Access** (AD-31): 1 NDJSON per resource type +
   `manifest.json`. Not wrapped in a Bundle.
@@ -279,6 +334,7 @@ PractitionerRole / Endpoint / …).
 run_beta(config)                                   # simulator/engine.py
  └ generate_population(40000, "US", rng)            # 40k people in a catchment
      → PersonRecord(age=78, chronic=["I10","N18"])  # a 78-year-old with hypertension + CKD
+ └ run_forward_loop(ctx, months)                    # simulator/phases/_forward_loop.py
  └ generate_monthly_events(...) each month          # population/engine.py
      → incidence evaluation → acute_mi onset
      → sample_severity(acute_mi protocol, person)   # disease YAML distribution × modifiers (elderly → skew to severe)
@@ -287,7 +343,7 @@ run_beta(config)                                   # simulator/engine.py
      → LifeEvent(acute_mi, severe, requires_hospital)
  └ activate_patient(person)                          # patient/activator.py
      → PatientProfile(stage: "CKD G3a" / "HT Stage 2", baseline BP ↑ by stage)
- └ _simulate_patient(event)                          # inpatient.py
+ └ dispatch on the event date → _simulate_patient(event)   # _dispatch.py → inpatient.py
      → category_from_score(0.82) = "severe"
      → select_archetype("severe", …, acute_mi.course_archetypes, .archetype_modifiers)
         = "dip_then_recovery"
@@ -295,15 +351,15 @@ run_beta(config)                                   # simulator/engine.py
      └ _run_daily_loop(...)  per day                 # state → labs / vitals / orders / MAR daily
          → derive_lab_values(...)  troponin ↑ CK-MB ↑ Cr ↑ (CKD baseline)
          → evaluate_complications(...)               # acute_mi.complications
-         → POST_ENCOUNTER enrichers: device → hai → antibiotic → imaging → triage → nursing → document
+         → POST_ENCOUNTER enrichers: device → … → document (§1e)
      → CIFPatientRecord(orders, labs, vitals, mar, documents(stub), extensions{...})
  └ write cif/structural/patients/ENC-....json
 --- narrate ---
  └ TemplateNarrativePass  → cif/narratives/template/documents/ENC-.../hp.json (H&P body)
 --- export-fhir ---
- └ _fhir_conditions → Condition(acute_mi I21, stage "CKD G3a" …)
-    _fhir_observations → Observation(troponin, Cr, …)
-    _fhir_medications → MedicationRequest / Administration
+ └ conditions/conditions.py → Condition(acute_mi I21, stage "CKD G3a" …)
+    labs/observations.py → Observation(troponin, Cr, …)
+    medications/medications.py → MedicationRequest / Administration
     … → fhir_r4/*.ndjson
 ```
 
@@ -316,7 +372,7 @@ run_beta(config)                                   # simulator/engine.py
 | New disease | Add `modules/disease/reference_data/<id>.yaml` (use an existing disease as template) + incidence entry in locale + register diagnosis codes in `codes/data/`. No engine code change. See `CONTRIBUTING-modules.md`. |
 | New ED / outpatient condition | `modules/encounter/reference_data/<id>.yaml` |
 | New lab-value analyte | `derive_lab_values` (observation) + code_mapping + `codes/data/loinc.yaml` |
-| New FHIR resource | `_fhir_<topic>.py` builder + `register_bundle_builder` (§3) |
+| New FHIR resource | builder in `modules/output/fhir_r4/<theme>/` + `register_bundle_builder` (§3) |
 | New output format | `OutputAdapter` + `register_output_adapter` |
 | New data kind (module) | `modules/<name>/` + enricher registration (§1e) + write into `extensions[<name>]` |
 | Code → display name | `codes/data/<system>.yaml` (`en` required, `ja` optional). Resolve via `code_lookup`. |

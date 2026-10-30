@@ -42,15 +42,15 @@ clinosim/
 ├── types/                    # Data type definitions (Pydantic / dataclass)
 │   ├── config.py             # SimulatorConfig
 │   ├── patient.py            # PatientProfile, ChronicCondition
-│   ├── clinical.py           # PhysiologicalState (14 variables), ClinicalDiagnosis
+│   ├── clinical.py           # PhysiologicalState (19 variables), ClinicalDiagnosis
 │   ├── encounter.py          # Encounter, Order, VitalSignRecord, MAR
 │   ├── identity.py           # NationalIdentity, InsuranceEnrollment, IdentityTimeline
 │   └── output.py             # CIFDataset, CIFPatientRecord, CIFMetadata
 │
-├── modules/                  # Functional modules (39 packages, each with README)
+├── modules/                  # Functional modules (38 packages, each with README)
 │   ├── disease/              # disease YAML protocols
-│   ├── encounter/            # 47 ED/outpatient condition YAMLs
-│   ├── physiology/           # 14-state model + lab/vital derivation
+│   ├── encounter/            # 51 ED/outpatient condition YAMLs
+│   ├── physiology/           # 19-variable state model + lab/vital derivation
 │   ├── clinical_course/      # 6 archetypes + complications + diagnosis feedback
 │   ├── diagnosis/            # Bayesian differential (LR table)
 │   ├── observation/          # 3-layer lab noise + flagging
@@ -76,8 +76,10 @@ clinosim/
 │   │   │   ├── base.py                # LLMProvider Protocol + ProviderResponse
 │   │   │   ├── ollama.py              # Local Ollama
 │   │   │   ├── bedrock.py             # AWS Bedrock (boto3 lazy import)
+│   │   │   ├── vllm.py                # vLLM OpenAI-compatible server
 │   │   │   └── mock.py                # Deterministic test provider
 │   │   └── prompts/                   # ★ Prompt template YAML tree
+│   │       ├── ja/                    # Japanese prompts (same 17 template names)
 │   │       └── en/                    # English prompts (17 templates —
 │   │           │                      #   admission H&P, discharge/death
 │   │           │                      #   summaries, operative + procedure
@@ -99,7 +101,8 @@ clinosim/
 │   ├── engine.py             # run_beta, run_forced (thin façade post-C2 split)
 │   ├── _setup.py             # pre-flight / cohort cache / time-range helpers (C2a)
 │   ├── _dispatch.py          # hospital-event dispatcher + overlap handling (C2b)
-│   ├── phases/               # per-phase runners (C2c-f): healthcare_calendar, post_discharge, readmission, ed_slot
+│   ├── phases/               # _forward_loop.py (run_forward_loop: one month-by-month loop over every phase)
+│   │                         #   + per-phase schedule/dispatch: healthcare_calendar, post_discharge, readmission, ed_slot
 │   ├── inpatient.py          # Inpatient simulation (_simulate_patient)
 │   ├── emergency.py          # ED visit
 │   ├── outpatient.py         # Outpatient visit
@@ -108,7 +111,7 @@ clinosim/
 │   ├── daily_loop.py         # Per-day inpatient tick
 │   ├── discharge_gate.py     # Discharge readiness evaluation
 │   ├── vitals_pipeline.py / medication_pipeline.py / lab_pipeline.py  # Per-day pipelines
-│   ├── helpers.py            # Ward/department resolver, mortality, etc.
+│   ├── helpers.py            # Layer-2 → Layer-1 write-back, secondary disease, drug route, etc.
 │   └── cli.py                # CLI entry point (simulate/generate, narrate, export-fhir, ...)
 │
 └── tests/

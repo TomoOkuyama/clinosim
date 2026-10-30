@@ -43,15 +43,15 @@ clinosim/
 ├── types/                    # データ型定義 (Pydantic / dataclass)
 │   ├── config.py             # SimulatorConfig
 │   ├── patient.py            # PatientProfile, ChronicCondition
-│   ├── clinical.py           # PhysiologicalState (14 変数), ClinicalDiagnosis
+│   ├── clinical.py           # PhysiologicalState (19 変数), ClinicalDiagnosis
 │   ├── encounter.py          # Encounter, Order, VitalSignRecord, MAR
 │   ├── identity.py           # NationalIdentity, InsuranceEnrollment, IdentityTimeline
 │   └── output.py             # CIFDataset, CIFPatientRecord, CIFMetadata
 │
-├── modules/                  # 機能モジュール (39 パッケージ、各 README 有)
+├── modules/                  # 機能モジュール (38 パッケージ、各 README 有)
 │   ├── disease/              # 疾患 YAML プロトコル
-│   ├── encounter/            # 47 ED/外来症例 YAML
-│   ├── physiology/           # 14 状態モデル + lab/vital 導出
+│   ├── encounter/            # 51 ED/外来症例 YAML
+│   ├── physiology/           # 19 変数の状態モデル + lab/vital 導出
 │   ├── clinical_course/      # 6 archetype + 合併症 + 診断フィードバック
 │   ├── diagnosis/            # ベイジアン鑑別 (LR table)
 │   ├── observation/          # 3 層 lab noise + フラグ
@@ -77,8 +77,10 @@ clinosim/
 │   │   │   ├── base.py                # LLMProvider Protocol + ProviderResponse
 │   │   │   ├── ollama.py              # ローカル Ollama
 │   │   │   ├── bedrock.py             # AWS Bedrock (boto3 遅延 import)
+│   │   │   ├── vllm.py                # vLLM (OpenAI 互換サーバ)
 │   │   │   └── mock.py                # 決定的テスト provider
 │   │   └── prompts/                   # ★ プロンプトテンプレート YAML tree
+│   │       ├── ja/                    # 日本語プロンプト (同名 17 テンプレート)
 │   │       └── en/                    # 英語プロンプト (17 テンプレート —
 │   │           │                      #   入院時 H&P、退院・死亡サマリ、
 │   │           │                      #   手術・処置ノート、紹介状、
@@ -99,7 +101,8 @@ clinosim/
 │   ├── engine.py             # run_beta, run_forced (C2 分割後の thin façade)
 │   ├── _setup.py             # pre-flight / cohort cache / time-range helpers (C2a)
 │   ├── _dispatch.py          # 病院イベント dispatcher + overlap 処理 (C2b)
-│   ├── phases/               # phase runner (C2c-f): healthcare_calendar, post_discharge, readmission, ed_slot
+│   ├── phases/               # _forward_loop.py (run_forward_loop: 全 phase を 1 本の月次ループで前進)
+│   │                         #   + phase 別 schedule/dispatch: healthcare_calendar, post_discharge, readmission, ed_slot
 │   ├── inpatient.py          # 入院シミュレーション (_simulate_patient)
 │   ├── emergency.py          # ED 訪問
 │   ├── outpatient.py         # 外来訪問
@@ -108,7 +111,7 @@ clinosim/
 │   ├── daily_loop.py         # 入院日次 tick
 │   ├── discharge_gate.py     # 退院可否評価
 │   ├── vitals_pipeline.py / medication_pipeline.py / lab_pipeline.py  # 日次 pipeline
-│   ├── helpers.py            # Ward/department resolver、mortality 等
+│   ├── helpers.py            # Layer-2 → Layer-1 書き戻し、副疾患選択、投与経路 等
 │   └── cli.py                # CLI エントリ (simulate/generate、narrate、export-fhir、…)
 │
 └── tests/

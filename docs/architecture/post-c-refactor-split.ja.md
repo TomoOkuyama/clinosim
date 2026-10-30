@@ -11,12 +11,16 @@ cascade (C1a-C1s + C2a-C2f + C3a-C3e) で属性別モジュールに分解され
 
 ## 1. スコアボード
 
-| god-class ファイル | 分割前 LOC | 現 LOC | 削減 | Series |
+| god-class ファイル | 分割前 LOC | 分割直後 LOC | 削減 | Series |
 |---|---:|---:|---:|---|
 | `clinosim/modules/document/narrative/template_generator.py` | 6539 | 1399 | **-78.6 %** | **C1** (`a`-`s`) |
 | `clinosim/simulator/engine.py` | 2059 | 632 | **-69.3 %** | **C2** (`a`-`f`) |
 | `clinosim/modules/population/engine.py` | 2066 | 1157 | **-44.0 %** | **C3** (`a`-`e`) |
 | **合計** | **10664** | **3188** | **-70.1 %** | |
+
+分割直後の列は cascade 完了時点のサイズで、その後の作業で各ファイルは
+変化している (例: `simulator/engine.py` は Issue #2169 の forward loop
+refactor 後 459 LOC)。
 
 全 26 extraction PR について `scripts/engine-fingerprint.sh` の
 US p=500 seed=42 + JP p=500 seed=17 で byte-identical 検証済
@@ -132,7 +136,9 @@ C2 前の計画書
 実際の分割は代わりに `_setup` + `_dispatch` + 4 本の phase runner を
 選択した。これは自然なデータフロー境界 (setup → 月次 dispatch loop
 → phase runner) により直接 map し、各 phase runner を独立に推論
-できる形になる。
+できる形になる。(Issue #2169 で置き換え済み: ループ後の phase runner は
+廃止され、上記のとおり `run_forward_loop` が駆動する phase 別の
+schedule/dispatch 関数になった。)
 
 ## 4. C3 — population engine 分割 (5 クラスタ)
 

@@ -1,7 +1,7 @@
 # FHIR Data Generation — Logic Design Guide
 
 **Status:** Active(2026-06-29、PR1 ServiceRequest で確立)
-**Audience:** clinosim FHIR resource builder を追加・拡張する新規開発者。正規レイアウト: builder は `clinosim/modules/output/fhir_r4/` 配下 (`conditions/` / `labs/` / `procedures/` / `documents/` 等の domain sub-package) にあり、`_BUNDLE_BUILDERS` registry と `register_bundle_builder()` は `clinosim/modules/output/fhir_r4/__init__.py`。歴史的な `clinosim/modules/output/fhir_r4_adapter.py` は現在は薄い互換 re-export
+**Audience:** clinosim FHIR resource builder を追加・拡張する新規開発者。正規レイアウト: builder は `clinosim/modules/output/fhir_r4/` 配下 (`conditions/` / `labs/` / `procedures/` / `documents/` 等の domain sub-package) にあり、`_BUNDLE_BUILDERS` registry と `register_bundle_builder()` は `clinosim/modules/output/fhir_r4/builder.py` で定義され `clinosim/modules/output/fhir_r4/__init__.py` から re-export される。歴史的な `clinosim/modules/output/fhir_r4_adapter.py` は現在は薄い互換 re-export
 **Scope:** Layer 4 = FHIR R4 resource builder のみ。CIF 生成(Layers 1-3)は別 guide → [`docs/CONTRIBUTING-modules.md`](../CONTRIBUTING-modules.ja.md) を参照
 
 clinosim FHIR 生成は **CIF を入力として、FHIR R4 resource dict を出力する** thin な変換層。FHIR 仕様 / US Core / JP Core 準拠 / 多言語 display 解決 / identifier 規約 が中心の関心事。
@@ -53,7 +53,7 @@ CIF 側(Layers 1-3 = 参照 YAML、loader、CIF generation module)の design rul
 | 3 | builder 内 canonical constants(ID prefix / identifier system)を定義 | Section B.3 |
 | 4 | resource skeleton 関数を実装(`code_lookup` / `get_system_uri` 経由) | Section B.4 |
 | 5 | builder entry point `_bb_<topic>(ctx: BundleContext) -> list[dict]` を実装 | Section B.5 |
-| 6 | `clinosim/modules/output/fhir_r4/__init__.py:_BUNDLE_BUILDERS` に登録 OR `register_bundle_builder()` で追加 | Section B.6 |
+| 6 | `clinosim/modules/output/fhir_r4/builder.py:_BUNDLE_BUILDERS` に登録 OR `register_bundle_builder()` で追加 | Section B.6 |
 | 7 | 単体 + integration + e2e golden + audit lift_firing_proof を追加 | Section C |
 
 ### B.2 ファイル雛形
@@ -189,7 +189,7 @@ builder は `ctx` の field しか触らない(global state なし、AD-16 維�
 **Built-in resource(near-essential / always-on)** = `_BUNDLE_BUILDERS` list に直接追加:
 
 ```python
-# clinosim/modules/output/fhir_r4/__init__.py
+# clinosim/modules/output/fhir_r4/builder.py
 from clinosim.modules.output.fhir_r4.<domain>.<topic> import _bb_<topic>
 
 _BUNDLE_BUILDERS: list[Callable[[BundleContext], list[dict]]] = [
@@ -450,7 +450,7 @@ def _bb_foo(ctx):
 
 **Fix**: Layer 2 canonical loader を import(`from clinosim.modules.order.panel_grouping import load_panel_definitions`)。
 
-**Precedent(共通ロジック統一 2026-07-02)**: `_fhir_localization.py` は locale の shared YAML(`med_terms_ja.yaml` / the retired `drug_names_ja.yaml` (deleted #1876; replaced by `load_narrative_display_dict` catalog UNION) / `department_display.yaml`)を builder 内 `yaml.safe_load` で inline 読みしていたが、`clinosim/locale/loaders/` の canonical cached loader(`medical_display.py:load_med_terms_ja()` / `narrative.py:load_narrative_display_dict()` / `medical_display.py:load_department_display()`、いずれも `clinosim/locale/loader.py` 経由で後方互換 re-export)に移設済。locale データが必要な builder はこれらを import する — 新たな inline YAML read を builder に書かない。cached loader の戻り値は共有 instance につき mutate 禁止。
+**Precedent(共通ロジック統一 2026-07-02)**: `_fhir_localization.py`(現 `fhir_r4/lib/localization.py`)は locale の shared YAML(`med_terms_ja.yaml` / the retired `drug_names_ja.yaml` (deleted #1876; replaced by `load_narrative_display_dict` catalog UNION) / `department_display.yaml`)を builder 内 `yaml.safe_load` で inline 読みしていたが、`clinosim/locale/loaders/` の canonical cached loader(`medical_display.py:load_med_terms_ja()` / `narrative.py:load_narrative_display_dict()` / `medical_display.py:load_department_display()`、いずれも `clinosim/locale/loader.py` 経由で後方互換 re-export)に移設済。locale データが必要な builder はこれらを import する — 新たな inline YAML read を builder に書かない。cached loader の戻り値は共有 instance につき mutate 禁止。
 
 ### E.4 ❌ CIF に display 文字列を書き込む(AD-30 違反)
 
@@ -474,13 +474,13 @@ sr["id"] = f"sr-{order.order_id}"  # NG — "sr-" がリテラル
 ### E.6 ❌ 同じ display を 2 builder で再計算
 
 ```python
-# _fhir_observations.py
+# fhir_r4/labs/observations.py
 display_a = code_lookup("loinc", "58410-2", "ja")
-# _fhir_diagnostic_report.py
+# fhir_r4/labs/diagnostic_report.py
 display_b = code_lookup("loinc", "58410-2", "ja")
 ```
 
-技術的には問題ないが、もし display 加工(短縮 / 形式変換)が両 builder に必要なら共通 helper を `_fhir_common.py` 等に抽出。
+技術的には問題ないが、もし display 加工(短縮 / 形式変換)が両 builder に必要なら共通 helper を `fhir_r4/lib/common.py` 等に抽出。
 
 ### E.7 ❌ Resource id collision に無頓着
 

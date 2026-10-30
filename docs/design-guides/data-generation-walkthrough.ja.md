@@ -31,11 +31,12 @@ clinosim export-fhir   →  FHIR R4 NDJSON     fhir_r4/<ResourceType>.ndjson + m
   シミュレーション内部には触れない。
 - 他の subcommand: `test-disease <id>`(1 疾患を単体生成してデバッグ表示)/ `test-encounter`
   / `audit run`(4 軸検証)/ `validate` / `regenerate-goldens` / `check-narratives` /
-  `list-diseases`。
+  `list-diseases` / `enumerate` / `diff` / `eval`。
+- `clinosim generate` は `clinosim simulate` の deprecated alias として残っている。
 
 ---
 
-## 1. Stage 1 = `generate`:人口 → イベント → 受診シミュレーション → CIF
+## 1. Stage 1 = `simulate`:人口 → イベント → 受診シミュレーション → CIF
 
 エントリは `clinosim/simulator/engine.py:run_beta()`。以下の順に進む。
 
@@ -47,17 +48,44 @@ clinosim export-fhir   →  FHIR R4 NDJSON     fhir_r4/<ResourceType>.ndjson + m
 慢性疾患有病率・疾患発生率)は全て `locale/<country>/demographics.yaml` から読む(コードに疫学値を
 ハードコードしない)。
 
-### 1b. ライフイベント発火 — `generate_monthly_events`
+### 1b. 前進型の月次ループとライフイベント — `run_forward_loop` / `generate_monthly_events`
 
-`run_beta` は `time_range`(既定 1 年)を **年 × 月ループ**で回し、各月
-`generate_monthly_events(registry, year, month, rng, country)` を呼ぶ。住民ごとに疾患 incidence
-(発生率 × 年齢 × 季節性 × 生活習慣リスク)を評価し、`rng.random() < rate` で疾患発症を判定。
+`run_beta` は `time_range`(既定 1 年)の月の列を `run_forward_loop`
+(`simulator/phases/_forward_loop.py`)に渡す。**1 本のループが全 phase を月単位で前進させ**、
+各月は次の順に進む:
+
+1. **年境界**(1 月、および期間の最初の月): `advance_population`(`population/aging.py`)が
+   aging pass(脳卒中後遺症の昇格・アレルギー drift)を回し、その年の **地域死亡**を前向きに
+   抽選し(`population/mortality.py`: 生命表 `qx` × 本人の慢性疾患 SMR を年齢帯 × 性別内で
+   正規化)、縦断状態(成人の慢性疾患発症)を進める。続いてその年のヘルスケアカレンダー
+   (§1b.2)を生成してキューに積む。
+2. **月次ライフイベント**: `generate_monthly_events(registry, year, month, rng, country,
+   master_seed=…, inpatient_departments=…)`(下記)。病院を要するイベントをキューに積む。
+3. **ED 受診**: その月に集団にいる人からその月の ED 枠を引く。件数は
+   `locale/<country>/demographics.yaml` の `ed_visit_not_admitted.rate_per_1000_person_years`
+   (JP 150、US 380)で、集団の増減に追従する。
+4. **Dispatch**: その月の日付のキュー済みイベントを日付順に simulate する(同日は入院が先)。
+   dispatch は新たなイベントを積む: index 入院と再入院は退院後フォローアップを、index 入院は
+   発火した再入院を積み、**分娩は新生児を登録**する。新生児は出生入院の退院翌日に集団へ加わり
+   (`PersonRecord.enrolled_from`)、その年の残りのカレンダーを得る。
+
+**ライフサイクル.** 死亡はすべて — 院内(入院の dispatch 時に記録)も地域も —
+`PersonRecord.record_death(when, place)` を通る(最も早い死亡が優先、`is_alive` はそこから導出)。
+すべてのイベントは `in_population_at(<イベント日>)`(生存かつ在籍)で gate されるので、死亡後の
+受診は生じず、新生児は在籍日以降のすべてに参加する。乱数はすべてイベント単位の sub-RNG
+(`derive_phase_rng`)なので、dispatch 順はどのイベント自身の乱数もずらさない。
+
+**ライフイベント.** `generate_monthly_events` は、その月のイベント日に集団にいる人ごとに疾患
+incidence(発生率 × 年齢 × 季節性 × 生活習慣リスク)を評価し、`rng.random() < rate` で疾患発症を
+判定する(`rng_isolated` 指定のエントリは master seed・月・人・疾患で key した stream から引く)。
 発症したら:
 
 - **重症度**を `disease.severity.sample_severity(load_disease_protocol(disease_id), person, rng)`
   で決定(AD-67)。疾患 YAML の `severity.distribution × modifiers`(年齢・併存症で補正)から
   カテゴリを引き、連続 score も返す。← **重症度の唯一の source は疾患 YAML**(旧 `severity_beta` は撤廃)。
-- **入院要否**を連続 score と受診閾値で判定(`severity > care_seeking_threshold`)。
+- **入院要否**を連続 score と受診閾値で判定(`severity > care_seeking_threshold`。閾値は
+  incidence エントリの `hospitalization_threshold_modifier[_by_age]` で補正、`always_hospitalize`
+  のエントリは常に入院)。
 - `LifeEvent`(person_id / disease_id / timestamp / severity / requires_hospital)を生成。
 
 「患者は population から生まれる」— どの患者も最初は住民で、イベントが閾値を超えて初めて
@@ -77,10 +105,10 @@ hospital encounter に変換される。これにより疫学が人口レベル�
 
 | `event_type` | 発火対象 | ケイデンス出所 | Dispatch 先 |
 | --- | --- | --- | --- |
-| `chronic_visit` | `locale/shared/chronic_followup.yaml` にある慢性疾患保有者 (16 の慢性コード + インフル予防接種 + 糖尿病網膜症スクリーニング) | 慢性エントリ毎の `follow_up_interval_months`、年 6 回まで cap | `_simulate_outpatient_visit(visit_type="chronic_followup")` |
+| `chronic_visit` | `locale/shared/chronic_followup.yaml` にある慢性疾患保有者 (29 の慢性コード、他に Z34 / Z39 の妊娠エントリ) + インフル予防接種 (65 歳以上または慢性疾患 2 つ以上、50 %、10-12 月) + 糖尿病網膜症スクリーニング (60 %/年) | 慢性エントリ毎の `follow_up_interval_months`、年 6 回まで cap | `_simulate_outpatient_visit(visit_type="chronic_followup")` |
 | `pediatric_visit` | active な well-child schedule item を持つ患者 (`modules/pediatric/calendar.py`) | JP MHLW / US CDC well-child schedule に沿った年齢条件付き | `_simulate_outpatient_visit(visit_type="pediatric_visit")` |
-| `health_screening` | 40 歳以上 (年 1 健診) + 50 歳以上 colonoscopy (10 年間隔 → 10 %/年) + 女性 40 歳以上 mammography (60 %/年) | `_population_workflow_thresholds` の population 閾値 | `_simulate_outpatient_visit(visit_type="health_screening")` |
-| `chemo_visit` | `(patient, cancer_code)` 毎の sub-RNG が `chemo_regimens.yaml` の active regimen を割り当てた慢性がん患者 | Regimen 毎の `cycle_interval_days` (FOLFOX q14d / CarboPem q21d / Trastuzumab q3w / LHRH q28d)、`course_cycles` で cap | `_simulate_outpatient_visit(visit_type="chemo_visit")` — Encounter + `chemotherapy_administration` Procedure を emit |
+| `health_screening` | 40-89 歳 (年 1 健診) + 50-75 歳 colonoscopy (8 %/年) + 女性 40-74 歳 mammography (40 %/年) | `_population_workflow_thresholds` の population 閾値 | `_simulate_outpatient_visit(visit_type="health_screening")` |
+| `chemo_visit` | `(patient, cancer_code)` 毎の sub-RNG が `chemo_regimens.yaml` の active regimen を割り当てた慢性がん患者 | Regimen 毎の `cycle_interval_days` (7 regimen、例: FOLFOX q14d / CarboPem q21d / Trastuzumab q3w / LHRH q28d)、`course_cycles` で cap | `_simulate_outpatient_visit(visit_type="chemo_visit")` — Encounter + `chemotherapy_administration` Procedure を emit |
 | `chronic_visit` (`condition_type="prenatal_visit"`、`disease_id="Z34"`) | 15-49 歳女性で active な `TemporalStatePeriod(state_type="pregnancy")` を持つ患者 | LMP からの妊娠週 12 / 24 / 36、出所は `perinatal.yaml::lifecycle.prenatal_visit_gestational_weeks` | `_simulate_outpatient_visit(visit_type="chronic_followup")`、`_CHRONIC_DISEASE_SPECIALTY` 経由で `obgyn` に routing |
 | `delivery` | active pregnancy period の `planned_delivery_date` (EDD ± 7 d jitter) が sim 年に含まれる女性 — period は `perinatal.yaml::lifecycle.annual_conception_rate.{jp,us}` に対する年次 conception Bernoulli で open | delivered pregnancy period 毎に 1 件、per-`(person_id, year)` sub-RNG (`perinatal_delivery_seed`) | `simulator/perinatal.py::simulate_delivery_encounter` — `O80` admission dx / `Z37.0` discharge dx + 分娩 Procedure + 新生児 Patient chain の IMP Encounter を emit |
 | `chronic_visit` (`condition_type="postpartum"`、`disease_id="Z39"`) | 同じ delivered pregnancy period | `delivery_date` の 7 d + 28 d 後、出所は `perinatal.yaml::lifecycle.postpartum_visit_offsets_days` | `_simulate_outpatient_visit(visit_type="chronic_followup")`、`obgyn` に routing |
@@ -104,6 +132,10 @@ sub-seed (`chemotherapy_regimen_seed`、`perinatal_delivery_seed`) を
 使用する。これらの emit の追加・調整は、新 event が直接対象とする
 患者を除き byte-identical — p=1000 US 非産科 596/596 identity vs
 Incr 1 前 master を検証済み。
+
+なお `generate_healthcare_calendar` で全員に発火するのは小児と妊娠 lifecycle のイベントだけで、
+慢性受診・インフル予防接種・各種スクリーニング・化学療法サイクルは `chronic_followup.yaml` に
+載る慢性疾患を 1 つ以上持つ人にだけ生成される(持たない人はループで skip される)。
 
 腫瘍 + 産科 event の full schema + slice スコープ:
 [`../reference/oncology-obstetric-service-lines.ja.md`](../reference/oncology-obstetric-service-lines.ja.md)。
@@ -151,13 +183,16 @@ Layer 1 → Layer 2 `PatientProfile` に厚くなる:身長/体重、**慢性疾
 
 Base の受診シミュレーションの前後に、**opt-in / always-on モジュール**が 3 ステージで走る:
 
-- **POST_POPULATION**(人口生成後・シミュレーション前): 例 identity(JP マイナンバー/保険)。
+- **POST_POPULATION**(人口生成後・シミュレーション前): `allergy(10)` / `identity(10)`(JP
+  マイナンバー/保険)/ `e66_bmi(15)` / `e88_81_syndrome(16)` / `k76_0_nafld(17)` / `g47_30_osa(18)`。
 - **POST_ENCOUNTER**(1 受診の daily loop 完了直後、encounter simulator の内側): 臨床カスケード。
-  順序固定 `device(70) → hai(80) → antibiotic(85) → imaging(90) → triage(93) →
-  nursing_assignment(94) → document(95)`。前段の `extensions[X]` を読んで次段が動く
+  順序固定 `device(70) → prophylaxis(75) → hai(80) → antibiotic(85) → imaging(90) →
+  discontinue_flip(91) → newborn(92) → triage(93) → lab_derived_dx(94) → nursing_assignment(94)
+  → document(95)`(同 order は名前順)。前段の `extensions[X]` を読んで次段が動く
   (device なしに HAI なし等)。
-- **POST_RECORDS**(全患者シミュレーション後): cross-record。nursing flowsheet / immunization /
-  family_history / code_status / care_level。
+- **POST_RECORDS**(全患者シミュレーション後): cross-record。`nursing(20)` flowsheet /
+  `immunization(30)` / `family_history(40)` / `code_status(50)` / `care_level(60)` /
+  `medication_monitoring(65)` / `health_checkup(70)`。
 
 モジュールは `CIFPatientRecord.extensions[<module>]` にだけ書く(コア型への typed field 追加は
 Base のみ)。新モジュール追加 = enricher を registry 登録するだけ(dispatch 本体は編集しない、AD-56)。
@@ -172,7 +207,7 @@ encounter binding、`narrative=None`)を作る。実際の自然文は Stage 2 �
 
 ## 2. Stage 2 = `narrate`:ナラティブ生成(差し替え可能層)
 
-`narrate --provider template |mock |ollama |bedrock --version-id <id>` が
+`narrate --provider template |mock |ollama |bedrock |vllm |openai_compatible --version-id <id>` が
 `cif/narratives/<version>/documents/<enc>/<doc>.json` を書く。
 
 - `NarrativePass`(`document/narrative/passes.py`、ABC)が structural CIF を読み、患者 profile /
@@ -188,7 +223,8 @@ encounter binding、`narrative=None`)を作る。実際の自然文は Stage 2 �
 ## 3. Stage 3 = `export-fhir`:CIF → FHIR R4
 
 `export-fhir --narrative-version <id>` が `CIFReader` で structural + narrative を merge し、
-`_fhir_*` builder 群(`modules/output/`)が FHIR resource を組む。
+`modules/output/fhir_r4/` 配下のテーマ別 builder(`conditions/`、`labs/`、`medications/`、
+`encounters/`、`documents/` …)が FHIR resource を組む。
 
 - **Bulk Data Access**(AD-31): resource type ごとに 1 NDJSON + `manifest.json`。Bundle でラップしない。
 - builder は **CIF を読むだけ**。display は `code_lookup(system, code, lang)`、URI は
@@ -210,6 +246,7 @@ Practitioner / PractitionerRole / Endpoint …)。
 run_beta(config)                                   # simulator/engine.py
  └ generate_population(40000, "US", rng)            # 医療圏 40k 人
      → PersonRecord(age=78, chronic=["I10","N18"])  # 高血圧+CKD の 78 歳
+ └ run_forward_loop(ctx, months)                    # simulator/phases/_forward_loop.py
  └ generate_monthly_events(...) 各月                 # population/engine.py
      → incidence 評価 → acute_mi 発症
      → sample_severity(acute_mi protocol, person)   # 疾患YAML分布×modifiers(高齢→severe寄り)
@@ -218,7 +255,7 @@ run_beta(config)                                   # simulator/engine.py
      → LifeEvent(acute_mi, severe, requires_hospital)
  └ activate_patient(person)                          # patient/activator.py
      → PatientProfile(stage: "CKD G3a"/"HT Stage 2", baseline BP ↑ by stage)
- └ _simulate_patient(event)                          # inpatient.py
+ └ イベント日に dispatch → _simulate_patient(event)   # _dispatch.py → inpatient.py
      → category_from_score(0.82) = "severe"
      → select_archetype("severe", …, acute_mi.course_archetypes, .archetype_modifiers)
         = "dip_then_recovery"
@@ -226,15 +263,15 @@ run_beta(config)                                   # simulator/engine.py
      └ _run_daily_loop(...)  各日                     # 日次で状態→検査/vitals/orders/MAR
          → derive_lab_values(...)  troponin↑ CK-MB↑ Cr↑(CKD baseline)
          → evaluate_complications(...)  # acute_mi.complications
-         → POST_ENCOUNTER enrichers: device→hai→antibiotic→imaging→triage→nursing→document
+         → POST_ENCOUNTER enrichers: device→…→document(§1e)
      → CIFPatientRecord(orders, labs, vitals, mar, documents(stub), extensions{...})
  └ cif/structural/patients/ENC-....json 書き出し
 --- narrate ---
  └ TemplateNarrativePass  → cif/narratives/template/documents/ENC-.../hp.json (H&P 本文)
 --- export-fhir ---
- └ _fhir_conditions → Condition(acute_mi I21, stage "CKD G3a" …)
-    _fhir_observations → Observation(troponin, Cr, …)
-    _fhir_medications → MedicationRequest/Administration
+ └ conditions/conditions.py → Condition(acute_mi I21, stage "CKD G3a" …)
+    labs/observations.py → Observation(troponin, Cr, …)
+    medications/medications.py → MedicationRequest/Administration
     … → fhir_r4/*.ndjson
 ```
 
@@ -247,7 +284,7 @@ run_beta(config)                                   # simulator/engine.py
 | 新しい疾患 | `modules/disease/reference_data/<id>.yaml` を追加(既存疾患を雛形に)+ 発生率を locale に + 診断コードを `codes/data/` に登録。engine コード変更不要。`CONTRIBUTING-modules.md` |
 | 新しい ED/外来条件 | `modules/encounter/reference_data/<id>.yaml` |
 | 新しい検査値 analyte | `derive_lab_values`(observation)+ code_mapping + `codes/data/loinc.yaml` |
-| 新しい FHIR resource | `_fhir_<topic>.py` builder + `register_bundle_builder`(§3) |
+| 新しい FHIR resource | `modules/output/fhir_r4/<theme>/` に builder + `register_bundle_builder`(§3) |
 | 新しい出力形式 | `OutputAdapter` + `register_output_adapter` |
 | 新しいデータ種(モジュール) | `modules/<name>/` + enricher 登録(§1e)+ `extensions[<name>]` に書く |
 | コード → 表示名 | `codes/data/<system>.yaml`(EN 必須、JA 任意)。`code_lookup` で解決 |

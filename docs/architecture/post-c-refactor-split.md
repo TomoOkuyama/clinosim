@@ -12,12 +12,16 @@ Sibling Japanese doc: [`post-c-refactor-split.ja.md`](post-c-refactor-split.ja.m
 
 ## 1. Scoreboard
 
-| God-class file | Pre-split LOC | Current LOC | Reduction | Series |
+| God-class file | Pre-split LOC | Post-split LOC | Reduction | Series |
 |---|---:|---:|---:|---|
 | `clinosim/modules/document/narrative/template_generator.py` | 6539 | 1399 | **-78.6 %** | **C1** (`a`-`s`) |
 | `clinosim/simulator/engine.py` | 2059 | 632 | **-69.3 %** | **C2** (`a`-`f`) |
 | `clinosim/modules/population/engine.py` | 2066 | 1157 | **-44.0 %** | **C3** (`a`-`e`) |
 | **Total** | **10664** | **3188** | **-70.1 %** | |
+
+The post-split column is the size right after the cascade; later work has
+moved these files on (for example, `simulator/engine.py` is 459 LOC after
+the Issue #2169 forward-loop refactor).
 
 Byte-identical for all 26 extraction PRs via `scripts/engine-fingerprint.sh`
 on US p=500 seed=42 + JP p=500 seed=17 (full-cohort sha256
@@ -131,7 +135,9 @@ proposed phase names `_run_beta_prepare` / `_run_beta_month_tick` /
 chose `_setup` + `_dispatch` + the four per-phase runners instead, which
 map more directly to the natural data-flow boundary (setup → monthly
 dispatch loop → per-phase runners) and allow each phase runner to be
-reasoned about in isolation.
+reasoned about in isolation. (Superseded by Issue #2169: the post-loop
+phase runners were replaced by per-phase schedule/dispatch functions
+driven by `run_forward_loop`, as described above.)
 
 ## 4. C3 — population engine split (5 clusters)
 

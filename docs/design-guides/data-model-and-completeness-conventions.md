@@ -132,8 +132,9 @@ session 37; I10 not yet = FP-I10) **may not** add a
 
 To render or compute time-dependent attributes (like age) correctly
 across a multi-year simulation, use the **as-of-date function**
-promoted from `immunization/engine.py:36-39 _age_on(dob, on, fallback)`
-into `_shared`. The call site passes the event date
+`_age_on(dob, on, fallback)` (`immunization/engine.py`; the planned
+promotion into `_shared` has not happened — other sites compute the
+as-of age locally). The call site passes the event date
 (`event.timestamp`).
 
 - **Group that does not touch the seed path** (output / narrative /
@@ -201,8 +202,8 @@ In addition to the chain workflow in `implementation-rules.md` §0:
    declare "byte-preserving refactor" or "new-feature with golden
    regeneration".
 6. **On DONE**: update the registry's Status to DONE + append the
-   PR / commit. If the completeness gate (FP-COMPLETENESS-GATE)
-   already exists, get the audit completeness axis to green.
+   PR / commit. Keep the completeness gate (FP-COMPLETENESS-GATE,
+   `tests/unit/test_completeness_invariants.py`) green.
 
 ---
 
@@ -211,10 +212,10 @@ In addition to the chain workflow in `implementation-rules.md` §0:
 | Boundary | Input | Output | Canonical seam |
 |---|---|---|---|
 | Disease YAML → simulation | `reference_data/*.yaml` | `DiseaseProtocol` (attribute) / raw dict (order) | `load_disease_protocol` (A) / owner accessor (B, cleaned up in FP-YAML-3) |
-| Severity decision | `event.severity` (float) / protocol distribution | `"mild|moderate|severe"` + score | `severity_from_protocol` (added in FP-SEV-MODEL) |
-| Age reference | `dob` + event date | as-of age (int) | `_age_on` (promoted to `_shared` in FP-AGE) |
+| Severity decision | `event.severity` (float) / protocol distribution | `"mild|moderate|severe"` + score | `sample_severity` / `category_from_score` (`disease/severity.py`, FP-SEV-MODEL) |
+| Age reference | `dob` + event date | as-of age (int) | `_age_on` (`immunization/engine.py`, FP-AGE) |
 | code → display | `(system, code, lang)` | display string | `code_lookup` / `system_key_for` (existing) |
-| CIF → FHIR | structural + narrative CIF | FHIR R4 NDJSON | `_fhir_*` builders (registry-registered, existing) |
-| Completeness verification | cohort NDJSON | AxisResult | `clinosim/audit/axes/completeness.py` (added in FP-COMPLETENESS-GATE) |
+| CIF → FHIR | structural + narrative CIF | FHIR R4 NDJSON | `fhir_r4/<theme>/` builders (registry-registered, existing) |
+| Completeness verification | CIF / reference data | test result | `tests/unit/test_completeness_invariants.py` (FP-COMPLETENESS-GATE; the cohort-statistics audit axis is not implemented) |
 
 Japanese counterpart: [`data-model-and-completeness-conventions.ja.md`](data-model-and-completeness-conventions.ja.md).
