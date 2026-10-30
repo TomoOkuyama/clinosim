@@ -1829,9 +1829,6 @@ diagnostic_report_fhir:
   lab_panel_body:
     ja: "報告日: {bucket}\n含まれる検査項目数: {n_obs}"
     en: "Report date: {bucket}\nObservations included: {n_obs}"
-  image_reference_comment:
-    ja: "画像は関連 ImagingStudy を参照"
-    en: "See linked ImagingStudy for image data"
   radiology_title_bare:
     ja: "画像診断報告書"
     en: "Radiology Report"
