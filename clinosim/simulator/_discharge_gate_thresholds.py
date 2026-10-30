@@ -25,6 +25,7 @@ the arguments come from literals or module-scope constants.
 from __future__ import annotations
 
 __all__ = [
+    "DISCHARGE_INFLAMMATION_SAFE_MAX",
     "DISCHARGE_JP_ANEMIA_MAX",
     "DISCHARGE_JP_INFLAMMATION_MAX",
     "DISCHARGE_JP_PERFUSION_MIN",
@@ -229,6 +230,12 @@ a patient is not safe for home: the AVPU "V" cut-off (Issue #2084)."""
 DISCHARGE_PERFUSION_SAFE_MIN: float = 0.5
 """``perfusion_status`` below which a patient is hemodynamically unsafe for
 home (Issue #2084); the moderate-hypoperfusion AVPU band starts at 0.4."""
+
+DISCHARGE_INFLAMMATION_SAFE_MAX: float = 0.8
+"""``inflammation_level`` at or above which systemic inflammation is
+uncontrolled and the patient is not safe for home (Issue #2239): CRP about
+200 mg/L and above. Below it, a resolving infection may finish its course at
+home; the stricter state-based early-discharge thresholds still apply."""
 
 
 # ---------------------------------------------------------------------------
