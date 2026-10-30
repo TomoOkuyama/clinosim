@@ -186,6 +186,10 @@ def load_patient_profile(name_or_path: str) -> PatientProfile:
 class SimulatorConfig(BaseModel):
     """Top-level simulation configuration (AD-19: preset + override)."""
 
+    # Issue #2206: an unknown keyword (e.g. ``population=`` for
+    # ``catchment_population``) must fail loudly, not run with defaults.
+    model_config = {"extra": "forbid"}
+
     mode: str = "patient_record"
     country: str = "US"  # default: US (English). Use "JP" for Japanese.
     hospital_scale: str = "medium"
