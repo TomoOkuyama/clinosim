@@ -35,7 +35,7 @@ from clinosim.benchmarks import (
     extract_sepsis_labels,      # (cif_dir) -> list[LabelRow]
     extract_aki_labels,         # (cif_dir) -> list[LabelRow]
     majority_baseline,          # (labels) -> BaselineReport
-    lactate_threshold_baseline, # (labels) -> BaselineReport (sepsis)
+    lactate_threshold_baseline, # (labels, threshold=2.0) -> BaselineReport (sepsis)
     creatinine_delta_baseline,  # (labels, threshold=0.3) -> BaselineReport (aki)
     compute_auroc,              # (y_true, y_score) -> float
     LabelRow, BaselineReport,   # dataclasses re-exported from harness.py
@@ -62,8 +62,11 @@ from the cohort producer (`clinosim.simulator`, AD-16).
 
 ## Constants and configuration
 
-- **Sepsis-detection lactate threshold** — currently inline in
-  `sepsis.py::lactate_threshold_baseline`. Flagged for extraction in
+- **Sepsis-detection lactate threshold** —
+  `lactate_threshold_baseline` takes a `threshold: float = 2.0`
+  argument (mmol/L; first-window lactate above it predicts sepsis,
+  Surviving Sepsis 2021-style rule; a missing lactate scores 0).
+  Originally flagged for extraction in
   [`docs/reviews/2026-08-09-constants-audit.md`](../../docs/reviews/2026-08-09-constants-audit.md).
 - **AKI-detection creatinine delta** — `creatinine_delta_baseline`
   takes a `threshold: float = 0.3` argument (mg/dL rise between the

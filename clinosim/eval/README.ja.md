@@ -3,8 +3,9 @@
 ## 目的
 
 `clinosim.eval` は生成済コホートを 3 軸 (**structural** /
-**clinical** / **locale**) + オプションで国固有軸 (現状 JP 向け
-`jp_clins_lab_compliance`) に対してスコア化します。軸ごとの数値
+**clinical** / **locale**) + 国固有軸 (JP 向け
+`jp_clins_lab_compliance` / `jp_core_compliance`、US 向け
+`us_core_compliance`) に対してスコア化します。軸ごとの数値
 スコアと違反リストを生成し、ダウンストリーム研究者・ML エンジニア
 が合成データを消費前に評価するために使います。
 
@@ -31,12 +32,12 @@
 
 ```python
 from clinosim.eval import (
-    EvalCheck,          # per-check dataclass (id / axis / outcome / weight …)
+    EvalCheck,          # per-check dataclass (name / outcome / severity / message / detail、.weight)
     EvalAxisResult,     # 軸単位集約 (checks + score)
     EvalReport,         # 実行全体集約 (axis results + overall score)
     EvalEngine,         # オーケストレータ
-    Outcome,            # PASS / WARN / FAIL (StrEnum)
-    Severity,           # BLOCKING / WARNING / INFO
+    Outcome,            # PASS / WARN / FAIL / N/A (StrEnum)
+    Severity,           # critical / major / minor (重み 3 / 2 / 1)
     add_eval_subparser, # CLI 配線
     dispatch_eval,      # CLI ハンドラ (プロセス exit code を返す)
 )
@@ -45,7 +46,8 @@ from clinosim.eval import (
 CLI 使用:
 
 ```bash
-clinosim eval --cohort ./my-cohort --format md
+clinosim eval -d ./my-cohort                              # Markdown を stdout
+clinosim eval -d ./my-cohort --json report.json --md report.md --strict
 ```
 
 `axes/` 配下の各軸は素の関数を公開:
@@ -54,8 +56,11 @@ clinosim eval --cohort ./my-cohort --format md
 def run(cohort: Cohort, country: str) -> list[EvalCheck]
 ```
 
-エンジンは axis score = `100 × Σ(合格重み) / Σ(全重み)` を計算
-(WARN は 0.5 合格として扱う)、overall score は軸スコアの算術平均。
+エンジンはコホート内の全 country partition に対して全軸を実行し、
+axis score = `100 × Σ(合格重み) / Σ(全重み)` を計算 (WARN は 0.5
+合格として扱う。チェックの無い軸は 0.0)、overall score は全 axis
+result の算術平均。`--strict` 指定時は overall status が FAIL なら
+CLI は exit 1 (既定は exit 0)。
 コホートレイアウトは `<root>/<country>/fhir_r4/` (多国籍) と
 `<root>/fhir_r4/` (単一国フラット) の両方を直接読み込み可能。
 
@@ -71,23 +76,33 @@ def run(cohort: Cohort, country: str) -> list[EvalCheck]
 
 - `clinosim.audit.types.Cohort` — NDJSON コホートリーダーを再利用
   (両パッケージが同じ lazy-reader 実装を共有)。
-- それ以外は標準ライブラリのみ (`json` / `pathlib` / `datetime` /
-  `enum` / `dataclasses`)。
+- `locale` / `jp_clins_lab_compliance` 軸で `clinosim.codes`
+  (`get_system_uri`) と
+  `clinosim.modules.output.fhir_r4.labs.coding_package` (JP-CLINS
+  system URI / パッケージローダー)。
+- `pyyaml` (`clinical` 軸の参照データ)。
+- それ以外は標準ライブラリ (`json` / `pathlib` / `datetime` /
+  `enum` / `dataclasses` / `shutil`)。
 
 ## 定数と設定
 
 - **Outcome ladder** — `Outcome.PASS` / `Outcome.WARN` /
-  `Outcome.FAIL` (StrEnum)。スコアリング: PASS = weight、WARN =
-  0.5 × weight、FAIL = 0。
-- **Severity ladder** — `Severity.BLOCKING` / `Severity.WARNING` /
-  `Severity.INFO`。CI ゲート判定用に `EvalCheck` に付随。
-- **Axis 発見** — エンジンは 4 つの組み込み軸モジュール
-  (`structural` / `clinical` / `locale` + JP 固有の
-  `jp_clins_lab_compliance`) を直接 import。新規軸追加は
-  `axes/<name>.py` を書いて `engine.py` で配線。
-- **国別発火** — `jp_clins_lab_compliance` は `country == "JP"` の
-  ときのみ実行。
-- CLI デフォルトは `clinosim eval --help`。
+  `Outcome.FAIL` / `Outcome.NA` (StrEnum)。スコアリング: PASS =
+  weight、WARN = 0.5 × weight、FAIL / N/A = 0。
+- **Severity ladder** — `Severity.CRITICAL` / `MAJOR` / `MINOR`。
+  チェックの重み (3 / 2 / 1) を決める。
+- **Axis 発見** — `EvalEngine.__init__` が 6 つの組み込み軸モジュール
+  (`structural` / `clinical` / `locale` / `jp_clins_lab_compliance` /
+  `us_core_compliance` / `jp_core_compliance`) を直接 import。新規軸
+  追加は `axes/<name>.py` を書いてその dict に追加。`--only-axes` で
+  カンマ区切りの部分集合に限定。
+- **国別発火** — エンジンは全 country に対して全軸を呼ぶ。
+  `jp_clins_lab_compliance` / `jp_core_compliance` は JP partition
+  以外ではチェックを返さず、`us_core_compliance` は US 以外では返さ
+  ない。`locale` は country に応じて JP / US のチェック集合を実行。
+- CLI フラグ (`-d/--cohort-dir` / `--json` / `--md` / `--country` /
+  `--strict` / `--only-axes` / `--synthea-normalize`) は
+  `clinosim eval --help`。
   [`docs/eval.md`](../../docs/eval.ja.md) と
   [`docs/eval-rules.md`](../../docs/eval-rules.ja.md) 参照。
 
@@ -110,7 +125,11 @@ clinosim/eval/
     locale.py                     locale 固有チェック (JP 氏名 /
                                   住所 / コーディング、US 相当)
     jp_clins_lab_compliance.py    JP-CLINS 検体検査コンプライアンス軸
-                                  (country=JP でのみ起動)
+                                  (country=JP でのみチェック)
+    jp_core_compliance.py         JP Core narrow must-support gate
+                                  (country=JP でのみチェック)
+    us_core_compliance.py         US Core narrow must-support gate
+                                  (country=US でのみチェック)
 ```
 
 ## テスト
@@ -119,11 +138,11 @@ clinosim/eval/
 pytest tests/unit -k eval -q
 ```
 
-`clinosim.eval` を参照するテストファイルは 6。軸スコアリング、
+`clinosim.eval` を参照するテストファイルは 8。軸スコアリング、
 Synthea アダプタラウンドトリップ、CLI dispatch を網羅。
 
 ## オーナー
 
 `maintainers@` — [`CONTRIBUTING.md`](../../CONTRIBUTING.ja.md) 参照。
 
-英語版: [`README.md`](README.ja.md)。
+英語版: [`README.md`](README.md)。

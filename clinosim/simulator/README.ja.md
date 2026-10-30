@@ -4,6 +4,8 @@
 
 `clinosim.simulator` は集団定義と有効化モジュール集合を完全な合成
 EHR コホートに変換するトップレベルエントリポイントです。集団生成、
+全フェーズ (ライフイベント、健康管理カレンダー、ED 受診、再入院、
+退院後フォローアップ) を日付順に進める単一の月次 forward ループ、
 日毎の患者軌跡、エンカウンターシミュレーション (入院 / 外来 / ED)、
 検査 / vitals / 薬剤のパイプラインステップ、退院ゲートロジック、
 enricher パス、出力シリアライズ、`clinosim` CLI サブコマンド (canonical は `simulate`。`generate` は
@@ -48,7 +50,12 @@ from clinosim.simulator import (
 from clinosim.types.config import SimulatorConfig
 from clinosim.simulator import run_beta
 
-config = SimulatorConfig(country="JP", population=1000, seed=42, ...)
+config = SimulatorConfig(
+    country="JP",
+    catchment_population=1000,
+    random_seed=42,
+    time_range=("2026-01-01", "2026-03-31"),
+)
 result = run_beta(config)
 ```
 
@@ -62,8 +69,12 @@ clinosim test-disease bacterial_pneumonia --archetype treatment_resistant -n 5
 ## 決定性
 
 **AD-16 不変条件 — これはプロジェクト全体の load-bearing な決定性
-保証です。** `clinosim.simulator` 内部の全乱数ドローは、渡された
-`numpy.random.Generator` のサブ seed から派生しなければなりません。
+保証です。** `clinosim.simulator` 内部の全乱数ドローは、master seed
+からキー付きサブ seed (`clinosim/seeding.py` の `derive_phase_rng` /
+`derive_sub_seed`) で派生するか、呼び出し側から渡された
+`numpy.random.Generator` から派生しなければなりません。forward ループ
+は各イベントのサブ RNG をイベント自身でキー付けするため、dispatch の
+順序がイベント固有の乱数をずらすことはありません。
 呼び出し箇所での `random.random()` / `numpy.random.default_rng()`、
 壁時計参照、グローバル共有 RNG の導入は review-blocker です。
 
@@ -73,11 +84,12 @@ clinosim test-disease bacterial_pneumonia --archetype treatment_resistant -n 5
   + 同一の有効化モジュールレジストリに対して、`run_beta` は毎回、
   IEEE-754 semantics が一致する任意のプラットフォーム上で、バイト
   同一の CIF コホートを生成します。
-- `seeding.py` はトップレベル RNG を構築し per-domain サブ RNG に
-  分割する場所。`memoize.py` は患者スコープの memoize を提供
-  (サブ RNG 規律の詳細ルールはメンテナメモリの
-  `feedback_rng_shift_patient_cache_cascade.md` と
-  `feedback_rng_neutral_additive_field.md` を参照)。
+- [`clinosim/seeding.py`](../seeding.py) (`clinosim.simulator` 外の
+  パッケージ直下) が per-phase / per-entity サブ RNG を派生
+  (`derive_sub_seed` / `derive_phase_rng`)。`memoize.py` は F4
+  スナップショット memoize (`--cache-dir`) を提供。新しい乱数は影響
+  する対象をキーにした専用サブ RNG から引き、他の対象の乱数列を
+  ずらさない。
 - `tests/integration/` 配下の統合テストが代表的集団の固定 seed で
   byte-diff 決定性を pin。
 
@@ -99,9 +111,9 @@ clinosim test-disease bacterial_pneumonia --archetype treatment_resistant -n 5
   `clinosim/config/*.yaml` からロード。YAML スキーマは
   [`clinosim/config/README.ja.md`](../config/README.ja.md) 参照。
 - **CLI フラグデフォルト** は `cli.py` と各 `cli_*.py` サブコマンド
-  ハンドラに存在。`clinosim <subcommand> --help` およびルート
-  [`README.md`](../../README.ja.md) の "Configuration" セクションで
-  ドキュメント化。
+  ハンドラに存在。`clinosim <subcommand> --help` および
+  [`docs/getting-started/configuration.ja.md`](../../docs/getting-started/configuration.ja.md)
+  でドキュメント化。
 - **Per-behavior 閾値** — 全運用閾値 (ADL スコアリング、MAR 投与
   ウィンドウ、日次ループタイミング、退院ゲート、ED トリアージ、
   forced-scenario ゲート、LOC 遷移、酸素療法トリガ、スケジューリング、
@@ -112,7 +124,7 @@ clinosim test-disease bacterial_pneumonia --archetype treatment_resistant -n 5
 
 ## ディレクトリ構成
 
-シミュレーションオーケストレーション (12 ファイル):
+シミュレーションオーケストレーション (18 ファイル):
 
 ```
 clinosim/simulator/
@@ -120,6 +132,9 @@ clinosim/simulator/
   cli.py                 argparse エントリ、トップレベルサブコマンド
                          dispatch
   engine.py              run_alpha / run_beta / run_forced
+  _setup.py              実行セットアップ / pre-flight ヘルパー (engine が再 export)
+  _dispatch.py           病院イベント dispatch + 重複処理
+                         (`_dispatch_hospital_events`)
   daily_loop.py          engine から抽出した per-day ループ
   hospital_ops.py        病院運用オーケストレーション
   inpatient.py           入院エンカウンターシミュレータ
@@ -127,8 +142,24 @@ clinosim/simulator/
   emergency.py           ED エンカウンターシミュレータ
   discharge_gate.py      退院タイミング判定ロジック
   discharge_rx.py        退院時処方ビルダー
-  enrichers.py           post-records enricher パス
+  enrichers.py           enricher レジストリ (post-population / post-records)
+  outpatient_dept.py     外来フォローアップ診療科リゾルバ
+  perinatal.py           分娩エンカウンター + 新生児 emit
+  complications.py       合併症イベントスキーマヘルパー
+  sex_gating.py          ICD-10 診断 dispatch の性別ゲート
   unknown_condition.py   疾患プロトコルを持たない慢性疾患のハンドリング
+```
+
+forward ループとフェーズ (`phases/`、5 モジュール + `__init__.py`):
+
+```
+  phases/_forward_loop.py        ForwardContext / EventQueue / run_forward_loop —
+                                 run_beta が回す単一の月次ループ
+  phases/_healthcare_calendar.py calendar_events_for_year / newborn_calendar_events /
+                                 dispatch_calendar_event
+  phases/_ed_slot.py             EDSlotSampler / dispatch_ed_slot
+  phases/_readmission.py         schedule_readmission / dispatch_readmission
+  phases/_post_discharge.py      schedule_post_discharge / dispatch_post_discharge
 ```
 
 パイプライン (3 ファイル):
@@ -139,20 +170,20 @@ clinosim/simulator/
   medication_pipeline.py 薬剤オーダー → 投与パイプライン
 ```
 
-決定性とインストルメンテーション (4 ファイル):
+決定性とインストルメンテーション (3 ファイル):
 
 ```
-  seeding.py             トップレベル RNG 構築 + サブ seed 分割
-  memoize.py             患者スコープ memoize
-  log.py                 構造化シミュレーションログ
-  diff.py                テスト byte-diff 比較用 CIF diff ヘルパー
+  memoize.py             F4 スナップショット memoize (`--cache-dir`)
+  log.py                 構造化 JSONL シミュレーションログ (simulator.log)
+  diff.py                スナップショット差分 → FHIR Bundle transaction (`clinosim diff`)
 ```
 
 ヘルパー (2 ファイル):
 
 ```
-  helpers.py             共有ヘルパー、load_all_disease_protocols 含む
-  enumerate.py           患者 / イベント列挙ヘルパー
+  helpers.py             後方互換 re-export facade (modules/disease の
+                         load_all_disease_protocols 含む)
+  enumerate.py           網羅列挙モード (`clinosim enumerate`)
 ```
 
 CLI サブコマンドハンドラ (7 ファイル):
@@ -193,7 +224,7 @@ pytest tests/unit -k simulator -q          # 単体テスト
 pytest tests/integration -q                # エンドツーエンド + byte-diff
 ```
 
-`clinosim.simulator` を参照するテストファイルは約 85。統合テストは
+`clinosim.simulator` を参照するテストファイルは約 160。統合テストは
 固定 seed でのフル走行 byte-diff 決定性を網羅。単体テストは個別
 パイプラインステージ、退院ゲートエッジケース、閾値定数挙動が中心。
 
@@ -201,4 +232,4 @@ pytest tests/integration -q                # エンドツーエンド + byte-dif
 
 `maintainers@` — [`CONTRIBUTING.md`](../../CONTRIBUTING.ja.md) 参照。
 
-英語版: [`README.md`](README.ja.md)。
+英語版: [`README.md`](README.md)。

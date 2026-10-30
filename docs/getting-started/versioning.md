@@ -41,6 +41,7 @@ git push origin master --tags
 #    - twine-checks metadata
 #    - builds the 4 dataset presets (us-100, us-1000, jp-100, jp-1000)
 #    - creates a GitHub Release with wheel + sdist + dataset tarballs
+#    - publishes wheel + sdist to PyPI (Trusted Publishing / OIDC)
 ```
 
 Release notes are extracted automatically from `CHANGELOG.md`.

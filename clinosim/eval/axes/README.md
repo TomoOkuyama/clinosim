@@ -3,7 +3,7 @@
 ## Purpose
 
 `clinosim.eval.axes` holds the concrete check runners for each of the
-four axes evaluated by [`clinosim.eval`](../README.md). The parent
+six axes evaluated by [`clinosim.eval`](../README.md). The parent
 package owns the `EvalCheck` dataclass, the `Cohort` reader, the
 scoring engine, and the `clinosim eval` CLI; this subpackage owns the
 per-axis logic that produces the `list[EvalCheck]` the engine
@@ -27,8 +27,10 @@ lets each axis evolve independently as new checks are added.
 | --- | --- | :-: | --- |
 | `structural.py` | Structural | 5 (MVP) | FHIR compliance — id uniqueness, reference integrity, required fields, `meta.profile` declared, `resourceType` consistency. |
 | `clinical.py` | Clinical | 7 (5 MVP + 2 P1-9) | Coherence checks — physiology-to-lab consistency, medication-lab coherence (warfarin), contradiction detection. |
-| `locale.py` | Locale | 5 (MVP) | Language + code-system compliance — JP labs on JLAC10 / LOINC, medication systems, name/address locale. |
-| `jp_clins_lab_compliance.py` | JP-CLINS | 3 ratios | JP-CLINS `JP_Observation_LabResult_eCS` self-measurement — CS 使用率 / display 一致率 / dual-slot 充足率. Deliberately validator-independent because eCS uses Open slicing (unknown codings are silently accepted). |
+| `locale.py` | Locale | 5 per country (MVP) | Language + code-system compliance. JP: Japanese Condition displays, JLAC10 / LOINC on labs, YJ on medications, JP Core `meta.profile`, name order. US: ASCII-only displays, RxNorm on medications, LOINC on labs, no Japanese leakage, practitioner name order. |
+| `jp_clins_lab_compliance.py` | JP-CLINS | 3 ratios (JP only) | JP-CLINS `JP_Observation_LabResult_eCS` self-measurement — CS 使用率 / display 一致率 / dual-slot 充足率. Deliberately validator-independent because eCS uses Open slicing (unknown codings are silently accepted). |
+| `jp_core_compliance.py` | JP Core | 7 (JP only) | Narrow JP Core must-support gate — Patient profile / identifier / family+given name / kanji representation, Encounter class / period, MedicationRequest medication coding. |
+| `us_core_compliance.py` | US Core | 7 (US only) | Narrow US Core must-support gate — Patient identifier / family+given name / birthsex, race and ethnicity extension shape, Encounter class (v3 ActCode), Condition category system. |
 
 ## Adding a new axis
 
@@ -36,10 +38,11 @@ lets each axis evolve independently as new checks are added.
    `run(cohort, country) -> list[EvalCheck]`. Follow the existing
    pattern: iterate the cohort's NDJSONs via
    [`clinosim.audit.types.Cohort`](../../audit/types.py), build one
-   `EvalCheck` per check with `(id, axis, description, outcome,
-   severity, evidence)`.
-2. Wire the axis into `eval/engine.py::score_cohort` so the runner is
-   invoked during aggregation.
+   `EvalCheck` per check with `(name, outcome, severity, message,
+   detail)`. Return `[]` for countries the axis does not apply to.
+2. Add the runner to the default axis dict in
+   `eval/engine.py::EvalEngine.__init__` so it is invoked during
+   aggregation.
 3. Update the parent [`README.md`](../README.md) axis list and this
    table.
 

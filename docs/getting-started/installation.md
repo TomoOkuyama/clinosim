@@ -2,16 +2,16 @@
 
 ## As a user (recommended)
 
-Once released to PyPI, install the packaged version directly:
+Install the packaged version from PyPI:
 
 ```bash
 python -m venv .venv
 source .venv/bin/activate          # Windows: .venv\Scripts\activate
-pip install clinosim                # (PyPI upload pending — see fallback below)
+pip install clinosim
 clinosim --help
 ```
 
-**Pre-PyPI fallback** — install straight from GitHub:
+To track unreleased changes, install straight from GitHub:
 
 ```bash
 pip install "git+https://github.com/TomoOkuyama/clinosim.git@master"
@@ -31,7 +31,15 @@ pip install -e ".[dev]"
 ## Requirements
 
 - Python 3.11+
-- Main dependencies: numpy, scipy, pydantic, pyyaml, httpx
+- Main dependencies: numpy, scipy, pydantic, pyyaml, httpx, mpmath
+- **JP generation (`--country JP`)** needs the JP-CLINS FHIR package
+  (`clinical-information-sharing#1.13.0` + `jpfhir-terminology#2.2606.0`),
+  either installed in the `fhir` CLI cache (`~/.fhir/packages/`) or pointed
+  to by `CLINOSIM_JP_CLINS_PKG_DIR`. Without it a JP run exits with an
+  error unless you pass `--allow-legacy` (or set
+  `CLINOSIM_ALLOW_LEGACY_JP_CLINS_PKG=1`), which emits legacy 5-digit
+  JLAC10 codes that are not JP-CLINS compliant. See
+  [JP-CLINS](../jp-clins.md).
 - **Optional:**
     - Ollama for local LLM narrative generation
     - `pip install "clinosim[parquet]"` for CIF Parquet export
@@ -39,6 +47,9 @@ pip install -e ".[dev]"
       locally with `mkdocs serve`
 
 ## Sanity check
+
+The dataset presets live in `datasets/` at the repository root, so
+`clinosim dataset` needs a source checkout (developer install).
 
 ```bash
 clinosim --help                                 # top-level CLI banner

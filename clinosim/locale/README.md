@@ -48,11 +48,12 @@ from clinosim.locale.loader import (
     load_reference_ranges,          # (country) -> dict[str, Any]
     load_identity_config,           # (country) -> dict[str, Any]
     load_naming_rules,              # (country) -> dict[str, Any]
-    load_terminology,               # (domain, country) -> dict[str, str] (legacy)
+    load_terminology,               # (domain, country) -> dict[str, str] (legacy; see below)
     load_code_mapping,              # (domain, country) -> dict[str, str]
     load_chronic_medications,       # () -> dict[str, Any] (shared)
     load_chronic_followup,          # () -> dict[str, Any] (shared)
-    load_med_terms_ja,              # () -> dict[str, dict[str, str]] (shared)
+    load_med_terms,                 # () -> multi-language catalog (shared med_terms.yaml)
+    load_med_terms_ja,              # () -> dict[str, dict[str, str]] (deprecated alias)
     load_narrative_display_dict,             # () -> dict[str, str] (shared)
     load_department_display,        # () -> dict[str, dict[str, str]] (shared)
 )
@@ -61,11 +62,17 @@ from clinosim.locale.text import (
 )
 ```
 
-`load_terminology` and the older `load_formatting` are retained for
-backwards compatibility; new code should read the YAMLs directly
-through the module that owns them (e.g. drug key → RxNorm / YJ
-resolution goes through `clinosim.modules.antibiotic` via
-`clinosim/locale/{us,jp}/code_mapping_drug.yaml`).
+The list above is a commonly used subset: `clinosim.locale.loader`
+re-exports 46 `load_*` functions, implemented in
+`clinosim/locale/loaders/` (`clinical.py`, `demographics.py`,
+`fhir_identity.py`, `medical_display.py`, `narrative.py`).
+
+`load_terminology` is legacy: it reads `<country>/terminology_<domain>.yaml`,
+and no such file ships any more, so it returns `{}`. Display names now
+live in `clinosim/codes/`. `load_med_terms_ja` is a deprecated `ja`-only
+view of `load_med_terms`. `load_code_mapping("drug", country)` unions
+`<country>/code_mapping_drug.yaml` with the drug-identity catalog
+`clinosim/codes/data/drugs.yaml` (the yaml wins on key collision).
 
 ## Determinism
 
@@ -78,14 +85,17 @@ via `yaml.safe_load`, which is deterministic byte-in → dict-out.
 
 - `pyyaml` for YAML loading.
 - Standard library `pathlib`, `functools`, `typing`.
-- **No dependency on other `clinosim.*` packages** at import time —
-  the loaders are pure YAML readers. Consumers pass the returned
-  dicts into their own types.
+- **No dependency on other `clinosim.*` packages** at import time.
+  Two loaders import lazily inside the function body:
+  `clinosim.codes.drugs` (drug catalog union) and
+  `clinosim.modules.output.fhir_r4.lib.reference_data` (route
+  vocabulary validation of `chronic_medications.yaml`). Consumers pass
+  the returned dicts into their own types.
 
 ## Constants and configuration
 
-- **`_LOCALE_DIR`** = `Path(__file__).parent` — root of the locale
-  bundle at import time.
+- **`_LOCALE_DIR`** = `Path(__file__).parent` (in `_io.py`) — root of
+  the locale bundle at import time.
 - **`_COUNTRY_DIR_MAP`** = `{"JP": "jp", "US": "us"}` — country ISO
   code → directory name mapping. Unmapped codes fall through to
   `country.lower()`.
@@ -109,36 +119,48 @@ via `yaml.safe_load`, which is deterministic byte-in → dict-out.
 clinosim/locale/
   __init__.py                     (empty by design — import direct
                                    from .loader / .text)
-  loader.py                       @lru_cache YAML loaders (14 public
+  loader.py                       re-export facade (46 public load_*
                                    functions)
+  _io.py                          shared YAML primitives (_LOCALE_DIR,
+                                   _COUNTRY_DIR_MAP, _country_dir,
+                                   _load_yaml, fallback defaults)
+  loaders/                        @lru_cache YAML loaders by topic:
+                                   clinical, demographics, fhir_identity,
+                                   medical_display, narrative
   text.py                         resolve_text (multi-language text
                                    resolution helper)
-  us/                             US-specific bundle (13 YAMLs):
+  i18n.py                         t(key, lang, **params) phrase
+                                   translator over the shared phrase
+                                   catalogs
+  us/                             US-specific bundle (15 YAMLs):
                                    addresses, ambulatory_visit_length,
+                                   ckd_under60_prevalence,
                                    code_mapping_{diagnosis,drug,lab,procedure},
                                    code_status_rates, demographics,
                                    family_history_prevalence, formatting,
-                                   immunization_schedule, names,
+                                   identity, immunization_schedule, names,
                                    reference_range_lab
-  jp/                             JP-specific bundle (19 YAMLs — the US
-                                   set plus ambulatory_visit_length,
-                                   care_level_rates, identity,
+  jp/                             JP-specific bundle (20 YAMLs — the US
+                                   set minus ckd_under60_prevalence, plus
+                                   care_level_rates,
                                    code_mapping_microbiology,
                                    code_mapping_microbiology_susceptibility,
                                    external_organizations,
+                                   patient_instructions_ja,
                                    practitioner_qualifications)
-  shared/                         cross-locale data (13 YAMLs):
-                                   anthropometric_reference, chemo_regimens
-                                   (chemo regimen library — FOLFOX q14d /
-                                   CarboPem q21d / Trastuzumab q3w /
-                                   LHRH q28d), chronic_followup (incl. Z39
-                                   postpartum), chronic_medications,
-                                   chronic_onset_min_age, department_display,
+  shared/                         cross-locale data (37 YAMLs), e.g.
+                                   actuarial_life_table, chemo_regimens
+                                   (chemo regimen library), chronic_followup,
+                                   chronic_medications, chronic_onset_min_age,
+                                   condition_mortality_smr, country_language,
+                                   department_display,
                                    encounter_disposition_defaults,
-                                   icd10_sex_restrictions,
-                                   iv_infusion_defaults, med_terms_ja,
-                                   naming_rules, perinatal (delivery
-                                   cadence + abortion age-band table)
+                                   fallback_defaults, icd10_sex_restrictions,
+                                   iv_infusion_defaults, med_terms,
+                                   naming_rules, narrative_* (10 files),
+                                   perinatal, specialty_routing
+  shared/longitudinal/            longitudinal attribute catalog (64
+                                   YAMLs; see its README)
   _template/                      new-locale scaffolding — README + all
                                    required YAMLs stubbed. Never resolvable
                                    as a country per the leading-underscore
@@ -163,11 +185,14 @@ clinosim/locale/
    - `immunization_schedule.yaml` — country vaccination schedule.
    - Other `code_mapping_*.yaml` files as needed (JP adds
      `microbiology` + `microbiology_susceptibility`).
-3. Register the country in `_COUNTRY_DIR_MAP` if the ISO code
-   does not map to the lowercase directory name directly.
+3. Register the country in `_COUNTRY_DIR_MAP` (`clinosim/locale/_io.py`)
+   if the ISO code does not map to the lowercase directory name
+   directly.
 4. Add a top-level `clinosim/config/<country>.yaml` for the country
-   defaults (encounter mix, disease prevalence weights, insurance
-   patterns).
+   healthcare-system defaults (`lab_frequency_multiplier`,
+   `discharge_criteria`, `target_los_multiplier`, code-system names)
+   and register it in the country map of
+   `clinosim/modules/healthcare_system/loader.py`.
 5. Extend the country dispatch in the modules that switch on
    `SimulatorConfig.country`.
 6. Add integration tests covering the new country.
@@ -181,7 +206,7 @@ pytest tests/unit -k locale -q
 pytest tests/integration -k locale -q
 ```
 
-Thirteen test files reference `clinosim.locale`, covering loader
+About 80 test files reference `clinosim.locale`, covering loader
 validation, `_template` guard, `resolve_text` fallback chain, and
 per-country YAML shape assertions.
 

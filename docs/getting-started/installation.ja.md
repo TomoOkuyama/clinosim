@@ -2,16 +2,16 @@
 
 ## ユーザーとして (推奨)
 
-PyPI 公開後は、パッケージ版を直接インストール:
+PyPI からパッケージ版をインストール:
 
 ```bash
 python -m venv .venv
 source .venv/bin/activate          # Windows: .venv\Scripts\activate
-pip install clinosim                # (PyPI アップロード準備中 — 下の代替参照)
+pip install clinosim
 clinosim --help
 ```
 
-**PyPI 公開前の代替** — GitHub から直接インストール:
+未リリースの変更を追う場合は GitHub から直接インストール:
 
 ```bash
 pip install "git+https://github.com/TomoOkuyama/clinosim.git@master"
@@ -31,7 +31,14 @@ pip install -e ".[dev]"
 ## 要件
 
 - Python 3.11+
-- 主要依存: numpy / scipy / pydantic / pyyaml / httpx
+- 主要依存: numpy / scipy / pydantic / pyyaml / httpx / mpmath
+- **JP 生成 (`--country JP`)** には JP-CLINS FHIR パッケージ
+  (`clinical-information-sharing#1.13.0` + `jpfhir-terminology#2.2606.0`)
+  が必要。`fhir` CLI キャッシュ (`~/.fhir/packages/`) に導入するか、
+  `CLINOSIM_JP_CLINS_PKG_DIR` で指定する。無い場合、JP 実行は
+  `--allow-legacy` (または `CLINOSIM_ALLOW_LEGACY_JP_CLINS_PKG=1`) を
+  渡さない限りエラー終了し、渡した場合は JP-CLINS 非準拠の旧 5 桁
+  JLAC10 コードを出力する。[JP-CLINS](../jp-clins.ja.md) 参照。
 - **オプション:**
     - ローカル LLM narrative 生成用 Ollama
     - CIF Parquet 出力: `pip install "clinosim[parquet]"`
@@ -39,6 +46,10 @@ pip install -e ".[dev]"
       `pip install "clinosim[docs]"`
 
 ## Sanity check
+
+データセットプリセットはリポジトリ直下の `datasets/` にあるため、
+`clinosim dataset` にはソースチェックアウト (開発者インストール) が
+必要。
 
 ```bash
 clinosim --help                                 # トップレベル CLI バナー

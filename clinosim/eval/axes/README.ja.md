@@ -3,7 +3,7 @@
 ## 目的
 
 `clinosim.eval.axes` は [`clinosim.eval`](../README.ja.md) が評価する
-4 軸それぞれの具体的な check 実行体を保持します。親パッケージが
+6 軸それぞれの具体的な check 実行体を保持します。親パッケージが
 `EvalCheck` dataclass / `Cohort` reader / スコアリング engine /
 `clinosim eval` CLI を所有し、本サブパッケージは engine が集約する
 `list[EvalCheck]` を生成する軸単位ロジックを所有します。
@@ -26,18 +26,21 @@
 | --- | --- | :-: | --- |
 | `structural.py` | Structural | 5 (MVP) | FHIR 適合性 — id ユニーク性、参照整合性、必須フィールド、`meta.profile` 宣言、`resourceType` 一貫性。 |
 | `clinical.py` | Clinical | 7 (5 MVP + 2 P1-9) | 一貫性チェック — 生理学-lab 整合性、medication-lab コヒーレンス (warfarin)、矛盾検出。 |
-| `locale.py` | Locale | 5 (MVP) | 言語 + code system 適合性 — JP lab は JLAC10 / LOINC、medication systems、name/address locale。 |
-| `jp_clins_lab_compliance.py` | JP-CLINS | 3 ratio | JP-CLINS `JP_Observation_LabResult_eCS` の自己測定 — CS 使用率 / display 一致率 / dual-slot 充足率。eCS が Open slicing (未知 coding は silently 受容) を使うため、validator 非依存で意図的に自前計測している。 |
+| `locale.py` | Locale | country ごとに 5 (MVP) | 言語 + code system 適合性。JP: Condition の日本語 display、lab の JLAC10 / LOINC、medication の YJ、JP Core `meta.profile`、氏名順。US: ASCII のみの display、medication の RxNorm、lab の LOINC、日本語漏出なし、practitioner 氏名順。 |
+| `jp_clins_lab_compliance.py` | JP-CLINS | 3 ratio (JP のみ) | JP-CLINS `JP_Observation_LabResult_eCS` の自己測定 — CS 使用率 / display 一致率 / dual-slot 充足率。eCS が Open slicing (未知 coding は silently 受容) を使うため、validator 非依存で意図的に自前計測している。 |
+| `jp_core_compliance.py` | JP Core | 7 (JP のみ) | JP Core must-support の narrow gate — Patient の profile / identifier / family+given 氏名 / 漢字表記、Encounter の class / period、MedicationRequest の medication coding。 |
+| `us_core_compliance.py` | US Core | 7 (US のみ) | US Core must-support の narrow gate — Patient の identifier / family+given 氏名 / birthsex、race・ethnicity extension 形状、Encounter class (v3 ActCode)、Condition category system。 |
 
 ## 新しい軸を追加する
 
 1. `clinosim/eval/axes/` に新ファイルを追加し
    `run(cohort, country) -> list[EvalCheck]` を公開する。既存パターン
    に従い、[`clinosim.audit.types.Cohort`](../../audit/types.py) 経由
-   でコホートの NDJSON を走査し、`(id, axis, description, outcome,
-   severity, evidence)` で 1 チェック 1 `EvalCheck` を構築。
-2. `eval/engine.py::score_cohort` に配線し、集約時にランナーが呼ばれる
-   ようにする。
+   でコホートの NDJSON を走査し、`(name, outcome, severity, message,
+   detail)` で 1 チェック 1 `EvalCheck` を構築。対象外の country では
+   `[]` を返す。
+2. `eval/engine.py::EvalEngine.__init__` の既定 axis dict にランナーを
+   追加し、集約時に呼ばれるようにする。
 3. 親 [`README.ja.md`](../README.ja.md) の軸一覧と本表を更新する。
 
 ## なぜ `jp_clins_lab_compliance` を自前計測するのか

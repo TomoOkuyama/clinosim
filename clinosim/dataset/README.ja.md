@@ -47,7 +47,7 @@ clinosim dataset build jp-100 -o ./jp-100   # プリセット 1 件をビルド
 ```
 
 `add_dataset_subparser` は
-`clinosim/simulator/cli.py::build_parser` から呼び出され、
+argparse ツリー構築中の `clinosim/simulator/cli.py::main` から呼び出され、
 `dispatch_dataset` はユーザーが `dataset` サブコマンドを選択した
 ときにメイン CLI dispatch パスから呼び出されます。
 
@@ -80,7 +80,11 @@ clinosim dataset build jp-100 -o ./jp-100   # プリセット 1 件をビルド
   `Path(__file__).resolve().parents[2] / "datasets"` に解決される
   ので、subprocess 呼び出し・テスト caller もインタラクティブ CLI と
   同じ場所を参照します。`list_presets` と `load_preset` はテスト用
-  に `presets_dir` override を受け付けます。
+  に `presets_dir` override を受け付けます。`datasets/` は `clinosim`
+  パッケージ外にあり wheel に含まれないため、プリセットはソース
+  チェックアウトでのみ見つかります (wheel インストールでは
+  `clinosim dataset list` が `(no dataset presets found under
+  datasets/)` を出力)。
 - **同梱プリセット** (執筆時点): `jp-100` / `jp-1000` / `us-100` /
   `us-1000`。正式なリストと各プリセットの説明は
   [`datasets/README.md`](../../datasets/README.ja.md) 参照。
@@ -92,7 +96,7 @@ clinosim/dataset/
   __init__.py           パッケージ全体 — DatasetPreset dataclass、
                         list_presets / load_preset /
                         add_dataset_subparser / dispatch_dataset
-                        (約 180 行)
+                        (約 190 行)
 ```
 
 単一ファイルパッケージ。プリセット本体は `clinosim/` 内ではなく
@@ -113,4 +117,4 @@ pytest tests/unit -k dataset -q
 
 `maintainers@` — [`CONTRIBUTING.md`](../../CONTRIBUTING.ja.md) 参照。
 
-英語版: [`README.md`](README.ja.md)。
+英語版: [`README.md`](README.md)。

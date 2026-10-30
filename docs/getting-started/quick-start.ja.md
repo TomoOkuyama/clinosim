@@ -12,10 +12,14 @@ clinosim dataset list                                    # プリセット一覧
 clinosim dataset build jp-100 --output ./jp-100          # ~30 秒
 ```
 
+JP プリセットには JP-CLINS FHIR パッケージが必要。無い場合は `CLINOSIM_ALLOW_LEGACY_JP_CLINS_PKG=1` を設定すると旧 5 桁 JLAC10 コードでビルドできる (`dataset build` に `--allow-legacy` フラグは無い) — [インストール](installation.ja.md) 参照。
+
 出力レイアウト:
 
 ```
 jp-100/
+├── simulator.log                # 構造化 JSONL 実行ログ
+├── _cache_manifest.json         # F4 memoize マニフェスト (--cache-dir)
 ├── cif/                         # canonical intermediate format
 └── fhir_r4/
     ├── Patient.ndjson

@@ -33,7 +33,7 @@ from clinosim.benchmarks import (
     extract_sepsis_labels,      # (cif_dir) -> list[LabelRow]
     extract_aki_labels,         # (cif_dir) -> list[LabelRow]
     majority_baseline,          # (labels) -> BaselineReport
-    lactate_threshold_baseline, # (labels) -> BaselineReport (sepsis)
+    lactate_threshold_baseline, # (labels, threshold=2.0) -> BaselineReport (sepsis)
     creatinine_delta_baseline,  # (labels, threshold=0.3) -> BaselineReport (aki)
     compute_auroc,              # (y_true, y_score) -> float
     LabelRow, BaselineReport,   # harness.py から再エクスポートされる dataclass
@@ -59,8 +59,10 @@ AD-16) から継承します。
 
 ## 定数と設定
 
-- **敗血症検出用 lactate 閾値** — 現状 `sepsis.py::
-  lactate_threshold_baseline` にインライン。抽出候補として
+- **敗血症検出用 lactate 閾値** — `lactate_threshold_baseline` は
+  `threshold: float = 2.0` 引数 (mmol/L。初期ウィンドウ lactate が
+  これを超えると敗血症と予測する Surviving Sepsis 2021 相当 rule。
+  lactate 欠測は score 0) を取る。元は抽出候補として
   [`docs/reviews/2026-08-09-constants-audit.md`](../../docs/reviews/2026-08-09-constants-audit.md)
   に登録。
 - **AKI 検出用 creatinine delta** — `creatinine_delta_baseline` は
@@ -105,4 +107,4 @@ pytest tests/unit -k benchmarks -q
 
 `maintainers@` — [`CONTRIBUTING.md`](../../CONTRIBUTING.ja.md) 参照。
 
-英語版: [`README.md`](README.ja.md)。
+英語版: [`README.md`](README.md)。

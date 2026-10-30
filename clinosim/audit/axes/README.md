@@ -25,9 +25,9 @@ transport-only.
 | File | Axis | Responsibility |
 | --- | --- | --- |
 | `structural.py` | Structural | FHIR resource integrity — 100% `referenceRange` + `interpretation` coverage, id uniqueness per NDJSON, `display != code` on every coding. |
-| `clinical.py` | Clinical | Cohort baseline vs acceptance — for each `spec.clinical_acceptance` entry, split observations into cohort (via ICD-10 diagnosis) vs baseline, compare `cohort_p50 − baseline_p50` deltas against the spec thresholds. |
+| `clinical.py` | Clinical | Driven by `spec.clinical_acceptance`. For each HAI-type entry (a dict with `icd10_code`), split observations into cohort (via ICD-10 diagnosis) vs baseline and compare `cohort_p50 − baseline_p50` WBC / CRP deltas against the spec thresholds. Metadata keys switch on further gates: `basedon_coverage` (lab Observation `basedOn`), `imaging_basedon_coverage`, `care_team_per_encounter`, and the HAI resistance / empty-susceptibility / narrow-rate bands. |
 | `jp_language.py` | JP-language | Cohort-level localization integrity — per Issue #473, a JP-side violation is text containing a Latin word (`[A-Za-z]{2,}`) AND zero Japanese characters; a US-side leakage is any JP character. Skips `meta`/`identifier`/`extension`/URL slots and JP-CLINS-defined coding displays. |
-| `silent_no_op.py` | silent-no-op | The gate that catches the PR-90 class of bug — three independently severable checks (canonical constants cross-check, lift-firing proof, module-declared invariants). Any drift → FAIL. |
+| `silent_no_op.py` | silent-no-op | The gate that catches the PR-90 class of bug — two independently severable checks run: canonical constants cross-check (`yaml_keys_to_validate` vs `canonical_constants`) and lift-firing proof (`lift_firing_proof`). A third check (fired counter) is described in the module docstring but not implemented. Any drift → FAIL. |
 
 ## Adding a new axis
 
@@ -37,8 +37,10 @@ transport-only.
    `AuditFinding` objects with the appropriate `Severity`.
 2. Extend [`ModuleAuditSpec`](../registry.py) with any new spec fields
    the axis needs.
-3. Wire the axis into `audit/engine.py::run_module_audits` so it is
-   invoked during aggregation.
+3. Wire the axis into `audit/engine.py`: add its name to
+   `_BUILTIN_AXES` and its runner to `_PER_MODULE_RUNNERS` (called per
+   module with the spec) or `_COHORT_RUNNERS` (called once per cohort
+   with `spec=None`).
 4. Update this table and the parent [`README.md`](../README.md).
 
 ## Cross-references

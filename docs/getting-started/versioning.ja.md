@@ -2,7 +2,7 @@
 
 clinosim の SemVer scope は generic SemVer のモジュール境界ではなく
 **CIF ↔ narrative-CIF 整合性** に anchoring している。正準ルールは
-[`CHANGELOG.md`](../development/changelog.md) 冒頭「Versioning policy
+[`CHANGELOG.md`](../development/changelog.ja.md) 冒頭「Versioning policy
 (from v0.4.0 onward)」が持つ。要約:
 
 - **MAJOR** — Python API 破壊 (import path、public 関数シグネチャ、
@@ -39,6 +39,7 @@ git push origin master --tags
 #    - twine でメタデータ check
 #    - 4 データセットプリセットをビルド (us-100, us-1000, jp-100, jp-1000)
 #    - wheel + sdist + データセット tarball 付きの GitHub Release を作成
+#    - wheel + sdist を PyPI に公開 (Trusted Publishing / OIDC)
 ```
 
 リリースノートは `CHANGELOG.md` から自動抽出。

@@ -4,9 +4,12 @@
 
 `clinosim.simulator` is the top-level entry point that turns a
 population definition and a set of enabled modules into a complete
-synthetic EHR cohort. It orchestrates population generation,
-day-by-day patient trajectories, encounter simulation (inpatient,
-outpatient, ED), pipeline steps for labs / vitals / medications,
+synthetic EHR cohort. It orchestrates population generation, a
+single forward month loop that advances every phase (life events,
+healthcare calendar, ED visits, readmissions, post-discharge
+follow-ups) in date order, day-by-day patient trajectories,
+encounter simulation (inpatient, outpatient, ED), pipeline steps for
+labs / vitals / medications,
 discharge-gate logic, enricher passes, output serialisation, and the
 `clinosim` CLI subcommands: `simulate` (canonical; `generate` remains
 as a deprecation alias), `test-disease`, `test-encounter`, `validate`,
@@ -50,7 +53,12 @@ Typical use:
 from clinosim.types.config import SimulatorConfig
 from clinosim.simulator import run_beta
 
-config = SimulatorConfig(country="JP", population=1000, seed=42, ...)
+config = SimulatorConfig(
+    country="JP",
+    catchment_population=1000,
+    random_seed=42,
+    time_range=("2026-01-01", "2026-03-31"),
+)
 result = run_beta(config)
 ```
 
@@ -65,7 +73,11 @@ clinosim test-disease bacterial_pneumonia --archetype treatment_resistant -n 5
 
 **AD-16 invariant — this is the load-bearing determinism guarantee
 for the entire project.** Every random draw inside `clinosim.simulator`
-must derive from a sub-seed of the passed-in `numpy.random.Generator`.
+must derive from the master seed through a keyed sub-seed
+(`derive_phase_rng` / `derive_sub_seed` in `clinosim/seeding.py`) or
+from a `numpy.random.Generator` passed in by the caller. The forward
+loop keys each event's sub-RNG on the event itself, so the order of
+dispatch does not shift any event's own randomness.
 Introducing `random.random()`, `numpy.random.default_rng()` at call
 sites, wall-clock reads, or a globally-shared RNG is a review-blocker.
 
@@ -75,11 +87,12 @@ Concrete consequences:
   range) and the same enabled-modules registry, `run_beta` produces a
   byte-identical CIF cohort on every run and on every platform that
   agrees on IEEE-754 semantics.
-- `seeding.py` is where the top-level RNG is constructed and split
-  into per-domain sub-RNGs; `memoize.py` provides patient-scoped
-  memoisation (see `feedback_rng_shift_patient_cache_cascade.md` and
-  `feedback_rng_neutral_additive_field.md` in maintainer memory for
-  the sub-RNG discipline rules).
+- [`clinosim/seeding.py`](../seeding.py) (package-level, not inside
+  `clinosim.simulator`) derives the per-phase / per-entity sub-RNGs
+  (`derive_sub_seed`, `derive_phase_rng`); `memoize.py` provides F4
+  snapshot memoisation (`--cache-dir`). New randomness goes through a
+  dedicated sub-RNG keyed on the entity it affects, so adding a draw
+  does not shift any other entity's stream.
 - Integration tests under `tests/integration/` pin byte-diff
   determinism at fixed seeds for representative populations.
 
@@ -103,8 +116,8 @@ Concrete consequences:
   schema.
 - **CLI flag defaults** live in `cli.py` and each `cli_*.py`
   subcommand handler; documented via `clinosim <subcommand> --help`
-  and in the root [`README.md`](../../README.md) "Configuration"
-  section.
+  and in
+  [`docs/getting-started/configuration.md`](../../docs/getting-started/configuration.md).
 - **Per-behavior thresholds** — every operational threshold (ADL
   scoring, MAR administration windows, daily loop timings, discharge
   gates, ED triage, forced-scenario gates, LOC transitions, oxygen
@@ -116,13 +129,16 @@ Concrete consequences:
 
 ## Directory contents
 
-Simulation orchestration (12 files):
+Simulation orchestration (18 files):
 
 ```
 clinosim/simulator/
   __init__.py            public API (5 exports)
   cli.py                 argparse entry, top-level subcommand dispatch
   engine.py              run_alpha / run_beta / run_forced
+  _setup.py              run setup / pre-flight helpers (re-exported by engine)
+  _dispatch.py           hospital-event dispatch + overlap handling
+                         (`_dispatch_hospital_events`)
   daily_loop.py          per-day loop extracted from engine
   hospital_ops.py        hospital operations orchestration
   inpatient.py           inpatient encounter simulator
@@ -130,9 +146,25 @@ clinosim/simulator/
   emergency.py           ED encounter simulator
   discharge_gate.py      discharge-timing decision logic
   discharge_rx.py        discharge-time prescription builder
-  enrichers.py           post-records enricher pass
+  enrichers.py           enricher registry (post-population / post-records)
+  outpatient_dept.py     outpatient follow-up department resolver
+  perinatal.py           delivery encounter + newborn emission
+  complications.py       complication-event schema helpers
+  sex_gating.py          sex-gating for ICD-10 diagnosis dispatch
   unknown_condition.py   handling for chronic conditions without a
                          disease protocol
+```
+
+Forward loop and phases (`phases/`, 5 modules + `__init__.py`):
+
+```
+  phases/_forward_loop.py        ForwardContext, EventQueue, run_forward_loop —
+                                 the single month-by-month loop run_beta runs
+  phases/_healthcare_calendar.py calendar_events_for_year / newborn_calendar_events /
+                                 dispatch_calendar_event
+  phases/_ed_slot.py             EDSlotSampler / dispatch_ed_slot
+  phases/_readmission.py         schedule_readmission / dispatch_readmission
+  phases/_post_discharge.py      schedule_post_discharge / dispatch_post_discharge
 ```
 
 Pipelines (3 files):
@@ -143,20 +175,20 @@ Pipelines (3 files):
   medication_pipeline.py medication order → administration pipeline
 ```
 
-Determinism and instrumentation (4 files):
+Determinism and instrumentation (3 files):
 
 ```
-  seeding.py             top-level RNG construction + sub-seed split
-  memoize.py             patient-scoped memoisation
-  log.py                 structured simulation log
-  diff.py                CIF diff helpers for test byte-diff comparisons
+  memoize.py             F4 snapshot memoisation (`--cache-dir`)
+  log.py                 structured JSONL simulation log (simulator.log)
+  diff.py                snapshot diff → FHIR Bundle transaction (`clinosim diff`)
 ```
 
 Helpers (2 files):
 
 ```
-  helpers.py             shared helpers, incl. load_all_disease_protocols
-  enumerate.py           patient / event enumeration helpers
+  helpers.py             backward-compat re-export facade (incl.
+                         load_all_disease_protocols from modules/disease)
+  enumerate.py           exhaustive enumeration mode (`clinosim enumerate`)
 ```
 
 CLI subcommand handlers (7 files):
@@ -197,7 +229,7 @@ pytest tests/unit -k simulator -q          # unit tests
 pytest tests/integration -q                # end-to-end + byte-diff
 ```
 
-Approximately 85 test files reference `clinosim.simulator`.
+Approximately 160 test files reference `clinosim.simulator`.
 Integration tests cover full-run byte-diff determinism at pinned
 seeds; unit tests focus on individual pipeline stages, discharge-gate
 edge cases, and threshold-constant behavior.

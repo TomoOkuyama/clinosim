@@ -1,56 +1,32 @@
 # clinosim を PyPI に公開
 
 release ワークフロー (`.github/workflows/release.yml`) は各
-`v*.*.*` タグ push で wheel + sdist をビルドし GitHub Release を
-作成しますが、実際の PyPI アップロード step はメンテナが公開認証情報
-を設定するまで意図的にコメントアウトされています。
+`v*.*.*` タグ push で発火し、wheel + sdist をビルドして GitHub
+Release を作成し、同じジョブ内で wheel + sdist を PyPI にアップロード
+します。
 
-サポートされる 2 経路 — 1 つを選び `release.yml` のインラインコメン
-トに従って編集。
+## PyPI Trusted Publishing (OIDC)
 
-## Path A — PyPI Trusted Publisher (推奨、シークレット不要)
+PyPI アップロードは Trusted Publishing を使います。GitHub OIDC で
+ワークフローを直接 PyPI に対して認証するので、long-lived token を
+リポジトリに保管しません。trusted publisher は
+<https://pypi.org/manage/project/clinosim/settings/publishing/> に
+以下で登録済み:
 
-PyPI trusted publishing は GitHub OIDC でワークフローを直接 PyPI に
-対して認証するので、long-lived token をリポジトリシークレットとして
-保管する必要がありません。これは PyPI 推奨の最新経路。
+- PyPI Project name: `clinosim`
+- Owner: `TomoOkuyama`
+- Repository name: `clinosim`
+- Workflow name: `release.yml`
+- Environment name: `release`
 
-### 初回設定 (メンテナ)
+`release.yml` では `release` ジョブが `release` environment で動作し
+`id-token: write` を持ちます。アップロードは
+`Publish to PyPI (Trusted Publishing / OIDC)` step
+(`pypa/gh-action-pypi-publish@release/v1`、`packages-dir: dist/`) が
+行います。ジョブの environment 名と PyPI 側の登録が一致しないと、PyPI
+は token 交換を拒否します。
 
-1. PyPI にパッケージ名を登録: <https://pypi.org/manage/projects/>
-   → "Register a new project" → 名前 `clinosim`。初回のみ。
-2. <https://pypi.org/manage/account/publishing/> で "Pending Trusted
-   Publisher" を以下で追加:
-   - PyPI Project name: `clinosim`
-   - Owner: `TomoOkuyama`
-   - Repository name: `clinosim`
-   - Workflow name: `release.yml`
-   - Environment name: 空欄 (必須承認 step を入れるなら `pypi`)
-3. `.github/workflows/release.yml` を編集:
-   - `permissions:` の下で `id-token: write` をアンコメント
-   - ジョブ末尾の
-     `- name: Publish to PyPI (trusted publishing)` step をアンコメント
-
-### 検証
-
-- pre-release タグ (例: `v0.2.0rc1`) を切って push、release job を確認
-- 成功時に `pip install clinosim==0.2.0rc1` が動作するはず
-
-## Path B — API token (シンプル、シークレット使用)
-
-対象 org で trusted publishing が使用不可の場合、リポジトリシークレット
-に保管した API token にフォールバック。
-
-### 初回設定
-
-1. PyPI でプロジェクト登録 (A step 1 と同じ)
-2. `clinosim` プロジェクトのみに scope した API token を
-   <https://pypi.org/manage/account/token/> で作成
-3. Settings → Secrets and variables → Actions で `PYPI_API_TOKEN`
-   としてリポジトリに追加
-4. `.github/workflows/release.yml` を編集:
-   `- name: Publish to PyPI (token)` step をアンコメント
-
-## リリースを切る (両経路共通)
+## リリースを切る
 
 1. `clinosim/__init__.py::__version__` を bump (例: `0.2.0 → 0.3.0`)
 2. `CHANGELOG.md` の `## [Unreleased]` 内容を新しい
@@ -60,11 +36,15 @@ PyPI trusted publishing は GitHub OIDC でワークフローを直接 PyPI に
    `git push origin vX.Y.Z`
 5. `release.yml` がタグ push で発火し以下を実行:
    - `tag == clinosim.__version__` を検証 (不一致は拒否)
-   - sdist + wheel + データセットプリセット (us-100 / us-1000 /
-     jp-100 / jp-1000) をビルド
-   - アーティファクトと CHANGELOG エントリを notes として GitHub
-     Release を公開
-   - (上記 A または B 有効化後) PyPI に公開
+   - sdist + wheel をビルドし `twine check`
+   - データセットプリセット (us-100 / us-1000 / jp-100 / jp-1000) を
+     `CLINOSIM_ALLOW_LEGACY_JP_CLINS_PKG=1` でビルド (runner に JP-CLINS
+     パッケージが無いため、JP プリセットは旧 5 桁 JLAC10 OID)
+   - sdist / wheel / データセット tarball を添付し、CHANGELOG エントリ
+     を notes として GitHub Release を公開
+   - sdist + wheel を PyPI に公開 (データセット tarball は GitHub
+     Release のみ)
+   - `dist/*` を workflow artifact としてアップロード (90 日保持)
 
 ## Roll-forward-only
 

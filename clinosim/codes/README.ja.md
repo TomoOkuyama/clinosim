@@ -17,7 +17,7 @@ CIF (Clinosim Intermediate Format) はコードのみを保持し、表示テキ
 
 - **In scope**: clinosim が出力する全臨床コードシステムの統一 lookup、
   多言語表示解決、canonical FHIR system-URI マッピング
-  (`_BUILTIN_URIS` に約 55 URI 登録)、curated コードデータ YAML、
+  (`_BUILTIN_URIS` に 49 URI 登録)、curated コードデータ YAML、
   Encounter リソース向け HL7 v2/v3 語彙 StrEnum、再現性のために
   キャプチャした authoritative-source JSON 断片 (`authoritative/`)。
 - **Out of scope**: locale-scoped データ (氏名 / 住所 / フォーマット
@@ -32,6 +32,8 @@ from clinosim.codes import (
     get_display,        # (system, code, country="US") -> str
     get_system_uri,     # (system) -> str
     system_key_for,     # (kind, country) -> str  (例: ("diagnosis","JP")→"icd-10-mhlw")
+    slug_to_code,       # (system) -> dict[str, str]  (yaml の `slug_to_code:` ブロック)
+    has_icd_prefix,     # (chronic_items, prefixes) -> bool
     CodeSystem,         # dataclass: key / name / uri / version / codes
 )
 ```
@@ -64,7 +66,7 @@ Encounter が本値と `admit_source_encounter_id` (母親の分娩 Encounter �
 ## 決定性
 
 該当なし — 本パッケージは純粋な lookup。`_load_system` は
-`@lru_cache` 装飾済で、あるシステムキーは呼び出し毎に同一
+`@functools.cache` 装飾済で、あるシステムキーは呼び出し毎に同一
 `CodeSystem` インスタンスに解決。同一の YAML on-disk が与えられれば、
 同じ `(system, code, lang)` 3 つ組は常に同じ文字列に解決します。
 
@@ -79,7 +81,7 @@ Encounter が本値と `admit_source_encounter_id` (母親の分娩 Encounter �
 - **`_DATA_DIR`** = `Path(__file__).parent / "data"` — per-system
   YAML ファイル配置場所。
 - **`_BUILTIN_URIS`** — clinosim が出力する全コードシステムの
-  short-key → canonical URI マッピング (約 55: ICD variants / LOINC /
+  short-key → canonical URI マッピング (49: ICD variants / LOINC /
   SNOMED CT / RxNorm / JLAC10 / YJ / HOT7/9/13 / K-codes / JP-Core
   NamingSystem / HL7 v2/v3/FHIR terminology CodeSystem / JP-CLINS eCS
   Nocoded / gap-fill 用の clinosim-owned CodeSystem — URI ごとの
@@ -98,19 +100,32 @@ Encounter が本値と `admit_source_encounter_id` (母親の分娩 Encounter �
 
 ```
 clinosim/codes/
-  __init__.py                     公開 API (5 export)
+  __init__.py                     公開 API (7 export)
   loader.py                       CodeSystem dataclass、lookup /
                                   get_display / get_system_uri /
-                                  system_key_for、_BUILTIN_URIS、
-                                  _SYSTEM_DATA_ALIASES
+                                  system_key_for / slug_to_code、
+                                  _BUILTIN_URIS、_SYSTEM_DATA_ALIASES
+  match.py                        has_icd_prefix
   hl7_encounter.py                AdmitSource / DischargeDisposition /
                                   ActPriority StrEnum
-  data/                           curated コード YAML 32 件 (全リストは
-                                  下の「対応コードシステム」参照)
+  drugs.py                        薬剤 identity カタログローダー
+                                  (data/drugs.yaml。resolve_drug /
+                                  all_drug_ids)
+  blood_group_to_snomed.py,       キー → SNOMED CT concept リゾルバ
+  cchd_site_to_snomed.py,         (対応する data/*-to-snomed.yaml
+  encounter_type_to_snomed.py,    を参照)
+  oxygen_device_to_snomed.py,
+  stage_to_snomed.py
+  data/                           YAML 72 件: コードシステム (下の
+                                  「対応コードシステム」参照) と curated
+                                  カタログ (drugs / frequency tokens /
+                                  FHIR profile map / plausibility
+                                  bounds 等)
   authoritative/                  再現性のためにキャプチャした
                                   authoritative-source JSON 断片
                                   (icd10_who_tx.json、loinc_2_82_tx.json、
                                   yj_tx_fragment.json、
+                                  rxnorm_rxnav_snapshot.json、
                                   JP_MedicationCodeYJ_CS_full.json + README)
 ```
 
@@ -120,7 +135,7 @@ clinosim/codes/
 pytest tests/unit -k codes -q
 ```
 
-`clinosim.codes` を参照するテストファイルは約 45。フォールバック
+`clinosim.codes` を参照するテストファイルは約 100。フォールバック
 チェーン、システム URI 解決、`system_key_for` 国別 dispatch、
 JP-only-display 検出、システム別データ形状不変条件を網羅。
 
@@ -128,7 +143,7 @@ JP-only-display 検出、システム別データ形状不変条件を網羅。
 
 `maintainers@` — [`CONTRIBUTING.md`](../../CONTRIBUTING.ja.md) 参照。
 
-英語版: [`README.md`](README.ja.md)。
+英語版: [`README.md`](README.md)。
 
 ---
 
@@ -149,26 +164,26 @@ JP-only-display 検出、システム別データ形状不変条件を網羅。
 
 | キー | 名称 | FHIR system URI | コード数 | 情報源 |
 | --- | --- | --- | --- | --- |
-| `icd-10-cm` | ICD-10-CM | `http://hl7.org/fhir/sid/icd-10-cm` | 357 | CMS / NCHS |
-| `icd-10` | WHO ICD-10 | `http://hl7.org/fhir/sid/icd-10` | 320 | WHO ICD-10 |
+| `icd-10-cm` | ICD-10-CM | `http://hl7.org/fhir/sid/icd-10-cm` | 420 | CMS / NCHS |
+| `icd-10` | WHO ICD-10 | `http://hl7.org/fhir/sid/icd-10` | 368 | WHO ICD-10 |
 | `icd-10-mhlw` | JP MHLW ICD-10 (2013 registry) | `http://jpfhir.jp/fhir/core/mhlw/CodeSystem/ICD10-2013-full` | (icd-10 に alias) | MHLW / JP-Core |
-| `loinc` | LOINC | `http://loinc.org` | 153 | Regenstrief LOINC |
-| `snomed-ct` | SNOMED CT | `http://snomed.info/sct` | 147 | IHTSDO |
-| `jlac10` | JLAC10 | `urn:oid:1.2.392.200119.4.1005` | 45 | JCCLS |
-| `rxnorm` | RxNorm | `http://www.nlm.nih.gov/research/umls/rxnorm` | 82 | NLM RxNorm |
-| `yj` | YJ code | `http://capstandard.jp/iyaku.info/CodeSystem/YJ-code` | 59 | JP Core / capstandard |
-| `hot7` | HOT7 (JP MEDIS) | `http://medis.or.jp/CodeSystem/master-HOT7` | 106 | MEDIS |
-| `cpt` | CPT | `http://www.ama-assn.org/go/cpt` | 31 | AMA CPT |
-| `k-codes` | K codes | `urn:oid:1.2.392.200119.4.401` | 25 | MHLW 診療報酬 |
-| `cvx` | CVX (ワクチンコード) | `http://hl7.org/fhir/sid/cvx` | 10 | CDC |
+| `loinc` | LOINC | `http://loinc.org` | 211 | Regenstrief LOINC |
+| `snomed-ct` | SNOMED CT | `http://snomed.info/sct` | 158 | IHTSDO |
+| `jlac10` | JLAC10 | `urn:oid:1.2.392.200119.4.1005` | 50 | JCCLS |
+| `rxnorm` | RxNorm | `http://www.nlm.nih.gov/research/umls/rxnorm` | 229 | NLM RxNorm |
+| `yj` | YJ code | `http://capstandard.jp/iyaku.info/CodeSystem/YJ-code` | 76 | JP Core / capstandard |
+| `hot7` | HOT7 (JP MEDIS) | `http://medis.or.jp/CodeSystem/master-HOT7` | 155 | MEDIS |
+| `cpt` | CPT | `http://www.ama-assn.org/go/cpt` | 36 | AMA CPT |
+| `k-codes` | K codes | `urn:oid:1.2.392.200119.4.401` | 34 | MHLW 診療報酬 |
+| `cvx` | CVX (ワクチンコード) | `http://hl7.org/fhir/sid/cvx` | 34 | CDC |
 
 ### HL7 terminology CodeSystem (データ付き)
 
 | キー | コード数 |
 | --- | --- |
 | `hl7-condition-clinical` / `hl7-condition-ver-status` | 6 + 6 |
-| `hl7-admit-source` / `hl7-discharge-disposition` | 3 + 2 |
-| `hl7-allergyintolerance-clinical` / `hl7-allergyintolerance-verification` | 3 + 4 |
+| `hl7-admit-source` / `hl7-discharge-disposition` | 3 + 4 |
+| `hl7-allergyintolerance-clinical` / `hl7-allergyintolerance-verification` | 3 + 5 |
 | `hl7-observation-interpretation` | 3 |
 | `hl7-practitioner-role` / `hl7-subscriber-relationship` | 6 + 7 |
 | `hl7-v3-actreason` / `hl7-v3-administrativegender` / `hl7-v3-maritalstatus` | 4 + 3 + 6 |
@@ -180,7 +195,7 @@ JP-only-display 検出、システム別データ形状不変条件を網羅。
 | --- | --- |
 | `jp-care-level` | 8 |
 | `jpfhir-doc-section` | 42 |
-| `jpfhir-doc-typecodes` | 5 |
+| `jpfhir-doc-typecodes` | 6 |
 | `jpfhir-eCheckup-section` | 7 |
 | `condition-short-name` | 42 |
 | `clinosim-nursing-scores` | 1 |
@@ -217,8 +232,9 @@ codes:
 
 ### スキーマ規則
 
-- `metadata.uri` 欠如時はローダーが `_BUILTIN_URIS[key]` にフォール
-  バック。
+- `metadata.uri` を設定すること。YAML があり `metadata.uri` が無い
+  場合 URI は `urn:clinosim:<key>` になる。`_BUILTIN_URIS[key]` は
+  YAML の無いキーと `_SYSTEM_DATA_ALIASES` のエントリにのみ使われる。
 - `codes` 配下の各エントリは最低 `en` を含める必要あり (JP-only
   display system — `is_japanese_only_display_system` — の場合は
   `ja`)。
@@ -266,8 +282,9 @@ codes:
 1. `data/<new-system>.yaml` を作成 (上記スキーマ)。
 2. 任意で short key → URI マッピングを `loader.py::_BUILTIN_URIS`
    に登録。
-3. ファイルを配置するだけでローダーが自動検出
-   (`@lru_cache(maxsize=32)`)。
+3. ファイルを配置するだけでよい — ローダーは初回使用時に
+   `data/<key>.yaml` を名前で解決しキャッシュする
+   (`@functools.cache`)。
 
 ### 新規言語追加
 

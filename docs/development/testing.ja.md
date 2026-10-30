@@ -9,7 +9,7 @@ source .venv/bin/activate
 pytest -x
 
 # カテゴリ別
-pytest -m unit                   # 単体テスト (~4500 test 関数、tests/unit/ 配下で ~7100 collected ケース)
+pytest -m unit                   # `unit` マーク付きテスト (~5200 ケース。tests/unit/ 配下は ~5600 test 関数、~7700 collected ケース)
 pytest -m integration            # cross-module (reproduce.sh gate 含む)
 pytest -m e2e                    # E2E + golden テスト
 
@@ -21,8 +21,9 @@ pytest --cov=clinosim
 
 clinosim は所与の `(seed, config, country, start, end, population)`
 タプルに対して **byte-identical 出力** を MINOR release line 内で
-保証します — 壁時計メタデータ (`fhir_r4/manifest.json` /
-`cif/metadata.json` / narrative-pass `manifest.json`) は差分あり想定、
+保証します — 壁時計 / git 依存メタデータ (`fhir_r4/manifest.json` /
+`fhir_r4/_generator_metadata.json` / `cif/metadata.json` /
+narrative-pass `manifest.json`) は差分あり想定、
 それ以外は完全一致でなければなりません。
 
 いつでも検証:
@@ -31,7 +32,8 @@ clinosim は所与の `(seed, config, country, start, end, population)`
 bash scripts/reproduce.sh
 ```
 
-スクリプトは locale ごと (デフォルト US + JP) に
+スクリプトは locale ごと (デフォルト US + JP。JP は `--allow-legacy`
+付きなので JP-CLINS パッケージ不要) に
 `clinosim simulate --format fhir` を 2 つの分離した temp ディレクト
 リへ 2 回実行、各 NDJSON + CIF JSON を sha256 化し、hash リストを
 diff します。exit 0 = byte-identical、exit 1 = 決定性回帰 (該当
@@ -40,7 +42,9 @@ diff します。exit 0 = byte-identical、exit 1 = 決定性回帰 (該当
 `CLINOSIM_REPRO_START` / `CLINOSIM_REPRO_END` でデフォルトを上書き
 可能。
 
-CI の `reproducibility` job が全 push + PR で実行するので、回帰が
-コードのランド前に merge gate を trip します。
+CI は全 push + PR で `tests/integration/test_full_reproducibility.py`
+(integration ジョブ) 経由で実行し、`nightly.yml` の `reproducibility`
+job も毎日実行するので、回帰がコードのランド前に merge gate を trip
+します。
 
 ---

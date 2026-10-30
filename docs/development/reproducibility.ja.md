@@ -2,8 +2,9 @@
 
 clinosim は所与の `(seed, config, country, start, end, population)`
 タプルに対して **byte-identical 出力** を MINOR release line 内で保証
-します — 壁時計メタデータ (`fhir_r4/manifest.json` /
-`cif/metadata.json` / narrative-pass `manifest.json`) は差分あり想定、
+します — 壁時計 / git 依存メタデータ (`fhir_r4/manifest.json` /
+`fhir_r4/_generator_metadata.json` / `cif/metadata.json` /
+narrative-pass `manifest.json`) は差分あり想定、
 それ以外は完全一致でなければなりません。
 
 ## いつでも検証
@@ -12,7 +13,8 @@ clinosim は所与の `(seed, config, country, start, end, population)`
 bash scripts/reproduce.sh
 ```
 
-スクリプトは locale ごと (デフォルト US + JP) に
+スクリプトは locale ごと (デフォルト US + JP。JP は `--allow-legacy`
+付きなので JP-CLINS パッケージ不要) に
 `clinosim simulate --format fhir` を 2 つの分離した temp ディレクト
 リへ 2 回実行、各 NDJSON + CIF JSON を sha256 化し、hash リストを
 diff します。exit 0 = byte-identical、exit 1 = 決定性回帰 (該当
@@ -31,10 +33,15 @@ diff します。exit 0 = byte-identical、exit 1 = 決定性回帰 (該当
 
 ## CI 強制
 
-[`.github/workflows/ci.yml`](https://github.com/TomoOkuyama/clinosim/blob/master/.github/workflows/ci.yml)
-の `reproducibility` ジョブが全 push + PR に対して
-`scripts/reproduce.sh` を実行。決定性回帰があればコードがランドする
-前に merge gate を trip。
+- master への全 push と全 PR で、
+  [`.github/workflows/ci.yml`](https://github.com/TomoOkuyama/clinosim/blob/master/.github/workflows/ci.yml)
+  の integration ジョブ内で
+  [`tests/integration/test_full_reproducibility.py`](https://github.com/TomoOkuyama/clinosim/blob/master/tests/integration/test_full_reproducibility.py)
+  が `scripts/reproduce.sh` を実行。決定性回帰があればコードがランド
+  する前に merge gate を trip。
+- [`.github/workflows/nightly.yml`](https://github.com/TomoOkuyama/clinosim/blob/master/.github/workflows/nightly.yml)
+  の専用 `reproducibility` ジョブが毎日 (およびリリース切り出し前など
+  `workflow_dispatch` で) スクリプトを実行。
 
 ## 基礎となる不変条件
 
