@@ -1078,16 +1078,10 @@ def _build_radiology_dr(study: Any, report: Any, ctx: Any) -> dict:
         dr["effectiveDateTime"] = started_iso
         dr["issued"] = started_iso
 
-    # CY8-15 fix: imaging DR.media — 対応する ImagingStudy を
-    # media[].link で参照(実 EHR で PACS DICOM への portal リンク相当)。
-    # ImagingStudy 自体は既に imagingStudy field で refer 済みだが、media は
-    # per-image / per-instance 参照の意図。ImagingStudy series の代表 1 件を link。
-    dr["media"] = [
-        {
-            "comment": t("diagnostic_report_fhir.image_reference_comment", lang),
-            "link": {"reference": f"ImagingStudy/{imaging_study_id_for_cif_study_id(study_id)}"},
-        }
-    ]
+    # Issue #2234: the study is referenced only through ``imagingStudy``.
+    # ``DiagnosticReport.media.link`` is Reference(Media) in FHIR R4; the
+    # former media entry pointing at the ImagingStudy was rejected by
+    # servers that validate reference target types.
 
     # conclusionCode: emit only when findings_codes is populated (PR1 default: empty → skipped).
     # CY8-14 fix: findings_codes 空でも normal/abnormal SNOMED を

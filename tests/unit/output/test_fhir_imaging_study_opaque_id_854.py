@@ -148,7 +148,7 @@ def test_bb_imaging_studies_multiple_produce_distinct_opaque_ids() -> None:
 
 
 def test_dr_imaging_study_reference_matches_writer() -> None:
-    """DR.imagingStudy[] / DR.media[].link references MUST resolve via
+    """DR.imagingStudy[] references MUST resolve via
     the same helper the ImagingStudy writer uses. A drift here would
     detach every radiology DR from its ImagingStudy without any FHIR
     schema error (same silent-no-op class the lab PR #878 guarded)."""
@@ -175,7 +175,9 @@ def test_dr_imaging_study_reference_matches_writer() -> None:
     assert rad_drs, "expected 1 radiology DR"
     dr = rad_drs[0]
     assert dr["imagingStudy"][0]["reference"] == f"ImagingStudy/{writer_id}"
-    assert dr["media"][0]["link"]["reference"] == f"ImagingStudy/{writer_id}"
+    # Issue #2234: DiagnosticReport.media.link is Reference(Media) in FHIR R4,
+    # so the study is referenced only through imagingStudy.
+    assert all("ImagingStudy/" not in str(m.get("link", {})) for m in dr.get("media", []))
 
 
 # === Coverage guard ===
