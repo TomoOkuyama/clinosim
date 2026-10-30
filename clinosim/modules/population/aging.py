@@ -25,15 +25,12 @@ their state before the year's events are generated:
   ``clinical_status`` to ``resolved`` under the childhood resolution
   rate from ``allergens.yaml:aging``) and late-onset drug-sensitivity
   emergence (adds a new medication allergy with ``onset_date`` set).
-* :func:`_condition_reactive_mortality` — adds a per-year excess
-  mortality Bernoulli layered on top of the baseline qx. SMR is
-  the geometric mean of per-ICD multipliers from
-  ``locale/shared/condition_mortality_smr.yaml``; ``excess_qx =
-  qx_baseline * (SMR - 1)`` is capped by ``max_excess_qx_per_year``
-  (default 0.15). A hit overrides ``date_of_death`` ONLY when it
-  moves earlier — the baseline ``natural_death`` enricher's
-  pre-sampled date is respected unless condition load would kill
-  the person sooner.
+* Community mortality (Issue #2167) — after the per-person passes, each
+  living person gets one forward draw for a death outside this hospital's
+  inpatient stays (:mod:`clinosim.modules.population.mortality`). The
+  hazard is the life-table qx scaled by the person's relative comorbidity
+  SMR and the locale's community share, over the part of the year inside
+  the simulation window.
 
 Determinism contract:
 
@@ -47,12 +44,13 @@ Determinism contract:
 from __future__ import annotations
 
 import hashlib
+from datetime import date
 from functools import lru_cache
 
 import numpy as np
 
-from clinosim.locale.loader import load_actuarial_life_table, load_condition_mortality_smr
 from clinosim.modules.allergy.engine import load_allergen_config
+from clinosim.modules.population.mortality import age_in_year, band_of, draw_community_death, smr_normalizers
 from clinosim.types.population import PersonRecord
 
 __all__ = [
@@ -358,130 +356,6 @@ def _allergy_drift(
 
 
 # ---------------------------------------------------------------------------
-# Condition-reactive mortality
-# ---------------------------------------------------------------------------
-
-
-# 5-year band lower bounds used by the actuarial YAML (0, 5, 10, …, 95).
-_QX_BAND_LOWER_BOUNDS = tuple(range(0, 100, 5))
-
-
-@lru_cache(maxsize=1)
-def _load_condition_smr_table() -> tuple[dict[str, float], str, float]:
-    """Return ``(smr_table, combine_method, max_excess_qx)`` from
-    ``locale/shared/condition_mortality_smr.yaml``. Cached singleton.
-    Returns an empty table + sentinel defaults when the yaml is
-    missing — the pass becomes a safe no-op in that case."""
-    data = load_condition_mortality_smr()
-    raw = data.get("smr_table") or {}
-    smr: dict[str, float] = {str(k): float(v) for k, v in raw.items()}
-    combine = str(data.get("combine_method") or "geometric_mean")
-    cap = float(data.get("max_excess_qx_per_year") or 0.15)
-    return smr, combine, cap
-
-
-def _qx_baseline(country: str, sex: str, age: int) -> float:
-    """Lookup baseline qx for (country, sex, age) from the actuarial
-    yaml. Mirrors the lookup convention in
-    ``clinosim.modules.natural_death.enricher._qx_for`` so the hook's
-    excess calculation sits on the same baseline the enricher used."""
-    life_table = load_actuarial_life_table()
-    country_key = "jp" if country.lower() == "jp" else "us"
-    country_block = (life_table.get("annual_mortality_qx") or {}).get(country_key) or {}
-    sex_key = "male" if sex == "M" else "female" if sex == "F" else None
-    if sex_key is None:
-        return 0.0
-    band_data = country_block.get(sex_key) or {}
-    if not band_data:
-        return 0.0
-    band = max((b for b in _QX_BAND_LOWER_BOUNDS if b <= age), default=_QX_BAND_LOWER_BOUNDS[-1])
-    return float(band_data.get(band, 0.0))
-
-
-def _combined_smr_for(conditions: list[str], smr_table: dict[str, float], combine_method: str) -> float:
-    """Combine per-ICD SMRs into a single multiplier.
-
-    Only codes present in ``smr_table`` contribute. Exact match first,
-    then prefix match (e.g. ``N18.3`` matches entry ``N18``). SMRs
-    at or below 1.0 are included (they are no-op). Returns 1.0 when
-    no code contributes.
-    """
-    contributions: list[float] = []
-    seen: set[str] = set()
-    for code in conditions:
-        if code in smr_table and code not in seen:
-            contributions.append(smr_table[code])
-            seen.add(code)
-            continue
-        # Prefix fallback — try progressively shorter prefixes.
-        for i in range(len(code) - 1, 0, -1):
-            prefix = code[:i]
-            if prefix in smr_table and prefix not in seen:
-                contributions.append(smr_table[prefix])
-                seen.add(prefix)
-                break
-    if not contributions:
-        return 1.0
-    if combine_method == "geometric_mean":
-        import math
-
-        return math.exp(sum(math.log(v) for v in contributions) / len(contributions))
-    # Fallback: arithmetic mean.
-    return sum(contributions) / len(contributions)
-
-
-def _condition_reactive_mortality(
-    person: PersonRecord,
-    year: int,
-    prng: np.random.Generator,
-    locale: str = "us",
-) -> None:
-    """Per-person annual condition-reactive mortality draw.
-
-    Mechanism:
-
-    1. Combine per-ICD SMRs from ``condition_mortality_smr.yaml``
-       into a single multiplier via geometric mean (bounded
-       multiplicative). Codes not in the table contribute SMR = 1.
-    2. Look up baseline ``qx(country, sex, age)`` from
-       ``actuarial_life_table.yaml`` — SAME source as the
-       ``natural_death`` enricher so the baseline semantics match.
-    3. ``excess_qx = qx * (SMR_combined - 1)``, clamped to
-       ``[0, max_excess_qx_per_year]``. The clamp protects advanced-
-       age bands where baseline qx is already 15-30 %/yr.
-    4. Draw ``prng.random() < excess_qx``; on hit, propose
-       ``date(year, 6, 15)``. Override ``person.date_of_death`` ONLY
-       when the proposed date is earlier than any existing value —
-       the baseline enricher's pre-sampled date is respected unless
-       the condition load would kill the person sooner.
-
-    The hook never saves a person from death. It only accelerates
-    condition-driven mortality on top of actuarial baseline.
-    """
-    from datetime import date as _date
-
-    smr_table, combine_method, max_cap = _load_condition_smr_table()
-    if not smr_table:
-        return
-    smr_combined = _combined_smr_for(person.chronic_conditions, smr_table, combine_method)
-    if smr_combined <= 1.0:
-        return
-    age = _current_age(person, year)
-    qx = _qx_baseline(locale, person.sex, age)
-    if qx <= 0.0:
-        return
-    excess = qx * (smr_combined - 1.0)
-    excess = max(0.0, min(max_cap, excess))
-    if excess <= 0.0:
-        return
-    if prng.random() >= excess:
-        return
-    proposed = _date(year, 6, 15)
-    if person.date_of_death is None or proposed < person.date_of_death:
-        person.date_of_death = proposed
-
-
-# ---------------------------------------------------------------------------
 # Stroke → chronic-sequela promotion (Issue #1581 extension — I63 → I69.3)
 # ---------------------------------------------------------------------------
 
@@ -543,6 +417,7 @@ def advance_population(
     registry: object,
     year: int,
     locale: str,
+    window: tuple[date, date] | None = None,
 ) -> None:
     """Advance the population by one simulated year (Phase 2).
 
@@ -571,25 +446,38 @@ def advance_population(
     assert isinstance(registry, PopulationRegistry), "advance_population: registry must be a PopulationRegistry"
 
     year_start = _date(year, 1, 1)
+    year_end = _date(year, 12, 31)
+    # Issue #2167: the part of the year inside the simulation window.
+    exposure_lo = max(year_start, window[0]) if window else year_start
+    exposure_hi = min(year_end, window[1]) if window else year_end
+    # Relative comorbidity SMR is measured against the persons alive on
+    # 1 January, before this year's passes change anyone's conditions.
+    normalizers = smr_normalizers(registry.persons.values(), year)
 
     for person in registry.persons.values():
-        # Issue #1564 Phase 2 (reactive-mortality PR): tighten the
-        # alive gate from the `is_alive` flag to point-in-time
-        # ``is_alive_at(year_start)``. The ``natural_death`` enricher
-        # (POST_POPULATION) sets ``date_of_death`` but does NOT flip
-        # ``is_alive``, so persons already dead by this year would
-        # otherwise still receive aging passes. The upstream fix is
-        # pass-isolated — each person's streams are independent — so
-        # this filter does not shift any other person's draws.
+        # Persons already dead by 1 January get no aging passes. Each
+        # person's passes use their own sub-RNGs, so skipping one person
+        # does not shift any other person's draws.
         if not person.is_alive_at(year_start):
             continue
+        # Issue #2167: one forward draw for a community death this year,
+        # over the part of the year the person is simulated and alive.
+        lo = max(exposure_lo, person.date_of_birth)
+        if lo <= exposure_hi and person.is_alive_at(lo):
+            draw_community_death(
+                person,
+                year,
+                locale,
+                np.random.default_rng(aging_sub_seed(person.person_id, year, "mortality")),
+                exposure=(lo, exposure_hi),
+                normalizer=normalizers.get((band_of(age_in_year(person, year)), person.sex), 1.0),
+            )
         # Phase 4b.2.β moved the retired chronic-onset pass out of this
         # tuple — the 30 adult-chronic onset events now dispatch from
         # the longitudinal engine's `advance_one_year` call below.
         for pass_fn in (
             _stroke_sequela_promotion,
             _allergy_drift,
-            _condition_reactive_mortality,
         ):
             pass_rng = np.random.default_rng(aging_sub_seed(person.person_id, year, pass_fn.__name__))
             pass_fn(person, year, pass_rng, locale=locale)

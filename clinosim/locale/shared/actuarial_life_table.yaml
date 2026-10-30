@@ -129,6 +129,18 @@ annual_mortality_qx:
       90: 0.118908  # ages 90-94
       95: 0.217290  # ages 95-99 (99-100 alone: 0.26070)
 
+# Fraction of all-cause deaths drawn as community deaths (deaths outside
+# this hospital's simulated inpatient stays) by
+# `clinosim.modules.population.mortality` (Issue #2167). The life-table qx
+# above is all-cause, so it already contains the deaths the inpatient
+# simulator produces; the community draw takes the remainder. Model
+# calibration, not a published statistic: set so that community plus
+# in-hospital deaths of a 3-year, 2,000-person cohort (seed 7) match the
+# life-table expectation.
+community_death_share:
+  us: 0.72
+  jp: 0.74
+
 # Provenance metadata — used by future validators to detect stale
 # data. When either national statistical office publishes a newer
 # life table (JP 完全生命表 every 5 years, US NCHS annually), this

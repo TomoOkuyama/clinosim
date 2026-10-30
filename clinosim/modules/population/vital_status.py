@@ -59,8 +59,9 @@ def sync_profile_death_dates(
 ) -> None:
     """Copy each person's recorded death onto every one of their profiles.
 
-    Deaths after ``as_of`` (the snapshot or window end) are not yet known to
-    the record and are cleared from the profile. ``population`` is a
+    Community deaths after ``as_of`` (the snapshot or window end) are not yet
+    known to the record and are cleared from the profile. In-hospital deaths
+    are always kept: the expired stay itself is in the CIF. ``population`` is a
     ``PopulationRegistry`` (typed loosely to avoid an import cycle).
     """
     persons = getattr(population, "persons", {})
@@ -69,7 +70,9 @@ def sync_profile_death_dates(
         if person is None:
             continue
         dod = person.date_of_death
-        if dod is not None and as_of is not None and dod > as_of:
+        # A community death after the cutoff is not yet known; an
+        # in-hospital death is, because its expired stay is in the CIF.
+        if dod is not None and as_of is not None and dod > as_of and person.death_place != "hospital":
             dod = None
         record.patient.date_of_death = dod
 

@@ -234,6 +234,13 @@ def run_beta(
     end_y, end_m = bounds.end_y, bounds.end_m
     snapshot_dt = bounds.snapshot_dt
     _start_dt_lb = bounds.start_dt_lb
+    # Simulation window as dates (Issue #2167: the annual mortality draw
+    # covers only the part of each year inside it). A month-precision end
+    # bound ("YYYY-MM") covers the whole month.
+    _raw_end = _parse_time_range_bound(config.time_range[1]).date()
+    if len(str(config.time_range[1])) == 7:
+        _raw_end = date(_raw_end.year, _raw_end.month, calendar.monthrange(_raw_end.year, _raw_end.month)[1])
+    _window = (_start_dt_lb.date(), _raw_end)
 
     # Issue #1596 Step 2 — generation now runs INSIDE the combined
     # per-month loop below (after F4 cache load + patient state init
@@ -311,7 +318,7 @@ def run_beta(
         # iteration of the sim window (even if the window starts
         # mid-year).
         if _dm == 1 or (_dy, _dm) == (start_y, start_m):
-            advance_population(population, _dy, config.country)
+            advance_population(population, _dy, config.country, window=_window)
         _month_key = f"{_dy:04d}-{_dm:02d}"
         _month_rng = derive_phase_rng(master_seed, PHASE_LIFE_EVENT, _month_key)
         _monthly = generate_monthly_events(
@@ -479,10 +486,6 @@ def run_beta(
     # Issue #2166: every profile of a person carries the person's one death
     # date (as known at the snapshot or window end), including profiles that
     # were activated for visits before the death.
-    # A month-precision end bound ("YYYY-MM") covers the whole month.
-    _raw_end = _parse_time_range_bound(config.time_range[1]).date()
-    if len(str(config.time_range[1])) == 7:
-        _raw_end = date(_raw_end.year, _raw_end.month, calendar.monthrange(_raw_end.year, _raw_end.month)[1])
     _vital_as_of = snapshot_dt.date() if snapshot_dt else _raw_end
     sync_profile_death_dates(patient_records, population, as_of=_vital_as_of)
     sim_log.info(
