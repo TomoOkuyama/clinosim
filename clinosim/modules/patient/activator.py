@@ -889,13 +889,12 @@ def activate_patient(
         # mid-sim admits emitted a truncated history that lost every
         # post-admit year's Phase 4a/4b/4c trajectory data.
         longitudinal_history=getattr(person, "longitudinal_history", None) or [],
-        # Issue #1114 C11g-4: forward the natural-death date sampled by
-        # the ``natural_death`` POST_POPULATION enricher so downstream
-        # FHIR emit (``_build_patient``) surfaces it as
-        # ``Patient.deceasedDateTime``. In-hospital deaths still flow
-        # through the ``record.deceased`` → discharge_datetime path
-        # (see ``fhir_r4/__init__.py:521``) — the two paths converge in
-        # the FHIR builder's ``p.get("date_of_death")`` read.
+        # Forward the person's recorded death date (``record_death``:
+        # in-hospital or community, Issues #2166 / #2167) so FHIR emit
+        # (``_build_patient``) surfaces it as ``Patient.deceasedDateTime``.
+        # ``vital_status.sync_profile_death_dates`` re-syncs every profile
+        # at the end of the run, so profiles activated before the death
+        # carry it too.
         date_of_death=getattr(person, "date_of_death", None),
     )
 

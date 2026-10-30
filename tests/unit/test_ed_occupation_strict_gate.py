@@ -6,7 +6,7 @@ Workplace-specific ED chief complaints (`chemical_exposure`,
 ``clinosim/modules/encounter/reference_data/*.yaml`` carry
 "at workplace" / "work-related" text and are only coherent on
 occupations whose workplace exposes the person to the hazard. The ED
-dispatcher at ``clinosim/simulator/engine.py::_run_ed_slot_phase``
+dispatcher at ``clinosim/simulator/phases/_ed_slot.py::EDSlotSampler``
 multiplies each candidate's base probability by an
 ``occupation_risk_multipliers`` entry from the locale's
 ``demographics.yaml`` and falls back to

@@ -10,7 +10,8 @@
 # stroke (~5-10 %/yr), vascular cognitive decline, and immobility
 # complications. Rates reflect all-cohort baseline without conditioning
 # on secondary-prevention adherence. mRS 5 is terminal here; mRS 6
-# (dead) is handled by the reactive-mortality pass.
+# (dead) is handled by the forward community-mortality draw
+# (`clinosim/modules/population/mortality.py`, Issue #2167).
 
 attribute_id: stroke_sequela_stage_i69_3
 pattern: markov
