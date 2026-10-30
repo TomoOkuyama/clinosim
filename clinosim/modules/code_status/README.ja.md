@@ -85,9 +85,9 @@ from clinosim.modules.code_status.enricher import enrich_code_status
   — 国別 `weights[context][age_band] = [full, dnr, dnr_dni, comfort]`。
   合計 1 になる確率分布。`load_rates` は unsupported country に対して
   `{}` を返すため、新規国が黙って US レートを継承することはない
-  (2026-07-02 grand-design review で確定した契約)。ただし対象 encounter
-  では `assign_code_status` が `""` を返さず `KeyError('routine')` を
-  送出する。
+  (2026-07-02 grand-design review で確定した契約)。このとき
+  `assign_code_status` は乱数を引かずに `""` (code status なし) を返す
+  (#2197)。
 
 ## ディレクトリ構造
 
