@@ -981,23 +981,21 @@ def generate_healthcare_calendar(
         _age_at_year = (int(year) - int(_dob.year)) if _dob is not None and hasattr(_dob, "year") else int(person.age)
 
         # --- Pediatric encounters (Issue #760) ---
-        # Placed BEFORE the `if not conditions_with_spec: continue` gate so
-        # pediatric patients (who typically carry no chronic conditions in
-        # `followup_data`) still receive their well-child / immunization
-        # visits. Byte-diff neutral when the schedule is empty (foundation
-        # pass 1 invariant, still exercised by
+        # Runs for everyone: pediatric patients typically carry no chronic
+        # conditions in `followup_data`. Byte-diff neutral when the schedule
+        # is empty (foundation pass 1 invariant, still exercised by
         # test_empty_schedule_returns_no_events_and_does_not_consume_rng).
         from clinosim.modules.pediatric.calendar import generate_pediatric_events
 
         events.extend(generate_pediatric_events(person, year, prng))
 
         # --- Pregnancy lifecycle (META #957 Incr 1) ---
-        # Placed BEFORE the `if not conditions_with_spec: continue` gate,
-        # for the same reason as pediatric encounters above: healthy
-        # childbearing-age women typically have no chronic conditions in
-        # ``followup_data`` (Z34 is no longer in ``chronic_conditions``
-        # after the Incr-1 refactor), so gating on ``conditions_with_spec``
-        # would silently skip every non-comorbid pregnancy. The generator
+        # Runs for everyone, for the same reason as pediatric encounters
+        # above: healthy childbearing-age women typically have no chronic
+        # conditions in ``followup_data`` (Z34 is no longer in
+        # ``chronic_conditions`` after the Incr-1 refactor), so gating on
+        # ``conditions_with_spec`` would silently skip every non-comorbid
+        # pregnancy. The generator
         # uses a per-(patient, year) sub-RNG so it does not shift the
         # calendar's shared ``prng`` — non-obstetric calendars stay
         # byte-identical.
@@ -1009,33 +1007,35 @@ def generate_healthcare_calendar(
         conditions_with_spec: list[tuple[str, dict]] = [
             (code, spec_) for code in person.chronic_conditions if (spec_ := followup_data.get(code)) is not None
         ]
-        if not conditions_with_spec:
-            continue
+        # Issue #2195: only the chronic visits need a followed-up condition;
+        # the screening, vaccination and chemo blocks below have their own
+        # age / sex / condition criteria. Each person has their own stream,
+        # so people with a followed-up condition keep their calendar.
+        if conditions_with_spec:
+            # Use shortest interval as visit frequency (covers all conditions)
+            shortest_interval = min(spec.get("follow_up_interval_months", 3) for _, spec in conditions_with_spec)
+            # Cap: max 6 visits/year for chronic management
+            max_visits = min(12 // shortest_interval, CHRONIC_VISITS_MAX_PER_YEAR)
+            primary_code = conditions_with_spec[0][0]  # main condition for the visit
 
-        # Use shortest interval as visit frequency (covers all conditions)
-        shortest_interval = min(spec.get("follow_up_interval_months", 3) for _, spec in conditions_with_spec)
-        # Cap: max 6 visits/year for chronic management
-        max_visits = min(12 // shortest_interval, CHRONIC_VISITS_MAX_PER_YEAR)
-        primary_code = conditions_with_spec[0][0]  # main condition for the visit
-
-        month = int(prng.integers(1, min(shortest_interval + 1, CHRONIC_VISIT_INITIAL_MONTH_CAP_EXCLUSIVE)))
-        visit_count = 0
-        while month <= 12 and visit_count < max_visits:
-            visit_date = date(year, month, random_day_of_month(prng, year, month))
-            events.append(
-                LifeEvent(
-                    person_id=person.person_id,
-                    event_type="chronic_visit",
-                    timestamp=visit_date,
-                    severity=0.0,
-                    condition_type="chronic_followup",
-                    disease_id=primary_code,
-                    encounter_type="outpatient",
-                    protocol_source=f"chronic_followup:{primary_code}",
+            month = int(prng.integers(1, min(shortest_interval + 1, CHRONIC_VISIT_INITIAL_MONTH_CAP_EXCLUSIVE)))
+            visit_count = 0
+            while month <= 12 and visit_count < max_visits:
+                visit_date = date(year, month, random_day_of_month(prng, year, month))
+                events.append(
+                    LifeEvent(
+                        person_id=person.person_id,
+                        event_type="chronic_visit",
+                        timestamp=visit_date,
+                        severity=0.0,
+                        condition_type="chronic_followup",
+                        disease_id=primary_code,
+                        encounter_type="outpatient",
+                        protocol_source=f"chronic_followup:{primary_code}",
+                    )
                 )
-            )
-            month += shortest_interval
-            visit_count += 1
+                month += shortest_interval
+                visit_count += 1
 
         # --- Annual health screening (age 40-89, S14 upper cap) ---
         # RNG-neutral gate: consume the two prng.integers draws for
@@ -1145,8 +1145,6 @@ def generate_healthcare_calendar(
             )
 
         # --- Pregnancy lifecycle handled above ---
-        # (moved BEFORE the chronic-condition gate — see the placement
-        # note near the pediatric-encounter block.)
 
         # --- Chemotherapy cycle visits (Issue #957 Tier-3-A) ---
         # For chronic-carrier patients of cancer codes with an assigned
