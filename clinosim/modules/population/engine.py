@@ -767,12 +767,9 @@ def generate_monthly_events(
             )
 
     for person in registry.persons.values():
-        # C11g-3: honor natural death date_of_death alongside in-hospital
-        # is_alive boolean — the acute disease event date is exactly
-        # ``event_date`` for this month, so we can filter precisely.
-        # Persons dying in a prior month never fire further events;
-        # persons dying later this month/next fire correctly through
-        # event_date threshold.
+        # Only persons in the population on this month's event date
+        # (born and enrolled, not yet dead) fire events (Issues #2166 /
+        # #2168). A death later in the month does not suppress the event.
         if not person.in_population_at(event_date):
             continue
 

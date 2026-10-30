@@ -7,9 +7,9 @@
 # Clinical basis: Thompson S et al, Kidney Int 2013; CRIC cohort (Grams ME
 # et al, JASN 2013); NEPTUNE natural-history data. Progression accelerates
 # with stage; G4 → G5 is the fastest single-year transition in the natural
-# history. G5 is terminal here — further mortality is driven by
-# condition-reactive qx in `_condition_reactive_mortality` (Issue #1564
-# Phase 2).
+# history. G5 is terminal here — further mortality is driven by the
+# N18 SMR in the forward community-mortality draw
+# (`clinosim/modules/population/mortality.py`, Issue #2167).
 #
 # Modifier scaling (uncontrolled DM, HTN) is applied externally via the
 # engine's `multiplier_fn` kwarg (Phase 2 Task 7) sourced from

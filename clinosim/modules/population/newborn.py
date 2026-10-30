@@ -152,8 +152,8 @@ def register_newborn(
     newborn also goes through
     :func:`~clinosim.modules.population.person_init.initialize_newborn_biology`,
     which attaches the per-person state an initial-cohort citizen gets
-    from POST_POPULATION enrichers (NKA allergy baseline + pre-sampled
-    natural death date). Callers that pre-date the Phase A hook (test
+    from POST_POPULATION enrichers (NKA allergy baseline, birth-year
+    community-death draw). Callers that pre-date the Phase A hook (test
     fixtures that build a ``PatientProfile`` directly without a config)
     may pass ``config=None`` to skip the biology init and preserve the
     original Phase 1 behaviour.
@@ -305,8 +305,8 @@ def register_newborn(
             break
 
     # Phase A biology init — matches the per-person state an initial-
-    # cohort citizen at age 0 would have (NKA allergy baseline, pre-
-    # sampled natural-death date, pediatric care-seeking threshold,
+    # cohort citizen at age 0 would have (NKA allergy baseline, birth-
+    # year community-death draw, pediatric care-seeking threshold,
     # Issue #1581 identity-timeline when the locale has a yaml). The
     # ``registry`` is passed through so the identity init can resolve
     # the mother's household and reuse the persisted intra-household

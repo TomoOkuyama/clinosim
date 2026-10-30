@@ -8,7 +8,7 @@
 #   initial — diagnostic-presentation-selected cohort (symptomatic → more
 #     advanced at diagnosis); mild skew toward later stages
 #   I→II:  0.15/yr   II→III: 0.10/yr   III→IV: 0.08/yr
-#   IV absorbing (further mortality via _condition_reactive_mortality qx)
+#   IV absorbing (further mortality via the C16 SMR in population/mortality.py)
 
 attribute_id: gastric_cancer_stage_c16
 pattern: markov

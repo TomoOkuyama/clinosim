@@ -73,8 +73,9 @@ class PersonRecord:
     alcohol_use: str = "none"  # "none" | "social" | "heavy"
     # Issue #2166: the person's single death record. Written only through
     # ``record_death`` — by the inpatient dispatcher for in-hospital deaths
-    # ("hospital") and by the natural-death sampler for deaths outside this
-    # hospital's inpatient stays ("community"). ``is_alive`` and
+    # ("hospital") and by the annual community-mortality draw
+    # (``population/mortality.py``) for deaths outside this hospital's
+    # inpatient stays ("community"). ``is_alive`` and
     # ``is_alive_at(t)`` are derived from it. Stays ``None`` for persons
     # who survive the window.
     date_of_death: date | None = None

@@ -1,14 +1,14 @@
 """C11g-4 FHIR alignment tests (Issue #1114).
 
-Verifies that a person with a natural ``date_of_death`` (populated by
-the ``natural_death`` POST_POPULATION enricher) surfaces as a FHIR
-``Patient.deceasedDateTime`` + ``active=False`` on the emit path.
+Verifies that a person with a community ``date_of_death`` (drawn by the
+annual community-mortality pass, ``population/mortality.py``) surfaces as
+a FHIR ``Patient.deceasedDateTime`` + ``active=False`` on the emit path.
 Covers both the direct ``_build_patient`` call site and the
 activator-plumbed PatientProfile flow.
 
-C11g-3b sibling filter-site tests live in ``test_natural_death.py``
-(scope: sampling + is_alive_at predicate). This file's scope: the
-downstream FHIR surface.
+The ``is_alive_at`` predicate tests live in ``test_is_alive_at.py`` and
+the mortality draw tests in ``test_forward_mortality_2167.py``. This
+file's scope: the downstream FHIR surface.
 """
 
 from __future__ import annotations

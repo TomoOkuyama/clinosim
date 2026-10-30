@@ -241,8 +241,8 @@ def _pick_primary_care_physician(pid: str, physician_ids: list[str]) -> str:
 def _sim_window_start(ctx) -> date | None:
     """Return the sim window's start date (inclusive) or None if unresolvable.
 
-    Reads ``ctx.config.time_range`` (used by the natural-death enricher
-    already — see `modules/natural_death/enricher.py`). Falls back to
+    Reads ``ctx.config.time_range`` (the same bound
+    ``population.mortality.sim_window`` parses). Falls back to
     None on any parse failure so callers can decide policy (pre-sim
     historical doses stay unlinked when the window is unknown).
     """

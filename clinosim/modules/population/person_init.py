@@ -1,38 +1,16 @@
-"""Per-person biology initialisation (Issue #1581 Phase A).
+"""Per-person biology initialisation for newborns (Issue #1581 Phase A).
 
 A newborn registered mid-simulation via
-:func:`clinosim.modules.population.newborn.register_newborn` must end
-up with the same per-person state an age-0 citizen of the initial
-cohort would have — otherwise downstream aging passes (allergy drift,
-reactive mortality) short-circuit and the "post-discharge newborn ≈
-regular citizen" invariant breaks.
+:func:`clinosim.modules.population.newborn.register_newborn` must end up
+with the same per-person state an age-0 citizen of the initial cohort
+would have, so that from enrollment on it is simulated like everyone else.
 
-This module hosts the shared per-person entry points so the initial-
-cohort POST_POPULATION enrichers and the mid-sim newborn registration
-converge on identical semantics.
-
-Phase A current scope:
-
-* :func:`initialize_newborn_biology` — assigns a NKA allergy baseline,
-  pre-samples a natural-death date, and samples a care-seeking
-  threshold from the locale's pediatric band for a freshly-registered
-  newborn.
-
-Phase A follow-up (not yet in this PR):
-
-* identity + insurance enrolment per-person entry (household-level
-  shared-RNG draw makes extraction less trivial — handled separately).
-
-Phase B (separate PR):
-
-* ``advance_population`` secondary pass covering newborns in years
-  after their birth so chronic onset / stage progression / allergy
-  drift / reactive mortality catch up.
-
-Phase C (separate PR):
-
-* ABO + Rh parent-to-child inheritance; atopic predisposition from
-  parent atopic status.
+:func:`initialize_newborn_biology` assigns a NKA allergy baseline, draws
+the community death for the rest of the birth year (later years are drawn
+by ``aging.advance_population`` like every other person, Issue #2167),
+samples a care-seeking threshold from the locale's pediatric band, and
+attaches an identity timeline. ABO / Rh and atopic predisposition are
+inherited in ``register_newborn`` itself.
 """
 
 from __future__ import annotations

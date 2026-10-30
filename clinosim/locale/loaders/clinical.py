@@ -108,12 +108,14 @@ def load_actuarial_life_table() -> dict[str, Any]:
 
     Top-level shape:
         annual_mortality_qx.<country>.<sex>.<age_lower> -> qx  (float, [0, 1])
+        community_death_share.<country> -> float
         provenance.<country> -> {source, reference_year, document, tables_consulted}
 
     Values are 5-year band means of single-year qx from national period
     life tables (US CDC NVSR 71-01 2020; JP 厚労省 第23回完全生命表 2020).
-    Data-only scaffold — no consumer yet; C11g-2 wires it into the
-    population activator's natural-death step.
+    ``community_death_share.<country>`` is the calibrated fraction of
+    all-cause deaths drawn as community deaths. Consumed by
+    ``clinosim.modules.population.mortality`` (Issue #2167).
     """
     return _load_yaml(_LOCALE_DIR / "shared" / "actuarial_life_table.yaml", fallback={})
 

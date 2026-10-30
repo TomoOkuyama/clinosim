@@ -162,7 +162,7 @@ STAGE_SEVERITY: dict[str, dict[str, float]] = {
     },
     # Modified Rankin Scale (van Swieten 1988 Stroke, mRS 0-5) for
     # post-cerebral-infarction residual deficit (I69.3). mRS 6 is
-    # death and handled by reactive mortality, not a progression
+    # death and handled by community mortality (population/mortality.py), not a progression
     # stage here. Severity rises steeply at mRS 3 (walking without
     # assistance becomes limited) and plateaus near 1.0 at mRS 5
     # (bedridden, requires constant nursing).
@@ -436,7 +436,7 @@ I69_3_STAGES: tuple[str, ...] = ("mRS 0", "mRS 1", "mRS 2", "mRS 3", "mRS 4", "m
   4 — moderately severe (unable to walk without assistance)
   5 — severe disability (bedridden, incontinent, constant nursing)
 mRS 6 (dead) is NOT a progression stage — death is driven by the
-reactive-mortality pass. Full stage strings — no prefix added at
+forward community-mortality draw (population/mortality.py). Full stage strings — no prefix added at
 emit time."""
 
 I69_3_STAGE_WEIGHTS: tuple[float, ...] = (0.10, 0.20, 0.25, 0.20, 0.15, 0.10)
