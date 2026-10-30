@@ -3970,6 +3970,18 @@ token。</p>
 は seed が与えられれば完全決定的。しかし LLM 呼び出しは非決定性
 を導入 (temperature=0 でも API 呼び出し間で出力が変わりうる)。</p>
 <h4 id="解決-階層-seed--llm-cache-分離">解決: 階層 seed + LLM cache 分離<a class="headerlink" href="#解決-階層-seed--llm-cache-分離" title="Permanent link">&para;</a></h4>
+<blockquote>
+<p><strong>実装:</strong> <code>SeedManager</code> / <code>LLMResponseCache</code> クラスは存在しない。
+sub-stream は <code>clinosim/seeding.py</code> から得る — enricher 別 offset
+(<code>ENRICHER_SEED_OFFSETS</code>) を使う <code>derive_sub_seed(master_seed,
+module_offset, key)</code>、simulator の phase (ライフイベント・入院・再入院・
+外来カレンダー・ED) 用の <code>derive_phase_rng(master_seed, PHASE_*, key)</code>、
+salt 付きのエンティティ別 seed (例: <code>perinatal_delivery_seed</code>、
+<code>individual_lab_seed</code>)。いずれも <code>hash()</code> ではなく <code>hashlib</code> で導出し、
+<code>derive_phase_rng</code> は <code>clinosim.determinism</code> の RNG proxy を返す。LLM cache は
+<code>clinosim/modules/llm_service/cache.py</code> の <code>PromptCache</code>
+(architecture-notes §8 参照)。以下のスケッチは当初設計。</p>
+</blockquote>
 <p><code>SeedManager</code> は各モジュールに master seed から派生する決定的
 sub-seed を割り当てる。</p>
 <div class="highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="k">class</span><span class="w"> </span><span class="nc">SeedManager</span><span class="p">:</span>
@@ -4025,6 +4037,9 @@ sub-seed から独自の <code>numpy.random.Generator</code> を初期化時に�
 それのみを使用。モジュール間で random state を共有しない。</p>
 <h3 id="テスト戦略">テスト戦略<a class="headerlink" href="#テスト戦略" title="Permanent link">&para;</a></h3>
 <p>3 レベルのテスト、各明確な目的を持つ。</p>
+<p>(以下は当初計画。実際のテストは <code>tests/unit/</code> (領域別)、
+<code>tests/integration/</code>、<code>tests/e2e/</code> (例: <code>test_alpha_golden.py</code>、
+<code>test_beta.py</code>)、<code>tests/regression/</code> (narrative profile golden) にある。)</p>
 <h4 id="level-1-単体テスト-per-module高速依存なし">Level 1: 単体テスト (per module、高速、依存なし)<a class="headerlink" href="#level-1-単体テスト-per-module高速依存なし" title="Permanent link">&para;</a></h4>
 <p>各モジュールが mock 入力で分離してテスト。テストプロパティ:
 - <strong>決定性</strong>: 同 seed → 同出力。常に。
@@ -4069,6 +4084,12 @@ CRP が Day 0-2 上昇、ピーク、14 日にわたって減少を検証。</p>
 <p>全型は <code>@dataclass</code> を使用 (または Pydantic <code>BaseModel</code> — 下記
 YAML 検証参照)。<code>from clinosim.types import PatientProfile</code> で
 import。</p>
+<p>(設計フェーズの分割案。実際の <code>clinosim/types/</code> に <code>llm.py</code> はなく、LLM 型
+<code>ClinicalEventData</code> / <code>PatientSummary</code> / <code>LLMTaskType</code> / <code>LLMResponse</code> は
+<code>clinosim/modules/llm_service/engine.py</code> にある。代わりに <code>allergy.py</code>、
+<code>antibiotic.py</code>、<code>diagnosis.py</code>、<code>document.py</code>、<code>hai.py</code>、<code>identity.py</code>、
+<code>imaging.py</code>、<code>microbiology.py</code>、<code>procedure.py</code>、<code>triage.py</code> などドメイン別
+ファイルが加わっている。<code>clinosim/types/README.ja.md</code> を参照。)</p>
 <h4 id="yaml-設定検証">YAML 設定検証<a class="headerlink" href="#yaml-設定検証" title="Permanent link">&para;</a></h4>
 <p>全 YAML config はロード時に検証される必要がある。型検証と
 ドキュメント化の両方に <strong>Pydantic</strong> を使用:</p>
@@ -4230,6 +4251,10 @@ enum)。国 / 言語固有レンダリングは定義された境界で発生す
 <h4 id="layer-2-臨床用語翻訳-outputcode_mapping">Layer 2: 臨床用語翻訳 (output/code_mapping)<a class="headerlink" href="#layer-2-臨床用語翻訳-outputcode_mapping" title="Permanent link">&para;</a></h4>
 <p>全内部コードは標準システム (ICD-10、LOINC/JLAC10、RxNorm/YJ) を
 使用。表示名は権威ソースから出力時にマップされる。</p>
+<p>(現在の配置: 表示名は locale 非依存の <code>clinosim/codes/data/&lt;system&gt;.yaml</code>
+(コード体系ごとに 1 ファイル、<code>en</code> 必須・<code>ja</code> 任意) にあり、
+<code>clinosim.codes.lookup</code> で解決する。内部名 → コードの対応は
+<code>clinosim/locale/&lt;country&gt;/code_mapping_*.yaml</code>。architecture-notes §6.1 参照。)</p>
 <p><strong>権威データソース (翻訳に LLM を使用してはならない):</strong></p>
 <table>
 <thead>
@@ -4577,6 +4602,14 @@ Mode 1 のスーパーセット。</p>
 </ul>
 <h3 id="ライフイベントエンジン">ライフイベントエンジン<a class="headerlink" href="#ライフイベントエンジン" title="Permanent link">&para;</a></h3>
 <p>集団はシミュレート時間を通じてライフイベントで進化する:</p>
+<blockquote>
+<p><strong>実装:</strong> <code>run_forward_loop</code>(<code>clinosim/simulator/phases/_forward_loop.py</code>)
+が 1 か月ずつ進める。年境界で <code>advance_population</code> が aging pass を回し、
+その年の地域死亡を抽選し(<code>population/mortality.py</code>、生命表 × 慢性疾患 SMR)、
+縦断状態(慢性疾患の発症・進行)を進める。各月は急性ライフイベントと ED 受診を
+発火させ、日付順に dispatch する。出生は分娩 encounter から入り、新生児は出生
+入院の退院翌日に在籍する。移住・雇用変化・一時来訪者はモデル化していない。</p>
+</blockquote>
 <p><strong>年次解像度 (全集団):</strong>
 - 加齢 (+1 年)
 - 新慢性疾患発症 (年齢 / 性別固有 incidence)
@@ -4651,6 +4684,13 @@ Mode 1 のスーパーセット。</p>
 </table>
 <hr />
 <h2 id="4-フォルダ構造">4. フォルダ構造<a class="headerlink" href="#4-フォルダ構造" title="Permanent link">&para;</a></h2>
+<blockquote>
+<p><strong>置き換え済み (設計フェーズのスケッチ)。</strong> 実際のパッケージは
+<code>clinosim/modules/</code> (38 パッケージ。<code>treatment/</code> パッケージと
+<code>modules/INTERFACES.md</code> はなく、共有型は <code>clinosim/types/</code> にある)。
+現行の構成は <a href="../module-architecture.ja/"><code>module-architecture.ja.md</code></a> と
+<a href="../../MODULES.ja.md"><code>../../MODULES.ja.md</code></a> を参照。</p>
+</blockquote>
 <div class="highlight"><pre><span></span><code><span id="__span-20-1"><a id="__codelineno-20-1" name="__codelineno-20-1" href="#__codelineno-20-1"></a>clinosim/
 </span><span id="__span-20-2"><a id="__codelineno-20-2" name="__codelineno-20-2" href="#__codelineno-20-2"></a>├── DESIGN.md              ← この文書 (設計ガイドライン)
 </span><span id="__span-20-3"><a id="__codelineno-20-3" name="__codelineno-20-3" href="#__codelineno-20-3"></a>├── docs/roadmap.md        ← ロードマップ (GitHub Issues board を指す)

@@ -2354,15 +2354,15 @@
 </span><span id="__span-0-31"><a id="__codelineno-0-31" name="__codelineno-0-31" href="#__codelineno-0-31"></a>├── types/                    # データ型定義 (Pydantic / dataclass)
 </span><span id="__span-0-32"><a id="__codelineno-0-32" name="__codelineno-0-32" href="#__codelineno-0-32"></a>│   ├── config.py             # SimulatorConfig
 </span><span id="__span-0-33"><a id="__codelineno-0-33" name="__codelineno-0-33" href="#__codelineno-0-33"></a>│   ├── patient.py            # PatientProfile, ChronicCondition
-</span><span id="__span-0-34"><a id="__codelineno-0-34" name="__codelineno-0-34" href="#__codelineno-0-34"></a>│   ├── clinical.py           # PhysiologicalState (14 変数), ClinicalDiagnosis
+</span><span id="__span-0-34"><a id="__codelineno-0-34" name="__codelineno-0-34" href="#__codelineno-0-34"></a>│   ├── clinical.py           # PhysiologicalState (19 変数), ClinicalDiagnosis
 </span><span id="__span-0-35"><a id="__codelineno-0-35" name="__codelineno-0-35" href="#__codelineno-0-35"></a>│   ├── encounter.py          # Encounter, Order, VitalSignRecord, MAR
 </span><span id="__span-0-36"><a id="__codelineno-0-36" name="__codelineno-0-36" href="#__codelineno-0-36"></a>│   ├── identity.py           # NationalIdentity, InsuranceEnrollment, IdentityTimeline
 </span><span id="__span-0-37"><a id="__codelineno-0-37" name="__codelineno-0-37" href="#__codelineno-0-37"></a>│   └── output.py             # CIFDataset, CIFPatientRecord, CIFMetadata
 </span><span id="__span-0-38"><a id="__codelineno-0-38" name="__codelineno-0-38" href="#__codelineno-0-38"></a>│
-</span><span id="__span-0-39"><a id="__codelineno-0-39" name="__codelineno-0-39" href="#__codelineno-0-39"></a>├── modules/                  # 機能モジュール (39 パッケージ、各 README 有)
+</span><span id="__span-0-39"><a id="__codelineno-0-39" name="__codelineno-0-39" href="#__codelineno-0-39"></a>├── modules/                  # 機能モジュール (38 パッケージ、各 README 有)
 </span><span id="__span-0-40"><a id="__codelineno-0-40" name="__codelineno-0-40" href="#__codelineno-0-40"></a>│   ├── disease/              # 疾患 YAML プロトコル
-</span><span id="__span-0-41"><a id="__codelineno-0-41" name="__codelineno-0-41" href="#__codelineno-0-41"></a>│   ├── encounter/            # 47 ED/外来症例 YAML
-</span><span id="__span-0-42"><a id="__codelineno-0-42" name="__codelineno-0-42" href="#__codelineno-0-42"></a>│   ├── physiology/           # 14 状態モデル + lab/vital 導出
+</span><span id="__span-0-41"><a id="__codelineno-0-41" name="__codelineno-0-41" href="#__codelineno-0-41"></a>│   ├── encounter/            # 51 ED/外来症例 YAML
+</span><span id="__span-0-42"><a id="__codelineno-0-42" name="__codelineno-0-42" href="#__codelineno-0-42"></a>│   ├── physiology/           # 19 変数の状態モデル + lab/vital 導出
 </span><span id="__span-0-43"><a id="__codelineno-0-43" name="__codelineno-0-43" href="#__codelineno-0-43"></a>│   ├── clinical_course/      # 6 archetype + 合併症 + 診断フィードバック
 </span><span id="__span-0-44"><a id="__codelineno-0-44" name="__codelineno-0-44" href="#__codelineno-0-44"></a>│   ├── diagnosis/            # ベイジアン鑑別 (LR table)
 </span><span id="__span-0-45"><a id="__codelineno-0-45" name="__codelineno-0-45" href="#__codelineno-0-45"></a>│   ├── observation/          # 3 層 lab noise + フラグ
@@ -2388,44 +2388,47 @@
 </span><span id="__span-0-65"><a id="__codelineno-0-65" name="__codelineno-0-65" href="#__codelineno-0-65"></a>│   │   │   ├── base.py                # LLMProvider Protocol + ProviderResponse
 </span><span id="__span-0-66"><a id="__codelineno-0-66" name="__codelineno-0-66" href="#__codelineno-0-66"></a>│   │   │   ├── ollama.py              # ローカル Ollama
 </span><span id="__span-0-67"><a id="__codelineno-0-67" name="__codelineno-0-67" href="#__codelineno-0-67"></a>│   │   │   ├── bedrock.py             # AWS Bedrock (boto3 遅延 import)
-</span><span id="__span-0-68"><a id="__codelineno-0-68" name="__codelineno-0-68" href="#__codelineno-0-68"></a>│   │   │   └── mock.py                # 決定的テスト provider
-</span><span id="__span-0-69"><a id="__codelineno-0-69" name="__codelineno-0-69" href="#__codelineno-0-69"></a>│   │   └── prompts/                   # ★ プロンプトテンプレート YAML tree
-</span><span id="__span-0-70"><a id="__codelineno-0-70" name="__codelineno-0-70" href="#__codelineno-0-70"></a>│   │       └── en/                    # 英語プロンプト (17 テンプレート —
-</span><span id="__span-0-71"><a id="__codelineno-0-71" name="__codelineno-0-71" href="#__codelineno-0-71"></a>│   │           │                      #   入院時 H&amp;P、退院・死亡サマリ、
-</span><span id="__span-0-72"><a id="__codelineno-0-72" name="__codelineno-0-72" href="#__codelineno-0-72"></a>│   │           │                      #   手術・処置ノート、紹介状、
-</span><span id="__span-0-73"><a id="__codelineno-0-73" name="__codelineno-0-73" href="#__codelineno-0-73"></a>│   │           │                      #   死亡証明書 contributing +
-</span><span id="__span-0-74"><a id="__codelineno-0-74" name="__codelineno-0-74" href="#__codelineno-0-74"></a>│   │           │                      #   duration、死亡退院サマリの
-</span><span id="__span-0-75"><a id="__codelineno-0-75" name="__codelineno-0-75" href="#__codelineno-0-75"></a>│   │           │                      #   section 別断片、
-</span><span id="__span-0-76"><a id="__codelineno-0-76" name="__codelineno-0-76" href="#__codelineno-0-76"></a>│   │           │                      #   narrative_seed + bundle)
-</span><span id="__span-0-77"><a id="__codelineno-0-77" name="__codelineno-0-77" href="#__codelineno-0-77"></a>│   │           ├── admission_hp.yaml
-</span><span id="__span-0-78"><a id="__codelineno-0-78" name="__codelineno-0-78" href="#__codelineno-0-78"></a>│   │           ├── discharge_summary.yaml
-</span><span id="__span-0-79"><a id="__codelineno-0-79" name="__codelineno-0-79" href="#__codelineno-0-79"></a>│   │           ├── death_summary.yaml
-</span><span id="__span-0-80"><a id="__codelineno-0-80" name="__codelineno-0-80" href="#__codelineno-0-80"></a>│   │           ├── operative_note.yaml
-</span><span id="__span-0-81"><a id="__codelineno-0-81" name="__codelineno-0-81" href="#__codelineno-0-81"></a>│   │           ├── procedure_note.yaml
-</span><span id="__span-0-82"><a id="__codelineno-0-82" name="__codelineno-0-82" href="#__codelineno-0-82"></a>│   │           ├── referral_note.yaml
-</span><span id="__span-0-83"><a id="__codelineno-0-83" name="__codelineno-0-83" href="#__codelineno-0-83"></a>│   │           └── … (clinosim/modules/llm_service/prompts/en/ 参照)
-</span><span id="__span-0-84"><a id="__codelineno-0-84" name="__codelineno-0-84" href="#__codelineno-0-84"></a>│   └── validator/            # 公開ベンチマークとの比較
-</span><span id="__span-0-85"><a id="__codelineno-0-85" name="__codelineno-0-85" href="#__codelineno-0-85"></a>│
-</span><span id="__span-0-86"><a id="__codelineno-0-86" name="__codelineno-0-86" href="#__codelineno-0-86"></a>├── simulator/                # トップレベルオーケストレーション (〜50 ファイルを phase / pipeline / dispatch 別に分割)
-</span><span id="__span-0-87"><a id="__codelineno-0-87" name="__codelineno-0-87" href="#__codelineno-0-87"></a>│   ├── engine.py             # run_beta, run_forced (C2 分割後の thin façade)
-</span><span id="__span-0-88"><a id="__codelineno-0-88" name="__codelineno-0-88" href="#__codelineno-0-88"></a>│   ├── _setup.py             # pre-flight / cohort cache / time-range helpers (C2a)
-</span><span id="__span-0-89"><a id="__codelineno-0-89" name="__codelineno-0-89" href="#__codelineno-0-89"></a>│   ├── _dispatch.py          # 病院イベント dispatcher + overlap 処理 (C2b)
-</span><span id="__span-0-90"><a id="__codelineno-0-90" name="__codelineno-0-90" href="#__codelineno-0-90"></a>│   ├── phases/               # phase runner (C2c-f): healthcare_calendar, post_discharge, readmission, ed_slot
-</span><span id="__span-0-91"><a id="__codelineno-0-91" name="__codelineno-0-91" href="#__codelineno-0-91"></a>│   ├── inpatient.py          # 入院シミュレーション (_simulate_patient)
-</span><span id="__span-0-92"><a id="__codelineno-0-92" name="__codelineno-0-92" href="#__codelineno-0-92"></a>│   ├── emergency.py          # ED 訪問
-</span><span id="__span-0-93"><a id="__codelineno-0-93" name="__codelineno-0-93" href="#__codelineno-0-93"></a>│   ├── outpatient.py         # 外来訪問
-</span><span id="__span-0-94"><a id="__codelineno-0-94" name="__codelineno-0-94" href="#__codelineno-0-94"></a>│   ├── perinatal.py          # 産科 / 新生児 encounter shell
-</span><span id="__span-0-95"><a id="__codelineno-0-95" name="__codelineno-0-95" href="#__codelineno-0-95"></a>│   ├── enrichers.py          # Enricher registry (POST_POPULATION / POST_ENCOUNTER / POST_RECORDS)
-</span><span id="__span-0-96"><a id="__codelineno-0-96" name="__codelineno-0-96" href="#__codelineno-0-96"></a>│   ├── daily_loop.py         # 入院日次 tick
-</span><span id="__span-0-97"><a id="__codelineno-0-97" name="__codelineno-0-97" href="#__codelineno-0-97"></a>│   ├── discharge_gate.py     # 退院可否評価
-</span><span id="__span-0-98"><a id="__codelineno-0-98" name="__codelineno-0-98" href="#__codelineno-0-98"></a>│   ├── vitals_pipeline.py / medication_pipeline.py / lab_pipeline.py  # 日次 pipeline
-</span><span id="__span-0-99"><a id="__codelineno-0-99" name="__codelineno-0-99" href="#__codelineno-0-99"></a>│   ├── helpers.py            # Ward/department resolver、mortality 等
-</span><span id="__span-0-100"><a id="__codelineno-0-100" name="__codelineno-0-100" href="#__codelineno-0-100"></a>│   └── cli.py                # CLI エントリ (simulate/generate、narrate、export-fhir、…)
-</span><span id="__span-0-101"><a id="__codelineno-0-101" name="__codelineno-0-101" href="#__codelineno-0-101"></a>│
-</span><span id="__span-0-102"><a id="__codelineno-0-102" name="__codelineno-0-102" href="#__codelineno-0-102"></a>└── tests/
-</span><span id="__span-0-103"><a id="__codelineno-0-103" name="__codelineno-0-103" href="#__codelineno-0-103"></a>    ├── unit/                 # モジュール単体テスト
-</span><span id="__span-0-104"><a id="__codelineno-0-104" name="__codelineno-0-104" href="#__codelineno-0-104"></a>    ├── integration/          # cross-module 統合テスト
-</span><span id="__span-0-105"><a id="__codelineno-0-105" name="__codelineno-0-105" href="#__codelineno-0-105"></a>    └── e2e/                  # E2E + golden ファイルテスト
+</span><span id="__span-0-68"><a id="__codelineno-0-68" name="__codelineno-0-68" href="#__codelineno-0-68"></a>│   │   │   ├── vllm.py                # vLLM (OpenAI 互換サーバ)
+</span><span id="__span-0-69"><a id="__codelineno-0-69" name="__codelineno-0-69" href="#__codelineno-0-69"></a>│   │   │   └── mock.py                # 決定的テスト provider
+</span><span id="__span-0-70"><a id="__codelineno-0-70" name="__codelineno-0-70" href="#__codelineno-0-70"></a>│   │   └── prompts/                   # ★ プロンプトテンプレート YAML tree
+</span><span id="__span-0-71"><a id="__codelineno-0-71" name="__codelineno-0-71" href="#__codelineno-0-71"></a>│   │       ├── ja/                    # 日本語プロンプト (同名 17 テンプレート)
+</span><span id="__span-0-72"><a id="__codelineno-0-72" name="__codelineno-0-72" href="#__codelineno-0-72"></a>│   │       └── en/                    # 英語プロンプト (17 テンプレート —
+</span><span id="__span-0-73"><a id="__codelineno-0-73" name="__codelineno-0-73" href="#__codelineno-0-73"></a>│   │           │                      #   入院時 H&amp;P、退院・死亡サマリ、
+</span><span id="__span-0-74"><a id="__codelineno-0-74" name="__codelineno-0-74" href="#__codelineno-0-74"></a>│   │           │                      #   手術・処置ノート、紹介状、
+</span><span id="__span-0-75"><a id="__codelineno-0-75" name="__codelineno-0-75" href="#__codelineno-0-75"></a>│   │           │                      #   死亡証明書 contributing +
+</span><span id="__span-0-76"><a id="__codelineno-0-76" name="__codelineno-0-76" href="#__codelineno-0-76"></a>│   │           │                      #   duration、死亡退院サマリの
+</span><span id="__span-0-77"><a id="__codelineno-0-77" name="__codelineno-0-77" href="#__codelineno-0-77"></a>│   │           │                      #   section 別断片、
+</span><span id="__span-0-78"><a id="__codelineno-0-78" name="__codelineno-0-78" href="#__codelineno-0-78"></a>│   │           │                      #   narrative_seed + bundle)
+</span><span id="__span-0-79"><a id="__codelineno-0-79" name="__codelineno-0-79" href="#__codelineno-0-79"></a>│   │           ├── admission_hp.yaml
+</span><span id="__span-0-80"><a id="__codelineno-0-80" name="__codelineno-0-80" href="#__codelineno-0-80"></a>│   │           ├── discharge_summary.yaml
+</span><span id="__span-0-81"><a id="__codelineno-0-81" name="__codelineno-0-81" href="#__codelineno-0-81"></a>│   │           ├── death_summary.yaml
+</span><span id="__span-0-82"><a id="__codelineno-0-82" name="__codelineno-0-82" href="#__codelineno-0-82"></a>│   │           ├── operative_note.yaml
+</span><span id="__span-0-83"><a id="__codelineno-0-83" name="__codelineno-0-83" href="#__codelineno-0-83"></a>│   │           ├── procedure_note.yaml
+</span><span id="__span-0-84"><a id="__codelineno-0-84" name="__codelineno-0-84" href="#__codelineno-0-84"></a>│   │           ├── referral_note.yaml
+</span><span id="__span-0-85"><a id="__codelineno-0-85" name="__codelineno-0-85" href="#__codelineno-0-85"></a>│   │           └── … (clinosim/modules/llm_service/prompts/en/ 参照)
+</span><span id="__span-0-86"><a id="__codelineno-0-86" name="__codelineno-0-86" href="#__codelineno-0-86"></a>│   └── validator/            # 公開ベンチマークとの比較
+</span><span id="__span-0-87"><a id="__codelineno-0-87" name="__codelineno-0-87" href="#__codelineno-0-87"></a>│
+</span><span id="__span-0-88"><a id="__codelineno-0-88" name="__codelineno-0-88" href="#__codelineno-0-88"></a>├── simulator/                # トップレベルオーケストレーション (〜50 ファイルを phase / pipeline / dispatch 別に分割)
+</span><span id="__span-0-89"><a id="__codelineno-0-89" name="__codelineno-0-89" href="#__codelineno-0-89"></a>│   ├── engine.py             # run_beta, run_forced (C2 分割後の thin façade)
+</span><span id="__span-0-90"><a id="__codelineno-0-90" name="__codelineno-0-90" href="#__codelineno-0-90"></a>│   ├── _setup.py             # pre-flight / cohort cache / time-range helpers (C2a)
+</span><span id="__span-0-91"><a id="__codelineno-0-91" name="__codelineno-0-91" href="#__codelineno-0-91"></a>│   ├── _dispatch.py          # 病院イベント dispatcher + overlap 処理 (C2b)
+</span><span id="__span-0-92"><a id="__codelineno-0-92" name="__codelineno-0-92" href="#__codelineno-0-92"></a>│   ├── phases/               # _forward_loop.py (run_forward_loop: 全 phase を 1 本の月次ループで前進)
+</span><span id="__span-0-93"><a id="__codelineno-0-93" name="__codelineno-0-93" href="#__codelineno-0-93"></a>│   │                         #   + phase 別 schedule/dispatch: healthcare_calendar, post_discharge, readmission, ed_slot
+</span><span id="__span-0-94"><a id="__codelineno-0-94" name="__codelineno-0-94" href="#__codelineno-0-94"></a>│   ├── inpatient.py          # 入院シミュレーション (_simulate_patient)
+</span><span id="__span-0-95"><a id="__codelineno-0-95" name="__codelineno-0-95" href="#__codelineno-0-95"></a>│   ├── emergency.py          # ED 訪問
+</span><span id="__span-0-96"><a id="__codelineno-0-96" name="__codelineno-0-96" href="#__codelineno-0-96"></a>│   ├── outpatient.py         # 外来訪問
+</span><span id="__span-0-97"><a id="__codelineno-0-97" name="__codelineno-0-97" href="#__codelineno-0-97"></a>│   ├── perinatal.py          # 産科 / 新生児 encounter shell
+</span><span id="__span-0-98"><a id="__codelineno-0-98" name="__codelineno-0-98" href="#__codelineno-0-98"></a>│   ├── enrichers.py          # Enricher registry (POST_POPULATION / POST_ENCOUNTER / POST_RECORDS)
+</span><span id="__span-0-99"><a id="__codelineno-0-99" name="__codelineno-0-99" href="#__codelineno-0-99"></a>│   ├── daily_loop.py         # 入院日次 tick
+</span><span id="__span-0-100"><a id="__codelineno-0-100" name="__codelineno-0-100" href="#__codelineno-0-100"></a>│   ├── discharge_gate.py     # 退院可否評価
+</span><span id="__span-0-101"><a id="__codelineno-0-101" name="__codelineno-0-101" href="#__codelineno-0-101"></a>│   ├── vitals_pipeline.py / medication_pipeline.py / lab_pipeline.py  # 日次 pipeline
+</span><span id="__span-0-102"><a id="__codelineno-0-102" name="__codelineno-0-102" href="#__codelineno-0-102"></a>│   ├── helpers.py            # Layer-2 → Layer-1 書き戻し、副疾患選択、投与経路 等
+</span><span id="__span-0-103"><a id="__codelineno-0-103" name="__codelineno-0-103" href="#__codelineno-0-103"></a>│   └── cli.py                # CLI エントリ (simulate/generate、narrate、export-fhir、…)
+</span><span id="__span-0-104"><a id="__codelineno-0-104" name="__codelineno-0-104" href="#__codelineno-0-104"></a>│
+</span><span id="__span-0-105"><a id="__codelineno-0-105" name="__codelineno-0-105" href="#__codelineno-0-105"></a>└── tests/
+</span><span id="__span-0-106"><a id="__codelineno-0-106" name="__codelineno-0-106" href="#__codelineno-0-106"></a>    ├── unit/                 # モジュール単体テスト
+</span><span id="__span-0-107"><a id="__codelineno-0-107" name="__codelineno-0-107" href="#__codelineno-0-107"></a>    ├── integration/          # cross-module 統合テスト
+</span><span id="__span-0-108"><a id="__codelineno-0-108" name="__codelineno-0-108" href="#__codelineno-0-108"></a>    └── e2e/                  # E2E + golden ファイルテスト
 </span></code></pre></div>
 <p>各モジュールは <strong>README.md</strong> を持ち、目的・設計原則・API・データ
 構造・拡張手順を文書化。</p>

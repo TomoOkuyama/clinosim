@@ -2539,8 +2539,8 @@ StructureDefinition canonical URL は v1.12.0 (2026-02-16) baseline
 <h2 id="スコープ">スコープ<a class="headerlink" href="#スコープ" title="Permanent link">&para;</a></h2>
 <p>急性期病院 EHR/EMR データ生成、<code>country=JP</code>。</p>
 <h3 id="6-情報項目--5-プロファイル-pr1">6 情報項目 / 5 プロファイル (PR1)<a class="headerlink" href="#6-情報項目--5-プロファイル-pr1" title="Permanent link">&para;</a></h3>
-<p>JP-CLINS v1.13.0 は「6 情報項目」ドメイン概念をカバーする
-<strong>5 StructureDefinition プロファイル</strong> を公開しています — 傷病名と
+<p>「6 情報項目」ドメイン概念は <strong>5 つの JP-CLINS eCS
+StructureDefinition プロファイル</strong> に対応します — 傷病名と
 感染症は同じ <code>JP_Condition_eCS</code> プロファイルを共有 (別個の感染症
 プロファイルなし)、DiagnosticReport は JP-CLINS スコープに <strong>含まれ
 ない</strong> (検査結果は Observation.LabResult としてのみ emit)。</p>
@@ -2582,19 +2582,62 @@ StructureDefinition canonical URL は v1.12.0 (2026-02-16) baseline
 </tr>
 </tbody>
 </table>
+<p>6 情報項目以外にも以下の eCS プロファイルを付与 (Issue #745 と
+Patient / Organization の emitter):</p>
+<table>
+<thead>
+<tr>
+<th>Resource</th>
+<th>JP-CLINS プロファイル URL</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Patient</td>
+<td><code>.../JP_Patient_eCS</code></td>
+</tr>
+<tr>
+<td>Organization (ルートの <code>hospital-main</code> と紹介先の外部病院のみ。診療科 Organization は対象外)</td>
+<td><code>.../JP_Organization_eCS</code></td>
+</tr>
+<tr>
+<td>DocumentReference</td>
+<td><code>.../JP_DocumentReference_eCS</code></td>
+</tr>
+<tr>
+<td>Immunization</td>
+<td><code>.../JP_Immunization_eCS</code></td>
+</tr>
+<tr>
+<td>Device</td>
+<td><code>.../JP_Device_eCS</code></td>
+</tr>
+<tr>
+<td>DeviceUseStatement</td>
+<td><code>.../JP_DeviceUseStatement_eCS</code></td>
+</tr>
+</tbody>
+</table>
+<p>リソース型 → URL の表は <code>clinosim/codes/data/fhir-profiles-jp-clins.yaml</code>
+にあり、<code>clinosim/modules/output/fhir_r4/post_process/profile.py</code> の
+<code>_apply_jp_clins_profile</code> が付与 (Patient と上記 Organization は
+emitter 内で直接 eCS URL を付与)。</p>
 <p>URL ルート: <code>http://jpfhir.jp/fhir/eCS/StructureDefinition/</code></p>
 <p><strong>フィルタ:</strong></p>
 <ul>
 <li>Observation: <code>category.coding[].code == "laboratory"</code> の場合のみ —
   vital sign は JP Core プロファイルのみ保持。</li>
+<li>MedicationRequest: eCS 制約 (<code>dosageInstruction</code> min=1) を満たせる
+  場合のみ — 用量・経路を持たない退院時 / 外来継続処方は JP Core
+  プロファイルのみ保持。</li>
 </ul>
 <p><strong>JP-CLINS v1.13.0 対象外</strong> (JP Core プロファイルのみで emit、
 JP-CLINS URL 非追加):</p>
 <ul>
 <li>DiagnosticReport (全 category)</li>
 <li>Observation vital-signs / social-history / survey / imaging</li>
-<li>Encounter / Patient / Organization / Practitioner / Coverage /
-  Immunization / FamilyMemberHistory 等 (JP Core が適用基底)</li>
+<li>Encounter / Practitioner / PractitionerRole / Coverage /
+  FamilyMemberHistory / MedicationAdministration 等 (JP Core が適用基底)</li>
 </ul>
 <h2 id="例">例<a class="headerlink" href="#例" title="Permanent link">&para;</a></h2>
 <div class="highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="p">{</span>
@@ -2607,7 +2650,7 @@ JP-CLINS URL 非追加):</p>
 </span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="w">  </span><span class="p">},</span>
 </span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="w">  </span><span class="nt">"medicationCodeableConcept"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
 </span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="w">    </span><span class="nt">"coding"</span><span class="p">:</span><span class="w"> </span><span class="p">[{</span>
-</span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a><span class="w">      </span><span class="nt">"system"</span><span class="p">:</span><span class="w"> </span><span class="s2">"urn:oid:1.2.392.100495.20.1.72"</span><span class="p">,</span>
+</span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a><span class="w">      </span><span class="nt">"system"</span><span class="p">:</span><span class="w"> </span><span class="s2">"http://capstandard.jp/iyaku.info/CodeSystem/YJ-code"</span><span class="p">,</span>
 </span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a><span class="w">      </span><span class="nt">"code"</span><span class="p">:</span><span class="w"> </span><span class="s2">"6113005F1023"</span><span class="p">,</span>
 </span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a><span class="w">      </span><span class="nt">"display"</span><span class="p">:</span><span class="w"> </span><span class="s2">"セフトリアキソンナトリウム注1g"</span>
 </span><span id="__span-0-14"><a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a><span class="w">    </span><span class="p">}]</span>
@@ -2624,8 +2667,8 @@ JP-CLINS URL 非追加):</p>
   を含める</li>
 <li><code>Composition.type.coding[0].system</code> =
   <code>http://jpfhir.jp/fhir/Common/CodeSystem/doc-typecodes</code>、
-  code = <code>18842-5</code>、display = <code>退院時サマリー</code>。LOINC coding は US
-  ツール互換用に secondary エントリとして保持。</li>
+  code = <code>18842-5</code>、display = <code>退院時サマリー</code> (coding は 1 件のみ、
+  別個の LOINC coding はなし)。</li>
 <li><code>Composition.section</code> は 1 つの nested tree:</li>
 <li><strong>300</strong> 構造情報セクション<ul>
 <li><strong>312</strong> 入院理由セクション</li>
@@ -2633,10 +2676,15 @@ JP-CLINS URL 非追加):</p>
 <li><strong>342</strong> 入院時診断セクション</li>
 <li><strong>352</strong> 主訴セクション</li>
 <li><strong>360</strong> 現病歴セクション</li>
+<li><strong>333</strong> 入院中経過セクション</li>
+<li><strong>324</strong> 退院時詳細セクション</li>
+<li><strong>344</strong> 退院時診断セクション</li>
+<li><strong>444</strong> 退院時投薬指示セクション</li>
+<li><strong>424</strong> 退院時方針指示セクション</li>
 </ul>
 </li>
 <li><code>section.code.system</code> =
-  <code>http://jpfhir.jp/fhir/clins/CodeSystem/jp-codeSystem-clins-document-section</code></li>
+  <code>http://jpfhir.jp/fhir/clins/CodeSystem/document-section</code></li>
 <li><code>section.text.div</code> はテンプレート narrative パスにより日本語で
   生成。β-JP-1 で任意に LLM 生成コンテンツに置換可能 (drop-in seam)。</li>
 </ul>
@@ -2665,7 +2713,7 @@ extension leak を浮上させた。</p>
   <code>http://jpfhir.jp/fhir/eReferral/StructureDefinition/JP_Composition_eReferral</code>
   を含める</li>
 <li><code>Composition.type.coding[0]</code> = <code>{system: doc-typecodes, code: 57133-1,
-  display: 診療情報提供書}</code>。LOINC coding は secondary。</li>
+  display: 診療情報提供書}</code> (coding は 1 件のみ、別個の LOINC coding はなし)。</li>
 <li><code>Composition.section</code> は 2 レベル tree:</li>
 <li>Top-level: <strong>920</strong> 紹介元 / <strong>910</strong> 紹介先 / <strong>300</strong> 構造情報</li>
 <li>300 の下: <strong>950</strong> 紹介目的 / <strong>340</strong> 傷病名・主訴 /
@@ -2673,9 +2721,10 @@ extension leak を浮上させた。</p>
 </ul>
 <p>シミュレーション近似:
 - <strong>紹介元</strong> = 当院 (clinosim は単一施設をシミュレート)。
-- <strong>紹介先</strong> = "他院" (汎用プレースホルダ; clinosim は施設間紹介先を
-  モデル化しない — 将来作業として妥当な受入病院の小プールからサンプ
-  リング可能)。
+- <strong>紹介先</strong> = <code>clinosim/locale/jp/external_organizations.yaml</code> から
+  <code>(patient_id, encounter_id)</code> の sha256 で決定的に選んだ外部病院。
+  参照された病院はそれぞれ <code>Organization</code> リソースとして emit
+  (<code>clinosim/modules/output/fhir_r4/documents/referral_orgs.py</code>)。
 - <strong>紹介目的</strong> = <code>encounter_id</code> ハッシュに基づく <code>{継続加療 / 精査
   依頼 / 他科紹介 / リハビリテーション継続}</code> の決定的選択。
 - <strong>傷病名・主訴</strong> = エンカウンター診断リスト (code + 日本語 display)
@@ -2880,10 +2929,14 @@ pin mismatch や validation failure で CI が自動 fail します。</p>
   landed; <code>clinosim/simulator/cli.py</code> で <code>generate</code> は alias として
   残存。</li>
 <li>✅ <code>_JP_CORE_PROFILES</code> shape 統一 (<code>dict[str, str]</code> →
-  <code>dict[str, list[str]]</code>) — landed; JP-CLINS eCS profile dispatch と
-  ともに <code>clinosim/modules/output/fhir_r4_adapter.py</code> に反映。</li>
+  <code>dict[str, list[str]]</code>) — landed。表はその後
+  <code>clinosim/codes/data/fhir-profiles-jp-core.yaml</code> に移り、
+  <code>clinosim/modules/output/fhir_r4/post_process/profile.py</code> の
+  <code>_apply_jp_core_profile</code> が付与。</li>
 <li>⏳ CIF <code>orders</code> リスト分割 <code>medication_orders</code> / <code>lab_orders</code>
-  (FHIR resource-type 分離との整合) — 未着手; 候補として継続。</li>
+  (FHIR resource-type 分離との整合) — 格納リストは依然 <code>orders</code>。
+  <code>CIFPatientRecord</code> には読み取り専用の <code>medication_orders</code> /
+  <code>lab_orders</code> property view のみ存在。</li>
 </ul>
 <p>各々は小規模独立リファクタ — P2-13 に折り込むより自身の PR として
 届ける方が適切。</p>

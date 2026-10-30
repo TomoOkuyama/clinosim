@@ -2472,7 +2472,7 @@ state-transition 合成健康記録ジェネレータ) と clinosim は同じ問
 <tbody>
 <tr>
 <td>モデル化アプローチ</td>
-<td>生理駆動の前向きシミュレーション (患者ごとに 14 変数の hidden state)</td>
+<td>生理駆動の前向きシミュレーション (患者ごとに 19 変数の hidden な生理状態)</td>
 <td>疾患別 state-transition モジュール</td>
 </tr>
 <tr>
@@ -2487,7 +2487,7 @@ state-transition 合成健康記録ジェネレータ) と clinosim は同じ問
 </tr>
 <tr>
 <td>JP Core プロファイル準拠</td>
-<td>16 resource type</td>
+<td>21 resource type</td>
 <td>設計目標ではない</td>
 </tr>
 <tr>
@@ -2554,17 +2554,18 @@ Patient / Encounter / Observation / … を保持)。</p>
 参照。</p>
 <h2 id="2--clinosim-eval-で-synthea-コホートを採点">2 — <code>clinosim eval</code> で Synthea コホートを採点<a class="headerlink" href="#2--clinosim-eval-で-synthea-コホートを採点" title="Permanent link">&para;</a></h2>
 <p><code>clinosim eval</code> を Synthea の <code>fhir/</code> 出力に向けるだけ — レイアウト
-は自動検出され、Bundle ファイルは併置される
-<code>fhir_r4/&lt;ResourceType&gt;.ndjson</code> に正規化されます:</p>
+は自動検出され、Bundle ファイルは <code>fhir/</code> ディレクトリと同階層の
+<code>&lt;parent&gt;/synthea-normalized/fhir_r4/&lt;ResourceType&gt;.ndjson</code> に正規化
+されます:</p>
 <div class="highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>clinosim<span class="w"> </span><span class="nb">eval</span><span class="w"> </span>-d<span class="w"> </span>./synthea-out/fhir
 </span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="c1"># clinosim eval: detected Synthea layout — normalizing into ./synthea-out/synthea-normalized</span>
 </span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="c1"># clinosim eval: wrote 12345 resources across 18 ResourceType(s)</span>
 </span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="c1"># ...</span>
 </span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="c1"># Overall score: 82.4 / 100 (WARN)</span>
 </span></code></pre></div>
-<p>正規化は決定的 (同じ Bundle → 同じ NDJSON バイト); 同一入力に対する
-以降の <code>eval</code> 実行は on-disk <code>synthea-normalized/</code> を再利用 (削除
-しない限り)。</p>
+<p>正規化は決定的 (同じ Bundle → 同じ NDJSON バイト)。Synthea
+ディレクトリに対する <code>eval</code> 実行のたびに target の <code>fhir_r4/</code> を削除
+して再正規化するので、NDJSON は常に現在の Bundle を反映します。</p>
 <p><code>--synthea-normalize</code> で targetディレクトリを強制指定:</p>
 <div class="highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>clinosim<span class="w"> </span><span class="nb">eval</span><span class="w"> </span>-d<span class="w"> </span>./synthea-out/fhir<span class="w"> </span><span class="se">\</span>
 </span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="w">    </span>--synthea-normalize<span class="w"> </span>/tmp/synthea-flat<span class="w"> </span><span class="se">\</span>
@@ -2592,7 +2593,9 @@ Patient / Encounter / Observation / … を保持)。</p>
 </span><span id="__span-5-9"><a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a><span class="s">print(f"{'overall':&lt;15} {a['overall_score']:&gt;10.1f} {b['overall_score']:&gt;10.1f}")</span>
 </span><span id="__span-5-10"><a id="__codelineno-5-10" name="__codelineno-5-10" href="#__codelineno-5-10"></a><span class="s">PY</span>
 </span></code></pre></div>
-<p>出力例 (実際の比較は異なる):</p>
+<p>出力例 (実際の比較は異なる。実際のレポートには国 条件軸 —
+<code>jp_clins_lab_compliance</code> / <code>jp_core_compliance</code> /
+<code>us_core_compliance</code> — の行も 1 軸 1 行で含まれるが、ここでは省略):</p>
 <div class="highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>axis            synthea    clinosim
 </span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>structural         98.5      100.0
 </span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>clinical           74.2       77.8
@@ -2615,13 +2618,14 @@ Patient / Encounter / Observation / … を保持)。</p>
   check は Synthea の疾患別検査モジュールと eval band が合致しない
   ペアリングを浮上させる。どちらの結果も本質的に「間違い」ではない
   — 何を測っているかの問題。</li>
-<li><strong>Locale.</strong> clinosim の JP check
+<li><strong>Locale.</strong> 正規化された Synthea 出力はフラットな <code>fhir_r4/</code>
+  レイアウトなので、locale は先頭 Patient の <code>address.country</code> から
+  自動検出される (fallback: US)。したがって Synthea コホートは US
+  check で採点され、clinosim の JP check
   (<code>japanese_displays_on_condition</code> / <code>jlac10_or_loinc_on_lab</code> /
-  <code>yj_code_on_medications</code> / <code>jp_core_profile_declared</code>) は Synthea
-  出力に対して fail する — Synthea は US ファーストなので。eval
-  ツールは Synthea がこれらの閾値を狙って作られていないことを指摘
-  しているのであり、Synthea が壊れているわけではない。Synthea を
-  採点するときは <code>--country US</code> で locale 軸を US check に制限する。</li>
+  <code>yj_code_on_medications</code> / <code>jp_core_profile_declared</code>) や JP
+  compliance 軸は適用されない — Synthea は US ファーストなので、
+  <code>us-100</code> のような US の clinosim コホートと比較する。</li>
 </ul>
 <h2 id="両方に公平なルールを追加する">両方に公平なルールを追加する<a class="headerlink" href="#両方に公平なルールを追加する" title="Permanent link">&para;</a></h2>
 <p>比較を公開する予定なら、

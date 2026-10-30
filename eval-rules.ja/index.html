@@ -2474,7 +2474,9 @@
 <li><strong>Check weight</strong> = severity: CRITICAL = 3、MAJOR = 2、MINOR = 1</li>
 <li><strong>Pass-weight</strong> = PASS 1.0、WARN 0.5、FAIL 0.0、N/A 0.0</li>
 </ul>
-<p><strong>Overall score</strong> = 3 軸スコアの算術平均。
+<p><strong>Overall score</strong> = レポート中の全軸結果 (軸 × 国サブディレクトリごと
+に 1 件) のスコアの算術平均。コホートの locale に該当しない国 条件軸は
+check を返さず score 0.0 となり、それでもこの平均に含まれる。
 <strong>Overall status</strong> = 軸横断で FAIL / WARN / PASS の最悪。</p>
 <hr />
 <h2 id="structural-軸-5-checks">Structural 軸 (5 checks)<a class="headerlink" href="#structural-軸-5-checks" title="Permanent link">&para;</a></h2>
@@ -2640,24 +2642,30 @@
 </tr>
 </tbody>
 </table>
-<p>ペアリング追加:
-<a href="https://github.com/TomoOkuyama/clinosim/blob/master/clinosim/eval/axes/clinical.py"><code>clinosim/eval/axes/clinical.py</code></a>
-の <code>_CONDITION_LAB_PAIRINGS</code> に append し、このページにソースを引用。</p>
+<p>ペアリングは
+<a href="https://github.com/TomoOkuyama/clinosim/blob/master/clinosim/codes/data/condition-lab-pairings.yaml"><code>clinosim/codes/data/condition-lab-pairings.yaml</code></a>
+から読み込まれる (<code>lab_values_physiological_range</code> の範囲も同様に
+<code>clinosim/codes/data/lab-plausibility-bounds.yaml</code> から)。ペアリング
+追加はこの yaml の <code>pairings:</code> 配下にエントリを追加し、このページに
+ソースを引用。</p>
 <h3 id="medication_lab_coherence_warfarin-major"><code>medication_lab_coherence_warfarin</code> (MAJOR)<a class="headerlink" href="#medication_lab_coherence_warfarin-major" title="Permanent link">&para;</a></h3>
 <p>患者が warfarin (RxNorm <code>11289</code> または YJ code プレフィックス
 <code>3332001</code>) の MedicationRequest を持つ場合、最も早い warfarin
-<code>authoredOn</code> <strong>以降</strong> に採取された全 PT-INR observation (LOINC
-<code>6301-6</code>) は <strong>2.0–3.5</strong> の範囲内でなければならない。違反率は
-ペアリングと同じ 5% / 25% 閾値。</p>
+<code>authoredOn</code> から <strong>5 日以上後</strong> に採取された全 PT-INR observation
+(LOINC <code>6301-6</code>) は <strong>2.0–3.5</strong> の範囲内でなければならない。最初の
+5 日間 (INR がまだベースラインから上昇中の導入期) の採取は除外。
+違反率はペアリングと同じ 5% / 25% 閾値。</p>
 <p>このバンドは AF 脳卒中予防適応の 2.0–3.0 目標より広い。合併症
 (肝硬変、DIC) が正当に INR を 3.0–3.5 側にシフトするため。生理
 エンジン (AD-57) の Warfarin PT-INR カップリングはこれに合わせて
 較正済み。</p>
 <hr />
 <h2 id="locale-軸-5-checks">Locale 軸 (5 checks)<a class="headerlink" href="#locale-軸-5-checks" title="Permanent link">&para;</a></h2>
-<p>コホート country は <code>Patient.address.country</code> または最初の Patient
-の JP Core <code>meta.profile</code> の有無から自動検出。<code>--country US</code> /
-<code>--country JP</code> で上書き可能。</p>
+<p>コホート country は <code>&lt;root&gt;/&lt;country&gt;/fhir_r4/</code> レイアウトでは国
+サブディレクトリ名、フラットな <code>&lt;root&gt;/fhir_r4/</code> レイアウトでは最初の
+Patient の <code>address.country</code> または JP Core <code>meta.profile</code> の有無から
+自動検出 (fallback: US)。<code>--country</code> は採点対象の国サブディレクトリを
+選ぶもので、検出された locale を上書きはしない。</p>
 <h3 id="jp-コホート">JP コホート<a class="headerlink" href="#jp-コホート" title="Permanent link">&para;</a></h3>
 <table>
 <thead>
@@ -2721,23 +2729,55 @@
 </tbody>
 </table>
 <h2 id="jp-clins-lab-compliance-軸-jp-コホートのみ">JP-CLINS lab compliance 軸 (JP コホートのみ)<a class="headerlink" href="#jp-clins-lab-compliance-軸-jp-コホートのみ" title="Permanent link">&para;</a></h2>
-<p><code>JP_Observation_LabResult_eCS</code> 準拠を
-<code>Observation.code.coding</code> + <code>Observation.specimen</code> + <code>Specimen.type</code>
-で測定。閾値: 100 % at master invariant に対し strict 1.0 (eCS は
-<code>code.coding</code> が Open slicing で discriminator=system+display なので
-validator pass 数単独では不十分 — <code>clinosim/eval/axes/jp_clins_lab_compliance.py</code> 参照)。</p>
+<p><code>JP_Observation_LabResult_eCS</code> 準拠を検査 Observation の
+<code>code.coding</code> で測定。閾値: 100 % at master invariant に対し strict 1.0
+(eCS は <code>code.coding</code> が Open slicing で discriminator=system+display
+なので validator pass 数単独では不十分 —
+<code>clinosim/eval/axes/jp_clins_lab_compliance.py</code> 参照)。全 check は
+MAJOR、検査 Observation が無いコホートでは各 check が N/A。</p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Passes when</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>jp_clins_lab_cs_usage</code></td>
+<td>全検査 Observation が JP-CLINS 定義の CodeSystem を持つ</td>
+</tr>
+<tr>
+<td><code>jp_clins_lab_fixed_display</code></td>
+<td>slice 型の全 coding が eCS の固定 display を持つ</td>
+</tr>
+<tr>
+<td><code>jp_clins_lab_rule_satisfaction</code></td>
+<td>全検査 Observation が <code>localLaboCode</code> + typed coding 1 つを持つ</td>
+</tr>
+</tbody>
+</table>
 <h2 id="jp-core-compliance-軸-jp-コホートのみ">JP Core compliance 軸 (JP コホートのみ)<a class="headerlink" href="#jp-core-compliance-軸-jp-コホートのみ" title="Permanent link">&para;</a></h2>
 <p>JP Core Patient / Encounter / MedicationRequest の must-support
 element への narrow-gate 準拠測定。閾値 1.0 at 100 %-at-master
 invariant のみ。Kana (SYL) 表現 coverage の拡張は別途管理。full HL7
 FHIR Validator 走行 (<code>jp-validate.yml</code>) は on-demand の authoritative
-compliance surface。<code>clinosim/eval/axes/jp_core_compliance.py</code> 参照。</p>
+compliance surface。<code>clinosim/eval/axes/jp_core_compliance.py</code> 参照。
+Check (全て MAJOR): <code>jp_core_patient_profile_declared</code>、
+<code>jp_core_patient_identifier_present</code>、<code>jp_core_patient_name_family_given</code>、
+<code>jp_core_patient_kanji_representation</code>、<code>jp_core_encounter_class_present</code>、
+<code>jp_core_encounter_period_present</code>、
+<code>jp_core_medicationrequest_medication_coding_present</code>。</p>
 <h2 id="us-core-compliance-軸-us-コホートのみ">US Core compliance 軸 (US コホートのみ)<a class="headerlink" href="#us-core-compliance-軸-us-コホートのみ" title="Permanent link">&para;</a></h2>
 <p>US Core AllPatients / Encounter / Condition の must-support element
 への narrow-gate 準拠測定。閾値 1.0 at 100 %-at-master invariant
 のみ (race/ethnicity extension coverage のような拡張は別途管理)。
 Phase 3 の full validator 走行 (<code>us-validate.yml</code>) は on-demand の
-authoritative compliance surface。<code>clinosim/eval/axes/us_core_compliance.py</code> 参照。</p>
+authoritative compliance surface。<code>clinosim/eval/axes/us_core_compliance.py</code> 参照。
+Check (全て MAJOR): <code>us_core_patient_identifier_present</code>、
+<code>us_core_patient_name_family_given</code>、<code>us_core_patient_birthsex_extension_valid</code>、
+<code>us_core_patient_race_extension_shape</code>、<code>us_core_patient_ethnicity_extension_shape</code>、
+<code>us_core_encounter_class_v3_actcode</code>、<code>us_core_condition_category_system</code>。</p>
 <hr />
 <h2 id="ルール追加">ルール追加<a class="headerlink" href="#ルール追加" title="Permanent link">&para;</a></h2>
 <ol>

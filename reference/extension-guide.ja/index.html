@@ -2386,7 +2386,7 @@
 <ol>
 <li><code>clinosim/modules/encounter/reference_data/&lt;condition_id&gt;.yaml</code>
    を作成。</li>
-<li><code>icd10_code</code> と <code>icd10_display</code> を含める。</li>
+<li><code>icd10_code</code> と <code>icd10_display</code> を含める (<code>emergency</code> の condition で対象年齢を制限する場合は <code>min_age</code> / <code>max_age</code> を設定 — ED の抽選は受診年の年齢で gate する)。</li>
 <li><code>icd10_code</code> を「新規疾患追加」ステップ 3 に従って登録。</li>
 <li>テスト: <code>clinosim test-encounter &lt;condition_id&gt;</code> および
    <code>pytest tests/unit/test_diagnosis_code_coverage.py</code>。</li>
@@ -2395,10 +2395,11 @@
 <ol>
 <li><code>clinosim/locale/&lt;country_code&gt;/</code> フォルダを作成</li>
 <li><code>names.yaml</code>、<code>addresses.yaml</code>、<code>demographics.yaml</code>、
-   <code>reference_range_lab.yaml</code>、<code>formatting.yaml</code> を追加</li>
+   <code>reference_range_lab.yaml</code>、<code>formatting.yaml</code> と <code>code_mapping_*.yaml</code> を追加</li>
 <li><code>clinosim/locale/shared/naming_rules.yaml</code> にエントリ追加</li>
 <li>(オプション) 国固有コードシステムを <code>codes/data/</code> に追加</li>
 </ol>
+<p>完全なチェックリスト: <a href="../../add-your-country.ja/"><code>../add-your-country.ja.md</code></a>。</p>
 <h3 id="新規言語追加">新規言語追加<a class="headerlink" href="#新規言語追加" title="Permanent link">&para;</a></h3>
 <p><code>clinosim/codes/data/*.yaml</code> の各エントリに新言語キーを追加:</p>
 <div class="highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nt">N10</span><span class="p">:</span>

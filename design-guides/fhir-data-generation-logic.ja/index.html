@@ -2823,7 +2823,7 @@
 
 <h1 id="fhir-data-generation--logic-design-guide">FHIR Data Generation — Logic Design Guide<a class="headerlink" href="#fhir-data-generation--logic-design-guide" title="Permanent link">&para;</a></h1>
 <p><strong>Status:</strong> Active(2026-06-29、PR1 ServiceRequest で確立)
-<strong>Audience:</strong> clinosim FHIR resource builder を追加・拡張する新規開発者。正規レイアウト: builder は <code>clinosim/modules/output/fhir_r4/</code> 配下 (<code>conditions/</code> / <code>labs/</code> / <code>procedures/</code> / <code>documents/</code> 等の domain sub-package) にあり、<code>_BUNDLE_BUILDERS</code> registry と <code>register_bundle_builder()</code> は <code>clinosim/modules/output/fhir_r4/__init__.py</code>。歴史的な <code>clinosim/modules/output/fhir_r4_adapter.py</code> は現在は薄い互換 re-export
+<strong>Audience:</strong> clinosim FHIR resource builder を追加・拡張する新規開発者。正規レイアウト: builder は <code>clinosim/modules/output/fhir_r4/</code> 配下 (<code>conditions/</code> / <code>labs/</code> / <code>procedures/</code> / <code>documents/</code> 等の domain sub-package) にあり、<code>_BUNDLE_BUILDERS</code> registry と <code>register_bundle_builder()</code> は <code>clinosim/modules/output/fhir_r4/builder.py</code> で定義され <code>clinosim/modules/output/fhir_r4/__init__.py</code> から re-export される。歴史的な <code>clinosim/modules/output/fhir_r4_adapter.py</code> は現在は薄い互換 re-export
 <strong>Scope:</strong> Layer 4 = FHIR R4 resource builder のみ。CIF 生成(Layers 1-3)は別 guide → <a href="../../CONTRIBUTING-modules.ja/"><code>docs/CONTRIBUTING-modules.md</code></a> を参照</p>
 <p>clinosim FHIR 生成は <strong>CIF を入力として、FHIR R4 resource dict を出力する</strong> thin な変換層。FHIR 仕様 / US Core / JP Core 準拠 / 多言語 display 解決 / identifier 規約 が中心の関心事。</p>
 <p>CIF 側(Layers 1-3 = 参照 YAML、loader、CIF generation module)の design rule は既に <a href="../../CONTRIBUTING-modules.ja/"><code>docs/CONTRIBUTING-modules.md</code></a> に詳述されている(canonical path / <code>@lru_cache</code> 規約 / <code>_validate_*</code> 6-layer + 7-layer system defense / sub-seed / panel-aware grouping / etc.)。重複させない — 本 guide は <strong>FHIR builder layer の責務だけ</strong> を扱う。</p>
@@ -2920,7 +2920,7 @@
 </tr>
 <tr>
 <td>6</td>
-<td><code>clinosim/modules/output/fhir_r4/__init__.py:_BUNDLE_BUILDERS</code> に登録 OR <code>register_bundle_builder()</code> で追加</td>
+<td><code>clinosim/modules/output/fhir_r4/builder.py:_BUNDLE_BUILDERS</code> に登録 OR <code>register_bundle_builder()</code> で追加</td>
 <td>Section B.6</td>
 </tr>
 <tr>
@@ -3067,7 +3067,7 @@
 <p>builder は <code>ctx</code> の field しか触らない(global state なし、AD-16 維持)。</p>
 <h3 id="b6-builder-の登録ad-56">B.6 builder の登録(AD-56)<a class="headerlink" href="#b6-builder-の登録ad-56" title="Permanent link">&para;</a></h3>
 <p><strong>Built-in resource(near-essential / always-on)</strong> = <code>_BUNDLE_BUILDERS</code> list に直接追加:</p>
-<div class="highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="c1"># clinosim/modules/output/fhir_r4/__init__.py</span>
+<div class="highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="c1"># clinosim/modules/output/fhir_r4/builder.py</span>
 </span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">clinosim.modules.output.fhir_r4.</span><span class="o">&lt;</span><span class="n">domain</span><span class="o">&gt;.&lt;</span><span class="n">topic</span><span class="o">&gt;</span> <span class="kn">import</span><span class="w"> </span><span class="nn">_bb_</span><span class="o">&lt;</span><span class="n">topic</span><span class="o">&gt;</span>
 </span><span id="__span-8-3"><a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a>
 </span><span id="__span-8-4"><a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a><span class="n">_BUNDLE_BUILDERS</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Callable</span><span class="p">[[</span><span class="n">BundleContext</span><span class="p">],</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">]]]</span> <span class="o">=</span> <span class="p">[</span>
@@ -3295,7 +3295,7 @@
 </span><span id="__span-20-2"><a id="__codelineno-20-2" name="__codelineno-20-2" href="#__codelineno-20-2"></a>    <span class="n">panels</span> <span class="o">=</span> <span class="n">yaml</span><span class="o">.</span><span class="n">safe_load</span><span class="p">(</span><span class="nb">open</span><span class="p">(</span><span class="n">SOME_PATH</span><span class="p">))</span>  <span class="c1"># NG — Layer 4 が Layer 1 を直接読む</span>
 </span></code></pre></div>
 <p><strong>Fix</strong>: Layer 2 canonical loader を import(<code>from clinosim.modules.order.panel_grouping import load_panel_definitions</code>)。</p>
-<p><strong>Precedent(共通ロジック統一 2026-07-02)</strong>: <code>_fhir_localization.py</code> は locale の shared YAML(<code>med_terms_ja.yaml</code> / the retired <code>drug_names_ja.yaml</code> (deleted #1876; replaced by <code>load_narrative_display_dict</code> catalog UNION) / <code>department_display.yaml</code>)を builder 内 <code>yaml.safe_load</code> で inline 読みしていたが、<code>clinosim/locale/loaders/</code> の canonical cached loader(<code>medical_display.py:load_med_terms_ja()</code> / <code>narrative.py:load_narrative_display_dict()</code> / <code>medical_display.py:load_department_display()</code>、いずれも <code>clinosim/locale/loader.py</code> 経由で後方互換 re-export)に移設済。locale データが必要な builder はこれらを import する — 新たな inline YAML read を builder に書かない。cached loader の戻り値は共有 instance につき mutate 禁止。</p>
+<p><strong>Precedent(共通ロジック統一 2026-07-02)</strong>: <code>_fhir_localization.py</code>(現 <code>fhir_r4/lib/localization.py</code>)は locale の shared YAML(<code>med_terms_ja.yaml</code> / the retired <code>drug_names_ja.yaml</code> (deleted #1876; replaced by <code>load_narrative_display_dict</code> catalog UNION) / <code>department_display.yaml</code>)を builder 内 <code>yaml.safe_load</code> で inline 読みしていたが、<code>clinosim/locale/loaders/</code> の canonical cached loader(<code>medical_display.py:load_med_terms_ja()</code> / <code>narrative.py:load_narrative_display_dict()</code> / <code>medical_display.py:load_department_display()</code>、いずれも <code>clinosim/locale/loader.py</code> 経由で後方互換 re-export)に移設済。locale データが必要な builder はこれらを import する — 新たな inline YAML read を builder に書かない。cached loader の戻り値は共有 instance につき mutate 禁止。</p>
 <h3 id="e4--cif-に-display-文字列を書き込むad-30-違反">E.4 ❌ CIF に display 文字列を書き込む(AD-30 違反)<a class="headerlink" href="#e4--cif-に-display-文字列を書き込むad-30-違反" title="Permanent link">&para;</a></h3>
 <p>CIF generation の anti-pattern だが、FHIR builder から CIF を変更する誘惑も同じ:</p>
 <div class="highlight"><pre><span></span><code><span id="__span-21-1"><a id="__codelineno-21-1" name="__codelineno-21-1" href="#__codelineno-21-1"></a><span class="k">def</span><span class="w"> </span><span class="nf">_build_resource</span><span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="n">ctx</span><span class="p">):</span>
@@ -3307,12 +3307,12 @@
 </span></code></pre></div>
 <p><strong>Fix</strong>: <code>SR_ID_PREFIX = "sr-"</code> 定数を import + <code>f"{SR_ID_PREFIX}{order.order_id}"</code>。</p>
 <h3 id="e6--同じ-display-を-2-builder-で再計算">E.6 ❌ 同じ display を 2 builder で再計算<a class="headerlink" href="#e6--同じ-display-を-2-builder-で再計算" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><span id="__span-23-1"><a id="__codelineno-23-1" name="__codelineno-23-1" href="#__codelineno-23-1"></a><span class="c1"># _fhir_observations.py</span>
+<div class="highlight"><pre><span></span><code><span id="__span-23-1"><a id="__codelineno-23-1" name="__codelineno-23-1" href="#__codelineno-23-1"></a><span class="c1"># fhir_r4/labs/observations.py</span>
 </span><span id="__span-23-2"><a id="__codelineno-23-2" name="__codelineno-23-2" href="#__codelineno-23-2"></a><span class="n">display_a</span> <span class="o">=</span> <span class="n">code_lookup</span><span class="p">(</span><span class="s2">"loinc"</span><span class="p">,</span> <span class="s2">"58410-2"</span><span class="p">,</span> <span class="s2">"ja"</span><span class="p">)</span>
-</span><span id="__span-23-3"><a id="__codelineno-23-3" name="__codelineno-23-3" href="#__codelineno-23-3"></a><span class="c1"># _fhir_diagnostic_report.py</span>
+</span><span id="__span-23-3"><a id="__codelineno-23-3" name="__codelineno-23-3" href="#__codelineno-23-3"></a><span class="c1"># fhir_r4/labs/diagnostic_report.py</span>
 </span><span id="__span-23-4"><a id="__codelineno-23-4" name="__codelineno-23-4" href="#__codelineno-23-4"></a><span class="n">display_b</span> <span class="o">=</span> <span class="n">code_lookup</span><span class="p">(</span><span class="s2">"loinc"</span><span class="p">,</span> <span class="s2">"58410-2"</span><span class="p">,</span> <span class="s2">"ja"</span><span class="p">)</span>
 </span></code></pre></div>
-<p>技術的には問題ないが、もし display 加工(短縮 / 形式変換)が両 builder に必要なら共通 helper を <code>_fhir_common.py</code> 等に抽出。</p>
+<p>技術的には問題ないが、もし display 加工(短縮 / 形式変換)が両 builder に必要なら共通 helper を <code>fhir_r4/lib/common.py</code> 等に抽出。</p>
 <h3 id="e7--resource-id-collision-に無頓着">E.7 ❌ Resource id collision に無頓着<a class="headerlink" href="#e7--resource-id-collision-に無頓着" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><span id="__span-24-1"><a id="__codelineno-24-1" name="__codelineno-24-1" href="#__codelineno-24-1"></a><span class="n">sr</span><span class="p">[</span><span class="s2">"id"</span><span class="p">]</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"sr-</span><span class="si">{</span><span class="n">enc</span><span class="si">}</span><span class="s2">-</span><span class="si">{</span><span class="n">panel</span><span class="si">}</span><span class="s2">-1"</span>   <span class="c1"># 同 encounter 内 panel 複数回でも 1 で固定 = collision</span>
 </span></code></pre></div>

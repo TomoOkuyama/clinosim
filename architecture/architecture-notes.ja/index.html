@@ -3056,6 +3056,9 @@ truth となる新規 <code>clinosim/codes/</code> モジュールを作成す�
 </span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>    ├── cpt.yaml         # 25 コード
 </span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>    └── k-codes.yaml     # 2 コード
 </span></code></pre></div>
+<p>(構成と件数は AD-30 決定時点のもの。現在の <code>codes/data/</code> は 72 YAML
+ファイルで、体系別の最新一覧は
+<a href="../../clinosim/codes/README.ja.md"><code>../../clinosim/codes/README.ja.md</code></a> を参照。)</p>
 <h3 id="スキーマ">スキーマ<a class="headerlink" href="#スキーマ" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="nt">metadata</span><span class="p">:</span>
 </span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="w">  </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="s">"ICD-10-CM"</span>
@@ -3164,6 +3167,10 @@ NDJSON に置き換える:</p>
 </span><span id="__span-4-14"><a id="__codelineno-4-14" name="__codelineno-4-14" href="#__codelineno-4-14"></a>├── Organization.ndjson                     # 病院 + 診療科
 </span><span id="__span-4-15"><a id="__codelineno-4-15" name="__codelineno-4-15" href="#__codelineno-4-15"></a>└── Location.ndjson                         # 病棟 + ベッド
 </span></code></pre></div>
+<p>(置き換え済みの詳細: 現在は独立した <code>_facility.json</code> はなく、facility
+master リソース (Organization / Location / Device) は各 resource type の
+NDJSON に 1 回だけ書かれ、出力は emit される resource type ごとに 1
+NDJSON ファイルとなる。)</p>
 <h3 id="resource-id-一意性">Resource id 一意性<a class="headerlink" href="#resource-id-一意性" title="Permanent link">&para;</a></h3>
 <p>critical な FHIR R4 不変条件: <code>Resource.id</code> はその resource type
 内で一意でなければならない。古い per-encounter Bundle 方式は各
@@ -3308,7 +3315,8 @@ catchment と長い LOS では現実的な 80% ベッド稼働率に近づく。
    なランダムベッド番号はもうない。</p>
 </li>
 <li>
-<p><strong>FHIR Location リソース</strong>: <code>_facility.json</code> は病棟ごとに 1
+<p><strong>FHIR Location リソース</strong>: facility master リソース (現在は
+   <code>Location.ndjson</code> に出力、当初は <code>_facility.json</code>) は病棟ごとに 1
    <code>Location</code> (physicalType=wa) とベッドごとに 1 (physicalType=bd、
    病棟の <code>partOf</code>) を含む。Encounter はベッド Location を参照
    し、それが <code>partOf</code> 経由で病棟を参照。</p>
@@ -3324,7 +3332,7 @@ catchment と長い LOS では現実的な 80% ベッド稼働率に近づく。
 <hr />
 <h2 id="65-モジュール一覧の更新">6.5 モジュール一覧の更新<a class="headerlink" href="#65-モジュール一覧の更新" title="Permanent link">&para;</a></h2>
 <p>v0.1-alpha 時点のモジュール snapshot は成長し、現在
-<strong><code>clinosim/modules/</code> 配下 33 top-level package</strong> + <code>codes/</code> +
+<strong><code>clinosim/modules/</code> 配下 38 top-level package</strong> + <code>codes/</code> +
 <code>locale/</code> + <code>types/</code> foundation package を持つ。canonical な
 モジュール一覧 (layer / sub-seed offset / enricher stage・order 付き)
 は <a href="../../MODULES.ja.md"><code>../../MODULES.ja.md</code></a> を参照。以下は現行
@@ -3335,26 +3343,31 @@ catchment と長い LOS では現実的な 80% ベッド稼働率に近づく。
 </span><span id="__span-7-4"><a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a>├── config/                 病院 + LLM-service YAML
 </span><span id="__span-7-5"><a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a>├── types/                  共有データ型 (Pydantic + dataclass)
 </span><span id="__span-7-6"><a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a>├── modules/
-</span><span id="__span-7-7"><a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a>│   ├── (Simulation)        physiology (14 変数)、observation、order、
+</span><span id="__span-7-7"><a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a>│   ├── (Simulation)        physiology (19 変数)、observation、order、
 </span><span id="__span-7-8"><a id="__codelineno-7-8" name="__codelineno-7-8" href="#__codelineno-7-8"></a>│   │                       clinical_course、diagnosis、procedure、
-</span><span id="__span-7-9"><a id="__codelineno-7-9" name="__codelineno-7-9" href="#__codelineno-7-9"></a>│   │                       encounter (46 YAML)、disease (32 YAML)
+</span><span id="__span-7-9"><a id="__codelineno-7-9" name="__codelineno-7-9" href="#__codelineno-7-9"></a>│   │                       encounter (51 YAML)、disease (36 YAML)
 </span><span id="__span-7-10"><a id="__codelineno-7-10" name="__codelineno-7-10" href="#__codelineno-7-10"></a>│   ├── (Population)        population、patient、identity、pediatric、
 </span><span id="__span-7-11"><a id="__codelineno-7-11" name="__codelineno-7-11" href="#__codelineno-7-11"></a>│   │                       staff、facility、healthcare_system、
 </span><span id="__span-7-12"><a id="__codelineno-7-12" name="__codelineno-7-12" href="#__codelineno-7-12"></a>│   │                       family_history、sdoh
-</span><span id="__span-7-13"><a id="__codelineno-7-13" name="__codelineno-7-13" href="#__codelineno-7-13"></a>│   ├── (Enrichment)        POST_POPULATION: allergy、identity
-</span><span id="__span-7-14"><a id="__codelineno-7-14" name="__codelineno-7-14" href="#__codelineno-7-14"></a>│   │                       POST_ENCOUNTER: device、hai、antibiotic、
-</span><span id="__span-7-15"><a id="__codelineno-7-15" name="__codelineno-7-15" href="#__codelineno-7-15"></a>│   │                                       imaging、triage、
-</span><span id="__span-7-16"><a id="__codelineno-7-16" name="__codelineno-7-16" href="#__codelineno-7-16"></a>│   │                                       nursing_assignment、document
-</span><span id="__span-7-17"><a id="__codelineno-7-17" name="__codelineno-7-17" href="#__codelineno-7-17"></a>│   │                       POST_RECORDS:  nursing、immunization、
-</span><span id="__span-7-18"><a id="__codelineno-7-18" name="__codelineno-7-18" href="#__codelineno-7-18"></a>│   │                                      family_history、code_status、
-</span><span id="__span-7-19"><a id="__codelineno-7-19" name="__codelineno-7-19" href="#__codelineno-7-19"></a>│   │                                      care_level、monitoring、
-</span><span id="__span-7-20"><a id="__codelineno-7-20" name="__codelineno-7-20" href="#__codelineno-7-20"></a>│   │                                      health_checkup
-</span><span id="__span-7-21"><a id="__codelineno-7-21" name="__codelineno-7-21" href="#__codelineno-7-21"></a>│   └── (Output)            output (FHIR R4 Bulk NDJSON、AD-31 で
-</span><span id="__span-7-22"><a id="__codelineno-7-22" name="__codelineno-7-22" href="#__codelineno-7-22"></a>│                                    per-theme builder subpackage に
-</span><span id="__span-7-23"><a id="__codelineno-7-23" name="__codelineno-7-23" href="#__codelineno-7-23"></a>│                                    split 済)、llm_service、validator
-</span><span id="__span-7-24"><a id="__codelineno-7-24" name="__codelineno-7-24" href="#__codelineno-7-24"></a>└── simulator/              トップレベル orchestration
-</span><span id="__span-7-25"><a id="__codelineno-7-25" name="__codelineno-7-25" href="#__codelineno-7-25"></a>                            (engine、inpatient、emergency、outpatient、
-</span><span id="__span-7-26"><a id="__codelineno-7-26" name="__codelineno-7-26" href="#__codelineno-7-26"></a>                             AD-56 の enrichers.py registry)
+</span><span id="__span-7-13"><a id="__codelineno-7-13" name="__codelineno-7-13" href="#__codelineno-7-13"></a>│   ├── (Enrichment)        POST_POPULATION: allergy、identity、
+</span><span id="__span-7-14"><a id="__codelineno-7-14" name="__codelineno-7-14" href="#__codelineno-7-14"></a>│   │                                        metabolic (e66_bmi、
+</span><span id="__span-7-15"><a id="__codelineno-7-15" name="__codelineno-7-15" href="#__codelineno-7-15"></a>│   │                                        e88_81_syndrome、
+</span><span id="__span-7-16"><a id="__codelineno-7-16" name="__codelineno-7-16" href="#__codelineno-7-16"></a>│   │                                        k76_0_nafld、g47_30_osa)
+</span><span id="__span-7-17"><a id="__codelineno-7-17" name="__codelineno-7-17" href="#__codelineno-7-17"></a>│   │                       POST_ENCOUNTER: device、prophylaxis、hai、
+</span><span id="__span-7-18"><a id="__codelineno-7-18" name="__codelineno-7-18" href="#__codelineno-7-18"></a>│   │                                       antibiotic、imaging、
+</span><span id="__span-7-19"><a id="__codelineno-7-19" name="__codelineno-7-19" href="#__codelineno-7-19"></a>│   │                                       discontinue_flip、newborn、
+</span><span id="__span-7-20"><a id="__codelineno-7-20" name="__codelineno-7-20" href="#__codelineno-7-20"></a>│   │                                       triage、lab_derived_dx、
+</span><span id="__span-7-21"><a id="__codelineno-7-21" name="__codelineno-7-21" href="#__codelineno-7-21"></a>│   │                                       nursing_assignment、document
+</span><span id="__span-7-22"><a id="__codelineno-7-22" name="__codelineno-7-22" href="#__codelineno-7-22"></a>│   │                       POST_RECORDS:  nursing、immunization、
+</span><span id="__span-7-23"><a id="__codelineno-7-23" name="__codelineno-7-23" href="#__codelineno-7-23"></a>│   │                                      family_history、code_status、
+</span><span id="__span-7-24"><a id="__codelineno-7-24" name="__codelineno-7-24" href="#__codelineno-7-24"></a>│   │                                      care_level、monitoring、
+</span><span id="__span-7-25"><a id="__codelineno-7-25" name="__codelineno-7-25" href="#__codelineno-7-25"></a>│   │                                      health_checkup
+</span><span id="__span-7-26"><a id="__codelineno-7-26" name="__codelineno-7-26" href="#__codelineno-7-26"></a>│   └── (Output)            output (FHIR R4 Bulk NDJSON、AD-31 で
+</span><span id="__span-7-27"><a id="__codelineno-7-27" name="__codelineno-7-27" href="#__codelineno-7-27"></a>│                                    per-theme builder subpackage に
+</span><span id="__span-7-28"><a id="__codelineno-7-28" name="__codelineno-7-28" href="#__codelineno-7-28"></a>│                                    split 済)、llm_service、validator
+</span><span id="__span-7-29"><a id="__codelineno-7-29" name="__codelineno-7-29" href="#__codelineno-7-29"></a>└── simulator/              トップレベル orchestration
+</span><span id="__span-7-30"><a id="__codelineno-7-30" name="__codelineno-7-30" href="#__codelineno-7-30"></a>                            (engine、inpatient、emergency、outpatient、
+</span><span id="__span-7-31"><a id="__codelineno-7-31" name="__codelineno-7-31" href="#__codelineno-7-31"></a>                             AD-56 の enrichers.py registry)
 </span></code></pre></div>
 <p>各モジュールは API リファレンスと設計ノート付きの独自
 <code>README.md</code> (+ <code>README.ja.md</code> mirror) を持つ。v0.5.x → v0.6.0 の
@@ -3763,7 +3776,7 @@ lab を導出するので、同じことが microbiology、血液ガス、心臓
 </tr>
 </tbody>
 </table>
-<p>段階的実装計画は <a href="docs/roadmap.md"><code>docs/roadmap.md</code></a> 参照 (GitHub
+<p>段階的実装計画は <a href="../../roadmap/"><code>docs/roadmap.md</code></a> 参照 (GitHub
 Issues board を指す)。</p>
 <hr />
 <h2 id="611-拡張性基盤--phase-0-ad-56">6.11 拡張性基盤 — Phase 0 (AD-56)<a class="headerlink" href="#611-拡張性基盤--phase-0-ad-56" title="Permanent link">&para;</a></h2>
@@ -3992,7 +4005,7 @@ profile に違反する。</p>
 </span><span id="__span-10-4"><a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">health_check</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span> <span class="o">...</span>
 </span></code></pre></div>
 <p><code>providers/__init__.py</code> の registry はプロバイダキー (<code>ollama</code>、
-<code>bedrock</code>、<code>mock</code>、<code>local</code>) をビルダー callable にマップする。
+<code>bedrock</code>、<code>mock</code>、<code>local</code>、後に追加された <code>vllm</code> / <code>openai_compatible</code>) をビルダー callable にマップする。
 サードパーティコードは <code>register_provider(name, builder)</code> 経由で
 clinosim ソースを触らずに registry を拡張可能。</p>
 <p>新しい <code>factory.build_from_config_file(path)</code> は

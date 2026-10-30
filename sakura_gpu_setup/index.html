@@ -2524,10 +2524,9 @@ prompt に PHI を載せる場合の運用上の注意は末尾を参照。</p>
 </ul>
 <hr />
 <h2 id="1-provision-the-sakura-gpu-vm-usacloud">1. Provision the Sakura GPU VM (usacloud)<a class="headerlink" href="#1-provision-the-sakura-gpu-vm-usacloud" title="Permanent link">&para;</a></h2>
-<p>usacloud CLI + プロファイル整備は
-[[sakura-cloud|entities/sakura-cloud]] / 参考 repo
-<code>~/workspace/sakura-iris/docs/01-usacloud-setup.md</code> にまとまっている。
-本セクションは要点のみ:</p>
+<p>Installing the usacloud CLI and setting up its profile are covered in
+the official usacloud documentation (https://docs.usacloud.jp/usacloud/).
+This section lists only the essentials:</p>
 <div class="highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="c1"># usacloud プロファイル (既に iris-verify プロファイルがあれば流用可)</span>
 </span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>usacloud<span class="w"> </span>config<span class="w"> </span>create<span class="w"> </span>--name<span class="w"> </span>clinosim-gpu<span class="w"> </span><span class="se">\</span>
 </span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="w">    </span>--token<span class="w"> </span>&lt;SAKURA_API_TOKEN&gt;<span class="w"> </span>--secret<span class="w"> </span>&lt;SAKURA_API_SECRET&gt;<span class="w"> </span><span class="se">\</span>
@@ -2628,20 +2627,22 @@ prompt に PHI を載せる場合の運用上の注意は末尾を参照。</p>
 </span><span id="__span-7-3"><a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="w">    </span>-o<span class="w"> </span>/tmp/sakura-smoke
 </span><span id="__span-7-4"><a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a>clinosim<span class="w"> </span>narrate<span class="w"> </span><span class="se">\</span>
 </span><span id="__span-7-5"><a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a><span class="w">    </span>--cif-dir<span class="w"> </span>/tmp/sakura-smoke/cif<span class="w"> </span><span class="se">\</span>
-</span><span id="__span-7-6"><a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a><span class="w">    </span>--llm-config<span class="w"> </span>clinosim/config/llm_service.sakura.yaml<span class="w"> </span><span class="se">\</span>
-</span><span id="__span-7-7"><a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a><span class="w">    </span>--version-id<span class="w"> </span>sakura_qwen3_32b_smoke<span class="w"> </span><span class="se">\</span>
-</span><span id="__span-7-8"><a id="__codelineno-7-8" name="__codelineno-7-8" href="#__codelineno-7-8"></a><span class="w">    </span>--country<span class="w"> </span>JP<span class="w"> </span><span class="se">\</span>
-</span><span id="__span-7-9"><a id="__codelineno-7-9" name="__codelineno-7-9" href="#__codelineno-7-9"></a><span class="w">    </span>--set-current
-</span><span id="__span-7-10"><a id="__codelineno-7-10" name="__codelineno-7-10" href="#__codelineno-7-10"></a>
-</span><span id="__span-7-11"><a id="__codelineno-7-11" name="__codelineno-7-11" href="#__codelineno-7-11"></a><span class="c1"># 中規模 (p=100) — 品質評価 + 速度実測</span>
-</span><span id="__span-7-12"><a id="__codelineno-7-12" name="__codelineno-7-12" href="#__codelineno-7-12"></a>clinosim<span class="w"> </span>simulate<span class="w"> </span>--country<span class="w"> </span>JP<span class="w"> </span>--population<span class="w"> </span><span class="m">100</span><span class="w"> </span>--seed<span class="w"> </span><span class="m">42</span><span class="w"> </span>--format<span class="w"> </span>cif<span class="w"> </span><span class="se">\</span>
-</span><span id="__span-7-13"><a id="__codelineno-7-13" name="__codelineno-7-13" href="#__codelineno-7-13"></a><span class="w">    </span>-o<span class="w"> </span>/tmp/sakura-eval100
-</span><span id="__span-7-14"><a id="__codelineno-7-14" name="__codelineno-7-14" href="#__codelineno-7-14"></a>clinosim<span class="w"> </span>narrate<span class="w"> </span><span class="se">\</span>
-</span><span id="__span-7-15"><a id="__codelineno-7-15" name="__codelineno-7-15" href="#__codelineno-7-15"></a><span class="w">    </span>--cif-dir<span class="w"> </span>/tmp/sakura-eval100/cif<span class="w"> </span><span class="se">\</span>
-</span><span id="__span-7-16"><a id="__codelineno-7-16" name="__codelineno-7-16" href="#__codelineno-7-16"></a><span class="w">    </span>--llm-config<span class="w"> </span>clinosim/config/llm_service.sakura.yaml<span class="w"> </span><span class="se">\</span>
-</span><span id="__span-7-17"><a id="__codelineno-7-17" name="__codelineno-7-17" href="#__codelineno-7-17"></a><span class="w">    </span>--version-id<span class="w"> </span>sakura_qwen3_32b_eval100<span class="w"> </span><span class="se">\</span>
-</span><span id="__span-7-18"><a id="__codelineno-7-18" name="__codelineno-7-18" href="#__codelineno-7-18"></a><span class="w">    </span>--country<span class="w"> </span>JP<span class="w"> </span><span class="se">\</span>
-</span><span id="__span-7-19"><a id="__codelineno-7-19" name="__codelineno-7-19" href="#__codelineno-7-19"></a><span class="w">    </span>--set-current
+</span><span id="__span-7-6"><a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a><span class="w">    </span>--provider<span class="w"> </span>ollama<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-7-7"><a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a><span class="w">    </span>--llm-config<span class="w"> </span>clinosim/config/llm_service.sakura.yaml<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-7-8"><a id="__codelineno-7-8" name="__codelineno-7-8" href="#__codelineno-7-8"></a><span class="w">    </span>--version-id<span class="w"> </span>sakura_qwen3_32b_smoke<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-7-9"><a id="__codelineno-7-9" name="__codelineno-7-9" href="#__codelineno-7-9"></a><span class="w">    </span>--country<span class="w"> </span>JP<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-7-10"><a id="__codelineno-7-10" name="__codelineno-7-10" href="#__codelineno-7-10"></a><span class="w">    </span>--set-current
+</span><span id="__span-7-11"><a id="__codelineno-7-11" name="__codelineno-7-11" href="#__codelineno-7-11"></a>
+</span><span id="__span-7-12"><a id="__codelineno-7-12" name="__codelineno-7-12" href="#__codelineno-7-12"></a><span class="c1"># 中規模 (p=100) — 品質評価 + 速度実測</span>
+</span><span id="__span-7-13"><a id="__codelineno-7-13" name="__codelineno-7-13" href="#__codelineno-7-13"></a>clinosim<span class="w"> </span>simulate<span class="w"> </span>--country<span class="w"> </span>JP<span class="w"> </span>--population<span class="w"> </span><span class="m">100</span><span class="w"> </span>--seed<span class="w"> </span><span class="m">42</span><span class="w"> </span>--format<span class="w"> </span>cif<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-7-14"><a id="__codelineno-7-14" name="__codelineno-7-14" href="#__codelineno-7-14"></a><span class="w">    </span>-o<span class="w"> </span>/tmp/sakura-eval100
+</span><span id="__span-7-15"><a id="__codelineno-7-15" name="__codelineno-7-15" href="#__codelineno-7-15"></a>clinosim<span class="w"> </span>narrate<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-7-16"><a id="__codelineno-7-16" name="__codelineno-7-16" href="#__codelineno-7-16"></a><span class="w">    </span>--cif-dir<span class="w"> </span>/tmp/sakura-eval100/cif<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-7-17"><a id="__codelineno-7-17" name="__codelineno-7-17" href="#__codelineno-7-17"></a><span class="w">    </span>--provider<span class="w"> </span>ollama<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-7-18"><a id="__codelineno-7-18" name="__codelineno-7-18" href="#__codelineno-7-18"></a><span class="w">    </span>--llm-config<span class="w"> </span>clinosim/config/llm_service.sakura.yaml<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-7-19"><a id="__codelineno-7-19" name="__codelineno-7-19" href="#__codelineno-7-19"></a><span class="w">    </span>--version-id<span class="w"> </span>sakura_qwen3_32b_eval100<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-7-20"><a id="__codelineno-7-20" name="__codelineno-7-20" href="#__codelineno-7-20"></a><span class="w">    </span>--country<span class="w"> </span>JP<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-7-21"><a id="__codelineno-7-21" name="__codelineno-7-21" href="#__codelineno-7-21"></a><span class="w">    </span>--set-current
 </span></code></pre></div>
 <p>期待: ~5-15 sec/call、fail 0%、cache hit で 2 回目は 10x 高速。
 manifest.json の <code>llm_cost_report.generator_llm_docs</code> が期待数に一致し、

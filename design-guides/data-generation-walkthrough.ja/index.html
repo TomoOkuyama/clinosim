@@ -2305,15 +2305,15 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#1-stage-1--generate人口--イベント--受診シミュレーション--cif" class="md-nav__link">
+  <a href="#1-stage-1--simulate人口--イベント--受診シミュレーション--cif" class="md-nav__link">
     <span class="md-ellipsis">
       
-        1. Stage 1 = generate:人口 → イベント → 受診シミュレーション → CIF
+        1. Stage 1 = simulate:人口 → イベント → 受診シミュレーション → CIF
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="1. Stage 1 = generate:人口 → イベント → 受診シミュレーション → CIF">
+    <nav class="md-nav" aria-label="1. Stage 1 = simulate:人口 → イベント → 受診シミュレーション → CIF">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
@@ -2328,10 +2328,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#1b-ライフイベント発火--generate_monthly_events" class="md-nav__link">
+  <a href="#1b-前進型の月次ループとライフイベント--run_forward_loop--generate_monthly_events" class="md-nav__link">
     <span class="md-ellipsis">
       
-        1b. ライフイベント発火 — generate_monthly_events
+        1b. 前進型の月次ループとライフイベント — run_forward_loop / generate_monthly_events
       
     </span>
   </a>
@@ -2506,10 +2506,11 @@
   シミュレーション内部には触れない。</li>
 <li>他の subcommand: <code>test-disease &lt;id&gt;</code>(1 疾患を単体生成してデバッグ表示)/ <code>test-encounter</code>
   / <code>audit run</code>(4 軸検証)/ <code>validate</code> / <code>regenerate-goldens</code> / <code>check-narratives</code> /
-  <code>list-diseases</code>。</li>
+  <code>list-diseases</code> / <code>enumerate</code> / <code>diff</code> / <code>eval</code>。</li>
+<li><code>clinosim generate</code> は <code>clinosim simulate</code> の deprecated alias として残っている。</li>
 </ul>
 <hr />
-<h2 id="1-stage-1--generate人口--イベント--受診シミュレーション--cif">1. Stage 1 = <code>generate</code>:人口 → イベント → 受診シミュレーション → CIF<a class="headerlink" href="#1-stage-1--generate人口--イベント--受診シミュレーション--cif" title="Permanent link">&para;</a></h2>
+<h2 id="1-stage-1--simulate人口--イベント--受診シミュレーション--cif">1. Stage 1 = <code>simulate</code>:人口 → イベント → 受診シミュレーション → CIF<a class="headerlink" href="#1-stage-1--simulate人口--イベント--受診シミュレーション--cif" title="Permanent link">&para;</a></h2>
 <p>エントリは <code>clinosim/simulator/engine.py:run_beta()</code>。以下の順に進む。</p>
 <h3 id="1a-人口生成layer-1-modulespopulation">1a. 人口生成(Layer 1)— <code>modules/population</code><a class="headerlink" href="#1a-人口生成layer-1-modulespopulation" title="Permanent link">&para;</a></h3>
 <p><code>generate_population(size, country, rng)</code>(<code>population/engine.py</code>)が <strong>医療圏の住民集団</strong>を
@@ -2517,16 +2518,42 @@
 <strong>慢性疾患(ICD コードのリスト)</strong>・BMI・喫煙/飲酒・受診閾値など。疫学データ(年齢分布・
 慢性疾患有病率・疾患発生率)は全て <code>locale/&lt;country&gt;/demographics.yaml</code> から読む(コードに疫学値を
 ハードコードしない)。</p>
-<h3 id="1b-ライフイベント発火--generate_monthly_events">1b. ライフイベント発火 — <code>generate_monthly_events</code><a class="headerlink" href="#1b-ライフイベント発火--generate_monthly_events" title="Permanent link">&para;</a></h3>
-<p><code>run_beta</code> は <code>time_range</code>(既定 1 年)を <strong>年 × 月ループ</strong>で回し、各月
-<code>generate_monthly_events(registry, year, month, rng, country)</code> を呼ぶ。住民ごとに疾患 incidence
-(発生率 × 年齢 × 季節性 × 生活習慣リスク)を評価し、<code>rng.random() &lt; rate</code> で疾患発症を判定。
+<h3 id="1b-前進型の月次ループとライフイベント--run_forward_loop--generate_monthly_events">1b. 前進型の月次ループとライフイベント — <code>run_forward_loop</code> / <code>generate_monthly_events</code><a class="headerlink" href="#1b-前進型の月次ループとライフイベント--run_forward_loop--generate_monthly_events" title="Permanent link">&para;</a></h3>
+<p><code>run_beta</code> は <code>time_range</code>(既定 1 年)の月の列を <code>run_forward_loop</code>
+(<code>simulator/phases/_forward_loop.py</code>)に渡す。<strong>1 本のループが全 phase を月単位で前進させ</strong>、
+各月は次の順に進む:</p>
+<ol>
+<li><strong>年境界</strong>(1 月、および期間の最初の月): <code>advance_population</code>(<code>population/aging.py</code>)が
+   aging pass(脳卒中後遺症の昇格・アレルギー drift)を回し、その年の <strong>地域死亡</strong>を前向きに
+   抽選し(<code>population/mortality.py</code>: 生命表 <code>qx</code> × 本人の慢性疾患 SMR を年齢帯 × 性別内で
+   正規化)、縦断状態(成人の慢性疾患発症)を進める。続いてその年のヘルスケアカレンダー
+   (§1b.2)を生成してキューに積む。</li>
+<li><strong>月次ライフイベント</strong>: <code>generate_monthly_events(registry, year, month, rng, country,
+   master_seed=…, inpatient_departments=…)</code>(下記)。病院を要するイベントをキューに積む。</li>
+<li><strong>ED 受診</strong>: その月に集団にいる人からその月の ED 枠を引く。件数は
+   <code>locale/&lt;country&gt;/demographics.yaml</code> の <code>ed_visit_not_admitted.rate_per_1000_person_years</code>
+   (JP 150、US 380)で、集団の増減に追従する。</li>
+<li><strong>Dispatch</strong>: その月の日付のキュー済みイベントを日付順に simulate する(同日は入院が先)。
+   dispatch は新たなイベントを積む: index 入院と再入院は退院後フォローアップを、index 入院は
+   発火した再入院を積み、<strong>分娩は新生児を登録</strong>する。新生児は出生入院の退院翌日に集団へ加わり
+   (<code>PersonRecord.enrolled_from</code>)、その年の残りのカレンダーを得る。</li>
+</ol>
+<p><strong>ライフサイクル.</strong> 死亡はすべて — 院内(入院の dispatch 時に記録)も地域も —
+<code>PersonRecord.record_death(when, place)</code> を通る(最も早い死亡が優先、<code>is_alive</code> はそこから導出)。
+すべてのイベントは <code>in_population_at(&lt;イベント日&gt;)</code>(生存かつ在籍)で gate されるので、死亡後の
+受診は生じず、新生児は在籍日以降のすべてに参加する。乱数はすべてイベント単位の sub-RNG
+(<code>derive_phase_rng</code>)なので、dispatch 順はどのイベント自身の乱数もずらさない。</p>
+<p><strong>ライフイベント.</strong> <code>generate_monthly_events</code> は、その月のイベント日に集団にいる人ごとに疾患
+incidence(発生率 × 年齢 × 季節性 × 生活習慣リスク)を評価し、<code>rng.random() &lt; rate</code> で疾患発症を
+判定する(<code>rng_isolated</code> 指定のエントリは master seed・月・人・疾患で key した stream から引く)。
 発症したら:</p>
 <ul>
 <li><strong>重症度</strong>を <code>disease.severity.sample_severity(load_disease_protocol(disease_id), person, rng)</code>
   で決定(AD-67)。疾患 YAML の <code>severity.distribution × modifiers</code>(年齢・併存症で補正)から
   カテゴリを引き、連続 score も返す。← <strong>重症度の唯一の source は疾患 YAML</strong>(旧 <code>severity_beta</code> は撤廃)。</li>
-<li><strong>入院要否</strong>を連続 score と受診閾値で判定(<code>severity &gt; care_seeking_threshold</code>)。</li>
+<li><strong>入院要否</strong>を連続 score と受診閾値で判定(<code>severity &gt; care_seeking_threshold</code>。閾値は
+  incidence エントリの <code>hospitalization_threshold_modifier[_by_age]</code> で補正、<code>always_hospitalize</code>
+  のエントリは常に入院)。</li>
 <li><code>LifeEvent</code>(person_id / disease_id / timestamp / severity / requires_hospital)を生成。</li>
 </ul>
 <p>「患者は population から生まれる」— どの患者も最初は住民で、イベントが閾値を超えて初めて
@@ -2552,7 +2579,7 @@ hospital encounter に変換される。これにより疫学が人口レベル�
 <tbody>
 <tr>
 <td><code>chronic_visit</code></td>
-<td><code>locale/shared/chronic_followup.yaml</code> にある慢性疾患保有者 (16 の慢性コード + インフル予防接種 + 糖尿病網膜症スクリーニング)</td>
+<td><code>locale/shared/chronic_followup.yaml</code> にある慢性疾患保有者 (29 の慢性コード、他に Z34 / Z39 の妊娠エントリ) + インフル予防接種 (65 歳以上または慢性疾患 2 つ以上、50 %、10-12 月) + 糖尿病網膜症スクリーニング (60 %/年)</td>
 <td>慢性エントリ毎の <code>follow_up_interval_months</code>、年 6 回まで cap</td>
 <td><code>_simulate_outpatient_visit(visit_type="chronic_followup")</code></td>
 </tr>
@@ -2564,14 +2591,14 @@ hospital encounter に変換される。これにより疫学が人口レベル�
 </tr>
 <tr>
 <td><code>health_screening</code></td>
-<td>40 歳以上 (年 1 健診) + 50 歳以上 colonoscopy (10 年間隔 → 10 %/年) + 女性 40 歳以上 mammography (60 %/年)</td>
+<td>40-89 歳 (年 1 健診) + 50-75 歳 colonoscopy (8 %/年) + 女性 40-74 歳 mammography (40 %/年)</td>
 <td><code>_population_workflow_thresholds</code> の population 閾値</td>
 <td><code>_simulate_outpatient_visit(visit_type="health_screening")</code></td>
 </tr>
 <tr>
 <td><code>chemo_visit</code></td>
 <td><code>(patient, cancer_code)</code> 毎の sub-RNG が <code>chemo_regimens.yaml</code> の active regimen を割り当てた慢性がん患者</td>
-<td>Regimen 毎の <code>cycle_interval_days</code> (FOLFOX q14d / CarboPem q21d / Trastuzumab q3w / LHRH q28d)、<code>course_cycles</code> で cap</td>
+<td>Regimen 毎の <code>cycle_interval_days</code> (7 regimen、例: FOLFOX q14d / CarboPem q21d / Trastuzumab q3w / LHRH q28d)、<code>course_cycles</code> で cap</td>
 <td><code>_simulate_outpatient_visit(visit_type="chemo_visit")</code> — Encounter + <code>chemotherapy_administration</code> Procedure を emit</td>
 </tr>
 <tr>
@@ -2617,6 +2644,9 @@ sub-seed (<code>chemotherapy_regimen_seed</code>、<code>perinatal_delivery_seed
 使用する。これらの emit の追加・調整は、新 event が直接対象とする
 患者を除き byte-identical — p=1000 US 非産科 596/596 identity vs
 Incr 1 前 master を検証済み。</p>
+<p>なお <code>generate_healthcare_calendar</code> で全員に発火するのは小児と妊娠 lifecycle のイベントだけで、
+慢性受診・インフル予防接種・各種スクリーニング・化学療法サイクルは <code>chronic_followup.yaml</code> に
+載る慢性疾患を 1 つ以上持つ人にだけ生成される(持たない人はループで skip される)。</p>
 <p>腫瘍 + 産科 event の full schema + slice スコープ:
 <a href="../../reference/oncology-obstetric-service-lines.ja/"><code>../reference/oncology-obstetric-service-lines.ja.md</code></a>。</p>
 <h3 id="1c-患者の-hydrate--modulespatient">1c. 患者の hydrate — <code>modules/patient</code><a class="headerlink" href="#1c-患者の-hydrate--modulespatient" title="Permanent link">&para;</a></h3>
@@ -2656,13 +2686,16 @@ Layer 1 → Layer 2 <code>PatientProfile</code> に厚くなる:身長/体重、
 <h3 id="1e-enricherモジュール拡張-simulatorenricherspy">1e. Enricher(モジュール拡張)— <code>simulator/enrichers.py</code><a class="headerlink" href="#1e-enricherモジュール拡張-simulatorenricherspy" title="Permanent link">&para;</a></h3>
 <p>Base の受診シミュレーションの前後に、<strong>opt-in / always-on モジュール</strong>が 3 ステージで走る:</p>
 <ul>
-<li><strong>POST_POPULATION</strong>(人口生成後・シミュレーション前): 例 identity(JP マイナンバー/保険)。</li>
+<li><strong>POST_POPULATION</strong>(人口生成後・シミュレーション前): <code>allergy(10)</code> / <code>identity(10)</code>(JP
+  マイナンバー/保険)/ <code>e66_bmi(15)</code> / <code>e88_81_syndrome(16)</code> / <code>k76_0_nafld(17)</code> / <code>g47_30_osa(18)</code>。</li>
 <li><strong>POST_ENCOUNTER</strong>(1 受診の daily loop 完了直後、encounter simulator の内側): 臨床カスケード。
-  順序固定 <code>device(70) → hai(80) → antibiotic(85) → imaging(90) → triage(93) →
-  nursing_assignment(94) → document(95)</code>。前段の <code>extensions[X]</code> を読んで次段が動く
+  順序固定 <code>device(70) → prophylaxis(75) → hai(80) → antibiotic(85) → imaging(90) →
+  discontinue_flip(91) → newborn(92) → triage(93) → lab_derived_dx(94) → nursing_assignment(94)
+  → document(95)</code>(同 order は名前順)。前段の <code>extensions[X]</code> を読んで次段が動く
   (device なしに HAI なし等)。</li>
-<li><strong>POST_RECORDS</strong>(全患者シミュレーション後): cross-record。nursing flowsheet / immunization /
-  family_history / code_status / care_level。</li>
+<li><strong>POST_RECORDS</strong>(全患者シミュレーション後): cross-record。<code>nursing(20)</code> flowsheet /
+  <code>immunization(30)</code> / <code>family_history(40)</code> / <code>code_status(50)</code> / <code>care_level(60)</code> /
+  <code>medication_monitoring(65)</code> / <code>health_checkup(70)</code>。</li>
 </ul>
 <p>モジュールは <code>CIFPatientRecord.extensions[&lt;module&gt;]</code> にだけ書く(コア型への typed field 追加は
 Base のみ)。新モジュール追加 = enricher を registry 登録するだけ(dispatch 本体は編集しない、AD-56)。</p>
@@ -2672,7 +2705,7 @@ Base のみ)。新モジュール追加 = enricher を registry 登録するだ�
 encounter binding、<code>narrative=None</code>)を作る。実際の自然文は Stage 2 で入る(AD-65)。</p>
 <hr />
 <h2 id="2-stage-2--narrateナラティブ生成差し替え可能層">2. Stage 2 = <code>narrate</code>:ナラティブ生成(差し替え可能層)<a class="headerlink" href="#2-stage-2--narrateナラティブ生成差し替え可能層" title="Permanent link">&para;</a></h2>
-<p><code>narrate --provider template |mock |ollama |bedrock --version-id &lt;id&gt;</code> が
+<p><code>narrate --provider template |mock |ollama |bedrock |vllm |openai_compatible --version-id &lt;id&gt;</code> が
 <code>cif/narratives/&lt;version&gt;/documents/&lt;enc&gt;/&lt;doc&gt;.json</code> を書く。</p>
 <ul>
 <li><code>NarrativePass</code>(<code>document/narrative/passes.py</code>、ABC)が structural CIF を読み、患者 profile /
@@ -2686,7 +2719,8 @@ encounter binding、<code>narrative=None</code>)を作る。実際の自然文�
 <hr />
 <h2 id="3-stage-3--export-fhircif--fhir-r4">3. Stage 3 = <code>export-fhir</code>:CIF → FHIR R4<a class="headerlink" href="#3-stage-3--export-fhircif--fhir-r4" title="Permanent link">&para;</a></h2>
 <p><code>export-fhir --narrative-version &lt;id&gt;</code> が <code>CIFReader</code> で structural + narrative を merge し、
-<code>_fhir_*</code> builder 群(<code>modules/output/</code>)が FHIR resource を組む。</p>
+<code>modules/output/fhir_r4/</code> 配下のテーマ別 builder(<code>conditions/</code>、<code>labs/</code>、<code>medications/</code>、
+<code>encounters/</code>、<code>documents/</code> …)が FHIR resource を組む。</p>
 <ul>
 <li><strong>Bulk Data Access</strong>(AD-31): resource type ごとに 1 NDJSON + <code>manifest.json</code>。Bundle でラップしない。</li>
 <li>builder は <strong>CIF を読むだけ</strong>。display は <code>code_lookup(system, code, lang)</code>、URI は
@@ -2704,32 +2738,33 @@ Practitioner / PractitionerRole / Endpoint …)。</p>
 <div class="highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>run_beta(config)                                   # simulator/engine.py
 </span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a> └ generate_population(40000, "US", rng)            # 医療圏 40k 人
 </span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>     → PersonRecord(age=78, chronic=["I10","N18"])  # 高血圧+CKD の 78 歳
-</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a> └ generate_monthly_events(...) 各月                 # population/engine.py
-</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>     → incidence 評価 → acute_mi 発症
-</span><span id="__span-1-6"><a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>     → sample_severity(acute_mi protocol, person)   # 疾患YAML分布×modifiers(高齢→severe寄り)
-</span><span id="__span-1-7"><a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>        = ("severe", 0.82)
-</span><span id="__span-1-8"><a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a>     → requires_hospital = 0.82 &gt; threshold = True
-</span><span id="__span-1-9"><a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a>     → LifeEvent(acute_mi, severe, requires_hospital)
-</span><span id="__span-1-10"><a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a> └ activate_patient(person)                          # patient/activator.py
-</span><span id="__span-1-11"><a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a>     → PatientProfile(stage: "CKD G3a"/"HT Stage 2", baseline BP ↑ by stage)
-</span><span id="__span-1-12"><a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a> └ _simulate_patient(event)                          # inpatient.py
-</span><span id="__span-1-13"><a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a>     → category_from_score(0.82) = "severe"
-</span><span id="__span-1-14"><a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a>     → select_archetype("severe", …, acute_mi.course_archetypes, .archetype_modifiers)
-</span><span id="__span-1-15"><a id="__codelineno-1-15" name="__codelineno-1-15" href="#__codelineno-1-15"></a>        = "dip_then_recovery"
-</span><span id="__span-1-16"><a id="__codelineno-1-16" name="__codelineno-1-16" href="#__codelineno-1-16"></a>     → apply_disease_onset(state, "severe", acute_mi.initial_state_impact)
-</span><span id="__span-1-17"><a id="__codelineno-1-17" name="__codelineno-1-17" href="#__codelineno-1-17"></a>     └ _run_daily_loop(...)  各日                     # 日次で状態→検査/vitals/orders/MAR
-</span><span id="__span-1-18"><a id="__codelineno-1-18" name="__codelineno-1-18" href="#__codelineno-1-18"></a>         → derive_lab_values(...)  troponin↑ CK-MB↑ Cr↑(CKD baseline)
-</span><span id="__span-1-19"><a id="__codelineno-1-19" name="__codelineno-1-19" href="#__codelineno-1-19"></a>         → evaluate_complications(...)  # acute_mi.complications
-</span><span id="__span-1-20"><a id="__codelineno-1-20" name="__codelineno-1-20" href="#__codelineno-1-20"></a>         → POST_ENCOUNTER enrichers: device→hai→antibiotic→imaging→triage→nursing→document
-</span><span id="__span-1-21"><a id="__codelineno-1-21" name="__codelineno-1-21" href="#__codelineno-1-21"></a>     → CIFPatientRecord(orders, labs, vitals, mar, documents(stub), extensions{...})
-</span><span id="__span-1-22"><a id="__codelineno-1-22" name="__codelineno-1-22" href="#__codelineno-1-22"></a> └ cif/structural/patients/ENC-....json 書き出し
-</span><span id="__span-1-23"><a id="__codelineno-1-23" name="__codelineno-1-23" href="#__codelineno-1-23"></a>--- narrate ---
-</span><span id="__span-1-24"><a id="__codelineno-1-24" name="__codelineno-1-24" href="#__codelineno-1-24"></a> └ TemplateNarrativePass  → cif/narratives/template/documents/ENC-.../hp.json (H&amp;P 本文)
-</span><span id="__span-1-25"><a id="__codelineno-1-25" name="__codelineno-1-25" href="#__codelineno-1-25"></a>--- export-fhir ---
-</span><span id="__span-1-26"><a id="__codelineno-1-26" name="__codelineno-1-26" href="#__codelineno-1-26"></a> └ _fhir_conditions → Condition(acute_mi I21, stage "CKD G3a" …)
-</span><span id="__span-1-27"><a id="__codelineno-1-27" name="__codelineno-1-27" href="#__codelineno-1-27"></a>    _fhir_observations → Observation(troponin, Cr, …)
-</span><span id="__span-1-28"><a id="__codelineno-1-28" name="__codelineno-1-28" href="#__codelineno-1-28"></a>    _fhir_medications → MedicationRequest/Administration
-</span><span id="__span-1-29"><a id="__codelineno-1-29" name="__codelineno-1-29" href="#__codelineno-1-29"></a>    … → fhir_r4/*.ndjson
+</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a> └ run_forward_loop(ctx, months)                    # simulator/phases/_forward_loop.py
+</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a> └ generate_monthly_events(...) 各月                 # population/engine.py
+</span><span id="__span-1-6"><a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>     → incidence 評価 → acute_mi 発症
+</span><span id="__span-1-7"><a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>     → sample_severity(acute_mi protocol, person)   # 疾患YAML分布×modifiers(高齢→severe寄り)
+</span><span id="__span-1-8"><a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a>        = ("severe", 0.82)
+</span><span id="__span-1-9"><a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a>     → requires_hospital = 0.82 &gt; threshold = True
+</span><span id="__span-1-10"><a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a>     → LifeEvent(acute_mi, severe, requires_hospital)
+</span><span id="__span-1-11"><a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a> └ activate_patient(person)                          # patient/activator.py
+</span><span id="__span-1-12"><a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a>     → PatientProfile(stage: "CKD G3a"/"HT Stage 2", baseline BP ↑ by stage)
+</span><span id="__span-1-13"><a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a> └ イベント日に dispatch → _simulate_patient(event)   # _dispatch.py → inpatient.py
+</span><span id="__span-1-14"><a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a>     → category_from_score(0.82) = "severe"
+</span><span id="__span-1-15"><a id="__codelineno-1-15" name="__codelineno-1-15" href="#__codelineno-1-15"></a>     → select_archetype("severe", …, acute_mi.course_archetypes, .archetype_modifiers)
+</span><span id="__span-1-16"><a id="__codelineno-1-16" name="__codelineno-1-16" href="#__codelineno-1-16"></a>        = "dip_then_recovery"
+</span><span id="__span-1-17"><a id="__codelineno-1-17" name="__codelineno-1-17" href="#__codelineno-1-17"></a>     → apply_disease_onset(state, "severe", acute_mi.initial_state_impact)
+</span><span id="__span-1-18"><a id="__codelineno-1-18" name="__codelineno-1-18" href="#__codelineno-1-18"></a>     └ _run_daily_loop(...)  各日                     # 日次で状態→検査/vitals/orders/MAR
+</span><span id="__span-1-19"><a id="__codelineno-1-19" name="__codelineno-1-19" href="#__codelineno-1-19"></a>         → derive_lab_values(...)  troponin↑ CK-MB↑ Cr↑(CKD baseline)
+</span><span id="__span-1-20"><a id="__codelineno-1-20" name="__codelineno-1-20" href="#__codelineno-1-20"></a>         → evaluate_complications(...)  # acute_mi.complications
+</span><span id="__span-1-21"><a id="__codelineno-1-21" name="__codelineno-1-21" href="#__codelineno-1-21"></a>         → POST_ENCOUNTER enrichers: device→…→document(§1e)
+</span><span id="__span-1-22"><a id="__codelineno-1-22" name="__codelineno-1-22" href="#__codelineno-1-22"></a>     → CIFPatientRecord(orders, labs, vitals, mar, documents(stub), extensions{...})
+</span><span id="__span-1-23"><a id="__codelineno-1-23" name="__codelineno-1-23" href="#__codelineno-1-23"></a> └ cif/structural/patients/ENC-....json 書き出し
+</span><span id="__span-1-24"><a id="__codelineno-1-24" name="__codelineno-1-24" href="#__codelineno-1-24"></a>--- narrate ---
+</span><span id="__span-1-25"><a id="__codelineno-1-25" name="__codelineno-1-25" href="#__codelineno-1-25"></a> └ TemplateNarrativePass  → cif/narratives/template/documents/ENC-.../hp.json (H&amp;P 本文)
+</span><span id="__span-1-26"><a id="__codelineno-1-26" name="__codelineno-1-26" href="#__codelineno-1-26"></a>--- export-fhir ---
+</span><span id="__span-1-27"><a id="__codelineno-1-27" name="__codelineno-1-27" href="#__codelineno-1-27"></a> └ conditions/conditions.py → Condition(acute_mi I21, stage "CKD G3a" …)
+</span><span id="__span-1-28"><a id="__codelineno-1-28" name="__codelineno-1-28" href="#__codelineno-1-28"></a>    labs/observations.py → Observation(troponin, Cr, …)
+</span><span id="__span-1-29"><a id="__codelineno-1-29" name="__codelineno-1-29" href="#__codelineno-1-29"></a>    medications/medications.py → MedicationRequest/Administration
+</span><span id="__span-1-30"><a id="__codelineno-1-30" name="__codelineno-1-30" href="#__codelineno-1-30"></a>    … → fhir_r4/*.ndjson
 </span></code></pre></div>
 <hr />
 <h2 id="5-データを増やす直すときの入口">5. データを増やす/直すときの入口<a class="headerlink" href="#5-データを増やす直すときの入口" title="Permanent link">&para;</a></h2>
@@ -2755,7 +2790,7 @@ Practitioner / PractitionerRole / Endpoint …)。</p>
 </tr>
 <tr>
 <td>新しい FHIR resource</td>
-<td><code>_fhir_&lt;topic&gt;.py</code> builder + <code>register_bundle_builder</code>(§3)</td>
+<td><code>modules/output/fhir_r4/&lt;theme&gt;/</code> に builder + <code>register_bundle_builder</code>(§3)</td>
 </tr>
 <tr>
 <td>新しい出力形式</td>

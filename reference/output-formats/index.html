@@ -2500,17 +2500,15 @@
 </span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>    │   ├── manifest.json                     # LLM config, model, cost report, counts
 </span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>    │   └── documents/
 </span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>    │       └── ENC-POP-&lt;person-6d&gt;-&lt;enc-12d&gt;/
-</span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>    │           ├── admission_hp.json
-</span><span id="__span-0-14"><a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>    │           ├── discharge_summary.json
-</span><span id="__span-0-15"><a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>    │           ├── death_summary.json        # only if deceased
-</span><span id="__span-0-16"><a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a>    │           ├── operative_note_001.json   # per surgery
-</span><span id="__span-0-17"><a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a>    │           └── procedure_note_&lt;type&gt;.json
-</span><span id="__span-0-18"><a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a>    └── &lt;another_version_id&gt;/                 # multiple versions coexist
-</span><span id="__span-0-19"><a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a>        └── ...
+</span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>    │           ├── doc-&lt;encounter_id&gt;-01.json        # one file per document, numbered in order
+</span><span id="__span-0-14"><a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>    │           ├── doc-&lt;encounter_id&gt;-02-day.json    # nursing shift notes carry -day / -evening / -night
+</span><span id="__span-0-15"><a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>    │           └── doc-&lt;encounter_id&gt;-03-pn.json     # procedure notes carry -pn
+</span><span id="__span-0-16"><a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a>    └── &lt;another_version_id&gt;/                 # multiple versions coexist
+</span><span id="__span-0-17"><a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a>        └── ...
 </span></code></pre></div>
 <ul>
 <li><code>structural/</code> is the <strong>immutable intermediate format</strong> of the simulation. All structural FHIR/CSV resources derive from this.</li>
-<li><code>narratives/&lt;version&gt;/documents/</code> is the <strong>narrative layer</strong> — one JSON per clinical document, conforming to the <code>ClinicalDocument</code> type in <code>clinosim/types/clinical.py</code>. Each file contains the LOINC code, plain-text content, references, and provenance (LLM model, tokens, cache hit, prompt version, generated_at).</li>
+<li><code>narratives/&lt;version&gt;/documents/</code> is the <strong>narrative layer</strong> — one JSON per clinical document (the document type is recorded inside the file, not in the file name), conforming to the <code>ClinicalDocument</code> type in <code>clinosim/types/clinical.py</code>. Each file contains the LOINC code, plain-text content, references, and provenance (LLM model, tokens, cache hit, prompt version, generated_at).</li>
 <li>Multiple narrative versions can coexist: e.g. <code>template_v1</code>, <code>ollama_en_v1</code>, <code>bedrock_sonnet_en_v1</code> — all generated from the same structural CIF.</li>
 </ul>
 <h3 id="fhir-r4--bulk-data-export-ndjson-format">FHIR R4 — Bulk Data Export NDJSON Format<a class="headerlink" href="#fhir-r4--bulk-data-export-ndjson-format" title="Permanent link">&para;</a></h3>
@@ -2538,12 +2536,15 @@
 </span><span id="__span-1-21"><a id="__codelineno-1-21" name="__codelineno-1-21" href="#__codelineno-1-21"></a>├── MedicationAdministration.ndjson  # MAR records
 </span><span id="__span-1-22"><a id="__codelineno-1-22" name="__codelineno-1-22" href="#__codelineno-1-22"></a>├── Procedure.ndjson                 # Surgery + bedside procedures (CPT / K-code + SNOMED CT metadata)
 </span><span id="__span-1-23"><a id="__codelineno-1-23" name="__codelineno-1-23" href="#__codelineno-1-23"></a>├── DocumentReference.ndjson         # Clinical documents (only when a narrative version is provided)
-</span><span id="__span-1-24"><a id="__codelineno-1-24" name="__codelineno-1-24" href="#__codelineno-1-24"></a>├── AllergyIntolerance.ndjson        # Patient-level (deduplicated)
-</span><span id="__span-1-25"><a id="__codelineno-1-25" name="__codelineno-1-25" href="#__codelineno-1-25"></a>├── Coverage.ndjson                  # Insurance enrollment (JP only; JP Core 被保険者番号/記号/番号/枝番)
-</span><span id="__span-1-26"><a id="__codelineno-1-26" name="__codelineno-1-26" href="#__codelineno-1-26"></a>├── Practitioner.ndjson              # Doctors, nurses, technicians
-</span><span id="__span-1-27"><a id="__codelineno-1-27" name="__codelineno-1-27" href="#__codelineno-1-27"></a>├── PractitionerRole.ndjson          # Specialty + organization + ward location
-</span><span id="__span-1-28"><a id="__codelineno-1-28" name="__codelineno-1-28" href="#__codelineno-1-28"></a>├── Organization.ndjson              # Hospital + departments + insurers (保険者, JP)
-</span><span id="__span-1-29"><a id="__codelineno-1-29" name="__codelineno-1-29" href="#__codelineno-1-29"></a>└── Location.ndjson                  # Wards + beds + operating rooms
+</span><span id="__span-1-24"><a id="__codelineno-1-24" name="__codelineno-1-24" href="#__codelineno-1-24"></a>├── Composition.ndjson               # Sectioned clinical documents (documents whose format is `composition`, e.g. H&amp;P, discharge / nursing summaries, outpatient SOAP, ED note)
+</span><span id="__span-1-25"><a id="__codelineno-1-25" name="__codelineno-1-25" href="#__codelineno-1-25"></a>├── ClinicalImpression.ndjson        # Physician clinical impressions (one per CIF `clinical_impressions` record)
+</span><span id="__span-1-26"><a id="__codelineno-1-26" name="__codelineno-1-26" href="#__codelineno-1-26"></a>├── CareTeam.ndjson                  # 1 per encounter (attending physician + primary nurse)
+</span><span id="__span-1-27"><a id="__codelineno-1-27" name="__codelineno-1-27" href="#__codelineno-1-27"></a>├── AllergyIntolerance.ndjson        # Patient-level (deduplicated)
+</span><span id="__span-1-28"><a id="__codelineno-1-28" name="__codelineno-1-28" href="#__codelineno-1-28"></a>├── Coverage.ndjson                  # Insurance enrollment (US payors; JP Core 被保険者番号/記号/番号/枝番 for JP)
+</span><span id="__span-1-29"><a id="__codelineno-1-29" name="__codelineno-1-29" href="#__codelineno-1-29"></a>├── Practitioner.ndjson              # Doctors, nurses, technicians
+</span><span id="__span-1-30"><a id="__codelineno-1-30" name="__codelineno-1-30" href="#__codelineno-1-30"></a>├── PractitionerRole.ndjson          # Specialty + organization + ward location
+</span><span id="__span-1-31"><a id="__codelineno-1-31" name="__codelineno-1-31" href="#__codelineno-1-31"></a>├── Organization.ndjson              # Hospital + departments + insurers (保険者, JP)
+</span><span id="__span-1-32"><a id="__codelineno-1-32" name="__codelineno-1-32" href="#__codelineno-1-32"></a>└── Location.ndjson                  # Wards + beds + operating rooms
 </span></code></pre></div>
 <p>Each line = 1 FHIR resource. <code>Resource.id</code> is unique across all resource types. Reference integrity is maintained.</p>
 <p><code>DocumentReference.ndjson</code> is emitted whenever <code>--narrative-version</code>
@@ -2551,8 +2552,8 @@ resolves to a version directory (default: <code>current</code>, backed by the
 <code>current_version.txt</code> pointer that Stage 1's <code>TemplateNarrativePass</code>
 maintains). Without any narrative version present the remaining
 resource types are produced normally. <code>Coverage.ndjson</code> (+ insurer
-<code>Organization</code>) is emitted only for JP with insurance enabled
-(<code>--jp-insurance</code>, default on).</p>
+<code>Organization</code>) is emitted for US always and for JP when insurance
+is enabled (<code>--jp-insurance</code>, default on).</p>
 <h3 id="longitudinal-service-line-emit-v05--v060">Longitudinal service-line emit (v0.5 → v0.6.0)<a class="headerlink" href="#longitudinal-service-line-emit-v05--v060" title="Permanent link">&para;</a></h3>
 <p>Both service lines emit through the standard resource files above —
 no new resource types were introduced; the service-line schema is
@@ -2563,7 +2564,8 @@ described in
   C61 / C67 / C71, including male breast at ~1 % of C50):</li>
 <li>Cancer chronic marker → <code>Condition</code> (ICD-10).</li>
 <li><code>chemo_visit</code> LifeEvents (config: <code>locale/shared/chemo_regimens.yaml</code>
-    — FOLFOX q14d, CarboPem q21d, Trastuzumab q3w, LHRH q28d) →
+    — FOLFOX q14d, CarboPem q21d, Trastuzumab q3w, LHRH q28d, GemNabP q28d,
+    BCG intravesical q7d, Temozolomide Stupp q28d) →
     outpatient <code>Encounter</code> + per-cycle <code>MedicationRequest</code> +
     <code>MedicationAdministration</code> per drug on the regimen.</li>
 <li>Radiation therapy → <code>Procedure</code>.</li>
@@ -2585,19 +2587,24 @@ described in
     chronic condition).</li>
 <li>Mother-side delivery <code>Encounter</code> (IMP admission, admit dx O80,
     discharge dx Z37.0, delivery <code>Procedure</code> — JP K894 / US CPT
-    59400).</li>
+    59400). Cesarean deliveries (US 32.1 % / JP 20.4 %,
+    <code>perinatal.yaml::cesarean</code>) use admit dx O82 and JP K898 / US CPT
+    59510 instead.</li>
 <li>Postpartum <code>Encounter</code>s × 2 at 7 d and 28 d after delivery with
     encounter reason <code>Z39</code> (obgyn).</li>
 <li>Abortion outcome (age-gated 15-19 → 35-44) — outpatient
     day-surgery <code>Encounter</code> with O03.9 (spontaneous) or O04.5
     (induced). If fired, delivery + newborn chain are skipped and
     the period closes with <code>outcome="aborted"</code>.</li>
-<li>Newborn <code>Patient</code> (id <code>&lt;mother&gt;-BABY</code>) generated per delivery,
+<li>Newborn <code>Patient</code> (id <code>&lt;mother&gt;-BABY</code>; <code>&lt;mother&gt;-&lt;N&gt;-BABY</code> for
+    the N-th birth of the same mother) generated per delivery,
     household + birthDate inherited, sex sampled via per-mother
-    sub-RNG. Newborn <code>Encounter</code> links back via
-    <code>admit_source = born</code> (new <code>AdmitSource.BORN</code> enum member) and
+    sub-RNG. Newborn birth <code>Encounter</code> links back via
+    <code>admit_source = born</code> (<code>AdmitSource.BORN</code>) and
     <code>Encounter.partOf → Encounter/&lt;mother-delivery-encounter&gt;</code>, with
-    discharge dx <code>Z38.0</code>.</li>
+    discharge dx <code>Z38.0</code>. The newborn joins the simulated population
+    the day after the birth stay ends (<code>PersonRecord.enrolled_from</code>)
+    and is simulated like every other person from then on.</li>
 <li>Past-birth <code>Condition</code> — one Z37 <code>problem-list-item</code> per
     delivered pregnancy period, <code>onsetDateTime = delivery_date</code>
     (derived at emit time from <code>state_history("pregnancy")</code>;
@@ -2645,7 +2652,7 @@ described in
 </tr>
 <tr>
 <td>DocumentReference</td>
-<td>type (LOINC: 18842-5 / 69730-0 / 11504-8 / 34117-2 / 28570-0), category (clinical-note), subject, date, author, content.attachment (base64 text/plain, size, sha1 hash), context (encounter period, related Procedure)</td>
+<td>type (LOINC; see <a href="../../clinical_documents/#document-scope"><code>../clinical_documents.md</code></a> for the per-document codes), category (clinical-note), subject, date, author, content.attachment (base64 text/plain, size, sha1 hash), context (encounter period, related Procedure)</td>
 </tr>
 <tr>
 <td>Practitioner</td>
@@ -2669,7 +2676,7 @@ described in
 <div class="highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>output/csv/
 </span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>├── patients.csv
 </span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>├── encounters.csv
-</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>├── conditions.csv
+</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>├── diagnoses.csv
 </span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>├── lab_results.csv
 </span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>├── vital_signs.csv
 </span><span id="__span-2-7"><a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a>├── orders.csv

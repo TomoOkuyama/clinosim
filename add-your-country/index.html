@@ -2349,6 +2349,28 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#demographicsyamled_visit_not_admitted" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        demographics.yaml::ed_visit_not_admitted
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#mortality-localesharedactuarial_life_tableyaml" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Mortality (locale/shared/actuarial_life_table.yaml)
+      
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -2524,7 +2546,12 @@ require no country-specific work.</p>
 </span></code></pre></div>
 <h2 id="required-yaml-files">Required YAML files<a class="headerlink" href="#required-yaml-files" title="Permanent link">&para;</a></h2>
 <p>The <code>xx/</code> directory MUST contain the following. See the <code>_template/</code> scaffold
-(<code>clinosim/locale/_template/</code>) for schema comments and skeleton values.</p>
+(<code>clinosim/locale/_template/</code>) for schema comments and skeleton values.
+Note that <code>_template/demographics.yaml</code> uses key names the loader does not
+read (<code>sex_distribution</code>, <code>blood_type_distribution</code>,
+<code>chronic_condition_prevalence</code>); take key names from
+<code>clinosim/locale/us/demographics.yaml</code> / <code>jp/demographics.yaml</code>
+(<code>sex_ratio</code>, <code>blood_type</code>, <code>chronic_prevalence</code>, ...).</p>
 <table>
 <thead>
 <tr>
@@ -2546,8 +2573,8 @@ require no country-specific work.</p>
 </tr>
 <tr>
 <td><code>demographics.yaml</code></td>
-<td>Age distribution, blood type, chronic-disease prevalence (see schema note below), disease incidence, lifestyle</td>
-<td>Government census / disease surveillance</td>
+<td>Age distribution, blood type, chronic-disease prevalence (see schema note below), disease incidence, lifestyle, ED-only visit rate (<code>ed_visit_not_admitted.rate_per_1000_person_years</code>)</td>
+<td>Government census / disease surveillance / national ED utilization survey</td>
 </tr>
 <tr>
 <td><code>formatting.yaml</code></td>
@@ -2617,6 +2644,25 @@ defaults but that means the generated data is not truly locale-representative.</
 </span></code></pre></div>
 <p>Full behavior + downstream sex-conditional billing-code mapping:
 <a href="../reference/oncology-obstetric-service-lines/"><code>reference/oncology-obstetric-service-lines.md</code></a> §3.</p>
+<h3 id="demographicsyamled_visit_not_admitted"><code>demographics.yaml::ed_visit_not_admitted</code><a class="headerlink" href="#demographicsyamled_visit_not_admitted" title="Permanent link">&para;</a></h3>
+<p>Rate of ED visits that end without admission, per 1,000 person-years.
+The forward month loop draws the month's ED-visit count from it
+(<code>clinosim/simulator/phases/_ed_slot.py</code>). A missing key means a rate
+of 0 — the cohort gets no ED-only visits.</p>
+<div class="highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="nt">ed_visit_not_admitted</span><span class="p">:</span>
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="w">  </span><span class="nt">rate_per_1000_person_years</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">380</span><span class="w">   </span><span class="c1"># US value; JP ships 150</span>
+</span></code></pre></div>
+<h3 id="mortality-localesharedactuarial_life_tableyaml">Mortality (<code>locale/shared/actuarial_life_table.yaml</code>)<a class="headerlink" href="#mortality-localesharedactuarial_life_tableyaml" title="Permanent link">&para;</a></h3>
+<p>Community deaths (outside the simulated inpatient stays) are drawn
+forward per person per year by <code>clinosim/modules/population/mortality.py</code>:
+life-table <code>qx</code> (age band × sex) × the person's relative chronic-condition
+SMR × <code>community_death_share</code>. Both <code>annual_mortality_qx</code> and
+<code>community_death_share</code> are keyed by locale (<code>us</code>, <code>jp</code>) in the shared
+yaml. <strong>Current limitation:</strong> <code>mortality.py::_locale_key</code> maps every
+non-JP country to <code>us</code>, so a new locale uses the US life table and US
+<code>community_death_share</code> until that function is extended to read an
+<code>xx</code> block. Adding a locale with its own mortality therefore needs an
+<code>xx</code> entry under both yaml keys plus that code change.</p>
 <h2 id="optional-yaml-files-opt-in-modules">Optional YAML files (opt-in modules)<a class="headerlink" href="#optional-yaml-files-opt-in-modules" title="Permanent link">&para;</a></h2>
 <p>Only add these when your country supports a specific opt-in module:</p>
 <table>
@@ -2663,34 +2709,45 @@ defaults but that means the generated data is not truly locale-representative.</
 <td>Local vaccination schedule</td>
 <td><code>immunization</code></td>
 </tr>
+<tr>
+<td><code>ambulatory_visit_length.yaml</code></td>
+<td>Outpatient visit-length distributions per visit type</td>
+<td>outpatient simulator (falls back to a flat 15/25/45-minute triangle)</td>
+</tr>
 </tbody>
 </table>
 <h2 id="code-registration">Code registration<a class="headerlink" href="#code-registration" title="Permanent link">&para;</a></h2>
 <h3 id="1-register-the-country-in-_iopy">1. Register the country in <code>_io.py</code><a class="headerlink" href="#1-register-the-country-in-_iopy" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="c1"># clinosim/locale/_io.py</span>
-</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="n">_COUNTRY_DIR_MAP</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"JP"</span><span class="p">:</span> <span class="s2">"jp"</span><span class="p">,</span> <span class="s2">"US"</span><span class="p">:</span> <span class="s2">"us"</span><span class="p">,</span> <span class="s2">"XX"</span><span class="p">:</span> <span class="s2">"xx"</span><span class="p">}</span>
+<div class="highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="c1"># clinosim/locale/_io.py</span>
+</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="n">_COUNTRY_DIR_MAP</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"JP"</span><span class="p">:</span> <span class="s2">"jp"</span><span class="p">,</span> <span class="s2">"US"</span><span class="p">:</span> <span class="s2">"us"</span><span class="p">,</span> <span class="s2">"XX"</span><span class="p">:</span> <span class="s2">"xx"</span><span class="p">}</span>
 </span></code></pre></div>
 <p>The loader falls back to <code>country.lower()</code> when the map does not contain
 the requested code, but registering it explicitly is preferred for
 completeness / discoverability.</p>
 <h3 id="2-fhir-profile-emission-optional">2. FHIR profile emission (optional)<a class="headerlink" href="#2-fhir-profile-emission-optional" title="Permanent link">&para;</a></h3>
 <p>If your country has a national FHIR IG (JP Core / US Core / German Basisprofil
-/ AU Core / etc.), decide whether to emit its profile URLs. The current code
-emits JP Core profiles when <code>country == "JP"</code> via
-<code>_apply_jp_core_profile</code> in <code>clinosim/modules/output/fhir_r4_adapter.py</code>.</p>
+/ AU Core / etc.), decide whether to emit its profile URLs. Profile stacking
+happens in <code>_build_bundle</code> (<code>clinosim/modules/output/fhir_r4/builder.py</code>),
+which branches on <code>is_jp(country)</code>: JP output gets <code>_apply_jp_core_profile</code>
++ <code>_apply_jp_clins_profile</code>, and <strong>every other country</strong> gets
+<code>_apply_us_core_profile</code> (helpers in
+<code>clinosim/modules/output/fhir_r4/post_process/profile.py</code>). The URL
+registries are yaml files:
+<code>clinosim/codes/data/fhir-profiles-{jp-core,us-core,jp-clins}.yaml</code>.</p>
 <p>For a new country you can:</p>
 <ol>
-<li>Skip country-specific profile emission (safe default; resources are
-   base FHIR R4 compliant)</li>
-<li>Add a <code>_XX_CORE_PROFILES: dict[str, list[str]]</code> registry mirroring the
-   JP Core one (session 48 g.1 unified the shape) and dispatch via
-   <code>if country == "XX": _apply_xx_core_profile(resource)</code> in
-   <code>_build_bundle</code>.</li>
+<li>Add a <code>clinosim/codes/data/fhir-profiles-xx-core.yaml</code> registry
+   mirroring the JP Core / US Core ones, an <code>_apply_xx_core_profile</code>
+   helper, and a branch for your country in <code>_build_bundle</code>.</li>
+<li>Otherwise your bundles are emitted on the non-JP path and declare
+   US Core profile URLs, which is wrong for a non-US country — at minimum
+   add a branch that skips <code>_apply_us_core_profile</code> for it.</li>
 </ol>
 <h3 id="3-country-specific-opt-in-modules">3. Country-specific opt-in modules<a class="headerlink" href="#3-country-specific-opt-in-modules" title="Permanent link">&para;</a></h3>
 <p>Some enrichers gate on country in <code>register_builtin_enrichers</code>:</p>
 <ul>
-<li><code>identity</code> — active for JP (国民健康保険 numbering); adapt or disable</li>
+<li><code>identity</code> — always on for non-JP countries (JP honours <code>--no-jp-insurance</code>);
+  <code>assign_identities</code> no-ops when the locale has no <code>identity.yaml</code></li>
 <li><code>care_level</code> — JP-only; skip</li>
 <li><code>health_checkup</code> — JP-eCheckup; skip unless designing an equivalent</li>
 </ul>
@@ -2703,9 +2760,9 @@ emits JP Core profiles when <code>country == "JP"</code> via
       valid FHIR R4 resources</li>
 <li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Two independent runs with the same seed produce byte-identical output
       (determinism check — clinosim's core invariant, AD-16):
-      <div class="highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>clinosim<span class="w"> </span>simulate<span class="w"> </span>--country<span class="w"> </span>XX<span class="w"> </span>--seed<span class="w"> </span><span class="m">42</span><span class="w"> </span>-o<span class="w"> </span>/tmp/xx-run1
-</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>clinosim<span class="w"> </span>simulate<span class="w"> </span>--country<span class="w"> </span>XX<span class="w"> </span>--seed<span class="w"> </span><span class="m">42</span><span class="w"> </span>-o<span class="w"> </span>/tmp/xx-run2
-</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>diff<span class="w"> </span>-r<span class="w"> </span>/tmp/xx-run1<span class="w"> </span>/tmp/xx-run2<span class="w">  </span><span class="c1"># must show only manifest transactionTime</span>
+      <div class="highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>clinosim<span class="w"> </span>simulate<span class="w"> </span>--country<span class="w"> </span>XX<span class="w"> </span>--seed<span class="w"> </span><span class="m">42</span><span class="w"> </span>-o<span class="w"> </span>/tmp/xx-run1
+</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>clinosim<span class="w"> </span>simulate<span class="w"> </span>--country<span class="w"> </span>XX<span class="w"> </span>--seed<span class="w"> </span><span class="m">42</span><span class="w"> </span>-o<span class="w"> </span>/tmp/xx-run2
+</span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>diff<span class="w"> </span>-r<span class="w"> </span>/tmp/xx-run1<span class="w"> </span>/tmp/xx-run2<span class="w">  </span><span class="c1"># must show only manifest transactionTime</span>
 </span></code></pre></div></li>
 <li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Names / addresses / dates render in the expected local convention</li>
 <li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Lab reference ranges match the authoritative source</li>

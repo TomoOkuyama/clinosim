@@ -2435,11 +2435,11 @@
 </ol>
 <h2 id="2-パイプライン全体像">2. パイプライン全体像<a class="headerlink" href="#2-パイプライン全体像" title="Permanent link">&para;</a></h2>
 <div class="highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a> population(人口動態・世帯)                        Layer 0-1: reference YAML
-</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>   └→ scenario 発火(disease 32種 / encounter 46種)   (disease/encounter protocols,
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>   └→ scenario 発火(disease 36種 / encounter 51種)   (disease/encounter protocols,
 </span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>        └→ encounter simulation(inpatient/ED/outpatient) locale, codes)
 </span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>             ├ physiology state 遷移(daily loop)
 </span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>             ├ orders / labs / vitals / MAR / procedures
-</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>             ├ POST_ENCOUNTER enrichers(device→hai→antibiotic→imaging→triage→nursing→document)
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>             ├ POST_ENCOUNTER enrichers(device→prophylaxis→hai→antibiotic→imaging→…→triage→nursing_assignment→document)
 </span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>             └→ POST_RECORDS enrichers(nursing flowsheet, immunization, …)
 </span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>   ↓
 </span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a> ★ CIF(唯一のシミュレーション出力、AD-17)
@@ -2447,12 +2447,12 @@
 </span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>   └ cif/narratives/&lt;version&gt;/documents/… … Stage 2、narrative、version 差替え可能(AD-65)
 </span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>   ↓
 </span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a> format adapters(CIF だけを読む)
-</span><span id="__span-0-14"><a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>   ├ FHIR R4 NDJSON(_fhir_* builder 群、registry 登録制)← 現在の主出力
+</span><span id="__span-0-14"><a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>   ├ FHIR R4 NDJSON(fhir_r4/&lt;theme&gt;/ の builder 群、registry 登録制)← 現在の主出力
 </span><span id="__span-0-15"><a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>   └ CSV / (将来: SS-MIX2, HL7 v2)
 </span></code></pre></div>
 <ul>
 <li><strong>CLI 3-stage(AD-37)</strong>: <code>clinosim simulate</code>(→ structural CIF)→ <code>clinosim narrate
-  --provider template |mock |ollama |bedrock</code>(→ narratives/<version>/)→
+  --provider template |mock |ollama |bedrock |vllm |openai_compatible</code>(→ narratives/<version>/)→
   <code>clinosim export-fhir --narrative-version X</code>。これがコンセプト 6(差し替え)の実体。</li>
 <li><strong>決定性(AD-16)</strong>: 全乱数は階層 sub-seed。同 seed = byte 同一出力(wall-clock は
   determinism chain で全除去済、session 34)。</li>
@@ -2487,7 +2487,7 @@
 </tr>
 <tr>
 <td>3</td>
-<td>CIF 生成(simulator + 33 modules)</td>
+<td>CIF 生成(simulator + 38 modules)</td>
 <td><code>simulator/</code>, <code>modules/</code></td>
 </tr>
 <tr>
@@ -2498,7 +2498,7 @@
 </tbody>
 </table>
 <ul>
-<li><strong>module は 33 個</strong>(<code>MODULES.md</code> が地図)。always-on(臨床カスケード上必須:device →
+<li><strong>module は 38 個</strong>(<code>MODULES.md</code> が地図)。always-on(臨床カスケード上必須:device →
   hai → antibiotic / imaging / document / triage / nursing_assignment 等)と opt-in がある。</li>
 <li>module 間依存は README の Dependencies 宣言 + <code>types/</code> / <code>codes/</code> / <code>locale/</code> のみ。
   CIF への書込みは <code>extensions[&lt;module&gt;]</code>(typed field 追加は Base のみ)。</li>

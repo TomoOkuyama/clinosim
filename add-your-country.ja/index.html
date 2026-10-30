@@ -2349,6 +2349,28 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#demographicsyamled_visit_not_admitted" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        demographics.yaml::ed_visit_not_admitted
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#死亡-localesharedactuarial_life_tableyaml" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        死亡 (locale/shared/actuarial_life_table.yaml)
+      
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -2525,7 +2547,11 @@
 <h2 id="必須-yaml-ファイル">必須 YAML ファイル<a class="headerlink" href="#必須-yaml-ファイル" title="Permanent link">&para;</a></h2>
 <p><code>xx/</code> ディレクトリは以下を <strong>必ず</strong> 含める必要あり。スキーマコメントと
 skeleton 値は <code>_template/</code> scaffold (<code>clinosim/locale/_template/</code>)
-参照。</p>
+参照。ただし <code>_template/demographics.yaml</code> の key 名
+(<code>sex_distribution</code>、<code>blood_type_distribution</code>、
+<code>chronic_condition_prevalence</code>) はローダーが読まない名前なので、key 名は
+<code>clinosim/locale/us/demographics.yaml</code> / <code>jp/demographics.yaml</code>
+(<code>sex_ratio</code>、<code>blood_type</code>、<code>chronic_prevalence</code> ...) から取ること。</p>
 <table>
 <thead>
 <tr>
@@ -2547,8 +2573,8 @@ skeleton 値は <code>_template/</code> scaffold (<code>clinosim/locale/_templat
 </tr>
 <tr>
 <td><code>demographics.yaml</code></td>
-<td>年齢分布、血液型、慢性疾患 prevalence (下記スキーマ注記参照)、疾患 incidence、生活習慣</td>
-<td>政府センサス / 疾患サーベイランス</td>
+<td>年齢分布、血液型、慢性疾患 prevalence (下記スキーマ注記参照)、疾患 incidence、生活習慣、入院に至らない ED 受診率 (<code>ed_visit_not_admitted.rate_per_1000_person_years</code>)</td>
+<td>政府センサス / 疾患サーベイランス / 国の救急利用統計</td>
 </tr>
 <tr>
 <td><code>formatting.yaml</code></td>
@@ -2618,6 +2644,24 @@ skeleton 値は <code>_template/</code> scaffold (<code>clinosim/locale/_templat
 </span></code></pre></div>
 <p>full な挙動 + downstream の sex-conditional 請求コード mapping:
 <a href="../reference/oncology-obstetric-service-lines.ja/"><code>reference/oncology-obstetric-service-lines.ja.md</code></a> §3。</p>
+<h3 id="demographicsyamled_visit_not_admitted"><code>demographics.yaml::ed_visit_not_admitted</code><a class="headerlink" href="#demographicsyamled_visit_not_admitted" title="Permanent link">&para;</a></h3>
+<p>入院に至らない ED 受診の率 (1,000 人年あたり)。forward month loop が
+これから各月の ED 受診数を引く (<code>clinosim/simulator/phases/_ed_slot.py</code>)。
+key が無いと率 0 扱いとなり、ED のみの受診は生成されない。</p>
+<div class="highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="nt">ed_visit_not_admitted</span><span class="p">:</span>
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="w">  </span><span class="nt">rate_per_1000_person_years</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">380</span><span class="w">   </span><span class="c1"># US の値。JP は 150</span>
+</span></code></pre></div>
+<h3 id="死亡-localesharedactuarial_life_tableyaml">死亡 (<code>locale/shared/actuarial_life_table.yaml</code>)<a class="headerlink" href="#死亡-localesharedactuarial_life_tableyaml" title="Permanent link">&para;</a></h3>
+<p>院外死亡 (シミュレートされた入院以外での死亡) は
+<code>clinosim/modules/population/mortality.py</code> が人ごと・年ごとに前向きに
+引く: 生命表 <code>qx</code> (年齢帯 × 性別) × その人の慢性疾患による相対 SMR ×
+<code>community_death_share</code>。<code>annual_mortality_qx</code> と <code>community_death_share</code>
+はどちらも共有 yaml 内で locale (<code>us</code>、<code>jp</code>) を key とする。
+<strong>現状の制約:</strong> <code>mortality.py::_locale_key</code> は JP 以外の国をすべて <code>us</code>
+に写すため、新しい locale は同関数が <code>xx</code> ブロックを読むよう拡張される
+まで US の生命表と US の <code>community_death_share</code> を使う。独自の死亡率を
+持つ locale を追加するには、両 yaml key への <code>xx</code> エントリと、その
+コード変更が必要。</p>
 <h2 id="任意-yaml-ファイル-opt-in-モジュール">任意 YAML ファイル (opt-in モジュール)<a class="headerlink" href="#任意-yaml-ファイル-opt-in-モジュール" title="Permanent link">&para;</a></h2>
 <p>対応国が特定 opt-in モジュールをサポートする場合のみ追加:</p>
 <table>
@@ -2664,36 +2708,45 @@ skeleton 値は <code>_template/</code> scaffold (<code>clinosim/locale/_templat
 <td>現地予防接種スケジュール</td>
 <td><code>immunization</code></td>
 </tr>
+<tr>
+<td><code>ambulatory_visit_length.yaml</code></td>
+<td>外来受診種別ごとの受診時間分布</td>
+<td>外来 simulator (無ければ 15/25/45 分の一律三角分布にフォールバック)</td>
+</tr>
 </tbody>
 </table>
 <h2 id="コード登録">コード登録<a class="headerlink" href="#コード登録" title="Permanent link">&para;</a></h2>
 <h3 id="1-_iopy-に国を登録">1. <code>_io.py</code> に国を登録<a class="headerlink" href="#1-_iopy-に国を登録" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="c1"># clinosim/locale/_io.py</span>
-</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="n">_COUNTRY_DIR_MAP</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"JP"</span><span class="p">:</span> <span class="s2">"jp"</span><span class="p">,</span> <span class="s2">"US"</span><span class="p">:</span> <span class="s2">"us"</span><span class="p">,</span> <span class="s2">"XX"</span><span class="p">:</span> <span class="s2">"xx"</span><span class="p">}</span>
+<div class="highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="c1"># clinosim/locale/_io.py</span>
+</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="n">_COUNTRY_DIR_MAP</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"JP"</span><span class="p">:</span> <span class="s2">"jp"</span><span class="p">,</span> <span class="s2">"US"</span><span class="p">:</span> <span class="s2">"us"</span><span class="p">,</span> <span class="s2">"XX"</span><span class="p">:</span> <span class="s2">"xx"</span><span class="p">}</span>
 </span></code></pre></div>
 <p>ローダーは要求コードがマップにない場合 <code>country.lower()</code> にフォール
 バックしますが、明示登録が完全性 / 発見可能性のために推奨。</p>
 <h3 id="2-fhir-プロファイル-emit-任意">2. FHIR プロファイル emit (任意)<a class="headerlink" href="#2-fhir-プロファイル-emit-任意" title="Permanent link">&para;</a></h3>
 <p>国が国別 FHIR IG (JP Core / US Core / German Basisprofil / AU Core
-等) を持つ場合、そのプロファイル URL を emit するかを判断。現状の
-コードは <code>clinosim/modules/output/fhir_r4_adapter.py</code> の
-<code>_apply_jp_core_profile</code> 経由で <code>country == "JP"</code> のときに JP Core
-プロファイルを emit。</p>
+等) を持つ場合、そのプロファイル URL を emit するかを判断。プロファイル
+付与は <code>_build_bundle</code> (<code>clinosim/modules/output/fhir_r4/builder.py</code>) で
+<code>is_jp(country)</code> により分岐する: JP 出力は <code>_apply_jp_core_profile</code> +
+<code>_apply_jp_clins_profile</code>、<strong>それ以外の全ての国</strong>は
+<code>_apply_us_core_profile</code> (helper は
+<code>clinosim/modules/output/fhir_r4/post_process/profile.py</code>)。URL
+レジストリは yaml:
+<code>clinosim/codes/data/fhir-profiles-{jp-core,us-core,jp-clins}.yaml</code>。</p>
 <p>新規国の場合の選択肢:</p>
 <ol>
-<li>国別プロファイル emit をスキップ (安全なデフォルト; リソースは
-   ベース FHIR R4 準拠)</li>
-<li>JP Core と同形状の <code>_XX_CORE_PROFILES: dict[str, list[str]]</code>
-   レジストリを追加し (session 48 g.1 で形状を統一)、
-   <code>_build_bundle</code> 内で
-   <code>if country == "XX": _apply_xx_core_profile(resource)</code> により
-   dispatch</li>
+<li>JP Core / US Core と同形状の
+   <code>clinosim/codes/data/fhir-profiles-xx-core.yaml</code> レジストリ、
+   <code>_apply_xx_core_profile</code> helper、<code>_build_bundle</code> 内の自国分岐を追加。</li>
+<li>そうしない場合、bundle は非 JP 経路で emit され US Core プロファイル
+   URL を宣言する。米国以外の国としては誤りなので、最低限その国では
+   <code>_apply_us_core_profile</code> を skip する分岐を追加する。</li>
 </ol>
 <h3 id="3-国別-opt-in-モジュール">3. 国別 opt-in モジュール<a class="headerlink" href="#3-国別-opt-in-モジュール" title="Permanent link">&para;</a></h3>
 <p>一部の enricher は <code>register_builtin_enrichers</code> 内で country に
 gate:</p>
 <ul>
-<li><code>identity</code> — JP でアクティブ (国民健康保険番号); 適応または無効化</li>
+<li><code>identity</code> — JP 以外の国では常に有効 (JP は <code>--no-jp-insurance</code> に従う)。
+  locale に <code>identity.yaml</code> が無ければ <code>assign_identities</code> は no-op</li>
 <li><code>care_level</code> — JP のみ; スキップ</li>
 <li><code>health_checkup</code> — JP-eCheckup; 同等物を設計する場合以外はスキップ</li>
 </ul>
@@ -2706,9 +2759,9 @@ gate:</p>
       が有効な FHIR R4 リソースを emit</li>
 <li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> 同 seed の 2 実行がバイト同一出力を生成 (決定性チェック —
       clinosim のコア不変条件、AD-16):
-      <div class="highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>clinosim<span class="w"> </span>simulate<span class="w"> </span>--country<span class="w"> </span>XX<span class="w"> </span>--seed<span class="w"> </span><span class="m">42</span><span class="w"> </span>-o<span class="w"> </span>/tmp/xx-run1
-</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>clinosim<span class="w"> </span>simulate<span class="w"> </span>--country<span class="w"> </span>XX<span class="w"> </span>--seed<span class="w"> </span><span class="m">42</span><span class="w"> </span>-o<span class="w"> </span>/tmp/xx-run2
-</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>diff<span class="w"> </span>-r<span class="w"> </span>/tmp/xx-run1<span class="w"> </span>/tmp/xx-run2<span class="w">  </span><span class="c1"># manifest transactionTime のみが差分</span>
+      <div class="highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>clinosim<span class="w"> </span>simulate<span class="w"> </span>--country<span class="w"> </span>XX<span class="w"> </span>--seed<span class="w"> </span><span class="m">42</span><span class="w"> </span>-o<span class="w"> </span>/tmp/xx-run1
+</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>clinosim<span class="w"> </span>simulate<span class="w"> </span>--country<span class="w"> </span>XX<span class="w"> </span>--seed<span class="w"> </span><span class="m">42</span><span class="w"> </span>-o<span class="w"> </span>/tmp/xx-run2
+</span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>diff<span class="w"> </span>-r<span class="w"> </span>/tmp/xx-run1<span class="w"> </span>/tmp/xx-run2<span class="w">  </span><span class="c1"># manifest transactionTime のみが差分</span>
 </span></code></pre></div></li>
 <li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> 氏名 / 住所 / 日付が期待される現地慣習でレンダリング</li>
 <li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> 検査 reference range が権威ソースと一致</li>

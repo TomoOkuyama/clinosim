@@ -2649,9 +2649,9 @@
 <li><strong>Bedrock → Model access</strong> へ。</li>
 <li><strong>Manage model access</strong> をクリックし、使用予定の Anthropic Claude
    モデルへのアクセスをリクエスト。例:</li>
-<li><code>anthropic.claude-3-5-haiku-20241022-v1:0</code></li>
-<li><code>anthropic.claude-3-5-sonnet-20241022-v2:0</code></li>
-<li><code>anthropic.claude-3-opus-20240229-v1:0</code></li>
+<li><code>anthropic.claude-haiku-4-5-20251001-v1:0</code></li>
+<li><code>anthropic.claude-sonnet-4-20250514-v1:0</code></li>
+<li><code>anthropic.claude-opus-4-20250514-v1:0</code></li>
 <li>承認を待つ (Claude モデルは通常即時、数時間かかる場合もあり)。</li>
 </ol>
 <blockquote>
@@ -2676,9 +2676,9 @@
 </span><span id="__span-1-10"><a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a><span class="w">        </span><span class="s2">"bedrock:ConverseStream"</span>
 </span><span id="__span-1-11"><a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a><span class="w">      </span><span class="p">],</span>
 </span><span id="__span-1-12"><a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a><span class="w">      </span><span class="nt">"Resource"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
-</span><span id="__span-1-13"><a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a><span class="w">        </span><span class="s2">"arn:aws:bedrock:us-east-1::foundation-model/anthropic.claude-3-5-haiku-20241022-v1:0"</span><span class="p">,</span>
-</span><span id="__span-1-14"><a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a><span class="w">        </span><span class="s2">"arn:aws:bedrock:us-east-1::foundation-model/anthropic.claude-3-5-sonnet-20241022-v2:0"</span><span class="p">,</span>
-</span><span id="__span-1-15"><a id="__codelineno-1-15" name="__codelineno-1-15" href="#__codelineno-1-15"></a><span class="w">        </span><span class="s2">"arn:aws:bedrock:us-east-1::foundation-model/anthropic.claude-3-opus-20240229-v1:0"</span>
+</span><span id="__span-1-13"><a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a><span class="w">        </span><span class="s2">"arn:aws:bedrock:us-east-1::foundation-model/anthropic.claude-haiku-4-5-20251001-v1:0"</span><span class="p">,</span>
+</span><span id="__span-1-14"><a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a><span class="w">        </span><span class="s2">"arn:aws:bedrock:us-east-1::foundation-model/anthropic.claude-sonnet-4-20250514-v1:0"</span><span class="p">,</span>
+</span><span id="__span-1-15"><a id="__codelineno-1-15" name="__codelineno-1-15" href="#__codelineno-1-15"></a><span class="w">        </span><span class="s2">"arn:aws:bedrock:us-east-1::foundation-model/anthropic.claude-opus-4-20250514-v1:0"</span>
 </span><span id="__span-1-16"><a id="__codelineno-1-16" name="__codelineno-1-16" href="#__codelineno-1-16"></a><span class="w">      </span><span class="p">]</span>
 </span><span id="__span-1-17"><a id="__codelineno-1-17" name="__codelineno-1-17" href="#__codelineno-1-17"></a><span class="w">    </span><span class="p">},</span>
 </span><span id="__span-1-18"><a id="__codelineno-1-18" name="__codelineno-1-18" href="#__codelineno-1-18"></a><span class="w">    </span><span class="p">{</span>
@@ -2691,7 +2691,11 @@
 </span><span id="__span-1-25"><a id="__codelineno-1-25" name="__codelineno-1-25" href="#__codelineno-1-25"></a><span class="p">}</span>
 </span></code></pre></div>
 <p>cross-region inference profile を使う場合、foundation model ARN と
-ともにその ARN を <code>Resource</code> リストに追加。</p>
+ともにその ARN を <code>Resource</code> リストに追加。
+同梱の <code>llm_service.bedrock.yaml</code> は <code>us.</code> 接頭辞の model ID (cross-region
+inference profile) を使うので、対応する
+<code>arn:aws:bedrock:&lt;region&gt;:&lt;account&gt;:inference-profile/us.anthropic...</code> ARN
+も追加する。</p>
 <ol>
 <li><strong>IAM → Roles → Create role → AWS service → EC2</strong></li>
 <li>上記 JSON でカスタムポリシーを attach (<code>ClinosimBedrockAccess</code>
@@ -2738,12 +2742,12 @@
 </span><span id="__span-6-9"><a id="__codelineno-6-9" name="__codelineno-6-9" href="#__codelineno-6-9"></a><span class="w">  </span><span class="nt">bedrock</span><span class="p">:</span>
 </span><span id="__span-6-10"><a id="__codelineno-6-10" name="__codelineno-6-10" href="#__codelineno-6-10"></a><span class="w">    </span><span class="nt">region</span><span class="p">:</span><span class="w"> </span><span class="s">"us-east-1"</span>
 </span><span id="__span-6-11"><a id="__codelineno-6-11" name="__codelineno-6-11" href="#__codelineno-6-11"></a><span class="w">    </span><span class="nt">profile</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">null</span><span class="w">                 </span><span class="c1"># null → デフォルト credential chain (EC2 role)</span>
-</span><span id="__span-6-12"><a id="__codelineno-6-12" name="__codelineno-6-12" href="#__codelineno-6-12"></a><span class="w">    </span><span class="nt">model_id</span><span class="p">:</span><span class="w"> </span><span class="s">"anthropic.claude-3-5-sonnet-20241022-v2:0"</span>
+</span><span id="__span-6-12"><a id="__codelineno-6-12" name="__codelineno-6-12" href="#__codelineno-6-12"></a><span class="w">    </span><span class="nt">model_id</span><span class="p">:</span><span class="w"> </span><span class="s">"us.anthropic.claude-sonnet-4-20250514-v1:0"</span>
 </span><span id="__span-6-13"><a id="__codelineno-6-13" name="__codelineno-6-13" href="#__codelineno-6-13"></a><span class="w">    </span><span class="c1"># inference_profile_arn: "arn:aws:bedrock:..."</span>
 </span><span id="__span-6-14"><a id="__codelineno-6-14" name="__codelineno-6-14" href="#__codelineno-6-14"></a><span class="w">  </span><span class="nt">model_map</span><span class="p">:</span>
-</span><span id="__span-6-15"><a id="__codelineno-6-15" name="__codelineno-6-15" href="#__codelineno-6-15"></a><span class="w">    </span><span class="nt">small</span><span class="p">:</span><span class="w"> </span><span class="s">"anthropic.claude-3-5-haiku-20241022-v1:0"</span>
-</span><span id="__span-6-16"><a id="__codelineno-6-16" name="__codelineno-6-16" href="#__codelineno-6-16"></a><span class="w">    </span><span class="nt">medium</span><span class="p">:</span><span class="w"> </span><span class="s">"anthropic.claude-3-5-sonnet-20241022-v2:0"</span>
-</span><span id="__span-6-17"><a id="__codelineno-6-17" name="__codelineno-6-17" href="#__codelineno-6-17"></a><span class="w">    </span><span class="nt">large</span><span class="p">:</span><span class="w"> </span><span class="s">"anthropic.claude-3-opus-20240229-v1:0"</span>
+</span><span id="__span-6-15"><a id="__codelineno-6-15" name="__codelineno-6-15" href="#__codelineno-6-15"></a><span class="w">    </span><span class="nt">small</span><span class="p">:</span><span class="w"> </span><span class="s">"us.anthropic.claude-haiku-4-5-20251001-v1:0"</span>
+</span><span id="__span-6-16"><a id="__codelineno-6-16" name="__codelineno-6-16" href="#__codelineno-6-16"></a><span class="w">    </span><span class="nt">medium</span><span class="p">:</span><span class="w"> </span><span class="s">"us.anthropic.claude-sonnet-4-20250514-v1:0"</span>
+</span><span id="__span-6-17"><a id="__codelineno-6-17" name="__codelineno-6-17" href="#__codelineno-6-17"></a><span class="w">    </span><span class="nt">large</span><span class="p">:</span><span class="w"> </span><span class="s">"us.anthropic.claude-opus-4-20250514-v1:0"</span>
 </span><span id="__span-6-18"><a id="__codelineno-6-18" name="__codelineno-6-18" href="#__codelineno-6-18"></a><span class="w">  </span><span class="nt">timeout_seconds</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">60</span>
 </span><span id="__span-6-19"><a id="__codelineno-6-19" name="__codelineno-6-19" href="#__codelineno-6-19"></a><span class="w">  </span><span class="nt">retry_attempts</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">3</span>
 </span><span id="__span-6-20"><a id="__codelineno-6-20" name="__codelineno-6-20" href="#__codelineno-6-20"></a><span class="w">  </span><span class="nt">retry_backoff_seconds</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">2</span>
@@ -2784,48 +2788,35 @@
 <div class="highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="nb">source</span><span class="w"> </span>.venv/bin/activate
 </span><span id="__span-9-2"><a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a>clinosim<span class="w"> </span>narrate<span class="w"> </span><span class="se">\</span>
 </span><span id="__span-9-3"><a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a><span class="w">    </span>--cif-dir<span class="w"> </span>/home/ec2-user/clinosim_cif<span class="w"> </span><span class="se">\</span>
-</span><span id="__span-9-4"><a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a><span class="w">    </span>--llm-config<span class="w"> </span>./llm_service.bedrock.yaml<span class="w"> </span><span class="se">\</span>
-</span><span id="__span-9-5"><a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a><span class="w">    </span>--language<span class="w"> </span>en<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-9-4"><a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a><span class="w">    </span>--provider<span class="w"> </span>bedrock<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-9-5"><a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a><span class="w">    </span>--llm-config<span class="w"> </span>./llm_service.bedrock.yaml<span class="w"> </span><span class="se">\</span>
 </span><span id="__span-9-6"><a id="__codelineno-9-6" name="__codelineno-9-6" href="#__codelineno-9-6"></a><span class="w">    </span>--version-id<span class="w"> </span>bedrock_sonnet_en_v1
 </span></code></pre></div>
-<p>期待出力:</p>
-<div class="highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>clinosim narrate: loading LLM config ./llm_service.bedrock.yaml
-</span><span id="__span-10-2"><a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a>  CIF directory: /home/ec2-user/clinosim_cif
-</span><span id="__span-10-3"><a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a>  Language:      en
-</span><span id="__span-10-4"><a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a>  Mode:          llm
-</span><span id="__span-10-5"><a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a>  Tasks:         all Tier A+B
-</span><span id="__span-10-6"><a id="__codelineno-10-6" name="__codelineno-10-6" href="#__codelineno-10-6"></a>
-</span><span id="__span-10-7"><a id="__codelineno-10-7" name="__codelineno-10-7" href="#__codelineno-10-7"></a>  === Narrative Generation Summary ===
-</span><span id="__span-10-8"><a id="__codelineno-10-8" name="__codelineno-10-8" href="#__codelineno-10-8"></a>  Version ID:       bedrock_sonnet_en_v1
-</span><span id="__span-10-9"><a id="__codelineno-10-9" name="__codelineno-10-9" href="#__codelineno-10-9"></a>  Patients:         171
-</span><span id="__span-10-10"><a id="__codelineno-10-10" name="__codelineno-10-10" href="#__codelineno-10-10"></a>  Total documents:  374
-</span><span id="__span-10-11"><a id="__codelineno-10-11" name="__codelineno-10-11" href="#__codelineno-10-11"></a>    admission_hp         171
-</span><span id="__span-10-12"><a id="__codelineno-10-12" name="__codelineno-10-12" href="#__codelineno-10-12"></a>    discharge_summary    171
-</span><span id="__span-10-13"><a id="__codelineno-10-13" name="__codelineno-10-13" href="#__codelineno-10-13"></a>    operative_note       11
-</span><span id="__span-10-14"><a id="__codelineno-10-14" name="__codelineno-10-14" href="#__codelineno-10-14"></a>    procedure_note       19
-</span><span id="__span-10-15"><a id="__codelineno-10-15" name="__codelineno-10-15" href="#__codelineno-10-15"></a>    death_summary        2
-</span><span id="__span-10-16"><a id="__codelineno-10-16" name="__codelineno-10-16" href="#__codelineno-10-16"></a>  LLM calls:        374
-</span><span id="__span-10-17"><a id="__codelineno-10-17" name="__codelineno-10-17" href="#__codelineno-10-17"></a>  LLM input tokens: 412,389
-</span><span id="__span-10-18"><a id="__codelineno-10-18" name="__codelineno-10-18" href="#__codelineno-10-18"></a>  LLM output tokens:58,041
-</span><span id="__span-10-19"><a id="__codelineno-10-19" name="__codelineno-10-19" href="#__codelineno-10-19"></a>  Fallbacks:        0
-</span><span id="__span-10-20"><a id="__codelineno-10-20" name="__codelineno-10-20" href="#__codelineno-10-20"></a>  Cache hits:       0
+<p>期待出力 (末尾):</p>
+<div class="highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>narrate: wrote &lt;N&gt; narrative documents across &lt;M&gt; encounters → narratives/bedrock_sonnet_en_v1/
 </span></code></pre></div>
+<p>文書言語は CIF の国に従う (<code>cif/metadata.json</code> から自動検出。
+<code>--language</code> フラグは無い)。LLM provider は <code>--set-current</code> を渡さない
+限り <code>current_version.txt</code> を書き換えないので、<code>export-fhir</code> には
+<code>--narrative-version</code> を明示する (7 節)。</p>
 <h3 id="再実行-cache-hit">再実行 (cache hit)<a class="headerlink" href="#再実行-cache-hit" title="Permanent link">&para;</a></h3>
 <p>Cache は (system prompt + user prompt + model) の SHA256 でキー化。
 初回成功後の再実行は無料:</p>
 <div class="highlight"><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>clinosim<span class="w"> </span>narrate<span class="w"> </span><span class="se">\</span>
 </span><span id="__span-11-2"><a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a><span class="w">    </span>--cif-dir<span class="w"> </span>/home/ec2-user/clinosim_cif<span class="w"> </span><span class="se">\</span>
-</span><span id="__span-11-3"><a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a><span class="w">    </span>--llm-config<span class="w"> </span>./llm_service.bedrock.yaml<span class="w"> </span><span class="se">\</span>
-</span><span id="__span-11-4"><a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a><span class="w">    </span>--version-id<span class="w"> </span>bedrock_sonnet_en_v2
-</span><span id="__span-11-5"><a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a><span class="c1"># → LLM calls: 0, Cache hits: 374</span>
+</span><span id="__span-11-3"><a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a><span class="w">    </span>--provider<span class="w"> </span>bedrock<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-11-4"><a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a><span class="w">    </span>--llm-config<span class="w"> </span>./llm_service.bedrock.yaml<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-11-5"><a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a><span class="w">    </span>--version-id<span class="w"> </span>bedrock_sonnet_en_v2
+</span><span id="__span-11-6"><a id="__codelineno-11-6" name="__codelineno-11-6" href="#__codelineno-11-6"></a><span class="c1"># → LLM calls: 0, Cache hits: 374</span>
 </span></code></pre></div>
 <h3 id="タスクサブセットの実行">タスクサブセットの実行<a class="headerlink" href="#タスクサブセットの実行" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><span id="__span-12-1"><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a><span class="c1"># 法的必須文書 (Tier A) のみ</span>
+<div class="highlight"><pre><span></span><code><span id="__span-12-1"><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a><span class="c1"># 退院・死亡・手術の文書のみ (registry の type_key 名)</span>
 </span><span id="__span-12-2"><a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a>clinosim<span class="w"> </span>narrate<span class="w"> </span><span class="se">\</span>
 </span><span id="__span-12-3"><a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a><span class="w">    </span>--cif-dir<span class="w"> </span>/home/ec2-user/clinosim_cif<span class="w"> </span><span class="se">\</span>
-</span><span id="__span-12-4"><a id="__codelineno-12-4" name="__codelineno-12-4" href="#__codelineno-12-4"></a><span class="w">    </span>--llm-config<span class="w"> </span>./llm_service.bedrock.yaml<span class="w"> </span><span class="se">\</span>
-</span><span id="__span-12-5"><a id="__codelineno-12-5" name="__codelineno-12-5" href="#__codelineno-12-5"></a><span class="w">    </span>--tasks<span class="w"> </span>discharge_summary,death_summary,operative_note<span class="w"> </span><span class="se">\</span>
-</span><span id="__span-12-6"><a id="__codelineno-12-6" name="__codelineno-12-6" href="#__codelineno-12-6"></a><span class="w">    </span>--version-id<span class="w"> </span>bedrock_tier_a_only
+</span><span id="__span-12-4"><a id="__codelineno-12-4" name="__codelineno-12-4" href="#__codelineno-12-4"></a><span class="w">    </span>--provider<span class="w"> </span>bedrock<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-12-5"><a id="__codelineno-12-5" name="__codelineno-12-5" href="#__codelineno-12-5"></a><span class="w">    </span>--llm-config<span class="w"> </span>./llm_service.bedrock.yaml<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-12-6"><a id="__codelineno-12-6" name="__codelineno-12-6" href="#__codelineno-12-6"></a><span class="w">    </span>--tasks<span class="w"> </span>discharge_summary,death_discharge_summary,death_certificate,operative_note<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-12-7"><a id="__codelineno-12-7" name="__codelineno-12-7" href="#__codelineno-12-7"></a><span class="w">    </span>--version-id<span class="w"> </span>bedrock_tier_a_only
 </span></code></pre></div>
 <hr />
 <h2 id="7-結果を-pull-し-stage-3-を実行">7. 結果を pull し Stage 3 を実行<a class="headerlink" href="#7-結果を-pull-し-stage-3-を実行" title="Permanent link">&para;</a></h2>
@@ -2852,7 +2843,14 @@
 1 行) が現れるはず。</p>
 <hr />
 <h2 id="コスト見積り">コスト見積り<a class="headerlink" href="#コスト見積り" title="Permanent link">&para;</a></h2>
-<p>clinosim は入院エンカウンター 1 件あたり <strong>約 2.2 Tier A+B 文書</strong> を
+<blockquote>
+<p><strong>注:</strong> 以下のエンカウンターあたりの数値と計算例は、医師文書 5 種のみを
+生成していた以前のリリース時点のもの。現行リリースは登録済の全文書種
+(US 13 種、JP 18 種 — <a href="../clinical_documents.ja/">clinical_documents.ja.md</a>
+参照) を生成するため、エンカウンターあたりの文書数はここより多い。
+予算を立てる前に小規模 run で実測すること。</p>
+</blockquote>
+<p>以前のリリースは入院エンカウンター 1 件あたり <strong>約 2.2 文書</strong> を
 シミュレート (入院 H&amp;P 1 + 退院サマリー 1 + ~0.2 その他)。文書あたり
 トークン数はエンカウンターの複雑さに依存するが、典型範囲:</p>
 <table>
@@ -2961,7 +2959,7 @@
 <ul>
 <li><a href="../clinical_documents.ja/">clinical_documents.ja.md</a> — 臨床文書
   ガイド全体</li>
-<li><a href="../README.ja.md#llm-integration-optional">README.md § LLM Integration</a> —
+<li><a href="../reference/llm-integration.ja/">LLM 統合</a> —
   プロバイダ概要</li>
 <li><a href="../DESIGN.ja.md">../DESIGN.md § 7</a> — アーキテクチャ判断 (AD-36〜AD-41)</li>
 <li><a href="https://docs.aws.amazon.com/bedrock/latest/userguide/">AWS Bedrock ドキュメント</a></li>

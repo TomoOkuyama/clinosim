@@ -2403,15 +2403,15 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#plugin-discovery-convention-auditaxes--evalaxes" class="md-nav__link">
+  <a href="#axis-convention-auditaxes--evalaxes" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Plugin discovery convention: audit/axes/ + eval/axes/
+        Axis convention: audit/axes/ + eval/axes/
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Plugin discovery convention: audit/axes/ + eval/axes/">
+    <nav class="md-nav" aria-label="Axis convention: audit/axes/ + eval/axes/">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
@@ -3595,15 +3595,15 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#plugin-discovery-convention-auditaxes--evalaxes" class="md-nav__link">
+  <a href="#axis-convention-auditaxes--evalaxes" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Plugin discovery convention: audit/axes/ + eval/axes/
+        Axis convention: audit/axes/ + eval/axes/
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Plugin discovery convention: audit/axes/ + eval/axes/">
+    <nav class="md-nav" aria-label="Axis convention: audit/axes/ + eval/axes/">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
@@ -3674,7 +3674,7 @@ extend a FHIR builder (Layer 4 = <code>fhir_r4/&lt;domain&gt;/*.py</code>)</stro
 system conventions / register_bundle_builder).</p>
 <p><strong>When creating a new module</strong>: start by copying
 <a href="../.github/TEMPLATE_MODULE_README.md"><code>.github/TEMPLATE_MODULE_README.md</code></a>.
-For an overview of all 33 modules (counting rule: packages under
+For an overview of all 38 modules (counting rule: packages under
 <code>clinosim/modules/</code>; non-package files such as <code>_shared.py</code> are
 excluded), see <a href="../MODULES.md"><code>MODULES.md</code></a>. For picking the PR
 verification approach, see the "PR verification guide: byte-diff
@@ -3684,7 +3684,7 @@ vs. 3-axis DQR" section below. For the whole reading order, see
 <p>Canonical source-code paths:
 - Enricher registry: <code>clinosim/simulator/enrichers.py</code>
 - Output-adapter registry: <code>clinosim/modules/output/adapter.py</code>
-- FHIR bundle-builder registry: <code>clinosim/modules/output/fhir_r4_adapter.py</code>
+- FHIR bundle-builder registry: <code>clinosim/modules/output/fhir_r4/builder.py</code> (<code>fhir_r4_adapter.py</code> is a backwards-compat shim)
 - Shared types: <code>clinosim/types/</code>
 - Code systems: <code>clinosim/codes/</code>
 - Locale data: <code>clinosim/locale/</code></p>
@@ -3760,7 +3760,7 @@ roadmap = <a href="../design-notes/2026-06-30-tier1-document-and-event-density-m
   emits ImagingStudy + Endpoint + radiology DR + imaging SR. Does
   not depend on upstream extensions (independent from device / hai).
 - <code>allergy</code> (Tier 1 #3, AD-63): AllergyIntolerance 8-field SNOMED-
-  coded schema upgrade (POST_RECORDS order=65). Samples allergies at
+  coded schema upgrade (POST_POPULATION order=10). Samples allergies at
   a 15 % prevalence into <code>PersonRecord.allergies: list[Allergy] | None</code>;
   <code>fhir_r4/conditions/allergy_intolerance.py</code> emits them. Replaces the inline
   sampling in <code>activator.py</code>.
@@ -3814,19 +3814,21 @@ leans No, it is an <strong>opt-in Module</strong>.</p>
 is <code>config.module_enabled(name, default=...)</code> (AD-56).</p>
 <div class="highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="c1"># in register_builtin_enrichers() in clinosim/simulator/enrichers.py</span>
 </span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="n">register_enricher</span><span class="p">(</span><span class="n">Enricher</span><span class="p">(</span>
-</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>    <span class="n">name</span><span class="o">=</span><span class="s2">"immunization"</span><span class="p">,</span>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>    <span class="n">name</span><span class="o">=</span><span class="s2">"my_module"</span><span class="p">,</span>
 </span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>    <span class="n">stage</span><span class="o">=</span><span class="n">POST_RECORDS</span><span class="p">,</span>
-</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>    <span class="n">run</span><span class="o">=</span><span class="n">run_immunization_enricher</span><span class="p">,</span>
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>    <span class="n">run</span><span class="o">=</span><span class="n">run_my_module_enricher</span><span class="p">,</span>
 </span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>    <span class="n">order</span><span class="o">=</span><span class="mi">200</span><span class="p">,</span>
-</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>    <span class="n">enabled</span><span class="o">=</span><span class="k">lambda</span> <span class="n">c</span><span class="p">:</span> <span class="n">c</span><span class="o">.</span><span class="n">module_enabled</span><span class="p">(</span><span class="s2">"immunization"</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>
+</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>    <span class="n">enabled</span><span class="o">=</span><span class="k">lambda</span> <span class="n">c</span><span class="p">:</span> <span class="n">c</span><span class="o">.</span><span class="n">module_enabled</span><span class="p">(</span><span class="s2">"my_module"</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>
 </span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="p">))</span>
 </span></code></pre></div>
 <blockquote>
-<p><strong>Note (EXT-5):</strong> <code>module_enabled()</code> is currently not wired in
-production; the <code>modules</code> dict is a dead key. New modules should
-gate via <code>module_enabled</code> as shown above so the advertised AD-56
-gate is actually active. Keeping <code>default=True</code> preserves the
-existing goldens.</p>
+<p><strong>Note (EXT-5):</strong> <code>SimulatorConfig.modules</code> is only set
+programmatically (there is no CLI flag), and the one built-in
+enricher that gates on <code>module_enabled()</code> today is <code>health_checkup</code>
+(JP, default off). The other built-in enrichers use
+<code>enabled=lambda c: True</code> or a country check. New opt-in modules
+should gate via <code>module_enabled</code> as shown above; keeping
+<code>default=True</code> preserves the existing goldens.</p>
 </blockquote>
 <h3 id="locale-dependent-signature-convention">Locale-dependent signature convention<a class="headerlink" href="#locale-dependent-signature-convention" title="Permanent link">&para;</a></h3>
 <p>A function that loads locale-specific data (per-country prevalence,
@@ -4004,9 +4006,10 @@ things silently.</p>
 <ul>
 <li>Canonical example: <code>load_all_disease_protocols()</code> is defined on
   <code>clinosim/modules/disease/protocol.py</code> (owner).
-  <code>clinosim/simulator/helpers.py:_load_all_disease_protocols</code> is a
-  thin re-export alias of the same <code>lru_cache</code> object, so existing
-  callers and the <code>.cache_clear()</code> test pattern remain unchanged.</li>
+  <code>clinosim/simulator/helpers.py</code> re-exports the same <code>lru_cache</code>
+  object under that name (the old <code>_load_all_disease_protocols</code> alias
+  was removed after its deprecation cycle), so the <code>.cache_clear()</code>
+  test pattern still works.</li>
 <li>Likewise, reading another module's YAML by direct path join is
   forbidden — use the owner module's public accessor (e.g. <code>modules/antibiotic</code>
   does not read <code>microbiology.yaml</code> directly; it imports
@@ -4055,7 +4058,7 @@ Precedents:</p>
 <li><code>clinosim/modules/hai/engine.py:_validate_hai_organisms</code> —
   validates <code>hai_organisms.yaml</code> on <code>HAI_TYPES</code> × SNOMED-non-empty
   × non-negative-weight × non-zero-sum (this PR 2026-06-27).</li>
-<li><code>clinosim/locale/loader.py:_validate_demographics</code> /
+<li><code>clinosim/locale/loaders/demographics.py:_validate_demographics</code> /
   <code>_validate_names</code> / <code>_validate_addresses</code> — validate
   <code>demographics.yaml</code>'s <code>lifestyle_distribution</code>, <code>names.yaml</code>'s
   <code>surnames</code> / <code>given_names</code>, and <code>addresses.yaml</code>'s <code>cities</code> on
@@ -4385,7 +4388,7 @@ seed</strong> and never touches the main random stream. The derivation
 formula is centralised in
 <code>clinosim/seeding.py:derive_sub_seed(master, module_offset, key)</code>
 (AD-16 / AD-59).</p>
-<div class="highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">clinosim.simulator.seeding</span><span class="w"> </span><span class="kn">import</span> <span class="n">ENRICHER_SEED_OFFSETS</span><span class="p">,</span> <span class="n">derive_sub_seed</span>
+<div class="highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">clinosim.seeding</span><span class="w"> </span><span class="kn">import</span> <span class="n">ENRICHER_SEED_OFFSETS</span><span class="p">,</span> <span class="n">derive_sub_seed</span>
 </span><span id="__span-10-2"><a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a>
 </span><span id="__span-10-3"><a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a><span class="c1"># a fresh Generator per patient / encounter</span>
 </span><span id="__span-10-4"><a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a><span class="n">rng</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">default_rng</span><span class="p">(</span>
@@ -4409,8 +4412,10 @@ letters mnemonic for the module name:</p>
 </span><span id="__span-11-6"><a id="__codelineno-11-6" name="__codelineno-11-6" href="#__codelineno-11-6"></a>    <span class="s2">"family_history"</span><span class="p">:</span> <span class="mh">0x4648</span><span class="p">,</span>     <span class="c1"># "FH"</span>
 </span><span id="__span-11-7"><a id="__codelineno-11-7" name="__codelineno-11-7" href="#__codelineno-11-7"></a>    <span class="s2">"care_level"</span><span class="p">:</span>     <span class="mh">0x434C</span><span class="p">,</span>     <span class="c1"># "CL"</span>
 </span><span id="__span-11-8"><a id="__codelineno-11-8" name="__codelineno-11-8" href="#__codelineno-11-8"></a>    <span class="s2">"nursing"</span><span class="p">:</span>        <span class="mh">0x4E55</span><span class="p">,</span>     <span class="c1"># "NU"</span>
-</span><span id="__span-11-9"><a id="__codelineno-11-9" name="__codelineno-11-9" href="#__codelineno-11-9"></a>    <span class="c1"># New module examples: "device" = 0x4456 ("DV"), "hai" = 0x4841 ("HA")</span>
-</span><span id="__span-11-10"><a id="__codelineno-11-10" name="__codelineno-11-10" href="#__codelineno-11-10"></a><span class="p">}</span>
+</span><span id="__span-11-9"><a id="__codelineno-11-9" name="__codelineno-11-9" href="#__codelineno-11-9"></a>    <span class="s2">"device"</span><span class="p">:</span>         <span class="mh">0x4445</span><span class="p">,</span>     <span class="c1"># "DE"</span>
+</span><span id="__span-11-10"><a id="__codelineno-11-10" name="__codelineno-11-10" href="#__codelineno-11-10"></a>    <span class="s2">"hai"</span><span class="p">:</span>            <span class="mh">0x4841</span><span class="p">,</span>     <span class="c1"># "HA"</span>
+</span><span id="__span-11-11"><a id="__codelineno-11-11" name="__codelineno-11-11" href="#__codelineno-11-11"></a>    <span class="c1"># ... (see clinosim/seeding.py for the full list)</span>
+</span><span id="__span-11-12"><a id="__codelineno-11-12" name="__codelineno-11-12" href="#__codelineno-11-12"></a><span class="p">}</span>
 </span></code></pre></div>
 <p>Modules do not carry a local constant — they import from the
 registry. The <code>assert len(set(...values())) == len(...)</code> at the end
@@ -4496,42 +4501,50 @@ core dispatch.</strong></p>
 <h3 id="a-add-a-fhir-resource-register_bundle_builder-ad-56">A. Add a FHIR resource (<code>register_bundle_builder</code>, AD-56)<a class="headerlink" href="#a-add-a-fhir-resource-register_bundle_builder-ad-56" title="Permanent link">&para;</a></h3>
 <p>Do not edit <code>_build_bundle()</code>. A builder is a pure function
 <code>(ctx: BundleContext) -&gt; list[dict]</code> that returns raw resources (do
-not wrap in a Bundle entry — the registry uniformly wraps them via
-<code>_entry()</code>).</p>
-<div class="highlight"><pre><span></span><code><span id="__span-13-1"><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a><span class="c1"># clinosim/modules/output/fhir_r4_adapter.py</span>
-</span><span id="__span-13-2"><a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a><span class="k">def</span><span class="w"> </span><span class="nf">_bb_my_resource</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="n">BundleContext</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">]:</span>
-</span><span id="__span-13-3"><a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a>    <span class="c1"># ctx fields: record, country, roster_map, hospital_config, patient_data,</span>
-</span><span id="__span-13-4"><a id="__codelineno-13-4" name="__codelineno-13-4" href="#__codelineno-13-4"></a>    <span class="c1">#             patient_id, primary_dx_code, admit_dx_code, primary_enc_id, patient_sex, ...</span>
-</span><span id="__span-13-5"><a id="__codelineno-13-5" name="__codelineno-13-5" href="#__codelineno-13-5"></a>    <span class="k">if</span> <span class="n">ctx</span><span class="o">.</span><span class="n">country</span> <span class="o">!=</span> <span class="s2">"JP"</span><span class="p">:</span>          <span class="c1"># country gating happens inside the builder</span>
-</span><span id="__span-13-6"><a id="__codelineno-13-6" name="__codelineno-13-6" href="#__codelineno-13-6"></a>        <span class="k">return</span> <span class="p">[]</span>
-</span><span id="__span-13-7"><a id="__codelineno-13-7" name="__codelineno-13-7" href="#__codelineno-13-7"></a>    <span class="k">return</span> <span class="p">[{</span><span class="s2">"resourceType"</span><span class="p">:</span> <span class="s2">"..."</span><span class="p">,</span> <span class="s2">"id"</span><span class="p">:</span> <span class="sa">f</span><span class="s2">"...-</span><span class="si">{</span><span class="n">ctx</span><span class="o">.</span><span class="n">primary_enc_id</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span> <span class="o">...</span><span class="p">}]</span>
-</span><span id="__span-13-8"><a id="__codelineno-13-8" name="__codelineno-13-8" href="#__codelineno-13-8"></a>
-</span><span id="__span-13-9"><a id="__codelineno-13-9" name="__codelineno-13-9" href="#__codelineno-13-9"></a><span class="n">register_bundle_builder</span><span class="p">(</span><span class="n">_bb_my_resource</span><span class="p">)</span>
+not wrap in a Bundle entry — <code>_build_bundle()</code> wraps every resource a
+builder returns). Built-in builders are listed in <code>_BUNDLE_BUILDERS</code>
+in <code>clinosim/modules/output/fhir_r4/builder.py</code> (list order = emission
+order); <code>register_bundle_builder()</code> appends an external builder after
+them.</p>
+<div class="highlight"><pre><span></span><code><span id="__span-13-1"><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">clinosim.modules.output.fhir_r4</span><span class="w"> </span><span class="kn">import</span> <span class="n">register_bundle_builder</span>
+</span><span id="__span-13-2"><a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">clinosim.modules.output.fhir_r4.lib.common</span><span class="w"> </span><span class="kn">import</span> <span class="n">BundleContext</span>
+</span><span id="__span-13-3"><a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a>
+</span><span id="__span-13-4"><a id="__codelineno-13-4" name="__codelineno-13-4" href="#__codelineno-13-4"></a><span class="k">def</span><span class="w"> </span><span class="nf">_bb_my_resource</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="n">BundleContext</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">]:</span>
+</span><span id="__span-13-5"><a id="__codelineno-13-5" name="__codelineno-13-5" href="#__codelineno-13-5"></a>    <span class="c1"># ctx fields: record, country, roster_map, hospital_config, patient_data,</span>
+</span><span id="__span-13-6"><a id="__codelineno-13-6" name="__codelineno-13-6" href="#__codelineno-13-6"></a>    <span class="c1">#             patient_id, primary_dx_code, admit_dx_code, primary_enc_id, patient_sex, ...</span>
+</span><span id="__span-13-7"><a id="__codelineno-13-7" name="__codelineno-13-7" href="#__codelineno-13-7"></a>    <span class="k">if</span> <span class="n">ctx</span><span class="o">.</span><span class="n">country</span> <span class="o">!=</span> <span class="s2">"JP"</span><span class="p">:</span>          <span class="c1"># country gating happens inside the builder</span>
+</span><span id="__span-13-8"><a id="__codelineno-13-8" name="__codelineno-13-8" href="#__codelineno-13-8"></a>        <span class="k">return</span> <span class="p">[]</span>
+</span><span id="__span-13-9"><a id="__codelineno-13-9" name="__codelineno-13-9" href="#__codelineno-13-9"></a>    <span class="k">return</span> <span class="p">[{</span><span class="s2">"resourceType"</span><span class="p">:</span> <span class="s2">"..."</span><span class="p">,</span> <span class="s2">"id"</span><span class="p">:</span> <span class="sa">f</span><span class="s2">"...-</span><span class="si">{</span><span class="n">ctx</span><span class="o">.</span><span class="n">primary_enc_id</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span> <span class="o">...</span><span class="p">}]</span>
+</span><span id="__span-13-10"><a id="__codelineno-13-10" name="__codelineno-13-10" href="#__codelineno-13-10"></a>
+</span><span id="__span-13-11"><a id="__codelineno-13-11" name="__codelineno-13-11" href="#__codelineno-13-11"></a><span class="n">register_bundle_builder</span><span class="p">(</span><span class="n">_bb_my_resource</span><span class="p">)</span>
 </span></code></pre></div>
 <ul>
-<li>Naming is unified with the <code>_bb_*</code> prefix (EXT-6:
-  <code>_build_nursing_observations</code> etc. are legacy).</li>
+<li>Naming is unified with the <code>_bb_*</code> prefix (EXT-6); the prefix is
+  asserted at import for <code>_BUNDLE_BUILDERS</code> and checked by
+  <code>register_bundle_builder()</code>.</li>
 <li><code>Resource.id</code> must be globally unique within its type. Use
   encounter-scoped ids (<code>lab-{encounter_id}-...</code>) — FA-7.</li>
 <li><strong>Double-wrap caveat (FA-3):</strong> the builder returns a raw resource
-  dict. Do not call <code>_entry()</code> inside the builder.</li>
+  dict. Do not build Bundle <code>entry</code> wrappers inside the builder.</li>
 </ul>
 <p><strong>Canonical example — <code>_bb_service_requests</code> (PR1, 2026-06-29,
 <code>fhir_r4/labs/service_request.py</code>):</strong></p>
-<div class="highlight"><pre><span></span><code><span id="__span-14-1"><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a><span class="c1"># clinosim/modules/output/fhir_r4/labs/service_request.py</span>
-</span><span id="__span-14-2"><a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">clinosim.modules.output.fhir_r4_adapter</span><span class="w"> </span><span class="kn">import</span> <span class="n">register_bundle_builder</span><span class="p">,</span> <span class="n">BundleContext</span>
-</span><span id="__span-14-3"><a id="__codelineno-14-3" name="__codelineno-14-3" href="#__codelineno-14-3"></a><span class="kn">from</span><span class="w"> </span><span class="nn">clinosim.modules.order.panel_grouping</span><span class="w"> </span><span class="kn">import</span> <span class="n">classify_lab_specs</span>
-</span><span id="__span-14-4"><a id="__codelineno-14-4" name="__codelineno-14-4" href="#__codelineno-14-4"></a>
-</span><span id="__span-14-5"><a id="__codelineno-14-5" name="__codelineno-14-5" href="#__codelineno-14-5"></a><span class="k">def</span><span class="w"> </span><span class="nf">_bb_service_requests</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="n">BundleContext</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">]:</span>
-</span><span id="__span-14-6"><a id="__codelineno-14-6" name="__codelineno-14-6" href="#__codelineno-14-6"></a><span class="w">    </span><span class="sd">"""Emit 1 ServiceRequest per panel instance + 1 per stand-alone lab order."""</span>
+<div class="highlight"><pre><span></span><code><span id="__span-14-1"><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a><span class="c1"># clinosim/modules/output/fhir_r4/labs/service_request.py (simplified)</span>
+</span><span id="__span-14-2"><a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">clinosim.modules.output.fhir_r4.lib.common</span><span class="w"> </span><span class="kn">import</span> <span class="n">BundleContext</span>
+</span><span id="__span-14-3"><a id="__codelineno-14-3" name="__codelineno-14-3" href="#__codelineno-14-3"></a>
+</span><span id="__span-14-4"><a id="__codelineno-14-4" name="__codelineno-14-4" href="#__codelineno-14-4"></a><span class="k">def</span><span class="w"> </span><span class="nf">_bb_service_requests</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="n">BundleContext</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">]:</span>
+</span><span id="__span-14-5"><a id="__codelineno-14-5" name="__codelineno-14-5" href="#__codelineno-14-5"></a><span class="w">    </span><span class="sd">"""Emit ServiceRequest resources for LAB + IMAGING orders."""</span>
+</span><span id="__span-14-6"><a id="__codelineno-14-6" name="__codelineno-14-6" href="#__codelineno-14-6"></a>    <span class="n">orders</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">record</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"orders"</span><span class="p">,</span> <span class="p">[])</span> <span class="ow">or</span> <span class="p">[]</span>
 </span><span id="__span-14-7"><a id="__codelineno-14-7" name="__codelineno-14-7" href="#__codelineno-14-7"></a>    <span class="n">resources</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
-</span><span id="__span-14-8"><a id="__codelineno-14-8" name="__codelineno-14-8" href="#__codelineno-14-8"></a>    <span class="n">orders</span> <span class="o">=</span> <span class="n">_collect_lab_orders</span><span class="p">(</span><span class="n">ctx</span><span class="o">.</span><span class="n">record</span><span class="p">)</span>       <span class="c1"># walk all encounters' orders</span>
-</span><span id="__span-14-9"><a id="__codelineno-14-9" name="__codelineno-14-9" href="#__codelineno-14-9"></a>    <span class="k">for</span> <span class="n">group_key</span><span class="p">,</span> <span class="n">group_orders</span> <span class="ow">in</span> <span class="n">_group_by_panel</span><span class="p">(</span><span class="n">orders</span><span class="p">):</span>
-</span><span id="__span-14-10"><a id="__codelineno-14-10" name="__codelineno-14-10" href="#__codelineno-14-10"></a>        <span class="n">sr</span> <span class="o">=</span> <span class="n">_build_service_request</span><span class="p">(</span><span class="n">group_key</span><span class="p">,</span> <span class="n">group_orders</span><span class="p">,</span> <span class="n">ctx</span><span class="p">)</span>
-</span><span id="__span-14-11"><a id="__codelineno-14-11" name="__codelineno-14-11" href="#__codelineno-14-11"></a>        <span class="n">resources</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">sr</span><span class="p">)</span>
-</span><span id="__span-14-12"><a id="__codelineno-14-12" name="__codelineno-14-12" href="#__codelineno-14-12"></a>    <span class="k">return</span> <span class="n">resources</span>
-</span><span id="__span-14-13"><a id="__codelineno-14-13" name="__codelineno-14-13" href="#__codelineno-14-13"></a>
-</span><span id="__span-14-14"><a id="__codelineno-14-14" name="__codelineno-14-14" href="#__codelineno-14-14"></a><span class="n">register_bundle_builder</span><span class="p">(</span><span class="n">_bb_service_requests</span><span class="p">)</span>
+</span><span id="__span-14-8"><a id="__codelineno-14-8" name="__codelineno-14-8" href="#__codelineno-14-8"></a>    <span class="n">lab_orders</span> <span class="o">=</span> <span class="p">[</span><span class="n">o</span> <span class="k">for</span> <span class="n">o</span> <span class="ow">in</span> <span class="n">orders</span> <span class="k">if</span> <span class="n">_o</span><span class="p">(</span><span class="n">o</span><span class="p">,</span> <span class="s2">"order_type"</span><span class="p">)</span> <span class="ow">in</span> <span class="p">(</span><span class="n">OrderType</span><span class="o">.</span><span class="n">LAB</span><span class="p">,</span> <span class="s2">"lab"</span><span class="p">)]</span>
+</span><span id="__span-14-9"><a id="__codelineno-14-9" name="__codelineno-14-9" href="#__codelineno-14-9"></a>    <span class="k">if</span> <span class="n">lab_orders</span><span class="p">:</span>   <span class="c1"># panel-aware grouping: 1 SR per panel instance + 1 per stand-alone order</span>
+</span><span id="__span-14-10"><a id="__codelineno-14-10" name="__codelineno-14-10" href="#__codelineno-14-10"></a>        <span class="n">resources</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">_build_lab_service_requests</span><span class="p">(</span><span class="n">lab_orders</span><span class="p">,</span> <span class="n">ctx</span><span class="p">,</span> <span class="o">...</span><span class="p">))</span>
+</span><span id="__span-14-11"><a id="__codelineno-14-11" name="__codelineno-14-11" href="#__codelineno-14-11"></a>    <span class="n">imaging_orders</span> <span class="o">=</span> <span class="p">[</span><span class="n">o</span> <span class="k">for</span> <span class="n">o</span> <span class="ow">in</span> <span class="n">orders</span> <span class="k">if</span> <span class="n">_o</span><span class="p">(</span><span class="n">o</span><span class="p">,</span> <span class="s2">"order_type"</span><span class="p">)</span> <span class="ow">in</span> <span class="p">(</span><span class="n">OrderType</span><span class="o">.</span><span class="n">IMAGING</span><span class="p">,</span> <span class="s2">"imaging"</span><span class="p">)]</span>
+</span><span id="__span-14-12"><a id="__codelineno-14-12" name="__codelineno-14-12" href="#__codelineno-14-12"></a>    <span class="k">if</span> <span class="n">imaging_orders</span><span class="p">:</span>   <span class="c1"># 1 Order = 1 SR</span>
+</span><span id="__span-14-13"><a id="__codelineno-14-13" name="__codelineno-14-13" href="#__codelineno-14-13"></a>        <span class="n">resources</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">_build_imaging_service_requests</span><span class="p">(</span><span class="n">imaging_orders</span><span class="p">,</span> <span class="n">ctx</span><span class="p">,</span> <span class="o">...</span><span class="p">))</span>
+</span><span id="__span-14-14"><a id="__codelineno-14-14" name="__codelineno-14-14" href="#__codelineno-14-14"></a>    <span class="k">return</span> <span class="n">resources</span>
+</span><span id="__span-14-15"><a id="__codelineno-14-15" name="__codelineno-14-15" href="#__codelineno-14-15"></a>
+</span><span id="__span-14-16"><a id="__codelineno-14-16" name="__codelineno-14-16" href="#__codelineno-14-16"></a><span class="c1"># built-in: listed in _BUNDLE_BUILDERS in fhir_r4/builder.py</span>
 </span></code></pre></div>
 <p>Key patterns illustrated:
 - <code>ctx.record</code> is the <code>CIFPatientRecord</code> (a dict on the production
@@ -4541,11 +4554,11 @@ not wrap in a Bundle entry — the registry uniformly wraps them via
   tests may pass dataclass instances while the production path
   deserialises to dict.
 - Panel-grouping logic lives in
-  <code>clinosim/modules/order/panel_grouping.py:classify_lab_specs</code>.
+  <code>clinosim/modules/order/panel_grouping.py</code> (<code>load_panel_definitions</code> / <code>classify_lab_specs</code>).
   Never inline a panel-detection if/elif inside a builder. [AD-61]
 - Both dict-path and dataclass-path MUST be covered by tests: a
   subprocess integration smoke test exercises the production dict
-  path (see <code>tests/integration/test_service_request.py</code>).</p>
+  path (see <code>tests/integration/test_servicerequest_chain.py</code>).</p>
 <p>See <a href="../clinosim/modules/output/fhir_r4/labs/service_request.py"><code>clinosim/modules/output/fhir_r4/labs/service_request.py</code></a>
 for the full implementation.</p>
 <h3 id="b-add-an-output-format-register_output_adapter-ad-58">B. Add an output format (<code>register_output_adapter</code>, AD-58)<a class="headerlink" href="#b-add-an-output-format-register_output_adapter-ad-58" title="Permanent link">&para;</a></h3>
@@ -4582,14 +4595,14 @@ known debt of dropping <code>ctx.country</code>.</p>
 </span><span id="__span-16-3"><a id="__codelineno-16-3" name="__codelineno-16-3" href="#__codelineno-16-3"></a><span class="c1"># Enricher(name, stage, run: Callable[[EnricherContext], None], order=100, enabled=lambda c: True)</span>
 </span><span id="__span-16-4"><a id="__codelineno-16-4" name="__codelineno-16-4" href="#__codelineno-16-4"></a>
 </span><span id="__span-16-5"><a id="__codelineno-16-5" name="__codelineno-16-5" href="#__codelineno-16-5"></a><span class="k">def</span><span class="w"> </span><span class="nf">run_my_pass</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="n">EnricherContext</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-</span><span id="__span-16-6"><a id="__codelineno-16-6" name="__codelineno-16-6" href="#__codelineno-16-6"></a>    <span class="c1"># ctx fields: config, master_seed, population, records</span>
-</span><span id="__span-16-7"><a id="__codelineno-16-7" name="__codelineno-16-7" href="#__codelineno-16-7"></a>    <span class="n">rng_seed</span> <span class="o">=</span> <span class="n">_sub_seed</span><span class="p">(</span><span class="n">ctx</span><span class="o">.</span><span class="n">master_seed</span><span class="p">,</span> <span class="s2">"my-pass"</span><span class="p">)</span>  <span class="c1"># own sub-seed (do not touch the main stream)</span>
+</span><span id="__span-16-6"><a id="__codelineno-16-6" name="__codelineno-16-6" href="#__codelineno-16-6"></a>    <span class="c1"># ctx fields: config, master_seed, population, records, roster</span>
+</span><span id="__span-16-7"><a id="__codelineno-16-7" name="__codelineno-16-7" href="#__codelineno-16-7"></a>    <span class="n">rng_seed</span> <span class="o">=</span> <span class="n">derive_sub_seed</span><span class="p">(</span><span class="n">ctx</span><span class="o">.</span><span class="n">master_seed</span><span class="p">,</span> <span class="n">ENRICHER_SEED_OFFSETS</span><span class="p">[</span><span class="s2">"my_module"</span><span class="p">],</span> <span class="n">key</span><span class="p">)</span>  <span class="c1"># own sub-seed (do not touch the main stream)</span>
 </span><span id="__span-16-8"><a id="__codelineno-16-8" name="__codelineno-16-8" href="#__codelineno-16-8"></a>    <span class="k">for</span> <span class="n">rec</span> <span class="ow">in</span> <span class="n">ctx</span><span class="o">.</span><span class="n">records</span><span class="p">:</span>
 </span><span id="__span-16-9"><a id="__codelineno-16-9" name="__codelineno-16-9" href="#__codelineno-16-9"></a>        <span class="n">rec</span><span class="o">.</span><span class="n">extensions</span><span class="p">[</span><span class="s2">"my_module"</span><span class="p">]</span> <span class="o">=</span> <span class="o">...</span>
 </span><span id="__span-16-10"><a id="__codelineno-16-10" name="__codelineno-16-10" href="#__codelineno-16-10"></a>
 </span><span id="__span-16-11"><a id="__codelineno-16-11" name="__codelineno-16-11" href="#__codelineno-16-11"></a><span class="n">register_enricher</span><span class="p">(</span><span class="n">Enricher</span><span class="p">(</span>
 </span><span id="__span-16-12"><a id="__codelineno-16-12" name="__codelineno-16-12" href="#__codelineno-16-12"></a>    <span class="n">name</span><span class="o">=</span><span class="s2">"my_module"</span><span class="p">,</span>
-</span><span id="__span-16-13"><a id="__codelineno-16-13" name="__codelineno-16-13" href="#__codelineno-16-13"></a>    <span class="n">stage</span><span class="o">=</span><span class="n">POST_RECORDS</span><span class="p">,</span>                 <span class="c1"># or POST_POPULATION</span>
+</span><span id="__span-16-13"><a id="__codelineno-16-13" name="__codelineno-16-13" href="#__codelineno-16-13"></a>    <span class="n">stage</span><span class="o">=</span><span class="n">POST_RECORDS</span><span class="p">,</span>                 <span class="c1"># or POST_POPULATION / POST_ENCOUNTER</span>
 </span><span id="__span-16-14"><a id="__codelineno-16-14" name="__codelineno-16-14" href="#__codelineno-16-14"></a>    <span class="n">run</span><span class="o">=</span><span class="n">run_my_pass</span><span class="p">,</span>
 </span><span id="__span-16-15"><a id="__codelineno-16-15" name="__codelineno-16-15" href="#__codelineno-16-15"></a>    <span class="n">order</span><span class="o">=</span><span class="mi">300</span><span class="p">,</span>                          <span class="c1"># ascending execution. Fixed order = determinism.</span>
 </span><span id="__span-16-16"><a id="__codelineno-16-16" name="__codelineno-16-16" href="#__codelineno-16-16"></a>    <span class="n">enabled</span><span class="o">=</span><span class="k">lambda</span> <span class="n">c</span><span class="p">:</span> <span class="n">c</span><span class="o">.</span><span class="n">module_enabled</span><span class="p">(</span><span class="s2">"my_module"</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>
@@ -4597,10 +4610,14 @@ known debt of dropping <code>ctx.country</code>.</p>
 </span></code></pre></div>
 <ul>
 <li><code>stage</code> is <code>POST_POPULATION</code> (after population generation, before
-  simulation — mutates <code>ctx.population</code>) or <code>POST_RECORDS</code> (after
-  record generation — reads / extends <code>ctx.records</code>).</li>
-<li>The registry is idempotent by name. The integer <code>order</code> controls
-  execution order = governs determinism.</li>
+  simulation — mutates <code>ctx.population</code>), <code>POST_ENCOUNTER</code> (per
+  encounter, right after its daily loop inside the encounter
+  simulator — <code>ctx.records</code> holds exactly that one partial record), or
+  <code>POST_RECORDS</code> (after all records are simulated — reads / extends
+  <code>ctx.records</code>).</li>
+<li>The registry is keyed by name (last registration wins, with a
+  warning). Enrichers run sorted by <code>(order, name)</code> within a stage =
+  governs determinism.</li>
 </ul>
 <hr />
 <h2 id="what-data--code-to-use">What data / code to use<a class="headerlink" href="#what-data--code-to-use" title="Permanent link">&para;</a></h2>
@@ -4781,19 +4798,19 @@ pass structural / narrative CIF separation is
 </tr>
 <tr>
 <td><strong>Template narrative generator</strong> (TemplateNarrativeGenerator, bug A pattern)</td>
-<td><code>clinosim narrate --cif-dir /tmp/cX --version-id template</code> → <code>clinosim export-fhir --cif-dir /tmp/cX</code></td>
+<td><code>clinosim narrate --cif-dir /tmp/cX/cif --version-id template</code> → <code>clinosim export-fhir --cif-dir /tmp/cX/cif</code></td>
 <td>~30 sec + 5 min</td>
 <td>Reuse existing structural CIF. Stage 2 only.</td>
 </tr>
 <tr>
 <td><strong>FHIR builder</strong> (bug C pattern)</td>
-<td><code>clinosim export-fhir --cif-dir /tmp/cX</code></td>
+<td><code>clinosim export-fhir --cif-dir /tmp/cX/cif</code></td>
 <td>~5 min</td>
 <td>Reuse existing CIF. Stage 3 only.</td>
 </tr>
 <tr>
 <td><strong>Locale display / code resolution</strong></td>
-<td><code>clinosim export-fhir --cif-dir /tmp/cX</code></td>
+<td><code>clinosim export-fhir --cif-dir /tmp/cX/cif</code></td>
 <td>~5 min</td>
 <td>No CIF change, Stage 3 only.</td>
 </tr>
@@ -4827,20 +4844,20 @@ pass structural / narrative CIF separation is
 <li>Locate the <code>build_&lt;section&gt;(generator, ctx)</code> free function in the appropriate <code>renderers/section_builders/&lt;section&gt;.py</code></li>
 <li>Check <code>_pick_localized(tmpl, key, lang)</code> call is routing to <code>en</code> field for US language</li>
 <li>
-<p>Verify Disease YAML <code>narrative.physical_examination_en</code> field is populated</p>
+<p>Verify the Disease YAML <code>narrative.physical_exam_findings</code> block is populated</p>
 </li>
 <li>
 <p><strong>Verify fix</strong> via fast Stage 2 regen (skip expensive full cohort):
    <div class="highlight"><pre><span></span><code><span id="__span-22-1"><a id="__codelineno-22-1" name="__codelineno-22-1" href="#__codelineno-22-1"></a><span class="c1"># Reuse structural CIF from step 1</span>
-</span><span id="__span-22-2"><a id="__codelineno-22-2" name="__codelineno-22-2" href="#__codelineno-22-2"></a>clinosim<span class="w"> </span>narrate<span class="w"> </span>--cif-dir<span class="w"> </span>/tmp/test<span class="w"> </span>--version-id<span class="w"> </span>template
-</span><span id="__span-22-3"><a id="__codelineno-22-3" name="__codelineno-22-3" href="#__codelineno-22-3"></a>clinosim<span class="w"> </span>export-fhir<span class="w"> </span>--cif-dir<span class="w"> </span>/tmp/test
+</span><span id="__span-22-2"><a id="__codelineno-22-2" name="__codelineno-22-2" href="#__codelineno-22-2"></a>clinosim<span class="w"> </span>narrate<span class="w"> </span>--cif-dir<span class="w"> </span>/tmp/test/cif<span class="w"> </span>--version-id<span class="w"> </span>template
+</span><span id="__span-22-3"><a id="__codelineno-22-3" name="__codelineno-22-3" href="#__codelineno-22-3"></a>clinosim<span class="w"> </span>export-fhir<span class="w"> </span>--cif-dir<span class="w"> </span>/tmp/test/cif
 </span><span id="__span-22-4"><a id="__codelineno-22-4" name="__codelineno-22-4" href="#__codelineno-22-4"></a><span class="c1"># Check output Composition resource's text field has zero Japanese</span>
 </span></code></pre></div></p>
 </li>
 <li>
 <p><strong>Full validation</strong> (once confident):
-   <div class="highlight"><pre><span></span><code><span id="__span-23-1"><a id="__codelineno-23-1" name="__codelineno-23-1" href="#__codelineno-23-1"></a>clinosim<span class="w"> </span>simulate<span class="w"> </span>-p<span class="w"> </span><span class="m">500</span><span class="w"> </span>--country<span class="w"> </span>US<span class="w"> </span>-o<span class="w"> </span>/tmp/us500
-</span><span id="__span-23-2"><a id="__codelineno-23-2" name="__codelineno-23-2" href="#__codelineno-23-2"></a>clinosim<span class="w"> </span>audit<span class="w"> </span>run<span class="w"> </span>--cif-dir<span class="w"> </span>/tmp/us500
+   <div class="highlight"><pre><span></span><code><span id="__span-23-1"><a id="__codelineno-23-1" name="__codelineno-23-1" href="#__codelineno-23-1"></a>clinosim<span class="w"> </span>simulate<span class="w"> </span>-p<span class="w"> </span><span class="m">500</span><span class="w"> </span>--country<span class="w"> </span>US<span class="w"> </span>--format<span class="w"> </span>cif<span class="w"> </span>fhir-r4<span class="w"> </span>-o<span class="w"> </span>/tmp/us500
+</span><span id="__span-23-2"><a id="__codelineno-23-2" name="__codelineno-23-2" href="#__codelineno-23-2"></a>clinosim<span class="w"> </span>audit<span class="w"> </span>run<span class="w"> </span>-d<span class="w"> </span>/tmp/us500
 </span><span id="__span-23-3"><a id="__codelineno-23-3" name="__codelineno-23-3" href="#__codelineno-23-3"></a><span class="c1"># Gate: "us_admission_hp_zero_ja_chars" = 0</span>
 </span></code></pre></div></p>
 </li>
@@ -4860,7 +4877,7 @@ pass structural / narrative CIF separation is
 <li>
 <p><strong>Fix</strong> in code: <code>clinosim/modules/document/engine.py</code></p>
 </li>
-<li>Locate <code>_emit_doc()</code> function</li>
+<li>Locate the per-document stub construction in <code>document_enricher()</code></li>
 <li>Replace hardcoded <code>attending_id = encounter.attending_physician_id</code></li>
 <li>
 <p>Call helper <code>_pick_document_author(spec, encounter)</code> instead</p>
@@ -4874,8 +4891,8 @@ pass structural / narrative CIF separation is
 </li>
 <li>
 <p><strong>Integration test</strong> on production cohort:
-   <div class="highlight"><pre><span></span><code><span id="__span-26-1"><a id="__codelineno-26-1" name="__codelineno-26-1" href="#__codelineno-26-1"></a>clinosim<span class="w"> </span>simulate<span class="w"> </span>-p<span class="w"> </span><span class="m">500</span><span class="w"> </span>--country<span class="w"> </span>US<span class="w"> </span>-o<span class="w"> </span>/tmp/us500
-</span><span id="__span-26-2"><a id="__codelineno-26-2" name="__codelineno-26-2" href="#__codelineno-26-2"></a>clinosim<span class="w"> </span>audit<span class="w"> </span>run<span class="w"> </span>--cif-dir<span class="w"> </span>/tmp/us500
+   <div class="highlight"><pre><span></span><code><span id="__span-26-1"><a id="__codelineno-26-1" name="__codelineno-26-1" href="#__codelineno-26-1"></a>clinosim<span class="w"> </span>simulate<span class="w"> </span>-p<span class="w"> </span><span class="m">500</span><span class="w"> </span>--country<span class="w"> </span>US<span class="w"> </span>--format<span class="w"> </span>cif<span class="w"> </span>fhir-r4<span class="w"> </span>-o<span class="w"> </span>/tmp/us500
+</span><span id="__span-26-2"><a id="__codelineno-26-2" name="__codelineno-26-2" href="#__codelineno-26-2"></a>clinosim<span class="w"> </span>audit<span class="w"> </span>run<span class="w"> </span>-d<span class="w"> </span>/tmp/us500
 </span><span id="__span-26-3"><a id="__codelineno-26-3" name="__codelineno-26-3" href="#__codelineno-26-3"></a><span class="c1"># Gate: "nursing_doc_author_is_nurse_ratio" = 1.0</span>
 </span></code></pre></div></p>
 </li>
@@ -4888,7 +4905,7 @@ pass structural / narrative CIF separation is
 <ol>
 <li>
 <p><strong>Diagnose</strong> via unit test on builder:
-   <div class="highlight"><pre><span></span><code><span id="__span-27-1"><a id="__codelineno-27-1" name="__codelineno-27-1" href="#__codelineno-27-1"></a>pytest<span class="w"> </span>tests/unit/test_fhir_composition.py<span class="w"> </span>-xvs<span class="w"> </span>-k<span class="w"> </span><span class="s2">"missing_section"</span>
+   <div class="highlight"><pre><span></span><code><span id="__span-27-1"><a id="__codelineno-27-1" name="__codelineno-27-1" href="#__codelineno-27-1"></a>pytest<span class="w"> </span>tests/unit/output/test_fhir_composition.py<span class="w"> </span>-xvs<span class="w"> </span>-k<span class="w"> </span><span class="s2">"section"</span>
 </span><span id="__span-27-2"><a id="__codelineno-27-2" name="__codelineno-27-2" href="#__codelineno-27-2"></a><span class="c1"># Unit test on builder logic</span>
 </span></code></pre></div></p>
 </li>
@@ -4902,14 +4919,14 @@ pass structural / narrative CIF separation is
 <li>
 <p><strong>Quick structural check</strong> (FHIR builder doesn't change structural CIF):
    <div class="highlight"><pre><span></span><code><span id="__span-28-1"><a id="__codelineno-28-1" name="__codelineno-28-1" href="#__codelineno-28-1"></a><span class="c1"># Reuse existing /tmp/us500 CIF from case 2</span>
-</span><span id="__span-28-2"><a id="__codelineno-28-2" name="__codelineno-28-2" href="#__codelineno-28-2"></a>clinosim<span class="w"> </span>export-fhir<span class="w"> </span>--cif-dir<span class="w"> </span>/tmp/us500
+</span><span id="__span-28-2"><a id="__codelineno-28-2" name="__codelineno-28-2" href="#__codelineno-28-2"></a>clinosim<span class="w"> </span>export-fhir<span class="w"> </span>--cif-dir<span class="w"> </span>/tmp/us500/cif
 </span><span id="__span-28-3"><a id="__codelineno-28-3" name="__codelineno-28-3" href="#__codelineno-28-3"></a><span class="c1"># Inspect Composition.ndjson for correct section[] content</span>
 </span></code></pre></div></p>
 </li>
 <li>
 <p><strong>Validation</strong>:
-   <div class="highlight"><pre><span></span><code><span id="__span-29-1"><a id="__codelineno-29-1" name="__codelineno-29-1" href="#__codelineno-29-1"></a>pytest<span class="w"> </span>tests/unit/test_fhir_composition.py<span class="w"> </span>-xvs
-</span><span id="__span-29-2"><a id="__codelineno-29-2" name="__codelineno-29-2" href="#__codelineno-29-2"></a>pytest<span class="w"> </span>-m<span class="w"> </span>integration<span class="w"> </span>-xvs<span class="w"> </span>tests/integration/test_fhir_reference_integrity.py
+   <div class="highlight"><pre><span></span><code><span id="__span-29-1"><a id="__codelineno-29-1" name="__codelineno-29-1" href="#__codelineno-29-1"></a>pytest<span class="w"> </span>tests/unit/output/test_fhir_composition.py<span class="w"> </span>-xvs
+</span><span id="__span-29-2"><a id="__codelineno-29-2" name="__codelineno-29-2" href="#__codelineno-29-2"></a>clinosim<span class="w"> </span><span class="nb">eval</span><span class="w"> </span>-d<span class="w"> </span>/tmp/us500<span class="w"> </span>--only-axes<span class="w"> </span>structural<span class="w">   </span><span class="c1"># includes the reference-integrity check</span>
 </span></code></pre></div></p>
 </li>
 </ol>
@@ -4975,19 +4992,19 @@ Quick summary:</p>
 <p><strong>AD-66 policy</strong> (see <code>AGENTS.md</code> for canonical wording):
 - Profile YAML changes MUST regenerate golden + commit both together
 - Unexpected <code>git diff</code> on goldens after intentional template changes = regression suspicion</p>
-<h2 id="plugin-discovery-convention-auditaxes--evalaxes">Plugin discovery convention: <code>audit/axes/</code> + <code>eval/axes/</code><a class="headerlink" href="#plugin-discovery-convention-auditaxes--evalaxes" title="Permanent link">&para;</a></h2>
-<p>The audit and eval pipelines both auto-discover their per-axis
-check runners from an <code>axes/</code> sub-package rather than requiring
-hand-edited registries. Any new axis module dropped into one of
-these directories is picked up on the next pipeline run:</p>
-<div class="highlight"><pre><span></span><code><span id="__span-30-1"><a id="__codelineno-30-1" name="__codelineno-30-1" href="#__codelineno-30-1"></a>clinosim/audit/axes/         # audit axes
-</span><span id="__span-30-2"><a id="__codelineno-30-2" name="__codelineno-30-2" href="#__codelineno-30-2"></a>├── __init__.py              # one-line package marker
+<h2 id="axis-convention-auditaxes--evalaxes">Axis convention: <code>audit/axes/</code> + <code>eval/axes/</code><a class="headerlink" href="#axis-convention-auditaxes--evalaxes" title="Permanent link">&para;</a></h2>
+<p>The audit and eval pipelines keep their per-axis check runners in an
+<code>axes/</code> sub-package, one module per axis. The runners are wired into
+an explicit table in each engine — there is no auto-discovery, so a
+new axis file must also be registered there:</p>
+<div class="highlight"><pre><span></span><code><span id="__span-30-1"><a id="__codelineno-30-1" name="__codelineno-30-1" href="#__codelineno-30-1"></a>clinosim/audit/axes/         # audit axes (registered in clinosim/audit/engine.py)
+</span><span id="__span-30-2"><a id="__codelineno-30-2" name="__codelineno-30-2" href="#__codelineno-30-2"></a>├── __init__.py
 </span><span id="__span-30-3"><a id="__codelineno-30-3" name="__codelineno-30-3" href="#__codelineno-30-3"></a>├── clinical.py              # one axis per file
 </span><span id="__span-30-4"><a id="__codelineno-30-4" name="__codelineno-30-4" href="#__codelineno-30-4"></a>├── jp_language.py
 </span><span id="__span-30-5"><a id="__codelineno-30-5" name="__codelineno-30-5" href="#__codelineno-30-5"></a>├── silent_no_op.py
 </span><span id="__span-30-6"><a id="__codelineno-30-6" name="__codelineno-30-6" href="#__codelineno-30-6"></a>└── structural.py
 </span><span id="__span-30-7"><a id="__codelineno-30-7" name="__codelineno-30-7" href="#__codelineno-30-7"></a>
-</span><span id="__span-30-8"><a id="__codelineno-30-8" name="__codelineno-30-8" href="#__codelineno-30-8"></a>clinosim/eval/axes/          # eval axes
+</span><span id="__span-30-8"><a id="__codelineno-30-8" name="__codelineno-30-8" href="#__codelineno-30-8"></a>clinosim/eval/axes/          # eval axes (registered in clinosim/eval/engine.py::EvalEngine)
 </span><span id="__span-30-9"><a id="__codelineno-30-9" name="__codelineno-30-9" href="#__codelineno-30-9"></a>├── __init__.py
 </span><span id="__span-30-10"><a id="__codelineno-30-10" name="__codelineno-30-10" href="#__codelineno-30-10"></a>├── clinical.py
 </span><span id="__span-30-11"><a id="__codelineno-30-11" name="__codelineno-30-11" href="#__codelineno-30-11"></a>├── jp_clins_lab_compliance.py
@@ -4999,18 +5016,15 @@ these directories is picked up on the next pipeline run:</p>
 <h3 id="convention">Convention<a class="headerlink" href="#convention" title="Permanent link">&para;</a></h3>
 <ul>
 <li><strong>File per axis.</strong> Each axis gets its own <code>.py</code> under the
-  appropriate <code>axes/</code> directory. Grouping axes into shared files
-  is intentionally not supported — the discovery iterates one
-  module at a time.</li>
-<li><strong>Public <code>run(cohort, country) -&gt; list[...]</code> entry point.</strong>
-  <code>audit/axes/*.py</code> exposes a <code>run</code> callable returning
-  <code>list[AuditFinding]</code>; <code>eval/axes/*.py</code> exposes one returning
-  <code>list[EvalCheck]</code>. The pipeline imports the module and calls
-  <code>module.run(...)</code> — no registration decorator required.</li>
-<li><strong>No cross-axis imports.</strong> An axis module imports from
-  <code>clinosim.*</code> as needed, but not from a sibling axis file.
-  Shared helpers go into <code>clinosim/audit/_shared.py</code> /
-  <code>clinosim/eval/_shared.py</code> instead.</li>
+  appropriate <code>axes/</code> directory.</li>
+<li><strong>Public <code>run(...)</code> entry point.</strong>
+  <code>eval/axes/*.py</code> exposes <code>run(cohort, country) -&gt; list[EvalCheck]</code>;
+  <code>EvalEngine.__init__</code> imports the module and maps the axis id to
+  <code>module.run</code>. <code>audit/axes/*.py</code> exposes
+  <code>run(spec, cohort) -&gt; AxisResult</code> (<code>spec</code> is the
+  <code>ModuleAuditSpec</code>, or <code>None</code> for cohort-level axes); the audit
+  engine lists it in <code>_BUILTIN_AXES</code> plus <code>_PER_MODULE_RUNNERS</code> or
+  <code>_COHORT_RUNNERS</code>.</li>
 <li><strong>README mirror.</strong> Each <code>axes/</code> directory ships a <code>README.md</code></li>
 <li><code>README.ja.md</code> enumerating the current axes with a one-line
   summary; keep these current when adding a new axis.</li>
@@ -5021,13 +5035,16 @@ these directories is picked up on the next pipeline run:</p>
 </span><span id="__span-31-3"><a id="__codelineno-31-3" name="__codelineno-31-3" href="#__codelineno-31-3"></a>
 </span><span id="__span-31-4"><a id="__codelineno-31-4" name="__codelineno-31-4" href="#__codelineno-31-4"></a><span class="c1"># 2. Implement `run(cohort, country) -&gt; list[EvalCheck]`</span>
 </span><span id="__span-31-5"><a id="__codelineno-31-5" name="__codelineno-31-5" href="#__codelineno-31-5"></a>
-</span><span id="__span-31-6"><a id="__codelineno-31-6" name="__codelineno-31-6" href="#__codelineno-31-6"></a><span class="c1"># 3. Add a one-line entry to clinosim/eval/axes/README.md +</span>
-</span><span id="__span-31-7"><a id="__codelineno-31-7" name="__codelineno-31-7" href="#__codelineno-31-7"></a><span class="c1">#    README.ja.md</span>
-</span><span id="__span-31-8"><a id="__codelineno-31-8" name="__codelineno-31-8" href="#__codelineno-31-8"></a>
-</span><span id="__span-31-9"><a id="__codelineno-31-9" name="__codelineno-31-9" href="#__codelineno-31-9"></a><span class="c1"># 4. Run the pipeline; the axis is auto-discovered</span>
-</span><span id="__span-31-10"><a id="__codelineno-31-10" name="__codelineno-31-10" href="#__codelineno-31-10"></a>clinosim<span class="w"> </span><span class="nb">eval</span><span class="w"> </span>./out
+</span><span id="__span-31-6"><a id="__codelineno-31-6" name="__codelineno-31-6" href="#__codelineno-31-6"></a><span class="c1"># 3. Register it in the axes dict in clinosim/eval/engine.py::EvalEngine</span>
+</span><span id="__span-31-7"><a id="__codelineno-31-7" name="__codelineno-31-7" href="#__codelineno-31-7"></a>
+</span><span id="__span-31-8"><a id="__codelineno-31-8" name="__codelineno-31-8" href="#__codelineno-31-8"></a><span class="c1"># 4. Add a one-line entry to clinosim/eval/axes/README.md +</span>
+</span><span id="__span-31-9"><a id="__codelineno-31-9" name="__codelineno-31-9" href="#__codelineno-31-9"></a><span class="c1">#    README.ja.md</span>
+</span><span id="__span-31-10"><a id="__codelineno-31-10" name="__codelineno-31-10" href="#__codelineno-31-10"></a>
+</span><span id="__span-31-11"><a id="__codelineno-31-11" name="__codelineno-31-11" href="#__codelineno-31-11"></a><span class="c1"># 5. Run the pipeline</span>
+</span><span id="__span-31-12"><a id="__codelineno-31-12" name="__codelineno-31-12" href="#__codelineno-31-12"></a>clinosim<span class="w"> </span><span class="nb">eval</span><span class="w"> </span>--cohort-dir<span class="w"> </span>./out
 </span></code></pre></div>
-<p>The audit path is identical with <code>audit/axes/</code> + <code>AuditFinding</code>.</p>
+<p>The audit path is the same with <code>audit/axes/</code>, <code>AxisResult</code>, and the
+runner tables in <code>clinosim/audit/engine.py</code>.</p>
 <p>Japanese counterpart: <a href="../CONTRIBUTING-modules.ja/"><code>CONTRIBUTING-modules.ja.md</code></a>.</p>
 
 

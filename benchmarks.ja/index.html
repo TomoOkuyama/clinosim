@@ -2416,7 +2416,7 @@
 <tr>
 <td><code>sepsis</code></td>
 <td><code>condition_event.disease_id == "sepsis"</code> または ICD <code>A41.*</code> / <code>R65.2*</code></td>
-<td>first-window Lactate (mmol/L)</td>
+<td>encounter 記録中の Lactate 最大値 (mmol/L)</td>
 </tr>
 <tr>
 <td><code>aki</code></td>
@@ -2478,7 +2478,7 @@
 <li>学習済 ML モデル (scikit-learn は hard dep ではない; 学習ベースライン
   追加には optional-dep gating が必要)</li>
 <li>クロスバリデーション分割 (単一コホートベースラインで床値としては十分)</li>
-<li>first-window peak を超える時系列特徴量エンジニアリング</li>
+<li>encounter 単位の peak を超える時系列特徴量エンジニアリング</li>
 <li>複数エンドポイント合成 (例: sepsis-3 SOFA delta)</li>
 <li>コスト sensitive 指標 (calibration、decision curve)</li>
 </ul>

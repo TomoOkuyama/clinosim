@@ -2416,7 +2416,7 @@ the baseline itself reproducible.</p>
 <tr>
 <td><code>sepsis</code></td>
 <td><code>condition_event.disease_id == "sepsis"</code> OR ICD <code>A41.*</code> / <code>R65.2*</code></td>
-<td>First-window Lactate (mmol/L)</td>
+<td>Peak Lactate over the encounter record (mmol/L)</td>
 </tr>
 <tr>
 <td><code>aki</code></td>
@@ -2478,7 +2478,7 @@ use no ML fitting so their performance is invariant to package versions.</p>
   baselines would require optional-dep gating)</li>
 <li>Cross-validation splits (single-cohort baselines are sufficient for
   floor numbers)</li>
-<li>Time-windowed feature engineering beyond first-window peak</li>
+<li>Time-windowed feature engineering beyond the per-encounter peak</li>
 <li>Multi-endpoint composites (e.g. sepsis-3 SOFA delta)</li>
 <li>Cost-sensitive metrics (calibration, decision curves)</li>
 </ul>

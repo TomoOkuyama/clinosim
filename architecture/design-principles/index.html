@@ -3910,6 +3910,18 @@ Present generated records alongside real (anonymized) records to clinicians. If 
 <h4 id="challenge-deterministic-simulation--non-deterministic-llm">Challenge: deterministic simulation + non-deterministic LLM<a class="headerlink" href="#challenge-deterministic-simulation--non-deterministic-llm" title="Permanent link">&para;</a></h4>
 <p>The simulation engine (population, physiology, disease, order timing, etc.) is fully deterministic given a seed. But LLM calls introduce non-determinism (even with temperature=0, outputs may vary across API calls).</p>
 <h4 id="solution-hierarchical-seed--llm-cache-separation">Solution: hierarchical seed + LLM cache separation<a class="headerlink" href="#solution-hierarchical-seed--llm-cache-separation" title="Permanent link">&para;</a></h4>
+<blockquote>
+<p><strong>As shipped:</strong> there is no <code>SeedManager</code> / <code>LLMResponseCache</code> class.
+Sub-streams come from <code>clinosim/seeding.py</code> — <code>derive_sub_seed(master_seed,
+module_offset, key)</code> with the per-enricher offsets in
+<code>ENRICHER_SEED_OFFSETS</code>, <code>derive_phase_rng(master_seed, PHASE_*, key)</code> for
+the simulator phases (life events, inpatient, readmission, outpatient
+calendar, ED), and salted per-entity seeds (e.g. <code>perinatal_delivery_seed</code>,
+<code>individual_lab_seed</code>) — all derived via <code>hashlib</code> (never <code>hash()</code>);
+<code>derive_phase_rng</code> returns a <code>clinosim.determinism</code> RNG proxy. The LLM cache is <code>PromptCache</code> in
+<code>clinosim/modules/llm_service/cache.py</code> (see architecture-notes §8). The
+sketches below are the original design.</p>
+</blockquote>
 <div class="highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="k">class</span><span class="w"> </span><span class="nc">SeedManager</span><span class="p">:</span>
 </span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="w">    </span><span class="sd">"""Manages reproducible random number generation across all modules."""</span>
 </span><span id="__span-7-3"><a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a>
@@ -4005,6 +4017,10 @@ Present generated records alongside real (anonymized) records to clinicians. If 
 </span></code></pre></div>
 <h3 id="testing-strategy">Testing strategy<a class="headerlink" href="#testing-strategy" title="Permanent link">&para;</a></h3>
 <p>Three levels of testing, each with a clear purpose.</p>
+<p>(The file names below are the original plan. The shipped suites are
+<code>tests/unit/</code> (grouped by area), <code>tests/integration/</code>, <code>tests/e2e/</code>
+(e.g. <code>test_alpha_golden.py</code>, <code>test_beta.py</code>) and <code>tests/regression/</code>
+(narrative profile goldens); the <code>make test-*</code> targets below exist.)</p>
 <h4 id="level-1-unit-tests-per-module-fast-no-dependencies">Level 1: Unit tests (per module, fast, no dependencies)<a class="headerlink" href="#level-1-unit-tests-per-module-fast-no-dependencies" title="Permanent link">&para;</a></h4>
 <p>Each module is tested in isolation with mock inputs.</p>
 <div class="highlight"><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>tests/unit/
@@ -4092,6 +4108,7 @@ Present generated records alongside real (anonymized) records to clinicians. If 
 </span><span id="__span-15-11"><a id="__codelineno-15-11" name="__codelineno-15-11" href="#__codelineno-15-11"></a>  config.py                # HealthcareSystemConfig, HospitalProfile, SimulatorConfig
 </span></code></pre></div>
 <p>All types use <code>@dataclass</code> (or Pydantic <code>BaseModel</code> — see YAML validation below). Import via <code>from clinosim.types import PatientProfile</code>.</p>
+<p>(Design-phase split. The shipped <code>clinosim/types/</code> has no <code>llm.py</code> — the LLM types <code>ClinicalEventData</code> / <code>PatientSummary</code> / <code>LLMTaskType</code> / <code>LLMResponse</code> live in <code>clinosim/modules/llm_service/engine.py</code> — and adds per-domain files such as <code>allergy.py</code>, <code>antibiotic.py</code>, <code>diagnosis.py</code>, <code>document.py</code>, <code>hai.py</code>, <code>identity.py</code>, <code>imaging.py</code>, <code>microbiology.py</code>, <code>procedure.py</code> and <code>triage.py</code>; see <code>clinosim/types/README.md</code>.)</p>
 <h4 id="yaml-configuration-validation">YAML configuration validation<a class="headerlink" href="#yaml-configuration-validation" title="Permanent link">&para;</a></h4>
 <p>All YAML configs must be validated at load time. Use <strong>Pydantic</strong> for both type validation and documentation:</p>
 <div class="highlight"><pre><span></span><code><span id="__span-16-1"><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a><span class="c1"># Example: disease protocol validation</span>
@@ -4265,6 +4282,11 @@ pull from it).</p>
 </span><span id="__span-23-9"><a id="__codelineno-23-9" name="__codelineno-23-9" href="#__codelineno-23-9"></a>    procedure_kcode_ja.yaml     # K-code → Japanese procedure names (診療報酬点数表)
 </span><span id="__span-23-10"><a id="__codelineno-23-10" name="__codelineno-23-10" href="#__codelineno-23-10"></a>    procedure_cpt_en.yaml       # CPT → English procedure names (AMA)
 </span></code></pre></div>
+<p>(Superseded layout: display names now live in the locale-independent
+<code>clinosim/codes/data/&lt;system&gt;.yaml</code> files — one file per code system with
+<code>en</code> required and <code>ja</code> optional — resolved via <code>clinosim.codes.lookup</code>;
+the internal-name → code maps are <code>clinosim/locale/&lt;country&gt;/code_mapping_*.yaml</code>.
+See architecture-notes §6.1.)</p>
 <p><strong>Authoritative data sources (must not use LLM for translation):</strong></p>
 <table>
 <thead>
@@ -4585,6 +4607,17 @@ State changes occur without a clear disease mechanism.
 </ul>
 <h3 id="life-event-engine">Life event engine<a class="headerlink" href="#life-event-engine" title="Permanent link">&para;</a></h3>
 <p>The population evolves over simulated time through life events:</p>
+<blockquote>
+<p><strong>As implemented:</strong> <code>run_forward_loop</code> (<code>clinosim/simulator/phases/_forward_loop.py</code>)
+advances one month at a time. At each year boundary <code>advance_population</code>
+runs the aging passes, draws that year's community deaths
+(<code>population/mortality.py</code>, life table × chronic-condition SMR) and
+advances the longitudinal state (chronic onset / progression); each month
+then fires acute life events, ED visits and dispatches them in date order.
+Births enter through the delivery encounter (newborns enrol the day after
+the birth-stay discharge). Migration, employment changes and transient
+visitors are not modelled.</p>
+</blockquote>
 <p><strong>Annual resolution (all population):</strong>
 - Aging (+1 year)
 - New chronic disease onset (age/sex-specific incidence rates)
@@ -4656,6 +4689,13 @@ State changes occur without a clear disease mechanism.
 </table>
 <hr />
 <h2 id="4-folder-structure">4. Folder Structure<a class="headerlink" href="#4-folder-structure" title="Permanent link">&para;</a></h2>
+<blockquote>
+<p><strong>Superseded (design-phase sketch).</strong> The shipped package is
+<code>clinosim/modules/</code> (38 packages; there is no <code>treatment/</code> package and
+no <code>modules/INTERFACES.md</code> — shared types live in <code>clinosim/types/</code>).
+See <a href="../module-architecture/"><code>module-architecture.md</code></a> and
+<a href="../../MODULES.md"><code>../../MODULES.md</code></a> for the current tree.</p>
+</blockquote>
 <div class="highlight"><pre><span></span><code><span id="__span-29-1"><a id="__codelineno-29-1" name="__codelineno-29-1" href="#__codelineno-29-1"></a>clinosim/
 </span><span id="__span-29-2"><a id="__codelineno-29-2" name="__codelineno-29-2" href="#__codelineno-29-2"></a>├── DESIGN.md              ← This document (design guidelines)
 </span><span id="__span-29-3"><a id="__codelineno-29-3" name="__codelineno-29-3" href="#__codelineno-29-3"></a>├── docs/roadmap.md        ← Roadmap (points at the GitHub Issues board)

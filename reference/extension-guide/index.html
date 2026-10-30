@@ -2476,17 +2476,18 @@
 <h3 id="add-a-new-encounter-type-edoutpatient">Add a new encounter type (ED/outpatient)<a class="headerlink" href="#add-a-new-encounter-type-edoutpatient" title="Permanent link">&para;</a></h3>
 <ol>
 <li>Create <code>clinosim/modules/encounter/reference_data/&lt;condition_id&gt;.yaml</code>.</li>
-<li>Include <code>icd10_code</code> and <code>icd10_display</code>.</li>
+<li>Include <code>icd10_code</code> and <code>icd10_display</code> (for an <code>emergency</code> condition, set <code>min_age</code> / <code>max_age</code> to bound who can present — the ED draw gates on age in the visit year).</li>
 <li>Register <code>icd10_code</code> per "Add a new disease" step 3.</li>
 <li>Test: <code>clinosim test-encounter &lt;condition_id&gt;</code> and <code>pytest tests/unit/test_diagnosis_code_coverage.py</code>.</li>
 </ol>
 <h3 id="add-a-new-country">Add a new country<a class="headerlink" href="#add-a-new-country" title="Permanent link">&para;</a></h3>
 <ol>
 <li>Create <code>clinosim/locale/&lt;country_code&gt;/</code> folder</li>
-<li>Add <code>names.yaml</code>, <code>addresses.yaml</code>, <code>demographics.yaml</code>, <code>reference_range_lab.yaml</code>, <code>formatting.yaml</code></li>
+<li>Add <code>names.yaml</code>, <code>addresses.yaml</code>, <code>demographics.yaml</code>, <code>reference_range_lab.yaml</code>, <code>formatting.yaml</code> and the <code>code_mapping_*.yaml</code> files</li>
 <li>Add entry in <code>clinosim/locale/shared/naming_rules.yaml</code></li>
 <li>(Optional) Add country-specific code system to <code>codes/data/</code></li>
 </ol>
+<p>Full checklist: <a href="../../add-your-country/"><code>../add-your-country.md</code></a>.</p>
 <h3 id="add-a-new-language">Add a new language<a class="headerlink" href="#add-a-new-language" title="Permanent link">&para;</a></h3>
 <p>Add a new language key to each entry in <code>clinosim/codes/data/*.yaml</code>:</p>
 <div class="highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nt">N10</span><span class="p">:</span>

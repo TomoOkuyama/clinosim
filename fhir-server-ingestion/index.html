@@ -2720,8 +2720,10 @@ server should accept the same input.</p>
 </span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>manifest.json
 </span></code></pre></div>
 <p>The exact file set depends on which modules fire for the cohort —
-<code>Device.ndjson</code> / <code>DeviceUseStatement.ndjson</code> emit only when G47.30
-CPAP patients are present (opt-in via disease prevalence), and
+<code>DeviceUseStatement.ndjson</code> (and the per-patient <code>Device</code> rows) emit
+only when an inpatient transferred to the ICU received a CVC,
+indwelling catheter or mechanical ventilator (<code>Device.ndjson</code> always
+carries the shared facility infusion pump), and
 <code>Specimen.ndjson</code> only when microbiology-cultures encounter chain
 fires.</p>
 <p>Each <code>.ndjson</code> is one FHIR resource per line. <code>manifest.json</code> is the

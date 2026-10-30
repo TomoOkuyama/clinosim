@@ -2555,13 +2555,13 @@ compose from one engine against per-attribute yaml declarations under
 <tbody>
 <tr>
 <td><strong>AR(1) continuous latent</strong></td>
-<td><code>hba1c_trajectory.yaml</code></td>
+<td><code>hba1c_trajectory.yaml</code> (plus <code>labs/ldl_trajectory.yaml</code>, <code>vitals/sbp_trajectory.yaml</code>, <code>anthropometry/bmi_drift.yaml</code>)</td>
 <td>Within-individual HbA1c drift for E11 / E10 adults (phi 0.75, calibrated against DCCT/EDIC, UKPDS 10y, Wu 2023 meta-analysis). Per-encounter measurement-noise overlay (sigma 0.20 %) applied at emit. Replaces the retired <code>PersonRecord.glycemic_trajectory</code> proxy.</td>
 </tr>
 <tr>
 <td><strong>Markov stage ladder</strong></td>
 <td><code>stage/&lt;disease&gt;.yaml</code> (19 ladders)</td>
-<td>Year-over-year stage transitions for CKD (<code>n18</code>), heart failure (<code>i50</code> → NYHA I-IV), ischemic heart (<code>i25</code> → CCS I-IV), atrial fib (<code>i48</code> paroxysmal → persistent → permanent), COPD (<code>j44</code> → GOLD 1-4), dementia (<code>f00</code> → CDR 0.5-3), Parkinson (<code>g20</code>), multiple sclerosis (<code>g35</code>), alcoholic / fibrotic liver, stroke sequela (<code>i69</code> / <code>i69_1</code> / <code>i69_3</code>), and seven cancer-staging ladders (<code>c16</code> gastric / <code>c18</code> colon / <code>c22</code> liver / <code>c34</code> lung / <code>c50</code> breast / <code>c61</code> prostate) under AJCC + BCLC.</td>
+<td>Year-over-year stage transitions for CKD (<code>n18</code>), heart failure (<code>i50</code> → NYHA I-IV), ischemic heart (<code>i25</code> → CCS I-IV), atrial fib (<code>i48</code> paroxysmal → persistent → permanent), COPD (<code>j44</code> → GOLD 1-4), dementia (<code>f00</code> → CDR 0.5-3), Parkinson (<code>g20</code>), multiple sclerosis (<code>g35</code>), alcoholic / fibrotic liver, stroke sequela (<code>i69</code> / <code>i69_1</code> / <code>i69_3</code>), and six cancer-staging ladders (<code>c16</code> gastric / <code>c18</code> colon / <code>c22</code> liver / <code>c34</code> lung / <code>c50</code> breast / <code>c61</code> prostate) under AJCC + BCLC.</td>
 </tr>
 <tr>
 <td><strong>Event firing</strong></td>
@@ -2602,9 +2602,12 @@ encounter emit sites:</p>
 <ul>
 <li><strong>Layer-1 initialization</strong> — <code>clinosim.modules.population.engine.generate_population</code>
   calls <code>initial_snapshot</code> for every alive person at generation time.</li>
-<li><strong>Annual advance</strong> — <code>clinosim.modules.population.aging.advance_population</code>
-  calls <code>advance_one_year</code> once per alive person per sim year, <strong>after</strong>
-  the existing aging passes finalise <code>chronic_conditions</code>.</li>
+<li><strong>Annual advance</strong> — the forward month loop
+  (<code>clinosim/simulator/phases/_forward_loop.py</code>) calls
+  <code>clinosim.modules.population.aging.advance_population</code> at each year
+  boundary; it calls <code>advance_one_year</code> once per alive person per sim
+  year, <strong>after</strong> that year's community-mortality draw and the aging
+  passes finalise <code>chronic_conditions</code>.</li>
 <li><strong>Lab emit</strong> — <code>clinosim.modules.physiology.engine.derive_lab_values</code>
   reads <code>state_at(person, when).continuous["hba1c"]</code> and applies the
   per-encounter measurement-noise overlay from the yaml.</li>

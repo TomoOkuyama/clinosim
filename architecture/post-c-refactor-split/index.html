@@ -2733,7 +2733,7 @@ lives.</p>
 <tr>
 <th>God-class file</th>
 <th style="text-align: right;">Pre-split LOC</th>
-<th style="text-align: right;">Current LOC</th>
+<th style="text-align: right;">Post-split LOC</th>
 <th style="text-align: right;">Reduction</th>
 <th>Series</th>
 </tr>
@@ -2769,6 +2769,9 @@ lives.</p>
 </tr>
 </tbody>
 </table>
+<p>The post-split column is the size right after the cascade; later work has
+moved these files on (for example, <code>simulator/engine.py</code> is 459 LOC after
+the Issue #2169 forward-loop refactor).</p>
 <p>Byte-identical for all 26 extraction PRs via <code>scripts/engine-fingerprint.sh</code>
 on US p=500 seed=42 + JP p=500 seed=17 (full-cohort sha256
 <code>0184a8b382990915e2e04ca6c94bce2d24e105b39d6be827f705c461f8f621a8</code>).</p>
@@ -2972,7 +2975,9 @@ proposed phase names <code>_run_beta_prepare</code> / <code>_run_beta_month_tick
 chose <code>_setup</code> + <code>_dispatch</code> + the four per-phase runners instead, which
 map more directly to the natural data-flow boundary (setup → monthly
 dispatch loop → per-phase runners) and allow each phase runner to be
-reasoned about in isolation.</p>
+reasoned about in isolation. (Superseded by Issue #2169: the post-loop
+phase runners were replaced by per-phase schedule/dispatch functions
+driven by <code>run_forward_loop</code>, as described above.)</p>
 <h2 id="4-c3--population-engine-split-5-clusters">4. C3 — population engine split (5 clusters)<a class="headerlink" href="#4-c3--population-engine-split-5-clusters" title="Permanent link">&para;</a></h2>
 <p><strong>Façade</strong>: <code>clinosim/modules/population/engine.py</code> (1157 LOC post-split).</p>
 <h3 id="extracted-modules_1">Extracted modules<a class="headerlink" href="#extracted-modules_1" title="Permanent link">&para;</a></h3>

@@ -2391,7 +2391,7 @@ PII を取り込み・参照・再現しません。出力は <strong>臨床用�
 <hr />
 <h2 id="clinosim-とは">clinosim とは<a class="headerlink" href="#clinosim-とは" title="Permanent link">&para;</a></h2>
 <p>多くの合成 EHR ツールは疾患分布からのサンプリングでレコードを生成
-します。<strong>clinosim は疾患を走らせます。</strong> 各患者は隠れた 14 変数の
+します。<strong>clinosim は疾患を走らせます。</strong> 各患者は隠れた 19 変数の
 生理学状態 (<code>clinosim/types/clinical.py::PhysiologicalState</code>) を保持
 し、あらゆる検査 / vital / 薬剤はその状態から導出されます。</p>
 <p>3 つの具体的な差別化ポイント:</p>
@@ -2401,7 +2401,7 @@ PII を取り込み・参照・再現しません。出力は <strong>臨床用�
 <li><strong>JP + US ネイティブ対応。</strong> 16 の主要 FHIR リソース型に対する
   JP Core プロファイル準拠、JLAC10 / MHLW YJ コード、JP 氏名 / 住所
   / 保険を標準装備。</li>
-<li><strong>YAML 駆動拡張。</strong> 32 の入院疾患 + 47 の ED / 外来症例は全て
+<li><strong>YAML 駆動拡張。</strong> 36 の入院疾患 + 51 の ED / 外来症例は全て
   データファイルであり、コードではありません。</li>
 <li><strong>経年状態進展。</strong> AR(1) HbA1c 軌道、Markov stage ladder (CKD /
   CCS / NYHA / CDR / GOLD / 癌 AJCC/BCLC)、HTN + 脂質治療 escalation、
@@ -2453,8 +2453,7 @@ PII を取り込み・参照・再現しません。出力は <strong>臨床用�
 <p><a href="https://synthetichealth.github.io/synthea/">Synthea</a> は state-transition
 アプローチで合成 EHR を生成し、clinosim は生理学シミュレーションで
 生成します。詳細な side-by-side は
-<a href="https://github.com/TomoOkuyama/clinosim#how-clinosim-compares-to-synthea">README</a>
-参照。</p>
+<a href="../synthea-comparison.ja/">Synthea との比較</a> 参照。</p>
 <hr />
 <h2 id="ライセンス">ライセンス<a class="headerlink" href="#ライセンス" title="Permanent link">&para;</a></h2>
 <p>MIT。リポジトリルートの

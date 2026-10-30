@@ -2389,19 +2389,17 @@
 </span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>    │   ├── manifest.json                     # LLM config、model、コストレポート、count
 </span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>    │   └── documents/
 </span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>    │       └── ENC-POP-&lt;person-6d&gt;-&lt;enc-12d&gt;/
-</span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>    │           ├── admission_hp.json
-</span><span id="__span-0-14"><a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>    │           ├── discharge_summary.json
-</span><span id="__span-0-15"><a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>    │           ├── death_summary.json        # 死亡時のみ
-</span><span id="__span-0-16"><a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a>    │           ├── operative_note_001.json   # 手術ごと
-</span><span id="__span-0-17"><a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a>    │           └── procedure_note_&lt;type&gt;.json
-</span><span id="__span-0-18"><a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a>    └── &lt;another_version_id&gt;/                 # 複数 version が共存可能
-</span><span id="__span-0-19"><a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a>        └── ...
+</span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>    │           ├── doc-&lt;encounter_id&gt;-01.json        # 文書ごとに 1 ファイル、順に連番
+</span><span id="__span-0-14"><a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>    │           ├── doc-&lt;encounter_id&gt;-02-day.json    # 看護勤務帯記録は -day / -evening / -night 付き
+</span><span id="__span-0-15"><a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>    │           └── doc-&lt;encounter_id&gt;-03-pn.json     # 処置記録は -pn 付き
+</span><span id="__span-0-16"><a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a>    └── &lt;another_version_id&gt;/                 # 複数 version が共存可能
+</span><span id="__span-0-17"><a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a>        └── ...
 </span></code></pre></div>
 <ul>
 <li><code>structural/</code> はシミュレーションの <strong>immutable な中間形式</strong>。全
   structural FHIR/CSV リソースはこれから派生。</li>
 <li><code>narratives/&lt;version&gt;/documents/</code> は <strong>narrative レイヤ</strong> — 臨床
-  文書ごとに 1 JSON、<code>clinosim/types/clinical.py</code> の
+  文書ごとに 1 JSON (文書型はファイル名ではなくファイル内に記録)、<code>clinosim/types/clinical.py</code> の
   <code>ClinicalDocument</code> 型に準拠。各ファイルは LOINC code、プレーン
   テキスト内容、references、provenance (LLM model、tokens、cache
   hit、prompt version、generated_at) を含む。</li>
@@ -2434,12 +2432,15 @@
 </span><span id="__span-1-21"><a id="__codelineno-1-21" name="__codelineno-1-21" href="#__codelineno-1-21"></a>├── MedicationAdministration.ndjson  # MAR 記録
 </span><span id="__span-1-22"><a id="__codelineno-1-22" name="__codelineno-1-22" href="#__codelineno-1-22"></a>├── Procedure.ndjson                 # 手術 + ベッドサイド手技 (CPT / K-code + SNOMED CT メタデータ)
 </span><span id="__span-1-23"><a id="__codelineno-1-23" name="__codelineno-1-23" href="#__codelineno-1-23"></a>├── DocumentReference.ndjson         # 臨床文書 (narrative version 指定時のみ)
-</span><span id="__span-1-24"><a id="__codelineno-1-24" name="__codelineno-1-24" href="#__codelineno-1-24"></a>├── AllergyIntolerance.ndjson        # 患者レベル (重複排除済み)
-</span><span id="__span-1-25"><a id="__codelineno-1-25" name="__codelineno-1-25" href="#__codelineno-1-25"></a>├── Coverage.ndjson                  # 保険加入 (JP のみ; JP Core 被保険者番号/記号/番号/枝番)
-</span><span id="__span-1-26"><a id="__codelineno-1-26" name="__codelineno-1-26" href="#__codelineno-1-26"></a>├── Practitioner.ndjson              # 医師、看護師、技師
-</span><span id="__span-1-27"><a id="__codelineno-1-27" name="__codelineno-1-27" href="#__codelineno-1-27"></a>├── PractitionerRole.ndjson          # 専門科 + organization + 病棟位置
-</span><span id="__span-1-28"><a id="__codelineno-1-28" name="__codelineno-1-28" href="#__codelineno-1-28"></a>├── Organization.ndjson              # 病院 + 診療科 + 保険者 (保険者、JP)
-</span><span id="__span-1-29"><a id="__codelineno-1-29" name="__codelineno-1-29" href="#__codelineno-1-29"></a>└── Location.ndjson                  # 病棟 + ベッド + 手術室
+</span><span id="__span-1-24"><a id="__codelineno-1-24" name="__codelineno-1-24" href="#__codelineno-1-24"></a>├── Composition.ndjson               # セクション付き臨床文書 (format が `composition` の文書。H&amp;P、退院・看護サマリー、外来 SOAP、ED note 等)
+</span><span id="__span-1-25"><a id="__codelineno-1-25" name="__codelineno-1-25" href="#__codelineno-1-25"></a>├── ClinicalImpression.ndjson        # 医師の臨床評価 (CIF の `clinical_impressions` record ごとに 1 件)
+</span><span id="__span-1-26"><a id="__codelineno-1-26" name="__codelineno-1-26" href="#__codelineno-1-26"></a>├── CareTeam.ndjson                  # encounter ごとに 1 件 (主治医 + 担当看護師)
+</span><span id="__span-1-27"><a id="__codelineno-1-27" name="__codelineno-1-27" href="#__codelineno-1-27"></a>├── AllergyIntolerance.ndjson        # 患者レベル (重複排除済み)
+</span><span id="__span-1-28"><a id="__codelineno-1-28" name="__codelineno-1-28" href="#__codelineno-1-28"></a>├── Coverage.ndjson                  # 保険加入 (US は payor; JP は JP Core 被保険者番号/記号/番号/枝番)
+</span><span id="__span-1-29"><a id="__codelineno-1-29" name="__codelineno-1-29" href="#__codelineno-1-29"></a>├── Practitioner.ndjson              # 医師、看護師、技師
+</span><span id="__span-1-30"><a id="__codelineno-1-30" name="__codelineno-1-30" href="#__codelineno-1-30"></a>├── PractitionerRole.ndjson          # 専門科 + organization + 病棟位置
+</span><span id="__span-1-31"><a id="__codelineno-1-31" name="__codelineno-1-31" href="#__codelineno-1-31"></a>├── Organization.ndjson              # 病院 + 診療科 + 保険者 (保険者、JP)
+</span><span id="__span-1-32"><a id="__codelineno-1-32" name="__codelineno-1-32" href="#__codelineno-1-32"></a>└── Location.ndjson                  # 病棟 + ベッド + 手術室
 </span></code></pre></div>
 <p>各行 = 1 FHIR リソース。<code>Resource.id</code> は全 resource type 横断で一意。
 Reference integrity を維持。</p>
@@ -2448,7 +2449,7 @@ Reference integrity を維持。</p>
 <code>TemplateNarrativePass</code> が維持する <code>current_version.txt</code> ポインタ
 経由) に emit される。narrative version が存在しないときは残りの
 リソース型は通常通り生成。<code>Coverage.ndjson</code> (+ 保険者
-<code>Organization</code>) は JP かつ保険有効時のみ emit
+<code>Organization</code>) は US では常に、JP では保険有効時に emit
 (<code>--jp-insurance</code>、デフォルト on)。</p>
 <h3 id="縦断サービスライン-emit-v05--v060">縦断サービスライン emit (v0.5 → v0.6.0)<a class="headerlink" href="#縦断サービスライン-emit-v05--v060" title="Permanent link">&para;</a></h3>
 <p>いずれのサービスラインも上記標準リソースファイルを通じて emit —
@@ -2460,7 +2461,8 @@ Reference integrity を維持。</p>
   C61 / C67 / C71、C50 の ~1 % 男性乳がん含む):</li>
 <li>がん慢性マーカー → <code>Condition</code> (ICD-10)。</li>
 <li><code>chemo_visit</code> LifeEvent (config: <code>locale/shared/chemo_regimens.yaml</code>
-    — FOLFOX q14d、CarboPem q21d、Trastuzumab q3w、LHRH q28d) →
+    — FOLFOX q14d、CarboPem q21d、Trastuzumab q3w、LHRH q28d、GemNabP q28d、
+    BCG 膀胱内注入 q7d、Temozolomide Stupp q28d) →
     外来 <code>Encounter</code> + regimen の各薬剤について per-cycle
     <code>MedicationRequest</code> + <code>MedicationAdministration</code>。</li>
 <li>放射線治療 → <code>Procedure</code>。</li>
@@ -2480,19 +2482,24 @@ Reference integrity を維持。</p>
     encounter reason Z34。Z34 は problem-list-item Condition を
     emit しない (妊娠は state、慢性状態ではない)。</li>
 <li>母親側分娩 <code>Encounter</code> (IMP 入院、admit dx O80、discharge dx
-    Z37.0、分娩 <code>Procedure</code> — JP K894 / US CPT 59400)。</li>
+    Z37.0、分娩 <code>Procedure</code> — JP K894 / US CPT 59400)。帝王切開
+    (US 32.1 % / JP 20.4 %、<code>perinatal.yaml::cesarean</code>) では admit dx
+    O82、JP K898 / US CPT 59510 を代わりに使用。</li>
 <li>産褥 <code>Encounter</code> × 2 (分娩後 7 d と 28 d、encounter reason
     <code>Z39</code>、obgyn)。</li>
 <li>中絶 outcome (age-gate 15-19 → 35-44) — 外来日帰り手術
     <code>Encounter</code> with O03.9 (自然) or O04.5 (人工)。発火時は
     delivery + newborn chain を skip、period は <code>outcome="aborted"</code>
     で close。</li>
-<li>新生児 <code>Patient</code> (id <code>&lt;mother&gt;-BABY</code>) を delivery ごとに生成、
+<li>新生児 <code>Patient</code> (id <code>&lt;mother&gt;-BABY</code>。同じ母親の N 人目は
+    <code>&lt;mother&gt;-&lt;N&gt;-BABY</code>) を delivery ごとに生成、
     世帯 + 出生日を母親から継承、性別は per-mother sub-RNG から
-    サンプリング。新生児 <code>Encounter</code> は
-    <code>admit_source = born</code> (新規 <code>AdmitSource.BORN</code> enum member) と
+    サンプリング。新生児の出生 <code>Encounter</code> は
+    <code>admit_source = born</code> (<code>AdmitSource.BORN</code>) と
     <code>Encounter.partOf → Encounter/&lt;母親側 delivery encounter&gt;</code> で
-    link back、discharge dx は <code>Z38.0</code>。</li>
+    link back、discharge dx は <code>Z38.0</code>。新生児は出生入院の退院翌日に
+    シミュレーション人口へ加入し (<code>PersonRecord.enrolled_from</code>)、
+    以降は他の人と同様にシミュレーションされる。</li>
 <li>過去出産 <code>Condition</code> — delivered pregnancy period ごとに Z37
     <code>problem-list-item</code> 1 件、<code>onsetDateTime = delivery_date</code>
     (emit 時に <code>state_history("pregnancy")</code> から導出;
@@ -2540,7 +2547,7 @@ Reference integrity を維持。</p>
 </tr>
 <tr>
 <td>DocumentReference</td>
-<td>type (LOINC: 18842-5 / 69730-0 / 11504-8 / 34117-2 / 28570-0)、category (clinical-note)、subject、date、author、content.attachment (base64 text/plain、size、sha1 hash)、context (encounter period、related Procedure)</td>
+<td>type (LOINC; 文書ごとのコードは <a href="../../clinical_documents/#document-scope"><code>../clinical_documents.md</code></a> を参照)、category (clinical-note)、subject、date、author、content.attachment (base64 text/plain、size、sha1 hash)、context (encounter period、related Procedure)</td>
 </tr>
 <tr>
 <td>Practitioner</td>
@@ -2564,7 +2571,7 @@ Reference integrity を維持。</p>
 <div class="highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>output/csv/
 </span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>├── patients.csv
 </span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>├── encounters.csv
-</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>├── conditions.csv
+</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>├── diagnoses.csv
 </span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>├── lab_results.csv
 </span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>├── vital_signs.csv
 </span><span id="__span-2-7"><a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a>├── orders.csv

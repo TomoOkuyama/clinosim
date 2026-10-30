@@ -2430,7 +2430,8 @@
 <strong>us_core_compliance</strong>) — でスコア化し、check ごとの outcome、
 軸スコア (0–100)、overall score を含む JSON + Markdown レポートを
 emit します。国 条件軸はコホートの locale に合致するもののみ有効化
-(ライブの plug-in discovery は <code>clinosim/eval/axes/</code> で確立 — META #1633 P8)。</p>
+(軸の集合は <code>clinosim/eval/engine.py::EvalEngine</code> の <code>axes</code> dict、各軸の
+実装は <code>clinosim/eval/axes/</code>)。</p>
 <p><strong><code>clinosim audit run</code> とは異なります</strong> (詳細は
 <a href="../CONTRIBUTING-modules.ja/"><code>docs/CONTRIBUTING-modules.md</code></a>「PR 検証
 ガイド」参照):</p>
@@ -2479,19 +2480,33 @@ emit します。国 条件軸はコホートの locale に合致するものの
 </span></code></pre></div>
 <p>オプション:</p>
 <div class="highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>clinosim eval
-</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>  -d/--cohort-dir DIR    生成コホートのルート (fhir_r4/ を含む)
-</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>  --json PATH            JSON レポートを PATH に書き出し
-</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>  --md PATH              Markdown レポートを PATH に書き出し
-</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>  --country US|JP        locale 軸を US または JP で強制実行
-</span><span id="__span-1-6"><a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>                         (デフォルトは Patient.address.country または
-</span><span id="__span-1-7"><a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>                         JP Core meta.profile 存在から自動検出)
-</span><span id="__span-1-8"><a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a>  --strict               いずれかの軸で FAIL check があれば exit 1
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>  -d/--cohort-dir DIR      生成コホートのルート (fhir_r4/ を含む)、または
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>                           Synthea の fhir/ 出力ディレクトリ (自動検出し、
+</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>                           スコア化前に正規化)
+</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>  --json PATH              JSON レポートを PATH に書き出し
+</span><span id="__span-1-6"><a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>  --md PATH                Markdown レポートを PATH に書き出し
+</span><span id="__span-1-7"><a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>  --country CODE           対象を国サブディレクトリ
+</span><span id="__span-1-8"><a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a>                           (&lt;cohort-dir&gt;/&lt;CODE&gt;/fhir_r4/) に限定 (複数指定は
+</span><span id="__span-1-9"><a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a>                           フラグを繰り返す)。デフォルトは検出した全サブ
+</span><span id="__span-1-10"><a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a>                           ディレクトリ。locale の判定自体はサブディレクトリ
+</span><span id="__span-1-11"><a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a>                           名から行い、フラットな &lt;cohort-dir&gt;/fhir_r4/
+</span><span id="__span-1-12"><a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a>                           レイアウトでは先頭 Patient の address.country /
+</span><span id="__span-1-13"><a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a>                           JP Core meta.profile から自動検出 (fallback: US)
+</span><span id="__span-1-14"><a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a>  --only-axes LIST         実行する軸 id のカンマ区切り (例:
+</span><span id="__span-1-15"><a id="__codelineno-1-15" name="__codelineno-1-15" href="#__codelineno-1-15"></a>                           clinical,locale)。未知の id は即エラー
+</span><span id="__span-1-16"><a id="__codelineno-1-16" name="__codelineno-1-16" href="#__codelineno-1-16"></a>  --synthea-normalize DIR  Synthea 正規化レイアウトの書き出し先
+</span><span id="__span-1-17"><a id="__codelineno-1-17" name="__codelineno-1-17" href="#__codelineno-1-17"></a>                           (デフォルト: &lt;cohort-dir&gt;/../synthea-normalized/)
+</span><span id="__span-1-18"><a id="__codelineno-1-18" name="__codelineno-1-18" href="#__codelineno-1-18"></a>  --strict                 いずれかの軸で FAIL check があれば exit 1
 </span></code></pre></div>
 <h2 id="軸">軸<a class="headerlink" href="#軸" title="Permanent link">&para;</a></h2>
 <p>structural + locale は 5 check ずつ、clinical は 7 (MVP 5 + coherence
 2、P1-9 で追加)。追加 check は GitHub の <code>good first issue</code> タグ経由
-で入ります。国別軸 (<code>jp_clins_lab_compliance</code>) は JP コホートのみで
-発火 — 完全な軸リストは
+で入ります。国 条件軸は locale ごとに有効化 — <code>jp_clins_lab_compliance</code>
+(3 check) と <code>jp_core_compliance</code> (7 check: Patient / Encounter /
+MedicationRequest) は JP コホート、<code>us_core_compliance</code> (7 check:
+Patient / Encounter / Condition) は US コホートで発火し、いずれも
+master で 100 % 成立している invariant を gate にします。check 一覧は
+<a href="../eval-rules.ja/">eval-rules.md</a>、完全な軸リストは
 <a href="../clinosim/eval/README.ja.md"><code>clinosim.eval</code></a> 参照。</p>
 <h3 id="structural-fhir-準拠">Structural (FHIR 準拠)<a class="headerlink" href="#structural-fhir-準拠" title="Permanent link">&para;</a></h3>
 <table>
@@ -2578,8 +2593,9 @@ emit します。国 条件軸はコホートの locale に合致するものの
 </tbody>
 </table>
 <h3 id="locale-言語--コードシステム">Locale (言語 + コードシステム)<a class="headerlink" href="#locale-言語--コードシステム" title="Permanent link">&para;</a></h3>
-<p>コホート country により dispatch (Patient.address.country または
-JP Core meta.profile 存在から自動検出)。</p>
+<p>コホート country により dispatch: <code>&lt;root&gt;/&lt;country&gt;/fhir_r4/</code> レイアウト
+では国サブディレクトリ名、それ以外は先頭 Patient の <code>address.country</code>
+または JP Core <code>meta.profile</code> 存在から自動検出 (fallback: US)。</p>
 <p><strong>JP checks:</strong></p>
 <table>
 <thead>
@@ -2648,8 +2664,10 @@ JP Core meta.profile 存在から自動検出)。</p>
 <li>Severity 重み: <strong>CRITICAL = 3、MAJOR = 2、MINOR = 1</strong></li>
 <li>Outcome 重み: <strong>PASS = 1.0、WARN = 0.5、FAIL / N/A = 0.0</strong></li>
 </ul>
-<p>Overall score = 有効軸 (普遍 3 + 国 条件 1–2、locale に依存) スコア
-の算術平均。Overall status はいずれかの軸のいずれかの check が
+<p>Overall score = レポート中の全軸結果 (軸 × 国サブディレクトリごとに
+1 件) のスコアの算術平均。コホートの locale に該当しない国 条件軸も
+<code>checks</code> が空・score 0.0 の結果としてレポートに現れ、この平均に含まれ
+ます。Overall status はいずれかの軸のいずれかの check が
 FAIL なら <code>FAIL</code>、いずれか WARN なら <code>WARN</code>、それ以外は <code>PASS</code>。</p>
 <h2 id="json-出力形状">JSON 出力形状<a class="headerlink" href="#json-出力形状" title="Permanent link">&para;</a></h2>
 <div class="highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="p">{</span>

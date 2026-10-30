@@ -2387,6 +2387,24 @@
 <td>MHLW 薬価基準</td>
 </tr>
 <tr>
+<td><code>hot7</code></td>
+<td>MEDIS HOT7</td>
+<td>JP 薬剤 (HOT 形式コード。JP の薬剤 emit はコード形式ごとに HOT7 / HOT9 / HOT13 / YJ の URI を選択)</td>
+<td><a href="https://www.medis.or.jp/">MEDIS</a></td>
+</tr>
+<tr>
+<td><code>medis-disease-keyno</code></td>
+<td>MEDIS 病名管理番号</td>
+<td>JP Condition の <code>medisRecordNo</code> slice (JP-CLINS)</td>
+<td><a href="https://www.medis.or.jp/">MEDIS</a></td>
+</tr>
+<tr>
+<td><code>cvx</code></td>
+<td>CVX</td>
+<td>予防接種</td>
+<td><a href="https://www2.cdc.gov/vaccines/iis/iisstandards/vaccines.asp?rpt=cvx">CDC IIS</a></td>
+</tr>
+<tr>
 <td><code>cpt</code></td>
 <td>CPT</td>
 <td>US 手技</td>
@@ -2400,7 +2418,9 @@
 </tr>
 </tbody>
 </table>
-<p>臨床文書型は以下の LOINC コードを使用:</p>
+<p>臨床文書型は以下の LOINC コードを使用 (入院医師文書のみ掲載。看護・外来 /
+ED・JP 専用文書を含む国別の全一覧は
+<a href="../../clinical_documents/#document-scope"><code>../clinical_documents.md</code></a> を参照):</p>
 <table>
 <thead>
 <tr>
@@ -2418,17 +2438,17 @@
 <tr>
 <td>Progress note</td>
 <td><code>11506-3</code></td>
-<td>将来 Tier C scope 用に予約</td>
+<td>入院中に毎日生成</td>
 </tr>
 <tr>
 <td>Discharge summary note</td>
 <td><code>18842-5</code></td>
-<td>退院時生成</td>
+<td>退院時生成 (死亡 encounter では同コードの死亡退院サマリーが置き換え)</td>
 </tr>
 <tr>
-<td>Death note</td>
-<td><code>69730-0</code></td>
-<td><code>deceased=true</code> 時生成</td>
+<td>Death certificate</td>
+<td><code>64297-5</code></td>
+<td>死亡で終了した encounter で生成</td>
 </tr>
 <tr>
 <td>Surgical operation note</td>

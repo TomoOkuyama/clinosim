@@ -2898,8 +2898,9 @@ session 37; I10 not yet = FP-I10) <strong>may not</strong> add a
 <h3 id="42-the-as-of-age-pattern-fp-age-reference-implementation">4.2 The as-of-age pattern (FP-AGE reference implementation)<a class="headerlink" href="#42-the-as-of-age-pattern-fp-age-reference-implementation" title="Permanent link">&para;</a></h3>
 <p>To render or compute time-dependent attributes (like age) correctly
 across a multi-year simulation, use the <strong>as-of-date function</strong>
-promoted from <code>immunization/engine.py:36-39 _age_on(dob, on, fallback)</code>
-into <code>_shared</code>. The call site passes the event date
+<code>_age_on(dob, on, fallback)</code> (<code>immunization/engine.py</code>; the planned
+promotion into <code>_shared</code> has not happened — other sites compute the
+as-of age locally). The call site passes the event date
 (<code>event.timestamp</code>).</p>
 <ul>
 <li><strong>Group that does not touch the seed path</strong> (output / narrative /
@@ -2956,8 +2957,8 @@ output").</p>
    declare "byte-preserving refactor" or "new-feature with golden
    regeneration".</li>
 <li><strong>On DONE</strong>: update the registry's Status to DONE + append the
-   PR / commit. If the completeness gate (FP-COMPLETENESS-GATE)
-   already exists, get the audit completeness axis to green.</li>
+   PR / commit. Keep the completeness gate (FP-COMPLETENESS-GATE,
+   <code>tests/unit/test_completeness_invariants.py</code>) green.</li>
 </ol>
 <hr />
 <h2 id="7-i--o-interface-at-a-glance-the-boundaries-this-fix-set-touches">7. I / O interface at a glance (the boundaries this fix set touches)<a class="headerlink" href="#7-i--o-interface-at-a-glance-the-boundaries-this-fix-set-touches" title="Permanent link">&para;</a></h2>
@@ -2981,13 +2982,13 @@ output").</p>
 <td>Severity decision</td>
 <td><code>event.severity</code> (float) / protocol distribution</td>
 <td><code>"mild|moderate|severe"</code> + score</td>
-<td><code>severity_from_protocol</code> (added in FP-SEV-MODEL)</td>
+<td><code>sample_severity</code> / <code>category_from_score</code> (<code>disease/severity.py</code>, FP-SEV-MODEL)</td>
 </tr>
 <tr>
 <td>Age reference</td>
 <td><code>dob</code> + event date</td>
 <td>as-of age (int)</td>
-<td><code>_age_on</code> (promoted to <code>_shared</code> in FP-AGE)</td>
+<td><code>_age_on</code> (<code>immunization/engine.py</code>, FP-AGE)</td>
 </tr>
 <tr>
 <td>code → display</td>
@@ -2999,13 +3000,13 @@ output").</p>
 <td>CIF → FHIR</td>
 <td>structural + narrative CIF</td>
 <td>FHIR R4 NDJSON</td>
-<td><code>_fhir_*</code> builders (registry-registered, existing)</td>
+<td><code>fhir_r4/&lt;theme&gt;/</code> builders (registry-registered, existing)</td>
 </tr>
 <tr>
 <td>Completeness verification</td>
-<td>cohort NDJSON</td>
-<td>AxisResult</td>
-<td><code>clinosim/audit/axes/completeness.py</code> (added in FP-COMPLETENESS-GATE)</td>
+<td>CIF / reference data</td>
+<td>test result</td>
+<td><code>tests/unit/test_completeness_invariants.py</code> (FP-COMPLETENESS-GATE; the cohort-statistics audit axis is not implemented)</td>
 </tr>
 </tbody>
 </table>

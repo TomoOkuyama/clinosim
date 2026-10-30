@@ -2504,7 +2504,7 @@ cascade (C1a-C1s + C2a-C2f + C3a-C3e) で属性別モジュールに分解され
 <tr>
 <th>god-class ファイル</th>
 <th style="text-align: right;">分割前 LOC</th>
-<th style="text-align: right;">現 LOC</th>
+<th style="text-align: right;">分割直後 LOC</th>
 <th style="text-align: right;">削減</th>
 <th>Series</th>
 </tr>
@@ -2540,6 +2540,9 @@ cascade (C1a-C1s + C2a-C2f + C3a-C3e) で属性別モジュールに分解され
 </tr>
 </tbody>
 </table>
+<p>分割直後の列は cascade 完了時点のサイズで、その後の作業で各ファイルは
+変化している (例: <code>simulator/engine.py</code> は Issue #2169 の forward loop
+refactor 後 459 LOC)。</p>
 <p>全 26 extraction PR について <code>scripts/engine-fingerprint.sh</code> の
 US p=500 seed=42 + JP p=500 seed=17 で byte-identical 検証済
 (full cohort sha256
@@ -2745,7 +2748,9 @@ import) は全て動作し続ける。</p>
 実際の分割は代わりに <code>_setup</code> + <code>_dispatch</code> + 4 本の phase runner を
 選択した。これは自然なデータフロー境界 (setup → 月次 dispatch loop
 → phase runner) により直接 map し、各 phase runner を独立に推論
-できる形になる。</p>
+できる形になる。(Issue #2169 で置き換え済み: ループ後の phase runner は
+廃止され、上記のとおり <code>run_forward_loop</code> が駆動する phase 別の
+schedule/dispatch 関数になった。)</p>
 <h2 id="4-c3--population-engine-分割-5-クラスタ">4. C3 — population engine 分割 (5 クラスタ)<a class="headerlink" href="#4-c3--population-engine-分割-5-クラスタ" title="Permanent link">&para;</a></h2>
 <p><strong>Façade</strong>: <code>clinosim/modules/population/engine.py</code> (分割後 1157 LOC)。</p>
 <h3 id="抽出モジュール_1">抽出モジュール<a class="headerlink" href="#抽出モジュール_1" title="Permanent link">&para;</a></h3>

@@ -2674,7 +2674,10 @@ usage.</p>
 <li><strong>Check weight</strong> = severity: CRITICAL = 3, MAJOR = 2, MINOR = 1</li>
 <li><strong>Pass-weight</strong> = PASS 1.0, WARN 0.5, FAIL 0.0, N/A 0.0</li>
 </ul>
-<p><strong>Overall score</strong> = arithmetic mean of the three axis scores.
+<p><strong>Overall score</strong> = arithmetic mean of the score of every axis result
+in the report (one per axis × country subdirectory). A
+country-conditional axis that does not apply to the cohort's locale
+returns no checks, scores 0.0, and is still included in the mean.
 <strong>Overall status</strong> = worst of FAIL / WARN / PASS across axes.</p>
 <hr />
 <h2 id="structural-axis-5-checks">Structural axis (5 checks)<a class="headerlink" href="#structural-axis-5-checks" title="Permanent link">&para;</a></h2>
@@ -2845,24 +2848,31 @@ from the diagnosis label.</p>
 </tr>
 </tbody>
 </table>
-<p>To add a pairing: append to <code>_CONDITION_LAB_PAIRINGS</code> in
-<a href="https://github.com/TomoOkuyama/clinosim/blob/master/clinosim/eval/axes/clinical.py"><code>clinosim/eval/axes/clinical.py</code></a>
-and cite the source here.</p>
+<p>The pairings are loaded from
+<a href="https://github.com/TomoOkuyama/clinosim/blob/master/clinosim/codes/data/condition-lab-pairings.yaml"><code>clinosim/codes/data/condition-lab-pairings.yaml</code></a>
+(the <code>lab_values_physiological_range</code> bounds likewise from
+<code>clinosim/codes/data/lab-plausibility-bounds.yaml</code>). To add a pairing,
+add an entry under <code>pairings:</code> in that yaml and cite the source here.</p>
 <h3 id="medication_lab_coherence_warfarin-major"><code>medication_lab_coherence_warfarin</code> (MAJOR)<a class="headerlink" href="#medication_lab_coherence_warfarin-major" title="Permanent link">&para;</a></h3>
 <p>When a patient carries a MedicationRequest for warfarin (RxNorm
 <code>11289</code> OR YJ code prefix <code>3332001</code>), every PT-INR observation
-(LOINC <code>6301-6</code>) drawn <strong>on or after</strong> the earliest warfarin
-<code>authoredOn</code> must sit in <strong>2.0–3.5</strong>. Rates use the same
-5% / 25% thresholds as the pairings above.</p>
+(LOINC <code>6301-6</code>) drawn <strong>5 or more days after</strong> the earliest warfarin
+<code>authoredOn</code> must sit in <strong>2.0–3.5</strong>. Draws inside the first 5 days
+(the induction window, while INR is still climbing from baseline) are
+excluded. Rates use the same 5% / 25% thresholds as the pairings
+above.</p>
 <p>The band is broader than the 2.0–3.0 target of the AF stroke-prevention
 indication because comorbidities (cirrhosis, DIC) legitimately shift
 INR to the 3.0–3.5 side; the Warfarin PT-INR coupling in the physiology
 engine (AD-57) is calibrated to match.</p>
 <hr />
 <h2 id="locale-axis-5-checks">Locale axis (5 checks)<a class="headerlink" href="#locale-axis-5-checks" title="Permanent link">&para;</a></h2>
-<p>Cohort-country is auto-detected from <code>Patient.address.country</code> or the
-presence of a JP Core <code>meta.profile</code> on the first Patient. Override
-with <code>--country US</code> / <code>--country JP</code>.</p>
+<p>Cohort-country is the country subdirectory name for the
+<code>&lt;root&gt;/&lt;country&gt;/fhir_r4/</code> layout; for the flat <code>&lt;root&gt;/fhir_r4/</code>
+layout it is auto-detected from the first Patient's
+<code>address.country</code> or the presence of a JP Core <code>meta.profile</code>
+(fallback: US). <code>--country</code> selects which country subdirectories are
+scored; it does not override the detected locale.</p>
 <h3 id="jp-cohorts">JP cohorts<a class="headerlink" href="#jp-cohorts" title="Permanent link">&para;</a></h3>
 <table>
 <thead>
@@ -2926,11 +2936,34 @@ with <code>--country US</code> / <code>--country JP</code>.</p>
 </tbody>
 </table>
 <h2 id="jp-clins-lab-compliance-axis-jp-cohorts-only">JP-CLINS lab compliance axis (JP cohorts only)<a class="headerlink" href="#jp-clins-lab-compliance-axis-jp-cohorts-only" title="Permanent link">&para;</a></h2>
-<p>Measures <code>JP_Observation_LabResult_eCS</code> compliance on
-<code>Observation.code.coding</code> + <code>Observation.specimen</code> + <code>Specimen.type</code>.
-Gate: strict 1.0 at 100 %-at-master invariants (Open-slicing discriminator-
-system+display, so validator pass counts alone are insufficient — see
-<code>clinosim/eval/axes/jp_clins_lab_compliance.py</code>).</p>
+<p>Measures <code>JP_Observation_LabResult_eCS</code> compliance on lab
+<code>Observation.code.coding</code>. Gate: strict 1.0 at 100 %-at-master
+invariants (Open-slicing discriminator-system+display, so validator
+pass counts alone are insufficient — see
+<code>clinosim/eval/axes/jp_clins_lab_compliance.py</code>). All checks are MAJOR;
+each returns N/A when the cohort has no lab Observations.</p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Passes when</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>jp_clins_lab_cs_usage</code></td>
+<td>Every lab Observation carries a JP-CLINS-defined CodeSystem</td>
+</tr>
+<tr>
+<td><code>jp_clins_lab_fixed_display</code></td>
+<td>Every slice-typed coding carries the eCS fixed display</td>
+</tr>
+<tr>
+<td><code>jp_clins_lab_rule_satisfaction</code></td>
+<td>Every lab Observation carries <code>localLaboCode</code> + one typed coding</td>
+</tr>
+</tbody>
+</table>
 <h2 id="jp-core-compliance-axis-jp-cohorts-only">JP Core compliance axis (JP cohorts only)<a class="headerlink" href="#jp-core-compliance-axis-jp-cohorts-only" title="Permanent link">&para;</a></h2>
 <p>Narrow-gate must-support element compliance on JP Core
 Patient / Encounter / MedicationRequest. Threshold 1.0 at
@@ -2938,14 +2971,23 @@ invariants that already hold at 100 % on master. Kana-representation
 (SYL) coverage expansion is tracked separately. The full HL7 FHIR
 Validator run (<code>jp-validate.yml</code>) remains the authoritative
 on-demand compliance surface. See
-<code>clinosim/eval/axes/jp_core_compliance.py</code>.</p>
+<code>clinosim/eval/axes/jp_core_compliance.py</code>. Checks (all MAJOR):
+<code>jp_core_patient_profile_declared</code>, <code>jp_core_patient_identifier_present</code>,
+<code>jp_core_patient_name_family_given</code>, <code>jp_core_patient_kanji_representation</code>,
+<code>jp_core_encounter_class_present</code>, <code>jp_core_encounter_period_present</code>,
+<code>jp_core_medicationrequest_medication_coding_present</code>.</p>
 <h2 id="us-core-compliance-axis-us-cohorts-only">US Core compliance axis (US cohorts only)<a class="headerlink" href="#us-core-compliance-axis-us-cohorts-only" title="Permanent link">&para;</a></h2>
 <p>Narrow-gate must-support element compliance on US Core
 AllPatients / Encounter / Condition. Threshold 1.0 at 100 %-at-master
 invariants (not race/ethnicity extension coverage, which is tracked
 separately). Full validator run (<code>us-validate.yml</code>, Phase 3) is the
 authoritative on-demand compliance surface. See
-<code>clinosim/eval/axes/us_core_compliance.py</code>.</p>
+<code>clinosim/eval/axes/us_core_compliance.py</code>. Checks (all MAJOR):
+<code>us_core_patient_identifier_present</code>, <code>us_core_patient_name_family_given</code>,
+<code>us_core_patient_birthsex_extension_valid</code>,
+<code>us_core_patient_race_extension_shape</code>,
+<code>us_core_patient_ethnicity_extension_shape</code>,
+<code>us_core_encounter_class_v3_actcode</code>, <code>us_core_condition_category_system</code>.</p>
 <hr />
 <h2 id="adding-a-rule">Adding a rule<a class="headerlink" href="#adding-a-rule" title="Permanent link">&para;</a></h2>
 <ol>

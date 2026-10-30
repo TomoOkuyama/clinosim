@@ -2508,9 +2508,12 @@
 <p>両サービスラインは同じ出力パターンを共有する:
 1. 慢性疾患保有率 (<code>locale/&lt;c&gt;/demographics.yaml</code> の
    <code>chronic_prevalence</code>) が患者にマーカーを付ける。
-2. <code>clinosim/modules/population/engine.py</code> のスケジューラがマーカーを
+2. <code>clinosim/modules/population/engine.py::generate_healthcare_calendar</code>
+   から呼ばれるスケジューラ (helper は <code>population/_chemo.py</code> /
+   <code>population/_pregnancy.py</code>) がマーカーを
    正しい時間的頻度で <code>LifeEvent</code> に変換する。
-3. <code>clinosim/simulator/engine.py</code> のディスパッチャが各イベントを
+3. <code>clinosim/simulator/phases/_healthcare_calendar.py</code> のディスパッチャ
+   (<code>run_beta</code> の前進月次ループから駆動) が各イベントを
    ビルダに振り分け、リソース (Encounter + Condition + Procedure +
    Medication…) を出力する。</p>
 <h3 id="11-腫瘍--カバー要素">1.1 腫瘍 — カバー要素<a class="headerlink" href="#11-腫瘍--カバー要素" title="Permanent link">&para;</a></h3>
@@ -2550,8 +2553,8 @@
 </tr>
 <tr>
 <td>サイクル型化学療法</td>
-<td>Regimen library (FOLFOX q14d / CarboPem q21d / Trastuzumab q3w / LHRH q28d) → 正しいケイデンスの <code>chemo_visit</code> encounter + 投与 Procedure</td>
-<td><code>locale/shared/chemo_regimens.yaml</code> + <code>population/engine.py::_chemo_cycle_events</code> + <code>simulator/outpatient.py::_simulate_outpatient_visit</code> の chemo 分岐</td>
+<td>Regimen library (FOLFOX q14d / CarboPem q21d / Trastuzumab q3w / LHRH q28d / GemNabP q28d / BCG 膀胱内注入 q7d / Temozolomide Stupp q28d)、C15 / C16 / C18 / C25 / C34 / C50 / C61 / C67 / C71 に割当 (C22 は regimen なし) → 正しいケイデンスの <code>chemo_visit</code> encounter + 投与 Procedure</td>
+<td><code>locale/shared/chemo_regimens.yaml</code> + <code>population/_chemo.py::_chemo_cycle_events</code> + <code>simulator/outpatient.py::_simulate_outpatient_visit</code> の chemo 分岐</td>
 </tr>
 <tr>
 <td>サイクル毎 chemo 薬 order</td>
@@ -2578,7 +2581,7 @@
 <tr>
 <td>時限付き妊娠 lifecycle state (META #957 Incr 1)</td>
 <td>15-49 歳女性に対して MHLW 2022 (JP) / CDC NVSR 2022 (US) の年齢帯別出生率で年次 conception Bernoulli。受精すると <code>TemporalStatePeriod(state_type="pregnancy")</code> を <code>PersonRecord.state_periods</code> に open (metadata: <code>{lmp, edd, planned_delivery_date}</code>)、planned_delivery_date を含む年で close (<code>outcome="delivered"</code>)、または abortion date で close (<code>outcome="aborted"</code>)。</td>
-<td><code>perinatal.yaml::lifecycle.annual_conception_rate</code> + <code>population/engine.py::_pregnancy_lifecycle_events</code> + <code>types/patient.py::TemporalStatePeriod</code></td>
+<td><code>perinatal.yaml::lifecycle.annual_conception_rate</code> + <code>population/_pregnancy.py::_pregnancy_lifecycle_events</code> + <code>types/patient.py::TemporalStatePeriod</code></td>
 </tr>
 <tr>
 <td>過去分娩 Z37 problem-list-item</td>
@@ -2593,27 +2596,27 @@
 <tr>
 <td>妊婦健診 encounter</td>
 <td>AMB encounter、妊娠週 12/24/36 (Incr 1 は簡易版、q4w/q2w/q1w cadence は Incr 1.5)、<code>disease_id="Z34"</code>、<code>_CHRONIC_DISEASE_SPECIALTY</code> で obgyn に routing。</td>
-<td><code>perinatal.yaml::lifecycle.prenatal_visit_gestational_weeks</code> + <code>population/engine.py::_pregnancy_lifecycle_events</code></td>
+<td><code>perinatal.yaml::lifecycle.prenatal_visit_gestational_weeks</code> + <code>population/_pregnancy.py::_pregnancy_lifecycle_events</code></td>
 </tr>
 <tr>
 <td>母親側分娩入院 encounter</td>
-<td>delivered pregnancy period 毎に 1 件 IMP encounter、planned delivery date (EDD ± 7 d jitter) を含む年で発火。LOS JP 5 d / US 2 d、admission dx <code>O80</code>、discharge dx <code>Z37.0</code>、delivery Procedure。</td>
-<td><code>locale/shared/perinatal.yaml::encounter</code> + <code>population/engine.py::_pregnancy_lifecycle_events</code> + <code>simulator/perinatal.py</code></td>
+<td>delivered pregnancy period 毎に 1 件 IMP encounter、planned delivery date (EDD ± 7 d jitter) を含む年で発火。LOS JP 5 d / US 2 d、admission dx <code>O80</code>、discharge dx <code>Z37.0</code>、delivery Procedure。帝王切開 (US 32.1 % / JP 20.4 %) では admission dx <code>O82</code>、LOS JP 8 d / US 4 d。</td>
+<td><code>locale/shared/perinatal.yaml::encounter</code> + <code>population/_pregnancy.py::_pregnancy_lifecycle_events</code> + <code>simulator/perinatal.py</code></td>
 </tr>
 <tr>
 <td>分娩 Procedure</td>
-<td>JP: <code>K894</code> 分娩介助 / US: CPT <code>59400</code> routine obstetric care</td>
-<td><code>perinatal.yaml::procedure</code></td>
+<td>JP: <code>K894</code> 分娩介助 / US: CPT <code>59400</code> routine obstetric care。帝王切開: JP <code>K898</code> 帝王切開術 / US CPT <code>59510</code></td>
+<td><code>perinatal.yaml::procedure</code> + <code>perinatal.yaml::cesarean</code></td>
 </tr>
 <tr>
 <td>新生児 <code>Patient</code> チェーン</td>
-<td>Baby id <code>&lt;mother&gt;-BABY</code>、世帯継承、性別は per-mother sub-RNG、birthDate = 分娩日</td>
-<td><code>simulator/perinatal.py</code> (session 94)</td>
+<td>Baby id <code>&lt;mother&gt;-BABY</code> (同じ母親の N 人目は <code>&lt;mother&gt;-&lt;N&gt;-BABY</code>)、世帯継承、性別は per-mother sub-RNG、birthDate = 分娩日。新生児は出生入院の退院翌日にシミュレーション人口へ加入し (<code>PersonRecord.enrolled_from</code>)、以降は他の人と同様にシミュレーションされる。</td>
+<td><code>simulator/perinatal.py</code></td>
 </tr>
 <tr>
 <td>新生児 Encounter</td>
-<td>IMP、<code>admit_source = born</code> (新規 <code>AdmitSource.BORN</code> enum member) + <code>admit_source_encounter_id</code> → 新生児側 FHIR <code>Encounter.partOf</code></td>
-<td><code>simulator/perinatal.py</code> + <code>types/encounter.py::AdmitSource.BORN</code></td>
+<td>IMP、<code>admit_source = born</code> (<code>AdmitSource.BORN</code>) + <code>admit_source_encounter_id</code> → 新生児側 FHIR <code>Encounter.partOf</code></td>
+<td><code>simulator/perinatal.py</code> + <code>codes/hl7_encounter.py::AdmitSource.BORN</code></td>
 </tr>
 <tr>
 <td>新生児側 Z38.0</td>
@@ -2623,7 +2626,7 @@
 <tr>
 <td>産褥 encounter × 2</td>
 <td>分娩日 + 7 d / + 28 d、<code>chronic_visit</code> with <code>disease_id="Z39"</code>、obgyn routing。12 月分娩の場合は Dec 31 に year-boundary clamp。</td>
-<td><code>perinatal.yaml::lifecycle.postpartum_visit_offsets_days</code> + <code>population/engine.py::_pregnancy_lifecycle_events</code></td>
+<td><code>perinatal.yaml::lifecycle.postpartum_visit_offsets_days</code> + <code>population/_pregnancy.py::_pregnancy_lifecycle_events</code></td>
 </tr>
 <tr>
 <td>新生児 perinatal condition</td>
@@ -2633,7 +2636,7 @@
 <tr>
 <td>中絶 outcome (age-gate)</td>
 <td>自然 O03.9 / 人工 O04.5 外来日帰り手術。年齢帯別確率 15-19: 40 % → 35-44: 7 %。発火時は妊娠週 ~10 (LMP+70±14 d) で period を <code>outcome="aborted"</code> close、delivery + newborn chain skip。</td>
-<td><code>locale/shared/perinatal.yaml::abortion</code> + <code>population/engine.py::_pregnancy_lifecycle_events</code> (abortion 分岐)</td>
+<td><code>locale/shared/perinatal.yaml::abortion</code> + <code>population/_pregnancy.py::_pregnancy_lifecycle_events</code> (abortion 分岐)</td>
 </tr>
 </tbody>
 </table>
@@ -2659,8 +2662,6 @@
   pre-warm pass は Incr 1.5。</li>
 <li><strong>死産 / 早産 outcome variation</strong> — 現状すべての非中絶妊娠は
   正期産の生児 delivery。</li>
-<li><strong>帝王切開シェア</strong> — 現状全 delivery が O80 自然経腟分娩として
-  emit。実際の JP 帝王切開率は ~20 % (O82)。</li>
 <li><strong>がん専用 Composition type</strong> — LOINC 34133-9 (がん治療 note)。</li>
 <li><strong>年跨ぎ chemo cycle continuity</strong> — 現在 cycle は暦年ごとに fresh
   scheduling。11 月 FOLFOX 開始患者は 1 月に cycle 1 から再開する。</li>
@@ -2694,37 +2695,38 @@
 </span><span id="__span-0-25"><a id="__codelineno-0-25" name="__codelineno-0-25" href="#__codelineno-0-25"></a>     _chemo_cycle_events(person, year)  →  LifeEvent(chemo_visit, ...) × N cycles
 </span><span id="__span-0-26"><a id="__codelineno-0-26" name="__codelineno-0-26" href="#__codelineno-0-26"></a>                      │
 </span><span id="__span-0-27"><a id="__codelineno-0-27" name="__codelineno-0-27" href="#__codelineno-0-27"></a>                      ▼
-</span><span id="__span-0-28"><a id="__codelineno-0-28" name="__codelineno-0-28" href="#__codelineno-0-28"></a>simulator/engine.py::run_beta()
-</span><span id="__span-0-29"><a id="__codelineno-0-29" name="__codelineno-0-29" href="#__codelineno-0-29"></a>  event_type == "chemo_visit"       →  _simulate_outpatient_visit(...) with chemo spec
-</span><span id="__span-0-30"><a id="__codelineno-0-30" name="__codelineno-0-30" href="#__codelineno-0-30"></a>                                          → Encounter (AMB, oncology_infusion dept)
-</span><span id="__span-0-31"><a id="__codelineno-0-31" name="__codelineno-0-31" href="#__codelineno-0-31"></a>                                          → ProcedureRecord (chemotherapy_administration)
-</span><span id="__span-0-32"><a id="__codelineno-0-32" name="__codelineno-0-32" href="#__codelineno-0-32"></a>  event_type == "delivery"          →  simulate_delivery_encounter(...)
-</span><span id="__span-0-33"><a id="__codelineno-0-33" name="__codelineno-0-33" href="#__codelineno-0-33"></a>                                          → Encounter (IMP, obgyn dept, LOS 5/2d)
-</span><span id="__span-0-34"><a id="__codelineno-0-34" name="__codelineno-0-34" href="#__codelineno-0-34"></a>                                          → ProcedureRecord (delivery)
-</span><span id="__span-0-35"><a id="__codelineno-0-35" name="__codelineno-0-35" href="#__codelineno-0-35"></a>                                          → ClinicalDiagnosis(admission=O80, discharge=Z37.0)
-</span><span id="__span-0-36"><a id="__codelineno-0-36" name="__codelineno-0-36" href="#__codelineno-0-36"></a>                                          → 新生児 Patient chain
-</span><span id="__span-0-37"><a id="__codelineno-0-37" name="__codelineno-0-37" href="#__codelineno-0-37"></a>  event_type == "abortion"          →  simulate_abortion_encounter(...) (period 既に close)
-</span><span id="__span-0-38"><a id="__codelineno-0-38" name="__codelineno-0-38" href="#__codelineno-0-38"></a>  event_type == "chronic_visit" with condition_type == "prenatal_visit" or "postpartum"
-</span><span id="__span-0-39"><a id="__codelineno-0-39" name="__codelineno-0-39" href="#__codelineno-0-39"></a>                                    →  outpatient dispatch 経由、
-</span><span id="__span-0-40"><a id="__codelineno-0-40" name="__codelineno-0-40" href="#__codelineno-0-40"></a>                                        specialty = obgyn (via _CHRONIC_DISEASE_SPECIALTY)
-</span><span id="__span-0-41"><a id="__codelineno-0-41" name="__codelineno-0-41" href="#__codelineno-0-41"></a>                      │
-</span><span id="__span-0-42"><a id="__codelineno-0-42" name="__codelineno-0-42" href="#__codelineno-0-42"></a>                      ▼
-</span><span id="__span-0-43"><a id="__codelineno-0-43" name="__codelineno-0-43" href="#__codelineno-0-43"></a>activator.py::activate_patient() [patient_cache に per-person]
-</span><span id="__span-0-44"><a id="__codelineno-0-44" name="__codelineno-0-44" href="#__codelineno-0-44"></a>  PatientProfile.state_periods = person.state_periods の shallow copy
-</span><span id="__span-0-45"><a id="__codelineno-0-45" name="__codelineno-0-45" href="#__codelineno-0-45"></a>  state_history("pregnancy") が non-empty:
-</span><span id="__span-0-46"><a id="__codelineno-0-46" name="__codelineno-0-46" href="#__codelineno-0-46"></a>     current_meds に葉酸 + 鉄剤 (med-derivation 入力に仮想 Z34 経由)
-</span><span id="__span-0-47"><a id="__codelineno-0-47" name="__codelineno-0-47" href="#__codelineno-0-47"></a>                      │
-</span><span id="__span-0-48"><a id="__codelineno-0-48" name="__codelineno-0-48" href="#__codelineno-0-48"></a>                      ▼
-</span><span id="__span-0-49"><a id="__codelineno-0-49" name="__codelineno-0-49" href="#__codelineno-0-49"></a>CIFPatientRecord → cif/structural/patients/&lt;enc&gt;.json に書き出し
-</span><span id="__span-0-50"><a id="__codelineno-0-50" name="__codelineno-0-50" href="#__codelineno-0-50"></a>  record["patient"]["state_periods"] に妊娠履歴が carry
-</span><span id="__span-0-51"><a id="__codelineno-0-51" name="__codelineno-0-51" href="#__codelineno-0-51"></a>                      │
-</span><span id="__span-0-52"><a id="__codelineno-0-52" name="__codelineno-0-52" href="#__codelineno-0-52"></a>                      ▼
-</span><span id="__span-0-53"><a id="__codelineno-0-53" name="__codelineno-0-53" href="#__codelineno-0-53"></a>export-fhir → conditions/conditions.py::_build_conditions
-</span><span id="__span-0-54"><a id="__codelineno-0-54" name="__codelineno-0-54" href="#__codelineno-0-54"></a>  chronic loop: chronic_conditions を iterate (Z34 なし → Z34 problem-list-item も無し)
-</span><span id="__span-0-55"><a id="__codelineno-0-55" name="__codelineno-0-55" href="#__codelineno-0-55"></a>  past-pregnancies adapter: state_periods を outcome="delivered" で filter
-</span><span id="__span-0-56"><a id="__codelineno-0-56" name="__codelineno-0-56" href="#__codelineno-0-56"></a>                            → delivered period 毎に Z37 problem-list-item を emit
-</span><span id="__span-0-57"><a id="__codelineno-0-57" name="__codelineno-0-57" href="#__codelineno-0-57"></a>                              (onsetDateTime = end_date)
-</span><span id="__span-0-58"><a id="__codelineno-0-58" name="__codelineno-0-58" href="#__codelineno-0-58"></a>export-fhir → Encounter.ndjson / Procedure.ndjson / Condition.ndjson / ...
+</span><span id="__span-0-28"><a id="__codelineno-0-28" name="__codelineno-0-28" href="#__codelineno-0-28"></a>simulator/engine.py::run_beta() → 前進月次ループ
+</span><span id="__span-0-29"><a id="__codelineno-0-29" name="__codelineno-0-29" href="#__codelineno-0-29"></a>  → simulator/phases/_healthcare_calendar.py
+</span><span id="__span-0-30"><a id="__codelineno-0-30" name="__codelineno-0-30" href="#__codelineno-0-30"></a>  event_type == "chemo_visit"       →  _simulate_outpatient_visit(...) with chemo spec
+</span><span id="__span-0-31"><a id="__codelineno-0-31" name="__codelineno-0-31" href="#__codelineno-0-31"></a>                                          → Encounter (AMB, oncology_infusion dept)
+</span><span id="__span-0-32"><a id="__codelineno-0-32" name="__codelineno-0-32" href="#__codelineno-0-32"></a>                                          → ProcedureRecord (chemotherapy_administration)
+</span><span id="__span-0-33"><a id="__codelineno-0-33" name="__codelineno-0-33" href="#__codelineno-0-33"></a>  event_type == "delivery"          →  simulate_delivery_encounter(...)
+</span><span id="__span-0-34"><a id="__codelineno-0-34" name="__codelineno-0-34" href="#__codelineno-0-34"></a>                                          → Encounter (IMP, obgyn dept, LOS 5/2d)
+</span><span id="__span-0-35"><a id="__codelineno-0-35" name="__codelineno-0-35" href="#__codelineno-0-35"></a>                                          → ProcedureRecord (delivery)
+</span><span id="__span-0-36"><a id="__codelineno-0-36" name="__codelineno-0-36" href="#__codelineno-0-36"></a>                                          → ClinicalDiagnosis(admission=O80 または O82 (帝王切開), discharge=Z37.0)
+</span><span id="__span-0-37"><a id="__codelineno-0-37" name="__codelineno-0-37" href="#__codelineno-0-37"></a>                                          → 新生児 Patient chain
+</span><span id="__span-0-38"><a id="__codelineno-0-38" name="__codelineno-0-38" href="#__codelineno-0-38"></a>  event_type == "abortion"          →  simulate_abortion_encounter(...) (period 既に close)
+</span><span id="__span-0-39"><a id="__codelineno-0-39" name="__codelineno-0-39" href="#__codelineno-0-39"></a>  event_type == "chronic_visit" with condition_type == "prenatal_visit" or "postpartum"
+</span><span id="__span-0-40"><a id="__codelineno-0-40" name="__codelineno-0-40" href="#__codelineno-0-40"></a>                                    →  outpatient dispatch 経由、
+</span><span id="__span-0-41"><a id="__codelineno-0-41" name="__codelineno-0-41" href="#__codelineno-0-41"></a>                                        specialty = obgyn (via _CHRONIC_DISEASE_SPECIALTY)
+</span><span id="__span-0-42"><a id="__codelineno-0-42" name="__codelineno-0-42" href="#__codelineno-0-42"></a>                      │
+</span><span id="__span-0-43"><a id="__codelineno-0-43" name="__codelineno-0-43" href="#__codelineno-0-43"></a>                      ▼
+</span><span id="__span-0-44"><a id="__codelineno-0-44" name="__codelineno-0-44" href="#__codelineno-0-44"></a>activator.py::activate_patient() [patient_cache に per-person]
+</span><span id="__span-0-45"><a id="__codelineno-0-45" name="__codelineno-0-45" href="#__codelineno-0-45"></a>  PatientProfile.state_periods = person.state_periods の shallow copy
+</span><span id="__span-0-46"><a id="__codelineno-0-46" name="__codelineno-0-46" href="#__codelineno-0-46"></a>  state_history("pregnancy") が non-empty:
+</span><span id="__span-0-47"><a id="__codelineno-0-47" name="__codelineno-0-47" href="#__codelineno-0-47"></a>     current_meds に葉酸 + 鉄剤 (med-derivation 入力に仮想 Z34 経由)
+</span><span id="__span-0-48"><a id="__codelineno-0-48" name="__codelineno-0-48" href="#__codelineno-0-48"></a>                      │
+</span><span id="__span-0-49"><a id="__codelineno-0-49" name="__codelineno-0-49" href="#__codelineno-0-49"></a>                      ▼
+</span><span id="__span-0-50"><a id="__codelineno-0-50" name="__codelineno-0-50" href="#__codelineno-0-50"></a>CIFPatientRecord → cif/structural/patients/&lt;enc&gt;.json に書き出し
+</span><span id="__span-0-51"><a id="__codelineno-0-51" name="__codelineno-0-51" href="#__codelineno-0-51"></a>  record["patient"]["state_periods"] に妊娠履歴が carry
+</span><span id="__span-0-52"><a id="__codelineno-0-52" name="__codelineno-0-52" href="#__codelineno-0-52"></a>                      │
+</span><span id="__span-0-53"><a id="__codelineno-0-53" name="__codelineno-0-53" href="#__codelineno-0-53"></a>                      ▼
+</span><span id="__span-0-54"><a id="__codelineno-0-54" name="__codelineno-0-54" href="#__codelineno-0-54"></a>export-fhir → conditions/conditions.py::_build_conditions
+</span><span id="__span-0-55"><a id="__codelineno-0-55" name="__codelineno-0-55" href="#__codelineno-0-55"></a>  chronic loop: chronic_conditions を iterate (Z34 なし → Z34 problem-list-item も無し)
+</span><span id="__span-0-56"><a id="__codelineno-0-56" name="__codelineno-0-56" href="#__codelineno-0-56"></a>  past-pregnancies adapter: state_periods を outcome="delivered" で filter
+</span><span id="__span-0-57"><a id="__codelineno-0-57" name="__codelineno-0-57" href="#__codelineno-0-57"></a>                            → delivered period 毎に Z37 problem-list-item を emit
+</span><span id="__span-0-58"><a id="__codelineno-0-58" name="__codelineno-0-58" href="#__codelineno-0-58"></a>                              (onsetDateTime = end_date)
+</span><span id="__span-0-59"><a id="__codelineno-0-59" name="__codelineno-0-59" href="#__codelineno-0-59"></a>export-fhir → Encounter.ndjson / Procedure.ndjson / Condition.ndjson / ...
 </span></code></pre></div>
 <hr />
 <h2 id="3-スキーマリファレンス">3. スキーマリファレンス<a class="headerlink" href="#3-スキーマリファレンス" title="Permanent link">&para;</a></h2>
@@ -2758,7 +2760,7 @@
 </span><span id="__span-2-8"><a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a><span class="w">        </span><span class="s">"60-99"</span><span class="p p-Indicator">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.0002</span>
 </span></code></pre></div>
 <p><strong>Parser の semantics</strong> (<code>_parse_chronic_prevalence</code> @
-<code>modules/population/engine.py</code>):
+<code>modules/population/_chronic.py</code>):
 - <strong>最初</strong> の <code>by_sex</code> key が primary sex になる — flat-form の
   <code>sex</code> + <code>age_ranges</code> フィールドに畳み込まれ、flat form と同一の
   共有 master RNG からサンプリング。
@@ -2796,17 +2798,24 @@ per-cancer-code assignment table を宣言する。</p>
 </span><span id="__span-3-18"><a id="__codelineno-3-18" name="__codelineno-3-18" href="#__codelineno-3-18"></a><span class="w">    </span><span class="nt">cycle_interval_days</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">28</span>
 </span><span id="__span-3-19"><a id="__codelineno-3-19" name="__codelineno-3-19" href="#__codelineno-3-19"></a><span class="w">    </span><span class="nt">course_cycles</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">24</span><span class="w">                 </span><span class="c1"># 2 年継続</span>
 </span><span id="__span-3-20"><a id="__codelineno-3-20" name="__codelineno-3-20" href="#__codelineno-3-20"></a><span class="w">    </span><span class="nt">cycle_orders</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">...</span><span class="p p-Indicator">]</span>
-</span><span id="__span-3-21"><a id="__codelineno-3-21" name="__codelineno-3-21" href="#__codelineno-3-21"></a>
-</span><span id="__span-3-22"><a id="__codelineno-3-22" name="__codelineno-3-22" href="#__codelineno-3-22"></a><span class="nt">by_cancer</span><span class="p">:</span><span class="w">                            </span><span class="c1"># per-code assignment probability</span>
-</span><span id="__span-3-23"><a id="__codelineno-3-23" name="__codelineno-3-23" href="#__codelineno-3-23"></a><span class="w">  </span><span class="nt">C18</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[{</span><span class="nt">regimen</span><span class="p">:</span><span class="w"> </span><span class="nv">FOLFOX</span><span class="p p-Indicator">,</span><span class="nt">          probability</span><span class="p">:</span><span class="w"> </span><span class="nv">0.25</span><span class="p p-Indicator">}]</span>
-</span><span id="__span-3-24"><a id="__codelineno-3-24" name="__codelineno-3-24" href="#__codelineno-3-24"></a><span class="w">  </span><span class="nt">C34</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[{</span><span class="nt">regimen</span><span class="p">:</span><span class="w"> </span><span class="nv">CarboPem</span><span class="p p-Indicator">,</span><span class="nt">        probability</span><span class="p">:</span><span class="w"> </span><span class="nv">0.20</span><span class="p p-Indicator">}]</span>
-</span><span id="__span-3-25"><a id="__codelineno-3-25" name="__codelineno-3-25" href="#__codelineno-3-25"></a><span class="w">  </span><span class="nt">C50</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[{</span><span class="nt">regimen</span><span class="p">:</span><span class="w"> </span><span class="nv">Trastuzumab_q3w</span><span class="p p-Indicator">,</span><span class="nt"> probability</span><span class="p">:</span><span class="w"> </span><span class="nv">0.15</span><span class="p p-Indicator">}]</span>
-</span><span id="__span-3-26"><a id="__codelineno-3-26" name="__codelineno-3-26" href="#__codelineno-3-26"></a><span class="w">  </span><span class="nt">C61</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[{</span><span class="nt">regimen</span><span class="p">:</span><span class="w"> </span><span class="nv">LHRH_q28d</span><span class="p p-Indicator">,</span><span class="nt">       probability</span><span class="p">:</span><span class="w"> </span><span class="nv">0.35</span><span class="p p-Indicator">}]</span>
-</span><span id="__span-3-27"><a id="__codelineno-3-27" name="__codelineno-3-27" href="#__codelineno-3-27"></a>
-</span><span id="__span-3-28"><a id="__codelineno-3-28" name="__codelineno-3-28" href="#__codelineno-3-28"></a><span class="nt">procedure</span><span class="p">:</span><span class="w">                            </span><span class="c1"># chemo_visit 毎に emit</span>
-</span><span id="__span-3-29"><a id="__codelineno-3-29" name="__codelineno-3-29" href="#__codelineno-3-29"></a><span class="w">  </span><span class="nt">jp_code</span><span class="p">:</span><span class="w"> </span><span class="s">"G003"</span><span class="w">                     </span><span class="c1"># JP MHLW: 抗悪性腫瘍剤注入</span>
-</span><span id="__span-3-30"><a id="__codelineno-3-30" name="__codelineno-3-30" href="#__codelineno-3-30"></a><span class="w">  </span><span class="nt">us_code</span><span class="p">:</span><span class="w"> </span><span class="s">"96413"</span><span class="w">                    </span><span class="c1"># US CPT: Chemotherapy administration</span>
-</span><span id="__span-3-31"><a id="__codelineno-3-31" name="__codelineno-3-31" href="#__codelineno-3-31"></a><span class="w">  </span><span class="nt">duration_minutes</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">60</span>
+</span><span id="__span-3-21"><a id="__codelineno-3-21" name="__codelineno-3-21" href="#__codelineno-3-21"></a><span class="w">  </span><span class="c1"># 他に GemNabP (q28d × 6)、BCG_intravesical (q7d × 6)、</span>
+</span><span id="__span-3-22"><a id="__codelineno-3-22" name="__codelineno-3-22" href="#__codelineno-3-22"></a><span class="w">  </span><span class="c1">#     Temozolomide_stupp (q28d × 6)</span>
+</span><span id="__span-3-23"><a id="__codelineno-3-23" name="__codelineno-3-23" href="#__codelineno-3-23"></a>
+</span><span id="__span-3-24"><a id="__codelineno-3-24" name="__codelineno-3-24" href="#__codelineno-3-24"></a><span class="nt">by_cancer</span><span class="p">:</span><span class="w">                            </span><span class="c1"># per-code assignment probability</span>
+</span><span id="__span-3-25"><a id="__codelineno-3-25" name="__codelineno-3-25" href="#__codelineno-3-25"></a><span class="w">  </span><span class="nt">C18</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[{</span><span class="nt">regimen</span><span class="p">:</span><span class="w"> </span><span class="nv">FOLFOX</span><span class="p p-Indicator">,</span><span class="nt">          probability</span><span class="p">:</span><span class="w"> </span><span class="nv">0.25</span><span class="p p-Indicator">}]</span>
+</span><span id="__span-3-26"><a id="__codelineno-3-26" name="__codelineno-3-26" href="#__codelineno-3-26"></a><span class="w">  </span><span class="nt">C34</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[{</span><span class="nt">regimen</span><span class="p">:</span><span class="w"> </span><span class="nv">CarboPem</span><span class="p p-Indicator">,</span><span class="nt">        probability</span><span class="p">:</span><span class="w"> </span><span class="nv">0.20</span><span class="p p-Indicator">}]</span>
+</span><span id="__span-3-27"><a id="__codelineno-3-27" name="__codelineno-3-27" href="#__codelineno-3-27"></a><span class="w">  </span><span class="nt">C50</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[{</span><span class="nt">regimen</span><span class="p">:</span><span class="w"> </span><span class="nv">Trastuzumab_q3w</span><span class="p p-Indicator">,</span><span class="nt"> probability</span><span class="p">:</span><span class="w"> </span><span class="nv">0.15</span><span class="p p-Indicator">}]</span>
+</span><span id="__span-3-28"><a id="__codelineno-3-28" name="__codelineno-3-28" href="#__codelineno-3-28"></a><span class="w">  </span><span class="nt">C61</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[{</span><span class="nt">regimen</span><span class="p">:</span><span class="w"> </span><span class="nv">LHRH_q28d</span><span class="p p-Indicator">,</span><span class="nt">       probability</span><span class="p">:</span><span class="w"> </span><span class="nv">0.35</span><span class="p p-Indicator">}]</span>
+</span><span id="__span-3-29"><a id="__codelineno-3-29" name="__codelineno-3-29" href="#__codelineno-3-29"></a><span class="w">  </span><span class="nt">C15</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[{</span><span class="nt">regimen</span><span class="p">:</span><span class="w"> </span><span class="nv">FOLFOX</span><span class="p p-Indicator">,</span><span class="nt">          probability</span><span class="p">:</span><span class="w"> </span><span class="nv">0.20</span><span class="p p-Indicator">}]</span>
+</span><span id="__span-3-30"><a id="__codelineno-3-30" name="__codelineno-3-30" href="#__codelineno-3-30"></a><span class="w">  </span><span class="nt">C16</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[{</span><span class="nt">regimen</span><span class="p">:</span><span class="w"> </span><span class="nv">FOLFOX</span><span class="p p-Indicator">,</span><span class="nt">          probability</span><span class="p">:</span><span class="w"> </span><span class="nv">0.20</span><span class="p p-Indicator">}]</span>
+</span><span id="__span-3-31"><a id="__codelineno-3-31" name="__codelineno-3-31" href="#__codelineno-3-31"></a><span class="w">  </span><span class="nt">C25</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[{</span><span class="nt">regimen</span><span class="p">:</span><span class="w"> </span><span class="nv">GemNabP</span><span class="p p-Indicator">,</span><span class="nt">         probability</span><span class="p">:</span><span class="w"> </span><span class="nv">0.20</span><span class="p p-Indicator">}]</span>
+</span><span id="__span-3-32"><a id="__codelineno-3-32" name="__codelineno-3-32" href="#__codelineno-3-32"></a><span class="w">  </span><span class="nt">C67</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[{</span><span class="nt">regimen</span><span class="p">:</span><span class="w"> </span><span class="nv">BCG_intravesical</span><span class="p p-Indicator">,</span><span class="nt"> probability</span><span class="p">:</span><span class="w"> </span><span class="nv">0.20</span><span class="p p-Indicator">}]</span>
+</span><span id="__span-3-33"><a id="__codelineno-3-33" name="__codelineno-3-33" href="#__codelineno-3-33"></a><span class="w">  </span><span class="nt">C71</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[{</span><span class="nt">regimen</span><span class="p">:</span><span class="w"> </span><span class="nv">Temozolomide_stupp</span><span class="p p-Indicator">,</span><span class="nt"> probability</span><span class="p">:</span><span class="w"> </span><span class="nv">0.35</span><span class="p p-Indicator">}]</span>
+</span><span id="__span-3-34"><a id="__codelineno-3-34" name="__codelineno-3-34" href="#__codelineno-3-34"></a>
+</span><span id="__span-3-35"><a id="__codelineno-3-35" name="__codelineno-3-35" href="#__codelineno-3-35"></a><span class="nt">procedure</span><span class="p">:</span><span class="w">                            </span><span class="c1"># chemo_visit 毎に emit</span>
+</span><span id="__span-3-36"><a id="__codelineno-3-36" name="__codelineno-3-36" href="#__codelineno-3-36"></a><span class="w">  </span><span class="nt">jp_code</span><span class="p">:</span><span class="w"> </span><span class="s">"G003"</span><span class="w">                     </span><span class="c1"># JP MHLW: 抗悪性腫瘍剤注入</span>
+</span><span id="__span-3-37"><a id="__codelineno-3-37" name="__codelineno-3-37" href="#__codelineno-3-37"></a><span class="w">  </span><span class="nt">us_code</span><span class="p">:</span><span class="w"> </span><span class="s">"96413"</span><span class="w">                    </span><span class="c1"># US CPT: Chemotherapy administration</span>
+</span><span id="__span-3-38"><a id="__codelineno-3-38" name="__codelineno-3-38" href="#__codelineno-3-38"></a><span class="w">  </span><span class="nt">duration_minutes</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">60</span>
 </span></code></pre></div>
 <p><strong>Assignment semantics:</strong> 各慢性がん保有者に対しスケジューラは
 <code>(patient_id, cancer_code)</code> 毎の sub-RNG (<code>chemotherapy_regimen_seed</code>)
@@ -2816,9 +2825,10 @@ per-cancer-code assignment table を宣言する。</p>
 <p><strong>Scheduler の挙動:</strong> assign 時点で N cycle が <code>cycle_interval_days</code>
 の間隔で発火する (最初の cycle window 内のランダム Day-1 オフセットから
 開始)、<code>course_cycles</code> と <code>365 / cycle_interval_days</code> の両方で cap。</p>
-<p><strong>Slice-1 emit scope:</strong> 各 <code>chemo_visit</code> は 1 Encounter + 1 Procedure
-(JP/US 請求コード付き) を生成する。<code>cycle_orders</code> エントリ毎の
-<code>MedicationRequest</code> / <code>MedicationAdministration</code> は follow-up slice。</p>
+<p><strong>Emit scope:</strong> 各 <code>chemo_visit</code> は 1 Encounter + 1 Procedure
+(JP/US 請求コード付き) + <code>cycle_orders</code> エントリ毎に
+<code>MedicationRequest</code> 1 件と <code>MedicationAdministration</code> 1 件を生成する
+(<code>simulator/outpatient.py</code> の chemo 分岐)。</p>
 <h3 id="34-perinatalyaml">3.4 <code>perinatal.yaml</code><a class="headerlink" href="#34-perinatalyaml" title="Permanent link">&para;</a></h3>
 <p>場所: <code>locale/shared/perinatal.yaml</code>。分娩 encounter shape + procedure
 code + abortion outcome テーブル + <strong>pregnancy lifecycle block</strong>
@@ -2916,8 +2926,8 @@ order として現れる</strong> — disease YAML が long-term として label
 <h2 id="5-慢性薬剤モニタリング-pipeline">5. 慢性薬剤モニタリング pipeline<a class="headerlink" href="#5-慢性薬剤モニタリング-pipeline" title="Permanent link">&para;</a></h2>
 <p><code>clinosim/modules/monitoring/</code> (Issue #757) が慢性薬剤を per-visit
 モニタリング labs に mapping する。各慢性 follow-up 外来 visit で
-<code>simulator/engine.py::run_beta</code> のディスパッチ block (
-<code>elif event.event_type == "chronic_visit":</code> 分岐) が
+<code>simulator/phases/_healthcare_calendar.py</code> のディスパッチ block (
+<code>event.event_type == "chronic_visit"</code> 分岐) が
 <code>monitoring_labs_for_patient(patient.current_medications, ev_rng)</code> を
 呼び、返された labs を visit の <code>visit_labs</code> にマージする。</p>
 <p>現在の mapping (

@@ -2656,7 +2656,7 @@ output exists on disk, everything below is pure Python.</p>
 <tbody>
 <tr>
 <td>Modeling approach</td>
-<td>Physiology-driven forward simulation (14-var hidden state per patient)</td>
+<td>Physiology-driven forward simulation (19-variable hidden physiological state per patient)</td>
 <td>State-transition modules per condition</td>
 </tr>
 <tr>
@@ -2671,7 +2671,7 @@ output exists on disk, everything below is pure Python.</p>
 </tr>
 <tr>
 <td>JP Core profile compliance</td>
-<td>16 resource types</td>
+<td>21 resource types</td>
 <td>Not a design goal</td>
 </tr>
 <tr>
@@ -2736,16 +2736,18 @@ for population size / state / config options.</p>
 <h2 id="2--score-the-synthea-cohort-with-clinosim-eval">2 — Score the Synthea cohort with <code>clinosim eval</code><a class="headerlink" href="#2--score-the-synthea-cohort-with-clinosim-eval" title="Permanent link">&para;</a></h2>
 <p>Point <code>clinosim eval</code> at Synthea's <code>fhir/</code> output — the layout is
 auto-detected and the Bundle files are normalized into
-<code>fhir_r4/&lt;ResourceType&gt;.ndjson</code> alongside it:</p>
+<code>&lt;parent&gt;/synthea-normalized/fhir_r4/&lt;ResourceType&gt;.ndjson</code> (a sibling
+of the <code>fhir/</code> directory):</p>
 <div class="highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>clinosim<span class="w"> </span><span class="nb">eval</span><span class="w"> </span>-d<span class="w"> </span>./synthea-out/fhir
 </span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="c1"># clinosim eval: detected Synthea layout — normalizing into ./synthea-out/synthea-normalized</span>
 </span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="c1"># clinosim eval: wrote 12345 resources across 18 ResourceType(s)</span>
 </span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="c1"># ...</span>
 </span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="c1"># Overall score: 82.4 / 100 (WARN)</span>
 </span></code></pre></div>
-<p>The normalization is deterministic (same Bundles ⇒ same NDJSON bytes);
-subsequent <code>eval</code> runs against the same input reuse the on-disk
-<code>synthea-normalized/</code> directory unless you <code>rm -rf</code> it.</p>
+<p>The normalization is deterministic (same Bundles ⇒ same NDJSON bytes).
+Every <code>eval</code> run on a Synthea directory deletes the target's <code>fhir_r4/</code>
+and normalizes again, so the NDJSON always reflects the current
+Bundles.</p>
 <p>Force the target directory with <code>--synthea-normalize</code>:</p>
 <div class="highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>clinosim<span class="w"> </span><span class="nb">eval</span><span class="w"> </span>-d<span class="w"> </span>./synthea-out/fhir<span class="w"> </span><span class="se">\</span>
 </span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="w">    </span>--synthea-normalize<span class="w"> </span>/tmp/synthea-flat<span class="w"> </span><span class="se">\</span>
@@ -2773,7 +2775,9 @@ the same size / country / duration ballpark:</p>
 </span><span id="__span-5-9"><a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a><span class="s">print(f"{'overall':&lt;15} {a['overall_score']:&gt;10.1f} {b['overall_score']:&gt;10.1f}")</span>
 </span><span id="__span-5-10"><a id="__codelineno-5-10" name="__codelineno-5-10" href="#__codelineno-5-10"></a><span class="s">PY</span>
 </span></code></pre></div>
-<p>Example output (a real comparison will differ):</p>
+<p>Example output (a real comparison will differ; the real reports also
+carry one row per country-conditional axis — <code>jp_clins_lab_compliance</code>,
+<code>jp_core_compliance</code>, <code>us_core_compliance</code> — omitted here):</p>
 <div class="highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>axis            synthea    clinosim
 </span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>structural         98.5      100.0
 </span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>clinical           74.2       77.8
@@ -2797,13 +2801,14 @@ the same size / country / duration ballpark:</p>
   will surface pairings where Synthea's per-condition lab modules and
   the eval bands don't line up. Neither result is inherently "wrong" —
   it's what you're measuring.</li>
-<li><strong>Locale.</strong> clinosim's JP checks (<code>japanese_displays_on_condition</code>,
-  <code>jlac10_or_loinc_on_lab</code>, <code>yj_code_on_medications</code>,
-  <code>jp_core_profile_declared</code>) will fail on Synthea output because
-  Synthea is US-first — the eval tool is calling out that Synthea
-  wasn't built to hit those thresholds, not that Synthea is broken.
-  Use <code>--country US</code> to restrict the locale axis to the US checks
-  when scoring Synthea.</li>
+<li><strong>Locale.</strong> The normalized Synthea output is a flat
+  <code>fhir_r4/</code> layout, so the locale lens is auto-detected from the first
+  Patient's <code>address.country</code> (fallback: US). Synthea cohorts are
+  therefore scored on the US checks; clinosim's JP checks
+  (<code>japanese_displays_on_condition</code>, <code>jlac10_or_loinc_on_lab</code>,
+  <code>yj_code_on_medications</code>, <code>jp_core_profile_declared</code>) and the JP
+  compliance axes do not apply — Synthea is US-first, so compare it
+  against a US clinosim cohort such as <code>us-100</code>.</li>
 </ul>
 <h2 id="adding-a-rule-thats-fair-to-both">Adding a rule that's fair to both<a class="headerlink" href="#adding-a-rule-thats-fair-to-both" title="Permanent link">&para;</a></h2>
 <p>If you plan to publish a comparison, <a href="../eval-rules/#adding-a-rule">eval-rules.md</a>

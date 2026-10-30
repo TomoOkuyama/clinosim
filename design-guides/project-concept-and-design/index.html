@@ -2594,11 +2594,11 @@ design review):</p>
 </ol>
 <h2 id="2-pipeline-overview">2. Pipeline overview<a class="headerlink" href="#2-pipeline-overview" title="Permanent link">&para;</a></h2>
 <div class="highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a> population (demographics / households)                   Layer 0-1: reference YAML
-</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>   └→ scenario firing (32 diseases / 46 encounters)         (disease / encounter protocols,
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>   └→ scenario firing (36 diseases / 51 encounters)         (disease / encounter protocols,
 </span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>        └→ encounter simulation (inpatient / ED / outpatient) locale, codes)
 </span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>             ├ physiology-state transition (daily loop)
 </span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>             ├ orders / labs / vitals / MAR / procedures
-</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>             ├ POST_ENCOUNTER enrichers (device → hai → antibiotic → imaging → triage → nursing → document)
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>             ├ POST_ENCOUNTER enrichers (device → prophylaxis → hai → antibiotic → imaging → … → triage → nursing_assignment → document)
 </span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>             └→ POST_RECORDS enrichers (nursing flowsheet, immunization, …)
 </span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>   ↓
 </span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a> ★ CIF (the sole simulation output, AD-17)
@@ -2606,12 +2606,12 @@ design review):</p>
 </span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>   └ cif/narratives/&lt;version&gt;/documents/… … Stage 2, narrative, versioned + swappable (AD-65)
 </span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>   ↓
 </span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a> format adapters (read only from CIF)
-</span><span id="__span-0-14"><a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>   ├ FHIR R4 NDJSON (the _fhir_* builders, registry-registered) ← the current primary output
+</span><span id="__span-0-14"><a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>   ├ FHIR R4 NDJSON (the fhir_r4/&lt;theme&gt;/ builders, registry-registered) ← the current primary output
 </span><span id="__span-0-15"><a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>   └ CSV / (future: SS-MIX2, HL7 v2)
 </span></code></pre></div>
 <ul>
 <li><strong>Three-stage CLI (AD-37)</strong>: <code>clinosim simulate</code> (→ structural CIF)
-  → <code>clinosim narrate --provider template|mock|ollama|bedrock</code> (→
+  → <code>clinosim narrate --provider template|mock|ollama|bedrock|vllm|openai_compatible</code> (→
   <code>narratives/&lt;version&gt;/</code>) → <code>clinosim export-fhir --narrative-version X</code>.
   That is the concrete embodiment of requirement 6 (swappability).</li>
 <li><strong>Determinism (AD-16)</strong>: every random draw comes from a hierarchical
@@ -2650,7 +2650,7 @@ design review):</p>
 </tr>
 <tr>
 <td>3</td>
-<td>CIF generation (simulator + 33 modules)</td>
+<td>CIF generation (simulator + 38 modules)</td>
 <td><code>simulator/</code>, <code>modules/</code></td>
 </tr>
 <tr>
@@ -2661,7 +2661,7 @@ design review):</p>
 </tbody>
 </table>
 <ul>
-<li><strong>33 modules</strong> (see <code>MODULES.md</code> for the map). They split into
+<li><strong>38 modules</strong> (see <code>MODULES.md</code> for the map). They split into
   always-on (mandatory in the clinical cascade: device → hai →
   antibiotic / imaging / document / triage / nursing_assignment,
   etc.) and opt-in.</li>

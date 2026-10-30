@@ -2453,6 +2453,24 @@
 <td>MHLW Drug Price Standards</td>
 </tr>
 <tr>
+<td><code>hot7</code></td>
+<td>MEDIS HOT7</td>
+<td>JP drugs (HOT-format codes; the JP medication emitter picks the HOT7 / HOT9 / HOT13 / YJ URI per code format)</td>
+<td><a href="https://www.medis.or.jp/">MEDIS</a></td>
+</tr>
+<tr>
+<td><code>medis-disease-keyno</code></td>
+<td>MEDIS 病名管理番号</td>
+<td>JP Condition <code>medisRecordNo</code> slice (JP-CLINS)</td>
+<td><a href="https://www.medis.or.jp/">MEDIS</a></td>
+</tr>
+<tr>
+<td><code>cvx</code></td>
+<td>CVX</td>
+<td>Immunizations</td>
+<td><a href="https://www2.cdc.gov/vaccines/iis/iisstandards/vaccines.asp?rpt=cvx">CDC IIS</a></td>
+</tr>
+<tr>
 <td><code>cpt</code></td>
 <td>CPT</td>
 <td>US procedures</td>
@@ -2466,7 +2484,10 @@
 </tr>
 </tbody>
 </table>
-<p>Clinical document types use the following LOINC codes:</p>
+<p>Clinical document types use the following LOINC codes (inpatient
+physician documents shown; the full per-country list, including nursing,
+outpatient / ED and JP-only documents, is in
+<a href="../../clinical_documents/#document-scope"><code>../clinical_documents.md</code></a>):</p>
 <table>
 <thead>
 <tr>
@@ -2484,17 +2505,17 @@
 <tr>
 <td>Progress note</td>
 <td><code>11506-3</code></td>
-<td>Reserved for future Tier C scope</td>
+<td>Generated daily during an inpatient stay</td>
 </tr>
 <tr>
 <td>Discharge summary note</td>
 <td><code>18842-5</code></td>
-<td>Generated at discharge</td>
+<td>Generated at discharge (a death discharge summary with the same code replaces it on deceased encounters)</td>
 </tr>
 <tr>
-<td>Death note</td>
-<td><code>69730-0</code></td>
-<td>Generated when <code>deceased=true</code></td>
+<td>Death certificate</td>
+<td><code>64297-5</code></td>
+<td>Generated when the encounter ends in death</td>
 </tr>
 <tr>
 <td>Surgical operation note</td>

@@ -2438,7 +2438,7 @@
 </span><span id="__span-0-14"><a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>    end
 </span><span id="__span-0-15"><a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>
 </span><span id="__span-0-16"><a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a>    subgraph stage3["Stage 3 — clinosim export-fhir"]
-</span><span id="__span-0-17"><a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a>        adapter["fhir_r4_adapter (+ per-theme _fhir_* builder subpackages)&lt;br/&gt;structural → 25+ FHIR resource types&lt;br/&gt;narratives → DocumentReference (base64)&lt;br/&gt;display text via clinosim.codes"]
+</span><span id="__span-0-17"><a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a>        adapter["fhir_r4_adapter (+ per-theme builder subpackages under fhir_r4/)&lt;br/&gt;structural → 25+ FHIR resource types&lt;br/&gt;narratives → DocumentReference (base64)&lt;br/&gt;display text via clinosim.codes"]
 </span><span id="__span-0-18"><a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a>        fhir["output/fhir_r4/&lt;br/&gt;HL7 Bulk Data NDJSON + manifest.json"]
 </span><span id="__span-0-19"><a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a>        adapter --&gt; fhir
 </span><span id="__span-0-20"><a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a>    end
@@ -2448,7 +2448,7 @@
 <p><strong>Why three stages?</strong></p>
 <ul>
 <li><strong>Reproducibility</strong> — Stage 1 is fully deterministic from a seed (includes built-in document enricher). Stage 3 is a pure function of CIF.</li>
-<li><strong>Extensibility</strong> — Stage 2 (<code>clinosim narrate</code>) is optional and wires in LLM narrative providers (local Ollama, AWS Bedrock, Sakura Cloud Ollama) over the same structural CIF. Skipping it still produces valid FHIR (template-mode <code>docStatus="preliminary"</code>).</li>
+<li><strong>Extensibility</strong> — Stage 2 (<code>clinosim narrate</code>) is optional and wires in LLM narrative providers (local Ollama, AWS Bedrock, Sakura Cloud Ollama, vLLM / other OpenAI-compatible servers) over the same structural CIF. Skipping it still produces valid FHIR (template narratives, <code>DocumentReference.docStatus="final"</code>).</li>
 <li><strong>Cost control</strong> — Stage 2 is the only stage that may call a paid LLM API. Bedrock / Sakura runs can be isolated to a single remote invocation.</li>
 <li><strong>Remote execution</strong> — Stage 2 can be run on a machine with network access to the LLM (e.g. EC2 for Bedrock, Sakura Cloud for Ollama), while Stage 1 and Stage 3 stay local.</li>
 </ul>

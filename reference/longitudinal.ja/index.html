@@ -2420,13 +2420,13 @@ AR(1) で drift し、慢性 staging ladder は Markov 遷移で進行、
 <tbody>
 <tr>
 <td><strong>AR(1) 連続 latent</strong></td>
-<td><code>hba1c_trajectory.yaml</code></td>
+<td><code>hba1c_trajectory.yaml</code> (他に <code>labs/ldl_trajectory.yaml</code>、<code>vitals/sbp_trajectory.yaml</code>、<code>anthropometry/bmi_drift.yaml</code>)</td>
 <td>E11 / E10 成人の within-individual HbA1c drift (phi 0.75、DCCT/EDIC、UKPDS 10y、Wu 2023 meta-analysis で校正)。encounter 単位の測定ノイズオーバーレイ (sigma 0.20 %) は emit 時に適用。廃止された <code>PersonRecord.glycemic_trajectory</code> proxy を置換。</td>
 </tr>
 <tr>
 <td><strong>Markov stage ladder</strong></td>
 <td><code>stage/&lt;disease&gt;.yaml</code> (19 ladder)</td>
-<td>CKD (<code>n18</code>)、心不全 (<code>i50</code> → NYHA I-IV)、虚血性心疾患 (<code>i25</code> → CCS I-IV)、心房細動 (<code>i48</code> paroxysmal → persistent → permanent)、COPD (<code>j44</code> → GOLD 1-4)、認知症 (<code>f00</code> → CDR 0.5-3)、Parkinson (<code>g20</code>)、多発性硬化症 (<code>g35</code>)、アルコール性 / 線維性肝疾患、脳卒中後遺症 (<code>i69</code> / <code>i69_1</code> / <code>i69_3</code>)、7 本の癌 staging ladder (<code>c16</code> 胃 / <code>c18</code> 大腸 / <code>c22</code> 肝 / <code>c34</code> 肺 / <code>c50</code> 乳 / <code>c61</code> 前立腺) を AJCC + BCLC で。</td>
+<td>CKD (<code>n18</code>)、心不全 (<code>i50</code> → NYHA I-IV)、虚血性心疾患 (<code>i25</code> → CCS I-IV)、心房細動 (<code>i48</code> paroxysmal → persistent → permanent)、COPD (<code>j44</code> → GOLD 1-4)、認知症 (<code>f00</code> → CDR 0.5-3)、Parkinson (<code>g20</code>)、多発性硬化症 (<code>g35</code>)、アルコール性 / 線維性肝疾患、脳卒中後遺症 (<code>i69</code> / <code>i69_1</code> / <code>i69_3</code>)、6 本の癌 staging ladder (<code>c16</code> 胃 / <code>c18</code> 大腸 / <code>c22</code> 肝 / <code>c34</code> 肺 / <code>c50</code> 乳 / <code>c61</code> 前立腺) を AJCC + BCLC で。</td>
 </tr>
 <tr>
 <td><strong>イベント発火</strong></td>
@@ -2467,9 +2467,12 @@ resample しない。</p>
 <ul>
 <li><strong>Layer-1 初期化</strong> — <code>clinosim.modules.population.engine.generate_population</code>
   が生成時に全生存患者に対して <code>initial_snapshot</code> を呼ぶ。</li>
-<li><strong>年次 advance</strong> — <code>clinosim.modules.population.aging.advance_population</code>
-  が sim 年毎に全生存患者に対して <code>advance_one_year</code> を呼ぶ。
-  <strong>既存の aging passes が <code>chronic_conditions</code> を finalise した後。</strong></li>
+<li><strong>年次 advance</strong> — forward month loop
+  (<code>clinosim/simulator/phases/_forward_loop.py</code>) が年の境目ごとに
+  <code>clinosim.modules.population.aging.advance_population</code> を呼び、これが
+  sim 年毎に全生存患者に対して <code>advance_one_year</code> を呼ぶ。
+  <strong>その年の院外死亡 draw と aging passes が <code>chronic_conditions</code> を
+  finalise した後。</strong></li>
 <li><strong>Lab emit</strong> — <code>clinosim.modules.physiology.engine.derive_lab_values</code>
   が <code>state_at(person, when).continuous["hba1c"]</code> を読み、yaml から
   encounter 単位の測定ノイズオーバーレイを適用。</li>

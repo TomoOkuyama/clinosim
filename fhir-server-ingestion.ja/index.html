@@ -2510,8 +2510,9 @@ NDJSON — <code>resourceType</code> ごとに 1 ファイル — を emit し�
 </span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>manifest.json
 </span></code></pre></div>
 <p>実際のファイル集合はコホートで発火するモジュールに依存する —
-<code>Device.ndjson</code> / <code>DeviceUseStatement.ndjson</code> は G47.30 CPAP 患者
-が存在する時のみ emit (disease prevalence 経由の opt-in)、
+<code>DeviceUseStatement.ndjson</code> (と患者ごとの <code>Device</code> 行) は ICU 転棟
+した入院患者に CVC / 留置カテーテル / 人工呼吸器が使われた時のみ emit
+(<code>Device.ndjson</code> には施設共用の輸液ポンプが常に含まれる)、
 <code>Specimen.ndjson</code> は 微生物培養 encounter chain が発火した時のみ emit。</p>
 <p>各 <code>.ndjson</code> は 1 行 1 FHIR リソース。<code>manifest.json</code> はそれら
 ファイルを指す Bulk Data descriptor。</p>

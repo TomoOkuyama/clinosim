@@ -2592,8 +2592,9 @@ completeness 修正に固有の新規約だけを書く — 既存規約は<stro
 (2) <code>physiology/engine.py:initialize_state</code> の消費分岐、(3) vitals/labs/処方への波及、
 (4) FHIR resource の適切な code、まで一貫させる。「誰も読まない severity_score」は C2。</p>
 <h3 id="42-as-of-age-パターンfp-age-の参照実装">4.2 as-of-age パターン(FP-AGE の参照実装)<a class="headerlink" href="#42-as-of-age-パターンfp-age-の参照実装" title="Permanent link">&para;</a></h3>
-<p>時間依存の属性(age など)を複数年シミュレーションで正しく表示・計算するには、<code>immunization/
-engine.py:36-39 _age_on(dob, on, fallback)</code> を <code>_shared</code> へ昇格した <strong>as-of 日付関数</strong>を使う。
+<p>時間依存の属性(age など)を複数年シミュレーションで正しく表示・計算するには、<strong>as-of 日付関数</strong>
+<code>_age_on(dob, on, fallback)</code>(<code>immunization/engine.py</code>。予定していた <code>_shared</code> への昇格は未実施で、
+他の箇所は as-of age をその場で計算している)を使う。
 call-site は event 日(<code>event.timestamp</code>)を渡す。</p>
 <ul>
 <li><strong>seed 経路を変えない群</strong>(出力/narrative/LLM/labs)= as-of 化しても golden は表示値のみ差分 → 低リスク。</li>
@@ -2627,8 +2628,8 @@ call-site は event 日(<code>event.timestamp</code>)を渡す。</p>
 <li><strong>C2 チェック</strong>: 追加した FHIR 要素が cohort 内で非退化(患者間で分散、default fall-back でない)か。</li>
 <li><strong>C3 チェック</strong>: 疾患/encounter が期待する resource が実出力に出るか(grep)。</li>
 <li><strong>決定論</strong>: seed 経路を変えるか判定 → byte 保存 refactor か golden 再生成 new-feature かを宣言。</li>
-<li><strong>DONE 時</strong>: registry の Status を DONE に更新 + PR/commit を追記。gate(FP-COMPLETENESS-GATE)が
-   既に存在するなら audit completeness 軸を green に。</li>
+<li><strong>DONE 時</strong>: registry の Status を DONE に更新 + PR/commit を追記。completeness gate
+   (FP-COMPLETENESS-GATE、<code>tests/unit/test_completeness_invariants.py</code>)を green に保つ。</li>
 </ol>
 <hr />
 <h2 id="7-入出力インターフェース早見このfix群が触る境界">7. 入出力インターフェース早見(このfix群が触る境界)<a class="headerlink" href="#7-入出力インターフェース早見このfix群が触る境界" title="Permanent link">&para;</a></h2>
@@ -2652,13 +2653,13 @@ call-site は event 日(<code>event.timestamp</code>)を渡す。</p>
 <td>severity 決定</td>
 <td><code>event.severity</code>(float)/ protocol 分布</td>
 <td><code>"mild |moderate |severe"</code> + score</td>
-<td><code>severity_from_protocol</code>(FP-SEV-MODEL で新設)</td>
+<td><code>sample_severity</code> / <code>category_from_score</code>(<code>disease/severity.py</code>、FP-SEV-MODEL)</td>
 </tr>
 <tr>
 <td>age 参照</td>
 <td><code>dob</code> + event 日</td>
 <td>as-of age(int)</td>
-<td><code>_age_on</code>(FP-AGE で <code>_shared</code> 昇格)</td>
+<td><code>_age_on</code>(<code>immunization/engine.py</code>、FP-AGE)</td>
 </tr>
 <tr>
 <td>code → display</td>
@@ -2670,13 +2671,13 @@ call-site は event 日(<code>event.timestamp</code>)を渡す。</p>
 <td>CIF → FHIR</td>
 <td>structural + narrative CIF</td>
 <td>FHIR R4 NDJSON</td>
-<td><code>_fhir_*</code> builders(registry 登録、既存)</td>
+<td><code>fhir_r4/&lt;theme&gt;/</code> builders(registry 登録、既存)</td>
 </tr>
 <tr>
 <td>completeness 検証</td>
-<td>cohort NDJSON</td>
-<td>AxisResult</td>
-<td><code>clinosim/audit/axes/completeness.py</code>(FP-COMPLETENESS-GATE で新設)</td>
+<td>CIF / reference data</td>
+<td>test 結果</td>
+<td><code>tests/unit/test_completeness_invariants.py</code>(FP-COMPLETENESS-GATE。cohort 統計の audit 軸は未実装)</td>
 </tr>
 <tr>
 <td></content></td>

@@ -2591,10 +2591,11 @@ country-conditional (<strong>jp_clins_lab_compliance</strong>,
 <strong>jp_core_compliance</strong>, <strong>us_core_compliance</strong>) — and emits a JSON +
 Markdown report with per-check outcomes, an axis score (0–100), and
 an overall score. Country-conditional axes activate only for cohorts
-whose locale matches; see <code>clinosim/eval/axes/</code> for the live plug-in
-discovery convention (established META #1633 P8).</p>
+whose locale matches. The axis set is the <code>axes</code> dict in
+<code>clinosim/eval/engine.py::EvalEngine</code>; each axis lives in
+<code>clinosim/eval/axes/</code>.</p>
 <p>It is <strong>not</strong> <code>clinosim audit run</code> (see
-<a href="../CONTRIBUTING-modules/"><code>docs/CONTRIBUTING-modules.md</code></a> "PR 検証ガイド"):</p>
+<a href="../CONTRIBUTING-modules/"><code>docs/CONTRIBUTING-modules.md</code></a> "PR verification guide"):</p>
 <table>
 <thead>
 <tr>
@@ -2640,13 +2641,23 @@ discovery convention (established META #1633 P8).</p>
 </span></code></pre></div>
 <p>Options:</p>
 <div class="highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>clinosim eval
-</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>  -d/--cohort-dir DIR    Root of the generated cohort (contains fhir_r4/)
-</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>  --json PATH            Write JSON report to PATH
-</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>  --md PATH              Write Markdown report to PATH
-</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>  --country US|JP        Force the locale axis to run US or JP checks
-</span><span id="__span-1-6"><a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>                         (defaults to auto-detect from Patient.address.country
-</span><span id="__span-1-7"><a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>                         or JP Core meta.profile presence)
-</span><span id="__span-1-8"><a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a>  --strict               Exit 1 if any axis reports a FAIL check
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>  -d/--cohort-dir DIR      Root of the generated cohort (contains fhir_r4/), or a
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>                           Synthea fhir/ output directory (auto-detected and
+</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>                           normalized before scoring)
+</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>  --json PATH              Write JSON report to PATH
+</span><span id="__span-1-6"><a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>  --md PATH                Write Markdown report to PATH
+</span><span id="__span-1-7"><a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>  --country CODE           Limit to one or more country subdirectories
+</span><span id="__span-1-8"><a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a>                           (&lt;cohort-dir&gt;/&lt;CODE&gt;/fhir_r4/; repeat the flag).
+</span><span id="__span-1-9"><a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a>                           Default: every discovered subdirectory. The locale
+</span><span id="__span-1-10"><a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a>                           lens itself is taken from the subdirectory name, or
+</span><span id="__span-1-11"><a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a>                           auto-detected from the first Patient's
+</span><span id="__span-1-12"><a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a>                           address.country / JP Core meta.profile for the flat
+</span><span id="__span-1-13"><a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a>                           &lt;cohort-dir&gt;/fhir_r4/ layout (fallback: US)
+</span><span id="__span-1-14"><a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a>  --only-axes LIST         Comma-separated axis ids to run (e.g.
+</span><span id="__span-1-15"><a id="__codelineno-1-15" name="__codelineno-1-15" href="#__codelineno-1-15"></a>                           clinical,locale); unknown ids fail fast
+</span><span id="__span-1-16"><a id="__codelineno-1-16" name="__codelineno-1-16" href="#__codelineno-1-16"></a>  --synthea-normalize DIR  Where to write the normalized Synthea layout
+</span><span id="__span-1-17"><a id="__codelineno-1-17" name="__codelineno-1-17" href="#__codelineno-1-17"></a>                           (default: &lt;cohort-dir&gt;/../synthea-normalized/)
+</span><span id="__span-1-18"><a id="__codelineno-1-18" name="__codelineno-1-18" href="#__codelineno-1-18"></a>  --strict                 Exit 1 if any axis reports a FAIL check
 </span></code></pre></div>
 <h2 id="axes">Axes<a class="headerlink" href="#axes" title="Permanent link">&para;</a></h2>
 <p>Structural + locale hold 5 checks each; clinical holds 7 (5 MVP +
@@ -2654,9 +2665,11 @@ discovery convention (established META #1633 P8).</p>
 <code>good first issue</code> on GitHub. Country-conditional axes activate per
 cohort locale: <code>jp_clins_lab_compliance</code> and <code>jp_core_compliance</code>
 run for JP cohorts, <code>us_core_compliance</code> for US cohorts. The
-compliance axes anchor on country-core profiles' must-support
-elements (Patient / Encounter / Condition) with a 1.0 threshold at
-master-is-invariant. See <a href="../clinosim/eval/README.md"><code>clinosim.eval</code></a>
+compliance axes hold 3 (<code>jp_clins_lab_compliance</code>), 7
+(<code>jp_core_compliance</code>: Patient / Encounter / MedicationRequest) and 7
+(<code>us_core_compliance</code>: Patient / Encounter / Condition) checks, each
+gated on invariants that hold at 100 % on master. See
+<a href="../eval-rules/">eval-rules.md</a> for the per-check list. See <a href="../clinosim/eval/README.md"><code>clinosim.eval</code></a>
 and <code>clinosim/eval/axes/</code> for the live full axis list.</p>
 <h3 id="structural-fhir-compliance">Structural (FHIR compliance)<a class="headerlink" href="#structural-fhir-compliance" title="Permanent link">&para;</a></h3>
 <table>
@@ -2743,8 +2756,10 @@ and <code>clinosim/eval/axes/</code> for the live full axis list.</p>
 </tbody>
 </table>
 <h3 id="locale-language--code-system">Locale (language + code system)<a class="headerlink" href="#locale-language--code-system" title="Permanent link">&para;</a></h3>
-<p>Dispatched by cohort country (auto-detected from Patient.address.country
-or JP Core meta.profile presence).</p>
+<p>Dispatched by cohort country: the country subdirectory name when the
+cohort uses the <code>&lt;root&gt;/&lt;country&gt;/fhir_r4/</code> layout, otherwise
+auto-detected from the first Patient's <code>address.country</code> or JP Core
+<code>meta.profile</code> presence (fallback: US).</p>
 <p><strong>JP checks:</strong></p>
 <table>
 <thead>
@@ -2813,8 +2828,11 @@ or JP Core meta.profile presence).</p>
 <li>Severity weights: <strong>CRITICAL = 3, MAJOR = 2, MINOR = 1</strong>.</li>
 <li>Outcome weights: <strong>PASS = 1.0, WARN = 0.5, FAIL / N/A = 0.0</strong>.</li>
 </ul>
-<p>Overall score = arithmetic mean of every active axis's score (3
-universal + 1–2 country-conditional, depending on cohort locale).
+<p>Overall score = arithmetic mean of the score of every axis result in
+the report (one result per axis × country subdirectory). A
+country-conditional axis that does not apply to the cohort's locale
+still appears in the report with an empty <code>checks</code> list and a score of
+0.0, and it is included in that mean.
 Overall status is <code>FAIL</code> if any check on any axis is FAIL, else
 <code>WARN</code> if any is WARN, else <code>PASS</code>.</p>
 <h2 id="json-output-shape">JSON output shape<a class="headerlink" href="#json-output-shape" title="Permanent link">&para;</a></h2>

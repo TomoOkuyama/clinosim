@@ -882,10 +882,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#1b-life-event-firing--generate_monthly_events" class="md-nav__link">
+  <a href="#1b-the-forward-month-loop-and-life-events--run_forward_loop--generate_monthly_events" class="md-nav__link">
     <span class="md-ellipsis">
       
-        1b. Life-event firing — generate_monthly_events
+        1b. The forward month loop and life events — run_forward_loop / generate_monthly_events
       
     </span>
   </a>
@@ -2544,10 +2544,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#1b-life-event-firing--generate_monthly_events" class="md-nav__link">
+  <a href="#1b-the-forward-month-loop-and-life-events--run_forward_loop--generate_monthly_events" class="md-nav__link">
     <span class="md-ellipsis">
       
-        1b. Life-event firing — generate_monthly_events
+        1b. The forward month loop and life events — run_forward_loop / generate_monthly_events
       
     </span>
   </a>
@@ -2733,7 +2733,8 @@ Each stage reads only the previous stage's artefact.</p>
 <li>Other subcommands: <code>test-disease &lt;id&gt;</code> (single-disease debug
   generation with printed output) / <code>test-encounter</code> / <code>audit run</code>
   (4-axis verification) / <code>validate</code> / <code>regenerate-goldens</code> /
-  <code>check-narratives</code> / <code>list-diseases</code>.</li>
+  <code>check-narratives</code> / <code>list-diseases</code> / <code>enumerate</code> / <code>diff</code> /
+  <code>eval</code>.</li>
 <li><code>clinosim generate</code> remains as a deprecated alias for
   <code>clinosim simulate</code>.</li>
 </ul>
@@ -2750,13 +2751,53 @@ smoking / alcohol, care-seeking thresholds. The epidemiological data
 (age distribution, chronic-condition prevalence, disease incidence
 rate) is read from <code>locale/&lt;country&gt;/demographics.yaml</code> (no
 epidemiology values hard-coded in code).</p>
-<h3 id="1b-life-event-firing--generate_monthly_events">1b. Life-event firing — <code>generate_monthly_events</code><a class="headerlink" href="#1b-life-event-firing--generate_monthly_events" title="Permanent link">&para;</a></h3>
-<p><code>run_beta</code> cycles the <code>time_range</code> (default 1 year) through a
-<strong>year × month loop</strong>, calling
-<code>generate_monthly_events(registry, year, month, rng, country)</code>
-each month. For each resident, it evaluates disease incidence (rate
-× age × seasonality × lifestyle risk) and decides disease onset via
-<code>rng.random() &lt; rate</code>. On onset:</p>
+<h3 id="1b-the-forward-month-loop-and-life-events--run_forward_loop--generate_monthly_events">1b. The forward month loop and life events — <code>run_forward_loop</code> / <code>generate_monthly_events</code><a class="headerlink" href="#1b-the-forward-month-loop-and-life-events--run_forward_loop--generate_monthly_events" title="Permanent link">&para;</a></h3>
+<p><code>run_beta</code> hands the months of <code>time_range</code> (default 1 year) to
+<code>run_forward_loop</code> (<code>simulator/phases/_forward_loop.py</code>). <strong>One
+loop advances every phase month by month</strong>; each month runs these
+steps in order:</p>
+<ol>
+<li><strong>Year boundary</strong> (January, and the window's first month):
+   <code>advance_population</code> (<code>population/aging.py</code>) runs the aging
+   passes (stroke-sequela promotion, allergy drift), draws this
+   year's <strong>community deaths</strong> forward (<code>population/mortality.py</code>:
+   life-table <code>qx</code> × the person's chronic-condition SMR, normalised
+   within age band × sex), and advances the longitudinal state
+   (adult chronic onset). Then the year's healthcare calendar
+   (§1b.2) is generated and queued.</li>
+<li><strong>Monthly life events</strong>: <code>generate_monthly_events(registry,
+   year, month, rng, country, master_seed=…,
+   inpatient_departments=…)</code> (below); events that need the hospital
+   are queued.</li>
+<li><strong>ED visits</strong>: the month's ED slots are drawn from the persons in
+   the population that month. The volume is
+   <code>ed_visit_not_admitted.rate_per_1000_person_years</code> in
+   <code>locale/&lt;country&gt;/demographics.yaml</code> (JP 150, US 380), so it
+   follows the population as it grows and shrinks.</li>
+<li><strong>Dispatch</strong>: queued events dated in the month are simulated in
+   date order (admissions lead their day). Dispatch queues new
+   events: an index admission or readmission queues its
+   post-discharge follow-up, an index admission queues its
+   readmission when one fires, and a <strong>delivery registers a
+   newborn</strong>, who joins the population the day after the birth-stay
+   discharge (<code>PersonRecord.enrolled_from</code>) and gets a rest-of-year
+   calendar.</li>
+</ol>
+<p><strong>Lifecycle.</strong> Every death — in-hospital (recorded when the stay is
+dispatched) or community — goes through
+<code>PersonRecord.record_death(when, place)</code> (the earliest death wins;
+<code>is_alive</code> is derived from it). Every event is gated on
+<code>in_population_at(&lt;event date&gt;)</code> (alive and enrolled), so nobody has
+an encounter after death, and a newborn takes part in everything
+from enrollment on. All draws use event-keyed sub-RNGs
+(<code>derive_phase_rng</code>), so dispatch order does not shift any event's
+own randomness.</p>
+<p><strong>Life events.</strong> For each person in the population on the month's
+event date, <code>generate_monthly_events</code> evaluates disease incidence
+(rate × age × seasonality × lifestyle risk) and decides disease
+onset via <code>rng.random() &lt; rate</code> (entries flagged <code>rng_isolated</code> draw
+from a stream keyed on master seed, month, person and disease
+instead). On onset:</p>
 <ul>
 <li><strong>Severity</strong> is decided by
   <code>disease.severity.sample_severity(load_disease_protocol(disease_id), person, rng)</code>
@@ -2766,7 +2807,9 @@ each month. For each resident, it evaluates disease incidence (rate
   disease YAML</strong> (the old <code>severity_beta</code> has been removed).</li>
 <li><strong>Whether hospitalisation is required</strong> is decided from the
   continuous score and the care-seeking threshold
-  (<code>severity &gt; care_seeking_threshold</code>).</li>
+  (<code>severity &gt; care_seeking_threshold</code>, scaled by the incidence
+  entry's <code>hospitalization_threshold_modifier[_by_age]</code>; entries
+  with <code>always_hospitalize</code> always admit).</li>
 <li>Emits a <code>LifeEvent</code> (<code>person_id</code> / <code>disease_id</code> / <code>timestamp</code> /
   <code>severity</code> / <code>requires_hospital</code>).</li>
 </ul>
@@ -2797,7 +2840,7 @@ schedule cannot cascade into unrelated patients' timelines
 <tbody>
 <tr>
 <td><code>chronic_visit</code></td>
-<td>Anyone with a chronic condition present in <code>locale/shared/chronic_followup.yaml</code> (16 chronic codes + flu vaccination + diabetic retinopathy screening)</td>
+<td>Anyone with a chronic condition present in <code>locale/shared/chronic_followup.yaml</code> (29 chronic codes, plus the Z34 / Z39 pregnancy entries) + flu vaccination (age ≥ 65 or ≥ 2 chronic conditions, 50 %, Oct-Dec) + diabetic retinopathy screening (60 %/yr)</td>
 <td><code>follow_up_interval_months</code> per chronic entry; capped at 6/year</td>
 <td><code>_simulate_outpatient_visit(visit_type="chronic_followup")</code></td>
 </tr>
@@ -2809,14 +2852,14 @@ schedule cannot cascade into unrelated patients' timelines
 </tr>
 <tr>
 <td><code>health_screening</code></td>
-<td>Age ≥ 40 (annual) + age ≥ 50 colonoscopy (10-year interval → 10 %/yr) + female age ≥ 40 mammography (60 %/yr)</td>
+<td>Age 40-89 (annual) + age 50-75 colonoscopy (8 %/yr) + female age 40-74 mammography (40 %/yr)</td>
 <td>Population thresholds in <code>_population_workflow_thresholds</code></td>
 <td><code>_simulate_outpatient_visit(visit_type="health_screening")</code></td>
 </tr>
 <tr>
 <td><code>chemo_visit</code></td>
 <td>Chronic-cancer carriers whose per-(patient, cancer_code) sub-RNG assigns an active regimen from <code>chemo_regimens.yaml</code></td>
-<td><code>cycle_interval_days</code> per regimen (FOLFOX q14d / CarboPem q21d / Trastuzumab q3w / LHRH q28d), capped by <code>course_cycles</code></td>
+<td><code>cycle_interval_days</code> per regimen (7 regimens, e.g. FOLFOX q14d / CarboPem q21d / Trastuzumab q3w / LHRH q28d), capped by <code>course_cycles</code></td>
 <td><code>_simulate_outpatient_visit(visit_type="chemo_visit")</code> — emits Encounter + <code>chemotherapy_administration</code> Procedure</td>
 </tr>
 <tr>
@@ -2862,7 +2905,12 @@ lifecycle) uses a dedicated per-patient sub-seed
 consuming the calendar's shared per-person stream. Adding or tuning
 these emissions is byte-identical for every patient except the ones
 the new event directly targets — verified p=1000 US non-obstetric
-595/595 identity vs pre-Incr-1 master.</p>
+596/596 identity vs pre-Incr-1 master.</p>
+<p>Note that in <code>generate_healthcare_calendar</code> only the pediatric and
+pregnancy-lifecycle events fire for everyone; chronic visits, flu
+vaccination, the screenings and chemo cycles are generated only for
+persons with at least one condition listed in
+<code>chronic_followup.yaml</code> (the loop skips a person without one).</p>
 <p>Full schema + slice scope for the oncology + obstetric events:
 <a href="../../reference/oncology-obstetric-service-lines/"><code>../reference/oncology-obstetric-service-lines.md</code></a>.</p>
 <h3 id="1c-patient-hydration--modulespatient">1c. Patient hydration — <code>modules/patient</code><a class="headerlink" href="#1c-patient-hydration--modulespatient" title="Permanent link">&para;</a></h3>
@@ -2922,16 +2970,20 @@ engine code hard-codes no clinical values.</p>
 modules</strong> run in three stages:</p>
 <ul>
 <li><strong>POST_POPULATION</strong> (after population generation, before
-  simulation): e.g. <code>identity</code> (JP My Number / insurance).</li>
+  simulation): <code>allergy(10)</code> / <code>identity(10)</code> (JP My Number /
+  insurance) / <code>e66_bmi(15)</code> / <code>e88_81_syndrome(16)</code> /
+  <code>k76_0_nafld(17)</code> / <code>g47_30_osa(18)</code>.</li>
 <li><strong>POST_ENCOUNTER</strong> (right after one visit's daily loop, inside
   the encounter simulator): the clinical cascade. Order is fixed:
-  <code>device(70) → hai(80) → antibiotic(85) → imaging(90) →
-  triage(93) → nursing_assignment(94) → document(95)</code>. Later
-  stages read <code>extensions[X]</code> written by earlier ones (no HAI
-  without a device, etc.).</li>
+  <code>device(70) → prophylaxis(75) → hai(80) → antibiotic(85) →
+  imaging(90) → discontinue_flip(91) → newborn(92) → triage(93) →
+  lab_derived_dx(94) → nursing_assignment(94) → document(95)</code>
+  (ties sort by name). Later stages read <code>extensions[X]</code> written by
+  earlier ones (no HAI without a device, etc.).</li>
 <li><strong>POST_RECORDS</strong> (after all patients are simulated): cross-record.
-  <code>nursing flowsheet</code> / <code>immunization</code> / <code>family_history</code> /
-  <code>code_status</code> / <code>care_level</code>.</li>
+  <code>nursing(20)</code> flowsheet / <code>immunization(30)</code> /
+  <code>family_history(40)</code> / <code>code_status(50)</code> / <code>care_level(60)</code> /
+  <code>medication_monitoring(65)</code> / <code>health_checkup(70)</code>.</li>
 </ul>
 <p>Modules write only into <code>CIFPatientRecord.extensions[&lt;module&gt;]</code>
 (new typed fields on core types are Base-only). Adding a module =
@@ -2945,7 +2997,7 @@ never edited — AD-56).</p>
 actual free text arrives in Stage 2 (AD-65).</p>
 <hr />
 <h2 id="2-stage-2--narrate-narrative-generation-the-swappable-layer">2. Stage 2 = <code>narrate</code>: narrative generation (the swappable layer)<a class="headerlink" href="#2-stage-2--narrate-narrative-generation-the-swappable-layer" title="Permanent link">&para;</a></h2>
-<p><code>narrate --provider template|mock|ollama|bedrock --version-id &lt;id&gt;</code>
+<p><code>narrate --provider template|mock|ollama|bedrock|vllm|openai_compatible --version-id &lt;id&gt;</code>
 writes <code>cif/narratives/&lt;version&gt;/documents/&lt;enc&gt;/&lt;doc&gt;.json</code>.</p>
 <ul>
 <li><code>NarrativePass</code> (<code>document/narrative/passes.py</code>, an ABC) reads
@@ -2963,8 +3015,9 @@ writes <code>cif/narratives/&lt;version&gt;/documents/&lt;enc&gt;/&lt;doc&gt;.js
 <hr />
 <h2 id="3-stage-3--export-fhir-cif--fhir-r4">3. Stage 3 = <code>export-fhir</code>: CIF → FHIR R4<a class="headerlink" href="#3-stage-3--export-fhir-cif--fhir-r4" title="Permanent link">&para;</a></h2>
 <p><code>export-fhir --narrative-version &lt;id&gt;</code> merges structural + narrative
-via <code>CIFReader</code>, and the <code>_fhir_*</code> builders (<code>modules/output/</code>)
-assemble FHIR resources.</p>
+via <code>CIFReader</code>, and the per-theme builders under
+<code>modules/output/fhir_r4/</code> (<code>conditions/</code>, <code>labs/</code>, <code>medications/</code>,
+<code>encounters/</code>, <code>documents/</code>, …) assemble FHIR resources.</p>
 <ul>
 <li><strong>Bulk Data Access</strong> (AD-31): 1 NDJSON per resource type +
   <code>manifest.json</code>. Not wrapped in a Bundle.</li>
@@ -2989,32 +3042,33 @@ PractitionerRole / Endpoint / …).</p>
 <div class="highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>run_beta(config)                                   # simulator/engine.py
 </span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a> └ generate_population(40000, "US", rng)            # 40k people in a catchment
 </span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>     → PersonRecord(age=78, chronic=["I10","N18"])  # a 78-year-old with hypertension + CKD
-</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a> └ generate_monthly_events(...) each month          # population/engine.py
-</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>     → incidence evaluation → acute_mi onset
-</span><span id="__span-1-6"><a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>     → sample_severity(acute_mi protocol, person)   # disease YAML distribution × modifiers (elderly → skew to severe)
-</span><span id="__span-1-7"><a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>        = ("severe", 0.82)
-</span><span id="__span-1-8"><a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a>     → requires_hospital = 0.82 &gt; threshold = True
-</span><span id="__span-1-9"><a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a>     → LifeEvent(acute_mi, severe, requires_hospital)
-</span><span id="__span-1-10"><a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a> └ activate_patient(person)                          # patient/activator.py
-</span><span id="__span-1-11"><a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a>     → PatientProfile(stage: "CKD G3a" / "HT Stage 2", baseline BP ↑ by stage)
-</span><span id="__span-1-12"><a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a> └ _simulate_patient(event)                          # inpatient.py
-</span><span id="__span-1-13"><a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a>     → category_from_score(0.82) = "severe"
-</span><span id="__span-1-14"><a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a>     → select_archetype("severe", …, acute_mi.course_archetypes, .archetype_modifiers)
-</span><span id="__span-1-15"><a id="__codelineno-1-15" name="__codelineno-1-15" href="#__codelineno-1-15"></a>        = "dip_then_recovery"
-</span><span id="__span-1-16"><a id="__codelineno-1-16" name="__codelineno-1-16" href="#__codelineno-1-16"></a>     → apply_disease_onset(state, "severe", acute_mi.initial_state_impact)
-</span><span id="__span-1-17"><a id="__codelineno-1-17" name="__codelineno-1-17" href="#__codelineno-1-17"></a>     └ _run_daily_loop(...)  per day                 # state → labs / vitals / orders / MAR daily
-</span><span id="__span-1-18"><a id="__codelineno-1-18" name="__codelineno-1-18" href="#__codelineno-1-18"></a>         → derive_lab_values(...)  troponin ↑ CK-MB ↑ Cr ↑ (CKD baseline)
-</span><span id="__span-1-19"><a id="__codelineno-1-19" name="__codelineno-1-19" href="#__codelineno-1-19"></a>         → evaluate_complications(...)               # acute_mi.complications
-</span><span id="__span-1-20"><a id="__codelineno-1-20" name="__codelineno-1-20" href="#__codelineno-1-20"></a>         → POST_ENCOUNTER enrichers: device → hai → antibiotic → imaging → triage → nursing → document
-</span><span id="__span-1-21"><a id="__codelineno-1-21" name="__codelineno-1-21" href="#__codelineno-1-21"></a>     → CIFPatientRecord(orders, labs, vitals, mar, documents(stub), extensions{...})
-</span><span id="__span-1-22"><a id="__codelineno-1-22" name="__codelineno-1-22" href="#__codelineno-1-22"></a> └ write cif/structural/patients/ENC-....json
-</span><span id="__span-1-23"><a id="__codelineno-1-23" name="__codelineno-1-23" href="#__codelineno-1-23"></a>--- narrate ---
-</span><span id="__span-1-24"><a id="__codelineno-1-24" name="__codelineno-1-24" href="#__codelineno-1-24"></a> └ TemplateNarrativePass  → cif/narratives/template/documents/ENC-.../hp.json (H&amp;P body)
-</span><span id="__span-1-25"><a id="__codelineno-1-25" name="__codelineno-1-25" href="#__codelineno-1-25"></a>--- export-fhir ---
-</span><span id="__span-1-26"><a id="__codelineno-1-26" name="__codelineno-1-26" href="#__codelineno-1-26"></a> └ _fhir_conditions → Condition(acute_mi I21, stage "CKD G3a" …)
-</span><span id="__span-1-27"><a id="__codelineno-1-27" name="__codelineno-1-27" href="#__codelineno-1-27"></a>    _fhir_observations → Observation(troponin, Cr, …)
-</span><span id="__span-1-28"><a id="__codelineno-1-28" name="__codelineno-1-28" href="#__codelineno-1-28"></a>    _fhir_medications → MedicationRequest / Administration
-</span><span id="__span-1-29"><a id="__codelineno-1-29" name="__codelineno-1-29" href="#__codelineno-1-29"></a>    … → fhir_r4/*.ndjson
+</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a> └ run_forward_loop(ctx, months)                    # simulator/phases/_forward_loop.py
+</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a> └ generate_monthly_events(...) each month          # population/engine.py
+</span><span id="__span-1-6"><a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>     → incidence evaluation → acute_mi onset
+</span><span id="__span-1-7"><a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>     → sample_severity(acute_mi protocol, person)   # disease YAML distribution × modifiers (elderly → skew to severe)
+</span><span id="__span-1-8"><a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a>        = ("severe", 0.82)
+</span><span id="__span-1-9"><a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a>     → requires_hospital = 0.82 &gt; threshold = True
+</span><span id="__span-1-10"><a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a>     → LifeEvent(acute_mi, severe, requires_hospital)
+</span><span id="__span-1-11"><a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a> └ activate_patient(person)                          # patient/activator.py
+</span><span id="__span-1-12"><a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a>     → PatientProfile(stage: "CKD G3a" / "HT Stage 2", baseline BP ↑ by stage)
+</span><span id="__span-1-13"><a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a> └ dispatch on the event date → _simulate_patient(event)   # _dispatch.py → inpatient.py
+</span><span id="__span-1-14"><a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a>     → category_from_score(0.82) = "severe"
+</span><span id="__span-1-15"><a id="__codelineno-1-15" name="__codelineno-1-15" href="#__codelineno-1-15"></a>     → select_archetype("severe", …, acute_mi.course_archetypes, .archetype_modifiers)
+</span><span id="__span-1-16"><a id="__codelineno-1-16" name="__codelineno-1-16" href="#__codelineno-1-16"></a>        = "dip_then_recovery"
+</span><span id="__span-1-17"><a id="__codelineno-1-17" name="__codelineno-1-17" href="#__codelineno-1-17"></a>     → apply_disease_onset(state, "severe", acute_mi.initial_state_impact)
+</span><span id="__span-1-18"><a id="__codelineno-1-18" name="__codelineno-1-18" href="#__codelineno-1-18"></a>     └ _run_daily_loop(...)  per day                 # state → labs / vitals / orders / MAR daily
+</span><span id="__span-1-19"><a id="__codelineno-1-19" name="__codelineno-1-19" href="#__codelineno-1-19"></a>         → derive_lab_values(...)  troponin ↑ CK-MB ↑ Cr ↑ (CKD baseline)
+</span><span id="__span-1-20"><a id="__codelineno-1-20" name="__codelineno-1-20" href="#__codelineno-1-20"></a>         → evaluate_complications(...)               # acute_mi.complications
+</span><span id="__span-1-21"><a id="__codelineno-1-21" name="__codelineno-1-21" href="#__codelineno-1-21"></a>         → POST_ENCOUNTER enrichers: device → … → document (§1e)
+</span><span id="__span-1-22"><a id="__codelineno-1-22" name="__codelineno-1-22" href="#__codelineno-1-22"></a>     → CIFPatientRecord(orders, labs, vitals, mar, documents(stub), extensions{...})
+</span><span id="__span-1-23"><a id="__codelineno-1-23" name="__codelineno-1-23" href="#__codelineno-1-23"></a> └ write cif/structural/patients/ENC-....json
+</span><span id="__span-1-24"><a id="__codelineno-1-24" name="__codelineno-1-24" href="#__codelineno-1-24"></a>--- narrate ---
+</span><span id="__span-1-25"><a id="__codelineno-1-25" name="__codelineno-1-25" href="#__codelineno-1-25"></a> └ TemplateNarrativePass  → cif/narratives/template/documents/ENC-.../hp.json (H&amp;P body)
+</span><span id="__span-1-26"><a id="__codelineno-1-26" name="__codelineno-1-26" href="#__codelineno-1-26"></a>--- export-fhir ---
+</span><span id="__span-1-27"><a id="__codelineno-1-27" name="__codelineno-1-27" href="#__codelineno-1-27"></a> └ conditions/conditions.py → Condition(acute_mi I21, stage "CKD G3a" …)
+</span><span id="__span-1-28"><a id="__codelineno-1-28" name="__codelineno-1-28" href="#__codelineno-1-28"></a>    labs/observations.py → Observation(troponin, Cr, …)
+</span><span id="__span-1-29"><a id="__codelineno-1-29" name="__codelineno-1-29" href="#__codelineno-1-29"></a>    medications/medications.py → MedicationRequest / Administration
+</span><span id="__span-1-30"><a id="__codelineno-1-30" name="__codelineno-1-30" href="#__codelineno-1-30"></a>    … → fhir_r4/*.ndjson
 </span></code></pre></div>
 <hr />
 <h2 id="5-where-to-enter-when-adding--fixing-data">5. Where to enter when adding / fixing data<a class="headerlink" href="#5-where-to-enter-when-adding--fixing-data" title="Permanent link">&para;</a></h2>
@@ -3040,7 +3094,7 @@ PractitionerRole / Endpoint / …).</p>
 </tr>
 <tr>
 <td>New FHIR resource</td>
-<td><code>_fhir_&lt;topic&gt;.py</code> builder + <code>register_bundle_builder</code> (§3)</td>
+<td>builder in <code>modules/output/fhir_r4/&lt;theme&gt;/</code> + <code>register_bundle_builder</code> (§3)</td>
 </tr>
 <tr>
 <td>New output format</td>

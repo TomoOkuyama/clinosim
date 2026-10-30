@@ -3386,7 +3386,8 @@
 resource builder. Canonical layout: builders live under
 <code>clinosim/modules/output/fhir_r4/</code> (per-domain sub-packages —
 <code>conditions/</code>, <code>labs/</code>, <code>procedures/</code>, <code>documents/</code>, …); the
-<code>_BUNDLE_BUILDERS</code> registry + <code>register_bundle_builder()</code> are in
+<code>_BUNDLE_BUILDERS</code> registry + <code>register_bundle_builder()</code> are defined in
+<code>clinosim/modules/output/fhir_r4/builder.py</code> and re-exported from
 <code>clinosim/modules/output/fhir_r4/__init__.py</code>. The historical
 <code>clinosim/modules/output/fhir_r4_adapter.py</code> is now a thin
 compatibility re-export.
@@ -3498,7 +3499,7 @@ reference material.</p>
 </tr>
 <tr>
 <td>6</td>
-<td>Register in <code>clinosim/modules/output/fhir_r4/__init__.py:_BUNDLE_BUILDERS</code> OR add via <code>register_bundle_builder()</code></td>
+<td>Register in <code>clinosim/modules/output/fhir_r4/builder.py:_BUNDLE_BUILDERS</code> OR add via <code>register_bundle_builder()</code></td>
 <td>Section B.6</td>
 </tr>
 <tr>
@@ -3664,7 +3665,7 @@ AD-16).</p>
 <h3 id="b6-registering-the-builder-ad-56">B.6 Registering the builder (AD-56)<a class="headerlink" href="#b6-registering-the-builder-ad-56" title="Permanent link">&para;</a></h3>
 <p><strong>Built-in resource (near-essential / always-on)</strong> = append to the
 <code>_BUNDLE_BUILDERS</code> list directly:</p>
-<div class="highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="c1"># clinosim/modules/output/fhir_r4/__init__.py</span>
+<div class="highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="c1"># clinosim/modules/output/fhir_r4/builder.py</span>
 </span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">clinosim.modules.output.fhir_r4.</span><span class="o">&lt;</span><span class="n">domain</span><span class="o">&gt;.&lt;</span><span class="n">topic</span><span class="o">&gt;</span> <span class="kn">import</span><span class="w"> </span><span class="nn">_bb_</span><span class="o">&lt;</span><span class="n">topic</span><span class="o">&gt;</span>
 </span><span id="__span-8-3"><a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a>
 </span><span id="__span-8-4"><a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a><span class="n">_BUNDLE_BUILDERS</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Callable</span><span class="p">[[</span><span class="n">BundleContext</span><span class="p">],</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">]]]</span> <span class="o">=</span> <span class="p">[</span>
@@ -3933,7 +3934,7 @@ consistency at output).</p>
 <p><strong>Fix</strong>: import the Layer-2 canonical loader
 (<code>from clinosim.modules.order.panel_grouping import load_panel_definitions</code>).</p>
 <p><strong>Precedent (shared-logic unification 2026-07-02)</strong>:
-<code>_fhir_localization.py</code> used to load locale's shared YAML
+<code>_fhir_localization.py</code> (now <code>fhir_r4/lib/localization.py</code>) used to load locale's shared YAML
 (<code>med_terms_ja.yaml</code> / the retired <code>drug_names_ja.yaml</code> (deleted #1876; replaced by <code>load_narrative_display_dict</code> catalog UNION) /
 <code>department_display.yaml</code>) with inline <code>yaml.safe_load</code> from inside
 the builder — this has been moved to the canonical cached loaders in
@@ -3958,14 +3959,14 @@ inside the returned builder-dict.</p>
 <p><strong>Fix</strong>: import the <code>SR_ID_PREFIX = "sr-"</code> constant +
 <code>f"{SR_ID_PREFIX}{order.order_id}"</code>.</p>
 <h3 id="e6--two-builders-re-computing-the-same-display">E.6 ❌ Two builders re-computing the same display<a class="headerlink" href="#e6--two-builders-re-computing-the-same-display" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><span id="__span-23-1"><a id="__codelineno-23-1" name="__codelineno-23-1" href="#__codelineno-23-1"></a><span class="c1"># _fhir_observations.py</span>
+<div class="highlight"><pre><span></span><code><span id="__span-23-1"><a id="__codelineno-23-1" name="__codelineno-23-1" href="#__codelineno-23-1"></a><span class="c1"># fhir_r4/labs/observations.py</span>
 </span><span id="__span-23-2"><a id="__codelineno-23-2" name="__codelineno-23-2" href="#__codelineno-23-2"></a><span class="n">display_a</span> <span class="o">=</span> <span class="n">code_lookup</span><span class="p">(</span><span class="s2">"loinc"</span><span class="p">,</span> <span class="s2">"58410-2"</span><span class="p">,</span> <span class="s2">"ja"</span><span class="p">)</span>
-</span><span id="__span-23-3"><a id="__codelineno-23-3" name="__codelineno-23-3" href="#__codelineno-23-3"></a><span class="c1"># _fhir_diagnostic_report.py</span>
+</span><span id="__span-23-3"><a id="__codelineno-23-3" name="__codelineno-23-3" href="#__codelineno-23-3"></a><span class="c1"># fhir_r4/labs/diagnostic_report.py</span>
 </span><span id="__span-23-4"><a id="__codelineno-23-4" name="__codelineno-23-4" href="#__codelineno-23-4"></a><span class="n">display_b</span> <span class="o">=</span> <span class="n">code_lookup</span><span class="p">(</span><span class="s2">"loinc"</span><span class="p">,</span> <span class="s2">"58410-2"</span><span class="p">,</span> <span class="s2">"ja"</span><span class="p">)</span>
 </span></code></pre></div>
 <p>Technically fine, but if display post-processing (shortening,
 formatting) is needed in both builders, factor it out into a shared
-helper (e.g. in <code>_fhir_common.py</code>).</p>
+helper (e.g. in <code>fhir_r4/lib/common.py</code>).</p>
 <h3 id="e7--ignoring-resource-id-collisions">E.7 ❌ Ignoring Resource-id collisions<a class="headerlink" href="#e7--ignoring-resource-id-collisions" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><span id="__span-24-1"><a id="__codelineno-24-1" name="__codelineno-24-1" href="#__codelineno-24-1"></a><span class="n">sr</span><span class="p">[</span><span class="s2">"id"</span><span class="p">]</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"sr-</span><span class="si">{</span><span class="n">enc</span><span class="si">}</span><span class="s2">-</span><span class="si">{</span><span class="n">panel</span><span class="si">}</span><span class="s2">-1"</span>   <span class="c1"># multiple panels in the same encounter all pinned to 1 = collision</span>
 </span></code></pre></div>

@@ -2906,8 +2906,7 @@ attachment はセマンティクス上無意味)。</p>
 </span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>clinosim narrate    →   cif/narratives/&lt;ver&gt;/documents/*.json (Stage 2)
 </span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>clinosim export-fhir →  fhir_r4/*.ndjson (DocumentReference.ndjson 含む)  (Stage 3)
 </span></code></pre></div>
-<p>CLI 完全リファレンスはメインの
-<a href="../README.ja.md#cli-reference">README.md</a> 参照。</p>
+<p>オプションの完全な一覧は <a href="../reference/cli.ja/">CLI リファレンス</a> 参照。</p>
 <h3 id="テンプレートモード-llm-なし">テンプレートモード (LLM なし)<a class="headerlink" href="#テンプレートモード-llm-なし" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>clinosim<span class="w"> </span>narrate<span class="w"> </span>--cif-dir<span class="w"> </span>./output/cif<span class="w"> </span>--version-id<span class="w"> </span>template_v1
 </span></code></pre></div>
@@ -2920,25 +2919,26 @@ attachment はセマンティクス上無意味)。</p>
 <h3 id="ローカル-ollama-モード">ローカル Ollama モード<a class="headerlink" href="#ローカル-ollama-モード" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>ollama<span class="w"> </span>pull<span class="w"> </span>llama3.1:8b
 </span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>clinosim<span class="w"> </span>narrate<span class="w"> </span>--cif-dir<span class="w"> </span>./output/cif<span class="w"> </span><span class="se">\</span>
-</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="w">    </span>--llm-config<span class="w"> </span>clinosim/config/llm_service.yaml<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="w">    </span>--provider<span class="w"> </span>ollama<span class="w"> </span>--llm-config<span class="w"> </span>clinosim/config/llm_service.yaml<span class="w"> </span><span class="se">\</span>
 </span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="w">    </span>--version-id<span class="w"> </span>ollama_en_v1
 </span></code></pre></div>
 <h3 id="aws-bedrock-ec2">AWS Bedrock (EC2)<a class="headerlink" href="#aws-bedrock-ec2" title="Permanent link">&para;</a></h3>
 <p>EC2 + IAM の完全セットアップは
 <a href="../bedrock_setup.ja/">bedrock_setup.ja.md</a> 参照。</p>
 <div class="highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>clinosim<span class="w"> </span>narrate<span class="w"> </span>--cif-dir<span class="w"> </span>./cif<span class="w"> </span><span class="se">\</span>
-</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="w">    </span>--llm-config<span class="w"> </span>clinosim/config/llm_service.bedrock.yaml<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="w">    </span>--provider<span class="w"> </span>bedrock<span class="w"> </span>--llm-config<span class="w"> </span>clinosim/config/llm_service.bedrock.yaml<span class="w"> </span><span class="se">\</span>
 </span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="w">    </span>--version-id<span class="w"> </span>bedrock_sonnet_en_v1
 </span></code></pre></div>
 <h3 id="サブセットのみ生成">サブセットのみ生成<a class="headerlink" href="#サブセットのみ生成" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="c1"># 法的必須文書 (Tier A) のみ</span>
-</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>clinosim<span class="w"> </span>narrate<span class="w"> </span>--cif-dir<span class="w"> </span>./output/cif<span class="w"> </span><span class="se">\</span>
-</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="w">    </span>--tasks<span class="w"> </span>discharge_summary,death_summary,operative_note
+<div class="highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="c1"># 退院・死亡・手術の文書のみ</span>
+</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="c1"># (値は registry の type_key 名)</span>
+</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>clinosim<span class="w"> </span>narrate<span class="w"> </span>--cif-dir<span class="w"> </span>./output/cif<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="w">    </span>--tasks<span class="w"> </span>discharge_summary,death_discharge_summary,death_certificate,operative_note
 </span></code></pre></div>
 <h3 id="同一-structural-cif-から複数-narrative-version">同一 structural CIF から複数 narrative version<a class="headerlink" href="#同一-structural-cif-から複数-narrative-version" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>clinosim<span class="w"> </span>narrate<span class="w"> </span>--cif-dir<span class="w"> </span>./cif<span class="w"> </span>--version-id<span class="w"> </span>template_v1
-</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>clinosim<span class="w"> </span>narrate<span class="w"> </span>--cif-dir<span class="w"> </span>./cif<span class="w"> </span>--version-id<span class="w"> </span>ollama_en_v1<span class="w"> </span>--llm-config<span class="w"> </span>clinosim/config/llm_service.yaml
-</span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>clinosim<span class="w"> </span>narrate<span class="w"> </span>--cif-dir<span class="w"> </span>./cif<span class="w"> </span>--version-id<span class="w"> </span>bedrock_en_v1<span class="w"> </span>--llm-config<span class="w"> </span>clinosim/config/llm_service.bedrock.yaml
+</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>clinosim<span class="w"> </span>narrate<span class="w"> </span>--cif-dir<span class="w"> </span>./cif<span class="w"> </span>--version-id<span class="w"> </span>ollama_en_v1<span class="w"> </span>--provider<span class="w"> </span>ollama<span class="w"> </span>--llm-config<span class="w"> </span>clinosim/config/llm_service.yaml
+</span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>clinosim<span class="w"> </span>narrate<span class="w"> </span>--cif-dir<span class="w"> </span>./cif<span class="w"> </span>--version-id<span class="w"> </span>bedrock_en_v1<span class="w"> </span>--provider<span class="w"> </span>bedrock<span class="w"> </span>--llm-config<span class="w"> </span>clinosim/config/llm_service.bedrock.yaml
 </span><span id="__span-6-4"><a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a>
 </span><span id="__span-6-5"><a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a><span class="c1"># version ごとに FHIR をエクスポート</span>
 </span><span id="__span-6-6"><a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a>clinosim<span class="w"> </span>export-fhir<span class="w"> </span>--cif-dir<span class="w"> </span>./cif<span class="w"> </span>--narrative-version<span class="w"> </span>template_v1<span class="w"> </span>-o<span class="w"> </span>./fhir_template
@@ -3144,7 +3144,7 @@ specimens_obtained, complications, outcome</code></p>
 </span><span id="__span-11-9"><a id="__codelineno-11-9" name="__codelineno-11-9" href="#__codelineno-11-9"></a><span class="w">    </span><span class="nt">"discharge_summary"</span><span class="p">:</span><span class="w"> </span><span class="mi">171</span><span class="p">,</span>
 </span><span id="__span-11-10"><a id="__codelineno-11-10" name="__codelineno-11-10" href="#__codelineno-11-10"></a><span class="w">    </span><span class="nt">"operative_note"</span><span class="p">:</span><span class="w"> </span><span class="mi">11</span><span class="p">,</span>
 </span><span id="__span-11-11"><a id="__codelineno-11-11" name="__codelineno-11-11" href="#__codelineno-11-11"></a><span class="w">    </span><span class="nt">"procedure_note"</span><span class="p">:</span><span class="w"> </span><span class="mi">19</span><span class="p">,</span>
-</span><span id="__span-11-12"><a id="__codelineno-11-12" name="__codelineno-11-12" href="#__codelineno-11-12"></a><span class="w">    </span><span class="nt">"death_summary"</span><span class="p">:</span><span class="w"> </span><span class="mi">2</span>
+</span><span id="__span-11-12"><a id="__codelineno-11-12" name="__codelineno-11-12" href="#__codelineno-11-12"></a><span class="w">    </span><span class="nt">"death_discharge_summary"</span><span class="p">:</span><span class="w"> </span><span class="mi">2</span>
 </span><span id="__span-11-13"><a id="__codelineno-11-13" name="__codelineno-11-13" href="#__codelineno-11-13"></a><span class="w">  </span><span class="p">},</span>
 </span><span id="__span-11-14"><a id="__codelineno-11-14" name="__codelineno-11-14" href="#__codelineno-11-14"></a><span class="w">  </span><span class="nt">"total_documents"</span><span class="p">:</span><span class="w"> </span><span class="mi">374</span><span class="p">,</span>
 </span><span id="__span-11-15"><a id="__codelineno-11-15" name="__codelineno-11-15" href="#__codelineno-11-15"></a><span class="w">  </span><span class="nt">"llm_cost_report"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
@@ -3175,14 +3175,12 @@ Consultation Note、シフト別追加 note) を追加する際は、スコー�
 </span></code></pre></div></p>
 </li>
 <li>
-<p><strong>タスク種別を enum と LOINC map に追加</strong> — 場所は
-   <code>clinosim/modules/llm_service/engine.py</code>:
-   <div class="highlight"><pre><span></span><code><span id="__span-13-1"><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a><span class="k">class</span><span class="w"> </span><span class="nc">LLMTaskType</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">Enum</span><span class="p">):</span>
+<p><strong>タスク種別を enum に追加</strong> — 場所は
+   <code>clinosim/modules/llm_service/engine.py</code> (<code>TASK_CATEGORY</code> と
+   <code>DOCUMENT_LOINC</code> は手順 3 の yaml から構築される):
+   <div class="highlight"><pre><span></span><code><span id="__span-13-1"><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a><span class="k">class</span><span class="w"> </span><span class="nc">LLMTaskType</span><span class="p">(</span><span class="n">StrEnum</span><span class="p">):</span>
 </span><span id="__span-13-2"><a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a>    <span class="o">...</span>
 </span><span id="__span-13-3"><a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a>    <span class="n">CONSULTATION_NOTE</span> <span class="o">=</span> <span class="s2">"consultation_note"</span>  <span class="c1"># LOINC 11488-4</span>
-</span><span id="__span-13-4"><a id="__codelineno-13-4" name="__codelineno-13-4" href="#__codelineno-13-4"></a>
-</span><span id="__span-13-5"><a id="__codelineno-13-5" name="__codelineno-13-5" href="#__codelineno-13-5"></a><span class="n">TASK_CATEGORY</span><span class="p">[</span><span class="n">LLMTaskType</span><span class="o">.</span><span class="n">CONSULTATION_NOTE</span><span class="p">]</span> <span class="o">=</span> <span class="n">LLMTaskCategory</span><span class="o">.</span><span class="n">NARRATIVE</span>
-</span><span id="__span-13-6"><a id="__codelineno-13-6" name="__codelineno-13-6" href="#__codelineno-13-6"></a><span class="n">DOCUMENT_LOINC</span><span class="p">[</span><span class="n">LLMTaskType</span><span class="o">.</span><span class="n">CONSULTATION_NOTE</span><span class="p">]</span> <span class="o">=</span> <span class="s2">"11488-4"</span>
 </span></code></pre></div></p>
 </li>
 <li>
@@ -3229,7 +3227,7 @@ Consultation Note、シフト別追加 note) を追加する際は、スコー�
 </li>
 <li>
 <p><strong>単体テスト追加</strong> —
-   <code>tests/unit/document/narrative/</code> (per-section builder テスト) と
+   <code>tests/unit/modules/document/narrative/</code> (per-section builder テスト) と
    <code>tests/unit/test_clinical_documents.py</code> (end-to-end emit)。</p>
 </li>
 <li>
@@ -3255,7 +3253,9 @@ Consultation Note、シフト別追加 note) を追加する際は、スコー�
    の臨床医が各テンプレートを review すべき。</p>
 </li>
 <li>
-<p><code>clinosim narrate --language &lt;lang&gt;</code> で新規プロンプトをテスト。</p>
+<p><code>clinosim narrate --cif-dir &lt;cif&gt; --country &lt;XX&gt;</code> で新規プロンプトをテスト。
+   <code>narrate</code> に <code>--language</code> フラグは無い: 文書言語は国 (<code>--country</code>、
+   省略時は <code>cif/metadata.json</code> から自動検出) に従う。</p>
 </li>
 <li>
 <p>プロンプトレジストリは特定プロンプトファイルが欠けている場合

@@ -2498,7 +2498,7 @@ any diagnostic, therapeutic, or care decision.</p>
 <h2 id="what-is-clinosim">What is clinosim?<a class="headerlink" href="#what-is-clinosim" title="Permanent link">&para;</a></h2>
 <p>Most synthetic-EHR tools produce records by sampling from disease
 distributions. <strong>clinosim runs the disease.</strong> Every patient carries a
-hidden 14-variable physiological state
+hidden 19-variable physiological state
 (<code>clinosim/types/clinical.py::PhysiologicalState</code>), and every lab /
 vital / medication is derived from that state.</p>
 <p>Three concrete differentiators:</p>
@@ -2508,7 +2508,7 @@ vital / medication is derived from that state.</p>
 <li><strong>JP + US natively.</strong> JP Core profile compliance for 16 primary FHIR
   resource types, JLAC10 / MHLW YJ codes, JP names / addresses /
   insurance out of the box.</li>
-<li><strong>YAML-driven extension.</strong> 32 inpatient diseases + 47 ED / outpatient
+<li><strong>YAML-driven extension.</strong> 36 inpatient diseases + 51 ED / outpatient
   conditions are all data files, not code.</li>
 <li><strong>Longitudinal state evolution.</strong> AR(1) HbA1c trajectory, Markov
   stage ladders (CKD / CCS / NYHA / CDR / GOLD / cancer AJCC/BCLC),
@@ -2561,7 +2561,7 @@ builder.</p>
 <h2 id="comparing-to-synthea">Comparing to Synthea<a class="headerlink" href="#comparing-to-synthea" title="Permanent link">&para;</a></h2>
 <p><a href="https://synthetichealth.github.io/synthea/">Synthea</a> tackles synthetic
 EHR from a state-transition angle; clinosim from a physiology-simulation
-angle. Full side-by-side in the <a href="https://github.com/TomoOkuyama/clinosim#how-clinosim-compares-to-synthea">README</a>.</p>
+angle. Full side-by-side in <a href="synthea-comparison/">Synthea comparison</a>.</p>
 <hr />
 <h2 id="license">License<a class="headerlink" href="#license" title="Permanent link">&para;</a></h2>
 <p>MIT. See the <a href="https://github.com/TomoOkuyama/clinosim/blob/master/LICENSE">LICENSE</a> at the repository root.</p>

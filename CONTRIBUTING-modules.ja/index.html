@@ -2925,12 +2925,12 @@
 <p>このドキュメントは、新しいコントリビューターが clinosim に <strong>モジュール/プラグインを追加し、データを生成し、どのデータ/コードを使うかを正しく選択する</strong> ための実践 playbook です。アーキテクチャ原則 (ADR) は <code>DESIGN.md</code>、規約の総覧は <code>AGENTS.md</code> を参照してください。本書はそれらと重複せず、<strong>HOW-TO</strong> に集中します。</p>
 <blockquote>
 <p><strong>本書は CIF 生成 layer(Layers 1-3 = 参照 YAML、loader、CIF generation module)が中心</strong> です。<strong>FHIR builder layer(Layer 4 = <code>fhir_r4/&lt;domain&gt;/*.py</code>)を追加・拡張する場合は</strong> <a href="../design-guides/fhir-data-generation-logic.ja/"><code>docs/design-guides/fhir-data-generation-logic.md</code></a> を参照してください(BundleContext / code_lookup / 多言語 display / identifier system 規約 / register_bundle_builder)。</p>
-<p><strong>新規モジュール作成時</strong>: <a href="../.github/TEMPLATE_MODULE_README.md"><code>.github/TEMPLATE_MODULE_README.md</code></a> をコピーして開始。全 33 module(counting rule: <code>clinosim/modules/</code> 配下の package 数。<code>_shared.py</code> 等の非 package ファイルは含まない)の俯瞰は <a href="../MODULES.ja.md"><code>MODULES.md</code></a> を参照。PR 検証手段の選び方は本書の「PR 検証ガイド: byte-diff vs 3-axis DQR」セクション参照。読む順序の全体像は <a href="../design-guides/README.ja/"><code>docs/design-guides/README.md</code></a> を参照。</p>
+<p><strong>新規モジュール作成時</strong>: <a href="../.github/TEMPLATE_MODULE_README.md"><code>.github/TEMPLATE_MODULE_README.md</code></a> をコピーして開始。全 38 module(counting rule: <code>clinosim/modules/</code> 配下の package 数。<code>_shared.py</code> 等の非 package ファイルは含まない)の俯瞰は <a href="../MODULES.ja.md"><code>MODULES.md</code></a> を参照。PR 検証手段の選び方は本書の「PR 検証ガイド: byte-diff vs 3-axis DQR」セクション参照。読む順序の全体像は <a href="../design-guides/README.ja/"><code>docs/design-guides/README.md</code></a> を参照。</p>
 </blockquote>
 <p>実コードの正本パス:
 - Enricher registry: <code>clinosim/simulator/enrichers.py</code>
 - Output adapter registry: <code>clinosim/modules/output/adapter.py</code>
-- FHIR bundle builder registry: <code>clinosim/modules/output/fhir_r4_adapter.py</code>
+- FHIR bundle builder registry: <code>clinosim/modules/output/fhir_r4/builder.py</code> (<code>fhir_r4_adapter.py</code> は後方互換 shim)
 - 共有型: <code>clinosim/types/</code>
 - コードシステム: <code>clinosim/codes/</code>
 - locale データ: <code>clinosim/locale/</code></p>
@@ -2990,7 +2990,7 @@
 - <code>hai</code> (PR-B): CDC NHSN HAI サンプリング (POST_ENCOUNTER order=80)。<code>extensions["device"]</code> の存在を前提。
 - <code>antibiotic</code> (PR3b-1): HAI 経験的抗菌薬 (POST_ENCOUNTER order=85)。<code>extensions["hai"]</code> の存在を前提。
 - <code>imaging</code> (Tier 1 #2, AD-62): 画像診断メタデータチェーン (POST_ENCOUNTER order=90)。disease YAML の <code>imaging_orders</code> が存在する encounter でのみ <code>extensions["imaging"]</code> を生成し、ImagingStudy + Endpoint + 放射線科 DR + imaging SR を emit する。upstream extensions に依存しない (device/hai とは独立)。
-- <code>allergy</code> (Tier 1 #3, AD-63): AllergyIntolerance 8-field SNOMED-coded スキーマ upgrade (POST_RECORDS order=65)。<code>PersonRecord.allergies: list[Allergy] | None</code> に 15% prevalence で allergy サンプリングし、<code>fhir_r4/conditions/allergy_intolerance.py</code> builder が emit。activator.py inline sampling を置換。
+- <code>allergy</code> (Tier 1 #3, AD-63): AllergyIntolerance 8-field SNOMED-coded スキーマ upgrade (POST_POPULATION order=10)。<code>PersonRecord.allergies: list[Allergy] | None</code> に 15% prevalence で allergy サンプリングし、<code>fhir_r4/conditions/allergy_intolerance.py</code> builder が emit。activator.py inline sampling を置換。
 - <code>document</code> (Tier 1 #3, AD-63): Stage 1 テンプレート起動の臨床文書 emit (POST_ENCOUNTER order=95)。<code>extensions["document"]</code> + <code>extensions["clinical_impressions"]</code> に ClinicalDocument / ClinicalImpressionRecord を書き込み、3 FHIR builder (<code>fhir_r4/documents/documents.py</code> / <code>fhir_r4/documents/composition.py</code> / <code>fhir_r4/conditions/clinical_impression.py</code>) が emit。<code>enabled=lambda c: True</code>、upstream <code>extensions["allergy"]</code> に依存しない(患者アレルギー情報はビルダーが <code>patient.allergies</code> を直接参照)。
 - <code>triage</code> (Tier 1 #3 α-min-2, AD-64): ED encounter の triage level (JTAS/JP・ESI/US) + arrival_mode + acuity_score を sample (POST_ENCOUNTER order=93)。<code>EncounterRecord.triage_data</code> に書き込み、<code>document_enricher</code> が <code>ED_TRIAGE_NOTE</code> (LOINC 54094-8) dispatch に使用。<code>enabled=lambda c: True</code>、ED-only (非 ED encounter は no-op early return)。
 - <code>nursing_assignment</code> (Tier 1 #3 α-min-2, AD-64): 入院/ICU/rehab encounter に primary nurse を assign (POST_ENCOUNTER order=94)。<code>EncounterRecord.primary_nurse_id</code> に書き込み、<code>fhir_r4/encounters/care_team.py</code> builder が CareTeam.participant[1] に使用。<code>enabled=lambda c: True</code>。<strong>注意</strong>: このモジュールは <code>modules/nursing/</code> ディレクトリだが POST_ENCOUNTER 担当の nursing_enricher 関数(primary nurse 割当)。同ディレクトリには POST_RECORDS の nursing flowsheet 担当 enricher (NEWS2/GCS/Braden/Morse) も存在する。混同注意。</p>
@@ -3011,15 +3011,15 @@
 <p>opt-in module は <code>Enricher.enabled</code> で gate します。<code>config.module_enabled(name, default=...)</code> を使うのが正しい作法です (AD-56)。</p>
 <div class="highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="c1"># clinosim/simulator/enrichers.py の register_builtin_enrichers() 内</span>
 </span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="n">register_enricher</span><span class="p">(</span><span class="n">Enricher</span><span class="p">(</span>
-</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>    <span class="n">name</span><span class="o">=</span><span class="s2">"immunization"</span><span class="p">,</span>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>    <span class="n">name</span><span class="o">=</span><span class="s2">"my_module"</span><span class="p">,</span>
 </span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>    <span class="n">stage</span><span class="o">=</span><span class="n">POST_RECORDS</span><span class="p">,</span>
-</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>    <span class="n">run</span><span class="o">=</span><span class="n">run_immunization_enricher</span><span class="p">,</span>
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>    <span class="n">run</span><span class="o">=</span><span class="n">run_my_module_enricher</span><span class="p">,</span>
 </span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>    <span class="n">order</span><span class="o">=</span><span class="mi">200</span><span class="p">,</span>
-</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>    <span class="n">enabled</span><span class="o">=</span><span class="k">lambda</span> <span class="n">c</span><span class="p">:</span> <span class="n">c</span><span class="o">.</span><span class="n">module_enabled</span><span class="p">(</span><span class="s2">"immunization"</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>
+</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>    <span class="n">enabled</span><span class="o">=</span><span class="k">lambda</span> <span class="n">c</span><span class="p">:</span> <span class="n">c</span><span class="o">.</span><span class="n">module_enabled</span><span class="p">(</span><span class="s2">"my_module"</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>
 </span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="p">))</span>
 </span></code></pre></div>
 <blockquote>
-<p><strong>注意 (EXT-5):</strong> 現状 <code>module_enabled()</code> は production で未配線で、<code>modules</code> dict は dead key になっています。新規 module は上記のように <code>module_enabled</code> 経由で gate し、advertised な AD-56 ゲートを実際に有効化してください。<code>default=True</code> を保てば既存 golden は不変です。</p>
+<p><strong>注意 (EXT-5):</strong> <code>SimulatorConfig.modules</code> はプログラムからのみ設定 (CLI フラグなし) され、現在 <code>module_enabled()</code> で gate する built-in enricher は <code>health_checkup</code> (JP、既定 off) のみです。他の built-in enricher は <code>enabled=lambda c: True</code> か国判定です。新規 opt-in module は上記のように <code>module_enabled</code> 経由で gate してください。<code>default=True</code> を保てば既存 golden は不変です。</p>
 </blockquote>
 <h3 id="locale-依存の-signature-規約">locale 依存の signature 規約<a class="headerlink" href="#locale-依存の-signature-規約" title="Permanent link">&para;</a></h3>
 <p>locale 別データ(国別 prevalence、reference range、code mapping 等)をロードする関数は、<strong><code>country: str</code> パラメータを必ず受け取り</strong>、対象外の国では <code>{}</code> / <code>""</code> 等の no-op 値を早期 return します:</p>
@@ -3116,7 +3116,7 @@
 <h3 id="aggregate-loader-は-owner-module-に置く2026-07-02">Aggregate loader は owner module に置く(2026-07-02)<a class="headerlink" href="#aggregate-loader-は-owner-module-に置く2026-07-02" title="Permanent link">&para;</a></h3>
 <p>他 module の <code>reference_data/</code> を glob / 走査する aggregate loader を simulator 等の外部 package に書かない。<strong>reference_data の layout と validation は owner module の責務</strong>(責任分解点)であり、外部 package が path 構造を知っていると layout 変更時に silent break する。</p>
 <ul>
-<li>正準例: <code>load_all_disease_protocols()</code> は <code>clinosim/modules/disease/protocol.py</code>(owner)に定義。<code>clinosim/simulator/helpers.py:_load_all_disease_protocols</code> は同 lru_cache object の thin re-export alias で、既存 caller と <code>.cache_clear()</code> テスト pattern を不変に保つ。</li>
+<li>正準例: <code>load_all_disease_protocols()</code> は <code>clinosim/modules/disease/protocol.py</code>(owner)に定義。<code>clinosim/simulator/helpers.py</code> は同 lru_cache object を同名で re-export する (旧 <code>_load_all_disease_protocols</code> alias は deprecation 期間後に削除済) ので、<code>.cache_clear()</code> テスト pattern はそのまま使える。</li>
 <li>同様に、他 module の YAML を直接 path join で読むのも禁止 — owner module の public accessor を使う(例: <code>modules/antibiotic</code> は <code>microbiology.yaml</code> を直接読まず <code>clinosim.modules.observation.microbiology.antibiotic_loinc_lookup()</code> を import する)。</li>
 </ul>
 <h3 id="確率サンプリング規約pr-a-2026-06-26-で確立">確率サンプリング規約(PR-A 2026-06-26 で確立)<a class="headerlink" href="#確率サンプリング規約pr-a-2026-06-26-で確立" title="Permanent link">&para;</a></h3>
@@ -3141,7 +3141,7 @@
 <li><code>clinosim/modules/observation/microbiology.py:_validate_microbiology</code> — organism antibiogram key を <code>antibiotics</code> set と照合(PR-A 2026-06-26 で silent skip から ValueError へ移行、Fix #100/#101 で 7 cross-refs に拡張)</li>
 <li><code>clinosim/modules/antibiotic/audit.py:_validate_nhsn_resistance_bands</code> — <code>_NHSN_RESISTANCE_BANDS</code> の cohort/antibiotic を canonical に対し検証</li>
 <li><code>clinosim/modules/hai/engine.py:_validate_hai_organisms</code> — <code>hai_organisms.yaml</code> を <code>HAI_TYPES</code> × SNOMED non-empty × non-negative weight × non-zero-sum で検証(本 PR 2026-06-27)</li>
-<li><code>clinosim/locale/loader.py:_validate_demographics</code> / <code>_validate_names</code> / <code>_validate_addresses</code> — <code>demographics.yaml</code> の lifestyle_distribution + <code>names.yaml</code> の surnames/given_names + <code>addresses.yaml</code> の cities を、各 weight の非負 + sum &gt; 0 で検証(本 PR 2026-06-27、4 主要 loader 完備)</li>
+<li><code>clinosim/locale/loaders/demographics.py:_validate_demographics</code> / <code>_validate_names</code> / <code>_validate_addresses</code> — <code>demographics.yaml</code> の lifestyle_distribution + <code>names.yaml</code> の surnames/given_names + <code>addresses.yaml</code> の cities を、各 weight の非負 + sum &gt; 0 で検証(本 PR 2026-06-27、4 主要 loader 完備)</li>
 <li><code>clinosim/modules/antibiotic/engine.py:_validate_narrow_ladder</code> — <code>narrow_ladder.yaml</code> を <strong>4-way 検証</strong>: <code>HAI_TYPES</code> × <code>hai_antibiogram.yaml</code> (forward + reverse-coverage) × <code>ANTIBIOTIC_DRUGS</code> + 空コンテナ(top-level / drug list)拒否(PR3b-3 + adversarial-2 stage-3、reverse-coverage は新組織追加時の silent-no-op 防御)</li>
 <li><code>clinosim/modules/antibiotic/audit.py:_validate_narrow_rate_bands</code> — <code>_NARROW_RATE_BANDS</code> cohort string format (per-hai_type のみ、no slash) + 必須 key + [0, 1] 範囲 + 空 list 拒否(PR3b-3 adversarial-1 / 2、cohort string typo 防御)</li>
 <li><code>clinosim/modules/hai/engine.py:_validate_hai_rates</code> — <code>per_day_risk ∈ [0, 1]</code> + <code>source_device_type ∈ load_devices_config()["devices"]</code> (HAI sibling sweep 2026-06-29)</li>
@@ -3291,7 +3291,7 @@ URI 等)を hard-coded literal で書かないこと。<strong>writer 側 module
 </blockquote>
 <h3 id="sub-seed-導出ルール-コピーすべき正確なパターン">sub-seed 導出ルール (コピーすべき正確なパターン)<a class="headerlink" href="#sub-seed-導出ルール-コピーすべき正確なパターン" title="Permanent link">&para;</a></h3>
 <p>各 enricher/module は <strong>master seed から自分専用の sub-stream を導出</strong> し、メイン random stream には触れません。derive 式は <code>clinosim/seeding.py:derive_sub_seed(master, module_offset, key)</code> に集約済 (AD-16 / AD-59)。</p>
-<div class="highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">clinosim.simulator.seeding</span><span class="w"> </span><span class="kn">import</span> <span class="n">ENRICHER_SEED_OFFSETS</span><span class="p">,</span> <span class="n">derive_sub_seed</span>
+<div class="highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">clinosim.seeding</span><span class="w"> </span><span class="kn">import</span> <span class="n">ENRICHER_SEED_OFFSETS</span><span class="p">,</span> <span class="n">derive_sub_seed</span>
 </span><span id="__span-10-2"><a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a>
 </span><span id="__span-10-3"><a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a><span class="c1"># 患者/encounter ごとに fresh な Generator を作る</span>
 </span><span id="__span-10-4"><a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a><span class="n">rng</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">default_rng</span><span class="p">(</span>
@@ -3308,8 +3308,10 @@ URI 等)を hard-coded literal で書かないこと。<strong>writer 側 module
 </span><span id="__span-11-6"><a id="__codelineno-11-6" name="__codelineno-11-6" href="#__codelineno-11-6"></a>    <span class="s2">"family_history"</span><span class="p">:</span> <span class="mh">0x4648</span><span class="p">,</span>     <span class="c1"># "FH"</span>
 </span><span id="__span-11-7"><a id="__codelineno-11-7" name="__codelineno-11-7" href="#__codelineno-11-7"></a>    <span class="s2">"care_level"</span><span class="p">:</span>     <span class="mh">0x434C</span><span class="p">,</span>     <span class="c1"># "CL"</span>
 </span><span id="__span-11-8"><a id="__codelineno-11-8" name="__codelineno-11-8" href="#__codelineno-11-8"></a>    <span class="s2">"nursing"</span><span class="p">:</span>        <span class="mh">0x4E55</span><span class="p">,</span>     <span class="c1"># "NU"</span>
-</span><span id="__span-11-9"><a id="__codelineno-11-9" name="__codelineno-11-9" href="#__codelineno-11-9"></a>    <span class="c1"># 新モジュール例: "device" = 0x4456 ("DV"), "hai" = 0x4841 ("HA")</span>
-</span><span id="__span-11-10"><a id="__codelineno-11-10" name="__codelineno-11-10" href="#__codelineno-11-10"></a><span class="p">}</span>
+</span><span id="__span-11-9"><a id="__codelineno-11-9" name="__codelineno-11-9" href="#__codelineno-11-9"></a>    <span class="s2">"device"</span><span class="p">:</span>         <span class="mh">0x4445</span><span class="p">,</span>     <span class="c1"># "DE"</span>
+</span><span id="__span-11-10"><a id="__codelineno-11-10" name="__codelineno-11-10" href="#__codelineno-11-10"></a>    <span class="s2">"hai"</span><span class="p">:</span>            <span class="mh">0x4841</span><span class="p">,</span>     <span class="c1"># "HA"</span>
+</span><span id="__span-11-11"><a id="__codelineno-11-11" name="__codelineno-11-11" href="#__codelineno-11-11"></a>    <span class="c1"># ... (全リストは clinosim/seeding.py)</span>
+</span><span id="__span-11-12"><a id="__codelineno-11-12" name="__codelineno-11-12" href="#__codelineno-11-12"></a><span class="p">}</span>
 </span></code></pre></div>
 <p>モジュール側はローカル定数を持たず、registry から import します。dict 末尾の <code>assert len(set(...values())) == len(...)</code> が重複オフセットを import 時に検出します(誤って既存モジュールの RNG ストリームを汚染するのを構造的に防ぐ)。</p>
 <h3 id="cif-への書き込み-base-か-extensions-か-decision-tree">CIF への書き込み: Base か extensions か (decision tree)<a class="headerlink" href="#cif-への書き込み-base-か-extensions-か-decision-tree" title="Permanent link">&para;</a></h3>
@@ -3381,47 +3383,51 @@ URI 等)を hard-coded literal で書かないこと。<strong>writer 側 module
 <h2 id="拡張点の使い方">拡張点の使い方<a class="headerlink" href="#拡張点の使い方" title="Permanent link">&para;</a></h2>
 <p><strong>3 つの registry はいずれも core dispatch を編集せず、登録だけで拡張</strong> します。core を直接編集してはいけません。</p>
 <h3 id="a-fhir-リソースを追加する-register_bundle_builder-ad-56">A. FHIR リソースを追加する (<code>register_bundle_builder</code>, AD-56)<a class="headerlink" href="#a-fhir-リソースを追加する-register_bundle_builder-ad-56" title="Permanent link">&para;</a></h3>
-<p><code>_build_bundle()</code> を編集しない。builder は <code>(ctx: BundleContext) -&gt; list[dict]</code> の pure 関数で raw resource を返します (Bundle entry でラップしない — registry が <code>_entry()</code> で一律ラップする)。</p>
-<div class="highlight"><pre><span></span><code><span id="__span-13-1"><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a><span class="c1"># clinosim/modules/output/fhir_r4_adapter.py</span>
-</span><span id="__span-13-2"><a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a><span class="k">def</span><span class="w"> </span><span class="nf">_bb_my_resource</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="n">BundleContext</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">]:</span>
-</span><span id="__span-13-3"><a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a>    <span class="c1"># ctx fields: record, country, roster_map, hospital_config, patient_data,</span>
-</span><span id="__span-13-4"><a id="__codelineno-13-4" name="__codelineno-13-4" href="#__codelineno-13-4"></a>    <span class="c1">#             patient_id, primary_dx_code, admit_dx_code, primary_enc_id, patient_sex, ...</span>
-</span><span id="__span-13-5"><a id="__codelineno-13-5" name="__codelineno-13-5" href="#__codelineno-13-5"></a>    <span class="k">if</span> <span class="n">ctx</span><span class="o">.</span><span class="n">country</span> <span class="o">!=</span> <span class="s2">"JP"</span><span class="p">:</span>          <span class="c1"># 国 gate は builder 内で行う</span>
-</span><span id="__span-13-6"><a id="__codelineno-13-6" name="__codelineno-13-6" href="#__codelineno-13-6"></a>        <span class="k">return</span> <span class="p">[]</span>
-</span><span id="__span-13-7"><a id="__codelineno-13-7" name="__codelineno-13-7" href="#__codelineno-13-7"></a>    <span class="k">return</span> <span class="p">[{</span><span class="s2">"resourceType"</span><span class="p">:</span> <span class="s2">"..."</span><span class="p">,</span> <span class="s2">"id"</span><span class="p">:</span> <span class="sa">f</span><span class="s2">"...-</span><span class="si">{</span><span class="n">ctx</span><span class="o">.</span><span class="n">primary_enc_id</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span> <span class="o">...</span><span class="p">}]</span>
-</span><span id="__span-13-8"><a id="__codelineno-13-8" name="__codelineno-13-8" href="#__codelineno-13-8"></a>
-</span><span id="__span-13-9"><a id="__codelineno-13-9" name="__codelineno-13-9" href="#__codelineno-13-9"></a><span class="n">register_bundle_builder</span><span class="p">(</span><span class="n">_bb_my_resource</span><span class="p">)</span>
+<p><code>_build_bundle()</code> を編集しない。builder は <code>(ctx: BundleContext) -&gt; list[dict]</code> の pure 関数で raw resource を返します (Bundle entry でラップしない — <code>_build_bundle()</code> が builder の返す resource を一律ラップする)。built-in builder は <code>clinosim/modules/output/fhir_r4/builder.py</code> の <code>_BUNDLE_BUILDERS</code> に列挙 (リスト順 = emit 順)、<code>register_bundle_builder()</code> は外部 builder をその後ろに追加する。</p>
+<div class="highlight"><pre><span></span><code><span id="__span-13-1"><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">clinosim.modules.output.fhir_r4</span><span class="w"> </span><span class="kn">import</span> <span class="n">register_bundle_builder</span>
+</span><span id="__span-13-2"><a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">clinosim.modules.output.fhir_r4.lib.common</span><span class="w"> </span><span class="kn">import</span> <span class="n">BundleContext</span>
+</span><span id="__span-13-3"><a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a>
+</span><span id="__span-13-4"><a id="__codelineno-13-4" name="__codelineno-13-4" href="#__codelineno-13-4"></a><span class="k">def</span><span class="w"> </span><span class="nf">_bb_my_resource</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="n">BundleContext</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">]:</span>
+</span><span id="__span-13-5"><a id="__codelineno-13-5" name="__codelineno-13-5" href="#__codelineno-13-5"></a>    <span class="c1"># ctx fields: record, country, roster_map, hospital_config, patient_data,</span>
+</span><span id="__span-13-6"><a id="__codelineno-13-6" name="__codelineno-13-6" href="#__codelineno-13-6"></a>    <span class="c1">#             patient_id, primary_dx_code, admit_dx_code, primary_enc_id, patient_sex, ...</span>
+</span><span id="__span-13-7"><a id="__codelineno-13-7" name="__codelineno-13-7" href="#__codelineno-13-7"></a>    <span class="k">if</span> <span class="n">ctx</span><span class="o">.</span><span class="n">country</span> <span class="o">!=</span> <span class="s2">"JP"</span><span class="p">:</span>          <span class="c1"># 国 gate は builder 内で行う</span>
+</span><span id="__span-13-8"><a id="__codelineno-13-8" name="__codelineno-13-8" href="#__codelineno-13-8"></a>        <span class="k">return</span> <span class="p">[]</span>
+</span><span id="__span-13-9"><a id="__codelineno-13-9" name="__codelineno-13-9" href="#__codelineno-13-9"></a>    <span class="k">return</span> <span class="p">[{</span><span class="s2">"resourceType"</span><span class="p">:</span> <span class="s2">"..."</span><span class="p">,</span> <span class="s2">"id"</span><span class="p">:</span> <span class="sa">f</span><span class="s2">"...-</span><span class="si">{</span><span class="n">ctx</span><span class="o">.</span><span class="n">primary_enc_id</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span> <span class="o">...</span><span class="p">}]</span>
+</span><span id="__span-13-10"><a id="__codelineno-13-10" name="__codelineno-13-10" href="#__codelineno-13-10"></a>
+</span><span id="__span-13-11"><a id="__codelineno-13-11" name="__codelineno-13-11" href="#__codelineno-13-11"></a><span class="n">register_bundle_builder</span><span class="p">(</span><span class="n">_bb_my_resource</span><span class="p">)</span>
 </span></code></pre></div>
 <ul>
-<li>命名は <code>_bb_*</code> prefix で統一 (EXT-6: <code>_build_nursing_observations</code> 等は旧式)。</li>
+<li>命名は <code>_bb_*</code> prefix で統一 (EXT-6)。<code>_BUNDLE_BUILDERS</code> は import 時に assert、<code>register_bundle_builder()</code> も prefix を検査する。</li>
 <li><code>Resource.id</code> は型内で globally unique に。encounter-scoped id (<code>lab-{encounter_id}-...</code>) を使う (FA-7)。</li>
-<li><strong>double-wrap 注意 (FA-3):</strong> builder は raw resource dict を返す。<code>_entry()</code> を builder 内で呼ばない。</li>
+<li><strong>double-wrap 注意 (FA-3):</strong> builder は raw resource dict を返す。builder 内で Bundle <code>entry</code> ラッパを作らない。</li>
 </ul>
 <p><strong>Canonical example — <code>_bb_service_requests</code> (PR1, 2026-06-29, <code>fhir_r4/labs/service_request.py</code>):</strong></p>
-<div class="highlight"><pre><span></span><code><span id="__span-14-1"><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a><span class="c1"># clinosim/modules/output/fhir_r4/labs/service_request.py</span>
-</span><span id="__span-14-2"><a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">clinosim.modules.output.fhir_r4_adapter</span><span class="w"> </span><span class="kn">import</span> <span class="n">register_bundle_builder</span><span class="p">,</span> <span class="n">BundleContext</span>
-</span><span id="__span-14-3"><a id="__codelineno-14-3" name="__codelineno-14-3" href="#__codelineno-14-3"></a><span class="kn">from</span><span class="w"> </span><span class="nn">clinosim.modules.order.panel_grouping</span><span class="w"> </span><span class="kn">import</span> <span class="n">classify_lab_specs</span>
-</span><span id="__span-14-4"><a id="__codelineno-14-4" name="__codelineno-14-4" href="#__codelineno-14-4"></a>
-</span><span id="__span-14-5"><a id="__codelineno-14-5" name="__codelineno-14-5" href="#__codelineno-14-5"></a><span class="k">def</span><span class="w"> </span><span class="nf">_bb_service_requests</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="n">BundleContext</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">]:</span>
-</span><span id="__span-14-6"><a id="__codelineno-14-6" name="__codelineno-14-6" href="#__codelineno-14-6"></a><span class="w">    </span><span class="sd">"""Emit 1 ServiceRequest per panel instance + 1 per stand-alone lab order."""</span>
+<div class="highlight"><pre><span></span><code><span id="__span-14-1"><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a><span class="c1"># clinosim/modules/output/fhir_r4/labs/service_request.py (簡略化)</span>
+</span><span id="__span-14-2"><a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">clinosim.modules.output.fhir_r4.lib.common</span><span class="w"> </span><span class="kn">import</span> <span class="n">BundleContext</span>
+</span><span id="__span-14-3"><a id="__codelineno-14-3" name="__codelineno-14-3" href="#__codelineno-14-3"></a>
+</span><span id="__span-14-4"><a id="__codelineno-14-4" name="__codelineno-14-4" href="#__codelineno-14-4"></a><span class="k">def</span><span class="w"> </span><span class="nf">_bb_service_requests</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="n">BundleContext</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">]:</span>
+</span><span id="__span-14-5"><a id="__codelineno-14-5" name="__codelineno-14-5" href="#__codelineno-14-5"></a><span class="w">    </span><span class="sd">"""Emit ServiceRequest resources for LAB + IMAGING orders."""</span>
+</span><span id="__span-14-6"><a id="__codelineno-14-6" name="__codelineno-14-6" href="#__codelineno-14-6"></a>    <span class="n">orders</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">record</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"orders"</span><span class="p">,</span> <span class="p">[])</span> <span class="ow">or</span> <span class="p">[]</span>
 </span><span id="__span-14-7"><a id="__codelineno-14-7" name="__codelineno-14-7" href="#__codelineno-14-7"></a>    <span class="n">resources</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
-</span><span id="__span-14-8"><a id="__codelineno-14-8" name="__codelineno-14-8" href="#__codelineno-14-8"></a>    <span class="n">orders</span> <span class="o">=</span> <span class="n">_collect_lab_orders</span><span class="p">(</span><span class="n">ctx</span><span class="o">.</span><span class="n">record</span><span class="p">)</span>       <span class="c1"># walk all encounters' orders</span>
-</span><span id="__span-14-9"><a id="__codelineno-14-9" name="__codelineno-14-9" href="#__codelineno-14-9"></a>    <span class="k">for</span> <span class="n">group_key</span><span class="p">,</span> <span class="n">group_orders</span> <span class="ow">in</span> <span class="n">_group_by_panel</span><span class="p">(</span><span class="n">orders</span><span class="p">):</span>
-</span><span id="__span-14-10"><a id="__codelineno-14-10" name="__codelineno-14-10" href="#__codelineno-14-10"></a>        <span class="n">sr</span> <span class="o">=</span> <span class="n">_build_service_request</span><span class="p">(</span><span class="n">group_key</span><span class="p">,</span> <span class="n">group_orders</span><span class="p">,</span> <span class="n">ctx</span><span class="p">)</span>
-</span><span id="__span-14-11"><a id="__codelineno-14-11" name="__codelineno-14-11" href="#__codelineno-14-11"></a>        <span class="n">resources</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">sr</span><span class="p">)</span>
-</span><span id="__span-14-12"><a id="__codelineno-14-12" name="__codelineno-14-12" href="#__codelineno-14-12"></a>    <span class="k">return</span> <span class="n">resources</span>
-</span><span id="__span-14-13"><a id="__codelineno-14-13" name="__codelineno-14-13" href="#__codelineno-14-13"></a>
-</span><span id="__span-14-14"><a id="__codelineno-14-14" name="__codelineno-14-14" href="#__codelineno-14-14"></a><span class="n">register_bundle_builder</span><span class="p">(</span><span class="n">_bb_service_requests</span><span class="p">)</span>
+</span><span id="__span-14-8"><a id="__codelineno-14-8" name="__codelineno-14-8" href="#__codelineno-14-8"></a>    <span class="n">lab_orders</span> <span class="o">=</span> <span class="p">[</span><span class="n">o</span> <span class="k">for</span> <span class="n">o</span> <span class="ow">in</span> <span class="n">orders</span> <span class="k">if</span> <span class="n">_o</span><span class="p">(</span><span class="n">o</span><span class="p">,</span> <span class="s2">"order_type"</span><span class="p">)</span> <span class="ow">in</span> <span class="p">(</span><span class="n">OrderType</span><span class="o">.</span><span class="n">LAB</span><span class="p">,</span> <span class="s2">"lab"</span><span class="p">)]</span>
+</span><span id="__span-14-9"><a id="__codelineno-14-9" name="__codelineno-14-9" href="#__codelineno-14-9"></a>    <span class="k">if</span> <span class="n">lab_orders</span><span class="p">:</span>   <span class="c1"># panel 単位: panel instance ごと 1 SR + 単独 order ごと 1 SR</span>
+</span><span id="__span-14-10"><a id="__codelineno-14-10" name="__codelineno-14-10" href="#__codelineno-14-10"></a>        <span class="n">resources</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">_build_lab_service_requests</span><span class="p">(</span><span class="n">lab_orders</span><span class="p">,</span> <span class="n">ctx</span><span class="p">,</span> <span class="o">...</span><span class="p">))</span>
+</span><span id="__span-14-11"><a id="__codelineno-14-11" name="__codelineno-14-11" href="#__codelineno-14-11"></a>    <span class="n">imaging_orders</span> <span class="o">=</span> <span class="p">[</span><span class="n">o</span> <span class="k">for</span> <span class="n">o</span> <span class="ow">in</span> <span class="n">orders</span> <span class="k">if</span> <span class="n">_o</span><span class="p">(</span><span class="n">o</span><span class="p">,</span> <span class="s2">"order_type"</span><span class="p">)</span> <span class="ow">in</span> <span class="p">(</span><span class="n">OrderType</span><span class="o">.</span><span class="n">IMAGING</span><span class="p">,</span> <span class="s2">"imaging"</span><span class="p">)]</span>
+</span><span id="__span-14-12"><a id="__codelineno-14-12" name="__codelineno-14-12" href="#__codelineno-14-12"></a>    <span class="k">if</span> <span class="n">imaging_orders</span><span class="p">:</span>   <span class="c1"># 1 Order = 1 SR</span>
+</span><span id="__span-14-13"><a id="__codelineno-14-13" name="__codelineno-14-13" href="#__codelineno-14-13"></a>        <span class="n">resources</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">_build_imaging_service_requests</span><span class="p">(</span><span class="n">imaging_orders</span><span class="p">,</span> <span class="n">ctx</span><span class="p">,</span> <span class="o">...</span><span class="p">))</span>
+</span><span id="__span-14-14"><a id="__codelineno-14-14" name="__codelineno-14-14" href="#__codelineno-14-14"></a>    <span class="k">return</span> <span class="n">resources</span>
+</span><span id="__span-14-15"><a id="__codelineno-14-15" name="__codelineno-14-15" href="#__codelineno-14-15"></a>
+</span><span id="__span-14-16"><a id="__codelineno-14-16" name="__codelineno-14-16" href="#__codelineno-14-16"></a><span class="c1"># built-in: fhir_r4/builder.py の _BUNDLE_BUILDERS に列挙</span>
 </span></code></pre></div>
 <p>Key patterns illustrated:
 - <code>ctx.record</code> is the <code>CIFPatientRecord</code> (dict in production JSON path, dataclass in tests).
   Always access fields via <code>_o(order, "field_name", default)</code> (<code>get_attr_or_key</code> wrapper, see
   <code>clinosim/modules/_shared.py</code>) to support both paths — unit tests may pass dataclass
   instances while the production path deserializes to dict.
-- Panel grouping logic lives in <code>clinosim/modules/order/panel_grouping.py:classify_lab_specs</code>.
+- Panel grouping logic lives in <code>clinosim/modules/order/panel_grouping.py</code> (<code>load_panel_definitions</code> / <code>classify_lab_specs</code>).
   Never inline a panel-detection if/elif in the builder. [AD-61]
 - Both dict-path and dataclass-path MUST be covered by tests: a subprocess integration smoke
-  test exercises the production dict path (see <code>tests/integration/test_service_request.py</code>).</p>
+  test exercises the production dict path (see <code>tests/integration/test_servicerequest_chain.py</code>).</p>
 <p>See <a href="../clinosim/modules/output/fhir_r4/labs/service_request.py"><code>clinosim/modules/output/fhir_r4/labs/service_request.py</code></a> for the full implementation.</p>
 <h3 id="b-出力フォーマットを追加する-register_output_adapter-ad-58">B. 出力フォーマットを追加する (<code>register_output_adapter</code>, AD-58)<a class="headerlink" href="#b-出力フォーマットを追加する-register_output_adapter-ad-58" title="Permanent link">&para;</a></h3>
 <p>CLI の <code>--format</code> dispatch を編集しない。<code>OutputAdapter</code> Protocol を満たすクラスを <code>adapters_builtin.py</code> パターンで登録します。adapter は <strong>CIF + <code>clinosim.codes</code> + <code>clinosim.locale</code> のみ</strong> に依存できます。</p>
@@ -3450,22 +3456,22 @@ URI 等)を hard-coded literal で書かないこと。<strong>writer 側 module
 </span><span id="__span-16-3"><a id="__codelineno-16-3" name="__codelineno-16-3" href="#__codelineno-16-3"></a><span class="c1"># Enricher(name, stage, run: Callable[[EnricherContext], None], order=100, enabled=lambda c: True)</span>
 </span><span id="__span-16-4"><a id="__codelineno-16-4" name="__codelineno-16-4" href="#__codelineno-16-4"></a>
 </span><span id="__span-16-5"><a id="__codelineno-16-5" name="__codelineno-16-5" href="#__codelineno-16-5"></a><span class="k">def</span><span class="w"> </span><span class="nf">run_my_pass</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="n">EnricherContext</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-</span><span id="__span-16-6"><a id="__codelineno-16-6" name="__codelineno-16-6" href="#__codelineno-16-6"></a>    <span class="c1"># ctx fields: config, master_seed, population, records</span>
-</span><span id="__span-16-7"><a id="__codelineno-16-7" name="__codelineno-16-7" href="#__codelineno-16-7"></a>    <span class="n">rng_seed</span> <span class="o">=</span> <span class="n">_sub_seed</span><span class="p">(</span><span class="n">ctx</span><span class="o">.</span><span class="n">master_seed</span><span class="p">,</span> <span class="s2">"my-pass"</span><span class="p">)</span>  <span class="c1"># 自前 sub-seed (メイン stream に触れない)</span>
+</span><span id="__span-16-6"><a id="__codelineno-16-6" name="__codelineno-16-6" href="#__codelineno-16-6"></a>    <span class="c1"># ctx fields: config, master_seed, population, records, roster</span>
+</span><span id="__span-16-7"><a id="__codelineno-16-7" name="__codelineno-16-7" href="#__codelineno-16-7"></a>    <span class="n">rng_seed</span> <span class="o">=</span> <span class="n">derive_sub_seed</span><span class="p">(</span><span class="n">ctx</span><span class="o">.</span><span class="n">master_seed</span><span class="p">,</span> <span class="n">ENRICHER_SEED_OFFSETS</span><span class="p">[</span><span class="s2">"my_module"</span><span class="p">],</span> <span class="n">key</span><span class="p">)</span>  <span class="c1"># 自前 sub-seed (メイン stream に触れない)</span>
 </span><span id="__span-16-8"><a id="__codelineno-16-8" name="__codelineno-16-8" href="#__codelineno-16-8"></a>    <span class="k">for</span> <span class="n">rec</span> <span class="ow">in</span> <span class="n">ctx</span><span class="o">.</span><span class="n">records</span><span class="p">:</span>
 </span><span id="__span-16-9"><a id="__codelineno-16-9" name="__codelineno-16-9" href="#__codelineno-16-9"></a>        <span class="n">rec</span><span class="o">.</span><span class="n">extensions</span><span class="p">[</span><span class="s2">"my_module"</span><span class="p">]</span> <span class="o">=</span> <span class="o">...</span>
 </span><span id="__span-16-10"><a id="__codelineno-16-10" name="__codelineno-16-10" href="#__codelineno-16-10"></a>
 </span><span id="__span-16-11"><a id="__codelineno-16-11" name="__codelineno-16-11" href="#__codelineno-16-11"></a><span class="n">register_enricher</span><span class="p">(</span><span class="n">Enricher</span><span class="p">(</span>
 </span><span id="__span-16-12"><a id="__codelineno-16-12" name="__codelineno-16-12" href="#__codelineno-16-12"></a>    <span class="n">name</span><span class="o">=</span><span class="s2">"my_module"</span><span class="p">,</span>
-</span><span id="__span-16-13"><a id="__codelineno-16-13" name="__codelineno-16-13" href="#__codelineno-16-13"></a>    <span class="n">stage</span><span class="o">=</span><span class="n">POST_RECORDS</span><span class="p">,</span>                 <span class="c1"># or POST_POPULATION</span>
+</span><span id="__span-16-13"><a id="__codelineno-16-13" name="__codelineno-16-13" href="#__codelineno-16-13"></a>    <span class="n">stage</span><span class="o">=</span><span class="n">POST_RECORDS</span><span class="p">,</span>                 <span class="c1"># or POST_POPULATION / POST_ENCOUNTER</span>
 </span><span id="__span-16-14"><a id="__codelineno-16-14" name="__codelineno-16-14" href="#__codelineno-16-14"></a>    <span class="n">run</span><span class="o">=</span><span class="n">run_my_pass</span><span class="p">,</span>
 </span><span id="__span-16-15"><a id="__codelineno-16-15" name="__codelineno-16-15" href="#__codelineno-16-15"></a>    <span class="n">order</span><span class="o">=</span><span class="mi">300</span><span class="p">,</span>                          <span class="c1"># 昇順実行。order は固定 = 決定論</span>
 </span><span id="__span-16-16"><a id="__codelineno-16-16" name="__codelineno-16-16" href="#__codelineno-16-16"></a>    <span class="n">enabled</span><span class="o">=</span><span class="k">lambda</span> <span class="n">c</span><span class="p">:</span> <span class="n">c</span><span class="o">.</span><span class="n">module_enabled</span><span class="p">(</span><span class="s2">"my_module"</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>
 </span><span id="__span-16-17"><a id="__codelineno-16-17" name="__codelineno-16-17" href="#__codelineno-16-17"></a><span class="p">))</span>
 </span></code></pre></div>
 <ul>
-<li>stage は <code>POST_POPULATION</code> (population 生成後/simulation 前、<code>ctx.population</code> を mutate) または <code>POST_RECORDS</code> (record 生成後、<code>ctx.records</code> を読み/extend)。</li>
-<li>registry は name で idempotent。order 整数が実行順 = 決定論を支配します。</li>
+<li>stage は <code>POST_POPULATION</code> (population 生成後/simulation 前、<code>ctx.population</code> を mutate)、<code>POST_ENCOUNTER</code> (encounter simulator 内で各 encounter の daily loop 直後、<code>ctx.records</code> はその 1 件の partial record のみ)、または <code>POST_RECORDS</code> (全 record 生成後、<code>ctx.records</code> を読み/extend)。</li>
+<li>registry は name をキーとする (後勝ち、警告あり)。stage 内は <code>(order, name)</code> 順で実行 = 決定論を支配します。</li>
 </ul>
 <hr />
 <h2 id="何のデータコードを使うか">何のデータ/コードを使うか<a class="headerlink" href="#何のデータコードを使うか" title="Permanent link">&para;</a></h2>
@@ -3563,19 +3569,19 @@ URI 等)を hard-coded literal で書かないこと。<strong>writer 側 module
 </tr>
 <tr>
 <td><strong>Template narrative generator</strong> (TemplateNarrativeGenerator, bug A pattern)</td>
-<td><code>clinosim narrate --cif-dir /tmp/cX --version-id template</code> → <code>clinosim export-fhir --cif-dir /tmp/cX</code></td>
+<td><code>clinosim narrate --cif-dir /tmp/cX/cif --version-id template</code> → <code>clinosim export-fhir --cif-dir /tmp/cX/cif</code></td>
 <td>~30 sec + 5 min</td>
 <td>Reuse existing structural CIF. Stage 2 only.</td>
 </tr>
 <tr>
 <td><strong>FHIR builder</strong> (bug C pattern)</td>
-<td><code>clinosim export-fhir --cif-dir /tmp/cX</code></td>
+<td><code>clinosim export-fhir --cif-dir /tmp/cX/cif</code></td>
 <td>~5 min</td>
 <td>Reuse existing CIF. Stage 3 only.</td>
 </tr>
 <tr>
 <td><strong>Locale display / code resolution</strong></td>
-<td><code>clinosim export-fhir --cif-dir /tmp/cX</code></td>
+<td><code>clinosim export-fhir --cif-dir /tmp/cX/cif</code></td>
 <td>~5 min</td>
 <td>No CIF change, Stage 3 only.</td>
 </tr>
@@ -3609,20 +3615,20 @@ URI 等)を hard-coded literal で書かないこと。<strong>writer 側 module
 <li>該当 <code>renderers/section_builders/&lt;section&gt;.py</code> 内の <code>build_&lt;section&gt;(generator, ctx)</code> 自由関数を特定</li>
 <li><code>_pick_localized(tmpl, key, lang)</code> が US 言語で <code>en</code> field を参照しているか確認</li>
 <li>
-<p>Disease YAML の <code>narrative.physical_examination_en</code> field が埋まっているか確認</p>
+<p>Disease YAML の <code>narrative.physical_exam_findings</code> ブロックが埋まっているか確認</p>
 </li>
 <li>
 <p><strong>Verify fix</strong> via fast Stage 2 regen (skip expensive full cohort):
    <div class="highlight"><pre><span></span><code><span id="__span-22-1"><a id="__codelineno-22-1" name="__codelineno-22-1" href="#__codelineno-22-1"></a><span class="c1"># Reuse structural CIF from step 1</span>
-</span><span id="__span-22-2"><a id="__codelineno-22-2" name="__codelineno-22-2" href="#__codelineno-22-2"></a>clinosim<span class="w"> </span>narrate<span class="w"> </span>--cif-dir<span class="w"> </span>/tmp/test<span class="w"> </span>--version-id<span class="w"> </span>template
-</span><span id="__span-22-3"><a id="__codelineno-22-3" name="__codelineno-22-3" href="#__codelineno-22-3"></a>clinosim<span class="w"> </span>export-fhir<span class="w"> </span>--cif-dir<span class="w"> </span>/tmp/test
+</span><span id="__span-22-2"><a id="__codelineno-22-2" name="__codelineno-22-2" href="#__codelineno-22-2"></a>clinosim<span class="w"> </span>narrate<span class="w"> </span>--cif-dir<span class="w"> </span>/tmp/test/cif<span class="w"> </span>--version-id<span class="w"> </span>template
+</span><span id="__span-22-3"><a id="__codelineno-22-3" name="__codelineno-22-3" href="#__codelineno-22-3"></a>clinosim<span class="w"> </span>export-fhir<span class="w"> </span>--cif-dir<span class="w"> </span>/tmp/test/cif
 </span><span id="__span-22-4"><a id="__codelineno-22-4" name="__codelineno-22-4" href="#__codelineno-22-4"></a><span class="c1"># Check output Composition resource's text field has zero Japanese</span>
 </span></code></pre></div></p>
 </li>
 <li>
 <p><strong>Full validation</strong> (once confident):
-   <div class="highlight"><pre><span></span><code><span id="__span-23-1"><a id="__codelineno-23-1" name="__codelineno-23-1" href="#__codelineno-23-1"></a>clinosim<span class="w"> </span>simulate<span class="w"> </span>-p<span class="w"> </span><span class="m">500</span><span class="w"> </span>--country<span class="w"> </span>US<span class="w"> </span>-o<span class="w"> </span>/tmp/us500
-</span><span id="__span-23-2"><a id="__codelineno-23-2" name="__codelineno-23-2" href="#__codelineno-23-2"></a>clinosim<span class="w"> </span>audit<span class="w"> </span>run<span class="w"> </span>--cif-dir<span class="w"> </span>/tmp/us500
+   <div class="highlight"><pre><span></span><code><span id="__span-23-1"><a id="__codelineno-23-1" name="__codelineno-23-1" href="#__codelineno-23-1"></a>clinosim<span class="w"> </span>simulate<span class="w"> </span>-p<span class="w"> </span><span class="m">500</span><span class="w"> </span>--country<span class="w"> </span>US<span class="w"> </span>--format<span class="w"> </span>cif<span class="w"> </span>fhir-r4<span class="w"> </span>-o<span class="w"> </span>/tmp/us500
+</span><span id="__span-23-2"><a id="__codelineno-23-2" name="__codelineno-23-2" href="#__codelineno-23-2"></a>clinosim<span class="w"> </span>audit<span class="w"> </span>run<span class="w"> </span>-d<span class="w"> </span>/tmp/us500
 </span><span id="__span-23-3"><a id="__codelineno-23-3" name="__codelineno-23-3" href="#__codelineno-23-3"></a><span class="c1"># Gate: "us_admission_hp_zero_ja_chars" = 0</span>
 </span></code></pre></div></p>
 </li>
@@ -3642,7 +3648,7 @@ URI 等)を hard-coded literal で書かないこと。<strong>writer 側 module
 <li>
 <p><strong>Fix</strong> in code: <code>clinosim/modules/document/engine.py</code></p>
 </li>
-<li>Locate <code>_emit_doc()</code> function</li>
+<li>Locate the per-document stub construction in <code>document_enricher()</code></li>
 <li>Replace hardcoded <code>attending_id = encounter.attending_physician_id</code></li>
 <li>
 <p>Call helper <code>_pick_document_author(spec, encounter)</code> instead</p>
@@ -3656,8 +3662,8 @@ URI 等)を hard-coded literal で書かないこと。<strong>writer 側 module
 </li>
 <li>
 <p><strong>Integration test</strong> on production cohort:
-   <div class="highlight"><pre><span></span><code><span id="__span-26-1"><a id="__codelineno-26-1" name="__codelineno-26-1" href="#__codelineno-26-1"></a>clinosim<span class="w"> </span>simulate<span class="w"> </span>-p<span class="w"> </span><span class="m">500</span><span class="w"> </span>--country<span class="w"> </span>US<span class="w"> </span>-o<span class="w"> </span>/tmp/us500
-</span><span id="__span-26-2"><a id="__codelineno-26-2" name="__codelineno-26-2" href="#__codelineno-26-2"></a>clinosim<span class="w"> </span>audit<span class="w"> </span>run<span class="w"> </span>--cif-dir<span class="w"> </span>/tmp/us500
+   <div class="highlight"><pre><span></span><code><span id="__span-26-1"><a id="__codelineno-26-1" name="__codelineno-26-1" href="#__codelineno-26-1"></a>clinosim<span class="w"> </span>simulate<span class="w"> </span>-p<span class="w"> </span><span class="m">500</span><span class="w"> </span>--country<span class="w"> </span>US<span class="w"> </span>--format<span class="w"> </span>cif<span class="w"> </span>fhir-r4<span class="w"> </span>-o<span class="w"> </span>/tmp/us500
+</span><span id="__span-26-2"><a id="__codelineno-26-2" name="__codelineno-26-2" href="#__codelineno-26-2"></a>clinosim<span class="w"> </span>audit<span class="w"> </span>run<span class="w"> </span>-d<span class="w"> </span>/tmp/us500
 </span><span id="__span-26-3"><a id="__codelineno-26-3" name="__codelineno-26-3" href="#__codelineno-26-3"></a><span class="c1"># Gate: "nursing_doc_author_is_nurse_ratio" = 1.0</span>
 </span></code></pre></div></p>
 </li>
@@ -3670,7 +3676,7 @@ URI 等)を hard-coded literal で書かないこと。<strong>writer 側 module
 <ol>
 <li>
 <p><strong>Diagnose</strong> via unit test on builder:
-   <div class="highlight"><pre><span></span><code><span id="__span-27-1"><a id="__codelineno-27-1" name="__codelineno-27-1" href="#__codelineno-27-1"></a>pytest<span class="w"> </span>tests/unit/test_fhir_composition.py<span class="w"> </span>-xvs<span class="w"> </span>-k<span class="w"> </span><span class="s2">"missing_section"</span>
+   <div class="highlight"><pre><span></span><code><span id="__span-27-1"><a id="__codelineno-27-1" name="__codelineno-27-1" href="#__codelineno-27-1"></a>pytest<span class="w"> </span>tests/unit/output/test_fhir_composition.py<span class="w"> </span>-xvs<span class="w"> </span>-k<span class="w"> </span><span class="s2">"section"</span>
 </span><span id="__span-27-2"><a id="__codelineno-27-2" name="__codelineno-27-2" href="#__codelineno-27-2"></a><span class="c1"># Unit test on builder logic</span>
 </span></code></pre></div></p>
 </li>
@@ -3684,14 +3690,14 @@ URI 等)を hard-coded literal で書かないこと。<strong>writer 側 module
 <li>
 <p><strong>Quick structural check</strong> (FHIR builder doesn't change structural CIF):
    <div class="highlight"><pre><span></span><code><span id="__span-28-1"><a id="__codelineno-28-1" name="__codelineno-28-1" href="#__codelineno-28-1"></a><span class="c1"># Reuse existing /tmp/us500 CIF from case 2</span>
-</span><span id="__span-28-2"><a id="__codelineno-28-2" name="__codelineno-28-2" href="#__codelineno-28-2"></a>clinosim<span class="w"> </span>export-fhir<span class="w"> </span>--cif-dir<span class="w"> </span>/tmp/us500
+</span><span id="__span-28-2"><a id="__codelineno-28-2" name="__codelineno-28-2" href="#__codelineno-28-2"></a>clinosim<span class="w"> </span>export-fhir<span class="w"> </span>--cif-dir<span class="w"> </span>/tmp/us500/cif
 </span><span id="__span-28-3"><a id="__codelineno-28-3" name="__codelineno-28-3" href="#__codelineno-28-3"></a><span class="c1"># Inspect Composition.ndjson for correct section[] content</span>
 </span></code></pre></div></p>
 </li>
 <li>
 <p><strong>Validation</strong>:
-   <div class="highlight"><pre><span></span><code><span id="__span-29-1"><a id="__codelineno-29-1" name="__codelineno-29-1" href="#__codelineno-29-1"></a>pytest<span class="w"> </span>tests/unit/test_fhir_composition.py<span class="w"> </span>-xvs
-</span><span id="__span-29-2"><a id="__codelineno-29-2" name="__codelineno-29-2" href="#__codelineno-29-2"></a>pytest<span class="w"> </span>-m<span class="w"> </span>integration<span class="w"> </span>-xvs<span class="w"> </span>tests/integration/test_fhir_reference_integrity.py
+   <div class="highlight"><pre><span></span><code><span id="__span-29-1"><a id="__codelineno-29-1" name="__codelineno-29-1" href="#__codelineno-29-1"></a>pytest<span class="w"> </span>tests/unit/output/test_fhir_composition.py<span class="w"> </span>-xvs
+</span><span id="__span-29-2"><a id="__codelineno-29-2" name="__codelineno-29-2" href="#__codelineno-29-2"></a>clinosim<span class="w"> </span><span class="nb">eval</span><span class="w"> </span>-d<span class="w"> </span>/tmp/us500<span class="w"> </span>--only-axes<span class="w"> </span>structural<span class="w">   </span><span class="c1"># includes the reference-integrity check</span>
 </span></code></pre></div></p>
 </li>
 </ol>

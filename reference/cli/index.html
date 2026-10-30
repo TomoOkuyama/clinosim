@@ -2864,13 +2864,13 @@ Writes a new narrative version to <code>&lt;cif&gt;/narratives/&lt;version_id&gt
 </tr>
 <tr>
 <td><code>--tasks LIST</code></td>
-<td>all Tier A+B</td>
-<td>Comma-separated <code>LLMTaskType</code> filter (<code>discharge_summary,death_summary,operative_note,admission_hp,procedure_note</code>)</td>
+<td>all registered types</td>
+<td>Comma-separated document-type filter (registry <code>type_key</code> values, e.g. <code>admission_hp,discharge_summary,operative_note,procedure_note,death_certificate</code>)</td>
 </tr>
 <tr>
 <td><code>--country CODE</code></td>
-<td><code>US</code></td>
-<td>Country code (display language)</td>
+<td>auto-detected</td>
+<td>Country code (display language). Read from <code>cif/metadata.json</code> when omitted; an explicit value that contradicts the CIF metadata fails loud.</td>
 </tr>
 <tr>
 <td><code>--set-current / --no-set-current</code></td>
@@ -2899,49 +2899,15 @@ Writes a new narrative version to <code>&lt;cif&gt;/narratives/&lt;version_id&gt
 </tr>
 </tbody>
 </table>
-<p><strong>Tier A+B document scope</strong> (default):</p>
-<table>
-<thead>
-<tr>
-<th>Document</th>
-<th>LOINC</th>
-<th>Generated when</th>
-<th>Frequency</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>Discharge Summary</td>
-<td><code>18842-5</code></td>
-<td>Every inpatient discharge</td>
-<td>1 per encounter</td>
-</tr>
-<tr>
-<td>Death Note</td>
-<td><code>69730-0</code></td>
-<td>Deceased inpatient</td>
-<td>1 per death</td>
-</tr>
-<tr>
-<td>Operative Note</td>
-<td><code>11504-8</code></td>
-<td>Surgical procedure (SNOMED 387713003)</td>
-<td>1 per surgery</td>
-</tr>
-<tr>
-<td>Admission H&amp;P</td>
-<td><code>34117-2</code></td>
-<td>Every inpatient admission</td>
-<td>1 per encounter</td>
-</tr>
-<tr>
-<td>Procedure Note</td>
-<td><code>28570-0</code></td>
-<td>Invasive bedside (central line, LP, thoracentesis, paracentesis, chest tube, intubation, bronchoscopy, cardioversion)</td>
-<td>1 per procedure</td>
-</tr>
-</tbody>
-</table>
+<p><strong>Document scope</strong> (default): every document type registered for the
+CIF's country in
+<code>clinosim/modules/document/narrative/registry.py::specs_for_country()</code> —
+13 types for US (admission H&amp;P, progress note, discharge summary,
+death discharge summary, death certificate, operative note, procedure
+note, three nursing documents, outpatient SOAP, ED note, ED triage
+note) and 18 for JP (the same 13 plus admission care plan, nutrition
+care plan, rehabilitation plan, referral note and health-checkup
+report).</p>
 <p>See <a href="../../clinical_documents/">../clinical_documents.md</a> for details.</p>
 <h2 id="clinosim-export-fhir--stage-3-fhir-r4-ndjson"><code>clinosim export-fhir</code> — Stage 3 (FHIR R4 NDJSON)<a class="headerlink" href="#clinosim-export-fhir--stage-3-fhir-r4-ndjson" title="Permanent link">&para;</a></h2>
 <p>Reads an existing CIF directory and writes FHIR R4 Bulk Data NDJSON
@@ -3117,8 +3083,8 @@ encounter YAML.</p>
 </tbody>
 </table>
 <h2 id="clinosim-list-diseases"><code>clinosim list-diseases</code><a class="headerlink" href="#clinosim-list-diseases" title="Permanent link">&para;</a></h2>
-<p>Show all 32 inpatient disease protocols
-(<code>clinosim/modules/disease/reference_data/*.yaml</code>) + 47 ED /
+<p>Show all 36 inpatient disease protocols
+(<code>clinosim/modules/disease/reference_data/*.yaml</code>) + 51 ED /
 outpatient encounter conditions
 (<code>clinosim/modules/encounter/reference_data/*.yaml</code>).</p>
 <h2 id="clinosim-enumerate--exhaustive-debug-issue-345"><code>clinosim enumerate</code> — exhaustive debug (Issue #345)<a class="headerlink" href="#clinosim-enumerate--exhaustive-debug-issue-345" title="Permanent link">&para;</a></h2>
@@ -3143,7 +3109,7 @@ sampling can leave rare patterns unfired even at large <code>-p</code>;
 <tr>
 <td><code>--level LEVEL</code></td>
 <td><code>full</code></td>
-<td><code>basic</code> (1 per scenario), <code>severity</code> (1 per scenario × severity), <code>full</code> (1 per disease × severity × course_archetype)</td>
+<td><code>basic</code> (1 per scenario), <code>severity</code> (1 per scenario × severity), <code>full</code> (1 per disease × severity × course_archetype, plus 1 per encounter × severity)</td>
 </tr>
 <tr>
 <td><code>--country CODE</code></td>

@@ -2535,7 +2535,7 @@ this document continue to hold.</p>
 <h2 id="scope">Scope<a class="headerlink" href="#scope" title="Permanent link">&para;</a></h2>
 <p>Acute-care hospital EHR/EMR data generation, <code>country=JP</code>.</p>
 <h3 id="6-information-items--5-profiles-pr1">6 information items / 5 profiles (PR1)<a class="headerlink" href="#6-information-items--5-profiles-pr1" title="Permanent link">&para;</a></h3>
-<p>JP-CLINS v1.13.0 publishes <strong>5 StructureDefinition profiles</strong> covering the "6 information items" domain concept — 傷病名 and 感染症 share the same <code>JP_Condition_eCS</code> profile (no separate infection profile), and DiagnosticReport is <strong>not</strong> in JP-CLINS scope (lab results are emitted only as Observation.LabResult).</p>
+<p>The "6 information items" domain concept maps onto <strong>5 JP-CLINS eCS StructureDefinition profiles</strong> — 傷病名 and 感染症 share the same <code>JP_Condition_eCS</code> profile (no separate infection profile), and DiagnosticReport is <strong>not</strong> in JP-CLINS scope (lab results are emitted only as Observation.LabResult).</p>
 <p>For every country=JP cohort, the following resource types carry the JP-CLINS eCS profile URL in <code>meta.profile[]</code> alongside the existing JP Core profile:</p>
 <table>
 <thead>
@@ -2573,16 +2573,53 @@ this document continue to hold.</p>
 </tr>
 </tbody>
 </table>
+<p>Further eCS profiles are asserted beyond the 6 information items (Issue #745 and the Patient / Organization emitters):</p>
+<table>
+<thead>
+<tr>
+<th>Resource</th>
+<th>JP-CLINS profile URL</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Patient</td>
+<td><code>.../JP_Patient_eCS</code></td>
+</tr>
+<tr>
+<td>Organization (the root <code>hospital-main</code> and the external referral hospitals; not the department Organizations)</td>
+<td><code>.../JP_Organization_eCS</code></td>
+</tr>
+<tr>
+<td>DocumentReference</td>
+<td><code>.../JP_DocumentReference_eCS</code></td>
+</tr>
+<tr>
+<td>Immunization</td>
+<td><code>.../JP_Immunization_eCS</code></td>
+</tr>
+<tr>
+<td>Device</td>
+<td><code>.../JP_Device_eCS</code></td>
+</tr>
+<tr>
+<td>DeviceUseStatement</td>
+<td><code>.../JP_DeviceUseStatement_eCS</code></td>
+</tr>
+</tbody>
+</table>
+<p>The resource-type → URL table lives in <code>clinosim/codes/data/fhir-profiles-jp-clins.yaml</code> and is applied by <code>_apply_jp_clins_profile</code> in <code>clinosim/modules/output/fhir_r4/post_process/profile.py</code> (Patient and those Organizations carry their eCS URL inline).</p>
 <p>URL root: <code>http://jpfhir.jp/fhir/eCS/StructureDefinition/</code></p>
 <p><strong>Filter:</strong></p>
 <ul>
 <li>Observation: only when <code>category.coding[].code == "laboratory"</code> — vital signs stay on the JP Core profile only.</li>
+<li>MedicationRequest: only when the resource can satisfy the eCS constraints (<code>dosageInstruction</code> min=1); discharge / outpatient-renewal prescriptions without dose or route stay on the JP Core profile only.</li>
 </ul>
 <p><strong>Not covered by JP-CLINS v1.13.0</strong> (emitted with JP Core profile only, no JP-CLINS URL added):</p>
 <ul>
 <li>DiagnosticReport (any category)</li>
 <li>Observation vital-signs / social-history / survey / imaging</li>
-<li>Encounter, Patient, Organization, Practitioner, Coverage, Immunization, FamilyMemberHistory, etc. (JP Core is the applicable base)</li>
+<li>Encounter, Practitioner, PractitionerRole, Coverage, FamilyMemberHistory, MedicationAdministration, etc. (JP Core is the applicable base)</li>
 </ul>
 <h2 id="example">Example<a class="headerlink" href="#example" title="Permanent link">&para;</a></h2>
 <div class="highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="p">{</span>
@@ -2595,7 +2632,7 @@ this document continue to hold.</p>
 </span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="w">  </span><span class="p">},</span>
 </span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="w">  </span><span class="nt">"medicationCodeableConcept"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
 </span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="w">    </span><span class="nt">"coding"</span><span class="p">:</span><span class="w"> </span><span class="p">[{</span>
-</span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a><span class="w">      </span><span class="nt">"system"</span><span class="p">:</span><span class="w"> </span><span class="s2">"urn:oid:1.2.392.100495.20.1.72"</span><span class="p">,</span>
+</span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a><span class="w">      </span><span class="nt">"system"</span><span class="p">:</span><span class="w"> </span><span class="s2">"http://capstandard.jp/iyaku.info/CodeSystem/YJ-code"</span><span class="p">,</span>
 </span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a><span class="w">      </span><span class="nt">"code"</span><span class="p">:</span><span class="w"> </span><span class="s2">"6113005F1023"</span><span class="p">,</span>
 </span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a><span class="w">      </span><span class="nt">"display"</span><span class="p">:</span><span class="w"> </span><span class="s2">"セフトリアキソンナトリウム注1g"</span>
 </span><span id="__span-0-14"><a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a><span class="w">    </span><span class="p">}]</span>
@@ -2606,7 +2643,7 @@ this document continue to hold.</p>
 <p>For every <code>country=JP</code> inpatient / icu / rehab_inpatient discharge encounter, clinosim emits a Composition resource that conforms to <code>JP_Composition_eDischargeSummary</code> (v1.13.0):</p>
 <ul>
 <li><code>Composition.meta.profile</code> includes <code>http://jpfhir.jp/fhir/eDischargeSummary/StructureDefinition/JP_Composition_eDischargeSummary</code></li>
-<li><code>Composition.type.coding[0].system</code> = <code>http://jpfhir.jp/fhir/Common/CodeSystem/doc-typecodes</code>, code = <code>18842-5</code>, display = <code>退院時サマリー</code>. The LOINC coding is retained as a secondary entry for interop with US tooling.</li>
+<li><code>Composition.type.coding[0].system</code> = <code>http://jpfhir.jp/fhir/Common/CodeSystem/doc-typecodes</code>, code = <code>18842-5</code>, display = <code>退院時サマリー</code> (single coding; no separate LOINC coding).</li>
 <li><code>Composition.section</code> is a single nested tree:</li>
 <li><strong>300</strong> 構造情報セクション<ul>
 <li><strong>312</strong> 入院理由セクション</li>
@@ -2614,9 +2651,14 @@ this document continue to hold.</p>
 <li><strong>342</strong> 入院時診断セクション</li>
 <li><strong>352</strong> 主訴セクション</li>
 <li><strong>360</strong> 現病歴セクション</li>
+<li><strong>333</strong> 入院中経過セクション</li>
+<li><strong>324</strong> 退院時詳細セクション</li>
+<li><strong>344</strong> 退院時診断セクション</li>
+<li><strong>444</strong> 退院時投薬指示セクション</li>
+<li><strong>424</strong> 退院時方針指示セクション</li>
 </ul>
 </li>
-<li><code>section.code.system</code> = <code>http://jpfhir.jp/fhir/clins/CodeSystem/jp-codeSystem-clins-document-section</code></li>
+<li><code>section.code.system</code> = <code>http://jpfhir.jp/fhir/clins/CodeSystem/document-section</code></li>
 <li><code>section.text.div</code> is generated by the template narrative pass in Japanese. β-JP-1 will optionally replace with LLM-generated content (drop-in seam).</li>
 </ul>
 <p><strong>US path unchanged.</strong> The English 6-section discharge summary Composition (<code>admission_summary</code> / <code>hospital_course</code> / <code>discharge_diagnoses</code> / <code>discharge_medications</code> / <code>discharge_instructions</code> / <code>follow_up</code>, LOINC-only type coding, no JP-CLINS URL) is emitted unchanged for <code>country=US</code>.</p>
@@ -2626,14 +2668,14 @@ this document continue to hold.</p>
 <ul>
 <li>Emission rate: 20% (empirical acute-care hospital benchmark), controlled by a stable hash of <code>(encounter_id, patient_id)</code> so the same seed produces the same referral-note-emitting subset (no new RNG allocation).</li>
 <li><code>Composition.meta.profile</code> includes <code>http://jpfhir.jp/fhir/eReferral/StructureDefinition/JP_Composition_eReferral</code></li>
-<li><code>Composition.type.coding[0]</code> = <code>{system: doc-typecodes, code: 57133-1, display: 診療情報提供書}</code>. LOINC coding retained as secondary.</li>
+<li><code>Composition.type.coding[0]</code> = <code>{system: doc-typecodes, code: 57133-1, display: 診療情報提供書}</code> (single coding; no separate LOINC coding).</li>
 <li><code>Composition.section</code> is a two-level tree:</li>
 <li>Top-level: <strong>920</strong> 紹介元 / <strong>910</strong> 紹介先 / <strong>300</strong> 構造情報</li>
 <li>Under 300: <strong>950</strong> 紹介目的 / <strong>340</strong> 傷病名・主訴 / <strong>360</strong> 現病歴</li>
 </ul>
 <p>Simulation approximations:
 - <strong>紹介元</strong> = this hospital (clinosim simulates a single facility).
-- <strong>紹介先</strong> = "他院" (generic placeholder; clinosim does not model inter-institution referral targets — future work could sample from a small pool of plausible receiving hospitals).
+- <strong>紹介先</strong> = an external hospital picked deterministically (sha256 of <code>(patient_id, encounter_id)</code>) from <code>clinosim/locale/jp/external_organizations.yaml</code>; each referenced hospital is emitted as its own <code>Organization</code> resource (<code>clinosim/modules/output/fhir_r4/documents/referral_orgs.py</code>).
 - <strong>紹介目的</strong> = deterministic pick from <code>{継続加療 / 精査依頼 / 他科紹介 / リハビリテーション継続}</code> per <code>encounter_id</code> hash.
 - <strong>傷病名・主訴</strong> = combines the encounter's diagnosis list (code + Japanese display) with the disease-YAML chief complaint.
 - <strong>現病歴</strong> = HPI derived from <code>disease_protocol.narrative.hpi_template</code> (same source as the discharge summary's present_illness section).</p>
@@ -2800,8 +2842,8 @@ portable な wrapper。事業所 ⇄ 保険者 ⇄ 実施機関 間の交換で 
 <p>Session 47 preflight review surfaced three items worth revisiting in future PRs. Status as of session 88k:</p>
 <ul>
 <li>✅ CLI verb <code>generate</code> → <code>simulate</code> rename with a deprecation alias — landed; <code>generate</code> remains as an alias in <code>clinosim/simulator/cli.py</code>.</li>
-<li>✅ <code>_JP_CORE_PROFILES</code> shape unification from <code>dict[str, str]</code> to <code>dict[str, list[str]]</code> — landed alongside the JP-CLINS eCS profile dispatch in <code>clinosim/modules/output/fhir_r4_adapter.py</code>.</li>
-<li>⏳ CIF <code>orders</code> list split into <code>medication_orders</code> / <code>lab_orders</code> (matches FHIR resource-type separation) — not landed; still a candidate.</li>
+<li>✅ <code>_JP_CORE_PROFILES</code> shape unification from <code>dict[str, str]</code> to <code>dict[str, list[str]]</code> — landed; the table has since moved to <code>clinosim/codes/data/fhir-profiles-jp-core.yaml</code> and is applied by <code>_apply_jp_core_profile</code> in <code>clinosim/modules/output/fhir_r4/post_process/profile.py</code>.</li>
+<li>⏳ CIF <code>orders</code> list split into <code>medication_orders</code> / <code>lab_orders</code> (matches FHIR resource-type separation) — the stored list is still <code>orders</code>; <code>CIFPatientRecord</code> only offers read-only <code>medication_orders</code> / <code>lab_orders</code> property views.</li>
 </ul>
 <p>Each is a small, independent refactor — best delivered as its own PR rather than folded into P2-13.</p>
 
