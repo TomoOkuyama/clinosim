@@ -605,9 +605,8 @@ def _build_encounter(
     # populated-ness (a reasonable heuristic) saw 0/703 IMP encounters as
     # populated. Fix pairs an EN-canonical `coding[0].display` (survives
     # HAPI validation on the HL7 CS) with a locale-appropriate `.text`
-    # slot per the dual-slot pattern (AGENTS.md /
-    # feedback_dual_slot_english_only_cs.md /
-    # feedback_dual_slot_at_emit_site_not_post_process.md).
+    # slot per the dual-slot pattern (AGENTS.md), set here at the emit
+    # site rather than in a post-process walker.
     hosp: dict[str, Any] = {}
     _emit_hospitalization = class_code != "AMB"
     _lang = resolve_lang(country)
@@ -686,7 +685,8 @@ def _build_encounter(
     if hosp:
         resource["hospitalization"] = hosp
 
-    # Service provider (department Organization in _facility.json)
+    # Service provider (department Organization ``dept-<department>``, emitted
+    # by facility.py's _build_facility_bundle into Organization.ndjson)
     # CY8-04 fix:department 未設定 encounter は
     # hospital-main を fallback として serviceProvider に emit。従来 79.6% →
     # 100% 化。department 名の "_" は "-" に normalize(既存 pattern)。

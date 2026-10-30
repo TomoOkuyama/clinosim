@@ -25,7 +25,7 @@ their state before the year's events are generated:
   ``clinical_status`` to ``resolved`` under the childhood resolution
   rate from ``allergens.yaml:aging``) and late-onset drug-sensitivity
   emergence (adds a new medication allergy with ``onset_date`` set).
-* Community mortality (Issue #2167) — after the per-person passes, each
+* Community mortality (Issue #2167) — before the per-person passes, each
   living person gets one forward draw for a death outside this hospital's
   inpatient stays (:mod:`clinosim.modules.population.mortality`). The
   hazard is the life-table qx scaled by the person's relative comorbidity
@@ -421,17 +421,21 @@ def advance_population(
 ) -> None:
     """Advance the population by one simulated year (Phase 2).
 
-    Called by the engine at the top of each year's iteration, before
-    that year's monthly events are generated. Walks every alive person
-    and runs the four aging passes with per-(person, year, pass) sub-
-    RNGs so each pass stays stream-isolated across runs with the same
-    global seed.
+    Called by the forward loop at each year boundary, before that
+    year's monthly events are generated. For every person alive on
+    1 January it runs, in order: one community-mortality draw
+    (:func:`draw_community_death`) over the part of the year inside the
+    simulation window; the two aging passes (:func:`_stroke_sequela_promotion`,
+    :func:`_allergy_drift`); and the longitudinal engine's
+    ``advance_one_year`` step (chronic onset and stage progression).
+    Each step uses its own per-(person, year, step) sub-RNG so it stays
+    stream-isolated across runs with the same global seed.
 
     ``registry`` is typed as ``object`` to avoid a cyclic import with
     ``clinosim.modules.population.engine``; the runtime guard narrows
-    it. ``locale`` keys into the chronic-incidence table derived from
-    ``locale/{locale}/demographics.yaml:chronic_prevalence`` — the
-    single source of truth also used by the initial-cohort sampler.
+    it. ``locale`` selects the life-table qx and community death share
+    used by the mortality draw, and is passed through to the aging
+    passes.
 
     Newborns registered mid-sim become part of ``registry.persons``
     during the dispatch loop (Issue #1596 Step 2); the next-year

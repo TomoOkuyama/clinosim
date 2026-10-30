@@ -20,14 +20,15 @@ dict. ``complication_names`` returns the plain names for legacy code
 paths (validator set-membership, CSV export) that do not yet consume
 onset information.
 
-Producers (2026-09-22 audit):
+Producers (all via ``build_complication``):
   * ``simulator/daily_loop.py`` — ``daily_loop`` complications
-  * ``simulator/engine.py::_merge_disease_into_active_encounter`` —
+  * ``simulator/_dispatch.py::_merge_disease_into_active_encounter`` —
     ``in_hospital_new_disease``
-  * ``simulator/engine.py::_run_deterministic_enumeration`` —
-    ``scenario_forced``
-  * ``modules/diagnosis/lab_derived_dx.py`` — ``lab_derived``
+  * ``simulator/engine.py::run_forced`` — ``scenario_forced``
 
+``lab_derived`` is an accepted source with no current producer:
+``modules/diagnosis/lab_derived_dx.py`` appends its lab-derived AKI to
+``clinical_diagnosis.working_diagnoses``, not to ``complications_occurred``.
 The ``legacy`` source is reserved for entries synthesised on read from
 pre-Phase-1 bare-string CIF JSON.
 """

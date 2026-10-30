@@ -2,9 +2,12 @@
 
 For each patient record, look up every drug in ``patient.current_medications``
 against ``medication_monitoring.yaml`` and inject the standard-of-care
-monitoring labs the drug requires. Currently ships one lab per eligible
-encounter (MVP scope, closes the immediate #736 gap); frequency scheduling
-is deferred to a follow-up PR under META #757.
+monitoring labs the drug requires into the record's target encounter (the
+first outpatient encounter, else the first encounter).
+
+Scheduling (Issue #2143): records are walked per patient in time order and
+the last draw of each analyte is remembered; a lab is skipped when it was
+drawn (ordered or resulted) within its yaml ``interval_months``.
 
 Determinism:
 
@@ -13,8 +16,9 @@ Determinism:
   touched (matches the ``care_level`` / ``family_history`` pattern).
 - Per-order noise draws use ``individual_lab_seed(order_id)`` — identical
   isolation to ``outpatient.py`` and ``inpatient.py`` Pass 1 (AD-16).
-- The synthetic order_id is content-derived (``<encounter_id>-MED-MON-<idx>``),
-  so it stays stable across repeated runs on the same seed.
+- The synthetic order_id is content-derived
+  (``ORD-<encounter_id>-MED-MON-<NN>``), so it stays stable across repeated
+  runs on the same seed.
 
 Dedup:
 

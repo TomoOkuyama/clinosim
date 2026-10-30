@@ -1,7 +1,9 @@
 """Triage CIF dataclass.
 
-Stored on ``EncounterRecord.triage_data`` and consumed by the FHIR
-builder and the ``ED_TRIAGE_NOTE`` narrative generator.
+Stored on ``Encounter.triage_data`` (``clinosim/types/encounter.py``) by the
+triage enricher (``clinosim/modules/triage/engine.py``) and consumed by the
+``ED_TRIAGE_NOTE`` renderer and the ED note triage section
+(``clinosim/modules/document/narrative/renderers/``).
 ``level_system`` is ``"JTAS"`` (JP) or ``"ESI"`` (US), locale-gated.
 """
 

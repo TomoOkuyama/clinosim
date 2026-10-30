@@ -427,11 +427,11 @@ def register_builtin_enrichers() -> None:
     # Fires only on records whose ``condition_event.condition_type ==
     # "newborn_birth"`` (perinatal.py stamp); non-newborn records no-op.
     # This PR's slice: Vitamin K prophylaxis (JP oral × 2 / US IM × 1).
-    # Order 92 places it between the encounter-level enrichers (device 70
-    # → hai 80 → prophylaxis 75 → antibiotic 85 → imaging 90 → triage 93 →
-    # nursing_assignment 94) and the document enricher (95) so any
-    # downstream narrative that references Vitamin K administration has
-    # the MAR entry in hand.
+    # Order 92 places it after device 70 → prophylaxis 75 → hai 80 →
+    # antibiotic 85 → imaging 90 → discontinue_flip 91, before triage 93 →
+    # lab_derived_dx / nursing_assignment 94, and before the document
+    # enricher (95) so any downstream narrative that references Vitamin K
+    # administration has the MAR entry in hand.
     from clinosim.modules.newborn import enrich_newborn
 
     register_enricher(
@@ -476,8 +476,9 @@ def register_builtin_enrichers() -> None:
     # ``record.lab_results`` and appends into
     # ``clinical_diagnosis.working_diagnoses``; the existing FHIR emit path
     # (conditions.py working_diagnoses walker added in Issue #1307) renders
-    # the paired Condition without any new emit code. RNG-free. Order 94.5
-    # (between nursing_assignment 94 and document 95) so downstream
+    # the paired Condition without any new emit code. RNG-free. Order 94
+    # (ties with nursing_assignment 94; the (order, name) sort runs
+    # lab_derived_dx first) and before document 95, so downstream
     # narratives / diagnostic text can reference the derived Dx.
     from clinosim.modules.diagnosis.lab_derived_dx import enrich_lab_derived_dx
 

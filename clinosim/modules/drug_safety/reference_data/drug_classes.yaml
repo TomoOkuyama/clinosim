@@ -4,16 +4,16 @@
 #
 # Class taxonomy (dot-notated: family.subfamily):
 #   anticoagulant.{vka, doac, heparin}
-#   antiplatelet.{cox_inhibitor, p2y12, gp2b3a}
-#   nsaid.{non_selective, cox2_selective}
+#   antiplatelet.{cox_inhibitor, p2y12}
+#   nsaid.{non_selective, preferential_cox2, cox2_selective}
 #   ccb.{dhp, non_dhp}
 #   beta_blocker.{cardioselective, non_selective}
 #   acei | arb | acei_arb (union tag on both)
 #   potassium_supplement, electrolyte_supplement
-#   diuretic.{loop, thiazide, k_sparing}
-#   statin, cyp3a4_substrate, cyp3a4_inhibitor_strong
+#   diuretic.{loop, k_sparing}
+#   statin, biguanide, cyp3a4_substrate, cyp3a4_inhibitor_strong
 #   xanthine_oxidase_inhibitor, thiopurine, immunosuppressant
-#   ssri, snri, maoi, antidepressant, antiparkinsonian
+#   ssri, snri, maoi, atypical_antidepressant, antidepressant, antiparkinsonian
 #   benzodiazepine, anxiolytic
 #   analgesic.non_opioid, macrolide
 #   antihypertensive, antiarrhythmic.class4

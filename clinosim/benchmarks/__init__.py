@@ -17,8 +17,8 @@ Public entry points:
 - :func:`extract_sepsis_labels`(cif_dir) -> list[LabelRow]
 - :func:`extract_aki_labels`(cif_dir) -> list[LabelRow]
 - :func:`majority_baseline`(labels) -> BaselineReport
-- :func:`lactate_threshold_baseline`(labels, records) -> BaselineReport (sepsis-only)
-- :func:`creatinine_delta_baseline`(labels, records) -> BaselineReport (aki-only)
+- :func:`lactate_threshold_baseline`(labels, threshold=2.0) -> BaselineReport (sepsis-only)
+- :func:`creatinine_delta_baseline`(labels, threshold=0.3) -> BaselineReport (aki-only)
 - :func:`compute_auroc`(y_true, y_score) -> float
 
 Not included (intentional scope):

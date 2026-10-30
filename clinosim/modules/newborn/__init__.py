@@ -3,12 +3,20 @@
 Emits the clinical events every real neonatal chart carries during the
 birth admission that no other module owns:
 
-* Vitamin K prophylaxis — this PR's slice.
-* Apgar score at 1 min / 5 min — reserved for follow-up (#1252 N4).
-* AABR hearing screen — reserved (#1252 N5).
-* Tandem-MS metabolic mass screen — reserved (#1252 N6).
-* Bilirubin monitoring / CCHD SpO2 screen / ophthalmic prophylaxis —
-  reserved (#1252 N7).
+* Vitamin K prophylaxis (JP oral, US IM) — MAR entries.
+* Shift-cadence vital signs across the birth admission.
+* Apgar score at 1 min / 5 min (#1252 N4).
+* AABR hearing screen (#1252 N5) — Procedure.
+* Tandem-MS metabolic mass screen (#1252 N6) — Procedure plus the
+  ServiceRequest / Specimen / DiagnosticReport workflow data.
+* Transcutaneous bilirubin, CCHD SpO2 screen (#1252 N7) — Observations.
+* Erythromycin ophthalmic prophylaxis (#1252 N7, US only) — MAR entry.
+
+Vitamin K, shift vitals and ophthalmic prophylaxis follow a fixed schedule
+from ``reference_data/newborn_screening.yaml``. Apgar scores, screen
+outcomes, bilirubin and SpO2 values are sampled from that yaml's
+distributions with per-newborn sub-RNGs seeded by
+``sha256(<salt>|patient_id|…)``, so the master RNG is never touched.
 
 Firing gate: `condition_event.condition_type == "newborn_birth"`,
 stamped by `simulator/perinatal.py` on the baby-side CIF record. Non-

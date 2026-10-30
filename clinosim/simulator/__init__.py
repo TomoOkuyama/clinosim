@@ -6,7 +6,7 @@ Public API:
   run_alpha(config)      — backward-compatible single patient
 
 CLI:
-  clinosim generate -p 10000 -o ./output --format cif csv fhir
+  clinosim simulate -p 10000 -o ./output --format cif csv fhir
   clinosim test-disease bacterial_pneumonia --archetype treatment_resistant -n 5
 """
 

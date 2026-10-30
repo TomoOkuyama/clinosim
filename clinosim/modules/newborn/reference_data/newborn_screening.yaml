@@ -14,10 +14,11 @@
 #     birth; hearing screen before discharge; CCHD SpO2 screen at
 #     ≥ 24 h; state-varying metabolic panel at day 2-3).
 #
-# Scope of this file
-#   * Vitamin K prophylaxis — implemented.
-#   * Apgar, hearing screen, metabolic screen, bilirubin, CCHD SpO2,
-#     ophthalmic prophylaxis — reserved slots for follow-up PRs.
+# Scope of this file (all read by clinosim/modules/newborn/engine.py)
+#   * Vitamin K prophylaxis, shift vitals, ophthalmic prophylaxis —
+#     fixed schedules.
+#   * Apgar, hearing screen, metabolic screen, bilirubin, CCHD SpO2 —
+#     schedules plus the distributions the engine samples from.
 
 # Transcutaneous bilirubin (TcB) monitoring during birth admission
 # (#1252 N7). Standard practice — bilirubinometer reading every day
@@ -87,9 +88,9 @@ ophthalmic_prophylaxis:
 # congenital hypothyroidism, MCAD, etc.). Universal in JP since 2014
 # (厚生労働省 タンデムマス・スクリーニング事業) and US state-level
 # since 2005 (Wilson & Junger criteria expansion). Detection rate
-# ~0.1-0.3 % of newborns; 99 %+ pass. This PR (N6) emits only the
-# Procedure event for the collection; ServiceRequest + Specimen +
-# DiagnosticReport for the full workflow is a follow-up scope.
+# ~0.1-0.3 % of newborns; 99 %+ pass. The engine emits a Procedure for
+# the collection plus ServiceRequest / Specimen / DiagnosticReport data
+# for the full workflow (#1252 N6b).
 metabolic_screen:
   # Days after birth admission start for the heel-stick collection.
   # Per-locale — different birth-admission LOS forces different
@@ -144,8 +145,7 @@ metabolic_screen:
     # text-only (no SNOMED code) because verified codes for
     # "heel structure" / "heel-stick collection" are not readily
     # available on the terminology servers used elsewhere in the
-    # codebase; per the `feedback_verify_fhir_profile_uri_from_spec`
-    # rule we ship honest text rather than a fabricated coding.
+    # codebase, so we ship honest text rather than an unverified coding.
     body_site_text_en: "Heel"
     body_site_text_ja: "踵"
     collection_method_text_en: "Heel-stick capillary blood collection"

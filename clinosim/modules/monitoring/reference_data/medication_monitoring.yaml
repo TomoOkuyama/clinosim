@@ -22,9 +22,8 @@
 # and read by behavior parsers (`_sr_intent_from_clinical_intent`, etc.).
 #
 # Adding a new drug → labs pair is a pure YAML edit; no code change required.
-# Frequency / scheduling knobs (daily vs monthly, induction vs maintenance)
-# are NOT in the schema yet — pass 2 of Issue #757 ships one injection per
-# eligible encounter. Follow-up PRs will introduce `frequency:` handling.
+# Draw frequency is controlled per lab by `interval_months` (below); there is
+# no induction-vs-maintenance distinction.
 
 # interval_months (Issue #2143): minimum months between draws of the lab for
 # a patient on the drug; the enricher skips an encounter when the lab was

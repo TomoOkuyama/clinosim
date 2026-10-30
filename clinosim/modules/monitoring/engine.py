@@ -12,30 +12,30 @@ schedule) do not fire every time.
 
 - **Data-driven**: mapping lives in ``reference_data/med_lab_mapping.yaml``
   so adding a new (medication, lab) pair requires only a YAML edit,
-  never a code change (feedback_constants_live_in_external_config).
+  never a code change.
 - **Post-hoc composition**: the returned labs are merged INTO the
   visit's ``visit_labs`` list by the caller; the existing lab emit
   loop then treats them identically to any other visit lab, including
   the ``BASELINE_LAB_NORMALS`` / ``derive_lab_values`` gate that
   silent-drops unknown analytes (rule that #957 slice 1 also
   respected).
-- **Deterministic under a supplied rng**: the caller passes its
-  ``ev_rng`` so the same seed yields the same lab set. Adding this
-  hook DOES shift the master-rng stream (a real behavioural change,
-  not a byte-drift bug) — the rule ``feedback_rng_shift_patient_cache_cascade``
-  documents that such shifts are acceptable for a scoped clinical fix
-  and require a cohort-level MINOR-version bump.
+- **Deterministic under a supplied rng**: the caller
+  (``simulator/phases/_healthcare_calendar.py``) passes the visit's
+  ``ev_rng``, a per-event ``derive_phase_rng`` sub-seed, so the same seed
+  yields the same lab set. The ``per_visit_probability`` draws consume
+  that visit's stream only; no shared master RNG is read.
 
-## Not in scope for this pass
+## Scope of this path
 
-- Inpatient / ED med-driven monitoring (needs a different integration
-  point — see #757 for the sibling scope).
-- Cadence tracking (last-INR-date driven scheduling). This pass uses a
-  probability approximation of visit-cadence * lab-cadence; a true
-  chronological state machine is deferred.
-- Digoxin / lithium / immunosuppressant level monitoring — the mapping
-  YAML is intentionally started small (warfarin / levothyroxine / DM);
-  each addition needs its own baseline-normal + reference-range coverage.
+- Chronic follow-up visits only. Monitoring labs on other encounters
+  (including inpatient / ED records) come from the separate POST_RECORDS
+  enricher (``enricher.py``, ``reference_data/medication_monitoring.yaml``).
+- Cadence here is a probability approximation of visit-cadence *
+  lab-cadence; there is no last-draw-date tracking on this path (the
+  enricher path tracks ``interval_months`` per analyte).
+- The mapping covers warfarin, levothyroxine, metformin, insulin,
+  digoxin, statins, ACE-I/ARB/diuretics, lithium, tacrolimus and
+  ciclosporin; see the yaml for the labs of each entry.
 """
 
 from __future__ import annotations

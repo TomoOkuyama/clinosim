@@ -1,6 +1,7 @@
 """drug_safety engine — check_pair, check_candidate_against_active, suggest_alternative.
 
-The disease_ctx branch of suggest_alternative is wired in Task 5.
+The disease_ctx branch of suggest_alternative reads disease-YAML
+alternatives via ``disease.protocol.alternatives_by_indication``.
 """
 
 from __future__ import annotations
@@ -312,7 +313,7 @@ def suggest_alternative(
     """Pick a conflict-free alternative for ``candidate`` given ``indication``.
 
     Priority order:
-      1. disease_ctx alternatives (wired in Task 5) matching ``indication``
+      1. disease_ctx alternatives (``alternatives_by_indication``) matching ``indication``
       2. locale/shared/drug_substitution.yaml[indication].alternatives
       3. None (fully skipped — caller must handle)
 
@@ -322,7 +323,7 @@ def suggest_alternative(
     if indication is None:
         return None
 
-    # Disease-YAML branch — Task 5 wires this to alternatives_by_indication().
+    # Disease-YAML branch — alternatives_by_indication() on the disease protocol.
     if disease_ctx is not None:
         try:
             from clinosim.modules.disease.protocol import alternatives_by_indication
