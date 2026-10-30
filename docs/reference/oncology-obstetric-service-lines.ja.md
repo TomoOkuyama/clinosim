@@ -33,7 +33,7 @@
 | 男性乳がん (C50 全体の ~1 %) | 女性 primary + 男性 augmentation | `chronic_prevalence.C50.by_sex` (§3.2) |
 | がん follow-up 外来訪問 | 四半期毎、部位別 visit reason + labs (腫瘍マーカー + basic panel) + 処方 renewal | `locale/shared/chronic_followup.yaml` |
 | 腫瘍マーカー labs | CEA / CA19-9 / AFP / PIVKA-II / CA15-3 / PSA — 基準範囲 + baseline 正常値 | `locale/<c>/reference_range_lab.yaml` + `modules/observation/engine.py::BASELINE_LAB_NORMALS` |
-| 放射線治療 Procedure emit | K001 / M001 / M001-2 / M001-3、`radiation_therapy_eligible` フラグの立ったがんの follow-up visit の ~40 % で発火 | `simulator/outpatient.py` (慢性 follow-up visit 内) |
+| 放射線治療 Procedure emit | JP `M001` (体外照射) / US CPT `77412` (`chronic_followup.yaml::_radiation_therapy`)、`radiation_therapy_eligible` フラグの立ったがんの follow-up visit の ~40 % で発火 | `simulator/outpatient.py` (慢性 follow-up visit 内) |
 | サイクル型化学療法 | Regimen library (FOLFOX q14d / CarboPem q21d / Trastuzumab q3w / LHRH q28d / GemNabP q28d / BCG 膀胱内注入 q7d / Temozolomide Stupp q28d)、C15 / C16 / C18 / C25 / C34 / C50 / C61 / C67 / C71 に割当 (C22 は regimen なし) → 正しいケイデンスの `chemo_visit` encounter + 投与 Procedure | `locale/shared/chemo_regimens.yaml` + `population/_chemo.py::_chemo_cycle_events` + `simulator/outpatient.py::_simulate_outpatient_visit` の chemo 分岐 |
 | サイクル毎 chemo 薬 order | 各 `chemo_visit` で regimen の `cycle_orders` に列挙された薬剤ごとに `MedicationRequest` + `MedicationAdministration` を 1 件ずつ emit (`order_id` 一致) | `simulator/outpatient.py` chemo 分岐 (Order emit) |
 | 経口 chemo (毎日 home meds) | Capecitabine / Tamoxifen / Anastrozole / Bicalutamide / Sorafenib / Lenvatinib / Osimertinib | `locale/shared/chronic_medications.yaml` (変更なし; 経口 chemo は毎日 home med として正しい) |

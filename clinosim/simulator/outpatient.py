@@ -11,7 +11,7 @@ import numpy as np
 from clinosim import determinism
 from clinosim.codes import system_key_for
 from clinosim.codes.hl7_encounter import ActPriority, AdmitSource, DischargeDisposition
-from clinosim.locale.loader import load_ambulatory_visit_length
+from clinosim.locale.loader import load_ambulatory_visit_length, load_chronic_followup
 from clinosim.modules.encounter.engine import create_inpatient_encounter
 from clinosim.modules.observation.engine import (
     canonical_lab_name,
@@ -239,6 +239,15 @@ def _sample_ambulatory_visit_length_minutes(
     return max(1, minutes)
 
 
+def radiation_therapy_code(country: str) -> str:
+    """Billing code of an external-beam radiation-therapy session for ``country``
+    (``_radiation_therapy`` in ``chronic_followup.yaml``; Issue #2200)."""
+    from clinosim.modules._shared import is_jp
+
+    cfg = load_chronic_followup().get("_radiation_therapy") or {}
+    return str(cfg.get("jp_code" if is_jp(country) else "us_code") or "")
+
+
 def _simulate_outpatient_visit(
     patient: PatientProfile,
     visit_type: str,
@@ -274,8 +283,6 @@ def _simulate_outpatient_visit(
         chief = resolve_text(raw_chief, country=country)
     elif post_discharge_disease:
         # Look up disease-specific post-discharge reason
-        from clinosim.locale.loader import load_chronic_followup
-
         fu = load_chronic_followup()
         disease_fu = fu.get("_post_discharge_by_disease", {}).get(post_discharge_disease, {})
         # Fallback dict (en/ja) — snake_case leak fix (#1182): the previous
@@ -921,8 +928,9 @@ def _simulate_outpatient_visit(
         # Fire on ~40 % of follow-up visits (approximate: active RT course
         # is a subset of the follow-up window, real cadence is 5x/week for
         # 5-7 weeks then off, folded into a per-visit probability here).
-        if _rt_rng.random() < 0.4:
-            _rt_code = "M001-2"  # 3D-CRT is the modern default for most sites
+        _rt_cfg = load_chronic_followup().get("_radiation_therapy") or {}
+        if _rt_rng.random() < float(_rt_cfg.get("visit_probability", 0.4)):
+            _rt_code = radiation_therapy_code(country)
             _rt_start = visit_date + timedelta(minutes=OUTPATIENT_LAB_ORDER_OFFSET_MIN)
             procedures_list.append(
                 ProcedureRecord(
@@ -931,10 +939,10 @@ def _simulate_outpatient_visit(
                     encounter_id=encounter.encounter_id,
                     procedure_type="radiation_therapy",
                     procedure_code=_rt_code,
-                    procedure_code_jp=_rt_code,
-                    procedure_code_us="",
+                    procedure_code_jp=str(_rt_cfg.get("jp_code") or ""),
+                    procedure_code_us=str(_rt_cfg.get("us_code") or ""),
                     start_datetime=_rt_start,
-                    end_datetime=_rt_start + timedelta(minutes=20),
+                    end_datetime=_rt_start + timedelta(minutes=int(_rt_cfg.get("duration_minutes", 20))),
                     primary_surgeon_id=encounter.attending_physician_id,
                 )
             )

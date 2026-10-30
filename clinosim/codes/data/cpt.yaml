@@ -77,6 +77,9 @@ codes:
   '74176':
     en: Computed tomography, abdomen and pelvis; without contrast material
     ja: 腹部・骨盤CT（造影なし）
+  '77412':
+    en: Radiation treatment delivery, complex (external beam)
+    ja: 放射線治療（体外照射、複雑）
   '90935':
     en: Hemodialysis procedure with single evaluation by a physician
     ja: 血液透析（医師による1回評価）

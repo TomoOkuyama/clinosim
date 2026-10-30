@@ -62,7 +62,9 @@ engine が使っていた scalar は全て inline から companion
   の `procedure` block。`simulate_surgery` を経由しない。
 - **放射線治療 Procedure** — `locale/shared/chronic_followup.yaml` で
   `radiation_therapy_eligible: true` の follow-up 受診の約 40 % に
-  JP code `M001-2` (3D-CRT) で付与 (Issue #957)。
+  JP code `M001` (体外照射) / US CPT `77412` (放射線治療・複雑) で付与
+  (Issue #957、コードは `chronic_followup.yaml` の `_radiation_therapy`、
+  #2200)。
   [`clinosim/simulator/outpatient.py`](../../simulator/outpatient.py)
   が encounter hash の RNG で inline emit。`simulate_surgery` を
   経由しない。

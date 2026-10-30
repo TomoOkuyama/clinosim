@@ -132,12 +132,14 @@ codes:
   # Cancer-follow-up patients on active radiation therapy emit these
   # procedure codes via the outpatient chronic-followup dispatch when
   # the cancer entry declares ``radiation_therapy_eligible: true``.
+  # M001 covers X-ray superficial, high-energy (3D-CRT) and IMRT as
+  # sub-items; M001-2 and M001-3 are the stereotactic techniques (#2200).
   M001:
-    en: External beam radiation therapy (simple)
-    ja: 体外照射（単純）
+    en: External beam radiation therapy
+    ja: 体外照射
   M001-2:
-    en: External beam radiation therapy (3D-CRT)
-    ja: 体外照射（IMRT・3D-CRT等）
+    en: Gamma Knife stereotactic radiotherapy
+    ja: ガンマナイフによる定位放射線治療
   M001-3:
-    en: External beam radiation therapy (IMRT)
-    ja: 強度変調放射線治療（IMRT）
+    en: Linear accelerator stereotactic radiotherapy
+    ja: 直線加速器による放射線治療
