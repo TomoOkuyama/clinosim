@@ -12,20 +12,8 @@ data-completeness verification".
 
 from __future__ import annotations
 
-import re
 from functools import cache
 from pathlib import Path
-
-# FHIR R4 `Resource.id` type: `[A-Za-z0-9\-\.]{1,64}`. iris4h-ai P0 finding
-# (2026-07-17): 812,606 ids across the export violated this spec — `_` in id
-# and >64 char ids were rejected by IRIS FHIR endpoint with HTTP 400. HAPI
-# validator is more lenient but the FHIR spec is strict. The regex here is the
-# single source of truth for the pattern — every writer path routes ids
-# through it, and any non-conforming id logs a warning (fail-soft: the write
-# still succeeds so a bug in a single builder does not break the whole export,
-# but the log lets the audit CI catch regressions).
-_FHIR_ID_PATTERN = re.compile(r"^[A-Za-z0-9\-\.]{1,64}$")
-
 
 # deferred cleanup (g): shape unification.
 # JP Core registry uses `dict[str, list[str]]` (was `dict[str, str]`) so its

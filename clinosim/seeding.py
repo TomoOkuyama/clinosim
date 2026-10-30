@@ -288,16 +288,16 @@ ENRICHER_SEED_OFFSETS = {
     "family_history": 0x4648,  # "FH"
     "care_level": 0x434C,  # "CL"
     "nursing": 0x4E55,  # "NU"
-    "device": 0x4445,  # "DE" (PR-A)
+    "device": 0x4445,  # "DE" (PR-A) — reserved; placement is deterministic (#2208)
     "hai": 0x4841,  # "HA" (PR-B)
-    "antibiotic": 0x4142,  # "AB" (PR3b-1)
+    "antibiotic": 0x4142,  # "AB" (PR3b-1) — reserved; the enricher draws no RNG
     "imaging": 0x4947,  # "IG" (Tier 1 #2 PR1, imaging chain)
     "allergy": 0x414C,  # "AL" (Tier 1 #3 α-min-1 PR1, allergy module)
-    "document": 0x444F,  # "DO" (Tier 1 #3 α-min-1 PR1, document module)
+    "document": 0x444F,  # "DO" (Tier 1 #3 α-min-1 PR1) — reserved; document stubs draw no RNG
     "triage": 0x5452,  # "TR" (Tier 1 #3 α-min-2 PR1, triage module)
     "health_checkup": 0x4843,  # "HC" (per-patient checkup lab sampling)
     "medication_monitoring": 0x4D4D,  # "MM" (#757 chronic-med → monitoring lab pairs)
-    "prophylaxis": 0x5052,  # "PR" (#1071 B6 DVT chemoprophylaxis for IMP ≥ 48h)
+    "prophylaxis": 0x5052,  # "PR" (#1071 B6) — reserved; the rule engine draws no RNG
 }
 
 assert len(set(ENRICHER_SEED_OFFSETS.values())) == len(ENRICHER_SEED_OFFSETS), (

@@ -92,12 +92,6 @@ Python API はありません。`__init__.py` は意図的に空。consumer は
 
 - `lab_frequency_multiplier` (JP: 1.3、US: 0.8) — 国の実践パターンに
   合わせた per-day 検査オーダー率スケーリング。
-- `discharge_criteria` (JP: `lab_normalization`、US:
-  `functional_recovery`) — 退院エンジンが監視するゲート。
-- `target_los_multiplier` (JP: 1.0、US: 0.35) — 国の典型的 LOS
-  スケーリング。
-- コードシステムデフォルト (診断: ICD-10-CM 対 ICD-10、薬剤:
-  RxNorm 対 YJ、手技: CPT 対 K-codes)。
 
 ### `llm_service.yaml` とプロバイダ override
 

@@ -120,7 +120,7 @@ fragment builder のみを移し、`_bb_*` 登録は inline_bb に残した。
   `OUTPATIENT_RX_ID_PREFIX = "rxopd-"`、MedicationAdministration は
   `MEDICATION_ADMINISTRATION_ID_PREFIX = "mar-"`。
   [`antibiotic`](../../../antibiotic/README.ja.md) module は regimen を
-  `ABX_ORDER_REQ_PREFIX` / `ABX_NARROW_SUFFIX` で追加 emit する
+  `ABX_ORDER_REQ_PREFIX` で追加 emit する
   ([`antibiotic/engine.py`](../../../antibiotic/engine.py))。
 - **Terminology system** (`MedicationRequest` metadata 用 HL7
   CodeSystem):

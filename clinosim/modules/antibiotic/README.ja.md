@@ -128,8 +128,8 @@ from clinosim.modules.antibiotic.enricher import enrich_antibiotic  # POST_ENCOU
   Issue #637) — enricher の `_narrow_dose_frequency` が返す薬剤別
   (dose_string, frequency) pair。
 - **FHIR ID prefix** (`engine.py`) — `ABX_REGIMEN_ID_PREFIX`,
-  `ABX_ORDER_REQ_PREFIX`, `ABX_ORDER_ID_PREFIX` (`ABX_NARROW_SUFFIX`
-  は定義が残るが付与されなくなった — narrowed regimen は
+  `ABX_ORDER_REQ_PREFIX`, `ABX_ORDER_ID_PREFIX` (以前の
+  `ABX_NARROW_SUFFIX` は削除した、#2208 — narrowed regimen は
   `abx-{hai_id}-{slug}` で、intent は `medication_intent="narrowed"`
   で表す)。
   `_check_fhir_id_length` が全 emission site で FHIR `id`

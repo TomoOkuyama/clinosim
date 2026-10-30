@@ -1,7 +1,7 @@
 """Pure functions for the device module (AD-55).
 
-place_devices_for_encounter takes a CIFPatientRecord + Encounter +
-sub-rng and returns a list of DeviceRecord for that encounter,
+place_devices_for_encounter takes a CIFPatientRecord + Encounter and
+returns a list of DeviceRecord for that encounter (deterministic; no RNG),
 honouring devices.yaml placement criteria. State unchanged
 (BNP-pattern surgical principle).
 
@@ -18,7 +18,6 @@ from functools import lru_cache
 from pathlib import Path
 from typing import Any
 
-import numpy as np
 import yaml
 
 from clinosim.types.clinical import PhysiologicalState
@@ -113,7 +112,6 @@ def _peak_state_for_encounter(record: CIFPatientRecord, encounter: Encounter) ->
 def place_devices_for_encounter(
     record: CIFPatientRecord,
     encounter: Encounter,
-    rng: np.random.Generator,
     devices_config: dict[str, Any],
 ) -> list[DeviceRecord]:
     """Return DeviceRecord list for a single encounter.

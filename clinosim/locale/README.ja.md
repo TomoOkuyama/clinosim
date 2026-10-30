@@ -44,7 +44,6 @@ from clinosim.locale.loader import (
     load_reference_ranges,          # (country) -> dict[str, Any]
     load_identity_config,           # (country) -> dict[str, Any]
     load_naming_rules,              # (country) -> dict[str, Any]
-    load_terminology,               # (domain, country) -> dict[str, str] (legacy、下記参照)
     load_code_mapping,              # (domain, country) -> dict[str, str]
     load_chronic_medications,       # () -> dict[str, Any] (shared)
     load_chronic_followup,          # () -> dict[str, Any] (shared)
@@ -63,9 +62,7 @@ from clinosim.locale.text import (
 (`clinical.py` / `demographics.py` / `fhir_identity.py` /
 `medical_display.py` / `narrative.py`) にある。
 
-`load_terminology` は legacy: `<country>/terminology_<domain>.yaml` を
-読むが、該当ファイルはもう同梱されていないので `{}` を返す。表示名は
-`clinosim/codes/` に移った。`load_med_terms_ja` は `load_med_terms` の
+表示名は `clinosim/codes/` にある。`load_med_terms_ja` は `load_med_terms` の
 `ja` のみ view (deprecated)。`load_code_mapping("drug", country)` は
 `<country>/code_mapping_drug.yaml` と薬剤 identity カタログ
 `clinosim/codes/data/drugs.yaml` を union する (キー衝突時は yaml 優先)。

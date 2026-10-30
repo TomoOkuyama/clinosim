@@ -27,16 +27,11 @@ class HealthcareSystemConfig(BaseModel):
 
     country: str  # "JP" | "US"
 
-    # Clinical practice
+    # Clinical practice: scales the daily lab-order frequency. The former
+    # discharge_criteria / target_los_multiplier / *_code_system fields were
+    # read by no code and are removed (#2208); code systems are chosen per
+    # country in clinosim/codes and LOS comes from the disease protocols.
     lab_frequency_multiplier: float = 1.0
-    discharge_criteria: str = "lab_normalization"
-    target_los_multiplier: float = 1.0
-
-    # Coding systems
-    diagnosis_code_system: str = "ICD-10"
-    drug_code_system: str = "YJ"
-    lab_code_system: str = "JLAC10"
-    procedure_code_system: str = "K-code"
 
 
 class LLMProviderConfig(BaseModel):

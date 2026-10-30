@@ -675,6 +675,13 @@ def main() -> None:
         print(f"clinosim validate: pop={args.population}, country={args.country}")
         dataset = run_beta(config)
         _run_quality_checks(dataset)
+        # Issue #2208: the rule-based consistency checks of the validator
+        # module (inpatient Hb at discharge, deceased status, lab / vital
+        # ranges, medication holds, LOS, sex-specific conditions).
+        from clinosim.modules.validator import consistency
+
+        report = consistency.run_consistency_checks(dataset, country=args.country)
+        print(f"  {report.summary()}")
         return
 
     # Canonical command is "simulate"; "generate" is a deprecation alias.

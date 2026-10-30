@@ -40,16 +40,8 @@ _NARROW_LADDER_YAML = _REF_DIR / "narrow_ladder.yaml"
 ABX_REGIMEN_ID_PREFIX = "abx-"  # AntibioticRegimen.regimen_id
 ABX_ORDER_REQ_PREFIX = "req-"  # Order.order_id = "req-" + regimen_id
 ABX_ORDER_ID_PREFIX = ABX_ORDER_REQ_PREFIX + ABX_REGIMEN_ID_PREFIX  # composed prefix for readers
-# ABX_NARROW_SUFFIX: shortened from "-narrowed" (9 chars) to "-n" (2 chars) in
-# Issue #347 to keep composed MedicationRequest.id
-#   req- (4) + abx- (4) + hai-{enc_id 26}-{hai_type 3-6}-{index 1-2}- (~37)
-#   + {drug_slug ≤15} + {suffix}
-# under FHIR R4's 64-char Resource.id limit. Concrete failure that motivated
-# the change: v16 (seed=700) validation on 2026-07-21 emitted
-#   req-abx-hai-ENC-POP-000905-266868769799-vap-0-ceftriaxone-narrowed  (66)
-# which HAPI rejected as `Invalid Resource id ... exceeds the max length of 64`.
-# With the short suffix the same id is 59 chars.
-ABX_NARROW_SUFFIX = "-n"  # narrowed regimen id suffix
+# Narrowed regimens reuse the base id shape ``abx-{hai_id}-{slug}`` (the
+# former ``-narrowed`` / ``-n`` suffix is retired, #2208).
 
 
 FREQ_PER_DAY: dict[str, int] = {

@@ -54,7 +54,6 @@ __all__ = [
     "_populate_practitioner_reference_display",
     "_populate_status_coding_display",
     # profile
-    "_FHIR_ID_PATTERN",
     "_HL7_OBSERVATION_CATEGORY_SYSTEM",
     "_HL7_OBSERVATION_CATEGORY_SYSTEMS",
     "_jp_clins_profiles",
@@ -118,7 +117,6 @@ from clinosim.modules.output.fhir_r4.post_process.populate import (  # noqa: E40
     _populate_status_coding_display,
 )
 from clinosim.modules.output.fhir_r4.post_process.profile import (  # noqa: E402, F401
-    _FHIR_ID_PATTERN,
     _HL7_OBSERVATION_CATEGORY_SYSTEM,
     _HL7_OBSERVATION_CATEGORY_SYSTEMS,
     _JP_OBSERVATION_CATEGORY_SYSTEM,

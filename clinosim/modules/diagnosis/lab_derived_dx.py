@@ -55,7 +55,7 @@ in a stable-across-refactors way. Under-fires on smaller AKI events
 (intended: better under-fire than emit false-positive N17 on a stable
 CKD patient whose Cr sits at 3-4 mg/dL by design)."""
 
-CKD_STAGE_45_ICD_PREFIXES: tuple[str, ...] = ("N18.4", "N18.5", "N18.6", "N18.5", "N18.6", "N19")
+CKD_STAGE_45_ICD_PREFIXES: tuple[str, ...] = ("N18.4", "N18.5", "N18.6", "N19")
 """ICD-10 code prefixes for CKD stages 4-5 and unspecified renal failure.
 Patients carrying any of these as a CHRONIC condition are excluded
 from lab-derived AKI emit — their steady-state Cr already sits near or
