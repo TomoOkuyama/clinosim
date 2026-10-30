@@ -6,8 +6,9 @@ and procedures. Delays emerge from resource contention, not hardcoded values.
 
 from __future__ import annotations
 
+import heapq
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timedelta
 from functools import lru_cache
 from pathlib import Path
 from typing import Any
@@ -44,6 +45,25 @@ from clinosim.modules.facility._hospital_state_thresholds import (
 # See clinosim/types/clinical.py for rationale (determinism chain, 2026-07-04).
 _UNSET_DATETIME = datetime(1970, 1, 1)
 
+# Queue attributes, keyed by resource. Their value is recomputed from the
+# baseline, the work in progress and the active daily patterns (Issue #2196).
+_QUEUE_ATTRS = {
+    "lab": "lab_queue",
+    "ct": "ct_queue",
+    "mri": "mri_queue",
+    "xray": "xray_queue",
+    "ultrasound": "ultrasound_queue",
+    "or": "or_queue",
+}
+_CAPACITY_KEYS = {
+    "lab": "lab_analyzers",
+    "ct": "ct_scanners",
+    "mri": "mri_scanners",
+    "xray": "xray_rooms",
+    "ultrasound": "ultrasound_rooms",
+    "or": "operating_rooms",
+}
+
 _HERE = Path(__file__).resolve().parent
 _HOSPITAL_OPERATIONS_PATH = _HERE.parents[1] / "config" / "hospital_operations.yaml"
 
@@ -72,6 +92,34 @@ class HospitalState:
     nursing_staff: float = 1.0
     pharmacy_staff: float = 1.0
     or_staff: float = 1.0
+
+    # Issue #2196: work in progress per resource (utilisation units) and the
+    # completion times at which it is released. Queue attributes used to only
+    # grow (nothing released them) and daily-pattern deltas were added again
+    # on every update, so long runs saturated every queue at the ceiling.
+    _baseline: dict[str, float] = field(default_factory=dict, repr=False)
+    _occupancy: dict[str, float] = field(default_factory=dict, repr=False)
+    _pending: list[tuple[datetime, int, str, float]] = field(default_factory=list, repr=False)
+    _pattern_delta: dict[str, float] = field(default_factory=dict, repr=False)
+    # Pattern deltas currently applied to the externally managed occupancy
+    # levels (bed_occupancy, ed_crowding); swapped, not stacked, on update.
+    _applied_level_delta: dict[str, float] = field(default_factory=dict, repr=False)
+    _seq: int = field(default=0, repr=False)
+
+    def __post_init__(self) -> None:
+        self._baseline = {res: getattr(self, attr) for res, attr in _QUEUE_ATTRS.items()}
+
+    def _refresh_queue(self, resource: str) -> None:
+        value = (
+            self._baseline.get(resource, 0.0)
+            + self._occupancy.get(resource, 0.0)
+            + self._pattern_delta.get(resource, 0.0)
+        )
+        setattr(
+            self,
+            _QUEUE_ATTRS[resource],
+            min(DELAY_QUEUE_UTILIZATION_CEILING, max(DELAY_QUEUE_UTILIZATION_FLOOR, value)),
+        )
 
     def update_for_time(self, dt: datetime, hospital_ops: dict[str, Any]) -> None:
         """Update staffing and baseline utilization for the given time."""
@@ -103,37 +151,44 @@ class HospitalState:
             self.pharmacy_staff *= modifier
             self.or_staff *= modifier
 
-        # Daily patterns
+        # Release work whose completion time has passed.
+        while self._pending and self._pending[0][0] <= dt:
+            _, _, res, units = heapq.heappop(self._pending)
+            self._occupancy[res] = max(0.0, self._occupancy.get(res, 0.0) - units)
+
+        # Daily patterns apply while active; they are recomputed on every
+        # update instead of being added on top of the previous value.
+        self._pattern_delta = {}
+        level_delta: dict[str, float] = {}
         for pattern in hospital_ops.get("daily_patterns", {}).values():
-            if not isinstance(pattern, dict):
+            if not isinstance(pattern, dict) or not self._pattern_active(pattern, hour, weekday):
                 continue
-            # Check if pattern applies to this hour
-            pattern_hours = pattern.get("hours")
-            if pattern_hours:
-                start_h, end_h = pattern_hours
-                if end_h > start_h:
-                    if not (start_h <= hour < end_h):
-                        continue
-                else:  # wraps midnight
-                    if not (hour >= start_h or hour < end_h):
-                        continue
-            # Check weekday
-            pattern_weekday = pattern.get("weekday")
-            if pattern_weekday is not None and weekday != pattern_weekday:
-                continue
-            # Apply deltas
-            for key in ["lab_queue", "ct_queue", "mri_queue", "xray_queue", "bed_occupancy", "ed_crowding"]:
-                delta_key = f"{key}_delta"
-                if delta_key in pattern:
-                    current = getattr(self, key)
-                    setattr(
-                        self,
-                        key,
-                        min(
-                            DELAY_QUEUE_UTILIZATION_CEILING,
-                            max(DELAY_QUEUE_UTILIZATION_FLOOR, current + pattern[delta_key]),
-                        ),
-                    )
+            for res, attr in _QUEUE_ATTRS.items():
+                delta = pattern.get(f"{attr}_delta")
+                if delta is not None:
+                    self._pattern_delta[res] = self._pattern_delta.get(res, 0.0) + float(delta)
+            for key in ("bed_occupancy", "ed_crowding"):
+                if f"{key}_delta" in pattern:
+                    level_delta[key] = level_delta.get(key, 0.0) + float(pattern[f"{key}_delta"])
+        for key in ("bed_occupancy", "ed_crowding"):
+            value = getattr(self, key) - self._applied_level_delta.get(key, 0.0) + level_delta.get(key, 0.0)
+            setattr(self, key, value)
+        self._applied_level_delta = level_delta
+        for res in _QUEUE_ATTRS:
+            self._refresh_queue(res)
+
+    @staticmethod
+    def _pattern_active(pattern: dict, hour: int, weekday: int) -> bool:
+        pattern_hours = pattern.get("hours")
+        if pattern_hours:
+            start_h, end_h = pattern_hours
+            if end_h > start_h:
+                if not (start_h <= hour < end_h):
+                    return False
+            elif not (hour >= start_h or hour < end_h):
+                return False
+        pattern_weekday = pattern.get("weekday")
+        return pattern_weekday is None or weekday == pattern_weekday
 
     def calculate_delay(
         self,
@@ -200,41 +255,38 @@ class HospitalState:
         max_delay = DELAY_MAX_DELAY_STAT_MIN if urgency == "stat" else DELAY_MAX_DELAY_ROUTINE_MIN
         return min(delay, max_delay)
 
-    def add_to_queue(self, resource: str, hospital_ops: dict[str, Any]) -> None:
-        """Record that a resource is being used (increases utilization)."""
-        capacity = hospital_ops.get("resource_capacity", {})
-        cap_map = {
-            "lab": "lab_analyzers",
-            "ct": "ct_scanners",
-            "mri": "mri_scanners",
-            "xray": "xray_rooms",
-            "ultrasound": "ultrasound_rooms",
-            "or": "operating_rooms",
-        }
-        cap_key = cap_map.get(resource, resource)
-        cap = capacity.get(cap_key, FALLBACK_RESOURCE_CAPACITY)
-        queue_attr = f"{resource}_queue"
-        if hasattr(self, queue_attr):
-            current = getattr(self, queue_attr)
-            setattr(self, queue_attr, min(DELAY_QUEUE_UTILIZATION_CEILING, current + 1.0 / cap))
+    def add_to_queue(
+        self,
+        resource: str,
+        hospital_ops: dict[str, Any],
+        until: datetime | None = None,
+    ) -> None:
+        """Record that a resource is busy until ``until`` (raises utilisation).
+
+        Without ``until`` the work holds the resource for its routine base
+        processing time from the current state timestamp. The utilisation is
+        released when ``update_for_time`` passes the completion time.
+        """
+        if resource not in _QUEUE_ATTRS:
+            return
+        cap = hospital_ops.get("resource_capacity", {}).get(_CAPACITY_KEYS[resource], FALLBACK_RESOURCE_CAPACITY)
+        units = 1.0 / cap
+        self._occupancy[resource] = self._occupancy.get(resource, 0.0) + units
+        if until is None:
+            base = hospital_ops.get("base_processing_time", {})
+            minutes = float(base.get(f"{resource}_routine", base.get(resource, FALLBACK_BASE_ROUTINE_MIN)))
+            until = self.timestamp + timedelta(minutes=minutes)
+        self._seq += 1
+        heapq.heappush(self._pending, (until, self._seq, resource, units))
+        self._refresh_queue(resource)
 
     def release_from_queue(self, resource: str, hospital_ops: dict[str, Any]) -> None:
-        """Record that a resource is freed."""
-        capacity = hospital_ops.get("resource_capacity", {})
-        cap_map = {
-            "lab": "lab_analyzers",
-            "ct": "ct_scanners",
-            "mri": "mri_scanners",
-            "xray": "xray_rooms",
-            "ultrasound": "ultrasound_rooms",
-            "or": "operating_rooms",
-        }
-        cap_key = cap_map.get(resource, resource)
-        cap = capacity.get(cap_key, FALLBACK_RESOURCE_CAPACITY)
-        queue_attr = f"{resource}_queue"
-        if hasattr(self, queue_attr):
-            current = getattr(self, queue_attr)
-            setattr(self, queue_attr, max(DELAY_QUEUE_UTILIZATION_FLOOR, current - 1.0 / cap))
+        """Release one unit of work on ``resource`` immediately."""
+        if resource not in _QUEUE_ATTRS:
+            return
+        cap = hospital_ops.get("resource_capacity", {}).get(_CAPACITY_KEYS[resource], FALLBACK_RESOURCE_CAPACITY)
+        self._occupancy[resource] = max(0.0, self._occupancy.get(resource, 0.0) - 1.0 / cap)
+        self._refresh_queue(resource)
 
 
 @lru_cache(maxsize=1)

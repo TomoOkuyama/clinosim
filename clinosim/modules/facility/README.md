@@ -48,10 +48,10 @@ from clinosim.modules.facility.hospital_state import (
 
 | Method | Contract |
 |---|---|
-| `update_for_time(dt, hospital_ops)` | Sets shift-based staffing (`day` / `evening` / `night`), applies weekend modifier to lab / radiology / pharmacy / OR staff (nursing is unscaled) when `weekday >= WEEKEND_WEEKDAY_MIN`, then applies each `daily_patterns.*` YAML entry whose `hours` window and `weekday` filter match. |
+| `update_for_time(dt, hospital_ops)` | Sets shift-based staffing (`day` / `evening` / `night`), applies weekend modifier to lab / radiology / pharmacy / OR staff (nursing is unscaled) when `weekday >= WEEKEND_WEEKDAY_MIN`, releases the work whose completion time has passed, and recomputes every queue as baseline + work in progress + the `daily_patterns.*` deltas active at `dt` (the deltas no longer accumulate across calls, #2196). |
 | `calculate_delay(resource, urgency, hospital_ops)` | Returns delay in minutes for the given resource + urgency using `base × (1 / (1 - utilization)) × (1 / staff) + reporting_time × (1 / staff)`, with congestion + staff factors clamped by `DELAY_CONGESTION_CAP` + `DELAY_STAFF_CAP`, and the whole answer capped by `DELAY_MAX_DELAY_{STAT,ROUTINE}_MIN`. |
-| `add_to_queue(resource, hospital_ops)` | Bumps `<resource>_queue` by `1/capacity` for that resource. |
-| `release_from_queue(resource, hospital_ops)` | Drops `<resource>_queue` by `1/capacity`. Currently has no caller in the codebase. |
+| `add_to_queue(resource, hospital_ops, until=None)` | Adds `1/capacity` of work in progress on the resource until `until` (default: the resource's routine base processing time from the state timestamp). `calculate_result_time_from_state` passes the result time, so each order occupies the resource until its result is out (#2196). |
+| `release_from_queue(resource, hospital_ops)` | Releases `1/capacity` of work immediately. |
 
 ## Determinism
 
@@ -100,8 +100,11 @@ docstring for the byte-diff contract).
     `weekend_modifier` for Sat / Sun scaling.
   - `daily_patterns.<name>` — `hours: [start, end]` (wrap-safe),
     optional `weekday`, and any of `lab_queue_delta`, `ct_queue_delta`,
-    `mri_queue_delta`, `xray_queue_delta`, `bed_occupancy_delta`,
-    `ed_crowding_delta`.
+    `mri_queue_delta`, `xray_queue_delta`, `ultrasound_queue_delta`,
+    `or_queue_delta`, `bed_occupancy_delta`, `ed_crowding_delta`, each
+    applied only while the pattern is active (an occupancy-level delta is
+    swapped out on the next update rather than stacked on top of the
+    dispatcher's own bed bookkeeping).
   - `base_processing_time.<resource>[_stat|_routine]` — base minutes
     per order (falls back to `FALLBACK_BASE_{STAT,ROUTINE}_MIN`).
   - `reporting_time.{stat, routine}` — imaging reporting minutes.

@@ -44,10 +44,10 @@ from clinosim.modules.facility.hospital_state import (
 
 | Method | 契約 |
 | --- | --- |
-| `update_for_time(dt, hospital_ops)` | shift-based staffing (`day` / `evening` / `night`) を設定、`weekday >= WEEKEND_WEEKDAY_MIN` なら lab / radiology / pharmacy / OR staff に weekend modifier 適用 (nursing は非適用)、次に `daily_patterns.*` の各 YAML entry を `hours` window + `weekday` フィルタが一致するとき適用。 |
+| `update_for_time(dt, hospital_ops)` | shift-based staffing (`day` / `evening` / `night`) を設定、`weekday >= WEEKEND_WEEKDAY_MIN` なら lab / radiology / pharmacy / OR staff に weekend modifier 適用 (nursing は非適用)、完了時刻を過ぎた処理中の仕事を解放し、各 queue を「基準値 + 処理中の仕事 + `dt` 時点で有効な `daily_patterns.*` の delta」として計算し直す (delta は呼び出しごとに積み上がらない、#2196)。 |
 | `calculate_delay(resource, urgency, hospital_ops)` | resource + urgency に対する遅延 (分) を `base × (1 / (1 - utilization)) × (1 / staff) + reporting_time × (1 / staff)` で返す。congestion + staff factor は `DELAY_CONGESTION_CAP` + `DELAY_STAFF_CAP` で clamp、最終値は `DELAY_MAX_DELAY_{STAT,ROUTINE}_MIN` で cap。 |
-| `add_to_queue(resource, hospital_ops)` | `<resource>_queue` を `1/capacity` だけ増加。 |
-| `release_from_queue(resource, hospital_ops)` | `<resource>_queue` を `1/capacity` だけ減少。現状コードベース内に呼び出し元は無い。 |
+| `add_to_queue(resource, hospital_ops, until=None)` | resource に `1/capacity` の処理中の仕事を `until` まで追加 (既定は state の時刻から routine の基準処理時間)。`calculate_result_time_from_state` は結果時刻を渡すため、各オーダーは結果が出るまで resource を占有する (#2196)。 |
+| `release_from_queue(resource, hospital_ops)` | `1/capacity` の仕事を即時に解放。 |
 
 ## 決定論
 
@@ -95,8 +95,10 @@ docstring 参照)。
     `weekend_modifier` で土日スケーリング。
   - `daily_patterns.<name>` — `hours: [start, end]` (wrap-safe)、
     任意 `weekday`、`lab_queue_delta` / `ct_queue_delta` /
-    `mri_queue_delta` / `xray_queue_delta` / `bed_occupancy_delta` /
-    `ed_crowding_delta` のいずれか。
+    `mri_queue_delta` / `xray_queue_delta` / `ultrasound_queue_delta` /
+    `or_queue_delta` / `bed_occupancy_delta` / `ed_crowding_delta` の
+    いずれか。パターンが有効な間だけ適用 (病床稼働率などへの delta は次の
+    更新で差し替え、入退院処理の増減に積み上げない)。
   - `base_processing_time.<resource>[_stat|_routine]` — 発注ごとの
     base 分 (欠落時 `FALLBACK_BASE_{STAT,ROUTINE}_MIN`)。
   - `reporting_time.{stat, routine}` — imaging reporting 分。

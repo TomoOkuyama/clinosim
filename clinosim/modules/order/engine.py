@@ -912,7 +912,9 @@ def calculate_result_time_from_state(
             next_morning += timedelta(days=1)
         delay = max(delay, (next_morning - ordered).total_seconds() / 60)
 
-    # Update queue
-    hospital_state.add_to_queue(resource, hospital_ops)
+    # The resource is busy until the result is out (Issue #2196: released
+    # when the state passes that time, so queues no longer only grow).
+    result_time = ordered + timedelta(minutes=delay)
+    hospital_state.add_to_queue(resource, hospital_ops, until=result_time)
 
-    return ordered + timedelta(minutes=delay)
+    return result_time
