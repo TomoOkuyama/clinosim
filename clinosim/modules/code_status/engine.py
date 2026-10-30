@@ -45,9 +45,12 @@ def assign_code_status(age: int, context: str, country: str, rng: np.random.Gene
     """Return the SNOMED code of the sampled tier for (age, context).
 
     context: "routine" | "icu" | "terminal". Deterministic for a given rng.
+    Returns ``""`` (no code status) for a country without rates.
     """
     ref = load_reference()
     rates = load_rates(country)
+    if not rates:
+        return ""
     tiers = ref["tiers"]
     band = _age_band(int(age), ref["age_bands"])
     weights = rates.get(context, rates["routine"]).get(band)

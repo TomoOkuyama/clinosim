@@ -37,3 +37,12 @@ def test_elderly_more_non_full_than_young_routine():
 
 def test_jp_routine_more_full_code_than_us():
     assert _rate_non_full(75, "routine", "JP") < _rate_non_full(75, "routine", "US")
+
+
+def test_unsupported_country_assigns_no_code_status() -> None:
+    """Issue #2197: no rates for the country means no code status, not KeyError."""
+    import numpy as np
+
+    from clinosim.modules.code_status.engine import assign_code_status
+
+    assert assign_code_status(70, "routine", "DE", np.random.default_rng(0)) == ""

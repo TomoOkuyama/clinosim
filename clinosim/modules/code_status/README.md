@@ -89,9 +89,9 @@ wraps it with the gate + sub-seed derivation described below.
   — country-specific `weights[context][age_band] = [full, dnr, dnr_dni, comfort]`
   distributions summing to 1. `load_rates` returns `{}` for
   unsupported countries so a new country will not silently inherit
-  US rates (2026-07-02 grand-design review contract); note that
-  `assign_code_status` then raises `KeyError('routine')` for a
-  qualifying encounter rather than returning `""`.
+  US rates (2026-07-02 grand-design review contract), and
+  `assign_code_status` then returns `""` (no code status) without
+  drawing (#2197).
 
 ## Directory contents
 
