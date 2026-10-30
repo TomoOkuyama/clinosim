@@ -2502,8 +2502,9 @@
 </li>
 </ul>
 <h2 id="sanity-check">Sanity check<a class="headerlink" href="#sanity-check" title="Permanent link">&para;</a></h2>
-<p>The dataset presets live in <code>datasets/</code> at the repository root, so
-<code>clinosim dataset</code> needs a source checkout (developer install).</p>
+<p>The dataset presets ship with the package (from <code>datasets/</code> at the
+repository root), so <code>clinosim dataset</code> works from a pip install as
+well as from a source checkout.</p>
 <div class="highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>clinosim<span class="w"> </span>--help<span class="w">                                 </span><span class="c1"># top-level CLI banner</span>
 </span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>clinosim<span class="w"> </span>dataset<span class="w"> </span>list<span class="w">                           </span><span class="c1"># 4 shipped presets</span>
 </span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>clinosim<span class="w"> </span>dataset<span class="w"> </span>build<span class="w"> </span>jp-100<span class="w"> </span>--output<span class="w"> </span>./test<span class="w">   </span><span class="c1"># ~30 s smoke build</span>

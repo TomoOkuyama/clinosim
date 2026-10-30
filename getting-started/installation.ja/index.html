@@ -2401,9 +2401,9 @@
 </li>
 </ul>
 <h2 id="sanity-check">Sanity check<a class="headerlink" href="#sanity-check" title="Permanent link">&para;</a></h2>
-<p>データセットプリセットはリポジトリ直下の <code>datasets/</code> にあるため、
-<code>clinosim dataset</code> にはソースチェックアウト (開発者インストール) が
-必要。</p>
+<p>データセットプリセットはパッケージに同梱されるため (元はリポジトリ直下の
+<code>datasets/</code>)、<code>clinosim dataset</code> は pip インストールでもソースチェック
+アウトでも使えます。</p>
 <div class="highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>clinosim<span class="w"> </span>--help<span class="w">                                 </span><span class="c1"># トップレベル CLI バナー</span>
 </span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>clinosim<span class="w"> </span>dataset<span class="w"> </span>list<span class="w">                           </span><span class="c1"># 同梱プリセット 4 件</span>
 </span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>clinosim<span class="w"> </span>dataset<span class="w"> </span>build<span class="w"> </span>jp-100<span class="w"> </span>--output<span class="w"> </span>./test<span class="w">   </span><span class="c1"># ~30 秒の smoke ビルド</span>
