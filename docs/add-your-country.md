@@ -49,12 +49,8 @@ clinosim simulate --country XX --population 100 --seed 42 --format fhir-r4 \
 ## Required YAML files
 
 The `xx/` directory MUST contain the following. See the `_template/` scaffold
-(`clinosim/locale/_template/`) for schema comments and skeleton values.
-Note that `_template/demographics.yaml` uses key names the loader does not
-read (`sex_distribution`, `blood_type_distribution`,
-`chronic_condition_prevalence`); take key names from
-`clinosim/locale/us/demographics.yaml` / `jp/demographics.yaml`
-(`sex_ratio`, `blood_type`, `chronic_prevalence`, ...).
+(`clinosim/locale/_template/`) for schema comments and skeleton values;
+`_template/demographics.yaml` follows the same schema as the us/jp files.
 
 | File | Purpose | Authoritative source hint |
 |---|---|---|
@@ -129,11 +125,8 @@ forward per person per year by `clinosim/modules/population/mortality.py`:
 life-table `qx` (age band × sex) × the person's relative chronic-condition
 SMR × `community_death_share`. Both `annual_mortality_qx` and
 `community_death_share` are keyed by locale (`us`, `jp`) in the shared
-yaml. **Current limitation:** `mortality.py::_locale_key` maps every
-non-JP country to `us`, so a new locale uses the US life table and US
-`community_death_share` until that function is extended to read an
-`xx` block. Adding a locale with its own mortality therefore needs an
-`xx` entry under both yaml keys plus that code change.
+yaml. Add an `xx` entry under both keys for your locale; a locale with
+no entry falls back to the US block.
 
 ## Optional YAML files (opt-in modules)
 
@@ -180,9 +173,8 @@ For a new country you can:
 1. Add a `clinosim/codes/data/fhir-profiles-xx-core.yaml` registry
    mirroring the JP Core / US Core ones, an `_apply_xx_core_profile`
    helper, and a branch for your country in `_build_bundle`.
-2. Otherwise your bundles are emitted on the non-JP path and declare
-   US Core profile URLs, which is wrong for a non-US country — at minimum
-   add a branch that skips `_apply_us_core_profile` for it.
+2. Otherwise your bundles carry no national profile: only US output
+   declares US Core and only JP output JP Core.
 
 ### 3. Country-specific opt-in modules
 

@@ -50,11 +50,7 @@ clinosim simulate --country XX --population 100 --seed 42 --format fhir-r4 \
 
 `xx/` ディレクトリは以下を **必ず** 含める必要あり。スキーマコメントと
 skeleton 値は `_template/` scaffold (`clinosim/locale/_template/`)
-参照。ただし `_template/demographics.yaml` の key 名
-(`sex_distribution`、`blood_type_distribution`、
-`chronic_condition_prevalence`) はローダーが読まない名前なので、key 名は
-`clinosim/locale/us/demographics.yaml` / `jp/demographics.yaml`
-(`sex_ratio`、`blood_type`、`chronic_prevalence` ...) から取ること。
+参照。`_template/demographics.yaml` は us/jp と同じスキーマ。
 
 | File | 目的 | 権威ソースヒント |
 | --- | --- | --- |
@@ -128,11 +124,8 @@ ed_visit_not_admitted:
 引く: 生命表 `qx` (年齢帯 × 性別) × その人の慢性疾患による相対 SMR ×
 `community_death_share`。`annual_mortality_qx` と `community_death_share`
 はどちらも共有 yaml 内で locale (`us`、`jp`) を key とする。
-**現状の制約:** `mortality.py::_locale_key` は JP 以外の国をすべて `us`
-に写すため、新しい locale は同関数が `xx` ブロックを読むよう拡張される
-まで US の生命表と US の `community_death_share` を使う。独自の死亡率を
-持つ locale を追加するには、両 yaml key への `xx` エントリと、その
-コード変更が必要。
+自国の locale には両 key に `xx` エントリを追加する。エントリの無い
+locale は US のブロックを使う。
 
 ## 任意 YAML ファイル (opt-in モジュール)
 
@@ -178,9 +171,8 @@ _COUNTRY_DIR_MAP = {"JP": "jp", "US": "us", "XX": "xx"}
 1. JP Core / US Core と同形状の
    `clinosim/codes/data/fhir-profiles-xx-core.yaml` レジストリ、
    `_apply_xx_core_profile` helper、`_build_bundle` 内の自国分岐を追加。
-2. そうしない場合、bundle は非 JP 経路で emit され US Core プロファイル
-   URL を宣言する。米国以外の国としては誤りなので、最低限その国では
-   `_apply_us_core_profile` を skip する分岐を追加する。
+2. そうしない場合、bundle は国別プロファイルを宣言しない (US Core は
+   US の出力だけ、JP Core は JP の出力だけ)。
 
 ### 3. 国別 opt-in モジュール
 
