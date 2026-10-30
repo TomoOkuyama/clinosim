@@ -125,7 +125,7 @@ initial_state_impact:
     perfusion_status: -0.15
     renal_function: -0.10
     hepatic_function: -0.05
-    coagulation_status: -0.05
+    coagulation_status: 0.05
     ph_status: -0.05
     anion_gap_status: 0.6       # AG axis: lactic acidosis from hypoperfusion (AG 15-20)
   severe:
@@ -135,7 +135,7 @@ initial_state_impact:
     perfusion_status: -0.35
     renal_function: -0.25
     hepatic_function: -0.12  # Issue #2125: with the injury floor and fatty-liver / alcohol background
-    coagulation_status: -0.15
+    coagulation_status: 0.15
     ph_status: -0.15
     anion_gap_status: 0.8       # AG axis: severe sepsis / septic shock (AG 18-25)
 
@@ -722,7 +722,7 @@ course_archetypes:
       perfusion_status: {0: 0.02, 1: 0.03, 2: 0.04, 3: 0.03, 5: 0.02, 7: 0.01, 10: 0.01, 14: 0.00, 21: 0.00, 28: 0.00}
       renal_function: {0: -0.02, 1: 0.00, 2: 0.01, 3: 0.02, 5: 0.02, 7: 0.02, 10: 0.01, 14: 0.01, 21: 0.01, 28: 0.00}
       hepatic_function: {0: 0.00, 1: 0.00, 2: 0.01, 3: 0.01, 5: 0.01, 7: 0.01, 10: 0.01, 14: 0.00, 21: 0.00, 28: 0.00}
-      coagulation_status: {0: 0.00, 1: 0.00, 2: 0.01, 3: 0.01, 5: 0.01, 7: 0.01, 10: 0.00, 14: 0.00, 21: 0.00, 28: 0.00}
+      coagulation_status: {0: 0.00, 1: 0.00, 2: -0.01, 3: -0.01, 5: -0.01, 7: -0.01, 10: 0.00, 14: 0.00, 21: 0.00, 28: 0.00}
     order_modifications: {}
     treatment_modifications: {}
 
@@ -747,7 +747,7 @@ course_archetypes:
       perfusion_status: {0: -0.08, 1: -0.05, 2: -0.02, 3: 0.02, 5: 0.03, 7: 0.02, 10: 0.01, 14: 0.01, 21: 0.00, 28: 0.00}
       renal_function: {0: -0.05, 1: -0.03, 2: -0.02, 3: 0.00, 5: 0.01, 7: 0.02, 10: 0.02, 14: 0.01, 21: 0.01, 28: 0.00}
       hepatic_function: {0: -0.03, 1: -0.02, 2: -0.01, 3: 0.00, 5: 0.01, 7: 0.01, 10: 0.01, 14: 0.01, 21: 0.00, 28: 0.00}
-      coagulation_status: {0: -0.03, 1: -0.02, 2: -0.01, 3: 0.00, 5: 0.01, 7: 0.01, 10: 0.01, 14: 0.00, 21: 0.00, 28: 0.00}
+      coagulation_status: {0: 0.03, 1: 0.02, 2: 0.01, 3: 0.00, 5: -0.01, 7: -0.01, 10: -0.01, 14: 0.00, 21: 0.00, 28: 0.00}
     order_modifications:
       day_2:
         add_labs: ["Lactate", "Blood_culture_repeat_x2", "ABG"]
@@ -794,7 +794,7 @@ course_archetypes:
       volume_status: {0: -0.05, 1: -0.03, 2: -0.02, 3: -0.01, 5: 0.02, 7: 0.03, 10: 0.02, 14: 0.01, 21: 0.00, 28: 0.00}
       perfusion_status: {0: -0.08, 1: -0.05, 2: -0.03, 3: -0.02, 5: 0.00, 7: 0.02, 10: 0.02, 14: 0.01, 21: 0.00, 28: 0.00}
       renal_function: {0: -0.05, 1: -0.03, 2: -0.02, 3: -0.01, 5: 0.00, 7: 0.01, 10: 0.02, 14: 0.01, 21: 0.01, 28: 0.00}
-      coagulation_status: {0: -0.03, 1: -0.02, 2: -0.02, 3: -0.01, 5: 0.00, 7: 0.01, 10: 0.01, 14: 0.01, 21: 0.00, 28: 0.00}
+      coagulation_status: {0: 0.03, 1: 0.02, 2: 0.02, 3: 0.01, 5: 0.00, 7: -0.01, 10: -0.01, 14: -0.01, 21: 0.00, 28: 0.00}
     order_modifications:
       day_2:
         add_labs: ["Blood_culture_repeat_x2", "Lactate"]
@@ -833,7 +833,7 @@ course_archetypes:
       perfusion_status: {0: -0.08, 1: -0.08, 2: -0.05, 3: -0.05, 5: -0.03, 7: -0.02, 10: 0.00, 14: 0.01, 21: 0.01, 28: 0.01}
       renal_function: {0: -0.05, 1: -0.05, 2: -0.05, 3: -0.03, 5: -0.03, 7: -0.02, 10: -0.01, 14: 0.00, 21: 0.01, 28: 0.01}
       hepatic_function: {0: -0.03, 1: -0.03, 2: -0.03, 3: -0.02, 5: -0.02, 7: -0.01, 10: 0.00, 14: 0.00, 21: 0.00, 28: 0.00}
-      coagulation_status: {0: -0.05, 1: -0.05, 2: -0.05, 3: -0.03, 5: -0.02, 7: -0.01, 10: 0.00, 14: 0.01, 21: 0.01, 28: 0.00}
+      coagulation_status: {0: 0.05, 1: 0.05, 2: 0.05, 3: 0.03, 5: 0.02, 7: 0.01, 10: 0.00, 14: -0.01, 21: -0.01, 28: 0.00}
       ph_status: {0: -0.03, 1: -0.03, 2: -0.02, 3: -0.02, 5: -0.01, 7: 0.00, 10: 0.00, 14: 0.01, 21: 0.01, 28: 0.00}
     order_modifications:
       day_2:
@@ -891,7 +891,7 @@ course_archetypes:
       perfusion_status: {0: -0.15, 1: -0.20, 2: -0.05, 3: 0.05, 5: 0.05, 7: 0.03, 10: 0.02, 14: 0.01, 21: 0.01, 28: 0.00}
       renal_function: {0: -0.08, 1: -0.10, 2: -0.05, 3: 0.00, 5: 0.02, 7: 0.02, 10: 0.02, 14: 0.01, 21: 0.01, 28: 0.00}
       hepatic_function: {0: -0.05, 1: -0.10, 2: -0.05, 3: 0.00, 5: 0.01, 7: 0.01, 10: 0.01, 14: 0.01, 21: 0.00, 28: 0.00}
-      coagulation_status: {0: -0.08, 1: -0.12, 2: -0.05, 3: 0.00, 5: 0.02, 7: 0.02, 10: 0.01, 14: 0.01, 21: 0.00, 28: 0.00}
+      coagulation_status: {0: 0.08, 1: 0.12, 2: 0.05, 3: 0.00, 5: -0.02, 7: -0.02, 10: -0.01, 14: -0.01, 21: 0.00, 28: 0.00}
       ph_status: {0: -0.08, 1: -0.10, 2: -0.05, 3: 0.00, 5: 0.02, 7: 0.02, 10: 0.01, 14: 0.01, 21: 0.00, 28: 0.00}
     order_modifications:
       day_0:
@@ -965,9 +965,9 @@ complications:
       - {condition: "severity_severe", multiplier: 3.0}
       - {condition: "liver_cirrhosis", multiplier: 2.5}
       - {condition: "malignancy", multiplier: 2.0}
-      - {condition: "coagulation_status < 0.4", multiplier: 2.0}
+      - {condition: "coagulation_status > 0.3", multiplier: 2.0}
     state_impact:
-      coagulation_status: -0.20
+      coagulation_status: 0.20
       perfusion_status: -0.10
       renal_function: -0.05
     detection:
@@ -1022,7 +1022,7 @@ complications:
       - {condition: "perfusion_status < 0.3", multiplier: 3.0}
     state_impact:
       hepatic_function: -0.20
-      coagulation_status: -0.10
+      coagulation_status: 0.10
     detection:
       test: "liver_function_tests"
       finding: "AST_ALT_above_5x_ULN_or_bilirubin_above_4"

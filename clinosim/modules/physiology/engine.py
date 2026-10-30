@@ -535,19 +535,18 @@ def apply_coupling_rules(state: PhysiologicalState) -> None:
         lactic_acid = -(PH_LACTIC_ACID_PERFUSION_THRESHOLD - state.perfusion_status) * PH_LACTIC_ACID_PERFUSION_SCALE
     state.ph_status = clamp(state.ph_status + (renal_acid + lactic_acid) * PH_COMBINED_ACID_SCALE, -1.0, 1.0)
 
-    # Coagulation worsens with severe inflammation (DIC)
+    # Coagulopathy from severe inflammation (DIC) and from hepatic dysfunction.
+    # Issue #2237: each driver sets a floor that tracks its current level,
+    # instead of adding to coagulation_status on every tick (which climbed
+    # day after day, independent of the tick rate's meaning). Once the driver
+    # subsides, the course / treatment deltas bring coagulation back down.
     if state.inflammation_level > COAG_DIC_INFLAMMATION_THRESHOLD:
         dic = (state.inflammation_level - COAG_DIC_INFLAMMATION_THRESHOLD) * COAG_DIC_INFLAMMATION_SCALE
-        state.coagulation_status = clamp(state.coagulation_status + dic, 0.0, 1.0)
+        state.coagulation_status = clamp(max(state.coagulation_status, dic), 0.0, 1.0)
 
-    # Hepatic dysfunction worsens coagulation
     if state.hepatic_function < COAG_HEPATIC_DYSFUNCTION_THRESHOLD:
-        state.coagulation_status = clamp(
-            state.coagulation_status
-            + (COAG_HEPATIC_DYSFUNCTION_THRESHOLD - state.hepatic_function) * COAG_HEPATIC_DYSFUNCTION_SCALE,
-            0.0,
-            1.0,
-        )
+        hep = (COAG_HEPATIC_DYSFUNCTION_THRESHOLD - state.hepatic_function) * COAG_HEPATIC_DYSFUNCTION_SCALE
+        state.coagulation_status = clamp(max(state.coagulation_status, hep), 0.0, 1.0)
 
     # Chronic inflammation causes anemia (very slow)
     if state.inflammation_level > COUPLING_ANEMIA_INFLAMMATION_THRESHOLD:
