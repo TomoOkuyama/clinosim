@@ -2343,7 +2343,7 @@
 <h1 id="バージョニングとリリース">バージョニングとリリース<a class="headerlink" href="#バージョニングとリリース" title="Permanent link">&para;</a></h1>
 <p>clinosim の SemVer scope は generic SemVer のモジュール境界ではなく
 <strong>CIF ↔ narrative-CIF 整合性</strong> に anchoring している。正準ルールは
-<a href="../../development/changelog/"><code>CHANGELOG.md</code></a> 冒頭「Versioning policy
+<a href="../../development/changelog.ja/"><code>CHANGELOG.md</code></a> 冒頭「Versioning policy
 (from v0.4.0 onward)」が持つ。要約:</p>
 <ul>
 <li><strong>MAJOR</strong> — Python API 破壊 (import path、public 関数シグネチャ、
@@ -2376,6 +2376,7 @@ PyPI メタデータ / <code>pip show clinosim</code> /
 </span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a><span class="c1">#    - twine でメタデータ check</span>
 </span><span id="__span-0-14"><a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a><span class="c1">#    - 4 データセットプリセットをビルド (us-100, us-1000, jp-100, jp-1000)</span>
 </span><span id="__span-0-15"><a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a><span class="c1">#    - wheel + sdist + データセット tarball 付きの GitHub Release を作成</span>
+</span><span id="__span-0-16"><a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a><span class="c1">#    - wheel + sdist を PyPI に公開 (Trusted Publishing / OIDC)</span>
 </span></code></pre></div>
 <p>リリースノートは <code>CHANGELOG.md</code> から自動抽出。</p>
 <h2 id="changelog">Changelog<a class="headerlink" href="#changelog" title="Permanent link">&para;</a></h2>

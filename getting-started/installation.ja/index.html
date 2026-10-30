@@ -2364,13 +2364,13 @@
 
 <h1 id="インストール">インストール<a class="headerlink" href="#インストール" title="Permanent link">&para;</a></h1>
 <h2 id="ユーザーとして-推奨">ユーザーとして (推奨)<a class="headerlink" href="#ユーザーとして-推奨" title="Permanent link">&para;</a></h2>
-<p>PyPI 公開後は、パッケージ版を直接インストール:</p>
+<p>PyPI からパッケージ版をインストール:</p>
 <div class="highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>python<span class="w"> </span>-m<span class="w"> </span>venv<span class="w"> </span>.venv
 </span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="nb">source</span><span class="w"> </span>.venv/bin/activate<span class="w">          </span><span class="c1"># Windows: .venv\Scripts\activate</span>
-</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>pip<span class="w"> </span>install<span class="w"> </span>clinosim<span class="w">                </span><span class="c1"># (PyPI アップロード準備中 — 下の代替参照)</span>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>pip<span class="w"> </span>install<span class="w"> </span>clinosim
 </span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>clinosim<span class="w"> </span>--help
 </span></code></pre></div>
-<p><strong>PyPI 公開前の代替</strong> — GitHub から直接インストール:</p>
+<p>未リリースの変更を追う場合は GitHub から直接インストール:</p>
 <div class="highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>pip<span class="w"> </span>install<span class="w"> </span><span class="s2">"git+https://github.com/TomoOkuyama/clinosim.git@master"</span>
 </span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>clinosim<span class="w"> </span>--help
 </span></code></pre></div>
@@ -2384,7 +2384,14 @@
 <h2 id="要件">要件<a class="headerlink" href="#要件" title="Permanent link">&para;</a></h2>
 <ul>
 <li>Python 3.11+</li>
-<li>主要依存: numpy / scipy / pydantic / pyyaml / httpx</li>
+<li>主要依存: numpy / scipy / pydantic / pyyaml / httpx / mpmath</li>
+<li><strong>JP 生成 (<code>--country JP</code>)</strong> には JP-CLINS FHIR パッケージ
+  (<code>clinical-information-sharing#1.13.0</code> + <code>jpfhir-terminology#2.2606.0</code>)
+  が必要。<code>fhir</code> CLI キャッシュ (<code>~/.fhir/packages/</code>) に導入するか、
+  <code>CLINOSIM_JP_CLINS_PKG_DIR</code> で指定する。無い場合、JP 実行は
+  <code>--allow-legacy</code> (または <code>CLINOSIM_ALLOW_LEGACY_JP_CLINS_PKG=1</code>) を
+  渡さない限りエラー終了し、渡した場合は JP-CLINS 非準拠の旧 5 桁
+  JLAC10 コードを出力する。<a href="../../jp-clins.ja/">JP-CLINS</a> 参照。</li>
 <li><strong>オプション:</strong><ul>
 <li>ローカル LLM narrative 生成用 Ollama</li>
 <li>CIF Parquet 出力: <code>pip install "clinosim[parquet]"</code></li>
@@ -2394,6 +2401,9 @@
 </li>
 </ul>
 <h2 id="sanity-check">Sanity check<a class="headerlink" href="#sanity-check" title="Permanent link">&para;</a></h2>
+<p>データセットプリセットはリポジトリ直下の <code>datasets/</code> にあるため、
+<code>clinosim dataset</code> にはソースチェックアウト (開発者インストール) が
+必要。</p>
 <div class="highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>clinosim<span class="w"> </span>--help<span class="w">                                 </span><span class="c1"># トップレベル CLI バナー</span>
 </span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>clinosim<span class="w"> </span>dataset<span class="w"> </span>list<span class="w">                           </span><span class="c1"># 同梱プリセット 4 件</span>
 </span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>clinosim<span class="w"> </span>dataset<span class="w"> </span>build<span class="w"> </span>jp-100<span class="w"> </span>--output<span class="w"> </span>./test<span class="w">   </span><span class="c1"># ~30 秒の smoke ビルド</span>

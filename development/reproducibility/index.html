@@ -2509,14 +2509,15 @@
 <h1 id="reproducibility">Reproducibility<a class="headerlink" href="#reproducibility" title="Permanent link">&para;</a></h1>
 <p>clinosim guarantees <strong>byte-identical output</strong> for a given
 <code>(seed, config, country, start, end, population)</code> tuple within a MINOR
-release line — wall-clock metadata (<code>fhir_r4/manifest.json</code>,
-<code>cif/metadata.json</code>, narrative-pass <code>manifest.json</code>) is expected to
-differ, everything else must match.</p>
+release line — wall-clock / git-dependent metadata (<code>fhir_r4/manifest.json</code>,
+<code>fhir_r4/_generator_metadata.json</code>, <code>cif/metadata.json</code>, narrative-pass
+<code>manifest.json</code>) is expected to differ, everything else must match.</p>
 <h2 id="verify-at-any-time">Verify at any time<a class="headerlink" href="#verify-at-any-time" title="Permanent link">&para;</a></h2>
 <div class="highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>bash<span class="w"> </span>scripts/reproduce.sh
 </span></code></pre></div>
 <p>The script runs <code>clinosim simulate --format fhir</code> twice per locale
-(US + JP by default) to two isolated temp directories, sha256s every
+(US + JP by default; JP with <code>--allow-legacy</code>, so no JP-CLINS package is
+needed) to two isolated temp directories, sha256s every
 NDJSON + CIF JSON, and diffs the hash lists. Exit 0 = byte-identical,
 exit 1 = determinism regression with the offending file(s) listed.</p>
 <h2 id="environment-overrides">Environment overrides<a class="headerlink" href="#environment-overrides" title="Permanent link">&para;</a></h2>
@@ -2555,10 +2556,17 @@ exit 1 = determinism regression with the offending file(s) listed.</p>
 </tbody>
 </table>
 <h2 id="ci-enforcement">CI enforcement<a class="headerlink" href="#ci-enforcement" title="Permanent link">&para;</a></h2>
-<p>The <code>reproducibility</code> job in
-<a href="https://github.com/TomoOkuyama/clinosim/blob/master/.github/workflows/ci.yml"><code>.github/workflows/ci.yml</code></a>
-runs <code>scripts/reproduce.sh</code> on every push and PR. Any determinism
-regression trips the merge gate before code lands.</p>
+<ul>
+<li>On every push to master and every PR,
+  <a href="https://github.com/TomoOkuyama/clinosim/blob/master/tests/integration/test_full_reproducibility.py"><code>tests/integration/test_full_reproducibility.py</code></a>
+  runs <code>scripts/reproduce.sh</code> inside the integration job of
+  <a href="https://github.com/TomoOkuyama/clinosim/blob/master/.github/workflows/ci.yml"><code>.github/workflows/ci.yml</code></a>,
+  so a determinism regression trips the merge gate before code lands.</li>
+<li>The dedicated <code>reproducibility</code> job in
+  <a href="https://github.com/TomoOkuyama/clinosim/blob/master/.github/workflows/nightly.yml"><code>.github/workflows/nightly.yml</code></a>
+  runs the script daily (and on <code>workflow_dispatch</code>, e.g. before a
+  release cut).</li>
+</ul>
 <h2 id="underlying-invariants">Underlying invariants<a class="headerlink" href="#underlying-invariants" title="Permanent link">&para;</a></h2>
 <p>Per <a href="../../reference/design/">AD-16</a>:</p>
 <ul>

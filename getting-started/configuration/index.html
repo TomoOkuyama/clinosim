@@ -2502,12 +2502,32 @@
 <tr>
 <td><code>--format {cif,fhir-r4,csv}</code></td>
 <td><code>cif</code></td>
-<td>One or more output formats</td>
+<td>One or more output formats (<code>fhir</code> is an alias of <code>fhir-r4</code>); each lands in its own subdirectory (<code>cif/</code>, <code>fhir_r4/</code>, <code>csv/</code>)</td>
 </tr>
 <tr>
 <td><code>--hospital-config PATH</code></td>
-<td><code>hospital_operations.yaml</code></td>
+<td><code>clinosim/config/hospital_operations.yaml</code></td>
 <td>Hospital-shape override YAML</td>
+</tr>
+<tr>
+<td><code>--jp-insurance</code> / <code>--no-jp-insurance</code></td>
+<td>on</td>
+<td>(JP only) Emit insurance enrollment / 被保険者番号 as FHIR Coverage</td>
+</tr>
+<tr>
+<td><code>--allow-legacy</code></td>
+<td>off</td>
+<td>(JP only) Continue without the JP-CLINS package, emitting legacy 5-digit JLAC10 codes (otherwise a JP run without the package exits with an error)</td>
+</tr>
+<tr>
+<td><code>--cache-dir PATH</code></td>
+<td>unset</td>
+<td>F4 memoize: reuse a previous snapshot output directory as a cache</td>
+</tr>
+<tr>
+<td><code>--log-file PATH</code></td>
+<td><code>&lt;output&gt;/simulator.log</code></td>
+<td>Structured JSONL simulator log</td>
 </tr>
 </tbody>
 </table>
@@ -2524,7 +2544,7 @@
 <tr>
 <td><code>CLINOSIM_JP_CLINS_PKG_DIR</code></td>
 <td>unset</td>
-<td>Path to the JP-CLINS package directory (required for JP-CLINS lab-compliance gate; see <a href="../../jp-clins/"><code>jp-clins.md</code></a>)</td>
+<td>Path to the JP-CLINS package's <code>package/</code> directory. Searched first; otherwise the <code>fhir</code> CLI cache (<code>~/.fhir/packages/</code>) is used. <code>--country JP</code> needs the package (see <a href="../../jp-clins/"><code>jp-clins.md</code></a>)</td>
 </tr>
 <tr>
 <td><code>CLINOSIM_LOG_LEVEL</code></td>
@@ -2534,7 +2554,7 @@
 <tr>
 <td><code>CLINOSIM_ALLOW_LEGACY_JP_CLINS_PKG</code></td>
 <td>unset</td>
-<td>When set to <code>1</code>, equivalent to passing <code>--allow-legacy</code> to the CLI (bypasses JP-CLINS package-version pin for ad-hoc runs)</td>
+<td>When set to <code>1</code>, equivalent to passing <code>--allow-legacy</code> (a JP run proceeds without the JP-CLINS package, emitting legacy 5-digit JLAC10 codes)</td>
 </tr>
 <tr>
 <td><code>AWS_REGION</code>, <code>AWS_ACCESS_KEY_ID</code>, <code>AWS_SECRET_ACCESS_KEY</code></td>
@@ -2549,7 +2569,7 @@
 </span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>clinosim<span class="w"> </span>dataset<span class="w"> </span>build<span class="w"> </span>jp-100<span class="w"> </span>--output<span class="w"> </span>./jp-100-out
 </span></code></pre></div>
 <h2 id="hospital-config-override">Hospital-config override<a class="headerlink" href="#hospital-config-override" title="Permanent link">&para;</a></h2>
-<p>The default hospital shape (bed count, ward mix, staff roster) is loaded from <code>hospital_operations.yaml</code>. To use a custom shape, pass <code>--hospital-config path/to/your.yaml</code>. See <a href="../../architecture/module-architecture/"><code>../architecture/module-architecture.md</code></a> for the schema.</p>
+<p>The default hospital shape (bed count, ward mix, staff roster) is loaded from <code>clinosim/config/hospital_operations.yaml</code>. <code>hospital_small.yaml</code> (10 beds) and <code>hospital_large.yaml</code> (200 beds) ship alongside it. To use a custom shape, pass <code>--hospital-config path/to/your.yaml</code>. See <a href="https://github.com/TomoOkuyama/clinosim/blob/master/clinosim/config/README.md"><code>clinosim/config/README.md</code></a> for the schema.</p>
 
 
 

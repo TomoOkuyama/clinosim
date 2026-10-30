@@ -2338,7 +2338,7 @@
 </span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>pytest<span class="w"> </span>-x
 </span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>
 </span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="c1"># カテゴリ別</span>
-</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>pytest<span class="w"> </span>-m<span class="w"> </span>unit<span class="w">                   </span><span class="c1"># 単体テスト (~4500 test 関数、tests/unit/ 配下で ~7100 collected ケース)</span>
+</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>pytest<span class="w"> </span>-m<span class="w"> </span>unit<span class="w">                   </span><span class="c1"># `unit` マーク付きテスト (~5200 ケース。tests/unit/ 配下は ~5600 test 関数、~7700 collected ケース)</span>
 </span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>pytest<span class="w"> </span>-m<span class="w"> </span>integration<span class="w">            </span><span class="c1"># cross-module (reproduce.sh gate 含む)</span>
 </span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>pytest<span class="w"> </span>-m<span class="w"> </span>e2e<span class="w">                    </span><span class="c1"># E2E + golden テスト</span>
 </span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>
@@ -2348,13 +2348,15 @@
 <h3 id="再現性">再現性<a class="headerlink" href="#再現性" title="Permanent link">&para;</a></h3>
 <p>clinosim は所与の <code>(seed, config, country, start, end, population)</code>
 タプルに対して <strong>byte-identical 出力</strong> を MINOR release line 内で
-保証します — 壁時計メタデータ (<code>fhir_r4/manifest.json</code> /
-<code>cif/metadata.json</code> / narrative-pass <code>manifest.json</code>) は差分あり想定、
+保証します — 壁時計 / git 依存メタデータ (<code>fhir_r4/manifest.json</code> /
+<code>fhir_r4/_generator_metadata.json</code> / <code>cif/metadata.json</code> /
+narrative-pass <code>manifest.json</code>) は差分あり想定、
 それ以外は完全一致でなければなりません。</p>
 <p>いつでも検証:</p>
 <div class="highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>bash<span class="w"> </span>scripts/reproduce.sh
 </span></code></pre></div>
-<p>スクリプトは locale ごと (デフォルト US + JP) に
+<p>スクリプトは locale ごと (デフォルト US + JP。JP は <code>--allow-legacy</code>
+付きなので JP-CLINS パッケージ不要) に
 <code>clinosim simulate --format fhir</code> を 2 つの分離した temp ディレクト
 リへ 2 回実行、各 NDJSON + CIF JSON を sha256 化し、hash リストを
 diff します。exit 0 = byte-identical、exit 1 = 決定性回帰 (該当
@@ -2362,8 +2364,10 @@ diff します。exit 0 = byte-identical、exit 1 = 決定性回帰 (該当
 <code>CLINOSIM_REPRO_POPULATION</code> / <code>CLINOSIM_REPRO_SEED</code> /
 <code>CLINOSIM_REPRO_START</code> / <code>CLINOSIM_REPRO_END</code> でデフォルトを上書き
 可能。</p>
-<p>CI の <code>reproducibility</code> job が全 push + PR で実行するので、回帰が
-コードのランド前に merge gate を trip します。</p>
+<p>CI は全 push + PR で <code>tests/integration/test_full_reproducibility.py</code>
+(integration ジョブ) 経由で実行し、<code>nightly.yml</code> の <code>reproducibility</code>
+job も毎日実行するので、回帰がコードのランド前に merge gate を trip
+します。</p>
 <hr />
 
 

@@ -2097,77 +2097,21 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#path-a--pypi-trusted-publisher-recommended-no-secret" class="md-nav__link">
+  <a href="#pypi-trusted-publishing-oidc" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Path A — PyPI Trusted Publisher (recommended, no secret)
+        PyPI Trusted Publishing (OIDC)
       
     </span>
   </a>
-  
-    <nav class="md-nav" aria-label="Path A — PyPI Trusted Publisher (recommended, no secret)">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#one-time-setup-maintainer" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        One-time setup (maintainer)
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#verify" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Verify
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#path-b--api-token-simpler-uses-a-secret" class="md-nav__link">
+  <a href="#cutting-a-release" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Path B — API token (simpler, uses a secret)
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Path B — API token (simpler, uses a secret)">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#one-time-setup" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        One-time setup
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#cutting-a-release-both-paths" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Cutting a release (both paths)
+        Cutting a release
       
     </span>
   </a>
@@ -2450,77 +2394,21 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#path-a--pypi-trusted-publisher-recommended-no-secret" class="md-nav__link">
+  <a href="#pypi-trusted-publishing-oidc" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Path A — PyPI Trusted Publisher (recommended, no secret)
+        PyPI Trusted Publishing (OIDC)
       
     </span>
   </a>
-  
-    <nav class="md-nav" aria-label="Path A — PyPI Trusted Publisher (recommended, no secret)">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#one-time-setup-maintainer" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        One-time setup (maintainer)
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#verify" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Verify
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#path-b--api-token-simpler-uses-a-secret" class="md-nav__link">
+  <a href="#cutting-a-release" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Path B — API token (simpler, uses a secret)
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Path B — API token (simpler, uses a secret)">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#one-time-setup" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        One-time setup
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#cutting-a-release-both-paths" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Cutting a release (both paths)
+        Cutting a release
       
     </span>
   </a>
@@ -2575,51 +2463,27 @@
 
 
 <h1 id="publishing-clinosim-to-pypi">Publishing clinosim to PyPI<a class="headerlink" href="#publishing-clinosim-to-pypi" title="Permanent link">&para;</a></h1>
-<p>The release workflow (<code>.github/workflows/release.yml</code>) builds a wheel + sdist
-and creates a GitHub Release on every <code>v*.*.*</code> tag push, but the actual PyPI
-upload step is intentionally commented out until a maintainer configures a
-publishing credential.</p>
-<p>Two supported paths — pick one and edit <code>release.yml</code> per the inline comments.</p>
-<h2 id="path-a--pypi-trusted-publisher-recommended-no-secret">Path A — PyPI Trusted Publisher (recommended, no secret)<a class="headerlink" href="#path-a--pypi-trusted-publisher-recommended-no-secret" title="Permanent link">&para;</a></h2>
-<p>PyPI trusted publishing uses GitHub OIDC to authenticate the workflow directly
-against PyPI, so no long-lived token needs to be stored as a repository secret.
-This is the modern PyPI-recommended path.</p>
-<h3 id="one-time-setup-maintainer">One-time setup (maintainer)<a class="headerlink" href="#one-time-setup-maintainer" title="Permanent link">&para;</a></h3>
-<ol>
-<li>Register the package name on PyPI: <a href="https://pypi.org/manage/projects/">https://pypi.org/manage/projects/</a> →
-   "Register a new project" → name <code>clinosim</code>. First-time only.</li>
-<li>On <a href="https://pypi.org/manage/account/publishing/">https://pypi.org/manage/account/publishing/</a> add a "Pending Trusted
-   Publisher" with:</li>
+<p>The release workflow (<code>.github/workflows/release.yml</code>) fires on every
+<code>v*.*.*</code> tag push. It builds a wheel + sdist, creates a GitHub Release, and
+uploads the wheel + sdist to PyPI in the same job.</p>
+<h2 id="pypi-trusted-publishing-oidc">PyPI Trusted Publishing (OIDC)<a class="headerlink" href="#pypi-trusted-publishing-oidc" title="Permanent link">&para;</a></h2>
+<p>The PyPI upload uses Trusted Publishing: GitHub OIDC authenticates the
+workflow directly against PyPI, so no long-lived token is stored in the
+repository. The trusted publisher is registered at
+<a href="https://pypi.org/manage/project/clinosim/settings/publishing/">https://pypi.org/manage/project/clinosim/settings/publishing/</a> with:</p>
+<ul>
 <li>PyPI Project name: <code>clinosim</code></li>
 <li>Owner: <code>TomoOkuyama</code></li>
 <li>Repository name: <code>clinosim</code></li>
 <li>Workflow name: <code>release.yml</code></li>
-<li>Environment name: leave blank (or set <code>pypi</code> if you want a
-     required-approval step)</li>
-<li>Edit <code>.github/workflows/release.yml</code>:</li>
-<li>Under <code>permissions:</code> uncomment <code>id-token: write</code></li>
-<li>Uncomment the <code>- name: Publish to PyPI (trusted publishing)</code> step at the
-     bottom of the job</li>
-</ol>
-<h3 id="verify">Verify<a class="headerlink" href="#verify" title="Permanent link">&para;</a></h3>
-<ul>
-<li>Cut a pre-release tag (e.g., <code>v0.2.0rc1</code>), push, watch the release job</li>
-<li>On success, <code>pip install clinosim==0.2.0rc1</code> should work</li>
+<li>Environment name: <code>release</code></li>
 </ul>
-<h2 id="path-b--api-token-simpler-uses-a-secret">Path B — API token (simpler, uses a secret)<a class="headerlink" href="#path-b--api-token-simpler-uses-a-secret" title="Permanent link">&para;</a></h2>
-<p>If trusted publishing is unavailable in the target org, fall back to an API
-token stored as a repository secret.</p>
-<h3 id="one-time-setup">One-time setup<a class="headerlink" href="#one-time-setup" title="Permanent link">&para;</a></h3>
-<ol>
-<li>Register the project on PyPI (same as A step 1)</li>
-<li>Create an API token scoped to just the <code>clinosim</code> project at
-   <a href="https://pypi.org/manage/account/token/">https://pypi.org/manage/account/token/</a></li>
-<li>Add it to the repo as <code>PYPI_API_TOKEN</code> under Settings → Secrets and
-   variables → Actions</li>
-<li>Edit <code>.github/workflows/release.yml</code>: uncomment the <code>- name: Publish to
-   PyPI (token)</code> step</li>
-</ol>
-<h2 id="cutting-a-release-both-paths">Cutting a release (both paths)<a class="headerlink" href="#cutting-a-release-both-paths" title="Permanent link">&para;</a></h2>
+<p>In <code>release.yml</code> the <code>release</code> job runs in the <code>release</code> environment and
+holds <code>id-token: write</code>; the <code>Publish to PyPI (Trusted Publishing / OIDC)</code>
+step (<code>pypa/gh-action-pypi-publish@release/v1</code>, <code>packages-dir: dist/</code>)
+performs the upload. If the job's environment name and the one registered
+on PyPI differ, PyPI rejects the token exchange.</p>
+<h2 id="cutting-a-release">Cutting a release<a class="headerlink" href="#cutting-a-release" title="Permanent link">&para;</a></h2>
 <ol>
 <li>Bump <code>clinosim/__init__.py::__version__</code> (e.g. <code>0.2.0 → 0.3.0</code>)</li>
 <li>Move <code>## [Unreleased]</code> content in <code>CHANGELOG.md</code> under a new
@@ -2628,9 +2492,15 @@ token stored as a repository secret.</p>
 <li><code>git tag -a vX.Y.Z -m "clinosim vX.Y.Z"</code> + <code>git push origin vX.Y.Z</code></li>
 <li><code>release.yml</code> fires on the tag push and:</li>
 <li>Verifies <code>tag == clinosim.__version__</code> (refuses mismatch)</li>
-<li>Builds sdist + wheel + dataset presets (us-100 / us-1000 / jp-100 / jp-1000)</li>
-<li>Publishes GitHub Release with artifacts + CHANGELOG entry as notes</li>
-<li>(After enabling A or B above) Publishes to PyPI</li>
+<li>Builds sdist + wheel and runs <code>twine check</code></li>
+<li>Builds the dataset presets (us-100 / us-1000 / jp-100 / jp-1000) with
+     <code>CLINOSIM_ALLOW_LEGACY_JP_CLINS_PKG=1</code> (the runner has no JP-CLINS
+     package, so the JP presets carry legacy 5-digit JLAC10 OIDs)</li>
+<li>Publishes the GitHub Release with the sdist, wheel and dataset tarballs
+     attached and the CHANGELOG entry as notes</li>
+<li>Publishes the sdist + wheel to PyPI (dataset tarballs go to the GitHub
+     Release only)</li>
+<li>Uploads <code>dist/*</code> as a workflow artifact (90-day retention)</li>
 </ol>
 <h2 id="roll-forward-only">Roll-forward-only<a class="headerlink" href="#roll-forward-only" title="Permanent link">&para;</a></h2>
 <p>PyPI does not allow re-publishing a version. If a release goes out with a

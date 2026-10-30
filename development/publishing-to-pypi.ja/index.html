@@ -2294,77 +2294,21 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#path-a--pypi-trusted-publisher-推奨シークレット不要" class="md-nav__link">
+  <a href="#pypi-trusted-publishing-oidc" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Path A — PyPI Trusted Publisher (推奨、シークレット不要)
+        PyPI Trusted Publishing (OIDC)
       
     </span>
   </a>
-  
-    <nav class="md-nav" aria-label="Path A — PyPI Trusted Publisher (推奨、シークレット不要)">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#初回設定-メンテナ" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        初回設定 (メンテナ)
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#検証" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        検証
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#path-b--api-token-シンプルシークレット使用" class="md-nav__link">
+  <a href="#リリースを切る" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Path B — API token (シンプル、シークレット使用)
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Path B — API token (シンプル、シークレット使用)">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#初回設定" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        初回設定
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#リリースを切る-両経路共通" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        リリースを切る (両経路共通)
+        リリースを切る
       
     </span>
   </a>
@@ -2420,50 +2364,29 @@
 
 <h1 id="clinosim-を-pypi-に公開">clinosim を PyPI に公開<a class="headerlink" href="#clinosim-を-pypi-に公開" title="Permanent link">&para;</a></h1>
 <p>release ワークフロー (<code>.github/workflows/release.yml</code>) は各
-<code>v*.*.*</code> タグ push で wheel + sdist をビルドし GitHub Release を
-作成しますが、実際の PyPI アップロード step はメンテナが公開認証情報
-を設定するまで意図的にコメントアウトされています。</p>
-<p>サポートされる 2 経路 — 1 つを選び <code>release.yml</code> のインラインコメン
-トに従って編集。</p>
-<h2 id="path-a--pypi-trusted-publisher-推奨シークレット不要">Path A — PyPI Trusted Publisher (推奨、シークレット不要)<a class="headerlink" href="#path-a--pypi-trusted-publisher-推奨シークレット不要" title="Permanent link">&para;</a></h2>
-<p>PyPI trusted publishing は GitHub OIDC でワークフローを直接 PyPI に
-対して認証するので、long-lived token をリポジトリシークレットとして
-保管する必要がありません。これは PyPI 推奨の最新経路。</p>
-<h3 id="初回設定-メンテナ">初回設定 (メンテナ)<a class="headerlink" href="#初回設定-メンテナ" title="Permanent link">&para;</a></h3>
-<ol>
-<li>PyPI にパッケージ名を登録: <a href="https://pypi.org/manage/projects/">https://pypi.org/manage/projects/</a>
-   → "Register a new project" → 名前 <code>clinosim</code>。初回のみ。</li>
-<li><a href="https://pypi.org/manage/account/publishing/">https://pypi.org/manage/account/publishing/</a> で "Pending Trusted
-   Publisher" を以下で追加:</li>
+<code>v*.*.*</code> タグ push で発火し、wheel + sdist をビルドして GitHub
+Release を作成し、同じジョブ内で wheel + sdist を PyPI にアップロード
+します。</p>
+<h2 id="pypi-trusted-publishing-oidc">PyPI Trusted Publishing (OIDC)<a class="headerlink" href="#pypi-trusted-publishing-oidc" title="Permanent link">&para;</a></h2>
+<p>PyPI アップロードは Trusted Publishing を使います。GitHub OIDC で
+ワークフローを直接 PyPI に対して認証するので、long-lived token を
+リポジトリに保管しません。trusted publisher は
+<a href="https://pypi.org/manage/project/clinosim/settings/publishing/">https://pypi.org/manage/project/clinosim/settings/publishing/</a> に
+以下で登録済み:</p>
+<ul>
 <li>PyPI Project name: <code>clinosim</code></li>
 <li>Owner: <code>TomoOkuyama</code></li>
 <li>Repository name: <code>clinosim</code></li>
 <li>Workflow name: <code>release.yml</code></li>
-<li>Environment name: 空欄 (必須承認 step を入れるなら <code>pypi</code>)</li>
-<li><code>.github/workflows/release.yml</code> を編集:</li>
-<li><code>permissions:</code> の下で <code>id-token: write</code> をアンコメント</li>
-<li>ジョブ末尾の
-     <code>- name: Publish to PyPI (trusted publishing)</code> step をアンコメント</li>
-</ol>
-<h3 id="検証">検証<a class="headerlink" href="#検証" title="Permanent link">&para;</a></h3>
-<ul>
-<li>pre-release タグ (例: <code>v0.2.0rc1</code>) を切って push、release job を確認</li>
-<li>成功時に <code>pip install clinosim==0.2.0rc1</code> が動作するはず</li>
+<li>Environment name: <code>release</code></li>
 </ul>
-<h2 id="path-b--api-token-シンプルシークレット使用">Path B — API token (シンプル、シークレット使用)<a class="headerlink" href="#path-b--api-token-シンプルシークレット使用" title="Permanent link">&para;</a></h2>
-<p>対象 org で trusted publishing が使用不可の場合、リポジトリシークレット
-に保管した API token にフォールバック。</p>
-<h3 id="初回設定">初回設定<a class="headerlink" href="#初回設定" title="Permanent link">&para;</a></h3>
-<ol>
-<li>PyPI でプロジェクト登録 (A step 1 と同じ)</li>
-<li><code>clinosim</code> プロジェクトのみに scope した API token を
-   <a href="https://pypi.org/manage/account/token/">https://pypi.org/manage/account/token/</a> で作成</li>
-<li>Settings → Secrets and variables → Actions で <code>PYPI_API_TOKEN</code>
-   としてリポジトリに追加</li>
-<li><code>.github/workflows/release.yml</code> を編集:
-   <code>- name: Publish to PyPI (token)</code> step をアンコメント</li>
-</ol>
-<h2 id="リリースを切る-両経路共通">リリースを切る (両経路共通)<a class="headerlink" href="#リリースを切る-両経路共通" title="Permanent link">&para;</a></h2>
+<p><code>release.yml</code> では <code>release</code> ジョブが <code>release</code> environment で動作し
+<code>id-token: write</code> を持ちます。アップロードは
+<code>Publish to PyPI (Trusted Publishing / OIDC)</code> step
+(<code>pypa/gh-action-pypi-publish@release/v1</code>、<code>packages-dir: dist/</code>) が
+行います。ジョブの environment 名と PyPI 側の登録が一致しないと、PyPI
+は token 交換を拒否します。</p>
+<h2 id="リリースを切る">リリースを切る<a class="headerlink" href="#リリースを切る" title="Permanent link">&para;</a></h2>
 <ol>
 <li><code>clinosim/__init__.py::__version__</code> を bump (例: <code>0.2.0 → 0.3.0</code>)</li>
 <li><code>CHANGELOG.md</code> の <code>## [Unreleased]</code> 内容を新しい
@@ -2473,11 +2396,15 @@
    <code>git push origin vX.Y.Z</code></li>
 <li><code>release.yml</code> がタグ push で発火し以下を実行:</li>
 <li><code>tag == clinosim.__version__</code> を検証 (不一致は拒否)</li>
-<li>sdist + wheel + データセットプリセット (us-100 / us-1000 /
-     jp-100 / jp-1000) をビルド</li>
-<li>アーティファクトと CHANGELOG エントリを notes として GitHub
-     Release を公開</li>
-<li>(上記 A または B 有効化後) PyPI に公開</li>
+<li>sdist + wheel をビルドし <code>twine check</code></li>
+<li>データセットプリセット (us-100 / us-1000 / jp-100 / jp-1000) を
+     <code>CLINOSIM_ALLOW_LEGACY_JP_CLINS_PKG=1</code> でビルド (runner に JP-CLINS
+     パッケージが無いため、JP プリセットは旧 5 桁 JLAC10 OID)</li>
+<li>sdist / wheel / データセット tarball を添付し、CHANGELOG エントリ
+     を notes として GitHub Release を公開</li>
+<li>sdist + wheel を PyPI に公開 (データセット tarball は GitHub
+     Release のみ)</li>
+<li><code>dist/*</code> を workflow artifact としてアップロード (90 日保持)</li>
 </ol>
 <h2 id="roll-forward-only">Roll-forward-only<a class="headerlink" href="#roll-forward-only" title="Permanent link">&para;</a></h2>
 <p>PyPI は同一バージョンの再公開を許可しません。バグ入りリリースが出

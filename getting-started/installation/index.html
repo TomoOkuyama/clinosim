@@ -2464,13 +2464,13 @@
 
 <h1 id="installation">Installation<a class="headerlink" href="#installation" title="Permanent link">&para;</a></h1>
 <h2 id="as-a-user-recommended">As a user (recommended)<a class="headerlink" href="#as-a-user-recommended" title="Permanent link">&para;</a></h2>
-<p>Once released to PyPI, install the packaged version directly:</p>
+<p>Install the packaged version from PyPI:</p>
 <div class="highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>python<span class="w"> </span>-m<span class="w"> </span>venv<span class="w"> </span>.venv
 </span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="nb">source</span><span class="w"> </span>.venv/bin/activate<span class="w">          </span><span class="c1"># Windows: .venv\Scripts\activate</span>
-</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>pip<span class="w"> </span>install<span class="w"> </span>clinosim<span class="w">                </span><span class="c1"># (PyPI upload pending — see fallback below)</span>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>pip<span class="w"> </span>install<span class="w"> </span>clinosim
 </span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>clinosim<span class="w"> </span>--help
 </span></code></pre></div>
-<p><strong>Pre-PyPI fallback</strong> — install straight from GitHub:</p>
+<p>To track unreleased changes, install straight from GitHub:</p>
 <div class="highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>pip<span class="w"> </span>install<span class="w"> </span><span class="s2">"git+https://github.com/TomoOkuyama/clinosim.git@master"</span>
 </span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>clinosim<span class="w"> </span>--help
 </span></code></pre></div>
@@ -2484,7 +2484,15 @@
 <h2 id="requirements">Requirements<a class="headerlink" href="#requirements" title="Permanent link">&para;</a></h2>
 <ul>
 <li>Python 3.11+</li>
-<li>Main dependencies: numpy, scipy, pydantic, pyyaml, httpx</li>
+<li>Main dependencies: numpy, scipy, pydantic, pyyaml, httpx, mpmath</li>
+<li><strong>JP generation (<code>--country JP</code>)</strong> needs the JP-CLINS FHIR package
+  (<code>clinical-information-sharing#1.13.0</code> + <code>jpfhir-terminology#2.2606.0</code>),
+  either installed in the <code>fhir</code> CLI cache (<code>~/.fhir/packages/</code>) or pointed
+  to by <code>CLINOSIM_JP_CLINS_PKG_DIR</code>. Without it a JP run exits with an
+  error unless you pass <code>--allow-legacy</code> (or set
+  <code>CLINOSIM_ALLOW_LEGACY_JP_CLINS_PKG=1</code>), which emits legacy 5-digit
+  JLAC10 codes that are not JP-CLINS compliant. See
+  <a href="../../jp-clins/">JP-CLINS</a>.</li>
 <li><strong>Optional:</strong><ul>
 <li>Ollama for local LLM narrative generation</li>
 <li><code>pip install "clinosim[parquet]"</code> for CIF Parquet export</li>
@@ -2494,6 +2502,8 @@
 </li>
 </ul>
 <h2 id="sanity-check">Sanity check<a class="headerlink" href="#sanity-check" title="Permanent link">&para;</a></h2>
+<p>The dataset presets live in <code>datasets/</code> at the repository root, so
+<code>clinosim dataset</code> needs a source checkout (developer install).</p>
 <div class="highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>clinosim<span class="w"> </span>--help<span class="w">                                 </span><span class="c1"># top-level CLI banner</span>
 </span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>clinosim<span class="w"> </span>dataset<span class="w"> </span>list<span class="w">                           </span><span class="c1"># 4 shipped presets</span>
 </span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>clinosim<span class="w"> </span>dataset<span class="w"> </span>build<span class="w"> </span>jp-100<span class="w"> </span>--output<span class="w"> </span>./test<span class="w">   </span><span class="c1"># ~30 s smoke build</span>

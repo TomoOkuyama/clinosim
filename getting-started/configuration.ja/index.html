@@ -2404,12 +2404,32 @@ machine-readable リストは <code>clinosim simulate --help</code> を実行。
 <tr>
 <td><code>--format {cif,fhir-r4,csv}</code></td>
 <td><code>cif</code></td>
-<td>1 つ以上の出力形式</td>
+<td>1 つ以上の出力形式 (<code>fhir</code> は <code>fhir-r4</code> の alias)。形式ごとにサブディレクトリ (<code>cif/</code> / <code>fhir_r4/</code> / <code>csv/</code>) に出力</td>
 </tr>
 <tr>
 <td><code>--hospital-config PATH</code></td>
-<td><code>hospital_operations.yaml</code></td>
+<td><code>clinosim/config/hospital_operations.yaml</code></td>
 <td>病院形状 override YAML</td>
+</tr>
+<tr>
+<td><code>--jp-insurance</code> / <code>--no-jp-insurance</code></td>
+<td>on</td>
+<td>(JP のみ) 保険加入 / 被保険者番号を FHIR Coverage として出力</td>
+</tr>
+<tr>
+<td><code>--allow-legacy</code></td>
+<td>off</td>
+<td>(JP のみ) JP-CLINS パッケージ無しで続行し旧 5 桁 JLAC10 コードを出力 (指定しないとパッケージ無しの JP 実行はエラー終了)</td>
+</tr>
+<tr>
+<td><code>--cache-dir PATH</code></td>
+<td>未設定</td>
+<td>F4 memoize: 以前のスナップショット出力ディレクトリをキャッシュとして再利用</td>
+</tr>
+<tr>
+<td><code>--log-file PATH</code></td>
+<td><code>&lt;output&gt;/simulator.log</code></td>
+<td>構造化 JSONL シミュレータログ</td>
 </tr>
 </tbody>
 </table>
@@ -2426,7 +2446,7 @@ machine-readable リストは <code>clinosim simulate --help</code> を実行。
 <tr>
 <td><code>CLINOSIM_JP_CLINS_PKG_DIR</code></td>
 <td>未設定</td>
-<td>JP-CLINS パッケージディレクトリへのパス (JP-CLINS lab-compliance gate 必須; <a href="../../jp-clins.ja/"><code>jp-clins.ja.md</code></a> 参照)</td>
+<td>JP-CLINS パッケージの <code>package/</code> ディレクトリへのパス。最初に探索され、無ければ <code>fhir</code> CLI キャッシュ (<code>~/.fhir/packages/</code>) を使用。<code>--country JP</code> にはパッケージが必要 (<a href="../../jp-clins.ja/"><code>jp-clins.ja.md</code></a> 参照)</td>
 </tr>
 <tr>
 <td><code>CLINOSIM_LOG_LEVEL</code></td>
@@ -2436,7 +2456,7 @@ machine-readable リストは <code>clinosim simulate --help</code> を実行。
 <tr>
 <td><code>CLINOSIM_ALLOW_LEGACY_JP_CLINS_PKG</code></td>
 <td>未設定</td>
-<td><code>1</code> を設定すると CLI の <code>--allow-legacy</code> と等価 (JP-CLINS パッケージバージョン pin を ad-hoc 走行向けにバイパス)</td>
+<td><code>1</code> を設定すると <code>--allow-legacy</code> と等価 (JP 実行が JP-CLINS パッケージ無しで続行し、旧 5 桁 JLAC10 コードを出力)</td>
 </tr>
 <tr>
 <td><code>AWS_REGION</code>, <code>AWS_ACCESS_KEY_ID</code>, <code>AWS_SECRET_ACCESS_KEY</code></td>
@@ -2452,9 +2472,11 @@ machine-readable リストは <code>clinosim simulate --help</code> を実行。
 </span></code></pre></div>
 <h2 id="病院設定-override">病院設定 override<a class="headerlink" href="#病院設定-override" title="Permanent link">&para;</a></h2>
 <p>デフォルト病院形状 (ベッド数、ward mix、スタッフ roster) は
-<code>hospital_operations.yaml</code> からロード。カスタム形状を使うには
-<code>--hospital-config path/to/your.yaml</code> を渡す。スキーマは
-<a href="../../architecture/module-architecture.ja/"><code>../architecture/module-architecture.md</code></a>
+<code>clinosim/config/hospital_operations.yaml</code> からロード。
+<code>hospital_small.yaml</code> (10 床) と <code>hospital_large.yaml</code> (200 床) も
+同梱。カスタム形状を使うには <code>--hospital-config path/to/your.yaml</code> を
+渡す。スキーマは
+<a href="https://github.com/TomoOkuyama/clinosim/blob/master/clinosim/config/README.ja.md"><code>clinosim/config/README.ja.md</code></a>
 参照。</p>
 
 

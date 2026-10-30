@@ -2387,13 +2387,15 @@
 <h1 id="再現性">再現性<a class="headerlink" href="#再現性" title="Permanent link">&para;</a></h1>
 <p>clinosim は所与の <code>(seed, config, country, start, end, population)</code>
 タプルに対して <strong>byte-identical 出力</strong> を MINOR release line 内で保証
-します — 壁時計メタデータ (<code>fhir_r4/manifest.json</code> /
-<code>cif/metadata.json</code> / narrative-pass <code>manifest.json</code>) は差分あり想定、
+します — 壁時計 / git 依存メタデータ (<code>fhir_r4/manifest.json</code> /
+<code>fhir_r4/_generator_metadata.json</code> / <code>cif/metadata.json</code> /
+narrative-pass <code>manifest.json</code>) は差分あり想定、
 それ以外は完全一致でなければなりません。</p>
 <h2 id="いつでも検証">いつでも検証<a class="headerlink" href="#いつでも検証" title="Permanent link">&para;</a></h2>
 <div class="highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>bash<span class="w"> </span>scripts/reproduce.sh
 </span></code></pre></div>
-<p>スクリプトは locale ごと (デフォルト US + JP) に
+<p>スクリプトは locale ごと (デフォルト US + JP。JP は <code>--allow-legacy</code>
+付きなので JP-CLINS パッケージ不要) に
 <code>clinosim simulate --format fhir</code> を 2 つの分離した temp ディレクト
 リへ 2 回実行、各 NDJSON + CIF JSON を sha256 化し、hash リストを
 diff します。exit 0 = byte-identical、exit 1 = 決定性回帰 (該当
@@ -2434,10 +2436,17 @@ diff します。exit 0 = byte-identical、exit 1 = 決定性回帰 (該当
 </tbody>
 </table>
 <h2 id="ci-強制">CI 強制<a class="headerlink" href="#ci-強制" title="Permanent link">&para;</a></h2>
-<p><a href="https://github.com/TomoOkuyama/clinosim/blob/master/.github/workflows/ci.yml"><code>.github/workflows/ci.yml</code></a>
-の <code>reproducibility</code> ジョブが全 push + PR に対して
-<code>scripts/reproduce.sh</code> を実行。決定性回帰があればコードがランドする
-前に merge gate を trip。</p>
+<ul>
+<li>master への全 push と全 PR で、
+  <a href="https://github.com/TomoOkuyama/clinosim/blob/master/.github/workflows/ci.yml"><code>.github/workflows/ci.yml</code></a>
+  の integration ジョブ内で
+  <a href="https://github.com/TomoOkuyama/clinosim/blob/master/tests/integration/test_full_reproducibility.py"><code>tests/integration/test_full_reproducibility.py</code></a>
+  が <code>scripts/reproduce.sh</code> を実行。決定性回帰があればコードがランド
+  する前に merge gate を trip。</li>
+<li><a href="https://github.com/TomoOkuyama/clinosim/blob/master/.github/workflows/nightly.yml"><code>.github/workflows/nightly.yml</code></a>
+  の専用 <code>reproducibility</code> ジョブが毎日 (およびリリース切り出し前など
+  <code>workflow_dispatch</code> で) スクリプトを実行。</li>
+</ul>
 <h2 id="基礎となる不変条件">基礎となる不変条件<a class="headerlink" href="#基礎となる不変条件" title="Permanent link">&para;</a></h2>
 <p><a href="../../reference/design.ja/">AD-16</a> より:</p>
 <ul>
