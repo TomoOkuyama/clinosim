@@ -2546,12 +2546,8 @@ require no country-specific work.</p>
 </span></code></pre></div>
 <h2 id="required-yaml-files">Required YAML files<a class="headerlink" href="#required-yaml-files" title="Permanent link">&para;</a></h2>
 <p>The <code>xx/</code> directory MUST contain the following. See the <code>_template/</code> scaffold
-(<code>clinosim/locale/_template/</code>) for schema comments and skeleton values.
-Note that <code>_template/demographics.yaml</code> uses key names the loader does not
-read (<code>sex_distribution</code>, <code>blood_type_distribution</code>,
-<code>chronic_condition_prevalence</code>); take key names from
-<code>clinosim/locale/us/demographics.yaml</code> / <code>jp/demographics.yaml</code>
-(<code>sex_ratio</code>, <code>blood_type</code>, <code>chronic_prevalence</code>, ...).</p>
+(<code>clinosim/locale/_template/</code>) for schema comments and skeleton values;
+<code>_template/demographics.yaml</code> follows the same schema as the us/jp files.</p>
 <table>
 <thead>
 <tr>
@@ -2658,11 +2654,8 @@ forward per person per year by <code>clinosim/modules/population/mortality.py</c
 life-table <code>qx</code> (age band × sex) × the person's relative chronic-condition
 SMR × <code>community_death_share</code>. Both <code>annual_mortality_qx</code> and
 <code>community_death_share</code> are keyed by locale (<code>us</code>, <code>jp</code>) in the shared
-yaml. <strong>Current limitation:</strong> <code>mortality.py::_locale_key</code> maps every
-non-JP country to <code>us</code>, so a new locale uses the US life table and US
-<code>community_death_share</code> until that function is extended to read an
-<code>xx</code> block. Adding a locale with its own mortality therefore needs an
-<code>xx</code> entry under both yaml keys plus that code change.</p>
+yaml. Add an <code>xx</code> entry under both keys for your locale; a locale with
+no entry falls back to the US block.</p>
 <h2 id="optional-yaml-files-opt-in-modules">Optional YAML files (opt-in modules)<a class="headerlink" href="#optional-yaml-files-opt-in-modules" title="Permanent link">&para;</a></h2>
 <p>Only add these when your country supports a specific opt-in module:</p>
 <table>
@@ -2739,9 +2732,8 @@ registries are yaml files:
 <li>Add a <code>clinosim/codes/data/fhir-profiles-xx-core.yaml</code> registry
    mirroring the JP Core / US Core ones, an <code>_apply_xx_core_profile</code>
    helper, and a branch for your country in <code>_build_bundle</code>.</li>
-<li>Otherwise your bundles are emitted on the non-JP path and declare
-   US Core profile URLs, which is wrong for a non-US country — at minimum
-   add a branch that skips <code>_apply_us_core_profile</code> for it.</li>
+<li>Otherwise your bundles carry no national profile: only US output
+   declares US Core and only JP output JP Core.</li>
 </ol>
 <h3 id="3-country-specific-opt-in-modules">3. Country-specific opt-in modules<a class="headerlink" href="#3-country-specific-opt-in-modules" title="Permanent link">&para;</a></h3>
 <p>Some enrichers gate on country in <code>register_builtin_enrichers</code>:</p>

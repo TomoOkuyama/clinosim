@@ -2547,11 +2547,7 @@
 <h2 id="必須-yaml-ファイル">必須 YAML ファイル<a class="headerlink" href="#必須-yaml-ファイル" title="Permanent link">&para;</a></h2>
 <p><code>xx/</code> ディレクトリは以下を <strong>必ず</strong> 含める必要あり。スキーマコメントと
 skeleton 値は <code>_template/</code> scaffold (<code>clinosim/locale/_template/</code>)
-参照。ただし <code>_template/demographics.yaml</code> の key 名
-(<code>sex_distribution</code>、<code>blood_type_distribution</code>、
-<code>chronic_condition_prevalence</code>) はローダーが読まない名前なので、key 名は
-<code>clinosim/locale/us/demographics.yaml</code> / <code>jp/demographics.yaml</code>
-(<code>sex_ratio</code>、<code>blood_type</code>、<code>chronic_prevalence</code> ...) から取ること。</p>
+参照。<code>_template/demographics.yaml</code> は us/jp と同じスキーマ。</p>
 <table>
 <thead>
 <tr>
@@ -2657,11 +2653,8 @@ key が無いと率 0 扱いとなり、ED のみの受診は生成されない�
 引く: 生命表 <code>qx</code> (年齢帯 × 性別) × その人の慢性疾患による相対 SMR ×
 <code>community_death_share</code>。<code>annual_mortality_qx</code> と <code>community_death_share</code>
 はどちらも共有 yaml 内で locale (<code>us</code>、<code>jp</code>) を key とする。
-<strong>現状の制約:</strong> <code>mortality.py::_locale_key</code> は JP 以外の国をすべて <code>us</code>
-に写すため、新しい locale は同関数が <code>xx</code> ブロックを読むよう拡張される
-まで US の生命表と US の <code>community_death_share</code> を使う。独自の死亡率を
-持つ locale を追加するには、両 yaml key への <code>xx</code> エントリと、その
-コード変更が必要。</p>
+自国の locale には両 key に <code>xx</code> エントリを追加する。エントリの無い
+locale は US のブロックを使う。</p>
 <h2 id="任意-yaml-ファイル-opt-in-モジュール">任意 YAML ファイル (opt-in モジュール)<a class="headerlink" href="#任意-yaml-ファイル-opt-in-モジュール" title="Permanent link">&para;</a></h2>
 <p>対応国が特定 opt-in モジュールをサポートする場合のみ追加:</p>
 <table>
@@ -2737,9 +2730,8 @@ key が無いと率 0 扱いとなり、ED のみの受診は生成されない�
 <li>JP Core / US Core と同形状の
    <code>clinosim/codes/data/fhir-profiles-xx-core.yaml</code> レジストリ、
    <code>_apply_xx_core_profile</code> helper、<code>_build_bundle</code> 内の自国分岐を追加。</li>
-<li>そうしない場合、bundle は非 JP 経路で emit され US Core プロファイル
-   URL を宣言する。米国以外の国としては誤りなので、最低限その国では
-   <code>_apply_us_core_profile</code> を skip する分岐を追加する。</li>
+<li>そうしない場合、bundle は国別プロファイルを宣言しない (US Core は
+   US の出力だけ、JP Core は JP の出力だけ)。</li>
 </ol>
 <h3 id="3-国別-opt-in-モジュール">3. 国別 opt-in モジュール<a class="headerlink" href="#3-国別-opt-in-モジュール" title="Permanent link">&para;</a></h3>
 <p>一部の enricher は <code>register_builtin_enrichers</code> 内で country に
