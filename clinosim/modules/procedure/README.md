@@ -68,7 +68,9 @@ bedside / rehab trio above and reach FHIR via the same
   `procedure` block; not routed through `simulate_surgery`.
 - **Radiation-therapy Procedure** — attached to radiation
   encounters in the oncology service line; the Procedure carries
-  JP code `M001-2` (3D-CRT) on ~40 % of follow-up visits whose
+  JP code `M001` (体外照射) or US CPT `77412` (radiation treatment
+  delivery, complex), configured in the `_radiation_therapy` block of
+  `chronic_followup.yaml` (#2200), on ~40 % of follow-up visits whose
   `locale/shared/chronic_followup.yaml` entry sets
   `radiation_therapy_eligible: true` (Issue #957). Emitted inline by
   [`clinosim/simulator/outpatient.py`](../../simulator/outpatient.py)

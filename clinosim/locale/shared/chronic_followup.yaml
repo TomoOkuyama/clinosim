@@ -418,6 +418,17 @@ Z39:  # Encounter for maternal postpartum care.
   prescriptions_renewed: false
   visit_duration_minutes: 20
 
+# External beam radiation therapy for cancer follow-ups whose entry sets
+# ``radiation_therapy_eligible: true`` (Issue #957 slice 3; codes Issue #2200).
+# jp_code: 医科診療報酬点数表 第7部 M001 体外照射 (3D-CRT is billed as
+#   M001 高エネルギー放射線治療; M001-2 is Gamma Knife, M001-3 is linac SRT).
+# us_code: CPT 77412, radiation treatment delivery, complex (level 3).
+_radiation_therapy:
+  jp_code: "M001"
+  us_code: "77412"
+  visit_probability: 0.4     # active RT course folded into a per-visit probability
+  duration_minutes: 20
+
 # Disease-specific post-discharge follow-up
 _post_discharge:
   first_visit_days: 14
