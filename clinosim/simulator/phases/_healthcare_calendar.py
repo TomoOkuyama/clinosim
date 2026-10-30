@@ -89,7 +89,7 @@ def _run_healthcare_calendar_phase(
     n_calendar = 0
     for event in calendar_events:
         person = population.get_person(event.person_id)
-        if not person or not person.is_alive or not person.is_alive_at(event.timestamp):
+        if not person or not person.is_alive_at(event.timestamp):
             continue
         patient = _activate_cached_person(
             person,

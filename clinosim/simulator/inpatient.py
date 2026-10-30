@@ -1037,7 +1037,7 @@ def _simulate_patient(
             if hasattr(encounter.discharge_datetime, "date")
             else encounter.discharge_datetime
         )
-        if not getattr(patient, "date_of_death", None):
+        if patient.date_of_death is None or _dod < patient.date_of_death:
             patient.date_of_death = _dod
 
     record = CIFPatientRecord(

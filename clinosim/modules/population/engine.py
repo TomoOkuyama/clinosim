@@ -975,7 +975,7 @@ def generate_healthcare_calendar(
     person_rngs = rng.spawn(len(persons)) if persons else []
 
     for person, prng in zip(persons, person_rngs):
-        if not person.is_alive:
+        if not person.is_alive_at(date(year, 1, 1)):
             continue
 
         # Issue #1189 F3 follow-up (S104 verify): age caps use age-at-year,

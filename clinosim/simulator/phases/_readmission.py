@@ -17,6 +17,7 @@ from datetime import date, datetime
 from typing import Any
 
 from clinosim.modules.population.engine import LifeEvent
+from clinosim.modules.population.vital_status import record_hospital_death
 from clinosim.seeding import PHASE_INPATIENT_SIM, PHASE_READMISSION, derive_phase_rng
 from clinosim.simulator._setup import _activate_cached_person
 from clinosim.simulator.helpers import _deactivate_to_layer1, _evaluate_readmission
@@ -71,7 +72,7 @@ def _run_readmission_phase(
             continue
         person = population.get_person(record.patient.patient_id)
         _readmit_gate_date = snapshot_dt.date() if snapshot_dt else date.max
-        if not person or not person.is_alive or not person.is_alive_at(_readmit_gate_date):
+        if not person or not person.is_alive_at(_readmit_gate_date):
             continue
         readmit_disease_id = (
             record.condition_event.ground_truth_diseases[0] if record.condition_event.ground_truth_diseases else None
@@ -104,7 +105,7 @@ def _run_readmission_phase(
     readmission_events.sort(key=lambda e: e.timestamp)
     for re_event in readmission_events:
         person = population.get_person(re_event.person_id)
-        if not person or not person.is_alive or not person.is_alive_at(re_event.timestamp):
+        if not person or not person.is_alive_at(re_event.timestamp):
             continue
         protocol = protocols.get(re_event.disease_id)
         if not protocol:
@@ -146,7 +147,6 @@ def _run_readmission_phase(
             continue
         patient_records.append(record)
         _deactivate_to_layer1(person, record, re_event.disease_id, patient_cache=patient_cache)
-        if record.deceased:
-            person.is_alive = False
+        record_hospital_death(person, record)
 
     return len(readmission_events)

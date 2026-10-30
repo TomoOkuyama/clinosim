@@ -57,7 +57,7 @@ def _run_post_discharge_phase(
     for record in inpatient_records:
         pid = record.patient.patient_id
         person = population.get_person(pid)
-        if not person or not person.is_alive:
+        if not person:
             continue
         enc = record.encounters[0]
         if not enc.discharge_datetime:

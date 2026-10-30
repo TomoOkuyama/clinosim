@@ -20,6 +20,7 @@ from typing import Any
 
 from clinosim.modules.order.engine import replay_order_to_state
 from clinosim.modules.population.engine import LifeEvent
+from clinosim.modules.population.vital_status import record_hospital_death
 from clinosim.seeding import PHASE_INPATIENT_SIM, derive_phase_rng
 from clinosim.simulator import log as sim_log
 from clinosim.simulator.complications import build_complication
@@ -436,7 +437,7 @@ def _dispatch_hospital_events(
         state.concurrent_patients += 1
 
         person = population.get_person(event.person_id)
-        if person is None or not person.is_alive or not person.is_alive_at(event_time.date()):
+        if person is None or not person.is_alive_at(event_time.date()):
             continue
 
         patient = _activate_cached_person(
@@ -529,5 +530,4 @@ def _dispatch_hospital_events(
         if record.encounters and record.encounters[0].discharge_datetime:
             dc_date = record.encounters[0].discharge_datetime.date()
             state.active_discharges.append((dc_date, 1.0 / beds_total))
-        if record.deceased:
-            person.is_alive = False
+        record_hospital_death(person, record)
