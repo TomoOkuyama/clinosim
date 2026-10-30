@@ -48,8 +48,9 @@ pip install -e ".[dev]"
 
 ## Sanity check
 
-The dataset presets live in `datasets/` at the repository root, so
-`clinosim dataset` needs a source checkout (developer install).
+The dataset presets ship with the package (from `datasets/` at the
+repository root), so `clinosim dataset` works from a pip install as
+well as from a source checkout.
 
 ```bash
 clinosim --help                                 # top-level CLI banner

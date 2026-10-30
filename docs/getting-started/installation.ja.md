@@ -47,9 +47,9 @@ pip install -e ".[dev]"
 
 ## Sanity check
 
-データセットプリセットはリポジトリ直下の `datasets/` にあるため、
-`clinosim dataset` にはソースチェックアウト (開発者インストール) が
-必要。
+データセットプリセットはパッケージに同梱されるため (元はリポジトリ直下の
+`datasets/`)、`clinosim dataset` は pip インストールでもソースチェック
+アウトでも使えます。
 
 ```bash
 clinosim --help                                 # トップレベル CLI バナー
