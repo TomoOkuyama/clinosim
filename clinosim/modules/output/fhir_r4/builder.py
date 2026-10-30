@@ -21,7 +21,7 @@ from collections.abc import Callable
 from datetime import datetime
 from typing import Any
 
-from clinosim.modules._shared import is_jp
+from clinosim.modules._shared import is_jp, is_us
 from clinosim.modules.newborn.fhir_emit import (
     _bb_newborn_apgar,
     _bb_newborn_bilirubin,
@@ -273,7 +273,7 @@ def convert_cif_to_fhir(
                 # uncoded dummy usage code that satisfies R5020). No-op on the
                 # facility bundle since it emits no MedicationRequests.
                 _populate_jp_medication_dosage_ecs_fields(resource)
-            else:
+            elif is_us(country):
                 # Issue #1768 Cluster E T8a: US Core v9 profile URLs for the
                 # facility bundle (Organization / Location / Device). Same
                 # scope + rationale as the main bundle loop below.
@@ -811,7 +811,9 @@ def _build_bundle(
                 # PR-I (2026-07-17): populate JP-CLINS MedicationDosage_eCS
                 # required fields on MedicationRequest.dosageInstruction[].
                 _populate_jp_medication_dosage_ecs_fields(resource)
-            else:
+            elif is_us(ctx.country):
+                # Issue #2203: only US output declares US Core; a third
+                # country gets base FHIR rather than a foreign profile.
                 # Issue #1768 Cluster E T8a: declare US Core v9 profile URL
                 # on every resource type for which US Core publishes a
                 # single, unambiguous profile (Patient / Coverage /

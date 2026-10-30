@@ -56,8 +56,15 @@ _BAND_LOWER_BOUNDS = tuple(range(0, 100, 5))
 _MAX_ANNUAL_Q = 0.95
 
 
-def _locale_key(country: str) -> str:
-    return "jp" if is_jp(country) else "us"
+def _locale_key(country: str, section: str) -> str:
+    """The yaml key for ``country`` in ``section`` (e.g. ``annual_mortality_qx``).
+
+    A country with its own block uses it; any other country falls back to the
+    US block (Issue #2203: a third country used to get the US data even when
+    the yaml carried its own).
+    """
+    key = "jp" if is_jp(country) else str(country).lower()
+    return key if key in (_life_table().get(section) or {}) else "us"
 
 
 def band_of(age: int) -> int:
@@ -76,7 +83,7 @@ def _life_table() -> dict:
 
 def qx_for(country: str, sex: str, age: int) -> float:
     """All-cause annual death probability for (country, sex, age)."""
-    block = (_life_table().get("annual_mortality_qx") or {}).get(_locale_key(country)) or {}
+    block = (_life_table().get("annual_mortality_qx") or {}).get(_locale_key(country, "annual_mortality_qx")) or {}
     sex_key = "male" if sex == "M" else "female" if sex == "F" else None
     if sex_key is None:
         return 0.0
@@ -87,7 +94,7 @@ def qx_for(country: str, sex: str, age: int) -> float:
 def community_death_share(country: str) -> float:
     """Fraction of all-cause deaths drawn as community deaths (default 1.0)."""
     shares = _life_table().get("community_death_share") or {}
-    return float(shares.get(_locale_key(country), 1.0))
+    return float(shares.get(_locale_key(country, "community_death_share"), 1.0))
 
 
 @lru_cache(maxsize=1)
