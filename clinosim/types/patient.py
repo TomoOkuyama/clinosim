@@ -6,8 +6,8 @@ from dataclasses import dataclass, field
 from datetime import date
 from typing import Any
 
-from clinosim.modules.drug_safety.verdict import SafetySkipEntry
 from clinosim.types.allergy import Allergy  # noqa: F401 — re-exported for callers
+from clinosim.types.drug_safety import SafetySkipEntry
 from clinosim.types.identity import IdentityTimeline
 
 # Issue #1066 (drug_safety): SafetySkipEntry imported unconditionally (no

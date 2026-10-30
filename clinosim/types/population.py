@@ -15,7 +15,7 @@ from clinosim.types.identity import IdentityTimeline
 from clinosim.types.patient import HomeMedication, TemporalStatePeriod
 
 if TYPE_CHECKING:
-    from clinosim.modules.longitudinal.snapshot import YearSnapshot
+    from clinosim.types.longitudinal import YearSnapshot
 
 if TYPE_CHECKING:
     from clinosim.types.allergy import Allergy

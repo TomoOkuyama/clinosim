@@ -11,7 +11,7 @@ from dataclasses import dataclass, field
 from enum import StrEnum
 from typing import Any, Protocol, runtime_checkable
 
-from clinosim.modules._shared import is_jp
+from clinosim.countries import is_jp
 
 
 class FormatType(StrEnum):
