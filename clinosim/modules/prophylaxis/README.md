@@ -128,5 +128,6 @@ Unit tests: `tests/unit/test_prophylaxis.py` covering
 
 ## Ownership
 
-Session 99 (2026-09-04). Spec: session-99 conversation.
-Issue: #1071.
+2026-09-04. Issue: #1071.
+
+Japanese counterpart: [`README.ja.md`](README.ja.md).

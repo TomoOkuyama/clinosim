@@ -1,9 +1,11 @@
 # Sakura Cloud GPU + Ollama setup for Stage 2
 
 This guide shows how to run clinosim's Stage 2 (`narrate`) against a
-**self-hosted Ollama server** on さくらのクラウド 高火力 VRT (L40S 48GB
-GPU VM). Companion to `docs/bedrock_setup.md` (AWS Bedrock ルート) —
-use this when data sovereignty / 医療情報 3 省 2 ガイドライン / cost
+**self-hosted Ollama server** on Sakura Cloud (さくらのクラウド)
+高火力 VRT (high-performance GPU VM, L40S 48GB). Companion to
+`docs/bedrock_setup.md` (the AWS Bedrock route) — use this when data
+sovereignty, Japan's medical-information security guidelines (the
+"3 ministries, 2 guidelines", 医療情報 3 省 2 ガイドライン) or cost
 predictability push you off managed APIs.
 
 Design record: `docs/design-notes/2026-08-15-sakura-gpu-ollama-narrative.md`.
@@ -19,24 +21,26 @@ Design record: `docs/design-notes/2026-08-15-sakura-gpu-ollama-narrative.md`.
 │   sakura.yaml  │                │                      │
 └────────────────┘                └──────────────────────┘
      │                                       │
-     └── CIF / narrative は local に留まる  └── Ollama process log は定期 purge
-         (prompt のみ HTTP に載る)
+     └── CIF / narratives stay local         └── Ollama process log purged regularly
+         (only prompts travel over HTTP)
 ```
 
-Data flow: Stage 1 `generate` → local。CIF ディレクトリを local に置き、
-`narrate` の HTTP 呼出だけが SSH tunnel 越しに Sakura GPU へ届く。
-prompt に PHI を載せる場合の運用上の注意は末尾を参照。
+Data flow: Stage 1 `simulate` runs locally. The CIF directory stays on
+the local machine; only `narrate`'s HTTP calls reach the Sakura GPU
+through the SSH tunnel. See the end of this guide for operational
+notes when prompts carry PHI.
 
 ---
 
 ## Prerequisites
 
-- さくらのクラウドアカウント + API キー (usacloud CLI で使用)。
-- 高火力 VRT (L40S 48GB) の利用申請が済んでいる (Sakura コントロールパ
-  ネル「サーバ追加」→「高火力プラン」を確認)。
-- ローカルの SSH 秘密鍵 (`ed25519` 推奨) と対応する公開鍵が Sakura に
-  登録済み。
-- Local workstation に clinosim + Python 3.11+。
+- A Sakura Cloud account and API key (used by the usacloud CLI).
+- Access to 高火力 VRT (L40S 48GB) approved (check under "Add server"
+  → "High-performance plan" (高火力プラン) in the Sakura control
+  panel).
+- A local SSH private key (`ed25519` recommended) whose public key is
+  registered with Sakura.
+- clinosim + Python 3.11+ on the local workstation.
 
 ---
 
@@ -47,13 +51,13 @@ the official usacloud documentation (https://docs.usacloud.jp/usacloud/).
 This section lists only the essentials:
 
 ```bash
-# usacloud プロファイル (既に iris-verify プロファイルがあれば流用可)
+# usacloud profile (an existing profile can be reused)
 usacloud config create --name clinosim-gpu \
     --token <SAKURA_API_TOKEN> --secret <SAKURA_API_SECRET> \
     --zone is1a --use
 
-# 高火力 VRT L40S の起動 (プランコードは Sakura の現行ラインアップで
-# 都度確認。--fake を付ければ dry-run 検証可能)
+# Launch a 高火力 VRT L40S (check the plan code against Sakura's current
+# lineup each time; add --fake for a dry-run check)
 usacloud server create -y --zone=is1a \
     --name=clinosim-gpu-l40s \
     --disk-source-archive-name-selectors=Ubuntu 22.04 \
@@ -62,49 +66,52 @@ usacloud server create -y --zone=is1a \
     --plan=<gpu-l40s-plan-code>
 ```
 
-**Sakura 固有の落とし穴** (詳細は sakura-iris `docs/90-troubleshooting.md`):
+**Sakura-specific pitfalls**:
 
-- 高火力 VRT は `is1a` のみ提供。他ゾーンとは L2 ブリッジが必要。
-- パケットフィルタは**ステートレス**。エフェメラルポート 32768-61000
-  の TCP/UDP を戻り用に明示許可要 (SSH 応答含む)。
-- `--fake --fake-store <path>` で課金なしオプション検証。破壊的スクリ
-  プトの sanity check に有効。
-- 非対話環境では `-y` 必須 (create / delete / shutdown)。
-- アーカイブ ID はゾーン & リリースごとに変わる。名前指定 (`--disk-
-  source-archive-name-selectors=Ubuntu 22.04`) が安定。
+- 高火力 VRT is offered only in `is1a`. Reaching other zones needs an
+  L2 bridge.
+- Packet filters are **stateless**. TCP/UDP on the ephemeral ports
+  32768-61000 must be explicitly allowed for return traffic
+  (including SSH replies).
+- `--fake --fake-store <path>` validates options without billing.
+  Useful for sanity-checking destructive scripts.
+- Non-interactive environments need `-y` (create / delete / shutdown).
+- Archive IDs change per zone and release. Selecting by name
+  (`--disk-source-archive-name-selectors=Ubuntu 22.04`) is stable.
 
-## 2. パケットフィルタ (最重要セキュリティ設定)
+## 2. Packet filter (the most important security setting)
 
 ```bash
-# 22/tcp (SSH) のみ許可、11434 は絶対に開けない
+# Allow 22/tcp (SSH) only; never open 11434
 usacloud packet-filter create -y --zone=is1a --name=clinosim-gpu-pf \
     --description="clinosim GPU VM: SSH only"
 usacloud packet-filter-rule add -y --zone=is1a --packet-filter=clinosim-gpu-pf \
     --protocol=tcp --destination-port=22 --action=allow
-# エフェメラル戻り (SSH 応答等)
+# Ephemeral return traffic (SSH replies etc.)
 usacloud packet-filter-rule add -y --zone=is1a --packet-filter=clinosim-gpu-pf \
     --protocol=tcp --source-port=32768-61000 --action=allow
 usacloud packet-filter-rule add -y --zone=is1a --packet-filter=clinosim-gpu-pf \
     --protocol=udp --source-port=32768-61000 --action=allow
-# NIC に適用
+# Apply to the NIC
 usacloud interface update -y --zone=is1a --id=<nic-id> \
     --packet-filter-id=<packet-filter-id>
 ```
 
-Ollama の 11434 は SSH tunnel 越しでしか届かない。**直接公開したら患者
-データが露出する可能性がある**ので、この設定は skip しない。
+Ollama's port 11434 must be reachable only through the SSH tunnel.
+**Exposing it directly can expose patient data**, so do not skip this
+step.
 
 ---
 
 ## 3. NVIDIA driver + CUDA
 
-VM に SSH 接続 (`ssh -i ~/.ssh/sakura.pem ubuntu@<sakura-ip>`) 後:
+After connecting to the VM over SSH (`ssh -i ~/.ssh/sakura.pem ubuntu@<sakura-ip>`):
 
 ```bash
 sudo apt update && sudo apt install -y nvidia-driver-550
 sudo reboot
-# 再起動後の SSH 再接続後
-nvidia-smi   # L40S + 48GB VRAM の認識確認
+# After reconnecting over SSH
+nvidia-smi   # confirm the L40S with 48GB VRAM is detected
 ```
 
 ---
@@ -114,63 +121,63 @@ nvidia-smi   # L40S + 48GB VRAM の認識確認
 ```bash
 curl -fsSL https://ollama.com/install.sh | sh
 
-# systemd override で 127.0.0.1 バインド (デフォルトは 0.0.0.0)
+# Bind to 127.0.0.1 via a systemd override (the default is 0.0.0.0)
 sudo systemctl edit ollama
-# エディタで以下を追記して保存:
+# In the editor, add the following and save:
 #   [Service]
 #   Environment="OLLAMA_HOST=127.0.0.1:11434"
 
 sudo systemctl restart ollama
-sudo systemctl status ollama   # active (running) 確認
-ss -ntlp | grep 11434          # 127.0.0.1:11434 で listen していれば OK
+sudo systemctl status ollama   # confirm active (running)
+ss -ntlp | grep 11434          # OK if listening on 127.0.0.1:11434
 ```
 
-**確認**: `ss` 出力で `0.0.0.0:11434` になっている場合は override が効
-いていない → `sudo systemctl cat ollama` で override の反映を確認。
+**Check**: if `ss` shows `0.0.0.0:11434`, the override has not taken
+effect — inspect it with `sudo systemctl cat ollama`.
 
 ---
 
 ## 5. Pull models
 
 ```bash
-# Primary (日本語医療 narrative)
-ollama pull qwen3:32b-q4_K_M              # ~20 GB、L40S 48GB に余裕あり
+# Primary (Japanese clinical narratives)
+ollama pull qwen3:32b-q4_K_M              # ~20 GB, fits comfortably in the L40S's 48GB
 
-# 比較候補 (品質評価用に順次)
-# ollama pull swallow:70b-instruct-q4_K_M   # ~42 GB、東工大 JA-tuned Llama
-# ollama pull llama3.3:70b-instruct-q4_K_M  # ~42 GB、汎用最強
-# ollama pull qwen3:30b-a3b-q4_K_M          # ~18 GB、MoE 高速
+# Comparison candidates (pull one at a time for quality evaluation)
+# ollama pull swallow:70b-instruct-q4_K_M   # ~42 GB, Tokyo Tech JA-tuned Llama
+# ollama pull llama3.3:70b-instruct-q4_K_M  # ~42 GB, strongest general-purpose option
+# ollama pull qwen3:30b-a3b-q4_K_M          # ~18 GB, fast MoE
 
-# 動作確認
+# Smoke test (Japanese prompt: "In one line: the patient complains of fatigue")
 ollama run qwen3:32b-q4_K_M "1 行で: 患者は倦怠感を訴える"
 ```
 
-**モデル tag は Ollama library の release ごとに変わる**。上記が pull
-できない場合は `ollama search qwen3` で最新 tag を確認。
+**Model tags change with Ollama library releases**. If the tags above
+cannot be pulled, check the latest tag with `ollama search qwen3`.
 
 ---
 
 ## 6. SSH tunnel from local workstation
 
 ```bash
-# Local Mac の 11434 を Sakura の 11434 にフォワード (バックグラウンド常駐)
+# Forward local port 11434 to Sakura's 11434 (runs in the background)
 ssh -i ~/.ssh/sakura.pem -L 11434:127.0.0.1:11434 -N ubuntu@<sakura-ip> &
 
-# 疎通確認
-curl http://localhost:11434/api/tags                    # Ollama native: モデル一覧
-curl http://localhost:11434/v1/models                   # OpenAI 互換: モデル一覧
+# Connectivity check
+curl http://localhost:11434/api/tags                    # Ollama native: model list
+curl http://localhost:11434/v1/models                   # OpenAI-compatible: model list
 ```
 
-trouble: `curl: (52) Empty reply from server` → Ollama が 0.0.0.0 バイ
-ンドで tunnel を無視している可能性。VM 側で `ss -ntlp | grep 11434` の
-再確認。
+Troubleshooting: `curl: (52) Empty reply from server` → Ollama may be
+bound to 0.0.0.0 and bypassing the tunnel. Re-check
+`ss -ntlp | grep 11434` on the VM.
 
 ---
 
 ## 7. Run `clinosim narrate` against Sakura Ollama
 
 ```bash
-# ミニマル smoke (JP p=1) — VM 1 回起動して SSH tunnel 常駐前提で ~1 min
+# Minimal smoke (JP p=1) — ~1 min, assuming the VM is up and the SSH tunnel is running
 clinosim simulate --country JP --population 1 --seed 42 --format cif \
     -o /tmp/sakura-smoke
 clinosim narrate \
@@ -181,7 +188,7 @@ clinosim narrate \
     --country JP \
     --set-current
 
-# 中規模 (p=100) — 品質評価 + 速度実測
+# Medium (p=100) — quality evaluation + measured throughput
 clinosim simulate --country JP --population 100 --seed 42 --format cif \
     -o /tmp/sakura-eval100
 clinosim narrate \
@@ -193,25 +200,26 @@ clinosim narrate \
     --set-current
 ```
 
-期待: ~5-15 sec/call、fail 0%、cache hit で 2 回目は 10x 高速。
-manifest.json の `llm_cost_report.generator_llm_docs` が期待数に一致し、
-`generator_fallback_docs` が 0 なら bundle strategy の JSON parse は
-成功している。
+Expected: ~5-15 sec/call, 0% failures, and a second run ~10x faster on
+cache hits. If `llm_cost_report.generator_llm_docs` in manifest.json
+matches the expected count and `generator_fallback_docs` is 0, the
+bundle strategy's JSON parsing succeeded.
 
 ---
 
-## 8. 停止 (課金対策)
+## 8. Stopping (to control cost)
 
 ```bash
-# 未使用時は VM shutdown で課金停止 (削除ではないので再起動時に model の
-# 再 pull 不要)
+# Shut the VM down when idle to stop billing (it is not deleted, so the
+# model does not need to be pulled again after reboot)
 usacloud server shutdown -y --zone=is1a clinosim-gpu-l40s
 
-# 再開
+# Resume
 usacloud server boot -y --zone=is1a clinosim-gpu-l40s
 ```
 
-削除は `--with-disks` を忘れると disk 課金が残る (Sakura 全般):
+When deleting, forgetting `--with-disks` leaves disk charges running
+(true across Sakura):
 
 ```bash
 usacloud server delete -y --zone=is1a --with-disks clinosim-gpu-l40s
@@ -219,57 +227,57 @@ usacloud server delete -y --zone=is1a --with-disks clinosim-gpu-l40s
 
 ---
 
-## 運用上の注意
+## Operational notes
 
-### プロンプトログの取扱
+### Handling prompt logs
 
-Ollama process log には prompt 生データ (患者情報を含む narrative seed
-+ context) が残る。医療情報 3 省 2 ガイドライン相当の運用を想定するな
-ら:
+The Ollama process log keeps raw prompts (narrative seed + context,
+including patient information). If you operate under the equivalent
+of Japan's medical-information security guidelines:
 
-- `journalctl` の retention を短めに (`/etc/systemd/journald.conf` の
-  `MaxRetentionSec=1day` 等)
-- テスト後は `sudo journalctl --rotate && sudo journalctl --vacuum-time=1s`
-  で明示的に purge
-- Ollama の debug ログを OFF (`OLLAMA_DEBUG=0` — デフォルト)
+- Keep the `journalctl` retention short (e.g. `MaxRetentionSec=1day`
+  in `/etc/systemd/journald.conf`)
+- Purge explicitly after testing with
+  `sudo journalctl --rotate && sudo journalctl --vacuum-time=1s`
+- Keep Ollama's debug log OFF (`OLLAMA_DEBUG=0` — the default)
 
-### 品質評価とモデル切替
+### Quality evaluation and switching models
 
-初回は Qwen 3 32B (`qwen3:32b-q4_K_M`) で確定。narrative の日本語医療
-語彙が不十分と判断した場合、以下の順で試す:
+Qwen 3 32B (`qwen3:32b-q4_K_M`) is the initial choice. If the
+Japanese clinical vocabulary in the narratives is judged insufficient,
+try the following in order:
 
-1. **Swallow 70B** (東工大 JA-tuned Llama) — 日本語 native、モデル切替
-   は `ollama pull swallow:70b-instruct-q4_K_M` + config `model:` 書換
-   のみ。`--version-id` を変えれば比較評価可能。
-2. **Llama 3.3 70B** — 汎用最強、日本語 ○。
-3. **Qwen 3 30B-A3B (MoE)** — 高速だが品質は 32B dense より劣る可能性
-   あり。速度優先の運用に。
+1. **Swallow 70B** (Tokyo Tech JA-tuned
+   Llama) — native Japanese; switching only takes
+   `ollama pull swallow:70b-instruct-q4_K_M` plus editing `model:` in
+   the config. Use a different `--version-id` to compare runs.
+2. **Llama 3.3 70B** — strongest general-purpose option; good Japanese.
+3. **Qwen 3 30B-A3B (MoE)** — fast, but quality may be below the 32B
+   dense model. For speed-first operation.
 
-### コスト目安
+### Cost estimates
 
-- L40S 時間貸し: **~500-700 円/h** (Sakura の現行料金要確認)
-- 検証時 (p=10000, cold, Layer 2 cache miss): 4-8h × 700 = **~2,800-
-  5,600 円/回**
-- 実運用 (cache 効いた再実行): 1-2h × 700 = **~700-1,400 円/回**
-- 未使用時 shutdown で課金停止 (時間課金)
+- L40S hourly rental: **~500-700 JPY/h** (check Sakura's current pricing)
+- Validation run (p=10000, cold, Layer 2 cache miss): 4-8h × 700 =
+  **~2,800-5,600 JPY/run**
+- Production re-runs (cache warm): 1-2h × 700 = **~700-1,400 JPY/run**
+- Shutting down when idle stops billing (hourly billing)
 
-### Cache 運用
+### Cache operation
 
-- Layer 2 (disk PromptCache、`./.llm_cache/sakura/`) は**必ず有効化**。
-  cold と warm でコストが 1 桁変わる。
-- `temperature=0` 前提の determinism を保つ。
-- cache invalidation は prompt template (`clinosim/modules/llm_service/
-  prompts/{en,ja}/narrative_seed_bundle.yaml`) を編集した時のみ。
+- **Always enable** Layer 2 (disk PromptCache, `./.llm_cache/sakura/`).
+  Cold vs. warm cost differs by an order of magnitude.
+- Keep the determinism that assumes `temperature=0`.
+- Invalidate the cache only when you edit the prompt template
+  (`clinosim/modules/llm_service/prompts/{en,ja}/narrative_seed_bundle.yaml`).
 
 ---
 
 ## Related
 
-- `docs/design-notes/2026-08-15-sakura-gpu-ollama-narrative.md` — 設計
-  spec (design of record)。
-- `docs/bedrock_setup.md` — AWS Bedrock ルート (対のマネージド API 版)。
-- `clinosim/config/llm_service.sakura.yaml` — 本 guide 用の config。
-- Sakura 固有の知見 (obsidian): [[entities/sakura-cloud]]。
-- 一般 pattern (obsidian): [[concepts/gpu-instance-llm-hosting-pattern]]。
-- 参考実装 repo: `~/workspace/sakura-iris/` の `docs/01-04-*` と
-  `scripts/10-11-*`, `scripts/52-open-iris-hl7.sh`。
+- `docs/design-notes/2026-08-15-sakura-gpu-ollama-narrative.md` —
+  design spec (design of record).
+- `docs/bedrock_setup.md` — the AWS Bedrock route (the managed-API
+  counterpart).
+- `clinosim/config/llm_service.sakura.yaml` — the config used by this
+  guide.

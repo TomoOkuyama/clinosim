@@ -108,10 +108,10 @@ would be clinically misleading and contradict the project's "the true
 goal is FHIR/JP Core compliance + clinical coherence" principle. See
 PR #82 (Phase 2b) for the full rationale.
 
-## 関連
+## Related
 
 - [DESIGN.md](DESIGN.md) AD-57 (BNP-pattern surgical) / AD-59 (per-order sub-rng) / AD-56 (enricher registry)
 - [AGENTS.md](AGENTS.md) "AD-55 enricher patterns"
-- [docs/CONTRIBUTING-modules.md](docs/CONTRIBUTING-modules.md) "PR 検証ガイド" + "sub-seed 導出ルール"
+- [docs/CONTRIBUTING-modules.md](docs/CONTRIBUTING-modules.md) "PR verification guide" + "Sub-seed derivation rules"
 - [clinosim/modules/physiology/README.md](clinosim/modules/physiology/README.md) — helper API reference
 - spec / plan: `docs/history/specs-archive/2026-06-24-phase2a-vte-d-dimer-design.md` (causes_vte) + `docs/history/specs-archive/2026-06-24-phase2b-on-anticoagulation-design.md` (on_warfarin)

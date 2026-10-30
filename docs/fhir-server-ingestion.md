@@ -59,8 +59,14 @@ docker run -d --name hapi-fhir \
     -e hapi.fhir.bulk_export_enabled=true \
     -e hapi.fhir.bulk_import_enabled=true \
     -e hapi.fhir.fhir_version=R4 \
+    -e hapi.fhir.enforce_referential_integrity_on_write=false \
     hapiproject/hapi:latest
 ```
+
+`enforce_referential_integrity_on_write=false` lets the server accept a
+reference to a resource that has not been loaded yet. clinosim output
+needs this because some references point forward no matter which order
+you load in (see [Why load order alone is not enough](#why-load-order-alone-is-not-enough)).
 
 Wait until the health probe reports the server is up:
 
@@ -71,39 +77,119 @@ echo "HAPI FHIR ready at http://localhost:8080/fhir"
 
 ### 2. Push the NDJSON files
 
-The simplest approach for small cohorts is to POST each resource as a
-bundle. For larger cohorts, use the `$import` operation.
+clinosim's resources reference each other by their own ids
+(`Encounter/enc-…`, `Patient/pt-…`). Load every resource with
+`PUT [base]/[type]/[id]` so the server stores it under that same id.
+Do **not** `POST` to `[base]/[type]`: a create assigns a new
+server-side id, and every reference to the original id stops
+resolving.
 
-**Small cohort — per-file POST (works everywhere):**
+A `PUT` to an id that does not exist yet creates the resource
+("update as create"). The server must allow client-assigned ids;
+HAPI FHIR does by default for ids that are not purely numeric, which
+covers all clinosim ids. The `id` inside each NDJSON line already
+matches the URL, as FHIR requires for `PUT`.
+
+**Small cohort — one `PUT` per resource (works on any FHIR R4 server
+that supports update-as-create):**
 
 ```bash
 BASE=http://localhost:8080/fhir
+SRC=jp-100/fhir_r4
 
-# Order matters: reference targets must exist before the referrers.
-# Patient / Organization / Location first; then Encounter; then
-# everything referring to Encounter (Condition, Observation,
-# MedicationRequest, ...). CareTeam / Composition / DocumentReference /
-# ClinicalImpression come last because they reference several types.
-for rt in Organization Location Practitioner PractitionerRole Patient Coverage \
-          Encounter Condition AllergyIntolerance Immunization FamilyMemberHistory \
-          MedicationRequest MedicationAdministration Observation DiagnosticReport \
-          Procedure ImagingStudy Endpoint ServiceRequest ClinicalImpression \
-          Composition CareTeam DocumentReference
+# Every resource type clinosim can emit, in an order where most
+# references point at resources already loaded. Types that a cohort did
+# not produce are skipped.
+for rt in Organization Endpoint Practitioner Location PractitionerRole \
+          Patient Coverage Device Encounter Condition AllergyIntolerance \
+          FamilyMemberHistory Immunization ServiceRequest Specimen Observation \
+          ImagingStudy DiagnosticReport MedicationRequest MedicationAdministration \
+          Procedure DeviceUseStatement ClinicalImpression CareTeam \
+          DocumentReference Composition
 do
-    if [ -f "jp-100/fhir_r4/${rt}.ndjson" ]; then
-        echo "== Loading ${rt} =="
-        while IFS= read -r line; do
-            [ -z "$line" ] && continue
-            curl -sSf -X POST \
-                -H 'Content-Type: application/fhir+json' \
-                --data-raw "$line" \
-                "${BASE}/${rt}" > /dev/null
-        done < "jp-100/fhir_r4/${rt}.ndjson"
-    fi
+    [ -f "${SRC}/${rt}.ndjson" ] || continue
+    echo "== Loading ${rt} =="
+    while IFS= read -r line; do
+        [ -z "$line" ] && continue
+        id=$(printf '%s' "$line" | jq -r '.id')
+        printf '%s' "$line" | curl -sSf -X PUT \
+            -H 'Content-Type: application/fhir+json' \
+            --data-binary @- \
+            "${BASE}/${rt}/${id}" > /dev/null
+    done < "${SRC}/${rt}.ndjson"
 done
 ```
 
+The list above covers all 26 resource types the FHIR writer can emit.
+To check that a cohort contains nothing the loop would skip, compare it
+with `manifest.json`:
+
+```bash
+jq -r '.output[].type' "${SRC}/manifest.json" | sort
+```
+
+**Medium cohort — transaction Bundles of `PUT` entries:** one HTTP
+round trip per chunk instead of per resource. Each entry carries
+`request.method = PUT` and `request.url = [type]/[id]`, so ids are kept
+exactly as with the loop above.
+
+```bash
+for rt in Organization Endpoint Practitioner Location PractitionerRole \
+          Patient Coverage Device Encounter Condition AllergyIntolerance \
+          FamilyMemberHistory Immunization ServiceRequest Specimen Observation \
+          ImagingStudy DiagnosticReport MedicationRequest MedicationAdministration \
+          Procedure DeviceUseStatement ClinicalImpression CareTeam \
+          DocumentReference Composition
+do
+    [ -f "${SRC}/${rt}.ndjson" ] || continue
+    echo "== Loading ${rt} =="
+    # 500 resources per transaction
+    jq -c -n --arg rt "$rt" '
+        def chunks(n): [inputs] | range(0; length; n) as $i | .[$i:$i+n];
+        chunks(500)
+        | {resourceType: "Bundle", type: "transaction",
+           entry: [ .[] | {resource: .,
+                           request: {method: "PUT", url: "\($rt)/\(.id)"}} ]}
+    ' "${SRC}/${rt}.ndjson" |
+    while IFS= read -r bundle; do
+        printf '%s' "$bundle" | curl -sSf -X POST \
+            -H 'Content-Type: application/fhir+json' \
+            --data-binary @- \
+            "${BASE}" > /dev/null
+    done
+done
+```
+
+A transaction is posted to the server base (`POST [base]`); that is the
+standard way to submit a Bundle and does not create new ids for the
+`PUT` entries inside it.
+
+#### Why load order alone is not enough
+
+The order above loads most reference targets first, but clinosim output
+always contains references that point forward:
+
+- `Encounter.diagnosis.condition` and `Encounter.reasonReference`
+  point at `Condition`, while `Condition.encounter` points back at
+  `Encounter` — no order satisfies both.
+- Within a single file, `Location.partOf`, `Organization.partOf` and
+  `DocumentReference.relatesTo.target` can point at a row that appears
+  later in the same file.
+
+So the server must accept references to resources that are not there
+yet. On HAPI FHIR that is
+`hapi.fhir.enforce_referential_integrity_on_write=false` (set in the
+`docker run` above); on other servers, turn off the equivalent
+on-write reference check for the duration of the load. Once every file
+is loaded, all references resolve.
+
 **Larger cohort — `$import`:**
+
+Bulk Data `$import` reads the NDJSON files directly and keeps the `id`
+in each line, so references resolve the same way as with `PUT`. List
+one `input` per file; the example below shows two of them — generate the
+full list from `manifest.json` (for example
+`jq '[.output[] | {name: "input", part: [{name: "type", valueCode: .type}, {name: "url", valueUri: ("http://host.docker.internal:9000/" + .url)}]}]' jp-100/fhir_r4/manifest.json`).
 
 ```bash
 # 1. Serve the NDJSON files over HTTP so the FHIR server can fetch them.
@@ -177,23 +263,42 @@ operation accepts the same NDJSON payload. Examples include:
   see the vendor documentation. This is listed here as an example of a
   conformant server, not as a required dependency.
 
-If your server does not implement `$import`, the per-file POST approach
-from Option A works everywhere at the cost of higher wire overhead.
+If your server does not implement `$import`, the `PUT` approaches from
+Option A (one request per resource, or transaction Bundles of `PUT`
+entries) work on any server that supports update-as-create, at the cost
+of higher wire overhead.
 
 ## Troubleshooting
 
 ### Reference integrity errors
 
-Symptom: `Invalid reference: Patient/… — no such resource`.
+Symptom: `Invalid reference: Patient/… — no such resource`, or (HAPI
+FHIR) `HAPI-1094: Resource Condition/… not found, specified in path:
+Encounter.reasonReference` while loading `Encounter`.
 
-Cause: `Encounter` was loaded before the `Patient` it references, or the
-NDJSON files were ingested in filesystem order rather than dependency
-order.
+Cause: the server checks references on write, and the resource being
+loaded points at one that has not been loaded yet. Some of these
+forward references are unavoidable (see
+[Why load order alone is not enough](#why-load-order-alone-is-not-enough)).
 
-Fix: load in the order shown in the loop above (`Organization` and
-`Patient` first, then `Encounter`, then everything referring to
-`Encounter`). For `$import`, list the `Parameters.parameter[].part[]`
-entries in the same order — HAPI's importer respects the order.
+Fix: disable the on-write reference check for the load
+(`hapi.fhir.enforce_referential_integrity_on_write=false` on HAPI
+FHIR), load in the order shown in the loop above, then re-enable the
+check if you want it for later writes.
+
+### References that point at missing ids
+
+Symptom: the load succeeds, but searches such as
+`Encounter?subject=Patient/pt-…` return nothing, or references show up
+as unresolved.
+
+Cause: the resources were created with `POST [base]/[type]`, so the
+server assigned new ids and the clinosim ids in references no longer
+match anything.
+
+Fix: delete the loaded data and load again with
+`PUT [base]/[type]/[id]` (or transaction Bundles of `PUT` entries) as
+shown above.
 
 ### JP Core profile validation failures
 

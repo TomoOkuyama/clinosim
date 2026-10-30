@@ -13,15 +13,15 @@ Constants and configuration / Directory contents / Enricher wiring /
 Output surfaces / Testing / Ownership) — see the module index at
 [`clinosim/modules/README.md`](clinosim/modules/README.md).
 
-## このドキュメントの読み方
+## How to read this document
 
 | Goal | Read |
 |---|---|
-| 初めて見る | top to bottom |
-| 特定モジュールを探す | "Module inventory" table |
-| 既存コードを変更する | "Typical change impact" |
-| 新モジュールを足す | [`docs/CONTRIBUTING-modules.md`](docs/CONTRIBUTING-modules.md) + [`.github/TEMPLATE_MODULE_README.md`](.github/TEMPLATE_MODULE_README.md) |
-| PR の検証手段を選ぶ | [`docs/CONTRIBUTING-modules.md`](docs/CONTRIBUTING-modules.md) 「PR 検証ガイド」 |
+| First time here | top to bottom |
+| Find a specific module | "Module inventory" table |
+| Change existing code | "Typical change impact" |
+| Add a new module | [`docs/CONTRIBUTING-modules.md`](docs/CONTRIBUTING-modules.md) + [`.github/TEMPLATE_MODULE_README.md`](.github/TEMPLATE_MODULE_README.md) |
+| Choose how to verify a PR | [`docs/CONTRIBUTING-modules.md`](docs/CONTRIBUTING-modules.md) "PR verification guide" |
 
 ## TL;DR
 
@@ -300,13 +300,13 @@ directly. See
 > language quality.** PR verification (byte-diff vs 3-axis DQR vs
 > `clinosim audit run`) is documented in
 > [`docs/CONTRIBUTING-modules.md`](docs/CONTRIBUTING-modules.md)
-> 「PR 検証ガイド」.
+> "PR verification guide".
 
 ## Adding a new module (5-step quick start)
 
 1. **Decide Base vs opt-in Module** →
    [`docs/CONTRIBUTING-modules.md`](docs/CONTRIBUTING-modules.md)
-   「判断: Base か Module か」.
+   "Decision: Base or Module?".
 2. **Copy template** →
    [`.github/TEMPLATE_MODULE_README.md`](.github/TEMPLATE_MODULE_README.md)
    to `clinosim/modules/<name>/README.md`; add `README.ja.md` mirror.

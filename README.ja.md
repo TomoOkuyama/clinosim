@@ -66,7 +66,7 @@ JP のワーファリン服用患者では、clinosim の生理学エンジン�
 多くの合成 EHR ツールは疾患分布からサンプリングしてレコードを作ります。**clinosim は疾患そのものを走らせます** — CKD 患者は無関係の主訴でも ED で Cre 上昇、敗血症患者は WBC / CRP / lactate カスケードを示します。
 
 - **構造的な臨床整合性** — 生理学モデルにより非整合な lab は不可能。
-- **JP + US ネイティブ** — 16 の主要 FHIR resource type に対する JP Core プロファイル準拠、JLAC10 / MHLW YJ コード、JP の氏名 / 住所 / 保険を最初から。
+- **JP + US ネイティブ** — JP 出力で JP Core プロファイルを持つ 21 の FHIR resource type すべてに JP Core プロファイルを付与、JLAC10 / MHLW YJ コード、JP の氏名 / 住所 / 保険を最初から。
 - **YAML 駆動の拡張** — 36 の入院疾患 + 51 の ED / 外来病態はすべてデータファイル、コードではない。
 - **縦断サービスライン** — 腫瘍 (がん 10 部位 (男性乳がん含む)、化学療法 regimen サイクル、放射線治療 Procedure、腫瘍マーカー labs) + 産科 (妊娠を時限 `TemporalStatePeriod` lifecycle としてモデル化 — 年次 conception、妊娠週 12/24/36 の妊婦健診、母親側分娩 Encounter with Z37.0 discharge dx + 分娩 Procedure + 新生児 Patient chain、7 d / 28 d の産褥フォロー) を平坦な注釈ではなく正しい時間的頻度で出力する。詳細は [`docs/reference/oncology-obstetric-service-lines.ja.md`](docs/reference/oncology-obstetric-service-lines.ja.md)。
 

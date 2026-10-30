@@ -89,7 +89,7 @@ Cross-module invariant:
 | [`procedure/`](procedure/README.ja.md) | 手術 + bedside 処置 + rehab セッション生成。 |
 | [`imaging/`](imaging/README.ja.md) | Imaging study + series + radiology report (Tier 1 #2 chain、AD-60 audit)。 |
 | [`device/`](device/README.ja.md) | ICU デバイス配置 (CVC / catheter / ventilator、POST_ENCOUNTER order=70)。 |
-| [`newborn/`](newborn/README.md) | 新生児の出生入院中の臨床 workup (POST_ENCOUNTER order=92、Issue #1252、英語版のみ)。 |
+| [`newborn/`](newborn/README.ja.md) | 新生児の出生入院中の臨床 workup (POST_ENCOUNTER order=92、Issue #1252)。 |
 
 ### 観測 & 治療
 
@@ -102,7 +102,7 @@ Cross-module invariant:
 | [`immunization/`](immunization/README.ja.md) | CVX スケジュール由来の成人ワクチン接種歴。 |
 | [`health_checkup/`](health_checkup/README.ja.md) | JP 事業者健診 (opt-in、POST_RECORDS order=70)。 |
 | [`monitoring/`](monitoring/README.ja.md) | 慢性薬 → monitoring lab 注入 (Issue #757)。 |
-| [`prophylaxis/`](prophylaxis/README.md) | 48 h 以上の入院に対する VTE 予防投与 (POST_ENCOUNTER order=75、英語版のみ)。 |
+| [`prophylaxis/`](prophylaxis/README.ja.md) | 48 h 以上の入院に対する VTE 予防投与 (POST_ENCOUNTER order=75)。 |
 | [`drug_safety/`](drug_safety/README.ja.md) | クラスベースの禁忌 gate + 代替薬置換 (処方時に適用)。 |
 
 ### ケア運用

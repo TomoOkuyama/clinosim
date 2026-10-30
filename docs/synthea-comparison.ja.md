@@ -21,7 +21,7 @@ state-transition 合成健康記録ジェネレータ) と clinosim は同じ問
 | モデル化アプローチ | 生理駆動の前向きシミュレーション (患者ごとに 19 変数の hidden な生理状態) | 疾患別 state-transition モジュール |
 | 検査 / vital 間の整合性 | 共有生理状態により保証 | モジュールごとに独立 |
 | ネイティブ FHIR R4 出力 | Bulk Data Access NDJSON、ResourceType ごとに 1 ファイル | patient ごとに FHIR R4 JSON |
-| JP Core プロファイル準拠 | 21 resource type | 設計目標ではない |
+| JP Core プロファイル準拠 | JP 出力で 21 resource type に JP Core プロファイルを付与 | 設計目標ではない |
 | 多 locale (US + JP) | 両方が first-class; JP 氏名 / 住所 / 保険 / JLAC10 / MHLW YJ | US ファースト; 国際化はコミュニティモジュール経由 |
 | 決定性保証 | 同一 seed に対し MINOR リリース内でバイト同一出力 | 実行 seed ごとに決定的 |
 | 拡張モデル | YAML 駆動 (ファイル編集、コード不要) | Java モジュール (`.json` state machine + コード) |
