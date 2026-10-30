@@ -18,7 +18,7 @@ format.
 
 - **In scope**: preset discovery (`list_presets`), preset loading and
   validation (`load_preset`), the `DatasetPreset` value type, argv
-  translation (`DatasetPreset.as_generate_args`), the `clinosim
+  translation (`DatasetPreset.as_simulate_args`), the `clinosim
   dataset list` / `clinosim dataset build <name>` CLI subcommands.
 - **Out of scope**: any generation capability of its own — the builder
   delegates to `clinosim generate` by rewriting `sys.argv` and
@@ -32,7 +32,7 @@ format.
 from clinosim.dataset import (
     DatasetPreset,          # frozen dataclass: name, description, country,
                             #   population, seed, start, end, format
-                            #   + .as_generate_args(output) -> list[str]
+                            #   + .as_simulate_args(output) -> list[str]
     list_presets,           # (presets_dir=None) -> list[str]
     load_preset,            # (name, presets_dir=None) -> DatasetPreset
     add_dataset_subparser,  # (argparse._SubParsersAction) -> None
@@ -77,15 +77,12 @@ byte-identical cohort on every run.
 - **Directory name must match `name`** — a preset directory called
   `jp-100/` whose `spec.yaml` declares `name: jp-1000` is a
   configuration error and raises at load time.
-- **Preset root discovery** — `_PRESETS_DIR` resolves to
-  `Path(__file__).resolve().parents[2] / "datasets"` at import time,
-  so subprocess and test callers see the same location as the
-  interactive CLI. Both `list_presets` and `load_preset` accept a
-  `presets_dir` override for tests. `datasets/` sits outside the
-  `clinosim` package and is not included in the wheel, so presets
-  are found only in a source checkout (an installed wheel's
-  `clinosim dataset list` prints `(no dataset presets found under
-  datasets/)`).
+- **Preset root discovery** — `_presets_dir()` returns
+  `clinosim/dataset/presets` when it exists (built wheels copy the
+  repo-root `datasets/` there via the pyproject `force-include`,
+  #2204), else the repo-root `datasets/` of a source checkout. Both
+  `list_presets` and `load_preset` accept a `presets_dir` override for
+  tests.
 - **Shipped presets** (as of writing): `jp-100`, `jp-1000`, `us-100`,
   `us-1000`. See [`datasets/README.md`](../../datasets/README.md) for
   the canonical list and per-preset descriptions.

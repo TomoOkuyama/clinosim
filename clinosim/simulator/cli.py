@@ -54,7 +54,7 @@ def _enforce_jp_clins_pkg_gate(allow_legacy: bool) -> None:
         allow_legacy = True
     if not allow_legacy:
         print(
-            "ERROR: JP-CLINS package not detected. `clinosim generate --country JP`\n"
+            "ERROR: JP-CLINS package not detected. `clinosim simulate --country JP`\n"
             "requires either:\n"
             "  - `fhir install clinical-information-sharing 1.13.0` (+ jpfhir-terminology 2.2606.0), OR\n"
             "  - set $CLINOSIM_JP_CLINS_PKG_DIR to the pkg's `package/` directory.\n"
@@ -715,7 +715,7 @@ def main() -> None:
         hospital_ops = getattr(args, "hospital_config", None)
         pop_label = str(population_arg) if population_arg is not None else "hospital recommended"
         print(
-            f"clinosim generate: population={pop_label}, seed={args.seed}, country={args.country}, period={start}~{end}"
+            f"clinosim simulate: population={pop_label}, seed={args.seed}, country={args.country}, period={start}~{end}"
         )
         if is_jp(args.country):
             _enforce_jp_clins_pkg_gate(allow_legacy=getattr(args, "allow_legacy", False))

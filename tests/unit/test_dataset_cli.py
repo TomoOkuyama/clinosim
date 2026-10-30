@@ -47,12 +47,13 @@ def test_preset_loads_and_matches_directory(name: str) -> None:
 
 @pytest.mark.unit
 @pytest.mark.parametrize("name", _EXPECTED_PRESETS)
-def test_preset_as_generate_args_shape(name: str) -> None:
-    """as_generate_args must produce a valid `clinosim generate ...` argv."""
+def test_preset_as_simulate_args_shape(name: str) -> None:
+    """as_simulate_args must produce a valid `clinosim simulate ...` argv
+    (not the deprecated `generate` alias, Issue #2204)."""
     preset = load_preset(name)
-    argv = preset.as_generate_args("/tmp/output-dir")
+    argv = preset.as_simulate_args("/tmp/output-dir")
     # First token is the subcommand.
-    assert argv[0] == "generate"
+    assert argv[0] == "simulate"
     # Every flag has a value — pairs should be even.
     assert "--country" in argv and argv[argv.index("--country") + 1] == preset.country
     assert "--population" in argv and argv[argv.index("--population") + 1] == str(preset.population)
@@ -145,3 +146,25 @@ def test_cli_subcommand_registered() -> None:
     assert args.dataset_command == "build"
     assert args.name == "jp-100"
     assert args.output == "/tmp/out"
+
+
+@pytest.mark.unit
+def test_packaged_presets_take_precedence(tmp_path: Path, monkeypatch) -> None:
+    """Issue #2204: an installed wheel carries the presets under
+    ``clinosim/dataset/presets``; that copy wins over a repo checkout."""
+    import clinosim.dataset as ds
+
+    packaged = tmp_path / "presets"
+    (packaged / "only-packaged").mkdir(parents=True)
+    (packaged / "only-packaged" / "spec.yaml").write_text("name: only-packaged\n")
+    monkeypatch.setattr(ds, "_PACKAGED_PRESETS_DIR", packaged)
+    assert ds._presets_dir() == packaged
+
+
+@pytest.mark.unit
+def test_wheel_config_ships_the_presets() -> None:
+    import tomllib
+
+    cfg = tomllib.loads((_REPO_ROOT / "pyproject.toml").read_text())
+    force = cfg["tool"]["hatch"]["build"]["targets"]["wheel"]["force-include"]
+    assert force.get("datasets") == "clinosim/dataset/presets"

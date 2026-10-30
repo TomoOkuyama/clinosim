@@ -1,7 +1,7 @@
 """``clinosim dataset`` — named-preset dataset builder.
 
 Presets live under ``datasets/<name>/spec.yaml`` at the repository root.
-Each spec is a thin declaration of the parameters ``clinosim generate``
+Each spec is a thin declaration of the parameters ``clinosim simulate``
 would use — country, population, seed, date range, output format.
 
 The CLI does not add any generation capability of its own; it exists
@@ -39,10 +39,18 @@ __all__ = [
     "load_preset",
 ]
 
-# Preset root is resolved at import time so subprocess / test callers see the
-# same location the interactive CLI does. `parents[2]` walks
-# clinosim/dataset/__init__.py → clinosim/dataset → clinosim → <repo root>.
-_PRESETS_DIR = Path(__file__).resolve().parents[2] / "datasets"
+# Presets live in ``datasets/`` at the repository root. Built wheels copy
+# them to ``clinosim/dataset/presets`` (pyproject ``force-include``,
+# Issue #2204), so an installed package finds them there; a source checkout
+# falls back to the repo root (`parents[2]` walks
+# clinosim/dataset/__init__.py → clinosim/dataset → clinosim → <repo root>).
+_PACKAGED_PRESETS_DIR = Path(__file__).resolve().parent / "presets"
+_REPO_PRESETS_DIR = Path(__file__).resolve().parents[2] / "datasets"
+
+
+def _presets_dir() -> Path:
+    """The preset root: the packaged copy when installed, else the repo's."""
+    return _PACKAGED_PRESETS_DIR if _PACKAGED_PRESETS_DIR.is_dir() else _REPO_PRESETS_DIR
 
 
 @dataclass(frozen=True)
@@ -58,10 +66,10 @@ class DatasetPreset:
     end: str
     format: str
 
-    def as_generate_args(self, output: str) -> list[str]:
-        """Return the ``clinosim generate ...`` argv this preset expands to."""
+    def as_simulate_args(self, output: str) -> list[str]:
+        """Return the ``clinosim simulate ...`` argv this preset expands to."""
         return [
-            "generate",
+            "simulate",
             "--country",
             self.country,
             "--population",
@@ -81,7 +89,7 @@ class DatasetPreset:
 
 def list_presets(presets_dir: Path | None = None) -> list[str]:
     """Return sorted preset names discoverable under ``datasets/``."""
-    root = presets_dir or _PRESETS_DIR
+    root = presets_dir or _presets_dir()
     if not root.exists():
         return []
     return sorted(p.name for p in root.iterdir() if p.is_dir() and (p / "spec.yaml").exists())
@@ -90,7 +98,7 @@ def list_presets(presets_dir: Path | None = None) -> list[str]:
 def load_preset(name: str, presets_dir: Path | None = None) -> DatasetPreset:
     """Load and validate the preset ``name``. Raises :class:`ValueError` on
     missing preset or malformed spec."""
-    root = presets_dir or _PRESETS_DIR
+    root = presets_dir or _presets_dir()
     spec_path = root / name / "spec.yaml"
     if not spec_path.exists():
         available = list_presets(root)
@@ -165,9 +173,9 @@ def dispatch_dataset(args: argparse.Namespace) -> int:
             print(f"clinosim dataset build: {exc}", file=sys.stderr)
             return 2
 
-        # Rebuild the argv `clinosim generate` would see, then reuse the main
-        # CLI dispatcher so the generate code path stays single-sourced.
-        gen_argv = preset.as_generate_args(args.output)
+        # Rebuild the argv `clinosim simulate` would see, then reuse the main
+        # CLI dispatcher so the simulate code path stays single-sourced.
+        gen_argv = preset.as_simulate_args(args.output)
         print(
             f"clinosim dataset build: {preset.name} — "
             f"country={preset.country} population={preset.population} "

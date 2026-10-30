@@ -17,7 +17,7 @@ alias として存続)。ユーザーが 6 つのフラグを覚える代わり�
 
 - **In scope**: プリセット発見 (`list_presets`)、プリセットロード
   + バリデーション (`load_preset`)、`DatasetPreset` 値型、argv 変換
-  (`DatasetPreset.as_generate_args`)、`clinosim dataset list` /
+  (`DatasetPreset.as_simulate_args`)、`clinosim dataset list` /
   `clinosim dataset build <name>` CLI サブコマンド。
 - **Out of scope**: 自前の生成能力 — ビルダーは `sys.argv` を書き
   換えてプロセス内で `clinosim.simulator.cli.main` を呼び出すことで
@@ -31,7 +31,7 @@ alias として存続)。ユーザーが 6 つのフラグを覚える代わり�
 from clinosim.dataset import (
     DatasetPreset,          # frozen dataclass: name / description / country /
                             #   population / seed / start / end / format
-                            #   + .as_generate_args(output) -> list[str]
+                            #   + .as_simulate_args(output) -> list[str]
     list_presets,           # (presets_dir=None) -> list[str]
     load_preset,            # (name, presets_dir=None) -> DatasetPreset
     add_dataset_subparser,  # (argparse._SubParsersAction) -> None
@@ -76,15 +76,13 @@ argparse ツリー構築中の `clinosim/simulator/cli.py::main` から呼び出
 - **ディレクトリ名は `name` と一致必須** — `jp-100/` ディレクトリの
   `spec.yaml` が `name: jp-1000` を宣言していると設定エラーでロード
   時に例外。
-- **プリセットルート発見** — `_PRESETS_DIR` は import 時に
-  `Path(__file__).resolve().parents[2] / "datasets"` に解決される
-  ので、subprocess 呼び出し・テスト caller もインタラクティブ CLI と
-  同じ場所を参照します。`list_presets` と `load_preset` はテスト用
-  に `presets_dir` override を受け付けます。`datasets/` は `clinosim`
-  パッケージ外にあり wheel に含まれないため、プリセットはソース
-  チェックアウトでのみ見つかります (wheel インストールでは
-  `clinosim dataset list` が `(no dataset presets found under
-  datasets/)` を出力)。
+- **プリセット置き場の解決** — `_presets_dir()` は
+  `clinosim/dataset/presets` があればそれを、なければソースチェック
+  アウトのリポジトリ直下 `datasets/` を返します。wheel のビルド時に
+  pyproject の `force-include` で `datasets/` をそこへコピーするため
+  (#2204)、インストールした wheel でもプリセットが見つかります。
+  `list_presets` と `load_preset` はテスト用に `presets_dir` override
+  を受け付けます。
 - **同梱プリセット** (執筆時点): `jp-100` / `jp-1000` / `us-100` /
   `us-1000`。正式なリストと各プリセットの説明は
   [`datasets/README.md`](../../datasets/README.ja.md) 参照。

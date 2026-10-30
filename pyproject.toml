@@ -110,6 +110,11 @@ path = "clinosim/__init__.py"
 [tool.hatch.build.targets.wheel]
 packages = ["clinosim"]
 
+# Issue #2204: ship the dataset presets with the package so `clinosim
+# dataset list/build` works from an installed wheel, not only a checkout.
+[tool.hatch.build.targets.wheel.force-include]
+"datasets" = "clinosim/dataset/presets"
+
 [tool.hatch.build.targets.sdist]
 # Explicit sdist manifest so YAML reference data / config / codes / locale
 # data ship inside the source tarball (wheel target infers them automatically,
@@ -122,6 +127,7 @@ include = [
     "clinosim/**/*.json",
     "tests/**/*.py",
     "tests/**/*.yaml",
+    "datasets/**",
     "README.md",
     "README.ja.md",
     "CHANGELOG.md",
