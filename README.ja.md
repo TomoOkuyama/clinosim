@@ -17,7 +17,7 @@
 
 ## clinosim とは
 
-clinosim は **集団からの forward シミュレーション** により合成 EHR データを生成します。各患者は隠れた **14 変数の生理学的状態** (`clinosim/types/clinical.py::PhysiologicalState`) を持ち、全ての観察 (検査、バイタル、投薬、診断) はその状態から導出されます — したがってデータは **構造的に臨床整合** しています。
+clinosim は **集団からの forward シミュレーション** により合成 EHR データを生成します。各患者は隠れた **19 変数の生理学的状態** (`clinosim/types/clinical.py::PhysiologicalState`) を持ち、全ての観察 (検査、バイタル、投薬、診断) はその状態から導出されます — したがってデータは **構造的に臨床整合** しています。
 
 主な用途:
 
@@ -67,7 +67,7 @@ JP のワーファリン服用患者では、clinosim の生理学エンジン�
 
 - **構造的な臨床整合性** — 生理学モデルにより非整合な lab は不可能。
 - **JP + US ネイティブ** — 16 の主要 FHIR resource type に対する JP Core プロファイル準拠、JLAC10 / MHLW YJ コード、JP の氏名 / 住所 / 保険を最初から。
-- **YAML 駆動の拡張** — 32 の入院疾患 + 46 の ED / 外来病態はすべてデータファイル、コードではない。
+- **YAML 駆動の拡張** — 36 の入院疾患 + 51 の ED / 外来病態はすべてデータファイル、コードではない。
 - **縦断サービスライン** — 腫瘍 (がん 10 部位 (男性乳がん含む)、化学療法 regimen サイクル、放射線治療 Procedure、腫瘍マーカー labs) + 産科 (妊娠を時限 `TemporalStatePeriod` lifecycle としてモデル化 — 年次 conception、妊娠週 12/24/36 の妊婦健診、母親側分娩 Encounter with Z37.0 discharge dx + 分娩 Procedure + 新生児 Patient chain、7 d / 28 d の産褥フォロー) を平坦な注釈ではなく正しい時間的頻度で出力する。詳細は [`docs/reference/oncology-obstetric-service-lines.ja.md`](docs/reference/oncology-obstetric-service-lines.ja.md)。
 
 先行事例 (Synthea) との比較: [docs/synthea-comparison.md](docs/synthea-comparison.ja.md)。
@@ -78,7 +78,7 @@ JP のワーファリン服用患者では、clinosim の生理学エンジン�
 | --- | --- |
 | ドキュメントサイト (英語) | <https://tomookuyama.github.io/clinosim/> |
 | アーキテクチャリファレンス | [`docs/architecture/`](docs/architecture/README.ja.md) |
-| モジュール索引 (39 モジュール) | [`clinosim/modules/`](clinosim/modules/README.ja.md) |
+| モジュール索引 (38 モジュール) | [`clinosim/modules/`](clinosim/modules/README.ja.md) |
 | データ品質・評価 | [`docs/eval.md`](docs/eval.ja.md) |
 | JP-CLINS プロファイル対応 | [`docs/jp-clins.md`](docs/jp-clins.ja.md) |
 | コントリビュート | [`CONTRIBUTING.md`](CONTRIBUTING.ja.md) |

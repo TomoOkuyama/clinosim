@@ -38,4 +38,4 @@ top-level `DESIGN.md` を指すものは残っていない。
 55+ per-ADR file への split (元 proposal) ではなく 3 file への
 split を選んだ理由は Issue #568 PR B の description を参照。
 
-英語版: [`DESIGN.md`](DESIGN.ja.md)。
+英語版: [`DESIGN.md`](DESIGN.md)。

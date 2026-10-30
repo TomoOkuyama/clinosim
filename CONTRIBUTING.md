@@ -87,17 +87,20 @@ pytest tests/unit -q               # ~1 minute, must be green
    describing user-facing behaviour changes. Skip only for docs-only PRs.
 7. **Open the PR** — the PR template walks you through the checklist.
 8. **CI must be green** on all required jobs before a maintainer merges:
-   - `Unit tests (Py 3.12)`
-   - `Integration tests (shard 1/3, 2/3, 3/3)`
+   - `Unit tests (Py 3.12 shard 1/3, 2/3, 3/3)`
+   - `Integration tests (shard 1/10 … 10/10)`
    - `Build sdist + wheel`
    - `Signed-off-by check`
    - `mkdocs build`
-   - `JP-CLINS lab compliance gate`
+   - `JP-CLINS lab compliance gate` / `JP Core narrow compliance gate` /
+     `US Core narrow compliance gate` (run only on PRs that touch paths
+     affecting FHIR output)
    - `ruff dead-code (F401 / F841)`
    - `vulture dead-code`
 
    Informational (not merge-blocking):
    - `Quality (informational)` — ruff check + ruff format --check + mypy
+   - `Unit test coverage combine (informational)`
 
    Python 3.11 unit-test compatibility runs nightly (see
    [`.github/workflows/nightly.yml`](.github/workflows/nightly.yml)).

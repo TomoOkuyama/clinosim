@@ -17,7 +17,7 @@
 
 ## What is clinosim?
 
-clinosim generates synthetic EHR data through **forward simulation from a population**. Every patient carries a hidden **14-variable physiological state** (`clinosim/types/clinical.py::PhysiologicalState`), and every observation (labs, vitals, medications, diagnoses) is derived from that state — so the data is **clinically coherent by construction**.
+clinosim generates synthetic EHR data through **forward simulation from a population**. Every patient carries a hidden **19-variable physiological state** (`clinosim/types/clinical.py::PhysiologicalState`), and every observation (labs, vitals, medications, diagnoses) is derived from that state — so the data is **clinically coherent by construction**.
 
 Primary use cases:
 
@@ -67,7 +67,7 @@ Most synthetic-EHR tools produce records by sampling from disease distributions.
 
 - **Clinical coherence by construction** — physiology model makes incoherent labs impossible.
 - **JP + US natively** — JP Core profile compliance for 16 primary FHIR resource types, JLAC10 / MHLW YJ codes, JP names / addresses / insurance out of the box.
-- **YAML-driven extension** — 32 inpatient diseases + 46 ED / outpatient conditions are all data files, not code.
+- **YAML-driven extension** — 36 inpatient diseases + 51 ED / outpatient conditions are all data files, not code.
 - **Longitudinal service lines** — oncology (10 cancer sites incl. male breast, chemo regimen cycles, radiation therapy Procedure, tumor-marker labs) + obstetrics (pregnancy modelled as a time-boxed `TemporalStatePeriod` lifecycle — annual conception, prenatal visits at gestational weeks 12/24/36, mother-side delivery Encounter with Z37.0 discharge dx + delivery Procedure + newborn Patient chain, postpartum visits at 7 d / 28 d) emit at correct temporal cadence, not as flat annotations. See [`docs/reference/oncology-obstetric-service-lines.md`](docs/reference/oncology-obstetric-service-lines.md).
 
 Prior-art comparison (Synthea): [docs/synthea-comparison.md](docs/synthea-comparison.md).
@@ -78,7 +78,7 @@ Prior-art comparison (Synthea): [docs/synthea-comparison.md](docs/synthea-compar
 | --- | --- |
 | Full documentation site | <https://tomookuyama.github.io/clinosim/> |
 | Architecture reference | [`docs/architecture/`](docs/architecture/README.md) |
-| Module index (39 modules) | [`clinosim/modules/`](clinosim/modules/README.md) |
+| Module index (38 modules) | [`clinosim/modules/`](clinosim/modules/README.md) |
 | Data quality & evaluation | [`docs/eval.md`](docs/eval.md) |
 | JP-CLINS profile support | [`docs/jp-clins.md`](docs/jp-clins.md) |
 | Contributing | [`CONTRIBUTING.md`](CONTRIBUTING.md) |
