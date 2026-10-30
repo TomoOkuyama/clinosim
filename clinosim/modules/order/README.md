@@ -42,7 +42,9 @@ ServiceRequest.
   `calculate_lab_result_time` (STAT / routine + night-shift
   deferral), `calculate_imaging_result_time` (scheduling + reporting
   delay), `calculate_result_time_from_state` (hospital-state-driven
-  M/M/1 delay via `facility.HospitalState`); `order_resource_type`
+  M/M/1 delay via `facility.HospitalState`; without a state it falls
+  back to the imaging model for imaging orders and the lab model
+  otherwise, #2202); `order_resource_type`
   (single mapping from an `Order` to its hospital-state resource key
   `"lab"` / `"ct"` / `"mri"` / `"xray"` / `"ultrasound"`, or `None`);
   `replay_order_to_state` (F4 cache-hit queue replay, used by

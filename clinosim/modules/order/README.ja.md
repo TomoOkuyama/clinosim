@@ -37,7 +37,8 @@ ServiceRequest への `basedOn` を持つことを要求する
   `calculate_lab_result_time` (STAT / routine + 夜勤 deferral)、
   `calculate_imaging_result_time` (scheduling + reporting delay)、
   `calculate_result_time_from_state` (`facility.HospitalState` 経由
-  の M/M/1 遅延)、`order_resource_type` (`Order` を hospital-state
+  の M/M/1 遅延。state が無いときは画像オーダーなら画像モデル、
+  それ以外は検体検査モデルにフォールバック、#2202)、`order_resource_type` (`Order` を hospital-state
   resource key `"lab"` / `"ct"` / `"mri"` / `"xray"` /
   `"ultrasound"` または `None` に写す単一 mapping)、
   `replay_order_to_state` (F4 cache-hit の queue replay、

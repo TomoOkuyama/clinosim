@@ -883,9 +883,14 @@ def calculate_result_time_from_state(
     """Calculate result time using hospital operational state.
 
     Delays emerge from resource utilization and staffing, not hardcoded values.
-    Falls back to legacy calculation if hospital_state is None.
+    Without a hospital state, falls back to the stand-alone timing model of
+    the order's kind: imaging orders use the imaging model (scheduling +
+    exam + reporting), everything else the lab model (Issue #2202: imaging
+    used to get lab turnaround here).
     """
     if hospital_state is None:
+        if order.order_type.value == "imaging":
+            return calculate_imaging_result_time(order, rng)
         return calculate_lab_result_time(order, rng)
 
     ordered = order.ordered_datetime
