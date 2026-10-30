@@ -10,7 +10,9 @@
    reference-range flag 付与。`generate_lab_result` は各 simulator
    が lab `OrderResult` を組み立てる前に呼ぶ共通の値生成ステップ
    (variability + rounding、qualitative test は categorical draw)。
-   H / L / critical flag は `determine_flag` が付与。
+   H / L / critical flag は `determine_flag` が付与。`reference_range_lab.yaml`
+   の `therapeutic_ranges` に載っている薬 (ワルファリン服用中の INR) を服用中の
+   患者は、その治療域で判定する (`therapeutic_range`、#2205)。
 2. **看護 flowsheet 観測** (`nursing.py` + `nursing_enricher.py`)
    — vital + ADL データからの NEWS2 / GCS / Braden 褥瘡 / Morse
    転倒リスクスコア計算と、`simulator/enrichers.py` に `name="nursing"`
@@ -65,7 +67,8 @@ from clinosim.modules.observation.engine import (
     round_to_precision,                  # (lab_name, value) -> float
     is_qualitative_test,                 # (lab_name) -> bool
     generate_lab_result,                 # (lab_name, true_value, rng) -> float | str
-    determine_flag,                      # (lab_name, value, sex="F", country="US") -> "L" | "H" | "critical" | None
+    determine_flag,                      # (lab_name, value, sex="F", country="US", *, medications=None, age=None) -> "L" | "H" | "critical" | None
+    therapeutic_range,                   # (lab_name, country, *, medications, age) -> (low, high, text) | None
 )
 
 # 看護 flowsheet

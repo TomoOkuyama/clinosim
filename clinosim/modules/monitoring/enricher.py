@@ -287,7 +287,14 @@ def _inject_one_lab(
         if true_value is None or true_value <= 0:
             return
         observed = generate_lab_result(analyte, float(true_value), lab_rng)
-    flag = _determine_flag(analyte, observed, sex=getattr(patient, "sex", "M"), country=country)
+    flag = _determine_flag(
+        analyte,
+        observed,
+        sex=getattr(patient, "sex", "M"),
+        country=country,
+        medications=getattr(patient, "current_medications", None),
+        age=getattr(patient, "age", None),
+    )
 
     # Issue #871: bilingual `clinical_intent` — EN stays as the CIF canonical
     # (behavior-parseable form used by `_sr_intent_from_clinical_intent`,

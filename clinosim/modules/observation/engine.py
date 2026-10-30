@@ -8,6 +8,7 @@ from __future__ import annotations
 
 from functools import lru_cache
 from pathlib import Path
+from typing import Any
 
 import numpy as np
 import yaml
@@ -553,11 +554,53 @@ def _reference_ranges_by_sex(country: str) -> dict[str, dict[str, tuple[float, f
     return out
 
 
+def therapeutic_range(
+    lab_name: str,
+    country: str,
+    *,
+    medications: Any = None,
+    age: int | None = None,
+) -> tuple[float, float, str] | None:
+    """``(low, high, text)`` of the drug-specific therapeutic range for the
+    patient, or ``None`` when no listed drug is taken (Issue #2205).
+
+    Read from ``therapeutic_ranges`` in the locale's reference_range_lab.yaml
+    (e.g. INR on warfarin). ``medications`` is a list of home medications
+    (objects or dicts with ``drug_name``) or plain names.
+    """
+    from clinosim.locale.loader import load_reference_ranges
+
+    rows = ((load_reference_ranges(country) or {}).get("therapeutic_ranges") or {}).get(lab_name) or []
+    if not rows or not medications:
+        return None
+    names = []
+    for med in medications:
+        name: Any
+        if isinstance(med, str):
+            name = med
+        elif isinstance(med, dict):
+            name = med.get("drug_name")
+        else:
+            name = getattr(med, "drug_name", "")
+        names.append(str(name or "").lower())
+    for row in rows:
+        drugs = [str(d).lower() for d in row.get("drugs") or []]
+        if not any(d in n for d in drugs for n in names):
+            continue
+        if row.get("age_min") is not None and (age is None or age < int(row["age_min"])):
+            continue
+        return float(row["low"]), float(row["high"]), str(row.get("text") or "")
+    return None
+
+
 def determine_flag(
     lab_name: str,
     value: float | str,
     sex: str = "F",
     country: str = "US",
+    *,
+    medications: Any = None,
+    age: int | None = None,
 ) -> str | None:
     """Determine H/L/critical flag for a lab value.
 
@@ -583,6 +626,11 @@ def determine_flag(
         return None
 
     low, high = range_entry.get(sex, range_entry.get("all", (0.0, 9999.0)))
+    # Issue #2205: a patient on e.g. warfarin is judged against the
+    # therapeutic range, so a therapeutic INR is not flagged high.
+    therapeutic = therapeutic_range(lab_name, country, medications=medications, age=age)
+    if therapeutic is not None:
+        low, high = therapeutic[0], therapeutic[1]
 
     if lab_name in _PANIC_THRESHOLDS:
         p_lo, p_hi = _PANIC_THRESHOLDS[lab_name]

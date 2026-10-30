@@ -1534,11 +1534,17 @@ def build_reference_range(
     lab_name: str,
     patient_sex: str,
     country_code: str,
+    *,
+    medications: Any = None,
+    age: int | None = None,
 ) -> list[dict[str, Any]] | None:
     """Build FHIR referenceRange from locale reference range data.
 
     For JP: uses JCCLS共用基準範囲 2022 with source extension.
     Sex-specific ranges are filtered by patient sex with appliesTo.
+    When the patient takes a drug with a therapeutic range for this lab
+    (e.g. INR on warfarin), that range is added with
+    ``type = therapeutic`` (Issue #2205).
     """
     ref_data = load_reference_ranges(country_code)
     if not ref_data:
@@ -1600,6 +1606,28 @@ def build_reference_range(
         # ここで emit しない + `_strip_forbidden_observation_reference_range_extensions`
         # walker(fhir_r4_adapter)で defensive 除去、の 2 重防御。
         result.append(rr)
+
+    from clinosim.modules.observation.engine import therapeutic_range
+
+    therapeutic = therapeutic_range(lab_name, country_code, medications=medications, age=age)
+    if therapeutic is not None:
+        unit_str = (ranges[0] or {}).get("unit", "")
+        result.append(
+            {
+                "low": build_ucum_quantity(therapeutic[0], unit_str),
+                "high": build_ucum_quantity(therapeutic[1], unit_str),
+                "type": {
+                    "coding": [
+                        {
+                            "system": get_system_uri("hl7-referencerange-meaning"),
+                            "code": "therapeutic",
+                            "display": "治療域" if is_jp(country_code) else "Therapeutic Desired Level",
+                        }
+                    ]
+                },
+                **({"text": therapeutic[2]} if therapeutic[2] else {}),
+            }
+        )
 
     return result if result else None
 

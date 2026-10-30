@@ -513,7 +513,9 @@ def _simulate_ed_visit(
             observed = str(lab_rng.choice(list(dist["options"]), p=list(dist["weights"])))
         else:
             observed = generate_lab_result(canon, true_val, lab_rng)
-        flag = determine_flag(canon, observed, sex=patient.sex, country=country)
+        flag = determine_flag(
+            canon, observed, sex=patient.sex, country=country, medications=patient.current_medications, age=patient.age
+        )
         order.result = OrderResult(
             result_datetime=visit_time
             + timedelta(minutes=int(lab_rng.normal(ED_LAB_RESULT_OFFSET_MEAN_MIN, ED_LAB_RESULT_OFFSET_STD_MIN))),
