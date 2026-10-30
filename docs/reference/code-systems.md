@@ -13,17 +13,23 @@
 | `jlac10` | JLAC10 | JP lab codes | [JCCLS](https://www.jccls.org/) |
 | `rxnorm` | RxNorm | US drugs | [NLM](https://www.nlm.nih.gov/research/umls/rxnorm/) |
 | `yj` | YJ codes | JP drugs | MHLW Drug Price Standards |
+| `hot7` | MEDIS HOT7 | JP drugs (HOT-format codes; the JP medication emitter picks the HOT7 / HOT9 / HOT13 / YJ URI per code format) | [MEDIS](https://www.medis.or.jp/) |
+| `medis-disease-keyno` | MEDIS 病名管理番号 | JP Condition `medisRecordNo` slice (JP-CLINS) | [MEDIS](https://www.medis.or.jp/) |
+| `cvx` | CVX | Immunizations | [CDC IIS](https://www2.cdc.gov/vaccines/iis/iisstandards/vaccines.asp?rpt=cvx) |
 | `cpt` | CPT | US procedures | [AMA](https://www.ama-assn.org/practice-management/cpt) |
 | `k-codes` | K codes | JP reimbursement procedures | MHLW Medical Fee Schedule |
 
-Clinical document types use the following LOINC codes:
+Clinical document types use the following LOINC codes (inpatient
+physician documents shown; the full per-country list, including nursing,
+outpatient / ED and JP-only documents, is in
+[`../clinical_documents.md`](../clinical_documents.md#document-scope)):
 
 | Document | LOINC | Notes |
 |---|---|---|
 | History and physical note | `34117-2` | Generated at admission |
-| Progress note | `11506-3` | Reserved for future Tier C scope |
-| Discharge summary note | `18842-5` | Generated at discharge |
-| Death note | `69730-0` | Generated when `deceased=true` |
+| Progress note | `11506-3` | Generated daily during an inpatient stay |
+| Discharge summary note | `18842-5` | Generated at discharge (a death discharge summary with the same code replaces it on deceased encounters) |
+| Death certificate | `64297-5` | Generated when the encounter ends in death |
 | Surgical operation note | `11504-8` | Generated per surgical procedure |
 | Procedure note | `28570-0` | Generated per invasive bedside procedure |
 

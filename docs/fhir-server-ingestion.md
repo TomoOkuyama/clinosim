@@ -38,8 +38,10 @@ manifest.json
 ```
 
 The exact file set depends on which modules fire for the cohort —
-`Device.ndjson` / `DeviceUseStatement.ndjson` emit only when G47.30
-CPAP patients are present (opt-in via disease prevalence), and
+`DeviceUseStatement.ndjson` (and the per-patient `Device` rows) emit
+only when an inpatient transferred to the ICU received a CVC,
+indwelling catheter or mechanical ventilator (`Device.ndjson` always
+carries the shared facility infusion pump), and
 `Specimen.ndjson` only when microbiology-cultures encounter chain
 fires.
 

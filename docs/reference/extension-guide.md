@@ -14,16 +14,18 @@ Details: `clinosim/modules/disease/README.md`
 ### Add a new encounter type (ED/outpatient)
 
 1. Create `clinosim/modules/encounter/reference_data/<condition_id>.yaml`.
-2. Include `icd10_code` and `icd10_display`.
+2. Include `icd10_code` and `icd10_display` (for an `emergency` condition, set `min_age` / `max_age` to bound who can present — the ED draw gates on age in the visit year).
 3. Register `icd10_code` per "Add a new disease" step 3.
 4. Test: `clinosim test-encounter <condition_id>` and `pytest tests/unit/test_diagnosis_code_coverage.py`.
 
 ### Add a new country
 
 1. Create `clinosim/locale/<country_code>/` folder
-2. Add `names.yaml`, `addresses.yaml`, `demographics.yaml`, `reference_range_lab.yaml`, `formatting.yaml`
+2. Add `names.yaml`, `addresses.yaml`, `demographics.yaml`, `reference_range_lab.yaml`, `formatting.yaml` and the `code_mapping_*.yaml` files
 3. Add entry in `clinosim/locale/shared/naming_rules.yaml`
 4. (Optional) Add country-specific code system to `codes/data/`
+
+Full checklist: [`../add-your-country.md`](../add-your-country.md).
 
 ### Add a new language
 

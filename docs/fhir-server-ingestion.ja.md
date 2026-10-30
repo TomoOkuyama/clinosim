@@ -39,8 +39,9 @@ manifest.json
 ```
 
 実際のファイル集合はコホートで発火するモジュールに依存する —
-`Device.ndjson` / `DeviceUseStatement.ndjson` は G47.30 CPAP 患者
-が存在する時のみ emit (disease prevalence 経由の opt-in)、
+`DeviceUseStatement.ndjson` (と患者ごとの `Device` 行) は ICU 転棟
+した入院患者に CVC / 留置カテーテル / 人工呼吸器が使われた時のみ emit
+(`Device.ndjson` には施設共用の輸液ポンプが常に含まれる)、
 `Specimen.ndjson` は 微生物培養 encounter chain が発火した時のみ emit。
 
 各 `.ndjson` は 1 行 1 FHIR リソース。`manifest.json` はそれら

@@ -21,8 +21,8 @@ compose from one engine against per-attribute yaml declarations under
 
 | Pattern | Driver yaml | What it does |
 |---|---|---|
-| **AR(1) continuous latent** | `hba1c_trajectory.yaml` | Within-individual HbA1c drift for E11 / E10 adults (phi 0.75, calibrated against DCCT/EDIC, UKPDS 10y, Wu 2023 meta-analysis). Per-encounter measurement-noise overlay (sigma 0.20 %) applied at emit. Replaces the retired `PersonRecord.glycemic_trajectory` proxy. |
-| **Markov stage ladder** | `stage/<disease>.yaml` (19 ladders) | Year-over-year stage transitions for CKD (`n18`), heart failure (`i50` → NYHA I-IV), ischemic heart (`i25` → CCS I-IV), atrial fib (`i48` paroxysmal → persistent → permanent), COPD (`j44` → GOLD 1-4), dementia (`f00` → CDR 0.5-3), Parkinson (`g20`), multiple sclerosis (`g35`), alcoholic / fibrotic liver, stroke sequela (`i69` / `i69_1` / `i69_3`), and seven cancer-staging ladders (`c16` gastric / `c18` colon / `c22` liver / `c34` lung / `c50` breast / `c61` prostate) under AJCC + BCLC. |
+| **AR(1) continuous latent** | `hba1c_trajectory.yaml` (plus `labs/ldl_trajectory.yaml`, `vitals/sbp_trajectory.yaml`, `anthropometry/bmi_drift.yaml`) | Within-individual HbA1c drift for E11 / E10 adults (phi 0.75, calibrated against DCCT/EDIC, UKPDS 10y, Wu 2023 meta-analysis). Per-encounter measurement-noise overlay (sigma 0.20 %) applied at emit. Replaces the retired `PersonRecord.glycemic_trajectory` proxy. |
+| **Markov stage ladder** | `stage/<disease>.yaml` (19 ladders) | Year-over-year stage transitions for CKD (`n18`), heart failure (`i50` → NYHA I-IV), ischemic heart (`i25` → CCS I-IV), atrial fib (`i48` paroxysmal → persistent → permanent), COPD (`j44` → GOLD 1-4), dementia (`f00` → CDR 0.5-3), Parkinson (`g20`), multiple sclerosis (`g35`), alcoholic / fibrotic liver, stroke sequela (`i69` / `i69_1` / `i69_3`), and six cancer-staging ladders (`c16` gastric / `c18` colon / `c22` liver / `c34` lung / `c50` breast / `c61` prostate) under AJCC + BCLC. |
 | **Event firing** | `event/<code>_onset.yaml` (30+ files) | Annual Bernoulli roll for chronic onset — DM E11 complications (`dm_nephropathy_e11_21`, `dm_neuropathy_e11_42`, `dm_retinopathy_e11_311`), 20+ adult-chronic ICDs sampled through locale-specific rate yaml with age / sex gating and `has_chronic_prefix` + `requires_sex` triggers (Phase 4b.2.β). |
 | **Treatment escalation event** | `med/<regimen>.yaml` | HTN third- + fourth-agent step-up (`htn_escalate_third_agent_i10`, `htn_escalate_fourth_agent_i10`), lipid high-intensity + ezetimibe step-up (`lipid_escalate_high_intensity_e78`, `lipid_escalate_ezetimibe_e78`), DM SGLT2i and insulin step-up (`dm_escalate_sglt2i_e11`, `dm_escalate_insulin_e11`). Fires on guideline-trigger (e.g. HbA1c above target for ≥N years). Phase 4a scopes DM complications to T2DM (E11) only — T1DM (E10) is excluded. |
 
@@ -58,9 +58,12 @@ encounter emit sites:
 
 - **Layer-1 initialization** — `clinosim.modules.population.engine.generate_population`
   calls `initial_snapshot` for every alive person at generation time.
-- **Annual advance** — `clinosim.modules.population.aging.advance_population`
-  calls `advance_one_year` once per alive person per sim year, **after**
-  the existing aging passes finalise `chronic_conditions`.
+- **Annual advance** — the forward month loop
+  (`clinosim/simulator/phases/_forward_loop.py`) calls
+  `clinosim.modules.population.aging.advance_population` at each year
+  boundary; it calls `advance_one_year` once per alive person per sim
+  year, **after** that year's community-mortality draw and the aging
+  passes finalise `chronic_conditions`.
 - **Lab emit** — `clinosim.modules.physiology.engine.derive_lab_values`
   reads `state_at(person, when).continuous["hba1c"]` and applies the
   per-encounter measurement-noise overlay from the yaml.

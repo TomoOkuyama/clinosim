@@ -18,10 +18,10 @@ state-transition 合成健康記録ジェネレータ) と clinosim は同じ問
 
 | 次元 | clinosim | Synthea |
 | --- | --- | --- |
-| モデル化アプローチ | 生理駆動の前向きシミュレーション (患者ごとに 14 変数の hidden state) | 疾患別 state-transition モジュール |
+| モデル化アプローチ | 生理駆動の前向きシミュレーション (患者ごとに 19 変数の hidden な生理状態) | 疾患別 state-transition モジュール |
 | 検査 / vital 間の整合性 | 共有生理状態により保証 | モジュールごとに独立 |
 | ネイティブ FHIR R4 出力 | Bulk Data Access NDJSON、ResourceType ごとに 1 ファイル | patient ごとに FHIR R4 JSON |
-| JP Core プロファイル準拠 | 16 resource type | 設計目標ではない |
+| JP Core プロファイル準拠 | 21 resource type | 設計目標ではない |
 | 多 locale (US + JP) | 両方が first-class; JP 氏名 / 住所 / 保険 / JLAC10 / MHLW YJ | US ファースト; 国際化はコミュニティモジュール経由 |
 | 決定性保証 | 同一 seed に対し MINOR リリース内でバイト同一出力 | 実行 seed ごとに決定的 |
 | 拡張モデル | YAML 駆動 (ファイル編集、コード不要) | Java モジュール (`.json` state machine + コード) |
@@ -77,8 +77,9 @@ population サイズ / 州 / config オプションは
 ## 2 — `clinosim eval` で Synthea コホートを採点
 
 `clinosim eval` を Synthea の `fhir/` 出力に向けるだけ — レイアウト
-は自動検出され、Bundle ファイルは併置される
-`fhir_r4/<ResourceType>.ndjson` に正規化されます:
+は自動検出され、Bundle ファイルは `fhir/` ディレクトリと同階層の
+`<parent>/synthea-normalized/fhir_r4/<ResourceType>.ndjson` に正規化
+されます:
 
 ```bash
 clinosim eval -d ./synthea-out/fhir
@@ -88,9 +89,9 @@ clinosim eval -d ./synthea-out/fhir
 # Overall score: 82.4 / 100 (WARN)
 ```
 
-正規化は決定的 (同じ Bundle → 同じ NDJSON バイト); 同一入力に対する
-以降の `eval` 実行は on-disk `synthea-normalized/` を再利用 (削除
-しない限り)。
+正規化は決定的 (同じ Bundle → 同じ NDJSON バイト)。Synthea
+ディレクトリに対する `eval` 実行のたびに target の `fhir_r4/` を削除
+して再正規化するので、NDJSON は常に現在の Bundle を反映します。
 
 `--synthea-normalize` で targetディレクトリを強制指定:
 
@@ -130,7 +131,9 @@ print(f"{'overall':<15} {a['overall_score']:>10.1f} {b['overall_score']:>10.1f}"
 PY
 ```
 
-出力例 (実際の比較は異なる):
+出力例 (実際の比較は異なる。実際のレポートには国 条件軸 —
+`jp_clins_lab_compliance` / `jp_core_compliance` /
+`us_core_compliance` — の行も 1 軸 1 行で含まれるが、ここでは省略):
 
 ```
 axis            synthea    clinosim
@@ -157,13 +160,14 @@ overall            85.9       92.6
   check は Synthea の疾患別検査モジュールと eval band が合致しない
   ペアリングを浮上させる。どちらの結果も本質的に「間違い」ではない
   — 何を測っているかの問題。
-- **Locale.** clinosim の JP check
+- **Locale.** 正規化された Synthea 出力はフラットな `fhir_r4/`
+  レイアウトなので、locale は先頭 Patient の `address.country` から
+  自動検出される (fallback: US)。したがって Synthea コホートは US
+  check で採点され、clinosim の JP check
   (`japanese_displays_on_condition` / `jlac10_or_loinc_on_lab` /
-  `yj_code_on_medications` / `jp_core_profile_declared`) は Synthea
-  出力に対して fail する — Synthea は US ファーストなので。eval
-  ツールは Synthea がこれらの閾値を狙って作られていないことを指摘
-  しているのであり、Synthea が壊れているわけではない。Synthea を
-  採点するときは `--country US` で locale 軸を US check に制限する。
+  `yj_code_on_medications` / `jp_core_profile_declared`) や JP
+  compliance 軸は適用されない — Synthea は US ファーストなので、
+  `us-100` のような US の clinosim コホートと比較する。
 
 ## 両方に公平なルールを追加する
 

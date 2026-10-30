@@ -17,9 +17,12 @@ that carries the rest.*
 Both service lines share the same emission-shape pattern:
 1. Chronic condition prevalence (`chronic_prevalence` in
    `locale/<c>/demographics.yaml`) puts a marker on the patient.
-2. A scheduler in `clinosim/modules/population/engine.py` translates
-   the marker into `LifeEvent`s at the correct temporal cadence.
-3. A dispatcher in `clinosim/simulator/engine.py` routes each event
+2. A scheduler called from
+   `clinosim/modules/population/engine.py::generate_healthcare_calendar`
+   (helpers in `population/_chemo.py` / `population/_pregnancy.py`)
+   translates the marker into `LifeEvent`s at the correct temporal cadence.
+3. A dispatcher in `clinosim/simulator/phases/_healthcare_calendar.py`
+   (driven by `run_beta`'s forward month loop) routes each event
    to a builder that emits the resources (Encounter + Condition +
    Procedure + Medication…).
 
@@ -32,7 +35,7 @@ Both service lines share the same emission-shape pattern:
 | Cancer follow-up outpatient visits | Quarterly, per-cancer visit reason + labs (tumor markers + basic panel) + optional prescription renewal | `locale/shared/chronic_followup.yaml` |
 | Tumor marker labs | CEA / CA19-9 / AFP / PIVKA-II / CA15-3 / PSA — reference ranges + baseline normals | `locale/<c>/reference_range_lab.yaml` + `modules/observation/engine.py::BASELINE_LAB_NORMALS` |
 | Radiation-therapy Procedure emit | K001 / M001 / M001-2 / M001-3 fired at ~40 % of follow-up visits (for `radiation_therapy_eligible` cancer codes) | `simulator/outpatient.py` (per chronic-followup visit) |
-| Cycle-based chemotherapy | Regimen library (FOLFOX q14d / CarboPem q21d / Trastuzumab q3w / LHRH q28d) → `chemo_visit` encounters at correct cadence + delivery Procedure | `locale/shared/chemo_regimens.yaml` + `population/engine.py::_chemo_cycle_events` + `simulator/outpatient.py::_simulate_outpatient_visit` chemo branch |
+| Cycle-based chemotherapy | Regimen library (FOLFOX q14d / CarboPem q21d / Trastuzumab q3w / LHRH q28d / GemNabP q28d / BCG intravesical q7d / Temozolomide Stupp q28d), assigned for C15 / C16 / C18 / C25 / C34 / C50 / C61 / C67 / C71 (C22 has no regimen) → `chemo_visit` encounters at correct cadence + delivery Procedure | `locale/shared/chemo_regimens.yaml` + `population/_chemo.py::_chemo_cycle_events` + `simulator/outpatient.py::_simulate_outpatient_visit` chemo branch |
 | Per-cycle chemo drug orders | Each `chemo_visit` emits one `MedicationRequest` + one `MedicationAdministration` per drug on the regimen's `cycle_orders` list (matching `order_id`) | `simulator/outpatient.py` chemo branch (Order emit) |
 | Oral chemo (daily home meds) | Capecitabine / Tamoxifen / Anastrozole / Bicalutamide / Sorafenib / Lenvatinib / Osimertinib | `locale/shared/chronic_medications.yaml` (unchanged; oral chemo IS a daily home med) |
 
@@ -40,18 +43,18 @@ Both service lines share the same emission-shape pattern:
 
 | Element | Coverage | Where |
 |---|---|---|
-| Pregnancy as time-boxed lifecycle state (META #957 Incr 1) | Age-banded annual conception Bernoulli against MHLW 2022 (JP) / CDC NVSR 2022 (US) rates for women 15-49. Conception opens a `TemporalStatePeriod(state_type="pregnancy")` on `PersonRecord.state_periods` with metadata `{lmp, edd, planned_delivery_date}`; the period closes on the year containing the delivery date (with `outcome="delivered"`) or at the abortion date (with `outcome="aborted"`). | `perinatal.yaml::lifecycle.annual_conception_rate` + `population/engine.py::_pregnancy_lifecycle_events` + `types/patient.py::TemporalStatePeriod` |
+| Pregnancy as time-boxed lifecycle state (META #957 Incr 1) | Age-banded annual conception Bernoulli against MHLW 2022 (JP) / CDC NVSR 2022 (US) rates for women 15-49. Conception opens a `TemporalStatePeriod(state_type="pregnancy")` on `PersonRecord.state_periods` with metadata `{lmp, edd, planned_delivery_date}`; the period closes on the year containing the delivery date (with `outcome="delivered"`) or at the abortion date (with `outcome="aborted"`). | `perinatal.yaml::lifecycle.annual_conception_rate` + `population/_pregnancy.py::_pregnancy_lifecycle_events` + `types/patient.py::TemporalStatePeriod` |
 | Past-birth Z37 problem-list-item | One Z37 problem-list-item Condition per delivered pregnancy period, anchored at the delivery date. Biology-consistent — multi-parity woman emits multi-Z37. Derived at FHIR emit time from `state_history("pregnancy")`; **replaces the pre-Incr-1 chronic-sample proxy**. | `modules/output/fhir_r4/conditions/conditions.py::_build_conditions` (past-pregnancies adapter) |
 | Prenatal supplement Rx | Folic acid + iron attached as home medications when the person has any pregnancy history. Emit path unchanged (`chronic_medications.yaml::Z34`); gate switched from `chronic_conditions` to `state_periods` via a virtual Z34 `ChronicCondition` in the med-derivation input at activator time. | `locale/shared/chronic_medications.yaml` Z34 block + `modules/patient/activator.py` (state-based hook) |
-| Prenatal visits | AMB encounters at gestational weeks 12 / 24 / 36 (simplified from the full q4w/q2w/q1w cadence deferred to Incr 1.5), `disease_id="Z34"`, routed to `obgyn` via `_CHRONIC_DISEASE_SPECIALTY`. | `perinatal.yaml::lifecycle.prenatal_visit_gestational_weeks` + `population/engine.py::_pregnancy_lifecycle_events` |
-| Mother-side delivery inpatient encounter | One IMP encounter per delivered pregnancy period on the year containing the planned delivery date (EDD ± 7 d jitter). LOS 5 d JP / 2 d US, admission dx `O80`, discharge dx `Z37.0`, delivery Procedure. | `locale/shared/perinatal.yaml::encounter` + `population/engine.py::_pregnancy_lifecycle_events` + `simulator/perinatal.py` |
-| Delivery Procedure | JP: `K894` 分娩介助 / US: CPT `59400` routine obstetric care | `perinatal.yaml::procedure` |
-| Newborn `Patient` chain | Baby id `<mother>-BABY`, household inherited, sex per-mother sub-RNG, birthDate = delivery date | `simulator/perinatal.py` (session 94) |
-| Newborn Encounter | IMP, `admit_source = born` (new `AdmitSource.BORN` enum member) + `admit_source_encounter_id` → FHIR `Encounter.partOf` on the newborn side | `simulator/perinatal.py` + `types/encounter.py::AdmitSource.BORN` |
+| Prenatal visits | AMB encounters at gestational weeks 12 / 24 / 36 (simplified from the full q4w/q2w/q1w cadence deferred to Incr 1.5), `disease_id="Z34"`, routed to `obgyn` via `_CHRONIC_DISEASE_SPECIALTY`. | `perinatal.yaml::lifecycle.prenatal_visit_gestational_weeks` + `population/_pregnancy.py::_pregnancy_lifecycle_events` |
+| Mother-side delivery inpatient encounter | One IMP encounter per delivered pregnancy period on the year containing the planned delivery date (EDD ± 7 d jitter). LOS 5 d JP / 2 d US, admission dx `O80`, discharge dx `Z37.0`, delivery Procedure. Cesarean deliveries (US 32.1 % / JP 20.4 %) use admission dx `O82` and LOS 8 d JP / 4 d US. | `locale/shared/perinatal.yaml::encounter` + `population/_pregnancy.py::_pregnancy_lifecycle_events` + `simulator/perinatal.py` |
+| Delivery Procedure | JP: `K894` 分娩介助 / US: CPT `59400` routine obstetric care; cesarean: JP `K898` 帝王切開術 / US CPT `59510` | `perinatal.yaml::procedure` + `perinatal.yaml::cesarean` |
+| Newborn `Patient` chain | Baby id `<mother>-BABY` (`<mother>-<N>-BABY` for the N-th birth of the same mother), household inherited, sex per-mother sub-RNG, birthDate = delivery date. The newborn enrolls in the simulated population the day after the birth stay ends (`PersonRecord.enrolled_from`) and is simulated like every other person from then on. | `simulator/perinatal.py` |
+| Newborn Encounter | IMP, `admit_source = born` (`AdmitSource.BORN`) + `admit_source_encounter_id` → FHIR `Encounter.partOf` on the newborn side | `simulator/perinatal.py` + `codes/hl7_encounter.py::AdmitSource.BORN` |
 | Z38.0 on newborn | Newborn discharge dx | `simulator/perinatal.py` |
-| Postpartum encounters × 2 | 7 d + 28 d after delivery date, `chronic_visit` with `disease_id="Z39"`, routed to `obgyn`. Year-boundary clamped (Dec 31) when the delivery is in December. | `perinatal.yaml::lifecycle.postpartum_visit_offsets_days` + `population/engine.py::_pregnancy_lifecycle_events` |
+| Postpartum encounters × 2 | 7 d + 28 d after delivery date, `chronic_visit` with `disease_id="Z39"`, routed to `obgyn`. Year-boundary clamped (Dec 31) when the delivery is in December. | `perinatal.yaml::lifecycle.postpartum_visit_offsets_days` + `population/_pregnancy.py::_pregnancy_lifecycle_events` |
 | Newborn perinatal conditions | P59.9 jaundice ~20 %, P07.3 preterm ~7 % (→ conditional P22.0 RDS ~35 %), L22 diaper dermatitis ~30 %, L20.9 atopic dermatitis ~15 % | `simulator/perinatal.py` (per-newborn sub-RNG) |
-| Abortion outcome (age-gated) | Spontaneous O03.9 / induced O04.5 outpatient day-surgery. Age-band probability 15-19: 40 % → 35-44: 7 %. When fired, the period closes with `outcome="aborted"` at gestational week ~10 (day 70 from LMP ± 14 d); delivery + newborn chain are skipped. | `locale/shared/perinatal.yaml::abortion` + `population/engine.py::_pregnancy_lifecycle_events` (abortion branch) |
+| Abortion outcome (age-gated) | Spontaneous O03.9 / induced O04.5 outpatient day-surgery. Age-band probability 15-19: 40 % → 35-44: 7 %. When fired, the period closes with `outcome="aborted"` at gestational week ~10 (day 70 from LMP ± 14 d); delivery + newborn chain are skipped. | `locale/shared/perinatal.yaml::abortion` + `population/_pregnancy.py::_pregnancy_lifecycle_events` (abortion branch) |
 
 ### 1.3 Explicitly NOT yet covered (Incr 1.5 + later slices)
 
@@ -79,8 +82,6 @@ Both service lines share the same emission-shape pattern:
   pass at population generation is Incr 1.5.
 - **Stillbirth / preterm outcome variation** — currently every
   non-abortion pregnancy delivers a live term newborn.
-- **Cesarean-section share** — every delivery emits as O80
-  spontaneous vaginal. Real JP rate is ~20 % C-section (O82).
 - **Oncology-specific Composition type** — LOINC 34133-9 for
   cancer treatment notes.
 - **Cross-year chemo cycle continuity** — cycles are scheduled fresh
@@ -119,14 +120,15 @@ population/engine.py::generate_healthcare_calendar()               │
      _chemo_cycle_events(person, year)  →  LifeEvent(chemo_visit, ...) × N cycles
                       │
                       ▼
-simulator/engine.py::run_beta()
+simulator/engine.py::run_beta() → forward month loop
+  → simulator/phases/_healthcare_calendar.py
   event_type == "chemo_visit"       →  _simulate_outpatient_visit(...) with chemo spec
                                           → Encounter (AMB, oncology_infusion dept)
                                           → ProcedureRecord (chemotherapy_administration)
   event_type == "delivery"          →  simulate_delivery_encounter(...)
                                           → Encounter (IMP, obgyn dept, LOS 5/2d)
                                           → ProcedureRecord (delivery)
-                                          → ClinicalDiagnosis(admission=O80, discharge=Z37.0)
+                                          → ClinicalDiagnosis(admission=O80 or O82 (cesarean), discharge=Z37.0)
                                           → newborn Patient chain
   event_type == "abortion"          →  simulate_abortion_encounter(...) (period closed already)
   event_type == "chronic_visit" with condition_type == "prenatal_visit" or "postpartum"
@@ -195,7 +197,7 @@ chronic_prevalence:
 ```
 
 **Parser semantics** (`_parse_chronic_prevalence` in
-`modules/population/engine.py`):
+`modules/population/_chronic.py`):
 - The **first** `by_sex` key becomes the primary sex — folded into
   the flat-form `sex` + `age_ranges` fields and sampled from the
   shared master RNG identically to the flat form.
@@ -238,12 +240,19 @@ regimens:
     cycle_interval_days: 28
     course_cycles: 24                 # 2 years continuous
     cycle_orders: [...]
+  # also: GemNabP (q28d × 6), BCG_intravesical (q7d × 6),
+  #       Temozolomide_stupp (q28d × 6)
 
 by_cancer:                            # per-code assignment probability
   C18: [{regimen: FOLFOX,          probability: 0.25}]
   C34: [{regimen: CarboPem,        probability: 0.20}]
   C50: [{regimen: Trastuzumab_q3w, probability: 0.15}]
   C61: [{regimen: LHRH_q28d,       probability: 0.35}]
+  C15: [{regimen: FOLFOX,          probability: 0.20}]
+  C16: [{regimen: FOLFOX,          probability: 0.20}]
+  C25: [{regimen: GemNabP,         probability: 0.20}]
+  C67: [{regimen: BCG_intravesical, probability: 0.20}]
+  C71: [{regimen: Temozolomide_stupp, probability: 0.35}]
 
 procedure:                            # emitted per chemo_visit
   jp_code: "G003"                     # JP MHLW: 抗悪性腫瘍剤注入
@@ -262,10 +271,10 @@ year" — most chronic carriers are in surveillance mode.
 the first cycle window, capped by both `course_cycles` and
 `365 / cycle_interval_days`.
 
-**Slice-1 emit scope:** each `chemo_visit` produces one Encounter
-+ one Procedure (with the JP/US billing code). Per-cycle drug
-`MedicationRequest` / `MedicationAdministration` for the
-`cycle_orders` entries is deferred to a follow-up slice.
+**Emit scope:** each `chemo_visit` produces one Encounter
++ one Procedure (with the JP/US billing code) + one
+`MedicationRequest` and one `MedicationAdministration` per
+`cycle_orders` entry (`simulator/outpatient.py` chemo branch).
 
 ### 3.4 `perinatal.yaml`
 
@@ -384,8 +393,8 @@ long-term.
 `clinosim/modules/monitoring/` (Issue #757) maps chronic
 medications to per-visit monitoring labs. On every chronic-followup
 outpatient visit, the dispatch block in
-`simulator/engine.py::run_beta` (the `elif event.event_type ==
-"chronic_visit":` branch) calls
+`simulator/phases/_healthcare_calendar.py` (the `event.event_type ==
+"chronic_visit"` branch) calls
 `monitoring_labs_for_patient(patient.current_medications, ev_rng)`
 and merges the returned labs into the visit's `visit_labs`.
 

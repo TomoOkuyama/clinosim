@@ -3,7 +3,7 @@
 # Datasets
 
 Four named dataset presets live under
-[`datasets/`](datasets/) — small (US/JP × 100) for smoke tests and
+[`datasets/`](https://github.com/TomoOkuyama/clinosim/tree/master/datasets/) — small (US/JP × 100) for smoke tests and
 demos, medium (US/JP × 1000) for ML development. All at seed 42 and
 reproducibly buildable from the CLI:
 
@@ -14,10 +14,10 @@ clinosim dataset build jp-100 --output ./jp-100          # build one preset
 
 | Preset | Country | Patients | Period | Approx. size |
 |---|---|---:|---:|---:|
-| [`us-100`](datasets/us-100/)   | US | 100  | 3 months | ~2 MB   |
-| [`us-1000`](datasets/us-1000/) | US | 1000 | 6 months | ~30 MB  |
-| [`jp-100`](datasets/jp-100/)   | JP | 100  | 3 months | ~2 MB   |
-| [`jp-1000`](datasets/jp-1000/) | JP | 1000 | 6 months | ~30 MB  |
+| [`us-100`](https://github.com/TomoOkuyama/clinosim/tree/master/datasets/us-100/)   | US | 100  | 3 months | ~2 MB   |
+| [`us-1000`](https://github.com/TomoOkuyama/clinosim/tree/master/datasets/us-1000/) | US | 1000 | 6 months | ~30 MB  |
+| [`jp-100`](https://github.com/TomoOkuyama/clinosim/tree/master/datasets/jp-100/)   | JP | 100  | 3 months | ~2 MB   |
+| [`jp-1000`](https://github.com/TomoOkuyama/clinosim/tree/master/datasets/jp-1000/) | JP | 1000 | 6 months | ~30 MB  |
 
 Each preset ships with a dataset card in HuggingFace format
 (`datasets/<name>/README.md`) so it can be pushed to the HF Hub with no

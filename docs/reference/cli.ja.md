@@ -63,23 +63,20 @@ template Stage 2 narrative pass を自動実行するので
 | `--provider NAME` | `template` | Narrative 生成器: `template` (決定的)、または LLM provider: `bedrock`、`ollama`、`mock`、`vllm` (OpenAI 互換 `/v1/chat/completions`; SGLang 他 OpenAI 互換サーバも対象)、`openai_compatible` (`vllm` の alias)。 |
 | `--llm-config PATH` | provider ごとの default | LLM サービス YAML (`clinosim/config/llm_service*.yaml`)。Default: `bedrock` → `llm_service.bedrock.yaml`、`ollama` → `llm_service.yaml`、`mock` → in-code `MockProvider`。 |
 | `--version-id ID` | provider 名 | Narrative バージョンディレクトリ名 |
-| `--tasks LIST` | 全 Tier A+B | カンマ区切り `LLMTaskType` フィルタ (`discharge_summary,death_summary,operative_note,admission_hp,procedure_note`) |
-| `--country CODE` | `US` | Country code (display 言語) |
+| `--tasks LIST` | 登録済の全文書種 | カンマ区切りの文書種フィルタ (registry の `type_key` 値。例: `admission_hp,discharge_summary,operative_note,procedure_note,death_certificate`) |
+| `--country CODE` | 自動検出 | Country code (display 言語)。省略時は `cif/metadata.json` から読む。CIF metadata と矛盾する明示値は fail-loud。 |
 | `--set-current / --no-set-current` | provider 依存 | `current_version.txt` を更新。Default: `--provider template` では yes、LLM provider (bedrock/ollama/mock) では no (M-3 / N-chain: 試験 run が production export を silent に上書きしない)、`--patient-filter` 指定時はどの provider でも常に no (chain 1b adv-1 I-1)。明示指定は常に勝つ。 |
 | `--seed N` | `42` | 決定性のための RNG seed |
 | `--patient-filter REGEX` | (未設定) | 患者ファイル stem / `patient_id` に対する正規表現 — マッチする患者のみ narrate (remote per-patient iteration、chain 1b T3)。フィルタは version manifest に記録。 |
 | `--merge-into-version` | off | `--patient-filter` 併用時: 既に文書がある version ディレクトリへの書き込みを許可 (iterate-one-patient loop)。指定なしでは非空 version への filtered write は拒否。 |
 | `--concurrency N` | `1` | narrate worker thread 数。値を上げると batching LLM backend (vLLM continuous batching 等) が N 個の in-flight `generate()` 呼を吸収 — サーバの `--max-num-seqs` またはその一部に合わせる。thread-safe provider (Ollama / vLLM / Mock) 必須。 |
 
-**Tier A+B 文書 scope** (デフォルト):
-
-| 文書 | LOINC | 生成タイミング | 頻度 |
-| --- | --- | --- | --- |
-| Discharge Summary | `18842-5` | 各入院退院 | encounter ごとに 1 |
-| Death Note | `69730-0` | 死亡入院患者 | 死亡ごとに 1 |
-| Operative Note | `11504-8` | 外科手技 (SNOMED 387713003) | 手術ごとに 1 |
-| Admission H&P | `34117-2` | 各入院 | encounter ごとに 1 |
-| Procedure Note | `28570-0` | 侵襲的ベッドサイド (central line、LP、thoracentesis、paracentesis、chest tube、intubation、bronchoscopy、cardioversion) | 処置ごとに 1 |
+**文書 scope** (デフォルト): CIF の国について
+`clinosim/modules/document/narrative/registry.py::specs_for_country()`
+に登録された全文書種 — US は 13 種 (入院時 H&P、経過記録、退院時サマリー、
+死亡退院サマリー、死亡診断書、手術記録、処置記録、看護文書 3 種、外来 SOAP、
+ED note、ED トリアージ note)、JP は 18 種 (同じ 13 種 + 入院診療計画書、
+栄養管理計画書、リハビリテーション実施計画書、診療情報提供書、健診結果報告書)。
 
 詳細は [../clinical_documents.ja.md](../clinical_documents.ja.md)
 参照。
@@ -150,8 +147,8 @@ clinosim test-encounter migraine --age 35 --sex F
 
 ## `clinosim list-diseases`
 
-全 32 入院疾患プロトコル (`clinosim/modules/disease/reference_data/*.yaml`)
-+ 47 ED / 外来 encounter 症状
+全 36 入院疾患プロトコル (`clinosim/modules/disease/reference_data/*.yaml`)
++ 51 ED / 外来 encounter 症状
 (`clinosim/modules/encounter/reference_data/*.yaml`) を表示。
 
 ## `clinosim enumerate` — 網羅的デバッグ (Issue #345)
@@ -164,7 +161,7 @@ clinosim test-encounter migraine --age 35 --sex F
 | Option | Default | 説明 |
 | --- | --- | --- |
 | `-o, --output DIR` | **必須** | `cif/` / `cif/narratives/template/` / `fhir_r4/` / `enumeration_manifest.json` を書き出す |
-| `--level LEVEL` | `full` | `basic` (シナリオごとに 1)、`severity` (シナリオ × severity)、`full` (疾患 × severity × course_archetype) |
+| `--level LEVEL` | `full` | `basic` (シナリオごとに 1)、`severity` (シナリオ × severity)、`full` (疾患 × severity × course_archetype、加えて encounter × severity ごとに 1) |
 | `--country CODE` | `US` | `US` または `JP` |
 | `--include-both-countries` | off | JP + US を 1 run で emit (case 数がおよそ倍) |
 | `--seed N` | 42 | sub-seed 導出用のベース seed |

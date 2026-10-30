@@ -19,10 +19,10 @@ per-patient Bundle output into the per-`ResourceType` NDJSON layout
 
 | Dimension | clinosim | Synthea |
 |---|---|---|
-| Modeling approach | Physiology-driven forward simulation (14-var hidden state per patient) | State-transition modules per condition |
+| Modeling approach | Physiology-driven forward simulation (19-variable hidden physiological state per patient) | State-transition modules per condition |
 | Coherence between labs / vitals | Guaranteed by shared physiological state | Independent per module |
 | Native FHIR R4 output | Bulk Data Access NDJSON, one file per ResourceType | FHIR R4 JSON per patient |
-| JP Core profile compliance | 16 resource types | Not a design goal |
+| JP Core profile compliance | 21 resource types | Not a design goal |
 | Multi-locale (US + JP) | Both first-class; JP names, addresses, insurance, JLAC10, MHLW YJ | US-first; internationalization via community modules |
 | Determinism guarantee | Byte-identical output within a MINOR release for the same seed | Deterministic per-run seed |
 | Extension model | YAML-driven (edit a file, no code) | Java module (`.json` state machines + code) |
@@ -76,7 +76,8 @@ for population size / state / config options.
 
 Point `clinosim eval` at Synthea's `fhir/` output — the layout is
 auto-detected and the Bundle files are normalized into
-`fhir_r4/<ResourceType>.ndjson` alongside it:
+`<parent>/synthea-normalized/fhir_r4/<ResourceType>.ndjson` (a sibling
+of the `fhir/` directory):
 
 ```bash
 clinosim eval -d ./synthea-out/fhir
@@ -86,9 +87,10 @@ clinosim eval -d ./synthea-out/fhir
 # Overall score: 82.4 / 100 (WARN)
 ```
 
-The normalization is deterministic (same Bundles ⇒ same NDJSON bytes);
-subsequent `eval` runs against the same input reuse the on-disk
-`synthea-normalized/` directory unless you `rm -rf` it.
+The normalization is deterministic (same Bundles ⇒ same NDJSON bytes).
+Every `eval` run on a Synthea directory deletes the target's `fhir_r4/`
+and normalizes again, so the NDJSON always reflects the current
+Bundles.
 
 Force the target directory with `--synthea-normalize`:
 
@@ -128,7 +130,9 @@ print(f"{'overall':<15} {a['overall_score']:>10.1f} {b['overall_score']:>10.1f}"
 PY
 ```
 
-Example output (a real comparison will differ):
+Example output (a real comparison will differ; the real reports also
+carry one row per country-conditional axis — `jp_clins_lab_compliance`,
+`jp_core_compliance`, `us_core_compliance` — omitted here):
 
 ```
 axis            synthea    clinosim
@@ -156,13 +160,14 @@ The scoring formula is documented at
   will surface pairings where Synthea's per-condition lab modules and
   the eval bands don't line up. Neither result is inherently "wrong" —
   it's what you're measuring.
-- **Locale.** clinosim's JP checks (`japanese_displays_on_condition`,
-  `jlac10_or_loinc_on_lab`, `yj_code_on_medications`,
-  `jp_core_profile_declared`) will fail on Synthea output because
-  Synthea is US-first — the eval tool is calling out that Synthea
-  wasn't built to hit those thresholds, not that Synthea is broken.
-  Use `--country US` to restrict the locale axis to the US checks
-  when scoring Synthea.
+- **Locale.** The normalized Synthea output is a flat
+  `fhir_r4/` layout, so the locale lens is auto-detected from the first
+  Patient's `address.country` (fallback: US). Synthea cohorts are
+  therefore scored on the US checks; clinosim's JP checks
+  (`japanese_displays_on_condition`, `jlac10_or_loinc_on_lab`,
+  `yj_code_on_medications`, `jp_core_profile_declared`) and the JP
+  compliance axes do not apply — Synthea is US-first, so compare it
+  against a US clinosim cohort such as `us-100`.
 
 ## Adding a rule that's fair to both
 

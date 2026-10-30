@@ -18,7 +18,7 @@
 ## clinosim とは
 
 多くの合成 EHR ツールは疾患分布からのサンプリングでレコードを生成
-します。**clinosim は疾患を走らせます。** 各患者は隠れた 14 変数の
+します。**clinosim は疾患を走らせます。** 各患者は隠れた 19 変数の
 生理学状態 (`clinosim/types/clinical.py::PhysiologicalState`) を保持
 し、あらゆる検査 / vital / 薬剤はその状態から導出されます。
 
@@ -29,7 +29,7 @@
 - **JP + US ネイティブ対応。** 16 の主要 FHIR リソース型に対する
   JP Core プロファイル準拠、JLAC10 / MHLW YJ コード、JP 氏名 / 住所
   / 保険を標準装備。
-- **YAML 駆動拡張。** 32 の入院疾患 + 47 の ED / 外来症例は全て
+- **YAML 駆動拡張。** 36 の入院疾患 + 51 の ED / 外来症例は全て
   データファイルであり、コードではありません。
 - **経年状態進展。** AR(1) HbA1c 軌道、Markov stage ladder (CKD /
   CCS / NYHA / CDR / GOLD / 癌 AJCC/BCLC)、HTN + 脂質治療 escalation、
@@ -98,8 +98,7 @@ clinosim eval -d ./jp-100                                # 評価
 [Synthea](https://synthetichealth.github.io/synthea/) は state-transition
 アプローチで合成 EHR を生成し、clinosim は生理学シミュレーションで
 生成します。詳細な side-by-side は
-[README](https://github.com/TomoOkuyama/clinosim#how-clinosim-compares-to-synthea)
-参照。
+[Synthea との比較](synthea-comparison.ja.md) 参照。
 
 ---
 

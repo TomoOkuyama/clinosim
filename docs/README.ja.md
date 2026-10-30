@@ -34,10 +34,10 @@ clinosim の評価・利用を検討中ならここから:
 - **[synthea-comparison.md](synthea-comparison.ja.md)** — clinosim と
   [Synthea](https://synthetichealth.github.io/synthea/) の違いと
   使い分け。
-- **[benchmarks.md](benchmarks.ja.md)** — コホートサイズ / seed / ランタイム
-  ベンチマーク。
-- **[add-your-country.md](add-your-country.ja.md)** — 新規国追加
-  (US-Core / USCDI 等) の提案テンプレート。
+- **[benchmarks.md](benchmarks.ja.md)** — `clinosim benchmark`: 生成
+  コホート上の ML 予測ベンチマーク (sepsis、AKI 発症) の baseline。
+- **[add-your-country.md](add-your-country.ja.md)** — 新しい国の locale
+  pack の追加手順 (YAML ファイル、登録、FHIR プロファイル)。
 
 ## コントリビュータ向け
 

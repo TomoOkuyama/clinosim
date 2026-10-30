@@ -6,7 +6,8 @@
 **us_core_compliance**) — でスコア化し、check ごとの outcome、
 軸スコア (0–100)、overall score を含む JSON + Markdown レポートを
 emit します。国 条件軸はコホートの locale に合致するもののみ有効化
-(ライブの plug-in discovery は `clinosim/eval/axes/` で確立 — META #1633 P8)。
+(軸の集合は `clinosim/eval/engine.py::EvalEngine` の `axes` dict、各軸の
+実装は `clinosim/eval/axes/`)。
 
 **`clinosim audit run` とは異なります** (詳細は
 [`docs/CONTRIBUTING-modules.md`](CONTRIBUTING-modules.ja.md)「PR 検証
@@ -34,21 +35,35 @@ clinosim eval -d ./jp-100
 
 ```
 clinosim eval
-  -d/--cohort-dir DIR    生成コホートのルート (fhir_r4/ を含む)
-  --json PATH            JSON レポートを PATH に書き出し
-  --md PATH              Markdown レポートを PATH に書き出し
-  --country US|JP        locale 軸を US または JP で強制実行
-                         (デフォルトは Patient.address.country または
-                         JP Core meta.profile 存在から自動検出)
-  --strict               いずれかの軸で FAIL check があれば exit 1
+  -d/--cohort-dir DIR      生成コホートのルート (fhir_r4/ を含む)、または
+                           Synthea の fhir/ 出力ディレクトリ (自動検出し、
+                           スコア化前に正規化)
+  --json PATH              JSON レポートを PATH に書き出し
+  --md PATH                Markdown レポートを PATH に書き出し
+  --country CODE           対象を国サブディレクトリ
+                           (<cohort-dir>/<CODE>/fhir_r4/) に限定 (複数指定は
+                           フラグを繰り返す)。デフォルトは検出した全サブ
+                           ディレクトリ。locale の判定自体はサブディレクトリ
+                           名から行い、フラットな <cohort-dir>/fhir_r4/
+                           レイアウトでは先頭 Patient の address.country /
+                           JP Core meta.profile から自動検出 (fallback: US)
+  --only-axes LIST         実行する軸 id のカンマ区切り (例:
+                           clinical,locale)。未知の id は即エラー
+  --synthea-normalize DIR  Synthea 正規化レイアウトの書き出し先
+                           (デフォルト: <cohort-dir>/../synthea-normalized/)
+  --strict                 いずれかの軸で FAIL check があれば exit 1
 ```
 
 ## 軸
 
 structural + locale は 5 check ずつ、clinical は 7 (MVP 5 + coherence
 2、P1-9 で追加)。追加 check は GitHub の `good first issue` タグ経由
-で入ります。国別軸 (`jp_clins_lab_compliance`) は JP コホートのみで
-発火 — 完全な軸リストは
+で入ります。国 条件軸は locale ごとに有効化 — `jp_clins_lab_compliance`
+(3 check) と `jp_core_compliance` (7 check: Patient / Encounter /
+MedicationRequest) は JP コホート、`us_core_compliance` (7 check:
+Patient / Encounter / Condition) は US コホートで発火し、いずれも
+master で 100 % 成立している invariant を gate にします。check 一覧は
+[eval-rules.md](eval-rules.ja.md)、完全な軸リストは
 [`clinosim.eval`](../clinosim/eval/README.ja.md) 参照。
 
 ### Structural (FHIR 準拠)
@@ -75,8 +90,9 @@ structural + locale は 5 check ずつ、clinical は 7 (MVP 5 + coherence
 
 ### Locale (言語 + コードシステム)
 
-コホート country により dispatch (Patient.address.country または
-JP Core meta.profile 存在から自動検出)。
+コホート country により dispatch: `<root>/<country>/fhir_r4/` レイアウト
+では国サブディレクトリ名、それ以外は先頭 Patient の `address.country`
+または JP Core `meta.profile` 存在から自動検出 (fallback: US)。
 
 **JP checks:**
 
@@ -105,8 +121,10 @@ JP Core meta.profile 存在から自動検出)。
 - Severity 重み: **CRITICAL = 3、MAJOR = 2、MINOR = 1**
 - Outcome 重み: **PASS = 1.0、WARN = 0.5、FAIL / N/A = 0.0**
 
-Overall score = 有効軸 (普遍 3 + 国 条件 1–2、locale に依存) スコア
-の算術平均。Overall status はいずれかの軸のいずれかの check が
+Overall score = レポート中の全軸結果 (軸 × 国サブディレクトリごとに
+1 件) のスコアの算術平均。コホートの locale に該当しない国 条件軸も
+`checks` が空・score 0.0 の結果としてレポートに現れ、この平均に含まれ
+ます。Overall status はいずれかの軸のいずれかの check が
 FAIL なら `FAIL`、いずれか WARN なら `WARN`、それ以外は `PASS`。
 
 ## JSON 出力形状

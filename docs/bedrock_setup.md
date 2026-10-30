@@ -45,9 +45,9 @@ Why this split?
 2. Go to **Bedrock → Model access**.
 3. Click **Manage model access** and request access for the Anthropic Claude
    models you plan to use, for example:
-   - `anthropic.claude-3-5-haiku-20241022-v1:0`
-   - `anthropic.claude-3-5-sonnet-20241022-v2:0`
-   - `anthropic.claude-3-opus-20240229-v1:0`
+   - `anthropic.claude-haiku-4-5-20251001-v1:0`
+   - `anthropic.claude-sonnet-4-20250514-v1:0`
+   - `anthropic.claude-opus-4-20250514-v1:0`
 4. Wait for approval (usually instant for Claude models, but can take several
    hours).
 
@@ -77,9 +77,9 @@ Minimum permissions required by clinosim Stage 2:
         "bedrock:ConverseStream"
       ],
       "Resource": [
-        "arn:aws:bedrock:us-east-1::foundation-model/anthropic.claude-3-5-haiku-20241022-v1:0",
-        "arn:aws:bedrock:us-east-1::foundation-model/anthropic.claude-3-5-sonnet-20241022-v2:0",
-        "arn:aws:bedrock:us-east-1::foundation-model/anthropic.claude-3-opus-20240229-v1:0"
+        "arn:aws:bedrock:us-east-1::foundation-model/anthropic.claude-haiku-4-5-20251001-v1:0",
+        "arn:aws:bedrock:us-east-1::foundation-model/anthropic.claude-sonnet-4-20250514-v1:0",
+        "arn:aws:bedrock:us-east-1::foundation-model/anthropic.claude-opus-4-20250514-v1:0"
       ]
     },
     {
@@ -94,6 +94,9 @@ Minimum permissions required by clinosim Stage 2:
 
 If you use a cross-region inference profile, add its ARN to the `Resource`
 list along with the foundation model ARNs.
+The shipped `llm_service.bedrock.yaml` uses `us.`-prefixed model IDs, which
+are cross-region inference profiles, so add the matching
+`arn:aws:bedrock:<region>:<account>:inference-profile/us.anthropic...` ARNs.
 
 1. **IAM → Roles → Create role → AWS service → EC2**
 2. Attach a custom policy with the JSON above (save as
@@ -156,12 +159,12 @@ narrative:
   bedrock:
     region: "us-east-1"
     profile: null                 # null → default credential chain (EC2 role)
-    model_id: "anthropic.claude-3-5-sonnet-20241022-v2:0"
+    model_id: "us.anthropic.claude-sonnet-4-20250514-v1:0"
     # inference_profile_arn: "arn:aws:bedrock:..."
   model_map:
-    small: "anthropic.claude-3-5-haiku-20241022-v1:0"
-    medium: "anthropic.claude-3-5-sonnet-20241022-v2:0"
-    large: "anthropic.claude-3-opus-20240229-v1:0"
+    small: "us.anthropic.claude-haiku-4-5-20251001-v1:0"
+    medium: "us.anthropic.claude-sonnet-4-20250514-v1:0"
+    large: "us.anthropic.claude-opus-4-20250514-v1:0"
   timeout_seconds: 60
   retry_attempts: 3
   retry_backoff_seconds: 2
@@ -213,35 +216,21 @@ aws s3 sync s3://my-bucket/clinosim_runs/<run_id>/cif/ /home/ec2-user/clinosim_c
 source .venv/bin/activate
 clinosim narrate \
     --cif-dir /home/ec2-user/clinosim_cif \
+    --provider bedrock \
     --llm-config ./llm_service.bedrock.yaml \
-    --language en \
     --version-id bedrock_sonnet_en_v1
 ```
 
-Expected output:
+Expected output (last lines):
 
 ```
-clinosim narrate: loading LLM config ./llm_service.bedrock.yaml
-  CIF directory: /home/ec2-user/clinosim_cif
-  Language:      en
-  Mode:          llm
-  Tasks:         all Tier A+B
-
-  === Narrative Generation Summary ===
-  Version ID:       bedrock_sonnet_en_v1
-  Patients:         171
-  Total documents:  374
-    admission_hp         171
-    discharge_summary    171
-    operative_note       11
-    procedure_note       19
-    death_summary        2
-  LLM calls:        374
-  LLM input tokens: 412,389
-  LLM output tokens:58,041
-  Fallbacks:        0
-  Cache hits:       0
+narrate: wrote <N> narrative documents across <M> encounters → narratives/bedrock_sonnet_en_v1/
 ```
+
+The document language follows the CIF's country (auto-detected from
+`cif/metadata.json`; there is no `--language` flag). LLM providers do
+not repoint `current_version.txt` unless you pass `--set-current`, so
+pass `--narrative-version` explicitly to `export-fhir` (section 7).
 
 ### Re-running (cache hits)
 
@@ -251,6 +240,7 @@ after a successful first run is free:
 ```bash
 clinosim narrate \
     --cif-dir /home/ec2-user/clinosim_cif \
+    --provider bedrock \
     --llm-config ./llm_service.bedrock.yaml \
     --version-id bedrock_sonnet_en_v2
 # → LLM calls: 0, Cache hits: 374
@@ -259,11 +249,12 @@ clinosim narrate \
 ### Running a subset of tasks
 
 ```bash
-# Only the legally mandatory documents (Tier A)
+# Only discharge, death and operative documents (registry type_key names)
 clinosim narrate \
     --cif-dir /home/ec2-user/clinosim_cif \
+    --provider bedrock \
     --llm-config ./llm_service.bedrock.yaml \
-    --tasks discharge_summary,death_summary,operative_note \
+    --tasks discharge_summary,death_discharge_summary,death_certificate,operative_note \
     --version-id bedrock_tier_a_only
 ```
 
@@ -306,7 +297,14 @@ line per generated document.
 
 ## Cost estimates
 
-clinosim simulates roughly **2.2 Tier A+B documents per inpatient encounter**
+> **Note:** the per-encounter figures and the worked example below date
+> from an earlier release that generated only five physician document
+> types. Current releases generate every registered document type (13
+> for US, 18 for JP — see [clinical_documents.md](clinical_documents.md)),
+> so expect more documents per encounter than shown here; measure a small
+> run before budgeting.
+
+Earlier releases simulated roughly **2.2 documents per inpatient encounter**
 (1 admission H&P + 1 discharge summary + ~0.2 other). Token counts per
 document depend on the complexity of the encounter, but typical ranges are:
 
@@ -387,7 +385,7 @@ regenerate prompts for every experiment.
 ## See also
 
 - [clinical_documents.md](clinical_documents.md) — full clinical document guide
-- [README.md § LLM Integration](../README.md#llm-integration-optional) — provider overview
+- [LLM integration](reference/llm-integration.md) — provider overview
 - [../DESIGN.md § 7](../DESIGN.md) — architecture decisions (AD-36 to AD-41)
 - [AWS Bedrock documentation](https://docs.aws.amazon.com/bedrock/latest/userguide/)
 - [Bedrock Converse API reference](https://docs.aws.amazon.com/bedrock/latest/APIReference/API_runtime_Converse.html)

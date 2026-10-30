@@ -14,7 +14,7 @@ the baseline itself reproducible.
 
 | Task | Positive definition | Continuous score for AUROC |
 |---|---|---|
-| `sepsis` | `condition_event.disease_id == "sepsis"` OR ICD `A41.*` / `R65.2*` | First-window Lactate (mmol/L) |
+| `sepsis` | `condition_event.disease_id == "sepsis"` OR ICD `A41.*` / `R65.2*` | Peak Lactate over the encounter record (mmol/L) |
 | `aki` | `condition_event.disease_id == "acute_kidney_injury"` OR ICD `N17.*` / `N19` | Peak SCr − baseline SCr (mg/dL) |
 
 ## Baselines shipped
@@ -79,7 +79,7 @@ Add a new benchmark by:
   baselines would require optional-dep gating)
 - Cross-validation splits (single-cohort baselines are sufficient for
   floor numbers)
-- Time-windowed feature engineering beyond first-window peak
+- Time-windowed feature engineering beyond the per-encounter peak
 - Multi-endpoint composites (e.g. sepsis-3 SOFA delta)
 - Cost-sensitive metrics (calibration, decision curves)
 

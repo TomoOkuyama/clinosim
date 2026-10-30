@@ -43,9 +43,8 @@ Design record: `docs/design-notes/2026-08-15-sakura-gpu-ollama-narrative.md`。
 ## 1. Sakura GPU VM のプロビジョン (usacloud)
 
 usacloud CLI + プロファイル整備は
-[[sakura-cloud|entities/sakura-cloud]] / 参考 repo
-`~/workspace/sakura-iris/docs/01-usacloud-setup.md` にまとまって
-います。本セクションは要点のみ:
+usacloud の公式ドキュメント
+(https://docs.usacloud.jp/usacloud/) にまとまっている。本セクションは要点のみ:
 
 ```bash
 # usacloud プロファイル (既に iris-verify プロファイルがあれば流用可)
@@ -178,6 +177,7 @@ clinosim simulate --country JP --population 1 --seed 42 --format cif \
     -o /tmp/sakura-smoke
 clinosim narrate \
     --cif-dir /tmp/sakura-smoke/cif \
+    --provider ollama \
     --llm-config clinosim/config/llm_service.sakura.yaml \
     --version-id sakura_qwen3_32b_smoke \
     --country JP \
@@ -188,6 +188,7 @@ clinosim simulate --country JP --population 100 --seed 42 --format cif \
     -o /tmp/sakura-eval100
 clinosim narrate \
     --cif-dir /tmp/sakura-eval100/cif \
+    --provider ollama \
     --llm-config clinosim/config/llm_service.sakura.yaml \
     --version-id sakura_qwen3_32b_eval100 \
     --country JP \
@@ -273,7 +274,3 @@ seed + context) が残る。医療情報 3 省 2 ガイドライン相当の運�
 - `docs/bedrock_setup.ja.md` — AWS Bedrock ルート (対のマネージド
   API 版)。
 - `clinosim/config/llm_service.sakura.yaml` — 本ガイド用の config。
-- Sakura 固有の知見 (obsidian): [[entities/sakura-cloud]]。
-- 一般 pattern (obsidian): [[concepts/gpu-instance-llm-hosting-pattern]]。
-- 参考実装 repo: `~/workspace/sakura-iris/` の `docs/01-04-*` と
-  `scripts/10-11-*`、`scripts/52-open-iris-hl7.sh`。

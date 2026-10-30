@@ -63,23 +63,23 @@ Writes a new narrative version to `<cif>/narratives/<version_id>/`.
 | `--provider NAME` | `template` | Narrative generator: `template` (deterministic), or an LLM provider: `bedrock`, `ollama`, `mock`, `vllm` (OpenAI-compatible `/v1/chat/completions`; also covers SGLang and any other OpenAI-compatible server), `openai_compatible` (alias for `vllm`). |
 | `--llm-config PATH` | provider-specific default | LLM service YAML (`clinosim/config/llm_service*.yaml`). Default: `bedrock` → `llm_service.bedrock.yaml`, `ollama` → `llm_service.yaml`, `mock` → in-code `MockProvider`. |
 | `--version-id ID` | provider name | Narrative version directory name |
-| `--tasks LIST` | all Tier A+B | Comma-separated `LLMTaskType` filter (`discharge_summary,death_summary,operative_note,admission_hp,procedure_note`) |
-| `--country CODE` | `US` | Country code (display language) |
+| `--tasks LIST` | all registered types | Comma-separated document-type filter (registry `type_key` values, e.g. `admission_hp,discharge_summary,operative_note,procedure_note,death_certificate`) |
+| `--country CODE` | auto-detected | Country code (display language). Read from `cif/metadata.json` when omitted; an explicit value that contradicts the CIF metadata fails loud. |
 | `--set-current / --no-set-current` | provider-dependent | Update `current_version.txt`. Default: yes for `--provider template`, no for LLM providers (M-3 / N-chain guard: a trial run cannot silently repoint production exports), and always no when `--patient-filter` is set (chain 1b adv-1 I-1). Explicit `--set-current` / `--no-set-current` always wins. |
 | `--seed N` | `42` | RNG seed for determinism |
 | `--patient-filter REGEX` | (unset) | Regex over patient filename stem / `patient_id` — narrate only matching patients (remote per-patient iteration, chain 1b T3). The version manifest records the filter. |
 | `--merge-into-version` | off | With `--patient-filter`: allow writing into an existing version directory that already contains documents (iterate-one-patient loop). Without this, a filtered write into a non-empty version is refused. |
 | `--concurrency N` | `1` | Number of narrate worker threads. Higher values let a batching LLM backend (vLLM continuous batching, etc.) absorb N in-flight `generate()` calls — set to match the server's `--max-num-seqs` or a fraction of it. Requires thread-safe provider (Ollama, vLLM, Mock are). |
 
-**Tier A+B document scope** (default):
-
-| Document | LOINC | Generated when | Frequency |
-|---|---|---|---|
-| Discharge Summary | `18842-5` | Every inpatient discharge | 1 per encounter |
-| Death Note | `69730-0` | Deceased inpatient | 1 per death |
-| Operative Note | `11504-8` | Surgical procedure (SNOMED 387713003) | 1 per surgery |
-| Admission H&P | `34117-2` | Every inpatient admission | 1 per encounter |
-| Procedure Note | `28570-0` | Invasive bedside (central line, LP, thoracentesis, paracentesis, chest tube, intubation, bronchoscopy, cardioversion) | 1 per procedure |
+**Document scope** (default): every document type registered for the
+CIF's country in
+`clinosim/modules/document/narrative/registry.py::specs_for_country()` —
+13 types for US (admission H&P, progress note, discharge summary,
+death discharge summary, death certificate, operative note, procedure
+note, three nursing documents, outpatient SOAP, ED note, ED triage
+note) and 18 for JP (the same 13 plus admission care plan, nutrition
+care plan, rehabilitation plan, referral note and health-checkup
+report).
 
 See [../clinical_documents.md](../clinical_documents.md) for details.
 
@@ -150,8 +150,8 @@ Quality check generated data against published benchmarks.
 
 ## `clinosim list-diseases`
 
-Show all 32 inpatient disease protocols
-(`clinosim/modules/disease/reference_data/*.yaml`) + 47 ED /
+Show all 36 inpatient disease protocols
+(`clinosim/modules/disease/reference_data/*.yaml`) + 51 ED /
 outpatient encounter conditions
 (`clinosim/modules/encounter/reference_data/*.yaml`).
 
@@ -165,7 +165,7 @@ sampling can leave rare patterns unfired even at large `-p`;
 | Option | Default | Description |
 |---|---|---|
 | `-o, --output DIR` | **required** | Writes `cif/`, `cif/narratives/template/`, `fhir_r4/`, `enumeration_manifest.json` |
-| `--level LEVEL` | `full` | `basic` (1 per scenario), `severity` (1 per scenario × severity), `full` (1 per disease × severity × course_archetype) |
+| `--level LEVEL` | `full` | `basic` (1 per scenario), `severity` (1 per scenario × severity), `full` (1 per disease × severity × course_archetype, plus 1 per encounter × severity) |
 | `--country CODE` | `US` | `US` or `JP` |
 | `--include-both-countries` | off | Emit both JP and US patients in one run (approximately doubles the case count) |
 | `--seed N` | 42 | Base seed for sub-seed derivation |

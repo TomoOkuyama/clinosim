@@ -16,9 +16,12 @@
 両サービスラインは同じ出力パターンを共有する:
 1. 慢性疾患保有率 (`locale/<c>/demographics.yaml` の
    `chronic_prevalence`) が患者にマーカーを付ける。
-2. `clinosim/modules/population/engine.py` のスケジューラがマーカーを
+2. `clinosim/modules/population/engine.py::generate_healthcare_calendar`
+   から呼ばれるスケジューラ (helper は `population/_chemo.py` /
+   `population/_pregnancy.py`) がマーカーを
    正しい時間的頻度で `LifeEvent` に変換する。
-3. `clinosim/simulator/engine.py` のディスパッチャが各イベントを
+3. `clinosim/simulator/phases/_healthcare_calendar.py` のディスパッチャ
+   (`run_beta` の前進月次ループから駆動) が各イベントを
    ビルダに振り分け、リソース (Encounter + Condition + Procedure +
    Medication…) を出力する。
 
@@ -31,7 +34,7 @@
 | がん follow-up 外来訪問 | 四半期毎、部位別 visit reason + labs (腫瘍マーカー + basic panel) + 処方 renewal | `locale/shared/chronic_followup.yaml` |
 | 腫瘍マーカー labs | CEA / CA19-9 / AFP / PIVKA-II / CA15-3 / PSA — 基準範囲 + baseline 正常値 | `locale/<c>/reference_range_lab.yaml` + `modules/observation/engine.py::BASELINE_LAB_NORMALS` |
 | 放射線治療 Procedure emit | K001 / M001 / M001-2 / M001-3、`radiation_therapy_eligible` フラグの立ったがんの follow-up visit の ~40 % で発火 | `simulator/outpatient.py` (慢性 follow-up visit 内) |
-| サイクル型化学療法 | Regimen library (FOLFOX q14d / CarboPem q21d / Trastuzumab q3w / LHRH q28d) → 正しいケイデンスの `chemo_visit` encounter + 投与 Procedure | `locale/shared/chemo_regimens.yaml` + `population/engine.py::_chemo_cycle_events` + `simulator/outpatient.py::_simulate_outpatient_visit` の chemo 分岐 |
+| サイクル型化学療法 | Regimen library (FOLFOX q14d / CarboPem q21d / Trastuzumab q3w / LHRH q28d / GemNabP q28d / BCG 膀胱内注入 q7d / Temozolomide Stupp q28d)、C15 / C16 / C18 / C25 / C34 / C50 / C61 / C67 / C71 に割当 (C22 は regimen なし) → 正しいケイデンスの `chemo_visit` encounter + 投与 Procedure | `locale/shared/chemo_regimens.yaml` + `population/_chemo.py::_chemo_cycle_events` + `simulator/outpatient.py::_simulate_outpatient_visit` の chemo 分岐 |
 | サイクル毎 chemo 薬 order | 各 `chemo_visit` で regimen の `cycle_orders` に列挙された薬剤ごとに `MedicationRequest` + `MedicationAdministration` を 1 件ずつ emit (`order_id` 一致) | `simulator/outpatient.py` chemo 分岐 (Order emit) |
 | 経口 chemo (毎日 home meds) | Capecitabine / Tamoxifen / Anastrozole / Bicalutamide / Sorafenib / Lenvatinib / Osimertinib | `locale/shared/chronic_medications.yaml` (変更なし; 経口 chemo は毎日 home med として正しい) |
 
@@ -39,18 +42,18 @@
 
 | 要素 | 内容 | 場所 |
 | --- | --- | --- |
-| 時限付き妊娠 lifecycle state (META #957 Incr 1) | 15-49 歳女性に対して MHLW 2022 (JP) / CDC NVSR 2022 (US) の年齢帯別出生率で年次 conception Bernoulli。受精すると `TemporalStatePeriod(state_type="pregnancy")` を `PersonRecord.state_periods` に open (metadata: `{lmp, edd, planned_delivery_date}`)、planned_delivery_date を含む年で close (`outcome="delivered"`)、または abortion date で close (`outcome="aborted"`)。 | `perinatal.yaml::lifecycle.annual_conception_rate` + `population/engine.py::_pregnancy_lifecycle_events` + `types/patient.py::TemporalStatePeriod` |
+| 時限付き妊娠 lifecycle state (META #957 Incr 1) | 15-49 歳女性に対して MHLW 2022 (JP) / CDC NVSR 2022 (US) の年齢帯別出生率で年次 conception Bernoulli。受精すると `TemporalStatePeriod(state_type="pregnancy")` を `PersonRecord.state_periods` に open (metadata: `{lmp, edd, planned_delivery_date}`)、planned_delivery_date を含む年で close (`outcome="delivered"`)、または abortion date で close (`outcome="aborted"`)。 | `perinatal.yaml::lifecycle.annual_conception_rate` + `population/_pregnancy.py::_pregnancy_lifecycle_events` + `types/patient.py::TemporalStatePeriod` |
 | 過去分娩 Z37 problem-list-item | delivered pregnancy period 毎に 1 件、onsetDateTime = 分娩日。生物学的整合 — 複数出産で複数 Z37。FHIR emit 時に `state_history("pregnancy")` から導出、**Incr 1 前の chronic-sample proxy を置換**。 | `modules/output/fhir_r4/conditions/conditions.py::_build_conditions` (past-pregnancies adapter) |
 | 妊娠中サプリ Rx | 葉酸 + 鉄剤。pregnancy 履歴のある patient にのみ home medication として付与。emit path は不変 (`chronic_medications.yaml::Z34`)、gate が `chronic_conditions` から `state_periods` へ移動 — activator で仮想 Z34 `ChronicCondition` を med-derivation 入力に注入。 | `locale/shared/chronic_medications.yaml` の Z34 block + `modules/patient/activator.py` (state 起点 hook) |
-| 妊婦健診 encounter | AMB encounter、妊娠週 12/24/36 (Incr 1 は簡易版、q4w/q2w/q1w cadence は Incr 1.5)、`disease_id="Z34"`、`_CHRONIC_DISEASE_SPECIALTY` で obgyn に routing。 | `perinatal.yaml::lifecycle.prenatal_visit_gestational_weeks` + `population/engine.py::_pregnancy_lifecycle_events` |
-| 母親側分娩入院 encounter | delivered pregnancy period 毎に 1 件 IMP encounter、planned delivery date (EDD ± 7 d jitter) を含む年で発火。LOS JP 5 d / US 2 d、admission dx `O80`、discharge dx `Z37.0`、delivery Procedure。 | `locale/shared/perinatal.yaml::encounter` + `population/engine.py::_pregnancy_lifecycle_events` + `simulator/perinatal.py` |
-| 分娩 Procedure | JP: `K894` 分娩介助 / US: CPT `59400` routine obstetric care | `perinatal.yaml::procedure` |
-| 新生児 `Patient` チェーン | Baby id `<mother>-BABY`、世帯継承、性別は per-mother sub-RNG、birthDate = 分娩日 | `simulator/perinatal.py` (session 94) |
-| 新生児 Encounter | IMP、`admit_source = born` (新規 `AdmitSource.BORN` enum member) + `admit_source_encounter_id` → 新生児側 FHIR `Encounter.partOf` | `simulator/perinatal.py` + `types/encounter.py::AdmitSource.BORN` |
+| 妊婦健診 encounter | AMB encounter、妊娠週 12/24/36 (Incr 1 は簡易版、q4w/q2w/q1w cadence は Incr 1.5)、`disease_id="Z34"`、`_CHRONIC_DISEASE_SPECIALTY` で obgyn に routing。 | `perinatal.yaml::lifecycle.prenatal_visit_gestational_weeks` + `population/_pregnancy.py::_pregnancy_lifecycle_events` |
+| 母親側分娩入院 encounter | delivered pregnancy period 毎に 1 件 IMP encounter、planned delivery date (EDD ± 7 d jitter) を含む年で発火。LOS JP 5 d / US 2 d、admission dx `O80`、discharge dx `Z37.0`、delivery Procedure。帝王切開 (US 32.1 % / JP 20.4 %) では admission dx `O82`、LOS JP 8 d / US 4 d。 | `locale/shared/perinatal.yaml::encounter` + `population/_pregnancy.py::_pregnancy_lifecycle_events` + `simulator/perinatal.py` |
+| 分娩 Procedure | JP: `K894` 分娩介助 / US: CPT `59400` routine obstetric care。帝王切開: JP `K898` 帝王切開術 / US CPT `59510` | `perinatal.yaml::procedure` + `perinatal.yaml::cesarean` |
+| 新生児 `Patient` チェーン | Baby id `<mother>-BABY` (同じ母親の N 人目は `<mother>-<N>-BABY`)、世帯継承、性別は per-mother sub-RNG、birthDate = 分娩日。新生児は出生入院の退院翌日にシミュレーション人口へ加入し (`PersonRecord.enrolled_from`)、以降は他の人と同様にシミュレーションされる。 | `simulator/perinatal.py` |
+| 新生児 Encounter | IMP、`admit_source = born` (`AdmitSource.BORN`) + `admit_source_encounter_id` → 新生児側 FHIR `Encounter.partOf` | `simulator/perinatal.py` + `codes/hl7_encounter.py::AdmitSource.BORN` |
 | 新生児側 Z38.0 | 新生児 discharge dx | `simulator/perinatal.py` |
-| 産褥 encounter × 2 | 分娩日 + 7 d / + 28 d、`chronic_visit` with `disease_id="Z39"`、obgyn routing。12 月分娩の場合は Dec 31 に year-boundary clamp。 | `perinatal.yaml::lifecycle.postpartum_visit_offsets_days` + `population/engine.py::_pregnancy_lifecycle_events` |
+| 産褥 encounter × 2 | 分娩日 + 7 d / + 28 d、`chronic_visit` with `disease_id="Z39"`、obgyn routing。12 月分娩の場合は Dec 31 に year-boundary clamp。 | `perinatal.yaml::lifecycle.postpartum_visit_offsets_days` + `population/_pregnancy.py::_pregnancy_lifecycle_events` |
 | 新生児 perinatal condition | P59.9 黄疸 ~20 %、P07.3 早産 ~7 % (→ 条件付き P22.0 RDS ~35 %)、L22 おむつかぶれ ~30 %、L20.9 アトピー ~15 % | `simulator/perinatal.py` (per-newborn sub-RNG) |
-| 中絶 outcome (age-gate) | 自然 O03.9 / 人工 O04.5 外来日帰り手術。年齢帯別確率 15-19: 40 % → 35-44: 7 %。発火時は妊娠週 ~10 (LMP+70±14 d) で period を `outcome="aborted"` close、delivery + newborn chain skip。 | `locale/shared/perinatal.yaml::abortion` + `population/engine.py::_pregnancy_lifecycle_events` (abortion 分岐) |
+| 中絶 outcome (age-gate) | 自然 O03.9 / 人工 O04.5 外来日帰り手術。年齢帯別確率 15-19: 40 % → 35-44: 7 %。発火時は妊娠週 ~10 (LMP+70±14 d) で period を `outcome="aborted"` close、delivery + newborn chain skip。 | `locale/shared/perinatal.yaml::abortion` + `population/_pregnancy.py::_pregnancy_lifecycle_events` (abortion 分岐) |
 
 ### 1.3 明示的に未カバー (Incr 1.5 以降)
 
@@ -74,8 +77,6 @@
   pre-warm pass は Incr 1.5。
 - **死産 / 早産 outcome variation** — 現状すべての非中絶妊娠は
   正期産の生児 delivery。
-- **帝王切開シェア** — 現状全 delivery が O80 自然経腟分娩として
-  emit。実際の JP 帝王切開率は ~20 % (O82)。
 - **がん専用 Composition type** — LOINC 34133-9 (がん治療 note)。
 - **年跨ぎ chemo cycle continuity** — 現在 cycle は暦年ごとに fresh
   scheduling。11 月 FOLFOX 開始患者は 1 月に cycle 1 から再開する。
@@ -112,14 +113,15 @@ population/engine.py::generate_healthcare_calendar()               │
      _chemo_cycle_events(person, year)  →  LifeEvent(chemo_visit, ...) × N cycles
                       │
                       ▼
-simulator/engine.py::run_beta()
+simulator/engine.py::run_beta() → 前進月次ループ
+  → simulator/phases/_healthcare_calendar.py
   event_type == "chemo_visit"       →  _simulate_outpatient_visit(...) with chemo spec
                                           → Encounter (AMB, oncology_infusion dept)
                                           → ProcedureRecord (chemotherapy_administration)
   event_type == "delivery"          →  simulate_delivery_encounter(...)
                                           → Encounter (IMP, obgyn dept, LOS 5/2d)
                                           → ProcedureRecord (delivery)
-                                          → ClinicalDiagnosis(admission=O80, discharge=Z37.0)
+                                          → ClinicalDiagnosis(admission=O80 または O82 (帝王切開), discharge=Z37.0)
                                           → 新生児 Patient chain
   event_type == "abortion"          →  simulate_abortion_encounter(...) (period 既に close)
   event_type == "chronic_visit" with condition_type == "prenatal_visit" or "postpartum"
@@ -188,7 +190,7 @@ chronic_prevalence:
 ```
 
 **Parser の semantics** (`_parse_chronic_prevalence` @
-`modules/population/engine.py`):
+`modules/population/_chronic.py`):
 - **最初** の `by_sex` key が primary sex になる — flat-form の
   `sex` + `age_ranges` フィールドに畳み込まれ、flat form と同一の
   共有 master RNG からサンプリング。
@@ -231,12 +233,19 @@ regimens:
     cycle_interval_days: 28
     course_cycles: 24                 # 2 年継続
     cycle_orders: [...]
+  # 他に GemNabP (q28d × 6)、BCG_intravesical (q7d × 6)、
+  #     Temozolomide_stupp (q28d × 6)
 
 by_cancer:                            # per-code assignment probability
   C18: [{regimen: FOLFOX,          probability: 0.25}]
   C34: [{regimen: CarboPem,        probability: 0.20}]
   C50: [{regimen: Trastuzumab_q3w, probability: 0.15}]
   C61: [{regimen: LHRH_q28d,       probability: 0.35}]
+  C15: [{regimen: FOLFOX,          probability: 0.20}]
+  C16: [{regimen: FOLFOX,          probability: 0.20}]
+  C25: [{regimen: GemNabP,         probability: 0.20}]
+  C67: [{regimen: BCG_intravesical, probability: 0.20}]
+  C71: [{regimen: Temozolomide_stupp, probability: 0.35}]
 
 procedure:                            # chemo_visit 毎に emit
   jp_code: "G003"                     # JP MHLW: 抗悪性腫瘍剤注入
@@ -254,9 +263,10 @@ procedure:                            # chemo_visit 毎に emit
 の間隔で発火する (最初の cycle window 内のランダム Day-1 オフセットから
 開始)、`course_cycles` と `365 / cycle_interval_days` の両方で cap。
 
-**Slice-1 emit scope:** 各 `chemo_visit` は 1 Encounter + 1 Procedure
-(JP/US 請求コード付き) を生成する。`cycle_orders` エントリ毎の
-`MedicationRequest` / `MedicationAdministration` は follow-up slice。
+**Emit scope:** 各 `chemo_visit` は 1 Encounter + 1 Procedure
+(JP/US 請求コード付き) + `cycle_orders` エントリ毎に
+`MedicationRequest` 1 件と `MedicationAdministration` 1 件を生成する
+(`simulator/outpatient.py` の chemo 分岐)。
 
 ### 3.4 `perinatal.yaml`
 
@@ -370,8 +380,8 @@ order として現れる** — disease YAML が long-term として label して
 
 `clinosim/modules/monitoring/` (Issue #757) が慢性薬剤を per-visit
 モニタリング labs に mapping する。各慢性 follow-up 外来 visit で
-`simulator/engine.py::run_beta` のディスパッチ block (
-`elif event.event_type == "chronic_visit":` 分岐) が
+`simulator/phases/_healthcare_calendar.py` のディスパッチ block (
+`event.event_type == "chronic_visit"` 分岐) が
 `monitoring_labs_for_patient(patient.current_medications, ev_rng)` を
 呼び、返された labs を visit の `visit_labs` にマージする。
 

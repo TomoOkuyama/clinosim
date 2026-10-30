@@ -20,8 +20,8 @@ StructureDefinition canonical URL は v1.12.0 (2026-02-16) baseline
 
 ### 6 情報項目 / 5 プロファイル (PR1)
 
-JP-CLINS v1.13.0 は「6 情報項目」ドメイン概念をカバーする
-**5 StructureDefinition プロファイル** を公開しています — 傷病名と
+「6 情報項目」ドメイン概念は **5 つの JP-CLINS eCS
+StructureDefinition プロファイル** に対応します — 傷病名と
 感染症は同じ `JP_Condition_eCS` プロファイルを共有 (別個の感染症
 プロファイルなし)、DiagnosticReport は JP-CLINS スコープに **含まれ
 ない** (検査結果は Observation.LabResult としてのみ emit)。
@@ -37,20 +37,40 @@ country=JP コホートの各リソース型は、既存の JP Core プロファ
 | 処方 | MedicationRequest | `.../JP_MedicationRequest_eCS` |
 | 処置 | Procedure | `.../JP_Procedure_eCS` |
 
+6 情報項目以外にも以下の eCS プロファイルを付与 (Issue #745 と
+Patient / Organization の emitter):
+
+| Resource | JP-CLINS プロファイル URL |
+| --- | --- |
+| Patient | `.../JP_Patient_eCS` |
+| Organization (ルートの `hospital-main` と紹介先の外部病院のみ。診療科 Organization は対象外) | `.../JP_Organization_eCS` |
+| DocumentReference | `.../JP_DocumentReference_eCS` |
+| Immunization | `.../JP_Immunization_eCS` |
+| Device | `.../JP_Device_eCS` |
+| DeviceUseStatement | `.../JP_DeviceUseStatement_eCS` |
+
+リソース型 → URL の表は `clinosim/codes/data/fhir-profiles-jp-clins.yaml`
+にあり、`clinosim/modules/output/fhir_r4/post_process/profile.py` の
+`_apply_jp_clins_profile` が付与 (Patient と上記 Organization は
+emitter 内で直接 eCS URL を付与)。
+
 URL ルート: `http://jpfhir.jp/fhir/eCS/StructureDefinition/`
 
 **フィルタ:**
 
 - Observation: `category.coding[].code == "laboratory"` の場合のみ —
   vital sign は JP Core プロファイルのみ保持。
+- MedicationRequest: eCS 制約 (`dosageInstruction` min=1) を満たせる
+  場合のみ — 用量・経路を持たない退院時 / 外来継続処方は JP Core
+  プロファイルのみ保持。
 
 **JP-CLINS v1.13.0 対象外** (JP Core プロファイルのみで emit、
 JP-CLINS URL 非追加):
 
 - DiagnosticReport (全 category)
 - Observation vital-signs / social-history / survey / imaging
-- Encounter / Patient / Organization / Practitioner / Coverage /
-  Immunization / FamilyMemberHistory 等 (JP Core が適用基底)
+- Encounter / Practitioner / PractitionerRole / Coverage /
+  FamilyMemberHistory / MedicationAdministration 等 (JP Core が適用基底)
 
 ## 例
 
@@ -65,7 +85,7 @@ JP-CLINS URL 非追加):
   },
   "medicationCodeableConcept": {
     "coding": [{
-      "system": "urn:oid:1.2.392.100495.20.1.72",
+      "system": "http://capstandard.jp/iyaku.info/CodeSystem/YJ-code",
       "code": "6113005F1023",
       "display": "セフトリアキソンナトリウム注1g"
     }]
@@ -84,8 +104,8 @@ JP-CLINS URL 非追加):
   を含める
 - `Composition.type.coding[0].system` =
   `http://jpfhir.jp/fhir/Common/CodeSystem/doc-typecodes`、
-  code = `18842-5`、display = `退院時サマリー`。LOINC coding は US
-  ツール互換用に secondary エントリとして保持。
+  code = `18842-5`、display = `退院時サマリー` (coding は 1 件のみ、
+  別個の LOINC coding はなし)。
 - `Composition.section` は 1 つの nested tree:
   - **300** 構造情報セクション
     - **312** 入院理由セクション
@@ -93,8 +113,13 @@ JP-CLINS URL 非追加):
     - **342** 入院時診断セクション
     - **352** 主訴セクション
     - **360** 現病歴セクション
+    - **333** 入院中経過セクション
+    - **324** 退院時詳細セクション
+    - **344** 退院時診断セクション
+    - **444** 退院時投薬指示セクション
+    - **424** 退院時方針指示セクション
 - `section.code.system` =
-  `http://jpfhir.jp/fhir/clins/CodeSystem/jp-codeSystem-clins-document-section`
+  `http://jpfhir.jp/fhir/clins/CodeSystem/document-section`
 - `section.text.div` はテンプレート narrative パスにより日本語で
   生成。β-JP-1 で任意に LLM 生成コンテンツに置換可能 (drop-in seam)。
 
@@ -126,7 +151,7 @@ extension leak を浮上させた。
   `http://jpfhir.jp/fhir/eReferral/StructureDefinition/JP_Composition_eReferral`
   を含める
 - `Composition.type.coding[0]` = `{system: doc-typecodes, code: 57133-1,
-  display: 診療情報提供書}`。LOINC coding は secondary。
+  display: 診療情報提供書}` (coding は 1 件のみ、別個の LOINC coding はなし)。
 - `Composition.section` は 2 レベル tree:
   - Top-level: **920** 紹介元 / **910** 紹介先 / **300** 構造情報
   - 300 の下: **950** 紹介目的 / **340** 傷病名・主訴 /
@@ -134,9 +159,10 @@ extension leak を浮上させた。
 
 シミュレーション近似:
 - **紹介元** = 当院 (clinosim は単一施設をシミュレート)。
-- **紹介先** = "他院" (汎用プレースホルダ; clinosim は施設間紹介先を
-  モデル化しない — 将来作業として妥当な受入病院の小プールからサンプ
-  リング可能)。
+- **紹介先** = `clinosim/locale/jp/external_organizations.yaml` から
+  `(patient_id, encounter_id)` の sha256 で決定的に選んだ外部病院。
+  参照された病院はそれぞれ `Organization` リソースとして emit
+  (`clinosim/modules/output/fhir_r4/documents/referral_orgs.py`)。
 - **紹介目的** = `encounter_id` ハッシュに基づく `{継続加療 / 精査
   依頼 / 他科紹介 / リハビリテーション継続}` の決定的選択。
 - **傷病名・主訴** = エンカウンター診断リスト (code + 日本語 display)
@@ -370,10 +396,14 @@ Session 47 preflight review で浮上した将来 PR で再訪する価値のあ
   landed; `clinosim/simulator/cli.py` で `generate` は alias として
   残存。
 - ✅ `_JP_CORE_PROFILES` shape 統一 (`dict[str, str]` →
-  `dict[str, list[str]]`) — landed; JP-CLINS eCS profile dispatch と
-  ともに `clinosim/modules/output/fhir_r4_adapter.py` に反映。
+  `dict[str, list[str]]`) — landed。表はその後
+  `clinosim/codes/data/fhir-profiles-jp-core.yaml` に移り、
+  `clinosim/modules/output/fhir_r4/post_process/profile.py` の
+  `_apply_jp_core_profile` が付与。
 - ⏳ CIF `orders` リスト分割 `medication_orders` / `lab_orders`
-  (FHIR resource-type 分離との整合) — 未着手; 候補として継続。
+  (FHIR resource-type 分離との整合) — 格納リストは依然 `orders`。
+  `CIFPatientRecord` には読み取り専用の `medication_orders` /
+  `lab_orders` property view のみ存在。
 
 各々は小規模独立リファクタ — P2-13 に折り込むより自身の PR として
 届ける方が適切。

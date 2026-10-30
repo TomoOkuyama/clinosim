@@ -19,8 +19,8 @@ Phase 4a-4d 機能は 2026-10-20〜2026-10-21 に landed し、
 
 | パターン | Driver yaml | 内容 |
 |---|---|---|
-| **AR(1) 連続 latent** | `hba1c_trajectory.yaml` | E11 / E10 成人の within-individual HbA1c drift (phi 0.75、DCCT/EDIC、UKPDS 10y、Wu 2023 meta-analysis で校正)。encounter 単位の測定ノイズオーバーレイ (sigma 0.20 %) は emit 時に適用。廃止された `PersonRecord.glycemic_trajectory` proxy を置換。 |
-| **Markov stage ladder** | `stage/<disease>.yaml` (19 ladder) | CKD (`n18`)、心不全 (`i50` → NYHA I-IV)、虚血性心疾患 (`i25` → CCS I-IV)、心房細動 (`i48` paroxysmal → persistent → permanent)、COPD (`j44` → GOLD 1-4)、認知症 (`f00` → CDR 0.5-3)、Parkinson (`g20`)、多発性硬化症 (`g35`)、アルコール性 / 線維性肝疾患、脳卒中後遺症 (`i69` / `i69_1` / `i69_3`)、7 本の癌 staging ladder (`c16` 胃 / `c18` 大腸 / `c22` 肝 / `c34` 肺 / `c50` 乳 / `c61` 前立腺) を AJCC + BCLC で。 |
+| **AR(1) 連続 latent** | `hba1c_trajectory.yaml` (他に `labs/ldl_trajectory.yaml`、`vitals/sbp_trajectory.yaml`、`anthropometry/bmi_drift.yaml`) | E11 / E10 成人の within-individual HbA1c drift (phi 0.75、DCCT/EDIC、UKPDS 10y、Wu 2023 meta-analysis で校正)。encounter 単位の測定ノイズオーバーレイ (sigma 0.20 %) は emit 時に適用。廃止された `PersonRecord.glycemic_trajectory` proxy を置換。 |
+| **Markov stage ladder** | `stage/<disease>.yaml` (19 ladder) | CKD (`n18`)、心不全 (`i50` → NYHA I-IV)、虚血性心疾患 (`i25` → CCS I-IV)、心房細動 (`i48` paroxysmal → persistent → permanent)、COPD (`j44` → GOLD 1-4)、認知症 (`f00` → CDR 0.5-3)、Parkinson (`g20`)、多発性硬化症 (`g35`)、アルコール性 / 線維性肝疾患、脳卒中後遺症 (`i69` / `i69_1` / `i69_3`)、6 本の癌 staging ladder (`c16` 胃 / `c18` 大腸 / `c22` 肝 / `c34` 肺 / `c50` 乳 / `c61` 前立腺) を AJCC + BCLC で。 |
 | **イベント発火** | `event/<code>_onset.yaml` (30+ ファイル) | 慢性発症の年次 Bernoulli roll — DM E11 合併症 (`dm_nephropathy_e11_21`、`dm_neuropathy_e11_42`、`dm_retinopathy_e11_311`)、20+ 本の成人慢性 ICD を locale 別の rate yaml で、年齢 / 性別 gating + `has_chronic_prefix` + `requires_sex` trigger (Phase 4b.2.β) 付きでサンプリング。 |
 | **治療 escalation イベント** | `med/<regimen>.yaml` | HTN 第 3 剤 / 第 4 剤 step-up (`htn_escalate_third_agent_i10`、`htn_escalate_fourth_agent_i10`)、脂質 high-intensity / ezetimibe step-up (`lipid_escalate_high_intensity_e78`、`lipid_escalate_ezetimibe_e78`)、DM SGLT2i / insulin step-up (`dm_escalate_sglt2i_e11`、`dm_escalate_insulin_e11`)。ガイドライン trigger (例: HbA1c target 超過が N 年連続) で発火。Phase 4a は DM 合併症を T2DM (E11) 限定にスコープ — T1DM (E10) は除外。 |
 
@@ -56,9 +56,12 @@ resample しない。
 
 - **Layer-1 初期化** — `clinosim.modules.population.engine.generate_population`
   が生成時に全生存患者に対して `initial_snapshot` を呼ぶ。
-- **年次 advance** — `clinosim.modules.population.aging.advance_population`
-  が sim 年毎に全生存患者に対して `advance_one_year` を呼ぶ。
-  **既存の aging passes が `chronic_conditions` を finalise した後。**
+- **年次 advance** — forward month loop
+  (`clinosim/simulator/phases/_forward_loop.py`) が年の境目ごとに
+  `clinosim.modules.population.aging.advance_population` を呼び、これが
+  sim 年毎に全生存患者に対して `advance_one_year` を呼ぶ。
+  **その年の院外死亡 draw と aging passes が `chronic_conditions` を
+  finalise した後。**
 - **Lab emit** — `clinosim.modules.physiology.engine.derive_lab_values`
   が `state_at(person, when).continuous["hba1c"]` を読み、yaml から
   encounter 単位の測定ノイズオーバーレイを適用。

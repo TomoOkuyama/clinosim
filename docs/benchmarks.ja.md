@@ -14,7 +14,7 @@ clinosim 生成コホートに対する共通の早期警戒タスクの再現�
 
 | タスク | 陽性定義 | AUROC 用の連続スコア |
 | --- | --- | --- |
-| `sepsis` | `condition_event.disease_id == "sepsis"` または ICD `A41.*` / `R65.2*` | first-window Lactate (mmol/L) |
+| `sepsis` | `condition_event.disease_id == "sepsis"` または ICD `A41.*` / `R65.2*` | encounter 記録中の Lactate 最大値 (mmol/L) |
 | `aki` | `condition_event.disease_id == "acute_kidney_injury"` または ICD `N17.*` / `N19` | peak SCr − baseline SCr (mg/dL) |
 
 ## 同梱ベースライン
@@ -79,7 +79,7 @@ clinosim benchmark: task=sepsis, n=500, prevalence=0.0620
 - 学習済 ML モデル (scikit-learn は hard dep ではない; 学習ベースライン
   追加には optional-dep gating が必要)
 - クロスバリデーション分割 (単一コホートベースラインで床値としては十分)
-- first-window peak を超える時系列特徴量エンジニアリング
+- encounter 単位の peak を超える時系列特徴量エンジニアリング
 - 複数エンドポイント合成 (例: sepsis-3 SOFA delta)
 - コスト sensitive 指標 (calibration、decision curve)
 

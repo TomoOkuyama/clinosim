@@ -10,7 +10,7 @@
 | Procedure codes | CPT | K codes |
 | Display language | English | Japanese (English fallback) |
 | Patient names | English | Kanji + kana extension |
-| Addresses | 50 US states | 47 Japanese prefectures (JIS X 0401) |
+| Addresses | Massachusetts (15 cities / towns, weighted by population) | Tokyo metropolitan area (Tokyo / Saitama / Kanagawa / Chiba); prefecture codes per JIS X 0401 |
 | Lab reference ranges | Tietz/Mayo | JCCLS Reference Intervals 2022 |
 | Marital status | HL7 v3 (S/M/D/W) | Same |
 | Language | en-US | ja-JP |
