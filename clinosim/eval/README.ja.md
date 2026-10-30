@@ -58,8 +58,9 @@ def run(cohort: Cohort, country: str) -> list[EvalCheck]
 
 エンジンはコホート内の全 country partition に対して全軸を実行し、
 axis score = `100 × Σ(合格重み) / Σ(全重み)` を計算 (WARN は 0.5
-合格として扱う。チェックの無い軸は 0.0)、overall score は全 axis
-result の算術平均。`--strict` 指定時は overall status が FAIL なら
+合格として扱う)、overall score は該当する axis result の算術平均。
+チェックの無い軸 (他 locale の国条件軸) は status `N/A`・
+`applicable: false` となり、平均に含めない。`--strict` 指定時は overall status が FAIL なら
 CLI は exit 1 (既定は exit 0)。
 コホートレイアウトは `<root>/<country>/fhir_r4/` (多国籍) と
 `<root>/fhir_r4/` (単一国フラット) の両方を直接読み込み可能。

@@ -122,9 +122,9 @@ master で 100 % 成立している invariant を gate にします。check 一�
 - Outcome 重み: **PASS = 1.0、WARN = 0.5、FAIL / N/A = 0.0**
 
 Overall score = レポート中の全軸結果 (軸 × 国サブディレクトリごとに
-1 件) のスコアの算術平均。コホートの locale に該当しない国 条件軸も
-`checks` が空・score 0.0 の結果としてレポートに現れ、この平均に含まれ
-ます。Overall status はいずれかの軸のいずれかの check が
+1 件) のうち該当する軸のスコアの算術平均。コホートの locale に該当
+しない国条件軸は `checks` が空・status `N/A`・`"applicable": false`
+の結果としてレポートに現れ、この平均には含まれません。Overall status はいずれかの軸のいずれかの check が
 FAIL なら `FAIL`、いずれか WARN なら `WARN`、それ以外は `PASS`。
 
 ## JSON 出力形状
@@ -143,6 +143,7 @@ FAIL なら `FAIL`、いずれか WARN なら `WARN`、それ以外は `PASS`。
       "country": "_flat",
       "score": 100.0,
       "status": "PASS",
+      "applicable": true,
       "checks": [
         {
           "name": "resource_id_uniqueness",
