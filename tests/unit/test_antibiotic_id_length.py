@@ -41,7 +41,6 @@ import pytest
 from clinosim.modules.antibiotic.engine import (
     _DRUG_SLUG_OVERRIDES,
     _FHIR_ID_MAX_LENGTH,
-    ABX_NARROW_SUFFIX,
     ABX_ORDER_REQ_PREFIX,
     ABX_REGIMEN_ID_PREFIX,
     _check_fhir_id_length,
@@ -54,26 +53,6 @@ pytestmark = pytest.mark.unit
 
 
 # === Constants pin ===
-
-
-def test_narrow_suffix_is_short() -> None:
-    """Issue #347: the narrowed suffix must be short enough that the composed
-    Order.id stays under 64 chars in the worst-case build.
-
-    Worst case (with the shortest available slug and the longest hai_id):
-        `req-abx-` (8) + `hai-ENC-POP-000000-000000000000-cauti-9` (39)
-        + `-` (1) + `{drug_slug ≤15}` + suffix
-
-    With suffix=`-n` (2 chars): 8+39+1+15+2 = 65 (still over — accepted
-    trade-off, see next test that pins the max realistic id length under
-    the actual `_DRUG_SLUG_OVERRIDES` catalog).
-
-    With suffix=`-narrowed` (9): 8+39+1+15+9 = 72 (way over) — hard fail.
-    """
-    assert len(ABX_NARROW_SUFFIX) <= 3, (
-        f"ABX_NARROW_SUFFIX should be short (≤3 chars) to keep MedicationRequest.id "
-        f"under FHIR R4's 64-char limit. Got {ABX_NARROW_SUFFIX!r} ({len(ABX_NARROW_SUFFIX)} chars)."
-    )
 
 
 # === Drug slug overrides ===
@@ -168,11 +147,11 @@ def test_build_regimens_ceftriaxone_stays_under_limit() -> None:
 
 def test_narrowed_regimen_id_ceftriaxone_stays_under_limit() -> None:
     """Reconstruct the narrowed regimen id shape that was 66 chars in v16
-    and assert the new components (short slug `cft` + short suffix `-n`)
-    keep it ≤64."""
+    and assert the current shape (short slug `cft`, no narrowed suffix)
+    keeps it ≤64."""
     hai_id = "hai-ENC-POP-000905-266868769799-vap-0"  # 37 chars
     slug = _drug_slug("ceftriaxone")
-    regimen_id = f"{ABX_REGIMEN_ID_PREFIX}{hai_id}-{slug}{ABX_NARROW_SUFFIX}"
+    regimen_id = f"{ABX_REGIMEN_ID_PREFIX}{hai_id}-{slug}"  # narrowed regimens carry no suffix
     order_id = ABX_ORDER_REQ_PREFIX + regimen_id
     assert len(order_id) <= _FHIR_ID_MAX_LENGTH, (
         f"narrowed Order.id {order_id!r} = {len(order_id)} chars, exceeds {_FHIR_ID_MAX_LENGTH}"

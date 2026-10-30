@@ -65,7 +65,6 @@ from clinosim.locale.loaders.demographics import (
     load_formatting,
     load_names,
     load_naming_rules,
-    load_terminology,
 )
 from clinosim.locale.loaders.fhir_identity import (
     _validate_ambulatory_visit_length,
@@ -158,7 +157,6 @@ __all__ = [
     "load_reference_ranges",
     "load_single_gene_diseases",
     "load_specialty_routing",
-    "load_terminology",
     "resolve_localized_display",
 ]
 

@@ -264,7 +264,7 @@ def _apply_pass2(rec, snapshot: datetime) -> None:
             slug = _drug_slug(target)
             # Phase 2 (Issue #349): move intent from id suffix to meta.tag[].
             # Regimen_id is now unique by virtue of different drug_slug or
-            # (ELIMINATION case) discontinuation, so ABX_NARROW_SUFFIX is retired.
+            # (ELIMINATION case) discontinuation, so no narrowed suffix is needed.
             regimen_id = f"{ABX_REGIMEN_ID_PREFIX}{hai_id}-{slug}"
             # Issue #347 guard: same as build_regimens above — validate the
             # composed downstream Order.id length before construction, so a

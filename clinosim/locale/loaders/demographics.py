@@ -168,14 +168,6 @@ def load_naming_rules(country: str) -> dict[str, Any]:
 
 
 @lru_cache(maxsize=32)
-def load_terminology(domain: str, country: str) -> dict[str, str]:
-    """Load display names for a domain (lab, diagnosis, drug, procedure).
-
-    Example: load_terminology("lab", "JP") -> {"CRP": "C反応性蛋白", ...}
-    """
-    return _load_yaml(_country_dir(country) / f"terminology_{domain}.yaml", fallback={})
-
-
 @lru_cache(maxsize=32)
 def load_code_mapping(domain: str, country: str) -> dict[str, str]:
     """Load code mapping for a domain.

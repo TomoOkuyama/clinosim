@@ -34,8 +34,6 @@ from clinosim.modules.healthcare_system.loader import load_healthcare_config
 
 cfg = load_healthcare_config("JP")
 # cfg.lab_frequency_multiplier  -> 1.3
-# cfg.discharge_criteria        -> "lab_normalization"
-# cfg.diagnosis_code_system     -> "ICD-10"
 ```
 
 `load_healthcare_config` は `@lru_cache(maxsize=2)` 付きで run 中の
@@ -65,22 +63,9 @@ country 文字列 (と on-disk YAML) の純粋関数で、返却される Pydant
   - `country`: `"JP"` / `"US"`。
   - `lab_frequency_multiplier` (float、default `1.0`) — 下流の
     lab ordering 頻度倍率。JP = `1.3`、US = `0.8`。
-  - `discharge_criteria` (string、default `"lab_normalization"`)
-    — `"lab_normalization"` (JP) / `"functional_recovery"` (US)。
-  - `target_los_multiplier` (float、default `1.0`) — JP = `1.0`、
-    US = `0.35` (短い LOS)。
-  - `diagnosis_code_system` (default `"ICD-10"`) — `"ICD-10"` (JP)
-    / `"ICD-10-CM"` (US)。
-  - `drug_code_system` (default `"YJ"`) — `"YJ"` (JP) /
-    `"RxNorm"` (US)。
-  - `lab_code_system` (default `"JLAC10"`) — `"JLAC10"` (JP) /
-    `"LOINC"` (US)。
-  - `procedure_code_system` (default `"K-code"`) — `"K-code"` (JP)
-    / `"CPT"` (US)。
-  - 現在 runtime で読まれるのは `lab_frequency_multiplier` のみ
-    (`clinosim/simulator/daily_loop.py`)。他 6 field は load される
-    が reader が無く、国別の退院・LOS・code system 挙動は locale data と
-    国文字列で駆動される。
+  - 以前の `discharge_criteria`、`target_los_multiplier`、`*_code_system`
+    はどこからも読まれていなかったため削除した (#2208)。コード体系は
+    `clinosim/codes` で国ごとに決まり、在院日数は疾患プロトコルで決まる。
 - 国 dispatch 表 (`loader.py`):
   `{"JP": "japan.yaml", "US": "us.yaml"}`。国追加時は YAML を追加、
   dict を拡張、必要なら上記文字列を分岐する下流モジュールも拡張する。

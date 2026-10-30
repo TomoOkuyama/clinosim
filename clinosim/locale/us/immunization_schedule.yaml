@@ -139,7 +139,6 @@ vaccines:
     cvx: "08"
     min_age: 0
     frequency: pediatric_series
-    program_type: mandatory
     available_from: "1991-11-01"
     doses:
       - dose_number: 1
@@ -159,7 +158,6 @@ vaccines:
     cvx: "20"
     min_age: 0
     frequency: pediatric_series
-    program_type: mandatory
     available_from: "1997-01-01"
     doses:
       - dose_number: 1
@@ -187,7 +185,6 @@ vaccines:
     cvx: "10"
     min_age: 0
     frequency: pediatric_series
-    program_type: mandatory
     available_from: "2000-01-01"    # US switched fully to IPV
     doses:
       - dose_number: 1
@@ -211,7 +208,6 @@ vaccines:
     cvx: "17"
     min_age: 0
     frequency: pediatric_series
-    program_type: mandatory
     available_from: "2000-01-01"
     doses:
       - dose_number: 1
@@ -235,7 +231,6 @@ vaccines:
     cvx: "133"
     min_age: 0
     frequency: pediatric_series
-    program_type: mandatory
     available_from: "2010-04-01"    # PCV13 FDA approval, replacing PCV7
     doses:
       - dose_number: 1
@@ -259,7 +254,6 @@ vaccines:
     cvx: "116"
     min_age: 0
     frequency: pediatric_series
-    program_type: mandatory
     available_from: "2006-02-01"    # RotaTeq (5-valent, 3 doses)
     doses:
       - dose_number: 1
@@ -279,7 +273,6 @@ vaccines:
     cvx: "03"
     min_age: 0
     frequency: pediatric_series
-    program_type: mandatory
     available_from: "1971-01-01"    # MMR combined licensure
     doses:
       - dose_number: 1
@@ -295,7 +288,6 @@ vaccines:
     cvx: "21"
     min_age: 0
     frequency: pediatric_series
-    program_type: mandatory
     available_from: "1995-03-01"    # US Varicella vaccine licensure
     doses:
       - dose_number: 1
@@ -340,7 +332,6 @@ vaccines:
     cvx: "115"
     min_age: 0
     frequency: pediatric_series
-    program_type: recommended
     available_from: "2005-06-10"
     doses:
       - dose_number: 1
@@ -360,7 +351,6 @@ vaccines:
     cvx: "83"
     min_age: 0
     frequency: pediatric_series
-    program_type: mandatory
     available_from: "2006-10-01"       # ACIP universal 12-23 mo recommendation
     doses:
       - dose_number: 1
@@ -376,7 +366,6 @@ vaccines:
     cvx: "165"
     min_age: 0
     frequency: pediatric_series
-    program_type: recommended
     # HPV9 licensure late-2014; universal ACIP recommendation now
     # 9-valent (Gardasil-9). 2-dose schedule when initiated before
     # age 15; 3-dose otherwise (this generator models the 2-dose path
@@ -396,7 +385,6 @@ vaccines:
     cvx: "147"
     min_age: 0
     frequency: pediatric_series
-    program_type: recommended
     available_from: "2005-01-14"       # Menactra licensure
     doses:
       - dose_number: 1

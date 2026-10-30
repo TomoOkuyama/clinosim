@@ -4,7 +4,6 @@ from __future__ import annotations
 
 from datetime import datetime
 
-import numpy as np
 import pytest
 
 from clinosim.modules.device.engine import (
@@ -107,9 +106,8 @@ def test_place_devices_for_encounter_no_icu_returns_empty():
     rec = CIFPatientRecord()
     rec.icu_transferred = False
     enc = Encounter(encounter_id="enc1", encounter_type=EncounterType.INPATIENT)
-    rng = np.random.default_rng(42)
     cfg = load_devices_config()
-    out = place_devices_for_encounter(rec, enc, rng, cfg)
+    out = place_devices_for_encounter(rec, enc, cfg)
     assert out == []
 
 
@@ -117,9 +115,8 @@ def test_place_devices_for_encounter_non_inpatient_returns_empty():
     rec = CIFPatientRecord()
     rec.icu_transferred = True  # ICU flagged but encounter is outpatient
     enc = Encounter(encounter_id="enc1", encounter_type=EncounterType.OUTPATIENT)
-    rng = np.random.default_rng(42)
     cfg = load_devices_config()
-    out = place_devices_for_encounter(rec, enc, rng, cfg)
+    out = place_devices_for_encounter(rec, enc, cfg)
     assert out == []
 
 
@@ -133,9 +130,8 @@ def test_place_devices_for_encounter_icu_inpatient_emits_cvc_and_catheter():
         admission_datetime=datetime(2026, 1, 1, 8, 0, 0),
         discharge_datetime=datetime(2026, 1, 8, 14, 0, 0),
     )
-    rng = np.random.default_rng(42)
     cfg = load_devices_config()
-    out = place_devices_for_encounter(rec, enc, rng, cfg)
+    out = place_devices_for_encounter(rec, enc, cfg)
     types = {d.device_type for d in out}
     assert "cvc" in types
     assert "indwelling_catheter" in types
@@ -157,10 +153,10 @@ def test_place_devices_for_encounter_includes_ventilator_when_intubated():
     rec = CIFPatientRecord()
     rec.icu_transferred = True
     rec.physiological_states = [PhysiologicalState(respiratory_fraction=0.8)]
-    out = place_devices_for_encounter(rec, enc, np.random.default_rng(42), cfg)
+    out = place_devices_for_encounter(rec, enc, cfg)
     assert not any(d.device_type == "mechanical_ventilator" for d in out)
     rec.procedures = [build_intubation_procedure("P1", "enc1", datetime(2026, 1, 2, 10), "US", "PROC-P1-AIR01")]
-    out = place_devices_for_encounter(rec, enc, np.random.default_rng(42), cfg)
+    out = place_devices_for_encounter(rec, enc, cfg)
     assert any(d.device_type == "mechanical_ventilator" for d in out)
 
 
@@ -173,8 +169,7 @@ def test_place_devices_for_encounter_device_id_format():
         admission_datetime=datetime(2026, 1, 1),
         discharge_datetime=datetime(2026, 1, 5),
     )
-    rng = np.random.default_rng(42)
-    out = place_devices_for_encounter(rec, enc, rng, load_devices_config())
+    out = place_devices_for_encounter(rec, enc, load_devices_config())
     for d in out:
         # feedback FB-F2: FHIR id 型準拠のため device_type の _ を - に置換
         _device_type_id = d.device_type.replace("_", "-")
@@ -194,6 +189,5 @@ def test_place_devices_for_encounter_snapshot_in_progress_removal_none():
         admission_datetime=datetime(2026, 1, 1),
         discharge_datetime=None,
     )
-    rng = np.random.default_rng(42)
-    out = place_devices_for_encounter(rec, enc, rng, load_devices_config())
+    out = place_devices_for_encounter(rec, enc, load_devices_config())
     assert all(d.removal_date is None for d in out)

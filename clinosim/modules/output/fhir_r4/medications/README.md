@@ -124,8 +124,7 @@ Not applicable — pure builders over CIF orders + MAR records.
   `OUTPATIENT_RX_ID_PREFIX = "rxopd-"`; MedicationAdministration
   uses `MEDICATION_ADMINISTRATION_ID_PREFIX = "mar-"`. The
   [`antibiotic`](../../../antibiotic/README.md) module additionally
-  emits its regimens under `ABX_ORDER_REQ_PREFIX` /
-  `ABX_NARROW_SUFFIX` — those live in
+  emits its regimens under `ABX_ORDER_REQ_PREFIX` — defined in
   [`antibiotic/engine.py`](../../../antibiotic/engine.py).
 - **Terminology systems** (HL7 CodeSystem for `MedicationRequest`
   metadata):

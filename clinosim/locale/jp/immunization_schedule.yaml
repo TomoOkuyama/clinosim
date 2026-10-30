@@ -110,8 +110,8 @@ vaccines:
 
   # === Pediatric routine schedule (定期予防接種 + 任意接種) — Issue #917 ===
   # Sources: MHLW 予防接種スケジュール (2024) / 日本小児科学会 推奨接種スケジュール.
-  # program_type: mandatory = 定期接種 (95-99% typical coverage) /
-  #               elective  = 任意接種 (30-60% typical coverage).
+  # Coverage reflects the program: 定期接種 (routine, 95-99% typical) vs
+  # 任意接種 (voluntary, 30-60% typical), encoded in coverage_by_sex.
   # `pediatric_series` iterates per-dose age windows measured from date_of_birth.
   # Engine gates each dose against [available_from, as_of] AND against the
   # patient's birthDate → doses whose target window falls outside the sim's
@@ -126,7 +126,6 @@ vaccines:
     cvx: "19"
     min_age: 0
     frequency: pediatric_series
-    program_type: mandatory
     available_from: "2000-01-01"
     doses:
       - dose_number: 1
@@ -137,7 +136,6 @@ vaccines:
     cvx: "106"
     min_age: 0
     frequency: pediatric_series
-    program_type: mandatory
     available_from: "2012-11-01"    # 四種混合 (DTaP-IPV) 導入
     doses:
       - dose_number: 1
@@ -160,7 +158,6 @@ vaccines:
     cvx: "04"
     min_age: 0
     frequency: pediatric_series
-    program_type: mandatory
     available_from: "2000-01-01"
     doses:
       - dose_number: 1
@@ -175,7 +172,6 @@ vaccines:
     cvx: "21"
     min_age: 0
     frequency: pediatric_series
-    program_type: mandatory
     available_from: "2014-10-01"    # 定期化
     doses:
       - dose_number: 1
@@ -190,7 +186,6 @@ vaccines:
     cvx: "129"
     min_age: 0
     frequency: pediatric_series
-    program_type: mandatory
     available_from: "2010-04-01"    # 乾燥細胞培養日本脳炎ワクチン 定期接種再開
     doses:
       - dose_number: 1
@@ -213,7 +208,6 @@ vaccines:
     cvx: "17"
     min_age: 0
     frequency: pediatric_series
-    program_type: mandatory
     available_from: "2013-04-01"    # 定期化
     doses:
       - dose_number: 1
@@ -236,7 +230,6 @@ vaccines:
     cvx: "133"
     min_age: 0
     frequency: pediatric_series
-    program_type: mandatory
     available_from: "2013-11-01"    # 小児 PCV13 定期化
     doses:
       - dose_number: 1
@@ -259,7 +252,6 @@ vaccines:
     cvx: "08"
     min_age: 0
     frequency: pediatric_series
-    program_type: mandatory
     available_from: "2016-10-01"    # 定期化 (2016 年 10 月以降出生児対象)
     doses:
       - dose_number: 1
@@ -278,7 +270,6 @@ vaccines:
     cvx: "119"
     min_age: 0
     frequency: pediatric_series
-    program_type: mandatory
     available_from: "2020-10-01"    # 定期化 (2020 年 10 月以降出生児対象)
     doses:
       - dose_number: 1
@@ -294,7 +285,6 @@ vaccines:
     cvx: "07"
     min_age: 0
     frequency: pediatric_series
-    program_type: elective
     available_from: "2000-01-01"
     doses:
       - dose_number: 1

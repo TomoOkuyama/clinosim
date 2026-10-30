@@ -94,12 +94,6 @@ country-specific clinical practice knobs:
 
 - `lab_frequency_multiplier` (JP: 1.3, US: 0.8) — scales the per-day
   lab-order rate for the country's practice pattern.
-- `discharge_criteria` (JP: `lab_normalization`, US:
-  `functional_recovery`) — the gate the discharge engine watches.
-- `target_los_multiplier` (JP: 1.0, US: 0.35) — country-typical LOS
-  scaling.
-- Coding-system defaults (ICD-10-CM vs ICD-10 for diagnoses, RxNorm
-  vs YJ for medications, CPT vs K-codes for procedures).
 
 ### `llm_service.yaml` and provider overrides
 

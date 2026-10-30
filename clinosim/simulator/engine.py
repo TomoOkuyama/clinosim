@@ -308,6 +308,8 @@ def run_beta(
         country=config.country,
         hospital_scale=hospital_scale,
         snapshot_date=config.snapshot_date,
+        simulation_period_start=_window[0],
+        simulation_period_end=_window[1],
         total_patients_generated=len(patient_records),
         llm_mode=config.llm.judgment.mode,
     )

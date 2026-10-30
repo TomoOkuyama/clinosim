@@ -48,7 +48,6 @@ from clinosim.locale.loader import (
     load_reference_ranges,          # (country) -> dict[str, Any]
     load_identity_config,           # (country) -> dict[str, Any]
     load_naming_rules,              # (country) -> dict[str, Any]
-    load_terminology,               # (domain, country) -> dict[str, str] (legacy; see below)
     load_code_mapping,              # (domain, country) -> dict[str, str]
     load_chronic_medications,       # () -> dict[str, Any] (shared)
     load_chronic_followup,          # () -> dict[str, Any] (shared)
@@ -67,9 +66,7 @@ re-exports 46 `load_*` functions, implemented in
 `clinosim/locale/loaders/` (`clinical.py`, `demographics.py`,
 `fhir_identity.py`, `medical_display.py`, `narrative.py`).
 
-`load_terminology` is legacy: it reads `<country>/terminology_<domain>.yaml`,
-and no such file ships any more, so it returns `{}`. Display names now
-live in `clinosim/codes/`. `load_med_terms_ja` is a deprecated `ja`-only
+Display names live in `clinosim/codes/`. `load_med_terms_ja` is a deprecated `ja`-only
 view of `load_med_terms`. `load_code_mapping("drug", country)` unions
 `<country>/code_mapping_drug.yaml` with the drug-identity catalog
 `clinosim/codes/data/drugs.yaml` (the yaml wins on key collision).

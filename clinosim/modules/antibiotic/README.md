@@ -136,8 +136,8 @@ from clinosim.modules.antibiotic.enricher import enrich_antibiotic  # POST_ENCOU
   Issue #637) — per-drug (dose_string, frequency) pair returned by
   `_narrow_dose_frequency` in the enricher.
 - **FHIR ID prefixes** (`engine.py`) — `ABX_REGIMEN_ID_PREFIX`,
-  `ABX_ORDER_REQ_PREFIX`, `ABX_ORDER_ID_PREFIX` (`ABX_NARROW_SUFFIX`
-  is still defined but no longer appended — narrowed regimens use
+  `ABX_ORDER_REQ_PREFIX`, `ABX_ORDER_ID_PREFIX` (the former
+  `ABX_NARROW_SUFFIX` is removed, #2208 — narrowed regimens use
   `abx-{hai_id}-{slug}` and carry their intent in
   `medication_intent="narrowed"`).
   `_check_fhir_id_length` enforces the FHIR `id` cardinality limit

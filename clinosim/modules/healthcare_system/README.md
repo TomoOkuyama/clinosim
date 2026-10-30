@@ -36,8 +36,6 @@ from clinosim.modules.healthcare_system.loader import load_healthcare_config
 
 cfg = load_healthcare_config("JP")
 # cfg.lab_frequency_multiplier  -> 1.3
-# cfg.discharge_criteria        -> "lab_normalization"
-# cfg.diagnosis_code_system     -> "ICD-10"
 ```
 
 `load_healthcare_config` is `@lru_cache(maxsize=2)`, so repeated
@@ -68,23 +66,10 @@ and the returned Pydantic model is shared read-only.
   - `country`: `"JP"` or `"US"`.
   - `lab_frequency_multiplier` (float, default `1.0`) — scales lab
     ordering rate downstream. JP config = `1.3`, US = `0.8`.
-  - `discharge_criteria` (string, default `"lab_normalization"`)
-    — `"lab_normalization"` (JP) or `"functional_recovery"` (US).
-  - `target_los_multiplier` (float, default `1.0`) — JP = `1.0`,
-    US = `0.35` (short LOS).
-  - `diagnosis_code_system` (default `"ICD-10"`) — `"ICD-10"` (JP)
-    or `"ICD-10-CM"` (US).
-  - `drug_code_system` (default `"YJ"`) — `"YJ"` (JP) or
-    `"RxNorm"` (US).
-  - `lab_code_system` (default `"JLAC10"`) — `"JLAC10"` (JP) or
-    `"LOINC"` (US).
-  - `procedure_code_system` (default `"K-code"`) — `"K-code"` (JP)
-    or `"CPT"` (US).
-  - Only `lab_frequency_multiplier` is read at runtime today
-    (`clinosim/simulator/daily_loop.py`). The other six fields are
-    loaded but have no reader; country-dependent discharge, LOS and
-    code-system behaviour is driven by locale data and the country
-    string instead.
+  - The former `discharge_criteria`, `target_los_multiplier` and
+    `*_code_system` fields had no reader and were removed (#2208);
+    code systems are chosen per country in `clinosim/codes` and LOS
+    comes from the disease protocols.
 - Country dispatch table (in `loader.py`):
   `{"JP": "japan.yaml", "US": "us.yaml"}`. To add a country, add
   the YAML, extend the dict, and (if applicable) extend downstream

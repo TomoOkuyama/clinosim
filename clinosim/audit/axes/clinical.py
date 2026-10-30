@@ -824,7 +824,7 @@ def run(spec: ModuleAuditSpec, cohort: Cohort) -> AxisResult:
                         continue
                     # pr112-adv-2 fix F3: antibiotic order ids are prefixed with
                     # the encounter id, then ABX_ORDER_ID_PREFIX + hai_id +
-                    # ... + optional ABX_NARROW_SUFFIX. Filter to antibiotic
+                    # ... (narrowed regimens carry no suffix). Filter to antibiotic
                     # origin so future non-abx stopped orders cannot inflate
                     # narrow_count. Constants imported from
                     # clinosim.modules.antibiotic.engine — a rename there
