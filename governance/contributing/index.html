@@ -2405,17 +2405,20 @@ properties the project relies on:</p>
    describing user-facing behaviour changes. Skip only for docs-only PRs.</li>
 <li><strong>Open the PR</strong> — the PR template walks you through the checklist.</li>
 <li><strong>CI must be green</strong> on all required jobs before a maintainer merges:</li>
-<li><code>Unit tests (Py 3.12)</code></li>
-<li><code>Integration tests (shard 1/3, 2/3, 3/3)</code></li>
+<li><code>Unit tests (Py 3.12 shard 1/3, 2/3, 3/3)</code></li>
+<li><code>Integration tests (shard 1/10 … 10/10)</code></li>
 <li><code>Build sdist + wheel</code></li>
 <li><code>Signed-off-by check</code></li>
 <li><code>mkdocs build</code></li>
-<li><code>JP-CLINS lab compliance gate</code></li>
+<li><code>JP-CLINS lab compliance gate</code> / <code>JP Core narrow compliance gate</code> /
+     <code>US Core narrow compliance gate</code> (run only on PRs that touch paths
+     affecting FHIR output)</li>
 <li><code>ruff dead-code (F401 / F841)</code></li>
 <li><code>vulture dead-code</code></li>
 </ol>
 <p>Informational (not merge-blocking):
-   - <code>Quality (informational)</code> — ruff check + ruff format --check + mypy</p>
+   - <code>Quality (informational)</code> — ruff check + ruff format --check + mypy
+   - <code>Unit test coverage combine (informational)</code></p>
 <p>Python 3.11 unit-test compatibility runs nightly (see
    <a href="../../.github/workflows/nightly.yml"><code>.github/workflows/nightly.yml</code></a>).
    Full workflow definitions in <a href="../../.github/workflows/"><code>.github/workflows/</code></a>.</p>

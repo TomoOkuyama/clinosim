@@ -2360,7 +2360,7 @@ spec
 <tr>
 <td><code>hai_inflammation_lift</code></td>
 <td>post-encounter (日次 loop flag ではない)</td>
-<td><code>hai</code> POST_ENCOUNTER enricher が populate する <code>extensions["hai"]</code> (Phase 3a) — CDC 重症度 proxy (clabsi/vap 0.35、cauti 0.20) × ramp factor (<code>min(1.0, days_since_onset / 2.0)</code>)</td>
+<td><code>hai</code> POST_ENCOUNTER enricher が populate する <code>extensions["hai"]</code> (Phase 3a) — <code>modules/hai/reference_data/hai_lab_lift.yaml</code> の CDC 重症度 proxy (現在 clabsi/vap 0.40、cauti 0.20) × ramp factor (<code>min(1.0, days_since_onset / ramp_peak_days)</code>、同 yaml で <code>ramp_peak_days</code> = 1)</td>
 <td><code>derive_lab_values</code> (kwarg)</td>
 <td><code>effective_infl = min(1.0, infl + lift)</code> を CRP + WBC 公式にのみ流す。<strong>Phase 3a は日次 loop の merge 経由で本 kwarg 付きで <code>derive_lab_values</code> を呼ばない</strong>。代わりに <code>modules/hai/lab_lift.apply_hai_lab_lift</code> が日次 loop 後に closed-form 順方向 delta を直接 obs.value に適用する (noise + circadian を保存)。本 kwarg は <code>_hai_lift_delta</code> が公式を正確に mirror できるように存在する。</td>
 </tr>
@@ -2404,7 +2404,8 @@ Phase 3a 統合点。</p>
 </span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="n">record</span> <span class="o">=</span> <span class="n">CIFPatientRecord</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>
 </span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="n">run_stage</span><span class="p">(</span><span class="n">POST_ENCOUNTER</span><span class="p">,</span> <span class="n">EnricherContext</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">master_seed</span><span class="p">,</span> <span class="n">records</span><span class="o">=</span><span class="p">[</span><span class="n">record</span><span class="p">]))</span>
 </span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="n">apply_hai_lab_lift</span><span class="p">(</span><span class="n">record</span><span class="o">=</span><span class="n">record</span><span class="p">,</span> <span class="n">encounter</span><span class="o">=</span><span class="n">encounter</span><span class="p">,</span>
-</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>                   <span class="n">state_history</span><span class="o">=</span><span class="n">state_history</span><span class="p">,</span> <span class="n">admission_time</span><span class="o">=</span><span class="n">admission_time</span><span class="p">)</span>
+</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>                   <span class="n">state_history</span><span class="o">=</span><span class="n">state_history</span><span class="p">,</span> <span class="n">admission_time</span><span class="o">=</span><span class="n">admission_time</span><span class="p">,</span>
+</span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>                   <span class="n">country</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">country</span><span class="p">)</span>
 </span></code></pre></div>
 <p><code>apply_hai_lab_lift</code> は内部で closed-form <code>_hai_lift_delta</code> を呼び
 (<code>derive_lab_values</code> は呼ばない)、(HAI event × obs) ペアごとに
@@ -2412,8 +2413,8 @@ Phase 3a 統合点。</p>
 順方向 delta pattern を再利用する — <code>antibiotic_flags_from_record</code>
 等は Phase 3b coupling が日次 loop 可視性を本当に必要とする場合のみ
 作り、先回りしない。</p>
-<p><strong>4 つの <code>derive_lab_values</code> call site</strong> (Phase 2b 以降すべて本
-pattern を使用):</p>
+<p><strong>5 つの <code>derive_lab_values</code> call site</strong> (すべて本 pattern を使用。
+Phase 2b 時点は 4 site、monitoring enricher が後に追加):</p>
 <table>
 <thead>
 <tr>
@@ -2425,28 +2426,34 @@ pattern を使用):</p>
 </thead>
 <tbody>
 <tr>
-<td>Pass-1 lab loop</td>
-<td><code>simulator/inpatient.py:563-571</code></td>
+<td>日次入院 lab loop</td>
+<td><code>simulator/daily_loop.py::_run_daily_loop</code> (1 日遅れ CRP 用 state で 2 回目の呼び出しあり)</td>
 <td>日次入院 labs</td>
 <td>full (orders + day)</td>
 </tr>
 <tr>
 <td>unknown-condition site</td>
-<td><code>simulator/inpatient.py:~1701</code></td>
+<td><code>simulator/unknown_condition.py</code></td>
 <td>unknown-condition encounter labs</td>
-<td>chronic-only</td>
+<td>chronic-only (<code>scenario_flags_from_protocol(None)</code>)</td>
 </tr>
 <tr>
-<td>ED admit</td>
-<td><code>simulator/emergency.py:126-130</code></td>
+<td>ED visit</td>
+<td><code>simulator/emergency.py</code></td>
 <td>ED visit labs</td>
 <td>chronic-only</td>
 </tr>
 <tr>
 <td>Outpatient followup</td>
-<td><code>simulator/outpatient.py:152-160</code></td>
+<td><code>simulator/outpatient.py</code></td>
 <td>慢性疾患 follow-up labs</td>
-<td>chronic-only</td>
+<td>chronic-only (<code>scenario_flags_from_protocol(None)</code>)</td>
+</tr>
+<tr>
+<td>Medication monitoring</td>
+<td><code>modules/monitoring/enricher.py</code></td>
+<td>慢性薬 → monitoring labs (POST_RECORDS 65)</td>
+<td>chronic-only (<code>scenario_flags_from_protocol(None)</code>)</td>
 </tr>
 </tbody>
 </table>
@@ -2469,7 +2476,7 @@ pattern を使用):</p>
 <p><strong>call site で <code>flag=value</code> を直接指定してはならない</strong> — J5 防止 (
 <a href="../../AGENTS.md">AGENTS.md</a> 「AD-55 enricher patterns」参照)。helper が
 単一 edit point であり、新 flag は <code>**flags</code> splat 経由で自動的に
-4 site すべてに届く。</p>
+5 site すべてに届く。</p>
 <h2 id="doac-除外-phase-2b-臨床判断">DOAC 除外 (Phase 2b 臨床判断)<a class="headerlink" href="#doac-除外-phase-2b-臨床判断" title="Permanent link">&para;</a></h2>
 <p>PT_INR について、DOAC 薬剤 (apixaban / rivaroxaban / edoxaban /
 dabigatran) は <code>medication_flags_from_context</code> が意図的に <strong>検出しない</strong>。
@@ -2489,7 +2496,7 @@ Core compliance + 臨床整合」原則に反する。詳細は PR #82 (Phase 2b
   (causes_vte) + <code>docs/history/specs-archive/2026-06-24-phase2b-on-anticoagulation-design.md</code>
   (on_warfarin)</li>
 </ul>
-<p>英語版: <a href="../../SCENARIO_FLAGS.ja.md"><code>SCENARIO_FLAGS.md</code></a>。</p>
+<p>英語版: <a href="../../SCENARIO_FLAGS.md"><code>SCENARIO_FLAGS.md</code></a>。</p>
 
 
 

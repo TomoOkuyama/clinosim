@@ -2378,7 +2378,7 @@ master-RNG-cascade defect documented in spec
 <tr>
 <td><code>hai_inflammation_lift</code></td>
 <td>post-encounter (NOT a daily-loop flag)</td>
-<td><code>extensions["hai"]</code> populated by <code>hai</code> POST_ENCOUNTER enricher (Phase 3a) — CDC severity proxy (clabsi/vap 0.35, cauti 0.20) × ramp factor (<code>min(1.0, days_since_onset / 2.0)</code>)</td>
+<td><code>extensions["hai"]</code> populated by <code>hai</code> POST_ENCOUNTER enricher (Phase 3a) — CDC severity proxy from <code>modules/hai/reference_data/hai_lab_lift.yaml</code> (currently clabsi/vap 0.40, cauti 0.20) × ramp factor (<code>min(1.0, days_since_onset / ramp_peak_days)</code>, <code>ramp_peak_days</code> = 1 in the same yaml)</td>
 <td><code>derive_lab_values</code> (kwarg)</td>
 <td><code>effective_infl = min(1.0, infl + lift)</code> routed only into CRP + WBC formulas. <strong>Phase 3a NEVER calls <code>derive_lab_values</code> with this kwarg via the daily-loop merge</strong>; instead <code>modules/hai/lab_lift.apply_hai_lab_lift</code> runs after the daily loop and applies a closed-form forward delta directly to existing obs.value (preserving noise + circadian). The kwarg exists so <code>_hai_lift_delta</code> can mirror the formula exactly.</td>
 </tr>
@@ -2417,10 +2417,11 @@ master-RNG-cascade defect documented in spec
 </span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="n">record</span> <span class="o">=</span> <span class="n">CIFPatientRecord</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>
 </span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="n">run_stage</span><span class="p">(</span><span class="n">POST_ENCOUNTER</span><span class="p">,</span> <span class="n">EnricherContext</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">master_seed</span><span class="p">,</span> <span class="n">records</span><span class="o">=</span><span class="p">[</span><span class="n">record</span><span class="p">]))</span>
 </span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="n">apply_hai_lab_lift</span><span class="p">(</span><span class="n">record</span><span class="o">=</span><span class="n">record</span><span class="p">,</span> <span class="n">encounter</span><span class="o">=</span><span class="n">encounter</span><span class="p">,</span>
-</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>                   <span class="n">state_history</span><span class="o">=</span><span class="n">state_history</span><span class="p">,</span> <span class="n">admission_time</span><span class="o">=</span><span class="n">admission_time</span><span class="p">)</span>
+</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>                   <span class="n">state_history</span><span class="o">=</span><span class="n">state_history</span><span class="p">,</span> <span class="n">admission_time</span><span class="o">=</span><span class="n">admission_time</span><span class="p">,</span>
+</span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>                   <span class="n">country</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">country</span><span class="p">)</span>
 </span></code></pre></div>
 <p><code>apply_hai_lab_lift</code> internally calls the closed-form <code>_hai_lift_delta</code> (NOT <code>derive_lab_values</code>) so the 30+ analyte pipeline isn't re-run for every (HAI event × obs) pair. Phase 3b/c should reuse the same forward-delta pattern — antibiotic_flags_from_record etc. should be built only if the Phase 3b coupling genuinely needs daily-loop visibility, not preemptively.</p>
-<p><strong>4 derive_lab_values call sites</strong> (all using this pattern after Phase 2b):</p>
+<p><strong>5 derive_lab_values call sites</strong> (all using this pattern; the original Phase 2b set was 4, the monitoring enricher was added later):</p>
 <table>
 <thead>
 <tr>
@@ -2432,28 +2433,34 @@ master-RNG-cascade defect documented in spec
 </thead>
 <tbody>
 <tr>
-<td>Pass-1 lab loop</td>
-<td><code>simulator/inpatient.py:563-571</code></td>
+<td>Daily inpatient lab loop</td>
+<td><code>simulator/daily_loop.py::_run_daily_loop</code> (plus a second call for the 1-day-lagged CRP state)</td>
 <td>daily inpatient labs</td>
 <td>full (orders + day)</td>
 </tr>
 <tr>
 <td>unknown-condition site</td>
-<td><code>simulator/inpatient.py:~1701</code></td>
+<td><code>simulator/unknown_condition.py</code></td>
 <td>unknown-condition encounter labs</td>
-<td>chronic-only</td>
+<td>chronic-only (<code>scenario_flags_from_protocol(None)</code>)</td>
 </tr>
 <tr>
-<td>ED admit</td>
-<td><code>simulator/emergency.py:126-130</code></td>
+<td>ED visit</td>
+<td><code>simulator/emergency.py</code></td>
 <td>ED visit labs</td>
 <td>chronic-only</td>
 </tr>
 <tr>
 <td>Outpatient followup</td>
-<td><code>simulator/outpatient.py:152-160</code></td>
+<td><code>simulator/outpatient.py</code></td>
 <td>chronic-disease followup labs</td>
-<td>chronic-only</td>
+<td>chronic-only (<code>scenario_flags_from_protocol(None)</code>)</td>
+</tr>
+<tr>
+<td>Medication monitoring</td>
+<td><code>modules/monitoring/enricher.py</code></td>
+<td>chronic-med → monitoring labs (POST_RECORDS 65)</td>
+<td>chronic-only (<code>scenario_flags_from_protocol(None)</code>)</td>
 </tr>
 </tbody>
 </table>
@@ -2471,7 +2478,7 @@ master-RNG-cascade defect documented in spec
 </ol>
 <p><strong>NEVER</strong> add <code>flag=value</code> directly at a call site — J5 prevention (see
 <a href="../../AGENTS.md">AGENTS.md</a> "AD-55 enricher patterns"). The helper is the
-single edit point so adding a new flag automatically reaches all 4 sites
+single edit point so adding a new flag automatically reaches all 5 sites
 through the <code>**flags</code> splat.</p>
 <h2 id="doac-exclusion-phase-2b-clinical-decision">DOAC exclusion (Phase 2b clinical decision)<a class="headerlink" href="#doac-exclusion-phase-2b-clinical-decision" title="Permanent link">&para;</a></h2>
 <p>For PT_INR, DOAC drugs (apixaban / rivaroxaban / edoxaban / dabigatran)

@@ -2331,7 +2331,7 @@
 
 <h1 id="modules">Modules<a class="headerlink" href="#modules" title="Permanent link">&para;</a></h1>
 <h1 id="clinosim-module-map">clinosim Module Map<a class="headerlink" href="#clinosim-module-map" title="Permanent link">&para;</a></h1>
-<p>A single-page overview of clinosim's <strong>39 modules</strong> (counting rule:
+<p>A single-page overview of clinosim's <strong>38 modules</strong> (counting rule:
 top-level packages under <code>clinosim/modules/</code>; non-package files like
 <code>_shared.py</code> excluded, and <code>nursing_assignment</code> shares
 <code>clinosim/modules/nursing/</code> with the observation-layer nursing
@@ -2375,7 +2375,7 @@ Output surfaces / Testing / Ownership) — see the module index at
 </table>
 <h2 id="tldr">TL;DR<a class="headerlink" href="#tldr" title="Permanent link">&para;</a></h2>
 <p>clinosim is a population-driven, physiology-based synthetic EHR data
-simulator, organized into <strong>39 themed modules</strong> (packages under
+simulator, organized into <strong>38 themed modules</strong> (packages under
 <code>clinosim/modules/</code>) across four layers:</p>
 <ol>
 <li><strong>Foundation</strong> — <code>clinosim/codes/</code> + <code>clinosim/locale/</code> +
@@ -2391,10 +2391,10 @@ simulator, organized into <strong>39 themed modules</strong> (packages under
 enrichers → CIF (canonical intermediate format) → output adapter</code>.</p>
 <p><strong>Project goal</strong>: convert CIF data into <strong>FHIR R4 + JP Core compliant</strong>
 output while preserving clinical realism and JP localisation quality.
-The AD-60 audit framework (seven per-module plug-ins today:
-<code>antibiotic</code>, <code>document</code>, <code>drug_safety</code>, <code>hai</code>, <code>imaging</code>, <code>order</code>,
-<code>triage</code>) is the load-bearing verification gate that protects this
-goal.</p>
+The AD-60 audit framework (six registered per-module plug-ins today:
+<code>antibiotic</code>, <code>document</code>, <code>hai</code>, <code>imaging</code>, <code>order</code>, <code>triage</code>; plus a
+stand-alone <code>drug_safety</code> audit helper that is not registered) is the
+load-bearing verification gate that protects this goal.</p>
 <h2 id="layered-architecture">Layered architecture<a class="headerlink" href="#layered-architecture" title="Permanent link">&para;</a></h2>
 <div class="highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>┌─ Foundation (no clinosim deps) ──────────────────────────┐
 </span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>│  clinosim/codes/       international code systems        │
@@ -2411,11 +2411,11 @@ goal.</p>
 </span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>│  diagnosis    Bayesian differential diagnosis            │
 </span><span id="__span-0-14"><a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>│  procedure    surgical + bedside procedures + rehab      │
 </span><span id="__span-0-15"><a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>│  encounter    inpatient/ED/outpatient YAML protocols     │
-</span><span id="__span-0-16"><a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a>│  disease      32 disease YAML protocols                  │
+</span><span id="__span-0-16"><a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a>│  disease      36 disease YAML protocols                  │
 </span><span id="__span-0-17"><a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a>└──────────────────────────────────────────────────────────┘
 </span><span id="__span-0-18"><a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a>            ↓                ↓               ↓
 </span><span id="__span-0-19"><a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a>┌─ Population &amp; activation ────────────────────────────────┐
-</span><span id="__span-0-20"><a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a>│  population   demographics + life events                 │
+</span><span id="__span-0-20"><a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a>│  population   demographics + life events + mortality     │
 </span><span id="__span-0-21"><a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a>│  patient      Layer 1 → Layer 2 activation               │
 </span><span id="__span-0-22"><a id="__codelineno-0-22" name="__codelineno-0-22" href="#__codelineno-0-22"></a>│  identity     JP insurance + national ID (opt-in)        │
 </span><span id="__span-0-23"><a id="__codelineno-0-23" name="__codelineno-0-23" href="#__codelineno-0-23"></a>│  pediatric    pediatric encounter emission (Issue #760)  │
@@ -2430,36 +2430,41 @@ goal.</p>
 </span><span id="__span-0-32"><a id="__codelineno-0-32" name="__codelineno-0-32" href="#__codelineno-0-32"></a>│  POST_POPULATION stage (per-patient, post-demographics): │
 </span><span id="__span-0-33"><a id="__codelineno-0-33" name="__codelineno-0-33" href="#__codelineno-0-33"></a>│  allergy(10)      15% overall + category-weighted allergen│
 </span><span id="__span-0-34"><a id="__codelineno-0-34" name="__codelineno-0-34" href="#__codelineno-0-34"></a>│  identity(10)     JP insurance + national ID (JP-gated)  │
-</span><span id="__span-0-35"><a id="__codelineno-0-35" name="__codelineno-0-35" href="#__codelineno-0-35"></a>│                                                          │
-</span><span id="__span-0-36"><a id="__codelineno-0-36" name="__codelineno-0-36" href="#__codelineno-0-36"></a>│  POST_ENCOUNTER stage (per-encounter, post-loop):        │
-</span><span id="__span-0-37"><a id="__codelineno-0-37" name="__codelineno-0-37" href="#__codelineno-0-37"></a>│  device(70)       CVC / catheter / ventilator placement  │
-</span><span id="__span-0-38"><a id="__codelineno-0-38" name="__codelineno-0-38" href="#__codelineno-0-38"></a>│  hai(80)          CLABSI / CAUTI / VAP + Phase 3a WBC/CRP│
-</span><span id="__span-0-39"><a id="__codelineno-0-39" name="__codelineno-0-39" href="#__codelineno-0-39"></a>│  antibiotic(85)   HAI empirical + narrow de-escalation   │
-</span><span id="__span-0-40"><a id="__codelineno-0-40" name="__codelineno-0-40" href="#__codelineno-0-40"></a>│  imaging(90)      ImagingStudy metadata chain (AD-62)    │
-</span><span id="__span-0-41"><a id="__codelineno-0-41" name="__codelineno-0-41" href="#__codelineno-0-41"></a>│  triage(93)       JTAS/ESI level + arrival_mode (ED-only)│
-</span><span id="__span-0-42"><a id="__codelineno-0-42" name="__codelineno-0-42" href="#__codelineno-0-42"></a>│  nursing_assignment(94)   primary nurse                  │
-</span><span id="__span-0-43"><a id="__codelineno-0-43" name="__codelineno-0-43" href="#__codelineno-0-43"></a>│  document(95)     ClinicalDocument stubs + ClinicalImpression│
-</span><span id="__span-0-44"><a id="__codelineno-0-44" name="__codelineno-0-44" href="#__codelineno-0-44"></a>│                                                          │
-</span><span id="__span-0-45"><a id="__codelineno-0-45" name="__codelineno-0-45" href="#__codelineno-0-45"></a>│  POST_RECORDS stage (cross-record, post-all):            │
-</span><span id="__span-0-46"><a id="__codelineno-0-46" name="__codelineno-0-46" href="#__codelineno-0-46"></a>│  nursing(20)      NEWS2 / GCS / Braden / Morse           │
-</span><span id="__span-0-47"><a id="__codelineno-0-47" name="__codelineno-0-47" href="#__codelineno-0-47"></a>│                   (this is observation-layer nursing_flowsheets,│
-</span><span id="__span-0-48"><a id="__codelineno-0-48" name="__codelineno-0-48" href="#__codelineno-0-48"></a>│                   NOT nursing_assignment)                │
-</span><span id="__span-0-49"><a id="__codelineno-0-49" name="__codelineno-0-49" href="#__codelineno-0-49"></a>│  immunization(30) CVX vaccine history                    │
-</span><span id="__span-0-50"><a id="__codelineno-0-50" name="__codelineno-0-50" href="#__codelineno-0-50"></a>│  family_history(40) first-degree relative history        │
-</span><span id="__span-0-51"><a id="__codelineno-0-51" name="__codelineno-0-51" href="#__codelineno-0-51"></a>│  code_status(50)  DNR / Full Code resuscitation status   │
-</span><span id="__span-0-52"><a id="__codelineno-0-52" name="__codelineno-0-52" href="#__codelineno-0-52"></a>│  care_level(60)   JP 要介護度 (JP only)                  │
-</span><span id="__span-0-53"><a id="__codelineno-0-53" name="__codelineno-0-53" href="#__codelineno-0-53"></a>│  medication_monitoring(65) chronic-med → labs (Issue #757)│
-</span><span id="__span-0-54"><a id="__codelineno-0-54" name="__codelineno-0-54" href="#__codelineno-0-54"></a>│  health_checkup(70) JP 事業者健診 (JP only, opt-in)      │
-</span><span id="__span-0-55"><a id="__codelineno-0-55" name="__codelineno-0-55" href="#__codelineno-0-55"></a>└──────────────────────────────────────────────────────────┘
-</span><span id="__span-0-56"><a id="__codelineno-0-56" name="__codelineno-0-56" href="#__codelineno-0-56"></a>            ↓                ↓               ↓
-</span><span id="__span-0-57"><a id="__codelineno-0-57" name="__codelineno-0-57" href="#__codelineno-0-57"></a>┌─ Output ─────────────────────────────────────────────────┐
-</span><span id="__span-0-58"><a id="__codelineno-0-58" name="__codelineno-0-58" href="#__codelineno-0-58"></a>│  output       CIF → FHIR R4 NDJSON / CSV adapters        │
-</span><span id="__span-0-59"><a id="__codelineno-0-59" name="__codelineno-0-59" href="#__codelineno-0-59"></a>│  llm_service  optional narrative generation (Stage 2)    │
-</span><span id="__span-0-60"><a id="__codelineno-0-60" name="__codelineno-0-60" href="#__codelineno-0-60"></a>│  validator    realism benchmarks + consistency checks    │
-</span><span id="__span-0-61"><a id="__codelineno-0-61" name="__codelineno-0-61" href="#__codelineno-0-61"></a>└──────────────────────────────────────────────────────────┘
+</span><span id="__span-0-35"><a id="__codelineno-0-35" name="__codelineno-0-35" href="#__codelineno-0-35"></a>│  metabolic(15-18) E66 / E88.81 / K76.0 / G47.30 from BMI │
+</span><span id="__span-0-36"><a id="__codelineno-0-36" name="__codelineno-0-36" href="#__codelineno-0-36"></a>│                                                          │
+</span><span id="__span-0-37"><a id="__codelineno-0-37" name="__codelineno-0-37" href="#__codelineno-0-37"></a>│  POST_ENCOUNTER stage (per-encounter, post-loop):        │
+</span><span id="__span-0-38"><a id="__codelineno-0-38" name="__codelineno-0-38" href="#__codelineno-0-38"></a>│  device(70)       CVC / catheter / ventilator placement  │
+</span><span id="__span-0-39"><a id="__codelineno-0-39" name="__codelineno-0-39" href="#__codelineno-0-39"></a>│  prophylaxis(75)  DVT/VTE chemoprophylaxis (stay ≥ 48 h) │
+</span><span id="__span-0-40"><a id="__codelineno-0-40" name="__codelineno-0-40" href="#__codelineno-0-40"></a>│  hai(80)          CLABSI / CAUTI / VAP + Phase 3a WBC/CRP│
+</span><span id="__span-0-41"><a id="__codelineno-0-41" name="__codelineno-0-41" href="#__codelineno-0-41"></a>│  antibiotic(85)   HAI empirical + narrow de-escalation   │
+</span><span id="__span-0-42"><a id="__codelineno-0-42" name="__codelineno-0-42" href="#__codelineno-0-42"></a>│  imaging(90)      ImagingStudy metadata chain (AD-62)    │
+</span><span id="__span-0-43"><a id="__codelineno-0-43" name="__codelineno-0-43" href="#__codelineno-0-43"></a>│  discontinue_flip(91)  DISCONTINUE marker → STOPPED      │
+</span><span id="__span-0-44"><a id="__codelineno-0-44" name="__codelineno-0-44" href="#__codelineno-0-44"></a>│  newborn(92)      birth-admission workup (Vit K, screens)│
+</span><span id="__span-0-45"><a id="__codelineno-0-45" name="__codelineno-0-45" href="#__codelineno-0-45"></a>│  triage(93)       JTAS/ESI level + arrival_mode (ED-only)│
+</span><span id="__span-0-46"><a id="__codelineno-0-46" name="__codelineno-0-46" href="#__codelineno-0-46"></a>│  lab_derived_dx(94)  KDIGO-3 Cr → N17.9 working dx       │
+</span><span id="__span-0-47"><a id="__codelineno-0-47" name="__codelineno-0-47" href="#__codelineno-0-47"></a>│  nursing_assignment(94)   primary nurse                  │
+</span><span id="__span-0-48"><a id="__codelineno-0-48" name="__codelineno-0-48" href="#__codelineno-0-48"></a>│  document(95)     ClinicalDocument stubs + ClinicalImpression│
+</span><span id="__span-0-49"><a id="__codelineno-0-49" name="__codelineno-0-49" href="#__codelineno-0-49"></a>│                                                          │
+</span><span id="__span-0-50"><a id="__codelineno-0-50" name="__codelineno-0-50" href="#__codelineno-0-50"></a>│  POST_RECORDS stage (cross-record, post-all):            │
+</span><span id="__span-0-51"><a id="__codelineno-0-51" name="__codelineno-0-51" href="#__codelineno-0-51"></a>│  nursing(20)      NEWS2 / GCS / Braden / Morse           │
+</span><span id="__span-0-52"><a id="__codelineno-0-52" name="__codelineno-0-52" href="#__codelineno-0-52"></a>│                   (this is observation-layer nursing_flowsheets,│
+</span><span id="__span-0-53"><a id="__codelineno-0-53" name="__codelineno-0-53" href="#__codelineno-0-53"></a>│                   NOT nursing_assignment)                │
+</span><span id="__span-0-54"><a id="__codelineno-0-54" name="__codelineno-0-54" href="#__codelineno-0-54"></a>│  immunization(30) CVX vaccine history                    │
+</span><span id="__span-0-55"><a id="__codelineno-0-55" name="__codelineno-0-55" href="#__codelineno-0-55"></a>│  family_history(40) first-degree relative history        │
+</span><span id="__span-0-56"><a id="__codelineno-0-56" name="__codelineno-0-56" href="#__codelineno-0-56"></a>│  code_status(50)  DNR / Full Code resuscitation status   │
+</span><span id="__span-0-57"><a id="__codelineno-0-57" name="__codelineno-0-57" href="#__codelineno-0-57"></a>│  care_level(60)   JP 要介護度 (JP only)                  │
+</span><span id="__span-0-58"><a id="__codelineno-0-58" name="__codelineno-0-58" href="#__codelineno-0-58"></a>│  medication_monitoring(65) chronic-med → labs (Issue #757)│
+</span><span id="__span-0-59"><a id="__codelineno-0-59" name="__codelineno-0-59" href="#__codelineno-0-59"></a>│  health_checkup(70) JP 事業者健診 (JP only, opt-in)      │
+</span><span id="__span-0-60"><a id="__codelineno-0-60" name="__codelineno-0-60" href="#__codelineno-0-60"></a>└──────────────────────────────────────────────────────────┘
+</span><span id="__span-0-61"><a id="__codelineno-0-61" name="__codelineno-0-61" href="#__codelineno-0-61"></a>            ↓                ↓               ↓
+</span><span id="__span-0-62"><a id="__codelineno-0-62" name="__codelineno-0-62" href="#__codelineno-0-62"></a>┌─ Output ─────────────────────────────────────────────────┐
+</span><span id="__span-0-63"><a id="__codelineno-0-63" name="__codelineno-0-63" href="#__codelineno-0-63"></a>│  output       CIF → FHIR R4 NDJSON / CSV adapters        │
+</span><span id="__span-0-64"><a id="__codelineno-0-64" name="__codelineno-0-64" href="#__codelineno-0-64"></a>│  llm_service  optional narrative generation (Stage 2)    │
+</span><span id="__span-0-65"><a id="__codelineno-0-65" name="__codelineno-0-65" href="#__codelineno-0-65"></a>│  validator    realism benchmarks + consistency checks    │
+</span><span id="__span-0-66"><a id="__codelineno-0-66" name="__codelineno-0-66" href="#__codelineno-0-66"></a>└──────────────────────────────────────────────────────────┘
 </span></code></pre></div>
 <h2 id="module-inventory">Module inventory<a class="headerlink" href="#module-inventory" title="Permanent link">&para;</a></h2>
-<p>39 modules total (top-level packages under <code>clinosim/modules/</code>; the
+<p>38 modules total (top-level packages under <code>clinosim/modules/</code>; the
 table below additionally lists the <code>codes</code> / <code>locale</code> foundation
 packages). Every entry links to the per-module README (which follows
 the canonical 11-section structure).</p>
@@ -2490,7 +2495,7 @@ the canonical 11-section structure).</p>
 </tr>
 <tr>
 <td><a href="../../clinosim/modules/physiology/README.md">physiology</a></td>
-<td>14-variable physiology state + lab/vital derivation</td>
+<td>19-variable physiology state + lab/vital derivation</td>
 <td>simulation</td>
 <td>— (uses caller RNG)</td>
 <td>—</td>
@@ -2507,7 +2512,7 @@ the canonical 11-section structure).</p>
 <td>lab / medication / imaging order placement + AD-60 audit</td>
 <td>simulation</td>
 <td>— (per-order via AD-59)</td>
-<td>— (audit registered)</td>
+<td>POST_ENCOUNTER 91 (<code>discontinue_flip</code>) + audit registered</td>
 </tr>
 <tr>
 <td><a href="../../clinosim/modules/clinical_course/README.md">clinical_course</a></td>
@@ -2521,7 +2526,7 @@ the canonical 11-section structure).</p>
 <td>Bayesian differential + Issue #551 non-specific codes</td>
 <td>simulation</td>
 <td>—</td>
-<td>—</td>
+<td>POST_ENCOUNTER 94 (<code>lab_derived_dx</code>, RNG-free)</td>
 </tr>
 <tr>
 <td><a href="../../clinosim/modules/procedure/README.md">procedure</a></td>
@@ -2532,14 +2537,14 @@ the canonical 11-section structure).</p>
 </tr>
 <tr>
 <td><a href="../../clinosim/modules/encounter/README.md">encounter</a></td>
-<td>encounter registry (46 YAML) + inpatient daily-cycle timeline</td>
+<td>encounter registry (51 YAML) + inpatient daily-cycle timeline</td>
 <td>simulation</td>
 <td>—</td>
 <td>—</td>
 </tr>
 <tr>
 <td><a href="../../clinosim/modules/disease/README.md">disease</a></td>
-<td>disease registry (32 YAML) + severity + acuity + drug-vocabulary</td>
+<td>disease registry (36 YAML) + severity + acuity + drug-vocabulary</td>
 <td>simulation</td>
 <td>—</td>
 <td>—</td>
@@ -2553,7 +2558,7 @@ the canonical 11-section structure).</p>
 </tr>
 <tr>
 <td><a href="../../clinosim/modules/population/README.md">population</a></td>
-<td>demographics + life events (Layer 1)</td>
+<td>demographics + life events (Layer 1) + annual aging / community mortality (<code>aging.advance_population</code> + <code>mortality.py</code>; the former <code>natural_death</code> module was folded in here by #2167)</td>
 <td>population</td>
 <td>— (pipeline head)</td>
 <td>—</td>
@@ -2599,13 +2604,6 @@ the canonical 11-section structure).</p>
 <td>population</td>
 <td>—</td>
 <td>—</td>
-</tr>
-<tr>
-<td><a href="../../clinosim/modules/natural_death/README.md">natural_death</a></td>
-<td>actuarial mortality sampling (US CDC + JP MHLW life tables) + <code>is_alive_at</code> gating (Issue #1114)</td>
-<td>population</td>
-<td><code>0x4E44</code> ("ND")</td>
-<td>POST_POPULATION 20</td>
 </tr>
 <tr>
 <td><a href="../../clinosim/modules/metabolic/README.md">metabolic</a></td>
@@ -2828,17 +2826,19 @@ the canonical 11-section structure).</p>
 <h2 id="typical-call-chains">Typical call chains<a class="headerlink" href="#typical-call-chains" title="Permanent link">&para;</a></h2>
 <h3 id="chain-1-population--patient-activation">Chain 1: Population + patient activation<a class="headerlink" href="#chain-1-population--patient-activation" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>simulator/engine.py: run_beta()
-</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>  ↓ load_population()          ─ population/engine.py (generate_population)
-</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>  ↓ generate_monthly_events()  ─ population/engine.py (per year × month)
-</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>  ↓ generate_healthcare_calendar()  ─ population/engine.py (per year)
-</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>  ↓ assign_identities()        ─ identity/assign.py  (POST_POPULATION order=10, JP-gated)
-</span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>  ↓ allergy_enricher()         ─ allergy/engine.py   (POST_POPULATION order=10)
-</span><span id="__span-2-7"><a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a>  ↓ activate_patient()         ─ patient/activator.py  (per person, exactly-once via cache)
-</span><span id="__span-2-8"><a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a>      ├── _derive_home_medications()  ─ locale/shared/chronic_medications.yaml
-</span><span id="__span-2-9"><a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a>      └── PatientProfile populated (chronic_conditions, smoking_status, alcohol_use, …)
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>  ↓ generate_population()      ─ population/engine.py
+</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>  ↓ run_stage(POST_POPULATION) ─ allergy_enricher() (order=10), assign_identities() (order=10, JP-gated), metabolic (15-18)
+</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>  ↓ run_forward_loop()         ─ simulator/phases/_forward_loop.py (one month at a time)
+</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>      ├── advance_population()        ─ population/aging.py (each January: aging + community mortality via population/mortality.py)
+</span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>      ├── calendar_events_for_year()  ─ phases/_healthcare_calendar.py → population/engine.py generate_healthcare_calendar()
+</span><span id="__span-2-7"><a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a>      ├── generate_monthly_events()   ─ population/engine.py (per month)
+</span><span id="__span-2-8"><a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a>      ├── EDSlotSampler               ─ phases/_ed_slot.py (per-month ED slots)
+</span><span id="__span-2-9"><a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a>      └── EventQueue dispatch → activate_patient()  ─ patient/activator.py (per person, exactly-once via cache)
+</span><span id="__span-2-10"><a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a>            ├── _derive_home_medications()  ─ locale/shared/chronic_medications.yaml
+</span><span id="__span-2-11"><a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a>            └── PatientProfile populated (chronic_conditions, smoking_status, alcohol_use, …)
 </span></code></pre></div>
 <h3 id="chain-2-lab-derivation-most-touched-code-path">Chain 2: Lab derivation (most-touched code path)<a class="headerlink" href="#chain-2-lab-derivation-most-touched-code-path" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>simulator/inpatient.py: _run_daily_loop()
+<div class="highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>simulator/daily_loop.py: _run_daily_loop()
 </span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>  ↓ scenario_flags_from_protocol(protocol)             ─ physiology/engine.py
 </span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>  ↓ medication_flags_from_context(patient, all_orders, admission_date, day)
 </span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>                                                        ─ physiology/engine.py
@@ -2848,15 +2848,15 @@ the canonical 11-section structure).</p>
 </span><span id="__span-3-8"><a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a>  ↓ OrderResult populated → patient_record.lab_results
 </span></code></pre></div>
 <h3 id="chain-3-fhir-export">Chain 3: FHIR export<a class="headerlink" href="#chain-3-fhir-export" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>CLI: clinosim export-fhir --format fhir-r4
-</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>  ↓ output/fhir_r4/__init__.py: convert_cif_to_fhir()
+<div class="highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>CLI: clinosim export-fhir --cif-dir &lt;cif-dir&gt;   (or `simulate --format fhir-r4`)
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>  ↓ output/fhir_r4/builder.py: convert_cif_to_fhir()
 </span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>  ↓ for each CIF patient:
 </span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a>    ↓ build BundleContext (record + country + roster + narrative merge)
 </span><span id="__span-4-5"><a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a>    ↓ for each builder in _BUNDLE_BUILDERS:
 </span><span id="__span-4-6"><a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a>        builder(ctx) → list[dict]  (FHIR resources)
 </span><span id="__span-4-7"><a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a>    ↓ post_process pipeline (datetime → specimen → profile → populate → strip)
 </span><span id="__span-4-8"><a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a>    ↓ write each resource to &lt;ResourceType&gt;.ndjson + sort by id
-</span><span id="__span-4-9"><a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a>  ↓ manifest.json + _facility.json + _generator_metadata.json emitted
+</span><span id="__span-4-9"><a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a>  ↓ manifest.json + _generator_metadata.json emitted
 </span></code></pre></div>
 <p>Adding a FHIR resource: register a new builder via
 <code>register_bundle_builder()</code> (AD-56) — never edit <code>_BUNDLE_BUILDERS</code>
@@ -2874,12 +2874,12 @@ directly. See
 <tbody>
 <tr>
 <td>Add scenario flag (<code>causes_X</code>)</td>
-<td><code>physiology.engine</code> + 4 <code>derive_lab_values</code> call sites</td>
+<td><code>physiology.engine</code> + 5 <code>derive_lab_values</code> call sites</td>
 <td>Helper-mediated via <code>scenario_flags_from_protocol</code>; see <a href="../../SCENARIO_FLAGS.md"><code>SCENARIO_FLAGS.md</code></a></td>
 </tr>
 <tr>
 <td>Add medication-driven lab effect</td>
-<td><code>physiology.engine</code> + 4 sites</td>
+<td><code>physiology.engine</code> + 5 sites</td>
 <td>Helper-mediated via <code>medication_flags_from_context</code>; see <a href="../../SCENARIO_FLAGS.md"><code>SCENARIO_FLAGS.md</code></a></td>
 </tr>
 <tr>
