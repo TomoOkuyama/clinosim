@@ -1,6 +1,6 @@
 # clinosim Module Map
 
-A single-page overview of clinosim's **39 modules** (counting rule:
+A single-page overview of clinosim's **38 modules** (counting rule:
 top-level packages under `clinosim/modules/`; non-package files like
 `_shared.py` excluded, and `nursing_assignment` shares
 `clinosim/modules/nursing/` with the observation-layer nursing
@@ -26,7 +26,7 @@ Output surfaces / Testing / Ownership) — see the module index at
 ## TL;DR
 
 clinosim is a population-driven, physiology-based synthetic EHR data
-simulator, organized into **39 themed modules** (packages under
+simulator, organized into **38 themed modules** (packages under
 `clinosim/modules/`) across four layers:
 
 1. **Foundation** — `clinosim/codes/` + `clinosim/locale/` +
@@ -43,10 +43,10 @@ enrichers → CIF (canonical intermediate format) → output adapter`.
 
 **Project goal**: convert CIF data into **FHIR R4 + JP Core compliant**
 output while preserving clinical realism and JP localisation quality.
-The AD-60 audit framework (seven per-module plug-ins today:
-`antibiotic`, `document`, `drug_safety`, `hai`, `imaging`, `order`,
-`triage`) is the load-bearing verification gate that protects this
-goal.
+The AD-60 audit framework (six registered per-module plug-ins today:
+`antibiotic`, `document`, `hai`, `imaging`, `order`, `triage`; plus a
+stand-alone `drug_safety` audit helper that is not registered) is the
+load-bearing verification gate that protects this goal.
 
 ## Layered architecture
 
@@ -66,11 +66,11 @@ goal.
 │  diagnosis    Bayesian differential diagnosis            │
 │  procedure    surgical + bedside procedures + rehab      │
 │  encounter    inpatient/ED/outpatient YAML protocols     │
-│  disease      32 disease YAML protocols                  │
+│  disease      36 disease YAML protocols                  │
 └──────────────────────────────────────────────────────────┘
             ↓                ↓               ↓
 ┌─ Population & activation ────────────────────────────────┐
-│  population   demographics + life events                 │
+│  population   demographics + life events + mortality     │
 │  patient      Layer 1 → Layer 2 activation               │
 │  identity     JP insurance + national ID (opt-in)        │
 │  pediatric    pediatric encounter emission (Issue #760)  │
@@ -85,13 +85,18 @@ goal.
 │  POST_POPULATION stage (per-patient, post-demographics): │
 │  allergy(10)      15% overall + category-weighted allergen│
 │  identity(10)     JP insurance + national ID (JP-gated)  │
+│  metabolic(15-18) E66 / E88.81 / K76.0 / G47.30 from BMI │
 │                                                          │
 │  POST_ENCOUNTER stage (per-encounter, post-loop):        │
 │  device(70)       CVC / catheter / ventilator placement  │
+│  prophylaxis(75)  DVT/VTE chemoprophylaxis (stay ≥ 48 h) │
 │  hai(80)          CLABSI / CAUTI / VAP + Phase 3a WBC/CRP│
 │  antibiotic(85)   HAI empirical + narrow de-escalation   │
 │  imaging(90)      ImagingStudy metadata chain (AD-62)    │
+│  discontinue_flip(91)  DISCONTINUE marker → STOPPED      │
+│  newborn(92)      birth-admission workup (Vit K, screens)│
 │  triage(93)       JTAS/ESI level + arrival_mode (ED-only)│
+│  lab_derived_dx(94)  KDIGO-3 Cr → N17.9 working dx       │
 │  nursing_assignment(94)   primary nurse                  │
 │  document(95)     ClinicalDocument stubs + ClinicalImpression│
 │                                                          │
@@ -116,7 +121,7 @@ goal.
 
 ## Module inventory
 
-39 modules total (top-level packages under `clinosim/modules/`; the
+38 modules total (top-level packages under `clinosim/modules/`; the
 table below additionally lists the `codes` / `locale` foundation
 packages). Every entry links to the per-module README (which follows
 the canonical 11-section structure).
@@ -125,23 +130,22 @@ the canonical 11-section structure).
 |---|---|---|---|---|
 | [codes](clinosim/codes/) | international code lookup (LOINC/SNOMED/ICD/RxNorm/JLAC10/CVX/JJ1017 K-code) | foundation | — | — |
 | [locale](clinosim/locale/) | country-specific data (names / addresses / reference ranges / code_mapping) | foundation | — | — |
-| [physiology](clinosim/modules/physiology/README.md) | 14-variable physiology state + lab/vital derivation | simulation | — (uses caller RNG) | — |
+| [physiology](clinosim/modules/physiology/README.md) | 19-variable physiology state + lab/vital derivation | simulation | — (uses caller RNG) | — |
 | [observation](clinosim/modules/observation/README.md) | lab / vital / microbiology + nursing flowsheet (NEWS2/GCS/Braden/Morse) | simulation | nursing `0x4E55` (shared) | POST_RECORDS 20 (`nursing`) |
-| [order](clinosim/modules/order/README.md) | lab / medication / imaging order placement + AD-60 audit | simulation | — (per-order via AD-59) | — (audit registered) |
+| [order](clinosim/modules/order/README.md) | lab / medication / imaging order placement + AD-60 audit | simulation | — (per-order via AD-59) | POST_ENCOUNTER 91 (`discontinue_flip`) + audit registered |
 | [clinical_course](clinosim/modules/clinical_course/README.md) | trajectory archetype + daily `StateChangeDirective` | simulation | — (uses caller RNG) | — |
-| [diagnosis](clinosim/modules/diagnosis/README.md) | Bayesian differential + Issue #551 non-specific codes | simulation | — | — |
+| [diagnosis](clinosim/modules/diagnosis/README.md) | Bayesian differential + Issue #551 non-specific codes | simulation | — | POST_ENCOUNTER 94 (`lab_derived_dx`, RNG-free) |
 | [procedure](clinosim/modules/procedure/README.md) | surgery + bedside + rehab generation | simulation | — (uses caller RNG) | — |
-| [encounter](clinosim/modules/encounter/README.md) | encounter registry (46 YAML) + inpatient daily-cycle timeline | simulation | — | — |
-| [disease](clinosim/modules/disease/README.md) | disease registry (32 YAML) + severity + acuity + drug-vocabulary | simulation | — | — |
+| [encounter](clinosim/modules/encounter/README.md) | encounter registry (51 YAML) + inpatient daily-cycle timeline | simulation | — | — |
+| [disease](clinosim/modules/disease/README.md) | disease registry (36 YAML) + severity + acuity + drug-vocabulary | simulation | — | — |
 | [longitudinal](clinosim/modules/longitudinal/README.md) | year-indexed trajectory engine (AR(1) HbA1c / Markov stage ladders / event firing — Phase 4a-4d chronic evolution) | simulation | — (uses caller RNG per `advance_one_year`) | — (library, consumed by aging pass) |
-| [population](clinosim/modules/population/README.md) | demographics + life events (Layer 1) | population | — (pipeline head) | — |
+| [population](clinosim/modules/population/README.md) | demographics + life events (Layer 1) + annual aging / community mortality (`aging.advance_population` + `mortality.py`; the former `natural_death` module was folded in here by #2167) | population | — (pipeline head) | — |
 | [patient](clinosim/modules/patient/README.md) | Layer 1 → Layer 2 activation + chronic meds | population | — (caller-owned cache) | — |
 | [identity](clinosim/modules/identity/README.md) | JP insurance + national ID (opt-in) | population | `540054` (decimal, grandfathered) | POST_POPULATION 10 (JP-gated) |
 | [pediatric](clinosim/modules/pediatric/README.md) | pediatric encounter emission (Issue #760) | population | — (population calendar hook) | — |
 | [staff](clinosim/modules/staff/README.md) | roster + `assign_staff` per-event dispatch | population | — (uses caller RNG) | — |
 | [facility](clinosim/modules/facility/README.md) | hospital operational state + M/M/1-style queueing | population | — | — |
 | [healthcare_system](clinosim/modules/healthcare_system/README.md) | country-config loader (leaf) | population | — | — |
-| [natural_death](clinosim/modules/natural_death/README.md) | actuarial mortality sampling (US CDC + JP MHLW life tables) + `is_alive_at` gating (Issue #1114) | population | `0x4E44` ("ND") | POST_POPULATION 20 |
 | [metabolic](clinosim/modules/metabolic/README.md) | BMI-derived chronic conditions (E66 obesity / E88.81 syndrome / K76.0 NAFLD / G47.30 OSA) — Issue #1137 cluster 2 | enrichment | — (deterministic SHA Bernoulli) | POST_POPULATION 15-18 (4 axes) |
 | [family_history](clinosim/modules/family_history/README.md) | first-degree relative disease history | enrichment | `0x4648` ("FH") | POST_RECORDS 40 |
 | [sdoh](clinosim/modules/sdoh/README.md) | smoking + alcohol SNOMED reference (data-only) | enrichment | — | — |
@@ -237,20 +241,22 @@ simulator/  (top-level orchestration)
 
 ```
 simulator/engine.py: run_beta()
-  ↓ load_population()          ─ population/engine.py (generate_population)
-  ↓ generate_monthly_events()  ─ population/engine.py (per year × month)
-  ↓ generate_healthcare_calendar()  ─ population/engine.py (per year)
-  ↓ assign_identities()        ─ identity/assign.py  (POST_POPULATION order=10, JP-gated)
-  ↓ allergy_enricher()         ─ allergy/engine.py   (POST_POPULATION order=10)
-  ↓ activate_patient()         ─ patient/activator.py  (per person, exactly-once via cache)
-      ├── _derive_home_medications()  ─ locale/shared/chronic_medications.yaml
-      └── PatientProfile populated (chronic_conditions, smoking_status, alcohol_use, …)
+  ↓ generate_population()      ─ population/engine.py
+  ↓ run_stage(POST_POPULATION) ─ allergy_enricher() (order=10), assign_identities() (order=10, JP-gated), metabolic (15-18)
+  ↓ run_forward_loop()         ─ simulator/phases/_forward_loop.py (one month at a time)
+      ├── advance_population()        ─ population/aging.py (each January: aging + community mortality via population/mortality.py)
+      ├── calendar_events_for_year()  ─ phases/_healthcare_calendar.py → population/engine.py generate_healthcare_calendar()
+      ├── generate_monthly_events()   ─ population/engine.py (per month)
+      ├── EDSlotSampler               ─ phases/_ed_slot.py (per-month ED slots)
+      └── EventQueue dispatch → activate_patient()  ─ patient/activator.py (per person, exactly-once via cache)
+            ├── _derive_home_medications()  ─ locale/shared/chronic_medications.yaml
+            └── PatientProfile populated (chronic_conditions, smoking_status, alcohol_use, …)
 ```
 
 ### Chain 2: Lab derivation (most-touched code path)
 
 ```
-simulator/inpatient.py: _run_daily_loop()
+simulator/daily_loop.py: _run_daily_loop()
   ↓ scenario_flags_from_protocol(protocol)             ─ physiology/engine.py
   ↓ medication_flags_from_context(patient, all_orders, admission_date, day)
                                                         ─ physiology/engine.py
@@ -263,15 +269,15 @@ simulator/inpatient.py: _run_daily_loop()
 ### Chain 3: FHIR export
 
 ```
-CLI: clinosim export-fhir --format fhir-r4
-  ↓ output/fhir_r4/__init__.py: convert_cif_to_fhir()
+CLI: clinosim export-fhir --cif-dir <cif-dir>   (or `simulate --format fhir-r4`)
+  ↓ output/fhir_r4/builder.py: convert_cif_to_fhir()
   ↓ for each CIF patient:
     ↓ build BundleContext (record + country + roster + narrative merge)
     ↓ for each builder in _BUNDLE_BUILDERS:
         builder(ctx) → list[dict]  (FHIR resources)
     ↓ post_process pipeline (datetime → specimen → profile → populate → strip)
     ↓ write each resource to <ResourceType>.ndjson + sort by id
-  ↓ manifest.json + _facility.json + _generator_metadata.json emitted
+  ↓ manifest.json + _generator_metadata.json emitted
 ```
 
 Adding a FHIR resource: register a new builder via
@@ -283,8 +289,8 @@ directly. See
 
 | Change | Affects | Notes |
 |---|---|---|
-| Add scenario flag (`causes_X`) | `physiology.engine` + 4 `derive_lab_values` call sites | Helper-mediated via `scenario_flags_from_protocol`; see [`SCENARIO_FLAGS.md`](SCENARIO_FLAGS.md) |
-| Add medication-driven lab effect | `physiology.engine` + 4 sites | Helper-mediated via `medication_flags_from_context`; see [`SCENARIO_FLAGS.md`](SCENARIO_FLAGS.md) |
+| Add scenario flag (`causes_X`) | `physiology.engine` + 5 `derive_lab_values` call sites | Helper-mediated via `scenario_flags_from_protocol`; see [`SCENARIO_FLAGS.md`](SCENARIO_FLAGS.md) |
+| Add medication-driven lab effect | `physiology.engine` + 5 sites | Helper-mediated via `medication_flags_from_context`; see [`SCENARIO_FLAGS.md`](SCENARIO_FLAGS.md) |
 | Add new code (LOINC/SNOMED/ICD/…) | `codes/data/<system>.yaml` (`en` + optional `ja`) | See [`clinosim/codes/README.md`](clinosim/codes/README.md) |
 | Add new FHIR resource type | New builder file under `output/fhir_r4/<domain>/` + `register_bundle_builder()` | See [`clinosim/modules/output/fhir_r4/README.md`](clinosim/modules/output/fhir_r4/README.md) |
 | Add new disease | New disease YAML + register in `locale/<country>/demographics.yaml` | See [`clinosim/modules/disease/README.md`](clinosim/modules/disease/README.md) |

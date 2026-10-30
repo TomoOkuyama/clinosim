@@ -21,7 +21,7 @@ master-RNG-cascade defect documented in spec
 | `myocardial_injury` (alias: `causes_myocardial_injury` on disease YAML) | scenario | `acute_mi.yaml` | `physiology.engine.derive_lab_values` | Troponin_I → ACS-grade (~10-100 ng/mL); CK_MB also elevates |
 | `causes_vte` | scenario | `pulmonary_embolism.yaml`, `deep_vein_thrombosis.yaml`, `cerebral_infarction.yaml` (embolic) | `derive_lab_values` | D_dimer → VTE-positive (clamp 0.15-20 μg/mL FEU; PE/DVT/CI admit p50 ≥ 4) |
 | `on_warfarin` | medication | `PatientProfile.current_medications` (chronic AF/post-VTE) **OR** in-hospital warfarin order ≥ 3 days old (loading-dose rule) | `derive_lab_values` | PT_INR → therapeutic 2.5 + half-gain comorbidity perturbation; PT also (PT = 12 × PT_INR) |
-| `hai_inflammation_lift` | post-encounter (NOT a daily-loop flag) | `extensions["hai"]` populated by `hai` POST_ENCOUNTER enricher (Phase 3a) — CDC severity proxy (clabsi/vap 0.35, cauti 0.20) × ramp factor (`min(1.0, days_since_onset / 2.0)`) | `derive_lab_values` (kwarg) | `effective_infl = min(1.0, infl + lift)` routed only into CRP + WBC formulas. **Phase 3a NEVER calls `derive_lab_values` with this kwarg via the daily-loop merge**; instead `modules/hai/lab_lift.apply_hai_lab_lift` runs after the daily loop and applies a closed-form forward delta directly to existing obs.value (preserving noise + circadian). The kwarg exists so `_hai_lift_delta` can mirror the formula exactly. |
+| `hai_inflammation_lift` | post-encounter (NOT a daily-loop flag) | `extensions["hai"]` populated by `hai` POST_ENCOUNTER enricher (Phase 3a) — CDC severity proxy from `modules/hai/reference_data/hai_lab_lift.yaml` (currently clabsi/vap 0.40, cauti 0.20) × ramp factor (`min(1.0, days_since_onset / ramp_peak_days)`, `ramp_peak_days` = 1 in the same yaml) | `derive_lab_values` (kwarg) | `effective_infl = min(1.0, infl + lift)` routed only into CRP + WBC formulas. **Phase 3a NEVER calls `derive_lab_values` with this kwarg via the daily-loop merge**; instead `modules/hai/lab_lift.apply_hai_lab_lift` runs after the daily loop and applies a closed-form forward delta directly to existing obs.value (preserving noise + circadian). The kwarg exists so `_hai_lift_delta` can mirror the formula exactly. |
 
 ## Helper architecture
 
@@ -66,19 +66,21 @@ true_labs = derive_lab_values(state, sex=patient.sex, age=patient.age, **flags)
 record = CIFPatientRecord(...)
 run_stage(POST_ENCOUNTER, EnricherContext(config, master_seed, records=[record]))
 apply_hai_lab_lift(record=record, encounter=encounter,
-                   state_history=state_history, admission_time=admission_time)
+                   state_history=state_history, admission_time=admission_time,
+                   country=config.country)
 ```
 
 `apply_hai_lab_lift` internally calls the closed-form `_hai_lift_delta` (NOT `derive_lab_values`) so the 30+ analyte pipeline isn't re-run for every (HAI event × obs) pair. Phase 3b/c should reuse the same forward-delta pattern — antibiotic_flags_from_record etc. should be built only if the Phase 3b coupling genuinely needs daily-loop visibility, not preemptively.
 
-**4 derive_lab_values call sites** (all using this pattern after Phase 2b):
+**5 derive_lab_values call sites** (all using this pattern; the original Phase 2b set was 4, the monitoring enricher was added later):
 
 | Site | File | Purpose | medication context |
 |---|---|---|---|
-| Pass-1 lab loop | `simulator/inpatient.py:563-571` | daily inpatient labs | full (orders + day) |
-| unknown-condition site | `simulator/inpatient.py:~1701` | unknown-condition encounter labs | chronic-only |
-| ED admit | `simulator/emergency.py:126-130` | ED visit labs | chronic-only |
-| Outpatient followup | `simulator/outpatient.py:152-160` | chronic-disease followup labs | chronic-only |
+| Daily inpatient lab loop | `simulator/daily_loop.py::_run_daily_loop` (plus a second call for the 1-day-lagged CRP state) | daily inpatient labs | full (orders + day) |
+| unknown-condition site | `simulator/unknown_condition.py` | unknown-condition encounter labs | chronic-only (`scenario_flags_from_protocol(None)`) |
+| ED visit | `simulator/emergency.py` | ED visit labs | chronic-only |
+| Outpatient followup | `simulator/outpatient.py` | chronic-disease followup labs | chronic-only (`scenario_flags_from_protocol(None)`) |
+| Medication monitoring | `modules/monitoring/enricher.py` | chronic-med → monitoring labs (POST_RECORDS 65) | chronic-only (`scenario_flags_from_protocol(None)`) |
 
 ## Adding a new flag (5-step)
 
@@ -94,7 +96,7 @@ apply_hai_lab_lift(record=record, encounter=encounter,
 
 **NEVER** add `flag=value` directly at a call site — J5 prevention (see
 [AGENTS.md](AGENTS.md) "AD-55 enricher patterns"). The helper is the
-single edit point so adding a new flag automatically reaches all 4 sites
+single edit point so adding a new flag automatically reaches all 5 sites
 through the `**flags` splat.
 
 ## DOAC exclusion (Phase 2b clinical decision)

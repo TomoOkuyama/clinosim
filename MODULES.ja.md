@@ -1,6 +1,6 @@
 # clinosim モジュールマップ
 
-clinosim の **39 モジュール** (数え方: `clinosim/modules/` 配下の
+clinosim の **38 モジュール** (数え方: `clinosim/modules/` 配下の
 top-level package。`_shared.py` 等の非 package file は除く。
 `nursing_assignment` は observation-layer nursing flowsheet enricher
 と `clinosim/modules/nursing/` を共有) を 1 ページで俯瞰する。プロジェクト
@@ -26,7 +26,7 @@ Output surfaces / Testing / Ownership) に従う `README.md` +
 ## TL;DR
 
 clinosim は population 駆動 / physiology ベースの合成 EHR data
-simulator。`clinosim/modules/` 配下 **39 テーマ別モジュール**を
+simulator。`clinosim/modules/` 配下 **38 テーマ別モジュール**を
 4 層に組織:
 
 1. **Foundation** — `clinosim/codes/` + `clinosim/locale/` +
@@ -43,9 +43,9 @@ enrichers → CIF (canonical intermediate format) → output adapter`。
 
 **プロジェクト目標**: CIF データを **FHIR R4 + JP Core 準拠**に変換
 しつつ、臨床リアリズム + JP localisation 品質を保つ。AD-60 audit
-framework (現在 7 per-module plug-in: `antibiotic`, `document`,
-`drug_safety`, `hai`, `imaging`, `order`, `triage`) が本目標を守る
-load-bearing 検証 gate。
+framework (現在 registry 登録済み 6 per-module plug-in: `antibiotic`,
+`document`, `hai`, `imaging`, `order`, `triage`。加えて registry 未登録の
+単独 `drug_safety` audit helper) が本目標を守る load-bearing 検証 gate。
 
 ## レイヤー構造
 
@@ -64,11 +64,11 @@ load-bearing 検証 gate。
 │  diagnosis    Bayesian 鑑別診断                          │
 │  procedure    手術 + bedside 処置 + rehab                │
 │  encounter    入院 / ED / 外来 YAML protocol             │
-│  disease      32 疾患 YAML protocol                      │
+│  disease      36 疾患 YAML protocol                      │
 └──────────────────────────────────────────────────────────┘
             ↓                ↓               ↓
 ┌─ Population & activation ────────────────────────────────┐
-│  population   demographics + life event                  │
+│  population   demographics + life event + 死亡           │
 │  patient      Layer 1 → Layer 2 activation               │
 │  identity     JP 保険 + national ID (opt-in)             │
 │  pediatric    小児 encounter 発生 (Issue #760)           │
@@ -83,13 +83,18 @@ load-bearing 検証 gate。
 │  POST_POPULATION stage (患者単位、demographics 後):      │
 │  allergy(10)      15% 全体 gate + category-weighted allergen│
 │  identity(10)     JP 保険 + national ID (JP gate)        │
+│  metabolic(15-18) BMI 由来 E66 / E88.81 / K76.0 / G47.30 │
 │                                                          │
 │  POST_ENCOUNTER stage (encounter 単位、loop 後):         │
 │  device(70)       CVC / catheter / ventilator 配置       │
+│  prophylaxis(75)  DVT/VTE 化学的予防 (48h 以上の入院)    │
 │  hai(80)          CLABSI / CAUTI / VAP + Phase 3a WBC/CRP│
 │  antibiotic(85)   HAI empirical + narrow de-escalation   │
 │  imaging(90)      ImagingStudy metadata chain (AD-62)    │
+│  discontinue_flip(91)  DISCONTINUE marker → STOPPED      │
+│  newborn(92)      出生入院ワークアップ (Vit K / screen)  │
 │  triage(93)       JTAS/ESI level + arrival_mode (ED-only)│
+│  lab_derived_dx(94)  KDIGO-3 Cr → N17.9 working dx       │
 │  nursing_assignment(94)   主担当看護師                   │
 │  document(95)     ClinicalDocument stub + ClinicalImpression│
 │                                                          │
@@ -114,7 +119,7 @@ load-bearing 検証 gate。
 
 ## モジュール索引
 
-計 39 モジュール (`clinosim/modules/` 配下 top-level package;
+計 38 モジュール (`clinosim/modules/` 配下 top-level package;
 下表は追加で foundation の `codes` / `locale` も列挙)。各エントリは
 canonical 11-section 構造に従う per-module README にリンクする。
 
@@ -122,23 +127,22 @@ canonical 11-section 構造に従う per-module README にリンクする。
 | --- | --- | --- | --- | --- |
 | [codes](clinosim/codes/) | 国際コード lookup (LOINC/SNOMED/ICD/RxNorm/JLAC10/CVX/JJ1017 K-code) | foundation | — | — |
 | [locale](clinosim/locale/) | 国別データ (names / addresses / reference range / code_mapping) | foundation | — | — |
-| [physiology](clinosim/modules/physiology/README.ja.md) | 14 変数 physiology state + lab/vital 導出 | simulation | — (caller RNG) | — |
+| [physiology](clinosim/modules/physiology/README.ja.md) | 19 変数 physiology state + lab/vital 導出 | simulation | — (caller RNG) | — |
 | [observation](clinosim/modules/observation/README.ja.md) | lab / vital / microbiology + nursing flowsheet | simulation | nursing `0x4E55` (共有) | POST_RECORDS 20 (`nursing`) |
-| [order](clinosim/modules/order/README.ja.md) | lab / medication / imaging 発注 + AD-60 audit | simulation | — (per-order via AD-59) | — (audit 登録) |
+| [order](clinosim/modules/order/README.ja.md) | lab / medication / imaging 発注 + AD-60 audit | simulation | — (per-order via AD-59) | POST_ENCOUNTER 91 (`discontinue_flip`) + audit 登録 |
 | [clinical_course](clinosim/modules/clinical_course/README.ja.md) | trajectory archetype + 日次 `StateChangeDirective` | simulation | — (caller RNG) | — |
-| [diagnosis](clinosim/modules/diagnosis/README.ja.md) | Bayesian 鑑別 + Issue #551 非特異コード | simulation | — | — |
+| [diagnosis](clinosim/modules/diagnosis/README.ja.md) | Bayesian 鑑別 + Issue #551 非特異コード | simulation | — | POST_ENCOUNTER 94 (`lab_derived_dx`、RNG なし) |
 | [procedure](clinosim/modules/procedure/README.ja.md) | 手術 + bedside + rehab 生成 | simulation | — (caller RNG) | — |
-| [encounter](clinosim/modules/encounter/README.ja.md) | encounter registry (46 YAML) + 入院日次 cycle timeline | simulation | — | — |
-| [disease](clinosim/modules/disease/README.ja.md) | 疾患 registry (32 YAML) + 重症度 + acuity + 薬剤 vocabulary | simulation | — | — |
+| [encounter](clinosim/modules/encounter/README.ja.md) | encounter registry (51 YAML) + 入院日次 cycle timeline | simulation | — | — |
+| [disease](clinosim/modules/disease/README.ja.md) | 疾患 registry (36 YAML) + 重症度 + acuity + 薬剤 vocabulary | simulation | — | — |
 | [longitudinal](clinosim/modules/longitudinal/README.ja.md) | 年次 trajectory engine (AR(1) HbA1c / Markov stage ladder / event firing — Phase 4a-4d 慢性進展) | simulation | — (`advance_one_year` に caller RNG) | — (library、aging pass が利用) |
-| [population](clinosim/modules/population/README.ja.md) | demographics + life event (Layer 1) | population | — (pipeline 頭) | — |
+| [population](clinosim/modules/population/README.ja.md) | demographics + life event (Layer 1) + 年次 aging / 院外死亡 (`aging.advance_population` + `mortality.py`。旧 `natural_death` モジュールは #2167 でここへ統合) | population | — (pipeline 頭) | — |
 | [patient](clinosim/modules/patient/README.ja.md) | Layer 1 → Layer 2 activation + 常用薬 | population | — (caller cache) | — |
 | [identity](clinosim/modules/identity/README.ja.md) | JP 保険 + national ID (opt-in) | population | `540054` (decimal、grandfathered) | POST_POPULATION 10 (JP gate) |
 | [pediatric](clinosim/modules/pediatric/README.ja.md) | 小児 encounter 発生 (Issue #760) | population | — (population calendar hook) | — |
 | [staff](clinosim/modules/staff/README.ja.md) | roster + per-event `assign_staff` dispatch | population | — (caller RNG) | — |
 | [facility](clinosim/modules/facility/README.ja.md) | 病院運用 state + M/M/1 風 queueing | population | — | — |
 | [healthcare_system](clinosim/modules/healthcare_system/README.ja.md) | 国 config loader (leaf) | population | — | — |
-| [natural_death](clinosim/modules/natural_death/README.ja.md) | actuarial 死亡サンプリング (US CDC + JP MHLW 生命表) + `is_alive_at` gating (Issue #1114) | population | `0x4E44` ("ND") | POST_POPULATION 20 |
 | [metabolic](clinosim/modules/metabolic/README.ja.md) | BMI 由来慢性疾患 (E66 肥満 / E88.81 メタボリック症候群 / K76.0 NAFLD / G47.30 OSA) — Issue #1137 cluster 2 | enrichment | — (deterministic SHA Bernoulli) | POST_POPULATION 15-18 (4 axes) |
 | [family_history](clinosim/modules/family_history/README.ja.md) | 第 1 度近親歴 | enrichment | `0x4648` ("FH") | POST_RECORDS 40 |
 | [sdoh](clinosim/modules/sdoh/README.ja.md) | smoking + alcohol SNOMED reference (data-only) | enrichment | — | — |
@@ -232,20 +236,22 @@ simulator/  (top-level orchestration)
 
 ```
 simulator/engine.py: run_beta()
-  ↓ load_population()          ─ population/engine.py (generate_population)
-  ↓ generate_monthly_events()  ─ population/engine.py (per year × month)
-  ↓ generate_healthcare_calendar()  ─ population/engine.py (per year)
-  ↓ assign_identities()        ─ identity/assign.py  (POST_POPULATION order=10, JP gate)
-  ↓ allergy_enricher()         ─ allergy/engine.py   (POST_POPULATION order=10)
-  ↓ activate_patient()         ─ patient/activator.py  (per person、cache で exactly-once)
-      ├── _derive_home_medications()  ─ locale/shared/chronic_medications.yaml
-      └── PatientProfile 完成 (chronic_conditions、smoking_status、alcohol_use 等)
+  ↓ generate_population()      ─ population/engine.py
+  ↓ run_stage(POST_POPULATION) ─ allergy_enricher() (order=10)、assign_identities() (order=10、JP gate)、metabolic (15-18)
+  ↓ run_forward_loop()         ─ simulator/phases/_forward_loop.py (1 か月ずつ前進)
+      ├── advance_population()        ─ population/aging.py (毎年 1 月: aging + population/mortality.py による院外死亡)
+      ├── calendar_events_for_year()  ─ phases/_healthcare_calendar.py → population/engine.py generate_healthcare_calendar()
+      ├── generate_monthly_events()   ─ population/engine.py (月ごと)
+      ├── EDSlotSampler               ─ phases/_ed_slot.py (月ごとの ED slot)
+      └── EventQueue dispatch → activate_patient()  ─ patient/activator.py (per person、cache で exactly-once)
+            ├── _derive_home_medications()  ─ locale/shared/chronic_medications.yaml
+            └── PatientProfile 完成 (chronic_conditions、smoking_status、alcohol_use 等)
 ```
 
 ### Chain 2: Lab 導出 (最多 touch 経路)
 
 ```
-simulator/inpatient.py: _run_daily_loop()
+simulator/daily_loop.py: _run_daily_loop()
   ↓ scenario_flags_from_protocol(protocol)             ─ physiology/engine.py
   ↓ medication_flags_from_context(patient, all_orders, admission_date, day)
                                                         ─ physiology/engine.py
@@ -258,15 +264,15 @@ simulator/inpatient.py: _run_daily_loop()
 ### Chain 3: FHIR export
 
 ```
-CLI: clinosim export-fhir --format fhir-r4
-  ↓ output/fhir_r4/__init__.py: convert_cif_to_fhir()
+CLI: clinosim export-fhir --cif-dir <cif-dir>   (または `simulate --format fhir-r4`)
+  ↓ output/fhir_r4/builder.py: convert_cif_to_fhir()
   ↓ 各 CIF 患者について:
     ↓ BundleContext を組み立て (record + country + roster + narrative merge)
     ↓ _BUNDLE_BUILDERS の各 builder:
         builder(ctx) → list[dict]  (FHIR resource)
     ↓ post_process pipeline (datetime → specimen → profile → populate → strip)
     ↓ 各 resource を <ResourceType>.ndjson に write、id で sort
-  ↓ manifest.json + _facility.json + _generator_metadata.json を emit
+  ↓ manifest.json + _generator_metadata.json を emit
 ```
 
 新 FHIR resource 追加: `register_bundle_builder()` (AD-56) で新
@@ -277,8 +283,8 @@ builder を登録 — `_BUNDLE_BUILDERS` を直接編集しないこと。詳細
 
 | 変更 | 影響 | Notes |
 | --- | --- | --- |
-| Scenario flag 追加 (`causes_X`) | `physiology.engine` + `derive_lab_values` 呼び出し 4 site | `scenario_flags_from_protocol` helper 経由; [`SCENARIO_FLAGS.md`](SCENARIO_FLAGS.ja.md) 参照 |
-| 薬剤駆動 lab effect 追加 | `physiology.engine` + 4 site | `medication_flags_from_context` helper 経由; [`SCENARIO_FLAGS.md`](SCENARIO_FLAGS.ja.md) 参照 |
+| Scenario flag 追加 (`causes_X`) | `physiology.engine` + `derive_lab_values` 呼び出し 5 site | `scenario_flags_from_protocol` helper 経由; [`SCENARIO_FLAGS.md`](SCENARIO_FLAGS.ja.md) 参照 |
+| 薬剤駆動 lab effect 追加 | `physiology.engine` + 5 site | `medication_flags_from_context` helper 経由; [`SCENARIO_FLAGS.md`](SCENARIO_FLAGS.ja.md) 参照 |
 | 新 code 追加 (LOINC/SNOMED/ICD/…) | `codes/data/<system>.yaml` (`en` + optional `ja`) | [`clinosim/codes/README.md`](clinosim/codes/README.ja.md) 参照 |
 | 新 FHIR resource 型 追加 | `output/fhir_r4/<domain>/` 配下に新 builder file + `register_bundle_builder()` | [`clinosim/modules/output/fhir_r4/README.ja.md`](clinosim/modules/output/fhir_r4/README.ja.md) |
 | 新疾患追加 | 新 disease YAML + `locale/<country>/demographics.yaml` に登録 | [`clinosim/modules/disease/README.ja.md`](clinosim/modules/disease/README.ja.md) |

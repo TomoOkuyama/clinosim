@@ -88,17 +88,20 @@ pytest tests/unit -q               # ~1 分、green 必須
    変更の bullet を追記。docs-only PR のみ省略可。
 7. **PR を開く** — PR テンプレートが checklist を案内。
 8. **merge 前に CI 必須 job がすべて green**:
-   - `Unit tests (Py 3.12)`
-   - `Integration tests (shard 1/3, 2/3, 3/3)`
+   - `Unit tests (Py 3.12 shard 1/3, 2/3, 3/3)`
+   - `Integration tests (shard 1/10 〜 10/10)`
    - `Build sdist + wheel`
    - `Signed-off-by check`
    - `mkdocs build`
-   - `JP-CLINS lab compliance gate`
+   - `JP-CLINS lab compliance gate` / `JP Core narrow compliance gate` /
+     `US Core narrow compliance gate` (FHIR 出力に影響する path を変更した
+     PR のみ実行)
    - `ruff dead-code (F401 / F841)`
    - `vulture dead-code`
 
    Informational (merge-block しない):
    - `Quality (informational)` — ruff check + ruff format --check + mypy
+   - `Unit test coverage combine (informational)`
 
    Python 3.11 unit-test 互換性は nightly 実行
    ([`.github/workflows/nightly.yml`](.github/workflows/nightly.yml))。

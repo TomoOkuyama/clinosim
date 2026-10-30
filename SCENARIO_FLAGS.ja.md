@@ -22,7 +22,7 @@ spec
 | `myocardial_injury` (alias: disease YAML 上の `causes_myocardial_injury`) | scenario | `acute_mi.yaml` | `physiology.engine.derive_lab_values` | Troponin_I → ACS-grade (~10-100 ng/mL); CK_MB も上昇 |
 | `causes_vte` | scenario | `pulmonary_embolism.yaml`, `deep_vein_thrombosis.yaml`, `cerebral_infarction.yaml` (embolic) | `derive_lab_values` | D_dimer → VTE-positive (clamp 0.15-20 μg/mL FEU; PE/DVT/CI admit p50 ≥ 4) |
 | `on_warfarin` | medication | `PatientProfile.current_medications` (慢性 AF / post-VTE) **または** 入院中 warfarin order で ≥ 3 日経過 (loading-dose ルール) | `derive_lab_values` | PT_INR → 治療域 2.5 + half-gain 併存疾患摂動、PT も同時 (PT = 12 × PT_INR) |
-| `hai_inflammation_lift` | post-encounter (日次 loop flag ではない) | `hai` POST_ENCOUNTER enricher が populate する `extensions["hai"]` (Phase 3a) — CDC 重症度 proxy (clabsi/vap 0.35、cauti 0.20) × ramp factor (`min(1.0, days_since_onset / 2.0)`) | `derive_lab_values` (kwarg) | `effective_infl = min(1.0, infl + lift)` を CRP + WBC 公式にのみ流す。**Phase 3a は日次 loop の merge 経由で本 kwarg 付きで `derive_lab_values` を呼ばない**。代わりに `modules/hai/lab_lift.apply_hai_lab_lift` が日次 loop 後に closed-form 順方向 delta を直接 obs.value に適用する (noise + circadian を保存)。本 kwarg は `_hai_lift_delta` が公式を正確に mirror できるように存在する。 |
+| `hai_inflammation_lift` | post-encounter (日次 loop flag ではない) | `hai` POST_ENCOUNTER enricher が populate する `extensions["hai"]` (Phase 3a) — `modules/hai/reference_data/hai_lab_lift.yaml` の CDC 重症度 proxy (現在 clabsi/vap 0.40、cauti 0.20) × ramp factor (`min(1.0, days_since_onset / ramp_peak_days)`、同 yaml で `ramp_peak_days` = 1) | `derive_lab_values` (kwarg) | `effective_infl = min(1.0, infl + lift)` を CRP + WBC 公式にのみ流す。**Phase 3a は日次 loop の merge 経由で本 kwarg 付きで `derive_lab_values` を呼ばない**。代わりに `modules/hai/lab_lift.apply_hai_lab_lift` が日次 loop 後に closed-form 順方向 delta を直接 obs.value に適用する (noise + circadian を保存)。本 kwarg は `_hai_lift_delta` が公式を正確に mirror できるように存在する。 |
 
 ## Helper アーキテクチャ
 
@@ -72,7 +72,8 @@ true_labs = derive_lab_values(state, sex=patient.sex, age=patient.age, **flags)
 record = CIFPatientRecord(...)
 run_stage(POST_ENCOUNTER, EnricherContext(config, master_seed, records=[record]))
 apply_hai_lab_lift(record=record, encounter=encounter,
-                   state_history=state_history, admission_time=admission_time)
+                   state_history=state_history, admission_time=admission_time,
+                   country=config.country)
 ```
 
 `apply_hai_lab_lift` は内部で closed-form `_hai_lift_delta` を呼び
@@ -82,15 +83,16 @@ apply_hai_lab_lift(record=record, encounter=encounter,
 等は Phase 3b coupling が日次 loop 可視性を本当に必要とする場合のみ
 作り、先回りしない。
 
-**4 つの `derive_lab_values` call site** (Phase 2b 以降すべて本
-pattern を使用):
+**5 つの `derive_lab_values` call site** (すべて本 pattern を使用。
+Phase 2b 時点は 4 site、monitoring enricher が後に追加):
 
 | Site | File | Purpose | medication context |
 | --- | --- | --- | --- |
-| Pass-1 lab loop | `simulator/inpatient.py:563-571` | 日次入院 labs | full (orders + day) |
-| unknown-condition site | `simulator/inpatient.py:~1701` | unknown-condition encounter labs | chronic-only |
-| ED admit | `simulator/emergency.py:126-130` | ED visit labs | chronic-only |
-| Outpatient followup | `simulator/outpatient.py:152-160` | 慢性疾患 follow-up labs | chronic-only |
+| 日次入院 lab loop | `simulator/daily_loop.py::_run_daily_loop` (1 日遅れ CRP 用 state で 2 回目の呼び出しあり) | 日次入院 labs | full (orders + day) |
+| unknown-condition site | `simulator/unknown_condition.py` | unknown-condition encounter labs | chronic-only (`scenario_flags_from_protocol(None)`) |
+| ED visit | `simulator/emergency.py` | ED visit labs | chronic-only |
+| Outpatient followup | `simulator/outpatient.py` | 慢性疾患 follow-up labs | chronic-only (`scenario_flags_from_protocol(None)`) |
+| Medication monitoring | `modules/monitoring/enricher.py` | 慢性薬 → monitoring labs (POST_RECORDS 65) | chronic-only (`scenario_flags_from_protocol(None)`) |
 
 ## 新 flag 追加 (5-step)
 
@@ -111,7 +113,7 @@ pattern を使用):
 **call site で `flag=value` を直接指定してはならない** — J5 防止 (
 [AGENTS.md](AGENTS.md) 「AD-55 enricher patterns」参照)。helper が
 単一 edit point であり、新 flag は `**flags` splat 経由で自動的に
-4 site すべてに届く。
+5 site すべてに届く。
 
 ## DOAC 除外 (Phase 2b 臨床判断)
 
@@ -134,4 +136,4 @@ Core compliance + 臨床整合」原則に反する。詳細は PR #82 (Phase 2b
   (causes_vte) + `docs/history/specs-archive/2026-06-24-phase2b-on-anticoagulation-design.md`
   (on_warfarin)
 
-英語版: [`SCENARIO_FLAGS.md`](SCENARIO_FLAGS.ja.md)。
+英語版: [`SCENARIO_FLAGS.md`](SCENARIO_FLAGS.md)。
