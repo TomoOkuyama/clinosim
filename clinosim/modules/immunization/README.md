@@ -167,9 +167,9 @@ encounter documents.
   - `IMMUNIZATION_NOT_DONE_RECORDING_RATE = 0.02` — per-scheduled-dose
     probability of emitting an explicit `status="not-done"` record on
     a failed coverage draw. Represents documented refusals /
-    deferrals, distinct from silent no-shows. Applied in the
-    `annual`, `every_n_years` and `pediatric_series` branches and to
-    maternal Tdap; the `once` branch emits no `not-done` record.
+    deferrals, distinct from silent no-shows. Applied in every
+    scheduling branch (`annual`, `every_n_years`, `once`,
+    `pediatric_series`) and to maternal Tdap (`once` since #2207).
 - Locale schedules (no `reference_data/` directory in this module):
   - [`clinosim/locale/us/immunization_schedule.yaml`](../../locale/us/immunization_schedule.yaml)
     — CDC ACIP schedule. Currently 18 entries: 5 adult (Influenza,

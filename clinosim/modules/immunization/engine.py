@@ -29,9 +29,9 @@ DO document, distinct from silent no-shows.
 
 Empirical tuning for the synthetic simulator: 2% matches the
 observed inpatient / clinic documentation rate for declined
-vaccinations. Firing rate does not depend on freq (annual /
-every-n-years / once); the value is shared across all three
-scheduling branches."""
+vaccinations. Firing rate does not depend on freq; the value is shared
+by every scheduling branch (annual / every_n_years / once /
+pediatric_series) and the maternal Tdap pass."""
 
 
 def _det_hash(*args: object) -> int:
@@ -548,6 +548,18 @@ def generate_immunizations(
                         lot_number=_synthetic_lot(occ),
                     )
                 )
+            elif rng.random() < IMMUNIZATION_NOT_DONE_RECORDING_RATE:
+                # Issue #2207: a one-time vaccine can be declined too; the
+                # refusal is charted at a uniform point of the eligible span.
+                span = (as_of - start).days
+                offset = int(rng.integers(0, span + 1)) if span > 0 else 0
+                out.append(
+                    ImmunizationRecord(
+                        vaccine_cvx=cvx,
+                        occurrence_date=date.fromordinal(start.toordinal() + offset),
+                        status="not-done",
+                    )
+                )
 
     out.sort(key=lambda r: r.occurrence_date)
     return out
@@ -578,7 +590,7 @@ def generate_pregnancy_tdap(
     default_nurse: str = "",
 ) -> list:
     """Return maternal-Tdap `ImmunizationRecord`s for each pregnancy on
-    the patient whose 27-36-week window overlaps ``[available_from, as_of]``.
+    the patient whose 27-36-week gestational window has opened by ``as_of``.
 
     Uses the same sub-RNG the schedule pass already exhausted; the caller
     is responsible for scoping the rng so this function's draws don't
