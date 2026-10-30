@@ -103,8 +103,6 @@ Python API はありません。`__init__.py` は意図的に空。consumer は
 
 - `llm_service.yaml` — デフォルト LLM 設定。
 - `llm_service.bedrock.yaml` — AWS Bedrock プロバイダ。
-- `llm_service.cloud.yaml` — クラウドホスト LLM プロバイダ (例:
-  Anthropic API 直接)。
 - `llm_service.sakura.yaml` — さくらインターネット GPU プロバイダ
   ([`docs/sakura_gpu_setup.md`](../../docs/sakura_gpu_setup.ja.md) 参照)。
 
@@ -126,8 +124,6 @@ clinosim/config/
   us.yaml                       US 国別デフォルト
   llm_service.yaml              デフォルト LLM 設定 (Ollama)
   llm_service.bedrock.yaml      AWS Bedrock プロバイダ
-  llm_service.cloud.yaml        クラウドホスト LLM プロバイダ
-                                (Anthropic API 直接)
   llm_service.sakura.yaml       さくらインターネット GPU プロバイダ
 ```
 

@@ -72,7 +72,12 @@ class OllamaProvider:
                 output_tokens=data.get("eval_count", 0),
                 model=actual_model,
                 latency_ms=int(data.get("total_duration", 0) / 1_000_000),
-                metadata={"done_reason": data.get("done_reason")},
+                # Issue #2199: report truncation under the provider-neutral
+                # finish_reason the service's retry checks for.
+                metadata={
+                    "done_reason": data.get("done_reason"),
+                    "finish_reason": "length" if data.get("done_reason") == "length" else data.get("done_reason"),
+                },
             )
         except httpx.ConnectError as e:
             raise ConnectionError(

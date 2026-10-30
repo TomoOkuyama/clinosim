@@ -47,6 +47,12 @@ def build_from_config(config: dict[str, Any]) -> LLMService:
     cache: PromptCache | None = None
     if cache_cfg.get("enabled", True):
         cache_dir = cache_cfg.get("directory") or cache_cfg.get("cache_dir")
+        if not cache_dir:
+            # Issue #2199: an enabled cache without a directory used to be a
+            # silent no-op; say so instead of pretending to cache.
+            import logging
+
+            logging.getLogger(__name__).warning("LLM cache is enabled but has no `directory`; responses are not cached")
         if cache_dir:
             cache = PromptCache(
                 cache_dir=cache_dir,

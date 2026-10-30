@@ -124,7 +124,12 @@ class BedrockProvider:
             output_tokens=int(usage.get("outputTokens", 0)),
             model=model_id,
             latency_ms=latency_ms,
-            metadata={"stop_reason": stop_reason},
+            # Issue #2199: Converse signals truncation as stopReason
+            # "max_tokens"; expose it as the provider-neutral "length".
+            metadata={
+                "stop_reason": stop_reason,
+                "finish_reason": "length" if stop_reason == "max_tokens" else stop_reason,
+            },
         )
 
     def health_check(self) -> bool:
