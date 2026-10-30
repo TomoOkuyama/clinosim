@@ -77,7 +77,7 @@ def _align_to_encounters(imm_recs: list, encounters: list) -> list:
     For each Immunization:
       * When the dose date falls inside an inpatient stay, bind it to that
         stay and keep the date (Issue #2168).
-      * Otherwise search encounters within ±14 days whose encounter_type is
+      * Otherwise search encounters within ±60 days whose encounter_type is
         outpatient. Prefer the nearest by absolute-day distance.
       * When a match exists, snap `occurrence_date` to that encounter's
         admission_datetime.date() and record `encounter_id`.

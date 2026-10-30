@@ -149,7 +149,7 @@ attending は primary-care 医師 roster から決定論選出) を合成し、�
     失敗時に `status="not-done"` を明示記録する per-scheduled-dose
     確率。silent no-show と区別された、記録された拒否 / 延期を表す。
     `annual` / `every_n_years` / `pediatric_series` ブランチと母体
-    Tdap に適用。`once` ブランチは `not-done` を出さない。
+    Tdap に適用。`once` ブランチにも適用 (#2207)。
 - Locale schedule (本 module に `reference_data/` は無い):
   - [`clinosim/locale/us/immunization_schedule.yaml`](../../locale/us/immunization_schedule.yaml)
     — CDC ACIP schedule。現状 18 エントリ: 成人 5 (Influenza,
