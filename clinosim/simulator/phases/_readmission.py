@@ -105,7 +105,7 @@ def _run_readmission_phase(
     readmission_events.sort(key=lambda e: e.timestamp)
     for re_event in readmission_events:
         person = population.get_person(re_event.person_id)
-        if not person or not person.is_alive_at(re_event.timestamp):
+        if not person or not person.in_population_at(re_event.timestamp):
             continue
         protocol = protocols.get(re_event.disease_id)
         if not protocol:

@@ -72,7 +72,7 @@ def _run_post_discharge_phase(
         followup_date = enc.discharge_datetime + timedelta(days=post_dc_days)
         if snapshot_dt and followup_date > snapshot_dt:
             continue
-        if not person.is_alive_at(followup_date.date()):
+        if not person.in_population_at(followup_date.date()):
             continue
         opd_key = f"{pid}|post_discharge|{followup_date.isoformat()}"
         opd_rng = derive_phase_rng(master_seed, PHASE_OUTPATIENT_CAL, opd_key)

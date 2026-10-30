@@ -79,6 +79,12 @@ class PersonRecord:
     # who survive the window.
     date_of_death: date | None = None
     death_place: str | None = None  # "hospital" | "community"
+    # Issue #2168: first day the person takes part in the simulated
+    # population (life events, calendar, ED). ``None`` for the initial
+    # cohort, who are part of it from the start; for a newborn, the day
+    # after the birth-stay discharge, since care during the birth stay
+    # belongs to the birth encounter.
+    enrolled_from: date | None = None
     care_seeking_threshold: float = 0.3
     has_visited_hospital: bool = False
     visit_count: int = 0
@@ -207,6 +213,22 @@ class PersonRecord:
         if self.date_of_death is None or when < self.date_of_death:
             self.date_of_death = when
             self.death_place = place
+
+    def in_population_at(self, when: date) -> bool:
+        """True when the person is alive and enrolled on ``when`` (Issue #2168).
+
+        This is the gate for population events. ``is_alive_at`` answers the
+        biological question; a newborn is alive during the birth stay but is
+        not yet eligible for population events.
+        """
+        if self.enrolled_from is not None and when < self.enrolled_from:
+            return False
+        return self.is_alive_at(when)
+
+    def in_population_during(self, start: date, end: date) -> bool:
+        """True when the person is in the population on any day of ``[start, end]``."""
+        first = max(start, self.enrolled_from or self.date_of_birth, self.date_of_birth)
+        return first <= end and self.is_alive_at(first)
 
     def is_alive_at(self, when: date) -> bool:
         """Return True if the person is alive at ``when`` (Issue #1114 C11g-2).

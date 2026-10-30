@@ -75,7 +75,9 @@ def _align_to_encounters(imm_recs: list, encounters: list) -> list:
     generation time bridges the gap in one seam.
 
     For each Immunization:
-      * Search encounters within ±14 days whose encounter_type is
+      * When the dose date falls inside an inpatient stay, bind it to that
+        stay and keep the date (Issue #2168).
+      * Otherwise search encounters within ±14 days whose encounter_type is
         outpatient. Prefer the nearest by absolute-day distance.
       * When a match exists, snap `occurrence_date` to that encounter's
         admission_datetime.date() and record `encounter_id`.
@@ -87,6 +89,27 @@ def _align_to_encounters(imm_recs: list, encounters: list) -> list:
     """
     if not imm_recs or not encounters:
         return imm_recs
+    # Issue #2168: a dose that falls inside an inpatient stay is given
+    # during that stay (the hepatitis B birth dose in the nursery), so it
+    # binds to the stay and keeps its date.
+    _stays: list[tuple[date, date, str]] = []
+    for enc in encounters:
+        _et = _get(enc, "encounter_type", "")
+        if str(getattr(_et, "value", _et)).lower() not in ("inpatient", "imp"):
+            continue
+        _adm = _get(enc, "admission_datetime", None)
+        _dis = _get(enc, "discharge_datetime", None)
+        _eid = _get(enc, "encounter_id", "") or ""
+        if isinstance(_adm, datetime) and isinstance(_dis, datetime) and _eid:
+            _stays.append((_adm.date(), _dis.date(), _eid))
+    for imm in imm_recs:
+        occ = _get(imm, "occurrence_date", None)
+        if not isinstance(occ, date) or _get(imm, "encounter_id", ""):
+            continue
+        for _lo, _hi, _eid in _stays:
+            if _lo <= occ <= _hi:
+                _set(imm, "encounter_id", _eid)
+                break
     # Collect eligible encounter dates once.
     _enc_days: list[tuple[date, str]] = []
     for enc in encounters:
@@ -108,7 +131,7 @@ def _align_to_encounters(imm_recs: list, encounters: list) -> list:
         return imm_recs
     for imm in imm_recs:
         occ = _get(imm, "occurrence_date", None)
-        if not isinstance(occ, date):
+        if not isinstance(occ, date) or _get(imm, "encounter_id", ""):
             continue
         # Nearest outpatient encounter within ±60 days. The window is
         # 60 rather than 14 to cover annual flu shots — the flu

@@ -437,7 +437,7 @@ def _dispatch_hospital_events(
         state.concurrent_patients += 1
 
         person = population.get_person(event.person_id)
-        if person is None or not person.is_alive_at(event_time.date()):
+        if person is None or not person.in_population_at(event_time.date()):
             continue
 
         patient = _activate_cached_person(

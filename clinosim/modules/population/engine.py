@@ -773,7 +773,7 @@ def generate_monthly_events(
         # Persons dying in a prior month never fire further events;
         # persons dying later this month/next fire correctly through
         # event_date threshold.
-        if not person.is_alive or not person.is_alive_at(event_date):
+        if not person.in_population_at(event_date):
             continue
 
         # Lifestyle risk multiplier prep — computed once per person, outside per-disease loop
@@ -975,7 +975,9 @@ def generate_healthcare_calendar(
     person_rngs = rng.spawn(len(persons)) if persons else []
 
     for person, prng in zip(persons, person_rngs):
-        if not person.is_alive_at(date(year, 1, 1)):
+        # Issue #2168: anyone in the population at some point of the year;
+        # each event is gated on its own date by the calendar phase.
+        if not person.in_population_during(date(year, 1, 1), date(year, 12, 31)):
             continue
 
         # Issue #1189 F3 follow-up (S104 verify): age caps use age-at-year,
