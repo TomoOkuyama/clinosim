@@ -25,10 +25,19 @@
 ## 公開 API
 
 Python API はありません。`__init__.py` は意図的に空。consumer は
-`clinosim.simulator.helpers` と `clinosim.types.config` のローダー
-経由、または直接
-`importlib.resources.files("clinosim.config") / "<name>.yaml"` で
-YAML を読みます。
+それぞれのローダーで YAML を読みます:
+
+- `hospital_*.yaml` — `clinosim.simulator._setup._load_hospital_ops`
+  (`--hospital-config` の明示パス) または
+  `clinosim.modules.facility.hospital_state.load_hospital_operations`
+  (既定の `hospital_operations.yaml`)。いずれも
+  `clinosim.simulator.hospital_ops.validate_hospital_ops` で検証。
+- `japan.yaml` / `us.yaml` —
+  `clinosim.modules.healthcare_system.loader.load_healthcare_config`
+  → `clinosim.types.config.HealthcareSystemConfig`。
+- `llm_service*.yaml` — `clinosim.simulator.cli_narrate` (または
+  `--llm-config` の明示パス)。
+- `determinism.yaml` — `clinosim.determinism`。
 
 ## 決定性
 
@@ -57,7 +66,9 @@ YAML を読みます。
 | `recommended_population` | 国別のデフォルト catchment 人口 (`US` / `JP` / `default`) | `US: 40000`, `JP: 10000`, `default: 40000` |
 | `imaging.wado_base_url` | 画像 Endpoint emit 用 WADO base URL | `https://wado.clinosim.example/dicomweb` |
 | `available_departments` | この病院に存在する診療科 | `internal_medicine`, `cardiology`, … |
-| `resource_capacity` | 分析装置 / スキャナ / OR / ED / 入院ベッド | `inpatient_beds: 50`, `ed_beds: <n>` |
+| `department_rollup` | 細分専門 → 存在する診療科へのマッピング | (ファイル参照) |
+| `wards` / `ward_capacity` | 病棟定義と病棟別ベッド数 | (ファイル参照) |
+| `resource_capacity` | 分析装置 / スキャナ / OR / ED / 入院ベッド | `inpatient_beds: 50`, `ed_beds: 8` |
 | `staffing` | 看護師 / 医師 / 薬剤師人員 | (ファイル参照) |
 
 ### `hospital_small.yaml` / `hospital_large.yaml`
@@ -67,7 +78,8 @@ YAML を読みます。
 - `hospital_small.yaml` — 入院ベッド付き **10 床クリニック**、推奨
   catchment `12000`。外来中心 + たまに短期入院というシミュレーション
   向き。
-- `hospital_large.yaml` — **200 床地域病院**、ED 20 床。フルサービス
+- `hospital_large.yaml` — **200 床地域病院**、ED 20 床、推奨
+  catchment `50000`。フルサービス
   教育・地域基幹形状。
 
 いずれも `hospital_operations.yaml` と同じスキーマ。生成時に
@@ -121,14 +133,15 @@ clinosim/config/
 
 ## テスト
 
-パッケージへの直接テストはありません (`clinosim.config` を import
-するテストファイルはゼロ)。YAML は `SimulatorConfig` をインスタンス
-化する全ての統合テストで間接的に走行し、ロード時に
-`clinosim.types.config` によってスキーマ検証されます。壊れた YAML は
+`tests/unit/test_hospital_config_completeness.py` が同梱の全
+`hospital_*.yaml` の完全性・自己整合性を検査します。その他の YAML は
+シミュレーションを走らせる全テストで間接的に走行します:
+`hospital_*.yaml` はロード時に `validate_hospital_ops` で検査され、
+国別 YAML は `HealthcareSystemConfig` にパースされます。壊れた YAML は
 それらのテストが即座に失敗します。
 
 ## オーナー
 
 `maintainers@` — [`CONTRIBUTING.md`](../../CONTRIBUTING.ja.md) 参照。
 
-英語版: [`README.md`](README.ja.md)。
+英語版: [`README.md`](README.md)。

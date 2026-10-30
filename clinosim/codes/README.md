@@ -20,7 +20,7 @@ resolved at output time through this module. That gives:
 
 - **In scope**: unified lookup for every clinical code system clinosim
   emits, multi-language display resolution, canonical FHIR system-URI
-  mapping (~55 URIs registered in `_BUILTIN_URIS`), curated code data
+  mapping (49 URIs registered in `_BUILTIN_URIS`), curated code data
   YAMLs, HL7 v2/v3 vocabulary StrEnums for the Encounter resource,
   authoritative-source JSON fragments captured for reproducibility
   (see `authoritative/`).
@@ -37,6 +37,8 @@ from clinosim.codes import (
     get_display,        # (system, code, country="US") -> str
     get_system_uri,     # (system) -> str
     system_key_for,     # (kind, country) -> str  (e.g. ("diagnosis","JP")→"icd-10-mhlw")
+    slug_to_code,       # (system) -> dict[str, str]  (yaml `slug_to_code:` block)
+    has_icd_prefix,     # (chronic_items, prefixes) -> bool
     CodeSystem,         # dataclass: key, name, uri, version, codes
 )
 ```
@@ -70,7 +72,7 @@ Encounter, which becomes `Encounter.partOf` on the FHIR side.
 ## Determinism
 
 Not applicable — the package is pure lookup. `_load_system` is
-`@lru_cache`-decorated so a given system key resolves to the identical
+`@functools.cache`-decorated so a given system key resolves to the identical
 `CodeSystem` instance on every call. Given the same YAML on disk, the
 same `(system, code, lang)` triple always resolves to the same string.
 
@@ -84,7 +86,7 @@ same `(system, code, lang)` triple always resolves to the same string.
 
 - **`_DATA_DIR`** = `Path(__file__).parent / "data"` — where the
   per-system YAML files live.
-- **`_BUILTIN_URIS`** — ~55 short-key → canonical URI mappings for
+- **`_BUILTIN_URIS`** — 49 short-key → canonical URI mappings for
   every code system clinosim emits (ICD variants, LOINC, SNOMED CT,
   RxNorm, JLAC10, YJ, HOT7/9/13, K-codes, JP-Core NamingSystems, HL7
   v2/v3/FHIR terminology CodeSystems, JP-CLINS eCS Nocoded, clinosim-
@@ -103,19 +105,32 @@ same `(system, code, lang)` triple always resolves to the same string.
 
 ```
 clinosim/codes/
-  __init__.py                     public API (5 exports)
+  __init__.py                     public API (7 exports)
   loader.py                       CodeSystem dataclass, lookup /
                                   get_display / get_system_uri /
-                                  system_key_for, _BUILTIN_URIS,
-                                  _SYSTEM_DATA_ALIASES
+                                  system_key_for / slug_to_code,
+                                  _BUILTIN_URIS, _SYSTEM_DATA_ALIASES
+  match.py                        has_icd_prefix
   hl7_encounter.py                AdmitSource / DischargeDisposition /
                                   ActPriority StrEnums
-  data/                           32 curated code YAMLs (see full list
-                                  in "Supported code systems" below)
+  drugs.py                        drug identity catalog loader
+                                  (data/drugs.yaml; resolve_drug /
+                                  all_drug_ids)
+  blood_group_to_snomed.py,       key → SNOMED CT concept resolvers
+  cchd_site_to_snomed.py,         backed by the matching
+  encounter_type_to_snomed.py,    data/*-to-snomed.yaml
+  oxygen_device_to_snomed.py,
+  stage_to_snomed.py
+  data/                           72 YAMLs: code systems (see
+                                  "Supported code systems" below) plus
+                                  curated catalogs (drugs, frequency
+                                  tokens, FHIR profile maps,
+                                  plausibility bounds, …)
   authoritative/                  authoritative-source JSON fragments
                                   captured for reproducibility
                                   (icd10_who_tx.json, loinc_2_82_tx.json,
                                   yj_tx_fragment.json,
+                                  rxnorm_rxnav_snapshot.json,
                                   JP_MedicationCodeYJ_CS_full.json + README)
 ```
 
@@ -125,7 +140,7 @@ clinosim/codes/
 pytest tests/unit -k codes -q
 ```
 
-Approximately 45 test files reference `clinosim.codes`, covering the
+Approximately 100 test files reference `clinosim.codes`, covering the
 fallback chain, system-URI resolution, `system_key_for` country
 dispatch, JP-only-display detection, and per-system data-shape
 invariants.
@@ -155,26 +170,26 @@ Japanese counterpart: [`README.ja.md`](README.ja.md).
 
 | Key | Name | FHIR system URI | Codes | Source |
 |---|---|---|---|---|
-| `icd-10-cm` | ICD-10-CM | `http://hl7.org/fhir/sid/icd-10-cm` | 357 | CMS / NCHS |
-| `icd-10` | WHO ICD-10 | `http://hl7.org/fhir/sid/icd-10` | 320 | WHO ICD-10 |
+| `icd-10-cm` | ICD-10-CM | `http://hl7.org/fhir/sid/icd-10-cm` | 420 | CMS / NCHS |
+| `icd-10` | WHO ICD-10 | `http://hl7.org/fhir/sid/icd-10` | 368 | WHO ICD-10 |
 | `icd-10-mhlw` | JP MHLW ICD-10 (2013 registry) | `http://jpfhir.jp/fhir/core/mhlw/CodeSystem/ICD10-2013-full` | (aliased to icd-10) | MHLW / JP-Core |
-| `loinc` | LOINC | `http://loinc.org` | 153 | Regenstrief LOINC |
-| `snomed-ct` | SNOMED CT | `http://snomed.info/sct` | 147 | IHTSDO |
-| `jlac10` | JLAC10 | `urn:oid:1.2.392.200119.4.1005` | 45 | JCCLS |
-| `rxnorm` | RxNorm | `http://www.nlm.nih.gov/research/umls/rxnorm` | 82 | NLM RxNorm |
-| `yj` | YJ code | `http://capstandard.jp/iyaku.info/CodeSystem/YJ-code` | 59 | JP Core / capstandard |
-| `hot7` | HOT7 (JP MEDIS) | `http://medis.or.jp/CodeSystem/master-HOT7` | 106 | MEDIS |
-| `cpt` | CPT | `http://www.ama-assn.org/go/cpt` | 31 | AMA CPT |
-| `k-codes` | K codes | `urn:oid:1.2.392.200119.4.401` | 25 | MHLW reimbursement schedule |
-| `cvx` | CVX (vaccine codes) | `http://hl7.org/fhir/sid/cvx` | 10 | CDC |
+| `loinc` | LOINC | `http://loinc.org` | 211 | Regenstrief LOINC |
+| `snomed-ct` | SNOMED CT | `http://snomed.info/sct` | 158 | IHTSDO |
+| `jlac10` | JLAC10 | `urn:oid:1.2.392.200119.4.1005` | 50 | JCCLS |
+| `rxnorm` | RxNorm | `http://www.nlm.nih.gov/research/umls/rxnorm` | 229 | NLM RxNorm |
+| `yj` | YJ code | `http://capstandard.jp/iyaku.info/CodeSystem/YJ-code` | 76 | JP Core / capstandard |
+| `hot7` | HOT7 (JP MEDIS) | `http://medis.or.jp/CodeSystem/master-HOT7` | 155 | MEDIS |
+| `cpt` | CPT | `http://www.ama-assn.org/go/cpt` | 36 | AMA CPT |
+| `k-codes` | K codes | `urn:oid:1.2.392.200119.4.401` | 34 | MHLW reimbursement schedule |
+| `cvx` | CVX (vaccine codes) | `http://hl7.org/fhir/sid/cvx` | 34 | CDC |
 
 ### HL7 terminology CodeSystems (data-backed)
 
 | Key | Codes |
 |---|---|
 | `hl7-condition-clinical`, `hl7-condition-ver-status` | 6 + 6 |
-| `hl7-admit-source`, `hl7-discharge-disposition` | 3 + 2 |
-| `hl7-allergyintolerance-clinical`, `hl7-allergyintolerance-verification` | 3 + 4 |
+| `hl7-admit-source`, `hl7-discharge-disposition` | 3 + 4 |
+| `hl7-allergyintolerance-clinical`, `hl7-allergyintolerance-verification` | 3 + 5 |
 | `hl7-observation-interpretation` | 3 |
 | `hl7-practitioner-role`, `hl7-subscriber-relationship` | 6 + 7 |
 | `hl7-v3-actreason`, `hl7-v3-administrativegender`, `hl7-v3-maritalstatus` | 4 + 3 + 6 |
@@ -186,7 +201,7 @@ Japanese counterpart: [`README.ja.md`](README.ja.md).
 |---|---|
 | `jp-care-level` | 8 |
 | `jpfhir-doc-section` | 42 |
-| `jpfhir-doc-typecodes` | 5 |
+| `jpfhir-doc-typecodes` | 6 |
 | `jpfhir-eCheckup-section` | 7 |
 | `condition-short-name` | 42 |
 | `clinosim-nursing-scores` | 1 |
@@ -223,8 +238,9 @@ codes:
 
 ### Schema rules
 
-- If `metadata.uri` is missing the loader falls back to
-  `_BUILTIN_URIS[key]`.
+- Set `metadata.uri`. When a YAML exists but has no `metadata.uri`,
+  its URI becomes `urn:clinosim:<key>`; `_BUILTIN_URIS[key]` is used
+  only for keys with no YAML and for `_SYSTEM_DATA_ALIASES` entries.
 - Every entry under `codes` must include at least `en` (or `ja` for
   JP-only display systems — see
   `is_japanese_only_display_system`).
@@ -273,8 +289,9 @@ codes:
 1. Create `data/<new-system>.yaml` (schema above).
 2. Optionally register a short key → URI mapping in
    `loader.py::_BUILTIN_URIS`.
-3. Simply dropping the file is enough — the loader autodetects it
-   (`@lru_cache(maxsize=32)`).
+3. Simply dropping the file is enough — the loader resolves
+   `data/<key>.yaml` by name on first use and caches it
+   (`@functools.cache`).
 
 ### Add a new language
 

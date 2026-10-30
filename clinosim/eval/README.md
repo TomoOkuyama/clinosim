@@ -3,8 +3,9 @@
 ## Purpose
 
 `clinosim.eval` scores an already-generated cohort against three axes
-— **structural**, **clinical**, **locale** — plus optional
-country-specific axes (currently `jp_clins_lab_compliance` for JP).
+— **structural**, **clinical**, **locale** — plus country-specific axes
+(`jp_clins_lab_compliance` and `jp_core_compliance` for JP,
+`us_core_compliance` for US).
 It produces a per-axis numeric score plus a list of violations.
 Downstream researchers and ML engineers use it to grade their
 synthetic data before consuming it.
@@ -32,12 +33,12 @@ Synthea (via the built-in `synthea_adapter`).
 
 ```python
 from clinosim.eval import (
-    EvalCheck,          # per-check dataclass (id, axis, outcome, weight, ...)
+    EvalCheck,          # per-check dataclass (name, outcome, severity, message, detail; .weight)
     EvalAxisResult,     # roll-up per axis (checks list + score)
     EvalReport,         # roll-up per whole run (axis results + overall score)
     EvalEngine,         # orchestrator
-    Outcome,            # PASS / WARN / FAIL (StrEnum)
-    Severity,           # BLOCKING / WARNING / INFO
+    Outcome,            # PASS / WARN / FAIL / N/A (StrEnum)
+    Severity,           # critical / major / minor (weights 3 / 2 / 1)
     add_eval_subparser, # CLI wiring
     dispatch_eval,      # CLI handler (returns process exit code)
 )
@@ -46,7 +47,8 @@ from clinosim.eval import (
 CLI usage:
 
 ```bash
-clinosim eval --cohort ./my-cohort --format md
+clinosim eval -d ./my-cohort                              # Markdown to stdout
+clinosim eval -d ./my-cohort --json report.json --md report.md --strict
 ```
 
 Each axis under `axes/` exposes a plain function:
@@ -55,9 +57,12 @@ Each axis under `axes/` exposes a plain function:
 def run(cohort: Cohort, country: str) -> list[EvalCheck]
 ```
 
-The engine then computes axis score = `100 × Σ(passing weight) /
-Σ(total weight)` where a WARN counts as 0.5 of a pass; the overall
-score is the arithmetic mean of the axis scores. Both cohort layouts
+The engine runs every axis for every country partition found in the
+cohort and computes axis score = `100 × Σ(passing weight) /
+Σ(total weight)` where a WARN counts as 0.5 of a pass (an axis with no
+checks scores 0.0); the overall score is the arithmetic mean of all
+axis results. `--strict` makes the CLI exit 1 when the overall status
+is FAIL (default: exit 0). Both cohort layouts
 `<root>/<country>/fhir_r4/` (multi-country) and `<root>/fhir_r4/`
 (single-country flat) are consumable directly.
 
@@ -74,22 +79,34 @@ report output is the timestamp itself.
 
 - `clinosim.audit.types.Cohort` — reused as the NDJSON cohort reader
   (both packages share the same lazy-reader implementation).
-- Standard library only otherwise (`json`, `pathlib`, `datetime`,
-  `enum`, `dataclasses`).
+- `clinosim.codes` (`get_system_uri`) and
+  `clinosim.modules.output.fhir_r4.labs.coding_package` (JP-CLINS
+  system URIs / package loader) in the `locale` and
+  `jp_clins_lab_compliance` axes.
+- `pyyaml` (`clinical` axis reference data).
+- Standard library otherwise (`json`, `pathlib`, `datetime`, `enum`,
+  `dataclasses`, `shutil`).
 
 ## Constants and configuration
 
-- **Outcome ladder** — `Outcome.PASS`, `Outcome.WARN`, `Outcome.FAIL`
-  (StrEnum). Scoring: PASS = weight, WARN = 0.5 × weight, FAIL = 0.
-- **Severity ladder** — `Severity.BLOCKING`, `Severity.WARNING`,
-  `Severity.INFO`. Attached to `EvalCheck` for CI gating logic.
-- **Axis discovery** — the engine imports the four built-in axis
-  modules (`structural`, `clinical`, `locale`, and the JP-specific
-  `jp_clins_lab_compliance`) directly; new axes are added by writing
-  a new `axes/<name>.py` and wiring it in `engine.py`.
-- **Per-country activation** — `jp_clins_lab_compliance` runs only
-  when `country == "JP"`.
-- CLI defaults documented in `clinosim eval --help`. See also
+- **Outcome ladder** — `Outcome.PASS`, `Outcome.WARN`, `Outcome.FAIL`,
+  `Outcome.NA` (StrEnum). Scoring: PASS = weight, WARN = 0.5 × weight,
+  FAIL / N/A = 0.
+- **Severity ladder** — `Severity.CRITICAL` / `MAJOR` / `MINOR`, which
+  set the check weight (3 / 2 / 1).
+- **Axis discovery** — `EvalEngine.__init__` imports the six built-in
+  axis modules (`structural`, `clinical`, `locale`,
+  `jp_clins_lab_compliance`, `us_core_compliance`,
+  `jp_core_compliance`) directly; new axes are added by writing a new
+  `axes/<name>.py` and adding it to that dict. `--only-axes` restricts
+  the run to a comma-separated subset.
+- **Per-country activation** — the engine calls every axis for every
+  country; `jp_clins_lab_compliance` and `jp_core_compliance` return
+  no checks unless the partition is JP, `us_core_compliance` unless it
+  is US. `locale` runs a JP or a US check set depending on the country.
+- CLI flags (`-d/--cohort-dir`, `--json`, `--md`, `--country`,
+  `--strict`, `--only-axes`, `--synthea-normalize`) are documented in
+  `clinosim eval --help`. See also
   [`docs/eval.md`](../../docs/eval.md) and
   [`docs/eval-rules.md`](../../docs/eval-rules.md).
 
@@ -112,7 +129,11 @@ clinosim/eval/
     locale.py                     locale-specific checks (JP names /
                                   addresses / coding, US equivalents)
     jp_clins_lab_compliance.py    JP-CLINS lab-compliance axis
-                                  (activated only for country=JP)
+                                  (checks only for country=JP)
+    jp_core_compliance.py         JP Core narrow must-support gate
+                                  (checks only for country=JP)
+    us_core_compliance.py         US Core narrow must-support gate
+                                  (checks only for country=US)
 ```
 
 ## Testing
@@ -121,7 +142,7 @@ clinosim/eval/
 pytest tests/unit -k eval -q
 ```
 
-Six test files reference `clinosim.eval`, covering axis scoring,
+Eight test files reference `clinosim.eval`, covering axis scoring,
 Synthea adapter round-trips, and CLI dispatch.
 
 ## Ownership

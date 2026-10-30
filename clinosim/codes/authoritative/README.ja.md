@@ -14,9 +14,12 @@ override を許容する (下の allowlist に登録)。
 | File | Source | Fetched | Notes |
 | --- | --- | --- | --- |
 | `yj_tx_fragment.json` | `jpfhir-terminology 2.2606.0` / `CodeSystem-jp-medicationcodeyj-cs.json` (`http://capstandard.jp/iyaku.info/CodeSystem/YJ-code`) | 2026-07-19 | Fragment (tx-server 上 2000 concept)、clinosim が現在 emit する 9 コードにフィルタ。 |
-| `loinc_2_82_tx.json` | LOINC 2.82 公式マスター (`Loinc_2.82/LoincTable/Loinc.csv`) を `tx-server-build/loinc-src/` 経由で | 2026-07-19 | clinosim emit の 167 コード; `display` (LONG_COMMON_NAME) + `short_display` (SHORTNAME) + `status` を含む。フル display cross-check は Issue #270 (Phase 3-b) で有効化 — 75 の正当略記 + 17 の追跡セマンティック mismatch override を allowlist に登録。 |
+| `loinc_2_82_tx.json` | LOINC 2.82 公式マスター (`Loinc_2.82/LoincTable/Loinc.csv`) を `tx-server-build/loinc-src/` 経由で | 2026-07-19 | clinosim emit の 172 コード; `display` (LONG_COMMON_NAME) + `short_display` (SHORTNAME) + `status` を含む。フル display cross-check は Issue #270 (Phase 3-b) で有効化 — 75 の正当略記 + 17 の追跡セマンティック mismatch override を allowlist に登録。 |
+| `icd10_who_tx.json` | `fhir.tx.support.r4 0.37.0` / `CodeSystem-icd-10.json` (`http://hl7.org/fhir/sid/icd-10`、content `complete`) | 2026-07-19 | clinosim emit の WHO ICD-10 319 コード (`metadata.clinosim_codes_missing_from_source` に upstream 不在の参照 1 コードを記録)。 |
+| `rxnorm_rxnav_snapshot.json` | RxNav (NLM) `/REST/rxcui/{code}/historystatus` | 2026-10-28 | clinosim 同梱の 229 RxCUI (`rxnorm.yaml` / `drugs.yaml` / US 薬剤マッピング) の status / name / term type。`tests/unit/codes/test_rxnorm_codes_name_their_drug.py` がオフラインで読む。 |
+| `JP_MedicationCodeYJ_CS_full.json` | YJ-code CodeSystem 全体 (`http://capstandard.jp/iyaku.info/CodeSystem/YJ-code`、version `2026.8.31`、content `complete`) | — | 23,923 concept。YJ full-CS テスト (例: `tests/unit/output/test_fhir_yj_full_cs_gate_1220.py`) が使用。 |
 
-後続 snapshot (SNOMED / ICD-10 / MEDIS / BCP-47 / LOINC etc.) は
+後続 snapshot (SNOMED / MEDIS / BCP-47 etc.) は
 design guide で追跡され、各 Chain がフレームワークに移行するたびに
 後続 PR で landing する。
 

@@ -44,11 +44,12 @@ from clinosim.locale.loader import (
     load_reference_ranges,          # (country) -> dict[str, Any]
     load_identity_config,           # (country) -> dict[str, Any]
     load_naming_rules,              # (country) -> dict[str, Any]
-    load_terminology,               # (domain, country) -> dict[str, str] (legacy)
+    load_terminology,               # (domain, country) -> dict[str, str] (legacy、下記参照)
     load_code_mapping,              # (domain, country) -> dict[str, str]
     load_chronic_medications,       # () -> dict[str, Any] (shared)
     load_chronic_followup,          # () -> dict[str, Any] (shared)
-    load_med_terms_ja,              # () -> dict[str, dict[str, str]] (shared)
+    load_med_terms,                 # () -> 多言語カタログ (shared med_terms.yaml)
+    load_med_terms_ja,              # () -> dict[str, dict[str, str]] (deprecated alias)
     load_narrative_display_dict,             # () -> dict[str, str] (shared)
     load_department_display,        # () -> dict[str, dict[str, str]] (shared)
 )
@@ -57,11 +58,17 @@ from clinosim.locale.text import (
 )
 ```
 
-`load_terminology` および旧 `load_formatting` は後方互換維持のため
-保持。新規コードは所有モジュール経由で YAML を読み込む方が望ましい
-(例: 薬剤キー → RxNorm / YJ 解決は
-`clinosim/locale/{us,jp}/code_mapping_drug.yaml` 経由で
-`clinosim.modules.antibiotic` が処理)。
+上記はよく使う部分集合: `clinosim.locale.loader` は 46 個の `load_*`
+関数を再 export しており、実装は `clinosim/locale/loaders/`
+(`clinical.py` / `demographics.py` / `fhir_identity.py` /
+`medical_display.py` / `narrative.py`) にある。
+
+`load_terminology` は legacy: `<country>/terminology_<domain>.yaml` を
+読むが、該当ファイルはもう同梱されていないので `{}` を返す。表示名は
+`clinosim/codes/` に移った。`load_med_terms_ja` は `load_med_terms` の
+`ja` のみ view (deprecated)。`load_code_mapping("drug", country)` は
+`<country>/code_mapping_drug.yaml` と薬剤 identity カタログ
+`clinosim/codes/data/drugs.yaml` を union する (キー衝突時は yaml 優先)。
 
 ## 決定性
 
@@ -74,14 +81,16 @@ from clinosim.locale.text import (
 
 - `pyyaml` — YAML ロード用。
 - 標準ライブラリ `pathlib` / `functools` / `typing`。
-- **import 時に他の `clinosim.*` パッケージへの依存なし** — ローダー
-  は純粋な YAML リーダー。consumer 側が返却 dict を自身の型に渡し
-  ます。
+- **import 時に他の `clinosim.*` パッケージへの依存なし**。2 つの
+  ローダーが関数内で遅延 import する: `clinosim.codes.drugs` (薬剤
+  カタログ union) と `clinosim.modules.output.fhir_r4.lib.reference_data`
+  (`chronic_medications.yaml` の route 語彙検証)。consumer 側が返却
+  dict を自身の型に渡します。
 
 ## 定数と設定
 
-- **`_LOCALE_DIR`** = `Path(__file__).parent` — import 時の locale
-  バンドルルート。
+- **`_LOCALE_DIR`** = `Path(__file__).parent` (`_io.py` 内) — import
+  時の locale バンドルルート。
 - **`_COUNTRY_DIR_MAP`** = `{"JP": "jp", "US": "us"}` — 国 ISO
   コード → ディレクトリ名マッピング。未マップコードは
   `country.lower()` にフォールスルー。
@@ -103,36 +112,48 @@ from clinosim.locale.text import (
 clinosim/locale/
   __init__.py                     (意図的に空 — .loader / .text から
                                    直接 import)
-  loader.py                       @lru_cache YAML ローダー (公開関数 14)
+  loader.py                       再 export facade (公開 load_* 関数 46)
+  _io.py                          共有 YAML プリミティブ (_LOCALE_DIR /
+                                   _COUNTRY_DIR_MAP / _country_dir /
+                                   _load_yaml / fallback 既定値)
+  loaders/                        トピック別 @lru_cache YAML ローダー:
+                                   clinical / demographics / fhir_identity
+                                   / medical_display / narrative
   text.py                         resolve_text (多言語テキスト解決
                                    ヘルパー)
-  us/                             US 固有バンドル (13 YAML):
+  i18n.py                         共有 phrase カタログに対する
+                                   t(key, lang, **params) 翻訳器
+  us/                             US 固有バンドル (15 YAML):
                                    addresses / ambulatory_visit_length /
+                                   ckd_under60_prevalence /
                                    code_mapping_{diagnosis,drug,lab,procedure}
                                    / code_status_rates / demographics /
                                    family_history_prevalence / formatting
-                                   / immunization_schedule / names /
-                                   reference_range_lab
-  jp/                             JP 固有バンドル (19 YAML — US 集合 +
-                                   ambulatory_visit_length /
-                                   care_level_rates / identity /
+                                   / identity / immunization_schedule /
+                                   names / reference_range_lab
+  jp/                             JP 固有バンドル (20 YAML — US 集合から
+                                   ckd_under60_prevalence を除き、
+                                   care_level_rates /
                                    code_mapping_microbiology /
                                    code_mapping_microbiology_susceptibility
                                    / external_organizations /
-                                   practitioner_qualifications)
-  shared/                         locale 間共有データ (13 YAML):
-                                   anthropometric_reference / chemo_regimens
-                                   (化学療法 regimen ライブラリ — FOLFOX
-                                   q14d / CarboPem q21d / Trastuzumab q3w
-                                   / LHRH q28d) / chronic_followup (Z39
-                                   postpartum を含む) / chronic_medications
+                                   patient_instructions_ja /
+                                   practitioner_qualifications を追加)
+  shared/                         locale 間共有データ (37 YAML)。例:
+                                   actuarial_life_table / chemo_regimens
+                                   (化学療法 regimen ライブラリ) /
+                                   chronic_followup / chronic_medications
                                    / chronic_onset_min_age /
-                                   department_display / 
-                                   encounter_disposition_defaults /
+                                   condition_mortality_smr /
+                                   country_language / department_display
+                                   / encounter_disposition_defaults /
+                                   fallback_defaults /
                                    icd10_sex_restrictions /
-                                   iv_infusion_defaults / med_terms_ja /
-                                   naming_rules / perinatal (分娩頻度
-                                   config + 妊娠中絶 age-band 確率表)
+                                   iv_infusion_defaults / med_terms /
+                                   naming_rules / narrative_* (10 ファイル)
+                                   / perinatal / specialty_routing
+  shared/longitudinal/            縦断属性カタログ (64 YAML。同ディレク
+                                   トリの README 参照)
   _template/                      新規 locale scaffolding — README +
                                    必要 YAML の stub。先頭アンダー
                                    スコアガードにより country として
@@ -155,10 +176,12 @@ clinosim/locale/
    - 必要に応じて他の `code_mapping_*.yaml` (JP は `microbiology` と
      `microbiology_susceptibility` を追加)。
 3. ISO コードが小文字ディレクトリ名に直接マップされない場合は
-   `_COUNTRY_DIR_MAP` に国を登録。
+   `_COUNTRY_DIR_MAP` (`clinosim/locale/_io.py`) に国を登録。
 4. トップレベル `clinosim/config/<country>.yaml` を追加して国別
-   デフォルト (encounter mix、疾患 prevalence 重み、insurance
-   パターン) を宣言。
+   医療制度デフォルト (`lab_frequency_multiplier` /
+   `discharge_criteria` / `target_los_multiplier` / コードシステム名)
+   を宣言し、`clinosim/modules/healthcare_system/loader.py` の国
+   マップに登録。
 5. `SimulatorConfig.country` で切り替えるモジュールの国別 dispatch
    を拡張。
 6. 新規国をカバーする統合テストを追加。
@@ -172,7 +195,7 @@ pytest tests/unit -k locale -q
 pytest tests/integration -k locale -q
 ```
 
-`clinosim.locale` を参照するテストファイルは 13。ローダーバリデー
+`clinosim.locale` を参照するテストファイルは約 80。ローダーバリデー
 ション、`_template` ガード、`resolve_text` フォールバックチェーン、
 国別 YAML 形状アサーションを網羅。
 
@@ -180,4 +203,4 @@ pytest tests/integration -k locale -q
 
 `maintainers@` — [`CONTRIBUTING.md`](../../CONTRIBUTING.ja.md) 参照。
 
-英語版: [`README.md`](README.ja.md)。
+英語版: [`README.md`](README.md)。

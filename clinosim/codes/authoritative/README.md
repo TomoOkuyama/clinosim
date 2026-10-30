@@ -14,9 +14,12 @@ Companion documentation: [`docs/design-guides/code-display-authoritative-sync.md
 | File | Source | Fetched | Notes |
 |---|---|---|---|
 | `yj_tx_fragment.json` | `jpfhir-terminology 2.2606.0` / `CodeSystem-jp-medicationcodeyj-cs.json` (`http://capstandard.jp/iyaku.info/CodeSystem/YJ-code`) | 2026-07-19 | Fragment (2000 concepts on the tx-server), filtered to the 9 codes clinosim currently emits. |
-| `loinc_2_82_tx.json` | LOINC 2.82 official master (`Loinc_2.82/LoincTable/Loinc.csv`) via `tx-server-build/loinc-src/` | 2026-07-19 | 167 codes clinosim emits; includes `display` (LONG_COMMON_NAME) + `short_display` (SHORTNAME) + `status`. Full display cross-check enabled in Issue #270 (Phase 3-b) — 75 legitimate shorthand + 17 tracked semantic-mismatch overrides registered in the allowlist. |
+| `loinc_2_82_tx.json` | LOINC 2.82 official master (`Loinc_2.82/LoincTable/Loinc.csv`) via `tx-server-build/loinc-src/` | 2026-07-19 | 172 codes clinosim emits; includes `display` (LONG_COMMON_NAME) + `short_display` (SHORTNAME) + `status`. Full display cross-check enabled in Issue #270 (Phase 3-b) — 75 legitimate shorthand + 17 tracked semantic-mismatch overrides registered in the allowlist. |
+| `icd10_who_tx.json` | `fhir.tx.support.r4 0.37.0` / `CodeSystem-icd-10.json` (`http://hl7.org/fhir/sid/icd-10`, content `complete`) | 2026-07-19 | 319 WHO ICD-10 codes clinosim emits (`metadata.clinosim_codes_missing_from_source` lists the one referenced code absent upstream). |
+| `rxnorm_rxnav_snapshot.json` | RxNav (NLM) `/REST/rxcui/{code}/historystatus` | 2026-10-28 | Status / name / term type for the 229 RxCUIs clinosim ships (`rxnorm.yaml`, `drugs.yaml`, US drug mapping); read offline by `tests/unit/codes/test_rxnorm_codes_name_their_drug.py`. |
+| `JP_MedicationCodeYJ_CS_full.json` | Full YJ-code CodeSystem (`http://capstandard.jp/iyaku.info/CodeSystem/YJ-code`, version `2026.8.31`, content `complete`) | — | 23,923 concepts; used by the YJ full-CS tests (e.g. `tests/unit/output/test_fhir_yj_full_cs_gate_1220.py`). |
 
-Follow-on snapshots (SNOMED / ICD-10 / MEDIS / BCP-47 / LOINC etc.) are
+Follow-on snapshots (SNOMED / MEDIS / BCP-47 etc.) are
 tracked in the design guide and land in subsequent PRs as each Chain migrates
 to the framework.
 

@@ -31,7 +31,7 @@
 from clinosim.audit import (
     ModuleAuditSpec,        # per-module 契約
     register_audit_module,  # modules/<name>/audit.py から呼び出し
-    Severity,               # BLOCKING / WARNING / INFO
+    Severity,               # FAIL / WARN / INFO
     AuditFinding,           # audit レポートの 1 行
     AxisResult,             # axis 単位の集約
     AuditResult,            # 実行全体の集約
@@ -39,16 +39,21 @@ from clinosim.audit import (
 )
 ```
 
-Module は import 時に audit spec を登録します:
+Module は import 時に audit spec を登録します (`ModuleAuditSpec` の
+`name` 以外のフィールドは全て任意。module は opt-in する軸の分だけ
+埋める):
 
 ```python
 # clinosim/modules/<name>/audit.py
-from clinosim.audit import register_audit_module, ModuleAuditSpec, Severity
+from clinosim.audit import register_audit_module, ModuleAuditSpec
 
 register_audit_module(ModuleAuditSpec(
     name="<name>",
-    axes=[...],
-    severity_default=Severity.BLOCKING,
+    canonical_constants={...},     # silent_no_op: 許可キー集合
+    yaml_keys_to_validate={...},   # silent_no_op: yaml -> キーパス
+    lift_firing_proof=...,         # silent_no_op: 引数なし proof factory
+    structural_obs_codes={...},    # structural: 検査対象コード
+    clinical_acceptance={...},     # clinical: アクセプタンス閾値
 ))
 ```
 
@@ -62,35 +67,44 @@ register_audit_module(ModuleAuditSpec(
 
 該当なし — audit は生成済コホートに対する read-only パスです。乱数
 生成も壁時計参照もありません。エンジンは `(module × axis)` 行列を
-`sorted(get_registered().keys())` から派生する安定順序で反復するため、
-同一コホート + 同一登録 module 集合は常にバイト同一の `AuditResult`
-出力を生成します。
+登録順 (`discover()` が `clinosim/modules/*/audit.py` をソート順に
+走査する順序) で反復するため、同一コホート + 同一登録 module 集合は
+常に同じ `AuditResult` を生成します。
 
 ## 依存
 
-- `clinosim.types` — `Cohort` 隣接データ形状。
+- `pyyaml` — `silent_no_op` が `yaml_keys_to_validate` の YAML を
+  ロード。
 - `clinosim.audit.axes.*` — 4 つの組み込み axes。
-- **逆依存なし**: `clinosim.audit` は `clinosim.modules.*` から一切
-  import しません。module 側が自身の `audit.py` を import する副作用
-  でフレームワークに登録し、フレームワークは `discover()` で
-  `clinosim/modules/*/audit.py` を走査して発見します。
+- 登録は副作用: module 側が自身の `audit.py` を import する時点で
+  フレームワークに登録し、フレームワークは `discover()` で
+  `clinosim/modules/*/audit.py` を走査して発見します。フレームワーク
+  中核 (`registry.py` / `types.py` / `engine.py`) は
+  `clinosim.modules.*` を import しませんが、`axes/clinical.py` は
+  import します (`clinosim.codes` / `clinosim.modules.antibiotic` /
+  `clinosim.modules.hai` / `clinosim.modules.output.fhir_r4` の定数)。
 
 ## 定数と設定
 
-- **Severity ladder** — `Severity.BLOCKING` / `Severity.WARNING` /
-  `Severity.INFO` (`types.py` 参照)。デフォルトでは `BLOCKING`
-  finding のみが CLI exit code を失敗にします。`--fail-on-warning`
-  で `WARNING` も失敗扱いに昇格。
+- **Severity ladder** — `Severity.FAIL` / `Severity.WARN` /
+  `Severity.INFO` (`types.py` 参照)。`AxisResult` は最悪の finding に
+  より `FAIL` / `WARN` / `PASS` (finding も info も無ければ `N/A`)。
+  `clinosim audit run` / `smoke` は全体ステータスが `FAIL` のときのみ
+  exit 1。`WARN` は exit code を失敗にしない。
 - **組み込み axes** — `("structural", "jp_language", "clinical",
-  "silent_no_op")` (`engine.py::_BUILTIN_AXES` 参照)。この集合外の
-  axes を登録する module は自前 runner を用意する必要あり。
+  "silent_no_op")` (`engine.py::_BUILTIN_AXES` 参照)。エンジンが実行
+  できる axes はこれのみで、`--axis` で部分集合を選択。
 - **Per-module runner と cohort-level runner** — `engine.py` は
-  `_PER_MODULE_RUNNERS` (`(module × axis)` ごとに 1 回呼び出し) と
-  `_COHORT_RUNNERS` (cohort 1 回、reporter grid の矩形性を保つため
+  `_PER_MODULE_RUNNERS` (`structural` / `clinical` / `silent_no_op`。
+  `(module × axis)` ごとに 1 回呼び出し) と `_COHORT_RUNNERS`
+  (`jp_language`。cohort 1 回、reporter grid の矩形性を保つため
   synthetic `_cohort_` module 行に付随) を区別します。
 - **YAML 設定なし。** 登録は純粋にコードレベル。
-- CLI フラグ (`--cohort` / `--axes` / `--fail-on-warning`、出力形式
-  セレクタ) は `clinosim audit run --help` に記載。
+- CLI: `clinosim audit run -d/--cohort-dir DIR [--module NAME]...
+  [--axis AXIS]... [--report PATH]` (Markdown を stdout に、
+  `--report` 指定時はファイルにも出力)。`clinosim audit smoke -d DIR`
+  は `silent_no_op` のみ。`clinosim audit list` は登録 module と
+  そのチェックを表示。
 
 ## ディレクトリ構成
 
@@ -104,14 +118,15 @@ clinosim/audit/
   types.py              Severity enum、AuditFinding / AxisResult /
                         AuditResult / Cohort dataclass
   engine.py             AuditEngine — (module × axis) 行列オーケストレータ
-  cli.py                `clinosim audit run` サブコマンド
-  reporter.py           人間 + JSON 出力
+  cli.py                `clinosim audit run` / `smoke` / `list` サブコマンド
+  reporter.py           Markdown レポート (render_markdown / write_markdown)
   axes/                 組み込み axis runner
     __init__.py
     structural.py       構造整合性チェック
     clinical.py         臨床リアリズムチェック
     jp_language.py      JP 言語カバレッジチェック
-    silent_no_op.py     silent-no-op 検出 (空の enricher 出力検知)
+    silent_no_op.py     silent-no-op 検出 (canonical constants
+                        クロスチェック + lift-firing proof)
 ```
 
 ## テスト
@@ -120,7 +135,7 @@ clinosim/audit/
 pytest tests/unit -k audit -q
 ```
 
-`clinosim.audit` を参照するテストファイルは約 19。module 作者が従う
+`clinosim.audit` を参照するテストファイルは約 20。module 作者が従う
 ワークフローは
 [`docs/CONTRIBUTING-modules.md`](../../docs/CONTRIBUTING-modules.ja.md)
 「PR 検証ガイド」を参照。
@@ -129,4 +144,4 @@ pytest tests/unit -k audit -q
 
 `maintainers@` — [`CONTRIBUTING.md`](../../CONTRIBUTING.ja.md) 参照。
 
-英語版: [`README.md`](README.ja.md)。
+英語版: [`README.md`](README.md)。

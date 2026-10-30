@@ -48,7 +48,7 @@ clinosim dataset build jp-100 -o ./jp-100   # build one preset
 ```
 
 `add_dataset_subparser` is called from
-`clinosim/simulator/cli.py::build_parser`; `dispatch_dataset` is
+`clinosim/simulator/cli.py::main` while it builds the argparse tree; `dispatch_dataset` is
 called from the main CLI dispatch path when the user picks the
 `dataset` subcommand.
 
@@ -81,7 +81,11 @@ byte-identical cohort on every run.
   `Path(__file__).resolve().parents[2] / "datasets"` at import time,
   so subprocess and test callers see the same location as the
   interactive CLI. Both `list_presets` and `load_preset` accept a
-  `presets_dir` override for tests.
+  `presets_dir` override for tests. `datasets/` sits outside the
+  `clinosim` package and is not included in the wheel, so presets
+  are found only in a source checkout (an installed wheel's
+  `clinosim dataset list` prints `(no dataset presets found under
+  datasets/)`).
 - **Shipped presets** (as of writing): `jp-100`, `jp-1000`, `us-100`,
   `us-1000`. See [`datasets/README.md`](../../datasets/README.md) for
   the canonical list and per-preset descriptions.
@@ -92,7 +96,7 @@ byte-identical cohort on every run.
 clinosim/dataset/
   __init__.py           entire package — DatasetPreset dataclass,
                         list_presets, load_preset, add_dataset_subparser,
-                        dispatch_dataset (~180 lines)
+                        dispatch_dataset (~190 lines)
 ```
 
 Single-file package. Presets themselves live at `datasets/` in the

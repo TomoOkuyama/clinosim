@@ -27,9 +27,19 @@ data-file path.
 ## Public API
 
 There is no Python API. `__init__.py` is empty by design. Consumers
-read the YAMLs either through the loaders in
-`clinosim.simulator.helpers` and `clinosim.types.config`, or directly
-via `importlib.resources.files("clinosim.config") / "<name>.yaml"`.
+read the YAMLs through their own loaders:
+
+- `hospital_*.yaml` — `clinosim.simulator._setup._load_hospital_ops`
+  (explicit `--hospital-config` path) or
+  `clinosim.modules.facility.hospital_state.load_hospital_operations`
+  (default `hospital_operations.yaml`), both validated by
+  `clinosim.simulator.hospital_ops.validate_hospital_ops`.
+- `japan.yaml` / `us.yaml` —
+  `clinosim.modules.healthcare_system.loader.load_healthcare_config`
+  → `clinosim.types.config.HealthcareSystemConfig`.
+- `llm_service*.yaml` — `clinosim.simulator.cli_narrate` (or an explicit
+  `--llm-config` path).
+- `determinism.yaml` — `clinosim.determinism`.
 
 ## Determinism
 
@@ -58,7 +68,9 @@ Key top-level keys:
 | `recommended_population` | Default catchment population per country (`US` / `JP` / `default`) | `US: 40000`, `JP: 10000`, `default: 40000` |
 | `imaging.wado_base_url` | WADO base URL for imaging Endpoint emission | `https://wado.clinosim.example/dicomweb` |
 | `available_departments` | Departments that exist at this hospital | `internal_medicine`, `cardiology`, … |
-| `resource_capacity` | Analysers / scanners / OR / ED / inpatient beds | `inpatient_beds: 50`, `ed_beds: <n>` |
+| `department_rollup` | Granular specialty → available department mapping | (see file) |
+| `wards` / `ward_capacity` | Ward definitions and beds per ward | (see file) |
+| `resource_capacity` | Analysers / scanners / OR / ED / inpatient beds | `inpatient_beds: 50`, `ed_beds: 8` |
 | `staffing` | Nursing / physician / pharmacy counts | (see file) |
 
 ### `hospital_small.yaml` / `hospital_large.yaml`
@@ -68,7 +80,8 @@ Alternate hospital sizes:
 - `hospital_small.yaml` — **10-bed clinic** with inpatient beds,
   recommended catchment `12000`. Suitable for outpatient-heavy
   simulations with occasional short admissions.
-- `hospital_large.yaml` — **200-bed regional hospital**, 20 ED beds.
+- `hospital_large.yaml` — **200-bed regional hospital**, 20 ED beds,
+  recommended catchment `50000`.
   Full-service teaching / regional referral shape.
 
 Both share the schema of `hospital_operations.yaml`; select at
@@ -124,11 +137,12 @@ clinosim/config/
 
 ## Testing
 
-The package has no direct tests (no test file imports
-`clinosim.config`). The YAMLs are exercised indirectly by every
-integration test that instantiates `SimulatorConfig`, and are
-schema-validated at load time by `clinosim.types.config`. A malformed
-YAML fails those tests fast.
+`tests/unit/test_hospital_config_completeness.py` checks every shipped
+`hospital_*.yaml` for completeness and self-consistency. The other YAMLs
+are exercised indirectly by every test that runs a simulation:
+`hospital_*.yaml` is checked at load time by `validate_hospital_ops`,
+and the country YAMLs are parsed into `HealthcareSystemConfig`. A
+malformed YAML fails those tests fast.
 
 ## Ownership
 

@@ -45,7 +45,7 @@ path:
 | `clinical.py` | Clinical event core types (documents, findings) | ✅ |
 | `config.py` | `SimulatorConfig` and related runtime configuration models | ✅ |
 | `encounter.py` | `Encounter`, `EncounterType`, `EncounterStatus`, orders, medication administration | ✅ |
-| `identity.py` | `PatientProfile` identifiers, JP マイナンバー / insurance types | ✅ |
+| `identity.py` | `NationalIdentity`, `InsuranceEnrollment`, `IdentityTimeline` (JP マイナンバー / insurance) | ✅ |
 | `microbiology.py` | Culture / sensitivity types | ✅ |
 | `output.py` | Cohort-level output metadata | ✅ |
 | `patient.py` | `PatientProfile`, `BaselineVitals`, chronic-condition types | ✅ |
@@ -53,6 +53,7 @@ path:
 | `procedure.py` | Surgical / therapeutic procedure types | ✅ |
 | `staff.py` | Staff / practitioner types | ✅ |
 | `allergy.py` | `Allergy`, `AllergyReaction` | ❌ import direct |
+| `antibiotic.py` | `AntibioticRegimen` (HAI empirical regimens) | ❌ import direct |
 | `device.py` | Medical device types | ❌ import direct |
 | `diagnosis.py` | Diagnosis event types | ❌ import direct |
 | `document.py` | Document / narrative types | ❌ import direct |
@@ -77,11 +78,15 @@ identical dataclass instances.
 ## Dependencies
 
 - Standard library: `dataclasses`, `enum`, `datetime`, `typing`.
-- `typing_extensions` for backport imports on older Python versions.
-- **No dependency on any other `clinosim.*` module.** Types are the
-  bottom of the dependency graph — importing anything from
-  `clinosim.simulator` or `clinosim.modules.*` here would create a
-  cycle and is a review-blocker.
+- `pydantic` — `config.py` models (`SimulatorConfig`,
+  `HealthcareSystemConfig`, LLM config) are `BaseModel`s.
+- **Intended to sit at the bottom of the dependency graph** — importing
+  from `clinosim.simulator` or `clinosim.modules.*` here risks a cycle.
+  Current exceptions: `document.py` imports
+  `clinosim.modules._shared.is_jp`, `patient.py` imports
+  `clinosim.modules.drug_safety.verdict.SafetySkipEntry`, and
+  `population.py` imports `clinosim.modules.longitudinal.snapshot.YearSnapshot`
+  under `TYPE_CHECKING` only.
 
 ## Constants and configuration
 
@@ -106,17 +111,17 @@ identical dataclass instances.
 ```
 clinosim/types/
   __init__.py           re-exports the 10 curated sub-modules listed above
-  clinical.py           clinical events, documents, findings (238 lines)
+  document.py           document / narrative types (476 lines — largest file)
+  encounter.py          Encounter and adjacent operational types (359 lines)
+  patient.py            PatientProfile, baseline vitals, chronic conditions (300 lines)
+  population.py         population-generation intermediates (278 lines)
   config.py             SimulatorConfig and runtime config models (254 lines)
-  encounter.py          Encounter and adjacent operational types (311 lines)
-  document.py           document / narrative types (343 lines — largest file)
-  patient.py            PatientProfile, baseline vitals, chronic conditions (211 lines)
-  output.py             cohort-level output metadata (132 lines)
-  population.py         population-generation intermediates (111 lines)
-  procedure.py          surgical / therapeutic procedures (84 lines)
-  imaging.py            imaging study / report (75 lines)
-  identity.py, microbiology.py, staff.py, allergy.py, device.py,
-  diagnosis.py, family_history.py, hai.py, triage.py
+  clinical.py           clinical events, documents, findings (252 lines)
+  output.py             cohort-level output metadata (149 lines)
+  procedure.py          surgical / therapeutic procedures (93 lines)
+  imaging.py            imaging study / report (81 lines)
+  identity.py, staff.py, microbiology.py, allergy.py, antibiotic.py,
+  diagnosis.py, hai.py, device.py, triage.py, family_history.py
                         one file per clinical domain (see table above)
 ```
 
@@ -126,7 +131,7 @@ clinosim/types/
 pytest tests/unit -k types -q
 ```
 
-Approximately 155 test files import from `clinosim.types`. Because
+Approximately 290 test files import from `clinosim.types`. Because
 these are pure data types, they are mostly tested indirectly through
 consumer code; direct type tests focus on `__post_init__`
 normalisation and StrEnum wire values.

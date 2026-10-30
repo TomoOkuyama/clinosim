@@ -42,7 +42,7 @@ from clinosim.types import Encounter          # 便宜的な再エクスポー�
 | `clinical.py` | 臨床イベント中核型 (文書・所見) | ✅ |
 | `config.py` | `SimulatorConfig` と関連する実行時設定モデル | ✅ |
 | `encounter.py` | `Encounter` / `EncounterType` / `EncounterStatus` / order / 薬剤投与 | ✅ |
-| `identity.py` | `PatientProfile` 識別子、JP マイナンバー / 保険型 | ✅ |
+| `identity.py` | `NationalIdentity` / `InsuranceEnrollment` / `IdentityTimeline` (JP マイナンバー / 保険) | ✅ |
 | `microbiology.py` | 培養 / 感受性型 | ✅ |
 | `output.py` | コホートレベル出力メタデータ | ✅ |
 | `patient.py` | `PatientProfile` / `BaselineVitals` / 慢性疾患型 | ✅ |
@@ -50,6 +50,7 @@ from clinosim.types import Encounter          # 便宜的な再エクスポー�
 | `procedure.py` | 手術・治療手技型 | ✅ |
 | `staff.py` | スタッフ・医療者型 | ✅ |
 | `allergy.py` | `Allergy` / `AllergyReaction` | ❌ 直接 import |
+| `antibiotic.py` | `AntibioticRegimen` (HAI 経験的抗菌薬レジメン) | ❌ 直接 import |
 | `device.py` | 医療機器型 | ❌ 直接 import |
 | `diagnosis.py` | 診断イベント型 | ❌ 直接 import |
 | `document.py` | 文書・ナラティブ型 | ❌ 直接 import |
@@ -73,10 +74,14 @@ from clinosim.types import Encounter          # 便宜的な再エクスポー�
 ## 依存
 
 - 標準ライブラリ: `dataclasses` / `enum` / `datetime` / `typing`。
-- `typing_extensions` (旧 Python 版向けバックポート import 用)。
-- **他の `clinosim.*` モジュールへの依存なし**。types は依存グラフの
-  最下層 — ここから `clinosim.simulator` や `clinosim.modules.*` を
-  import すると循環となり review-blocker。
+- `pydantic` — `config.py` のモデル (`SimulatorConfig` /
+  `HealthcareSystemConfig` / LLM 設定) は `BaseModel`。
+- **依存グラフの最下層であることを意図** — ここから
+  `clinosim.simulator` や `clinosim.modules.*` を import すると循環の
+  恐れ。現状の例外: `document.py` が `clinosim.modules._shared.is_jp`、
+  `patient.py` が `clinosim.modules.drug_safety.verdict.SafetySkipEntry`
+  を import し、`population.py` は `TYPE_CHECKING` 下でのみ
+  `clinosim.modules.longitudinal.snapshot.YearSnapshot` を import。
 
 ## 定数と設定
 
@@ -99,17 +104,17 @@ from clinosim.types import Encounter          # 便宜的な再エクスポー�
 ```
 clinosim/types/
   __init__.py           上表 10 サブモジュールを再エクスポート
-  clinical.py           臨床イベント・文書・所見 (238 行)
+  document.py           文書・ナラティブ型 (476 行 — 最大ファイル)
+  encounter.py          Encounter と隣接運用型 (359 行)
+  patient.py            PatientProfile / baseline vitals / chronic conditions (300 行)
+  population.py         集団生成中間型 (278 行)
   config.py             SimulatorConfig と実行時設定モデル (254 行)
-  encounter.py          Encounter と隣接運用型 (311 行)
-  document.py           文書・ナラティブ型 (343 行 — 最大ファイル)
-  patient.py            PatientProfile / baseline vitals / chronic conditions (211 行)
-  output.py             コホートレベル出力メタデータ (132 行)
-  population.py         集団生成中間型 (111 行)
-  procedure.py          手術・治療手技 (84 行)
-  imaging.py            画像検査・レポート (75 行)
-  identity.py, microbiology.py, staff.py, allergy.py, device.py,
-  diagnosis.py, family_history.py, hai.py, triage.py
+  clinical.py           臨床イベント・文書・所見 (252 行)
+  output.py             コホートレベル出力メタデータ (149 行)
+  procedure.py          手術・治療手技 (93 行)
+  imaging.py            画像検査・レポート (81 行)
+  identity.py, staff.py, microbiology.py, allergy.py, antibiotic.py,
+  diagnosis.py, hai.py, device.py, triage.py, family_history.py
                         臨床ドメインごとに 1 ファイル (上表参照)
 ```
 
@@ -119,7 +124,7 @@ clinosim/types/
 pytest tests/unit -k types -q
 ```
 
-`clinosim.types` を import するテストファイルは約 155。純粋なデータ型
+`clinosim.types` を import するテストファイルは約 290。純粋なデータ型
 なので、消費側コードを通じて間接的にテストされます。直接的な型テスト
 は `__post_init__` 正規化と StrEnum wire 値に焦点。
 
@@ -127,4 +132,4 @@ pytest tests/unit -k types -q
 
 `maintainers@` — [`CONTRIBUTING.md`](../../CONTRIBUTING.ja.md) 参照。
 
-英語版: [`README.md`](README.ja.md)。
+英語版: [`README.md`](README.md)。

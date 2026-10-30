@@ -2,9 +2,9 @@
 
 clinosim guarantees **byte-identical output** for a given
 `(seed, config, country, start, end, population)` tuple within a MINOR
-release line — wall-clock metadata (`fhir_r4/manifest.json`,
-`cif/metadata.json`, narrative-pass `manifest.json`) is expected to
-differ, everything else must match.
+release line — wall-clock / git-dependent metadata (`fhir_r4/manifest.json`,
+`fhir_r4/_generator_metadata.json`, `cif/metadata.json`, narrative-pass
+`manifest.json`) is expected to differ, everything else must match.
 
 ## Verify at any time
 
@@ -13,7 +13,8 @@ bash scripts/reproduce.sh
 ```
 
 The script runs `clinosim simulate --format fhir` twice per locale
-(US + JP by default) to two isolated temp directories, sha256s every
+(US + JP by default; JP with `--allow-legacy`, so no JP-CLINS package is
+needed) to two isolated temp directories, sha256s every
 NDJSON + CIF JSON, and diffs the hash lists. Exit 0 = byte-identical,
 exit 1 = determinism regression with the offending file(s) listed.
 
@@ -30,10 +31,15 @@ exit 1 = determinism regression with the offending file(s) listed.
 
 ## CI enforcement
 
-The `reproducibility` job in
-[`.github/workflows/ci.yml`](https://github.com/TomoOkuyama/clinosim/blob/master/.github/workflows/ci.yml)
-runs `scripts/reproduce.sh` on every push and PR. Any determinism
-regression trips the merge gate before code lands.
+- On every push to master and every PR,
+  [`tests/integration/test_full_reproducibility.py`](https://github.com/TomoOkuyama/clinosim/blob/master/tests/integration/test_full_reproducibility.py)
+  runs `scripts/reproduce.sh` inside the integration job of
+  [`.github/workflows/ci.yml`](https://github.com/TomoOkuyama/clinosim/blob/master/.github/workflows/ci.yml),
+  so a determinism regression trips the merge gate before code lands.
+- The dedicated `reproducibility` job in
+  [`.github/workflows/nightly.yml`](https://github.com/TomoOkuyama/clinosim/blob/master/.github/workflows/nightly.yml)
+  runs the script daily (and on `workflow_dispatch`, e.g. before a
+  release cut).
 
 ## Underlying invariants
 
