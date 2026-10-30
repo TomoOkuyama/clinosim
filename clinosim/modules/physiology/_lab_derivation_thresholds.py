@@ -527,9 +527,11 @@ PT_INR_BASELINE: float = 1.0
 disturbance — matches the healthy reference."""
 
 PT_INR_HEPATIC_SCALE: float = 2.0
-"""INR elevation per unit ``(1 - hepatic_function)`` — reflects
-depletion of vitamin-K-dependent clotting factors in cirrhosis /
-acute liver failure."""
+"""INR elevation at complete loss of hepatic synthetic function, applied
+to ``max(0, HEPATIC_INJURY_FLOOR - hepatic_function) / HEPATIC_INJURY_FLOOR``
+(Issue #2227) — reflects depletion of vitamin-K-dependent clotting
+factors in cirrhosis / acute liver failure. Decompensated cirrhosis
+(hepatic 0.3) gives INR about 2.1; a normal reserve gives none."""
 
 PT_INR_COAGULATION_SCALE: float = 1.5
 """INR elevation per unit ``coagulation_status`` — reflects DIC-driven

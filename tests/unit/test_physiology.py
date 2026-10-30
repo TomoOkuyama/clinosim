@@ -1028,12 +1028,13 @@ def test_pt_inr_on_warfarin_with_dic_comorbidity_lift():
 
 @pytest.mark.unit
 def test_pt_inr_on_warfarin_with_cirrhosis_over_anticoagulation():
-    """warfarin + cirrhosis (hepatic=0.4): INR ~3.1 (over-AC bleeding risk visible)."""
+    """warfarin + decompensated cirrhosis (hepatic=0.3): INR above the 2-3
+    therapeutic band (over-anticoagulation bleeding risk visible)."""
     state = PhysiologicalState()
-    state.hepatic_function = 0.4
+    state.hepatic_function = 0.3
     labs = derive_lab_values(state, sex="M", age=60, on_warfarin=True)
-    # base_inr = 1.0 + 0.6*2.0 + 0 = 2.2
-    # on warfarin: 2.5 + (2.2 - 1.0) * 0.5 = 3.1
+    # Issue #2227: hepatic term = (0.70 - 0.3) / 0.70 * 2.0 = 1.14 -> base 2.14
+    # on warfarin: 2.5 + (2.14 - 1.0) * 0.5 = 3.07
     assert 3.0 <= labs["PT_INR"] <= 3.2
 
 
