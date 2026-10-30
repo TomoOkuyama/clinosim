@@ -4,8 +4,8 @@
 
 POST_ENCOUNTER always-on AD-55 Module that places ICU devices
 (central venous catheter, indwelling urinary catheter, mechanical
-ventilator) on eligible inpatient / ICU / rehab-inpatient
-encounters. Writes the result to `CIFPatientRecord.extensions["device"]`
+ventilator) on the inpatient encounters of patients who transferred to
+the ICU. Writes the result to `CIFPatientRecord.extensions["device"]`
 so [`clinosim.modules.hai`](../hai/README.md) can consume line-days
 downstream (Phase 2 HAI cascade — CDC NHSN baseline per-line-day
 risk).
@@ -13,8 +13,10 @@ risk).
 ## Scope
 
 - **In scope**: `place_devices_for_encounter` per-encounter
-  evaluation (peak physiology state + altered-consciousness flag +
-  YAML criteria → device set), `load_devices_config` YAML loader,
+  evaluation (worst physiology state of the stay + altered
+  consciousness (GCS < 13) + intubation procedure + YAML criteria →
+  device set; placement / removal dates = the encounter's admission /
+  discharge dates), `load_devices_config` YAML loader,
   the POST_ENCOUNTER `enrich_device` enricher.
 - **Out of scope**: HAI event sampling from device line-days
   ([`clinosim.modules.hai`](../hai/README.md)), device antibiotic
@@ -27,7 +29,7 @@ risk).
 ```python
 from clinosim.modules.device import (
     load_devices_config,             # () -> dict (@lru_cache)
-    place_devices_for_encounter,     # (record, encounter, rng) -> list[Device]
+    place_devices_for_encounter,     # (record, encounter, rng, devices_config) -> list[DeviceRecord]
 )
 from clinosim.modules.device.enricher import enrich_device
 ```
@@ -41,18 +43,20 @@ Internal helpers (in `engine.py`): `_evaluate_indications`,
 - Sub-seed offset `0x4445` (`"DE"`, PR-A) — registered in
   [`clinosim/seeding.py`](../../seeding.py) via
   `ENRICHER_SEED_OFFSETS["device"]`.
-- Per-encounter RNG:
-  `derive_sub_seed(master_seed, offset, encounter_id)` — same
-  encounter always samples the same device set; main patient RNG
-  untouched (AD-16).
+- The enricher builds a per-patient RNG
+  (`derive_sub_seed(master_seed, offset, patient_id)`) and passes it
+  to `place_devices_for_encounter`, but placement currently draws
+  nothing from it: the device set is a deterministic function of the
+  record. The main patient RNG is untouched (AD-16).
 
 ## Dependencies
 
 - `clinosim.modules._shared` — `get_attr_or_key`,
-  `normalize_probabilities`.
+  `get_or_create_container`.
 - `clinosim.seeding` — `ENRICHER_SEED_OFFSETS`, `derive_sub_seed`.
-- `clinosim.types.encounter` — `Device`, `Encounter`,
-  `CIFPatientRecord`.
+- `clinosim.types.device` — `DeviceRecord`.
+- `clinosim.types.encounter` — `Encounter`, `EncounterType`.
+- `clinosim.types.output` — `CIFPatientRecord`.
 - `clinosim.types.clinical` — `PhysiologicalState` (peak state
   evaluation input).
 - `numpy`, `yaml`.
@@ -60,13 +64,25 @@ Internal helpers (in `engine.py`): `_evaluate_indications`,
 ## Constants and configuration
 
 - [`reference_data/devices.yaml`](reference_data/devices.yaml) —
-  device catalog. Each entry names indication criteria (physiology
-  state thresholds, altered-consciousness gate, admission source
-  filter) + placement probability + expected line-days
+  device catalog (`cvc`, `indwelling_catheter`,
+  `mechanical_ventilator`). Each entry carries `snomed_code`,
+  `snomed_display_en` / `_ja`, and `placement_criteria` as a list of
+  `any: [token, ...]` clauses (a device is placed when any token of
+  any clause is met). Current criteria: CVC ←
+  `severity_moderate_plus`; urinary catheter ←
+  `severity_moderate_plus` or `altered_consciousness`; ventilator ←
+  `intubated`. There is no placement probability or line-day
   distribution.
-- Encounter-type gate: only fires on
-  `INPATIENT_ENCOUNTER_TYPES = {"inpatient", "icu", "rehab_inpatient"}`
-  (the same set the nursing module reads).
+- Indication tokens (`_evaluate_indications`):
+  `severity_moderate_plus` (always true once the gate passes),
+  `altered_consciousness` (any encounter vital with GCS < 13),
+  `hypoxia` (worst perfusion < 0.4 or oxygenation impairment ≥ 0.6),
+  `intubated` (an `intubation` procedure on the encounter),
+  `high_respiratory_demand` (respiratory fraction > 0.7). `hypoxia`
+  and `high_respiratory_demand` are computed but no yaml criterion
+  uses them today.
+- Gate: only fires when `record.icu_transferred` is true and the
+  encounter's type is `EncounterType.INPATIENT`.
 
 ## Directory contents
 
@@ -86,7 +102,7 @@ below.
 
 Registered in
 [`clinosim/simulator/enrichers.py`](../../simulator/enrichers.py)
-(`~L237-246`):
+(`~L310-320`):
 
 - `name="device"`, `stage=POST_ENCOUNTER`, `order=70`,
   `enabled=lambda c: True`.
@@ -97,9 +113,9 @@ Registered in
 
 | Consumer | Where | Role |
 |---|---|---|
-| Enricher registry | [`clinosim/simulator/enrichers.py:241`](../../simulator/enrichers.py) | POST_ENCOUNTER order=70 registration. |
-| HAI enricher | [`clinosim/modules/hai/engine.py`](../hai/engine.py) | Reads `extensions["device"]` line-days for CDC NHSN per-line-day HAI onset sampling (Phase 2). |
-| FHIR `Device` builder | [`clinosim/modules/output/fhir_r4/`](../output/fhir_r4/) | Emits `Device` + `DeviceUseStatement` from `extensions["device"]`. |
+| Enricher registry | [`clinosim/simulator/enrichers.py:316`](../../simulator/enrichers.py) | POST_ENCOUNTER order=70 registration. |
+| HAI enricher | [`clinosim/modules/hai/enricher.py`](../hai/enricher.py) | Reads `extensions["device"]` line-days for CDC NHSN per-line-day HAI onset sampling (Phase 2). |
+| FHIR `Device` builder | [`clinosim/modules/output/fhir_r4/procedures/device.py`](../output/fhir_r4/procedures/device.py) | Emits one `Device` + one `DeviceUseStatement` per `extensions["device"]` entry (opaque ids derived from `DeviceRecord.device_id`). |
 
 ## Testing
 

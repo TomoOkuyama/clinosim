@@ -1,5 +1,41 @@
 # llm_service — LLM Integration Service
 
+> **Implementation status.** Most of this file is the original design
+> proposal; the code diverged in several places. Where this SPEC and the
+> code disagree, the code (and [`README.md`](README.md)) wins. Known
+> divergences:
+>
+> - There is no `LLMRequest` / `llm_service.request()`. Entry points are
+>   `LLMService.generate(task_type, event, variables=None)` (template
+>   fallback on failure) and `LLMService.complete_prompt(system, user, *,
+>   language, task_type, ...)` (raises `LLMCompletionError`, no
+>   fallback; used by the Stage 2 narrative pass).
+> - `LLMService.__init__` takes `mode`, `judgment_provider`,
+>   `narrative_provider`, `judgment_model_map`, `narrative_model_map`,
+>   `prompt_registry`, `cache`, `retry_attempts`, `retry_backoff_seconds`
+>   and provider names — not an `LLMServiceConfig`. It is built from
+>   YAML by `factory.build_from_config` / `build_from_config_file`.
+> - Caching is `PromptCache` (`cache.py`): an exact-match disk cache
+>   keyed by `sha256(system_prompt + user_prompt + model)`. The
+>   scenario-generalising `NarrativeCache` / `CachedNarrative.adapt`
+>   design below was not implemented in this module.
+> - There is no `CostTracker`, budget gate or `LLMHealthReport`;
+>   `LLMService.cost_report()` returns call / token / fallback /
+>   cache-hit counters. Retries use linear backoff
+>   (`retry_backoff_seconds * (attempt + 1)`) on any exception.
+> - Prompt YAML (`PromptSpec`) carries `task_type`, `language`,
+>   `version`, `system`, `user_template`, `max_tokens`, `temperature`,
+>   `description` — no `model_tier`, input schema or response parser.
+>   The model is always `model_map["medium"]` (falling back to
+>   `"small"`).
+> - Providers are `MockProvider`, `OllamaProvider` (`local`),
+>   `BedrockProvider` (direct boto3 Converse API, no EC2 gateway) and
+>   `VLLMProvider` (`openai_compatible`). `AnthropicDirectProvider`,
+>   `BedrockGatewayProvider` and `create_provider` do not exist; the
+>   registry is `providers.build_provider` / `register_provider`.
+> - The `LLMTaskType` inventory, prompt folder layout and
+>   `LLMResponse` fields are corrected in place below.
+
 ## Purpose
 Single point of contact between clinosim and LLM providers. All LLM calls from every module pass through this service. Responsible for prompt construction, model selection, response parsing, caching, rate limiting, cost tracking, and fallback to template-based generation when LLM is unavailable.
 
@@ -13,7 +49,7 @@ No other module may call an LLM directly.
 - `LLMResponse`: Parsed, validated response (narrative text, clinical judgment, or consistency review result)
 
 ## Dependencies
-- None (this module is a leaf service — other modules depend on it, not the reverse)
+- No other `clinosim.modules.*` (this module is a leaf service — other modules depend on it, not the reverse). At import time `engine.py` reads `clinosim.types.document.DocumentType` to validate task coverage.
 
 ---
 
@@ -59,26 +95,28 @@ No other module may call an LLM directly.
 ```
 modules/llm_service/
 ├── SPEC.md
+├── engine.py / factory.py / prompt_registry.py / cache.py
 ├── prompts/
-│   ├── chief_complaint.yaml          ← prompt templates per task type
-│   ├── admission_hp.yaml
-│   ├── progress_note.yaml
-│   ├── discharge_summary.yaml
-│   ├── consultation_note.yaml
-│   ├── operative_note.yaml
-│   ├── nursing_note.yaml
-│   ├── treatment_rationale.yaml
-│   ├── diagnostic_reasoning.yaml
-│   ├── clinical_judgment.yaml
-│   ├── consistency_review.yaml
-│   └── referral_letter.yaml
-├── templates/                         ← template-mode fallback (no LLM)
-│   ├── chief_complaint.txt
-│   ├── progress_note_soap.txt
-│   ├── discharge_summary.txt
-│   └── ...
-└── (implementation files)
+│   ├── en/                            ← one YAML per prompt, per language
+│   │   ├── admission_hp.yaml
+│   │   ├── discharge_summary.yaml
+│   │   ├── death_summary.yaml
+│   │   ├── operative_note.yaml
+│   │   ├── procedure_note.yaml
+│   │   ├── referral_note.yaml
+│   │   ├── narrative_seed.yaml / narrative_seed_bundle.yaml
+│   │   ├── death_certificate_*.yaml
+│   │   └── death_discharge_summary_*.yaml
+│   └── ja/                            ← same 17 files
+├── reference_data/
+│   ├── task_categories.yaml           ← TASK_CATEGORY
+│   └── task_loincs.yaml               ← DOCUMENT_LOINC
+└── providers/
 ```
+
+Template-mode text is produced by Python builders in `engine.py`
+(`_template_generate` → `_progress_note`, `_discharge_summary`, ...);
+there is no `templates/` directory.
 
 ### API — Responsibility split
 
@@ -396,73 +434,63 @@ No `model_tier`. No `max_output_tokens`. No `instructions`. All of that lives in
 ### LLMTaskType registry
 
 ```python
-class LLMTaskCategory(str, Enum):
+class LLMTaskCategory(StrEnum):
     JUDGMENT = "judgment"      # Always English. Returns structured decisions. Language-independent.
     NARRATIVE = "narrative"    # Output in target country's language. Generates clinical documents.
 
-class LLMTaskType(str, Enum):
-    # --- JUDGMENT tasks (always English in/out, structured response) ---
-    # These produce decisions and reasoning that feed back into the simulation engine.
-    # Output is parsed into structured data; the English text is stored for audit only.
-    DIAGNOSTIC_REASONING = "diagnostic_reasoning"      # differential update rationale
-    TREATMENT_DECISION = "treatment_decision"           # drug selection at ambiguous points
-    CLINICAL_JUDGMENT = "clinical_judgment"              # generic decision (consult needed? ICU transfer?)
-    CONSISTENCY_REVIEW = "consistency_review"            # validate patient record plausibility
-    CARE_SEEKING_JUDGMENT = "care_seeking_judgment"      # edge-case visit decision
+class LLMTaskType(StrEnum):
+    # --- JUDGMENT tasks (always English) ---
+    DIAGNOSTIC_REASONING = "diagnostic_reasoning"
+    TREATMENT_DECISION = "treatment_decision"
+    CLINICAL_JUDGMENT = "clinical_judgment"
+    CONSISTENCY_REVIEW = "consistency_review"
 
     # --- NARRATIVE tasks (output in target language: ja / en) ---
-    # These produce clinical documents that appear in the generated EHR.
-    # Must be in the language of the target country's medical records.
+    # Every clinosim.types.document.DocumentType value must exist here
+    # (_validate_document_task_sync, checked at import).
     CHIEF_COMPLAINT = "chief_complaint"
     ADMISSION_HP = "admission_hp"
     PROGRESS_NOTE = "progress_note"
     DISCHARGE_SUMMARY = "discharge_summary"
-    CONSULTATION_NOTE = "consultation_note"
+    DEATH_SUMMARY = "death_summary"
     OPERATIVE_NOTE = "operative_note"
-    NURSING_NOTE = "nursing_note"
-    REFERRAL_LETTER = "referral_letter"
-    MEDICATION_INSTRUCTION = "medication_instruction"    # patient-facing discharge med instructions
+    PROCEDURE_NOTE = "procedure_note"
+    ADMISSION_NURSING_ASSESSMENT = "admission_nursing_assessment"
+    NURSING_SHIFT_NOTE = "nursing_shift_note"
+    NURSING_DISCHARGE_SUMMARY = "nursing_discharge_summary"
+    OUTPATIENT_SOAP = "outpatient_soap"
+    ED_NOTE = "ed_note"
+    ED_TRIAGE_NOTE = "ed_triage_note"
+    ADMISSION_CARE_PLAN = "admission_care_plan"
+    NUTRITION_CARE_PLAN = "nutrition_care_plan"
+    REHABILITATION_PLAN = "rehabilitation_plan"
+    REFERRAL_NOTE = "referral_note"
+    HEALTH_CHECKUP_REPORT = "health_checkup_report"
+    DEATH_CERTIFICATE = "death_certificate"
+    DEATH_DISCHARGE_SUMMARY = "death_discharge_summary"
 
-# Task type → category mapping (used by llm_service internally)
-TASK_CATEGORY = {
-    LLMTaskType.DIAGNOSTIC_REASONING: LLMTaskCategory.JUDGMENT,
-    LLMTaskType.TREATMENT_DECISION: LLMTaskCategory.JUDGMENT,
-    LLMTaskType.CLINICAL_JUDGMENT: LLMTaskCategory.JUDGMENT,
-    LLMTaskType.CONSISTENCY_REVIEW: LLMTaskCategory.JUDGMENT,
-    LLMTaskType.CARE_SEEKING_JUDGMENT: LLMTaskCategory.JUDGMENT,
-    LLMTaskType.CHIEF_COMPLAINT: LLMTaskCategory.NARRATIVE,
-    LLMTaskType.ADMISSION_HP: LLMTaskCategory.NARRATIVE,
-    LLMTaskType.PROGRESS_NOTE: LLMTaskCategory.NARRATIVE,
-    LLMTaskType.DISCHARGE_SUMMARY: LLMTaskCategory.NARRATIVE,
-    LLMTaskType.CONSULTATION_NOTE: LLMTaskCategory.NARRATIVE,
-    LLMTaskType.OPERATIVE_NOTE: LLMTaskCategory.NARRATIVE,
-    LLMTaskType.NURSING_NOTE: LLMTaskCategory.NARRATIVE,
-    LLMTaskType.REFERRAL_LETTER: LLMTaskCategory.NARRATIVE,
-    LLMTaskType.MEDICATION_INSTRUCTION: LLMTaskCategory.NARRATIVE,
-}
+# Task type → category mapping: loaded from
+# reference_data/task_categories.yaml into TASK_CATEGORY
+# (dict[LLMTaskType, LLMTaskCategory]); 4 judgment + 20 narrative rows.
 ```
 
-### LLMResponse (unchanged)
+### LLMResponse
 
 ```python
 @dataclass
 class LLMResponse:
-    text: str | None
-    source: Literal["llm", "template", "cache", "none"]
-    model: str | None
-    
-    # For judgment tasks (populated by response_parser)
-    chosen_option: str | None
-    reasoning: str | None
-    confidence: float | None
-    additional_actions: list[str] | None
-    
-    # For consistency review
-    issues: list[ConsistencyIssue] | None
-    
-    # Cost
-    input_tokens: int | None
-    output_tokens: int | None
+    text: str | None = None
+    source: str = "none"            # "llm" | "template" | "cache" | "none"
+    model: str | None = None
+    provider: str | None = None
+    input_tokens: int = 0
+    output_tokens: int = 0
+    prompt_version: int = 0
+    cache_hit: bool = False
+    fallback_reason: str = ""
+    chosen_option: str | None = None   # reserved for judgment tasks
+    reasoning: str | None = None
+    finish_reason: str | None = None   # from ProviderResponse.metadata["finish_reason"]
 ```
 
 ### Prompt template format (YAML)
@@ -1224,7 +1252,7 @@ class LLMHealthReport:
 ```
 
 ## Open Questions
-- [ ] ~~LLM provider abstraction~~ **Resolved**: Provider abstraction layer with BedrockGatewayProvider as primary. Pluggable for future providers.
+- [ ] ~~LLM provider abstraction~~ **Resolved**: Provider abstraction layer (`providers/`: mock / ollama / bedrock / vllm, extensible via `register_provider`).
 - [ ] Prompt versioning: how to track and A/B test prompt changes
 - [ ] Async / parallel LLM calls for batch patient generation
 - [ ] Quality scoring: how to automatically evaluate generated narrative quality
@@ -1237,4 +1265,4 @@ class LLMHealthReport:
 - Prompt templates are external YAML files, not hardcoded strings. This allows prompt engineering without code changes.
 - Template-mode fallback ensures the system works without any LLM provider configured.
 - Cost tracking enables users to set a budget and know exactly how much LLM usage each run costs.
-- Cache key design is critical: too specific = low hit rate; too general = inappropriate reuse. The current approach caches by (task_type, disease, severity_bucket, hospital_day_bucket, country) which should give ~40–60% hit rate for common diseases.
+- Cache key design is critical: too specific = low hit rate; too general = inappropriate reuse. The implemented `PromptCache` is exact-match on `sha256(system_prompt + user_prompt + model)`, so it only hits on byte-identical prompts (re-runs), not across similar scenarios.

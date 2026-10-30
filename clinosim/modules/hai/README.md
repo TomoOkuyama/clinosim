@@ -20,18 +20,26 @@ HAI cascade.
 ## Scope
 
 - **In scope**: `sample_hai_onset` — CDC NHSN per-line-day risk
-  sampling per HAI type on top of `extensions["device"]` line-days;
+  sampling per device (`cvc` → CLABSI, `indwelling_catheter` → CAUTI,
+  `mechanical_ventilator` → VAP) on top of `extensions["device"]`
+  line-days (cumulative risk `1 - (1 - per_day_risk)^line_days`, onset
+  day uniform in `[2, line_days)`, line_days = 7 when the device has
+  no removal date);
   `_sample_organism` — organism selection from
   `hai_organisms.yaml`; `_add_days` date helper;
   `apply_hai_lab_lift` — Phase 3a closed-form WBC + CRP forward
   delta with `_hai_lift_delta` mirroring the `derive_lab_values`
   CRP + WBC formula (state snapshot from
   `state_history[day_index + 1]`, then `round_to_precision` +
-  `determine_flag` re-applied); six load-time YAML validators
+  `determine_flag` re-applied; called from
+  `clinosim/simulator/inpatient.py` after the AD-32 truncation, not
+  from the enricher); load-time YAML validation for all six files
   (`_validate_hai_organisms` / `_validate_hai_rates` /
-  `_validate_hai_codes` / `_validate_hai_specimens` +
-  `_validate_hai_antibiogram` in the antibiogram loader +
-  `_validate_hai_lab_lift`); the `HAI_TYPES` canonical constant.
+  `_validate_hai_codes` / `_validate_hai_specimens` in `engine.py`,
+  inline checks in `load_hai_antibiogram` (`__init__.py`),
+  `_validate_hai_lab_lift_config` in `lab_lift.py`); per-culture
+  S/I/R susceptibility draws from `hai_antibiogram.yaml`; the
+  `HAI_TYPES` canonical constant.
 - **In scope (audit)**: [`audit.py`](audit.py) — the first per-module
   AD-60 audit plug-in. Registers a synthetic-CAUTI
   `lift_firing_proof` that reproduces the closed-form delta the
@@ -52,18 +60,21 @@ HAI cascade.
 ## Public API
 
 ```python
-from clinosim.modules.hai import HAI_TYPES         # ("clabsi", "cauti", "vap")
+from clinosim.modules.hai import (
+    HAI_TYPES,                                     # ("clabsi", "cauti", "vap")
+    load_hai_antibiogram,                          # () -> dict (@lru_cache, validated)
+)
 from clinosim.modules.hai.engine import (
-    sample_hai_onset,                              # (encounter, devices, rng) -> list[HAIEvent]
+    sample_hai_onset,                              # (device, rate_cfg, rng) -> (occurred, onset_day_offset | None)
     load_hai_rates,                                # () -> dict (@lru_cache)
     load_hai_codes,                                # () -> dict (@lru_cache)
     load_hai_organisms,                            # () -> dict (@lru_cache)
     load_hai_specimens,                            # () -> dict (@lru_cache)
-    load_hai_antibiogram,                          # () -> dict (@lru_cache)
 )
 from clinosim.modules.hai.enricher import enrich_hai   # POST_ENCOUNTER entry
 from clinosim.modules.hai.lab_lift import (
-    apply_hai_lab_lift,                            # (record) -> None (mutates observations)
+    apply_hai_lab_lift,                            # (record, encounter, state_history, admission_time, country="US")
+                                                   #   -> int (# observations modified; mutates lab_results)
     _hai_lift_delta,                               # closed-form WBC / CRP delta
 )
 ```
@@ -89,15 +100,19 @@ from clinosim.modules.hai.lab_lift import (
 
 - `clinosim.modules._shared` — `get_attr_or_key`,
   `get_or_create_container`, `normalize_probabilities`.
+- `clinosim.modules.physiology._lab_derivation_thresholds` — WBC
+  formula constants shared with `derive_lab_values`.
 - `clinosim.seeding` — `ENRICHER_SEED_OFFSETS`, `derive_sub_seed`.
 - `clinosim.modules.antibiotic` — `ANTIBIOTIC_LOINC_LOOKUP`
-  (consumed by the enricher when writing the culture).
+  (consumed by the enricher when writing the culture's
+  susceptibilities, and by `load_hai_antibiogram` validation).
 - `clinosim.modules.observation.engine` — `round_to_precision`,
   `determine_flag` (re-applied post-lift).
 - `clinosim.audit.registry` (via `audit.py`) — AD-60 audit
   registration.
-- `clinosim.types.encounter` — `Device`, `HAIEvent`,
-  `MicrobiologyResult`.
+- `clinosim.types.device` — `DeviceRecord`; `clinosim.types.hai` —
+  `HAIEvent`; `clinosim.types.microbiology` — `MicrobiologyResult`,
+  `SusceptibilityResult`.
 - `numpy`, `yaml`.
 
 ## Constants and configuration
@@ -112,7 +127,9 @@ from clinosim.modules.hai.lab_lift import (
   - `hai_codes.yaml` — HAI condition codes (ICD-10 + SNOMED) per type.
   - `hai_specimens.yaml` — specimen type per HAI type.
   - `hai_antibiogram.yaml` — organism × antibiotic S/I/R rates
-    (loaded by `antibiotic` module; validated 3-way against
+    (loaded by `load_hai_antibiogram` in `__init__.py` and consumed by
+    the hai enricher and the antibiotic narrow-ladder validator;
+    validated 3-way against
     `HAI_TYPES` + `hai_organisms.yaml` + `ANTIBIOTIC_LOINC_LOOKUP`).
   - `hai_lab_lift.yaml` — per-HAI-type WBC + CRP delta parameters
     used by `_hai_lift_delta`.
@@ -127,7 +144,7 @@ from clinosim.modules.hai.lab_lift import (
 
 ```
 clinosim/modules/hai/
-  __init__.py                    HAI_TYPES canonical constant + loader stub
+  __init__.py                    HAI_TYPES canonical constant + load_hai_antibiogram
   engine.py                      sample_hai_onset + loaders + validators + _sample_organism
   enricher.py                    POST_ENCOUNTER enrich_hai
   lab_lift.py                    apply_hai_lab_lift + _hai_lift_delta (Phase 3a)
@@ -159,6 +176,7 @@ Registered in
 | Enricher registry | [`clinosim/simulator/enrichers.py`](../../simulator/enrichers.py) | POST_ENCOUNTER order=80 registration. |
 | Audit registry | [`clinosim/modules/hai/audit.py`](audit.py) | AD-60 audit plug-in — lift_firing_proof + canonical / structural / clinical checks. |
 | Antibiotic enricher | [`clinosim/modules/antibiotic/enricher.py`](../antibiotic/enricher.py) | Reads `extensions["hai"]` for empirical regimen selection. |
+| Inpatient simulator | [`clinosim/simulator/inpatient.py`](../../simulator/inpatient.py) | Truncates future HAI events / cultures at the snapshot, then calls `apply_hai_lab_lift`. |
 | Observation microbiology emitter | [`clinosim/modules/observation/microbiology.py`](../observation/microbiology.py) | Emits `Observation.specimen.reference` and the `HAI_EVENT_ID_SYSTEM` identifier on HAI-derived cultures. |
 | FHIR microbiology / diagnostic-report / servicerequest / document chain | integration tests (see below) | End-to-end HAI cascade emission. |
 

@@ -30,7 +30,9 @@ N 件になるため、新 builder は不要。
   `duration_days=7`、MEDICATION Order 1 件、MAR 7 件)。
   PR3b-2 拡張で `antibiogram_firing_proof` を追加 (合成 CLABSI +
   S. aureus HAIEvent → 6 susceptibility 行、vancomycin always-S
-  sentinel、cefazolin non-degenerate probe)。
+  sentinel、cefazolin non-degenerate probe)。PR3b-3 で narrow proof
+  (合成 CLABSI MSSA → cefazolin へ SWITCH) を追加。import 時 validator
+  は narrow-rate band と NHSN resistance band も検証。
 - **Out of scope**: HAI event サンプリング
   ([`hai`](../hai/README.ja.md))、microbiology culture emission
   ([`observation.microbiology`](../observation/microbiology.py))、
@@ -50,41 +52,53 @@ from clinosim.modules.antibiotic.engine import (
     FREQ_PER_DAY,                        # dose 頻度 → doses/day 表
     load_hai_empirical,                  # () -> dict[hai_type, regimen] (@lru_cache)
     load_narrow_ladder,                  # () -> dict[hai_type, {organism_snomed: [drug_key, ...]}] (@lru_cache)
-    build_regimens,                      # (hai_event, empirical_map, patient_id) -> list[AntibioticRegimen]
-    generate_mar_doses,                  # (regimen, admission_time) -> list[MedicationAdministration]
+    build_regimens,                      # (hai_event, start_datetime) -> list[AntibioticRegimen]
+    generate_mar_doses,                  # (regimen, snapshot_datetime, order_id, encounter_end_datetime=None)
+                                         #   -> list[MedicationAdministration]
     NarrowOutcome,                       # Enum {SWITCH, ELIMINATION, NO_CHANGE}
-    select_narrow_target,                # (hai_type, organism_snomed, susceptibilities) -> drug_key | None
-    narrow_outcome,                      # (empirical, target) -> NarrowOutcome
-    narrow_duration_days,                # (hai_type, drug_key) -> int
+    select_narrow_target,                # (susceptibilities, ladder_for_organism) -> drug_key | None
+    narrow_outcome,                      # (narrow_target, empirical_regimens) -> NarrowOutcome
+    narrow_duration_days,                # (empirical_start, reported, total_course) -> int
 )
 from clinosim.modules.antibiotic.enricher import enrich_antibiotic  # POST_ENCOUNTER entry
 ```
 
 ## 決定論
 
-- サブ seed オフセット `0x4142` (`"AB"`, PR3b-1) —
+- サブ seed オフセット `0x4142` (`"AB"`, PR3b-1) は
   [`clinosim/seeding.py`](../../seeding.py) の
-  `ENRICHER_SEED_OFFSETS["antibiotic"]` に登録済み。
+  `ENRICHER_SEED_OFFSETS["antibiotic"]` として予約済みだが、enricher は
+  乱数を引かない。regimen・MAR schedule・narrowing はすべて HAI event、
+  `hai_empirical.yaml`、microbiology 結果の決定論的関数。
 - PR3b-3 narrowing は **新 RNG 追加なし** —
   `select_narrow_target` は microbiology 層で既に確定した susceptibility
   に対して pure。
 - AD-32 future-onset skip: snapshot より後の onset を持つ HAI event は
   pre-skip され、POST_ENCOUNTER 後の HAI 切り詰めで orphan order を
   生成しない。
+- MAR は snapshot と encounter の `discharge_datetime` の早い方で打ち
+  切る (Issue #1312)。empirical order は onset 日 08:00、narrowed
+  regimen は culture の `reported_datetime` 開始 (snapshot より後なら
+  skip)。
 
 ## 依存
 
-- `clinosim.modules._shared` — `get_attr_or_key`。
+- `clinosim.modules._shared` — `get_attr_or_key`、`set_attr_or_key`、
+  `get_or_create_container`、`sanitize_id_token`。
+- `clinosim.modules.hai` — `HAI_TYPES`、`load_hai_antibiogram`
+  (narrow ladder 検証)。
+- `clinosim.modules.order.engine` — `parse_dose_string`。
 - `clinosim.modules.observation.microbiology` —
   `antibiotic_loinc_lookup` (`ANTIBIOTIC_LOINC_LOOKUP` として再 export)。
 - `clinosim.modules.antibiotic._narrow_dose_defaults` — 薬剤別
   narrow-target 用量 + 頻度 default。
 - `clinosim.audit.registry` (`audit.py` 経由) — AD-60 audit 登録。
-- `clinosim.seeding` — `ENRICHER_SEED_OFFSETS`。
-- `clinosim.types.encounter` — `AntibioticRegimen`,
-  `MedicationAdministration`, `Order`, `OrderType`, `OrderStatus`、
-  および microbiology 型群。
-- `numpy`, `yaml`。
+- `clinosim.types.antibiotic` — `AntibioticRegimen`。
+- `clinosim.types.encounter` — `MedicationAdministration`, `Order`,
+  `OrderType`, `OrderStatus`。
+- `clinosim.types.hai` — `HAIEvent`、`clinosim.types.microbiology` —
+  `SusceptibilityResult`。
+- `yaml`。
 
 ## 定数と設定
 
@@ -96,32 +110,37 @@ from clinosim.modules.antibiotic.enricher import enrich_antibiotic  # POST_ENCOU
   `ANTIBIOTIC_LOINC_LOOKUP` と一致。YAML loader は全 `drug_key`
   文字列を import 時に本 dict と cross-validate する (PR-90 教訓)。
 - **`FREQ_PER_DAY`** (`engine.py`) — dose 頻度文字列 → doses/day
-  (`"q24h" → 1`, `"q12h" → 2`, `"q8h" → 3`, `"q6h" → 4`)。
+  (`"q24h" → 1`, `"q12h" → 2`, `"q8h" → 3`, `"q6h" → 4`,
+  `"q4h" → 6`)。
   `generate_mar_doses` が消費する。
 - **Reference YAML**:
   - [`reference_data/hai_empirical.yaml`](reference_data/hai_empirical.yaml)
-    — HAI type 別 IDSA 2009/2016 empirical regimen。loader
-    `_validate_hai_empirical` が全 drug_key を `ANTIBIOTIC_DRUGS` に
-    対して cross-validate (`HAI_TYPES` + `ANTIBIOTIC_LOINC_LOOKUP`
-    と 3-way)。
+    — HAI type 別 IDSA 2009/2016 empirical regimen。`load_hai_empirical`
+    が hai_type key を `HAI_TYPES` と双方向に、全 drug_key を
+    `ANTIBIOTIC_DRUGS` に対して検証。
   - [`reference_data/narrow_ladder.yaml`](reference_data/narrow_ladder.yaml)
     — per (HAI type, organism SNOMED) narrow target ladder。loader
     `_validate_narrow_ladder` が `HAI_TYPES` + `hai_antibiogram.yaml`
-    + `ANTIBIOTIC_DRUGS` と 3-way validate。
+    + `ANTIBIOTIC_DRUGS` と cross-validate し、antibiogram の全
+    (HAI type, organism) に ladder entry があることも要求
+    (reverse coverage)。
 - **Narrow-target 用量 default** ([`_narrow_dose_defaults.py`](_narrow_dose_defaults.py)、
   Issue #637) — enricher の `_narrow_dose_frequency` が返す薬剤別
   (dose_string, frequency) pair。
 - **FHIR ID prefix** (`engine.py`) — `ABX_REGIMEN_ID_PREFIX`,
-  `ABX_ORDER_REQ_PREFIX`, `ABX_ORDER_ID_PREFIX`, `ABX_NARROW_SUFFIX`。
+  `ABX_ORDER_REQ_PREFIX`, `ABX_ORDER_ID_PREFIX` (`ABX_NARROW_SUFFIX`
+  は定義が残るが付与されなくなった — narrowed regimen は
+  `abx-{hai_id}-{slug}` で、intent は `medication_intent="narrowed"`
+  で表す)。
   `_check_fhir_id_length` が全 emission site で FHIR `id`
   cardinality を強制 (Issue 追跡。`_DRUG_SLUG_OVERRIDES` は長さ
   budget 超過を引き起こす薬剤名を扱う)。
 - **`AntibioticRegimen.discontinuation_datetime`** — PR3b-3 narrowing
   が populate する forward-compat slot (`intent="narrowed"` regimen が
   置換された empirical entry の `discontinuation_datetime =
-  reported_datetime` を設定。medications builder の
-  `_map_order_status_to_fhir` がそれを
-  `MedicationRequest.status="stopped"` に mapping)。
+  reported_datetime` を設定し、以降の MAR を切り詰め、対応する
+  `Order.status = OrderStatus.STOPPED` にする。medications builder は
+  それを `MedicationRequest.status="stopped"` として emit)。
 
 ## ディレクトリ構造
 
@@ -130,7 +149,7 @@ clinosim/modules/antibiotic/
   __init__.py                        ANTIBIOTIC_DRUGS + ANTIBIOTIC_LOINC_LOOKUP を再 export
   engine.py                          build_regimens + generate_mar_doses + narrow_* helper + loader + validator
   enricher.py                        POST_ENCOUNTER enrich_antibiotic (Pass 1 empirical + Pass 2 narrowing)
-  audit.py                           AD-60 audit plug-in (2 番目の per-Module) — lift_firing_proof + antibiogram_firing_proof
+  audit.py                           AD-60 audit plug-in (2 番目の per-Module) — lift_firing_proof (empirical + antibiogram + narrow)
   _narrow_dose_defaults.py           narrow-target 用量 + 頻度 default (Issue #637)
   reference_data/
     hai_empirical.yaml               HAI type 別 IDSA empirical regimen
@@ -153,7 +172,8 @@ clinosim/modules/antibiotic/
 | --- | --- | --- |
 | Enricher registry | [`clinosim/simulator/enrichers.py`](../../simulator/enrichers.py) | POST_ENCOUNTER order=85 登録。 |
 | Audit registry | [`clinosim/modules/antibiotic/audit.py`](audit.py) | AD-60 audit plug-in。 |
-| HAI enricher | [`clinosim/modules/hai/enricher.py`](../hai/enricher.py) | `ANTIBIOTIC_LOINC_LOOKUP` を cross-import。 |
+| HAI module | [`clinosim/modules/hai/enricher.py`](../hai/enricher.py)、[`clinosim/modules/hai/__init__.py`](../hai/__init__.py) | `ANTIBIOTIC_LOINC_LOOKUP` を cross-import。 |
+| Clinical audit axis | [`clinosim/audit/axes/clinical.py`](../../audit/axes/clinical.py) | narrow-rate gate 用に `ANTIBIOTIC_LOINC_LOOKUP` と `ABX_*` id prefix を import。 |
 | FHIR medications builder | [`clinosim/modules/output/fhir_r4/medications/`](../output/fhir_r4/medications/README.ja.md) | 追加された `Order` + MAR record から `MedicationRequest` + `MedicationAdministration` を emit (discontinued empirical は `status="stopped"`)。 |
 
 ## テスト
@@ -179,8 +199,8 @@ clinosim audit run -d <cohort_dir> --module antibiotic
   — `_check_fhir_id_length` guard。
 - [`tests/unit/test_antibiotic_yaml_loader.py`](../../../tests/unit/test_antibiotic_yaml_loader.py)
   — 6-layer loader validator。
-- [`tests/unit/modules/antibiotic/`](../../../tests/unit/modules/antibiotic/)
-  — module-scoped unit test。
+- [`tests/unit/modules/antibiotic/test_antibiotic_loinc_lookup.py`](../../../tests/unit/modules/antibiotic/test_antibiotic_loinc_lookup.py)
+  — LOINC lookup の単一情報源化。
 - [`tests/integration/test_antibiotic_forced_e2e.py`](../../../tests/integration/test_antibiotic_forced_e2e.py),
   [`test_antibiotic_audit.py`](../../../tests/integration/test_antibiotic_audit.py)
   — end-to-end + AD-60 audit run。
@@ -190,4 +210,4 @@ clinosim audit run -d <cohort_dir> --module antibiotic
 `maintainers@` — 詳細は
 [`CONTRIBUTING.md`](../../../CONTRIBUTING.ja.md)。
 
-英語版: [`README.md`](README.ja.md)。
+英語版: [`README.md`](README.md)。

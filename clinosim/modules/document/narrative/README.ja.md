@@ -15,8 +15,8 @@ AD-65 Stage 2 narrative pass の実装。`NarrativePass` が
   経由で LLM 出力に置換する (AD-11 — 全 LLM 呼び出しは
   [`clinosim.modules.llm_service`](../../llm_service/README.ja.md) 経由)。
   provider 失敗時は per-document で template 出力に fallback。opt-in は
-  明示的 CLI `clinosim narrate --provider bedrock |ollama |mock` — env
-  gate は無し。
+  明示的 CLI `clinosim narrate --provider
+  bedrock|ollama|vllm|openai_compatible|mock` — env gate は無し。
 
 `NarrativeCache` は layer-1 in-memory cache (clinical-context +
 template-seed-hash key、患者跨ぎ section 再利用用)。layer-2 disk
@@ -28,13 +28,13 @@ template-seed-hash key、患者跨ぎ section 再利用用)。layer-2 disk
   `TemplateNarrativePass` + `LLMNarrativePass`)、2 generator、
   `apply_replacement_strategy` per-section dispatch (`template_only`
   / LLM driven)、prompt 構築 pipeline (`context.py` CIF→ctx
-  factory、`scenario_spine.py` DiseaseProtocol → NarrativeSpine、
-  `fact_extractor.py` FactTag materialisation (AD-65 E2 — β-JP-1 が
-  `materialized_facts` に無い数値を emit 拒否)、`section_extractor.py`
-  per-COMPOSITION section slicing (AD-65 E3))、`template_generator.py`
-  placeholder engine (大 — vitals / discharge / home-med / hedging
-  placeholder 解決)、慢性疾患 SOAP resolver (`_chronic_soap.py` — 32
-  disease YAML は急性入院のみカバーするため慢性疾患は ICD-10 のみで
+  factory + helper、`scenario_spine.py` disease / encounter protocol →
+  NarrativeSpine、`fact_extractor.py` FactTag materialisation (AD-65
+  E2)、`section_extractor.py` per-COMPOSITION section slicing (AD-65
+  E3))、`template_generator.py` + `renderers/` の placeholder engine と
+  文書別 / section 別 renderer (vitals / discharge / home-med /
+  hedging placeholder 解決)、慢性疾患 SOAP resolver (`_chronic_soap.py`
+  — disease YAML は急性入院のみカバーするため慢性疾患は ICD-10 のみで
   現れ、独立 SOAP template library を必要とする)、hedging phrase
   pool (`_hedging.py` — 「Template = 単体で adequate density」原則を
   強制)、narrative-interpretation threshold
@@ -74,11 +74,17 @@ from clinosim.modules.document.narrative.registry import (
     specs_for_country,            # (country) -> list[DocumentTypeSpec]
     specs_for_encounter_type,     # (encounter_type) -> list[DocumentTypeSpec]
 )
-from clinosim.modules.document.narrative.context import build_context     # (CIF, encounter, doc) -> NarrativeContext
-from clinosim.modules.document.narrative.scenario_spine import build_spine  # (protocol, day) -> NarrativeSpine
-from clinosim.modules.document.narrative.fact_extractor import materialize_facts
-from clinosim.modules.document.narrative.section_extractor import extract_section_facts
-from clinosim.modules.document.narrative.semantic_check import check_narratives
+from clinosim.modules.document.narrative.context import build_narrative_context
+    # (record, encounter, document_type, day_index, country, ...) -> NarrativeContext
+    # (unit test 用 factory。NarrativePass は ctx を inline で組み、
+    #  _build_safety_skips / _build_newborn_workup を共有する)
+from clinosim.modules.document.narrative.scenario_spine import build_narrative_spine
+    # (disease_protocol, encounter_protocol, archetype) -> NarrativeSpine | None
+from clinosim.modules.document.narrative.fact_extractor import extract_all_facts
+    # (patient_dict, encounter_dict, ctx) -> list[FactTag]
+from clinosim.modules.document.narrative.section_extractor import extract_for_composition
+    # (ctx, spec) -> {section_key: SectionFacts}
+from clinosim.modules.document.narrative.semantic_check import check_narratives, load_expectations
 ```
 
 ## 決定論
@@ -97,24 +103,25 @@ from clinosim.modules.document.narrative.semantic_check import check_narratives
   再利用 → Bedrock の prompt-cache 5 分 TTL hit 最大化。
   `LLMNarrativePass` は drop-in の cache-friendliness のため同 walk 順を
   継承する。
-- **fact-first 制約** (AD-65 E2) — β-JP-1 `LLMNarrativePass` は
-  `materialized_facts` に含まれない数値を emit 拒否するため、LLM が
-  検査値を hallucinate できない。
+- **fact-first data** (AD-65 E2) — `NarrativePass` は全 context に
+  `ctx.materialized_facts` (Composition spec では `ctx.section_facts`
+  も) を populate する。ただし現状これらを読んで LLM 出力中の未収載
+  数値を拒否する code は無く、LLM path の guard は `check_narratives`。
 
 ## 依存
 
 - `clinosim.modules.llm_service` — `LLMService.complete_prompt` +
   `LLMTaskType` / `LLMResponse` (LLM path のみ)。
-- `clinosim.modules.document` — canonical ID prefix +
-  `NURSING_LOINCS` (定数のみ逆参照、enricher 本体は import しない)。
+- `clinosim.modules.document` — `specs_for_country`、`DocumentType`
+  再 export、`reference_data_loaders` (enricher 本体は import しない)。
 - `clinosim.modules.disease.protocol` — scenario spine 抽出用の
-  `DiseaseProtocol`。
+  `load_disease_protocol`。
 - `clinosim.modules.encounter.protocol` — 外来 / ED template 用の
-  `EncounterConditionProtocol`。
+  `load_encounter_condition`。
 - `clinosim.types.document` — `NarrativeContext`, `NarrativeOutput`,
   `DocumentType`, `FormatType`、`NarrativeGenerator` Protocol。
-- `clinosim.types.clinical` — `ClinicalDocument`,
-  `ClinicalDocumentNarrative`。
+- `clinosim.types.clinical` — `ClinicalDocumentNarrative`,
+  `NarrativeVersionManifest`。
 - `hashlib.sha256` — cache key 導出。
 - `yaml`。
 
@@ -166,16 +173,18 @@ token が template 出力に混入すると LLM は verbatim rule に従って
     `lang != "ja"` すべて):
     - `output/fhir_r4/lib/localization.localize_drug_name(name,
       lang)` — `_localize_drug_name` を wrap。
-    - `replacement_strategy.localize_lab_name(name, lang)` —
+    - `_replacement_localization.localize_lab_name(name, lang)`
+      (`replacement_strategy` から再 export) —
       `_localize_lab_name_ja` を wrap。
-    - `replacement_strategy.localize_oxygen_device(device, lang)`
-      — `_localize_oxygen_device_ja` を wrap。
+    - `_replacement_localization.localize_oxygen_device(device,
+      lang)` (`replacement_strategy` から再 export) —
+      `_localize_oxygen_device_ja` を wrap。
     基底の JA-only helper 群
     (`_localize_severity_ja`、`_localize_oxygen_device_ja`、
     `_localize_lab_name_ja`、`_localize_arrival_mode_ja`、
     `_localize_risk_level_ja`、`_localize_barthel_band_ja`) は
     実辞書実装として維持。新 locale 追加は基底 YAML
-    (`llm_prompt_labels.yaml`) の data 追加のみ、code 変更不要。
+    (`clinosim/locale/shared/llm_prompt_labels.yaml`) の data 追加のみ、code 変更不要。
 - **後段 backstop (post-hoc walker)** —
   `output/fhir_r4/documents/composition.py` の
   `_localize_practitioner_ids_in_text` (PR #828)。
@@ -191,25 +200,37 @@ drift を検出する二重体制。
 
 ```
 clinosim/modules/document/narrative/
-  __init__.py                              4 symbol を再 export (2 generator + NarrativeCache + apply_replacement_strategy)
+  __init__.py                              re-exports 4 symbols (2 generators + NarrativeCache + apply_replacement_strategy)
   passes.py                                NarrativePass ABC + TemplateNarrativePass + LLMNarrativePass
-  registry.py                              DocumentTypeSpec + loader + filter (6-layer validated)
-  context.py                               build_context (CIF → NarrativeContext)
-  scenario_spine.py                        build_spine (protocol → NarrativeSpine、AD-65 E1)
-  fact_extractor.py                        materialize_facts (FactTag list、AD-65 E2 β-JP-1 制約)
-  section_extractor.py                     extract_section_facts (COMPOSITION section 別、AD-65 E3)
-  template_generator.py                    TemplateNarrativeGenerator + placeholder engine (~4300 LOC)
-  llm_generator.py                         LLMNarrativeGenerator (template base + per-section LLM 置換)
-  replacement_strategy.py                  apply_replacement_strategy dispatch (~1300 LOC)
-  cache.py                                 NarrativeCache (layer-1 in-memory、seed_hash keyed)
-  semantic_check.py                        check_narratives (β-JP-1 検証 gate)
+  registry.py                              DocumentTypeSpec + loader + filters (6-layer validated)
+  context.py                               build_narrative_context (CIF → NarrativeContext) + _build_safety_skips / _build_newborn_workup
+  scenario_spine.py                        build_narrative_spine (protocol → NarrativeSpine, AD-65 E1)
+  fact_extractor.py                        extract_all_facts (FactTag list, AD-65 E2)
+  section_extractor.py                     extract_for_composition (per-COMPOSITION section, AD-65 E3)
+  template_generator.py                    TemplateNarrativeGenerator + placeholder engine (~1400 LOC; per-document rendering split into renderers/)
+  renderers/                               per-document renderers (progress_note / nursing_shift_note / ed_triage_note / composition_sections + shared helpers) and section_builders/ (one module per Composition section family)
+  lab_timeseries.py                        lab time-series helpers for narrative rendering
+  _localization.py                         JA/EN narrative-token localization helpers (META #1633 P6 slice 1)
+  _template_helpers.py                     Template-rendering primitives (_label / _resolve_staff_name / _render_home_med_name / _pick_localized / _fill_template_placeholders / vital-placeholder resolution / fallback constants — META #1633 P6 slice 2)
+  _narrative_utils.py                      Miscellaneous narrative helpers (nursing-content lookup / vitals-for-day / SHA-driven autopsy gate / age-at / ISO-datetime parse / chief-complaint keyword / encounter-salted pool pickers / PE clause rewrite — META #1633 P6 slice 3)
+  llm_generator.py                         LLMNarrativeGenerator (template base + per-section LLM replacement)
+  replacement_strategy.py                  apply_replacement_strategy dispatch (~790 LOC — strategy applicators only; helpers extracted to the four files below)
+  _replacement_localization.py             Severity / oxygen-device / arrival-mode / Barthel-band / lab-name JA token lookups + LLM-output EN→JA post-processors (META #1633 P6 replacement slice 1)
+  _replacement_renderers.py                Per-section rendering helpers (chronic list / newborn workup / vitals-for-day / supplemental-O2 / med lists / abnormal labs / lab trend / lab carry-forward / key procedures / stay-phase — META #1633 P6 replacement slice 2)
+  _patient_info_renderers.py               Patient demographics / biometrics / health-literacy renderers + _localize_token enum lookup (META #1633 P6 replacement slice 3)
+  _extra_context_builder.py                _build_extra_context + _writing_day_of — composes every renderer into the LLM-prompt context dict (META #1633 P6 replacement slice 4)
+  cache.py                                 NarrativeCache (layer-1 in-memory, seed_hash keyed)
+  semantic_check.py                        check_narratives (β-JP-1 verification gate)
   _hedging.py                              hedging phrase pool
-  _chronic_soap.py                         慢性疾患 SOAP resolver (v9 density fix)
-  _narrative_interpretation_thresholds.py  interpretation cutoff scalar (Issue #637)
+  _chronic_soap.py                         chronic-disease SOAP resolver (v9 density fix)
+  _narrative_interpretation_thresholds.py  interpretation cutoff scalars (Issue #637)
+  reference_data/
+    chief_complaint_variants.yaml          chief-complaint phrasing variants (load_chief_complaint_variants)
 ```
 
-**`audit.py` / `enricher.py` / `reference_data/` は存在しない** —
-reference data は親 `document` package。
+**`audit.py` / `enricher.py` は存在しない**。
+`chief_complaint_variants.yaml` 以外の reference data は親 `document`
+package。
 
 ## Enricher 配線
 
@@ -222,10 +243,10 @@ reference data は親 `document` package。
 
 | Consumer | 場所 | 役割 |
 | --- | --- | --- |
-| CLI `narrate` subcommand | [`clinosim/simulator/cli_narrate.py`](../../../simulator/cli_narrate.py) | default で `TemplateNarrativePass`、`--provider` 指定時は `LLMNarrativePass` を instantiate し `.run(cif_dir, version_id)` を呼び出す。 |
+| CLI `narrate` subcommand | [`clinosim/simulator/cli_narrate.py`](../../../simulator/cli_narrate.py) | default で `TemplateNarrativePass`、`--provider` 指定時は `LLMNarrativePass` を `cif_dir` / `version_id` / `country` で instantiate し `.run()` を呼び出す。 |
 | Document package | [`clinosim/modules/document/__init__.py`](../__init__.py) | `registry` から `DocumentTypeSpec` + spec loader / filter を再 export。 |
 | FHIR document builder | [`clinosim/modules/output/fhir_r4/documents/`](../../output/fhir_r4/documents/README.ja.md) | 本 pass が populate した `ClinicalDocumentNarrative.sections` / `text` を `Composition.section[].text.div` に流し込む。 |
-| Semantic-check CLI | (`clinosim narrate --check`) | `check_narratives` を呼び LLM 出力を fact 制約に対して verify。 |
+| Semantic-check CLI | `clinosim check-narratives` ([`cli_narrate.py`](../../../simulator/cli_narrate.py) `_run_check_narratives`) | narrative version に対し `check_narratives` (5 axis、任意で expectations YAML) を実行。 |
 
 ## テスト
 
@@ -245,4 +266,4 @@ mock provider が決定論的に replay するため、`LLMNarrativePass` test
 `maintainers@` — 詳細は
 [`CONTRIBUTING.md`](../../../../CONTRIBUTING.ja.md)。
 
-英語版: [`README.md`](README.ja.md)。
+英語版: [`README.md`](README.md)。

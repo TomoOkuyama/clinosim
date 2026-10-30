@@ -1,7 +1,10 @@
 # `clinosim/modules/drug_safety/reference_data/`
 
-YAML schemas for the drug_safety module. All three files are consumed
-via `PyYAML.safe_load` at import time (cached via `functools.lru_cache`).
+YAML schemas for the drug_safety module. All five files
+(`drug_classes.yaml`, `contraindications.yaml`,
+`disease_contraindications.yaml`, `demographic_gates.yaml` here, plus
+`locale/shared/drug_substitution.yaml`) are consumed via
+`PyYAML.safe_load` on first use (cached via `functools.lru_cache`).
 
 ## `drug_classes.yaml`
 
@@ -12,15 +15,19 @@ code change required.
 mappings:
   <Canonical Drug Name>:
     aliases:      [<additional names, case-insensitive substring match — EN + JP + brand>]
-    drug_ja:      "<JP display>"
+    drug_ja:      "<JP display>"   # legacy, optional — only for drugs not yet in clinosim/codes/data/drugs.yaml
     classes:      [<class tags, dot-notated: family.subfamily>]
 ```
+
+`japanese_display` resolves the JA name through the drug catalog
+(`clinosim/codes/data/drugs.yaml`) first and falls back to `drug_ja`
+for drugs the catalog does not register (META #1804).
 
 Class taxonomy conventions:
 
 - `anticoagulant.{vka, doac, heparin}`
 - `antiplatelet.{cox_inhibitor, p2y12, gp2b3a}`
-- `nsaid.{non_selective, cox2_selective}` (Aspirin is dual-class,
+- `nsaid.{non_selective, preferential_cox2, cox2_selective}` (Aspirin is dual-class,
   belonging to both `antiplatelet.cox_inhibitor` and
   `nsaid.non_selective`)
 - `ccb.{dhp, non_dhp}`
@@ -30,7 +37,9 @@ Class taxonomy conventions:
 - `diuretic.{loop, thiazide, k_sparing}`
 - `statin`, `cyp3a4_substrate`, `cyp3a4_inhibitor_strong`
 - `xanthine_oxidase_inhibitor`, `thiopurine`, `immunosuppressant`
-- `ssri`, `maoi`, `antidepressant`, `antiparkinsonian`
+- `ssri`, `snri`, `maoi`, `antidepressant`, `atypical_antidepressant`,
+  `antiparkinsonian`
+- `benzodiazepine`, `anxiolytic`, `biguanide`
 - `analgesic.non_opioid`, `macrolide`
 - `antihypertensive`, `antiarrhythmic.class4`
 
@@ -72,6 +81,50 @@ Severity → default action:
 | `major`           | `skip`            | substitute + skip log entry |
 | `contraindicated` | `skip`            | substitute + skip log entry |
 
+## `disease_contraindications.yaml`
+
+Drug class × chronic-disease-state rules, consumed by
+`check_candidate_against_disease_state`.
+
+```yaml
+rules:
+  - id: <kebab-case unique identifier>
+    drug_class: <class tag from drug_classes.yaml>
+    disease_predicate:
+      icd_prefix: [<ICD-10 prefixes>]      # required
+      stage_in: [<stage strings>]          # optional (Issue #1769); entry must carry a matching stage
+    severity: allowed | minor | moderate | major | contraindicated
+    substitution_hint: <optional indication tag>
+    rationale_en: "..."
+    rationale_ja: "..."
+    source: "..."
+```
+
+`active_conditions` entries are bare ICD strings or `(code, stage)`
+tuples. Every matching rule is returned (one `SafetyVerdict` each);
+callers pick the highest severity.
+
+## `demographic_gates.yaml`
+
+Age / sex "prescribe at all?" rules, consumed by
+`demographic.check_demographic_gate`.
+
+```yaml
+rules:
+  - id: <kebab-case unique identifier>
+    drug_names: [<case-insensitive substring aliases — EN / JA / brand>]
+    min_age: <int>                 # optional — patient must be >= this
+    max_age: <int>                 # optional — patient must be <= this
+    sex: male | female             # optional
+    exception_indications: [<ICD-10 prefixes>]   # optional bypass
+    severity: contraindicated | major
+    rationale_en: "..."
+    rationale_ja: "..."
+```
+
+When several rules fire, the highest-severity verdict wins (ties: first
+rule).
+
 ## `../../../locale/shared/drug_substitution.yaml`
 
 Generic indication → alternative drug pool. Consulted after
@@ -83,8 +136,8 @@ indications:
   <indication_tag>:
     description: "<one-line explanation>"
     alternatives:
-      - drug: "<generic drug name>"
-        drug_ja: "<JP display>"
+      - drug_id: <id in clinosim/codes/data/drugs.yaml>   # display (en + ja) resolved via the catalog
+        # legacy alternative to drug_id: drug: "<EN name>", drug_ja: "<JP display>"
         default_dose: "<neutral dose string>"
         default_route: "<PO | IV | SC | INH>"
         default_frequency: "<daily | bid | tid | qid | prn | q6h_prn>"
@@ -92,7 +145,7 @@ indications:
 
 `suggest_alternative` iterates the `alternatives` list in order and
 re-checks each candidate against the caller's active meds via
-`check_pair`. The first conflict-free entry wins.
+`check_candidate_against_active` (pairwise `check_pair`). The first conflict-free entry wins.
 
 ## Adding a new rule
 

@@ -4,7 +4,7 @@
 
 Owns two related concerns for inpatient / ED / outpatient encounters:
 
-1. The **encounter-condition protocol registry** — 46 YAMLs under
+1. The **encounter-condition protocol registry** — 51 YAMLs under
    [`reference_data/`](reference_data/) covering short outpatient and
    ED conditions (asthma attack, migraine, minor laceration,
    screening visits, allergic reaction, syncope, viral gastroenteritis,
@@ -41,7 +41,7 @@ Owns two related concerns for inpatient / ED / outpatient encounters:
 
 ### Longitudinal service-line encounter shapes (v0.5 → v0.6.0)
 
-The 46 YAML protocols above cover ED / outpatient chief-complaint
+The 51 YAML protocols above cover ED / outpatient chief-complaint
 episodes. The two longitudinal service lines below emit inpatient /
 outpatient encounter shapes that are NOT tied to a `reference_data/`
 protocol — the shape lives directly in
@@ -53,9 +53,9 @@ and
   admit dx `O80`, discharge dx `Z37.0`, LOS 5 days JP / 2 days US,
   department `obgyn` with `internal_medicine` fallback via
   `department_rollup`, delivery Procedure JP `K894` / US CPT `59400`).
-- **Newborn Encounter** (IMP admission, `admit_source = "born"` new
-  `AdmitSource.BORN` enum member in
-  [`clinosim/types/encounter.py`](../../types/encounter.py),
+- **Newborn Encounter** (IMP admission, `admit_source = "born"` — a plain string value of
+  `Encounter.admit_source` in
+  [`clinosim/types/encounter.py`](../../types/encounter.py) (no enum),
   `admit_source_encounter_id` → mother's delivery encounter →
   FHIR `Encounter.partOf` on newborn side; LOS inherited from mother;
   discharge dx `Z38.0`).
@@ -114,22 +114,28 @@ from clinosim.modules.encounter.protocol import (
 - Daily-cycle + timeline generation is pure: no `rng` argument, and
   the cadence hours (06:00 / 06:30 / 09:00 / 14:00 / 18:00 / 18:30 /
   22:00) are fixed.
-- Protocol loaders are pure — Pydantic `extra="forbid"` catches
-  drift at load time.
+- Protocol loaders are pure. `EncounterConditionProtocol` validates
+  only the required fields (`condition_id`, `icd10_code`,
+  `chief_complaint`, `encounter_type`, `department`) plus the typed
+  optional keys; it uses `extra="allow"` so condition-specific sections
+  pass through. Every `route:` value is also checked against the shared
+  route vocabulary at load time.
 
 ## Dependencies
 
-- `pydantic` — schema + `extra="forbid"`.
+- `pydantic` — schema (`extra="allow"`).
 - `yaml` — YAML parser.
 - `clinosim.types.encounter` — `Encounter`, `EncounterStatus`,
   `EncounterType`.
 - `hashlib.sha256` — encounter-id derivation.
-- No dependency on any other `clinosim.modules.*`.
+- `clinosim.modules.output.fhir_r4.lib.reference_data.validate_yaml_route_value`
+  — lazy import in the loaders for the `route:` vocabulary check.
+  No other `clinosim.modules.*` dependency.
 
 ## Constants and configuration
 
 - **Encounter-condition YAML registry**: [`reference_data/`](reference_data/)
-  — 46 files (one per condition id; filename = condition_id +
+  — 51 files (one per condition id; filename = condition_id +
   `.yaml`). Covers outpatient chronic follow-up, ED short-stay,
   screening (mammography / colonoscopy / diabetic retinopathy /
   annual health screening), rehab, dialysis, cardiac rehab,
@@ -157,7 +163,7 @@ clinosim/modules/encounter/
   engine.py                       inpatient encounter creation + daily-cycle timeline
   protocol.py                     EncounterConditionProtocol + child models + loaders
   reference_data/
-    <condition_id>.yaml           46 files (one per outpatient / ED / screening condition)
+    <condition_id>.yaml           51 files (one per outpatient / ED / screening condition)
   SPEC.md                         extended design reference (not runtime)
 ```
 
@@ -174,7 +180,8 @@ what it needs directly.
 
 | Consumer | Where | Role |
 |---|---|---|
-| Simulator boot + all encounter simulators | [`clinosim/simulator/{engine,inpatient,outpatient,emergency,unknown_condition,enumerate,cli_test_encounter,cli}.py`](../../simulator/) | Import `create_inpatient_encounter` + the condition-protocol loaders. |
+| Simulator boot + all encounter simulators | [`clinosim/simulator/{inpatient,outpatient,emergency,perinatal,unknown_condition,enumerate,cli_test_encounter,cli}.py`](../../simulator/), [`clinosim/simulator/phases/_ed_slot.py`](../../simulator/phases/_ed_slot.py) | Import `create_inpatient_encounter` + the condition-protocol loaders. |
+| Triage | [`clinosim/modules/triage/engine.py`](../triage/engine.py) | Reads `load_all_encounter_conditions`. |
 | Narrative | [`clinosim/modules/document/narrative/passes.py`](../document/narrative/passes.py) | Reads `EncounterConditionProtocol.narrative` for the outpatient / ED template flow. |
 | Encounter-type FHIR mapping | [`clinosim/modules/output/fhir_r4/encounters/`](../output/fhir_r4/encounters/) | Consumes the encounter class + type strings the protocol carries. |
 
@@ -187,7 +194,7 @@ pytest tests/unit -k encounter -q
 Individual files:
 
 - [`tests/unit/test_encounter_protocol_validation.py`](../../../tests/unit/test_encounter_protocol_validation.py)
-  — Pydantic schema + `extra="forbid"` guard across all 46 YAMLs.
+  — Pydantic schema validation across all 51 YAMLs (required fields, `extra="allow"`).
 - [`tests/unit/test_encounter_archetype_severity.py`](../../../tests/unit/test_encounter_archetype_severity.py)
   — archetype × severity coverage.
 - [`tests/unit/test_encounter_features.py`](../../../tests/unit/test_encounter_features.py)

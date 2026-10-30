@@ -25,7 +25,9 @@ module 名は "disease" だが、実際には **入院 / encounter プロトコ�
 モジュールに跨る:
 [`clinosim.modules.population`](../population/README.ja.md) が
 [`clinosim/locale/shared/chemo_regimens.yaml`](../../locale/shared/chemo_regimens.yaml)
-の regimen (FOLFOX q14d, CarboPem q21d, Trastuzumab q3w, LHRH q28d)
+の regimen (例: FOLFOX q14d, CarboPem q21d, Trastuzumab q3w, LHRH q28d,
+GemNabP, BCG 膀胱内注入, Temozolomide Stupp。C22 は chemo regimen 未登録で
+慢性経口 TKI で治療される)
 を用いて年 calendar に `chemo_visit` LifeEvent を配置、
 [`clinosim.modules.order`](../order/README.ja.md) が regimen
 `cycle_orders` 各 Day-1 薬剤について per-cycle MedicationRequest +
@@ -67,8 +69,13 @@ slice list):
 - **In scope (import 時 validation)**: 全 YAML を Pydantic
   (`extra="forbid"`) で round-trip し、追加の `_validate_drug_*`
   pass が dose ↔ route 矛盾 (fallback-relative)、無効な escalation
-  `type`、長間隔 dose の duration 欠落、localised dose key の typo
-  を reject する。
+  `type`、長間隔 dose の duration 欠落、localised dose key の typo、
+  共有 route 語彙外の `route:` 値を reject する。loader はさらに
+  severity block (`severity._validate_severity_block`)、
+  `archetype_modifiers` / `course_archetypes` / 合併症 risk-factor 語彙
+  (`clinosim.modules.clinical_course.engine` の validator)、
+  `initial_state_impact` / `complications` の未知 state-var key
+  (`clinosim.modules.physiology.engine` の validator) でも fail-loud。
 - **Out of scope**: シミュレーション時に protocol を読む
   physiology-state 更新ロジック
   ([`clinosim.modules.physiology`](../physiology/README.ja.md))、
@@ -104,6 +111,8 @@ from clinosim.modules.disease.protocol import (
     dose_route_tokens,
     dose_contradicts_fallback,
     dose_names_long_interval,
+    # 代替薬 lookup (drug_safety.suggest_alternative)
+    alternatives_by_indication,   # (protocol, indication_tag, country) -> list[dict]
 )
 
 # 重症度モデル
@@ -111,7 +120,7 @@ from clinosim.modules.disease.severity import (
     SEVERITY_CATEGORIES,          # ("mild", "moderate", "severe")
     SEVERITY_SCORE_RANGES,        # canonical 半開範囲
     category_from_score,          # (score) -> "mild" |"moderate" |"severe"
-    sample_severity_category,     # (dist, modifiers, minimum, person, rng)
+    sample_severity_category,     # (distribution, modifiers, person, rng, minimum) -> str
     sample_severity,              # (protocol, person, rng) -> (category, score)
     EVALUABLE_CONDITIONS,
     RESERVED_INTRINSIC_CONDITIONS,
@@ -145,8 +154,8 @@ schema / validation 失敗時に `ValueError` / Pydantic
 - 重症度サンプリング (`sample_severity_category`,
   `sample_severity`) は `rng` に対して決定論的。seed 導出は caller
   ([`clinosim.modules.population`](../population/README.ja.md) の入院
-  gate + [`clinosim.modules.patient.activator`](../patient/README.ja.md))
-  が握る。本モジュールは enricher ではなく必要な consumer が直接
+  gate が `sample_severity`、`clinosim/simulator/emergency.py` の ED
+  経路が `sample_severity_category`) が握る。本モジュールは enricher ではなく必要な consumer が直接
   import する形態のため、サブ seed オフセットは未登録。
 - その他 (loader / validator / 薬剤 vocabulary helper / acuity
   集合 / localization) はすべて pure。
@@ -158,13 +167,19 @@ schema / validation 失敗時に `ValueError` / Pydantic
 - `numpy` — 重症度サンプリング用 `np.random.Generator`。
 - `clinosim.modules._shared` — `normalize_probabilities`
   (`fallback="raise"`)。
+- loader 時 validator と localization が関数内 lazy import する:
+  `clinosim.modules.clinical_course.engine`、
+  `clinosim.modules.physiology.engine`、
+  `clinosim.modules.output.fhir_r4.lib.reference_data`
+  (`validate_yaml_route_value`)、`clinosim.locale.text`
+  (`resolve_text`)。
 - `clinosim.simulator` には依存しない (厳格な one-way 境界 —
   simulator が disease を読むだけで逆流しない)。
 
 ## 定数と設定
 
 - **疾患 YAML registry**: [`reference_data/`](reference_data/) —
-  現在 32 file (1 疾患 = 1 file、filename = disease_id + `.yaml`)。
+  現在 36 file (1 疾患 = 1 file、filename = disease_id + `.yaml`)。
   各 file は国別疫学、重症度分布 + modifier、提示症状、physiology
   impact、日次 trajectory archetype、合併症、発注プロトコル
   (labs / vitals / imaging / medications)、鑑別 + 尤度比 +
@@ -221,7 +236,7 @@ clinosim/modules/disease/
   acuity.py                       EMERGENCY_PRIORITY / CRITICAL_MONITORING / NEURO_LOC 集合
   localization.py                 国 → YAML key + chief complaint + 部門 + target_los
   reference_data/
-    <disease_id>.yaml             32 file (疾患 1 file)
+    <disease_id>.yaml             36 file (疾患 1 file)
   SPEC.md                         拡張設計参考 (runtime data ではない)
 ```
 
@@ -237,11 +252,14 @@ clinosim/modules/disease/
 
 | Consumer | 場所 | 役割 |
 | --- | --- | --- |
-| Simulator boot | [`clinosim/simulator/engine.py`](../../simulator/engine.py) | run あたり 1 回 `load_all_disease_protocols()` を load。 |
+| Simulator boot | [`clinosim/simulator/engine.py`](../../simulator/engine.py) | run あたり 1 回 `load_all_disease_protocols()` を load (`simulator/helpers.py` の再 export 経由で import)。 |
 | Inpatient encounter | [`clinosim/simulator/inpatient.py`](../../simulator/inpatient.py) | 入院発注 / 日次 trajectory / 薬剤プロトコル / target LOS のため `DiseaseProtocol` を read。acuity 別集合を参照して `Encounter.priority` と vitals サンプリング頻度を gate。 |
-| Emergency / outpatient / daily loop | [`clinosim/simulator/{emergency,outpatient,daily_loop,vitals_pipeline}.py`](../../simulator/) | 各 encounter tier で同 read pattern。 |
+| Emergency / daily loop / vitals | [`clinosim/simulator/{emergency,daily_loop,vitals_pipeline}.py`](../../simulator/) | ED の重症度 draw (`sample_severity_category`)、daily loop の `DiseaseProtocol` read、vitals 頻度用 `CRITICAL_MONITORING_DISEASES`。 |
 | Discharge gate + rx | [`clinosim/simulator/{discharge_gate,discharge_rx}.py`](../../simulator/) | `DiseaseProtocol.discharge_criteria` + `discharge_oral` 薬剤 block を使用。 |
-| Simulator helper | [`clinosim/simulator/helpers.py`](../../simulator/helpers.py) | `disease.localization` helper を deprecation 期間中 1 cycle だけ再 export (Issue #544)。 |
+| Simulator helper | [`clinosim/simulator/helpers.py`](../../simulator/helpers.py) | `disease.localization` helper + `load_all_disease_protocols` の後方互換再 export (Issue #544)。 |
+| Population | [`clinosim/modules/population/engine.py`](../population/engine.py) | 入院 gate 用 `sample_severity`。 |
+| Drug safety | [`clinosim/modules/drug_safety/engine.py`](../drug_safety/engine.py) | `suggest_alternative` 用 `alternatives_by_indication`。 |
+| Clinical course / procedure | [`clinosim/modules/clinical_course/engine.py`](../clinical_course/engine.py), [`clinosim/modules/procedure/engine.py`](../procedure/engine.py) | modifier 条件語彙 (`EVALUABLE_CONDITIONS`, `KNOWN_MODIFIER_CONDITIONS`)、`NEURO_LOC_MONITORING_DISEASES`。 |
 | Narrative | [`clinosim/modules/document/narrative/{passes,template_generator}.py`](../document/narrative/) | `DiseaseProtocol.narrative` template + `HpiTemplate` + `DischargeInstructions` を read。 |
 
 ## テスト
@@ -255,7 +273,7 @@ pytest tests/unit -k disease -q
 - [`tests/unit/test_disease_yaml_drug_code_consistency.py`](../../../tests/unit/test_disease_yaml_drug_code_consistency.py)
   — 全薬剤 entry の code が `clinosim/codes/` で解決。
 - [`tests/unit/test_disease_yaml_key_coverage.py`](../../../tests/unit/test_disease_yaml_key_coverage.py)
-  — 32 YAML 全体の canonical key coverage。
+  — 36 YAML 全体の canonical key coverage。
 - [`tests/unit/test_disease_protocol_extra_forbid.py`](../../../tests/unit/test_disease_protocol_extra_forbid.py)
   — Pydantic `extra="forbid"` の未知 key guard。
 - [`tests/unit/test_cli_test_disease_format.py`](../../../tests/unit/test_cli_test_disease_format.py)
@@ -271,4 +289,4 @@ pytest tests/unit -k disease -q
 `maintainers@` — 詳細は
 [`CONTRIBUTING.md`](../../../CONTRIBUTING.ja.md)。
 
-英語版: [`README.md`](README.ja.md)。
+英語版: [`README.md`](README.md)。

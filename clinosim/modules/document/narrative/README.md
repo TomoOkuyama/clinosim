@@ -17,7 +17,8 @@ document to a `NarrativeGenerator`. Two generators exist:
   [`clinosim.modules.llm_service`](../../llm_service/README.md)).
   Provider failure falls back per document to template output. Opt-in
   is the explicit CLI choice
-  `clinosim narrate --provider bedrock|ollama|mock` — no env gate.
+  `clinosim narrate --provider bedrock|ollama|vllm|openai_compatible|mock`
+  — no env gate.
 
 `NarrativeCache` is the layer-1 in-memory cache (clinical-context +
 template-seed-hash key) for cross-patient section reuse; the layer-2
@@ -29,14 +30,15 @@ disk `PromptCache` lives inside `llm_service`.
   `TemplateNarrativePass` + `LLMNarrativePass`); the two generators;
   `apply_replacement_strategy` per-section dispatch (`template_only`
   / LLM-driven); prompt-construction pipeline
-  (`context.py` CIF→ctx factory, `scenario_spine.py` DiseaseProtocol
-  → NarrativeSpine, `fact_extractor.py` FactTag materialisation
-  (AD-65 E2 — β-JP-1 refuses numbers not in `materialized_facts`),
-  `section_extractor.py` per-COMPOSITION-section slicing (AD-65 E3)),
-  `template_generator.py` placeholder engine (large — vitals /
-  discharge / home-med / hedging placeholder resolution),
-  chronic-disease SOAP resolver (`_chronic_soap.py` — the 32
-  disease YAMLs cover acute inpatient only; chronic conditions
+  (`context.py` CIF→ctx factory + helpers, `scenario_spine.py`
+  disease / encounter protocol → NarrativeSpine, `fact_extractor.py`
+  FactTag materialisation (AD-65 E2), `section_extractor.py`
+  per-COMPOSITION-section slicing (AD-65 E3)),
+  `template_generator.py` + `renderers/` placeholder engine and
+  per-document / per-section renderers (vitals / discharge /
+  home-med / hedging placeholder resolution),
+  chronic-disease SOAP resolver (`_chronic_soap.py` — the disease
+  YAMLs cover acute inpatient only; chronic conditions
   appear as ICD-10 codes and need a separate SOAP template
   library), hedging phrase pool (`_hedging.py` — enforces
   "Template = adequate density on its own"), narrative-interpretation
@@ -77,11 +79,17 @@ from clinosim.modules.document.narrative.registry import (
     specs_for_country,            # (country) -> list[DocumentTypeSpec]
     specs_for_encounter_type,     # (encounter_type) -> list[DocumentTypeSpec]
 )
-from clinosim.modules.document.narrative.context import build_context     # (CIF, encounter, doc) -> NarrativeContext
-from clinosim.modules.document.narrative.scenario_spine import build_spine  # (protocol, day) -> NarrativeSpine
-from clinosim.modules.document.narrative.fact_extractor import materialize_facts
-from clinosim.modules.document.narrative.section_extractor import extract_section_facts
-from clinosim.modules.document.narrative.semantic_check import check_narratives
+from clinosim.modules.document.narrative.context import build_narrative_context
+    # (record, encounter, document_type, day_index, country, ...) -> NarrativeContext
+    # (unit-test factory; NarrativePass builds its ctx inline and shares
+    #  _build_safety_skips / _build_newborn_workup with it)
+from clinosim.modules.document.narrative.scenario_spine import build_narrative_spine
+    # (disease_protocol, encounter_protocol, archetype) -> NarrativeSpine | None
+from clinosim.modules.document.narrative.fact_extractor import extract_all_facts
+    # (patient_dict, encounter_dict, ctx) -> list[FactTag]
+from clinosim.modules.document.narrative.section_extractor import extract_for_composition
+    # (ctx, spec) -> {section_key: SectionFacts}
+from clinosim.modules.document.narrative.semantic_check import check_narratives, load_expectations
 ```
 
 ## Determinism
@@ -102,25 +110,27 @@ from clinosim.modules.document.narrative.semantic_check import check_narratives
   reused for a batch → the Bedrock prompt-cache 5-minute TTL hits
   maximally. `LLMNarrativePass` inherits the same walk order for
   drop-in cache friendliness.
-- **fact-first constraint** (AD-65 E2) — β-JP-1 `LLMNarrativePass`
-  refuses to emit numbers not present in `materialized_facts`, so
-  the LLM cannot hallucinate lab values.
+- **fact-first data** (AD-65 E2) — `NarrativePass` populates
+  `ctx.materialized_facts` (and `ctx.section_facts` for Composition
+  specs) on every context. No code currently reads these fields to
+  reject LLM numbers that are absent from them; the LLM-path
+  guard is `check_narratives`.
 
 ## Dependencies
 
 - `clinosim.modules.llm_service` — `LLMService.complete_prompt` +
   `LLMTaskType` / `LLMResponse` (LLM path only).
-- `clinosim.modules.document` — canonical ID prefixes +
-  `NURSING_LOINCS` (imports back only for the constants, not the
+- `clinosim.modules.document` — `specs_for_country`,
+  `DocumentType` re-export and `reference_data_loaders` (not the
   enricher itself).
-- `clinosim.modules.disease.protocol` — `DiseaseProtocol` for
+- `clinosim.modules.disease.protocol` — `load_disease_protocol` for
   scenario spine extraction.
 - `clinosim.modules.encounter.protocol` —
-  `EncounterConditionProtocol` for outpatient / ED templates.
+  `load_encounter_condition` for outpatient / ED templates.
 - `clinosim.types.document` — `NarrativeContext`, `NarrativeOutput`,
   `DocumentType`, `FormatType`, plus `NarrativeGenerator` Protocol.
-- `clinosim.types.clinical` — `ClinicalDocument`,
-  `ClinicalDocumentNarrative`.
+- `clinosim.types.clinical` — `ClinicalDocumentNarrative`,
+  `NarrativeVersionManifest`.
 - `hashlib.sha256` — cache key derivation.
 - `yaml`.
 
@@ -177,17 +187,19 @@ first. Two symmetric defenses coexist:
     no lookup table (today: any `lang != "ja"`):
     - `output/fhir_r4/lib/localization.localize_drug_name(name,
       lang)` — wraps `_localize_drug_name`.
-    - `replacement_strategy.localize_lab_name(name, lang)` — wraps
+    - `_replacement_localization.localize_lab_name(name, lang)`
+      (re-exported from `replacement_strategy`) — wraps
       `_localize_lab_name_ja`.
-    - `replacement_strategy.localize_oxygen_device(device, lang)`
-      — wraps `_localize_oxygen_device_ja`.
+    - `_replacement_localization.localize_oxygen_device(device,
+      lang)` (re-exported from `replacement_strategy`) — wraps
+      `_localize_oxygen_device_ja`.
     Underlying JA-only helpers
     (`_localize_severity_ja`, `_localize_oxygen_device_ja`,
     `_localize_lab_name_ja`, `_localize_arrival_mode_ja`,
     `_localize_risk_level_ja`, `_localize_barthel_band_ja`) stay
     as the actual dictionary implementations. Adding a new locale
     is a data-only extension of the underlying YAML (see
-    `llm_prompt_labels.yaml`) — no code change.
+    `clinosim/locale/shared/llm_prompt_labels.yaml`) — no code change.
 - **Backstop (post-hoc walker)** — `_localize_practitioner_ids_in_text`
   in `output/fhir_r4/documents/composition.py` (PR #828). Regex-
   substitutes any surviving staff-id in `Composition.section[].text.div`
@@ -206,11 +218,13 @@ clinosim/modules/document/narrative/
   __init__.py                              re-exports 4 symbols (2 generators + NarrativeCache + apply_replacement_strategy)
   passes.py                                NarrativePass ABC + TemplateNarrativePass + LLMNarrativePass
   registry.py                              DocumentTypeSpec + loader + filters (6-layer validated)
-  context.py                               build_context (CIF → NarrativeContext)
-  scenario_spine.py                        build_spine (protocol → NarrativeSpine, AD-65 E1)
-  fact_extractor.py                        materialize_facts (FactTag list, AD-65 E2 β-JP-1 constraint)
-  section_extractor.py                     extract_section_facts (per-COMPOSITION section, AD-65 E3)
-  template_generator.py                    TemplateNarrativeGenerator god class + placeholder engine (~6540 LOC)
+  context.py                               build_narrative_context (CIF → NarrativeContext) + _build_safety_skips / _build_newborn_workup
+  scenario_spine.py                        build_narrative_spine (protocol → NarrativeSpine, AD-65 E1)
+  fact_extractor.py                        extract_all_facts (FactTag list, AD-65 E2)
+  section_extractor.py                     extract_for_composition (per-COMPOSITION section, AD-65 E3)
+  template_generator.py                    TemplateNarrativeGenerator + placeholder engine (~1400 LOC; per-document rendering split into renderers/)
+  renderers/                               per-document renderers (progress_note / nursing_shift_note / ed_triage_note / composition_sections + shared helpers) and section_builders/ (one module per Composition section family)
+  lab_timeseries.py                        lab time-series helpers for narrative rendering
   _localization.py                         JA/EN narrative-token localization helpers (META #1633 P6 slice 1)
   _template_helpers.py                     Template-rendering primitives (_label / _resolve_staff_name / _render_home_med_name / _pick_localized / _fill_template_placeholders / vital-placeholder resolution / fallback constants — META #1633 P6 slice 2)
   _narrative_utils.py                      Miscellaneous narrative helpers (nursing-content lookup / vitals-for-day / SHA-driven autopsy gate / age-at / ISO-datetime parse / chief-complaint keyword / encounter-salted pool pickers / PE clause rewrite — META #1633 P6 slice 3)
@@ -225,11 +239,13 @@ clinosim/modules/document/narrative/
   _hedging.py                              hedging phrase pool
   _chronic_soap.py                         chronic-disease SOAP resolver (v9 density fix)
   _narrative_interpretation_thresholds.py  interpretation cutoff scalars (Issue #637)
+  reference_data/
+    chief_complaint_variants.yaml          chief-complaint phrasing variants (load_chief_complaint_variants)
 ```
 
-The subpackage has **no `audit.py`, no `enricher.py`, no
-`reference_data/`** — reference data lives in the parent `document`
-package.
+The subpackage has **no `audit.py` and no `enricher.py`**; apart
+from `chief_complaint_variants.yaml`, reference data lives in the
+parent `document` package.
 
 ## Enricher wiring
 
@@ -242,10 +258,10 @@ subcommand) after the encounter loop completes, not via
 
 | Consumer | Where | Role |
 |---|---|---|
-| CLI `narrate` subcommand | [`clinosim/simulator/cli_narrate.py`](../../../simulator/cli_narrate.py) | Instantiates `TemplateNarrativePass` (default) or `LLMNarrativePass` (per `--provider`) and calls `.run(cif_dir, version_id)`. |
+| CLI `narrate` subcommand | [`clinosim/simulator/cli_narrate.py`](../../../simulator/cli_narrate.py) | Instantiates `TemplateNarrativePass` (default) or `LLMNarrativePass` (per `--provider`) with `cif_dir` / `version_id` / `country` and calls `.run()`. |
 | Document package | [`clinosim/modules/document/__init__.py`](../__init__.py) | Re-exports `DocumentTypeSpec` + spec loader / filters from `registry`. |
 | FHIR document builders | [`clinosim/modules/output/fhir_r4/documents/`](../../output/fhir_r4/documents/README.md) | Read `ClinicalDocumentNarrative.sections` / `text` (populated by these passes) into `Composition.section[].text.div`. |
-| Semantic-check CLI | (`clinosim narrate` when `--check` flag on) | Calls `check_narratives` to verify LLM output against fact constraints. |
+| Semantic-check CLI | `clinosim check-narratives` ([`cli_narrate.py`](../../../simulator/cli_narrate.py) `_run_check_narratives`) | Calls `check_narratives` (5 axes, optional expectations YAML) over a narrative version. |
 
 ## Testing
 

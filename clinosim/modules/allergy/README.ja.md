@@ -2,31 +2,43 @@
 
 ## 概要
 
-POST_POPULATION パスで患者ごとにアレルギーを 1 件 (または 0 件) サンプリング
-し、`PersonRecord.allergies` に `Allergy` レコードのリスト
+POST_POPULATION パスで患者ごとのアレルギー list をサンプリングし、
+`PersonRecord.allergies` に `Allergy` レコードのリスト
 (`AllergyReaction` を nested) として書き込む。下流の FHIR
-`AllergyIntolerance` emission が同 field を読む。sampler は意図的に
-2 段階 — 患者レベル 15 % 全体 gate + category-weighted 単一 allergen
-draw — で、pre-refactor patient activator が出していた baseline
-calibration (population level ~15.3 %) を保つ。
+`AllergyIntolerance` emission が同 field を読む。患者レベル 15 % 全体
+gate で実 allergen の有無を決め (pre-refactor patient activator の
+baseline ~15.3 % に一致)、gate 不成立の患者には「既知のアレルギーなし」
+(NKA, SNOMED `716186003`) の肯定記録を 1 件置くので list は空にならない。
+アレルギーありの患者は category-weighted の primary allergen に加え、
+年齢条件付き polyallergy gate で最大 3 件の追加 allergen を持つ。
 
 ## Scope
 
 - **In scope**: 患者レベル全体 gate
-  (`OVERALL_ALLERGY_PREVALENCE = 0.15`)、category-weighted 単一
-  allergen 選択 (`CATEGORY_WEIGHTS = {medication: 0.50,
-  food: 0.25, environment: 0.25}`)、category 内で
-  `allergens.yaml` から uniform 選択、per-allergy clinical /
+  (`OVERALL_ALLERGY_PREVALENCE = 0.15`)、gate 不成立患者への NKA 記録
+  (`allergy_id="nka"`、`is_nka=True`、status は `allergens.yaml:nka`)、
+  category-weighted primary allergen 選択 (`CATEGORY_WEIGHTS =
+  {medication: 0.50, food: 0.25, environment: 0.25}`、category 内は
+  `allergens.yaml` から uniform)、polyallergy gate
+  (`polyallergy.probability_given_any_allergy` child 0.10 / adult
+  0.25 / elderly 0.55、`chronic_ill_conditions` prefix 該当で
+  `chronic_ill_bonus` 0.15 加算、上限 0.85) による追加 allergen 1–3 件
+  (`additional_count_weights` 0.60 / 0.30 / 0.10、非復元抽出)、
+  `cross_reactivity` の category weight boost (penicillin →
+  medication +0.20)、per-allergy clinical /
   verification status サンプリング (「active + confirmed」多数派、
   「active + unconfirmed」~10 %、「resolved + confirmed」~5 % で
   food category 限定)。
-- **In scope (validation)**: `allergens.yaml` に対する import 時
+- **In scope (validation)**: `allergens.yaml` に対する load 時
   6-layer validator。`allergen_code` および各 reaction の
   `manifestation_snomed` を `_code_in_data` 経由で
   [`clinosim/codes/data/snomed-ct.yaml`](../../codes/data/snomed-ct.yaml)
-  membership に対して cross-check。
-- **Out of scope**: 患者あたり複数アレルギー (現状 single-allergy、
-  拡張は code コメントで記載)、drug-allergy と処方の相互作用
+  membership に対して cross-check。`nka` / `polyallergy` /
+  `cross_reactivity` block は `_validate_nka_and_polyallergy` で検証。
+- **データのみ (他 module が消費)**: `allergens.yaml` の `aging:` block
+  (小児食物アレルギー寛解、成人発症の薬剤過敏) は
+  `clinosim.modules.population.aging._allergy_drift` が読む。
+- **Out of scope**: drug-allergy と処方の相互作用
   ([`clinosim.modules.order`](../order/README.ja.md))、FHIR serialization
   ([`clinosim.modules.output`](../output/README.ja.md))、特定 encounter
   中の反応 event 生成、SNOMED 表示テキスト
@@ -42,6 +54,7 @@ from clinosim.modules.allergy import Allergy, AllergyReaction
 from clinosim.modules.allergy.engine import (
     allergy_enricher,                    # POST_POPULATION enricher entry
     load_allergens,                      # () -> {"medication": [...], "food": [...], "environment": [...]}
+    load_allergen_config,                # () -> yaml 全体 (allergens + nka + polyallergy + cross_reactivity + aging)
     SUPPORTED_ALLERGEN_CATEGORIES,       # frozenset {"medication", "food", "environment"}
     OVERALL_ALLERGY_PREVALENCE,          # 0.15
     CATEGORY_WEIGHTS,                    # {"medication": 0.50, "food": 0.25, "environment": 0.25}
@@ -89,8 +102,9 @@ defensible 値で、pre-refactor patient activator baseline (~15.3%) に
 - category weight は
   `normalize_probabilities(..., fallback="raise")` で正規化し、
   YAML 事前正規化 drift が silent bias にならず raise する。
-- status draw (`clinical` / `verification`) は allergen 選択と同じ
-  per-patient RNG stream から取るので、status 分布も患者ごとに決定論的。
+- status draw (`clinical` / `verification`)、polyallergy gate、追加
+  allergen draw は primary allergen 選択と同じ per-patient RNG stream
+  から取るので、list 全体が患者ごとに決定論的。
 
 ## 依存
 
@@ -119,8 +133,8 @@ defensible 値で、pre-refactor patient activator baseline (~15.3%) に
     unconfirmed` 累積 cutoff。残 ~85 % が `active + confirmed`。
 - [`reference_data/allergens.yaml`](reference_data/allergens.yaml)
   — `allergens.{medication, food, environment}` 配下に allergen ごとに
-  1 entry。entry 必須 field: `allergen_code` (SNOMED CT)、
-  `allergen_display_en`、`allergen_display_ja`、
+  1 entry (現状 3 / 2 / 2 件)。entry 必須 field: `allergen_code`
+  (SNOMED CT。表示は emit 時に `snomed-ct.yaml` から解決)、
   `prevalence.adult` (0..1 — category level 参考レートの
   documentation であり、実際の gate ではない)、`criticality`、
   `common_reactions[]` (各要素は `manifestation_snomed` と
@@ -134,15 +148,18 @@ defensible 値で、pre-refactor patient activator baseline (~15.3%) に
   (3) `SUPPORTED_ALLERGEN_CATEGORIES` との双方向キー drift、
   (4) per-category list が空、(5) 必須 entry field 欠落、
   (6) `prevalence.adult` 範囲違反 または SNOMED cross-check 失敗。
+- 同 yaml の兄弟 block: `nka` (`allergen_code`、`clinical_status`、
+  `verification_status`)、`polyallergy`、`cross_reactivity`、`aging`
+  (Scope 参照)。
 
 ## ディレクトリ構造
 
 ```
 clinosim/modules/allergy/
   __init__.py                     Allergy + AllergyReaction を再 export
-  engine.py                       validator / load_allergens / allergy_enricher
+  engine.py                       validator 群 / load_allergens / load_allergen_config / allergy_enricher
   reference_data/
-    allergens.yaml                3-category allergen カタログ + 反応
+    allergens.yaml                3-category allergen カタログ + 反応、nka、polyallergy、cross_reactivity、aging
 ```
 
 **`enricher.py` / `audit.py` / 独立 `assign_*` 関数は存在しない** —
@@ -163,7 +180,7 @@ enricher entry は `engine.py` の `allergy_enricher`。
 
 | Consumer | 場所 | 役割 |
 | --- | --- | --- |
-| FHIR `AllergyIntolerance` builder | [`clinosim/modules/output/fhir_r4/conditions/allergy_intolerance.py`](../output/fhir_r4/conditions/allergy_intolerance.py) | `record.allergies` を読み、entry ごとに `AllergyIntolerance` 1 件を emit。id は builder 所有の canonical `allergy-{patient_id}-{idx}` (I-4 fix — engine は placeholder `allergy_id="1"` を置く)。 |
+| FHIR `AllergyIntolerance` builder | [`clinosim/modules/output/fhir_r4/conditions/allergy_intolerance.py`](../output/fhir_r4/conditions/allergy_intolerance.py) | `record.allergies` を読み、entry ごとに `AllergyIntolerance` 1 件を emit。id は structural key `{patient_id}-{allergy_id}` から導出した opaque な `allergy-<12hex>`。engine は実アレルギーに `"1"`, `"2"`, … を、NKA に `"nka"` を振る。 |
 | Enricher registry | [`clinosim/simulator/enrichers.py:127`](../../simulator/enrichers.py) | POST_POPULATION order=10 登録。 |
 
 ## テスト
@@ -189,4 +206,4 @@ pytest tests/unit -k fhir_allergy -q    # AllergyIntolerance 出力
 `maintainers@` — 詳細は
 [`CONTRIBUTING.md`](../../../CONTRIBUTING.ja.md)。
 
-英語版: [`README.md`](README.ja.md)。
+英語版: [`README.md`](README.md)。

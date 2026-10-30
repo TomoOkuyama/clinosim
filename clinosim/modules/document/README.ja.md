@@ -27,7 +27,9 @@ FHIR resource ID prefix も所有する。
   dispatch)、reference data loader
   ([`reference_data_loaders.py`](reference_data_loaders.py) —
   `load_physical_exam_findings`, `load_discharge_instructions` に
-  6-layer validator)、per-encounter document-type dispatch
+  6-layer validator、他に `load_hpi_pertinent_negatives`,
+  `load_chief_complaint_variants`, `load_bedside_procedure_codes`,
+  `load_nursing_content`)、per-encounter document-type dispatch
   (`_pick_document_author`, `_referral_note_fires`,
   `_enc_type_value`, `_enc_status_value`, `_compute_los_days`,
   `_make_doc_stub`)。
@@ -86,43 +88,48 @@ from clinosim.modules.document.engine import document_enricher
 
 ## 決定論
 
-- サブ seed オフセット `0x444F` (`"DO"`, Tier 1 #3 α-min-1 PR1) —
+- `document_enricher` は乱数を引かない。唯一の確率的に見える選択
+  (適格な退院で referral note を出すか、`REFERRAL_NOTE_FIRE_RATE =
+  0.20`) は `sha256(f"{encounter_id}::{patient_id}")` の安定 threshold
+  (`_referral_note_fires`) で決まり、RNG stream を消費しない (AD-16)。
+- サブ seed オフセット `0x444F` (`"DO"`) が
   [`clinosim/seeding.py`](../../seeding.py) の
-  `ENRICHER_SEED_OFFSETS["document"]` に登録済み。
-- Per-encounter サブ RNG:
-  `derive_sub_seed(master_seed, offset, encounter_id)` — 患者主
-  RNG 未消費 (AD-16)。
+  `ENRICHER_SEED_OFFSETS["document"]` に登録されているが、読む code は
+  無い。
 - 2-pass 契約 (AD-65): `document_enricher` は `narrative=None` の
   stub を生成する。同 simulation pass で narrative を populate すると
   Stage 2 differ が silent no-op になる。契約は
-  `test_narrative_populates_only_stage2` で guard。
+  `tests/unit/test_document_enricher_stub_only.py`
+  (`test_enricher_produces_stub_with_narrative_none`) で guard。
 
 ## 依存
 
-- `clinosim.modules._shared` — `get_attr_or_key`,
-  `set_attr_or_key`, `is_jp`。
+- `clinosim.modules._shared` — `get_attr_or_key`, `is_jp`,
+  `resolve_lang`。
 - `clinosim.modules.document.narrative.registry` — spec loader +
   filter。
 - `clinosim.modules.document.reference_data_loaders` — physical
   exam finding + discharge instruction。
-- `clinosim.seeding` — `ENRICHER_SEED_OFFSETS`, `derive_sub_seed`。
 - `clinosim.audit.registry` (`audit.py` 経由) — AD-60 audit 登録。
 - `clinosim.types.document` — `DocumentType`, `FormatType`,
   `NarrativeContext`, `NarrativeOutput`。
 - `clinosim.types.clinical` — `ClinicalDocument`,
-  `ClinicalDocumentNarrative`。
+  `ClinicalImpressionRecord`。
 - `clinosim.types.encounter` — encounter 型 + `primary_nurse_id`
   / `attending_physician_id` field。
-- `yaml`, `numpy`。
+- `yaml`。
 
 ## 定数と設定
 
 - **Canonical ID prefix** (writer 所有、全 FHIR builder が import):
   `DOC_REFERENCE_ID_PREFIX`, `COMPOSITION_ID_PREFIX`,
   `ALLERGY_ID_PREFIX`, `CLINICAL_IMPRESSION_ID_PREFIX`。
-  `fhir_r4/demographics/patient.py` は `allergy-{patient_id}-{index:02d}` を inline
-  で書き込んでいるが、本 prefix 定数は Task 9 FHIR builder のために
-  canonicalise する (concern logged。統一は追跡中)。
+  `output/fhir_r4/documents/` (`documents.py`, `composition.py`) と
+  `output/fhir_r4/conditions/` (`allergy_intolerance.py`,
+  `clinical_impression.py`) の FHIR builder がこれらを
+  `derive_opaque_id` に渡す。`fhir_r4/demographics/patient.py` には
+  `allergy-{patient_id}-{index:02d}` を inline で書く legacy
+  `_build_allergy_intolerance` が残っているが、呼ばれていない。
 - **`NURSING_LOINCS`** (frozenset、`engine.py` の
   `_load_nursing_loincs` 経由で load) — 看護師 author 文書の LOINC
   code。`_pick_document_author` は文書 LOINC が本集合に含まれるとき
@@ -130,12 +137,15 @@ from clinosim.modules.document.engine import document_enricher
   `attending_physician_id` (AD-65 Bug B fix)。
 - **Document-type spec**
   ([`reference_data/document_type_specs.yaml`](reference_data/document_type_specs.yaml))
-  — 文書種別ごとの registry entry。LOINC、`format_type`
-  (`"free_text"` / `"composition"`)、`encounter_types_supported`
-  allowlist (AD-64 α-min-2 — 空 tuple は「全 encounter type と一致」
-  を意味するため、inpatient 限定文書の spec は必ず
-  `[inpatient, icu, rehab_inpatient]` を明示して outpatient / ED へ
-  leak しないようにする)、国 gate、author-role hint を保持。
+  — 文書種別ごとの registry entry (`clinosim/types/document.py` の
+  `DocumentTypeSpec`)。`loinc_code`、`format_type` (`"free_text"` /
+  `"composition"` / `"questionnaire_response"`)、
+  `countries_supported`、`generation_frequency`、composition section、
+  `stage2_strategy`、`encounter_types_supported` allowlist (AD-64
+  α-min-2 — 空 tuple は「全 encounter type と一致」を意味するため、
+  inpatient 限定文書の spec は必ず `[inpatient, icu, rehab_inpatient]`
+  を明示して outpatient / ED へ leak しないようにする) を保持。author
+  dispatch は spec field ではなく LOINC (`NURSING_LOINCS`) で決まる。
 - **6-layer reference-data validator** (Task 5 pattern) —
   `_validate_physical_exam_findings` と
   `_validate_discharge_instructions` が empty-top / missing-key /
@@ -152,12 +162,18 @@ from clinosim.modules.document.engine import document_enricher
 clinosim/modules/document/
   __init__.py                        公開 API + canonical ID prefix
   engine.py                          document_enricher + doc-stub helper + NURSING_LOINCS
-  reference_data_loaders.py          load_physical_exam_findings + load_discharge_instructions (6-layer)
+  reference_data_loaders.py          load_physical_exam_findings + load_discharge_instructions (6-layer) + 他の cached loader
   audit.py                           AD-60 audit plug-in #5 — 49-check lift_firing_proof
   reference_data/
     document_type_specs.yaml         文書種別 registry
+    section_catalog.yaml             Composition section slug catalog (narrative/registry.py, composition.py)
     physical_exam_findings.yaml      per-disease PE 所見 (baseline + override)
-    discharge_instructions.yaml      per-disease 退院指示
+    # discharge_instructions.yaml は META #1805 Phase E (#1862) で
+    # `clinosim/codes/data/clinosim-discharge-instruction.yaml` に移動
+    hpi_pertinent_negatives.yaml     HPI pertinent negative (load_hpi_pertinent_negatives)
+    bedside_procedure_codes.yaml     bedside procedure code (load_bedside_procedure_codes)
+    narrative_extras_whitelists.yaml narrative extra-context whitelist (narrative/_extra_context_builder.py)
+    ja_only_fallback_sections.yaml   US H&P の JA 文字 audit 対象外 section (audit.py)
     chronic_soap_templates.yaml      慢性疾患 SOAP note template
     hedging_phrases.yaml             narrative hedging phrase pool
   narrative/                         narrative subpackage (Stage 2 pipeline) — narrative/README.md 参照
@@ -166,7 +182,7 @@ clinosim/modules/document/
 ## Enricher 配線
 
 [`clinosim/simulator/enrichers.py`](../../simulator/enrichers.py)
-(`L340-348` 付近) で登録:
+(`L497-508` 付近) で登録:
 
 - `name="document"`, `stage=POST_ENCOUNTER`, `order=95`,
   `enabled=lambda c: True`。POST_ENCOUNTER 最後 (imaging=90、
@@ -178,7 +194,7 @@ clinosim/modules/document/
 
 | Consumer | 場所 | 役割 |
 | --- | --- | --- |
-| Enricher registry | [`clinosim/simulator/enrichers.py:344`](../../simulator/enrichers.py) | POST_ENCOUNTER order=95 登録。 |
+| Enricher registry | [`clinosim/simulator/enrichers.py:503`](../../simulator/enrichers.py) | POST_ENCOUNTER order=95 登録。 |
 | Audit registry | [`clinosim/modules/document/audit.py`](audit.py) | AD-60 audit plug-in — 49-check lift_firing_proof + clinical_acceptance。 |
 | Narrative Stage 2 | [`clinosim/modules/document/narrative/passes.py`](narrative/passes.py) | 本モジュールが emit した全 stub に `narrative.sections` を populate。 |
 | FHIR document builder | [`clinosim/modules/output/fhir_r4/documents/`](../output/fhir_r4/documents/README.ja.md) | stub + populate 済み narrative から `DocumentReference` / `Composition` / `ClinicalImpression` を emit。 |
@@ -188,7 +204,7 @@ clinosim/modules/document/
 ```bash
 pytest tests/unit -k "document" -q
 pytest tests/integration -k "document_chain" -q
-clinosim audit run -d <cohort_dir> --module document
+clinosim audit run -d <cohort_dir> --module document_chain
 ```
 
 Coverage は大量 — `tests/unit -k document` で per-spec / per-encounter
@@ -200,4 +216,4 @@ Coverage は大量 — `tests/unit -k document` で per-spec / per-encounter
 `maintainers@` — 詳細は
 [`CONTRIBUTING.md`](../../../CONTRIBUTING.ja.md)。
 
-英語版: [`README.md`](README.ja.md)。
+英語版: [`README.md`](README.md)。

@@ -88,9 +88,10 @@ wraps it with the gate + sub-seed derivation described below.
   and [`clinosim/locale/jp/code_status_rates.yaml`](../../locale/jp/code_status_rates.yaml)
   — country-specific `weights[context][age_band] = [full, dnr, dnr_dni, comfort]`
   distributions summing to 1. `load_rates` returns `{}` for
-  unsupported countries; the enricher treats an empty map as "no
-  assignment", so a new country will not silently inherit US rates
-  (2026-07-02 grand-design review contract).
+  unsupported countries so a new country will not silently inherit
+  US rates (2026-07-02 grand-design review contract); note that
+  `assign_code_status` then raises `KeyError('routine')` for a
+  qualifying encounter rather than returning `""`.
 
 ## Directory contents
 
@@ -122,8 +123,8 @@ Registered in
 | Consumer | Where | Role |
 |---|---|---|
 | CSV adapter | [`clinosim/modules/output/csv_adapter.py`](../output/csv_adapter.py) (`~L358`, `~L419`) | Writes `code_status.csv` from `record["code_status"]`. |
-| FHIR `Observation` builder | [`clinosim/modules/output/fhir_r4/conditions/code_status.py`](../output/fhir_r4/conditions/code_status.py) (`_bb_code_status`) | Survey-category `Observation` id `codestatus-{enc_id}`, `code` = observable 304251008, `valueCodeableConcept` = tier SNOMED, `effectiveDateTime` = admission datetime. JP encounters additionally carry `meta.profile = JP_Observation_Common`. |
-| Enricher registry | [`clinosim/simulator/enrichers.py:188`](../../simulator/enrichers.py) | POST_RECORDS registration. |
+| FHIR `Observation` builder | [`clinosim/modules/output/fhir_r4/conditions/code_status.py`](../output/fhir_r4/conditions/code_status.py) (`_bb_code_status`) | Survey-category `Observation` with opaque id `codestatus-<hash>` derived from the encounter id (kept as an identifier), `code` = observable 304251008, `valueCodeableConcept` = tier SNOMED, `effectiveDateTime` = admission datetime. JP encounters additionally carry `meta.profile = JP_Observation_Common`. |
+| Enricher registry | [`clinosim/simulator/enrichers.py:267`](../../simulator/enrichers.py) | POST_RECORDS registration. |
 
 ## Testing
 

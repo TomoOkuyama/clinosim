@@ -60,6 +60,16 @@ Priority 4: Purely "unknown" change
 - [ ] How archetype selection interacts with individual-difference parameters
 
 ## Design Notes
+
+> **Implementation status.** There is no single `evaluate()` entry
+> point and no `interpolate_state_trajectory()`. The daily loop
+> (`clinosim/simulator/daily_loop.py`) calls `get_daily_directive`
+> (which interpolates the YAML `trajectory` with the private
+> `_interpolate`), `compute_diagnosis_effectiveness` /
+> `apply_diagnosis_modifier`, `natural_recovery_directive` and
+> `evaluate_complications` separately; `trigger_orders` are not
+> evaluated by this module. See [`README.md`](README.md).
+
 ### Call timing (from encounter module)
 - `evaluate()`: Called during daily morning rounds. Takes current `PhysiologicalState` + `TreatmentPlan` + `DifferentialDiagnosis` and produces `StateChangeDirective` for the next 24 hours.
 - The archetype determines the trajectory shape; the individual-difference parameters (from patient module) modulate the amplitude and timing.

@@ -77,6 +77,10 @@ country 文字列 (と on-disk YAML) の純粋関数で、返却される Pydant
     `"LOINC"` (US)。
   - `procedure_code_system` (default `"K-code"`) — `"K-code"` (JP)
     / `"CPT"` (US)。
+  - 現在 runtime で読まれるのは `lab_frequency_multiplier` のみ
+    (`clinosim/simulator/daily_loop.py`)。他 6 field は load される
+    が reader が無く、国別の退院・LOS・code system 挙動は locale data と
+    国文字列で駆動される。
 - 国 dispatch 表 (`loader.py`):
   `{"JP": "japan.yaml", "US": "us.yaml"}`。国追加時は YAML を追加、
   dict を拡張、必要なら上記文字列を分岐する下流モジュールも拡張する。
@@ -103,14 +107,15 @@ clinosim/modules/healthcare_system/
 `register_builtin_enrichers` に登録なく、`ENRICHER_SEED_OFFSETS`
 にも seed 未登録。simulator boot 経路が run あたり 1 回
 `load_healthcare_config` を直接呼び、返却の `HealthcareSystemConfig`
-が `SimulatorConfig` 経由で全下流モジュールに伝播する。
+を `healthcare` 引数 (`ForwardContext.healthcare`、
+`_simulate_patient(..., healthcare, ...)`) として daily loop まで渡す。
 
 ## Output surface (consumers)
 
 | Consumer | 場所 | 役割 |
 | --- | --- | --- |
-| Simulator boot | [`clinosim/simulator/engine.py`](../../simulator/engine.py) (`L17` 付近) | `load_healthcare_config` を import、起動時に国別 1 回 cache。以降 `SimulatorConfig` 経由で全モジュールに `HealthcareSystemConfig` が届く。 |
-| `HealthcareSystemConfig` field consumers | [`clinosim/types/config.py`](../../types/config.py) | 下流モジュールが共有モデルから `discharge_criteria` や `*_code_system` 文字列、各種 multiplier を読み取る。検索: `grep -rn "hc_config\." clinosim/`。 |
+| Simulator boot | [`clinosim/simulator/engine.py`](../../simulator/engine.py) | cohort run と単一 scenario 経路で `load_healthcare_config(config.country)` を呼び、`healthcare` として渡す (例: `ForwardContext.healthcare`)。 |
+| `HealthcareSystemConfig` field consumers | [`clinosim/simulator/daily_loop.py`](../../simulator/daily_loop.py) | `healthcare.lab_frequency_multiplier` で入院 lab 頻度を倍率調整 — 現在読まれる唯一の field。 |
 
 ## テスト
 
@@ -125,4 +130,4 @@ coverage gap は follow-up として、JP → `japan.yaml`、US → `us.yaml`、
 `maintainers@` — 詳細は
 [`CONTRIBUTING.md`](../../../CONTRIBUTING.ja.md)。
 
-英語版: [`README.md`](README.ja.md)。
+英語版: [`README.md`](README.md)。

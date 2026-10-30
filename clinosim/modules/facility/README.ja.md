@@ -44,10 +44,10 @@ from clinosim.modules.facility.hospital_state import (
 
 | Method | 契約 |
 | --- | --- |
-| `update_for_time(dt, hospital_ops)` | shift-based staffing (`day` / `evening` / `night`) を設定、`weekday >= WEEKEND_WEEKDAY_MIN` なら weekend modifier 適用、次に `daily_patterns.*` の各 YAML entry を `hours` window + `weekday` フィルタが一致するとき適用。 |
+| `update_for_time(dt, hospital_ops)` | shift-based staffing (`day` / `evening` / `night`) を設定、`weekday >= WEEKEND_WEEKDAY_MIN` なら lab / radiology / pharmacy / OR staff に weekend modifier 適用 (nursing は非適用)、次に `daily_patterns.*` の各 YAML entry を `hours` window + `weekday` フィルタが一致するとき適用。 |
 | `calculate_delay(resource, urgency, hospital_ops)` | resource + urgency に対する遅延 (分) を `base × (1 / (1 - utilization)) × (1 / staff) + reporting_time × (1 / staff)` で返す。congestion + staff factor は `DELAY_CONGESTION_CAP` + `DELAY_STAFF_CAP` で clamp、最終値は `DELAY_MAX_DELAY_{STAT,ROUTINE}_MIN` で cap。 |
 | `add_to_queue(resource, hospital_ops)` | `<resource>_queue` を `1/capacity` だけ増加。 |
-| `release_from_queue(resource, hospital_ops)` | `<resource>_queue` を `1/capacity` だけ減少。 |
+| `release_from_queue(resource, hospital_ops)` | `<resource>_queue` を `1/capacity` だけ減少。現状コードベース内に呼び出し元は無い。 |
 
 ## 決定論
 
@@ -132,8 +132,9 @@ dict を) 渡す。
 
 | Consumer | 場所 | 役割 |
 | --- | --- | --- |
-| Simulator boot | [`clinosim/simulator/engine.py`](../../simulator/engine.py) (`L191` 付近) | `hospital_ops` を load (`--hospital-config PATH` または `load_hospital_operations()`) し、run ごとに `HospitalState` を構築。 |
-| Order 結果 timing | [`clinosim/modules/order/engine.py`](../order/engine.py) (`calculate_result_time_from_state`、~L795) | lab / imaging / OR 結果の timestamp に `HospitalState.calculate_delay` を使用。`simulator/lab_pipeline.py` + `simulator/unknown_condition.py` から呼び出される。 |
+| Simulator boot | [`clinosim/simulator/_setup.py`](../../simulator/_setup.py) (`_load_hospital_ops`) + [`clinosim/simulator/engine.py`](../../simulator/engine.py) | `_load_hospital_ops` が `hospital_ops` を load (`--hospital-config PATH` または `load_hospital_operations()`) して検証し、`engine.py` が run ごとに `HospitalState` を 1 つ構築。 |
+| Order 結果 timing | [`clinosim/modules/order/engine.py`](../order/engine.py) (`calculate_result_time_from_state`) | lab / imaging / OR 結果の timestamp のため `update_for_time` / `calculate_delay` / `add_to_queue` を呼ぶ。`simulator/lab_pipeline.py` + `simulator/unknown_condition.py` から呼び出される。 |
+| Event dispatch | [`clinosim/simulator/_dispatch.py`](../../simulator/_dispatch.py) | dispatch する event 時刻ごとに `update_for_time` を呼ぶ。 |
 | Order queue-replay test | [`tests/unit/test_order_queue_replay.py`](../../../tests/unit/test_order_queue_replay.py) | `HospitalState` + `load_hospital_operations()` を load し queue add / release 意味論を replay。 |
 | Wall-clock sentinel test | [`tests/unit/test_wallclock_sentinel_defaults.py`](../../../tests/unit/test_wallclock_sentinel_defaults.py) | `_UNSET_DATETIME` sentinel default を assert。 |
 
@@ -165,4 +166,4 @@ focused test の追加は低コスト follow-up。
 `maintainers@` — 詳細は
 [`CONTRIBUTING.md`](../../../CONTRIBUTING.ja.md)。
 
-英語版: [`README.md`](README.ja.md)。
+英語版: [`README.md`](README.md)。

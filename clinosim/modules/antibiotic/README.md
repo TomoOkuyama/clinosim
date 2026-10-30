@@ -34,7 +34,9 @@ N `MedicationAdministration` records that the existing
   MEDICATION Order, seven MAR entries); PR3b-2 extension adds an
   `antibiogram_firing_proof` (synthetic CLABSI + S. aureus HAIEvent
   → 6 susceptibility rows with vancomycin always-S sentinel and a
-  cefazolin non-degenerate probe).
+  cefazolin non-degenerate probe); PR3b-3 adds a narrow proof
+  (synthetic CLABSI MSSA → SWITCH to cefazolin). Import-time
+  validators also check the narrow-rate and NHSN resistance bands.
 - **Out of scope**: HAI event sampling
   ([`hai`](../hai/README.md)); microbiology culture emission
   ([`observation.microbiology`](../observation/microbiology.py));
@@ -54,31 +56,44 @@ from clinosim.modules.antibiotic.engine import (
     FREQ_PER_DAY,                        # dose-frequency → doses/day table
     load_hai_empirical,                  # () -> dict[hai_type, regimen] (@lru_cache)
     load_narrow_ladder,                  # () -> dict[hai_type, {organism_snomed: [drug_key, ...]}] (@lru_cache)
-    build_regimens,                      # (hai_event, empirical_map, patient_id) -> list[AntibioticRegimen]
-    generate_mar_doses,                  # (regimen, admission_time) -> list[MedicationAdministration]
+    build_regimens,                      # (hai_event, start_datetime) -> list[AntibioticRegimen]
+    generate_mar_doses,                  # (regimen, snapshot_datetime, order_id, encounter_end_datetime=None)
+                                         #   -> list[MedicationAdministration]
     NarrowOutcome,                       # Enum {SWITCH, ELIMINATION, NO_CHANGE}
-    select_narrow_target,                # (hai_type, organism_snomed, susceptibilities) -> drug_key | None
-    narrow_outcome,                      # (empirical, target) -> NarrowOutcome
-    narrow_duration_days,                # (hai_type, drug_key) -> int
+    select_narrow_target,                # (susceptibilities, ladder_for_organism) -> drug_key | None
+    narrow_outcome,                      # (narrow_target, empirical_regimens) -> NarrowOutcome
+    narrow_duration_days,                # (empirical_start, reported, total_course) -> int
 )
 from clinosim.modules.antibiotic.enricher import enrich_antibiotic  # POST_ENCOUNTER entry
 ```
 
 ## Determinism
 
-- Sub-seed offset `0x4142` (`"AB"`, PR3b-1) — registered in
-  [`clinosim/seeding.py`](../../seeding.py) via
-  `ENRICHER_SEED_OFFSETS["antibiotic"]`.
+- Sub-seed offset `0x4142` (`"AB"`, PR3b-1) is reserved in
+  [`clinosim/seeding.py`](../../seeding.py) as
+  `ENRICHER_SEED_OFFSETS["antibiotic"]`, but the enricher draws no
+  random numbers: regimens, MAR schedules and narrowing are all
+  deterministic functions of the HAI events, `hai_empirical.yaml` and
+  the microbiology results.
 - PR3b-3 narrowing has **no new RNG** — `select_narrow_target` is
   pure over already-determined susceptibilities from the microbiology
   layer.
 - AD-32 future-onset skip: HAI events with onset after the snapshot
   are pre-skipped so the antibiotic emit does not create orphan
   orders when the HAI truncation runs post-POST_ENCOUNTER.
+- MAR doses are capped at the earlier of the snapshot and the
+  encounter's `discharge_datetime` (Issue #1312). Empirical orders are
+  timed at 08:00 on the onset date; narrowed regimens start at the
+  culture's `reported_datetime` (skipped when that is after the
+  snapshot).
 
 ## Dependencies
 
-- `clinosim.modules._shared` — `get_attr_or_key`.
+- `clinosim.modules._shared` — `get_attr_or_key`, `set_attr_or_key`,
+  `get_or_create_container`, `sanitize_id_token`.
+- `clinosim.modules.hai` — `HAI_TYPES`, `load_hai_antibiogram`
+  (narrow-ladder validation).
+- `clinosim.modules.order.engine` — `parse_dose_string`.
 - `clinosim.modules.observation.microbiology` —
   `antibiotic_loinc_lookup` (re-exported as
   `ANTIBIOTIC_LOINC_LOOKUP`).
@@ -86,11 +101,12 @@ from clinosim.modules.antibiotic.enricher import enrich_antibiotic  # POST_ENCOU
   narrow-target dose + frequency defaults.
 - `clinosim.audit.registry` (via `audit.py`) — AD-60 audit
   registration.
-- `clinosim.seeding` — `ENRICHER_SEED_OFFSETS`.
-- `clinosim.types.encounter` — `AntibioticRegimen`,
-  `MedicationAdministration`, `Order`, `OrderType`, `OrderStatus`,
-  plus the microbiology types.
-- `numpy`, `yaml`.
+- `clinosim.types.antibiotic` — `AntibioticRegimen`.
+- `clinosim.types.encounter` — `MedicationAdministration`, `Order`,
+  `OrderType`, `OrderStatus`.
+- `clinosim.types.hai` — `HAIEvent`; `clinosim.types.microbiology` —
+  `SusceptibilityResult`.
+- `yaml`.
 
 ## Constants and configuration
 
@@ -102,23 +118,28 @@ from clinosim.modules.antibiotic.enricher import enrich_antibiotic  # POST_ENCOU
   `ANTIBIOTIC_LOINC_LOOKUP`. The YAML loaders validate every
   `drug_key` string against this dict at import (PR-90 lesson).
 - **`FREQ_PER_DAY`** (`engine.py`) — dose frequency string →
-  doses/day (`"q24h" → 1`, `"q12h" → 2`, `"q8h" → 3`, `"q6h" → 4`)
+  doses/day (`"q24h" → 1`, `"q12h" → 2`, `"q8h" → 3`, `"q6h" → 4`,
+  `"q4h" → 6`)
   consumed by `generate_mar_doses`.
 - **Reference YAMLs**:
   - [`reference_data/hai_empirical.yaml`](reference_data/hai_empirical.yaml)
-    — IDSA 2009/2016 empirical regimen per HAI type. Loader
-    `_validate_hai_empirical` cross-validates every drug_key against
-    `ANTIBIOTIC_DRUGS` (3-way with `HAI_TYPES` +
-    `ANTIBIOTIC_LOINC_LOOKUP`).
+    — IDSA 2009/2016 empirical regimen per HAI type. `load_hai_empirical`
+    validates the hai_type keys against `HAI_TYPES` in both directions
+    and every drug_key against `ANTIBIOTIC_DRUGS`.
   - [`reference_data/narrow_ladder.yaml`](reference_data/narrow_ladder.yaml)
     — per (HAI type, organism SNOMED) narrow target ladder. Loader
-    `_validate_narrow_ladder` cross-validates 3-way against
-    `HAI_TYPES` + `hai_antibiogram.yaml` + `ANTIBIOTIC_DRUGS`.
+    `_validate_narrow_ladder` cross-validates against `HAI_TYPES` +
+    `hai_antibiogram.yaml` + `ANTIBIOTIC_DRUGS`, and requires a ladder
+    entry for every (HAI type, organism) in the antibiogram
+    (reverse coverage).
 - **Narrow-target dose defaults** ([`_narrow_dose_defaults.py`](_narrow_dose_defaults.py),
   Issue #637) — per-drug (dose_string, frequency) pair returned by
   `_narrow_dose_frequency` in the enricher.
 - **FHIR ID prefixes** (`engine.py`) — `ABX_REGIMEN_ID_PREFIX`,
-  `ABX_ORDER_REQ_PREFIX`, `ABX_ORDER_ID_PREFIX`, `ABX_NARROW_SUFFIX`.
+  `ABX_ORDER_REQ_PREFIX`, `ABX_ORDER_ID_PREFIX` (`ABX_NARROW_SUFFIX`
+  is still defined but no longer appended — narrowed regimens use
+  `abx-{hai_id}-{slug}` and carry their intent in
+  `medication_intent="narrowed"`).
   `_check_fhir_id_length` enforces the FHIR `id` cardinality limit
   at every emission site (Issue-tracked; `_DRUG_SLUG_OVERRIDES`
   handles the drug names that would otherwise blow the length
@@ -126,8 +147,9 @@ from clinosim.modules.antibiotic.enricher import enrich_antibiotic  # POST_ENCOU
 - **`AntibioticRegimen.discontinuation_datetime`** — forward-compat
   slot populated by PR3b-3 narrowing (`intent="narrowed"` regimens
   set `discontinuation_datetime = reported_datetime` on displaced
-  empirical entries; downstream `_map_order_status_to_fhir` in the
-  medications builder maps that to `MedicationRequest.status="stopped"`).
+  empirical entries, truncates their later MAR doses and sets the
+  matching `Order.status = OrderStatus.STOPPED`, which the medications
+  builder emits as `MedicationRequest.status="stopped"`).
 
 ## Directory contents
 
@@ -136,7 +158,7 @@ clinosim/modules/antibiotic/
   __init__.py                        ANTIBIOTIC_DRUGS + ANTIBIOTIC_LOINC_LOOKUP re-export
   engine.py                          build_regimens + generate_mar_doses + narrow_* helpers + loaders + validators
   enricher.py                        POST_ENCOUNTER enrich_antibiotic (Pass 1 empirical + Pass 2 narrowing)
-  audit.py                           AD-60 audit plug-in (second per-Module) — lift_firing_proof + antibiogram_firing_proof
+  audit.py                           AD-60 audit plug-in (second per-Module) — lift_firing_proof (empirical + antibiogram + narrow)
   _narrow_dose_defaults.py           narrow-target dose + frequency defaults (Issue #637)
   reference_data/
     hai_empirical.yaml               IDSA empirical regimen per HAI type
@@ -160,7 +182,8 @@ Registered in
 |---|---|---|
 | Enricher registry | [`clinosim/simulator/enrichers.py`](../../simulator/enrichers.py) | POST_ENCOUNTER order=85 registration. |
 | Audit registry | [`clinosim/modules/antibiotic/audit.py`](audit.py) | AD-60 audit plug-in. |
-| HAI enricher | [`clinosim/modules/hai/enricher.py`](../hai/enricher.py) | Cross-imports `ANTIBIOTIC_LOINC_LOOKUP`. |
+| HAI module | [`clinosim/modules/hai/enricher.py`](../hai/enricher.py), [`clinosim/modules/hai/__init__.py`](../hai/__init__.py) | Cross-import `ANTIBIOTIC_LOINC_LOOKUP`. |
+| Clinical audit axis | [`clinosim/audit/axes/clinical.py`](../../audit/axes/clinical.py) | Imports `ANTIBIOTIC_LOINC_LOOKUP` and the `ABX_*` id prefixes for the narrow-rate gate. |
 | FHIR medications builder | [`clinosim/modules/output/fhir_r4/medications/`](../output/fhir_r4/medications/README.md) | Emits `MedicationRequest` + `MedicationAdministration` from the appended `Order` + MAR records (`status="stopped"` on discontinued empirical). |
 
 ## Testing
@@ -186,8 +209,8 @@ Individual files:
   — `_check_fhir_id_length` guard.
 - [`tests/unit/test_antibiotic_yaml_loader.py`](../../../tests/unit/test_antibiotic_yaml_loader.py)
   — 6-layer loader validators.
-- [`tests/unit/modules/antibiotic/`](../../../tests/unit/modules/antibiotic/)
-  — module-scoped unit tests.
+- [`tests/unit/modules/antibiotic/test_antibiotic_loinc_lookup.py`](../../../tests/unit/modules/antibiotic/test_antibiotic_loinc_lookup.py)
+  — LOINC lookup single-sourcing.
 - [`tests/integration/test_antibiotic_forced_e2e.py`](../../../tests/integration/test_antibiotic_forced_e2e.py),
   [`test_antibiotic_audit.py`](../../../tests/integration/test_antibiotic_audit.py)
   — end-to-end + AD-60 audit run.

@@ -29,28 +29,23 @@ Manage per-disease definitions as structured YAML data: incidence model, severit
 ```
 modules/disease/
 ├── SPEC.md
-├── schema/
-│   └── disease_protocol.schema.yaml     ← YAML schema definition
-├── protocols/
-│   ├── bacterial_pneumonia.yaml          ← Phase 1
-│   ├── heart_failure_exacerbation.yaml   ← Phase 1
-│   ├── hip_fracture.yaml                 ← Phase 1
-│   ├── pregnancy_complications/          ← Pregnancy-related conditions
-│   │   ├── gestational_diabetes.yaml
-│   │   ├── preeclampsia.yaml
-│   │   ├── preterm_labor.yaml
-│   │   ├── placenta_previa.yaml
-│   │   ├── ectopic_pregnancy.yaml
-│   │   └── postpartum_hemorrhage.yaml
-│   ├── neonatal/                          ← Newborn conditions
-│   │   ├── neonatal_jaundice.yaml
-│   │   ├── respiratory_distress_syndrome.yaml
-│   │   └── neonatal_sepsis.yaml
-│   └── (future diseases)
-├── complications/
-│   └── hospital_complications.yaml       ← Cross-disease complications
-└── (implementation files)
+├── README.md / README.ja.md
+├── __init__.py                          ← empty
+├── protocol.py                          ← DiseaseProtocol Pydantic model (extra="forbid") + loaders + import-time validators
+├── severity.py                          ← severity categories / score ranges / sampler / modifier vocabulary
+├── acuity.py                            ← acuity-tier canonical disease sets
+├── localization.py                      ← country → YAML key, chief complaint, department, target LOS
+└── reference_data/
+    └── <disease_id>.yaml                ← 36 flat files, one per disease (e.g. bacterial_pneumonia.yaml,
+                                            heart_failure_exacerbation.yaml, hip_fracture.yaml)
 ```
+
+There is no separate schema YAML: the schema is the `DiseaseProtocol`
+Pydantic model in `protocol.py`. There are no `pregnancy_complications/`,
+`neonatal/` or `complications/` sub-directories; the pregnancy and neonatal
+protocol tables below are design targets that are not implemented as
+disease YAMLs (perinatal delivery / newborn / abortion encounters are driven
+by `clinosim/locale/shared/perinatal.yaml` instead).
 
 ### YAML Protocol Schema
 
@@ -425,6 +420,10 @@ readmission:
 
 ### Severity Determination Algorithm
 
+Design pseudocode. Implemented by `severity.py::sample_severity` /
+`sample_severity_category` (adds a `minimum_severity` clamp and the
+fail-loud modifier vocabulary `KNOWN_MODIFIER_CONDITIONS`).
+
 ```python
 def determine_severity(patient: PatientProfile, disease_protocol: dict) -> str:
     base_dist = disease_protocol["severity"]["distribution"]  # {mild: 0.30, moderate: 0.55, severe: 0.15}
@@ -446,6 +445,11 @@ def determine_severity(patient: PatientProfile, disease_protocol: dict) -> str:
 ```
 
 ### Archetype Selection Algorithm
+
+Design pseudocode. Implemented by
+`clinosim/modules/clinical_course/engine.py::select_archetype`, which
+also adjusts `mild` severity and reads its multipliers from named
+constants rather than the literals shown here.
 
 ```python
 def select_archetype(patient: PatientProfile, severity: str, disease_protocol: dict) -> str:
@@ -470,6 +474,9 @@ def select_archetype(patient: PatientProfile, severity: str, disease_protocol: d
 ```
 
 ### State Trajectory Interpolation
+
+Design pseudocode. Implemented by
+`clinosim/modules/clinical_course/engine.py::_interpolate`.
 
 The archetype defines state changes at specific day markers. Between markers, values are interpolated:
 
@@ -507,6 +514,11 @@ def interpolate_state_trajectory(archetype_trajectory: dict, current_day: float,
 ```
 
 ### Incidence Rate Interface with Population Module
+
+Design pseudocode — there is no `get_monthly_incidence` function. The
+population module derives monthly disease rates itself from locale
+epidemiology data
+(`clinosim/modules/population/_demographics.py::_disease_monthly_rate_from_locale`).
 
 The disease module provides incidence data to the population module's life event engine:
 

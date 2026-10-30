@@ -80,6 +80,11 @@ and the returned Pydantic model is shared read-only.
     `"LOINC"` (US).
   - `procedure_code_system` (default `"K-code"`) — `"K-code"` (JP)
     or `"CPT"` (US).
+  - Only `lab_frequency_multiplier` is read at runtime today
+    (`clinosim/simulator/daily_loop.py`). The other six fields are
+    loaded but have no reader; country-dependent discharge, LOS and
+    code-system behaviour is driven by locale data and the country
+    string instead.
 - Country dispatch table (in `loader.py`):
   `{"JP": "japan.yaml", "US": "us.yaml"}`. To add a country, add
   the YAML, extend the dict, and (if applicable) extend downstream
@@ -108,16 +113,17 @@ and no `reference_data/`** — its entire runtime surface is
 Not applicable — this module is a country-config loader, not an
 enricher. It is not registered with `register_builtin_enrichers`
 and has no seed offset in `ENRICHER_SEED_OFFSETS`. The simulator
-boot path calls `load_healthcare_config` directly once per run and
-the resulting `HealthcareSystemConfig` propagates through
-`SimulatorConfig` to every downstream module.
+boot path calls `load_healthcare_config` directly and passes the
+resulting `HealthcareSystemConfig` as the `healthcare` argument
+(`ForwardContext.healthcare`, `_simulate_patient(..., healthcare, ...)`)
+down to the daily loop.
 
 ## Output surfaces (consumers)
 
 | Consumer | Where | Role |
 |---|---|---|
-| Simulator boot | [`clinosim/simulator/engine.py`](../../simulator/engine.py) (`~L17`) | Imports `load_healthcare_config` and caches the result once per country per run; the `HealthcareSystemConfig` then reaches every module through `SimulatorConfig` propagation. |
-| `HealthcareSystemConfig` field consumers | [`clinosim/types/config.py`](../../types/config.py) | Downstream modules read `discharge_criteria`, the `*_code_system` string, and the multipliers off the shared model. Search: `grep -rn "hc_config\." clinosim/`. |
+| Simulator boot | [`clinosim/simulator/engine.py`](../../simulator/engine.py) | Calls `load_healthcare_config(config.country)` in the cohort run and in the single-scenario path, and passes the model on as `healthcare` (e.g. `ForwardContext.healthcare`). |
+| `HealthcareSystemConfig` field consumers | [`clinosim/simulator/daily_loop.py`](../../simulator/daily_loop.py) | Reads `healthcare.lab_frequency_multiplier` to scale inpatient lab frequency — the only field read today. |
 
 ## Testing
 

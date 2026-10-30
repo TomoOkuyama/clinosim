@@ -5,7 +5,7 @@
 入院 / ED / 外来 encounter に関する 2 つの関連責務を持つ:
 
 1. **encounter-condition protocol registry** —
-   [`reference_data/`](reference_data/) 配下の 46 YAML。外来 / ED 短期
+   [`reference_data/`](reference_data/) 配下の 51 YAML。外来 / ED 短期
    条件 (asthma attack、migraine、minor laceration、screening visit、
    allergic reaction、syncope、viral gastroenteritis、annual health
    screening、dialysis session、rehab outpatient 等) を扱う。
@@ -38,7 +38,7 @@
 
 ### 縦断サービスライン encounter shape (v0.5 → v0.6.0)
 
-上記 46 YAML protocol は ED / 外来主訴 episode を対象とする。以下 2
+上記 51 YAML protocol は ED / 外来主訴 episode を対象とする。以下 2
 縦断サービスラインは `reference_data/` protocol 非依存で、shape は
 [`clinosim/locale/shared/perinatal.yaml`](../../locale/shared/perinatal.yaml)
 と
@@ -50,8 +50,8 @@
   `department_rollup` で `internal_medicine` fallback。delivery Procedure
   JP `K894` / US CPT `59400`)。
 - **新生児 Encounter** (IMP admission、`admit_source = "born"` —
-  [`clinosim/types/encounter.py`](../../types/encounter.py) の新
-  `AdmitSource.BORN` enum 値、`admit_source_encounter_id` が母親の
+  [`clinosim/types/encounter.py`](../../types/encounter.py) の
+  `Encounter.admit_source` の文字列値 (enum ではない)、`admit_source_encounter_id` が母親の
   分娩 encounter を指し新生児側の FHIR `Encounter.partOf` に emit、
   LOS は母親から継承、discharge dx `Z38.0`)。
 - **産褥 (postpartum) 外来 encounter × 2** — 分娩後 ~1 週間 / ~4 週間の
@@ -105,22 +105,27 @@ from clinosim.modules.encounter.protocol import (
   実測から選定。
 - 日次 cycle + timeline 生成は pure: `rng` 引数無し、cadence 時刻
   (06:00 / 06:30 / 09:00 / 14:00 / 18:00 / 18:30 / 22:00) は固定。
-- Protocol loader は pure — Pydantic `extra="forbid"` が load 時に
-  drift を捕捉。
+- Protocol loader は pure。`EncounterConditionProtocol` は必須 field
+  (`condition_id`, `icd10_code`, `chief_complaint`, `encounter_type`,
+  `department`) と型付き optional key のみ検証し、`extra="allow"` で
+  condition 固有 section を素通しする。load 時に全 `route:` 値を共有
+  route 語彙でも検査する。
 
 ## 依存
 
-- `pydantic` — schema + `extra="forbid"`。
+- `pydantic` — schema (`extra="allow"`)。
 - `yaml` — YAML パーサ。
 - `clinosim.types.encounter` — `Encounter`, `EncounterStatus`,
   `EncounterType`。
 - `hashlib.sha256` — encounter-id 導出。
-- 他の `clinosim.modules.*` には依存しない。
+- `clinosim.modules.output.fhir_r4.lib.reference_data.validate_yaml_route_value`
+  — loader 内で lazy import (`route:` 語彙検査)。それ以外の
+  `clinosim.modules.*` には依存しない。
 
 ## 定数と設定
 
 - **encounter-condition YAML registry**: [`reference_data/`](reference_data/)
-  — 46 file (1 condition = 1 file、filename = condition_id +
+  — 51 file (1 condition = 1 file、filename = condition_id +
   `.yaml`)。外来慢性フォロー、ED 短期、screening (mammography /
   colonoscopy / diabetic retinopathy / annual health screening)、
   rehab、dialysis、cardiac rehab、smoking cessation、mental health
@@ -146,7 +151,7 @@ clinosim/modules/encounter/
   engine.py                       入院 encounter 生成 + 日次 cycle timeline
   protocol.py                     EncounterConditionProtocol + child model + loader
   reference_data/
-    <condition_id>.yaml           46 file (外来 / ED / screening condition ごと 1 file)
+    <condition_id>.yaml           51 file (外来 / ED / screening condition ごと 1 file)
   SPEC.md                         拡張設計参考 (runtime data ではない)
 ```
 
@@ -162,7 +167,8 @@ clinosim/modules/encounter/
 
 | Consumer | 場所 | 役割 |
 | --- | --- | --- |
-| Simulator boot + 全 encounter simulator | [`clinosim/simulator/{engine,inpatient,outpatient,emergency,unknown_condition,enumerate,cli_test_encounter,cli}.py`](../../simulator/) | `create_inpatient_encounter` と condition-protocol loader を import。 |
+| Simulator boot + 全 encounter simulator | [`clinosim/simulator/{inpatient,outpatient,emergency,perinatal,unknown_condition,enumerate,cli_test_encounter,cli}.py`](../../simulator/), [`clinosim/simulator/phases/_ed_slot.py`](../../simulator/phases/_ed_slot.py) | `create_inpatient_encounter` と condition-protocol loader を import。 |
+| Triage | [`clinosim/modules/triage/engine.py`](../triage/engine.py) | `load_all_encounter_conditions` を読む。 |
 | Narrative | [`clinosim/modules/document/narrative/passes.py`](../document/narrative/passes.py) | 外来 / ED template flow で `EncounterConditionProtocol.narrative` を read。 |
 | Encounter-type FHIR mapping | [`clinosim/modules/output/fhir_r4/encounters/`](../output/fhir_r4/encounters/) | protocol が持つ encounter class + type 文字列を消費。 |
 
@@ -175,7 +181,7 @@ pytest tests/unit -k encounter -q
 個別ファイル:
 
 - [`tests/unit/test_encounter_protocol_validation.py`](../../../tests/unit/test_encounter_protocol_validation.py)
-  — 46 YAML 全体に対する Pydantic schema + `extra="forbid"` guard。
+  — 51 YAML 全体に対する Pydantic schema 検証 (必須 field、`extra="allow"`)。
 - [`tests/unit/test_encounter_archetype_severity.py`](../../../tests/unit/test_encounter_archetype_severity.py)
   — archetype × severity coverage。
 - [`tests/unit/test_encounter_features.py`](../../../tests/unit/test_encounter_features.py)
@@ -193,4 +199,4 @@ pytest tests/unit -k encounter -q
 `maintainers@` — 詳細は
 [`CONTRIBUTING.md`](../../../CONTRIBUTING.ja.md)。
 
-英語版: [`README.md`](README.ja.md)。
+英語版: [`README.md`](README.md)。

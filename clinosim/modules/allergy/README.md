@@ -2,31 +2,47 @@
 
 ## Purpose
 
-Samples one allergy (or none) per patient during the POST_POPULATION
-pass and writes it to `PersonRecord.allergies` as a list of `Allergy`
+Samples each patient's allergy list during the POST_POPULATION pass
+and writes it to `PersonRecord.allergies` as a list of `Allergy`
 records with a nested `AllergyReaction`. Downstream FHIR
-`AllergyIntolerance` emission reads the same field. The sampler is
-deliberately two-stage — a patient-level 15 % overall gate followed
-by a category-weighted single-allergen draw — to match the baseline
-calibration reference the pre-refactor patient activator produced
-(~15.3 % population-level prevalence).
+`AllergyIntolerance` emission reads the same field. A patient-level
+15 % overall gate decides whether the patient carries any real
+allergen (matching the ~15.3 % baseline the pre-refactor patient
+activator produced); patients who fail the gate get exactly one
+positive "No known allergy" (NKA, SNOMED `716186003`) record, so the
+list is never empty. Allergic patients get a category-weighted
+primary allergen plus, through an age-conditional polyallergy gate,
+up to three secondary allergens.
 
 ## Scope
 
 - **In scope**: patient-level overall allergy gate
-  (`OVERALL_ALLERGY_PREVALENCE = 0.15`), category-weighted single
-  allergen selection (`CATEGORY_WEIGHTS = {medication: 0.50,
-  food: 0.25, environment: 0.25}`), uniform pick within category
-  from `allergens.yaml`, per-allergy clinical / verification status
-  sampling ("active + confirmed" majority, "active + unconfirmed"
-  ~10 %, "resolved + confirmed" ~5 % restricted to food category).
-- **In scope (validation)**: 6-layer import-time validator over
+  (`OVERALL_ALLERGY_PREVALENCE = 0.15`); NKA record
+  (`allergy_id="nka"`, `is_nka=True`, status from `allergens.yaml:nka`)
+  for gate-negative patients; category-weighted primary allergen
+  selection (`CATEGORY_WEIGHTS = {medication: 0.50, food: 0.25,
+  environment: 0.25}`) with a uniform pick within category from
+  `allergens.yaml`; polyallergy gate
+  (`polyallergy.probability_given_any_allergy` child 0.10 / adult
+  0.25 / elderly 0.55, +`chronic_ill_bonus` 0.15 for
+  `chronic_ill_conditions` prefixes, capped at 0.85) adding 1–3
+  secondary allergens (`additional_count_weights` 0.60 / 0.30 / 0.10)
+  sampled without replacement; `cross_reactivity` category-weight
+  boost (penicillin → medication +0.20); per-allergy clinical /
+  verification status sampling ("active + confirmed" majority,
+  "active + unconfirmed" ~10 %, "resolved + confirmed" ~5 % restricted
+  to food category).
+- **In scope (validation)**: 6-layer load-time validator over
   `allergens.yaml` including `allergen_code` and every reaction's
   `manifestation_snomed` cross-checked against
   [`clinosim/codes/data/snomed-ct.yaml`](../../codes/data/snomed-ct.yaml)
-  membership via `_code_in_data`.
-- **Out of scope**: multi-allergy per patient (single-allergy today,
-  extension noted in code comments), drug-allergy interaction with
+  membership via `_code_in_data`, plus `_validate_nka_and_polyallergy`
+  for the `nka` / `polyallergy` / `cross_reactivity` blocks.
+- **Data only (consumed elsewhere)**: the `aging:` block of
+  `allergens.yaml` (childhood food-allergy resolution, late-onset drug
+  sensitivity) is read by
+  `clinosim.modules.population.aging._allergy_drift`.
+- **Out of scope**: drug-allergy interaction with
   prescribing ([`clinosim.modules.order`](../order/README.md)),
   FHIR serialisation
   ([`clinosim.modules.output`](../output/README.md)), reaction-event
@@ -43,6 +59,7 @@ from clinosim.modules.allergy import Allergy, AllergyReaction
 from clinosim.modules.allergy.engine import (
     allergy_enricher,                    # POST_POPULATION enricher entry
     load_allergens,                      # () -> {"medication": [...], "food": [...], "environment": [...]}
+    load_allergen_config,                # () -> full yaml (allergens + nka + polyallergy + cross_reactivity + aging)
     SUPPORTED_ALLERGEN_CATEGORIES,       # frozenset {"medication", "food", "environment"}
     OVERALL_ALLERGY_PREVALENCE,          # 0.15
     CATEGORY_WEIGHTS,                    # {"medication": 0.50, "food": 0.25, "environment": 0.25}
@@ -90,9 +107,10 @@ for the correct audit metric (this benchmark note is cross-referenced there).
   `normalize_probabilities(..., fallback="raise")` so a YAML
   pre-normalisation drift raises rather than silently biasing the
   draw.
-- Status draws (`clinical` / `verification`) come from the same
-  per-patient RNG stream as the allergen selection, so status
-  distribution is deterministic given the patient.
+- Status draws (`clinical` / `verification`), the polyallergy gate
+  and secondary-allergen draws come from the same per-patient RNG
+  stream as the primary allergen selection, so the whole list is
+  deterministic given the patient.
 
 ## Dependencies
 
@@ -123,9 +141,9 @@ for the correct audit metric (this benchmark note is cross-referenced there).
     `active + confirmed`.
 - [`reference_data/allergens.yaml`](reference_data/allergens.yaml)
   — one entry per allergen under `allergens.{medication, food,
-  environment}`. Required fields per entry: `allergen_code` (SNOMED
-  CT), `allergen_display_en`, `allergen_display_ja`,
-  `prevalence.adult` (0..1 — documentation of the category-level
+  environment}` (currently 3 / 2 / 2 entries). Required fields per
+  entry: `allergen_code` (SNOMED CT; displays resolve from
+  `snomed-ct.yaml` at emit time), `prevalence.adult` (0..1 — documentation of the category-level
   reference rate, not the actual gate), `criticality`,
   `common_reactions[]` (each with `manifestation_snomed` and
   `severity`). Both `allergen_code` and every
@@ -139,15 +157,18 @@ for the correct audit metric (this benchmark note is cross-referenced there).
   `SUPPORTED_ALLERGEN_CATEGORIES` (both directions), (4) empty
   per-category list, (5) missing required entry fields, (6)
   `prevalence.adult` out of range or the SNOMED cross-checks above.
+- Sibling blocks in the same yaml: `nka` (`allergen_code`,
+  `clinical_status`, `verification_status`), `polyallergy`,
+  `cross_reactivity`, and `aging` (see Scope).
 
 ## Directory contents
 
 ```
 clinosim/modules/allergy/
   __init__.py                     re-exports Allergy + AllergyReaction
-  engine.py                       validator / load_allergens / allergy_enricher
+  engine.py                       validators / load_allergens / load_allergen_config / allergy_enricher
   reference_data/
-    allergens.yaml                3-category allergen catalog + reactions
+    allergens.yaml                3-category allergen catalog + reactions, nka, polyallergy, cross_reactivity, aging
 ```
 
 The module has **no `enricher.py`, no `audit.py`, no separate
@@ -171,7 +192,7 @@ Registered in
 
 | Consumer | Where | Role |
 |---|---|---|
-| FHIR `AllergyIntolerance` builder | [`clinosim/modules/output/fhir_r4/conditions/allergy_intolerance.py`](../output/fhir_r4/conditions/allergy_intolerance.py) | Reads `record.allergies` and emits one `AllergyIntolerance` resource per entry. IDs follow the canonical `allergy-{patient_id}-{idx}` format owned by the builder (I-4 fix — the engine sets a placeholder `allergy_id="1"`). |
+| FHIR `AllergyIntolerance` builder | [`clinosim/modules/output/fhir_r4/conditions/allergy_intolerance.py`](../output/fhir_r4/conditions/allergy_intolerance.py) | Reads `record.allergies` and emits one `AllergyIntolerance` resource per entry. IDs are opaque `allergy-<12hex>` derived from the structural key `{patient_id}-{allergy_id}`; the engine numbers real allergies `"1"`, `"2"`, … and uses `"nka"` for the NKA record. |
 | Enricher registry | [`clinosim/simulator/enrichers.py:127`](../../simulator/enrichers.py) | POST_POPULATION order=10 registration. |
 
 ## Testing
