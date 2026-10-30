@@ -914,8 +914,15 @@ def derive_lab_values(
     # BNP-pattern surgical (AD-57): state untouched, formula-only change.
     # Phase 2b (2026-06-24): on_warfarin sourced from
     # medication_flags_from_context (sibling of scenario_flags_from_protocol).
+    # Issue #2227: the hepatic term counts only liver injury below
+    # HEPATIC_INJURY_FLOOR, as for the other liver markers. ``hepatic`` starts
+    # at the patient's reserve (about 0.7-0.95 by age), so the former
+    # ``(1 - hepatic)`` term put healthy elderly patients at INR 1.3-1.6.
+    hep_synthetic_loss = max(0.0, HEPATIC_INJURY_FLOOR - hepatic) / HEPATIC_INJURY_FLOOR
     base_inr = (
-        PT_INR_BASELINE + (1 - hepatic) * PT_INR_HEPATIC_SCALE + state.coagulation_status * PT_INR_COAGULATION_SCALE
+        PT_INR_BASELINE
+        + hep_synthetic_loss * PT_INR_HEPATIC_SCALE
+        + state.coagulation_status * PT_INR_COAGULATION_SCALE
     )
     if on_warfarin:
         labs["PT_INR"] = PT_INR_WARFARIN_TARGET_CENTER + (base_inr - PT_INR_BASELINE) * PT_INR_WARFARIN_BASE_GAIN
