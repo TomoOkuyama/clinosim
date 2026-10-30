@@ -49,7 +49,7 @@ FHIR プロファイル準拠** を優先する。
      memory を更新。
    - warranted な場合は新 FP エントリを
      `docs/design-notes/2026-07-06-fix-point-registry.md` に追加。
-   - `.session-resume-prompt.md` を refresh、現サイクル状態 (cycle N
+   - gitignore 済みの `.resume-prompt.md` を refresh、現サイクル状態 (cycle N
      progress n/20、carry-over リスト、master HEAD、次アクション) が
      別 session の cold-start に十分となるように。
    - GitHub Issues board (`docs/roadmap.ja.md` 参照) 上の該当 META /
