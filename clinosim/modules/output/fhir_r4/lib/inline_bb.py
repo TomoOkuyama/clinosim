@@ -351,9 +351,17 @@ def _bb_encounters(ctx: BundleContext) -> list[dict]:
         #   semantics). This preserves the readmission chain while still
         #   materializing the bridge Encounter (fixes the readmission×EMD
         #   dangling-reference case, ~13% of via-ED IMPs in p=10000).
+        _admit_source = str(
+            (enc.get("admit_source", "") if isinstance(enc, dict) else getattr(enc, "admit_source", "")) or ""
+        )
         if _partof_id:
             if "partOf" not in _resource:
                 _resource["partOf"] = encounter_ref(_partof_id)
+        # Issue #2194: only an ED-origin admission gets the synth-ED bridge.
+        # A newborn's link to the mother's delivery encounter uses the same
+        # field, and bridging it emitted an EMER Encounter that reused the
+        # mother's encounter id (one of the two was then dropped).
+        if _partof_id and _admit_source == "emd":
             # CY7-05 synth-ED bridge Encounter: delegate to canonical
             # `_build_encounter` so localization / CS-registry lookups
             # are single-source-of-truth (Issue #546, spec DD1).
