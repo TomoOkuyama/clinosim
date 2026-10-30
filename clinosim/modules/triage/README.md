@@ -3,16 +3,21 @@
 ## Purpose
 
 Tier 1 #3 α-min-2 always-on AD-55 Module. On every ED (emergency)
-encounter, samples a triage level (JTAS in JP / ESI in US), an
-arrival mode (walk-in / ambulance / other), and an acuity score,
-then writes the result to `EncounterRecord.triage_data`.
+encounter, samples a triage level (JTAS in JP / ESI in US) and an
+arrival mode (walk-in / ambulance / private_vehicle / police /
+helicopter), then writes the result to `Encounter.triage_data`
+(`acuity_score` is left `None`). The sampled level is clamped to the
+ED condition's `triage_level_min` / `triage_level_max` and capped by
+the arrival vitals (`triage_level_cap`, Issue #2082).
 Non-emergency encounters are a no-op.
 
 ## Scope
 
 - **In scope**: `triage_enricher` (POST_ENCOUNTER order=93,
   ED-only); `pick_triage_level(severity, level_system, rng)` —
-  YAML weight table by (severity × system); `pick_arrival_mode(severity, rng)`;
+  YAML weight table by severity (shared by JTAS and ESI);
+  `pick_arrival_mode(severity, rng)`; `condition_triage_bounds(record)`;
+  `triage_level_cap(vitals)`;
   `load_triage_protocols()` YAML loader with 6-layer
   `_validate_triage_protocols` (silent-no-op defense).
 - **Out of scope**: encounter routing / class emission (in
@@ -32,6 +37,8 @@ from clinosim.modules.triage.engine import (
     triage_enricher,             # POST_ENCOUNTER enricher entry
     pick_triage_level,           # (severity, level_system, rng) -> str
     pick_arrival_mode,           # (severity, rng) -> str
+    condition_triage_bounds,     # (record) -> (most, least) urgent level
+    triage_level_cap,            # (vitals) -> least-urgent level allowed
     load_triage_protocols,       # () -> dict (@lru_cache, 6-layer validated)
 )
 ```
@@ -47,22 +54,31 @@ from clinosim.modules.triage.engine import (
 
 ## Dependencies
 
-- `clinosim.modules._shared` — `get_attr_or_key`, `is_jp`.
+- `clinosim.modules._shared` — `get_attr_or_key`, `is_jp`,
+  `normalize_probabilities`.
 - `clinosim.seeding` — `ENRICHER_SEED_OFFSETS`, `derive_sub_seed`.
 - `clinosim.types.triage` — `TriageData`.
-- `clinosim.types.encounter` — `Encounter` (encounter_type gate).
+- `clinosim.modules.encounter.protocol` — `load_all_encounter_conditions`
+  (per-condition `triage_level_min` / `triage_level_max`).
 - `yaml`, `numpy`.
 
 ## Constants and configuration
 
 - [`reference_data/triage_protocols.yaml`](reference_data/triage_protocols.yaml)
-  — per (level_system × severity) tier weights + arrival-mode
-  probabilities. Import-time `_validate_triage_protocols` runs the
-  standard 6-layer defense (empty top / missing keys / per-severity
-  weights / forward+reverse coverage vs JTAS / ESI canonical
-  levels / type checks).
-- Level systems: `jtas` (JP), `esi` (US), dispatched via country
-  at emit time.
+  — `triage_systems` (JTAS / ESI level labels), `arrival_modes`,
+  country-independent `severity_to_triage_distribution`,
+  `arrival_mode_base_distribution` and
+  `arrival_mode_severity_multipliers`. `_validate_triage_protocols`
+  (run by the first `load_triage_protocols()` call) checks: non-empty
+  top level / `triage_systems` is exactly JTAS+ESI / each system has
+  levels 1-5 / `arrival_modes` matches `SUPPORTED_ARRIVAL_MODES` /
+  severity keys match and each distribution sums to ~1.0 /
+  base arrival-mode keys match.
+- Level systems: `JTAS` (JP), `ESI` (US), chosen from
+  `ctx.config.country` (fallback `ctx.country`).
+- Vitals cap thresholds (`engine.py` constants, ESI v4 danger zone):
+  HR > 100, RR > 20, SpO2 < 92, pain ≥ 7 → level ≤ 3; AVPU P,
+  SpO2 < 90 or SBP < 90 → level ≤ 2; AVPU U → level 1.
 
 ## Directory contents
 
@@ -82,7 +98,7 @@ in `engine.py` and is registered directly.
 
 Registered in
 [`clinosim/simulator/enrichers.py`](../../simulator/enrichers.py)
-(`~L303-316`):
+(`~L393-408`):
 
 - `name="triage"`, `stage=POST_ENCOUNTER`, `order=93`,
   `enabled=lambda c: True`.
@@ -96,10 +112,10 @@ Registered in
 
 | Consumer | Where | Role |
 |---|---|---|
-| Enricher registry | [`clinosim/simulator/enrichers.py:311`](../../simulator/enrichers.py) | POST_ENCOUNTER order=93 registration. |
+| Enricher registry | [`clinosim/simulator/enrichers.py:400`](../../simulator/enrichers.py) | POST_ENCOUNTER order=93 registration. |
 | Audit registry | [`clinosim/modules/triage/audit.py`](audit.py) | AD-60 audit plug-in — canonical-constants cross-check + firing proof. |
-| Document module | [`clinosim/modules/document/audit.py`](../document/audit.py) | Cross-references triage's canonical tier set. |
-| FHIR encounter builder | [`clinosim/modules/output/fhir_r4/encounters/`](../output/fhir_r4/encounters/) | Reads `EncounterRecord.triage_data` for `Encounter.priority`. |
+| Document module audit | [`clinosim/modules/document/audit.py`](../document/audit.py) | Delegates its triage-level proof to `_build_triage_severity_proof`. |
+| ED narrative renderers | [`clinosim/modules/document/narrative/renderers/`](../document/narrative/renderers/) | `ed_triage_note.py`, `_ed_helpers.py`, `section_builders/ed_note.py` read `encounter.triage_data`. |
 
 ## Testing
 

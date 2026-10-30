@@ -14,8 +14,9 @@ MedicationRequest の reasonReference 等が encounter primary reason
 
 ## Scope
 
-- **In scope**: `_bb_conditions` (primary + secondary + chronic
-  Condition builder)、`_bb_allergy_intolerances`、
+- **In scope**: `_build_conditions` (primary + secondary + chronic
+  Condition builder。registry wrapper `_bb_conditions` は
+  [`../lib/inline_bb.py`](../lib/inline_bb.py))、`_bb_allergy_intolerances`、
   `_bb_clinical_impressions`、`_bb_hai_conditions`
   (`extensions["hai"]` 由来 HAI Condition)、`_bb_code_status`
   (custom survey `Observation`、JP encounter は
@@ -42,11 +43,12 @@ MedicationRequest の reasonReference 等が encounter primary reason
 ## Public API
 
 全 builder は親 facade (`_BUNDLE_BUILDERS` in
-[`../__init__.py`](../__init__.py)) に登録済み。外部 caller が直接
+[`../builder.py`](../builder.py)) に登録済み。外部 caller が直接
 import することは稀。builder 関数名:
 
 ```python
-from clinosim.modules.output.fhir_r4.conditions.conditions import _bb_conditions
+from clinosim.modules.output.fhir_r4.conditions.conditions import _build_conditions  # (record, patient_id, country) -> list[dict]
+from clinosim.modules.output.fhir_r4.lib.inline_bb import _bb_conditions            # registry wrapper
 from clinosim.modules.output.fhir_r4.conditions.allergy_intolerance import _bb_allergy_intolerances
 from clinosim.modules.output.fhir_r4.conditions.clinical_impression import _bb_clinical_impressions
 from clinosim.modules.output.fhir_r4.conditions.hai import _bb_hai_conditions
@@ -57,6 +59,8 @@ from clinosim.modules.output.fhir_r4.conditions.primary_ref import (
     primary_condition_ref,             # (record, patient_id, encounter_id) -> Condition.id
     primary_condition_ref_from_codes,  # (record, patient_id, encounter_id, primary_code, admission_code)
     is_chronic_primary,                # (record) -> bool  (encounter primary が慢性)
+    chronic_condition_id,              # (patient_id, idx) -> opaque Condition.id
+    encounter_primary_condition_id,    # (patient_id, encounter_id) -> opaque Condition.id
 )
 ```
 
@@ -76,12 +80,19 @@ sort するため line 順は決定論的。
   `to_fhir_date`, `survey_category`, `BundleContext`)。
 - `clinosim.modules.output.fhir_r4.lib.localization` — JP 表示
   localisation helper。
-- `clinosim.codes` — ICD-10 / ICD-10-CM / SNOMED / RxNorm / JP-Core
+- `clinosim.codes` — ICD-10 / ICD-10-CM / SNOMED / JP-Core
   `jp-core-*` code の `get_system_uri`, `system_key_for`, `lookup`。
-- `clinosim.types.diagnosis` — `DiagnosisRecord`。
-- `clinosim.types.allergy` — `Allergy`, `AllergyReaction`。
-- `clinosim.types.clinical` — `ClinicalImpressionRecord`。
-- `clinosim.types.encounter` — `HAIEvent`。
+- `clinosim.modules.output.fhir_r4.lib.ids` — opaque id 導出
+  (`derive_opaque_id`, `structural_key_system`)。
+- `..demographics.patient.patient_ref`、
+  `..encounters.encounter.encounter_ref` — reference helper。
+- `clinosim.modules.document` — `ALLERGY_ID_PREFIX`、
+  `CLINICAL_IMPRESSION_ID_PREFIX`。
+  `clinosim.modules.code_status.engine.load_reference`、
+  `clinosim.modules.diagnosis.nonspecific_codes.is_visit_reason_zcode`、
+  `clinosim.codes.stage_to_snomed.resolve_stage_snomed`。
+- builder は CIF record を `get_attr_or_key` 経由で dict / 属性
+  object として読み、`clinosim.types` の class は import しない。
 - 親 `__init__.py` には依存しない (adapter facade への循環無し)。
 
 ## 定数と設定
@@ -91,12 +102,14 @@ sort するため line 順は決定論的。
   - encounter の `clinical_diagnosis.discharge_diagnosis_code`
     (または admission-code fallback) の 3 文字 ICD base を、患者の
     `chronic_conditions[].code` base と比較。
-  - **一致** → 患者スコープの chronic Condition id
-    (`cond-chronic-{patient_id}-{index:02d}`) を返す。
-    別途 `cond-{enc}-primary` を emit すると row 重複や ICD 粒度
+  - **一致** → 患者スコープの chronic Condition id (structural key
+    `chronic-{patient_id}-{index:02d}`) を返す。別途
+    encounter-primary Condition を emit すると row 重複や ICD 粒度
     drift (I50 vs I50.9) が発生する。
-  - **不一致** → encounter スコープ id
-    (`cond-{enc}-primary`) を返す。
+  - **不一致** → encounter スコープ id (structural key
+    `{encounter_id}-primary`) を返す。
+  - id は opaque (Issue #854): `_resolve_condition_id` により
+    `cond-` + sha256(structural key) の先頭 12 hex。
   - encounter primary reason を参照する全下流 builder は必ず
     `primary_condition_ref` を呼び、参照が emit 済み同一
     `Condition.id` を指すよう保証する。
@@ -104,14 +117,18 @@ sort するため line 順は決定論的。
   4 文字 (JP-Core convention)。mapping は
   [`clinosim/locale/jp/code_mapping_diagnosis.yaml`](../../../../locale/jp/code_mapping_diagnosis.yaml)。
 - **Allergen coding**: SNOMED CT (アレルゲン + 反応 manifestation)。
-  RxNorm は US 薬剤アレルギーの code system として残る
-  (`_jfagy_coding_for_category` が drug-typed 時に選択)。
+  JP-CLINS 出力では `AllergyIntolerance.code` は代わりに
+  `_jfagy_coding_for_category` の JFAGY generic category coding
+  (medication `00M` / food `00F` / environment + biologic `00N`) を
+  持ち、mapping 無しの category は SNOMED に fallback。RxNorm coding
+  は emit しない。
 - **HAI coding**: ICD-10-CM (US billable) + WHO ICD-10 (JP) +
   SNOMED CT International — AGENTS.md の `dual-slot` 規約に沿う
   dual-code。
 - **JP eCS diagnosis-type extension**: `_ecs_diagnosis_type_extension`
-  が chronic Condition に JP-CLINS `JP_Condition_eCS` の
-  diagnosis-type extension を emit する。
+  が JP Condition に JP-CLINS `JP_Condition_eCS` の
+  diagnosis-type extension (`principal`, `admitting`,
+  `differential`, `clinical`) を emit する。
 - **CodeStatus profile**: JP encounter は custom survey Observation
   に `meta.profile =
   "http://jpfhir.jp/fhir/core/StructureDefinition/JP_Observation_Common"`
@@ -121,13 +138,13 @@ sort するため line 順は決定論的。
 
 ```
 clinosim/modules/output/fhir_r4/conditions/
-  __init__.py                    空 (builder は親 __init__ が import)
-  conditions.py                  _bb_conditions (primary + secondary + chronic)
+  __init__.py                    namespace stub (builder は ../builder.py と ../lib/inline_bb.py が import)
+  conditions.py                  _build_conditions (primary + secondary + chronic) + JP eCS diagnosis-type / bodySite helper
   allergy_intolerance.py         _bb_allergy_intolerances + JP fagy category coding
   clinical_impression.py         _bb_clinical_impressions
   hai.py                         _bb_hai_conditions (extensions["hai"] 由来)
   code_status.py                 _bb_code_status (custom survey Observation)
-  primary_ref.py                 primary_condition_ref + is_chronic_primary + _icd_base (canonical resolver)
+  primary_ref.py                 primary_condition_ref + is_chronic_primary + _icd_base + opaque Condition id helper (canonical resolver)
 ```
 
 ## テスト
@@ -148,4 +165,4 @@ AD-60 plug-in で、ClinicalImpression + primary-Condition-ref 不変量
 `maintainers@` — 詳細は
 [`CONTRIBUTING.md`](../../../../../CONTRIBUTING.ja.md)。
 
-英語版: [`README.md`](README.ja.md)。
+英語版: [`README.md`](README.md)。

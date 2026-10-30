@@ -2,7 +2,7 @@
 
 ## 概要
 
-シミュレータが patient activation 時に `PatientProfile` に設定する SDOH
+シミュレータが `PatientProfile` に設定する SDOH
 (social determinants of health = 社会的決定要因) 属性 — 現状
 `smoking_status` (US Core LOINC 72166-2) と `alcohol_use`
 (LOINC 11331-6) — の enum → SNOMED + LOINC 参照 mapping を提供する
@@ -12,16 +12,20 @@ category `social-history` の `Observation` を出力する。
 本モジュールは **data-only variant**
 ([`docs/CONTRIBUTING-modules.md`](../../../docs/CONTRIBUTING-modules.ja.md)
 「データ専用モジュール (variant)」節参照): `enricher.py` なし、
-`assign_*` 関数なし、乱数使用なし。属性の割り当ては
-`patient/activator.py` が `locale/{us,jp}/demographics.yaml` を読んで
-行う。
+`assign_*` 関数なし、乱数使用なし。属性の割り当ては population 生成時に
+`population/engine.py` が行う (`locale/{country}/demographics.yaml` の
+性別別 `lifestyle_distribution`、無ければ `SMOKING_FALLBACK_*` /
+`ALCOHOL_FALLBACK_*` 定数。未成年は `never` / `none` に上書き)。
+`patient/activator.py` は `PersonRecord` の値を `PatientProfile` に
+コピーする。
 
 ## Scope
 
 - **In scope**: smoking / alcohol の tier → SNOMED コード対応と、
   topic ごとの LOINC observation code を SDOH topic + enum 値で公開。
+  topic ごとの最小出力年齢 (`age_gates`) も提供。
 - **Out of scope**: `smoking_status` / `alcohol_use` の患者単位割り当て
-  ([`clinosim.modules.patient`](../patient/README.ja.md) activator +
+  ([`clinosim.modules.population`](../population/README.ja.md) engine +
   [`clinosim/locale/{us,jp}/demographics.yaml`](../../locale/))、
   FHIR `Observation` 出力
   ([`clinosim.modules.output.fhir_r4.demographics.smoking_alcohol`](../output/fhir_r4/demographics/smoking_alcohol.py))、
@@ -49,7 +53,7 @@ data = load_social_history()
 該当なし — 本モジュールは乱数を引かない。公開関数は cache 付き YAML
 loader 1 つのみで、`PatientProfile` に載る smoking / alcohol enum
 の割り当ては
-[`clinosim.modules.patient`](../patient/README.ja.md) 側で行われ、
+[`clinosim.modules.population`](../population/README.ja.md) 側で行われ、
 seed もそちら側で管理される。
 
 ## 依存
@@ -62,7 +66,7 @@ seed もそちら側で管理される。
 ## 定数と設定
 
 - [`reference_data/social_history.yaml`](reference_data/social_history.yaml)
-  — country-neutral。現状 2 topic:
+  — country-neutral。現状 2 topic + age gate block:
   - `smoking_status` — LOINC `72166-2`、category `social-history`、
     enum 3 値: `never` (SNOMED 266919005) / `former` (8517006) /
     `current` (449868002)。US Core profile
@@ -71,6 +75,9 @@ seed もそちら側で管理される。
     enum 3 値: `none` (SNOMED 105542008) / `social` (28127009) /
     `heavy` (86933000)。HL7 social-history pattern (US Core profile
     なし)。
+  - `age_gates` — `smoking_min_age: 15`、`alcohol_min_age: 15`
+    (Issue #938)。この年齢未満では FHIR builder が smoking / alcohol
+    `Observation` を出力しない。
 - 6 SNOMED コードはすべて
   [`clinosim/codes/data/snomed-ct.yaml`](../../codes/data/snomed-ct.yaml)
   に登録済 (`en` + `ja` 両表示あり)。PR #68 の SNOMED CT authority
@@ -83,7 +90,7 @@ clinosim/modules/sdoh/
   __init__.py                     load_social_history を再 export
   engine.py                       load_social_history (loader 単一)
   reference_data/
-    social_history.yaml           smoking + alcohol enum → SNOMED + LOINC
+    social_history.yaml           smoking + alcohol enum → SNOMED + LOINC、age_gates
 ```
 
 **`enricher.py` / `audit.py` は存在せず、`ENRICHER_SEED_OFFSETS`
@@ -94,11 +101,13 @@ clinosim/modules/sdoh/
 該当なし — 本モジュールは data-only reference variant。
 `register_builtin_enrichers` に登録なく、`ENRICHER_SEED_OFFSETS`
 にも seed 登録なし。`smoking_status` / `alcohol_use` の属性割り当ては
-[`clinosim.modules.patient.activator`](../patient/README.ja.md) が
+population 生成時に
+[`clinosim.modules.population`](../population/README.ja.md) が
 [`clinosim/locale/{us,jp}/demographics.yaml`](../../locale/) を
-読んで行い、FHIR 出力は結果として設定される `PatientProfile` field
-から走る — 本モジュールは consumer が解決する enum → SNOMED + LOINC
-表のみを提供する。
+読んで行い、patient activator が `PatientProfile` にコピーし、FHIR
+出力は結果として設定される `PatientProfile` field から走る — 本
+モジュールは consumer が解決する enum → SNOMED + LOINC 表 (と age
+gate) のみを提供する。
 
 ## 拡張
 
@@ -124,7 +133,7 @@ clinosim/modules/sdoh/
 
 | Consumer | 場所 | 役割 |
 | --- | --- | --- |
-| FHIR `Observation` builder | [`clinosim/modules/output/fhir_r4/demographics/smoking_alcohol.py`](../output/fhir_r4/demographics/smoking_alcohol.py) | `load_social_history()` を読み、smoking + alcohol の social-history `Observation` を 2 件出力 (LOINC observation code + enum ごとの SNOMED `valueCodeableConcept`)。 |
+| FHIR `Observation` builder | [`clinosim/modules/output/fhir_r4/demographics/smoking_alcohol.py`](../output/fhir_r4/demographics/smoking_alcohol.py) | `load_social_history()` を読み、smoking + alcohol の social-history `Observation` を最大 2 件出力 (LOINC observation code + enum ごとの SNOMED `valueCodeableConcept`)。`age_gates` の最小年齢未満は topic ごとに skip。 |
 
 SDOH 専用の CSV 列は無い。smoking / alcohol は患者 CSV 行内に格納される。
 
@@ -152,4 +161,4 @@ pytest tests/integration -k sdoh -q   # FHIR 出力
 `maintainers@` — 詳細は
 [`CONTRIBUTING.md`](../../../CONTRIBUTING.ja.md)。
 
-英語版: [`README.md`](README.ja.md)。
+英語版: [`README.md`](README.md)。

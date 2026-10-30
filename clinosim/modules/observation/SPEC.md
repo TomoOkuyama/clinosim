@@ -1,5 +1,11 @@
 # observation — Lab & Vital Signs Generation Engine
 
+> **Implementation status.** This SPEC is the original design document; much of it is **design-only**. For the code as it stands, see [`README.md`](README.md). In particular:
+>
+> - Implemented in this module: `engine.generate_lab_result(lab_name, true_value, rng) -> float | str` (biological + analytical CV noise via `apply_realistic_variability(lab_name, true_value, rng)`, `clamp_to_physiologic_limits`, `round_to_precision`, categorical draws for qualitative tests), `determine_flag` (locale reference ranges + hardcoded panic thresholds), lab-name aliasing / panel expansion, nursing scores (`nursing.py`, `nursing_enricher.py`) and microbiology cultures (`microbiology.py`).
+> - Implemented elsewhere: the "true" lab / vital values come from `physiology.engine.derive_lab_values` / `derive_vital_signs`; specimen rejection (~2 %) and K / LDH hemolysis (~3 %, constants in `pre_analytical.py`) are applied in `clinosim/simulator/lab_pipeline.py`; imaging results are owned by [`clinosim.modules.imaging`](../imaging/README.md).
+> - Design-only (no code): the `Order` / `state_history` / `PatientProfile` signature of `generate_lab_result` shown below, `should_be_missing` / context-dependent missingness, `check_anomaly_pattern`, `apply_pre_analytical_effects`, `apply_measurement_noise`, `generate_imaging_result` in this module, `physiology.get_effective_state_for_lab` (time-lagged state), circadian / fasting / seasonal effects, and the `LabResult` / `VitalSigns` / `ImagingResult` / `ObservationTimeline` output types.
+
 ## Purpose
 Generate observable clinical data (lab values, vital signs, imaging results) from the hidden physiological state. Implements the 3-layer architecture: physiological state → value derivation → observation noise/missingness.
 
@@ -464,7 +470,7 @@ def generate_imaging_result(order: Order, state: PhysiologicalState,
 - Temporal variation (circadian, fasting, seasonal) is an additional layer on top of the 3-layer architecture
 
 ### Input from physiology module (Layer 2 derivation)
-The observation module's Layer 2 is now implemented in the physiology module as `derive_lab_values()` and `derive_vital_signs()`. The observation module:
+The observation module's Layer 2 is now implemented in the physiology module as `derive_lab_values()` and `derive_vital_signs()`. The intended (design) flow for the observation module was as follows — step 1 is not implemented (`get_effective_state_for_lab` does not exist), and in the current code `simulator/lab_pipeline.py` passes the physiology-derived value straight to `generate_lab_result`:
 1. Calls `physiology.get_effective_state_for_lab(lab_name, collection_time, state_history)` to get the time-lagged state for each lab marker (CRP uses inflammation_level from 24–48h ago, not current)
 2. Calls `physiology.derive_lab_values(effective_state, patient, timestamp)` to get the "true" lab value
 3. Applies Layer 3: measurement noise (CV per item), missingness, timing offsets, explainable anomalies (hemolysis, etc.)

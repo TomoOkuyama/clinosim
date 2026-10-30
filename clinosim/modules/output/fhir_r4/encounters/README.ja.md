@@ -5,8 +5,8 @@
 encounter + 運用 context ファミリの FHIR R4 resource 全てを emit:
 `Encounter`、`CareTeam` (主治医 + 主担当看護師 — AGENTS.md AD-64 の
 2-name scope)、`Endpoint` (imaging study ごとの DICOM WADO base
-URL)、`Location` + `Organization` (facility Bundle として CIF write
-時に一括生成)、および JP `CareLevel` (要介護度) の custom social-history
+URL)、`Location` + `Organization` (facility Bundle として FHIR
+export 時に 1 回生成)、および JP `CareLevel` (要介護度) の custom social-history
 `Observation`。
 
 ## Scope
@@ -37,16 +37,19 @@ URL)、`Location` + `Organization` (facility Bundle として CIF write
 
 `_build_encounter` は縦断サービスラインが追加した encounter shape を
 処理する (詳細は
-[`../../encounter/README.ja.md`](../../encounter/README.ja.md)
+[`../../../encounter/README.ja.md`](../../../encounter/README.ja.md)
 「縦断サービスライン encounter shape」節):
 
 - **新生児側リンク** — CIF encounter が `admit_source = "born"` を
-  持つとき (新 `AdmitSource.BORN` 値、詳細
-  [`clinosim/types/encounter.py`](../../../../types/encounter.py))、
+  持つとき (`AdmitSource.BORN` 値、詳細
+  [`clinosim/codes/hl7_encounter.py`](../../../../codes/hl7_encounter.py))、
   `Encounter.hospitalization.admitSource` は
   `_build_hosp_concept("hl7-admit-source", ...)` 経由でマップされ、
   兄弟 `admit_source_encounter_id` は新生児側の
-  `Encounter.partOf` → 母親の分娩 encounter となる。同 field は
+  `Encounter.partOf` → 母親の分娩 encounter となる。partOf と合成
+  ED bridge Encounter は `_build_encounter` ではなく
+  [`../lib/inline_bb.py`](../lib/inline_bb.py) の `_bb_encounters`
+  が付与する (`_build_encounter` が partOf を設定するのは再入院時のみ)。同 field は
   歴史的 ED→入院リンク (CY7-05) にも再利用される。
 - **分娩 encounter (母親側)** — 通常の入院 Encounter で、`type` は
   産科受診理由 (`perinatal.yaml::encounter.visit_reason`) を反映。
@@ -60,7 +63,7 @@ URL)、`Location` + `Organization` (facility Bundle として CIF write
 ## Public API
 
 各 builder は親 facade (`_BUNDLE_BUILDERS` in
-[`../__init__.py`](../__init__.py)) に登録済み。cross-family
+[`../builder.py`](../builder.py)) に登録済み。cross-family
 consumer 向けの直接 import:
 
 ```python
@@ -97,8 +100,14 @@ NDJSON を id で sort する。
 - `clinosim.modules.output.fhir_r4.demographics.smoking_alcohol` —
   `_sdoh_effective_datetime` (care_level が SDOH anchor 再利用)。
 - `clinosim.codes` — LOINC + SNOMED 表示 lookup。
-- `clinosim.types.encounter` — `Encounter`, `EncounterStatus`,
-  `EncounterType`, `TriageData`。
+- `..demographics.patient.patient_ref`、`..lib.ids` (opaque id)。
+- `clinosim.codes.hl7_encounter.ActPriority`、
+  `clinosim.codes.encounter_type_to_snomed`、
+  `clinosim.modules.diagnosis.nonspecific_codes`、
+  `clinosim.modules.imaging.engine.ENDPOINT_ID_PREFIX`、
+  `clinosim.modules.staff.engine.roster_departments`。
+- CIF encounter は dict として読み、`clinosim.types` の class は
+  import しない。
 
 ## 定数と設定
 
@@ -114,20 +123,21 @@ NDJSON を id で sort する。
   Observation の LOINC observation code (JP は `text = "要介護度"`、
   US は `"Long-term care need level"`)。
 - **`DICOM_WADO_RS_CONNECTION_TYPE = "dicom-wado-rs"`** —
-  `Endpoint.connectionType.code`。encounter が facility 固有 PACS を
-  持たないときに emit する placeholder base URL は
+  `Endpoint.connectionType.code`。`hospital_config.imaging.wado_base_url`
+  が未設定のときに emit する placeholder base URL は
   `_DEFAULT_WADO_BASE_URL`
   (`https://wado.clinosim.example/dicomweb`)。
 - **Facility Bundle**: `_build_facility_bundle` が
   cohort-export 時に `hospital_config` から Location + Organization
-  Bundle を 1 つ組み立て、AD-31 master-bundle 規約に沿って
-  `_facility.json` に書く。
+  Bundle を 1 つ組み立てる。`convert_cif_to_fhir` が各 entry に同じ
+  post-process pass を適用し resource type 別 NDJSON に書く (別途の
+  `_facility.json` は無い)。
 
 ## ディレクトリ構造
 
 ```
 clinosim/modules/output/fhir_r4/encounters/
-  __init__.py                    空 (builder は親 __init__ が import)
+  __init__.py                    namespace stub (builder は ../builder.py / ../lib/inline_bb.py が import)
   encounter.py                   _build_encounter root builder
   care_team.py                   _bb_care_teams + _build_care_team + CARE_TEAM_ID_PREFIX
   care_level.py                  _bb_care_level (custom Observation、JP 要介護度)
@@ -153,4 +163,4 @@ participant[] 非空) を cross-verify する。
 `maintainers@` — 詳細は
 [`CONTRIBUTING.md`](../../../../../CONTRIBUTING.ja.md)。
 
-英語版: [`README.md`](README.ja.md)。
+英語版: [`README.md`](README.md)。

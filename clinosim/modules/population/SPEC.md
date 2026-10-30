@@ -1,5 +1,14 @@
 # population — Catchment Area Population & Life Events
 
+> **Status: design document.** Most of this file is the original design and
+> describes more than the code implements. The implemented API, lifecycle,
+> files and tests are in [`README.md`](README.md). Symbols that appear only
+> here — `CareSeekingDecision`, `ReferralContext`, `TransientVisitor`,
+> `HabitualVisitProfile`, `PregnancyState`, `LifeEventType`,
+> `disease.get_monthly_incidence`, the care-seeking decision algorithm,
+> household types, migration, transient visitors, habitual visits — do not
+> exist in the code.
+
 ## Purpose
 Generate and maintain the population of the hospital's catchment area as households and individuals. Simulate their life events (aging, disease onset, accidents) over time, and determine when and why each person seeks hospital care. This module is the origin of all hospital encounters — no patient arrives at the hospital without first existing in the population.
 
@@ -7,6 +16,10 @@ Generate and maintain the population of the hospital's catchment area as househo
 - `HealthcareSystemConfig`: Country-specific demographics, insurance distribution, screening programs
 - `HospitalProfile`: Hospital scale (determines catchment population size)
 - Simulation configuration: time range, catchment population size, random seed
+
+*As implemented:* `generate_population(size, country, rng, base_year=2024, demo=None)`
+takes the catchment size, country and RNG; demographics come from
+`clinosim/locale/<country>/demographics.yaml`, not from `HealthcareSystemConfig`.
 
 ## Outputs
 - `PopulationRegistry`: Complete Layer 1 registry of all persons and households
@@ -17,10 +30,19 @@ Generate and maintain the population of the hospital's catchment area as househo
 - `ReferralContext`: Information from referring clinic (if applicable)
 - `TransientVisitor`: Temporary person entering the catchment area
 
+*As implemented:* `PopulationRegistry`, `Household`, `PersonRecord`,
+`HospitalizationSummary` and `LifeEvent` exist; `CareSeekingDecision`,
+`ReferralContext` and `TransientVisitor` are design-only.
+
 ## Dependencies
 - `healthcare_system` (demographic distributions, screening programs, insurance)
 - `facility` (hospital scale → catchment area size estimation)
 - `disease` (incidence rates, seasonal modifiers for life event generation)
+
+*As implemented:* the module imports neither `healthcare_system` nor
+`facility`; disease incidence and seasonal modifiers are read from the
+locale `demographics.yaml`, and `disease` is used for
+`load_disease_protocol` / `sample_severity`. See README "Dependencies".
 
 ## Confirmed Specifications
 
@@ -79,45 +101,75 @@ Households are the unit of population generation, not individuals.
 
 ### Person record (Layer 1 — lightweight)
 
+The implemented dataclass is `clinosim/types/population.py::PersonRecord`
+(re-exported by `clinosim.modules.population`). Its fields, grouped:
+
 ```python
 @dataclass
 class PersonRecord:
+    # Identity / demographics
     person_id: str
     household_id: str
-
-    # Demographics
     age: int
-    sex: Literal["M", "F"]
+    sex: str                               # "M" | "F"
     date_of_birth: date
-    blood_type: Literal["A", "B", "O", "AB"]
-    rh_factor: Literal["+", "-"]
+    family_name: str = ""
+    given_name: str = ""
+    phonetic: str | None = None
+    blood_type: str = "A"                  # "A" | "B" | "O" | "AB"
+    rh_factor: str = "+"                   # "+" | "-"
+    race: str = ""                         # US only; "" when unassigned
+    ethnicity: str = ""
+    # Address and contact (household level)
+    postal_code: str = ""
+    state: str = ""
+    city: str = ""
+    address_line: str = ""
+    phone_home: str = ""
+    phone_mobile: str = ""
+    # Health summary
+    chronic_conditions: list[str]          # ICD codes only
+    current_medications: list[HomeMedication]
+    occupation: str = "other"
+    bmi: float = 22.0
+    smoking_status: str = "never"          # "never" | "former" | "current"
+    alcohol_use: str = "none"              # "none" | "social" | "heavy"
+    allergies: list[Allergy] | None = None # None = allergy enricher not run yet
+    atopic_predisposition: float = 1.0
+    carrier_status: dict[str, str]         # single-gene ICD → "normal" | "carrier" | "affected"
+    longitudinal_history: list[YearSnapshot]
+    state_periods: list[TemporalStatePeriod]  # e.g. state_type="pregnancy"
+    # Vital status / enrollment
+    date_of_death: date | None = None      # written only by record_death()
+    death_place: str | None = None         # "hospital" | "community"
+    enrolled_from: date | None = None      # newborn: day after birth-stay discharge
+    # Healthcare engagement / hospital history
+    care_seeking_threshold: float = 0.3
+    has_visited_hospital: bool = False
+    visit_count: int = 0
+    last_discharge_date: date | None = None
+    last_encounter_id: str | None = None
+    last_disease_id: str | None = None
+    hospitalization_history: list[HospitalizationSummary]
+    identity: IdentityTimeline | None = None
 
-    # Social
-    employment_status: str
-    insurance_type: str
-    health_literacy: float
-
-    # Health summary (not full clinical detail)
-    chronic_conditions: list[str]          # ICD codes only (no severity/detail until Layer 2)
-    is_alive: bool
-    cause_of_death: str | None
-    
-    # Pregnancy state (females age 15–49)
-    pregnancy_state: PregnancyState | None  # None if not pregnant
-
-    # Healthcare engagement
-    care_seeking_threshold: float          # 0.0–1.0
-    checkup_compliance: float              # 0.0–1.0
-    checkup_type: str | None
-    primary_care_clinic_id: str | None
-    visit_time_constraint: str             # "any" | "weekday_only" | "weekend_holiday_only" | "evening_only" | "saturday_am_only"
-
-    # Hospital history
-    has_visited_hospital: bool
-    last_visit_date: date | None
-    visit_count: int
-    active_patient_record_id: str | None   # Link to Layer 2 if currently active
+    # Derived / methods
+    is_alive -> bool                       # read-only property: date_of_death is None
+    def record_death(self, when: date, place: str) -> None   # earliest death wins
+    def is_alive_at(self, when: date) -> bool
+    def in_population_at(self, when: date) -> bool           # alive and enrolled
+    def in_population_during(self, start: date, end: date) -> bool
+    def get_active_state(...), has_active_state(...), state_history(...)
 ```
+
+Design-only fields from the original spec that `PersonRecord` does **not**
+have: `employment_status`, `insurance_type`, `health_literacy` (the first and
+last live on the Layer-2 `PatientProfile`; insurance lives in `identity`),
+a settable `is_alive: bool` (now derived from `date_of_death`),
+`cause_of_death`, `pregnancy_state: PregnancyState` (pregnancy is a
+`TemporalStatePeriod` in `state_periods`), `checkup_compliance`,
+`checkup_type`, `primary_care_clinic_id`, `visit_time_constraint`,
+`last_visit_date` and `active_patient_record_id`.
 
 ### Life event engine
 
@@ -145,6 +197,15 @@ For every person in the registry:
 | Migration (move in) | ~2–3%/year | New person added to registry |
 | Birth | Fertility rates by mother's age | Added to existing household |
 
+*As implemented:* non-hospital death is one forward draw per person per
+year in `aging.advance_population` → `mortality.draw_community_death`
+(life-table qx × combined SMR / mean SMR of the age band and sex ×
+`community_death_share`, pro-rated for partial-year exposure); new
+chronic onset and progression run in the longitudinal engine
+(`advance_one_year`); births come from the pregnancy lifecycle
+(`_pregnancy.py`, annual conception rate) and `newborn.register_newborn`.
+Employment change and migration are not modelled.
+
 #### Stochastic events (monthly or continuous)
 
 | Event | Incidence model | Seasonal modifier |
@@ -158,6 +219,8 @@ For every person in the registry:
 | Allergic events | Sensitization status | Spring pollen season |
 
 **Note**: Incidence rates and seasonal modifiers for each disease are sourced from the disease module's YAML protocol files via `disease.get_monthly_incidence(disease_id, person, month)`. The population module does not hardcode disease-specific rates — it queries the disease module for all registered diseases each time step.
+
+*As implemented:* there is no `disease.get_monthly_incidence`; `generate_monthly_events` reads disease incidence, seasonal modifiers and risk multipliers from the locale `demographics.yaml` (`_demographics.py::_disease_monthly_rate_from_locale`).
 
 #### Household-level events
 
@@ -670,6 +733,8 @@ For each time step (month):
         → evaluate care_seeking_decision()
 
     # Death (non-hospital)
+    # (design; implemented as one annual forward draw that calls
+    #  person.record_death(when, "community") — see "Annual population update")
     monthly_mortality = annual_mortality(age, sex, comorbidities) / 12
     if random() < monthly_mortality:
       person.is_alive = false

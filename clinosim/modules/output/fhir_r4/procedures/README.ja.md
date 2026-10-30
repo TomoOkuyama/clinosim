@@ -6,7 +6,7 @@
 `Procedure` (手術 + bedside + rehab)、`Immunization` (接種記録)、
 `Device` + `DeviceUseStatement` (ICU デバイス — CVC / catheter /
 ventilator)、看護 survey `Observation` (NEWS2 / GCS / Braden /
-Morse flowsheet)、酸素療法 `Procedure` (Issue #796 — vitals の
+Morse / Barthel score + 摂取 / 尿 / 排液 flowsheet 行)、酸素療法 `Procedure` (Issue #796 — vitals の
 `on_supplemental_oxygen` flag から `performedPeriod` を導出)。
 
 FHIR taxonomy が Immunization を Procedure ファミリに配置している
@@ -16,11 +16,17 @@ FHIR taxonomy が Immunization を Procedure ファミリに配置している
 ## Scope
 
 - **In scope**: `_build_procedure` (Procedure root builder — 手術
-  / bedside / rehab dispatch、US は CPT、JP は JJ1017 K-code);
+  / bedside / rehab dispatch、US は CPT、JP は厚労省 診療報酬 K-code
+  (`k-codes`)。registry wrapper `_bb_procedures` は
+  [`../lib/inline_bb.py`](../lib/inline_bb.py));
+  `resolve_procedure_snomed` (`procedure_name_snomed.py` +
+  `procedure_name_snomed.yaml`、order 由来 Procedure の表示名 →
+  SNOMED、Issue #1282);
   `_bb_immunizations` (`CIFPatientRecord.immunizations` 由来の
   成人ワクチン接種歴);`_bb_device` + `_bb_device_use`
   (`extensions["device"]` 由来);`_bb_nursing_observations`
-  (NEWS2 / GCS / Braden / Morse の survey Observation cluster —
+  (NEWS2 / GCS / Braden / Morse / Barthel + 摂取 / 排出 の survey
+  Observation cluster —
   これは FHIR emit 側。計算関数は
   [`../../../observation/nursing.py`](../../../observation/nursing.py)
   にある);`_bb_oxygen_therapy` (Issue #796 — 継続酸素療法用に
@@ -59,7 +65,7 @@ FHIR taxonomy が Immunization を Procedure ファミリに配置している
 ## Public API
 
 各 builder は親 facade (`_BUNDLE_BUILDERS` in
-[`../__init__.py`](../__init__.py)) に登録済み。cross-family
+[`../builder.py`](../builder.py)) に登録済み。cross-family
 consumer 向け直接 import:
 
 ```python
@@ -83,30 +89,36 @@ from clinosim.modules.output.fhir_r4.procedures.oxygen_therapy import (
 
 - `clinosim.modules._shared` — `is_jp`, `resolve_lang`。
 - `clinosim.modules.output.fhir_r4.lib.common` — `BundleContext`,
-  `_coding_with_display`, `loinc_coding`, `survey_category`,
-  `to_fhir_datetime`, `attach_ecs_institutional_extensions`。
+  `survey_category`, `to_fhir_datetime`、fragment helper。
+  `lib.ids` — opaque id。
 - `clinosim.modules.output.fhir_r4.conditions.primary_ref` —
-  `Procedure.reasonReference` 用 `primary_condition_ref`。
-- `clinosim.codes` — CPT / JJ1017 K-code / CVX / SNOMED 表示 lookup。
-- `clinosim.types.encounter` — `ProcedureRecord`, `RehabSession`,
-  `Device`, `ImmunizationRecord`。
+  酸素療法 `Procedure.reasonReference` 用 `primary_condition_ref`。
+- `..demographics.patient.patient_ref`、
+  `..encounters.encounter.encounter_ref`。
+- `clinosim.codes` — CPT / K-code / CVX / SNOMED 表示 lookup、
+  `clinosim.codes.oxygen_device_to_snomed`。
+- `clinosim.modules.diagnosis.nonspecific_codes` (procedures)。
+- CIF record は `get_attr_or_key` で dict として読み、
+  `clinosim.types` の class は import しない。
 - `datetime`, `timedelta` — 標準ライブラリ (oxygen_therapy の
   `_SINGLE_TIMESTAMP_DWELL` に使用)。
 
 ## 定数と設定
 
 - **Procedure code dispatch** — US は CPT
-  (`http://www.ama-assn.org/go/cpt`);JP は JP-CLINS Procedure
-  profile 経由で JJ1017 K-code。
+  (`http://www.ama-assn.org/go/cpt`);JP は厚労省 診療報酬 K-code
+  (`k-codes`、`urn:oid:1.2.392.200119.4.401`)。record 単位の
+  `procedure_system_key` override (例 `snomed-ct`) が優先。
 - **酸素療法** (`oxygen_therapy.py`、Issue #796):
   - `_SNOMED_OXYGEN_THERAPY = "57485005"` — 酸素投与の SNOMED CT
     code。
   - `_SINGLE_TIMESTAMP_DWELL = timedelta(minutes=15)` — 単一
     timestamp の `on_supplemental_oxygen` vitals sample から
     `Procedure.performedPeriod` を組む際の dwell 窓。
-  - 専用 Order ではなく vitals の per-therapy flag を read する
-    (memory 記載の [`session-derived procedure period`](../../../../..)
-    pattern: Order.end_datetime 無しは vitals から導出)。
+  - encounter 中心: `on_supplemental_oxygen=True` の vitals を持つ
+    encounter ごとに O2 Order の有無に関わらず Procedure を 1 つ
+    emit。session 期間は vitals flag から導出 (Order がある場合は
+    SpO2 目標の `note[]` のみ寄与)。
 - **Immunization emit** — CVX system + `ImmunizationRecord.lot_number`
   由来の lot number。SHA-256 base の lot 生成は
   [`../../../immunization/engine.py`](../../../immunization/engine.py)
@@ -116,7 +128,8 @@ from clinosim.modules.output.fhir_r4.procedures.oxygen_therapy import (
   [`../../../device/enricher.py`](../../../device/enricher.py) が
   populate)。`DeviceUseStatement.timingPeriod` は per-device
   line-days count から導出。
-- **看護 survey Observation** — NEWS2 / GCS / Braden / Morse を
+- **看護 survey Observation** — NEWS2 / GCS / Braden / Morse /
+  Barthel と摂取 / 尿 / 排液を
   `Observation.category = "survey"` で emit。AGENTS.md AD-64 の
   nursing_flowsheets vs nursing_assignment 曖昧回避に従い、
   これは POST_RECORDS の `enrich_nursing` enricher (order=20) の
@@ -126,11 +139,12 @@ from clinosim.modules.output.fhir_r4.procedures.oxygen_therapy import (
 
 ```
 clinosim/modules/output/fhir_r4/procedures/
-  __init__.py                        空 (builder は親 __init__ が import)
+  __init__.py                        namespace stub (builder は ../builder.py / ../lib/inline_bb.py が import)
   procedures.py                      _build_procedure (手術 + bedside + rehab)
+  procedure_name_snomed.py (+ .yaml) resolve_procedure_snomed (表示名 → SNOMED、Issue #1282)
   immunization.py                    _bb_immunizations (CVX + lot number)
   device.py                          _bb_device + _bb_device_use (extensions["device"] 由来)
-  nursing.py                         _bb_nursing_observations (NEWS2 / GCS / Braden / Morse survey Observation)
+  nursing.py                         _bb_nursing_observations (NEWS2 / GCS / Braden / Morse / Barthel / intake-output survey Observation)
   oxygen_therapy.py                  _bb_oxygen_therapy + _SINGLE_TIMESTAMP_DWELL + _SNOMED_OXYGEN_THERAPY (Issue #796)
 ```
 
@@ -154,4 +168,4 @@ Cross-verification: HAI cascade が `extensions["device"]` line-days を
 `maintainers@` — 詳細は
 [`CONTRIBUTING.md`](../../../../../CONTRIBUTING.ja.md)。
 
-英語版: [`README.md`](README.ja.md)。
+英語版: [`README.md`](README.md)。

@@ -25,13 +25,14 @@ and applies day-scale deltas requested by clinical_course.
   coupling (CKD, HF, cirrhosis, atrial fib, asthma, COPD, IHD, …),
   in-place state update via `apply_state_delta` +
   `apply_coupling_rules`, `apply_disease_onset` shift on a new
-  admission, HbA1c derivation from glycemic control
-  (`hba1c_from_glycemic_control`), the two flag-derivation helpers
+  admission, HbA1c resolution (`hba1c_latent_at` reads the
+  longitudinal latent; `hba1c_from_glycemic_control` is the
+  protocol-override / fallback path), the two flag-derivation helpers
   `scenario_flags_from_protocol(protocol)` and
   `medication_flags_from_context(patient, medication_orders,
   admission_date, current_day)` — the canonical single edit points
   for scenario / medication-driven lab lifts (AD-57 sibling J5
-  pattern), `derive_lab_values(**flags, …)` covering ~30 analytes,
+  pattern), `derive_lab_values(**flags, …)` covering 40 analytes,
   `derive_vital_signs` (deterministic baseline + physiology delta),
   `derive_observed_vitals` (adds circadian + measurement noise),
   `canonical_state_vars()` for cross-module reflection.
@@ -52,21 +53,25 @@ from clinosim.modules.physiology.engine import (
     # State
     initialize_state,                 # (profile, conditions, patient_id="") -> PhysiologicalState
     apply_state_delta,                # (state, var, delta) -> None (in place)
-    apply_disease_onset,              # (state, disease, severity, rng) -> None
+    apply_disease_onset,              # (state, severity, initial_impact, acid_base_type="metabolic") -> PhysiologicalState
     apply_coupling_rules,             # (state) -> None (in place)
-    update,                           # per-day advance (state, ...) -> None
+    update,                           # (state, directive: StateChangeDirective, time_step: timedelta) -> PhysiologicalState
     canonical_state_vars,             # () -> frozenset[str]
-    hba1c_from_glycemic_control,      # (glycemic_control) -> HbA1c
+    hba1c_from_glycemic_control,      # (glycemic_control) -> float (HbA1c %)
+    hba1c_latent_at,                  # (patient, when) -> float | None (longitudinal HbA1c latent)
     clamp,                            # (value, lo, hi) -> float
+    room_air_saturation,              # (state, baseline_spo2) -> float
+    po2_from_saturation,              # (saturation_pct) -> float
 
     # Flag helpers (AD-57 canonical single edit points)
     scenario_flags_from_protocol,     # (protocol) -> {"causes_X": bool, ...}
     medication_flags_from_context,    # (patient, medication_orders, admission_date, current_day) -> {"on_warfarin": bool, ...}
 
     # Derivations
-    derive_lab_values,                # (state, rng, **flags) -> dict[analyte, value]
-    derive_vital_signs,               # (state, patient, rng) -> BaselineVitals
-    derive_observed_vitals,           # (state, patient, ts, rng) -> ObservedVitals
+    derive_lab_values,                # (state, sex, age, has_diabetes=False, rng=None, hour=6, **flags,
+                                      #  hba1c_latent=None) -> dict[analyte, float]
+    derive_vital_signs,               # (state, baseline: BaselineVitals, timestamp) -> dict[str, float]
+    derive_observed_vitals,           # (state, baseline: BaselineVitals, timestamp, rng) -> dict[str, float]
 )
 ```
 
@@ -75,15 +80,16 @@ from clinosim.modules.physiology.engine import (
 - No sub-seed offset in `ENRICHER_SEED_OFFSETS`. Physiology functions
   are pure with respect to the `rng` the caller passes in; the
   encounter simulators (`daily_loop.py`, `inpatient.py`,
-  `outpatient.py`, `emergency.py`, `vitals_pipeline.py`,
-  `medication_pipeline.py`) each derive per-encounter / per-order
-  sub-RNGs before calling.
+  `outpatient.py`, `emergency.py`, `unknown_condition.py`,
+  `vitals_pipeline.py`) and the `monitoring` enricher each derive
+  per-encounter / per-order sub-RNGs before calling.
 - **`PhysiologicalState` is mutated in place** by
-  `apply_state_delta` and `apply_coupling_rules` — it is NOT
-  immutable. Determinism comes from the deterministic caller +
+  `apply_state_delta`, `apply_coupling_rules`, `apply_disease_onset`
+  and `update` (the latter two also return the same instance) — it is
+  NOT immutable. Determinism comes from the deterministic caller +
   deterministic `rng`, not from returning fresh instances.
 - **Per-order lab RNG isolation (AD-59)**: `derive_lab_values` is
-  called with a per-order sub-RNG (via `simulator/seeding.py`
+  called with a per-order sub-RNG (via `clinosim/seeding.py`
   helpers `panel_specimen_seed` / `individual_lab_seed`), NOT the
   patient master RNG, so a YAML edit adding a new lab does not
   shift unrelated patients' streams.
@@ -95,7 +101,7 @@ from clinosim.modules.physiology.engine import (
   (`CKD_RENAL_COUPLING`, `HF_CARDIAC_COUPLING`,
   `CIRRHOSIS_HEPATIC_COUPLING`, `IHD_CARDIAC_COUPLING`, …).
 - `clinosim.modules.physiology._lab_derivation_thresholds` — every
-  scalar constant that shapes `derive_lab_values` for the ~30
+  scalar constant that shapes `derive_lab_values` for the 40
   analytes (baselines, coupling scales, physiologic min / max
   ranges, noise SDs).
 - `clinosim.modules.physiology._state_coupling_thresholds` — the
@@ -108,9 +114,15 @@ from clinosim.modules.physiology.engine import (
 - `clinosim.modules.physiology.renal_thresholds` — the
   `renal_function` thresholds that gate medication holds / dose
   adjustments (Issue #561 canonical anchor).
-- `clinosim.types.clinical` — `PhysiologicalState` dataclass.
+- `reference_data/chronic_glycemic_thresholds.yaml` (HbA1c / glucose /
+  acid-base scalars) and `reference_data/state_variable_ranges.yaml`
+  (per-state-variable min / max), each loaded once via `@cache`.
+- `clinosim.modules.longitudinal.engine` — `state_at` (lazy, inside
+  `hba1c_latent_at`).
+- `clinosim.types.clinical` — `PhysiologicalState`,
+  `StateChangeDirective`.
 - `clinosim.types.patient` — `PatientPhysiologicalProfile`,
-  `ChronicCondition`.
+  `ChronicCondition`, `BaselineVitals`.
 - `numpy` — `np.random.Generator`, `math` for exponential /
   logarithmic couplings.
 
@@ -124,13 +136,13 @@ from clinosim.modules.physiology.engine import (
   `*_SEVERE_THRESHOLD` splits that fire only when
   `severity_score` crosses the threshold).
 - **Lab-derivation formulae** ([`_lab_derivation_thresholds.py`](_lab_derivation_thresholds.py),
-  ~966 LOC): baseline / coupling-scale / physiologic-min / physiologic-max
+  ~1085 LOC): baseline / coupling-scale / physiologic-min / physiologic-max
   / noise-SD constants for every analyte in `derive_lab_values`
   (albumin, ALT, AST, aPTT, BNP, BUN, creatinine, Hb, HbA1c, INR,
   K, lactate, LDL, Na, PT, PLT, WBC, …).
 - **State-coupling rule constants** ([`_state_coupling_thresholds.py`](_state_coupling_thresholds.py))
   — the constants `apply_coupling_rules` consumes (e.g. state-to-state
-  clamps and shifts that keep the 14-variable state clinically
+  clamps and shifts that keep the 18-variable canonical state clinically
   coherent when one axis moves).
 - **Vital-signs formulae** ([`_vital_signs_thresholds.py`](_vital_signs_thresholds.py))
   — coupling + noise constants for `derive_vital_signs` /
@@ -152,29 +164,37 @@ from clinosim.modules.physiology.engine import (
   Issue #561): the canonical `renal_function` cutoffs that gate
   medication holds and dose adjustments across
   `medication_pipeline.py` + `discharge_rx.py`.
-- Import-time validators `_validate_complications_state_impact` +
-  `_validate_initial_state_impact` (in `engine.py`) catch YAML
-  entries that reference non-canonical state variables.
+- **YAML data** ([`reference_data/`](reference_data/)):
+  `chronic_glycemic_thresholds.yaml` (HbA1c / glucose / acid-base
+  scalars) and `state_variable_ranges.yaml` (min / max range per
+  delta-driven state variable; unlisted variables default to
+  `(0.0, 1.0)`).
+- Validators `_validate_complications_state_impact` +
+  `_validate_initial_state_impact` (in `engine.py`, called from
+  `disease/protocol.py` at protocol load) catch YAML entries that
+  reference non-canonical state variables.
 
 ## Directory contents
 
 ```
 clinosim/modules/physiology/
   __init__.py                        empty
-  engine.py                          initialize_state / apply_* / derive_* / flag helpers (1116 LOC)
+  engine.py                          initialize_state / apply_* / derive_* / flag helpers (~1340 LOC)
   _coupling_coefficients.py          per-chronic-condition coupling (Issue #637 PR-B)
   _lab_derivation_thresholds.py      analyte-formula constants (Issue #637)
   _state_coupling_thresholds.py      apply_coupling_rules constants (Issue #637)
   _vital_signs_thresholds.py         derive_vital_signs constants (Issue #637)
   dehydration_thresholds.py          canonical volume_status cutoffs (Issue #561)
   renal_thresholds.py                canonical renal_function cutoffs (Issue #561)
+  reference_data/
+    chronic_glycemic_thresholds.yaml HbA1c / glucose / acid-base scalars
+    state_variable_ranges.yaml       per-state-variable min / max ranges
   SPEC.md                            extended design reference (not runtime)
 ```
 
-The module has **no `enricher.py`, no `audit.py`, no
-`reference_data/`** — physiology is called directly by every
-encounter simulator, has no YAML data, and no `ModuleAuditSpec` is
-registered.
+The module has **no `enricher.py` and no `audit.py`** — physiology
+is called directly by every encounter simulator and no
+`ModuleAuditSpec` is registered.
 
 ## Enricher wiring
 
@@ -186,14 +206,17 @@ offset in `ENRICHER_SEED_OFFSETS`.
 
 | Consumer | Where | Role |
 |---|---|---|
-| Inpatient encounter | [`clinosim/simulator/inpatient.py`](../../simulator/inpatient.py) | Calls `initialize_state`, `derive_lab_values`, `derive_vital_signs` at admission + daily rounds. |
-| Emergency + outpatient | [`clinosim/simulator/{emergency,outpatient,unknown_condition}.py`](../../simulator/) | Same at ED / outpatient tier (no daily loop). |
-| Daily loop | [`clinosim/simulator/daily_loop.py`](../../simulator/daily_loop.py) | Advances state (`update`) per admission day + applies coupling rules. |
-| Vitals pipeline | [`clinosim/simulator/vitals_pipeline.py`](../../simulator/vitals_pipeline.py) | Emits vitals via `derive_observed_vitals` with per-order sub-RNG. |
-| Medication pipeline | [`clinosim/simulator/medication_pipeline.py`](../../simulator/medication_pipeline.py) | Consults `renal_thresholds` for dose holds. |
+| Inpatient encounter | [`clinosim/simulator/inpatient.py`](../../simulator/inpatient.py) | Calls `initialize_state`, `apply_disease_onset`, `apply_state_delta` at admission. |
+| Emergency + outpatient | [`clinosim/simulator/{emergency,outpatient,unknown_condition}.py`](../../simulator/) | `initialize_state`, flag helpers, `derive_lab_values` (+ `hba1c_latent_at`); ED / outpatient also `derive_observed_vitals`, ED also `apply_disease_onset`. |
+| Daily loop | [`clinosim/simulator/daily_loop.py`](../../simulator/daily_loop.py) | Advances state per admission day via `update` (which runs `apply_coupling_rules`) + `apply_state_delta`; derives daily labs with the flag helpers + `derive_lab_values`. |
+| Vitals pipeline | [`clinosim/simulator/vitals_pipeline.py`](../../simulator/vitals_pipeline.py) | Emits vitals via `derive_observed_vitals`; reads AVPU / pain constants from `_vital_signs_thresholds.py`. |
+| Medication pipeline | [`clinosim/simulator/medication_pipeline.py`](../../simulator/medication_pipeline.py) | Consults `renal_thresholds` (`METFORMIN_*`) for metformin holds. |
+| Monitoring enricher | [`clinosim/modules/monitoring/enricher.py`](../monitoring/enricher.py) | Flag helpers + `derive_lab_values` for chronic-med monitoring labs. |
+| Health checkup | [`clinosim/modules/health_checkup/engine.py`](../health_checkup/engine.py) | `hba1c_latent_at`, `hba1c_from_glycemic_control`, `HBA1C_NONDM_BASE`. |
+| HAI lab lift | [`clinosim/modules/hai/lab_lift.py`](../hai/lab_lift.py) | Re-uses the `WBC_*` constants from `_lab_derivation_thresholds.py`. |
+| Clinical course | [`clinosim/modules/clinical_course/engine.py`](../clinical_course/engine.py) | `canonical_state_vars`. |
 | Discharge rx | [`clinosim/simulator/discharge_rx.py`](../../simulator/discharge_rx.py) | Same renal-hold gate for discharge medication. |
-| Disease protocol integration | [`clinosim/modules/disease/protocol.py`](../disease/protocol.py) | Cross-refers state impact tokens (validated at load). |
-| Patient activation | [`clinosim/modules/patient/activator.py`](../patient/activator.py) | Uses `hba1c_from_glycemic_control`. |
+| Disease protocol integration | [`clinosim/modules/disease/protocol.py`](../disease/protocol.py) | Calls the `_validate_*_state_impact` validators at load. |
 
 ## Testing
 
@@ -208,7 +231,7 @@ Individual files:
 - [`tests/unit/test_i10_stage_physiology.py`](../../../tests/unit/test_i10_stage_physiology.py)
   — I10 (hypertension) stage → physiology coupling regression.
 
-Coverage gap: the ~30 analyte derivations in `derive_lab_values` are
+Coverage gap: the 40 analyte derivations in `derive_lab_values` are
 covered end-to-end via integration tests rather than per-analyte
 unit tests today. When adding a new analyte, extend
 `test_physiology.py` with a focused check that the analyte's

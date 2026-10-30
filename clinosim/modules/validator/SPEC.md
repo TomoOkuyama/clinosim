@@ -1,5 +1,16 @@
 # validator — Consistency Validation & Realism Benchmarking
 
+> **Implementation status.** This SPEC is a design reference. The
+> `ObservationTimeline` / `PhysiologicalTimeSeries` inputs,
+> `ValidationReport`, auto-correction, the LLM Pass 2 review, Tier 2
+> clinical-pattern / Tier 3 blind-test validation, and rate-of-change /
+> mutual-exclusion / causal-ordering / staff-plausibility checks are
+> **not implemented**.
+> What exists is `benchmarks.run_benchmarks(dataset, country)` (six
+> cohort statistics) and `consistency.run_consistency_checks(dataset)`
+> (eight per-record checks on a `CIFDataset`), report-only. See
+> [`README.md`](README.md).
+
 ## Purpose
 Two responsibilities:
 1. **Per-patient consistency validation**: Verify that each generated patient record is internally consistent (rate-of-change limits, mutual exclusion, causal ordering, staff plausibility).

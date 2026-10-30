@@ -4,15 +4,20 @@
 
 Tier 1 #3 α-min-2 always-on AD-55 Module。全 ED (emergency) encounter に対し
 triage level (JP は JTAS / US は ESI) + arrival mode (walk-in /
-ambulance / other) + acuity score をサンプリングし、
-`EncounterRecord.triage_data` に書き込む。非 emergency encounter は
+ambulance / private_vehicle / police / helicopter) をサンプリングし、
+`Encounter.triage_data` に書き込む (`acuity_score` は `None` のまま)。
+サンプルした level は ED condition の `triage_level_min` /
+`triage_level_max` で clamp し、来院時 vitals による上限
+(`triage_level_cap`、Issue #2082) を適用する。非 emergency encounter は
 no-op。
 
 ## Scope
 
 - **In scope**: `triage_enricher` (POST_ENCOUNTER order=93、ED
   限定)、`pick_triage_level(severity, level_system, rng)` — YAML
-  weight 表 (severity × system)、`pick_arrival_mode(severity, rng)`、
+  weight 表 (severity 別、JTAS と ESI で共通)、
+  `pick_arrival_mode(severity, rng)`、`condition_triage_bounds(record)`、
+  `triage_level_cap(vitals)`、
   `load_triage_protocols()` YAML loader with 6-layer
   `_validate_triage_protocols` (silent-no-op 防御)。
 - **Out of scope**: encounter routing / class emission
@@ -33,6 +38,8 @@ from clinosim.modules.triage.engine import (
     triage_enricher,             # POST_ENCOUNTER enricher entry
     pick_triage_level,           # (severity, level_system, rng) -> str
     pick_arrival_mode,           # (severity, rng) -> str
+    condition_triage_bounds,     # (record) -> (最緊急, 最非緊急) level
+    triage_level_cap,            # (vitals) -> 許容される最非緊急 level
     load_triage_protocols,       # () -> dict (@lru_cache、6-layer validated)
 )
 ```
@@ -48,21 +55,30 @@ from clinosim.modules.triage.engine import (
 
 ## 依存
 
-- `clinosim.modules._shared` — `get_attr_or_key`, `is_jp`。
+- `clinosim.modules._shared` — `get_attr_or_key`, `is_jp`,
+  `normalize_probabilities`。
 - `clinosim.seeding` — `ENRICHER_SEED_OFFSETS`, `derive_sub_seed`。
 - `clinosim.types.triage` — `TriageData`。
-- `clinosim.types.encounter` — `Encounter` (encounter_type gate)。
+- `clinosim.modules.encounter.protocol` — `load_all_encounter_conditions`
+  (condition 別 `triage_level_min` / `triage_level_max`)。
 - `yaml`, `numpy`。
 
 ## 定数と設定
 
 - [`reference_data/triage_protocols.yaml`](reference_data/triage_protocols.yaml)
-  — (level_system × severity) 別 tier weight + arrival-mode 確率。
-  import 時 `_validate_triage_protocols` が標準 6-layer 防御
-  (空 top / 必須 key 欠落 / severity 別 weight / JTAS・ESI canonical
-  level の双方向 coverage / 型 check) を実行。
-- Level system: `jtas` (JP)、`esi` (US)。emission 時に country で
-  dispatch。
+  — `triage_systems` (JTAS / ESI の level ラベル)、`arrival_modes`、
+  country 非依存の `severity_to_triage_distribution`、
+  `arrival_mode_base_distribution`、`arrival_mode_severity_multipliers`。
+  `_validate_triage_protocols` (初回 `load_triage_protocols()` 呼出時に
+  実行) の検査: top level 非空 / `triage_systems` が JTAS+ESI ちょうど /
+  各 system の level が 1-5 / `arrival_modes` と
+  `SUPPORTED_ARRIVAL_MODES` の一致 / severity key 一致かつ各分布の合計
+  ~1.0 / base arrival-mode key 一致。
+- Level system: `JTAS` (JP)、`ESI` (US)。`ctx.config.country`
+  (fallback `ctx.country`) で選択。
+- vitals 上限の閾値 (`engine.py` 定数、ESI v4 danger zone):
+  HR > 100、RR > 20、SpO2 < 92、疼痛 ≥ 7 → level ≤ 3; AVPU P、
+  SpO2 < 90、SBP < 90 → level ≤ 2; AVPU U → level 1。
 
 ## ディレクトリ構造
 
@@ -81,7 +97,7 @@ clinosim/modules/triage/
 ## Enricher 配線
 
 [`clinosim/simulator/enrichers.py`](../../simulator/enrichers.py)
-(`L303-316` 付近) で登録:
+(`L393-408` 付近) で登録:
 
 - `name="triage"`, `stage=POST_ENCOUNTER`, `order=93`,
   `enabled=lambda c: True`。
@@ -94,10 +110,10 @@ clinosim/modules/triage/
 
 | Consumer | 場所 | 役割 |
 | --- | --- | --- |
-| Enricher registry | [`clinosim/simulator/enrichers.py:311`](../../simulator/enrichers.py) | POST_ENCOUNTER order=93 登録。 |
+| Enricher registry | [`clinosim/simulator/enrichers.py:400`](../../simulator/enrichers.py) | POST_ENCOUNTER order=93 登録。 |
 | Audit registry | [`clinosim/modules/triage/audit.py`](audit.py) | AD-60 audit plug-in — canonical-constants cross-check + firing proof。 |
-| Document module | [`clinosim/modules/document/audit.py`](../document/audit.py) | triage canonical tier 集合を cross-reference。 |
-| FHIR encounter builder | [`clinosim/modules/output/fhir_r4/encounters/`](../output/fhir_r4/encounters/) | `EncounterRecord.triage_data` を read して `Encounter.priority` に反映。 |
+| Document module audit | [`clinosim/modules/document/audit.py`](../document/audit.py) | triage level proof を `_build_triage_severity_proof` に委譲。 |
+| ED narrative renderer | [`clinosim/modules/document/narrative/renderers/`](../document/narrative/renderers/) | `ed_triage_note.py`、`_ed_helpers.py`、`section_builders/ed_note.py` が `encounter.triage_data` を read。 |
 
 ## テスト
 
@@ -118,4 +134,4 @@ clinosim audit run -d <cohort_dir> --module triage
 `maintainers@` — 詳細は
 [`CONTRIBUTING.md`](../../../CONTRIBUTING.ja.md)。
 
-英語版: [`README.md`](README.ja.md)。
+英語版: [`README.md`](README.md)。

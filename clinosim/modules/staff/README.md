@@ -21,8 +21,15 @@ staff identities the simulator hands to encounter builders + FHIR
   divisor + minimum tables), per-ward nurse count, ED / OPD nurse
   pool, lab tech / radiologist / pharmacist fixed counts, extra
   allied-health roles (C5-25 Chain 3 for β-JP-1 CareTeam expansion),
-  country-appropriate name (JP kanji + kana pair) and phone / email
-  generation, event-type → staff-role dispatch in `assign_staff`.
+  anesthesiology team (Issue #2068: added when any
+  `SURGICAL_DEPARTMENTS` entry is configured, `max(MIN_ANESTHESIOLOGISTS,
+  resource_capacity.operating_rooms)` physicians, generated last so
+  earlier roster draws are unchanged), no physicians for the
+  allied-health-only `nutrition` / `medical_social_work` departments
+  (Issue #915), country-appropriate name (JP kanji + kana pair) and
+  phone / email generation, event-type → staff-role dispatch in
+  `assign_staff`, surgeon + anesthesiologist pick in
+  `select_surgical_team`.
 - **In scope (fallback IDs)**: `FALLBACK_PHYSICIAN_ID = "DR-001"`,
   `FALLBACK_NURSE_ID = "NS-001"`, `FALLBACK_TECH_ID = "TECH-001"`
   (Issue #562) — grep-alignable sentinels used ONLY when the roster
@@ -52,13 +59,16 @@ from clinosim.modules.staff.engine import (
     FALLBACK_PHYSICIAN_ID,             # "DR-001"
     FALLBACK_NURSE_ID,                 # "NS-001"
     FALLBACK_TECH_ID,                  # "TECH-001"
+    select_surgical_team,              # (roster, department, rng) -> (surgeon_id, anesthesiologist_id)
+    roster_departments,                # (hospital_config) -> list[str] (configured + anesthesiology)
 )
 ```
 
 `assign_staff` uses `match event_type`:
 
 - `"admission" | "rounds" | "discharge"` → attending physician
-  (specialty-matched with graceful fallback) + primary nurse.
+  (department → specialty match → any non-anesthesiology physician)
+  + primary nurse (department, else any nurse).
 - `"lab_collection" | "lab_result"` → performing technician.
 - `"imaging_interpretation"` → interpreting radiologist.
 - `"medication_administration"` → administering nurse in the ordering
@@ -101,7 +111,10 @@ lookup shape the module uses internally.
     `DOCTORS_PER_SURGERY_BED_DIVISOR`,
     `DOCTORS_PER_ED_BED_DIVISOR`) and minima
     (`MIN_INTERNAL_MED_PHYSICIANS`, `MIN_SURGERY_PHYSICIANS`,
-    `MIN_ED_PHYSICIANS`); `DOCTORS_PER_DEPT_FIXED` for other departments.
+    `MIN_ED_PHYSICIANS`); `DOCTORS_PER_DEPT_FIXED` for other departments,
+    `DEFAULT_DOCTORS_PER_DEPT` for unlisted ones;
+    `DEFAULT_INPATIENT_BEDS` when `inpatient_beds` is absent.
+  - Anesthesiology: `SURGICAL_DEPARTMENTS`, `MIN_ANESTHESIOLOGISTS`.
   - Nursing scaling: `NURSES_PER_BED_DIVISOR`, `NURSES_PER_BED_BUFFER`,
     `NURSES_PER_WARD_MIN`, `MIN_BEDS_PER_WARD`, `FALLBACK_BEDS_PER_WARD`,
     `ED_OPD_NURSES_PER_AREA`.
@@ -124,7 +137,8 @@ lookup shape the module uses internally.
   `general_surgery → "GS"`, `orthopedics → "OR"`,
   `neurosurgery → "NS"`, `trauma_surgery → "TS"`,
   `emergency_medicine → "EM"`, `primary_care → "PC"`,
-  `obstetrics_gynecology → "OB"`, `pediatrics → "PD"`. Unknown
+  `obstetrics_gynecology → "OB"`, `pediatrics → "PD"`,
+  `anesthesiology → "AN"`. Unknown
   departments fall back to `dept[:2].upper()`.
 - **JP name pair** (`_generate_name_pair`): returns `(kanji, kana)`
   so `StaffMember.name_phonetic` can populate the JP Core Practitioner
@@ -136,7 +150,7 @@ lookup shape the module uses internally.
 ```
 clinosim/modules/staff/
   __init__.py                     public API (StaffMember, StaffRoster, generate_roster, assign_staff)
-  engine.py                       roster generation + assign_staff dispatch + name / phone / email helpers
+  engine.py                       roster generation + assign_staff / select_surgical_team + name / phone / email helpers
   _staff_thresholds.py            named threshold constants (Issue #562)
   SPEC.md                         v1+ design reference (roles, lifecycle, credentials — not runtime data)
 ```
@@ -155,10 +169,13 @@ from the encounter code paths listed below.
 
 | Consumer | Where | Role |
 |---|---|---|
-| Encounter builder (inpatient) | [`clinosim/simulator/inpatient.py`](../../simulator/inpatient.py) (`~L45`, `~L260`) | Calls `assign_staff("admission", department, roster, rng)` to pick attending + primary nurse. |
-| Encounter builder (outpatient) | [`clinosim/simulator/outpatient.py`](../../simulator/outpatient.py) (`~L21`, `~L109`, `~L161`, `~L177`) | Rounds / medication administration / lab collection assignment. |
-| Lab pipeline | [`clinosim/simulator/lab_pipeline.py`](../../simulator/lab_pipeline.py) (`~L51`, `~L113`, `~L131`, `~L166`) | `assign_staff("lab_result", …)` for performing / result technician, uses `FALLBACK_TECH_ID` when the roster is empty. |
-| CLI single-encounter driver | [`clinosim/simulator/cli_test_encounter.py`](../../simulator/cli_test_encounter.py) (`~L16`, `~L80`) | Calls `generate_roster("medium", country, rng)` for smoke runs. |
+| Simulator engine | [`clinosim/simulator/engine.py`](../../simulator/engine.py) | Builds the run's roster with `generate_roster(..., hospital_config=hospital_ops)`. |
+| Encounter builder (inpatient) | [`clinosim/simulator/inpatient.py`](../../simulator/inpatient.py) | `assign_staff("admission", department, roster, rng)` for attending + primary nurse; `select_surgical_team` for surgeon + anesthesiologist. |
+| Encounter builders (outpatient / ED / perinatal / unknown-condition) | [`outpatient.py`](../../simulator/outpatient.py), [`emergency.py`](../../simulator/emergency.py), [`perinatal.py`](../../simulator/perinatal.py), [`unknown_condition.py`](../../simulator/unknown_condition.py) | Rounds / admission / medication administration / lab collection assignment with `FALLBACK_*` defaults. |
+| Daily loop + medication pipeline | [`daily_loop.py`](../../simulator/daily_loop.py), [`medication_pipeline.py`](../../simulator/medication_pipeline.py) | `assign_staff("medication_administration", …)`, falling back to `FALLBACK_NURSE_ID`. |
+| Lab pipeline | [`clinosim/simulator/lab_pipeline.py`](../../simulator/lab_pipeline.py) | `assign_staff("lab_result", …)` for the performing technician, uses `FALLBACK_TECH_ID` when the roster is empty. |
+| CLI single-encounter driver / enumerate | [`cli_test_encounter.py`](../../simulator/cli_test_encounter.py), [`enumerate.py`](../../simulator/enumerate.py) | Call `generate_roster("medium", country, rng)` for smoke runs. |
+| FHIR facility builder | [`clinosim/modules/output/fhir_r4/encounters/facility.py`](../output/fhir_r4/encounters/facility.py) | `roster_departments(hospital_config)` so every PractitionerRole department has an Organization. |
 | Nursing primary-nurse enricher | [`clinosim/modules/nursing/engine.py`](../nursing/engine.py) | Picks primary nurse via `roster.get_by_role("nurse")` (transitive consumer of the roster this module produces). |
 | FHIR `Practitioner` + `PractitionerRole` builders | [`clinosim/modules/output/fhir_r4/`](../output/fhir_r4/) | Emit `StaffMember` fields as `Practitioner` (name / kana / telecom / qualification) and `PractitionerRole` (department / specialty). |
 
@@ -174,10 +191,13 @@ Individual files:
   — `StaffMember` / `StaffRoster` dataclass shape.
 - [`tests/unit/modules/test_staff_fallback_constants.py`](../../../tests/unit/modules/test_staff_fallback_constants.py)
   — `FALLBACK_*` constants + module-level naming (Issue #562).
+- [`tests/unit/test_surgical_team_assignment.py`](../../../tests/unit/test_surgical_team_assignment.py)
+  — anesthesiology roster, `select_surgical_team`, attending fallback
+  excluding anesthesiologists (Issue #2068; not matched by `-k staff`).
 
-Coverage gap: roster generation + `assign_staff` dispatch have no
-dedicated unit tests today; they are exercised transitively by
-integration + e2e tests. Adding a focused unit test file for
+Coverage gap: beyond the anesthesiology cases above, roster generation
++ `assign_staff` dispatch have no dedicated unit tests today; they are
+exercised transitively by integration + e2e tests. Adding a focused unit test file for
 `generate_roster` (scale invariants, ID uniqueness, extra-role
 inclusion) and `assign_staff` (per-event-type dispatch, empty-roster
 fallback) is a low-cost follow-up.

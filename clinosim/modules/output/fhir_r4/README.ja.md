@@ -53,9 +53,14 @@ from clinosim.modules.output.fhir_r4.lib.common import (
 )
 ```
 
-全 `_bb_*` bundle-builder 関数 (7 domain subpackage 全体で ~30) は
-同 signature: `_bb_<resource>(ctx: BundleContext) -> list[dict]`。
-domain README file が family 別 builder を列挙する。
+全 `_bb_*` bundle-builder 関数は同 signature:
+`_bb_<resource>(ctx: BundleContext) -> list[dict]`。default registry
+は 45 builder: 7 domain subpackage に 27、`lib/inline_bb.py` に 11
+(Patient, Coverage, Encounter, Condition, Occupation, vitals,
+MedicationRequest / 退院時 MedicationRequest, MedicationAdministration,
+Procedure, Practitioner)、
+[`clinosim/modules/newborn/fhir_emit.py`](../../newborn/fhir_emit.py)
+に新生児 builder 7。domain README file が family 別 builder を列挙する。
 
 ## 決定論
 
@@ -67,37 +72,51 @@ domain README file が family 別 builder を列挙する。
 - `_sort_ndjson_by_id_inplace` が書込後 NDJSON を resource id で
   sort し、traversal 順に関係なく line 順を決定論化する。
 - `_fhir_id_is_spec_valid` が FHIR spec の 64 文字 id +
-  `[A-Za-z0-9\-\.]` character class を全 emission site で強制。
+  `[A-Za-z0-9\-\.]` character class を `convert_cif_to_fhir` の
+  NDJSON writer で検査する。fail-soft (不正 id は resource type 別に
+  count して warning log、write 自体は継続)。
 
 ## 依存
 
-- `clinosim.modules._shared` — `is_jp`, `is_us`, `resolve_lang`。
+- `clinosim.modules._shared` — `is_jp`, `resolve_lang` (個別 builder
+  では他 helper も)。
 - `clinosim.modules.output.cif_reader` — 構造化 + narrative-version
   merge 済み CIF load 用 `CIFReader`。
 - `clinosim.codes` — code-system URI + 表示 lookup。
 - `clinosim.locale.loader` — locale scope の code-mapping YAML。
+- `clinosim.modules.newborn.fhir_emit` — registry 内の 7 つの
+  `_bb_newborn_*` builder。
+- `clinosim.simulator.log` — export 進捗 event。
 - 各 domain subpackage は `lib.common.BundleContext` + 共有 fragment
-  helper を import (`lib/` は `clinosim.codes` + `clinosim.locale`
-  のみ依存で循環しない)。
-- `json`, `os`, `re`, `uuid` — 標準ライブラリ serialization。
+  helper を import。`lib/common.py` 自体は domain を import しないが、
+  `lib/inline_bb.py` は domain subpackage の builder helper を
+  (`lib/ed_reattribution.py` は `encounters/` を) import するため、
+  `lib/` 全体は leaf ではない。
+- `heapq`, `json`, `os`, `re`, `tempfile`, `uuid` — 標準ライブラリ
+  (serialization + 外部 merge による NDJSON sort)。
 
 ## 定数と設定
 
-- **Bundle-builder registry** — `__init__.py` の
-  `_BUNDLE_BUILDERS: list[Callable]`。`_build_bundle` が使う全
-  `_bb_*` builder が module top で import + append される。
-  `register_bundle_builder` は file 編集なしで新 builder を追加する
-  (AD-56)。
-- **FHIR resource-id 形状**: 各 builder は
-  `{resource_type_lower}-{encounter_id or patient_id}-{seq}` を
-  生成。ID prefix 定数は所有 module 側
+- **Bundle-builder registry** — `builder.py` の
+  `_BUNDLE_BUILDERS: list[Callable]` (`__init__.py` が再 export)。
+  list 順 = emission 順。`_build_bundle` が使う全 `_bb_*` builder が
+  module top で import され list に並ぶ。import 時 assert が `_bb_`
+  prefix を強制。`register_bundle_builder` は file 編集なしで新
+  builder を末尾追加し (AD-56)、`_bb_` prefix でない名前は
+  `ValueError`、同名関数は重複登録しない。
+- **FHIR resource-id 形状**: id scheme は各 builder が所有 (例:
+  `allergy-{patient_id}-{nn}`、`loc-ward-{ward}`、`sr-…`、`doc-…`。
+  `lib/ids.py` が opaque id を導出)。ID prefix 定数は所有 module 側
   ([`clinosim.modules.document`](../../document/README.ja.md) の
   `DOC_REFERENCE_ID_PREFIX` 等、`labs/service_request.py` の
   `SR_ID_PREFIX` / `PLACER_ORDER_NUMBER_SYSTEM` 等)。
 - **`BundleContext`** (`lib/common.py`): 各 `_bb_*` builder に
-  渡される read-only context。`record`, `country`, `patient_id`,
-  `primary_enc_id`、および builder が locale lookup を再実行しない
-  よう解決済み言語 + code-mapping cache を持つ。
+  渡される read-only context。field: `record`, `country`,
+  `roster_map`, `hospital_config`, `patient_data`, `patient_id`,
+  `is_readmission`, `prior_encounter_id`, `primary_dx_code`,
+  `admit_dx_code`, `admit_dx_system`, `primary_enc_id`,
+  `patient_sex`, `encounter_resource_index`, `snapshot_date`,
+  `emitted_mr_ids`。
 - **JP-CLINS extension** (`lib/common.py`):
   `build_ecs_institution_extension`,
   `build_ecs_department_extension`,
@@ -112,15 +131,16 @@ domain README file が family 別 builder を列挙する。
 
 ```
 clinosim/modules/output/fhir_r4/
-  __init__.py                        convert_cif_to_fhir + registry + _bb_* wiring (581 LOC)
+  __init__.py                        薄い再 export facade (public + back-compat private 名)
+  builder.py                         convert_cif_to_fhir + _BUNDLE_BUILDERS registry + _build_bundle + snapshot / death reconciliation + NDJSON sort
   lib/                               共有 FHIR fragment helper (common / localization / reference_data / inline_bb / generator_metadata / ids / ed_reattribution)
   demographics/                      Patient / Practitioner / FamilyMemberHistory / smoking + alcohol Observation
   encounters/                        Encounter / CareTeam / CareLevel / Location + Organization (facility) / Endpoint
   medications/                       MedicationRequest + MedicationAdministration
-  labs/                              Observation (lab + vitals) / DiagnosticReport / ServiceRequest / microbiology / ImagingStudy / blood_type / coding_package + coding_strategy
-  procedures/                        Procedure / Immunization / Device + DeviceUseStatement / nursing (survey Observation)
-  conditions/                        Condition / AllergyIntolerance / ClinicalImpression / HAI Condition / CodeStatus (custom Observation)
-  documents/                         Composition / DocumentReference / DocumentReference (checkup / eCheckup)
+  labs/                              Observation (lab + vitals) / DiagnosticReport / ServiceRequest / microbiology / ImagingStudy / blood_type / anthropometrics / stage_scale_observations / _reference_ranges / coding_package + coding_strategy
+  procedures/                        Procedure / Immunization / Device + DeviceUseStatement / nursing (survey Observation) / oxygen_therapy / procedure_name_snomed (.py + .yaml)
+  conditions/                        Condition / AllergyIntolerance / ClinicalImpression / HAI Condition / CodeStatus (custom Observation) / primary_ref
+  documents/                         Composition / DocumentReference / DocumentReference (checkup / eCheckup) / imaging_report / referral_orgs / jp_clins/ (文書別 JP-CLINS section builder)
   post_process/                      bundle-level pipeline (datetime 正規化 / profile / specimen / strip / populate)
 ```
 
@@ -128,7 +148,9 @@ clinosim/modules/output/fhir_r4/
 
 | FHIR resource | Domain module |
 | --- | --- |
-| Patient | `demographics/patient.py` |
+| Patient | `demographics/patient.py` (registry entry `_bb_patient` は `lib/inline_bb.py`) |
+| Coverage | `lib/inline_bb.py` (`_bb_coverage`) |
+| Observation (occupation) | `lib/inline_bb.py` (`_bb_occupation`) |
 | Practitioner + PractitionerRole | `demographics/practitioner.py` |
 | FamilyMemberHistory | `demographics/family_history.py` |
 | Observation (smoking / alcohol / social) | `demographics/smoking_alcohol.py` |
@@ -137,8 +159,11 @@ clinosim/modules/output/fhir_r4/
 | CareLevel (custom `jp-care-level` Observation) | `encounters/care_level.py` |
 | Location + Organization | `encounters/facility.py` |
 | Endpoint | `encounters/endpoint.py` |
-| MedicationRequest + MedicationAdministration | `medications/medications.py` |
-| Observation (lab + vitals) | `labs/observations.py` |
+| MedicationRequest + MedicationAdministration | `medications/medications.py` (registry entry は `lib/inline_bb.py`) |
+| Observation (lab + vitals) | `labs/observations.py` (`_bb_vitals` registry entry は `lib/inline_bb.py`) |
+| Observation (身長 / 体重 / BMI / 頭囲) | `labs/anthropometrics.py` |
+| Observation (慢性疾患 stage scale) | `labs/stage_scale_observations.py` |
+| 新生児 Apgar / bilirubin / CCHD Observation、代謝スクリーニング ServiceRequest / Specimen / Observation / DiagnosticReport | [`clinosim/modules/newborn/fhir_emit.py`](../../newborn/fhir_emit.py) |
 | DiagnosticReport | `labs/diagnostic_report.py` |
 | ServiceRequest | `labs/service_request.py` |
 | Observation (microbiology) | `labs/microbiology.py` |
@@ -146,7 +171,8 @@ clinosim/modules/output/fhir_r4/
 | Observation (ABO + RhD) | `labs/blood_type.py` |
 | — (JP-CLINS lab code loader) | `labs/coding_package.py` |
 | — (JP-CLINS lab code dispatch) | `labs/coding_strategy.py` |
-| Procedure | `procedures/procedures.py` |
+| Procedure | `procedures/procedures.py` (registry entry `_bb_procedures` は `lib/inline_bb.py`) |
+| Procedure (酸素療法 session) | `procedures/oxygen_therapy.py` |
 | Immunization | `procedures/immunization.py` |
 | Device + DeviceUseStatement | `procedures/device.py` |
 | Observation (nursing flowsheet) | `procedures/nursing.py` |
@@ -158,6 +184,7 @@ clinosim/modules/output/fhir_r4/
 | Composition | `documents/composition.py` |
 | DocumentReference | `documents/documents.py` |
 | DocumentReference (checkup / eCheckup) | `documents/document_reference_checkup.py` |
+| Composition (画像検査報告書) | `documents/imaging_report.py` |
 
 ## Enricher 配線
 
@@ -181,13 +208,13 @@ pytest tests/integration -k "fhir or export or servicerequest_chain or document_
 ```
 
 各 domain subpackage は独自の README + test を持つ。audit run
-(`clinosim audit run`) は 5 AD-60 plug-in (hai / antibiotic / order
-/ imaging / document) を exercise し、FHIR emission 契約を
-cross-verify する。
+(`clinosim audit run`) は AD-60 module audit plug-in (hai /
+antibiotic / order / imaging / document / triage) を exercise し、
+その一部が FHIR emission 契約を cross-verify する。
 
 ## Ownership
 
 `maintainers@` — 詳細は
 [`CONTRIBUTING.md`](../../../../CONTRIBUTING.ja.md)。
 
-英語版: [`README.md`](README.ja.md)。
+英語版: [`README.md`](README.md)。

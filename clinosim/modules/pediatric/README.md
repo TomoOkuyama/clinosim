@@ -40,10 +40,18 @@ from clinosim.modules.pediatric.calendar import (
 ```
 
 `load_pediatric_schedule` validates the file at load time and raises
-`ValueError` on any schema violation (missing required field,
-non-list `visits_per_year`, `age_min > age_max`, non-dict `encounters`
-top-level). `generate_pediatric_events` no-ops when the schedule is
-empty or the person's age falls outside every entry's band.
+`ValueError` on any schema violation (missing required field among
+`age_min` / `age_max` / `visits_per_year` / `encounter_type` /
+`disease_id`, non-list or empty `visits_per_year`, `age_min > age_max`,
+non-dict `encounters` top-level). `generate_pediatric_events` computes
+age-at-year as `year - date_of_birth.year` (falls back to the static
+`person.age`) and returns `[]` when the schedule is empty, the age is
+`> 18` or `< 0` (not yet born), or a per-person participation draw
+`prng.random() < person.care_seeking_threshold` (default 0.20) skips
+the whole year (Issue #922). Each matching entry emits
+`LifeEvent(event_type="pediatric_visit", severity=0.0,
+condition_type="pediatric", protocol_source="pediatric:<key>")`
+visits spaced evenly across the year with a day-of-month jitter.
 
 ## Determinism
 
@@ -53,13 +61,15 @@ empty or the person's age falls outside every entry's band.
   `generate_healthcare_calendar`), so YAML edits shift only the
   affected pediatric patients' downstream stream position — never
   unrelated adults.
-- `load_pediatric_schedule` intentionally has **no `@lru_cache`** —
-  it stays hot-reload friendly for tests. Callers that care about
-  repeated cost can cache the result themselves.
+- `load_pediatric_schedule` is cached with `@lru_cache(maxsize=8)`
+  per `path` argument (it was previously uncached and hot in the
+  per-patient calendar loop). Tests that mutate the schedule file
+  invalidate it with `load_pediatric_schedule.cache_clear()`.
 
 ## Dependencies
 
-- `numpy` — `np.random.Generator` (`prng.choice`, `prng.integers`).
+- `numpy` — `np.random.Generator` (`prng.random`, `prng.choice`,
+  `prng.integers`).
 - `yaml` — YAML parser.
 - `clinosim.modules.population.engine` — `LifeEvent` (imported
   lazily inside `generate_pediatric_events`).
@@ -76,9 +86,9 @@ Each entry:
 | `age_min` | Inclusive lower bound (years). |
 | `age_max` | Inclusive upper bound (years). |
 | `visits_per_year` | Non-empty `list[int]` — uniformly sampled per patient per year to give inter-patient variance. |
-| `encounter_type` | `"outpatient"` / `"emergency"` / `"inpatient"` — dispatch key for the engine. |
-| `disease_id` | Reused by the engine's dispatch to identify the visit's clinical protocol. |
-| `visit_reason` | Human-readable, emitted as the encounter's chief complaint. |
+| `encounter_type` | `"outpatient"` / `"emergency"` / `"inpatient"` — copied onto `LifeEvent.encounter_type` (defaults to `"outpatient"`; every current entry is outpatient). |
+| `disease_id` | Copied onto `LifeEvent.disease_id`; used for department resolution and the visit-reason lookup. |
+| `visit_reason` | Optional. Bilingual `{en, ja}` dict or string, read by `simulator/_setup.py::_pediatric_visit_reason` and emitted as the encounter's chief complaint. |
 
 Extending the schedule is a **pure YAML edit** — no code changes
 required. Adding a bad entry surfaces at load time as `ValueError`.
@@ -107,7 +117,7 @@ directly instead of registering an enricher. It has no entry in
 
 Integration lives in
 [`clinosim/modules/population/engine.py`](../population/engine.py)
-(`~L807-815`):
+(`~L995-997`):
 `generate_healthcare_calendar` calls `generate_pediatric_events` with
 the per-person spawned `prng`, and the returned `LifeEvent` list is
 merged into the calendar `events` list. The rest of the pipeline
@@ -117,8 +127,10 @@ treats pediatric events like any other calendar event.
 
 | Consumer | Where | Role |
 |---|---|---|
-| Population calendar loop | [`clinosim/modules/population/engine.py`](../population/engine.py) (`~L807-815`, inside `generate_healthcare_calendar`) | Calls `generate_pediatric_events(person, year, prng)` per (person, year) and extends the calendar's `events` list with the returned `LifeEvent` records. |
-| Encounter engine dispatch | [`clinosim.modules.encounter`](../encounter/README.md) | Reads `LifeEvent.encounter_type` / `disease_id` / `protocol_source` (prefix `"pediatric:"`) to identify pediatric visits at encounter build time. |
+| Population calendar loop | [`clinosim/modules/population/engine.py`](../population/engine.py) (`~L995-997`, inside `generate_healthcare_calendar`) | Calls `generate_pediatric_events(person, year, prng)` per (person, year) and extends the calendar's `events` list with the returned `LifeEvent` records. |
+| Healthcare-calendar dispatch | [`clinosim/simulator/phases/_healthcare_calendar.py`](../../simulator/phases/_healthcare_calendar.py) | Routes `event_type == "pediatric_visit"` to an outpatient visit (department via `resolve_outpatient_department`, chief complaint via `_pediatric_visit_reason(disease_id)`). |
+| Visit-reason lookup | [`clinosim/simulator/_setup.py`](../../simulator/_setup.py) (`_pediatric_visit_reason`) | Reads `visit_reason` from `load_pediatric_schedule()`. |
+| Outpatient encounter | [`clinosim/simulator/outpatient.py`](../../simulator/outpatient.py), [`outpatient_dept.py`](../../simulator/outpatient_dept.py) | `visit_type == "pediatric_visit"` branches. |
 
 ## Testing
 

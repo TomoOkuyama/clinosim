@@ -38,8 +38,8 @@ the FHIR R4 subpackage picks them up from the CIF via the same
 - **Obstetric — mother-side delivery Encounter** with admission dx
   `O80`, discharge dx `Z37.0`, delivery Procedure JP `K894` /
   US CPT `59400`, and **newborn Encounter** with
-  `admit_source = "born"` (new `AdmitSource.BORN` enum value in
-  [`clinosim/types/encounter.py`](../../types/encounter.py)) and
+  `admit_source = "born"` (`AdmitSource.BORN` enum value in
+  [`clinosim/codes/hl7_encounter.py`](../../codes/hl7_encounter.py)) and
   `admit_source_encounter_id` → mother's delivery encounter,
   routed to FHIR `Encounter.partOf` on the newborn side. Discharge
   dx `Z38.0` on the newborn; `Z39` on postpartum outpatient
@@ -106,13 +106,14 @@ forward-compatible for format-specific settings but currently unused.
 
 - `clinosim.modules.output.fhir_r4` (subpackage) — the FHIR R4
   emission surface; re-exported through this package's `__init__`.
-- `clinosim.types.output` — `CIFDataset`, manifest types.
-- `clinosim.types.clinical` — `ClinicalDocument` +
-  `ClinicalDocumentNarrative` (read by `CIFReader`).
-- `yaml` — YAML pass-through (CIF is JSON but the CLI accepts
-  YAML config).
+- `clinosim.types.output` — `CIFDataset` (written by `write_cif`).
+- `clinosim.modules.population._pediatric_anthropometry` +
+  `clinosim.simulator.log` — used by `cif_writer.py` (baby-snapshot
+  anthropometry, progress logging).
+- `clinosim.codes`, `clinosim.simulator.complications` — used by
+  `csv_adapter.py` and `hospital_course_extractor.py`.
 - Standard library only for `adapter.py` / `adapters_builtin.py` /
-  `cif_writer.py`.
+  `cif_reader.py` (`CIFReader` works on raw JSON dicts).
 
 ## Constants and configuration
 
@@ -173,9 +174,10 @@ There is no seed offset in `ENRICHER_SEED_OFFSETS`.
 
 | Consumer | Where | Role |
 |---|---|---|
-| CLI `export` / `export-fhir` | [`clinosim/simulator/cli.py`](../../simulator/cli.py) | Calls `get_adapter(format_id).convert(cif_dir, out_dir, ctx)`. |
-| Narrative pipeline | [`clinosim/modules/document/narrative/passes.py`](../document/narrative/passes.py) | Uses `CIFReader` to load structural + narrative-version-merged CIF. |
-| Narrative discharge-summary | [`clinosim/modules/document/narrative/template_generator.py`](../document/narrative/template_generator.py) | Uses `extract_hospital_course` + `summarize_*` helpers to compose discharge-summary facts. |
+| CLI `simulate --format` / `export-fhir` | [`clinosim/simulator/cli_common.py`](../../simulator/cli_common.py) (`_validate_formats` / `_run_exports`), [`clinosim/simulator/cli_export_fhir.py`](../../simulator/cli_export_fhir.py) | Calls `get_adapter(format_id).convert(cif_dir, out_dir, ctx)`. |
+| FHIR R4 builder / CSV adapter | [`fhir_r4/builder.py`](fhir_r4/builder.py), [`csv_adapter.py`](csv_adapter.py) | Use `CIFReader` to load structural + narrative-version-merged CIF. |
+| Memoize / document audit | [`clinosim/simulator/memoize.py`](../../simulator/memoize.py), [`clinosim/modules/document/audit.py`](../document/audit.py) | `CIFReader` (memoize); `resolve_current_narrative_dir` + `write_cif` (audit). |
+| Discharge-summary helpers | `scripts/prepare_ab_test_prompts.py`, `scripts/validate_5types_bedrock.py`, `tests/unit/test_clinical_documents.py` | Use `extract_hospital_course` + `summarize_*`; the runtime narrative pipeline does not import this module. |
 | Third-party plug-ins | (user code) | Register custom adapters via `register_output_adapter(adapter)`; register custom FHIR bundle builders via `register_bundle_builder(fn)`. |
 
 ## Testing

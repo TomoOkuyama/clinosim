@@ -6,7 +6,8 @@ Emits every FHIR R4 resource in the "procedure & device" family:
 `Procedure` (surgery + bedside + rehab), `Immunization`
 (vaccine administration record), `Device` + `DeviceUseStatement`
 (ICU devices — CVC / catheter / ventilator), the nursing survey
-`Observation` (NEWS2 / GCS / Braden / Morse flowsheet), and the
+`Observation` (NEWS2 / GCS / Braden / Morse / Barthel scores +
+intake / urine / fluid-output flowsheet rows), and the
 oxygen-therapy `Procedure` (Issue #796 — derived from vitals
 `on_supplemental_oxygen` flag with a `performedPeriod`).
 
@@ -18,11 +19,17 @@ FHIR resource-family taxonomy.
 ## Scope
 
 - **In scope**: `_build_procedure` (root Procedure builder — surgery
-  / bedside / rehab dispatch, CPT for US + JJ1017 K-code for JP);
+  / bedside / rehab dispatch, CPT for US + MHLW 診療報酬 K-code
+  (`k-codes`) for JP; registry wrapper `_bb_procedures` lives in
+  [`../lib/inline_bb.py`](../lib/inline_bb.py));
+  `resolve_procedure_snomed` (`procedure_name_snomed.py` +
+  `procedure_name_snomed.yaml`, display-name → SNOMED for
+  order-derived Procedures, Issue #1282);
   `_bb_immunizations` (adult vaccine history from
   `CIFPatientRecord.immunizations`);
   `_bb_device` + `_bb_device_use` (from `extensions["device"]`);
-  `_bb_nursing_observations` (NEWS2 / GCS / Braden / Morse survey
+  `_bb_nursing_observations` (NEWS2 / GCS / Braden / Morse / Barthel
+  + intake / output survey
   Observation cluster — this is the FHIR emit side; the compute
   functions live in
   [`../../../observation/nursing.py`](../../../observation/nursing.py));
@@ -64,7 +71,7 @@ pipeline picks up the code + display without further wiring:
 ## Public API
 
 Every builder is registered with the parent facade
-(`_BUNDLE_BUILDERS` in [`../__init__.py`](../__init__.py)). Direct
+(`_BUNDLE_BUILDERS` in [`../builder.py`](../builder.py)). Direct
 imports for cross-family consumers:
 
 ```python
@@ -88,32 +95,39 @@ Not applicable — pure builders over CIF procedures / immunizations /
 
 - `clinosim.modules._shared` — `is_jp`, `resolve_lang`.
 - `clinosim.modules.output.fhir_r4.lib.common` — `BundleContext`,
-  `_coding_with_display`, `loinc_coding`, `survey_category`,
-  `to_fhir_datetime`, `attach_ecs_institutional_extensions`.
+  `survey_category`, `to_fhir_datetime`, fragment helpers;
+  `lib.ids` — opaque ids.
 - `clinosim.modules.output.fhir_r4.conditions.primary_ref` —
-  `primary_condition_ref` for `Procedure.reasonReference`.
-- `clinosim.codes` — CPT / JJ1017 K-code / CVX / SNOMED display
-  lookup.
-- `clinosim.types.encounter` — `ProcedureRecord`, `RehabSession`,
-  `Device`, `ImmunizationRecord`.
+  `primary_condition_ref` for the oxygen-therapy
+  `Procedure.reasonReference`.
+- `..demographics.patient.patient_ref`,
+  `..encounters.encounter.encounter_ref`.
+- `clinosim.codes` — CPT / K-code / CVX / SNOMED display lookup;
+  `clinosim.codes.oxygen_device_to_snomed`.
+- `clinosim.modules.diagnosis.nonspecific_codes` (procedures).
+- CIF records are read as dicts via `get_attr_or_key`; no
+  `clinosim.types` classes are imported.
 - `datetime`, `timedelta` — standard library (used by
   `_SINGLE_TIMESTAMP_DWELL` in oxygen_therapy).
 
 ## Constants and configuration
 
 - **Procedure code dispatch** — US emits CPT
-  (`http://www.ama-assn.org/go/cpt`); JP emits JJ1017 K-code via
-  the JP-CLINS Procedure profile.
+  (`http://www.ama-assn.org/go/cpt`); JP emits the MHLW 診療報酬
+  K-code (`k-codes`, `urn:oid:1.2.392.200119.4.401`); a record-level
+  `procedure_system_key` override (e.g. `snomed-ct`) takes
+  precedence.
 - **Oxygen therapy** (`oxygen_therapy.py`, Issue #796):
   - `_SNOMED_OXYGEN_THERAPY = "57485005"` — SNOMED CT code for
     oxygen administration.
   - `_SINGLE_TIMESTAMP_DWELL = timedelta(minutes=15)` — dwell
     window around a single-timestamp `on_supplemental_oxygen`
     vitals sample when building `Procedure.performedPeriod`.
-  - Reads the per-therapy flag from vitals rather than a
-    dedicated Order (per the [`session-derived procedure period`](../../../../..)
-    pattern documented in memory: no Order.end_datetime → derive
-    from vitals).
+  - Encounter-centric: every encounter with
+    `on_supplemental_oxygen=True` vitals emits one Procedure whether
+    or not an O2 Order exists; the session period is derived from
+    the vitals flag (an Order, when present, only contributes the
+    SpO2-target `note[]`).
 - **Immunization emit** — CVX system + lot number written from
   `ImmunizationRecord.lot_number`; SHA-256-based lot generation
   lives in [`../../../immunization/engine.py`](../../../immunization/engine.py)
@@ -124,7 +138,7 @@ Not applicable — pure builders over CIF procedures / immunizations /
   derived from the per-device line-days count.
 - **Nursing survey Observation** — emits under
   `Observation.category = "survey"` for NEWS2 / GCS / Braden /
-  Morse. Per AGENTS.md AD-64 nursing_flowsheets vs
+  Morse / Barthel and intake / urine / fluid-output rows. Per AGENTS.md AD-64 nursing_flowsheets vs
   nursing_assignment disambiguation, this is the emit side of the
   POST_RECORDS `enrich_nursing` enricher (order=20).
 
@@ -132,11 +146,12 @@ Not applicable — pure builders over CIF procedures / immunizations /
 
 ```
 clinosim/modules/output/fhir_r4/procedures/
-  __init__.py                        empty (builders imported by parent __init__)
+  __init__.py                        namespace stub (builders imported by ../builder.py / ../lib/inline_bb.py)
   procedures.py                      _build_procedure (surgery + bedside + rehab)
+  procedure_name_snomed.py (+ .yaml) resolve_procedure_snomed (display name → SNOMED, Issue #1282)
   immunization.py                    _bb_immunizations (CVX + lot number)
   device.py                          _bb_device + _bb_device_use (from extensions["device"])
-  nursing.py                         _bb_nursing_observations (NEWS2 / GCS / Braden / Morse survey Observation)
+  nursing.py                         _bb_nursing_observations (NEWS2 / GCS / Braden / Morse / Barthel / intake-output survey Observation)
   oxygen_therapy.py                  _bb_oxygen_therapy + _SINGLE_TIMESTAMP_DWELL + _SNOMED_OXYGEN_THERAPY (Issue #796)
 ```
 

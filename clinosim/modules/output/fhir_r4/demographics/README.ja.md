@@ -3,20 +3,22 @@
 ## 概要
 
 demographics + 社会歴ファミリの FHIR R4 resource 全てを emit:
-`Patient` (JP Core Coverage + payor Organization + occupation
-Observation + inline AllergyIntolerance 付き)、`Practitioner` +
+`Patient`、`Coverage` + payor `Organization` と occupation
+`Observation` (いずれも `patient.py` で構築。registry wrapper
+`_bb_patient` / `_bb_coverage` / `_bb_occupation` は
+[`../lib/inline_bb.py`](../lib/inline_bb.py))、`Practitioner` +
 `PractitionerRole`、`FamilyMemberHistory`、smoking / alcohol
 社会歴 `Observation`。standalone allergy path は
 [`../conditions/`](../conditions/README.ja.md) の `AllergyIntolerance`
-builder が担い、`patient.py` 内の inline `_build_allergy_intolerance`
-は legacy の Patient-embed であり 1 release cycle 残す。
+builder が唯一の emit path で、`patient.py` 内の legacy
+`_build_allergy_intolerance` は残っているが呼ばれない。
 
 ## Scope
 
 - **In scope**: `_build_patient` (Patient + birthDate / sex /
-  address / telecom / marital + language + coverage + occupation +
-  inline allergy) + Coverage / payor Organization 構築 +
-  occupation Observation + inline allergy;
+  address / telecom / marital + language) + Coverage / payor
+  Organization 構築 (`_build_coverage_resources`) + occupation
+  Observation (`_build_occupation_observation`);
   `_build_practitioner` + `_build_practitioner_role`;
   `_bb_family_history` + `_resolve_family_history_code` +
   `_build_relationship_codeable`; `_bb_smoking_status` +
@@ -35,8 +37,9 @@ builder が担い、`patient.py` 内の inline `_build_allergy_intolerance`
 
 周産期分娩 LifeEvent は CIF 上に対の新生児 `PatientProfile` を生成する
 (詳細:
-[`../../patient/README.ja.md`](../../patient/README.ja.md) —
-`id = "<mother_id>-BABY"`、`birthDate` = 分娩日、世帯は母親から継承)。
+[`../../../patient/README.ja.md`](../../../patient/README.ja.md) —
+`id = "<mother_id>-BABY"` (多胎の 2 人目以降は
+`<mother_id>-<N>-BABY`)、`birthDate` = 分娩日、世帯は母親から継承)。
 新規 Patient builder は不要 — 既存 `_build_patient` が CIF から他の
 患者と同様に新生児を拾う。母親↔新生児のリンクは新生児側の Encounter
 (`Encounter.partOf` → 母親の分娩 encounter) で表現され、これは兄弟の
@@ -46,14 +49,14 @@ subpackage は関与しない)。
 ## Public API
 
 各 builder は親 facade (`_BUNDLE_BUILDERS` in
-[`../__init__.py`](../__init__.py)) に登録済み。直接 import は稀:
+[`../builder.py`](../builder.py)) に登録済み。直接 import は稀:
 
 ```python
 from clinosim.modules.output.fhir_r4.demographics.patient import (
     _build_patient,                     # (patient_dict, country) -> Patient dict
-    _build_coverage_resources,          # (patient_dict, country) -> [Coverage, payor Organization, ...]
+    _build_coverage_resources,          # (patient_dict, country, encounters=None, snapshot_date=None) -> [Coverage, payor Organization, ...]
     _build_occupation_observation,      # -> occupation Observation
-    _build_allergy_intolerance,         # legacy Patient-embed (standalone path は conditions/)
+    _build_allergy_intolerance,         # legacy、呼ばれない (emit path は conditions/)
 )
 from clinosim.modules.output.fhir_r4.demographics.practitioner import (
     _build_practitioner,                # (staff_id, roster_map, country) -> Practitioner dict
@@ -91,7 +94,10 @@ NDJSON を id で sort する。
 - `clinosim.codes` — LOINC / SNOMED / ICD / JP-Core / HL7 v3-RoleCode
   の `get_system_uri`, `lookup`。
 - `clinosim.locale.loader` — JP payor + coverage 定数の
-  `load_identity_config`。
+  `load_identity_config`、`load_practitioner_qualifications`。
+- `clinosim.modules.family_history.engine.load_reference`、
+  `clinosim.modules.sdoh.load_social_history` — 表示 / code の
+  reference data。
 
 ## 定数と設定
 
@@ -102,8 +108,11 @@ NDJSON を id で sort する。
 - **Marital / language / coverage 表示** — `patient.py` に inline
   (`clinosim.codes` 標準 lookup pattern に収まらない 2 enum resource
   の国別 display map)。
-- **JP Core profile URI** — `attach_ecs_institutional_extensions` と
-  JP Core Coverage profile URI (jpfhir.jp) 経由で付与。
+- **Profile URI** — JP 出力では `practitioner.py` が
+  `JP_Practitioner` / `JP_PractitionerRole` を inline で付与。他の
+  JP Core / JP-CLINS / US Core profile URI は
+  [`../post_process/profile.py`](../post_process/profile.py) が積む。
+  US Patient は US Core race / ethnicity / birthsex extension を持つ。
 - **Family-history relationship coding** — HL7 v3-RoleCode
   ([`family_history` module README](../../../family_history/README.ja.md)
   に記載の Issue #369 v23 regression ルール — per-code JA 表示は
@@ -116,8 +125,8 @@ NDJSON を id で sort する。
 
 ```
 clinosim/modules/output/fhir_r4/demographics/
-  __init__.py                    空 (builder は親 __init__ が import)
-  patient.py                     _build_patient + Coverage + payor Org + occupation + inline allergy (~600 LOC)
+  __init__.py                    namespace stub (builder は ../builder.py / ../lib/inline_bb.py が import)
+  patient.py                     _build_patient + Coverage + payor Org + occupation + patient_ref + legacy allergy (~1,200 LOC)
   practitioner.py                _build_practitioner + _build_practitioner_role
   family_history.py              _bb_family_history + _resolve_family_history_code + _build_relationship_codeable
   smoking_alcohol.py             _bb_smoking_status + _bb_alcohol_use + _sdoh_effective_datetime + _sdoh_performer_ref
@@ -139,4 +148,4 @@ patient / coverage test。
 `maintainers@` — 詳細は
 [`CONTRIBUTING.md`](../../../../../CONTRIBUTING.ja.md)。
 
-英語版: [`README.md`](README.ja.md)。
+英語版: [`README.md`](README.md)。

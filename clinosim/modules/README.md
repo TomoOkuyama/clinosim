@@ -74,6 +74,7 @@ Cross-module invariants:
 | [`sdoh/`](sdoh/README.md) | Social-determinants reference data (smoking / alcohol SNOMED + LOINC — data-only variant). |
 | [`family_history/`](family_history/README.md) | First-degree relative history synthesis. |
 | [`pediatric/`](pediatric/README.md) | Pediatric encounter emission (well-child / immunization / acute / behavioural — Issue #760). |
+| [`metabolic/`](metabolic/README.md) | BMI-derived + metabolic-cluster chronic conditions (E66 / E88.81 / K76.0 / G47.30, POST_POPULATION order=15–18). |
 
 ### Clinical state
 
@@ -81,19 +82,21 @@ Cross-module invariants:
 | --- | --- |
 | [`physiology/`](physiology/README.md) | Physiology state engine — every lab / vital / medication response derives from it. |
 | [`clinical_course/`](clinical_course/README.md) | Trajectory archetype + daily `StateChangeDirective` engine. |
-| [`disease/`](disease/README.md) | Disease-protocol registry (32 YAMLs) + severity + acuity + drug-vocabulary. |
+| [`longitudinal/`](longitudinal/README.md) | Year-indexed trajectory engine — one `YearSnapshot` per sim year in `PersonRecord.longitudinal_history`, read via `state_at`. |
+| [`disease/`](disease/README.md) | Disease-protocol registry (36 YAMLs) + severity + acuity + drug-vocabulary. |
 
 ### Care events
 
 | Module | Purpose |
 | --- | --- |
-| [`encounter/`](encounter/README.md) | Encounter-condition registry (46 YAMLs) + inpatient daily-cycle timeline. |
+| [`encounter/`](encounter/README.md) | Encounter-condition registry (51 YAMLs) + inpatient daily-cycle timeline. |
 | [`triage/`](triage/README.md) | ED triage sampling (JTAS / ESI, POST_ENCOUNTER order=93). |
 | [`diagnosis/`](diagnosis/README.md) | Bayesian differential-diagnosis engine + Issue #551 non-specific codes. |
 | [`order/`](order/README.md) | Order placement + panel grouping + treatment classifier + AD-60 audit. |
 | [`procedure/`](procedure/README.md) | Surgical + bedside procedure + rehab session generation. |
 | [`imaging/`](imaging/README.md) | Imaging study + series + radiology report (Tier 1 #2 chain, AD-60 audit). |
 | [`device/`](device/README.md) | ICU device placement (CVC / catheter / ventilator, POST_ENCOUNTER order=70). |
+| [`newborn/`](newborn/README.md) | Newborn birth-admission clinical workup (POST_ENCOUNTER order=92, Issue #1252). |
 
 ### Observations & therapy
 
@@ -106,6 +109,8 @@ Cross-module invariants:
 | [`immunization/`](immunization/README.md) | Adult vaccine history from CVX schedule. |
 | [`health_checkup/`](health_checkup/README.md) | JP employer-provided health checkup (opt-in, POST_RECORDS order=70). |
 | [`monitoring/`](monitoring/README.md) | Chronic-medication → monitoring-lab injection (Issue #757). |
+| [`prophylaxis/`](prophylaxis/README.md) | VTE chemoprophylaxis for inpatient stays ≥ 48 h (POST_ENCOUNTER order=75). |
+| [`drug_safety/`](drug_safety/README.md) | Class-based contraindication gate + alternative-drug substitution at prescribing time. |
 
 ### Care operations
 

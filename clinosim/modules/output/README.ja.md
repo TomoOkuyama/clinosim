@@ -34,9 +34,9 @@ subpackage は `_BUNDLE_BUILDERS` registry 経由で CIF から拾う:
 
 - **産科 — 母親側分娩 Encounter** (admit dx `O80`、discharge dx
   `Z37.0`、分娩 Procedure JP `K894` / US CPT `59400`) と **新生児
-  Encounter** (`admit_source = "born"` — 新
+  Encounter** (`admit_source = "born"` —
   `AdmitSource.BORN` enum 値、詳細
-  [`clinosim/types/encounter.py`](../../types/encounter.py)、
+  [`clinosim/codes/hl7_encounter.py`](../../codes/hl7_encounter.py)、
   `admit_source_encounter_id` が母親の分娩 encounter を指し新生児側の
   FHIR `Encounter.partOf` に emit)。新生児側 discharge dx `Z38.0`、
   産褥 (postpartum) 外来 encounter は `chronic_followup.yaml` 経由で
@@ -102,13 +102,14 @@ adapter は本 facade を編集せず新 `format_id` を import 時に登録で�
 
 - `clinosim.modules.output.fhir_r4` (subpackage) — FHIR R4 emit
   面、本 package `__init__` で再 export。
-- `clinosim.types.output` — `CIFDataset`、manifest 型。
-- `clinosim.types.clinical` — `ClinicalDocument` +
-  `ClinicalDocumentNarrative` (`CIFReader` が read)。
-- `yaml` — YAML パススルー (CIF は JSON だが CLI は YAML config
-  を受容)。
-- `adapter.py` / `adapters_builtin.py` / `cif_writer.py` は
-  標準ライブラリのみ。
+- `clinosim.types.output` — `CIFDataset` (`write_cif` が書き出す)。
+- `clinosim.modules.population._pediatric_anthropometry` +
+  `clinosim.simulator.log` — `cif_writer.py` が使用 (baby-snapshot
+  身体計測、進捗ログ)。
+- `clinosim.codes`、`clinosim.simulator.complications` —
+  `csv_adapter.py` と `hospital_course_extractor.py` が使用。
+- `adapter.py` / `adapters_builtin.py` / `cif_reader.py` は
+  標準ライブラリのみ (`CIFReader` は生 JSON dict を扱う)。
 
 ## 定数と設定
 
@@ -166,9 +167,10 @@ fhir-r4 ...` または単独 `clinosim export-fhir`) に呼び出され、
 
 | Consumer | 場所 | 役割 |
 | --- | --- | --- |
-| CLI `export` / `export-fhir` | [`clinosim/simulator/cli.py`](../../simulator/cli.py) | `get_adapter(format_id).convert(cif_dir, out_dir, ctx)` を呼び出す。 |
-| Narrative pipeline | [`clinosim/modules/document/narrative/passes.py`](../document/narrative/passes.py) | `CIFReader` で構造化 + narrative-version-merged CIF を load。 |
-| Narrative discharge-summary | [`clinosim/modules/document/narrative/template_generator.py`](../document/narrative/template_generator.py) | `extract_hospital_course` + `summarize_*` helper で discharge-summary fact を構成。 |
+| CLI `simulate --format` / `export-fhir` | [`clinosim/simulator/cli_common.py`](../../simulator/cli_common.py) (`_validate_formats` / `_run_exports`)、[`clinosim/simulator/cli_export_fhir.py`](../../simulator/cli_export_fhir.py) | `get_adapter(format_id).convert(cif_dir, out_dir, ctx)` を呼び出す。 |
+| FHIR R4 builder / CSV adapter | [`fhir_r4/builder.py`](fhir_r4/builder.py)、[`csv_adapter.py`](csv_adapter.py) | `CIFReader` で構造化 + narrative-version-merged CIF を load。 |
+| Memoize / document audit | [`clinosim/simulator/memoize.py`](../../simulator/memoize.py)、[`clinosim/modules/document/audit.py`](../document/audit.py) | `CIFReader` (memoize)、`resolve_current_narrative_dir` + `write_cif` (audit)。 |
+| Discharge-summary helper | `scripts/prepare_ab_test_prompts.py`、`scripts/validate_5types_bedrock.py`、`tests/unit/test_clinical_documents.py` | `extract_hospital_course` + `summarize_*` を使用。runtime の narrative pipeline はこの module を import しない。 |
 | Third-party plug-in | (user code) | `register_output_adapter(adapter)` で custom adapter、`register_bundle_builder(fn)` で custom FHIR bundle builder を登録。 |
 
 ## テスト
@@ -186,4 +188,4 @@ CIF-reader test、hospital-course extractor test を検索。
 `maintainers@` — 詳細は
 [`CONTRIBUTING.md`](../../../CONTRIBUTING.ja.md)。
 
-英語版: [`README.md`](README.ja.md)。
+英語版: [`README.md`](README.md)。

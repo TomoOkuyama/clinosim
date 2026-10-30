@@ -1,5 +1,19 @@
 # procedure — Surgical & Procedural Workflows
 
+> **Implementation status.** This SPEC is a design reference. The
+> workflow state machine, `AnesthesiaRecord` / `PreOpAssessment` /
+> `PostOpOrder` / `ProcedureComplication` outputs, FIM scoring,
+> `execute_procedure`, and order-module-driven invocation are **not
+> implemented**. What runs is `engine.simulate_surgery` (called by
+> `simulator/inpatient.py` when the protocol sets `requires_surgery`;
+> ASA is 2 / 3 / 4 from comorbidity count and age thresholds in
+> `_surgery_thresholds.py`, not the `calculate_asa` sketch below),
+> `generate_bedside_procedures`, `generate_rehab_sessions`, and
+> `build_intubation_procedure`. The real `RehabSession`
+> (`clinosim/types/procedure.py`) has no `therapist_id`, `goals_addressed`
+> or `notes`, uses `pain_score` instead of `pain_during_session`, and adds
+> `day_post_op`. See [`README.md`](README.md).
+
 ## Purpose
 Model the workflow of surgeries and invasive procedures: pre-operative assessment, informed consent, the procedure itself, and post-operative recovery. Essential for hip fracture (Phase 1) and any surgical disease module.
 

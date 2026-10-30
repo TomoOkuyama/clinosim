@@ -4,24 +4,28 @@
 
 生成 cohort に対する 2 系統の直交 validator:
 
-- **Realism benchmark** (`benchmarks.py`) — cohort-level 統計
-  (LOS 分布、mortality、合併症率、慢性疾患 prevalence) を公表 clinical
-  benchmark と突合 (JAMA / NEJM 臨床ガイドライン、AHRQ HCUP for US、
-  厚生労働省 患者調査 for JP、OECD Health Data)。
+- **Realism benchmark** (`benchmarks.py`) — 6 つの cohort-level 統計を
+  hard-coded の期待値 / 範囲と比較: `mean_age`、`male_ratio`、
+  `median_los` と `mean_los` (入院、JP と US で範囲が異なる)、
+  `mean_labs_per_patient`、`mean_vitals_per_patient`。
 - **Consistency check** (`consistency.py`) — LLM 不要の内部 rule-based
-  不変量: physiologic 値範囲、退院基準、薬剤 hold、procedure 必須
-  field、死亡 status、lab ↔ physiology trajectory 整合、LOS 整合、
-  性別限定条件。
+  不変量 (最初の encounter が入院の record が対象): 退院時 Hb (最終
+  `anemia_level` から導出)、死亡 status と転帰、lab 値範囲、薬剤 hold
+  (ICH の抗凝固薬、DKA / sepsis / 膵炎 / AKI の metformin)、手術の
+  code / approach field、LOS 整合、vital 範囲、性別限定条件。
 
-`clinosim validate` CLI subcommand が消費。validator は報告のみ —
-問題を修正しない。
+repo 内の呼び出し元は e2e test のみ (Output surface 参照)。
+`clinosim validate` CLI subcommand は独自のチェック
+(`simulator/cli_common._run_quality_checks`) を実行し、本モジュールは
+呼ばない。validator は報告のみ — 問題を修正しない。
 
 ## Scope
 
 - **In scope**: `run_benchmarks(dataset, country="JP") -> BenchmarkReport`
   と per-row `BenchmarkResult` (name / metric / generated / expected /
   range / `pass` / `warn` / `fail` status / deviation %);
-  `run_consistency_checks(dataset) -> ConsistencyReport` と
+  `run_consistency_checks(dataset, country="US") -> ConsistencyReport`
+  (`country` は現状未使用) と
   per-issue `ConsistencyIssue` (`error` / `warning` severity);
   8 private consistency helper (`_check_discharge_hgb`,
   `_check_deceased_status`, `_check_lab_ranges`,
@@ -47,7 +51,7 @@ from clinosim.modules.validator.benchmarks import (
 from clinosim.modules.validator.consistency import (
     ConsistencyIssue,            # dataclass: patient_id / severity / check_name / message
     ConsistencyReport,           # run 単位 roll-up
-    run_consistency_checks,      # (dataset) -> ConsistencyReport
+    run_consistency_checks,      # (dataset, country="US") -> ConsistencyReport
 )
 ```
 
@@ -63,24 +67,20 @@ expected range 内なら `pass`、±50 % 拡大範囲内なら `warn`、それ�
 
 ## 依存
 
-- `clinosim.modules._shared` — 国 dispatch 用 `is_jp`。
+- `clinosim.modules._shared` — 国 dispatch 用 `is_jp` (benchmark)。
+- `clinosim.simulator.complications` — `complication_names`
+  (consistency の metformin hold check)。
 - `clinosim.types.output` — `CIFDataset`, `CIFPatientRecord`。
-- `clinosim.types.encounter` — consistency helper が読む encounter
-  record。
-- 標準ライブラリのみ (`numpy` / `yaml` 不使用)。
+- その他は標準ライブラリのみ (`numpy` / `yaml` 不使用)。
 
 ## 定数と設定
 
-- Benchmark 期待値 + 許容範囲は `benchmarks.py` に inline、per-benchmark
-  の source 引用付き (JAMA / NEJM / HCUP / 患者調査 / OECD)。sibling
-  `_benchmark_thresholds.py` への閾値 lift は
-  [`docs/reviews/2026-08-09-constants-audit.md`](../../../docs/reviews/2026-08-09-constants-audit.md)
-  で追跡中。
-- Consistency check の範囲も同様に inline。Hb 退院 floor、抗凝固剤 /
-  ICH hold、metformin / DKA hold、vital 別 physiologic 境界を anchor
-  する。
-- YAML 無し — 範囲は tuning parameter ではなく named clinical
-  reference を引用しているため、validation は code-first。
+- Benchmark 期待値 + 許容範囲は `benchmarks.py` に inline (コード内に
+  per-benchmark の出典引用は無い)。
+- Consistency check の範囲も同様に inline。Hb 退院 floor (7.0 g/dL)、
+  抗凝固剤 / ICH hold、metformin hold、vital 別 physiologic 境界を
+  anchor する。
+- YAML 無し。
 
 ## ディレクトリ構造
 
@@ -96,7 +96,8 @@ clinosim/modules/validator/
 
 ## Enricher 配線
 
-該当なし — 本モジュールは CLI から呼び出され、
+該当なし — 本モジュールは呼び出し側 (現状 `tests/e2e/test_beta.py` のみ)
+が直接 import し、
 `register_builtin_enrichers` に登録なく `ENRICHER_SEED_OFFSETS` にも
 seed 未登録。
 
@@ -104,18 +105,16 @@ seed 未登録。
 
 | Consumer | 場所 | 役割 |
 | --- | --- | --- |
-| CLI `validate` subcommand | [`clinosim/simulator/cli.py`](../../simulator/cli.py) (`L224-225`, `L660-680` 付近) | Argparse subparser + dispatch。生成 dataset を load して `run_benchmarks` + `run_consistency_checks` を呼び、roll-up を print。 |
 | E2E test | [`tests/e2e/test_beta.py`](../../../tests/e2e/test_beta.py) | 実 cohort に対して `run_benchmarks` を回し、realism envelope を end-to-end guard。 |
 
 ## テスト
 
 ```bash
-pytest tests/unit -k validator -q
 pytest tests/e2e -k test_beta -q     # 実 cohort で run_benchmarks 実行
 ```
 
-**coverage gap**: `run_consistency_checks` に専用 unit test file は
-無く、`clinosim validate` CLI path 経由で間接カバー。8 `_check_*`
+**coverage gap**: 本モジュールの unit test は無く、
+`run_consistency_checks` には現状呼び出し元も test も無い。8 `_check_*`
 helper それぞれについて各 rule を発火する fixture 患者を並べた
 per-check unit file は低コストの follow-up。
 
@@ -124,4 +123,4 @@ per-check unit file は低コストの follow-up。
 `maintainers@` — 詳細は
 [`CONTRIBUTING.md`](../../../CONTRIBUTING.ja.md)。
 
-英語版: [`README.md`](README.ja.md)。
+英語版: [`README.md`](README.md)。
