@@ -13,10 +13,10 @@ For every axis:
 - **Check weight** = severity: CRITICAL = 3, MAJOR = 2, MINOR = 1
 - **Pass-weight** = PASS 1.0, WARN 0.5, FAIL 0.0, N/A 0.0
 
-**Overall score** = arithmetic mean of the score of every axis result
-in the report (one per axis × country subdirectory). A
+**Overall score** = arithmetic mean of the score of every applicable
+axis result in the report (one per axis × country subdirectory). A
 country-conditional axis that does not apply to the cohort's locale
-returns no checks, scores 0.0, and is still included in the mean.
+returns no checks, reports status `N/A`, and is left out of the mean.
 **Overall status** = worst of FAIL / WARN / PASS across axes.
 
 ---

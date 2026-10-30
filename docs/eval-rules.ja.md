@@ -14,8 +14,8 @@
 - **Pass-weight** = PASS 1.0、WARN 0.5、FAIL 0.0、N/A 0.0
 
 **Overall score** = レポート中の全軸結果 (軸 × 国サブディレクトリごと
-に 1 件) のスコアの算術平均。コホートの locale に該当しない国 条件軸は
-check を返さず score 0.0 となり、それでもこの平均に含まれる。
+に 1 件) のうち該当する軸のスコアの算術平均。コホートの locale に該当
+しない国条件軸は check を返さず status `N/A` となり、平均に含めない。
 **Overall status** = 軸横断で FAIL / WARN / PASS の最悪。
 
 ---

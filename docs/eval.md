@@ -124,11 +124,11 @@ Per-axis score = 100 × Σ(pass-weight) / Σ(total-weight), where:
 - Severity weights: **CRITICAL = 3, MAJOR = 2, MINOR = 1**.
 - Outcome weights: **PASS = 1.0, WARN = 0.5, FAIL / N/A = 0.0**.
 
-Overall score = arithmetic mean of the score of every axis result in
-the report (one result per axis × country subdirectory). A
+Overall score = arithmetic mean of the score of every applicable axis
+result in the report (one result per axis × country subdirectory). A
 country-conditional axis that does not apply to the cohort's locale
-still appears in the report with an empty `checks` list and a score of
-0.0, and it is included in that mean.
+still appears in the report with an empty `checks` list, status `N/A`
+and `"applicable": false`, and is left out of that mean.
 Overall status is `FAIL` if any check on any axis is FAIL, else
 `WARN` if any is WARN, else `PASS`.
 
@@ -148,6 +148,7 @@ Overall status is `FAIL` if any check on any axis is FAIL, else
       "country": "_flat",
       "score": 100.0,
       "status": "PASS",
+      "applicable": true,
       "checks": [
         {
           "name": "resource_id_uniqueness",

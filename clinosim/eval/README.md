@@ -59,9 +59,11 @@ def run(cohort: Cohort, country: str) -> list[EvalCheck]
 
 The engine runs every axis for every country partition found in the
 cohort and computes axis score = `100 × Σ(passing weight) /
-Σ(total weight)` where a WARN counts as 0.5 of a pass (an axis with no
-checks scores 0.0); the overall score is the arithmetic mean of all
-axis results. `--strict` makes the CLI exit 1 when the overall status
+Σ(total weight)` where a WARN counts as 0.5 of a pass; the overall
+score is the arithmetic mean of the applicable axis results. An axis
+with no checks (a country-conditional axis on another locale's cohort)
+reports status `N/A`, `applicable: false`, and is left out of the
+mean. `--strict` makes the CLI exit 1 when the overall status
 is FAIL (default: exit 0). Both cohort layouts
 `<root>/<country>/fhir_r4/` (multi-country) and `<root>/fhir_r4/`
 (single-country flat) are consumable directly.

@@ -12,7 +12,8 @@ Each axis is a plain function::
 that returns one :class:`EvalCheck` per named check. The engine then
 computes the axis score = 100 × Σ(passing weight) / Σ(total weight),
 where WARN counts as 0.5 pass. The overall score is the arithmetic
-mean of the axis scores.
+mean of the scores of the applicable axes (axes that produced at
+least one check); an axis with no checks reports status ``N/A``.
 """
 
 from __future__ import annotations
@@ -87,6 +88,12 @@ class EvalAxisResult:
     checks: list[EvalCheck] = field(default_factory=list)
 
     @property
+    def applicable(self) -> bool:
+        """False when the axis produced no checks (e.g. a country-conditional
+        axis on a cohort of another locale). Issue #2198."""
+        return bool(self.checks)
+
+    @property
     def score(self) -> float:
         total_weight = sum(c.weight for c in self.checks)
         if total_weight == 0:
@@ -96,6 +103,8 @@ class EvalAxisResult:
 
     @property
     def status(self) -> str:
+        if not self.applicable:
+            return "N/A"
         if any(c.outcome is Outcome.FAIL for c in self.checks):
             return "FAIL"
         if any(c.outcome is Outcome.WARN for c in self.checks):
@@ -108,6 +117,7 @@ class EvalAxisResult:
             "country": self.country,
             "score": self.score,
             "status": self.status,
+            "applicable": self.applicable,
             "checks": [c.to_dict() for c in self.checks],
         }
 
@@ -123,9 +133,13 @@ class EvalReport:
 
     @property
     def overall_score(self) -> float:
-        if not self.axes:
+        # Only axes that produced checks count; an axis that does not apply
+        # to the cohort's locale would otherwise pull the mean down by a
+        # whole axis at 0.0 (Issue #2198).
+        applicable = [a for a in self.axes if a.applicable]
+        if not applicable:
             return 0.0
-        return round(sum(a.score for a in self.axes) / len(self.axes), 1)
+        return round(sum(a.score for a in applicable) / len(applicable), 1)
 
     @property
     def overall_status(self) -> str:
