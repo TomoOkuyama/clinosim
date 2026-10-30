@@ -153,7 +153,7 @@ def dispatch_calendar_event(event: LifeEvent, ctx: ForwardContext) -> None:
             _post_hoc_overlap = _handle_overlap_via_merge(ctx.patient_records, _r, event.disease_id)
             if _post_hoc_overlap is None:
                 ctx.patient_records.append(_r)
-                return
+        return
     elif event.event_type == "delivery":
         from clinosim.simulator.perinatal import simulate_delivery_encounter
 
@@ -177,7 +177,7 @@ def dispatch_calendar_event(event: LifeEvent, ctx: ForwardContext) -> None:
                 ctx.patient_records.append(mother_rec)
             for _r in companions:
                 ctx.patient_records.append(_r)
-                return
+        return
     elif event.event_type == "chemo_visit":
         regimen_name = event.protocol_source.split(":", 1)[1] if ":" in event.protocol_source else ""
         from clinosim.locale.loader import load_chemo_regimens
