@@ -23,6 +23,7 @@ from clinosim.modules.population.engine import LifeEvent
 from clinosim.simulator._discharge_gate_thresholds import (
     DISCHARGE_ANEMIA_MAX,
     DISCHARGE_CONSCIOUSNESS_EXCESS_MAX,
+    DISCHARGE_INFLAMMATION_SAFE_MAX,
     DISCHARGE_JP_INFLAMMATION_MAX,
     DISCHARGE_JP_PERFUSION_MIN,
     DISCHARGE_JP_PH_ABS_MAX,
@@ -162,9 +163,9 @@ def _evaluate_readmission(
 
 
 def unsafe_for_home(state: PhysiologicalState, symptom_floor: dict[str, float] | None) -> bool:
-    """True while the patient cannot be sent home (Issues #2055, #2084):
+    """True while the patient cannot be sent home (Issues #2055, #2084, #2239):
     uncontrolled autonomic symptoms, hypoxemia or impaired consciousness beyond
-    the chronic baseline, or hypoperfusion."""
+    the chronic baseline, hypoperfusion, or uncontrolled systemic inflammation."""
     floor = symptom_floor or {}
     return (
         state.sympathetic_activation >= DISCHARGE_SYMPATHETIC_MAX
@@ -172,6 +173,7 @@ def unsafe_for_home(state: PhysiologicalState, symptom_floor: dict[str, float] |
         or state.consciousness_impairment - floor.get("consciousness_impairment", 0.0)
         >= DISCHARGE_CONSCIOUSNESS_EXCESS_MAX
         or state.perfusion_status < DISCHARGE_PERFUSION_SAFE_MIN
+        or state.inflammation_level >= DISCHARGE_INFLAMMATION_SAFE_MAX
     )
 
 
