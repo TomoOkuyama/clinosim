@@ -712,9 +712,19 @@ outcome_benchmarks:
 # Each archetype defines day-by-day deltas for physiological state variables.
 # Sepsis has more aggressive trajectories and longer timelines than pneumonia.
 # ============================================================
+# Issue #2243: the probabilities below are base rates BEFORE the severity
+# multipliers (select_archetype: severe x2.0 deterioration, x0.6 smooth
+# recovery) and the archetype_modifiers further down. Sepsis admissions are
+# mostly severe and elderly (about two thirds severe), so the modifiers lift
+# the deteriorating courses for most patients. These base rates are fitted so
+# that the realised cohort mix (US + JP admissions, 191 selections) lands on
+# the intended 30 / 20 / 15 / 15 / 12 / 8 % split of smooth recovery, dip then
+# recovery, plateau, treatment resistant, gradual and sudden deterioration.
+# The authored base rates were used directly before and realised 6 / 19 / 14 /
+# 22 / 26 / 14 %.
 course_archetypes:
   smooth_recovery:
-    probability: 0.30
+    probability: 0.62
     description: "Source controlled, early appropriate antibiotics, steady improvement from Day 2-3"
     trajectory:
       inflammation_level: {0: 0.05, 1: 0.00, 2: -0.05, 3: -0.08, 5: -0.10, 7: -0.10, 10: -0.08, 14: -0.06, 21: -0.04, 28: -0.02}
@@ -739,7 +749,7 @@ course_archetypes:
         plan: "治療継続"
 
   dip_then_recovery:
-    probability: 0.20
+    probability: 0.17
     description: "Initial worsening Day 1-4 with organ dysfunction, then gradual recovery"
     trajectory:
       inflammation_level: {0: 0.10, 1: 0.08, 2: 0.05, 3: 0.00, 5: -0.05, 7: -0.08, 10: -0.10, 14: -0.08, 21: -0.05, 28: -0.03}
@@ -763,7 +773,7 @@ course_archetypes:
         action: "icu_transfer"
 
   plateau:
-    probability: 0.15
+    probability: 0.13
     description: "Stable but not improving for 5-7 days, then slow recovery"
     trajectory:
       inflammation_level: {0: 0.05, 1: 0.03, 2: 0.01, 3: 0.00, 5: 0.00, 7: 0.00, 10: -0.05, 14: -0.08, 21: -0.06, 28: -0.03}
@@ -787,7 +797,7 @@ course_archetypes:
         note: "Empiric antifungal if no improvement with broad-spectrum ABx"
 
   treatment_resistant:
-    probability: 0.15
+    probability: 0.04
     description: "Resistant organism or uncontrolled source; requires major treatment changes"
     trajectory:
       inflammation_level: {0: 0.10, 1: 0.08, 2: 0.08, 3: 0.05, 5: 0.03, 7: -0.02, 10: -0.08, 14: -0.10, 21: -0.06, 28: -0.03}
@@ -824,7 +834,7 @@ course_archetypes:
         actions: ["interventional_source_control", "add_antifungal"]
 
   gradual_deterioration:
-    probability: 0.12
+    probability: 0.01
     description: "Progressive multi-organ failure despite treatment -> prolonged ICU stay, possible death"
     trajectory:
       consciousness_impairment: {0: 0.05, 1: 0.10, 2: 0.08, 3: 0.03, 5: 0.00}
@@ -882,7 +892,7 @@ course_archetypes:
         actions: ["goals_of_care_discussion"]
 
   sudden_deterioration:
-    probability: 0.08
+    probability: 0.03
     description: "Acute decompensation with septic shock on Day 1-2; high mortality"
     trajectory:
       consciousness_impairment: {0: 0.05, 1: 0.20, 2: 0.10, 3: 0.00, 5: 0.00}
