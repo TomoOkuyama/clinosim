@@ -6,21 +6,26 @@
 #
 # When a candidate drug's ``drug_class`` (from ``drug_classes.yaml``) matches
 # a rule AND the patient carries a chronic ICD code whose base or full form
-# matches the rule's ``disease_predicate.icd_prefix``, the rule fires with
-# the declared ``severity``. ``check_candidate_against_disease_state`` returns
-# the highest-severity matched verdict; callers (activator's chronic-med
-# sampler, discharge_rx builder) apply the default action derived from
-# severity by ``verdict.SafetyVerdict.default_action``.
+# matches the rule's ``disease_predicate.icd_prefix`` (and, when the rule
+# sets ``disease_predicate.stage_in``, the condition's stage is in that
+# list), the rule fires with the declared ``severity``.
+# ``check_candidate_against_disease_state`` returns every matched verdict;
+# its caller (the activator's chronic-med sampler,
+# ``modules/patient/activator.py``) picks the highest severity and applies
+# the default action derived from it by
+# ``verdict.SafetyVerdict.default_action``.
 #
 # Match semantics:
 #   - ``drug_class``: a class in the candidate's expanded class list.
 #   - ``disease_predicate.icd_prefix``: any of the strings match a chronic
 #     condition's code by prefix. E.g. ``["I50"]`` matches ``I50``, ``I50.9``,
 #     ``I50.32``, …
+#   - ``disease_predicate.stage_in`` (optional, Issue #1769): the matched
+#     condition must also carry one of these stage strings.
 #
-# Cluster A of Issue #1392 (META): first three rules land the NSAID vs
-# HF / cirrhosis / CKD stage 4-5 gates identified in Issue #1350 by
-# random-sample review. Wire-up covers chronic-med sampling; acute-illness
+# Rules: NSAID vs HF / cirrhosis / CKD stage 4-5 (Cluster A of Issue #1392,
+# from the Issue #1350 random-sample review) and Metformin vs CKD G3b-G5
+# (Issue #1769). Wire-up covers chronic-med sampling; acute-illness
 # gates (ACE-I in AKI, Alendronate PO in dysphagic stroke — Issue #1335)
 # require order/discharge_rx path integration and are deferred to a
 # follow-up PR in the same Cluster A family.

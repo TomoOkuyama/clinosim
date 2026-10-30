@@ -1,8 +1,14 @@
 """FHIR R4 CareTeam resource builder (Tier 1 #3 α-min-2 Task 11).
 
-Emits 1 CareTeam per encounter with participant[]=[attending_physician,
-primary_nurse]. 2-name scope for α-min-2; multi-disciplinary CareTeam
-(pharmacist / nutritionist / rehab / MSW) deferred to β-JP-1.
+Emits 1 CareTeam per encounter. participant[] always starts with the
+attending physician, followed by the primary nurse (when set), then the
+multi-disciplinary members picked deterministically from the hospital
+roster by encounter-id hash:
+- a pharmacist on inpatient / emergency encounters;
+- allied-health members (physical / occupational / speech therapist,
+  dietitian, medical social worker, rehabilitation physician) on
+  inpatient / icu / rehab_inpatient encounters, one per role present in
+  the roster.
 
 Fields sourced from Encounter (α-min-2 additions):
 - attending_physician_id (existing, set by simulators)
@@ -114,8 +120,7 @@ def _bb_care_teams(ctx: BundleContext) -> list[dict[str, Any]]:
     # consult — especially for LOS > 7d, orthopedic / neurology
     # admissions, and discharge planning. Selection uses the same
     # encounter-id hash pattern as pharmacist_ids so re-generation is
-    # byte-identical (AD-16 / RNG-neutral additive per
-    # feedback_rng_neutral_additive_field). Attendance is deterministic
+    # byte-identical (AD-16 / RNG-neutral additive pattern). Attendance is deterministic
     # per-role using a role-name salt so different roles don't co-vary
     # on the same encounter.
     #

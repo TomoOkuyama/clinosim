@@ -308,18 +308,21 @@ assert len(set(ENRICHER_SEED_OFFSETS.values())) == len(ENRICHER_SEED_OFFSETS), (
 # ------------------------------------------------------------------
 # Phase-scoped sub-seed offsets (F1 cross-cursor determinism).
 #
-# The four run_beta phases (life-event generation / hospital main loop
-# / readmission / outpatient calendar / ED) currently consume the
-# master RNG serially. If a cursor advance (snapshot_date change)
-# changes the event count in phase P1, the master RNG state at the
-# start of phase P2 differs — so the same patient X ends up with a
-# different result under the new cursor, and "the shared interval
-# between the output at cursor A and the output at cursor B is
-# bytewise identical" is not guaranteed.
+# run_beta drives one forward month loop (run_forward_loop) that
+# interleaves life-event generation, hospital dispatch, readmission,
+# the outpatient/healthcare calendar and ED visits through a single
+# date-ordered event queue. If these steps drew from one shared master
+# RNG, a cursor advance (snapshot_date change) that changes the event
+# count in one step would shift the RNG state seen by every later
+# draw — so the same patient X would end up with a different result
+# under the new cursor, and "the shared interval between the output at
+# cursor A and the output at cursor B is bytewise identical" would not
+# be guaranteed.
 #
-# Separating a phase salt here and switching to per-key sub-seeds
-# inside each phase bypasses the master RNG entirely, so a cursor
-# advance no longer propagates across phases.
+# Each step therefore takes its own phase salt here and derives per-key
+# sub-seeds (derive_phase_rng), bypassing the master RNG entirely, so a
+# cursor advance or a change in dispatch order does not propagate
+# across steps.
 #
 # Convention: 32-bit values whose four bytes are ASCII uppercase
 # letters, using the 0x504xxxxx range to avoid collisions with the

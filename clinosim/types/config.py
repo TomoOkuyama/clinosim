@@ -23,7 +23,8 @@ __all__ = [
 
 
 class HealthcareSystemConfig(BaseModel):
-    """Country-specific configuration. Loaded from healthcare_system/configs/{country}.yaml."""
+    """Country-specific configuration. Loaded from clinosim/config/{us,japan}.yaml
+    by ``modules.healthcare_system.loader.load_healthcare_config``."""
 
     country: str  # "JP" | "US"
 

@@ -1,7 +1,7 @@
 """silent_no_op axis: the gate that catches PR-90's class of bug.
 
-Three checks, each independently severable so a Module can opt in to
-any subset:
+Two checks, each independently severable so a Module can opt in to
+either or both:
 
 1. **Canonical constants cross-check** — for every (yaml_file,
    key_path) in spec.yaml_keys_to_validate, load the YAML and verify
@@ -22,12 +22,6 @@ any subset:
    per-analyte tolerance (WBC ±2.0, CRP ±0.5). ANY mismatch → FAIL.
    This is the load-bearing verification that would have caught PR-90's
    UPPERCASE/lowercase silent-no-op.
-
-3. **Fired counter** — Phase 1 surface: counts Condition emissions
-   carrying the codes in spec.canonical_constants["icd_codes"] if set.
-   Phase 1 ships HAI without a fired_counter (Module-specific code
-   discovery is Phase 2 backlog) — the axis runs the constants +
-   proof checks only.
 """
 
 from __future__ import annotations

@@ -26,7 +26,7 @@ for drugs the catalog does not register (META #1804).
 Class taxonomy conventions:
 
 - `anticoagulant.{vka, doac, heparin}`
-- `antiplatelet.{cox_inhibitor, p2y12, gp2b3a}`
+- `antiplatelet.{cox_inhibitor, p2y12}`
 - `nsaid.{non_selective, preferential_cox2, cox2_selective}` (Aspirin is dual-class,
   belonging to both `antiplatelet.cox_inhibitor` and
   `nsaid.non_selective`)
@@ -34,7 +34,7 @@ Class taxonomy conventions:
 - `beta_blocker.{cardioselective, non_selective}`
 - `acei` / `arb` / `acei_arb` (union tag on both)
 - `potassium_supplement`, `electrolyte_supplement`
-- `diuretic.{loop, thiazide, k_sparing}`
+- `diuretic.{loop, k_sparing}`
 - `statin`, `cyp3a4_substrate`, `cyp3a4_inhibitor_strong`
 - `xanthine_oxidase_inhibitor`, `thiopurine`, `immunosuppressant`
 - `ssri`, `snri`, `maoi`, `antidepressant`, `atypical_antidepressant`,

@@ -3,14 +3,15 @@
 Runs after every simulated encounter, gates on the newborn-birth record
 (perinatal.py stamps ``condition_event.condition_type = "newborn_birth"``
 on the baby-side CIF record) and appends the clinical events this
-module owns. This PR's slice: Vitamin K prophylaxis (JP oral × 2, US
-IM × 1). Follow-up PRs stack Apgar / hearing screen / metabolic screen
-/ bilirubin / CCHD SpO2 / ophthalmic prophylaxis in the same seam.
+module owns: Vitamin K prophylaxis (JP oral, US IM) and US erythromycin
+ophthalmic prophylaxis as MAR entries, shift vitals, Apgar scores, the
+hearing and metabolic screen Procedures (once per newborn), and the
+bilirubin / CCHD SpO2 / metabolic-screen workflow data under
+``extensions["newborn"]``.
 
-Enricher order (see `clinosim/simulator/enrichers.py`): 92 — after
-`nursing_assignment` (94) is not required (no dependency) but this is
-placed before `document` (95) so any downstream document narrative
-that references Vitamin K administration has the MAR entry in hand.
+Enricher order (see `clinosim/simulator/enrichers.py`): 92 — placed
+before `document` (95) so any downstream document narrative that
+references Vitamin K administration has the MAR entry in hand.
 """
 
 from __future__ import annotations
@@ -40,9 +41,11 @@ logger = logging.getLogger(__name__)
 
 def enrich_newborn(ctx: Any) -> None:
     """POST_ENCOUNTER entrypoint. Iterates `ctx.records`, no-ops on
-    non-newborn records, appends Vitamin K MAR entries to newborn
-    records. RNG-free (deterministic schedule from
-    `newborn_screening.yaml`).
+    non-newborn records, and appends the newborn workup listed in the
+    module docstring to newborn records. Schedules come from
+    `newborn_screening.yaml`; sampled values (Apgar, screen outcomes,
+    bilirubin, SpO2) use per-newborn sha256-keyed sub-RNGs, so the
+    master RNG is not consumed.
     """
     records = _get(ctx, "records", None) or []
     country = str(_get(_get(ctx, "config", None), "country", "US") or "US")

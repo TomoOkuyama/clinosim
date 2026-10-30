@@ -7,9 +7,9 @@ regressions where a new caller adds a med without consulting the gate.
 
 Full AD-60 four-axis registration (canonical_constants + structural +
 clinical + firing_proof) is deferred to a follow-up issue. This MVP
-plug-in ships only the ``clinical_acceptance``-style pair enumeration
-and is invoked directly from the CLI / verify_medical_stats.py, not
-through the AD-60 audit registry.
+plug-in ships only the ``clinical_acceptance``-style pair enumeration.
+It is a plain function for direct calls; it is not registered in the
+AD-60 audit registry and no CLI command or script invokes it.
 """
 
 from __future__ import annotations

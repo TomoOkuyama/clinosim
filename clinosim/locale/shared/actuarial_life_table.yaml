@@ -1,10 +1,12 @@
 # All-cause age × sex annual mortality probability (qx) for US + JP,
-# sourced from national period life tables. Scaffold for the C11g
-# natural-death subsystem (Issue #1114, 5-part decomposition — this
-# file is C11g-1, the isolated data-only step; no consumer yet).
+# sourced from national period life tables (Issue #1114).
 #
-# Data-only. No runtime code loads this file yet — a follow-up PR
-# (C11g-2) wires it into the population activator + PersonRecord.
+# Loaded at runtime by `load_actuarial_life_table()`
+# (clinosim/locale/loaders/clinical.py). The community-mortality draw in
+# clinosim/modules/population/mortality.py reads `annual_mortality_qx`
+# (per-person yearly hazard, scaled by comorbidity SMR) and
+# `community_death_share` (fraction of all-cause deaths drawn outside
+# this hospital's inpatient stays).
 # Kept in `shared/` (matches perinatal.yaml's cross-country layout).
 #
 # Semantics:
@@ -33,13 +35,12 @@
 #     生命表(男) + 生命表(女), 死亡率 (nqx) column, single-year values.
 #     https://www.mhlw.go.jp/toukei/saikin/hw/life/23th/dl/23th-11.pdf
 #
-# Sanity check (cohort-scale weighted average, per feedback_hospital_cohort_target_bands):
+# Sanity check (cohort-scale weighted average):
 #   Applying these values to typical age-sex distributions produces
 #   ~8.5 /kyr all-cause mortality (US, matches CDC ~8.7) and
 #   ~11 /kyr (JP, matches MHLW ~11.4). The subsystem's target
 #   benchmark in verify_medical_stats.py is (7-11) US, (9-13) JP —
-#   consistent with these inputs once the natural-death mechanism
-#   lands (C11g-2 through C11g-5).
+#   consistent with these inputs.
 
 annual_mortality_qx:
   us:

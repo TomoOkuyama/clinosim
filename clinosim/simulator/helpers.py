@@ -7,16 +7,14 @@ work; new code should import from the topic-owned modules directly:
     - ``simulator/discharge_gate.py`` — discharge readiness, readmission,
       mortality
     - ``simulator/hospital_ops.py`` — ward + department resolution
-    - ``simulator/patient_writeback.py`` — Layer-1 person / patient cache sync
     - ``modules/disease/localization.py`` — country → YAML key,
       chief-complaint translation, department extraction
-    - ``modules/order/route_heuristic.py`` — medication route heuristic
 
-The two housekeeping helpers that did not fit a topic module cleanly
-(``_deactivate_to_layer1`` — Layer-1 CIF write-back;
-``_select_secondary_disease`` — mixed-condition selection;
-``_determine_route`` — order-side medication route heuristic) still live
-here for now and will migrate in a follow-up cycle.
+The housekeeping helpers that did not fit a topic module cleanly
+(``_deactivate_to_layer1`` — Layer-1 person / patient-cache write-back
+after discharge; ``_select_secondary_disease`` — mixed-condition
+selection; ``_determine_route`` — order-side medication route heuristic)
+are defined here.
 """
 
 from __future__ import annotations
@@ -328,8 +326,7 @@ def _deactivate_to_layer1(
     # pass issue fixed by META #1596). The initial mRS is sampled
     # via SHA-based deterministic draw keyed by the encounter id
     # so the master RNG stream stays unaffected (RNG-neutral
-    # additive pattern — cf.
-    # ``feedback_rng_neutral_additive_field``).
+    # additive pattern).
     _promote_stroke_sequela_at_discharge(person, disease_id, record, summary)
 
     # A' Phase 1 (Issue #440) sync: keep the cached Layer 2 profile's

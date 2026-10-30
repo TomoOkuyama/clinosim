@@ -5,10 +5,9 @@ Order 75 — after ``device`` (70), before ``hai`` (80). Runs per-record.
 Determinism: no RNG. Skip decision is a pure function of state; the emitted
 Order is deterministic given the encounter admission_datetime.
 
-RNG-preservation: this enricher does NOT consume master RNG. It touches only
-its own per-patient sub-RNG (currently unused because the emission is
-deterministic; kept as a future-proofing hook for dose jitter / adherence
-sampling).
+RNG-preservation: this enricher draws from no RNG at all — neither the
+master RNG nor a sub-RNG (``ENRICHER_SEED_OFFSETS["prophylaxis"]`` is
+reserved but unused).
 """
 
 from __future__ import annotations

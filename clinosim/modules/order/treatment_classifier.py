@@ -298,14 +298,16 @@ def classify_escalation_treatment(esc_drug: object) -> OrderType:
         ``type: "medication"`` -> OrderType.MEDICATION
 
     (2) Keyword fallback — delegate to ``classify_encounter_treatment`` on the
-        combined ``drug + dose`` display string (same string ``inpatient.py``
-        builds for the Order's ``display_name``). Preserves the        behavior for un-migrated entries.
+        combined ``drug + dose`` display string (same string
+        ``simulator/daily_loop.py`` builds for the Order's ``display_name``).
+        Preserves the behavior for un-migrated entries.
 
     (3) Default MEDICATION.
 
     Defensive: non-dict input returns the (3) default so a misuse in the caller
-    loop doesn't crash. The caller (``inpatient.py:1220``) already
-    isinstance-guards; this is double-defense.
+    loop doesn't crash. The caller (the escalation loop in
+    ``simulator/daily_loop.py``) already isinstance-guards; this is
+    double-defense.
     """
     if not isinstance(esc_drug, dict):
         return OrderType.MEDICATION

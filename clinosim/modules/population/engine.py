@@ -932,12 +932,23 @@ def generate_healthcare_calendar(
 ) -> list[LifeEvent]:
     """Generate a year's healthcare calendar for ALL population members.
 
-    This includes:
-    - Chronic disease management visits (for everyone with chronic conditions)
-    - Annual health screening (age 40+)
-    - ED visits (non-admitted, from demographics config)
+    Covers every person in the population during ``year``:
+    - Pediatric encounters (``modules.pediatric.calendar``)
+    - Pregnancy lifecycle events
+    - Chronic follow-up visits, for persons with a condition that has a
+      ``chronic_followup`` schedule (shortest interval, capped per year)
+    - Annual health screening (age 40-89), gated by the locale's
+      ``preventive_care.annual_screening_participation``
+    - Flu vaccination (age 65+ or 2+ chronic conditions, Oct-Dec), at the
+      locale's ``preventive_care.flu_vaccination_probability``
+    - Colonoscopy screening (age 50-75) and mammography screening
+      (women 40-74)
+    - Diabetic retinopathy screening (persons with E11.9)
+    - Chemotherapy cycle visits for cancer patients on a cycle-based regimen
 
-    Acute disease events are generated separately by generate_monthly_events().
+    Acute disease events are generated separately by generate_monthly_events();
+    non-admitted ED visits are drawn by the simulator's ED-slot phase
+    (``clinosim/simulator/phases/_ed_slot.py``).
     """
     events: list[LifeEvent] = []
 

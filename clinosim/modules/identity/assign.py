@@ -21,8 +21,8 @@ from clinosim.types import IdentityTimeline
 def assign_identities(registry: Any, country: str, master_seed: int) -> None:
     """Assign insurance enrollment + national identity to every resident.
 
-    No-op for countries without an `identity.yaml` (e.g. US in Phase 1), which keep
-    their existing insurance handling.
+    No-op for countries without a `locale/<cc>/identity.yaml` (both US and JP
+    ship one), which keep their existing insurance handling.
 
     Issue #1581 — the per-household latent is now also PERSISTED on
     ``Household.identity_latent`` so a per-person entry (used when a
@@ -68,7 +68,7 @@ def assign_identity_for_person(
     indistinguishable from an age-0 initial-cohort person on
     ``PersonRecord.identity`` (closing the Issue #1581 identity gap).
 
-    No-op for countries without an ``identity.yaml`` (e.g. US) and
+    No-op for countries without a ``locale/<cc>/identity.yaml`` and
     for persons whose household is not resolvable from ``registry.
     households``. The per-person sub-RNG is derived from
     ``master_seed + ENRICHER_SEED_OFFSETS["identity"] + sha(person_id)``
