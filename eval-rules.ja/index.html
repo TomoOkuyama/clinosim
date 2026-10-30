@@ -2475,8 +2475,8 @@
 <li><strong>Pass-weight</strong> = PASS 1.0、WARN 0.5、FAIL 0.0、N/A 0.0</li>
 </ul>
 <p><strong>Overall score</strong> = レポート中の全軸結果 (軸 × 国サブディレクトリごと
-に 1 件) のスコアの算術平均。コホートの locale に該当しない国 条件軸は
-check を返さず score 0.0 となり、それでもこの平均に含まれる。
+に 1 件) のうち該当する軸のスコアの算術平均。コホートの locale に該当
+しない国条件軸は check を返さず status <code>N/A</code> となり、平均に含めない。
 <strong>Overall status</strong> = 軸横断で FAIL / WARN / PASS の最悪。</p>
 <hr />
 <h2 id="structural-軸-5-checks">Structural 軸 (5 checks)<a class="headerlink" href="#structural-軸-5-checks" title="Permanent link">&para;</a></h2>

@@ -2674,10 +2674,10 @@ usage.</p>
 <li><strong>Check weight</strong> = severity: CRITICAL = 3, MAJOR = 2, MINOR = 1</li>
 <li><strong>Pass-weight</strong> = PASS 1.0, WARN 0.5, FAIL 0.0, N/A 0.0</li>
 </ul>
-<p><strong>Overall score</strong> = arithmetic mean of the score of every axis result
-in the report (one per axis × country subdirectory). A
+<p><strong>Overall score</strong> = arithmetic mean of the score of every applicable
+axis result in the report (one per axis × country subdirectory). A
 country-conditional axis that does not apply to the cohort's locale
-returns no checks, scores 0.0, and is still included in the mean.
+returns no checks, reports status <code>N/A</code>, and is left out of the mean.
 <strong>Overall status</strong> = worst of FAIL / WARN / PASS across axes.</p>
 <hr />
 <h2 id="structural-axis-5-checks">Structural axis (5 checks)<a class="headerlink" href="#structural-axis-5-checks" title="Permanent link">&para;</a></h2>
