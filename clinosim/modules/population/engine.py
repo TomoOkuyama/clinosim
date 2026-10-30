@@ -7,12 +7,12 @@ and produces care-seeking decisions that trigger hospital encounters.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from datetime import date, timedelta
+from datetime import date
 
 import numpy as np
 
 from clinosim import determinism
-from clinosim.modules._shared import normalize_probabilities
+from clinosim.modules._shared import normalize_probabilities, random_day_of_month
 from clinosim.modules.disease.protocol import load_disease_protocol
 from clinosim.modules.disease.severity import sample_severity
 from clinosim.modules.population._chemo import (
@@ -74,8 +74,6 @@ from clinosim.modules.population._demographics import (
 )
 from clinosim.modules.population._household_thresholds import (
     AVG_HOUSEHOLD_SIZE_DEFAULT,
-    DOB_DAY_MAX_EXCLUSIVE,
-    DOB_DAY_MIN,
     HOUSEHOLD_LANDLINE_PROBABILITY_DEFAULT,
     HOUSEHOLD_SIZE_WEIGHTED_CHOICES,
     WIFE_KEEPS_MAIDEN_PROBABILITY_DEFAULT,
@@ -134,11 +132,7 @@ from clinosim.modules.population._population_workflow_thresholds import (
     COLONOSCOPY_PROBABILITY,
     DIABETIC_RETINOPATHY_ICD10_CODE,
     DIABETIC_RETINOPATHY_PROBABILITY,
-    EVENT_DAY_JITTER_END_EXCLUSIVE,
-    EVENT_DAY_JITTER_START,
     EVENT_MID_OF_MONTH_DAY,
-    EVENT_RANDOM_DAY_MAX_EXCLUSIVE,
-    EVENT_RANDOM_DAY_MIN,
     FLU_VAX_ADULT_AGE_THRESHOLD,
     FLU_VAX_COMORBIDITY_MIN,
     FLU_VAX_MONTHS,
@@ -330,11 +324,8 @@ def generate_population(
             # sim-start, which matches real-cohort snapshot semantics.
             # RNG-neutral: same two draws (month + day) regardless of age.
             _dob_year = base_year - age - 1 if age == 0 else base_year - age
-            dob = date(
-                _dob_year,
-                int(rng.integers(RANDOM_MONTH_MIN, RANDOM_MONTH_MAX_EXCLUSIVE)),
-                int(rng.integers(DOB_DAY_MIN, DOB_DAY_MAX_EXCLUSIVE)),
-            )
+            _dob_month = int(rng.integers(RANDOM_MONTH_MIN, RANDOM_MONTH_MAX_EXCLUSIVE))
+            dob = date(_dob_year, _dob_month, random_day_of_month(rng, _dob_year, _dob_month))
             blood_type = _sample_blood_type(demo, rng)
 
             # BMI and height from physiology section
@@ -712,6 +703,12 @@ def generate_population(
     return registry
 
 
+def _random_date_in_year(rng: np.random.Generator, year: int) -> date:
+    """A uniform month, then a uniform day of that month (two draws)."""
+    month = int(rng.integers(RANDOM_MONTH_MIN, RANDOM_MONTH_MAX_EXCLUSIVE))
+    return date(year, month, random_day_of_month(rng, year, month))
+
+
 def generate_monthly_events(
     registry: PopulationRegistry,
     year: int,
@@ -875,8 +872,7 @@ def generate_monthly_events(
                 LifeEvent(
                     person_id=person.person_id,
                     event_type=event_type,
-                    timestamp=event_date
-                    + timedelta(days=int(event_rng.integers(EVENT_DAY_JITTER_START, EVENT_DAY_JITTER_END_EXCLUSIVE))),
+                    timestamp=date(year, month, random_day_of_month(event_rng, year, month)),
                     severity=severity,
                     disease_id=disease_id,
                     requires_hospital=requires_hospital,
@@ -901,8 +897,7 @@ def generate_monthly_events(
                     LifeEvent(
                         person_id=person.person_id,
                         event_type="unknown_condition",
-                        timestamp=event_date
-                        + timedelta(days=int(rng.integers(EVENT_DAY_JITTER_START, EVENT_DAY_JITTER_END_EXCLUSIVE))),
+                        timestamp=date(year, month, random_day_of_month(rng, year, month)),
                         severity=unk_severity,
                         disease_id=f"unknown_{pattern}",
                         requires_hospital=unk_severity > person.care_seeking_threshold,
@@ -1026,7 +1021,7 @@ def generate_healthcare_calendar(
         month = int(prng.integers(1, min(shortest_interval + 1, CHRONIC_VISIT_INITIAL_MONTH_CAP_EXCLUSIVE)))
         visit_count = 0
         while month <= 12 and visit_count < max_visits:
-            visit_date = date(year, month, int(prng.integers(EVENT_RANDOM_DAY_MIN, EVENT_RANDOM_DAY_MAX_EXCLUSIVE)))
+            visit_date = date(year, month, random_day_of_month(prng, year, month))
             events.append(
                 LifeEvent(
                     person_id=person.person_id,
@@ -1051,7 +1046,7 @@ def generate_healthcare_calendar(
         # sibling).
         if _age_at_year >= HEALTH_SCREENING_MIN_AGE:
             screening_month = int(prng.integers(HEALTH_SCREENING_MONTH_START, HEALTH_SCREENING_MONTH_END_EXCLUSIVE))
-            screening_day = int(prng.integers(EVENT_RANDOM_DAY_MIN, EVENT_RANDOM_DAY_MAX_EXCLUSIVE))
+            screening_day = random_day_of_month(prng, year, screening_month)
             if _age_at_year <= HEALTH_SCREENING_MAX_AGE:
                 screening_date = date(year, screening_month, screening_day)
                 events.append(
@@ -1075,9 +1070,7 @@ def generate_healthcare_calendar(
                     LifeEvent(
                         person_id=person.person_id,
                         event_type="chronic_visit",
-                        timestamp=date(
-                            year, vax_month, int(prng.integers(EVENT_RANDOM_DAY_MIN, EVENT_RANDOM_DAY_MAX_EXCLUSIVE))
-                        ),
+                        timestamp=date(year, vax_month, random_day_of_month(prng, year, vax_month)),
                         severity=0.0,
                         condition_type="screening",
                         disease_id="flu_vaccination",
@@ -1100,11 +1093,7 @@ def generate_healthcare_calendar(
                 LifeEvent(
                     person_id=person.person_id,
                     event_type="health_screening",
-                    timestamp=date(
-                        year,
-                        int(prng.integers(RANDOM_MONTH_MIN, RANDOM_MONTH_MAX_EXCLUSIVE)),
-                        int(prng.integers(EVENT_RANDOM_DAY_MIN, EVENT_RANDOM_DAY_MAX_EXCLUSIVE)),
-                    ),
+                    timestamp=_random_date_in_year(prng, year),
                     severity=0.0,
                     condition_type="screening",
                     disease_id="colonoscopy_screening",
@@ -1128,11 +1117,7 @@ def generate_healthcare_calendar(
                 LifeEvent(
                     person_id=person.person_id,
                     event_type="health_screening",
-                    timestamp=date(
-                        year,
-                        int(prng.integers(RANDOM_MONTH_MIN, RANDOM_MONTH_MAX_EXCLUSIVE)),
-                        int(prng.integers(EVENT_RANDOM_DAY_MIN, EVENT_RANDOM_DAY_MAX_EXCLUSIVE)),
-                    ),
+                    timestamp=_random_date_in_year(prng, year),
                     severity=0.0,
                     condition_type="screening",
                     disease_id="mammography_screening",
@@ -1150,11 +1135,7 @@ def generate_healthcare_calendar(
                 LifeEvent(
                     person_id=person.person_id,
                     event_type="chronic_visit",
-                    timestamp=date(
-                        year,
-                        int(prng.integers(RANDOM_MONTH_MIN, RANDOM_MONTH_MAX_EXCLUSIVE)),
-                        int(prng.integers(EVENT_RANDOM_DAY_MIN, EVENT_RANDOM_DAY_MAX_EXCLUSIVE)),
-                    ),
+                    timestamp=_random_date_in_year(prng, year),
                     severity=0.0,
                     condition_type="screening",
                     disease_id="diabetic_retinopathy_screening",

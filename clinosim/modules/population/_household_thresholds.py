@@ -21,8 +21,6 @@ from __future__ import annotations
 __all__ = [
     "AVG_HOUSEHOLD_SIZE_DEFAULT",
     "BLOOD_TYPE_DEFAULT_DISTRIBUTION",
-    "DOB_DAY_MAX_EXCLUSIVE",
-    "DOB_DAY_MIN",
     "HOUSEHOLD_LANDLINE_PROBABILITY_DEFAULT",
     "HOUSEHOLD_SIZE_WEIGHTED_CHOICES",
     "JP_ADDRESS_APARTMENT_PROBABILITY_DEFAULT",
@@ -210,17 +208,6 @@ reasonable cap for the typical density modeled."""
 # ---------------------------------------------------------------------------
 # Date-of-birth day-of-month generation
 # ---------------------------------------------------------------------------
-
-DOB_DAY_MIN: int = 1
-"""Inclusive lower bound of the DOB day-of-month draw in
-:func:`clinosim.modules.population.engine.generate_population`."""
-
-DOB_DAY_MAX_EXCLUSIVE: int = 29
-"""Exclusive upper bound of the DOB day-of-month draw. Combined with
-:data:`DOB_DAY_MIN` yields days 1-28 — deliberately capped at 28 so a
-February birthdate never trips ``ValueError: day is out of range for
-month`` even in a non-leap year."""
-
 
 # ---------------------------------------------------------------------------
 # JP address apartment room numbers (floor.room concatenation)

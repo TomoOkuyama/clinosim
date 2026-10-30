@@ -28,6 +28,8 @@ from typing import Any
 import numpy as np
 import yaml
 
+from clinosim.modules._shared import random_day_of_month
+
 _YAML_PATH = Path(__file__).parent / "reference_data" / "pediatric_schedule.yaml"
 
 
@@ -147,7 +149,7 @@ def generate_pediatric_events(
         # Space visits evenly across the year with per-visit day jitter.
         for i in range(n_visits):
             month = min(12, max(1, int((12 * (i + 0.5)) / max(1, n_visits))))
-            day = int(prng.integers(1, 28))
+            day = random_day_of_month(prng, year, month)
             events.append(
                 LifeEvent(
                     person_id=person.person_id,
