@@ -38,15 +38,13 @@ Phase C (separate PR):
 from __future__ import annotations
 
 import hashlib
+from datetime import date
 from typing import Any
 
 import numpy as np
 
 from clinosim.modules.allergy.engine import _make_nka, load_allergen_config
-from clinosim.modules.natural_death.enricher import (
-    sample_person_death_date,
-    sim_window,
-)
+from clinosim.modules.population.mortality import draw_community_death, sim_window
 
 
 def _init_newborn_care_seeking_threshold(person: Any, config: Any) -> None:
@@ -89,6 +87,30 @@ def _init_newborn_care_seeking_threshold(person: Any, config: Any) -> None:
     person.care_seeking_threshold = threshold
 
 
+def _draw_birth_year_death(person: Any, country: str, window: Any) -> None:
+    """Issue #2167: community-death draw for the rest of the birth year.
+
+    ``advance_population`` draws each later year at its 1 January; a newborn
+    registered mid-year missed that call, so the birth year is drawn here
+    over [birth, min(31 December, window end)]. Same per-(person, year)
+    sub-seed as the annual pass; the relative SMR is 1.0 (no cohort
+    normalizer for a single newborn).
+    """
+    from clinosim.modules.population.aging import aging_sub_seed
+
+    if window is None:
+        return
+    year = person.date_of_birth.year
+    hi = min(date(year, 12, 31), window[1])
+    draw_community_death(
+        person,
+        year,
+        country,
+        np.random.default_rng(aging_sub_seed(person.person_id, year, "mortality")),
+        exposure=(person.date_of_birth, hi),
+    )
+
+
 def initialize_newborn_biology(person: Any, config: Any, registry: Any = None) -> None:
     """Attach the per-person state a newborn needs to be indistinguishable
     from an initial-cohort citizen at age 0.
@@ -105,13 +127,9 @@ def initialize_newborn_biology(person: Any, config: Any, registry: Any = None) -
       future childhood-onset pass; starting at NKA is the clinically
       correct baseline (true delivery-day allergies are rare).
 
-    * ``person.date_of_death`` — pre-sampled over the sim window using
-      the same per-year qx Bernoulli as the initial-cohort
-      ``sample_natural_deaths`` enricher. A newborn that would die of
-      natural causes within the sim window now gets a concrete death
-      date, which the ``is_alive_at`` filter uses to stop event
-      emission from that date forward (symmetric with existing
-      citizens).
+    * ``person.date_of_death`` — the community-death draw for the rest
+      of the birth year (Issue #2167). Later years are drawn by
+      ``advance_population`` like every other citizen.
 
     * ``person.care_seeking_threshold`` — sampled from the locale's
       ``care_seeking.age_conditional["0-14"]`` pediatric band (same
@@ -126,8 +144,7 @@ def initialize_newborn_biology(person: Any, config: Any, registry: Any = None) -
 
     * ``config is None`` → return without any writes.
     * ``allergen_config`` yaml missing / empty → skip the allergy write.
-    * ``sim_window`` unresolvable or life-table missing → skip the
-      death-date write.
+    * ``sim_window`` unresolvable → skip the death draw.
     * ``demographics.yaml`` yaml missing → skip the care-seeking
       sample (``PersonRecord`` dataclass default retained).
 
@@ -144,11 +161,8 @@ def initialize_newborn_biology(person: Any, config: Any, registry: Any = None) -
     if nka_cfg and person.allergies is None:
         person.allergies = [_make_nka(nka_cfg)]
 
-    master_seed = int(getattr(config, "random_seed", 0) or 0)
     country = getattr(config, "country", "US") or "US"
-    window = sim_window(config)
-    if window is not None:
-        sample_person_death_date(person, country, master_seed, window)
+    _draw_birth_year_death(person, country, sim_window(config))
 
     _init_newborn_care_seeking_threshold(person, config)
     _init_newborn_identity(person, config, registry)

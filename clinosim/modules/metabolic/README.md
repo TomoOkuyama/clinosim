@@ -78,7 +78,7 @@ Registered in `clinosim.simulator.enrichers.register_builtin_enrichers`:
 | `k76_0_nafld_enricher` | `POST_POPULATION` | 17 | BMI + DM finalised |
 | `g47_30_osa_enricher` | `POST_POPULATION` | 18 | BMI + sex finalised |
 
-All four run between allergy / identity (order 10) and `natural_death` (order 20). All are always-on (no locale or config gate) — the thresholds themselves gate emission.
+All four run after allergy / identity (order 10). All are always-on (no locale or config gate) — the thresholds themselves gate emission.
 
 Axis 5 is served by the standard medication activator reading `chronic_medications.yaml`; no new enricher registration.
 

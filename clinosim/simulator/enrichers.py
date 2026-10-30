@@ -153,9 +153,9 @@ def register_builtin_enrichers() -> None:
 
     # Metabolic BMI-derived obesity codes (Issue #1137 cluster 2 axis
     # 1). POST_POPULATION order=15 — after allergy / identity (order
-    # 10) so patient fundamentals are finalized, and before
-    # natural_death (order 20) so an E66 code is on
-    # ``chronic_conditions`` by the time any downstream pass reads it.
+    # 10) so patient fundamentals are finalized, so an E66 code is on
+    # ``chronic_conditions`` by the time any downstream pass reads it
+    # (including the annual community-mortality SMR).
     # Pure deterministic (BMI → ICD lookup), no RNG consumption,
     # byte-identity preserved for cohorts without BMI thresholds
     # crossed.
@@ -179,8 +179,7 @@ def register_builtin_enrichers() -> None:
     # Issue #1137 cluster 2 axis 2 — E88.81 metabolic syndrome AND
     # over BMI + HTN + Dyslipidemia + DM. POST_POPULATION order=16 so
     # it runs after e66_bmi (order=15) and after the chronic_prevalence
-    # sampler at POP_GENERATION; strictly before natural_death
-    # (order=20). Pure deterministic — zero RNG consumption, no
+    # sampler at POP_GENERATION. Pure deterministic — zero RNG consumption, no
     # downstream probability draw perturbed.
     register_enricher(
         Enricher(
@@ -218,25 +217,6 @@ def register_builtin_enrichers() -> None:
             order=18,
             enabled=lambda c: True,
             run=g47_30_osa_enricher,
-        )
-    )
-
-    # Natural-death sampling (Issue #1114 C11g-2). POST_POPULATION so
-    # date_of_death is populated before the event generators run;
-    # ``PersonRecord.is_alive_at(t)`` becomes the query API for
-    # future date-aware filtering. C11g-2 only samples + logs; event
-    # generators still use the naive ``is_alive`` boolean unchanged
-    # (C11g-3 wires the actual filter). Always-on for both countries;
-    # a no-op when actuarial_life_table.yaml is missing.
-    from clinosim.modules.natural_death import sample_natural_deaths
-
-    register_enricher(
-        Enricher(
-            name="natural_death",
-            stage=POST_POPULATION,
-            order=20,
-            enabled=lambda c: True,
-            run=sample_natural_deaths,
         )
     )
 

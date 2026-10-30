@@ -1,14 +1,10 @@
 # Standardised Mortality Ratios (SMR) for chronic conditions.
 #
-# Consumed by `clinosim.modules.population.aging._condition_reactive_mortality`
-# (Issue #1564 Phase 2). The pass computes a per-person combined SMR
-# from the ICDs on `PersonRecord.chronic_conditions`, then draws an
-# annual Bernoulli at `excess_qx = qx_baseline * (SMR_combined - 1)`.
-# A hit sets `date_of_death` to `date(year, 6, 15)` ONLY when the
-# proposed date is earlier than any existing `date_of_death` set by
-# the baseline `natural_death` enricher — the hook accelerates
-# condition-driven mortality on top of actuarial baseline, never
-# protects.
+# Consumed by `clinosim.modules.population.mortality` (Issue #2167). The
+# forward annual community-death draw scales the life-table qx by the
+# person's combined SMR divided by the mean combined SMR of living persons
+# in the same 5-year band and sex, so the cohort stays at the life-table
+# level while comorbid persons die earlier.
 #
 # `smr_table` is sparse by design: entries without an ICD listed get
 # SMR = 1.0 (no mortality effect). The clinical rule of thumb used
@@ -62,9 +58,3 @@ smr_table:
 # bounded multiplicative — avoids runaway at 5+ comorbidities while
 # preserving the direction that more severe conditions → higher SMR.
 combine_method: "geometric_mean"
-
-# Hard cap on the per-year excess qx the pass can add. Prevents
-# runaway at advanced age where baseline qx is already 15-30 %/yr
-# (85+ bands); an SMR of 3 on a 30 % qx would otherwise schedule
-# 60 % cumulative in a single year.
-max_excess_qx_per_year: 0.15

@@ -78,7 +78,7 @@ clinosim/modules/metabolic/
 | `k76_0_nafld_enricher` | `POST_POPULATION` | 17 | BMI + DM finalise |
 | `g47_30_osa_enricher` | `POST_POPULATION` | 18 | BMI + 性別 finalise |
 
-4 enricher すべてが allergy / identity (order 10) と `natural_death` (order 20) の間で走る。全常時 on (ロケール/設定 gate なし) — 閾値自体が emit を gate する。
+4 enricher すべてが allergy / identity (order 10) の後に走る。全常時 on (ロケール/設定 gate なし) — 閾値自体が emit を gate する。
 
 軸 5 は標準 medication activator が `chronic_medications.yaml` を読んで提供; 新規 enricher 登録なし。
 

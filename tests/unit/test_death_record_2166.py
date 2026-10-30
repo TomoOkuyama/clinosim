@@ -140,3 +140,14 @@ def test_run_beta_accepts_month_precision_time_range() -> None:
         SimulatorConfig(country="US", catchment_population=50, random_seed=3, time_range=("2025-01", "2025-02"))
     )
     assert ds.metadata.country == "US"
+
+
+def test_sync_keeps_a_hospital_death_after_the_cutoff() -> None:
+    """An expired stay that ends after the window is in the CIF, so its death date stays."""
+    reg = PopulationRegistry()
+    p = _person()
+    reg.persons[p.person_id] = p
+    p.record_death(date(2027, 1, 5), "hospital")
+    rec = CIFPatientRecord(patient=PatientProfile(patient_id="P1"))
+    sync_profile_death_dates([rec], reg, as_of=date(2026, 12, 31))
+    assert rec.patient.date_of_death == date(2027, 1, 5)
