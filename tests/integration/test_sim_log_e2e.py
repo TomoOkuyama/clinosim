@@ -62,11 +62,10 @@ def test_generate_writes_simulator_log_with_expected_events() -> None:
             "log_configured",
             "hospital_loaded",
             "population_generated",
-            "life_events_generated",
-            "inpatient_loop_done",
-            "readmissions_done",
-            "healthcare_calendar_generated",
-            "outpatient_done",
+            "forward_loop_start",
+            "forward_progress",
+            "forward_loop_done",
+            "deaths_by_place",
             "run_beta_done",
         }
         got_events = {ev["event"] for ev in events}
@@ -150,13 +149,10 @@ def test_generate_fhir_writes_cif_and_fhir_export_events() -> None:
 
 @pytest.mark.integration
 def test_generate_writes_inpatient_loop_progress_events() -> None:
-    """Issue #174: the inpatient loop emits `inpatient_loop_start`, at least
-    one `inpatient_progress` at the 50-record cadence (or at final record for
-    short loops), and `inpatient_loop_done` with `elapsed_s`.
-
-    Uses `--population 300` so several inpatient events fire (~30-40 based on
-    the population-level admission rate), guaranteeing at least the final
-    `inpatient_progress` triggers (`idx == n_hosp - 1` branch)."""
+    """Issue #174 / #2169: the forward loop emits `forward_loop_start`, one
+    `forward_progress` per simulated month, and `forward_loop_done` with
+    `elapsed_s` and the final record count, so `tail -f simulator.log` shows
+    progress while the run is still going."""
     with tempfile.TemporaryDirectory() as tmp:
         out = Path(tmp) / "out"
         result = subprocess.run(
@@ -183,32 +179,21 @@ def test_generate_writes_inpatient_loop_progress_events() -> None:
         log_file = out / "simulator.log"
         events = [json.loads(line) for line in log_file.read_text().splitlines() if line.strip()]
 
-        # start bracket event. Since Issue #1596 Step 2 the engine
-        # cannot know the inpatient event total upfront (generation
-        # runs INSIDE the dispatch loop), so ``target`` is no longer
-        # emitted on ``inpatient_loop_start`` — the authoritative
-        # count arrives on ``inpatient_loop_done.records``.
-        start = next((ev for ev in events if ev["event"] == "inpatient_loop_start"), None)
-        assert start is not None, "inpatient_loop_start missing"
+        start = next((ev for ev in events if ev["event"] == "forward_loop_start"), None)
+        assert start is not None, "forward_loop_start missing"
         assert start["module"] == "engine"
+        assert isinstance(start.get("months"), int) and start["months"] > 0
 
-        # done event carries elapsed_s (added by Issue #174) and the
-        # final record count (Issue #1596 Step 2).
-        done = next((ev for ev in events if ev["event"] == "inpatient_loop_done"), None)
+        progress = [ev for ev in events if ev["event"] == "forward_progress"]
+        assert len(progress) == start["months"], "one forward_progress per simulated month"
+        for p in progress:
+            assert p["module"] == "engine"
+            assert isinstance(p.get("records"), int)
+            assert isinstance(p.get("concurrent"), int)
+            assert isinstance(p.get("bed_occupancy"), float)
+        assert [p["records"] for p in progress] == sorted(p["records"] for p in progress)
+
+        done = next((ev for ev in events if ev["event"] == "forward_loop_done"), None)
         assert done is not None
-        assert isinstance(done.get("elapsed_s"), float)
-        assert done["elapsed_s"] >= 0.0
-        assert isinstance(done.get("records"), int)
-        assert done["records"] >= 0
-
-        # progress events — at least one (final tick) when the loop fires
-        progress = [ev for ev in events if ev["event"] == "inpatient_progress"]
-        if done["records"] > 0:
-            assert progress, "inpatient_progress missing despite loop having events"
-            for p in progress:
-                assert p["module"] == "engine"
-                assert isinstance(p.get("processed"), int)
-                assert isinstance(p.get("target"), int)
-                assert 1 <= p["processed"] <= p["target"]
-                assert isinstance(p.get("concurrent"), int)
-                assert isinstance(p.get("bed_occupancy"), float)
+        assert isinstance(done.get("elapsed_s"), float) and done["elapsed_s"] >= 0.0
+        assert done["records"] == progress[-1]["records"]
