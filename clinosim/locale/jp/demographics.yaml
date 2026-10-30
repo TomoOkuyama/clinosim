@@ -704,8 +704,14 @@ mixed_conditions:
   probability: 0.18
 
 # ED visits: conditions auto-loaded from encounter/reference_data/*.yaml
+# ED visits that end without admission, per 1,000 person-years in the
+# population. The forward loop (Issue #2169) draws them month by month from
+# the persons in the population, so the rate is per person, not per
+# admission. 150 keeps the volume the former `rate_per_admitted: 2.5` gave
+# (152 per 1,000 person-years in a 3-year JP cohort of 2,000, seed 7); JP ED
+# utilisation is well below the US 380.
 ed_visit_not_admitted:
-  rate_per_admitted: 2.5  # JP: lower ED utilization than US
+  rate_per_1000_person_years: 150
 
 # Occupation distribution for working-age population (15-64).
 # Age < 15 → student; age >= 65 → retired (handled in code).

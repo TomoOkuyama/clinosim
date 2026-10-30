@@ -121,6 +121,13 @@ class PersonRecord:
 
 ### Life event engine
 
+> **Implemented lifecycle.** The tables below are the original design. The
+> implemented forward loop — year boundary (aging, community mortality,
+> longitudinal step, calendar), monthly life events and ED visits, and
+> date-ordered dispatch, with deaths recorded once and newborns enrolled at
+> birth-stay discharge — is described in `README.md` ("Population
+> lifecycle (as implemented)"). Migration is not modelled.
+
 The life event engine runs on the population registry and produces events that may trigger hospital visits.
 
 #### Annual population update (every simulated year)

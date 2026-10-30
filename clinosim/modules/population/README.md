@@ -52,6 +52,33 @@ consumes the `PopulationRegistry` it returns.
   emission (this module delegates to
   [`clinosim.modules.pediatric.calendar.generate_pediatric_events`](../pediatric/README.md)).
 
+## Population lifecycle (as implemented)
+
+The simulation advances month by month in one forward loop
+(`clinosim/simulator/phases/_forward_loop.py`):
+
+1. **Initial cohort** — `generate_population` builds households and persons
+   at the window start; POST_POPULATION enrichers add identity, allergies
+   and metabolic codes.
+2. **Year boundary** — `aging.advance_population`: aging passes (stroke
+   sequela, allergy drift), one forward **community-death** draw per person
+   (`mortality.py`: life-table qx × relative comorbidity SMR × the locale's
+   `community_death_share`) and the longitudinal stage / onset step. The
+   year's healthcare calendar is generated here.
+3. **Each month** — life events, the month's ED visits, and every queued
+   event (admissions, readmissions, follow-ups, calendar visits, deliveries)
+   are dispatched in date order.
+4. **Death** — recorded once per person (`PersonRecord.record_death`,
+   `death_place` = `hospital` or `community`). An in-hospital death comes
+   from the inpatient simulator; a community death needs no hospital visit.
+   Every later event is gated by `in_population_at(date)`.
+5. **Birth** — a delivery registers the newborn (`newborn.register_newborn`);
+   the newborn enrolls the day after the birth-stay discharge
+   (`PersonRecord.enrolled_from`), gets a rest-of-year calendar, and from
+   then on ages, accrues conditions, visits and can die like everyone else.
+
+Migration (move-in / move-out) is not modelled.
+
 ## Public API
 
 ```python

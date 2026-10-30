@@ -31,7 +31,6 @@ __all__ = [
     "ED_MINUTE_JITTER_MAX_EXCLUSIVE",
     "ED_MINUTE_JITTER_MIN",
     "ED_OCCUPATION_MISMATCH_FALLBACK",
-    "ED_RATE_PER_ADMITTED_DEFAULT",
     "OUTPATIENT_CALENDAR_VISIT_HOUR",
     "OUTPATIENT_LABS_ANNUAL_PROBABILITY",
     "OUTPATIENT_LABS_QUARTERLY_PROBABILITY",
@@ -76,15 +75,6 @@ annual cadence for less-frequent screening labs."""
 # ---------------------------------------------------------------------------
 # ED-visit-not-admitted sampling
 # ---------------------------------------------------------------------------
-
-ED_RATE_PER_ADMITTED_DEFAULT: float = 3.0
-"""Fallback ED-visit-not-admitted multiplier when
-``demographics.yaml`` does not provide
-``ed_visit_not_admitted.rate_per_admitted``.
-
-3.0 approximates a rough "3 ED visits per admitted patient" ratio,
-matching mixed-acuity US ED throughput data. Locale YAML overrides
-per-country."""
 
 ED_OCCUPATION_MISMATCH_FALLBACK: float = 0.0
 """Occupation-risk multiplier applied when an ED condition has an

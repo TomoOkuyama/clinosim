@@ -47,7 +47,7 @@ def _us_demo_minimal() -> dict:
         "disease_risk_multipliers": {},
         "unknown_conditions": {"min_age": 100, "base_rate": 0.0, "age_factor": 0.0, "patterns": []},
         "mixed_conditions": {"min_age": 100, "min_chronic_conditions": 99, "probability": 0.0},
-        "ed_visit_not_admitted": {"rate_per_admitted": 0.0},
+        "ed_visit_not_admitted": {"rate_per_1000_person_years": 0.0},
         "occupation_distribution": {
             "age_thresholds": {
                 "student_max_age": 14,
