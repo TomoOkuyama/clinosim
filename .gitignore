@@ -80,6 +80,9 @@ docs/session-resume/
 # default one written at end of a session (see s78 handover convention).
 .resume-prompt.md
 .resume-prompt-*.md
+# Retired: the former tracked cold-start note. Its durable content now lives
+# in the maintainer's `.resume-prompt.md`; never track it again.
+.session-resume-prompt.md
 
 # Personal roadmap / backlog. TODO.md was previously tracked (contributor-
 # facing docs), but per session 80 convention it is now personal / per-

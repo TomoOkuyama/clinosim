@@ -48,7 +48,7 @@ clinical integrity / realism.
    - Update memory if the cycle surfaced new durable rules or knowledge.
    - Add new FP entries to `docs/design-notes/2026-07-06-fix-point-registry.md`
      when warranted.
-   - Refresh `.session-resume-prompt.md` so the current cycle state
+   - Refresh the gitignored `.resume-prompt.md` so the current cycle state
      (cycle N progress n/20, carry-over list, master HEAD, next action)
      is sufficient for a cold-start in a different session.
    - Reflect the current cycle progress on the GitHub Issues board
