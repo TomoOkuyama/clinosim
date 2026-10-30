@@ -25,8 +25,6 @@ arguments come from literals or module-scope constants.
 from __future__ import annotations
 
 __all__ = [
-    "ED_DAY_MAX_EXCLUSIVE",
-    "ED_DAY_MIN",
     "ED_FAVORED_HOURS",
     "ED_MINUTE_JITTER_MAX_EXCLUSIVE",
     "ED_MINUTE_JITTER_MIN",
@@ -103,14 +101,6 @@ Separate from :data:`OCCUPATION_MISMATCH_FALLBACK_MULTIPLIER` in
 ``_population_workflow_thresholds.py`` (0.2) — the monthly-events
 disease incidence path keeps its soft fallback for non-ED-CC paths
 where the semantic constraint is weaker."""
-
-ED_DAY_MIN: int = 1
-"""Inclusive lower bound of the ED-visit day sampled by
-``rng.integers``."""
-
-ED_DAY_MAX_EXCLUSIVE: int = 28
-"""Exclusive upper bound of the ED-visit day (samples 1-27) — same
-convention as the monthly-event day-jitter (February-safe cap)."""
 
 ED_FAVORED_HOURS: tuple[int, int, int, int, int, int, int, int] = (9, 10, 14, 15, 19, 20, 21, 22)
 """Hour-of-day list favored for ED arrivals, sampled by ``rng.choice``.

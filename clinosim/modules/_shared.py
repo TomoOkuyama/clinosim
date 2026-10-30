@@ -8,6 +8,7 @@ local duplication).
 
 from __future__ import annotations
 
+import calendar
 from functools import lru_cache
 from typing import Any
 
@@ -31,6 +32,15 @@ from clinosim.countries import is_us as is_us
 # constant is shared so writer and reader stay in lockstep — the same
 # convention as ``ABX_ORDER_ID_PREFIX`` in ``modules/antibiotic/engine.py``.
 MED_STOP_ORDER_ID_MARKER: str = "-STOP-"
+
+
+def random_day_of_month(rng: np.random.Generator, year: int, month: int) -> int:
+    """A uniform day of ``month`` (1 to its last day, incl. 29 Feb in leap years).
+
+    One ``rng.integers`` draw. Replaces the former days-1-27 draws that left
+    the 28th-31st with no events (Issue #2177).
+    """
+    return int(rng.integers(1, calendar.monthrange(year, month)[1] + 1))
 
 
 def uses_jp_clins_profile(lang: str) -> bool:

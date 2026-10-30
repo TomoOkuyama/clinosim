@@ -34,11 +34,7 @@ __all__ = [
     "COLONOSCOPY_PROBABILITY",
     "DIABETIC_RETINOPATHY_ICD10_CODE",
     "DIABETIC_RETINOPATHY_PROBABILITY",
-    "EVENT_DAY_JITTER_END_EXCLUSIVE",
-    "EVENT_DAY_JITTER_START",
     "EVENT_MID_OF_MONTH_DAY",
-    "EVENT_RANDOM_DAY_MAX_EXCLUSIVE",
-    "EVENT_RANDOM_DAY_MIN",
     "FLU_VAX_ADULT_AGE_THRESHOLD",
     "LEGAL_ADULT_AGE",
     "FLU_VAX_COMORBIDITY_MIN",
@@ -79,20 +75,6 @@ Empirical tuning for the synthetic simulator: mid-month is a
 convention that keeps ``event_date + rng.integers(0, 28)`` well inside
 any month regardless of month length — the specific day within the
 month is added by the jitter below."""
-
-EVENT_DAY_JITTER_START: int = 0
-"""Lower bound (inclusive) of ``rng.integers(start, end)`` used to add
-day-level jitter to monthly events."""
-
-EVENT_DAY_JITTER_END_EXCLUSIVE: int = 28
-"""Upper bound (exclusive) of ``rng.integers(start, end)`` used to add
-day-level jitter to monthly events.
-
-Empirical tuning for the synthetic simulator: 28 keeps the timestamp
-inside every calendar month (including February), so events are
-uniformly distributed across the ~4-week window anchored at the
-mid-month reference day."""
-
 
 # ---------------------------------------------------------------------------
 # Disease-incidence modifiers
@@ -405,17 +387,6 @@ to sample a random birth-month for each synthetic person."""
 RANDOM_MONTH_MAX_EXCLUSIVE: int = 13
 """Exclusive upper bound of the random-month draw. Combined with
 :data:`RANDOM_MONTH_MIN` yields months 1-12."""
-
-EVENT_RANDOM_DAY_MIN: int = 1
-"""Inclusive lower bound of the random day-of-month draw for scheduled
-calendar events (screenings, vaccinations, chronic follow-ups)."""
-
-EVENT_RANDOM_DAY_MAX_EXCLUSIVE: int = 28
-"""Exclusive upper bound of the random day-of-month draw. Combined
-with :data:`EVENT_RANDOM_DAY_MIN` yields days 1-27 — deliberately
-conservative to keep event dates away from the month-end + Feb-29
-boundary (avoids ``ValueError: day is out of range for month`` when
-sampling in February)."""
 
 CHRONIC_VISIT_INITIAL_MONTH_CAP_EXCLUSIVE: int = 4
 """Exclusive upper bound of the initial-visit month draw for chronic

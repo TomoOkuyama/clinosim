@@ -12,10 +12,9 @@ from dataclasses import dataclass
 from datetime import date, datetime
 from typing import TYPE_CHECKING, Any
 
+from clinosim.modules._shared import random_day_of_month
 from clinosim.seeding import PHASE_ED_VISIT, derive_phase_rng
 from clinosim.simulator._scheduling_thresholds import (
-    ED_DAY_MAX_EXCLUSIVE,
-    ED_DAY_MIN,
     ED_FAVORED_HOURS,
     ED_MINUTE_JITTER_MAX_EXCLUSIVE,
     ED_MINUTE_JITTER_MIN,
@@ -89,7 +88,7 @@ class EDSlotSampler:
             if total <= 0:
                 continue
             cond_idx = int(rng.choice(len(self.conditions), p=[w / total for w in weights]))
-            day = min(int(rng.integers(ED_DAY_MIN, ED_DAY_MAX_EXCLUSIVE)), last.day)
+            day = random_day_of_month(rng, year, month)
             when = datetime(
                 year,
                 month,
