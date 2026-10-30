@@ -120,98 +120,109 @@ Simulation approximations:
 
 **US path**: referral notes are not emitted for `country=US` (`countries_supported: [jp]`). US clinical practice uses ordinary referral letters, not the JP-CLINS eReferral profile.
 
-## JP-eCheckup 健診結果報告書 Composition (PR3、opt-in)
+## JP-eCheckup health checkup report (健診結果報告書) Composition (PR3, opt-in)
 
-`country=JP` かつ `SimulatorConfig.modules["health_checkup"]=True` の場合、
-健診 encounter に対して **健診結果報告書 (health checkup report)** Composition を
-`JP_Composition_eCheckupGeneral`(JP-eCheckup General v1.7.0)準拠で emit します。
-急性期病院想定を維持するため **default off**。
+When `country=JP` and `SimulatorConfig.modules["health_checkup"]=True`,
+clinosim emits a **健診結果報告書 (health checkup report)** Composition for
+each checkup (健診) encounter, conforming to `JP_Composition_eCheckupGeneral`
+(JP-eCheckup General v1.7.0). It is **off by default** to keep the
+acute-care hospital focus.
 
-Note: 健診 IG は JP-CLINS と別に発行されている(JP-eCheckup General v1.7.0、
-2026-02-16)。canonical URL は `/fhir/eCheckup/` 配下で、CodeSystem も別
-(section-code は 5 桁数値、JP-CLINS の 3 桁とは異なる)。
+Note: the checkup IG is published separately from JP-CLINS (JP-eCheckup
+General v1.7.0, 2026-02-16). Its canonical URLs live under `/fhir/eCheckup/`
+and it uses its own CodeSystems (section codes are 5-digit numbers, unlike
+the 3-digit JP-CLINS codes).
 
 - `Composition.meta.profile` = `http://jpfhir.jp/fhir/eCheckup/StructureDefinition/JP_Composition_eCheckupGeneral`
-- `Composition.type.coding[0]` = `{system: doc-typecodes, code: 53576-5, display: 検診・健診報告書}`。LOINC coding も secondary で併存。
-- `Composition.section` は flat 2 個(nesting なし):
+- `Composition.type.coding[0]` = `{system: doc-typecodes, code: 53576-5, display: 検診・健診報告書}`, with a secondary LOINC coding alongside it.
+- `Composition.section` is flat, with two sections (no nesting):
   - **01031** 事業者健診検査結果セクション
   - **01032** 事業者健診問診結果セクション
 - `section.code.system` = `http://jpfhir.jp/fhir/eCheckup/CodeSystem/section-code`
 
-**対象範囲(scope)**:
-- 3 健診種別すべて対応(sub-PR-D、session 47):
-  - **事業者健診**(occupational、40-64 歳):section 01031 + 01032
-  - **特定健診**(specific、65-74 歳):section 01011 + 01012
-  - **広域連合健診**(regional_union、75 歳以上):section 01021 + 01022
+**Scope**:
+- All three checkup types are supported:
+  - **事業者健診** (occupational health checkup, ages 40-64): sections 01031 + 01032
+  - **特定健診** (specific health checkup, ages 65-74): sections 01011 + 01012
+  - **広域連合健診** (regional_union, ages 75+): sections 01021 + 01022
 
-  種別選定は `_pick_checkup_type(age)` による age-based 決定的マッピング。
-  MVP は年齢帯単一 dispatch(実務では 40-64 歳の保険加入者は特定健診対象
-  になる場合もあるが、simulation では単純化)。将来:保険種別/就業状態を
-  参照した精緻化余地あり。ClinicalDocument に `checkup_type: str` field を
-  追加(sub-PR-D)、Composition builder が dispatch。
-- section content は個別化済(sub-PR-B、session 47):
-  - **01031 検査結果**:record.lab_results から 5 項目(BMI / 収縮期 BP /
-    拡張期 BP / HbA1c / LDL)の実測値を拾い、法定健診基準で
-    A/B/C/D 判定を組み立てる。総合判定は各項目の最悪 grade。
-  - **01032 問診結果**:PatientProfile 参照で個別化(chronic_conditions
-    → 既往歴、current_medications → 服薬、smoking_status/alcohol_use →
-    生活習慣)。慢性疾患保有時は「継続経過観察を要す」判定。
-- **健診 encounter 生成 module**(sub-PR-A、session 47 で追加):
-  `clinosim/modules/health_checkup/` の POST_RECORDS enricher が
-  `SimulatorConfig.modules["health_checkup"]=True` + country=JP 時に発火。
-  40 歳以上の成人患者から SHA-256 hash-based 決定的 30% サブセットを
-  選び、各患者に 1 CHECKUP encounter(1 日完結)+ 法定健診 5 項目
-  ObservationRecord + HEALTH_CHECKUP_REPORT stub を追加する。
-  narrative content は Stage 2 の TemplateNarrativePass が populate、
-  FHIR emit は `_build_jp_echeckup_general_composition` が担う。
-- **法定健診 5 項目の実測値個別化(sub-PR-B 高度化、session 48)**:
-  かつては固定値(BMI 22.5 / SBP 118 / DBP 76 / HbA1c 5.4 / LDL 118)
-  だったが、`_derive_checkup_values(patient, rng)` が PatientProfile と
-  chronic_conditions を反映するよう改修:
-  - **BMI** = `patient.bmi` + 測定日変動(sd 0.3 kg/m²)
-  - **SBP/DBP** = `patient.baseline_vitals` を base に日間変動
-    (sd 5.0/3.5 mmHg)。高血圧(I10)は FP-I10(session 38)で
-    baseline_vitals に反映済み
-  - **HbA1c** = 糖尿病(E10/E11)保有時は `hba1c_from_glycemic_control`
-    を reuse(physiology 経路と一貫)、非 DM は `HBA1C_NONDM_BASE` +
-    年齢係数 0.003 + noise
-  - **LDL** = 年齢/性別 baseline + 脂質異常症(E78)で +40 mg/dL +
-    スタチン系薬(`-statin` 末尾)で -30 mg/dL
-  - RNG は `ENRICHER_SEED_OFFSETS["health_checkup"] = 0x4843` から
-    `derive_sub_seed(master, offset, patient_id)` で per-patient に確定。
-    同 seed + 同 patient で byte-identical(AD-16 準拠)
-  - `OrderResult.interpretation`("N"/"H")と `reference_range` も
-    LOINC 別に `_interp_for` で付与、"H" フラグは renderer の A/B/C/D 判定と整合
+  The type is chosen by `_pick_checkup_type(age)`, a deterministic
+  age-based mapping. The MVP dispatches on age band alone (in practice,
+  insured people aged 40-64 can also be eligible for 特定健診, but the
+  simulation simplifies this). A future refinement could take insurance
+  type and employment status into account. `ClinicalDocument` gained a
+  `checkup_type: str` field, which the Composition builder dispatches on.
+- Section content is individualized:
+  - **01031 lab results (検査結果)**: takes the measured values of five items
+    (BMI / systolic BP / diastolic BP / HbA1c / LDL) from
+    record.lab_results and assigns A/B/C/D grades using the statutory
+    checkup criteria. The overall grade is the worst grade across items.
+  - **01032 questionnaire results (問診結果)**: individualized from
+    PatientProfile (chronic_conditions → past history, current_medications
+    → medications, smoking_status/alcohol_use → lifestyle). Patients with a
+    chronic condition get the grade 「継続経過観察を要す」.
+- **Checkup encounter generation module**:
+  the POST_RECORDS enricher in `clinosim/modules/health_checkup/` fires
+  when `SimulatorConfig.modules["health_checkup"]=True` and country=JP.
+  It picks a deterministic 30% subset (SHA-256 hash-based) of adult
+  patients aged 40+ and adds, per patient, one CHECKUP encounter
+  (completed in a single day), ObservationRecords for the five statutory
+  checkup items, and a HEALTH_CHECKUP_REPORT stub. The narrative content
+  is populated by TemplateNarrativePass in Stage 2, and the FHIR emit is
+  handled by `_build_jp_echeckup_general_composition`.
+- **Individualized values for the five statutory checkup items**:
+  these used to be fixed values (BMI 22.5 / SBP 118 / DBP 76 / HbA1c 5.4 /
+  LDL 118); `_derive_checkup_values(patient, rng)` now reflects
+  PatientProfile and chronic_conditions:
+  - **BMI** = `patient.bmi` + measurement-day variation (sd 0.3 kg/m²)
+  - **SBP/DBP** = day-to-day variation around `patient.baseline_vitals`
+    (sd 5.0/3.5 mmHg). Hypertension (I10) is already reflected in
+    baseline_vitals
+  - **HbA1c** = for patients with diabetes (E10/E11), reuses
+    `hba1c_from_glycemic_control` (consistent with the physiology path);
+    for non-DM patients, `HBA1C_NONDM_BASE` + age coefficient 0.003 + noise
+  - **LDL** = age/sex baseline, +40 mg/dL for dyslipidemia (E78), and
+    -30 mg/dL for statins (drug name ending in `-statin`)
+  - The RNG is fixed per patient via
+    `derive_sub_seed(master, offset, patient_id)` from
+    `ENRICHER_SEED_OFFSETS["health_checkup"] = 0x4843`. The same seed and
+    patient give byte-identical output (per AD-16)
+  - `OrderResult.interpretation` ("N"/"H") and `reference_range` are also
+    set per LOINC code by `_interp_for`; the "H" flag agrees with the
+    renderer's A/B/C/D grading
 
-**US path**:健診 opt-in flag は US では発火しない
-(`countries_supported: [jp]` により spec 側で JP に限定)。
+**US path**: the checkup opt-in flag never fires for the US
+(`countries_supported: [jp]` restricts it to JP at the spec level).
 
-### DocumentReference wrapper(sub-PR-E、session 48)
+### DocumentReference wrapper
 
-HEALTH_CHECKUP_REPORT の Composition と併存する DocumentReference を追加発行:
+A DocumentReference is emitted alongside the HEALTH_CHECKUP_REPORT
+Composition:
 
-- **対象**:`ClinicalDocument.task_type == "health_checkup_report"` かつ
-  `format_type == "composition"`(discharge_summary / referral_note は emit しない)
-- **id 命名**:`drf-<document_id>`(Composition の id と衝突しない prefix)
-- **参照**:`relatesTo=[{code:"transforms", target: Composition/<id>}]`
-- **content**:narrative.text(空なら sections 値 join)を base64 で添付
-- **category**:JP-eCheckup doc-typecodes `eCheckupGeneral`(健診結果報告書)
-- **encounter context**:`Encounter/CHK-<pid>-<seq>` に紐付け
-- **custodian**:`Organization/hospital-main`
-- **byte-diff invariant**:JP かつ opt-in 有効時のみ emit、reproduce.sh の
-  default runs は影響なし(既に確認済み)
+- **Target**: `ClinicalDocument.task_type == "health_checkup_report"` and
+  `format_type == "composition"` (not emitted for discharge_summary / referral_note)
+- **id naming**: `drf-<document_id>` (a prefix that cannot collide with the Composition id)
+- **Reference**: `relatesTo=[{code:"transforms", target: Composition/<id>}]`
+- **content**: narrative.text (or the joined section values if empty), attached as base64
+- **category**: JP-eCheckup doc-typecodes `eCheckupGeneral` (健診結果報告書)
+- **encounter context**: linked to `Encounter/CHK-<pid>-<seq>`
+- **custodian**: `Organization/hospital-main`
+- **byte-diff invariant**: emitted only for JP with the opt-in enabled; the
+  default reproduce.sh runs are unaffected (already verified)
 
-実 EHR 交換シナリオ:Composition = 構造化(section で保持)、DocumentReference =
-portable な wrapper。事業所 ⇄ 保険者 ⇄ 実施機関 間の交換で DocumentReference
-を使うことが多いため、両者併存が JP-eCheckup interchange の標準形。
+Real-world EHR exchange: the Composition is the structured form (content held
+in sections), and the DocumentReference is a portable wrapper. Exchanges
+between employers, insurers and checkup providers often use
+DocumentReference, so emitting both is the standard shape for JP-eCheckup
+interchange.
 
-## JP FHIR Validator Bridge (PR3 sub-PR-C, session 48 高度化)
+## JP FHIR Validator Bridge (PR3)
 
-session 47 で `scripts/validate_jp.sh` と `.github/workflows/jp-validate.yml` を追加、session 48 で **SHA256 pin + auto-fail gate 化** に高度化しました。**JP 出力を HL7 公式 FHIR Validator で JP Core / JP-CLINS / JP-eCheckup に適合検証** し、pin mismatch や validation failure で CI が自動 fail します。
+`scripts/validate_jp.sh` and `.github/workflows/jp-validate.yml` **validate JP output against JP Core / JP-CLINS / JP-eCheckup with the official HL7 FHIR Validator**, and were later hardened with **SHA256 pinning and an auto-fail gate**: CI fails automatically on a pin mismatch or a validation failure.
 
-### Pin ファイル(session 48 追加)
+### Pin file
 
-`.github/jp-validator-pins.env` に validator と IG package のバージョン / SHA256 が集約されています:
+`.github/jp-validator-pins.env` collects the versions / SHA256 hashes of the validator and the IG packages:
 
 ```env
 VALIDATOR_VERSION=6.4.3
@@ -229,68 +240,68 @@ JP_ECHECKUP_PACKAGE_URL=
 JP_ECHECKUP_PACKAGE_SHA256=
 ```
 
-- SHA256 空欄 + STRICT モード = fail(bootstrap 指示メッセージを出力)
-- SHA256 記入済 = 実測との一致確認 → mismatch で fail
+- Empty SHA256 + STRICT mode = fail (prints bootstrap instructions)
+- SHA256 filled in = checked against the actual hash → fail on mismatch
 
-### 初回 pin bootstrap
+### Initial pin bootstrap
 
 ```bash
 bash scripts/pin_jp_validator.sh
-git diff .github/jp-validator-pins.env  # ← 差分確認
+git diff .github/jp-validator-pins.env  # ← review the diff
 git commit -m "chore(jp-validate): pin validator + IG SHA256"
 ```
 
-`PIN_FILE=<path>` / `DRY_RUN=1` で挙動を上書き可能。
+Override the behavior with `PIN_FILE=<path>` / `DRY_RUN=1`.
 
-### Local 実行
+### Running locally
 
 ```bash
-# サンプル抽出のみ(validator jar 未指定なら skip)
+# Sample extraction only (skipped when no validator jar is set)
 ./scripts/validate_jp.sh
 
-# 実際の validator 実行 + pin gate(要 Java 11+)
+# Actual validator run + pin gate (requires Java 11+)
 VALIDATOR_JAR=/path/to/validator_cli.jar \
 CLINOSIM_JP_VAL_PINS=.github/jp-validator-pins.env \
 CLINOSIM_JP_VAL_STRICT=1 \
 ./scripts/validate_jp.sh
 ```
 
-環境変数:
-- `VALIDATOR_JAR`(必須):HL7 公式 validator jar のパス。
-- `CLINOSIM_JP_VAL_PINS`:pin file 参照(未指定なら IG resolve は skip)。
-- `CLINOSIM_JP_VAL_STRICT`:`1` で SHA256 mismatch / sample 0 抽出 → exit 1。
-- `CLINOSIM_JP_VAL_POPULATION`:default 10
-- `CLINOSIM_JP_VAL_SEED`:default 42
-- `CLINOSIM_JP_VAL_END`:default 2026-06-30
-- `CLINOSIM_JP_VAL_HEALTH`:default "1"(health_checkup opt-in)
+Environment variables:
+- `VALIDATOR_JAR` (required): path to the official HL7 validator jar.
+- `CLINOSIM_JP_VAL_PINS`: pin file to use (if unset, IG resolution is skipped).
+- `CLINOSIM_JP_VAL_STRICT`: `1` makes a SHA256 mismatch / zero extracted samples → exit 1.
+- `CLINOSIM_JP_VAL_POPULATION`: default 10
+- `CLINOSIM_JP_VAL_SEED`: default 42
+- `CLINOSIM_JP_VAL_END`: default 2026-06-30
+- `CLINOSIM_JP_VAL_HEALTH`: default "1" (health_checkup opt-in)
 
-### 検証対象(MVP)
+### Validation targets (MVP)
 
-小規模 JP コホート生成後、以下 profile 対応 resource から代表 1 件を抽出して検証:
+After generating a small JP cohort, one representative resource is extracted and validated for each of these profiles:
 
 - `JP_Condition_eCS`
 - `JP_AllergyIntolerance_eCS`
-- `JP_Observation_LabResult_eCS`(laboratory category)
+- `JP_Observation_LabResult_eCS` (laboratory category)
 - `JP_MedicationRequest_eCS`
 - `JP_Procedure_eCS`
 - `JP_Composition_eDischargeSummary`
 - `JP_Composition_eReferral`
-- `JP_Composition_eCheckupGeneral`(health_checkup opt-in 時)
+- `JP_Composition_eCheckupGeneral` (with the health_checkup opt-in)
 
-### CI 実行(auto-fail gate、session 48 高度化)
+### CI runs (auto-fail gate)
 
 `.github/workflows/jp-validate.yml`:
 
-- **workflow_dispatch**:`run_validator=true`(default) + `strict_pins=true`(default) → SHA256 mismatch / validator FAIL / sample 0 抽出のいずれかで **job が自動 fail**
-- **PR label**:`jp-validate` ラベルを付けた PR で自動実行(default STRICT)
+- **workflow_dispatch**: `run_validator=true` (default) + `strict_pins=true` (default) → **the job fails automatically** on any of a SHA256 mismatch / a validator FAIL / zero extracted samples
+- **PR label**: runs automatically on PRs labeled `jp-validate` (STRICT by default)
 
-CI 時間の浪費を防ぐため、通常の PR CI パイプラインには組み込まず、必要時のみ手動 or label で回す設計です。
+To avoid wasting CI time, it is deliberately kept out of the regular PR CI pipeline and runs only when needed, manually or via the label.
 
-### 将来の高度化余地
+### Future improvements
 
-- 全 resource 検証(現状 profile あたり 1 サンプルのみ)
-- packages.fhir.org 登録前の JP-CLINS / JP-eCheckup の direct .tgz URL 確定と `_PACKAGE_URL` フィールドへの反映
-- JP profile violation の granular reporting(現状は tail 5 行のみ)
+- Validate every resource (currently only one sample per profile)
+- Settle direct .tgz URLs for JP-CLINS / JP-eCheckup before they are registered on packages.fhir.org, and fill them into the `_PACKAGE_URL` fields
+- Granular reporting of JP profile violations (currently only the last 5 lines of output)
 
 ## Reproducibility
 
@@ -302,7 +313,7 @@ See spec §1.3 in `docs/history/specs-archive/2026-07-12-p2-13-jp-clins-design.m
 
 - 3 documents Composition (退院時サマリー / 診療情報提供書 / 健康診断結果報告書) — PR2 + PR3
 - 健診 encounter generation — PR3 opt-in
-- 機関間連携 workflow simulation — non-goal
+- Inter-institution exchange (機関間連携) workflow simulation — non-goal
 
 ## Deferred improvement candidates
 

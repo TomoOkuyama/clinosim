@@ -74,7 +74,7 @@ old name; those are being cleaned up module-by-module (see linked issues).
 - **JP is opt-in** via explicit `--country JP` (CLI) or `country="JP"` (API).
   JP-specific modules — JP Core / JP-CLINS profile application, JCCLS
   reference ranges, JST (`+09:00`) timestamp appenders, MHLW ICD system
-  routing, MEDIS code emission, 保険者番号 lookup, JP-specific display strings —
+  routing, MEDIS code emission, 保険者番号 (insurer number) lookup, JP-specific display strings —
   MUST be gated behind `is_jp(country)` from `clinosim.modules._shared` and
   MUST no-op on non-JP cohorts.
 - **Future US-specific profile support** (US Core / USCDI) will be gated behind
@@ -109,42 +109,42 @@ old name; those are being cleaned up module-by-module (see linked issues).
 
 ### Two-pass CIF generation invariant (AD-65, 2026-07-02)
 
-- **CIF は structural + narrative の 2 層 file 分離**:`cif/structural/patients/<enc>.json`
-  (構造化データ、Stage 1 で immutable)と `cif/narratives/<version>/documents/<enc>/<doc>.json`
-  (narrative、Stage 2 で version 化可能)を **必ず file-level 分離**。inline 混在禁止。
-  過去実装から drift した状態を復元、SPEC.md `Stage 2: Narrative Generation`
-  節が canonical。
-- **`document_enricher`(POST_ENCOUNTER)は `ClinicalDocument` stub のみ生成**:metadata +
-  author + encounter binding + `narrative=None`。narrative content(text / sections /
-  facts_used)を populate 禁止。populate すると Stage 2 差替時 silent-no-op risk。
-- **narrative は post-simulation two-pass で生成**:`TemplateNarrativePass.run(cif_dir,
-  version_id)` は structural CIF を read → patient profile + labs + conditions +
-  medications + scenario_spine を input として narrative を導出 →
-  `narratives/<version>/documents/<enc>/<doc>.json` 書出。simulation loop 中の
-  narrative content 生成禁止。α-min-1 Task 15 で SPEC.md 元設計から drift、
-  AD-65 で復元。
-- **`NarrativePass` walk 順序は (doc_type, language) group 単位**:同 prompt prefix を
-  共有する batch 単位で patient を逐次処理 → Bedrock prompt cache(5 分 TTL)hit rate
-  最大化。LLMNarrativePass(β-JP-1)は同 base class を継承 = drop-in で cache-friendly。
-- **FHIR builders は `doc.narrative.sections` / `doc.narrative.text` 経由必須**:
-  `ClinicalDocument` の flat field(`doc.text` / `doc.sections`)は AD-65 で削除、
-  wrapper `ClinicalDocumentNarrative` に集約。`CIFReader(narrative_version="current")`
-  が structural + narrative を merge して `doc.narrative` を fill、builders は
-  wrapper 経由のみ。
+- **CIF is split into two file layers, structural + narrative**: `cif/structural/patients/<enc>.json`
+  (structured data, immutable after Stage 1) and `cif/narratives/<version>/documents/<enc>/<doc>.json`
+  (narrative, versionable in Stage 2) **must always be separated at the file level**. Never mix them inline.
+  This restores the state that had drifted in past implementations; the SPEC.md
+  `Stage 2: Narrative Generation` section is canonical.
+- **`document_enricher` (POST_ENCOUNTER) generates only a `ClinicalDocument` stub**: metadata +
+  author + encounter binding + `narrative=None`. It must not populate narrative content (text / sections /
+  facts_used); populating it risks a silent no-op when Stage 2 swaps the narrative in.
+- **Narrative is generated in a post-simulation two-pass**: `TemplateNarrativePass.run(cif_dir,
+  version_id)` reads the structural CIF → derives the narrative from patient profile + labs + conditions +
+  medications + scenario_spine as input →
+  writes `narratives/<version>/documents/<enc>/<doc>.json`. Narrative content must never be
+  generated inside the simulation loop. This drifted from the original SPEC.md design in α-min-1 Task 15
+  and was restored by AD-65.
+- **`NarrativePass` walk order is per (doc_type, language) group**: patients are processed sequentially
+  in batches that share the same prompt prefix → maximizes the Bedrock prompt cache (5-min TTL) hit
+  rate. LLMNarrativePass (β-JP-1) inherits the same base class = drop-in and cache-friendly.
+- **FHIR builders must go through `doc.narrative.sections` / `doc.narrative.text`**:
+  the flat fields on `ClinicalDocument` (`doc.text` / `doc.sections`) were removed by AD-65 and
+  consolidated into the wrapper `ClinicalDocumentNarrative`. `CIFReader(narrative_version="current")`
+  merges structural + narrative to fill `doc.narrative`; builders access it only through the
+  wrapper.
 
 ### Canonical patient profile fixture library (AD-66, 2026-07-03)
 
-- **AD-66 Rule 1**: Profile YAML changes MUST regenerate golden + commit both together。
-  `tests/fixtures/patient_profiles/<name>.yaml` を編集したら必ず `clinosim
-  regenerate-goldens --profile <name>` で `<name>.golden.json` を再生成 + 両方
-  同一 commit に含める。片方だけ commit すると次の `pytest -m regression`
-  実行時に regression suite が失敗する = ship-blocker。
+- **AD-66 Rule 1**: Profile YAML changes MUST regenerate golden + commit both together.
+  Whenever you edit `tests/fixtures/patient_profiles/<name>.yaml`, you must run `clinosim
+  regenerate-goldens --profile <name>` to regenerate `<name>.golden.json` and include both
+  in the same commit. Committing only one makes the regression suite fail on the next
+  `pytest -m regression` run = ship-blocker.
 - **AD-66 Rule 2**: Unexpected `git diff` on goldens after intentional template
-  changes = regression suspicion。narrative template logic を意図的に変更
-  (例:H&P に新 section 追加)して `clinosim regenerate-goldens --all` を回した
-  時、意図した profile 以外の goldens にも diff が入ったら narrative pass の
-  regression の疑い。commit 前に必ず調査。「全部再生成したから green」= silent
-  regression 隠蔽の常套手段(PR-90 教訓)。
+  changes = regression suspicion. If you intentionally change narrative template logic
+  (e.g. add a new section to the H&P) and run `clinosim regenerate-goldens --all`,
+  and goldens for profiles other than the intended ones also show a diff, suspect a
+  narrative-pass regression. Always investigate before committing. "I regenerated everything, so
+  it's green" = the classic way to hide a silent regression (PR-90 lesson).
 
 ### Module independence
 
@@ -181,26 +181,26 @@ old name; those are being cleaned up module-by-module (see linked issues).
 - **DRY helpers** — cross-module utilities used by 2+ enrichers live in `clinosim/modules/_shared.py`. Don't redefine inline; import from `_shared`. Current: `get_attr_or_key(obj, name, default)` for dict / dataclass dual access; `normalize_probabilities(probs, fallback="uniform")` for any `rng.choice(p=)` argument (PR-A 2026-06-26 — `numpy.random.Generator.choice` does NOT auto-normalize; YAML pre-normalization is fragile, helper is idempotent on already-normalized arrays so migration is byte-clean).
 - **Locale loader signature** — modules with locale-specific data MUST accept a `country: str` parameter and return `{}` for unsupported countries (no-op early return). Hardcoded country literals in path joins (e.g., `_LOCALE / "jp" / "..."` without country gating) are a consistency bug.
 - **Path constant canonical form (PR-A 2026-06-26)** — every module that loads data uses `_HERE = Path(__file__).resolve().parent`, `_REF_DIR = _HERE / "reference_data"` (if applicable), `_LOCALE = _HERE.parents[1] / "locale"` (if applicable). Old naming (`_REFERENCE_DATA_DIR`, `_DATA`, `_HAI_REF_DIR`, fragile `.parents[2]`) was unified across 18 modules (PR-A initial 12 + Fix PR #100 6 more). New modules MUST follow the canonical form; see boilerplate in `.github/TEMPLATE_MODULE_README.md`.
-- **`lru_cache` maxsize convention (PR-A 2026-06-26, PR-B1 2026-06-27 + Fix 拡張)** — `load_X()` no-param → `maxsize=1`; `load_X(country: str)` → `maxsize=2` (US + JP); `load_X(country, language)` → `maxsize=4` (future multilingual, currently unused). `maxsize=4` on country-only loader is a smell. **PR-B1 (+ adversarial fix) で残存する global mutable `_X: ... | None = None` sentinel pattern を全ての data loader で撤廃し `@lru_cache(maxsize=1)` に統一済** (`clinosim/modules/encounter/protocol.py:load_all_encounter_conditions`、`clinosim/modules/order/panel_grouping.py:load_panel_definitions`、`clinosim/modules/output/fhir_r4/lib/localization.py` 内の `_load_med_terms_ja` / `_load_narrative_display_dict` / `_load_department_display` 等)。新規 module で hand-rolled cache を書かないこと(同 pattern は test `cache_clear()` pattern も阻害する)。※ 当時の enumeration に含まれていた `simulator/helpers.py:_load_all_disease_protocols` は session 96 で関数ごと削除済。
-- **Import-time canonical-constants validation (PR-A 2026-06-26, PR #102 2026-06-27 拡張)** — any YAML data referencing external IDs (SNOMED / LOINC / antibiotic key / probability weights) MUST validate against the canonical set at load time and raise `ValueError` on unknown keys / zero-sum weights. Silent `dict.get(key)` fall-through is a PR-90 class silent-no-op risk. Precedents: `modules/hai/load_hai_antibiogram` (3-way validation), `modules/observation/microbiology._validate_microbiology` (PR-A added, 7 cross-refs), `modules/antibiotic/audit._validate_nhsn_resistance_bands`, **`modules/hai/engine._validate_hai_organisms` + `locale/loader._validate_demographics` / `_validate_names` / `_validate_addresses` (PR #102、主要 4 YAML loader の上流防御を完備)**. Combined with `clinosim/modules/_shared.normalize_probabilities(..., fallback="raise")` の後方防御(**全 15 YAML-sourced callsites 完備** = PR #102 で 10 callsites 追加 + pre-PR 5 件 = `code_status:51` / `family_history:90` / `care_level:53` / `observation/microbiology:167+206` が PR-A Fix #100/#101 期間に migrated 済、配置先 7 modules: code_status / population / clinical_course / hai / family_history / observation / care_level)で **silent-no-op 防御 3 層完成**(canonical constants + upstream `_validate_*` + backward `fallback="raise"`)。
+- **`lru_cache` maxsize convention (PR-A 2026-06-26, PR-B1 2026-06-27 + Fix extension)** — `load_X()` no-param → `maxsize=1`; `load_X(country: str)` → `maxsize=2` (US + JP); `load_X(country, language)` → `maxsize=4` (future multilingual, currently unused). `maxsize=4` on country-only loader is a smell. **PR-B1 (+ adversarial fix) eliminated the remaining global mutable `_X: ... | None = None` sentinel pattern from every data loader and unified them on `@lru_cache(maxsize=1)`** (`clinosim/modules/encounter/protocol.py:load_all_encounter_conditions`, `clinosim/modules/order/panel_grouping.py:load_panel_definitions`, `_load_med_terms_ja` / `_load_narrative_display_dict` / `_load_department_display` etc. in `clinosim/modules/output/fhir_r4/lib/localization.py`). Never write a hand-rolled cache in a new module (that pattern also blocks the test `cache_clear()` pattern). Note: `simulator/helpers.py:_load_all_disease_protocols`, which was in the enumeration at the time, was deleted entirely in session 96.
+- **Import-time canonical-constants validation (PR-A 2026-06-26, PR #102 2026-06-27 extension)** — any YAML data referencing external IDs (SNOMED / LOINC / antibiotic key / probability weights) MUST validate against the canonical set at load time and raise `ValueError` on unknown keys / zero-sum weights. Silent `dict.get(key)` fall-through is a PR-90 class silent-no-op risk. Precedents: `modules/hai/load_hai_antibiogram` (3-way validation), `modules/observation/microbiology._validate_microbiology` (PR-A added, 7 cross-refs), `modules/antibiotic/audit._validate_nhsn_resistance_bands`, **`modules/hai/engine._validate_hai_organisms` + `locale/loader._validate_demographics` / `_validate_names` / `_validate_addresses` (PR #102, completing upstream defense for the 4 major YAML loaders)**. Combined with the backward defense of `clinosim/modules/_shared.normalize_probabilities(..., fallback="raise")` (**all 15 YAML-sourced callsites covered** = 10 callsites added in PR #102 + 5 pre-PR ones = `code_status:51` / `family_history:90` / `care_level:53` / `observation/microbiology:167+206` already migrated during PR-A Fix #100/#101; spread across 7 modules: code_status / population / clinical_course / hai / family_history / observation / care_level), this **completes the 3-layer silent-no-op defense** (canonical constants + upstream `_validate_*` + backward `fallback="raise"`).
 - **Enricher stages (Phase 3a, 2026-06-25)** — three stages now exist in `clinosim/simulator/enrichers.py`:
   - `POST_POPULATION` — runs after population generation, before simulation. Currently: `allergy` (10), `identity` (10, JP insurance numbering), metabolic `e66_bmi` (15) → `e88_81_syndrome` (16) → `k76_0_nafld` (17) → `g47_30_osa` (18).
   - `POST_ENCOUNTER` — runs **per encounter, immediately after the daily loop completes** but **inside** the encounter simulator. Use for "encounter-bound" Modules whose sampling depends on full clinical course (`icu_transferred`, GCS, perfusion) and whose output is consumed by physiology / observation layers later in the same encounter. Currently: `device`(70) → `prophylaxis`(75) → `hai`(80) → `antibiotic`(85) → `imaging`(90) → `discontinue_flip`(91) → `newborn`(92) → `triage`(93) → `lab_derived_dx`(94) → `nursing_assignment`(94) → `document`(95) (ties sort by name). See the always-on cascade note below for cross-module invariants.
   - `POST_RECORDS` — runs after **all** patient records are simulated. Use for "cross-record" Modules that read patient-wide history. Currently: `nursing` (20), `immunization` (30), `family_history` (40), `code_status` (50), `care_level` (60), `medication_monitoring` (65), `health_checkup` (70, JP opt-in).
   - **Module classification**: when adding a new opt-in Module, decide first which stage it belongs in. "encounter-bound" vs "cross-record" is a critical design axis — encounter-bound Modules can interact with the same-encounter physiology (e.g. lift WBC + CRP for HAI), while cross-record Modules cannot reach back into the loop.
-- **Phase 3b-1 HAI empirical antibiotic** (2026-06-25, PR #93) — `modules/antibiotic/` is the second always-on Module of the HAI cascade. Consumes `extensions["hai"]` at POST_ENCOUNTER order=85 (after `hai=80`), emits IDSA 2009/2016 empirical regimens (Vancomycin / Piperacillin-Tazobactam / Ceftriaxone) as `Order(MEDICATION)` + `MedicationAdministration` via the existing `_fhir_medications.py` builder (now `fhir_r4/medications/medications.py`) (zero new builder), plus `extensions["antibiotic"] = list[AntibioticRegimen]` for cross-PR consumption by PR3b-2/3/4. AD-32 defensive future-onset HAI skip prevents orphan Order/MAR when `inpatient.py:464-490` truncates HAI events post-POST_ENCOUNTER. `ForcedScenario.force_hai_event` added for deterministic HAI testing (PR-90 教訓 completion). `modules/antibiotic/audit.py` = AD-60 framework second per-Module plug-in with closed-form `lift_firing_proof`.
+- **Phase 3b-1 HAI empirical antibiotic** (2026-06-25, PR #93) — `modules/antibiotic/` is the second always-on Module of the HAI cascade. Consumes `extensions["hai"]` at POST_ENCOUNTER order=85 (after `hai=80`), emits IDSA 2009/2016 empirical regimens (Vancomycin / Piperacillin-Tazobactam / Ceftriaxone) as `Order(MEDICATION)` + `MedicationAdministration` via the existing `_fhir_medications.py` builder (now `fhir_r4/medications/medications.py`) (zero new builder), plus `extensions["antibiotic"] = list[AntibioticRegimen]` for cross-PR consumption by PR3b-2/3/4. AD-32 defensive future-onset HAI skip prevents orphan Order/MAR when `inpatient.py:464-490` truncates HAI events post-POST_ENCOUNTER. `ForcedScenario.force_hai_event` added for deterministic HAI testing (PR-90 lesson completion). `modules/antibiotic/audit.py` = AD-60 framework second per-Module plug-in with closed-form `lift_firing_proof`.
 - **Phase 3b-2 HAI culture S/I/R susceptibility chain** (2026-06-26, PR #96 + adversarial fix PRs #97/#98) — `modules/hai/_append_hai_culture()` extended with antibiogram-driven S/I/R sampling. Source of truth: `modules/hai/reference_data/hai_antibiogram.yaml` (CDC NHSN AR 2018-2020), nested format `{hai_type: {organism_snomed: {antibiotic_key: [S_rate, I_rate, R_rate]}}}`. Import-time 3-way cross-validation applies the PR-90 / PR3b-1 canonical-constants lesson: YAML keys are validated against `HAI_TYPES` (lowercase) + `hai_organisms.yaml` (valid SNOMED set) + `ANTIBIOTIC_LOINC_LOOKUP` (valid antibiotic keys) at `load_hai_antibiogram()` import, so a case-mismatch or orphan drug key raises `ImportError` before any simulation runs. **`MicrobiologyResult.hai_event_id` backref convention**: HAI-derived cultures set `hai_event_id = HAIEvent.hai_id`; community microbiology paths leave it `""` and are unchanged. **`ANTIBIOTIC_DRUGS` tuple → dict refactor**: key = lowercase snake_case drug key, value = `{"name", "rxnorm", "yj"}`; `ANTIBIOTIC_LOINC_LOOKUP` is a new companion `dict[str, str]` loaded from `microbiology.yaml`. **Forward-compat reserves**: `AntibioticRegimen.discontinuation_datetime = None` (PR3b-3 de-escalation) + `run_forced` now injects `force_hai_event`-carrying scenarios into `config.forced_scenarios` (silent-no-op gap closed; load-bearing `test_run_forced_auto_injects_force_hai_event_into_config` in PR #97 verifies the fix actually fires via monkeypatched enricher — closing the PR-90 class fix-PR-itself-silently-regresses gap). **Audit**: `antibiogram_firing_proof` in `modules/antibiotic/audit.py` uses PR-94 `equality_checks` format with a non-degenerate cefazolin sentinel (PR #98 LOW-1, exposes YAML key-order swaps that the always-S vancomycin sentinel cannot); `_build_combined_proof` sub-proof exception isolation (PR #98 MED-3); `_NHSN_RESISTANCE_BANDS` import-time validation against `HAI_TYPES` + `ANTIBIOTIC_DRUGS` + `hai_organisms.yaml` (PR #98 MED-4); `HAI_EMPTY_SUSCEPTIBILITIES_MAX_RATE` denominator clarified to panel-eligible HAI cultures only (excluding E.faecalis 78065002 + C.albicans 53326005; PR #97 F-MAJ-1 — without this, CLABSI 28% / CAUTI 34% no-panel weight would force PR3b-3 gate to always-FAIL). `_NHSN_RESISTANCE_BANDS` + `HAI_EMPTY_SUSCEPTIBILITIES_MAX_RATE` active enforcement was added in PR3b-3 (2026-06-27) and finalized with per-organism R-rate filter + panel-eligible empty-rate denominator in PR3b-3 D1+D2 (PR #112+#113, 2026-06-29). **AD-16 hardening**: `_CapturingRNG.choice` logs the `p=` array (PR #98 MED-1, exposes YAML key reorders); YAML key-order pin tests for clabsi/cauti/vap pinned organisms (PR #98 MED-1); YAML header carries a "KEY ORDER LOAD-BEARING" comment (PR #98 MED-2). **Type annotation correctness**: `ModuleAuditSpec.clinical_acceptance` is `dict[str, Any]` since PR3b-2 stores mixed types (per-HAI dict, list of bands, float threshold) — PR #97 F-CRIT-1 mypy strict 11 errors closed.
 - **Phase 3b-3 HAI culture S/I/R-driven narrow / de-escalation chain** (2026-06-27, PR #107 + adv-1 #108 + adv-2 #109 + adv-3 #110 = 4-stage adversarial chain converged, matches PR-A / PR #102 / PR-B1 pattern) — `modules/antibiotic/enricher.py` extended with **same-enricher Pass 2** (POST_ENCOUNTER order=85 unchanged). Pass 2 walks `extensions["antibiotic"]` empirical regimens, looks up the culture via `MicrobiologyResult.hai_event_id` backref, picks the narrow target via new per-(hai_type, organism_snomed) ladder YAML (`reference_data/narrow_ladder.yaml`, 3-way import-time validation against `HAI_TYPES` + `hai_antibiogram.yaml` + `ANTIBIOTIC_DRUGS` — silent-no-op defense 3rd layer). Walk algo: S only accept, I/R skip. Three dispatched outcomes per `NarrowOutcome` enum: **(i) SWITCH** = all empirical get `discontinuation_datetime=reported_datetime`, new `AntibioticRegimen(intent="narrowed")` + Order + MAR added; **(ii) ELIMINATION** = non-target empirical discontinued, target kept unchanged, no new regimen; **(iii) NO_CHANGE** = empirical continues unchanged. `narrowing by elimination` data model avoids same-drug duplication (MRSA CLABSI → vancomycin continues as single regimen, not vanc-twice). **FHIR `MedicationRequest.status` wiring**: new `OrderStatus.STOPPED` + `_map_order_status_to_fhir` in `_fhir_medications.py` → discontinued empirical emits `status="stopped"`. **Audit clinical axis active enforcement** (closes PR3b-2 TODO): `_NHSN_RESISTANCE_BANDS` R-rate gate + `HAI_EMPTY_SUSCEPTIBILITIES_MAX_RATE` empty rate gate + new `_NARROW_RATE_BANDS` narrow rate gate, each `n<30` → WARN else PASS/FAIL with per-cohort observed in `result.info`. **lift_firing_proof extended**: 8 PR3b-1 + 3 PR3b-2 + 6 PR3b-3 = **17 equality_checks** total. **Determinism (AD-16)**: no new RNG (select_narrow_target is pure over already-determined susceptibilities), enricher cascade order unchanged. **AD-32**: `snapshot < reported_datetime` → narrow skipped. byte-diff intentionally broken (new-feature PR, audit run is primary gate).
 
   **PR3b-3 chain CLOSED — D1+D2 complete (2026-06-29, PR #112 + adv-1 #113 + adv-2 #114 + adv-3 #115 = 4-stage adversarial chain converged)** — the clinical-axis R-rate gate now filters cohort encounters per-(hai_type, organism, antibiotic) via `_organism_per_encounter` (single `Observation.ndjson` walk on `mb-org-*` resources, builds `{enc_id: {organism_snomed,...}}`); the empty-rate gate restricts the denominator to panel-eligible HAI cohort encounters via `_panel_eligible_organisms` (derived from `load_hai_antibiogram()` keys, no hard-coded no-panel exclusion — E.faecalis 78065002 / C.albicans 53326005 auto-excluded). Both TODO markers removed (`clinosim/audit/axes/clinical.py:175-191` R-rate block + `clinosim/modules/antibiotic/audit.py:111-128` empty-rate block). 10 new unit tests + 4 new integration tests pin filter behavior. n<30 WARN guards retained for rare-event safety. **Silent-no-op defense layers**: (1) canonical SNOMED URI equality vs substring (`_SNOMED_URI`), (2) shared id-prefix constants between writers/readers (`MB_ORG_ID_PREFIX` in `fhir_r4/labs/microbiology.py`, `ABX_REGIMEN_ID_PREFIX` + `ABX_ORDER_REQ_PREFIX` + `ABX_ORDER_ID_PREFIX` + `ABX_NARROW_SUFFIX` in `antibiotic/engine.py`), (3) `load_hai_antibiogram()` raises on empty top-level + empty per-hai_type bucket, (4) `_validate_nhsn_resistance_bands` reverse-coverage (forward + staleness) with `_NHSN_REVERSE_COVERAGE_EXEMPT` for organisms NHSN doesn't band, (5) all validators run BEFORE `register_audit_module` so band-shape failure prevents stale spec from registering, (6) `_validate_narrow_rate_bands` symmetric forward-coverage = every HAI_TYPE has a narrow rate band (adv-3 finding, applies the sibling layer-4 pattern to `_NARROW_RATE_BANDS`), (7) `HAI_EVENT_ID_SYSTEM` canonical URI shared between writer (`fhir_r4/labs/microbiology.py`) and reader (`audit/axes/clinical.py`) — PR3b-5 emit pattern same as MB_ORG_ID_PREFIX + ABX_ORDER_ID_PREFIX.
 
-  **★ 区切り達成宣言 (2026-06-29)** — PR3b-3 D1+D2 chain (#112-#116) + PR3b-5 attribution refinement chain (#117-#120) + HAI YAML sibling sweep chain (#121-#122) **全 3 chain CLOSED**。データ品質 / 臨床整合性 / メンテ性 / コンセプト適切性 4 軸で:
-  - **データ品質**: PR3b-5 で encounter-level attribution approximation = RESOLVED、approximation 0
-  - **臨床整合性**: D1 R-rate gate semantics correct at any cohort scale(per-(hai_type, organism, antibiotic))、D2 panel-eligible denominator NHSN definition 一致、6-of-6 hai_*.yaml loaders fully validated
-  - **メンテ性**: 7-layer system-level silent-no-op defense(canonical URIs + ID prefixes + validator ordering + reverse-coverage forward+staleness + HAI_EVENT_ID_SYSTEM) + per-validator 6-layer pattern(empty + per-bucket + forward-coverage + range + authoritative cross-validation)を全 HAI YAML に適用、責任分解点 clear
-  - **コンセプト適切性**: silent-no-op 防御 4 層 pattern(canonical constants + YAML loader cross-validation + normalize_probabilities + reverse-coverage)が確立 + 5 例目 4-stage adversarial chain pattern converged(PR-A / PR #102 / PR-B1 / PR3b-3-original / PR3b-3-D1+D2 / PR3b-5 / sibling sweep)= **7 例の安定 chain pattern**
+  **★ Milestone declaration (2026-06-29)** — PR3b-3 D1+D2 chain (#112-#116) + PR3b-5 attribution refinement chain (#117-#120) + HAI YAML sibling sweep chain (#121-#122) **all 3 chains CLOSED**. Across the 4 axes of data quality / clinical consistency / maintainability / conceptual soundness:
+  - **Data quality**: PR3b-5 RESOLVED the encounter-level attribution approximation; approximations = 0
+  - **Clinical consistency**: D1 R-rate gate semantics correct at any cohort scale (per-(hai_type, organism, antibiotic)), D2 panel-eligible denominator matches the NHSN definition, 6-of-6 hai_*.yaml loaders fully validated
+  - **Maintainability**: 7-layer system-level silent-no-op defense (canonical URIs + ID prefixes + validator ordering + reverse-coverage forward+staleness + HAI_EVENT_ID_SYSTEM) + per-validator 6-layer pattern (empty + per-bucket + forward-coverage + range + authoritative cross-validation) applied to all HAI YAML; clear separation of responsibilities
+  - **Conceptual soundness**: the 4-layer silent-no-op defense pattern (canonical constants + YAML loader cross-validation + normalize_probabilities + reverse-coverage) is established + the 5th instance of the 4-stage adversarial chain pattern converged (PR-A / PR #102 / PR-B1 / PR3b-3-original / PR3b-3-D1+D2 / PR3b-5 / sibling sweep) = **7 instances of a stable chain pattern**
 
-  残 backlog はすべて GitHub Issues (see `docs/roadmap.md`)(PR3b-4 WBC/CRP decay / audit registry `_reset_for_test` ordering / Phase 2 per-event observed-vs-theoretical / NHSN clinical-accuracy band verification / I1 WARN UX / MB_*_PREFIX cleanup / DESIGN.md AD-55+AD-60 extended ADR / `_code_in_data` public API promote)。半端な状態ゼロ、各 deferred item は文脈完備で書面化済。
+  All remaining backlog is in GitHub Issues (see `docs/roadmap.md`) (PR3b-4 WBC/CRP decay / audit registry `_reset_for_test` ordering / Phase 2 per-event observed-vs-theoretical / NHSN clinical-accuracy band verification / I1 WARN UX / MB_*_PREFIX cleanup / DESIGN.md AD-55+AD-60 extended ADR / `_code_in_data` public API promote). Zero half-finished state; every deferred item is documented with full context.
 
   **HAI YAML sibling sweep CLOSED (2026-06-29, PR #121 + adv-1 #122 = 2-stage adversarial chain converged)** — the **per-validator 6-layer defense pattern** (empty top + per-bucket guards + unknown-hai_type rejection + HAI_TYPES forward-coverage + range/type checks + authoritative cross-validation) is now applied to **all 6 HAI YAML loaders**: `hai_antibiogram` + `hai_organisms` (existing, PR3b-3) + new `hai_lab_lift` + `hai_rates` + `hai_codes` + `hai_specimens` (sibling sweep). Each `_validate_hai_<name>` performs the pattern with authoritative loader lookups (`_code_in_data()` for ICD/SNOMED/LOINC, `load_devices_config()["devices"]` for device_type). Note: the system-level 7-layer silent-no-op defense established by PR3b-3 / PR3b-5 chains (canonical URIs + ID prefixes + validator ordering + reverse-coverage etc.) is unchanged by sibling sweep — the new validators are pattern applications, not new defense layers. YAML data unchanged; byte-diff verified zero NDJSON at p=1000 seed=42 (only manifest.json transactionTime differs).
 
@@ -245,7 +245,7 @@ old name; those are being cleaned up module-by-module (see linked issues).
 
 ## Development workflow — Issue → PR → Merge
 
-**Master への直接 push 禁止**。fix / feature は必ず PR/Merge 経由。
+**Never push directly to master.** Fixes / features must always go through a PR/merge.
 The full contributor workflow (fork + branch, DCO signoff, tests, CI
 gates, merge policy) lives in
 [`CONTRIBUTING.md`](CONTRIBUTING.md#workflow) — read that first.
@@ -260,75 +260,75 @@ AGENTS-specific additions on top of the contributor workflow:
   must not re-introduce them.
 - **Adversarial review** (recommended for large chains): run
   `/code-review` on the PR and add fix commits before merging.
-- **scope-discipline**: 1 PR = 1 論点 (silent-drop fix / lint sweep 等の
-  横断作業は別 PR に分割)。複数 chain を進める場合、chain 毎に別ブランチ +
-  別 PR。
+- **scope-discipline**: 1 PR = 1 topic (split cross-cutting work such as a silent-drop fix /
+  lint sweep into separate PRs). When advancing multiple chains, use a separate branch +
+  separate PR per chain.
 
-### ★ CI 待ちで手を止めない — 別 Issue を別ブランチで並行して進める
+### ★ Don't stall waiting for CI — work on another Issue on another branch in parallel
 
-CI は integration shard を含むと 10-15 分かかる。**その間 idle で待たない。**
-PR を出したら `master` に戻り、**次の Issue を別ブランチで開始する**。
+CI takes 10-15 minutes when it includes the integration shards. **Never wait idle in the meantime.**
+After opening a PR, return to `master` and **start the next Issue on a separate branch**.
 
 ```bash
-# Issue A: 実装 → push → PR 作成 (ここで CI が走り始める)
+# Issue A: implement → push → open PR (CI starts running here)
 git switch -c fix/<A>-<slug> master
-# ... 実装 ...
+# ... implement ...
 git commit --signoff -m "..." && git push -u origin fix/<A>-<slug>
 gh pr create --base master ...
 
-# CI を待たずに Issue B へ
+# Move on to Issue B without waiting for CI
 git switch master && git pull --ff-only origin master
 git switch -c fix/<B>-<slug>
-# ... 実装 ...
+# ... implement ...
 
-# A の CI が緑になったら merge し、master を更新してから B を続ける
-gh pr merge <A の PR 番号> --rebase --delete-branch
+# Once A's CI is green, merge it, update master, then continue with B
+gh pr merge <A's PR number> --rebase --delete-branch
 git switch master && git pull --ff-only origin master
 ```
 
-**並行してよい Issue の条件**:
+**Conditions for Issues that may run in parallel**:
 
-- **触るファイルが重ならないこと。** 着手前に、各 Issue が触るファイル・シンボルを
-  grep して重なりを確認する。重なる場合は**並行させず順番に**やる
-  (`docs/roadmap.md` → GitHub Issues board に既知の依存を記載)
-- **依存関係のある Issue は並行させない。** 例: `#468` → `#466` は同じ
-  `inpatient.py` の退院時刻を扱うため、必ず順番に
+- **The files they touch must not overlap.** Before starting, grep the files and symbols
+  each Issue touches and check for overlap. If they overlap, **do not parallelize; do them in order**
+  (known dependencies are recorded in `docs/roadmap.md` → GitHub Issues board)
+- **Never parallelize Issues that depend on each other.** Example: `#468` → `#466` both
+  handle the discharge time in the same `inpatient.py`, so they must be done in order
 
-**master が進んだら、作業中のブランチを rebase する**:
+**When master advances, rebase your working branch**:
 
 ```bash
 git switch fix/<B>-<slug>
-git rebase master          # 衝突したら、重なりの判定が誤っていた合図
+git rebase master          # a conflict means the overlap judgment was wrong
 ```
 
-**待つべき場面もある**: merge 直前の最終確認、および**取り消せない操作の直前**
-(`gh issue delete` / force push)。ここは状態が変わっていないことを実行直前に
-測り直す。並行作業で state が動いている可能性があるため、**承認時の HEAD と
-merge 時の HEAD が同一であること**を確認する。
+**Some moments do call for waiting**: the final check right before a merge, and **right before an
+irreversible operation** (`gh issue delete` / force push). There, re-measure right before executing
+that the state has not changed. Because parallel work may have moved the state, confirm that **the
+HEAD at approval time and the HEAD at merge time are identical**.
 
-### ★ `gh pr merge` 前は `scripts/wait-pr-ci.sh` で CI gate する
+### ★ Gate on CI with `scripts/wait-pr-ci.sh` before `gh pr merge`
 
-`gh pr checks <N> --watch --fail-fast` は 2026-10-11 に **FAILURE 中の PR で exit 0
-を返した事例** が 4 連続 PR で観測されている (root cause 未確定: gh CLI race /
-polling miss / gate 未実行、のいずれか)。`gh pr merge --auto --rebase` は branch
-protection 無しの repo では CI を待たず即 merge するため、CLI 側の確実な gate が
-無いまま auto merge すると master を壊すリスクが残る。
+On 2026-10-11, `gh pr checks <N> --watch --fail-fast` was observed **returning exit 0 for a
+PR in FAILURE** on 4 consecutive PRs (root cause unconfirmed: one of gh CLI race /
+polling miss / gate not run). On a repo without branch protection, `gh pr merge --auto --rebase`
+merges immediately without waiting for CI, so auto-merging without a reliable CLI-side gate
+leaves a risk of breaking master.
 
-このため **merge 前は repo 側の deterministic polling gate を必ず走らせる**:
+Therefore **you must always run the repo's deterministic polling gate before merging**:
 
 ```bash
-# PR 作成 → CI 完走を待って → gate pass なら merge
-scripts/wait-pr-ci.sh <PR>  # exit 0: 全 required check SUCCESS、exit 1: 1 件でも失敗
+# Open PR → wait for CI to finish → merge if the gate passes
+scripts/wait-pr-ci.sh <PR>  # exit 0: all required checks SUCCESS, exit 1: at least one failed
 gh pr merge <PR> --auto --rebase
 ```
 
-`wait-pr-ci.sh` は `statusCheckRollup` を自前 polling し、`(?i)informational` を
-含む check 名を除外した上で、全 required check が COMPLETED かつ非 FAILURE/CANCELLED
-であることを確認してから exit 0 する。gh CLI の streaming 挙動には依存しない。
+`wait-pr-ci.sh` polls `statusCheckRollup` itself, excludes check names containing
+`(?i)informational`, and exits 0 only after confirming that every required check is COMPLETED and
+not FAILURE/CANCELLED. It does not depend on gh CLI streaming behavior.
 
-**hotfix 例外**: 本番 blocker(CI 全落ち / silent-drop 検出)は master
-直接 push OK、ただし同一 session 内で post-hoc Issue + 説明 comment
-を残すこと。
+**hotfix exception**: a production blocker (all CI failing / silent-drop detected) may be
+pushed directly to master, but you must leave a post-hoc Issue + explanatory comment
+within the same session.
 
 ## When modifying a module
 
@@ -348,12 +348,12 @@ gh pr merge <PR> --auto --rebase
 - **referenceRange + interpretation**: Both MUST be present for numerical observations and MUST be consistent (FHIR R5 Note 5). Lab interpretation recomputed from value vs referenceRange.
 - **JP localization**: All `display`, `text`, `name` fields must use Japanese when `country="JP"`. Use `_localize_display()` for enum values. Drug/procedure names via `code_lookup()` or the lang-aware wrapper `localize_drug_name(name, lang)` — the wrapper is a no-op for locales without a lookup table (today: any `lang != "ja"`), so callers stay single-code-path across locales rather than gating on `if lang == "ja":`. Same pattern for `localize_lab_name(name, lang)` / `localize_oxygen_device(device, lang)`.
 - **US output**: Must be 100% English. No Japanese characters in any field.
-- **JP Core / JP-CLINS profile URI・slice system URI は必ず spec の `fixedUri` を直接引用**。JP Core StructureDefinition JSON(`iris4h-ai/jp_core/package/StructureDefinition-*.json` or `jpfhir.jp` の該当 spec ファイル)の `Element.system.fixedUri` / `Element.fixedUri` を **grep で直接取得**して使う。**推測 URI・plausible naming に基づく URI 命名 禁止** — spec と不一致だと HAPI validator が silent-no-op(見た目に URI があるので通ってしまうが profile slice discriminator が match せず validation error は消えない)。新規に JP Core slice 対応する pull request は、`tests/unit/output/test_fhir_jp_core_p14_slices.py` のように **URI を module-level 定数として pin する test を必ず追加**(regression 防衛)。同じ規則が JP-eCheckup / JP-CLINS / SS-MIX2 の profile URI にも適用。
+- **JP Core / JP-CLINS profile URIs and slice system URIs must always quote the spec's `fixedUri` directly**. Use `Element.system.fixedUri` / `Element.fixedUri` from the JP Core StructureDefinition JSON (`iris4h-ai/jp_core/package/StructureDefinition-*.json` or the corresponding spec file on `jpfhir.jp`), **taken directly via grep**. **Never use guessed URIs or URIs named by plausible-looking convention** — a mismatch with the spec turns the HAPI validator into a silent no-op (it looks fine because a URI is present, but the profile slice discriminator does not match and the validation error does not go away). Any new pull request adding JP Core slice support **must add a test that pins the URI as a module-level constant**, like `tests/unit/output/test_fhir_jp_core_p14_slices.py` (regression defense). The same rule applies to JP-eCheckup / JP-CLINS / SS-MIX2 profile URIs.
 - **Sex-locked ICD-10 emit** (Issue #947, 2026-08-30) — every Condition dispatch site MUST call `clinosim.simulator.sex_gating.is_sex_locked_for(code, patient_sex)` before emitting an anatomy-locked ICD-10 (`N40` BPH, `N41` prostatitis, `N70`-`N77` female PID, `O00`-`O9A` pregnancy, `C50`-`C63` sex-specific malignancies, etc.). The canonical restriction table lives in `clinosim/locale/shared/icd10_sex_restrictions.yaml` (non-engineer editable; explicit code list, no prefix ranges). The differential picker (`modules/diagnosis/engine.py::get_current_diagnosis_code`) walks the already-probability-sorted candidate list to the next sex-compatible entry — no fresh RNG state consumed, preserving cross-platform bit-reproducibility. Every candidate locked → fall back to `UNRESOLVED_DIAGNOSIS_ICD` (`R69`) rather than emit a locked code. Do NOT inline `_SEX_RESTRICTED_ICD` dicts at call sites — that pattern already surfaced two silent-drift copies (Issue #947 root cause). Companion to the age-gate symmetry rule (`feedback_dispatch_table_age_sex_gate_symmetry`).
 - **Snapshot-date awareness** (Issue #944 + Issue #945, 2026-08-30) — every bundle emit path SHOULD respect `ctx.snapshot_date` (populated once by `convert_cif_to_fhir` reading `cif/metadata.json`, soft-failure on missing / malformed). Coverage.status derivation (`_derive_coverage_status`) uses it directly; new emit sites SHOULD sample dates `<= snapshot_date` at the source. The universal `_drop_entries_after_snapshot` bundle-finalize filter (with its cascade-drop + dangling-reference scrubber sibling) is a safety net, not a substitute — leaking future-dated events into the bundle and relying on the filter to remove them wastes RNG cursor, cascades the drop-set through the scrubber's fixed-point iteration, and risks orphaning parent resources whose only child was dropped. `_POST_SNAPSHOT_ALLOWED_RESOURCE_TYPES` whitelists Patient / Encounter / Coverage / CareTeam / Practitioner / PractitionerRole / Organization / Location / Endpoint / Device / Medication (period.end for open admissions and active coverage legitimately reaches past snapshot). Never re-parse `cif/metadata.json` in a builder — read from `ctx.snapshot_date`.
 - **NKA positive assertion** (Issue #942, 2026-08-30) — every emitted patient MUST carry at least one `AllergyIntolerance` record: a real allergen OR SNOMED `716186003` "No known allergy" (localized `code.text = アレルギー歴なし` JP / `No known allergies` US, `clinicalStatus=resolved`, `verificationStatus=confirmed`; `type` / `category` / `criticality` omitted per NKA shape). Absent `AllergyIntolerance` = "not assessed" is a bug, not a default — the absent state is ambiguous between "no known allergy" and "not documented", so downstream analytics cannot rely on absence. NKA bypasses the JFAGY JP-Core substitution — it is a status code, not a JFAGY allergen. All NKA / polyallergy / cross-reactivity tunables live in `clinosim/modules/allergy/reference_data/allergens.yaml` (`nka` / `polyallergy` / `cross_reactivity` blocks); do not hard-code the SNOMED code or the localized display strings.
 - **Anthropometric vitals at every encounter** (Issue #946, 2026-08-30) — height (LOINC `8302-2`), weight (`29463-7`), BMI (`39156-5`), and — for age ≤ 3 — head circumference (`8287-5`) emit as `category=vital-signs` Observations on every encounter. Adult values come from fixed `patient.height_cm` + per-encounter weight drift; pediatric values from per-age × per-sex p50 medians in `clinosim/locale/shared/anthropometric_reference.yaml` (WHO / MHLW / MEXT for JP, WHO / CDC for US). BMI is computed at emit time from the emitted height + weight so the triple stays internally consistent. Per-encounter noise MUST be derived via `hashlib.sha256(f"{patient_id}|{encounter_id}|<suffix>")` → Gaussian quantile through `mpmath.erfinv` (prec=128) — the same RNG-neutral pattern as `_derive_rh_factor` (`feedback_rng_neutral_additive_field`). Never consume the master RNG for anthropometric values; that pattern shifts every downstream stream. All clamp bounds / medians / head-circ max age / noise SDs live in the anthropometric_reference.yaml.
-- **LTCI carelevel eligibility gate** (Issue #940, 2026-08-30) — 介護保険 `carelevel-*` Observations MUST emit only when the patient satisfies the eligibility gate in `clinosim/modules/care_level/reference_data/care_level.yaml::eligibility_gates`: 第1号被保険者 (universal) age ≥ 65, OR 第2号被保険者 age 40-64 with a chronic condition in the MHLW 特定疾病 subset that clinosim actually emits (`F00`, `G30`, `G20`, `J44`, `I60` / `I61` / `I63` / `I69`, `G12.2`, `M80`). Patients under 40 MUST NOT emit a carelevel code. The eligibility filter runs AFTER the per-patient sub-RNG draw so RNG shape is unchanged for skipped patients (no cross-patient cascade). Symmetric pattern to the alcohol / smoking `age_gates.{alcohol,smoking}_min_age` (default 15, USPSTF / MHLW 高校 health-checkup lifecycle) in `modules/sdoh/reference_data/social_history.yaml`.
+- **LTCI carelevel eligibility gate** (Issue #940, 2026-08-30) — 介護保険 `carelevel-*` Observations MUST emit only when the patient satisfies the eligibility gate in `clinosim/modules/care_level/reference_data/care_level.yaml::eligibility_gates`: 第1号被保険者 (category-1 insured, universal) age ≥ 65, OR 第2号被保険者 (category-2 insured) age 40-64 with a chronic condition in the MHLW 特定疾病 (specified diseases) subset that clinosim actually emits (`F00`, `G30`, `G20`, `J44`, `I60` / `I61` / `I63` / `I69`, `G12.2`, `M80`). Patients under 40 MUST NOT emit a carelevel code. The eligibility filter runs AFTER the per-patient sub-RNG draw so RNG shape is unchanged for skipped patients (no cross-patient cascade). Symmetric pattern to the alcohol / smoking `age_gates.{alcohol,smoking}_min_age` (default 15, USPSTF / MHLW high-school health-checkup lifecycle) in `modules/sdoh/reference_data/social_history.yaml`.
 
 ## Enrichment architecture (narrative prompts)
 
@@ -385,7 +385,7 @@ opt-in JP insurance enrollment (FHIR Coverage, AD-54), a new
 mapped to `us-core-coverage` profile), the complete
 **AD-55 Base data-enrichment set** (microbiology, cardiac markers,
 nursing flowsheets, immunization, family history, code status,
-extended SDOH — smoking / alcohol / JP 要介護度), and the FHIR
+extended SDOH — smoking / alcohol / JP 要介護度 (long-term-care need level)), and the FHIR
 adapter split into per-theme builder modules under
 `clinosim/modules/output/fhir_r4/` (FA-1 complete).
 
@@ -445,11 +445,11 @@ The v0.3 → v0.6.5 history of PATCH / MINOR bumps lives in
 [`CHANGELOG.md`](CHANGELOG.md); the invariants below stay accurate
 irrespective of release cadence.
 
-**Silent-no-op defense triplet** is fully wired across the codebase (PR #102 / #103 2026-06-27): (1) canonical constants(例 `HAI_TYPES`)を module-level に定義、(2) `_validate_*(data) -> None` を 5 主要 YAML loader(`_validate_microbiology` PR-A 7 cross-refs + `_validate_hai_organisms` + `_validate_demographics` + `_validate_names` + `_validate_addresses`)に wire(import 時 fail-loud)、(3) `normalize_probabilities(..., fallback="raise")` を全 **15 YAML-sourced callsites** に適用(7 modules: code_status / population / clinical_course / hai / family_history / observation / care_level)。test 補強 + 4-stage adversarial chain converged で検証済(unit / integration / e2e: 1020 passed, 4 skipped)。
+**Silent-no-op defense triplet** is fully wired across the codebase (PR #102 / #103 2026-06-27): (1) canonical constants (e.g. `HAI_TYPES`) are defined at module level, (2) `_validate_*(data) -> None` is wired into the 5 major YAML loaders (`_validate_microbiology` PR-A 7 cross-refs + `_validate_hai_organisms` + `_validate_demographics` + `_validate_names` + `_validate_addresses`) (fail-loud at import), (3) `normalize_probabilities(..., fallback="raise")` is applied to all **15 YAML-sourced callsites** (7 modules: code_status / population / clinical_course / hai / family_history / observation / care_level). Verified with added tests + a converged 4-stage adversarial chain (unit / integration / e2e: 1020 passed, 4 skipped).
 
-**Foundation polish complete** — PR-B1 chain (PR #104 / #105 / #106 2026-06-27): hand-rolled `global X; if X is None: ... else return X` sentinel pattern を全ての loader で撤廃し `@lru_cache(maxsize=1)` に統一済(現行 path 例: `clinosim/modules/encounter/protocol.py:load_all_encounter_conditions`、`clinosim/modules/order/panel_grouping.py:load_panel_definitions`、`clinosim/modules/output/fhir_r4/lib/localization.py` の `_load_med_terms_ja` / `_load_narrative_display_dict` / `_load_department_display`)。同時に PR-B1 当時の `_load_all_disease_protocols` の `try/except pass` silent skip も削除 (silent-no-op 防御強化、PR #102 triplet との整合)。byte-diff invariant 保持(37/37 NDJSON sha256 IDENTICAL)+ 4-stage adversarial chain converged で検証済(1031 passed, 4 skipped)。残 PR-B2 = 16 module の `__init__.py` に `__all__` + re-export (MOD-1 柔軟解釈、callers 不変)。※ 当時の enumeration に含まれていた `simulator/helpers.py:_load_all_disease_protocols` は session 96 で関数ごと削除、`_fhir_diagnostic_report.py` / `_fhir_localization.py` はそれぞれ `fhir_r4/labs/` / `fhir_r4/lib/` へ移転済。
+**Foundation polish complete** — PR-B1 chain (PR #104 / #105 / #106 2026-06-27): hand-rolled `global X; if X is None: ... else return X` sentinel pattern was eliminated from every loader and unified on `@lru_cache(maxsize=1)` (current path examples: `clinosim/modules/encounter/protocol.py:load_all_encounter_conditions`, `clinosim/modules/order/panel_grouping.py:load_panel_definitions`, `_load_med_terms_ja` / `_load_narrative_display_dict` / `_load_department_display` in `clinosim/modules/output/fhir_r4/lib/localization.py`). The `try/except pass` silent skip in the PR-B1-era `_load_all_disease_protocols` was removed at the same time (strengthening the silent-no-op defense, consistent with the PR #102 triplet). Verified with the byte-diff invariant preserved (37/37 NDJSON sha256 IDENTICAL) + a converged 4-stage adversarial chain (1031 passed, 4 skipped). Remaining PR-B2 = `__all__` + re-export in the `__init__.py` of 16 modules (MOD-1 flexible interpretation, callers unchanged). Note: `simulator/helpers.py:_load_all_disease_protocols`, which was in the enumeration at the time, was deleted entirely in session 96, and `_fhir_diagnostic_report.py` / `_fhir_localization.py` moved to `fhir_r4/labs/` / `fhir_r4/lib/` respectively.
 
-**PR3b-3 HAI culture S/I/R-driven narrow / de-escalation chain complete** — PR #107 (original) + #108 (adv-1 = 5 CRITICAL + 5 IMPORTANT) + #109 (adv-2 = 1 CRITICAL + 5 IMPORTANT) + #110 (adv-3 = stage-3-introduced regression fix) = **4-stage adversarial chain CONVERGED** (2026-06-27, matches PR-A / PR #102 / PR-B1 4-stage pattern): same antibiotic enricher Pass 2 walks `extensions["antibiotic"]` empirical regimens, looks up culture via `MicrobiologyResult.hai_event_id` backref, picks narrow target via per-(hai_type, organism) `narrow_ladder.yaml` (4-way validation: HAI_TYPES + antibiogram + ANTIBIOTIC_DRUGS + reverse-coverage), dispatches 3 outcomes (SWITCH = new `intent="narrowed"` regimen / ELIMINATION = non-target empirical discontinued / NO_CHANGE). FHIR `MedicationRequest.status="stopped"` via new `OrderStatus.STOPPED` + exhaustive `_map_order_status_to_fhir`. Audit clinical axis active enforcement (per-hai_type narrow rate + NHSN R-rate + empty rate, all `n<30 → WARN` guards). lift_firing_proof extended to **17 equality_checks** (8+3+6). silent-no-op defense triplet 4th layer = `_validate_narrow_ladder` 4-way (forward+reverse coverage+empty container) + `_validate_narrow_rate_bands` typo + empty list gates + `_validate_hai_empirical` reverse-coverage (sibling sweep from adv-1)。
+**PR3b-3 HAI culture S/I/R-driven narrow / de-escalation chain complete** — PR #107 (original) + #108 (adv-1 = 5 CRITICAL + 5 IMPORTANT) + #109 (adv-2 = 1 CRITICAL + 5 IMPORTANT) + #110 (adv-3 = stage-3-introduced regression fix) = **4-stage adversarial chain CONVERGED** (2026-06-27, matches PR-A / PR #102 / PR-B1 4-stage pattern): same antibiotic enricher Pass 2 walks `extensions["antibiotic"]` empirical regimens, looks up culture via `MicrobiologyResult.hai_event_id` backref, picks narrow target via per-(hai_type, organism) `narrow_ladder.yaml` (4-way validation: HAI_TYPES + antibiogram + ANTIBIOTIC_DRUGS + reverse-coverage), dispatches 3 outcomes (SWITCH = new `intent="narrowed"` regimen / ELIMINATION = non-target empirical discontinued / NO_CHANGE). FHIR `MedicationRequest.status="stopped"` via new `OrderStatus.STOPPED` + exhaustive `_map_order_status_to_fhir`. Audit clinical axis active enforcement (per-hai_type narrow rate + NHSN R-rate + empty rate, all `n<30 → WARN` guards). lift_firing_proof extended to **17 equality_checks** (8+3+6). silent-no-op defense triplet 4th layer = `_validate_narrow_ladder` 4-way (forward+reverse coverage+empty container) + `_validate_narrow_rate_bands` typo + empty list gates + `_validate_hai_empirical` reverse-coverage (sibling sweep from adv-1).
 
 **Tier 1 #2 Imaging chain α-min complete** (2026-06-30, AD-62) — `modules/imaging/` always-on POST_ENCOUNTER Module (order=90) emits `ImagingStudyRecord` into `extensions["imaging"]`. 4 FHIR resources per imaging encounter: `ImagingStudy` (urn:dicom:uid, DCM modality, multi-series), `Endpoint` (WADO-RS placeholder), radiology `DiagnosticReport` (findings + impression in `text.div` + `conclusion`), `ServiceRequest` (imaging category). Polymorphic `_fhir_service_request` dispatches LAB + IMAGING. 15-check `lift_firing_proof` (AD-60). Disease YAMLs: `bacterial_pneumonia.yaml` (CR CXR) + `hemorrhagic_stroke.yaml` (CT head). JP locale: 100% ja displays (modality/bodySite/DR.code/conclusion). Production cohort: US p=10k + JP p=5k. Bug found+fixed: `_simulate_unknown_condition` was not setting `encounter_id` on orders before returning `CIFPatientRecord` — added encounter_id backfill loop (mirrors `simulate_inpatient:361-363`).
 

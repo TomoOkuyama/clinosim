@@ -28,7 +28,7 @@ lets each axis evolve independently as new checks are added.
 | `structural.py` | Structural | 5 (MVP) | FHIR compliance — id uniqueness, reference integrity, required fields, `meta.profile` declared, `resourceType` consistency. |
 | `clinical.py` | Clinical | 7 (5 MVP + 2 P1-9) | Coherence checks — physiology-to-lab consistency, medication-lab coherence (warfarin), contradiction detection. |
 | `locale.py` | Locale | 5 per country (MVP) | Language + code-system compliance. JP: Japanese Condition displays, JLAC10 / LOINC on labs, YJ on medications, JP Core `meta.profile`, name order. US: ASCII-only displays, RxNorm on medications, LOINC on labs, no Japanese leakage, practitioner name order. |
-| `jp_clins_lab_compliance.py` | JP-CLINS | 3 ratios (JP only) | JP-CLINS `JP_Observation_LabResult_eCS` self-measurement — CS 使用率 / display 一致率 / dual-slot 充足率. Deliberately validator-independent because eCS uses Open slicing (unknown codings are silently accepted). |
+| `jp_clins_lab_compliance.py` | JP-CLINS | 3 ratios (JP only) | JP-CLINS `JP_Observation_LabResult_eCS` self-measurement — CS usage rate / display match rate / dual-slot fill rate. Deliberately validator-independent because eCS uses Open slicing (unknown codings are silently accepted). |
 | `jp_core_compliance.py` | JP Core | 7 (JP only) | Narrow JP Core must-support gate — Patient profile / identifier / family+given name / kanji representation, Encounter class / period, MedicationRequest medication coding. |
 | `us_core_compliance.py` | US Core | 7 (US only) | Narrow US Core must-support gate — Patient identifier / family+given name / birthsex, race and ethnicity extension shape, Encounter class (v3 ActCode), Condition category system. |
 

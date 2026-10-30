@@ -646,39 +646,39 @@ pytest tests/unit/test_diagnosis_code_coverage.py
 
 ---
 
-## Regen scope matrix: Local iteration cycles (AD-65, 2026-07-02)
+## Regen scope matrix: ローカル反復サイクル (AD-65, 2026-07-02)
 
-The two-pass CIF generation architecture (`clinosim simulate` → Stage 1 structural + auto Stage 2 template narratives) + dev facility (`test-disease --format`, `narrate` verb) enables fast iteration on different change types. Use this matrix to select the fastest workflow for your change. Canonical spec for the two-pass structural/narrative CIF separation = [`clinosim/modules/output/SPEC.md`](../clinosim/modules/output/SPEC.md) § "Stage 2: Narrative Generation".
+two-pass CIF 生成アーキテクチャ(`clinosim simulate` → Stage 1 structural + 自動 Stage 2 template narrative)と dev 用機能(`test-disease --format`、`narrate` verb)により、変更の種類ごとに高速な反復ができます。この matrix で変更に応じた最速の workflow を選んでください。structural / narrative CIF の two-pass 分離の canonical spec は [`clinosim/modules/output/SPEC.md`](../clinosim/modules/output/SPEC.md) § "Stage 2: Narrative Generation" です。
 
-### Change types and iteration time
+### 変更の種類と反復時間
 
-| Change target | Fastest regen command | Estimated time | Notes |
+| 変更対象 | 最速の regen コマンド | 目安時間 | 備考 |
 | --- | --- | --- | --- |
-| **Simulator engine / enricher** (population, disease, encounter logic) | `clinosim simulate -p N -o /tmp/cX` | 5-50 min | Full cohort → CIF output. Proportional to N. |
-| **Template narrative generator** (TemplateNarrativeGenerator, bug A pattern) | `clinosim narrate --cif-dir /tmp/cX/cif --version-id template` → `clinosim export-fhir --cif-dir /tmp/cX/cif` | ~30 sec + 5 min | Reuse existing structural CIF. Stage 2 only. |
-| **FHIR builder** (bug C pattern) | `clinosim export-fhir --cif-dir /tmp/cX/cif` | ~5 min | Reuse existing CIF. Stage 3 only. |
-| **Locale display / code resolution** | `clinosim export-fhir --cif-dir /tmp/cX/cif` | ~5 min | No CIF change, Stage 3 only. |
-| **1 disease scenario** (bug B pattern: structural CIF bug within 1 disease) | `clinosim test-disease <disease_id> -n 5 --format all -o /tmp/verify` | ~10 seconds | Structural CIF + Stage 2 narratives + Stage 3 FHIR, 5 patients. |
-| **1 encounter condition** (bug B pattern: structural CIF bug within 1 ED/outpatient condition) | `clinosim test-encounter <condition_id> --format all -o /tmp/verify` | ~5 seconds | Same 3 stages, ~3 patients. |
+| **Simulator engine / enricher** (population, disease, encounter logic) | `clinosim simulate -p N -o /tmp/cX` | 5-50 分 | 全 cohort → CIF 出力。N に比例。 |
+| **Template narrative generator** (TemplateNarrativeGenerator, bug A パターン) | `clinosim narrate --cif-dir /tmp/cX/cif --version-id template` → `clinosim export-fhir --cif-dir /tmp/cX/cif` | ~30 秒 + 5 分 | 既存の structural CIF を再利用。Stage 2 のみ。 |
+| **FHIR builder** (bug C パターン) | `clinosim export-fhir --cif-dir /tmp/cX/cif` | ~5 分 | 既存 CIF を再利用。Stage 3 のみ。 |
+| **Locale display / code 解決** | `clinosim export-fhir --cif-dir /tmp/cX/cif` | ~5 分 | CIF 変更なし、Stage 3 のみ。 |
+| **1 疾患シナリオ** (bug B パターン: 1 疾患内の structural CIF バグ) | `clinosim test-disease <disease_id> -n 5 --format all -o /tmp/verify` | ~10 秒 | structural CIF + Stage 2 narrative + Stage 3 FHIR、5 患者。 |
+| **1 encounter condition** (bug B パターン: 1 つの ED/外来 condition 内の structural CIF バグ) | `clinosim test-encounter <condition_id> --format all -o /tmp/verify` | ~5 秒 | 同じ 3 stage、~3 患者。 |
 
-### Case 1: Template narrative generator bug (AD-65 Tier 1 #3)
+### Case 1: Template narrative generator のバグ (AD-65 Tier 1 #3)
 
-**Symptom:** H&P Progress Note HPI section contains Japanese characters in US cohort (bug A pattern).
+**症状:** US cohort の H&P Progress Note の HPI section に日本語文字が含まれる (bug A パターン)。
 
 **Workflow:**
 
-1. **Diagnose** via `test-disease` (structural CIF only):
+1. `test-disease` で **診断** (structural CIF のみ):
    ```bash
    clinosim test-disease acute_mi -n 1 --format cif -o /tmp/test
    # Verify structural CIF has correct encounter/patient data
    ```
 
-2. **Fix** in code: `clinosim/modules/document/narrative/template_generator.py` の薄い delegator (`_build_hpi` / `_build_physical_examination`) から、該当 section の `clinosim/modules/document/narrative/renderers/section_builders/<section>.py` (例: `hpi.py::_build_hpi_core`、`chief_complaint.py`、`assessment_and_plan.py`) に辿る。C1a-s 分割後、`template_generator.py` は thin façade で本体は per-section builder に移った。
+2. コードを **修正**: `clinosim/modules/document/narrative/template_generator.py` の薄い delegator (`_build_hpi` / `_build_physical_examination`) から、`clinosim/modules/document/narrative/renderers/section_builders/` 配下の対応する section builder (例: `hpi.py::_build_hpi_core`、`chief_complaint.py`、`assessment_and_plan.py`) に辿る。C1a-s 分割後、`template_generator.py` は thin façade で、本体は per-section builder ファイルに移った。
    - 該当 `renderers/section_builders/<section>.py` 内の `build_<section>(generator, ctx)` 自由関数を特定
-   - `_pick_localized(tmpl, key, lang)` が US 言語で `en` field を参照しているか確認
+   - `_pick_localized(tmpl, key, lang)` 呼び出しが US 言語で `en` field に振り分けているか確認
    - Disease YAML の `narrative.physical_exam_findings` ブロックが埋まっているか確認
 
-3. **Verify fix** via fast Stage 2 regen (skip expensive full cohort):
+3. 高速な Stage 2 regen で **修正を検証** (高コストな全 cohort 生成は省く):
    ```bash
    # Reuse structural CIF from step 1
    clinosim narrate --cif-dir /tmp/test/cif --version-id template
@@ -686,90 +686,90 @@ The two-pass CIF generation architecture (`clinosim simulate` → Stage 1 struct
    # Check output Composition resource's text field has zero Japanese
    ```
 
-4. **Full validation** (once confident):
+4. **完全な検証** (確信が持てたら):
    ```bash
    clinosim simulate -p 500 --country US --format cif fhir-r4 -o /tmp/us500
    clinosim audit run -d /tmp/us500
    # Gate: "us_admission_hp_zero_ja_chars" = 0
    ```
 
-**Total iteration time:** ~35 seconds per fix attempt (10 sec `test-disease` + 25 sec `narrate`+`export-fhir`).
+**合計反復時間:** 修正 1 回あたり ~35 秒 (`test-disease` 10 秒 + `narrate`+`export-fhir` 25 秒)。
 
 ---
 
-### Case 2: Structural/author bug (encounter/order/enricher logic)
+### Case 2: Structural/author のバグ (encounter/order/enricher logic)
 
-**Symptom:** Nursing notes have physician as author instead of primary nurse (bug B pattern).
+**症状:** 看護記録の author が primary nurse ではなく医師になっている (bug B パターン)。
 
 **Workflow:**
 
-1. **Diagnose** via unit test:
+1. unit test で **診断**:
    ```bash
    pytest tests/unit/test_document_author_selection.py -xvs
    # Verify _pick_document_author(spec, encounter) returns correct id
    ```
 
-2. **Fix** in code: `clinosim/modules/document/engine.py`
-   - Locate the per-document stub construction in `document_enricher()`
-   - Replace hardcoded `attending_id = encounter.attending_physician_id`
-   - Call helper `_pick_document_author(spec, encounter)` instead
+2. コードを **修正**: `clinosim/modules/document/engine.py`
+   - `document_enricher()` 内の文書ごとの stub 構築箇所を特定
+   - ハードコードされた `attending_id = encounter.attending_physician_id` を置き換え
+   - 代わりに helper `_pick_document_author(spec, encounter)` を呼ぶ
 
-3. **Verify fix** via `test-disease --format all` (includes structural + narrative + FHIR):
+3. `test-disease --format all` で **修正を検証** (structural + narrative + FHIR を含む):
    ```bash
    clinosim test-disease acute_mi -n 3 --format all -o /tmp/verify
    # Check FHIR Composition.author field
    # Check CIF Composition.subject.type has nursing LOINC + author is nurse_id
    ```
 
-4. **Integration test** on production cohort:
+4. production cohort で **統合テスト**:
    ```bash
    clinosim simulate -p 500 --country US --format cif fhir-r4 -o /tmp/us500
    clinosim audit run -d /tmp/us500
    # Gate: "nursing_doc_author_is_nurse_ratio" = 1.0
    ```
 
-**Total iteration time:** ~8 seconds per fix attempt (3 sec `test-disease`, 5 sec integration).
+**合計反復時間:** 修正 1 回あたり ~8 秒 (`test-disease` 3 秒、統合 5 秒)。
 
 ---
 
-### Case 3: FHIR builder bug
+### Case 3: FHIR builder のバグ
 
-**Symptom:** Composition resource is missing a required section, or reference integrity is broken.
+**症状:** Composition resource に必須 section が欠けている、または reference 整合性が壊れている。
 
 **Workflow:**
 
-1. **Diagnose** via unit test on builder:
+1. builder の unit test で **診断**:
    ```bash
    pytest tests/unit/output/test_fhir_composition.py -xvs -k "section"
    # Unit test on builder logic
    ```
 
-2. **Fix** in code: `clinosim/modules/output/fhir_r4/documents/composition.py`
-   - Check `_bb_compositions()` reads `doc.narrative.sections` (post-AD-65 structure)
-   - Verify reference integrity: all `reference` URIs resolve to resources in manifest
+2. コードを **修正**: `clinosim/modules/output/fhir_r4/documents/composition.py`
+   - `_bb_compositions()` が `doc.narrative.sections` (AD-65 以降の構造) を読んでいるか確認
+   - reference 整合性を検証: すべての `reference` URI が manifest 内の resource に解決されること
 
-3. **Quick structural check** (FHIR builder doesn't change structural CIF):
+3. **簡易 structural チェック** (FHIR builder は structural CIF を変更しない):
    ```bash
    # Reuse existing /tmp/us500 CIF from case 2
    clinosim export-fhir --cif-dir /tmp/us500/cif
    # Inspect Composition.ndjson for correct section[] content
    ```
 
-4. **Validation**:
+4. **検証**:
    ```bash
    pytest tests/unit/output/test_fhir_composition.py -xvs
    clinosim eval -d /tmp/us500 --only-axes structural   # includes the reference-integrity check
    ```
 
-**Total iteration time:** ~5 minutes per fix attempt (all Stage 3 only, no CIF regen).
+**合計反復時間:** 修正 1 回あたり ~5 分 (すべて Stage 3 のみ、CIF の再生成なし)。
 
 ---
 
-### Determinism & reproducibility
+### 決定論と再現性
 
-- **Seed pinning:** All structural + narrative generation uses deterministic seed (default 42). Use `--seed N` to reproduce exact cohort across runs.
-- **Narrative version pointer:** `cif/narratives/current_version.txt` tracks active narrative version. Export defaults to `current`, or specify `--narrative-version <id>`.
-- **Backwards compat:** Old CIF without narrative dir → `export-fhir` emits empty narrative and warns. `test-disease --format cif` writes structural CIF only (no narrative, consistent with `generate` Stage 1 output).
+- **Seed の固定:** structural + narrative の生成はすべて決定論的 seed (既定 42) を使う。`--seed N` で同一 cohort を実行間で正確に再現できる。
+- **Narrative version pointer:** `cif/narratives/current_version.txt` が active な narrative version を追跡する。export は既定で `current` を使い、`--narrative-version <id>` で指定もできる。
+- **後方互換:** narrative dir のない旧 CIF → `export-fhir` は空の narrative を emit して warning を出す。`test-disease --format cif` は structural CIF のみを書く (narrative なし、`simulate` の Stage 1 出力と一致)。
 
 ---
 
@@ -795,18 +795,67 @@ The two-pass CIF generation architecture (`clinosim simulate` → Stage 1 struct
 - ❌ `ctx.country` を捨てない (FA-9)。`determine_flag()` に locale reference range を渡し忘れない (OBS-3)。
 - ❌ venue ごとに baseline 値や lookup table を別定義して乖離させない (DET-6, DUP-1)。
 
-## Adding a new patient profile fixture (AD-66)
+## 新しい patient profile fixture の追加 (AD-66)
 
-See `tests/fixtures/patient_profiles/README.md` for the full workflow.
-Quick summary:
+完全な workflow は `tests/fixtures/patient_profiles/README.md` を参照。
+要約:
 
-1. Copy an existing profile YAML as a template
-2. Edit `profile_id` (must match filename stem), `disease_id`, `country`, `severity`, `archetype`, `patient_overrides`
-3. Run `clinosim regenerate-goldens --profile <new_profile_id>` to bootstrap the golden
-4. Manually review `<new_profile_id>.golden.json`
-5. Run `pytest -m regression -k <new_profile_id> -q` to verify
-6. Commit YAML + golden together (AD-66 rule 1)
+1. 既存の profile YAML を template としてコピー
+2. `profile_id` (ファイル名の stem と一致必須)、`disease_id`、`country`、`severity`、`archetype`、`patient_overrides` を編集
+3. `clinosim regenerate-goldens --profile <new_profile_id>` を実行して golden を bootstrap
+4. `<new_profile_id>.golden.json` を手動でレビュー
+5. `pytest -m regression -k <new_profile_id> -q` を実行して検証
+6. YAML + golden を一緒に commit (AD-66 rule 1)
 
-**AD-66 policy** (see `AGENTS.md` for canonical wording):
-- Profile YAML changes MUST regenerate golden + commit both together
-- Unexpected `git diff` on goldens after intentional template changes = regression suspicion
+**AD-66 policy** (canonical な文言は `AGENTS.md` を参照):
+- Profile YAML の変更時は golden を必ず再生成し、両方を一緒に commit する
+- 意図的な template 変更後に golden に想定外の `git diff` が出たら regression を疑う
+
+## Axis 規約: `audit/axes/` + `eval/axes/`
+
+audit と eval の pipeline は、軸ごとの check runner を `axes/` sub-package に 1 軸 1 module で置きます。runner は各 engine 内の明示的なテーブルに wire されています — auto-discovery はないので、新しい axis ファイルはそこにも登録する必要があります:
+
+```
+clinosim/audit/axes/         # audit axes (registered in clinosim/audit/engine.py)
+├── __init__.py
+├── clinical.py              # one axis per file
+├── jp_language.py
+├── silent_no_op.py
+└── structural.py
+
+clinosim/eval/axes/          # eval axes (registered in clinosim/eval/engine.py::EvalEngine)
+├── __init__.py
+├── clinical.py
+├── jp_clins_lab_compliance.py
+├── jp_core_compliance.py
+├── locale.py
+├── structural.py
+└── us_core_compliance.py
+```
+
+### 規約
+
+- **1 軸 1 ファイル。** 各 axis は対応する `axes/` ディレクトリ配下に専用の `.py` を持つ。
+- **public な `run(...)` entry point。** `eval/axes/*.py` は `run(cohort, country) -> list[EvalCheck]` を公開し、`EvalEngine.__init__` が module を import して axis id を `module.run` に対応付ける。`audit/axes/*.py` は `run(spec, cohort) -> AxisResult` を公開し (`spec` は `ModuleAuditSpec`、cohort-level の axis では `None`)、audit engine は `_BUILTIN_AXES` に加えて `_PER_MODULE_RUNNERS` または `_COHORT_RUNNERS` にそれを列挙する。
+- **README のミラー。** 各 `axes/` ディレクトリには現在の axis を 1 行サマリ付きで列挙した `README.md` + `README.ja.md` を置く。新しい axis を追加したら最新に保つこと。
+
+### 新しい axis の追加
+
+```bash
+# 1. Add the axis file
+touch clinosim/eval/axes/my_new_axis.py
+
+# 2. Implement `run(cohort, country) -> list[EvalCheck]`
+
+# 3. Register it in the axes dict in clinosim/eval/engine.py::EvalEngine
+
+# 4. Add a one-line entry to clinosim/eval/axes/README.md +
+#    README.ja.md
+
+# 5. Run the pipeline
+clinosim eval --cohort-dir ./out
+```
+
+audit 側も同様で、`audit/axes/`、`AxisResult`、`clinosim/audit/engine.py` 内の runner テーブルを使います。
+
+英語版: [`CONTRIBUTING-modules.md`](CONTRIBUTING-modules.md)。

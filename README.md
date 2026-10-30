@@ -66,7 +66,7 @@ For a JP warfarin-anticoagulated patient, clinosim's physiology engine places th
 Most synthetic-EHR tools produce records by sampling from disease distributions. **clinosim runs the disease** — the CKD patient's ED creatinine is elevated even when presenting for something unrelated; the sepsis patient shows the WBC / CRP / lactate cascade.
 
 - **Clinical coherence by construction** — physiology model makes incoherent labs impossible.
-- **JP + US natively** — JP Core profile compliance for 16 primary FHIR resource types, JLAC10 / MHLW YJ codes, JP names / addresses / insurance out of the box.
+- **JP + US natively** — JP Core profiles on all 21 FHIR resource types that have one in JP output, JLAC10 / MHLW YJ codes, JP names / addresses / insurance out of the box.
 - **YAML-driven extension** — 36 inpatient diseases + 51 ED / outpatient conditions are all data files, not code.
 - **Longitudinal service lines** — oncology (10 cancer sites incl. male breast, chemo regimen cycles, radiation therapy Procedure, tumor-marker labs) + obstetrics (pregnancy modelled as a time-boxed `TemporalStatePeriod` lifecycle — annual conception, prenatal visits at gestational weeks 12/24/36, mother-side delivery Encounter with Z37.0 discharge dx + delivery Procedure + newborn Patient chain, postpartum visits at 7 d / 28 d) emit at correct temporal cadence, not as flat annotations. See [`docs/reference/oncology-obstetric-service-lines.md`](docs/reference/oncology-obstetric-service-lines.md).
 

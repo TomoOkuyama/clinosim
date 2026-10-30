@@ -152,7 +152,7 @@ canonical 11-section 構造に従う per-module README にリンクする。
 | [antibiotic](clinosim/modules/antibiotic/README.ja.md) | HAI empirical + narrow ladder + AD-60 audit | enrichment | `0x4142` ("AB") | POST_ENCOUNTER 85 |
 | [imaging](clinosim/modules/imaging/README.ja.md) | ImagingStudy metadata chain + AD-60 audit (AD-62) | enrichment | `0x4947` ("IG") | POST_ENCOUNTER 90 |
 | [triage](clinosim/modules/triage/README.ja.md) | JTAS / ESI triage サンプリング + AD-60 audit (ED-only、AD-64) | enrichment | `0x5452` ("TR") | POST_ENCOUNTER 93 |
-| [newborn](clinosim/modules/newborn/README.md) | 出生入院時の臨床ワークアップ (ビタミン K / 新生児スクリーニング) — Issue #1252 | enrichment | — (encounter 単位 deterministic) | POST_ENCOUNTER 92 |
+| [newborn](clinosim/modules/newborn/README.ja.md) | 出生入院時の臨床ワークアップ (ビタミン K / 新生児スクリーニング) — Issue #1252 | enrichment | — (encounter 単位 deterministic) | POST_ENCOUNTER 92 |
 | [nursing](clinosim/modules/nursing/README.ja.md) (`nursing_assignment`) | 主担当看護師割当 (inpatient/ICU/rehab、AD-64) | enrichment | `0x4E55` ("NU") | POST_ENCOUNTER 94 |
 | [document](clinosim/modules/document/README.ja.md) | stub emission + AD-60 audit + Stage 2 narrative subpackage | enrichment | `0x444F` ("DO") | POST_ENCOUNTER 95 |
 | [immunization](clinosim/modules/immunization/README.ja.md) | CVX 成人ワクチン接種歴 | enrichment | `0x494D` ("IM") | POST_RECORDS 30 |
@@ -161,7 +161,7 @@ canonical 11-section 構造に従う per-module README にリンクする。
 | [monitoring](clinosim/modules/monitoring/README.ja.md) | 慢性薬 → monitoring labs (Issue #757) | enrichment | `0x4D4D` ("MM") | POST_RECORDS 65 |
 | [health_checkup](clinosim/modules/health_checkup/README.ja.md) | JP 事業者健診 (JP 限定 opt-in) | enrichment | `0x4843` ("HC") | POST_RECORDS 70 |
 | [drug_safety](clinosim/modules/drug_safety/README.ja.md) | class ベース禁忌併用 gate + 代替薬 substitution (Issue #1066) | foundation | — (deterministic lookup) | — (library, enricher ではない) |
-| [prophylaxis](clinosim/modules/prophylaxis/README.md) | DVT/VTE 化学的予防 (48h 以上 IMP、Issue #1071) | enrichment | `0x5052` ("PR") | POST_ENCOUNTER 75 |
+| [prophylaxis](clinosim/modules/prophylaxis/README.ja.md) | DVT/VTE 化学的予防 (48h 以上 IMP、Issue #1071) | enrichment | `0x5052` ("PR") | POST_ENCOUNTER 75 |
 | [output](clinosim/modules/output/README.ja.md) | CIF → FHIR R4 NDJSON / CSV アダプタ registry | output | — | — |
 | [llm_service](clinosim/modules/llm_service/README.ja.md) | narrative Stage 2 用の単一 LLM gateway (AD-11) | output | — | — |
 | [validator](clinosim/modules/validator/README.ja.md) | realism benchmark + consistency check | output | — | — |

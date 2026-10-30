@@ -47,7 +47,7 @@ usacloud の公式ドキュメント
 (https://docs.usacloud.jp/usacloud/) にまとまっている。本セクションは要点のみ:
 
 ```bash
-# usacloud プロファイル (既に iris-verify プロファイルがあれば流用可)
+# usacloud プロファイル (既存のプロファイルがあれば流用可)
 usacloud config create --name clinosim-gpu \
     --token <SAKURA_API_TOKEN> --secret <SAKURA_API_SECRET> \
     --zone is1a --use
@@ -62,8 +62,7 @@ usacloud server create -y --zone=is1a \
     --plan=<gpu-l40s-plan-code>
 ```
 
-**Sakura 固有の落とし穴** (詳細は sakura-iris
-`docs/90-troubleshooting.md`):
+**Sakura 固有の落とし穴**:
 
 - 高火力 VRT は `is1a` のみ提供。他ゾーンとは L2 ブリッジが必要。
 - パケットフィルタは **ステートレス**。エフェメラルポート

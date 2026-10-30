@@ -133,3 +133,5 @@ used. There is no Vitamin K coverage-miss / declined path yet.
   within 6 h of birth).
 - FHIR R4 `MedicationAdministration` — the emit shape used by the
   existing `medications/` builder for the MAR entries.
+
+Japanese counterpart: [`README.ja.md`](README.ja.md).

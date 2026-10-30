@@ -529,8 +529,8 @@ state. These are **country-specific**, **household-correlated**, and
   **employer (事業所)** level; 国保 shares at the **household** level; 後期高齢者
   (75+) is **per-individual**.
 - "My-Number assignment" for a long-standing patient changes the **qualification
-  verification method** (紙 → online) but **not** the 被保険者番号. The data that
-  actually changes over time is the **payer** (転職/退職, and the deterministic
+  verification method** (paper → online) but **not** the 被保険者番号. The data that
+  actually changes over time is the **payer** (job change / retirement, and the deterministic
   **75-yr → 後期高齢者** transition). Hence insurance is modeled as a
   **period-bounded enrollment history**, and each encounter references the
   enrollment valid on its date (`Coverage.period`).
@@ -541,7 +541,7 @@ A new leaf-ish module `clinosim/modules/identity/` owns numbering:
 
 - `base.py` — `IdentityProvider` Protocol (country-pluggable seam; interface only)
 - `registry.py` — `country → provider` resolution (mirrors `healthcare_system`)
-- `generators.py` — check-digit number generators (国共通 pure functions)
+- `generators.py` — check-digit number generators (country-agnostic pure functions)
 - `providers/jp.py` — JP rules (employer-level 記号, 社保/国保/後期高齢, 枝番,
   card/保険証 dated flags, 75-yr transition)
 - `providers/us.py` — thin (existing `_sample_insurance` behavior preserved)
@@ -560,11 +560,12 @@ opted in.
 
 ### Defaults (locale/jp/identity.yaml — researched, `# TODO: verify` where provisional)
 
-- マイナンバーカード保有率 (age-banded): 0–14 ≈0.70, 15–49 ≈0.77, 50s ≈0.82,
-  60s ≈0.90, 70s ≈0.91 (peak), 80+ ≈0.72 (総務省/デジタル庁 2025)
-- マイナ保険証 登録率: lower, same age shape (peak 60–70s)
-- 世帯内相関は `household_icc` (Gaussian-copula preserving marginal card rates)
-- **被用者保険 vs 国保 は occupation-driven**: the household's most-likely-employed
+- My Number card holding rate (マイナンバーカード保有率, age-banded):
+  0–14 ≈0.70, 15–49 ≈0.77, 50s ≈0.82, 60s ≈0.90, 70s ≈0.91 (peak), 80+ ≈0.72 (総務省/デジタル庁 2025)
+- マイナ保険証 registration rate: lower, same age shape (peak 60–70s)
+- Within-household correlation via `household_icc` (Gaussian-copula preserving marginal card rates)
+- **被用者保険 (employee insurance) vs 国保 (National Health Insurance) is
+  occupation-driven**: the household's most-likely-employed
   working-age member becomes the 被保険者 (others 被扶養者) via
   `employee_probability_by_occupation`. Calibrated so the emergent <75 split is
   ≈ 73:27 (MHLW 医療保険 基礎資料), with `insurance_category_distribution` as fallback.

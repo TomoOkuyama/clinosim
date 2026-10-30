@@ -27,8 +27,8 @@ Three concrete differentiators:
 
 - **Clinical coherence by construction.** Not a post-hoc filter — the
   physiology model makes incoherent labs impossible.
-- **JP + US natively.** JP Core profile compliance for 16 primary FHIR
-  resource types, JLAC10 / MHLW YJ codes, JP names / addresses /
+- **JP + US natively.** JP Core profiles on all 21 FHIR resource types
+  that have one in JP output, JLAC10 / MHLW YJ codes, JP names / addresses /
   insurance out of the box.
 - **YAML-driven extension.** 36 inpatient diseases + 51 ED / outpatient
   conditions are all data files, not code.

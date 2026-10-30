@@ -58,8 +58,14 @@ docker run -d --name hapi-fhir \
     -e hapi.fhir.bulk_export_enabled=true \
     -e hapi.fhir.bulk_import_enabled=true \
     -e hapi.fhir.fhir_version=R4 \
+    -e hapi.fhir.enforce_referential_integrity_on_write=false \
     hapiproject/hapi:latest
 ```
+
+`enforce_referential_integrity_on_write=false` は、まだロードされて
+いないリソースへの reference をサーバに受け付けさせる設定です。
+clinosim の出力は、どの順序でロードしても前方参照が残るため、この
+設定が必要です ([ロード順だけでは足りない理由](#ロード順だけでは足りない理由) 参照)。
 
 health probe がサーバの起動を報告するまで待機:
 
@@ -70,39 +76,119 @@ echo "HAPI FHIR ready at http://localhost:8080/fhir"
 
 ### 2. NDJSON ファイルを push
 
-小規模コホートで最も簡単な手法は各リソースを bundle として POST。
-大規模コホートには `$import` オペレーションを使用。
+clinosim のリソースは互いを clinosim 自身の id
+(`Encounter/enc-…`、`Patient/pt-…`) で参照します。すべてのリソースを
+`PUT [base]/[type]/[id]` でロードし、サーバに同じ id で保存させて
+ください。`[base]/[type]` への `POST` は **使わない** でください:
+create はサーバ側で新しい id を割り当てるため、元の id への reference
+がすべて解決できなくなります。
 
-**小規模コホート — ファイル別 POST (どこでも動作):**
+まだ存在しない id への `PUT` はリソースを作成します ("update as
+create")。サーバがクライアント指定 id を許可している必要があります。
+HAPI FHIR は数字だけでない id ならデフォルトで許可しており、clinosim
+の id はすべてこれに該当します。各 NDJSON 行の `id` は URL と一致して
+おり、FHIR が `PUT` に求める条件を満たしています。
+
+**小規模コホート — リソースごとに 1 回 `PUT` (update-as-create を
+サポートする任意の FHIR R4 サーバで動作):**
 
 ```bash
 BASE=http://localhost:8080/fhir
+SRC=jp-100/fhir_r4
 
-# 順序が重要: reference ターゲットは referrer より前に存在する必要あり。
-# Patient / Organization / Location を先に; 次に Encounter; その後
-# Encounter を参照する全て (Condition / Observation /
-# MedicationRequest / …)。CareTeam / Composition / DocumentReference /
-# ClinicalImpression は複数の型を参照するため最後。
-for rt in Organization Location Practitioner PractitionerRole Patient Coverage \
-          Encounter Condition AllergyIntolerance Immunization FamilyMemberHistory \
-          MedicationRequest MedicationAdministration Observation DiagnosticReport \
-          Procedure ImagingStudy Endpoint ServiceRequest ClinicalImpression \
-          Composition CareTeam DocumentReference
+# clinosim が emit しうる全リソース型を、大半の reference が既にロード
+# 済みのリソースを指す順序で並べたもの。コホートが生成しなかった型は
+# skip される。
+for rt in Organization Endpoint Practitioner Location PractitionerRole \
+          Patient Coverage Device Encounter Condition AllergyIntolerance \
+          FamilyMemberHistory Immunization ServiceRequest Specimen Observation \
+          ImagingStudy DiagnosticReport MedicationRequest MedicationAdministration \
+          Procedure DeviceUseStatement ClinicalImpression CareTeam \
+          DocumentReference Composition
 do
-    if [ -f "jp-100/fhir_r4/${rt}.ndjson" ]; then
-        echo "== Loading ${rt} =="
-        while IFS= read -r line; do
-            [ -z "$line" ] && continue
-            curl -sSf -X POST \
-                -H 'Content-Type: application/fhir+json' \
-                --data-raw "$line" \
-                "${BASE}/${rt}" > /dev/null
-        done < "jp-100/fhir_r4/${rt}.ndjson"
-    fi
+    [ -f "${SRC}/${rt}.ndjson" ] || continue
+    echo "== Loading ${rt} =="
+    while IFS= read -r line; do
+        [ -z "$line" ] && continue
+        id=$(printf '%s' "$line" | jq -r '.id')
+        printf '%s' "$line" | curl -sSf -X PUT \
+            -H 'Content-Type: application/fhir+json' \
+            --data-binary @- \
+            "${BASE}/${rt}/${id}" > /dev/null
+    done < "${SRC}/${rt}.ndjson"
 done
 ```
 
+上のリストは FHIR writer が emit しうる 26 リソース型すべてを含み
+ます。コホートに loop が skip する型が無いことは `manifest.json` と
+突き合わせて確認できます:
+
+```bash
+jq -r '.output[].type' "${SRC}/manifest.json" | sort
+```
+
+**中規模コホート — `PUT` エントリの transaction Bundle:** リソース
+ごとではなく chunk ごとに 1 回の HTTP 往復で済みます。各エントリは
+`request.method = PUT` と `request.url = [type]/[id]` を持つため、
+上の loop と同じく id はそのまま保たれます。
+
+```bash
+for rt in Organization Endpoint Practitioner Location PractitionerRole \
+          Patient Coverage Device Encounter Condition AllergyIntolerance \
+          FamilyMemberHistory Immunization ServiceRequest Specimen Observation \
+          ImagingStudy DiagnosticReport MedicationRequest MedicationAdministration \
+          Procedure DeviceUseStatement ClinicalImpression CareTeam \
+          DocumentReference Composition
+do
+    [ -f "${SRC}/${rt}.ndjson" ] || continue
+    echo "== Loading ${rt} =="
+    # 1 transaction あたり 500 リソース
+    jq -c -n --arg rt "$rt" '
+        def chunks(n): [inputs] | range(0; length; n) as $i | .[$i:$i+n];
+        chunks(500)
+        | {resourceType: "Bundle", type: "transaction",
+           entry: [ .[] | {resource: .,
+                           request: {method: "PUT", url: "\($rt)/\(.id)"}} ]}
+    ' "${SRC}/${rt}.ndjson" |
+    while IFS= read -r bundle; do
+        printf '%s' "$bundle" | curl -sSf -X POST \
+            -H 'Content-Type: application/fhir+json' \
+            --data-binary @- \
+            "${BASE}" > /dev/null
+    done
+done
+```
+
+transaction はサーバの base に送信します (`POST [base]`)。これは
+Bundle を送る標準の方法であり、内部の `PUT` エントリに新しい id を
+割り当てることはありません。
+
+#### ロード順だけでは足りない理由
+
+上の順序は大半の reference 先を先にロードしますが、clinosim の出力
+には必ず前方を指す reference が含まれます:
+
+- `Encounter.diagnosis.condition` と `Encounter.reasonReference` は
+  `Condition` を指し、`Condition.encounter` は `Encounter` を指し
+  返す — 両方を満たす順序は存在しません。
+- 同一ファイル内でも、`Location.partOf`・`Organization.partOf`・
+  `DocumentReference.relatesTo.target` が同じファイルの後方の行を
+  指すことがあります。
+
+したがってサーバは、まだ存在しないリソースへの reference を受け付け
+る必要があります。HAPI FHIR では
+`hapi.fhir.enforce_referential_integrity_on_write=false` (上の
+`docker run` で設定済み)、他のサーバではロード中だけ同等の書き込み
+時 reference チェックを無効にしてください。全ファイルのロードが終わ
+れば、すべての reference が解決します。
+
 **大規模コホート — `$import`:**
+
+Bulk Data `$import` は NDJSON ファイルを直接読み込み、各行の `id` を
+保持するため、`PUT` と同じく reference が解決します。`input` はファ
+イルごとに 1 つ並べます。下の例はそのうち 2 つだけを示しています —
+全リストは `manifest.json` から生成してください (例:
+`jq '[.output[] | {name: "input", part: [{name: "type", valueCode: .type}, {name: "url", valueUri: ("http://host.docker.internal:9000/" + .url)}]}]' jp-100/fhir_r4/manifest.json`)。
 
 ```bash
 # 1. FHIR サーバが取得できるように NDJSON ファイルを HTTP で serve。
@@ -177,23 +263,41 @@ FHIR R4 Bulk Data Access
   ベンダードキュメント参照。これは準拠サーバの例として挙げているの
   であり、必須依存ではありません。
 
-サーバが `$import` を実装していない場合、Option A のファイル別
-POST アプローチはどこでも動作しますが wire オーバーヘッドが高くなり
-ます。
+サーバが `$import` を実装していない場合、Option A の `PUT` による
+手法 (リソースごとの 1 リクエスト、または `PUT` エントリの
+transaction Bundle) は update-as-create をサポートする任意のサーバ
+で動作しますが、wire オーバーヘッドが高くなります。
 
 ## トラブルシューティング
 
 ### Reference integrity エラー
 
-症状: `Invalid reference: Patient/… — no such resource`。
+症状: `Invalid reference: Patient/… — no such resource`、または
+(HAPI FHIR) `Encounter` のロード中に `HAPI-1094: Resource
+Condition/… not found, specified in path: Encounter.reasonReference`。
 
-原因: `Encounter` が参照する `Patient` より前にロードされた、または
-NDJSON ファイルが依存順ではなくファイルシステム順で ingested された。
+原因: サーバが書き込み時に reference をチェックしており、ロード中の
+リソースがまだロードされていないリソースを指している。このような
+前方参照の一部は避けられない
+([ロード順だけでは足りない理由](#ロード順だけでは足りない理由) 参照)。
 
-修正: 上の loop の順序でロード (`Organization` と `Patient` を最初、
-次に `Encounter`、その後 `Encounter` を参照する全て)。`$import` の
-場合、`Parameters.parameter[].part[]` エントリを同じ順序でリスト
-アップ — HAPI の importer は順序を尊重。
+修正: ロード中は書き込み時の reference チェックを無効にし (HAPI FHIR
+では `hapi.fhir.enforce_referential_integrity_on_write=false`)、上の
+loop の順序でロードする。以後の書き込みでチェックが必要なら、ロード
+後に再度有効にする。
+
+### reference が存在しない id を指す
+
+症状: ロードは成功するが、`Encounter?subject=Patient/pt-…` などの
+検索が何も返さない、または reference が未解決として表示される。
+
+原因: リソースが `POST [base]/[type]` で作成されたため、サーバが新し
+い id を割り当て、reference 中の clinosim の id がどれとも一致しなく
+なった。
+
+修正: ロードしたデータを削除し、上に示した
+`PUT [base]/[type]/[id]` (または `PUT` エントリの transaction
+Bundle) でロードし直す。
 
 ### JP Core プロファイル検証失敗
 

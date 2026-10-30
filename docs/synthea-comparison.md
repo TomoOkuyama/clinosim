@@ -22,7 +22,7 @@ per-patient Bundle output into the per-`ResourceType` NDJSON layout
 | Modeling approach | Physiology-driven forward simulation (19-variable hidden physiological state per patient) | State-transition modules per condition |
 | Coherence between labs / vitals | Guaranteed by shared physiological state | Independent per module |
 | Native FHIR R4 output | Bulk Data Access NDJSON, one file per ResourceType | FHIR R4 JSON per patient |
-| JP Core profile compliance | 21 resource types | Not a design goal |
+| JP Core profile compliance | 21 resource types carry a JP Core profile in JP output | Not a design goal |
 | Multi-locale (US + JP) | Both first-class; JP names, addresses, insurance, JLAC10, MHLW YJ | US-first; internationalization via community modules |
 | Determinism guarantee | Byte-identical output within a MINOR release for the same seed | Deterministic per-run seed |
 | Extension model | YAML-driven (edit a file, no code) | Java module (`.json` state machines + code) |
