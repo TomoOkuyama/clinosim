@@ -22,6 +22,8 @@ if TYPE_CHECKING:
 
 __all__ = ["HospitalizationSummary", "PersonRecord", "LifeEvent", "TemporalStatePeriod"]
 
+_DEATH_PLACES = frozenset({"hospital", "community"})
+
 
 @dataclass
 class HospitalizationSummary:
@@ -69,16 +71,14 @@ class PersonRecord:
     bmi: float = 22.0
     smoking_status: str = "never"  # "never" | "former" | "current"
     alcohol_use: str = "none"  # "none" | "social" | "heavy"
-    is_alive: bool = True
-    # Issue #1114 C11g-2: natural-death date, populated by the
-    # ``natural_death`` POST_POPULATION enricher when the actuarial
-    # Bernoulli against ``locale/shared/actuarial_life_table.yaml``
-    # qx hits within the sim window. Stays ``None`` for patients who
-    # survive the window. Consumed by ``is_alive_at(t)`` (this file)
-    # and (from C11g-3 onward) by event-emit filters + FHIR
-    # deceasedDateTime. Distinct from in-hospital death which flips
-    # ``PatientProfile.deceased`` inside the discharge gate.
+    # Issue #2166: the person's single death record. Written only through
+    # ``record_death`` — by the inpatient dispatcher for in-hospital deaths
+    # ("hospital") and by the natural-death sampler for deaths outside this
+    # hospital's inpatient stays ("community"). ``is_alive`` and
+    # ``is_alive_at(t)`` are derived from it. Stays ``None`` for persons
+    # who survive the window.
     date_of_death: date | None = None
+    death_place: str | None = None  # "hospital" | "community"
     care_seeking_threshold: float = 0.3
     has_visited_hospital: bool = False
     visit_count: int = 0
@@ -184,6 +184,29 @@ class PersonRecord:
     def has_active_state(self, state_type: str, at_date: date | None = None) -> bool:
         """Convenience wrapper around ``get_active_state``."""
         return self.get_active_state(state_type, at_date) is not None
+
+    @property
+    def is_alive(self) -> bool:
+        """True when no death has been recorded for the person.
+
+        This is the window-end view. Event gates that run at a point in
+        time use :meth:`is_alive_at` instead, because a recorded death can
+        still lie after the event being gated.
+        """
+        return self.date_of_death is None
+
+    def record_death(self, when: date, place: str) -> None:
+        """Record the person's death (Issue #2166).
+
+        The earliest recorded death wins. A pre-sampled community death
+        later in the window is replaced by an earlier in-hospital death,
+        and a later death is ignored.
+        """
+        if place not in _DEATH_PLACES:
+            raise ValueError(f"death place must be one of {sorted(_DEATH_PLACES)}, got {place!r}")
+        if self.date_of_death is None or when < self.date_of_death:
+            self.date_of_death = when
+            self.death_place = place
 
     def is_alive_at(self, when: date) -> bool:
         """Return True if the person is alive at ``when`` (Issue #1114 C11g-2).

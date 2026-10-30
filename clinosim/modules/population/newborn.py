@@ -257,7 +257,6 @@ def register_newborn(
         bmi=float(newborn.bmi) if newborn.bmi else 12.8,
         smoking_status="never",
         alcohol_use="none",
-        is_alive=True,
         # Issue #1581 Phase C.2 — atopic-march inheritance multiplier.
         # When the mother carries any real (non-NKA, non-resolved)
         # allergy, raise the newborn's per-year emergence rate for new

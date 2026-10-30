@@ -19,6 +19,7 @@ from clinosim.modules.population.engine import (
     generate_monthly_events,
     generate_population,
 )
+from clinosim.modules.population.vital_status import sync_profile_death_dates
 from clinosim.modules.staff.engine import generate_roster
 from clinosim.seeding import (
     PHASE_LIFE_EVENT,
@@ -473,6 +474,12 @@ def run_beta(
     if n_ed > 0:
         print(f"  ED visits (not admitted): {n_ed} generated", flush=True)
         sim_log.info("engine", "ed_visits_generated", ed_visits=n_ed)
+
+    # Issue #2166: every profile of a person carries the person's one death
+    # date (as known at the snapshot or window end), including profiles that
+    # were activated for visits before the death.
+    _vital_as_of = snapshot_dt.date() if snapshot_dt else date.fromisoformat(str(config.time_range[1])[:10])
+    sync_profile_death_dates(patient_records, population, as_of=_vital_as_of)
 
     # Post-records enrichers (AD-56) — opt-in modules that read/extend finished records
     # (e.g. billing, devices, care-coordination write to CIFPatientRecord.extensions).
