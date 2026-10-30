@@ -782,6 +782,14 @@ lifestyle_risk_multipliers:
 # hospital-user cohort. The US analog of MHLW 患者調査 for calibration is
 # the CDC NAMCS / NHAMCS ambulatory-care surveys + MEPS
 # hospital-user tables.
+# Issue #2245: preventive-care participation.
+# flu_vaccination_probability: adults 65+ with an influenza vaccine in the
+# past 12 months, 67.1% (2024 NHIS, NCHS Data Brief No. 547).
+# annual_screening_participation is not set: the NHIS wellness-visit share
+# has not been verified against its primary table yet.
+preventive_care:
+  flu_vaccination_probability: 0.671
+
 care_seeking:
   threshold_mean: 0.30
   threshold_sd: 0.12

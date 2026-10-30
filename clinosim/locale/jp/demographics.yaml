@@ -335,6 +335,13 @@ chronic_prevalence:
 #   - 25-44 slightly lowered — adult primary care is currently under-
 #     represented (25-34 emits at 0.44× MHLW target).
 #   - 45+ keeps the 0.20 baseline that already matched MHLW well.
+# Issue #2245: preventive-care participation.
+# annual_screening_participation: 特定健診 実施率 58.1% (FY2022, 厚生労働省
+# 「特定健康診査・特定保健指導の実施状況」). Applied to the calendar's whole
+# screening age band (40-89).
+preventive_care:
+  annual_screening_participation: 0.581
+
 care_seeking:
   threshold_mean: 0.20
   threshold_sd: 0.10
