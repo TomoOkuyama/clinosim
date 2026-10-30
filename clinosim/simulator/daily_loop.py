@@ -520,6 +520,7 @@ def _run_daily_loop(
         # panel children). Extracted to ``clinosim.simulator.lab_pipeline``
         # (Issue #552 PR A) — see that module's docstring for the RNG
         # contract and byte-neutrality guarantees.
+        _day_results_start = len(all_lab_results)
         all_lab_results.extend(
             _run_lab_result_pipeline(
                 all_orders,
@@ -536,7 +537,10 @@ def _run_daily_loop(
 
         # Diagnosis update
         if day >= 1:
-            findings = _extract_findings(all_lab_results, disease_id, day)
+            # Issue #2240: only the results drawn today. A fixed window over
+            # the whole stay missed CRP behind a large panel and re-counted
+            # the same old result as new evidence on days without a draw.
+            findings = _extract_findings(all_lab_results[_day_results_start:], disease_id, day)
             if findings:
                 protocol_lr = (
                     protocol.likelihood_ratios
@@ -986,11 +990,10 @@ def _extract_findings(
     disease_id: str,
     day: int,
 ) -> list[tuple[str, bool]]:
-    """Extract diagnostic findings from lab results for Bayesian update."""
+    """Extract diagnostic findings from the day's lab results for Bayesian update."""
     findings: list[tuple[str, bool]] = []
 
-    recent = lab_results[-10:]  # last few results
-    for r in recent:
+    for r in lab_results:
         if r.lab_name == "CRP":
             v = r.value if isinstance(r.value, (int, float)) else 0
             findings.append(("crp_above_100", v > 100))
