@@ -37,12 +37,15 @@ def _jp_cohort_records() -> list:
     S115 slow-test fixture consolidation, #1420 follow-up). Size chosen
     to reliably produce both inpatient (with discharge_rx) and
     outpatient encounters."""
+    # Issue #2206: this used `population_size=` / `start_date=`, which are
+    # not SimulatorConfig fields and were silently ignored (the run used the
+    # hospital's recommended population and the default window).
     config = SimulatorConfig(
         country="JP",
-        population_size=200,
+        catchment_population=2000,
         random_seed=42,
-        start_date="2025-01-01",
-        snapshot_date="2026-01-01",
+        time_range=("2025-01-01", "2025-12-31"),
+        snapshot_date="2025-12-31",
     )
     return run_beta(config).patients
 
