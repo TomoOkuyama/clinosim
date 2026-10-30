@@ -223,4 +223,4 @@ If nothing helps:
 
 - Reverting to v21 (loses Rule 3 fix)
 - Removing JA localization (loses ナラティブ文書適切さ)
-- Permanent EN prompt (violates `[[feedback_llm_prompt_matches_output_language]]`)
+- Permanent EN prompt (violates the rule that the prompt language matches the output language)

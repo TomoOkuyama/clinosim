@@ -210,7 +210,7 @@ do NOT enable FP8 KV in production narrate.**
 
 **Case A_prime (EN scaffold prompt)**: DROPPED. Only +3.4% throughput
 at the cost of cross-locale quality risk (violates
-`[[feedback_llm_prompt_matches_output_language]]`). Not worth it.
+the rule that the prompt language matches the output language). Not worth it.
 
 **Concurrency > max-num-seqs**: DROPPED as a standalone lever. Case
 A_pc_c128 was +1.4% over A_pc (32). Client-side concurrency doesn't
