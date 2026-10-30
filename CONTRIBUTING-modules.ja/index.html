@@ -2803,22 +2803,22 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#regen-scope-matrix-local-iteration-cycles-ad-65-2026-07-02" class="md-nav__link">
+  <a href="#regen-scope-matrix-ローカル反復サイクル-ad-65-2026-07-02" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Regen scope matrix: Local iteration cycles (AD-65, 2026-07-02)
+        Regen scope matrix: ローカル反復サイクル (AD-65, 2026-07-02)
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Regen scope matrix: Local iteration cycles (AD-65, 2026-07-02)">
+    <nav class="md-nav" aria-label="Regen scope matrix: ローカル反復サイクル (AD-65, 2026-07-02)">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#change-types-and-iteration-time" class="md-nav__link">
+  <a href="#変更の種類と反復時間" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Change types and iteration time
+        変更の種類と反復時間
       
     </span>
   </a>
@@ -2826,10 +2826,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#case-1-template-narrative-generator-bug-ad-65-tier-1-3" class="md-nav__link">
+  <a href="#case-1-template-narrative-generator-のバグ-ad-65-tier-1-3" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Case 1: Template narrative generator bug (AD-65 Tier 1 #3)
+        Case 1: Template narrative generator のバグ (AD-65 Tier 1 #3)
       
     </span>
   </a>
@@ -2837,10 +2837,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#case-2-structuralauthor-bug-encounterorderenricher-logic" class="md-nav__link">
+  <a href="#case-2-structuralauthor-のバグ-encounterorderenricher-logic" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Case 2: Structural/author bug (encounter/order/enricher logic)
+        Case 2: Structural/author のバグ (encounter/order/enricher logic)
       
     </span>
   </a>
@@ -2848,10 +2848,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#case-3-fhir-builder-bug" class="md-nav__link">
+  <a href="#case-3-fhir-builder-のバグ" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Case 3: FHIR builder bug
+        Case 3: FHIR builder のバグ
       
     </span>
   </a>
@@ -2859,10 +2859,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#determinism--reproducibility" class="md-nav__link">
+  <a href="#決定論と再現性" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Determinism &amp; reproducibility
+        決定論と再現性
       
     </span>
   </a>
@@ -2886,13 +2886,52 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#adding-a-new-patient-profile-fixture-ad-66" class="md-nav__link">
+  <a href="#新しい-patient-profile-fixture-の追加-ad-66" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Adding a new patient profile fixture (AD-66)
+        新しい patient profile fixture の追加 (AD-66)
       
     </span>
   </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#axis-規約-auditaxes--evalaxes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Axis 規約: audit/axes/ + eval/axes/
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Axis 規約: audit/axes/ + eval/axes/">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#規約" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        規約
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#新しい-axis-の追加" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        新しい axis の追加
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -3548,77 +3587,77 @@ URI 等)を hard-coded literal で書かないこと。<strong>writer 側 module
 <li><strong>生成された CIF + FHIR を臨床的整合性で監査</strong> (lab/vital が physiology と整合、診断コードが正しく解決、JP 出力に英語が混入しないか、URI/reference 整合)。</li>
 </ol>
 <hr />
-<h2 id="regen-scope-matrix-local-iteration-cycles-ad-65-2026-07-02">Regen scope matrix: Local iteration cycles (AD-65, 2026-07-02)<a class="headerlink" href="#regen-scope-matrix-local-iteration-cycles-ad-65-2026-07-02" title="Permanent link">&para;</a></h2>
-<p>The two-pass CIF generation architecture (<code>clinosim simulate</code> → Stage 1 structural + auto Stage 2 template narratives) + dev facility (<code>test-disease --format</code>, <code>narrate</code> verb) enables fast iteration on different change types. Use this matrix to select the fastest workflow for your change. Canonical spec for the two-pass structural/narrative CIF separation = <a href="../clinosim/modules/output/SPEC.md"><code>clinosim/modules/output/SPEC.md</code></a> § "Stage 2: Narrative Generation".</p>
-<h3 id="change-types-and-iteration-time">Change types and iteration time<a class="headerlink" href="#change-types-and-iteration-time" title="Permanent link">&para;</a></h3>
+<h2 id="regen-scope-matrix-ローカル反復サイクル-ad-65-2026-07-02">Regen scope matrix: ローカル反復サイクル (AD-65, 2026-07-02)<a class="headerlink" href="#regen-scope-matrix-ローカル反復サイクル-ad-65-2026-07-02" title="Permanent link">&para;</a></h2>
+<p>two-pass CIF 生成アーキテクチャ(<code>clinosim simulate</code> → Stage 1 structural + 自動 Stage 2 template narrative)と dev 用機能(<code>test-disease --format</code>、<code>narrate</code> verb)により、変更の種類ごとに高速な反復ができます。この matrix で変更に応じた最速の workflow を選んでください。structural / narrative CIF の two-pass 分離の canonical spec は <a href="../clinosim/modules/output/SPEC.md"><code>clinosim/modules/output/SPEC.md</code></a> § "Stage 2: Narrative Generation" です。</p>
+<h3 id="変更の種類と反復時間">変更の種類と反復時間<a class="headerlink" href="#変更の種類と反復時間" title="Permanent link">&para;</a></h3>
 <table>
 <thead>
 <tr>
-<th>Change target</th>
-<th>Fastest regen command</th>
-<th>Estimated time</th>
-<th>Notes</th>
+<th>変更対象</th>
+<th>最速の regen コマンド</th>
+<th>目安時間</th>
+<th>備考</th>
 </tr>
 </thead>
 <tbody>
 <tr>
 <td><strong>Simulator engine / enricher</strong> (population, disease, encounter logic)</td>
 <td><code>clinosim simulate -p N -o /tmp/cX</code></td>
-<td>5-50 min</td>
-<td>Full cohort → CIF output. Proportional to N.</td>
+<td>5-50 分</td>
+<td>全 cohort → CIF 出力。N に比例。</td>
 </tr>
 <tr>
-<td><strong>Template narrative generator</strong> (TemplateNarrativeGenerator, bug A pattern)</td>
+<td><strong>Template narrative generator</strong> (TemplateNarrativeGenerator, bug A パターン)</td>
 <td><code>clinosim narrate --cif-dir /tmp/cX/cif --version-id template</code> → <code>clinosim export-fhir --cif-dir /tmp/cX/cif</code></td>
-<td>~30 sec + 5 min</td>
-<td>Reuse existing structural CIF. Stage 2 only.</td>
+<td>~30 秒 + 5 分</td>
+<td>既存の structural CIF を再利用。Stage 2 のみ。</td>
 </tr>
 <tr>
-<td><strong>FHIR builder</strong> (bug C pattern)</td>
+<td><strong>FHIR builder</strong> (bug C パターン)</td>
 <td><code>clinosim export-fhir --cif-dir /tmp/cX/cif</code></td>
-<td>~5 min</td>
-<td>Reuse existing CIF. Stage 3 only.</td>
+<td>~5 分</td>
+<td>既存 CIF を再利用。Stage 3 のみ。</td>
 </tr>
 <tr>
-<td><strong>Locale display / code resolution</strong></td>
+<td><strong>Locale display / code 解決</strong></td>
 <td><code>clinosim export-fhir --cif-dir /tmp/cX/cif</code></td>
-<td>~5 min</td>
-<td>No CIF change, Stage 3 only.</td>
+<td>~5 分</td>
+<td>CIF 変更なし、Stage 3 のみ。</td>
 </tr>
 <tr>
-<td><strong>1 disease scenario</strong> (bug B pattern: structural CIF bug within 1 disease)</td>
+<td><strong>1 疾患シナリオ</strong> (bug B パターン: 1 疾患内の structural CIF バグ)</td>
 <td><code>clinosim test-disease &lt;disease_id&gt; -n 5 --format all -o /tmp/verify</code></td>
-<td>~10 seconds</td>
-<td>Structural CIF + Stage 2 narratives + Stage 3 FHIR, 5 patients.</td>
+<td>~10 秒</td>
+<td>structural CIF + Stage 2 narrative + Stage 3 FHIR、5 患者。</td>
 </tr>
 <tr>
-<td><strong>1 encounter condition</strong> (bug B pattern: structural CIF bug within 1 ED/outpatient condition)</td>
+<td><strong>1 encounter condition</strong> (bug B パターン: 1 つの ED/外来 condition 内の structural CIF バグ)</td>
 <td><code>clinosim test-encounter &lt;condition_id&gt; --format all -o /tmp/verify</code></td>
-<td>~5 seconds</td>
-<td>Same 3 stages, ~3 patients.</td>
+<td>~5 秒</td>
+<td>同じ 3 stage、~3 患者。</td>
 </tr>
 </tbody>
 </table>
-<h3 id="case-1-template-narrative-generator-bug-ad-65-tier-1-3">Case 1: Template narrative generator bug (AD-65 Tier 1 #3)<a class="headerlink" href="#case-1-template-narrative-generator-bug-ad-65-tier-1-3" title="Permanent link">&para;</a></h3>
-<p><strong>Symptom:</strong> H&amp;P Progress Note HPI section contains Japanese characters in US cohort (bug A pattern).</p>
+<h3 id="case-1-template-narrative-generator-のバグ-ad-65-tier-1-3">Case 1: Template narrative generator のバグ (AD-65 Tier 1 #3)<a class="headerlink" href="#case-1-template-narrative-generator-のバグ-ad-65-tier-1-3" title="Permanent link">&para;</a></h3>
+<p><strong>症状:</strong> US cohort の H&amp;P Progress Note の HPI section に日本語文字が含まれる (bug A パターン)。</p>
 <p><strong>Workflow:</strong></p>
 <ol>
 <li>
-<p><strong>Diagnose</strong> via <code>test-disease</code> (structural CIF only):
+<p><code>test-disease</code> で <strong>診断</strong> (structural CIF のみ):
    <div class="highlight"><pre><span></span><code><span id="__span-21-1"><a id="__codelineno-21-1" name="__codelineno-21-1" href="#__codelineno-21-1"></a>clinosim<span class="w"> </span>test-disease<span class="w"> </span>acute_mi<span class="w"> </span>-n<span class="w"> </span><span class="m">1</span><span class="w"> </span>--format<span class="w"> </span>cif<span class="w"> </span>-o<span class="w"> </span>/tmp/test
 </span><span id="__span-21-2"><a id="__codelineno-21-2" name="__codelineno-21-2" href="#__codelineno-21-2"></a><span class="c1"># Verify structural CIF has correct encounter/patient data</span>
 </span></code></pre></div></p>
 </li>
 <li>
-<p><strong>Fix</strong> in code: <code>clinosim/modules/document/narrative/template_generator.py</code> の薄い delegator (<code>_build_hpi</code> / <code>_build_physical_examination</code>) から、該当 section の <code>clinosim/modules/document/narrative/renderers/section_builders/&lt;section&gt;.py</code> (例: <code>hpi.py::_build_hpi_core</code>、<code>chief_complaint.py</code>、<code>assessment_and_plan.py</code>) に辿る。C1a-s 分割後、<code>template_generator.py</code> は thin façade で本体は per-section builder に移った。</p>
+<p>コードを <strong>修正</strong>: <code>clinosim/modules/document/narrative/template_generator.py</code> の薄い delegator (<code>_build_hpi</code> / <code>_build_physical_examination</code>) から、<code>clinosim/modules/document/narrative/renderers/section_builders/</code> 配下の対応する section builder (例: <code>hpi.py::_build_hpi_core</code>、<code>chief_complaint.py</code>、<code>assessment_and_plan.py</code>) に辿る。C1a-s 分割後、<code>template_generator.py</code> は thin façade で、本体は per-section builder ファイルに移った。</p>
 </li>
 <li>該当 <code>renderers/section_builders/&lt;section&gt;.py</code> 内の <code>build_&lt;section&gt;(generator, ctx)</code> 自由関数を特定</li>
-<li><code>_pick_localized(tmpl, key, lang)</code> が US 言語で <code>en</code> field を参照しているか確認</li>
+<li><code>_pick_localized(tmpl, key, lang)</code> 呼び出しが US 言語で <code>en</code> field に振り分けているか確認</li>
 <li>
 <p>Disease YAML の <code>narrative.physical_exam_findings</code> ブロックが埋まっているか確認</p>
 </li>
 <li>
-<p><strong>Verify fix</strong> via fast Stage 2 regen (skip expensive full cohort):
+<p>高速な Stage 2 regen で <strong>修正を検証</strong> (高コストな全 cohort 生成は省く):
    <div class="highlight"><pre><span></span><code><span id="__span-22-1"><a id="__codelineno-22-1" name="__codelineno-22-1" href="#__codelineno-22-1"></a><span class="c1"># Reuse structural CIF from step 1</span>
 </span><span id="__span-22-2"><a id="__codelineno-22-2" name="__codelineno-22-2" href="#__codelineno-22-2"></a>clinosim<span class="w"> </span>narrate<span class="w"> </span>--cif-dir<span class="w"> </span>/tmp/test/cif<span class="w"> </span>--version-id<span class="w"> </span>template
 </span><span id="__span-22-3"><a id="__codelineno-22-3" name="__codelineno-22-3" href="#__codelineno-22-3"></a>clinosim<span class="w"> </span>export-fhir<span class="w"> </span>--cif-dir<span class="w"> </span>/tmp/test/cif
@@ -3626,88 +3665,88 @@ URI 等)を hard-coded literal で書かないこと。<strong>writer 側 module
 </span></code></pre></div></p>
 </li>
 <li>
-<p><strong>Full validation</strong> (once confident):
+<p><strong>完全な検証</strong> (確信が持てたら):
    <div class="highlight"><pre><span></span><code><span id="__span-23-1"><a id="__codelineno-23-1" name="__codelineno-23-1" href="#__codelineno-23-1"></a>clinosim<span class="w"> </span>simulate<span class="w"> </span>-p<span class="w"> </span><span class="m">500</span><span class="w"> </span>--country<span class="w"> </span>US<span class="w"> </span>--format<span class="w"> </span>cif<span class="w"> </span>fhir-r4<span class="w"> </span>-o<span class="w"> </span>/tmp/us500
 </span><span id="__span-23-2"><a id="__codelineno-23-2" name="__codelineno-23-2" href="#__codelineno-23-2"></a>clinosim<span class="w"> </span>audit<span class="w"> </span>run<span class="w"> </span>-d<span class="w"> </span>/tmp/us500
 </span><span id="__span-23-3"><a id="__codelineno-23-3" name="__codelineno-23-3" href="#__codelineno-23-3"></a><span class="c1"># Gate: "us_admission_hp_zero_ja_chars" = 0</span>
 </span></code></pre></div></p>
 </li>
 </ol>
-<p><strong>Total iteration time:</strong> ~35 seconds per fix attempt (10 sec <code>test-disease</code> + 25 sec <code>narrate</code>+<code>export-fhir</code>).</p>
+<p><strong>合計反復時間:</strong> 修正 1 回あたり ~35 秒 (<code>test-disease</code> 10 秒 + <code>narrate</code>+<code>export-fhir</code> 25 秒)。</p>
 <hr />
-<h3 id="case-2-structuralauthor-bug-encounterorderenricher-logic">Case 2: Structural/author bug (encounter/order/enricher logic)<a class="headerlink" href="#case-2-structuralauthor-bug-encounterorderenricher-logic" title="Permanent link">&para;</a></h3>
-<p><strong>Symptom:</strong> Nursing notes have physician as author instead of primary nurse (bug B pattern).</p>
+<h3 id="case-2-structuralauthor-のバグ-encounterorderenricher-logic">Case 2: Structural/author のバグ (encounter/order/enricher logic)<a class="headerlink" href="#case-2-structuralauthor-のバグ-encounterorderenricher-logic" title="Permanent link">&para;</a></h3>
+<p><strong>症状:</strong> 看護記録の author が primary nurse ではなく医師になっている (bug B パターン)。</p>
 <p><strong>Workflow:</strong></p>
 <ol>
 <li>
-<p><strong>Diagnose</strong> via unit test:
+<p>unit test で <strong>診断</strong>:
    <div class="highlight"><pre><span></span><code><span id="__span-24-1"><a id="__codelineno-24-1" name="__codelineno-24-1" href="#__codelineno-24-1"></a>pytest<span class="w"> </span>tests/unit/test_document_author_selection.py<span class="w"> </span>-xvs
 </span><span id="__span-24-2"><a id="__codelineno-24-2" name="__codelineno-24-2" href="#__codelineno-24-2"></a><span class="c1"># Verify _pick_document_author(spec, encounter) returns correct id</span>
 </span></code></pre></div></p>
 </li>
 <li>
-<p><strong>Fix</strong> in code: <code>clinosim/modules/document/engine.py</code></p>
+<p>コードを <strong>修正</strong>: <code>clinosim/modules/document/engine.py</code></p>
 </li>
-<li>Locate the per-document stub construction in <code>document_enricher()</code></li>
-<li>Replace hardcoded <code>attending_id = encounter.attending_physician_id</code></li>
+<li><code>document_enricher()</code> 内の文書ごとの stub 構築箇所を特定</li>
+<li>ハードコードされた <code>attending_id = encounter.attending_physician_id</code> を置き換え</li>
 <li>
-<p>Call helper <code>_pick_document_author(spec, encounter)</code> instead</p>
+<p>代わりに helper <code>_pick_document_author(spec, encounter)</code> を呼ぶ</p>
 </li>
 <li>
-<p><strong>Verify fix</strong> via <code>test-disease --format all</code> (includes structural + narrative + FHIR):
+<p><code>test-disease --format all</code> で <strong>修正を検証</strong> (structural + narrative + FHIR を含む):
    <div class="highlight"><pre><span></span><code><span id="__span-25-1"><a id="__codelineno-25-1" name="__codelineno-25-1" href="#__codelineno-25-1"></a>clinosim<span class="w"> </span>test-disease<span class="w"> </span>acute_mi<span class="w"> </span>-n<span class="w"> </span><span class="m">3</span><span class="w"> </span>--format<span class="w"> </span>all<span class="w"> </span>-o<span class="w"> </span>/tmp/verify
 </span><span id="__span-25-2"><a id="__codelineno-25-2" name="__codelineno-25-2" href="#__codelineno-25-2"></a><span class="c1"># Check FHIR Composition.author field</span>
 </span><span id="__span-25-3"><a id="__codelineno-25-3" name="__codelineno-25-3" href="#__codelineno-25-3"></a><span class="c1"># Check CIF Composition.subject.type has nursing LOINC + author is nurse_id</span>
 </span></code></pre></div></p>
 </li>
 <li>
-<p><strong>Integration test</strong> on production cohort:
+<p>production cohort で <strong>統合テスト</strong>:
    <div class="highlight"><pre><span></span><code><span id="__span-26-1"><a id="__codelineno-26-1" name="__codelineno-26-1" href="#__codelineno-26-1"></a>clinosim<span class="w"> </span>simulate<span class="w"> </span>-p<span class="w"> </span><span class="m">500</span><span class="w"> </span>--country<span class="w"> </span>US<span class="w"> </span>--format<span class="w"> </span>cif<span class="w"> </span>fhir-r4<span class="w"> </span>-o<span class="w"> </span>/tmp/us500
 </span><span id="__span-26-2"><a id="__codelineno-26-2" name="__codelineno-26-2" href="#__codelineno-26-2"></a>clinosim<span class="w"> </span>audit<span class="w"> </span>run<span class="w"> </span>-d<span class="w"> </span>/tmp/us500
 </span><span id="__span-26-3"><a id="__codelineno-26-3" name="__codelineno-26-3" href="#__codelineno-26-3"></a><span class="c1"># Gate: "nursing_doc_author_is_nurse_ratio" = 1.0</span>
 </span></code></pre></div></p>
 </li>
 </ol>
-<p><strong>Total iteration time:</strong> ~8 seconds per fix attempt (3 sec <code>test-disease</code>, 5 sec integration).</p>
+<p><strong>合計反復時間:</strong> 修正 1 回あたり ~8 秒 (<code>test-disease</code> 3 秒、統合 5 秒)。</p>
 <hr />
-<h3 id="case-3-fhir-builder-bug">Case 3: FHIR builder bug<a class="headerlink" href="#case-3-fhir-builder-bug" title="Permanent link">&para;</a></h3>
-<p><strong>Symptom:</strong> Composition resource is missing a required section, or reference integrity is broken.</p>
+<h3 id="case-3-fhir-builder-のバグ">Case 3: FHIR builder のバグ<a class="headerlink" href="#case-3-fhir-builder-のバグ" title="Permanent link">&para;</a></h3>
+<p><strong>症状:</strong> Composition resource に必須 section が欠けている、または reference 整合性が壊れている。</p>
 <p><strong>Workflow:</strong></p>
 <ol>
 <li>
-<p><strong>Diagnose</strong> via unit test on builder:
+<p>builder の unit test で <strong>診断</strong>:
    <div class="highlight"><pre><span></span><code><span id="__span-27-1"><a id="__codelineno-27-1" name="__codelineno-27-1" href="#__codelineno-27-1"></a>pytest<span class="w"> </span>tests/unit/output/test_fhir_composition.py<span class="w"> </span>-xvs<span class="w"> </span>-k<span class="w"> </span><span class="s2">"section"</span>
 </span><span id="__span-27-2"><a id="__codelineno-27-2" name="__codelineno-27-2" href="#__codelineno-27-2"></a><span class="c1"># Unit test on builder logic</span>
 </span></code></pre></div></p>
 </li>
 <li>
-<p><strong>Fix</strong> in code: <code>clinosim/modules/output/fhir_r4/documents/composition.py</code></p>
+<p>コードを <strong>修正</strong>: <code>clinosim/modules/output/fhir_r4/documents/composition.py</code></p>
 </li>
-<li>Check <code>_bb_compositions()</code> reads <code>doc.narrative.sections</code> (post-AD-65 structure)</li>
+<li><code>_bb_compositions()</code> が <code>doc.narrative.sections</code> (AD-65 以降の構造) を読んでいるか確認</li>
 <li>
-<p>Verify reference integrity: all <code>reference</code> URIs resolve to resources in manifest</p>
+<p>reference 整合性を検証: すべての <code>reference</code> URI が manifest 内の resource に解決されること</p>
 </li>
 <li>
-<p><strong>Quick structural check</strong> (FHIR builder doesn't change structural CIF):
+<p><strong>簡易 structural チェック</strong> (FHIR builder は structural CIF を変更しない):
    <div class="highlight"><pre><span></span><code><span id="__span-28-1"><a id="__codelineno-28-1" name="__codelineno-28-1" href="#__codelineno-28-1"></a><span class="c1"># Reuse existing /tmp/us500 CIF from case 2</span>
 </span><span id="__span-28-2"><a id="__codelineno-28-2" name="__codelineno-28-2" href="#__codelineno-28-2"></a>clinosim<span class="w"> </span>export-fhir<span class="w"> </span>--cif-dir<span class="w"> </span>/tmp/us500/cif
 </span><span id="__span-28-3"><a id="__codelineno-28-3" name="__codelineno-28-3" href="#__codelineno-28-3"></a><span class="c1"># Inspect Composition.ndjson for correct section[] content</span>
 </span></code></pre></div></p>
 </li>
 <li>
-<p><strong>Validation</strong>:
+<p><strong>検証</strong>:
    <div class="highlight"><pre><span></span><code><span id="__span-29-1"><a id="__codelineno-29-1" name="__codelineno-29-1" href="#__codelineno-29-1"></a>pytest<span class="w"> </span>tests/unit/output/test_fhir_composition.py<span class="w"> </span>-xvs
 </span><span id="__span-29-2"><a id="__codelineno-29-2" name="__codelineno-29-2" href="#__codelineno-29-2"></a>clinosim<span class="w"> </span><span class="nb">eval</span><span class="w"> </span>-d<span class="w"> </span>/tmp/us500<span class="w"> </span>--only-axes<span class="w"> </span>structural<span class="w">   </span><span class="c1"># includes the reference-integrity check</span>
 </span></code></pre></div></p>
 </li>
 </ol>
-<p><strong>Total iteration time:</strong> ~5 minutes per fix attempt (all Stage 3 only, no CIF regen).</p>
+<p><strong>合計反復時間:</strong> 修正 1 回あたり ~5 分 (すべて Stage 3 のみ、CIF の再生成なし)。</p>
 <hr />
-<h3 id="determinism--reproducibility">Determinism &amp; reproducibility<a class="headerlink" href="#determinism--reproducibility" title="Permanent link">&para;</a></h3>
+<h3 id="決定論と再現性">決定論と再現性<a class="headerlink" href="#決定論と再現性" title="Permanent link">&para;</a></h3>
 <ul>
-<li><strong>Seed pinning:</strong> All structural + narrative generation uses deterministic seed (default 42). Use <code>--seed N</code> to reproduce exact cohort across runs.</li>
-<li><strong>Narrative version pointer:</strong> <code>cif/narratives/current_version.txt</code> tracks active narrative version. Export defaults to <code>current</code>, or specify <code>--narrative-version &lt;id&gt;</code>.</li>
-<li><strong>Backwards compat:</strong> Old CIF without narrative dir → <code>export-fhir</code> emits empty narrative and warns. <code>test-disease --format cif</code> writes structural CIF only (no narrative, consistent with <code>generate</code> Stage 1 output).</li>
+<li><strong>Seed の固定:</strong> structural + narrative の生成はすべて決定論的 seed (既定 42) を使う。<code>--seed N</code> で同一 cohort を実行間で正確に再現できる。</li>
+<li><strong>Narrative version pointer:</strong> <code>cif/narratives/current_version.txt</code> が active な narrative version を追跡する。export は既定で <code>current</code> を使い、<code>--narrative-version &lt;id&gt;</code> で指定もできる。</li>
+<li><strong>後方互換:</strong> narrative dir のない旧 CIF → <code>export-fhir</code> は空の narrative を emit して warning を出す。<code>test-disease --format cif</code> は structural CIF のみを書く (narrative なし、<code>simulate</code> の Stage 1 出力と一致)。</li>
 </ul>
 <hr />
 <h2 id="よくある落とし穴">よくある落とし穴<a class="headerlink" href="#よくある落とし穴" title="Permanent link">&para;</a></h2>
@@ -3729,20 +3768,60 @@ URI 等)を hard-coded literal で書かないこと。<strong>writer 側 module
 - ❌ コードを fabricate しない / <code>except Exception: pass</code> で YAML エラーを握り潰さない (CODES-7, ENC-1)。
 - ❌ <code>ctx.country</code> を捨てない (FA-9)。<code>determine_flag()</code> に locale reference range を渡し忘れない (OBS-3)。
 - ❌ venue ごとに baseline 値や lookup table を別定義して乖離させない (DET-6, DUP-1)。</p>
-<h2 id="adding-a-new-patient-profile-fixture-ad-66">Adding a new patient profile fixture (AD-66)<a class="headerlink" href="#adding-a-new-patient-profile-fixture-ad-66" title="Permanent link">&para;</a></h2>
-<p>See <code>tests/fixtures/patient_profiles/README.md</code> for the full workflow.
-Quick summary:</p>
+<h2 id="新しい-patient-profile-fixture-の追加-ad-66">新しい patient profile fixture の追加 (AD-66)<a class="headerlink" href="#新しい-patient-profile-fixture-の追加-ad-66" title="Permanent link">&para;</a></h2>
+<p>完全な workflow は <code>tests/fixtures/patient_profiles/README.md</code> を参照。
+要約:</p>
 <ol>
-<li>Copy an existing profile YAML as a template</li>
-<li>Edit <code>profile_id</code> (must match filename stem), <code>disease_id</code>, <code>country</code>, <code>severity</code>, <code>archetype</code>, <code>patient_overrides</code></li>
-<li>Run <code>clinosim regenerate-goldens --profile &lt;new_profile_id&gt;</code> to bootstrap the golden</li>
-<li>Manually review <code>&lt;new_profile_id&gt;.golden.json</code></li>
-<li>Run <code>pytest -m regression -k &lt;new_profile_id&gt; -q</code> to verify</li>
-<li>Commit YAML + golden together (AD-66 rule 1)</li>
+<li>既存の profile YAML を template としてコピー</li>
+<li><code>profile_id</code> (ファイル名の stem と一致必須)、<code>disease_id</code>、<code>country</code>、<code>severity</code>、<code>archetype</code>、<code>patient_overrides</code> を編集</li>
+<li><code>clinosim regenerate-goldens --profile &lt;new_profile_id&gt;</code> を実行して golden を bootstrap</li>
+<li><code>&lt;new_profile_id&gt;.golden.json</code> を手動でレビュー</li>
+<li><code>pytest -m regression -k &lt;new_profile_id&gt; -q</code> を実行して検証</li>
+<li>YAML + golden を一緒に commit (AD-66 rule 1)</li>
 </ol>
-<p><strong>AD-66 policy</strong> (see <code>AGENTS.md</code> for canonical wording):
-- Profile YAML changes MUST regenerate golden + commit both together
-- Unexpected <code>git diff</code> on goldens after intentional template changes = regression suspicion</p>
+<p><strong>AD-66 policy</strong> (canonical な文言は <code>AGENTS.md</code> を参照):
+- Profile YAML の変更時は golden を必ず再生成し、両方を一緒に commit する
+- 意図的な template 変更後に golden に想定外の <code>git diff</code> が出たら regression を疑う</p>
+<h2 id="axis-規約-auditaxes--evalaxes">Axis 規約: <code>audit/axes/</code> + <code>eval/axes/</code><a class="headerlink" href="#axis-規約-auditaxes--evalaxes" title="Permanent link">&para;</a></h2>
+<p>audit と eval の pipeline は、軸ごとの check runner を <code>axes/</code> sub-package に 1 軸 1 module で置きます。runner は各 engine 内の明示的なテーブルに wire されています — auto-discovery はないので、新しい axis ファイルはそこにも登録する必要があります:</p>
+<div class="highlight"><pre><span></span><code><span id="__span-30-1"><a id="__codelineno-30-1" name="__codelineno-30-1" href="#__codelineno-30-1"></a>clinosim/audit/axes/         # audit axes (registered in clinosim/audit/engine.py)
+</span><span id="__span-30-2"><a id="__codelineno-30-2" name="__codelineno-30-2" href="#__codelineno-30-2"></a>├── __init__.py
+</span><span id="__span-30-3"><a id="__codelineno-30-3" name="__codelineno-30-3" href="#__codelineno-30-3"></a>├── clinical.py              # one axis per file
+</span><span id="__span-30-4"><a id="__codelineno-30-4" name="__codelineno-30-4" href="#__codelineno-30-4"></a>├── jp_language.py
+</span><span id="__span-30-5"><a id="__codelineno-30-5" name="__codelineno-30-5" href="#__codelineno-30-5"></a>├── silent_no_op.py
+</span><span id="__span-30-6"><a id="__codelineno-30-6" name="__codelineno-30-6" href="#__codelineno-30-6"></a>└── structural.py
+</span><span id="__span-30-7"><a id="__codelineno-30-7" name="__codelineno-30-7" href="#__codelineno-30-7"></a>
+</span><span id="__span-30-8"><a id="__codelineno-30-8" name="__codelineno-30-8" href="#__codelineno-30-8"></a>clinosim/eval/axes/          # eval axes (registered in clinosim/eval/engine.py::EvalEngine)
+</span><span id="__span-30-9"><a id="__codelineno-30-9" name="__codelineno-30-9" href="#__codelineno-30-9"></a>├── __init__.py
+</span><span id="__span-30-10"><a id="__codelineno-30-10" name="__codelineno-30-10" href="#__codelineno-30-10"></a>├── clinical.py
+</span><span id="__span-30-11"><a id="__codelineno-30-11" name="__codelineno-30-11" href="#__codelineno-30-11"></a>├── jp_clins_lab_compliance.py
+</span><span id="__span-30-12"><a id="__codelineno-30-12" name="__codelineno-30-12" href="#__codelineno-30-12"></a>├── jp_core_compliance.py
+</span><span id="__span-30-13"><a id="__codelineno-30-13" name="__codelineno-30-13" href="#__codelineno-30-13"></a>├── locale.py
+</span><span id="__span-30-14"><a id="__codelineno-30-14" name="__codelineno-30-14" href="#__codelineno-30-14"></a>├── structural.py
+</span><span id="__span-30-15"><a id="__codelineno-30-15" name="__codelineno-30-15" href="#__codelineno-30-15"></a>└── us_core_compliance.py
+</span></code></pre></div>
+<h3 id="規約">規約<a class="headerlink" href="#規約" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>1 軸 1 ファイル。</strong> 各 axis は対応する <code>axes/</code> ディレクトリ配下に専用の <code>.py</code> を持つ。</li>
+<li><strong>public な <code>run(...)</code> entry point。</strong> <code>eval/axes/*.py</code> は <code>run(cohort, country) -&gt; list[EvalCheck]</code> を公開し、<code>EvalEngine.__init__</code> が module を import して axis id を <code>module.run</code> に対応付ける。<code>audit/axes/*.py</code> は <code>run(spec, cohort) -&gt; AxisResult</code> を公開し (<code>spec</code> は <code>ModuleAuditSpec</code>、cohort-level の axis では <code>None</code>)、audit engine は <code>_BUILTIN_AXES</code> に加えて <code>_PER_MODULE_RUNNERS</code> または <code>_COHORT_RUNNERS</code> にそれを列挙する。</li>
+<li><strong>README のミラー。</strong> 各 <code>axes/</code> ディレクトリには現在の axis を 1 行サマリ付きで列挙した <code>README.md</code> + <code>README.ja.md</code> を置く。新しい axis を追加したら最新に保つこと。</li>
+</ul>
+<h3 id="新しい-axis-の追加">新しい axis の追加<a class="headerlink" href="#新しい-axis-の追加" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span id="__span-31-1"><a id="__codelineno-31-1" name="__codelineno-31-1" href="#__codelineno-31-1"></a><span class="c1"># 1. Add the axis file</span>
+</span><span id="__span-31-2"><a id="__codelineno-31-2" name="__codelineno-31-2" href="#__codelineno-31-2"></a>touch<span class="w"> </span>clinosim/eval/axes/my_new_axis.py
+</span><span id="__span-31-3"><a id="__codelineno-31-3" name="__codelineno-31-3" href="#__codelineno-31-3"></a>
+</span><span id="__span-31-4"><a id="__codelineno-31-4" name="__codelineno-31-4" href="#__codelineno-31-4"></a><span class="c1"># 2. Implement `run(cohort, country) -&gt; list[EvalCheck]`</span>
+</span><span id="__span-31-5"><a id="__codelineno-31-5" name="__codelineno-31-5" href="#__codelineno-31-5"></a>
+</span><span id="__span-31-6"><a id="__codelineno-31-6" name="__codelineno-31-6" href="#__codelineno-31-6"></a><span class="c1"># 3. Register it in the axes dict in clinosim/eval/engine.py::EvalEngine</span>
+</span><span id="__span-31-7"><a id="__codelineno-31-7" name="__codelineno-31-7" href="#__codelineno-31-7"></a>
+</span><span id="__span-31-8"><a id="__codelineno-31-8" name="__codelineno-31-8" href="#__codelineno-31-8"></a><span class="c1"># 4. Add a one-line entry to clinosim/eval/axes/README.md +</span>
+</span><span id="__span-31-9"><a id="__codelineno-31-9" name="__codelineno-31-9" href="#__codelineno-31-9"></a><span class="c1">#    README.ja.md</span>
+</span><span id="__span-31-10"><a id="__codelineno-31-10" name="__codelineno-31-10" href="#__codelineno-31-10"></a>
+</span><span id="__span-31-11"><a id="__codelineno-31-11" name="__codelineno-31-11" href="#__codelineno-31-11"></a><span class="c1"># 5. Run the pipeline</span>
+</span><span id="__span-31-12"><a id="__codelineno-31-12" name="__codelineno-31-12" href="#__codelineno-31-12"></a>clinosim<span class="w"> </span><span class="nb">eval</span><span class="w"> </span>--cohort-dir<span class="w"> </span>./out
+</span></code></pre></div>
+<p>audit 側も同様で、<code>audit/axes/</code>、<code>AxisResult</code>、<code>clinosim/audit/engine.py</code> 内の runner テーブルを使います。</p>
+<p>英語版: <a href="../CONTRIBUTING-modules/"><code>CONTRIBUTING-modules.md</code></a>。</p>
 
 
 

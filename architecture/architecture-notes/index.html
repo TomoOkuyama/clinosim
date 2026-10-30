@@ -3648,8 +3648,8 @@ state. These are <strong>country-specific</strong>, <strong>household-correlated
   <strong>employer (事業所)</strong> level; 国保 shares at the <strong>household</strong> level; 後期高齢者
   (75+) is <strong>per-individual</strong>.</li>
 <li>"My-Number assignment" for a long-standing patient changes the <strong>qualification
-  verification method</strong> (紙 → online) but <strong>not</strong> the 被保険者番号. The data that
-  actually changes over time is the <strong>payer</strong> (転職/退職, and the deterministic
+  verification method</strong> (paper → online) but <strong>not</strong> the 被保険者番号. The data that
+  actually changes over time is the <strong>payer</strong> (job change / retirement, and the deterministic
   <strong>75-yr → 後期高齢者</strong> transition). Hence insurance is modeled as a
   <strong>period-bounded enrollment history</strong>, and each encounter references the
   enrollment valid on its date (<code>Coverage.period</code>).</li>
@@ -3659,7 +3659,7 @@ state. These are <strong>country-specific</strong>, <strong>household-correlated
 <ul>
 <li><code>base.py</code> — <code>IdentityProvider</code> Protocol (country-pluggable seam; interface only)</li>
 <li><code>registry.py</code> — <code>country → provider</code> resolution (mirrors <code>healthcare_system</code>)</li>
-<li><code>generators.py</code> — check-digit number generators (国共通 pure functions)</li>
+<li><code>generators.py</code> — check-digit number generators (country-agnostic pure functions)</li>
 <li><code>providers/jp.py</code> — JP rules (employer-level 記号, 社保/国保/後期高齢, 枝番,
   card/保険証 dated flags, 75-yr transition)</li>
 <li><code>providers/us.py</code> — thin (existing <code>_sample_insurance</code> behavior preserved)</li>
@@ -3675,11 +3675,12 @@ default-exclude</strong> policy — FHIR/CSV never emit <code>national_id</code>
 opted in.</p>
 <h3 id="defaults-localejpidentityyaml--researched--todo-verify-where-provisional">Defaults (locale/jp/identity.yaml — researched, <code># TODO: verify</code> where provisional)<a class="headerlink" href="#defaults-localejpidentityyaml--researched--todo-verify-where-provisional" title="Permanent link">&para;</a></h3>
 <ul>
-<li>マイナンバーカード保有率 (age-banded): 0–14 ≈0.70, 15–49 ≈0.77, 50s ≈0.82,
-  60s ≈0.90, 70s ≈0.91 (peak), 80+ ≈0.72 (総務省/デジタル庁 2025)</li>
-<li>マイナ保険証 登録率: lower, same age shape (peak 60–70s)</li>
-<li>世帯内相関は <code>household_icc</code> (Gaussian-copula preserving marginal card rates)</li>
-<li><strong>被用者保険 vs 国保 は occupation-driven</strong>: the household's most-likely-employed
+<li>My Number card holding rate (マイナンバーカード保有率, age-banded):
+  0–14 ≈0.70, 15–49 ≈0.77, 50s ≈0.82, 60s ≈0.90, 70s ≈0.91 (peak), 80+ ≈0.72 (総務省/デジタル庁 2025)</li>
+<li>マイナ保険証 registration rate: lower, same age shape (peak 60–70s)</li>
+<li>Within-household correlation via <code>household_icc</code> (Gaussian-copula preserving marginal card rates)</li>
+<li><strong>被用者保険 (employee insurance) vs 国保 (National Health Insurance) is
+  occupation-driven</strong>: the household's most-likely-employed
   working-age member becomes the 被保険者 (others 被扶養者) via
   <code>employee_probability_by_occupation</code>. Calibrated so the emergent &lt;75 split is
   ≈ 73:27 (MHLW 医療保険 基礎資料), with <code>insurance_category_distribution</code> as fallback.</li>

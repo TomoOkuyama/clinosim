@@ -2355,22 +2355,22 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#jp-echeckup-健診結果報告書-composition-pr3opt-in" class="md-nav__link">
+  <a href="#jp-echeckup-health-checkup-report-健診結果報告書-composition-pr3-opt-in" class="md-nav__link">
     <span class="md-ellipsis">
       
-        JP-eCheckup 健診結果報告書 Composition (PR3、opt-in)
+        JP-eCheckup health checkup report (健診結果報告書) Composition (PR3, opt-in)
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="JP-eCheckup 健診結果報告書 Composition (PR3、opt-in)">
+    <nav class="md-nav" aria-label="JP-eCheckup health checkup report (健診結果報告書) Composition (PR3, opt-in)">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#documentreference-wrappersub-pr-esession-48" class="md-nav__link">
+  <a href="#documentreference-wrapper" class="md-nav__link">
     <span class="md-ellipsis">
       
-        DocumentReference wrapper(sub-PR-E、session 48)
+        DocumentReference wrapper
       
     </span>
   </a>
@@ -2383,22 +2383,22 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#jp-fhir-validator-bridge-pr3-sub-pr-c-session-48-高度化" class="md-nav__link">
+  <a href="#jp-fhir-validator-bridge-pr3" class="md-nav__link">
     <span class="md-ellipsis">
       
-        JP FHIR Validator Bridge (PR3 sub-PR-C, session 48 高度化)
+        JP FHIR Validator Bridge (PR3)
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="JP FHIR Validator Bridge (PR3 sub-PR-C, session 48 高度化)">
+    <nav class="md-nav" aria-label="JP FHIR Validator Bridge (PR3)">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#pin-ファイルsession-48-追加" class="md-nav__link">
+  <a href="#pin-file" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Pin ファイル(session 48 追加)
+        Pin file
       
     </span>
   </a>
@@ -2406,10 +2406,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#初回-pin-bootstrap" class="md-nav__link">
+  <a href="#initial-pin-bootstrap" class="md-nav__link">
     <span class="md-ellipsis">
       
-        初回 pin bootstrap
+        Initial pin bootstrap
       
     </span>
   </a>
@@ -2417,10 +2417,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#local-実行" class="md-nav__link">
+  <a href="#running-locally" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Local 実行
+        Running locally
       
     </span>
   </a>
@@ -2428,10 +2428,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#検証対象mvp" class="md-nav__link">
+  <a href="#validation-targets-mvp" class="md-nav__link">
     <span class="md-ellipsis">
       
-        検証対象(MVP)
+        Validation targets (MVP)
       
     </span>
   </a>
@@ -2439,10 +2439,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#ci-実行auto-fail-gatesession-48-高度化" class="md-nav__link">
+  <a href="#ci-runs-auto-fail-gate" class="md-nav__link">
     <span class="md-ellipsis">
       
-        CI 実行(auto-fail gate、session 48 高度化)
+        CI runs (auto-fail gate)
       
     </span>
   </a>
@@ -2450,10 +2450,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#将来の高度化余地" class="md-nav__link">
+  <a href="#future-improvements" class="md-nav__link">
     <span class="md-ellipsis">
       
-        将来の高度化余地
+        Future improvements
       
     </span>
   </a>
@@ -2680,88 +2680,99 @@ this document continue to hold.</p>
 - <strong>傷病名・主訴</strong> = combines the encounter's diagnosis list (code + Japanese display) with the disease-YAML chief complaint.
 - <strong>現病歴</strong> = HPI derived from <code>disease_protocol.narrative.hpi_template</code> (same source as the discharge summary's present_illness section).</p>
 <p><strong>US path</strong>: referral notes are not emitted for <code>country=US</code> (<code>countries_supported: [jp]</code>). US clinical practice uses ordinary referral letters, not the JP-CLINS eReferral profile.</p>
-<h2 id="jp-echeckup-健診結果報告書-composition-pr3opt-in">JP-eCheckup 健診結果報告書 Composition (PR3、opt-in)<a class="headerlink" href="#jp-echeckup-健診結果報告書-composition-pr3opt-in" title="Permanent link">&para;</a></h2>
-<p><code>country=JP</code> かつ <code>SimulatorConfig.modules["health_checkup"]=True</code> の場合、
-健診 encounter に対して <strong>健診結果報告書 (health checkup report)</strong> Composition を
-<code>JP_Composition_eCheckupGeneral</code>(JP-eCheckup General v1.7.0)準拠で emit します。
-急性期病院想定を維持するため <strong>default off</strong>。</p>
-<p>Note: 健診 IG は JP-CLINS と別に発行されている(JP-eCheckup General v1.7.0、
-2026-02-16)。canonical URL は <code>/fhir/eCheckup/</code> 配下で、CodeSystem も別
-(section-code は 5 桁数値、JP-CLINS の 3 桁とは異なる)。</p>
+<h2 id="jp-echeckup-health-checkup-report-健診結果報告書-composition-pr3-opt-in">JP-eCheckup health checkup report (健診結果報告書) Composition (PR3, opt-in)<a class="headerlink" href="#jp-echeckup-health-checkup-report-健診結果報告書-composition-pr3-opt-in" title="Permanent link">&para;</a></h2>
+<p>When <code>country=JP</code> and <code>SimulatorConfig.modules["health_checkup"]=True</code>,
+clinosim emits a <strong>健診結果報告書 (health checkup report)</strong> Composition for
+each checkup (健診) encounter, conforming to <code>JP_Composition_eCheckupGeneral</code>
+(JP-eCheckup General v1.7.0). It is <strong>off by default</strong> to keep the
+acute-care hospital focus.</p>
+<p>Note: the checkup IG is published separately from JP-CLINS (JP-eCheckup
+General v1.7.0, 2026-02-16). Its canonical URLs live under <code>/fhir/eCheckup/</code>
+and it uses its own CodeSystems (section codes are 5-digit numbers, unlike
+the 3-digit JP-CLINS codes).</p>
 <ul>
 <li><code>Composition.meta.profile</code> = <code>http://jpfhir.jp/fhir/eCheckup/StructureDefinition/JP_Composition_eCheckupGeneral</code></li>
-<li><code>Composition.type.coding[0]</code> = <code>{system: doc-typecodes, code: 53576-5, display: 検診・健診報告書}</code>。LOINC coding も secondary で併存。</li>
-<li><code>Composition.section</code> は flat 2 個(nesting なし):</li>
+<li><code>Composition.type.coding[0]</code> = <code>{system: doc-typecodes, code: 53576-5, display: 検診・健診報告書}</code>, with a secondary LOINC coding alongside it.</li>
+<li><code>Composition.section</code> is flat, with two sections (no nesting):</li>
 <li><strong>01031</strong> 事業者健診検査結果セクション</li>
 <li><strong>01032</strong> 事業者健診問診結果セクション</li>
 <li><code>section.code.system</code> = <code>http://jpfhir.jp/fhir/eCheckup/CodeSystem/section-code</code></li>
 </ul>
-<p><strong>対象範囲(scope)</strong>:
-- 3 健診種別すべて対応(sub-PR-D、session 47):
-  - <strong>事業者健診</strong>(occupational、40-64 歳):section 01031 + 01032
-  - <strong>特定健診</strong>(specific、65-74 歳):section 01011 + 01012
-  - <strong>広域連合健診</strong>(regional_union、75 歳以上):section 01021 + 01022</p>
-<p>種別選定は <code>_pick_checkup_type(age)</code> による age-based 決定的マッピング。
-  MVP は年齢帯単一 dispatch(実務では 40-64 歳の保険加入者は特定健診対象
-  になる場合もあるが、simulation では単純化)。将来:保険種別/就業状態を
-  参照した精緻化余地あり。ClinicalDocument に <code>checkup_type: str</code> field を
-  追加(sub-PR-D)、Composition builder が dispatch。
-- section content は個別化済(sub-PR-B、session 47):
-  - <strong>01031 検査結果</strong>:record.lab_results から 5 項目(BMI / 収縮期 BP /
-    拡張期 BP / HbA1c / LDL)の実測値を拾い、法定健診基準で
-    A/B/C/D 判定を組み立てる。総合判定は各項目の最悪 grade。
-  - <strong>01032 問診結果</strong>:PatientProfile 参照で個別化(chronic_conditions
-    → 既往歴、current_medications → 服薬、smoking_status/alcohol_use →
-    生活習慣)。慢性疾患保有時は「継続経過観察を要す」判定。
-- <strong>健診 encounter 生成 module</strong>(sub-PR-A、session 47 で追加):
-  <code>clinosim/modules/health_checkup/</code> の POST_RECORDS enricher が
-  <code>SimulatorConfig.modules["health_checkup"]=True</code> + country=JP 時に発火。
-  40 歳以上の成人患者から SHA-256 hash-based 決定的 30% サブセットを
-  選び、各患者に 1 CHECKUP encounter(1 日完結)+ 法定健診 5 項目
-  ObservationRecord + HEALTH_CHECKUP_REPORT stub を追加する。
-  narrative content は Stage 2 の TemplateNarrativePass が populate、
-  FHIR emit は <code>_build_jp_echeckup_general_composition</code> が担う。
-- <strong>法定健診 5 項目の実測値個別化(sub-PR-B 高度化、session 48)</strong>:
-  かつては固定値(BMI 22.5 / SBP 118 / DBP 76 / HbA1c 5.4 / LDL 118)
-  だったが、<code>_derive_checkup_values(patient, rng)</code> が PatientProfile と
-  chronic_conditions を反映するよう改修:
-  - <strong>BMI</strong> = <code>patient.bmi</code> + 測定日変動(sd 0.3 kg/m²)
-  - <strong>SBP/DBP</strong> = <code>patient.baseline_vitals</code> を base に日間変動
-    (sd 5.0/3.5 mmHg)。高血圧(I10)は FP-I10(session 38)で
-    baseline_vitals に反映済み
-  - <strong>HbA1c</strong> = 糖尿病(E10/E11)保有時は <code>hba1c_from_glycemic_control</code>
-    を reuse(physiology 経路と一貫)、非 DM は <code>HBA1C_NONDM_BASE</code> +
-    年齢係数 0.003 + noise
-  - <strong>LDL</strong> = 年齢/性別 baseline + 脂質異常症(E78)で +40 mg/dL +
-    スタチン系薬(<code>-statin</code> 末尾)で -30 mg/dL
-  - RNG は <code>ENRICHER_SEED_OFFSETS["health_checkup"] = 0x4843</code> から
-    <code>derive_sub_seed(master, offset, patient_id)</code> で per-patient に確定。
-    同 seed + 同 patient で byte-identical(AD-16 準拠)
-  - <code>OrderResult.interpretation</code>("N"/"H")と <code>reference_range</code> も
-    LOINC 別に <code>_interp_for</code> で付与、"H" フラグは renderer の A/B/C/D 判定と整合</p>
-<p><strong>US path</strong>:健診 opt-in flag は US では発火しない
-(<code>countries_supported: [jp]</code> により spec 側で JP に限定)。</p>
-<h3 id="documentreference-wrappersub-pr-esession-48">DocumentReference wrapper(sub-PR-E、session 48)<a class="headerlink" href="#documentreference-wrappersub-pr-esession-48" title="Permanent link">&para;</a></h3>
-<p>HEALTH_CHECKUP_REPORT の Composition と併存する DocumentReference を追加発行:</p>
+<p><strong>Scope</strong>:
+- All three checkup types are supported:
+  - <strong>事業者健診</strong> (occupational health checkup, ages 40-64): sections 01031 + 01032
+  - <strong>特定健診</strong> (specific health checkup, ages 65-74): sections 01011 + 01012
+  - <strong>広域連合健診</strong> (regional_union, ages 75+): sections 01021 + 01022</p>
+<p>The type is chosen by <code>_pick_checkup_type(age)</code>, a deterministic
+  age-based mapping. The MVP dispatches on age band alone (in practice,
+  insured people aged 40-64 can also be eligible for 特定健診, but the
+  simulation simplifies this). A future refinement could take insurance
+  type and employment status into account. <code>ClinicalDocument</code> gained a
+  <code>checkup_type: str</code> field, which the Composition builder dispatches on.
+- Section content is individualized:
+  - <strong>01031 lab results (検査結果)</strong>: takes the measured values of five items
+    (BMI / systolic BP / diastolic BP / HbA1c / LDL) from
+    record.lab_results and assigns A/B/C/D grades using the statutory
+    checkup criteria. The overall grade is the worst grade across items.
+  - <strong>01032 questionnaire results (問診結果)</strong>: individualized from
+    PatientProfile (chronic_conditions → past history, current_medications
+    → medications, smoking_status/alcohol_use → lifestyle). Patients with a
+    chronic condition get the grade 「継続経過観察を要す」.
+- <strong>Checkup encounter generation module</strong>:
+  the POST_RECORDS enricher in <code>clinosim/modules/health_checkup/</code> fires
+  when <code>SimulatorConfig.modules["health_checkup"]=True</code> and country=JP.
+  It picks a deterministic 30% subset (SHA-256 hash-based) of adult
+  patients aged 40+ and adds, per patient, one CHECKUP encounter
+  (completed in a single day), ObservationRecords for the five statutory
+  checkup items, and a HEALTH_CHECKUP_REPORT stub. The narrative content
+  is populated by TemplateNarrativePass in Stage 2, and the FHIR emit is
+  handled by <code>_build_jp_echeckup_general_composition</code>.
+- <strong>Individualized values for the five statutory checkup items</strong>:
+  these used to be fixed values (BMI 22.5 / SBP 118 / DBP 76 / HbA1c 5.4 /
+  LDL 118); <code>_derive_checkup_values(patient, rng)</code> now reflects
+  PatientProfile and chronic_conditions:
+  - <strong>BMI</strong> = <code>patient.bmi</code> + measurement-day variation (sd 0.3 kg/m²)
+  - <strong>SBP/DBP</strong> = day-to-day variation around <code>patient.baseline_vitals</code>
+    (sd 5.0/3.5 mmHg). Hypertension (I10) is already reflected in
+    baseline_vitals
+  - <strong>HbA1c</strong> = for patients with diabetes (E10/E11), reuses
+    <code>hba1c_from_glycemic_control</code> (consistent with the physiology path);
+    for non-DM patients, <code>HBA1C_NONDM_BASE</code> + age coefficient 0.003 + noise
+  - <strong>LDL</strong> = age/sex baseline, +40 mg/dL for dyslipidemia (E78), and
+    -30 mg/dL for statins (drug name ending in <code>-statin</code>)
+  - The RNG is fixed per patient via
+    <code>derive_sub_seed(master, offset, patient_id)</code> from
+    <code>ENRICHER_SEED_OFFSETS["health_checkup"] = 0x4843</code>. The same seed and
+    patient give byte-identical output (per AD-16)
+  - <code>OrderResult.interpretation</code> ("N"/"H") and <code>reference_range</code> are also
+    set per LOINC code by <code>_interp_for</code>; the "H" flag agrees with the
+    renderer's A/B/C/D grading</p>
+<p><strong>US path</strong>: the checkup opt-in flag never fires for the US
+(<code>countries_supported: [jp]</code> restricts it to JP at the spec level).</p>
+<h3 id="documentreference-wrapper">DocumentReference wrapper<a class="headerlink" href="#documentreference-wrapper" title="Permanent link">&para;</a></h3>
+<p>A DocumentReference is emitted alongside the HEALTH_CHECKUP_REPORT
+Composition:</p>
 <ul>
-<li><strong>対象</strong>:<code>ClinicalDocument.task_type == "health_checkup_report"</code> かつ
-  <code>format_type == "composition"</code>(discharge_summary / referral_note は emit しない)</li>
-<li><strong>id 命名</strong>:<code>drf-&lt;document_id&gt;</code>(Composition の id と衝突しない prefix)</li>
-<li><strong>参照</strong>:<code>relatesTo=[{code:"transforms", target: Composition/&lt;id&gt;}]</code></li>
-<li><strong>content</strong>:narrative.text(空なら sections 値 join)を base64 で添付</li>
-<li><strong>category</strong>:JP-eCheckup doc-typecodes <code>eCheckupGeneral</code>(健診結果報告書)</li>
-<li><strong>encounter context</strong>:<code>Encounter/CHK-&lt;pid&gt;-&lt;seq&gt;</code> に紐付け</li>
-<li><strong>custodian</strong>:<code>Organization/hospital-main</code></li>
-<li><strong>byte-diff invariant</strong>:JP かつ opt-in 有効時のみ emit、reproduce.sh の
-  default runs は影響なし(既に確認済み)</li>
+<li><strong>Target</strong>: <code>ClinicalDocument.task_type == "health_checkup_report"</code> and
+  <code>format_type == "composition"</code> (not emitted for discharge_summary / referral_note)</li>
+<li><strong>id naming</strong>: <code>drf-&lt;document_id&gt;</code> (a prefix that cannot collide with the Composition id)</li>
+<li><strong>Reference</strong>: <code>relatesTo=[{code:"transforms", target: Composition/&lt;id&gt;}]</code></li>
+<li><strong>content</strong>: narrative.text (or the joined section values if empty), attached as base64</li>
+<li><strong>category</strong>: JP-eCheckup doc-typecodes <code>eCheckupGeneral</code> (健診結果報告書)</li>
+<li><strong>encounter context</strong>: linked to <code>Encounter/CHK-&lt;pid&gt;-&lt;seq&gt;</code></li>
+<li><strong>custodian</strong>: <code>Organization/hospital-main</code></li>
+<li><strong>byte-diff invariant</strong>: emitted only for JP with the opt-in enabled; the
+  default reproduce.sh runs are unaffected (already verified)</li>
 </ul>
-<p>実 EHR 交換シナリオ:Composition = 構造化(section で保持)、DocumentReference =
-portable な wrapper。事業所 ⇄ 保険者 ⇄ 実施機関 間の交換で DocumentReference
-を使うことが多いため、両者併存が JP-eCheckup interchange の標準形。</p>
-<h2 id="jp-fhir-validator-bridge-pr3-sub-pr-c-session-48-高度化">JP FHIR Validator Bridge (PR3 sub-PR-C, session 48 高度化)<a class="headerlink" href="#jp-fhir-validator-bridge-pr3-sub-pr-c-session-48-高度化" title="Permanent link">&para;</a></h2>
-<p>session 47 で <code>scripts/validate_jp.sh</code> と <code>.github/workflows/jp-validate.yml</code> を追加、session 48 で <strong>SHA256 pin + auto-fail gate 化</strong> に高度化しました。<strong>JP 出力を HL7 公式 FHIR Validator で JP Core / JP-CLINS / JP-eCheckup に適合検証</strong> し、pin mismatch や validation failure で CI が自動 fail します。</p>
-<h3 id="pin-ファイルsession-48-追加">Pin ファイル(session 48 追加)<a class="headerlink" href="#pin-ファイルsession-48-追加" title="Permanent link">&para;</a></h3>
-<p><code>.github/jp-validator-pins.env</code> に validator と IG package のバージョン / SHA256 が集約されています:</p>
+<p>Real-world EHR exchange: the Composition is the structured form (content held
+in sections), and the DocumentReference is a portable wrapper. Exchanges
+between employers, insurers and checkup providers often use
+DocumentReference, so emitting both is the standard shape for JP-eCheckup
+interchange.</p>
+<h2 id="jp-fhir-validator-bridge-pr3">JP FHIR Validator Bridge (PR3)<a class="headerlink" href="#jp-fhir-validator-bridge-pr3" title="Permanent link">&para;</a></h2>
+<p><code>scripts/validate_jp.sh</code> and <code>.github/workflows/jp-validate.yml</code> <strong>validate JP output against JP Core / JP-CLINS / JP-eCheckup with the official HL7 FHIR Validator</strong>, and were later hardened with <strong>SHA256 pinning and an auto-fail gate</strong>: CI fails automatically on a pin mismatch or a validation failure.</p>
+<h3 id="pin-file">Pin file<a class="headerlink" href="#pin-file" title="Permanent link">&para;</a></h3>
+<p><code>.github/jp-validator-pins.env</code> collects the versions / SHA256 hashes of the validator and the IG packages:</p>
 <div class="highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>VALIDATOR_VERSION=6.4.3
 </span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>VALIDATOR_SHA256=
 </span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>
@@ -2777,57 +2788,57 @@ portable な wrapper。事業所 ⇄ 保険者 ⇄ 実施機関 間の交換で 
 </span><span id="__span-1-13"><a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a>JP_ECHECKUP_PACKAGE_SHA256=
 </span></code></pre></div>
 <ul>
-<li>SHA256 空欄 + STRICT モード = fail(bootstrap 指示メッセージを出力)</li>
-<li>SHA256 記入済 = 実測との一致確認 → mismatch で fail</li>
+<li>Empty SHA256 + STRICT mode = fail (prints bootstrap instructions)</li>
+<li>SHA256 filled in = checked against the actual hash → fail on mismatch</li>
 </ul>
-<h3 id="初回-pin-bootstrap">初回 pin bootstrap<a class="headerlink" href="#初回-pin-bootstrap" title="Permanent link">&para;</a></h3>
+<h3 id="initial-pin-bootstrap">Initial pin bootstrap<a class="headerlink" href="#initial-pin-bootstrap" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>bash<span class="w"> </span>scripts/pin_jp_validator.sh
-</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>git<span class="w"> </span>diff<span class="w"> </span>.github/jp-validator-pins.env<span class="w">  </span><span class="c1"># ← 差分確認</span>
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>git<span class="w"> </span>diff<span class="w"> </span>.github/jp-validator-pins.env<span class="w">  </span><span class="c1"># ← review the diff</span>
 </span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>git<span class="w"> </span>commit<span class="w"> </span>-m<span class="w"> </span><span class="s2">"chore(jp-validate): pin validator + IG SHA256"</span>
 </span></code></pre></div>
-<p><code>PIN_FILE=&lt;path&gt;</code> / <code>DRY_RUN=1</code> で挙動を上書き可能。</p>
-<h3 id="local-実行">Local 実行<a class="headerlink" href="#local-実行" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="c1"># サンプル抽出のみ(validator jar 未指定なら skip)</span>
+<p>Override the behavior with <code>PIN_FILE=&lt;path&gt;</code> / <code>DRY_RUN=1</code>.</p>
+<h3 id="running-locally">Running locally<a class="headerlink" href="#running-locally" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="c1"># Sample extraction only (skipped when no validator jar is set)</span>
 </span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>./scripts/validate_jp.sh
 </span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>
-</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="c1"># 実際の validator 実行 + pin gate(要 Java 11+)</span>
+</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="c1"># Actual validator run + pin gate (requires Java 11+)</span>
 </span><span id="__span-3-5"><a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="nv">VALIDATOR_JAR</span><span class="o">=</span>/path/to/validator_cli.jar<span class="w"> </span><span class="se">\</span>
 </span><span id="__span-3-6"><a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="nv">CLINOSIM_JP_VAL_PINS</span><span class="o">=</span>.github/jp-validator-pins.env<span class="w"> </span><span class="se">\</span>
 </span><span id="__span-3-7"><a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a><span class="nv">CLINOSIM_JP_VAL_STRICT</span><span class="o">=</span><span class="m">1</span><span class="w"> </span><span class="se">\</span>
 </span><span id="__span-3-8"><a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a>./scripts/validate_jp.sh
 </span></code></pre></div>
-<p>環境変数:
-- <code>VALIDATOR_JAR</code>(必須):HL7 公式 validator jar のパス。
-- <code>CLINOSIM_JP_VAL_PINS</code>:pin file 参照(未指定なら IG resolve は skip)。
-- <code>CLINOSIM_JP_VAL_STRICT</code>:<code>1</code> で SHA256 mismatch / sample 0 抽出 → exit 1。
-- <code>CLINOSIM_JP_VAL_POPULATION</code>:default 10
-- <code>CLINOSIM_JP_VAL_SEED</code>:default 42
-- <code>CLINOSIM_JP_VAL_END</code>:default 2026-06-30
-- <code>CLINOSIM_JP_VAL_HEALTH</code>:default "1"(health_checkup opt-in)</p>
-<h3 id="検証対象mvp">検証対象(MVP)<a class="headerlink" href="#検証対象mvp" title="Permanent link">&para;</a></h3>
-<p>小規模 JP コホート生成後、以下 profile 対応 resource から代表 1 件を抽出して検証:</p>
+<p>Environment variables:
+- <code>VALIDATOR_JAR</code> (required): path to the official HL7 validator jar.
+- <code>CLINOSIM_JP_VAL_PINS</code>: pin file to use (if unset, IG resolution is skipped).
+- <code>CLINOSIM_JP_VAL_STRICT</code>: <code>1</code> makes a SHA256 mismatch / zero extracted samples → exit 1.
+- <code>CLINOSIM_JP_VAL_POPULATION</code>: default 10
+- <code>CLINOSIM_JP_VAL_SEED</code>: default 42
+- <code>CLINOSIM_JP_VAL_END</code>: default 2026-06-30
+- <code>CLINOSIM_JP_VAL_HEALTH</code>: default "1" (health_checkup opt-in)</p>
+<h3 id="validation-targets-mvp">Validation targets (MVP)<a class="headerlink" href="#validation-targets-mvp" title="Permanent link">&para;</a></h3>
+<p>After generating a small JP cohort, one representative resource is extracted and validated for each of these profiles:</p>
 <ul>
 <li><code>JP_Condition_eCS</code></li>
 <li><code>JP_AllergyIntolerance_eCS</code></li>
-<li><code>JP_Observation_LabResult_eCS</code>(laboratory category)</li>
+<li><code>JP_Observation_LabResult_eCS</code> (laboratory category)</li>
 <li><code>JP_MedicationRequest_eCS</code></li>
 <li><code>JP_Procedure_eCS</code></li>
 <li><code>JP_Composition_eDischargeSummary</code></li>
 <li><code>JP_Composition_eReferral</code></li>
-<li><code>JP_Composition_eCheckupGeneral</code>(health_checkup opt-in 時)</li>
+<li><code>JP_Composition_eCheckupGeneral</code> (with the health_checkup opt-in)</li>
 </ul>
-<h3 id="ci-実行auto-fail-gatesession-48-高度化">CI 実行(auto-fail gate、session 48 高度化)<a class="headerlink" href="#ci-実行auto-fail-gatesession-48-高度化" title="Permanent link">&para;</a></h3>
+<h3 id="ci-runs-auto-fail-gate">CI runs (auto-fail gate)<a class="headerlink" href="#ci-runs-auto-fail-gate" title="Permanent link">&para;</a></h3>
 <p><code>.github/workflows/jp-validate.yml</code>:</p>
 <ul>
-<li><strong>workflow_dispatch</strong>:<code>run_validator=true</code>(default) + <code>strict_pins=true</code>(default) → SHA256 mismatch / validator FAIL / sample 0 抽出のいずれかで <strong>job が自動 fail</strong></li>
-<li><strong>PR label</strong>:<code>jp-validate</code> ラベルを付けた PR で自動実行(default STRICT)</li>
+<li><strong>workflow_dispatch</strong>: <code>run_validator=true</code> (default) + <code>strict_pins=true</code> (default) → <strong>the job fails automatically</strong> on any of a SHA256 mismatch / a validator FAIL / zero extracted samples</li>
+<li><strong>PR label</strong>: runs automatically on PRs labeled <code>jp-validate</code> (STRICT by default)</li>
 </ul>
-<p>CI 時間の浪費を防ぐため、通常の PR CI パイプラインには組み込まず、必要時のみ手動 or label で回す設計です。</p>
-<h3 id="将来の高度化余地">将来の高度化余地<a class="headerlink" href="#将来の高度化余地" title="Permanent link">&para;</a></h3>
+<p>To avoid wasting CI time, it is deliberately kept out of the regular PR CI pipeline and runs only when needed, manually or via the label.</p>
+<h3 id="future-improvements">Future improvements<a class="headerlink" href="#future-improvements" title="Permanent link">&para;</a></h3>
 <ul>
-<li>全 resource 検証(現状 profile あたり 1 サンプルのみ)</li>
-<li>packages.fhir.org 登録前の JP-CLINS / JP-eCheckup の direct .tgz URL 確定と <code>_PACKAGE_URL</code> フィールドへの反映</li>
-<li>JP profile violation の granular reporting(現状は tail 5 行のみ)</li>
+<li>Validate every resource (currently only one sample per profile)</li>
+<li>Settle direct .tgz URLs for JP-CLINS / JP-eCheckup before they are registered on packages.fhir.org, and fill them into the <code>_PACKAGE_URL</code> fields</li>
+<li>Granular reporting of JP profile violations (currently only the last 5 lines of output)</li>
 </ul>
 <h2 id="reproducibility">Reproducibility<a class="headerlink" href="#reproducibility" title="Permanent link">&para;</a></h2>
 <p>The layer is deterministic — <code>scripts/reproduce.sh</code> continues to pass with country=JP output byte-identical across independent runs.</p>
@@ -2836,7 +2847,7 @@ portable な wrapper。事業所 ⇄ 保険者 ⇄ 実施機関 間の交換で 
 <ul>
 <li>3 documents Composition (退院時サマリー / 診療情報提供書 / 健康診断結果報告書) — PR2 + PR3</li>
 <li>健診 encounter generation — PR3 opt-in</li>
-<li>機関間連携 workflow simulation — non-goal</li>
+<li>Inter-institution exchange (機関間連携) workflow simulation — non-goal</li>
 </ul>
 <h2 id="deferred-improvement-candidates">Deferred improvement candidates<a class="headerlink" href="#deferred-improvement-candidates" title="Permanent link">&para;</a></h2>
 <p>Session 47 preflight review surfaced three items worth revisiting in future PRs. Status as of session 88k:</p>

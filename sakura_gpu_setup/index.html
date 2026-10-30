@@ -2316,10 +2316,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#2-パケットフィルタ-最重要セキュリティ設定" class="md-nav__link">
+  <a href="#2-packet-filter-the-most-important-security-setting" class="md-nav__link">
     <span class="md-ellipsis">
       
-        2. パケットフィルタ (最重要セキュリティ設定)
+        2. Packet filter (the most important security setting)
       
     </span>
   </a>
@@ -2382,10 +2382,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#8-停止-課金対策" class="md-nav__link">
+  <a href="#8-stopping-to-control-cost" class="md-nav__link">
     <span class="md-ellipsis">
       
-        8. 停止 (課金対策)
+        8. Stopping (to control cost)
       
     </span>
   </a>
@@ -2393,22 +2393,22 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#運用上の注意" class="md-nav__link">
+  <a href="#operational-notes" class="md-nav__link">
     <span class="md-ellipsis">
       
-        運用上の注意
+        Operational notes
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="運用上の注意">
+    <nav class="md-nav" aria-label="Operational notes">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#プロンプトログの取扱" class="md-nav__link">
+  <a href="#handling-prompt-logs" class="md-nav__link">
     <span class="md-ellipsis">
       
-        プロンプトログの取扱
+        Handling prompt logs
       
     </span>
   </a>
@@ -2416,10 +2416,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#品質評価とモデル切替" class="md-nav__link">
+  <a href="#quality-evaluation-and-switching-models" class="md-nav__link">
     <span class="md-ellipsis">
       
-        品質評価とモデル切替
+        Quality evaluation and switching models
       
     </span>
   </a>
@@ -2427,10 +2427,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#コスト目安" class="md-nav__link">
+  <a href="#cost-estimates" class="md-nav__link">
     <span class="md-ellipsis">
       
-        コスト目安
+        Cost estimates
       
     </span>
   </a>
@@ -2438,10 +2438,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#cache-運用" class="md-nav__link">
+  <a href="#cache-operation" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Cache 運用
+        Cache operation
       
     </span>
   </a>
@@ -2491,9 +2491,11 @@
 
 <h1 id="sakura-cloud-gpu--ollama-setup-for-stage-2">Sakura Cloud GPU + Ollama setup for Stage 2<a class="headerlink" href="#sakura-cloud-gpu--ollama-setup-for-stage-2" title="Permanent link">&para;</a></h1>
 <p>This guide shows how to run clinosim's Stage 2 (<code>narrate</code>) against a
-<strong>self-hosted Ollama server</strong> on さくらのクラウド 高火力 VRT (L40S 48GB
-GPU VM). Companion to <code>docs/bedrock_setup.md</code> (AWS Bedrock ルート) —
-use this when data sovereignty / 医療情報 3 省 2 ガイドライン / cost
+<strong>self-hosted Ollama server</strong> on Sakura Cloud (さくらのクラウド)
+高火力 VRT (high-performance GPU VM, L40S 48GB). Companion to
+<code>docs/bedrock_setup.md</code> (the AWS Bedrock route) — use this when data
+sovereignty, Japan's medical-information security guidelines (the
+"3 ministries, 2 guidelines", 医療情報 3 省 2 ガイドライン) or cost
 predictability push you off managed APIs.</p>
 <p>Design record: <code>docs/design-notes/2026-08-15-sakura-gpu-ollama-narrative.md</code>.</p>
 <div class="highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>┌────────────────┐   SSH tunnel   ┌──────────────────────┐
@@ -2506,34 +2508,36 @@ predictability push you off managed APIs.</p>
 </span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>│   sakura.yaml  │                │                      │
 </span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>└────────────────┘                └──────────────────────┘
 </span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>     │                                       │
-</span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>     └── CIF / narrative は local に留まる  └── Ollama process log は定期 purge
-</span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>         (prompt のみ HTTP に載る)
+</span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>     └── CIF / narratives stay local         └── Ollama process log purged regularly
+</span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>         (only prompts travel over HTTP)
 </span></code></pre></div>
-<p>Data flow: Stage 1 <code>generate</code> → local。CIF ディレクトリを local に置き、
-<code>narrate</code> の HTTP 呼出だけが SSH tunnel 越しに Sakura GPU へ届く。
-prompt に PHI を載せる場合の運用上の注意は末尾を参照。</p>
+<p>Data flow: Stage 1 <code>simulate</code> runs locally. The CIF directory stays on
+the local machine; only <code>narrate</code>'s HTTP calls reach the Sakura GPU
+through the SSH tunnel. See the end of this guide for operational
+notes when prompts carry PHI.</p>
 <hr />
 <h2 id="prerequisites">Prerequisites<a class="headerlink" href="#prerequisites" title="Permanent link">&para;</a></h2>
 <ul>
-<li>さくらのクラウドアカウント + API キー (usacloud CLI で使用)。</li>
-<li>高火力 VRT (L40S 48GB) の利用申請が済んでいる (Sakura コントロールパ
-  ネル「サーバ追加」→「高火力プラン」を確認)。</li>
-<li>ローカルの SSH 秘密鍵 (<code>ed25519</code> 推奨) と対応する公開鍵が Sakura に
-  登録済み。</li>
-<li>Local workstation に clinosim + Python 3.11+。</li>
+<li>A Sakura Cloud account and API key (used by the usacloud CLI).</li>
+<li>Access to 高火力 VRT (L40S 48GB) approved (check under "Add server"
+  → "High-performance plan" (高火力プラン) in the Sakura control
+  panel).</li>
+<li>A local SSH private key (<code>ed25519</code> recommended) whose public key is
+  registered with Sakura.</li>
+<li>clinosim + Python 3.11+ on the local workstation.</li>
 </ul>
 <hr />
 <h2 id="1-provision-the-sakura-gpu-vm-usacloud">1. Provision the Sakura GPU VM (usacloud)<a class="headerlink" href="#1-provision-the-sakura-gpu-vm-usacloud" title="Permanent link">&para;</a></h2>
 <p>Installing the usacloud CLI and setting up its profile are covered in
 the official usacloud documentation (https://docs.usacloud.jp/usacloud/).
 This section lists only the essentials:</p>
-<div class="highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="c1"># usacloud プロファイル (既に iris-verify プロファイルがあれば流用可)</span>
+<div class="highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="c1"># usacloud profile (an existing profile can be reused)</span>
 </span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>usacloud<span class="w"> </span>config<span class="w"> </span>create<span class="w"> </span>--name<span class="w"> </span>clinosim-gpu<span class="w"> </span><span class="se">\</span>
 </span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="w">    </span>--token<span class="w"> </span>&lt;SAKURA_API_TOKEN&gt;<span class="w"> </span>--secret<span class="w"> </span>&lt;SAKURA_API_SECRET&gt;<span class="w"> </span><span class="se">\</span>
 </span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="w">    </span>--zone<span class="w"> </span>is1a<span class="w"> </span>--use
 </span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>
-</span><span id="__span-1-6"><a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="c1"># 高火力 VRT L40S の起動 (プランコードは Sakura の現行ラインアップで</span>
-</span><span id="__span-1-7"><a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="c1"># 都度確認。--fake を付ければ dry-run 検証可能)</span>
+</span><span id="__span-1-6"><a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="c1"># Launch a 高火力 VRT L40S (check the plan code against Sakura's current</span>
+</span><span id="__span-1-7"><a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="c1"># lineup each time; add --fake for a dry-run check)</span>
 </span><span id="__span-1-8"><a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a>usacloud<span class="w"> </span>server<span class="w"> </span>create<span class="w"> </span>-y<span class="w"> </span>--zone<span class="o">=</span>is1a<span class="w"> </span><span class="se">\</span>
 </span><span id="__span-1-9"><a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a><span class="w">    </span>--name<span class="o">=</span>clinosim-gpu-l40s<span class="w"> </span><span class="se">\</span>
 </span><span id="__span-1-10"><a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a><span class="w">    </span>--disk-source-archive-name-selectors<span class="o">=</span>Ubuntu<span class="w"> </span><span class="m">22</span>.04<span class="w"> </span><span class="se">\</span>
@@ -2541,88 +2545,91 @@ This section lists only the essentials:</p>
 </span><span id="__span-1-12"><a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a><span class="w">    </span>--ssh-key-ids<span class="o">=</span>&lt;existing-ssh-key-id&gt;<span class="w"> </span><span class="se">\</span>
 </span><span id="__span-1-13"><a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a><span class="w">    </span>--plan<span class="o">=</span>&lt;gpu-l40s-plan-code&gt;
 </span></code></pre></div>
-<p><strong>Sakura 固有の落とし穴</strong> (詳細は sakura-iris <code>docs/90-troubleshooting.md</code>):</p>
+<p><strong>Sakura-specific pitfalls</strong>:</p>
 <ul>
-<li>高火力 VRT は <code>is1a</code> のみ提供。他ゾーンとは L2 ブリッジが必要。</li>
-<li>パケットフィルタは<strong>ステートレス</strong>。エフェメラルポート 32768-61000
-  の TCP/UDP を戻り用に明示許可要 (SSH 応答含む)。</li>
-<li><code>--fake --fake-store &lt;path&gt;</code> で課金なしオプション検証。破壊的スクリ
-  プトの sanity check に有効。</li>
-<li>非対話環境では <code>-y</code> 必須 (create / delete / shutdown)。</li>
-<li>アーカイブ ID はゾーン &amp; リリースごとに変わる。名前指定 (<code>--disk-
-  source-archive-name-selectors=Ubuntu 22.04</code>) が安定。</li>
+<li>高火力 VRT is offered only in <code>is1a</code>. Reaching other zones needs an
+  L2 bridge.</li>
+<li>Packet filters are <strong>stateless</strong>. TCP/UDP on the ephemeral ports
+  32768-61000 must be explicitly allowed for return traffic
+  (including SSH replies).</li>
+<li><code>--fake --fake-store &lt;path&gt;</code> validates options without billing.
+  Useful for sanity-checking destructive scripts.</li>
+<li>Non-interactive environments need <code>-y</code> (create / delete / shutdown).</li>
+<li>Archive IDs change per zone and release. Selecting by name
+  (<code>--disk-source-archive-name-selectors=Ubuntu 22.04</code>) is stable.</li>
 </ul>
-<h2 id="2-パケットフィルタ-最重要セキュリティ設定">2. パケットフィルタ (最重要セキュリティ設定)<a class="headerlink" href="#2-パケットフィルタ-最重要セキュリティ設定" title="Permanent link">&para;</a></h2>
-<div class="highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="c1"># 22/tcp (SSH) のみ許可、11434 は絶対に開けない</span>
+<h2 id="2-packet-filter-the-most-important-security-setting">2. Packet filter (the most important security setting)<a class="headerlink" href="#2-packet-filter-the-most-important-security-setting" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="c1"># Allow 22/tcp (SSH) only; never open 11434</span>
 </span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>usacloud<span class="w"> </span>packet-filter<span class="w"> </span>create<span class="w"> </span>-y<span class="w"> </span>--zone<span class="o">=</span>is1a<span class="w"> </span>--name<span class="o">=</span>clinosim-gpu-pf<span class="w"> </span><span class="se">\</span>
 </span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="w">    </span>--description<span class="o">=</span><span class="s2">"clinosim GPU VM: SSH only"</span>
 </span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>usacloud<span class="w"> </span>packet-filter-rule<span class="w"> </span>add<span class="w"> </span>-y<span class="w"> </span>--zone<span class="o">=</span>is1a<span class="w"> </span>--packet-filter<span class="o">=</span>clinosim-gpu-pf<span class="w"> </span><span class="se">\</span>
 </span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="w">    </span>--protocol<span class="o">=</span>tcp<span class="w"> </span>--destination-port<span class="o">=</span><span class="m">22</span><span class="w"> </span>--action<span class="o">=</span>allow
-</span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="c1"># エフェメラル戻り (SSH 応答等)</span>
+</span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="c1"># Ephemeral return traffic (SSH replies etc.)</span>
 </span><span id="__span-2-7"><a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a>usacloud<span class="w"> </span>packet-filter-rule<span class="w"> </span>add<span class="w"> </span>-y<span class="w"> </span>--zone<span class="o">=</span>is1a<span class="w"> </span>--packet-filter<span class="o">=</span>clinosim-gpu-pf<span class="w"> </span><span class="se">\</span>
 </span><span id="__span-2-8"><a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a><span class="w">    </span>--protocol<span class="o">=</span>tcp<span class="w"> </span>--source-port<span class="o">=</span><span class="m">32768</span>-61000<span class="w"> </span>--action<span class="o">=</span>allow
 </span><span id="__span-2-9"><a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a>usacloud<span class="w"> </span>packet-filter-rule<span class="w"> </span>add<span class="w"> </span>-y<span class="w"> </span>--zone<span class="o">=</span>is1a<span class="w"> </span>--packet-filter<span class="o">=</span>clinosim-gpu-pf<span class="w"> </span><span class="se">\</span>
 </span><span id="__span-2-10"><a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a><span class="w">    </span>--protocol<span class="o">=</span>udp<span class="w"> </span>--source-port<span class="o">=</span><span class="m">32768</span>-61000<span class="w"> </span>--action<span class="o">=</span>allow
-</span><span id="__span-2-11"><a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a><span class="c1"># NIC に適用</span>
+</span><span id="__span-2-11"><a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a><span class="c1"># Apply to the NIC</span>
 </span><span id="__span-2-12"><a id="__codelineno-2-12" name="__codelineno-2-12" href="#__codelineno-2-12"></a>usacloud<span class="w"> </span>interface<span class="w"> </span>update<span class="w"> </span>-y<span class="w"> </span>--zone<span class="o">=</span>is1a<span class="w"> </span>--id<span class="o">=</span>&lt;nic-id&gt;<span class="w"> </span><span class="se">\</span>
 </span><span id="__span-2-13"><a id="__codelineno-2-13" name="__codelineno-2-13" href="#__codelineno-2-13"></a><span class="w">    </span>--packet-filter-id<span class="o">=</span>&lt;packet-filter-id&gt;
 </span></code></pre></div>
-<p>Ollama の 11434 は SSH tunnel 越しでしか届かない。<strong>直接公開したら患者
-データが露出する可能性がある</strong>ので、この設定は skip しない。</p>
+<p>Ollama's port 11434 must be reachable only through the SSH tunnel.
+<strong>Exposing it directly can expose patient data</strong>, so do not skip this
+step.</p>
 <hr />
 <h2 id="3-nvidia-driver--cuda">3. NVIDIA driver + CUDA<a class="headerlink" href="#3-nvidia-driver--cuda" title="Permanent link">&para;</a></h2>
-<p>VM に SSH 接続 (<code>ssh -i ~/.ssh/sakura.pem ubuntu@&lt;sakura-ip&gt;</code>) 後:</p>
+<p>After connecting to the VM over SSH (<code>ssh -i ~/.ssh/sakura.pem ubuntu@&lt;sakura-ip&gt;</code>):</p>
 <div class="highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>sudo<span class="w"> </span>apt<span class="w"> </span>update<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>sudo<span class="w"> </span>apt<span class="w"> </span>install<span class="w"> </span>-y<span class="w"> </span>nvidia-driver-550
 </span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>sudo<span class="w"> </span>reboot
-</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="c1"># 再起動後の SSH 再接続後</span>
-</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>nvidia-smi<span class="w">   </span><span class="c1"># L40S + 48GB VRAM の認識確認</span>
+</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="c1"># After reconnecting over SSH</span>
+</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>nvidia-smi<span class="w">   </span><span class="c1"># confirm the L40S with 48GB VRAM is detected</span>
 </span></code></pre></div>
 <hr />
 <h2 id="4-install-ollama--loopback-bind">4. Install Ollama + loopback bind<a class="headerlink" href="#4-install-ollama--loopback-bind" title="Permanent link">&para;</a></h2>
 <div class="highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>curl<span class="w"> </span>-fsSL<span class="w"> </span>https://ollama.com/install.sh<span class="w"> </span><span class="p">|</span><span class="w"> </span>sh
 </span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>
-</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="c1"># systemd override で 127.0.0.1 バインド (デフォルトは 0.0.0.0)</span>
+</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="c1"># Bind to 127.0.0.1 via a systemd override (the default is 0.0.0.0)</span>
 </span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a>sudo<span class="w"> </span>systemctl<span class="w"> </span>edit<span class="w"> </span>ollama
-</span><span id="__span-4-5"><a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="c1"># エディタで以下を追記して保存:</span>
+</span><span id="__span-4-5"><a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="c1"># In the editor, add the following and save:</span>
 </span><span id="__span-4-6"><a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a><span class="c1">#   [Service]</span>
 </span><span id="__span-4-7"><a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a><span class="c1">#   Environment="OLLAMA_HOST=127.0.0.1:11434"</span>
 </span><span id="__span-4-8"><a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a>
 </span><span id="__span-4-9"><a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a>sudo<span class="w"> </span>systemctl<span class="w"> </span>restart<span class="w"> </span>ollama
-</span><span id="__span-4-10"><a id="__codelineno-4-10" name="__codelineno-4-10" href="#__codelineno-4-10"></a>sudo<span class="w"> </span>systemctl<span class="w"> </span>status<span class="w"> </span>ollama<span class="w">   </span><span class="c1"># active (running) 確認</span>
-</span><span id="__span-4-11"><a id="__codelineno-4-11" name="__codelineno-4-11" href="#__codelineno-4-11"></a>ss<span class="w"> </span>-ntlp<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span><span class="m">11434</span><span class="w">          </span><span class="c1"># 127.0.0.1:11434 で listen していれば OK</span>
+</span><span id="__span-4-10"><a id="__codelineno-4-10" name="__codelineno-4-10" href="#__codelineno-4-10"></a>sudo<span class="w"> </span>systemctl<span class="w"> </span>status<span class="w"> </span>ollama<span class="w">   </span><span class="c1"># confirm active (running)</span>
+</span><span id="__span-4-11"><a id="__codelineno-4-11" name="__codelineno-4-11" href="#__codelineno-4-11"></a>ss<span class="w"> </span>-ntlp<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span><span class="m">11434</span><span class="w">          </span><span class="c1"># OK if listening on 127.0.0.1:11434</span>
 </span></code></pre></div>
-<p><strong>確認</strong>: <code>ss</code> 出力で <code>0.0.0.0:11434</code> になっている場合は override が効
-いていない → <code>sudo systemctl cat ollama</code> で override の反映を確認。</p>
+<p><strong>Check</strong>: if <code>ss</code> shows <code>0.0.0.0:11434</code>, the override has not taken
+effect — inspect it with <code>sudo systemctl cat ollama</code>.</p>
 <hr />
 <h2 id="5-pull-models">5. Pull models<a class="headerlink" href="#5-pull-models" title="Permanent link">&para;</a></h2>
-<div class="highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="c1"># Primary (日本語医療 narrative)</span>
-</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>ollama<span class="w"> </span>pull<span class="w"> </span>qwen3:32b-q4_K_M<span class="w">              </span><span class="c1"># ~20 GB、L40S 48GB に余裕あり</span>
+<div class="highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="c1"># Primary (Japanese clinical narratives)</span>
+</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>ollama<span class="w"> </span>pull<span class="w"> </span>qwen3:32b-q4_K_M<span class="w">              </span><span class="c1"># ~20 GB, fits comfortably in the L40S's 48GB</span>
 </span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>
-</span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="c1"># 比較候補 (品質評価用に順次)</span>
-</span><span id="__span-5-5"><a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a><span class="c1"># ollama pull swallow:70b-instruct-q4_K_M   # ~42 GB、東工大 JA-tuned Llama</span>
-</span><span id="__span-5-6"><a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a><span class="c1"># ollama pull llama3.3:70b-instruct-q4_K_M  # ~42 GB、汎用最強</span>
-</span><span id="__span-5-7"><a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a><span class="c1"># ollama pull qwen3:30b-a3b-q4_K_M          # ~18 GB、MoE 高速</span>
+</span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="c1"># Comparison candidates (pull one at a time for quality evaluation)</span>
+</span><span id="__span-5-5"><a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a><span class="c1"># ollama pull swallow:70b-instruct-q4_K_M   # ~42 GB, Tokyo Tech JA-tuned Llama</span>
+</span><span id="__span-5-6"><a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a><span class="c1"># ollama pull llama3.3:70b-instruct-q4_K_M  # ~42 GB, strongest general-purpose option</span>
+</span><span id="__span-5-7"><a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a><span class="c1"># ollama pull qwen3:30b-a3b-q4_K_M          # ~18 GB, fast MoE</span>
 </span><span id="__span-5-8"><a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a>
-</span><span id="__span-5-9"><a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a><span class="c1"># 動作確認</span>
+</span><span id="__span-5-9"><a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a><span class="c1"># Smoke test (Japanese prompt: "In one line: the patient complains of fatigue")</span>
 </span><span id="__span-5-10"><a id="__codelineno-5-10" name="__codelineno-5-10" href="#__codelineno-5-10"></a>ollama<span class="w"> </span>run<span class="w"> </span>qwen3:32b-q4_K_M<span class="w"> </span><span class="s2">"1 行で: 患者は倦怠感を訴える"</span>
 </span></code></pre></div>
-<p><strong>モデル tag は Ollama library の release ごとに変わる</strong>。上記が pull
-できない場合は <code>ollama search qwen3</code> で最新 tag を確認。</p>
+<p><strong>Model tags change with Ollama library releases</strong>. If the tags above
+cannot be pulled, check the latest tag with <code>ollama search qwen3</code>.</p>
 <hr />
 <h2 id="6-ssh-tunnel-from-local-workstation">6. SSH tunnel from local workstation<a class="headerlink" href="#6-ssh-tunnel-from-local-workstation" title="Permanent link">&para;</a></h2>
-<div class="highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="c1"># Local Mac の 11434 を Sakura の 11434 にフォワード (バックグラウンド常駐)</span>
+<div class="highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="c1"># Forward local port 11434 to Sakura's 11434 (runs in the background)</span>
 </span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>ssh<span class="w"> </span>-i<span class="w"> </span>~/.ssh/sakura.pem<span class="w"> </span>-L<span class="w"> </span><span class="m">11434</span>:127.0.0.1:11434<span class="w"> </span>-N<span class="w"> </span>ubuntu@&lt;sakura-ip&gt;<span class="w"> </span><span class="p">&amp;</span>
 </span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>
-</span><span id="__span-6-4"><a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="c1"># 疎通確認</span>
-</span><span id="__span-6-5"><a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a>curl<span class="w"> </span>http://localhost:11434/api/tags<span class="w">                    </span><span class="c1"># Ollama native: モデル一覧</span>
-</span><span id="__span-6-6"><a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a>curl<span class="w"> </span>http://localhost:11434/v1/models<span class="w">                   </span><span class="c1"># OpenAI 互換: モデル一覧</span>
+</span><span id="__span-6-4"><a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="c1"># Connectivity check</span>
+</span><span id="__span-6-5"><a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a>curl<span class="w"> </span>http://localhost:11434/api/tags<span class="w">                    </span><span class="c1"># Ollama native: model list</span>
+</span><span id="__span-6-6"><a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a>curl<span class="w"> </span>http://localhost:11434/v1/models<span class="w">                   </span><span class="c1"># OpenAI-compatible: model list</span>
 </span></code></pre></div>
-<p>trouble: <code>curl: (52) Empty reply from server</code> → Ollama が 0.0.0.0 バイ
-ンドで tunnel を無視している可能性。VM 側で <code>ss -ntlp | grep 11434</code> の
-再確認。</p>
+<p>Troubleshooting: <code>curl: (52) Empty reply from server</code> → Ollama may be
+bound to 0.0.0.0 and bypassing the tunnel. Re-check
+<code>ss -ntlp | grep 11434</code> on the VM.</p>
 <hr />
 <h2 id="7-run-clinosim-narrate-against-sakura-ollama">7. Run <code>clinosim narrate</code> against Sakura Ollama<a class="headerlink" href="#7-run-clinosim-narrate-against-sakura-ollama" title="Permanent link">&para;</a></h2>
-<div class="highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="c1"># ミニマル smoke (JP p=1) — VM 1 回起動して SSH tunnel 常駐前提で ~1 min</span>
+<div class="highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="c1"># Minimal smoke (JP p=1) — ~1 min, assuming the VM is up and the SSH tunnel is running</span>
 </span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>clinosim<span class="w"> </span>simulate<span class="w"> </span>--country<span class="w"> </span>JP<span class="w"> </span>--population<span class="w"> </span><span class="m">1</span><span class="w"> </span>--seed<span class="w"> </span><span class="m">42</span><span class="w"> </span>--format<span class="w"> </span>cif<span class="w"> </span><span class="se">\</span>
 </span><span id="__span-7-3"><a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="w">    </span>-o<span class="w"> </span>/tmp/sakura-smoke
 </span><span id="__span-7-4"><a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a>clinosim<span class="w"> </span>narrate<span class="w"> </span><span class="se">\</span>
@@ -2633,7 +2640,7 @@ This section lists only the essentials:</p>
 </span><span id="__span-7-9"><a id="__codelineno-7-9" name="__codelineno-7-9" href="#__codelineno-7-9"></a><span class="w">    </span>--country<span class="w"> </span>JP<span class="w"> </span><span class="se">\</span>
 </span><span id="__span-7-10"><a id="__codelineno-7-10" name="__codelineno-7-10" href="#__codelineno-7-10"></a><span class="w">    </span>--set-current
 </span><span id="__span-7-11"><a id="__codelineno-7-11" name="__codelineno-7-11" href="#__codelineno-7-11"></a>
-</span><span id="__span-7-12"><a id="__codelineno-7-12" name="__codelineno-7-12" href="#__codelineno-7-12"></a><span class="c1"># 中規模 (p=100) — 品質評価 + 速度実測</span>
+</span><span id="__span-7-12"><a id="__codelineno-7-12" name="__codelineno-7-12" href="#__codelineno-7-12"></a><span class="c1"># Medium (p=100) — quality evaluation + measured throughput</span>
 </span><span id="__span-7-13"><a id="__codelineno-7-13" name="__codelineno-7-13" href="#__codelineno-7-13"></a>clinosim<span class="w"> </span>simulate<span class="w"> </span>--country<span class="w"> </span>JP<span class="w"> </span>--population<span class="w"> </span><span class="m">100</span><span class="w"> </span>--seed<span class="w"> </span><span class="m">42</span><span class="w"> </span>--format<span class="w"> </span>cif<span class="w"> </span><span class="se">\</span>
 </span><span id="__span-7-14"><a id="__codelineno-7-14" name="__codelineno-7-14" href="#__codelineno-7-14"></a><span class="w">    </span>-o<span class="w"> </span>/tmp/sakura-eval100
 </span><span id="__span-7-15"><a id="__codelineno-7-15" name="__codelineno-7-15" href="#__codelineno-7-15"></a>clinosim<span class="w"> </span>narrate<span class="w"> </span><span class="se">\</span>
@@ -2644,73 +2651,74 @@ This section lists only the essentials:</p>
 </span><span id="__span-7-20"><a id="__codelineno-7-20" name="__codelineno-7-20" href="#__codelineno-7-20"></a><span class="w">    </span>--country<span class="w"> </span>JP<span class="w"> </span><span class="se">\</span>
 </span><span id="__span-7-21"><a id="__codelineno-7-21" name="__codelineno-7-21" href="#__codelineno-7-21"></a><span class="w">    </span>--set-current
 </span></code></pre></div>
-<p>期待: ~5-15 sec/call、fail 0%、cache hit で 2 回目は 10x 高速。
-manifest.json の <code>llm_cost_report.generator_llm_docs</code> が期待数に一致し、
-<code>generator_fallback_docs</code> が 0 なら bundle strategy の JSON parse は
-成功している。</p>
+<p>Expected: ~5-15 sec/call, 0% failures, and a second run ~10x faster on
+cache hits. If <code>llm_cost_report.generator_llm_docs</code> in manifest.json
+matches the expected count and <code>generator_fallback_docs</code> is 0, the
+bundle strategy's JSON parsing succeeded.</p>
 <hr />
-<h2 id="8-停止-課金対策">8. 停止 (課金対策)<a class="headerlink" href="#8-停止-課金対策" title="Permanent link">&para;</a></h2>
-<div class="highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="c1"># 未使用時は VM shutdown で課金停止 (削除ではないので再起動時に model の</span>
-</span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="c1"># 再 pull 不要)</span>
+<h2 id="8-stopping-to-control-cost">8. Stopping (to control cost)<a class="headerlink" href="#8-stopping-to-control-cost" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="c1"># Shut the VM down when idle to stop billing (it is not deleted, so the</span>
+</span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="c1"># model does not need to be pulled again after reboot)</span>
 </span><span id="__span-8-3"><a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a>usacloud<span class="w"> </span>server<span class="w"> </span>shutdown<span class="w"> </span>-y<span class="w"> </span>--zone<span class="o">=</span>is1a<span class="w"> </span>clinosim-gpu-l40s
 </span><span id="__span-8-4"><a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a>
-</span><span id="__span-8-5"><a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a><span class="c1"># 再開</span>
+</span><span id="__span-8-5"><a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a><span class="c1"># Resume</span>
 </span><span id="__span-8-6"><a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a>usacloud<span class="w"> </span>server<span class="w"> </span>boot<span class="w"> </span>-y<span class="w"> </span>--zone<span class="o">=</span>is1a<span class="w"> </span>clinosim-gpu-l40s
 </span></code></pre></div>
-<p>削除は <code>--with-disks</code> を忘れると disk 課金が残る (Sakura 全般):</p>
+<p>When deleting, forgetting <code>--with-disks</code> leaves disk charges running
+(true across Sakura):</p>
 <div class="highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>usacloud<span class="w"> </span>server<span class="w"> </span>delete<span class="w"> </span>-y<span class="w"> </span>--zone<span class="o">=</span>is1a<span class="w"> </span>--with-disks<span class="w"> </span>clinosim-gpu-l40s
 </span></code></pre></div>
 <hr />
-<h2 id="運用上の注意">運用上の注意<a class="headerlink" href="#運用上の注意" title="Permanent link">&para;</a></h2>
-<h3 id="プロンプトログの取扱">プロンプトログの取扱<a class="headerlink" href="#プロンプトログの取扱" title="Permanent link">&para;</a></h3>
-<p>Ollama process log には prompt 生データ (患者情報を含む narrative seed
-+ context) が残る。医療情報 3 省 2 ガイドライン相当の運用を想定するな
-ら:</p>
+<h2 id="operational-notes">Operational notes<a class="headerlink" href="#operational-notes" title="Permanent link">&para;</a></h2>
+<h3 id="handling-prompt-logs">Handling prompt logs<a class="headerlink" href="#handling-prompt-logs" title="Permanent link">&para;</a></h3>
+<p>The Ollama process log keeps raw prompts (narrative seed + context,
+including patient information). If you operate under the equivalent
+of Japan's medical-information security guidelines:</p>
 <ul>
-<li><code>journalctl</code> の retention を短めに (<code>/etc/systemd/journald.conf</code> の
-  <code>MaxRetentionSec=1day</code> 等)</li>
-<li>テスト後は <code>sudo journalctl --rotate &amp;&amp; sudo journalctl --vacuum-time=1s</code>
-  で明示的に purge</li>
-<li>Ollama の debug ログを OFF (<code>OLLAMA_DEBUG=0</code> — デフォルト)</li>
+<li>Keep the <code>journalctl</code> retention short (e.g. <code>MaxRetentionSec=1day</code>
+  in <code>/etc/systemd/journald.conf</code>)</li>
+<li>Purge explicitly after testing with
+  <code>sudo journalctl --rotate &amp;&amp; sudo journalctl --vacuum-time=1s</code></li>
+<li>Keep Ollama's debug log OFF (<code>OLLAMA_DEBUG=0</code> — the default)</li>
 </ul>
-<h3 id="品質評価とモデル切替">品質評価とモデル切替<a class="headerlink" href="#品質評価とモデル切替" title="Permanent link">&para;</a></h3>
-<p>初回は Qwen 3 32B (<code>qwen3:32b-q4_K_M</code>) で確定。narrative の日本語医療
-語彙が不十分と判断した場合、以下の順で試す:</p>
+<h3 id="quality-evaluation-and-switching-models">Quality evaluation and switching models<a class="headerlink" href="#quality-evaluation-and-switching-models" title="Permanent link">&para;</a></h3>
+<p>Qwen 3 32B (<code>qwen3:32b-q4_K_M</code>) is the initial choice. If the
+Japanese clinical vocabulary in the narratives is judged insufficient,
+try the following in order:</p>
 <ol>
-<li><strong>Swallow 70B</strong> (東工大 JA-tuned Llama) — 日本語 native、モデル切替
-   は <code>ollama pull swallow:70b-instruct-q4_K_M</code> + config <code>model:</code> 書換
-   のみ。<code>--version-id</code> を変えれば比較評価可能。</li>
-<li><strong>Llama 3.3 70B</strong> — 汎用最強、日本語 ○。</li>
-<li><strong>Qwen 3 30B-A3B (MoE)</strong> — 高速だが品質は 32B dense より劣る可能性
-   あり。速度優先の運用に。</li>
+<li><strong>Swallow 70B</strong> (Tokyo Tech JA-tuned
+   Llama) — native Japanese; switching only takes
+   <code>ollama pull swallow:70b-instruct-q4_K_M</code> plus editing <code>model:</code> in
+   the config. Use a different <code>--version-id</code> to compare runs.</li>
+<li><strong>Llama 3.3 70B</strong> — strongest general-purpose option; good Japanese.</li>
+<li><strong>Qwen 3 30B-A3B (MoE)</strong> — fast, but quality may be below the 32B
+   dense model. For speed-first operation.</li>
 </ol>
-<h3 id="コスト目安">コスト目安<a class="headerlink" href="#コスト目安" title="Permanent link">&para;</a></h3>
+<h3 id="cost-estimates">Cost estimates<a class="headerlink" href="#cost-estimates" title="Permanent link">&para;</a></h3>
 <ul>
-<li>L40S 時間貸し: <strong>~500-700 円/h</strong> (Sakura の現行料金要確認)</li>
-<li>検証時 (p=10000, cold, Layer 2 cache miss): 4-8h × 700 = <strong>~2,800-
-  5,600 円/回</strong></li>
-<li>実運用 (cache 効いた再実行): 1-2h × 700 = <strong>~700-1,400 円/回</strong></li>
-<li>未使用時 shutdown で課金停止 (時間課金)</li>
+<li>L40S hourly rental: <strong>~500-700 JPY/h</strong> (check Sakura's current pricing)</li>
+<li>Validation run (p=10000, cold, Layer 2 cache miss): 4-8h × 700 =
+  <strong>~2,800-5,600 JPY/run</strong></li>
+<li>Production re-runs (cache warm): 1-2h × 700 = <strong>~700-1,400 JPY/run</strong></li>
+<li>Shutting down when idle stops billing (hourly billing)</li>
 </ul>
-<h3 id="cache-運用">Cache 運用<a class="headerlink" href="#cache-運用" title="Permanent link">&para;</a></h3>
+<h3 id="cache-operation">Cache operation<a class="headerlink" href="#cache-operation" title="Permanent link">&para;</a></h3>
 <ul>
-<li>Layer 2 (disk PromptCache、<code>./.llm_cache/sakura/</code>) は<strong>必ず有効化</strong>。
-  cold と warm でコストが 1 桁変わる。</li>
-<li><code>temperature=0</code> 前提の determinism を保つ。</li>
-<li>cache invalidation は prompt template (<code>clinosim/modules/llm_service/
-  prompts/{en,ja}/narrative_seed_bundle.yaml</code>) を編集した時のみ。</li>
+<li><strong>Always enable</strong> Layer 2 (disk PromptCache, <code>./.llm_cache/sakura/</code>).
+  Cold vs. warm cost differs by an order of magnitude.</li>
+<li>Keep the determinism that assumes <code>temperature=0</code>.</li>
+<li>Invalidate the cache only when you edit the prompt template
+  (<code>clinosim/modules/llm_service/prompts/{en,ja}/narrative_seed_bundle.yaml</code>).</li>
 </ul>
 <hr />
 <h2 id="related">Related<a class="headerlink" href="#related" title="Permanent link">&para;</a></h2>
 <ul>
-<li><code>docs/design-notes/2026-08-15-sakura-gpu-ollama-narrative.md</code> — 設計
-  spec (design of record)。</li>
-<li><code>docs/bedrock_setup.md</code> — AWS Bedrock ルート (対のマネージド API 版)。</li>
-<li><code>clinosim/config/llm_service.sakura.yaml</code> — 本 guide 用の config。</li>
-<li>Sakura 固有の知見 (obsidian): [[entities/sakura-cloud]]。</li>
-<li>一般 pattern (obsidian): [[concepts/gpu-instance-llm-hosting-pattern]]。</li>
-<li>参考実装 repo: <code>~/workspace/sakura-iris/</code> の <code>docs/01-04-*</code> と
-  <code>scripts/10-11-*</code>, <code>scripts/52-open-iris-hl7.sh</code>。</li>
+<li><code>docs/design-notes/2026-08-15-sakura-gpu-ollama-narrative.md</code> —
+  design spec (design of record).</li>
+<li><code>docs/bedrock_setup.md</code> — the AWS Bedrock route (the managed-API
+  counterpart).</li>
+<li><code>clinosim/config/llm_service.sakura.yaml</code> — the config used by this
+  guide.</li>
 </ul>
 
 
