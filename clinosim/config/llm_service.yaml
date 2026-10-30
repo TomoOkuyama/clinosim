@@ -5,12 +5,9 @@
 #
 # To use cloud APIs, see llm_service.bedrock.yaml or llm_service.cloud.yaml
 
-# NARRATIVE: Document generation (5 required types per LOINC specification)
-#   - 34117-2: Admission H&P (all admissions)
-#   - 18842-5: Discharge Summary (all discharges)
-#   - 11504-8: Operative Note (surgeries)
-#   - 28570-0: Procedure Note (invasive bedside procedures)
-#   - 69730-0: Death Note (death discharges)
+# NARRATIVE: clinical document generation (`clinosim narrate`). The document
+# types are defined by the document registry
+# (clinosim/modules/document/reference_data/); see docs/clinical_documents.md.
 narrative:
   mode: "llm"               # "llm" | "template" | "none"
   provider: "local"
@@ -27,8 +24,9 @@ narrative:
   max_tokens_per_run: 10000000
   fallback_on_budget_exceeded: "template"
 
-# Shared cache
+# Shared cache (content-addressed responses on disk, relative to the
+# working directory).
 cache:
   enabled: true
+  directory: "./.llm_cache/local"
   max_entries: 5000
-  persist_to_disk: true

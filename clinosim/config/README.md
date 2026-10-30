@@ -105,8 +105,6 @@ country-specific clinical practice knobs:
 
 - `llm_service.yaml` — default LLM configuration.
 - `llm_service.bedrock.yaml` — AWS Bedrock provider.
-- `llm_service.cloud.yaml` — cloud-hosted LLM provider (e.g. Anthropic
-  API direct).
 - `llm_service.sakura.yaml` — Sakura Internet GPU provider (see
   [`docs/sakura_gpu_setup.md`](../../docs/sakura_gpu_setup.md)).
 
@@ -130,8 +128,6 @@ clinosim/config/
   us.yaml                       US country defaults
   llm_service.yaml              default LLM configuration (Ollama)
   llm_service.bedrock.yaml      AWS Bedrock provider
-  llm_service.cloud.yaml        cloud-hosted LLM provider
-                                (Anthropic API direct)
   llm_service.sakura.yaml       Sakura Internet GPU provider
 ```
 

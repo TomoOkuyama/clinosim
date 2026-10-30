@@ -36,7 +36,6 @@ clinosim/
 │   ├── hospital_large.yaml       # 200-bed regional hospital
 │   ├── llm_service.yaml          # LLM (local Ollama default)
 │   ├── llm_service.bedrock.yaml  # AWS Bedrock
-│   ├── llm_service.cloud.yaml    # Anthropic API
 │   └── llm_service.sakura.yaml   # Sakura Cloud Ollama
 │
 ├── types/                    # Data type definitions (Pydantic / dataclass)

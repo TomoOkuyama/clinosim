@@ -558,7 +558,6 @@ ollama pull llama3.1:70b
 Config files:
 - `clinosim/config/llm_service.yaml` — default (local Ollama)
 - `clinosim/config/llm_service.bedrock.yaml` — AWS Bedrock (Claude Sonnet 4, EC2 with IAM role)
-- `clinosim/config/llm_service.cloud.yaml` — cloud (Anthropic API, needs `ANTHROPIC_API_KEY`)
 - `clinosim/config/llm_service.sakura.yaml` — Ollama on a Sakura Cloud GPU over an SSH tunnel
 
 JUDGMENT and NARRATIVE can use different providers (AD-24). See `modules/llm_service/README.md` for details.
