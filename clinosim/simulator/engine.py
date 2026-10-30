@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import calendar
 import time
 from datetime import date, datetime
 from pathlib import Path
@@ -478,12 +479,16 @@ def run_beta(
     # Issue #2166: every profile of a person carries the person's one death
     # date (as known at the snapshot or window end), including profiles that
     # were activated for visits before the death.
-    _vital_as_of = snapshot_dt.date() if snapshot_dt else date.fromisoformat(str(config.time_range[1])[:10])
+    # A month-precision end bound ("YYYY-MM") covers the whole month.
+    _raw_end = _parse_time_range_bound(config.time_range[1]).date()
+    if len(str(config.time_range[1])) == 7:
+        _raw_end = date(_raw_end.year, _raw_end.month, calendar.monthrange(_raw_end.year, _raw_end.month)[1])
+    _vital_as_of = snapshot_dt.date() if snapshot_dt else _raw_end
     sync_profile_death_dates(patient_records, population, as_of=_vital_as_of)
     sim_log.info(
         "engine",
         "deaths_by_place",
-        **death_counts_by_place(population, date.fromisoformat(str(config.time_range[0])[:10]), _vital_as_of),
+        **death_counts_by_place(population, _start_dt_lb.date(), _vital_as_of),
     )
 
     # Post-records enrichers (AD-56) — opt-in modules that read/extend finished records
