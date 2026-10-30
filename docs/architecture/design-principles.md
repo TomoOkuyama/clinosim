@@ -339,6 +339,17 @@ The simulation engine (population, physiology, disease, order timing, etc.) is f
 
 #### Solution: hierarchical seed + LLM cache separation
 
+> **As shipped:** there is no `SeedManager` / `LLMResponseCache` class.
+> Sub-streams come from `clinosim/seeding.py` — `derive_sub_seed(master_seed,
+> module_offset, key)` with the per-enricher offsets in
+> `ENRICHER_SEED_OFFSETS`, `derive_phase_rng(master_seed, PHASE_*, key)` for
+> the simulator phases (life events, inpatient, readmission, outpatient
+> calendar, ED), and salted per-entity seeds (e.g. `perinatal_delivery_seed`,
+> `individual_lab_seed`) — all derived via `hashlib` (never `hash()`);
+> `derive_phase_rng` returns a `clinosim.determinism` RNG proxy. The LLM cache is `PromptCache` in
+> `clinosim/modules/llm_service/cache.py` (see architecture-notes §8). The
+> sketches below are the original design.
+
 ```python
 class SeedManager:
     """Manages reproducible random number generation across all modules."""
@@ -427,6 +438,11 @@ def test_reproducibility():
 ### Testing strategy
 
 Three levels of testing, each with a clear purpose.
+
+(The file names below are the original plan. The shipped suites are
+`tests/unit/` (grouped by area), `tests/integration/`, `tests/e2e/`
+(e.g. `test_alpha_golden.py`, `test_beta.py`) and `tests/regression/`
+(narrative profile goldens); the `make test-*` targets below exist.)
 
 #### Level 1: Unit tests (per module, fast, no dependencies)
 
@@ -538,6 +554,8 @@ clinosim/types/
 ```
 
 All types use `@dataclass` (or Pydantic `BaseModel` — see YAML validation below). Import via `from clinosim.types import PatientProfile`.
+
+(Design-phase split. The shipped `clinosim/types/` has no `llm.py` — the LLM types `ClinicalEventData` / `PatientSummary` / `LLMTaskType` / `LLMResponse` live in `clinosim/modules/llm_service/engine.py` — and adds per-domain files such as `allergy.py`, `antibiotic.py`, `diagnosis.py`, `document.py`, `hai.py`, `identity.py`, `imaging.py`, `microbiology.py`, `procedure.py` and `triage.py`; see `clinosim/types/README.md`.)
 
 #### YAML configuration validation
 
@@ -727,6 +745,12 @@ modules/output/code_mapping/
     procedure_kcode_ja.yaml     # K-code → Japanese procedure names (診療報酬点数表)
     procedure_cpt_en.yaml       # CPT → English procedure names (AMA)
 ```
+
+(Superseded layout: display names now live in the locale-independent
+`clinosim/codes/data/<system>.yaml` files — one file per code system with
+`en` required and `ja` optional — resolved via `clinosim.codes.lookup`;
+the internal-name → code maps are `clinosim/locale/<country>/code_mapping_*.yaml`.
+See architecture-notes §6.1.)
 
 **Authoritative data sources (must not use LLM for translation):**
 
@@ -984,6 +1008,16 @@ People are not generated as isolated individuals. They belong to **households**:
 
 The population evolves over simulated time through life events:
 
+> **As implemented:** `run_forward_loop` (`clinosim/simulator/phases/_forward_loop.py`)
+> advances one month at a time. At each year boundary `advance_population`
+> runs the aging passes, draws that year's community deaths
+> (`population/mortality.py`, life table × chronic-condition SMR) and
+> advances the longitudinal state (chronic onset / progression); each month
+> then fires acute life events, ED visits and dispatches them in date order.
+> Births enter through the delivery encounter (newborns enrol the day after
+> the birth-stay discharge). Migration, employment changes and transient
+> visitors are not modelled.
+
 **Annual resolution (all population):**
 - Aging (+1 year)
 - New chronic disease onset (age/sex-specific incidence rates)
@@ -1043,6 +1077,12 @@ People outside the catchment area who need care:
 ---
 
 ## 4. Folder Structure
+
+> **Superseded (design-phase sketch).** The shipped package is
+> `clinosim/modules/` (38 packages; there is no `treatment/` package and
+> no `modules/INTERFACES.md` — shared types live in `clinosim/types/`).
+> See [`module-architecture.md`](module-architecture.md) and
+> [`../../MODULES.md`](../../MODULES.md) for the current tree.
 
 ```
 clinosim/

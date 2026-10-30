@@ -34,11 +34,11 @@
 
 ```
  population(人口動態・世帯)                        Layer 0-1: reference YAML
-   └→ scenario 発火(disease 32種 / encounter 46種)   (disease/encounter protocols,
+   └→ scenario 発火(disease 36種 / encounter 51種)   (disease/encounter protocols,
         └→ encounter simulation(inpatient/ED/outpatient) locale, codes)
              ├ physiology state 遷移(daily loop)
              ├ orders / labs / vitals / MAR / procedures
-             ├ POST_ENCOUNTER enrichers(device→hai→antibiotic→imaging→triage→nursing→document)
+             ├ POST_ENCOUNTER enrichers(device→prophylaxis→hai→antibiotic→imaging→…→triage→nursing_assignment→document)
              └→ POST_RECORDS enrichers(nursing flowsheet, immunization, …)
    ↓
  ★ CIF(唯一のシミュレーション出力、AD-17)
@@ -46,12 +46,12 @@
    └ cif/narratives/<version>/documents/… … Stage 2、narrative、version 差替え可能(AD-65)
    ↓
  format adapters(CIF だけを読む)
-   ├ FHIR R4 NDJSON(_fhir_* builder 群、registry 登録制)← 現在の主出力
+   ├ FHIR R4 NDJSON(fhir_r4/<theme>/ の builder 群、registry 登録制)← 現在の主出力
    └ CSV / (将来: SS-MIX2, HL7 v2)
 ```
 
 - **CLI 3-stage(AD-37)**: `clinosim simulate`(→ structural CIF)→ `clinosim narrate
-  --provider template |mock |ollama |bedrock`(→ narratives/<version>/)→
+  --provider template |mock |ollama |bedrock |vllm |openai_compatible`(→ narratives/<version>/)→
   `clinosim export-fhir --narrative-version X`。これがコンセプト 6(差し替え)の実体。
 - **決定性(AD-16)**: 全乱数は階層 sub-seed。同 seed = byte 同一出力(wall-clock は
   determinism chain で全除去済、session 34)。
@@ -66,10 +66,10 @@
 | 0 | 国際コード体系(LOINC/ICD/RxNorm/JLAC10…、EN-first) | `clinosim/codes/` |
 | 1 | 参照データ YAML(疾患・検査・locale・病院設定) | `modules/*/reference_data/`, `locale/`, `config/` |
 | 2 | loader(cached + fail-loud validation) | 各 module 内 |
-| 3 | CIF 生成(simulator + 33 modules) | `simulator/`, `modules/` |
+| 3 | CIF 生成(simulator + 38 modules) | `simulator/`, `modules/` |
 | 4 | 出力 adapter(FHIR builders ほか) | `modules/output/` |
 
-- **module は 33 個**(`MODULES.md` が地図)。always-on(臨床カスケード上必須:device →
+- **module は 38 個**(`MODULES.md` が地図)。always-on(臨床カスケード上必須:device →
   hai → antibiotic / imaging / document / triage / nursing_assignment 等)と opt-in がある。
 - module 間依存は README の Dependencies 宣言 + `types/` / `codes/` / `locale/` のみ。
   CIF への書込みは `extensions[<module>]`(typed field 追加は Base のみ)。

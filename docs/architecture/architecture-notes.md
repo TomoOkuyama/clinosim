@@ -36,6 +36,10 @@ clinosim/codes/
     └── k-codes.yaml     # 2 codes
 ```
 
+(Layout and counts as of the AD-30 decision. `codes/data/` now holds
+72 YAML files; the current per-system inventory is in
+[`../../clinosim/codes/README.md`](../../clinosim/codes/README.md).)
+
 ### Schema
 
 ```yaml
@@ -151,6 +155,11 @@ output/fhir_r4/
 ├── Organization.ndjson                     # hospital + departments
 └── Location.ndjson                         # wards + beds
 ```
+
+(Superseded detail: there is no separate `_facility.json` any more —
+the facility master resources (Organization / Location / Device) are
+written once into their resource-type NDJSON files, and the export
+holds one NDJSON file per emitted resource type.)
 
 ### Resource id uniqueness
 
@@ -311,7 +320,8 @@ ward_capacity:                   # bed count per ward
 3. **Bed assignment**: When an encounter is created, `bed_number` is sampled from
    `1..ward_capacity[ward_id]`. No more random "601-3" bed numbers.
 
-4. **FHIR Location resources**: `_facility.json` contains one `Location` per ward
+4. **FHIR Location resources**: the facility master resources (now written to
+   `Location.ndjson`; originally `_facility.json`) contain one `Location` per ward
    (physicalType=wa) and one per bed (physicalType=bd, partOf the ward). Encounter
    references the bed Location, which references the ward via `partOf`.
 
@@ -326,7 +336,7 @@ size labels.
 
 ## 6.5 Updated module list
 
-The v0.1-alpha module snapshot has grown into **33 top-level
+The v0.1-alpha module snapshot has grown into **38 top-level
 packages under `clinosim/modules/`** plus the `codes/` + `locale/` +
 `types/` foundation packages. Canonical inventory (with layer,
 sub-seed offset, and enricher stage/order per module) lives in
@@ -340,15 +350,20 @@ clinosim/
 ├── config/                 Hospital + LLM-service YAMLs
 ├── types/                  Shared data types (Pydantic + dataclass)
 ├── modules/
-│   ├── (Simulation)        physiology (14-var), observation, order,
+│   ├── (Simulation)        physiology (19-var), observation, order,
 │   │                       clinical_course, diagnosis, procedure,
-│   │                       encounter (46 YAMLs), disease (32 YAMLs)
+│   │                       encounter (51 YAMLs), disease (36 YAMLs)
 │   ├── (Population)        population, patient, identity, pediatric,
 │   │                       staff, facility, healthcare_system,
 │   │                       family_history, sdoh
-│   ├── (Enrichment)        POST_POPULATION: allergy, identity
-│   │                       POST_ENCOUNTER: device, hai, antibiotic,
-│   │                                       imaging, triage,
+│   ├── (Enrichment)        POST_POPULATION: allergy, identity,
+│   │                                        metabolic (e66_bmi,
+│   │                                        e88_81_syndrome,
+│   │                                        k76_0_nafld, g47_30_osa)
+│   │                       POST_ENCOUNTER: device, prophylaxis, hai,
+│   │                                       antibiotic, imaging,
+│   │                                       discontinue_flip, newborn,
+│   │                                       triage, lab_derived_dx,
 │   │                                       nursing_assignment, document
 │   │                       POST_RECORDS:  nursing, immunization,
 │   │                                      family_history, code_status,
@@ -601,7 +616,7 @@ microbiology, blood gas, cardiac markers, nursing flowsheets).
 | Base | Microbiology + susceptibility; lactate / ABG / cardiac markers; `DiagnosticReport` grouping; nursing flowsheets (I/O, NEWS2, pain, GCS, Braden); immunization history; family history; code status / advance directive; extended SDOH (incl. JP 要介護度) | core: `types`, `population`, `observation`, `simulator`, `output` |
 | Module | Billing (`modules/billing/` — JP DPC / US Claim+EOB); Devices + HAI (`modules/device/` — CLABSI/CAUTI/VAP); Care coordination (`modules/care_coordination/` — CarePlan/CareTeam/Goal) | one opt-in module per theme |
 
-See [`docs/roadmap.md`](docs/roadmap.md) — which points at the GitHub Issues board — for the phased implementation plan.
+See [`docs/roadmap.md`](../roadmap.md) — which points at the GitHub Issues board — for the phased implementation plan.
 
 ---
 
@@ -798,7 +813,7 @@ class LLMProvider(Protocol):
 ```
 
 A registry in `providers/__init__.py` maps provider keys (`ollama`, `bedrock`, `mock`,
-`local`) to builder callables. Third-party code can extend the registry via
+`local`, and later `vllm` / `openai_compatible`) to builder callables. Third-party code can extend the registry via
 `register_provider(name, builder)` without touching clinosim source.
 
 A new `factory.build_from_config_file(path)` reads `llm_service.yaml`, builds the

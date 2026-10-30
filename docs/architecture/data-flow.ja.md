@@ -22,7 +22,7 @@ flowchart TD
     end
 
     subgraph stage3["Stage 3 — clinosim export-fhir"]
-        adapter["fhir_r4_adapter (+ per-theme _fhir_* builder subpackage)<br/>structural → 25+ FHIR resource type<br/>narratives → DocumentReference (base64)<br/>display text は clinosim.codes 経由"]
+        adapter["fhir_r4_adapter (+ fhir_r4/ 配下のテーマ別 builder subpackage)<br/>structural → 25+ FHIR resource type<br/>narratives → DocumentReference (base64)<br/>display text は clinosim.codes 経由"]
         fhir["output/fhir_r4/<br/>HL7 Bulk Data NDJSON + manifest.json"]
         adapter --> fhir
     end
@@ -36,8 +36,9 @@ flowchart TD
   enricher 含む)。Stage 3 は CIF の純関数。
 - **拡張性** — Stage 2 (`clinosim narrate`) はオプションで、LLM
   narrative provider (ローカル Ollama、AWS Bedrock、Sakura Cloud
-  Ollama) を同じ structural CIF に対して配線。スキップしても
-  valid な FHIR を生成 (template モード `docStatus="preliminary"`)。
+  Ollama、vLLM / その他 OpenAI 互換サーバ) を同じ structural CIF に
+  対して配線。スキップしても valid な FHIR を生成 (template
+  ナラティブ、`DocumentReference.docStatus="final"`)。
 - **コスト制御** — Stage 2 は有料 LLM API を呼び出しうる唯一のステー
   ジ。Bedrock / Sakura 実行は単一リモート起動に隔離可能。
 - **リモート実行** — Stage 2 は LLM へのネットワークアクセスを持つ

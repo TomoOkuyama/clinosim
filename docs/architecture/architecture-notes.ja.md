@@ -38,6 +38,10 @@ clinosim/codes/
     └── k-codes.yaml     # 2 コード
 ```
 
+(構成と件数は AD-30 決定時点のもの。現在の `codes/data/` は 72 YAML
+ファイルで、体系別の最新一覧は
+[`../../clinosim/codes/README.ja.md`](../../clinosim/codes/README.ja.md) を参照。)
+
 ### スキーマ
 
 ```yaml
@@ -158,6 +162,11 @@ output/fhir_r4/
 ├── Organization.ndjson                     # 病院 + 診療科
 └── Location.ndjson                         # 病棟 + ベッド
 ```
+
+(置き換え済みの詳細: 現在は独立した `_facility.json` はなく、facility
+master リソース (Organization / Location / Device) は各 resource type の
+NDJSON に 1 回だけ書かれ、出力は emit される resource type ごとに 1
+NDJSON ファイルとなる。)
 
 ### Resource id 一意性
 
@@ -325,7 +334,8 @@ ward_capacity:
    `1..ward_capacity[ward_id]` からサンプリング。「601-3」のよう
    なランダムベッド番号はもうない。
 
-4. **FHIR Location リソース**: `_facility.json` は病棟ごとに 1
+4. **FHIR Location リソース**: facility master リソース (現在は
+   `Location.ndjson` に出力、当初は `_facility.json`) は病棟ごとに 1
    `Location` (physicalType=wa) とベッドごとに 1 (physicalType=bd、
    病棟の `partOf`) を含む。Encounter はベッド Location を参照
    し、それが `partOf` 経由で病棟を参照。
@@ -342,7 +352,7 @@ ward_capacity:
 ## 6.5 モジュール一覧の更新
 
 v0.1-alpha 時点のモジュール snapshot は成長し、現在
-**`clinosim/modules/` 配下 33 top-level package** + `codes/` +
+**`clinosim/modules/` 配下 38 top-level package** + `codes/` +
 `locale/` + `types/` foundation package を持つ。canonical な
 モジュール一覧 (layer / sub-seed offset / enricher stage・order 付き)
 は [`../../MODULES.ja.md`](../../MODULES.ja.md) を参照。以下は現行
@@ -355,15 +365,20 @@ clinosim/
 ├── config/                 病院 + LLM-service YAML
 ├── types/                  共有データ型 (Pydantic + dataclass)
 ├── modules/
-│   ├── (Simulation)        physiology (14 変数)、observation、order、
+│   ├── (Simulation)        physiology (19 変数)、observation、order、
 │   │                       clinical_course、diagnosis、procedure、
-│   │                       encounter (46 YAML)、disease (32 YAML)
+│   │                       encounter (51 YAML)、disease (36 YAML)
 │   ├── (Population)        population、patient、identity、pediatric、
 │   │                       staff、facility、healthcare_system、
 │   │                       family_history、sdoh
-│   ├── (Enrichment)        POST_POPULATION: allergy、identity
-│   │                       POST_ENCOUNTER: device、hai、antibiotic、
-│   │                                       imaging、triage、
+│   ├── (Enrichment)        POST_POPULATION: allergy、identity、
+│   │                                        metabolic (e66_bmi、
+│   │                                        e88_81_syndrome、
+│   │                                        k76_0_nafld、g47_30_osa)
+│   │                       POST_ENCOUNTER: device、prophylaxis、hai、
+│   │                                       antibiotic、imaging、
+│   │                                       discontinue_flip、newborn、
+│   │                                       triage、lab_derived_dx、
 │   │                                       nursing_assignment、document
 │   │                       POST_RECORDS:  nursing、immunization、
 │   │                                      family_history、code_status、
@@ -637,7 +652,7 @@ lab を導出するので、同じことが microbiology、血液ガス、心臓
 | Base | Microbiology + susceptibility; lactate / ABG / cardiac markers; `DiagnosticReport` grouping; 看護 flowsheet (I/O、NEWS2、pain、GCS、Braden); immunization 履歴; family history; code status / advance directive; 拡張 SDOH (JP 要介護度含む) | core: `types`、`population`、`observation`、`simulator`、`output` |
 | Module | Billing (`modules/billing/` — JP DPC / US Claim+EOB); Devices + HAI (`modules/device/` — CLABSI/CAUTI/VAP); Care coordination (`modules/care_coordination/` — CarePlan/CareTeam/Goal) | テーマごとに 1 opt-in モジュール |
 
-段階的実装計画は [`docs/roadmap.md`](docs/roadmap.md) 参照 (GitHub
+段階的実装計画は [`docs/roadmap.md`](../roadmap.md) 参照 (GitHub
 Issues board を指す)。
 
 ---
@@ -864,7 +879,7 @@ class LLMProvider(Protocol):
 ```
 
 `providers/__init__.py` の registry はプロバイダキー (`ollama`、
-`bedrock`、`mock`、`local`) をビルダー callable にマップする。
+`bedrock`、`mock`、`local`、後に追加された `vllm` / `openai_compatible`) をビルダー callable にマップする。
 サードパーティコードは `register_provider(name, builder)` 経由で
 clinosim ソースを触らずに registry を拡張可能。
 

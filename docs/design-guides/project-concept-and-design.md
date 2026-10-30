@@ -49,11 +49,11 @@ design review):
 
 ```
  population (demographics / households)                   Layer 0-1: reference YAML
-   └→ scenario firing (32 diseases / 46 encounters)         (disease / encounter protocols,
+   └→ scenario firing (36 diseases / 51 encounters)         (disease / encounter protocols,
         └→ encounter simulation (inpatient / ED / outpatient) locale, codes)
              ├ physiology-state transition (daily loop)
              ├ orders / labs / vitals / MAR / procedures
-             ├ POST_ENCOUNTER enrichers (device → hai → antibiotic → imaging → triage → nursing → document)
+             ├ POST_ENCOUNTER enrichers (device → prophylaxis → hai → antibiotic → imaging → … → triage → nursing_assignment → document)
              └→ POST_RECORDS enrichers (nursing flowsheet, immunization, …)
    ↓
  ★ CIF (the sole simulation output, AD-17)
@@ -61,12 +61,12 @@ design review):
    └ cif/narratives/<version>/documents/… … Stage 2, narrative, versioned + swappable (AD-65)
    ↓
  format adapters (read only from CIF)
-   ├ FHIR R4 NDJSON (the _fhir_* builders, registry-registered) ← the current primary output
+   ├ FHIR R4 NDJSON (the fhir_r4/<theme>/ builders, registry-registered) ← the current primary output
    └ CSV / (future: SS-MIX2, HL7 v2)
 ```
 
 - **Three-stage CLI (AD-37)**: `clinosim simulate` (→ structural CIF)
-  → `clinosim narrate --provider template|mock|ollama|bedrock` (→
+  → `clinosim narrate --provider template|mock|ollama|bedrock|vllm|openai_compatible` (→
   `narratives/<version>/`) → `clinosim export-fhir --narrative-version X`.
   That is the concrete embodiment of requirement 6 (swappability).
 - **Determinism (AD-16)**: every random draw comes from a hierarchical
@@ -85,10 +85,10 @@ design review):
 | 0 | International code systems (LOINC / ICD / RxNorm / JLAC10 …, EN-first) | `clinosim/codes/` |
 | 1 | Reference-data YAML (disease / lab / locale / hospital config) | `modules/*/reference_data/`, `locale/`, `config/` |
 | 2 | Loader (cached + fail-loud validation) | inside each module |
-| 3 | CIF generation (simulator + 33 modules) | `simulator/`, `modules/` |
+| 3 | CIF generation (simulator + 38 modules) | `simulator/`, `modules/` |
 | 4 | Output adapter (FHIR builders and others) | `modules/output/` |
 
-- **33 modules** (see `MODULES.md` for the map). They split into
+- **38 modules** (see `MODULES.md` for the map). They split into
   always-on (mandatory in the clinical cascade: device → hai →
   antibiotic / imaging / document / triage / nursing_assignment,
   etc.) and opt-in.

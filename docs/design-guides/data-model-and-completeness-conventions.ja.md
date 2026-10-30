@@ -87,8 +87,9 @@ graded-stage 疾患(CKD/HF/COPD/asthma/IHD は session 37 で配線済、I10 は
 
 ### 4.2 as-of-age パターン(FP-AGE の参照実装)
 
-時間依存の属性(age など)を複数年シミュレーションで正しく表示・計算するには、`immunization/
-engine.py:36-39 _age_on(dob, on, fallback)` を `_shared` へ昇格した **as-of 日付関数**を使う。
+時間依存の属性(age など)を複数年シミュレーションで正しく表示・計算するには、**as-of 日付関数**
+`_age_on(dob, on, fallback)`(`immunization/engine.py`。予定していた `_shared` への昇格は未実施で、
+他の箇所は as-of age をその場で計算している)を使う。
 call-site は event 日(`event.timestamp`)を渡す。
 
 - **seed 経路を変えない群**(出力/narrative/LLM/labs)= as-of 化しても golden は表示値のみ差分 → 低リスク。
@@ -133,8 +134,8 @@ call-site は event 日(`event.timestamp`)を渡す。
 3. **C2 チェック**: 追加した FHIR 要素が cohort 内で非退化(患者間で分散、default fall-back でない)か。
 4. **C3 チェック**: 疾患/encounter が期待する resource が実出力に出るか(grep)。
 5. **決定論**: seed 経路を変えるか判定 → byte 保存 refactor か golden 再生成 new-feature かを宣言。
-6. **DONE 時**: registry の Status を DONE に更新 + PR/commit を追記。gate(FP-COMPLETENESS-GATE)が
-   既に存在するなら audit completeness 軸を green に。
+6. **DONE 時**: registry の Status を DONE に更新 + PR/commit を追記。completeness gate
+   (FP-COMPLETENESS-GATE、`tests/unit/test_completeness_invariants.py`)を green に保つ。
 
 ---
 
@@ -143,9 +144,9 @@ call-site は event 日(`event.timestamp`)を渡す。
 | 境界 | 入力 | 出力 | canonical seam |
 | --- | --- | --- | --- |
 | 疾患 YAML → simulation | `reference_data/*.yaml` | `DiseaseProtocol`(属性)/ 生 dict(order) | `load_disease_protocol`(A)/ owner accessor(B、FP-YAML-3 で整備) |
-| severity 決定 | `event.severity`(float)/ protocol 分布 | `"mild |moderate |severe"` + score | `severity_from_protocol`(FP-SEV-MODEL で新設) |
-| age 参照 | `dob` + event 日 | as-of age(int) | `_age_on`(FP-AGE で `_shared` 昇格) |
+| severity 決定 | `event.severity`(float)/ protocol 分布 | `"mild |moderate |severe"` + score | `sample_severity` / `category_from_score`(`disease/severity.py`、FP-SEV-MODEL) |
+| age 参照 | `dob` + event 日 | as-of age(int) | `_age_on`(`immunization/engine.py`、FP-AGE) |
 | code → display | (system, code, lang) | display 文字列 | `code_lookup` / `system_key_for`(既存) |
-| CIF → FHIR | structural + narrative CIF | FHIR R4 NDJSON | `_fhir_*` builders(registry 登録、既存) |
-| completeness 検証 | cohort NDJSON | AxisResult | `clinosim/audit/axes/completeness.py`(FP-COMPLETENESS-GATE で新設) |
+| CIF → FHIR | structural + narrative CIF | FHIR R4 NDJSON | `fhir_r4/<theme>/` builders(registry 登録、既存) |
+| completeness 検証 | CIF / reference data | test 結果 | `tests/unit/test_completeness_invariants.py`(FP-COMPLETENESS-GATE。cohort 統計の audit 軸は未実装) |
 </content>

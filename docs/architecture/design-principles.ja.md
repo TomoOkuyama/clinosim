@@ -409,6 +409,17 @@ class NarrativeGenerator:
 
 #### 解決: 階層 seed + LLM cache 分離
 
+> **実装:** `SeedManager` / `LLMResponseCache` クラスは存在しない。
+> sub-stream は `clinosim/seeding.py` から得る — enricher 別 offset
+> (`ENRICHER_SEED_OFFSETS`) を使う `derive_sub_seed(master_seed,
+> module_offset, key)`、simulator の phase (ライフイベント・入院・再入院・
+> 外来カレンダー・ED) 用の `derive_phase_rng(master_seed, PHASE_*, key)`、
+> salt 付きのエンティティ別 seed (例: `perinatal_delivery_seed`、
+> `individual_lab_seed`)。いずれも `hash()` ではなく `hashlib` で導出し、
+> `derive_phase_rng` は `clinosim.determinism` の RNG proxy を返す。LLM cache は
+> `clinosim/modules/llm_service/cache.py` の `PromptCache`
+> (architecture-notes §8 参照)。以下のスケッチは当初設計。
+
 `SeedManager` は各モジュールに master seed から派生する決定的
 sub-seed を割り当てる。
 
@@ -451,6 +462,10 @@ sub-seed から独自の `numpy.random.Generator` を初期化時に作成、
 ### テスト戦略
 
 3 レベルのテスト、各明確な目的を持つ。
+
+(以下は当初計画。実際のテストは `tests/unit/` (領域別)、
+`tests/integration/`、`tests/e2e/` (例: `test_alpha_golden.py`、
+`test_beta.py`)、`tests/regression/` (narrative profile golden) にある。)
 
 #### Level 1: 単体テスト (per module、高速、依存なし)
 
@@ -511,6 +526,13 @@ clinosim/types/
 全型は `@dataclass` を使用 (または Pydantic `BaseModel` — 下記
 YAML 検証参照)。`from clinosim.types import PatientProfile` で
 import。
+
+(設計フェーズの分割案。実際の `clinosim/types/` に `llm.py` はなく、LLM 型
+`ClinicalEventData` / `PatientSummary` / `LLMTaskType` / `LLMResponse` は
+`clinosim/modules/llm_service/engine.py` にある。代わりに `allergy.py`、
+`antibiotic.py`、`diagnosis.py`、`document.py`、`hai.py`、`identity.py`、
+`imaging.py`、`microbiology.py`、`procedure.py`、`triage.py` などドメイン別
+ファイルが加わっている。`clinosim/types/README.ja.md` を参照。)
 
 #### YAML 設定検証
 
@@ -683,6 +705,11 @@ class PersonName:
 
 全内部コードは標準システム (ICD-10、LOINC/JLAC10、RxNorm/YJ) を
 使用。表示名は権威ソースから出力時にマップされる。
+
+(現在の配置: 表示名は locale 非依存の `clinosim/codes/data/<system>.yaml`
+(コード体系ごとに 1 ファイル、`en` 必須・`ja` 任意) にあり、
+`clinosim.codes.lookup` で解決する。内部名 → コードの対応は
+`clinosim/locale/<country>/code_mapping_*.yaml`。architecture-notes §6.1 参照。)
 
 **権威データソース (翻訳に LLM を使用してはならない):**
 
@@ -965,6 +992,13 @@ clinosim アプローチ:   集団 → ライフイベント → 病院訪問 �
 
 集団はシミュレート時間を通じてライフイベントで進化する:
 
+> **実装:** `run_forward_loop`(`clinosim/simulator/phases/_forward_loop.py`)
+> が 1 か月ずつ進める。年境界で `advance_population` が aging pass を回し、
+> その年の地域死亡を抽選し(`population/mortality.py`、生命表 × 慢性疾患 SMR)、
+> 縦断状態(慢性疾患の発症・進行)を進める。各月は急性ライフイベントと ED 受診を
+> 発火させ、日付順に dispatch する。出生は分娩 encounter から入り、新生児は出生
+> 入院の退院翌日に在籍する。移住・雇用変化・一時来訪者はモデル化していない。
+
 **年次解像度 (全集団):**
 - 加齢 (+1 年)
 - 新慢性疾患発症 (年齢 / 性別固有 incidence)
@@ -1027,6 +1061,12 @@ catchment 地域外の care を必要とする人:
 ---
 
 ## 4. フォルダ構造
+
+> **置き換え済み (設計フェーズのスケッチ)。** 実際のパッケージは
+> `clinosim/modules/` (38 パッケージ。`treatment/` パッケージと
+> `modules/INTERFACES.md` はなく、共有型は `clinosim/types/` にある)。
+> 現行の構成は [`module-architecture.ja.md`](module-architecture.ja.md) と
+> [`../../MODULES.ja.md`](../../MODULES.ja.md) を参照。
 
 ```
 clinosim/
