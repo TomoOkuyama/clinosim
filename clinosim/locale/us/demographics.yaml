@@ -666,7 +666,6 @@ mixed_conditions:
 # ED-origin admission; do not add ED admissions again.)
 ed_visit_not_admitted:
   rate_per_1000_person_years: 380
-  rate_per_admitted: 3.5  # legacy fallback when the per-person-year rate is absent
 
 # Occupation distribution for working-age population (15-64)
 # Source: US BLS Occupational Employment Statistics

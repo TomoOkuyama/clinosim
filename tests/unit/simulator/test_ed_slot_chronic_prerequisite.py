@@ -41,15 +41,3 @@ def test_chronic_prefix_share_counts_living_residents() -> None:
         }
     )
     assert _chronic_prefix_share(population, ["J45"]) == {"J45": pytest.approx(1 / 3)}
-
-
-def test_ed_visit_count_uses_person_years_when_configured() -> None:
-    from clinosim.simulator.phases._ed_slot import _ed_visit_count
-
-    assert _ed_visit_count({"rate_per_1000_person_years": 380}, n_inpatient=999, n_persons=1000, total_months=24) == 760
-
-
-def test_ed_visit_count_falls_back_to_rate_per_admitted() -> None:
-    from clinosim.simulator.phases._ed_slot import _ed_visit_count
-
-    assert _ed_visit_count({"rate_per_admitted": 2.5}, n_inpatient=100, n_persons=1000, total_months=24) == 250

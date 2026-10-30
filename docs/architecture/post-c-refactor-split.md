@@ -109,10 +109,19 @@ The delegator is a 2-line shim; the real body is in the per-section file.
 |---|---|---|
 | `clinosim/simulator/_setup.py` | 9 helpers — `_load_health_screening_visit_reason`, `_HEALTH_SCREENING_VISIT_REASON`, `_HEALTH_SCREENING_VISIT_REASON_FALLBACK`, `_pediatric_visit_reason`, `_parse_time_range_bound`, `_TimeRangeBounds`, `_activate_cached_person`, `_derive_time_range_bounds`, `_load_hospital_ops`, `_resolve_pop_size`, `_load_prev_admission_cache` | C2a |
 | `clinosim/simulator/_dispatch.py` | Hospital-event dispatcher + overlap handling — `_find_active_inpatient_record`, `_find_overlapping_inpatient_record`, `_verify_no_actual_overlap`, `_handle_overlap_via_merge`, `_merge_disease_into_active_encounter`, `_replay_cached_admission_queue`, `_DispatchState`, `_dispatch_hospital_events` | C2b |
-| `clinosim/simulator/phases/_healthcare_calendar.py` | `_run_healthcare_calendar_phase` (per-year scheduler) | C2c |
-| `clinosim/simulator/phases/_post_discharge.py` | `_run_post_discharge_phase` | C2d |
-| `clinosim/simulator/phases/_readmission.py` | `_run_readmission_phase` | C2e |
-| `clinosim/simulator/phases/_ed_slot.py` | `_run_ed_slot_phase` | C2f |
+| `clinosim/simulator/phases/_healthcare_calendar.py` | `calendar_events_for_year`, `newborn_calendar_events`, `dispatch_calendar_event` | C2c |
+| `clinosim/simulator/phases/_post_discharge.py` | `schedule_post_discharge`, `dispatch_post_discharge` | C2d |
+| `clinosim/simulator/phases/_readmission.py` | `schedule_readmission`, `dispatch_readmission` | C2e |
+| `clinosim/simulator/phases/_ed_slot.py` | `EDSlotSampler`, `dispatch_ed_slot` | C2f |
+| `clinosim/simulator/phases/_forward_loop.py` | `ForwardContext`, `EventQueue`, `run_forward_loop` | #2169 |
+
+Since Issue #2169 the four phases are no longer post-loop runners. Each one
+exposes a *schedule* step and a *dispatch* step, and `run_forward_loop`
+advances all of them month by month through one date-ordered event queue
+(year boundary → monthly life events → ED slots → dispatch). A delivery
+therefore registers a newborn before that newborn's own calendar and life
+events are generated, and a death recorded in any phase gates every later
+event of that person.
 
 ### Why these boundaries (vs the original proposal)
 

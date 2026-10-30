@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import calendar
 import time
-from datetime import date, datetime
+from datetime import date
 from pathlib import Path
 
 from clinosim import __version__ as _clinosim_version
@@ -17,15 +17,10 @@ from clinosim.modules.patient.activator import activate_patient
 from clinosim.modules.population.engine import (
     LifeEvent,
     PersonRecord,
-    generate_monthly_events,
     generate_population,
 )
 from clinosim.modules.population.vital_status import death_counts_by_place, sync_profile_death_dates
 from clinosim.modules.staff.engine import generate_roster
-from clinosim.seeding import (
-    PHASE_LIFE_EVENT,
-    derive_phase_rng,
-)
 from clinosim.simulator import log as sim_log
 from clinosim.simulator._dispatch import (
     _dispatch_hospital_events as _dispatch_hospital_events,
@@ -105,20 +100,8 @@ from clinosim.simulator.helpers import (
     load_all_disease_protocols,
 )
 from clinosim.simulator.inpatient import _simulate_patient
-from clinosim.simulator.phases._ed_slot import (
-    _run_ed_slot_phase as _run_ed_slot_phase,
-)
-from clinosim.simulator.phases._healthcare_calendar import (
-    _run_healthcare_calendar_phase as _run_healthcare_calendar_phase,
-)
-from clinosim.simulator.phases._post_discharge import (
-    _run_post_discharge_phase as _run_post_discharge_phase,
-)
-from clinosim.simulator.phases._readmission import (
-    _run_readmission_phase as _run_readmission_phase,
-)
+from clinosim.simulator.phases._forward_loop import ForwardContext, run_forward_loop
 from clinosim.types.config import ForcedScenario, SimulatorConfig
-from clinosim.types.encounter import EncounterType
 from clinosim.types.output import CIFDataset, CIFMetadata, CIFPatientRecord
 from clinosim.types.patient import PatientProfile
 
@@ -226,7 +209,7 @@ def run_beta(
         ),
     )
 
-    # Run life events — resolve month-loop bounds + snapshot cap.
+    # Resolve month-loop bounds + snapshot cap.
     # See _derive_time_range_bounds / _TimeRangeBounds for the F1 raw-vs-
     # capped end rationale and the Issue #1039 start_dt_lb filter.
     bounds = _derive_time_range_bounds(config)
@@ -242,246 +225,59 @@ def run_beta(
         _raw_end = date(_raw_end.year, _raw_end.month, calendar.monthrange(_raw_end.year, _raw_end.month)[1])
     _window = (_start_dt_lb.date(), _raw_end)
 
-    # Issue #1596 Step 2 — generation now runs INSIDE the combined
-    # per-month loop below (after F4 cache load + patient state init
-    # + ``_dispatch_hospital_events`` definition), not here as a
-    # separate pre-dispatch pass. The per-year ``advance_population``
-    # hook is imported here but called inside that same loop so the
-    # primary + newborn paths are symmetrical.
-    from clinosim.modules.population.aging import advance_population
-
-    # F4: previous-snapshot admission-loop cache. Only the primary
-    # admission loop below (known_disease/mixed via ``_simulate_patient``
-    # and unknown-condition via ``_simulate_unknown_condition``)
-    # consults this cache — it is the single most expensive per-event
-    # computation (full daily-loop physiology simulation).
+    # F4: previous-snapshot admission-loop cache. Only the inpatient
+    # dispatch consults this cache — it is the single most expensive
+    # per-event computation (full daily-loop physiology simulation).
     prev_admission_cache = _load_prev_admission_cache(cache_dir, config)
 
-    # Simulate each patient in chronological order (DES-aware).
-    # Hospital state is shared — concurrent patients affect delays.
-    patient_records: list[CIFPatientRecord] = []
-    dispatch_state = _DispatchState()
-    beds_total = hospital_ops.get("resource_capacity", {}).get("inpatient_beds", 200)
-
-    # Activate each person at most once (stable identity). A person who appears across
-    # multiple phases (admission, readmission, post-discharge, calendar, ED) must share a
-    # single PatientProfile so their chronic-condition onset/stage, physiological profile,
-    # and baseline vitals are consistent across all their encounters. activate_patient
-    # re-samples those attributes, so calling it per encounter desynchronizes a patient's
-    # own history.
-    # Issue #1581 — the cache key is now (person_id, as_of_year) so an
-    # encounter in sim year 1 can see a Layer-2 PatientProfile whose
-    # chronic_conditions[*].stage reflects the year-1 stage from
-    # person.disease_stage_history, rather than always the end-of-sim
-    # snapshot. ``as_of_year=None`` preserves the pre-#1581 behaviour
-    # (single cached profile per person, latest-only stage).
+    # Activate each person at most once per (person_id, as_of_year) so a
+    # person who appears across admission, readmission, post-discharge,
+    # calendar and ED encounters shares one PatientProfile (consistent
+    # chronic-condition onset/stage, physiology and baseline vitals).
     patient_cache: dict[tuple[str, int | None], PatientProfile] = {}
+    patient_records: list[CIFPatientRecord] = []
 
-    # Issue #174: bracket the inpatient loop with ``sim_log.phase`` so
-    # a ``tail -f simulator.log`` sees ``inpatient_loop_start``
-    # immediately (not only the paired ``_end`` when the whole loop
-    # finishes) and the total ``elapsed_s`` is attributable.
-    sim_log.info("engine", "inpatient_loop_start")
-    _t0_inp = time.perf_counter()
-
-    # Issue #1596 Step 2 — combined per-month generation + dispatch.
-    # Replaces (a) the pre-#1596 pre-generation loop + global filter
-    # /sort pass and (b) the Step-1 per-month dispatch of a globally
-    # sorted ``hospital_events`` list. Running generation INSIDE this
-    # loop means newborns registered during month m's dispatch
-    # (perinatal delivery handler) become visible to month m+1's
-    # ``generate_monthly_events`` naturally — no secondary monthly
-    # events pass needed.
-    #
-    # Byte-identity for no-births cohorts: preserved (same seeds, same
-    # populations seen by each month's ``generate_monthly_events``,
-    # same per-month filter + sort). For with-births cohorts byte-
-    # identity intentionally breaks: newborn events previously came
-    # from a secondary-pass RNG keyed by ``f"newborn|{y}-{m}"`` and
-    # now come from the primary RNG keyed by ``f"{y}-{m}"`` — the
-    # cohort's clinical content is equivalent but byte sequences
-    # differ. MINOR version appropriate (CIF drift, cf.
-    # feedback_versioning_policy).
-    #
-    # ``total_hospital`` is the running cumulative count of dispatched
-    # hospital events. The dispatch function's progress trigger
-    # ``_progress_cumul == total`` fires at each chunk's final event
-    # when we pass the running total — matches the pre-#1596 cadence
-    # for at-least-one-progress-event-per-chunk.
-    all_events: list[LifeEvent] = []
-    total_hospital = 0
-
-    _dy, _dm = start_y, start_m
-    while (_dy, _dm) <= (end_y, end_m):
-        # Issue #1564 Phase 2: run the aging hook at the first month
-        # of each calendar year (January) and at the very first
-        # iteration of the sim window (even if the window starts
-        # mid-year).
-        if _dm == 1 or (_dy, _dm) == (start_y, start_m):
-            advance_population(population, _dy, config.country, window=_window)
-        _month_key = f"{_dy:04d}-{_dm:02d}"
-        _month_rng = derive_phase_rng(master_seed, PHASE_LIFE_EVENT, _month_key)
-        _monthly = generate_monthly_events(
-            population,
-            _dy,
-            _dm,
-            _month_rng,
-            country=config.country,
-            master_seed=master_seed,
-            inpatient_departments=_inpatient_depts,
-        )
-        # Per-month equivalents of the pre-#1596 global snapshot_dt +
-        # ``_start_dt_lb`` filters. Equivalent because the global
-        # filters were RNG-neutral and purely date-based.
-        if snapshot_dt:
-            _monthly = [
-                e
-                for e in _monthly
-                if not e.timestamp or datetime.combine(e.timestamp, datetime.min.time()) <= snapshot_dt
-            ]
-        _monthly = [
-            e for e in _monthly if not e.timestamp or datetime.combine(e.timestamp, datetime.min.time()) >= _start_dt_lb
-        ]
-        all_events.extend(_monthly)
-        _hospital_chunk = sorted(
-            [e for e in _monthly if e.requires_hospital],
-            key=lambda e: e.timestamp,
-        )
-        total_hospital += len(_hospital_chunk)
-        if _hospital_chunk:
-            _dispatch_hospital_events(
-                events=_hospital_chunk,
-                total=total_hospital,
-                label="inpatient",
-                state=dispatch_state,
-                patient_records=patient_records,
-                patient_cache=patient_cache,
-                prev_admission_cache=prev_admission_cache,
-                population=population,
-                hospital_state=hospital_state,
-                hospital_ops=hospital_ops,
-                beds_total=beds_total,
-                protocols=protocols,
-                healthcare=healthcare,
-                roster=roster,
-                config=config,
-                master_seed=master_seed,
-                demo=demo,
-            )
-        _dm += 1
-        if _dm > 12:
-            _dm, _dy = 1, _dy + 1
-
-    print(f"  Life events: {len(all_events)} total, {total_hospital} requiring hospital")
-    sim_log.info(
-        "engine",
-        "life_events_generated",
-        total=len(all_events),
-        hospital=total_hospital,
-    )
-    print(
-        f"  Inpatient done: {len(patient_records)} records (peak concurrent: {dispatch_state.concurrent_patients})",
-        flush=True,
-    )
-    sim_log.info(
-        "engine",
-        "inpatient_loop_done",
-        records=len(patient_records),
-        peak_concurrent=dispatch_state.concurrent_patients,
-        elapsed_s=round(time.perf_counter() - _t0_inp, 3),
-    )
-
-    # Issue #1596 Steps 3/4 — the newborn aging catch-up pass and the
-    # ``advance_population(... person_filter=...)`` kwarg that
-    # supported it are gone. Under Step 2's combined gen+dispatch
-    # loop newborns registered during year y's dispatch are already
-    # in ``population.persons`` by the (y+1, 1) iteration, so the
-    # primary ``advance_population(y+1)`` picks them up naturally.
-
-    # === Readmission evaluation (post-loop pass) ===
-    country_key = _country_to_yaml_key(config.country)
-    n_readmit = _run_readmission_phase(
-        patient_records=patient_records,
-        population=population,
-        protocols=protocols,
-        snapshot_dt=snapshot_dt,
-        master_seed=master_seed,
-        country_key=country_key,
-        healthcare=healthcare,
-        roster=roster,
-        config=config,
-        hospital_state=hospital_state,
-        hospital_ops=hospital_ops,
-        patient_cache=patient_cache,
-        demo=demo,
-    )
-    print(f"  Readmissions done: {n_readmit} evaluated", flush=True)
-    sim_log.info("engine", "readmissions_done", evaluated=n_readmit)
-
-    # === Outpatient encounters (healthcare calendar for ALL population) ===
     from clinosim.locale.loader import load_chronic_followup
 
-    followup_data = load_chronic_followup()
-
-    # Post-discharge follow-up for inpatient records
-    inpatient_records = [
-        r
-        for r in patient_records
-        if not r.deceased and r.encounters and r.encounters[0].encounter_type == EncounterType.INPATIENT
-    ]
-    n_post_dc = _run_post_discharge_phase(
-        inpatient_records=inpatient_records,
-        patient_records=patient_records,
-        population=population,
-        followup_data=followup_data,
-        snapshot_dt=snapshot_dt,
-        master_seed=master_seed,
-        patient_cache=patient_cache,
-        demo=demo,
-        roster=roster,
+    # Issue #2169: every phase — aging and mortality, life events,
+    # admissions, readmissions, post-discharge follow-up, the healthcare
+    # calendar (deliveries included) and ED visits — advances in one
+    # month-by-month forward loop. See ``phases/_forward_loop.py``.
+    ctx = ForwardContext(
         config=config,
-        hospital_ops=hospital_ops,
-    )
-
-    # Healthcare calendar: chronic visits + screening for ALL population.
-    # Issue #1129 (2026-09-05): per-year loop over [start_y, end_y]
-    # so a multi-year sim emits every year's chronic-follow-up /
-    # screening events (pre-fix: only start_y, giving ~23 % of the
-    # expected AMB rate at 5-year sim).
-    n_cal_events, n_calendar = _run_healthcare_calendar_phase(
-        patient_records=patient_records,
-        population=population,
-        bounds=bounds,
         master_seed=master_seed,
-        patient_cache=patient_cache,
-        demo=demo,
-        followup_data=followup_data,
-        roster=roster,
-        config=config,
-        hospital_ops=hospital_ops,
-    )
-    print(f"  Healthcare calendar: {n_cal_events} events for population", flush=True)
-    sim_log.info("engine", "healthcare_calendar_generated", events=n_cal_events)
-
-    print(f"  Outpatient done: {n_post_dc} post-discharge + {n_calendar} calendar", flush=True)
-    sim_log.info("engine", "outpatient_done", post_discharge=n_post_dc, calendar=n_calendar)
-
-    # === ED visits (not admitted — auto-discovered from encounter YAMLs) ===
-    n_ed = _run_ed_slot_phase(
-        inpatient_records=inpatient_records,
-        patient_records=patient_records,
         population=population,
-        demo=demo,
-        roster=roster,
-        config=config,
-        bounds=bounds,
-        master_seed=master_seed,
+        patient_records=patient_records,
         patient_cache=patient_cache,
+        prev_admission_cache=prev_admission_cache,
+        hospital_state=hospital_state,
         hospital_ops=hospital_ops,
+        beds_total=hospital_ops.get("resource_capacity", {}).get("inpatient_beds", 200),
+        inpatient_departments=_inpatient_depts,
+        protocols=protocols,
+        healthcare=healthcare,
+        roster=roster,
+        demo=demo,
+        followup_data=load_chronic_followup(),
+        country_key=_country_to_yaml_key(config.country),
+        window=_window,
+        cutoff=snapshot_dt.date() if snapshot_dt else _raw_end,
     )
-    if n_ed > 0:
-        print(f"  ED visits (not admitted): {n_ed} generated", flush=True)
-        sim_log.info("engine", "ed_visits_generated", ed_visits=n_ed)
+    months: list[tuple[int, int]] = []
+    _dy, _dm = start_y, start_m
+    while (_dy, _dm) <= (end_y, end_m):
+        months.append((_dy, _dm))
+        _dy, _dm = (_dy + 1, 1) if _dm == 12 else (_dy, _dm + 1)
+
+    sim_log.info("engine", "forward_loop_start", months=len(months))
+    _t0 = time.perf_counter()
+    run_forward_loop(ctx, months)
+    print(
+        f"  Forward loop done: {len(patient_records)} records, {ctx.n_hospital_events} hospital events "
+        f"(peak concurrent: {ctx.dispatch_state.concurrent_patients})",
+        flush=True,
+    )
+    sim_log.info("engine", "forward_loop_elapsed", elapsed_s=round(time.perf_counter() - _t0, 3))
 
     # Issue #2166: every profile of a person carries the person's one death
     # date (as known at the snapshot or window end), including profiles that

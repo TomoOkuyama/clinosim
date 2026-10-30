@@ -48,6 +48,29 @@ calendar (月次 acute-disease event、慢性フォロー visit、screening、
   [`clinosim.modules.pediatric.calendar.generate_pediatric_events`](../pediatric/README.ja.md)
   に委譲)。
 
+## Population のライフサイクル (実装)
+
+シミュレーションは 1 本の前進ループで月単位に進む
+(`clinosim/simulator/phases/_forward_loop.py`)。
+
+1. **初期集団** — `generate_population` が期間開始時点の世帯と人を作り、
+   POST_POPULATION enricher が ID・アレルギー・代謝系コードを付ける。
+2. **年境界** — `aging.advance_population`: 加齢パス (脳卒中後遺症、
+   アレルギー変化)、1 人 1 回の前進型**院外死亡**判定 (`mortality.py`:
+   生命表 qx × 併存疾患の相対 SMR × ロケールの `community_death_share`)、
+   経年 stage / 発症ステップ。その年の受診予定もここで作る。
+3. **毎月** — ライフイベント、その月の ED 受診、キューに積まれた全イベント
+   (入院、再入院、フォローアップ、受診予定、出産) を日付順に処理する。
+4. **死亡** — 1 人 1 件で記録する (`PersonRecord.record_death`、
+   `death_place` は `hospital` か `community`)。院内死亡は入院シミュレー
+   タから、院外死亡は受診なしでも起きる。以後のイベントはすべて
+   `in_population_at(date)` で止まる。
+5. **出生** — 出産で新生児を登録し (`newborn.register_newborn`)、出生入院の
+   退院翌日に集団へ加える (`PersonRecord.enrolled_from`)。その年の残りの
+   受診予定を作り、以後は他の人と同じく加齢・疾患・受診・死亡の対象になる。
+
+転入・転出は扱わない。
+
 ## Public API
 
 ```python
