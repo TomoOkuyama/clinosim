@@ -32,7 +32,7 @@ from clinosim.modules.document.narrative._narrative_interpretation_thresholds im
     NUTRITION_ENERGY_KCAL_PER_KG_MIDPOINT,
     NUTRITION_PROTEIN_G_PER_KG_MIDPOINT,
 )
-from clinosim.modules.document.narrative._template_helpers import _label, _resolve_staff_name
+from clinosim.modules.document.narrative._template_helpers import _label, _resolve_staff_name, allergen_display
 from clinosim.types.document import NarrativeContext
 
 if TYPE_CHECKING:
@@ -350,7 +350,7 @@ def build_ncp_other_issues(generator: TemplateNarrativeGenerator, ctx: Narrative
     parts: list[str] = []
     # Food allergies (subset)
     for a in (ctx.allergies or [])[:3]:
-        substance = _o(a, "substance", None) or _o(a, "name", None) or ""
+        substance = allergen_display(a, lang)
         if substance:
             parts.append(t("allergy.avoidance_line", lang, substance=substance))
     if parts:
