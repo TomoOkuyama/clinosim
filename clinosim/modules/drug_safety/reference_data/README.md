@@ -34,12 +34,12 @@ Class taxonomy conventions:
 - `beta_blocker.{cardioselective, non_selective}`
 - `acei` / `arb` / `acei_arb` (union tag on both)
 - `potassium_supplement`, `electrolyte_supplement`
-- `diuretic.{loop, k_sparing}`
+- `diuretic.{loop, thiazide, k_sparing}`
 - `statin`, `cyp3a4_substrate`, `cyp3a4_inhibitor_strong`
 - `xanthine_oxidase_inhibitor`, `thiopurine`, `immunosuppressant`
 - `ssri`, `snri`, `maoi`, `antidepressant`, `atypical_antidepressant`,
   `antiparkinsonian`
-- `benzodiazepine`, `anxiolytic`, `biguanide`
+- `benzodiazepine`, `anxiolytic`, `biguanide`, `lithium`
 - `analgesic.non_opioid`, `macrolide`
 - `antihypertensive`, `antiarrhythmic.class4`
 

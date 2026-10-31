@@ -137,3 +137,35 @@ rules:
     rationale_ja: "NSAID の重複投与は鎮痛効果を上乗せせず (受容体飽和)、消化管出血・腎障害・心血管イベントリスクを多重化。単剤またはアセトアミノフェン等に切替。"
     substitution_hint: pain_management
     source: "ACR 2020 knee OA guideline; JOA 変形性膝関節症診療ガイドライン 2023"
+
+  # Issue #2253: drugs that raise serum lithium. The FDA lithium label
+  # (section 7) recommends more frequent serum-lithium monitoring and dose
+  # adjustment rather than avoidance, so these are emitted with a caution
+  # note. Aspirin is dual-classed as an NSAID and is caught by the NSAID
+  # rule too.
+  - id: lithium-plus-diuretic
+    lhs: lithium
+    rhs: diuretic
+    severity: moderate
+    rationale_en: "Diuretics (thiazides in particular) reduce renal lithium clearance and raise serum lithium. Monitor serum lithium more often and adjust the dose."
+    rationale_ja: "利尿薬 (特にサイアザイド系) はリチウムの腎クリアランスを低下させ血中濃度を上昇させる。血中リチウム濃度を頻回に測定し用量を調整する。"
+    substitution_hint: null
+    source: "FDA lithium carbonate label, section 7 Drug Interactions"
+
+  - id: lithium-plus-acei-arb
+    lhs: lithium
+    rhs: acei_arb
+    severity: moderate
+    rationale_en: "Renin-angiotensin system antagonists raise steady-state serum lithium. Monitor serum lithium more often and adjust the dose."
+    rationale_ja: "ACE 阻害薬・ARB はリチウムの定常状態血中濃度を上昇させる。血中リチウム濃度を頻回に測定し用量を調整する。"
+    substitution_hint: null
+    source: "FDA lithium carbonate label, section 7 Drug Interactions"
+
+  - id: lithium-plus-nsaid
+    lhs: lithium
+    rhs: nsaid
+    severity: moderate
+    rationale_en: "NSAIDs reduce renal blood flow and lithium clearance, raising serum lithium. Monitor serum lithium more often and adjust the dose, or use acetaminophen."
+    rationale_ja: "NSAID は腎血流とリチウムクリアランスを低下させ血中濃度を上昇させる。血中リチウム濃度を頻回に測定し用量を調整するか、アセトアミノフェンを選択する。"
+    substitution_hint: pain_management
+    source: "FDA lithium carbonate label, section 7 Drug Interactions"
