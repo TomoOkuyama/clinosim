@@ -115,7 +115,7 @@ described in
     `perinatal.yaml::cesarean`) use admit dx O82 and JP K898 / US CPT
     59510 instead.
   - Postpartum `Encounter`s × 2 at 7 d and 28 d after delivery with
-    encounter reason `Z39` (obgyn).
+    encounter reason `Z39` (obstetrics_gynecology).
   - Abortion outcome (age-gated 15-19 → 35-44) — outpatient
     day-surgery `Encounter` with O03.9 (spontaneous) or O04.5
     (induced). If fired, delivery + newborn chain are skipped and
