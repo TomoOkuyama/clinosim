@@ -19,6 +19,7 @@ are defined here.
 
 from __future__ import annotations
 
+import re
 from typing import Any
 
 import numpy as np
@@ -383,26 +384,28 @@ def _select_secondary_disease(
     return rng.choice(matching)
 
 
+_IV_TOKENS = frozenset({"IV", "DRIP", "INTRAVENOUS", "INFUSION"})
+_SC_TOKENS = frozenset({"SC", "SUBCUTANEOUS", "ENOXAPARIN"})
+_IM_TOKENS = frozenset({"IM", "INTRAMUSCULAR"})
+_IV_DRUG_TOKENS = frozenset(
+    {"AMPICILLIN", "SULBACTAM", "CEFTRIAXONE", "MEROPENEM", "FUROSEMIDE", "NITROGLYCERIN", "VANCOMYCIN", "LEVOFLOXACIN"}
+)
+
+
 def _determine_route(drug_name: str, clinical_intent: str) -> str:
-    """Determine medication administration route (order-side heuristic)."""
-    combined = (drug_name + " " + clinical_intent).upper()
-    if "IV" in combined or "DRIP" in combined:
+    """Determine medication administration route (order-side heuristic).
+
+    Matches whole words only (Issue #2295): the former substring tests
+    routed oral drugs by letters inside their names (escItalopram -> SC,
+    ezetIMibe -> IM, rIVaroxaban -> IV).
+    """
+    tokens = set(re.findall(r"[A-Z0-9]+", f"{drug_name} {clinical_intent}".upper()))
+    if tokens & _IV_TOKENS:
         return "IV"
-    if "SC" in combined or "SUBCUTANEOUS" in combined or "ENOXAPARIN" in combined.upper():
+    if tokens & _SC_TOKENS:
         return "SC"
-    if "IM" in combined:
+    if tokens & _IM_TOKENS:
         return "IM"
-    iv_drugs = [
-        "AMPICILLIN",
-        "SULBACTAM",
-        "CEFTRIAXONE",
-        "MEROPENEM",
-        "FUROSEMIDE",
-        "NITROGLYCERIN",
-        "VANCOMYCIN",
-        "LEVOFLOXACIN",
-    ]
-    for d in iv_drugs:
-        if d in drug_name.upper():
-            return "IV"
+    if set(re.findall(r"[A-Z0-9]+", drug_name.upper())) & _IV_DRUG_TOKENS:
+        return "IV"
     return "PO"
