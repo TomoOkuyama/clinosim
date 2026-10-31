@@ -10,6 +10,7 @@ import numpy as np
 from clinosim import determinism
 from clinosim.codes import system_key_for
 from clinosim.codes.hl7_encounter import ActPriority, AdmitSource, DischargeDisposition
+from clinosim.codes.valuesets import has_condition
 from clinosim.modules.disease.severity import sample_severity_category
 from clinosim.modules.encounter.engine import create_inpatient_encounter
 from clinosim.modules.observation.engine import get_lab_unit
@@ -69,6 +70,11 @@ _ED_SYMPTOM_AXES = (
     "consciousness_impairment",
     "respiratory_depression",  # naloxone reversal (Issue #2154)
 )
+
+
+def _has_diabetes(patient: object) -> bool:
+    """Diabetes of any type, from the shared ``diabetes`` value set (Issue #2281)."""
+    return has_condition(patient, "diabetes")
 
 
 def ed_treatment_response(state: PhysiologicalState) -> PhysiologicalState:
@@ -446,7 +452,7 @@ def _simulate_ed_visit(
             protocol["initial_state_impact"],
             acid_base_type=protocol.get("acid_base_type", "metabolic"),
         )
-    _has_dm = any("E11" in (getattr(c, "code", "") or "") for c in patient.chronic_conditions)
+    _has_dm = _has_diabetes(patient)
     _has_dyslipidemia = any("E78" in (getattr(c, "code", "") or "") for c in patient.chronic_conditions)
     # J5 (Phase 2a): wire all scenario flags (causes_myocardial_injury,
     # causes_vte) through the helper. Pre-Phase-2a, the ED path passed no

@@ -35,6 +35,7 @@ from typing import Any
 
 import numpy as np
 
+from clinosim.codes.valuesets import has_condition
 from clinosim.modules._shared import get_attr_or_key as _get
 from clinosim.modules.observation.engine import (
     canonical_lab_name,
@@ -239,7 +240,7 @@ def _derive_true_labs_for_patient(patient: Any, matched_drugs: list[str]) -> dic
     }
     sex = getattr(patient, "sex", "M") or "M"
     age = int(getattr(patient, "age", 0) or 0)
-    has_dm = any("E11" in (getattr(c, "code", "") or "") for c in getattr(patient, "chronic_conditions", []) or [])
+    has_dm = has_condition(patient, "diabetes")  # Issue #2281: every diabetes type
     has_dyslip = any("E78" in (getattr(c, "code", "") or "") for c in getattr(patient, "chronic_conditions", []) or [])
     labs = dict(derive_lab_values(state, sex=sex, age=age, has_diabetes=has_dm, has_dyslipidemia=has_dyslip, **flags))
     # Merge baseline normals for analytes physiology does not model (e.g. TSH,

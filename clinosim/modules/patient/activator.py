@@ -14,6 +14,7 @@ from pathlib import Path
 import numpy as np
 import yaml
 
+from clinosim.codes.valuesets import concept_group
 from clinosim.locale.loader import load_names
 from clinosim.modules._shared import is_jp, normalize_probabilities, resolve_lang
 from clinosim.modules.patient._patient_activator_thresholds import (
@@ -436,7 +437,7 @@ def _derive_chronic_conditions(
         # single float draw that _generate_stage's E11 branch used to consume (now reinterpreted
         # here) so the main RNG stream is unperturbed (AD-16).
         code_base = code.split(".")[0]
-        if code_base in ("E11", "E10"):
+        if concept_group("diabetes").contains(code_base):  # Issue #2281
             # Phase 1 longitudinal migration (Issue #1695): HbA1c is now
             # a first-class latent on PersonRecord.longitudinal_history.
             # Reconstruct the stage string from state_at(as_of_year).

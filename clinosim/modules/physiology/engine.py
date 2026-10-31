@@ -15,6 +15,7 @@ from typing import Any
 import numpy as np
 import yaml
 
+from clinosim.codes.valuesets import concept_group
 from clinosim.modules.physiology._coupling_coefficients import (
     AFIB_CARDIAC_COUPLING,
     ASTHMA_PH_COUPLING,
@@ -342,7 +343,7 @@ def initialize_state(
         elif code.startswith("J45"):  # Asthma
             state.ph_status -= s * ASTHMA_PH_COUPLING  # mild respiratory effect
             state.respiratory_fraction = 1.0  # bronchospasm → respiratory axis
-        elif code.startswith(("E11", "E10")):  # Diabetes — chronic glycemic control axis
+        elif concept_group("diabetes").contains(code):  # Diabetes — chronic glycemic control axis
             # Phase 1 longitudinal migration (Issue #1695): HbA1c /
             # glycemic latent moved to PersonRecord.longitudinal_history
             # and read via longitudinal.engine.state_at at per-encounter
