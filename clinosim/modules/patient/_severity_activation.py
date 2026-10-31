@@ -61,6 +61,8 @@ __all__ = [
     "I25_STAGE_WEIGHTS",
     "F00_STAGE_WEIGHTS",
     "K70_STAGE_WEIGHTS",
+    "K74_STAGES",
+    "K74_STAGE_WEIGHTS",
     "G20_STAGE_WEIGHTS",
     "I48_STAGE_WEIGHTS",
     "G35_STAGE_WEIGHTS",
@@ -69,6 +71,30 @@ __all__ = [
     "F32_STAGE_WEIGHTS",
     "F41_1_STAGE_WEIGHTS",
 ]
+
+
+# Issue #2289: stage labels and initial weights come from the longitudinal
+# stage YAMLs (``locale/shared/longitudinal/stage/*.yaml``,
+# ``initial_distribution``), the source of truth shared with the yearly
+# Markov progression; only conditions without a stage YAML keep literals.
+
+
+def _stage_distribution(attribute_id: str) -> dict[str, float]:
+    from clinosim.modules.longitudinal.loader import load_attribute_specs
+    from clinosim.modules.longitudinal.patterns.markov import MarkovSpec
+
+    body = load_attribute_specs()[attribute_id].body
+    if not isinstance(body, MarkovSpec):
+        raise TypeError(f"{attribute_id} is not a Markov stage attribute")
+    return dict(body.initial_distribution)
+
+
+def _stage_labels(attribute_id: str) -> tuple[str, ...]:
+    return tuple(_stage_distribution(attribute_id))
+
+
+def _stage_weights(attribute_id: str) -> tuple[float, ...]:
+    return tuple(_stage_distribution(attribute_id).values())
 
 
 # ---------------------------------------------------------------------------
@@ -89,7 +115,7 @@ STAGE_SEVERITY: dict[str, dict[str, float]] = {
     # KDIGO 2012 CKD classification (G1 eGFR ≥90 → G5 <15). Scores rise
     # exponentially so G4/G5 exceed CKD_SEVERE_THRESHOLD (0.5) and fire the
     # anemia-of-CKD + metabolic-acidosis branches in the physiology engine.
-    "N18": {"G1": 0.05, "G2": 0.15, "G3a": 0.35, "G3b": 0.50, "G4": 0.70, "G5": 0.90},
+    "N18": {"CKD G1": 0.05, "CKD G2": 0.15, "CKD G3a": 0.35, "CKD G3b": 0.50, "CKD G4": 0.70, "CKD G5": 0.90},
     # NYHA I-IV functional classification. Score I → mild symptomatic, IV →
     # symptoms at rest. Class II already exceeds HF_SEVERE_THRESHOLD (0.3) so
     # the volume-overload branch fires from class II upward.
@@ -210,11 +236,10 @@ STAGE_SEVERITY: dict[str, dict[str, float]] = {
 # N18 — Chronic kidney disease (KDIGO stages)
 # ---------------------------------------------------------------------------
 
-N18_STAGES: tuple[str, ...] = ("G1", "G2", "G3a", "G3b", "G4", "G5")
-"""KDIGO G1-G5 stage labels. ``_generate_stage`` prepends ``"CKD "`` when
-building the returned display string."""
+N18_STAGES: tuple[str, ...] = _stage_labels("ckd_stage_n18")
+"""KDIGO stage labels as stored ("CKD G1" .. "CKD G5"), from ``ckd_n18.yaml``."""
 
-N18_STAGE_WEIGHTS: tuple[float, ...] = (0.05, 0.30, 0.30, 0.20, 0.10, 0.05)
+N18_STAGE_WEIGHTS: tuple[float, ...] = _stage_weights("ckd_stage_n18")
 """Stage-prevalence weights for CKD, tuned to approximate a synthetic
 adult catchment. Empirical tuning for the synthetic simulator: real-world
 US NHANES adult CKD prevalence skews toward G1-G2 (early stages) with a
@@ -227,16 +252,15 @@ generation."""
 # I50 — Heart failure (NYHA functional classification)
 # ---------------------------------------------------------------------------
 
-I50_STAGES: tuple[str, ...] = ("I", "II", "III", "IV")
-"""NYHA I-IV stage labels. ``_generate_stage`` prepends ``"NYHA "`` when
-building the returned display string."""
+I50_STAGES: tuple[str, ...] = _stage_labels("heart_failure_stage_i50")
+"""NYHA class labels as stored ("NYHA I" .. "NYHA IV"), from ``heart_failure_i50.yaml``."""
 
 I50_STAGE_WEIGHTS_MILD: tuple[float, ...] = (0.30, 0.50, 0.15, 0.05)
 """NYHA weight distribution used when the patient's overall severity is
 ``"mild"``. Skews toward I-II (symptomatic-on-exertion). Empirical tuning
 for the synthetic simulator."""
 
-I50_STAGE_WEIGHTS_DEFAULT: tuple[float, ...] = (0.10, 0.30, 0.40, 0.20)
+I50_STAGE_WEIGHTS_DEFAULT: tuple[float, ...] = _stage_weights("heart_failure_stage_i50")
 """NYHA weight distribution used for non-mild patients (``"moderate"`` /
 ``"severe"``). Shifts mass toward III-IV so downstream physiology and
 labs reflect advanced HF. Empirical tuning for the synthetic simulator."""
@@ -246,10 +270,10 @@ labs reflect advanced HF. Empirical tuning for the synthetic simulator."""
 # J44 — Chronic obstructive pulmonary disease (GOLD 1-4)
 # ---------------------------------------------------------------------------
 
-J44_STAGES: tuple[str, ...] = ("GOLD 1", "GOLD 2", "GOLD 3", "GOLD 4")
+J44_STAGES: tuple[str, ...] = _stage_labels("copd_stage_j44")
 """GOLD 1-4 stage labels (full string, no prefix added at emit time)."""
 
-J44_STAGE_WEIGHTS: tuple[float, ...] = (0.20, 0.40, 0.30, 0.10)
+J44_STAGE_WEIGHTS: tuple[float, ...] = _stage_weights("copd_stage_j44")
 """GOLD stage-prevalence weights, tuned to a mid-severity population
 (GOLD 2 mode). Empirical tuning for the synthetic simulator; real cohort
 skew depends heavily on age band + smoking history, both of which the
@@ -294,25 +318,25 @@ diagnosed hypertensives."""
 # I25 — Ischemic heart disease (CCS angina classification)
 # ---------------------------------------------------------------------------
 
-I25_STAGES: tuple[str, ...] = ("I", "II", "III")
-"""CCS I-III stage labels. ``_generate_stage`` prepends ``"CCS "`` when
-building the returned display string. Class IV is intentionally omitted:
+I25_STAGES: tuple[str, ...] = _stage_labels("ischemic_heart_stage_i25")
+"""CCS class labels as stored ("CCS I" .. "CCS III"), from
+``ischemic_heart_i25.yaml``. Class IV is intentionally omitted:
 clinosim treats class-IV symptoms (angina at rest) as an active-issue
 scenario that arrives via a disease-YAML encounter path rather than a
 chronic condition."""
 
-I25_STAGE_WEIGHTS: tuple[float, ...] = (0.4, 0.4, 0.2)
+I25_STAGE_WEIGHTS: tuple[float, ...] = _stage_weights("ischemic_heart_stage_i25")
 
 
 # ---------------------------------------------------------------------------
 # F00 — Dementia (Clinical Dementia Rating, CDR)
 # ---------------------------------------------------------------------------
 
-F00_STAGES: tuple[str, ...] = ("CDR 0.5", "CDR 1", "CDR 2", "CDR 3")
+F00_STAGES: tuple[str, ...] = _stage_labels("dementia_stage_f00")
 """CDR 0.5 (very mild / MCI) → CDR 3 (severe). Full stage strings
 (no prefix added at emit time)."""
 
-F00_STAGE_WEIGHTS: tuple[float, ...] = (0.10, 0.40, 0.35, 0.15)
+F00_STAGE_WEIGHTS: tuple[float, ...] = _stage_weights("dementia_stage_f00")
 """Diagnosed-dementia cohort distribution across CDR stages. Mode at
 CDR 1 (mild) with a tail at CDR 3; CDR 0.5 is pre-clinical / MCI and
 less often formally diagnosed as F00. Empirical tuning for the
@@ -329,14 +353,14 @@ generation."""
 # K70 / K74 — Liver cirrhosis (Child-Pugh classification)
 # ---------------------------------------------------------------------------
 
-K70_STAGES: tuple[str, ...] = ("Child-Pugh A", "Child-Pugh B", "Child-Pugh C")
+K70_STAGES: tuple[str, ...] = _stage_labels("alcoholic_liver_stage_k70")
 """Child-Pugh A (score 5-6: compensated) → B (7-9: significant
 functional compromise) → C (10-15: decompensated). Shared label set
 for K70 (alcoholic liver disease / alcoholic cirrhosis) and K74
 (other fibrosis / non-alcoholic cirrhosis). Full stage strings — no
 prefix added at emit time."""
 
-K70_STAGE_WEIGHTS: tuple[float, ...] = (0.55, 0.30, 0.15)
+K70_STAGE_WEIGHTS: tuple[float, ...] = _stage_weights("alcoholic_liver_stage_k70")
 """Diagnosed-cirrhosis cohort distribution. Mode at Child-Pugh A
 (compensated, often an incidental or early-diagnosis finding),
 with a progressive tail — class C is the end-stage subset facing
@@ -345,12 +369,17 @@ simulator consistent with D'Amico 2006 (J Hepatol) natural-history
 meta-analysis prevalence shape at diagnosis + first liver clinic
 contact."""
 
+K74_STAGES: tuple[str, ...] = _stage_labels("fibrosis_liver_stage_k74")
+K74_STAGE_WEIGHTS: tuple[float, ...] = _stage_weights("fibrosis_liver_stage_k74")
+"""Child-Pugh stages for non-alcoholic cirrhosis (K74), from its own
+longitudinal stage YAML."""
+
 
 # ---------------------------------------------------------------------------
 # G20 — Parkinson's disease (Hoehn & Yahr staging)
 # ---------------------------------------------------------------------------
 
-G20_STAGES: tuple[str, ...] = ("H&Y 1", "H&Y 2", "H&Y 3", "H&Y 4", "H&Y 5")
+G20_STAGES: tuple[str, ...] = _stage_labels("parkinson_stage_g20")
 """Hoehn & Yahr 1 (unilateral) → H&Y 2 (bilateral, no balance
 impairment) → H&Y 3 (postural instability) → H&Y 4 (severe disability,
 still ambulatory) → H&Y 5 (bedridden). Full stage strings — no prefix
@@ -360,7 +389,7 @@ since the per-stage physiology coupling and the natural-history
 annual transition rates in the literature are reported on the
 integer-stage scale."""
 
-G20_STAGE_WEIGHTS: tuple[float, ...] = (0.30, 0.35, 0.20, 0.10, 0.05)
+G20_STAGE_WEIGHTS: tuple[float, ...] = _stage_weights("parkinson_stage_g20")
 """Diagnosed-PD cohort distribution at first clinic contact /
 cross-sectional. Mode at H&Y 2 (bilateral but balance preserved),
 with a progressive tail; stage 5 is a small bedridden subset.
@@ -373,12 +402,7 @@ clinical practice guidance (most newly-diagnosed are H&Y 1-2)."""
 # I48 — Atrial fibrillation (AHA/ACC/HRS classification)
 # ---------------------------------------------------------------------------
 
-I48_STAGES: tuple[str, ...] = (
-    "Paroxysmal",
-    "Persistent",
-    "Long-standing persistent",
-    "Permanent",
-)
+I48_STAGES: tuple[str, ...] = _stage_labels("atrial_fib_stage_i48")
 """AHA/ACC/HRS 2024 AF Guideline: paroxysmal (self-terminating or
 < 7 days) → persistent (≥ 7 days or requires cardioversion) →
 long-standing persistent (≥ 1 year continuous AF with rhythm-
@@ -386,7 +410,7 @@ control strategy still attempted) → permanent (both patient and
 clinician accept ongoing AF, no further rhythm control). Full
 stage strings — no prefix added at emit time."""
 
-I48_STAGE_WEIGHTS: tuple[float, ...] = (0.45, 0.25, 0.15, 0.15)
+I48_STAGE_WEIGHTS: tuple[float, ...] = _stage_weights("atrial_fib_stage_i48")
 """Diagnosed-AF cohort distribution at first clinic contact /
 cross-sectional. Mode at paroxysmal (symptomatic palpitations
 remain the dominant initial presentation) with a progressive tail.
@@ -399,12 +423,7 @@ baseline-visit shape."""
 # G35 — Multiple sclerosis (banded EDSS)
 # ---------------------------------------------------------------------------
 
-G35_STAGES: tuple[str, ...] = (
-    "EDSS 0-2",
-    "EDSS 2.5-5",
-    "EDSS 5.5-7",
-    "EDSS 7.5-10",
-)
+G35_STAGES: tuple[str, ...] = _stage_labels("multiple_sclerosis_stage_g35")
 """Kurtzke 1983 (Neurology 33:1444) Expanded Disability Status
 Scale, banded into 4 clinically-meaningful groups: minimal
 (ambulatory, no mobility impairment), mild-to-moderate (ambulatory
@@ -414,7 +433,7 @@ scale is standard clinically but overkill for a year-scale aging
 simulator; the banded form preserves the key functional gates for
 downstream severity gating."""
 
-G35_STAGE_WEIGHTS: tuple[float, ...] = (0.45, 0.35, 0.15, 0.05)
+G35_STAGE_WEIGHTS: tuple[float, ...] = _stage_weights("multiple_sclerosis_stage_g35")
 """Cross-sectional prevalent-case MS distribution. Mode at the
 mild-end band (EDSS 0-2 captures newly-diagnosed + stable RRMS),
 with a progressive tail. Empirical tuning for the synthetic
@@ -427,7 +446,7 @@ cross-sectional disability distribution."""
 # I69.3 — Sequelae of cerebral infarction (modified Rankin Scale 0-5)
 # ---------------------------------------------------------------------------
 
-I69_3_STAGES: tuple[str, ...] = ("mRS 0", "mRS 1", "mRS 2", "mRS 3", "mRS 4", "mRS 5")
+I69_3_STAGES: tuple[str, ...] = _stage_labels("stroke_sequela_stage_i69_3")
 """modified Rankin Scale (van Swieten 1988 Stroke 19:604):
   0 — no symptoms
   1 — no significant disability
@@ -439,7 +458,7 @@ mRS 6 (dead) is NOT a progression stage — death is driven by the
 forward community-mortality draw (population/mortality.py). Full stage strings — no prefix added at
 emit time."""
 
-I69_3_STAGE_WEIGHTS: tuple[float, ...] = (0.10, 0.20, 0.25, 0.20, 0.15, 0.10)
+I69_3_STAGE_WEIGHTS: tuple[float, ...] = _stage_weights("stroke_sequela_stage_i69_3")
 """Ischemic-stroke-at-discharge mRS distribution. Benjamin 2019
 (Circulation AHA Heart Disease Statistics) + GWTG-Stroke ischemic
 subgroup: ~55 % discharge at mRS 0-2 (independent), ~35 % at mRS
@@ -448,7 +467,7 @@ subgroup: ~55 % discharge at mRS 0-2 (independent), ~35 % at mRS
 distribution that includes rehab-discharge improvements."""
 
 
-I69_1_STAGE_WEIGHTS: tuple[float, ...] = (0.05, 0.12, 0.18, 0.25, 0.25, 0.15)
+I69_1_STAGE_WEIGHTS: tuple[float, ...] = _stage_weights("stroke_sequela_stage_i69_1")
 """Hemorrhagic-stroke-at-discharge mRS distribution — shifted
 rightward (toward higher disability) compared to I69_3_STAGE_
 WEIGHTS. ICH survivors have worse discharge mRS than ischemic

@@ -132,6 +132,8 @@ from clinosim.modules.patient._severity_activation import (
     J45_STAGES,
     K70_STAGE_WEIGHTS,
     K70_STAGES,
+    K74_STAGE_WEIGHTS,
+    K74_STAGES,
     N18_STAGE_WEIGHTS,
     N18_STAGES,
     STAGE_SEVERITY,
@@ -175,10 +177,10 @@ def _generate_stage(code: str, severity: str, rng: np.random.Generator) -> str:
     """
     base = code.split(".")[0]
     if base == "N18":  # CKD (KDIGO G1-G5)
-        return f"CKD {str(rng.choice(N18_STAGES, p=N18_STAGE_WEIGHTS))}"
+        return str(rng.choice(N18_STAGES, p=N18_STAGE_WEIGHTS))
     if base == "I50":  # Heart failure (NYHA I-IV)
         weights = I50_STAGE_WEIGHTS_MILD if severity == "mild" else I50_STAGE_WEIGHTS_DEFAULT
-        return f"NYHA {str(rng.choice(I50_STAGES, p=weights))}"
+        return str(rng.choice(I50_STAGES, p=weights))
     if base == "J44":  # COPD (GOLD 1-4)
         return str(rng.choice(J44_STAGES, p=J44_STAGE_WEIGHTS))
     if base == "J45":  # Asthma (NAEPP EPR-3)
@@ -186,11 +188,13 @@ def _generate_stage(code: str, severity: str, rng: np.random.Generator) -> str:
     if base == "I10":  # Hypertension (ACC-AHA 2017 / JNC-8)
         return f"Stage {str(rng.choice(I10_STAGES, p=I10_STAGE_WEIGHTS))}"
     if base == "I25":  # Ischemic heart disease (CCS class)
-        return f"CCS {str(rng.choice(I25_STAGES, p=I25_STAGE_WEIGHTS))}"
+        return str(rng.choice(I25_STAGES, p=I25_STAGE_WEIGHTS))
     if base == "F00":  # Dementia (Clinical Dementia Rating)
         return str(rng.choice(F00_STAGES, p=F00_STAGE_WEIGHTS))
-    if base in ("K70", "K74"):  # Liver cirrhosis (Child-Pugh A/B/C)
+    if base == "K70":  # Alcoholic liver disease (Child-Pugh A/B/C)
         return str(rng.choice(K70_STAGES, p=K70_STAGE_WEIGHTS))
+    if base == "K74":  # Non-alcoholic cirrhosis (Child-Pugh A/B/C)
+        return str(rng.choice(K74_STAGES, p=K74_STAGE_WEIGHTS))
     if base == "G20":  # Parkinson's disease (Hoehn & Yahr 1-5)
         return str(rng.choice(G20_STAGES, p=G20_STAGE_WEIGHTS))
     if base == "I48":  # Atrial fibrillation (AHA/ACC/HRS 2024)
@@ -480,14 +484,11 @@ def _derive_chronic_conditions(
         generic_severity_score = float(rng.uniform(GENERIC_SEVERITY_UNIFORM_MIN, GENERIC_SEVERITY_UNIFORM_MAX))
         # Graded-stage conditions derive severity_score from the sampled
         # stage instead of the generic uniform(0.1, 0.4) shared by other
-        # chronic conditions. N18's stage text carries a "CKD " display
-        # prefix not part of the KDIGO stage code itself, so it's the one
-        # code needing the prefix stripped before the STAGE_SEVERITY lookup.
+        # chronic conditions. STAGE_SEVERITY is keyed by the stored stage
+        # label ("CKD G3b"; Issue #2289).
         severity_score = generic_severity_score
-        if code_base in STAGE_SEVERITY and stage:
-            lookup_key = stage.removeprefix("CKD ") if code_base == "N18" else stage
-            if lookup_key in STAGE_SEVERITY[code_base]:
-                severity_score = STAGE_SEVERITY[code_base][lookup_key]
+        if code_base in STAGE_SEVERITY and stage in STAGE_SEVERITY[code_base]:
+            severity_score = STAGE_SEVERITY[code_base][stage]
         # Issue #968: clamp the sampled onset so it never precedes the
         # patient's date_of_birth + per-disease minimum onset age. Prior
         # to this fix pediatric patients could receive chronic conditions
