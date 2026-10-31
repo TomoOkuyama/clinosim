@@ -2595,7 +2595,7 @@
 </tr>
 <tr>
 <td>妊婦健診 encounter</td>
-<td>AMB encounter、妊娠週 12/24/36 (Incr 1 は簡易版、q4w/q2w/q1w cadence は Incr 1.5)、<code>disease_id="Z34"</code>、<code>_CHRONIC_DISEASE_SPECIALTY</code> で obgyn に routing。</td>
+<td>AMB encounter、妊娠週 12/24/36 (Incr 1 は簡易版、q4w/q2w/q1w cadence は Incr 1.5)、<code>disease_id="Z34"</code>、<code>_CHRONIC_DISEASE_SPECIALTY</code> で obstetrics_gynecology に routing。</td>
 <td><code>perinatal.yaml::lifecycle.prenatal_visit_gestational_weeks</code> + <code>population/_pregnancy.py::_pregnancy_lifecycle_events</code></td>
 </tr>
 <tr>
@@ -2625,7 +2625,7 @@
 </tr>
 <tr>
 <td>産褥 encounter × 2</td>
-<td>分娩日 + 7 d / + 28 d、<code>chronic_visit</code> with <code>disease_id="Z39"</code>、obgyn routing。12 月分娩の場合は Dec 31 に year-boundary clamp。</td>
+<td>分娩日 + 7 d / + 28 d、<code>chronic_visit</code> with <code>disease_id="Z39"</code>、obstetrics_gynecology routing。12 月分娩の場合は Dec 31 に year-boundary clamp。</td>
 <td><code>perinatal.yaml::lifecycle.postpartum_visit_offsets_days</code> + <code>population/_pregnancy.py::_pregnancy_lifecycle_events</code></td>
 </tr>
 <tr>
@@ -2701,14 +2701,14 @@
 </span><span id="__span-0-31"><a id="__codelineno-0-31" name="__codelineno-0-31" href="#__codelineno-0-31"></a>                                          → Encounter (AMB, oncology_infusion dept)
 </span><span id="__span-0-32"><a id="__codelineno-0-32" name="__codelineno-0-32" href="#__codelineno-0-32"></a>                                          → ProcedureRecord (chemotherapy_administration)
 </span><span id="__span-0-33"><a id="__codelineno-0-33" name="__codelineno-0-33" href="#__codelineno-0-33"></a>  event_type == "delivery"          →  simulate_delivery_encounter(...)
-</span><span id="__span-0-34"><a id="__codelineno-0-34" name="__codelineno-0-34" href="#__codelineno-0-34"></a>                                          → Encounter (IMP, obgyn dept, LOS 5/2d)
+</span><span id="__span-0-34"><a id="__codelineno-0-34" name="__codelineno-0-34" href="#__codelineno-0-34"></a>                                          → Encounter (IMP, obstetrics_gynecology dept, LOS 5/2d)
 </span><span id="__span-0-35"><a id="__codelineno-0-35" name="__codelineno-0-35" href="#__codelineno-0-35"></a>                                          → ProcedureRecord (delivery)
 </span><span id="__span-0-36"><a id="__codelineno-0-36" name="__codelineno-0-36" href="#__codelineno-0-36"></a>                                          → ClinicalDiagnosis(admission=O80 または O82 (帝王切開), discharge=Z37.0)
 </span><span id="__span-0-37"><a id="__codelineno-0-37" name="__codelineno-0-37" href="#__codelineno-0-37"></a>                                          → 新生児 Patient chain
 </span><span id="__span-0-38"><a id="__codelineno-0-38" name="__codelineno-0-38" href="#__codelineno-0-38"></a>  event_type == "abortion"          →  simulate_abortion_encounter(...) (period 既に close)
 </span><span id="__span-0-39"><a id="__codelineno-0-39" name="__codelineno-0-39" href="#__codelineno-0-39"></a>  event_type == "chronic_visit" with condition_type == "prenatal_visit" or "postpartum"
 </span><span id="__span-0-40"><a id="__codelineno-0-40" name="__codelineno-0-40" href="#__codelineno-0-40"></a>                                    →  outpatient dispatch 経由、
-</span><span id="__span-0-41"><a id="__codelineno-0-41" name="__codelineno-0-41" href="#__codelineno-0-41"></a>                                        specialty = obgyn (via _CHRONIC_DISEASE_SPECIALTY)
+</span><span id="__span-0-41"><a id="__codelineno-0-41" name="__codelineno-0-41" href="#__codelineno-0-41"></a>                                        specialty = obstetrics_gynecology (via _CHRONIC_DISEASE_SPECIALTY)
 </span><span id="__span-0-42"><a id="__codelineno-0-42" name="__codelineno-0-42" href="#__codelineno-0-42"></a>                      │
 </span><span id="__span-0-43"><a id="__codelineno-0-43" name="__codelineno-0-43" href="#__codelineno-0-43"></a>                      ▼
 </span><span id="__span-0-44"><a id="__codelineno-0-44" name="__codelineno-0-44" href="#__codelineno-0-44"></a>activator.py::activate_patient() [patient_cache に per-person]
@@ -2842,7 +2842,7 @@ code + abortion outcome テーブル + <strong>pregnancy lifecycle block</strong
 </span><span id="__span-4-7"><a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a><span class="w">  </span><span class="nt">length_of_stay_days</span><span class="p">:</span>
 </span><span id="__span-4-8"><a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a><span class="w">    </span><span class="nt">jp</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">5</span><span class="w">                               </span><span class="c1"># JSOG 正常分娩 LOS</span>
 </span><span id="__span-4-9"><a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a><span class="w">    </span><span class="nt">us</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">2</span><span class="w">                               </span><span class="c1"># US Medicare/HEDIS 48h stay</span>
-</span><span id="__span-4-10"><a id="__codelineno-4-10" name="__codelineno-4-10" href="#__codelineno-4-10"></a><span class="w">  </span><span class="nt">department</span><span class="p">:</span><span class="w"> </span><span class="s">"obgyn"</span><span class="w">                   </span><span class="c1"># 無い場合 internal_medicine に rollup</span>
+</span><span id="__span-4-10"><a id="__codelineno-4-10" name="__codelineno-4-10" href="#__codelineno-4-10"></a><span class="w">  </span><span class="nt">department</span><span class="p">:</span><span class="w"> </span><span class="s">"obstetrics_gynecology"</span><span class="w">   </span><span class="c1"># 無い場合 department_rollup で集約 (同梱の病院は primary_care)</span>
 </span><span id="__span-4-11"><a id="__codelineno-4-11" name="__codelineno-4-11" href="#__codelineno-4-11"></a>
 </span><span id="__span-4-12"><a id="__codelineno-4-12" name="__codelineno-4-12" href="#__codelineno-4-12"></a><span class="nt">procedure</span><span class="p">:</span>
 </span><span id="__span-4-13"><a id="__codelineno-4-13" name="__codelineno-4-13" href="#__codelineno-4-13"></a><span class="w">  </span><span class="nt">jp_code</span><span class="p">:</span><span class="w"> </span><span class="s">"K894"</span><span class="w">                       </span><span class="c1"># 分娩介助</span>

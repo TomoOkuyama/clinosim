@@ -2478,7 +2478,7 @@ Reference integrity を維持。</p>
     <code>outcome="aborted"</code> として close。cross-year 妊娠は
     <code>state_periods</code> 経由で carry — 詳細は
     <a href="../../architecture/architecture-notes.ja/">architecture-notes §9</a>。</li>
-<li>妊婦健診 <code>Encounter</code> (AMB、obgyn) は妊娠週 12 / 24 / 36 で
+<li>妊婦健診 <code>Encounter</code> (AMB、obstetrics_gynecology) は妊娠週 12 / 24 / 36 で
     encounter reason Z34。Z34 は problem-list-item Condition を
     emit しない (妊娠は state、慢性状態ではない)。</li>
 <li>母親側分娩 <code>Encounter</code> (IMP 入院、admit dx O80、discharge dx
@@ -2486,7 +2486,7 @@ Reference integrity を維持。</p>
     (US 32.1 % / JP 20.4 %、<code>perinatal.yaml::cesarean</code>) では admit dx
     O82、JP K898 / US CPT 59510 を代わりに使用。</li>
 <li>産褥 <code>Encounter</code> × 2 (分娩後 7 d と 28 d、encounter reason
-    <code>Z39</code>、obgyn)。</li>
+    <code>Z39</code>、obstetrics_gynecology)。</li>
 <li>中絶 outcome (age-gate 15-19 → 35-44) — 外来日帰り手術
     <code>Encounter</code> with O03.9 (自然) or O04.5 (人工)。発火時は
     delivery + newborn chain を skip、period は <code>outcome="aborted"</code>

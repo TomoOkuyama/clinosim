@@ -2605,7 +2605,7 @@ hospital encounter に変換される。これにより疫学が人口レベル�
 <td><code>chronic_visit</code> (<code>condition_type="prenatal_visit"</code>、<code>disease_id="Z34"</code>)</td>
 <td>15-49 歳女性で active な <code>TemporalStatePeriod(state_type="pregnancy")</code> を持つ患者</td>
 <td>LMP からの妊娠週 12 / 24 / 36、出所は <code>perinatal.yaml::lifecycle.prenatal_visit_gestational_weeks</code></td>
-<td><code>_simulate_outpatient_visit(visit_type="chronic_followup")</code>、<code>_CHRONIC_DISEASE_SPECIALTY</code> 経由で <code>obgyn</code> に routing</td>
+<td><code>_simulate_outpatient_visit(visit_type="chronic_followup")</code>、<code>_CHRONIC_DISEASE_SPECIALTY</code> 経由で <code>obstetrics_gynecology</code> に routing</td>
 </tr>
 <tr>
 <td><code>delivery</code></td>
@@ -2617,7 +2617,7 @@ hospital encounter に変換される。これにより疫学が人口レベル�
 <td><code>chronic_visit</code> (<code>condition_type="postpartum"</code>、<code>disease_id="Z39"</code>)</td>
 <td>同じ delivered pregnancy period</td>
 <td><code>delivery_date</code> の 7 d + 28 d 後、出所は <code>perinatal.yaml::lifecycle.postpartum_visit_offsets_days</code></td>
-<td><code>_simulate_outpatient_visit(visit_type="chronic_followup")</code>、<code>obgyn</code> に routing</td>
+<td><code>_simulate_outpatient_visit(visit_type="chronic_followup")</code>、<code>obstetrics_gynecology</code> に routing</td>
 </tr>
 <tr>
 <td><code>abortion</code></td>

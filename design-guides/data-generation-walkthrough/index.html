@@ -2866,7 +2866,7 @@ schedule cannot cascade into unrelated patients' timelines
 <td><code>chronic_visit</code> (<code>condition_type="prenatal_visit"</code>, <code>disease_id="Z34"</code>)</td>
 <td>Women 15-49 with an active <code>TemporalStatePeriod(state_type="pregnancy")</code></td>
 <td>Gestational weeks 12 / 24 / 36 from LMP, from <code>perinatal.yaml::lifecycle.prenatal_visit_gestational_weeks</code></td>
-<td><code>_simulate_outpatient_visit(visit_type="chronic_followup")</code> routed to <code>obgyn</code> via <code>_CHRONIC_DISEASE_SPECIALTY</code></td>
+<td><code>_simulate_outpatient_visit(visit_type="chronic_followup")</code> routed to <code>obstetrics_gynecology</code> via <code>_CHRONIC_DISEASE_SPECIALTY</code></td>
 </tr>
 <tr>
 <td><code>delivery</code></td>
@@ -2878,7 +2878,7 @@ schedule cannot cascade into unrelated patients' timelines
 <td><code>chronic_visit</code> (<code>condition_type="postpartum"</code>, <code>disease_id="Z39"</code>)</td>
 <td>Same delivered pregnancy periods</td>
 <td>7 d + 28 d after <code>delivery_date</code>, from <code>perinatal.yaml::lifecycle.postpartum_visit_offsets_days</code></td>
-<td><code>_simulate_outpatient_visit(visit_type="chronic_followup")</code> routed to <code>obgyn</code></td>
+<td><code>_simulate_outpatient_visit(visit_type="chronic_followup")</code> routed to <code>obstetrics_gynecology</code></td>
 </tr>
 <tr>
 <td><code>abortion</code></td>

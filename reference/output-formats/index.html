@@ -2581,7 +2581,7 @@ described in
     <code>outcome="delivered"</code>, or on the abortion date with
     <code>outcome="aborted"</code>. Cross-year pregnancies carry via
     <code>state_periods</code> — see <a href="../../architecture/architecture-notes/">architecture-notes §9</a>.</li>
-<li>Prenatal visit <code>Encounter</code>s (AMB, obgyn) at gestational
+<li>Prenatal visit <code>Encounter</code>s (AMB, obstetrics_gynecology) at gestational
     weeks 12 / 24 / 36 with encounter reason Z34. Z34 does NOT emit
     a problem-list-item Condition (pregnancy is a state, not a
     chronic condition).</li>
@@ -2591,7 +2591,7 @@ described in
     <code>perinatal.yaml::cesarean</code>) use admit dx O82 and JP K898 / US CPT
     59510 instead.</li>
 <li>Postpartum <code>Encounter</code>s × 2 at 7 d and 28 d after delivery with
-    encounter reason <code>Z39</code> (obgyn).</li>
+    encounter reason <code>Z39</code> (obstetrics_gynecology).</li>
 <li>Abortion outcome (age-gated 15-19 → 35-44) — outpatient
     day-surgery <code>Encounter</code> with O03.9 (spontaneous) or O04.5
     (induced). If fired, delivery + newborn chain are skipped and
