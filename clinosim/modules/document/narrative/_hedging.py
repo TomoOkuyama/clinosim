@@ -36,7 +36,7 @@ def hedged_phrase(
     value: str,
     *,
     confirmed: bool,
-    lang: str = "ja",
+    lang: str = "en",
     rng: random.Random | None = None,
     **placeholders: str,
 ) -> str:
@@ -66,7 +66,7 @@ def hedged_phrase(
     registry = _load_registry()
     entry = registry.get(topic) or {}
     branch = entry.get("confirmed" if confirmed else "unconfirmed") or {}
-    phrases = branch.get(lang) or branch.get("ja") or []
+    phrases = branch.get(lang) or branch.get("en") or []  # Issue #2273: English fallback
     if not phrases:
         return ""
     if rng is not None:

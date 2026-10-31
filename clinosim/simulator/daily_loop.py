@@ -220,7 +220,7 @@ def _run_daily_loop(
     roster: StaffRoster,
     rng: np.random.Generator,
     chronic_monitoring: list[dict] | None = None,
-    country_key: str = "japan",
+    country_key: str = "us",
     min_los: int = 3,
     hospital_state: Any = None,
     hospital_ops: dict | None = None,

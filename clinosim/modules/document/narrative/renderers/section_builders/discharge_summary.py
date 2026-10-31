@@ -290,7 +290,8 @@ def build_discharge_instructions(generator: TemplateNarrativeGenerator, ctx: Nar
 
     parts = []
     for key, bi_lang in instructions.items():
-        text = bi_lang.get(lang) or bi_lang.get("ja") or bi_lang.get("en") or ""
+        # Issue #2273: missing language falls back to English, never Japanese.
+        text = bi_lang.get(lang) or bi_lang.get("en") or ""
         if text:
             parts.append(text)
 
@@ -303,7 +304,7 @@ def build_follow_up(generator: TemplateNarrativeGenerator, ctx: NarrativeContext
 
     instructions = generator._resolve_discharge_instructions(ctx)
     follow_up_entry = instructions.get("follow_up") or {}
-    text = follow_up_entry.get(lang) or follow_up_entry.get("ja") or follow_up_entry.get("en") or ""
+    text = follow_up_entry.get(lang) or follow_up_entry.get("en") or ""
     if not text:
         text = t("fallback.follow_up_default", lang)
     return text, ["discharge_instructions.follow_up"]

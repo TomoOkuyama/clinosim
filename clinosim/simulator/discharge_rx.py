@@ -181,7 +181,7 @@ def build_discharge_rx(
     rng: np.random.Generator | None = None,
     *,
     encounter_id: str = "",
-    country_key: str = "japan",
+    country_key: str = "us",
     final_renal_function: float = 1.0,
 ) -> PrescriptionRecord:
     """Build discharge prescription from protocol.
