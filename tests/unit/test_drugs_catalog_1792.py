@@ -111,13 +111,21 @@ def test_parse_catalog_drops_blank_code_values():
         "drugs": {
             "d": {
                 "names": {"en": "D", "ja": "D"},
-                "codes": {"rxnorm": "", "yj": "1234567890AB"},
+                "codes": {"rxnorm": "", "yj": {"oral": "1234567890AB", "injection": ""}},
             }
         }
     }
     rec = _parse_catalog(data)["d"]
     assert "rxnorm" not in rec.codes
     assert rec.codes["yj"] == "1234567890AB"
+    assert rec.yj_by_route == {"oral": "1234567890AB"}
+
+
+def test_parse_catalog_rejects_a_yj_code_without_a_route_class():
+    """``codes.yj`` maps a route class to a YJ product (Issue #2347)."""
+    data = {"drugs": {"d": {"names": {"en": "D", "ja": "D"}, "codes": {"yj": "1234567890AB"}}}}
+    with pytest.raises(ValueError, match="route class"):
+        _parse_catalog(data)
 
 
 # ---------------------------------------------------------------------------

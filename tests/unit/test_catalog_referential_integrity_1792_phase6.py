@@ -94,6 +94,15 @@ def test_every_drug_id_reference_resolves_against_catalog() -> None:
     )
 
 
+# Drugs with no RxNorm ingredient and no JP product in the clinosim-shipped
+# YJ CodeSystem: emitted in the eCS ``nocoded`` slice (Issue #2347).
+_UNCODED_BY_DESIGN = {
+    # Non-lactated Ringer's: the MHLW master lists only the unified-name
+    # リンゲル液 (3319539A1015 / A2011), absent from JP_MedicationCodeYJ_CS_full.
+    "ringer_solution",
+}
+
+
 def test_every_catalog_drug_has_authority_pointer() -> None:
     """Catalog shape invariant: every drug_id in drugs.yaml carries at
     least ONE authority code pointer — ``codes.rxnorm`` (US-NLM),
@@ -117,6 +126,8 @@ def test_every_catalog_drug_has_authority_pointer() -> None:
     offenders: list[str] = []
     for drug_id in all_drug_ids():
         rec = resolve_drug(drug_id)
+        if drug_id in _UNCODED_BY_DESIGN:
+            continue
         if not any(rec.codes.get(key) for key in ("rxnorm", "yj", "hot7")):
             offenders.append(drug_id)
     assert not offenders, (

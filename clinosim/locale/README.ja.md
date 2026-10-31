@@ -65,7 +65,9 @@ from clinosim.locale.text import (
 表示名は `clinosim/codes/` にある。`load_med_terms_ja` は `load_med_terms` の
 `ja` のみ view (deprecated)。`load_code_mapping("drug", country)` は
 `<country>/code_mapping_drug.yaml` と薬剤 identity カタログ
-`clinosim/codes/data/drugs.yaml` を union する (キー衝突時は yaml 優先)。
+`clinosim/codes/data/drugs.yaml` を union する (キー衝突時は yaml 優先)。JP には
+このファイルが無い。JP の薬コードはカタログの YJ 製品コードで、
+`clinosim.codes.drugs.jp_drug_code` が投与経路で選ぶ (Issue #2347)。
 
 ## 決定性
 

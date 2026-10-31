@@ -35,7 +35,7 @@ def test_us_drug_codes_are_rxnorm() -> None:
     ("drug", "country", "expected"),
     [
         ("milnacipran", "US", ("rxnorm", "588250")),  # IN, not the PIN 30003 (RxNav)
-        ("elcatonin", "JP", ("yj", "3999401A1200")),  # MHLW YJ master
+        ("elcatonin", "JP", ("yj", "3999401A3024")),  # MHLW YJ master; 20S matches the 20-unit dose (#2347)
         ("nafamostat", "JP", ("yj", "3999407D1181")),
     ],
 )

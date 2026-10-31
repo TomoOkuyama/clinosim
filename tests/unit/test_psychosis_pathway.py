@@ -38,8 +38,8 @@ def test_ed_crisis_for_schizophrenia_or_bipolar() -> None:
 
 @pytest.mark.parametrize(("country", "code"), [("US", "5093"), ("JP", "1179404")])
 def test_haloperidol_codes(country: str, code: str) -> None:
-    concept, _ = _resolve_medication_concept("Haloperidol 5mg", order_code="", country=country)
-    assert concept["coding"][0]["code"] == code
+    concept, _ = _resolve_medication_concept("Haloperidol 5mg", order_code="", country=country, route="IM")
+    assert concept["coding"][0]["code"].startswith(code)  # JP: a full YJ product (Issue #2347)
 
 
 def test_admission_protocol() -> None:

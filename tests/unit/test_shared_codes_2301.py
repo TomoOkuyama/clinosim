@@ -53,7 +53,7 @@ def test_audit_hai_codes_come_from_hai_codes_yaml() -> None:
 def test_eval_warfarin_codes_follow_catalog_and_mappings() -> None:
     name = resolve_drug("warfarin").names["en"]
     assert clinical._WARFARIN_RXNORM == resolve_drug("warfarin").codes["rxnorm"]
-    assert clinical._WARFARIN_YJ_PREFIX == load_code_mapping("drug", "JP")[name]
+    assert clinical._WARFARIN_YJ_PREFIX == load_code_mapping("drug", "JP")[name][:7]
     assert clinical._PT_INR_LOINC == load_code_mapping("lab", "US")["PT_INR"]
 
 

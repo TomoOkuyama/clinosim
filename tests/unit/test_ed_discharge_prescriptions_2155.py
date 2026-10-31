@@ -89,7 +89,7 @@ def test_locale_exclusion_drops_drugs_not_marketed_in_japan(monkeypatch: pytest.
     assert "Oxycodone" not in _drugs(_visit(cond, country="JP"))
 
 
-def _protocol_drugs() -> list[tuple[str, str]]:
+def _protocol_drugs() -> list[tuple[str, str, str]]:
     import glob
 
     import yaml
@@ -101,17 +101,17 @@ def _protocol_drugs() -> list[tuple[str, str]]:
                 if country in (rx.get("locale_exclude") or []):
                     continue
                 name = (rx.get("locale_name") or {}).get(country.lower()) or rx["drug"]
-                out.add((country, name))
+                out.add((country, name, str(rx.get("route") or "")))
     return sorted(out)
 
 
-@pytest.mark.parametrize(("country", "drug"), _protocol_drugs())
-def test_every_protocol_prescription_is_coded(country: str, drug: str) -> None:
+@pytest.mark.parametrize(("country", "drug", "route"), _protocol_drugs())
+def test_every_protocol_prescription_is_coded(country: str, drug: str, route: str) -> None:
     from clinosim.simulator.emergency import _DOSE_IN_NAME
 
     item_name = " ".join(_DOSE_IN_NAME.sub("", drug).split())
     for name in (drug, item_name):
-        concept, _ = _resolve_medication_concept(name, order_code="", country=country)
+        concept, _ = _resolve_medication_concept(name, order_code="", country=country, route=route)
         assert concept["coding"][0]["code"] != "NOCODED", f"{country}: {name}"
 
 

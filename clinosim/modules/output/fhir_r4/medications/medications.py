@@ -17,7 +17,7 @@ from clinosim.codes import (
     system_key_for,
 )
 from clinosim.codes import lookup as code_lookup
-from clinosim.codes.drugs import drug_system_uri, is_verified_yj
+from clinosim.codes.drugs import drug_system_uri, is_verified_yj, jp_drug_code_table
 from clinosim.codes.ucum import ucum_quantity
 from clinosim.locale.loader import load_code_mapping
 from clinosim.modules._shared import (
@@ -483,6 +483,14 @@ def _mr_intent_from_order(order: dict, encounter_type: str = "") -> str:
     return "order"
 
 
+def _drug_code_table(country_code: str, route: str) -> dict[str, str]:
+    """Drug name → code table the builders match order names against: RxNorm
+    for the US, the catalog's JP YJ product for ``route`` for JP (Issue #2347)."""
+    if is_jp(country_code):
+        return jp_drug_code_table(route)
+    return load_code_mapping("drug", country_code)
+
+
 def _case_insensitive_code(drug_codes: dict[str, str], name: str) -> tuple[str, str] | None:
     """``(code, key)`` for the mapping keys equal to ``name`` ignoring case,
     when they all carry one code; None when absent or ambiguous."""
@@ -495,6 +503,7 @@ def _resolve_medication_concept(
     display_name_raw: str,
     order_code: str,
     country: str,
+    route: str = "",
 ) -> tuple[dict[str, Any], str]:
     """Resolve a raw drug display name into a FHIR `medicationCodeableConcept`.
 
@@ -504,6 +513,12 @@ def _resolve_medication_concept(
     JP HOT7/HOT9/HOT13/YJ system dispatch, tx-server-unverified-YJ downgrade to the
     eCS `nocoded` slice, and locale display resolution. Re-implementing any of that
     at a second call site is the duplication this helper exists to prevent.
+
+    JP codes come from the drug catalog by drug and ``route``
+    (``clinosim.codes.drugs.jp_drug_code_table``, Issue #2347): a YJ code names
+    one product form, so the order route picks it, and ``order_code`` is not
+    used for JP. A drug with no listed product for the route goes to the eCS
+    ``nocoded`` slice.
 
     Returns `(medicationCodeableConcept, rate_adjustment_note)`. The second element is
     the continuous-infusion rate-adjustment suffix peeled off the display name (session
@@ -524,7 +539,7 @@ def _resolve_medication_concept(
 
     country_code = "JP" if is_jp(country) else "US"
     lang = resolve_lang(country_code)
-    drug_codes = load_code_mapping("drug", country_code)  # name → RxNorm/YJ
+    drug_codes = _drug_code_table(country_code, route)
 
     # C3-10: multi-word drug names (e.g. "Normal saline",
     # "Regular insulin") previously failed the base-only lookup because
@@ -537,7 +552,7 @@ def _resolve_medication_concept(
     # missed the code_mapping match. Simultaneously honor Order.order_code
     # when the disease YAML already supplies an authoritative `code_yj` /
     # `code_rxnorm` (Order.order_code is set at place_admission_orders time).
-    code_value = order_code or ""
+    code_value = "" if is_jp(country_code) else (order_code or "")
     # Hoisted (Issue #852 follow-up): tokens are needed by BOTH the
     # code_mapping lookup (when order_code is empty) AND the JA multi-
     # word extension below (which must run regardless of order_code).
@@ -859,6 +874,7 @@ def _build_medication_request(
         order.get("display_name", "Unknown medication"),
         order.get("order_code", "") or "",
         country,
+        route=str(order.get("route", "") or ""),
     )
     country_code = "JP" if is_jp(country) else "US"
 
@@ -1179,7 +1195,7 @@ def _build_discharge_medication_request(
     duration_days = _supply_duration_days(get_attr_or_key(item, "duration_days", None))
 
     country_code = "JP" if is_jp(country) else "US"
-    med_concept, rate_adjustment_note = _resolve_medication_concept(drug_name, "", country)
+    med_concept, rate_adjustment_note = _resolve_medication_concept(drug_name, "", country, route=route)
 
     # Issue #853: opaque id. Structural key = same compound the pre-#853 id
     # encoded (``{encounter_id}-{seq:02d}``) so downstream consumers can
@@ -1486,11 +1502,12 @@ def _build_medication_admin(
     base_name = drug_name_clean.split(" ")[0] if drug_name_clean else ""
     country_code = "JP" if is_jp(country) else "US"
     lang = resolve_lang(country_code)
-    drug_codes = load_code_mapping("drug", country_code)
+    drug_codes = _drug_code_table(country_code, str(mar.get("route", "") or ""))
     # C3-10: longest-match-wins for multi-word keys.
-    # CO-8 (Chain 4 2026-07-11): normalize underscores + honor MAR.code_yj
-    # if downstream ever propagates the Order's code (see _build_medication_request).
-    code_value = mar.get("code_yj", "") or ""
+    # CO-8 (Chain 4 2026-07-11): normalize underscores + honor the MAR-carried
+    # order code for the US. JP codes come from the catalog by drug and route
+    # (Issue #2347), never from a MAR-carried code.
+    code_value = "" if is_jp(country_code) else (mar.get("code_yj", "") or "")
     # Hoisted (Issue #852 follow-up): tokens are needed by BOTH the
     # code_mapping lookup and the JA multi-word extension below (which
     # must run regardless of code_value — see MR builder for full rationale).
