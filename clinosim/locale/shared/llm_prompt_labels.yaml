@@ -78,17 +78,6 @@ oxygen_device:
   cpap: {ja: CPAP}
   bipap: {ja: BiPAP}
   niv: {ja: NIV}
-arrival_mode:
-  walk_in: {ja: 独歩来院}
-  walk-in: {ja: 独歩来院}
-  walkin: {ja: 独歩来院}
-  self: {ja: 独歩来院}
-  ambulance: {ja: 救急車搬送}
-  ems: {ja: 救急車搬送}
-  helicopter: {ja: ヘリ搬送}
-  transfer: {ja: 転院搬送}
-  public: {ja: 公共交通機関来院}
-  private: {ja: 自家用車来院}
 risk_level:
   low: {ja: 低リスク}
   low_risk: {ja: 低リスク}
@@ -146,22 +135,6 @@ lab_name:
   troponin: {ja: トロポニン}
   troponin i: {ja: トロポニンI}
   troponin t: {ja: トロポニンT}
-smoking:
-  never: {en: non-smoker, ja: 非喫煙}
-  never_smoker: {en: non-smoker, ja: 非喫煙}
-  current: {en: current smoker, ja: 現喫煙}
-  current_smoker: {en: current smoker, ja: 現喫煙}
-  former: {en: former smoker, ja: 元喫煙}
-  former_smoker: {en: former smoker, ja: 元喫煙}
-alcohol:
-  none: {en: non-drinker, ja: 飲酒なし}
-  never: {en: non-drinker, ja: 飲酒なし}
-  occasional: {en: occasional alcohol, ja: 機会飲酒}
-  social: {en: social drinker, ja: 機会飲酒}
-  light: {en: light alcohol use, ja: 少量飲酒}
-  moderate: {en: moderate alcohol use, ja: 中等度飲酒}
-  heavy: {en: heavy alcohol use, ja: 多量飲酒}
-  former: {en: former drinker (abstinent), ja: 断酒中}
 marital:
   single: {en: single, ja: 独身}
   married: {en: married, ja: 既婚}
@@ -182,38 +155,6 @@ employment:
   student: {en: student, ja: 学生}
   homemaker: {en: homemaker, ja: 主婦・主夫}
   disabled: {en: unable to work (disability), ja: 就労困難}
-occupation:
-  office: {en: office worker, ja: 事務職}
-  service: {en: service industry, ja: サービス業}
-  healthcare: {en: healthcare worker, ja: 医療従事者}
-  manufacturing: {en: manufacturing worker, ja: 製造業}
-  construction: {en: construction worker, ja: 建設業}
-  agriculture: {en: agricultural worker, ja: 農業従事者}
-  transportation: {en: transportation worker, ja: 運輸業}
-  sales: {en: sales worker, ja: 販売職}
-  hospitality: {en: hospitality worker, ja: 接客業}
-  retail: {en: retail worker, ja: 小売業}
-  education: {en: educator, ja: 教育関係者}
-  government: {en: government employee, ja: 公務員}
-  finance: {en: finance professional, ja: 金融業}
-  it: {en: IT professional, ja: IT 関係者}
-  professional: {en: professional, ja: 専門職}
-  management: {en: manager, ja: 管理職}
-  self_employed: {en: self-employed, ja: 自営業}
-  preschool: {en: preschooler, ja: 未就学児}
-  elementary_student: {en: elementary school student, ja: 小学生}
-  middle_student: {en: middle school student, ja: 中学生}
-  middle_school_student: {en: middle school student, ja: 中学生}
-  high_student: {en: high school student, ja: 高校生}
-  high_school_student: {en: high school student, ja: 高校生}
-  university_student: {en: university student, ja: 大学生}
-  student: {en: student, ja: 学生}
-  infant: {en: infant, ja: 乳幼児}
-  homemaker: {en: homemaker, ja: 主婦・主夫}
-  retired: {en: retired, ja: 退職}
-  unemployed: {en: unemployed, ja: 無職}
-  disabled: {en: unable to work, ja: 就労困難}
-  other: {en: other, ja: その他}
 race:
   white: {en: white, ja: 白人}
   black: {en: Black or African American, ja: 黒人}

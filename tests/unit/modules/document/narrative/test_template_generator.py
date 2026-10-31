@@ -654,7 +654,7 @@ def test_social_history_localizes_alcohol_social_ja() -> None:
     gen = TemplateNarrativeGenerator()
     out = gen.generate(ctx, spec)
     social_text = out.sections.get("social_history", "")
-    assert "社交的飲酒" in social_text
+    assert "機会飲酒" in social_text  # shared vocabulary (Issue #2269)
     assert "飲酒状況不明" not in social_text
 
 
