@@ -87,7 +87,12 @@ from clinosim.modules.output.fhir_r4.documents.referral_orgs import (
     pick_external_hospital,
 )
 from clinosim.modules.output.fhir_r4.encounters.encounter import encounter_ref, resolve_encounter_id
-from clinosim.modules.output.fhir_r4.lib.common import BundleContext, _escape_html, derive_meta_last_updated
+from clinosim.modules.output.fhir_r4.lib.common import (
+    BundleContext,
+    _escape_html,
+    derive_meta_last_updated,
+    dual_slot_concept,
+)
 from clinosim.modules.output.fhir_r4.lib.ids import derive_opaque_id
 from clinosim.modules.output.fhir_r4.lib.localization import _clinician_role_rows
 
@@ -1089,16 +1094,10 @@ def _build_jp_death_certificate_composition(
     # fallback to the hardcoded JP display when yaml lookup fails (yaml
     # is the source of truth per feedback_constants_live_in_external_config).
     disp = registry_display("jpfhir-doc-typecodes", "64297-5", lang) or _DEATH_CERT_TYPE_DISPLAY_JA
-    comp["type"] = {
-        "coding": [
-            {"system": _JPFHIR_DOC_TYPECODES_SYSTEM, "code": "64297-5", "display": disp},
-        ],
-        # Dual-slot at emit site (feedback_dual_slot_at_emit_site_not_post_process):
-        # `.text` carries the JP display so consumers reading the
-        # CodeableConcept.text see 死亡診断書 even if a post-process walker
-        # ever strips the JP display from a coding under an English-only CS.
-        "text": disp,
-    }
+    # Dual-slot at the emit site (Issue #2276): doc-typecodes is a JP
+    # CodeSystem, so the coding keeps the Japanese display and `.text` carries
+    # the same label.
+    comp["type"] = dual_slot_concept("jpfhir-doc-typecodes", "64297-5", lang, text=disp, fallback_display=disp)
     comp["title"] = disp
     return comp
 

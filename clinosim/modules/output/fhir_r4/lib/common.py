@@ -80,7 +80,8 @@ from typing import Any
 
 import yaml
 
-from clinosim.codes import get_system_uri
+from clinosim.codes import display as registry_display
+from clinosim.codes import get_system_uri, is_english_only_system
 from clinosim.codes import lookup as code_lookup
 from clinosim.codes.prefectures import prefecture_code
 from clinosim.codes.ucum import ucum_quantity
@@ -252,6 +253,37 @@ def _escape_html(s: str) -> str:
     unification rule — no inline duplication).
     """
     return s.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace('"', "&quot;")
+
+
+def dual_slot_concept(
+    system_key: str,
+    code: str,
+    lang: str,
+    *,
+    text: str | None = None,
+    fallback_display: str = "",
+) -> dict[str, Any]:
+    """A CodeableConcept in the dual-slot shape (Issue #2276).
+
+    For an English-only CodeSystem (:func:`clinosim.codes.is_english_only_system`)
+    ``coding.display`` is the English canonical display and ``text`` carries
+    the label in ``lang``; for other systems ``coding.display`` is the display
+    in ``lang`` (then English). ``text`` defaults to the registry display in
+    ``lang``; ``fallback_display`` is used for the coding when the registry has
+    no display. Absent displays are omitted rather than echoing the code.
+    """
+    english_only = is_english_only_system(system_key)
+    display = registry_display(system_key, code, "en" if english_only else lang)
+    if not display and not english_only:
+        display = registry_display(system_key, code, "en")
+    coding: dict[str, Any] = {"system": get_system_uri(system_key), "code": code}
+    if display or fallback_display:
+        coding["display"] = display or fallback_display
+    concept: dict[str, Any] = {"coding": [coding]}
+    label = text if text is not None else registry_display(system_key, code, lang)
+    if label:
+        concept["text"] = label
+    return concept
 
 
 def _coding_with_display(system_key: str, code: str, lang: str) -> dict:

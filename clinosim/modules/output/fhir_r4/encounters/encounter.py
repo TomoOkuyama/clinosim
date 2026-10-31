@@ -26,6 +26,7 @@ from clinosim.modules.output.fhir_r4.conditions.primary_ref import (
 from clinosim.modules.output.fhir_r4.demographics.patient import patient_ref
 from clinosim.modules.output.fhir_r4.lib.common import (
     _coding_with_display,
+    dual_slot_concept,
     make_participant,
     map_diagnosis_code,
     map_encounter_status,
@@ -95,21 +96,10 @@ def _build_hosp_concept(system_key: str, code: str, lang: str) -> dict[str, Any]
     the EN canonical display on ``coding.display`` (survives HAPI
     validation and the strip walker) and pairs it with a locale-resolved
     ``.text`` slot (the JP label for JP output, EN for US output) so the
-    CodeableConcept always renders a human-readable label.
+    CodeableConcept always renders a human-readable label. Built by the
+    shared ``dual_slot_concept`` (Issue #2276).
     """
-    en_display = code_lookup(system_key, code, "en")
-    localized = code_lookup(system_key, code, lang)
-    coding: dict[str, Any] = {"system": get_system_uri(system_key), "code": code}
-    if en_display and en_display != code:
-        coding["display"] = en_display
-    concept: dict[str, Any] = {"coding": [coding]}
-    # `.text` is the locale-appropriate human-readable label. Only emit
-    # when the lookup produced something meaningful (`localized == code`
-    # means the CS registry has no entry — no `.text` is better than a
-    # bare code duplicate).
-    if localized and localized != code:
-        concept["text"] = localized
-    return concept
+    return dual_slot_concept(system_key, code, lang)
 
 
 def _compute_encounter_length(start_iso: str, end_iso: str) -> dict[str, Any] | None:

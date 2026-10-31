@@ -20,11 +20,13 @@ international standards; translations are one of the code's attributes.
 """
 
 from clinosim.codes.loader import (
+    ENGLISH_ONLY_SYSTEM_PREFIXES,
     CodeSystem,
     code_exists,
     display,
     get_display,
     get_system_uri,
+    is_english_only_system,
     lookup,
     slug_to_code,
     system_key_for,
@@ -33,6 +35,8 @@ from clinosim.codes.loader import (
 from clinosim.codes.match import has_icd_prefix
 
 __all__ = [
+    "ENGLISH_ONLY_SYSTEM_PREFIXES",
+    "is_english_only_system",
     "CodeSystem",
     "code_exists",
     "display",

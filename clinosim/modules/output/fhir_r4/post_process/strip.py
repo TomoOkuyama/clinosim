@@ -17,6 +17,8 @@ from __future__ import annotations
 
 from typing import Any
 
+from clinosim.codes import ENGLISH_ONLY_SYSTEM_PREFIXES
+
 
 def _strip_forbidden_observation_reference_range_extensions(resource: dict) -> None:
     """Remove `extension` / `modifierExtension` from every
@@ -77,14 +79,8 @@ def _strip_forbidden_observation_reference_range_extensions(resource: dict) -> N
 #
 # JP-specific CodeSystem(JP Core / JP-CLINS / MEDIS HOT / YJ code /
 # clinosim custom)は本 prefix に含まれず、日本語 display が preserve される。
-_ENGLISH_ONLY_CODING_SYSTEM_PREFIXES: tuple[str, ...] = (
-    "http://loinc.org",
-    "http://snomed.info/sct",
-    "http://terminology.hl7.org/",
-    "http://hl7.org/fhir/",
-    "http://dicom.nema.org/",
-    "http://unitsofmeasure.org",
-)
+# Issue #2276: the registry lives in clinosim.codes (is_english_only_system).
+_ENGLISH_ONLY_CODING_SYSTEM_PREFIXES: tuple[str, ...] = ENGLISH_ONLY_SYSTEM_PREFIXES
 
 
 def _contains_japanese_char(text: str) -> bool:
