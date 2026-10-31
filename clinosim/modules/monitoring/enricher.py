@@ -134,14 +134,16 @@ def _inject_for_record(
     )
 
     true_labs = _derive_true_labs_for_patient(patient, matched_drugs)
+    from clinosim.modules.monitoring.mapping import matched_medication_names
+
+    patient_drug_names = matched_medication_names(meds, mapping)
 
     injected_count = 0
     for drug in matched_drugs:
         drug_entry = mapping[drug]
-        # Issue #871: JA display for the drug (used to compose the JP
-        # `Order.clinical_intent_ja` template). Falls back to the canonical
-        # EN drug key when the YAML has no `drug_ja` slot.
-        drug_ja = str(drug_entry.get("drug_ja") or drug)
+        # Issue #2294: order text names the drug the patient takes; the rule
+        # key (e.g. "Atorvastatin") also matches other drugs of its class.
+        drug_name, drug_ja = patient_drug_names.get(drug, (drug, str(drug_entry.get("drug_ja") or drug)))
         for lab_spec in drug_entry.get("monitoring") or []:
             analyte = canonical_lab_name(str(lab_spec.get("lab") or ""))
             if not analyte or analyte in existing:
@@ -157,13 +159,13 @@ def _inject_for_record(
                 analyte=analyte,
                 display_name=str(lab_spec.get("lab") or analyte),
                 loinc=str(lab_spec.get("loinc") or ""),
-                rationale=str(lab_spec.get("rationale") or f"{drug} monitoring"),
+                rationale=str(lab_spec.get("rationale") or f"{drug_name} monitoring"),
                 # Issue #871: JA rationale for the JP `reasonCode.text` emit
                 # path. Empty when the YAML has no `rationale_ja` slot yet;
                 # `_inject_one_lab` then leaves `clinical_intent_ja` empty
                 # and the SR emitter falls back to the EN string.
                 rationale_ja=str(lab_spec.get("rationale_ja") or ""),
-                drug=drug,
+                drug=drug_name,
                 drug_ja=drug_ja,
                 true_value=true_labs.get(analyte),
                 enricher_rng=enricher_rng,

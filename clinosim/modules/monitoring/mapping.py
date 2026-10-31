@@ -67,6 +67,29 @@ def load_medication_monitoring(path: Path | None = None) -> dict[str, Any]:
     return mappings
 
 
+def matched_medication_names(current_medications: list, mapping: dict[str, Any]) -> dict[str, tuple[str, str]]:
+    """Map each matched monitoring rule to the (English, Japanese) name of the
+    drug the patient actually takes (Issue #2294).
+
+    A rule's aliases cover other drugs of the same class (the Atorvastatin
+    rule also matches rosuvastatin), so order text must name the patient's
+    drug, not the rule key. The rule's ``drug_ja`` is used only when the
+    medication is the rule drug itself and carries no Japanese name.
+    """
+    out: dict[str, tuple[str, str]] = {}
+    for drug, entry in mapping.items():
+        needles = [drug.lower(), *(str(a).lower() for a in (entry.get("aliases") or []))]
+        for med in current_medications or []:
+            name = str(getattr(med, "drug_name", None) or (med if isinstance(med, str) else ""))
+            if any(needle and needle in name.lower() for needle in needles):
+                name_ja = str(getattr(med, "drug_name_ja", "") or "")
+                if not name_ja and name.lower() == drug.lower():
+                    name_ja = str(entry.get("drug_ja") or "")
+                out[drug] = (name or drug, name_ja or name or drug)
+                break
+    return out
+
+
 def match_drugs(current_medications: list, mapping: dict[str, Any]) -> list[str]:
     """Return the list of canonical drug names the patient is on.
 
