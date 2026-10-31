@@ -21,6 +21,17 @@ codes:
   '277132007':
     en: Therapeutic procedure
     ja: 治療的処置
+  # === Severity qualifiers (Condition.severity; Issue #2259) ===
+  # Verified via tx.fhir.org $lookup.
+  '24484000':
+    en: Severe
+    ja: 重度
+  '6736007':
+    en: Moderate severity
+    ja: 中等度
+  '255604002':
+    en: Mild
+    ja: 軽度
   # === ServiceRequest category (PR1 lab orders, Tier 1 #2 imaging orders) ===
   # Verified via SNOMED International browser (https://browser.ihtsdotools.org/).
   '108252007':

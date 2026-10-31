@@ -64,14 +64,14 @@ category_display:
 severity_display:
   Mild: 軽度
   mild: 軽度
-  "24484000": 軽度
+  "255604002": 軽度
   Moderate: 中等度
   moderate: 中等度
   "6736007": 中等度
   Severe: 重度
   severe: 重度
+  "24484000": 重度
   "24484000|severe": 重度
-  "255604002": 重度
 
 # Observation.interpretation.coding.display — HL7 v3-ObservationInterpretation.
 # Susceptibility codes (R/S/I) deliberately excluded; those are
