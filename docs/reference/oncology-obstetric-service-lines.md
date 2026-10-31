@@ -46,13 +46,13 @@ Both service lines share the same emission-shape pattern:
 | Pregnancy as time-boxed lifecycle state (META #957 Incr 1) | Age-banded annual conception Bernoulli against MHLW 2022 (JP) / CDC NVSR 2022 (US) rates for women 15-49. Conception opens a `TemporalStatePeriod(state_type="pregnancy")` on `PersonRecord.state_periods` with metadata `{lmp, edd, planned_delivery_date}`; the period closes on the year containing the delivery date (with `outcome="delivered"`) or at the abortion date (with `outcome="aborted"`). | `perinatal.yaml::lifecycle.annual_conception_rate` + `population/_pregnancy.py::_pregnancy_lifecycle_events` + `types/patient.py::TemporalStatePeriod` |
 | Past-birth Z37 problem-list-item | One Z37 problem-list-item Condition per delivered pregnancy period, anchored at the delivery date. Biology-consistent — multi-parity woman emits multi-Z37. Derived at FHIR emit time from `state_history("pregnancy")`; **replaces the pre-Incr-1 chronic-sample proxy**. | `modules/output/fhir_r4/conditions/conditions.py::_build_conditions` (past-pregnancies adapter) |
 | Prenatal supplement Rx | Folic acid + iron attached as home medications when the person has any pregnancy history. Emit path unchanged (`chronic_medications.yaml::Z34`); gate switched from `chronic_conditions` to `state_periods` via a virtual Z34 `ChronicCondition` in the med-derivation input at activator time. | `locale/shared/chronic_medications.yaml` Z34 block + `modules/patient/activator.py` (state-based hook) |
-| Prenatal visits | AMB encounters at gestational weeks 12 / 24 / 36 (simplified from the full q4w/q2w/q1w cadence deferred to Incr 1.5), `disease_id="Z34"`, routed to `obgyn` via `_CHRONIC_DISEASE_SPECIALTY`. | `perinatal.yaml::lifecycle.prenatal_visit_gestational_weeks` + `population/_pregnancy.py::_pregnancy_lifecycle_events` |
+| Prenatal visits | AMB encounters at gestational weeks 12 / 24 / 36 (simplified from the full q4w/q2w/q1w cadence deferred to Incr 1.5), `disease_id="Z34"`, routed to `obstetrics_gynecology` via `_CHRONIC_DISEASE_SPECIALTY`. | `perinatal.yaml::lifecycle.prenatal_visit_gestational_weeks` + `population/_pregnancy.py::_pregnancy_lifecycle_events` |
 | Mother-side delivery inpatient encounter | One IMP encounter per delivered pregnancy period on the year containing the planned delivery date (EDD ± 7 d jitter). LOS 5 d JP / 2 d US, admission dx `O80`, discharge dx `Z37.0`, delivery Procedure. Cesarean deliveries (US 32.1 % / JP 20.4 %) use admission dx `O82` and LOS 8 d JP / 4 d US. | `locale/shared/perinatal.yaml::encounter` + `population/_pregnancy.py::_pregnancy_lifecycle_events` + `simulator/perinatal.py` |
 | Delivery Procedure | JP: `K894` 分娩介助 / US: CPT `59400` routine obstetric care; cesarean: JP `K898` 帝王切開術 / US CPT `59510` | `perinatal.yaml::procedure` + `perinatal.yaml::cesarean` |
 | Newborn `Patient` chain | Baby id `<mother>-BABY` (`<mother>-<N>-BABY` for the N-th birth of the same mother), household inherited, sex per-mother sub-RNG, birthDate = delivery date. The newborn enrolls in the simulated population the day after the birth stay ends (`PersonRecord.enrolled_from`) and is simulated like every other person from then on. | `simulator/perinatal.py` |
 | Newborn Encounter | IMP, `admit_source = born` (`AdmitSource.BORN`) + `admit_source_encounter_id` → FHIR `Encounter.partOf` on the newborn side | `simulator/perinatal.py` + `codes/hl7_encounter.py::AdmitSource.BORN` |
 | Z38.0 on newborn | Newborn discharge dx | `simulator/perinatal.py` |
-| Postpartum encounters × 2 | 7 d + 28 d after delivery date, `chronic_visit` with `disease_id="Z39"`, routed to `obgyn`. Year-boundary clamped (Dec 31) when the delivery is in December. | `perinatal.yaml::lifecycle.postpartum_visit_offsets_days` + `population/_pregnancy.py::_pregnancy_lifecycle_events` |
+| Postpartum encounters × 2 | 7 d + 28 d after delivery date, `chronic_visit` with `disease_id="Z39"`, routed to `obstetrics_gynecology`. Year-boundary clamped (Dec 31) when the delivery is in December. | `perinatal.yaml::lifecycle.postpartum_visit_offsets_days` + `population/_pregnancy.py::_pregnancy_lifecycle_events` |
 | Newborn perinatal conditions | P59.9 jaundice ~20 %, P07.3 preterm ~7 % (→ conditional P22.0 RDS ~35 %), L22 diaper dermatitis ~30 %, L20.9 atopic dermatitis ~15 % | `simulator/perinatal.py` (per-newborn sub-RNG) |
 | Abortion outcome (age-gated) | Spontaneous O03.9 / induced O04.5 outpatient day-surgery. Age-band probability 15-19: 40 % → 35-44: 7 %. When fired, the period closes with `outcome="aborted"` at gestational week ~10 (day 70 from LMP ± 14 d); delivery + newborn chain are skipped. | `locale/shared/perinatal.yaml::abortion` + `population/_pregnancy.py::_pregnancy_lifecycle_events` (abortion branch) |
 
@@ -126,14 +126,14 @@ simulator/engine.py::run_beta() → forward month loop
                                           → Encounter (AMB, oncology_infusion dept)
                                           → ProcedureRecord (chemotherapy_administration)
   event_type == "delivery"          →  simulate_delivery_encounter(...)
-                                          → Encounter (IMP, obgyn dept, LOS 5/2d)
+                                          → Encounter (IMP, obstetrics_gynecology dept, LOS 5/2d)
                                           → ProcedureRecord (delivery)
                                           → ClinicalDiagnosis(admission=O80 or O82 (cesarean), discharge=Z37.0)
                                           → newborn Patient chain
   event_type == "abortion"          →  simulate_abortion_encounter(...) (period closed already)
   event_type == "chronic_visit" with condition_type == "prenatal_visit" or "postpartum"
                                     →  routed through outpatient dispatch,
-                                        specialty = obgyn (via _CHRONIC_DISEASE_SPECIALTY)
+                                        specialty = obstetrics_gynecology (via _CHRONIC_DISEASE_SPECIALTY)
                       │
                       ▼
 activator.py::activate_patient() [cached per person]
@@ -292,7 +292,7 @@ encounter:
   length_of_stay_days:
     jp: 5                               # JSOG normal delivery LOS
     us: 2                               # US Medicare/HEDIS 48h stay
-  department: "obgyn"                   # falls back to internal_medicine
+  department: "obstetrics_gynecology"   # rolls up via department_rollup (primary_care in the bundled hospitals)
 
 procedure:
   jp_code: "K894"                       # 分娩介助
