@@ -688,9 +688,18 @@ outcome_benchmarks:
 # Stroke trajectory differs from infection: perfusion and neurological recovery
 # are primary axes. Inflammation is mild. Rehabilitation milestones matter.
 # ============================================================
+# Issue #2249: the probabilities below are base rates BEFORE the severity
+# multipliers and archetype_modifiers in clinical_course.select_archetype.
+# They are fitted so that the realised mix over admitted patients (US + JP
+# cohorts, 139 selections) lands on the intended split: smooth_recovery 40,
+# dip_then_recovery 20, plateau 20, treatment_resistant 5,
+# gradual_deterioration 10, sudden_deterioration 5 %. Used directly, the
+# intended rates realised smooth_recovery 27, dip_then_recovery 20, plateau
+# 23, treatment_resistant 5, gradual_deterioration 17, sudden_deterioration
+# 7 %.
 course_archetypes:
   smooth_recovery:
-    probability: 0.40
+    probability: 0.532
     description: "Steady neurological improvement from Day 1; good response to reperfusion or collaterals"
     trajectory:
       perfusion_status: {0: -0.05, 1: 0.03, 2: 0.04, 3: 0.04, 5: 0.03, 7: 0.02, 10: 0.02, 14: 0.01, 21: 0.01, 28: 0.00}
@@ -713,7 +722,7 @@ course_archetypes:
         plan: "治療継続"
 
   dip_then_recovery:
-    probability: 0.20
+    probability: 0.186
     description: "Early worsening Day 1-3 (edema, extension), then gradual recovery with rehab"
     trajectory:
       perfusion_status: {0: -0.08, 1: -0.05, 2: -0.03, 3: 0.00, 5: 0.03, 7: 0.04, 10: 0.03, 14: 0.02, 21: 0.01, 28: 0.01}
@@ -728,7 +737,7 @@ course_archetypes:
         add_fluid: {detail: "NS bolus if hypotensive; otherwise maintain euvolemia"}
 
   plateau:
-    probability: 0.20
+    probability: 0.160
     description: "Stable deficit without significant improvement; requires prolonged rehabilitation"
     trajectory:
       perfusion_status: {0: -0.02, 1: 0.00, 2: 0.00, 3: 0.00, 5: 0.01, 7: 0.01, 10: 0.01, 14: 0.01, 21: 0.01, 28: 0.00}
@@ -740,7 +749,7 @@ course_archetypes:
     treatment_modifications: {}
 
   treatment_resistant:
-    probability: 0.05
+    probability: 0.046
     description: "Progressive stroke despite treatment; large vessel occlusion without recanalization"
     trajectory:
       perfusion_status: {0: -0.10, 1: -0.05, 2: -0.03, 3: -0.02, 5: 0.00, 7: 0.01, 10: 0.01, 14: 0.01, 21: 0.01, 28: 0.00}
@@ -763,7 +772,7 @@ course_archetypes:
         actions: ["consider_thrombectomy", "interventional_neuroradiology_consult"]
 
   gradual_deterioration:
-    probability: 0.10
+    probability: 0.045
     description: "Slow worsening from cerebral edema, secondary complications -> may need ICU"
     trajectory:
       perfusion_status: {0: -0.08, 1: -0.05, 2: -0.05, 3: -0.03, 5: -0.03, 7: -0.01, 10: 0.01, 14: 0.01, 21: 0.01, 28: 0.00}
@@ -795,7 +804,7 @@ course_archetypes:
         actions: ["icu_transfer"]
 
   sudden_deterioration:
-    probability: 0.05
+    probability: 0.031
     description: "Sudden worsening from hemorrhagic transformation or recurrent stroke"
     trajectory:
       perfusion_status: {0: -0.03, 1: 0.02, 2: -0.25, 3: -0.05, 5: 0.03, 7: 0.03, 10: 0.02, 14: 0.01, 21: 0.01, 28: 0.00}

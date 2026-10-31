@@ -522,9 +522,18 @@ outcome_benchmarks:
 # Disease authors specify these trajectories — the engine interpolates between days.
 # Patient profile (immune_reactivity, treatment_sensitivity) modulates amplitude.
 # ============================================================
+# Issue #2249: the probabilities below are base rates BEFORE the severity
+# multipliers and archetype_modifiers in clinical_course.select_archetype.
+# They are fitted so that the realised mix over admitted patients (US + JP
+# cohorts, 193 selections) lands on the intended split: smooth_recovery 55,
+# dip_then_recovery 20, plateau_then_recovery 10, treatment_resistant 8,
+# gradual_deterioration 5, sudden_deterioration 2 %. Used directly, the
+# intended rates realised smooth_recovery 49, dip_then_recovery 21,
+# plateau_then_recovery 10, treatment_resistant 8, gradual_deterioration 9,
+# sudden_deterioration 3 %.
 course_archetypes:
   smooth_recovery:
-    probability: 0.55
+    probability: 0.610
     description: "Steady improvement from Day 1-2 after treatment initiation"
     trajectory:
       inflammation_level: {0: 0.05, 1: -0.02, 2: -0.08, 3: -0.08, 5: -0.06, 7: -0.06, 10: -0.04, 14: -0.02}
@@ -548,7 +557,7 @@ course_archetypes:
         plan: "治療継続"
 
   dip_then_recovery:
-    probability: 0.20
+    probability: 0.188
     description: "Worsening Day 1-3, then gradual improvement"
     trajectory:
       inflammation_level: {0: 0.10, 1: 0.05, 2: 0.02, 3: -0.02, 5: -0.08, 7: -0.10, 10: -0.08, 14: -0.05}
@@ -564,7 +573,7 @@ course_archetypes:
         add_fluid: {detail: "NS 500mL bolus for hypotension"}
 
   plateau_then_recovery:
-    probability: 0.10
+    probability: 0.094
     description: "No change for 3-5 days, then improvement"
     trajectory:
       inflammation_level: {0: 0.03, 1: 0.02, 2: 0.00, 3: 0.00, 5: 0.00, 7: -0.08, 10: -0.10, 14: -0.05}
@@ -576,7 +585,7 @@ course_archetypes:
     treatment_modifications: {}  # continue same antibiotic (patience)
 
   treatment_resistant:
-    probability: 0.08
+    probability: 0.075
     description: "No response to first-line; requires antibiotic change at Day 3"
     trajectory:
       oxygenation_impairment: {0: 0.08, 1: 0.08, 2: 0.06, 3: 0.04, 5: 0.00}
@@ -600,7 +609,7 @@ course_archetypes:
         actions: ["escalate_antibiotic", "order_ct", "consult_infectious_disease"]
 
   gradual_deterioration:
-    probability: 0.05
+    probability: 0.019
     description: "Slow worsening despite treatment -> ICU transfer"
     trajectory:
       oxygenation_impairment: {0: 0.12, 1: 0.16, 2: 0.14, 3: 0.08, 5: 0.00}
@@ -628,7 +637,7 @@ course_archetypes:
         actions: ["icu_transfer"]
 
   sudden_deterioration:
-    probability: 0.02
+    probability: 0.014
     description: "Sudden critical worsening (sepsis, PE, etc.) on Day 2"
     trajectory:
       oxygenation_impairment: {0: 0.10, 1: 0.40, 2: 0.20, 3: 0.05, 5: 0.00}

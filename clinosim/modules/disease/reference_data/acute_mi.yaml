@@ -635,9 +635,18 @@ outcome_benchmarks:
 # Disease authors specify these trajectories — the engine interpolates between days.
 # Patient profile (immune_reactivity, treatment_sensitivity) modulates amplitude.
 # ============================================================
+# Issue #2249: the probabilities below are base rates BEFORE the severity
+# multipliers and archetype_modifiers in clinical_course.select_archetype.
+# They are fitted so that the realised mix over admitted patients (US + JP
+# cohorts, 88 selections) lands on the intended split: smooth_recovery 50,
+# dip_then_recovery 15, plateau 15, treatment_resistant 5,
+# gradual_deterioration 10, sudden_deterioration 5 %. Used directly, the
+# intended rates realised smooth_recovery 40, dip_then_recovery 15, plateau
+# 15, treatment_resistant 5, gradual_deterioration 17, sudden_deterioration
+# 9 %.
 course_archetypes:
   smooth_recovery:
-    probability: 0.50
+    probability: 0.600
     description: "Successful PCI/treatment, steady cardiac recovery"
     trajectory:
       cardiac_function: {0: -0.05, 1: 0.02, 2: 0.03, 3: 0.04, 5: 0.04, 7: 0.03, 10: 0.02, 14: 0.02}
@@ -660,7 +669,7 @@ course_archetypes:
         plan: "治療継続"
 
   dip_then_recovery:
-    probability: 0.15
+    probability: 0.139
     description: "Post-PCI transient worsening (reperfusion injury, transient HF), then recovery"
     trajectory:
       cardiac_function: {0: -0.08, 1: -0.05, 2: -0.03, 3: 0.02, 5: 0.04, 7: 0.04, 10: 0.03, 14: 0.02}
@@ -676,7 +685,7 @@ course_archetypes:
         add_fluid: {detail: "IV furosemide 20mg if pulmonary congestion"}
 
   plateau:
-    probability: 0.15
+    probability: 0.139
     description: "Slow recovery, no significant improvement for 5-7 days, then gradual improvement"
     trajectory:
       cardiac_function: {0: -0.05, 1: 0.00, 2: 0.00, 3: 0.00, 5: 0.00, 7: 0.02, 10: 0.03, 14: 0.03}
@@ -689,7 +698,7 @@ course_archetypes:
     treatment_modifications: {}
 
   treatment_resistant:
-    probability: 0.05
+    probability: 0.052
     description: "Ongoing ischemia despite PCI; requires repeat intervention or CABG evaluation"
     trajectory:
       cardiac_function: {0: -0.08, 1: -0.03, 2: -0.02, 3: -0.02, 5: 0.00, 7: 0.02, 10: 0.03, 14: 0.03}
@@ -711,7 +720,7 @@ course_archetypes:
         actions: ["repeat_ecg", "urgent_cath_evaluation"]
 
   gradual_deterioration:
-    probability: 0.10
+    probability: 0.048
     description: "Progressive heart failure despite treatment -> ICU escalation"
     trajectory:
       cardiac_function: {0: -0.10, 1: -0.05, 2: -0.05, 3: -0.03, 5: -0.02, 7: 0.00, 10: 0.02, 14: 0.02}
@@ -739,7 +748,7 @@ course_archetypes:
         actions: ["icu_transfer", "start_inotrope"]
 
   sudden_deterioration:
-    probability: 0.05
+    probability: 0.022
     description: "Sudden cardiac arrest, VF, or massive re-infarction on Day 1-2"
     trajectory:
       cardiac_function: {0: -0.05, 1: -0.35, 2: -0.10, 3: 0.05, 5: 0.05, 7: 0.05, 10: 0.03, 14: 0.02}
