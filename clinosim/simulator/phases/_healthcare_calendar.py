@@ -230,14 +230,15 @@ def dispatch_calendar_event(event: LifeEvent, ctx: ForwardContext) -> None:
     ctx.patient_records.append(opd_record)
 
     if event.event_type == "chronic_visit":
+        from clinosim.locale.loader import department_display, load_specialty_routing
         from clinosim.simulator.hospital_ops import resolve_department
         from clinosim.simulator.outpatient import _specialty_fanout_tick
 
+        # Issue #2270: the visit reason lives on the specialty route
+        # (specialty_routing.yaml); an unrouted specialty gets the generic
+        # department follow-up wording.
         _specialty_visit_reason = {
-            "oncology": {"en": "Oncology survivorship follow-up", "ja": "腫瘍内科 サバイバーシップ外来"},
-            "cardiology": {"en": "Cardiology stable follow-up", "ja": "循環器内科 定期外来"},
-            "psychiatry": {"en": "Psychiatry treatment-phase follow-up", "ja": "精神科 治療期外来"},
-            "pulmonology": {"en": "Pulmonology stable COPD follow-up", "ja": "呼吸器内科 COPD 定期外来"},
+            str(r.get("specialty")): r["visit_reason"] for r in load_specialty_routing() if r.get("visit_reason")
         }
         for specialty_name, _cadence, _period_key in _specialty_fanout_tick(patient, visit_time):
             specialty_dept = resolve_department(specialty_name, ctx.hospital_ops)
@@ -252,7 +253,10 @@ def dispatch_calendar_event(event: LifeEvent, ctx: ForwardContext) -> None:
                     "labs": [],
                     "visit_reason": _specialty_visit_reason.get(
                         specialty_name,
-                        {"en": f"{specialty_name} follow-up", "ja": f"{specialty_name} 外来"},
+                        {
+                            "en": f"{department_display(specialty_name, 'en')} follow-up",
+                            "ja": f"{department_display(specialty_name, 'ja')} 外来",
+                        },
                     ),
                 },
                 country=ctx.config.country,

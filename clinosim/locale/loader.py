@@ -79,13 +79,17 @@ from clinosim.locale.loaders.fhir_identity import (
     load_practitioner_qualifications,
 )
 from clinosim.locale.loaders.medical_display import (
+    department_display,
+    department_specialty_snomed,
     load_allergen_rxnorm_map,
+    load_clinician_roles,
     load_department_display,
     load_diet_type_display,
     load_frequency_tokens,
     load_med_terms,
     load_med_terms_ja,
     load_occupation_display,
+    role_display,
 )
 from clinosim.locale.loaders.narrative import (
     _load_country_language_map,
@@ -135,7 +139,11 @@ __all__ = [
     "load_comorbidity_progression_multipliers",
     "load_condition_mortality_smr",
     "load_demographics",
+    "department_display",
+    "department_specialty_snomed",
+    "load_clinician_roles",
     "load_department_display",
+    "role_display",
     "load_diet_type_display",
     "load_encounter_disposition_defaults",
     "load_external_organizations",

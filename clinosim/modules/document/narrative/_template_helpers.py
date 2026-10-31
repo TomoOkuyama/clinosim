@@ -23,6 +23,7 @@ from typing import Any
 
 from clinosim.locale.i18n import t
 from clinosim.modules._shared import get_attr_or_key as _o
+from clinosim.modules._shared import practitioner_name
 from clinosim.types.document import NarrativeContext
 
 logger = logging.getLogger(__name__)
@@ -62,8 +63,9 @@ def allergen_display(allergy: Any, lang: str) -> str:
 
 
 def _resolve_staff_name(staff_id: str, roster_map: dict[str, dict]) -> str:
-    """Return `<name>` from ``roster_map``, or the raw ``staff_id``
-    when the id is not resolvable.
+    """Return `<name>` from ``roster_map``, or ``""`` when the id is not
+    resolvable (Issue #2270: a raw staff id is not shown in user-facing
+    text; ``clinosim.modules._shared.practitioner_name``).
 
     Never fabricates a name for an unknown id (mirrors the same rule as
     the sibling FHIR-emit walker `_localize_practitioner_ids_in_text`
@@ -83,14 +85,9 @@ def _resolve_staff_name(staff_id: str, roster_map: dict[str, dict]) -> str:
 
         _resolve_staff_name("NS-OR-004", roster)  → "小松 凜"
         _resolve_staff_name("DR-CA-002", roster)  → "加瀬 幸男"
-        _resolve_staff_name("XYZ-999", {})        → "XYZ-999"
+        _resolve_staff_name("XYZ-999", {})        → ""
     """
-    if not staff_id:
-        return staff_id
-    staff = roster_map.get(staff_id) if roster_map else None
-    if not staff:
-        return staff_id
-    return staff.get("name") or staff_id
+    return practitioner_name(staff_id, roster_map)
 
 
 def _render_home_med_name(m: Any, lang: str = "en") -> str:

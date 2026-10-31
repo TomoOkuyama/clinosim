@@ -125,7 +125,9 @@ def test_ward_and_physician_includes_ward_and_physician_id() -> None:
     gen = TemplateNarrativeGenerator()
     out = gen.generate(ctx, spec)
     assert "6S" in out.sections["ward_and_physician"]
-    assert "dr-ncp-999" in out.sections["ward_and_physician"]
+    # Issue #2270: an id missing from the roster is not shown raw.
+    assert "担当医師" in out.sections["ward_and_physician"]
+    assert "dr-ncp-999" not in out.sections["ward_and_physician"]
 
 
 def test_nutrition_risk_low_for_low_bmi() -> None:

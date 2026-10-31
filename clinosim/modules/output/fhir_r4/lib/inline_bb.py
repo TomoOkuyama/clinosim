@@ -150,10 +150,8 @@ from clinosim.modules.output.fhir_r4.lib.localization import (  # noqa: F401
     _procedure_display,
 )
 from clinosim.modules.output.fhir_r4.lib.reference_data import (  # noqa: F401
-    _ROLE_PREFIX_MAP,
     _ROUTE_SNOMED,
     _SEVERITY_SNOMED,
-    _SPECIALTY_SNOMED,
 )
 from clinosim.modules.output.fhir_r4.medications.medications import (  # noqa: F401
     _build_discharge_medication_request,

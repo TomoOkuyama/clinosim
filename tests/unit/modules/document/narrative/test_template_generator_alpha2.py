@@ -297,7 +297,9 @@ def test_admission_nursing_assessment_includes_primary_nurse() -> None:
     gen = TemplateNarrativeGenerator()
     out = gen.generate(ctx, spec)
     all_text = " ".join(out.sections.values())
-    assert "nurse-RN-001" in all_text, f"primary_nurse_id 'nurse-RN-001' not found in sections: {all_text[:400]!r}"
+    # Issue #2270: the nurse line is rendered; an id missing from the roster is not shown raw.
+    assert "担当看護師" in all_text
+    assert "nurse-RN-001" not in all_text
 
 
 # ─────────────────────────────────────────────────────────────────
@@ -520,7 +522,9 @@ def test_nursing_shift_note_with_primary_nurse() -> None:
     ctx = _make_ctx(DocumentType.NURSING_SHIFT_NOTE, encounter=enc, day_index=0)
     gen = TemplateNarrativeGenerator()
     out = gen.generate(ctx, spec)
-    assert "nurse-RN-042" in out.raw_text, f"primary_nurse_id not in shift note: {out.raw_text!r}"
+    # Issue #2270: the nurse line is rendered; an id missing from the roster is not shown raw.
+    assert "担当看護師" in out.raw_text
+    assert "nurse-RN-042" not in out.raw_text
 
 
 def test_nursing_shift_note_no_primary_nurse_graceful() -> None:

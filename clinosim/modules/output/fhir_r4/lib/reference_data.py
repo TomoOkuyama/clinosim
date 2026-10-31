@@ -186,36 +186,3 @@ def validate_yaml_route_value(raw_route: str, source: str) -> None:
             f"(if it aliases an existing canonical), or _ROUTE_TEXT_ONLY_BY_DESIGN "
             f"in clinosim/modules/output/_fhir_reference_data.py — do not guess a code."
         )
-
-
-_ROLE_PREFIX_MAP: dict[str, dict[str, str]] = {
-    "physician": {"qual_code": "MD", "qual_display": "Doctor of Medicine"},
-    "nurse": {"qual_code": "RN", "qual_display": "Registered Nurse"},
-    "lab_technician": {"qual_code": "MT", "qual_display": "Medical Technologist"},
-    "radiologist": {"qual_code": "MD", "qual_display": "Doctor of Medicine"},
-    "pharmacist": {"qual_code": "PharmD", "qual_display": "Doctor of Pharmacy"},
-    # CY6-02 (Chain-6): allied-health qualifications for the roster
-    # expansion added in C5-25. Codes follow HL7 v2-0360
-    # convention where possible (PT/OT/ST are widely-used qual codes;
-    # MSW / RD are text-only since v2-0360 does not enumerate them —
-    # FHIR R4 CodeableConcept allows text-only representations).
-    "physical_therapist": {"qual_code": "PT", "qual_display": "Physical Therapist"},
-    "occupational_therapist": {"qual_code": "OT", "qual_display": "Occupational Therapist"},
-    "speech_therapist": {"qual_code": "ST", "qual_display": "Speech-Language Therapist"},
-    "medical_social_worker": {"qual_code": "MSW", "qual_display": "Medical Social Worker"},
-    "dietitian": {"qual_code": "RD", "qual_display": "Registered Dietitian"},
-}
-
-
-_SPECIALTY_SNOMED: dict[str, dict[str, str]] = {
-    "general": {"code": "419192003", "display": "Internal Medicine"},
-    "cardiology": {"code": "394579002", "display": "Cardiology"},
-    "pulmonology": {"code": "418112009", "display": "Pulmonary medicine"},
-    "gastro": {"code": "394584008", "display": "Gastroenterology"},
-    "nephro": {"code": "394589003", "display": "Nephrology"},
-    "endo": {"code": "394583003", "display": "Endocrinology"},
-    "internal_medicine": {"code": "419192003", "display": "Internal Medicine"},
-    "radiology": {"code": "394914008", "display": "Radiology"},
-    "laboratory": {"code": "722414000", "display": "Laboratory medicine"},
-    "pharmacy": {"code": "405623001", "display": "Pharmacy"},
-}

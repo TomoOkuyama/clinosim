@@ -6,14 +6,18 @@
 # `available_departments` / `department_rollup`).
 #
 # EN: standard department/specialty names. JA: 日本の標榜診療科名.
-# Missing entries fall back to a title-cased key at lookup time.
+# `specialty_snomed` is the SNOMED CT specialty of the department, used for
+# PractitionerRole.specialty (display from codes/data/snomed-ct.yaml), so the
+# service type and the specialty of the same department agree (Issue #2270).
+# Read through `department_display()`; a missing language falls back to
+# English and a missing key is humanised (never title-cased).
 departments:
-  internal_medicine: {en: "Internal Medicine", ja: "内科"}
-  cardiology: {en: "Cardiology", ja: "循環器内科"}
-  pulmonology: {en: "Pulmonology", ja: "呼吸器内科"}
-  gastroenterology: {en: "Gastroenterology", ja: "消化器内科"}
-  nephrology: {en: "Nephrology", ja: "腎臓内科"}
-  endocrinology: {en: "Endocrinology", ja: "内分泌・代謝内科"}
+  internal_medicine: {en: "Internal Medicine", ja: "内科", specialty_snomed: "419192003"}
+  cardiology: {en: "Cardiology", ja: "循環器内科", specialty_snomed: "394579002"}
+  pulmonology: {en: "Pulmonology", ja: "呼吸器内科", specialty_snomed: "418112009"}
+  gastroenterology: {en: "Gastroenterology", ja: "消化器内科", specialty_snomed: "394584008"}
+  nephrology: {en: "Nephrology", ja: "腎臓内科", specialty_snomed: "394589003"}
+  endocrinology: {en: "Endocrinology", ja: "内分泌・代謝内科", specialty_snomed: "394583003"}
   neurology: {en: "Neurology", ja: "神経内科"}
   general_surgery: {en: "General Surgery", ja: "外科"}
   orthopedics: {en: "Orthopedic Surgery", ja: "整形外科"}
@@ -26,7 +30,7 @@ departments:
   pediatrics: {en: "Pediatrics", ja: "小児科"}
   ophthalmology: {en: "Ophthalmology", ja: "眼科"}
   psychiatry: {en: "Psychiatry", ja: "精神科"}
-  radiology: {en: "Radiology", ja: "放射線科"}
+  radiology: {en: "Radiology", ja: "放射線科", specialty_snomed: "394914008"}
   rehabilitation: {en: "Rehabilitation", ja: "リハビリテーション科"}
   # CY6-01 (Chain-6, session 44 backfill): allied-health service lines added
   # so PractitionerRole.organization refs to allied-health staff resolve.
@@ -37,3 +41,6 @@ departments:
   # to this bucket at hospitals without dedicated radiation-oncology /
   # medical-oncology facilities.
   oncology: {en: "Oncology", ja: "腫瘍内科"}
+  # Issue #2270: support departments that staff are assigned to.
+  laboratory: {en: "Laboratory", ja: "検査科", specialty_snomed: "722414000"}
+  pharmacy: {en: "Pharmacy", ja: "薬剤科", specialty_snomed: "405623001"}

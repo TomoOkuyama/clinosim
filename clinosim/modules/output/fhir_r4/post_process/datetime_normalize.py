@@ -7,6 +7,8 @@ fields to the country-appropriate TZ suffix.
 
 from __future__ import annotations
 
+from clinosim.modules._shared import practitioner_name
+
 # feedback FB-F1: 全 emit resource で dateTime / instant field を
 # TZ 付与に正規化する post-emit normalization pass。builders 個別修正の代替。
 # 対象 field は FHIR R4 で dateTime / instant 型を持つ known-name 一覧。
@@ -146,12 +148,9 @@ def _normalize_dt_and_fill_practitioner_display(resource, country: str, roster_m
             if _fill_pract:
                 ref = node.get("reference")
                 if isinstance(ref, str) and ref.startswith("Practitioner/") and not node.get("display"):
-                    staff_id = ref[len("Practitioner/") :]
-                    staff = roster_map.get(staff_id) if roster_map else None
-                    if staff:
-                        display = str(staff.get("name", "") or "").strip()
-                        if display:
-                            node["display"] = display
+                    display = practitioner_name(ref[len("Practitioner/") :], roster_map)
+                    if display:
+                        node["display"] = display
             # Datetime / instant / period normalization.
             for k, v in list(node.items()):
                 if k in _INSTANT_FIELDS and isinstance(v, str):

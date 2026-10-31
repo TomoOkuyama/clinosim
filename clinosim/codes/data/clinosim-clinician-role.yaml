@@ -26,81 +26,111 @@ metadata:
     and clinosim/modules/output/fhir_r4/lib/localization.py
     (_ROLE_PREFIX_MAP_JA) prior to hardcoded-audit Finding 8.
 
+# Issue #2270: each role carries its display title (PractitionerRole code /
+# specialty text) and the English qualification display; read through
+# `clinosim.locale.loader.role_display(role, lang, facet=...)`.
 roles:
   physician:
+    title: {en: "Physician", ja: "医師"}
+    practitioner_role: doctor
     staff_prefix: DR
     suffix_ja: 医師
     suffix_en: physician
     qualification:
       code: MD
       display: 医師
+      display_en: Doctor of Medicine
 
   nurse:
+    title: {en: "Nurse", ja: "看護師"}
+    practitioner_role: nurse
     staff_prefix: NS
     suffix_ja: 看護師
     suffix_en: nurse
     qualification:
       code: RN
       display: 看護師
+      display_en: Registered Nurse
 
   certified_nurse:
+    title: {en: "Certified nurse", ja: "認定看護師"}
     staff_prefix: CN
     suffix_ja: 看護師
     suffix_en: nurse
 
   respiratory_therapist:
+    title: {en: "Respiratory therapist", ja: "呼吸療法士"}
     staff_prefix: RT
     suffix_ja: 呼吸療法士
     suffix_en: respiratory therapist
 
   physical_therapist:
+    title: {en: "Physical therapist", ja: "理学療法士"}
     staff_prefix: PT
     suffix_ja: 理学療法士
     suffix_en: physical therapist
     qualification:
       code: PT
       display: 理学療法士
+      display_en: Physical Therapist
 
   occupational_therapist:
+    title: {en: "Occupational therapist", ja: "作業療法士"}
     staff_prefix: OT
     suffix_ja: 作業療法士
     suffix_en: occupational therapist
     qualification:
       code: OT
       display: 作業療法士
+      display_en: Occupational Therapist
 
   speech_therapist:
+    title: {en: "Speech-language therapist", ja: "言語聴覚士"}
     staff_prefix: ST
     suffix_ja: 言語聴覚士
     suffix_en: speech therapist
     qualification:
       code: ST
       display: 言語聴覚士
+      display_en: Speech-Language Therapist
 
   pharmacist:
+    title: {en: "Pharmacist", ja: "薬剤師"}
+    practitioner_role: pharmacist
     staff_prefix: PH
     suffix_ja: 薬剤師
     suffix_en: pharmacist
     qualification:
       code: PharmD
       display: 薬剤師
+      display_en: Doctor of Pharmacy
 
   lab_technician:
+    title: {en: "Laboratory technician", ja: "臨床検査技師"}
+    practitioner_role: ict
     qualification:
       code: MT
       display: 臨床検査技師
+      display_en: Medical Technologist
 
   radiologist:
+    title: {en: "Radiologist", ja: "放射線科医"}
+    practitioner_role: doctor
     qualification:
       code: MD
       display: 放射線科医
+      display_en: Doctor of Medicine
 
   medical_social_worker:
+    title: {en: "Medical social worker", ja: "医療ソーシャルワーカー"}
     qualification:
       code: MSW
       display: 医療ソーシャルワーカー
+      display_en: Medical Social Worker
 
   dietitian:
+    title: {en: "Registered dietitian", ja: "管理栄養士"}
     qualification:
       code: RD
       display: 管理栄養士
+      display_en: Registered Dietitian

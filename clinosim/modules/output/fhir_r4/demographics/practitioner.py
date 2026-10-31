@@ -12,14 +12,16 @@ from typing import Any
 
 from clinosim.codes import display as registry_display
 from clinosim.codes import get_system_uri
-from clinosim.locale.loader import load_practitioner_qualifications
+from clinosim.locale.loader import (
+    department_display,
+    department_specialty_snomed,
+    load_clinician_roles,
+    load_practitioner_qualifications,
+    role_display,
+)
 from clinosim.modules._shared import is_jp, is_us, resolve_lang
 from clinosim.modules.output.fhir_r4.lib.common import _coding_with_display
 from clinosim.modules.output.fhir_r4.lib.localization import _ROLE_PREFIX_MAP_JA
-from clinosim.modules.output.fhir_r4.lib.reference_data import (
-    _ROLE_PREFIX_MAP,
-    _SPECIALTY_SNOMED,
-)
 
 # Issue #1986: US Core 6.1.0 Practitioner profile marks the NPI
 # identifier slice as must-support. System URI is the HL7-registered
@@ -337,7 +339,7 @@ def _build_practitioner(staff_id: str, roster_map: dict[str, dict] | None = None
             else:
                 qual = _ROLE_PREFIX_MAP_JA.get(role)
         else:
-            qual = _ROLE_PREFIX_MAP.get(role)
+            qual = _role_qualification_en(role)
         if qual:
             _qual_code = qual["qual_code"]
             _qual_display = qual["qual_display"]
@@ -364,6 +366,15 @@ def _build_practitioner(staff_id: str, roster_map: dict[str, dict] | None = None
     return resource
 
 
+def _role_qualification_en(role: str) -> dict[str, str] | None:
+    """US qualification {qual_code, qual_display} of a staff role from the role
+    table (Issue #2270); ``None`` when the role has no qualification."""
+    qual = (load_clinician_roles().get(role) or {}).get("qualification")
+    if not isinstance(qual, dict) or not qual.get("code"):
+        return None
+    return {"qual_code": str(qual["code"]), "qual_display": str(qual.get("display_en") or qual.get("display") or "")}
+
+
 def _build_practitioner_role(
     staff_id: str,
     roster_map: dict[str, dict] | None = None,
@@ -378,31 +389,15 @@ def _build_practitioner_role(
     department = staff.get("department", "")
     specialty = staff.get("specialty", "") or department
 
-    role_code_map = {
-        "physician": "doctor",
-        "radiologist": "doctor",
-        "nurse": "nurse",
-        "lab_technician": "ict",
-        "pharmacist": "pharmacist",
-    }
-    role_code = role_code_map.get(role, "")
-
-    # C5-25 (Chain 3): text-only PractitionerRole.code for allied-health
-    # roles not covered by HL7's practitioner-role CodeSystem. FHIR R4
-    # CodeableConcept accepts text-only (no fabricated code). SNOMED CT
-    # occupation codes exist for these roles but registering them requires
-    # per-code SNOMED verification (deferred to a separate authoritative
-    # code chain — mirrors C2-15 policy).
-    _text_only_role: dict[str, tuple[str, str]] = {
-        "physical_therapist": ("Physical therapist", "理学療法士"),
-        "occupational_therapist": ("Occupational therapist", "作業療法士"),
-        "speech_therapist": ("Speech-language therapist", "言語聴覚士"),
-        "medical_social_worker": ("Medical social worker", "医療ソーシャルワーカー"),
-        "dietitian": ("Registered dietitian", "管理栄養士"),
-    }
-    _text_only_display = _text_only_role.get(role)
-
-    spec_info = _SPECIALTY_SNOMED.get(specialty) or _SPECIALTY_SNOMED.get(department)
+    # Issue #2270: the HL7 practitioner-role code, the display title and the
+    # specialty come from the role and department tables
+    # (codes/data/clinosim-clinician-role.yaml, department_display.yaml).
+    lang = resolve_lang(country)
+    role_code = str((load_clinician_roles().get(role) or {}).get("practitioner_role") or "")
+    # Allied-health roles without an HL7 practitioner-role code get a
+    # text-only PractitionerRole.code (C5-25; FHIR R4 allows text-only).
+    _text_only_display = role_display(role, lang) if role and not role_code else ""
+    _snomed_code = department_specialty_snomed(specialty)
 
     resource: dict[str, Any] = {
         "resourceType": "PractitionerRole",
@@ -469,17 +464,11 @@ def _build_practitioner_role(
             }
         ]
     elif _text_only_display:
-        _lang = resolve_lang(country)
-        _disp = _text_only_display[1] if _lang == "ja" else _text_only_display[0]
-        resource["code"] = [{"text": _disp}]
+        resource["code"] = [{"text": _text_only_display}]
 
-    if spec_info:
-        # C5-05: resolve specialty display through
-        # snomed-ct.yaml so JP output uses 内科/循環器内科 etc. instead of
-        # the English fallback baked into _SPECIALTY_SNOMED entries.
-        _lang = resolve_lang(country)
-        _snomed_code = spec_info["code"]
-        _spec_display = registry_display("snomed-ct", _snomed_code, _lang) or spec_info["display"]
+    if _snomed_code:
+        # C5-05: specialty display from snomed-ct.yaml (内科 / 循環器内科 …).
+        _spec_display = registry_display("snomed-ct", _snomed_code, lang) or department_display(specialty, lang)
         resource["specialty"] = [
             {
                 "coding": [
@@ -496,12 +485,7 @@ def _build_practitioner_role(
         # CY8-05 fix:allied-health / nurse など
         # SNOMED specialty 未マッピングの staff にも text-only specialty
         # を emit(42.3% → 100%)。role table から derive、無ければ role 名。
-        _lang = resolve_lang(country)
-        _spec_text = None
-        if _text_only_display:
-            _spec_text = _text_only_display[1] if _lang == "ja" else _text_only_display[0]
-        elif role:
-            _spec_text = role.replace("_", " ").title()
+        _spec_text = role_display(role, lang) if role else ""
         if _spec_text:
             resource["specialty"] = [{"text": _spec_text}]
 
