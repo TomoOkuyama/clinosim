@@ -1,0 +1,3117 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Population-driven, physiology-based synthetic Electronic Health Record generator (FHIR R4). Multi-country (US + JP), JP Core profile compliance, YAML-driven disease extension.
+">
+      
+      
+      
+        <link rel="canonical" href="https://tomookuyama.github.io/clinosim/design-guides/code-mapping-and-localization-spec/">
+      
+      
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.8.0">
+    
+    
+      
+        <title>Code mapping, name resolution and localization — specification - clinosim</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.57a0d79d.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.fb2fffe2.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#code-mapping-name-resolution-and-localization--specification" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow md-header--lifted" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="clinosim" class="md-header__button md-logo" aria-label="clinosim" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            clinosim
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Code mapping, name resolution and localization — specification
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m17.75 4.09-2.53 1.94.91 3.06-2.63-1.81-2.63 1.81.91-3.06-2.53-1.94L12.44 4l1.06-3 1.06 3zm3.5 6.91-1.64 1.25.59 1.98-1.7-1.17-1.7 1.17.59-1.98L15.75 11l2.06-.05L18.5 9l.69 1.95zm-2.28 4.95c.83-.08 1.72 1.1 1.19 1.85-.32.45-.66.87-1.08 1.27C15.17 23 8.84 23 4.94 19.07c-3.91-3.9-3.91-10.24 0-14.14.4-.4.82-.76 1.27-1.08.75-.53 1.93.36 1.85 1.19-.27 2.86.69 5.83 2.89 8.02a9.96 9.96 0 0 0 8.02 2.89m-1.64 2.02a12.08 12.08 0 0 1-7.8-3.47c-2.17-2.19-3.33-5-3.49-7.82-2.81 3.14-2.7 7.96.31 10.98 3.02 3.01 7.84 3.12 10.98.31"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 7a5 5 0 0 1 5 5 5 5 0 0 1-5 5 5 5 0 0 1-5-5 5 5 0 0 1 5-5m0 2a3 3 0 0 0-3 3 3 3 0 0 0 3 3 3 3 0 0 0 3-3 3 3 0 0 0-3-3m0-7 2.39 3.42C13.65 5.15 12.84 5 12 5s-1.65.15-2.39.42zM3.34 7l4.16-.35A7.2 7.2 0 0 0 5.94 8.5c-.44.74-.69 1.5-.83 2.29zm.02 10 1.76-3.77a7.131 7.131 0 0 0 2.38 4.14zM20.65 7l-1.77 3.79a7.02 7.02 0 0 0-2.38-4.15zm-.01 10-4.14.36c.59-.51 1.12-1.14 1.54-1.86.42-.73.69-1.5.83-2.29zM12 22l-2.41-3.44c.74.27 1.55.44 2.41.44.82 0 1.63-.17 2.37-.44z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/TomoOkuyama/clinosim" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    TomoOkuyama/clinosim
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+    
+      
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../.." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../getting-started/installation/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Getting started
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../project-concept-and-design/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Concepts
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../reference/cli/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Reference
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../architecture/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Architecture
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../CONTRIBUTING-modules/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Guides
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../roadmap/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Development
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../governance/contributing/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Governance
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+    
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="clinosim" class="md-nav__button md-logo" aria-label="clinosim" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    clinosim
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/TomoOkuyama/clinosim" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    TomoOkuyama/clinosim
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting started
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Getting started
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/installation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Installation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/quick-start/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Quick start
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/first-cohort/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Your first cohort
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/configuration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Configuration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/versioning/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Versioning & releases
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Concepts
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Concepts
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../project-concept-and-design/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Project concept & design
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../data-generation-walkthrough/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Data generation walkthrough
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../implementation-rules/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Implementation rules
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../documentation-and-code-quality-policy/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Documentation + code-quality policy
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../fhir-data-generation-logic/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    FHIR data generation logic
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../data-model-and-completeness-conventions/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Data model conventions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reference
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Reference
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/cli/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CLI
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/output-formats/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Output formats
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/llm-integration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    LLM integration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/datasets/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Datasets
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/datasets-full/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Datasets (full)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/code-systems/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Code systems
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/hospital-configuration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Hospital configuration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/extension-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Extension guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/multi-country/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Multi-country
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/oncology-obstetric-service-lines/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Oncology + obstetric service lines
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/longitudinal/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Longitudinal state evolution
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../eval/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Evaluation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../eval-rules/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Evaluation rules
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/modules/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Modules
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/design/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Design (ADRs)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/scenario-flags/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Scenario flags
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_5" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../architecture/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_5" id="__nav_5_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Architecture
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../architecture/module-architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Module architecture
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../architecture/data-flow/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Data flow
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../architecture/module-dependency-graph/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Module dependency graph
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../architecture/post-c-refactor-split/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Post-C refactor layout (narrative + simulator + population engine split)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Guides
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Guides
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CONTRIBUTING-modules/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Adding a module
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../clinical_documents/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Clinical documents
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../synthea-comparison/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Compare to Synthea
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../fhir-server-ingestion/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Load into a FHIR server
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../bedrock_setup/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Bedrock LLM setup
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Development
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Development
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../roadmap/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Roadmap
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../development/testing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Testing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../development/reproducibility/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reproducibility
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../development/publishing-to-pypi/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Publishing to PyPI
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../development/changelog/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Changelog
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_8" >
+        
+          
+          <label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Governance
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_8_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_8">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Governance
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../governance/contributing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Contributing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../governance/code-of-conduct/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Code of Conduct
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../governance/security/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Security
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../governance/citation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Citation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1-principles" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Principles
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-layers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Layers
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-yaml-formats" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. YAML formats
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3. YAML formats">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#31-code-system-registry--clinosimcodesdatayaml" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.1 Code-system registry — clinosim/codes/data/&lt;system-key&gt;.yaml
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#32-country-code-mapping--clinosimlocalecode_mapping_yaml" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.2 Country code mapping — clinosim/locale/&lt;cc&gt;/code_mapping_&lt;domain&gt;.yaml
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#33-catalogs--identities-with-codes-and-names" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.3 Catalogs — identities with codes and names
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#34-value-sets--clinosimcodesdatavaluesetsyaml" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.4 Value sets — clinosim/codes/data/valuesets.yaml
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#35-display-tables-for-non-code-vocabularies--clinosimlocalesharedyaml" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.5 Display tables for non-code vocabularies — clinosim/locale/shared/&lt;vocabulary&gt;.yaml
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#36-phrase-catalog--clinosimlocalesharednarrative_phrasesyaml" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.6 Phrase catalog — clinosim/locale/shared/narrative_phrases.yaml
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#37-disease-and-encounter-protocols" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.7 Disease and encounter protocols
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-resolution-functions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Resolution functions
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4. Resolution functions">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#41-code-systems-clinosimcodes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.1 Code systems (clinosim.codes)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#42-country-mappings-and-display-tables-clinosimlocaleloader" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.2 Country mappings and display tables (clinosim.locale.loader)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#43-output-helpers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.3 Output helpers
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-localization" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. Localization
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="5. Localization">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#51-output-language" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.1 Output language
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#52-data-shape" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.2 Data shape
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#53-english-only-code-systems-dual-slot" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.3 English-only code systems (dual slot)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-fallback-rules" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. Fallback rules
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7-adding-or-changing-a-code" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7. Adding or changing a code
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#8-prohibited-patterns" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8. Prohibited patterns
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#9-known-deviations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9. Known deviations
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+    <a href="https://github.com/TomoOkuyama/clinosim/edit/master/design-guides/code-mapping-and-localization-spec.md" title="Edit this page" class="md-content__button md-icon" rel="edit">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10 20H6V4h7v5h5v3.1l2-2V8l-6-6H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h4zm10.2-7c.1 0 .3.1.4.2l1.3 1.3c.2.2.2.6 0 .8l-1 1-2.1-2.1 1-1c.1-.1.2-.2.4-.2m0 3.9L14.1 23H12v-2.1l6.1-6.1z"/></svg>
+    </a>
+  
+  
+
+
+<h1 id="code-mapping-name-resolution-and-localization--specification">Code mapping, name resolution and localization — specification<a class="headerlink" href="#code-mapping-name-resolution-and-localization--specification" title="Permanent link">&para;</a></h1>
+<p>Status: <strong>normative</strong>. Every change that adds, maps, resolves or displays a code, a code system, or a localized name follows this document. A change that cannot follow it updates this document in the same PR, with the reason.</p>
+<p>Japanese counterpart: <a href="../code-mapping-and-localization-spec.ja/"><code>code-mapping-and-localization-spec.ja.md</code></a>.</p>
+<h2 id="1-principles">1. Principles<a class="headerlink" href="#1-principles" title="Permanent link">&para;</a></h2>
+<ol>
+<li><strong>One source per fact.</strong> Each code, code-system URI, display name and mapping lives in exactly one data file. Python reads it; Python never restates it.</li>
+<li><strong>One resolver per authority or vocabulary.</strong> Every kind of lookup — a LOINC display, a drug's Japanese name, a department label — has one named function. Emitters, narrative, LLM prompts, CSV, eval, audit and benchmarks all call that function. None of them re-implements it.</li>
+<li><strong>Codes in CIF, names at output.</strong> CIF stores codes and internal ids (AD-30). Displays are resolved when FHIR, narrative or CSV output is written.</li>
+<li><strong>No fabrication.</strong> A code is registered only after it is verified against its authority (§7). Something with no verified code stays uncoded rather than getting a guessed code.</li>
+<li><strong>Adding a language is a data change.</strong> Code never branches on a specific language except through the functions in §5.</li>
+</ol>
+<h2 id="2-layers">2. Layers<a class="headerlink" href="#2-layers" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Layer</th>
+<th>Package</th>
+<th>Owns</th>
+<th>May import</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Authority code systems</td>
+<td><code>clinosim/codes/</code></td>
+<td>registered codes, URIs, displays, value sets, the drug / procedure / role catalogs, UCUM, JIS X 0401, named SNOMED concepts</td>
+<td>nothing above it (no <code>clinosim.locale</code>, no <code>clinosim.modules</code>)</td>
+</tr>
+<tr>
+<td>Country and display data</td>
+<td><code>clinosim/locale/</code></td>
+<td>per-country code mappings, display tables for non-code vocabularies, the phrase catalog, country → language</td>
+<td><code>clinosim.codes</code></td>
+</tr>
+<tr>
+<td>Consumers</td>
+<td><code>clinosim/modules/</code>, <code>clinosim/simulator/</code>, <code>clinosim/eval/</code>, <code>clinosim/audit/</code>, <code>clinosim/benchmarks/</code></td>
+<td>decision logic, emitters</td>
+<td>both layers above, only through the functions in §4</td>
+</tr>
+</tbody>
+</table>
+<h2 id="3-yaml-formats">3. YAML formats<a class="headerlink" href="#3-yaml-formats" title="Permanent link">&para;</a></h2>
+<h3 id="31-code-system-registry--clinosimcodesdatayaml">3.1 Code-system registry — <code>clinosim/codes/data/&lt;system-key&gt;.yaml</code><a class="headerlink" href="#31-code-system-registry--clinosimcodesdatayaml" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nt">metadata</span><span class="p">:</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">  </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">HL7 FHIR Discharge Disposition</span>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="w">  </span><span class="nt">uri</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">http://terminology.hl7.org/CodeSystem/discharge-disposition</span><span class="w">   </span><span class="c1"># canonical URI (spec fixedUri)</span>
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="w">  </span><span class="nt">source</span><span class="p">:</span><span class="w"> </span><span class="s">"HL7</span><span class="nv"> </span><span class="s">Terminology</span><span class="nv"> </span><span class="s">(THO)"</span><span class="w">                                    </span><span class="c1"># authority the codes were verified against</span>
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="nt">codes</span><span class="p">:</span>
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="w">  </span><span class="nt">home</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt">en</span><span class="p">:</span><span class="w"> </span><span class="s">"Home"</span><span class="p p-Indicator">,</span><span class="nt"> ja</span><span class="p">:</span><span class="w"> </span><span class="s">"自宅退院"</span><span class="p p-Indicator">}</span>
+</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="w">  </span><span class="nt">exp</span><span class="p">:</span><span class="w">  </span><span class="p p-Indicator">{</span><span class="nt">en</span><span class="p">:</span><span class="w"> </span><span class="s">"Expired"</span><span class="p p-Indicator">,</span><span class="nt"> ja</span><span class="p">:</span><span class="w"> </span><span class="s">"死亡退院"</span><span class="p p-Indicator">}</span>
+</span></code></pre></div>
+<ul>
+<li>The file name is the <strong>system key</strong> used by every resolver (<code>loinc</code>, <code>snomed-ct</code>, <code>icd-10-cm</code>, <code>hl7-discharge-disposition</code>, ...).</li>
+<li><code>codes.&lt;code&gt;.en</code> is <strong>required</strong> and equals the authority's display, for example the LOINC long common name or the SNOMED preferred term. Other languages are optional keys named by ISO-639-1 code (<code>ja</code>, ...).</li>
+<li>Systems without code data, used only for their URI, are registered in <code>_BUILTIN_URIS</code> (<code>codes/loader.py</code>) under a key. Two mechanisms let several keys share data:</li>
+<li><strong>Data aliases.</strong> <code>_SYSTEM_DATA_ALIASES</code>: the same data under another URI, for example <code>icd-10-mhlw</code> → <code>icd-10</code>.</li>
+<li><strong>Lookup siblings.</strong> <code>_SYSTEM_LOOKUP_SIBLINGS</code>: display-only lookups that fall back to another system, for example <code>yj</code> → <code>hot7</code>.</li>
+<li>Verified authoritative snapshots live in <code>clinosim/codes/authoritative/</code> (§7).</li>
+</ul>
+<h3 id="32-country-code-mapping--clinosimlocalecode_mapping_yaml">3.2 Country code mapping — <code>clinosim/locale/&lt;cc&gt;/code_mapping_&lt;domain&gt;.yaml</code><a class="headerlink" href="#32-country-code-mapping--clinosimlocalecode_mapping_yaml" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="c1"># locale/jp/code_mapping_lab.yaml</span>
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="nt">WBC</span><span class="p">:</span><span class="w"> </span><span class="s">"2A010"</span>
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="nt">CRP</span><span class="p">:</span><span class="w"> </span><span class="s">"5C070"</span>
+</span></code></pre></div>
+<ul>
+<li>Maps an <strong>internal name</strong> to the code that country emits, for the domains <code>lab</code>, <code>drug</code>, <code>diagnosis</code> and <code>procedure</code>.</li>
+<li>The code system of the value is <code>codes.system_key_for(kind, country)</code>. For example <code>lab</code>/<code>US</code> is <code>loinc</code> and <code>lab</code>/<code>JP</code> is <code>jlac10</code>.</li>
+<li>Every value is registered in that system's registry file.</li>
+</ul>
+<h3 id="33-catalogs--identities-with-codes-and-names">3.3 Catalogs — identities with codes and names<a class="headerlink" href="#33-catalogs--identities-with-codes-and-names" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Catalog</th>
+<th>File</th>
+<th>Entry shape</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Drugs</td>
+<td><code>codes/data/drugs.yaml</code></td>
+<td><code>&lt;drug_id&gt;: {names: {en, ja}, codes: {rxnorm, yj, hot7}, classes: [...], aliases: [...]}</code></td>
+</tr>
+<tr>
+<td>Procedures</td>
+<td><code>codes/data/clinosim-procedure-catalog.yaml</code></td>
+<td><code>bedside: [{type, cpt, k_code, name: {en, ja}, anesthesia}]</code></td>
+</tr>
+<tr>
+<td>Staff roles</td>
+<td><code>codes/data/clinosim-clinician-role.yaml</code></td>
+<td><code>&lt;role&gt;: {title: {en, ja}, staff_prefix, suffix_en, suffix_ja, practitioner_role, qualification: {code, display, display_en}}</code></td>
+</tr>
+<tr>
+<td>Departments</td>
+<td><code>locale/shared/department_display.yaml</code></td>
+<td><code>&lt;dept&gt;: {en, ja, specialty_snomed}</code></td>
+</tr>
+</tbody>
+</table>
+<p>A catalog id (<code>drug_id</code>, procedure <code>type</code>, role, department) is the stable internal identifier. Codes and names are looked up from it, never the reverse.</p>
+<h3 id="34-value-sets--clinosimcodesdatavaluesetsyaml">3.4 Value sets — <code>clinosim/codes/data/valuesets.yaml</code><a class="headerlink" href="#34-value-sets--clinosimcodesdatavaluesetsyaml" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="nt">groups</span><span class="p">:</span>
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="w">  </span><span class="nt">diabetes</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt">space</span><span class="p">:</span><span class="w"> </span><span class="nv">internal</span><span class="p p-Indicator">,</span><span class="nt"> match</span><span class="p">:</span><span class="w"> </span><span class="nv">prefix</span><span class="p p-Indicator">,</span><span class="nt"> members</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">E11</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">E10</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">E13</span><span class="p p-Indicator">]}</span>
+</span></code></pre></div>
+<ul>
+<li><code>space</code> is either <code>internal</code> (codes as stored in CIF chronic conditions) or <code>emitted</code> (codes after the country mapping).</li>
+<li><code>match</code> is either <code>prefix</code> or <code>exact</code>.</li>
+<li>Every internal group is also a named patient condition that disease YAMLs may reference.</li>
+<li>Decision logic tests code membership only through a value set; code literals in conditions are not allowed.</li>
+</ul>
+<h3 id="35-display-tables-for-non-code-vocabularies--clinosimlocalesharedyaml">3.5 Display tables for non-code vocabularies — <code>clinosim/locale/shared/&lt;vocabulary&gt;.yaml</code><a class="headerlink" href="#35-display-tables-for-non-code-vocabularies--clinosimlocalesharedyaml" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="nt">occupation</span><span class="p">:</span>
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="w">  </span><span class="nt">office</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt">en</span><span class="p">:</span><span class="w"> </span><span class="nv">Office worker</span><span class="p p-Indicator">,</span><span class="nt"> ja</span><span class="p">:</span><span class="w"> </span><span class="nv">事務職</span><span class="p p-Indicator">}</span>
+</span></code></pre></div>
+<ul>
+<li>Keyed by the internal slug, with one entry per slug and language.</li>
+<li>One table per vocabulary. Examples:</li>
+<li><code>vocabulary.yaml</code> — occupation, smoking, alcohol, arrival mode</li>
+<li><code>narrative_imaging.yaml</code> — imaging exams</li>
+<li><code>department_display.yaml</code></li>
+<li>FHIR, narrative and LLM prompts read the same table. A second copy of a vocabulary is not allowed.</li>
+</ul>
+<h3 id="36-phrase-catalog--clinosimlocalesharednarrative_phrasesyaml">3.6 Phrase catalog — <code>clinosim/locale/shared/narrative_phrases.yaml</code><a class="headerlink" href="#36-phrase-catalog--clinosimlocalesharednarrative_phrasesyaml" title="Permanent link">&para;</a></h3>
+<p>Sentence templates keyed by dotted id (<code>prescription.next_visit</code>), with <code>{placeholder}</code> arguments. Read through <code>t(key, lang, **kwargs)</code>.</p>
+<h3 id="37-disease-and-encounter-protocols">3.7 Disease and encounter protocols<a class="headerlink" href="#37-disease-and-encounter-protocols" title="Permanent link">&para;</a></h3>
+<p>A disease YAML refers to codes it owns through its own fields: <code>icd_codes</code> (primary, variants, <code>by_chronic_prefix</code>), <code>implied_chronic_codes</code> and <code>sequela_code</code>. It refers to drugs by <code>drug_id</code> and to patient conditions by value-set name. Encounter-condition YAMLs follow the same rules.</p>
+<h2 id="4-resolution-functions">4. Resolution functions<a class="headerlink" href="#4-resolution-functions" title="Permanent link">&para;</a></h2>
+<p>Consumers resolve names only through these functions. Several are added by open PRs; §9 lists the functions that do not exist yet.</p>
+<h3 id="41-code-systems-clinosimcodes">4.1 Code systems (<code>clinosim.codes</code>)<a class="headerlink" href="#41-code-systems-clinosimcodes" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Function</th>
+<th>Returns</th>
+<th>Miss</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>display(system, code, lang)</code></td>
+<td>display in <code>lang</code>, then English</td>
+<td><code>None</code></td>
+</tr>
+<tr>
+<td><code>code_exists(system, code, *, exact=False)</code></td>
+<td>registration check</td>
+<td><code>False</code>; raises on an unknown system</td>
+</tr>
+<tr>
+<td><code>get_system_uri(system)</code> / <code>system_key_for_uri(uri)</code></td>
+<td>URI ↔ key</td>
+<td><code>urn:clinosim:&lt;key&gt;</code> / <code>None</code></td>
+</tr>
+<tr>
+<td><code>system_key_for(kind, country)</code></td>
+<td>system key for a domain and country</td>
+<td>raises on an unknown kind</td>
+</tr>
+<tr>
+<td><code>is_english_only_system(key_or_uri)</code></td>
+<td>whether displays are English-only (§5.3)</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>jp_clins_lab_system(kind)</code> / <code>jlac10_display(code, lang)</code></td>
+<td>JP lab CodeSystem URI / JLAC10 display</td>
+<td>raises / <code>None</code></td>
+</tr>
+<tr>
+<td><code>codes.loinc</code>: <code>loinc_display</code>, <code>loinc_coding</code></td>
+<td>LOINC display / Coding</td>
+<td><code>None</code> / coding without display</td>
+</tr>
+<tr>
+<td><code>codes.valuesets</code>: <code>concept_group</code>, <code>has_condition</code>, <code>patient_condition_names</code>, <code>code_by_chronic_prefix</code></td>
+<td>value-set membership</td>
+<td><code>KeyError</code> on an unknown group</td>
+</tr>
+<tr>
+<td><code>codes.drugs</code>: <code>resolve_drug</code>, <code>get_drug</code>, <code>find_drug</code>, <code>names_drug</code>, <code>drug_name_needles</code></td>
+<td>drug identity and name matching</td>
+<td>raises / <code>None</code> / <code>False</code></td>
+</tr>
+<tr>
+<td><code>codes.procedures</code>: <code>procedure_code</code>, <code>procedure_type_display</code>, <code>procedure_code_display</code></td>
+<td>procedure codes and names</td>
+<td><code>""</code> / humanised type / <code>None</code></td>
+</tr>
+<tr>
+<td><code>codes.ucum</code>: <code>ucum_code</code>, <code>ucum_quantity</code></td>
+<td>UCUM code / FHIR Quantity</td>
+<td>unit passed through</td>
+</tr>
+<tr>
+<td><code>codes.prefectures.prefecture_code(name)</code></td>
+<td>JIS X 0401 code</td>
+<td><code>""</code></td>
+</tr>
+<tr>
+<td><code>codes.snomed_concepts</code></td>
+<td>named SNOMED concepts used in logic</td>
+<td>—</td>
+</tr>
+</tbody>
+</table>
+<p><code>lookup(system, code, lang)</code> is legacy: on a miss it returns the code itself. New code uses <code>display(...) or &lt;explicit fallback&gt;</code>.</p>
+<h3 id="42-country-mappings-and-display-tables-clinosimlocaleloader">4.2 Country mappings and display tables (<code>clinosim.locale.loader</code>)<a class="headerlink" href="#42-country-mappings-and-display-tables-clinosimlocaleloader" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Function</th>
+<th>Returns</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>load_code_mapping(domain, country)</code></td>
+<td>internal name → code for that country</td>
+</tr>
+<tr>
+<td><code>lab_code(lab_name, country)</code> / <code>lab_codes(lab_name)</code></td>
+<td><code>(system_key, code)</code> / the codes of every locale</td>
+</tr>
+<tr>
+<td><code>vocab_display(vocab, slug, lang, *, fallback)</code></td>
+<td>vocabulary display (<code>vocabulary.yaml</code>)</td>
+</tr>
+<tr>
+<td><code>narrative_label(section, key, lang, fallback)</code></td>
+<td>narrative label</td>
+</tr>
+<tr>
+<td><code>imaging_exam_display(exam_id, lang)</code></td>
+<td>imaging exam name</td>
+</tr>
+<tr>
+<td><code>department_display(dept, lang)</code> / <code>department_specialty_snomed(dept)</code></td>
+<td>department label / specialty code</td>
+</tr>
+<tr>
+<td><code>role_display(role, lang, *, facet)</code></td>
+<td>staff role title, suffix or qualification</td>
+</tr>
+<tr>
+<td><code>chronic_followup_vitals(code)</code> / <code>chronic_followup_interval_months(codes)</code></td>
+<td>follow-up schedule data</td>
+</tr>
+<tr>
+<td><code>t(key, lang, **kwargs)</code> (<code>clinosim.locale.i18n</code>)</td>
+<td>phrase</td>
+</tr>
+</tbody>
+</table>
+<h3 id="43-output-helpers">4.3 Output helpers<a class="headerlink" href="#43-output-helpers" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Function</th>
+<th>Use</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>modules.output.fhir_r4.lib.common.dual_slot_concept(system_key, code, lang, *, text, fallback_display)</code></td>
+<td>every coded CodeableConcept (§5.3)</td>
+</tr>
+<tr>
+<td><code>modules._shared.practitioner_name(staff_id, roster_map)</code></td>
+<td>practitioner display; <code>""</code> on a miss</td>
+</tr>
+<tr>
+<td><code>modules._shared.pick_localized_field(record, base, lang)</code></td>
+<td>CIF <code>&lt;base&gt;_&lt;lang&gt;</code> fields</td>
+</tr>
+<tr>
+<td><code>simulator.event_refs.event_ref_kind(value)</code></td>
+<td>namespace of a <code>disease_id</code> / ground-truth value</td>
+</tr>
+</tbody>
+</table>
+<h2 id="5-localization">5. Localization<a class="headerlink" href="#5-localization" title="Permanent link">&para;</a></h2>
+<h3 id="51-output-language">5.1 Output language<a class="headerlink" href="#51-output-language" title="Permanent link">&para;</a></h3>
+<p>The output language comes from the country: <code>clinosim.countries.lang_for(country)</code>, driven by <code>locale/shared/country_language.yaml</code>. It is case-insensitive, and an unmapped country gets English. Code tests <code>countries.is_jp</code> / <code>is_us</code> only for country rules (reimbursement codes, profiles). It never tests them to pick a display language.</p>
+<h3 id="52-data-shape">5.2 Data shape<a class="headerlink" href="#52-data-shape" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Translatable text</strong> is a <code>{&lt;lang&gt;: text}</code> entry. Inline <code>x_ja if is_jp(...) else x_en</code> is not allowed.</li>
+<li><strong>CIF fields</strong> that carry text per language use <code>&lt;base&gt;</code> for English and <code>&lt;base&gt;_&lt;lang&gt;</code> for the others, read through <code>pick_localized_field</code>.</li>
+<li><strong>New languages</strong> are added by putting a <code>&lt;lang&gt;</code> key in the data. No code change is needed.</li>
+</ul>
+<h3 id="53-english-only-code-systems-dual-slot">5.3 English-only code systems (dual slot)<a class="headerlink" href="#53-english-only-code-systems-dual-slot" title="Permanent link">&para;</a></h3>
+<p><code>is_english_only_system</code> covers LOINC, SNOMED CT, HL7 terminology, <code>http://hl7.org/fhir/</code>, DICOM and UCUM. For these systems:</p>
+<ul>
+<li><strong>JP output.</strong> <code>coding.display</code> is the English canonical display. The Japanese label goes in <code>CodeableConcept.text</code>. A Japanese display inside the coding is a validation error.</li>
+<li><strong>Other systems.</strong> JP Core, JP-CLINS, MEDIS, YJ and clinosim-owned systems keep the display in the output language.</li>
+<li><strong>Where it is built.</strong> The concept is built at the emit site with <code>dual_slot_concept</code>. It is not filled in later by a post-process walker.</li>
+</ul>
+<h2 id="6-fallback-rules">6. Fallback rules<a class="headerlink" href="#6-fallback-rules" title="Permanent link">&para;</a></h2>
+<ol>
+<li><strong>Order.</strong> Requested language, then English, then the caller's <strong>explicit</strong> fallback.</li>
+<li><strong>What a fallback never is.</strong> It is never another language (Japanese in English output), the lookup key, the raw code, a raw id or a raw slug.</li>
+<li><strong>A missing code or id</strong> returns <code>None</code> / <code>""</code> from the resolver. The caller decides what to show and passes it explicitly, or omits the element ("silence beats fabrication").</li>
+<li><strong>Humanised slugs.</strong> A humanised slug (underscores → spaces) is allowed only as the last fallback of a display table for internal slugs. For example <code>imaging_exam_display</code>, <code>procedure_type_display</code> and <code>department_display</code> humanise an unknown slug. It is allowed only when a unit test asserts that every slug the generator emits is in the table. A title-cased slug (<code>.title()</code>) is never allowed.</li>
+<li><strong>A missing English entry</strong> is a data bug, and a test detects it. A missing non-English entry falls back to English (rule 1).</li>
+</ol>
+<h2 id="7-adding-or-changing-a-code">7. Adding or changing a code<a class="headerlink" href="#7-adding-or-changing-a-code" title="Permanent link">&para;</a></h2>
+<ol>
+<li><strong>Verify against the authority</strong> before registering:</li>
+</ol>
+<table>
+<thead>
+<tr>
+<th>System</th>
+<th>Authority</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>ICD-10-CM</td>
+<td>NLM / CMS</td>
+</tr>
+<tr>
+<td>ICD-10</td>
+<td>WHO browser</td>
+</tr>
+<tr>
+<td>LOINC</td>
+<td>loinc.org or tx.fhir.org <code>$lookup</code></td>
+</tr>
+<tr>
+<td>SNOMED CT</td>
+<td>tx.fhir.org <code>$lookup</code> / SNOMED browser</td>
+</tr>
+<tr>
+<td>RxNorm</td>
+<td>RxNav</td>
+</tr>
+<tr>
+<td>YJ / HOT</td>
+<td>MHLW / MEDIS masters</td>
+</tr>
+<tr>
+<td>JLAC10</td>
+<td>JSLM master</td>
+</tr>
+<tr>
+<td>CPT</td>
+<td>AMA CPT</td>
+</tr>
+<tr>
+<td>K-codes</td>
+<td>MHLW 診療報酬点数表</td>
+</tr>
+<tr>
+<td>HL7</td>
+<td>THO</td>
+</tr>
+<tr>
+<td>JP Core / JP-CLINS URIs</td>
+<td>the package's fixedUri</td>
+</tr>
+</tbody>
+</table>
+<ol>
+<li><strong>Register the code</strong> in <code>codes/data/&lt;system&gt;.yaml</code>, with <code>en</code> equal to the authority display.</li>
+<li><strong>Update the snapshot</strong> in <code>codes/authoritative/</code> when one exists for the system: <code>rxnorm_rxnav_snapshot.json</code> or <code>loinc_2_82_tx.json</code>.</li>
+<li><strong>Add the mapping or catalog entry</strong> that uses the code (§3.2–3.4).</li>
+<li><strong>Run the coverage tests:</strong> diagnosis coverage, the authoritative-snapshot tests and the system-URI coverage test.</li>
+</ol>
+<h2 id="8-prohibited-patterns">8. Prohibited patterns<a class="headerlink" href="#8-prohibited-patterns" title="Permanent link">&para;</a></h2>
+<ul>
+<li>A code-system URI string literal outside <code>clinosim/codes/</code>. Use <code>get_system_uri</code>. Prefix lists that name URI families are the only exception.</li>
+<li>A code literal in a Python comparison or a Python dict of codes or displays (CPT, LOINC, SNOMED, ICD, YJ, ...). Use a value set, a catalog or a named concept.</li>
+<li>A second table for the same vocabulary or code mapping.</li>
+<li>Identifying a drug, lab or condition by substring of free text. Use the catalog id, canonical lab name or value set (<code>names_drug</code> is the one sanctioned name matcher).</li>
+<li><code>.title()</code> or bare <code>replace("_", " ")</code> on a slug that reaches output, except under rule 6.4.</li>
+<li>Translating a code display with a free-text translator (<code>localize_drug_name</code> and similar) instead of the code system's own <code>ja</code> display.</li>
+<li><code>lookup(...) or ...</code>, which never takes the fallback because <code>lookup</code> echoes the code.</li>
+</ul>
+<h2 id="9-known-deviations">9. Known deviations<a class="headerlink" href="#9-known-deviations" title="Permanent link">&para;</a></h2>
+<p>These parts of the code base do not yet conform. Each one is removed by the issue listed.</p>
+<table>
+<thead>
+<tr>
+<th>Deviation</th>
+<th>Issue</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Fallback.</strong> <code>display</code> / <code>lookup</code>, <code>resolve_text</code> and <code>t</code> end with a last-resort value: the first available language, the code, <code>str(value)</code> or the key. That can break §6.1–6.2, and there is no single retrieval API.</td>
+<td>#2275</td>
+</tr>
+<tr>
+<td>ICD lookup, short names and crosswalks are not behind one accessor (two short-name tables, CM/WHO Japanese divergence).</td>
+<td>#2257</td>
+</tr>
+<tr>
+<td>SNOMED codes and displays are still held in emitter dicts (route, severity), and 74 SNOMED literals are unregistered.</td>
+<td>#2258</td>
+</tr>
+<tr>
+<td>Document LOINCs are defined in eight places, some section codes do not mean their section, and emitters still hold LOINC constants.</td>
+<td>#2344</td>
+</tr>
+<tr>
+<td>JP drug code systems and the drug-code accessor.</td>
+<td>#2262</td>
+</tr>
+<tr>
+<td>CPT / K-codes the generator emits but has not registered.</td>
+<td>#2340</td>
+</tr>
+<tr>
+<td>HL7 Japanese displays are keyed by English display (<code>hl7-display-ja.yaml</code>, <code>_localize_display</code>).</td>
+<td>#2264</td>
+</tr>
+<tr>
+<td>Remaining hand-built dual-slot concepts, and the post-process text-filling walkers.</td>
+<td>#2337</td>
+</tr>
+<tr>
+<td>Lab analyte display is spread over five tables.</td>
+<td>#2267</td>
+</tr>
+<tr>
+<td>Drug names go through free-text translation, not the catalog.</td>
+<td>#2271</td>
+</tr>
+<tr>
+<td>Language literals are still embedded in Python.</td>
+<td>#2277</td>
+</tr>
+<tr>
+<td>Records do not carry <code>drug_id</code>.</td>
+<td>#2297</td>
+</tr>
+<tr>
+<td>Drug classes and aliases are held outside the catalog.</td>
+<td>#2298</td>
+</tr>
+<tr>
+<td>Lab identity uses non-canonical names at some boundaries.</td>
+<td>#2299</td>
+</tr>
+<tr>
+<td>Checkup results use LOINC as <code>lab_name</code>.</td>
+<td>#2300</td>
+</tr>
+<tr>
+<td>Eval plausibility bounds, and the two panel definitions.</td>
+<td>#2332</td>
+</tr>
+<tr>
+<td>No lint guard enforces §8.</td>
+<td>#2266</td>
+</tr>
+</tbody>
+</table>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+    
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+</div>
+      
+        
+<div class="md-social">
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://github.com/TomoOkuyama/clinosim" target="_blank" rel="noopener" title="github.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "navigation.tabs.sticky", "navigation.sections", "navigation.expand", "navigation.top", "navigation.indexes", "navigation.footer", "toc.follow", "content.code.copy", "content.action.edit", "search.highlight", "search.suggest"], "search": "../../assets/javascripts/workers/search.a7633da7.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.c21346df.min.js"></script>
+      
+    
+  </body>
+</html>
