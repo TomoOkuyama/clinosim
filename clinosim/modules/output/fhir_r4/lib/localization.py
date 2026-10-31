@@ -260,23 +260,9 @@ def _dept_display(dept: str, country: str) -> str:
     return entry.get(lang) or dept.replace("_", " ").title()
 
 
-# Occupation display is now in `clinosim/locale/shared/occupation_display.yaml`
-# — load via `clinosim.locale.loader.load_occupation_display()` which returns
-# `{slug: {en, ja}}` (post-#1880 review, hardcoded-audit Finding 5).
-
-
-def _occupation_display_ja() -> dict[str, str]:
-    """Flatten the slug → ja string view of `occupation_display.yaml`."""
-    from clinosim.locale.loader import load_occupation_display
-
-    return {slug: row.get("ja", slug) for slug, row in load_occupation_display().items()}
-
-
-def _occupation_display_en() -> dict[str, str]:
-    """Flatten the slug → en string view of `occupation_display.yaml`."""
-    from clinosim.locale.loader import load_occupation_display
-
-    return {slug: row.get("en", slug) for slug, row in load_occupation_display().items()}
+# Occupation display is the `occupation` section of
+# `clinosim/locale/shared/vocabulary.yaml`, shared with narrative and LLM
+# prompts (Issue #2269) — load via `clinosim.locale.loader.load_occupation_display()`.
 
 
 # --- Shared display dictionaries for JP localization ---

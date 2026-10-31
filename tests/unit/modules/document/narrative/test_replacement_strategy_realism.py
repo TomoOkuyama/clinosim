@@ -144,7 +144,7 @@ def test_render_patient_demographics_en_full_anchor() -> None:
     assert "72 y/o female" in out
     assert "retired" in out
     assert "former smoker" in out
-    assert "occasional alcohol" in out
+    assert "occasional drinker" in out  # shared vocabulary (Issue #2269)
     assert "widowed" in out
     assert "Late-Elderly Medical Care System" in out
 
@@ -270,7 +270,7 @@ def test_render_patient_demographics_partial_skips_missing() -> None:
     ja = _render_patient_demographics(p, lang="ja")
     en = _render_patient_demographics(p, lang="en")
     # Age + sex + one social item, nothing fabricated for missing fields
-    assert ja == "68歳男性、非喫煙"
+    assert ja == "68歳男性、非喫煙者"  # shared vocabulary (Issue #2269)
     assert en == "68 y/o male, non-smoker"
 
 

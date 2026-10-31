@@ -107,15 +107,12 @@ def load_allergen_rxnorm_map() -> dict[str, str]:
 
 @lru_cache(maxsize=1)
 def load_occupation_display() -> dict[str, dict[str, str]]:
-    """Load occupation display table ({slug: {en, ja}}).
+    """Load the occupation display table ({slug: {en, ja}}): the
+    ``occupation`` section of ``locale/shared/vocabulary.yaml``, shared with
+    the narrative and LLM prompts (Issue #2269)."""
+    from clinosim.locale.loaders.narrative import load_vocabulary
 
-    Reads `clinosim/locale/shared/occupation_display.yaml` (migrated from
-    the inline `_OCCUPATION_DISPLAY_{JA,EN}` dicts in
-    `clinosim/modules/output/fhir_r4/lib/localization.py` under the
-    post-#1849 review, hardcoded-audit Finding 5).
-    """
-    raw = _load_yaml(_LOCALE_DIR / "shared" / "occupation_display.yaml", fallback={})
-    return raw.get("occupations", {}) or {}
+    return load_vocabulary().get("occupation", {}) or {}
 
 
 @lru_cache(maxsize=1)

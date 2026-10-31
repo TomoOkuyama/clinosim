@@ -4,7 +4,7 @@
 #
 # The order engine emits the slug (e.g. "diabetic_diet"); this catalog
 # carries the display pair for JA / EN narrative output. Parallel to
-# `department_display.yaml` and `occupation_display.yaml`.
+# `department_display.yaml` and `vocabulary.yaml`.
 #
 # Migrated from the inline `_diet_labels` conditional in
 # `clinosim/modules/output/fhir_r4/encounters/encounter.py` under the

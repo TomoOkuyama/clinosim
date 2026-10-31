@@ -19,7 +19,7 @@ from clinosim.codes import display as registry_display
 from clinosim.codes import get_system_uri, slug_to_code
 from clinosim.codes import lookup as code_lookup
 from clinosim.codes.ucum import ucum_quantity
-from clinosim.locale.loader import load_allergen_rxnorm_map, load_identity_config
+from clinosim.locale.loader import load_allergen_rxnorm_map, load_identity_config, vocab_display
 from clinosim.modules._shared import is_jp, resolve_lang
 from clinosim.modules.output.fhir_r4.lib.common import (
     _coding_with_display,
@@ -38,8 +38,6 @@ from clinosim.modules.output.fhir_r4.lib.localization import (
     _RELATIONSHIP_DISPLAY_JA,
     _localize_display,
     _localize_drug_name,
-    _occupation_display_en,
-    _occupation_display_ja,
 )
 
 # === Issue #1344: US Core Patient extensions ===
@@ -1076,8 +1074,10 @@ def _build_occupation_observation(
     """
     if not occupation:
         return None
-    display_map = _occupation_display_ja() if is_jp(country) else _occupation_display_en()
-    display = display_map.get(occupation, occupation.title())
+    # Issue #2269: the occupation vocabulary shared with narrative and LLM
+    # prompts; an unknown slug is humanised (a test keeps every generated
+    # slug in the table).
+    display = vocab_display("occupation", occupation, resolve_lang(country), fallback=occupation.replace("_", " "))
     _occupation_key = patient_id
     return {
         "resourceType": "Observation",

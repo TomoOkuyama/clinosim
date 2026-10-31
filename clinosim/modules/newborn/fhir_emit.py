@@ -29,17 +29,12 @@ def _encounter_ref(encounter_id: str) -> dict[str, str]:
 
 
 def _label(section: str, key: str, lang: str, fallback: str = "") -> str:
-    """Thin wrapper over ``load_narrative_labels`` + ``resolve_localized_display``
-    (Phase 1d-16 unified multi-language pattern — same shape as the
-    ``_label`` helper in ``template_generator.py``). Case-preserving with
-    a lower-cased fallback lookup so callers may use either the raw slug
-    or a lower-cased key.
-    """
-    from clinosim.locale.loader import load_narrative_labels, resolve_localized_display
+    """Narrative-label lookup: ``clinosim.locale.loader.narrative_label``
+    (the one implementation; vocabulary sections come from
+    ``locale/shared/vocabulary.yaml``, Issue #2269)."""
+    from clinosim.locale.loader import narrative_label
 
-    section_entries = load_narrative_labels().get(section, {})
-    entry = section_entries.get(str(key)) or section_entries.get(str(key).lower())
-    return resolve_localized_display(entry, lang, fallback=fallback or str(key))
+    return narrative_label(section, key, lang, fallback)
 
 
 _APGAR_MINUTE_TO_LOINC: dict[int, str] = {

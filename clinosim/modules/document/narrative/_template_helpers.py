@@ -29,21 +29,12 @@ logger = logging.getLogger(__name__)
 
 
 def _label(section: str, key: str, lang: str, fallback: str = "") -> str:
-    """Look up a narrative-label section entry in the language-agnostic
-    ``load_narrative_labels`` bundle. Returns ``fallback`` when the
-    slug is unknown; the fallback chain (``entry[lang]`` →
-    ``entry["en"]`` → ``fallback``) is provided by
-    ``resolve_localized_display`` per the S120 rule.
+    """Narrative-label lookup: ``clinosim.locale.loader.narrative_label``
+    (the one implementation; vocabulary sections come from
+    ``locale/shared/vocabulary.yaml``, Issue #2269)."""
+    from clinosim.locale.loader import narrative_label
 
-    Key resolution is case-preserving with a lower-cased fallback so
-    both HL7-style uppercase codes (``"MTH"`` / ``"FTH"``) and
-    snake_case slugs (``"day_shift"`` / ``"morning"``) resolve without
-    the caller normalising."""
-    from clinosim.locale.loader import load_narrative_labels, resolve_localized_display
-
-    section_entries = load_narrative_labels().get(section, {})
-    entry = section_entries.get(str(key)) or section_entries.get(str(key).lower())
-    return resolve_localized_display(entry, lang, fallback=fallback or str(key))
+    return narrative_label(section, key, lang, fallback)
 
 
 # Issue #819 follow-up: staff-id → name + role suffix resolution for

@@ -163,6 +163,34 @@ def load_narrative_archetypes() -> dict[str, dict[str, str]]:
 
 
 @lru_cache(maxsize=1)
+def load_vocabulary() -> dict[str, dict[str, dict[str, str]]]:
+    """The social-history / encounter vocabularies (occupation, smoking,
+    alcohol, arrival mode): one ``{slug: {lang: display}}`` table each, in
+    ``locale/shared/vocabulary.yaml`` (Issue #2269). The narrative-label and
+    LLM-prompt-label bundles take these sections from here."""
+    return _load_yaml(_LOCALE_DIR / "shared" / "vocabulary.yaml", fallback={}) or {}
+
+
+def vocab_display(vocab: str, slug: str, lang: str, *, fallback: str = "") -> str:
+    """Display of ``slug`` in vocabulary ``vocab`` for ``lang`` (then English,
+    then ``fallback``); slugs match case-insensitively (Issue #2269)."""
+    entries = load_vocabulary().get(vocab) or {}
+    entry = entries.get(str(slug)) or entries.get(str(slug).strip().lower())
+    return resolve_localized_display(entry, lang, fallback=fallback)
+
+
+def narrative_label(section: str, key: str, lang: str, fallback: str = "") -> str:
+    """Entry ``key`` of a narrative-label section in ``lang`` (then English,
+    then ``fallback``, else the key). Case-preserving with a lower-cased
+    fallback so HL7-style codes (``"MTH"``) and snake_case slugs both resolve.
+    The one ``_label`` implementation behind the narrative and newborn
+    emitters (Issue #2269)."""
+    section_entries = load_narrative_labels().get(section, {})
+    entry = section_entries.get(str(key)) or section_entries.get(str(key).lower())
+    return resolve_localized_display(entry, lang, fallback=fallback or str(key))
+
+
+@lru_cache(maxsize=1)
 def load_narrative_labels() -> dict[str, dict[str, dict[str, str]]]:
     """Load the multi-language narrative-renderer label bundle (Phase 1d-15).
 
@@ -178,7 +206,7 @@ def load_narrative_labels() -> dict[str, dict[str, dict[str, str]]]:
     ``{lang: display}`` entry — the loader is language-agnostic.
     """
     raw = _load_yaml(_LOCALE_DIR / "shared" / "narrative_labels.yaml", fallback={})
-    return raw or {}
+    return {**(raw or {}), **load_vocabulary()}
 
 
 @lru_cache(maxsize=1)
@@ -213,7 +241,7 @@ def load_llm_prompt_labels() -> dict[str, dict[str, dict[str, str]]]:
     the loader is language-agnostic.
     """
     raw = _load_yaml(_LOCALE_DIR / "shared" / "llm_prompt_labels.yaml", fallback={})
-    return raw or {}
+    return {**(raw or {}), **load_vocabulary()}
 
 
 @lru_cache(maxsize=1)

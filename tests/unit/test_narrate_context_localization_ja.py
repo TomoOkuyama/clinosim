@@ -78,7 +78,7 @@ def test_oxygen_device_ja_mapping(raw, expected):
         ("walk-in", "独歩来院"),
         ("Walk-in", "独歩来院"),
         ("ambulance", "救急車搬送"),
-        ("helicopter", "ヘリ搬送"),
+        ("helicopter", "ドクターヘリ搬送"),
         ("transfer", "転院搬送"),
     ],
 )

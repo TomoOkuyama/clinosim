@@ -35,13 +35,19 @@ def _localize_token(token: str, section: str, lang: str) -> str:
     key = str(token).strip().lower()
     if not key or key in ("unknown", "none"):
         return ""
-    from clinosim.locale.loader import load_llm_prompt_labels, resolve_localized_display
+    from clinosim.locale.loader import load_llm_prompt_labels, load_vocabulary, resolve_localized_display
 
-    return resolve_localized_display(
+    text = resolve_localized_display(
         load_llm_prompt_labels().get(section, {}).get(key, {}),
         lang,
         fallback=key.replace("_", " "),
     )
+    # The demographic anchor is running prose ("72 y/o female, retired, former
+    # smoker"); the shared vocabulary stores sentence-case labels (Issue
+    # #2269), so lower-case a leading capital unless it starts an acronym.
+    if section in load_vocabulary() and len(text) > 1 and text[0].isupper() and text[1].islower():
+        text = text[0].lower() + text[1:]
+    return text
 
 
 def _render_patient_demographics(patient: Any, lang: str, encounter: Any = None) -> str:
