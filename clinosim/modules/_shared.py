@@ -293,6 +293,15 @@ def select_with_exclusive_classes(
     return selected
 
 
+def practitioner_name(staff_id: str, roster_map: dict[str, dict] | None) -> str:
+    """The roster name of staff ``staff_id``, or ``""`` when the id is not in
+    the roster — never the raw id and never a fabricated name. The one
+    practitioner-name resolver for FHIR reference displays and narrative text
+    (Issue #2270)."""
+    staff = (roster_map or {}).get(staff_id) if staff_id else None
+    return str((staff or {}).get("name", "") or "").strip()
+
+
 def get_attr_or_key(obj: Any, name: str, default: Any = None) -> Any:
     """Read ``name`` from ``obj`` whether ``obj`` is a dict or has attributes.
 

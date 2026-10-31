@@ -251,13 +251,11 @@ def localize_drug_name(drug_name: str, lang: str) -> str:
 
 
 def _dept_display(dept: str, country: str) -> str:
-    """Resolve a department key to its display name for the target country.
+    """Display name of a department for the target country: the shared
+    department table, then English, then the humanised key (Issue #2270)."""
+    from clinosim.locale.loader import department_display
 
-    Falls back to a title-cased key when the department is not in the table.
-    """
-    lang = resolve_lang(country)
-    entry = _load_department_display().get(dept, {})
-    return entry.get(lang) or dept.replace("_", " ").title()
+    return department_display(dept, resolve_lang(country))
 
 
 # Occupation display is now in `clinosim/locale/shared/occupation_display.yaml`
@@ -407,21 +405,12 @@ def localize_fixed_label(en_label: str, country: str) -> str:
     return en_label
 
 
-@cache
 def _clinician_role_rows() -> dict[str, dict[str, object]]:
-    """Load `clinosim/codes/data/clinosim-clinician-role.yaml` as a
-    role_key → row dict map."""
-    import yaml
+    """Role key → row of `clinosim/codes/data/clinosim-clinician-role.yaml`
+    (``clinosim.locale.loader.load_clinician_roles``, Issue #2270)."""
+    from clinosim.locale.loader import load_clinician_roles
 
-    path = Path(__file__).resolve().parents[4] / "codes" / "data" / "clinosim-clinician-role.yaml"
-    with path.open(encoding="utf-8") as fh:
-        raw = yaml.safe_load(fh) or {}
-    rows = raw.get("roles") or {}
-    out: dict[str, dict[str, object]] = {}
-    for role_key, row in rows.items():
-        if isinstance(row, dict):
-            out[str(role_key)] = row
-    return out
+    return dict(load_clinician_roles())
 
 
 def _role_prefix_map_ja() -> dict[str, dict[str, str]]:

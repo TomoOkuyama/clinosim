@@ -15,6 +15,7 @@ site keeps working unchanged.
 from __future__ import annotations
 
 from functools import lru_cache
+from typing import Any
 
 from clinosim.locale._io import _LOCALE_DIR, _load_yaml
 
@@ -63,6 +64,43 @@ def load_department_display() -> dict[str, dict[str, str]]:
     """Load department display table ({key: {en, ja}})."""
     raw = _load_yaml(_LOCALE_DIR / "shared" / "department_display.yaml", fallback={})
     return raw.get("departments", {}) or {}
+
+
+def department_display(dept: str, lang: str) -> str:
+    """Display name of department ``dept`` in ``lang``: the table entry, then
+    English, then the humanised key (Issue #2270; never a title-cased slug)."""
+    entry = load_department_display().get(dept) or {}
+    return str(entry.get(lang) or entry.get("en") or dept.replace("_", " "))
+
+
+def department_specialty_snomed(dept: str) -> str:
+    """SNOMED CT specialty code of department ``dept`` (``""`` when the
+    department has no clinical specialty), Issue #2270."""
+    return str((load_department_display().get(dept) or {}).get("specialty_snomed") or "")
+
+
+@lru_cache(maxsize=1)
+def load_clinician_roles() -> dict[str, dict[str, Any]]:
+    """Staff roles (``codes/data/clinosim-clinician-role.yaml``): staff-id
+    prefix, title, name suffix and qualification per role (Issue #2270)."""
+    raw = _load_yaml(_LOCALE_DIR.parent / "codes" / "data" / "clinosim-clinician-role.yaml", fallback={})
+    return {str(k): v for k, v in (raw.get("roles") or {}).items() if isinstance(v, dict)}
+
+
+def role_display(role: str, lang: str, *, facet: str = "title") -> str:
+    """Display of staff ``role`` in ``lang`` (then English, then the humanised
+    role): ``facet`` "title" (Physical therapist / 理学療法士), "suffix" (the
+    name suffix, nurse / 看護師) or "qualification" (the qualification
+    display). Issue #2270."""
+    row = load_clinician_roles().get(role) or {}
+    if facet == "suffix":
+        values = {"en": row.get("suffix_en"), "ja": row.get("suffix_ja")}
+    elif facet == "qualification":
+        qual = row.get("qualification") or {}
+        values = {"en": qual.get("display_en"), "ja": qual.get("display")}
+    else:
+        values = dict(row.get("title") or {})
+    return str(values.get(lang) or values.get("en") or role.replace("_", " "))
 
 
 @lru_cache(maxsize=1)

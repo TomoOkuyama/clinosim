@@ -20,7 +20,7 @@ from typing import Any
 from clinosim.codes import get_system_uri, system_key_for_uri
 from clinosim.codes import lookup as code_lookup
 from clinosim.codes.ucum import ucum_quantity
-from clinosim.modules._shared import is_jp, resolve_lang
+from clinosim.modules._shared import is_jp, practitioner_name, resolve_lang
 from clinosim.modules.output.fhir_r4.lib.common import derive_meta_last_updated
 from clinosim.modules.output.fhir_r4.post_process.profile import (
     _HL7_OBSERVATION_CATEGORY_SYSTEM,
@@ -1251,13 +1251,7 @@ def _resolve_practitioner_display(staff_id: str, roster_map: dict[str, dict] | N
     replicate the Practitioner.name split logic. Returns "" when the
     staff id is not in the roster (silence beats fabrication, AD-30).
     """
-    if not roster_map:
-        return ""
-    staff = roster_map.get(staff_id)
-    if not staff:
-        return ""
-    name = str(staff.get("name", "") or "").strip()
-    return name
+    return practitioner_name(staff_id, roster_map)
 
 
 def _populate_practitioner_reference_display(resource: dict, roster_map: dict[str, dict] | None) -> None:

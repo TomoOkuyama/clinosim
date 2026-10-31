@@ -160,7 +160,9 @@ def test_other_staff_includes_primary_nurse_when_set() -> None:
     ctx = _make_ctx(encounter=enc)
     gen = TemplateNarrativeGenerator()
     out = gen.generate(ctx, spec)
-    assert "nurse-RN-001" in out.sections["other_staff"]
+    # Issue #2270: an id missing from the roster is not shown raw.
+    assert "担当看護師" in out.sections["other_staff"]
+    assert "nurse-RN-001" not in out.sections["other_staff"]
 
 
 def test_other_staff_fallback_when_no_nurse() -> None:

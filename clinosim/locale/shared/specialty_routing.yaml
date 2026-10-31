@@ -27,12 +27,14 @@ routes:
   # calendar year, deduped at specialty level in the dispatcher tracker.
   - requires_concept_group: malignancy
     specialty: oncology
+    visit_reason: {en: "Oncology survivorship follow-up", ja: "腫瘍内科 サバイバーシップ外来"}
     cadence: annual
     clinical_basis: "NCCN survivorship guidelines (per cancer family — generic annual Phase 1 proxy; Phase 2 may add family-specific cadence overrides)"
 
   # Cardiology — AFib, chronic HF, chronic IHD. Semi-annual stable follow-up.
   - requires_chronic: ["I48", "I50", "I25"]
     specialty: cardiology
+    visit_reason: {en: "Cardiology stable follow-up", ja: "循環器内科 定期外来"}
     cadence: semi_annual
     clinical_basis: "ACC/AHA 2019 Chronic HF Guideline (I50) + 2019 Chronic Coronary Syndromes (I25) + ACC/AHA 2023 AFib Guideline (I48) — stable chronic cardiology follow-up"
 
@@ -41,6 +43,7 @@ routes:
   # on PHQ-9 / GAD-7 bands.
   - requires_chronic: ["F32", "F33", "F41.1"]
     specialty: psychiatry
+    visit_reason: {en: "Psychiatry treatment-phase follow-up", ja: "精神科 治療期外来"}
     cadence: quarterly
     clinical_basis: "APA 2010 Practice Guideline for the Treatment of Depressive Disorder + VA/DoD 2022 Clinical Practice Guideline for the Management of MDD — treatment-phase quarterly follow-up"
 
@@ -48,6 +51,7 @@ routes:
   # treatment with regular psychiatric review.
   - requires_chronic: ["F20"]
     specialty: psychiatry
+    visit_reason: {en: "Psychiatry treatment-phase follow-up", ja: "精神科 治療期外来"}
     cadence: quarterly
     clinical_basis: "APA 2020 Practice Guideline for the Treatment of Patients With Schizophrenia — ongoing assessment of symptoms, adherence and antipsychotic side effects"
 
@@ -55,11 +59,13 @@ routes:
   # treatment with mood-episode and drug-level review.
   - requires_chronic: ["F31"]
     specialty: psychiatry
+    visit_reason: {en: "Psychiatry treatment-phase follow-up", ja: "精神科 治療期外来"}
     cadence: quarterly
     clinical_basis: "CANMAT / ISBD 2018 Guidelines for the Management of Patients With Bipolar Disorder — maintenance-phase monitoring of mood, adherence and mood-stabilizer safety labs"
 
   # Pulmonology — COPD. Annual stable follow-up.
   - requires_chronic: ["J44"]
     specialty: pulmonology
+    visit_reason: {en: "Pulmonology stable COPD follow-up", ja: "呼吸器内科 COPD 定期外来"}
     cadence: annual
     clinical_basis: "GOLD 2024 — stable COPD maintenance follow-up (q6-12mo per GOLD stage; Phase 1 picks the annual lower bound)"

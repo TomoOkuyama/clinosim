@@ -11,15 +11,6 @@
 #
 # Loader: ``clinosim.locale.loader.load_narrative_labels()``.
 
-staff_role_suffix:
-  CN: {en: nurse, ja: 看護師}
-  DR: {en: physician, ja: 医師}
-  NS: {en: nurse, ja: 看護師}
-  OT: {en: occupational therapist, ja: 作業療法士}
-  PH: {en: pharmacist, ja: 薬剤師}
-  PT: {en: physical therapist, ja: 理学療法士}
-  RT: {en: respiratory therapist, ja: 呼吸療法士}
-  ST: {en: speech therapist, ja: 言語聴覚士}
 shift_labels:
   day: {en: day, ja: 日勤}
   evening: {en: evening, ja: 準夜}

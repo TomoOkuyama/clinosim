@@ -148,7 +148,7 @@ def load_narrative_labels() -> dict[str, dict[str, dict[str, str]]]:
     the 12 module-level ``_XXX_JA`` / ``_XXX_EN`` dict constants
     previously embedded in
     ``clinosim/modules/document/narrative/template_generator.py``
-    (staff_role_suffix / shift_labels / family_relation /
+    (shift_labels / family_relation /
     ed_acuity_reason / arrival_mode / smoking / alcohol / occupation
     / rp_therapy_type / rp_progress / rp_participation / rp_phase).
 
