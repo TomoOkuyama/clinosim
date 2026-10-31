@@ -6,6 +6,8 @@ from dataclasses import dataclass
 
 import numpy as np
 
+from clinosim.modules.disease.protocol import load_disease_protocol
+
 
 @dataclass(frozen=True)
 class LabelRow:
@@ -96,3 +98,13 @@ def majority_baseline(labels: list[LabelRow]) -> BaselineReport:
             "informative model must exceed. AUROC is 0.5 (constant scorer)."
         ),
     )
+
+
+def disease_icd_codes(disease_id: str) -> frozenset[str]:
+    """The ICD codes the generator assigns to ``disease_id`` (its YAML
+    ``icd_codes`` primary and variants), so a benchmark label follows the
+    disease definition instead of restating codes (Issue #2301)."""
+    icd = load_disease_protocol(disease_id).icd_codes
+    codes = {str(icd.get("primary") or "")}
+    codes.update(str(v.get("code") or "") for v in icd.get("variants") or [])
+    return frozenset(c.upper() for c in codes if c)

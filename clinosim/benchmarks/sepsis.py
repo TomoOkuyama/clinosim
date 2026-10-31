@@ -10,6 +10,7 @@ from clinosim.benchmarks.harness import (
     BaselineReport,
     LabelRow,
     compute_auroc,
+    disease_icd_codes,
 )
 
 
@@ -29,15 +30,15 @@ def _iter_structural_records(cif_dir: Path):
 def _is_sepsis_encounter(rec: dict) -> bool:
     """Sepsis primary diagnosis の encounter か判定。
 
-    condition_event.disease_id か admission_diagnosis_code(A41.9/R65.20 系)を見る。
+    condition_event.disease_id か admission_diagnosis_code (sepsis 疾患 YAML の
+    icd_codes に含まれる code) を見る。
     """
     ce = rec.get("condition_event", {}) or {}
     if str(ce.get("disease_id", "")).lower() == "sepsis":
         return True
     dx = rec.get("clinical_diagnosis", {}) or {}
     code = str(dx.get("admission_diagnosis_code", "")).upper()
-    # ICD-10-CM/WHO sepsis codes
-    return code.startswith("A41") or code == "R65.20" or code == "R65.21"
+    return code in disease_icd_codes("sepsis")
 
 
 def _first_window_lactate(rec: dict) -> float | None:

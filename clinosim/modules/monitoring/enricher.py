@@ -135,7 +135,7 @@ def _inject_for_record(
     )
 
     true_labs = _derive_true_labs_for_patient(patient, matched_drugs)
-    from clinosim.modules.monitoring.mapping import matched_medication_names
+    from clinosim.modules.monitoring.mapping import matched_medication_names, monitoring_lab_code
 
     patient_drug_names = matched_medication_names(meds, mapping)
 
@@ -159,7 +159,7 @@ def _inject_for_record(
                 patient=patient,
                 analyte=analyte,
                 display_name=str(lab_spec.get("lab") or analyte),
-                loinc=str(lab_spec.get("loinc") or ""),
+                loinc=monitoring_lab_code(str(lab_spec.get("lab") or "")),
                 rationale=str(lab_spec.get("rationale") or f"{drug_name} monitoring"),
                 # Issue #871: JA rationale for the JP `reasonCode.text` emit
                 # path. Empty when the YAML has no `rationale_ja` slot yet;

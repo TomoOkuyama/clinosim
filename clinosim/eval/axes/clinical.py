@@ -12,7 +12,9 @@ import yaml
 
 from clinosim.audit.types import Cohort
 from clinosim.codes import get_system_uri
+from clinosim.codes.drugs import resolve_drug
 from clinosim.eval.engine import EvalCheck, Outcome, Severity
+from clinosim.locale.loader import load_code_mapping
 
 # JP medication CodeSystem URI set — mirrors locale.py `_JP_MEDICATION_SYSTEM_URIS`.
 # canonical single source of truth = `codes/loader.py::_BUILTIN_URIS` + `codes/data/yj.yaml`.
@@ -154,14 +156,19 @@ def _condition_lab_pairings_from_yaml() -> tuple[_CondLabPairing, ...]:
 _CONDITION_LAB_PAIRINGS: tuple[_CondLabPairing, ...] = _condition_lab_pairings_from_yaml()
 
 
-# Warfarin monitoring pairing (medication-driven). Warfarin's RxNorm code
-# is 11289; JP YJ code family 3332001*. When an ACTIVE MedicationRequest
-# for warfarin exists, related PT-INR draws within the window should sit
-# in the therapeutic band 2.0-3.5 (broader than 2.0-3.0 to accommodate
-# co-morbidity perturbation — see AD-57 warfarin coupling).
-_WARFARIN_RXNORM = "11289"
-_WARFARIN_YJ_PREFIX = "3332001"
-_PT_INR_LOINC = "6301-6"
+# Warfarin monitoring pairing (medication-driven). When an ACTIVE
+# MedicationRequest for warfarin exists, related PT-INR draws within the
+# window should sit in the therapeutic band 2.0-3.5 (broader than 2.0-3.0 to
+# accommodate co-morbidity perturbation — see AD-57 warfarin coupling).
+# Issue #2301: the drug and lab codes are the ones the generator emits — the
+# drug code mapping keyed by the catalog name (US RxNorm, JP YJ prefix) and the
+# lab code mapping — not restated here.
+_WARFARIN_NAME = resolve_drug("warfarin").names["en"]
+_WARFARIN_RXNORM = load_code_mapping("drug", "US").get(_WARFARIN_NAME, "")
+_WARFARIN_YJ_PREFIX = load_code_mapping("drug", "JP").get(_WARFARIN_NAME, "")
+_PT_INR_LOINC = load_code_mapping("lab", "US")["PT_INR"]
+_RXNORM_URI = get_system_uri("rxnorm")
+_LOINC_URI = get_system_uri("loinc")
 _WARFARIN_THERAPEUTIC_BAND = (2.0, 3.5)
 
 # Issue #737: Warfarin induction period. INR climbs from baseline ~1.0 to
@@ -269,7 +276,7 @@ def _check_lab_values_physiological_range(cohort: Cohort, country: str) -> EvalC
     total_checked = 0
     for row in _read(cohort, country, "Observation"):
         code_bag = (row.get("code") or {}).get("coding") or []
-        loinc_code = _first_code_for_system(code_bag, "http://loinc.org")
+        loinc_code = _first_code_for_system(code_bag, _LOINC_URI)
         if not loinc_code or loinc_code not in _LAB_BOUNDS_BY_UNIT:
             continue
         vq = row.get("valueQuantity") or {}
@@ -627,9 +634,10 @@ def _check_medication_lab_coherence_warfarin(cohort: Cohort, country: str) -> Ev
     for row in _read(cohort, country, "MedicationRequest"):
         codings = ((row.get("medicationCodeableConcept") or {}).get("coding")) or []
         is_warfarin = any(
-            (c.get("system") == "http://www.nlm.nih.gov/research/umls/rxnorm" and c.get("code") == _WARFARIN_RXNORM)
+            (c.get("system") == _RXNORM_URI and c.get("code") == _WARFARIN_RXNORM)
             or (
                 (c.get("system") or "") in _JP_MEDICATION_SYSTEM_URIS
+                and bool(_WARFARIN_YJ_PREFIX)
                 and (c.get("code") or "").startswith(_WARFARIN_YJ_PREFIX)
             )
             for c in codings
@@ -719,7 +727,7 @@ def _check_medication_lab_coherence_warfarin(cohort: Cohort, country: str) -> Ev
 
 def _first_loinc(row: dict) -> str | None:
     for c in (row.get("code") or {}).get("coding") or []:
-        if c.get("system") == "http://loinc.org":
+        if c.get("system") == _LOINC_URI:
             return c.get("code")
     return None
 

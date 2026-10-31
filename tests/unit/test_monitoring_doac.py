@@ -7,6 +7,9 @@ from pathlib import Path
 import pytest
 import yaml
 
+from clinosim.locale.loaders.demographics import load_code_mapping
+from clinosim.modules.monitoring.mapping import monitoring_lab_code
+
 _MAPPING_YAML = (
     Path(__file__).resolve().parents[2]
     / "clinosim"
@@ -30,7 +33,9 @@ def test_doac_has_egfr_monitoring_entry(mappings: dict, doac: str) -> None:
     monitoring = entry.get("monitoring", [])
     egfr_entries = [m for m in monitoring if m.get("lab") == "eGFR"]
     assert len(egfr_entries) == 1, f"{doac} must have exactly one eGFR monitoring row"
-    assert egfr_entries[0]["loinc"] == "77147-7"
+    # Issue #2301: the order code comes from the shared lab mapping, so the
+    # order carries the same eGFR LOINC as the eGFR result.
+    assert monitoring_lab_code(egfr_entries[0]["lab"]) == load_code_mapping("lab", "US")["eGFR"] == "48642-3"
 
 
 @pytest.mark.parametrize("doac", ["Apixaban", "Rivaroxaban", "Dabigatran", "Edoxaban"])
