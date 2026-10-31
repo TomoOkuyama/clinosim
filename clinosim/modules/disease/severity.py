@@ -12,6 +12,7 @@ from typing import Any
 
 import numpy as np
 
+from clinosim.codes.valuesets import concept_group
 from clinosim.modules._shared import normalize_probabilities
 
 SEVERITY_CATEGORIES: tuple[str, str, str] = ("mild", "moderate", "severe")
@@ -37,31 +38,36 @@ def category_from_score(score: float) -> str:
 # --- Modifier-condition vocabulary (enumerated from the 30 disease YAMLs) ---
 # ICD-code prefixes used by evaluable comorbidity conditions.
 _COND_ICD_PREFIXES: dict[str, tuple[str, ...]] = {
-    "diabetes": ("E11", "E10"),
-    "heart_failure": ("I50",),
-    "CKD": ("N18",),
-    "N18": ("N18",),
-    "COPD": ("J44",),
-    "liver_cirrhosis": ("K74",),
-    "hypertension_uncontrolled": ("I10",),
-    "atrial_fibrillation": ("I48",),
-    "I48": ("I48",),
-    "prior_MI": ("I25", "I21"),
-    "prior_stroke_or_TIA": ("I63", "I64", "G45"),
-    "peripheral_vascular_disease": ("I73",),
-    "valvular_heart_disease": ("I34", "I35", "I05", "I06"),
-    "hyperthyroidism": ("E05",),
-    "dementia": ("F00", "F01", "F03", "G30"),
-    "dementia_advanced": ("F00", "F01", "F03", "G30"),
-    "osteoporosis": ("M80", "M81"),
-    "active_cancer": ("C",),
-    "malignancy": ("C",),
-    "metastatic_cancer": ("C77", "C78", "C79", "C80"),
-    "colorectal_cancer": ("C18", "C19", "C20"),
-    "hepatocellular_carcinoma": ("C22",),
-    "alcohol_dependence": ("F10",),
-    "alcohol_dependence_active": ("F10",),
+    name: concept_group(name).members
+    for name in (
+        "diabetes",
+        "heart_failure",
+        "CKD",
+        "N18",
+        "COPD",
+        "liver_cirrhosis",
+        "hypertension_uncontrolled",
+        "atrial_fibrillation",
+        "I48",
+        "prior_MI",
+        "prior_stroke_or_TIA",
+        "peripheral_vascular_disease",
+        "valvular_heart_disease",
+        "hyperthyroidism",
+        "dementia",
+        "dementia_advanced",
+        "osteoporosis",
+        "active_cancer",
+        "malignancy",
+        "metastatic_cancer",
+        "colorectal_cancer",
+        "hepatocellular_carcinoma",
+        "alcohol_dependence",
+        "alcohol_dependence_active",
+    )
 }
+"""Severity-modifier patient conditions; the codes live in
+``clinosim/codes/data/valuesets.yaml`` (Issue #2280)."""
 
 _AGE_OVER: dict[str, int] = {
     "age_over_65": 65,
