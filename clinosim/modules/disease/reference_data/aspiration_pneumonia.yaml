@@ -908,3 +908,8 @@ narrative:
     diet_lifestyle:
       en: "Dysphagia diet as recommended by speech therapist. Thickened liquids if indicated."
       ja: "言語聴覚士の指示による嚥下食・とろみ付き水分を継続してください。"
+
+# Chronic conditions a stay commonly surfaces (new-onset findings in the
+# workup), added to the problem list at admission (RM-7d; moved from
+# simulator/inpatient.py in Issue #2291).
+implied_chronic_codes: ["F00", "K21"]

@@ -827,3 +827,8 @@ imaging_orders:
       mild: 0.4
       moderate: 0.75
       severe: 0.95
+
+# Chronic conditions a stay commonly surfaces (new-onset findings in the
+# workup), added to the problem list at admission (RM-7d; moved from
+# simulator/inpatient.py in Issue #2291).
+implied_chronic_codes: ["K74"]

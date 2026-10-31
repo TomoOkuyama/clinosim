@@ -16,6 +16,7 @@ from dataclasses import dataclass, field
 from clinosim.codes.snomed_concepts import SURGICAL_PROCEDURE
 from clinosim.modules.observation.engine import PHYSIOLOGIC_LIMITS, canonical_lab_name
 from clinosim.simulator.complications import complication_names as _complication_names_from_cif
+from clinosim.simulator.event_refs import event_ref_kind
 from clinosim.types.output import CIFDataset, CIFPatientRecord
 
 
@@ -80,14 +81,26 @@ def run_consistency_checks(
         _check_los_consistency(record, pid, report)
         _check_vital_ranges(record, pid, report)
         _check_sex_specific_conditions(record, pid, report)
+        _check_ground_truth_namespace(record, pid, report)
 
-    report.checks_run = report.patients_checked * 8  # 8 checks per patient
+    report.checks_run = report.patients_checked * 9  # 9 checks per patient
     return report
 
 
 # ============================================================
 # Individual checks
 # ============================================================
+
+
+def _check_ground_truth_namespace(record: CIFPatientRecord, pid: str, report: ConsistencyReport) -> None:
+    """Every ``ground_truth_diseases`` value belongs to a declared namespace
+    (disease id, encounter condition id, registered ICD code or event label;
+    ``simulator.event_refs``, Issue #2291)."""
+    for value in record.condition_event.ground_truth_diseases or []:
+        if event_ref_kind(str(value)) is None:
+            report.add(
+                ConsistencyIssue(pid, "error", "ground_truth_namespace", f"ground truth {value!r} has no declared kind")
+            )
 
 
 def _check_discharge_hgb(record: CIFPatientRecord, pid: str, report: ConsistencyReport) -> None:

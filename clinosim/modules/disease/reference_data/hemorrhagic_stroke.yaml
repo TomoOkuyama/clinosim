@@ -866,3 +866,12 @@ narrative:
     diet_lifestyle:
       en: "Low-sodium diet. Blood pressure home monitoring twice daily."
       ja: "減塩食を心がけてください。自宅で 1 日 2 回血圧を測定してください。"
+
+# Chronic conditions a stay commonly surfaces (new-onset findings in the
+# workup), added to the problem list at admission (RM-7d; moved from
+# simulator/inpatient.py in Issue #2291).
+implied_chronic_codes: ["I10", "I48"]
+
+# Chronic sequela recorded on survival at discharge (moved from
+# simulator/helpers.py in Issue #2291).
+sequela_code: "I69.1"

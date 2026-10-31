@@ -1072,3 +1072,12 @@ imaging_orders:
       mild: 0.95
       moderate: 0.98
       severe: 1.0
+
+# Chronic conditions a stay commonly surfaces (new-onset findings in the
+# workup), added to the problem list at admission (RM-7d; moved from
+# simulator/inpatient.py in Issue #2291).
+implied_chronic_codes: ["I10", "I48", "I25", "E78"]
+
+# Chronic sequela recorded on survival at discharge (moved from
+# simulator/helpers.py in Issue #2291).
+sequela_code: "I69.3"

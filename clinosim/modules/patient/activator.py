@@ -299,7 +299,7 @@ def derive_implied_chronic_onset(
     by a plausible 1-14 years — mirroring the activator's population-time
     sampling window — without consuming the master RNG (Issue #1339).
 
-    Callers (currently ``simulator/inpatient.py``'s ``_IMPLIED_CHRONIC_BY_DISEASE``
+    Callers (currently ``simulator/inpatient.py``'s the disease YAMLs' ``implied_chronic_codes``
     branch) previously stamped ``onset_date = admission_date``, which produced
     same-day "chronic condition first appearing at the acute event" records.
     That is clinically wrong: an implied chronic co-morbidity discovered on

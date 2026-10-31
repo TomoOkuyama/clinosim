@@ -22,7 +22,7 @@ from clinosim.modules.disease.acuity import (
     EMERGENCY_PRIORITY_DISEASES,
 )
 from clinosim.modules.disease.localization import target_los_config
-from clinosim.modules.disease.protocol import DiseaseProtocol
+from clinosim.modules.disease.protocol import DiseaseProtocol, load_disease_protocol
 from clinosim.modules.disease.severity import category_from_score
 from clinosim.modules.encounter.engine import create_inpatient_encounter
 from clinosim.modules.order.engine import (
@@ -233,34 +233,6 @@ def _derive_final_diagnosis(
     return clinical_diagnosis, dx_name
 
 
-_IMPLIED_CHRONIC_BY_DISEASE = {
-    "acute_mi": ["I25", "I10", "E78"],  # IHD, HTN, dyslipidemia
-    "cerebral_infarction": ["I10", "I48", "I25", "E78"],
-    "hemorrhagic_stroke": ["I10", "I48"],
-    "subdural_hematoma": ["I10"],
-    "heart_failure_exacerbation": ["I50", "I25", "I10"],
-    "atrial_fibrillation_rvr": ["I48", "I50", "I10"],
-    "pulmonary_embolism": ["I48", "N40"],
-    "sepsis": ["N18"],
-    "diabetic_ketoacidosis": ["E11.9", "E78"],
-    "acute_kidney_injury": ["N18", "I10", "E11.9"],
-    "hip_fracture": ["M81", "M17"],
-    "urinary_tract_infection": ["N40"],
-    "acute_pancreatitis": ["K74"],
-    "gi_bleeding": ["K74", "K21"],
-    "copd_exacerbation": ["J44"],
-    "asthma_exacerbation": ["J45"],
-    "bacterial_pneumonia": ["J44"],
-    "aspiration_pneumonia": ["F00", "K21"],
-}
-"""Primary disease_id → likely-implied chronic ICD codes map (RM-7d).
-
-Real EHR practice: hospitalization commonly surfaces newly-diagnosed
-chronic disease (new-onset HTN, DM, AF, CKD, HF, IHD detected in workup).
-Downstream FHIR emission picks these up as problem-list-item entries.
-"""
-
-
 def _implied_chronic_min_age(code: str) -> int | None:
     """Minimum patient age for an implied chronic condition, by ICD-10 base
     code (``implied_chronic_min_years`` in ``chronic_onset_min_age.yaml``;
@@ -305,7 +277,11 @@ def _attach_implied_chronic_conditions(
     # PID, O00–O9A pregnancy, C50–C63 sex-specific malignancies) is covered.
     from clinosim.simulator.sex_gating import is_sex_locked_for
 
-    implied = _IMPLIED_CHRONIC_BY_DISEASE.get(disease_id, [])
+    # RM-7d / Issue #2291: the disease YAML's ``implied_chronic_codes``.
+    try:
+        implied = list(load_disease_protocol(disease_id).implied_chronic_codes)
+    except (FileNotFoundError, KeyError, ValueError):
+        implied = []
     if not implied:
         return
     from clinosim.modules.patient.activator import derive_implied_chronic_onset
