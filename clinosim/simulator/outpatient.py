@@ -13,7 +13,7 @@ from clinosim.codes import system_key_for
 from clinosim.codes.hl7_encounter import ActPriority, AdmitSource, DischargeDisposition
 from clinosim.codes.valuesets import has_condition
 from clinosim.countries import is_jp
-from clinosim.locale.loader import load_ambulatory_visit_length, load_chronic_followup
+from clinosim.locale.loader import chronic_followup_vitals, load_ambulatory_visit_length, load_chronic_followup
 from clinosim.modules.encounter.engine import create_inpatient_encounter
 from clinosim.modules.observation.engine import (
     canonical_lab_name,
@@ -356,26 +356,15 @@ def _simulate_outpatient_visit(
 
     spec = followup_spec or {}
 
-    # Vitals (subset depends on visit type and chronic condition)
-    # Default profile: BP + HR (most common chronic followup measurements)
-    profile_by_chronic = {
-        "I10": {"bp", "hr"},  # HTN
-        "E11.9": {"bp", "hr", "weight"},  # DM
-        "E78": {"bp", "hr"},  # Dyslipidemia
-        "I50": {"bp", "hr", "weight", "spo2"},  # HF
-        "I48": {"bp", "hr"},  # AFib
-        "I25": {"bp", "hr"},  # IHD
-        "J44": {"bp", "hr", "spo2", "rr"},  # COPD
-        "N18": {"bp", "hr", "weight"},  # CKD
-        "E03": {"bp", "hr"},  # Hypothyroid
-    }
+    # Vitals (subset depends on visit type and chronic condition). The
+    # follow-up set is the condition's `vitals` list in chronic_followup.yaml
+    # (Issue #2287); default profile: BP + HR.
+    followup_vitals = chronic_followup_vitals(chronic_code)
     if visit_type == "post_discharge":
         # Post-discharge: full vital set
         fields = {"temp", "hr", "bp", "rr", "spo2"}
-    elif chronic_code and chronic_code.split(".")[0] in profile_by_chronic:
-        fields = profile_by_chronic[chronic_code.split(".")[0]]
-    elif chronic_code in profile_by_chronic:
-        fields = profile_by_chronic[chronic_code]
+    elif followup_vitals is not None:
+        fields = set(followup_vitals)
     elif visit_type == "health_screening":
         fields = {"temp", "hr", "bp", "rr", "spo2"}
     elif visit_type == "pediatric_visit":

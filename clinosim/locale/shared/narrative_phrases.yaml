@@ -372,6 +372,13 @@ prescription:
   next_visit:
     ja: "次回外来: {days}日後を予定。"
     en: "Next visit: in {days} days (planned)."
+  # Issue #2287: the chronic follow-up schedule's interval.
+  next_visit_month:
+    ja: "次回外来: {months}か月後を予定。"
+    en: "Next visit: in {months} month (planned)."
+  next_visit_months:
+    ja: "次回外来: {months}か月後を予定。"
+    en: "Next visit: in {months} months (planned)."
   medication_continue:
     ja: "{med} 継続"
     en: "{med} continue"

@@ -1,5 +1,15 @@
 # Chronic disease outpatient follow-up schedules
 # Defines what happens at routine clinic visits for each chronic condition
+#
+# Issue #2287: this file is the one source for a follow-up visit.
+#   follow_up_interval_months — the population calendar schedules a patient's
+#     chronic visits at the shortest interval among their followed-up
+#     conditions, and the outpatient note states that interval.
+#   vitals — what the clinic measures (systolic_bp / diastolic_bp record the
+#     blood-pressure pair; heart_rate, spo2, respiratory_rate, temperature,
+#     weight). Automated cuffs give a pulse with every blood pressure, so
+#     heart_rate is listed wherever blood pressure is. Conditions without a
+#     vitals list get blood pressure and heart rate.
 
 I10:  # Hypertension
   # Interval raised from 1 → 4 months (Issue #943, 2026-08-30). Real-world JP
@@ -27,7 +37,7 @@ E11.9:  # Type 2 Diabetes
   follow_up_interval_months: 2
   labs: [Glucose]
   labs_quarterly: [HbA1c, Creatinine]
-  vitals: [systolic_bp, diastolic_bp, weight]
+  vitals: [systolic_bp, diastolic_bp, heart_rate, weight]
   prescriptions_renewed: true
   visit_duration_minutes: 20
 
@@ -39,7 +49,7 @@ E78:  # Dyslipidemia
   labs: []
   labs_quarterly: [AST, ALT]
   labs_annual: [LDL, HDL, TG, TC]
-  vitals: [systolic_bp, diastolic_bp]
+  vitals: [systolic_bp, diastolic_bp, heart_rate]
   prescriptions_renewed: true
   visit_duration_minutes: 10
 
@@ -50,7 +60,7 @@ J44:  # COPD
   follow_up_interval_months: 2
   labs: []
   labs_annual: [CRP, Hb]
-  vitals: [systolic_bp, heart_rate, spo2, respiratory_rate]
+  vitals: [systolic_bp, diastolic_bp, heart_rate, spo2, respiratory_rate]
   prescriptions_renewed: true
   visit_duration_minutes: 20
 
@@ -61,7 +71,7 @@ N18:  # CKD
   follow_up_interval_months: 1
   labs: [Creatinine, K, Na, BUN]
   labs_quarterly: [Hb, Ca, eGFR]
-  vitals: [systolic_bp, diastolic_bp, weight]
+  vitals: [systolic_bp, diastolic_bp, heart_rate, weight]
   prescriptions_renewed: true
   visit_duration_minutes: 20
 
@@ -72,7 +82,7 @@ I50:  # Heart failure
   follow_up_interval_months: 1
   labs: [BNP]
   labs_quarterly: [Creatinine, K, Na]
-  vitals: [systolic_bp, diastolic_bp, heart_rate, weight]
+  vitals: [systolic_bp, diastolic_bp, heart_rate, weight, spo2]
   prescriptions_renewed: true
   visit_duration_minutes: 20
 
@@ -82,7 +92,7 @@ I48:  # Atrial fibrillation
     ja: "抗凝固療法管理・INR確認"
   follow_up_interval_months: 2
   labs: [PT_INR]
-  vitals: [systolic_bp, heart_rate]
+  vitals: [systolic_bp, diastolic_bp, heart_rate]
   prescriptions_renewed: true
   visit_duration_minutes: 15
 
@@ -104,7 +114,7 @@ E03:  # Hypothyroidism
   follow_up_interval_months: 3
   labs: []
   labs_quarterly: [TSH]
-  vitals: [systolic_bp, heart_rate]
+  vitals: [systolic_bp, diastolic_bp, heart_rate]
   prescriptions_renewed: true
   visit_duration_minutes: 10
 
@@ -115,7 +125,7 @@ M81:  # Osteoporosis
   follow_up_interval_months: 6
   labs: []
   labs_annual: [Ca]
-  vitals: [systolic_bp]
+  vitals: [systolic_bp, diastolic_bp, heart_rate]
   prescriptions_renewed: true
   visit_duration_minutes: 10
 
@@ -243,7 +253,7 @@ C22:  # Liver cancer
   follow_up_interval_months: 3
   labs: [AST, ALT]
   labs_quarterly: [AFP]
-  vitals: [systolic_bp, diastolic_bp, weight]
+  vitals: [systolic_bp, diastolic_bp, heart_rate, weight]
   prescriptions_renewed: true
   radiation_therapy_eligible: true    # Issue #957 slice 3
   visit_duration_minutes: 20
@@ -281,7 +291,7 @@ C50:  # Breast cancer — female-dominant but ~1% male incidence (Issue #957);
   follow_up_interval_months: 3
   labs: []
   labs_quarterly: [CA15_3]
-  vitals: [systolic_bp, diastolic_bp, weight]
+  vitals: [systolic_bp, diastolic_bp, heart_rate, weight]
   prescriptions_renewed: true
   radiation_therapy_eligible: true    # Issue #957 slice 3
   visit_duration_minutes: 20
@@ -372,9 +382,6 @@ C71:  # Malignant brain tumor (glioma) follow-up
   prescriptions_renewed: true
   radiation_therapy_eligible: true    # Issue #957 slice 3
   visit_duration_minutes: 20
-  vitals: [systolic_bp, diastolic_bp]
-  prescriptions_renewed: true
-  visit_duration_minutes: 15
 
 # --- Obstetric follow-up (Issue #943, extended by META #957 Incr 1) ------
 # Post-Incr-1 the Z34 / Z39 entries here are consulted ONLY as visit-spec
@@ -549,7 +556,7 @@ G47.30:  # Obstructive sleep apnea, unspecified
     ja: "睡眠時無呼吸・CPAP 療法フォローアップ"
   follow_up_interval_months: 6
   labs: []
-  vitals: [systolic_bp, diastolic_bp, weight]
+  vitals: [systolic_bp, diastolic_bp, heart_rate, weight]
   prescriptions_renewed: false
   visit_duration_minutes: 20
   procedures:

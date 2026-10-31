@@ -14,7 +14,7 @@ site keeps working unchanged.
 
 from __future__ import annotations
 
-from collections.abc import Iterator
+from collections.abc import Iterable, Iterator
 from functools import lru_cache
 from typing import Any
 
@@ -208,6 +208,46 @@ def load_chronic_age_limits() -> dict[str, Any]:
 def load_chronic_followup() -> dict[str, Any]:
     """Load chronic disease outpatient follow-up schedules."""
     return _load_yaml(_LOCALE_DIR / "shared" / "chronic_followup.yaml", fallback={})
+
+
+# Vitals tokens in chronic_followup.yaml → VitalSignRecord field groups.
+_FOLLOWUP_VITAL_FIELDS: dict[str, str] = {
+    "systolic_bp": "bp",
+    "diastolic_bp": "bp",
+    "heart_rate": "hr",
+    "spo2": "spo2",
+    "respiratory_rate": "rr",
+    "temperature": "temp",
+    "weight": "weight",
+}
+
+
+def chronic_followup_vitals(code: str) -> frozenset[str] | None:
+    """Vital-sign groups measured at a follow-up visit for ``code`` (``bp`` /
+    ``hr`` / ``spo2`` / ``rr`` / ``temp`` / ``weight``), from its ``vitals`` list
+    in chronic_followup.yaml; ``None`` when the code has no list (Issue #2287).
+
+    Looks up the code, then its ICD category (``E11.9`` → ``E11``).
+    """
+    data = load_chronic_followup()
+    spec = data.get(code) or data.get(code.split(".")[0]) if code else None
+    vitals = spec.get("vitals") if isinstance(spec, dict) else None
+    if not vitals:
+        return None
+    unknown = [v for v in vitals if v not in _FOLLOWUP_VITAL_FIELDS]
+    if unknown:
+        raise ValueError(f"chronic_followup.yaml: {code} has unknown vitals {unknown}")
+    return frozenset(_FOLLOWUP_VITAL_FIELDS[v] for v in vitals)
+
+
+def chronic_followup_interval_months(codes: Iterable[str]) -> int | None:
+    """Months between a patient's chronic follow-up visits: the shortest
+    ``follow_up_interval_months`` (default 3) among their followed-up codes, as
+    the population calendar schedules them; ``None`` when no code is followed
+    up (Issue #2287)."""
+    data = load_chronic_followup()
+    months = [int(spec.get("follow_up_interval_months", 3)) for c in codes if isinstance(spec := data.get(c), dict)]
+    return min(months) if months else None
 
 
 @lru_cache(maxsize=1)
