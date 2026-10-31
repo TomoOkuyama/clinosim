@@ -105,7 +105,7 @@ described in
     `outcome="delivered"`, or on the abortion date with
     `outcome="aborted"`. Cross-year pregnancies carry via
     `state_periods` — see [architecture-notes §9](../architecture/architecture-notes.md).
-  - Prenatal visit `Encounter`s (AMB, obgyn) at gestational
+  - Prenatal visit `Encounter`s (AMB, obstetrics_gynecology) at gestational
     weeks 12 / 24 / 36 with encounter reason Z34. Z34 does NOT emit
     a problem-list-item Condition (pregnancy is a state, not a
     chronic condition).
