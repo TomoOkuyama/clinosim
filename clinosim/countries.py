@@ -13,7 +13,7 @@ from typing import Literal
 
 import yaml
 
-__all__ = ["country_slot", "is_jp", "is_us", "lang_for"]
+__all__ = ["country_slot", "is_jp", "is_us", "lang_for", "lang_name", "output_language_instruction"]
 
 
 @lru_cache(maxsize=16)
@@ -51,12 +51,18 @@ _COUNTRY_LANGUAGE_YAML = Path(__file__).parent / "locale" / "shared" / "country_
 
 
 @lru_cache(maxsize=1)
-def _country_language_map() -> dict[str, str]:
-    """Lower-case country code -> ISO-639-1 language, from ``country_language.yaml``."""
+def _country_language_yaml() -> dict:
     try:
         raw = yaml.safe_load(_COUNTRY_LANGUAGE_YAML.read_text(encoding="utf-8")) or {}
     except FileNotFoundError:
         raw = {}
+    return raw if isinstance(raw, dict) else {}
+
+
+@lru_cache(maxsize=1)
+def _country_language_map() -> dict[str, str]:
+    """Lower-case country code -> ISO-639-1 language, from ``country_language.yaml``."""
+    raw = _country_language_yaml()
     mapping = raw.get("country_language") or {} if isinstance(raw, dict) else {}
     return {str(k).strip().lower(): str(v).strip().lower() for k, v in mapping.items()}
 
@@ -81,3 +87,23 @@ def country_slot(country: str, *, scheme: Literal["code", "legacy_japan"] = "cod
     if is_jp(country):
         return "japan" if scheme == "legacy_japan" else "jp"
     return "us"
+
+
+def lang_name(lang: str, *, in_lang: str | None = None) -> str:
+    """Name of language ``lang`` written in ``in_lang`` (default: ``lang`` itself).
+
+    From ``language_names`` in ``country_language.yaml`` (Issue #2278); an
+    unregistered language is named as English.
+    """
+    names = _country_language_yaml().get("language_names") or {}
+    target = str(lang or "").strip().lower()
+    entry = names.get(target) or names.get("en") or {}
+    written_in = str(in_lang or (target if target in names else "en")).strip().lower()
+    return str(entry.get(written_in) or entry.get("en") or "English")
+
+
+def output_language_instruction(lang: str) -> str:
+    """Instruction telling an LLM to write in ``lang``, written in ``lang``;
+    English for an unregistered language (Issue #2278)."""
+    table = _country_language_yaml().get("output_language_instruction") or {}
+    return str(table.get(str(lang or "").strip().lower()) or table.get("en") or "Write in English.")

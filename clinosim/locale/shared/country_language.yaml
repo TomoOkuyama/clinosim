@@ -19,3 +19,16 @@ country_language:
   # de: de
   # zh: zh
   # ko: ko
+
+# Language names, keyed by language then by the language they are written in
+# (Issue #2278). LLM prompts name the output language in the prompt's own
+# language (the prompt language matches the output language).
+language_names:
+  ja: {ja: 日本語, en: Japanese}
+  en: {ja: 英語, en: English}
+
+# Instruction appended to the legacy LLM prompts (llm_service._build_prompt),
+# written in the target language. Unregistered languages use English.
+output_language_instruction:
+  ja: "日本語で記述すること。適切な日本語の医学用語を用いること。"
+  en: "Write in English. Use standard medical terminology."
