@@ -28,7 +28,8 @@ def load_specialty_routing() -> list[dict[str, Any]]:
     Issue #1698 Phase 1. Returns the ``routes:`` list from
     ``clinosim/locale/shared/specialty_routing.yaml`` or ``[]`` when the
     file is missing / malformed. Each row carries ``requires_chronic`` or
-    ``requires_chronic_prefix`` (list[str]) + ``specialty`` (str) +
+    ``requires_chronic_prefix`` (list[str]) or ``requires_concept_group``
+    (a value-set name, Issue #2290) + ``specialty`` (str) +
     ``cadence`` (str ∈ {"annual", "semi_annual", "quarterly"}) +
     ``clinical_basis`` (free-text citation).
     """

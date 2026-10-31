@@ -13,7 +13,7 @@ condition_id: psychotic_manic_crisis
 icd10_code: "F20.9"
 icd10_display: "Schizophrenia, unspecified"
 # Bipolar disorder codes the crisis under F31.
-icd10_code_by_chronic_prefix:
+by_chronic_prefix:
   F31: "F31.9"
 chief_complaint:
   en: "Agitation, hallucinations or bizarre behavior"

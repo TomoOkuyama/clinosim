@@ -11,7 +11,7 @@ import numpy as np
 from clinosim import determinism
 from clinosim.codes import system_key_for
 from clinosim.codes.hl7_encounter import ActPriority, AdmitSource, DischargeDisposition
-from clinosim.codes.valuesets import has_condition
+from clinosim.codes.valuesets import concept_group, has_condition
 from clinosim.countries import is_jp
 from clinosim.locale.loader import chronic_followup_vitals, load_ambulatory_visit_length, load_chronic_followup
 from clinosim.modules.encounter.engine import create_inpatient_encounter
@@ -1041,6 +1041,10 @@ def _specialty_fanout_tick(patient, chronic_event_time):  # noqa: ANN001 — Pat
             matched = any(code in requires for code in chronic_codes)
         if not matched and prefix:
             matched = any(any(code.startswith(p) for p in prefix) for code in chronic_codes)
+        group = route.get("requires_concept_group")
+        if not matched and group:
+            vs = concept_group(str(group))
+            matched = any(vs.contains(code) for code in chronic_codes)
         if not matched:
             continue
         specialty = str(route.get("specialty") or "")

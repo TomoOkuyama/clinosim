@@ -14,6 +14,7 @@ from typing import Any
 from clinosim.codes import display as registry_display
 from clinosim.codes import get_system_uri, system_key_for
 from clinosim.codes import lookup as code_lookup
+from clinosim.codes.snomed_concepts import FINDING_ABNORMAL, FINDING_NORMAL
 from clinosim.locale.i18n import t
 from clinosim.locale.loader import load_code_mapping, load_narrative_labels, resolve_localized_display
 from clinosim.modules._shared import is_jp, resolve_lang
@@ -456,8 +457,8 @@ def _bb_microbiology(ctx: BundleContext) -> list[dict]:
             {
                 "coding": [
                     {
-                        "system": "http://snomed.info/sct",
-                        "code": "263654008" if _mb_abnormal else "17621005",
+                        "system": get_system_uri("snomed-ct"),
+                        "code": FINDING_ABNORMAL if _mb_abnormal else FINDING_NORMAL,
                         "display": t("microbiology_fhir.abnormal", lang)
                         if _mb_abnormal
                         else t("microbiology_fhir.normal", lang),

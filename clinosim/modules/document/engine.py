@@ -59,6 +59,7 @@ from datetime import datetime, time, timedelta
 from functools import lru_cache
 from typing import Any
 
+from clinosim.codes.snomed_concepts import SURGICAL_PROCEDURE
 from clinosim.modules._shared import get_attr_or_key as _o
 from clinosim.modules._shared import is_jp, resolve_lang
 from clinosim.modules.document import (
@@ -728,7 +729,7 @@ def document_enricher(ctx: Any) -> None:
                         p
                         for p in (_o(record, "procedures", []) or [])
                         if _o(p, "encounter_id", "") == encounter_id
-                        and str(_o(p, "category_code", "") or "") == "387713003"
+                        and str(_o(p, "category_code", "") or "") == SURGICAL_PROCEDURE
                     ]
                     if not enc_surgical_procs:
                         continue

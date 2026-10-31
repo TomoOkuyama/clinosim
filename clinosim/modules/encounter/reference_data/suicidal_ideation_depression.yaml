@@ -9,7 +9,7 @@ condition_id: suicidal_ideation_depression
 icd10_code: "F32.2"
 icd10_display: "Major depressive disorder, single episode, severe without psychotic features"
 # Recurrent depression (F33) codes the current severe episode as F33.2.
-icd10_code_by_chronic_prefix:
+by_chronic_prefix:
   F33: "F33.2"
 chief_complaint:
   en: "Suicidal ideation, depressed mood"

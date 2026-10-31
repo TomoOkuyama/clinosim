@@ -12,6 +12,7 @@ from datetime import datetime
 from typing import TYPE_CHECKING, Any
 
 from clinosim.codes import lookup as code_lookup
+from clinosim.codes.snomed_concepts import SURGICAL_PROCEDURE
 from clinosim.locale.i18n import t
 from clinosim.modules._shared import get_attr_or_key as _o
 from clinosim.modules.document.narrative._template_helpers import _label
@@ -83,7 +84,7 @@ def primary_surgical_procedure(ctx: NarrativeContext) -> Any | None:
 
     Mirrors the engine's ``per_surgical_encounter`` selection: filter
     ``ctx.procedures`` to entries whose ``encounter_id`` matches the
-    current encounter AND whose SNOMED ``category_code == "387713003"``
+    current encounter AND whose SNOMED ``category_code`` is ``SURGICAL_PROCEDURE``
     (surgical procedure), then pick the earliest by ``start_datetime``.
     Bedside/diagnostic/therapeutic procedures never satisfy the
     category filter, so this is safe to call on non-surgical encounters
@@ -95,7 +96,7 @@ def primary_surgical_procedure(ctx: NarrativeContext) -> Any | None:
     candidates = [
         p
         for p in (ctx.procedures or [])
-        if _o(p, "encounter_id", "") == enc_id and str(_o(p, "category_code", "") or "") == "387713003"
+        if _o(p, "encounter_id", "") == enc_id and str(_o(p, "category_code", "") or "") == SURGICAL_PROCEDURE
     ]
     if not candidates:
         return None

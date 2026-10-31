@@ -670,7 +670,7 @@ _.CLINICAL_JUDGMENT  # llm_service/engine.py::LLMTaskType — yaml-dispatched en
 _.CONSISTENCY_REVIEW  # llm_service/engine.py::LLMTaskType — yaml-dispatched enum value
 _.antibiotic_start_day  # modules/clinical_course/_complication_risk_conditions.py (read via getattr in resolve_context_condition)
 _.disposition_by_severity  # modules/encounter/protocol.py (Pydantic field; read from the YAML dict in simulator/emergency.py)
-_.icd10_code_by_chronic_prefix  # modules/encounter/protocol.py (Pydantic field; read from the YAML dict in simulator/emergency.py)
+_.by_chronic_prefix  # modules/encounter/protocol.py (Pydantic field; read from the YAML dict in simulator/emergency.py)
 _.triage_level_max  # modules/encounter/protocol.py (Pydantic field; read from the YAML dict in triage/engine.py)
 _.triage_level_min  # modules/encounter/protocol.py (Pydantic field; read from the YAML dict in triage/engine.py)
 _.admitted_with_inpatient_unit  # modules/encounter/protocol.py (Pydantic field; read from the YAML dict in phases/_ed_slot.py)

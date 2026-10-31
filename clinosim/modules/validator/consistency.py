@@ -13,6 +13,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 
+from clinosim.codes.snomed_concepts import SURGICAL_PROCEDURE
 from clinosim.simulator.complications import complication_names as _complication_names_from_cif
 from clinosim.types.output import CIFDataset, CIFPatientRecord
 
@@ -226,7 +227,7 @@ def _check_procedure_fields(record: CIFPatientRecord, pid: str, report: Consiste
     for proc in record.procedures:
         if not hasattr(proc, "category_code"):
             continue
-        if proc.category_code == "387713003":  # surgical
+        if proc.category_code == SURGICAL_PROCEDURE:
             ptype = getattr(proc, "procedure_type", "") or "surgery"
             if not proc.procedure_code:
                 report.add(

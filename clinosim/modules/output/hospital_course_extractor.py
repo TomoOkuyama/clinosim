@@ -14,6 +14,7 @@ from datetime import datetime
 from typing import Any
 
 from clinosim.codes import lookup as code_lookup
+from clinosim.codes.snomed_concepts import SURGICAL_PROCEDURE
 from clinosim.simulator.complications import complication_names as _complication_names_from_cif
 
 __all__ = [
@@ -210,7 +211,7 @@ def _surgery_events(
     for p in record.get("procedures") or []:
         if not isinstance(p, dict):
             continue
-        if p.get("category_code") != "387713003":  # only surgical
+        if p.get("category_code") != SURGICAL_PROCEDURE:
             continue
         day = _day_offset(admission_dt, p.get("start_datetime"))
         name = _resolve_procedure_name(p, "en")
@@ -256,7 +257,7 @@ def _procedure_events(
     for p in record.get("procedures") or []:
         if not isinstance(p, dict):
             continue
-        if p.get("category_code") == "387713003":
+        if p.get("category_code") == SURGICAL_PROCEDURE:
             continue  # surgical already handled
         ptype = p.get("procedure_type", "")
         if ptype not in invasive:
@@ -476,7 +477,9 @@ def extract_clinical_guidance(
         "disease_archetype": condition.get("archetype", ""),
         "los_days": _los_days_from_encounter(encounter),
         "had_surgery": any(
-            p.get("category_code") == "387713003" for p in (record.get("procedures") or []) if isinstance(p, dict)
+            p.get("category_code") == SURGICAL_PROCEDURE
+            for p in (record.get("procedures") or [])
+            if isinstance(p, dict)
         ),
         # Phase 1a: project structured dict entries down to bare names for
         # downstream metrics that expect ``list[str]``. Bare-string CIF

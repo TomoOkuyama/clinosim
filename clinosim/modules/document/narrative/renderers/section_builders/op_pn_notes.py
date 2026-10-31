@@ -23,6 +23,7 @@ from typing import TYPE_CHECKING, Any
 
 from clinosim.codes import display as registry_display
 from clinosim.codes import lookup as code_lookup
+from clinosim.codes.snomed_concepts import PROCEDURE_PARTIALLY_SUCCESSFUL, PROCEDURE_UNSUCCESSFUL
 from clinosim.locale.i18n import t
 from clinosim.modules._shared import get_attr_or_key as _o
 from clinosim.modules.document.narrative._localization import (
@@ -271,7 +272,7 @@ def build_op_postop_plan(generator: TemplateNarrativeGenerator, ctx: NarrativeCo
     outcome_code = str(_o(proc, "outcome_code", "") or "")
     intraop = list(_o(proc, "intraop_complications", []) or [])
     # Recovery destination: ICU/high-acuity or general ward
-    icu_flag = enc_type == "icu" or bool(intraop) or outcome_code == "385670004"
+    icu_flag = enc_type == "icu" or bool(intraop) or outcome_code == PROCEDURE_PARTIALLY_SUCCESSFUL
     dest = t("op_note.postop_dest_icu" if icu_flag else "op_note.postop_dest_ward", lang)
     monitor = t("op_note.postop_monitor", lang)
     return t("op_note.postop_plan_line", lang, dest=dest, monitor=monitor), facts
@@ -482,6 +483,6 @@ def build_pn_postop_plan(generator: TemplateNarrativeGenerator, ctx: NarrativeCo
     facts.append("ctx.procedures.outcome_code")
     # Simple, defensible plans: baseline monitoring for successful
     # procedures; escalation-of-care phrasing for unsuccessful ones.
-    if outcome_code == "385671000":
+    if outcome_code == PROCEDURE_UNSUCCESSFUL:
         return t("proc_note.postop_unsuccessful", lang), facts
     return t("proc_note.postop_baseline", lang), facts

@@ -59,6 +59,13 @@ codes:
     ja: 外回り看護師
 
   # === Procedure outcome ===
+  # DiagnosticReport.conclusionCode qualifiers (Issue #2290; tx.fhir.org $lookup).
+  '17621005':
+    en: Normal
+    ja: 正常
+  '263654008':
+    en: Abnormal
+    ja: 異常
   '385669000':
     en: Successful
     ja: 成功
