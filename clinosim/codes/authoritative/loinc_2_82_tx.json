@@ -86,6 +86,12 @@
       "status": "ACTIVE"
     },
     {
+      "code": "11341-5",
+      "display": "History of Occupation",
+      "status": "ACTIVE",
+      "source": "tx.fhir.org LOINC 2.83 $lookup / $validate-code (2026-10-31, Issue #2260)"
+    },
+    {
       "code": "11348-0",
       "display": "History of Past illness note",
       "short_display": "Hx of Past illness note",
@@ -170,10 +176,28 @@
       "status": "ACTIVE"
     },
     {
+      "code": "18725-2",
+      "display": "Microbiology studies (set)",
+      "status": "ACTIVE",
+      "source": "tx.fhir.org LOINC 2.83 $lookup / $validate-code (2026-10-31, Issue #2260)"
+    },
+    {
+      "code": "18748-4",
+      "display": "Diagnostic imaging study",
+      "status": "ACTIVE",
+      "source": "tx.fhir.org LOINC 2.83 $lookup / $validate-code (2026-10-31, Issue #2260)"
+    },
+    {
       "code": "18776-5",
       "display": "Plan of care note",
       "short_display": "Plan of care note",
       "status": "ACTIVE"
+    },
+    {
+      "code": "18782-3",
+      "display": "Radiology Study observation (narrative)",
+      "status": "ACTIVE",
+      "source": "tx.fhir.org LOINC 2.83 $lookup / $validate-code (2026-10-31, Issue #2260)"
     },
     {
       "code": "18842-5",
@@ -240,6 +264,12 @@
       "display": "Vancomycin [Susceptibility]",
       "short_display": "Vancomycin Susc Islt",
       "status": "ACTIVE"
+    },
+    {
+      "code": "19005-8",
+      "display": "Radiology Imaging study [Impression] (narrative)",
+      "status": "ACTIVE",
+      "source": "tx.fhir.org LOINC 2.83 $lookup / $validate-code (2026-10-31, Issue #2260)"
     },
     {
       "code": "19123-9",
@@ -362,6 +392,12 @@
       "status": "ACTIVE"
     },
     {
+      "code": "24373-3",
+      "display": "Ferritin [Mass/volume] in Blood",
+      "status": "ACTIVE",
+      "source": "tx.fhir.org LOINC 2.83 $lookup / $validate-code (2026-10-31, Issue #2260)"
+    },
+    {
       "code": "24558-9",
       "display": "US Abdomen",
       "short_display": "US Abd",
@@ -432,6 +468,12 @@
       "display": "Triglyceride [Mass/volume] in Serum or Plasma",
       "short_display": "Trigl SerPl-mCnc",
       "status": "ACTIVE"
+    },
+    {
+      "code": "26436-6",
+      "display": "Laboratory studies (set)",
+      "status": "ACTIVE",
+      "source": "tx.fhir.org LOINC 2.83 $lookup / $validate-code (2026-10-31, Issue #2260)"
     },
     {
       "code": "2703-7",
@@ -594,6 +636,12 @@
       "display": "History and physical note",
       "short_display": "H&P note",
       "status": "ACTIVE"
+    },
+    {
+      "code": "34119-8",
+      "display": "Nursing Facility Initial Evaluation Note",
+      "status": "ACTIVE",
+      "source": "tx.fhir.org LOINC 2.83 $lookup / $validate-code (2026-10-31, Issue #2260)"
     },
     {
       "code": "34131-3",
@@ -770,6 +818,12 @@
       "status": "ACTIVE"
     },
     {
+      "code": "54089-8",
+      "display": "Newborn screening panel American Health Information Community (AHIC)",
+      "status": "ACTIVE",
+      "source": "tx.fhir.org LOINC 2.83 $lookup / $validate-code (2026-10-31, Issue #2260)"
+    },
+    {
       "code": "54094-8",
       "display": "Emergency department Triage note",
       "short_display": "ED Triage note",
@@ -806,10 +860,22 @@
       "status": "ACTIVE"
     },
     {
+      "code": "58941-6",
+      "display": "Bilirubin [Mass/volume] in Skin",
+      "status": "ACTIVE",
+      "source": "tx.fhir.org LOINC 2.83 $lookup / $validate-code (2026-10-31, Issue #2260)"
+    },
+    {
       "code": "5902-2",
       "display": "Prothrombin time (PT)",
       "short_display": "Prothrombin time",
       "status": "ACTIVE"
+    },
+    {
+      "code": "59408-5",
+      "display": "Oxygen saturation in Arterial blood by Pulse oximetry",
+      "status": "ACTIVE",
+      "source": "tx.fhir.org LOINC 2.83 $lookup / $validate-code (2026-10-31, Issue #2260)"
     },
     {
       "code": "59460-6",
@@ -902,6 +968,12 @@
       "status": "ACTIVE"
     },
     {
+      "code": "72088-8",
+      "display": "Clinical Dementia Rating scale [CDR]",
+      "status": "ACTIVE",
+      "source": "tx.fhir.org LOINC 2.83 $lookup / $validate-code (2026-10-31, Issue #2260)"
+    },
+    {
       "code": "72166-2",
       "display": "Tobacco smoking status",
       "short_display": "Tobac smoke stat",
@@ -924,6 +996,12 @@
       "display": "Problem",
       "short_display": "Problem",
       "status": "ACTIVE"
+    },
+    {
+      "code": "75859-9",
+      "display": "Modified rankin scale",
+      "status": "ACTIVE",
+      "source": "tx.fhir.org LOINC 2.83 $lookup / $validate-code (2026-10-31, Issue #2260)"
     },
     {
       "code": "777-3",
@@ -980,6 +1058,12 @@
       "status": "ACTIVE"
     },
     {
+      "code": "85354-9",
+      "display": "Blood pressure panel with all children optional",
+      "status": "ACTIVE",
+      "source": "tx.fhir.org LOINC 2.83 $lookup / $validate-code (2026-10-31, Issue #2260)"
+    },
+    {
       "code": "8648-8",
       "display": "Hospital course note",
       "short_display": "Hospital course note",
@@ -1034,6 +1118,18 @@
       "status": "ACTIVE"
     },
     {
+      "code": "9271-8",
+      "display": "10 minute Apgar Score",
+      "status": "ACTIVE",
+      "source": "tx.fhir.org LOINC 2.83 $lookup / $validate-code (2026-10-31, Issue #2260)"
+    },
+    {
+      "code": "9274-2",
+      "display": "5 minute Apgar Score",
+      "status": "ACTIVE",
+      "source": "tx.fhir.org LOINC 2.83 $lookup / $validate-code (2026-10-31, Issue #2260)"
+    },
+    {
       "code": "9279-1",
       "display": "Respiratory rate",
       "short_display": "Resp rate",
@@ -1050,6 +1146,18 @@
       "display": "US.doppler Lower extremity vein - bilateral for venous mapping",
       "short_display": "DOP LE v-Bl for venous map",
       "status": "ACTIVE"
+    },
+    {
+      "code": "LP29693-6",
+      "display": "Lab",
+      "status": "ACTIVE",
+      "source": "tx.fhir.org LOINC 2.83 $lookup / $validate-code (2026-10-31, Issue #2260)"
+    },
+    {
+      "code": "LP7819-8",
+      "display": "MICRO",
+      "status": "ACTIVE",
+      "source": "tx.fhir.org LOINC 2.83 $lookup / $validate-code (2026-10-31, Issue #2260)"
     }
   ]
 }

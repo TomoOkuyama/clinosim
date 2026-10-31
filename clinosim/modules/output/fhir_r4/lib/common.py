@@ -335,12 +335,10 @@ def survey_category() -> list[dict]:
 
 
 def loinc_coding(code: str, lang: str) -> dict:
-    """Build a LOINC coding entry. Display resolved via lookup; never display == code."""
-    disp = code_lookup("loinc", code, lang)
-    entry: dict[str, Any] = {"system": get_system_uri("loinc"), "code": code}
-    if disp and disp != code:
-        entry["display"] = disp
-    return entry
+    """Build a LOINC coding entry (``clinosim.codes.loinc.loinc_coding``, Issue #2260)."""
+    from clinosim.codes.loinc import loinc_coding as _loinc_coding
+
+    return _loinc_coding(code, lang)
 
 
 def _social_category(country: str) -> list[dict]:

@@ -26,7 +26,6 @@ from clinosim.modules.output.fhir_r4.labs.stage_scale_observations import (
 )
 
 LOINC_MRS = _SCALE_SPECS["mrs"].loinc
-LOINC_EDSS = _SCALE_SPECS["edss"].loinc
 LOINC_CDR = _SCALE_SPECS["cdr"].loinc
 
 
@@ -100,7 +99,9 @@ def test_g35_emits_edss_banded_string():
     )
     assert len(obs) == 1
     assert obs[0]["valueString"] == "EDSS 2.5-5"
-    assert LOINC_EDSS in _codings(obs[0])
+    # No LOINC code exists for EDSS (Issue #2260): display-only, like H&Y.
+    assert "coding" not in obs[0]["code"]
+    assert obs[0]["code"]["text"]
 
 
 def test_f00_emits_cdr_decimal():

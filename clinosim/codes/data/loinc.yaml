@@ -879,3 +879,56 @@ codes:
   69739-1:
     en: Drugs of abuse panel - Urine by Screen method
     ja: 尿中乱用薬物スクリーニング
+
+  # === Issue #2260: emitted codes registered with their tx.fhir.org LOINC display ===
+  11341-5:
+    en: "History of Occupation"
+    ja: "職歴"
+  85354-9:
+    en: "Blood pressure panel with all children optional"
+    ja: "血圧"
+  9271-8:
+    en: "10 minute Apgar Score"
+    ja: "10分後アプガースコア"
+  9274-2:
+    en: "5 minute Apgar Score"
+    ja: "5分後アプガースコア"
+  58941-6:
+    en: "Bilirubin [Mass/volume] in Skin"
+    ja: "経皮ビリルビン"
+  59408-5:
+    en: "Oxygen saturation in Arterial blood by Pulse oximetry"
+    ja: "経皮的動脈血酸素飽和度"
+  54089-8:
+    en: "Newborn screening panel American Health Information Community (AHIC)"
+    ja: "新生児マススクリーニング"
+  18748-4:
+    en: "Diagnostic imaging study"
+    ja: "画像検査報告書"
+  18782-3:
+    en: "Radiology Study observation (narrative)"
+    ja: "画像所見"
+  19005-8:
+    en: "Radiology Imaging study [Impression] (narrative)"
+    ja: "画像診断"
+  18725-2:
+    en: "Microbiology studies (set)"
+    ja: "微生物学的検査"
+  LP29693-6:
+    en: "Lab"
+    ja: "検体検査"
+  LP7819-8:
+    en: "MICRO"
+    ja: "微生物"
+  24373-3:
+    en: "Ferritin [Mass/volume] in Blood"
+    ja: "フェリチン"
+  34119-8:
+    en: "Nursing Facility Initial Evaluation Note"
+    ja: "看護初期評価記録"
+  75859-9:
+    en: "Modified rankin scale"
+    ja: "修正ランキンスケール"
+  72088-8:
+    en: "Clinical Dementia Rating scale [CDR]"
+    ja: "臨床認知症評価尺度 (CDR)"
