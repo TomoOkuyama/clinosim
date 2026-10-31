@@ -203,7 +203,26 @@ _ADULT_AGE_FLOOR: int = 18  # age > this ⇒ patient counted as adult
 # condition consistency check. Extracted from inline literal so the
 # vocabulary sits at module scope alongside the other clinical-axis
 # thresholds.
-_ADULT_ONLY_ICD_PREFIXES: frozenset[str] = frozenset({"I10", "I25", "I48", "I50", "E11", "N18", "N40", "F03"})
+_ADULT_ONLY_INTERNAL_CODES: tuple[str, ...] = ("I10", "I25", "I48", "I50", "E11", "N18", "N40", "F00")
+"""Adult-only chronic conditions in the simulator's internal code space.
+
+The check runs on emitted FHIR codes, which differ by country after
+``locale/*/code_mapping_diagnosis.yaml`` (dementia F00 is emitted as F03.90
+in the US and F00 in JP), so :func:`_adult_only_emitted_prefixes` maps
+each code through the country's diagnosis mapping (Issue #2283)."""
+
+
+@cache
+def _adult_only_emitted_prefixes(country: str) -> frozenset[str]:
+    from clinosim.locale.loader import load_code_mapping
+
+    mapping = load_code_mapping("diagnosis", country) or {}
+    out: set[str] = set()
+    for code in _ADULT_ONLY_INTERNAL_CODES:
+        emitted = str(mapping.get(code) or code)
+        out.add(emitted.split(".")[0])
+    return frozenset(out)
+
 
 # Truncation limits for ``EvalCheck.detail.problems_sample`` — the
 # report keeps a bounded slice so a large cohort does not blow up the
@@ -322,7 +341,7 @@ def _check_age_condition_consistency(cohort: Cohort, country: str) -> EvalCheck:
         codes = (row.get("code") or {}).get("coding") or []
         for c in codes:
             code = c.get("code", "")
-            for prefix in _ADULT_ONLY_ICD_PREFIXES:
+            for prefix in _adult_only_emitted_prefixes(country):
                 if code.startswith(prefix) and age < _PEDIATRIC_AGE_CEILING:
                     problems.append(f"pediatric patient (age {age}) with {code}")
                     break
