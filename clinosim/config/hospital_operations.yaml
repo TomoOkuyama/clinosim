@@ -75,7 +75,7 @@ department_rollup:
   # these names, so behavior for inpatient/unknown_condition is
   # unchanged.
   pediatrics: primary_care
-  obgyn: primary_care
+  obstetrics_gynecology: primary_care
   dermatology: primary_care
   # Issue #1280 Sub-A: oncology sub-lines fold to the general
   # oncology bucket the hospital does staff.

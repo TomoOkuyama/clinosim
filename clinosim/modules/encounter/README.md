@@ -51,8 +51,8 @@ and
 
 - **Perinatal delivery Encounter** (mother-side, IMP admission,
   admit dx `O80`, discharge dx `Z37.0`, LOS 5 days JP / 2 days US,
-  department `obgyn` with `internal_medicine` fallback via
-  `department_rollup`, delivery Procedure JP `K894` / US CPT `59400`).
+  department `obstetrics_gynecology`, rolled up via `department_rollup`
+  (`primary_care` in the bundled hospitals), delivery Procedure JP `K894` / US CPT `59400`).
 - **Newborn Encounter** (IMP admission, `admit_source = "born"` — a plain string value of
   `Encounter.admit_source` in
   [`clinosim/types/encounter.py`](../../types/encounter.py) (no enum),

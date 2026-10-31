@@ -43,7 +43,7 @@ department_rollup:
   # Outpatient-only lines without a dedicated service (as at the 50-bed
   # hospital; the perinatal / pediatric pathways run separately).
   pediatrics: primary_care
-  obgyn: primary_care
+  obstetrics_gynecology: primary_care
   dermatology: primary_care
   oncology_infusion: oncology
   radiation_oncology: oncology

@@ -69,12 +69,13 @@ _CHRONIC_DISEASE_SPECIALTY: dict[str, str] = {
     "Z13": "primary_care",
     "Z23": "primary_care",
     # Obstetric Z codes — prenatal supervision + postpartum care ->
-    # obgyn (falls back to internal_medicine via hospital rollup when
-    # the receiving hospital lacks an obgyn department). Emitted by the
+    # obstetrics_gynecology (rolled up via the hospital's department_rollup,
+    # primary_care in the bundled hospitals, when it has no OB/GYN
+    # department). Emitted by the
     # META #957 Incr 1 pregnancy-lifecycle generator as chronic_visit
     # events with disease_id Z34 / Z39.
-    "Z34": "obgyn",
-    "Z39": "obgyn",
+    "Z34": "obstetrics_gynecology",
+    "Z39": "obstetrics_gynecology",
     # Oncology chronic — Issue #1280 Sub-A. Cancer follow-up visits
     # (C-chapter ICD codes) previously fell through to
     # internal_medicine, so a chronic-carrier of C67 bladder cancer
@@ -119,7 +120,7 @@ _CHRONIC_DISEASE_SPECIALTY: dict[str, str] = {
 _SCREENING_SPECIALTY: dict[str, str] = {
     "annual_health_screening": "primary_care",
     "colonoscopy_screening": "gastroenterology",
-    "mammography_screening": "obgyn",
+    "mammography_screening": "obstetrics_gynecology",
 }
 
 

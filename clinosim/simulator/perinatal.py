@@ -18,7 +18,7 @@ Prenatal visits (weeks 12 / 24 / 36) + postpartum visits × 2
 (7 d / 28 d post-delivery) are scheduled by the pregnancy-lifecycle
 generator (``_pregnancy_lifecycle_events`` in ``population/engine.py``)
 and dispatch through the standard chronic-followup path, routed to
-obgyn via ``_CHRONIC_DISEASE_SPECIALTY``.
+obstetrics_gynecology via ``_CHRONIC_DISEASE_SPECIALTY``.
 """
 
 from __future__ import annotations
@@ -126,7 +126,7 @@ def simulate_abortion_encounter(
     ab_cfg = (cfg.get("abortion") or {}).get("encounter") or {}
     proc_cfg = (cfg.get("abortion") or {}).get("procedure") or {}
 
-    dept = resolve_department(ab_cfg.get("department") or "obgyn", hospital_ops)
+    dept = resolve_department(ab_cfg.get("department") or "obstetrics_gynecology", hospital_ops)
     encounter = create_inpatient_encounter(
         patient.patient_id,
         visit_date,
@@ -583,7 +583,7 @@ def simulate_delivery_encounter(
     cs_rng = np.random.default_rng(_newborn_sub_seed(f"cesarean|{patient.patient_id}"))
     is_cesarean = float(cs_rng.random()) < cs_prob
 
-    dept = resolve_department(enc_cfg.get("department") or "obgyn", hospital_ops)
+    dept = resolve_department(enc_cfg.get("department") or "obstetrics_gynecology", hospital_ops)
 
     # ── Mother-side delivery encounter ───────────────────────────────
     # Issue #1317: when the roll picks cesarean, prefer the
