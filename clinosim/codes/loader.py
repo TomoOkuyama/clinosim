@@ -118,6 +118,30 @@ _JAPANESE_ONLY_DISPLAY_SYSTEMS: frozenset[str] = frozenset(
 )
 
 
+# CodeSystems that publish English displays only (Issue #2276: the one
+# registry, moved from post_process/strip.py). On JP output their
+# ``coding.display`` stays English canonical and the Japanese label goes in
+# ``CodeableConcept.text`` (the dual-slot pattern); a Japanese display in the
+# coding fails validation as "Wrong Display Name". JP-specific CodeSystems
+# (JP Core / JP-CLINS / MEDIS HOT / YJ / clinosim custom) are not listed.
+ENGLISH_ONLY_SYSTEM_PREFIXES: tuple[str, ...] = (
+    "http://loinc.org",
+    "http://snomed.info/sct",
+    "http://terminology.hl7.org/",
+    "http://hl7.org/fhir/",
+    "http://dicom.nema.org/",
+    "http://unitsofmeasure.org",
+)
+
+
+def is_english_only_system(system_key_or_uri: str) -> bool:
+    """True when the CodeSystem (registry key or URI) publishes English
+    displays only — see :data:`ENGLISH_ONLY_SYSTEM_PREFIXES` (Issue #2276)."""
+    value = str(system_key_or_uri or "")
+    uri = value if value.startswith(("http://", "https://", "urn:")) else get_system_uri(value)
+    return uri.startswith(ENGLISH_ONLY_SYSTEM_PREFIXES)
+
+
 def is_japanese_only_display_system(system_key: str) -> bool:
     """True if ``system_key`` publishes displays in Japanese only.
 

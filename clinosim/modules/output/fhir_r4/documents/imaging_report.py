@@ -39,7 +39,7 @@ from clinosim.modules.output.fhir_r4.labs.diagnostic_report import (  # type: ig
     RADIOLOGY_REPORT_ID_PREFIX,
     V2_0074_SYSTEM,
 )
-from clinosim.modules.output.fhir_r4.lib.common import BundleContext, _escape_html, to_fhir_datetime
+from clinosim.modules.output.fhir_r4.lib.common import BundleContext, _escape_html, dual_slot_concept, to_fhir_datetime
 
 # LOINC "画像検査報告書" — the canonical Composition.type for radiology
 # reports, verified via JP-CLINS eImaging / JP Core radiology profile.
@@ -126,16 +126,9 @@ def _build_imaging_report_composition(
         sections.append(
             {
                 "title": t("imaging_report_fhir.findings_section_title", lang),
-                "code": {
-                    "coding": [
-                        {
-                            "system": get_system_uri("loinc"),
-                            "code": _SECTION_FINDINGS_LOINC,
-                            "display": _findings_disp,
-                        }
-                    ],
-                    "text": _findings_disp,
-                },
+                "code": dual_slot_concept(
+                    "loinc", _SECTION_FINDINGS_LOINC, lang, text=_findings_disp, fallback_display=_findings_disp
+                ),
                 "text": {
                     "status": "generated",
                     "div": f"<div xmlns='http://www.w3.org/1999/xhtml'>{_escape_html(findings)}</div>",
@@ -147,16 +140,9 @@ def _build_imaging_report_composition(
         sections.append(
             {
                 "title": t("imaging_report_fhir.impression_section_title", lang),
-                "code": {
-                    "coding": [
-                        {
-                            "system": get_system_uri("loinc"),
-                            "code": _SECTION_IMPRESSION_LOINC,
-                            "display": _impression_disp,
-                        }
-                    ],
-                    "text": _impression_disp,
-                },
+                "code": dual_slot_concept(
+                    "loinc", _SECTION_IMPRESSION_LOINC, lang, text=_impression_disp, fallback_display=_impression_disp
+                ),
                 "text": {
                     "status": "generated",
                     "div": f"<div xmlns='http://www.w3.org/1999/xhtml'>{_escape_html(impression)}</div>",
