@@ -10,11 +10,11 @@
 #   beta_blocker.{cardioselective, non_selective}
 #   acei | arb | acei_arb (union tag on both)
 #   potassium_supplement, electrolyte_supplement
-#   diuretic.{loop, k_sparing}
+#   diuretic.{loop, thiazide, k_sparing}
 #   statin, biguanide, cyp3a4_substrate, cyp3a4_inhibitor_strong
 #   xanthine_oxidase_inhibitor, thiopurine, immunosuppressant
 #   ssri, snri, maoi, atypical_antidepressant, antidepressant, antiparkinsonian
-#   benzodiazepine, anxiolytic
+#   benzodiazepine, anxiolytic, lithium
 #   analgesic.non_opioid, macrolide
 #   antihypertensive, antiarrhythmic.class4
 #
@@ -169,11 +169,21 @@ mappings:
   # Diuretics
   Furosemide:
     aliases: ["フロセミド", "ラシックス"]
-    classes: ["diuretic.loop"]
+    classes: ["diuretic.loop", "diuretic"]
 
   Spironolactone:
     aliases: ["スピロノラクトン", "アルダクトン"]
-    classes: ["diuretic.k_sparing"]
+    classes: ["diuretic.k_sparing", "diuretic"]
+
+  # Issue #2253: emitted as the third antihypertensive agent.
+  Hydrochlorothiazide:
+    aliases: ["HCTZ", "ヒドロクロロチアジド"]
+    classes: ["diuretic.thiazide", "diuretic"]
+
+  # Issue #2253: mood stabilizer, emitted as a chronic medication.
+  "Lithium carbonate":
+    aliases: ["Lithium", "炭酸リチウム", "リーマス"]
+    classes: ["lithium"]
 
   # Statins + CYP3A4 inhibitors
   Atorvastatin:
