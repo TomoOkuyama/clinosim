@@ -554,6 +554,77 @@ def _reference_ranges_by_sex(country: str) -> dict[str, dict[str, tuple[float, f
     return out
 
 
+# Drugs whose lab effect needs a loading period when started in hospital:
+# warfarin lifts INR only after the vitamin-K-dependent factors deplete
+# (loading-dose 3-day rule). Home medications are in effect from day 0.
+IN_HOSPITAL_LOADING_DAYS: dict[str, int] = {"warfarin": 3}
+
+
+def medication_name(med: Any) -> str:
+    """Drug name of a home medication, an order or a plain string."""
+    if isinstance(med, str):
+        return med
+    if isinstance(med, dict):
+        return str(med.get("drug_name") or med.get("display_name") or "")
+    return str(getattr(med, "drug_name", "") or getattr(med, "display_name", "") or "")
+
+
+def _as_date(value: Any) -> Any:
+    if value is None:
+        return None
+    if isinstance(value, str):
+        from datetime import datetime
+
+        try:
+            return datetime.fromisoformat(value).date()
+        except ValueError:
+            return None
+    return value.date() if hasattr(value, "date") else None
+
+
+def medications_in_effect(
+    home_medications: Any,
+    medication_orders: Any = None,
+    admission_date: Any = None,
+    current_day: int | None = None,
+) -> list[Any]:
+    """The medications acting on lab values on ``current_day`` of a stay: the
+    home medications plus the catalog id of each in-hospital drug ordered at
+    least its loading period ago (:data:`IN_HOSPITAL_LOADING_DAYS`).
+
+    The one "is the patient on drug X" decision (Issue #2293): INR generation,
+    result flagging and the FHIR therapeutic reference range all read it, via
+    :func:`clinosim.codes.drugs.names_drug` on the returned entries. Orders
+    and medications may be objects or dicts; order datetimes may be ISO
+    strings. Without orders, admission date or day, only home medications
+    count (outpatient and ED paths). ``DISCONTINUE: X`` marker orders are
+    not orders to give X and never count.
+    """
+    from clinosim.codes.drugs import names_drug
+
+    meds = list(home_medications or [])
+    if not medication_orders or admission_date is None or current_day is None:
+        return meds
+    for drug_id, loading_days in IN_HOSPITAL_LOADING_DAYS.items():
+        if current_day < loading_days or any(names_drug(medication_name(m), drug_id) for m in meds):
+            continue
+        for order in medication_orders:
+            name = medication_name(order)
+            # A "DISCONTINUE: X" marker stops X; it is not an order to give it.
+            if name.startswith("DISCONTINUE:") or not names_drug(name, drug_id):
+                continue
+            ordered = getattr(order, "ordered_datetime", None)
+            if ordered is None and isinstance(order, dict):
+                ordered = order.get("ordered_datetime")
+            ordered_date = _as_date(ordered)
+            if ordered_date is None:
+                continue
+            if current_day - (ordered_date - admission_date).days >= loading_days:
+                meds.append(drug_id)
+                break
+    return meds
+
+
 def therapeutic_range(
     lab_name: str,
     country: str,
@@ -565,27 +636,20 @@ def therapeutic_range(
     patient, or ``None`` when no listed drug is taken (Issue #2205).
 
     Read from ``therapeutic_ranges`` in the locale's reference_range_lab.yaml
-    (e.g. INR on warfarin). ``medications`` is a list of home medications
-    (objects or dicts with ``drug_name``) or plain names.
+    (e.g. INR on warfarin). ``drugs`` are catalog drug ids, matched against
+    ``medications`` through the catalog names (Issue #2293); pass
+    :func:`medications_in_effect` so a drug started in hospital counts.
     """
+    from clinosim.codes.drugs import names_drug
     from clinosim.locale.loader import load_reference_ranges
 
     rows = ((load_reference_ranges(country) or {}).get("therapeutic_ranges") or {}).get(lab_name) or []
     if not rows or not medications:
         return None
-    names = []
-    for med in medications:
-        name: Any
-        if isinstance(med, str):
-            name = med
-        elif isinstance(med, dict):
-            name = med.get("drug_name")
-        else:
-            name = getattr(med, "drug_name", "")
-        names.append(str(name or "").lower())
+    names = [medication_name(med) for med in medications]
     for row in rows:
-        drugs = [str(d).lower() for d in row.get("drugs") or []]
-        if not any(d in n for d in drugs for n in names):
+        drugs = [str(d) for d in row.get("drugs") or []]
+        if not any(names_drug(n, d) for d in drugs for n in names):
             continue
         if row.get("age_min") is not None and (age is None or age < int(row["age_min"])):
             continue

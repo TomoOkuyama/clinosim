@@ -12,10 +12,12 @@ from _fhir_common, so this module never imports back through the adapter
 from __future__ import annotations
 
 import dataclasses
+from datetime import date, datetime
 from typing import Any
 
 from clinosim.codes import get_system_uri
 from clinosim.modules._shared import get_attr_or_key, is_jp, sanitize_id_token
+from clinosim.modules.observation.engine import medications_in_effect
 from clinosim.modules.output.fhir_r4.demographics.patient import patient_ref
 from clinosim.modules.output.fhir_r4.encounters.encounter import encounter_ref
 from clinosim.modules.output.fhir_r4.labs._reference_ranges import (
@@ -860,6 +862,25 @@ def _build_vital_observations(
     return entries
 
 
+def _date_of(value: Any) -> date | None:
+    if isinstance(value, datetime):
+        return value.date()
+    if isinstance(value, str) and value:
+        try:
+            return datetime.fromisoformat(value).date()
+        except ValueError:
+            return None
+    return None
+
+
+def _medications_on_result_day(
+    home_medications: Any, medication_orders: list, admission_date: date | None, result_datetime: Any
+) -> list[Any]:
+    result_date = _date_of(result_datetime)
+    day = (result_date - admission_date).days if result_date and admission_date else None
+    return medications_in_effect(home_medications, medication_orders, admission_date, day)
+
+
 def _bb_labs(ctx: BundleContext) -> list[dict[str, Any]]:
     """Build FHIR Observation resources for lab results.
 
@@ -880,6 +901,15 @@ def _bb_labs(ctx: BundleContext) -> list[dict[str, Any]]:
     # after Fix 1 refactored build_panel_counter to use _o dual-access).
     lab_order_objects = [o for o in orders if _o(o, "order_type") in (OrderType.LAB, "lab")]
     panel_counter = build_panel_counter(lab_order_objects)
+
+    # Issue #2293: the therapeutic reference range follows the same
+    # in-effect medication decision the simulator used to generate and flag
+    # the result (home medications plus drugs started in hospital past their
+    # loading period).
+    home_medications = (ctx.patient_data or {}).get("current_medications")
+    medication_orders = [o for o in orders if _o(o, "order_type") in (OrderType.MEDICATION, "medication")]
+    encounters = ctx.record.get("encounters") or []
+    admission_date = _date_of(_o(encounters[0], "admission_datetime")) if encounters else None
 
     out: list[dict[str, Any]] = []
     for i, order in enumerate(orders):
@@ -914,7 +944,9 @@ def _bb_labs(ctx: BundleContext) -> list[dict[str, Any]]:
             ctx.country,
             ctx.patient_sex,
             ctx.primary_enc_id,
-            patient_medications=(ctx.patient_data or {}).get("current_medications"),
+            patient_medications=_medications_on_result_day(
+                home_medications, medication_orders, admission_date, result_dict.get("result_datetime")
+            ),
             patient_age=(ctx.patient_data or {}).get("age"),
         )
         if obs:

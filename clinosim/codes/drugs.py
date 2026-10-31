@@ -165,6 +165,22 @@ def find_drug(ref: str) -> DrugIdentity | None:
     return catalog.get(drug_id) if drug_id else None
 
 
+@cache
+def drug_name_needles(drug_id: str) -> tuple[str, ...]:
+    """Case-folded id, English and Japanese names and aliases of a catalog drug."""
+    rec = resolve_drug(drug_id)
+    names = (drug_id, rec.names.get("en", ""), rec.names.get("ja", ""), *rec.aliases)
+    return tuple(dict.fromkeys(n.casefold() for n in names if n))
+
+
+def names_drug(text: str, drug_id: str) -> bool:
+    """True when free-text medication ``text`` names the catalog drug: one of its
+    names or aliases occurs in it, case-insensitively ("Warfarin 3mg PO",
+    "ワルファリン錠"). The one name match for "is this drug X" (Issue #2293)."""
+    folded = (text or "").casefold()
+    return bool(folded) and any(n in folded for n in drug_name_needles(drug_id))
+
+
 def all_drug_ids() -> tuple[str, ...]:
     """Return every drug_id in the catalog (sorted). Used by integrity tests
     and by audit scripts that cross-reference drug_id usage in downstream yamls."""

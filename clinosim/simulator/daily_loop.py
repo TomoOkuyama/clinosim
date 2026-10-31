@@ -28,7 +28,7 @@ from clinosim.modules.clinical_course.engine import (
 )
 from clinosim.modules.diagnosis.engine import update_differential
 from clinosim.modules.disease.protocol import DiseaseProtocol
-from clinosim.modules.observation.engine import lab_panel_components
+from clinosim.modules.observation.engine import lab_panel_components, medications_in_effect
 from clinosim.modules.order.engine import place_daily_lab_orders, place_imaging_orders
 from clinosim.modules.order.treatment_classifier import (
     classify_encounter_treatment,
@@ -434,6 +434,9 @@ def _run_daily_loop(
         # helpers spread as **flags so a new flag added to derive_lab_values
         # reaches this site without touching the call.
         _med_orders = [o for o in all_orders if o.order_type.value == "medication"]
+        # Issue #2293: the same in-effect medication list drives INR generation
+        # (the warfarin flag below) and result flagging / therapeutic ranges.
+        _meds_in_effect = medications_in_effect(patient.current_medications, _med_orders, admission_time.date(), day)
         flags = {
             **scenario_flags_from_protocol(protocol),
             **medication_flags_from_context(
@@ -532,6 +535,7 @@ def _run_daily_loop(
                 roster,
                 hospital_state,
                 hospital_ops,
+                medications=_meds_in_effect,
             )
         )
 

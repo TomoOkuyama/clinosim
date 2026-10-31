@@ -63,6 +63,7 @@ def _run_lab_result_pipeline(
     roster: StaffRoster,
     hospital_state: Any,
     hospital_ops: dict | None,
+    medications: list | None = None,
 ) -> list[OrderResult]:
     """Run Pass 1 (scalar / non-panel orders) + Pass 2 (panel children) and
     return the ``OrderResult`` records produced.
@@ -72,6 +73,11 @@ def _run_lab_result_pipeline(
       * ``panel_children_by_parent[parent_id][i].status`` /
         ``.result`` for panel children.
 
+    ``medications`` is the in-effect list from
+    ``observation.engine.medications_in_effect`` (home medications plus drugs
+    started in hospital past their loading period, Issue #2293); results are
+    flagged against it. Defaults to the home medications.
+
     Returns:
       Flat list of ``OrderResult`` records, in the exact order they were
       produced by the two passes. Caller extends its own ``all_lab_results``
@@ -79,6 +85,8 @@ def _run_lab_result_pipeline(
       order they did before the extraction.
     """
     produced: list[OrderResult] = []
+    if medications is None:
+        medications = patient.current_medications
 
     # === Pass 1: scalar + non-panel orders, drawn from a per-order isolated
     # sub-RNG (individual_lab_seed). This mirrors the panel-children Pass 2
@@ -131,7 +139,7 @@ def _run_lab_result_pipeline(
                 observed,
                 sex=patient.sex,
                 country="JP" if country_key == "japan" else "US",
-                medications=patient.current_medications,
+                medications=medications,
                 age=patient.age,
             )
             lab_tech = assign_staff("lab_result", "", roster, lab_rng).get("performing_technician", FALLBACK_TECH_ID)
@@ -194,7 +202,7 @@ def _run_lab_result_pipeline(
                     observed,
                     sex=patient.sex,
                     country="JP" if country_key == "japan" else "US",
-                    medications=patient.current_medications,
+                    medications=medications,
                     age=patient.age,
                 )
                 child.result = OrderResult(
