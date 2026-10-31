@@ -5,8 +5,8 @@ from __future__ import annotations
 import csv
 import os
 
-from clinosim.codes import get_display
-from clinosim.modules._shared import get_attr_or_key
+from clinosim.codes import display, get_display, get_system_uri, system_key_for
+from clinosim.modules._shared import get_attr_or_key, resolve_lang
 from clinosim.modules.output.cif_reader import CIFReader
 from clinosim.modules.output.fhir_r4.labs.microbiology import (
     resolve_culture_code,
@@ -121,8 +121,10 @@ def convert_cif_to_csv(
                 "patient_id": patient_id,
                 "encounter_id": enc_id,
                 "admission_diagnosis_code": adm_code,
+                "admission_diagnosis_system": get_system_uri(adm_sys) if adm_code else "",
                 "admission_diagnosis_name": adm_name,
                 "discharge_diagnosis_code": dis_code,
+                "discharge_diagnosis_system": get_system_uri(dis_sys) if dis_code else "",
                 "discharge_diagnosis_name": dis_name,
                 "diagnosis_correct": clinical_dx.get("diagnosis_correct", ""),
                 "ground_truth_diseases": "|".join(condition.get("ground_truth_diseases", [])),
@@ -133,11 +135,14 @@ def convert_cif_to_csv(
         )
 
         # Lab results table
-        for i, lab in enumerate(record.get("lab_results", [])):
+        for lab in record.get("lab_results", []):
+            lab_code, lab_system = _lab_coding(lab, country)
             labs_rows.append(
                 {
                     "patient_id": patient_id,
                     "lab_name": lab.get("lab_name", ""),
+                    "lab_code": lab_code,
+                    "lab_code_system": lab_system,
                     "result_datetime": lab.get("result_datetime"),
                     "value": lab.get("value"),
                     "unit": lab.get("unit"),
@@ -169,7 +174,18 @@ def convert_cif_to_csv(
             )
 
         # Orders table
+        order_code_by_id: dict[str, str] = {}
         for order in record.get("orders", []):
+            order_code_by_id[str(order.get("order_id") or "")] = str(order.get("order_code") or "")
+            otype = str(order.get("order_type") or "")
+            if otype == "medication":
+                o_code, o_system = _drug_coding(
+                    str(order.get("display_name") or ""), str(order.get("order_code") or ""), country
+                )
+            elif otype == "lab":
+                o_code, o_system = _lab_coding({"lab_name": order.get("display_name")}, country)
+            else:
+                o_code, o_system = str(order.get("order_code") or ""), ""
             orders_rows.append(
                 {
                     "order_id": order.get("order_id"),
@@ -177,6 +193,8 @@ def convert_cif_to_csv(
                     "encounter_id": order.get("encounter_id"),
                     "order_type": order.get("order_type"),
                     "display_name": order.get("display_name"),
+                    "order_code": o_code,
+                    "order_code_system": o_system,
                     "urgency": order.get("urgency"),
                     "ordered_datetime": order.get("ordered_datetime"),
                     "status": order.get("status"),
@@ -186,11 +204,16 @@ def convert_cif_to_csv(
 
         # Medication administration records (MAR)
         for mar in record.get("medication_administrations", []):
+            drug_code, drug_system = _drug_coding(
+                str(mar.get("drug_name") or ""), order_code_by_id.get(str(mar.get("order_id") or ""), ""), country
+            )
             mar_rows.append(
                 {
                     "patient_id": patient_id,
                     "order_id": mar.get("order_id"),
                     "drug_name": mar.get("drug_name"),
+                    "drug_code": drug_code,
+                    "drug_code_system": drug_system,
                     "scheduled_datetime": mar.get("scheduled_datetime"),
                     "actual_datetime": mar.get("actual_datetime"),
                     "status": mar.get("status"),
@@ -202,15 +225,15 @@ def convert_cif_to_csv(
             )
 
         # Procedures
-        from clinosim.modules.output.hospital_course_extractor import _resolve_procedure_name
-
         for proc in record.get("procedures", []):
+            proc_name, proc_system = _procedure_name_and_system(proc, country)
             proc_rows.append(
                 {
                     "patient_id": patient_id,
                     "procedure_id": proc.get("procedure_id"),
-                    "procedure_name": _resolve_procedure_name(proc, "en"),
+                    "procedure_name": proc_name,
                     "procedure_code": proc.get("procedure_code"),
+                    "procedure_code_system": proc_system,
                     "start_datetime": proc.get("start_datetime"),
                     "end_datetime": proc.get("end_datetime"),
                     "duration_minutes": proc.get("duration_minutes"),
@@ -377,6 +400,7 @@ def convert_cif_to_csv(
         rx = record.get("discharge_prescription")
         if rx and rx.get("items"):
             for item in rx["items"]:
+                rx_code, rx_system = _drug_coding(str(item.get("drug_name") or item.get("drug") or ""), "", country)
                 rx_rows.append(
                     {
                         "patient_id": patient_id,
@@ -394,6 +418,8 @@ def convert_cif_to_csv(
                         # the same PR, so on future runs the fallback path is
                         # inert; it remains as a defensive read-side guard.
                         "drug_name": item.get("drug_name") or item.get("drug"),
+                        "drug_code": rx_code,
+                        "drug_code_system": rx_system,
                         "dose": item.get("dose"),
                         "route": item.get("route"),
                         "duration_days": item.get("duration_days"),
@@ -419,6 +445,49 @@ def convert_cif_to_csv(
     _write_csv(os.path.join(output_dir, "family_history.csv"), fh_rows)
     _write_csv(os.path.join(output_dir, "code_status.csv"), cs_rows)
     _write_csv(os.path.join(output_dir, "care_level.csv"), cl_rows)
+
+
+def _lab_coding(lab: dict, country: str) -> tuple[str, str]:
+    """``(code, system URI)`` of a lab result, from the same coding strategy
+    as the FHIR Observation (Issue #2303)."""
+    from clinosim.modules.output.fhir_r4.labs.coding_strategy import select_lab_coding_strategy
+
+    lab_name = str(lab.get("lab_name") or "")
+    if not lab_name:
+        return "", ""
+    codings = select_lab_coding_strategy(lab_name, country).emit_codings(
+        lab_name=lab_name, order={}, result=lab, country=country
+    )
+    first = codings[0] if codings else {}
+    return str(first.get("code") or ""), str(first.get("system") or "")
+
+
+def _drug_coding(drug_name: str, order_code: str, country: str) -> tuple[str, str]:
+    """``(code, system URI)`` of a medication, from the FHIR builder's single
+    drug resolution point (``_resolve_medication_concept``; Issue #2303)."""
+    from clinosim.modules.output.fhir_r4.medications.medications import _resolve_medication_concept
+
+    if not drug_name:
+        return "", ""
+    concept, _ = _resolve_medication_concept(drug_name, order_code or "", country)
+    coding = (concept.get("coding") or [{}])[0]
+    return str(coding.get("code") or ""), str(coding.get("system") or "")
+
+
+def _procedure_name_and_system(proc: dict, country: str) -> tuple[str, str]:
+    """Procedure display in the country's language and its code-system URI.
+
+    Honours ``procedure_system_key`` (e.g. SNOMED-coded screenings) before the
+    country default (K-codes / CPT); falls back to the extractor's name
+    resolution, then the procedure type (Issue #2303).
+    """
+    from clinosim.modules.output.hospital_course_extractor import _resolve_procedure_name
+
+    lang = resolve_lang(country)
+    code = str(proc.get("procedure_code") or "")
+    system_key = str(proc.get("procedure_system_key") or "") or system_key_for("procedure", country)
+    name = (display(system_key, code, lang) if code else None) or _resolve_procedure_name(proc, lang)
+    return name, get_system_uri(system_key) if code else ""
 
 
 def _write_csv(filepath: str, rows: list[dict]) -> None:
