@@ -33,10 +33,9 @@ icd_codes:
 
 incidence:
   # Admissions among patients with depression (F32 / F33). The per-country
-  # rate lives in locale/<cc>/demographics.yaml disease_incidence, which also
-  # requires a psychiatric ward at the hospital.
+  # rate and the prerequisite conditions live in locale/<cc>/demographics.yaml
+  # disease_incidence, which also requires a psychiatric ward at the hospital.
   trigger_type: "acute"
-  prerequisite_condition: "F32"
 
 severity:
   distribution:
