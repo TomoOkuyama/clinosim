@@ -84,7 +84,9 @@ E11.9:  # Type 2 Diabetes
   monitoring:
     - {test: "Glucose", frequency: "qid", times: [6, 11, 17, 21], intent: "Blood glucose monitoring (DM)"}
   hold_conditions:
-    - {drug: "Metformin", condition: "eGFR < 30 or acute illness", field: "renal_function", threshold: 0.3, direction: "below"}
+    # Issue #2296: the admission hold reads this threshold (renal_function < 0.4,
+    # roughly eGFR < 40) together with any renal impairment.
+    - {drug: "Metformin", condition: "eGFR < 40 or acute illness", field: "renal_function", threshold: 0.4, direction: "below"}
 
 E78:  # Dyslipidemia
   medications:

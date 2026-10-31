@@ -28,50 +28,15 @@ from clinosim.modules.physiology.renal_thresholds import DISCHARGE_RENAL_HOLD_TH
 from clinosim.types.encounter import PrescriptionRecord
 from clinosim.types.patient import PatientProfile
 
-# Drugs held at discharge when renal function is impaired.
-# Threshold `final_renal_function < DISCHARGE_RENAL_HOLD_THRESHOLD` maps to
-# KDIGO stage 3b+ CKD or active AKI. Held drugs include nephrotoxins
-# (NSAIDs) and drugs cleared renally where a stopped dose is safer than a
-# discharge-strength one (metformin for lactic-acidosis risk, enoxaparin
-# for bleeding-risk).
-_RENAL_HOLD_DRUGS: frozenset[str] = frozenset(
-    {
-        "metformin",
-        "celecoxib",
-        "ibuprofen",
-        "naproxen",
-        "diclofenac",
-        "loxoprofen",
-        "meloxicam",
-        "ketorolac",
-        "indomethacin",
-        "enoxaparin",
-        "alendronate",
-        # Issue #1335 (META #1392 Cluster A part 3): ACE-I / ARB families
-        # gate on renal function at discharge as well as during the
-        # inpatient course. When ``final_renal_function <
-        # DISCHARGE_RENAL_HOLD_THRESHOLD`` (KDIGO stage 3b+ / active
-        # AKI), afferent-arteriolar and efferent-arteriolar
-        # vasoactive agents must not be transcribed onto the discharge
-        # prescription regardless of which disease protocol drove the
-        # admission (the lab-derived AKI Condition enricher added in
-        # #1326 can attach a N17.x diagnosis to a non-AKI-primary
-        # admission — this list catches those too).
-        "enalapril",
-        "lisinopril",
-        "captopril",
-        "ramipril",
-        "perindopril",
-        "benazepril",
-        "losartan",
-        "valsartan",
-        "candesartan",
-        "olmesartan",
-        "telmisartan",
-        "irbesartan",
-        "azilsartan",
-    }
-)
+
+def renal_hold_drugs() -> frozenset[str]:
+    """Drugs held at discharge when renal function is impaired: the shared
+    renal drug list (``locale/shared/renal_medication_rules.yaml``; Issue
+    #2296), used with ``final_renal_function < DISCHARGE_RENAL_HOLD_THRESHOLD``
+    (KDIGO stage 3b+ CKD or active AKI)."""
+    from clinosim.simulator.medication_pipeline import renal_medication_rules
+
+    return frozenset(renal_medication_rules())
 
 
 def _dedup_key(name: str) -> str:
@@ -218,7 +183,7 @@ def build_discharge_rx(
     # protocol's ``medication_holds`` at discharge — this is the same
     # data ``medication_pipeline`` consumes for inpatient order gating.
     # Prior to this pass discharge_rx only knew a fixed
-    # ``_RENAL_HOLD_DRUGS`` set (Metformin, NSAIDs, Enoxaparin,
+    # ``renal_hold_drugs()`` set (Metformin, NSAIDs, Enoxaparin,
     # Alendronate) plus renal-function threshold, so ACE-I / ARB /
     # ARB-family drugs held during the inpatient AKI course were still
     # transcribed onto the discharge Rx from the patient's home-med
@@ -278,7 +243,7 @@ def build_discharge_rx(
         if not drug_name:
             return
         if final_renal_function < DISCHARGE_RENAL_HOLD_THRESHOLD and any(
-            rd in drug_name.lower() for rd in _RENAL_HOLD_DRUGS
+            rd in drug_name.lower() for rd in renal_hold_drugs()
         ):
             # Issue #1403: log renal-driven hold for narrative surface
             # (matches inpatient medication_pipeline._log_disease_medication_hold
@@ -413,7 +378,7 @@ def build_discharge_rx(
         if not drug_name:
             continue
         drug_lower = drug_name.lower()
-        if final_renal_function < DISCHARGE_RENAL_HOLD_THRESHOLD and any(rd in drug_lower for rd in _RENAL_HOLD_DRUGS):
+        if final_renal_function < DISCHARGE_RENAL_HOLD_THRESHOLD and any(rd in drug_lower for rd in renal_hold_drugs()):
             continue  # do not restart nephrotoxic drug at discharge
         key = _dedup_key(drug_name)
         if key in seen_dedup_keys:

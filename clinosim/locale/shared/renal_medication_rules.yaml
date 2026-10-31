@@ -1,0 +1,39 @@
+# Drugs adjusted for impaired renal function (Issue #2296).
+#
+# One list for admission (simulator/medication_pipeline.py) and discharge
+# (simulator/discharge_rx.py). Keys are matched as lower-case substrings of
+# the drug name. The value is the admission action when the patient has
+# renal impairment and a low renal reserve:
+#   hold   — the home medication is not ordered;
+#   reduce — it is ordered with a renal dose reduction.
+# At discharge every listed drug is held when the final renal function is
+# below DISCHARGE_RENAL_HOLD_THRESHOLD (KDIGO stage 3b+ or active AKI).
+#
+# Rationale: NSAIDs are nephrotoxic; metformin carries a lactic-acidosis
+# risk; enoxaparin and alendronate are renally cleared; ACE inhibitors and
+# ARBs act on glomerular haemodynamics (Issue #1335).
+renal_drugs:
+  metformin: hold
+  celecoxib: hold
+  ibuprofen: hold
+  naproxen: hold
+  diclofenac: hold
+  loxoprofen: hold
+  meloxicam: hold
+  ketorolac: hold
+  indomethacin: hold
+  enoxaparin: reduce
+  alendronate: reduce
+  enalapril: reduce
+  lisinopril: reduce
+  captopril: reduce
+  ramipril: reduce
+  perindopril: reduce
+  benazepril: reduce
+  losartan: reduce
+  valsartan: reduce
+  candesartan: reduce
+  olmesartan: reduce
+  telmisartan: reduce
+  irbesartan: reduce
+  azilsartan: reduce

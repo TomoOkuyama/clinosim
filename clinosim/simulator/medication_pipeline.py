@@ -23,6 +23,7 @@ preserves the byte-neutral contract by moving them verbatim.
 
 from __future__ import annotations
 
+import functools
 from datetime import datetime, timedelta
 from typing import Any
 
@@ -35,7 +36,6 @@ from clinosim.modules.physiology.renal_thresholds import (
 )
 from clinosim.modules.staff.engine import FALLBACK_NURSE_ID, StaffRoster, assign_staff
 from clinosim.simulator._mar_thresholds import (
-    MAR_ANTIHYPERTENSIVE_HOLD_SBP_THRESHOLD,
     MAR_JITTER_MEAN_MIN,
     MAR_JITTER_STD_MIN,
     MAR_PATIENT_REFUSAL_PROBABILITY,
@@ -89,6 +89,59 @@ _FREQ_TO_HOURS: dict[int, list[int]] = {
     8: [0, 3, 6, 9, 12, 15, 18, 21],
 }
 _CONTINUOUS_INFUSION_MAR_HOURS: list[int] = [0, 4, 8, 12, 16, 20]  # q4h cap for freq >= 12
+
+
+_VITAL_HOLD_LABELS: dict[str, str] = {"systolic_bp": "SBP", "heart_rate": "HR"}
+
+
+@functools.cache
+def _hold_conditions() -> tuple[dict, ...]:
+    from clinosim.locale.loader import load_chronic_medications
+
+    rules: list[dict] = []
+    for block in load_chronic_medications().values():
+        if isinstance(block, dict):
+            rules.extend(r for r in block.get("hold_conditions") or [] if isinstance(r, dict))
+    return tuple(rules)
+
+
+def metformin_admission_hold_threshold() -> float:
+    """Renal-function threshold for holding metformin on admission, from the
+    Metformin ``hold_conditions`` entry of ``chronic_medications.yaml``
+    (Issue #2296); the code constant is the fallback."""
+    for rule in _hold_conditions():
+        if str(rule.get("drug", "")).lower() == "metformin" and rule.get("field") == "renal_function":
+            return float(rule["threshold"])
+    return METFORMIN_ADMISSION_HOLD_THRESHOLD
+
+
+@functools.cache
+def renal_medication_rules() -> dict[str, str]:
+    """Drug (lower-case substring) -> admission action ("hold" / "reduce") for
+    renal impairment, from ``renal_medication_rules.yaml`` (Issue #2296)."""
+    from clinosim.locale._io import _LOCALE_DIR, _load_yaml
+
+    data = _load_yaml(_LOCALE_DIR / "shared" / "renal_medication_rules.yaml", {}) or {}
+    return {str(k).lower(): str(v) for k, v in (data.get("renal_drugs") or {}).items()}
+
+
+def mar_vital_hold_reason(drug_name: str, vitals: Any) -> str | None:
+    """Hold reason ("SBP < 90") when a vital-sign hold parameter in
+    ``chronic_medications.yaml`` applies to ``drug_name``, else None."""
+    if vitals is None or not drug_name:
+        return None
+    name = drug_name.lower()
+    for rule in _hold_conditions():
+        field = rule.get("field")
+        if field not in _VITAL_HOLD_LABELS or rule.get("direction") != "below":
+            continue
+        if str(rule.get("drug", "")).lower() not in name:
+            continue
+        value = getattr(vitals, field, None)
+        threshold = rule.get("threshold")
+        if value is not None and threshold is not None and value < threshold:
+            return f"{_VITAL_HOLD_LABELS[field]} < {threshold}"
+    return None
 
 
 def _log_disease_medication_hold(
@@ -308,7 +361,7 @@ def _generate_home_medication_orders(
     has_ckd = any(c.code.startswith("N18") for c in patient.chronic_conditions)
     renal_reserve = patient.physiological_profile.renal_reserve if hasattr(patient, "physiological_profile") else 1.0
     initial_renal = state.renal_function if state else renal_reserve
-    has_renal_impairment = has_ckd or initial_renal < METFORMIN_ADMISSION_HOLD_THRESHOLD
+    has_renal_impairment = has_ckd or initial_renal < metformin_admission_hold_threshold()
 
     # Held drug set from disease protocol's medication_holds (YAML-driven,
     # protocol side — unchanged semantics, now applied against current_meds).
@@ -368,19 +421,19 @@ def _generate_home_medication_orders(
             continue  # silently skip — not ordered (but now logged)
 
         # 2. Metformin: renal-function-based hold.
-        if "metformin" in drug_lower and (initial_renal < METFORMIN_ADMISSION_HOLD_THRESHOLD or has_renal_impairment):
+        if "metformin" in drug_lower and (initial_renal < metformin_admission_hold_threshold() or has_renal_impairment):
             continue
 
         # 3. Renal dose adjustment for CKD patients.
+        # Issue #2296: one renal drug list shared with discharge.
         if has_renal_impairment and renal_reserve < METFORMIN_RENAL_RESERVE_THRESHOLD:
-            renal_drugs = ["enoxaparin", "enalapril", "candesartan", "alendronate", "celecoxib"]
-            if any(rd in drug_lower for rd in renal_drugs):
-                if "celecoxib" in drug_lower:
-                    continue  # held
-                else:
-                    intent += " [dose reduced for renal impairment]"
-                    # Issue #871: mirror the annotation on the JA display.
-                    intent_ja += " [腎機能低下のため減量]"
+            action = next((a for d, a in renal_medication_rules().items() if d in drug_lower), None)
+            if action == "hold":
+                continue  # held
+            if action == "reduce":
+                intent += " [dose reduced for renal impairment]"
+                # Issue #871: mirror the annotation on the JA display.
+                intent_ja += " [腎機能低下のため減量]"
 
         order = Order(
             order_id=f"ORD-{encounter_id}-HM-{med_idx:02d}",
@@ -767,9 +820,12 @@ def _generate_mar(
             hold_reason = None
 
             # Hold conditions (clinical)
-            if "antihypertensive" in drug_name.lower() and hasattr(patient, "baseline_vitals"):
-                if patient.baseline_vitals.systolic_bp < MAR_ANTIHYPERTENSIVE_HOLD_SBP_THRESHOLD:
-                    status, hold_reason = "held", f"SBP < {MAR_ANTIHYPERTENSIVE_HOLD_SBP_THRESHOLD}"
+            # Issue #2296: hold parameters from chronic_medications.yaml
+            # hold_conditions (the former "antihypertensive" name test matched
+            # no drug and never fired).
+            vital_hold = mar_vital_hold_reason(drug_name, getattr(patient, "baseline_vitals", None))
+            if vital_hold:
+                status, hold_reason = "held", vital_hold
 
             # Patient refusal (~1.5%)
             if rng.random() < MAR_PATIENT_REFUSAL_PROBABILITY:
