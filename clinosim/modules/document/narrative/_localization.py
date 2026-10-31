@@ -218,43 +218,18 @@ def _localize_stage(stage: str, lang: str) -> str:
 
 
 # Imaging order display-name localization — vocab lives in
-# ``clinosim/locale/shared/narrative_imaging.yaml`` (Phase 1d-1
-# extraction). Keys are lower-cased, whitespace/hyphen-normalised
-# forms so semantic duplicates (``Chest_Xray_PA_Lateral`` and
-# ``Chest X-ray PA and Lateral``) collapse to a single entry.
+# ``clinosim/locale/shared/narrative_imaging.yaml``, the one imaging-exam
+# table shared with FHIR (Issue #2268).
 
 
 def _localize_imaging(name: str, lang: str) -> str:
-    """Return the localized display for an imaging order token. Keys are
-    matched case-insensitively after collapsing consecutive whitespace so
-    both underscore-slug forms (``Chest_Xray_PA_Lateral``) and spaced
-    variants (``Chest X-ray PA and Lateral``) resolve to the same entry.
-    Unknown tokens fall back to a humanised slug (underscores → spaces)
-    so a novel imaging code renders naturally rather than as a machine
-    slug."""
-    if not name:
-        return ""
-    key = str(name).strip().lower()
-    if not key:
-        return ""
-    key = " ".join(key.split())  # collapse whitespace runs
-    from clinosim.locale.loader import load_narrative_imaging, resolve_localized_display
+    """Return the localized display for an imaging order token: the one
+    imaging-exam table shared with FHIR (Issue #2268,
+    ``clinosim.locale.loader.imaging_exam_display``). Unknown tokens are
+    humanised (underscores → spaces) so a slug never leaks raw in prose."""
+    from clinosim.locale.loader import imaging_exam_display
 
-    table = load_narrative_imaging()
-    entry = table.get(key)
-    if entry:
-        hit = resolve_localized_display(entry, lang)
-        if hit:
-            return hit
-    # Underscore-form fallback: try the underscored variant.
-    alt = key.replace(" ", "_")
-    entry = table.get(alt)
-    if entry:
-        hit = resolve_localized_display(entry, lang)
-        if hit:
-            return hit
-    # Humanised fallback so a slug never leaks raw in prose.
-    return name.replace("_", " ")
+    return imaging_exam_display(name, lang)
 
 
 def _localize_op_approach(approach: str, lang: str) -> str:

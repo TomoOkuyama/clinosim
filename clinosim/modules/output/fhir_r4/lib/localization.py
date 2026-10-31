@@ -240,8 +240,8 @@ def localize_drug_name(drug_name: str, lang: str) -> str:
 
     Adding a new target locale is a column add on each narrative display
     catalog (``names.<lang>`` on `drugs.yaml`, ``<lang>: display`` on each
-    `clinosim-{imaging-exam-name,procedure-phrase,allergen-substance,
-    admin-form-display}.yaml`) plus this dispatcher's branch — no code
+    `clinosim-{procedure-phrase,allergen-substance,admin-form-display}.yaml`
+    and `locale/shared/narrative_imaging.yaml`) plus this dispatcher's branch — no code
     change at the ~15 callers spread across ``template_generator`` /
     ``replacement_strategy`` / FHIR emitters.
     """

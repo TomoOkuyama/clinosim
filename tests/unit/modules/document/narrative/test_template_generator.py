@@ -991,7 +991,7 @@ def test_localize_imaging_ja_handles_slug_and_spaced_variants() -> None:
     assert _localize_imaging("Chest_Xray_PA_Lateral", "ja") == "胸部レントゲン (正面・側面)"
     assert _localize_imaging("CT_Head", "ja") == "頭部 CT"
     assert _localize_imaging("Renal_ultrasound", "ja") == "腎エコー"
-    assert _localize_imaging("MRCP", "ja") == "MRCP (磁気共鳴胆管膵管造影)"
+    assert _localize_imaging("MRCP", "ja") == "MRCP (磁気共鳴胆管膵管撮影)"  # non-contrast (Issue #2268)
     # Novel imaging token humanises rather than leaking raw slug.
     assert _localize_imaging("Novel_scan_type", "ja") == "Novel scan type"
 
