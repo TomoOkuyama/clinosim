@@ -153,6 +153,8 @@ once in `_shared.py` or the owner module and import from both.
 
 ## 6. codes / locale / multilingual
 
+**Binding spec:** [`code-mapping-and-localization-spec.md`](code-mapping-and-localization-spec.md) defines the YAML formats, the resolution functions, localization and the fallback rules. Every code-related change follows it; the bullets below are a summary.
+
 - `codes/data/*.yaml`: **`en` is required**; sources are
   authoritative (CMS / NLM / WHO / JCCLS / MHLW). **Absolutely no
   fabrication of codes** — verify a new code against the NLM API /

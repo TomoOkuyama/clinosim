@@ -15,4 +15,5 @@ clinosim にモジュールを追加する新規開発者/実装 AI 向けの索
 | 5 | [`clinosim/modules/output/SPEC.md`](../../clinosim/modules/output/SPEC.md) | 臨床文書 / narrative を触るときのみ。two-pass CIF(structural + narrative 分離、AD-65)の canonical spec |
 | 6 | [`docs/design-guides/fhir-data-generation-logic.md`](fhir-data-generation-logic.ja.md) | FHIR builder(`clinosim/modules/output/fhir_r4/<theme>/`、Layer 4)を追加・拡張するときのみ。code_lookup / URI / multilingual / anti-patterns |
 | 7 | [`SCENARIO_FLAGS.md`](../../SCENARIO_FLAGS.ja.md) | lab 値や scenario / medication flag(`causes_X` / `on_warfarin`)を触るときのみ。flag の一覧と追加手順 |
+| 0d | [`code-mapping-and-localization-spec.md`](code-mapping-and-localization-spec.ja.md) | **コードに関わる変更の前に必読。** コード体系・コード対応・名称解決関数・多言語対応・フォールバック規則の規範仕様。 |
 | 8 | [`data-model-and-completeness-conventions.md`](data-model-and-completeness-conventions.ja.md) | FHIR completeness fix-point(重症度統合 / 孤児 YAML キー / `extra="forbid"` / I10 stage / person.age / course_archetypes)を実装するときのみ。C1/C2/C3 不完全状態の禁止規約と as-of-age パターン。台帳 = `docs/design-notes/2026-07-06-fix-point-registry.md` |
