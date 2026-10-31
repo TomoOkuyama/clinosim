@@ -44,7 +44,6 @@ from clinosim.modules.output.fhir_r4 import (
 from clinosim.modules.output.fhir_r4.lib.common import (
     BundleContext,                   # 各 _bb_* builder に渡される dataclass
     entry,                           # (resource) -> Bundle entry dict
-    build_ucum_quantity,             # (value, unit) -> {value, unit, system, code}
     survey_category,                 # () -> [{coding: [...]}] survey category CodeableConcept
     loinc_coding,                    # (code, lang) -> {system, code, display}
     build_ecs_institution_extension, # JP JP_Organization_eCS institution

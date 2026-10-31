@@ -73,6 +73,7 @@ Immunization series data) are next-session expansion candidates.
 from __future__ import annotations
 
 from clinosim.audit.types import Cohort
+from clinosim.codes import get_system_uri
 from clinosim.eval.axes.locale import _detect_country_from_cohort, _read
 from clinosim.eval.engine import EvalCheck, Outcome, Severity
 
@@ -91,13 +92,13 @@ _BIRTHSEX_VALID_CODES: frozenset[str] = frozenset({"M", "F", "UNK", "OTH", "ASKU
 
 # CDC Race and Ethnicity OMB CodeSystem OID — required by US Core race +
 # ethnicity extension ombCategory sub-extension.
-_OMB_RACE_ETHNICITY_OID = "urn:oid:2.16.840.1.113883.6.238"
+_OMB_RACE_ETHNICITY_OID = get_system_uri("omb-race")
 
 # HL7 v3 ActCode CodeSystem — the US Core Encounter.class binding.
-_V3_ACTCODE_SYSTEM = "http://terminology.hl7.org/CodeSystem/v3-ActCode"
+_V3_ACTCODE_SYSTEM = get_system_uri("hl7-v3-actcode")
 
 # FHIR condition-category CodeSystem — US Core Condition.category binding.
-_CONDITION_CATEGORY_SYSTEM = "http://terminology.hl7.org/CodeSystem/condition-category"
+_CONDITION_CATEGORY_SYSTEM = get_system_uri("hl7-condition-category")
 
 
 # --------------------------------------------------------------------------- #

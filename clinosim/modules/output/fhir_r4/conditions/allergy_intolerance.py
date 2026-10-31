@@ -93,9 +93,9 @@ _VALID_CATEGORIES = {"medication", "food", "environment", "biologic"}
 # `tx-server-build/terminology/fhir-server/jpfhir-terminology#2.2606.0/package/
 # CodeSystem-jp-jfagy{food,medicationallergenycm,nonfoodnonmedicationallergen}-cs.json`
 # (rule: spec fixedUri direct quotation).
-_JP_JFAGY_FOOD_ALLERGEN_CS = "http://jpfhir.jp/fhir/core/CodeSystem/JP_JfagyFoodAllergen_CS"
-_JP_JFAGY_MEDICATION_ALLERGEN_CS = "http://jpfhir.jp/fhir/core/CodeSystem/YCM/JP_JfagyMedicationAllergen_CS"
-_JP_JFAGY_NON_FOOD_NON_MED_ALLERGEN_CS = "http://jpfhir.jp/fhir/core/CodeSystem/JP_JfagyNonFoodNonMedicationAllergen_CS"
+_JP_JFAGY_FOOD_ALLERGEN_CS = get_system_uri("jp-jfagy-food-allergen")
+_JP_JFAGY_MEDICATION_ALLERGEN_CS = get_system_uri("jp-jfagy-medication-allergen")
+_JP_JFAGY_NON_FOOD_NON_MED_ALLERGEN_CS = get_system_uri("jp-jfagy-nonfood-nonmedication-allergen")
 
 # Category → (CodeSystem URI, generic code). The JA/EN display for
 # each category lives in `narrative_labels.yaml/allergy_jfagy_display:`

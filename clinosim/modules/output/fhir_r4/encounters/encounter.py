@@ -15,6 +15,7 @@ from clinosim.codes import get_system_uri, system_key_for
 from clinosim.codes import lookup as code_lookup
 from clinosim.codes.encounter_type_to_snomed import resolve_encounter_type_snomed
 from clinosim.codes.hl7_encounter import ActPriority
+from clinosim.codes.ucum import ucum_quantity
 from clinosim.modules._shared import is_jp, pick_localized_field, resolve_lang
 from clinosim.modules.diagnosis.nonspecific_codes import is_never_principal_dx, is_visit_reason_zcode
 from clinosim.modules.output.fhir_r4.conditions.primary_ref import (
@@ -134,18 +135,8 @@ def _compute_encounter_length(start_iso: str, end_iso: str) -> dict[str, Any] | 
     if total_min <= 0:
         return None
     if total_min >= 1440:  # 1 day
-        return {
-            "value": round(total_min / 1440, 2),
-            "unit": "d",
-            "system": get_system_uri("ucum"),
-            "code": "d",
-        }
-    return {
-        "value": total_min,
-        "unit": "min",
-        "system": get_system_uri("ucum"),
-        "code": "min",
-    }
+        return ucum_quantity(round(total_min / 1440, 2), "d")
+    return ucum_quantity(total_min, "min")
 
 
 def _build_encounter(

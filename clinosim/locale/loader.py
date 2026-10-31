@@ -84,7 +84,6 @@ from clinosim.locale.loaders.medical_display import (
     load_med_terms,
     load_med_terms_ja,
     load_occupation_display,
-    load_prefecture_jis_x_0401_map,
 )
 from clinosim.locale.loaders.narrative import (
     _load_country_language_map,
@@ -156,7 +155,6 @@ __all__ = [
     "load_occupation_display",
     "load_perinatal_config",
     "load_practitioner_qualifications",
-    "load_prefecture_jis_x_0401_map",
     "load_pregnancy_substitutions",
     "load_reference_ranges",
     "load_single_gene_diseases",

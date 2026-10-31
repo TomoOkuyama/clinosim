@@ -16,6 +16,7 @@ from datetime import date, datetime
 from typing import Any
 
 from clinosim.codes import get_system_uri
+from clinosim.codes.ucum import ucum_quantity
 from clinosim.modules._shared import get_attr_or_key, is_jp, sanitize_id_token
 from clinosim.modules.observation.engine import medications_in_effect
 from clinosim.modules.output.fhir_r4.demographics.patient import patient_ref
@@ -235,12 +236,7 @@ def _build_lab_observation(
         # #323 FHIR R4 ele-1 は空文字列 field を禁止。unit が
         # 未設定時(unit_str == "")は unit / code / system 全て omit
         # (v6.1 で 44 件 error 発火)。value のみ emit する。
-        _vq: dict[str, Any] = {"value": value}
-        if unit_str:
-            _vq["unit"] = unit_str
-            _vq["system"] = get_system_uri("ucum")
-            _vq["code"] = unit_str  # UCUM code identical to display unit
-        resource["valueQuantity"] = _vq
+        resource["valueQuantity"] = ucum_quantity(value, unit_str) if unit_str else {"value": value}
     else:
         resource["valueString"] = str(value)
 
@@ -365,16 +361,11 @@ def _build_bp_component(
             "coding": [{"system": get_system_uri("loinc"), "code": spec.loinc, "display": display}],
             "text": display,
         },
-        "valueQuantity": {
-            "value": value,
-            "unit": unit,
-            "system": get_system_uri("ucum"),
-            "code": unit,
-        },
+        "valueQuantity": ucum_quantity(value, unit),
         "referenceRange": [
             {
-                "low": {"value": spec.normal_low, "unit": unit, "system": get_system_uri("ucum"), "code": unit},
-                "high": {"value": spec.normal_high, "unit": unit, "system": get_system_uri("ucum"), "code": unit},
+                "low": ucum_quantity(spec.normal_low, unit),
+                "high": ucum_quantity(spec.normal_high, unit),
                 "type": {
                     "coding": [
                         {
@@ -387,8 +378,8 @@ def _build_bp_component(
                 "text": normal_text,
             },
             {
-                "low": {"value": spec.critical_low, "unit": unit, "system": get_system_uri("ucum"), "code": unit},
-                "high": {"value": spec.critical_high, "unit": unit, "system": get_system_uri("ucum"), "code": unit},
+                "low": ucum_quantity(spec.critical_low, unit),
+                "high": ucum_quantity(spec.critical_high, unit),
                 "type": {
                     "coding": [
                         {
@@ -493,12 +484,7 @@ def _build_vital_observations(
                 "text": display,
             },
             "subject": patient_ref(patient_id),
-            "valueQuantity": {
-                "value": value,
-                "unit": unit,
-                "system": get_system_uri("ucum"),
-                "code": unit,
-            },
+            "valueQuantity": ucum_quantity(value, unit),
         }
         # Add timestamp with per-field offset (BP/HR same, Temp +30s, RR +60s, SpO2 +5s)
         timestamp = vs.get("timestamp")
@@ -527,8 +513,8 @@ def _build_vital_observations(
         crit_text = "パニック値" if is_jp(country) else "Critical range"
         ref_ranges = [
             {
-                "low": {"value": low, "unit": unit, "system": get_system_uri("ucum"), "code": unit},
-                "high": {"value": high, "unit": unit, "system": get_system_uri("ucum"), "code": unit},
+                "low": ucum_quantity(low, unit),
+                "high": ucum_quantity(high, unit),
                 "type": {
                     "coding": [
                         {
@@ -556,9 +542,9 @@ def _build_vital_observations(
                 "text": crit_text,
             }
             if crit_low is not None:
-                crit_range["low"] = {"value": crit_low, "unit": unit, "system": get_system_uri("ucum"), "code": unit}
+                crit_range["low"] = ucum_quantity(crit_low, unit)
             if crit_high is not None:
-                crit_range["high"] = {"value": crit_high, "unit": unit, "system": get_system_uri("ucum"), "code": unit}
+                crit_range["high"] = ucum_quantity(crit_high, unit)
             ref_ranges.append(crit_range)
         obs["referenceRange"] = ref_ranges
 
@@ -822,12 +808,7 @@ def _build_vital_observations(
             "subject": patient_ref(patient_id),
         }
         if flow is not None:
-            o2_obs["valueQuantity"] = {
-                "value": flow,
-                "unit": "L/min",
-                "system": get_system_uri("ucum"),
-                "code": "L/min",
-            }
+            o2_obs["valueQuantity"] = ucum_quantity(flow, "L/min")
         if device:
             # Issue #376: LOINC 8478-0 is "Mean blood pressure" — completely
             # unrelated to oxygen delivery. Verified via NLM Clinical Table +

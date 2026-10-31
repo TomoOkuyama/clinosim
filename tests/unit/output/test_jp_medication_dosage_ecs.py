@@ -18,6 +18,7 @@ from __future__ import annotations
 
 import pytest
 
+from clinosim.codes import get_system_uri
 from clinosim.modules.output.fhir_r4.post_process import (
     _JP_CLINS_MEDICATION_USAGE_UNCODED_CODE,
     _JP_CLINS_MEDICATION_USAGE_UNCODED_CS,
@@ -29,7 +30,6 @@ from clinosim.modules.output.fhir_r4.post_process import (
     _JP_MHLW_STRENGTH_TYPE_PHARMACEUTICAL_DISPLAY,
     _UCUM_DAY_CODE,
     _UCUM_DAY_UNIT_JA,
-    _UCUM_SYSTEM_URI,
     _populate_jp_medication_dosage_ecs_fields,
 )
 
@@ -411,7 +411,7 @@ def test_period_unit_d_stripped_and_bounds_duration_added():
     assert repeat["boundsDuration"] == {
         "value": 1,
         "unit": _UCUM_DAY_UNIT_JA,
-        "system": _UCUM_SYSTEM_URI,
+        "system": get_system_uri("ucum"),
         "code": _UCUM_DAY_CODE,
     }
     # frequency は保持(per-day cadence 意味を担う)。
@@ -437,7 +437,7 @@ def test_period_unit_non_day_left_untouched():
 
 def test_bounds_duration_not_overwritten_when_builder_supplied():
     """Walker preserves builder-supplied `boundsDuration`."""
-    pre = {"value": 7, "unit": "日", "system": _UCUM_SYSTEM_URI, "code": _UCUM_DAY_CODE}
+    pre = {"value": 7, "unit": "日", "system": get_system_uri("ucum"), "code": _UCUM_DAY_CODE}
     r = {
         "resourceType": "MedicationRequest",
         "id": "mr1",

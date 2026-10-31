@@ -63,6 +63,7 @@ from typing import Any
 import yaml
 
 from clinosim.codes import get_system_uri
+from clinosim.codes.ucum import ucum_quantity
 from clinosim.modules._shared import get_attr_or_key, is_jp
 from clinosim.modules.output.fhir_r4.demographics.patient import patient_ref
 from clinosim.modules.output.fhir_r4.encounters.encounter import encounter_ref
@@ -461,12 +462,7 @@ def _build_one_observation(
             "text": display,
         },
         "subject": patient_ref(patient_id),
-        "valueQuantity": {
-            "value": value,
-            "unit": unit,
-            "system": get_system_uri("ucum"),
-            "code": unit,
-        },
+        "valueQuantity": ucum_quantity(value, unit),
     }
     if effective_dt:
         obs["effectiveDateTime"] = effective_dt

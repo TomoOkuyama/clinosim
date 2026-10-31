@@ -30,8 +30,8 @@ from clinosim.modules.output.fhir_r4.lib.common import _escape_html
 # JP-eCheckup constants (verbatim from composition.py).
 # ---------------------------------------------------------------------------
 _JP_ECHECKUP_GENERAL_PROFILE = "http://jpfhir.jp/fhir/eCheckup/StructureDefinition/JP_Composition_eCheckupGeneral"
-_JPFHIR_ECHECKUP_SECTION_SYSTEM = "http://jpfhir.jp/fhir/eCheckup/CodeSystem/section-code"
-_JPFHIR_DOC_TYPECODES_SYSTEM = "http://jpfhir.jp/fhir/Common/CodeSystem/doc-typecodes"
+_JPFHIR_ECHECKUP_SECTION_SYSTEM = get_system_uri("jpfhir-eCheckup-section")
+_JPFHIR_DOC_TYPECODES_SYSTEM = get_system_uri("jpfhir-doc-typecodes")
 
 
 # ---------------------------------------------------------------------------

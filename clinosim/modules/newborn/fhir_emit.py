@@ -14,6 +14,7 @@ import hashlib
 from typing import Any
 
 from clinosim.codes import display as registry_display
+from clinosim.codes.ucum import ucum_quantity
 
 
 def _encounter_ref(encounter_id: str) -> dict[str, str]:
@@ -166,14 +167,9 @@ def _bb_newborn_apgar(ctx: Any) -> list[dict]:
                 "text": display,
             },
             "subject": patient_ref(patient_id),
-            "valueQuantity": {
-                "value": score,
-                # Apgar is a unitless integer score 0-10; UCUM
-                # convention is `{score}` (curly-braced dimensionless).
-                "unit": "{score}",
-                "system": get_system_uri("ucum"),
-                "code": "{score}",
-            },
+            # Apgar is a unitless integer score 0-10; UCUM
+            # convention is `{score}` (curly-braced dimensionless).
+            "valueQuantity": ucum_quantity(score, "{score}"),
         }
         ts = entry.get("timestamp")
         if ts is not None:
@@ -251,12 +247,7 @@ def _bb_newborn_bilirubin(ctx: Any) -> list[dict]:
                 "text": _label("newborn_code_text", "transcutaneous_bilirubin", lang),
             },
             "subject": patient_ref(patient_id),
-            "valueQuantity": {
-                "value": value,
-                "unit": "mg/dL",
-                "system": get_system_uri("ucum"),
-                "code": "mg/dL",
-            },
+            "valueQuantity": ucum_quantity(value, "mg/dL"),
         }
         ts = e.get("timestamp")
         if ts is not None:
@@ -347,12 +338,7 @@ def _bb_newborn_cchd_pulse_ox(ctx: Any) -> list[dict]:
                 "text": _label("newborn_cchd_site", site, lang, fallback=site_display),
             },
             "subject": patient_ref(patient_id),
-            "valueQuantity": {
-                "value": value,
-                "unit": "%",
-                "system": get_system_uri("ucum"),
-                "code": "%",
-            },
+            "valueQuantity": ucum_quantity(value, "%"),
             "bodySite": {
                 "coding": [
                     {

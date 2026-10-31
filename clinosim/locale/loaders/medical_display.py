@@ -106,20 +106,6 @@ def load_allergen_rxnorm_map() -> dict[str, str]:
 
 
 @lru_cache(maxsize=1)
-def load_prefecture_jis_x_0401_map() -> dict[str, str]:
-    """Load the JP prefecture → JIS X 0401 2-digit code mapping.
-
-    Reads `clinosim/codes/data/jis-x-0401-prefectures.yaml` under the
-    `prefectures:` block (post-#1880 review, hardcoded-audit Finding 4;
-    migrated from `clinosim/modules/output/fhir_r4/lib/reference_data.py::
-    _PREFECTURE_CODE`).
-    """
-    path = _LOCALE_DIR.parent / "codes" / "data" / "jis-x-0401-prefectures.yaml"
-    raw = _load_yaml(path, fallback={})
-    return {str(k): str(v) for k, v in (raw.get("prefectures", {}) or {}).items()}
-
-
-@lru_cache(maxsize=1)
 def load_occupation_display() -> dict[str, dict[str, str]]:
     """Load occupation display table ({slug: {en, ja}}).
 

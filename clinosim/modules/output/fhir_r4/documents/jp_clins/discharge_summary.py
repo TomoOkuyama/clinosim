@@ -23,6 +23,7 @@ from typing import Any
 import yaml
 
 from clinosim.codes import display as registry_display
+from clinosim.codes import get_system_uri
 from clinosim.modules._shared import get_attr_or_key as _o
 from clinosim.modules.output.fhir_r4.encounters.encounter import resolve_encounter_id
 from clinosim.modules.output.fhir_r4.lib.common import _escape_html, derive_meta_last_updated
@@ -32,13 +33,13 @@ from clinosim.modules.output.fhir_r4.lib.common import _escape_html, derive_meta
 # builder. Kept co-located with the function that uses them.
 # ---------------------------------------------------------------------------
 _JP_CLINS_DS_PROFILE = "http://jpfhir.jp/fhir/eDischargeSummary/StructureDefinition/JP_Composition_eDischargeSummary"
-_JPFHIR_DOC_TYPECODES_SYSTEM = "http://jpfhir.jp/fhir/Common/CodeSystem/doc-typecodes"
+_JPFHIR_DOC_TYPECODES_SYSTEM = get_system_uri("jpfhir-doc-typecodes")
 _JP_EDS_VERSION_EXTENSION_URL = "http://hl7.org/fhir/StructureDefinition/composition-clinicaldocument-versionNumber"
-_JPFHIR_DOC_SUBTYPECODES_SYSTEM = "http://jpfhir.jp/fhir/Common/CodeSystem/doc-subtypecodes"
+_JPFHIR_DOC_SUBTYPECODES_SYSTEM = get_system_uri("jpfhir-doc-subtypecodes")
 _JP_EDS_CATEGORY_CODE = "DISCHARGE"
 _JP_EDS_CATEGORY_DISPLAY_JA = "退院時文書"
 _JP_EDS_TYPE_DISPLAY_JA = "退院時サマリー"
-_JPFHIR_DOC_SECTION_SYSTEM = "http://jpfhir.jp/fhir/clins/CodeSystem/document-section"
+_JPFHIR_DOC_SECTION_SYSTEM = get_system_uri("jpfhir-doc-section")
 
 
 # ---------------------------------------------------------------------------
