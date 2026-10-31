@@ -27,6 +27,8 @@ from clinosim.codes.loader import (
     get_display,
     get_system_uri,
     is_english_only_system,
+    jlac10_display,
+    jp_clins_lab_system,
     lookup,
     slug_to_code,
     system_key_for,
@@ -35,6 +37,8 @@ from clinosim.codes.loader import (
 from clinosim.codes.match import has_icd_prefix
 
 __all__ = [
+    "jlac10_display",
+    "jp_clins_lab_system",
     "ENGLISH_ONLY_SYSTEM_PREFIXES",
     "is_english_only_system",
     "CodeSystem",

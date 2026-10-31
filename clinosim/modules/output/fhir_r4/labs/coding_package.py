@@ -49,6 +49,8 @@ from functools import lru_cache
 from pathlib import Path
 from typing import Protocol
 
+from clinosim.codes import jp_clins_lab_system
+
 _ECS_SD_FILENAME = "StructureDefinition-JP-Observation-LabResult-eCS.json"
 _CORELABO_JLAC10_CS_FILENAME = "CodeSystem-jp-clins-codesystem-jlac10-corelabo-cs.json"
 _CORELABO_JLAC11_CS_FILENAME = "CodeSystem-jp-clins-codesystem-jlac11-corelabo-cs.json"
@@ -70,11 +72,11 @@ _ENV_PKG_DIR = "CLINOSIM_JP_CLINS_PKG_DIR"
 # values, not clinosim IP), used to construct the Uncoded slice info
 # when the SD is loaded — never as a bundled fallback substitute for
 # the SD.
-_UNCODED_SYSTEM = "http://jpfhir.jp/fhir/clins/CodeSystem/JP_CLINS_ObsLabResult_Uncoded_CS"
+_UNCODED_SYSTEM = jp_clins_lab_system("uncoded")
 _UNCODED_CODE = "99999999999999999"
 _UNCODED_DISPLAY = "未標準化コード項目(JLAC)"
 
-_LOCALCODE_SYSTEM = "http://jpfhir.jp/fhir/clins/CodeSystem/JP_CLINS_ObsLabResult_LocalCode_CS"
+_LOCALCODE_SYSTEM = jp_clins_lab_system("localcode")
 
 # --------------------------------------------------------------------------- #
 # JP-CLINS lab CS URI canonical registry — single source of truth.
@@ -92,15 +94,15 @@ _LOCALCODE_SYSTEM = "http://jpfhir.jp/fhir/clins/CodeSystem/JP_CLINS_ObsLabResul
 # pkg is not installed, breaking the "0/0/0 pre-migration baseline vs
 # 100% post-migration" distinction the axis docstring guarantees).
 
-_CORELABO_JLAC10_SYSTEM = "http://jpfhir.jp/fhir/clins/CodeSystem/JLAC10/JP_CLINS_ObsLabResult_CoreLabo_CS"
-_CORELABO_JLAC11_SYSTEM = "http://jpfhir.jp/fhir/clins/CodeSystem/JLAC11/JP_CLINS_ObsLabResult_CoreLabo_CS"
-_INFECTIONLABO_JLAC10_SYSTEM = "http://jpfhir.jp/fhir/clins/CodeSystem/JLAC10/JP_CLINS_ObsLabResult_InfectionLabo_CS"
-_INFECTIONLABO_JLAC11_SYSTEM = "http://jpfhir.jp/fhir/clins/CodeSystem/JLAC11/JP_CLINS_ObsLabResult_InfectionLabo_CS"
+_CORELABO_JLAC10_SYSTEM = jp_clins_lab_system("corelabo_jlac10")
+_CORELABO_JLAC11_SYSTEM = jp_clins_lab_system("corelabo_jlac11")
+_INFECTIONLABO_JLAC10_SYSTEM = jp_clins_lab_system("infectionlabo_jlac10")
+_INFECTIONLABO_JLAC11_SYSTEM = jp_clins_lab_system("infectionlabo_jlac11")
 # Generic JLAC10 17-digit CodeSystem published by MEDIS. Not a
 # JP-CLINS-authored CS but recognized by JP-CLINS as an acceptable
 # ``coding.system`` for the jlac10LaboCode slice. Kept in the defined
 # set so the axis's Metric 1 numerator matches this URI as well.
-_JLAC10_GENERIC_SYSTEM = "http://medis.or.jp/CodeSystem/master-JLAC10-17digits"
+_JLAC10_GENERIC_SYSTEM = jp_clins_lab_system("jlac10_17digits")
 
 # Full JP-CLINS-defined lab CS URI set (7 URIs) — axis Metric 1
 # (CS 使用率) numerator match.
@@ -174,7 +176,7 @@ def jp_clins_localcode_system_uri() -> str:
 # segments used by CoreLabo analytes resolve to CS displays 尿/全血/血清 etc).
 # NO translation table needed — the material segment IS the specimen CS code.
 _SPECIMEN_MATERIAL_CS_FILENAME = "CodeSystem-jp-observationsamplematerialcodejlac10-cs.json"
-_SPECIMEN_MATERIAL_CS_URI = "http://jpfhir.jp/fhir/core/CodeSystem/JP_ObservationSampleMaterialCodeJLAC10_CS"
+_SPECIMEN_MATERIAL_CS_URI = jp_clins_lab_system("specimen_material")
 
 
 # --------------------------------------------------------------------------- #
