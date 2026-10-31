@@ -34,6 +34,7 @@ from clinosim.modules.document.narrative._template_helpers import (
     _GENERIC_FALLBACK_JA,
     _label,
     _render_home_med_name,
+    allergen_display,
 )
 from clinosim.types.document import NarrativeContext
 
@@ -165,10 +166,7 @@ def build_allergies(generator: TemplateNarrativeGenerator, ctx: NarrativeContext
     for allergy in allergies:
         # Skip NKA marker records when mixed alongside real allergies
         # (should not happen with the current enricher, but defensive).
-        if bool(_o(allergy, "is_nka", False)):
-            continue
-        allergen_code = _o(allergy, "allergen_code", "") or ""
-        display = code_lookup("snomed-ct", allergen_code, lang) if allergen_code else ""
+        display = allergen_display(allergy, lang)
         criticality = _o(allergy, "criticality", "") or ""
         if display:
             if criticality:

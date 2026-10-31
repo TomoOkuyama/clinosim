@@ -25,7 +25,7 @@ from clinosim.locale.i18n import t
 from clinosim.modules._shared import get_attr_or_key as _o
 from clinosim.modules.document.narrative._localization import _localize_complication
 from clinosim.modules.document.narrative._narrative_utils import _lookup_nursing_content
-from clinosim.modules.document.narrative._template_helpers import _label, _resolve_staff_name
+from clinosim.modules.document.narrative._template_helpers import _label, _resolve_staff_name, allergen_display
 from clinosim.types.document import NarrativeContext
 
 if TYPE_CHECKING:
@@ -81,7 +81,7 @@ def build_nursing_history(generator: TemplateNarrativeGenerator, ctx: NarrativeC
     # Allergy
     allergies = ctx.allergies or []
     if allergies:
-        first_allergen = _o(allergies[0], "substance", None) or _o(allergies[0], "name", None) or ""
+        first_allergen = next((d for a in allergies if (d := allergen_display(a, lang))), "")
         if first_allergen:
             parts.append(t("admission_status.allergy_first", lang, allergen=first_allergen))
     if len(parts) <= 1:

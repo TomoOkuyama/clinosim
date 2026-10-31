@@ -56,6 +56,20 @@ def _label(section: str, key: str, lang: str, fallback: str = "") -> str:
 # a 68% staff-id leak in the deployed cohort.
 
 
+def allergen_display(allergy: Any, lang: str) -> str:
+    """Display name of an allergy's substance, or "" for an NKA marker.
+
+    The CIF ``Allergy`` carries only ``allergen_code`` (SNOMED substance);
+    every narrative section resolves it here (Issue #2272).
+    """
+    from clinosim.codes import lookup as code_lookup
+
+    if bool(_o(allergy, "is_nka", False)):
+        return ""
+    code = _o(allergy, "allergen_code", "") or ""
+    return code_lookup("snomed-ct", code, lang) if code else ""
+
+
 def _resolve_staff_name(staff_id: str, roster_map: dict[str, dict]) -> str:
     """Return `<name>` from ``roster_map``, or the raw ``staff_id``
     when the id is not resolvable.
