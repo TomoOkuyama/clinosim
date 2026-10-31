@@ -29,7 +29,7 @@ from __future__ import annotations
 from clinosim.codes import get_system_uri, system_key_for
 from clinosim.codes import lookup as code_lookup
 from clinosim.codes.hl7_encounter import ActPriority, AdmitSource
-from clinosim.modules._shared import get_attr_or_key, is_jp
+from clinosim.modules._shared import get_attr_or_key, is_jp, resolve_lang
 from clinosim.modules.output.fhir_r4.conditions.allergy_intolerance import (  # noqa: F401
     _bb_allergy_intolerances,
 )
@@ -880,7 +880,7 @@ def _bb_procedures(ctx: BundleContext) -> list[dict]:
         ordered_dt = (
             order.get("ordered_datetime", "") if isinstance(order, dict) else getattr(order, "ordered_datetime", "")
         )  # noqa: E501
-        _lang = "ja" if is_jp(ctx.country) else "en"
+        _lang = resolve_lang(ctx.country)
         _profile = (
             {"meta": {"profile": ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_Procedure"]}}
             if is_jp(ctx.country)
@@ -892,7 +892,7 @@ def _bb_procedures(ctx: BundleContext) -> list[dict]:
         # wound care / etc.) routed to PROCEDURE by emergency.py's _procedure_kw
         # filter. category is a Procedure.category coding, well-known SNOMED
         # concept from https://build.fhir.org/valueset-procedure-category.html.
-        _cat_lang = "ja" if is_jp(ctx.country) else "en"
+        _cat_lang = resolve_lang(ctx.country)
         # Issue #474: localize the Order display for JP so treatment-side
         # procedures (splint/bandage/wound-care/O2 etc.) don't leak English
         # into JP `Procedure.code.text`. `_localize_drug_name` is the

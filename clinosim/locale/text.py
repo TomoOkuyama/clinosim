@@ -16,8 +16,7 @@ from __future__ import annotations
 
 from typing import Any
 
-# Language code mapping
-_COUNTRY_TO_LANG = {"US": "en", "JP": "ja"}
+from clinosim.countries import lang_for
 
 
 def resolve_text(value: Any, language: str = "", country: str = "") -> str:
@@ -40,7 +39,7 @@ def resolve_text(value: Any, language: str = "", country: str = "") -> str:
 
     # Dict with language keys
     if isinstance(value, dict):
-        lang = language or _COUNTRY_TO_LANG.get(country, "en")
+        lang = language or lang_for(country)
         # Try exact match
         if lang in value:
             return str(value[lang])

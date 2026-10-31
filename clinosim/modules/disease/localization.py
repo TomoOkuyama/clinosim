@@ -10,13 +10,14 @@ helpers.py re-export facade for one deprecation cycle.
 
 from __future__ import annotations
 
+from clinosim.countries import country_slot
 from clinosim.modules.disease.protocol import DiseaseProtocol
 
 
 def _country_to_yaml_key(country: str) -> str:
-    """Convert country code (``JP`` / ``US``) to disease-YAML key
-    (``japan`` / ``us``)."""
-    return {"JP": "japan", "US": "us"}.get(country, "us")
+    """Convert a country code to the disease-YAML key (``japan`` / ``us``),
+    case-insensitively (Issue #2274)."""
+    return country_slot(country, scheme="legacy_japan")
 
 
 def target_los_config(

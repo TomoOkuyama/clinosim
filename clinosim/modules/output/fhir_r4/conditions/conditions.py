@@ -153,7 +153,7 @@ def _bodysite_for(code: str, country: str) -> dict | None:
     snomed_code = _icd10_condition_bodysite_map().get(key3)
     if not snomed_code:
         return None
-    lang = "ja" if is_jp(country) else "en"
+    lang = resolve_lang(country)
     disp = code_lookup("snomed-ct", snomed_code, lang)
     return {
         "coding": [

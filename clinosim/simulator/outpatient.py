@@ -11,6 +11,7 @@ import numpy as np
 from clinosim import determinism
 from clinosim.codes import system_key_for
 from clinosim.codes.hl7_encounter import ActPriority, AdmitSource, DischargeDisposition
+from clinosim.countries import is_jp
 from clinosim.locale.loader import load_ambulatory_visit_length, load_chronic_followup
 from clinosim.modules.encounter.engine import create_inpatient_encounter
 from clinosim.modules.observation.engine import (
@@ -242,7 +243,6 @@ def _sample_ambulatory_visit_length_minutes(
 def radiation_therapy_code(country: str) -> str:
     """Billing code of an external-beam radiation-therapy session for ``country``
     (``_radiation_therapy`` in ``chronic_followup.yaml``; Issue #2200)."""
-    from clinosim.modules._shared import is_jp
 
     cfg = load_chronic_followup().get("_radiation_therapy") or {}
     return str(cfg.get("jp_code" if is_jp(country) else "us_code") or "")
@@ -307,7 +307,7 @@ def _simulate_outpatient_visit(
             )
             chief = resolve_text(raw_chief, country=country)
         except (FileNotFoundError, Exception):
-            chief = "外来フォローアップ" if country == "JP" else f"Follow-up: {chronic_code}"
+            chief = "外来フォローアップ" if is_jp(country) else f"Follow-up: {chronic_code}"
 
     encounter = create_inpatient_encounter(
         patient.patient_id,
@@ -817,7 +817,6 @@ def _simulate_outpatient_visit(
     # .cycle_orders`` (Day-1 IV agents).
     chemo_mars: list = []
     if visit_type == "chemo_visit" and spec.get("chemo_regimen"):
-        from clinosim.modules._shared import is_jp
         from clinosim.types.encounter import MedicationAdministration
         from clinosim.types.procedure import ProcedureRecord
 

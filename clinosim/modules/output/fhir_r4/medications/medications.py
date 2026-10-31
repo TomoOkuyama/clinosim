@@ -1105,7 +1105,7 @@ def _build_discharge_rx_dispense(authored_on: str, duration_days: int | None, co
     if duration_days is not None:
         dispense["expectedSupplyDuration"] = {
             "value": duration_days,
-            "unit": _SUPPLY_DURATION_UNIT_JP if country_code == "JP" else _SUPPLY_DURATION_UNIT_US,
+            "unit": _SUPPLY_DURATION_UNIT_JP if is_jp(country_code) else _SUPPLY_DURATION_UNIT_US,
             "system": get_system_uri("ucum"),
             "code": _SUPPLY_DURATION_CODE,
         }

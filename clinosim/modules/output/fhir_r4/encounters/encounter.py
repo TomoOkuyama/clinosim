@@ -671,7 +671,7 @@ def _build_encounter(
         if diet_orders:
             from clinosim.locale.loader import load_diet_type_display
 
-            lang = "ja" if is_jp(country) else "en"
+            lang = resolve_lang(country)
             _diet_labels = {slug: row.get(lang, slug) for slug, row in load_diet_type_display().items()}
             seen = []
             for o in diet_orders:
