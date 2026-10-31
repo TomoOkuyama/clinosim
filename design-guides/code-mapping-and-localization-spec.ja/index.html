@@ -2661,7 +2661,7 @@
 <tr>
 <td>薬</td>
 <td><code>codes/data/drugs.yaml</code></td>
-<td><code>&lt;drug_id&gt;: {names: {en, ja}, codes: {rxnorm, yj, hot7}, classes: [...], aliases: [...]}</code></td>
+<td><code>&lt;drug_id&gt;: {names: {en, ja}, codes: {rxnorm, yj: {&lt;route_class&gt;: &lt;YJ12&gt;}}, classes: [...], aliases: [...]}</code></td>
 </tr>
 <tr>
 <td>処置</td>
@@ -2681,6 +2681,14 @@
 </tbody>
 </table>
 <p>カタログの id (<code>drug_id</code>、処置の <code>type</code>、職種、診療科) が安定した内部識別子になる。コードや名称はこの id から引き、逆向きには引かない。</p>
+<p><strong>JP の薬コード。</strong> YJ コードは 1 つの製品 (剤形と規格) を指す。そのため <code>codes.yj</code> は投与経路の区分 (<code>oral</code> / <code>injection</code> / <code>inhalation</code> / <code>rectal</code> / <code>topical</code> / <code>intravesical</code>。<code>drugs.yaml</code> 冒頭の <code>route_classes</code> 表) から 12 桁の YJ コードへの対応表にする。</p>
+<ul>
+<li><strong>順序。</strong> よく使う経路を先に書く。経路が無い参照には先頭のコードが <code>codes["yj"]</code> として返る。</li>
+<li><strong>選び方。</strong> シミュレータの通常用量に合う規格の製品を選び、先発品を優先する。</li>
+<li><strong>検証。</strong> どのコードも MHLW の YJ マスタ (スナップショット: <code>codes/authoritative/yj_mhlw_snapshot.json</code>) と <code>JP_MedicationCodeYJ_CS_full.json</code> の両方に載っている。</li>
+<li><strong>製品が無い経路。</strong> その経路に収載製品が無い薬はコードを持たず、eCS の <code>nocoded</code> slice で出力する。</li>
+<li><strong>使わないもの。</strong> 7 桁の YJ prefix をコードとして使わない。<code>hot7.yaml</code> にはコードを登録しない。</li>
+</ul>
 <h3 id="34-value-set--clinosimcodesdatavaluesetsyaml">3.4 Value set — <code>clinosim/codes/data/valuesets.yaml</code><a class="headerlink" href="#34-value-set--clinosimcodesdatavaluesetsyaml" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="nt">groups</span><span class="p">:</span>
 </span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="w">  </span><span class="nt">diabetes</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt">space</span><span class="p">:</span><span class="w"> </span><span class="nv">internal</span><span class="p p-Indicator">,</span><span class="nt"> match</span><span class="p">:</span><span class="w"> </span><span class="nv">prefix</span><span class="p p-Indicator">,</span><span class="nt"> members</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">E11</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">E10</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">E13</span><span class="p p-Indicator">]}</span>
@@ -2763,6 +2771,11 @@
 <td><code>codes.drugs</code>: <code>resolve_drug</code> / <code>get_drug</code> / <code>find_drug</code> / <code>names_drug</code> / <code>drug_name_needles</code></td>
 <td>薬の同一性と名称照合</td>
 <td>例外 / <code>None</code> / <code>False</code></td>
+</tr>
+<tr>
+<td><code>codes.drugs</code>: <code>route_class(route)</code> / <code>jp_drug_code(drug, route)</code> / <code>jp_drug_code_table(route)</code></td>
+<td>投与経路の区分、薬と経路に対応する JP の YJ 製品コード</td>
+<td><code>""</code> / <code>None</code> / 該当なし</td>
 </tr>
 <tr>
 <td><code>codes.procedures</code>: <code>procedure_code</code> / <code>procedure_type_display</code> / <code>procedure_code_display</code></td>
@@ -2992,8 +3005,8 @@
 <td>#2344</td>
 </tr>
 <tr>
-<td>JP の旧薬コード (7 桁の YJ 成分 prefix) が薬カタログに残り、HOT7 の URI で出力されている。</td>
-<td>#2347</td>
+<td>疾患 YAML にインラインの <code>code_yj</code> が残り、JP の CIF <code>order_code</code> がカタログではなくそこから写されている。</td>
+<td>#2351</td>
 </tr>
 <tr>
 <td>生成側が出しているのに未登録の CPT / K コード。</td>

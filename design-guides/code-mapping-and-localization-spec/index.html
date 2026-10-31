@@ -2661,7 +2661,7 @@
 <tr>
 <td>Drugs</td>
 <td><code>codes/data/drugs.yaml</code></td>
-<td><code>&lt;drug_id&gt;: {names: {en, ja}, codes: {rxnorm, yj, hot7}, classes: [...], aliases: [...]}</code></td>
+<td><code>&lt;drug_id&gt;: {names: {en, ja}, codes: {rxnorm, yj: {&lt;route_class&gt;: &lt;YJ12&gt;}}, classes: [...], aliases: [...]}</code></td>
 </tr>
 <tr>
 <td>Procedures</td>
@@ -2681,6 +2681,14 @@
 </tbody>
 </table>
 <p>A catalog id (<code>drug_id</code>, procedure <code>type</code>, role, department) is the stable internal identifier. Codes and names are looked up from it, never the reverse.</p>
+<p><strong>JP drug codes.</strong> A YJ code names one product, which fixes its form and strength. So <code>codes.yj</code> maps a route class (<code>oral</code>, <code>injection</code>, <code>inhalation</code>, <code>rectal</code>, <code>topical</code>, <code>intravesical</code>; the <code>route_classes</code> table at the top of <code>drugs.yaml</code>) to a full 12-character YJ code:</p>
+<ul>
+<li><strong>Order.</strong> The most-used route comes first. <code>codes["yj"]</code> is that first code, for lookups that have no route.</li>
+<li><strong>Choice.</strong> The product is the one that matches the simulator's usual dose. The original brand is preferred.</li>
+<li><strong>Verification.</strong> Every code is listed in the MHLW YJ master (snapshot: <code>codes/authoritative/yj_mhlw_snapshot.json</code>) and in <code>JP_MedicationCodeYJ_CS_full.json</code>.</li>
+<li><strong>No product.</strong> A drug with no listed product for a route has no code there. It is emitted in the eCS <code>nocoded</code> slice.</li>
+<li><strong>Not used.</strong> A 7-digit YJ prefix is never a code, and <code>hot7.yaml</code> registers no codes.</li>
+</ul>
 <h3 id="34-value-sets--clinosimcodesdatavaluesetsyaml">3.4 Value sets — <code>clinosim/codes/data/valuesets.yaml</code><a class="headerlink" href="#34-value-sets--clinosimcodesdatavaluesetsyaml" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="nt">groups</span><span class="p">:</span>
 </span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="w">  </span><span class="nt">diabetes</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt">space</span><span class="p">:</span><span class="w"> </span><span class="nv">internal</span><span class="p p-Indicator">,</span><span class="nt"> match</span><span class="p">:</span><span class="w"> </span><span class="nv">prefix</span><span class="p p-Indicator">,</span><span class="nt"> members</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">E11</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">E10</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">E13</span><span class="p p-Indicator">]}</span>
@@ -2763,6 +2771,11 @@
 <td><code>codes.drugs</code>: <code>resolve_drug</code>, <code>get_drug</code>, <code>find_drug</code>, <code>names_drug</code>, <code>drug_name_needles</code></td>
 <td>drug identity and name matching</td>
 <td>raises / <code>None</code> / <code>False</code></td>
+</tr>
+<tr>
+<td><code>codes.drugs</code>: <code>route_class(route)</code>, <code>jp_drug_code(drug, route)</code>, <code>jp_drug_code_table(route)</code></td>
+<td>route class of an order route; the JP YJ product for a drug and route</td>
+<td><code>""</code> / <code>None</code> / no entry</td>
 </tr>
 <tr>
 <td><code>codes.procedures</code>: <code>procedure_code</code>, <code>procedure_type_display</code>, <code>procedure_code_display</code></td>
@@ -2992,8 +3005,8 @@
 <td>#2344</td>
 </tr>
 <tr>
-<td>Legacy JP drug codes (7-digit YJ ingredient prefixes) remain in the drug catalog and are emitted under the HOT7 URI.</td>
-<td>#2347</td>
+<td>Disease YAMLs still carry inline <code>code_yj</code> literals, and JP CIF <code>order_code</code> is copied from them rather than from the catalog.</td>
+<td>#2351</td>
 </tr>
 <tr>
 <td>CPT / K-codes the generator emits but has not registered.</td>
