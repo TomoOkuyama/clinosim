@@ -9,7 +9,7 @@ from typing import Any
 import pytest
 
 from clinosim.modules.monitoring.enricher import enrich_medication_monitoring
-from clinosim.modules.monitoring.mapping import load_medication_monitoring, match_drugs
+from clinosim.modules.monitoring.mapping import load_medication_monitoring, match_drugs, monitoring_lab_code
 from clinosim.types.encounter import EncounterType, Order, OrderResult, OrderStatus, OrderType
 from clinosim.types.patient import HomeMedication
 
@@ -28,7 +28,7 @@ class TestMappingLoader:
         monitoring = warfarin["monitoring"]
         assert len(monitoring) >= 1
         pt_inr = next(m for m in monitoring if m["lab"] == "PT_INR")
-        assert pt_inr["loinc"] == "6301-6"
+        assert monitoring_lab_code(pt_inr["lab"]) == "6301-6"
         assert pt_inr.get("rationale")
 
     def test_ships_levothyroxine_pair(self):
@@ -40,7 +40,7 @@ class TestMappingLoader:
         monitoring = levo["monitoring"]
         assert len(monitoring) >= 1
         tsh = next(m for m in monitoring if m["lab"] == "TSH")
-        assert tsh["loinc"] == "3016-3"
+        assert monitoring_lab_code(tsh["lab"]) == "3016-3"
         assert tsh.get("rationale")
 
     def test_ships_dm_meds_hba1c_pairs(self):
@@ -53,7 +53,7 @@ class TestMappingLoader:
         assert "HbA1c" in met_labs
         assert "HbA1c" in ins_labs
         met_hba1c = next(m for m in mapping["Metformin"]["monitoring"] if m["lab"] == "HbA1c")
-        assert met_hba1c["loinc"] == "4548-4"
+        assert monitoring_lab_code(met_hba1c["lab"]) == "4548-4"
         # Insulin aliases cover the SC sliding-scale variant used by chronic_medications.yaml.
         assert "sliding scale insulin" in [a.lower() for a in mapping["Insulin"]["aliases"]]
 

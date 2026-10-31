@@ -21,6 +21,8 @@ from typing import Any
 
 import yaml
 
+from clinosim.locale.loaders.demographics import load_code_mapping
+
 _YAML_PATH = Path(__file__).parent / "reference_data" / "medication_monitoring.yaml"
 
 
@@ -28,11 +30,12 @@ def load_medication_monitoring(path: Path | None = None) -> dict[str, Any]:
     """Load and validate the drug → monitoring-labs mapping.
 
     Returns a dict keyed by canonical drug name (as declared in YAML) whose
-    value is `{"aliases": [...], "monitoring": [{lab, loinc, rationale}, ...]}`.
+    value is `{"aliases": [...], "monitoring": [{lab, rationale}, ...]}`.
     Tests can override the file path via the optional `path` argument.
 
     Raises `ValueError` on schema violations (missing `mappings`, missing
-    per-drug `monitoring` list, missing per-lab `lab`/`loinc` keys). No
+    per-drug `monitoring` list, missing per-lab `lab`, or a `lab` with no
+    code in the lab code mapping). No
     silent failure — invalid YAML fails loud at load time rather than
     producing a mysterious "no drugs matched" runtime signature.
     """
@@ -56,8 +59,11 @@ def load_medication_monitoring(path: Path | None = None) -> dict[str, Any]:
                 raise ValueError(f"medication_monitoring.yaml: drug '{drug}' monitoring[{i}] must be a dict")
             if not m.get("lab"):
                 raise ValueError(f"medication_monitoring.yaml: drug '{drug}' monitoring[{i}] missing required 'lab'")
-            if not m.get("loinc"):
-                raise ValueError(f"medication_monitoring.yaml: drug '{drug}' monitoring[{i}] missing required 'loinc'")
+            if not monitoring_lab_code(str(m["lab"])):
+                raise ValueError(
+                    f"medication_monitoring.yaml: drug '{drug}' monitoring[{i}] lab {m['lab']!r} has no code "
+                    "in locale/us/code_mapping_lab.yaml (Issue #2301)"
+                )
             interval = m.get("interval_months")
             if not isinstance(interval, int) or isinstance(interval, bool) or interval < 1:
                 raise ValueError(
@@ -65,6 +71,13 @@ def load_medication_monitoring(path: Path | None = None) -> dict[str, Any]:
                     f"'interval_months' >= 1 (Issue #2143), got {interval!r}"
                 )
     return mappings
+
+
+def monitoring_lab_code(lab: str) -> str:
+    """Return the order code for a monitoring lab: its LOINC from the shared lab
+    code mapping, the same code its results carry (Issue #2301). Empty when the
+    lab is not mapped."""
+    return load_code_mapping("lab", "US").get(lab, "")
 
 
 def matched_medication_names(current_medications: list, mapping: dict[str, Any]) -> dict[str, tuple[str, str]]:

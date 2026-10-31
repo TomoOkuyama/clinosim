@@ -198,6 +198,12 @@ def load_hai_codes() -> dict[str, Any]:
     return data
 
 
+def hai_icd10_code(hai_type: str) -> str:
+    """The ICD-10-CM code the HAI enricher emits for ``hai_type``, from
+    ``hai_codes.yaml`` (Issue #2301: audits read it here, not restated)."""
+    return str(load_hai_codes()["hai_codes"][hai_type]["icd10_us_billable"])
+
+
 @lru_cache(maxsize=1)
 def load_hai_organisms() -> dict[str, Any]:
     data = _load_yaml("hai_organisms.yaml")

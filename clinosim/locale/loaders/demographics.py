@@ -208,6 +208,17 @@ def load_code_mapping(domain: str, country: str) -> dict[str, str]:
     return merged
 
 
+def lab_codes(lab_name: str) -> tuple[str, ...]:
+    """Every code a lab result carries across the supported locales (US LOINC,
+    JP JLAC10), read from ``code_mapping_lab.yaml`` (Issue #2301).
+
+    For checks that read a mixed or unknown-locale cohort and must recognise an
+    analyte by code without restating the codes.
+    """
+    codes = (load_code_mapping("lab", country).get(lab_name, "") for country in ("US", "JP"))
+    return tuple(dict.fromkeys(c for c in codes if c))
+
+
 @lru_cache(maxsize=8)
 def load_formatting(country: str) -> dict[str, Any]:
     """Load formatting rules for a country (date, time, units)."""

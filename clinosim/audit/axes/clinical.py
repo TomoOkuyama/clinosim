@@ -25,6 +25,7 @@ import statistics
 from clinosim.audit.registry import ModuleAuditSpec
 from clinosim.audit.types import AuditFinding, AxisResult, Cohort, Severity
 from clinosim.codes import get_system_uri
+from clinosim.locale.loader import lab_codes
 from clinosim.modules.antibiotic.engine import ABX_ORDER_ID_PREFIX
 from clinosim.modules.output.fhir_r4.labs.microbiology import (
     HAI_EVENT_ID_SYSTEM,
@@ -61,18 +62,18 @@ def _medication_request_structural_key(row: dict) -> str:
 # PR-90's hai_type case-mismatch silent-no-op. Use canonical equality.
 _SNOMED_URI = get_system_uri("snomed-ct")
 
-_WBC_CODE = "6690-2"
-_WBC_CODE_JP = "2A010"
-_CRP_CODE = "1988-5"
-_CRP_CODE_JP = "5C070"
+# Issue #2301: the WBC / CRP codes come from the lab code mapping the
+# generator emits, not restated here.
+_WBC_CODES = lab_codes("WBC")
+_CRP_CODES = lab_codes("CRP")
 
 
 def _is_wbc(coding: list[dict]) -> bool:
-    return any(c.get("code") in (_WBC_CODE, _WBC_CODE_JP) for c in coding)
+    return any(c.get("code") in _WBC_CODES for c in coding)
 
 
 def _is_crp(coding: list[dict]) -> bool:
-    return any(c.get("code") in (_CRP_CODE, _CRP_CODE_JP) for c in coding)
+    return any(c.get("code") in _CRP_CODES for c in coding)
 
 
 def _enc_id(row: dict) -> str:

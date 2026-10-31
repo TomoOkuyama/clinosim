@@ -19,6 +19,7 @@ import yaml
 HAI_TYPES: tuple[str, ...] = ("clabsi", "cauti", "vap")
 
 from clinosim.modules.hai.engine import (  # noqa: E402
+    hai_icd10_code,
     load_hai_codes,
     load_hai_organisms,
     load_hai_rates,
@@ -115,6 +116,7 @@ __all__ = [
     "HAI_TYPES",
     "load_hai_antibiogram",
     "load_hai_rates",
+    "hai_icd10_code",
     "load_hai_codes",
     "load_hai_organisms",
     "load_hai_specimens",

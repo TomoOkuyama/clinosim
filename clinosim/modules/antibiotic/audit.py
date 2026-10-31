@@ -50,7 +50,7 @@ from clinosim.audit.registry import ModuleAuditSpec, register_audit_module
 from clinosim.modules.antibiotic import ANTIBIOTIC_DRUGS, ANTIBIOTIC_LOINC_LOOKUP
 from clinosim.modules.antibiotic.engine import _HAI_EMPIRICAL_YAML
 from clinosim.modules.antibiotic.enricher import enrich_antibiotic
-from clinosim.modules.hai import HAI_TYPES
+from clinosim.modules.hai import HAI_TYPES, hai_icd10_code
 from clinosim.types.hai import HAIEvent
 
 # PR3b-2: All antibiotic susceptibility LOINC codes emitted by _append_hai_culture.
@@ -141,7 +141,7 @@ def _build_synthetic_proof() -> dict[str, Any]:
         encounter_id="enc-proof",
         hai_type=HAI_TYPES[1],  # "cauti" — canonical, NEVER literal string
         source_device_id="d1",
-        icd10_code="T83.511A",
+        icd10_code=hai_icd10_code("cauti"),
         snomed_code="68566005",
         onset_date="2026-01-10",
         organism_snomed="112283007",
@@ -209,7 +209,7 @@ def _antibiogram_firing_proof_checks() -> list[tuple[str, Any, Any]]:
         encounter_id="enc-proof",
         hai_type=HAI_TYPES[0],  # "clabsi" — canonical constant, NOT literal
         source_device_id="dev-proof",
-        icd10_code="T80.211A",
+        icd10_code=hai_icd10_code("clabsi"),
         snomed_code="431193003",  # CLABSI SNOMED (placeholder; proof reads antibiogram)
         onset_date="2024-01-15",
         organism_snomed="3092008",  # S. aureus SNOMED
@@ -275,7 +275,7 @@ def _pr3b3_narrow_proof_checks() -> list[tuple[str, Any, Any]]:
         encounter_id="enc-pr3b3",
         hai_type=HAI_TYPES[0],  # clabsi
         source_device_id="dev-proof",
-        icd10_code="T80.211A",
+        icd10_code=hai_icd10_code("clabsi"),
         snomed_code="431193003",
         onset_date=onset_date,
         organism_snomed="3092008",  # S.aureus
@@ -661,7 +661,7 @@ register_audit_module(
             # audit clinical axis active enforcement (Task 6).
             "narrow_rate_bands": _NARROW_RATE_BANDS,
             "clabsi": {
-                "icd10_code": "T80.211A",
+                "icd10_code": hai_icd10_code("clabsi"),
                 "expected_drugs": ("vancomycin", "piperacillin_tazobactam"),
                 "expected_duration_days": 14,
                 "min_mar_per_event": 14 * 2 + 14 * 4,  # Vanc q12h + Pip-Tazo q6h
@@ -671,14 +671,14 @@ register_audit_module(
                 "nhsn_r_bands": [b for b in _NHSN_RESISTANCE_BANDS if b["cohort"].startswith("clabsi/")],
             },
             "cauti": {
-                "icd10_code": "T83.511A",
+                "icd10_code": hai_icd10_code("cauti"),
                 "expected_drugs": ("ceftriaxone",),
                 "expected_duration_days": 7,
                 "min_mar_per_event": 7,
                 "nhsn_r_bands": [b for b in _NHSN_RESISTANCE_BANDS if b["cohort"].startswith("cauti/")],
             },
             "vap": {
-                "icd10_code": "J95.851",
+                "icd10_code": hai_icd10_code("vap"),
                 "expected_drugs": ("vancomycin", "piperacillin_tazobactam"),
                 "expected_duration_days": 7,
                 "min_mar_per_event": 7 * 2 + 7 * 4,

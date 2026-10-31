@@ -24,7 +24,8 @@ from pathlib import Path
 from types import SimpleNamespace
 
 from clinosim.audit.registry import ModuleAuditSpec, register_audit_module
-from clinosim.modules.hai import HAI_TYPES
+from clinosim.locale.loader import lab_codes
+from clinosim.modules.hai import HAI_TYPES, hai_icd10_code
 from clinosim.modules.hai.lab_lift import _hai_lift_delta, apply_hai_lab_lift
 from clinosim.types.clinical import PhysiologicalState
 from clinosim.types.encounter import Order, OrderResult, OrderType
@@ -65,7 +66,7 @@ def _build_cauti_proof():
                     encounter_id="enc-1",
                     hai_type=HAI_TYPES[1],
                     source_device_id="d1",
-                    icd10_code="T83.511A",
+                    icd10_code=hai_icd10_code("cauti"),
                     snomed_code="68566005",
                     onset_date="2026-01-10",
                     organism_snomed="112283007",
@@ -98,22 +99,22 @@ register_audit_module(
             str(_HAI_LIFT_YAML): ("hai_lift",),
         },
         structural_obs_codes={
-            "WBC": ("6690-2", "2A010"),
-            "CRP": ("1988-5", "5C070"),
+            "WBC": lab_codes("WBC"),
+            "CRP": lab_codes("CRP"),
         },
         clinical_acceptance={
             "cauti": {
-                "icd10_code": "T83.511A",
+                "icd10_code": hai_icd10_code("cauti"),
                 "WBC_delta_p50": 1500,
                 "CRP_delta_p50": 25,
             },
             "clabsi": {
-                "icd10_code": "T80.211A",
+                "icd10_code": hai_icd10_code("clabsi"),
                 "WBC_delta_p50": 3000,
                 "CRP_delta_p50": 50,
             },
             "vap": {
-                "icd10_code": "J95.851",
+                "icd10_code": hai_icd10_code("vap"),
                 "WBC_delta_p50": 3000,
                 "CRP_delta_p50": 50,
             },

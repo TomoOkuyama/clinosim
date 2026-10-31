@@ -9,18 +9,19 @@ from clinosim.benchmarks.harness import (
     BaselineReport,
     LabelRow,
     compute_auroc,
+    disease_icd_codes,
 )
 from clinosim.benchmarks.sepsis import _iter_structural_records
 
 
 def _is_aki_encounter(rec: dict) -> bool:
-    """AKI 一次診断の encounter か判定(disease_id or N17 系 code)。"""
+    """AKI 一次診断の encounter か判定 (disease_id or AKI 疾患 YAML の icd_codes)。"""
     ce = rec.get("condition_event", {}) or {}
     if str(ce.get("disease_id", "")).lower() == "acute_kidney_injury":
         return True
     dx = rec.get("clinical_diagnosis", {}) or {}
     code = str(dx.get("admission_diagnosis_code", "")).upper()
-    return code.startswith("N17") or code == "N19"
+    return code in disease_icd_codes("acute_kidney_injury")
 
 
 def _creatinine_delta(rec: dict) -> float | None:
