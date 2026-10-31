@@ -2848,6 +2848,10 @@
 <td>コード付きの CodeableConcept はすべてこれで組み立てる (§5.3)</td>
 </tr>
 <tr>
+<td><code>modules.output.fhir_r4.lib.common.system_coding(system_key, code, lang, *, fallback_display)</code></td>
+<td><code>text</code> を持たない Coding 型の要素 (<code>Encounter.class</code> など) (§5.3)</td>
+</tr>
+<tr>
 <td><code>modules._shared.practitioner_name(staff_id, roster_map)</code></td>
 <td>医療者名。ヒットしなければ <code>""</code></td>
 </tr>
@@ -2876,6 +2880,8 @@
 <li><strong>JP 出力。</strong> <code>coding.display</code> は英語の正規表示、日本語ラベルは <code>CodeableConcept.text</code> に置く。coding に日本語 display を入れると検証エラーになる。</li>
 <li><strong>それ以外の体系。</strong> JP Core / JP-CLINS / MEDIS / YJ / clinosim 独自の体系は、出力言語の表示をそのまま持つ。</li>
 <li><strong>組み立てる場所。</strong> 出力箇所で <code>dual_slot_concept</code> を使って組み立てる。後処理の walker で補完しない。</li>
+<li><strong>Coding 型の要素。</strong> 型が <code>Coding</code> の要素 (<code>Encounter.class</code>、<code>classHistory.class</code>) には <code>text</code> が無い。<code>system_coding</code> で組み立て、どの locale でも英語の display を持つ。</li>
+<li><strong>HL7 の語彙。</strong> 出力する HL7 CodeSystem ごとに、コードをキーにした registry ファイルを置く (<code>hl7-v3-actcode</code>、<code>hl7-v3-actpriority</code>、<code>hl7-observation-category</code>、<code>hl7-condition-category</code>、<code>hl7-v3-participationtype</code>、<code>hl7-diagnosis-role</code>、<code>hl7-organization-type</code>、<code>hl7-observation-interpretation</code> など)。日本語ラベルはコードで引き、英語の表示名では引かない。</li>
 </ul>
 <h2 id="6-フォールバック規則">6. フォールバック規則<a class="headerlink" href="#6-フォールバック規則" title="Permanent link">&para;</a></h2>
 <ol>
@@ -2986,16 +2992,16 @@
 <td>#2344</td>
 </tr>
 <tr>
-<td>JP の薬コード体系と薬コード accessor。</td>
-<td>#2262</td>
+<td>JP の旧薬コード (7 桁の YJ 成分 prefix) が薬カタログに残り、HOT7 の URI で出力されている。</td>
+<td>#2347</td>
 </tr>
 <tr>
 <td>生成側が出しているのに未登録の CPT / K コード。</td>
 <td>#2340</td>
 </tr>
 <tr>
-<td>HL7 の日本語表示が英語の表示名をキーにしている (<code>hl7-display-ja.yaml</code> / <code>_localize_display</code>)。</td>
-<td>#2264</td>
+<td><code>clinosim/codes/</code> の外に HL7 <code>terminology.hl7.org</code> の URI 直書きがあり、coding を組み立てる helper が 3 つ重複している (<code>_coding_with_display</code> / <code>_value</code> / <code>_build_hosp_concept</code>)。</td>
+<td>#2349</td>
 </tr>
 <tr>
 <td>手組みの dual-slot が残っている。後処理で text を補う walker も残っている。</td>

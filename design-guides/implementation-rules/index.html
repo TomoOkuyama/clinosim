@@ -2937,7 +2937,7 @@ canonical entry point</strong> and is not re-implemented at call sites
 </tr>
 <tr>
 <td><strong>Multilingual</strong> (i18n)</td>
-<td>Country decision = <code>is_jp</code> / <code>is_us</code>; display language = <code>resolve_lang(country)</code>. Display resolution = <code>code_lookup(..., lang)</code> / <code>_localize_display</code>. JP fixed labels: <code>_fhir_localization</code> dictionary.</td>
+<td>Country decision = <code>is_jp</code> / <code>is_us</code>; display language = <code>resolve_lang(country)</code>. Display resolution follows the <a href="../code-mapping-and-localization-spec/">code mapping and localization spec</a>: <code>display(...)</code> for codes, <code>dual_slot_concept</code> / <code>system_coding</code> for FHIR codings, <code>vocab_display</code> for vocabularies.</td>
 <td>Conversion is language-neutral (AD-44): enrichment produces English structured data; the LLM handles translation. <strong>JP output: every display Japanese; US output: zero Japanese</strong> (enforced by the audit's jp_language axis).</td>
 </tr>
 </tbody>

@@ -2689,7 +2689,7 @@
 </tr>
 <tr>
 <td><strong>多言語対応</strong>(i18n)</td>
-<td>国判定 = <code>is_jp</code>/<code>is_us</code>、表示言語 = <code>resolve_lang(country)</code>。表示解決 = <code>code_lookup(..., lang)</code> / <code>_localize_display</code>。JP 固定ラベルは <code>_fhir_localization</code> 辞書</td>
+<td>国判定 = <code>is_jp</code>/<code>is_us</code>、表示言語 = <code>resolve_lang(country)</code>。表示解決は <a href="../code-mapping-and-localization-spec.ja/">コードマッピングと多言語化の仕様</a> に従う: コードは <code>display(...)</code>、FHIR の coding は <code>dual_slot_concept</code> / <code>system_coding</code>、語彙は <code>vocab_display</code></td>
 <td>変換は language-neutral(AD-44):enrichment は英語構造化データを産み、LLM が翻訳。<strong>JP 出力は全 display 日本語 / US 出力は日本語 0</strong>(audit の jp_language 軸が強制)</td>
 </tr>
 </tbody>

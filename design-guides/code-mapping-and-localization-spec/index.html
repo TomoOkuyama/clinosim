@@ -2848,6 +2848,10 @@
 <td>every coded CodeableConcept (§5.3)</td>
 </tr>
 <tr>
+<td><code>modules.output.fhir_r4.lib.common.system_coding(system_key, code, lang, *, fallback_display)</code></td>
+<td>a Coding-typed element with no <code>text</code> slot, such as <code>Encounter.class</code> (§5.3)</td>
+</tr>
+<tr>
 <td><code>modules._shared.practitioner_name(staff_id, roster_map)</code></td>
 <td>practitioner display; <code>""</code> on a miss</td>
 </tr>
@@ -2876,6 +2880,8 @@
 <li><strong>JP output.</strong> <code>coding.display</code> is the English canonical display. The Japanese label goes in <code>CodeableConcept.text</code>. A Japanese display inside the coding is a validation error.</li>
 <li><strong>Other systems.</strong> JP Core, JP-CLINS, MEDIS, YJ and clinosim-owned systems keep the display in the output language.</li>
 <li><strong>Where it is built.</strong> The concept is built at the emit site with <code>dual_slot_concept</code>. It is not filled in later by a post-process walker.</li>
+<li><strong>Coding-typed elements.</strong> An element whose type is <code>Coding</code> (<code>Encounter.class</code>, <code>classHistory.class</code>) has no <code>text</code> slot. It is built with <code>system_coding</code> and carries the English display in every locale.</li>
+<li><strong>HL7 vocabularies.</strong> Each HL7 CodeSystem the generator emits has a code-keyed registry file (<code>hl7-v3-actcode</code>, <code>hl7-v3-actpriority</code>, <code>hl7-observation-category</code>, <code>hl7-condition-category</code>, <code>hl7-v3-participationtype</code>, <code>hl7-diagnosis-role</code>, <code>hl7-organization-type</code>, <code>hl7-observation-interpretation</code>, ...). Japanese labels are looked up by code, never by the English display.</li>
 </ul>
 <h2 id="6-fallback-rules">6. Fallback rules<a class="headerlink" href="#6-fallback-rules" title="Permanent link">&para;</a></h2>
 <ol>
@@ -2986,16 +2992,16 @@
 <td>#2344</td>
 </tr>
 <tr>
-<td>JP drug code systems and the drug-code accessor.</td>
-<td>#2262</td>
+<td>Legacy JP drug codes (7-digit YJ ingredient prefixes) remain in the drug catalog and are emitted under the HOT7 URI.</td>
+<td>#2347</td>
 </tr>
 <tr>
 <td>CPT / K-codes the generator emits but has not registered.</td>
 <td>#2340</td>
 </tr>
 <tr>
-<td>HL7 Japanese displays are keyed by English display (<code>hl7-display-ja.yaml</code>, <code>_localize_display</code>).</td>
-<td>#2264</td>
+<td>HL7 <code>terminology.hl7.org</code> URI literals outside <code>clinosim/codes/</code>, and three overlapping coding helpers (<code>_coding_with_display</code>, <code>_value</code>, <code>_build_hosp_concept</code>).</td>
+<td>#2349</td>
 </tr>
 <tr>
 <td>Remaining hand-built dual-slot concepts, and the post-process text-filling walkers.</td>
