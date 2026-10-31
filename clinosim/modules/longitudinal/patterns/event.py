@@ -165,6 +165,19 @@ class EventSpec(BaseModel):
     def model_post_init(self, _ctx: Any) -> None:
         if self.emits_icd == "" and not self.emits_meds:
             raise ValueError(f"EventSpec {self.event_name!r}: emits_icd and emits_meds cannot both be empty")
+        # Issue #2292: drugs are referenced by catalog drug_id and stored as
+        # the catalog English name, which is what HomeMedication.drug_name
+        # carries; an unknown drug fails here, at load.
+        from clinosim.codes.drugs import find_drug
+
+        for field_name in ("emits_meds", "removes_meds"):
+            names: list[str] = []
+            for ref in getattr(self, field_name):
+                rec = find_drug(ref)
+                if rec is None:
+                    raise ValueError(f"EventSpec {self.event_name!r}: {field_name} {ref!r} is not in the drug catalog")
+                names.append(rec.names.get("en", "") or ref)
+            setattr(self, field_name, names)
         # base_annual_rate=0.0 with no band is a legitimate "zero-fire"
         # shape (e.g. a med-emitting event parked at 0 for activation-sampling
         # purposes). The resolution precedence is: band + age-in-context first,

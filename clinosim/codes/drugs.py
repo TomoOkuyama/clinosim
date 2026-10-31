@@ -142,6 +142,29 @@ def get_drug(drug_id: str) -> DrugIdentity | None:
     return _load_catalog().get(drug_id)
 
 
+@cache
+def _name_index() -> dict[str, str]:
+    """Case-folded English name and alias -> drug_id."""
+    index: dict[str, str] = {}
+    for drug_id, rec in _load_catalog().items():
+        for name in (rec.names.get("en", ""), *rec.aliases):
+            if name:
+                index.setdefault(name.casefold(), drug_id)
+    return index
+
+
+def find_drug(ref: str) -> DrugIdentity | None:
+    """Return the drug for a catalog id, English name or alias (case-insensitive).
+
+    ``None`` when nothing matches. Exact ids win over names (Issue #2292).
+    """
+    catalog = _load_catalog()
+    if ref in catalog:
+        return catalog[ref]
+    drug_id = _name_index().get((ref or "").strip().casefold())
+    return catalog.get(drug_id) if drug_id else None
+
+
 def all_drug_ids() -> tuple[str, ...]:
     """Return every drug_id in the catalog (sorted). Used by integrity tests
     and by audit scripts that cross-reference drug_id usage in downstream yamls."""

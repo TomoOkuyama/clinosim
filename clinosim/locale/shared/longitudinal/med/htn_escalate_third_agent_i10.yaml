@@ -19,7 +19,7 @@ clinical_scope:
 
 event_name: htn_escalate_third_agent_i10
 emits_icd: ""
-emits_meds: ["Hydrochlorothiazide"]
+emits_meds: ["hydrochlorothiazide"]
 fire_marker: htn_escalate_third_agent_i10
 base_annual_rate: 0.55
 rate_modifiers:

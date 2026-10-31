@@ -26,7 +26,7 @@ clinical_scope:
 
 event_name: htn_escalate_fourth_agent_i10
 emits_icd: ""
-emits_meds: ["Spironolactone"]
+emits_meds: ["spironolactone"]
 fire_marker: htn_escalate_fourth_agent_i10
 # Lower annual rate than the 3rd-agent event (0.55) — 4th-line
 # escalation is less common and reserved for persistent uncontrolled

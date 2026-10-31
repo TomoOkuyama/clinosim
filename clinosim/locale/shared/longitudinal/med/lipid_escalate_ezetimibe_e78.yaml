@@ -19,7 +19,7 @@ clinical_scope:
 
 event_name: lipid_escalate_ezetimibe_e78
 emits_icd: ""
-emits_meds: ["Ezetimibe"]
+emits_meds: ["ezetimibe"]
 fire_marker: lipid_escalate_ezetimibe_e78
 base_annual_rate: 0.30
 rate_modifiers:

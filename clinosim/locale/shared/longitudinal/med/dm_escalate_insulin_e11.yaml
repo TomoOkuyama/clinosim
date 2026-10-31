@@ -21,7 +21,7 @@ clinical_scope:
 
 event_name: dm_escalate_insulin_e11
 emits_icd: ""
-emits_meds: ["Insulin glargine"]
+emits_meds: ["insulin_glargine"]
 fire_marker: dm_escalate_insulin_e11
 base_annual_rate: 0.5
 rate_modifiers:
