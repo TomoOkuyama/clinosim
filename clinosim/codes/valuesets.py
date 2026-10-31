@@ -82,6 +82,16 @@ def group_names() -> frozenset[str]:
     return frozenset(_load())
 
 
+def patient_condition_names() -> frozenset[str]:
+    """Names usable as a patient condition in disease YAMLs (severity modifiers
+    and complication risk factors): every ``space: internal`` group (Issue #2285).
+
+    Both evaluators resolve these names through :func:`has_condition`, so a
+    name means the same thing wherever it appears.
+    """
+    return frozenset(name for name, vs in _load().items() if vs.space == "internal")
+
+
 def concept_group(name: str) -> ValueSet:
     """The value set called ``name``; ``KeyError`` when it is not defined."""
     try:

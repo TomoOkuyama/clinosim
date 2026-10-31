@@ -9,8 +9,11 @@
 #   members: ICD-10 codes or prefixes.
 #
 # Read through clinosim.codes.valuesets (concept_group / has_condition).
-# The first two sections are the named patient conditions of disease
-# severity modifiers and of complication risk factors, moved here unchanged.
+# Every internal group is a named patient condition that disease YAMLs can use
+# both as a severity modifier and as a complication risk factor; the two
+# evaluators resolve a name the same way (Issue #2285). When two meanings are
+# needed, they get distinct names (prior_MI vs pre_existing_cardiac_disease,
+# liver_cirrhosis vs liver_disease).
 groups:
   # --- Severity-modifier patient conditions (modules/disease/severity.py) ---
   # Issue #2281: every diabetes type (T1 E10, T2 E11, other specified E13);

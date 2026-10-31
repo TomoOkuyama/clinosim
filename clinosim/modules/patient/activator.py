@@ -14,7 +14,7 @@ from pathlib import Path
 import numpy as np
 import yaml
 
-from clinosim.codes.valuesets import concept_group
+from clinosim.codes.valuesets import concept_group, has_condition
 from clinosim.locale.loader import load_names
 from clinosim.modules._shared import is_jp, normalize_probabilities, resolve_lang
 from clinosim.modules.patient._patient_activator_thresholds import (
@@ -588,7 +588,7 @@ def activate_patient(
         symptom_reporting_bias=float(rng.normal(SYMPTOM_REPORTING_BIAS_MEAN, SYMPTOM_REPORTING_BIAS_SD)),
         delirium_susceptibility=float(rng.beta(*DELIRIUM_BETA_PARAMS))
         + (DELIRIUM_ELDERLY_PREMIUM if age >= DELIRIUM_ELDERLY_AGE_THRESHOLD else 0)
-        + (DELIRIUM_DEMENTIA_PREMIUM if "F00" in person.chronic_conditions else 0)
+        + (DELIRIUM_DEMENTIA_PREMIUM if has_condition(person, "dementia") else 0)
         + (DELIRIUM_PARKINSON_PREMIUM if "G20" in person.chronic_conditions else 0),
         dvt_susceptibility=float(rng.beta(*DVT_BETA_PARAMS))
         + (DVT_ELDERLY_PREMIUM if age >= DVT_ELDERLY_AGE_THRESHOLD else 0),

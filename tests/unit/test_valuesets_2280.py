@@ -15,8 +15,8 @@ from clinosim.codes.valuesets import (
     iter_chronic_codes,
     normalize_icd,
 )
-from clinosim.modules.clinical_course._complication_risk_conditions import PATIENT_ICD_ALIASES
-from clinosim.modules.disease.severity import _COND_ICD_PREFIXES
+from clinosim.modules.clinical_course._complication_risk_conditions import PATIENT_CONDITIONS
+from clinosim.modules.disease.severity import EVALUABLE_CONDITIONS
 from clinosim.types.patient import ChronicCondition
 
 pytestmark = pytest.mark.unit
@@ -48,10 +48,9 @@ def test_iter_chronic_codes_accepts_every_shape() -> None:
 
 
 def test_severity_and_complication_tables_come_from_the_value_sets() -> None:
-    for table in (_COND_ICD_PREFIXES, PATIENT_ICD_ALIASES):
-        for name, members in table.items():
-            assert name in group_names()
-            assert members == concept_group(name).members
+    internal = {n for n in group_names() if concept_group(n).space == "internal"}
+    assert PATIENT_CONDITIONS == internal
+    assert internal <= EVALUABLE_CONDITIONS
 
 
 def test_match_module_is_the_shared_helper() -> None:

@@ -138,7 +138,7 @@ from clinosim.modules.clinical_course._complication_risk_conditions import (
   symptom-axis recovery rates.
 - **Complication risk-factor vocabulary**
   ([`_complication_risk_conditions.py`](_complication_risk_conditions.py),
-  Issue #2093): `PATIENT_ICD_ALIASES`, `STATE_ALIASES`,
+  Issue #2093): `PATIENT_CONDITIONS` (the internal value sets in `codes/data/valuesets.yaml`, shared with the severity modifiers), `STATE_ALIASES`,
   `SEVERITY_ALIASES`, `CONTEXT_RESOLVED` (resolved from
   `ComplicationContext`), `CONTEXT_CONDITIONS` (declared but evaluate
   False), `DRUG_CLASSES`.
