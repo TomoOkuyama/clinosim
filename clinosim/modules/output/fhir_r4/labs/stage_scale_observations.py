@@ -21,7 +21,8 @@ coverage audit).
 - ``category = survey`` (per HL7 v3-ObservationCategory) — these are
   clinician-administered rating scales, not laboratory results.
 - ``code.coding[0].system = LOINC`` where a well-known LOINC exists:
-  mRS = 72136-5, EDSS = 77691-7, CDR = 72172-0. Hoehn & Yahr has no
+  mRS = 75859-9, CDR = 72088-8 (verified on tx.fhir.org, Issue #2260).
+  EDSS and Hoehn & Yahr have no
   authoritative LOINC in common clinical use at the time of writing;
   the H&Y Observation emits a display-only ``code.text`` so it round-
   trips cleanly without fabricating a code.
@@ -54,6 +55,7 @@ from dataclasses import dataclass
 from typing import Any
 
 from clinosim.codes import get_system_uri
+from clinosim.codes.loinc import loinc_coding
 from clinosim.modules._shared import get_attr_or_key
 from clinosim.modules.output.fhir_r4.demographics.patient import patient_ref
 from clinosim.modules.output.fhir_r4.encounters.encounter import encounter_ref
@@ -113,7 +115,7 @@ _SCALE_SPECS: dict[str, _ScaleSpec] = {
         icd_base="I69",
         prefix="mRS ",
         suffix="mrs",
-        loinc="72136-5",
+        loinc="75859-9",  # Modified rankin scale (was 72136-5, a VTE-risk code)
         display="Modified Rankin Scale",
         value_key="valueInteger",
         value_parser=_parse_mrs,
@@ -131,7 +133,7 @@ _SCALE_SPECS: dict[str, _ScaleSpec] = {
         icd_base="G35",
         prefix="EDSS ",
         suffix="edss",
-        loinc="77691-7",
+        loinc=None,  # No LOINC exists (77691-7 is not a LOINC code) — display-only.
         display="Expanded Disability Status Scale score",
         value_key="valueString",
         value_parser=_parse_identity,
@@ -140,7 +142,7 @@ _SCALE_SPECS: dict[str, _ScaleSpec] = {
         icd_base="F00",
         prefix="CDR ",
         suffix="cdr",
-        loinc="72172-0",
+        loinc="72088-8",  # Clinical Dementia Rating scale [CDR] (was 72172-0, the MoCA total)
         display="Clinical Dementia Rating Global score",
         value_key="valueDecimal",
         value_parser=_parse_cdr,
@@ -245,7 +247,7 @@ def _build_one_observation(
     structural_key = f"{patient_id}-{spec.suffix}"
     code_block: dict[str, Any] = {"text": spec.display}
     if spec.loinc is not None:
-        code_block["coding"] = [{"system": get_system_uri("loinc"), "code": spec.loinc, "display": spec.display}]
+        code_block["coding"] = [loinc_coding(spec.loinc, "en")]
 
     obs: dict[str, Any] = {
         "resourceType": "Observation",

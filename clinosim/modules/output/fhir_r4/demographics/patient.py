@@ -18,6 +18,7 @@ from typing import Any
 from clinosim.codes import display as registry_display
 from clinosim.codes import get_system_uri, slug_to_code
 from clinosim.codes import lookup as code_lookup
+from clinosim.codes.loinc import loinc_coding
 from clinosim.codes.ucum import ucum_quantity
 from clinosim.locale.loader import load_allergen_rxnorm_map, load_identity_config, vocab_display
 from clinosim.modules._shared import is_jp, resolve_lang
@@ -1092,13 +1093,7 @@ def _build_occupation_observation(
         "status": "final",
         "category": _social_category(country),
         "code": {
-            "coding": [
-                {
-                    "system": get_system_uri("loinc"),
-                    "code": "11341-5",
-                    "display": "History of Occupation",
-                }
-            ],
+            "coding": [loinc_coding("11341-5", "en")],
             "text": "職業" if is_jp(country) else "Occupation",
         },
         "subject": patient_ref(patient_id),
