@@ -10,7 +10,9 @@ entered scope on the longitudinal engine's next-year pass. Cohort
 scan showed 100 % of US K74 patients (42/42) carrying empty
 ``stage=""`` on their chronic_conditions row.
 
-Fix: add ``K70`` + ``K74`` to the ``chronic_prefixes`` tuple. The
+Fix: add ``K70`` + ``K74`` to the propagation allowlist (now
+``locale/shared/chronic_propagation.yaml``, read through
+``chronic_code_from_discharge``; Issue #2284). The
 longitudinal engine's `_attribute_in_scope` + the stage-writeback
 path then dispatch the initial Child-Pugh draw on the next
 ``advance_one_year`` call.
@@ -18,26 +20,11 @@ path then dispatch the initial Child-Pugh draw on the next
 
 from __future__ import annotations
 
-import inspect
-
 import pytest
 
 from clinosim.simulator import helpers as _helpers
 
 pytestmark = pytest.mark.unit
-
-
-def _extract_chronic_prefixes() -> tuple[str, ...]:
-    """Pull the ``chronic_prefixes`` literal out of the function source
-    so the test does not require constructing a full PersonRecord +
-    hospitalization record fixture to probe the behaviour."""
-    src = inspect.getsource(_helpers._deactivate_to_layer1)
-    for line in src.splitlines():
-        s = line.strip()
-        if s.startswith("chronic_prefixes = (") and s.endswith(")"):
-            tuple_src = s[len("chronic_prefixes = ") :]
-            return tuple(eval(tuple_src))  # noqa: S307 — hard-coded literal from this repo's src
-    raise AssertionError("chronic_prefixes literal not found in _deactivate_to_layer1")
 
 
 # ----------------------------------------------------------------------------
@@ -47,14 +34,14 @@ def _extract_chronic_prefixes() -> tuple[str, ...]:
 
 def test_k74_in_chronic_prefixes() -> None:
     """K74 primary dx must now propagate — fix for #1752."""
-    assert "K74" in _extract_chronic_prefixes()
+    assert _helpers.chronic_code_from_discharge("K74.60", "M") == "K74"
 
 
 def test_k70_in_chronic_prefixes() -> None:
     """K70 (alcoholic liver disease) gets the same treatment —
     sibling attribute alcoholic_liver_stage_k70 depends on the
     same propagation path."""
-    assert "K70" in _extract_chronic_prefixes()
+    assert _helpers.chronic_code_from_discharge("K70.30", "M") == "K70"
 
 
 # ----------------------------------------------------------------------------
@@ -65,7 +52,7 @@ def test_k70_in_chronic_prefixes() -> None:
 def test_k21_still_in_chronic_prefixes() -> None:
     """K21 (GERD) was the only K-prefix allowed pre-fix. Keep it so
     GERD cohort stays byte-identical."""
-    assert "K21" in _extract_chronic_prefixes()
+    assert _helpers.chronic_code_from_discharge("K21.9", "F") == "K21"
 
 
 # ----------------------------------------------------------------------------
