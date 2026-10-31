@@ -19,6 +19,7 @@ are defined here.
 
 from __future__ import annotations
 
+import functools
 import re
 from typing import Any
 
@@ -156,6 +157,32 @@ def _promote_stroke_sequela_at_discharge(person: Any, disease_id: str, record: A
             person.longitudinal_history[-1].chronic_stages["I69"] = stage
 
 
+@functools.cache
+def _chronic_propagatable() -> frozenset[str]:
+    from clinosim.locale._io import _LOCALE_DIR, _load_yaml
+
+    data = _load_yaml(_LOCALE_DIR / "shared" / "chronic_propagation.yaml", {}) or {}
+    return frozenset(str(c) for c in data.get("chronic_propagatable") or [])
+
+
+def chronic_code_from_discharge(dx_code: str, sex: str) -> str | None:
+    """Chronic condition (ICD-10 base code) that a discharge diagnosis adds, or None.
+
+    Only conditions listed in ``locale/shared/chronic_propagation.yaml`` —
+    the chronic conditions the simulator models — propagate (Issue #2284).
+    The former chapter-wide prefixes ("I", "E", "M") turned acute episodes
+    such as acute MI, PE, stroke and DVT into lifelong chronic conditions.
+    Sex-locked codes (BPH, pelvic, pregnancy, sex-specific cancers) never
+    propagate for the other sex (Issue #947).
+    """
+    from clinosim.simulator.sex_gating import is_sex_locked_for
+
+    if not dx_code or is_sex_locked_for(dx_code, (sex or "").upper()[:1]):
+        return None
+    base = dx_code.split(".")[0]
+    return base if base in _chronic_propagatable() else None
+
+
 def _deactivate_to_layer1(
     person: Any,
     record: CIFPatientRecord,
@@ -187,31 +214,11 @@ def _deactivate_to_layer1(
 
     dx_code = record.clinical_diagnosis.discharge_diagnosis_code
     if dx_code:
-        base_code = dx_code.split(".")[0] if "." in dx_code else dx_code
-        # Issue #1752: K70 (alcoholic liver) + K74 (fibrosis/cirrhosis non-
-        # alcoholic) must propagate to PersonRecord.chronic_conditions on
-        # discharge so the longitudinal Markov engine's
-        # ``fibrosis_liver_stage_k74`` (and sibling alcoholic_liver_k70)
-        # attribute enters scope next year. Pre-fix the K-prefix allowlist
-        # had only "K21" (GERD), silently dropping every K70/K74 discharge
-        # — K74 patients ended up with empty Child-Pugh stage on 100 % of
-        # the cohort (42/42 patients in US p=10k 5y).
-        chronic_prefixes = ("I", "E", "J44", "J45", "N18", "M", "G20", "F00", "K21", "K70", "K74", "N40")
-        # Issue #947: sex-lock table moved to
-        # `clinosim/locale/shared/icd10_sex_restrictions.yaml`. Any
-        # anatomy-locked discharge-Dx (BPH N40, prostatitis N41, female-
-        # pelvic N70–N77, pregnancy O00–O9A, sex-specific malignancies
-        # C50–C63, …) is now blocked from chronic propagation via the
-        # unified `sex_gating.is_sex_locked_for` helper.
-        from clinosim.simulator.sex_gating import is_sex_locked_for
-
-        _patient_sex = str(getattr(person, "sex", "") or "").upper()[:1]
-        if is_sex_locked_for(dx_code, _patient_sex):
-            pass  # skip; wrong sex for this ICD
-        elif any(base_code.startswith(p) for p in chronic_prefixes):
+        chronic = chronic_code_from_discharge(dx_code, str(getattr(person, "sex", "") or ""))
+        if chronic:
             existing_bases = {c.split(".")[0] for c in person.chronic_conditions}
-            if base_code not in existing_bases:
-                person.chronic_conditions.append(base_code)
+            if chronic not in existing_bases:
+                person.chronic_conditions.append(chronic)
 
     # Issue #452 PR 1: `PersonRecord.current_medications` is now
     # `list[HomeMedication]` — carry route / dose / frequency through from

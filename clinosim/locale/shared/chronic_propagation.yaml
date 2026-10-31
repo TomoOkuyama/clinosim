@@ -1,0 +1,56 @@
+# Chronic conditions that a discharge diagnosis may add to
+# PersonRecord.chronic_conditions (Issue #2284).
+#
+# Matched on the ICD-10 base code (the part before the dot). The list is the
+# chronic conditions the simulator models: the ``chronic_prevalence`` keys of
+# locale/{us,jp}/demographics.yaml and the chronic_followup.yaml keys, plus
+# K70 (alcoholic liver disease), which the longitudinal alcoholic-liver model
+# needs in scope after a discharge (Issue #1752).
+#
+# Acute diagnoses (acute MI I21, PE I26, intracerebral haemorrhage I61,
+# cerebral infarction I63, DVT I80/I82, fractures) are deliberately absent:
+# they are episodes, not lifelong conditions. Pregnancy and delivery Z codes
+# are not chronic either. Type 1 diabetes (E10) is absent so a DKA discharge
+# does not give a type 2 diabetic a second diabetes type.
+chronic_propagatable:
+  - C15
+  - C16
+  - C18
+  - C22
+  - C25
+  - C34
+  - C50
+  - C61
+  - C67
+  - C71
+  - E03
+  - E11
+  - E78
+  - E79
+  - F00
+  - F11
+  - F20
+  - F31
+  - F32
+  - F33
+  - F41
+  - G20
+  - G35
+  - G47
+  - H26
+  - I10
+  - I25
+  - I48
+  - I50
+  - J44
+  - J45
+  - K21
+  - K59
+  - K64
+  - K70
+  - K74
+  - M17
+  - M54
+  - M81
+  - N18
+  - N40
