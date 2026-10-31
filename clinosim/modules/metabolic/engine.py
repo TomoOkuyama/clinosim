@@ -79,6 +79,7 @@ from __future__ import annotations
 from typing import Any
 
 from clinosim.codes import has_icd_prefix
+from clinosim.codes.valuesets import concept_group, iter_chronic_codes
 from clinosim.determinism import sha_bernoulli
 from clinosim.modules.population import (
     BMI_MORBID_OBESITY_THRESHOLD as _BMI_MORBID_THRESHOLD,
@@ -99,7 +100,6 @@ from clinosim.modules.population import (
 _SYNDROME_BMI_THRESHOLD = 30.0
 _HTN_PREFIXES: tuple[str, ...] = ("I10",)
 _DYSLIPIDEMIA_PREFIXES: tuple[str, ...] = ("E78",)
-_DM_PREFIXES: tuple[str, ...] = ("E10", "E11")
 _SYNDROME_CODE = "E88.81"
 
 # K76.0 NAFLD BMI-weighted prevalence anchors + DM uplift.
@@ -140,6 +140,12 @@ _OSA_AGE_FACTOR_FEMALE = (0.6, 1.75)
 _OSA_SALT = "metabolic.osa.v1"
 
 
+def _has_diabetes(chronic: Any) -> bool:
+    """Diabetes of any type, from the shared ``diabetes`` value set (Issue #2281)."""
+    group = concept_group("diabetes")
+    return any(group.contains(c) for c in iter_chronic_codes(chronic))
+
+
 def _derive_metabolic_syndrome(bmi: float, chronic: list[str]) -> str | None:
     """Return "E88.81" when all four criteria (BMI >= 30 + HTN +
     Dyslipidemia + DM) are satisfied by ``bmi`` and the condition
@@ -155,7 +161,7 @@ def _derive_metabolic_syndrome(bmi: float, chronic: list[str]) -> str | None:
         return None
     if not has_icd_prefix(chronic, _DYSLIPIDEMIA_PREFIXES):
         return None
-    if not has_icd_prefix(chronic, _DM_PREFIXES):
+    if not _has_diabetes(chronic):
         return None
     return _SYNDROME_CODE
 
@@ -312,7 +318,7 @@ def _derive_nafld_assignment(person_id: str, bmi: float, chronic: list[str]) -> 
     """
     if has_icd_prefix(chronic, _F10_PREFIXES):
         return None
-    probability = _nafld_probability(bmi, has_icd_prefix(chronic, _DM_PREFIXES))
+    probability = _nafld_probability(bmi, _has_diabetes(chronic))
     return _NAFLD_CODE if _draw_nafld(person_id, probability) else None
 
 

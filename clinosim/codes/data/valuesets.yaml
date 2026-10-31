@@ -13,7 +13,9 @@
 # severity modifiers and of complication risk factors, moved here unchanged.
 groups:
   # --- Severity-modifier patient conditions (modules/disease/severity.py) ---
-  diabetes: {space: internal, match: prefix, members: [E11, E10]}
+  # Issue #2281: every diabetes type (T1 E10, T2 E11, other specified E13);
+  # the one group used by every diabetes check in the simulator.
+  diabetes: {space: internal, match: prefix, members: [E11, E10, E13]}
   heart_failure: {space: internal, match: prefix, members: [I50]}
   CKD: {space: internal, match: prefix, members: [N18]}
   N18: {space: internal, match: prefix, members: [N18]}

@@ -40,6 +40,7 @@ from typing import TYPE_CHECKING, Any
 import yaml
 
 from clinosim.codes import display as registry_display
+from clinosim.codes.valuesets import concept_group
 from clinosim.locale.i18n import t
 from clinosim.modules._shared import get_attr_or_key as _o
 from clinosim.modules._shared import strip_protocol_prefix
@@ -658,7 +659,7 @@ def _compose_chronic_assessment_integrated(ctx: NarrativeContext) -> str:
             interp = f"BP {int(sbp)}/{int(dbp)} mmHg — {target} — {ctrl}{med_tail}" + t("list_sep.period", lang)
 
         # ── E11 / E10: Diabetes mellitus ───────────────────────────
-        elif code_prefix.startswith(("E10", "E11")):
+        elif concept_group("diabetes").contains(code_prefix):
             parts_dm: list[str] = []
             hba1c = lab_by_name.get("hba1c")
             if hba1c:

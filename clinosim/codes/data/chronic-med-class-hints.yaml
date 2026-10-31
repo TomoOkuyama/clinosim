@@ -33,7 +33,7 @@ classes:
     ja: [アムロジピン, エナラプリル, ロサルタン, テルミサルタン]
 
   diabetes:
-    prefix: E1  # E10 (T1DM) + E11 (T2DM) share the same antidiabetic class
+    prefix: E10, E11, E13  # documentation only; the diabetes value set is codes/data/valuesets.yaml
     en: [Metformin, Glimepiride, Insulin, Sitagliptin, DPP]
     ja: [メトホルミン, グリメピリド, インスリン, シタグリプチン, DPP]
 

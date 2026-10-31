@@ -28,6 +28,7 @@ from typing import Any
 
 import numpy as np
 
+from clinosim.codes.valuesets import concept_group
 from clinosim.modules._shared import get_attr_or_key as _o
 from clinosim.modules._shared import is_jp
 from clinosim.modules.health_checkup._checkup_thresholds import (
@@ -132,8 +133,6 @@ _CHECKUP_ITEMS: list[dict[str, str]] = [
     {"loinc": "18262-6", "key": "ldl", "unit": "mg/dL"},
 ]
 
-# 糖尿病を示す ICD-10 code(chronic_conditions.code で判定)
-_DM_CODES = {"E10", "E11", "E13", "E11.9", "E10.9", "E13.9"}
 # 脂質異常症を示す ICD-10 code
 _DYSLIPIDEMIA_CODES = {"E78", "E78.0", "E78.1", "E78.2", "E78.4", "E78.5"}
 
@@ -178,8 +177,8 @@ def _derive_checkup_values(patient: Any, rng: np.random.Generator) -> dict[str, 
     dm_condition = None
     for c in chronic:
         code = _o(c, "code", "") or ""
-        # 完全一致 or prefix match(E11 は E11.9 等の parent も検出)
-        if code in _DM_CODES or any(code.startswith(p + ".") for p in ("E10", "E11", "E13")):
+        # 糖尿病の判定は共通の value set "diabetes" を使う (Issue #2281)
+        if concept_group("diabetes").contains(code):
             dm_condition = c
             break
     if dm_condition is not None:

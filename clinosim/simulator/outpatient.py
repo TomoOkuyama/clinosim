@@ -11,6 +11,7 @@ import numpy as np
 from clinosim import determinism
 from clinosim.codes import system_key_for
 from clinosim.codes.hl7_encounter import ActPriority, AdmitSource, DischargeDisposition
+from clinosim.codes.valuesets import has_condition
 from clinosim.countries import is_jp
 from clinosim.locale.loader import load_ambulatory_visit_length, load_chronic_followup
 from clinosim.modules.encounter.engine import create_inpatient_encounter
@@ -46,6 +47,11 @@ from clinosim.types.encounter import (
 )
 from clinosim.types.output import CIFPatientRecord
 from clinosim.types.patient import PatientProfile
+
+
+def _has_diabetes(patient: Any) -> bool:
+    """Diabetes of any type, from the shared ``diabetes`` value set (Issue #2281)."""
+    return has_condition(patient, "diabetes")
 
 
 def _log_pregnancy_substitution(
@@ -427,7 +433,7 @@ def _simulate_outpatient_visit(
         scenario_flags_from_protocol,
     )
 
-    _has_dm = any("E11" in (getattr(c, "code", "") or "") for c in patient.chronic_conditions)
+    _has_dm = _has_diabetes(patient)
     _has_dyslipidemia = any("E78" in (getattr(c, "code", "") or "") for c in patient.chronic_conditions)
     _hba1c_latent = hba1c_latent_at(patient, visit_date)
     # J5 (Phase 2a): outpatient follow-ups carry no acute scenario flag by
