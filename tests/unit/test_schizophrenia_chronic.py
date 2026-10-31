@@ -39,8 +39,12 @@ def test_follow_up_with_psychiatry() -> None:
 @pytest.mark.parametrize(("drug", "codes"), sorted(_ANTIPSYCHOTICS.items()))
 @pytest.mark.parametrize("country", ["US", "JP"])
 def test_antipsychotic_codes(drug: str, codes: tuple[str, str], country: str) -> None:
-    concept, _ = _resolve_medication_concept(drug, order_code="", country=country)
-    assert concept["coding"][0]["code"] == codes[0 if country == "US" else 1]
+    concept, _ = _resolve_medication_concept(drug, order_code="", country=country, route="PO")
+    code = concept["coding"][0]["code"]
+    if country == "US":
+        assert code == codes[0]
+    else:  # a full YJ product of the ingredient (Issue #2347)
+        assert code.startswith(codes[1]) and len(code) == 12
 
 
 def test_most_patients_take_one_antipsychotic() -> None:

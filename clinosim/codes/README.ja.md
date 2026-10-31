@@ -171,8 +171,8 @@ JP-only-display 検出、システム別データ形状不変条件を網羅。
 | `snomed-ct` | SNOMED CT | `http://snomed.info/sct` | 158 | IHTSDO |
 | `jlac10` | JLAC10 | `urn:oid:1.2.392.200119.4.1005` | 50 | JCCLS |
 | `rxnorm` | RxNorm | `http://www.nlm.nih.gov/research/umls/rxnorm` | 229 | NLM RxNorm |
-| `yj` | YJ code | `http://capstandard.jp/iyaku.info/CodeSystem/YJ-code` | 76 | JP Core / capstandard |
-| `hot7` | HOT7 (JP MEDIS) | `http://medis.or.jp/CodeSystem/master-HOT7` | 155 | MEDIS |
+| `yj` | YJ code | `http://capstandard.jp/iyaku.info/CodeSystem/YJ-code` | 254 | JP Core / capstandard; MHLW YJ master |
+| `hot7` | HOT7 (JP MEDIS) | `http://medis.or.jp/CodeSystem/master-HOT7` | 0 (URI only; Issue #2347) | MEDIS |
 | `cpt` | CPT | `http://www.ama-assn.org/go/cpt` | 36 | AMA CPT |
 | `k-codes` | K codes | `urn:oid:1.2.392.200119.4.401` | 34 | MHLW 診療報酬 |
 | `cvx` | CVX (ワクチンコード) | `http://hl7.org/fhir/sid/cvx` | 34 | CDC |

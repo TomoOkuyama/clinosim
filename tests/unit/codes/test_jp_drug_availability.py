@@ -3,8 +3,9 @@
 from __future__ import annotations
 
 import pytest
-import yaml
 
+from clinosim.codes import get_system_uri
+from clinosim.codes.drugs import jp_drug_code
 from clinosim.modules.encounter.protocol import load_encounter_condition
 from clinosim.modules.output.fhir_r4.medications.medications import _resolve_medication_concept
 from clinosim.modules.patient.activator import _derive_home_medications
@@ -61,37 +62,39 @@ def test_phenazopyridine_is_not_given_in_jp() -> None:
 
 
 @pytest.mark.parametrize(
-    ("name", "code"),
+    ("name", "route", "prefix"),
     [
-        ("hydrochlorothiazide 25mg", "2132004"),
-        ("rosuvastatin 10mg", "2189017"),
-        ("ezetimibe 10mg", "2189018"),
-        ("empagliflozin 10mg", "3969023"),
-        ("leuprolide 3.75mg", "2499407"),
-        ("acamprosate 666mg", "1190022"),
-        ("semaglutide 1mg", "2499418"),
-        ("disulfiram 250mg", "3939001"),
-        ("liraglutide 1.2mg", "2499410"),
-        ("Methyldopa 250mg", "2145001"),
-        ("Cefditoren pivoxil 100mg", "6132015"),
-        ("Ofloxacin ophthalmic drops", "1319722"),
-        ("Cyclopentolate 1% eye drops", "1311701"),
-        ("Betahistine 12mg", "1339005"),
-        ("Eperisone 50mg", "1249009"),
-        ("Oxybuprocaine 0.4% eye drops", "1313700"),
-        ("Naphazoline nasal drops", "1324704"),
-        ("nalmefene 10mg", "1190025"),
-        ("ケイツーシロップ (メナテトレノン 2 mg 経口)", "3160002"),
-        ("Tegafur-Gimeracil-Oteracil 80mg", "4229101"),
+        ("hydrochlorothiazide 25mg", "PO", "2132004"),
+        ("rosuvastatin 10mg", "PO", "2189017"),
+        ("ezetimibe 10mg", "PO", "2189018"),
+        ("empagliflozin 10mg", "PO", "3969023"),
+        ("leuprolide 3.75mg", "SC", "2499407"),
+        ("acamprosate 666mg", "PO", "1190022"),
+        ("semaglutide 1mg", "SC", "2499418"),
+        ("disulfiram 250mg", "PO", "3939001"),
+        ("liraglutide 1.2mg", "SC", "2499410"),
+        ("Methyldopa 250mg", "PO", "2145001"),
+        ("Cefditoren pivoxil 100mg", "PO", "6132015"),
+        ("Ofloxacin ophthalmic drops", "OPH", "1319722"),
+        ("Cyclopentolate 1% eye drops", "OPH", "1311701"),
+        ("Betahistine 12mg", "PO", "1339005"),
+        ("Eperisone 50mg", "PO", "1249009"),
+        ("Oxybuprocaine 0.4% eye drops", "OPH", "1313700"),
+        ("Naphazoline nasal drops", "nasal", "1324704"),
+        ("nalmefene 10mg", "PO", "1190025"),
+        ("ケイツーシロップ (メナテトレノン 2 mg 経口)", "PO", "3160002"),
+        ("Tegafur-Gimeracil-Oteracil 80mg", "PO", "4229101"),
     ],
 )
-def test_jp_codes_for_marketed_drugs(name: str, code: str) -> None:
-    concept, _ = _resolve_medication_concept(name, order_code="", country="JP")
-    assert concept["coding"][0]["code"] == code
+def test_jp_codes_for_marketed_drugs(name: str, route: str, prefix: str) -> None:
+    # A full YJ product code of the ingredient (the first seven characters),
+    # under the YJ URI (Issue #2347).
+    concept, _ = _resolve_medication_concept(name, order_code="", country="JP", route=route)
+    coding = concept["coding"][0]
+    assert coding["code"].startswith(prefix) and len(coding["code"]) == 12
+    assert coding["system"] == get_system_uri("yj")
 
 
-def test_acetaminophen_is_mapped_once() -> None:
-    text = open("clinosim/locale/jp/code_mapping_drug.yaml", encoding="utf-8").read()
-    keys = [line.split(":")[0].strip().strip('"') for line in text.splitlines() if line and not line.startswith("#")]
-    assert keys.count("Acetaminophen") == 1
-    assert yaml.safe_load(text)["Acetaminophen"]
+def test_acetaminophen_code_follows_the_route() -> None:
+    assert jp_drug_code("acetaminophen", "PO") == "1141007F3023"  # カロナール錠500
+    assert jp_drug_code("acetaminophen", "IV") == "1141400A2020"  # アセリオ静注液1000mgバッグ

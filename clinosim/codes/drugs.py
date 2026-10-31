@@ -50,9 +50,11 @@ class DrugIdentity:
     """One drug's identity record.
 
     ``names`` carries the display SoT (``en`` + ``ja`` required). ``codes``
-    maps authority keys (``rxnorm`` / ``yj`` / ``hot7``) to the code
-    strings that identify this drug in each registry; omitted when the
-    drug has no code in that registry. ``classes`` carries drug-class
+    maps authority keys (``rxnorm`` / ``yj``) to the code strings that
+    identify this drug in each registry; omitted when the drug has no code
+    in that registry. ``yj_by_route`` holds the JP YJ product code per route
+    class (``codes.yj`` in the yaml, most-used route first); ``codes["yj"]``
+    is the first of them (Issue #2347). ``classes`` carries drug-class
     tags (optional, free-form). ``aliases`` carries alternate English
     name forms (synonyms, trade-name variants, salt-form variants) that
     all resolve to this drug_id — the loader unions them into the shared
@@ -63,6 +65,7 @@ class DrugIdentity:
     drug_id: str
     names: dict[str, str]
     codes: dict[str, str] = field(default_factory=dict)
+    yj_by_route: dict[str, str] = field(default_factory=dict)
     classes: tuple[str, ...] = ()
     aliases: tuple[str, ...] = ()
 
@@ -105,10 +108,18 @@ def _parse_catalog(raw: dict[str, Any]) -> dict[str, DrugIdentity]:
         aliases = body.get("aliases") or []
         if not isinstance(aliases, list):
             raise ValueError(f"drugs.yaml: {drug_id!r} aliases must be a list")
+        yj = codes.get("yj") or {}
+        if not isinstance(yj, dict):
+            raise ValueError(f"drugs.yaml: {drug_id!r} codes.yj must map a route class to a YJ code")
+        yj_by_route = {str(k): str(v) for k, v in yj.items() if v}
+        flat = {str(k): str(v) for k, v in codes.items() if v and k != "yj"}
+        if yj_by_route:
+            flat["yj"] = next(iter(yj_by_route.values()))
         out[str(drug_id)] = DrugIdentity(
             drug_id=str(drug_id),
             names={str(k): str(v) for k, v in names.items()},
-            codes={str(k): str(v) for k, v in codes.items() if v},
+            codes=flat,
+            yj_by_route=yj_by_route,
             classes=tuple(str(c) for c in classes),
             aliases=tuple(str(a) for a in aliases if a),
         )
@@ -119,11 +130,62 @@ def _parse_catalog(raw: dict[str, Any]) -> dict[str, DrugIdentity]:
 def _load_catalog() -> dict[str, DrugIdentity]:
     """Load and cache the drug catalog. Fail-loud on missing file: the
     catalog is a required dependency of the loader, not optional."""
+    return _parse_catalog(_raw_catalog())
+
+
+def _raw_catalog() -> dict[str, Any]:
     if not _DATA_FILE.exists():
         raise FileNotFoundError(f"drugs.yaml not found at {_DATA_FILE}")
     with _DATA_FILE.open(encoding="utf-8") as fh:
-        raw = yaml.safe_load(fh) or {}
-    return _parse_catalog(raw)
+        return yaml.safe_load(fh) or {}
+
+
+@cache
+def _route_class_index() -> dict[str, str]:
+    index: dict[str, str] = {}
+    for route_class, routes in (_raw_catalog().get("route_classes") or {}).items():
+        for route in routes or []:
+            index[str(route).strip().casefold()] = str(route_class)
+    return index
+
+
+def route_class(route: str) -> str:
+    """Route class (``oral`` / ``injection`` / ``inhalation`` / ``rectal`` /
+    ``topical``) of an order route, from ``route_classes`` in drugs.yaml;
+    ``""`` for an empty or unknown route (Issue #2347)."""
+    return _route_class_index().get((route or "").strip().casefold(), "")
+
+
+def jp_drug_code(drug_ref: str, route: str = "") -> str | None:
+    """JP YJ product code of a drug (catalog id, English name or alias) given by
+    ``route``; ``None`` when the drug has no listed product for that route
+    class. With no route class, a drug listed for exactly one route class
+    returns that code (Issue #2347)."""
+    rec = find_drug(drug_ref)
+    if rec is None or not rec.yj_by_route:
+        return None
+    rc = route_class(route)
+    if rc:
+        return rec.yj_by_route.get(rc)
+    return next(iter(rec.yj_by_route.values())) if len(rec.yj_by_route) == 1 else None
+
+
+@cache
+def jp_drug_code_table(route: str = "") -> dict[str, str]:
+    """Drug name → JP YJ code for drugs given by ``route``: every English name,
+    alias and Japanese name of a catalog drug that has a product for that route
+    class. The name-keyed lookup the FHIR medication builders match free-text
+    order names against (Issue #2347)."""
+    table: dict[str, str] = {}
+    for drug_id in all_drug_ids():
+        code = jp_drug_code(drug_id, route)
+        if not code:
+            continue
+        rec = _load_catalog()[drug_id]
+        for name in (rec.names.get("en", ""), *rec.aliases, rec.names.get("ja", "")):
+            if name:
+                table.setdefault(name, code)
+    return table
 
 
 def resolve_drug(drug_id: str) -> DrugIdentity:

@@ -57,12 +57,20 @@ CRP: "5C070"
 
 | カタログ | ファイル | エントリ形式 |
 |---|---|---|
-| 薬 | `codes/data/drugs.yaml` | `<drug_id>: {names: {en, ja}, codes: {rxnorm, yj, hot7}, classes: [...], aliases: [...]}` |
+| 薬 | `codes/data/drugs.yaml` | `<drug_id>: {names: {en, ja}, codes: {rxnorm, yj: {<route_class>: <YJ12>}}, classes: [...], aliases: [...]}` |
 | 処置 | `codes/data/clinosim-procedure-catalog.yaml` | `bedside: [{type, cpt, k_code, name: {en, ja}, anesthesia}]` |
 | 職種 | `codes/data/clinosim-clinician-role.yaml` | `<role>: {title: {en, ja}, staff_prefix, suffix_en, suffix_ja, practitioner_role, qualification: {code, display, display_en}}` |
 | 診療科 | `locale/shared/department_display.yaml` | `<dept>: {en, ja, specialty_snomed}` |
 
 カタログの id (`drug_id`、処置の `type`、職種、診療科) が安定した内部識別子になる。コードや名称はこの id から引き、逆向きには引かない。
+
+**JP の薬コード。** YJ コードは 1 つの製品 (剤形と規格) を指す。そのため `codes.yj` は投与経路の区分 (`oral` / `injection` / `inhalation` / `rectal` / `topical` / `intravesical`。`drugs.yaml` 冒頭の `route_classes` 表) から 12 桁の YJ コードへの対応表にする。
+
+- **順序。** よく使う経路を先に書く。経路が無い参照には先頭のコードが `codes["yj"]` として返る。
+- **選び方。** シミュレータの通常用量に合う規格の製品を選び、先発品を優先する。
+- **検証。** どのコードも MHLW の YJ マスタ (スナップショット: `codes/authoritative/yj_mhlw_snapshot.json`) と `JP_MedicationCodeYJ_CS_full.json` の両方に載っている。
+- **製品が無い経路。** その経路に収載製品が無い薬はコードを持たず、eCS の `nocoded` slice で出力する。
+- **使わないもの。** 7 桁の YJ prefix をコードとして使わない。`hot7.yaml` にはコードを登録しない。
 
 ### 3.4 Value set — `clinosim/codes/data/valuesets.yaml`
 
@@ -115,6 +123,7 @@ occupation:
 | `codes.loinc`: `loinc_display` / `loinc_coding` | LOINC 表示 / Coding | `None` / display なしの coding |
 | `codes.valuesets`: `concept_group` / `has_condition` / `patient_condition_names` / `code_by_chronic_prefix` | value set への所属 | 未知のグループなら `KeyError` |
 | `codes.drugs`: `resolve_drug` / `get_drug` / `find_drug` / `names_drug` / `drug_name_needles` | 薬の同一性と名称照合 | 例外 / `None` / `False` |
+| `codes.drugs`: `route_class(route)` / `jp_drug_code(drug, route)` / `jp_drug_code_table(route)` | 投与経路の区分、薬と経路に対応する JP の YJ 製品コード | `""` / `None` / 該当なし |
 | `codes.procedures`: `procedure_code` / `procedure_type_display` / `procedure_code_display` | 処置のコードと名称 | `""` / 人間可読化した type / `None` |
 | `codes.ucum`: `ucum_code` / `ucum_quantity` | UCUM コード / FHIR Quantity | 単位をそのまま通す |
 | `codes.prefectures.prefecture_code(name)` | JIS X 0401 コード | `""` |
@@ -219,7 +228,7 @@ occupation:
 | ICD の検索・短縮名・crosswalk が 1 つの accessor にまとまっていない (短縮名の表が 2 つ、CM と WHO で日本語表示が食い違う)。 | #2257 |
 | SNOMED のコードと表示名を出力側の dict がまだ持っている (route / severity)。SNOMED のリテラル 74 件が未登録。 | #2258 |
 | 文書 LOINC の定義が 8 箇所にある。意味の合わない section コードがある。出力側に LOINC 定数が残っている。 | #2344 |
-| JP の旧薬コード (7 桁の YJ 成分 prefix) が薬カタログに残り、HOT7 の URI で出力されている。 | #2347 |
+| 疾患 YAML にインラインの `code_yj` が残り、JP の CIF `order_code` がカタログではなくそこから写されている。 | #2351 |
 | 生成側が出しているのに未登録の CPT / K コード。 | #2340 |
 | `clinosim/codes/` の外に HL7 `terminology.hl7.org` の URI 直書きがあり、coding を組み立てる helper が 3 つ重複している (`_coding_with_display` / `_value` / `_build_hosp_concept`)。 | #2349 |
 | 手組みの dual-slot が残っている。後処理で text を補う walker も残っている。 | #2337 |

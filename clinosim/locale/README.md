@@ -69,7 +69,9 @@ re-exports 46 `load_*` functions, implemented in
 Display names live in `clinosim/codes/`. `load_med_terms_ja` is a deprecated `ja`-only
 view of `load_med_terms`. `load_code_mapping("drug", country)` unions
 `<country>/code_mapping_drug.yaml` with the drug-identity catalog
-`clinosim/codes/data/drugs.yaml` (the yaml wins on key collision).
+`clinosim/codes/data/drugs.yaml` (the yaml wins on key collision). JP has no
+such file: JP drug codes are the catalog's YJ products, picked by route through
+`clinosim.codes.drugs.jp_drug_code` (Issue #2347).
 
 ## Determinism
 

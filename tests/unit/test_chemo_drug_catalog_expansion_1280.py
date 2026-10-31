@@ -9,19 +9,26 @@ C25 pancreatic / C67 bladder / C71 glioma) can dispatch to real
 All RXCUIs verified 2026-09-12 via `tx.fhir.org` `$lookup` against
 `http://www.nlm.nih.gov/research/umls/rxnorm`.
 
-JP YJ 7-digit class-representative codes per MHLW 薬効分類:
-- 4224 代謝拮抗剤        (Gemcitabine)
-- 4240 その他の抗悪性腫瘍剤 (Irinotecan)
-- 4291 抗悪性腫瘍剤       (Nab-paclitaxel, Temozolomide)
-- 6323 免疫療法用製剤     (BCG intravesical)
+JP codes are full YJ products from the drug catalog, listed in the MHLW YJ
+master (Issue #2347).
 """
 
 from __future__ import annotations
 
+import json
+from pathlib import Path
+
 import pytest
 
 from clinosim.codes import lookup
+from clinosim.codes.drugs import jp_drug_code
 from clinosim.locale.loader import load_code_mapping
+
+_MHLW = json.loads(
+    (Path(__file__).resolve().parents[2] / "clinosim/codes/authoritative/yj_mhlw_snapshot.json").read_text(
+        encoding="utf-8"
+    )
+)
 
 pytestmark = pytest.mark.unit
 
@@ -48,21 +55,20 @@ def test_us_chemo_rxnorm_registration_1280(drug, rxcui, display_substr):
 
 
 @pytest.mark.parametrize(
-    "drug, yj_code, ja_substr",
+    "drug, route, yj_code, ingredient",
     [
-        ("Gemcitabine", "4224400", "ゲムシタビン"),
-        ("Irinotecan", "4240404", "イリノテカン"),
-        ("Nab-paclitaxel", "4240409", "パクリタキセル"),
-        ("Temozolomide", "4219004", "テモゾロミド"),
-        ("BCG", "6323400", "BCG"),
+        ("Gemcitabine", "IV", "4224403A2022", "ゲムシタビン"),
+        ("Irinotecan", "IV", "4240404A1091", "イリノテカン"),
+        ("Nab-paclitaxel", "IV", "4240409D1023", "パクリタキセル"),
+        ("Temozolomide", "PO", "4219004M1024", "テモゾロミド"),
+        ("BCG", "intravesical", "6391700X4026", "ＢＣＧ"),
     ],
 )
-def test_jp_chemo_yj_registration_1280(drug, yj_code, ja_substr):
-    jp_map = load_code_mapping("drug", "JP")
-    assert jp_map.get(drug) == yj_code, f"JP drug map missing {drug} → {yj_code}"
-    # Lookup via `yj` key with hot7 sibling fallback (Issue #415).
-    ja = lookup("yj", yj_code, "ja")
-    assert ja_substr in ja, f"JP display for {drug} ({yj_code}) missing substring {ja_substr!r}: got {ja!r}"
+def test_jp_chemo_yj_registration_1280(drug, route, yj_code, ingredient):
+    # Issue #2347: a full YJ product code per route, whose MHLW ingredient is
+    # the drug (the former 7-digit values were not listed codes).
+    assert jp_drug_code(drug, route) == yj_code
+    assert ingredient in _MHLW["codes"][yj_code]["ingredient"]
 
 
 def test_bcg_is_registered_as_immunotherapy_shape():

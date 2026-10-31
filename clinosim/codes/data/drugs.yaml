@@ -23,8 +23,18 @@
 #       ja: "<Japanese>"               # required (clinosim ships EN + JA)
 #     codes:                           # pointers into authority tables
 #       rxnorm: "<RxCUI>"              # optional — resolves against rxnorm.yaml
-#       yj: "<YJ12>"                   # optional — resolves against yj.yaml
-#       hot7: "<HOT7>"                 # optional — resolves against hot7.yaml
+#       yj: {<route_class>: "<YJ12>"}  # optional — JP product code per route
+#                                       # class (route_classes below), most-used
+#                                       # route first. Every code is listed in the
+#                                       # MHLW YJ master and in
+#                                       # codes/authoritative/JP_MedicationCodeYJ_CS_full.json
+#                                       # (snapshot: codes/authoritative/yj_mhlw_snapshot.json).
+#                                       # A YJ code names one product (form and
+#                                       # strength): the product matching the
+#                                       # simulator's usual dose, original brand
+#                                       # first. A drug with no listed product for a
+#                                       # route has no code there and is emitted in
+#                                       # the eCS `nocoded` slice (Issue #2347).
 #     classes: ["statin", "..."]       # optional, drug-class pointers
 #     aliases: ["Adrenaline", "..."]   # optional, alternate EN name forms —
 #                                       # synonyms / trade / salt-form variants
@@ -65,6 +75,16 @@ metadata:
     HOT7 (JP). Each code pointer must resolve against its authority
     table — unresolved pointers fail an integrity test at CI time.
 
+# Order route → route class used to pick a JP YJ product (Issue #2347).
+# Matched case-insensitively; an unknown route has no class.
+route_classes:
+  oral: [PO, oral, SL, sublingual, NG, per os, 経口, 舌下]
+  injection: [IV, IVPB, IV push, IV infusion, SC, SQ, subcutaneous, IM, intramuscular, IT, intrathecal, injection, epidural, 静注, 点滴静注, 皮下注, 筋注, 髄注]
+  inhalation: [INH, inhaled, inhalation, NEB, nebulized, nebulizer, 吸入, ネブライザー]
+  rectal: [PR, rectal, suppository, 直腸, 坐剤]
+  intravesical: [intravesical, 膀胱内]
+  topical: [topical, TOP, OPH, ophthalmic, eye drops, nasal, local, transdermal, 外用, 点眼]
+
 drugs:
   # Representative set for Phase 1a (10 drugs across chronic classes).
   # Phase 1b expands to full coverage (~130 drugs) alongside the #1765 RxCUI
@@ -74,63 +94,70 @@ drugs:
     names: {en: "Atorvastatin", ja: "アトルバスタチン"}
     codes:
       rxnorm: "83367"
+      yj: {oral: "2189015F2020"}
     classes: ["statin"]
 
   amlodipine:
     names: {en: "Amlodipine", ja: "アムロジピン"}
     codes:
       rxnorm: "17767"
+      yj: {oral: "2171022F2025"}
     classes: ["ccb", "antihypertensive"]
 
   candesartan:
     names: {en: "Candesartan", ja: "カンデサルタン"}
     codes:
       rxnorm: "214354"
+      yj: {oral: "2149040F3029"}
     classes: ["arb", "antihypertensive"]
 
   metformin:
     names: {en: "Metformin", ja: "メトホルミン"}
     codes:
       rxnorm: "6809"
-      yj: "3962002F2027"
+      yj: {oral: "3962002F3023"}
     classes: ["biguanide"]
 
   apixaban:
     names: {en: "Apixaban", ja: "アピキサバン"}
     codes:
       rxnorm: "1364430"
+      yj: {oral: "3339004F2025"}
     classes: ["anticoagulant.doac", "anticoagulant"]
 
   furosemide:
     names: {en: "Furosemide", ja: "フロセミド"}
     codes:
       rxnorm: "4603"
+      yj: {injection: "2139401A2137", oral: "2139005F1052"}
     classes: ["diuretic.loop"]
 
   levothyroxine:
     names: {en: "Levothyroxine", ja: "レボチロキシン"}
     codes:
       rxnorm: "10582"
-      yj: "2431004F1021"
+      yj: {oral: "2431004F1056"}
     classes: []
 
   aspirin:
     names: {en: "Aspirin", ja: "アスピリン"}
     codes:
       rxnorm: "1191"
+      yj: {oral: "1143001X1040"}
     classes: ["antiplatelet.cox_inhibitor", "antiplatelet"]
 
   lansoprazole:
     names: {en: "Lansoprazole", ja: "ランソプラゾール"}
     codes:
       rxnorm: "17128"
-      yj: "2329023F1020"
+      yj: {oral: "2329023F1020"}
     classes: []
 
   acetaminophen:
     names: {en: "Acetaminophen", ja: "アセトアミノフェン"}
     codes:
       rxnorm: "161"
+      yj: {oral: "1141007F3023", injection: "1141400A2020"}
     classes: ["analgesic.non_opioid"]
 # ---- META #1792 Phase 1b additions (auto-generated from rxnorm.yaml) ----
 # This section mirrors every entry in rxnorm.yaml not already in drugs.yaml.
@@ -148,16 +175,19 @@ drugs:
     names: {en: "Levodopa/Carbidopa", ja: "レボドパ/カルビドパ"}
     codes:
       rxnorm: "103990"  # Issue #2150: was 103919
+      yj: {oral: "1169101F1120"}
     classes: []
   fluticasone_salmeterol:
     names: {en: "Fluticasone/Salmeterol", ja: "フルチカゾン/サルメテロール"}
     codes:
       rxnorm: "284635"  # Issue #2150: was 108761
+      yj: {inhalation: "2290800G2039"}
     classes: []
   vancomycin:
     names: {en: "Vancomycin", ja: "バンコマイシン"}
     codes:
       rxnorm: "11124"
+      yj: {injection: "6113400A2061", oral: "6113001B1097"}
     classes: []
   ampicillin_sulbactam_injectable_product:
     names: {en: "Ampicillin / Sulbactam Injectable Product", ja: "アンピシリン・スルバクタム注"}
@@ -173,69 +203,81 @@ drugs:
     names: {en: "Warfarin", ja: "ワルファリン"}
     codes:
       rxnorm: "11289"
+      yj: {oral: "3332001F1024"}
     classes: ['anticoagulant.vka', 'anticoagulant']
     aliases: ["Coumadin"]              # US trade name (Issue #2293).
   carperitide:
     # JP-only (ハンプ); not marketed in the US — no RxNorm code (Issue #2150).
     names: {en: "Carperitide", ja: "カルペリチド"}
     codes:
-      yj: "2179400D1022"
+      yj: {injection: "2179400D1022"}
     classes: []
   donepezil:
     names: {en: "Donepezil", ja: "ドネペジル"}
     codes:
       rxnorm: "135447"
+      yj: {oral: "1190012F2022"}
     classes: []
   moxifloxacin:
     names: {en: "Moxifloxacin", ja: "モキシフロキサシン"}
     codes:
       rxnorm: "139462"
+      yj: {oral: "6241016F1028"}
     classes: []
   celecoxib:
     names: {en: "Celecoxib", ja: "セレコキシブ"}
     codes:
       rxnorm: "140587"
+      yj: {oral: "1149037F2026"}
     classes: []
   azithromycin:
     names: {en: "Azithromycin", ja: "アジスロマイシン"}
     codes:
       rxnorm: "18631"
+      yj: {oral: "6149004F1028"}
     classes: []
   amoxicillin_clavulanate:
     names: {en: "Amoxicillin / Clavulanate", ja: "アモキシシリン/クラブラン酸"}
     codes:
       rxnorm: "19711"
+      yj: {oral: "6139100F2044"}
     classes: []
     aliases: ["Amoxicillin/Clavulanate"] # slash-no-space form used in disease YAMLs. META #1849 Phase 5 Step 2.
   levofloxacin:
     names: {en: "Levofloxacin", ja: "レボフロキサシン"}
     codes:
       rxnorm: "82122"
+      yj: {oral: "6241013F3027"}
     classes: []
   carvedilol:
     names: {en: "Carvedilol", ja: "カルベジロール"}
     codes:
       rxnorm: "20352"
+      yj: {oral: "2149032F4020"}
     classes: []
   prednisolone:
     names: {en: "Prednisolone", ja: "プレドニゾロン"}
     codes:
       rxnorm: "8638"
+      yj: {oral: "2456001F1345"}
     classes: []
   ceftriaxone:
     names: {en: "Ceftriaxone", ja: "セフトリアキソン"}
     codes:
       rxnorm: "2193"
+      yj: {injection: "6132419F2026"}
     classes: []
   rivaroxaban:
     names: {en: "Rivaroxaban", ja: "リバーロキサバン"}
     codes:
       rxnorm: "1114195"  # Issue #2150: was 221147
+      yj: {oral: "3339003F1024"}
     classes: ['anticoagulant.doac', 'anticoagulant']
   meropenem:
     names: {en: "Meropenem", ja: "メロペネム"}
     codes:
       rxnorm: "29561"
+      yj: {injection: "6139400D3028"}
     classes: []
   chlorhexidine:
     names: {en: "Chlorhexidine", ja: "クロルヘキシジン"}
@@ -252,26 +294,31 @@ drugs:
       # drug_id that carried 32968 as a work-around is retired in the
       # same PR; its 2 chronic_medications.yaml references migrate here.
       rxnorm: "32968"
+      yj: {oral: "3399008F2021"}
     classes: ['antiplatelet.p2y12', 'antiplatelet']
   tiotropium:
     names: {en: "Tiotropium", ja: "チオトロピウム"}
     codes:
       rxnorm: "69120"  # Issue #2150: was 274766
+      yj: {inhalation: "2259709G1027"}
     classes: []
   lisinopril:
     names: {en: "Lisinopril", ja: "リシノプリル"}
     codes:
       rxnorm: "29046"
+      yj: {oral: "2144006F1030"}
     classes: []
   alendronate:
     names: {en: "Alendronate", ja: "アレンドロン酸"}
     codes:
       rxnorm: "46041"  # Issue #2150: was 3002
+      yj: {oral: "3999018F2028"}
     classes: []
   ampicillin_sulbactam:
     names: {en: "Ampicillin/Sulbactam", ja: "アンピシリン/スルバクタム"}
     codes:
       rxnorm: "1009148"  # Issue #2150: was 308182
+      yj: {injection: "6139504F3033"}
     classes: []
   ceftriaxone_1_g_injection:
     names: {en: "Ceftriaxone 1 G Injection", ja: "セフトリアキソン1g注"}
@@ -282,11 +329,13 @@ drugs:
     names: {en: "Hydromorphone", ja: "ヒドロモルフォン"}
     codes:
       rxnorm: "3423"
+      yj: {injection: "8119401A1020", oral: "8119003F1023"}
     classes: []
   diltiazem:
     names: {en: "Diltiazem", ja: "ジルチアゼム"}
     codes:
       rxnorm: "3443"
+      yj: {oral: "2171006F1224"}
     classes: []
   simvastatin:
     names: {en: "Simvastatin", ja: "シンバスタチン"}
@@ -297,6 +346,7 @@ drugs:
     names: {en: "Enalapril", ja: "エナラプリル"}
     codes:
       rxnorm: "3827"
+      yj: {oral: "2144002F2020"}
     classes: []
   erythromycin:
     names: {en: "Erythromycin", ja: "エリスロマイシン"}
@@ -307,17 +357,20 @@ drugs:
     names: {en: "Fentanyl", ja: "フェンタニル"}
     codes:
       rxnorm: "4337"
+      yj: {injection: "8219400A1063", topical: "8219700T1026"}
     classes: []
   albuterol:
     names: {en: "Albuterol", ja: "サルブタモール"}
     codes:
       rxnorm: "435"
+      yj: {inhalation: "2254700G4037"}
     classes: []
-    aliases: ["Salbutamol"]            # INN form; "Albuterol" is USAN. META #1849 Phase 5 Step 2.g.
+    aliases: ["Salbutamol", "Nebulized salbutamol"]   # INN form; "Albuterol" is USAN. META #1849 Phase 5 Step 2.g.
   lactated_ringer_solution:
     names: {en: "Lactated Ringer solution", ja: "乳酸リンゲル液"}
     codes:
       rxnorm: "1008377"  # Issue #2150: was 47613
+      yj: {injection: "3319534A4046"}
     classes: []
     aliases: ["Lactated Ringer", "Lactated Ringers", "Lactated Ringer's",
               "Lactated Ringer's solution", "LR"]
@@ -332,6 +385,7 @@ drugs:
     names: {en: "Normal Saline", ja: "生理食塩液"}
     codes:
       rxnorm: "9863"                    # NLM TTY=IN (sodium chloride ingredient)
+      yj: {injection: "3311401A2026"}
     classes: ["electrolyte_solution"]
     aliases: ["IV normal saline", "NS"]
                                         # prefix + abbreviation variants used
@@ -344,8 +398,6 @@ drugs:
     # single-ingredient CUI; carried as YJ-only per the JP-only drug
     # pattern established in Phase 5 Step 2.b.
     names: {en: "Ringer's solution", ja: "リンゲル液"}
-    codes:
-      yj: "3319539A1082"                # MHLW リンゲル液 YJ. No RxCUI.
     classes: ["electrolyte_solution"]
     aliases: ["Ringers"]                # plural form used in disease YAMLs
   hydrocortisone:
@@ -357,46 +409,55 @@ drugs:
     names: {en: "Nitroglycerin", ja: "ニトログリセリン"}
     codes:
       rxnorm: "4917"
+      yj: {oral: "2171018K1039"}
     classes: []
   ibuprofen:
     names: {en: "Ibuprofen", ja: "イブプロフェン"}
     codes:
       rxnorm: "5640"
+      yj: {oral: "1149001F2168"}
     classes: []
   sliding_scale_insulin:
     names: {en: "Sliding scale insulin", ja: "スライディングスケールインスリン"}
     codes:
       rxnorm: "253182"  # Issue #2150: was 5856 (not current)
+      yj: {injection: "2492403A4051"}
     classes: []
   levetiracetam:
     names: {en: "Levetiracetam", ja: "レベチラセタム"}
     codes:
       rxnorm: "114477"  # Issue #2150: was 6373
+      yj: {oral: "1139010F2020"}
     classes: []
   enoxaparin:
     names: {en: "Enoxaparin", ja: "エノキサパリン"}
     codes:
       rxnorm: "67108"
+      yj: {injection: "3334406G1020"}
     classes: ['anticoagulant.heparin', 'anticoagulant']
   methylprednisolone:
     names: {en: "Methylprednisolone", ja: "メチルプレドニゾロン"}
     codes:
       rxnorm: "6902"
+      yj: {injection: "2456400D1067", oral: "2456003F1034"}
     classes: []
   midazolam:
     names: {en: "Midazolam", ja: "ミダゾラム"}
     codes:
       rxnorm: "6960"
+      yj: {oral: "1124031Q1024"}
     classes: []
   morphine:
     names: {en: "Morphine", ja: "モルヒネ"}
     codes:
       rxnorm: "7052"
+      yj: {injection: "8114401A2119"}
     classes: []
   amoxicillin:
     names: {en: "Amoxicillin", ja: "アモキシシリン"}
     codes:
       rxnorm: "723"
+      yj: {oral: "6131001F2026"}
     classes: []
   norepinephrine:
     names: {en: "Norepinephrine", ja: "ノルエピネフリン"}
@@ -407,46 +468,48 @@ drugs:
     names: {en: "Omeprazole", ja: "オメプラゾール"}
     codes:
       rxnorm: "7646"
+      yj: {injection: "2329403D1041", oral: "2329022H1043"}
     classes: []
   tamsulosin:
     names: {en: "Tamsulosin", ja: "タムスロシン"}
     codes:
       rxnorm: "77492"
+      yj: {oral: "2590008F2022"}
     classes: []
   cetirizine:
     # Issue #2155: ED discharge prescription.
     names: {en: "Cetirizine", ja: "セチリジン塩酸塩"}
     codes:
       rxnorm: "20610"
-      hot7: "4490020"
+      yj: {oral: "4490020F2027"}
     classes: []
   hydroxyzine:
     # Issue #2155: ED discharge prescription.
     names: {en: "Hydroxyzine", ja: "ヒドロキシジン塩酸塩"}
     codes:
       rxnorm: "5553"
-      hot7: "1179005"
+      yj: {oral: "1179005F2025"}
     classes: []
   loperamide:
     # Issue #2155: ED discharge prescription.
     names: {en: "Loperamide", ja: "ロペラミド塩酸塩"}
     codes:
       rxnorm: "6468"
-      hot7: "2319001"
+      yj: {oral: "2319001M1213"}
     classes: []
   sumatriptan:
     # Issue #2155: ED discharge prescription.
     names: {en: "Sumatriptan", ja: "スマトリプタン"}
     codes:
       rxnorm: "37418"
-      hot7: "2160003"
+      yj: {oral: "2160003F1022"}
     classes: []
   naproxen:
     # Issue #2155: ED discharge prescription.
     names: {en: "Naproxen", ja: "ナプロキセン"}
     codes:
       rxnorm: "7258"
-      hot7: "1149007"
+      yj: {oral: "1149007F1142"}
     classes: []
   dextromethorphan_guaifenesin:
     # Issue #2155: ED discharge prescription.
@@ -459,7 +522,7 @@ drugs:
     # dextromethorphan / guaifenesin combination.
     names: {en: "Dextromethorphan", ja: "デキストロメトルファン臭化水素酸塩水和物"}
     codes:
-      hot7: "2223001"
+      yj: {oral: "2223001F2099"}
     classes: []
   clonidine:
     # Issue #2154: opioid withdrawal adjunct.
@@ -476,6 +539,7 @@ drugs:
     names: {en: "Oxycodone", ja: "オキシコドン"}
     codes:
       rxnorm: "7804"
+      yj: {oral: "8119002B3020"}
     classes: []
   penicillin_g:
     names: {en: "Penicillin G", ja: "ペニシリンG"}
@@ -491,6 +555,7 @@ drugs:
     names: {en: "Ondansetron", ja: "オンダンセトロン"}
     codes:
       rxnorm: "26225"
+      yj: {oral: "2391001F4020", injection: "2391401A1050"}
     classes: []
   sodium_bicarbonate:
     names: {en: "Sodium bicarbonate", ja: "炭酸水素ナトリウム"}
@@ -499,6 +564,7 @@ drugs:
       # resolves to simethicone on NLM RxNav, not Sodium bicarbonate)
       # to 36676 (TTY=IN sodium bicarbonate, verified via NLM).
       rxnorm: "36676"
+      yj: {oral: "2344005F1061"}
     classes: ["electrolyte"]
   # META #1849 Phase 5 Step 2 batch 1 — antimicrobial cluster.
   # 7 ingredient drugs promoted from legacy drug_names_ja.yaml to the
@@ -508,36 +574,43 @@ drugs:
     names: {en: "Clindamycin", ja: "クリンダマイシン"}
     codes:
       rxnorm: "2582"
+      yj: {injection: "6112401A2123", oral: "6112001M1031"}
     classes: ["antibiotic.lincosamide"]
   metronidazole:
     names: {en: "Metronidazole", ja: "メトロニダゾール"}
     codes:
       rxnorm: "6922"
+      yj: {oral: "6419002F1131"}
     classes: ["antibiotic.nitroimidazole"]
   fluconazole:
     names: {en: "Fluconazole", ja: "フルコナゾール"}
     codes:
       rxnorm: "4450"
+      yj: {oral: "6290002M1020"}
     classes: ["antifungal.triazole"]
   micafungin:
     names: {en: "Micafungin", ja: "ミカファンギン"}
     codes:
       rxnorm: "325887"
+      yj: {injection: "6179400D1020"}
     classes: ["antifungal.echinocandin"]
   peramivir:
     names: {en: "Peramivir", ja: "ペラミビル"}
     codes:
       rxnorm: "619693"
+      yj: {injection: "6250405A1032"}
     classes: ["antiviral"]
   ofloxacin:
     names: {en: "Ofloxacin", ja: "オフロキサシン"}
     codes:
       rxnorm: "7623"
+      yj: {topical: "1319722Q1163"}   # ophthalmic solution (タリビッド点眼液)
     classes: ["antibiotic.fluoroquinolone"]
   silver_sulfadiazine:
     names: {en: "Silver sulfadiazine", ja: "スルファジアジン銀"}
     codes:
       rxnorm: "9793"
+      yj: {topical: "2633705N1031"}
     classes: ["antibiotic.sulfonamide.topical"]
   # META #1849 Phase 5 Step 2 batch 2 — cardio-emergency / vasoactive /
   # thrombolytic cluster. 13 ingredient drugs promoted from legacy
@@ -548,6 +621,7 @@ drugs:
     names: {en: "Epinephrine", ja: "エピネフリン"}
     codes:
       rxnorm: "3992"
+      yj: {injection: "2451402G1040"}
     classes: ["catecholamine", "vasopressor"]
     aliases: ["Adrenaline"]            # INN form; "Epinephrine" is USAN. JP PMDA
                                        # 現在推奨は "エピネフリン" (旧呼称 "アドレナリン"
@@ -557,26 +631,31 @@ drugs:
     names: {en: "Amiodarone", ja: "アミオダロン"}
     codes:
       rxnorm: "703"
+      yj: {injection: "2129410A1028"}
     classes: ["antiarrhythmic.class_iii"]
   atropine:
     names: {en: "Atropine", ja: "アトロピン"}
     codes:
       rxnorm: "1223"
+      yj: {oral: "1242008X1066"}
     classes: ["anticholinergic"]
   digoxin:
     names: {en: "Digoxin", ja: "ジゴキシン"}
     codes:
       rxnorm: "3407"
+      yj: {oral: "2113003F3025"}
     classes: ["cardiac_glycoside"]
   disopyramide:
     names: {en: "Disopyramide", ja: "ジソピラミド"}
     codes:
       rxnorm: "3541"
+      yj: {oral: "2129005F1129"}
     classes: ["antiarrhythmic.class_ia"]
   labetalol:
     names: {en: "Labetalol", ja: "ラベタロール"}
     codes:
       rxnorm: "6185"
+      yj: {oral: "2149009F1030"}
     classes: ["beta_blocker.mixed", "antihypertensive"]
   landiolol:
     names: {en: "Landiolol hydrochloride", ja: "ランジオロール塩酸塩"}
@@ -590,16 +669,19 @@ drugs:
     names: {en: "Metoprolol", ja: "メトプロロール"}
     codes:
       rxnorm: "6918"
+      yj: {oral: "2149010F1025"}
     classes: ["beta_blocker.cardioselective", "antihypertensive"]
   midodrine:
     names: {en: "Midodrine", ja: "ミドドリン"}
     codes:
       rxnorm: "6963"
+      yj: {oral: "2160002F1028"}
     classes: ["vasopressor.oral"]
   nicardipine:
     names: {en: "Nicardipine", ja: "ニカルジピン"}
     codes:
       rxnorm: "7396"
+      yj: {injection: "2149400A1027", oral: "2149019F1069"}
     classes: ["calcium_channel_blocker.dihydropyridine", "antihypertensive"]
   vasopressin:
     names: {en: "Vasopressin", ja: "バソプレシン"}
@@ -610,6 +692,7 @@ drugs:
     names: {en: "Alteplase", ja: "アルテプラーゼ"}
     codes:
       rxnorm: "8410"
+      yj: {injection: "3959402D1027"}
     classes: ["thrombolytic"]
   urokinase:
     names: {en: "Urokinase", ja: "ウロキナーゼ"}
@@ -625,21 +708,25 @@ drugs:
     names: {en: "Codeine", ja: "コデイン"}
     codes:
       rxnorm: "2670"
+      yj: {oral: "2242001F1071"}
     classes: ["opioid"]
   diclofenac:
     names: {en: "Diclofenac", ja: "ジクロフェナク"}
     codes:
       rxnorm: "3355"
+      yj: {rectal: "1147700J3084", oral: "1147002F1560"}
     classes: ["nsaid"]
   tramadol:
     names: {en: "Tramadol", ja: "トラマドール"}
     codes:
       rxnorm: "10689"
+      yj: {oral: "1149038F1024"}
     classes: ["opioid.weak"]
   pregabalin:
     names: {en: "Pregabalin", ja: "プレガバリン"}
     codes:
       rxnorm: "187832"
+      yj: {oral: "1190017F1029"}
     classes: ["anticonvulsant", "analgesic.neuropathic"]
   cyclobenzaprine:
     names: {en: "Cyclobenzaprine", ja: "シクロベンザプリン"}
@@ -650,31 +737,37 @@ drugs:
     names: {en: "Lidocaine", ja: "リドカイン"}
     codes:
       rxnorm: "6387"
+      yj: {oral: "1214001S1054"}
     classes: ["local_anesthetic", "antiarrhythmic.class_ib"]
   ketamine:
     names: {en: "Ketamine", ja: "ケタミン"}
     codes:
       rxnorm: "6130"
+      yj: {injection: "1119400A1031"}
     classes: ["anesthetic.dissociative"]
   propofol:
     names: {en: "Propofol", ja: "プロポフォール"}
     codes:
       rxnorm: "8782"
+      yj: {injection: "1119402A1022"}
     classes: ["anesthetic.sedative_hypnotic"]
   famotidine:
     names: {en: "Famotidine", ja: "ファモチジン"}
     codes:
       rxnorm: "4278"
+      yj: {oral: "2325003F2020"}
     classes: ["h2_blocker"]
   diphenhydramine:
     names: {en: "Diphenhydramine", ja: "ジフェンヒドラミン"}
     codes:
       rxnorm: "3498"
+      yj: {oral: "4411001F1040"}
     classes: ["antihistamine.h1_first_generation"]
   octreotide:
     names: {en: "Octreotide", ja: "オクトレオチド"}
     codes:
       rxnorm: "7617"
+      yj: {injection: "2499403A1037"}
     classes: ["somatostatin_analogue"]
   phenazopyridine:
     names: {en: "Phenazopyridine", ja: "フェナゾピリジン"}
@@ -698,21 +791,25 @@ drugs:
     names: {en: "Insulin aspart", ja: "インスリン アスパルト"}
     codes:
       rxnorm: "51428"
+      yj: {injection: "2492415G6025"}
     classes: ["insulin.rapid_short_acting", "insulin.analog"]
   insulin_lispro:
     names: {en: "Insulin lispro", ja: "インスリン リスプロ"}
     codes:
       rxnorm: "86009"
+      yj: {injection: "2492414G5024"}
     classes: ["insulin.rapid_short_acting", "insulin.analog"]
   alfacalcidol:
     names: {en: "Alfacalcidol", ja: "アルファカルシドール"}
     codes:
       rxnorm: "12062"
+      yj: {oral: "3112001B4036"}
     classes: ["vitamin_d_analogue"]
   denosumab:
     names: {en: "Denosumab", ja: "デノスマブ"}
     codes:
       rxnorm: "993449"
+      yj: {injection: "3999435G1023"}
     classes: ["monoclonal_antibody", "osteoporosis.rankl_inhibitor"]
   # (leuprolide already registered elsewhere in this file; its entry
   # is reused — this slot intentionally omitted to avoid drug_id
@@ -723,16 +820,19 @@ drugs:
     names: {en: "Idarucizumab", ja: "イダルシズマブ"}
     codes:
       rxnorm: "1716191"
+      yj: {injection: "3399412A1027"}
     classes: ["monoclonal_antibody", "antidote.dabigatran_reversal"]
   vitamin_k:
     names: {en: "Vitamin K", ja: "ビタミンK"}
     codes:
       rxnorm: "11258"
+      yj: {oral: "3160001F1311"}
     classes: ["vitamin", "antidote.warfarin_reversal"]
   milnacipran:
     names: {en: "Milnacipran", ja: "ミルナシプラン"}
     codes:
       rxnorm: "588250"
+      yj: {oral: "1179040F1136"}
     classes: ["antidepressant.snri"]
   meclizine:
     names: {en: "Meclizine", ja: "メクリジン"}
@@ -743,6 +843,7 @@ drugs:
     names: {en: "Levocarnitine", ja: "レボカルニチン"}
     codes:
       rxnorm: "42955"
+      yj: {oral: "3999033F1026"}
     classes: ["carnitine_supplement"]
   # META #1849 Phase 5 Step 2 batch 5 — ophthalmic / decongestant /
   # K-binder / JP NSAID / albumin cluster. 8 ingredient drugs.
@@ -760,11 +861,13 @@ drugs:
     names: {en: "Cyclopentolate", ja: "シクロペントラート"}
     codes:
       rxnorm: "3001"
+      yj: {topical: "1311701Q1031"}
     classes: ["mydriatic.anticholinergic"]
   patiromer:
     names: {en: "Patiromer", ja: "パチロマー"}
     codes:
       rxnorm: "1716203"
+      yj: {oral: "2190046B1028"}
     classes: ["potassium_binder"]
   sodium_polystyrene_sulfonate:
     names: {en: "Sodium polystyrene sulfonate", ja: "ポリスチレンスルホン酸ナトリウム"}
@@ -778,7 +881,9 @@ drugs:
     names: {en: "Loxoprofen", ja: "ロキソプロフェン"}
     codes:
       rxnorm: "28908"
+      yj: {oral: "1149019F1560"}
     classes: ["nsaid.non_selective", "nsaid"]
+    aliases: ["NSAID (Loxoprofen)"]
     aliases: ["NSAID"]                 # `locale/jp/code_mapping_drug.yaml` substitutes
                                        # the generic "NSAID" placeholder to Loxoprofen
                                        # (YJ 1149019C1149); the alias keeps that
@@ -790,6 +895,7 @@ drugs:
     names: {en: "Butylscopolamine bromide", ja: "ブチルスコポラミン臭化物"}
     codes:
       rxnorm: "1851"
+      yj: {oral: "1242002F1330"}
     classes: ["antispasmodic.anticholinergic"]
     aliases: ["Butylscopolamine", "Buscopan"]  # bare chemical / JP trade name; both
                                                # resolve to the bromide-salt catalog entry.
@@ -798,8 +904,9 @@ drugs:
     names: {en: "Albumin human, USP", ja: "人血清アルブミン"}
     codes:
       rxnorm: "828529"
+      yj: {injection: "6343410X1088"}
     classes: ["blood_product.plasma_protein"]
-    aliases: ["Human serum albumin"]   # chemical name alias (same JA). MHLW YJ 6343410X1088
+    aliases: ["Human serum albumin", "Albumin"]   # chemical name alias (same JA). MHLW YJ 6343410X1088
                                        # (献血アルブミン). META #1849 Phase 5 Step 2.
                                        # Note: "Albumin" bare form is intentionally NOT aliased
                                        # here — it is ambiguous with the lab measurement
@@ -811,6 +918,7 @@ drugs:
     names: {en: "Aminophylline", ja: "アミノフィリン"}
     codes:
       rxnorm: "689"
+      yj: {injection: "2115404A1043"}
     classes: ["xanthine.bronchodilator"]
   mosapride:
     # JP prokinetic (5-HT4 agonist). Despite being JP-prevalent,
@@ -819,6 +927,7 @@ drugs:
     names: {en: "Mosapride", ja: "モサプリド"}
     codes:
       rxnorm: "135091"
+      yj: {oral: "2399010F2024"}
     classes: ["prokinetic.5ht4_agonist"]
   cefditoren:
     # NLM canonical EN is "cefditoren"; JP clinical form is
@@ -840,6 +949,7 @@ drugs:
     names: {en: "Factor IX complex", ja: "乾燥濃縮人プロトロンビン複合体"}
     codes:
       rxnorm: "1670383"
+      yj: {injection: "6343449D1024"}
     classes: ["blood_product.clotting_factor", "antidote.warfarin_reversal"]
     aliases: ["Prothrombin complex concentrate",
               "Prothrombin complex concentrate (4F-PCC)",
@@ -851,6 +961,7 @@ drugs:
     names: {en: "Heparin", ja: "ヘパリン"}
     codes:
       rxnorm: "5224"
+      yj: {injection: "3334400A3049"}
     classes: ['anticoagulant.heparin', 'anticoagulant']
   phytonadione:
     names: {en: "Phytonadione", ja: "フィトナジオン"}
@@ -872,11 +983,13 @@ drugs:
     names: {en: "Aztreonam", ja: "アズトレオナム"}
     codes:
       rxnorm: "1272"
+      yj: {injection: "6122400D1028"}
     classes: []
   piperacillin_tazobactam:
     names: {en: "Piperacillin/Tazobactam", ja: "ピペラシリン/タゾバクタム"}
     codes:
       rxnorm: "74169"
+      yj: {injection: "6139505G1022"}
     classes: []
   kcentra:
     names: {en: "Kcentra", ja: "ケイセントラ"}
@@ -887,37 +1000,45 @@ drugs:
     names: {en: "Cefotaxime", ja: "セフォタキシム"}
     codes:
       rxnorm: "2186"
+      yj: {injection: "6132409D1041"}
     classes: []
   cefepime:
     names: {en: "Cefepime", ja: "セフェピム"}
     codes:
       rxnorm: "20481"
+      yj: {injection: "6132425D1032"}
     classes: []
   ampicillin:
     names: {en: "Ampicillin", ja: "アンピシリン"}
     codes:
       rxnorm: "733"
+      yj: {injection: "6131400D1078"}
     classes: []
   cefazolin:
     names: {en: "Cefazolin", ja: "セファゾリン"}
     codes:
       rxnorm: "2180"
+      yj: {injection: "6132401D3145"}
     classes: []
   gentamicin:
     names: {en: "Gentamicin", ja: "ゲンタマイシン"}
     codes:
       rxnorm: "1596450"
+      yj: {injection: "6134407A1024"}
     classes: []
   ciprofloxacin:
     names: {en: "Ciprofloxacin", ja: "シプロフロキサシン"}
     codes:
       rxnorm: "2551"
+      yj: {oral: "6241008F2020", injection: "6241400A4021"}
     classes: []
   insulin_regular_human:
     names: {en: "Insulin, Regular, Human", ja: "レギュラーインスリン"}
     codes:
       rxnorm: "253182"
+      yj: {injection: "2492403A4051"}
     classes: []
+    aliases: ["Regular insulin", "Regular human insulin"]   # order-name forms in disease YAMLs
   sodium_chloride_9_mg_ml_injectable_solution:
     names: {en: "Sodium Chloride 9 MG/ML Injectable Solution", ja: "生理食塩液"}
     codes:
@@ -927,57 +1048,68 @@ drugs:
     names: {en: "Potassium Chloride", ja: "塩化カリウム"}
     codes:
       rxnorm: "8591"
+      yj: {oral: "3229001X1053", injection: "3229400A1032"}
     classes: []
     aliases: ["KCl"]                   # chemical-abbreviation form. META #1849 Phase 5 Step 2.g.
   insulin_glargine:
     names: {en: "Insulin Glargine", ja: "インスリングラルギン"}
     codes:
       rxnorm: "274783"
+      yj: {injection: "2492416G2024"}
     classes: ['basal_insulin']
   dobutamine:
     names: {en: "Dobutamine", ja: "ドブタミン"}
     codes:
       rxnorm: "3616"
+      yj: {injection: "2119404A1026"}
     classes: []
   trastuzumab:
     names: {en: "Trastuzumab", ja: "トラスツズマブ"}
     codes:
       rxnorm: "224905"
+      yj: {injection: "4291406D6020"}
     classes: []
   capecitabine:
     names: {en: "Capecitabine", ja: "カペシタビン"}
     codes:
       rxnorm: "194000"
+      yj: {oral: "4223005F1022"}
     classes: []
   oxaliplatin:
     names: {en: "Oxaliplatin", ja: "オキサリプラチン"}
     codes:
       rxnorm: "32592"
+      yj: {injection: "4291410A1029"}
     classes: []
   ticagrelor:
     names: {en: "Ticagrelor", ja: "チカグレロル"}
     codes:
       rxnorm: "1116632"
+      yj: {oral: "3399011F1027"}
     classes: []
   leucovorin:
     names: {en: "Leucovorin", ja: "ロイコボリン"}
     codes:
       rxnorm: "6313"
+      yj: {injection: "3929403A1034", oral: "3929004F1025"}
     classes: []
   fluorouracil:
     names: {en: "Fluorouracil", ja: "フルオロウラシル"}
     codes:
       rxnorm: "4492"
+      yj: {injection: "4223401A3022"}
     classes: []
   cefmetazole:
     names: {en: "Cefmetazole", ja: "セフメタゾール"}
     codes:
       rxnorm: "2182"
+      yj: {injection: "6132408F3059"}
     classes: []
   leuprolide:
     names: {en: "Leuprolide", ja: "リュープロレリン"}
     codes:
       rxnorm: "42375"
+      yj: {injection: "2499407D1031"}
     classes: []
     aliases: ["Leuprorelin"]           # INN form; "Leuprolide" is USAN. MHLW YJ 2499407G2034. META #1849 Phase 5 Step 2.g.
   mannitol:
@@ -994,6 +1126,7 @@ drugs:
     names: {en: "Osimertinib", ja: "オシメルチニブ"}
     codes:
       rxnorm: "1721560"
+      yj: {oral: "4291045F2023"}
     classes: []
   sodium_chloride_234_injectable_solution:
     names: {en: "Sodium Chloride 23.4% Injectable Solution", ja: "塩化ナトリウム 23.4% 注射液"}
@@ -1015,11 +1148,13 @@ drugs:
     names: {en: "sertraline", ja: "セルトラリン"}
     codes:
       rxnorm: "36437"
+      yj: {oral: "1179046F2024"}
     classes: []
   escitalopram:
     names: {en: "escitalopram", ja: "エスシタロプラム"}
     codes:
       rxnorm: "321988"
+      yj: {oral: "1179054F1022"}
     classes: []
   fluoxetine:
     names: {en: "fluoxetine", ja: "フルオキセチン"}
@@ -1030,6 +1165,7 @@ drugs:
     names: {en: "paroxetine", ja: "パロキセチン"}
     codes:
       rxnorm: "32937"
+      yj: {oral: "1179041F2030"}
     classes: []
   citalopram:
     names: {en: "citalopram", ja: "シタロプラム"}
@@ -1040,11 +1176,13 @@ drugs:
     names: {en: "oxytocin", ja: "オキシトシン"}
     codes:
       rxnorm: "7824"
+      yj: {injection: "2414400A2075"}
     classes: []
   bupivacaine:
     names: {en: "bupivacaine", ja: "ブピバカイン"}
     codes:
       rxnorm: "1815"
+      yj: {injection: "1214403A1026"}
     classes: []
   ketorolac:
     names: {en: "ketorolac", ja: "ケトロラク"}
@@ -1055,6 +1193,7 @@ drugs:
     names: {en: "fluvoxamine", ja: "フルボキサミン"}
     codes:
       rxnorm: "42355"
+      yj: {oral: "1179039F1028"}
     classes: []
   milnacipran_hydrochloride:
     names: {en: "milnacipran hydrochloride", ja: "ミルナシプラン塩酸塩"}
@@ -1065,26 +1204,31 @@ drugs:
     names: {en: "duloxetine", ja: "デュロキセチン"}
     codes:
       rxnorm: "72625"
+      yj: {oral: "1179052M2029"}
     classes: []
   venlafaxine:
     names: {en: "venlafaxine", ja: "ベンラファキシン"}
     codes:
       rxnorm: "39786"
+      yj: {oral: "1179055N1021"}
     classes: []
   mirtazapine:
     names: {en: "mirtazapine", ja: "ミルタザピン"}
     codes:
       rxnorm: "15996"
+      yj: {oral: "1179051F1029"}
     classes: []
   gemcitabine:
     names: {en: "gemcitabine", ja: "ゲムシタビン"}
     codes:
       rxnorm: "12574"
+      yj: {injection: "4224403A2022"}
     classes: []
   irinotecan:
     names: {en: "irinotecan", ja: "イリノテカン"}
     codes:
       rxnorm: "51499"
+      yj: {injection: "4240404A1091"}
     classes: []
   paclitaxel_proteinbound:
     names: {en: "paclitaxel protein-bound", ja: "ナブパクリタキセル"}
@@ -1095,6 +1239,7 @@ drugs:
     names: {en: "temozolomide", ja: "テモゾロミド"}
     codes:
       rxnorm: "37776"
+      yj: {oral: "4219004M1024"}
     classes: []
   bcg_vaccine:
     names: {en: "BCG Vaccine", ja: "BCG膀胱内注入療法"}
@@ -1105,6 +1250,7 @@ drugs:
     names: {en: "Empagliflozin", ja: "エンパグリフロジン"}
     codes:
       rxnorm: "1545653"
+      yj: {oral: "3969023F1023"}
     classes: ['sglt2i', 'antidiabetic']
   dapagliflozin:
     names: {en: "Dapagliflozin", ja: "ダパグリフロジン"}
@@ -1115,11 +1261,13 @@ drugs:
     names: {en: "Semaglutide", ja: "セマグルチド"}
     codes:
       rxnorm: "1991302"
+      yj: {injection: "2499418G4027"}
     classes: ['glp1_agonist', 'antidiabetic']
   liraglutide:
     names: {en: "Liraglutide", ja: "リラグルチド"}
     codes:
       rxnorm: "475968"
+      yj: {injection: "2499410G1021"}
     classes: ['glp1_agonist', 'antidiabetic']
   tirzepatide:
     names: {en: "Tirzepatide", ja: "チルゼパチド"}
@@ -1130,11 +1278,13 @@ drugs:
     names: {en: "Rosuvastatin", ja: "ロスバスタチン"}
     codes:
       rxnorm: "301542"
+      yj: {oral: "2189017F2029"}
     classes: ['statin']
   ezetimibe:
     names: {en: "Ezetimibe", ja: "エゼチミブ"}
     codes:
       rxnorm: "341248"
+      yj: {oral: "2189018F1027"}
     classes: ['cholesterol_absorption_inhibitor']
   naltrexone:
     names: {en: "Naltrexone", ja: "ナルトレキソン"}
@@ -1145,16 +1295,19 @@ drugs:
     names: {en: "Acamprosate", ja: "アカンプロサート"}
     codes:
       rxnorm: "82819"
+      yj: {oral: "1190022H1020"}
     classes: ['alcohol_use_disorder_adjunct']
   hydrochlorothiazide:
     names: {en: "Hydrochlorothiazide", ja: "ヒドロクロロチアジド"}
     codes:
       rxnorm: "5487"
+      yj: {oral: "2132004F1103"}
     classes: ['diuretic.thiazide']
   spironolactone:
     names: {en: "Spironolactone", ja: "スピロノラクトン"}
     codes:
       rxnorm: "9997"
+      yj: {oral: "2133001F1522"}
     classes: ['diuretic.k_sparing']
 
   # META #1792 Phase 2.a (#1804) — drugs that chronic_medications.yaml
@@ -1169,16 +1322,19 @@ drugs:
     names: {en: "Anastrozole", ja: "アナストロゾール"}
     codes:
       rxnorm: "84857"
+      yj: {oral: "4291010F1031"}
     classes: ["aromatase_inhibitor"]
   bicalutamide:
     names: {en: "Bicalutamide", ja: "ビカルタミド"}
     codes:
       rxnorm: "83008"
+      yj: {oral: "4291009F1039"}
     classes: ["anti_androgen"]
   disulfiram:
     names: {en: "Disulfiram", ja: "ジスルフィラム"}
     codes:
       rxnorm: "3554"
+      yj: {oral: "3939001B1034"}
     classes: ["aldh_inhibitor"]
   ferrous_fumarate:
     names: {en: "Ferrous fumarate", ja: "フマル酸第一鉄"}
@@ -1189,6 +1345,7 @@ drugs:
     names: {en: "Folic acid", ja: "葉酸"}
     codes:
       rxnorm: "4511"
+      yj: {oral: "3135002B1036"}
     classes: ["vitamin"]
   thiamine:
     names: {en: "Thiamine", ja: "チアミン"}
@@ -1199,36 +1356,43 @@ drugs:
     names: {en: "Lenvatinib", ja: "レンバチニブ"}
     codes:
       rxnorm: "1603296"
+      yj: {oral: "4291039M1020"}
     classes: ["tki"]
   lorazepam:
     names: {en: "Lorazepam", ja: "ロラゼパム"}
     codes:
       rxnorm: "6470"
+      yj: {oral: "1124022F1067", injection: "1139403A1020"}
     classes: ["benzodiazepine", "anxiolytic"]
   sorafenib:
     names: {en: "Sorafenib", ja: "ソラフェニブ"}
     codes:
       rxnorm: "495881"
+      yj: {oral: "4291017F1025"}
     classes: ["tki"]
   tamoxifen:
     names: {en: "Tamoxifen", ja: "タモキシフェン"}
     codes:
       rxnorm: "10324"
+      yj: {oral: "4291003F2054"}
     classes: ["serm"]
   methyldopa:
     names: {en: "Methyldopa", ja: "メチルドパ"}
     codes:
       rxnorm: "6876"
+      yj: {oral: "2145001F1043"}
     classes: ["antihypertensive.central_alpha_agonist"]
   carboplatin:
     names: {en: "Carboplatin", ja: "カルボプラチン"}
     codes:
       rxnorm: "40048"
+      yj: {injection: "4291403A1088"}
     classes: ["chemo.platinum"]
   pemetrexed:
     names: {en: "Pemetrexed", ja: "ペメトレキセド"}
     codes:
       rxnorm: "68446"
+      yj: {injection: "4229401D1020"}
     classes: ["chemo.antifolate"]
   paclitaxel:
     names: {en: "Paclitaxel", ja: "パクリタキセル"}
@@ -1247,16 +1411,19 @@ drugs:
     names: {en: "Edoxaban", ja: "エドキサバン"}
     codes:
       rxnorm: "1599538"
+      yj: {oral: "3339002F3022"}
     classes: ["anticoagulant", "anticoagulant.doac"]
   oseltamivir:
     names: {en: "Oseltamivir", ja: "オセルタミビル"}
     codes:
       rxnorm: "260101"
+      yj: {oral: "6250021M1027"}
     classes: ["antiviral"]
   metoclopramide:
     names: {en: "Metoclopramide", ja: "メトクロプラミド"}
     codes:
       rxnorm: "6915"
+      yj: {injection: "2399401A1083", oral: "2399004F1200"}
     classes: ["prokinetic"]
   pantoprazole:
     names: {en: "Pantoprazole", ja: "パントプラゾール"}
@@ -1267,6 +1434,7 @@ drugs:
     names: {en: "Cephalexin", ja: "セファレキシン"}
     codes:
       rxnorm: "2231"
+      yj: {oral: "6132002M2183"}
     classes: ["antibiotic.cephalosporin"]
   # META #1804 Phase 2.d catalog add (batch 2) — unblocks the remaining
   # cluster migrations (atrial_fibrillation_rvr, cellulitis, uti,
@@ -1276,6 +1444,7 @@ drugs:
     names: {en: "Bisoprolol", ja: "ビソプロロール"}
     codes:
       rxnorm: "19484"
+      yj: {oral: "2123016F1107"}
     classes: ["beta_blocker"]
   metoprolol_succinate:
     names: {en: "Metoprolol succinate", ja: "コハク酸メトプロロール"}
@@ -1291,22 +1460,26 @@ drugs:
     names: {en: "Lactulose", ja: "ラクツロース"}
     codes:
       rxnorm: "6218"
+      yj: {oral: "3999001Q1051"}
     classes: ["laxative"]
   rifaximin:
     names: {en: "Rifaximin", ja: "リファキシミン"}
     codes:
       rxnorm: "35619"
+      yj: {oral: "6199001F1026"}
     classes: ["antibiotic"]
   trimethoprim_sulfamethoxazole:
     names: {en: "Sulfamethoxazole / Trimethoprim", ja: "スルファメトキサゾール／トリメトプリム"}
     codes:
       rxnorm: "10831"
+      yj: {oral: "6290100F2115"}
     classes: ["antibiotic.sulfonamide"]
     aliases: ["Trimethoprim/Sulfamethoxazole", "Trimethoprim-sulfamethoxazole"]  # slash + deprecated hyphen forms. META #1849 Phase 5 Step 2.
   ferrous_sulfate:
     names: {en: "Ferrous sulfate", ja: "硫酸第一鉄"}
     codes:
       rxnorm: "24947"
+      yj: {oral: "3222007G1033"}
     classes: ["iron_supplement"]
 
   # META #1849 Phase 5 Step 2.a batch 1 — US-NLM ingredient drugs
@@ -1316,6 +1489,7 @@ drugs:
     names: {en: "Ipratropium", ja: "イプラトロピウム"}
     codes:
       rxnorm: "7213"                   # NLM TTY=IN
+      yj: {inhalation: "2259702G2021"}
     classes: ["anticholinergic.inhaled"]
   magnesium_sulfate:
     # "Magnesium sulfate" (lowercase) and "Magnesium Sulfate" collapse to
@@ -1324,11 +1498,13 @@ drugs:
     names: {en: "Magnesium Sulfate", ja: "硫酸マグネシウム"}
     codes:
       rxnorm: "6585"                   # NLM TTY=IN
+      yj: {injection: "1244400A1030"}
     classes: ["electrolyte_supplement"]
   calcium_gluconate:
     names: {en: "Calcium Gluconate", ja: "グルコン酸カルシウム"}
     codes:
       rxnorm: "1908"                   # NLM TTY=IN. MHLW YJ 3213001X1010 (カルチコール; 水和物)
+      yj: {injection: "3213400A2047"}
     classes: ["electrolyte_supplement"]
   silver_nitrate:
     names: {en: "Silver Nitrate", ja: "硝酸銀"}
@@ -1352,6 +1528,7 @@ drugs:
     names: {en: "Nab-paclitaxel", ja: "ナブパクリタキセル"}
     codes:
       rxnorm: "486610"                 # NLM TTY=PIN (paclitaxel protein-bound). MHLW HOT7 (アルブミン懸濁型, Issue #1310).
+      yj: {injection: "4240409D1023"}
     classes: ["chemotherapy.taxane"]
     aliases: ["Nab_paclitaxel"]        # underscore variant used inside disease YAMLs
                                        # ("nab-Paclitaxel" lower-cases to the same
@@ -1369,28 +1546,28 @@ drugs:
     # the MHLW-registered pivoxil ester as a JP-only drug.
     names: {en: "Cefcapene pivoxil", ja: "セフカペンピボキシル"}
     codes:
-      yj: "6132016F2038"               # Cefcapene pivoxil 100mg tablet
+      yj: {oral: "6132016F2020"}
     classes: ["antibiotic.cephalosporin"]
   nafamostat:
     # JP-only serine protease inhibitor (フサン). Used for pancreatitis,
     # DIC, and CRRT anticoagulation.
     names: {en: "Nafamostat", ja: "ナファモスタット"}
     codes:
-      yj: "3999407D1181"               # Nafamostat mesylate injection (Fusan)
+      yj: {injection: "3999407D1181"}
     classes: ["protease_inhibitor", "anticoagulant.serine_protease"]
   elcatonin:
     # JP-only calcitonin derivative (エルシトニン). Used for osteoporosis
     # and malignancy-related hypercalcemia in JP practice.
     names: {en: "Elcatonin", ja: "エルカトニン"}
     codes:
-      yj: "3999401A1200"               # Elcatonin injection (Elcitonin)
+      yj: {injection: "3999401A3024"}
     classes: ["bone_resorption_inhibitor"]
   daikenchuto:
     # JP Kampo formulation (大建中湯). Prescribed for post-operative ileus
     # and chronic constipation per JP clinical practice.
     names: {en: "Dai-kenchu-to", ja: "大建中湯"}
     codes:
-      yj: "5200092C1025"               # Dai-kenchu-to extract
+      yj: {oral: "5200092D1020"}
     classes: ["kampo"]
     aliases: ["Daikenchuto"]           # non-hyphenated form used in disease YAMLs
 
@@ -1429,7 +1606,7 @@ drugs:
     # pancreatitis and post-operative reflux esophagitis.
     names: {en: "Camostat mesilate", ja: "カモスタットメシル酸塩"}
     codes:
-      hot7: "3999003"                  # MEDIS-HOT7 (Camostat mesilate)
+      yj: {oral: "3999003F1297"}
     classes: ["protease_inhibitor"]
   bcg_intravesical:
     # BCG vaccine for intravesical bladder-cancer therapy. NLM RxCUI
@@ -1437,7 +1614,7 @@ drugs:
     # (MYCOBACTERIUM BOVIS BCG) are both NotCurrent in RxNorm.
     names: {en: "BCG (intravesical)", ja: "BCG（膀胱内注入療法）"}
     codes:
-      hot7: "6323400"                  # MEDIS-HOT7 (BCG intravesical)
+      yj: {intravesical: "6391700X4026"}   # イムノブラダー膀注用80mg
     classes: ["immunotherapy", "oncology.bladder"]
     aliases: ["BCG", "BCG intravesical"]
   # Issue #2136: JP alternatives for drugs not marketed in Japan. HOT7
@@ -1446,38 +1623,38 @@ drugs:
     # Vertigo (メリスロン) — replaces meclizine on JP.
     names: {en: "Betahistine", ja: "ベタヒスチンメシル酸塩"}
     codes:
-      hot7: "1339005"
+      yj: {oral: "1339005F2128"}
     classes: ["antivertigo"]
   eperisone:
     # Centrally acting muscle relaxant (ミオナール) — replaces cyclobenzaprine on JP.
     names: {en: "Eperisone", ja: "エペリゾン塩酸塩"}
     codes:
-      hot7: "1249009"
+      yj: {oral: "1249009F1090"}
     classes: ["muscle_relaxant"]
   oxybuprocaine:
     # Topical ophthalmic anaesthetic (ベノキシール) — replaces proparacaine on JP.
     names: {en: "Oxybuprocaine", ja: "オキシブプロカイン塩酸塩"}
     codes:
-      hot7: "1313700"
+      yj: {topical: "1313700Q3034"}
     classes: ["anesthetic.local_ophthalmic"]
   naphazoline:
     # Nasal vasoconstrictor (プリビナ液) — replaces oxymetazoline on JP.
     names: {en: "Naphazoline", ja: "ナファゾリン硝酸塩"}
     codes:
-      hot7: "1324704"
+      yj: {topical: "1324704Q1033"}
     classes: ["decongestant.nasal"]
   nalmefene:
     # Drinking-reduction agent for alcohol dependence (セリンクロ, PMDA 2019);
     # oral naltrexone is not marketed in Japan.
     names: {en: "Nalmefene", ja: "ナルメフェン塩酸塩水和物"}
     codes:
-      hot7: "1190025"
+      yj: {oral: "1190025F1023"}
     classes: ["aud_treatment"]
   tegafur_gimeracil_oteracil:
     # S-1 (ティーエスワン), JP-only oral fluoropyrimidine (Issue #2136).
     names: {en: "Tegafur-Gimeracil-Oteracil", ja: "テガフール・ギメラシル・オテラシルカリウム"}
     codes:
-      hot7: "4229101"
+      yj: {oral: "4229101F1026"}
     classes: ["antineoplastic.fluoropyrimidine"]
     aliases: ["S-1"]
   # Issue #2140: second-generation antipsychotics (schizophrenia maintenance).
@@ -1486,25 +1663,25 @@ drugs:
     names: {en: "Aripiprazole", ja: "アリピプラゾール"}
     codes:
       rxnorm: "89013"
-      hot7: "1179045"
+      yj: {oral: "1179045F3026"}
     classes: ["antipsychotic.second_generation"]
   risperidone:
     names: {en: "Risperidone", ja: "リスペリドン"}
     codes:
       rxnorm: "35636"
-      hot7: "1179038"
+      yj: {oral: "1179038F2020"}
     classes: ["antipsychotic.second_generation"]
   olanzapine:
     names: {en: "Olanzapine", ja: "オランザピン"}
     codes:
       rxnorm: "61381"
-      hot7: "1179044"
+      yj: {oral: "1179044F3021"}
     classes: ["antipsychotic.second_generation"]
   quetiapine:
     names: {en: "Quetiapine", ja: "クエチアピンフマル酸塩"}
     codes:
       rxnorm: "51272"
-      hot7: "1179042"
+      yj: {oral: "1179042F1020"}
     classes: ["antipsychotic.second_generation"]
   # Issue #2142: mood stabilizers (bipolar maintenance). RxNorm IN verified on
   # tx.fhir.org; HOT7 class codes against the YJ master.
@@ -1512,19 +1689,19 @@ drugs:
     names: {en: "Lithium carbonate", ja: "炭酸リチウム"}
     codes:
       rxnorm: "42351"
-      hot7: "1179017"
+      yj: {oral: "1179017F1056"}
     classes: ["mood_stabilizer"]
   valproic_acid:
     names: {en: "Valproic acid", ja: "バルプロ酸ナトリウム"}
     codes:
       rxnorm: "11118"
-      hot7: "1139004"
+      yj: {oral: "1139004F2173"}
     classes: ["mood_stabilizer"]
   lamotrigine:
     names: {en: "Lamotrigine", ja: "ラモトリギン"}
     codes:
       rxnorm: "28439"
-      hot7: "1139009"
+      yj: {oral: "1139009F1021"}
     classes: ["mood_stabilizer"]
   # Issue #2146: medication for opioid use disorder (RxNorm verified on tx.fhir.org).
   buprenorphine_naloxone:
@@ -1544,5 +1721,19 @@ drugs:
     names: {en: "Haloperidol", ja: "ハロペリドール"}
     codes:
       rxnorm: "5093"
-      hot7: "1179404"
+      yj: {injection: "1179404A1070"}
     classes: ["antipsychotic.first_generation"]
+  # Issue #2347: JP-only drugs the legacy JP drug-code file named, now catalogued
+  # with a full YJ code from the MHLW master.
+  cefditoren_pivoxil:
+    names: {en: "Cefditoren pivoxil", ja: "セフジトレンピボキシル"}
+    codes:
+      yj: {oral: "6132015F1037"}
+    classes: ["antibiotic.cephalosporin"]
+  menatetrenone:
+    # Vitamin K2 syrup for newborn vitamin K deficiency prophylaxis in JP.
+    names: {en: "Menatetrenone", ja: "メナテトレノン"}
+    codes:
+      yj: {oral: "3160002Q1040"}
+    classes: ["vitamin_k"]
+    aliases: ["ケイツーシロップ"]   # JP perinatal order name

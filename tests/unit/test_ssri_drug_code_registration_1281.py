@@ -23,6 +23,7 @@ from __future__ import annotations
 import pytest
 
 from clinosim.codes import lookup
+from clinosim.codes.drugs import jp_drug_code
 from clinosim.locale.loader import load_code_mapping
 
 pytestmark = pytest.mark.unit
@@ -54,8 +55,9 @@ def test_us_rxnorm_registration(drug, rxcui, display_en):
     ],
 )
 def test_jp_yj_registration_pmda_approved(drug, yj_code):
-    jp_map = load_code_mapping("drug", "JP")
-    assert jp_map.get(drug) == yj_code, f"JP drug map missing {drug} → {yj_code}"
+    code = jp_drug_code(drug, "PO") or ""
+    assert code[:7] == yj_code, f"JP catalog has no {drug} product of {yj_code} (Issue #2347)"
+    yj_code = code
     # Available via `yj` key with hot7 sibling fallback (Issue #415).
     assert lookup("yj", yj_code, "ja"), f"JP display missing for {yj_code}"
 

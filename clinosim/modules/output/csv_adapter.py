@@ -180,7 +180,10 @@ def convert_cif_to_csv(
             otype = str(order.get("order_type") or "")
             if otype == "medication":
                 o_code, o_system = _drug_coding(
-                    str(order.get("display_name") or ""), str(order.get("order_code") or ""), country
+                    str(order.get("display_name") or ""),
+                    str(order.get("order_code") or ""),
+                    country,
+                    str(order.get("route") or ""),
                 )
             elif otype == "lab":
                 o_code, o_system = _lab_coding({"lab_name": order.get("display_name")}, country)
@@ -205,7 +208,10 @@ def convert_cif_to_csv(
         # Medication administration records (MAR)
         for mar in record.get("medication_administrations", []):
             drug_code, drug_system = _drug_coding(
-                str(mar.get("drug_name") or ""), order_code_by_id.get(str(mar.get("order_id") or ""), ""), country
+                str(mar.get("drug_name") or ""),
+                order_code_by_id.get(str(mar.get("order_id") or ""), ""),
+                country,
+                str(mar.get("route") or ""),
             )
             mar_rows.append(
                 {
@@ -400,7 +406,9 @@ def convert_cif_to_csv(
         rx = record.get("discharge_prescription")
         if rx and rx.get("items"):
             for item in rx["items"]:
-                rx_code, rx_system = _drug_coding(str(item.get("drug_name") or item.get("drug") or ""), "", country)
+                rx_code, rx_system = _drug_coding(
+                    str(item.get("drug_name") or item.get("drug") or ""), "", country, str(item.get("route") or "")
+                )
                 rx_rows.append(
                     {
                         "patient_id": patient_id,
@@ -462,14 +470,14 @@ def _lab_coding(lab: dict, country: str) -> tuple[str, str]:
     return str(first.get("code") or ""), str(first.get("system") or "")
 
 
-def _drug_coding(drug_name: str, order_code: str, country: str) -> tuple[str, str]:
+def _drug_coding(drug_name: str, order_code: str, country: str, route: str = "") -> tuple[str, str]:
     """``(code, system URI)`` of a medication, from the FHIR builder's single
     drug resolution point (``_resolve_medication_concept``; Issue #2303)."""
     from clinosim.modules.output.fhir_r4.medications.medications import _resolve_medication_concept
 
     if not drug_name:
         return "", ""
-    concept, _ = _resolve_medication_concept(drug_name, order_code or "", country)
+    concept, _ = _resolve_medication_concept(drug_name, order_code or "", country, route=route)
     coding = (concept.get("coding") or [{}])[0]
     return str(coding.get("code") or ""), str(coding.get("system") or "")
 

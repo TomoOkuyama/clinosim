@@ -47,12 +47,13 @@ def test_resolve_jp_drug_system_uri_fallback_for_unknown_format() -> None:
     assert _resolve_jp_drug_system_uri("12345") == MEDIS_HOT9_URI  # 5-digit not registered
 
 
-def _build_mr(code: str, country: str = "JP") -> dict[str, Any]:
+def _build_mr(code: str, country: str = "JP", *, drug: str = "Test drug", route: str = "") -> dict[str, Any]:
     from clinosim.modules.output.fhir_r4.medications.medications import _build_medication_request
 
     order = {
         "order_id": "ORD-1",
-        "display_name": "Test drug",
+        "display_name": drug,
+        "route": route,
         "order_type": "medication",
         "order_code": code,
         "ordered_datetime": "2026-06-01T09:00:00",
@@ -67,56 +68,35 @@ def _build_mr(code: str, country: str = "JP") -> dict[str, Any]:
     )
 
 
-def test_medication_request_jp_hot7_uri() -> None:
-    """7-digit HOT7 code → MEDIS HOT7 URI。"""
-    mr = _build_mr("6131002")
-    coding = mr["medicationCodeableConcept"]["coding"][0]
-    assert coding["system"] == MEDIS_HOT7_URI
-    assert coding["code"] == "6131002"
+def test_medication_request_jp_code_comes_from_the_catalog_by_route() -> None:
+    """Issue #2347: JP codes are the catalog's YJ product for the drug and the
+    order route; an order-carried code (a 7-digit YJ ingredient prefix from a
+    disease YAML) is not emitted."""
+    from clinosim.codes.drugs import jp_drug_code
+
+    iv = _build_mr("2139007", drug="Furosemide 20mg", route="IV")["medicationCodeableConcept"]["coding"][0]
+    po = _build_mr("2139005", drug="Furosemide 20mg", route="PO")["medicationCodeableConcept"]["coding"][0]
+    assert (iv["system"], iv["code"]) == (JP_YJ_CODE_URI, jp_drug_code("furosemide", "IV"))
+    assert (po["system"], po["code"]) == (JP_YJ_CODE_URI, jp_drug_code("furosemide", "PO"))
+    assert iv["code"] != po["code"]
+    assert iv["display"] == "ラシックス注20mg"
 
 
-def test_medication_request_jp_yj12_uri() -> None:
-    """12-char YJ code → JP YJ code URI. Issue #1220: replaced tx-server-
-    fragment-based gate with the clinosim-shipped MEDIS full CS
-    (``content=complete``, 23,923 concepts). Any real MHLW YJ code passes.
-    """
-    # 1112700X1038 = （局）ハロタン (全身麻酔薬)、MEDIS 医薬品HOTマスター
-    # 2026-08-31 版に収録。
-    mr = _build_mr("1112700X1038")
-    coding = mr["medicationCodeableConcept"]["coding"][0]
-    assert coding["system"] == JP_YJ_CODE_URI
-    assert coding["code"] == "1112700X1038"
+def test_medication_request_jp_drug_without_a_product_for_the_route_is_nocoded() -> None:
+    from clinosim.modules.output.fhir_r4.medications.medications import _JP_MEDICATION_CODE_NOCODED_CS
+
+    coding = _build_mr("", drug="Cefmetazole 1g", route="PO")["medicationCodeableConcept"]["coding"][0]
+    assert coding["system"] == _JP_MEDICATION_CODE_NOCODED_CS
 
 
-def test_medication_request_jp_emits_full_yj_codes() -> None:
-    """Issue #1220: the tx-server-fragment-based gate (Issue #283) was
-    replaced by the clinosim-shipped full JP national YJ CodeSystem
-    (``JP_MedicationCodeYJ_CS_full.json``, ``content=complete``, MEDIS-
-    sourced, 23,923 concepts). Every clinosim yj.yaml code was curated
-    to a real MHLW YJ code and passes the new ``_is_yj_code_valid`` gate,
-    so the ``codingYJ`` slice always carries the real code — no
-    ``nocoded`` downgrade for cardiovascular / respiratory / oncology
-    codes previously outside the tx-server fragment.
-    """
-    from clinosim.modules.output.fhir_r4.medications.medications import (
-        _JP_MEDICATION_CODE_NOCODED_CS,
-        _JP_YJ_CODE_URI,
-        _is_yj_code_valid,
-    )
+def test_every_catalog_yj_code_passes_the_emit_gate() -> None:
+    """Every catalog YJ code is in the clinosim-shipped JP YJ CodeSystem, so the
+    ``codingYJ`` slice carries it (no ``nocoded`` downgrade)."""
+    from clinosim.codes.drugs import all_drug_ids, resolve_drug
+    from clinosim.modules.output.fhir_r4.medications.medications import _is_yj_code_valid
 
-    # cardiovascular / respiratory YJ code — previously downgraded to
-    # NOCODED because the tx-server ships fragment 11xx/12xx only.
-    cardio_code = "2149032F1099"  # カルベジロール１０ｍｇ錠
-    assert _is_yj_code_valid(cardio_code)
-    mr = _build_mr(cardio_code)
-    coding = mr["medicationCodeableConcept"]["coding"][0]
-    assert coding["system"] == _JP_YJ_CODE_URI, f"expected YJ URI, got {coding['system']}"
-    assert coding["code"] == cardio_code
-    assert coding["system"] != _JP_MEDICATION_CODE_NOCODED_CS
-
-    # US path: YJ system 未使用、影響なし (regression guard)
-    mr_us = _build_mr(cardio_code, country="US")
-    assert mr_us["medicationCodeableConcept"]["coding"][0]["system"] != _JP_MEDICATION_CODE_NOCODED_CS
+    codes = {c for d in all_drug_ids() for c in resolve_drug(d).yj_by_route.values()}
+    assert codes and all(_is_yj_code_valid(c) for c in codes)
 
 
 def test_medication_request_jp_nocoded_fallback_when_no_code_value() -> None:
@@ -178,16 +158,16 @@ def test_medication_request_us_keeps_rxnorm() -> None:
     assert coding["system"] == get_system_uri("rxnorm")
 
 
-def _build_ma(code: str, country: str = "JP") -> dict[str, Any]:
+def _build_ma(code: str, country: str = "JP", *, drug: str = "Test drug", route: str = "oral") -> dict[str, Any]:
     from clinosim.modules.output.fhir_r4.medications.medications import _build_medication_admin
 
     mar = {
         "mar_id": "MAR-1",
-        "drug_name": "Test drug",
+        "drug_name": drug,
         "code_yj": code,
         "administration_datetime": "2026-06-01T10:00:00",
         "dose": "1 tablet",
-        "route": "oral",
+        "route": route,
         "status": "given",
     }
     return _build_medication_admin(
@@ -199,20 +179,14 @@ def _build_ma(code: str, country: str = "JP") -> dict[str, Any]:
     )
 
 
-def test_medication_administration_jp_hot7_uri() -> None:
-    """MA builder も同 helper で JP HOT7 URI dispatch。"""
-    ma = _build_ma("6131002")
-    coding = ma["medicationCodeableConcept"]["coding"][0]
-    assert coding["system"] == MEDIS_HOT7_URI
-    assert coding["code"] == "6131002"
+def test_medication_administration_jp_code_comes_from_the_catalog_by_route() -> None:
+    """MA builder: the same catalog-by-route resolution as the MR builder; a
+    MAR-carried code is not emitted (Issue #2347)."""
+    from clinosim.codes.drugs import jp_drug_code
 
-
-def test_medication_administration_jp_yj12_uri() -> None:
-    """MA builder も 12-char YJ code → YJ URI。Issue #1220: MEDIS full CS
-    導入により fragment 依存廃止、任意の real MHLW YJ code が gate 通過。"""
-    ma = _build_ma("1112700X1038")  # ハロタン (MEDIS 医薬品HOTマスター収録)
+    ma = _build_ma("6131002", drug="Acetaminophen 1000mg", route="IV")
     coding = ma["medicationCodeableConcept"]["coding"][0]
-    assert coding["system"] == JP_YJ_CODE_URI
+    assert (coding["system"], coding["code"]) == (JP_YJ_CODE_URI, jp_drug_code("acetaminophen", "IV"))
 
 
 def test_medication_administration_us_keeps_rxnorm() -> None:

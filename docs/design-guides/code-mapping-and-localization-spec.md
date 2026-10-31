@@ -57,12 +57,20 @@ CRP: "5C070"
 
 | Catalog | File | Entry shape |
 |---|---|---|
-| Drugs | `codes/data/drugs.yaml` | `<drug_id>: {names: {en, ja}, codes: {rxnorm, yj, hot7}, classes: [...], aliases: [...]}` |
+| Drugs | `codes/data/drugs.yaml` | `<drug_id>: {names: {en, ja}, codes: {rxnorm, yj: {<route_class>: <YJ12>}}, classes: [...], aliases: [...]}` |
 | Procedures | `codes/data/clinosim-procedure-catalog.yaml` | `bedside: [{type, cpt, k_code, name: {en, ja}, anesthesia}]` |
 | Staff roles | `codes/data/clinosim-clinician-role.yaml` | `<role>: {title: {en, ja}, staff_prefix, suffix_en, suffix_ja, practitioner_role, qualification: {code, display, display_en}}` |
 | Departments | `locale/shared/department_display.yaml` | `<dept>: {en, ja, specialty_snomed}` |
 
 A catalog id (`drug_id`, procedure `type`, role, department) is the stable internal identifier. Codes and names are looked up from it, never the reverse.
+
+**JP drug codes.** A YJ code names one product, which fixes its form and strength. So `codes.yj` maps a route class (`oral`, `injection`, `inhalation`, `rectal`, `topical`, `intravesical`; the `route_classes` table at the top of `drugs.yaml`) to a full 12-character YJ code:
+
+- **Order.** The most-used route comes first. `codes["yj"]` is that first code, for lookups that have no route.
+- **Choice.** The product is the one that matches the simulator's usual dose. The original brand is preferred.
+- **Verification.** Every code is listed in the MHLW YJ master (snapshot: `codes/authoritative/yj_mhlw_snapshot.json`) and in `JP_MedicationCodeYJ_CS_full.json`.
+- **No product.** A drug with no listed product for a route has no code there. It is emitted in the eCS `nocoded` slice.
+- **Not used.** A 7-digit YJ prefix is never a code, and `hot7.yaml` registers no codes.
 
 ### 3.4 Value sets — `clinosim/codes/data/valuesets.yaml`
 
@@ -115,6 +123,7 @@ Consumers resolve names only through these functions. Several are added by open 
 | `codes.loinc`: `loinc_display`, `loinc_coding` | LOINC display / Coding | `None` / coding without display |
 | `codes.valuesets`: `concept_group`, `has_condition`, `patient_condition_names`, `code_by_chronic_prefix` | value-set membership | `KeyError` on an unknown group |
 | `codes.drugs`: `resolve_drug`, `get_drug`, `find_drug`, `names_drug`, `drug_name_needles` | drug identity and name matching | raises / `None` / `False` |
+| `codes.drugs`: `route_class(route)`, `jp_drug_code(drug, route)`, `jp_drug_code_table(route)` | route class of an order route; the JP YJ product for a drug and route | `""` / `None` / no entry |
 | `codes.procedures`: `procedure_code`, `procedure_type_display`, `procedure_code_display` | procedure codes and names | `""` / humanised type / `None` |
 | `codes.ucum`: `ucum_code`, `ucum_quantity` | UCUM code / FHIR Quantity | unit passed through |
 | `codes.prefectures.prefecture_code(name)` | JIS X 0401 code | `""` |
@@ -219,7 +228,7 @@ These parts of the code base do not yet conform. Each one is removed by the issu
 | ICD lookup, short names and crosswalks are not behind one accessor (two short-name tables, CM/WHO Japanese divergence). | #2257 |
 | SNOMED codes and displays are still held in emitter dicts (route, severity), and 74 SNOMED literals are unregistered. | #2258 |
 | Document LOINCs are defined in eight places, some section codes do not mean their section, and emitters still hold LOINC constants. | #2344 |
-| Legacy JP drug codes (7-digit YJ ingredient prefixes) remain in the drug catalog and are emitted under the HOT7 URI. | #2347 |
+| Disease YAMLs still carry inline `code_yj` literals, and JP CIF `order_code` is copied from them rather than from the catalog. | #2351 |
 | CPT / K-codes the generator emits but has not registered. | #2340 |
 | HL7 `terminology.hl7.org` URI literals outside `clinosim/codes/`, and three overlapping coding helpers (`_coding_with_display`, `_value`, `_build_hosp_concept`). | #2349 |
 | Remaining hand-built dual-slot concepts, and the post-process text-filling walkers. | #2337 |

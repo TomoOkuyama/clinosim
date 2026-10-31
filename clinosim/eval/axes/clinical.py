@@ -165,7 +165,9 @@ _CONDITION_LAB_PAIRINGS: tuple[_CondLabPairing, ...] = _condition_lab_pairings_f
 # lab code mapping — not restated here.
 _WARFARIN_NAME = resolve_drug("warfarin").names["en"]
 _WARFARIN_RXNORM = load_code_mapping("drug", "US").get(_WARFARIN_NAME, "")
-_WARFARIN_YJ_PREFIX = load_code_mapping("drug", "JP").get(_WARFARIN_NAME, "")
+# The first seven YJ characters name the ingredient and route range, so any
+# listed warfarin product matches (Issue #2347).
+_WARFARIN_YJ_PREFIX = load_code_mapping("drug", "JP").get(_WARFARIN_NAME, "")[:7]
 _PT_INR_LOINC = load_code_mapping("lab", "US")["PT_INR"]
 _RXNORM_URI = get_system_uri("rxnorm")
 _LOINC_URI = get_system_uri("loinc")
