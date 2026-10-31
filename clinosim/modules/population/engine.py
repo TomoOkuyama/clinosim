@@ -953,7 +953,7 @@ def generate_healthcare_calendar(
     events: list[LifeEvent] = []
 
     # Load follow-up schedules
-    from clinosim.locale.loader import load_chronic_followup
+    from clinosim.locale.loader import chronic_followup_interval_months, load_chronic_followup
 
     followup_data = load_chronic_followup()
 
@@ -1031,7 +1031,7 @@ def generate_healthcare_calendar(
         # so people with a followed-up condition keep their calendar.
         if conditions_with_spec:
             # Use shortest interval as visit frequency (covers all conditions)
-            shortest_interval = min(spec.get("follow_up_interval_months", 3) for _, spec in conditions_with_spec)
+            shortest_interval = chronic_followup_interval_months(person.chronic_conditions) or 3
             # Cap: max 6 visits/year for chronic management
             max_visits = min(12 // shortest_interval, CHRONIC_VISITS_MAX_PER_YEAR)
             primary_code = conditions_with_spec[0][0]  # main condition for the visit

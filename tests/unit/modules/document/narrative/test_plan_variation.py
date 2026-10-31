@@ -8,8 +8,9 @@ from `current_medications + today_rx + today_procs + follow_up` but
 `follow_up` also emitted a constant sentinel.
 
 The fix appends a per-encounter deterministic follow-up line to the
-YAML plan, so consecutive visits show different follow-up cadence
-drawn from a per-condition band.
+YAML plan, so consecutive visits show different follow-up cadence.
+Issue #2287: a patient with a chronic follow-up schedule gets the
+scheduled interval instead.
 """
 
 from __future__ import annotations
@@ -66,35 +67,26 @@ def test_follow_up_line_deterministic_for_same_encounter() -> None:
     assert a == b
 
 
-def test_follow_up_line_varies_across_encounters_for_same_patient() -> None:
-    # Same patient + same condition + 6 encounter_ids → should produce
-    # at least 2 distinct follow-up intervals across the sequence.
-    variants = {_run_follow_up(_mk_ctx("I10", f"enc-{k}")) for k in range(6)}
+def test_follow_up_line_varies_across_encounters_without_a_chronic_schedule() -> None:
+    # A condition with no follow-up schedule (F32.9 is not a chronic_followup
+    # key): 6 encounter_ids should produce at least 2 distinct intervals.
+    variants = {_run_follow_up(_mk_ctx("F32.9", f"enc-{k}")) for k in range(6)}
     assert len(variants) >= 2, f"expected variation across 6 encounters, saw {variants}"
 
 
-def test_hypertension_uses_htn_band() -> None:
-    # I10 band = (30, 60, 90) — every rendered interval must be one of these.
-    for k in range(20):
-        line = _run_follow_up(_mk_ctx("I10", f"enc-htn-{k}"))
-        assert any(f"{d}日後" in line for d in (30, 60, 90))
-
-
-def test_dyslipidemia_uses_longer_band() -> None:
-    # E78 band = (90, 120, 180) — should reach at least one value >90.
-    seen_days: set[int] = set()
-    for k in range(30):
-        line = _run_follow_up(_mk_ctx("E78", f"enc-lipid-{k}"))
-        for d in (90, 120, 180):
-            if f"{d}日後" in line:
-                seen_days.add(d)
-    assert seen_days, "expected E78 to sample from (90, 120, 180) band"
-    assert seen_days.issubset({90, 120, 180})
+def test_scheduled_condition_states_its_follow_up_interval() -> None:
+    # Issue #2287: the note states the interval the calendar schedules
+    # (chronic_followup.yaml follow_up_interval_months): I10 every 4 months,
+    # E78 every 3, N18 monthly.
+    for k in range(5):
+        assert "4か月後" in _run_follow_up(_mk_ctx("I10", f"enc-htn-{k}"))
+        assert "3か月後" in _run_follow_up(_mk_ctx("E78", f"enc-lipid-{k}"))
+        assert "1か月後" in _run_follow_up(_mk_ctx("N18", f"enc-ckd-{k}"))
 
 
 def test_unknown_condition_uses_generic_band() -> None:
-    # A condition not in the band table (e.g., F32.9) falls back to
-    # the generic (28, 60, 90) band. Assert values come from that set.
+    # A condition with no follow-up schedule falls back to the generic
+    # (28, 60, 90) day band.
     for k in range(20):
         line = _run_follow_up(_mk_ctx("F32.9", f"enc-x-{k}"))
         assert any(f"{d}日後" in line for d in (28, 60, 90))

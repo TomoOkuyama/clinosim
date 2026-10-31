@@ -40,8 +40,9 @@ from typing import TYPE_CHECKING, Any
 import yaml
 
 from clinosim.codes import display as registry_display
-from clinosim.codes.valuesets import concept_group
+from clinosim.codes.valuesets import concept_group, iter_chronic_codes
 from clinosim.locale.i18n import t
+from clinosim.locale.loader import chronic_followup_interval_months
 from clinosim.modules._shared import get_attr_or_key as _o
 from clinosim.modules._shared import strip_protocol_prefix
 from clinosim.modules.document.narrative._localization import _localize_complication
@@ -1027,6 +1028,9 @@ def _compose_follow_up_line(ctx: NarrativeContext) -> str:
     per-encounter deterministic rotation over a small band of
     clinically-plausible intervals so consecutive visits show
     different follow-up cadence.
+
+    Issue #2287: a patient with followed-up chronic conditions gets the
+    interval their visits are scheduled at instead.
     """
     ep = ctx.encounter_protocol
     interval = _o(ep, "next_visit_interval_days", None) if ep is not None else None
@@ -1037,30 +1041,19 @@ def _compose_follow_up_line(ctx: NarrativeContext) -> str:
             return t("prescription.next_visit", lang, days=d)
         except (TypeError, ValueError):
             pass
-    # #1180: per-condition follow-up interval bands (in days). Reflects
-    # AHA / JDS / JSH / KDIGO / GOLD guideline windows for stable chronic
-    # follow-up. Bands are intentionally short (3-5 options) so a
-    # patient's own sequence of visits reads with clinical variation
-    # rather than as identical template text.
-    _follow_up_bands_days: dict[str, tuple[int, ...]] = {
-        "I10": (30, 60, 90),  # HTN stable — 1-3 mo
-        "E10": (60, 90),  # T1DM — 2-3 mo
-        "E11": (60, 90),  # T2DM — 2-3 mo
-        "E78": (90, 120, 180),  # dyslipidemia — 3-6 mo
-        "N18": (30, 60, 90),  # CKD — 1-3 mo
-        "J44": (60, 90, 120),  # COPD stable — 2-4 mo
-        "J45": (60, 90, 120),  # Asthma stable — 2-4 mo
-    }
-    # Pick the primary chronic's ICD prefix for the band lookup.
-    primary_prefix = ""
+    # Issue #2287: a patient with followed-up chronic conditions is seen at the
+    # interval the population calendar schedules (chronic_followup.yaml), so
+    # the note states that interval.
     patient = getattr(ctx, "patient", None)
     conditions = _o(patient, "chronic_conditions", []) if patient else []
-    for cond in conditions or []:
-        code = _o(cond, "code", "") or (cond if isinstance(cond, str) else "")
-        if code:
-            primary_prefix = code.split(".")[0].upper()
-            break
-    band = _follow_up_bands_days.get(primary_prefix, (28, 60, 90))
+    months = chronic_followup_interval_months(iter_chronic_codes(conditions))
+    if months:
+        phrase = "prescription.next_visit_month" if months == 1 else "prescription.next_visit_months"
+        return t(phrase, lang, months=months)
+    # #1180: no chronic schedule — a per-encounter deterministic rotation over
+    # a small band of plausible intervals (days) so consecutive visits read
+    # with clinical variation rather than as identical template text.
+    band = (28, 60, 90)
     # Deterministic per-encounter rotation — same encounter always emits
     # the same interval, but consecutive encounters of the same patient
     # cycle through the band.

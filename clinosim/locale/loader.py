@@ -40,6 +40,8 @@ from clinosim.locale._io import (
 from clinosim.locale.loaders.clinical import (
     _iter_route_values,
     _validate_chronic_medications_route_vocabulary,
+    chronic_followup_interval_months,
+    chronic_followup_vitals,
     load_actuarial_life_table,
     load_chemo_regimens,
     load_chronic_age_limits,
@@ -121,6 +123,8 @@ __all__ = [
     "load_chemo_regimens",
     "load_chronic_age_limits",
     "load_chief_complaint_translations",
+    "chronic_followup_interval_months",
+    "chronic_followup_vitals",
     "load_chronic_followup",
     "load_chronic_medications",
     "lab_codes",
