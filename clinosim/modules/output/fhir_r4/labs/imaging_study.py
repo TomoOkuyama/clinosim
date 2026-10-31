@@ -32,6 +32,7 @@ from typing import Any
 
 from clinosim.codes import get_system_uri
 from clinosim.codes import lookup as code_lookup
+from clinosim.locale.loader import imaging_exam_display
 from clinosim.modules._shared import get_attr_or_key as _o
 from clinosim.modules._shared import resolve_lang
 from clinosim.modules.imaging.engine import (  # canonical owners; re-exported below
@@ -318,38 +319,13 @@ def _build_imaging_study(
     if "description" not in res:
         _stub_desc = _o(study, "description", "") or ""
         if _stub_desc:
-            # Issue #862: the CIF stub description is an English exam name
-            # (`FAST_Ultrasound`, `ECG_12lead`, `Carotid_ultrasound`, ...)
-            # sourced from disease-YAML `- {test: "..."}` items. On JP output,
-            # 22.4% of ImagingStudy resources (1,060 / 4,735) leaked the raw
-            # English form because `body_sites` lookup was a miss and no
-            # localization applied. Look up the JA form via `load_narrative_display_dict()`
-            # (the shared localization dict — see the "Imaging exam names"
-            # section); normalize `_` → ` ` first to match the space-keyed
-            # yaml entries. Passthrough on US (`lang != "ja"`) and on any
-            # unknown key preserves the original English form.
-            if lang == "ja":
-                _stub_desc = _localize_imaging_exam_name(_stub_desc)
+            # Issue #862 / #2268: the CIF stub description is an exam slug
+            # (`FAST_Ultrasound`, `ECG_12lead`, ...) from disease-YAML
+            # `- {test: "..."}` items; show its display name from the one
+            # imaging-exam table in the output language (no raw slug).
+            _stub_desc = imaging_exam_display(_stub_desc, lang)
             res["description"] = _stub_desc
     return res
-
-
-def _localize_imaging_exam_name(exam_name: str) -> str:
-    """Return the JA form of an English CIF imaging exam name (Issue #862).
-
-    Normalizes underscores to spaces (matching how the CIF disease-YAML
-    ``- {test: "FAST_Ultrasound"}`` shape maps to the space-keyed
-    `clinosim-imaging-exam-name.yaml` entries, resolved via
-    `load_narrative_display_dict()`), then does a case-insensitive
-    exact-match lookup. Unknown keys pass through as-is so the JA-locale
-    surface degrades gracefully to the CIF English name instead of a
-    placeholder.
-    """
-    from clinosim.locale.loader import load_narrative_display_dict
-
-    ja_dict = load_narrative_display_dict()
-    normalized = exam_name.replace("_", " ")
-    return ja_dict.get(normalized.lower(), exam_name)
 
 
 # Issue #872 — chief-complaint text SoT lives in

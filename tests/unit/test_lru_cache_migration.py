@@ -175,15 +175,18 @@ def test_load_narrative_display_dict_fallback_when_catalogs_missing(monkeypatch)
     from pathlib import Path
 
     from clinosim.codes.drugs import _load_catalog as _catalog_loader
+    from clinosim.locale.loaders.narrative import load_narrative_imaging
     from clinosim.modules.output.fhir_r4.lib import localization as _fhir_localization
 
     _fhir_localization._load_narrative_display_dict.cache_clear()
     _catalog_loader.cache_clear()
+    load_narrative_imaging.cache_clear()
     monkeypatch.setattr(Path, "exists", lambda self: False)
     data = _fhir_localization._load_narrative_display_dict()
     assert data == {}
     _fhir_localization._load_narrative_display_dict.cache_clear()
     _catalog_loader.cache_clear()
+    load_narrative_imaging.cache_clear()
 
 
 def test_load_department_display_fallback_when_yaml_missing(monkeypatch):

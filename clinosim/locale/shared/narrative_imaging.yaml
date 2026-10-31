@@ -1,4 +1,10 @@
-# Imaging order display-name localization (underscore + spaced-CamelCase forms).
+# Imaging exam display names (underscore + spaced-CamelCase forms).
+#
+# Issue #2268: the one imaging-exam display table. FHIR (ImagingStudy
+# description) and narrative both read it through
+# ``clinosim.locale.loader.imaging_exam_display(exam_id, lang)``; the entries
+# of the former FHIR-only catalog (codes/data/clinosim-imaging-exam-name.yaml)
+# are merged here.
 #
 # Format: <slug>: {en: <english>, ja: <日本語>}
 # Add new language: extend each entry with `<lang_code>: <display>`.
@@ -42,7 +48,7 @@ imaging:
   ct_head_noncontrast: {en: CT head (non-contrast), ja: 頭部 CT (単純)}
   ct_pulmonary_angiography: {ja: 肺動脈 CT アンギオ}
   ecg: {en: ECG, ja: 心電図}
-  ecg_12lead: {en: 12-lead ECG, ja: 12 誘導心電図}
+  ecg_12lead: {en: 12-lead ECG, ja: 12誘導心電図}
   echocardiogram: {en: echocardiogram, ja: 心エコー}
   echocardiography_tte: {en: transthoracic echocardiogram, ja: 経胸壁心エコー}
   hip_xray_ap_lateral: {en: hip X-ray AP and lateral, ja: 股関節レントゲン (正面・側面)}
@@ -51,7 +57,7 @@ imaging:
   lumbar_xray: {en: lumbar spine X-ray, ja: 腰椎レントゲン}
   mr spine without contrast: {ja: 脊椎 MRI (単純)}
   mra_intracranial: {en: MRA (intracranial), ja: 頭蓋内 MRA}
-  mrcp: {en: MRCP, ja: MRCP (磁気共鳴胆管膵管造影)}
+  mrcp: {en: MRCP, ja: MRCP (磁気共鳴胆管膵管撮影)}
   mri_brain_dwi: {en: MRI brain (DWI), ja: 頭部 MRI (拡散強調)}
   renal_ultrasound: {en: renal ultrasound, ja: 腎エコー}
   shoulder_xray_ap_lateral: {en: shoulder X-ray AP and lateral, ja: 肩関節レントゲン (正面・側面)}
@@ -75,3 +81,55 @@ imaging:
   xray affected area: {ja: 患部レントゲン}
   xray_abdomen: {en: abdominal X-ray, ja: 腹部レントゲン}
   xray_affected_area: {ja: 患部レントゲン}
+  # --- Merged from the former FHIR imaging catalog (Issue #2268) ---
+  ecg_12lead_stat: {en: 12-lead ECG (stat), ja: 12誘導心電図 (緊急)}
+  ecg_12lead_repeat: {en: 12-lead ECG (repeat), ja: 12誘導心電図 (反復)}
+  echocardiography: {en: echocardiogram, ja: 心エコー}
+  echocardiography_bedside: {en: bedside echocardiogram, ja: ベッドサイド心エコー}
+  echocardiogram_bedside: {en: bedside echocardiogram, ja: ベッドサイド心エコー}
+  tee: {en: transesophageal echocardiogram, ja: 経食道心エコー}
+  soft_tissue_ultrasound: {en: soft tissue ultrasound, ja: 軟部組織エコー}
+  compression_ultrasound_lower_extremity: {en: lower extremity compression ultrasound, ja: 下肢圧迫エコー (DVT スクリーニング)}
+  repeat_compression_ultrasound: {en: repeat compression ultrasound, ja: 下肢圧迫エコー (反復)}
+  fast_ultrasound: {en: FAST ultrasound, ja: FAST エコー (外傷)}
+  pelvis_xray: {en: pelvis X-ray, ja: 骨盤レントゲン}
+  wrist_ct: {en: wrist CT, ja: 手関節 CT}
+  hand_ct: {en: hand CT, ja: 手部 CT}
+  cervical_spine_ct: {en: cervical spine CT, ja: 頸椎 CT}
+  ct_angiography: {en: CT angiography, ja: CT 血管造影}
+  ct_angiography_repeat: {en: CT angiography (repeat), ja: CT 血管造影 (反復)}
+  ct_angiography_chest: {en: chest CT angiography, ja: 胸部 CT 血管造影}
+  ct_angiography_chest_stat: {en: chest CT angiography (stat), ja: 胸部 CT 血管造影 (緊急)}
+  ct_angiography_head: {en: head CT angiography, ja: 頭部 CT 血管造影}
+  ct_whole_body: {en: whole-body CT, ja: 全身 CT}
+  ct_perfusion: {en: CT perfusion, ja: CT パフュージョン}
+  ct_soft_tissue_with_contrast: {en: soft tissue CT (with contrast), ja: 軟部組織 CT (造影)}
+  coronary_angiography: {en: coronary angiography, ja: 冠動脈造影}
+  coronary_angiography_repeat: {en: coronary angiography (repeat), ja: 冠動脈造影 (反復)}
+  mri_lumbar: {en: lumbar MRI, ja: 腰椎 MRI}
+  slit_lamp_exam: {en: slit lamp exam, ja: 細隙灯顕微鏡検査}
+  fluorescein_stain: {en: fluorescein stain, ja: フルオレセイン染色}
+  # --- Order names seen in generated cohorts without an entry (Issue #2268) ---
+  ct head wo contrast: {en: head CT (without contrast), ja: 頭部 CT (単純)}
+  ct_head_repeat: {en: head CT (repeat), ja: 頭部 CT (再検)}
+  ct hip wo contrast: {en: hip CT (without contrast), ja: 股関節 CT (単純)}
+  ct chest wo contrast: {en: chest CT (without contrast), ja: 胸部 CT (単純)}
+  ct_chest: {en: chest CT, ja: 胸部 CT}
+  us kidney: {en: renal ultrasound, ja: 腎エコー}
+  mr brain wo contrast: {en: brain MRI (without contrast), ja: 頭部 MRI (単純)}
+  mri_brain_follow_up: {en: follow-up brain MRI, ja: 頭部 MRI (経過観察)}
+  mri_brain_if_not_done: {en: brain MRI (if not yet done), ja: 頭部 MRI (未実施の場合)}
+  mr lumbar spine: {en: lumbar spine MRI, ja: 腰椎 MRI}
+  xr chest ap: {en: chest X-ray AP, ja: 胸部レントゲン (臥位正面)}
+  xr chest pa and lateral: {en: chest X-ray PA and lateral, ja: 胸部レントゲン (正面・側面)}
+  xr hip 2 views: {en: hip X-ray (2 views), ja: 股関節レントゲン (2 方向)}
+  portable xr cervical and thoracic and lumbar spine views: {en: "portable cervical, thoracic and lumbar spine X-ray", ja: ポータブル頸椎・胸椎・腰椎レントゲン}
+  # --- Protocol imaging names without an entry (Issue #2268) ---
+  mri_brain: {en: brain MRI, ja: 頭部 MRI}
+  hand_xray: {en: hand X-ray, ja: 手部レントゲン}
+  ct_head_non_contrast: {en: head CT (without contrast), ja: 頭部 CT (単純)}
+  ct_head_post_op: {en: post-operative head CT, ja: 頭部 CT (術後)}
+  xray_joint: {en: joint X-ray, ja: 関節レントゲン}
+  orbital_ct: {en: orbital CT, ja: 眼窩 CT}
+  fundus_photography: {en: fundus photography, ja: 眼底写真}
+  bilateral_mammography: {en: bilateral mammography, ja: 両側マンモグラフィ}

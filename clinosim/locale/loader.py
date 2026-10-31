@@ -17,8 +17,8 @@ Directory structure (country-based):
 Note: `drug_names_ja.yaml` was deleted under META #1849 Phase 5 Step 4
 (2026-10-24). The drug-name EN→JA display mapping now lives in the
 authority catalogs under `clinosim/codes/data/` (drugs.yaml +
-clinosim-{imaging-exam-name,procedure-phrase,allergen-substance,
-admin-form-display}.yaml); the free-text EN → JA display helper
+clinosim-{procedure-phrase,allergen-substance,admin-form-display}.yaml)
+plus the imaging-exam table (locale/shared/narrative_imaging.yaml); the free-text EN → JA display helper
 `load_narrative_display_dict()` (renamed from `load_drug_names_ja` in
 Phase 5 Step 3) UNIONs those catalogs into the dict shape callers
 have always used.
@@ -89,6 +89,7 @@ from clinosim.locale.loaders.medical_display import (
 )
 from clinosim.locale.loaders.narrative import (
     _load_country_language_map,
+    imaging_exam_display,
     load_chief_complaint_translations,
     load_inpatient_subjective_pool,
     load_llm_prompt_labels,
@@ -149,6 +150,7 @@ __all__ = [
     "load_narrative_archetypes",
     "load_narrative_complications",
     "load_narrative_display_dict",
+    "imaging_exam_display",
     "load_narrative_imaging",
     "load_narrative_lab_flags",
     "load_narrative_lab_names",

@@ -122,6 +122,28 @@ def load_narrative_imaging() -> dict[str, dict[str, str]]:
     return raw.get("imaging", {}) or {}
 
 
+def imaging_exam_display(exam_id: str, lang: str) -> str:
+    """Display name of an imaging exam in ``lang`` from the one imaging-exam
+    table (``narrative_imaging.yaml``; Issue #2268), used by FHIR and narrative.
+
+    Keys match case-insensitively after collapsing whitespace, in both the
+    spaced and the underscore form (``Chest_Xray_PA_Lateral`` and ``chest xray
+    pa lateral``). A missing language falls back to English; an unknown exam
+    is humanised (underscores → spaces) so a slug never reaches the output.
+    """
+    key = " ".join(str(exam_id or "").strip().lower().split())
+    if not key:
+        return ""
+    table = load_narrative_imaging()
+    for candidate in (key, key.replace(" ", "_"), key.replace("_", " ")):
+        entry = table.get(candidate)
+        if entry:
+            hit = resolve_localized_display(entry, lang)
+            if hit:
+                return hit
+    return str(exam_id).replace("_", " ")
+
+
 @lru_cache(maxsize=1)
 def load_narrative_op_approach() -> dict[str, dict[str, str]]:
     raw = _load_yaml(_LOCALE_DIR / "shared" / "narrative_op_approach.yaml", fallback={})
@@ -206,8 +228,8 @@ def load_narrative_display_dict() -> dict[str, str]:
       1. ``drugs.yaml`` — drug_id → names + aliases
          (META #1804 Phase 2.g UNION pattern, META #1849 Phase 5 Step
          2.g aliases extension).
-      2. ``clinosim-imaging-exam-name.yaml`` — ECG / Echocardiogram /
-         FAST Ultrasound / … (META #1849 Phase 5 Step 2.e).
+      2. ``locale/shared/narrative_imaging.yaml`` — the one imaging-exam
+         table (ECG / Echocardiogram / FAST Ultrasound / …; Issue #2268).
       3. ``clinosim-procedure-phrase.yaml`` — Suture closure / Hemodialysis
          / CPAP therapy / … (META #1849 Phase 5 Step 2.d).
       4. ``clinosim-allergen-substance.yaml`` — Penicillin / Latex / Egg
@@ -244,11 +266,10 @@ def load_narrative_display_dict() -> dict[str, str]:
             alias_lower = (alias or "").strip().lower()
             if alias_lower and ja and alias_lower not in merged:
                 merged[alias_lower] = ja
-    _imaging_exam_catalog = _LOCALE_DIR.parent / "codes" / "data" / "clinosim-imaging-exam-name.yaml"
-    exam_raw = _load_yaml(_imaging_exam_catalog, fallback={})
-    for en, ja in (exam_raw.get("exams", {}) or {}).items():
-        en_lower = (en or "").strip().lower()
-        ja_val = (ja or "").strip() if isinstance(ja, str) else ""
+    # Imaging exam names (Issue #2268: the one imaging table), spaced form.
+    for slug, entry in load_narrative_imaging().items():
+        en_lower = " ".join(str(slug).replace("_", " ").strip().lower().split())
+        ja_val = str((entry or {}).get("ja") or "").strip() if isinstance(entry, dict) else ""
         if en_lower and ja_val and en_lower not in merged:
             merged[en_lower] = ja_val
     _procedure_catalog = _LOCALE_DIR.parent / "codes" / "data" / "clinosim-procedure-phrase.yaml"
