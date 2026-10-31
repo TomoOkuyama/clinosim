@@ -411,3 +411,8 @@ narrative:
     diet_lifestyle:
       en: "Strict sodium restriction (<2g/day). Fluid restriction per cardiologist. Daily weight monitoring."
       ja: "厳格な塩分制限（1 日 2 g 未満）を守ってください。水分制限は循環器科医の指示に従い、毎日体重を記録してください。"
+
+# Chronic conditions a stay commonly surfaces (new-onset findings in the
+# workup), added to the problem list at admission (RM-7d; moved from
+# simulator/inpatient.py in Issue #2291).
+implied_chronic_codes: ["I50", "I25", "I10"]

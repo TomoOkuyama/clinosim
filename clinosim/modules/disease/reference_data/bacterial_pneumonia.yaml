@@ -863,3 +863,8 @@ narrative:
     diet_lifestyle:
       en: "Adequate hydration, balanced nutrition. Smoking cessation strongly recommended."
       ja: "十分な水分摂取と栄養補給を心がけてください。禁煙を強くお勧めします。"
+
+# Chronic conditions a stay commonly surfaces (new-onset findings in the
+# workup), added to the problem list at admission (RM-7d; moved from
+# simulator/inpatient.py in Issue #2291).
+implied_chronic_codes: ["J44"]

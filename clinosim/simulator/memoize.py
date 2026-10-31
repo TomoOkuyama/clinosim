@@ -27,7 +27,7 @@ That limitation is no longer active; historical detail is preserved at
 the bottom of this docstring for context and for the corresponding note
 in ``test_memoize_hit_bit_identical``.)
 
-1. **``_IMPLIED_CHRONIC_BY_DISEASE`` accretion**
+1. **the disease YAMLs' ``implied_chronic_codes`` accretion**
    (``inpatient.py:493``). When ``_simulate_patient`` sees an admission
    whose disease_id maps to the implied-chronic table, it appends
    directly (in-place, no RNG, purely deterministic on disease_id + sex)

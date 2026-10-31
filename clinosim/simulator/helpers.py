@@ -39,6 +39,7 @@ from clinosim.modules.disease.localization import (  # noqa: F401
 from clinosim.modules.disease.protocol import (
     DiseaseProtocol,
     load_all_disease_protocols,
+    load_disease_protocol,
 )
 from clinosim.modules.population.engine import HospitalizationSummary, LifeEvent
 from clinosim.simulator.discharge_gate import (  # noqa: F401
@@ -101,10 +102,6 @@ def _sha_weighted_choice(salt: str, choices: tuple[str, ...], weights: tuple[flo
 # authoritatively in ``modules.patient._severity_activation`` and
 # are imported lazily to avoid a top-of-file cycle with the
 # patient module.
-_STROKE_SEQUELA_MAP: dict[str, str] = {
-    "cerebral_infarction": "I69.3",
-    "hemorrhagic_stroke": "I69.1",
-}
 
 
 def _promote_stroke_sequela_at_discharge(person: Any, disease_id: str, record: Any, summary: Any) -> None:
@@ -119,7 +116,11 @@ def _promote_stroke_sequela_at_discharge(person: Any, disease_id: str, record: A
     """
     if record.deceased:
         return
-    sequela_icd = _STROKE_SEQUELA_MAP.get(disease_id)
+    # Issue #2291: the disease YAML's ``sequela_code``.
+    try:
+        sequela_icd = load_disease_protocol(disease_id).sequela_code
+    except (FileNotFoundError, KeyError, ValueError):
+        return
     if sequela_icd is None:
         return
     if sequela_icd in person.chronic_conditions:

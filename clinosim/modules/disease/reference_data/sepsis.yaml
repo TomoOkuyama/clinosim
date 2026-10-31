@@ -1174,3 +1174,8 @@ narrative:
     diet_lifestyle:
       en: "Maintain balanced diet and adequate hydration."
       ja: "バランスの良い食事と十分な水分摂取を心がけてください。"
+
+# Chronic conditions a stay commonly surfaces (new-onset findings in the
+# workup), added to the problem list at admission (RM-7d; moved from
+# simulator/inpatient.py in Issue #2291).
+implied_chronic_codes: ["N18"]

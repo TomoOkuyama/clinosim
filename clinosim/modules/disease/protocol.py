@@ -506,6 +506,9 @@ class DiseaseProtocol(BaseModel):
     order_protocols: dict[str, Any] = {}
     target_los: dict[str, Any] = {}
     complications: list[dict[str, Any]] = []
+    # Issue #2291: the disease-id → ICD relations held by the disease YAML.
+    implied_chronic_codes: list[str] = []
+    sequela_code: str | None = None
     likelihood_ratios: dict[str, Any] = {}
     expected_lab_distributions: dict[str, Any] = {}
     expected_vital_distributions: dict[str, Any] = {}
