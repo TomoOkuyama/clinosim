@@ -567,6 +567,20 @@ class DiseaseProtocol(BaseModel):
     narrative: NarrativeSpec | None = None
 
 
+def _validate_incidence_block(disease_id: str, incidence: dict[str, Any]) -> None:
+    """Reject fields whose source of truth is the locale demographics (Issue #2288).
+
+    The prerequisite chronic conditions of a disease are read from
+    ``locale/<cc>/demographics.yaml`` ``disease_incidence``; a copy in the
+    disease YAML was never read and had drifted from it.
+    """
+    if "prerequisite_condition" in incidence:
+        raise ValueError(
+            f"{disease_id}: incidence.prerequisite_condition belongs in "
+            "locale/<cc>/demographics.yaml disease_incidence, not in the disease YAML"
+        )
+
+
 @lru_cache(maxsize=64)
 def load_disease_protocol(disease_id: str) -> DiseaseProtocol:
     """Load a disease protocol YAML and validate.
@@ -586,6 +600,7 @@ def load_disease_protocol(disease_id: str) -> DiseaseProtocol:
         data = yaml.safe_load(f)
 
     protocol = DiseaseProtocol(**data)
+    _validate_incidence_block(disease_id, data.get("incidence") or {})
     # Fail-loud severity-block validation (FP-SEV-MODEL). Imported here to avoid a
     # module-import cycle (severity.py has no dependency on protocol.py).
     from clinosim.modules.disease.severity import _validate_severity_block

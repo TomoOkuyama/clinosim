@@ -23,10 +23,9 @@ icd_codes:
 
 incidence:
   # Admissions among patients with alcohol dependence (F10.20). The per-country
-  # rate lives in locale/<cc>/demographics.yaml disease_incidence; without it
-  # the pathway generates no stays.
+  # rate and the prerequisite condition live in locale/<cc>/demographics.yaml
+  # disease_incidence; without it the pathway generates no stays.
   trigger_type: "acute"
-  prerequisite_condition: "F10.20"
 
 severity:
   distribution:

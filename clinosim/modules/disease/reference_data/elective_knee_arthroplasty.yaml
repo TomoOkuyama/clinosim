@@ -24,10 +24,10 @@ icd_codes:
 
 incidence:
   # Scheduled admissions for patients with knee osteoarthritis (M17). The
-  # per-country rate lives in locale/<cc>/demographics.yaml disease_incidence
-  # (US: Issue #2044); without it the pathway generates no stays.
+  # per-country rate and the prerequisite condition live in
+  # locale/<cc>/demographics.yaml disease_incidence (US: Issue #2044);
+  # without it the pathway generates no stays.
   trigger_type: "elective"
-  prerequisite_condition: "M17"
 
 severity:
   distribution:

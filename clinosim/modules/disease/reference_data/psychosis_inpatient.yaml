@@ -32,10 +32,10 @@ icd_codes:
 
 incidence:
   # Admissions among patients with schizophrenia or bipolar disorder. The
-  # per-country rate lives in locale/<cc>/demographics.yaml disease_incidence,
-  # which also requires a psychiatric ward at the hospital.
+  # per-country rate and the prerequisite conditions (F20 / F31) live in
+  # locale/<cc>/demographics.yaml disease_incidence, which also requires a
+  # psychiatric ward at the hospital.
   trigger_type: "acute"
-  prerequisite_condition: "F20"
 
 severity:
   distribution:

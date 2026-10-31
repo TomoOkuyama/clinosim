@@ -367,11 +367,12 @@ def _select_secondary_disease(
     protocols: dict[str, DiseaseProtocol],
     rng: np.random.Generator,
 ) -> DiseaseProtocol | None:
-    """Select a secondary disease for mixed conditions based on patient's
-    chronic diseases.
+    """Select a secondary disease for a mixed-condition stay.
 
-    Priority: diseases whose prerequisite_condition matches patient's chronic
-    conditions. Fallback: any non-surgical disease different from primary.
+    Bacterial pneumonia, the common secondary diagnosis of a hospitalised
+    patient, is chosen when available; otherwise a uniformly random
+    non-surgical disease other than the primary. The patient's chronic
+    conditions are not consulted.
     """
     matching = []
     for did, proto in protocols.items():
