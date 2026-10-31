@@ -524,11 +524,9 @@ def test_graded_stage_severity_score_tracks_sampled_stage(code, severe_stages):
         person = _make_condition_person(code)
         profile = activate_patient(person, np.random.default_rng(seed), demo)
         cond = next(c for c in profile.chronic_conditions if c.code.startswith(code_base))
-        # N18's stage text carries a "CKD " display prefix not part of the
-        # KDIGO stage code itself (matches activator.py's own lookup).
-        lookup_key = cond.stage.removeprefix("CKD ") if code_base == "N18" else cond.stage
-        assert lookup_key in stage_severity, f"unexpected {code_base} stage text: {cond.stage!r}"
-        assert cond.severity_score == stage_severity[lookup_key]
+        # STAGE_SEVERITY is keyed by the stored stage label (Issue #2289).
+        assert cond.stage in stage_severity, f"unexpected {code_base} stage text: {cond.stage!r}"
+        assert cond.severity_score == stage_severity[cond.stage]
         if cond.stage in severe_stages:
             seen_severe = True
     assert seen_severe, f"no severe-stage {code_base} patient sampled in 100 seeds"
