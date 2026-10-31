@@ -46,8 +46,8 @@
 に直接持つ:
 
 - **周産期分娩 Encounter** (母親側、IMP admission、admit dx `O80`、
-  discharge dx `Z37.0`、LOS JP 5 日 / US 2 日、部門は `obgyn`、
-  `department_rollup` で `internal_medicine` fallback。delivery Procedure
+  discharge dx `Z37.0`、LOS JP 5 日 / US 2 日、部門は `obstetrics_gynecology`、
+  `department_rollup` で集約 (同梱の病院設定では `primary_care`)。delivery Procedure
   JP `K894` / US CPT `59400`)。
 - **新生児 Encounter** (IMP admission、`admit_source = "born"` —
   [`clinosim/types/encounter.py`](../../types/encounter.py) の

@@ -36,7 +36,7 @@ department_rollup:
   # Consumed by simulator/outpatient_dept for follow-up visits (well-
   # child, immunization, mammography screening).
   pediatrics: primary_care
-  obgyn: primary_care
+  obstetrics_gynecology: primary_care
   dermatology: primary_care
   # Issue #1280 Sub-A: tiny clinic doesn't run oncology; cancer
   # follow-up visits fall back to internal_medicine here (real world:

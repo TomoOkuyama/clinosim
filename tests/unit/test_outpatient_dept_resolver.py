@@ -28,7 +28,7 @@ def hospital_ops():
             "neurosurgery": "general_surgery",
             "trauma_surgery": "general_surgery",
             "pediatrics": "primary_care",
-            "obgyn": "primary_care",
+            "obstetrics_gynecology": "primary_care",
             "dermatology": "primary_care",
         },
     }
@@ -44,7 +44,7 @@ def tiny_clinic():
             "gastroenterology": "internal_medicine",
             "orthopedics": "internal_medicine",
             "pediatrics": "primary_care",
-            "obgyn": "primary_care",
+            "obstetrics_gynecology": "primary_care",
         },
     }
 
@@ -132,7 +132,7 @@ def test_screening_annual_routes_to_primary_care(hospital_ops):
 
 
 def test_screening_mammography_falls_back_to_primary_care(hospital_ops):
-    """obgyn is not staffed here → rollup → primary_care."""
+    """obstetrics_gynecology is not staffed here → rollup → primary_care."""
     dept = resolve_outpatient_department("health_screening", "mammography_screening", None, hospital_ops)
     assert dept == "primary_care"
 

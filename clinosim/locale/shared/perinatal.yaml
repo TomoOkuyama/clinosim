@@ -23,7 +23,7 @@ encounter:
   length_of_stay_days:
     jp: 5                               # JSOG normal delivery LOS ~4-5 days
     us: 2                               # US Medicare/HEDIS ~2 days (48h stay)
-  department: "obgyn"                   # falls back to internal_medicine when hospital lacks obgyn
+  department: "obstetrics_gynecology"   # rolls up via department_rollup (primary_care in the bundled hospitals)
 
 # ---------------------------------------------------------------------------
 # Delivery Procedure — emitted on the encounter with the JP/US billing code.
@@ -231,7 +231,7 @@ abortion:
     visit_reason:
       en: "Pregnancy termination"
       ja: "妊娠中絶"
-    department: "obgyn"
+    department: "obstetrics_gynecology"
     length_of_stay_days: 0                # outpatient day-surgery (AMB encounter)
     duration_minutes: 90
   procedure:
