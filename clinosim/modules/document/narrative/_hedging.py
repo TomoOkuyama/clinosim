@@ -50,8 +50,8 @@ def hedged_phrase(
             hedge ("本疾患で典型的な X は本日訴えなし"). This is the
             central switch that keeps scenario data from masquerading as
             fact when the CIF has no confirming record.
-        lang: ``ja`` or ``en``. Falls back to ``ja`` when a language is
-            unknown to keep the pipeline robust.
+        lang: ``ja`` or ``en`` (default ``en``). Falls back to ``en`` when
+            the language has no phrases (Issue #2273).
         rng: Optional deterministic RNG. Template renders are called from
             deterministic passes; when omitted, the first phrase in the
             registry list is used (stable across runs).
