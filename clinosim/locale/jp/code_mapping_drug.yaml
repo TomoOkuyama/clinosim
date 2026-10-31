@@ -206,7 +206,7 @@ NSAIDs:                 "1149019C1149"  # (plural alias)
 # formulation preferred (IV drip / injection over PO where both exist).
 Edoxaban:               "3339002"  # エドキサバントシル酸塩水和物 (リクシアナ錠15mg)
 Lorazepam:              "1139403A1020"  # ロラゼパム (ロラピタ静注2mg)
-Elcatonin:              "3999401"  # エルカトニン (エルシトニン注40単位)
+# Elcatonin: the catalog YJ 3999401A1200 (エルシトニン注40単位, MHLW YJ master) applies (Issue #2262).
 Diltiazem:              "2171006"  # ジルチアゼム塩酸塩 (ヘルベッサー注射用250)
 Nicardipine:            "2149019"  # ニカルジピン塩酸塩 注射液
 Landiolol:              "2123404"  # ランジオロール塩酸塩 (オノアクト点滴静注用50mg)
@@ -266,7 +266,7 @@ Amiodarone:                            "2129410A1028"  # アミオダロン塩�
                                                           # combo tablet in JP 薬価基準)
 "Acetaminophen/Codeine":                 "1141007"
 # Additional MHLW YJ codes for drugs surfaced in cycle 7 MAR sweep
-Nafamostat:                              "3999407"  # ナファモスタットメシル酸塩 (注射用フサン10)
+# Nafamostat: the catalog YJ 3999407D1181 (注射用フサン10, MHLW YJ master) applies (Issue #2262).
 "Calcium gluconate":                     "3213400A2047"  # グルコン酸カルシウム水和物 (カルチコール注射液)
 Metronidazole:                           "6419002"  # メトロニダゾール (アネメトロ点滴静注液500mg — injection form preferred)
 "Metronidazole 500mg":                   "6419401A1027"

@@ -10,9 +10,7 @@ live in [`../lib/inline_bb.py`](../lib/inline_bb.py)),
 `Practitioner` + `PractitionerRole`, `FamilyMemberHistory`, and the
 smoking / alcohol social-history `Observation`s. The
 [`../conditions/`](../conditions/README.md) `AllergyIntolerance`
-builder is the only allergy emit path; the legacy
-`_build_allergy_intolerance` in `patient.py` is retained but not
-called.
+builder is the only allergy emit path.
 
 ## Scope
 
@@ -60,7 +58,6 @@ from clinosim.modules.output.fhir_r4.demographics.patient import (
     _build_patient,                     # (patient_dict, country) -> Patient dict
     _build_coverage_resources,          # (patient_dict, country, encounters=None, snapshot_date=None) -> [Coverage, payor Organization, ...]
     _build_occupation_observation,      # -> occupation Observation
-    _build_allergy_intolerance,         # legacy, not called (conditions/ is the emit path)
 )
 from clinosim.modules.output.fhir_r4.demographics.practitioner import (
     _build_practitioner,                # (staff_id, roster_map, country) -> Practitioner dict

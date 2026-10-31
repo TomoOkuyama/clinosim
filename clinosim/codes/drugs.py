@@ -33,6 +33,8 @@ Usage::
 
 from __future__ import annotations
 
+import json
+import re
 from dataclasses import dataclass, field
 from functools import cache
 from pathlib import Path
@@ -185,3 +187,50 @@ def all_drug_ids() -> tuple[str, ...]:
     """Return every drug_id in the catalog (sorted). Used by integrity tests
     and by audit scripts that cross-reference drug_id usage in downstream yamls."""
     return tuple(sorted(_load_catalog().keys()))
+
+
+# --------------------------------------------------------------------------- #
+# Drug code systems (Issue #2262)
+
+_YJ12_PATTERN = re.compile(r"^\d{7}[A-Z]\d{4}$")
+_YJ_FULL_CS = Path(__file__).parent / "authoritative" / "JP_MedicationCodeYJ_CS_full.json"
+
+
+def jp_drug_system_key(code: str) -> str:
+    """Registry key of a JP drug code by its format (JP Core NamingSystem):
+    7 / 9 / 13 digits → MEDIS ``hot7`` / ``hot9`` / ``hot13``; a 12-character
+    ``\\d{7}[A-Z]\\d{4}`` code → ``yj``. Other shapes fall back to ``hot9``
+    (the pre-existing emit behaviour)."""
+    if code.isdigit():
+        return {7: "hot7", 9: "hot9", 13: "hot13"}.get(len(code), "hot9")
+    if _YJ12_PATTERN.match(code):
+        return "yj"
+    return "hot9"
+
+
+def drug_system_key(code: str, country: str) -> str:
+    """Registry key of a drug code emitted for ``country``: RxNorm for the US,
+    the format-dispatched JP system for JP."""
+    return jp_drug_system_key(code) if str(country).strip().upper() == "JP" else "rxnorm"
+
+
+def drug_system_uri(code: str, country: str) -> str:
+    """Canonical URI of a drug code emitted for ``country``."""
+    from clinosim.codes.loader import get_system_uri
+
+    return get_system_uri(drug_system_key(code, country))
+
+
+@cache
+def _verified_yj_codes() -> frozenset[str]:
+    if not _YJ_FULL_CS.is_file():
+        return frozenset()
+    data = json.loads(_YJ_FULL_CS.read_text(encoding="utf-8"))
+    return frozenset(c.get("code", "") for c in data.get("concept", []) if c.get("code"))
+
+
+def is_verified_yj(code: str) -> bool:
+    """True when ``code`` is in the JP national YJ CodeSystem shipped as
+    ``codes/authoritative/JP_MedicationCodeYJ_CS_full.json`` (MEDIS-sourced,
+    content=complete; Issue #1220)."""
+    return code in _verified_yj_codes()

@@ -413,7 +413,7 @@ drugs:
         renal_adjustment:
           eGFR_below_30: "0.5g IV q12h"
       - drug: "Nafamostat"
-        code_yj: "3999407"
+        code_yj: "3999407D1181"  # 注射用フサン10 (MHLW YJ master, Issue #2262)
         dose: "20mg/h continuous IV"
         indication: "severe pancreatitis (JP-specific protease inhibitor)"
         note: "Used in Japan, not standard in US/EU"

@@ -17,6 +17,7 @@ from clinosim.codes import (
     system_key_for,
 )
 from clinosim.codes import lookup as code_lookup
+from clinosim.codes.drugs import drug_system_uri, is_verified_yj
 from clinosim.codes.ucum import ucum_quantity
 from clinosim.locale.loader import load_code_mapping
 from clinosim.modules._shared import (
@@ -369,18 +370,14 @@ def _build_medication_request_identifiers(
 #   - HOT9  : http://medis.or.jp/CodeSystem/master-HOT9
 #   - HOT13 : http://medis.or.jp/CodeSystem/master-HOT13
 #   - YJ    : http://capstandard.jp/iyaku.info/CodeSystem/YJ-code
-_MEDIS_HOT7_URI = "http://medis.or.jp/CodeSystem/master-HOT7"
-_MEDIS_HOT9_URI = "http://medis.or.jp/CodeSystem/master-HOT9"
-_MEDIS_HOT13_URI = "http://medis.or.jp/CodeSystem/master-HOT13"
-_JP_YJ_CODE_URI = "http://capstandard.jp/iyaku.info/CodeSystem/YJ-code"
-
-_YJ12_PATTERN = re.compile(r"^\d{7}[A-Z]\d{4}$")
+# Issue #2262: the per-format dispatch lives in clinosim.codes.drugs.
+_JP_YJ_CODE_URI = get_system_uri("yj")
 
 # #291 JP-CLINS eCS "nocoded" slice — code_mapping にヒットしない
 # 薬(ED 特異薬 等)の `medication[x].coding` min=1 を満たすための fallback。
 # spec: clinical-information-sharing#1.13.0/package/
 # CodeSystem-jp-eCS-medicationcode-nocoded-cs.json 権威 display "標準コードなし"。
-_JP_MEDICATION_CODE_NOCODED_CS = "http://jpfhir.jp/fhir/eCS/CodeSystem/MedicationCodeNocoded_CS"
+_JP_MEDICATION_CODE_NOCODED_CS = get_system_uri("medication-nocoded")
 _JP_MEDICATION_CODE_NOCODED_CODE = "NOCODED"
 _JP_MEDICATION_CODE_NOCODED_DISPLAY = "標準コードなし"
 
@@ -407,54 +404,16 @@ _JP_MEDICATION_CODE_NOCODED_DISPLAY = "標準コードなし"
 #         --source h<YYYYMMDD>/MEDIS<YYYYMMDD>.TXT
 
 
-def _load_full_yj_codes() -> frozenset[str]:
-    """Load the full JP national YJ code set from the clinosim-shipped CS."""
-    import json as _json
-    from pathlib import Path as _Path
-
-    _cs = _Path(__file__).resolve().parents[4] / "codes" / "authoritative" / "JP_MedicationCodeYJ_CS_full.json"
-    if not _cs.is_file():
-        return frozenset()
-    _data = _json.loads(_cs.read_text(encoding="utf-8"))
-    return frozenset(c.get("code", "") for c in _data.get("concept", []) if c.get("code"))
-
-
-_FULL_YJ_CODES: frozenset[str] = _load_full_yj_codes()
-
-
 def _is_yj_code_valid(code: str) -> bool:
-    """Return True when ``code`` is present in the JP national YJ CodeSystem.
-
-    Issue #1220: single source of truth is the clinosim-shipped
-    ``JP_MedicationCodeYJ_CS_full.json`` (MEDIS-sourced, content=complete).
-    All clinosim yj.yaml codes are curated to real MHLW YJ codes and pass
-    this gate; consumers get semantic accuracy and validator can verify
-    every emitted ``codingYJ.code`` against the full VS.
-    """
-    return code in _FULL_YJ_CODES
+    """Return True when ``code`` is in the JP national YJ CodeSystem
+    (``clinosim.codes.drugs.is_verified_yj``, Issues #1220 / #2262)."""
+    return is_verified_yj(code)
 
 
 def _resolve_jp_drug_system_uri(code: str) -> str:
-    """Return the JP Core NamingSystem URI matching the drug code format.
-
-    - 7-digit numeric  → MEDIS HOT7 URI
-    - 9-digit numeric  → MEDIS HOT9 URI
-    - 13-digit numeric → MEDIS HOT13 URI
-    - 12-char YJ pattern (`^\\d{7}[A-Z]\\d{4}$`) → YJ code URI
-    - fallback → HOT9 URI(旧 clinosim 挙動維持、将来 code 追加時の safe default。
-      新 format を足す時は必ず本 helper と pin test を先に拡張すること)。
-    """
-    if code.isdigit():
-        n = len(code)
-        if n == 7:
-            return _MEDIS_HOT7_URI
-        if n == 9:
-            return _MEDIS_HOT9_URI
-        if n == 13:
-            return _MEDIS_HOT13_URI
-    elif _YJ12_PATTERN.match(code):
-        return _JP_YJ_CODE_URI
-    return _MEDIS_HOT9_URI
+    """JP Core NamingSystem URI for a JP drug code by format
+    (``clinosim.codes.drugs.drug_system_uri``, Issue #2262)."""
+    return drug_system_uri(code, "JP")
 
 
 def _map_order_status_to_fhir(status: str) -> str:

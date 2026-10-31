@@ -26,10 +26,8 @@ from pathlib import Path
 import pytest
 import yaml
 
-from clinosim.modules.output.fhir_r4.medications.medications import (
-    _FULL_YJ_CODES,
-    _is_yj_code_valid,
-)
+from clinosim.codes.drugs import _verified_yj_codes
+from clinosim.modules.output.fhir_r4.medications.medications import _is_yj_code_valid
 
 pytestmark = pytest.mark.unit
 
@@ -42,7 +40,7 @@ def _clinosim_yj_yaml_codes() -> set[str]:
 
 def test_full_cs_loaded_with_expected_scale() -> None:
     """The MEDIS-sourced CS ships tens of thousands of concepts."""
-    assert len(_FULL_YJ_CODES) > 20000, f"expected > 20k concepts, got {len(_FULL_YJ_CODES)}"
+    assert len(_verified_yj_codes()) > 20000, f"expected > 20k concepts, got {len(_verified_yj_codes())}"
 
 
 def test_every_clinosim_yj_yaml_code_passes_gate() -> None:

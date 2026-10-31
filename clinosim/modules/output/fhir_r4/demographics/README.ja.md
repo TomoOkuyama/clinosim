@@ -10,8 +10,7 @@ demographics + 社会歴ファミリの FHIR R4 resource 全てを emit:
 `PractitionerRole`、`FamilyMemberHistory`、smoking / alcohol
 社会歴 `Observation`。standalone allergy path は
 [`../conditions/`](../conditions/README.ja.md) の `AllergyIntolerance`
-builder が唯一の emit path で、`patient.py` 内の legacy
-`_build_allergy_intolerance` は残っているが呼ばれない。
+builder が唯一の emit path。
 
 ## Scope
 
@@ -56,7 +55,6 @@ from clinosim.modules.output.fhir_r4.demographics.patient import (
     _build_patient,                     # (patient_dict, country) -> Patient dict
     _build_coverage_resources,          # (patient_dict, country, encounters=None, snapshot_date=None) -> [Coverage, payor Organization, ...]
     _build_occupation_observation,      # -> occupation Observation
-    _build_allergy_intolerance,         # legacy、呼ばれない (emit path は conditions/)
 )
 from clinosim.modules.output.fhir_r4.demographics.practitioner import (
     _build_practitioner,                # (staff_id, roster_map, country) -> Practitioner dict

@@ -9,12 +9,6 @@ from __future__ import annotations
 
 from clinosim.codes import get_system_uri
 
-# Allergen RxNorm mapping now lives in
-# `clinosim/codes/data/clinosim-allergen-substance.yaml::allergen_rxnorm`
-# (post-#1880 review, hardcoded-audit Finding 14) — load via
-# `clinosim.locale.loader.load_allergen_rxnorm_map()`.
-
-
 _SEVERITY_SNOMED: dict[str, dict[str, str]] = {
     "mild": {"code": "255604002", "display": "Mild"},
     "moderate": {"code": "6736007", "display": "Moderate"},
