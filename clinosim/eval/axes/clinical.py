@@ -197,19 +197,24 @@ _COHERENCE_WARN_MAX = 0.25
 _PEDIATRIC_AGE_CEILING: int = 12  # age < this ⇒ patient counted as pediatric
 _ADULT_AGE_FLOOR: int = 18  # age > this ⇒ patient counted as adult
 
+
 # ICD-10 (US) / ICD-10 (JP) prefixes for conditions that are strictly
 # adult-onset — clinosim never generates these for pediatric patients.
 # Prefix-matched against ``Condition.code.coding[].code`` in the age /
 # condition consistency check. Extracted from inline literal so the
 # vocabulary sits at module scope alongside the other clinical-axis
 # thresholds.
-_ADULT_ONLY_INTERNAL_CODES: tuple[str, ...] = ("I10", "I25", "I48", "I50", "E11", "N18", "N40", "F00")
-"""Adult-only chronic conditions in the simulator's internal code space.
+def _adult_only_internal_codes() -> tuple[str, ...]:
+    """Adult-only chronic conditions in the simulator's internal code space
+    (``adult_only_codes`` in ``chronic_onset_min_age.yaml``; Issue #2286).
 
-The check runs on emitted FHIR codes, which differ by country after
-``locale/*/code_mapping_diagnosis.yaml`` (dementia F00 is emitted as F03.90
-in the US and F00 in JP), so :func:`_adult_only_emitted_prefixes` maps
-each code through the country's diagnosis mapping (Issue #2283)."""
+    The check runs on emitted FHIR codes, which differ by country after
+    ``locale/*/code_mapping_diagnosis.yaml`` (dementia F00 is emitted as
+    F03.90 in the US and F00 in JP), so :func:`_adult_only_emitted_prefixes`
+    maps each code through the country's diagnosis mapping (Issue #2283)."""
+    from clinosim.locale.loader import load_chronic_age_limits
+
+    return tuple(str(c) for c in load_chronic_age_limits().get("adult_only_codes") or [])
 
 
 @cache
@@ -218,7 +223,7 @@ def _adult_only_emitted_prefixes(country: str) -> frozenset[str]:
 
     mapping = load_code_mapping("diagnosis", country) or {}
     out: set[str] = set()
-    for code in _ADULT_ONLY_INTERNAL_CODES:
+    for code in _adult_only_internal_codes():
         emitted = str(mapping.get(code) or code)
         out.add(emitted.split(".")[0])
     return frozenset(out)

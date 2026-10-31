@@ -77,3 +77,31 @@ codes:
 
   # === Malignancy — no floor (any age plausible) ===
   # C-codes intentionally omitted; fall through to default_min_years=0.
+
+# --- Implied-chronic gate (Issue #2286) --------------------------------------
+# Minimum patient age (years) at which an inpatient stay may imply a chronic
+# condition the patient does not already carry (simulator/inpatient.py,
+# implied comorbidities such as COPD behind a COPD exacerbation). A distinct
+# concept from the onset floor above: it gates adding the condition at all,
+# by the patient's current age. Keyed by ICD-10 base code.
+implied_chronic_min_years:
+  J44: 40   # COPD — adult-onset
+  N18: 60   # CKD stage 3+ — elderly prevalence
+  I10: 25   # Essential hypertension — rare in minors
+  I25: 40   # Chronic ischemic heart disease
+  I48: 40   # Atrial fibrillation
+  I50: 40   # Heart failure
+  E11: 15   # Type 2 DM — extremely rare pre-teen
+  M17: 40   # Knee OA — degenerative
+  M81: 50   # Osteoporosis
+  F00: 60   # Dementia (Alzheimer's) — elderly
+  F03: 60   # Unspecified dementia
+  G20: 40   # Parkinson's — adult-onset
+  N40: 40   # BPH — adult male
+  K74: 30   # Chronic liver disease/cirrhosis
+
+# --- Adult-only conditions for the eval pediatric check (Issue #2286) --------
+# Internal codes the eval age-condition check treats as implausible below
+# the pediatric ceiling; eval maps each through the country's diagnosis code
+# mapping to the emitted code (Issue #2283).
+adult_only_codes: [I10, I25, I48, I50, E11, N18, N40, F00]

@@ -264,23 +264,16 @@ Downstream FHIR emission picks these up as problem-list-item entries.
 """
 
 
-_IMPLIED_CHRONIC_AGE_MIN = {
-    "J44": 40,  # COPD — adult-onset
-    "N18": 60,  # CKD stage 3+ — elderly prevalence
-    "I10": 25,  # Essential hypertension — rare in minors
-    "I25": 40,  # Chronic ischemic heart disease
-    "I48": 40,  # Atrial fibrillation
-    "I50": 40,  # Heart failure
-    "E11": 15,  # Type 2 DM — extremely rare pre-teen
-    "E11.9": 15,
-    "M17": 40,  # Knee OA — degenerative
-    "M81": 50,  # Osteoporosis
-    "F00": 60,  # Dementia (Alzheimer's) — elderly
-    "F03": 60,  # Unspecified dementia
-    "G20": 40,  # Parkinson's — adult-onset
-    "N40": 40,  # BPH — adult male
-    "K74": 30,  # Chronic liver disease/cirrhosis
-}
+def _implied_chronic_min_age(code: str) -> int | None:
+    """Minimum patient age for an implied chronic condition, by ICD-10 base
+    code (``implied_chronic_min_years`` in ``chronic_onset_min_age.yaml``;
+    Issue #2286), or None when unrestricted."""
+    from clinosim.locale.loader import load_chronic_age_limits
+
+    value = (load_chronic_age_limits().get("implied_chronic_min_years") or {}).get(code.split(".")[0])
+    return int(value) if value is not None else None
+
+
 """Minimum-age gate per implied-chronic ICD (p=500 review session 89).
 
 Mirrors ``demographics.yaml:chronic_prevalence`` lower bound so the
@@ -302,7 +295,7 @@ def _attach_implied_chronic_conditions(
     Mutates ``patient.chronic_conditions`` in place, skipping codes
     already present, sex-locked ICDs on the wrong sex (via
     ``is_sex_locked_for``), and age-restricted ICDs on younger
-    patients (via ``_IMPLIED_CHRONIC_AGE_MIN``). The onset date is
+    patients (via ``_implied_chronic_min_age``). The onset date is
     backdated 1-14 years from a ``(patient_id, code)`` SHA hash so
     it precedes the acute admission while remaining RNG-neutral.
 
@@ -335,7 +328,7 @@ def _attach_implied_chronic_conditions(
             continue
         if is_sex_locked_for(code, patient_sex):
             continue  # skip sex-restricted ICD for the wrong sex
-        min_age = _IMPLIED_CHRONIC_AGE_MIN.get(base)
+        min_age = _implied_chronic_min_age(base)
         if min_age is not None and patient_age < min_age:
             continue  # skip age-restricted ICD for younger patients
         existing_codes.add(base)
