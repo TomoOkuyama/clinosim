@@ -36,7 +36,6 @@ __all__ = [
     "build_telecom",
     "build_presented_form",
     "build_route_concept",
-    "build_ucum_quantity",
     "canonicalize_route",
     "augment_iv_dosage_with_rate",
     "resolve_iv_infusion_default",
@@ -66,8 +65,9 @@ __all__ = [
     "to_fhir_instant",
     "tz_suffix_for_country",
     # Truly-private (kept out of __all__): _parse_dose_for_mar, _sha1_b64,
-    # _escape_html, _to_ucum_code, _coding_with_display, _social_category,
-    # _value, _validate_route_maps, _append_tz_if_missing, _UCUM_CODE_MAP.
+    # _escape_html, _coding_with_display, _social_category,
+    # _value, _validate_route_maps, _append_tz_if_missing.
+    # UCUM Quantities: clinosim.codes.ucum (ucum_code / ucum_quantity, Issue #2265).
 ]
 
 import re
@@ -82,7 +82,9 @@ import yaml
 
 from clinosim.codes import get_system_uri
 from clinosim.codes import lookup as code_lookup
-from clinosim.locale.loader import load_code_mapping, load_prefecture_jis_x_0401_map, load_reference_ranges
+from clinosim.codes.prefectures import prefecture_code
+from clinosim.codes.ucum import ucum_quantity
+from clinosim.locale.loader import load_code_mapping, load_reference_ranges
 from clinosim.modules._shared import is_jp, resolve_lang, strip_protocol_prefix
 from clinosim.modules.output.fhir_r4.lib.localization import (
     _CATEGORY_DISPLAY_JA,
@@ -154,87 +156,6 @@ class BundleContext:
     # falls back to the pre-#1217 order-set gate, matching the pre-fix
     # baseline for backwards compatibility.
     emitted_mr_ids: set[str] | None = None
-
-
-# Human-readable → UCUM canonical token map (issue #204, 2026-07-17).
-#
-# fhir-jp-validator 2026-07-17 §【最優先 1】surfaced 6,203 errors on
-# MedicationAdministration Quantity.code — UCUM does not accept the informal
-# clinical spellings that appear in disease-YAML dose fields
-# (`IU`, `mcg`, `u`). We keep the human display as-is on `Quantity.unit`
-# (clinicians reading the JSON see the familiar spelling) and map the
-# machine `Quantity.code` field to the UCUM canonical form.
-#
-# Sources for the mapping: UCUM specification §32-35 (Common Units,
-# Special Units) at https://ucum.org/ucum#section-Special-Units-On-Non-Ratio-Scales
-# — the bracketed forms (`[iU]`, `[meq]`) are the "arbitrary units"
-# convention UCUM reserves for quantities defined by biological assay.
-# UCUM defines `U` (Unit, uppercase) as a generic enzymatic activity
-# unit; the informal lowercase `u` clinicians write for insulin doses
-# lands on the same UCUM concept.
-#
-# Only include tokens that clinosim actually emits (verified against
-# the 2026-07-17 validation report). Adding a token that never appears
-# is dead code; missing one leaves an error path open. Extension policy:
-# add a new token here + a per-token pin test in
-# tests/unit/output/test_ucum_code_canonicalization.py.
-@cache
-def _ucum_aliases_from_yaml() -> dict[str, str]:
-    """Load the clinosim-emitted token → UCUM canonical code map from yaml."""
-    path = Path(__file__).resolve().parents[4] / "codes" / "data" / "ucum-aliases.yaml"
-    with path.open(encoding="utf-8") as fh:
-        raw = yaml.safe_load(fh) or {}
-    return {str(k): str(v) for k, v in (raw.get("aliases", {}) or {}).items()}
-
-
-# Rationale, extension policy, and authority source live in the yaml
-# header; see codes/data/ucum-aliases.yaml.
-_UCUM_CODE_MAP: dict[str, str] = _ucum_aliases_from_yaml()
-
-
-def _to_ucum_code(unit: str) -> str:
-    """Return the UCUM canonical code for a clinical unit string.
-
-    Handles both scalar (``mcg``, ``IU``, ``u``) and compound (``mcg/kg``,
-    ``IU/L``, ``0.1U/kg/h``) forms by splitting on ``/`` and mapping each
-    factor independently; unknown factors are passed through, so ``mg/dL``,
-    ``mL/h``, ``mmol/L`` are byte-identical.
-
-    Idempotent — passing an already-canonical form (``[iU]/L``) returns it
-    unchanged.
-    """
-    if not unit:
-        return unit
-    if "/" not in unit:
-        return _UCUM_CODE_MAP.get(unit, unit)
-    return "/".join(_UCUM_CODE_MAP.get(p, p) for p in unit.split("/"))
-
-
-def build_ucum_quantity(value: Any, unit: str) -> dict[str, Any]:
-    """Build a FHIR ``Quantity`` (UCUM) with ``value``, ``unit`` (display), and ``code``.
-
-    JP-CLINS ``JP_MedicationAdministration_eCS`` (and related eCS profiles) declare
-    ``Quantity.code`` as ``min=1`` bound to UCUM; the FHIR-R4 UCUM idiom is that
-    ``unit`` carries the human-readable label and ``code`` carries the machine
-    UCUM token. Most clinical unit strings used by clinosim (``mg`` / ``mL`` /
-    ``g/dL`` / ``mL/h`` / ``mmol/L`` / ``U/L`` ...) are already valid UCUM
-    tokens, so ``unit`` and ``code`` end up identical; ``_to_ucum_code``
-    handles the small set of informal spellings (``mcg`` → ``ug``,
-    ``IU`` → ``[iU]``, ``u`` → ``U``, ``mEq`` → ``meq``, ``mmHg`` →
-    ``mm[Hg]``) that UCUM rejects.
-
-    Introduced (2026-07-16, PR-A) so every UCUM Quantity site — MA.dose,
-    MA.rateQuantity, MR.dosageInstruction[].doseAndRate[].doseQuantity,
-    Observation.referenceRange.low/high — goes through one edit point.
-    Extended (2026-07-17, issue #204) with the ``_UCUM_CODE_MAP``
-    normalization to close the remaining 6,203 unknown-code errors from
-    the fhir-jp-validator 2026-07-17 report §【最優先 1】.
-    """
-    q: dict[str, Any] = {"value": value, "system": get_system_uri("ucum")}
-    if unit:
-        q["unit"] = unit
-        q["code"] = _to_ucum_code(unit)
-    return q
 
 
 # --------------------------------------------------------------------------- #
@@ -696,7 +617,7 @@ def build_address(addr: dict, country: str) -> dict[str, Any] | None:
 
     # State: use code for JP (JIS X 0401), abbreviation for US
     if is_jp(country_code):
-        code = load_prefecture_jis_x_0401_map().get(state_name, "")
+        code = prefecture_code(state_name)
         if code:
             fhir_addr["state"] = code
     elif state_name:
@@ -1058,7 +979,7 @@ def _canonicalize_iv_rate_unit(numerator: str, denominator: str) -> str:
 
     UCUM keeps ``mL``, ``mg``, ``mcg``, ``U`` as-is; ``hr`` → ``h``. Weight-
     normalized rates (``mg/kg/h``) are emitted as authored — UCUM allows
-    the compound form. ``build_ucum_quantity`` down-line applies its own
+    the compound form. ``ucum_quantity`` down-line applies its own
     unit-code canonicalization (Issue #781 test) so this just picks a
     clean surface form for ``rate_unit``.
     """
@@ -1173,7 +1094,7 @@ def augment_iv_dosage_with_rate(
                 dar = dosage.setdefault("doseAndRate", [{}])
                 if not dar:
                     dar.append({})
-                dar[0]["rateQuantity"] = build_ucum_quantity(rate_value, rate_unit)
+                dar[0]["rateQuantity"] = ucum_quantity(rate_value, rate_unit)
                 return
 
     # Priority 2/3: catalog lookup + default fallback.
@@ -1189,7 +1110,7 @@ def augment_iv_dosage_with_rate(
         dar = dosage.setdefault("doseAndRate", [{}])
         if not dar:
             dar.append({})
-        dar[0]["rateQuantity"] = build_ucum_quantity(rate_value, rate_unit)
+        dar[0]["rateQuantity"] = ucum_quantity(rate_value, rate_unit)
         # Issue #1332: continuous IV infusions (vasopressors / inotropes /
         # nitroglycerin drip / insulin drip / propofol / heparin drip) are
         # dosed as a RATE, never as a fixed one-time bolus. Any doseQuantity
@@ -1334,12 +1255,12 @@ def build_dosage_instruction(order: dict, country: str = "US") -> dict[str, Any]
     dosage: dict[str, Any] = {}
     parts = []
 
-    # Dose quantity — route through build_ucum_quantity so `code` is populated
+    # Dose quantity — route through ucum_quantity so `code` is populated
     # (JP-CLINS eCS profiles require it).
     if dose_qty is not None and dose_unit:
         dosage["doseAndRate"] = [
             {
-                "doseQuantity": build_ucum_quantity(dose_qty, dose_unit),
+                "doseQuantity": ucum_quantity(dose_qty, dose_unit),
             }
         ]
         # Issue #781: `dosageInstruction[].text` is human-readable, so drop
@@ -1569,9 +1490,9 @@ def build_reference_range(
         rr: dict[str, Any] = {}
         unit_str = entry.get("unit", "")
         if entry.get("low") is not None:
-            rr["low"] = build_ucum_quantity(entry["low"], unit_str)
+            rr["low"] = ucum_quantity(entry["low"], unit_str)
         if entry.get("high") is not None:
-            rr["high"] = build_ucum_quantity(entry["high"], unit_str)
+            rr["high"] = ucum_quantity(entry["high"], unit_str)
         if entry.get("text"):
             rr["text"] = entry["text"]
 
@@ -1614,8 +1535,8 @@ def build_reference_range(
         unit_str = (ranges[0] or {}).get("unit", "")
         result.append(
             {
-                "low": build_ucum_quantity(therapeutic[0], unit_str),
-                "high": build_ucum_quantity(therapeutic[1], unit_str),
+                "low": ucum_quantity(therapeutic[0], unit_str),
+                "high": ucum_quantity(therapeutic[1], unit_str),
                 "type": {
                     "coding": [
                         {

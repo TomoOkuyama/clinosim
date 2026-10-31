@@ -42,7 +42,12 @@ _builtins_loaded = False
 
 
 def register_output_adapter(adapter: OutputAdapter) -> None:
-    """Register (or replace) an adapter by its format_id. Idempotent."""
+    """Register (or replace) an adapter by its format_id. Idempotent.
+
+    The built-in adapters are loaded first, so a registration made before the
+    first ``get_adapter`` call is not overwritten when they load.
+    """
+    _ensure_builtins()
     _ADAPTERS[adapter.format_id] = adapter
 
 

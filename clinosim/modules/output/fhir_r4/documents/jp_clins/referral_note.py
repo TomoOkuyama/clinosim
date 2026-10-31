@@ -18,6 +18,7 @@ from __future__ import annotations
 from typing import Any
 
 from clinosim.codes import display as registry_display
+from clinosim.codes import get_system_uri
 from clinosim.modules._shared import get_attr_or_key as _o
 from clinosim.modules._shared import uses_jp_clins_profile
 from clinosim.modules.output.fhir_r4.documents.referral_orgs import (
@@ -55,9 +56,9 @@ _JP_ER_EVENT_CODE_TEXT_JA = "診療情報提供書発行"
 
 # Shared system URIs (re-declared locally; mirror composition.py's
 # module-level defs so this file is self-contained).
-_JPFHIR_DOC_TYPECODES_SYSTEM = "http://jpfhir.jp/fhir/Common/CodeSystem/doc-typecodes"
-_JPFHIR_DOC_SUBTYPECODES_SYSTEM = "http://jpfhir.jp/fhir/Common/CodeSystem/doc-subtypecodes"
-_JPFHIR_DOC_SECTION_SYSTEM = "http://jpfhir.jp/fhir/clins/CodeSystem/document-section"
+_JPFHIR_DOC_TYPECODES_SYSTEM = get_system_uri("jpfhir-doc-typecodes")
+_JPFHIR_DOC_SUBTYPECODES_SYSTEM = get_system_uri("jpfhir-doc-subtypecodes")
+_JPFHIR_DOC_SECTION_SYSTEM = get_system_uri("jpfhir-doc-section")
 _JP_EDS_VERSION_EXTENSION_URL = "http://hl7.org/fhir/StructureDefinition/composition-clinicaldocument-versionNumber"
 
 

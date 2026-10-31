@@ -273,7 +273,7 @@ def parse_dose_string(dose_str: str) -> dict[str, Any]:
     #    ``dose_unit`` unset and FHIR ``MedicationRequest.dosageInstruction[]
     #    .doseAndRate[].doseQuantity`` empty (only ``dosageInstruction.text``
     #    populated). UCUM accepts ``mg/m2`` / ``mg/kg`` / ``mcg/kg`` as valid
-    #    unit tokens (BSA/weight-normalised), and ``build_ucum_quantity``
+    #    unit tokens (BSA/weight-normalised), and ``clinosim.codes.ucum.ucum_quantity``
     #    routes them through unchanged.
     # 2. Plain-unit dose (e.g. "500mg", "1.5g", "1000IU", "0.4mg") —
     #    fallback for non-BSA doses; also catches "3.75mg" (Leuprorelin).

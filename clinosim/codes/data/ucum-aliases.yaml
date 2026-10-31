@@ -1,6 +1,6 @@
 # ucum-aliases.yaml — clinosim-emitted unit tokens → UCUM canonical codes.
 #
-# Consumed by `clinosim/modules/output/fhir_r4/lib/common.py::_to_ucum_code`
+# Consumed by `clinosim/codes/ucum.py::ucum_code`
 # (scalar + compound-via-`/`-split). Idempotent: a token already in the
 # UCUM canonical form passes through unchanged.
 #

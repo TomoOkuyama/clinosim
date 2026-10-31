@@ -17,8 +17,9 @@ from functools import cache
 from pathlib import Path
 from typing import Any
 
+from clinosim.codes import get_system_uri, system_key_for_uri
 from clinosim.codes import lookup as code_lookup
-from clinosim.codes import system_key_for_uri
+from clinosim.codes.ucum import ucum_quantity
 from clinosim.modules._shared import is_jp, resolve_lang
 from clinosim.modules.output.fhir_r4.lib.common import derive_meta_last_updated
 from clinosim.modules.output.fhir_r4.post_process.profile import (
@@ -75,7 +76,7 @@ _HL7_V3_SUBSTITUTION_SYSTEM = "http://terminology.hl7.org/CodeSystem/v3-substanc
 # above pins the exact spec file + section). A yaml extraction would hide
 # the fixedUri / R5020-rationale from the yaml reader without decoupling
 # any configurable behavior. Reviewed as part of META #1633 P5.
-_JP_CLINS_MEDICATION_USAGE_UNCODED_CS = "http://jpfhir.jp/fhir/clins/CodeSystem/JP_CLINS_MedicationUsage_Uncoded_CS"
+_JP_CLINS_MEDICATION_USAGE_UNCODED_CS = get_system_uri("jp-clins-medication-usage-uncoded")
 
 
 _JP_CLINS_MEDICATION_USAGE_UNCODED_CODE = "0X0XXXXXXXXX0000"
@@ -129,7 +130,7 @@ _JP_MEDICATION_DOSAGE_PERIOD_OF_USE_EXT_URL = (
 
 # The MHLW ePrescription CS is the "coded" alternative to the dummy code. When
 # a builder has emitted this system already, the walker leaves it alone.
-_JP_MHLW_MEDICATION_USAGE_EPRESCRIPTION_CS = "http://jpfhir.jp/fhir/core/mhlw/CodeSystem/MedicationUsage_ePrescription"
+_JP_MHLW_MEDICATION_USAGE_EPRESCRIPTION_CS = get_system_uri("jp-medication-usage-eprescription")
 
 
 # Issue #817: Heuristic drug + frequency → MHLW MedicationUsage_ePrescription
@@ -376,9 +377,7 @@ def _resolve_mhlw_usage_code(
 # active-ingredient strength). clinosim does not otherwise emit this
 # CodeSystem, so we define the URI here so `_populate_jp_medication_dosage_ecs_fields`
 # can inject the coding without duplicating the literal.
-_JP_MHLW_MEDICATION_INGREDIENT_STRENGTH_TYPE_CS = (
-    "http://jpfhir.jp/fhir/core/mhlw/CodeSystem/MedicationIngredientStrengthStrengthType"
-)
+_JP_MHLW_MEDICATION_INGREDIENT_STRENGTH_TYPE_CS = get_system_uri("jp-medication-ingredient-strength-type")
 
 
 _JP_MHLW_STRENGTH_TYPE_PHARMACEUTICAL_CODE = "1"
@@ -387,13 +386,10 @@ _JP_MHLW_STRENGTH_TYPE_PHARMACEUTICAL_CODE = "1"
 _JP_MHLW_STRENGTH_TYPE_PHARMACEUTICAL_DISPLAY = "製剤量"
 
 
-# UCUM CodeSystem URI + daily unit — used to rewrite
+# UCUM daily unit — used to rewrite
 # `Dosage.timing.repeat.periodUnit='d'` (bare `code` with unresolvable-by-tx
 # UnitsOfTime binding) into a `Dosage.timing.repeat.boundsDuration` Duration
 # whose `system` field lets the validator resolve `d` inline.# Chain #2.
-_UCUM_SYSTEM_URI = "http://unitsofmeasure.org"
-
-
 _UCUM_DAY_CODE = "d"
 
 
@@ -715,12 +711,11 @@ def _populate_jp_medication_dosage_ecs_fields(resource: dict) -> None:
                 # duration reading of `boundsDuration` should look at
                 # dispenseRequest.expectedSupplyDuration instead.
                 period = repeat.get("period", 1)
-                repeat["boundsDuration"] = {
-                    "value": period if isinstance(period, (int, float)) else 1,
-                    "unit": _UCUM_DAY_UNIT_JA,
-                    "system": _UCUM_SYSTEM_URI,
-                    "code": _UCUM_DAY_CODE,
-                }
+                repeat["boundsDuration"] = ucum_quantity(
+                    period if isinstance(period, (int, float)) else 1,
+                    _UCUM_DAY_UNIT_JA,
+                    code=_UCUM_DAY_CODE,
+                )
             # #307 pop `periodUnit` + `period` after boundsDuration
             # is populated. tim-2 (period.exists() implies periodUnit.exists())
             # は pair で無くなれば non-fire。frequency + boundsDuration で

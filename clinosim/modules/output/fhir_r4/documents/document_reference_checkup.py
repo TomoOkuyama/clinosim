@@ -74,7 +74,7 @@ _DOCREF_ID_PREFIX = "drf-"
 # 健診 category(HL7 v3 ActClass / IHE PCC は該当 code 無し、
 # JP-eCheckup は独自 typecodes を採用)
 _JP_CATEGORY = {
-    "system": "http://jpfhir.jp/fhir/eCheckup/CodeSystem/doc-typecodes",
+    "system": get_system_uri("jpfhir-echeckup-doc-typecodes"),
     "code": "eCheckupGeneral",
     "display": "健診結果報告書",
 }

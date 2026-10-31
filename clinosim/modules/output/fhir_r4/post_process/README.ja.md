@@ -88,7 +88,7 @@ builder が resource を返した直後に resource 単位で呼ばれる —
     numeric coverage は **semantic correctness win** で regression
     ではない、period-of-use
     extension URL (`_JP_MEDICATION_DOSAGE_PERIOD_OF_USE_EXT_URL`)、
-    UCUM day code (`_UCUM_SYSTEM_URI`, `_UCUM_DAY_CODE = "d"`,
+    UCUM day code (`_UCUM_DAY_CODE = "d"`,
     `_UCUM_DAY_UNIT_JA = "日"`)、JP resource-instance identifier
     system (`_JP_OBSERVATION_RESOURCE_IDENTIFIER_SYSTEM =
     "http://jpfhir.jp/fhir/core/IdSystem/resourceInstance-identifier"`

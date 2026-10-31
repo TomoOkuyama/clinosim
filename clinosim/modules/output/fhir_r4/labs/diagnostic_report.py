@@ -130,8 +130,8 @@ RADIOLOGY_CATEGORY_V2_0074 = "RAD"
 #   code.coding:radiologyReportCode = JP_DocumentCodes_CS 18748-4(画像検査報告書)
 _JP_DR_RADIOLOGY_PROFILE = "http://jpfhir.jp/fhir/core/StructureDefinition/JP_DiagnosticReport_Radiology"
 _JP_DR_RADIOLOGY_CATEGORY_LOINC_CODE = "LP29684-5"
-_JP_DR_DICOM_MODALITY_SYSTEM = "http://dicom.nema.org/resources/ontology/DCM"
-_JP_DOCUMENT_CODES_CS = "http://jpfhir.jp/fhir/core/CodeSystem/JP_DocumentCodes_CS"
+_JP_DR_DICOM_MODALITY_SYSTEM = get_system_uri("dicom-modality")
+_JP_DOCUMENT_CODES_CS = get_system_uri("jp-document-codes")
 _JP_DR_RADIOLOGY_REPORT_CODE = "18748-4"
 # JP_DR_RADIOLOGY_CATEGORY/REPORT displays live in
 # `narrative_phrases.yaml` under

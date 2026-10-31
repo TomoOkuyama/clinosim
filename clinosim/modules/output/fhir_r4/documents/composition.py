@@ -922,7 +922,7 @@ def _build_composition_generic(
 # ============================================================
 
 _JP_CLINS_DS_PROFILE = "http://jpfhir.jp/fhir/eDischargeSummary/StructureDefinition/JP_Composition_eDischargeSummary"
-_JPFHIR_DOC_TYPECODES_SYSTEM = "http://jpfhir.jp/fhir/Common/CodeSystem/doc-typecodes"
+_JPFHIR_DOC_TYPECODES_SYSTEM = get_system_uri("jpfhir-doc-typecodes")
 
 # JP-CLINS eDS / eReferral pin
 # `Composition.identifier.system` to this URI (spec `fixedUri`, verified via
@@ -943,7 +943,7 @@ _JP_EDS_VERSION_EXTENSION_URL = "http://hl7.org/fhir/StructureDefinition/composi
 # は jpfhir-doc-typecodes CS(下記 `_JP_EDS_TYPE_DISPLAY_JA`)の display で
 # あり、doc-subtypecodes CS とは別軸。 (#267) で 1 定数を
 # 兼用したため drift、v5 validation で 126+126 errors として顕在化(#279)。
-_JPFHIR_DOC_SUBTYPECODES_SYSTEM = "http://jpfhir.jp/fhir/Common/CodeSystem/doc-subtypecodes"
+_JPFHIR_DOC_SUBTYPECODES_SYSTEM = get_system_uri("jpfhir-doc-subtypecodes")
 _JP_EDS_CATEGORY_CODE = "DISCHARGE"
 _JP_EDS_CATEGORY_DISPLAY_JA = "退院時文書"
 # jpfhir-doc-typecodes CS 18842-5 の JP display(`code_lookup` fallback +
@@ -972,7 +972,7 @@ def _section_title_from_section_display(display: str) -> str:
 # clinical-information-sharing#1.13.0/package/
 # CodeSystem-jp-codeSystem-clins-document-section.json `.url` fixedUri
 # を直接引用。従来の id-in-URL 版は HAPI で 1272 warn。
-_JPFHIR_DOC_SECTION_SYSTEM = "http://jpfhir.jp/fhir/clins/CodeSystem/document-section"
+_JPFHIR_DOC_SECTION_SYSTEM = get_system_uri("jpfhir-doc-section")
 
 # JP-CLINS 退院時サマリー section キー → jpfhir-doc-section 番号 code.
 # expanded from 5 admission-side to 10 required slices

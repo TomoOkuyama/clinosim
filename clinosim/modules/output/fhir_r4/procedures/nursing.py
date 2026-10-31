@@ -14,6 +14,7 @@ from typing import Any
 
 from clinosim.codes import display as registry_display
 from clinosim.codes import get_system_uri
+from clinosim.codes.ucum import ucum_quantity
 from clinosim.modules._shared import is_jp, resolve_lang
 from clinosim.modules.output.fhir_r4.demographics.patient import patient_ref
 from clinosim.modules.output.fhir_r4.encounters.encounter import encounter_ref
@@ -399,12 +400,7 @@ def _bb_nursing_observations(ctx: BundleContext) -> list[dict]:
                 "coding": [loinc_coding("9108-2", lang)],
                 "text": registry_display("loinc", "9108-2", lang) or "Fluid intake total 24 hour",
             }
-            obs["valueQuantity"] = {
-                "value": int(intake_total),
-                "unit": "mL",
-                "system": get_system_uri("ucum"),
-                "code": "mL",
-            }
+            obs["valueQuantity"] = ucum_quantity(int(intake_total), "mL")
             out.append(obs)
 
         # Urine output 24h (component; LOINC 9192-6)
@@ -417,12 +413,7 @@ def _bb_nursing_observations(ctx: BundleContext) -> list[dict]:
                 "coding": [loinc_coding("9192-6", lang)],
                 "text": registry_display("loinc", "9192-6", lang) or "Urine output 24 hour",
             }
-            obs["valueQuantity"] = {
-                "value": int(urine_ml),
-                "unit": "mL",
-                "system": get_system_uri("ucum"),
-                "code": "mL",
-            }
+            obs["valueQuantity"] = ucum_quantity(int(urine_ml), "mL")
             out.append(obs)
 
         # Fluid output total 24h = urine + drain + other (aggregate; LOINC 9262-7)
@@ -437,12 +428,7 @@ def _bb_nursing_observations(ctx: BundleContext) -> list[dict]:
                 "coding": [loinc_coding("9262-7", lang)],
                 "text": registry_display("loinc", "9262-7", lang) or "Fluid output total 24 hour",
             }
-            obs["valueQuantity"] = {
-                "value": int(output_total),
-                "unit": "mL",
-                "system": get_system_uri("ucum"),
-                "code": "mL",
-            }
+            obs["valueQuantity"] = ucum_quantity(int(output_total), "mL")
             out.append(obs)
 
     return out

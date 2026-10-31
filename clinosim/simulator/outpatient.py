@@ -895,7 +895,7 @@ def _simulate_outpatient_visit(
             # BCG "1 vial ..."), so those keep the pre-1331 text-only
             # emit — no regression for un-parseable doses. The FHIR
             # emit path picks up ``doseQuantity`` from these fields
-            # via ``build_ucum_quantity``.
+            # via ``clinosim.codes.ucum.ucum_quantity``.
             enrich_medication_order(_order, dose_str=_dose)
             orders.append(_order)
             chemo_mars.append(

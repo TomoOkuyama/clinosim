@@ -7,6 +7,8 @@ other adapter symbols) and are re-exported by fhir_r4_adapter as a facade.
 
 from __future__ import annotations
 
+from clinosim.codes import get_system_uri
+
 # Allergen RxNorm mapping now lives in
 # `clinosim/codes/data/clinosim-allergen-substance.yaml::allergen_rxnorm`
 # (post-#1880 review, hardcoded-audit Finding 14) — load via
@@ -26,7 +28,7 @@ _SEVERITY_SNOMED: dict[str, dict[str, str]] = {
 #
 # URI 出典:iris4h-ai/tx-server-build/.../CodeSystem-jp-conditionseverity-cs.json
 # (JP CS の display は `中度`、`中等度` ではないので注意)
-_JP_CONDITION_SEVERITY_CS = "http://jpfhir.jp/fhir/core/CodeSystem/JP_ConditionSeverity_CS"
+_JP_CONDITION_SEVERITY_CS = get_system_uri("jp-condition-severity")
 _SEVERITY_JP: dict[str, dict[str, str]] = {
     "mild": {"code": "MI", "display": "軽度"},
     "moderate": {"code": "MO", "display": "中度"},
@@ -48,7 +50,7 @@ _SEVERITY_JP: dict[str, dict[str, str]] = {
 # `clinosim/codes/data/jis-x-0401-prefectures.yaml` (post-#1880 review,
 # hardcoded-audit Finding 4) — JIS X 0401 is a standards registry; the
 # data belongs beside the other authority-adjacent catalogs. Load via
-# `clinosim.locale.loader.load_prefecture_jis_x_0401_map()`.
+# `clinosim.codes.prefectures.prefecture_code()` (Issue #2265).
 
 
 # Encounter type -> SNOMED code lives in

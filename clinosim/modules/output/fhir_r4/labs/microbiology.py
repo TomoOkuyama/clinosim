@@ -96,7 +96,7 @@ def _resolve_mb_sus_id(structural_key: str) -> str:
 #     `{system: JP_DocumentCodes_CS, code: 18725-2}` ("微生物学的検査報告書")
 JP_MB_DR_PROFILE_URI = "http://jpfhir.jp/fhir/core/StructureDefinition/JP_DiagnosticReport_Microbiology"
 JP_MB_DR_CATEGORY_LOINC = "LP7819-8"
-JP_MB_DR_CODE_CS = "http://jpfhir.jp/fhir/core/CodeSystem/JP_DocumentCodes_CS"
+JP_MB_DR_CODE_CS = get_system_uri("jp-document-codes")
 JP_MB_DR_CODE_VALUE = "18725-2"
 JP_MB_DR_CODE_DISPLAY = "微生物学的検査報告書"
 

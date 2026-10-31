@@ -87,7 +87,7 @@ resource — not as a separate pass over an assembled bundle.
     (IV/inhaled drugs given oral 服用 codes). The current lower
     numeric coverage is a semantic-correctness win, not a regression,
     period-of-use extension URL (`_JP_MEDICATION_DOSAGE_PERIOD_OF_USE_EXT_URL`),
-    UCUM day code (`_UCUM_SYSTEM_URI`, `_UCUM_DAY_CODE = "d"`,
+    UCUM day code (`_UCUM_DAY_CODE = "d"`,
     `_UCUM_DAY_UNIT_JA = "日"`), and the JP resource-instance
     identifier system (`_JP_OBSERVATION_RESOURCE_IDENTIFIER_SYSTEM =
     "http://jpfhir.jp/fhir/core/IdSystem/resourceInstance-identifier"`,

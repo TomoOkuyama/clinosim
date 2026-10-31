@@ -426,6 +426,27 @@ _BUILTIN_URIS: dict[str, str] = {
     "occupation-category": "http://clinosim.dev/fhir/CodeSystem/occupation-category",
     # DICOM code systems (Tier 1 #2 Imaging, PR1)
     "dicom-modality": "http://dicom.nema.org/resources/ontology/DCM",
+    # Issue #2265: JP document, allergen, severity and medication CodeSystems
+    # and US identifier systems that emitters used to hard-code. Each URI is
+    # the spec fixedUri the emitter already used (JP Core 1.2.0 / JP-CLINS
+    # 1.13.0 / jpfhir-terminology 2.2606.0 / US Core 6.1.0); no code data is
+    # held for them.
+    "jpfhir-doc-subtypecodes": "http://jpfhir.jp/fhir/Common/CodeSystem/doc-subtypecodes",
+    "jpfhir-echeckup-doc-typecodes": "http://jpfhir.jp/fhir/eCheckup/CodeSystem/doc-typecodes",
+    "jp-document-codes": "http://jpfhir.jp/fhir/core/CodeSystem/JP_DocumentCodes_CS",
+    "jp-jfagy-food-allergen": "http://jpfhir.jp/fhir/core/CodeSystem/JP_JfagyFoodAllergen_CS",
+    "jp-jfagy-medication-allergen": "http://jpfhir.jp/fhir/core/CodeSystem/YCM/JP_JfagyMedicationAllergen_CS",
+    "jp-jfagy-nonfood-nonmedication-allergen": (
+        "http://jpfhir.jp/fhir/core/CodeSystem/JP_JfagyNonFoodNonMedicationAllergen_CS"
+    ),
+    "jp-condition-severity": "http://jpfhir.jp/fhir/core/CodeSystem/JP_ConditionSeverity_CS",
+    "jp-clins-medication-usage-uncoded": "http://jpfhir.jp/fhir/clins/CodeSystem/JP_CLINS_MedicationUsage_Uncoded_CS",
+    "jp-medication-usage-eprescription": "http://jpfhir.jp/fhir/core/mhlw/CodeSystem/MedicationUsage_ePrescription",
+    "jp-medication-ingredient-strength-type": (
+        "http://jpfhir.jp/fhir/core/mhlw/CodeSystem/MedicationIngredientStrengthStrengthType"
+    ),
+    "us-ssn": "http://hl7.org/fhir/sid/us-ssn",
+    "us-npi": "http://hl7.org/fhir/sid/us-npi",
 }
 
 # Inverse of ``_BUILTIN_URIS`` (every URI is registered once) for

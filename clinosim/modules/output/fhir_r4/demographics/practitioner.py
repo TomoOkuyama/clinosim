@@ -24,7 +24,7 @@ from clinosim.modules.output.fhir_r4.lib.reference_data import (
 # Issue #1986: US Core 6.1.0 Practitioner profile marks the NPI
 # identifier slice as must-support. System URI is the HL7-registered
 # NPI OID alias; see http://hl7.org/fhir/sid/us-npi.
-_US_NPI_SYSTEM = "http://hl7.org/fhir/sid/us-npi"
+_US_NPI_SYSTEM = get_system_uri("us-npi")
 _US_NPI_SALT = "practitioner-npi"
 # NPPES-canonical NPI prefix (ISO Issuer Identifier for US healthcare
 # providers) — used as the Luhn checksum anchor; the published NPI

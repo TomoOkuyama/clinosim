@@ -14,6 +14,7 @@ from typing import Any
 
 from clinosim.codes import get_system_uri
 from clinosim.codes import lookup as code_lookup
+from clinosim.codes.ucum import ucum_quantity
 from clinosim.locale.i18n import t
 from clinosim.modules._shared import get_attr_or_key, is_jp, resolve_lang
 from clinosim.modules.output.fhir_r4.demographics.patient import patient_ref
@@ -251,12 +252,7 @@ def _bb_immunizations(ctx: BundleContext) -> list[dict]:
                     }
                 ],
             }
-            resource["doseQuantity"] = {
-                "value": 0.5,
-                "unit": "mL",
-                "system": "http://unitsofmeasure.org",
-                "code": "mL",
-            }
+            resource["doseQuantity"] = ucum_quantity(0.5, "mL")
         out.append(resource)
 
     return out

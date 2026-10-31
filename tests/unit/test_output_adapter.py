@@ -11,6 +11,19 @@ from clinosim.modules.output.adapter import (
 )
 
 
+@pytest.fixture(autouse=True)
+def _restore_adapter_registry():
+    """Tests register spies over the built-in adapters; put the registry back
+    so later tests in the same worker see the real adapters."""
+    from clinosim.modules.output import adapter as registry
+
+    available_formats()
+    saved = dict(registry._ADAPTERS)
+    yield
+    registry._ADAPTERS.clear()
+    registry._ADAPTERS.update(saved)
+
+
 class _DummyAdapter:
     format_id = "dummy"
     description = "Dummy test adapter"

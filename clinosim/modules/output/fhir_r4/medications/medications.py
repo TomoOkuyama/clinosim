@@ -17,6 +17,7 @@ from clinosim.codes import (
     system_key_for,
 )
 from clinosim.codes import lookup as code_lookup
+from clinosim.codes.ucum import ucum_quantity
 from clinosim.locale.loader import load_code_mapping
 from clinosim.modules._shared import (
     MED_STOP_ORDER_ID_MARKER,
@@ -30,7 +31,6 @@ from clinosim.modules.output.fhir_r4.lib.common import (
     _parse_dose_for_mar,
     build_dosage_instruction,
     build_route_concept,
-    build_ucum_quantity,
     canonicalize_route,
     map_diagnosis_code,
     map_mar_status,
@@ -845,12 +845,11 @@ def _build_mr_dispense_request(
     if not _days and (is_home_med or encounter_type == "outpatient"):
         _days = 30  # standard chronic-Rx cycle
     if _days and _days > 0:
-        disp["expectedSupplyDuration"] = {
-            "value": int(_days),
-            "unit": _SUPPLY_DURATION_UNIT_JP if is_jp(country) else _SUPPLY_DURATION_UNIT_US,
-            "system": get_system_uri("ucum"),
-            "code": _SUPPLY_DURATION_CODE,
-        }
+        disp["expectedSupplyDuration"] = ucum_quantity(
+            int(_days),
+            _SUPPLY_DURATION_UNIT_JP if is_jp(country) else _SUPPLY_DURATION_UNIT_US,
+            code=_SUPPLY_DURATION_CODE,
+        )
     return disp
 
 
@@ -1103,12 +1102,11 @@ def _build_discharge_rx_dispense(authored_on: str, duration_days: int | None, co
     if authored_on:
         dispense["validityPeriod"] = {"start": authored_on}
     if duration_days is not None:
-        dispense["expectedSupplyDuration"] = {
-            "value": duration_days,
-            "unit": _SUPPLY_DURATION_UNIT_JP if is_jp(country_code) else _SUPPLY_DURATION_UNIT_US,
-            "system": get_system_uri("ucum"),
-            "code": _SUPPLY_DURATION_CODE,
-        }
+        dispense["expectedSupplyDuration"] = ucum_quantity(
+            duration_days,
+            _SUPPLY_DURATION_UNIT_JP if is_jp(country_code) else _SUPPLY_DURATION_UNIT_US,
+            code=_SUPPLY_DURATION_CODE,
+        )
     return dispense
 
 
@@ -1165,7 +1163,7 @@ def _build_discharge_rx_dosage(
         _qty = _parsed.get("dose_quantity")
         _unit = _parsed.get("dose_unit", "")
         if _qty is not None and _unit:
-            dosage["doseAndRate"] = [{"doseQuantity": build_ucum_quantity(_qty, _unit)}]
+            dosage["doseAndRate"] = [{"doseQuantity": ucum_quantity(_qty, _unit)}]
         _freq_raw = str(get_attr_or_key(item, "frequency", "") or "").strip()
         if not _freq_raw and _parsed.get("frequency"):
             _freq_raw = str(_parsed["frequency"])
@@ -1399,12 +1397,12 @@ def _build_ma_dosage_block(
     # because the continuous-infusion detection below matches on "CONTINUOUS" / "DRIP".
     dosage: dict[str, Any] = {"text": _localize_dosage_terms(dose_text, resolve_lang(country))}
     if parsed.get("dose_quantity") is not None and parsed.get("dose_unit"):
-        dosage["dose"] = build_ucum_quantity(parsed["dose_quantity"], parsed["dose_unit"])
+        dosage["dose"] = ucum_quantity(parsed["dose_quantity"], parsed["dose_unit"])
     # Rate for continuous infusions
     if "CONTINUOUS" in dose_text.upper() or "DRIP" in dose_text.upper() or "/h" in dose_text:
         rate_value = parsed.get("dose_quantity") or 1
         rate_unit = parsed.get("dose_unit", "mL") + "/h"
-        dosage["rateQuantity"] = build_ucum_quantity(rate_value, rate_unit)
+        dosage["rateQuantity"] = ucum_quantity(rate_value, rate_unit)
 
     # Issue #1067 B2: IV-route drugs missing a structured dose get the same
     # catalog-based rate/duration augmentation the MR builder gets.

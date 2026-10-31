@@ -18,6 +18,7 @@ from typing import Any
 from clinosim.codes import display as registry_display
 from clinosim.codes import get_system_uri, slug_to_code
 from clinosim.codes import lookup as code_lookup
+from clinosim.codes.ucum import ucum_quantity
 from clinosim.locale.loader import load_allergen_rxnorm_map, load_identity_config
 from clinosim.modules._shared import is_jp, resolve_lang
 from clinosim.modules.output.fhir_r4.lib.common import (
@@ -54,7 +55,7 @@ from clinosim.modules.output.fhir_r4.lib.localization import (
 _US_CORE_RACE_URL = "http://hl7.org/fhir/us/core/StructureDefinition/us-core-race"
 _US_CORE_ETHNICITY_URL = "http://hl7.org/fhir/us/core/StructureDefinition/us-core-ethnicity"
 _US_CORE_BIRTHSEX_URL = "http://hl7.org/fhir/us/core/StructureDefinition/us-core-birthsex"
-_OMB_RACE_ETHNICITY_SYSTEM = "urn:oid:2.16.840.1.113883.6.238"
+_OMB_RACE_ETHNICITY_SYSTEM = get_system_uri("omb-race")
 
 # Phase 3.γ (#1808 follow-up) + hardcoded-audit Phase A1 (#1900+1):
 # both the slug → OMB code map and the display SoT now live in the
@@ -154,7 +155,7 @@ PATIENT_ID_PREFIX = "pt-"
 POPULATION_SLUG_KEY_SYSTEM = structural_key_system("population-slug")
 
 
-_US_SSN_SYSTEM = "http://hl7.org/fhir/sid/us-ssn"
+_US_SSN_SYSTEM = get_system_uri("us-ssn")
 _US_SSN_SALT = "patient-ssn"
 
 
@@ -732,12 +733,7 @@ def _build_coverage_resources(
                         ],
                         "text": "自己負担割合" if is_jp(country) else "Copay percentage",
                     },
-                    "valueQuantity": {
-                        "value": _coshare_pct,
-                        "unit": "%",
-                        "system": "http://unitsofmeasure.org",
-                        "code": "%",
-                    },
+                    "valueQuantity": ucum_quantity(_coshare_pct, "%"),
                 }
             ]
             resources.append(coverage)
