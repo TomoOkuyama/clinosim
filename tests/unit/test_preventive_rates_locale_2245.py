@@ -37,5 +37,6 @@ def test_us_flu_vaccination_65_plus_matches_nhis() -> None:
     assert _coverage("US", 70, "flu_vaccination") == pytest.approx(0.671, abs=0.03)
 
 
-def test_unconfigured_screening_participation_keeps_everyone() -> None:
-    assert _coverage("US", 55, "annual_health_screening") == 1.0
+def test_us_screening_participation_matches_nhis_wellness_visits() -> None:
+    # Issue #2247: 2024 NHIS wellness visit within the past year, ages 19-64.
+    assert _coverage("US", 55, "annual_health_screening") == pytest.approx(0.769, abs=0.03)
