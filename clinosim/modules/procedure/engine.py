@@ -16,6 +16,8 @@ import numpy as np
 import yaml
 
 from clinosim import determinism
+from clinosim.codes.procedures import bedside_procedures
+from clinosim.locale.loader import load_code_mapping
 from clinosim.modules._shared import is_jp
 from clinosim.modules.disease.acuity import NEURO_LOC_MONITORING_DISEASES
 from clinosim.modules.procedure._bedside_thresholds import (
@@ -181,8 +183,8 @@ def simulate_surgery(
     if disease_id == "hip_fracture":
         if rng.random() < HIP_FRACTURE_ORIF_PROBABILITY:
             proc_type = "ORIF"
-            proc_code_jp = "K0461"
-            proc_code_us = "27236"
+            proc_code_jp = load_code_mapping("procedure", "JP")["ORIF_femur"]
+            proc_code_us = load_code_mapping("procedure", "US")["ORIF_femur"]
             implants = [
                 "compression hip screw"
                 if rng.random() < HIP_FRACTURE_ORIF_INTRAMEDULLARY_NAIL_PROBABILITY
@@ -190,8 +192,8 @@ def simulate_surgery(
             ]
         else:
             proc_type = "hemiarthroplasty"
-            proc_code_jp = "K0811"
-            proc_code_us = "27125"
+            proc_code_jp = load_code_mapping("procedure", "JP")["hemiarthroplasty_hip"]
+            proc_code_us = load_code_mapping("procedure", "US")["hemiarthroplasty_hip"]
             implants = ["bipolar femoral prosthesis"]
     else:
         # Read procedure codes from disease YAML
@@ -353,65 +355,18 @@ def _map_complications(intraop_comps: list[str]) -> list[str]:
 # Bedside / routine inpatient procedures
 # ============================================================
 
-# (procedure_type, CPT, K-code, name_en, name_ja, anesthesia)
+# (procedure_type, CPT, K-code, name_en, name_ja, anesthesia) — built from the
+# procedure catalog (codes/data/clinosim-procedure-catalog.yaml, Issue #2263).
 _BEDSIDE_PROCEDURES: list[tuple[str, str, str, str, str, str]] = [
-    ("urinary_catheter", "51702", "D002", "Urinary catheter insertion", "尿道カテーテル挿入", "none"),
-    ("central_line", "36556", "G005-2", "Central venous catheter insertion", "中心静脈カテーテル挿入", "local"),
-    ("arterial_line", "36620", "G005-3", "Arterial line insertion", "動脈ライン挿入", "local"),
-    ("lumbar_puncture", "62270", "D004", "Lumbar puncture", "腰椎穿刺", "local"),
-    ("thoracentesis", "32555", "D010", "Thoracentesis", "胸腔穿刺", "local"),
-    ("paracentesis", "49083", "D011", "Paracentesis", "腹腔穿刺", "local"),
-    ("intubation", "31500", "J044", "Endotracheal intubation", "気管挿管", "sedation"),
-    ("nasogastric_tube", "43752", "J034", "Nasogastric tube insertion", "経鼻胃管挿入", "none"),
-    ("chest_tube", "32551", "D012", "Chest tube insertion", "胸腔ドレーン挿入", "local"),
-    ("wound_debridement", "97597", "K002", "Wound debridement", "創傷デブリードマン", "local"),
-    ("cardioversion", "92960", "K599", "Electrical cardioversion", "電気的カルジオバージョン", "sedation"),
-    ("blood_transfusion", "36430", "K920", "Blood transfusion", "輸血", "none"),
-    ("dialysis_acute", "90935", "J038", "Acute hemodialysis", "急性血液透析", "none"),
-    ("bronchoscopy", "31622", "D302", "Bronchoscopy", "気管支鏡検査", "sedation"),
-    ("echocardiography", "93306", "D215", "Transthoracic echocardiography", "経胸壁心エコー", "none"),
-    # CO-3: ED-typical procedures. CPT codes verified
-    # (AMA CPT 2024). K-codes intentionally BLANK — MHLW authoritative
-    # verification deferred to a separate chain (mirrors cycle 2 C2-15 YJ
-    # policy: no fabrication).  A subsequent chain will populate K-codes
-    # from the MHLW 診療報酬点数表 master and re-verify each entry.
-    ("ecg_12lead", "93000", "", "12-lead ECG", "12誘導心電図", "none"),
-    ("iv_line", "96360", "", "IV line placement", "末梢静脈路確保", "local"),
-    ("wound_care", "12001", "", "Simple wound repair", "創傷処理", "local"),
-    ("short_arm_splint", "29075", "", "Short arm splint", "短腕シーネ固定", "none"),
-    ("reduction_closed", "25605", "", "Closed reduction of wrist fracture", "手関節骨折徒手整復", "local"),
-    ("oxygen_therapy", "94640", "", "Oxygen therapy (nebulizer)", "酸素療法", "none"),
-    # Issue #939: cardiology / neurosurgery / GI-obstruction interventions.
-    # JP codes verified against MHLW 診療報酬点数表 (令和6年度); CPT descriptors
-    # from AMA CPT 2024. Each of these five entries has its dispatch drawn
-    # from a per-encounter sub-RNG (issue939_procedure_seed) so the additive
-    # emissions do NOT cascade the shared patient-scoped stream.
-    ("coronary_pci", "92920", "K546", "Percutaneous coronary intervention (PCI)", "経皮的冠動脈形成術", "local"),
     (
-        "pacemaker_implant",
-        "33208",
-        "K597",
-        "Permanent pacemaker implantation",
-        "ペースメーカー移植術",
-        "local",
-    ),
-    (
-        "craniotomy_hematoma_evacuation",
-        "61312",
-        "K164-1",
-        "Craniotomy for intracranial hematoma evacuation",
-        "頭蓋内血腫除去術（開頭）",
-        "general",
-    ),
-    (
-        "ileus_tube_placement",
-        "44500",
-        "J034-2",
-        "Long tube (ileus tube) placement for bowel obstruction",
-        "イレウス用ロングチューブ挿入法",
-        "none",
-    ),
-    ("bowel_resection", "44140", "K719", "Colectomy (bowel resection)", "結腸切除術", "general"),
+        str(e["type"]),
+        str(e.get("cpt") or ""),
+        str(e.get("k_code") or ""),
+        str(e["name"]["en"]),
+        str(e["name"]["ja"]),
+        str(e["anesthesia"]),
+    )
+    for e in bedside_procedures()
 ]
 
 # Rules: (disease_id or category) → [(procedure_type, probability)]

@@ -16,6 +16,7 @@ from clinosim.codes import (
 from clinosim.codes import (
     lookup as code_lookup,
 )
+from clinosim.codes.procedures import bedside_procedures, procedure_type_display
 from clinosim.modules._shared import is_jp, is_us, resolve_lang
 from clinosim.modules.output.fhir_r4.demographics.patient import patient_ref
 from clinosim.modules.output.fhir_r4.encounters.encounter import encounter_ref
@@ -51,6 +52,10 @@ PROCEDURE_KEY_SYSTEM = structural_key_system("procedure-key")
 # reaches ``coding[].display``. Specific acronyms (AABR, MS) retain
 # upper-case; everything else is simple ``.replace("_", " ").capitalize()``.
 _PROCEDURE_TYPE_ACRONYMS = ("aabr", "crp", "mri", "ms", "cpap", "ecg", "ekg", "us")
+
+
+def _catalog_types() -> frozenset[str]:
+    return frozenset(str(e["type"]) for e in bedside_procedures())
 
 
 def _humanize_procedure_type(proc_type: str) -> str:
@@ -115,7 +120,9 @@ def _build_procedure(
     proc_type = proc.get("procedure_type", "")
     # Issue #1766: when the display lookup misses, the fallback must not
     # leak the raw snake_case classifier key to ``coding[].display``.
-    fallback = _humanize_procedure_type(proc_type) or "(procedure)"
+    # Issue #2263: catalog name first (the same name the narrative shows).
+    catalog_name = procedure_type_display(proc_type, "en") if proc_type in _catalog_types() else ""
+    fallback = catalog_name or _humanize_procedure_type(proc_type) or "(procedure)"
 
     # Resolve displays via code dictionaries (k-codes.yaml / cpt.yaml)
     primary_lang = resolve_lang(country)

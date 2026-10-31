@@ -139,45 +139,13 @@ def _localize_lab_flag(flag: str, lang: str) -> str:
 # p=10000 audit surfaced ~500 raw slug leaks (urinary_catheter /
 # central_line / arterial_line / intubation / nasogastric_tube etc.)
 # in the pn_procedure_name section.
-_PROC_TYPE_LOCALE_CACHE: dict[str, dict[str, str]] = {}
-
-
-def _load_proc_type_locale() -> None:
-    if _PROC_TYPE_LOCALE_CACHE:
-        return
-    try:
-        from clinosim.modules.procedure.engine import _BEDSIDE_PROCEDURES
-
-        ja: dict[str, str] = {}
-        en: dict[str, str] = {}
-        for entry in _BEDSIDE_PROCEDURES:
-            proc_type = str(entry[0])
-            name_en = str(entry[3])
-            name_ja = str(entry[4])
-            if proc_type and name_ja:
-                ja[proc_type.lower()] = name_ja
-            if proc_type and name_en:
-                en[proc_type.lower()] = name_en
-        _PROC_TYPE_LOCALE_CACHE["ja"] = ja
-        _PROC_TYPE_LOCALE_CACHE["en"] = en
-    except Exception:  # noqa: BLE001 — never break narrative on i18n load
-        _PROC_TYPE_LOCALE_CACHE["ja"] = {}
-        _PROC_TYPE_LOCALE_CACHE["en"] = {}
-
-
 def _localize_proc_type(proc_type: str, lang: str) -> str:
-    """Return the localized display for a bedside procedure_type slug.
+    """Return the localized display for a procedure_type slug from the
+    procedure catalog (``clinosim.codes.procedures``, Issue #2263); an unknown
+    slug is humanised (underscores → spaces)."""
+    from clinosim.codes.procedures import procedure_type_display
 
-    Fallback: ``proc_type.replace("_", " ")`` humanised form when the
-    slug is missing from ``_BEDSIDE_PROCEDURES`` (e.g. a delivery /
-    chemotherapy_administration category outside the bedside set).
-    """
-    if not proc_type:
-        return ""
-    _load_proc_type_locale()
-    key = str(proc_type).strip().lower()
-    lang_key = "ja" if str(lang).lower().startswith("ja") else "en"
-    return _PROC_TYPE_LOCALE_CACHE.get(lang_key, {}).get(key) or key.replace("_", " ")
+    return procedure_type_display(str(proc_type or "").strip(), "ja" if str(lang).lower().startswith("ja") else "en")
 
 
 # PMH severity / persistence / grade descriptor localization —

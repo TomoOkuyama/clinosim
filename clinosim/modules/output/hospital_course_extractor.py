@@ -14,6 +14,7 @@ from datetime import datetime
 from typing import Any
 
 from clinosim.codes import lookup as code_lookup
+from clinosim.codes.procedures import procedure_code_display
 from clinosim.codes.snomed_concepts import SURGICAL_PROCEDURE
 from clinosim.simulator.complications import complication_names as _complication_names_from_cif
 
@@ -279,14 +280,11 @@ def _resolve_procedure_name(proc: dict, lang: str = "en") -> str:
 
     Tries k-codes, then cpt. Falls back to procedure_type as last resort.
     """
-    for key in ("procedure_code", "procedure_code_jp", "procedure_code_us"):
-        code = proc.get(key, "")
-        if not code:
-            continue
-        for system_key in ("k-codes", "cpt"):
-            disp = code_lookup(system_key, code, lang)
-            if disp and disp != code:
-                return disp
+    disp = procedure_code_display(
+        (proc.get(key, "") for key in ("procedure_code", "procedure_code_jp", "procedure_code_us")), lang
+    )
+    if disp:
+        return disp
     return proc.get("procedure_type") or "procedure"
 
 

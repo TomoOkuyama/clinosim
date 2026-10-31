@@ -11,7 +11,7 @@ from __future__ import annotations
 from datetime import datetime
 from typing import TYPE_CHECKING, Any
 
-from clinosim.codes import lookup as code_lookup
+from clinosim.codes.procedures import procedure_code_display
 from clinosim.codes.snomed_concepts import SURGICAL_PROCEDURE
 from clinosim.locale.i18n import t
 from clinosim.modules._shared import get_attr_or_key as _o
@@ -111,12 +111,9 @@ def resolve_procedure_display(proc: Any, lang: str) -> str:
     the FHIR emit path — a single edit of the k-codes yaml updates both
     (single-edit-point rule).
     """
-    for key in ("procedure_code", "procedure_code_jp", "procedure_code_us"):
-        code = _o(proc, key, "") or ""
-        if not code:
-            continue
-        for system_key in ("k-codes", "cpt"):
-            disp = code_lookup(system_key, code, lang)
-            if disp and disp != code:
-                return disp
+    disp = procedure_code_display(
+        (str(_o(proc, key, "") or "") for key in ("procedure_code", "procedure_code_jp", "procedure_code_us")), lang
+    )
+    if disp:
+        return disp
     return str(_o(proc, "procedure_type", "") or "")
