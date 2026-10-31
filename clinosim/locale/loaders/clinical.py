@@ -197,6 +197,14 @@ def load_reference_ranges(country: str) -> dict[str, Any]:
 
 
 @lru_cache(maxsize=1)
+def load_chronic_age_limits() -> dict[str, Any]:
+    """Per-code age limits (``chronic_onset_min_age.yaml``; Issue #2286):
+    ``codes`` (onset floor), ``implied_chronic_min_years`` (inpatient
+    implied-chronic gate) and ``adult_only_codes`` (eval pediatric check)."""
+    return _load_yaml(_LOCALE_DIR / "shared" / "chronic_onset_min_age.yaml", fallback={})
+
+
+@lru_cache(maxsize=1)
 def load_chronic_followup() -> dict[str, Any]:
     """Load chronic disease outpatient follow-up schedules."""
     return _load_yaml(_LOCALE_DIR / "shared" / "chronic_followup.yaml", fallback={})
