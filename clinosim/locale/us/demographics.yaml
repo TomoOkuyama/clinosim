@@ -785,9 +785,13 @@ lifestyle_risk_multipliers:
 # Issue #2245: preventive-care participation.
 # flu_vaccination_probability: adults 65+ with an influenza vaccine in the
 # past 12 months, 67.1% (2024 NHIS, NCHS Data Brief No. 547).
-# annual_screening_participation is not set: the NHIS wellness-visit share
-# has not been verified against its primary table yet.
+# annual_screening_participation: adults with a wellness visit, physical or
+# general check-up within the past year, 76.9% of ages 19-64 (2024 NHIS,
+# MACPAC MACStats Feb 2026, Exhibit 45). Applied to the calendar's whole
+# screening age band (40-89); the 65+ share is higher (Medicare 91.1% in the
+# same exhibit), so the older band is slightly under-screened.
 preventive_care:
+  annual_screening_participation: 0.769
   flu_vaccination_probability: 0.671
 
 care_seeking:
