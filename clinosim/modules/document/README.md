@@ -131,9 +131,6 @@ from clinosim.modules.document.engine import document_enricher
   `output/fhir_r4/documents/` (`documents.py`, `composition.py`) and
   `output/fhir_r4/conditions/` (`allergy_intolerance.py`,
   `clinical_impression.py`) pass them to `derive_opaque_id`.
-  `fhir_r4/demographics/patient.py` still contains an uncalled
-  legacy `_build_allergy_intolerance` that writes
-  `allergy-{patient_id}-{index:02d}` inline.
 - **`NURSING_LOINCS`** (frozenset, loaded via `_load_nursing_loincs`
   from `engine.py`) — LOINC codes for nursing-authored documents.
   `_pick_document_author` dispatches to

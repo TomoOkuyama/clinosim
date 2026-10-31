@@ -120,7 +120,8 @@ Citalopram: "2556"
 # verified 2026-09-12 via tx.fhir.org $lookup (TTY=IN except
 # milnacipran which resolves via its hydrochloride SCD).
 Fluvoxamine: "42355"
-Milnacipran: "30003"
+# Milnacipran: the catalog ingredient code RxNorm 588250 (IN, RxNav) applies;
+# 30003 is milnacipran hydrochloride (PIN). Issue #2262.
 Duloxetine: "72625"
 Venlafaxine: "39786"
 Mirtazapine: "15996"

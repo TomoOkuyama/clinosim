@@ -20,7 +20,7 @@ from clinosim.codes import get_system_uri, slug_to_code
 from clinosim.codes import lookup as code_lookup
 from clinosim.codes.loinc import loinc_coding
 from clinosim.codes.ucum import ucum_quantity
-from clinosim.locale.loader import load_allergen_rxnorm_map, load_identity_config, vocab_display
+from clinosim.locale.loader import load_identity_config, vocab_display
 from clinosim.modules._shared import is_jp, resolve_lang
 from clinosim.modules.output.fhir_r4.lib.common import (
     _coding_with_display,
@@ -38,7 +38,6 @@ from clinosim.modules.output.fhir_r4.lib.ids import (
 from clinosim.modules.output.fhir_r4.lib.localization import (
     _RELATIONSHIP_DISPLAY_JA,
     _localize_display,
-    _localize_drug_name,
 )
 
 # === Issue #1344: US Core Patient extensions ===
@@ -1107,71 +1106,4 @@ def _build_occupation_observation(
             ],
             "text": display,
         },
-    }
-
-
-def _build_allergy_intolerance(
-    allergy: dict,
-    patient_id: str,
-    index: int,
-    country: str,
-) -> dict | None:
-    """Build FHIR AllergyIntolerance from CIF allergy data."""
-    substance = allergy.get("substance", "")
-    if not substance:
-        return None
-
-    # Localize substance display for JP
-    substance_display = _localize_drug_name(substance, country) if is_jp(country) else substance
-
-    rxnorm = load_allergen_rxnorm_map().get(substance, "")
-    code: dict[str, Any] = {"text": substance_display}
-    if rxnorm:
-        code["coding"] = [
-            {
-                "system": get_system_uri("rxnorm"),
-                "code": rxnorm,
-                "display": substance_display,
-            }
-        ]
-
-    severity = allergy.get("severity", "mild").lower()
-    criticality = "high" if severity == "severe" else "low"
-
-    reaction_type = allergy.get("reaction_type", "")
-    reaction: dict[str, Any] = {"severity": severity}
-    if reaction_type:
-        reaction["manifestation"] = [
-            {
-                "text": reaction_type,
-            }
-        ]
-
-    return {
-        "resourceType": "AllergyIntolerance",
-        "id": f"allergy-{patient_id}-{index:02d}",  # patient-scoped is OK (allergies are patient-level)
-        "clinicalStatus": {
-            "coding": [
-                {
-                    "system": get_system_uri("hl7-allergyintolerance-clinical"),
-                    "code": "active",
-                    "display": "Active",
-                }
-            ],
-        },
-        "verificationStatus": {
-            "coding": [
-                {
-                    "system": get_system_uri("hl7-allergyintolerance-verification"),
-                    "code": "confirmed",
-                    "display": "Confirmed",
-                }
-            ],
-        },
-        "type": "allergy",
-        "category": ["medication"],
-        "criticality": criticality,
-        "code": code,
-        "patient": patient_ref(patient_id),
-        "reaction": [reaction],
     }

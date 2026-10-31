@@ -208,6 +208,19 @@ def load_code_mapping(domain: str, country: str) -> dict[str, str]:
     return merged
 
 
+def drug_code(drug_ref: str, country: str) -> tuple[str, str] | None:
+    """``(system_key, code)`` emitted for a drug (catalog id, English name or
+    alias) in ``country``: the drug code mapping, which unions the catalog with
+    the legacy ``code_mapping_drug.yaml``; ``None`` when the drug has no code
+    there (Issue #2262)."""
+    from clinosim.codes.drugs import drug_system_key, find_drug
+
+    rec = find_drug(drug_ref)
+    name = rec.names.get("en", "") if rec else drug_ref
+    code = load_code_mapping("drug", country).get(name, "")
+    return (drug_system_key(code, country), code) if code else None
+
+
 def lab_code(lab_name: str, country: str) -> tuple[str, str] | None:
     """``(system_key, code)`` of a lab result for ``country``: LOINC for the
     US, JLAC10 for JP, from ``code_mapping_lab.yaml``; ``None`` when the

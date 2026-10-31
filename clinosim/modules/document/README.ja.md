@@ -127,9 +127,7 @@ from clinosim.modules.document.engine import document_enricher
   `output/fhir_r4/documents/` (`documents.py`, `composition.py`) と
   `output/fhir_r4/conditions/` (`allergy_intolerance.py`,
   `clinical_impression.py`) の FHIR builder がこれらを
-  `derive_opaque_id` に渡す。`fhir_r4/demographics/patient.py` には
-  `allergy-{patient_id}-{index:02d}` を inline で書く legacy
-  `_build_allergy_intolerance` が残っているが、呼ばれていない。
+  `derive_opaque_id` に渡す。
 - **`NURSING_LOINCS`** (frozenset、`engine.py` の
   `_load_nursing_loincs` 経由で load) — 看護師 author 文書の LOINC
   code。`_pick_document_author` は文書 LOINC が本集合に含まれるとき

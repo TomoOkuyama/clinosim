@@ -326,7 +326,7 @@ drugs:
         renal_adjustment:
           eGFR_below_30: "avoid"
       - drug: "Elcatonin"
-        code_yj: "3999401"
+        code_yj: "3999401A1200"  # エルシトニン注40単位 (MHLW YJ master, Issue #2262)
         dose: "20 units IM weekly"
         route: IM
         note: "Calcitonin for acute pain and bone loss"
