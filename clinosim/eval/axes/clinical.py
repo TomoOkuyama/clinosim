@@ -109,6 +109,7 @@ class _CondLabPairing:
     expected_band: tuple[float, float]  # inclusive [low, high]; violation = outside
     direction: str  # "high" (expect above low), "low" (expect below high), "band" (expect between)
     rationale: str
+    stage_in: tuple[str, ...] = ()  # when set, Condition.stage[].summary.text must be one of these
 
 
 # Window (± days) around Condition.onsetDateTime in which the lab is
@@ -144,6 +145,7 @@ def _condition_lab_pairings_from_yaml() -> tuple[_CondLabPairing, ...]:
                 expected_band=(float(band[0]), float(band[1])),
                 direction=str(row.get("direction") or ""),
                 rationale=str(row.get("rationale") or ""),
+                stage_in=tuple(str(s) for s in (row.get("stage_in") or [])),
             )
         )
     return tuple(out)
@@ -497,6 +499,17 @@ def _bounds_summary() -> dict[str, dict[str, str]]:
 # check, with per-pairing violation rates in `detail`.
 
 
+def _condition_matches_pairing(cond: dict, pairing: _CondLabPairing) -> bool:
+    """Condition code matches the pairing's prefixes and, when the pairing
+    names stages, its ``stage[].summary.text`` is one of them (Issue #2282)."""
+    if not any(any(c.startswith(p) for p in pairing.icd_prefixes) for c in _condition_codes(cond)):
+        return False
+    if not pairing.stage_in:
+        return True
+    stages = {str((s.get("summary") or {}).get("text") or "") for s in cond.get("stage") or []}
+    return bool(stages & set(pairing.stage_in))
+
+
 def _check_condition_lab_coherence(cohort: Cohort, country: str) -> EvalCheck:
     # Pre-index Observations by (patient_id, loinc_code) for the LOINCs
     # any pairing cares about — one pass, then O(1) lookups downstream.
@@ -523,8 +536,7 @@ def _check_condition_lab_coherence(cohort: Cohort, country: str) -> EvalCheck:
         eligible = 0
         violations = 0
         for cond in _read(cohort, country, "Condition"):
-            codes = _condition_codes(cond)
-            if not any(any(c.startswith(p) for p in pairing.icd_prefixes) for c in codes):
+            if not _condition_matches_pairing(cond, pairing):
                 continue
             pid = (cond.get("subject") or {}).get("reference", "").split("/", 1)[-1]
             if not pid:

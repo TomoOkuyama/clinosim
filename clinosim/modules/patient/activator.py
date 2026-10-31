@@ -1094,9 +1094,8 @@ def _derive_home_medications(
             # (NSAID vs HF / cirrhosis / CKD stage 4-5). The patient's
             # chronic-condition list is the full carrier set at this point
             # in activation. Codes are stored as their base form (I50, K74,
-            # N18) or with subcode (N18.4 for CKD-4 carriers); the
-            # ``check_candidate_against_disease_state`` predicate matcher
-            # accepts both via prefix match.
+            # N18) with any stage in ``ChronicCondition.stage`` ("CKD G4");
+            # stage-contingent rules match on the stage (Issue #2282).
             # Issue #1769: pass (code, stage) tuples so a stage-contingent
             # rule (Metformin + CKD G3b-G5) can distinguish the N18
             # severity bands. Bare-string code is retained for conditions

@@ -60,10 +60,28 @@ CKD_STAGE_45_ICD_PREFIXES: tuple[str, ...] = ("N18.4", "N18.5", "N18.6", "N19")
 Patients carrying any of these as a CHRONIC condition are excluded
 from lab-derived AKI emit — their steady-state Cr already sits near or
 above the threshold, so peak > 4.0 is not diagnostic of new AKI. The
-sim's chronic-condition activator writes CKD stages as ``N18.<digit>``
-directly, so a prefix match on ``N18.4/5/6`` is precise. ``N19``
-(unspecified renal failure) is an ESRD proxy in some coding practices;
-inclusion prevents a spurious N17 stacked on it."""
+activator stores chronic CKD as the base code ``N18`` with the stage in
+``ChronicCondition.stage`` (Issue #2282), so :func:`is_ckd_stage_4_5_carrier`
+also checks :data:`CKD_STAGE_45_STAGES`; these prefixes cover an
+explicitly staged code. ``N19`` (unspecified renal failure) is an ESRD
+proxy in some coding practices; inclusion prevents a spurious N17
+stacked on it."""
+
+CKD_STAGE_45_STAGES: frozenset[str] = frozenset({"CKD G4", "CKD G5"})
+"""``ChronicCondition.stage`` values for CKD stages 4-5."""
+
+
+def is_ckd_stage_4_5_carrier(chronic_conditions: list) -> bool:
+    """True when a chronic condition is CKD stage 4-5 or unspecified renal failure."""
+    for c in chronic_conditions or []:
+        code = str(getattr(c, "code", None) or (c if isinstance(c, str) else ""))
+        stage = str(getattr(c, "stage", "") or "")
+        if code.startswith(CKD_STAGE_45_ICD_PREFIXES):
+            return True
+        if code.startswith("N18") and stage in CKD_STAGE_45_STAGES:
+            return True
+    return False
+
 
 AKI_CODE_PREFIXES: tuple[str, ...] = ("N17",)
 """Prefixes an existing encounter diagnosis must match for this enricher
@@ -115,9 +133,7 @@ def enrich_lab_derived_dx(ctx: EnricherContext) -> None:
         # Skip patients whose chronic CKD-4/5 or ESRD carrier baseline
         # already sits near or above the threshold.
         patient = getattr(record, "patient", None)
-        chronic = list(getattr(patient, "chronic_conditions", []) or [])
-        chronic_codes = [(getattr(c, "code", None) or (c if isinstance(c, str) else "")) for c in chronic]
-        if any(any(str(cc).startswith(prefix) for prefix in CKD_STAGE_45_ICD_PREFIXES) for cc in chronic_codes):
+        if is_ckd_stage_4_5_carrier(list(getattr(patient, "chronic_conditions", []) or [])):
             continue
 
         # Existing N17.x anywhere on this encounter? (primary /

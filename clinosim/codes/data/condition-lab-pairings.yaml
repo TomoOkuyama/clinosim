@@ -62,8 +62,11 @@ pairings:
       Universal Definition of MI: Troponin I above 99th-percentile URL
       (0.04 ng/mL for most assays).
 
+  # Issue #2282: emitted CKD codes do not carry the stage (US N18.9, JP N18),
+  # so stage 3+ is matched on Condition.stage[].summary.text.
   ckd_stage_creatinine:
-    icd_prefixes: [N18.3, N18.4, N18.5]
+    icd_prefixes: [N18]
+    stage_in: [CKD G3a, CKD G3b, CKD G4, CKD G5]
     loinc: '2160-0'    # Serum creatinine
     expected_band: [1.3, 20.0]
     direction: high

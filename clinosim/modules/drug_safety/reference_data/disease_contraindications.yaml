@@ -63,6 +63,21 @@ rules:
     rationale_ja: "NSAID は腎輸入細動脈収縮により eGFR < 30 (CKD ステージ 4-5) では禁忌。アセトアミノフェンまたは外用 NSAID に切替、オピオイドは減量投与。"
     source: "KDIGO 2024 CKD Guideline; 日本腎臓学会 CKD 診療ガイドライン 2023"
 
+  # Issue #2282: the activator stores chronic CKD as the base code N18 with
+  # the stage next to it (see the metformin rule below), so the code-based
+  # rule above never fired for simulated patients. This twin matches the
+  # stage; the rule above still covers an explicitly staged code.
+  - id: nsaid-in-ckd-stage-4-5-by-stage
+    drug_class: nsaid
+    disease_predicate:
+      icd_prefix: ["N18"]
+      stage_in: ["CKD G4", "CKD G5"]
+    severity: contraindicated
+    substitution_hint: pain_management
+    rationale_en: "NSAIDs cause afferent arteriolar vasoconstriction and are contraindicated at eGFR < 30 mL/min/1.73m2 (KDIGO CKD stage 4-5). Substitute with acetaminophen or topical NSAID; opioids with dose reduction."
+    rationale_ja: "NSAID は腎輸入細動脈収縮により eGFR < 30 (CKD ステージ 4-5) では禁忌。アセトアミノフェンまたは外用 NSAID に切替、オピオイドは減量投与。"
+    source: "KDIGO 2024 CKD Guideline; 日本腎臓学会 CKD 診療ガイドライン 2023"
+
   # Issue #1769 — Metformin at advanced CKD. The predicate uses the
   # stage_in field (introduced in this PR) because the simulator carries
   # CKD severity in the chronic condition's ``stage`` string
