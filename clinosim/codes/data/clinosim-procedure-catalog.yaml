@@ -1,0 +1,40 @@
+# Procedure catalog: codes and names per procedure type (Issue #2263).
+#
+# `bedside` lists the bedside / routine inpatient procedures in dispatch order
+# (moved verbatim from `_BEDSIDE_PROCEDURES` in modules/procedure/engine.py,
+# which builds the same tuples from here). Surgical procedures the engine
+# chooses directly (hip fracture) are coded per country in
+# locale/{us,jp}/code_mapping_procedure.yaml.
+#
+# Code provenance: CPT from AMA CPT 2024; K-codes from the MHLW 診療報酬点数表
+# (令和6年度). A blank code means no verified code yet (no fabrication).
+# Read through clinosim.codes.procedures.
+
+bedside:
+  - {type: urinary_catheter, cpt: "51702", k_code: "D002", name: {en: "Urinary catheter insertion", ja: "尿道カテーテル挿入"}, anesthesia: none}
+  - {type: central_line, cpt: "36556", k_code: "G005-2", name: {en: "Central venous catheter insertion", ja: "中心静脈カテーテル挿入"}, anesthesia: local}
+  - {type: arterial_line, cpt: "36620", k_code: "G005-3", name: {en: "Arterial line insertion", ja: "動脈ライン挿入"}, anesthesia: local}
+  - {type: lumbar_puncture, cpt: "62270", k_code: "D004", name: {en: "Lumbar puncture", ja: "腰椎穿刺"}, anesthesia: local}
+  - {type: thoracentesis, cpt: "32555", k_code: "D010", name: {en: "Thoracentesis", ja: "胸腔穿刺"}, anesthesia: local}
+  - {type: paracentesis, cpt: "49083", k_code: "D011", name: {en: "Paracentesis", ja: "腹腔穿刺"}, anesthesia: local}
+  - {type: intubation, cpt: "31500", k_code: "J044", name: {en: "Endotracheal intubation", ja: "気管挿管"}, anesthesia: sedation}
+  - {type: nasogastric_tube, cpt: "43752", k_code: "J034", name: {en: "Nasogastric tube insertion", ja: "経鼻胃管挿入"}, anesthesia: none}
+  - {type: chest_tube, cpt: "32551", k_code: "D012", name: {en: "Chest tube insertion", ja: "胸腔ドレーン挿入"}, anesthesia: local}
+  - {type: wound_debridement, cpt: "97597", k_code: "K002", name: {en: "Wound debridement", ja: "創傷デブリードマン"}, anesthesia: local}
+  - {type: cardioversion, cpt: "92960", k_code: "K599", name: {en: "Electrical cardioversion", ja: "電気的カルジオバージョン"}, anesthesia: sedation}
+  - {type: blood_transfusion, cpt: "36430", k_code: "K920", name: {en: "Blood transfusion", ja: "輸血"}, anesthesia: none}
+  - {type: dialysis_acute, cpt: "90935", k_code: "J038", name: {en: "Acute hemodialysis", ja: "急性血液透析"}, anesthesia: none}
+  - {type: bronchoscopy, cpt: "31622", k_code: "D302", name: {en: "Bronchoscopy", ja: "気管支鏡検査"}, anesthesia: sedation}
+  - {type: echocardiography, cpt: "93306", k_code: "D215", name: {en: "Transthoracic echocardiography", ja: "経胸壁心エコー"}, anesthesia: none}
+  - {type: ecg_12lead, cpt: "93000", k_code: "", name: {en: "12-lead ECG", ja: "12誘導心電図"}, anesthesia: none}
+  - {type: iv_line, cpt: "96360", k_code: "", name: {en: "IV line placement", ja: "末梢静脈路確保"}, anesthesia: local}
+  - {type: wound_care, cpt: "12001", k_code: "", name: {en: "Simple wound repair", ja: "創傷処理"}, anesthesia: local}
+  - {type: short_arm_splint, cpt: "29075", k_code: "", name: {en: "Short arm splint", ja: "短腕シーネ固定"}, anesthesia: none}
+  - {type: reduction_closed, cpt: "25605", k_code: "", name: {en: "Closed reduction of wrist fracture", ja: "手関節骨折徒手整復"}, anesthesia: local}
+  - {type: oxygen_therapy, cpt: "94640", k_code: "", name: {en: "Oxygen therapy (nebulizer)", ja: "酸素療法"}, anesthesia: none}
+  - {type: coronary_pci, cpt: "92920", k_code: "K546", name: {en: "Percutaneous coronary intervention (PCI)", ja: "経皮的冠動脈形成術"}, anesthesia: local}
+  - {type: pacemaker_implant, cpt: "33208", k_code: "K597", name: {en: "Permanent pacemaker implantation", ja: "ペースメーカー移植術"}, anesthesia: local}
+  - {type: craniotomy_hematoma_evacuation, cpt: "61312", k_code: "K164-1", name: {en: "Craniotomy for intracranial hematoma evacuation", ja: "頭蓋内血腫除去術（開頭）"}, anesthesia: general}
+  - {type: ileus_tube_placement, cpt: "44500", k_code: "J034-2", name: {en: "Long tube (ileus tube) placement for bowel obstruction", ja: "イレウス用ロングチューブ挿入法"}, anesthesia: none}
+  - {type: bowel_resection, cpt: "44140", k_code: "K719", name: {en: "Colectomy (bowel resection)", ja: "結腸切除術"}, anesthesia: general}
+

@@ -318,13 +318,9 @@ def _procedure_display(code: str, lang: str, fallback: str = "") -> str:
     Tries k-codes first (JP codes) then cpt (US codes). Falls back to the
     provided `fallback` string if neither has an entry.
     """
-    if not code:
-        return fallback
-    for system_key in ("k-codes", "cpt"):
-        disp = code_lookup(system_key, code, lang)
-        if disp and disp != code:
-            return disp
-    return fallback
+    from clinosim.codes.procedures import procedure_code_display
+
+    return procedure_code_display([code], lang) or fallback
 
 
 def _localize_display(value: str, country: str, dictionary: dict[str, str]) -> str:
