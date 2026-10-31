@@ -127,6 +127,18 @@ def has_condition(person_or_patient: Any, group: str) -> bool:
     return any(vs.contains(c) for c in iter_chronic_codes(items))
 
 
+def code_by_chronic_prefix(mapping: dict[str, str] | None, person_or_patient: Any) -> str | None:
+    """The code mapped to the first prefix in ``mapping`` that one of the
+    person's / patient's chronic conditions starts with; ``None`` when none
+    does. The YAML ``by_chronic_prefix`` blocks of disease and ED protocols
+    (recurrent vs single-episode depression, Issues #2124, #2132, #2290)."""
+    codes = iter_chronic_codes(getattr(person_or_patient, "chronic_conditions", None))
+    for prefix, code in (mapping or {}).items():
+        if any(c.startswith(prefix) for c in codes):
+            return str(code)
+    return None
+
+
 def has_icd_prefix(chronic_items: Iterable[Any] | None, prefixes: str | tuple[str, ...]) -> bool:
     """True when any chronic-condition item's code starts with any of ``prefixes``.
 

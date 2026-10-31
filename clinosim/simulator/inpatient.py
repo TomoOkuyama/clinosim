@@ -9,7 +9,7 @@ import numpy as np
 
 from clinosim.codes import system_key_for
 from clinosim.codes.hl7_encounter import ActPriority, AdmitSource
-from clinosim.codes.valuesets import has_condition
+from clinosim.codes.valuesets import code_by_chronic_prefix, has_condition
 from clinosim.modules.clinical_course.engine import (
     select_archetype,
 )
@@ -160,11 +160,7 @@ def diagnosis_code_for_patient(protocol: Any, patient: Any, code: str) -> str:
     icd = getattr(protocol, "icd_codes", None) or {}
     if code != icd.get("primary"):
         return code
-    chronic = [str(getattr(c, "code", c)) for c in getattr(patient, "chronic_conditions", []) or []]
-    for prefix, refined in (icd.get("by_chronic_prefix") or {}).items():
-        if any(c.startswith(prefix) for c in chronic):
-            return str(refined)
-    return code
+    return code_by_chronic_prefix(icd.get("by_chronic_prefix"), patient) or code
 
 
 def _derive_final_diagnosis(

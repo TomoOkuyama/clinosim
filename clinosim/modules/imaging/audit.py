@@ -35,6 +35,7 @@ from datetime import datetime
 from typing import Any
 
 from clinosim.audit.registry import ModuleAuditSpec, register_audit_module
+from clinosim.codes.snomed_concepts import FINDING_ABNORMAL, FINDING_NORMAL
 from clinosim.modules.imaging.engine import (
     ENDPOINT_ID_PREFIX,
     IMAGING_STUDY_ID_PREFIX,
@@ -212,7 +213,8 @@ def _build_imaging_proof() -> dict[str, Any]:
                 "findings_codes empty -> conclusionCode = Normal SNOMED default (CY8-14)",
                 # Refactored so a normal/abnormal default is emitted even when findings_codes is empty.
                 # conclusionCode always has exactly one entry: code = 17621005 (Normal) or 263654008 (Abnormal).
-                dr.get("conclusionCode", [{}])[0].get("coding", [{}])[0].get("code") in ("17621005", "263654008"),
+                dr.get("conclusionCode", [{}])[0].get("coding", [{}])[0].get("code")
+                in (FINDING_NORMAL, FINDING_ABNORMAL),
                 True,
             ),
         ]

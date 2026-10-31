@@ -98,7 +98,7 @@ class EncounterConditionProtocol(BaseModel):
     # Per-severity disposition (``discharge_home`` / ``transfer_psychiatric``)
     # and per-chronic-prefix diagnosis code overrides (Issue #2124).
     disposition_by_severity: dict[str, Literal["discharge_home", "transfer_psychiatric"]] = {}
-    icd10_code_by_chronic_prefix: dict[str, str] = {}
+    by_chronic_prefix: dict[str, str] = {}
     # Severities a hospital with an inpatient unit of ``department`` admits
     # instead of treating in the ED (Issue #2132): {department, severities}.
     admitted_with_inpatient_unit: dict[str, Any] = {}

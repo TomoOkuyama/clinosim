@@ -23,6 +23,7 @@ from typing import TYPE_CHECKING
 
 from clinosim.codes import lookup as code_lookup
 from clinosim.codes import system_key_for
+from clinosim.codes.snomed_concepts import SURGICAL_PROCEDURE
 from clinosim.locale.i18n import t
 from clinosim.modules._shared import get_attr_or_key as _o
 from clinosim.modules.document.narrative._localization import _localize_proc_type
@@ -144,7 +145,7 @@ def build_acp_surgery_schedule(generator: TemplateNarrativeGenerator, ctx: Narra
     """手術内容及び日程 — ctx.procedures filtered to category_code=387713003 (surgical)."""
     facts: list[str] = []
     lang = ctx.target_lang
-    surgical = [p for p in (ctx.procedures or []) if str(_o(p, "category_code", "") or "") == "387713003"]
+    surgical = [p for p in (ctx.procedures or []) if str(_o(p, "category_code", "") or "") == SURGICAL_PROCEDURE]
     if not surgical:
         return (t("fallback.acp_surgery_none", lang)), facts
     facts.append("ctx.procedures")

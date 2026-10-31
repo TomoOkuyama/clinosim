@@ -29,6 +29,7 @@ from typing import Any, NamedTuple
 from clinosim.codes import display as registry_display
 from clinosim.codes import get_system_uri
 from clinosim.codes import lookup as _codes_lookup
+from clinosim.codes.snomed_concepts import FINDING_ABNORMAL, FINDING_NORMAL
 from clinosim.locale.i18n import t
 from clinosim.modules._shared import get_attr_or_key, is_jp, pick_localized_field, resolve_lang
 from clinosim.modules.document.narrative.replacement_strategy import localize_lab_name
@@ -405,20 +406,20 @@ def _derive_imaging_conclusion_code(impression_text: str, lang: str) -> dict:
     """
     text = (impression_text or "").strip()
     if not text:
-        code = "17621005"
+        code = FINDING_NORMAL
     else:
         low = text.lower()
         if any(p in text if not p.isascii() else p in low for p in _imaging_normal_impression_patterns()):
-            code = "17621005"
+            code = FINDING_NORMAL
         elif any(p in text if not p.isascii() else p in low for p in _imaging_abnormal_impression_patterns()):
-            code = "263654008"
+            code = FINDING_ABNORMAL
         else:
-            code = "17621005"
-    is_abnormal = code == "263654008"
+            code = FINDING_NORMAL
+    is_abnormal = code == FINDING_ABNORMAL
     return {
         "coding": [
             {
-                "system": "http://snomed.info/sct",
+                "system": get_system_uri("snomed-ct"),
                 "code": code,
                 "display": t("diagnostic_report_fhir.abnormal_finding", lang)
                 if is_abnormal
@@ -672,8 +673,8 @@ def build_dr_resource(
             {
                 "coding": [
                     {
-                        "system": "http://snomed.info/sct",
-                        "code": "263654008" if _abnormal else "17621005",
+                        "system": get_system_uri("snomed-ct"),
+                        "code": FINDING_ABNORMAL if _abnormal else FINDING_NORMAL,
                         "display": t("diagnostic_report_fhir.abnormal_finding", lang)
                         if _abnormal
                         else t("diagnostic_report_fhir.normal_finding", lang),

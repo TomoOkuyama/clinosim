@@ -20,10 +20,12 @@
 #   quarterly    — once per calendar quarter (Q1-Q4)
 
 routes:
-  # Oncology — all C-chapter chronic codes, annual survivorship surveillance.
+  # Oncology — every cancer (the `malignancy` value set in
+  # codes/data/valuesets.yaml, also used by outpatient department routing;
+  # Issue #2290), annual survivorship surveillance.
   # Multi-cancer-family patients (e.g. C50 + C18) see ONE oncology visit per
   # calendar year, deduped at specialty level in the dispatcher tracker.
-  - requires_chronic_prefix: ["C"]
+  - requires_concept_group: malignancy
     specialty: oncology
     cadence: annual
     clinical_basis: "NCCN survivorship guidelines (per cancer family — generic annual Phase 1 proxy; Phase 2 may add family-specific cadence overrides)"

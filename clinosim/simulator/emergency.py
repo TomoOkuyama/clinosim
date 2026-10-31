@@ -10,7 +10,7 @@ import numpy as np
 from clinosim import determinism
 from clinosim.codes import system_key_for
 from clinosim.codes.hl7_encounter import ActPriority, AdmitSource, DischargeDisposition
-from clinosim.codes.valuesets import has_condition
+from clinosim.codes.valuesets import code_by_chronic_prefix, has_condition
 from clinosim.modules.disease.severity import sample_severity_category
 from clinosim.modules.encounter.engine import create_inpatient_encounter
 from clinosim.modules.observation.engine import get_lab_unit
@@ -114,14 +114,12 @@ def ed_disposition(protocol: dict | None, severity: str) -> DischargeDisposition
 
 
 def ed_diagnosis_code(spec: dict, patient: PatientProfile) -> str:
-    """ICD-10 code of an ED visit: the first ``icd10_code_by_chronic_prefix``
-    entry whose prefix the patient carries (e.g. recurrent vs single-episode
-    depression, Issue #2124), else ``icd10_code``."""
-    chronic = [str(getattr(c, "code", c)) for c in getattr(patient, "chronic_conditions", []) or []]
-    for prefix, code in (spec.get("icd10_code_by_chronic_prefix") or {}).items():
-        if any(c.startswith(prefix) for c in chronic):
-            return str(code)
-    return str(spec.get("icd10_code", "R69"))  # R69 = Illness, unspecified
+    """ICD-10 code of an ED visit: the first ``by_chronic_prefix`` entry whose
+    prefix the patient carries (e.g. recurrent vs single-episode depression,
+    Issue #2124), else ``icd10_code``. Same key and helper as the disease
+    protocols' ``icd_codes.by_chronic_prefix`` (Issue #2290)."""
+    refined = code_by_chronic_prefix(spec.get("by_chronic_prefix"), patient)
+    return refined or str(spec.get("icd10_code", "R69"))  # R69 = Illness, unspecified
 
 
 def ed_lab_true_value(lab_spec: dict, severity: str, derived: float) -> float:
