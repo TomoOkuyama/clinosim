@@ -89,9 +89,18 @@ presenting_symptoms:
 # plateau/treatment_resistant; peri-operative cardiac / multi-organ events map to
 # gradual/sudden_deterioration. Canonical archetype names; interpolated over LOS.
 # ============================================================
+# Issue #2249: the probabilities below are base rates BEFORE the severity
+# multipliers and archetype_modifiers in clinical_course.select_archetype.
+# They are fitted so that the realised mix over admitted patients (US + JP
+# cohorts, 85 selections) lands on the intended split: smooth_recovery 42,
+# dip_then_recovery 18, plateau_then_recovery 13, treatment_resistant 13,
+# gradual_deterioration 9, sudden_deterioration 5 %. Used directly, the
+# intended rates realised smooth_recovery 36, dip_then_recovery 18,
+# plateau_then_recovery 13, treatment_resistant 13, gradual_deterioration
+# 13, sudden_deterioration 7 %.
 course_archetypes:
   smooth_recovery:
-    probability: 0.42
+    probability: 0.486
     description: "Uneventful post-op recovery; pain, anaemia and mobility improve on schedule"
     trajectory:
       inflammation_level: {0: 0.00, 1: -0.02, 2: -0.04, 3: -0.05, 5: -0.05, 7: -0.04, 10: -0.03, 14: -0.02}
@@ -102,7 +111,7 @@ course_archetypes:
     treatment_modifications: {}
 
   dip_then_recovery:
-    probability: 0.18
+    probability: 0.172
     description: "Post-op anaemia / hypovolaemia dips Day 1-2, corrects with transfusion then recovers"
     trajectory:
       anemia_level:       {0: 0.05, 1: 0.06, 2: 0.03, 3: -0.01, 5: -0.03, 7: -0.03, 10: -0.02, 14: -0.01}
@@ -114,7 +123,7 @@ course_archetypes:
         add_labs: ["Hb", "CRP"]
 
   plateau_then_recovery:
-    probability: 0.13
+    probability: 0.124
     description: "Slow geriatric rehab; deconditioning plateaus 3-5 days then improves"
     trajectory:
       inflammation_level: {0: 0.02, 1: 0.01, 2: 0.00, 3: -0.01, 5: -0.03, 7: -0.05, 10: -0.04, 14: -0.02}
@@ -125,7 +134,7 @@ course_archetypes:
         add_labs: ["Hb", "Albumin"]
 
   treatment_resistant:
-    probability: 0.13
+    probability: 0.124
     description: "Persistent anaemia / cardiorenal stress; slow correction after escalation"
     trajectory:
       anemia_level:       {0: 0.04, 1: 0.04, 3: 0.03, 5: 0.01, 7: -0.01, 10: -0.02, 14: -0.02}
@@ -138,7 +147,7 @@ course_archetypes:
         add_consult: ["internal_medicine"]
 
   gradual_deterioration:
-    probability: 0.09
+    probability: 0.060
     description: "Progressive multi-organ decline in the frail elderly; perfusion and renal function worsen"
     trajectory:
       perfusion_status:   {0: -0.03, 1: -0.03, 2: -0.03, 3: -0.02, 5: -0.02, 7: -0.02}
@@ -147,7 +156,7 @@ course_archetypes:
       anemia_level:       {0: 0.02, 1: 0.02, 2: 0.02, 3: 0.02, 5: 0.01, 7: 0.01}
 
   sudden_deterioration:
-    probability: 0.05
+    probability: 0.034
     description: "Peri-operative cardiac event / pulmonary embolism with abrupt Day 1-3 decline"
     trajectory:
       perfusion_status:   {0: 0.00, 1: -0.10, 2: -0.20, 3: -0.06, 5: 0.03, 7: 0.04}

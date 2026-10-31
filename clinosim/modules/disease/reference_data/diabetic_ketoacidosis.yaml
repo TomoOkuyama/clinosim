@@ -623,9 +623,18 @@ outcome_benchmarks:
 # Disease authors specify these trajectories — the engine interpolates between days.
 # Patient profile (immune_reactivity, treatment_sensitivity) modulates amplitude.
 # ============================================================
+# Issue #2249: the probabilities below are base rates BEFORE the severity
+# multipliers and archetype_modifiers in clinical_course.select_archetype.
+# They are fitted so that the realised mix over admitted patients (US + JP
+# cohorts, 84 selections) lands on the intended split: smooth_recovery 60,
+# dip_then_recovery 15, plateau 10, treatment_resistant 8,
+# gradual_deterioration 5, sudden_deterioration 2 %. Used directly, the
+# intended rates realised smooth_recovery 52, dip_then_recovery 16, plateau
+# 11, treatment_resistant 8, gradual_deterioration 10, sudden_deterioration
+# 3 %.
 course_archetypes:
   smooth_recovery:
-    probability: 0.60
+    probability: 0.670
     description: "Anion gap closes within 12-24h, smooth transition to SC insulin"
     trajectory:
       ph_status: {0: 0.05, 0.5: 0.15, 1: 0.10, 2: 0.05, 3: 0.02, 5: 0.01, 7: 0.00}
@@ -651,7 +660,7 @@ course_archetypes:
         plan: "治療継続"
 
   dip_then_recovery:
-    probability: 0.15
+    probability: 0.134
     description: "Initial K drops too fast or glucose rebounds; stabilizes by Day 2-3"
     trajectory:
       ph_status: {0: 0.03, 0.5: 0.08, 1: 0.02, 2: 0.08, 3: 0.05, 5: 0.02, 7: 0.00}
@@ -668,7 +677,7 @@ course_archetypes:
         adjust: {detail: "Increase K replacement rate; adjust insulin drip"}
 
   plateau:
-    probability: 0.10
+    probability: 0.090
     description: "Anion gap slow to close; persistent mild ketosis for 2-3 days"
     trajectory:
       ph_status: {0: 0.03, 0.5: 0.05, 1: 0.03, 2: 0.02, 3: 0.05, 5: 0.05, 7: 0.02}
@@ -684,7 +693,7 @@ course_archetypes:
         adjust: {detail: "Increase insulin drip rate if AG not closing"}
 
   treatment_resistant:
-    probability: 0.08
+    probability: 0.077
     description: "Underlying infection or non-compliance complicates recovery; prolonged insulin drip"
     trajectory:
       ph_status: {0: 0.02, 0.5: 0.03, 1: 0.01, 2: 0.00, 3: 0.02, 5: 0.05, 7: 0.05, 10: 0.03}
@@ -710,7 +719,7 @@ course_archetypes:
         actions: ["increase_insulin_rate", "infection_workup", "reassess_fluid_status"]
 
   gradual_deterioration:
-    probability: 0.05
+    probability: 0.017
     description: "Multi-organ involvement; progressive AKI, possible ICU transfer"
     trajectory:
       ph_status: {0: 0.02, 0.5: 0.02, 1: 0.00, 2: -0.02, 3: 0.02, 5: 0.03, 7: 0.03, 10: 0.02}
@@ -735,7 +744,7 @@ course_archetypes:
         actions: ["icu_transfer", "start_vasopressor"]
 
   sudden_deterioration:
-    probability: 0.02
+    probability: 0.012
     description: "Cerebral edema or cardiac arrest from electrolyte shift — rare but life-threatening"
     trajectory:
       ph_status: {0: 0.03, 0.5: 0.05, 1: -0.10, 2: -0.05, 3: 0.05, 5: 0.05, 7: 0.03}
