@@ -1,0 +1,50 @@
+# Shared code groups (value sets) for decision logic (Issue #2280).
+#
+# Each group declares:
+#   space:   internal — codes as stored in PersonRecord / PatientProfile
+#            chronic_conditions (mostly ICD-10 base codes such as N18, F00);
+#            emitted — codes after locale/*/code_mapping_diagnosis.yaml.
+#   match:   prefix — a code belongs when it starts with a member;
+#            exact  — a code belongs when it equals a member.
+#   members: ICD-10 codes or prefixes.
+#
+# Read through clinosim.codes.valuesets (concept_group / has_condition).
+# The first two sections are the named patient conditions of disease
+# severity modifiers and of complication risk factors, moved here unchanged.
+groups:
+  # --- Severity-modifier patient conditions (modules/disease/severity.py) ---
+  diabetes: {space: internal, match: prefix, members: [E11, E10]}
+  heart_failure: {space: internal, match: prefix, members: [I50]}
+  CKD: {space: internal, match: prefix, members: [N18]}
+  N18: {space: internal, match: prefix, members: [N18]}
+  COPD: {space: internal, match: prefix, members: [J44]}
+  liver_cirrhosis: {space: internal, match: prefix, members: [K74]}
+  hypertension_uncontrolled: {space: internal, match: prefix, members: [I10]}
+  atrial_fibrillation: {space: internal, match: prefix, members: [I48]}
+  I48: {space: internal, match: prefix, members: [I48]}
+  prior_MI: {space: internal, match: prefix, members: [I25, I21]}
+  prior_stroke_or_TIA: {space: internal, match: prefix, members: [I63, I64, G45]}
+  peripheral_vascular_disease: {space: internal, match: prefix, members: [I73]}
+  valvular_heart_disease: {space: internal, match: prefix, members: [I34, I35, I05, I06]}
+  hyperthyroidism: {space: internal, match: prefix, members: [E05]}
+  dementia: {space: internal, match: prefix, members: [F00, F01, F03, G30]}
+  dementia_advanced: {space: internal, match: prefix, members: [F00, F01, F03, G30]}
+  osteoporosis: {space: internal, match: prefix, members: [M80, M81]}
+  active_cancer: {space: internal, match: prefix, members: ["C"]}
+  malignancy: {space: internal, match: prefix, members: ["C"]}
+  metastatic_cancer: {space: internal, match: prefix, members: [C77, C78, C79, C80]}
+  colorectal_cancer: {space: internal, match: prefix, members: [C18, C19, C20]}
+  hepatocellular_carcinoma: {space: internal, match: prefix, members: [C22]}
+  alcohol_dependence: {space: internal, match: prefix, members: [F10]}
+  alcohol_dependence_active: {space: internal, match: prefix, members: [F10]}
+  # --- Complication risk-factor patient conditions (clinical_course) ---
+  immunosuppressed: {space: internal, match: prefix, members: [B20, D80, D81, D82, D83, D84, Z94]}
+  CKD_baseline: {space: internal, match: prefix, members: [N18]}
+  pre_existing_CKD: {space: internal, match: prefix, members: [N18]}
+  pre_existing_heart_failure: {space: internal, match: prefix, members: [I50]}
+  prior_heart_failure: {space: internal, match: prefix, members: [I50]}
+  pre_existing_cardiac_disease: {space: internal, match: prefix, members: [I50, I25, I21, I48]}
+  liver_disease: {space: internal, match: prefix, members: [K70, K72, K74, K76]}
+  prior_depression: {space: internal, match: prefix, members: [F32, F33]}
+  severe_osteoporosis: {space: internal, match: prefix, members: [M80, M81]}
+  alcohol_etiology: {space: internal, match: prefix, members: [F10]}

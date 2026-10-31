@@ -20,17 +20,22 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 
+from clinosim.codes.valuesets import concept_group
+
 PATIENT_ICD_ALIASES: dict[str, tuple[str, ...]] = {
-    "immunosuppressed": ("B20", "D80", "D81", "D82", "D83", "D84", "Z94"),
-    "CKD_baseline": ("N18",),
-    "pre_existing_CKD": ("N18",),
-    "pre_existing_heart_failure": ("I50",),
-    "prior_heart_failure": ("I50",),
-    "pre_existing_cardiac_disease": ("I50", "I25", "I21", "I48"),
-    "liver_disease": ("K70", "K72", "K74", "K76"),
-    "prior_depression": ("F32", "F33"),
-    "severe_osteoporosis": ("M80", "M81"),
-    "alcohol_etiology": ("F10",),
+    name: concept_group(name).members
+    for name in (
+        "immunosuppressed",
+        "CKD_baseline",
+        "pre_existing_CKD",
+        "pre_existing_heart_failure",
+        "prior_heart_failure",
+        "pre_existing_cardiac_disease",
+        "liver_disease",
+        "prior_depression",
+        "severe_osteoporosis",
+        "alcohol_etiology",
+    )
 }
 """Condition names resolved from the patient's chronic problem list (ICD prefix)."""
 
