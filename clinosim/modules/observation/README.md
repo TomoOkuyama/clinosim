@@ -189,6 +189,7 @@ clinosim/modules/observation/
   _variability_defaults.py           default CVs + qualitative distributions (Issue #637)
   reference_data/
     lab_aliases.yaml                 canonical lab-name aliases
+    lab_constants.yaml               per-lab units / CVs / precision / limits / normals / panic (Issue #2302)
     lab_panels.yaml                  panel → components
     microbiology.yaml                organism + susceptibility catalog
     nursing_scores.yaml              NEWS2 / GCS / Braden / Morse bands
