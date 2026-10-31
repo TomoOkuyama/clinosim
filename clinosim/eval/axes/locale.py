@@ -25,7 +25,7 @@ _LOINC_SYSTEM = get_system_uri("loinc")
 # legacy OID without a paired LOINC because T67-M1 has not yet been
 # migrated to JP-CLINS. The B2 2026-07-26 clean-up therefore
 # produced a union rather than a replacement.
-_LEGACY_JLAC10_OID = "urn:oid:1.2.392.200119.4.1005"
+_LEGACY_JLAC10_OID = get_system_uri("jlac10")
 _JLAC10_SYSTEM_URIS: frozenset[str] = jp_clins_defined_system_uris() | frozenset({_LEGACY_JLAC10_OID})
 
 # --------------------------------------------------------------------------- #

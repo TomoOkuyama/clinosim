@@ -1,0 +1,27 @@
+# Japanese display of JP-CLINS "Uncoded" lab analytes (Issue #2261).
+#
+# These analytes have no CoreLabo CS designation_ja to fall back on, so
+# clinosim carries the Japanese name for the LocalCode display and
+# code.text. Keyed by canonical lab name; moved from the
+# `_UNCODED_ANALYTE_JA_DISPLAY` dict in fhir_r4/labs/coding_strategy.py.
+analytes:
+  pH: {ja: "動脈血pH"}
+  pCO2: {ja: "動脈血二酸化炭素分圧"}
+  pO2: {ja: "動脈血酸素分圧"}
+  HCO3: {ja: "重炭酸イオン"}
+  Troponin_I: {ja: "トロポニンI"}
+  CK_MB: {ja: "CK-MB"}
+  Lactate: {ja: "乳酸"}
+  PCT: {ja: "プロカルシトニン"}
+  TSH: {ja: "甲状腺刺激ホルモン"}
+  Ethanol: {ja: "エタノール"}
+  Acetaminophen_level: {ja: "アセトアミノフェン血中濃度"}
+  Salicylate: {ja: "サリチル酸血中濃度"}
+  Urine_drug_screen: {ja: "尿中乱用薬物スクリーニング"}
+  Urinalysis: {ja: "尿定性"}
+  Urine_culture: {ja: "尿培養"}
+  Rapid_Strep: {ja: "A群溶連菌迅速抗原"}
+  Tetanus_status: {ja: "破傷風予防接種歴"}
+  Fibrinogen: {ja: "フィブリノゲン"}
+  eGFR: {ja: "推算糸球体濾過量"}
+  Glucose: {ja: "血糖"}

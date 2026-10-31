@@ -57,7 +57,11 @@ from __future__ import annotations
 import re
 import unicodedata
 from enum import StrEnum
+from functools import cache
+from pathlib import Path
 from typing import Any, Protocol
+
+import yaml
 
 from clinosim.codes import display as registry_display
 from clinosim.codes import get_system_uri, system_key_for
@@ -87,7 +91,7 @@ from clinosim.modules.output.fhir_r4.labs.coding_package import LabCodeCandidate
 
 def uncoded_analyte_display(lab_name: str) -> str:
     """Japanese display of an analyte, or the analyte name when unlisted."""
-    return _UNCODED_ANALYTE_JA_DISPLAY.get(lab_name, lab_name)
+    return _uncoded_analyte_ja_display().get(lab_name, lab_name)
 
 
 def _sanitize_localcode_display(text: str) -> str:
@@ -119,28 +123,16 @@ def _sanitize_localcode_code(name: str) -> str:
 # IP — Uncoded analytes have no CoreLabo CS designation_ja to fall back on,
 # so we carry the JA name here for the LocalCode display + code.text).
 # Mirror of _KNOWN_UNCODED_ANALYTES; keep in sync.
-_UNCODED_ANALYTE_JA_DISPLAY: dict[str, str] = {
-    "pH": "動脈血pH",
-    "pCO2": "動脈血二酸化炭素分圧",
-    "pO2": "動脈血酸素分圧",
-    "HCO3": "重炭酸イオン",
-    "Troponin_I": "トロポニンI",
-    "CK_MB": "CK-MB",
-    "Lactate": "乳酸",
-    "PCT": "プロカルシトニン",
-    "TSH": "甲状腺刺激ホルモン",
-    "Ethanol": "エタノール",
-    "Acetaminophen_level": "アセトアミノフェン血中濃度",
-    "Salicylate": "サリチル酸血中濃度",
-    "Urine_drug_screen": "尿中乱用薬物スクリーニング",
-    "Urinalysis": "尿定性",
-    "Urine_culture": "尿培養",
-    "Rapid_Strep": "A群溶連菌迅速抗原",
-    "Tetanus_status": "破傷風予防接種歴",
-    "Fibrinogen": "フィブリノゲン",
-    "eGFR": "推算糸球体濾過量",
-    "Glucose": "血糖",
-}
+_UNCODED_ANALYTE_YAML = Path(__file__).resolve().parents[4] / "codes" / "data" / "jp-clins-uncoded-analyte-display.yaml"
+
+
+@cache
+def _uncoded_analyte_ja_display() -> dict[str, str]:
+    """Japanese display of JP-CLINS Uncoded analytes, keyed by canonical lab
+    name (``codes/data/jp-clins-uncoded-analyte-display.yaml``, Issue #2261)."""
+    raw = yaml.safe_load(_UNCODED_ANALYTE_YAML.read_text(encoding="utf-8")) or {}
+    return {str(k): str(v.get("ja") or "") for k, v in (raw.get("analytes") or {}).items()}
+
 
 # --------------------------------------------------------------------------- #
 # Kind enum — finalized in PR 1, extended only with matching strategy.
@@ -370,7 +362,7 @@ class UncodedStrategy:
         """PR 3c: emit LocalCode co-slice for Uncoded analytes.
 
         code = sanitized ASCII form of lab_name; display = sanitized
-        Japanese name from ``_UNCODED_ANALYTE_JA_DISPLAY``. Applying
+        Japanese name from ``jp-clins-uncoded-analyte-display.yaml``. Applying
         display sanitize here (not in loader) matches        boundary: loader supplies raw text, strategy applies user-
         facing rules per slot."""
         from clinosim.modules.output.fhir_r4.labs.coding_package import load_lab_coding_package
@@ -378,7 +370,7 @@ class UncodedStrategy:
         pkg = load_lab_coding_package()
         if not pkg.is_available():
             return None
-        raw_ja = _UNCODED_ANALYTE_JA_DISPLAY.get(lab_name, lab_name)
+        raw_ja = _uncoded_analyte_ja_display().get(lab_name, lab_name)
         return {
             "system": pkg.localcode_system_uri(),
             "code": _sanitize_localcode_code(lab_name),

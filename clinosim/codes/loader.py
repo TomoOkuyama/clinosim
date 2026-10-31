@@ -142,6 +142,31 @@ def is_english_only_system(system_key_or_uri: str) -> bool:
     return uri.startswith(ENGLISH_ONLY_SYSTEM_PREFIXES)
 
 
+_JP_CLINS_LAB_SYSTEM_KEYS: dict[str, str] = {
+    "corelabo_jlac10": "jp-clins-lab-corelabo-jlac10",
+    "corelabo_jlac11": "jp-clins-lab-corelabo-jlac11",
+    "infectionlabo_jlac10": "jp-clins-lab-infectionlabo-jlac10",
+    "infectionlabo_jlac11": "jp-clins-lab-infectionlabo-jlac11",
+    "uncoded": "jp-clins-lab-uncoded",
+    "localcode": "jp-clins-lab-localcode",
+    "jlac10_17digits": "jlac10-17digits",
+    "specimen_material": "jp-specimen-material-jlac10",
+}
+
+
+def jp_clins_lab_system(kind: str) -> str:
+    """URI of a JP lab CodeSystem by kind (``corelabo_jlac10``, ``uncoded``,
+    ``localcode``, ``jlac10_17digits``, ``specimen_material``, ...); KeyError
+    on an unknown kind (Issue #2261)."""
+    return get_system_uri(_JP_CLINS_LAB_SYSTEM_KEYS[kind])
+
+
+def jlac10_display(code: str, lang: str) -> str | None:
+    """Display of a JLAC10 analyte code in ``lang`` (then English); ``None``
+    when the code is not registered (Issue #2261)."""
+    return display("jlac10", code, lang)
+
+
 def is_japanese_only_display_system(system_key: str) -> bool:
     """True if ``system_key`` publishes displays in Japanese only.
 
@@ -469,6 +494,21 @@ _BUILTIN_URIS: dict[str, str] = {
     "jp-medication-ingredient-strength-type": (
         "http://jpfhir.jp/fhir/core/mhlw/CodeSystem/MedicationIngredientStrengthStrengthType"
     ),
+    # Issue #2261: JP lab CodeSystems (JP-CLINS 1.13.0 lab-result slices, the
+    # MEDIS JLAC10 17-digit master, the JLAC10 specimen-material CS). URIs
+    # are the SD fixedUri values the lab coding package already used.
+    "jp-clins-lab-corelabo-jlac10": "http://jpfhir.jp/fhir/clins/CodeSystem/JLAC10/JP_CLINS_ObsLabResult_CoreLabo_CS",
+    "jp-clins-lab-corelabo-jlac11": "http://jpfhir.jp/fhir/clins/CodeSystem/JLAC11/JP_CLINS_ObsLabResult_CoreLabo_CS",
+    "jp-clins-lab-infectionlabo-jlac10": (
+        "http://jpfhir.jp/fhir/clins/CodeSystem/JLAC10/JP_CLINS_ObsLabResult_InfectionLabo_CS"
+    ),
+    "jp-clins-lab-infectionlabo-jlac11": (
+        "http://jpfhir.jp/fhir/clins/CodeSystem/JLAC11/JP_CLINS_ObsLabResult_InfectionLabo_CS"
+    ),
+    "jp-clins-lab-uncoded": "http://jpfhir.jp/fhir/clins/CodeSystem/JP_CLINS_ObsLabResult_Uncoded_CS",
+    "jp-clins-lab-localcode": "http://jpfhir.jp/fhir/clins/CodeSystem/JP_CLINS_ObsLabResult_LocalCode_CS",
+    "jlac10-17digits": "http://medis.or.jp/CodeSystem/master-JLAC10-17digits",
+    "jp-specimen-material-jlac10": "http://jpfhir.jp/fhir/core/CodeSystem/JP_ObservationSampleMaterialCodeJLAC10_CS",
     "us-ssn": "http://hl7.org/fhir/sid/us-ssn",
     "us-npi": "http://hl7.org/fhir/sid/us-npi",
 }

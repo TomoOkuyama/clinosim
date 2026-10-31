@@ -208,6 +208,16 @@ def load_code_mapping(domain: str, country: str) -> dict[str, str]:
     return merged
 
 
+def lab_code(lab_name: str, country: str) -> tuple[str, str] | None:
+    """``(system_key, code)`` of a lab result for ``country``: LOINC for the
+    US, JLAC10 for JP, from ``code_mapping_lab.yaml``; ``None`` when the
+    analyte is unmapped (Issue #2261)."""
+    from clinosim.codes import system_key_for
+
+    code = load_code_mapping("lab", country).get(lab_name, "")
+    return (system_key_for("lab", country), code) if code else None
+
+
 def lab_codes(lab_name: str) -> tuple[str, ...]:
     """Every code a lab result carries across the supported locales (US LOINC,
     JP JLAC10), read from ``code_mapping_lab.yaml`` (Issue #2301).
