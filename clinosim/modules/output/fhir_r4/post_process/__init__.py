@@ -29,7 +29,6 @@ __all__ = [
     # populate
     "_CLINOSIM_OBSERVATION_ID_SYSTEM",
     "_ECS_IDENTIFIER_SYSTEMS",
-    "_FHIR_URI_TO_CODE_SYSTEM_KEY",
     "_HL7_V3_SUBSTITUTION_SYSTEM",
     "_JP_CLINS_MEDICATION_USAGE_UNCODED_CODE",
     "_JP_CLINS_MEDICATION_USAGE_UNCODED_CS",
@@ -91,7 +90,6 @@ from clinosim.modules.output.fhir_r4.post_process.datetime_normalize import (  #
 from clinosim.modules.output.fhir_r4.post_process.populate import (  # noqa: E402, F401
     _CLINOSIM_OBSERVATION_ID_SYSTEM,
     _ECS_IDENTIFIER_SYSTEMS,
-    _FHIR_URI_TO_CODE_SYSTEM_KEY,
     _HL7_V3_SUBSTITUTION_SYSTEM,
     _JP_CLINS_MEDICATION_USAGE_UNCODED_CODE,
     _JP_CLINS_MEDICATION_USAGE_UNCODED_CS,

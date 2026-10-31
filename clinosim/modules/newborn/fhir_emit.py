@@ -13,6 +13,8 @@ from __future__ import annotations
 import hashlib
 from typing import Any
 
+from clinosim.codes import display as registry_display
+
 
 def _encounter_ref(encounter_id: str) -> dict[str, str]:
     """Local wrapper around ``encounter_ref`` — deferred import to avoid the
@@ -305,7 +307,6 @@ def _bb_newborn_cchd_pulse_ox(ctx: Any) -> list[dict]:
     lang = resolve_lang(country)
     key_system = "urn:clinosim:identifier:newborn-cchd-key"
 
-    from clinosim.codes import lookup as code_lookup
     from clinosim.codes.cchd_site_to_snomed import resolve_cchd_site_snomed
 
     out: list[dict] = []
@@ -314,7 +315,7 @@ def _bb_newborn_cchd_pulse_ox(ctx: Any) -> list[dict]:
         site_code = resolve_cchd_site_snomed(site)
         if site_code is None:
             continue
-        site_display = code_lookup("snomed-ct", site_code, lang) or site
+        site_display = registry_display("snomed-ct", site_code, lang) or site
         value = int(e.get("value_pct", 0) or 0)
         loinc = str(e.get("loinc") or "59408-5")
         struct_key = f"{patient_id}-cchd-{site}"
@@ -614,7 +615,6 @@ def _bb_newborn_metabolic_screen_observation(ctx: Any) -> list[dict]:
     refer outcome as the DR ``conclusionCode``.
     """
     from clinosim.codes import get_system_uri
-    from clinosim.codes import lookup as code_lookup
     from clinosim.locale.i18n import t
     from clinosim.modules.output.fhir_r4.demographics.patient import patient_ref
 
@@ -644,7 +644,7 @@ def _bb_newborn_metabolic_screen_observation(ctx: Any) -> list[dict]:
         ],
         "code": {
             "coding": [{"system": get_system_uri("loinc"), "code": loinc, "display": display_en}],
-            "text": code_lookup("loinc", loinc, lang) or display_en,
+            "text": registry_display("loinc", loinc, lang) or display_en,
         },
         "subject": patient_ref(patient_id),
         "basedOn": [{"reference": f"ServiceRequest/{_metabolic_screen_sr_id(patient_id)}"}],

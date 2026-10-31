@@ -17,7 +17,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from clinosim.codes import lookup as code_lookup
+from clinosim.codes import display as registry_display
 from clinosim.modules._shared import get_attr_or_key as _o
 from clinosim.modules._shared import uses_jp_clins_profile
 from clinosim.modules.output.fhir_r4.documents.referral_orgs import (
@@ -106,7 +106,7 @@ def _build_jp_clins_referral_note_composition(
     # v3 fix: eReferral profile constrains type.coding to a
     # single doc-typecodes coding. LOINC copy removed; the LOINC value is
     # preserved via type.text.
-    disp = code_lookup("jpfhir-doc-typecodes", "57133-1", lang) or "診療情報提供書"
+    disp = registry_display("jpfhir-doc-typecodes", "57133-1", lang) or "診療情報提供書"
     comp["type"] = {
         "coding": [
             {"system": _JPFHIR_DOC_TYPECODES_SYSTEM, "code": "57133-1", "display": disp},
@@ -161,7 +161,7 @@ def _build_jp_clins_referral_note_composition(
         text_val: str,
         entry_refs: list[dict[str, str]] | None = None,
     ) -> dict[str, Any]:
-        disp_c = code_lookup("jpfhir-doc-section", section_code, lang) or section_code
+        disp_c = registry_display("jpfhir-doc-section", section_code, lang) or section_code
         title_c = _section_title_from_section_display(disp_c)
         section_obj: dict[str, Any] = {
             "title": title_c,
@@ -208,7 +208,7 @@ def _build_jp_clins_referral_note_composition(
     struct_children: list[dict[str, Any]] = []
     for key, code in _JP_REFERRAL_STRUCTURAL_CHILDREN.items():
         struct_children.append(_one_section(code, sections.get(key, "") or ""))
-    struct_parent_disp = code_lookup("jpfhir-doc-section", "300", lang) or "構造情報セクション"
+    struct_parent_disp = registry_display("jpfhir-doc-section", "300", lang) or "構造情報セクション"
     struct_parent_title = _section_title_from_section_display(struct_parent_disp)
     top_sections.append(
         {

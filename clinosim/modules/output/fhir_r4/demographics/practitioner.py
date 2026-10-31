@@ -10,8 +10,8 @@ from __future__ import annotations
 import hashlib
 from typing import Any
 
+from clinosim.codes import display as registry_display
 from clinosim.codes import get_system_uri
-from clinosim.codes import lookup as code_lookup
 from clinosim.locale.loader import load_practitioner_qualifications
 from clinosim.modules._shared import is_jp, is_us, resolve_lang
 from clinosim.modules.output.fhir_r4.lib.common import _coding_with_display
@@ -479,7 +479,7 @@ def _build_practitioner_role(
         # the English fallback baked into _SPECIALTY_SNOMED entries.
         _lang = resolve_lang(country)
         _snomed_code = spec_info["code"]
-        _spec_display = code_lookup("snomed-ct", _snomed_code, _lang) or spec_info["display"]
+        _spec_display = registry_display("snomed-ct", _snomed_code, _lang) or spec_info["display"]
         resource["specialty"] = [
             {
                 "coding": [

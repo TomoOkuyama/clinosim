@@ -11,6 +11,7 @@ from __future__ import annotations
 
 from typing import Any
 
+from clinosim.codes import display as registry_display
 from clinosim.codes import get_system_uri, system_key_for
 from clinosim.codes import lookup as code_lookup
 from clinosim.locale.i18n import t
@@ -345,7 +346,7 @@ def _bb_microbiology(ctx: BundleContext) -> list[dict]:
             # _only_systems` により削除されてしまい validator が
             # "display=0" を検出する)。lookup 失敗時は interp code 自体を
             # fallback として使う。
-            _sus_interp_display = code_lookup("hl7-observation-interpretation", interp, "en") or interp
+            _sus_interp_display = registry_display("hl7-observation-interpretation", interp, "en") or interp
             sus_obs: dict[str, Any] = {
                 "resourceType": "Observation",
                 "id": sus_id,
@@ -509,7 +510,7 @@ def _mb_conclusion_text(mb: dict, lang: str) -> str:
             return t("microbiology_fhir.no_growth_after_5day", lang)
         # Rare: growth flag off but organism recorded → treat as "not
         # clinically significant, likely contaminant" for narrative honesty.
-        org_disp = code_lookup("snomed-ct", organism, lang) or organism
+        org_disp = registry_display("snomed-ct", organism, lang) or organism
         return t("microbiology_fhir.detected_not_significant", lang, org=org_disp)
     org_disp = code_lookup("snomed-ct", organism, lang) if organism else ""
     if not org_disp:
@@ -529,7 +530,7 @@ def _mb_conclusion_text(mb: dict, lang: str) -> str:
         loinc = str(sus.get("antibiotic_loinc") or "")
         if not loinc:
             return "?"
-        disp = code_lookup("loinc", loinc, lang) or ""
+        disp = registry_display("loinc", loinc, lang) or ""
         if not disp:
             return loinc
         # Trim the "[Susceptibility]" / "感受性" tail — the header
@@ -559,7 +560,7 @@ def _mb_presented_text(mb: dict, lang: str) -> str:
     if lang == "ja":
         lines = [f"検体: {specimen}"]
         if organism:
-            org_disp = code_lookup("snomed-ct", organism, "ja") or organism
+            org_disp = registry_display("snomed-ct", organism, "ja") or organism
             lines.append(f"検出菌: {org_disp}")
         else:
             lines.append("検出菌: (陰性)")
@@ -573,7 +574,7 @@ def _mb_presented_text(mb: dict, lang: str) -> str:
         return "\n".join(lines) + "\n"
     lines = [f"Specimen: {specimen}", f"Growth: {growth}"]
     if organism:
-        org_disp = code_lookup("snomed-ct", organism, "en") or organism
+        org_disp = registry_display("snomed-ct", organism, "en") or organism
         lines.append(f"Organism: {org_disp}")
     sus_list = mb.get("susceptibilities") or []
     if sus_list:

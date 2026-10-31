@@ -22,6 +22,26 @@ codes:
   LP29684-5:
     en: Radiology
     ja: 放射線
+  # === Composition section codes (section_catalog.yaml; Issue #2256) ===
+  # Official displays verified with tx.fhir.org $lookup (26436-6 with the NLM
+  # Clinical Tables LOINC API). No Japanese label: JP output falls back to
+  # English for these English-only section codes.
+  26436-6:
+    en: Laboratory studies (set)
+  29554-3:
+    en: Procedure Narrative
+  46241-6:
+    en: Hospital admission diagnosis Narrative - Reported
+  69449-7:
+    en: Manner of death
+  69453-9:
+    en: Cause of death [US Standard Certificate of Death]
+  85699-7:
+    en: Autopsy was performed
+  8646-2:
+    en: Hospital admission diagnosis
+  8649-6:
+    en: Hospital discharge date
   # === Clinical document types (FHIR DocumentReference.type) ===
   34117-2:
     en: History and physical note

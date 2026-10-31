@@ -22,6 +22,7 @@ from __future__ import annotations
 from datetime import datetime
 from typing import TYPE_CHECKING
 
+from clinosim.codes import display as registry_display
 from clinosim.codes import lookup as code_lookup
 from clinosim.codes import system_key_for
 from clinosim.locale.i18n import t
@@ -302,7 +303,7 @@ def build_dc_contributing_conditions(
         if not code_val:
             continue
         system = _o(c, "system", "") or system_key_for("diagnosis", ctx.locale.upper())
-        display = code_lookup(system, code_val, lang) or code_val
+        display = registry_display(system, code_val, lang) or code_val
         parts.append(t("list_item.inline_dx_with_code", lang, display=display, code=code_val))
     if parts:
         facts.append("ctx.patient.chronic_conditions")
@@ -418,7 +419,9 @@ def build_dds_admission_state(generator: TemplateNarrativeGenerator, ctx: Narrat
     adm_sys = _o(primary, "admission_diagnosis_system", "") if primary else ""
     adm_disp = ""
     if adm_code:
-        adm_disp = code_lookup(adm_sys or system_key_for("diagnosis", ctx.locale.upper()), adm_code, lang) or adm_code
+        adm_disp = (
+            registry_display(adm_sys or system_key_for("diagnosis", ctx.locale.upper()), adm_code, lang) or adm_code
+        )
         facts.append("ctx.diagnoses[0].admission_diagnosis_code")
     if adm_dt:
         facts.append("ctx.encounter.admission_datetime")
@@ -580,7 +583,7 @@ def build_dds_complications_and_comorbidities(
         if not code_val:
             continue
         system = _o(c, "system", "") or system_key_for("diagnosis", ctx.locale.upper())
-        disp = code_lookup(system, code_val, lang) or code_val
+        disp = registry_display(system, code_val, lang) or code_val
         cond_labels.append(t("list_item.inline_dx_with_code", lang, display=disp, code=code_val))
     if cond_labels:
         facts.append("ctx.patient.chronic_conditions")

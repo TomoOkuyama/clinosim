@@ -180,19 +180,7 @@ def _lookup_in_system(cs: CodeSystem, code: str) -> dict[str, str] | None:
     return None
 
 
-def lookup(system: str, code: str, lang: str = "en") -> str:
-    """Look up display text for a code in the given language.
-
-    Resolution order:
-    1. Exact match in ``system``
-    2. Base code (e.g. "E11.9" → "E11") in ``system``
-    3. Any sub-code starting with the given base (e.g. "I63" → "I63.9") in ``system``
-    4. Steps 1-3 in each sibling system declared in
-       ``_SYSTEM_LOOKUP_SIBLINGS[system]`` (Issue #415 — e.g. ``"yj"`` falls
-       back to ``"hot7"`` so a HOT7 code passed with the ``"yj"`` key still
-       resolves after the split).
-    5. Return the code itself as fallback.
-    """
+def _resolve_entry(system: str, code: str) -> dict[str, str] | None:
     cs = _load_system(system)
     entry: dict[str, str] | None = None
     if cs:
@@ -205,6 +193,67 @@ def lookup(system: str, code: str, lang: str = "en") -> str:
             entry = _lookup_in_system(sibling, code)
             if entry is not None:
                 break
+    return entry
+
+
+def display(system: str, code: str, lang: str = "en") -> str | None:
+    """Display text for a code, or ``None`` when the code is not registered.
+
+    Same resolution as :func:`lookup` (exact, base, child, sibling systems;
+    requested language, then English) but a miss is ``None`` instead of the
+    code itself, so callers can write ``display(...) or fallback``
+    (Issue #2256).
+    """
+    entry = _resolve_entry(system, code) if code else None
+    if entry is None:
+        return None
+    if lang in entry:
+        return str(entry[lang])
+    if "en" in entry:
+        return str(entry["en"])
+    for candidate in entry.values():
+        if isinstance(candidate, str):
+            return candidate
+    return None
+
+
+def code_exists(system: str, code: str, *, exact: bool = False) -> bool:
+    """True when ``code`` is registered in ``system``.
+
+    ``exact=False`` uses the :func:`lookup` resolution (exact, base or child
+    match); ``exact=True`` requires the code itself. Raises ``ValueError``
+    when ``system`` is not a registered code system, so a typo fails loud.
+    """
+    cs = _load_system(system)
+    if cs is None:
+        raise ValueError(f"code system {system!r} is not registered in clinosim/codes/data/")
+    if not code:
+        return False
+    if exact:
+        return code in cs.codes
+    return _lookup_in_system(cs, code) is not None
+
+
+def system_key_for_uri(uri: str) -> str | None:
+    """Code-system key for a FHIR system URI, the inverse of :func:`get_system_uri`."""
+    return _URI_TO_KEY.get(uri)
+
+
+def lookup(system: str, code: str, lang: str = "en") -> str:
+    """Look up display text for a code in the given language.
+
+    Resolution order:
+    1. Exact match in ``system``
+    2. Base code (e.g. "E11.9" → "E11") in ``system``
+    3. Any sub-code starting with the given base (e.g. "I63" → "I63.9") in ``system``
+    4. Steps 1-3 in each sibling system declared in
+       ``_SYSTEM_LOOKUP_SIBLINGS[system]`` (Issue #415 — e.g. ``"yj"`` falls
+       back to ``"hot7"`` so a HOT7 code passed with the ``"yj"`` key still
+       resolves after the split).
+    5. Return the code itself as fallback. Use :func:`display` when a miss
+       should fall through to a caller-supplied fallback instead.
+    """
+    entry = _resolve_entry(system, code)
     if entry is None:
         return code
 
@@ -378,3 +427,7 @@ _BUILTIN_URIS: dict[str, str] = {
     # DICOM code systems (Tier 1 #2 Imaging, PR1)
     "dicom-modality": "http://dicom.nema.org/resources/ontology/DCM",
 }
+
+# Inverse of ``_BUILTIN_URIS`` (every URI is registered once) for
+# :func:`system_key_for_uri` (Issue #2256).
+_URI_TO_KEY: dict[str, str] = {uri: key for key, uri in _BUILTIN_URIS.items()}

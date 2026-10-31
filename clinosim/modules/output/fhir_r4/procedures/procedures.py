@@ -8,6 +8,7 @@ from __future__ import annotations
 
 from typing import Any
 
+from clinosim.codes import display as registry_display
 from clinosim.codes import (
     get_system_uri,
     system_key_for,
@@ -358,7 +359,7 @@ def _build_procedure(
             # Use country-scoped ICD-10 system key (JP=icd-10-mhlw, US=icd-10-cm)
             # to stay consistent with Condition.code system emission.
             _icd_key = system_key_for("diagnosis", country)
-            _display = _dx_display or (code_lookup(_icd_key, _dx_code, lang) or _dx_code)
+            _display = _dx_display or (registry_display(_icd_key, _dx_code, lang) or _dx_code)
             resource["reasonCode"] = [
                 {
                     "coding": [
@@ -421,7 +422,7 @@ def _build_procedure(
                 {
                     "system": sct_uri,
                     "code": _succ_code,
-                    "display": code_lookup("snomed-ct", _succ_code, lang) or "Successful",
+                    "display": registry_display("snomed-ct", _succ_code, lang) or "Successful",
                 }
             ],
             "text": "成功" if is_jp(country) else "Successful",

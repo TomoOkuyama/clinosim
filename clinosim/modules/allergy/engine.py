@@ -56,15 +56,9 @@ def _code_in_data(system: str, code: str) -> bool:
     `cs.codes` membership IS the authoritative check (same pattern as
     `hai/engine.py:_code_in_data`).
     """
-    from clinosim.codes.loader import _load_system
+    from clinosim.codes import code_exists
 
-    cs = _load_system(system)
-    if cs is None:
-        raise ValueError(
-            f"_code_in_data: code system {system!r} not registered in "
-            f"clinosim/codes/data/ — system itself is missing, not the code"
-        )
-    return code in cs.codes
+    return code_exists(system, code, exact=True)
 
 
 def _validate_allergens(data: dict[str, Any]) -> None:

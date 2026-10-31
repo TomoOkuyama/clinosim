@@ -20,6 +20,7 @@ from __future__ import annotations
 
 from typing import Any
 
+from clinosim.codes import display as registry_display
 from clinosim.locale.i18n import t
 from clinosim.modules.document.narrative._replacement_localization import (
     _localize_severity_ja,
@@ -67,7 +68,6 @@ def _render_chronic_list(chronic: list, lang: str = "en") -> str:
     ``system`` field (legacy CIFs that stored resolved labels directly
     in ``code``) pass through unchanged for backward compatibility.
     """
-    from clinosim.codes import lookup as code_lookup
 
     parts = []
     for c in (chronic or [])[:15]:
@@ -92,7 +92,7 @@ def _render_chronic_list(chronic: list, lang: str = "en") -> str:
         # guard against emitting a redundant "CODE (CODE)" string.
         display = ""
         if code and system:
-            resolved = code_lookup(system, code, lang) or ""
+            resolved = registry_display(system, code, lang) or ""
             if resolved and resolved != code:
                 display = resolved
         if display and code:

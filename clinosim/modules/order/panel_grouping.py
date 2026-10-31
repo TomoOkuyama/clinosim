@@ -18,8 +18,6 @@ from typing import Any
 
 import yaml
 
-from clinosim.codes.loader import _load_system
-
 _HERE = Path(__file__).resolve().parent
 # Canonical YAML location (moved from output/reference_data/ in this task to
 # unify panel data ownership; "panel" is fundamentally an ordering concept).
@@ -46,13 +44,9 @@ def _code_in_data(system: str, code: str) -> bool:
     Raises:
         ValueError: if the system itself is not registered in codes/data/.
     """
-    cs = _load_system(system)
-    if cs is None:
-        raise ValueError(
-            f"_code_in_data: code system {system!r} not registered in "
-            f"clinosim/codes/data/ — system itself is missing, not the code"
-        )
-    return code in cs.codes
+    from clinosim.codes import code_exists
+
+    return code_exists(system, code, exact=True)
 
 
 def _validate_panel_definitions(panels: dict[str, dict[str, Any]]) -> None:

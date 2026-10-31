@@ -59,6 +59,7 @@ import unicodedata
 from enum import StrEnum
 from typing import Any, Protocol
 
+from clinosim.codes import display as registry_display
 from clinosim.codes import get_system_uri, system_key_for
 from clinosim.codes import lookup as code_lookup
 from clinosim.locale.loader import load_code_mapping
@@ -247,7 +248,7 @@ class LegacyJSLMStrategy:
         us_code_map = load_code_mapping("lab", "US")
         loinc_code = us_code_map.get(lab_name)
         if loinc_code and loinc_code != code_value:
-            loinc_display = code_lookup("loinc", loinc_code, "en") or lab_name
+            loinc_display = registry_display("loinc", loinc_code, "en") or lab_name
             codings.append(
                 {
                     "system": get_system_uri("loinc"),
@@ -354,7 +355,7 @@ class UncodedStrategy:
         us_code_map = load_code_mapping("lab", "US")
         loinc_code = us_code_map.get(lab_name)
         if loinc_code:
-            loinc_display = code_lookup("loinc", loinc_code, "en") or lab_name
+            loinc_display = registry_display("loinc", loinc_code, "en") or lab_name
             codings.append({"system": get_system_uri("loinc"), "code": loinc_code, "display": loinc_display})
         return codings
 
@@ -484,7 +485,7 @@ class CoreLaboStrategy:
         us_code_map = load_code_mapping("lab", "US")
         loinc_code = us_code_map.get(lab_name)
         if loinc_code:
-            loinc_display = code_lookup("loinc", loinc_code, "en") or lab_name
+            loinc_display = registry_display("loinc", loinc_code, "en") or lab_name
             codings.append(
                 {
                     "system": get_system_uri("loinc"),

@@ -26,6 +26,7 @@ back into `fhir_r4_adapter.py`.
 
 from __future__ import annotations
 
+from clinosim.codes import display as registry_display
 from clinosim.codes import get_system_uri, system_key_for
 from clinosim.codes import lookup as code_lookup
 from clinosim.codes.hl7_encounter import ActPriority, AdmitSource
@@ -992,7 +993,7 @@ def _bb_procedures(ctx: BundleContext) -> list[dict]:
         )
         if _dx_code:
             _icd_key = system_key_for("diagnosis", ctx.country)
-            _reason_display = _dx_display or (code_lookup(_icd_key, _dx_code, _lang) or _dx_code)
+            _reason_display = _dx_display or (registry_display(_icd_key, _dx_code, _lang) or _dx_code)
             procedure_res["reasonCode"] = [
                 {
                     "coding": [
@@ -1021,7 +1022,7 @@ def _bb_procedures(ctx: BundleContext) -> list[dict]:
                 {
                     "system": get_system_uri("snomed-ct"),
                     "code": "385669000",
-                    "display": code_lookup("snomed-ct", "385669000", _cat_lang) or "Successful",
+                    "display": registry_display("snomed-ct", "385669000", _cat_lang) or "Successful",
                 }
             ],
             "text": "成功" if is_jp(ctx.country) else "Successful",

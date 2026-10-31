@@ -23,8 +23,8 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from clinosim.codes import display as registry_display
 from clinosim.codes import get_display as code_display
-from clinosim.codes import lookup as code_lookup
 from clinosim.codes import system_key_for
 from clinosim.locale.i18n import t
 from clinosim.modules._shared import get_attr_or_key as _o
@@ -90,13 +90,13 @@ def build_past_medical_history(generator: TemplateNarrativeGenerator, ctx: Narra
         # so map_diagnosis_code takes the ``default`` on sex-conditional
         # entries (US C50 defaults to the female leaf per its docstring).
         emit_code = map_diagnosis_code(code, country) or code
-        display = code_lookup(icd_system, emit_code, lang) or emit_code
+        display = registry_display(icd_system, emit_code, lang) or emit_code
         if display == emit_code:
             # Try 3-char parent (E11.9 → E11) — many mappings live only
             # at the category level.
             base = emit_code.split(".")[0]
             if base != emit_code:
-                display = code_lookup(icd_system, base, lang) or emit_code
+                display = registry_display(icd_system, base, lang) or emit_code
         # Phase 1c-6 (2026-09-23): localize the severity /
         # persistence descriptor via ``_localize_stage`` so JA
         # emits 「気管支喘息 (軽度持続) [J45]」 rather than

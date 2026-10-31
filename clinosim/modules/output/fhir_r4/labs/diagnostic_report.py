@@ -26,6 +26,7 @@ from functools import cache
 from pathlib import Path
 from typing import Any, NamedTuple
 
+from clinosim.codes import display as registry_display
 from clinosim.codes import get_system_uri
 from clinosim.codes import lookup as _codes_lookup
 from clinosim.locale.i18n import t
@@ -547,7 +548,7 @@ def build_dr_resource(
     panels = load_panel_definitions()
     panel = panels[group.panel_name]
     lang = resolve_lang(country)
-    display = _codes_lookup("loinc", panel["loinc"], lang) or panel["display"]
+    display = registry_display("loinc", panel["loinc"], lang) or panel["display"]
     # Issue #783: `code.text` = JA primary label on JP output (panel `display_ja`
     # in `lab_panel_groups.yaml`), English `display` on US. Prior emit left
     # `code.text` unset entirely — consumers saw only the LOINC code string
@@ -905,7 +906,7 @@ def _build_radiology_dr(study: Any, report: Any, ctx: Any) -> dict:
         "</div>"
     )
 
-    snomed_radiology_display = _codes_lookup("snomed-ct", RADIOLOGY_CATEGORY_SNOMED, lang) or (
+    snomed_radiology_display = registry_display("snomed-ct", RADIOLOGY_CATEGORY_SNOMED, lang) or (
         localize_fixed_label("Radiology", ctx.country)
     )
 
