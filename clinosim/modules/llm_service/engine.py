@@ -588,15 +588,19 @@ class LLMService:
         }
 
 
+def _output_language_instruction(language: str) -> str:
+    """Output-language instruction written in the target language (Issue #2278)."""
+    from clinosim.countries import output_language_instruction
+
+    return output_language_instruction(language)
+
+
 def _build_prompt(task_type: LLMTaskType, event: ClinicalEventData, language: str) -> tuple[str, str]:
     """Build system and user prompts for an LLM call. Centralized here (AD-11)."""
     ps = event.patient_summary
     ed = event.event_data
 
-    lang_instruction = {
-        "ja": "Write in Japanese. Use appropriate Japanese medical terminology.",
-        "en": "Write in English. Use standard medical terminology.",
-    }.get(language, "Write in English.")
+    lang_instruction = _output_language_instruction(language)
 
     match task_type:
         case LLMTaskType.PROGRESS_NOTE:

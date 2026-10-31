@@ -40,6 +40,7 @@ from __future__ import annotations
 import time as _time
 from collections.abc import Callable
 
+from clinosim.countries import lang_name
 from clinosim.modules.document.narrative._extra_context_builder import (
     _biometrics_doc_types as _biometrics_doc_types,
 )
@@ -546,12 +547,11 @@ def _apply_template_seed_bundle_strategy(
         )
 
         prompt_spec = llm.prompt_registry.get("narrative_seed_bundle", language)
-        # Session-88j: the bundle prompts are authored in English (instruction-
-        # following is more reliable than in the target locale), and the
-        # OUTPUT language is switched via ${target_language}. Keep the
-        # `language` argument to prompt_registry.get unchanged so the same
-        # spec is used for JP/EN routes.
-        _lang_name = "Japanese" if str(language).lower().startswith("ja") else "English"
+        # Each language has its own prompt, written in that language
+        # (prompts/<lang>/narrative_seed_bundle.yaml), so ${target_language}
+        # names the output language in the prompt's language: 日本語 / English
+        # (Issue #2278; unregistered languages fall back to English).
+        _lang_name = lang_name(language)
         system_prompt, user_prompt = prompt_spec.render(
             {
                 "document_type": spec.type_key,
