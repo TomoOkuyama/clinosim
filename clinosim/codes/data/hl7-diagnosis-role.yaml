@@ -1,0 +1,14 @@
+# HL7 FHIR diagnosis-role — Encounter.diagnosis.use. English displays
+# verified on tx.fhir.org $lookup (THO).
+metadata:
+  name: HL7 FHIR Diagnosis Role
+  uri: http://terminology.hl7.org/CodeSystem/diagnosis-role
+  source: "HL7 Terminology (THO)"
+codes:
+  AD:      {en: "Admission diagnosis",   ja: "入院時診断"}
+  DD:      {en: "Discharge diagnosis",   ja: "退院時診断"}
+  CC:      {en: "Chief complaint",       ja: "主訴"}
+  CM:      {en: "Comorbidity diagnosis", ja: "併存疾患"}
+  pre-op:  {en: "pre-op diagnosis",      ja: "術前診断"}
+  post-op: {en: "post-op diagnosis",     ja: "術後診断"}
+  billing: {en: "Billing",               ja: "請求診断"}

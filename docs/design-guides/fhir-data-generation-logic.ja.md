@@ -384,7 +384,7 @@ JP cohort の判定は **`is_jp(ctx.country)`**、display 言語は **`resolve_l
 
 - 全 `display`, `text`, `name` field = 日本語(`code_lookup(..., resolve_lang(ctx.country))` 経由)
 - 国依存の code system 選択(JLAC10 vs LOINC 等)= `system_key_for(kind, ctx.country)`(E.11)
-- enum 値(severity / route / category 等)= `_localize_display()`(既存 helper、`clinosim/modules/output/fhir_r4/lib/common.py (localization helpers)`)
+- コード付き enum 値(category / priority / interpretation 等)= コードをキーにした `codes/data/hl7-*.yaml` registry を引く `dual_slot_concept()`(`clinosim/modules/output/fhir_r4/lib/common.py`)
 - 薬剤 / 手技名 = `code_lookup()` または lang-aware wrapper `localize_drug_name(name, lang)` (`output/fhir_r4/lib/localization.py`、Phase 1d-61)。wrapper は lookup table を持たない locale では no-op なので、`if lang == "ja":` gate 不要で単一 code path。基底 `_localize_drug_name` (country 引数版) は country seam 経由の caller 用に残存。いずれも canonical cached loader (`clinosim/locale/loaders/narrative.py:load_narrative_display_dict()` / `clinosim/locale/loaders/medical_display.py:load_med_terms_ja()`、両者とも B1/B2b 分割後 `clinosim/locale/loader.py` 経由で後方互換 re-export) — builder 内 raw YAML read 禁止 (E.3)。
 - 診療科 display = `_dept_display()`(裏側は `load_department_display()`)
 - 翻訳不在の場合 = en fallback + audit warn list

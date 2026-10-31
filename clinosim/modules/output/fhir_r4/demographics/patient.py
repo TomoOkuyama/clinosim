@@ -35,10 +35,6 @@ from clinosim.modules.output.fhir_r4.lib.ids import (
     structural_key_system,
     wrap_as_identifier,
 )
-from clinosim.modules.output.fhir_r4.lib.localization import (
-    _RELATIONSHIP_DISPLAY_JA,
-    _localize_display,
-)
 
 # === Issue #1344: US Core Patient extensions ===
 # https://hl7.org/fhir/us/core/StructureDefinition-us-core-race.html
@@ -1021,18 +1017,19 @@ def _build_patient(p: dict, country: str) -> dict:
         if emer_name or emer_phone:
             ec: dict[str, Any] = {}
             if emer_rel:
-                ec["relationship"] = [
-                    {
-                        "coding": [
-                            {
-                                "system": get_system_uri("hl7-v2-0131"),
-                                "code": "C",
-                                "display": "Emergency Contact",
-                            }
-                        ],
-                        "text": _localize_display(emer_rel, country, _RELATIONSHIP_DISPLAY_JA),
-                    }
-                ]
+                rel_concept: dict[str, Any] = {
+                    "coding": [
+                        {
+                            "system": get_system_uri("hl7-v2-0131"),
+                            "code": "C",
+                            "display": "Emergency Contact",
+                        }
+                    ],
+                }
+                rel_text = vocab_display("emergency_contact_relationship", emer_rel, resolve_lang(country))
+                if rel_text:
+                    rel_concept["text"] = rel_text
+                ec["relationship"] = [rel_concept]
             if emer_name:
                 ec["name"] = {"text": emer_name}
             if emer_phone:

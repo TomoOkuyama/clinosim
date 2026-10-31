@@ -128,25 +128,15 @@ from clinosim.modules.output.fhir_r4.lib.common import (  # noqa: F401
 )
 from clinosim.modules.output.fhir_r4.lib.ids import wrap_as_identifier
 from clinosim.modules.output.fhir_r4.lib.localization import (  # noqa: F401
-    _CATEGORY_DISPLAY_JA,
-    _CLASS_DISPLAY_JA,
     _FREQ_JA,
-    _INTERPRETATION_DISPLAY_JA,
-    _LOCATION_NAME_JA,
-    _LOCATION_TYPE_DISPLAY_JA,
-    _ORG_TYPE_DISPLAY_JA,
-    _RELATIONSHIP_DISPLAY_JA,
     _ROLE_PREFIX_MAP_JA,
     _ROUTE_JA,
-    _SEVERITY_DISPLAY_JA,
     _dept_display,
     _load_department_display,
     _load_med_terms_ja,
     _load_narrative_display_dict,
-    _localize_display,
     _localize_dosage_terms,
     _localize_drug_name,
-    _localize_interp,
     _procedure_display,
 )
 from clinosim.modules.output.fhir_r4.lib.reference_data import (  # noqa: F401

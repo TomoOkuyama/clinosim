@@ -88,10 +88,8 @@ from clinosim.codes.ucum import ucum_quantity
 from clinosim.locale.loader import load_code_mapping, load_reference_ranges
 from clinosim.modules._shared import is_jp, resolve_lang, strip_protocol_prefix
 from clinosim.modules.output.fhir_r4.lib.localization import (
-    _CATEGORY_DISPLAY_JA,
     _FREQ_JA,
     _ROUTE_JA,
-    _localize_display,
     _localize_dosage_terms,
     _localize_drug_name,
 )
@@ -255,6 +253,26 @@ def _escape_html(s: str) -> str:
     return s.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace('"', "&quot;")
 
 
+def system_coding(system_key: str, code: str, lang: str, *, fallback_display: str = "") -> dict[str, Any]:
+    """A Coding whose display follows the dual-slot rule (Issue #2264).
+
+    For an English-only CodeSystem (:func:`clinosim.codes.is_english_only_system`)
+    the display is the English canonical display whatever ``lang`` is; for
+    other systems it is the display in ``lang`` (then English). Used directly
+    for Coding-typed elements that have no ``text`` slot (``Encounter.class``);
+    CodeableConcepts use :func:`dual_slot_concept`. ``fallback_display`` is used
+    when the registry has no display; an absent display is omitted.
+    """
+    english_only = is_english_only_system(system_key)
+    display = registry_display(system_key, code, "en" if english_only else lang)
+    if not display and not english_only:
+        display = registry_display(system_key, code, "en")
+    coding: dict[str, Any] = {"system": get_system_uri(system_key), "code": code}
+    if display or fallback_display:
+        coding["display"] = display or fallback_display
+    return coding
+
+
 def dual_slot_concept(
     system_key: str,
     code: str,
@@ -272,14 +290,7 @@ def dual_slot_concept(
     ``lang``; ``fallback_display`` is used for the coding when the registry has
     no display. Absent displays are omitted rather than echoing the code.
     """
-    english_only = is_english_only_system(system_key)
-    display = registry_display(system_key, code, "en" if english_only else lang)
-    if not display and not english_only:
-        display = registry_display(system_key, code, "en")
-    coding: dict[str, Any] = {"system": get_system_uri(system_key), "code": code}
-    if display or fallback_display:
-        coding["display"] = display or fallback_display
-    concept: dict[str, Any] = {"coding": [coding]}
+    concept: dict[str, Any] = {"coding": [system_coding(system_key, code, lang, fallback_display=fallback_display)]}
     label = text if text is not None else registry_display(system_key, code, lang)
     if label:
         concept["text"] = label
@@ -349,18 +360,7 @@ def _social_category(country: str) -> list[dict]:
     (smoking, alcohol, occupation, education, housing, ...). Promoted
     from _fhir_sdoh.py in PR2 (G2 SDOH integrity refactor, 2026-06-24).
     """
-    return [
-        {
-            "coding": [
-                {
-                    "system": get_system_uri("hl7-observation-category"),
-                    "code": "social-history",
-                    "display": _localize_display("Social History", country, _CATEGORY_DISPLAY_JA),
-                }
-            ],
-            "text": "社会歴" if is_jp(country) else "Social History",
-        }
-    ]
+    return [dual_slot_concept("hl7-observation-category", "social-history", resolve_lang(country))]
 
 
 def _value(system_key: str, code: str, lang: str) -> dict[str, Any]:
@@ -721,31 +721,10 @@ def build_telecom(contact: dict) -> list[dict[str, str]]:
     return telecoms
 
 
-def make_participant(code: str, display: str, practitioner_id: str, country: str = "US") -> dict[str, Any]:
-    """Build an Encounter.participant entry.
-
-    C5-02: localize `display` for JP output — HL7
-    v3-ParticipationType English default (attender / admitter / discharger)
-    was leaking to JP output as literal text.
-    """
-    from clinosim.modules.output.fhir_r4.lib.localization import (
-        _PARTICIPATION_TYPE_DISPLAY_JA,
-        _localize_display,
-    )
-
-    localized = _localize_display(display, country, _PARTICIPATION_TYPE_DISPLAY_JA)
+def make_participant(code: str, practitioner_id: str, country: str = "US") -> dict[str, Any]:
+    """Build an Encounter.participant entry; ``code`` is an HL7 v3-ParticipationType code (ATND / ADM / DIS)."""
     return {
-        "type": [
-            {
-                "coding": [
-                    {
-                        "system": get_system_uri("hl7-v3-participationtype"),
-                        "code": code,
-                        "display": localized,
-                    }
-                ],
-            }
-        ],
+        "type": [dual_slot_concept("hl7-v3-participationtype", code, resolve_lang(country))],
         "individual": {"reference": f"Practitioner/{practitioner_id}"},
     }
 

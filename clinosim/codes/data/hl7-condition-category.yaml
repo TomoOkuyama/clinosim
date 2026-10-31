@@ -1,0 +1,9 @@
+# HL7 FHIR Condition category. English displays verified on tx.fhir.org
+# $lookup (THO).
+metadata:
+  name: HL7 FHIR Condition Category
+  uri: http://terminology.hl7.org/CodeSystem/condition-category
+  source: "HL7 Terminology (THO)"
+codes:
+  encounter-diagnosis: {en: "Encounter Diagnosis", ja: "エンカウンター診断"}
+  problem-list-item:   {en: "Problem List Item",   ja: "問題リスト"}

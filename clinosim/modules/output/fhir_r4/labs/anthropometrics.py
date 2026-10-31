@@ -64,10 +64,10 @@ import yaml
 
 from clinosim.codes import get_system_uri
 from clinosim.codes.ucum import ucum_quantity
-from clinosim.modules._shared import get_attr_or_key, is_jp
+from clinosim.modules._shared import get_attr_or_key, is_jp, resolve_lang
 from clinosim.modules.output.fhir_r4.demographics.patient import patient_ref
 from clinosim.modules.output.fhir_r4.encounters.encounter import encounter_ref
-from clinosim.modules.output.fhir_r4.lib.common import BundleContext, to_fhir_datetime
+from clinosim.modules.output.fhir_r4.lib.common import BundleContext, dual_slot_concept, to_fhir_datetime
 from clinosim.modules.output.fhir_r4.lib.ids import (
     derive_opaque_id,
     structural_key_system,
@@ -412,9 +412,6 @@ def _derive_anthropometrics(
 # Observation resource builder.
 # ---------------------------------------------------------------------------
 
-_CATEGORY_DISPLAY_EN = "Vital Signs"
-_CATEGORY_DISPLAY_JA = "バイタルサイン"
-
 
 def _build_one_observation(
     loinc: str,
@@ -439,18 +436,7 @@ def _build_one_observation(
             else {}
         ),
         "status": "final",
-        "category": [
-            {
-                "coding": [
-                    {
-                        "system": get_system_uri("hl7-observation-category"),
-                        "code": "vital-signs",
-                        "display": _CATEGORY_DISPLAY_JA if is_jp(country) else _CATEGORY_DISPLAY_EN,
-                    }
-                ],
-                "text": _CATEGORY_DISPLAY_JA if is_jp(country) else _CATEGORY_DISPLAY_EN,
-            }
-        ],
+        "category": [dual_slot_concept("hl7-observation-category", "vital-signs", resolve_lang(country))],
         "code": {
             "coding": [
                 {
