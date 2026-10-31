@@ -14,8 +14,8 @@ from __future__ import annotations
 
 from typing import Any
 
+from clinosim.codes import display as registry_display
 from clinosim.codes import get_system_uri, system_key_for
-from clinosim.codes import lookup as code_lookup
 from clinosim.modules._shared import get_attr_or_key, is_jp, resolve_lang
 from clinosim.modules.output.fhir_r4.demographics.patient import patient_ref
 from clinosim.modules.output.fhir_r4.encounters.encounter import encounter_ref
@@ -49,8 +49,8 @@ def _bb_hai_conditions(ctx: BundleContext) -> list[dict]:
             continue
         icd_country = map_diagnosis_code(icd_internal, country)
         icd_sys_key = system_key_for("diagnosis", country)
-        icd_disp = code_lookup(icd_sys_key, icd_country, lang) or ""
-        snomed_disp = code_lookup("snomed-ct", snomed, lang) or ""
+        icd_disp = registry_display(icd_sys_key, icd_country, lang) or ""
+        snomed_disp = registry_display("snomed-ct", snomed, lang) or ""
         coding: list[dict[str, Any]] = [
             {
                 "system": get_system_uri(icd_sys_key),

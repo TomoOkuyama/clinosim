@@ -39,6 +39,7 @@ from typing import TYPE_CHECKING, Any
 
 import yaml
 
+from clinosim.codes import display as registry_display
 from clinosim.locale.i18n import t
 from clinosim.modules._shared import get_attr_or_key as _o
 from clinosim.modules._shared import strip_protocol_prefix
@@ -419,7 +420,6 @@ def _compose_ed_assessment_from_state(ctx: NarrativeContext) -> str:
     Empty string when no facts available (caller falls back to generic).
     """
     lang = ctx.target_lang
-    from clinosim.codes import lookup as _code_lookup
 
     # Use working_diagnoses from ctx if available
     wds = list(getattr(ctx, "working_diagnoses", []) or [])
@@ -441,7 +441,7 @@ def _compose_ed_assessment_from_state(ctx: NarrativeContext) -> str:
         labels = []
         for code in primary_dx_codes:
             # Strip pediatric/other prefixes — try registry lookup first
-            disp = _code_lookup(disp_key, code, lang) or code
+            disp = registry_display(disp_key, code, lang) or code
             labels.append(disp)
         sep = t("list_sep.serial", lang)
         parts.append(t("ed_assessment.working_dx_line", lang, list=sep.join(labels)))
@@ -512,7 +512,6 @@ def _compose_chronic_condition_line(ctx: NarrativeContext) -> str:
     # Resolve each condition to a language-appropriate label. `code` is
     # ICD-10 (JP) or ICD-10-CM (US) — use the shared codes registry to
     # pick a JA display when available; fall back to the code itself.
-    from clinosim.codes import lookup as _code_lookup
 
     lang = ctx.target_lang
     labels: list[str] = []
@@ -521,7 +520,7 @@ def _compose_chronic_condition_line(ctx: NarrativeContext) -> str:
         if not code:
             continue
         disp_key = _label("code_system_icd_display", "primary", lang)
-        disp = _code_lookup(disp_key, code, lang) or code
+        disp = registry_display(disp_key, code, lang) or code
         labels.append(disp)
     if not labels:
         return ""
@@ -600,8 +599,6 @@ def _compose_chronic_assessment_integrated(ctx: NarrativeContext) -> str:
             continue
         lab_by_name[name] = (val, _o(lab, "unit", None))
 
-    from clinosim.codes import lookup as _code_lookup
-
     lang = ctx.target_lang
     disp_key = "icd-10" if ctx.locale == "jp" else "icd-10-cm"
 
@@ -638,7 +635,7 @@ def _compose_chronic_assessment_integrated(ctx: NarrativeContext) -> str:
         code = _o(c, "code", "") or (c if isinstance(c, str) else "")
         if not code:
             continue
-        label = _code_lookup(disp_key, code, ctx.target_lang) or code
+        label = registry_display(disp_key, code, ctx.target_lang) or code
         code_prefix = code.split(".")[0].upper()
         interp = ""
 

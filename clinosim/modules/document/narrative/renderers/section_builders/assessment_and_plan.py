@@ -27,6 +27,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from clinosim.codes import display as registry_display
 from clinosim.locale.i18n import t
 from clinosim.modules._shared import get_attr_or_key as _o
 from clinosim.modules.document.narrative._localization import _localize_complication
@@ -146,7 +147,6 @@ def _compose_ap_assessment_from_state(ctx: NarrativeContext) -> str:
     # map_diagnosis_code so display matches the FHIR emit-target.
     conds = _o(ctx.patient, "chronic_conditions", []) or [] if ctx.patient else []
     if conds:
-        from clinosim.codes import lookup as _code_lookup
         from clinosim.modules.output.fhir_r4.lib.common import (
             map_diagnosis_code as _map_diagnosis_code,
         )
@@ -159,7 +159,7 @@ def _compose_ap_assessment_from_state(ctx: NarrativeContext) -> str:
             if not base:
                 return ""
             emit = _map_diagnosis_code(base, country) or base
-            return _code_lookup(key, emit, lang) or emit
+            return registry_display(key, emit, lang) or emit
 
         labels = [_resolve_chronic_label(c) for c in conds[:4]]
         labels = [lbl for lbl in labels if lbl]

@@ -21,20 +21,26 @@ international standards; translations are one of the code's attributes.
 
 from clinosim.codes.loader import (
     CodeSystem,
+    code_exists,
+    display,
     get_display,
     get_system_uri,
     lookup,
     slug_to_code,
     system_key_for,
+    system_key_for_uri,
 )
 from clinosim.codes.match import has_icd_prefix
 
 __all__ = [
     "CodeSystem",
+    "code_exists",
+    "display",
     "get_display",
     "get_system_uri",
     "has_icd_prefix",
     "lookup",
     "slug_to_code",
     "system_key_for",
+    "system_key_for_uri",
 ]

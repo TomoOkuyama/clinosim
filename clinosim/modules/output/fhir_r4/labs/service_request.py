@@ -29,6 +29,7 @@ from __future__ import annotations
 from collections import defaultdict
 from typing import Any
 
+from clinosim.codes import display as registry_display
 from clinosim.codes import get_system_uri, system_key_for
 from clinosim.codes import lookup as code_lookup
 from clinosim.locale.loader import load_code_mapping
@@ -669,7 +670,7 @@ def _build_imaging_sr(
         if bs_def["snomed"] == body_site_snomed:
             # META #1805 Phase B: top-level body_site display_en/ja retired;
             # resolve via snomed-ct.yaml authority instead.
-            body_site_display = code_lookup("snomed-ct", body_site_snomed, lang) or body_site_snomed
+            body_site_display = registry_display("snomed-ct", body_site_snomed, lang) or body_site_snomed
             # META #1805 Phase B.2 Part 2: procedure_codes[*].display_en/
             # display_ja retired. The LOINC authority
             # (clinosim/codes/data/loinc.yaml) carries the canonical EN
@@ -691,7 +692,7 @@ def _build_imaging_sr(
         raw_loinc_display if (raw_loinc_display and raw_loinc_display != loinc_code) else _o(order, "display_name", "")
     )
 
-    snomed_imaging_display = code_lookup("snomed-ct", IMAGING_CATEGORY_SNOMED, lang) or (
+    snomed_imaging_display = registry_display("snomed-ct", IMAGING_CATEGORY_SNOMED, lang) or (
         localize_fixed_label("Imaging procedure", country)
     )
 
@@ -821,7 +822,7 @@ def _build_panel_sr(
     Accepts both Order dataclass instances and JSON-deserialized dicts.
     """
     panel_loinc = panel_def["loinc"]
-    panel_display = code_lookup("loinc", panel_loinc, lang) or panel_def.get("display", "")
+    panel_display = registry_display("loinc", panel_loinc, lang) or panel_def.get("display", "")
     # Issue #854 Bucket A: sr_id is now opaque (`sr-<12hex>`), so we can't
     # recover the compound structural key by stripping the prefix. Rebuild
     # it from the anchor Order (same helper the SR-id derivation uses) so
@@ -899,7 +900,7 @@ def _build_standalone_sr(o: Any, lang: str, country: str, earliest_dr_issued: st
         code_system_key = "loinc"
     else:
         code_system_key = system_key_for("lab", country_code)
-    loinc_display = code_lookup(code_system_key, resolved_code, lang) or display_name
+    loinc_display = registry_display(code_system_key, resolved_code, lang) or display_name
     if loinc_display == resolved_code:  # no translation found
         loinc_display = display_name
 
@@ -945,7 +946,7 @@ def _build_sr_skeleton(
     assert patient_id, f"_build_sr_skeleton: patient_id must be non-empty (sr_id={sr_id!r})"
     assert encounter_id_val, f"_build_sr_skeleton: encounter_id must be non-empty (sr_id={sr_id!r})"
 
-    snomed_display = code_lookup("snomed-ct", LAB_CATEGORY_SNOMED, lang) or (
+    snomed_display = registry_display("snomed-ct", LAB_CATEGORY_SNOMED, lang) or (
         localize_fixed_label("Laboratory procedure", country)
     )
     # ordered_datetime may arrive as a datetime object (dataclass path) or an

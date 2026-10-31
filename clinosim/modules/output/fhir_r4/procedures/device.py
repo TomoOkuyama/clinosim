@@ -11,8 +11,8 @@ from __future__ import annotations
 
 from typing import Any
 
+from clinosim.codes import display as registry_display
 from clinosim.codes import get_system_uri
-from clinosim.codes import lookup as code_lookup
 from clinosim.modules._shared import get_attr_or_key, resolve_lang
 from clinosim.modules.output.fhir_r4.demographics.patient import patient_ref
 from clinosim.modules.output.fhir_r4.lib.common import BundleContext
@@ -77,7 +77,7 @@ def _bb_device(ctx: BundleContext) -> list[dict]:
         removal_date = get_attr_or_key(d, "removal_date", None)
         if not snomed or not device_id:
             continue
-        display = code_lookup("snomed-ct", snomed, lang) or snomed
+        display = registry_display("snomed-ct", snomed, lang) or snomed
         resource: dict[str, Any] = {
             "resourceType": "Device",
             "id": _resolve_device_id(device_id),

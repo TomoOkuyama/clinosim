@@ -11,6 +11,7 @@ from typing import Any
 
 import numpy as np
 
+from clinosim.codes import display as registry_display
 from clinosim.modules._shared import get_attr_or_key as _s
 from clinosim.modules.imaging.engine import (
     _resolve_imaging_procedure_code_key,
@@ -182,9 +183,8 @@ def place_imaging_orders(
         # (clinosim/codes/data/loinc.yaml) with code_lookup against the
         # procedure's loinc field. Fall back to the loinc code string
         # when the authority has no entry (forward-compat).
-        from clinosim.codes import lookup as _code_lookup
 
-        _order_display = _code_lookup("loinc", proc["loinc"], "en") or proc["loinc"]
+        _order_display = registry_display("loinc", proc["loinc"], "en") or proc["loinc"]
         order = Order(
             order_id=f"ORD-{encounter_id}-I{sequence_counter['I']:02d}",
             encounter_id=encounter_id,

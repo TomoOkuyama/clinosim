@@ -18,6 +18,7 @@ from pathlib import Path
 from typing import Any
 
 from clinosim.codes import lookup as code_lookup
+from clinosim.codes import system_key_for_uri
 from clinosim.modules._shared import is_jp, resolve_lang
 from clinosim.modules.output.fhir_r4.lib.common import derive_meta_last_updated
 from clinosim.modules.output.fhir_r4.post_process.profile import (
@@ -496,24 +497,6 @@ def _medis_crosswalk_lookup(icd_code: str) -> tuple[str, str] | None:
 # removed hardcoded dicts were EN-only).
 
 
-# Reverse map: FHIR system URI → clinosim system key (for `code_lookup`).
-# Used by `_copy_display_from_sibling_coding` fallback when no sibling coding
-# with a display is available (e.g. AllergyIntolerance.code carries a single
-# SNOMED coding).
-_FHIR_URI_TO_CODE_SYSTEM_KEY: dict[str, str] = {
-    "http://snomed.info/sct": "snomed-ct",
-    "http://loinc.org": "loinc",
-    "http://hl7.org/fhir/sid/icd-10": "icd-10",
-    "http://hl7.org/fhir/sid/icd-10-cm": "icd-10-cm",
-    "http://www.nlm.nih.gov/research/umls/rxnorm": "rxnorm",
-    # Issue #350: JP-locale ICD-10 canonical URI. Reverse-map
-    # to the same code data as `icd-10` (via `_SYSTEM_DATA_ALIASES` in
-    # `clinosim/codes/loader.py`) so `_copy_display_from_sibling_coding`
-    # can look up displays for JP-emitted ICD-10 codings.
-    "http://jpfhir.jp/fhir/core/mhlw/CodeSystem/ICD10-2013-full": "icd-10-mhlw",
-}
-
-
 def _populate_observation_identifier_and_last_updated(resource: dict, country: str = "") -> None:
     """Populate `Observation.identifier` and `Observation.meta.lastUpdated`.
 
@@ -785,7 +768,7 @@ def _copy_display_from_sibling_coding(codings: list, lang: str = "en") -> None:
             # authoritative JP display rather than the english interop label.
             display = None
             system_uri = c.get("system", "")
-            system_key = _FHIR_URI_TO_CODE_SYSTEM_KEY.get(system_uri) if isinstance(system_uri, str) else None
+            system_key = system_key_for_uri(system_uri) if isinstance(system_uri, str) else None
             # chain G (v2 feedback §【中優先 7】): the sibling-copy
             # step previously re-injected a Japanese display via
             # `code_lookup(..., "ja")` for JP output. On English-only
@@ -882,7 +865,7 @@ def _populate_cc_text_from_coding_lookup(node: Any, lang: str) -> None:
                 code_ = cd.get("code", "")
                 if not sys_ or not code_:
                     continue
-                system_key = _FHIR_URI_TO_CODE_SYSTEM_KEY.get(sys_)
+                system_key = system_key_for_uri(sys_)
                 if not system_key:
                     continue
                 looked_up = code_lookup(system_key, code_, lang)

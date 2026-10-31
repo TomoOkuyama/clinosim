@@ -47,8 +47,8 @@ from __future__ import annotations
 
 from typing import Any
 
+from clinosim.codes import display as registry_display
 from clinosim.codes import get_system_uri
-from clinosim.codes import lookup as code_lookup
 from clinosim.codes.blood_group_to_snomed import resolve_abo_snomed, resolve_rh_snomed
 from clinosim.modules._shared import get_attr_or_key as _o
 from clinosim.modules._shared import is_jp, resolve_lang
@@ -176,8 +176,8 @@ def _build_blood_type_obs(
     authority lookup is sufficient on its own.
     """
     lang = resolve_lang(country)
-    snomed_display = code_lookup("snomed-ct", snomed_code, lang) or snomed_code
-    loinc_display = code_lookup("loinc", loinc_code, "en") or loinc_code
+    snomed_display = registry_display("snomed-ct", snomed_code, lang) or snomed_code
+    loinc_display = registry_display("loinc", loinc_code, "en") or loinc_code
     return {
         "resourceType": "Observation",
         "id": obs_id,

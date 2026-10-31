@@ -73,8 +73,8 @@ from collections import Counter, defaultdict
 from datetime import datetime, timedelta
 from typing import Any
 
+from clinosim.codes import display as registry_display
 from clinosim.codes import get_system_uri
-from clinosim.codes import lookup as code_lookup
 from clinosim.codes.oxygen_device_to_snomed import resolve_device_snomed
 from clinosim.modules._shared import get_attr_or_key as _o
 from clinosim.modules._shared import is_jp, resolve_lang
@@ -299,7 +299,7 @@ def _bb_oxygen_therapy(ctx: BundleContext) -> list[dict]:
     enc_att_idx = _encounter_attending_index(ctx)
     lang = resolve_lang(ctx.country)
     is_jp_out = is_jp(ctx.country)
-    proc_display = code_lookup("snomed-ct", _SNOMED_OXYGEN_THERAPY, lang) or "Oxygen therapy"
+    proc_display = registry_display("snomed-ct", _SNOMED_OXYGEN_THERAPY, lang) or "Oxygen therapy"
 
     # Issue #1352: only allow the "unattributed-vitals fallback" in
     # ``_oxygen_session_period`` when the record has exactly one encounter.
@@ -414,7 +414,7 @@ def _bb_oxygen_therapy(ctx: BundleContext) -> list[dict]:
                     {
                         "system": get_system_uri("snomed-ct"),
                         "code": "277132007",  # SNOMED Therapeutic procedure — matches _bb_procedures default
-                        "display": code_lookup("snomed-ct", "277132007", lang) or "Therapeutic procedure",
+                        "display": registry_display("snomed-ct", "277132007", lang) or "Therapeutic procedure",
                     }
                 ],
             },
@@ -475,7 +475,7 @@ def _bb_oxygen_therapy(ctx: BundleContext) -> list[dict]:
         # Procedure R4. Emit only when the vitals actually name a device.
         device_snomed = resolve_device_snomed(device_mode) if device_mode else None
         if device_snomed:
-            device_display = code_lookup("snomed-ct", device_snomed, lang) or device_mode
+            device_display = registry_display("snomed-ct", device_snomed, lang) or device_mode
             procedure["usedCode"] = [
                 {
                     "coding": [

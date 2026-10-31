@@ -15,6 +15,7 @@ from datetime import date
 from functools import lru_cache
 from typing import Any
 
+from clinosim.codes import display as registry_display
 from clinosim.codes import get_system_uri, slug_to_code
 from clinosim.codes import lookup as code_lookup
 from clinosim.locale.loader import load_allergen_rxnorm_map, load_identity_config
@@ -82,7 +83,7 @@ def _build_us_core_race_extension(race: str, lang: str = "en") -> dict[str, Any]
     code = _OMB_RACE_SLUG_TO_CODE.get(race or "")
     if not code:
         return None
-    display = code_lookup("omb-race", code, lang) or code
+    display = registry_display("omb-race", code, lang) or code
     return {
         "url": _US_CORE_RACE_URL,
         "extension": [
@@ -105,7 +106,7 @@ def _build_us_core_ethnicity_extension(ethnicity: str, lang: str = "en") -> dict
     code = _OMB_ETHNICITY_SLUG_TO_CODE.get(ethnicity or "")
     if not code:
         return None
-    display = code_lookup("omb-ethnicity", code, lang) or code
+    display = registry_display("omb-ethnicity", code, lang) or code
     return {
         "url": _US_CORE_ETHNICITY_URL,
         "extension": [

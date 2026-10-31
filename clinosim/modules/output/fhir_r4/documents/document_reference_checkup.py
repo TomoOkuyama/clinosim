@@ -28,8 +28,8 @@ import base64
 import logging
 from typing import Any
 
+from clinosim.codes import display as registry_display
 from clinosim.codes import get_system_uri
-from clinosim.codes import lookup as code_lookup
 from clinosim.modules._shared import get_attr_or_key as _o
 from clinosim.modules._shared import is_jp, resolve_lang
 from clinosim.modules.document import DOC_REFERENCE_ID_PREFIX
@@ -136,7 +136,7 @@ def _build_dref(doc: Any, narrative: Any, patient_id: str, country: str) -> dict
     document_id = _o(doc, "document_id", "")
     resource_id = f"{_DOCREF_ID_PREFIX}{document_id}"
     encoded = base64.b64encode(text.encode("utf-8")).decode("ascii")
-    type_display = code_lookup("loinc", loinc_code, lang) or loinc_code
+    type_display = registry_display("loinc", loinc_code, lang) or loinc_code
 
     resource: dict[str, Any] = {
         "resourceType": "DocumentReference",

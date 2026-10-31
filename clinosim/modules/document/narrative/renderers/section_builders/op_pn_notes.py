@@ -21,6 +21,7 @@ from __future__ import annotations
 from datetime import datetime
 from typing import TYPE_CHECKING, Any
 
+from clinosim.codes import display as registry_display
 from clinosim.codes import lookup as code_lookup
 from clinosim.locale.i18n import t
 from clinosim.modules._shared import get_attr_or_key as _o
@@ -323,7 +324,7 @@ def build_pn_procedure_name(generator: TemplateNarrativeGenerator, ctx: Narrativ
     else:
         primary_code = code
         system_key = "k-codes"
-    display = code_lookup(system_key, primary_code, lang) or primary_code or ""
+    display = registry_display(system_key, primary_code, lang) or primary_code or ""
     proc_type = str(_o(proc, "procedure_type", "") or "")
     # Phase 1c-6 (2026-09-23): localize the procedure_type slug
     # (urinary_catheter / central_line / intubation / …) via the
@@ -445,7 +446,7 @@ def build_pn_complications(generator: TemplateNarrativeGenerator, ctx: Narrative
     if intraop or codes:
         code_display = []
         for c in codes:
-            disp = code_lookup("snomed-ct", c, lang) or c
+            disp = registry_display("snomed-ct", c, lang) or c
             code_display.append(t("list_item.inline_dx_with_code", lang, display=disp, code=c))
         all_items = intraop + code_display
         # Complications use "; " in EN (semicolon-space) not "; ".

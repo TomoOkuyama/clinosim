@@ -12,8 +12,8 @@ from __future__ import annotations
 from datetime import date, datetime, time
 from typing import Any
 
+from clinosim.codes import display as registry_display
 from clinosim.codes import get_system_uri
-from clinosim.codes import lookup as code_lookup
 from clinosim.modules._shared import is_jp, resolve_lang
 from clinosim.modules.output.fhir_r4.demographics.patient import patient_ref
 from clinosim.modules.output.fhir_r4.encounters.encounter import encounter_ref
@@ -273,7 +273,7 @@ def _bb_nursing_observations(ctx: BundleContext) -> list[dict]:
             # validators can either resolve or accept it as a locally-defined
             # coding. Any earlier comment that claimed LOINC coverage
             # here was incorrect.
-            _news2_display = code_lookup("clinosim-nursing-scores", "NEWS2", lang) or "NEWS2"
+            _news2_display = registry_display("clinosim-nursing-scores", "NEWS2", lang) or "NEWS2"
             obs["code"] = {
                 "coding": [
                     {
@@ -300,7 +300,7 @@ def _bb_nursing_observations(ctx: BundleContext) -> list[dict]:
             obs["identifier"] = [wrap_as_identifier(_gcs_structural_key, GCS_SCORE_KEY_SYSTEM)]
             obs["code"] = {
                 "coding": [loinc_coding("9269-2", lang)],
-                "text": code_lookup("loinc", "9269-2", lang) or "Glasgow coma score total",
+                "text": registry_display("loinc", "9269-2", lang) or "Glasgow coma score total",
             }
             obs["valueInteger"] = int(gcs)
             out.append(obs)
@@ -320,7 +320,7 @@ def _bb_nursing_observations(ctx: BundleContext) -> list[dict]:
             obs["identifier"] = [wrap_as_identifier(_braden_key, BRADEN_SCORE_KEY_SYSTEM)]
             obs["code"] = {
                 "coding": [loinc_coding("38227-5", lang)],
-                "text": code_lookup("loinc", "38227-5", lang) or "Braden scale total score",
+                "text": registry_display("loinc", "38227-5", lang) or "Braden scale total score",
             }
             obs["valueInteger"] = int(braden)
             out.append(obs)
@@ -330,7 +330,7 @@ def _bb_nursing_observations(ctx: BundleContext) -> list[dict]:
             _morse_key = f"{enc or ctx.patient_id}-{i}"
             obs = _obs_base(_resolve_morse_score_id(_morse_key), effective, default_nurse_id)
             obs["identifier"] = [wrap_as_identifier(_morse_key, MORSE_SCORE_KEY_SYSTEM)]
-            morse_text = code_lookup("loinc", "59460-6", lang) or "Fall risk total [Morse Fall Scale]"
+            morse_text = registry_display("loinc", "59460-6", lang) or "Fall risk total [Morse Fall Scale]"
             obs["code"] = {
                 "coding": [loinc_coding("59460-6", lang)],
                 "text": morse_text,
@@ -375,7 +375,7 @@ def _bb_nursing_observations(ctx: BundleContext) -> list[dict]:
             obs["identifier"] = [wrap_as_identifier(_barthel_key, BARTHEL_SCORE_KEY_SYSTEM)]
             obs["code"] = {
                 "coding": [loinc_coding("96761-2", lang)],
-                "text": code_lookup("loinc", "96761-2", lang) or "Total score Barthel Index",
+                "text": registry_display("loinc", "96761-2", lang) or "Total score Barthel Index",
             }
             obs["valueInteger"] = int(barthel)
             out.append(obs)
@@ -397,7 +397,7 @@ def _bb_nursing_observations(ctx: BundleContext) -> list[dict]:
             obs["identifier"] = [wrap_as_identifier(_intake_key, INTAKE_OBSERVATION_KEY_SYSTEM)]
             obs["code"] = {
                 "coding": [loinc_coding("9108-2", lang)],
-                "text": code_lookup("loinc", "9108-2", lang) or "Fluid intake total 24 hour",
+                "text": registry_display("loinc", "9108-2", lang) or "Fluid intake total 24 hour",
             }
             obs["valueQuantity"] = {
                 "value": int(intake_total),
@@ -415,7 +415,7 @@ def _bb_nursing_observations(ctx: BundleContext) -> list[dict]:
             obs["identifier"] = [wrap_as_identifier(_urine_key, URINE_OUTPUT_OBSERVATION_KEY_SYSTEM)]
             obs["code"] = {
                 "coding": [loinc_coding("9192-6", lang)],
-                "text": code_lookup("loinc", "9192-6", lang) or "Urine output 24 hour",
+                "text": registry_display("loinc", "9192-6", lang) or "Urine output 24 hour",
             }
             obs["valueQuantity"] = {
                 "value": int(urine_ml),
@@ -435,7 +435,7 @@ def _bb_nursing_observations(ctx: BundleContext) -> list[dict]:
             obs["identifier"] = [wrap_as_identifier(_output_key, OUTPUT_OBSERVATION_KEY_SYSTEM)]
             obs["code"] = {
                 "coding": [loinc_coding("9262-7", lang)],
-                "text": code_lookup("loinc", "9262-7", lang) or "Fluid output total 24 hour",
+                "text": registry_display("loinc", "9262-7", lang) or "Fluid output total 24 hour",
             }
             obs["valueQuantity"] = {
                 "value": int(output_total),

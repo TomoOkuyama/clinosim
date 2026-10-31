@@ -36,11 +36,9 @@ import base64
 import logging
 from typing import Any
 
+from clinosim.codes import display as registry_display
 from clinosim.codes import (
     get_system_uri,
-)
-from clinosim.codes import (
-    lookup as code_lookup,
 )
 from clinosim.modules._shared import get_attr_or_key as _o
 from clinosim.modules._shared import resolve_lang
@@ -220,8 +218,8 @@ def _build_dref_from_clinical_doc(doc: Any, narrative: Any, patient_id: str, cou
     # ``coding[].display`` (survives walker) and Japanese on ``text``
     # (walker does not touch text) so the JP UI has a Japanese label AND
     # the LOINC coding stays FHIR-canonical for interop consumers.
-    en_display = code_lookup("loinc", loinc_code, "en") or loinc_code
-    text_display = code_lookup("loinc", loinc_code, lang) or en_display
+    en_display = registry_display("loinc", loinc_code, "en") or loinc_code
+    text_display = registry_display("loinc", loinc_code, lang) or en_display
 
     # Issue #854 Bucket B (PR-document-reference): opaque DocumentReference.id.
     # Structural key = pre-#854 CIF-doc-id body (with `doc-` prefix stripped)

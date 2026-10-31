@@ -21,6 +21,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from clinosim.codes import display as registry_display
 from clinosim.locale.i18n import t
 from clinosim.modules._shared import get_attr_or_key as _o
 from clinosim.modules.document.narrative._localization import _localize_complication
@@ -59,7 +60,6 @@ def build_nursing_history(generator: TemplateNarrativeGenerator, ctx: NarrativeC
         parts.append(t("admission_status.admission_reason", lang, cc=cc))
     # Chronic summary — Issue #1333: route CIF base code through
     # map_diagnosis_code so display matches the FHIR emit-target.
-    from clinosim.codes import lookup as _code_lookup
     from clinosim.modules.output.fhir_r4.lib.common import (
         map_diagnosis_code as _map_diagnosis_code,
     )
@@ -73,7 +73,7 @@ def build_nursing_history(generator: TemplateNarrativeGenerator, ctx: NarrativeC
             continue
         emit_code = _map_diagnosis_code(code, country) or code
         key = "icd-10" if ctx.locale == "jp" else "icd-10-cm"
-        labels.append(_code_lookup(key, emit_code, ctx.target_lang) or emit_code)
+        labels.append(registry_display(key, emit_code, ctx.target_lang) or emit_code)
     if labels:
         parts.append(
             t("pmh.header_prefix", lang) + t("list_sep.serial", lang).join(labels) + t("list_sep.period", lang)

@@ -50,6 +50,7 @@ from functools import cache
 from pathlib import Path
 from typing import Any
 
+from clinosim.codes import display as registry_display
 from clinosim.codes import get_system_uri
 from clinosim.codes import lookup as code_lookup
 from clinosim.modules._shared import get_attr_or_key as _o
@@ -875,7 +876,7 @@ def _build_composition_generic(
         }
         loinc_section = _loinc_for_section(section_title)
         if loinc_section:
-            _loinc_disp = code_lookup("loinc", loinc_section, _doc_lang) or section_title
+            _loinc_disp = registry_display("loinc", loinc_section, _doc_lang) or section_title
             # p=500 review finding (session 89): LOINC is on the
             # English-only-CS list, so `_strip_japanese_display_on_english_only_systems`
             # post-processes `coding.display` away when it contains JP
@@ -884,7 +885,7 @@ def _build_composition_generic(
             # survives, but that is not user-facing). Populate `.text`
             # with the same localized display so the dual-slot pattern
             # (coding.display=EN-canonical-or-stripped + text=locale)
-            # holds. See feedback_dual_slot_english_only_cs.
+            # holds (AGENTS.md dual-slot convention).
             entry["code"] = {
                 "coding": [
                     {
@@ -1087,7 +1088,7 @@ def _build_jp_death_certificate_composition(
     # dispatch). `code_lookup` returns the localized display from yaml;
     # fallback to the hardcoded JP display when yaml lookup fails (yaml
     # is the source of truth per feedback_constants_live_in_external_config).
-    disp = code_lookup("jpfhir-doc-typecodes", "64297-5", lang) or _DEATH_CERT_TYPE_DISPLAY_JA
+    disp = registry_display("jpfhir-doc-typecodes", "64297-5", lang) or _DEATH_CERT_TYPE_DISPLAY_JA
     comp["type"] = {
         "coding": [
             {"system": _JPFHIR_DOC_TYPECODES_SYSTEM, "code": "64297-5", "display": disp},

@@ -22,7 +22,7 @@ from typing import Any
 
 import yaml
 
-from clinosim.codes import lookup as code_lookup
+from clinosim.codes import display as registry_display
 from clinosim.modules._shared import get_attr_or_key as _o
 from clinosim.modules.output.fhir_r4.encounters.encounter import resolve_encounter_id
 from clinosim.modules.output.fhir_r4.lib.common import _escape_html, derive_meta_last_updated
@@ -143,7 +143,7 @@ def _build_jp_clins_discharge_summary_composition(
     # emitted for interop) violated the profile slicing on 129 resources.
     # The LOINC value is preserved via type.text so downstream consumers
     # can still recover the same code as text.
-    disp = code_lookup("jpfhir-doc-typecodes", "18842-5", lang) or _JP_EDS_TYPE_DISPLAY_JA
+    disp = registry_display("jpfhir-doc-typecodes", "18842-5", lang) or _JP_EDS_TYPE_DISPLAY_JA
     comp["type"] = {
         "coding": [
             {"system": _JPFHIR_DOC_TYPECODES_SYSTEM, "code": "18842-5", "display": disp},
@@ -200,7 +200,7 @@ def _build_jp_clins_discharge_summary_composition(
     # yaml carries `構造情報セクション` (long form, matches spec `patternString`);
     # `_section_title_from_section_display` derives the short-form title
     # per spec `title.fixedString` (Chain #8 pattern).
-    parent_disp = code_lookup("jpfhir-doc-section", "300", lang) or "構造情報セクション"
+    parent_disp = registry_display("jpfhir-doc-section", "300", lang) or "構造情報セクション"
     parent_title = _section_title_from_section_display(parent_disp)
     # Chain #9 follow-up (#267): pre-compute the ids the
     # entry references need. hospital_course の deferral を
@@ -230,7 +230,7 @@ def _build_jp_clins_discharge_summary_composition(
 
     child_sections: list[dict[str, Any]] = []
     for key, code in _jp_ds_section_code().items():
-        disp_c = code_lookup("jpfhir-doc-section", code, lang) or key
+        disp_c = registry_display("jpfhir-doc-section", code, lang) or key
         title_c = _section_title_from_section_display(disp_c)
         text_val = sections.get(key, "") or ""
         # Chain #9: section.code.text max=0 — drop `text` from `code`.

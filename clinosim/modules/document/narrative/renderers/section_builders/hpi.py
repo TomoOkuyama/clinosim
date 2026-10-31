@@ -21,6 +21,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from clinosim.codes import display as registry_display
 from clinosim.locale.i18n import t
 from clinosim.modules._shared import get_attr_or_key as _o
 from clinosim.modules.document.narrative._narrative_utils import _age_at
@@ -242,7 +243,6 @@ def _compose_hpi_extras_from_state(ctx: NarrativeContext) -> str:
         parts.append(f"主訴: {cc}。")
     # Chronic short list — Issue #1333: route CIF base code through
     # map_diagnosis_code so display matches the FHIR emit-target.
-    from clinosim.codes import lookup as _code_lookup
     from clinosim.modules.output.fhir_r4.lib.common import (
         map_diagnosis_code as _map_diagnosis_code,
     )
@@ -256,7 +256,7 @@ def _compose_hpi_extras_from_state(ctx: NarrativeContext) -> str:
             continue
         emit_code = _map_diagnosis_code(code, country) or code
         key = "icd-10" if ctx.locale == "jp" else "icd-10-cm"
-        disp = _code_lookup(key, emit_code, ctx.target_lang) or emit_code
+        disp = registry_display(key, emit_code, ctx.target_lang) or emit_code
         chronic_labels.append(disp)
     if chronic_labels:
         parts.append(f"既往: {'、'.join(chronic_labels)}。")
