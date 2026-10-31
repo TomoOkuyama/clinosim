@@ -22,7 +22,7 @@ clinical_scope:
 
 event_name: dm_escalate_sglt2i_e11
 emits_icd: ""
-emits_meds: ["Empagliflozin"]
+emits_meds: ["empagliflozin"]
 fire_marker: dm_escalate_sglt2i_e11
 base_annual_rate: 0.6
 rate_modifiers:

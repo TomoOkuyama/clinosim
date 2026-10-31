@@ -19,7 +19,7 @@ clinical_scope:
 
 event_name: lipid_escalate_high_intensity_e78
 emits_icd: ""
-emits_meds: ["Rosuvastatin"]
+emits_meds: ["rosuvastatin"]
 # #1754 fix: statin intensification is a SUBSTITUTION, not a stack.
 # ACC/AHA 2018 Cholesterol Guideline specifies switching from moderate-
 # intensity (Atorvastatin 10-20 mg) to high-intensity (Rosuvastatin
@@ -32,7 +32,7 @@ emits_meds: ["Rosuvastatin"]
 # the chronic_medications.yaml E78 regimen (Atorvastatin), which the
 # engine retracts from ``person.current_medications`` when the event
 # fires.
-removes_meds: ["Atorvastatin"]
+removes_meds: ["atorvastatin"]
 fire_marker: lipid_escalate_high_intensity_e78
 base_annual_rate: 0.40
 rate_modifiers:

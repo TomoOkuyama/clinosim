@@ -73,7 +73,7 @@ def test_event_spec_defaults_removes_meds_to_empty() -> None:
     """Backwards-compat: an event yaml with no removes_meds field
     parses and defaults to an empty list — every pre-fix yaml carries
     this shape and must keep working."""
-    spec = EventSpec(event_name="x", emits_icd="", emits_meds=["Y"])
+    spec = EventSpec(event_name="x", emits_icd="", emits_meds=["ezetimibe"])
     assert spec.removes_meds == []
 
 

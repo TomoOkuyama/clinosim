@@ -7,10 +7,9 @@ resolver maps a drug name to a ``HomeMedication`` carrying dose / route /
 frequency pulled from ``chronic_medications.yaml`` — the single source of
 truth for home-med metadata.
 
-On miss (yaml authoring gap), returns a sensible default
-``HomeMedication(drug_name=name, route="PO", frequency="daily")`` rather
-than crashing — a yaml drift that would otherwise take down an entire
-cohort generation.
+Event specs reference drugs by catalog ``drug_id`` and are validated when
+loaded, so a missing entry fails at load instead of producing a silent
+oral default (Issue #2292).
 """
 
 from __future__ import annotations
@@ -23,23 +22,21 @@ from clinosim.types.patient import HomeMedication
 
 
 @cache
-def resolve_med_name(drug_name: str) -> HomeMedication:
-    """Return a HomeMedication for ``drug_name`` by looking up the first
-    matching entry in ``chronic_medications.yaml``.
+def resolve_med_name(drug_ref: str) -> HomeMedication:
+    """Return a HomeMedication for ``drug_ref`` from ``chronic_medications.yaml``.
 
-    Issue #1804 Phase 2.a: entries now carry ``drug_id`` instead of
-    ``drug`` / ``drug_ja`` where a catalog mapping exists. The lookup
-    walks both migrated and legacy entries:
+    ``drug_ref`` is a catalog drug_id or a catalog name / alias, matched
+    case-insensitively through :func:`clinosim.codes.drugs.find_drug`
+    (Issue #2292: an exact, case-sensitive name match used to miss
+    "Insulin glargine" and fall back to an oral, dose-less default).
+    Legacy entries without a ``drug_id`` are matched by their ``drug`` field.
 
-      * Legacy entry → match ``entry["drug"]`` against ``drug_name``.
-      * Migrated entry → resolve the catalog's ``names.en`` for
-        ``entry["drug_id"]`` and compare to ``drug_name``.
-
-    Lookup is cached (unbounded) — the yaml itself is small and the set
-    of distinct drug names is bounded by the yaml's own entries.
+    Raises ``KeyError`` when no entry exists; event specs are validated at
+    load (``EventSpec``) so this does not happen during generation.
     """
-    from clinosim.codes.drugs import get_drug
+    from clinosim.codes.drugs import find_drug
 
+    rec = find_drug(drug_ref)
     data = load_chronic_medications()
     for icd_block in _iter_icd_blocks(data):
         meds = icd_block.get("medications") if isinstance(icd_block, dict) else None
@@ -50,11 +47,10 @@ def resolve_med_name(drug_name: str) -> HomeMedication:
                 continue
             drug_id = entry.get("drug_id") or ""
             if drug_id:
-                rec = get_drug(str(drug_id))
-                if rec is None or rec.names.get("en", "") != drug_name:
+                if rec is None or rec.drug_id != drug_id:
                     continue
                 return HomeMedication(
-                    drug_name=rec.names.get("en", "") or drug_name,
+                    drug_name=rec.names.get("en", ""),
                     drug_name_ja=rec.names.get("ja", ""),
                     route=str(entry.get("route", "PO")),
                     dose=str(entry.get("dose", "")),
@@ -62,7 +58,7 @@ def resolve_med_name(drug_name: str) -> HomeMedication:
                 )
             # Legacy entry (drug_id absent — Rivaroxaban dose-embedded,
             # Tegafur-Gimeracil-Oteracil combo). Match by legacy drug field.
-            if entry.get("drug") == drug_name:
+            if entry.get("drug") == drug_ref:
                 return HomeMedication(
                     drug_name=str(entry["drug"]),
                     drug_name_ja=str(entry.get("drug_ja", "")),
@@ -70,7 +66,7 @@ def resolve_med_name(drug_name: str) -> HomeMedication:
                     dose=str(entry.get("dose", "")),
                     frequency=str(entry.get("frequency", "daily")),
                 )
-    return HomeMedication(drug_name=drug_name, route="PO", frequency="daily")
+    raise KeyError(f"resolve_med_name: {drug_ref!r} has no chronic_medications.yaml entry")
 
 
 def _iter_icd_blocks(data: Any) -> list[dict]:
