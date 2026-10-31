@@ -17,6 +17,7 @@ that specific surface.
 | 5 | [`clinosim/modules/output/SPEC.md`](../../clinosim/modules/output/SPEC.md) | Only when you touch clinical documents or narratives. The canonical spec for two-pass CIF (structural + narrative separation, AD-65). |
 | 6 | [`docs/design-guides/fhir-data-generation-logic.md`](fhir-data-generation-logic.md) | Only when you add or extend a FHIR builder (`clinosim/modules/output/fhir_r4/<theme>/`, Layer 4). Covers `code_lookup`, URIs, multilingual display, and the anti-patterns. |
 | 7 | [`SCENARIO_FLAGS.md`](../../SCENARIO_FLAGS.md) | Only when you touch lab values or scenario / medication flags (`causes_X`, `on_warfarin`). Lists every flag and the procedure to add one. |
+| 0d | [`code-mapping-and-localization-spec.md`](code-mapping-and-localization-spec.md) | **Before any code-related change.** Binding spec for code systems, code mappings, name resolution functions, localization and fallback rules. |
 | 8 | [`data-model-and-completeness-conventions.md`](data-model-and-completeness-conventions.md) | Only when you implement a FHIR completeness fix-point (severity unification, orphan YAML keys, `extra="forbid"`, I10 stage, `person.age`, `course_archetypes`). Documents the prohibitions on C1 / C2 / C3 incompleteness and the as-of-age pattern. The registry lives at `docs/design-notes/2026-07-06-fix-point-registry.md`. |
 
 Japanese counterpart: [`README.ja.md`](README.ja.md).

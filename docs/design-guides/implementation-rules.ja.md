@@ -113,6 +113,8 @@
 
 ## 6. codes / locale / 多言語
 
+**規範仕様:** [`code-mapping-and-localization-spec.ja.md`](code-mapping-and-localization-spec.ja.md) が YAML の書き方・解決関数・多言語対応・フォールバック規則を定める。コードに関わる変更はすべてこれに従う。以下は要約。
+
 - `codes/data/*.yaml` は **`en` 必須**、出典は authoritative(CMS/NLM/WHO/JCCLS/MHLW)。
   **コードの捏造絶対禁止** — 新 code は NLM API / WHO browser で検証してから登録。
 - 診断コード追加時は「Diagnosis code coverage」手順(AGENTS.md)に従い
