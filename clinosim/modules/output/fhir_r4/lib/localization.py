@@ -154,9 +154,10 @@ def _split_rate_adjustment_suffix(drug_name: str) -> tuple[str, str]:
 def _localize_rate_adjustment(note_en: str, country: str) -> str:
     """Localize an English rate-adjustment note produced by ``_split_rate_adjustment_suffix``.
 
-    Returns the input unchanged for US or empty notes.
+    Returns the input unchanged for non-JP countries or empty notes; only
+    JP output is localized (Issue #2273: "not US" is not "Japanese").
     """
-    if not note_en or is_us(country):
+    if not note_en or not is_jp(country):
         return note_en
     m = re.match(r"^(increase|decrease) rate by (\d+)%\s*$", note_en, re.IGNORECASE)
     if not m:
@@ -195,7 +196,7 @@ def _localize_drug_name(drug_name: str, country: str) -> str:
     - Any drug name substring found anywhere in the text (longest match wins)
     - Dosage/route/frequency terms translated at end
     """
-    if is_us(country) or not drug_name:
+    if not is_jp(country) or not drug_name:
         return drug_name
     ja_dict = _load_narrative_display_dict()
     # Normalize underscores to spaces for matching
