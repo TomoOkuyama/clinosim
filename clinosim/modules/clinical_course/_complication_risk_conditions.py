@@ -5,7 +5,7 @@
 1. existing special forms (``age_over_N``, ``severity_severe``, ``immobility_days > n``,
    ``delirium_susceptibility`` / ``dvt_susceptibility > x``);
 2. ``<state variable> <op> <number>`` for any canonical physiology state variable;
-3. :data:`PATIENT_ICD_ALIASES` / :data:`STATE_ALIASES` / :data:`SEVERITY_ALIASES` below;
+3. :data:`PATIENT_CONDITIONS` / :data:`STATE_ALIASES` / :data:`SEVERITY_ALIASES` below;
 4. the patient-level vocabulary of ``clinosim.modules.disease.severity``
    (``dementia``, ``diabetes``, ``CKD``, ``obesity``, ...).
 
@@ -20,24 +20,12 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 
-from clinosim.codes.valuesets import concept_group
+from clinosim.codes.valuesets import patient_condition_names
 
-PATIENT_ICD_ALIASES: dict[str, tuple[str, ...]] = {
-    name: concept_group(name).members
-    for name in (
-        "immunosuppressed",
-        "CKD_baseline",
-        "pre_existing_CKD",
-        "pre_existing_heart_failure",
-        "prior_heart_failure",
-        "pre_existing_cardiac_disease",
-        "liver_disease",
-        "prior_depression",
-        "severe_osteoporosis",
-        "alcohol_etiology",
-    )
-}
-"""Condition names resolved from the patient's chronic problem list (ICD prefix)."""
+PATIENT_CONDITIONS: frozenset[str] = patient_condition_names()
+"""Condition names resolved from the patient's chronic problem list: the
+internal value sets in ``codes/data/valuesets.yaml``, the same table the
+severity modifiers use (Issue #2285)."""
 
 IMMOBILITY_DEFAULT_DAYS: int = 2
 """Bare ``immobility``: bed-bound beyond the first two hospital days (same as

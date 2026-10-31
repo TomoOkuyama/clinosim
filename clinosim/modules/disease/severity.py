@@ -12,7 +12,7 @@ from typing import Any
 
 import numpy as np
 
-from clinosim.codes.valuesets import concept_group
+from clinosim.codes.valuesets import has_condition, patient_condition_names
 from clinosim.modules._shared import normalize_probabilities
 
 SEVERITY_CATEGORIES: tuple[str, str, str] = ("mild", "moderate", "severe")
@@ -36,38 +36,10 @@ def category_from_score(score: float) -> str:
 
 
 # --- Modifier-condition vocabulary (enumerated from the 30 disease YAMLs) ---
-# ICD-code prefixes used by evaluable comorbidity conditions.
-_COND_ICD_PREFIXES: dict[str, tuple[str, ...]] = {
-    name: concept_group(name).members
-    for name in (
-        "diabetes",
-        "heart_failure",
-        "CKD",
-        "N18",
-        "COPD",
-        "liver_cirrhosis",
-        "hypertension_uncontrolled",
-        "atrial_fibrillation",
-        "I48",
-        "prior_MI",
-        "prior_stroke_or_TIA",
-        "peripheral_vascular_disease",
-        "valvular_heart_disease",
-        "hyperthyroidism",
-        "dementia",
-        "dementia_advanced",
-        "osteoporosis",
-        "active_cancer",
-        "malignancy",
-        "metastatic_cancer",
-        "colorectal_cancer",
-        "hepatocellular_carcinoma",
-        "alcohol_dependence",
-        "alcohol_dependence_active",
-    )
-}
-"""Severity-modifier patient conditions; the codes live in
-``clinosim/codes/data/valuesets.yaml`` (Issue #2280)."""
+# Named patient conditions (diabetes, CKD, dementia, immunosuppressed, ...) are
+# the internal value sets in ``clinosim/codes/data/valuesets.yaml``, shared with
+# the complication risk factors (Issues #2280, #2285).
+_PATIENT_CONDITIONS: frozenset[str] = patient_condition_names()
 
 _AGE_OVER: dict[str, int] = {
     "age_over_65": 65,
@@ -78,7 +50,7 @@ _AGE_OVER: dict[str, int] = {
 
 # Conditions that map to a real PersonRecord attribute and are evaluated this chain.
 EVALUABLE_CONDITIONS: frozenset[str] = frozenset(
-    set(_COND_ICD_PREFIXES)
+    set(_PATIENT_CONDITIONS)
     | set(_AGE_OVER)
     | {"age_under_5", "obesity", "obesity_bmi_over_30", "smoking_current", "multiple_comorbidities"}
 )
@@ -112,7 +84,6 @@ RESERVED_INTRINSIC_CONDITIONS: frozenset[str] = frozenset(
         "urinary_catheter",
         "symptom_duration_over_48h",
         "symptom_duration_over_72h",
-        "immunosuppressed",
         "anticoagulant_use",
         "chronic_steroid_use",
         "home_oxygen_use",
@@ -125,11 +96,6 @@ RESERVED_INTRINSIC_CONDITIONS: frozenset[str] = frozenset(
 )
 
 KNOWN_MODIFIER_CONDITIONS: frozenset[str] = EVALUABLE_CONDITIONS | RESERVED_INTRINSIC_CONDITIONS
-
-
-def _has_icd(person: object, prefixes: tuple[str, ...]) -> bool:
-    codes = getattr(person, "chronic_conditions", []) or []
-    return any(str(c).startswith(prefixes) for c in codes)
 
 
 def _evaluate_condition(condition: str, person: object) -> bool:
@@ -147,8 +113,8 @@ def _evaluate_condition(condition: str, person: object) -> bool:
         return getattr(person, "smoking_status", "never") == "current"
     if condition == "multiple_comorbidities":
         return len(getattr(person, "chronic_conditions", []) or []) >= 3
-    if condition in _COND_ICD_PREFIXES:
-        return _has_icd(person, _COND_ICD_PREFIXES[condition])
+    if condition in _PATIENT_CONDITIONS:
+        return has_condition(person, condition)
     return False
 
 

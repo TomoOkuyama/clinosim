@@ -14,6 +14,7 @@ from typing import Any
 import numpy as np
 import yaml
 
+from clinosim.codes.valuesets import has_condition
 from clinosim.modules._shared import normalize_probabilities
 from clinosim.modules.clinical_course._archetype_modifiers import (
     AGE_SPEED_FACTOR_BANDS,
@@ -76,7 +77,7 @@ from clinosim.modules.clinical_course._complication_risk_conditions import (
     CONTEXT_RESOLVED,
     IMMOBILITY_DEFAULT_DAYS,
     MALNUTRITION_BMI_MAX,
-    PATIENT_ICD_ALIASES,
+    PATIENT_CONDITIONS,
     SEVERITY_ALIASES,
     STATE_ALIASES,
     ComplicationContext,
@@ -554,7 +555,7 @@ def is_supported_risk_condition(condition: str) -> bool:
     m = _STATE_THRESHOLD_RE.match(condition)
     if m and (m.group(1) in canonical_state_vars() or m.group(1) in _PROFILE_SUSCEPTIBILITIES):
         return True
-    if condition in STATE_ALIASES or condition in PATIENT_ICD_ALIASES or condition in SEVERITY_ALIASES:
+    if condition in STATE_ALIASES or condition in PATIENT_CONDITIONS or condition in SEVERITY_ALIASES:
         return True
     if condition in CONTEXT_RESOLVED:
         return True
@@ -618,8 +619,8 @@ def _evaluate_risk_condition(
             return _COMPARE[op](float(getattr(state, var)), value)
         if condition in CONTEXT_RESOLVED:
             return resolve_context_condition(condition, context, day)
-        if condition in PATIENT_ICD_ALIASES:
-            return any(code.startswith(PATIENT_ICD_ALIASES[condition]) for code in _patient_codes(patient))
+        if condition in PATIENT_CONDITIONS:
+            return has_condition(patient, condition)
         if condition in ("malnutrition", "baseline_malnutrition"):
             return 0 < float(getattr(patient, "bmi", 0.0) or 0.0) < MALNUTRITION_BMI_MAX
         if condition in PERSON_CONDITIONS:

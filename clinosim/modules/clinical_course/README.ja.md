@@ -125,7 +125,7 @@ from clinosim.modules.clinical_course._complication_risk_conditions import (
   症状軸の回復率。
 - **合併症 risk factor 語彙**
   ([`_complication_risk_conditions.py`](_complication_risk_conditions.py)、
-  Issue #2093): `PATIENT_ICD_ALIASES`、`STATE_ALIASES`、
+  Issue #2093): `PATIENT_CONDITIONS` (`codes/data/valuesets.yaml` の internal value set、severity modifier と共通)、`STATE_ALIASES`、
   `SEVERITY_ALIASES`、`CONTEXT_RESOLVED` (`ComplicationContext` から
   解決)、`CONTEXT_CONDITIONS` (宣言済みだが False 評価)、`DRUG_CLASSES`。
 - **Load 時 validator** (`_validate_course_archetypes`、
