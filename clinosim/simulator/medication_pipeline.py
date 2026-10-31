@@ -28,6 +28,7 @@ from typing import Any
 
 import numpy as np
 
+from clinosim.countries import is_jp
 from clinosim.modules.physiology.renal_thresholds import (
     METFORMIN_ADMISSION_HOLD_THRESHOLD,
     METFORMIN_RENAL_RESERVE_THRESHOLD,
@@ -969,8 +970,8 @@ def apply_drug_safety_gate_to_orders(
 
         if worst is not None and worst.default_action == "emit_with_note":
             locale = country.lower()
-            note_text = worst.rationale_ja if locale == "jp" else worst.rationale_en
-            prefix = "併用注意: " if locale == "jp" else "Drug interaction (caution): "
+            note_text = worst.rationale_ja if is_jp(locale) else worst.rationale_en
+            prefix = "併用注意: " if is_jp(locale) else "Drug interaction (caution): "
             note_entry = {
                 "text": f"{prefix}{note_text}",
                 "authorReference": {"display": "clinosim drug_safety v1"},

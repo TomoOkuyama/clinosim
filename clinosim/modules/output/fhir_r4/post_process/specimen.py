@@ -13,7 +13,7 @@ from typing import Any
 
 from clinosim.codes import get_system_uri
 from clinosim.codes.loader import lookup as code_lookup
-from clinosim.modules._shared import is_jp
+from clinosim.modules._shared import resolve_lang
 from clinosim.modules.output.fhir_r4.lib.ids import (
     derive_opaque_id,
     structural_key_system,
@@ -129,7 +129,7 @@ def _build_companion_specimen(observation: dict, country: str) -> dict:
     spec_id = _resolve_specimen_id(_spec_structural_key)
     subject = observation.get("subject", {}) or {}
     specimen_snomed = _pick_specimen_type_for_lab(observation)
-    display = code_lookup("snomed-ct", specimen_snomed, "ja" if is_jp(country) else "en")
+    display = code_lookup("snomed-ct", specimen_snomed, resolve_lang(country))
     specimen: dict[str, Any] = {
         "resourceType": "Specimen",
         "id": spec_id,

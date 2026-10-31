@@ -9,13 +9,13 @@ local duplication).
 from __future__ import annotations
 
 import calendar
-from functools import lru_cache
 from typing import Any
 
 import numpy as np
 
 from clinosim.countries import is_jp as is_jp
 from clinosim.countries import is_us as is_us
+from clinosim.countries import lang_for
 
 # ────────────────────────────────────────────────────────────────────
 # Cross-writer/reader id markers.
@@ -65,38 +65,14 @@ def uses_jp_clins_profile(lang: str) -> bool:
     return lang == "ja"
 
 
-@lru_cache(maxsize=16)
 def resolve_lang(country: str) -> str:
     """Display language ISO-639-1 code for a country code.
 
-    Phase 1d-2 (2026-09-23): backed by
-    ``clinosim/locale/shared/country_language.yaml`` so adding a new
-    locale is a data change (one YAML line) rather than a code edit
-    here. Falls back to ``"en"`` when the country code is not mapped.
-
-    Historic single-line binary (``"ja" if is_jp(country) else "en"``)
-    is preserved as a bootstrap fallback for callers that load before
-    the locale-loader module is available (import-cycle safety).
-
-    Perf (2026-10-18): ``lru_cache`` sibling to ``is_jp`` / ``is_us``.
-    Called ~9.7M times during a p=10000 5-year FHIR export with ≤ 2
-    distinct inputs. The YAML lookup via ``_load_country_language_map``
-    already has its own ``lru_cache``, but the per-call ``str().strip
-    ().lower()`` + attribute access + exception handling cost 14s on
-    the pre-cache profile; the module-level cache collapses that to
-    an O(1) dict lookup.
+    Delegates to :func:`clinosim.countries.lang_for`, the single
+    country -> language derivation (Issue #2274): YAML-driven,
+    case-insensitive, English for an unmapped country.
     """
-    key = str(country).strip().lower()
-    try:
-        from clinosim.locale.loader import _load_country_language_map
-
-        m = _load_country_language_map()
-        hit = m.get(key)
-        if hit:
-            return hit
-        return "en"
-    except Exception:  # noqa: BLE001 — bootstrap fallback for import-order edge cases
-        return "ja" if key == "jp" else "en"
+    return lang_for(country)
 
 
 def strip_protocol_prefix(name: str) -> tuple[str, str]:

@@ -11,6 +11,7 @@ from datetime import date, datetime
 
 import numpy as np
 
+from clinosim.countries import is_jp
 from clinosim.modules._shared import get_attr_or_key as _get
 from clinosim.modules._shared import set_attr_or_key as _set
 from clinosim.modules.immunization.engine import (
@@ -215,7 +216,7 @@ def _synthesize_vaccination_encounter(
         admission_datetime=adm,
         discharge_datetime=adm,
         chief_complaint=chief_en,
-        chief_complaint_ja=chief_ja if country == "JP" else "",
+        chief_complaint_ja=chief_ja if is_jp(country) else "",
         priority="R",  # routine
         admission_diagnosis_code="Z23",
         admission_diagnosis_system="icd-10-cm",

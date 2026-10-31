@@ -18,7 +18,7 @@ from pathlib import Path
 from typing import Any
 
 from clinosim.codes import lookup as code_lookup
-from clinosim.modules._shared import is_jp
+from clinosim.modules._shared import is_jp, resolve_lang
 from clinosim.modules.output.fhir_r4.lib.common import derive_meta_last_updated
 from clinosim.modules.output.fhir_r4.post_process.profile import (
     _HL7_OBSERVATION_CATEGORY_SYSTEM,
@@ -959,7 +959,7 @@ def _populate_condition_ai_mr_ecs_fields(resource: dict, country: str = "US") ->
     # are gated by `_ECS_IDENTIFIER_SYSTEMS` and by `rt in
     # ("Condition", "AllergyIntolerance")` and are no-ops for this rt.
     if rt == "Procedure":
-        lang = "ja" if is_jp(country) else "en"
+        lang = resolve_lang(country)
         _populate_procedure_coding_displays(resource, lang)
         return
 
@@ -970,7 +970,7 @@ def _populate_condition_ai_mr_ecs_fields(resource: dict, country: str = "US") ->
     # at emit time; this walker fills the remaining gaps (LP29684-5
     # radiology category + a small number of edge cases).
     if rt == "Composition":
-        lang = "ja" if is_jp(country) else "en"
+        lang = resolve_lang(country)
         _populate_cc_text_from_coding_lookup(resource, lang)
         return
 
@@ -1006,7 +1006,7 @@ def _populate_condition_ai_mr_ecs_fields(resource: dict, country: str = "US") ->
             meta["lastUpdated"] = ts
 
     # (3) clinicalStatus / verificationStatus displays.
-    _display_lang = "ja" if is_jp(country) else "en"
+    _display_lang = resolve_lang(country)
     if rt == "Condition":
         _populate_status_coding_display(resource.get("clinicalStatus"), "hl7-condition-clinical", _display_lang)
         _populate_status_coding_display(resource.get("verificationStatus"), "hl7-condition-ver-status", _display_lang)
@@ -1020,7 +1020,7 @@ def _populate_condition_ai_mr_ecs_fields(resource: dict, country: str = "US") ->
 
     # (4) code.coding[].display sibling-copy (Condition / AllergyIntolerance).
     # JP output prefers JP display via `code_lookup(..., "ja")`; US uses "en".
-    lang = "ja" if is_jp(country) else "en"
+    lang = resolve_lang(country)
     if rt in ("Condition", "AllergyIntolerance"):
         code_field = resource.get("code")
         if isinstance(code_field, dict):

@@ -8,8 +8,12 @@ can use them without depending on ``clinosim.modules``. Re-exported by
 from __future__ import annotations
 
 from functools import lru_cache
+from pathlib import Path
+from typing import Literal
 
-__all__ = ["is_jp", "is_us"]
+import yaml
+
+__all__ = ["country_slot", "is_jp", "is_us", "lang_for"]
 
 
 @lru_cache(maxsize=16)
@@ -41,3 +45,39 @@ def is_us(country: str) -> bool:
     original compliant precedent this generalizes).
     """
     return str(country).strip().lower() == "us"
+
+
+_COUNTRY_LANGUAGE_YAML = Path(__file__).parent / "locale" / "shared" / "country_language.yaml"
+
+
+@lru_cache(maxsize=1)
+def _country_language_map() -> dict[str, str]:
+    """Lower-case country code -> ISO-639-1 language, from ``country_language.yaml``."""
+    try:
+        raw = yaml.safe_load(_COUNTRY_LANGUAGE_YAML.read_text(encoding="utf-8")) or {}
+    except FileNotFoundError:
+        raw = {}
+    mapping = raw.get("country_language") or {} if isinstance(raw, dict) else {}
+    return {str(k).strip().lower(): str(v).strip().lower() for k, v in mapping.items()}
+
+
+@lru_cache(maxsize=32)
+def lang_for(country: str) -> str:
+    """Output language for a country code (case-insensitive; Issue #2274).
+
+    The single country -> language derivation: YAML-driven
+    (``locale/shared/country_language.yaml``), English for an unmapped or
+    empty country.
+    """
+    return _country_language_map().get(str(country or "").strip().lower(), "en")
+
+
+def country_slot(country: str, *, scheme: Literal["code", "legacy_japan"] = "code") -> str:
+    """Section key for per-country YAML blocks (case-insensitive, US default).
+
+    ``scheme="code"`` gives ``"jp"`` / ``"us"``; ``scheme="legacy_japan"``
+    gives the disease-YAML spelling ``"japan"`` / ``"us"``.
+    """
+    if is_jp(country):
+        return "japan" if scheme == "legacy_japan" else "jp"
+    return "us"
