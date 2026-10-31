@@ -185,12 +185,13 @@ ranges:
   Ciclosporin:
     - {low: 100, high: 300, unit: "ng/mL", text: "トラフ値、移植種別により目標域変動あり"}
 
-# 服用薬で決まる治療域 (Issue #2205)。対象薬 (drugs、部分一致) を服用中の
-# 患者では、通常の基準範囲ではなくここの範囲で判定する。age_min があれば
+# 服用薬で決まる治療域 (Issue #2205)。対象薬 (drugs、drugs.yaml の drug_id。
+# 名称・別名は catalog から照合、Issue #2293) を服用中の患者では、通常の
+# 基準範囲ではなくここの範囲で判定する。age_min があれば
 # その年齢以上にだけ適用し、上から順に最初に合う行を使う。
 # 出典: 日本循環器学会 2020 年改訂版 不整脈薬物治療ガイドライン
 # (ワルファリン: 70 歳以上 INR 1.6-2.6、70 歳未満 2.0-3.0)。
 therapeutic_ranges:
   PT_INR:
-    - {drugs: [warfarin, ワルファリン, ワーファリン], age_min: 70, low: 1.6, high: 2.6, unit: "{INR}", text: "治療域（ワルファリン、70歳以上）"}
-    - {drugs: [warfarin, ワルファリン, ワーファリン], low: 2.0, high: 3.0, unit: "{INR}", text: "治療域（ワルファリン）"}
+    - {drugs: [warfarin], age_min: 70, low: 1.6, high: 2.6, unit: "{INR}", text: "治療域（ワルファリン、70歳以上）"}
+    - {drugs: [warfarin], low: 2.0, high: 3.0, unit: "{INR}", text: "治療域（ワルファリン）"}

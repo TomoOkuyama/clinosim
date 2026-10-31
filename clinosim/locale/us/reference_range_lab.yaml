@@ -178,8 +178,9 @@ ranges:
     - {low: 100, high: 300, unit: "ng/mL", text: "Trough; transplant-type dependent"}
 
 # Therapeutic ranges that replace the reference interval for patients on a
-# listed drug (Issue #2205). `drugs` match case-insensitively as substrings
-# of the medication name; the first matching row wins (`age_min` optional).
+# listed drug (Issue #2205). `drugs` are catalog drug ids (codes/data/drugs.yaml);
+# their names and aliases are matched in the medication name (Issue #2293).
+# The first matching row wins (`age_min` optional).
 # Source: ACCP/CHEST antithrombotic guideline and AHA/ACC/HRS AF guideline,
 # warfarin target INR 2.0-3.0 for most indications.
 therapeutic_ranges:

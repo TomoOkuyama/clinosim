@@ -15,7 +15,9 @@ from typing import Any
 import numpy as np
 import yaml
 
+from clinosim.codes.drugs import names_drug
 from clinosim.codes.valuesets import concept_group
+from clinosim.modules.observation.engine import medication_name, medications_in_effect
 from clinosim.modules.physiology._coupling_coefficients import (
     AFIB_CARDIAC_COUPLING,
     ASTHMA_PH_COUPLING,
@@ -625,13 +627,11 @@ def medication_flags_from_context(
     Phase 2b: returns `{"on_warfarin": bool}` only. Extend the dict for future
     couplings (steroid → glucose, diuretic → K, antibiotic → CRP).
 
-    Detection rules:
-      (1) Chronic warfarin: ``patient.current_medications`` contains a
-          warfarin string (case-insensitive substring of "warfarin",
-          "ワルファリン", "coumadin").
-      (2) In-hospital warfarin: ``medication_orders`` contains a warfarin
-          order AND ``current_day - (order_date - admission_date).days >= 3``
-          (loading-dose 3-day rule).
+    Detection (Issue #2293): ``observation.engine.medications_in_effect`` —
+    home medications, plus an in-hospital warfarin order once
+    ``current_day - (order_date - admission_date).days >= 3`` (loading-dose
+    3-day rule) — matched by catalog name (``codes.drugs.names_drug``). The
+    flagging and therapeutic-range paths read the same decision.
 
     DOAC (apixaban / rivaroxaban / edoxaban / dabigatran) is intentionally
     NOT detected — INR is not clinically monitored for DOAC; modeling DOAC
@@ -642,43 +642,15 @@ def medication_flags_from_context(
     outpatient call sites pass medication_orders=None / current_day=None;
     only the chronic path runs.
     """
-    _WARFARIN_NAMES = ("warfarin", "ワルファリン", "coumadin")
-
     if patient is None:
         return {"on_warfarin": False}
-
-    on_warfarin = False
-
-    # (1) Chronic warfarin from home meds.
-    # Issue #452 PR 3: read `med.drug_name` directly.
-    for med in getattr(patient, "current_medications", None) or []:
-        med_lower = med.drug_name.lower()
-        if any(name in med_lower for name in _WARFARIN_NAMES):
-            on_warfarin = True
-            break
-
-    # (2) In-hospital warfarin ordered ≥ 3 days ago
-    if (
-        not on_warfarin
-        and medication_orders
-        and admission_date is not None
-        and current_day is not None
-        and current_day >= 3
-    ):
-        for o in medication_orders:
-            display = getattr(o, "display_name", "") or ""
-            if not any(name in display.lower() for name in _WARFARIN_NAMES):
-                continue
-            ordered_dt = getattr(o, "ordered_datetime", None)
-            ordered_date = ordered_dt.date() if ordered_dt is not None and hasattr(ordered_dt, "date") else None
-            if ordered_date is None:
-                continue
-            days_since_order = current_day - (ordered_date - admission_date).days
-            if days_since_order >= 3:
-                on_warfarin = True
-                break
-
-    return {"on_warfarin": on_warfarin}
+    meds = medications_in_effect(
+        getattr(patient, "current_medications", None),
+        medication_orders,
+        admission_date,
+        current_day,
+    )
+    return {"on_warfarin": any(names_drug(medication_name(m), "warfarin") for m in meds)}
 
 
 def room_air_saturation(state: PhysiologicalState, baseline_spo2: float) -> float:
