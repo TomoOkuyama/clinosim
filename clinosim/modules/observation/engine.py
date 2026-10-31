@@ -55,369 +55,27 @@ def lab_panel_components(name: str) -> list[str]:
     return list(_lab_panels().get(canonical_lab_name(name), []))
 
 
-# Biological variation (within-individual CV, Ricos et al.)
-BIOLOGICAL_CV: dict[str, float] = {
-    "Na": 0.006,
-    "K": 0.046,
-    "Cl": 0.012,
-    "Ca": 0.019,
-    "Creatinine": 0.056,
-    "BUN": 0.121,
-    "Glucose": 0.056,
-    "AST": 0.120,
-    "ALT": 0.195,
-    "ALP": 0.068,
-    "GGT": 0.138,
-    "T_Bil": 0.213,
-    "Albumin": 0.032,
-    "TP": 0.028,
-    "LDH": 0.083,
-    "CK": 0.226,
-    "WBC": 0.110,
-    "Hb": 0.029,
-    "Hct": 0.029,
-    "Plt": 0.094,
-    "CRP": 0.423,
-    "PCT": 0.30,
-    "BNP": 0.40,
-    "Troponin": 0.14,
-    "Troponin_I": 0.14,
-    "CK_MB": 0.15,
-    "Lactate": 0.278,
-    "pH": 0.002,
-    "HCO3": 0.040,
-    "pCO2": 0.046,
-    "eGFR": 0.056,
-    "PT_INR": 0.040,
-    "HbA1c": 0.015,
-    # Issue #1137 — PHQ-9 test-retest spread. Kroenke 2001 reports
-    # test-retest ICC ~0.84 at 1-week intervals; a 20 % CV captures
-    # the symptom-fluctuation + rater-noise spread that drives the
-    # cohort distribution across severity bands (none / mild /
-    # moderate / moderately-severe / severe).
-    "PHQ-9": 0.20,
-    # GAD-7 test-retest spread. Spitzer 2006 reports ICC 0.83 at
-    # 1-week intervals; same 20 % CV convention as PHQ-9 captures
-    # the symptom-fluctuation + rater-noise band.
-    "GAD-7": 0.20,
-    # C-SSRS test-retest + rater spread. Posner 2011 reports ICC
-    # 0.70-0.85 across raters; a 25 % CV captures the slightly
-    # wider rater-variability band of the C-SSRS vs the self-
-    # administered PHQ-9 / GAD-7.
-    "C-SSRS": 0.25,
-}
+# Per-analyte constants live in reference_data/lab_constants.yaml (Issue #2302),
+# keyed by canonical lab name; see that file for the sources and units.
+_LAB_CONSTANTS: dict[str, dict[str, Any]] = yaml.safe_load(
+    (_REF_DIR / "lab_constants.yaml").read_text(encoding="utf-8")
+)
 
-# Analytical variation (instrument imprecision)
-ANALYTICAL_CV: dict[str, float] = {
-    "Na": 0.008,
-    "K": 0.015,
-    "Cl": 0.008,
-    "Ca": 0.015,
-    "Creatinine": 0.030,
-    "BUN": 0.030,
-    "Glucose": 0.020,
-    "AST": 0.050,
-    "ALT": 0.050,
-    "ALP": 0.040,
-    "GGT": 0.050,
-    "T_Bil": 0.040,
-    "Albumin": 0.025,
-    "TP": 0.015,
-    "LDH": 0.035,
-    "CK": 0.040,
-    "WBC": 0.025,
-    "Hb": 0.015,
-    "Hct": 0.015,
-    "Plt": 0.035,
-    "CRP": 0.050,
-    "PCT": 0.080,
-    "BNP": 0.070,
-    "Troponin": 0.080,
-    "Troponin_I": 0.080,
-    "CK_MB": 0.050,
-    "Lactate": 0.040,
-    "pH": 0.001,
-    "HCO3": 0.025,
-    "pCO2": 0.025,
-    "eGFR": 0.030,
-    "PT_INR": 0.035,
-    "HbA1c": 0.01,
-}
+BIOLOGICAL_CV: dict[str, float] = dict(_LAB_CONSTANTS["biological_cv"])
 
-# Reporting precision (number of decimal places)
-PRECISION: dict[str, int] = {
-    "Na": 0,
-    "K": 1,
-    "Cl": 0,
-    "Ca": 1,
-    "Creatinine": 2,
-    "BUN": 1,
-    "Glucose": 0,
-    "eGFR": 0,
-    "AST": 0,
-    "ALT": 0,
-    "ALP": 0,
-    "GGT": 0,
-    "T_Bil": 1,
-    "Albumin": 1,
-    "TP": 1,
-    "LDH": 0,
-    "CK": 0,
-    "WBC": 0,
-    "Hb": 1,
-    "Hct": 1,
-    "Plt": 0,  # Plt reported as integer (10^3/uL)
-    "CRP": 1,
-    "PCT": 2,
-    "BNP": 1,
-    "Troponin": 3,
-    "Troponin_I": 3,
-    "CK_MB": 1,
-    "Lactate": 1,
-    "pH": 2,
-    "HCO3": 1,
-    "pCO2": 1,
-    "PT_INR": 1,
-    "HbA1c": 1,
-    "ESR": 0,
-    "LDL": 0,
-    "HDL": 0,
-    "TG": 0,
-    "TC": 0,
-    # lint: "Na": 0 was duplicated (already declared above); dropped.
-    "Fibrinogen": 0,
-    "D_dimer": 2,
-    "Amylase": 0,
-    "Lipase": 0,
-    "TSH": 2,
-    "Cortisol": 1,
-    # Issue #1137 — PHQ-9 total score is an integer 0-27 by scoring
-    # construction (9 items × 0-3 points). precision=0 rounds the
-    # post-noise value to the clinically-reported integer.
-    "PHQ-9": 0,
-    # GAD-7 total score is an integer 0-21 (7 items × 0-3 points).
-    "GAD-7": 0,
-    # C-SSRS ideation severity is an integer 0-5.
-    "C-SSRS": 0,
-    # Issue #2138: toxicology screen (integer reporting).
-    "Ethanol": 0,
-    "Acetaminophen_level": 0,
-    "Salicylate": 0,
-}
+ANALYTICAL_CV: dict[str, float] = dict(_LAB_CONSTANTS["analytical_cv"])
+
+PRECISION: dict[str, int] = dict(_LAB_CONSTANTS["precision"])
+
+LAB_UNITS: dict[str, str] = dict(_LAB_CONSTANTS["units"])
 
 
-# Standard units for lab results — UCUM (http://unitsofmeasure.org)
-# References: https://ucum.org/, FHIR R4 Observation requires UCUM
-LAB_UNITS: dict[str, str] = {
-    "Na": "mmol/L",
-    "K": "mmol/L",
-    "Cl": "mmol/L",
-    "Ca": "mg/dL",
-    "Creatinine": "mg/dL",
-    "BUN": "mg/dL",
-    "Glucose": "mg/dL",
-    "eGFR": "mL/min/{1.73_m2}",  # UCUM annotation for body surface area
-    "AST": "U/L",
-    "ALT": "U/L",
-    "ALP": "U/L",
-    "GGT": "U/L",
-    "T_Bil": "mg/dL",
-    "Albumin": "g/dL",
-    "TP": "g/dL",
-    "LDH": "U/L",
-    "CK": "U/L",
-    "WBC": "/uL",  # Cell count per microliter (e.g. 7500)
-    "Hb": "g/dL",
-    "Hct": "%",
-    "Plt": "10*3/uL",  # UCUM (was "x10^3/uL")
-    "CRP": "mg/L",
-    "PCT": "ng/mL",
-    "BNP": "pg/mL",
-    "Troponin": "ng/mL",
-    "Troponin_I": "ng/mL",
-    "CK_MB": "ng/mL",
-    "Lactate": "mmol/L",
-    "pH": "[pH]",
-    "HCO3": "mmol/L",
-    "pCO2": "mm[Hg]",
-    "pO2": "mm[Hg]",
-    "PT_INR": "{INR}",
-    # #325 PT / APTT は reference_range_lab.yaml に unit "s"
-    # (seconds)定義済みだが LAB_UNITS 未登録で空 unit emit されていた。
-    # JP_Observation_LabResult_eCS の refRange units-isSameAs invariant を
-    # 22 件違反していた fix。
-    "PT": "s",
-    "APTT": "s",
-    "Fibrinogen": "mg/dL",
-    "D_dimer": "ug/mL",
-    "TSH": "m[IU]/L",
-    "SpO2": "%",
-    "HbA1c": "%",
-    "ESR": "mm/h",
-    "Urinalysis": "{qualitative}",
-    "Urine_culture": "{qualitative}",
-    "Rapid_Strep": "{qualitative}",
-    "Tetanus_status": "{qualitative}",
-    "LDL": "mg/dL",
-    "HDL": "mg/dL",
-    "TG": "mg/dL",
-    "TC": "mg/dL",
-    "Amylase": "U/L",
-    "Lipase": "U/L",
-    "Cortisol": "ug/dL",
-    # lint: "BNP": "pg/mL" was duplicated (already declared above); dropped.
-    # Issue #957 slice 1: tumor markers (see BASELINE_LAB_NORMALS below).
-    "CEA": "ng/mL",
-    "CA19_9": "U/mL",
-    "AFP": "ng/mL",
-    "PIVKA_II": "mAU/mL",
-    "CA15_3": "U/mL",
-    "PSA": "ng/mL",
-    # Issue #757 remaining: drug-level monitoring (digoxin / lithium /
-    # tacrolimus / ciclosporin).
-    "Digoxin": "ng/mL",
-    "Lithium": "mmol/L",  # UCUM canonical for mEq/L on lithium
-    "Tacrolimus": "ng/mL",
-    "Ciclosporin": "ng/mL",
-    # Issue #1137 — mental-health cluster axis 2: PHQ-9 (Patient
-    # Health Questionnaire-9) is a patient-reported depression
-    # screening score 0-27 emitted at annual-checkup OP visits
-    # for F32 / F33 cohort. UCUM "{score}" is the canonical unit
-    # annotation for standardized assessment scores.
-    "PHQ-9": "{score}",
-    # Issue #1137 — mental-health cluster axis 3: GAD-7 (Generalized
-    # Anxiety Disorder-7) is a patient-reported anxiety severity
-    # score 0-21 emitted on OP follow-up for F41.1 cohort. Same
-    # UCUM "{score}" convention as PHQ-9.
-    "GAD-7": "{score}",
-    # Issue #1137 — mental-health cluster axis 7: Columbia Suicide
-    # Severity Rating Scale ideation severity (C-SSRS score 0-5).
-    # 0 = no ideation; 1 = wish to be dead; 2 = non-specific active
-    # ideation; 3 = active ideation with method but no plan or
-    # intent; 4 = active ideation with plan but no intent; 5 =
-    # active ideation with method, plan AND intent. Emitted at
-    # F32 / F33 OP follow-up for severity-screened safety planning.
-    "C-SSRS": "{score}",
-    # Issue #2138: psychiatric / overdose medical clearance.
-    "Ethanol": "mg/dL",
-    "Acetaminophen_level": "ug/mL",
-    "Salicylate": "mg/dL",
-    "Urine_drug_screen": "{qualitative}",
-}
-
-
-# Absolute physiologic plausibility bounds for the OBSERVED (post-noise) value,
-# in the analyte's LAB_UNITS. Set at the edge of human survivability so genuine
-# extreme true values pass through untouched; the bounds only clip implausible
-# measurement-noise tails (e.g. K 10.5 mmol/L, CRP 663 mg/L) that the multiplicative
-# Gaussian noise model can otherwise produce on large true values.
 PHYSIOLOGIC_LIMITS: dict[str, tuple[float, float]] = {
-    "Na": (100.0, 180.0),  # mmol/L — survivable hypo/hypernatremia extremes
-    "K": (2.5, 8.5),  # mmol/L
-    "Cl": (70.0, 130.0),  # mmol/L
-    "Ca": (4.0, 16.0),  # mg/dL
-    "Glucose": (20.0, 1300.0),  # mg/dL — hypoglycemia to HHS
-    "Creatinine": (0.1, 25.0),  # mg/dL — up to dialysis-dependent ESRD
-    "BUN": (1.0, 250.0),  # mg/dL
-    "Lactate": (0.2, 30.0),  # mmol/L
-    "CRP": (0.0, 500.0),  # mg/L
-    "WBC": (50.0, 200000.0),  # /uL — agranulocytosis to leukemoid reaction
-    "Hb": (2.0, 24.0),  # g/dL
-    "Hct": (6.0, 72.0),  # %
-    "Plt": (1.0, 2000.0),  # 10^3/uL
-    "pH": (6.8, 7.8),  # survivable acid-base extremes
-    "pCO2": (10.0, 130.0),  # mm[Hg]
-    "HCO3": (3.0, 50.0),  # mmol/L
-    "Troponin_I": (0.0, 200.0),  # ng/mL — massive MI
-    "CK_MB": (0.0, 500.0),  # ng/mL
-    "BNP": (0.0, 5000.0),  # pg/mL — assay reporting ceiling
-    "HbA1c": (3.0, 18.0),  # % — survivable glycemic range
-    # Issue #1137 — PHQ-9 total score lies in [0, 27] by construction.
-    # The upper bound is the scale maximum (9 items × 3 points), not a
-    # physiologic limit — it's a scoring-rule invariant that any
-    # measurement-noise tail MUST respect.
-    "PHQ-9": (0.0, 27.0),
-    # Issue #1137 — GAD-7 total score lies in [0, 21] (7 items × 3
-    # points). Scoring-rule invariant, same bound rationale as
-    # PHQ-9.
-    "GAD-7": (0.0, 21.0),
-    # Issue #1137 — C-SSRS ideation severity score 0-5 (Posner 2011
-    # Am J Psychiatry 168:1266). Scoring-rule invariant: 0 is "no
-    # ideation", 5 is the maximum "active ideation with method,
-    # plan AND intent" tier.
-    "C-SSRS": (0.0, 5.0),
-    # Issue #2138: lethal ranges bound the toxicology levels.
-    "Ethanol": (0.0, 800.0),
-    "Acetaminophen_level": (0.0, 1000.0),
-    "Salicylate": (0.0, 150.0),
+    lab: (v[0], v[1]) for lab, v in _LAB_CONSTANTS["physiologic_limits"].items()
 }
 
 
-# Reference-normal fallback values for analytes physiology does not model, shared by the
-# outpatient/emergency venues (DET-6 — single source of truth, replaces per-venue dicts).
-BASELINE_LAB_NORMALS: dict[str, float] = {
-    "Ca": 9.2,
-    "TSH": 2.5,
-    "LDL": 110,
-    "HDL": 55,
-    "TG": 130,
-    "TC": 190,
-    "ESR": 12,
-    # Issue #957 slice 1: tumor markers for chronic cancer follow-up.
-    # chronic_followup.yaml already lists these under ``labs_quarterly`` /
-    # ``labs_annual`` for C18 / C22 / C34 / C50 / C61, but the outpatient
-    # emit loop drops any lab whose canonical name is missing from both
-    # ``_true_labs`` and ``BASELINE_LAB_NORMALS`` (silent-skip). Cancer
-    # follow-up encounters are monitoring visits — the expected clinical
-    # value is a normal (in-remission) result. Elevated values as a
-    # recurrence signal are a separate physiology extension (deferred).
-    #
-    # Baseline values below the upper reference limit for each marker:
-    "CEA": 2.5,  # ng/mL (upper normal < 5 ng/mL nonsmokers)
-    "CA19_9": 15,  # U/mL (upper normal < 37 U/mL)
-    "AFP": 5,  # ng/mL (upper normal < 10 ng/mL)
-    "PIVKA_II": 20,  # mAU/mL (upper normal < 40 mAU/mL)
-    "CA15_3": 18,  # U/mL (upper normal < 30 U/mL)
-    "PSA": 1.5,  # ng/mL (upper normal < 4 ng/mL, male only)
-    # Issue #1137 — PHQ-9 F32/F33 cohort baseline. Severity bands
-    # per Kroenke 2001 (JGIM 16:606): 0-4 none / 5-9 mild / 10-14
-    # moderate / 15-19 moderately severe / 20-27 severe. Baseline
-    # 10 (moderate band start) matches the cohort-weighted
-    # observational mean in GPC / primary-care-registry data
-    # (Mitchell 2013 BMJ depression screening meta ~10-12).
-    # Variability (test-retest + severity-band spread) is handled
-    # by the shared noise pipeline — PHQ-9 is added to
-    # ``BIOLOGICAL_CV`` below.
-    "PHQ-9": 10.0,
-    # Issue #1137 — GAD-7 F41.1 cohort baseline. Severity bands
-    # per Spitzer 2006 (Arch Intern Med 166:1092): 0-4 minimal /
-    # 5-9 mild / 10-14 moderate / 15-21 severe. Baseline 8
-    # (mild→moderate transition) matches the primary-care-cohort
-    # mean in Spitzer's validation study + Kroenke 2007 (Ann
-    # Intern Med 146:317) outpatient GAD cohorts.
-    "GAD-7": 8.0,
-    # Issue #1137 — C-SSRS ideation severity baseline. Baseline 1
-    # (passive wish-to-be-dead) matches the F32/F33 cohort-weighted
-    # mean per Posner 2011 (Am J Psychiatry 168:1266). The
-    # outpatient emit loop overrides this with a severity-
-    # conditioned value when the patient's PHQ-9 band is known
-    # (axis 5 pattern) — baseline here is only used as a fallback.
-    "C-SSRS": 1.0,
-    # Issue #2138: toxicology screen in medical clearance — not detected
-    # without an ingestion (reported below the assay's detection limit).
-    "Ethanol": 0.0,
-    "Acetaminophen_level": 0.0,
-    "Salicylate": 0.0,
-    # Issue #757 remaining mappings: drug-level monitoring analytes.
-    # Baseline values sit in the mid-therapeutic band for each drug, so a
-    # patient on stable dosing shows a "therapeutic-range" (interpretation=N)
-    # value on the FHIR referenceRange emit. Sub-therapeutic and toxic
-    # excursions are a separate physiology extension (deferred).
-    "Digoxin": 1.0,  # ng/mL (therapeutic 0.5-2.0 ng/mL)
-    "Lithium": 0.8,  # mEq/L (therapeutic 0.6-1.2 mEq/L)
-    "Tacrolimus": 8.0,  # ng/mL (trough therapeutic 5-20 ng/mL)
-    "Ciclosporin": 150,  # ng/mL (trough therapeutic 100-300 ng/mL)
-}
+BASELINE_LAB_NORMALS: dict[str, float] = dict(_LAB_CONSTANTS["baseline_normals"])
 
 
 def get_lab_unit(lab_name: str) -> str:
@@ -509,16 +167,8 @@ def _generate_qualitative_result(lab_name: str, rng: np.random.Generator) -> str
     return "Negative"
 
 
-# Critical / panic thresholds — clinically-defined absolute cutoffs that
-# override H/L flags. Kept in code because they are safety-critical values
-# derived from clinical convention, not lab-normal statistics, and would not
-# vary between JCCLS (JP) and CLSI (US) reference standards.
 _PANIC_THRESHOLDS: dict[str, tuple[float | None, float | None]] = {
-    "K": (2.5, 6.5),
-    "Hb": (7.0, None),  # critical low only (Hb < 7.0 = critical)
-    "Glucose": (40, 500),
-    "Na": (120, 160),
-    "pH": (7.1, 7.6),
+    lab: (v[0], v[1]) for lab, v in _LAB_CONSTANTS["panic_thresholds"].items()
 }
 
 
@@ -674,8 +324,9 @@ def determine_flag(
     same YAML via ``_fhir_common.build_reference_range``) agree on every lab
     (Issue #542 single-source-of-truth fix).
 
-    Panic / critical thresholds remain hardcoded (:data:`_PANIC_THRESHOLDS`) —
-    they are safety-critical absolute cutoffs shared across locales.
+    Panic / critical thresholds (:data:`_PANIC_THRESHOLDS`, from
+    ``lab_constants.yaml``) are safety-critical absolute cutoffs shared across
+    locales.
 
     Qualitative results (``value: str`` from ``generate_lab_result`` for
     Urinalysis / Rapid_Strep / etc.) return ``None`` (unflagged) — they have

@@ -176,6 +176,7 @@ clinosim/modules/observation/
   _variability_defaults.py           default CV + qualitative 分布 (Issue #637)
   reference_data/
     lab_aliases.yaml                 canonical lab-name alias
+    lab_constants.yaml               検査ごとの単位 / CV / 桁数 / 限界値 / 基準値 / パニック値 (Issue #2302)
     lab_panels.yaml                  panel → components
     microbiology.yaml                organism + susceptibility カタログ
     nursing_scores.yaml              NEWS2 / GCS / Braden / Morse band

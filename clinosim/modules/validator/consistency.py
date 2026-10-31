@@ -14,6 +14,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 
 from clinosim.codes.snomed_concepts import SURGICAL_PROCEDURE
+from clinosim.modules.observation.engine import PHYSIOLOGIC_LIMITS, canonical_lab_name
 from clinosim.simulator.complications import complication_names as _complication_names_from_cif
 from clinosim.types.output import CIFDataset, CIFPatientRecord
 
@@ -134,18 +135,9 @@ def _check_deceased_status(record: CIFPatientRecord, pid: str, report: Consisten
 
 
 def _check_lab_ranges(record: CIFPatientRecord, pid: str, report: ConsistencyReport) -> None:
-    """Lab values should be within physiologically plausible ranges."""
-    plausible = {
-        "WBC": (0, 100000),
-        "Hb": (2.0, 22.0),
-        "Hgb": (2.0, 22.0),
-        "CRP": (0, 800),  # severe sepsis/trauma/surgery: 500-800 is plausible
-        "Creatinine": (0.1, 30.0),
-        "Cr": (0.1, 30.0),
-        "Glucose": (10, 1500),
-        "Lactate": (0, 30),
-        "Plt": (0, 2000000),
-    }
+    """Lab values should be within physiologically plausible ranges: the
+    generator's ``PHYSIOLOGIC_LIMITS`` (``lab_constants.yaml``), in the units the
+    generator reports, matched by canonical lab name (Issue #2302)."""
     for lab in record.lab_results:
         name = lab.lab_name or ""
         if lab.value is None:
@@ -154,18 +146,19 @@ def _check_lab_ranges(record: CIFPatientRecord, pid: str, report: ConsistencyRep
             val = float(lab.value)
         except (TypeError, ValueError):
             continue
-        for key, (lo, hi) in plausible.items():
-            if key.lower() in name.lower():
-                if val < lo or val > hi:
-                    report.add(
-                        ConsistencyIssue(
-                            pid,
-                            "warning",
-                            "lab_range",
-                            f"{name}={val} outside plausible range [{lo}, {hi}]",
-                        )
-                    )
-                break
+        limits = PHYSIOLOGIC_LIMITS.get(canonical_lab_name(name))
+        if limits is None:
+            continue
+        lo, hi = limits
+        if val < lo or val > hi:
+            report.add(
+                ConsistencyIssue(
+                    pid,
+                    "warning",
+                    "lab_range",
+                    f"{name}={val} outside plausible range [{lo}, {hi}]",
+                )
+            )
 
 
 def _check_medication_holds(record: CIFPatientRecord, pid: str, report: ConsistencyReport) -> None:

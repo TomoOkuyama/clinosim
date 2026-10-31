@@ -9,7 +9,7 @@ unit / source, and located in the right place):
 1. **CV fallback defaults** — the two floats that
    ``apply_realistic_variability`` used inline as the last-resort CV when
    a lab name is not in the per-analyte ``BIOLOGICAL_CV`` /
-   ``ANALYTICAL_CV`` maps. Kept module-scope in ``engine.py`` alongside
+   ``ANALYTICAL_CV`` maps (``reference_data/lab_constants.yaml``). Kept module-scope in ``engine.py`` alongside
    those maps would have worked; extracting them here follows the
    existing per-topic threshold-file convention (``vitals_thresholds.py``
    / ``fluid_balance.py`` / ``oxygenation.py`` / ``pre_analytical.py``
