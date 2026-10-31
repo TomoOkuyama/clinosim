@@ -12,7 +12,6 @@ of golden cohorts is the required acceptance for the extraction.
 from __future__ import annotations
 
 __all__ = [
-    "MAR_ANTIHYPERTENSIVE_HOLD_SBP_THRESHOLD",
     "MAR_JITTER_MEAN_MIN",
     "MAR_JITTER_STD_MIN",
     "MAR_PATIENT_REFUSAL_PROBABILITY",
@@ -49,12 +48,6 @@ grid downstream."""
 # ---------------------------------------------------------------------------
 # Clinical-hold criteria
 # ---------------------------------------------------------------------------
-
-MAR_ANTIHYPERTENSIVE_HOLD_SBP_THRESHOLD: int = 90
-"""SBP (mmHg) at or below which an antihypertensive dose is coded as
-"held". Matches the standard clinical hold-parameter threshold —
-below 90 SBP the risk of further BP lowering outweighs the
-antihypertensive benefit."""
 
 
 # ---------------------------------------------------------------------------
