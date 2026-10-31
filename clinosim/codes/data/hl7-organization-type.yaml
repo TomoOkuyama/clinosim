@@ -1,0 +1,9 @@
+# HL7 FHIR organization-type — Organization.type. English displays verified
+# on tx.fhir.org $lookup (THO).
+metadata:
+  name: HL7 FHIR Organization Type
+  uri: http://terminology.hl7.org/CodeSystem/organization-type
+  source: "HL7 Terminology (THO)"
+codes:
+  prov: {en: "Healthcare Provider", ja: "医療機関"}
+  dept: {en: "Hospital Department", ja: "診療科"}

@@ -17,7 +17,7 @@ from typing import Any
 
 from clinosim.codes import get_system_uri
 from clinosim.codes.ucum import ucum_quantity
-from clinosim.modules._shared import get_attr_or_key, is_jp, sanitize_id_token
+from clinosim.modules._shared import get_attr_or_key, is_jp, resolve_lang, sanitize_id_token
 from clinosim.modules.observation.engine import medications_in_effect
 from clinosim.modules.output.fhir_r4.demographics.patient import patient_ref
 from clinosim.modules.output.fhir_r4.encounters.encounter import encounter_ref
@@ -37,6 +37,7 @@ from clinosim.modules.output.fhir_r4.labs.service_request import build_panel_cou
 from clinosim.modules.output.fhir_r4.lib.common import (
     BundleContext,
     build_reference_range,
+    dual_slot_concept,
     entry,
     survey_category,
     to_fhir_datetime,
@@ -45,12 +46,6 @@ from clinosim.modules.output.fhir_r4.lib.ids import (
     derive_opaque_id,
     structural_key_system,
     wrap_as_identifier,
-)
-from clinosim.modules.output.fhir_r4.lib.localization import (
-    _CATEGORY_DISPLAY_JA,
-    _INTERPRETATION_DISPLAY_JA,
-    _localize_display,
-    _localize_interp,
 )
 from clinosim.types.encounter import Order, OrderType
 
@@ -202,18 +197,7 @@ def _build_lab_observation(
         "status": "final",
         "category": survey_category()
         if lab_name in _QUESTIONNAIRE_SCORE_ANALYTES
-        else [
-            {
-                "coding": [
-                    {
-                        "system": get_system_uri("hl7-observation-category"),
-                        "code": "laboratory",
-                        "display": _localize_display("Laboratory", country, _CATEGORY_DISPLAY_JA),
-                    }
-                ],
-                "text": _localize_display("Laboratory", country, _CATEGORY_DISPLAY_JA),
-            }
-        ],
+        else [dual_slot_concept("hl7-observation-category", "laboratory", resolve_lang(country))],
         "code": {"coding": codings, "text": display_name} if codings else {"text": display_name},
         "subject": patient_ref(patient_id),
         # Session-98 F11 fix. `effectiveDateTime` on a lab Observation is
@@ -252,13 +236,13 @@ def _build_lab_observation(
     # Fall back to flag-based mapping for non-numeric or no-range cases.
     flag = result.get("flag")
     interp_map = {
-        "H": {"code": "H", "display": "High"},
-        "L": {"code": "L", "display": "Low"},
-        "H*": {"code": "HH", "display": "Critical high"},
-        "L*": {"code": "LL", "display": "Critical low"},
-        "critical": {"code": "AA", "display": "Critical abnormal"},
+        "H": "H",
+        "L": "L",
+        "H*": "HH",
+        "L*": "LL",
+        "critical": "AA",
     }
-    coded: dict[str, str] | None = None
+    coded: str | None = None
     if isinstance(value, (int, float)) and ref_range:
         # Find normal range (type=normal or unlabeled first entry); a
         # therapeutic range, present only for patients on the matching drug,
@@ -278,32 +262,22 @@ def _build_lab_observation(
             out_low = low_v is not None and value < low_v
             out_high = high_v is not None and value > high_v
             if is_critical and out_low:
-                coded = {"code": "LL", "display": "Critical low"}
+                coded = "LL"
             elif is_critical and out_high:
-                coded = {"code": "HH", "display": "Critical high"}
+                coded = "HH"
             elif is_critical:
-                coded = {"code": "AA", "display": "Critical abnormal"}
+                coded = "AA"
             elif out_low:
-                coded = {"code": "L", "display": "Low"}
+                coded = "L"
             elif out_high:
-                coded = {"code": "H", "display": "High"}
+                coded = "H"
             else:
-                coded = {"code": "N", "display": "Normal"}
+                coded = "N"
     if coded is None:
-        coded = interp_map.get(flag) if flag else {"code": "N", "display": "Normal"}
+        coded = interp_map.get(flag) if flag else "N"
     if coded is None:
-        coded = {"code": "N", "display": "Normal"}
-    coded = _localize_interp(coded, country)
-    resource["interpretation"] = [
-        {
-            "coding": [
-                {
-                    "system": get_system_uri("hl7-observation-interpretation"),
-                    **coded,
-                }
-            ],
-        }
-    ]
+        coded = "N"
+    resource["interpretation"] = [dual_slot_concept("hl7-observation-interpretation", coded, resolve_lang(country))]
 
     # Encounter reference (use order's encounter_id, fallback to primary)
     enc_ref = order.get("encounter_id", "") or encounter_id
@@ -344,15 +318,14 @@ def _build_bp_component(
     display = spec.display_ja if is_jp(country) else spec.display_en
     unit = "mm[Hg]"
     interp_code = "N"
-    interp_display = "Normal"
     if value <= spec.critical_low:
-        interp_code, interp_display = "LL", "Critical low"
+        interp_code = "LL"
     elif value >= spec.critical_high:
-        interp_code, interp_display = "HH", "Critical high"
+        interp_code = "HH"
     elif value < spec.normal_low:
-        interp_code, interp_display = "L", "Low"
+        interp_code = "L"
     elif value > spec.normal_high:
-        interp_code, interp_display = "H", "High"
+        interp_code = "H"
 
     normal_text = "成人正常範囲" if is_jp(country) else "Normal adult range"
     crit_text = "パニック値" if is_jp(country) else "Critical range"
@@ -392,17 +365,7 @@ def _build_bp_component(
                 "text": crit_text,
             },
         ],
-        "interpretation": [
-            {
-                "coding": [
-                    {
-                        "system": get_system_uri("hl7-observation-interpretation"),
-                        "code": interp_code,
-                        "display": _localize_display(interp_display, country, _INTERPRETATION_DISPLAY_JA),
-                    }
-                ],
-            }
-        ],
+        "interpretation": [dual_slot_concept("hl7-observation-interpretation", interp_code, resolve_lang(country))],
     }
 
 
@@ -467,18 +430,7 @@ def _build_vital_observations(
                 else {}
             ),
             "status": "final",
-            "category": [
-                {
-                    "coding": [
-                        {
-                            "system": get_system_uri("hl7-observation-category"),
-                            "code": "vital-signs",
-                            "display": _localize_display("Vital Signs", country, _CATEGORY_DISPLAY_JA),
-                        }
-                    ],
-                    "text": _localize_display("Vital Signs", country, _CATEGORY_DISPLAY_JA),
-                }
-            ],
+            "category": [dual_slot_concept("hl7-observation-category", "vital-signs", resolve_lang(country))],
             "code": {
                 "coding": [{"system": get_system_uri("loinc"), "code": loinc, "display": display}],
                 "text": display,
@@ -550,25 +502,16 @@ def _build_vital_observations(
 
         # Interpretation (compute from value vs reference range — always consistent)
         interp_code = "N"
-        interp_display = "Normal"
         if crit_low is not None and value <= crit_low:
-            interp_code, interp_display = "LL", "Critical low"
+            interp_code = "LL"
         elif crit_high is not None and value >= crit_high:
-            interp_code, interp_display = "HH", "Critical high"
+            interp_code = "HH"
         elif value < low:
-            interp_code, interp_display = "L", "Low"
+            interp_code = "L"
         elif value > high:
-            interp_code, interp_display = "H", "High"
+            interp_code = "H"
         obs["interpretation"] = [
-            {
-                "coding": [
-                    {
-                        "system": get_system_uri("hl7-observation-interpretation"),
-                        "code": interp_code,
-                        "display": _localize_display(interp_display, country, _INTERPRETATION_DISPLAY_JA),
-                    }
-                ],
-            }
+            dual_slot_concept("hl7-observation-interpretation", interp_code, resolve_lang(country))
         ]
 
         entries.append(entry(obs))
@@ -595,18 +538,7 @@ def _build_vital_observations(
                 else {}
             ),
             "status": "final",
-            "category": [
-                {
-                    "coding": [
-                        {
-                            "system": get_system_uri("hl7-observation-category"),
-                            "code": "vital-signs",
-                            "display": _localize_display("Vital Signs", country, _CATEGORY_DISPLAY_JA),
-                        }
-                    ],
-                    "text": _localize_display("Vital Signs", country, _CATEGORY_DISPLAY_JA),
-                }
-            ],
+            "category": [dual_slot_concept("hl7-observation-category", "vital-signs", resolve_lang(country))],
             "code": {
                 "coding": [{"system": get_system_uri("loinc"), "code": "85354-9", "display": bp_display}],
                 "text": bp_display,
@@ -658,18 +590,7 @@ def _build_vital_observations(
                 else {}
             ),
             "status": "final",
-            "category": [
-                {
-                    "coding": [
-                        {
-                            "system": get_system_uri("hl7-observation-category"),
-                            "code": "vital-signs",
-                            "display": _localize_display("Vital Signs", country, _CATEGORY_DISPLAY_JA),
-                        }
-                    ],
-                    "text": _localize_display("Vital Signs", country, _CATEGORY_DISPLAY_JA),
-                }
-            ],
+            "category": [dual_slot_concept("hl7-observation-category", "vital-signs", resolve_lang(country))],
             "code": {
                 "coding": [
                     {
@@ -732,18 +653,7 @@ def _build_vital_observations(
                 else {}
             ),
             "status": "final",
-            "category": [
-                {
-                    "coding": [
-                        {
-                            "system": get_system_uri("hl7-observation-category"),
-                            "code": "vital-signs",
-                            "display": _localize_display("Vital Signs", country, _CATEGORY_DISPLAY_JA),
-                        }
-                    ],
-                    "text": _localize_display("Vital Signs", country, _CATEGORY_DISPLAY_JA),
-                }
-            ],
+            "category": [dual_slot_concept("hl7-observation-category", "vital-signs", resolve_lang(country))],
             "code": {
                 "coding": [
                     {
@@ -783,18 +693,7 @@ def _build_vital_observations(
                 else {}
             ),
             "status": "final",
-            "category": [
-                {
-                    "coding": [
-                        {
-                            "system": get_system_uri("hl7-observation-category"),
-                            "code": "vital-signs",
-                            "display": _localize_display("Vital Signs", country, _CATEGORY_DISPLAY_JA),
-                        }
-                    ],
-                    "text": _localize_display("Vital Signs", country, _CATEGORY_DISPLAY_JA),
-                }
-            ],
+            "category": [dual_slot_concept("hl7-observation-category", "vital-signs", resolve_lang(country))],
             "code": {
                 "coding": [
                     {

@@ -445,7 +445,7 @@ in `clinosim/modules/_shared.py` — shared-logic unification
   `code_lookup(..., resolve_lang(ctx.country))`).
 - Country-dependent code-system selection (JLAC10 vs LOINC etc.) =
   `system_key_for(kind, ctx.country)` (E.11).
-- Enum values (severity / route / category etc.) = `_localize_display()`
+- Coded enum values (category / priority / interpretation etc.) = `dual_slot_concept()` over the code-keyed `codes/data/hl7-*.yaml` registry
   (existing helper, `clinosim/modules/output/fhir_r4/lib/common.py (localization helpers)`).
 - Drug / procedure names = `code_lookup()` or the lang-aware
   wrapper `localize_drug_name(name, lang)` from

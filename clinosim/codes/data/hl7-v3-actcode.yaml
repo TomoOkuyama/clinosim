@@ -1,0 +1,15 @@
+# HL7 v3 ActCode — the Encounter.class codes clinosim emits.
+# English displays verified on tx.fhir.org $lookup (THO). Encounter.class is
+# a Coding with no text slot, so JP output carries the English display there
+# (code-mapping spec §5.3); the Japanese labels serve narrative and lookups.
+metadata:
+  name: HL7 v3 ActCode (encounter class subset)
+  uri: http://terminology.hl7.org/CodeSystem/v3-ActCode
+  source: "HL7 Terminology (THO)"
+codes:
+  AMB:   {en: "ambulatory",          ja: "外来"}
+  IMP:   {en: "inpatient encounter", ja: "入院"}
+  EMER:  {en: "emergency",           ja: "救急"}
+  ACUTE: {en: "inpatient acute",     ja: "急性期入院"}
+  HH:    {en: "home health",         ja: "在宅医療"}
+  FLD:   {en: "field",               ja: "現地"}

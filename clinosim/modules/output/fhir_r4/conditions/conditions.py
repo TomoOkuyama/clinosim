@@ -35,6 +35,7 @@ from clinosim.modules.output.fhir_r4.encounters.encounter import encounter_ref
 from clinosim.modules.output.fhir_r4.lib.common import (
     _coding_with_display,
     build_diagnosis_codeable_concept,
+    dual_slot_concept,
     infer_severity,
     map_diagnosis_code,
     severity_coding,
@@ -42,10 +43,6 @@ from clinosim.modules.output.fhir_r4.lib.common import (
     to_fhir_datetime,
 )
 from clinosim.modules.output.fhir_r4.lib.ids import wrap_as_identifier
-from clinosim.modules.output.fhir_r4.lib.localization import (
-    _CATEGORY_DISPLAY_JA,
-    _localize_display,
-)
 
 # Condition.stage.summary SNOMED coding for staging systems with an unambiguous,
 # authoritatively-verified (tx.fhir.org $lookup) SNOMED CT concept. Keys are the
@@ -303,17 +300,7 @@ def _build_conditions(record: dict, patient_id: str, country: str) -> list[dict]
             "verificationStatus": {
                 "coding": [_coding_with_display("hl7-condition-ver-status", "confirmed", lang)],
             },
-            "category": [
-                {
-                    "coding": [
-                        {
-                            "system": get_system_uri("hl7-condition-category"),
-                            "code": "encounter-diagnosis",
-                            "display": _localize_display("Encounter Diagnosis", country, _CATEGORY_DISPLAY_JA),
-                        }
-                    ],
-                }
-            ],
+            "category": [dual_slot_concept("hl7-condition-category", "encounter-diagnosis", resolve_lang(country))],
             "code": build_diagnosis_codeable_concept(
                 map_diagnosis_code(dx_code, country, sex=patient_sex), icd_system_key, country
             ),
@@ -519,17 +506,7 @@ def _build_conditions(record: dict, patient_id: str, country: str) -> list[dict]
             "verificationStatus": {
                 "coding": [_coding_with_display("hl7-condition-ver-status", "confirmed", lang)],
             },
-            "category": [
-                {
-                    "coding": [
-                        {
-                            "system": get_system_uri("hl7-condition-category"),
-                            "code": "encounter-diagnosis",
-                            "display": _localize_display("Encounter Diagnosis", country, _CATEGORY_DISPLAY_JA),
-                        }
-                    ],
-                }
-            ],
+            "category": [dual_slot_concept("hl7-condition-category", "encounter-diagnosis", resolve_lang(country))],
             "code": build_diagnosis_codeable_concept(_admit_mapped, icd_system_key, country),
             "subject": patient_ref(patient_id),
         }
@@ -633,17 +610,7 @@ def _build_conditions(record: dict, patient_id: str, country: str) -> list[dict]
             "verificationStatus": {
                 "coding": [_coding_with_display("hl7-condition-ver-status", "confirmed", lang)],
             },
-            "category": [
-                {
-                    "coding": [
-                        {
-                            "system": get_system_uri("hl7-condition-category"),
-                            "code": "encounter-diagnosis",
-                            "display": _localize_display("Encounter Diagnosis", country, _CATEGORY_DISPLAY_JA),
-                        }
-                    ],
-                }
-            ],
+            "category": [dual_slot_concept("hl7-condition-category", "encounter-diagnosis", resolve_lang(country))],
             "code": build_diagnosis_codeable_concept(_wd_mapped, icd_system_key, country),
             "subject": patient_ref(patient_id),
         }
@@ -732,17 +699,7 @@ def _build_conditions(record: dict, patient_id: str, country: str) -> list[dict]
             "verificationStatus": {
                 "coding": [_coding_with_display("hl7-condition-ver-status", "confirmed", lang)],
             },
-            "category": [
-                {
-                    "coding": [
-                        {
-                            "system": get_system_uri("hl7-condition-category"),
-                            "code": "problem-list-item",
-                            "display": _localize_display("Problem List Item", country, _CATEGORY_DISPLAY_JA),
-                        }
-                    ],
-                }
-            ],
+            "category": [dual_slot_concept("hl7-condition-category", "problem-list-item", resolve_lang(country))],
             "code": build_diagnosis_codeable_concept(
                 map_diagnosis_code(c_code, country, sex=patient_sex), icd_system_key, country
             ),
@@ -874,17 +831,7 @@ def _build_conditions(record: dict, patient_id: str, country: str) -> list[dict]
             "verificationStatus": {
                 "coding": [_coding_with_display("hl7-condition-ver-status", "confirmed", lang)],
             },
-            "category": [
-                {
-                    "coding": [
-                        {
-                            "system": get_system_uri("hl7-condition-category"),
-                            "code": "problem-list-item",
-                            "display": _localize_display("Problem List Item", country, _CATEGORY_DISPLAY_JA),
-                        }
-                    ],
-                }
-            ],
+            "category": [dual_slot_concept("hl7-condition-category", "problem-list-item", resolve_lang(country))],
             "code": build_diagnosis_codeable_concept(
                 map_diagnosis_code("Z87.59", country, sex=patient_sex),
                 icd_system_key,

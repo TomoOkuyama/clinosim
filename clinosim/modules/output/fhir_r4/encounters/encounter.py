@@ -30,17 +30,14 @@ from clinosim.modules.output.fhir_r4.lib.common import (
     make_participant,
     map_diagnosis_code,
     map_encounter_status,
+    system_coding,
 )
 from clinosim.modules.output.fhir_r4.lib.ids import (
     derive_opaque_id,
     structural_key_system,
     wrap_as_identifier,
 )
-from clinosim.modules.output.fhir_r4.lib.localization import (
-    _CLASS_DISPLAY_JA,
-    _dept_display,
-    _localize_display,
-)
+from clinosim.modules.output.fhir_r4.lib.localization import _dept_display
 
 # === Issue #854 Bucket B (PR-encounter): opaque Encounter.id ===
 # LEAK ROOT of the compound-id anti-pattern — the pre-#854 shape
@@ -150,11 +147,11 @@ def _build_encounter(
 
     # Map class
     if enc_type == "inpatient":
-        class_code, class_display = "IMP", "inpatient encounter"
+        class_code = "IMP"
     elif enc_type == "emergency":
-        class_code, class_display = "EMER", "emergency"
+        class_code = "EMER"
     else:
-        class_code, class_display = "AMB", "ambulatory"
+        class_code = "AMB"
 
     resource: dict[str, Any] = {
         "resourceType": "Encounter",
@@ -170,11 +167,7 @@ def _build_encounter(
             else {}
         ),
         "status": map_encounter_status(enc.get("status", "")),
-        "class": {
-            "system": get_system_uri("hl7-v3-actcode"),
-            "code": class_code,
-            "display": _localize_display(class_display, country, _CLASS_DISPLAY_JA),
-        },
+        "class": system_coding("hl7-v3-actcode", class_code, resolve_lang(country)),
         "subject": patient_ref(patient_id),
     }
 
@@ -213,27 +206,7 @@ def _build_encounter(
     if not priority:
         priority = ActPriority.R.value
     if priority:
-        priority_display = {
-            ActPriority.EM.value: "emergency",
-            ActPriority.UR.value: "urgent",
-            ActPriority.R.value: "routine",
-            ActPriority.EL.value: "elective",
-        }.get(priority, "")
-        # C5-03: localize priority display for JP output.
-        from clinosim.modules.output.fhir_r4.lib.localization import (
-            _ACT_PRIORITY_DISPLAY_JA,
-        )
-
-        priority_display = _localize_display(priority_display, country, _ACT_PRIORITY_DISPLAY_JA)
-        resource["priority"] = {
-            "coding": [
-                {
-                    "system": get_system_uri("hl7-v3-actpriority"),
-                    "code": priority,
-                    "display": priority_display,
-                }
-            ],
-        }
+        resource["priority"] = dual_slot_concept("hl7-v3-actpriority", priority, resolve_lang(country))
 
     # Service type (department)
     # feedback FB-F7: hl7-service-type CodeSystem は診療科 code の canonical
@@ -277,33 +250,16 @@ def _build_encounter(
         # classHistory: ward IMP → ICU IMP transition
         if icu_transferred_day is not None and icu_transferred_day >= 0 and _adm:
             _icu_transfer_dt = _adm + _td(days=icu_transferred_day)
-            _act_uri = get_system_uri("hl7-v3-actcode")
             class_history: list[dict[str, Any]] = [
                 {
-                    "class": {
-                        "system": _act_uri,
-                        "code": "IMP",
-                        "display": _localize_display(
-                            "inpatient ward",
-                            country,
-                            _CLASS_DISPLAY_JA,
-                        ),
-                    },
+                    "class": system_coding("hl7-v3-actcode", "IMP", resolve_lang(country)),
                     "period": {
                         "start": enc["admission_datetime"],
                         "end": _icu_transfer_dt.isoformat(),
                     },
                 },
                 {
-                    "class": {
-                        "system": _act_uri,
-                        "code": "ACUTE",  # HL7 ActCode Acute inpatient
-                        "display": _localize_display(
-                            "ICU",
-                            country,
-                            _CLASS_DISPLAY_JA,
-                        ),
-                    },
+                    "class": system_coding("hl7-v3-actcode", "ACUTE", resolve_lang(country)),
                     "period": {
                         "start": _icu_transfer_dt.isoformat(),
                         **({"end": enc["discharge_datetime"]} if enc.get("discharge_datetime") else {}),
@@ -405,7 +361,7 @@ def _build_encounter(
     discharger = enc.get("discharging_physician_id", "")
 
     if attending:
-        participants.append(make_participant("ATND", "attender", attending, country))
+        participants.append(make_participant("ATND", attending, country))
     # C4-30: emit ADM / DIS for IMP encounters even
     # when the practitioner is the same as attending — FHIR R4 allows the
     # same Practitioner across multiple participant.type entries, and JP
@@ -416,9 +372,9 @@ def _build_encounter(
     _admitter_effective = admitter or (attending if _is_ip else "")
     _discharger_effective = discharger or (attending if _is_ip and enc.get("discharge_datetime") else "")
     if _admitter_effective:
-        participants.append(make_participant("ADM", "admitter", _admitter_effective, country))
+        participants.append(make_participant("ADM", _admitter_effective, country))
     if _discharger_effective:
-        participants.append(make_participant("DIS", "discharger", _discharger_effective, country))
+        participants.append(make_participant("DIS", _discharger_effective, country))
 
     if participants:
         resource["participant"] = participants
@@ -431,25 +387,11 @@ def _build_encounter(
     # ``reasonCode`` slot above already carries the Z-code semantic.
     _primary_dx_is_visit_reason = bool(primary_dx_code) and is_visit_reason_zcode(primary_dx_code)
     if primary_dx_code and not _primary_dx_is_visit_reason:
-        # C5-04: localize diagnosis role display.
-        from clinosim.modules.output.fhir_r4.lib.localization import (
-            _DIAGNOSIS_ROLE_DISPLAY_JA,
-        )
-
-        _dd_display = _localize_display("Discharge diagnosis", country, _DIAGNOSIS_ROLE_DISPLAY_JA)
         _dd_ref = primary_condition_ref_from_codes(primary_dx_code, chronic_condition_codes, patient_id, encounter_id)
         diagnosis_list: list[dict[str, Any]] = [
             {
                 "condition": {"reference": f"Condition/{_dd_ref}"},
-                "use": {
-                    "coding": [
-                        {
-                            "system": get_system_uri("hl7-diagnosis-role"),
-                            "code": "DD",
-                            "display": _dd_display,
-                        }
-                    ],
-                },
+                "use": dual_slot_concept("hl7-diagnosis-role", "DD", resolve_lang(country)),
                 "rank": 1,
             }
         ]
@@ -462,11 +404,6 @@ def _build_encounter(
         # De-dupe when the chronic base matches the primary dx (already
         # emitted as rank=1).
         if chronic_condition_codes:
-            _cm_display = _localize_display(
-                "Comorbidity diagnosis",
-                country,
-                _DIAGNOSIS_ROLE_DISPLAY_JA,
-            )
             _primary_base = primary_dx_code.split(".")[0] if primary_dx_code else ""
             _emitted_bases: set[str] = set()
             _rank = 2
@@ -498,15 +435,7 @@ def _build_encounter(
                         "condition": {
                             "reference": f"Condition/{chronic_condition_id(patient_id, _i)}",
                         },
-                        "use": {
-                            "coding": [
-                                {
-                                    "system": get_system_uri("hl7-diagnosis-role"),
-                                    "code": "CM",
-                                    "display": _cm_display,
-                                }
-                            ],
-                        },
+                        "use": dual_slot_concept("hl7-diagnosis-role", "CM", resolve_lang(country)),
                         "rank": _rank,
                     }
                 )
@@ -542,21 +471,12 @@ def _build_encounter(
             needs_admission_diagnosis_condition(admit_dx_code, primary_dx_code, chronic_condition_codes)
             and needs_admission_diagnosis_condition(_mapped_admit, _mapped_primary, _mapped_chronics)
         ):
-            _ad_display = _localize_display("Admission diagnosis", country, _DIAGNOSIS_ROLE_DISPLAY_JA)
             diagnosis_list.append(
                 {
                     "condition": {
                         "reference": (f"Condition/{encounter_admission_condition_id(patient_id, encounter_id)}"),
                     },
-                    "use": {
-                        "coding": [
-                            {
-                                "system": get_system_uri("hl7-diagnosis-role"),
-                                "code": "AD",
-                                "display": _ad_display,
-                            }
-                        ],
-                    },
+                    "use": dual_slot_concept("hl7-diagnosis-role", "AD", resolve_lang(country)),
                     "rank": _rank,
                 }
             )

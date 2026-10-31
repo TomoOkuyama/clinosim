@@ -7,15 +7,10 @@ leaf data, shared helpers, and stdlib/first-party deps — never the adapter.
 from __future__ import annotations
 
 from clinosim.codes import get_system_uri
-from clinosim.modules._shared import is_jp
-from clinosim.modules.output.fhir_r4.lib.common import entry
-from clinosim.modules.output.fhir_r4.lib.localization import (
-    _LOCATION_NAME_JA,
-    _LOCATION_TYPE_DISPLAY_JA,
-    _ORG_TYPE_DISPLAY_JA,
-    _dept_display,
-    _localize_display,
-)
+from clinosim.locale.loader import vocab_display
+from clinosim.modules._shared import is_jp, resolve_lang
+from clinosim.modules.output.fhir_r4.lib.common import dual_slot_concept, entry
+from clinosim.modules.output.fhir_r4.lib.localization import _dept_display
 from clinosim.modules.staff.engine import roster_departments
 
 
@@ -65,17 +60,7 @@ def _build_facility_bundle(hospital_config: dict, country: str) -> dict:
         "resourceType": "Organization",
         "id": "hospital-main",
         "active": True,
-        "type": [
-            {
-                "coding": [
-                    {
-                        "system": get_system_uri("hl7-organization-type"),
-                        "code": "prov",
-                        "display": _localize_display("Healthcare Provider", country, _ORG_TYPE_DISPLAY_JA),
-                    }
-                ],
-            }
-        ],
+        "type": [dual_slot_concept("hl7-organization-type", "prov", resolve_lang(country))],
         "name": hosp_name,
         "alias": [f"{beds}-bed hospital"] if beds else [],
     }
@@ -181,17 +166,7 @@ def _build_facility_bundle(hospital_config: dict, country: str) -> dict:
             "id": f"dept-{dept.replace('_', '-')}",
             **_dept_jp_profile,
             "active": True,
-            "type": [
-                {
-                    "coding": [
-                        {
-                            "system": get_system_uri("hl7-organization-type"),
-                            "code": "dept",
-                            "display": _localize_display("Hospital Department", country, _ORG_TYPE_DISPLAY_JA),
-                        }
-                    ],
-                }
-            ],
+            "type": [dual_slot_concept("hl7-organization-type", "dept", resolve_lang(country))],
             "name": display,
             "partOf": {"reference": "Organization/hospital-main"},
         }
@@ -283,7 +258,7 @@ def _build_facility_bundle(hospital_config: dict, country: str) -> dict:
                 "status": "active",
                 "name": (f"{ward}病棟" if is_jp(country) else f"Ward {ward}")
                 if ward not in ("ER", "OPD")
-                else _localize_display(phys_display, country, _LOCATION_NAME_JA),  # noqa: E501
+                else vocab_display("care_location", ward, resolve_lang(country)),
                 "type": [
                     {
                         "coding": [
@@ -385,7 +360,7 @@ def _build_facility_bundle(hospital_config: dict, country: str) -> dict:
                 # drop し text-only CodeableConcept で emit。FHIR R4
                 # Location.type binding は preferred strength = coding
                 # 無くても spec-valid。
-                "type": [{"text": _localize_display("Operating Room", country, _LOCATION_TYPE_DISPLAY_JA)}],
+                "type": [{"text": vocab_display("care_location", "operating_room", resolve_lang(country))}],
                 "managingOrganization": {"reference": or_org_ref},
             }
             entries.append(entry(or_loc))

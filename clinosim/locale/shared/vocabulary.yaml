@@ -84,3 +84,19 @@ arrival_mode:
   walk_in: {en: Walk-in, ja: 独歩来院}
   walkin: {en: Walk-in, ja: 独歩来院}
   self: {en: Walk-in, ja: 独歩来院}
+
+emergency_contact_relationship:
+  # Sampled by modules/patient/activator.py (EMERGENCY_CONTACT_RELATIONS_*);
+  # MTH is the newborn's mother (simulator/perinatal.py). Patient.contact.
+  spouse: {en: Spouse, ja: 配偶者}
+  child: {en: Child, ja: 子}
+  parent: {en: Parent, ja: 親}
+  sibling: {en: Sibling, ja: 兄弟姉妹}
+  MTH: {en: Mother, ja: 母}
+
+care_location:
+  # Location.name / Location.type text for care areas that have no ward
+  # number (modules/output/fhir_r4/encounters/facility.py).
+  ER: {en: Emergency Room, ja: 救急外来}
+  OPD: {en: Outpatient Clinic, ja: 外来}
+  operating_room: {en: Operating Room, ja: 手術室}

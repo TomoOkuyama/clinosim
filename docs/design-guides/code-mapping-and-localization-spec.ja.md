@@ -141,6 +141,7 @@ occupation:
 | 関数 | 用途 |
 |---|---|
 | `modules.output.fhir_r4.lib.common.dual_slot_concept(system_key, code, lang, *, text, fallback_display)` | コード付きの CodeableConcept はすべてこれで組み立てる (§5.3) |
+| `modules.output.fhir_r4.lib.common.system_coding(system_key, code, lang, *, fallback_display)` | `text` を持たない Coding 型の要素 (`Encounter.class` など) (§5.3) |
 | `modules._shared.practitioner_name(staff_id, roster_map)` | 医療者名。ヒットしなければ `""` |
 | `modules._shared.pick_localized_field(record, base, lang)` | CIF の `<base>_<lang>` フィールド |
 | `simulator.event_refs.event_ref_kind(value)` | `disease_id` / ground truth の値の名前空間 |
@@ -164,6 +165,8 @@ occupation:
 - **JP 出力。** `coding.display` は英語の正規表示、日本語ラベルは `CodeableConcept.text` に置く。coding に日本語 display を入れると検証エラーになる。
 - **それ以外の体系。** JP Core / JP-CLINS / MEDIS / YJ / clinosim 独自の体系は、出力言語の表示をそのまま持つ。
 - **組み立てる場所。** 出力箇所で `dual_slot_concept` を使って組み立てる。後処理の walker で補完しない。
+- **Coding 型の要素。** 型が `Coding` の要素 (`Encounter.class`、`classHistory.class`) には `text` が無い。`system_coding` で組み立て、どの locale でも英語の display を持つ。
+- **HL7 の語彙。** 出力する HL7 CodeSystem ごとに、コードをキーにした registry ファイルを置く (`hl7-v3-actcode`、`hl7-v3-actpriority`、`hl7-observation-category`、`hl7-condition-category`、`hl7-v3-participationtype`、`hl7-diagnosis-role`、`hl7-organization-type`、`hl7-observation-interpretation` など)。日本語ラベルはコードで引き、英語の表示名では引かない。
 
 ## 6. フォールバック規則
 
@@ -216,9 +219,9 @@ occupation:
 | ICD の検索・短縮名・crosswalk が 1 つの accessor にまとまっていない (短縮名の表が 2 つ、CM と WHO で日本語表示が食い違う)。 | #2257 |
 | SNOMED のコードと表示名を出力側の dict がまだ持っている (route / severity)。SNOMED のリテラル 74 件が未登録。 | #2258 |
 | 文書 LOINC の定義が 8 箇所にある。意味の合わない section コードがある。出力側に LOINC 定数が残っている。 | #2344 |
-| JP の薬コード体系と薬コード accessor。 | #2262 |
+| JP の旧薬コード (7 桁の YJ 成分 prefix) が薬カタログに残り、HOT7 の URI で出力されている。 | #2347 |
 | 生成側が出しているのに未登録の CPT / K コード。 | #2340 |
-| HL7 の日本語表示が英語の表示名をキーにしている (`hl7-display-ja.yaml` / `_localize_display`)。 | #2264 |
+| `clinosim/codes/` の外に HL7 `terminology.hl7.org` の URI 直書きがあり、coding を組み立てる helper が 3 つ重複している (`_coding_with_display` / `_value` / `_build_hosp_concept`)。 | #2349 |
 | 手組みの dual-slot が残っている。後処理で text を補う walker も残っている。 | #2337 |
 | 検査項目の表示名が 5 つの表に分かれている。 | #2267 |
 | 薬名がカタログではなく自由文翻訳を通っている。 | #2271 |

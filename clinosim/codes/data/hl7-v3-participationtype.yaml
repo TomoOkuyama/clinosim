@@ -1,0 +1,13 @@
+# HL7 v3 ParticipationType — Encounter.participant.type. English displays
+# verified on tx.fhir.org $lookup (THO).
+metadata:
+  name: HL7 v3 ParticipationType
+  uri: http://terminology.hl7.org/CodeSystem/v3-ParticipationType
+  source: "HL7 Terminology (THO)"
+codes:
+  ATND: {en: "attender",      ja: "担当医"}
+  ADM:  {en: "admitter",      ja: "入院担当医"}
+  DIS:  {en: "discharger",    ja: "退院担当医"}
+  CON:  {en: "consultant",    ja: "コンサルタント"}
+  REF:  {en: "referrer",      ja: "紹介元"}
+  PART: {en: "Participation", ja: "参加者"}

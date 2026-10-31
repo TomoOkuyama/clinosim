@@ -5,7 +5,6 @@ from __future__ import annotations
 import pytest
 
 from clinosim.codes import lookup
-from clinosim.modules.output.fhir_r4.lib.localization import _SEVERITY_DISPLAY_JA
 
 pytestmark = pytest.mark.unit
 
@@ -18,4 +17,3 @@ def test_severity_code_displays(code: str) -> None:
     en, ja = _EXPECTED[code]
     assert lookup("snomed-ct", code, "en") == en
     assert lookup("snomed-ct", code, "ja") == ja
-    assert _SEVERITY_DISPLAY_JA[code] == ja

@@ -263,54 +263,6 @@ def _dept_display(dept: str, country: str) -> str:
 # prompts (Issue #2269) — load via `clinosim.locale.loader.load_occupation_display()`.
 
 
-# --- Shared display dictionaries for JP localization ---
-#
-# The eleven HL7-adjacent JA display registries previously inlined here
-# now live in `clinosim/codes/data/hl7-display-ja.yaml`. The module-level
-# aliases below are computed from the yaml at import time so every
-# existing consumer (`_localize_display`, downstream builder modules
-# importing by name) keeps working with no call-site changes.
-
-
-@cache
-def _hl7_display_ja() -> dict[str, dict[str, str]]:
-    import yaml
-
-    path = Path(__file__).resolve().parents[4] / "codes" / "data" / "hl7-display-ja.yaml"
-    with path.open(encoding="utf-8") as fh:
-        raw = yaml.safe_load(fh) or {}
-    out: dict[str, dict[str, str]] = {}
-    for section in (
-        "class_display",
-        "category_display",
-        "severity_display",
-        "interpretation_display",
-        "relationship_display",
-        "org_type_display",
-        "location_type_display",
-        "location_name",
-        "participation_type_display",
-        "act_priority_display",
-        "diagnosis_role_display",
-    ):
-        rows = raw.get(section) or {}
-        out[section] = {str(k): str(v) for k, v in rows.items() if isinstance(k, str)}
-    return out
-
-
-_CLASS_DISPLAY_JA: dict[str, str] = _hl7_display_ja()["class_display"]
-_CATEGORY_DISPLAY_JA: dict[str, str] = _hl7_display_ja()["category_display"]
-_SEVERITY_DISPLAY_JA: dict[str, str] = _hl7_display_ja()["severity_display"]
-_INTERPRETATION_DISPLAY_JA: dict[str, str] = _hl7_display_ja()["interpretation_display"]
-_RELATIONSHIP_DISPLAY_JA: dict[str, str] = _hl7_display_ja()["relationship_display"]
-_ORG_TYPE_DISPLAY_JA: dict[str, str] = _hl7_display_ja()["org_type_display"]
-_LOCATION_TYPE_DISPLAY_JA: dict[str, str] = _hl7_display_ja()["location_type_display"]
-_LOCATION_NAME_JA: dict[str, str] = _hl7_display_ja()["location_name"]
-_PARTICIPATION_TYPE_DISPLAY_JA: dict[str, str] = _hl7_display_ja()["participation_type_display"]
-_ACT_PRIORITY_DISPLAY_JA: dict[str, str] = _hl7_display_ja()["act_priority_display"]
-_DIAGNOSIS_ROLE_DISPLAY_JA: dict[str, str] = _hl7_display_ja()["diagnosis_role_display"]
-
-
 # Procedure names (from disease YAML procedure.type) — EN→JA
 def _procedure_display(code: str, lang: str, fallback: str = "") -> str:
     """Look up procedure display in k-codes.yaml / cpt.yaml.
@@ -321,23 +273,6 @@ def _procedure_display(code: str, lang: str, fallback: str = "") -> str:
     from clinosim.codes.procedures import procedure_code_display
 
     return procedure_code_display([code], lang) or fallback
-
-
-def _localize_display(value: str, country: str, dictionary: dict[str, str]) -> str:
-    """Look up JP display for an English value when country=JP.
-    Returns original value if no mapping exists."""
-    if not is_jp(country) or not value:
-        return value
-    return dictionary.get(value, value)
-
-
-def _localize_interp(coded: dict[str, str], country: str) -> dict[str, str]:
-    """Localize interpretation display dict in place (returns new dict)."""
-    if not is_jp(country):
-        return coded
-    d = dict(coded)
-    d["display"] = _INTERPRETATION_DISPLAY_JA.get(d.get("code", ""), d.get("display", ""))
-    return d
 
 
 # FHIR JA label registries (_ROUTE_JA / _FREQ_JA / _FIXED_LABEL_JA) now

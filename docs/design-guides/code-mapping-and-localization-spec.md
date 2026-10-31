@@ -141,6 +141,7 @@ Consumers resolve names only through these functions. Several are added by open 
 | Function | Use |
 |---|---|
 | `modules.output.fhir_r4.lib.common.dual_slot_concept(system_key, code, lang, *, text, fallback_display)` | every coded CodeableConcept (§5.3) |
+| `modules.output.fhir_r4.lib.common.system_coding(system_key, code, lang, *, fallback_display)` | a Coding-typed element with no `text` slot, such as `Encounter.class` (§5.3) |
 | `modules._shared.practitioner_name(staff_id, roster_map)` | practitioner display; `""` on a miss |
 | `modules._shared.pick_localized_field(record, base, lang)` | CIF `<base>_<lang>` fields |
 | `simulator.event_refs.event_ref_kind(value)` | namespace of a `disease_id` / ground-truth value |
@@ -164,6 +165,8 @@ The output language comes from the country: `clinosim.countries.lang_for(country
 - **JP output.** `coding.display` is the English canonical display. The Japanese label goes in `CodeableConcept.text`. A Japanese display inside the coding is a validation error.
 - **Other systems.** JP Core, JP-CLINS, MEDIS, YJ and clinosim-owned systems keep the display in the output language.
 - **Where it is built.** The concept is built at the emit site with `dual_slot_concept`. It is not filled in later by a post-process walker.
+- **Coding-typed elements.** An element whose type is `Coding` (`Encounter.class`, `classHistory.class`) has no `text` slot. It is built with `system_coding` and carries the English display in every locale.
+- **HL7 vocabularies.** Each HL7 CodeSystem the generator emits has a code-keyed registry file (`hl7-v3-actcode`, `hl7-v3-actpriority`, `hl7-observation-category`, `hl7-condition-category`, `hl7-v3-participationtype`, `hl7-diagnosis-role`, `hl7-organization-type`, `hl7-observation-interpretation`, ...). Japanese labels are looked up by code, never by the English display.
 
 ## 6. Fallback rules
 
@@ -216,9 +219,9 @@ These parts of the code base do not yet conform. Each one is removed by the issu
 | ICD lookup, short names and crosswalks are not behind one accessor (two short-name tables, CM/WHO Japanese divergence). | #2257 |
 | SNOMED codes and displays are still held in emitter dicts (route, severity), and 74 SNOMED literals are unregistered. | #2258 |
 | Document LOINCs are defined in eight places, some section codes do not mean their section, and emitters still hold LOINC constants. | #2344 |
-| JP drug code systems and the drug-code accessor. | #2262 |
+| Legacy JP drug codes (7-digit YJ ingredient prefixes) remain in the drug catalog and are emitted under the HOT7 URI. | #2347 |
 | CPT / K-codes the generator emits but has not registered. | #2340 |
-| HL7 Japanese displays are keyed by English display (`hl7-display-ja.yaml`, `_localize_display`). | #2264 |
+| HL7 `terminology.hl7.org` URI literals outside `clinosim/codes/`, and three overlapping coding helpers (`_coding_with_display`, `_value`, `_build_hosp_concept`). | #2349 |
 | Remaining hand-built dual-slot concepts, and the post-process text-filling walkers. | #2337 |
 | Lab analyte display is spread over five tables. | #2267 |
 | Drug names go through free-text translation, not the catalog. | #2271 |

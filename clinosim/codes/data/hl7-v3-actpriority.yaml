@@ -1,0 +1,11 @@
+# HL7 v3 ActPriority — Encounter.priority (codes in codes/hl7_encounter.py
+# ActPriority). English displays verified on tx.fhir.org $lookup (THO).
+metadata:
+  name: HL7 v3 ActPriority
+  uri: http://terminology.hl7.org/CodeSystem/v3-ActPriority
+  source: "HL7 Terminology (THO)"
+codes:
+  EM: {en: "emergency", ja: "緊急"}
+  UR: {en: "urgent",    ja: "至急"}
+  R:  {en: "routine",   ja: "通常"}
+  EL: {en: "elective",  ja: "待機"}

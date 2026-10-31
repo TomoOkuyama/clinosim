@@ -1,14 +1,23 @@
-# HL7 v3 ObservationInterpretation — antimicrobial susceptibility subset
-# (S/I/R). Authoritative source: HL7 Terminology (THO), CodeSystem
-# v3-ObservationInterpretation (http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation).
-# Only the S/I/R susceptibility codes are populated here; the broader
-# numeric-flag subset (N/H/L/HH/LL/A/AA/...) is a separate, not-yet-migrated
-# dict (_fhir_localization.py:_INTERPRETATION_DISPLAY_JA) — see TODO.md.
+# HL7 v3 ObservationInterpretation — every interpretation code clinosim emits:
+# the numeric-result flags (Observation.interpretation on labs and vitals) and
+# the antimicrobial susceptibility codes (S/I/R, microbiology). English
+# displays verified on tx.fhir.org $lookup (THO).
 metadata:
-  name: HL7 v3 ObservationInterpretation (susceptibility subset)
+  name: HL7 v3 ObservationInterpretation
   uri: http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation
   source: "HL7 Terminology (THO)"
 codes:
-  S: {en: "Susceptible", ja: "感性"}
-  I: {en: "Intermediate", ja: "中間"}
-  R: {en: "Resistant", ja: "耐性"}
+  N:   {en: "Normal",             ja: "正常"}
+  H:   {en: "High",               ja: "高値"}
+  L:   {en: "Low",                ja: "低値"}
+  HH:  {en: "Critical high",      ja: "パニック高値"}
+  LL:  {en: "Critical low",       ja: "パニック低値"}
+  A:   {en: "Abnormal",           ja: "異常"}
+  AA:  {en: "Critical abnormal",  ja: "パニック異常"}
+  HU:  {en: "Significantly high", ja: "著明高値"}
+  LU:  {en: "Significantly low",  ja: "著明低値"}
+  POS: {en: "Positive",           ja: "陽性"}
+  NEG: {en: "Negative",           ja: "陰性"}
+  S:   {en: "Susceptible",        ja: "感性"}
+  I:   {en: "Intermediate",       ja: "中間"}
+  R:   {en: "Resistant",          ja: "耐性"}
