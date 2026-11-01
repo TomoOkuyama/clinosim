@@ -240,7 +240,7 @@ def _compose_hpi_extras_from_state(ctx: NarrativeContext) -> str:
     if enc is not None:
         cc = _o(enc, "chief_complaint_ja", None) or _o(enc, "chief_complaint", None) or ""
     if cc:
-        parts.append(f"主訴: {cc}。")
+        parts.append(t("narrative_text.hpi.chief_complaint", "ja", cc=cc))
     # Chronic short list — Issue #1333: route CIF base code through
     # map_diagnosis_code so display matches the FHIR emit-target.
     from clinosim.modules.output.fhir_r4.lib.common import (
@@ -258,7 +258,9 @@ def _compose_hpi_extras_from_state(ctx: NarrativeContext) -> str:
         disp = condition_label(emit_code, ctx.locale, ctx.target_lang) or emit_code
         chronic_labels.append(disp)
     if chronic_labels:
-        parts.append(f"既往: {'、'.join(chronic_labels)}。")
+        parts.append(
+            t("narrative_text.hpi.history", "ja", items=t("narrative_text.hpi.list_sep", "ja").join(chronic_labels))
+        )
 
     # Issue #984: home meds reconciliation (top 3 to keep HPI compact).
     # CIF-anchored — omitted when current_medications is empty; never
@@ -272,9 +274,14 @@ def _compose_hpi_extras_from_state(ctx: NarrativeContext) -> str:
             if name:
                 med_labels.append(name)
         if med_labels:
-            more = f"他 {len(meds) - len(med_labels)} 剤" if len(meds) > len(med_labels) else ""
-            joined = "、".join(med_labels) + (f"、{more}" if more else "")
-            parts.append(f"常用薬: {joined}。")
+            sep = t("narrative_text.hpi.list_sep", "ja")
+            more = (
+                t("narrative_text.hpi.more_meds", "ja", n=len(meds) - len(med_labels))
+                if len(meds) > len(med_labels)
+                else ""
+            )
+            joined = sep.join(med_labels) + (f"{sep}{more}" if more else "")
+            parts.append(t("narrative_text.hpi.home_meds", "ja", items=joined))
 
     # Issue #984: prior-care sentinel (derived — never claim a specific
     # institution or datetime not in CIF). Two branches:
@@ -282,9 +289,9 @@ def _compose_hpi_extras_from_state(ctx: NarrativeContext) -> str:
     #       で処方継続中" (evidence: patient is under ongoing care)
     #   (b) neither → omit (silent no-op)
     if conds and meds:
-        parts.append("かかりつけ医で内服治療継続中。")
+        parts.append(t("narrative_text.hpi.prior_care_chronic", "ja"))
     elif meds:
-        parts.append("外来にて内服処方継続中。")
+        parts.append(t("narrative_text.hpi.prior_care_outpatient", "ja"))
 
     # Issue #984: ROS pertinent negatives from per-disease yaml pool.
     # Reads the FIRST-listed 2 negatives to keep HPI length realistic.

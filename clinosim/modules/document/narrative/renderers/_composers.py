@@ -355,10 +355,10 @@ def compose_today_vitals_line(ctx: NarrativeContext) -> str:
         parts.append(f"BP {int(_sbp)}/{int(_dbp)} mmHg")
     _hr = _o(v, "heart_rate", None)
     if _hr:
-        parts.append(f"HR {int(_hr)} 回/分" if ctx.target_lang == "ja" else f"HR {int(_hr)} bpm")
+        parts.append(f"HR {int(_hr)} {t('narrative_text.vital_unit.hr', ctx.target_lang)}")
     _rr = _o(v, "respiratory_rate", None)
     if _rr:
-        parts.append(f"RR {int(_rr)} 回/分" if ctx.target_lang == "ja" else f"RR {int(_rr)} /min")
+        parts.append(f"RR {int(_rr)} {t('narrative_text.vital_unit.rr', ctx.target_lang)}")
     _spo2 = _o(v, "spo2", None)
     if _spo2:
         parts.append(f"SpO2 {_spo2:.0f}%")
@@ -497,14 +497,10 @@ def compose_vital_signs_line(ctx: NarrativeContext) -> str:
         parts.append(f"BP {int(_sbp)}/{int(_dbp)} mmHg")
     _hr = _o(v, "heart_rate", None)
     if _hr:
-        unit_ja = "回/分"
-        unit_en = "bpm"
-        parts.append(f"HR {int(_hr)} {unit_ja if ctx.target_lang == 'ja' else unit_en}")
+        parts.append(f"HR {int(_hr)} {t('narrative_text.vital_unit.hr', ctx.target_lang)}")
     _rr = _o(v, "respiratory_rate", None)
     if _rr:
-        unit_ja = "回/分"
-        unit_en = "/min"
-        parts.append(f"RR {int(_rr)} {unit_ja if ctx.target_lang == 'ja' else unit_en}")
+        parts.append(f"RR {int(_rr)} {t('narrative_text.vital_unit.rr', ctx.target_lang)}")
     _spo2 = _o(v, "spo2", None)
     if _spo2:
         parts.append(f"SpO2 {_spo2:.0f}%")

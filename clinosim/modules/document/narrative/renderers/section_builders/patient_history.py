@@ -342,7 +342,7 @@ def build_physical_examination(generator: TemplateNarrativeGenerator, ctx: Narra
     vitals_line = generator._compose_pe_vitals_line(ctx)
     if vitals_line:
         facts.append(f"ctx.vitals[day_{ctx.day_index}]")
-        text = f"バイタルサイン: {vitals_line}。{text}"
+        text = t("ed_physical_exam.vitals_prepend", "ja", vitals=vitals_line, text=text)
 
     return text, facts
 

@@ -448,8 +448,6 @@ def _render_lab_carry_forward(
     )
 
     latest = latest_by_lab_name(lab_results, admission_datetime, up_to_day=day_index)
-    day_word_prefix = "day " if lang != "ja" else ""
-    day_word_suffix = "" if lang != "ja" else "日目"
     parts: list[str] = []
     for name, lab in latest.items():
         d = day_of_lab(lab, admission_datetime)
@@ -475,7 +473,7 @@ def _render_lab_carry_forward(
             # the localized name (see _render_abnormal_labs — pH case).
             if unit_disp and unit_disp.lower() != str(display_name).lower():
                 piece += f" {unit_disp}"
-        piece += f" [{flag}] ({day_word_prefix}{display_day}{day_word_suffix})"
+        piece += f" [{flag}] ({t('narrative_text.lab_day', lang, day=display_day)})"
         parts.append(piece)
         if len(parts) >= 8:
             break
@@ -542,14 +540,13 @@ def _stay_phase(day_index: int, los_days: int, lang: str = "en") -> str:
     than the raw English tokens (`middle / stabilisation phase`) leaking
     into JA narratives.
     """
-    is_ja = str(lang).lower().startswith("ja")
     if los_days <= 1:
-        return "単日受診" if is_ja else "single-day encounter"
+        return t("narrative_text.phase.single_day", lang)
     frac = (day_index + 1) / max(los_days, 1)
     if frac <= 0.34:
-        return "急性期" if is_ja else "early / acute phase"
+        return t("narrative_text.phase.acute", lang)
     if frac <= 0.66:
-        return "安定期" if is_ja else "middle / stabilisation phase"
+        return t("narrative_text.phase.middle", lang)
     if frac < 1.0:
-        return "退院準備期" if is_ja else "late / pre-discharge phase"
-    return "退院日" if is_ja else "discharge day"
+        return t("narrative_text.phase.late", lang)
+    return t("narrative_text.phase.discharge_day", lang)

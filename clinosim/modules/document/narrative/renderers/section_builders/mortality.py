@@ -186,8 +186,8 @@ def _dds_severity(severity: str, lang: str) -> str:
     capitalised raw token.
     """
     key = severity or "moderate"
-    default = "中等症" if lang == "ja" else key.capitalize()
-    return _label("dds_severity", key, lang, fallback=default)
+    # Missing label: English (spec §6), never a fixed Japanese word.
+    return _label("dds_severity", key, lang, fallback=key.capitalize())
 
 
 # ─────────────────────────────────────────────────────────────────────
