@@ -20,6 +20,7 @@ from clinosim.codes import get_system_uri, slug_to_code
 from clinosim.codes import lookup as code_lookup
 from clinosim.codes.loinc import loinc_coding
 from clinosim.codes.ucum import ucum_quantity
+from clinosim.locale.i18n import t
 from clinosim.locale.loader import load_identity_config, vocab_display
 from clinosim.modules._shared import is_jp, resolve_lang
 from clinosim.modules.output.fhir_r4.lib.common import (
@@ -675,7 +676,7 @@ def _build_coverage_resources(
                             {
                                 "system": get_system_uri("hl7-coverage-class"),
                                 "code": "group",
-                                "display": "Group" if not is_jp(country) else "保険グループ",
+                                "display": t("fhir_emit_text.coverage_class_group", resolve_lang(country)),
                             }
                         ],
                     },
@@ -691,7 +692,7 @@ def _build_coverage_resources(
                                 {
                                     "system": get_system_uri("hl7-coverage-class"),
                                     "code": "plan",
-                                    "display": "Plan" if not is_jp(country) else "保険プラン",
+                                    "display": t("fhir_emit_text.coverage_class_plan", resolve_lang(country)),
                                 }
                             ],
                         },
@@ -715,7 +716,7 @@ def _build_coverage_resources(
                                 "display": "Copay percentage",
                             }
                         ],
-                        "text": "自己負担割合" if is_jp(country) else "Copay percentage",
+                        "text": t("fhir_emit_text.copay_percentage", resolve_lang(country)),
                     },
                     "valueQuantity": ucum_quantity(_coshare_pct, "%"),
                 }
@@ -854,7 +855,7 @@ def _build_patient(p: dict, country: str) -> dict:
                             "display": "Medical Record Number",
                         }
                     ],
-                    "text": "診療録番号" if is_jp(country) else "MRN",
+                    "text": t("fhir_emit_text.mrn", resolve_lang(country)),
                 },
                 "system": mrn_system,
                 "value": pid,
@@ -1080,7 +1081,7 @@ def _build_occupation_observation(
         "category": _social_category(country),
         "code": {
             "coding": [loinc_coding("11341-5", "en")],
-            "text": "職業" if is_jp(country) else "Occupation",
+            "text": t("fhir_emit_text.occupation", resolve_lang(country)),
         },
         "subject": patient_ref(patient_id),
         "valueCodeableConcept": {

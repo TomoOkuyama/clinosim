@@ -15,6 +15,7 @@ from clinosim.codes import (
 )
 from clinosim.codes.procedures import bedside_procedures, procedure_type_display
 from clinosim.codes.snomed import snomed_for_phrase
+from clinosim.locale.i18n import t
 from clinosim.modules._shared import is_jp, is_us, resolve_lang
 from clinosim.modules.output.fhir_r4.demographics.patient import patient_ref
 from clinosim.modules.output.fhir_r4.encounters.encounter import encounter_ref
@@ -331,7 +332,7 @@ def _build_procedure(
         _dx = (record or {}).get("clinical_diagnosis", {}) or {}
         _dx_code = _dx.get("discharge_diagnosis_code") or _dx.get("admission_diagnosis_code", "") or ""
         _dx_display = _dx.get("discharge_diagnosis_display") or _dx.get("admission_diagnosis_display", "") or ""
-        _generic_text = "入院時診断に基づく処置" if is_jp(country) else "Procedure indicated by encounter diagnosis"
+        _generic_text = t("fhir_text.procedure_reason_generic", resolve_lang(country))
         if _dx_code:
             # Use country-scoped ICD-10 system key (JP=icd-10-mhlw, US=icd-10-cm)
             # to stay consistent with Condition.code system emission.
@@ -359,7 +360,7 @@ def _build_procedure(
     # CY7-18 (Chain-7): bodySite text-only fallback when the CIF record
     # doesn't carry a SNOMED site code (bedside procedures often don't).
     if not resource.get("bodySite"):
-        resource["bodySite"] = [{"text": "処置部位不明" if is_jp(country) else "Body site not specified"}]
+        resource["bodySite"] = [{"text": t("fhir_text.body_site_unspecified", resolve_lang(country))}]
 
     # location (OR etc.)
     location_id = proc.get("location_id", "")

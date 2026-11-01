@@ -17,9 +17,11 @@ from functools import cache
 from pathlib import Path
 from typing import Any
 
+from clinosim.codes import display as registry_display
 from clinosim.codes import get_system_uri
 from clinosim.codes.icd10 import medis_disease_keyno
 from clinosim.codes.ucum import ucum_quantity
+from clinosim.locale.i18n import t
 from clinosim.modules._shared import is_jp, practitioner_name, resolve_lang
 from clinosim.modules.output.fhir_r4.lib.common import derive_meta_last_updated
 from clinosim.modules.output.fhir_r4.post_process.profile import (
@@ -86,7 +88,7 @@ _JP_CLINS_MEDICATION_USAGE_UNCODED_CODE = "0X0XXXXXXXXX0000"
 # (デモ・スクリーンショット) で「ダミー」文字が信頼を損ねる。code は spec の
 # `0X0XXXXXXXXX0000` を維持し display のみ「用法未指定」に置換 (factual、
 # JP-CLINS の profile validation は display に制約を持たず spec 準拠を維持)。
-_JP_CLINS_MEDICATION_USAGE_UNCODED_DISPLAY = "用法未指定"
+_JP_CLINS_MEDICATION_USAGE_UNCODED_DISPLAY = t("fhir_emit_text.usage_uncoded", "ja")
 
 
 def _derive_usage_display_from_timing(repeat: Any) -> str:
@@ -111,9 +113,9 @@ def _derive_usage_display_from_timing(repeat: Any) -> str:
     if not isinstance(freq, int) or not isinstance(period, (int, float)):
         return ""
     if unit == "d" and period == 1 and freq >= 1:
-        return f"1日{int(freq)}回"
+        return t("fhir_emit_text.freq_per_day", "ja", n=int(freq))
     if unit == "h" and freq == 1 and period >= 1:
-        return f"{int(period)}時間ごと"
+        return t("fhir_emit_text.every_hours", "ja", n=int(period))
     return ""
 
 
@@ -380,7 +382,9 @@ _JP_MHLW_MEDICATION_INGREDIENT_STRENGTH_TYPE_CS = get_system_uri("jp-medication-
 _JP_MHLW_STRENGTH_TYPE_PHARMACEUTICAL_CODE = "1"
 
 
-_JP_MHLW_STRENGTH_TYPE_PHARMACEUTICAL_DISPLAY = "製剤量"
+_JP_MHLW_STRENGTH_TYPE_PHARMACEUTICAL_DISPLAY = (
+    registry_display("jp-medication-ingredient-strength-type", _JP_MHLW_STRENGTH_TYPE_PHARMACEUTICAL_CODE, "ja") or ""
+)
 
 
 # UCUM daily unit — used to rewrite
@@ -390,7 +394,7 @@ _JP_MHLW_STRENGTH_TYPE_PHARMACEUTICAL_DISPLAY = "製剤量"
 _UCUM_DAY_CODE = "d"
 
 
-_UCUM_DAY_UNIT_JA = "日"
+_UCUM_DAY_UNIT_JA = t("fhir_emit_text.unit_day", "ja")
 
 
 # eCS-required identifier namespaces (feedback fix PR-G, 2026-07-17). Every
@@ -420,7 +424,7 @@ _MEDIS_DISEASE_KEYNUMBER_SYSTEM = get_system_uri("medis-disease-keyno")
 _MEDIS_UNCODED_DISEASE_CODE = "99999999"
 
 
-_MEDIS_UNCODED_DISEASE_DISPLAY = "未コード化傷病名"
+_MEDIS_UNCODED_DISEASE_DISPLAY = t("fhir_emit_text.medis_uncoded", "ja")
 
 
 # Issue #1277: the verified ICD-10 → MEDIS 病名管理番号 seed crosswalk
@@ -882,10 +886,7 @@ def _populate_condition_ai_mr_ecs_fields(resource: dict, country: str = "US") ->
             ):
                 _ext_list.append({"url": _ext_url, "valueCode": _pre_pin_status})
             _notes = resource.setdefault("note", [])
-            _note_text = (
-                f"実効ステータス: {_pre_pin_status}（JP-CLINS eCS 準拠のため MedicationRequest.status は "
-                f'"completed" に固定されているが、この処方の実際の運用状態は "{_pre_pin_status}" である）'
-            )
+            _note_text = t("fhir_emit_text.effective_status_note", "ja", status=_pre_pin_status)
             if isinstance(_notes, list) and not any(
                 isinstance(n, dict) and n.get("text") == _note_text for n in _notes
             ):

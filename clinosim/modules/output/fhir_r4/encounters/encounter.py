@@ -16,6 +16,7 @@ from clinosim.codes import lookup as code_lookup
 from clinosim.codes.hl7_encounter import ActPriority
 from clinosim.codes.snomed import snomed_for
 from clinosim.codes.ucum import ucum_quantity
+from clinosim.locale.i18n import t
 from clinosim.modules._shared import is_jp, pick_localized_field, resolve_lang
 from clinosim.modules.diagnosis.nonspecific_codes import is_never_principal_dx, is_visit_reason_zcode
 from clinosim.modules.output.fhir_r4.conditions.primary_ref import (
@@ -509,7 +510,7 @@ def _build_encounter(
                     "display": "Re-admission",
                 }
             ],
-            "text": "再入院" if is_jp(country) else "Re-admission",
+            "text": t("fhir_emit_text.re_admission", resolve_lang(country)),
         }
     # C2-18: IMP encounters must carry a hospitalization block. When
     # admit_source is missing, fall back to the yaml-configured default
@@ -589,7 +590,7 @@ def _build_encounter(
             {
                 "location": {
                     "reference": f"Location/loc-bed-{bed_number}",
-                    "display": f"{bed_number}号室" if is_jp(country) else f"Bed {bed_number}",
+                    "display": t("fhir_emit_text.bed", resolve_lang(country), n=bed_number),
                 },
                 "status": "completed" if enc.get("discharge_datetime") else "active",
             }
@@ -600,7 +601,7 @@ def _build_encounter(
             {
                 "location": {
                     "reference": f"Location/loc-ward-{ward_id}",
-                    "display": f"{ward_id}病棟" if is_jp(country) else f"Ward {ward_id}",
+                    "display": t("fhir_emit_text.ward", resolve_lang(country), n=ward_id),
                 },
                 "status": "completed" if enc.get("discharge_datetime") else "active",
             }

@@ -99,7 +99,7 @@ def build_external_org_resource(entry: dict[str, Any]) -> dict[str, Any]:
     """
     prefecture = ((entry.get("address") or {}).get("prefecture") or "").strip()
     city = ((entry.get("address") or {}).get("city") or "").strip()
-    address_text = f"{prefecture}{city}" if prefecture or city else "日本"
+    address_text = f"{prefecture}{city}" if prefecture or city else t("fhir_emit_text.country_name", "ja")
     org: dict[str, Any] = {
         "resourceType": "Organization",
         "id": entry["id"],

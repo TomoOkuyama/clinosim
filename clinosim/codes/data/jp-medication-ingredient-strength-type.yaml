@@ -1,0 +1,9 @@
+# MHLW MedicationIngredientStrengthStrengthType — strength type of a JP
+# prescription ingredient. `ja` moved from fhir_r4/post_process/populate.py
+# (Issue #2404); `en` is a clinosim translation.
+metadata:
+  name: MHLW Medication Ingredient Strength Type
+  uri: http://jpfhir.jp/fhir/core/mhlw/CodeSystem/MedicationIngredientStrengthStrengthType
+  source: "MHLW / JP Core"
+codes:
+  "1": {en: "Pharmaceutical quantity", ja: "製剤量"}

@@ -54,6 +54,7 @@ from clinosim.codes import display as registry_display
 from clinosim.codes import get_system_uri
 from clinosim.codes import lookup as code_lookup
 from clinosim.codes.loinc import loinc_for
+from clinosim.locale.i18n import t
 from clinosim.modules._shared import get_attr_or_key as _o
 from clinosim.modules._shared import is_jp, resolve_lang, uses_jp_clins_profile
 from clinosim.modules.document import COMPOSITION_ID_PREFIX, DOC_REFERENCE_ID_PREFIX
@@ -955,14 +956,14 @@ _JP_EDS_VERSION_EXTENSION_URL = "http://hl7.org/fhir/StructureDefinition/composi
 # 兼用したため drift、v5 validation で 126+126 errors として顕在化(#279)。
 _JPFHIR_DOC_SUBTYPECODES_SYSTEM = get_system_uri("jpfhir-doc-subtypecodes")
 _JP_EDS_CATEGORY_CODE = "DISCHARGE"
-_JP_EDS_CATEGORY_DISPLAY_JA = "退院時文書"
+_JP_EDS_CATEGORY_DISPLAY_JA = t("fhir_emit_text.jp_eds_category", "ja")
 # jpfhir-doc-typecodes CS 18842-5 の JP display(`code_lookup` fallback +
 # `Composition.title` に流用)。code_lookup が YAML から取得できる限り使わ
 # れないが、YAML 破損時の safety net。
-_JP_EDS_TYPE_DISPLAY_JA = "退院時サマリー"
+_JP_EDS_TYPE_DISPLAY_JA = t("fhir_emit_text.jp_eds_type", "ja")
 # Section title-vs-display split (also used by Chain #8's eDS/eReferral
 # builders; consolidated here for module scope).
-_JP_SECTION_TITLE_SUFFIX = "セクション"
+_JP_SECTION_TITLE_SUFFIX = t("fhir_emit_text.section_title_suffix", "ja")
 
 
 def _section_title_from_section_display(display: str) -> str:
@@ -1053,15 +1054,15 @@ _JPFHIR_DOC_SECTION_SYSTEM = get_system_uri("jpfhir-doc-section")
 # is honest (per feedback_profile_assertion_requires_data_completeness —
 # do not assert a profile unless the data actually meets its slices).
 
-_DEATH_CERT_TYPE_DISPLAY_JA = "死亡診断書"
+_DEATH_CERT_TYPE_DISPLAY_JA = t("fhir_emit_text.death_certificate", "ja")
 
 # Issue #961 extension: 死亡退院サマリー (Death discharge summary) display.
 # Shares LOINC 18842-5 with the generic discharge summary; the JP
 # hospital-canonical title for the death variant is 死亡退院サマリー.
 # English label mirrors the section-title bilingual convention used
 # elsewhere in this file (e.g. _SECTION_TITLE_EN).
-_DEATH_DISCHARGE_SUMMARY_TITLE_JA = "死亡退院サマリー"
-_DEATH_DISCHARGE_SUMMARY_TITLE_EN = "Death discharge summary"
+_DEATH_DISCHARGE_SUMMARY_TITLE_JA = t("fhir_emit_text.death_discharge_summary_title", "ja")
+_DEATH_DISCHARGE_SUMMARY_TITLE_EN = t("fhir_emit_text.death_discharge_summary_title", "en")
 
 
 def _build_jp_death_certificate_composition(

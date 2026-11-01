@@ -23,6 +23,7 @@ import yaml
 
 from clinosim.codes import display as registry_display
 from clinosim.codes import get_system_uri
+from clinosim.locale.i18n import t
 from clinosim.modules._shared import get_attr_or_key as _o
 from clinosim.modules.document.narrative.registry import document_loinc
 from clinosim.modules.output.fhir_r4.lib.common import _escape_html
@@ -90,7 +91,9 @@ def _build_jp_echeckup_general_composition(
         profs.append(_JP_ECHECKUP_GENERAL_PROFILE)
 
     # `type` field:53576-5 を doc-typecodes と LOINC 両方で emit
-    disp = registry_display("jpfhir-doc-typecodes", document_loinc("health_checkup_report"), lang) or "検診・健診報告書"
+    disp = registry_display("jpfhir-doc-typecodes", document_loinc("health_checkup_report"), lang) or t(
+        "fhir_emit_text.checkup_report_type", "ja"
+    )
     comp["type"] = {
         "coding": [
             {"system": _JPFHIR_DOC_TYPECODES_SYSTEM, "code": document_loinc("health_checkup_report"), "display": disp},

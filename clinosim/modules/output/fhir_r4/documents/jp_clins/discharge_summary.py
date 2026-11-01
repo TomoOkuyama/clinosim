@@ -24,6 +24,7 @@ import yaml
 
 from clinosim.codes import display as registry_display
 from clinosim.codes import get_system_uri
+from clinosim.locale.i18n import t
 from clinosim.modules._shared import get_attr_or_key as _o
 from clinosim.modules.document.narrative.registry import document_loinc
 from clinosim.modules.output.fhir_r4.encounters.encounter import resolve_encounter_id
@@ -38,8 +39,8 @@ _JPFHIR_DOC_TYPECODES_SYSTEM = get_system_uri("jpfhir-doc-typecodes")
 _JP_EDS_VERSION_EXTENSION_URL = "http://hl7.org/fhir/StructureDefinition/composition-clinicaldocument-versionNumber"
 _JPFHIR_DOC_SUBTYPECODES_SYSTEM = get_system_uri("jpfhir-doc-subtypecodes")
 _JP_EDS_CATEGORY_CODE = "DISCHARGE"
-_JP_EDS_CATEGORY_DISPLAY_JA = "退院時文書"
-_JP_EDS_TYPE_DISPLAY_JA = "退院時サマリー"
+_JP_EDS_CATEGORY_DISPLAY_JA = t("fhir_emit_text.jp_eds_category", "ja")
+_JP_EDS_TYPE_DISPLAY_JA = t("fhir_emit_text.jp_eds_type", "ja")
 _JPFHIR_DOC_SECTION_SYSTEM = get_system_uri("jpfhir-doc-section")
 
 
@@ -204,7 +205,7 @@ def _build_jp_clins_discharge_summary_composition(
     # yaml carries `構造情報セクション` (long form, matches spec `patternString`);
     # `_section_title_from_section_display` derives the short-form title
     # per spec `title.fixedString` (Chain #8 pattern).
-    parent_disp = registry_display("jpfhir-doc-section", "300", lang) or "構造情報セクション"
+    parent_disp = registry_display("jpfhir-doc-section", "300", lang) or t("fhir_emit_text.struct_section", "ja")
     parent_title = _section_title_from_section_display(parent_disp)
     # Chain #9 follow-up (#267): pre-compute the ids the
     # entry references need. hospital_course の deferral を

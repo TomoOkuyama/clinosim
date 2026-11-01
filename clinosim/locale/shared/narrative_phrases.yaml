@@ -2423,3 +2423,126 @@ fhir_text:
   body_site_unspecified:
     ja: "処置部位不明"
     en: "Body site not specified"
+
+# Labels, displays and notes written by the FHIR emitters (Issue #2404).
+fhir_emit_text:
+  bed:
+    ja: "{n}号室"
+    en: "Bed {n}"
+  checkup_report:
+    ja: "健診結果報告書"
+    en: "Health checkup report"
+  checkup_report_type:
+    ja: "検診・健診報告書"
+    en: "Health screening / checkup report"
+  community_hospital:
+    ja: "総合病院"
+    en: "Community Hospital"
+  copay_percentage:
+    ja: "自己負担割合"
+    en: "Copay percentage"
+  country_name:
+    ja: "日本"
+    en: "Japan"
+  coverage_class_group:
+    ja: "保険グループ"
+    en: "Group"
+  coverage_class_plan:
+    ja: "保険プラン"
+    en: "Plan"
+  death_certificate:
+    ja: "死亡診断書"
+    en: "Death certificate"
+  death_discharge_summary_title:
+    ja: "死亡退院サマリー"
+    en: "Death discharge summary"
+  effective_status_note:
+    ja: "実効ステータス: {status}（JP-CLINS eCS 準拠のため MedicationRequest.status は \"completed\" に固定されているが、この処方の実際の運用状態は \"{status}\" である）"
+    en: "Effective status: {status} (MedicationRequest.status is pinned to \"completed\" for JP-CLINS eCS; the actual state of this prescription is \"{status}\")"
+  every_hours:
+    ja: "{n}時間ごと"
+    en: "every {n} hours"
+  fall_risk:
+    ja: "転倒リスク: {level}"
+    en: "Fall risk: {level}"
+  freq_per_day:
+    ja: "1日{n}回"
+    en: "{n} times a day"
+  generic_infusion_pump:
+    ja: "汎用輸液ポンプ"
+    en: "Generic infusion pump"
+  history_of_alcohol_use:
+    ja: "飲酒歴"
+    en: "History of alcohol use"
+  hospital_address:
+    ja: "東京都"
+    en: "Tokyo"
+  infusion_pump_snomed:
+    ja: "輸液ポンプ"
+    en: "Infusion pump for intravenous fluids"
+  jp_eds_category:
+    ja: "退院時文書"
+    en: "Discharge document"
+  jp_eds_type:
+    ja: "退院時サマリー"
+    en: "Discharge summary"
+  jp_er_category:
+    ja: "他科コンサルト"
+    en: "Consultation to another department"
+  jp_er_event:
+    ja: "診療情報提供書発行"
+    en: "Referral letter issued"
+  location_type_area:
+    ja: "エリア"
+    en: "Area"
+  location_type_building:
+    ja: "建物"
+    en: "Building"
+  long_term_care_need_level:
+    ja: "要介護度"
+    en: "Long-term care need level"
+  medis_uncoded:
+    ja: "未コード化傷病名"
+    en: "Uncoded disease name"
+  mrn:
+    ja: "診療録番号"
+    en: "MRN"
+  o2_single_ts:
+    ja: "単一測定時点のみに基づく推定 (dwell 15 分)"
+    en: "Estimated from a single on-O2 measurement (15 min dwell)"
+  o2_target:
+    ja: "投与目標: {value}"
+    en: "Target: {value}"
+  occupation:
+    ja: "職業"
+    en: "Occupation"
+  operating_room:
+    ja: "手術室 {n}"
+    en: "Operating Room {n}"
+  oxygen_therapy:
+    ja: "酸素投与"
+    en: "Oxygen therapy"
+  re_admission:
+    ja: "再入院"
+    en: "Re-admission"
+  referral_letter:
+    ja: "診療情報提供書"
+    en: "Referral letter"
+  section_title_suffix:
+    ja: "セクション"
+    en: " section"
+  struct_section:
+    ja: "構造情報セクション"
+    en: "Structured information section"
+  tobacco_smoking_status:
+    ja: "喫煙状況"
+    en: "Tobacco smoking status"
+  unit_day:
+    ja: "日"
+    en: "d"
+  usage_uncoded:
+    ja: "用法未指定"
+    en: "Usage not specified"
+  ward:
+    ja: "{n}病棟"
+    en: "Ward {n}"

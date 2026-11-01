@@ -74,6 +74,7 @@ from datetime import datetime, timedelta
 from typing import Any
 
 from clinosim.codes.snomed import snomed_for
+from clinosim.locale.i18n import t
 from clinosim.modules._shared import get_attr_or_key as _o
 from clinosim.modules._shared import is_jp, resolve_lang
 from clinosim.modules.output.fhir_r4.conditions.primary_ref import primary_condition_ref
@@ -408,7 +409,10 @@ def _bb_oxygen_therapy(ctx: BundleContext) -> list[dict]:
             # SNOMED Therapeutic procedure — matches _bb_procedures default.
             "category": dual_slot_concept("snomed-ct", "277132007", lang),
             "code": dual_slot_concept(
-                "snomed-ct", _SNOMED_OXYGEN_THERAPY, lang, text="酸素投与" if is_jp_out else "Oxygen therapy"
+                "snomed-ct",
+                _SNOMED_OXYGEN_THERAPY,
+                lang,
+                text=t("fhir_emit_text.oxygen_therapy", "ja" if is_jp_out else "en"),
             ),
             "subject": patient_ref(ctx.patient_id),
             "performedPeriod": {
@@ -440,15 +444,11 @@ def _bb_oxygen_therapy(ctx: BundleContext) -> list[dict]:
             procedure["performer"] = [{"actor": {"reference": f"Practitioner/{performer_ref}"}}]
         notes: list[dict[str, str]] = []
         if target_note:
-            notes.append({"text": f"投与目標: {target_note}" if is_jp_out else f"Target: {target_note}"})
+            notes.append({"text": t("fhir_emit_text.o2_target", "ja" if is_jp_out else "en", value=target_note)})
         if session_filled_from_single_ts:
             # session-88j P1-8: mark filled sessions so consumers can tell
             # a recorded stop time from an estimated one.
-            _fill_note = (
-                "単一測定時点のみに基づく推定 (dwell 15 分)"
-                if is_jp_out
-                else "Estimated from a single on-O2 measurement (15 min dwell)"
-            )
+            _fill_note = t("fhir_emit_text.o2_single_ts", "ja" if is_jp_out else "en")
             notes.append({"text": _fill_note})
         if notes:
             procedure["note"] = notes
