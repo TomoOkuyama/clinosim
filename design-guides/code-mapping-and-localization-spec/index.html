@@ -3045,8 +3045,8 @@
 <td>#2391</td>
 </tr>
 <tr>
-<td>The free-text name localizer lives in the FHIR output layer, is imported from the order and narrative layers, and also translates procedure, SNOMED and allergen names. Decision logic and records resolve drug names through <code>codes.drugs.drug_display</code>.</td>
-<td>#2367</td>
+<td>The free-text name translator (<code>locale.free_text.localize_free_text</code>) is one generic translator: procedure, SNOMED and allergen names go through the drug-name dictionary and its substring replacement.</td>
+<td>#2408</td>
 </tr>
 <tr>
 <td>Language literals are still embedded in Python.</td>
