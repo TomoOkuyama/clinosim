@@ -2784,6 +2784,11 @@
 <td><code>None</code></td>
 </tr>
 <tr>
+<td><code>codes.drugs</code>: <code>identify_drug(text)</code>, <code>drug_classes(ref)</code></td>
+<td>the catalog drug a free-text medication string names (exact id / name / alias, leading words, then the longest contained name or alias — whole-word for ASCII); its catalog classes with every dotted ancestor</td>
+<td><code>None</code> / <code>()</code></td>
+</tr>
+<tr>
 <td><code>codes.icd10</code>: <code>icd10_system(country)</code>, <code>icd10_display(code, country, lang)</code>, <code>condition_short_name(code, lang)</code>, <code>condition_label(code, country, lang)</code>, <code>medis_disease_keyno(icd)</code></td>
 <td>ICD-10 system of a country; official display (JP Japanese: the MHLW 2013 name, verbatim); clinical short name (by category); the name used in prose and <code>Condition.code.text</code> (short name, then official display); MEDIS 病名管理番号</td>
 <td>key / <code>None</code> / <code>None</code> / <code>None</code> / <code>None</code></td>
@@ -3041,8 +3046,12 @@
 <td>#2297</td>
 </tr>
 <tr>
-<td>Drug classes and aliases are held outside the catalog.</td>
-<td>#2298</td>
+<td>The medication-monitoring tables identify drugs by name patterns.</td>
+<td>#2371</td>
+</tr>
+<tr>
+<td>Complications, PRN selection and chronic-medication rules keep their own drug-class vocabularies.</td>
+<td>#2372</td>
 </tr>
 <tr>
 <td>Checkup results use LOINC as <code>lab_name</code>.</td>
