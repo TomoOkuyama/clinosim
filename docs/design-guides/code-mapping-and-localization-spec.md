@@ -229,7 +229,6 @@ These parts of the code base do not yet conform. Each one is removed by the issu
 | JP ICD-10 Japanese displays can come from the ICD-10-CM table through the sibling fallback, and 95 shared codes have different Japanese names in the two tables. | #2360 |
 | SNOMED codes and displays are still held in emitter dicts (route, severity), and 74 SNOMED literals are unregistered. | #2258 |
 | Document LOINCs are defined in eight places, some section codes do not mean their section, and emitters still hold LOINC constants. | #2344 |
-| Disease YAMLs still carry inline `code_yj` literals, and JP CIF `order_code` is copied from them rather than from the catalog. | #2351 |
 | CPT / K-codes the generator emits but has not registered. | #2340 |
 | HL7 `terminology.hl7.org` URI literals outside `clinosim/codes/`, and three overlapping coding helpers (`_coding_with_display`, `_value`, `_build_hosp_concept`). | #2349 |
 | Remaining hand-built dual-slot concepts, and the post-process text-filling walkers. | #2337 |
