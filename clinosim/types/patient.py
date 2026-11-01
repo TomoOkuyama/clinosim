@@ -167,6 +167,15 @@ class HomeMedication:
     dose_quantity: float | None = None
     dose_unit: str = ""
     frequency: str = ""  # daily | bid | tid | qid | prn
+    # Catalog drug id (codes/data/drugs.yaml), resolved from drug_name when
+    # the record is created; "" for an uncatalogued drug (Issue #2297).
+    drug_id: str = ""
+
+    def __post_init__(self) -> None:
+        if not self.drug_id and self.drug_name:
+            from clinosim.codes.drugs import drug_ref
+
+            self.drug_id = drug_ref(self.drug_name)
 
 
 @dataclass

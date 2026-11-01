@@ -227,6 +227,27 @@ def identify_drug(text: str) -> DrugIdentity | None:
     return None
 
 
+@cache
+def drug_ref(name_or_id: str) -> str:
+    """The catalog ``drug_id`` a drug id, name, alias or free-text medication
+    string names (:func:`identify_drug`); ``""`` when none (Issue #2297)."""
+    rec = identify_drug(name_or_id) if name_or_id else None
+    return rec.drug_id if rec is not None else ""
+
+
+def has_drug(meds: Any, drug: str) -> bool:
+    """True when any record in ``meds`` is the catalog drug ``drug`` (a
+    drug_id) or belongs to the catalog class ``drug`` (``"statin"``,
+    ``"anticoagulant"``). A record is matched by its ``drug_id``, falling back
+    to its name (Issue #2297)."""
+    for med in meds or ():
+        get = med.get if isinstance(med, dict) else lambda k, d=None, _m=med: getattr(_m, k, d)
+        drug_id = get("drug_id", "") or drug_ref(str(get("drug_name", "") or get("display_name", "") or ""))
+        if drug_id and (drug_id == drug or drug in drug_classes(drug_id)):
+            return True
+    return False
+
+
 def drug_classes(ref: str) -> tuple[str, ...]:
     """Catalog classes of the drug ``ref`` names (see :func:`identify_drug`),
     each followed by its dotted ancestors (``anticoagulant.vka`` also yields

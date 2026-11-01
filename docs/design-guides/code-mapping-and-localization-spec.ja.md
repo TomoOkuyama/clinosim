@@ -127,6 +127,7 @@ occupation:
 | `codes.drugs`: `route_class(route)` / `jp_drug_code(drug, route)` / `jp_drug_code_table(route)` | 投与経路の区分、薬と経路に対応する JP の YJ 製品コード | `""` / `None` / 該当なし |
 | `codes.drugs`: `drug_display(ref, lang)` | 薬 id・名称・alias (見つからなければ先頭語の最長一致) のカタログ名を `lang` で、無ければ英語で返す | `None` |
 | `codes.drugs`: `identify_drug(text)` / `drug_classes(ref)` | 自由文の薬名が指すカタログ薬 (id・名称・alias の完全一致、先頭語、含まれる最長の名称・alias の順。ASCII は単語単位)、そのカタログ分類 (ドット区切りの上位分類を含む) | `None` / `()` |
+| `codes.drugs`: `drug_ref(name_or_id)` / `has_drug(meds, drug_id_or_class)` | 名称・alias・自由文が指すカタログ `drug_id`、投薬記録のいずれかがその薬かその分類に属するか (`drug_id`、無ければ名称で判定) | `""` / `False` |
 | `codes.icd10`: `icd10_system(country)` / `icd10_display(code, country, lang)` / `condition_short_name(code, lang)` / `condition_label(code, country, lang)` / `medis_disease_keyno(icd)` | 国の ICD-10 体系、正式名称 (JP の日本語は厚労省 2013 年版の名称そのまま)、臨床短縮名 (3 桁分類で引く)、文章と `Condition.code.text` に使う名前 (短縮名、無ければ正式名称)、MEDIS 病名管理番号 | キー / `None` / `None` / `None` / `None` |
 | `codes.procedures`: `procedure_code` / `procedure_type_display` / `procedure_code_display` | 処置のコードと名称 | `""` / 人間可読化した type / `None` |
 | `codes.ucum`: `ucum_code` / `ucum_quantity` / `ucum_prose` | UCUM コード / FHIR Quantity / 文章中の単位表記 (`mm[Hg]` → `mmHg`、`{INR}` → `""`) | 単位をそのまま通す |
@@ -237,7 +238,8 @@ occupation:
 | 投与経路・診断名・CoreLabo・MedicationAdministration の経路/デバイスの概念を手組みしており、後処理の walker が出力後に `.text` を補っている。 | #2375 |
 | 自由文の名称 localizer が FHIR 出力層にあり、order 層と narrative 層から import され、手技・SNOMED・アレルゲン名の翻訳にも使われている。判断ロジックと記録の薬名は `codes.drugs.drug_display` で解決する。 | #2367 |
 | Python に言語ごとのリテラルが残っている。 | #2277 |
-| レコードが `drug_id` を持っていない。 | #2297 |
+| 判断ロジックが薬名の部分文字列で薬を識別している。 | #2377 |
+| 疾患 YAML が `drug:` 名と `drug_id:` を混在させ、`Order.order_code` がコード体系を記録していない。 | #2378 |
 | 投薬モニタリングの表が名称パターンで薬を識別している。 | #2371 |
 | 合併症・PRN 選択・慢性薬ルールが独自の薬分類語彙を持つ。 | #2372 |
 | eval の妥当性範囲、パネル定義が 2 つ。 | #2332 |

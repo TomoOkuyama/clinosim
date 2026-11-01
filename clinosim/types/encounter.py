@@ -174,6 +174,15 @@ class MedicationAdministration:
     administered_by: str = ""  # nurse staff_id
     hold_reason: str | None = None
     refusal_reason: str | None = None
+    # Catalog drug id (codes/data/drugs.yaml), resolved from drug_name when
+    # the record is created; "" for a drug the catalog does not know (Issue #2297).
+    drug_id: str = ""
+
+    def __post_init__(self) -> None:
+        if not self.drug_id and self.drug_name:
+            from clinosim.codes.drugs import drug_ref
+
+            self.drug_id = drug_ref(self.drug_name)
 
 
 @dataclass
@@ -185,7 +194,15 @@ class PrescriptionRecord:
     prescriber_id: str = ""
     issue_date: datetime = field(default_factory=lambda: _UNSET_DATETIME)
     items: list[dict] = field(default_factory=list)
-    # Each item: {drug_name, dose, frequency, route, days_supply, generic_name}
+    # Each item: {drug_name, drug_id, dose, frequency, route, days_supply, generic_name};
+    # drug_id (catalog id) is filled from drug_name when missing (Issue #2297).
+
+    def __post_init__(self) -> None:
+        from clinosim.codes.drugs import drug_ref
+
+        for item in self.items:
+            if isinstance(item, dict) and not item.get("drug_id") and item.get("drug_name"):
+                item["drug_id"] = drug_ref(str(item["drug_name"]))
 
 
 @dataclass
@@ -256,6 +273,16 @@ class Order:
     # MedicationRequest emit can pass them through verbatim. Empty on all
     # orders that did not trigger a moderate-severity gate finding.
     notes: list[dict] = field(default_factory=list)
+    # Catalog drug id of a medication order, resolved from display_name when
+    # the order is created; "" for other order types or an uncatalogued drug
+    # (Issue #2297).
+    drug_id: str = ""
+
+    def __post_init__(self) -> None:
+        if not self.drug_id and self.order_type == OrderType.MEDICATION and self.display_name:
+            from clinosim.codes.drugs import drug_ref
+
+            self.drug_id = drug_ref(self.display_name)
 
 
 @dataclass
