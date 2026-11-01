@@ -1,0 +1,11 @@
+# HL7 referencerange-meaning — Observation.referenceRange.type. English
+# displays verified on tx.fhir.org $lookup (THO 1.0.1); `ja` is a clinosim
+# translation (the CodeSystem has no Japanese designation).
+metadata:
+  name: HL7 Reference Range Meaning
+  uri: http://terminology.hl7.org/CodeSystem/referencerange-meaning
+  source: "HL7 Terminology (THO)"
+codes:
+  normal: {en: "Normal Range", ja: "正常範囲"}
+  therapeutic: {en: "Therapeutic Desired Level", ja: "治療域"}
+  treatment: {en: "Treatment Range", ja: "パニック範囲"}

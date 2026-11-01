@@ -37,6 +37,8 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
+from clinosim.locale.i18n import t
+
 __all__ = [
     "BP_DIASTOLIC",
     "BP_SYSTOLIC",
@@ -128,7 +130,7 @@ VITAL_HEART_RATE = VitalSignReferenceRange(
     field="heart_rate",
     loinc="8867-4",
     display_en="Heart rate",
-    display_ja="脈拍",
+    display_ja=t("fhir_obs_text.heart_rate", "ja"),
     unit="/min",
     normal_low=60,
     normal_high=100,
@@ -150,7 +152,7 @@ VITAL_SPO2 = VitalSignReferenceRange(
     field="spo2",
     loinc="2708-6",
     display_en="Oxygen saturation",
-    display_ja="酸素飽和度",
+    display_ja=t("fhir_obs_text.oxygen_saturation", "ja"),
     unit="%",
     normal_low=95,
     normal_high=100,
@@ -173,7 +175,7 @@ VITAL_TEMPERATURE = VitalSignReferenceRange(
     field="temperature_celsius",
     loinc="8310-5",
     display_en="Body temperature",
-    display_ja="体温",
+    display_ja=t("fhir_obs_text.body_temperature", "ja"),
     unit="Cel",
     normal_low=36.0,
     normal_high=37.5,
@@ -192,7 +194,7 @@ VITAL_RESPIRATORY_RATE = VitalSignReferenceRange(
     field="respiratory_rate",
     loinc="9279-1",
     display_en="Respiratory rate",
-    display_ja="呼吸数",
+    display_ja=t("fhir_obs_text.respiratory_rate", "ja"),
     unit="/min",
     normal_low=12,
     normal_high=20,
@@ -228,7 +230,7 @@ STANDALONE_VITAL_SIGNS: tuple[VitalSignReferenceRange, ...] = (
 BP_SYSTOLIC = BloodPressureComponentReferenceRange(
     loinc="8480-6",
     display_en="Systolic blood pressure",
-    display_ja="収縮期血圧",
+    display_ja=t("fhir_obs_text.systolic_bp", "ja"),
     normal_low=90,
     normal_high=140,
     critical_low=80,
@@ -246,7 +248,7 @@ threshold used by the observation-layer.
 BP_DIASTOLIC = BloodPressureComponentReferenceRange(
     loinc="8462-4",
     display_en="Diastolic blood pressure",
-    display_ja="拡張期血圧",
+    display_ja=t("fhir_obs_text.diastolic_bp", "ja"),
     normal_low=60,
     normal_high=90,
     critical_low=50,

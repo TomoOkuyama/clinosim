@@ -15,8 +15,10 @@ import dataclasses
 from datetime import date, datetime
 from typing import Any
 
+from clinosim.codes import display as registry_display
 from clinosim.codes import get_system_uri
 from clinosim.codes.ucum import ucum_quantity
+from clinosim.locale.i18n import t
 from clinosim.locale.localized import localized_field
 from clinosim.modules._shared import get_attr_or_key, is_jp, resolve_lang, sanitize_id_token
 from clinosim.modules.observation.engine import medications_in_effect
@@ -307,7 +309,7 @@ def _build_lab_observation(
     # (system+code omitted intentionally — no authoritative universal
     # method-code exists for "automated bench analyzer" that fits every
     # analyte). Mirrors Coverage.type text-only precedent.
-    _method_text = "自動分析器測定" if is_jp(country) else "Automated laboratory measurement"
+    _method_text = t("fhir_obs_text.automated_method", resolve_lang(country))
     resource["method"] = {"text": _method_text}
 
     return resource
@@ -338,8 +340,8 @@ def _build_bp_component(
     elif value > spec.normal_high:
         interp_code = "H"
 
-    normal_text = "成人正常範囲" if is_jp(country) else "Normal adult range"
-    crit_text = "パニック値" if is_jp(country) else "Critical range"
+    normal_text = t("fhir_obs_text.normal_adult_range", resolve_lang(country))
+    crit_text = t("fhir_obs_text.critical_range", resolve_lang(country))
     return {
         "code": {
             "coding": [{"system": get_system_uri("loinc"), "code": spec.loinc, "display": display}],
@@ -355,7 +357,7 @@ def _build_bp_component(
                         {
                             "system": get_system_uri("hl7-referencerange-meaning"),
                             "code": "normal",
-                            "display": "正常範囲" if is_jp(country) else "Normal Range",
+                            "display": registry_display("hl7-referencerange-meaning", "normal", resolve_lang(country)),
                         }
                     ],
                 },
@@ -369,7 +371,9 @@ def _build_bp_component(
                         {
                             "system": get_system_uri("hl7-referencerange-meaning"),
                             "code": "treatment",
-                            "display": "パニック範囲" if is_jp(country) else "Critical Range",
+                            "display": registry_display(
+                                "hl7-referencerange-meaning", "treatment", resolve_lang(country)
+                            ),
                         }
                     ],
                 },
@@ -472,8 +476,8 @@ def _build_vital_observations(
             obs["performer"] = [{"reference": f"Practitioner/{performer_id}"}]
 
         # Reference range — normal range (always) + critical range (when defined)
-        range_text = "成人正常範囲" if is_jp(country) else "Normal adult range"
-        crit_text = "パニック値" if is_jp(country) else "Critical range"
+        range_text = t("fhir_obs_text.normal_adult_range", resolve_lang(country))
+        crit_text = t("fhir_obs_text.critical_range", resolve_lang(country))
         ref_ranges = [
             {
                 "low": ucum_quantity(low, unit),
@@ -483,7 +487,7 @@ def _build_vital_observations(
                         {
                             "system": get_system_uri("hl7-referencerange-meaning"),
                             "code": "normal",
-                            "display": "正常範囲" if is_jp(country) else "Normal Range",
+                            "display": registry_display("hl7-referencerange-meaning", "normal", resolve_lang(country)),
                         }
                     ],
                 },
@@ -498,7 +502,9 @@ def _build_vital_observations(
                         {
                             "system": get_system_uri("hl7-referencerange-meaning"),
                             "code": "treatment",
-                            "display": "パニック範囲" if is_jp(country) else "Critical Range",
+                            "display": registry_display(
+                                "hl7-referencerange-meaning", "treatment", resolve_lang(country)
+                            ),
                         }
                     ],
                 },
@@ -537,7 +543,7 @@ def _build_vital_observations(
     sbp = vs.get("systolic_bp")
     dbp = vs.get("diastolic_bp")
     if sbp is not None and dbp is not None:
-        bp_display = "血圧" if is_jp(country) else "Blood pressure panel"
+        bp_display = t("fhir_obs_text.bp_panel", resolve_lang(country))
         _bp_structural_key = f"{encounter_id or patient_id}-{index:04d}-bp-panel"
         bp_obs: dict[str, Any] = {
             "resourceType": "Observation",
@@ -587,8 +593,7 @@ def _build_vital_observations(
             "U": ("Unresponsive", "422768004"),
         }
         loc_display, loc_snomed = loc_display_map.get(loc, ("Alert", "248234008"))
-        loc_label_ja = {"A": "意識清明", "V": "呼びかけに反応", "P": "痛み刺激に反応", "U": "無反応"}
-        display = loc_label_ja.get(loc, loc_display) if is_jp(country) else loc_display
+        display = t(f"fhir_obs_text.avpu_{loc}", "ja") or loc_display if is_jp(country) else loc_display
         _loc_structural_key = f"{encounter_id or patient_id}-{index:04d}-loc"
         loc_obs: dict[str, Any] = {
             "resourceType": "Observation",
@@ -624,7 +629,7 @@ def _build_vital_observations(
                         "display": "Level of consciousness",
                     }
                 ],
-                "text": "意識レベル (AVPU)" if is_jp(country) else "Level of consciousness (AVPU)",
+                "text": t("fhir_obs_text.loc_avpu", resolve_lang(country)),
             },
             "subject": patient_ref(patient_id),
             "valueCodeableConcept": {
@@ -673,7 +678,7 @@ def _build_vital_observations(
                         "display": "Pain severity - 0-10 verbal numeric rating [Score] - Reported",
                     }
                 ],
-                "text": "疼痛スケール (NRS 0-10)" if is_jp(country) else "Pain score (0-10)",
+                "text": t("fhir_obs_text.pain_nrs", resolve_lang(country)),
             },
             "subject": patient_ref(patient_id),
             "valueInteger": int(pain),
@@ -713,7 +718,7 @@ def _build_vital_observations(
                         "display": "Inhaled oxygen flow rate",
                     }
                 ],
-                "text": "酸素投与量" if is_jp(country) else "Supplemental oxygen flow rate",
+                "text": t("fhir_obs_text.o2_flow", resolve_lang(country)),
             },
             "subject": patient_ref(patient_id),
         }

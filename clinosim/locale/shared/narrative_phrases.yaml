@@ -2303,3 +2303,114 @@ newborn_screen_display:
   heel_stick:
     ja: "踵採血 (毛細血管採血)"
     en: "Heel-stick capillary blood collection"
+
+# Observation code.text labels and reference-range texts written by the FHIR lab emitters (Issue #2403).
+fhir_obs_text:
+  heart_rate:
+    ja: "脈拍"
+    en: "Heart rate"
+  oxygen_saturation:
+    ja: "酸素飽和度"
+    en: "Oxygen saturation"
+  body_temperature:
+    ja: "体温"
+    en: "Body temperature"
+  respiratory_rate:
+    ja: "呼吸数"
+    en: "Respiratory rate"
+  systolic_bp:
+    ja: "収縮期血圧"
+    en: "Systolic blood pressure"
+  diastolic_bp:
+    ja: "拡張期血圧"
+    en: "Diastolic blood pressure"
+  body_height:
+    ja: "身長"
+    en: "Body height"
+  body_weight:
+    ja: "体重"
+    en: "Body weight"
+  head_circumference:
+    ja: "頭囲"
+    en: "Head circumference"
+  abo_group:
+    ja: "ABO血液型"
+    en: "ABO blood group"
+  rh_group:
+    ja: "Rh血液型"
+    en: "Rh blood group"
+  automated_method:
+    ja: "自動分析器測定"
+    en: "Automated laboratory measurement"
+  normal_adult_range:
+    ja: "成人正常範囲"
+    en: "Normal adult range"
+  critical_range:
+    ja: "パニック値"
+    en: "Critical range"
+  bp_panel:
+    ja: "血圧"
+    en: "Blood pressure panel"
+  avpu_A:
+    ja: "意識清明"
+    en: "Alert"
+  avpu_V:
+    ja: "呼びかけに反応"
+    en: "Responds to voice"
+  avpu_P:
+    ja: "痛み刺激に反応"
+    en: "Responds to pain"
+  avpu_U:
+    ja: "無反応"
+    en: "Unresponsive"
+  loc_avpu:
+    ja: "意識レベル (AVPU)"
+    en: "Level of consciousness (AVPU)"
+  pain_nrs:
+    ja: "疼痛スケール (NRS 0-10)"
+    en: "Pain score (0-10)"
+  o2_flow:
+    ja: "酸素投与量"
+    en: "Supplemental oxygen flow rate"
+
+# Microbiology report text lines (fhir_r4/labs/microbiology.py, Issue #2403).
+mb_text:
+  specimen:
+    ja: "検体: {value}"
+    en: "Specimen: {value}"
+  organism:
+    ja: "検出菌: {value}"
+    en: "Organism: {value}"
+  organism_negative:
+    ja: "検出菌: (陰性)"
+    en: "Organism: (negative)"
+  susceptibility_header:
+    ja: "[感受性]"
+    en: "Susceptibilities:"
+  susceptibility_tail:
+    ja: "感受性"
+    en: " [Susceptibility]"
+
+# Condition.evidence texts (fhir_r4/conditions, Issue #2403).
+condition_evidence:
+  prior_diagnosis:
+    ja: "既往診断"
+    en: "Prior established diagnosis"
+  clinical_and_labs:
+    ja: "臨床所見および検査結果"
+    en: "Clinical presentation and supporting laboratory results"
+  admission_assessment:
+    ja: "入院時所見および初期評価"
+    en: "Admission presentation and initial assessment"
+  in_hospital_complication:
+    ja: "入院中に発生した合併症"
+    en: "In-hospital complication observed during admission"
+  secondary_diagnosis:
+    ja: "併存傷病"
+    en: "Secondary diagnosis carried onto the encounter"
+  problem_list_prior:
+    ja: "問題リスト:過去診療で確立"
+    en: "Problem list — established in prior encounters"
+  hai:
+    ja: "院内感染:培養検査+臨床所見に基づく診断"
+    en: "Hospital-acquired infection — culture + clinical findings"

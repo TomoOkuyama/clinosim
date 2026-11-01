@@ -105,7 +105,7 @@ JP_MB_DR_PROFILE_URI = "http://jpfhir.jp/fhir/core/StructureDefinition/JP_Diagno
 JP_MB_DR_CATEGORY_LOINC = "LP7819-8"
 JP_MB_DR_CODE_CS = get_system_uri("jp-document-codes")
 JP_MB_DR_CODE_VALUE = loinc_for("report", "microbiology")
-JP_MB_DR_CODE_DISPLAY = "微生物学的検査報告書"
+JP_MB_DR_CODE_DISPLAY = registry_display("jp-document-codes", JP_MB_DR_CODE_VALUE, "ja") or ""
 
 # Canonical URI for HAI event cross-reference identifiers (PR3b-5,
 # 2026-06-29). Emitted on Specimen + mb-org-*/mb-sus-* Observation +
@@ -507,7 +507,7 @@ def _mb_conclusion_text(mb: dict, lang: str) -> str:
             return loinc
         # Trim the "[Susceptibility]" / "感受性" tail — the header
         # of the summary already establishes we are listing sensitivities.
-        for tail_marker in (" [Susceptibility]", "感受性"):
+        for tail_marker in (" [Susceptibility]", t("mb_text.susceptibility_tail", "ja")):
             if disp.endswith(tail_marker):
                 disp = disp[: -len(tail_marker)]
                 break
@@ -530,15 +530,15 @@ def _mb_presented_text(mb: dict, lang: str) -> str:
     organism = mb.get("organism_snomed", "") or ""
     growth = "detected" if mb.get("growth") else "no-growth"
     if lang == "ja":
-        lines = [f"検体: {specimen}"]
+        lines = [t("mb_text.specimen", "ja", value=specimen)]
         if organism:
             org_disp = registry_display("snomed-ct", organism, "ja") or organism
-            lines.append(f"検出菌: {org_disp}")
+            lines.append(t("mb_text.organism", "ja", value=org_disp))
         else:
-            lines.append("検出菌: (陰性)")
+            lines.append(t("mb_text.organism_negative", "ja"))
         sus_list = mb.get("susceptibilities") or []
         if sus_list:
-            lines.append("[感受性]")
+            lines.append(t("mb_text.susceptibility_header", "ja"))
             for sus in sus_list:
                 ab = sus.get("antibiotic_loinc", "?")
                 interp = sus.get("interpretation", "?")

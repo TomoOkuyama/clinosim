@@ -13,7 +13,7 @@ from typing import Any
 from clinosim.codes import get_system_uri, system_key_for
 from clinosim.codes import lookup as code_lookup
 from clinosim.codes.snomed import snomed_for
-from clinosim.locale.localized import localized
+from clinosim.locale.i18n import t
 from clinosim.modules._shared import get_attr_or_key, is_jp, resolve_lang
 from clinosim.modules.diagnosis.nonspecific_codes import is_visit_reason_zcode
 from clinosim.modules.output.fhir_r4.conditions.primary_ref import (
@@ -322,15 +322,10 @@ def _build_conditions(record: dict, patient_id: str, country: str) -> list[dict]
         # with 0..1 code + 0..* detail — text-only code is spec-compliant
         # (no fabricated coding). For chronic-primary: prior established
         # diagnosis; for acute: clinical presentation + supporting labs.
-        _ev_text_ja = "既往診断" if is_chronic_primary else "臨床所見および検査結果"
-        _ev_text_en = (
-            "Prior established diagnosis"
-            if is_chronic_primary
-            else "Clinical presentation and supporting laboratory results"
-        )  # noqa: E501
+        _ev_key = "condition_evidence.prior_diagnosis" if is_chronic_primary else "condition_evidence.clinical_and_labs"
         cond["evidence"] = [
             {
-                "code": [{"text": localized({"ja": _ev_text_ja, "en": _ev_text_en}, resolve_lang(country_code))}],
+                "code": [{"text": t(_ev_key, resolve_lang(country_code))}],
             }
         ]
 
@@ -529,13 +524,7 @@ def _build_conditions(record: dict, patient_id: str, country: str) -> list[dict]
         # Text-only evidence label consistent with the encounter-primary path.
         _admit_cond["evidence"] = [
             {
-                "code": [
-                    {
-                        "text": "入院時所見および初期評価"
-                        if is_jp(country_code)
-                        else "Admission presentation and initial assessment"
-                    }
-                ],
+                "code": [{"text": t("condition_evidence.admission_assessment", resolve_lang(country_code))}],
             }
         ]
         conditions.append(_admit_cond)
@@ -617,13 +606,11 @@ def _build_conditions(record: dict, patient_id: str, country: str) -> list[dict]
         # pre-existing pregnancy-complication carryover so downstream
         # readers can tell them apart without parsing ICD chapters.
         if _wd_source == "in_hospital_complication":
-            _ev_text_en = "In-hospital complication observed during admission"
-            _ev_text_ja = "入院中に発生した合併症"
+            _wd_ev_key = "condition_evidence.in_hospital_complication"
         else:
-            _ev_text_en = "Secondary diagnosis carried onto the encounter"
-            _ev_text_ja = "併存傷病"
+            _wd_ev_key = "condition_evidence.secondary_diagnosis"
         _wd_cond["evidence"] = [
-            {"code": [{"text": localized({"ja": _ev_text_ja, "en": _ev_text_en}, resolve_lang(country_code))}]},
+            {"code": [{"text": t(_wd_ev_key, resolve_lang(country_code))}]},
         ]
         _bs_wd = _bodysite_for(_wd_code_raw, country)
         if _bs_wd:
@@ -695,13 +682,7 @@ def _build_conditions(record: dict, patient_id: str, country: str) -> list[dict]
         # same rationale as the encounter-diagnosis path.
         cond["evidence"] = [
             {
-                "code": [
-                    {
-                        "text": "問題リスト:過去診療で確立"
-                        if is_jp(country_code)
-                        else "Problem list — established in prior encounters"
-                    }
-                ],  # noqa: E501
+                "code": [{"text": t("condition_evidence.problem_list_prior", resolve_lang(country_code))}],  # noqa: E501
             }
         ]
 
@@ -818,13 +799,7 @@ def _build_conditions(record: dict, patient_id: str, country: str) -> list[dict]
             "onsetDateTime": to_fhir_date(end_date),
             "evidence": [
                 {
-                    "code": [
-                        {
-                            "text": "問題リスト:過去診療で確立"
-                            if is_jp(country_code)
-                            else "Problem list — established in prior encounters"
-                        }
-                    ],
+                    "code": [{"text": t("condition_evidence.problem_list_prior", resolve_lang(country_code))}],
                 }
             ],
         }

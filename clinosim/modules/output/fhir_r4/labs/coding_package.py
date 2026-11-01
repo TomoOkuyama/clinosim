@@ -49,7 +49,7 @@ from functools import lru_cache
 from pathlib import Path
 from typing import Protocol
 
-from clinosim.codes import jp_clins_lab_system
+from clinosim.codes import display, jp_clins_lab_system
 
 _ECS_SD_FILENAME = "StructureDefinition-JP-Observation-LabResult-eCS.json"
 _CORELABO_JLAC10_CS_FILENAME = "CodeSystem-jp-clins-codesystem-jlac10-corelabo-cs.json"
@@ -74,7 +74,7 @@ _ENV_PKG_DIR = "CLINOSIM_JP_CLINS_PKG_DIR"
 # the SD.
 _UNCODED_SYSTEM = jp_clins_lab_system("uncoded")
 _UNCODED_CODE = "99999999999999999"
-_UNCODED_DISPLAY = "未標準化コード項目(JLAC)"
+_UNCODED_DISPLAY = display("jp-clins-lab-uncoded", _UNCODED_CODE, "ja") or ""
 
 _LOCALCODE_SYSTEM = jp_clins_lab_system("localcode")
 

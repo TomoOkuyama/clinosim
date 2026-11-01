@@ -51,6 +51,7 @@ from clinosim.codes import display as registry_display
 from clinosim.codes import get_system_uri
 from clinosim.codes.loinc import loinc_for
 from clinosim.codes.snomed import snomed_for
+from clinosim.locale.i18n import t
 from clinosim.modules._shared import get_attr_or_key as _o
 from clinosim.modules._shared import is_jp, resolve_lang
 from clinosim.modules.output.fhir_r4.demographics.patient import patient_ref
@@ -232,7 +233,7 @@ def _bb_blood_type(ctx: BundleContext) -> list[dict]:
 
     abo_snomed = snomed_for("abo", abo)
     if abo_snomed:
-        abo_text = "ABO血液型" if is_jp_out else "ABO blood group"
+        abo_text = t("fhir_obs_text.abo_group", "ja" if is_jp_out else "en")
         _abo_structural_key = ctx.patient_id
         o = _build_blood_type_obs(
             obs_id=_resolve_blood_abo_id(_abo_structural_key),
@@ -253,7 +254,7 @@ def _bb_blood_type(ctx: BundleContext) -> list[dict]:
 
     rh_snomed = snomed_for("rh", rh)
     if rh_snomed:
-        rh_text = "Rh血液型" if is_jp_out else "Rh blood group"
+        rh_text = t("fhir_obs_text.rh_group", "ja" if is_jp_out else "en")
         _rh_structural_key = ctx.patient_id
         o = _build_blood_type_obs(
             obs_id=_resolve_blood_rh_id(_rh_structural_key),

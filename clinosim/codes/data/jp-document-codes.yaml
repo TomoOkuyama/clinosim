@@ -1,0 +1,9 @@
+# JP Core JP_DocumentCodes_CS — DiagnosticReport.code for JP microbiology
+# reports. `ja` moved from modules/output/fhir_r4/labs/microbiology.py
+# (Issue #2403); `en` is the LOINC display of the same code.
+metadata:
+  name: JP Core Document Codes
+  uri: http://jpfhir.jp/fhir/core/CodeSystem/JP_DocumentCodes_CS
+  source: "JP Core CodeSystem JP_DocumentCodes_CS"
+codes:
+  18725-2: {en: "Microbiology studies (set)", ja: "微生物学的検査報告書"}
