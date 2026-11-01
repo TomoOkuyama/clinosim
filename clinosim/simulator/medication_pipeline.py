@@ -29,7 +29,7 @@ from typing import Any
 
 import numpy as np
 
-from clinosim.codes.drugs import drug_classes, drug_key, same_drug
+from clinosim.codes.drugs import drug_classes, drug_key, drug_ref, get_drug, same_drug
 from clinosim.countries import is_jp
 from clinosim.modules.physiology.renal_thresholds import (
     METFORMIN_ADMISSION_HOLD_THRESHOLD,
@@ -707,7 +707,7 @@ def _generate_mar(
         if _is_triggered_prn(order):
             continue  # given on demand by generate_prn_administrations (Issue #2085)
         # Determine administration times based on drug and route
-        route = order.route or _determine_route(drug_name, order.clinical_intent)
+        route = order.route or _determine_route(drug_name, order.clinical_intent, order.drug_id)
 
         # Issue #913: MAR admin count must match
         # ``MedicationRequest.dosageInstruction.timing.repeat.frequency``
@@ -717,30 +717,28 @@ def _generate_mar(
         # over-dose signature).
         #
         # Ordering:
-        # 1. Antibiotic clinical-override (Q6H / Q8H) — for β-lactam
-        #    combos + carbapenem + advanced cephalosporins whose 1/day
-        #    default (from the enricher) would be clinically dangerous.
-        #    Ceftriaxone (correctly 1/day) is intentionally omitted.
+        # 1. Antibiotic clinical-override (Q6H / Q8H) — the catalog's
+        #    ``scheduled_interval_hours`` for β-lactam combos and
+        #    carbapenems, whose 1/day default (from the enricher) would be
+        #    clinically dangerous (Issue #2389). Ceftriaxone (correctly
+        #    1/day) has none.
         # 2. Explicit prescribed frequency (``order.frequency_per_day``) —
         #    honours the parsed prescription frequency, aligning MAR to MR.
-        # 3. Legacy drug-name / route dispatch — the enricher's DAILY
-        #    default fires for parseable-dose but no-frequency orders,
-        #    so this branch is rarely hit today; kept for safety on
-        #    orders without a resolvable frequency at all.
+        # 3. Drug / route defaults — the enricher's DAILY default fires
+        #    for parseable-dose but no-frequency orders, so this branch is
+        #    rarely hit today; kept for orders without a resolvable
+        #    frequency at all (the catalog's ``default_interval_hours``).
         drug_upper = drug_name.upper()
-        q6h_drugs = ["AMPICILLIN", "SULBACTAM", "PIPERACILLIN", "TAZOBACTAM"]
-        q8h_drugs = ["MEROPENEM", "CEFTAZIDIME"]
+        _drug = get_drug(order.drug_id or drug_ref(drug_name))
+        _scheduled_h = _drug.scheduled_interval_hours if _drug is not None else None
         _freq_per_day = getattr(order, "frequency_per_day", None)
-        if any(d in drug_upper for d in q6h_drugs):
-            admin_hours = [0, 6, 12, 18]  # q6h — clinical override for β-lactam combos
-        elif any(d in drug_upper for d in q8h_drugs):
-            admin_hours = [0, 8, 16]  # q8h — clinical override for carbapenem / adv ceph
+        if _scheduled_h:
+            admin_hours = list(range(0, 24, _scheduled_h))  # q6h / q8h clinical override
         elif _freq_per_day and _freq_per_day > 0:
             admin_hours = _admin_hours_from_frequency(int(_freq_per_day))
         else:
-            # Legacy fallback (unresolvable frequency).
-            daily_drugs = ["LEVOFLOXACIN", "ENOXAPARIN", "FUROSEMIDE"]
-            if any(d in drug_upper for d in daily_drugs) or route == "SC":
+            # Fallback (unresolvable frequency).
+            if (_drug is not None and _drug.default_interval_hours == 24) or route == "SC":
                 admin_hours = [8]  # daily
             elif route == "IV":
                 admin_hours = [0, 8, 16]  # default IV: q8h
@@ -851,7 +849,7 @@ def _generate_mar(
                     actual_datetime=actual,
                     status=status,
                     dose=dose_text,
-                    route=order.route or _determine_route(drug_name, order.clinical_intent),
+                    route=order.route or _determine_route(drug_name, order.clinical_intent, order.drug_id),
                     administered_by=nurse_id,
                     hold_reason=hold_reason,
                 )

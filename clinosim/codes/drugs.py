@@ -68,6 +68,12 @@ class DrugIdentity:
     yj_by_route: dict[str, str] = field(default_factory=dict)
     classes: tuple[str, ...] = ()
     aliases: tuple[str, ...] = ()
+    # Inpatient administration defaults (Issue #2389): the interval that
+    # overrides an order's frequency (β-lactam combinations, carbapenems), the
+    # interval used when an order has no frequency, and the default route.
+    scheduled_interval_hours: int | None = None
+    default_interval_hours: int | None = None
+    default_route: str = ""
 
     def display_for(self, country: str) -> str:
         """Return the locale-appropriate bare generic name.
@@ -79,6 +85,22 @@ class DrugIdentity:
         if (country or "").strip().upper() == "JP":
             return self.names.get("ja") or self.names.get("en", "")
         return self.names.get("en", "")
+
+
+def _opt_int(drug_id: Any, body: dict[str, Any], key: str) -> int | None:
+    value = body.get(key)
+    if value is None:
+        return None
+    if not isinstance(value, int) or isinstance(value, bool) or not 1 <= value <= 24:
+        raise ValueError(f"drugs.yaml: {drug_id!r} {key} must be an integer number of hours in 1..24")
+    return value
+
+
+def _route(drug_id: Any, body: dict[str, Any]) -> str:
+    route = str(body.get("default_route") or "")
+    if route not in ("", "IV", "SC", "IM", "PO"):
+        raise ValueError(f"drugs.yaml: {drug_id!r} default_route must be IV / SC / IM / PO")
+    return route
 
 
 def _parse_catalog(raw: dict[str, Any]) -> dict[str, DrugIdentity]:
@@ -122,6 +144,9 @@ def _parse_catalog(raw: dict[str, Any]) -> dict[str, DrugIdentity]:
             yj_by_route=yj_by_route,
             classes=tuple(str(c) for c in classes),
             aliases=tuple(str(a) for a in aliases if a),
+            scheduled_interval_hours=_opt_int(drug_id, body, "scheduled_interval_hours"),
+            default_interval_hours=_opt_int(drug_id, body, "default_interval_hours"),
+            default_route=_route(drug_id, body),
         )
     return out
 
