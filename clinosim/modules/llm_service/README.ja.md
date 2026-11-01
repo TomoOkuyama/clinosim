@@ -118,9 +118,10 @@ from clinosim.modules.llm_service import (
   使われる。データは
   [`reference_data/task_categories.yaml`](reference_data/task_categories.yaml)。
 - **`DOCUMENT_LOINC`** — document 生成 task ごとの LOINC code。
-  FHIR builder は `loinc_for(task_type)` で参照するため、新 document
-  type は LOINC を 1 度だけ登録し全 consumer が同 map から lookup する。
-  データは [`reference_data/task_loincs.yaml`](reference_data/task_loincs.yaml)。
+  `loinc_for(task_type)` で参照する。文書種別のコードは唯一の定義である
+  `document_type_specs.yaml` から取り (Issue #2344)、
+  [`reference_data/task_loincs.yaml`](reference_data/task_loincs.yaml)
+  には文書パイプライン外の task (`death_summary`) だけを置く。
 - **Prompt manifest**: [`prompts/{en,ja}/`](prompts/) — 言語別
   prompt file を `PromptRegistry` が load。新言語追加は folder +
   `PromptSpec` entry を足すだけで engine code 変更不要。

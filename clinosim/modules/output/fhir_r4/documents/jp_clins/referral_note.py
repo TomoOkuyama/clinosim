@@ -21,6 +21,7 @@ from clinosim.codes import display as registry_display
 from clinosim.codes import get_system_uri
 from clinosim.modules._shared import get_attr_or_key as _o
 from clinosim.modules._shared import uses_jp_clins_profile
+from clinosim.modules.document.narrative.registry import document_loinc
 from clinosim.modules.output.fhir_r4.documents.referral_orgs import (
     format_referral_destination_text,
     pick_external_hospital,
@@ -107,10 +108,10 @@ def _build_jp_clins_referral_note_composition(
     # v3 fix: eReferral profile constrains type.coding to a
     # single doc-typecodes coding. LOINC copy removed; the LOINC value is
     # preserved via type.text.
-    disp = registry_display("jpfhir-doc-typecodes", "57133-1", lang) or "診療情報提供書"
+    disp = registry_display("jpfhir-doc-typecodes", document_loinc("referral_note"), lang) or "診療情報提供書"
     comp["type"] = {
         "coding": [
-            {"system": _JPFHIR_DOC_TYPECODES_SYSTEM, "code": "57133-1", "display": disp},
+            {"system": _JPFHIR_DOC_TYPECODES_SYSTEM, "code": document_loinc("referral_note"), "display": disp},
         ],
         "text": disp,
     }

@@ -42,6 +42,7 @@ from __future__ import annotations
 
 from typing import Any
 
+from clinosim.modules.document.narrative.registry import document_loinc
 from clinosim.modules.output.fhir_r4.encounters.encounter import resolve_encounter_id
 
 # LOINC codes that semantically belong to the ED stay. Kept as a
@@ -50,8 +51,8 @@ from clinosim.modules.output.fhir_r4.encounters.encounter import resolve_encount
 # if they ever grow their own routing hooks.
 ED_DOC_TYPE_LOINC: frozenset[str] = frozenset(
     {
-        "34878-9",  # ED note (救急科記録)
-        "54094-8",  # ED triage note (トリアージ記録)
+        document_loinc("ed_note"),  # ED note (救急科記録)
+        document_loinc("ed_triage_note"),  # ED triage note (トリアージ記録)
     }
 )
 

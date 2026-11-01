@@ -122,10 +122,10 @@ from clinosim.modules.llm_service import (
   provider. Data lives in
   [`reference_data/task_categories.yaml`](reference_data/task_categories.yaml).
 - **`DOCUMENT_LOINC`** — LOINC code per document-generation task,
-  used by FHIR builders through `loinc_for(task_type)` so a new
-  document type registers its LOINC once and every consumer looks
-  it up from the same map. Data lives in
-  [`reference_data/task_loincs.yaml`](reference_data/task_loincs.yaml).
+  read through `loinc_for(task_type)`. Document types take their code
+  from `document_type_specs.yaml` (their one definition, Issue #2344);
+  [`reference_data/task_loincs.yaml`](reference_data/task_loincs.yaml)
+  lists only the tasks outside the document pipeline (`death_summary`).
 - **Prompt manifest**: [`prompts/{en,ja}/`](prompts/) — per-language
   prompt files loaded by `PromptRegistry`. Adding a new language
   is a matter of adding the folder + `PromptSpec` entries; no

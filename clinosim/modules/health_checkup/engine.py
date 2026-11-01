@@ -32,6 +32,7 @@ from clinosim.codes.drugs import has_drug
 from clinosim.codes.valuesets import concept_group
 from clinosim.modules._shared import get_attr_or_key as _o
 from clinosim.modules._shared import is_jp
+from clinosim.modules.document.narrative.registry import document_loinc
 from clinosim.modules.health_checkup._checkup_thresholds import (
     BMI_MEASUREMENT_NOISE_SD,
     BMI_PHYSIOLOGIC_MAX,
@@ -354,7 +355,7 @@ def _build_checkup_document_stub(
     return ClinicalDocument(
         document_id=f"doc-{encounter_id}-{doc_seq:02d}",
         task_type="health_checkup_report",
-        loinc_code="53576-5",
+        loinc_code=document_loinc("health_checkup_report"),
         patient_id=patient_id,
         encounter_id=encounter_id,
         author_practitioner_id="",

@@ -25,6 +25,7 @@ import yaml
 from clinosim.codes import display as registry_display
 from clinosim.codes import get_system_uri
 from clinosim.modules._shared import get_attr_or_key as _o
+from clinosim.modules.document.narrative.registry import document_loinc
 from clinosim.modules.output.fhir_r4.encounters.encounter import resolve_encounter_id
 from clinosim.modules.output.fhir_r4.lib.common import _escape_html, derive_meta_last_updated
 
@@ -144,10 +145,12 @@ def _build_jp_clins_discharge_summary_composition(
     # emitted for interop) violated the profile slicing on 129 resources.
     # The LOINC value is preserved via type.text so downstream consumers
     # can still recover the same code as text.
-    disp = registry_display("jpfhir-doc-typecodes", "18842-5", lang) or _JP_EDS_TYPE_DISPLAY_JA
+    disp = (
+        registry_display("jpfhir-doc-typecodes", document_loinc("discharge_summary"), lang) or _JP_EDS_TYPE_DISPLAY_JA
+    )
     comp["type"] = {
         "coding": [
-            {"system": _JPFHIR_DOC_TYPECODES_SYSTEM, "code": "18842-5", "display": disp},
+            {"system": _JPFHIR_DOC_TYPECODES_SYSTEM, "code": document_loinc("discharge_summary"), "display": disp},
         ],
         "text": disp,
     }

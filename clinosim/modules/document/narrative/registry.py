@@ -252,6 +252,12 @@ def load_document_type_specs() -> dict[DocumentType, DocumentTypeSpec]:
     return result
 
 
+def document_loinc(doc_type: str) -> str:
+    """LOINC document code of a document type — the one definition, in
+    document_type_specs.yaml (Issue #2344). Raises on an unknown type."""
+    return load_document_type_specs()[DocumentType(doc_type)].loinc_code
+
+
 def specs_for_country(country: str) -> list[DocumentTypeSpec]:
     """Locale gating: return only specs supporting given country."""
     return [s for s in load_document_type_specs().values() if country.lower() in s.countries_supported]

@@ -120,6 +120,7 @@ from clinosim.modules.document import (
     DOC_REFERENCE_ID_PREFIX,
     NURSING_LOINCS,
 )
+from clinosim.modules.document.narrative.registry import document_loinc
 from clinosim.modules.output.cif_reader import resolve_current_narrative_dir
 from clinosim.modules.output.fhir_r4.encounters.care_team import CARE_TEAM_ID_PREFIX
 
@@ -359,7 +360,7 @@ def _proof_nursing_author_fallback_fires_on_missing_nurse() -> bool:
     """
     from clinosim.modules.document.engine import _pick_document_author
 
-    spec = {"loinc_code": "78390-2"}  # nursing spec
+    spec = {"loinc_code": document_loinc("admission_nursing_assessment")}  # nursing spec
     enc = {
         "encounter_id": "enc-fallback-proof",
         "attending_physician_id": "DR-IM-002",
@@ -393,14 +394,14 @@ def _write_nursing_author_fixture(
                     {
                         "document_id": f"doc-{encounter_id}-01",
                         "task_type": "admission_nursing_assessment",
-                        "loinc_code": "78390-2",
+                        "loinc_code": document_loinc("admission_nursing_assessment"),
                         "encounter_id": encounter_id,
                         "author_practitioner_id": nurse_id,
                     },
                     {
                         "document_id": f"doc-{encounter_id}-02",
                         "task_type": "progress_note",
-                        "loinc_code": "11506-3",
+                        "loinc_code": document_loinc("progress_note"),
                         "encounter_id": encounter_id,
                         "author_practitioner_id": "DR-IM-001",
                     },
@@ -445,7 +446,7 @@ def _proof_narrative_pass_populated_ratio() -> float:
                         {
                             "document_id": "doc-narrate-01",
                             "task_type": "admission_hp",
-                            "loinc_code": "34117-2",
+                            "loinc_code": document_loinc("admission_hp"),
                             "format_type": "composition",
                             "narrative": None,
                         }
@@ -501,7 +502,7 @@ def _proof_structural_cif_zero_narrative_content() -> int:
         doc = ClinicalDocument(
             document_id="doc-leak-01",
             task_type="admission_hp",
-            loinc_code="34117-2",
+            loinc_code=document_loinc("admission_hp"),
             encounter_id="ENC-leak-1",
             format_type="composition",
             narrative=ClinicalDocumentNarrative(
@@ -839,7 +840,7 @@ def _build_document_proof() -> dict[str, Any]:
     free_text_doc = {
         "document_id": f"{DOC_REFERENCE_ID_PREFIX}enc-proof-hp",
         "task_type": "progress_note",
-        "loinc_code": "11506-3",
+        "loinc_code": document_loinc("progress_note"),
         "patient_id": "pt-proof",
         "encounter_id": "enc-proof",
         "author_practitioner_id": "dr-proof",
@@ -869,7 +870,7 @@ def _build_document_proof() -> dict[str, Any]:
     composition_doc = {
         "document_id": f"{DOC_REFERENCE_ID_PREFIX}enc-proof-ds",
         "task_type": "discharge_summary",
-        "loinc_code": "18842-5",
+        "loinc_code": document_loinc("discharge_summary"),
         "patient_id": "pt-proof",
         "encounter_id": "enc-proof",
         "author_practitioner_id": "dr-proof",
@@ -1094,7 +1095,7 @@ def _build_document_proof() -> dict[str, Any]:
             (
                 "no_drop: ClinicalDocument.loinc_code -> DocumentReference.type.coding[0].code",
                 dref["type"]["coding"][0]["code"],
-                "11506-3",
+                document_loinc("progress_note"),
             ),
             (
                 "no_drop: patient.allergies[].allergen_code -> AllergyIntolerance.code.coding[0].code",
@@ -1154,7 +1155,7 @@ def _build_document_proof() -> dict[str, Any]:
             ),
             (
                 "no_drop: triage_data.level → ED_TRIAGE_NOTE LOINC 54094-8 in emergency dispatch",
-                any(s.loinc_code == "54094-8" for s in specs_for_encounter_type("emergency")),
+                any(s.loinc_code == document_loinc("ed_triage_note") for s in specs_for_encounter_type("emergency")),
                 True,
             ),
             (
