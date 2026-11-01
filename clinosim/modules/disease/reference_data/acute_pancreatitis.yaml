@@ -367,7 +367,7 @@ expected_vital_distributions:
 drugs:
   first_line:
     japan:
-      - drug: "Lactated Ringer"
+      - drug_id: lactated_ringer_solution
         dose: "250-500 mL/h IV for first 12-24h"
         route: IV
         note: "Aggressive early fluid resuscitation (JP guidelines: goal-directed)"
@@ -383,7 +383,7 @@ drugs:
         pregnancy_safe: true
 
     us:
-      - drug: "Lactated Ringer"
+      - drug_id: lactated_ringer_solution
         dose: "250-500 mL/h IV for first 12-24h"
         route: IV
         pregnancy_safe: true

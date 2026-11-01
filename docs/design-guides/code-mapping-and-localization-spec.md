@@ -238,6 +238,5 @@ These parts of the code base do not yet conform. Each one is removed by the issu
 | Some Composition section codes do not mean their section. | #2391 |
 | The free-text name translator (`locale.free_text.localize_free_text`) is one generic translator: procedure, SNOMED and allergen names go through the drug-name dictionary and its substring replacement. | #2408 |
 | Language literals are still embedded in Python. | #2277 |
-| Some protocol entries name a catalog drug by an alias or variant spelling. | #2415 |
 | Some non-drug interventions are written as `drug:`, and the loader accepts name-only drug entries. | #2424 |
 | No lint guard enforces §8. | #2266 |

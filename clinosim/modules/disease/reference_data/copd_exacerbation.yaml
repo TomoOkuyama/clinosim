@@ -443,7 +443,7 @@ expected_vital_distributions:
 drugs:
   first_line:
     japan:
-      - drug: "Salbutamol"
+      - drug_id: albuterol
         dose: "2.5mg nebulizer q4h (q1h PRN acute)"
         route: inhaled
         pregnancy_safe: true

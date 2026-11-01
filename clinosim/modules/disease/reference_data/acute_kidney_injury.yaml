@@ -417,7 +417,7 @@ expected_vital_distributions:
 drugs:
   first_line:
     japan:
-      - drug: "Normal_saline"
+      - drug_id: normal_saline
         dose: "200-500 mL/h IV (if prerenal, fluid-responsive)"
         route: IV
         note: "Fluid resuscitation for prerenal AKI"
@@ -428,7 +428,7 @@ drugs:
         note: "Only for volume management, does not improve renal recovery"
         pregnancy_safe: false
     us:
-      - drug: "Lactated_Ringers"
+      - drug_id: lactated_ringer_solution
         dose: "200-500 mL/h IV (if prerenal, fluid-responsive)"
         route: IV
         note: "Balanced crystalloid preferred over NS to avoid hyperchloremic acidosis"
@@ -441,25 +441,25 @@ drugs:
   hyperkalemia_management:
     _indication_tag: electrolyte_correction
     japan:
-      - drug: "Calcium_gluconate"
+      - drug_id: calcium_gluconate
         dose: "10mL 8.5% IV over 5min"
         route: IV
         indication: "K > 6.0 or ECG changes"
         note: "Cardioprotective, does not lower K"
-      - drug: "Insulin_regular"
+      - drug_id: insulin_regular_human
         dose: "10 units IV + D50W 50mL"
         route: IV
         indication: "K > 5.5"
         note: "Shifts K intracellularly"
-      - drug: "Sodium_polystyrene_sulfonate"
+      - drug_id: sodium_polystyrene_sulfonate
         dose: "15-30g PO or PR"
         indication: "K > 5.5"
     us:
-      - drug: "Calcium_gluconate"
+      - drug_id: calcium_gluconate
         dose: "1g (10mL 10%) IV over 5min"
         route: IV
         indication: "K > 6.0 or ECG changes"
-      - drug: "Insulin_regular"
+      - drug_id: insulin_regular_human
         dose: "10 units IV + D50W 50mL"
         route: IV
       - drug_id: patiromer
@@ -468,12 +468,12 @@ drugs:
 
   acidosis_management:
     japan:
-      - drug: "Sodium_bicarbonate"
+      - drug_id: sodium_bicarbonate
         dose: "50-100 mEq IV over 1-2h"
         route: IV
         indication: "pH < 7.1 or CO2 < 12"
     us:
-      - drug: "Sodium_bicarbonate"
+      - drug_id: sodium_bicarbonate
         dose: "50-150 mEq IV"
         route: IV
         indication: "pH < 7.1 or severe symptomatic acidosis"
@@ -693,10 +693,10 @@ course_archetypes:
       day_2:
         start:
           japan:
-            - {drug: "Calcium_gluconate", dose: "10mL 8.5% IV stat"}
+            - {drug_id: calcium_gluconate, dose: "10mL 8.5% IV stat"}
             - {drug: "Emergent_dialysis", dose: "stat"}
           us:
-            - {drug: "Calcium_gluconate", dose: "1g IV stat"}
+            - {drug_id: calcium_gluconate, dose: "1g IV stat"}
             - {drug: "Emergent_dialysis", dose: "stat"}
         action: "icu_transfer"
     triggers:
