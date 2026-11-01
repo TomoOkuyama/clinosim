@@ -42,6 +42,7 @@ from typing import Any
 
 from clinosim.audit.registry import ModuleAuditSpec
 from clinosim.audit.types import AuditFinding, AxisResult, Cohort, Severity
+from clinosim.codes import get_system_uri, jp_clins_lab_system
 
 # ────────────────────────────────────────────────────────────────────
 # Predicates
@@ -95,12 +96,12 @@ _EN_CANONICAL_PREFIXES: tuple[str, ...] = (
     "http://terminology.hl7.org/",
     "http://hl7.org/fhir/",
     # International code systems
-    "http://loinc.org",
+    get_system_uri("loinc"),
     "http://snomed.info/",
     "http://www.nlm.nih.gov/research/umls/",
     "http://www.ama-assn.org/",
     "http://dicom.nema.org/",
-    "http://unitsofmeasure.org",
+    get_system_uri("ucum"),
     # IANA / ISO registered vocabularies (BCP 47 languages, ISO codes)
     "urn:ietf:",
     "urn:iso:",
@@ -112,9 +113,9 @@ _EN_CANONICAL_SYSTEMS: frozenset[str] = frozenset(
         # / InfectionLabo / Uncoded displays are the English SD Fixed
         # values by design (dual-slot rule: JP text goes into LocalCode
         # display or ``code.text``). Exclude their displays.
-        "http://jpfhir.jp/fhir/clins/CodeSystem/JLAC10/JP_CLINS_ObsLabResult_CoreLabo_CS",
-        "http://jpfhir.jp/fhir/clins/CodeSystem/JLAC10/JP_CLINS_ObsLabResult_InfectionLabo_CS",
-        "http://jpfhir.jp/fhir/clins/CodeSystem/JLAC10/JP_CLINS_ObsLabResult_Uncoded_CS",
+        jp_clins_lab_system("corelabo_jlac10"),
+        jp_clins_lab_system("infectionlabo_jlac10"),
+        jp_clins_lab_system("uncoded"),
     }
 )
 

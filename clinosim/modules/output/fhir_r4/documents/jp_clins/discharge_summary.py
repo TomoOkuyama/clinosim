@@ -17,13 +17,10 @@ comments for the clause-by-clause mapping.
 from __future__ import annotations
 
 from functools import cache
-from pathlib import Path
 from typing import Any
 
-import yaml
-
+from clinosim.codes import data_table, get_system_uri
 from clinosim.codes import display as registry_display
-from clinosim.codes import get_system_uri
 from clinosim.locale.i18n import t
 from clinosim.modules._shared import get_attr_or_key as _o
 from clinosim.modules.document.narrative.registry import document_loinc
@@ -54,9 +51,7 @@ _JPFHIR_DOC_SECTION_SYSTEM = get_system_uri("jpfhir-doc-section")
 @cache
 def _jp_ds_sections() -> dict[str, dict[str, Any]]:
     """Load the JP-CLINS eDS section slice registry."""
-    path = Path(__file__).resolve().parents[5] / "codes" / "data" / "jp-clins-eds-section-codes.yaml"
-    with path.open(encoding="utf-8") as fh:
-        raw = yaml.safe_load(fh) or {}
+    raw = data_table("jp-clins-eds-section-codes")
     out: dict[str, dict[str, Any]] = {}
     for k, v in (raw.get("sections", {}) or {}).items():
         if isinstance(v, dict):

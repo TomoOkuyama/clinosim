@@ -14,11 +14,10 @@ Coding displays and CodeableConcept text are set at emit time with
 from __future__ import annotations
 
 from functools import cache
-from pathlib import Path
 from typing import Any
 
+from clinosim.codes import data_table, get_system_uri
 from clinosim.codes import display as registry_display
-from clinosim.codes import get_system_uri
 from clinosim.codes.icd10 import medis_disease_keyno
 from clinosim.codes.ucum import ucum_quantity
 from clinosim.locale.i18n import t
@@ -159,11 +158,8 @@ _JP_MHLW_MEDICATION_USAGE_EPRESCRIPTION_CS = get_system_uri("jp-medication-usage
 
 @cache
 def _drug_dosing_conventions() -> dict[str, dict[str, Any]]:
-    import yaml
 
-    path = Path(__file__).resolve().parents[4] / "codes" / "data" / "clinosim-drug-dosing-conventions.yaml"
-    with path.open(encoding="utf-8") as fh:
-        raw = yaml.safe_load(fh) or {}
+    raw = data_table("clinosim-drug-dosing-conventions")
     drugs = raw.get("drugs") or {}
     out: dict[str, dict[str, Any]] = {}
     for name, row in drugs.items():
@@ -209,11 +205,8 @@ _DRUG_PRN_MHLW_CODE: dict[str, tuple[str, str]] = _drug_prn_mhlw_code()
 # `clinosim/codes/data/mhlw-ecs-non-oral-route-markers.yaml` (Finding 3).
 @cache
 def _non_oral_route_markers() -> frozenset[str]:
-    import yaml
 
-    path = Path(__file__).resolve().parents[4] / "codes" / "data" / "mhlw-ecs-non-oral-route-markers.yaml"
-    with path.open(encoding="utf-8") as fh:
-        raw = yaml.safe_load(fh) or {}
+    raw = data_table("mhlw-ecs-non-oral-route-markers")
     return frozenset(str(m) for m in (raw.get("non_oral_route_markers", []) or []))
 
 
@@ -226,11 +219,8 @@ def _non_oral_route_markers() -> frozenset[str]:
 @cache
 def _mhlw_medication_usage_code_raw() -> dict[str, Any]:
     """Load the MHLW medication-usage CS dispatch yaml."""
-    import yaml
 
-    path = Path(__file__).resolve().parents[4] / "codes" / "data" / "mhlw-medication-usage-code.yaml"
-    with path.open(encoding="utf-8") as fh:
-        return yaml.safe_load(fh) or {}
+    return data_table("mhlw-medication-usage-code")
 
 
 def _default_meal_context_by_freq_from_yaml() -> dict[int, str]:

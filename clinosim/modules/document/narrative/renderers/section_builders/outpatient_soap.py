@@ -34,11 +34,9 @@ from __future__ import annotations
 
 import hashlib
 from functools import cache
-from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
-import yaml
-
+from clinosim.codes import data_table
 from clinosim.codes import display as registry_display
 from clinosim.codes.icd10 import icd10_system
 from clinosim.codes.valuesets import concept_group, iter_chronic_codes
@@ -84,9 +82,7 @@ def _chronic_med_class_hints_raw() -> dict[str, dict[str, Any]]:
 
     Returns a `{class_key: {prefix, en: [...], ja: [...]}}` dict.
     """
-    path = Path(__file__).resolve().parents[5] / "codes" / "data" / "chronic-med-class-hints.yaml"
-    with path.open(encoding="utf-8") as fh:
-        raw = yaml.safe_load(fh) or {}
+    raw = data_table("chronic-med-class-hints")
     classes = raw.get("classes") or {}
     out: dict[str, dict[str, Any]] = {}
     for class_key, row in classes.items():

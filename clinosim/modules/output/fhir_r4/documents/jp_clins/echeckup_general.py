@@ -16,13 +16,10 @@ is unchanged (hardcoded-review Phase A3).
 from __future__ import annotations
 
 from functools import cache
-from pathlib import Path
 from typing import Any
 
-import yaml
-
+from clinosim.codes import data_table, get_system_uri
 from clinosim.codes import display as registry_display
-from clinosim.codes import get_system_uri
 from clinosim.locale.i18n import t
 from clinosim.modules._shared import get_attr_or_key as _o
 from clinosim.modules.document.narrative.registry import document_loinc
@@ -45,9 +42,7 @@ _JPFHIR_DOC_TYPECODES_SYSTEM = get_system_uri("jpfhir-doc-typecodes")
 @cache
 def _jp_echeckup_section_code_matrix() -> dict[str, dict[str, str]]:
     """Load the jpfhir eCheckup section-code matrix from yaml."""
-    path = Path(__file__).resolve().parents[5] / "codes" / "data" / "mhlw-echeckup-section-codes.yaml"
-    with path.open(encoding="utf-8") as fh:
-        raw = yaml.safe_load(fh) or {}
+    raw = data_table("mhlw-echeckup-section-codes")
     out: dict[str, dict[str, str]] = {}
     for checkup_type, section_map in (raw.get("sections", {}) or {}).items():
         if isinstance(section_map, dict):

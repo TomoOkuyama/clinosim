@@ -9,14 +9,14 @@ from __future__ import annotations
 import re
 import uuid
 from functools import cache
-from pathlib import Path
 from typing import Any
 
-from clinosim.codes import display as registry_display
 from clinosim.codes import (
+    data_table,
     get_system_uri,
     system_key_for,
 )
+from clinosim.codes import display as registry_display
 from clinosim.codes import lookup as code_lookup
 from clinosim.codes.drugs import drug_system_uri, is_verified_yj, jp_drug_code_table
 from clinosim.codes.ucum import ucum_quantity
@@ -1769,11 +1769,8 @@ def _build_medication_admin(
 
 @cache
 def _medication_class_rows() -> dict[str, dict[str, Any]]:
-    import yaml
 
-    path = Path(__file__).resolve().parents[4] / "codes" / "data" / "medication-class-members.yaml"
-    with path.open(encoding="utf-8") as fh:
-        raw = yaml.safe_load(fh) or {}
+    raw = data_table("medication-class-members")
     classes = raw.get("classes") or {}
     out: dict[str, dict[str, Any]] = {}
     for name, row in classes.items():

@@ -5,13 +5,10 @@ from __future__ import annotations
 from dataclasses import dataclass
 from datetime import date, timedelta
 from functools import cache
-from pathlib import Path
 from typing import Any
 
-import yaml
-
 from clinosim.audit.types import Cohort
-from clinosim.codes import get_system_uri
+from clinosim.codes import data_table, get_system_uri
 from clinosim.codes.drugs import resolve_drug
 from clinosim.eval.engine import EvalCheck, Outcome, Severity
 from clinosim.locale.loader import load_code_mapping
@@ -90,9 +87,7 @@ def _lab_bounds_from_yaml() -> dict[str, dict[str, tuple[float, float]]]:
         inner = out.setdefault(str(loinc), {})
         inner[unit] = inner[ucum_code(unit)] = (float(lo), float(hi))
 
-    path = Path(__file__).resolve().parents[2] / "codes" / "data" / "lab-plausibility-bounds.yaml"
-    with path.open(encoding="utf-8") as fh:
-        raw = yaml.safe_load(fh) or {}
+    raw = data_table("lab-plausibility-bounds")
     for loinc, unit_map in (raw.get("loincs", {}) or {}).items():
         if not isinstance(unit_map, dict):
             continue
@@ -145,9 +140,7 @@ _LAB_WINDOW_DAYS = 7
 
 @cache
 def _condition_lab_pairings_from_yaml() -> tuple[_CondLabPairing, ...]:
-    path = Path(__file__).resolve().parents[2] / "codes" / "data" / "condition-lab-pairings.yaml"
-    with path.open(encoding="utf-8") as fh:
-        raw = yaml.safe_load(fh) or {}
+    raw = data_table("condition-lab-pairings")
     out: list[_CondLabPairing] = []
     for name, row in (raw.get("pairings", {}) or {}).items():
         if not isinstance(row, dict):

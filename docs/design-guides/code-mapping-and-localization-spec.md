@@ -118,6 +118,7 @@ Consumers resolve names only through these functions. Several are added by open 
 | `display(system, code, lang)` | display in `lang`, then English | `None` |
 | `code_exists(system, code, *, exact=False)` | registration check | `False`; raises on an unknown system |
 | `get_system_uri(system)` / `system_key_for_uri(uri)` | URI ↔ key | `urn:clinosim:<key>` / `None` |
+| `data_table(name)` | parsed `codes/data/<name>.yaml` for a table without its own accessor (a copy) | raises `FileNotFoundError` |
 | `system_key_for(kind, country)` | system key for a domain and country | raises on an unknown kind |
 | `is_english_only_system(key_or_uri)` | whether displays are English-only (§5.3) | — |
 | `jp_clins_lab_system(kind)` / `jlac10_display(code, lang)` | JP lab CodeSystem URI / JLAC10 display | raises / `None` |
@@ -221,6 +222,7 @@ The output language comes from the country: `clinosim.countries.lang_for(country
 ## 8. Prohibited patterns
 
 - A code-system URI string literal outside `clinosim/codes/`. Use `get_system_uri`. Prefix lists that name URI families are the only exception.
+- Reading a `codes/data/*.yaml` file directly, or importing `clinosim.codes.loader._load_system`, outside `clinosim/codes/`. Use the per-source accessor or `data_table`.
 - A code literal in a Python comparison or a Python dict of codes or displays (CPT, LOINC, SNOMED, ICD, YJ, ...). Use a value set, a catalog or a named concept.
 - A second table for the same vocabulary or code mapping.
 - Identifying a drug, lab or condition by substring of free text. Use the catalog id, canonical lab name or value set (`names_drug` is the one sanctioned name matcher).
@@ -234,9 +236,4 @@ These parts of the code base do not yet conform. Each one is removed by the issu
 
 | Deviation | Issue |
 |---|---|
-| Localized YAML fields use mixed shapes (nested `{lang: text}`, 25 `*_ja` field names, `dose_ja` vs `dose_text_ja`). | #2398 |
-| Some Composition section codes do not mean their section. | #2391 |
 | The free-text name translator (`locale.free_text.localize_free_text`) is one generic translator: procedure, SNOMED and allergen names go through the drug-name dictionary and its substring replacement. | #2408 |
-| Language literals are still embedded in Python. | #2277 |
-| Some non-drug interventions are written as `drug:`, and the loader accepts name-only drug entries. | #2424 |
-| No lint guard enforces §8. | #2266 |

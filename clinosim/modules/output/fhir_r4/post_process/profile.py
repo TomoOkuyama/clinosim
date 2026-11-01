@@ -13,9 +13,8 @@ data-completeness verification".
 from __future__ import annotations
 
 from functools import cache
-from pathlib import Path
 
-from clinosim.codes import get_system_uri
+from clinosim.codes import data_table, get_system_uri
 
 # deferred cleanup (g): shape unification.
 # JP Core registry uses `dict[str, list[str]]` (was `dict[str, str]`) so its
@@ -34,41 +33,29 @@ from clinosim.codes import get_system_uri
 
 @cache
 def _jp_core_profiles() -> dict[str, list[str]]:
-    import yaml
 
-    path = Path(__file__).resolve().parents[4] / "codes" / "data" / "fhir-profiles-jp-core.yaml"
-    with path.open(encoding="utf-8") as fh:
-        raw = yaml.safe_load(fh) or {}
+    raw = data_table("fhir-profiles-jp-core")
     return {str(rt): [str(u) for u in urls] for rt, urls in (raw.get("profiles", {}) or {}).items()}
 
 
 @cache
 def _us_core_profiles() -> dict[str, list[str]]:
-    import yaml
 
-    path = Path(__file__).resolve().parents[4] / "codes" / "data" / "fhir-profiles-us-core.yaml"
-    with path.open(encoding="utf-8") as fh:
-        raw = yaml.safe_load(fh) or {}
+    raw = data_table("fhir-profiles-us-core")
     return {str(rt): [str(u) for u in urls] for rt, urls in (raw.get("profiles", {}) or {}).items()}
 
 
 @cache
 def _us_core_condition_category_profiles() -> dict[str, str]:
-    import yaml
 
-    path = Path(__file__).resolve().parents[4] / "codes" / "data" / "fhir-profiles-us-core.yaml"
-    with path.open(encoding="utf-8") as fh:
-        raw = yaml.safe_load(fh) or {}
+    raw = data_table("fhir-profiles-us-core")
     return {str(k): str(v) for k, v in (raw.get("condition_category_profiles", {}) or {}).items()}
 
 
 @cache
 def _jp_clins_profiles() -> dict[str, list[str]]:
-    import yaml
 
-    path = Path(__file__).resolve().parents[4] / "codes" / "data" / "fhir-profiles-jp-clins.yaml"
-    with path.open(encoding="utf-8") as fh:
-        raw = yaml.safe_load(fh) or {}
+    raw = data_table("fhir-profiles-jp-clins")
     return {str(rt): [str(u) for u in urls] for rt, urls in (raw.get("profiles", {}) or {}).items()}
 
 

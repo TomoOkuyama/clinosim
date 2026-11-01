@@ -7,10 +7,9 @@ leaf data, shared helpers, and stdlib/first-party deps — never the adapter.
 from __future__ import annotations
 
 from functools import cache
-from pathlib import Path
 from typing import Any
 
-from clinosim.codes import get_system_uri, system_key_for
+from clinosim.codes import data_table, get_system_uri, system_key_for
 from clinosim.codes import lookup as code_lookup
 from clinosim.codes.snomed import snomed_for
 from clinosim.locale.i18n import t
@@ -74,11 +73,8 @@ from clinosim.modules.output.fhir_r4.lib.ids import wrap_as_identifier
 @cache
 def _icd10_condition_bodysite_map() -> dict[str, str]:
     """Load the ICD-10 prefix → SNOMED body-site crosswalk."""
-    import yaml
 
-    path = Path(__file__).resolve().parents[4] / "codes" / "data" / "icd10-condition-bodysite-crosswalk.yaml"
-    with path.open(encoding="utf-8") as fh:
-        raw = yaml.safe_load(fh) or {}
+    raw = data_table("icd10-condition-bodysite-crosswalk")
     return {str(k).upper(): str(v) for k, v in (raw.get("crosswalk", {}) or {}).items()}
 
 

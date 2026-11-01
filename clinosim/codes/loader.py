@@ -18,9 +18,11 @@ Usage:
 
 from __future__ import annotations
 
+import copy
 from dataclasses import dataclass
 from functools import cache
 from pathlib import Path
+from typing import Any
 
 import yaml
 
@@ -329,6 +331,22 @@ def slug_to_code(system_key: str) -> dict[str, str]:
     with open(path, encoding="utf-8") as f:
         data = yaml.safe_load(f) or {}
     return dict(data.get("slug_to_code", {}) or {})
+
+
+@cache
+def _data_table(name: str) -> dict[str, Any]:
+    with open(_DATA_DIR / f"{name}.yaml", encoding="utf-8") as f:
+        return yaml.safe_load(f) or {}
+
+
+def data_table(name: str) -> dict[str, Any]:
+    """Parsed ``codes/data/<name>.yaml`` (a copy, so callers may reshape it).
+
+    The one way code outside ``clinosim.codes`` reads a code-data table that
+    has no dedicated accessor (Issue #2266); FileNotFoundError when the table
+    does not exist.
+    """
+    return copy.deepcopy(_data_table(name))
 
 
 # Country → code-system key selection for clinical data kinds (common-logic

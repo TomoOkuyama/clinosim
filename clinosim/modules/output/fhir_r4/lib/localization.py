@@ -11,8 +11,8 @@ This module must NOT import ``fhir_r4_adapter`` (no circular import).
 from __future__ import annotations
 
 from functools import cache
-from pathlib import Path
 
+from clinosim.codes import data_table
 from clinosim.codes import lookup as code_lookup
 from clinosim.locale.loader import load_department_display as _load_department_display
 from clinosim.locale.loader import load_med_terms as _load_med_terms
@@ -101,11 +101,8 @@ def _procedure_display(code: str, lang: str, fallback: str = "") -> str:
 
 @cache
 def _fhir_ja_labels() -> dict[str, dict[str, str]]:
-    import yaml
 
-    path = Path(__file__).resolve().parents[4] / "codes" / "data" / "fhir-ja-labels.yaml"
-    with path.open(encoding="utf-8") as fh:
-        raw = yaml.safe_load(fh) or {}
+    raw = data_table("fhir-ja-labels")
     out: dict[str, dict[str, str]] = {}
     for section in ("routes", "frequencies", "fixed_labels"):
         rows = raw.get(section) or {}

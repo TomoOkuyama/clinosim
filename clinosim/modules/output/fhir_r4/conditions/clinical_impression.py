@@ -23,6 +23,7 @@ from __future__ import annotations
 
 from typing import Any
 
+from clinosim.codes import get_system_uri
 from clinosim.modules._shared import get_attr_or_key as _o
 from clinosim.modules._shared import pick_localized_field, resolve_lang
 from clinosim.modules.document import CLINICAL_IMPRESSION_ID_PREFIX
@@ -123,7 +124,7 @@ def _build_clinical_impression(imp: Any, patient_id: str, country: str = "US") -
         code_dict: dict[str, Any] = {
             "coding": [
                 {
-                    "system": "http://loinc.org",
+                    "system": get_system_uri("loinc"),
                     "code": code_loinc,
                     **({"display": code_loinc_display} if code_loinc_display else {}),
                 }
