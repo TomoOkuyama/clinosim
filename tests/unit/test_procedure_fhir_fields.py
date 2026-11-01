@@ -213,10 +213,13 @@ def test_fhir_procedure_has_complication_when_present():
 
 
 def test_fhir_procedure_japanese_display():
+    # Dual slot (Issue #2375): English SNOMED display in the coding,
+    # Japanese label in text.
     r = _build_procedure(_proc_dict(), "PAT-001", 0, "JP")
-    assert r["category"]["coding"][0]["display"] == "手術"
-    assert r["performer"][0]["function"]["coding"][0]["display"] == "執刀医"
-    assert r["bodySite"][0]["coding"][0]["display"] == "大腿骨"
+    assert r["category"]["coding"][0]["display"] == "Surgical procedure"
+    assert r["category"]["text"] == "手術"
+    assert r["performer"][0]["function"]["text"] == "執刀医"
+    assert r["bodySite"][0]["text"] == "大腿骨"
 
 
 def test_fhir_procedure_omits_empty_fields():

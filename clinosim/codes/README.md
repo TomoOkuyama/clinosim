@@ -43,12 +43,6 @@ from clinosim.codes import (
 )
 ```
 
-Additional loader-level helpers, not re-exported at package level but
-importable from `clinosim.codes.loader`:
-
-```python
-from clinosim.codes.loader import is_japanese_only_display_system
-```
 
 HL7 vocabulary StrEnums for the Encounter resource (Issue #562) —
 importable from `clinosim.codes.hl7_encounter`:
@@ -242,8 +236,7 @@ codes:
   its URI becomes `urn:clinosim:<key>`; `_BUILTIN_URIS[key]` is used
   only for keys with no YAML and for `_SYSTEM_DATA_ALIASES` entries.
 - Every entry under `codes` must include at least `en` (or `ja` for
-  JP-only display systems — see
-  `is_japanese_only_display_system`).
+  JP-only display systems such as `icd-10-mhlw`).
 - Additional languages use ISO 639-1 two-letter codes (`ja`, `de`,
   `fr`, `zh`, …).
 - Code values are strings and preserve source formatting: ICD uses

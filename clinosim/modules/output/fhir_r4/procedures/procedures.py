@@ -13,15 +13,12 @@ from clinosim.codes import (
     get_system_uri,
     system_key_for,
 )
-from clinosim.codes import (
-    lookup as code_lookup,
-)
 from clinosim.codes.procedures import bedside_procedures, procedure_type_display
 from clinosim.codes.snomed import snomed_for_phrase
 from clinosim.modules._shared import is_jp, is_us, resolve_lang
 from clinosim.modules.output.fhir_r4.demographics.patient import patient_ref
 from clinosim.modules.output.fhir_r4.encounters.encounter import encounter_ref
-from clinosim.modules.output.fhir_r4.lib.common import system_coding, to_fhir_datetime
+from clinosim.modules.output.fhir_r4.lib.common import dual_slot_concept, system_coding, to_fhir_datetime
 from clinosim.modules.output.fhir_r4.lib.ids import (
     derive_opaque_id,
     structural_key_system,
@@ -96,7 +93,6 @@ def _build_procedure(
     """Build FHIR Procedure resource."""
     code_system_key = system_key_for("procedure", country)
     code_system = get_system_uri(code_system_key)
-    sct_uri = get_system_uri("snomed-ct")
     lang = resolve_lang(country)
 
     # Use performedDateTime for point-in-time procedures, performedPeriod for longer ones
@@ -244,15 +240,7 @@ def _build_procedure(
     # category (SNOMED)
     category_code = proc.get("category_code", "")
     if category_code:
-        resource["category"] = {
-            "coding": [
-                {
-                    "system": sct_uri,
-                    "code": category_code,
-                    "display": code_lookup("snomed-ct", category_code, lang),
-                }
-            ],
-        }
+        resource["category"] = dual_slot_concept("snomed-ct", category_code, lang)
 
     # Route through to_fhir_datetime so performedPeriod /
     # performedDateTime carry the FHIR R4-required TZ suffix (JST +09:00
@@ -277,30 +265,14 @@ def _build_procedure(
     if surgeon_id:
         performers.append(
             {
-                "function": {
-                    "coding": [
-                        {
-                            "system": sct_uri,
-                            "code": "304292004",
-                            "display": code_lookup("snomed-ct", "304292004", lang),
-                        }
-                    ],
-                },
+                "function": dual_slot_concept("snomed-ct", "304292004", lang),
                 "actor": {"reference": f"Practitioner/{surgeon_id}"},
             }
         )
     if anes_id and anes_id != surgeon_id:
         performers.append(
             {
-                "function": {
-                    "coding": [
-                        {
-                            "system": sct_uri,
-                            "code": "158967008",
-                            "display": code_lookup("snomed-ct", "158967008", lang),
-                        }
-                    ],
-                },
+                "function": dual_slot_concept("snomed-ct", "158967008", lang),
                 "actor": {"reference": f"Practitioner/{anes_id}"},
             }
         )
@@ -376,17 +348,7 @@ def _build_procedure(
     # bodySite (SNOMED)
     body_site_code = proc.get("body_site_code", "")
     if body_site_code:
-        resource["bodySite"] = [
-            {
-                "coding": [
-                    {
-                        "system": sct_uri,
-                        "code": body_site_code,
-                        "display": code_lookup("snomed-ct", body_site_code, lang),
-                    }
-                ],
-            }
-        ]
+        resource["bodySite"] = [dual_slot_concept("snomed-ct", body_site_code, lang)]
     # CY7-18 (Chain-7): bodySite text-only fallback when the CIF record
     # doesn't carry a SNOMED site code (bedside procedures often don't).
     if not resource.get("bodySite"):
@@ -400,46 +362,18 @@ def _build_procedure(
     # outcome (SNOMED)
     outcome_code = proc.get("outcome_code", "")
     if outcome_code:
-        resource["outcome"] = {
-            "coding": [
-                {
-                    "system": sct_uri,
-                    "code": outcome_code,
-                    "display": code_lookup("snomed-ct", outcome_code, lang),
-                }
-            ],
-        }
+        resource["outcome"] = dual_slot_concept("snomed-ct", outcome_code, lang)
     # CY7-19 (Chain-7): outcome default = SNOMED 385669000 "Successful" when
     # Procedure.status == "completed" and no explicit outcome_code. Reflects
     # the majority clinical reality (few procedures fail without explicit
     # complication).
     if not resource.get("outcome") and resource.get("status") == "completed":
         _succ_code = "385669000"
-        resource["outcome"] = {
-            "coding": [
-                {
-                    "system": sct_uri,
-                    "code": _succ_code,
-                    "display": registry_display("snomed-ct", _succ_code, lang) or "Successful",
-                }
-            ],
-            "text": "成功" if is_jp(country) else "Successful",
-        }
+        resource["outcome"] = dual_slot_concept("snomed-ct", _succ_code, lang, fallback_display="Successful")
 
     # complication (SNOMED)
     comp_codes = proc.get("complication_codes", []) or []
     if comp_codes:
-        resource["complication"] = [
-            {
-                "coding": [
-                    {
-                        "system": sct_uri,
-                        "code": c,
-                        "display": code_lookup("snomed-ct", c, lang),
-                    }
-                ],
-            }
-            for c in comp_codes
-        ]
+        resource["complication"] = [dual_slot_concept("snomed-ct", c, lang) for c in comp_codes]
 
     return resource

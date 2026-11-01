@@ -95,29 +95,6 @@ _SYSTEM_LOOKUP_SIBLINGS: dict[str, tuple[str, ...]] = {
 }
 
 
-# Issue #358: system keys whose canonical CodeSystem publishes only a
-# Japanese ``display`` for each concept — emitting an English display against
-# this system URI produces a display-mismatch error at conformance time
-# (validator compares against the authoritative CS). Consumers building
-# multilingual CodeableConcepts (e.g. ``build_diagnosis_codeable_concept``)
-# must skip the English secondary coding when the primary system is here.
-#
-# Concrete case: MHLW ICD-10 2013 registry
-# (``http://jpfhir.jp/fhir/core/mhlw/CodeSystem/ICD10-2013-full``) is a
-# Japanese-only registry — its concepts have no English display, so a coding
-# with an English ``display`` field can never match. v19 validation
-# (2026-07-22) surfaced 189 such errors on FamilyMemberHistory.condition.
-#
-# Membership is opt-in: adding a system to the set silently drops English
-# secondary coding for it in every diagnosis-CodeableConcept build site.
-# Keep this a very small, deliberately-audited allowlist.
-_JAPANESE_ONLY_DISPLAY_SYSTEMS: frozenset[str] = frozenset(
-    {
-        "icd-10-mhlw",
-    }
-)
-
-
 # CodeSystems that publish English displays only (Issue #2276: the one
 # registry, moved from post_process/strip.py). On JP output their
 # ``coding.display`` stays English canonical and the Japanese label goes in
@@ -165,17 +142,6 @@ def jlac10_display(code: str, lang: str) -> str | None:
     """Display of a JLAC10 analyte code in ``lang`` (then English); ``None``
     when the code is not registered (Issue #2261)."""
     return display("jlac10", code, lang)
-
-
-def is_japanese_only_display_system(system_key: str) -> bool:
-    """True if ``system_key`` publishes displays in Japanese only.
-
-    Callers that build multilingual CodeableConcepts use this to decide
-    whether to emit an English secondary coding entry: for Japanese-only
-    systems the English display cannot match the authoritative CS and must
-    be omitted (Issue #358). See ``_JAPANESE_ONLY_DISPLAY_SYSTEMS``.
-    """
-    return system_key in _JAPANESE_ONLY_DISPLAY_SYSTEMS
 
 
 # maxsize=None (unbounded): the set of code-system keys is bounded at

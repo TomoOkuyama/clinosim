@@ -235,7 +235,6 @@ occupation:
 | SNOMED の対応表が Python に残り、出力側 (検体・ServiceRequest・新生児・放射線カテゴリ) に SNOMED リテラルがある。 | #2379 |
 | 文書 LOINC の定義が 8 箇所にある。意味の合わない section コードがある。出力側に LOINC 定数が残っている。 | #2344 |
 | 生成側が出しているのに未登録の CPT / K コード。 | #2340 |
-| 投与経路・診断名・CoreLabo・MedicationAdministration の経路/デバイスの概念を手組みしており、後処理の walker が出力後に `.text` を補っている。 | #2375 |
 | 自由文の名称 localizer が FHIR 出力層にあり、order 層と narrative 層から import され、手技・SNOMED・アレルゲン名の翻訳にも使われている。判断ロジックと記録の薬名は `codes.drugs.drug_display` で解決する。 | #2367 |
 | Python に言語ごとのリテラルが残っている。 | #2277 |
 | 判断ロジックが薬名の部分文字列で薬を識別している。 | #2377 |

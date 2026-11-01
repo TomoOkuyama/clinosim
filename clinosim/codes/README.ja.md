@@ -39,11 +39,6 @@ from clinosim.codes import (
 ```
 
 パッケージレベル未再エクスポートだが `clinosim.codes.loader` から
-import 可能なローダー層ヘルパー:
-
-```python
-from clinosim.codes.loader import is_japanese_only_display_system
-```
 
 Encounter リソース向け HL7 語彙 StrEnum (Issue #562) —
 `clinosim.codes.hl7_encounter` から import:
@@ -236,8 +231,7 @@ codes:
   場合 URI は `urn:clinosim:<key>` になる。`_BUILTIN_URIS[key]` は
   YAML の無いキーと `_SYSTEM_DATA_ALIASES` のエントリにのみ使われる。
 - `codes` 配下の各エントリは最低 `en` を含める必要あり (JP-only
-  display system — `is_japanese_only_display_system` — の場合は
-  `ja`)。
+  display system (`icd-10-mhlw` など) の場合は `ja`)。
 - 追加言語は ISO 639-1 の 2 文字コード (`ja` / `de` / `fr` / `zh` …)。
 - コード値は文字列で情報源のフォーマットを維持: ICD は `J18.9`、
   LOINC は `1988-5`、RxNorm は `309090`。

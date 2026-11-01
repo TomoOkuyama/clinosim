@@ -19,9 +19,7 @@ from clinosim.modules.output.fhir_r4.post_process import (
     _MEDIS_DISEASE_KEYNUMBER_SYSTEM,
     _MEDIS_UNCODED_DISEASE_CODE,
     _MEDIS_UNCODED_DISEASE_DISPLAY,
-    _copy_display_from_sibling_coding,
     _populate_condition_ai_mr_ecs_fields,
-    _populate_status_coding_display,
 )
 
 pytestmark = pytest.mark.unit
@@ -129,33 +127,6 @@ def test_jp_condition_medis_slice_creates_coding_list_when_empty():
     assert medis[0]["code"] == _MEDIS_UNCODED_DISEASE_CODE
 
 
-def test_condition_code_display_sibling_copy():
-    """Primary coding lacks display (English-only CS strip); interop coding
-    has the English display for the same code → propagate."""
-    r: dict = {
-        "resourceType": "Condition",
-        "id": "c1",
-        "code": {
-            "coding": [
-                {"system": "http://hl7.org/fhir/sid/icd-10", "code": "I10"},
-                {
-                    "system": "http://hl7.org/fhir/sid/icd-10",
-                    "code": "I10",
-                    "display": "Essential (primary) hypertension",
-                },
-            ],
-            "text": "本態性(原発性)高血圧症",
-        },
-    }
-    _populate_condition_ai_mr_ecs_fields(r)
-    assert r["code"]["coding"][0]["display"] == "Essential (primary) hypertension"
-
-
-# ---------------------------------------------------------------------------
-# AllergyIntolerance
-# ---------------------------------------------------------------------------
-
-
 def test_allergy_identifier_populated_from_id():
     r: dict = {"resourceType": "AllergyIntolerance", "id": "allergy-x-1"}
     _populate_condition_ai_mr_ecs_fields(r)
@@ -172,34 +143,6 @@ def test_allergy_status_displays_populated():
     _populate_condition_ai_mr_ecs_fields(r)
     assert r["clinicalStatus"]["coding"][0]["display"] == "Active"
     assert r["verificationStatus"]["coding"][0]["display"] == "Unconfirmed"
-
-
-def test_allergy_reaction_manifestation_display_copy():
-    """Reaction.manifestation coding gets sibling-copy display propagation too."""
-    r: dict = {
-        "resourceType": "AllergyIntolerance",
-        "id": "a1",
-        "reaction": [
-            {
-                "manifestation": [
-                    {
-                        "text": "発疹",
-                        "coding": [
-                            {"system": "http://snomed.info/sct", "code": "247472004"},
-                            {"system": "http://snomed.info/sct", "code": "247472004", "display": "Rash"},
-                        ],
-                    }
-                ]
-            }
-        ],
-    }
-    _populate_condition_ai_mr_ecs_fields(r)
-    assert r["reaction"][0]["manifestation"][0]["coding"][0]["display"] == "Rash"
-
-
-# ---------------------------------------------------------------------------
-# MedicationRequest
-# ---------------------------------------------------------------------------
 
 
 def test_medication_request_meta_lastupdated_from_authored_on():
@@ -252,136 +195,3 @@ def test_no_datetime_source_no_lastupdated():
     r: dict = {"resourceType": "Condition", "id": "c1"}
     _populate_condition_ai_mr_ecs_fields(r)
     assert "lastUpdated" not in r.get("meta", {})
-
-
-# ---------------------------------------------------------------------------
-# Sub-helper regression guards
-# ---------------------------------------------------------------------------
-
-
-def test_copy_display_from_sibling_coding_only_fills_missing():
-    codings = [
-        {"system": "sys1", "code": "X", "display": "Existing"},
-        {"system": "sys2", "code": "X"},
-    ]
-    _copy_display_from_sibling_coding(codings)
-    assert codings[0]["display"] == "Existing"  # unchanged
-    assert codings[1]["display"] == "Existing"  # propagated
-
-
-def test_copy_display_no_match_no_change():
-    codings = [
-        {"system": "sys1", "code": "X"},
-        {"system": "sys2", "code": "Y"},
-    ]
-    _copy_display_from_sibling_coding(codings)
-    assert "display" not in codings[0]
-    assert "display" not in codings[1]
-
-
-# ---------------------------------------------------------------------------
-# Issue #778 / P1-4: preserve builder MR.status intent when eCS pin overrides
-# ---------------------------------------------------------------------------
-
-
-def test_jp_mr_preserves_active_status_as_extension_and_note_when_pinned():
-    """Issue #778: JP eCS pins MR.status='completed', but the builder's
-    original status intent (e.g. 'active' for an ongoing home-med) is
-    preserved via Extension + note so consumers can recover the real state."""
-    r: dict = {
-        "resourceType": "MedicationRequest",
-        "id": "mr-hm-1",
-        "status": "active",  # builder-set: ongoing home medication
-        "intent": "instance-order",
-    }
-    _populate_condition_ai_mr_ecs_fields(r, country="JP")
-    assert r["status"] == "completed"  # eCS pin applied
-    exts = r.get("extension", [])
-    effective_ext = next(
-        (e for e in exts if e.get("url") == "urn:clinosim:medicationrequest-effective-status"),
-        None,
-    )
-    assert effective_ext is not None, "extension must preserve builder status"
-    assert effective_ext["valueCode"] == "active"
-    notes = r.get("note", [])
-    assert notes, "note[] must explain the pin override"
-    assert "active" in notes[0]["text"]
-    assert "eCS" in notes[0]["text"]
-
-
-def test_jp_mr_preserves_stopped_status_when_pinned():
-    """Same preservation for a discontinued regimen (status='stopped')."""
-    r: dict = {
-        "resourceType": "MedicationRequest",
-        "id": "mr-stop-1",
-        "status": "stopped",
-        "intent": "order",
-    }
-    _populate_condition_ai_mr_ecs_fields(r, country="JP")
-    assert r["status"] == "completed"
-    exts = r.get("extension", [])
-    effective = next(e for e in exts if e.get("url") == "urn:clinosim:medicationrequest-effective-status")
-    assert effective["valueCode"] == "stopped"
-
-
-def test_jp_mr_no_extension_when_builder_status_already_completed():
-    """If builder already set status='completed', the pin is a no-op and no
-    extension/note is added (avoids noise on normal cases)."""
-    r: dict = {
-        "resourceType": "MedicationRequest",
-        "id": "mr-done-1",
-        "status": "completed",
-        "intent": "order",
-    }
-    _populate_condition_ai_mr_ecs_fields(r, country="JP")
-    assert r["status"] == "completed"
-    exts = r.get("extension", [])
-    assert not any(e.get("url") == "urn:clinosim:medicationrequest-effective-status" for e in exts)
-    assert "note" not in r or not r["note"]
-
-
-def test_us_mr_status_untouched_no_extension():
-    """US path: no eCS pin, no extension needed. status stays as builder set it."""
-    r: dict = {
-        "resourceType": "MedicationRequest",
-        "id": "mr-us-1",
-        "status": "active",
-        "intent": "order",
-    }
-    _populate_condition_ai_mr_ecs_fields(r, country="US")
-    assert r["status"] == "active"  # unchanged on US
-    assert "extension" not in r or not any(
-        e.get("url") == "urn:clinosim:medicationrequest-effective-status" for e in r.get("extension", [])
-    )
-
-
-def test_jp_mr_effective_status_idempotent_across_double_pass():
-    """Walker is idempotent: applying twice produces the same extension /
-    note count (no duplicates)."""
-    r: dict = {
-        "resourceType": "MedicationRequest",
-        "id": "mr-x",
-        "status": "active",
-        "intent": "instance-order",
-    }
-    _populate_condition_ai_mr_ecs_fields(r, country="JP")
-    # For second pass: builder status appears completed, so no add
-    _populate_condition_ai_mr_ecs_fields(r, country="JP")
-    exts = [e for e in r.get("extension", []) if e.get("url") == "urn:clinosim:medicationrequest-effective-status"]
-    assert len(exts) == 1
-    notes = r.get("note", [])
-    assert len(notes) == 1
-
-
-def test_populate_status_coding_display_unknown_code_untouched():
-    """A code not in the authority yaml is left alone (no fabrication).
-
-    Phase 3.α: the helper signature switched from
-    ``(coding_dict, display_map)`` to
-    ``(coding_dict, system_key, lang)`` — the authority yaml is now
-    consulted instead of a module-local dict. ``hl7-condition-clinical``
-    is a real system key with no ``unknown-code-xyz`` entry, so the
-    lookup falls through to leaving ``display`` unset."""
-    cd: dict = {"coding": [{"system": "hl7-cs", "code": "unknown-code-xyz"}]}
-    _populate_status_coding_display(cd, "hl7-condition-clinical", "en")
-    assert "display" not in cd["coding"][0]

@@ -6,8 +6,9 @@ Contains the ``_populate_*`` walkers that fire AFTER every ``_bb_*`` builder
 emits a resource — they attach identifier slices, meta.lastUpdated, static
 display maps, and JP-CLINS eCS-required fields that are cheaper to inject
 here than to weave through every resource-specific builder. Also owns
-``_normalize_jp_observation_category`` (the JP-only category rewrite) and
-``_copy_display_from_sibling_coding`` (dual-slot display propagation).
+``_normalize_jp_observation_category`` (the JP-only category rewrite).
+Coding displays and CodeableConcept text are set at emit time with
+``system_coding`` / ``dual_slot_concept`` (Issue #2375).
 """
 
 from __future__ import annotations
@@ -16,8 +17,7 @@ from functools import cache
 from pathlib import Path
 from typing import Any
 
-from clinosim.codes import get_system_uri, system_key_for_uri
-from clinosim.codes import lookup as code_lookup
+from clinosim.codes import get_system_uri
 from clinosim.codes.icd10 import medis_disease_keyno
 from clinosim.codes.ucum import ucum_quantity
 from clinosim.modules._shared import is_jp, practitioner_name, resolve_lang
@@ -26,9 +26,6 @@ from clinosim.modules.output.fhir_r4.post_process.profile import (
     _HL7_OBSERVATION_CATEGORY_SYSTEM,
     _HL7_OBSERVATION_CATEGORY_SYSTEMS,
     _JP_OBSERVATION_CATEGORY_SYSTEM,
-)
-from clinosim.modules.output.fhir_r4.post_process.strip import (
-    _ENGLISH_ONLY_CODING_SYSTEM_PREFIXES,
 )
 
 # Observation.identifier system — internal namespace for clinosim-generated
@@ -677,74 +674,6 @@ def _populate_jp_medication_dosage_ecs_fields(resource: dict) -> None:
             repeat.pop("period", None)
 
 
-def _copy_display_from_sibling_coding(codings: list, lang: str = "en") -> None:
-    """When one coding entry has a display for a code and another sibling entry
-    with the same code lacks it, propagate the display. Used on
-    `Condition.code.coding[]` and `AllergyIntolerance.code.coding[]` where the
-    primary JP coding (WHO ICD-10 / SNOMED, English-only CodeSystem) had its
-    display stripped by the P2 A walker but the interop coding (ICD-10-CM /
-    same code, English display) already has it.
-
-    When no sibling display is available (e.g. AllergyIntolerance emits a
-    single SNOMED coding), fall back to `code_lookup` in ``lang`` for known
-    FHIR system URIs. JP output routes ``lang="ja"`` here so the primary
-    coding carries a JP-native display where clinosim/codes/data has one,
-    and only falls back to English when no ja entry exists.
-
-    Feedback fix (2026-07-16, PR-G). Preserves the FHIR R4 rule that every
-    coding on an English-only CodeSystem must carry a resolvable display.
-    """
-    if not isinstance(codings, list):
-        return
-    code_display: dict[str, str] = {}
-    for c in codings:
-        if isinstance(c, dict):
-            code_ = c.get("code")
-            display = c.get("display")
-            if isinstance(code_, str) and code_ and isinstance(display, str) and display and code_ not in code_display:
-                code_display[code_] = display
-    for c in codings:
-        if isinstance(c, dict) and not c.get("display"):
-            code_ = c.get("code")
-            if not isinstance(code_, str) or not code_:
-                continue
-            # Priority for the display value on a coding that lacks one:
-            # (1) authoritative `code_lookup` in the requested language (ja)
-            # (2) sibling coding's display (interop entry with english)
-            # (3) `code_lookup` in english as a last-resort fallback.
-            # (1) beats (2) on JP output so a dual-coded Condition emits the
-            # authoritative JP display rather than the english interop label.
-            display = None
-            system_uri = c.get("system", "")
-            system_key = system_key_for_uri(system_uri) if isinstance(system_uri, str) else None
-            # chain G (v2 feedback §【中優先 7】): the sibling-copy
-            # step previously re-injected a Japanese display via
-            # `code_lookup(..., "ja")` for JP output. On English-only
-            # CodeSystems (LOINC / SNOMED / HL7 terminology / DICOM / UCUM
-            # / `http://hl7.org/fhir/sid/*` including ICD-10) that undid
-            # `_strip_japanese_display_on_english_only_systems`, so the
-            # HAPI Validator's "Wrong Display Name" check surfaced ~2.5k
-            # ICD-10 errors in v2 fullset. Skip the ja lookup path when
-            # the coding's system is on the English-only allowlist so the
-            # sibling-copy step falls through to the interop display
-            # (2) or the canonical English lookup (3).
-            is_english_only_system = isinstance(system_uri, str) and system_uri.startswith(
-                _ENGLISH_ONLY_CODING_SYSTEM_PREFIXES
-            )
-            if system_key and lang != "en" and not is_english_only_system:
-                looked_up = code_lookup(system_key, code_, lang)
-                if looked_up and looked_up != code_:
-                    display = looked_up
-            if not display:
-                display = code_display.get(code_)
-            if not display and system_key:
-                looked_up = code_lookup(system_key, code_, "en")
-                if looked_up and looked_up != code_:
-                    display = looked_up
-            if display:
-                c["display"] = display
-
-
 def _populate_status_coding_display(coding_dict: Any, system_key: str, lang: str) -> None:
     """Populate ``.coding[].display`` from an authority yaml when missing.
 
@@ -780,84 +709,6 @@ def _populate_status_coding_display(coding_dict: Any, system_key: str, lang: str
             c["display"] = resolved
 
 
-def _populate_cc_text_from_coding_lookup(node: Any, lang: str) -> None:
-    """Recursively populate a CodeableConcept's ``.text`` field from
-    ``code_lookup`` when it is missing.
-
-    Issue #1038: JP Composition emits `Composition.type` and
-    `Composition.section[].code` CodeableConcepts whose LOINC coding has
-    no `display` after the P2 A strip walker runs (English-only CS). For
-    JP-CLINS-mandated document types the emit path already sets `.text`
-    to the JA-native label ("退院時サマリー" etc.), but on some
-    categories (LP29684-5 "放射線" on `Composition.category`) `.text`
-    is absent — leaving no JA-visible label for JP consumers.
-
-    This walker fills the gap without touching `.coding.display`
-    (which would trigger the strip walker's "Wrong Display Name"
-    conformance concern on English-only systems). It reads the first
-    coding entry whose `code_lookup` in ``lang`` returns a real display,
-    and assigns that to the CC's `.text`. Idempotent: skips any CC that
-    already has `.text` populated.
-
-    Callers pass the target language: JP output uses ``lang="ja"``, US
-    uses ``lang="en"`` (harmless — US CCs already have EN displays and
-    typically their `.text`).
-    """
-    if isinstance(node, dict):
-        codings = node.get("coding")
-        if isinstance(codings, list) and not node.get("text"):
-            for cd in codings:
-                if not isinstance(cd, dict):
-                    continue
-                sys_ = cd.get("system", "")
-                code_ = cd.get("code", "")
-                if not sys_ or not code_:
-                    continue
-                system_key = system_key_for_uri(sys_)
-                if not system_key:
-                    continue
-                looked_up = code_lookup(system_key, code_, lang)
-                if looked_up and looked_up != code_:
-                    node["text"] = looked_up
-                    break
-        for value in node.values():
-            if isinstance(value, (dict, list)):
-                _populate_cc_text_from_coding_lookup(value, lang)
-    elif isinstance(node, list):
-        for item in node:
-            if isinstance(item, (dict, list)):
-                _populate_cc_text_from_coding_lookup(item, lang)
-
-
-def _populate_procedure_coding_displays(node: Any, lang: str) -> None:
-    """Recursively populate missing `display` on every `coding[]` in a
-    Procedure resource via ``_copy_display_from_sibling_coding``.
-
-    Issue #1036: `_copy_display_from_sibling_coding` originally ran only on
-    Condition.code and AllergyIntolerance.code/reaction. Procedure carries
-    codings in many places (`category`, `bodySite[]`, `performer[].function`,
-    `outcome`, `complication[]`, `reasonCode[]`, `usedCode[]`,
-    `code.coding`), each on SNOMED (an English-only CodeSystem per
-    ``_ENGLISH_ONLY_CODING_SYSTEM_PREFIXES``), so the P2 A walker drops the
-    Japanese display and nothing populates it back — 9,321 `coding[]` sites
-    in JP p=10000 emitted without any `display` field. Walking the tree
-    generically is safer than enumerating every field name (a new emit path
-    that adds a coding is covered automatically) and idempotent (the sibling
-    helper only touches entries whose `display` is currently missing).
-    """
-    if isinstance(node, dict):
-        codings = node.get("coding")
-        if isinstance(codings, list):
-            _copy_display_from_sibling_coding(codings, lang)
-        for value in node.values():
-            if isinstance(value, (dict, list)):
-                _populate_procedure_coding_displays(value, lang)
-    elif isinstance(node, list):
-        for item in node:
-            if isinstance(item, (dict, list)):
-                _populate_procedure_coding_displays(item, lang)
-
-
 def _populate_condition_ai_mr_ecs_fields(resource: dict, country: str = "US") -> None:
     """Populate JP-CLINS eCS-required fields on Condition / AllergyIntolerance
     / MedicationRequest.
@@ -890,8 +741,6 @@ def _populate_condition_ai_mr_ecs_fields(resource: dict, country: str = "US") ->
     # are gated by `_ECS_IDENTIFIER_SYSTEMS` and by `rt in
     # ("Condition", "AllergyIntolerance")` and are no-ops for this rt.
     if rt == "Procedure":
-        lang = resolve_lang(country)
-        _populate_procedure_coding_displays(resource, lang)
         return
 
     # Composition (Issue #1038): populate CodeableConcept.text with a
@@ -901,8 +750,6 @@ def _populate_condition_ai_mr_ecs_fields(resource: dict, country: str = "US") ->
     # at emit time; this walker fills the remaining gaps (LP29684-5
     # radiology category + a small number of edge cases).
     if rt == "Composition":
-        lang = resolve_lang(country)
-        _populate_cc_text_from_coding_lookup(resource, lang)
         return
 
     # (1) identifier — canonical namespace, only when not builder-populated.
@@ -949,19 +796,9 @@ def _populate_condition_ai_mr_ecs_fields(resource: dict, country: str = "US") ->
             resource.get("verificationStatus"), "hl7-allergyintolerance-verification", _display_lang
         )
 
-    # (4) code.coding[].display sibling-copy (Condition / AllergyIntolerance).
-    # JP output prefers JP display via `code_lookup(..., "ja")`; US uses "en".
-    lang = resolve_lang(country)
-    if rt in ("Condition", "AllergyIntolerance"):
-        code_field = resource.get("code")
-        if isinstance(code_field, dict):
-            _copy_display_from_sibling_coding(code_field.get("coding") or [], lang)
-        if rt == "AllergyIntolerance":
-            for reaction in resource.get("reaction", []) or []:
-                if isinstance(reaction, dict):
-                    for manifestation in reaction.get("manifestation", []) or []:
-                        if isinstance(manifestation, dict):
-                            _copy_display_from_sibling_coding(manifestation.get("coding") or [], lang)
+    # (4) Coding displays and CodeableConcept text are set at each emit site
+    # with system_coding / dual_slot_concept (Issue #2375); the former
+    # sibling-copy and text-fill walkers are gone.
 
     # (4b) JP-CLINS `JP_Condition_eCS` `code.coding:medisRecordNo` slice min=1.
     #  (v4 feedback, 6,242 errors, -1.5pp). Every JP

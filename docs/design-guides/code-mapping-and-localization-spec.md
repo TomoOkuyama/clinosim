@@ -235,7 +235,6 @@ These parts of the code base do not yet conform. Each one is removed by the issu
 | SNOMED mapper tables held in Python and SNOMED literals in emitters (specimen, ServiceRequest, newborn, radiology category). | #2379 |
 | Document LOINCs are defined in eight places, some section codes do not mean their section, and emitters still hold LOINC constants. | #2344 |
 | CPT / K-codes the generator emits but has not registered. | #2340 |
-| Route, diagnosis, CoreLabo and MedicationAdministration route/device concepts are built by hand, and post-process walkers fill `.text` after emission. | #2375 |
 | The free-text name localizer lives in the FHIR output layer, is imported from the order and narrative layers, and also translates procedure, SNOMED and allergen names. Decision logic and records resolve drug names through `codes.drugs.drug_display`. | #2367 |
 | Language literals are still embedded in Python. | #2277 |
 | Decision logic identifies drugs by name substrings. | #2377 |

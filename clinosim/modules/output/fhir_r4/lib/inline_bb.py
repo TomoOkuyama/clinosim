@@ -28,7 +28,6 @@ from __future__ import annotations
 
 from clinosim.codes import display as registry_display
 from clinosim.codes import get_system_uri, system_key_for
-from clinosim.codes import lookup as code_lookup
 from clinosim.codes.hl7_encounter import ActPriority, AdmitSource
 from clinosim.codes.snomed import snomed_for_phrase
 from clinosim.modules._shared import get_attr_or_key, is_jp, resolve_lang
@@ -114,6 +113,7 @@ from clinosim.modules.output.fhir_r4.lib.common import (  # noqa: F401
     build_dosage_instruction,
     build_reference_range,
     build_telecom,
+    dual_slot_concept,
     entry,
     infer_severity,
     loinc_coding,
@@ -919,15 +919,7 @@ def _bb_procedures(ctx: BundleContext) -> list[dict]:
             "identifier": [wrap_as_identifier(_proc_structural_key, PROCEDURE_KEY_SYSTEM)],
             **_profile,
             "status": "completed",
-            "category": {
-                "coding": [
-                    {
-                        "system": get_system_uri("snomed-ct"),
-                        "code": "277132007",
-                        "display": code_lookup("snomed-ct", "277132007", _cat_lang),
-                    }
-                ],
-            },
+            "category": dual_slot_concept("snomed-ct", "277132007", _cat_lang),
             "code": _code_field,
             "subject": patient_ref(ctx.patient_id),
         }
@@ -993,16 +985,7 @@ def _bb_procedures(ctx: BundleContext) -> list[dict]:
             }
         ]
         # CY7-19 (Chain-7): outcome default = Successful for completed status.
-        procedure_res["outcome"] = {
-            "coding": [
-                {
-                    "system": get_system_uri("snomed-ct"),
-                    "code": "385669000",
-                    "display": registry_display("snomed-ct", "385669000", _cat_lang) or "Successful",
-                }
-            ],
-            "text": "成功" if is_jp(ctx.country) else "Successful",
-        }
+        procedure_res["outcome"] = dual_slot_concept("snomed-ct", "385669000", _cat_lang, fallback_display="Successful")
         out.append(procedure_res)
         proc_seq += 1
     return out

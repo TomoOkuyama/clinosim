@@ -288,7 +288,9 @@ def test_jp_locale_resolves_reaction_manifestation_to_ja():
     r = _bb_allergy_intolerances(ctx)[0]
     rxn = r["reaction"][0]
     manifestation = rxn["manifestation"][0]
-    assert manifestation["coding"][0]["display"] == "発疹"
+    # Dual slot (Issue #2375): English SNOMED display, Japanese text.
+    assert manifestation["coding"][0]["display"] == "Eruption of skin"
+    assert manifestation["text"] == "発疹"
     assert manifestation["text"] == "発疹"
 
 
