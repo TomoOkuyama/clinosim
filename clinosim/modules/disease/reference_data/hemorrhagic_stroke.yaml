@@ -366,12 +366,10 @@ drugs:
         note: "Use for cerebral edema/elevated ICP"
     us:
       - drug: "Nicardipine"
-        code_rxnorm: "7417"
         dose: "5-15 mg/h IV infusion"
         route: IV
         note: "Target SBP < 140 mmHg"
       - drug: "Labetalol"
-        code_rxnorm: "6135"
         dose: "10-20mg IV bolus q10-20min, max 300mg"
         route: IV
         note: "Alternative BP management"
@@ -392,22 +390,18 @@ drugs:
         indication: "dabigatran_reversal"
     us:
       - drug: "Vitamin K"
-        code_rxnorm: "8308"
         dose: "10mg IV"
         route: IV
         indication: "warfarin_reversal"
       - drug: "4-Factor PCC (Kcentra)"
-        code_rxnorm: "1484959"
         dose: "25-50 IU/kg IV"
         route: IV
         indication: "warfarin_urgent_reversal"
       - drug: "Idarucizumab"
-        code_rxnorm: "1658399"
         dose: "5g IV"
         route: IV
         indication: "dabigatran_reversal"
       - drug: "Andexanet alfa"
-        code_rxnorm: "2058819"
         dose: "400-800mg IV bolus then infusion"
         route: IV
         indication: "rivaroxaban_or_apixaban_reversal"
@@ -420,7 +414,6 @@ drugs:
         indication: "severe_cerebral_edema_or_herniation_signs"
     us:
       - drug: "Hypertonic Saline"
-        code_rxnorm: "2587736"   # C2/#1088: pre-fix 313002 was 0.9% NaCl NS (fabrication for 23.4%); NLM-verified 23.4% NaCl CUI
         dose: "23.4% 30mL IV over 15min via central line"
         route: IV
         indication: "severe_cerebral_edema_or_herniation"

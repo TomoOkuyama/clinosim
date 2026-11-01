@@ -325,7 +325,6 @@ drugs:
         pregnancy_safe: true
     us:
       - drug: "Cefazolin"
-        code_rxnorm: "309090"
         dose: "2g IV q8h"
         route: IV
         renal_adjustment:
@@ -342,7 +341,6 @@ drugs:
         note: "C. diff risk"
     us:
       - drug: "Vancomycin"
-        code_rxnorm: "11124"
         dose: "15-20mg/kg IV q12h (trough 15-20)"
         note: "If MRSA concern; otherwise clindamycin 600mg IV q8h"
         renal_adjustment:
@@ -359,7 +357,6 @@ drugs:
           eGFR_below_30: "dose by trough levels"
     us:
       - drug: "Vancomycin"
-        code_rxnorm: "11124"
         dose: "15-20mg/kg IV q8-12h (AUC/MIC guided)"
         indication: "known_MRSA_or_purulent_cellulitis"
 
@@ -372,7 +369,6 @@ drugs:
           eGFR_below_30: "4.5g IV q12h"
     us:
       - drug: "Piperacillin/Tazobactam"
-        code_rxnorm: "240984"
         dose: "4.5g IV q6h"
         indication: "no_improvement_48h_or_polymicrobial_concern"
 

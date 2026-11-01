@@ -383,7 +383,6 @@ drugs:
         pregnancy_safe: true
     us:
       - drug: "Ampicillin/Sulbactam"
-        code_rxnorm: "212446"
         dose: "3g IV q6h"
         route: IV
         note: "Primary choice for aspiration pneumonia"
@@ -407,11 +406,9 @@ drugs:
         pregnancy_safe: true
     us:
       - drug: "Clindamycin"
-        code_rxnorm: "2623"
         dose: "600mg IV q8h"
         pregnancy_safe: false
       - drug: "Moxifloxacin"
-        code_rxnorm: "139462"
         dose: "400mg IV daily"
         note: "Alternative with anaerobic coverage"
         pregnancy_safe: false
@@ -428,11 +425,9 @@ drugs:
         note: "Added for enhanced anaerobic coverage"
     us:
       - drug: "Piperacillin/Tazobactam"
-        code_rxnorm: "240984"
         dose: "4.5g IV q6h"
         indication: "no_defervescence_72h or hospital-acquired"
       - drug: "Metronidazole"
-        code_rxnorm: "6922"
         dose: "500mg IV q8h"
         note: "Added if lung abscess or empyema suspected"
 

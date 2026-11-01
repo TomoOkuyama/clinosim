@@ -426,23 +426,19 @@ drugs:
 
     us:
       - drug: "Aspirin"
-        code_rxnorm: "1191"
         dose: "325mg loading, then 81mg PO daily"
         route: PO
         pregnancy_safe: false
       - drug: "Ticagrelor"
-        code_rxnorm: "1116632"
         dose: "180mg loading, then 90mg PO BID"
         route: PO
         note: "Preferred over clopidogrel for ACS per ACC/AHA"
         pregnancy_safe: false
       - drug: "Heparin"
-        code_rxnorm: "5224"
         dose: "60U/kg bolus (max 4000U), then 12U/kg/h IV (max 1000U/h)"
         route: IV
         pregnancy_safe: true
       - drug: "Nitroglycerin"
-        code_rxnorm: "4917"
         dose: "5-10ug/min IV, titrate"
         route: IV
         note: "Avoid if SBP < 90 or right ventricular MI"
@@ -470,19 +466,16 @@ drugs:
 
     us:
       - drug: "Atorvastatin"
-        code_rxnorm: "83367"
         dose: "80mg PO daily"
         route: PO
         note: "High-intensity statin per ACC/AHA"
         pregnancy_safe: false
       - drug: "Metoprolol_succinate"
-        code_rxnorm: "866924"
         dose: "25mg PO daily, titrate to 200mg"
         route: PO
         note: "Beta-blocker; avoid if cardiogenic shock"
         pregnancy_safe: false
       - drug: "Lisinopril"
-        code_rxnorm: "29046"
         dose: "5mg PO daily, titrate to 20mg"
         route: PO
         note: "ACE inhibitor; start within 24h if stable"
@@ -500,11 +493,9 @@ drugs:
         indication: "cardiogenic_shock_with_hypotension"
     us:
       - drug: "Dobutamine"
-        code_rxnorm: "3616"
         dose: "2-20ug/kg/min IV drip"
         indication: "cardiogenic_shock_with_low_CO"
       - drug: "Norepinephrine"
-        code_rxnorm: "7512"
         dose: "0.05-0.3ug/kg/min IV drip"
         indication: "cardiogenic_shock_with_hypotension"
 

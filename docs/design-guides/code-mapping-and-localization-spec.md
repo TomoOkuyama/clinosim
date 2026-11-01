@@ -240,5 +240,6 @@ These parts of the code base do not yet conform. Each one is removed by the issu
 | Some Composition section codes do not mean their section. | #2391 |
 | The free-text name localizer lives in the FHIR output layer, is imported from the order and narrative layers, and also translates procedure, SNOMED and allergen names. Decision logic and records resolve drug names through `codes.drugs.drug_display`. | #2367 |
 | Language literals are still embedded in Python. | #2277 |
-| Disease YAMLs mix `drug:` names with `drug_id:`, and `Order.order_code` does not record its code system. | #2378 |
+| Disease YAMLs mix `drug:` names with `drug_id:`; the order engine reads only `drug:` for protocol lists. | #2414 |
+| Some protocol drugs are not catalogued and some non-drug interventions are written as `drug:`. | #2415 |
 | No lint guard enforces §8. | #2266 |

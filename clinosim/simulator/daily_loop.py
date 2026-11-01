@@ -30,7 +30,12 @@ from clinosim.modules.clinical_course.engine import (
 from clinosim.modules.diagnosis.engine import update_differential
 from clinosim.modules.disease.protocol import DiseaseProtocol
 from clinosim.modules.observation.engine import lab_panel_components, medications_in_effect
-from clinosim.modules.order.engine import place_daily_lab_orders, place_imaging_orders, protocol_drug_order_code
+from clinosim.modules.order.engine import (
+    place_daily_lab_orders,
+    place_imaging_orders,
+    protocol_drug_order_code,
+    protocol_drug_order_code_system,
+)
 from clinosim.modules.order.treatment_classifier import (
     classify_encounter_treatment,
     classify_escalation_treatment,
@@ -738,6 +743,7 @@ def _run_daily_loop(
                         patient_id=patient.patient_id,
                         order_type=_esc_order_type,
                         order_code=protocol_drug_order_code(esc_drug, country_key),
+                        order_code_system=protocol_drug_order_code_system(esc_drug, country_key),
                         display_name=_esc_display,
                         urgency="urgent",
                         clinical_intent=f"Escalation day {day}: {drug_name} ({indication})",

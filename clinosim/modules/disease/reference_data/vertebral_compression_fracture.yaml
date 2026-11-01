@@ -329,11 +329,9 @@ drugs:
         note: "Calcitonin for acute pain and bone loss"
     us:
       - drug: "Acetaminophen"
-        code_rxnorm: "161"
         dose: "650mg PO q6h (max 3g/day)"
         route: PO
       - drug: "Calcitonin nasal spray"
-        code_rxnorm: "1799"
         dose: "200IU intranasal daily"
         route: nasal
         note: "Analgesic effect in acute VCF"
@@ -352,11 +350,9 @@ drugs:
           eGFR_below_30: "25-75mg PO daily"
     us:
       - drug: "Tramadol"
-        code_rxnorm: "10689"
         dose: "50mg PO q4-6h PRN"
         route: PO
       - drug: "Pregabalin"
-        code_rxnorm: "187832"
         dose: "75mg PO BID"
         route: PO
         renal_adjustment:
@@ -376,12 +372,10 @@ drugs:
         route: PO
     us:
       - drug: "Alendronate"
-        code_rxnorm: "3164"
         dose: "70mg PO weekly"
         route: PO
         note: "Start after acute pain subsides"
       - drug: "Calcium carbonate + Vitamin D"
-        code_rxnorm: "215523"
         dose: "600mg/400IU PO BID"
         route: PO
 
@@ -424,11 +418,9 @@ drugs:
         dose: "1mcg PO daily"
     us:
       - drug: "Acetaminophen"
-        code_rxnorm: "161"
         dose: "650mg PO TID PRN"
         duration_days: 14
       - drug: "Alendronate"
-        code_rxnorm: "3164"
         dose: "70mg PO weekly"
         # Issue #462: dose says `weekly`. The 7-day fallback allows only one
         # dose. 90 days = 12-13 doses, a typical bisphosphonate prescription

@@ -327,19 +327,16 @@ drugs:
 
     us:
       - drug: "Cefazolin"
-        code_rxnorm: "2180"
         dose: "2g IV (single preoperative dose)"
         route: IV
         note: "Non-perforated: prophylaxis only"
         pregnancy_safe: true
       - drug: "Metronidazole"
-        code_rxnorm: "6922"
         dose: "500mg IV q8h"
         route: IV
         note: "Added for anaerobic coverage if perforated"
         pregnancy_safe: false
       - drug: "Ketorolac"
-        code_rxnorm: "6739"
         dose: "30mg IV q6h"
         route: IV
         note: "Postoperative pain; max 5 days"
@@ -358,11 +355,9 @@ drugs:
         pregnancy_safe: false
     us:
       - drug: "Ciprofloxacin"
-        code_rxnorm: "2551"
         dose: "400mg IV q12h"
         pregnancy_safe: false
       - drug: "Metronidazole"
-        code_rxnorm: "6922"
         dose: "500mg IV q8h"
         pregnancy_safe: false
 
@@ -375,7 +370,6 @@ drugs:
           eGFR_below_30: "2.25g IV q8h"
     us:
       - drug: "Piperacillin/Tazobactam"
-        code_rxnorm: "240984"
         dose: "3.375g IV q6h"
         indication: "perforated_appendicitis_or_abscess"
 
@@ -387,12 +381,10 @@ drugs:
         note: "Only if perforated; non-perforated needs no postop antibiotics"
     us:
       - drug: "Amoxicillin/Clavulanate"
-        code_rxnorm: "562251"
         dose: "875/125mg PO BID"
         duration_days: 5
         note: "Only if perforated"
       - drug: "Metronidazole"
-        code_rxnorm: "6922"
         dose: "500mg PO TID"
         duration_days: 5
         note: "Only if perforated, combined with above"

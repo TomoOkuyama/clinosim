@@ -240,5 +240,6 @@ occupation:
 | 意味の合わない Composition section コードがある。 | #2391 |
 | 自由文の名称 localizer が FHIR 出力層にあり、order 層と narrative 層から import され、手技・SNOMED・アレルゲン名の翻訳にも使われている。判断ロジックと記録の薬名は `codes.drugs.drug_display` で解決する。 | #2367 |
 | Python に言語ごとのリテラルが残っている。 | #2277 |
-| 疾患 YAML が `drug:` 名と `drug_id:` を混在させ、`Order.order_code` がコード体系を記録していない。 | #2378 |
+| 疾患 YAML が `drug:` 名と `drug_id:` を混在させ、order engine はプロトコルの薬リストで `drug:` しか読まない。 | #2414 |
+| プロトコルの薬の一部がカタログ未収載で、薬でない処置が `drug:` として書かれている。 | #2415 |
 | §8 を強制する lint guard がない。 | #2266 |

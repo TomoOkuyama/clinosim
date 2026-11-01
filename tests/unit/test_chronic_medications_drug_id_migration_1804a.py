@@ -47,10 +47,9 @@ def _iter_medication_entries() -> list[tuple[str, dict]]:
 
 
 # Legacy-OK list: entries where catalog mapping is not yet possible.
-_LEGACY_OK_DRUGS: set[str] = {
-    "Rivaroxaban 20mg",  # dose-embedded JP/US duality, Phase 2.a.ii
-    "Tegafur-Gimeracil-Oteracil",  # S-1 JP combo, no clean IN-level RxCUI
-}
+# Issue #2378 migrated the last legacy name-only entries (rivaroxaban with
+# its dose in ``dose``; tegafur-gimeracil-oteracil by catalog id).
+_LEGACY_OK_DRUGS: set[str] = set()
 
 
 # ---------------------------------------------------------------------------
@@ -113,25 +112,6 @@ def test_resolved_display_is_non_empty_for_every_migrated_entry():
         if not rec.names.get("en") or not rec.names.get("ja"):
             blanks.append((icd, drug_id))
     assert not blanks, f"migrated entries with blank catalog display: {blanks}"
-
-
-# ---------------------------------------------------------------------------
-# Legacy fallback: Rivaroxaban dose-embedded + Tegafur combo still work
-# ---------------------------------------------------------------------------
-
-
-@pytest.mark.parametrize("legacy_drug", sorted(_LEGACY_OK_DRUGS))
-def test_legacy_entries_still_carry_drug_and_drug_ja(legacy_drug: str):
-    """The dose-embedded Rivaroxaban variants and the S-1 combo stay in the
-    legacy ``drug: "X"`` format; their Japanese name comes from the drug
-    catalog (Issue #2271 removed ``drug_ja``)."""
-    from clinosim.codes.drugs import drug_display
-
-    hits = [entry for icd, entry in _iter_medication_entries() if entry.get("drug") == legacy_drug]
-    assert hits, f"legacy entry {legacy_drug!r} missing from chronic_medications.yaml"
-    for entry in hits:
-        assert "drug_ja" not in entry
-        assert drug_display(legacy_drug, "ja"), legacy_drug
 
 
 # ---------------------------------------------------------------------------

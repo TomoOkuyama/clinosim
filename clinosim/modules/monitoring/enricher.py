@@ -317,6 +317,7 @@ def _inject_one_lab(
         patient_id=getattr(patient, "patient_id", "") or "",
         order_type=_lab_order_type(),
         order_code=loinc,
+        order_code_system="loinc" if loinc else "",
         display_name=display_name,
         urgency="routine",
         clinical_intent=f"Chronic-medication monitoring ({drug}): {rationale}",

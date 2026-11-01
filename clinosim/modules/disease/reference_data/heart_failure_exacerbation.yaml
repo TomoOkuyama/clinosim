@@ -286,12 +286,12 @@ drugs:
     japan:
       - {drug: "Furosemide", dose: "20-40mg IV", route: "IV"}
     us:
-      - {drug: "Furosemide", code_rxnorm: "4603", dose: "40mg IV", route: "IV"}
+      - {drug: "Furosemide", dose: "40mg IV", route: "IV"}
   additional:
     japan:
       - {drug: "Carperitide", dose: "0.1ug/kg/min IV", note: "JP-specific: hANP"}
     us:
-      - {drug: "Nitroglycerin", code_rxnorm: "4917", dose: "5-200ug/min IV drip"}
+      - {drug: "Nitroglycerin", dose: "5-200ug/min IV drip"}
   discharge_oral:
     # META #1804 Phase 2.d cardiac cluster: discharge_oral entries carry
     # drug_id into clinosim/codes/data/drugs.yaml. Display resolved via

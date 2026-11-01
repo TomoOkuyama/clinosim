@@ -429,13 +429,11 @@ drugs:
         pregnancy_safe: false
     us:
       - drug: "Lactated_Ringers"
-        code_rxnorm: "847630"    # C2/#1088: pre-fix 313002 was NS (fabrication); NLM-verified LR CUI
         dose: "200-500 mL/h IV (if prerenal, fluid-responsive)"
         route: IV
         note: "Balanced crystalloid preferred over NS to avoid hyperchloremic acidosis"
         pregnancy_safe: true
       - drug: "Furosemide"
-        code_rxnorm: "4603"
         dose: "40-80mg IV (if fluid overloaded)"
         route: IV
         pregnancy_safe: false
@@ -458,16 +456,13 @@ drugs:
         indication: "K > 5.5"
     us:
       - drug: "Calcium_gluconate"
-        code_rxnorm: "4500"
         dose: "1g (10mL 10%) IV over 5min"
         route: IV
         indication: "K > 6.0 or ECG changes"
       - drug: "Insulin_regular"
-        code_rxnorm: "5856"
         dose: "10 units IV + D50W 50mL"
         route: IV
       - drug: "Patiromer"
-        code_rxnorm: "1593773"
         dose: "8.4g PO daily"
         indication: "ongoing_hyperkalemia"
 
@@ -479,7 +474,6 @@ drugs:
         indication: "pH < 7.1 or CO2 < 12"
     us:
       - drug: "Sodium_bicarbonate"
-        code_rxnorm: "9863"
         dose: "50-150 mEq IV"
         route: IV
         indication: "pH < 7.1 or severe symptomatic acidosis"
