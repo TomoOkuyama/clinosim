@@ -167,6 +167,10 @@ precision:
 # Standard units for lab results — UCUM (http://unitsofmeasure.org)
 # References: https://ucum.org/, FHIR R4 Observation requires UCUM
 units:
+  # Health-checkup measurements stored as results (Issue #2300).
+  BMI: "kg/m2"
+  SBP: "mm[Hg]"
+  DBP: "mm[Hg]"
   Na: "mmol/L"
   K: "mmol/L"
   Cl: "mmol/L"

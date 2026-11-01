@@ -51,7 +51,7 @@ from clinosim.modules.health_checkup import (
 内部 helper (`engine.py`) — public surface ではないが test 参照に有用:
 `_patient_selected(patient_id)`, `_pick_checkup_type(age)`,
 `_pick_checkup_date(snapshot_date)`,
-`_derive_checkup_values(patient, rng)`, `_interp_for(loinc, value)`,
+`_derive_checkup_values(patient, rng)`, `_interp_for(lab_name, value)`, `checkup_lab_names()`,
 `_build_checkup_encounter`, `_build_checkup_lab_results`,
 `_build_checkup_document_stub`。`HEALTH_CHECKUP_MIN_AGE = 40` と年齢
 tier 閾値 (`CHECKUP_TYPE_SPECIFIC_AGE_MIN = 65`,

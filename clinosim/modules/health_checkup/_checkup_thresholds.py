@@ -1,14 +1,13 @@
 """Japanese health-checkup (法定健診) value-derivation + interpretation thresholds (Issue #637).
 
 Extracts the previously-inline scalars from
-``clinosim/modules/health_checkup/engine.py`` per policy §5. Two groups:
+``clinosim/modules/health_checkup/engine.py`` per policy §5:
 
 1. **Value derivation** — measurement noise SDs, per-patient fallback
    baselines, physiologic clamp bounds, and disease-status baseline
    modifiers used by ``_derive_checkup_values``.
-2. **Interpretation cutoffs** — per-analyte H (high) vs N (normal)
-   threshold used by ``_interp_for``, aligned to JP 特定健診 /
-   metabolic-syndrome criteria.
+2. The interpretation cutoffs (特定健診 保健指導判定値) live in
+   ``locale/jp/reference_range_lab.yaml`` ``checkup_ranges`` (Issue #2300).
 
 Byte-diff verification: swapping the inline literals for these named
 constants MUST NOT change any RNG-consuming call. ``rng.normal`` /
@@ -19,16 +18,12 @@ literals or module-scope constants.
 from __future__ import annotations
 
 __all__ = [
-    "BMI_INTERPRET_HIGH_THRESHOLD",
-    "BMI_INTERPRET_REFERENCE_RANGE",
     "BMI_MEASUREMENT_NOISE_SD",
     "BMI_PHYSIOLOGIC_MAX",
     "BMI_PHYSIOLOGIC_MIN",
     "BMI_PROFILE_FALLBACK",
     "CHECKUP_TYPE_REGIONAL_UNION_AGE_MIN",
     "CHECKUP_TYPE_SPECIFIC_AGE_MIN",
-    "DBP_INTERPRET_HIGH_THRESHOLD",
-    "DBP_INTERPRET_REFERENCE_RANGE",
     "DBP_MEASUREMENT_NOISE_SD",
     "DBP_PHYSIOLOGIC_MAX",
     "DBP_PHYSIOLOGIC_MIN",
@@ -37,8 +32,6 @@ __all__ = [
     "HBA1C_DM_PHYSIOLOGIC_MAX",
     "HBA1C_DM_PHYSIOLOGIC_MIN",
     "HBA1C_GC_FALLBACK",
-    "HBA1C_INTERPRET_HIGH_THRESHOLD",
-    "HBA1C_INTERPRET_REFERENCE_RANGE",
     "HBA1C_NONDM_AGE_SCALE",
     "HBA1C_NONDM_MEASUREMENT_NOISE_SD",
     "HBA1C_NONDM_PHYSIOLOGIC_MAX",
@@ -48,14 +41,10 @@ __all__ = [
     "LDL_BASE_FEMALE",
     "LDL_BASE_MALE",
     "LDL_DYSLIPIDEMIA_LIFT",
-    "LDL_INTERPRET_HIGH_THRESHOLD",
-    "LDL_INTERPRET_REFERENCE_RANGE",
     "LDL_MEASUREMENT_NOISE_SD",
     "LDL_PHYSIOLOGIC_MAX",
     "LDL_PHYSIOLOGIC_MIN",
     "LDL_STATIN_REDUCTION",
-    "SBP_INTERPRET_HIGH_THRESHOLD",
-    "SBP_INTERPRET_REFERENCE_RANGE",
     "SBP_MEASUREMENT_NOISE_SD",
     "SBP_PHYSIOLOGIC_MAX",
     "SBP_PHYSIOLOGIC_MIN",
@@ -83,13 +72,6 @@ BMI_PHYSIOLOGIC_MIN: float = 10.0
 BMI_PHYSIOLOGIC_MAX: float = 60.0
 """Physiologic BMI upper clamp (kg/m²) — class-IV obesity ceiling."""
 
-BMI_INTERPRET_HIGH_THRESHOLD: float = 25.0
-"""BMI (kg/m²) at or above which the interpretation is "H" (high) —
-matches JP 特定保健指導 肥満 cutoff (WHO overweight boundary)."""
-
-BMI_INTERPRET_REFERENCE_RANGE: str = "18.5-24.9 kg/m2"
-"""Display string for BMI reference range — WHO healthy weight band."""
-
 
 # ---------------------------------------------------------------------------
 # Blood pressure — SBP + DBP
@@ -110,13 +92,6 @@ SBP_PHYSIOLOGIC_MAX: float = 220.0
 """Physiologic SBP upper clamp (mmHg) — severe hypertensive urgency
 ceiling."""
 
-SBP_INTERPRET_HIGH_THRESHOLD: float = 130.0
-"""SBP (mmHg) at or above which interpretation is "H" — matches JP
-高血圧治療ガイドライン 2019 診察室血圧 130 mmHg cutoff (aligned to
-US ACC/AHA 2017 stage 1 threshold)."""
-
-SBP_INTERPRET_REFERENCE_RANGE: str = "<130 mmHg"
-"""Display string for SBP reference range."""
 
 DBP_VITALS_FALLBACK: int = 75
 """Fallback diastolic BP (mmHg) when ``patient.baseline_vitals`` is
@@ -131,13 +106,6 @@ DBP_PHYSIOLOGIC_MIN: float = 40.0
 
 DBP_PHYSIOLOGIC_MAX: float = 140.0
 """Physiologic DBP upper clamp (mmHg)."""
-
-DBP_INTERPRET_HIGH_THRESHOLD: float = 85.0
-"""DBP (mmHg) at or above which interpretation is "H" — matches JP
-高血圧治療ガイドライン 2019 診察室血圧 85 mmHg cutoff."""
-
-DBP_INTERPRET_REFERENCE_RANGE: str = "<85 mmHg"
-"""Display string for DBP reference range."""
 
 
 # ---------------------------------------------------------------------------
@@ -176,13 +144,6 @@ HBA1C_NONDM_PHYSIOLOGIC_MAX: float = 7.0
 """Physiologic HbA1c upper clamp (%) for non-diabetic patients — a
 non-DM patient with HbA1c > 7 should be re-classified as diabetic;
 the clamp prevents narrative inconsistency."""
-
-HBA1C_INTERPRET_HIGH_THRESHOLD: float = 5.6
-"""HbA1c (%) at or above which interpretation is "H" — matches JP
-特定健診 prediabetes 5.6% cutoff (ADA 5.7% is broadly aligned)."""
-
-HBA1C_INTERPRET_REFERENCE_RANGE: str = "<5.6 %"
-"""Display string for HbA1c reference range."""
 
 
 # ---------------------------------------------------------------------------
@@ -226,14 +187,6 @@ hypocholesterolemia floor / very-aggressive-statin achievable minimum."""
 LDL_PHYSIOLOGIC_MAX: float = 300.0
 """Physiologic LDL upper clamp (mg/dL) — matches severe familial
 hypercholesterolemia ceiling."""
-
-LDL_INTERPRET_HIGH_THRESHOLD: float = 120.0
-"""LDL (mg/dL) at or above which interpretation is "H" — matches JP
-動脈硬化性疾患予防ガイドライン 一次予防 120 mg/dL target for
-primary-prevention low-risk cohort."""
-
-LDL_INTERPRET_REFERENCE_RANGE: str = "<120 mg/dL"
-"""Display string for LDL reference range."""
 
 
 # ---------------------------------------------------------------------------

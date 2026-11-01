@@ -100,7 +100,11 @@ _JP_EXPECTED_KIND: dict[str, LabCodingKind] = {
     "TC": LabCodingKind.CORELABO_JLAC10,
     "APTT": LabCodingKind.CORELABO_JLAC10,
     "D_dimer": LabCodingKind.CORELABO_JLAC10,
-    # Uncoded — 12 entries, each in _KNOWN_UNCODED_ANALYTES
+    # Uncoded — 15 entries, each in _KNOWN_UNCODED_ANALYTES
+    # Health-checkup body measurements (Issue #2300).
+    "BMI": LabCodingKind.UNCODED,
+    "SBP": LabCodingKind.UNCODED,
+    "DBP": LabCodingKind.UNCODED,
     "pH": LabCodingKind.UNCODED,
     "pCO2": LabCodingKind.UNCODED,
     "pO2": LabCodingKind.UNCODED,
@@ -230,12 +234,13 @@ def test_expected_kind_totals_match_v30_analyte_split():
     corelabo = [n for n, k in _JP_EXPECTED_KIND.items() if k == LabCodingKind.CORELABO_JLAC10]
     uncoded = [n for n, k in _JP_EXPECTED_KIND.items() if k == LabCodingKind.UNCODED]
     assert len(corelabo) == 20, f"expected 20 CoreLabo, got {len(corelabo)}"
-    assert len(uncoded) == 12, f"expected 12 Uncoded (incl. Glucose), got {len(uncoded)}"
+    # +3 checkup body measurements (BMI / SBP / DBP, Issue #2300).
+    assert len(uncoded) == 15, f"expected 15 Uncoded (incl. Glucose), got {len(uncoded)}"
     assert len(_ANALYTE_TO_SLICE_NAME) == 20, (
         f"_ANALYTE_TO_SLICE_NAME should have 20 entries, got {len(_ANALYTE_TO_SLICE_NAME)}"
     )
-    assert len(_KNOWN_UNCODED_ANALYTES) == 12, (
-        f"_KNOWN_UNCODED_ANALYTES should have 12 entries, got {len(_KNOWN_UNCODED_ANALYTES)}"
+    assert len(_KNOWN_UNCODED_ANALYTES) == 15, (
+        f"_KNOWN_UNCODED_ANALYTES should have 15 entries, got {len(_KNOWN_UNCODED_ANALYTES)}"
     )
 
 
@@ -294,13 +299,24 @@ def test_legacy_jslm_appends_loinc_secondary_when_us_mapping_exists():
 
 def test_legacy_jslm_fallback_to_order_code_when_unmapped():
     """Unmapped ``lab_name`` falls back to ``order.order_code`` under
-    LOINC — the pre-refactor behavior. Tagging an arbitrary code under
+    LOINC when it is a registered LOINC code. Tagging an arbitrary code under
     ``jlac10`` would produce an incoherent coding (matches the
     ``_bb_microbiology`` culture-code resolution rule)."""
     s = LegacyJSLMStrategy()
-    codings = s.emit_codings(lab_name="TotallyUnknownAnalyte", order={"order_code": "12345-6"}, result={}, country="JP")
+    codings = s.emit_codings(lab_name="TotallyUnknownAnalyte", order={"order_code": "4548-4"}, result={}, country="JP")
     assert codings[0]["system"] == "http://loinc.org"
-    assert codings[0]["code"] == "12345-6"
+    assert codings[0]["code"] == "4548-4"
+
+
+def test_legacy_jslm_never_puts_a_non_loinc_order_code_under_loinc():
+    """A canonical lab name or other non-LOINC order code is not emitted as a
+    LOINC code (Issue #2300); only the mapped LOINC secondary remains."""
+    s = LegacyJSLMStrategy()
+    codings = s.emit_codings(lab_name="SBP", order={"order_code": "SBP"}, result={}, country="JP")
+    assert [c["code"] for c in codings] == ["8480-6"]
+    assert not s.emit_codings(
+        lab_name="TotallyUnknownAnalyte", order={"order_code": "12345-6"}, result={}, country="JP"
+    )
 
 
 # --------------------------------------------------------------------------- #

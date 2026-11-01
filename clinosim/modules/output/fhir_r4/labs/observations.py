@@ -146,12 +146,12 @@ def _build_lab_observation(
     # a LocalCode coding).
     if _localcode is not None and _localcode.get("display"):
         display_name = _localcode["display"]
-    elif codings:
+    elif codings and not (is_jp(country) and codings[0].get("system") == get_system_uri("loinc")):
         display_name = codings[0]["display"]
     else:
-        # No standard code at all (Issue #2138): text-only code, in Japanese on JP.
+        # No JP code (only the English LOINC interop coding, Issue #2300) or
+        # no standard code at all (Issue #2138): the analyte name, in Japanese on JP.
         display_name = uncoded_analyte_display(lab_name, resolve_lang(country))
-    code_value = codings[0]["code"] if codings else ""
 
     # encounter_id must be non-empty: the production path always provides
     # ctx.primary_enc_id, and it participates in the opaque-id structural key
@@ -167,8 +167,7 @@ def _build_lab_observation(
     # LOINC 39156-5 (BMI) → hl7.org/.../bmi、8480-6/8462-4 (BP) → .../bp。
     # JP コホートも JP Core LabResult + 該当 vital profile を stacking 可能。
     _extra_profiles: list[str] = []
-    _lab_code = str(result.get("lab_name") or code_value or "")
-    if _lab_code == "39156-5":
+    if lab_name == "BMI":  # health-checkup BMI (Issue #2300: canonical name, LOINC 39156-5 coding)
         _extra_profiles.append("http://hl7.org/fhir/StructureDefinition/bmi")
     # BP 個別 obs は bp profile が component 構造を要求するため、
     # 別 Observation で発行される limitation あり(TODO: 将来 combined 85354-9)。
@@ -224,10 +223,19 @@ def _build_lab_observation(
     else:
         resource["valueString"] = str(value)
 
-    # Reference range (JP: JCCLS共用基準範囲)
-    ref_range = build_reference_range(
-        lab_name, patient_sex, country_code, medications=patient_medications, age=patient_age
-    )
+    # Reference range (JP: JCCLS共用基準範囲). A health-checkup result is
+    # judged against the checkup criterion (保健指導判定値) stored on the result
+    # (reference_range_lab.yaml checkup_ranges), not the general range, so it
+    # carries that text and its interpretation follows the stored flag
+    # (Issue #2300).
+    ref_range: list[dict[str, Any]] | None
+    if order.get("clinical_intent") == "health_checkup":
+        _checkup_text = str(result.get("reference_range") or "")
+        ref_range = [{"text": _checkup_text}] if _checkup_text else None
+    else:
+        ref_range = build_reference_range(
+            lab_name, patient_sex, country_code, medications=patient_medications, age=patient_age
+        )
     if ref_range:
         resource["referenceRange"] = ref_range
 
@@ -255,7 +263,9 @@ def _build_lab_observation(
                 break
             if (tc == "normal" or not tc) and normal_rng is None:
                 normal_rng = rng
-        if normal_rng:
+        # A text-only range (no bounds) cannot judge the value: keep the
+        # stored flag (health-checkup criterion text, Issue #2300).
+        if normal_rng and (normal_rng.get("low") or normal_rng.get("high")):
             low_v = (normal_rng.get("low") or {}).get("value")
             high_v = (normal_rng.get("high") or {}).get("value")
             is_critical = flag in ("H*", "L*", "critical")

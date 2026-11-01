@@ -59,11 +59,11 @@ def test_checkup_lab_results_all_normal_grade_a():
     """全項目が基準内 → 総合判定 A(異常なし)。"""
     gen = TemplateNarrativeGenerator()
     labs = [
-        _make_lab_result("39156-5", 22.5),  # BMI 標準
-        _make_lab_result("8480-6", 118),  # 収縮期 BP 基準内
-        _make_lab_result("8462-4", 76),  # 拡張期 BP 基準内
-        _make_lab_result("4548-4", 5.4),  # HbA1c 基準内
-        _make_lab_result("18262-6", 100),  # LDL 基準内
+        _make_lab_result("BMI", 22.5),  # BMI 標準
+        _make_lab_result("SBP", 118),  # 収縮期 BP 基準内
+        _make_lab_result("DBP", 76),  # 拡張期 BP 基準内
+        _make_lab_result("HbA1c", 5.4),  # HbA1c 基準内
+        _make_lab_result("LDL", 100),  # LDL 基準内
     ]
     ctx = _make_ctx(labs, patient=SimpleNamespace(patient_id="P1"))
     text, facts = gen._build_checkup_lab_results(ctx)
@@ -79,11 +79,11 @@ def test_checkup_lab_results_high_bp_grade_d():
     """収縮期 BP 140 以上 → 高血圧、総合判定 D。"""
     gen = TemplateNarrativeGenerator()
     labs = [
-        _make_lab_result("39156-5", 24.0),
-        _make_lab_result("8480-6", 152),  # 高血圧
-        _make_lab_result("8462-4", 96),
-        _make_lab_result("4548-4", 5.4),
-        _make_lab_result("18262-6", 100),
+        _make_lab_result("BMI", 24.0),
+        _make_lab_result("SBP", 152),  # 高血圧
+        _make_lab_result("DBP", 96),
+        _make_lab_result("HbA1c", 5.4),
+        _make_lab_result("LDL", 100),
     ]
     ctx = _make_ctx(labs, patient=SimpleNamespace(patient_id="P2"))
     text, _ = gen._build_checkup_lab_results(ctx)
@@ -96,11 +96,11 @@ def test_checkup_lab_results_high_hba1c_grade_d():
     """HbA1c 6.5 以上 → 糖尿病型、総合判定 D。"""
     gen = TemplateNarrativeGenerator()
     labs = [
-        _make_lab_result("39156-5", 25.0),
-        _make_lab_result("8480-6", 128),
-        _make_lab_result("8462-4", 82),
-        _make_lab_result("4548-4", 7.2),  # 糖尿病型
-        _make_lab_result("18262-6", 100),
+        _make_lab_result("BMI", 25.0),
+        _make_lab_result("SBP", 128),
+        _make_lab_result("DBP", 82),
+        _make_lab_result("HbA1c", 7.2),  # 糖尿病型
+        _make_lab_result("LDL", 100),
     ]
     ctx = _make_ctx(labs, patient=SimpleNamespace(patient_id="P3"))
     text, _ = gen._build_checkup_lab_results(ctx)

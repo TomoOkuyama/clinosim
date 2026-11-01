@@ -35,6 +35,7 @@ lab_names:
   bilirubin: {en: bilirubin, ja: ビリルビン}
   blood_culture_set_1: {en: blood culture (set 1), ja: 血液培養 (セット 1)}
   blood_culture_set_2: {en: blood culture (set 2), ja: 血液培養 (セット 2)}
+  bmi: {en: BMI, ja: BMI}
   bmp: {en: BMP, ja: BMP (基本代謝パネル)}
   bnp: {en: BNP, ja: BNP}
   bun: {en: BUN, ja: BUN}
@@ -63,6 +64,7 @@ lab_names:
   d_bil: {en: direct bilirubin, ja: 直接ビリルビン}
   d_dimer: {en: D-dimer, ja: D-ダイマー}
   dbil: {en: direct bilirubin, ja: 直接ビリルビン}
+  dbp: {en: diastolic BP, ja: 拡張期血圧}
   ddimer: {en: D-dimer, ja: D-ダイマー}
   digoxin: {en: digoxin level, ja: ジゴキシン血中濃度}
   direct_bilirubin: {en: direct bilirubin, ja: 直接ビリルビン}
@@ -138,6 +140,7 @@ lab_names:
   red_blood_cell: {en: red blood cell, ja: 赤血球}
   reticulocyte: {en: reticulocytes, ja: 網赤血球}
   salicylate: {en: salicylate level, ja: サリチル酸血中濃度}
+  sbp: {en: systolic BP, ja: 収縮期血圧}
   sodium: {en: sodium, ja: ナトリウム}
   spo2: {en: SpO2, ja: SpO2}
   t_bil: {en: total bilirubin, ja: 総ビリルビン}
