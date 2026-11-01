@@ -228,7 +228,6 @@ occupation:
 | ICD の検索・短縮名・crosswalk が 1 つの accessor にまとまっていない (短縮名の表が 2 つ、CM と WHO で日本語表示が食い違う)。 | #2257 |
 | SNOMED のコードと表示名を出力側の dict がまだ持っている (route / severity)。SNOMED のリテラル 74 件が未登録。 | #2258 |
 | 文書 LOINC の定義が 8 箇所にある。意味の合わない section コードがある。出力側に LOINC 定数が残っている。 | #2344 |
-| 疾患 YAML にインラインの `code_yj` が残り、JP の CIF `order_code` がカタログではなくそこから写されている。 | #2351 |
 | 生成側が出しているのに未登録の CPT / K コード。 | #2340 |
 | `clinosim/codes/` の外に HL7 `terminology.hl7.org` の URI 直書きがあり、coding を組み立てる helper が 3 つ重複している (`_coding_with_display` / `_value` / `_build_hosp_concept`)。 | #2349 |
 | 手組みの dual-slot が残っている。後処理で text を補う walker も残っている。 | #2337 |
