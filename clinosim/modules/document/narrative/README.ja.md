@@ -171,8 +171,8 @@ token が template 出力に混入すると LLM は verbatim rule に従って
     names / oxygen device) の外側 `if lang == "ja":` gate を落と
     せる。lookup table を持たない locale では no-op (今日は
     `lang != "ja"` すべて):
-    - `output/fhir_r4/lib/localization.localize_drug_name(name,
-      lang)` — `_localize_drug_name` を wrap。
+    - `clinosim.locale.free_text.localize_free_text(name, lang)` —
+      自由文の名称翻訳 (locale 層、Issue #2367)。
     - `_replacement_localization.localize_oxygen_device(device,
       lang)` (`replacement_strategy` から再 export) —
       `_localize_oxygen_device_ja` を wrap。

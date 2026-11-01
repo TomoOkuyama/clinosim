@@ -156,18 +156,6 @@ from clinosim.types.document import DocumentTypeSpec, NarrativeContext, Narrativ
 _BUNDLE_RETRY_MAX_MODEL_LEN = 32768
 
 
-# v8 (2026-08-17): lazy accessor for _localize_drug_name to avoid the
-# document→output→document circular import at module load. The
-# localization helper only depends on a small YAML at first-call time.
-def _load_drug_localizer():  # pragma: no cover — trivial thunk
-    """Lazy import of the lang-aware `localize_drug_name` wrapper.
-    Returned callable takes `(drug_name, lang)` — a no-op for any
-    lang without a lookup table."""
-    from clinosim.modules.output.fhir_r4.lib.localization import localize_drug_name as _f
-
-    return _f
-
-
 # v6 (2026-08-16): payload-level localization maps. Values that reach
 # the LLM prompt as bare English tokens (encounter_type enum,
 # discharge_disposition code) confuse JA narrative generation — LLM saw

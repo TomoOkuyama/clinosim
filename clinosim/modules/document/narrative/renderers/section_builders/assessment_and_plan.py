@@ -222,7 +222,7 @@ def _compose_ap_plan_from_state(generator: TemplateNarrativeGenerator, ctx: Narr
         # for any lang without a lookup table (today: any non-`"ja"`).
         # Adding a new locale is a data-only extension of
         # `drug_names_<lang>.yaml`; no branch here.
-        from clinosim.modules.output.fhir_r4.lib.localization import localize_drug_name
+        from clinosim.locale.free_text import localize_drug_name
 
         med_names.append(localize_drug_name(str(name), lang))
         if len(med_names) >= 6:

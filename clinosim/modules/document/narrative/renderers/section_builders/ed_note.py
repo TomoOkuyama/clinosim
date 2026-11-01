@@ -252,7 +252,7 @@ def build_ed_workup(generator: TemplateNarrativeGenerator, ctx: NarrativeContext
         # for lang without a lookup table). Broad except keeps a
         # narrative render from failing on an i18n edge case.
         try:
-            from clinosim.modules.output.fhir_r4.lib.localization import localize_drug_name
+            from clinosim.locale.free_text import localize_drug_name
 
             med_display = [localize_drug_name(m, lang) or m for m in med_display]
         except Exception:  # noqa: BLE001 — never fail narrative on i18n
@@ -273,7 +273,7 @@ def build_ed_workup(generator: TemplateNarrativeGenerator, ctx: NarrativeContext
         # Drug/procedure display katakana via lang-aware wrapper
         # (same wrapper as med_display above).
         try:
-            from clinosim.modules.output.fhir_r4.lib.localization import (
+            from clinosim.locale.free_text import (
                 localize_drug_name,
             )
 

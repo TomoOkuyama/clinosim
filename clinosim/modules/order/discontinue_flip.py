@@ -200,7 +200,7 @@ def enrich_discontinue_flip(ctx: EnricherContext) -> None:
                     _ja_display = getattr(o, "display_name_ja", "") or ""
                     if not _ja_display:
                         try:
-                            from clinosim.modules.output.fhir_r4.lib.localization import _localize_drug_name
+                            from clinosim.locale.free_text import _localize_drug_name
 
                             _ja_display = _localize_drug_name(display, "JP") or display
                         except Exception:  # noqa: BLE001 — never fail the enricher on i18n
@@ -425,7 +425,7 @@ def _log_treatment_change(
     replacement_ja = replacement_agent
     if replacement_agent:
         try:
-            from clinosim.modules.output.fhir_r4.lib.localization import _localize_drug_name
+            from clinosim.locale.free_text import _localize_drug_name
 
             replacement_ja = _localize_drug_name(replacement_agent, "JP") or replacement_agent
         except Exception:  # noqa: BLE001 — never fail the enricher on i18n

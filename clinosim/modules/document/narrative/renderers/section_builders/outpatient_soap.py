@@ -975,7 +975,7 @@ def _compose_today_prescription_line(ctx: NarrativeContext) -> str:
             continue
         drug, _cat = strip_protocol_prefix(drug)
         # Drug-name katakana lookup via lang-aware wrapper.
-        from clinosim.modules.output.fhir_r4.lib.localization import localize_drug_name
+        from clinosim.locale.free_text import localize_drug_name
 
         drug = localize_drug_name(drug, lang)
         dose = _o(m, "dose", "") or ""
@@ -1089,7 +1089,7 @@ def _compose_current_medications_line(ctx: NarrativeContext) -> str:
             # Drug-name katakana lookup for str-only entries via
             # lang-aware wrapper (dict entries already routed through
             # `_render_home_med_name`).
-            from clinosim.modules.output.fhir_r4.lib.localization import localize_drug_name
+            from clinosim.locale.free_text import localize_drug_name
 
             n = localize_drug_name(m, lang)
         if n:

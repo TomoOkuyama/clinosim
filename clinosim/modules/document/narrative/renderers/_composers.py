@@ -312,7 +312,7 @@ def compose_progress_plan_from_state(ctx: NarrativeContext) -> str:
         if not name or name in seen:
             continue
         seen.add(name)
-        from clinosim.modules.output.fhir_r4.lib.localization import localize_drug_name
+        from clinosim.locale.free_text import localize_drug_name
 
         med_names.append(localize_drug_name(str(name), lang))
         if len(med_names) >= 6:

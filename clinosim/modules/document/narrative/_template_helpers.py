@@ -121,7 +121,7 @@ def _render_home_med_name(m: Any, lang: str = "en") -> str:
         return stored_ja
     # Lazy import to avoid the document → output → document circular at
     # module load; same pattern used in replacement_strategy.py.
-    from clinosim.modules.output.fhir_r4.lib.localization import _localize_drug_name
+    from clinosim.locale.free_text import _localize_drug_name
 
     return _localize_drug_name(raw, "JP")
 
@@ -356,7 +356,7 @@ def _render_safety_skips_line(skips: list[dict], lang: str) -> str:
         if not value:
             return ""
         try:
-            from clinosim.modules.output.fhir_r4.lib.localization import localize_drug_name
+            from clinosim.locale.free_text import localize_drug_name
 
             return localize_drug_name(value, lang) or value
         except Exception:  # noqa: BLE001

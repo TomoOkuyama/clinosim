@@ -185,8 +185,8 @@ first. Two symmetric defenses coexist:
     per-locale data-pipeline lookups (drug names,
     oxygen devices). Each is a no-op when the target locale has
     no lookup table (today: any `lang != "ja"`):
-    - `output/fhir_r4/lib/localization.localize_drug_name(name,
-      lang)` — wraps `_localize_drug_name`.
+    - `clinosim.locale.free_text.localize_free_text(name, lang)` —
+      the free-text name translator (locale layer, Issue #2367).
     - `_replacement_localization.localize_oxygen_device(device,
       lang)` (re-exported from `replacement_strategy`) — wraps
       `_localize_oxygen_device_ja`.

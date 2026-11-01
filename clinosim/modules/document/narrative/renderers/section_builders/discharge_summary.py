@@ -243,7 +243,7 @@ def build_discharge_medications(generator: TemplateNarrativeGenerator, ctx: Narr
         # any lang without a lookup table (today: any
         # non-`"ja"`); `_localize_dosage_terms` is already
         # lang-aware. Single code path across locales.
-        from clinosim.modules.output.fhir_r4.lib.localization import (
+        from clinosim.locale.free_text import (
             _localize_dosage_terms,
             localize_drug_name,
         )
