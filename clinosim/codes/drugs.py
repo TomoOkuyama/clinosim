@@ -175,16 +175,72 @@ def drug_display(ref: str, lang: str) -> str | None:
     drug_id, English name or alias, or a free-text order name whose leading
     words name one ("Rivaroxaban 20mg"). ``None`` when no catalog drug matches.
     The one drug-name resolver for display (Issue #2271)."""
-    rec = find_drug(ref)
-    if rec is None:
-        tokens = (ref or "").replace("_", " ").split()
-        for n in range(len(tokens) - 1, 0, -1):
-            rec = find_drug(" ".join(tokens[:n]))
-            if rec is not None:
-                break
+    rec = find_drug(ref) or _find_by_leading_words(ref)
     if rec is None:
         return None
     return rec.names.get(lang) or rec.names.get("en") or None
+
+
+def _find_by_leading_words(text: str) -> DrugIdentity | None:
+    """The catalog drug named by the longest run of leading words of ``text``
+    ("Rivaroxaban 20mg" → rivaroxaban)."""
+    tokens = (text or "").replace("_", " ").split()
+    for n in range(len(tokens) - 1, 0, -1):
+        rec = find_drug(" ".join(tokens[:n]))
+        if rec is not None:
+            return rec
+    return None
+
+
+@cache
+def _name_patterns() -> tuple[tuple[re.Pattern[str], str], ...]:
+    """Every catalog name and alias as a pattern, longest first. ASCII names
+    match as whole words (the id ``ns`` must not match inside "insulin");
+    Japanese names match as substrings ("ワルファリン錠")."""
+    pairs: dict[str, str] = {}
+    for drug_id, rec in _load_catalog().items():
+        for name in (rec.names.get("en", ""), rec.names.get("ja", ""), *rec.aliases):
+            if name:
+                pairs.setdefault(name.casefold(), drug_id)
+    out = []
+    for name in sorted(pairs, key=len, reverse=True):
+        body = re.escape(name)
+        pattern = rf"(?<![\w-]){body}(?![\w])" if name.isascii() else body
+        out.append((re.compile(pattern), pairs[name]))
+    return tuple(out)
+
+
+def identify_drug(text: str) -> DrugIdentity | None:
+    """The catalog drug a free-text medication string names: an exact id,
+    name or alias; else its leading words ("Warfarin 3mg PO daily"); else the
+    longest catalog name or alias it contains ("IV ketorolac 15 mg",
+    "アムロジピン錠5mg"). ``None`` when no catalog drug matches (Issue #2298)."""
+    rec = find_drug(text) or _find_by_leading_words(text)
+    if rec is not None:
+        return rec
+    folded = (text or "").casefold()
+    if not folded:
+        return None
+    for pattern, drug_id in _name_patterns():
+        if pattern.search(folded):
+            return _load_catalog()[drug_id]
+    return None
+
+
+def drug_classes(ref: str) -> tuple[str, ...]:
+    """Catalog classes of the drug ``ref`` names (see :func:`identify_drug`),
+    each followed by its dotted ancestors (``anticoagulant.vka`` also yields
+    ``anticoagulant``); ``()`` for an unknown drug. The one drug-class lookup
+    for decision logic (Issue #2298)."""
+    rec = identify_drug(ref)
+    if rec is None:
+        return ()
+    out: dict[str, None] = {}
+    for cls in rec.classes:
+        parts = cls.split(".")
+        for n in range(len(parts), 0, -1):
+            out.setdefault(".".join(parts[:n]))
+    return tuple(out)
 
 
 def jp_drug_code_for_name(name: str, route: str = "") -> str | None:

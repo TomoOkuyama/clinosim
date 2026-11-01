@@ -69,7 +69,9 @@ rules:
     source: "ESC 2021 heart failure guidelines"
 
   - id: statin-plus-cyp3a4-strong-inhibitor
-    lhs: statin
+    # CYP3A4-metabolised statins only (simvastatin, atorvastatin); rosuvastatin
+    # and pravastatin are not, so the rule keys on cyp3a4_substrate (Issue #2298).
+    lhs: cyp3a4_substrate
     rhs: cyp3a4_inhibitor_strong
     severity: major
     rationale_en: "Simvastatin/atorvastatin + strong CYP3A4 inhibitor (clarithromycin, itraconazole) raises rhabdomyolysis risk. Consider holding statin during antibiotic course."

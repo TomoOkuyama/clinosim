@@ -8,7 +8,7 @@ compound serotonin-syndrome risk without evidence of additive
 efficacy. The gate is realised as a class × class rule in
 ``drug_safety/reference_data/contraindications.yaml``
 (``ssri-plus-snri`` severity=major) backed by the drug-class
-mappings this PR adds to ``drug_classes.yaml``.
+class mappings (now in the drug catalog, Issue #2298).
 
 Scope: ``ssri + snri`` only. Benzodiazepines gain class mappings
 (``benzodiazepine`` / ``anxiolytic``) for future rules but no

@@ -7,7 +7,7 @@ from pathlib import Path
 import pytest
 
 from clinosim.codes.drugs import drug_display
-from clinosim.modules.drug_safety.classifier import _load_mappings, japanese_display
+from clinosim.modules.drug_safety.classifier import japanese_display
 from clinosim.modules.output.fhir_r4.lib.localization import _localize_drug_name
 
 pytestmark = pytest.mark.unit
@@ -22,11 +22,6 @@ def test_no_yaml_carries_drug_ja() -> None:
         if any(line.lstrip().startswith("drug_ja:") or ", drug_ja:" in line for line in p.read_text().splitlines())
     ]
     assert not offenders, offenders
-
-
-def test_every_drug_safety_drug_has_a_catalog_japanese_name() -> None:
-    missing = [name for name in _load_mappings() if not drug_display(name, "ja")]
-    assert not missing, missing
 
 
 @pytest.mark.parametrize("name", ["Diazepam", "Unfractionated Heparin", "Dabigatran", "Nifedipine"])
