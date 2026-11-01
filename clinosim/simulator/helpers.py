@@ -30,6 +30,7 @@ import numpy as np
 # import from the topic module directly in new code, but existing call
 # sites may continue to use these aliases indefinitely.
 # ---------------------------------------------------------------------------
+from clinosim.codes.drugs import drug_ref, get_drug
 from clinosim.modules.disease.localization import (  # noqa: F401
     _country_to_yaml_key,
     _disease_chief_complaint,
@@ -394,27 +395,24 @@ def _select_secondary_disease(
 
 
 _IV_TOKENS = frozenset({"IV", "DRIP", "INTRAVENOUS", "INFUSION"})
-_SC_TOKENS = frozenset({"SC", "SUBCUTANEOUS", "ENOXAPARIN"})
+_SC_TOKENS = frozenset({"SC", "SUBCUTANEOUS"})
 _IM_TOKENS = frozenset({"IM", "INTRAMUSCULAR"})
-_IV_DRUG_TOKENS = frozenset(
-    {"AMPICILLIN", "SULBACTAM", "CEFTRIAXONE", "MEROPENEM", "FUROSEMIDE", "NITROGLYCERIN", "VANCOMYCIN", "LEVOFLOXACIN"}
-)
 
 
-def _determine_route(drug_name: str, clinical_intent: str) -> str:
+def _determine_route(drug_name: str, clinical_intent: str, drug_id: str = "") -> str:
     """Determine medication administration route (order-side heuristic).
 
-    Matches whole words only (Issue #2295): the former substring tests
-    routed oral drugs by letters inside their names (escItalopram -> SC,
-    ezetIMibe -> IM, rIVaroxaban -> IV).
+    Route words in the order win (whole words only, Issue #2295: the former
+    substring tests routed oral drugs by letters inside their names). Without
+    one, the drug's catalog ``default_route`` applies (Issue #2389), else PO.
     """
     tokens = set(re.findall(r"[A-Z0-9]+", f"{drug_name} {clinical_intent}".upper()))
+    drug = get_drug(drug_id or drug_ref(drug_name))
+    default = drug.default_route if drug is not None else ""
     if tokens & _IV_TOKENS:
         return "IV"
-    if tokens & _SC_TOKENS:
+    if tokens & _SC_TOKENS or default == "SC":
         return "SC"
     if tokens & _IM_TOKENS:
         return "IM"
-    if set(re.findall(r"[A-Z0-9]+", drug_name.upper())) & _IV_DRUG_TOKENS:
-        return "IV"
-    return "PO"
+    return default or "PO"

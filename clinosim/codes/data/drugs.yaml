@@ -41,6 +41,13 @@
 #                                       # variants that all resolve to this
 #                                       # drug_id (`codes.drugs.find_drug`,
 #                                       # `identify_drug`).
+#     scheduled_interval_hours: 6       # optional, inpatient interval that
+#                                       # overrides the order frequency (β-lactam
+#                                       # combinations q6h, carbapenems q8h)
+#     default_interval_hours: 24        # optional, interval when the order has
+#                                       # no frequency
+#     default_route: IV                 # optional, IV / SC / IM / PO when the
+#                                       # order names no route (Issue #2389)
 #
 # Classes (Issue #2298: the one drug-class taxonomy; drug safety reads it):
 #   Dot-notated family.subfamily; `codes.drugs.drug_classes` adds every
@@ -153,6 +160,8 @@ drugs:
       yj: {injection: "2139401A2137", oral: "2139005F1052"}
     classes: ["diuretic.loop", "diuretic"]
     aliases: ["ラシックス"]
+    default_interval_hours: 24
+    default_route: IV
 
   levothyroxine:
     names: {en: "Levothyroxine", ja: "レボチロキシン"}
@@ -215,11 +224,14 @@ drugs:
       rxnorm: "11124"
       yj: {injection: "6113400A2061", oral: "6113001B1097"}
     classes: ["antibiotic.glycopeptide"]
+    default_route: IV
   ampicillin_sulbactam_injectable_product:
     names: {en: "Ampicillin / Sulbactam Injectable Product", ja: "アンピシリン・スルバクタム注"}
     codes:
       rxnorm: "1153190"  # Issue #2150: was 1116635
     classes: ["antibiotic.penicillin"]
+    scheduled_interval_hours: 6
+    default_route: IV
   vitamin_d:
     names: {en: "Vitamin D", ja: "ビタミンD"}
     codes:
@@ -276,6 +288,8 @@ drugs:
       rxnorm: "82122"
       yj: {oral: "6241013F3027"}
     classes: ["antibiotic.fluoroquinolone"]
+    default_interval_hours: 24
+    default_route: IV
   carvedilol:
     names: {en: "Carvedilol", ja: "カルベジロール"}
     codes:
@@ -295,6 +309,7 @@ drugs:
       rxnorm: "2193"
       yj: {injection: "6132419F2026"}
     classes: ["antibiotic.cephalosporin"]
+    default_route: IV
   rivaroxaban:
     names: {en: "Rivaroxaban", ja: "リバーロキサバン"}
     codes:
@@ -308,6 +323,8 @@ drugs:
       rxnorm: "29561"
       yj: {injection: "6139400D3028"}
     classes: ["antibiotic.carbapenem"]
+    scheduled_interval_hours: 8
+    default_route: IV
   chlorhexidine:
     names: {en: "Chlorhexidine", ja: "クロルヘキシジン"}
     codes:
@@ -350,11 +367,14 @@ drugs:
       rxnorm: "1009148"  # Issue #2150: was 308182
       yj: {injection: "6139504F3033"}
     classes: ["antibiotic.penicillin"]
+    scheduled_interval_hours: 6
+    default_route: IV
   ceftriaxone_1_g_injection:
     names: {en: "Ceftriaxone 1 G Injection", ja: "セフトリアキソン1g注"}
     codes:
       rxnorm: "309090"
     classes: ["antibiotic.cephalosporin"]
+    default_route: IV
   hydromorphone:
     names: {en: "Hydromorphone", ja: "ヒドロモルフォン"}
     codes:
@@ -444,6 +464,7 @@ drugs:
       rxnorm: "4917"
       yj: {oral: "2171018K1039", injection: "2171403A2052"}
     classes: []
+    default_route: IV
   ibuprofen:
     names: {en: "Ibuprofen", ja: "イブプロフェン"}
     codes:
@@ -469,6 +490,8 @@ drugs:
       yj: {injection: "3334406G1020"}
     classes: ["anticoagulant.heparin", "anticoagulant"]
     aliases: ["lovenox"]
+    default_interval_hours: 24
+    default_route: SC
   methylprednisolone:
     names: {en: "Methylprednisolone", ja: "メチルプレドニゾロン"}
     codes:
@@ -1030,6 +1053,8 @@ drugs:
       rxnorm: "74169"
       yj: {injection: "6139505G1022"}
     classes: ["antibiotic.penicillin"]
+    scheduled_interval_hours: 6
+    default_route: IV
   kcentra:
     names: {en: "Kcentra", ja: "ケイセントラ"}
     codes:
@@ -1047,18 +1072,22 @@ drugs:
       rxnorm: "20481"
       yj: {injection: "6132425D1032"}
     classes: ["antibiotic.cephalosporin"]
+    default_route: IV
   ampicillin:
     names: {en: "Ampicillin", ja: "アンピシリン"}
     codes:
       rxnorm: "733"
       yj: {injection: "6131400D1078"}
     classes: ["antibiotic.penicillin"]
+    scheduled_interval_hours: 6
+    default_route: IV
   cefazolin:
     names: {en: "Cefazolin", ja: "セファゾリン"}
     codes:
       rxnorm: "2180"
       yj: {injection: "6132401D3145"}
     classes: ["antibiotic.cephalosporin"]
+    default_route: IV
   gentamicin:
     names: {en: "Gentamicin", ja: "ゲンタマイシン"}
     codes:

@@ -240,5 +240,4 @@ These parts of the code base do not yet conform. Each one is removed by the issu
 | The imaging and chronic follow-up tables emit CPT and JP imaging codes that are not registered, some naming a retired or different service. | #2390 |
 | Disease YAMLs mix `drug:` names with `drug_id:`, and `Order.order_code` does not record its code system. | #2378 |
 | The chronic-medication `drug_class` labels are their own vocabulary, not catalog classes. | #2388 |
-| Default administration interval and route heuristics identify drugs by upper-case name lists. | #2389 |
 | No lint guard enforces §8. | #2266 |
