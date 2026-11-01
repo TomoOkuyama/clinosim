@@ -8,7 +8,7 @@ from types import SimpleNamespace
 
 import pytest
 
-from clinosim.codes.drugs import get_drug, names_drug
+from clinosim.codes.drugs import get_drug, same_drug
 from clinosim.locale.loader import load_reference_ranges
 from clinosim.modules.observation.engine import determine_flag, medications_in_effect, therapeutic_range
 from clinosim.modules.output.fhir_r4.labs.observations import _medications_on_result_day
@@ -75,12 +75,12 @@ def test_therapeutic_range_drugs_are_catalog_ids() -> None:
                     assert get_drug(drug_id) is not None, f"{country}: {drug_id!r} is not a catalog drug id"
 
 
-def test_names_drug_uses_catalog_names_and_aliases() -> None:
-    assert names_drug("warfarin", "warfarin")
-    assert names_drug("ワルファリンK錠", "warfarin")
-    assert names_drug("COUMADIN", "warfarin")
-    assert not names_drug("", "warfarin")
-    assert not names_drug("Heparin", "warfarin")
+def test_same_drug_uses_catalog_names_and_aliases() -> None:
+    assert same_drug("warfarin", "warfarin")
+    assert same_drug("ワルファリンK錠", "warfarin")
+    assert same_drug("COUMADIN", "warfarin")
+    assert not same_drug("", "warfarin")
+    assert not same_drug("Heparin", "warfarin")
 
 
 def test_a_discontinue_marker_is_not_an_order_to_give_the_drug() -> None:

@@ -123,7 +123,7 @@ occupation:
 | `jp_clins_lab_system(kind)` / `jlac10_display(code, lang)` | JP 検査コード体系の URI / JLAC10 表示 | 例外 / `None` |
 | `codes.loinc`: `loinc_display` / `loinc_coding` | LOINC 表示 / Coding | `None` / display なしの coding |
 | `codes.valuesets`: `concept_group` / `has_condition` / `patient_condition_names` / `code_by_chronic_prefix` | value set への所属 | 未知のグループなら `KeyError` |
-| `codes.drugs`: `resolve_drug` / `get_drug` / `find_drug` / `names_drug` / `drug_name_needles` | 薬の同一性と名称照合 | 例外 / `None` / `False` |
+| `codes.drugs`: `resolve_drug` / `get_drug` / `find_drug` / `drug_key(ref)` / `same_drug(a, b)` | 薬の同一性。同一性キー (カタログ id、無ければ正規化した名称) と、2 つの参照が同じ薬か (部分文字列照合はしない) | 例外 / `None` / `""` / `False` |
 | `codes.drugs`: `route_class(route)` / `jp_drug_code(drug, route)` / `jp_drug_code_table(route)` | 投与経路の区分、薬と経路に対応する JP の YJ 製品コード | `""` / `None` / 該当なし |
 | `codes.drugs`: `drug_display(ref, lang)` | 薬 id・名称・alias (見つからなければ先頭語の最長一致) のカタログ名を `lang` で、無ければ英語で返す | `None` |
 | `codes.drugs`: `identify_drug(text)` / `drug_classes(ref)` | 自由文の薬名が指すカタログ薬 (id・名称・alias の完全一致、先頭語、含まれる最長の名称・alias の順。ASCII は単語単位)、そのカタログ分類 (ドット区切りの上位分類を含む) | `None` / `()` |
@@ -238,7 +238,6 @@ occupation:
 | 投与経路・診断名・CoreLabo・MedicationAdministration の経路/デバイスの概念を手組みしており、後処理の walker が出力後に `.text` を補っている。 | #2375 |
 | 自由文の名称 localizer が FHIR 出力層にあり、order 層と narrative 層から import され、手技・SNOMED・アレルゲン名の翻訳にも使われている。判断ロジックと記録の薬名は `codes.drugs.drug_display` で解決する。 | #2367 |
 | Python に言語ごとのリテラルが残っている。 | #2277 |
-| 判断ロジックが薬名の部分文字列で薬を識別している。 | #2377 |
 | 疾患 YAML が `drug:` 名と `drug_id:` を混在させ、`Order.order_code` がコード体系を記録していない。 | #2378 |
 | 投薬モニタリングの表が名称パターンで薬を識別している。 | #2371 |
 | 合併症・PRN 選択・慢性薬ルールが独自の薬分類語彙を持つ。 | #2372 |

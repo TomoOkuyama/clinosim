@@ -28,6 +28,7 @@ from typing import Any
 
 import numpy as np
 
+from clinosim.codes.drugs import has_drug
 from clinosim.codes.valuesets import concept_group
 from clinosim.modules._shared import get_attr_or_key as _o
 from clinosim.modules._shared import is_jp
@@ -212,9 +213,9 @@ def _derive_checkup_values(patient: Any, rng: np.random.Generator) -> dict[str, 
     )
     if has_dyslipidemia:
         ldl_base += LDL_DYSLIPIDEMIA_LIFT  # 未治療脂質異常症の相対上昇
-    # スタチン系薬(-statin 末尾)服用で薬理制御。
+    # スタチン系薬 (カタログの分類 statin) 服用で薬理制御。
     # Issue #452 PR 3: read `m.drug_name` directly (readers migrated off the __str__ shim).
-    on_statin = any(m.drug_name.lower().endswith("statin") for m in meds)
+    on_statin = has_drug(meds, "statin")  # catalog class (Issue #2377)
     if on_statin:
         ldl_base -= LDL_STATIN_REDUCTION
     ldl = float(np.clip(ldl_base + rng.normal(0.0, LDL_MEASUREMENT_NOISE_SD), LDL_PHYSIOLOGIC_MIN, LDL_PHYSIOLOGIC_MAX))
