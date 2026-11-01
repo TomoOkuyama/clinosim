@@ -3030,8 +3030,8 @@
 <td>#2340</td>
 </tr>
 <tr>
-<td>Remaining hand-built dual-slot concepts; <code>_coding_with_display</code> and <code>_value</code> put the output-language display into English-only codings instead of <code>system_coding</code> / <code>dual_slot_concept</code>; and the post-process text-filling walkers.</td>
-<td>#2337</td>
+<td>Route, diagnosis, CoreLabo and MedicationAdministration route/device concepts are built by hand, and post-process walkers fill <code>.text</code> after emission.</td>
+<td>#2375</td>
 </tr>
 <tr>
 <td>The free-text name localizer lives in the FHIR output layer, is imported from the order and narrative layers, and also translates procedure, SNOMED and allergen names. Decision logic and records resolve drug names through <code>codes.drugs.drug_display</code>.</td>
@@ -3052,10 +3052,6 @@
 <tr>
 <td>Complications, PRN selection and chronic-medication rules keep their own drug-class vocabularies.</td>
 <td>#2372</td>
-</tr>
-<tr>
-<td>Checkup results use LOINC as <code>lab_name</code>.</td>
-<td>#2300</td>
 </tr>
 <tr>
 <td>Eval plausibility bounds, and the two panel definitions.</td>

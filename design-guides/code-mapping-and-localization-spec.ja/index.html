@@ -3030,8 +3030,8 @@
 <td>#2340</td>
 </tr>
 <tr>
-<td>手組みの dual-slot が残っている。<code>_coding_with_display</code> と <code>_value</code> が英語専用の coding に出力言語の表示名を入れている (<code>system_coding</code> / <code>dual_slot_concept</code> を使うべき)。後処理で text を補う walker も残っている。</td>
-<td>#2337</td>
+<td>投与経路・診断名・CoreLabo・MedicationAdministration の経路/デバイスの概念を手組みしており、後処理の walker が出力後に <code>.text</code> を補っている。</td>
+<td>#2375</td>
 </tr>
 <tr>
 <td>自由文の名称 localizer が FHIR 出力層にあり、order 層と narrative 層から import され、手技・SNOMED・アレルゲン名の翻訳にも使われている。判断ロジックと記録の薬名は <code>codes.drugs.drug_display</code> で解決する。</td>
@@ -3052,10 +3052,6 @@
 <tr>
 <td>合併症・PRN 選択・慢性薬ルールが独自の薬分類語彙を持つ。</td>
 <td>#2372</td>
-</tr>
-<tr>
-<td>健診の結果が <code>lab_name</code> に LOINC コードを入れている。</td>
-<td>#2300</td>
 </tr>
 <tr>
 <td>eval の妥当性範囲、パネル定義が 2 つ。</td>
