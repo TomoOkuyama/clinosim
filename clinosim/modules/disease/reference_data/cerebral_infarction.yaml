@@ -418,7 +418,7 @@ expected_vital_distributions:
 # ============================================================
 drugs:
   acute_reperfusion:
-    - drug: "Alteplase (tPA)"
+    - drug_id: alteplase
       dose: "0.9 mg/kg IV (max 90mg), 10% bolus then 60min infusion"
       route: IV
       probability: 0.20  # only ~20% of ischemic stroke patients receive tPA

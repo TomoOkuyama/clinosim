@@ -351,7 +351,7 @@ expected_vital_distributions:
 drugs:
   first_line:
     japan:
-      - drug: "Unfractionated Heparin"
+      - drug_id: heparin
         dose: "80 units/kg IV bolus then 18 units/kg/h IV drip"
         route: IV
         note: "Monitor aPTT q6h, target 60-80s"
@@ -381,7 +381,7 @@ drugs:
 
   escalation:  # massive PE
     japan:
-      - drug: "Alteplase (tPA)"
+      - drug_id: alteplase
         dose: "0.6mg/kg IV over 2h (max 40mg JP dose)"
         indication: "massive_PE_with_hemodynamic_instability"
         note: "Lower dose in Japan than US protocol"
@@ -389,7 +389,7 @@ drugs:
         dose: "0.05-0.5 ug/kg/min IV drip"
         indication: "shock"
     us:
-      - drug: "Alteplase (tPA)"
+      - drug_id: alteplase
         dose: "100mg IV over 2h"
         indication: "massive_PE_with_hemodynamic_instability"
       - drug_id: norepinephrine
@@ -594,8 +594,8 @@ course_archetypes:
       day_3:
         action: "consider_ivc_filter"
         start:
-          japan: [{drug: "Unfractionated_Heparin", dose: "increase_rate_by_20%"}]
-          us: [{drug: "Unfractionated_Heparin", dose: "increase_rate_by_20%"}]
+          japan: [{drug_id: heparin, dose: "increase_rate_by_20%"}]
+          us: [{drug_id: heparin, dose: "increase_rate_by_20%"}]
     triggers:
       - day: 3
         condition: "recurrent_symptoms_or_new_pe"

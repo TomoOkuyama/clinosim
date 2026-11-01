@@ -427,7 +427,7 @@ drugs:
         route: IV
         indication: "ascitic_PMN > 250"
         duration_days: 5
-      - drug: "Albumin"
+      - drug_id: albumin_human
         dose: "1.5g/kg Day 1, 1g/kg Day 3"
         route: IV
         note: "Prevents hepatorenal syndrome in SBP"
@@ -436,7 +436,7 @@ drugs:
         dose: "2g IV q8h"
         route: IV
         duration_days: 5
-      - drug: "Albumin"
+      - drug_id: albumin_human
         dose: "1.5g/kg Day 1, 1g/kg Day 3"
         route: IV
 
@@ -480,7 +480,7 @@ drugs:
         dose: "1mg IV q4-6h (increase to 2mg if no response)"
         route: IV
         indication: "hepatorenal_syndrome_type_1"
-      - drug: "Albumin"
+      - drug_id: albumin_human
         dose: "20-40g IV daily"
         route: IV
     us:
@@ -491,7 +491,7 @@ drugs:
       - drug_id: octreotide
         dose: "100-200ug SC TID"
         route: SC
-      - drug: "Albumin"
+      - drug_id: albumin_human
         dose: "25-50g IV daily"
         route: IV
 
@@ -643,7 +643,7 @@ course_archetypes:
         start:
           japan: [{drug_id: cefotaxime, dose: "2g IV q8h"}]
           us: [{drug_id: cefotaxime, dose: "2g IV q8h"}]
-        add: [{drug: "Albumin", dose: "1.5g/kg IV"}]
+        add: [{drug_id: albumin_human, dose: "1.5g/kg IV"}]
 
   plateau_then_recovery:
     probability: 0.15
@@ -658,7 +658,7 @@ course_archetypes:
         add_labs: ["Albumin_post_paracentesis"]
     treatment_modifications:
       day_5:
-        add: [{drug: "Albumin", dose: "6-8g per liter removed"}]
+        add: [{drug_id: albumin_human, dose: "6-8g per liter removed"}]
         adjust: "increase_diuretic_doses"
 
   treatment_resistant:
@@ -702,8 +702,8 @@ course_archetypes:
     treatment_modifications:
       day_3:
         start:
-          japan: [{drug_id: terlipressin, dose: "1mg IV q6h"}, {drug: "Albumin", dose: "20g IV daily"}]
-          us: [{drug_id: midodrine, dose: "12.5mg PO TID"}, {drug_id: octreotide, dose: "200ug SC TID"}, {drug: "Albumin", dose: "25g IV daily"}]
+          japan: [{drug_id: terlipressin, dose: "1mg IV q6h"}, {drug_id: albumin_human, dose: "20g IV daily"}]
+          us: [{drug_id: midodrine, dose: "12.5mg PO TID"}, {drug_id: octreotide, dose: "200ug SC TID"}, {drug_id: albumin_human, dose: "25g IV daily"}]
       day_5:
         action: "icu_transfer"
     triggers:

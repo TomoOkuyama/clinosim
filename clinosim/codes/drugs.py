@@ -250,10 +250,15 @@ def identify_drug(text: str) -> DrugIdentity | None:
     """The catalog drug a free-text medication string names: an exact id,
     name or alias; else its leading words ("Warfarin 3mg PO daily"); else the
     longest catalog name or alias it contains ("IV ketorolac 15 mg",
-    "アムロジピン錠5mg"). ``None`` when no catalog drug matches (Issue #2298)."""
+    "アムロジピン錠5mg"). Underscores read as spaces. ``None`` when no catalog
+    drug matches (Issue #2298)."""
     rec = find_drug(text) or _find_by_leading_words(text)
     if rec is not None:
         return rec
+    if text and "_" in text:
+        # Underscore spellings ("Calcium_gluconate", "Normal_saline") name the
+        # same drug as the spaced name (Issue #2415).
+        return identify_drug(text.replace("_", " "))
     folded = (text or "").casefold()
     if not folded:
         return None

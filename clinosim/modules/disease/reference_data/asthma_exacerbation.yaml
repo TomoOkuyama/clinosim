@@ -323,7 +323,7 @@ drugs:
         route: IV
         duration_days: 3
         note: "Switch to oral prednisolone when improving"
-      - drug: "Salbutamol"
+      - drug_id: albuterol
         dose: "2.5mg NEB q1-4h"
         route: NEB
       - drug_id: ipratropium

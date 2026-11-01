@@ -380,7 +380,7 @@ drugs:
         duration_days: 5
         note: "Only if perforated; non-perforated needs no postop antibiotics"
     us:
-      - drug: "Amoxicillin/Clavulanate"
+      - drug_id: amoxicillin_clavulanate
         dose: "875/125mg PO BID"
         duration_days: 5
         note: "Only if perforated"

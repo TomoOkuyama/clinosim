@@ -338,7 +338,7 @@ expected_vital_distributions:
 drugs:
   first_line:
     japan:
-      - drug: "Unfractionated Heparin"
+      - drug_id: heparin
         dose: "80 U/kg IV bolus, then 18 U/kg/h infusion"
         route: IV
         note: "Target aPTT 1.5-2.5x control"
@@ -360,7 +360,7 @@ drugs:
         renal_adjustment:
           eGFR_below_30: "avoid"
         pregnancy_safe: false
-      - drug: "Unfractionated Heparin"
+      - drug_id: heparin
         dose: "80 U/kg IV bolus, then 18 U/kg/h"
         route: IV
         note: "For patients requiring bridging (cancer, renal failure)"
@@ -618,8 +618,8 @@ course_archetypes:
       day_2:
         action: "icu_transfer"
         start:
-          japan: [{drug: "Heparin_increase", dose: "Increase infusion rate"}]
-          us: [{drug: "Heparin_increase", dose: "Increase infusion rate"}]
+          japan: [{drug_id: heparin, dose: "Increase infusion rate"}]
+          us: [{drug_id: heparin, dose: "Increase infusion rate"}]
         action_2: "consider_systemic_thrombolysis"
     triggers:
       - day: 2

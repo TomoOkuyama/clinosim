@@ -470,7 +470,7 @@ drugs:
         route: PO
         note: "High-intensity statin per ACC/AHA"
         pregnancy_safe: false
-      - drug: "Metoprolol_succinate"
+      - drug_id: metoprolol
         dose: "25mg PO daily, titrate to 200mg"
         route: PO
         note: "Beta-blocker; avoid if cardiogenic shock"

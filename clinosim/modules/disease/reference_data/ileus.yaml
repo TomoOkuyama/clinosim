@@ -328,7 +328,7 @@ expected_vital_distributions:
 drugs:
   first_line:
     japan:
-      - drug: "Lactated Ringer"
+      - drug_id: lactated_ringer_solution
         dose: "125-250 mL/h IV"
         route: IV
         pregnancy_safe: true
@@ -337,14 +337,14 @@ drugs:
         route: IV
         note: "Prokinetic for paralytic ileus"
         pregnancy_safe: true
-      - drug: "Daikenchuto"
+      - drug_id: daikenchuto
         dose: "5g PO TID"
         route: PO
         note: "Kampo medicine — widely used in JP for postoperative ileus"
         pregnancy_safe: false
 
     us:
-      - drug: "Lactated Ringer"
+      - drug_id: lactated_ringer_solution
         dose: "125-250 mL/h IV"
         route: IV
         pregnancy_safe: true

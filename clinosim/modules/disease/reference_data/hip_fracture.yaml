@@ -308,13 +308,13 @@ drugs:
       # `route`, `_build_discharge_rx._append_item` substitutes "PO" and the CIF
       # item asserts oral administration. The dose string already said `SC`.
       - {drug_id: enoxaparin, dose: "2000IU SC daily", duration_days: 14, route: "SC"}
-      - {drug: "Calcium/Vitamin D", dose: "1 tablet PO daily", duration_days: 90}
+      - {drug_id: calcium_carbonate_vitamin_d, dose: "1 tablet PO daily", duration_days: 90}
     us:
       - {drug_id: oxycodone_acetaminophen, dose: "5/325mg PO q4-6h PRN", duration_days: 14}
       - {drug_id: acetaminophen, dose: "500mg PO q6h PRN", duration_days: 28}
       # Issue #455: subcutaneous-only — see the japan entry above.
       - {drug_id: enoxaparin, dose: "40mg SC daily", duration_days: 28, route: "SC"}
-      - {drug: "Calcium/Vitamin D", dose: "1 tablet PO daily", duration_days: 90}
+      - {drug_id: calcium_carbonate_vitamin_d, dose: "1 tablet PO daily", duration_days: 90}
 
 # Surgical procedure info
 procedure:

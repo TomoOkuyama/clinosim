@@ -317,7 +317,7 @@ drugs:
         dose: "500mg PO q6h (max 4g/day)"
         route: PO
         note: "First-line analgesic"
-      - drug: "NSAID (Loxoprofen)"
+      - drug_id: loxoprofen
         dose: "60mg PO TID"
         route: PO
         note: "Add if acetaminophen insufficient; limit duration for elderly"
@@ -331,7 +331,7 @@ drugs:
       - drug_id: acetaminophen
         dose: "650mg PO q6h (max 3g/day)"
         route: PO
-      - drug: "Calcitonin nasal spray"
+      - drug_id: calcitonin
         dose: "200IU intranasal daily"
         route: nasal
         note: "Analgesic effect in acute VCF"
@@ -367,7 +367,7 @@ drugs:
       - drug_id: alfacalcidol
         dose: "1mcg PO daily"
         route: PO
-      - drug: "Calcium carbonate"
+      - drug_id: calcium_carbonate
         dose: "500mg PO BID"
         route: PO
     us:
@@ -375,7 +375,7 @@ drugs:
         dose: "70mg PO weekly"
         route: PO
         note: "Start after acute pain subsides"
-      - drug: "Calcium carbonate + Vitamin D"
+      - drug_id: calcium_carbonate_vitamin_d
         dose: "600mg/400IU PO BID"
         route: PO
 
@@ -614,8 +614,8 @@ course_archetypes:
     treatment_modifications:
       day_2:
         start:
-          japan: [{drug: "Heparin IV", dose: "Start anticoagulation per PE protocol"}]
-          us: [{drug: "Heparin IV", dose: "80U/kg bolus then 18U/kg/h"}]
+          japan: [{drug_id: heparin, dose: "Start anticoagulation per PE protocol"}]
+          us: [{drug_id: heparin, dose: "80U/kg bolus then 18U/kg/h"}]
     triggers:
       - day: 2
         condition: "acute_dyspnea_or_desaturation"

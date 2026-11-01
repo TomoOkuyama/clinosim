@@ -433,10 +433,10 @@ drugs:
         dose: "0.1 U/kg/h continuous infusion"
         route: IV
         note: "Start after confirming K >= 3.3 mEq/L"
-      - drug: "Normal saline"
+      - drug_id: normal_saline
         dose: "1000mL/h x 1h, then 500mL/h x 4h, then 250mL/h"
         route: IV
-      - drug: "Potassium chloride"
+      - drug_id: potassium_chloride
         dose: "20-40 mEq/L in IV fluids"
         route: IV
         note: "Hold if K > 5.3; increase if K < 3.3"
@@ -446,10 +446,10 @@ drugs:
         dose: "0.1 U/kg/h continuous infusion (or 0.14 U/kg/h without bolus)"
         route: IV
         note: "ADA protocol: 0.1 U/kg bolus then 0.1 U/kg/h, OR 0.14 U/kg/h no bolus"
-      - drug: "Normal saline (0.9% NaCl)"
+      - drug_id: normal_saline
         dose: "15-20 mL/kg/h x 1h (1-1.5L), then 250-500 mL/h"
         route: IV
-      - drug: "Potassium chloride"
+      - drug_id: potassium_chloride
         dose: "20-40 mEq/L added to IV fluids"
         route: IV
 
@@ -482,7 +482,7 @@ drugs:
 
   transition_to_subcutaneous:
     japan:
-      - drug: "Insulin glargine"
+      - drug_id: insulin_glargine
         dose: "0.2-0.3 U/kg SC daily"
         route: SC
         note: "Give 1-2h before stopping drip; add rapid-acting insulin with meals"
@@ -491,7 +491,7 @@ drugs:
         route: SC
         note: "Dose per carb counting or sliding scale"
     us:
-      - drug: "Insulin glargine"
+      - drug_id: insulin_glargine
         dose: "0.2-0.3 U/kg SC daily"
         route: SC
         note: "Overlap with IV insulin for 1-2h. Or resume home dose if previously taking insulin."
@@ -752,7 +752,7 @@ course_archetypes:
             - {drug_id: mannitol, dose: "1g/kg IV over 20min", indication: "cerebral edema"}
           us:
             - {drug_id: mannitol, dose: "0.5-1g/kg IV over 20min", indication: "cerebral edema"}
-            - {drug: "Hypertonic saline 3%", dose: "5mL/kg IV over 30min", indication: "alternative to mannitol"}
+            - {drug_id: sodium_chloride_3_injection, dose: "5mL/kg IV over 30min", indication: "alternative to mannitol"}
         action: "icu_transfer"
         action_2: "intubation_evaluation"
     triggers:

@@ -440,7 +440,7 @@ drugs:
         threshold: "PT-INR > 1.5 with active bleeding"
 
   reversal_agents:
-    - drug: "Vitamin_K"
+    - drug_id: vitamin_k
       dose: "10mg IV slow infusion"
       indication: "Warfarin-related coagulopathy"
     - drug_id: idarucizumab
@@ -601,8 +601,8 @@ course_archetypes:
     treatment_modifications:
       day_3:
         start:
-          japan: [{drug: "Ferrous_fumarate", dose: "200mg PO daily"}]
-          us: [{drug: "Ferrous_sulfate", dose: "325mg PO daily"}]
+          japan: [{drug_id: ferrous_fumarate, dose: "200mg PO daily"}]
+          us: [{drug_id: ferrous_sulfate, dose: "325mg PO daily"}]
 
   treatment_resistant:
     probability: 0.10

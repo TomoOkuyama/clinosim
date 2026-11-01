@@ -309,7 +309,7 @@ drugs:
         note: "Preferred rate control agent in Japan"
         contraindication: "heart_failure_with_reduced_EF"
         pregnancy_safe: false
-      - drug: "Landiolol"
+      - drug_id: landiolol
         dose: "0.0625mg/kg/min IV"
         route: IV
         note: "Ultra-short-acting beta-blocker, Japan-specific"
