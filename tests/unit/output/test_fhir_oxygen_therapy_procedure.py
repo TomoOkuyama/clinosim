@@ -154,7 +154,9 @@ def test_procedure_usedcode_carries_device_snomed():
     coding = used[0]["coding"][0]
     assert coding["system"] == "http://snomed.info/sct"
     assert coding["code"] == "336623009"  # nasal cannula
-    assert coding["display"] == "経鼻カニューラ"
+    # Dual slot (Issue #2375): English SNOMED display, Japanese text.
+    assert coding["display"] == "Nasal cannula"
+    assert used[0]["text"] == "経鼻カニューラ"
 
 
 def test_ventilator_maps_to_ventilator_snomed():

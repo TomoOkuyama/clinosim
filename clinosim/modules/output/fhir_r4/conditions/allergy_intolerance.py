@@ -34,7 +34,7 @@ from clinosim.modules._shared import resolve_lang, uses_jp_clins_profile
 from clinosim.modules.document import ALLERGY_ID_PREFIX
 from clinosim.modules.output.fhir_r4.demographics.patient import patient_ref
 from clinosim.modules.output.fhir_r4.encounters.encounter import encounter_ref
-from clinosim.modules.output.fhir_r4.lib.common import BundleContext, to_fhir_datetime
+from clinosim.modules.output.fhir_r4.lib.common import BundleContext, dual_slot_concept, system_coding, to_fhir_datetime
 from clinosim.modules.output.fhir_r4.lib.ids import (
     derive_opaque_id,
     structural_key_system,
@@ -196,8 +196,6 @@ def _build_allergy_intolerance(allergy: Any, patient_id: str, lang: str = "en") 
     clinical_status = _o(allergy, "clinical_status", "active") or "active"
     onset_date = _o(allergy, "onset_date", None)
 
-    snomed_system = get_system_uri("snomed-ct")
-
     # Resolve allergen display via code_lookup (locale-aware, AD-30 — CIF
     # stores the code only; import-time validation guarantees every
     # allergen_code in allergens.yaml resolves).
@@ -210,11 +208,9 @@ def _build_allergy_intolerance(allergy: Any, patient_id: str, lang: str = "en") 
     else:
         code = {"text": resolved_display}
     if allergen_code:
-        snomed_coding = {
-            "system": snomed_system,
-            "code": allergen_code,
-            "display": resolved_display,
-        }
+        # English SNOMED preferred term in the coding; the localized name is
+        # code.text (dual slot, Issue #2375).
+        snomed_coding = system_coding("snomed-ct", allergen_code, lang)
         # Issue #263: JP Core `JP_AllergyIntolerance_VS` requires
         # a coding from one of the JFAGY CodeSystems. On JP output, emit the
         # JFAGY generic category coding as primary (satisfies the VS
@@ -246,10 +242,6 @@ def _build_allergy_intolerance(allergy: Any, patient_id: str, lang: str = "en") 
         else:
             code["coding"] = [snomed_coding]
 
-    # C5-24: AllergyIntolerance status displays now
-    # locale-aware. Was hard-coded "en" — JP output leaked English displays.
-    ver_display = code_lookup("hl7-allergyintolerance-verification", verification_status, lang)
-    clin_display = code_lookup("hl7-allergyintolerance-clinical", clinical_status, lang)
     _ai_structural_key = f"{patient_id}-{allergy_id}"
     res: dict[str, Any] = {
         "resourceType": "AllergyIntolerance",
@@ -264,24 +256,9 @@ def _build_allergy_intolerance(allergy: Any, patient_id: str, lang: str = "en") 
             if uses_jp_clins_profile(lang)
             else {}
         ),
-        "clinicalStatus": {
-            "coding": [
-                {
-                    "system": _CLINICAL_STATUS_SYSTEM,
-                    "code": clinical_status,
-                    "display": clin_display,
-                }
-            ],
-        },
-        "verificationStatus": {
-            "coding": [
-                {
-                    "system": _VERIFICATION_STATUS_SYSTEM,
-                    "code": verification_status,
-                    "display": ver_display,
-                }
-            ],
-        },
+        # Dual slot (Issue #2375): English HL7 display, localized text.
+        "clinicalStatus": dual_slot_concept("hl7-allergyintolerance-clinical", clinical_status, lang),
+        "verificationStatus": dual_slot_concept("hl7-allergyintolerance-verification", verification_status, lang),
         # C5-14: AllergyIntolerance.type (0..1) —
         # `allergy` for immune-mediated hypersensitivity, `intolerance` for
         # non-immune adverse reactions. FHIR R4 required-binding to
@@ -329,13 +306,7 @@ def _build_allergy_intolerance(allergy: Any, patient_id: str, lang: str = "en") 
         if resolved_manifestation:
             manifestation["text"] = resolved_manifestation
         if manifestation_snomed:
-            manifestation["coding"] = [
-                {
-                    "system": snomed_system,
-                    "code": manifestation_snomed,
-                    "display": resolved_manifestation or manifestation_snomed,
-                }
-            ]
+            manifestation["coding"] = [system_coding("snomed-ct", manifestation_snomed, lang)]
 
         rxn_entry: dict[str, Any] = {
             "manifestation": [manifestation] if manifestation else [{"text": "Adverse reaction"}],

@@ -73,15 +73,13 @@ from collections import Counter, defaultdict
 from datetime import datetime, timedelta
 from typing import Any
 
-from clinosim.codes import display as registry_display
-from clinosim.codes import get_system_uri
 from clinosim.codes.oxygen_device_to_snomed import resolve_device_snomed
 from clinosim.modules._shared import get_attr_or_key as _o
 from clinosim.modules._shared import is_jp, resolve_lang
 from clinosim.modules.output.fhir_r4.conditions.primary_ref import primary_condition_ref
 from clinosim.modules.output.fhir_r4.demographics.patient import patient_ref
 from clinosim.modules.output.fhir_r4.encounters.encounter import encounter_ref
-from clinosim.modules.output.fhir_r4.lib.common import BundleContext, to_fhir_datetime
+from clinosim.modules.output.fhir_r4.lib.common import BundleContext, dual_slot_concept, to_fhir_datetime
 from clinosim.modules.output.fhir_r4.lib.ids import wrap_as_identifier
 from clinosim.modules.output.fhir_r4.procedures.procedures import (
     PROCEDURE_KEY_SYSTEM,
@@ -299,8 +297,6 @@ def _bb_oxygen_therapy(ctx: BundleContext) -> list[dict]:
     enc_att_idx = _encounter_attending_index(ctx)
     lang = resolve_lang(ctx.country)
     is_jp_out = is_jp(ctx.country)
-    proc_display = registry_display("snomed-ct", _SNOMED_OXYGEN_THERAPY, lang) or "Oxygen therapy"
-
     # Issue #1352: only allow the "unattributed-vitals fallback" in
     # ``_oxygen_session_period`` when the record has exactly one encounter.
     # Multi-encounter records must strictly attribute on-O2 vitals to the
@@ -409,25 +405,11 @@ def _bb_oxygen_therapy(ctx: BundleContext) -> list[dict]:
                 else {}
             ),
             "status": "completed",
-            "category": {
-                "coding": [
-                    {
-                        "system": get_system_uri("snomed-ct"),
-                        "code": "277132007",  # SNOMED Therapeutic procedure — matches _bb_procedures default
-                        "display": registry_display("snomed-ct", "277132007", lang) or "Therapeutic procedure",
-                    }
-                ],
-            },
-            "code": {
-                "coding": [
-                    {
-                        "system": get_system_uri("snomed-ct"),
-                        "code": _SNOMED_OXYGEN_THERAPY,
-                        "display": proc_display,
-                    }
-                ],
-                "text": "酸素投与" if is_jp_out else "Oxygen therapy",
-            },
+            # SNOMED Therapeutic procedure — matches _bb_procedures default.
+            "category": dual_slot_concept("snomed-ct", "277132007", lang),
+            "code": dual_slot_concept(
+                "snomed-ct", _SNOMED_OXYGEN_THERAPY, lang, text="酸素投与" if is_jp_out else "Oxygen therapy"
+            ),
             "subject": patient_ref(ctx.patient_id),
             "performedPeriod": {
                 "start": to_fhir_datetime(start),
@@ -475,19 +457,7 @@ def _bb_oxygen_therapy(ctx: BundleContext) -> list[dict]:
         # Procedure R4. Emit only when the vitals actually name a device.
         device_snomed = resolve_device_snomed(device_mode) if device_mode else None
         if device_snomed:
-            device_display = registry_display("snomed-ct", device_snomed, lang) or device_mode
-            procedure["usedCode"] = [
-                {
-                    "coding": [
-                        {
-                            "system": get_system_uri("snomed-ct"),
-                            "code": device_snomed,
-                            "display": device_display,
-                        }
-                    ],
-                    "text": device_display,
-                }
-            ]
+            procedure["usedCode"] = [dual_slot_concept("snomed-ct", device_snomed, lang, fallback_display=device_mode)]
         out.append(procedure)
 
     return out

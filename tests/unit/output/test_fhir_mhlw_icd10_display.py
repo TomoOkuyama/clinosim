@@ -27,33 +27,9 @@ from __future__ import annotations
 import pytest
 
 from clinosim.codes import lookup as code_lookup
-from clinosim.codes.loader import is_japanese_only_display_system
 from clinosim.modules.output.fhir_r4.lib.common import build_diagnosis_codeable_concept
 
 pytestmark = pytest.mark.unit
-
-
-# === is_japanese_only_display_system predicate ===
-
-
-def test_icd10_mhlw_is_marked_japanese_only() -> None:
-    """MHLW ICD-10 2013 registry has Japanese-only displays — the archetypal
-    case Issue #358 exists to handle."""
-    assert is_japanese_only_display_system("icd-10-mhlw") is True
-
-
-def test_icd10_and_icd10_cm_are_not_japanese_only() -> None:
-    """WHO ICD-10 and CM are English-first registries; adding them here would
-    silently drop English coding worldwide — the check must stay tight."""
-    assert is_japanese_only_display_system("icd-10") is False
-    assert is_japanese_only_display_system("icd-10-cm") is False
-
-
-def test_unknown_system_is_not_japanese_only() -> None:
-    """Unknown keys default to False (safe default: emit English coding as
-    before, no silent behavior change for new callers)."""
-    assert is_japanese_only_display_system("some-future-system") is False
-    assert is_japanese_only_display_system("") is False
 
 
 # === build_diagnosis_codeable_concept: JP-only CS emits single Japanese coding ===
@@ -96,20 +72,12 @@ def test_us_diagnosis_icd10cm_still_emits_english_only() -> None:
     assert cc["coding"][0]["system"] == "http://hl7.org/fhir/sid/icd-10-cm"
 
 
-def test_jp_diagnosis_non_mhlw_system_still_emits_english_secondary() -> None:
-    """Regression pin: the JP-only skip is scoped to the whitelisted systems.
-    A hypothetical JP path using a non-Japanese-only CS (e.g. WHO
-    ``icd-10``) still gets the English secondary coding for interop —
-    Issue #358 explicitly does not change that path."""
+def test_jp_diagnosis_non_mhlw_system_emits_one_coding() -> None:
+    """One coding per diagnosis (Issue #2375): the localized name goes in
+    ``text``, not in a second coding of the same system."""
     cc = build_diagnosis_codeable_concept("C34", "icd-10", "JP")
-    # Should have 2 coding entries: Japanese primary + English secondary,
-    # because "icd-10" is NOT in the Japanese-only whitelist.
-    assert len(cc["coding"]) == 2
-    displays = [c["display"] for c in cc["coding"]]
-    # At least one is Japanese (contains CJK) and at least one is English
-    # (contains ASCII letters).
-    assert any(any(ch.isascii() and ch.isalpha() for ch in d) for d in displays)
-    assert any(any(ord(ch) > 0x7F for ch in d) for d in displays)
+    assert len(cc["coding"]) == 1
+    assert cc["text"]
 
 
 # === MHLW-canonical Japanese displays for the four C-series cancer codes ===

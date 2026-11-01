@@ -178,15 +178,9 @@ def _build_imaging_report_composition(
         # JP-CLINS profile compliance; v2-0074 RAD for FHIR-standard
         # ?category=RAD query).
         "category": [
-            {
-                "coding": [
-                    {
-                        "system": get_system_uri("loinc"),
-                        "code": _LP29684_5_LOINC,
-                        "display": _lp_display,
-                    }
-                ]
-            },
+            # English LOINC display in the coding, localized label in text
+            # (dual slot, Issue #2375).
+            dual_slot_concept("loinc", _LP29684_5_LOINC, lang, text=_lp_display),
             {
                 "coding": [
                     {

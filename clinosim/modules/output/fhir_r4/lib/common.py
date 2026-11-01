@@ -371,7 +371,6 @@ def build_diagnosis_codeable_concept(code: str, system_key: str, country: str) -
     resolvable, ``text`` falls back to the raw code so narrative renderers
     have something to show.
     """
-    from clinosim.codes.loader import is_japanese_only_display_system
 
     primary_lang = resolve_lang(country)
     primary_system = get_system_uri(system_key)
@@ -383,31 +382,13 @@ def build_diagnosis_codeable_concept(code: str, system_key: str, country: str) -
     primary_display = registry_display(system_key, code, primary_lang) if code else None
     if primary_display == code:
         primary_display = None
-    en_display = registry_display(system_key, code, "en") if code else None
-    if en_display == code:
-        en_display = None
 
     primary_coding: dict[str, Any] = {"system": primary_system, "code": code}
     if primary_display:
         primary_coding["display"] = primary_display
+    # One coding (Issue #2375): the localized name goes in ``text``, not in a
+    # second coding of the same system with another display.
     coding = [primary_coding]
-    # Add English coding for multilingual interop when primary is not English.
-    # Skip for Japanese-only registries (Issue #358) — see docstring.
-    # Issue #1766: also skip when the English display is unresolved (don't
-    # emit a bare second coding with no display just for the sake of it).
-    if (
-        primary_lang != "en"
-        and en_display
-        and en_display != primary_display
-        and not is_japanese_only_display_system(system_key)
-    ):
-        coding.append(
-            {
-                "system": primary_system,  # same code system, different display
-                "code": code,
-                "display": en_display,
-            }
-        )
 
     # code.text: clinical short-name / abbreviation for search friendliness;
     # coding[].display remains the official ICD name. Same chain as
@@ -700,10 +681,9 @@ def build_route_concept(raw_route: str | None, country: str) -> dict[str, Any] |
     if is_jp(country):
         text_value = _ROUTE_JA.get(canonical, route)
     if snomed:
-        return {
-            "coding": [{"system": get_system_uri("snomed-ct"), **snomed}],
-            "text": text_value,
-        }
+        # Registry coding (English preferred term) + the localized text above
+        # (dual slot, Issue #2375).
+        return {"coding": [system_coding("snomed-ct", snomed["code"], "en")], "text": text_value}
     return {"text": text_value}
 
 
