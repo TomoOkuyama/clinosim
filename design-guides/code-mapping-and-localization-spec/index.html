@@ -2744,6 +2744,11 @@
 <td><code>urn:clinosim:&lt;key&gt;</code> / <code>None</code></td>
 </tr>
 <tr>
+<td><code>data_table(name)</code></td>
+<td>parsed <code>codes/data/&lt;name&gt;.yaml</code> for a table without its own accessor (a copy)</td>
+<td>raises <code>FileNotFoundError</code></td>
+</tr>
+<tr>
 <td><code>system_key_for(kind, country)</code></td>
 <td>system key for a domain and country</td>
 <td>raises on an unknown kind</td>
@@ -3015,6 +3020,7 @@
 <h2 id="8-prohibited-patterns">8. Prohibited patterns<a class="headerlink" href="#8-prohibited-patterns" title="Permanent link">&para;</a></h2>
 <ul>
 <li>A code-system URI string literal outside <code>clinosim/codes/</code>. Use <code>get_system_uri</code>. Prefix lists that name URI families are the only exception.</li>
+<li>Reading a <code>codes/data/*.yaml</code> file directly, or importing <code>clinosim.codes.loader._load_system</code>, outside <code>clinosim/codes/</code>. Use the per-source accessor or <code>data_table</code>.</li>
 <li>A code literal in a Python comparison or a Python dict of codes or displays (CPT, LOINC, SNOMED, ICD, YJ, ...). Use a value set, a catalog or a named concept.</li>
 <li>A second table for the same vocabulary or code mapping.</li>
 <li>Identifying a drug, lab or condition by substring of free text. Use the catalog id, canonical lab name or value set (<code>names_drug</code> is the one sanctioned name matcher).</li>
@@ -3033,28 +3039,8 @@
 </thead>
 <tbody>
 <tr>
-<td>Localized YAML fields use mixed shapes (nested <code>{lang: text}</code>, 25 <code>*_ja</code> field names, <code>dose_ja</code> vs <code>dose_text_ja</code>).</td>
-<td>#2398</td>
-</tr>
-<tr>
-<td>Some Composition section codes do not mean their section.</td>
-<td>#2391</td>
-</tr>
-<tr>
 <td>The free-text name translator (<code>locale.free_text.localize_free_text</code>) is one generic translator: procedure, SNOMED and allergen names go through the drug-name dictionary and its substring replacement.</td>
 <td>#2408</td>
-</tr>
-<tr>
-<td>Language literals are still embedded in Python.</td>
-<td>#2277</td>
-</tr>
-<tr>
-<td>Some non-drug interventions are written as <code>drug:</code>, and the loader accepts name-only drug entries.</td>
-<td>#2424</td>
-</tr>
-<tr>
-<td>No lint guard enforces §8.</td>
-<td>#2266</td>
 </tr>
 </tbody>
 </table>

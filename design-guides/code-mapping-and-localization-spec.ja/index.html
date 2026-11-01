@@ -2744,6 +2744,11 @@
 <td><code>urn:clinosim:&lt;key&gt;</code> / <code>None</code></td>
 </tr>
 <tr>
+<td><code>data_table(name)</code></td>
+<td>専用アクセサのない <code>codes/data/&lt;name&gt;.yaml</code> を読み込んだ結果 (コピー)</td>
+<td><code>FileNotFoundError</code> を送出</td>
+</tr>
+<tr>
 <td><code>system_key_for(kind, country)</code></td>
 <td>ドメインと国に対応するシステムキー</td>
 <td>未知の kind なら例外</td>
@@ -3015,6 +3020,7 @@
 <h2 id="8-禁止パターン">8. 禁止パターン<a class="headerlink" href="#8-禁止パターン" title="Permanent link">&para;</a></h2>
 <ul>
 <li><code>clinosim/codes/</code> の外にコード体系 URI の文字列リテラルを書く。<code>get_system_uri</code> を使う。例外は URI ファミリーの prefix リストだけ。</li>
+<li><code>clinosim/codes/</code> の外で <code>codes/data/*.yaml</code> を直接読む、または <code>clinosim.codes.loader._load_system</code> を import する。ソース別アクセサか <code>data_table</code> を使う。</li>
 <li>Python の比較式にコードのリテラルを書く、または Python の dict でコードや表示名を持つ (CPT / LOINC / SNOMED / ICD / YJ …)。value set、カタログ、名前付き概念を使う。</li>
 <li>同じ語彙やコード対応の表を 2 つ持つ。</li>
 <li>自由文の部分文字列一致で薬・検査・疾患を同定する。カタログ id、canonical lab name、value set を使う。名称照合で許されるのは <code>names_drug</code> だけ。</li>
@@ -3033,28 +3039,8 @@
 </thead>
 <tbody>
 <tr>
-<td>ローカライズされた YAML フィールドの形が混在している (入れ子の <code>{lang: text}</code>、25 種の <code>*_ja</code> フィールド名、<code>dose_ja</code> と <code>dose_text_ja</code>)。</td>
-<td>#2398</td>
-</tr>
-<tr>
-<td>意味の合わない Composition section コードがある。</td>
-<td>#2391</td>
-</tr>
-<tr>
 <td>自由文の名称翻訳 (<code>locale.free_text.localize_free_text</code>) が汎用の 1 本で、手技・SNOMED・アレルゲン名も薬名辞書と部分文字列置換を通る。</td>
 <td>#2408</td>
-</tr>
-<tr>
-<td>Python に言語ごとのリテラルが残っている。</td>
-<td>#2277</td>
-</tr>
-<tr>
-<td>薬でない処置が <code>drug:</code> として書かれ、loader が名前だけの薬エントリを受け付ける。</td>
-<td>#2424</td>
-</tr>
-<tr>
-<td>§8 を強制する lint guard がない。</td>
-<td>#2266</td>
 </tr>
 </tbody>
 </table>
