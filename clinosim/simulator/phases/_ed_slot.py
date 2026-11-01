@@ -2,7 +2,8 @@
 
 RNG consumption is composed of month-keyed
 ``derive_phase_rng(master_seed, PHASE_ED_VISIT, slot_key)`` sub-seeds;
-no shared global generator is read.
+no shared global generator is read. The slot's patient is chosen by
+rendezvous hashing over the month's residents, not by an RNG draw.
 """
 
 from __future__ import annotations
@@ -13,7 +14,7 @@ from datetime import date, datetime
 from typing import TYPE_CHECKING, Any
 
 from clinosim.modules._shared import random_day_of_month
-from clinosim.seeding import PHASE_ED_VISIT, derive_phase_rng
+from clinosim.seeding import PHASE_ED_VISIT, derive_phase_rng, id_hashes, rendezvous_pick
 from clinosim.simulator._scheduling_thresholds import (
     ED_FAVORED_HOURS,
     ED_MINUTE_JITTER_MAX_EXCLUSIVE,
@@ -74,11 +75,15 @@ class EDSlotSampler:
         last = date(year, month, calendar.monthrange(year, month)[1])
         residents = [p for p in self.ctx.population.persons.values() if p.in_population_during(first, last)]
         n, self.carry = monthly_ed_slot_count(len(residents), self.rate, self.carry)
+        resident_ids = [p.person_id for p in residents]
+        hashes = id_hashes(resident_ids) if n else None
         slots: list[EDSlot] = []
         for i in range(n):
             key = f"{self.ctx.config.country}|ed-{year:04d}-{month:02d}-{i:05d}"
             rng = derive_phase_rng(self.ctx.master_seed, PHASE_ED_VISIT, key)
-            person = residents[int(rng.integers(0, len(residents)))]
+            # Stable pick (Issue #2357): a death or move elsewhere changes only
+            # the slots that would have picked that person.
+            person = residents[rendezvous_pick(f"{self.ctx.master_seed}|{key}", resident_ids, hashes)]
             weights = [
                 _ed_condition_weight(name, spec, person, month, self.occ_mult_table, self.prefix_share, visit_year=year)
                 * share

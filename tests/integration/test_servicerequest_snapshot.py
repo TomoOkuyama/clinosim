@@ -25,19 +25,29 @@ import pytest
 
 from tests.integration._sr_helpers import find_ndjson, load_ndjson, run_generate
 
+# A date with an inpatient in house for p=200 / seed 42 (Issue #2357: no
+# option forces an admission, so this is a scanned date).
+_SNAPSHOT_END = "2025-05-15"
+
+
+def _is_inprogress_inpatient(enc: dict) -> bool:
+    """AD-32 snapshot semantics concern admissions: an ED visit can also be
+    open at the snapshot, but it has no admission H&P or inpatient orders."""
+    return enc.get("status") == "in-progress" and (enc.get("class") or {}).get("code") == "IMP"
+
 
 @pytest.mark.integration
 def test_snapshot_yields_active_sr_for_inprogress_orders():
     """Full-year cohort with early --end snapshot → active SRs for unresulted orders.
 
     Without --start, the CLI defaults start = (end - 365 days), producing a
-    full year of encounters. The early --end date (2025-02-28) truncates
+    full year of encounters. The early --end date (2025-05-15) truncates
     long-stay inpatients and leaves their unreturned lab orders in PLACED
     status → SR.status='active'.
     """
     with tempfile.TemporaryDirectory() as tmp:
         out = Path(tmp) / "out"
-        run_generate("US", 200, 42, out, end="2025-02-28")
+        run_generate("US", 200, 42, out, end=_SNAPSHOT_END)
 
         sr_file = find_ndjson(out, "ServiceRequest.ndjson")
         srs = load_ndjson(sr_file)
@@ -47,7 +57,7 @@ def test_snapshot_yields_active_sr_for_inprogress_orders():
         if not active:
             pytest.skip(
                 "No 'active' ServiceRequests in 200-patient full-year cohort with "
-                "--end 2025-02-28. Increase population if this fires repeatedly."
+                "--end 2025-05-15. Increase population if this fires repeatedly."
             )
 
         # Structural validation of active SRs.
@@ -71,14 +81,14 @@ def test_snapshot_inprogress_encounters_have_srs():
     """
     with tempfile.TemporaryDirectory() as tmp:
         out = Path(tmp) / "out"
-        run_generate("US", 200, 42, out, end="2025-02-28")
+        run_generate("US", 200, 42, out, end=_SNAPSHOT_END)
 
         encs = load_ndjson(find_ndjson(out, "Encounter.ndjson"))
-        in_progress_ids = {e["id"] for e in encs if e.get("status") == "in-progress"}
+        in_progress_ids = {e["id"] for e in encs if _is_inprogress_inpatient(e)}
 
         if not in_progress_ids:
             pytest.skip(
-                "No in-progress Encounters with p=200, seed=42, end=2025-02-28. "
+                "No in-progress Encounters with p=200, seed=42, end=2025-05-15. "
                 "Increase population or adjust end date if this fires repeatedly."
             )
 
@@ -122,7 +132,7 @@ def test_snapshot_placed_orders_have_no_observation():
 
     with tempfile.TemporaryDirectory() as tmp:
         out = Path(tmp) / "out"
-        run_generate("US", 200, 42, out, end="2025-02-28")
+        run_generate("US", 200, 42, out, end=_SNAPSHOT_END)
 
         srs = load_ndjson(find_ndjson(out, "ServiceRequest.ndjson"))
 
@@ -135,7 +145,7 @@ def test_snapshot_placed_orders_have_no_observation():
 
         if not active_standalone_ids:
             pytest.skip(
-                "No active stand-alone SRs in 200-patient snapshot cohort (end=2025-02-28). "
+                "No active stand-alone SRs in 200-patient snapshot cohort (end=2025-05-15). "
                 "Increase population if this fires repeatedly."
             )
 
