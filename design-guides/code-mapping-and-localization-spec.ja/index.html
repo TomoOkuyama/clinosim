@@ -2769,9 +2769,9 @@
 <td>未知のグループなら <code>KeyError</code></td>
 </tr>
 <tr>
-<td><code>codes.drugs</code>: <code>resolve_drug</code> / <code>get_drug</code> / <code>find_drug</code> / <code>names_drug</code> / <code>drug_name_needles</code></td>
-<td>薬の同一性と名称照合</td>
-<td>例外 / <code>None</code> / <code>False</code></td>
+<td><code>codes.drugs</code>: <code>resolve_drug</code> / <code>get_drug</code> / <code>find_drug</code> / <code>drug_key(ref)</code> / <code>same_drug(a, b)</code></td>
+<td>薬の同一性。同一性キー (カタログ id、無ければ正規化した名称) と、2 つの参照が同じ薬か (部分文字列照合はしない)</td>
+<td>例外 / <code>None</code> / <code>""</code> / <code>False</code></td>
 </tr>
 <tr>
 <td><code>codes.drugs</code>: <code>route_class(route)</code> / <code>jp_drug_code(drug, route)</code> / <code>jp_drug_code_table(route)</code></td>
@@ -3045,10 +3045,6 @@
 <tr>
 <td>Python に言語ごとのリテラルが残っている。</td>
 <td>#2277</td>
-</tr>
-<tr>
-<td>判断ロジックが薬名の部分文字列で薬を識別している。</td>
-<td>#2377</td>
 </tr>
 <tr>
 <td>疾患 YAML が <code>drug:</code> 名と <code>drug_id:</code> を混在させ、<code>Order.order_code</code> がコード体系を記録していない。</td>

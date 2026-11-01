@@ -2769,9 +2769,9 @@
 <td><code>KeyError</code> on an unknown group</td>
 </tr>
 <tr>
-<td><code>codes.drugs</code>: <code>resolve_drug</code>, <code>get_drug</code>, <code>find_drug</code>, <code>names_drug</code>, <code>drug_name_needles</code></td>
-<td>drug identity and name matching</td>
-<td>raises / <code>None</code> / <code>False</code></td>
+<td><code>codes.drugs</code>: <code>resolve_drug</code>, <code>get_drug</code>, <code>find_drug</code>, <code>drug_key(ref)</code>, <code>same_drug(a, b)</code></td>
+<td>drug identity; identity key (catalog id, else the normalised name) and whether two references name the same drug — no substring matching</td>
+<td>raises / <code>None</code> / <code>""</code> / <code>False</code></td>
 </tr>
 <tr>
 <td><code>codes.drugs</code>: <code>route_class(route)</code>, <code>jp_drug_code(drug, route)</code>, <code>jp_drug_code_table(route)</code></td>
@@ -3045,10 +3045,6 @@
 <tr>
 <td>Language literals are still embedded in Python.</td>
 <td>#2277</td>
-</tr>
-<tr>
-<td>Decision logic identifies drugs by name substrings.</td>
-<td>#2377</td>
 </tr>
 <tr>
 <td>Disease YAMLs mix <code>drug:</code> names with <code>drug_id:</code>, and <code>Order.order_code</code> does not record its code system.</td>
