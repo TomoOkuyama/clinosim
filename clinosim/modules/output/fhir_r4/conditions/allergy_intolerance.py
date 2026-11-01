@@ -206,7 +206,7 @@ def _build_allergy_intolerance(allergy: Any, patient_id: str, lang: str = "en") 
     if is_nka:
         code: dict[str, Any] = {"text": t("allergy_intolerance_fhir.nka_text", lang)}
     else:
-        code = {"text": resolved_display}
+        code = {"text": resolved_display} if resolved_display else {}
     if allergen_code:
         # English SNOMED preferred term in the coding; the localized name is
         # code.text (dual slot, Issue #2375).

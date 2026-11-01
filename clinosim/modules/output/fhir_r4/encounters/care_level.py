@@ -24,6 +24,7 @@ from clinosim.modules.output.fhir_r4.demographics.smoking_alcohol import _sdoh_e
 from clinosim.modules.output.fhir_r4.lib.common import (
     BundleContext,
     _social_category,
+    display_entry,
     dual_slot_concept,
 )
 from clinosim.modules.output.fhir_r4.lib.ids import (
@@ -80,7 +81,7 @@ def _bb_care_level(ctx: BundleContext) -> list[dict]:
                 {
                     "system": get_system_uri("loinc"),
                     "code": _CARE_LEVEL_LOINC,
-                    "display": code_lookup("loinc", _CARE_LEVEL_LOINC, "en"),
+                    **display_entry(code_lookup("loinc", _CARE_LEVEL_LOINC, "en")),
                 }
             ],
             "text": text,

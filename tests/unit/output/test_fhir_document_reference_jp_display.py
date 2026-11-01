@@ -97,14 +97,13 @@ def test_us_dref_type_has_en_coding_display_and_en_text() -> None:
     assert res["type"]["text"] == "Provider-unspecified Progress note"
 
 
-def test_missing_loinc_falls_back_to_code_on_both_slots() -> None:
-    """Defensive: an unknown LOINC code (not in loinc.yaml) falls back to
-    the code itself on both display slots rather than emitting an empty
-    string that would fail JP UI rendering."""
+def test_missing_loinc_never_shows_the_code() -> None:
+    """Defensive: an unknown LOINC code (not in loinc.yaml) gets no coding
+    display and a document-type text — never the code itself (Issue #2416)."""
     res = _build_dref_from_clinical_doc(_doc_stub("99999-9"), _narr(), patient_id="pt-1", country="JP")
     assert res is not None
-    assert res["type"]["coding"][0]["display"] == "99999-9"
-    assert res["type"]["text"] == "99999-9"
+    assert "display" not in res["type"]["coding"][0]
+    assert res["type"]["text"] and res["type"]["text"] != "99999-9"
 
 
 # === Missing-code regression pin: 34133-9 must be resolvable ===

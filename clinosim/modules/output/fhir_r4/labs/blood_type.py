@@ -54,7 +54,7 @@ from clinosim.codes.snomed import snomed_for
 from clinosim.modules._shared import get_attr_or_key as _o
 from clinosim.modules._shared import is_jp, resolve_lang
 from clinosim.modules.output.fhir_r4.demographics.patient import patient_ref
-from clinosim.modules.output.fhir_r4.lib.common import BundleContext, dual_slot_concept, to_fhir_datetime
+from clinosim.modules.output.fhir_r4.lib.common import BundleContext, display_entry, dual_slot_concept, to_fhir_datetime
 from clinosim.modules.output.fhir_r4.lib.ids import (
     derive_opaque_id,
     structural_key_system,
@@ -178,7 +178,7 @@ def _build_blood_type_obs(
     """
     lang = resolve_lang(country)
     snomed_display = registry_display("snomed-ct", snomed_code, lang) or snomed_code
-    loinc_display = registry_display("loinc", loinc_code, "en") or loinc_code
+    loinc_display = registry_display("loinc", loinc_code, "en") or ""
     return {
         "resourceType": "Observation",
         "id": obs_id,
@@ -196,7 +196,7 @@ def _build_blood_type_obs(
                 {
                     "system": get_system_uri("loinc"),
                     "code": loinc_code,
-                    "display": loinc_display,
+                    **display_entry(loinc_display),
                 }
             ],
             "text": loinc_text,

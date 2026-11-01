@@ -44,7 +44,7 @@ from clinosim.modules.imaging.engine import (  # canonical owners; re-exported b
 from clinosim.modules.output.fhir_r4.demographics.patient import patient_ref
 from clinosim.modules.output.fhir_r4.encounters.encounter import encounter_ref
 from clinosim.modules.output.fhir_r4.labs.service_request import _resolve_service_request_id
-from clinosim.modules.output.fhir_r4.lib.common import BundleContext, to_fhir_datetime
+from clinosim.modules.output.fhir_r4.lib.common import BundleContext, display_entry, to_fhir_datetime
 from clinosim.modules.output.fhir_r4.lib.ids import (
     derive_opaque_id,
     structural_key_system,
@@ -176,7 +176,7 @@ def _build_imaging_study(
             {
                 "system": get_system_uri("dicom-modality"),
                 "code": modality_code,
-                "display": modality_display,
+                **display_entry(modality_display),
             }
         ]
 
@@ -376,13 +376,13 @@ def _build_series(series: Any, lang: str) -> dict[str, Any]:
         "modality": {
             "system": get_system_uri("dicom-modality"),
             "code": modality_code,
-            "display": modality_display,
+            **display_entry(modality_display),
         },
         "numberOfInstances": _o(series, "instance_count", 0),
         "description": _o(series, "description", ""),
         "bodySite": {
             "system": snomed_system,
             "code": body_site_snomed,
-            "display": body_site_display,
+            **display_entry(body_site_display),
         },
     }

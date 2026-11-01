@@ -137,7 +137,7 @@ occupation:
 | `codes.snomed`: `snomed_display(code, lang)` / `snomed_for(kind, key)` / `snomed_map(kind)` / `snomed_for_phrase(text)` | SNOMED の表示名、内部キー → コード (`route` / `severity` / `abo` / `rh` / `cchd_site` / `encounter_type` / `oxygen_device` / `stage` / `procedure_category` / `order_category` / `specimen_type` / `newborn_screen`。`codes/data/snomed-maps.yaml`)、自由文の処置・オーダー名 → コード (`codes/data/procedure-phrase-to-snomed.yaml` で最初に一致する語句) | `None` / `None` / `KeyError` / `None` |
 | `codes.snomed_concepts` | 判定ロジックで使う名前付き SNOMED 概念 | — |
 
-`lookup(system, code, lang)` は旧 API で、ヒットしないとコード自体を返す。新しいコードでは `display(...) or <明示フォールバック>` を使う。
+`lookup(system, code, lang)` はヒットしないと `""` を返す `display(...)` で (Issue #2416)、コード自体は返さない。新しいコードでは `display(...) or <明示フォールバック>` を使う。
 
 ### 4.2 国別対応と表示表 (`clinosim.locale.loader`)
 
@@ -234,7 +234,6 @@ occupation:
 
 | 未準拠箇所 | Issue |
 |---|---|
-| `codes.lookup` はヒットしないとコードを返す (`clinosim/codes` 外に約 40 箇所)。 | #2416 |
 | ローカライズされた YAML フィールドの形が混在している (入れ子の `{lang: text}`、25 種の `*_ja` フィールド名、`dose_ja` と `dose_text_ja`)。 | #2398 |
 | 意味の合わない Composition section コードがある。 | #2391 |
 | 自由文の名称翻訳 (`locale.free_text.localize_free_text`) が汎用の 1 本で、手技・SNOMED・アレルゲン名も薬名辞書と部分文字列置換を通る。 | #2408 |

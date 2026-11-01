@@ -22,7 +22,7 @@ from clinosim.codes import get_system_uri
 from clinosim.codes import lookup as code_lookup
 from clinosim.modules._shared import get_attr_or_key as _o
 from clinosim.modules.imaging.engine import ENDPOINT_ID_PREFIX
-from clinosim.modules.output.fhir_r4.lib.common import BundleContext
+from clinosim.modules.output.fhir_r4.lib.common import BundleContext, display_entry
 
 # Writer-owned constant — unique to Endpoint builder, not in engine.py.
 DICOM_WADO_RS_CONNECTION_TYPE = "dicom-wado-rs"
@@ -69,7 +69,7 @@ def _build_endpoint(study: Any, base_url: str) -> dict[str, Any]:
         "connectionType": {
             "system": get_system_uri("hl7-endpoint-connection-type"),
             "code": DICOM_WADO_RS_CONNECTION_TYPE,
-            "display": code_lookup("hl7-endpoint-connection-type", DICOM_WADO_RS_CONNECTION_TYPE, "en"),
+            **display_entry(code_lookup("hl7-endpoint-connection-type", DICOM_WADO_RS_CONNECTION_TYPE, "en")),
         },
         "payloadType": [
             {
@@ -77,7 +77,7 @@ def _build_endpoint(study: Any, base_url: str) -> dict[str, Any]:
                     {
                         "system": get_system_uri("hl7-endpoint-payload-type"),
                         "code": "any",
-                        "display": code_lookup("hl7-endpoint-payload-type", "any", "en"),
+                        **display_entry(code_lookup("hl7-endpoint-payload-type", "any", "en")),
                     }
                 ],
             }

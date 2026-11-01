@@ -35,6 +35,7 @@ from clinosim.modules.output.fhir_r4.demographics.patient import patient_ref
 from clinosim.modules.output.fhir_r4.encounters.encounter import encounter_ref
 from clinosim.modules.output.fhir_r4.lib.common import (
     build_diagnosis_codeable_concept,
+    display_entry,
     dual_slot_concept,
     infer_severity,
     map_diagnosis_code,
@@ -157,10 +158,10 @@ def _bodysite_for(code: str, country: str) -> dict | None:
             {
                 "system": get_system_uri("snomed-ct"),
                 "code": snomed_code,
-                "display": disp,
+                **display_entry(disp),
             }
         ],
-        "text": disp,
+        **({"text": disp} if disp else {}),
     }
 
 
@@ -350,7 +351,7 @@ def _build_conditions(record: dict, patient_id: str, country: str) -> list[dict]
                         {
                             "system": get_system_uri("snomed-ct"),
                             "code": stage_snomed,
-                            "display": code_lookup("snomed-ct", stage_snomed, resolve_lang(country)),
+                            **display_entry(code_lookup("snomed-ct", stage_snomed, resolve_lang(country))),
                         }
                     ]
                 cond["stage"] = [
@@ -719,7 +720,7 @@ def _build_conditions(record: dict, patient_id: str, country: str) -> list[dict]
                     {
                         "system": get_system_uri("snomed-ct"),
                         "code": stage_snomed,
-                        "display": code_lookup("snomed-ct", stage_snomed, resolve_lang(country)),
+                        **display_entry(code_lookup("snomed-ct", stage_snomed, resolve_lang(country))),
                     }
                 ]
             cond["stage"] = [

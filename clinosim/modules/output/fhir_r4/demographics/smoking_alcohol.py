@@ -23,6 +23,7 @@ from clinosim.modules.output.fhir_r4.demographics.patient import patient_ref
 from clinosim.modules.output.fhir_r4.lib.common import (
     BundleContext,
     _social_category,
+    display_entry,
     dual_slot_concept,
 )
 from clinosim.modules.output.fhir_r4.lib.ids import (
@@ -76,7 +77,7 @@ def _obs(obs_id: str, country: str, loinc: str, loinc_text: str, value_system: s
         "category": _social_category(country),
         "code": {
             "coding": [
-                {"system": get_system_uri("loinc"), "code": loinc, "display": code_lookup("loinc", loinc, "en")}
+                {"system": get_system_uri("loinc"), "code": loinc, **display_entry(code_lookup("loinc", loinc, "en"))}
             ],
             "text": loinc_text,
         },

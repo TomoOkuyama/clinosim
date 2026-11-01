@@ -311,7 +311,7 @@ def _build_encounter(
         _fallback_text = pick_localized_field(enc, "chief_complaint", lang)
         if _reason_code:
             reason_text = code_lookup(_reason_system, _reason_code, lang)
-            if reason_text == _reason_code:
+            if not reason_text:
                 reason_text = _fallback_text
         else:
             reason_text = _fallback_text
