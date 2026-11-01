@@ -2708,6 +2708,7 @@
 <li>One table per vocabulary. Examples:</li>
 <li><code>vocabulary.yaml</code> — occupation, smoking, alcohol, arrival mode</li>
 <li><code>narrative_imaging.yaml</code> — imaging exams</li>
+<li><code>lab_display.yaml</code> — lab analytes and panels, keyed by lower-cased lab token; <code>{en, ja}</code> is the clinician short form and an optional <code>formal</code> map holds the full analyte name</li>
 <li><code>department_display.yaml</code></li>
 <li>FHIR, narrative and LLM prompts read the same table. A second copy of a vocabulary is not allowed.</li>
 </ul>
@@ -2793,8 +2794,8 @@
 <td><code>""</code> / humanised type / <code>None</code></td>
 </tr>
 <tr>
-<td><code>codes.ucum</code>: <code>ucum_code</code>, <code>ucum_quantity</code></td>
-<td>UCUM code / FHIR Quantity</td>
+<td><code>codes.ucum</code>: <code>ucum_code</code>, <code>ucum_quantity</code>, <code>ucum_prose</code></td>
+<td>UCUM code / FHIR Quantity / the unit as written in prose (<code>mm[Hg]</code> → <code>mmHg</code>, <code>{INR}</code> → <code>""</code>)</td>
 <td>unit passed through</td>
 </tr>
 <tr>
@@ -2843,6 +2844,10 @@
 <tr>
 <td><code>imaging_exam_display(exam_id, lang)</code></td>
 <td>imaging exam name</td>
+</tr>
+<tr>
+<td><code>lab_display(name, lang, *, style, fallback)</code></td>
+<td>lab analyte or panel name: <code>style="prose"</code> for narrative, LLM text and <code>DiagnosticReport.conclusion</code>; <code>style="formal"</code> for the FHIR <code>code.text</code> of analytes with no standard code. A coded <code>Observation.code.coding.display</code> keeps the authority display</td>
 </tr>
 <tr>
 <td><code>department_display(dept, lang)</code> / <code>department_specialty_snomed(dept)</code></td>
@@ -2916,7 +2921,7 @@
 <li><strong>Order.</strong> Requested language, then English, then the caller's <strong>explicit</strong> fallback.</li>
 <li><strong>What a fallback never is.</strong> It is never another language (Japanese in English output), the lookup key, the raw code, a raw id or a raw slug.</li>
 <li><strong>A missing code or id</strong> returns <code>None</code> / <code>""</code> from the resolver. The caller decides what to show and passes it explicitly, or omits the element ("silence beats fabrication").</li>
-<li><strong>Humanised slugs.</strong> A humanised slug (underscores → spaces) is allowed only as the last fallback of a display table for internal slugs. For example <code>imaging_exam_display</code>, <code>procedure_type_display</code> and <code>department_display</code> humanise an unknown slug. It is allowed only when a unit test asserts that every slug the generator emits is in the table. A title-cased slug (<code>.title()</code>) is never allowed.</li>
+<li><strong>Humanised slugs.</strong> A humanised slug (underscores → spaces) is allowed only as the last fallback of a display table for internal slugs. For example <code>imaging_exam_display</code>, <code>procedure_type_display</code>, <code>department_display</code> and <code>lab_display</code> humanise an unknown slug. It is allowed only when a unit test asserts that every slug the generator emits is in the table. A title-cased slug (<code>.title()</code>) is never allowed.</li>
 <li><strong>A missing English entry</strong> is a data bug, and a test detects it. A missing non-English entry falls back to English (rule 1).</li>
 </ol>
 <h2 id="7-adding-or-changing-a-code">7. Adding or changing a code<a class="headerlink" href="#7-adding-or-changing-a-code" title="Permanent link">&para;</a></h2>
@@ -3026,10 +3031,6 @@
 <tr>
 <td>Remaining hand-built dual-slot concepts; <code>_coding_with_display</code> and <code>_value</code> put the output-language display into English-only codings instead of <code>system_coding</code> / <code>dual_slot_concept</code>; and the post-process text-filling walkers.</td>
 <td>#2337</td>
-</tr>
-<tr>
-<td>Lab analyte display is spread over five tables.</td>
-<td>#2267</td>
 </tr>
 <tr>
 <td>The free-text name localizer lives in the FHIR output layer, is imported from the order and narrative layers, and also translates procedure, SNOMED and allergen names. Decision logic and records resolve drug names through <code>codes.drugs.drug_display</code>.</td>

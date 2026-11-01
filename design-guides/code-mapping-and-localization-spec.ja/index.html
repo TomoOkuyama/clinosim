@@ -2708,6 +2708,7 @@
 <li>語彙ごとに表は 1 つ。例:</li>
 <li><code>vocabulary.yaml</code> — 職業、喫煙、飲酒、来院手段</li>
 <li><code>narrative_imaging.yaml</code> — 画像検査</li>
+<li><code>lab_display.yaml</code> — 検査項目とパネル。小文字化した検査トークンをキーとし、<code>{en, ja}</code> は臨床での略称、任意の <code>formal</code> に正式名を持つ</li>
 <li><code>department_display.yaml</code></li>
 <li>FHIR、narrative、LLM プロンプトは同じ表を読む。同じ語彙の写しを作ってはいけない。</li>
 </ul>
@@ -2793,8 +2794,8 @@
 <td><code>""</code> / 人間可読化した type / <code>None</code></td>
 </tr>
 <tr>
-<td><code>codes.ucum</code>: <code>ucum_code</code> / <code>ucum_quantity</code></td>
-<td>UCUM コード / FHIR Quantity</td>
+<td><code>codes.ucum</code>: <code>ucum_code</code> / <code>ucum_quantity</code> / <code>ucum_prose</code></td>
+<td>UCUM コード / FHIR Quantity / 文章中の単位表記 (<code>mm[Hg]</code> → <code>mmHg</code>、<code>{INR}</code> → <code>""</code>)</td>
 <td>単位をそのまま通す</td>
 </tr>
 <tr>
@@ -2843,6 +2844,10 @@
 <tr>
 <td><code>imaging_exam_display(exam_id, lang)</code></td>
 <td>画像検査名</td>
+</tr>
+<tr>
+<td><code>lab_display(name, lang, *, style, fallback)</code></td>
+<td>検査項目・パネル名。<code>style="prose"</code> は narrative・LLM 文・<code>DiagnosticReport.conclusion</code>、<code>style="formal"</code> は標準コードの無い項目の FHIR <code>code.text</code>。コード付き <code>Observation.code.coding.display</code> は権威 display のまま</td>
 </tr>
 <tr>
 <td><code>department_display(dept, lang)</code> / <code>department_specialty_snomed(dept)</code></td>
@@ -2916,7 +2921,7 @@
 <li><strong>順序。</strong> 要求言語 → 英語 → 呼び出し側が<strong>明示した</strong>フォールバック。</li>
 <li><strong>フォールバックにしてはいけないもの。</strong> 他の言語 (英語出力に日本語など)、検索キー、生コード、生 id、生 slug。</li>
 <li><strong>コードや id がない場合</strong>、解決関数は <code>None</code> / <code>""</code> を返す。何を表示するかは呼び出し側が決めて明示的に渡すか、要素ごと省く (「捏造より沈黙」)。</li>
-<li><strong>slug の人間可読化</strong> (アンダースコア → 空白) を許すのは、内部 slug の表示表の最後のフォールバックだけ。例: <code>imaging_exam_display</code> / <code>procedure_type_display</code> / <code>department_display</code> は未知の slug を人間可読化する。これを許す条件は、生成側が出す slug がすべて表にあることを unit test で保証していること。<code>.title()</code> による slug は常に禁止。</li>
+<li><strong>slug の人間可読化</strong> (アンダースコア → 空白) を許すのは、内部 slug の表示表の最後のフォールバックだけ。例: <code>imaging_exam_display</code> / <code>procedure_type_display</code> / <code>department_display</code> / <code>lab_display</code> は未知の slug を人間可読化する。これを許す条件は、生成側が出す slug がすべて表にあることを unit test で保証していること。<code>.title()</code> による slug は常に禁止。</li>
 <li><strong>英語エントリの欠落</strong>はデータのバグで、テストで検出する。英語以外の欠落は英語にフォールバックする (規則 1)。</li>
 </ol>
 <h2 id="7-コードの追加変更手順">7. コードの追加・変更手順<a class="headerlink" href="#7-コードの追加変更手順" title="Permanent link">&para;</a></h2>
@@ -3026,10 +3031,6 @@
 <tr>
 <td>手組みの dual-slot が残っている。<code>_coding_with_display</code> と <code>_value</code> が英語専用の coding に出力言語の表示名を入れている (<code>system_coding</code> / <code>dual_slot_concept</code> を使うべき)。後処理で text を補う walker も残っている。</td>
 <td>#2337</td>
-</tr>
-<tr>
-<td>検査項目の表示名が 5 つの表に分かれている。</td>
-<td>#2267</td>
 </tr>
 <tr>
 <td>自由文の名称 localizer が FHIR 出力層にあり、order 層と narrative 層から import され、手技・SNOMED・アレルゲン名の翻訳にも使われている。判断ロジックと記録の薬名は <code>codes.drugs.drug_display</code> で解決する。</td>
