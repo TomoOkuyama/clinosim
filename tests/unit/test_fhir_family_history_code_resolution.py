@@ -66,7 +66,9 @@ class TestFamilyHistoryCodeResolutionJP:
     def test_i64_resolves_via_who(self) -> None:
         assert _resolve_family_history_code("I64", "JP") == "I64"
         # WHO ICD-10 has the authoritative name
-        assert lookup("icd-10", "I64", "ja") == "脳卒中（出血または梗塞と明示されないもの）"
+        assert (
+            lookup("icd-10", "I64", "ja") == "脳卒中，脳出血又は脳梗塞と明示されないもの"
+        )  # MHLW 2013 name (Issue #2360)
         assert lookup("icd-10", "I64", "en") == "Stroke, not specified as haemorrhage or infarction"
 
     def test_all_family_history_codes_have_authoritative_display_jp(self) -> None:

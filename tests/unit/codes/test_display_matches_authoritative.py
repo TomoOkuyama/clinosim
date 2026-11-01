@@ -72,6 +72,13 @@ _SYSTEMS_UNDER_CROSS_CHECK: tuple[dict, ...] = (
         "compare_lang": "en",
     },
     {
+        "system_key": "icd-10",
+        "snapshot_file": "icd10_mhlw_2013_ja.json",
+        # MHLW 基本分類表 (ICD-10 2013年版準拠): the official Japanese name
+        # is the JP display, verbatim (Issue #2360).
+        "compare_lang": "ja",
+    },
+    {
         "system_key": "loinc",
         "snapshot_file": "loinc_2_82_tx.json",
         # LOINC is English-only in the source; clinosim ships a mix of

@@ -22,7 +22,7 @@ def test_icd10_system_per_country() -> None:
 
 def test_icd10_display_per_country_and_language() -> None:
     assert icd10_display("I10", "US", "en") == "Essential (primary) hypertension"
-    assert icd10_display("I10", "JP", "ja") == "本態性高血圧症"
+    assert icd10_display("I10", "JP", "ja") == "本態性（原発性＜一次性＞）高血圧（症）"  # MHLW 2013 name
     assert icd10_display("Z99.99X", "US", "en") is None
     assert icd10_display("", "US", "en") is None
 

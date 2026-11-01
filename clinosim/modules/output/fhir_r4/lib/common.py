@@ -468,16 +468,11 @@ def build_diagnosis_codeable_concept(code: str, system_key: str, country: str) -
             }
         )
 
-    # code.text: clinical short-name / abbreviation for search friendliness.
-    # coding[].display remains the official ICD name; text is what clinicians type.
-    # Fallback chain: short-name → primary_display → raw code.
-    short_name = condition_short_name(code, primary_lang)
-    if short_name:
-        text = short_name
-    elif primary_display:
-        text = primary_display
-    else:
-        text = code
+    # code.text: clinical short-name / abbreviation for search friendliness;
+    # coding[].display remains the official ICD name. Same chain as
+    # ``condition_label`` (short name → official display), which the
+    # narrative uses, then the raw code (Issue #2360).
+    text = condition_short_name(code, primary_lang) or primary_display or code
 
     return {
         "coding": coding,

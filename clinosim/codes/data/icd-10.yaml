@@ -2,7 +2,10 @@
 #
 # AUTHORITATIVE SOURCE: World Health Organization (WHO) ICD-10, icd.who.int/browse10.
 # JP uses the WHO ICD-10 family (厚労省 ICD-10 (2013)準拠). Do not fabricate a code (AD-57).
-# NOTE: not yet machine-verified against the WHO browser.
+# `en` is the WHO display (snapshot: codes/authoritative/icd10_who_tx.json).
+# `ja` is the official name in the MHLW 基本分類表 (ICD-10 2013年版準拠), verbatim
+# (snapshot: codes/authoritative/icd10_mhlw_2013_ja.json, Issue #2360). Clinical
+# short names for prose live in condition-short-name.yaml, not here.
 metadata:
   name: ICD-10
   uri: http://hl7.org/fhir/sid/icd-10
@@ -12,189 +15,189 @@ metadata:
 codes:
   A41:
     en: Other sepsis
-    ja: 敗血症
+    ja: "その他の敗血症"
   A41.9:
     en: Sepsis, unspecified
-    ja: 敗血症、詳細不明
+    ja: "敗血症，詳細不明"
   E03:
     en: Other hypothyroidism
-    ja: その他の甲状腺機能低下症
+    ja: "その他の甲状腺機能低下症"
   # Issue #1320: JP identity E03 root → billable E03.9 for chronic Condition emit.
   E03.9:
     en: Hypothyroidism, unspecified
-    ja: 甲状腺機能低下症、詳細不明
+    ja: "甲状腺機能低下症，詳細不明"
   E10:
     en: Type 1 diabetes mellitus
-    ja: 1型糖尿病
+    ja: "１型＜インスリン依存性＞糖尿病＜IDDM＞"
   E11:
     en: Type 2 diabetes mellitus
-    ja: 2型糖尿病
+    ja: "２型＜インスリン非依存性＞糖尿病＜NIDDM＞"
   E11.9:
     en: 'Type 2 diabetes mellitus : Without complications'
-    ja: 2型糖尿病（合併症なし）
+    ja: "２型＜インスリン非依存性＞糖尿病＜NIDDM＞，合併症を伴わないもの"
   E78:
     en: Disorders of lipoprotein metabolism and other lipidaemias
-    ja: 脂質異常症
+    ja: "リポタンパク＜蛋白＞代謝障害及びその他の脂血症"
   # Issue #1320: JP identity map lifts E78/E79 root → billable 4-char leaves
   # (WHO ICD-10 2013, MHLW 統計分類提要準拠). Chronic Condition emit at 3-char
   # bare loses subtype signal and fails downstream billable analytics.
   E78.5:
     en: Hyperlipidaemia, unspecified
-    ja: 高脂血症、詳細不明
+    ja: "高脂血症，詳細不明"
   E79:
     # WHO ICD-10 category (icd.who.int/browse10 Chapter IV, Metabolic disorders).
     # JP DPC / SDM uses E79 root for 高尿酸血症 (hyperuricemia) — one of MHLW's
     # major chronic diseases for men in age 40+.
     en: Disorders of purine and pyrimidine metabolism
-    ja: プリン・ピリミジン代謝障害（高尿酸血症）
+    ja: "プリン及びピリミジン代謝障害"
   E79.0:
     en: Hyperuricaemia without signs of inflammatory arthritis and tophaceous disease
-    ja: 炎症性関節炎および痛風結節症を伴わない高尿酸血症
+    ja: "炎症性関節炎及び痛風結節性疾患の徴候を伴わない高尿酸血症"
   F00:
     en: Dementia in Alzheimer disease[G30.-]
-    ja: アルツハイマー型認知症
+    ja: "アルツハイマー＜Alzheimer＞病の認知症（G30.-†）"
   F10:
     en: Mental and behavioural disorders due to use of alcohol
-    ja: アルコール使用障害
+    ja: "アルコール使用＜飲酒＞による精神及び行動の障害"
   F10.3:
     en: Mental and behavioural disorders due to use of alcohol, withdrawal state
-    ja: アルコール使用による精神及び行動の障害（離脱状態）
+    ja: "アルコール使用＜飲酒＞による精神及び行動の障害，離脱状態"
   # Issue #2154 (tx.fhir.org $lookup).
   F11.3:
     en: Mental and behavioural disorders due to use of opioids, withdrawal state
-    ja: アヘン類使用による精神及び行動の障害（離脱状態）
+    ja: "アヘン類使用による精神及び行動の障害，離脱状態"
   F10.4:
     en: Mental and behavioural disorders due to use of alcohol, withdrawal state with delirium
-    ja: アルコール使用による精神及び行動の障害（せん妄を伴う離脱状態）
+    ja: "アルコール使用＜飲酒＞による精神及び行動の障害，せん妄を伴う離脱状態"
   # Issue #2140: schizophrenia (verified on tx.fhir.org).
   F20:
     en: Schizophrenia
-    ja: 統合失調症
+    ja: "統合失調症"
   F20.9:
     en: Schizophrenia, unspecified
-    ja: 統合失調症、詳細不明
+    ja: "統合失調症，詳細不明"
   # Issue #2142: bipolar affective disorder (verified on tx.fhir.org).
   F31:
     en: Bipolar affective disorder
-    ja: 双極性感情障害
+    ja: "双極性感情障害＜躁うつ病＞"
   F31.9:
     en: Bipolar affective disorder, unspecified
-    ja: 双極性感情障害、詳細不明
+    ja: "双極性感情障害，詳細不明"
   F32:
     en: Depressive episode
-    ja: うつ病エピソード
+    ja: "うつ病エピソード"
   # Issue #1320: JP identity F32/F33 root → billable F32.9/F33.9 for chronic
   # Condition emit. Mirrors the US-side fix in #1356 (billable ICD-10-CM leaves).
   F32.9:
     en: Depressive episode, unspecified
-    ja: うつ病エピソード、詳細不明
+    ja: "うつ病エピソード，詳細不明"
   # Issue #2124: ED psychiatric crisis (suicidal ideation in a severe episode).
   F32.2:
     en: Severe depressive episode without psychotic symptoms
-    ja: 精神病症状を伴わない重症うつ病エピソード
+    ja: "精神病症状を伴わない重症うつ病エピソード"
   # Issue #1239 (2026-09-10): F33/F41.1 追加 (JP demographics.yaml で
   # chronic prevalence 定義追加に伴い icd-10 catalog にも登録、無いと
   # Condition emit が display lookup 失敗で dangling ref 発生)。
   F33:
     en: Recurrent depressive disorder
-    ja: 反復性うつ病性障害
+    ja: "反復性うつ病性障害"
   F33.9:
     en: Recurrent depressive disorder, unspecified
-    ja: 反復性うつ病性障害、詳細不明
+    ja: "反復性うつ病性障害，詳細不明"
   F33.2:
     en: Recurrent depressive disorder, current episode severe without psychotic symptoms
-    ja: 反復性うつ病性障害，現在精神病症状を伴わない重症エピソード
+    ja: "反復性うつ病性障害，現在精神病症状を伴わない重症エピソード"
   F41.0:
     en: Panic disorder [episodic paroxysmal anxiety]
-    ja: パニック障害
+    ja: "恐慌性＜パニック＞障害［挿間性発作性不安］"
   F41.1:
     en: Generalized anxiety disorder
-    ja: 全般性不安障害
+    ja: "全般性不安障害"
   G20:
     en: Parkinson disease
-    ja: パーキンソン病
+    ja: "パーキンソン＜Parkinson＞病"
   H26:
     # WHO ICD-10 category (icd.who.int/browse10 Chapter VII, Disorders of lens).
     # JP MHLW chronic disease prevalence 40-60% in 60+/70+ demographic.
     en: Other cataract
-    ja: 白内障（その他）
+    ja: "その他の白内障"
   # Issue #1320: JP identity H26 root → billable H26.9 for chronic Condition emit.
   H26.9:
     en: Cataract, unspecified
-    ja: 白内障、詳細不明
+    ja: "白内障，詳細不明"
   G43:
     en: Migraine
-    ja: 片頭痛
+    ja: "片頭痛"
   G45.9:
     en: Transient cerebral ischaemic attack, unspecified
-    ja: 一過性脳虚血発作、詳細不明
+    ja: "一過性脳虚血発作，詳細不明"
   I10:
     en: Essential (primary) hypertension
-    ja: 本態性高血圧症
+    ja: "本態性（原発性＜一次性＞）高血圧（症）"
   I20.0:
     en: Unstable angina
-    ja: 不安定狭心症
+    ja: "不安定狭心症"
   I21:
     en: Acute myocardial infarction
-    ja: 急性心筋梗塞
+    ja: "急性心筋梗塞"
   I21.0:
     en: Acute transmural myocardial infarction of anterior wall
-    ja: 前壁急性貫壁性心筋梗塞
+    ja: "前壁の急性貫壁性心筋梗塞"
   I21.1:
     en: Acute transmural myocardial infarction of inferior wall
-    ja: 下壁急性貫壁性心筋梗塞
+    ja: "下壁の急性貫壁性心筋梗塞"
   I21.4:
     en: Acute subendocardial myocardial infarction
-    ja: 急性心内膜下心筋梗塞（NSTEMI）
+    ja: "急性心内膜下心筋梗塞"
   I21.9:
     en: Acute myocardial infarction, unspecified
-    ja: 急性心筋梗塞、詳細不明
+    ja: "急性心筋梗塞，詳細不明"
   I25:
     en: Chronic ischaemic heart disease
-    ja: 慢性虚血性心疾患
+    ja: "慢性虚血性心疾患"
   # Issue #1320: JP identity I25 root → billable I25.9 for chronic Condition emit.
   I25.9:
     en: Chronic ischaemic heart disease, unspecified
-    ja: 慢性虚血性心疾患、詳細不明
+    ja: "慢性虚血性心疾患，詳細不明"
   I26:
     en: Pulmonary embolism
-    ja: 肺塞栓症
+    ja: "肺塞栓症"
   I48:
     en: Atrial fibrillation and flutter
-    ja: 心房細動・心房粗動
+    ja: "心房細動及び粗動"
   I50:
     en: Heart failure
-    ja: 心不全
+    ja: "心不全"
   I50.1:
     en: Left ventricular failure
-    ja: 左心不全
+    ja: "左室不全"
   I50.9:
     en: Heart failure, unspecified
-    ja: 心不全、詳細不明
+    ja: "心不全，詳細不明"
   I61:
     en: Intracerebral haemorrhage
-    ja: 脳内出血
+    ja: "脳内出血"
   I61.9:
     en: Intracerebral haemorrhage, unspecified
-    ja: 脳内出血、詳細不明
+    ja: "脳内出血，詳細不明"
   I63:
     en: Cerebral infarction
-    ja: 脳梗塞
+    ja: "脳梗塞"
   I63.9:
     en: Cerebral infarction, unspecified
-    ja: 脳梗塞、詳細不明
+    ja: "脳梗塞，詳細不明"
   I64:
     # WHO ICD-10 leaf (verified via icd.who.int/browse10 JsonGetChildrenConcepts I60-I69).
     # Removed from ICD-10-CM (CMS folds to I63.9); JP retains the WHO code for
     # family_history / FamilyMemberHistory emission of unspecified stroke.
     en: Stroke, not specified as haemorrhage or infarction
-    ja: 脳卒中（出血または梗塞と明示されないもの）
+    ja: "脳卒中，脳出血又は脳梗塞と明示されないもの"
   I80:
     en: Phlebitis and thrombophlebitis
-    ja: 静脈炎・血栓性静脈炎
+    ja: "静脈炎及び血栓（性）静脈炎"
   I82:
     en: Other venous embolism and thrombosis
-    ja: その他の静脈塞栓・血栓症
+    ja: "その他の静脈の塞栓症及び血栓症"
   # I84 (Haemorrhoids) was retired from WHO ICD-10 in the 2013 revision
   # and moved to K64.x. HAPI's ICD-10 CS (2019-covid-expanded, content=complete)
   # does not include I84 → hard "Unknown code" errors for 64 emit sites in
@@ -202,136 +205,136 @@ codes:
   # concept, present in HAPI CS. See #284.
   K64.9:
     en: Haemorrhoids, unspecified
-    ja: 痔核、詳細不明
+    ja: "痔核，詳細不明"
   J06.9:
     en: Acute upper respiratory infection, unspecified
-    ja: 急性上気道感染症、詳細不明
+    ja: "急性上気道感染症，詳細不明"
   J10:
     en: Influenza due to identified seasonal influenza virus
-    ja: インフルエンザ（同定ウイルス）
+    ja: "その他のインフルエンザウイルスが分離されたインフルエンザ"
   J11:
     en: Influenza, virus not identified
-    ja: インフルエンザ（ウイルス不明）
+    ja: "インフルエンザ，インフルエンザウイルスが分離されないもの"
   J13:
     en: Pneumonia due to Streptococcus pneumoniae
-    ja: 肺炎球菌性肺炎
+    ja: "肺炎連鎖球菌による肺炎"
   J15:
     en: Bacterial pneumonia, not elsewhere classified
-    ja: 細菌性肺炎
+    ja: "細菌性肺炎，他に分類されないもの"
   J15.0:
     en: Pneumonia due to Klebsiella pneumoniae
-    ja: 肺炎桿菌による肺炎
+    ja: "肺炎桿菌による肺炎"
   J15.1:
     en: Pneumonia due to Pseudomonas
-    ja: 緑膿菌による肺炎
+    ja: "緑膿菌による肺炎"
   J15.9:
     en: Bacterial pneumonia, unspecified
-    ja: 細菌性肺炎、詳細不明
+    ja: "細菌性肺炎，詳細不明"
   J18:
     en: Pneumonia, organism unspecified
-    ja: 肺炎、病原体不明
+    ja: "肺炎，病原体不詳"
   J18.0:
     en: Bronchopneumonia, unspecified
-    ja: 気管支肺炎
+    ja: "気管支肺炎，詳細不明"
   J18.9:
     en: Pneumonia, unspecified
-    ja: 肺炎、詳細不明
+    ja: "肺炎，詳細不明"
   J44:
     en: Other chronic obstructive pulmonary disease
-    ja: その他のCOPD
+    ja: "その他の慢性閉塞性肺疾患"
   J44.0:
     en: Chronic obstructive pulmonary disease with acute lower respiratory infection
-    ja: COPD急性下気道感染
+    ja: "急性下気道感染症を伴う慢性閉塞性肺疾患"
   J44.1:
     en: Chronic obstructive pulmonary disease with acute exacerbation, unspecified
-    ja: COPD急性増悪
+    ja: "急性増悪を伴う慢性閉塞性肺疾患，詳細不明"
   J45:
     en: Asthma
-    ja: 喘息
+    ja: "喘息"
   J45.9:
     en: Asthma, unspecified
-    ja: 喘息、詳細不明
+    ja: "喘息，詳細不明"
   J46:
     en: Status asthmaticus
-    ja: 喘息発作重積状態
+    ja: "喘息発作重積状態"
   J69:
     en: Pneumonitis due to solids and liquids
-    ja: 固体・液体による肺臓炎
+    ja: "固形物及び液状物による肺臓炎"
   K21:
     en: Gastro-oesophageal reflux disease
-    ja: 胃食道逆流症
+    ja: "胃食道逆流症"
   # Issue #1320: JP identity K21 root → billable K21.9 for chronic Condition emit.
   K21.9:
     en: Gastro-oesophageal reflux disease without oesophagitis
-    ja: 食道炎を伴わない胃食道逆流症
+    ja: "食道炎を伴わない胃食道逆流症"
   K25:
     en: Gastric ulcer
-    ja: 胃潰瘍
+    ja: "胃潰瘍"
   K26:
     en: Duodenal ulcer
-    ja: 十二指腸潰瘍
+    ja: "十二指腸潰瘍"
   K35:
     en: Acute appendicitis
-    ja: 急性虫垂炎
+    ja: "急性虫垂炎"
   K59:
     # WHO ICD-10 category (icd.who.int/browse10 Chapter XI, Other functional
     # intestinal disorders). JP MHLW chronic disease prevalence 60+ 15%, 70+ 20%.
     # Includes K59.0 constipation as leaf sub-code.
     en: Other functional intestinal disorders
-    ja: その他の機能性腸障害（便秘症を含む）
+    ja: "その他の腸の機能障害"
   # Issue #1320: JP identity K59 root → billable K59.0 for chronic Condition emit.
   # K59.0 (constipation) is the dominant chronic-followup use of this category
   # per JP MHLW 患者調査 (older adults 15-20 %).
   K59.0:
     en: Constipation
-    ja: 便秘症
+    ja: "便秘"
   K37:
     en: Unspecified appendicitis
-    ja: 虫垂炎、詳細不明
+    ja: "詳細不明の虫垂炎"
   K56:
     en: Paralytic ileus and intestinal obstruction without hernia
-    ja: 麻痺性イレウス・腸閉塞
+    ja: "麻痺性イレウス及び腸閉塞，ヘルニアを伴わないもの"
   K74:
     en: Fibrosis and cirrhosis of liver
-    ja: 肝線維症・肝硬変
+    ja: "肝線維症及び肝硬変"
   K80:
     en: Cholelithiasis
-    ja: 胆石症
+    ja: "胆石症"
   K81:
     en: Cholecystitis
-    ja: 胆嚢炎
+    ja: "胆のう＜嚢＞炎"
   K85:
     en: Acute pancreatitis
-    ja: 急性膵炎
+    ja: "急性膵炎"
   K92:
     en: Other diseases of digestive system
-    ja: その他消化器疾患
+    ja: "消化器系のその他の疾患"
   L03:
     en: Cellulitis
-    ja: 蜂窩織炎
+    ja: "蜂巣炎＜蜂窩織炎＞"
   L20:
     en: Atopic dermatitis
-    ja: アトピー性皮膚炎
+    ja: "アトピー性皮膚炎"
   L22:
     en: Diaper dermatitis
-    ja: おむつ皮膚炎
+    ja: "おむつ＜ナプキン＞皮膚炎"
   # ── Perinatal conditions (Issue #957 Tier-3-B slice 3).
   P07:
     en: Disorders of newborn related to short gestation and low birth weight
-    ja: 早産・低出生体重に関連する新生児障害
+    ja: "妊娠期間短縮及び低出産体重に関連する障害，他に分類されないもの"
   P22:
     en: Respiratory distress of newborn
-    ja: 新生児呼吸窮迫
+    ja: "新生児の呼吸窮＜促＞迫"
   P59:
     en: Neonatal jaundice from other and unspecified causes
-    ja: その他および詳細不明の新生児黄疸
+    ja: "その他及び詳細不明の原因による新生児黄疸"
   # ── Abortion codes (Issue #957 Tier-3-B slice 3, young-age gate).
   O03:
     en: Spontaneous abortion
-    ja: 自然流産
+    ja: "自然流産"
   O04:
     en: Medical abortion
-    ja: 医学的人工妊娠中絶
+    ja: "医学的人工流産"
   # ── Delivery admission diagnosis (Issue #1035).
   # Referenced by clinosim/locale/shared/perinatal.yaml as the default
   # WHO ICD-10 admission_diagnosis_code for uncomplicated delivery.
@@ -348,251 +351,248 @@ codes:
     ja: "帝王切開による単胎分娩"
   M17:
     en: Gonarthrosis [arthrosis of knee]
-    ja: 変形性膝関節症
+    ja: "膝関節症［膝の関節症］"
   # Issue #1320: JP identity M17 root → billable M17.9 for chronic Condition emit.
   M17.9:
     en: Gonarthrosis, unspecified
-    ja: 変形性膝関節症、詳細不明
+    ja: "膝関節症，詳細不明"
   M48:
     en: Other spondylopathies
-    ja: その他脊椎症
+    ja: "その他の脊椎障害"
   M54:
     # WHO ICD-10 category (icd.who.int/browse10 Chapter XIII, Dorsopathies).
     # JP MHLW chronic disease demographics uses M54 root for 腰痛.
     en: Dorsalgia
-    ja: 背部痛（腰痛を含む）
+    ja: "背部痛"
   M54.5:
     en: Low back pain
-    ja: 腰痛
+    ja: "下背部痛"
   # Issue #1320: JP identity M54 root → billable M54.5 (low back pain) via
   # code_mapping_diagnosis. M54.9 (dorsalgia, unspecified) also registered
   # for chronic Condition fallback where subtype is unknown.
   M54.9:
     en: Dorsalgia, unspecified
-    ja: 背部痛、詳細不明
+    ja: "背部痛，詳細不明"
   M80:
     en: Osteoporosis with pathological fracture
-    ja: 骨粗鬆症性病的骨折
+    ja: "骨粗しょう＜鬆＞症＜オステオポローシス＞，病的骨折を伴うもの"
   M81:
     en: Osteoporosis without pathological fracture
-    ja: 骨粗鬆症（病的骨折なし）
+    ja: "骨粗しょう＜鬆＞症＜オステオポローシス＞，病的骨折を伴わないもの"
   # Issue #1320: JP identity M81 root → billable M81.9 for chronic Condition emit.
   M81.9:
     en: Osteoporosis, unspecified
-    ja: 骨粗鬆症、詳細不明
+    ja: "骨粗しょう＜鬆＞症＜オステオポローシス＞，詳細不明"
   N10:
     en: Acute tubulo-interstitial nephritis
-    ja: 急性腎盂腎炎
+    ja: "急性尿細管間質性腎炎"
   N17:
     en: Acute renal failure
-    ja: 急性腎不全
+    ja: "急性腎不全"
   N18:
     en: Chronic kidney disease
-    ja: 慢性腎臓病
+    ja: "慢性腎臓病"
   N18.3:
     en: Chronic kidney disease, stage 3
-    ja: 慢性腎臓病ステージ3
+    ja: "慢性腎臓病，ステージ３"
   N23:
     en: Unspecified renal colic
-    ja: 腎仙痛、詳細不明
+    ja: "詳細不明の腎仙痛"
   N39.0:
     en: Urinary tract infection, site not specified
-    ja: 尿路感染症、部位不明
+    ja: "尿路感染症，部位不明"
   N40:
     en: Hyperplasia of prostate
-    ja: 前立腺肥大症
+    ja: "前立腺肥大（症）"
   R04.0:
     en: Epistaxis
-    ja: 鼻出血
+    ja: "鼻出血"
   R05:
     en: Cough
-    ja: 咳嗽
+    ja: "咳"
   R07:
     en: Pain in throat and chest
-    ja: 咽頭・胸部痛
+    ja: "咽喉痛及び胸痛"
   R10:
     en: Abdominal and pelvic pain
-    ja: 腹部・骨盤痛
+    ja: "腹痛及び骨盤痛"
   R42:
     en: Dizziness and giddiness
-    ja: めまい
+    ja: "めまい＜眩暈＞感及びよろめき感"
   R50.9:
     en: Fever, unspecified
-    ja: 発熱、詳細不明
+    ja: "発熱，詳細不明"
   R53:
     en: Malaise and fatigue
-    ja: 倦怠感・疲労
+    ja: "倦怠（感）及び疲労"
   R55:
     en: Syncope and collapse
-    ja: 失神・虚脱
+    ja: "失神及び虚脱"
   R57:
     en: Shock, not elsewhere classified
-    ja: ショック、他分類不能
+    ja: "ショック，他に分類されないもの"
   R69:
     en: Unknown and unspecified causes of morbidity
-    ja: 詳細不明の疾患
+    ja: "原因不明及び詳細不明の疾病"
   S06:
     en: Intracranial injury
-    ja: 頭蓋内損傷
+    ja: "頭蓋内損傷"
   S22:
     en: Fracture of rib(s), sternum and thoracic spine
-    ja: 肋骨・胸骨・胸椎骨折
+    ja: "肋骨，胸骨及び胸椎骨折"
   S42:
     en: Fracture of shoulder and upper arm
-    ja: 肩・上腕骨折
+    ja: "肩及び上腕の骨折"
   S52:
     en: Fracture of forearm
-    ja: 前腕骨折
+    ja: "前腕の骨折"
   S62:
     en: Fracture at wrist and hand level
-    ja: 手関節・手骨折
+    ja: "手首及び手の骨折"
   S72:
     en: Fracture of femur
-    ja: 大腿骨骨折
+    ja: "大腿骨骨折"
   S72.0:
     en: Fracture of neck of femur
-    ja: 大腿骨頸部骨折
+    ja: "大腿骨頚部骨折"
   S72.1:
     en: Pertrochanteric fracture
-    ja: 大腿骨転子部骨折
+    ja: "転子貫通骨折"
   S93:
     en: Dislocation, sprain and strain of joints and ligaments at ankle and foot level
-    ja: 足関節・足部捻挫・脱臼
+    ja: "足首及び足の関節及び靱帯の脱臼，捻挫及びストレイン"
   T07:
     en: Unspecified multiple injuries
-    ja: 多発外傷、詳細不明
+    ja: "詳細不明の多発性損傷"
   T14:
     en: Injury of unspecified body region
-    ja: 損傷、部位不明
+    ja: "部位不明の損傷"
   T15.0:
     en: Foreign body in cornea
-    ja: 角膜内異物
+    ja: "角膜内異物"
   T30:
     en: Burn and corrosion, body region unspecified
-    ja: 熱傷、部位不明
+    ja: "熱傷及び腐食，部位不明"
   T30.0:
     en: Burn of unspecified body region, unspecified degree
-    ja: 熱傷、部位・度数不明
+    ja: "部位不明の熱傷，程度不明"
   T31.2:
     en: Burns involving 20-29% of body surface
-    ja: 体表面積20-29%の熱傷
+    ja: "体表面積20-29％の熱傷"
   T31.3:
     en: Burns involving 30-39% of body surface
-    ja: 体表面積30-39%の熱傷
+    ja: "体表面積30-39％の熱傷"
   # Issue #2154 (tx.fhir.org $lookup): fentanyl poisoning folds here.
   T40.4:
     en: Other synthetic narcotics
-    ja: その他の合成麻薬による中毒
+    ja: "その他の合成麻薬"
   T54.3:
     en: Corrosive alkalis and alkali-like substances
-    ja: 腐食性アルカリ・アルカリ様物質の毒性
+    ja: "腐食性のアルカリ類及びアルカリ類似物質"
   T54.9:
     en: Corrosive substance, unspecified
-    ja: 腐食性物質による中毒、詳細不明
+    ja: "腐食性物質，詳細不明"
   T75.4:
     en: Effects of electric current
-    ja: 感電、電流による傷害
+    ja: "電流の作用"
   T78:
     en: Adverse effects, not elsewhere classified
-    ja: 有害作用、他分類不能
-  S67.2:
-    en: Crushing injury of hand
-    ja: 手部挫滅損傷
+    ja: "有害作用，他に分類されないもの"
   S67.8:
     en: Crushing injury of other and unspecified parts of wrist and hand
-    ja: 手関節・手部のその他の部位の挫滅損傷
+    ja: "手首及び手のその他及び部位不明の挫滅損傷"
   S68.1:
     en: Traumatic amputation of other single finger (complete)(partial)
-    ja: 指外傷性切断
+    ja: "その他の単指の外傷性切断（完全）（部分的）"
   I49.9:
     en: Cardiac arrhythmia, unspecified
-    ja: 心不整脈、詳細不明
+    ja: "不整脈，詳細不明"
   # Codes used by ED/outpatient encounters — align with icd-10-cm.yaml
   A05.9:
     en: Bacterial foodborne intoxication, unspecified
-    ja: 細菌性食中毒、詳細不明
+    ja: "細菌性食中毒，詳細不明"
   A08.4:
     en: Viral intestinal infection, unspecified
-    ja: ウイルス性腸炎、詳細不明
+    ja: "ウイルス性腸管感染症，詳細不明"
   J12.9:
     en: Viral pneumonia, unspecified
-    ja: ウイルス性肺炎、詳細不明
+    ja: "ウイルス肺炎，詳細不明"
   N20.0:
     en: Calculus of kidney
-    ja: 腎結石
+    ja: "腎結石"
   # R33.9 (subcode-unspecified) is not in HAPI's ICD-10 CS 2019-covid-
   # expanded (R33 has no subcodes; the WHO 2019 category is a leaf).
   # Folded to R33; jp code_mapping_diagnosis carries the CM→WHO map. #284.
   R33:
     en: Retention of urine
-    ja: 尿閉
+    ja: "尿閉"
   R68.8:
     en: Other specified general symptoms and signs
-    ja: その他の全身症状および徴候
+    ja: "その他の明示された全身症状及び徴候"
   W19:
     en: Unspecified fall
-    ja: 転倒、詳細不明
+    ja: "詳細不明の転落"
   W54:
     en: Bitten or struck by dog
-    ja: 犬咬傷・打撲
+    ja: "犬による咬傷又は打撲"
   Z00:
     en: General examination and investigation of persons without complaint and reported diagnosis
-    ja: 一般健康診断（訴えなし）
+    ja: "愁訴がない又は診断名の記載がない者の一般検査及び診査"
   Z01:
     en: Other special examinations and investigations of persons without complaint or reported diagnosis
-    ja: その他の特殊健康診断
+    ja: "愁訴がない又は診断名の記載がない者のその他の特殊検査及び診査"
   Z09:
     en: Follow-up examination after treatment for conditions other than malignant neoplasms
-    ja: 治療後フォローアップ
+    ja: "悪性新生物＜腫瘍＞以外の病態の治療後の経過観察＜フォローアップ＞検査"
   Z12:
     en: Special screening examination for neoplasms
-    ja: 腫瘍スクリーニング
+    ja: "新生物＜腫瘍＞の特殊スクリーニング検査"
   Z13:
     en: Special screening examination for other diseases and disorders
-    ja: その他疾患スクリーニング
+    ja: "その他の疾患及び障害の特殊スクリーニング検査"
   Z23:
     en: Need for immunization against single bacterial diseases
-    ja: 予防接種
+    ja: "単独の細菌性疾患に対する予防接種の必要性"
   Z34:
     en: Encounter for supervision of normal pregnancy
-    ja: 正常妊娠の管理
+    ja: "正常妊娠の管理"
   Z37:
     en: Outcome of delivery
-    ja: 分娩の転帰
+    ja: "分娩の結果"
   Z38:
     en: Liveborn infants according to place of birth
-    ja: 出生児の出生場所別分類
+    ja: "出生児，出生の場所による"
   Z39:
     en: Encounter for maternal postpartum care and examination
-    ja: 産褥期の医療ケアおよび検査
+    ja: "分娩後のケア及び検査"
   Z48:
     en: Other surgical follow-up care
-    ja: 術後ケア
+    ja: "その他の外科的経過観察＜フォローアップ＞ケア"
   Z51:
     en: Other medical care
-    ja: その他の医療ケア
+    ja: "その他の医学的ケア"
   Z71:
     en: Persons encountering health services for other counselling and medical advice, not elsewhere classified
-    ja: 相談・医療指導
+    ja: "その他のカウンセリング及び医学的助言についての保健サービスの利用者，他に分類されないもの"
   Z76:
     en: Persons encountering health services in other circumstances
-    ja: その他の医療サービス利用
+    ja: "その他の環境下での保健サービスの利用者"
   Z99.2:
     en: Dependence on renal dialysis
-    ja: 透析依存
+    ja: "腎透析依存"
 
   # --- WHO ICD-10 codes referenced by disease scenarios but absent from ICD-10-CM
   #     (CM subdivides these into more granular leaves). JP emits them identity via
   #     code_mapping_diagnosis; US translates to a billable CM leaf via the map. ---
   I21.2:
     en: Acute transmural myocardial infarction of other sites
-    ja: その他の部位の急性貫壁性心筋梗塞
+    ja: "その他の部位の急性貫壁性心筋梗塞"
   I50.0:
     en: Congestive heart failure
-    ja: うっ血性心不全
+    ja: "うっ血性心不全"
   N30.9:
     en: Cystitis, unspecified
-    ja: 膀胱炎、詳細不明
+    ja: "膀胱炎，詳細不明"
 
   # --- WHO ICD-10 (2019) equivalents of CM-granular codes used by disease/encounter
   #     scenarios. JP emits these via code_mapping_diagnosis/jp.yaml (internal CM code →
@@ -600,366 +600,366 @@ codes:
   #     ICD-10, not ICD-10-CM granularity (no cross-fallback to icd-10-cm.yaml). ---
   A40.0:
     en: Sepsis due to streptococcus, group A
-    ja: A群レンサ球菌による敗血症
+    ja: "A群連鎖球菌による敗血症"
   A41.0:
     en: Sepsis due to Staphylococcus aureus
-    ja: 黄色ブドウ球菌による敗血症
+    ja: "黄色ブドウ球菌による敗血症"
   A41.5:
     en: Sepsis due to other Gram-negative organisms
-    ja: その他のグラム陰性菌による敗血症
+    ja: "その他のグラム陰性菌による敗血症"
   B18.2:
     en: Chronic viral hepatitis C
-    ja: 慢性C型ウイルス肝炎
+    ja: "慢性C型ウイルス性肝炎"
   E10.1:
     en: 'Type 1 diabetes mellitus : With ketoacidosis'
-    ja: ケトアシドーシスを伴う1型糖尿病
+    ja: "１型＜インスリン依存性＞糖尿病＜IDDM＞，ケトアシドーシスを伴うもの"
   E10.6:
     en: 'Type 1 diabetes mellitus : With other specified complications'
-    ja: その他の明示された合併症を伴う1型糖尿病
+    ja: "１型＜インスリン依存性＞糖尿病＜IDDM＞，その他の明示された合併症を伴うもの"
   E11.1:
     en: 'Type 2 diabetes mellitus : With ketoacidosis'
-    ja: ケトアシドーシスを伴う2型糖尿病
+    ja: "２型＜インスリン非依存性＞糖尿病＜NIDDM＞，ケトアシドーシスを伴うもの"
   E11.6:
     en: 'Type 2 diabetes mellitus : With other specified complications'
-    ja: その他の明示された合併症を伴う2型糖尿病
+    ja: "２型＜インスリン非依存性＞糖尿病＜NIDDM＞，その他の明示された合併症を伴うもの"
   G43.9:
     en: Migraine, unspecified
-    ja: 片頭痛、詳細不明
+    ja: "片頭痛，詳細不明"
   I26.0:
     en: Pulmonary embolism with mention of acute cor pulmonale
-    ja: 急性肺性心の記載のある肺塞栓症
+    ja: "急性肺性心と記載された肺塞栓症"
   I26.9:
     en: Pulmonary embolism without mention of acute cor pulmonale
-    ja: 急性肺性心の記載のない肺塞栓症
+    ja: "急性肺性心の記載のない肺塞栓症"
   I48.0:
     en: Paroxysmal atrial fibrillation
-    ja: 発作性心房細動
+    ja: "発作性心房細動"
   I48.1:
     en: Persistent atrial fibrillation
-    ja: 持続性心房細動
+    ja: "持続性心房細動"
   I48.2:
     en: Chronic atrial fibrillation
-    ja: 慢性心房細動
+    ja: "慢性心房細動"
   I48.9:
     en: Atrial fibrillation and atrial flutter, unspecified
-    ja: 心房細動及び心房粗動、詳細不明
+    ja: "心房細動及び心房粗動，詳細不明"
   I61.0:
     en: Intracerebral haemorrhage in hemisphere, subcortical
-    ja: 皮質下の大脳半球内出血
+    ja: "（大脳）半球の脳内出血，皮質下"
   I61.1:
     en: Intracerebral haemorrhage in hemisphere, cortical
-    ja: 皮質の大脳半球内出血
+    ja: "（大脳）半球の脳内出血，皮質"
   I61.3:
     en: Intracerebral haemorrhage in brain stem
-    ja: 脳幹の脳内出血
+    ja: "脳幹の脳内出血"
   I61.4:
     en: Intracerebral haemorrhage in cerebellum
-    ja: 小脳の脳内出血
+    ja: "小脳の脳内出血"
   I61.5:
     en: Intracerebral haemorrhage, intraventricular
-    ja: 脳室内出血
+    ja: "脳内出血，脳室内"
   I63.3:
     en: Cerebral infarction due to thrombosis of cerebral arteries
-    ja: 脳動脈の血栓症による脳梗塞
+    ja: "脳動脈の血栓症による脳梗塞"
   I63.4:
     en: Cerebral infarction due to embolism of cerebral arteries
-    ja: 脳動脈の塞栓症による脳梗塞
+    ja: "脳動脈の塞栓症による脳梗塞"
   I63.5:
     en: Cerebral infarction due to unspecified occlusion or stenosis of cerebral arteries
-    ja: 脳動脈の詳細不明の閉塞又は狭窄による脳梗塞
+    ja: "脳動脈の詳細不明の閉塞又は狭窄による脳梗塞"
   I66.0:
     en: Occlusion and stenosis of middle cerebral artery
-    ja: 中大脳動脈の閉塞及び狭窄
+    ja: "中大脳動脈の閉塞及び狭窄"
   I80.2:
     en: Phlebitis and thrombophlebitis of other deep vessels of lower extremities
-    ja: 下肢のその他の深部血管の静脈炎及び血栓性静脈炎
+    ja: "下肢のその他の深在血管の静脈炎及び血栓（性）静脈炎"
   I82.9:
     en: Embolism and thrombosis of unspecified vein
-    ja: 詳細不明の静脈の塞栓症及び血栓症
+    ja: "部位不明の静脈の塞栓症及び血栓症"
   I85.0:
     en: Oesophageal varices with bleeding
-    ja: 出血を伴う食道静脈瘤
+    ja: "出血を伴う食道静脈瘤"
   J10.0:
     en: Influenza with pneumonia, seasonal influenza virus identified
-    ja: 肺炎を伴うインフルエンザ、季節性インフルエンザウイルスを確認したもの
+    ja: "肺炎を伴うインフルエンザ，その他のインフルエンザウイルスが分離されたもの"
   J10.1:
     en: Influenza with other respiratory manifestations, seasonal influenza virus identified
-    ja: その他の呼吸器症状を伴うインフルエンザ、季節性インフルエンザウイルスを確認したもの
+    ja: "その他の呼吸器症状を伴うインフルエンザ，その他のインフルエンザウイルスが分離されたもの"
   J10.8:
     en: Influenza with other manifestations, seasonal influenza virus identified
-    ja: その他の症状を伴うインフルエンザ、季節性インフルエンザウイルスを確認したもの
+    ja: "その他の症状を伴うインフルエンザ，その他のインフルエンザウイルスが分離されたもの"
   J11.0:
     en: Influenza with pneumonia, virus not identified
-    ja: 肺炎を伴うインフルエンザ、ウイルスを確認していないもの
+    ja: "肺炎を伴うインフルエンザ，インフルエンザウイルスが分離されないもの"
   J11.1:
     en: Influenza with other respiratory manifestations, virus not identified
-    ja: その他の呼吸器症状を伴うインフルエンザ、ウイルスを確認していないもの
+    ja: "その他の呼吸器症状を伴うインフルエンザ，インフルエンザウイルスが分離されないもの"
   J15.7:
     en: Pneumonia due to Mycoplasma pneumoniae
-    ja: 肺炎マイコプラズマによる肺炎
+    ja: "マイコプラズマ肺炎"
   J18.1:
     en: Lobar pneumonia, unspecified
-    ja: 大葉性肺炎、詳細不明
+    ja: "大葉性肺炎，詳細不明"
   J44.9:
     en: Chronic obstructive pulmonary disease, unspecified
-    ja: 慢性閉塞性肺疾患、詳細不明
+    ja: "慢性閉塞性肺疾患，詳細不明"
   J69.0:
     en: Pneumonitis due to food and vomit
-    ja: 食物及び吐物による肺臓炎
+    ja: "食物及び吐物による肺臓炎"
   J69.1:
     en: Pneumonitis due to oils and essences
-    ja: 油及びエッセンスによる肺臓炎
+    ja: "油及びエッセンス剤による肺臓炎"
   J96.0:
     en: Acute respiratory failure
-    ja: 急性呼吸不全
+    ja: "急性呼吸不全"
   K22.6:
     en: Gastro-oesophageal laceration-haemorrhage syndrome
-    ja: 胃食道裂傷出血症候群（マロリー・ワイス症候群）
+    ja: "食道胃接合部裂傷出血症候群"
   K25.4:
     en: 'Gastric ulcer : Chronic or unspecified with haemorrhage'
-    ja: 胃潰瘍、慢性又は詳細不明、出血を伴うもの
+    ja: "胃潰瘍，慢性又は詳細不明，出血を伴うもの"
   K26.4:
     en: 'Duodenal ulcer : Chronic or unspecified with haemorrhage'
-    ja: 十二指腸潰瘍、慢性又は詳細不明、出血を伴うもの
+    ja: "十二指腸潰瘍，慢性又は詳細不明，出血を伴うもの"
   K35.2:
     en: Acute appendicitis with generalized peritonitis
-    ja: 汎発性腹膜炎を伴う急性虫垂炎
+    ja: "汎発性腹膜炎を伴う急性虫垂炎"
   K35.3:
     en: Acute appendicitis with localized peritonitis
-    ja: 限局性腹膜炎を伴う急性虫垂炎
+    ja: "限局性腹膜炎を伴う急性虫垂炎"
   K35.8:
     en: Acute appendicitis, other and unspecified
-    ja: 急性虫垂炎、その他及び詳細不明
+    ja: "急性虫垂炎，その他及び詳細不明"
   K56.0:
     en: Paralytic ileus
-    ja: 麻痺性イレウス
+    ja: "麻痺性イレウス"
   K56.1:
     en: Intussusception
-    ja: 腸重積（症）
+    ja: "腸重積症"
   K56.2:
     en: Volvulus
-    ja: 腸捻転（症）
+    ja: "軸捻（転）"
   K56.4:
     en: Other impaction of intestine
-    ja: その他の腸閉塞（嵌入）
+    ja: "その他の腸管かん＜嵌＞頓"
   K56.5:
     en: Intestinal adhesions [bands] with obstruction
-    ja: 閉塞を伴う腸管癒着（索状物）
+    ja: "閉塞を伴う腸癒着［索条物］"
   K56.6:
     en: Other and unspecified intestinal obstruction
-    ja: その他及び詳細不明の腸閉塞
+    ja: "その他及び詳細不明の腸閉塞"
   K57.3:
     en: Diverticular disease of large intestine without perforation or abscess
-    ja: 穿孔又は膿瘍を伴わない大腸の憩室性疾患
+    ja: "穿孔又は膿瘍を伴わない大腸の憩室性疾患"
   K70.3:
     en: Alcoholic cirrhosis of liver
-    ja: アルコール性肝硬変
+    ja: "アルコール性肝硬変"
   K70.4:
     en: Alcoholic hepatic failure
-    ja: アルコール性肝不全
+    ja: "アルコール性肝不全"
   K74.6:
     en: Other and unspecified cirrhosis of liver
-    ja: その他及び詳細不明の肝硬変
+    ja: "その他及び詳細不明の肝硬変"
   K76.6:
     en: Portal hypertension
-    ja: 門脈圧亢進症
+    ja: "門脈圧亢進（症）"
   K80.0:
     en: Calculus of gallbladder with acute cholecystitis
-    ja: 急性胆嚢炎を伴う胆嚢結石
+    ja: "急性胆のう＜嚢＞炎を伴う胆のう＜嚢＞結石"
   K80.4:
     en: Calculus of bile duct with cholecystitis
-    ja: 胆嚢炎を伴う胆管結石
+    ja: "胆のう＜嚢＞炎を伴う胆管結石"
   K80.5:
     en: Calculus of bile duct without cholangitis or cholecystitis
-    ja: 胆管炎又は胆嚢炎を伴わない胆管結石
+    ja: "胆管炎及び胆のう＜嚢＞炎を伴わない胆管結石"
   K81.0:
     en: Acute cholecystitis
-    ja: 急性胆嚢炎
+    ja: "急性胆のう＜嚢＞炎"
   K85.1:
     en: Biliary acute pancreatitis
-    ja: 胆石性急性膵炎
+    ja: "胆石性急性膵炎"
   K85.2:
     en: Alcohol-induced acute pancreatitis
-    ja: アルコール誘発性急性膵炎
+    ja: "アルコール性急性膵炎"
   K85.3:
     en: Drug-induced acute pancreatitis
-    ja: 薬物誘発性急性膵炎
+    ja: "薬物性急性膵炎"
   K85.8:
     en: Other acute pancreatitis
-    ja: その他の急性膵炎
+    ja: "その他の急性膵炎"
   K85.9:
     en: Acute pancreatitis, unspecified
-    ja: 急性膵炎、詳細不明
+    ja: "急性膵炎，詳細不明"
   K92.0:
     en: Haematemesis
-    ja: 吐血
+    ja: "吐血"
   K92.1:
     en: Melaena
-    ja: 下血（メレナ）
+    ja: "メレナ"
   K92.2:
     en: Gastrointestinal haemorrhage, unspecified
-    ja: 消化管出血、詳細不明
+    ja: "胃腸出血，詳細不明"
   L03.0:
     en: Cellulitis of finger and toe
-    ja: 手指及び足指の蜂巣炎
+    ja: "手指及び趾＜足ゆび＞の蜂巣炎＜蜂窩織炎＞"
   L03.1:
     en: Cellulitis of other parts of limb
-    ja: 四肢のその他の部位の蜂巣炎
+    ja: "（四）肢のその他の部位の蜂巣炎＜蜂窩織炎＞"
   L03.2:
     en: Cellulitis of face
-    ja: 顔面の蜂巣炎
+    ja: "顔面の蜂巣炎＜蜂窩織炎＞"
   L03.3:
     en: Cellulitis of trunk
-    ja: 体幹の蜂巣炎
+    ja: "体幹の蜂巣炎＜蜂窩織炎＞"
   L03.9:
     en: Cellulitis, unspecified
-    ja: 蜂巣炎、詳細不明
+    ja: "蜂巣炎＜蜂窩織炎＞，詳細不明"
   M48.5:
     en: Collapsed vertebra, not elsewhere classified
-    ja: 椎体圧潰、他に分類されないもの
+    ja: "圧潰脊椎，他に分類されないもの"
   M80.0:
     en: Postmenopausal osteoporosis with pathological fracture
-    ja: 病的骨折を伴う閉経後骨粗鬆症
+    ja: "閉経後骨粗しょう＜鬆＞症＜オステオポローシス＞，病的骨折を伴うもの"
   M84.4:
     en: Pathological fracture, not elsewhere classified
-    ja: 病的骨折、他に分類されないもの
+    ja: "病的骨折，他に分類されないもの"
   N12:
     en: Tubulo-interstitial nephritis, not specified as acute or chronic
-    ja: 急性又は慢性と明示されない尿細管間質性腎炎
+    ja: "尿細管間質性腎炎，急性又は慢性と明示されないもの"
   N17.0:
     en: Acute renal failure with tubular necrosis
-    ja: 尿細管壊死を伴う急性腎不全
+    ja: "尿細管え＜壊＞死を伴う急性腎不全"
   N17.1:
     en: Acute renal failure with acute cortical necrosis
-    ja: 急性皮質壊死を伴う急性腎不全
+    ja: "急性皮質え＜壊＞死を伴う急性腎不全"
   N17.2:
     en: Acute renal failure with medullary necrosis
-    ja: 髄質壊死を伴う急性腎不全
+    ja: "髄質え＜壊＞死を伴う急性腎不全"
   N17.8:
     en: Other acute renal failure
-    ja: その他の急性腎不全
+    ja: "その他の急性腎不全"
   N17.9:
     en: Acute renal failure, unspecified
-    ja: 急性腎不全、詳細不明
+    ja: "急性腎不全，詳細不明"
   N30.0:
     en: Acute cystitis
-    ja: 急性膀胱炎
+    ja: "急性膀胱炎"
   R07.3:
     en: Other chest pain
-    ja: その他の胸痛
+    ja: "その他の胸痛"
   R10.4:
     en: Other and unspecified abdominal pain
-    ja: その他及び詳細不明の腹痛
+    ja: "その他及び詳細不明の腹痛"
   S06.0:
     en: Concussion
-    ja: 脳震盪
+    ja: "振とう＜盪＞（症）"
   S06.5:
     en: Traumatic subdural haemorrhage
-    ja: 外傷性硬膜下出血
+    ja: "外傷性硬膜下出血"
   S06.9:
     en: Intracranial injury, unspecified
-    ja: 頭蓋内損傷、詳細不明
+    ja: "頭蓋内損傷，詳細不明"
   S22.0:
     en: Fracture of thoracic vertebra
-    ja: 胸椎骨折
+    ja: "胸椎骨折"
   S22.3:
     en: Fracture of rib
-    ja: 肋骨骨折
+    ja: "肋骨骨折"
   S27.0:
     en: Traumatic pneumothorax
-    ja: 外傷性気胸
+    ja: "外傷性気胸"
   S32.0:
     en: Fracture of lumbar vertebra
-    ja: 腰椎骨折
+    ja: "腰椎骨折"
   S36.1:
     en: Injury of liver or gallbladder
-    ja: 肝臓又は胆嚢の損傷
+    ja: "肝又は胆のう＜嚢＞の損傷"
   S52.5:
     en: Fracture of lower end of radius
-    ja: 橈骨下端骨折
+    ja: "橈骨遠位端骨折"
   # HAPI ICD-10 CS 2019-covid-expanded assigns the "other and unspecified
   # parts" display to S62.8 (not S62.9). Renamed here + jp code_mapping
   # updated so S62.90XA folds to S62.8 instead of S62.9. #284.
   S62.8:
     en: Fracture of other and unspecified parts of wrist and hand
-    ja: 手首及び手のその他及び詳細不明の部位の骨折
+    ja: "手首及び手のその他及び部位不明の骨折"
   S72.2:
     en: Subtrochanteric fracture
-    ja: 転子下骨折
+    ja: "転子下骨折"
   S93.4:
     en: Sprain and strain of ankle
-    ja: 足首の捻挫及びストレイン
+    ja: "足首の捻挫及びストレイン"
   T14.9:
     en: Injury, unspecified
-    ja: 損傷、詳細不明
+    ja: "損傷，詳細不明"
   T78.4:
     en: Allergy, unspecified
-    ja: アレルギー、詳細不明
+    ja: "アレルギー，詳細不明"
   Z00.0:
     en: General medical examination
-    ja: 一般的医学的検査
+    ja: "一般医学的検査"
   Z01.8:
     en: Other specified special examinations
-    ja: その他の明示された特殊検査
+    ja: "その他の明示された特殊検査"
   Z12.1:
     en: Special screening examination for neoplasm of intestinal tract
-    ja: 腸管の新生物に対する特殊スクリーニング検査
+    ja: "腸管の新生物＜腫瘍＞の特殊スクリーニング検査"
   Z12.3:
     en: Special screening examination for neoplasm of breast
-    ja: 乳房の新生物に対する特殊スクリーニング検査
+    ja: "乳房の新生物＜腫瘍＞の特殊スクリーニング検査"
   Z13.5:
     en: Special screening examination for eye and ear disorders
-    ja: 眼及び耳の障害に対する特殊スクリーニング検査
+    ja: "眼及び耳の障害の特殊スクリーニング検査"
   Z13.8:
     en: Special screening examination for other specified diseases and disorders
-    ja: その他の明示された疾患及び障害に対する特殊スクリーニング検査
+    ja: "その他の明示された疾患及び障害の特殊スクリーニング検査"
   Z48.0:
     en: Attention to surgical dressings and sutures
-    ja: 手術創ドレッシング及び縫合の処置
+    ja: "手術包帯及び縫合に対する手当て"
   Z51.8:
     en: Other specified medical care
-    ja: その他の明示された医療
+    ja: "その他の明示された医学的ケア"
   Z71.6:
     en: Tobacco abuse counselling
-    ja: タバコ乱用カウンセリング
+    ja: "タバコ乱用カウンセリング"
   Z71.8:
     en: Other specified counselling
-    ja: その他の明示されたカウンセリング
+    ja: "その他の明示されたカウンセリング"
   Z76.0:
     en: Issue of repeat prescription
-    ja: 反復処方箋の発行
+    ja: "処方箋の反復発行"
   Z76.8:
     en: Persons encountering health services in other specified circumstances
-    ja: その他の明示された状況で保健サービスを受ける者
+    ja: "その他の明示された環境下における保健サービスの利用者"
   E11.0:
     en: 'Type 2 diabetes mellitus : With coma'
-    ja: 2型糖尿病（昏睡を伴うもの）
+    ja: "２型＜インスリン非依存性＞糖尿病＜NIDDM＞，昏睡を伴うもの"
   M71.2:
     en: Synovial cyst of popliteal space [Baker]
-    ja: 膝窩部滑液嚢腫［ベーカー嚢腫］
+    ja: "膝窩部滑膜のう＜嚢＞腫［ベーカー＜Baker＞のう＜嚢＞腫］"
   R65.1:
     en: Systemic Inflammatory Response Syndrome of infectious origin with organ failure
-    ja: 感染性の全身性炎症反応症候群（臓器不全を伴うもの）
+    ja: "感染症が原因の全身性炎症反応症候群，臓器不全を伴うもの"
   R65.2:
     en: Systemic Inflammatory Response Syndrome of non-infectious origin without organ failure
-    ja: 非感染性の全身性炎症反応症候群（臓器不全を伴わないもの）
+    ja: "感染症が原因でない全身性炎症反応症候群，臓器不全を伴わないもの"
   S43.0:
     en: Dislocation of shoulder joint
-    ja: 肩関節脱臼
+    ja: "肩関節脱臼"
   T18.9:
     en: Foreign body in alimentary tract, part unspecified
-    ja: 消化管内異物（部位不明）
+    ja: "消化管内異物，部位不明"
   V89.2:
     en: Person injured in unspecified motor-vehicle accident, traffic
-    ja: 詳細不明の自動車交通事故による負傷者
+    ja: "詳細不明のモーター車両事故により受傷した者，路上交通事故"
 
   # diagnosis/engine.py differential codes (WHO ICD-10 2019-verified)
   A15.0:
     en: "Tuberculosis of lung, confirmed by sputum microscopy with or without culture"
-    ja: "肺結核、喀痰塗抹（培養の有無を問わない）により確認"
+    ja: "肺結核，培養の有無にかかわらず喀痰鏡検により確認されたもの"
   C16.9:
     en: Stomach, unspecified
-    ja: "胃の悪性新生物、詳細不明"
+    ja: "胃，部位不明"
   # Cancer category codes for family history display (WHO ICD-10 categories).
   # Issue #358 (2026-07-22 v19 → v20): JP display aligned to the MHLW
   # ICD-10 2013 registry canonical — 「および」→「及び」表記統一 + 悪性新生物
@@ -979,37 +979,37 @@ codes:
   # ICD-10 統計分類提要 canonical (「悪性新生物＜腫瘍＞、詳細不明」suffix).
   C15.9:
     en: "Oesophagus, unspecified"
-    ja: "食道の悪性新生物＜腫瘍＞、詳細不明"
+    ja: "食道，部位不明"
   C18:
     en: "Malignant neoplasm of colon"
     ja: "結腸の悪性新生物＜腫瘍＞"
   C18.9:
     en: "Colon, unspecified"
-    ja: "結腸の悪性新生物＜腫瘍＞、詳細不明"
+    ja: "結腸，部位不明"
   C22:
     en: "Malignant neoplasm of liver and intrahepatic bile ducts"
     ja: "肝及び肝内胆管の悪性新生物＜腫瘍＞"
   C22.9:
     en: "Liver, unspecified"
-    ja: "肝の悪性新生物＜腫瘍＞、詳細不明"
+    ja: "肝，詳細不明"
   C25:
     en: "Malignant neoplasm of pancreas"
     ja: "膵の悪性新生物＜腫瘍＞"
   C25.9:
     en: "Pancreas, unspecified"
-    ja: "膵の悪性新生物＜腫瘍＞、詳細不明"
+    ja: "膵，部位不明"
   C34:
     en: "Malignant neoplasm of bronchus and lung"
     ja: "気管支及び肺の悪性新生物＜腫瘍＞"
   C34.9:
     en: "Bronchus or lung, unspecified"
-    ja: "気管支又は肺の悪性新生物＜腫瘍＞、詳細不明"
+    ja: "気管支又は肺，部位不明"
   C50:
     en: "Malignant neoplasm of breast"
     ja: "乳房の悪性新生物＜腫瘍＞"
   C50.9:
     en: "Breast, unspecified"
-    ja: "乳房の悪性新生物＜腫瘍＞、詳細不明"
+    ja: "乳房，部位不明"
   C61:
     en: "Malignant neoplasm of prostate"
     ja: "前立腺の悪性新生物＜腫瘍＞"
@@ -1018,109 +1018,109 @@ codes:
     ja: "膀胱の悪性新生物＜腫瘍＞"
   C67.9:
     en: "Bladder, unspecified"
-    ja: "膀胱の悪性新生物＜腫瘍＞、詳細不明"
+    ja: "膀胱，部位不明"
   C71.9:
     en: Brain, unspecified
-    ja: "脳の悪性新生物、詳細不明"
+    ja: "脳，部位不明"
   C79.5:
     en: "Secondary malignant neoplasm of bone and bone marrow"
-    ja: "骨および骨髄の続発性悪性新生物"
+    ja: "骨及び骨髄の続発性悪性新生物＜腫瘍＞"
   E05.9:
     en: "Thyrotoxicosis, unspecified"
-    ja: "甲状腺中毒症、詳細不明"
+    ja: "甲状腺中毒症，詳細不明"
   E87.2:
     en: "Acidosis"
     ja: "アシドーシス"
   G43.1:
     en: "Migraine with aura [classical migraine]"
-    ja: "前兆を伴う片頭痛［古典型片頭痛］"
+    ja: "前兆＜アウラ＞を伴う片頭痛［古典型片頭痛］"
   I30.9:
     en: "Acute pericarditis, unspecified"
-    ja: "急性心膜炎、詳細不明"
+    ja: "急性心膜炎，詳細不明"
   I33.0:
     en: "Acute and subacute infective endocarditis"
-    ja: "急性および亜急性感染性心内膜炎"
+    ja: "急性及び亜急性感染性心内膜炎"
   I47.1:
     en: "Supraventricular tachycardia"
-    ja: "上室頻拍"
+    ja: "上室（性）頻拍（症）"
   I60.9:
     en: "Subarachnoid haemorrhage, unspecified"
-    ja: "くも膜下出血、詳細不明"
+    ja: "くも膜下出血，詳細不明"
   I71.0:
     en: "Dissection of aorta [any part]"
-    ja: "大動脈解離［任意の部位］"
+    ja: "大動脈の解離［各部位］"
   I88.0:
     en: "Nonspecific mesenteric lymphadenitis"
-    ja: "非特異的腸間膜リンパ節炎"
+    ja: "非特異性腸間膜リンパ節炎"
   J68.0:
     en: "Bronchitis and pneumonitis due to chemicals, gases, fumes and vapours"
-    ja: "化学物質、ガス、煙および蒸気による気管支炎および肺臓炎"
+    ja: "化学物質，ガス，フューム及び蒸気による気管支炎及び肺臓炎"
   J85.1:
     en: "Abscess of lung with pneumonia"
-    ja: "肺膿瘍、肺炎を伴うもの"
+    ja: "肺炎を伴う肺膿瘍"
   J93.9:
     en: "Pneumothorax, unspecified"
-    ja: "気胸、詳細不明"
+    ja: "気胸，詳細不明"
   J98.8:
     en: "Other specified respiratory disorders"
     ja: "その他の明示された呼吸器障害"
   K21.0:
     en: "Gastro-oesophageal reflux disease with oesophagitis"
-    ja: "胃食道逆流症、食道炎を伴うもの"
+    ja: "食道炎を伴う胃食道逆流症"
   K25.9:
     en: 'Gastric ulcer : Unspecified as acute or chronic, without haemorrhage or perforation'
-    ja: "胃潰瘍、急性・慢性の別不明、出血または穿孔を伴わないもの"
+    ja: "胃潰瘍，急性又は慢性の別不明，出血又は穿孔を伴わないもの"
   K46.0:
     en: "Unspecified abdominal hernia with obstruction, without gangrene"
-    ja: "詳細不明の腹部ヘルニア、閉塞を伴い、壊疽を伴わないもの"
+    ja: "詳細不明の腹部ヘルニア，閉塞を伴い，え＜壊＞疽を伴わないもの"
   K50.9:
     en: "Crohn disease, unspecified"
-    ja: "クローン病、詳細不明"
+    ja: "クローン＜Crohn＞病，詳細不明"
   K65.0:
     en: "Acute peritonitis"
     ja: "急性腹膜炎"
   K65.9:
     en: "Peritonitis, unspecified"
-    ja: "腹膜炎、詳細不明"
+    ja: "腹膜炎，詳細不明"
   K70.1:
     en: "Alcoholic hepatitis"
     ja: "アルコール性肝炎"
   K72.9:
     en: "Hepatic failure, unspecified"
-    ja: "肝不全、詳細不明"
+    ja: "肝不全，詳細不明"
   K76.9:
     en: "Liver disease, unspecified"
-    ja: "肝疾患、詳細不明"
+    ja: "肝疾患，詳細不明"
   K80.2:
     en: "Calculus of gallbladder without cholecystitis"
-    ja: "胆嚢結石、胆嚢炎を伴わないもの"
+    ja: "胆のう＜嚢＞炎を伴わない胆のう＜嚢＞結石"
   K81.9:
     en: "Cholecystitis, unspecified"
-    ja: "胆嚢炎、詳細不明"
+    ja: "胆のう＜嚢＞炎，詳細不明"
   K83.0:
     en: "Cholangitis"
     ja: "胆管炎"
   K92.9:
     en: "Disease of digestive system, unspecified"
-    ja: "消化器系の疾患、詳細不明"
+    ja: "消化器系の疾患，詳細不明"
   L02.9:
     en: "Cutaneous abscess, furuncle and carbuncle, unspecified"
-    ja: "皮膚膿瘍、せつおよびよう、詳細不明"
+    ja: "皮膚膿瘍，せつ＜フルンケル＞及びよう＜カルブンケル＞，部位不明"
   L08.9:
     en: "Local infection of skin and subcutaneous tissue, unspecified"
-    ja: "皮膚および皮下組織の局所感染、詳細不明"
+    ja: "皮膚及び皮下組織の局所感染症，詳細不明"
   M51.1:
     en: Lumbar and other intervertebral disc disorders with radiculopathy[G55.1]
-    ja: "腰部およびその他の椎間板障害、神経根症を伴うもの"
+    ja: "腰部及びその他の部位の椎間板障害，神経根障害を伴うもの（G55.1*）"
   M72.6:
     en: "Necrotizing fasciitis"
-    ja: "壊死性筋膜炎"
+    ja: "え＜壊＞死性筋膜炎"
   M79.6:
     en: "Pain in limb"
-    ja: "四肢痛"
+    ja: "（四）肢痛"
   N13.9:
     en: "Obstructive and reflux uropathy, unspecified"
-    ja: "閉塞性および逆流性尿路症、詳細不明"
+    ja: "閉塞性尿路疾患及び逆流性尿路疾患，詳細不明"
   N19:
     en: "Unspecified kidney failure"
     ja: "詳細不明の腎不全"
@@ -1129,75 +1129,75 @@ codes:
     ja: "急性前立腺炎"
   N83.2:
     en: "Other and unspecified ovarian cysts"
-    ja: "その他および詳細不明の卵巣嚢胞"
+    ja: "その他及び詳細不明の卵巣のう＜嚢＞胞"
   R00.0:
     en: "Tachycardia, unspecified"
-    ja: "頻脈、詳細不明"
+    ja: "頻脈，詳細不明"
   R06.0:
     en: "Dyspnoea"
     ja: "呼吸困難"
   R06.2:
     en: "Wheezing"
-    ja: "喘鳴"
+    ja: "喘鳴＜Wheezing＞"
   R10.1:
     en: "Pain localized to upper abdomen"
-    ja: "上腹部に限局する疼痛"
+    ja: "上腹部に限局した疼痛"
   R10.3:
     en: "Pain localized to other parts of lower abdomen"
-    ja: "下腹部のその他の部位に限局する疼痛"
+    ja: "下腹部のその他の部位に限局した疼痛"
   R29.8:
     en: "Other and unspecified symptoms and signs involving the nervous and musculoskeletal systems"
-    ja: "神経系および筋骨格系に関するその他および詳細不明の症状および徴候"
+    ja: "神経系及び筋骨格系に関するその他及び詳細不明の症状及び徴候"
   R30.0:
     en: "Dysuria"
-    ja: "排尿障害"
+    ja: "排尿困難"
   R73.9:
     en: "Hyperglycaemia, unspecified"
-    ja: "高血糖、詳細不明"
+    ja: "高血糖，詳細不明"
   S06.3:
     en: "Focal brain injury"
-    ja: "限局性脳損傷"
+    ja: "局所性脳損傷"
   S06.4:
     en: "Epidural haemorrhage"
     ja: "硬膜外出血"
   S22.4:
     en: "Multiple fractures of ribs"
-    ja: "多発肋骨骨折"
+    ja: "多発性肋骨骨折"
   S32.1:
     en: "Fracture of sacrum"
     ja: "仙骨骨折"
   S36.0:
     en: "Injury of spleen"
-    ja: "脾臓の損傷"
+    ja: "脾損傷"
   S52.9:
     en: "Fracture of forearm, part unspecified"
-    ja: "前腕骨折、部位詳細不明"
+    ja: "前腕の骨折，部位不明"
   S62.0:
     en: "Fracture of navicular [scaphoid] bone of hand"
     ja: "手の舟状骨骨折"
   S86.9:
     en: "Injury of unspecified muscle and tendon at lower leg level"
-    ja: "下腿レベルの詳細不明の筋および腱の損傷"
+    ja: "下腿の詳細不明の筋及び腱の損傷"
   K56.7:
     en: "Ileus, unspecified"
-    ja: "イレウス、詳細不明"
+    ja: "イレウス，詳細不明"
   R07.4:
     en: "Chest pain, unspecified"
-    ja: "胸痛、詳細不明"
+    ja: "胸痛，詳細不明"
   N18.9:
     en: "Chronic kidney disease, unspecified"
-    ja: "慢性腎臓病、詳細不明"
+    ja: "慢性腎臓病，詳細不明"
   U07.1:
     en: COVID-19, virus identified
-    ja: "新型コロナウイルス感染症"
+    ja: "コロナウイルス感染症2019，ウイルスが同定されたもの"
   # === HAI conditions (AD-55 Module: hai, PR-B) ===
   # WHO ICD-10 4-character categories that the JP HAI Conditions fold to.
   T80.2:
     en: "Infections following infusion, transfusion and therapeutic injection"
-    ja: "輸液・輸血・治療目的注射後の感染症"
+    ja: "輸液，輸血及び治療用注射に続発する感染症"
   T83.5:
     en: "Infection and inflammatory reaction due to prosthetic device, implant and graft in urinary system"
-    ja: "泌尿器系の人工器具、移植片、移植物の感染および炎症反応"
+    ja: "尿路系プロステーシス，挿入物及び移植片による感染症及び炎症性反応"
   J95.8:
     en: "Other postprocedural respiratory disorders"
-    ja: "その他の処置後呼吸器障害"
+    ja: "その他の処置後の呼吸器障害"

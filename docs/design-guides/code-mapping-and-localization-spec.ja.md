@@ -126,7 +126,7 @@ occupation:
 | `codes.drugs`: `resolve_drug` / `get_drug` / `find_drug` / `names_drug` / `drug_name_needles` | 薬の同一性と名称照合 | 例外 / `None` / `False` |
 | `codes.drugs`: `route_class(route)` / `jp_drug_code(drug, route)` / `jp_drug_code_table(route)` | 投与経路の区分、薬と経路に対応する JP の YJ 製品コード | `""` / `None` / 該当なし |
 | `codes.drugs`: `drug_display(ref, lang)` | 薬 id・名称・alias (見つからなければ先頭語の最長一致) のカタログ名を `lang` で、無ければ英語で返す | `None` |
-| `codes.icd10`: `icd10_system(country)` / `icd10_display(code, country, lang)` / `condition_short_name(code, lang)` / `medis_disease_keyno(icd)` | 国の ICD-10 体系、正式名称、臨床短縮名 (3 桁分類で引く)、MEDIS 病名管理番号 | キー / `None` / `None` / `None` |
+| `codes.icd10`: `icd10_system(country)` / `icd10_display(code, country, lang)` / `condition_short_name(code, lang)` / `condition_label(code, country, lang)` / `medis_disease_keyno(icd)` | 国の ICD-10 体系、正式名称 (JP の日本語は厚労省 2013 年版の名称そのまま)、臨床短縮名 (3 桁分類で引く)、文章と `Condition.code.text` に使う名前 (短縮名、無ければ正式名称)、MEDIS 病名管理番号 | キー / `None` / `None` / `None` / `None` |
 | `codes.procedures`: `procedure_code` / `procedure_type_display` / `procedure_code_display` | 処置のコードと名称 | `""` / 人間可読化した type / `None` |
 | `codes.ucum`: `ucum_code` / `ucum_quantity` / `ucum_prose` | UCUM コード / FHIR Quantity / 文章中の単位表記 (`mm[Hg]` → `mmHg`、`{INR}` → `""`) | 単位をそのまま通す |
 | `codes.prefectures.prefecture_code(name)` | JIS X 0401 コード | `""` |
@@ -230,7 +230,6 @@ occupation:
 | 未準拠箇所 | Issue |
 |---|---|
 | **フォールバック。** `display` / `lookup`、`resolve_text`、`t` は最後の手段として、最初に見つかった言語・コード・`str(value)`・キーを返す。§6.1–6.2 に反する場合があり、取得 API も 1 本化されていない。 | #2275 |
-| JP の ICD-10 日本語表示が sibling fallback で ICD-10-CM の表から来ることがあり、両表に共通する 95 コードで日本語名が食い違う。 | #2360 |
 | registry の外にある SNOMED のコードと表示名 (処置名 YAML、device / HAI / follow-up の写し、Python の mapper 表) と、未登録の SNOMED リテラル約 74 件。 | #2363 |
 | 文書 LOINC の定義が 8 箇所にある。意味の合わない section コードがある。出力側に LOINC 定数が残っている。 | #2344 |
 | 生成側が出しているのに未登録の CPT / K コード。 | #2340 |

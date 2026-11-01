@@ -951,7 +951,7 @@ def test_temporal_filter_keeps_already_occurred_complication_in_progress_note() 
     # JA display 「急性腎不全、詳細不明」. `in_hospital_new_diagnoses` still
     # carries the raw code + onset day for the LLM to correlate.
     cds = extra.get("complications_during_stay", "")
-    assert "急性腎不全" in cds
+    assert "急性腎障害" in cds  # clinical short name of N17 (Issue #2360)
     # Phase 1d-79: JA-target complication onset uses 「入院N日目発症」;
     # in_hospital_new_diagnoses uses 「入院N日目に<disease>」.
     assert "入院1日目発症" in cds
@@ -977,7 +977,7 @@ def test_temporal_filter_partial_mix_only_past_onsets_surface() -> None:
     new_dx = extra.get("in_hospital_new_diagnoses", "")
     # Phase 1d-77: N17.9 renders as its JA display in the complications
     # phrase; the raw code remains in in_hospital_new_diagnoses.
-    assert "急性腎不全" in comps and "N17.9" in new_dx
+    assert "急性腎障害" in comps and "N17.9" in new_dx
     assert "敗血症" not in comps and "A41.9" not in new_dx
     assert "A41" not in comps  # future-onset entry filtered out entirely
 

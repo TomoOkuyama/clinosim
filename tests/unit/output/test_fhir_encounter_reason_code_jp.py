@@ -117,13 +117,13 @@ def test_us_encounter_ignores_chief_complaint_ja() -> None:
 
 def test_jp_encounter_uses_icd10_display_when_code_resolvable() -> None:
     """When ICD-10 code_lookup resolves a Japanese display (e.g. I50.9 →
-    "心不全、詳細不明"), that display wins over ``chief_complaint_ja`` —
+    "心不全，詳細不明"), that display wins over ``chief_complaint_ja`` —
     the coded display is authoritative and matches JP Core / MHLW's
     canonical."""
     enc = _enc(chief_ja="労作時呼吸困難", admit_dx_code="I50.9")
     reason_text = _build_and_reason_text(enc, "JP")
-    # code_lookup("icd-10-mhlw", "I50.9", "ja") = "心不全、詳細不明"
-    assert reason_text == "心不全、詳細不明"
+    # code_lookup("icd-10-mhlw", "I50.9", "ja") = "心不全，詳細不明" (MHLW 2013)
+    assert reason_text == "心不全，詳細不明"
 
 
 # === _disease_chief_complaint_ja helper ===
