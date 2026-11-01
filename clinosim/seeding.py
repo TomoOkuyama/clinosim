@@ -14,6 +14,7 @@ import wires ``derive_phase_rng`` into the bit-reproducible RNG proxy — the
 from __future__ import annotations
 
 import hashlib
+from collections.abc import Sequence
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
@@ -355,3 +356,35 @@ def derive_phase_rng(master_seed: int, phase_salt: int, key: str) -> np.random.G
     """
 
     return determinism.default_rng(derive_sub_seed(master_seed, phase_salt, key))
+
+
+def _hash64(text: str) -> int:
+    return int.from_bytes(hashlib.sha256(text.encode()).digest()[:8], "big")
+
+
+def id_hashes(ids: Sequence[str]) -> np.ndarray:
+    """64-bit hashes of ``ids`` for :func:`rendezvous_pick` (compute once per pool)."""
+    import numpy as np
+
+    return np.fromiter((_hash64(i) for i in ids), dtype=np.uint64, count=len(ids))
+
+
+def rendezvous_pick(key: str, ids: Sequence[str], hashes: np.ndarray | None = None) -> int:
+    """Index of the member of ``ids`` that ``key`` picks, uniformly and stably.
+
+    Rendezvous (highest-random-weight) hashing: each member's hash is mixed
+    with the key's hash (splitmix64 finaliser) and the smallest score wins.
+    The pick does not depend on the order of ``ids``, and adding or removing
+    a member changes only the keys that pick that member — unlike indexing a
+    list with a random integer, where one membership change shifts every
+    later pick (Issue #2357). No RNG stream is consumed. ``hashes`` is
+    ``id_hashes(ids)``, passed when the same pool serves many keys.
+    """
+    import numpy as np
+
+    h = id_hashes(ids) if hashes is None else hashes
+    z = h ^ np.uint64(_hash64(key))
+    z = (z ^ (z >> np.uint64(30))) * np.uint64(0xBF58476D1CE4E5B9)
+    z = (z ^ (z >> np.uint64(27))) * np.uint64(0x94D049BB133111EB)
+    z = z ^ (z >> np.uint64(31))
+    return int(np.argmin(z))

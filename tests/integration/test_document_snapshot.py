@@ -27,7 +27,10 @@ _LOINC_ADMISSION_HP = "34117-2"
 _LOINC_PROGRESS_NOTE = "11506-3"
 _LOINC_DISCHARGE_SUMMARY = "18842-5"
 
-_SNAPSHOT_END = "2025-02-28"
+# A date with an inpatient in house for p=300 / seed 42 (Issue #2357: no
+# option forces an admission, so this is a scanned date; the tests skip,
+# visibly in ``-rs``, if a future RNG change leaves nobody admitted).
+_SNAPSHOT_END = "2025-05-15"
 _COHORT_SIZE = 300
 
 
@@ -42,9 +45,15 @@ def _get_loinc_from_type(resource: dict) -> str:
     )
 
 
+def _is_inprogress_inpatient(enc: dict) -> bool:
+    """AD-32 snapshot semantics concern admissions: an ED visit can also be
+    open at the snapshot, but it has no admission H&P or inpatient orders."""
+    return enc.get("status") == "in-progress" and (enc.get("class") or {}).get("code") == "IMP"
+
+
 @pytest.fixture(scope="module")
 def snapshot_export_dir(tmp_path_factory: pytest.TempPathFactory) -> Path:
-    """One-shot US p=300 s=42 --end=2025-02-28 generation shared by every
+    """One-shot US p=300 s=42 --end=2025-05-15 generation shared by every
     test in this module. Was 4 × ~15 s independent sims pre-consolidation
     (S115 slow-test fixture consolidation, #1420 follow-up)."""
     out = tmp_path_factory.mktemp("snapshot_docs") / "out"
@@ -56,7 +65,7 @@ def snapshot_export_dir(tmp_path_factory: pytest.TempPathFactory) -> Path:
 def test_snapshot_produces_inprogress_encounters(snapshot_export_dir: Path) -> None:
     """Full-year cohort with early --end snapshot → in-progress Encounters exist."""
     encs = load_ndjson(find_ndjson(snapshot_export_dir, "Encounter.ndjson"))
-    in_progress = [e for e in encs if e.get("status") == "in-progress"]
+    in_progress = [e for e in encs if _is_inprogress_inpatient(e)]
     if not in_progress:
         pytest.skip(
             f"No in-progress Encounters for p={_COHORT_SIZE}, seed=42, end={_SNAPSHOT_END}. "
@@ -69,7 +78,7 @@ def test_snapshot_produces_inprogress_encounters(snapshot_export_dir: Path) -> N
 def test_no_discharge_summary_for_inprogress_encounters(snapshot_export_dir: Path) -> None:
     """AD-32: in-progress encounters must have NO DISCHARGE_SUMMARY Composition."""
     encs = load_ndjson(find_ndjson(snapshot_export_dir, "Encounter.ndjson"))
-    in_progress_ids = {e["id"] for e in encs if e.get("status") == "in-progress"}
+    in_progress_ids = {e["id"] for e in encs if _is_inprogress_inpatient(e)}
     if not in_progress_ids:
         pytest.skip(f"No in-progress Encounters for p={_COHORT_SIZE}, seed=42, end={_SNAPSHOT_END}.")
 
@@ -99,7 +108,7 @@ def test_no_discharge_summary_for_inprogress_encounters(snapshot_export_dir: Pat
 def test_admission_hp_present_for_inprogress_encounters(snapshot_export_dir: Path) -> None:
     """AD-32: in-progress encounters must have an ADMISSION_HP Composition (admission_once)."""
     encs = load_ndjson(find_ndjson(snapshot_export_dir, "Encounter.ndjson"))
-    in_progress_ids = {e["id"] for e in encs if e.get("status") == "in-progress"}
+    in_progress_ids = {e["id"] for e in encs if _is_inprogress_inpatient(e)}
     if not in_progress_ids:
         pytest.skip(f"No in-progress Encounters for p={_COHORT_SIZE}, seed=42, end={_SNAPSHOT_END}.")
 
@@ -149,7 +158,7 @@ def test_progress_notes_present_for_inprogress_encounters(snapshot_export_dir: P
     PROGRESS_NOTE must be present for each in-progress inpatient encounter.
     """
     encs = load_ndjson(find_ndjson(snapshot_export_dir, "Encounter.ndjson"))
-    in_progress_ids = {e["id"] for e in encs if e.get("status") == "in-progress"}
+    in_progress_ids = {e["id"] for e in encs if _is_inprogress_inpatient(e)}
     if not in_progress_ids:
         pytest.skip(f"No in-progress Encounters for p={_COHORT_SIZE}, seed=42, end={_SNAPSHOT_END}.")
 
