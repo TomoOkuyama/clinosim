@@ -18,6 +18,7 @@ from typing import Any
 
 from clinosim.codes import get_system_uri
 from clinosim.codes import lookup as code_lookup
+from clinosim.locale.i18n import t
 from clinosim.modules._shared import is_jp, resolve_lang
 from clinosim.modules.output.fhir_r4.demographics.patient import patient_ref
 from clinosim.modules.output.fhir_r4.lib.common import (
@@ -169,7 +170,7 @@ def _bb_smoking_status(ctx: BundleContext) -> list[dict]:
     # visits (USPSTF / MHLW start these assessments in adolescence).
     if _patient_age_years(ctx) < _social_history_age_gate("smoking"):
         return []
-    text = "喫煙状況" if is_jp(ctx.country) else "Tobacco smoking status"
+    text = t("fhir_emit_text.tobacco_smoking_status", resolve_lang(ctx.country))
     _smoking_key = ctx.patient_id
     o = _obs(_resolve_smoking_status_id(_smoking_key), ctx.country, data["loinc"], text, "snomed-ct", entry["snomed"])
     o["identifier"] = [wrap_as_identifier(_smoking_key, SMOKING_STATUS_KEY_SYSTEM)]
@@ -193,7 +194,7 @@ def _bb_alcohol_use(ctx: BundleContext) -> list[dict]:
     # patients. Symmetric with the smoking gate above.
     if _patient_age_years(ctx) < _social_history_age_gate("alcohol"):
         return []
-    text = "飲酒歴" if is_jp(ctx.country) else "History of alcohol use"
+    text = t("fhir_emit_text.history_of_alcohol_use", resolve_lang(ctx.country))
     _alcohol_key = ctx.patient_id
     o = _obs(_resolve_alcohol_use_id(_alcohol_key), ctx.country, data["loinc"], text, "snomed-ct", entry["snomed"])
     o["identifier"] = [wrap_as_identifier(_alcohol_key, ALCOHOL_USE_KEY_SYSTEM)]

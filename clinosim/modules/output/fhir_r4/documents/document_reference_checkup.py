@@ -30,6 +30,7 @@ from typing import Any
 
 from clinosim.codes import display as registry_display
 from clinosim.codes import get_system_uri
+from clinosim.locale.i18n import t
 from clinosim.modules._shared import get_attr_or_key as _o
 from clinosim.modules._shared import is_jp, resolve_lang
 from clinosim.modules.document import DOC_REFERENCE_ID_PREFIX
@@ -77,7 +78,7 @@ _DOCREF_ID_PREFIX = "drf-"
 _JP_CATEGORY = {
     "system": get_system_uri("jpfhir-echeckup-doc-typecodes"),
     "code": "eCheckupGeneral",
-    "display": "健診結果報告書",
+    "display": t("fhir_emit_text.checkup_report", "ja"),
 }
 
 
@@ -167,7 +168,7 @@ def _build_dref(doc: Any, narrative: Any, patient_id: str, country: str) -> dict
         "category": [
             {
                 "coding": [_JP_CATEGORY],
-                "text": "健診結果報告書",
+                "text": t("fhir_emit_text.checkup_report", "ja"),
             }
         ],
         "securityLabel": [

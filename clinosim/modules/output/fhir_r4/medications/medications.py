@@ -12,6 +12,7 @@ from functools import cache
 from pathlib import Path
 from typing import Any
 
+from clinosim.codes import display as registry_display
 from clinosim.codes import (
     get_system_uri,
     system_key_for,
@@ -19,6 +20,7 @@ from clinosim.codes import (
 from clinosim.codes import lookup as code_lookup
 from clinosim.codes.drugs import drug_system_uri, is_verified_yj, jp_drug_code_table
 from clinosim.codes.ucum import ucum_quantity
+from clinosim.locale.i18n import t
 from clinosim.locale.loader import load_code_mapping
 from clinosim.locale.localized import localized
 from clinosim.modules._shared import (
@@ -241,7 +243,7 @@ OUTPATIENT_RX_ID_PREFIX = "rxopd-"
 # US locale has NO fixed-value constraint (JP profiles never bind US resources), so
 # `unit` gets the UCUM Latin token `d` to match `code` — the JP character in a US
 # resource leaks Japanese-language text into English output (Issue #730).
-_SUPPLY_DURATION_UNIT_JP = "日"
+_SUPPLY_DURATION_UNIT_JP = t("fhir_emit_text.unit_day", "ja")
 _SUPPLY_DURATION_UNIT_US = "d"
 _SUPPLY_DURATION_CODE = "d"
 
@@ -380,7 +382,7 @@ _JP_YJ_CODE_URI = get_system_uri("yj")
 # CodeSystem-jp-eCS-medicationcode-nocoded-cs.json 権威 display "標準コードなし"。
 _JP_MEDICATION_CODE_NOCODED_CS = get_system_uri("medication-nocoded")
 _JP_MEDICATION_CODE_NOCODED_CODE = "NOCODED"
-_JP_MEDICATION_CODE_NOCODED_DISPLAY = "標準コードなし"
+_JP_MEDICATION_CODE_NOCODED_DISPLAY = registry_display("medication-nocoded", "NOCODED", "ja") or ""
 
 # Issue #1220 (2026-09-10): JP national YJ CodeSystem shipped as clinosim
 # artifact (``codes/authoritative/JP_MedicationCodeYJ_CS_full.json``,
@@ -1470,7 +1472,7 @@ def _build_ma_device_block(
     return [
         {
             "reference": "Device/dev-infusion-pump",
-            "display": "汎用輸液ポンプ" if is_jp(country_code) else "Generic infusion pump",
+            "display": t("fhir_emit_text.generic_infusion_pump", resolve_lang(country_code)),
         }
     ]
 

@@ -7,6 +7,7 @@ leaf data, shared helpers, and stdlib/first-party deps — never the adapter.
 from __future__ import annotations
 
 from clinosim.codes import get_system_uri
+from clinosim.locale.i18n import t
 from clinosim.locale.loader import vocab_display
 from clinosim.modules._shared import is_jp, resolve_lang
 from clinosim.modules.output.fhir_r4.lib.common import dual_slot_concept, entry
@@ -55,7 +56,7 @@ def _build_facility_bundle(hospital_config: dict, country: str) -> dict:
     #   - name / telecom.value / address.text
     # telecom.use / address.use required binding: "home" is forbidden by
     # the spec; "work" is used.
-    hosp_name = "総合病院" if is_jp(country) else "Community Hospital"
+    hosp_name = t("fhir_emit_text.community_hospital", resolve_lang(country))
     root_org: dict = {
         "resourceType": "Organization",
         "id": "hospital-main",
@@ -87,7 +88,7 @@ def _build_facility_bundle(hospital_config: dict, country: str) -> dict:
             }
         ]
         root_org["telecom"] = [{"system": "phone", "value": "03-0000-0000", "use": "work"}]
-        root_org["address"] = [{"use": "work", "text": "東京都"}]
+        root_org["address"] = [{"use": "work", "text": t("fhir_emit_text.hospital_address", "ja")}]
     entries.append(entry(root_org))
 
     # Main-building Location — referenced by PractitionerRole.location fallback
@@ -120,7 +121,7 @@ def _build_facility_bundle(hospital_config: dict, country: str) -> dict:
                 {
                     "system": get_system_uri("hl7-location-physical-type"),
                     "code": "bu",
-                    "display": "Building" if not is_jp(country) else "建物",
+                    "display": t("fhir_emit_text.location_type_building", resolve_lang(country)),
                 }
             ],
         },
@@ -142,10 +143,10 @@ def _build_facility_bundle(hospital_config: dict, country: str) -> dict:
                 {
                     "system": get_system_uri("snomed-ct"),
                     "code": "433296005",
-                    "display": ("輸液ポンプ" if is_jp(country) else "Infusion pump for intravenous fluids"),
+                    "display": t("fhir_emit_text.infusion_pump_snomed", resolve_lang(country)),
                 }
             ],
-            "text": "汎用輸液ポンプ" if is_jp(country) else "Generic infusion pump",
+            "text": t("fhir_emit_text.generic_infusion_pump", resolve_lang(country)),
         },
         "owner": {"reference": "Organization/hospital-main"},
     }
@@ -205,7 +206,7 @@ def _build_facility_bundle(hospital_config: dict, country: str) -> dict:
                     {
                         "system": get_system_uri("hl7-location-physical-type"),
                         "code": "area",
-                        "display": "Area" if not is_jp(country) else "エリア",
+                        "display": t("fhir_emit_text.location_type_area", resolve_lang(country)),
                     }
                 ],
             },
@@ -256,7 +257,7 @@ def _build_facility_bundle(hospital_config: dict, country: str) -> dict:
                     else {}
                 ),
                 "status": "active",
-                "name": (f"{ward}病棟" if is_jp(country) else f"Ward {ward}")
+                "name": t("fhir_emit_text.ward", resolve_lang(country), n=ward)
                 if ward not in ("ER", "OPD")
                 else vocab_display("care_location", ward, resolve_lang(country)),
                 "type": [
@@ -298,7 +299,7 @@ def _build_facility_bundle(hospital_config: dict, country: str) -> dict:
                             else {}
                         ),
                         "status": "active",
-                        "name": f"{bed_id}号室" if is_jp(country) else f"Bed {bed_id}",
+                        "name": t("fhir_emit_text.bed", resolve_lang(country), n=bed_id),
                         # C4-14: Location.type per HL7 v3-RoleCode.
                         "type": [
                             {
@@ -343,7 +344,7 @@ def _build_facility_bundle(hospital_config: dict, country: str) -> dict:
                     else {}
                 ),
                 "status": "active",
-                "name": (f"手術室 {i}" if is_jp(country) else f"Operating Room {i}"),
+                "name": t("fhir_emit_text.operating_room", resolve_lang(country), n=i),
                 "physicalType": {
                     "coding": [
                         {

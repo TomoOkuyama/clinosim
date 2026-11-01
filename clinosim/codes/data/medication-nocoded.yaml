@@ -1,0 +1,10 @@
+# JP eCS MedicationCodeNocoded_CS — MedicationRequest code for a drug with
+# no standard code. `ja` is the CodeSystem display (CodeSystem-jp-eCS-
+# medicationcode-nocoded-cs.json), moved from fhir_r4/medications/
+# medications.py (Issue #2404); `en` is a clinosim translation.
+metadata:
+  name: JP eCS Medication Code Nocoded
+  uri: http://jpfhir.jp/fhir/eCS/CodeSystem/MedicationCodeNocoded_CS
+  source: "JP eCS"
+codes:
+  NOCODED: {en: "No standard code", ja: "標準コードなし"}
