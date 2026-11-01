@@ -141,7 +141,8 @@ from clinosim.modules.clinical_course._complication_risk_conditions import (
   Issue #2093): `PATIENT_CONDITIONS` (the internal value sets in `codes/data/valuesets.yaml`, shared with the severity modifiers), `STATE_ALIASES`,
   `SEVERITY_ALIASES`, `CONTEXT_RESOLVED` (resolved from
   `ComplicationContext`), `CONTEXT_CONDITIONS` (declared but evaluate
-  False), `DRUG_CLASSES`.
+  False), `DRUG_CLASSES` (context drug class → catalog drug ids / classes,
+  checked with `in_drug_class`; Issue #2372).
 - **Load-time validators** (`_validate_course_archetypes`,
   `_validate_archetype_modifiers`, `validate_complication_risk_factors`,
   called from `clinosim/modules/disease/protocol.py`) fail loud when a
