@@ -3033,8 +3033,8 @@
 </thead>
 <tbody>
 <tr>
-<td>Direct <code>.get("ja")</code> and inline language ternaries select values outside <code>locale.localized</code>; <code>codes.lookup</code> returns the code on a miss.</td>
-<td>#2397</td>
+<td><code>codes.lookup</code> returns the code on a miss (about 40 call sites outside <code>clinosim/codes</code>).</td>
+<td>#2416</td>
 </tr>
 <tr>
 <td>Localized YAML fields use mixed shapes (nested <code>{lang: text}</code>, 25 <code>*_ja</code> field names, <code>dose_ja</code> vs <code>dose_text_ja</code>).</td>

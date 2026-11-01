@@ -3033,8 +3033,8 @@
 </thead>
 <tbody>
 <tr>
-<td><code>locale.localized</code> を通らない <code>.get("ja")</code> や言語三項演算子が残る。<code>codes.lookup</code> はヒットしないとコードを返す。</td>
-<td>#2397</td>
+<td><code>codes.lookup</code> はヒットしないとコードを返す (<code>clinosim/codes</code> 外に約 40 箇所)。</td>
+<td>#2416</td>
 </tr>
 <tr>
 <td>ローカライズされた YAML フィールドの形が混在している (入れ子の <code>{lang: text}</code>、25 種の <code>*_ja</code> フィールド名、<code>dose_ja</code> と <code>dose_text_ja</code>)。</td>
