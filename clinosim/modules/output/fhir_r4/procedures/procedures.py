@@ -159,7 +159,7 @@ def _build_procedure(
     # CIF record carries only a CPT code (``procedure_code_us``) and no
     # K-code (``procedure_code_jp``), emit the primary ``coding[]`` entry
     # under the CPT system URI, not the K-codes URI. The K-codes URI is
-    # authoritative for K-codes only; stamping a CPT code (e.g. 99503 CPAP,
+    # authoritative for K-codes only; stamping a CPT code (e.g. 94660 CPAP,
     # 95810 polysomnography) under the K-codes URI is a semantic error that
     # a strict JP-Core consumer would reject. Phase 4d (OSA follow-up)
     # routed its CPT codes through this emit path for JP output; horizontal

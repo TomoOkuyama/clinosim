@@ -154,3 +154,79 @@ codes:
   '96413':
     en: Chemotherapy administration, intravenous infusion technique; up to 1 hour, single or initial substance/drug
     ja: 化学療法薬の静脈内点滴投与（1時間以内、初回薬剤）
+  # Issue #2390: imaging (body_sites.yaml) and chronic follow-up codes.
+  '43235':
+    en: Esophagogastroduodenoscopy, flexible, transoral; diagnostic
+    ja: 上部消化管内視鏡検査（診断）
+  '45378':
+    en: Colonoscopy, flexible; diagnostic
+    ja: 大腸内視鏡検査（診断）
+  '70551':
+    en: Magnetic resonance imaging, brain; without contrast material
+    ja: 頭部MRI（造影なし）
+  '71250':
+    en: Computed tomography, thorax, diagnostic; without contrast material
+    ja: 胸部CT（造影なし）
+  '71260':
+    en: Computed tomography, thorax, diagnostic; with contrast material(s)
+    ja: 胸部CT（造影あり）
+  '72110':
+    en: Radiologic examination, spine, lumbosacral; minimum of 4 views
+    ja: 腰仙椎X線撮影（4方向以上）
+  '72131':
+    en: Computed tomography, lumbar spine; without contrast material
+    ja: 腰椎CT（造影なし）
+  '72148':
+    en: Magnetic resonance imaging, spinal canal and contents, lumbar; without contrast material
+    ja: 腰椎MRI（造影なし）
+  '73100':
+    en: Radiologic examination, wrist; 2 views
+    ja: 手関節X線撮影（2方向）
+  '73110':
+    en: Radiologic examination, wrist; complete, minimum of 3 views
+    ja: 手関節X線撮影（3方向以上）
+  '73130':
+    en: Radiologic examination, hand; minimum of 3 views
+    ja: 手X線撮影（3方向以上）
+  '73502':
+    en: Radiologic examination, hip, unilateral, with pelvis when performed; 2-3 views
+    ja: 股関節X線撮影（片側、2-3方向）
+  '73560':
+    en: Radiologic examination, knee; 1 or 2 views
+    ja: 膝関節X線撮影（1-2方向）
+  '73700':
+    en: Computed tomography, lower extremity; without contrast material
+    ja: 下肢CT（造影なし）
+  '74018':
+    en: Radiologic examination, abdomen; 1 view
+    ja: 腹部X線撮影（1方向）
+  '74022':
+    en: Radiologic examination, complete acute abdomen series, including supine, erect and/or decubitus views, single view chest
+    ja: 急性腹症X線シリーズ（腹部臥位・立位等＋胸部）
+  '74150':
+    en: Computed tomography, abdomen; without contrast material
+    ja: 腹部CT（造影なし）
+  '74160':
+    en: Computed tomography, abdomen; with contrast material(s)
+    ja: 腹部CT（造影あり）
+  '76700':
+    en: Ultrasound, abdominal, real time with image documentation; complete
+    ja: 腹部超音波検査
+  '76770':
+    en: Ultrasound, retroperitoneal (eg, renal, aorta, nodes), real time with image documentation; complete
+    ja: 後腹膜超音波検査（腎等）
+  '76882':
+    en: Ultrasound, limited, joint or focal evaluation of other nonvascular extremity structure(s), real-time with image documentation
+    ja: 四肢軟部超音波検査（限定）
+  '77067':
+    en: Screening mammography, bilateral (2-view study of each breast)
+    ja: マンモグラフィ検診（両側）
+  '93970':
+    en: Duplex scan of extremity veins including responses to compression and other maneuvers; complete bilateral study
+    ja: 下肢静脈デュプレックス超音波検査（両側）
+  '94660':
+    en: Continuous positive airway pressure ventilation (CPAP), initiation and management
+    ja: CPAP療法（導入・管理）
+  '95810':
+    en: Polysomnography; age 6 years or older, sleep staging with 4 or more additional parameters of sleep, attended by a technologist
+    ja: 終夜睡眠ポリグラフィー（6歳以上、技師監視下）

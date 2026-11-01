@@ -98,6 +98,16 @@ codes:
   D403:
     en: Lumbar puncture
     ja: 腰椎穿刺（脳脊髄圧測定を含む）
+  # --- E: Imaging (画像診断) ---
+  E001:
+    en: Radiograph interpretation
+    ja: 写真診断
+  E200:
+    en: Computed tomography (CT)
+    ja: コンピューター断層撮影（ＣＴ撮影）
+  E202:
+    en: Magnetic resonance imaging (MRI)
+    ja: 磁気共鳴コンピューター断層撮影（ＭＲＩ撮影）
   # --- G: Injections (注射) ---
   G004:
     en: Intravenous drip infusion

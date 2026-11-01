@@ -31,14 +31,14 @@ def _clear_med_terms_cache() -> None:
 
 
 def _cpap_proc() -> dict[str, object]:
-    """Phase 4d outpatient.py emits CPAP therapy as CPT 99503."""
+    """Phase 4d outpatient.py emits CPAP therapy as CPT 94660."""
     return {
         "procedure_id": "proc-4d1-cpap",
         "patient_id": "pt-g4730",
         "encounter_id": "enc-g4730",
         "procedure_type": "CPAP therapy",
-        "procedure_code": "99503",
-        "procedure_code_us": "99503",
+        "procedure_code": "94660",
+        "procedure_code_us": "94660",
         "start_datetime": "2026-06-15T09:00:00",
         "end_datetime": "2026-06-15T09:15:00",
     }
@@ -67,7 +67,7 @@ def _snomed_codings(resource: dict) -> list[dict]:
 
 
 def test_us_cpap_procedure_attaches_snomed_47545007() -> None:
-    """US output of CPAP (CPT 99503) carries SNOMED 47545007 secondary coding."""
+    """US output of CPAP (CPT 94660) carries SNOMED 47545007 secondary coding."""
     res = _build_procedure(_cpap_proc(), "pt-g4730", 0, "US")
     sct_codings = _snomed_codings(res)
     assert len(sct_codings) == 1
@@ -106,10 +106,11 @@ def test_jp_cpap_procedure_gets_japanese_text() -> None:
 
 
 def test_jp_polysomnography_procedure_gets_japanese_text() -> None:
-    """JP output of Polysomnography translates to ポリソムノグラフィー."""
+    """JP output of Polysomnography is Japanese: the registered CPT 95810
+    display (Issue #2390), 終夜睡眠ポリグラフィー."""
     res = _build_procedure(_polysomno_proc(), "pt-g4730", 0, "JP")
     text = res["code"]["text"]
-    assert "ポリソムノグラフィー" in text
+    assert "終夜睡眠ポリグラフィー" in text
     assert "Polysomnography" not in text
 
 
