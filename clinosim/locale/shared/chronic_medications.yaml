@@ -183,7 +183,12 @@ I25:  # Ischemic heart disease / Coronary artery disease
 M81:  # Osteoporosis
   medications:
     - {drug_id: alendronate, dose: "35mg", route: "PO", frequency: "weekly", probability: 0.6, note: "Empty stomach, 30min before meals"}
-    - {drug_id: vitamin_d, dose: "1000IU", route: "PO", frequency: "daily"}
+    # Issue #2353: Japan has no prescription cholecalciferol; osteoporosis
+    # care there uses an active vitamin D3 analogue (JOS guideline:
+    # alfacalcidol 0.5-1.0 ug/day). Same position and no probability, so the
+    # sampling stream is unchanged in both locales.
+    - {drug_id: vitamin_d, dose: "1000IU", route: "PO", frequency: "daily", locale_exclude: ["JP"]}
+    - {drug_id: alfacalcidol, dose: "1mcg", route: "PO", frequency: "daily", locale_exclude: ["US"]}
   monitoring:
     - {test: "Ca", frequency: "every_3_days", intent: "Calcium monitoring (osteoporosis)"}
 
