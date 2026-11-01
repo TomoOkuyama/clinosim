@@ -17,10 +17,11 @@ from clinosim.codes import (
     lookup as code_lookup,
 )
 from clinosim.codes.procedures import bedside_procedures, procedure_type_display
+from clinosim.codes.snomed import snomed_for_phrase
 from clinosim.modules._shared import is_jp, is_us, resolve_lang
 from clinosim.modules.output.fhir_r4.demographics.patient import patient_ref
 from clinosim.modules.output.fhir_r4.encounters.encounter import encounter_ref
-from clinosim.modules.output.fhir_r4.lib.common import to_fhir_datetime
+from clinosim.modules.output.fhir_r4.lib.common import system_coding, to_fhir_datetime
 from clinosim.modules.output.fhir_r4.lib.ids import (
     derive_opaque_id,
     structural_key_system,
@@ -184,28 +185,18 @@ def _build_procedure(
     ]
 
     # Issue #1701 Phase 4d.1: when ``procedure_type`` matches a verified
-    # keyword in ``procedure_name_snomed.yaml``, attach the SNOMED coding
+    # keyword in ``codes/data/procedure-phrase-to-snomed.yaml``, attach the SNOMED coding
     # as a secondary entry. Mirrors the inline_bb.py Order-derived path
     # (PR #1282). Benefits CIF ``ProcedureRecord`` emits whose
     # ``procedure_type`` carries a clinical phrase (e.g. "CPAP therapy",
     # "Polysomnography") regardless of the per-country primary coding
     # system.
     if proc_type:
-        from clinosim.modules.output.fhir_r4.procedures.procedure_name_snomed import (
-            resolve_procedure_snomed,
-        )
-
-        _sct_hit = resolve_procedure_snomed(proc_type)
-        if _sct_hit is not None:
-            _sct_code, _sct_display_en = _sct_hit
-            _sct_display = _localize_drug_name(_sct_display_en, country) if is_jp(country) else _sct_display_en
-            coding_entries.append(
-                {
-                    "system": sct_uri,
-                    "code": _sct_code,
-                    "display": _sct_display,
-                }
-            )
+        _sct_code = snomed_for_phrase(proc_type)
+        if _sct_code is not None:
+            # English SNOMED preferred term from the registry (dual slot,
+            # Issue #2363); the localized name is code.text.
+            coding_entries.append(system_coding("snomed-ct", _sct_code, resolve_lang(country)))
 
     # Secondary coding: the OTHER country's code system for international interop.
     # Phase 4d.2: skip the secondary CPT entry when the primary coding is

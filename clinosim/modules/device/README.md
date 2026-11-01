@@ -66,7 +66,7 @@ Internal helpers (in `engine.py`): `_evaluate_indications`,
 - [`reference_data/devices.yaml`](reference_data/devices.yaml) —
   device catalog (`cvc`, `indwelling_catheter`,
   `mechanical_ventilator`). Each entry carries `snomed_code`,
-  `snomed_display_en` / `_ja`, and `placement_criteria` as a list of
+  and `placement_criteria` as a list of
   `any: [token, ...]` clauses (a device is placed when any token of
   any clause is met). Current criteria: CVC ←
   `severity_moderate_plus`; urinary catheter ←
