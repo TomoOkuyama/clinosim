@@ -31,7 +31,7 @@
 #     NSAID → loxoprofen substitution is handled by
 #     `locale/jp/code_mapping_drug.yaml` + loxoprofen alias.
 #   - This catalog is not a long-term class-label SoT. If
-#     drug_classes.yaml gains a display-string column, class-label
+#     the drug catalog (drugs.yaml) gains class labels, class-label
 #     entries migrate there.
 
 metadata:

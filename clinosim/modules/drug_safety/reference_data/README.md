@@ -1,26 +1,20 @@
 # `clinosim/modules/drug_safety/reference_data/`
 
-YAML schemas for the drug_safety module. All five files
-(`drug_classes.yaml`, `contraindications.yaml`,
-`disease_contraindications.yaml`, `demographic_gates.yaml` here, plus
-`locale/shared/drug_substitution.yaml`) are consumed via
+YAML schemas for the drug_safety module. All four files
+(`contraindications.yaml`, `disease_contraindications.yaml`,
+`demographic_gates.yaml` here, plus `locale/shared/drug_substitution.yaml`)
+are consumed via
 `PyYAML.safe_load` on first use (cached via `functools.lru_cache`).
 
-## `drug_classes.yaml`
+## Drug classes
 
-Drug → class[] taxonomy. Adding a new drug is a pure YAML edit — no
-code change required.
-
-```yaml
-mappings:
-  <Canonical Drug Name>:
-    aliases:      [<additional names, case-insensitive substring match — EN + JP + brand>]
-    classes:      [<class tags, dot-notated: family.subfamily>]
-```
-
-`japanese_display` resolves the JA name through the drug catalog
-(`clinosim/codes/data/drugs.yaml`) first and falls back to `drug_ja`
-for drugs the catalog does not register (META #1804).
+Drug identity, aliases and classes live in the drug catalog
+(`clinosim/codes/data/drugs.yaml`, Issue #2298). The classifier resolves a
+free-text drug name with `clinosim.codes.drugs.identify_drug` (exact id /
+name / alias, then leading words, then the longest catalog name or alias
+the text contains, whole-word for ASCII) and its classes with
+`drug_classes`, which adds every dotted ancestor (`anticoagulant.vka` →
+`anticoagulant`). Adding a drug or a class is a catalog edit.
 
 Class taxonomy conventions:
 
@@ -88,7 +82,7 @@ Drug class × chronic-disease-state rules, consumed by
 ```yaml
 rules:
   - id: <kebab-case unique identifier>
-    drug_class: <class tag from drug_classes.yaml>
+    drug_class: <catalog class tag (codes/data/drugs.yaml)>
     disease_predicate:
       icd_prefix: [<ICD-10 prefixes>]      # required
       stage_in: [<stage strings>]          # optional (Issue #1769); entry must carry a matching stage
@@ -148,7 +142,7 @@ re-checks each candidate against the caller's active meds via
 
 ## Adding a new rule
 
-1. Add any missing drug to `drug_classes.yaml`.
+1. Give the drugs the rule targets their classes in `codes/data/drugs.yaml`.
 2. Add the rule to `contraindications.yaml`, citing the source
    guideline. Set `substitution_hint` when a natural indication tag
    exists.

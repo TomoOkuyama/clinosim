@@ -4,7 +4,8 @@ from __future__ import annotations
 
 from types import SimpleNamespace
 
-from clinosim.modules.drug_safety.audit import AuditFinding, audit_drug_safety
+from clinosim.modules.drug_safety import audit as _audit
+from clinosim.modules.drug_safety.audit import audit_drug_safety
 from clinosim.modules.drug_safety.verdict import SafetySkipEntry, SafetyVerdict
 
 
@@ -80,4 +81,6 @@ def test_audit_returns_multiple_findings_across_patients() -> None:
 def test_audit_returns_auditfinding_dataclass() -> None:
     p = _patient("PT-1", ["Warfarin", "Aspirin"])
     findings = audit_drug_safety([p])
-    assert isinstance(findings[0], AuditFinding)
+    # Look the class up at call time: clinosim.audit.registry.discover()
+    # reloads this module, which rebinds AuditFinding to a new class.
+    assert isinstance(findings[0], _audit.AuditFinding)

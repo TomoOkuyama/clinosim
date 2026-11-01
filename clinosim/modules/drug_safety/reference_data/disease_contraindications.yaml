@@ -4,7 +4,7 @@
 # disease-state companion to ``contraindications.yaml`` (drug-vs-drug rules).
 # Consumed by ``clinosim.modules.drug_safety.engine.check_candidate_against_disease_state``.
 #
-# When a candidate drug's ``drug_class`` (from ``drug_classes.yaml``) matches
+# When a candidate drug's ``drug_class`` (a catalog class, ``codes/data/drugs.yaml``) matches
 # a rule AND the patient carries a chronic ICD code whose base or full form
 # matches the rule's ``disease_predicate.icd_prefix`` (and, when the rule
 # sets ``disease_predicate.stage_in``, the condition's stage is in that

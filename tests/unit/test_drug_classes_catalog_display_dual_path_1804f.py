@@ -1,7 +1,7 @@
 """Drug-safety Japanese display comes from the drug catalog.
 
 Phase 2.f of META #1804 added the catalog path next to the legacy
-``drug_ja`` field of ``drug_classes.yaml``; Issue #2271 removed the field
+``drug_ja`` field of the drug-safety class table; Issue #2271 removed the field
 and enrolled the drug-safety-only drugs in the catalog, so
 ``japanese_display`` reads the catalog alone.
 """

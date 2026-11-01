@@ -108,11 +108,10 @@ drug_safety.japanese_display("Aspirin")   # → "アスピリン"
 
 ## 6. Constants and configuration
 
-Five YAML files:
+Four YAML files plus the drug catalog:
 
-- `reference_data/drug_classes.yaml` — drug → class[] taxonomy
-  (52 drugs across anticoagulants, antiplatelets, NSAIDs,
-  β-blockers, CCBs, ACEi/ARB, statins, SSRI/SNRI, misc rule targets).
+- Drug classes and aliases: the drug catalog
+  (`clinosim/codes/data/drugs.yaml`, read through `clinosim.codes.drugs`).
 - `reference_data/contraindications.yaml` — class × class rules
   (11 rules: VKA+antiplatelet, DOAC+P2Y12, anticoagulant+NSAID,
   BB+non-DHP CCB, ACEi/ARB+K, ACEi/ARB+K-sparing, statin+strong
@@ -143,7 +142,6 @@ clinosim/modules/drug_safety/
 ├── demographic.py         # check_demographic_gate + DemographicVerdict
 ├── audit.py               # audit_drug_safety(patients) → list[AuditFinding]
 ├── reference_data/
-│   ├── drug_classes.yaml
 │   ├── contraindications.yaml
 │   ├── disease_contraindications.yaml
 │   ├── demographic_gates.yaml
