@@ -10,8 +10,8 @@
         "ctx.patient.smoking_status",
         "ctx.patient.alcohol_use",
         "ctx.patient.occupation",
-        "generic:physical_exam_en",
-        "generic:daily_trajectory_en"
+        "ctx.vitals[day_0]",
+        "composed:cif_state_en"
       ],
       "generated_at": "2020-01-01T00:00:42Z",
       "generator": "llm-mock",
@@ -26,11 +26,10 @@
         "family_history": "No significant family history",
         "hpi": "[Mock LLM response #1 — hpi]",
         "medications_at_home": "No home medications",
-        "past_medical_history": "Essential (primary) hypertension [I10]; Atrial fibrillation and flutter [I48]",
-        "physical_examination": "No special findings",
+        "past_medical_history": "Essential (primary) hypertension [I10]; Unspecified atrial fibrillation [I48.91]",
+        "physical_examination": "Vital signs: BP 132/78 mmHg, HR 94/min, T 37.6°C, SpO2 92% (RA), RR 20/min. General: no additional exam findings recorded.",
         "social_history": "Smoking: Non-smoker; Alcohol: Non-drinker; Occupation: Other"
       },
-      "structured": {},
       "text": ""
     }
   },
@@ -39,7 +38,11 @@
     "encounter_id": "ENC-FORCED-0001-160487169457",
     "narrative": {
       "facts_used": [
-        "generic:progress_note_soap_en",
+        "composed:progress_note_soap_en",
+        "ctx.progress_subjective.state_composed.en",
+        "ctx.vitals[day_0].en",
+        "ctx.progress_assessment.state_composed.en",
+        "ctx.progress_plan.state_composed.en",
         "ctx.day_index",
         "ctx.clinical_course_archetype"
       ],
@@ -73,12 +76,11 @@
       },
       "sections": {
         "assessment": "[Mock LLM response #2 — assessment]",
-        "objective": "No special findings",
+        "objective": "BP 132/78 mmHg, HR 94/min, T 37.6°C, SpO2 92% (RA), RR 20/min",
         "plan": "[Mock LLM response #2 — plan]",
         "subjective": "[Mock LLM response #2 — subjective]"
       },
-      "structured": {},
-      "text": "S: [Mock LLM response #2 — subjective]\nO: No special findings\nA: [Mock LLM response #2 — assessment]\nP: [Mock LLM response #2 — plan]"
+      "text": "S: [Mock LLM response #2 — subjective]\nO: BP 132/78 mmHg, HR 94/min, T 37.6°C, SpO2 92% (RA), RR 20/min\nA: [Mock LLM response #2 — assessment]\nP: [Mock LLM response #2 — plan]"
     }
   },
   "doc-ENC-FORCED-0001-160487169457-03": {
@@ -86,7 +88,11 @@
     "encounter_id": "ENC-FORCED-0001-160487169457",
     "narrative": {
       "facts_used": [
-        "generic:progress_note_soap_en",
+        "composed:progress_note_soap_en",
+        "ctx.progress_subjective.state_composed.en",
+        "ctx.vitals[day_1].en",
+        "ctx.progress_assessment.state_composed.en",
+        "ctx.progress_plan.state_composed.en",
         "ctx.day_index",
         "ctx.clinical_course_archetype"
       ],
@@ -120,12 +126,11 @@
       },
       "sections": {
         "assessment": "[Mock LLM response #3 — assessment]",
-        "objective": "No special findings",
+        "objective": "BP 132/80 mmHg, HR 99/min, T 38.2°C, SpO2 96% (RA), RR 16/min",
         "plan": "[Mock LLM response #3 — plan]",
         "subjective": "[Mock LLM response #3 — subjective]"
       },
-      "structured": {},
-      "text": "S: [Mock LLM response #3 — subjective]\nO: No special findings\nA: [Mock LLM response #3 — assessment]\nP: [Mock LLM response #3 — plan]"
+      "text": "S: [Mock LLM response #3 — subjective]\nO: BP 132/80 mmHg, HR 99/min, T 38.2°C, SpO2 96% (RA), RR 16/min\nA: [Mock LLM response #3 — assessment]\nP: [Mock LLM response #3 — plan]"
     }
   },
   "doc-ENC-FORCED-0001-160487169457-04": {
@@ -133,7 +138,11 @@
     "encounter_id": "ENC-FORCED-0001-160487169457",
     "narrative": {
       "facts_used": [
-        "generic:progress_note_soap_en",
+        "composed:progress_note_soap_en",
+        "ctx.progress_subjective.state_composed.en",
+        "ctx.vitals[day_2].en",
+        "ctx.progress_assessment.state_composed.en",
+        "ctx.progress_plan.state_composed.en",
         "ctx.day_index",
         "ctx.clinical_course_archetype"
       ],
@@ -167,12 +176,11 @@
       },
       "sections": {
         "assessment": "[Mock LLM response #4 — assessment]",
-        "objective": "No special findings",
+        "objective": "BP 134/84 mmHg, HR 100/min, T 37.0°C, SpO2 94% (RA), RR 19/min",
         "plan": "[Mock LLM response #4 — plan]",
         "subjective": "[Mock LLM response #4 — subjective]"
       },
-      "structured": {},
-      "text": "S: [Mock LLM response #4 — subjective]\nO: No special findings\nA: [Mock LLM response #4 — assessment]\nP: [Mock LLM response #4 — plan]"
+      "text": "S: [Mock LLM response #4 — subjective]\nO: BP 134/84 mmHg, HR 100/min, T 37.0°C, SpO2 94% (RA), RR 19/min\nA: [Mock LLM response #4 — assessment]\nP: [Mock LLM response #4 — plan]"
     }
   },
   "doc-ENC-FORCED-0001-160487169457-05": {
@@ -180,7 +188,11 @@
     "encounter_id": "ENC-FORCED-0001-160487169457",
     "narrative": {
       "facts_used": [
-        "generic:progress_note_soap_en",
+        "composed:progress_note_soap_en",
+        "ctx.progress_subjective.state_composed.en",
+        "ctx.vitals[day_3].en",
+        "ctx.progress_assessment.state_composed.en",
+        "ctx.progress_plan.state_composed.en",
         "ctx.day_index",
         "ctx.clinical_course_archetype"
       ],
@@ -214,12 +226,11 @@
       },
       "sections": {
         "assessment": "[Mock LLM response #5 — assessment]",
-        "objective": "No special findings",
+        "objective": "BP 133/81 mmHg, HR 102/min, T 36.7°C, SpO2 96%, RR 19/min",
         "plan": "[Mock LLM response #5 — plan]",
         "subjective": "[Mock LLM response #5 — subjective]"
       },
-      "structured": {},
-      "text": "S: [Mock LLM response #5 — subjective]\nO: No special findings\nA: [Mock LLM response #5 — assessment]\nP: [Mock LLM response #5 — plan]"
+      "text": "S: [Mock LLM response #5 — subjective]\nO: BP 133/81 mmHg, HR 102/min, T 36.7°C, SpO2 96%, RR 19/min\nA: [Mock LLM response #5 — assessment]\nP: [Mock LLM response #5 — plan]"
     }
   },
   "doc-ENC-FORCED-0001-160487169457-06": {
@@ -227,7 +238,11 @@
     "encounter_id": "ENC-FORCED-0001-160487169457",
     "narrative": {
       "facts_used": [
-        "generic:progress_note_soap_en",
+        "composed:progress_note_soap_en",
+        "ctx.progress_subjective.state_composed.en",
+        "ctx.vitals[day_4].en",
+        "ctx.progress_assessment.state_composed.en",
+        "ctx.progress_plan.state_composed.en",
         "ctx.day_index",
         "ctx.clinical_course_archetype"
       ],
@@ -261,12 +276,11 @@
       },
       "sections": {
         "assessment": "[Mock LLM response #6 — assessment]",
-        "objective": "No special findings",
+        "objective": "BP 136/80 mmHg, HR 100/min, T 37.2°C, SpO2 93% (RA), RR 19/min",
         "plan": "[Mock LLM response #6 — plan]",
         "subjective": "[Mock LLM response #6 — subjective]"
       },
-      "structured": {},
-      "text": "S: [Mock LLM response #6 — subjective]\nO: No special findings\nA: [Mock LLM response #6 — assessment]\nP: [Mock LLM response #6 — plan]"
+      "text": "S: [Mock LLM response #6 — subjective]\nO: BP 136/80 mmHg, HR 100/min, T 37.2°C, SpO2 93% (RA), RR 19/min\nA: [Mock LLM response #6 — assessment]\nP: [Mock LLM response #6 — plan]"
     }
   },
   "doc-ENC-FORCED-0001-160487169457-07": {
@@ -274,7 +288,11 @@
     "encounter_id": "ENC-FORCED-0001-160487169457",
     "narrative": {
       "facts_used": [
-        "generic:progress_note_soap_en",
+        "composed:progress_note_soap_en",
+        "ctx.progress_subjective.state_composed.en",
+        "ctx.vitals[day_5].en",
+        "ctx.progress_assessment.state_composed.en",
+        "ctx.progress_plan.state_composed.en",
         "ctx.day_index",
         "ctx.clinical_course_archetype"
       ],
@@ -308,12 +326,11 @@
       },
       "sections": {
         "assessment": "[Mock LLM response #7 — assessment]",
-        "objective": "No special findings",
+        "objective": "BP 136/81 mmHg, HR 101/min, T 37.0°C, SpO2 95% (RA), RR 19/min",
         "plan": "[Mock LLM response #7 — plan]",
         "subjective": "[Mock LLM response #7 — subjective]"
       },
-      "structured": {},
-      "text": "S: [Mock LLM response #7 — subjective]\nO: No special findings\nA: [Mock LLM response #7 — assessment]\nP: [Mock LLM response #7 — plan]"
+      "text": "S: [Mock LLM response #7 — subjective]\nO: BP 136/81 mmHg, HR 101/min, T 37.0°C, SpO2 95% (RA), RR 19/min\nA: [Mock LLM response #7 — assessment]\nP: [Mock LLM response #7 — plan]"
     }
   },
   "doc-ENC-FORCED-0001-160487169457-08": {
@@ -321,7 +338,11 @@
     "encounter_id": "ENC-FORCED-0001-160487169457",
     "narrative": {
       "facts_used": [
-        "generic:progress_note_soap_en",
+        "composed:progress_note_soap_en",
+        "ctx.progress_subjective.state_composed.en",
+        "ctx.vitals[day_6].en",
+        "ctx.progress_assessment.state_composed.en",
+        "ctx.progress_plan.state_composed.en",
         "ctx.day_index",
         "ctx.clinical_course_archetype"
       ],
@@ -355,12 +376,11 @@
       },
       "sections": {
         "assessment": "[Mock LLM response #8 — assessment]",
-        "objective": "No special findings",
+        "objective": "BP 137/79 mmHg, HR 99/min, T 36.8°C, SpO2 93% (RA), RR 19/min",
         "plan": "[Mock LLM response #8 — plan]",
         "subjective": "[Mock LLM response #8 — subjective]"
       },
-      "structured": {},
-      "text": "S: [Mock LLM response #8 — subjective]\nO: No special findings\nA: [Mock LLM response #8 — assessment]\nP: [Mock LLM response #8 — plan]"
+      "text": "S: [Mock LLM response #8 — subjective]\nO: BP 137/79 mmHg, HR 99/min, T 36.8°C, SpO2 93% (RA), RR 19/min\nA: [Mock LLM response #8 — assessment]\nP: [Mock LLM response #8 — plan]"
     }
   },
   "doc-ENC-FORCED-0001-160487169457-09": {
@@ -368,8 +388,57 @@
     "encounter_id": "ENC-FORCED-0001-160487169457",
     "narrative": {
       "facts_used": [
+        "composed:progress_note_soap_en",
+        "ctx.progress_subjective.state_composed.en",
+        "ctx.vitals[day_7].en",
+        "ctx.progress_assessment.state_composed.en",
+        "ctx.progress_plan.state_composed.en",
+        "ctx.day_index",
+        "ctx.clinical_course_archetype"
+      ],
+      "generated_at": "2020-01-01T00:00:42Z",
+      "generator": "llm-mock",
+      "generator_metadata": {
+        "day_index": 7,
+        "generator": "llm",
+        "lang": "en",
+        "raw_text_rejoin": {
+          "order": [
+            [
+              "S:",
+              "subjective"
+            ],
+            [
+              "O:",
+              "objective"
+            ],
+            [
+              "A:",
+              "assessment"
+            ],
+            [
+              "P:",
+              "plan"
+            ]
+          ],
+          "separator": "\n"
+        }
+      },
+      "sections": {
+        "assessment": "[Mock LLM response #9 — assessment]",
+        "objective": "BP 131/81 mmHg, HR 99/min, T 38.1°C, SpO2 94% (RA), RR 22/min",
+        "plan": "[Mock LLM response #9 — plan]",
+        "subjective": "[Mock LLM response #9 — subjective]"
+      },
+      "text": "S: [Mock LLM response #9 — subjective]\nO: BP 131/81 mmHg, HR 99/min, T 38.1°C, SpO2 94% (RA), RR 22/min\nA: [Mock LLM response #9 — assessment]\nP: [Mock LLM response #9 — plan]"
+    }
+  },
+  "doc-ENC-FORCED-0001-160487169457-10": {
+    "document_id": "doc-ENC-FORCED-0001-160487169457-10",
+    "encounter_id": "ENC-FORCED-0001-160487169457",
+    "narrative": {
+      "facts_used": [
         "ctx.encounter.chief_complaint",
-        "ctx.complications_occurred",
         "ctx.los_days",
         "ctx.diagnoses",
         "ctx.discharge_medications",
@@ -386,17 +455,16 @@
       "sections": {
         "admission_summary": "Chief complaint: Sudden severe headache, vomiting, altered consciousness. Admitted for inpatient care.",
         "discharge_diagnoses": "Nontraumatic intracerebral hemorrhage, unspecified (I61.9)",
-        "discharge_instructions": "[Mock LLM response #9 — discharge_instructions]",
+        "discharge_instructions": "[Mock LLM response #10 — discharge_instructions]",
         "discharge_medications": "Amlodipine 5-10mg PO daily; Levetiracetam 500mg PO BID",
         "follow_up": "Neurology/neurosurgery follow-up within 2-4 weeks. Repeat imaging per plan.",
-        "hospital_course": "[Mock LLM response #9 — hospital_course]"
+        "hospital_course": "[Mock LLM response #10 — hospital_course]"
       },
-      "structured": {},
       "text": ""
     }
   },
-  "doc-ENC-FORCED-0001-160487169457-10": {
-    "document_id": "doc-ENC-FORCED-0001-160487169457-10",
+  "doc-ENC-FORCED-0001-160487169457-11": {
+    "document_id": "doc-ENC-FORCED-0001-160487169457-11",
     "encounter_id": "ENC-FORCED-0001-160487169457",
     "narrative": {
       "facts_used": [
@@ -404,9 +472,7 @@
         "ctx.patient.chronic_conditions",
         "ctx.adl_assessments[-1]",
         "ctx.patient.chronic_conditions",
-        "ctx.nursing_risk_assessments",
-        "ctx.patient.chronic_conditions",
-        "ctx.nursing_risk_assessments"
+        "ctx.patient.chronic_conditions"
       ],
       "generated_at": "2020-01-01T00:00:42Z",
       "generator": "llm-mock",
@@ -415,18 +481,17 @@
         "lang": "en"
       },
       "sections": {
-        "adl_assessment": "Barthel Index 62/100 → minimal assistance (feeding=7, bathing=3, mobility=9, toilet_use=6)",
-        "care_plan": "Care plan: monitor BP AM/PM, escalate to MD if goal not met.",
+        "adl_assessment": "Barthel Index 97/100 → independent (feeding=10, bathing=4, mobility=14, toilet_use=9)",
+        "care_plan": "Care plan: monitor BP AM/PM; escalate to MD if goal not met.",
         "nursing_diagnosis": "Nursing diagnoses: risk for inadequate BP control.",
-        "nursing_history": "Admission reason: Sudden severe headache, vomiting, altered consciousness. PMH: Essential (primary) hypertension, Atrial fibrillation and flutter.",
+        "nursing_history": "Admission reason: Sudden severe headache, vomiting, altered consciousness. PMH: Hypertension (HTN), Atrial fibrillation (AF).",
         "risk_assessments": "Fall / pressure ulcer risk: assessment pending"
       },
-      "structured": {},
       "text": ""
     }
   },
-  "doc-ENC-FORCED-0001-160487169457-11-day": {
-    "document_id": "doc-ENC-FORCED-0001-160487169457-11-day",
+  "doc-ENC-FORCED-0001-160487169457-12-day": {
+    "document_id": "doc-ENC-FORCED-0001-160487169457-12-day",
     "encounter_id": "ENC-FORCED-0001-160487169457",
     "narrative": {
       "facts_used": [
@@ -445,12 +510,11 @@
         "shift": "day"
       },
       "sections": {},
-      "structured": {},
-      "text": "[Nursing Shift Note - day shift] Day 1 / LOS 7 days\nPatient status: BP 132/81, HR 92, SpO2 92%, T 37.4°C.\nMeds administered: Nicardipine, Labetalol, IV_fluid: NS 80 mL/h.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - day shift] Day 1 / LOS 8 days\nPatient status: BP 132/78, HR 94, SpO2 92%, T 37.6°C.\nMeds administered: Nicardipine, Labetalol, IV_fluid: NS 80 mL/h.\nObservation and care ongoing, no significant findings."
     }
   },
-  "doc-ENC-FORCED-0001-160487169457-12-evening": {
-    "document_id": "doc-ENC-FORCED-0001-160487169457-12-evening",
+  "doc-ENC-FORCED-0001-160487169457-13-evening": {
+    "document_id": "doc-ENC-FORCED-0001-160487169457-13-evening",
     "encounter_id": "ENC-FORCED-0001-160487169457",
     "narrative": {
       "facts_used": [
@@ -469,12 +533,11 @@
         "shift": "evening"
       },
       "sections": {},
-      "structured": {},
-      "text": "[Nursing Shift Note - evening shift] Day 1 / LOS 7 days\nPatient status: BP 132/81, HR 92, SpO2 92%, T 37.4°C.\nMeds administered: Nicardipine, Labetalol, IV_fluid: NS 80 mL/h.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - evening shift] Day 1 / LOS 8 days\nPatient status: BP 132/78, HR 94, SpO2 92%, T 37.6°C.\nMeds administered: Nicardipine, Labetalol, IV_fluid: NS 80 mL/h.\nObservation and care ongoing, no significant findings."
     }
   },
-  "doc-ENC-FORCED-0001-160487169457-13-night": {
-    "document_id": "doc-ENC-FORCED-0001-160487169457-13-night",
+  "doc-ENC-FORCED-0001-160487169457-14-night": {
+    "document_id": "doc-ENC-FORCED-0001-160487169457-14-night",
     "encounter_id": "ENC-FORCED-0001-160487169457",
     "narrative": {
       "facts_used": [
@@ -493,12 +556,11 @@
         "shift": "night"
       },
       "sections": {},
-      "structured": {},
-      "text": "[Nursing Shift Note - night shift] Day 2 / LOS 7 days\nPatient status: BP 134/85, HR 94, SpO2 95%, T 38.3°C.\nMeds administered: Nicardipine, Labetalol, IV_fluid: NS 80 mL/h.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - night shift] Day 2 / LOS 8 days\nPatient status: BP 132/80, HR 99, SpO2 96%, T 38.2°C.\nMeds administered: Nicardipine, Labetalol, IV_fluid: NS 80 mL/h.\nObservation and care ongoing, no significant findings."
     }
   },
-  "doc-ENC-FORCED-0001-160487169457-14-day": {
-    "document_id": "doc-ENC-FORCED-0001-160487169457-14-day",
+  "doc-ENC-FORCED-0001-160487169457-15-day": {
+    "document_id": "doc-ENC-FORCED-0001-160487169457-15-day",
     "encounter_id": "ENC-FORCED-0001-160487169457",
     "narrative": {
       "facts_used": [
@@ -517,12 +579,11 @@
         "shift": "day"
       },
       "sections": {},
-      "structured": {},
-      "text": "[Nursing Shift Note - day shift] Day 2 / LOS 7 days\nPatient status: BP 134/85, HR 94, SpO2 95%, T 38.3°C.\nMeds administered: Nicardipine, Labetalol, IV_fluid: NS 80 mL/h.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - day shift] Day 2 / LOS 8 days\nPatient status: BP 132/80, HR 99, SpO2 96%, T 38.2°C.\nMeds administered: Nicardipine, Labetalol, IV_fluid: NS 80 mL/h.\nObservation and care ongoing, no significant findings."
     }
   },
-  "doc-ENC-FORCED-0001-160487169457-15-evening": {
-    "document_id": "doc-ENC-FORCED-0001-160487169457-15-evening",
+  "doc-ENC-FORCED-0001-160487169457-16-evening": {
+    "document_id": "doc-ENC-FORCED-0001-160487169457-16-evening",
     "encounter_id": "ENC-FORCED-0001-160487169457",
     "narrative": {
       "facts_used": [
@@ -541,12 +602,11 @@
         "shift": "evening"
       },
       "sections": {},
-      "structured": {},
-      "text": "[Nursing Shift Note - evening shift] Day 2 / LOS 7 days\nPatient status: BP 134/85, HR 94, SpO2 95%, T 38.3°C.\nMeds administered: Nicardipine, Labetalol, IV_fluid: NS 80 mL/h.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - evening shift] Day 2 / LOS 8 days\nPatient status: BP 132/80, HR 99, SpO2 96%, T 38.2°C.\nMeds administered: Nicardipine, Labetalol, IV_fluid: NS 80 mL/h.\nObservation and care ongoing, no significant findings."
     }
   },
-  "doc-ENC-FORCED-0001-160487169457-16-night": {
-    "document_id": "doc-ENC-FORCED-0001-160487169457-16-night",
+  "doc-ENC-FORCED-0001-160487169457-17-night": {
+    "document_id": "doc-ENC-FORCED-0001-160487169457-17-night",
     "encounter_id": "ENC-FORCED-0001-160487169457",
     "narrative": {
       "facts_used": [
@@ -565,12 +625,11 @@
         "shift": "night"
       },
       "sections": {},
-      "structured": {},
-      "text": "[Nursing Shift Note - night shift] Day 3 / LOS 7 days\nPatient status: BP 132/80, HR 94, SpO2 92%, T 37.8°C.\nMeds administered: Nicardipine, Labetalol, IV_fluid: NS 80 mL/h.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - night shift] Day 3 / LOS 8 days\nPatient status: BP 134/84, HR 100, SpO2 94%, T 37.0°C.\nMeds administered: Nicardipine, Labetalol, IV_fluid: NS 80 mL/h.\nObservation and care ongoing, no significant findings."
     }
   },
-  "doc-ENC-FORCED-0001-160487169457-17-day": {
-    "document_id": "doc-ENC-FORCED-0001-160487169457-17-day",
+  "doc-ENC-FORCED-0001-160487169457-18-day": {
+    "document_id": "doc-ENC-FORCED-0001-160487169457-18-day",
     "encounter_id": "ENC-FORCED-0001-160487169457",
     "narrative": {
       "facts_used": [
@@ -589,12 +648,11 @@
         "shift": "day"
       },
       "sections": {},
-      "structured": {},
-      "text": "[Nursing Shift Note - day shift] Day 3 / LOS 7 days\nPatient status: BP 132/80, HR 94, SpO2 92%, T 37.8°C.\nMeds administered: Nicardipine, Labetalol, IV_fluid: NS 80 mL/h.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - day shift] Day 3 / LOS 8 days\nPatient status: BP 134/84, HR 100, SpO2 94%, T 37.0°C.\nMeds administered: Nicardipine, Labetalol, IV_fluid: NS 80 mL/h.\nObservation and care ongoing, no significant findings."
     }
   },
-  "doc-ENC-FORCED-0001-160487169457-18-evening": {
-    "document_id": "doc-ENC-FORCED-0001-160487169457-18-evening",
+  "doc-ENC-FORCED-0001-160487169457-19-evening": {
+    "document_id": "doc-ENC-FORCED-0001-160487169457-19-evening",
     "encounter_id": "ENC-FORCED-0001-160487169457",
     "narrative": {
       "facts_used": [
@@ -613,12 +671,11 @@
         "shift": "evening"
       },
       "sections": {},
-      "structured": {},
-      "text": "[Nursing Shift Note - evening shift] Day 3 / LOS 7 days\nPatient status: BP 132/80, HR 94, SpO2 92%, T 37.8°C.\nMeds administered: Nicardipine, Labetalol, IV_fluid: NS 80 mL/h.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - evening shift] Day 3 / LOS 8 days\nPatient status: BP 134/84, HR 100, SpO2 94%, T 37.0°C.\nMeds administered: Nicardipine, Labetalol, IV_fluid: NS 80 mL/h.\nObservation and care ongoing, no significant findings."
     }
   },
-  "doc-ENC-FORCED-0001-160487169457-19-night": {
-    "document_id": "doc-ENC-FORCED-0001-160487169457-19-night",
+  "doc-ENC-FORCED-0001-160487169457-20-night": {
+    "document_id": "doc-ENC-FORCED-0001-160487169457-20-night",
     "encounter_id": "ENC-FORCED-0001-160487169457",
     "narrative": {
       "facts_used": [
@@ -637,12 +694,11 @@
         "shift": "night"
       },
       "sections": {},
-      "structured": {},
-      "text": "[Nursing Shift Note - night shift] Day 4 / LOS 7 days\nPatient status: BP 136/82, HR 95, SpO2 91%, T 38.3°C; nasal_cannula 3.9 L/min.\nMeds administered: Nicardipine, Labetalol, IV_fluid: NS 80 mL/h.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - night shift] Day 4 / LOS 8 days\nPatient status: BP 133/81, HR 102, SpO2 96%, T 36.7°C; nasal_cannula 3.2 L/min.\nMeds administered: Nicardipine, Labetalol, IV_fluid: NS 80 mL/h.\nObservation and care ongoing, no significant findings."
     }
   },
-  "doc-ENC-FORCED-0001-160487169457-20-day": {
-    "document_id": "doc-ENC-FORCED-0001-160487169457-20-day",
+  "doc-ENC-FORCED-0001-160487169457-21-day": {
+    "document_id": "doc-ENC-FORCED-0001-160487169457-21-day",
     "encounter_id": "ENC-FORCED-0001-160487169457",
     "narrative": {
       "facts_used": [
@@ -661,12 +717,11 @@
         "shift": "day"
       },
       "sections": {},
-      "structured": {},
-      "text": "[Nursing Shift Note - day shift] Day 4 / LOS 7 days\nPatient status: BP 136/82, HR 95, SpO2 91%, T 38.3°C; nasal_cannula 3.9 L/min.\nMeds administered: Nicardipine, Labetalol, IV_fluid: NS 80 mL/h.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - day shift] Day 4 / LOS 8 days\nPatient status: BP 133/81, HR 102, SpO2 96%, T 36.7°C; nasal_cannula 3.2 L/min.\nMeds administered: Nicardipine, Labetalol, IV_fluid: NS 80 mL/h.\nObservation and care ongoing, no significant findings."
     }
   },
-  "doc-ENC-FORCED-0001-160487169457-21-evening": {
-    "document_id": "doc-ENC-FORCED-0001-160487169457-21-evening",
+  "doc-ENC-FORCED-0001-160487169457-22-evening": {
+    "document_id": "doc-ENC-FORCED-0001-160487169457-22-evening",
     "encounter_id": "ENC-FORCED-0001-160487169457",
     "narrative": {
       "facts_used": [
@@ -685,12 +740,11 @@
         "shift": "evening"
       },
       "sections": {},
-      "structured": {},
-      "text": "[Nursing Shift Note - evening shift] Day 4 / LOS 7 days\nPatient status: BP 136/82, HR 95, SpO2 91%, T 38.3°C; nasal_cannula 3.9 L/min.\nMeds administered: Nicardipine, Labetalol, IV_fluid: NS 80 mL/h.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - evening shift] Day 4 / LOS 8 days\nPatient status: BP 133/81, HR 102, SpO2 96%, T 36.7°C; nasal_cannula 3.2 L/min.\nMeds administered: Nicardipine, Labetalol, IV_fluid: NS 80 mL/h.\nObservation and care ongoing, no significant findings."
     }
   },
-  "doc-ENC-FORCED-0001-160487169457-22-night": {
-    "document_id": "doc-ENC-FORCED-0001-160487169457-22-night",
+  "doc-ENC-FORCED-0001-160487169457-23-night": {
+    "document_id": "doc-ENC-FORCED-0001-160487169457-23-night",
     "encounter_id": "ENC-FORCED-0001-160487169457",
     "narrative": {
       "facts_used": [
@@ -709,12 +763,11 @@
         "shift": "night"
       },
       "sections": {},
-      "structured": {},
-      "text": "[Nursing Shift Note - night shift] Day 5 / LOS 7 days\nPatient status: BP 132/81, HR 97, SpO2 91%, T 38.3°C; nasal_cannula 3.7 L/min.\nMeds administered: Nicardipine, Labetalol, IV_fluid: NS 80 mL/h.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - night shift] Day 5 / LOS 8 days\nPatient status: BP 136/80, HR 100, SpO2 93%, T 37.2°C.\nMeds administered: Nicardipine, Labetalol, IV_fluid: NS 80 mL/h.\nObservation and care ongoing, no significant findings."
     }
   },
-  "doc-ENC-FORCED-0001-160487169457-23-day": {
-    "document_id": "doc-ENC-FORCED-0001-160487169457-23-day",
+  "doc-ENC-FORCED-0001-160487169457-24-day": {
+    "document_id": "doc-ENC-FORCED-0001-160487169457-24-day",
     "encounter_id": "ENC-FORCED-0001-160487169457",
     "narrative": {
       "facts_used": [
@@ -733,12 +786,11 @@
         "shift": "day"
       },
       "sections": {},
-      "structured": {},
-      "text": "[Nursing Shift Note - day shift] Day 5 / LOS 7 days\nPatient status: BP 132/81, HR 97, SpO2 91%, T 38.3°C; nasal_cannula 3.7 L/min.\nMeds administered: Nicardipine, Labetalol, IV_fluid: NS 80 mL/h.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - day shift] Day 5 / LOS 8 days\nPatient status: BP 136/80, HR 100, SpO2 93%, T 37.2°C.\nMeds administered: Nicardipine, Labetalol, IV_fluid: NS 80 mL/h.\nObservation and care ongoing, no significant findings."
     }
   },
-  "doc-ENC-FORCED-0001-160487169457-24-evening": {
-    "document_id": "doc-ENC-FORCED-0001-160487169457-24-evening",
+  "doc-ENC-FORCED-0001-160487169457-25-evening": {
+    "document_id": "doc-ENC-FORCED-0001-160487169457-25-evening",
     "encounter_id": "ENC-FORCED-0001-160487169457",
     "narrative": {
       "facts_used": [
@@ -757,12 +809,11 @@
         "shift": "evening"
       },
       "sections": {},
-      "structured": {},
-      "text": "[Nursing Shift Note - evening shift] Day 5 / LOS 7 days\nPatient status: BP 132/81, HR 97, SpO2 91%, T 38.3°C; nasal_cannula 3.7 L/min.\nMeds administered: Nicardipine, Labetalol, IV_fluid: NS 80 mL/h.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - evening shift] Day 5 / LOS 8 days\nPatient status: BP 136/80, HR 100, SpO2 93%, T 37.2°C.\nMeds administered: Nicardipine, Labetalol, IV_fluid: NS 80 mL/h.\nObservation and care ongoing, no significant findings."
     }
   },
-  "doc-ENC-FORCED-0001-160487169457-25-night": {
-    "document_id": "doc-ENC-FORCED-0001-160487169457-25-night",
+  "doc-ENC-FORCED-0001-160487169457-26-night": {
+    "document_id": "doc-ENC-FORCED-0001-160487169457-26-night",
     "encounter_id": "ENC-FORCED-0001-160487169457",
     "narrative": {
       "facts_used": [
@@ -781,12 +832,11 @@
         "shift": "night"
       },
       "sections": {},
-      "structured": {},
-      "text": "[Nursing Shift Note - night shift] Day 6 / LOS 7 days\nPatient status: BP 137/80, HR 93, SpO2 90%, T 37.3°C; simple_mask 4.3 L/min.\nMeds administered: Nicardipine, Labetalol, IV_fluid: NS 80 mL/h.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - night shift] Day 6 / LOS 8 days\nPatient status: BP 136/81, HR 101, SpO2 95%, T 37.0°C.\nMeds administered: Nicardipine, Labetalol, IV_fluid: NS 80 mL/h.\nObservation and care ongoing, no significant findings."
     }
   },
-  "doc-ENC-FORCED-0001-160487169457-26-day": {
-    "document_id": "doc-ENC-FORCED-0001-160487169457-26-day",
+  "doc-ENC-FORCED-0001-160487169457-27-day": {
+    "document_id": "doc-ENC-FORCED-0001-160487169457-27-day",
     "encounter_id": "ENC-FORCED-0001-160487169457",
     "narrative": {
       "facts_used": [
@@ -805,12 +855,11 @@
         "shift": "day"
       },
       "sections": {},
-      "structured": {},
-      "text": "[Nursing Shift Note - day shift] Day 6 / LOS 7 days\nPatient status: BP 137/80, HR 93, SpO2 90%, T 37.3°C; simple_mask 4.3 L/min.\nMeds administered: Nicardipine, Labetalol, IV_fluid: NS 80 mL/h.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - day shift] Day 6 / LOS 8 days\nPatient status: BP 136/81, HR 101, SpO2 95%, T 37.0°C.\nMeds administered: Nicardipine, Labetalol, IV_fluid: NS 80 mL/h.\nObservation and care ongoing, no significant findings."
     }
   },
-  "doc-ENC-FORCED-0001-160487169457-27-evening": {
-    "document_id": "doc-ENC-FORCED-0001-160487169457-27-evening",
+  "doc-ENC-FORCED-0001-160487169457-28-evening": {
+    "document_id": "doc-ENC-FORCED-0001-160487169457-28-evening",
     "encounter_id": "ENC-FORCED-0001-160487169457",
     "narrative": {
       "facts_used": [
@@ -829,12 +878,11 @@
         "shift": "evening"
       },
       "sections": {},
-      "structured": {},
-      "text": "[Nursing Shift Note - evening shift] Day 6 / LOS 7 days\nPatient status: BP 137/80, HR 93, SpO2 90%, T 37.3°C; simple_mask 4.3 L/min.\nMeds administered: Nicardipine, Labetalol, IV_fluid: NS 80 mL/h.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - evening shift] Day 6 / LOS 8 days\nPatient status: BP 136/81, HR 101, SpO2 95%, T 37.0°C.\nMeds administered: Nicardipine, Labetalol, IV_fluid: NS 80 mL/h.\nObservation and care ongoing, no significant findings."
     }
   },
-  "doc-ENC-FORCED-0001-160487169457-28-night": {
-    "document_id": "doc-ENC-FORCED-0001-160487169457-28-night",
+  "doc-ENC-FORCED-0001-160487169457-29-night": {
+    "document_id": "doc-ENC-FORCED-0001-160487169457-29-night",
     "encounter_id": "ENC-FORCED-0001-160487169457",
     "narrative": {
       "facts_used": [
@@ -853,12 +901,11 @@
         "shift": "night"
       },
       "sections": {},
-      "structured": {},
-      "text": "[Nursing Shift Note - night shift] Day 7 / LOS 7 days\nPatient status: BP 131/79, HR 92, SpO2 95%, T 37.4°C.\nMeds administered: Nicardipine, Labetalol, IV_fluid: NS 80 mL/h.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - night shift] Day 7 / LOS 8 days\nPatient status: BP 137/79, HR 99, SpO2 93%, T 36.8°C.\nMeds administered: Nicardipine, Labetalol, IV_fluid: NS 80 mL/h.\nObservation and care ongoing, no significant findings."
     }
   },
-  "doc-ENC-FORCED-0001-160487169457-29-day": {
-    "document_id": "doc-ENC-FORCED-0001-160487169457-29-day",
+  "doc-ENC-FORCED-0001-160487169457-30-day": {
+    "document_id": "doc-ENC-FORCED-0001-160487169457-30-day",
     "encounter_id": "ENC-FORCED-0001-160487169457",
     "narrative": {
       "facts_used": [
@@ -877,12 +924,11 @@
         "shift": "day"
       },
       "sections": {},
-      "structured": {},
-      "text": "[Nursing Shift Note - day shift] Day 7 / LOS 7 days\nPatient status: BP 131/79, HR 92, SpO2 95%, T 37.4°C.\nMeds administered: Nicardipine, Labetalol, IV_fluid: NS 80 mL/h.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - day shift] Day 7 / LOS 8 days\nPatient status: BP 137/79, HR 99, SpO2 93%, T 36.8°C.\nMeds administered: Nicardipine, Labetalol, IV_fluid: NS 80 mL/h.\nObservation and care ongoing, no significant findings."
     }
   },
-  "doc-ENC-FORCED-0001-160487169457-30-evening": {
-    "document_id": "doc-ENC-FORCED-0001-160487169457-30-evening",
+  "doc-ENC-FORCED-0001-160487169457-31-evening": {
+    "document_id": "doc-ENC-FORCED-0001-160487169457-31-evening",
     "encounter_id": "ENC-FORCED-0001-160487169457",
     "narrative": {
       "facts_used": [
@@ -901,17 +947,84 @@
         "shift": "evening"
       },
       "sections": {},
-      "structured": {},
-      "text": "[Nursing Shift Note - evening shift] Day 7 / LOS 7 days\nPatient status: BP 131/79, HR 92, SpO2 95%, T 37.4°C.\nMeds administered: Nicardipine, Labetalol, IV_fluid: NS 80 mL/h.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - evening shift] Day 7 / LOS 8 days\nPatient status: BP 137/79, HR 99, SpO2 93%, T 36.8°C.\nMeds administered: Nicardipine, Labetalol, IV_fluid: NS 80 mL/h.\nObservation and care ongoing, no significant findings."
     }
   },
-  "doc-ENC-FORCED-0001-160487169457-31": {
-    "document_id": "doc-ENC-FORCED-0001-160487169457-31",
+  "doc-ENC-FORCED-0001-160487169457-32-night": {
+    "document_id": "doc-ENC-FORCED-0001-160487169457-32-night",
+    "encounter_id": "ENC-FORCED-0001-160487169457",
+    "narrative": {
+      "facts_used": [
+        "ctx.shift",
+        "ctx.vitals.today",
+        "ctx.medications.today",
+        "ctx.day_index",
+        "ctx.los_days"
+      ],
+      "generated_at": "2020-01-01T00:00:42Z",
+      "generator": "llm-mock",
+      "generator_metadata": {
+        "day_index": 7,
+        "generator": "template",
+        "lang": "en",
+        "shift": "night"
+      },
+      "sections": {},
+      "text": "[Nursing Shift Note - night shift] Day 8 / LOS 8 days\nPatient status: BP 131/81, HR 99, SpO2 94%, T 38.1°C.\nMeds administered: Nicardipine, Labetalol, IV_fluid: NS 80 mL/h.\nObservation and care ongoing, no significant findings."
+    }
+  },
+  "doc-ENC-FORCED-0001-160487169457-33-day": {
+    "document_id": "doc-ENC-FORCED-0001-160487169457-33-day",
+    "encounter_id": "ENC-FORCED-0001-160487169457",
+    "narrative": {
+      "facts_used": [
+        "ctx.shift",
+        "ctx.vitals.today",
+        "ctx.medications.today",
+        "ctx.day_index",
+        "ctx.los_days"
+      ],
+      "generated_at": "2020-01-01T00:00:42Z",
+      "generator": "llm-mock",
+      "generator_metadata": {
+        "day_index": 7,
+        "generator": "template",
+        "lang": "en",
+        "shift": "day"
+      },
+      "sections": {},
+      "text": "[Nursing Shift Note - day shift] Day 8 / LOS 8 days\nPatient status: BP 131/81, HR 99, SpO2 94%, T 38.1°C.\nMeds administered: Nicardipine, Labetalol, IV_fluid: NS 80 mL/h.\nObservation and care ongoing, no significant findings."
+    }
+  },
+  "doc-ENC-FORCED-0001-160487169457-34-evening": {
+    "document_id": "doc-ENC-FORCED-0001-160487169457-34-evening",
+    "encounter_id": "ENC-FORCED-0001-160487169457",
+    "narrative": {
+      "facts_used": [
+        "ctx.shift",
+        "ctx.vitals.today",
+        "ctx.medications.today",
+        "ctx.day_index",
+        "ctx.los_days"
+      ],
+      "generated_at": "2020-01-01T00:00:42Z",
+      "generator": "llm-mock",
+      "generator_metadata": {
+        "day_index": 7,
+        "generator": "template",
+        "lang": "en",
+        "shift": "evening"
+      },
+      "sections": {},
+      "text": "[Nursing Shift Note - evening shift] Day 8 / LOS 8 days\nPatient status: BP 131/81, HR 99, SpO2 94%, T 38.1°C.\nMeds administered: Nicardipine, Labetalol, IV_fluid: NS 80 mL/h.\nObservation and care ongoing, no significant findings."
+    }
+  },
+  "doc-ENC-FORCED-0001-160487169457-35": {
+    "document_id": "doc-ENC-FORCED-0001-160487169457-35",
     "encounter_id": "ENC-FORCED-0001-160487169457",
     "narrative": {
       "facts_used": [
         "ctx.los_days",
-        "ctx.complications_occurred",
         "ctx.intake_output_records",
         "ctx.patient.chronic_conditions",
         "ctx.adl_assessments[-1]"
@@ -923,24 +1036,59 @@
         "lang": "en"
       },
       "sections": {
-        "admission_status": "Hospital stay: 7 days. Admission reason: Sudden severe headache, vomiting, altered consciousness. Complications: cerebral_edema, hydrocephalus. Discharge criteria met.",
-        "discharge_readiness": "Discharge readiness: Discharge Barthel 62/100.",
-        "nursing_interventions_provided": "Cumulative IN 8409 mL / OUT 8573 mL (net -164 mL).",
+        "admission_status": "Hospital stay: 8 days. Admission reason: Sudden severe headache, vomiting, altered consciousness. Discharge criteria met.",
+        "discharge_readiness": "Discharge readiness: Discharge Barthel 97/100.",
+        "nursing_interventions_provided": "Cumulative IN 10583 mL / OUT 8441 mL (net +2142 mL).",
         "patient_education": "Patient education: home BP monitoring + low-salt diet."
       },
-      "structured": {},
       "text": ""
     }
   },
-  "doc-ENC-FORCED-0001-160487169457-ED-32": {
-    "document_id": "doc-ENC-FORCED-0001-160487169457-ED-32",
+  "doc-ENC-FORCED-0001-160487169457-36": {
+    "document_id": "doc-ENC-FORCED-0001-160487169457-36",
+    "encounter_id": "ENC-FORCED-0001-160487169457",
+    "narrative": {
+      "facts_used": [
+        "ctx.procedures",
+        "ctx.procedures",
+        "ctx.procedures",
+        "ctx.procedures",
+        "ctx.procedures",
+        "ctx.procedures",
+        "ctx.procedures",
+        "ctx.procedures",
+        "ctx.procedures"
+      ],
+      "generated_at": "2020-01-01T00:00:42Z",
+      "generator": "llm-mock",
+      "generator_metadata": {
+        "generator": "llm",
+        "lang": "en"
+      },
+      "sections": {
+        "op_anesthesia": "Anesthesia: General anesthesia, ASA class 2",
+        "op_blood_loss": "Estimated blood loss: 300 mL; no intraoperative transfusion",
+        "op_course": "[Mock LLM response #12 — op_course]",
+        "op_equipment": "Implants / devices: none",
+        "op_findings": "[Mock LLM response #12 — op_findings]",
+        "op_postop_plan": "[Mock LLM response #12 — op_postop_plan]",
+        "op_procedure_name": "Procedure: Craniectomy or craniotomy for evacuation of hematoma, supratentorial; intracerebral (code 61313); operative time 32 min",
+        "op_specimens": "Specimens sent to pathology: none",
+        "op_surgeon": "Primary surgeon: not documented / Assistants: none"
+      },
+      "text": ""
+    }
+  },
+  "doc-ENC-FORCED-0001-160487169457-ED-37": {
+    "document_id": "doc-ENC-FORCED-0001-160487169457-ED-37",
     "encounter_id": "ENC-FORCED-0001-160487169457",
     "narrative": {
       "facts_used": [
         "ctx.encounter.chief_complaint",
         "ctx.vitals[0]",
+        "ctx.orders.ed",
         "ctx.lab_results.abnormal",
-        "ctx.procedures.ed",
+        "ctx.ed_assessment.state_composed",
         "ctx.encounter.disposition"
       ],
       "generated_at": "2020-01-01T00:00:42Z",
@@ -950,20 +1098,19 @@
         "lang": "en"
       },
       "sections": {
-        "assessment": "[Mock LLM response #10 — assessment]",
+        "assessment": "[Mock LLM response #11 — assessment]",
         "chief_complaint": "Sudden severe headache, vomiting, altered consciousness",
-        "disposition": "[Mock LLM response #10 — disposition]",
-        "ed_workup": "PT_INR 1.5 {INR} [H], Glucose 120.0 mg/dL [H], CRP 11.6 mg/L [H]",
-        "hpi": "[Mock LLM response #10 — hpi]",
-        "physical_exam": "On arrival: BP 132/81 mmHg, HR 92 bpm, RR 19 /min, SpO2 93%, T 37.4°C. No focal findings on exam.",
+        "disposition": "[Mock LLM response #11 — disposition]",
+        "ed_workup": "Labs: CBC, PT-INR, APTT, fibrinogen, creatinine, BUN, Na, K. Imaging: CT head (non-contrast), head CT angiography, head CT (without contrast), head CT (repeat). Medications: Nicardipine, Labetalol, IV_fluid: NS 80 mL/h, Sodium Chloride 23.4% Injectable Solution 23.4% 30mL IV over 15min via central line. Abnormal: glucose 119.0 mg/dL [H]",
+        "hpi": "[Mock LLM response #11 — hpi]",
+        "physical_exam": "On arrival: BP 132/78 mmHg, HR 94 bpm, RR 20 /min, SpO2 92%, T 37.6°C. No focal findings on exam.",
         "triage_details": "Triage information: not recorded"
       },
-      "structured": {},
       "text": ""
     }
   },
-  "doc-ENC-FORCED-0001-160487169457-ED-33": {
-    "document_id": "doc-ENC-FORCED-0001-160487169457-ED-33",
+  "doc-ENC-FORCED-0001-160487169457-ED-38": {
+    "document_id": "doc-ENC-FORCED-0001-160487169457-ED-38",
     "encounter_id": "ENC-FORCED-0001-160487169457",
     "narrative": {
       "facts_used": [],
@@ -974,7 +1121,6 @@
         "lang": "en"
       },
       "sections": {},
-      "structured": {},
       "text": "Triage information: not recorded"
     }
   }

@@ -5,6 +5,7 @@
     "narrative": {
       "facts_used": [
         "ctx.encounter.chief_complaint_ja",
+        "chief_complaint_variants.copd_exacerbation[1]",
         "disease_protocol.narrative.hpi_template.onset_pattern.moderate",
         "disease_protocol.narrative.hpi_template.trigger_options[0]",
         "ctx.patient.demographics",
@@ -27,15 +28,14 @@
       "sections": {
         "allergies": "薬物アレルギーなし（NKDA）",
         "assessment_and_plan": "[Mock LLM response #1 — assessment_and_plan]",
-        "chief_complaint": "呼吸困難増悪・喀痰増加・喘鳴",
+        "chief_complaint": "1週間前より痰の量と粘稠度が増加",
         "family_history": "特記家族歴なし",
         "hpi": "[Mock LLM response #1 — hpi]",
         "medications_at_home": "常用薬なし",
-        "past_medical_history": "その他のCOPD [J44]",
-        "physical_examination": "バイタルサイン: BP 123/72 mmHg, HR 83/min, T 38.3°C, SpO2 96%, RR 21/min。一般状態: 意識清明、苦痛様。循環器: 整、心雑音なし。呼吸器: 両肺 wheeze 聴取、呼気延長あり。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし、項部硬直なし",
+        "past_medical_history": "慢性閉塞性肺疾患，詳細不明 [J44.9]",
+        "physical_examination": "バイタルサイン: BP 126/77 mmHg, HR 92/min, T 37.5°C, SpO2 89%, RR 24/min。一般状態: 意識清明、苦痛様。循環器: 整、心雑音なし。呼吸器: 両肺 wheeze 聴取、呼気延長あり。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし、項部硬直なし",
         "social_history": "喫煙歴: 非喫煙者; 飲酒歴: 飲酒なし; 職業: その他"
       },
-      "structured": {},
       "text": ""
     }
   },
@@ -46,6 +46,7 @@
       "facts_used": [
         "ctx.vitals.today",
         "physical_exam_findings.dip_then_recovery.day_0",
+        "cc_pe_consistency:respiratory",
         "ctx.day_index",
         "ctx.clinical_course_archetype"
       ],
@@ -79,12 +80,11 @@
       },
       "sections": {
         "assessment": "[Mock LLM response #2 — assessment]",
-        "objective": "BP 123/72 mmHg, HR 83 回/分, RR 21 回/分, SpO2 96%, T 38.3°C。特記事項なし。一般状態: 意識清明、苦痛様。循環器: 整、心雑音なし。呼吸器: 呼吸音清明、呼吸数軽度上昇。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし、項部硬直なし",
+        "objective": "BP 126/77 mmHg, HR 92 回/分, RR 24 回/分, SpO2 89%, T 37.5°C。特記事項なし。一般状態: 意識清明、苦痛様。循環器: 整、心雑音なし。呼吸器: 両肺 wheeze 聴取、呼気延長あり。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし、項部硬直なし",
         "plan": "[Mock LLM response #2 — plan]",
         "subjective": "[Mock LLM response #2 — subjective]"
       },
-      "structured": {},
-      "text": "S（主観） [Mock LLM response #2 — subjective]\nO（客観） BP 123/72 mmHg, HR 83 回/分, RR 21 回/分, SpO2 96%, T 38.3°C。特記事項なし。一般状態: 意識清明、苦痛様。循環器: 整、心雑音なし。呼吸器: 呼吸音清明、呼吸数軽度上昇。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし、項部硬直なし\nA（評価） [Mock LLM response #2 — assessment]\nP（計画） [Mock LLM response #2 — plan]"
+      "text": "S（主観） [Mock LLM response #2 — subjective]\nO（客観） BP 126/77 mmHg, HR 92 回/分, RR 24 回/分, SpO2 89%, T 37.5°C。特記事項なし。一般状態: 意識清明、苦痛様。循環器: 整、心雑音なし。呼吸器: 両肺 wheeze 聴取、呼気延長あり。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし、項部硬直なし\nA（評価） [Mock LLM response #2 — assessment]\nP（計画） [Mock LLM response #2 — plan]"
     }
   },
   "doc-ENC-FORCED-0001-616171532456-03": {
@@ -94,6 +94,7 @@
       "facts_used": [
         "ctx.vitals.today",
         "physical_exam_findings.dip_then_recovery.day_1",
+        "cc_pe_consistency:respiratory",
         "ctx.day_index",
         "ctx.clinical_course_archetype"
       ],
@@ -127,12 +128,11 @@
       },
       "sections": {
         "assessment": "[Mock LLM response #3 — assessment]",
-        "objective": "BP 125/73 mmHg, HR 80 回/分, RR 20 回/分, SpO2 96%, T 37.2°C。特記事項なし。一般状態: 意識清明、苦痛様。循環器: 整、心雑音なし。呼吸器: 呼吸音清明、呼吸数軽度上昇。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし、項部硬直なし",
+        "objective": "BP 125/74 mmHg, HR 89 回/分, RR 26 回/分, SpO2 90%, T 37.9°C。特記事項なし。一般状態: 意識清明、苦痛様。循環器: 整、心雑音なし。呼吸器: 両肺 wheeze 聴取、呼気延長あり。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし、項部硬直なし",
         "plan": "[Mock LLM response #3 — plan]",
         "subjective": "[Mock LLM response #3 — subjective]"
       },
-      "structured": {},
-      "text": "S（主観） [Mock LLM response #3 — subjective]\nO（客観） BP 125/73 mmHg, HR 80 回/分, RR 20 回/分, SpO2 96%, T 37.2°C。特記事項なし。一般状態: 意識清明、苦痛様。循環器: 整、心雑音なし。呼吸器: 呼吸音清明、呼吸数軽度上昇。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし、項部硬直なし\nA（評価） [Mock LLM response #3 — assessment]\nP（計画） [Mock LLM response #3 — plan]"
+      "text": "S（主観） [Mock LLM response #3 — subjective]\nO（客観） BP 125/74 mmHg, HR 89 回/分, RR 26 回/分, SpO2 90%, T 37.9°C。特記事項なし。一般状態: 意識清明、苦痛様。循環器: 整、心雑音なし。呼吸器: 両肺 wheeze 聴取、呼気延長あり。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし、項部硬直なし\nA（評価） [Mock LLM response #3 — assessment]\nP（計画） [Mock LLM response #3 — plan]"
     }
   },
   "doc-ENC-FORCED-0001-616171532456-04": {
@@ -142,6 +142,7 @@
       "facts_used": [
         "ctx.vitals.today",
         "physical_exam_findings.dip_then_recovery.day_2",
+        "cc_pe_consistency:respiratory",
         "ctx.day_index",
         "ctx.clinical_course_archetype"
       ],
@@ -175,12 +176,11 @@
       },
       "sections": {
         "assessment": "[Mock LLM response #4 — assessment]",
-        "objective": "BP 126/74 mmHg, HR 84 回/分, RR 19 回/分, SpO2 94%, T 38.2°C。特記事項なし。一般状態: 意識清明、苦痛様。循環器: 整、心雑音なし。呼吸器: 呼吸音清明、呼吸数軽度上昇。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし、項部硬直なし",
+        "objective": "BP 125/76 mmHg, HR 93 回/分, RR 29 回/分, SpO2 90%, T 37.3°C。特記事項なし。一般状態: 意識清明、苦痛様。循環器: 整、心雑音なし。呼吸器: 両肺 wheeze 聴取、呼気延長あり。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし、項部硬直なし",
         "plan": "[Mock LLM response #4 — plan]",
         "subjective": "[Mock LLM response #4 — subjective]"
       },
-      "structured": {},
-      "text": "S（主観） [Mock LLM response #4 — subjective]\nO（客観） BP 126/74 mmHg, HR 84 回/分, RR 19 回/分, SpO2 94%, T 38.2°C。特記事項なし。一般状態: 意識清明、苦痛様。循環器: 整、心雑音なし。呼吸器: 呼吸音清明、呼吸数軽度上昇。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし、項部硬直なし\nA（評価） [Mock LLM response #4 — assessment]\nP（計画） [Mock LLM response #4 — plan]"
+      "text": "S（主観） [Mock LLM response #4 — subjective]\nO（客観） BP 125/76 mmHg, HR 93 回/分, RR 29 回/分, SpO2 90%, T 37.3°C。特記事項なし。一般状態: 意識清明、苦痛様。循環器: 整、心雑音なし。呼吸器: 両肺 wheeze 聴取、呼気延長あり。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし、項部硬直なし\nA（評価） [Mock LLM response #4 — assessment]\nP（計画） [Mock LLM response #4 — plan]"
     }
   },
   "doc-ENC-FORCED-0001-616171532456-05": {
@@ -190,6 +190,7 @@
       "facts_used": [
         "ctx.vitals.today",
         "physical_exam_findings.dip_then_recovery.day_3",
+        "cc_pe_consistency:respiratory",
         "ctx.day_index",
         "ctx.clinical_course_archetype"
       ],
@@ -223,12 +224,11 @@
       },
       "sections": {
         "assessment": "[Mock LLM response #5 — assessment]",
-        "objective": "BP 124/71 mmHg, HR 89 回/分, RR 20 回/分, SpO2 97%, T 38.4°C。特記事項なし。一般状態: 意識清明、症状改善傾向。循環器: 整、心雑音なし。呼吸器: 呼吸音清明、呼吸数正常。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし",
+        "objective": "BP 124/75 mmHg, HR 89 回/分, RR 23 回/分, SpO2 93%, T 36.4°C。特記事項なし。一般状態: 意識清明、症状改善傾向。循環器: 整、心雑音なし。呼吸器: 両肺 wheeze 聴取、呼気延長あり。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし",
         "plan": "[Mock LLM response #5 — plan]",
         "subjective": "[Mock LLM response #5 — subjective]"
       },
-      "structured": {},
-      "text": "S（主観） [Mock LLM response #5 — subjective]\nO（客観） BP 124/71 mmHg, HR 89 回/分, RR 20 回/分, SpO2 97%, T 38.4°C。特記事項なし。一般状態: 意識清明、症状改善傾向。循環器: 整、心雑音なし。呼吸器: 呼吸音清明、呼吸数正常。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし\nA（評価） [Mock LLM response #5 — assessment]\nP（計画） [Mock LLM response #5 — plan]"
+      "text": "S（主観） [Mock LLM response #5 — subjective]\nO（客観） BP 124/75 mmHg, HR 89 回/分, RR 23 回/分, SpO2 93%, T 36.4°C。特記事項なし。一般状態: 意識清明、症状改善傾向。循環器: 整、心雑音なし。呼吸器: 両肺 wheeze 聴取、呼気延長あり。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし\nA（評価） [Mock LLM response #5 — assessment]\nP（計画） [Mock LLM response #5 — plan]"
     }
   },
   "doc-ENC-FORCED-0001-616171532456-06": {
@@ -238,6 +238,7 @@
       "facts_used": [
         "ctx.vitals.today",
         "physical_exam_findings.dip_then_recovery.day_4",
+        "cc_pe_consistency:respiratory",
         "ctx.day_index",
         "ctx.clinical_course_archetype"
       ],
@@ -271,12 +272,11 @@
       },
       "sections": {
         "assessment": "[Mock LLM response #6 — assessment]",
-        "objective": "BP 129/76 mmHg, HR 82 回/分, RR 21 回/分, SpO2 94%, T 36.9°C。特記事項なし。一般状態: 意識清明、症状改善傾向。循環器: 整、心雑音なし。呼吸器: 呼吸音清明、呼吸数正常。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし",
+        "objective": "BP 124/74 mmHg, HR 84 回/分, RR 21 回/分, SpO2 94%, T 37.3°C。特記事項なし。一般状態: 意識清明、症状改善傾向。循環器: 整、心雑音なし。呼吸器: 両肺 wheeze 聴取、呼気延長あり。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし",
         "plan": "[Mock LLM response #6 — plan]",
         "subjective": "[Mock LLM response #6 — subjective]"
       },
-      "structured": {},
-      "text": "S（主観） [Mock LLM response #6 — subjective]\nO（客観） BP 129/76 mmHg, HR 82 回/分, RR 21 回/分, SpO2 94%, T 36.9°C。特記事項なし。一般状態: 意識清明、症状改善傾向。循環器: 整、心雑音なし。呼吸器: 呼吸音清明、呼吸数正常。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし\nA（評価） [Mock LLM response #6 — assessment]\nP（計画） [Mock LLM response #6 — plan]"
+      "text": "S（主観） [Mock LLM response #6 — subjective]\nO（客観） BP 124/74 mmHg, HR 84 回/分, RR 21 回/分, SpO2 94%, T 37.3°C。特記事項なし。一般状態: 意識清明、症状改善傾向。循環器: 整、心雑音なし。呼吸器: 両肺 wheeze 聴取、呼気延長あり。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし\nA（評価） [Mock LLM response #6 — assessment]\nP（計画） [Mock LLM response #6 — plan]"
     }
   },
   "doc-ENC-FORCED-0001-616171532456-07": {
@@ -286,6 +286,7 @@
       "facts_used": [
         "ctx.vitals.today",
         "physical_exam_findings.dip_then_recovery.day_5",
+        "cc_pe_consistency:respiratory",
         "ctx.day_index",
         "ctx.clinical_course_archetype"
       ],
@@ -319,12 +320,11 @@
       },
       "sections": {
         "assessment": "[Mock LLM response #7 — assessment]",
-        "objective": "BP 126/74 mmHg, HR 84 回/分, RR 17 回/分, SpO2 96%, T 38.1°C。特記事項なし。一般状態: 意識清明、症状改善傾向。循環器: 整、心雑音なし。呼吸器: 呼吸音清明、呼吸数正常。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし",
+        "objective": "BP 125/74 mmHg, HR 85 回/分, RR 17 回/分, SpO2 95%, T 37.5°C。特記事項なし。一般状態: 意識清明、症状改善傾向。循環器: 整、心雑音なし。呼吸器: 両肺 wheeze 聴取、呼気延長あり。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし",
         "plan": "[Mock LLM response #7 — plan]",
         "subjective": "[Mock LLM response #7 — subjective]"
       },
-      "structured": {},
-      "text": "S（主観） [Mock LLM response #7 — subjective]\nO（客観） BP 126/74 mmHg, HR 84 回/分, RR 17 回/分, SpO2 96%, T 38.1°C。特記事項なし。一般状態: 意識清明、症状改善傾向。循環器: 整、心雑音なし。呼吸器: 呼吸音清明、呼吸数正常。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし\nA（評価） [Mock LLM response #7 — assessment]\nP（計画） [Mock LLM response #7 — plan]"
+      "text": "S（主観） [Mock LLM response #7 — subjective]\nO（客観） BP 125/74 mmHg, HR 85 回/分, RR 17 回/分, SpO2 95%, T 37.5°C。特記事項なし。一般状態: 意識清明、症状改善傾向。循環器: 整、心雑音なし。呼吸器: 両肺 wheeze 聴取、呼気延長あり。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし\nA（評価） [Mock LLM response #7 — assessment]\nP（計画） [Mock LLM response #7 — plan]"
     }
   },
   "doc-ENC-FORCED-0001-616171532456-08": {
@@ -334,6 +334,7 @@
       "facts_used": [
         "ctx.vitals.today",
         "physical_exam_findings.dip_then_recovery.day_6",
+        "cc_pe_consistency:respiratory",
         "ctx.day_index",
         "ctx.clinical_course_archetype"
       ],
@@ -367,12 +368,11 @@
       },
       "sections": {
         "assessment": "[Mock LLM response #8 — assessment]",
-        "objective": "BP 123/75 mmHg, HR 84 回/分, RR 22 回/分, SpO2 99%, T 37.9°C。特記事項なし。一般状態: 意識清明、症状改善傾向。循環器: 整、心雑音なし。呼吸器: 呼吸音清明、呼吸数正常。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし",
+        "objective": "BP 127/73 mmHg, HR 85 回/分, RR 14 回/分, SpO2 94%, T 37.3°C。特記事項なし。一般状態: 意識清明、症状改善傾向。循環器: 整、心雑音なし。呼吸器: 両肺 wheeze 聴取、呼気延長あり。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし",
         "plan": "[Mock LLM response #8 — plan]",
         "subjective": "[Mock LLM response #8 — subjective]"
       },
-      "structured": {},
-      "text": "S（主観） [Mock LLM response #8 — subjective]\nO（客観） BP 123/75 mmHg, HR 84 回/分, RR 22 回/分, SpO2 99%, T 37.9°C。特記事項なし。一般状態: 意識清明、症状改善傾向。循環器: 整、心雑音なし。呼吸器: 呼吸音清明、呼吸数正常。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし\nA（評価） [Mock LLM response #8 — assessment]\nP（計画） [Mock LLM response #8 — plan]"
+      "text": "S（主観） [Mock LLM response #8 — subjective]\nO（客観） BP 127/73 mmHg, HR 85 回/分, RR 14 回/分, SpO2 94%, T 37.3°C。特記事項なし。一般状態: 意識清明、症状改善傾向。循環器: 整、心雑音なし。呼吸器: 両肺 wheeze 聴取、呼気延長あり。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし\nA（評価） [Mock LLM response #8 — assessment]\nP（計画） [Mock LLM response #8 — plan]"
     }
   },
   "doc-ENC-FORCED-0001-616171532456-09": {
@@ -382,6 +382,7 @@
       "facts_used": [
         "ctx.vitals.today",
         "physical_exam_findings.dip_then_recovery.day_7",
+        "cc_pe_consistency:respiratory",
         "ctx.day_index",
         "ctx.clinical_course_archetype"
       ],
@@ -415,12 +416,11 @@
       },
       "sections": {
         "assessment": "[Mock LLM response #9 — assessment]",
-        "objective": "BP 123/73 mmHg, HR 83 回/分, RR 21 回/分, SpO2 93%, T 36.9°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし",
+        "objective": "BP 124/77 mmHg, HR 83 回/分, RR 18 回/分, SpO2 94%, T 37.0°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 両肺 wheeze 聴取、呼気延長あり。腹部: 平坦、軟。神経: 神経学的異常なし",
         "plan": "[Mock LLM response #9 — plan]",
         "subjective": "[Mock LLM response #9 — subjective]"
       },
-      "structured": {},
-      "text": "S（主観） [Mock LLM response #9 — subjective]\nO（客観） BP 123/73 mmHg, HR 83 回/分, RR 21 回/分, SpO2 93%, T 36.9°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし\nA（評価） [Mock LLM response #9 — assessment]\nP（計画） [Mock LLM response #9 — plan]"
+      "text": "S（主観） [Mock LLM response #9 — subjective]\nO（客観） BP 124/77 mmHg, HR 83 回/分, RR 18 回/分, SpO2 94%, T 37.0°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 両肺 wheeze 聴取、呼気延長あり。腹部: 平坦、軟。神経: 神経学的異常なし\nA（評価） [Mock LLM response #9 — assessment]\nP（計画） [Mock LLM response #9 — plan]"
     }
   },
   "doc-ENC-FORCED-0001-616171532456-10": {
@@ -430,6 +430,7 @@
       "facts_used": [
         "ctx.vitals.today",
         "physical_exam_findings.dip_then_recovery.day_8",
+        "cc_pe_consistency:respiratory",
         "ctx.day_index",
         "ctx.clinical_course_archetype"
       ],
@@ -463,12 +464,11 @@
       },
       "sections": {
         "assessment": "[Mock LLM response #10 — assessment]",
-        "objective": "BP 123/73 mmHg, HR 85 回/分, RR 19 回/分, SpO2 95%, T 38.1°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし",
+        "objective": "BP 126/76 mmHg, HR 82 回/分, RR 22 回/分, SpO2 94%, T 37.0°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 両肺 wheeze 聴取、呼気延長あり。腹部: 平坦、軟。神経: 神経学的異常なし",
         "plan": "[Mock LLM response #10 — plan]",
         "subjective": "[Mock LLM response #10 — subjective]"
       },
-      "structured": {},
-      "text": "S（主観） [Mock LLM response #10 — subjective]\nO（客観） BP 123/73 mmHg, HR 85 回/分, RR 19 回/分, SpO2 95%, T 38.1°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし\nA（評価） [Mock LLM response #10 — assessment]\nP（計画） [Mock LLM response #10 — plan]"
+      "text": "S（主観） [Mock LLM response #10 — subjective]\nO（客観） BP 126/76 mmHg, HR 82 回/分, RR 22 回/分, SpO2 94%, T 37.0°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 両肺 wheeze 聴取、呼気延長あり。腹部: 平坦、軟。神経: 神経学的異常なし\nA（評価） [Mock LLM response #10 — assessment]\nP（計画） [Mock LLM response #10 — plan]"
     }
   },
   "doc-ENC-FORCED-0001-616171532456-11": {
@@ -478,6 +478,7 @@
       "facts_used": [
         "ctx.vitals.today",
         "physical_exam_findings.dip_then_recovery.day_9",
+        "cc_pe_consistency:respiratory",
         "ctx.day_index",
         "ctx.clinical_course_archetype"
       ],
@@ -511,12 +512,11 @@
       },
       "sections": {
         "assessment": "[Mock LLM response #11 — assessment]",
-        "objective": "BP 122/75 mmHg, HR 81 回/分, RR 19 回/分, SpO2 97%, T 37.6°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし",
+        "objective": "BP 127/77 mmHg, HR 77 回/分, RR 17 回/分, SpO2 92%, T 37.7°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 両肺 wheeze 聴取、呼気延長あり。腹部: 平坦、軟。神経: 神経学的異常なし",
         "plan": "[Mock LLM response #11 — plan]",
         "subjective": "[Mock LLM response #11 — subjective]"
       },
-      "structured": {},
-      "text": "S（主観） [Mock LLM response #11 — subjective]\nO（客観） BP 122/75 mmHg, HR 81 回/分, RR 19 回/分, SpO2 97%, T 37.6°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし\nA（評価） [Mock LLM response #11 — assessment]\nP（計画） [Mock LLM response #11 — plan]"
+      "text": "S（主観） [Mock LLM response #11 — subjective]\nO（客観） BP 127/77 mmHg, HR 77 回/分, RR 17 回/分, SpO2 92%, T 37.7°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 両肺 wheeze 聴取、呼気延長あり。腹部: 平坦、軟。神経: 神経学的異常なし\nA（評価） [Mock LLM response #11 — assessment]\nP（計画） [Mock LLM response #11 — plan]"
     }
   },
   "doc-ENC-FORCED-0001-616171532456-12": {
@@ -526,6 +526,7 @@
       "facts_used": [
         "ctx.vitals.today",
         "physical_exam_findings.dip_then_recovery.day_10",
+        "cc_pe_consistency:respiratory",
         "ctx.day_index",
         "ctx.clinical_course_archetype"
       ],
@@ -559,12 +560,11 @@
       },
       "sections": {
         "assessment": "[Mock LLM response #12 — assessment]",
-        "objective": "BP 123/77 mmHg, HR 85 回/分, RR 19 回/分, SpO2 99%, T 38.2°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし",
+        "objective": "BP 125/75 mmHg, HR 84 回/分, RR 17 回/分, SpO2 94%, T 36.6°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 両肺 wheeze 聴取、呼気延長あり。腹部: 平坦、軟。神経: 神経学的異常なし",
         "plan": "[Mock LLM response #12 — plan]",
         "subjective": "[Mock LLM response #12 — subjective]"
       },
-      "structured": {},
-      "text": "S（主観） [Mock LLM response #12 — subjective]\nO（客観） BP 123/77 mmHg, HR 85 回/分, RR 19 回/分, SpO2 99%, T 38.2°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし\nA（評価） [Mock LLM response #12 — assessment]\nP（計画） [Mock LLM response #12 — plan]"
+      "text": "S（主観） [Mock LLM response #12 — subjective]\nO（客観） BP 125/75 mmHg, HR 84 回/分, RR 17 回/分, SpO2 94%, T 36.6°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 両肺 wheeze 聴取、呼気延長あり。腹部: 平坦、軟。神経: 神経学的異常なし\nA（評価） [Mock LLM response #12 — assessment]\nP（計画） [Mock LLM response #12 — plan]"
     }
   },
   "doc-ENC-FORCED-0001-616171532456-13": {
@@ -574,6 +574,7 @@
       "facts_used": [
         "ctx.vitals.today",
         "physical_exam_findings.dip_then_recovery.day_11",
+        "cc_pe_consistency:respiratory",
         "ctx.day_index",
         "ctx.clinical_course_archetype"
       ],
@@ -607,12 +608,11 @@
       },
       "sections": {
         "assessment": "[Mock LLM response #13 — assessment]",
-        "objective": "BP 127/78 mmHg, HR 82 回/分, RR 21 回/分, SpO2 98%, T 37.2°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし",
+        "objective": "BP 125/76 mmHg, HR 79 回/分, RR 15 回/分, SpO2 100%, T 36.3°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 両肺 wheeze 聴取、呼気延長あり。腹部: 平坦、軟。神経: 神経学的異常なし",
         "plan": "[Mock LLM response #13 — plan]",
         "subjective": "[Mock LLM response #13 — subjective]"
       },
-      "structured": {},
-      "text": "S（主観） [Mock LLM response #13 — subjective]\nO（客観） BP 127/78 mmHg, HR 82 回/分, RR 21 回/分, SpO2 98%, T 37.2°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし\nA（評価） [Mock LLM response #13 — assessment]\nP（計画） [Mock LLM response #13 — plan]"
+      "text": "S（主観） [Mock LLM response #13 — subjective]\nO（客観） BP 125/76 mmHg, HR 79 回/分, RR 15 回/分, SpO2 100%, T 36.3°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 両肺 wheeze 聴取、呼気延長あり。腹部: 平坦、軟。神経: 神経学的異常なし\nA（評価） [Mock LLM response #13 — assessment]\nP（計画） [Mock LLM response #13 — plan]"
     }
   },
   "doc-ENC-FORCED-0001-616171532456-14": {
@@ -622,6 +622,7 @@
       "facts_used": [
         "ctx.vitals.today",
         "physical_exam_findings.dip_then_recovery.day_12",
+        "cc_pe_consistency:respiratory",
         "ctx.day_index",
         "ctx.clinical_course_archetype"
       ],
@@ -655,12 +656,11 @@
       },
       "sections": {
         "assessment": "[Mock LLM response #14 — assessment]",
-        "objective": "BP 125/72 mmHg, HR 82 回/分, RR 19 回/分, SpO2 91%, T 38.8°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし",
+        "objective": "BP 126/75 mmHg, HR 80 回/分, RR 17 回/分, SpO2 96%, T 37.4°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 両肺 wheeze 聴取、呼気延長あり。腹部: 平坦、軟。神経: 神経学的異常なし",
         "plan": "[Mock LLM response #14 — plan]",
         "subjective": "[Mock LLM response #14 — subjective]"
       },
-      "structured": {},
-      "text": "S（主観） [Mock LLM response #14 — subjective]\nO（客観） BP 125/72 mmHg, HR 82 回/分, RR 19 回/分, SpO2 91%, T 38.8°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし\nA（評価） [Mock LLM response #14 — assessment]\nP（計画） [Mock LLM response #14 — plan]"
+      "text": "S（主観） [Mock LLM response #14 — subjective]\nO（客観） BP 126/75 mmHg, HR 80 回/分, RR 17 回/分, SpO2 96%, T 37.4°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 両肺 wheeze 聴取、呼気延長あり。腹部: 平坦、軟。神経: 神経学的異常なし\nA（評価） [Mock LLM response #14 — assessment]\nP（計画） [Mock LLM response #14 — plan]"
     }
   },
   "doc-ENC-FORCED-0001-616171532456-15": {
@@ -670,6 +670,7 @@
       "facts_used": [
         "ctx.vitals.today",
         "physical_exam_findings.dip_then_recovery.day_13",
+        "cc_pe_consistency:respiratory",
         "ctx.day_index",
         "ctx.clinical_course_archetype"
       ],
@@ -703,12 +704,11 @@
       },
       "sections": {
         "assessment": "[Mock LLM response #15 — assessment]",
-        "objective": "BP 124/73 mmHg, HR 84 回/分, RR 25 回/分, SpO2 94%, T 37.2°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし",
+        "objective": "BP 124/75 mmHg, HR 78 回/分, RR 19 回/分, SpO2 96%, T 36.6°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 両肺 wheeze 聴取、呼気延長あり。腹部: 平坦、軟。神経: 神経学的異常なし",
         "plan": "[Mock LLM response #15 — plan]",
         "subjective": "[Mock LLM response #15 — subjective]"
       },
-      "structured": {},
-      "text": "S（主観） [Mock LLM response #15 — subjective]\nO（客観） BP 124/73 mmHg, HR 84 回/分, RR 25 回/分, SpO2 94%, T 37.2°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし\nA（評価） [Mock LLM response #15 — assessment]\nP（計画） [Mock LLM response #15 — plan]"
+      "text": "S（主観） [Mock LLM response #15 — subjective]\nO（客観） BP 124/75 mmHg, HR 78 回/分, RR 19 回/分, SpO2 96%, T 36.6°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 両肺 wheeze 聴取、呼気延長あり。腹部: 平坦、軟。神経: 神経学的異常なし\nA（評価） [Mock LLM response #15 — assessment]\nP（計画） [Mock LLM response #15 — plan]"
     }
   },
   "doc-ENC-FORCED-0001-616171532456-16": {
@@ -718,6 +718,7 @@
       "facts_used": [
         "ctx.vitals.today",
         "physical_exam_findings.dip_then_recovery.day_14",
+        "cc_pe_consistency:respiratory",
         "ctx.day_index",
         "ctx.clinical_course_archetype"
       ],
@@ -751,12 +752,11 @@
       },
       "sections": {
         "assessment": "[Mock LLM response #16 — assessment]",
-        "objective": "BP 126/71 mmHg, HR 84 回/分, RR 20 回/分, SpO2 94%, T 38.0°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし",
+        "objective": "BP 122/74 mmHg, HR 84 回/分, RR 18 回/分, SpO2 97%, T 36.0°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 両肺 wheeze 聴取、呼気延長あり。腹部: 平坦、軟。神経: 神経学的異常なし",
         "plan": "[Mock LLM response #16 — plan]",
         "subjective": "[Mock LLM response #16 — subjective]"
       },
-      "structured": {},
-      "text": "S（主観） [Mock LLM response #16 — subjective]\nO（客観） BP 126/71 mmHg, HR 84 回/分, RR 20 回/分, SpO2 94%, T 38.0°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし\nA（評価） [Mock LLM response #16 — assessment]\nP（計画） [Mock LLM response #16 — plan]"
+      "text": "S（主観） [Mock LLM response #16 — subjective]\nO（客観） BP 122/74 mmHg, HR 84 回/分, RR 18 回/分, SpO2 97%, T 36.0°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 両肺 wheeze 聴取、呼気延長あり。腹部: 平坦、軟。神経: 神経学的異常なし\nA（評価） [Mock LLM response #16 — assessment]\nP（計画） [Mock LLM response #16 — plan]"
     }
   },
   "doc-ENC-FORCED-0001-616171532456-17": {
@@ -768,6 +768,7 @@
         "ctx.encounter.admission_datetime",
         "ctx.diagnoses",
         "ctx.encounter.chief_complaint_ja",
+        "chief_complaint_variants.copd_exacerbation[1]",
         "disease_protocol.narrative.hpi_template.onset_pattern.moderate",
         "disease_protocol.narrative.hpi_template.trigger_options[0]",
         "ctx.patient.demographics",
@@ -789,17 +790,16 @@
       },
       "sections": {
         "admission_details": "2024-06-15に入院した。",
-        "admission_diagnoses": "1. COPD急性増悪（J44.1）",
-        "admission_reason": "COPD急性増悪のため入院となった。",
-        "chief_complaint": "呼吸困難増悪・喀痰増加・喘鳴",
+        "admission_diagnoses": "1. 急性増悪を伴う慢性閉塞性肺疾患，詳細不明（J44.1）",
+        "admission_reason": "急性増悪を伴う慢性閉塞性肺疾患，詳細不明のため入院となった。",
+        "chief_complaint": "1週間前より痰の量と粘稠度が増加",
         "discharge_details": "2024-06-30自宅退院となった。",
-        "discharge_diagnoses": "COPD急性増悪（J44.1）",
+        "discharge_diagnoses": "急性増悪を伴う慢性閉塞性肺疾患，詳細不明（J44.1）",
         "discharge_instructions": "[Mock LLM response #17 — discharge_instructions]",
-        "discharge_medications": "プレドニゾロン 20mg PO daily; アモキシシリン/クラブラン酸 250mg PO TID",
+        "discharge_medications": "プレドニゾロン 20mg 経口 1日1回; アモキシシリン/クラブラン酸 250mg 経口 1日3回",
         "hospital_course": "[Mock LLM response #17 — hospital_course]",
         "present_illness": "[Mock LLM response #17 — present_illness]"
       },
-      "structured": {},
       "text": ""
     }
   },
@@ -811,10 +811,9 @@
         "ctx.encounter.chief_complaint",
         "ctx.patient.chronic_conditions",
         "ctx.adl_assessments[-1]",
+        "ctx.disease_protocol.disease_id",
         "ctx.patient.chronic_conditions",
-        "ctx.nursing_risk_assessments",
-        "ctx.patient.chronic_conditions",
-        "ctx.nursing_risk_assessments"
+        "ctx.disease_protocol.disease_id"
       ],
       "generated_at": "2020-01-01T00:00:42Z",
       "generator": "llm-mock",
@@ -824,12 +823,11 @@
       },
       "sections": {
         "adl_assessment": "Barthel Index 100/100 → 自立（食事10、入浴5、移動15、排泄10）",
-        "care_plan": "看護計画: 呼吸パターン観察、酸素投与量調整。",
-        "nursing_diagnosis": "看護診断: ガス交換障害のリスク。",
-        "nursing_history": "入院目的: 呼吸困難増悪・喀痰増加・喘鳴。既往: その他のCOPD。",
+        "care_plan": "看護計画: SpO2 持続モニタ + 酸素投与量調整、呼吸パターン・副雑音を勤務帯ごとに評価、起坐位で呼吸楽な体位保持を支援、吸入手技を毎回付き添い確認。",
+        "nursing_diagnosis": "看護診断: ガス交換障害、気道クリアランス不十分、活動耐性低下、不安 (呼吸困難関連)、ガス交換障害のリスク。",
+        "nursing_history": "入院目的: 呼吸困難増悪・喀痰増加・喘鳴。既往: COPD（慢性閉塞性肺疾患）。",
         "risk_assessments": "転倒・褥瘡リスク：評価中"
       },
-      "structured": {},
       "text": ""
     }
   },
@@ -853,8 +851,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "structured": {},
-      "text": "【看護記録(準夜)】 入院 1 日目 / 入院予定 15 日間\n患者状態: BP 123/72, HR 83, SpO2 95%, T 38.3°C、酸素投与: 経鼻カニューレ 2.7 L/min。\n投薬継続: サルブタモール、イプラトロピウム、プレドニゾロン。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(準夜)】 入院 1 日目 / 入院予定 15 日間\n患者状態: BP 126/77, HR 92, SpO2 89%, T 37.5°C、酸素投与: 経鼻カニューレ 3.6 L/min。\n投薬継続: サルブタモール、イプラトロピウム、プレドニゾロン。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-616171532456-20-night": {
@@ -877,8 +874,7 @@
         "shift": "night"
       },
       "sections": {},
-      "structured": {},
-      "text": "【看護記録(深夜)】 入院 2 日目 / 入院予定 15 日間\n患者状態: BP 125/73, HR 80, SpO2 96%, T 37.2°C、酸素投与: 経鼻カニューレ 1.1 L/min。\n投薬継続: サルブタモール、イプラトロピウム、プレドニゾロン。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(深夜)】 入院 2 日目 / 入院予定 15 日間\n患者状態: BP 125/74, HR 89, SpO2 90%, T 37.9°C、酸素投与: 経鼻カニューレ 2.4 L/min。\n投薬継続: サルブタモール、イプラトロピウム、プレドニゾロン。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-616171532456-21-day": {
@@ -901,8 +897,7 @@
         "shift": "day"
       },
       "sections": {},
-      "structured": {},
-      "text": "【看護記録(日勤)】 入院 2 日目 / 入院予定 15 日間\n患者状態: BP 125/73, HR 80, SpO2 96%, T 37.2°C、酸素投与: 経鼻カニューレ 1.1 L/min。\n投薬継続: サルブタモール、イプラトロピウム、プレドニゾロン。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(日勤)】 入院 2 日目 / 入院予定 15 日間\n患者状態: BP 125/74, HR 89, SpO2 90%, T 37.9°C、酸素投与: 経鼻カニューレ 2.4 L/min。\n投薬継続: サルブタモール、イプラトロピウム、プレドニゾロン。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-616171532456-22-evening": {
@@ -925,8 +920,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "structured": {},
-      "text": "【看護記録(準夜)】 入院 2 日目 / 入院予定 15 日間\n患者状態: BP 125/73, HR 80, SpO2 96%, T 37.2°C、酸素投与: 経鼻カニューレ 1.1 L/min。\n投薬継続: サルブタモール、イプラトロピウム、プレドニゾロン。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(準夜)】 入院 2 日目 / 入院予定 15 日間\n患者状態: BP 125/74, HR 89, SpO2 90%, T 37.9°C、酸素投与: 経鼻カニューレ 2.4 L/min。\n投薬継続: サルブタモール、イプラトロピウム、プレドニゾロン。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-616171532456-23-night": {
@@ -949,8 +943,7 @@
         "shift": "night"
       },
       "sections": {},
-      "structured": {},
-      "text": "【看護記録(深夜)】 入院 3 日目 / 入院予定 15 日間\n患者状態: BP 126/74, HR 84, SpO2 93%, T 38.2°C、酸素投与: 経鼻カニューレ 2.5 L/min。\n投薬継続: サルブタモール、イプラトロピウム、プレドニゾロン。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(深夜)】 入院 3 日目 / 入院予定 15 日間\n患者状態: BP 125/76, HR 93, SpO2 90%, T 37.3°C。\n投薬継続: サルブタモール、イプラトロピウム、プレドニゾロン。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-616171532456-24-day": {
@@ -973,8 +966,7 @@
         "shift": "day"
       },
       "sections": {},
-      "structured": {},
-      "text": "【看護記録(日勤)】 入院 3 日目 / 入院予定 15 日間\n患者状態: BP 126/74, HR 84, SpO2 93%, T 38.2°C、酸素投与: 経鼻カニューレ 2.5 L/min。\n投薬継続: サルブタモール、イプラトロピウム、プレドニゾロン。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(日勤)】 入院 3 日目 / 入院予定 15 日間\n患者状態: BP 125/76, HR 93, SpO2 90%, T 37.3°C。\n投薬継続: サルブタモール、イプラトロピウム、プレドニゾロン。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-616171532456-25-evening": {
@@ -997,8 +989,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "structured": {},
-      "text": "【看護記録(準夜)】 入院 3 日目 / 入院予定 15 日間\n患者状態: BP 126/74, HR 84, SpO2 93%, T 38.2°C、酸素投与: 経鼻カニューレ 2.5 L/min。\n投薬継続: サルブタモール、イプラトロピウム、プレドニゾロン。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(準夜)】 入院 3 日目 / 入院予定 15 日間\n患者状態: BP 125/76, HR 93, SpO2 90%, T 37.3°C。\n投薬継続: サルブタモール、イプラトロピウム、プレドニゾロン。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-616171532456-26-night": {
@@ -1021,8 +1012,7 @@
         "shift": "night"
       },
       "sections": {},
-      "structured": {},
-      "text": "【看護記録(深夜)】 入院 4 日目 / 入院予定 15 日間\n患者状態: BP 124/71, HR 89, SpO2 96%, T 38.4°C、酸素投与: 経鼻カニューレ 2.6 L/min。\n投薬継続: サルブタモール、イプラトロピウム、プレドニゾロン。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(深夜)】 入院 4 日目 / 入院予定 15 日間\n患者状態: BP 124/75, HR 89, SpO2 93%, T 36.4°C。\n投薬継続: サルブタモール、イプラトロピウム、プレドニゾロン。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-616171532456-27-day": {
@@ -1045,8 +1035,7 @@
         "shift": "day"
       },
       "sections": {},
-      "structured": {},
-      "text": "【看護記録(日勤)】 入院 4 日目 / 入院予定 15 日間\n患者状態: BP 124/71, HR 89, SpO2 96%, T 38.4°C、酸素投与: 経鼻カニューレ 2.6 L/min。\n投薬継続: サルブタモール、イプラトロピウム、プレドニゾロン。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(日勤)】 入院 4 日目 / 入院予定 15 日間\n患者状態: BP 124/75, HR 89, SpO2 93%, T 36.4°C。\n投薬継続: サルブタモール、イプラトロピウム、プレドニゾロン。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-616171532456-28-evening": {
@@ -1069,8 +1058,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "structured": {},
-      "text": "【看護記録(準夜)】 入院 4 日目 / 入院予定 15 日間\n患者状態: BP 124/71, HR 89, SpO2 96%, T 38.4°C、酸素投与: 経鼻カニューレ 2.6 L/min。\n投薬継続: サルブタモール、イプラトロピウム、プレドニゾロン。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(準夜)】 入院 4 日目 / 入院予定 15 日間\n患者状態: BP 124/75, HR 89, SpO2 93%, T 36.4°C。\n投薬継続: サルブタモール、イプラトロピウム、プレドニゾロン。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-616171532456-29-night": {
@@ -1093,8 +1081,7 @@
         "shift": "night"
       },
       "sections": {},
-      "structured": {},
-      "text": "【看護記録(深夜)】 入院 5 日目 / 入院予定 15 日間\n患者状態: BP 129/76, HR 82, SpO2 93%, T 36.9°C、酸素投与: 経鼻カニューレ 2.3 L/min。\n投薬継続: サルブタモール、イプラトロピウム、プレドニゾロン。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(深夜)】 入院 5 日目 / 入院予定 15 日間\n患者状態: BP 124/74, HR 84, SpO2 94%, T 37.3°C。\n投薬継続: サルブタモール、イプラトロピウム、プレドニゾロン。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-616171532456-30-day": {
@@ -1117,8 +1104,7 @@
         "shift": "day"
       },
       "sections": {},
-      "structured": {},
-      "text": "【看護記録(日勤)】 入院 5 日目 / 入院予定 15 日間\n患者状態: BP 129/76, HR 82, SpO2 93%, T 36.9°C、酸素投与: 経鼻カニューレ 2.3 L/min。\n投薬継続: サルブタモール、イプラトロピウム、プレドニゾロン。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(日勤)】 入院 5 日目 / 入院予定 15 日間\n患者状態: BP 124/74, HR 84, SpO2 94%, T 37.3°C。\n投薬継続: サルブタモール、イプラトロピウム、プレドニゾロン。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-616171532456-31-evening": {
@@ -1141,8 +1127,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "structured": {},
-      "text": "【看護記録(準夜)】 入院 5 日目 / 入院予定 15 日間\n患者状態: BP 129/76, HR 82, SpO2 93%, T 36.9°C、酸素投与: 経鼻カニューレ 2.3 L/min。\n投薬継続: サルブタモール、イプラトロピウム、プレドニゾロン。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(準夜)】 入院 5 日目 / 入院予定 15 日間\n患者状態: BP 124/74, HR 84, SpO2 94%, T 37.3°C。\n投薬継続: サルブタモール、イプラトロピウム、プレドニゾロン。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-616171532456-32-night": {
@@ -1165,8 +1150,7 @@
         "shift": "night"
       },
       "sections": {},
-      "structured": {},
-      "text": "【看護記録(深夜)】 入院 6 日目 / 入院予定 15 日間\n患者状態: BP 126/74, HR 84, SpO2 96%, T 38.1°C、酸素投与: 経鼻カニューレ 2.2 L/min。\n投薬継続: サルブタモール、イプラトロピウム、プレドニゾロン。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(深夜)】 入院 6 日目 / 入院予定 15 日間\n患者状態: BP 125/74, HR 85, SpO2 95%, T 37.5°C。\n投薬継続: サルブタモール、イプラトロピウム、プレドニゾロン。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-616171532456-33-day": {
@@ -1189,8 +1173,7 @@
         "shift": "day"
       },
       "sections": {},
-      "structured": {},
-      "text": "【看護記録(日勤)】 入院 6 日目 / 入院予定 15 日間\n患者状態: BP 126/74, HR 84, SpO2 96%, T 38.1°C、酸素投与: 経鼻カニューレ 2.2 L/min。\n投薬継続: サルブタモール、イプラトロピウム、プレドニゾロン。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(日勤)】 入院 6 日目 / 入院予定 15 日間\n患者状態: BP 125/74, HR 85, SpO2 95%, T 37.5°C。\n投薬継続: サルブタモール、イプラトロピウム、プレドニゾロン。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-616171532456-34-evening": {
@@ -1213,8 +1196,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "structured": {},
-      "text": "【看護記録(準夜)】 入院 6 日目 / 入院予定 15 日間\n患者状態: BP 126/74, HR 84, SpO2 96%, T 38.1°C、酸素投与: 経鼻カニューレ 2.2 L/min。\n投薬継続: サルブタモール、イプラトロピウム、プレドニゾロン。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(準夜)】 入院 6 日目 / 入院予定 15 日間\n患者状態: BP 125/74, HR 85, SpO2 95%, T 37.5°C。\n投薬継続: サルブタモール、イプラトロピウム、プレドニゾロン。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-616171532456-35-night": {
@@ -1237,8 +1219,7 @@
         "shift": "night"
       },
       "sections": {},
-      "structured": {},
-      "text": "【看護記録(深夜)】 入院 7 日目 / 入院予定 15 日間\n患者状態: BP 123/75, HR 84, SpO2 98%, T 37.9°C、酸素投与: 経鼻カニューレ 2.3 L/min。\n投薬継続: サルブタモール、イプラトロピウム、プレドニゾロン。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(深夜)】 入院 7 日目 / 入院予定 15 日間\n患者状態: BP 127/73, HR 85, SpO2 94%, T 37.3°C。\n投薬継続: サルブタモール、イプラトロピウム、プレドニゾロン。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-616171532456-36-day": {
@@ -1261,8 +1242,7 @@
         "shift": "day"
       },
       "sections": {},
-      "structured": {},
-      "text": "【看護記録(日勤)】 入院 7 日目 / 入院予定 15 日間\n患者状態: BP 123/75, HR 84, SpO2 98%, T 37.9°C、酸素投与: 経鼻カニューレ 2.3 L/min。\n投薬継続: サルブタモール、イプラトロピウム、プレドニゾロン。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(日勤)】 入院 7 日目 / 入院予定 15 日間\n患者状態: BP 127/73, HR 85, SpO2 94%, T 37.3°C。\n投薬継続: サルブタモール、イプラトロピウム、プレドニゾロン。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-616171532456-37-evening": {
@@ -1285,8 +1265,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "structured": {},
-      "text": "【看護記録(準夜)】 入院 7 日目 / 入院予定 15 日間\n患者状態: BP 123/75, HR 84, SpO2 98%, T 37.9°C、酸素投与: 経鼻カニューレ 2.3 L/min。\n投薬継続: サルブタモール、イプラトロピウム、プレドニゾロン。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(準夜)】 入院 7 日目 / 入院予定 15 日間\n患者状態: BP 127/73, HR 85, SpO2 94%, T 37.3°C。\n投薬継続: サルブタモール、イプラトロピウム、プレドニゾロン。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-616171532456-38-night": {
@@ -1309,8 +1288,7 @@
         "shift": "night"
       },
       "sections": {},
-      "structured": {},
-      "text": "【看護記録(深夜)】 入院 8 日目 / 入院予定 15 日間\n患者状態: BP 123/73, HR 83, SpO2 93%, T 36.9°C、酸素投与: 経鼻カニューレ 1.3 L/min。\n投薬継続: サルブタモール、イプラトロピウム、プレドニゾロン。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(深夜)】 入院 8 日目 / 入院予定 15 日間\n患者状態: BP 124/77, HR 83, SpO2 94%, T 37.0°C。\n投薬継続: サルブタモール、イプラトロピウム、プレドニゾロン。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-616171532456-39-day": {
@@ -1333,8 +1311,7 @@
         "shift": "day"
       },
       "sections": {},
-      "structured": {},
-      "text": "【看護記録(日勤)】 入院 8 日目 / 入院予定 15 日間\n患者状態: BP 123/73, HR 83, SpO2 93%, T 36.9°C、酸素投与: 経鼻カニューレ 1.3 L/min。\n投薬継続: サルブタモール、イプラトロピウム、プレドニゾロン。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(日勤)】 入院 8 日目 / 入院予定 15 日間\n患者状態: BP 124/77, HR 83, SpO2 94%, T 37.0°C。\n投薬継続: サルブタモール、イプラトロピウム、プレドニゾロン。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-616171532456-40-evening": {
@@ -1357,8 +1334,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "structured": {},
-      "text": "【看護記録(準夜)】 入院 8 日目 / 入院予定 15 日間\n患者状態: BP 123/73, HR 83, SpO2 93%, T 36.9°C、酸素投与: 経鼻カニューレ 1.3 L/min。\n投薬継続: サルブタモール、イプラトロピウム、プレドニゾロン。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(準夜)】 入院 8 日目 / 入院予定 15 日間\n患者状態: BP 124/77, HR 83, SpO2 94%, T 37.0°C。\n投薬継続: サルブタモール、イプラトロピウム、プレドニゾロン。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-616171532456-41-night": {
@@ -1381,8 +1357,7 @@
         "shift": "night"
       },
       "sections": {},
-      "structured": {},
-      "text": "【看護記録(深夜)】 入院 9 日目 / 入院予定 15 日間\n患者状態: BP 123/73, HR 85, SpO2 94%, T 38.1°C、酸素投与: 経鼻カニューレ 1.2 L/min。\n投薬継続: サルブタモール、イプラトロピウム、プレドニゾロン。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(深夜)】 入院 9 日目 / 入院予定 15 日間\n患者状態: BP 126/76, HR 82, SpO2 94%, T 37.0°C。\n投薬継続: サルブタモール、イプラトロピウム、プレドニゾロン。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-616171532456-42-day": {
@@ -1405,8 +1380,7 @@
         "shift": "day"
       },
       "sections": {},
-      "structured": {},
-      "text": "【看護記録(日勤)】 入院 9 日目 / 入院予定 15 日間\n患者状態: BP 123/73, HR 85, SpO2 94%, T 38.1°C、酸素投与: 経鼻カニューレ 1.2 L/min。\n投薬継続: サルブタモール、イプラトロピウム、プレドニゾロン。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(日勤)】 入院 9 日目 / 入院予定 15 日間\n患者状態: BP 126/76, HR 82, SpO2 94%, T 37.0°C。\n投薬継続: サルブタモール、イプラトロピウム、プレドニゾロン。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-616171532456-43-evening": {
@@ -1429,8 +1403,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "structured": {},
-      "text": "【看護記録(準夜)】 入院 9 日目 / 入院予定 15 日間\n患者状態: BP 123/73, HR 85, SpO2 94%, T 38.1°C、酸素投与: 経鼻カニューレ 1.2 L/min。\n投薬継続: サルブタモール、イプラトロピウム、プレドニゾロン。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(準夜)】 入院 9 日目 / 入院予定 15 日間\n患者状態: BP 126/76, HR 82, SpO2 94%, T 37.0°C。\n投薬継続: サルブタモール、イプラトロピウム、プレドニゾロン。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-616171532456-44-night": {
@@ -1453,8 +1426,7 @@
         "shift": "night"
       },
       "sections": {},
-      "structured": {},
-      "text": "【看護記録(深夜)】 入院 10 日目 / 入院予定 15 日間\n患者状態: BP 122/75, HR 81, SpO2 96%, T 37.6°C、酸素投与: 経鼻カニューレ 1.9 L/min。\n投薬継続: サルブタモール、イプラトロピウム、プレドニゾロン。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(深夜)】 入院 10 日目 / 入院予定 15 日間\n患者状態: BP 127/77, HR 77, SpO2 92%, T 37.7°C。\n投薬継続: サルブタモール、イプラトロピウム、プレドニゾロン。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-616171532456-45-day": {
@@ -1477,8 +1449,7 @@
         "shift": "day"
       },
       "sections": {},
-      "structured": {},
-      "text": "【看護記録(日勤)】 入院 10 日目 / 入院予定 15 日間\n患者状態: BP 122/75, HR 81, SpO2 96%, T 37.6°C、酸素投与: 経鼻カニューレ 1.9 L/min。\n投薬継続: サルブタモール、イプラトロピウム、プレドニゾロン。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(日勤)】 入院 10 日目 / 入院予定 15 日間\n患者状態: BP 127/77, HR 77, SpO2 92%, T 37.7°C。\n投薬継続: サルブタモール、イプラトロピウム、プレドニゾロン。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-616171532456-46-evening": {
@@ -1501,8 +1472,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "structured": {},
-      "text": "【看護記録(準夜)】 入院 10 日目 / 入院予定 15 日間\n患者状態: BP 122/75, HR 81, SpO2 96%, T 37.6°C、酸素投与: 経鼻カニューレ 1.9 L/min。\n投薬継続: サルブタモール、イプラトロピウム、プレドニゾロン。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(準夜)】 入院 10 日目 / 入院予定 15 日間\n患者状態: BP 127/77, HR 77, SpO2 92%, T 37.7°C。\n投薬継続: サルブタモール、イプラトロピウム、プレドニゾロン。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-616171532456-47-night": {
@@ -1525,8 +1495,7 @@
         "shift": "night"
       },
       "sections": {},
-      "structured": {},
-      "text": "【看護記録(深夜)】 入院 11 日目 / 入院予定 15 日間\n患者状態: BP 123/77, HR 85, SpO2 98%, T 38.2°C、酸素投与: 経鼻カニューレ 1.7 L/min。\n投薬継続: サルブタモール、イプラトロピウム、プレドニゾロン。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(深夜)】 入院 11 日目 / 入院予定 15 日間\n患者状態: BP 125/75, HR 84, SpO2 94%, T 36.6°C。\n投薬継続: サルブタモール、イプラトロピウム、プレドニゾロン。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-616171532456-48-day": {
@@ -1549,8 +1518,7 @@
         "shift": "day"
       },
       "sections": {},
-      "structured": {},
-      "text": "【看護記録(日勤)】 入院 11 日目 / 入院予定 15 日間\n患者状態: BP 123/77, HR 85, SpO2 98%, T 38.2°C、酸素投与: 経鼻カニューレ 1.7 L/min。\n投薬継続: サルブタモール、イプラトロピウム、プレドニゾロン。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(日勤)】 入院 11 日目 / 入院予定 15 日間\n患者状態: BP 125/75, HR 84, SpO2 94%, T 36.6°C。\n投薬継続: サルブタモール、イプラトロピウム、プレドニゾロン。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-616171532456-49-evening": {
@@ -1573,8 +1541,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "structured": {},
-      "text": "【看護記録(準夜)】 入院 11 日目 / 入院予定 15 日間\n患者状態: BP 123/77, HR 85, SpO2 98%, T 38.2°C、酸素投与: 経鼻カニューレ 1.7 L/min。\n投薬継続: サルブタモール、イプラトロピウム、プレドニゾロン。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(準夜)】 入院 11 日目 / 入院予定 15 日間\n患者状態: BP 125/75, HR 84, SpO2 94%, T 36.6°C。\n投薬継続: サルブタモール、イプラトロピウム、プレドニゾロン。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-616171532456-50-night": {
@@ -1597,8 +1564,7 @@
         "shift": "night"
       },
       "sections": {},
-      "structured": {},
-      "text": "【看護記録(深夜)】 入院 12 日目 / 入院予定 15 日間\n患者状態: BP 127/78, HR 82, SpO2 98%, T 37.2°C、酸素投与: 経鼻カニューレ 1.7 L/min。\n投薬継続: サルブタモール、イプラトロピウム、プレドニゾロン。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(深夜)】 入院 12 日目 / 入院予定 15 日間\n患者状態: BP 125/76, HR 79, SpO2 100%, T 36.3°C。\n投薬継続: サルブタモール、イプラトロピウム、プレドニゾロン。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-616171532456-51-day": {
@@ -1621,8 +1587,7 @@
         "shift": "day"
       },
       "sections": {},
-      "structured": {},
-      "text": "【看護記録(日勤)】 入院 12 日目 / 入院予定 15 日間\n患者状態: BP 127/78, HR 82, SpO2 98%, T 37.2°C、酸素投与: 経鼻カニューレ 1.7 L/min。\n投薬継続: サルブタモール、イプラトロピウム、プレドニゾロン。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(日勤)】 入院 12 日目 / 入院予定 15 日間\n患者状態: BP 125/76, HR 79, SpO2 100%, T 36.3°C。\n投薬継続: サルブタモール、イプラトロピウム、プレドニゾロン。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-616171532456-52-evening": {
@@ -1645,8 +1610,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "structured": {},
-      "text": "【看護記録(準夜)】 入院 12 日目 / 入院予定 15 日間\n患者状態: BP 127/78, HR 82, SpO2 98%, T 37.2°C、酸素投与: 経鼻カニューレ 1.7 L/min。\n投薬継続: サルブタモール、イプラトロピウム、プレドニゾロン。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(準夜)】 入院 12 日目 / 入院予定 15 日間\n患者状態: BP 125/76, HR 79, SpO2 100%, T 36.3°C。\n投薬継続: サルブタモール、イプラトロピウム、プレドニゾロン。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-616171532456-53-night": {
@@ -1669,8 +1633,7 @@
         "shift": "night"
       },
       "sections": {},
-      "structured": {},
-      "text": "【看護記録(深夜)】 入院 13 日目 / 入院予定 15 日間\n患者状態: BP 125/72, HR 82, SpO2 91%, T 38.8°C、酸素投与: 経鼻カニューレ 3.9 L/min。\n投薬継続: サルブタモール、イプラトロピウム、プレドニゾロン。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(深夜)】 入院 13 日目 / 入院予定 15 日間\n患者状態: BP 126/75, HR 80, SpO2 96%, T 37.4°C。\n投薬継続: サルブタモール、イプラトロピウム、プレドニゾロン。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-616171532456-54-day": {
@@ -1693,8 +1656,7 @@
         "shift": "day"
       },
       "sections": {},
-      "structured": {},
-      "text": "【看護記録(日勤)】 入院 13 日目 / 入院予定 15 日間\n患者状態: BP 125/72, HR 82, SpO2 91%, T 38.8°C、酸素投与: 経鼻カニューレ 3.9 L/min。\n投薬継続: サルブタモール、イプラトロピウム、プレドニゾロン。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(日勤)】 入院 13 日目 / 入院予定 15 日間\n患者状態: BP 126/75, HR 80, SpO2 96%, T 37.4°C。\n投薬継続: サルブタモール、イプラトロピウム、プレドニゾロン。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-616171532456-55-evening": {
@@ -1717,8 +1679,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "structured": {},
-      "text": "【看護記録(準夜)】 入院 13 日目 / 入院予定 15 日間\n患者状態: BP 125/72, HR 82, SpO2 91%, T 38.8°C、酸素投与: 経鼻カニューレ 3.9 L/min。\n投薬継続: サルブタモール、イプラトロピウム、プレドニゾロン。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(準夜)】 入院 13 日目 / 入院予定 15 日間\n患者状態: BP 126/75, HR 80, SpO2 96%, T 37.4°C。\n投薬継続: サルブタモール、イプラトロピウム、プレドニゾロン。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-616171532456-56-night": {
@@ -1741,8 +1702,7 @@
         "shift": "night"
       },
       "sections": {},
-      "structured": {},
-      "text": "【看護記録(深夜)】 入院 14 日目 / 入院予定 15 日間\n患者状態: BP 124/73, HR 84, SpO2 93%, T 37.2°C、酸素投与: 経鼻カニューレ 1.5 L/min。\n投薬継続: サルブタモール、イプラトロピウム、プレドニゾロン。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(深夜)】 入院 14 日目 / 入院予定 15 日間\n患者状態: BP 124/75, HR 78, SpO2 96%, T 36.6°C。\n投薬継続: サルブタモール、イプラトロピウム、プレドニゾロン。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-616171532456-57-day": {
@@ -1765,8 +1725,7 @@
         "shift": "day"
       },
       "sections": {},
-      "structured": {},
-      "text": "【看護記録(日勤)】 入院 14 日目 / 入院予定 15 日間\n患者状態: BP 124/73, HR 84, SpO2 93%, T 37.2°C、酸素投与: 経鼻カニューレ 1.5 L/min。\n投薬継続: サルブタモール、イプラトロピウム、プレドニゾロン。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(日勤)】 入院 14 日目 / 入院予定 15 日間\n患者状態: BP 124/75, HR 78, SpO2 96%, T 36.6°C。\n投薬継続: サルブタモール、イプラトロピウム、プレドニゾロン。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-616171532456-58-evening": {
@@ -1789,8 +1748,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "structured": {},
-      "text": "【看護記録(準夜)】 入院 14 日目 / 入院予定 15 日間\n患者状態: BP 124/73, HR 84, SpO2 93%, T 37.2°C、酸素投与: 経鼻カニューレ 1.5 L/min。\n投薬継続: サルブタモール、イプラトロピウム、プレドニゾロン。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(準夜)】 入院 14 日目 / 入院予定 15 日間\n患者状態: BP 124/75, HR 78, SpO2 96%, T 36.6°C。\n投薬継続: サルブタモール、イプラトロピウム、プレドニゾロン。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-616171532456-59-night": {
@@ -1813,8 +1771,7 @@
         "shift": "night"
       },
       "sections": {},
-      "structured": {},
-      "text": "【看護記録(深夜)】 入院 15 日目 / 入院予定 15 日間\n患者状態: BP 126/71, HR 84, SpO2 94%, T 38.0°C、酸素投与: 経鼻カニューレ 1.9 L/min。\n投薬継続: サルブタモール、イプラトロピウム、プレドニゾロン。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(深夜)】 入院 15 日目 / 入院予定 15 日間\n患者状態: BP 122/74, HR 84, SpO2 97%, T 36.0°C。\n投薬継続: サルブタモール、イプラトロピウム、プレドニゾロン。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-616171532456-60-day": {
@@ -1837,8 +1794,7 @@
         "shift": "day"
       },
       "sections": {},
-      "structured": {},
-      "text": "【看護記録(日勤)】 入院 15 日目 / 入院予定 15 日間\n患者状態: BP 126/71, HR 84, SpO2 94%, T 38.0°C、酸素投与: 経鼻カニューレ 1.9 L/min。\n投薬継続: サルブタモール、イプラトロピウム、プレドニゾロン。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(日勤)】 入院 15 日目 / 入院予定 15 日間\n患者状態: BP 122/74, HR 84, SpO2 97%, T 36.0°C。\n投薬継続: サルブタモール、イプラトロピウム、プレドニゾロン。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-616171532456-61-evening": {
@@ -1861,8 +1817,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "structured": {},
-      "text": "【看護記録(準夜)】 入院 15 日目 / 入院予定 15 日間\n患者状態: BP 126/71, HR 84, SpO2 94%, T 38.0°C、酸素投与: 経鼻カニューレ 1.9 L/min。\n投薬継続: サルブタモール、イプラトロピウム、プレドニゾロン。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(準夜)】 入院 15 日目 / 入院予定 15 日間\n患者状態: BP 122/74, HR 84, SpO2 97%, T 36.0°C。\n投薬継続: サルブタモール、イプラトロピウム、プレドニゾロン。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-616171532456-62": {
@@ -1873,7 +1828,7 @@
         "ctx.los_days",
         "ctx.complications_occurred",
         "ctx.intake_output_records",
-        "ctx.patient.chronic_conditions",
+        "ctx.disease_protocol.disease_id",
         "ctx.adl_assessments[-1]"
       ],
       "generated_at": "2020-01-01T00:00:42Z",
@@ -1883,12 +1838,11 @@
         "lang": "ja"
       },
       "sections": {
-        "admission_status": "入院期間: 15日間。入院理由: 呼吸困難増悪・喀痰増加・喘鳴。経過中の合併症: respiratory_failure_requiring_niv、intubation_required。退院基準を満たし退院となった。",
+        "admission_status": "入院期間: 15日間。入院理由: 呼吸困難増悪・喀痰増加・喘鳴。経過中の合併症: 心不整脈。退院基準を満たし退院となった。",
         "discharge_readiness": "退院準備: 退院時 Barthel 100/100。",
-        "nursing_interventions_provided": "入院期間合計 IN 19140 mL / OUT 14738 mL (差 +4402 mL)。",
-        "patient_education": "患者教育: 禁煙、呼吸リハビリ継続。"
+        "nursing_interventions_provided": "入院期間合計 IN 22621 mL / OUT 15245 mL (差 +7376 mL)。",
+        "patient_education": "患者教育: 吸入器手技の再確認 (定量吸入・スペーサ使用法)、増悪の早期サイン認識 (痰の色調変化・SpO2 低下)、禁煙継続支援と受動喫煙回避、呼吸リハビリの継続方法。"
       },
-      "structured": {},
       "text": ""
     }
   },
@@ -1901,6 +1855,7 @@
         "encounter.bed_number",
         "ctx.diagnoses",
         "ctx.encounter.chief_complaint_ja",
+        "chief_complaint_variants.copd_exacerbation[1]",
         "disease_protocol.target_los"
       ],
       "generated_at": "2020-01-01T00:00:42Z",
@@ -1910,18 +1865,17 @@
         "lang": "ja"
       },
       "sections": {
-        "diagnosis": "COPD急性増悪（J44.1）",
+        "diagnosis": "急性増悪を伴う慢性閉塞性肺疾患，詳細不明（J44.1）",
         "estimated_los": "推定入院期間：約12日間",
         "other_plans": "その他：看護計画・リハビリテーション等の計画については看護記録を参照。",
         "other_staff": "担当なし",
         "special_nutrition_management": "特別な栄養管理の必要性：無",
         "surgery_schedule": "手術：予定なし",
-        "symptoms": "呼吸困難増悪・喀痰増加・喘鳴",
+        "symptoms": "1週間前より痰の量と粘稠度が増加",
         "test_schedule": "検査：担当医の判断により決定",
-        "treatment_plan": "【評価】主訴「呼吸困難増悪・喀痰増加・喘鳴」で入院。病態: copd_exacerbation (中等度)。併存疾患: その他のCOPD。\n【方針】予定入院期間: 約15日。薬物療法: サルブタモール、イプラトロピウム、プレドニゾロン、ステロイド: プレドニゾロン 40mg 経口 1日1回 x5 日間、DVT予防: エノキサパリン 2000IU 皮下注 1日1回、解熱剤: アセトアミノフェン 500mg 経口 6時間毎 頓用 体温 >= 38.5。",
+        "treatment_plan": "【評価】主訴「呼吸困難増悪・喀痰増加・喘鳴」で入院。 病態: COPD 増悪 (中等度)。 併存疾患: 慢性閉塞性肺疾患，詳細不明。\n【方針】予定入院期間: 約12日。 薬物療法: サルブタモール、イプラトロピウム、プレドニゾロン、ステロイド: プレドニゾロン 40mg 経口 1日1回 x5 日間、解熱剤: アセトアミノフェン 500mg 経口 6時間毎 頓用 体温 >= 38.5。",
         "ward_and_room": "病棟：4E　病室：4E-04"
       },
-      "structured": {},
       "text": ""
     }
   },
@@ -1954,9 +1908,8 @@
         "nutrition_supply": "エネルギー：1521kcal／日　たんぱく質：60.8g／日　補給方法：経口",
         "other_issues": "その他栄養管理上の課題：特記事項なし",
         "reassessment_timing": "栄養状態の再評価：入院後1週間を目安に実施",
-        "ward_and_physician": "病棟：4E　担当医師：若林 淳 医師"
+        "ward_and_physician": "病棟：4E　担当医師：若林 淳"
       },
-      "structured": {},
       "text": ""
     }
   },
@@ -1966,9 +1919,11 @@
     "narrative": {
       "facts_used": [
         "ctx.encounter.chief_complaint_ja",
+        "chief_complaint_variants.copd_exacerbation[1]",
         "ctx.vitals[0]",
+        "ctx.orders.ed",
         "ctx.lab_results.abnormal",
-        "ctx.procedures.ed",
+        "ctx.ed_assessment.state_composed",
         "ctx.encounter.disposition"
       ],
       "generated_at": "2020-01-01T00:00:42Z",
@@ -1979,14 +1934,13 @@
       },
       "sections": {
         "assessment": "[Mock LLM response #18 — assessment]",
-        "chief_complaint": "呼吸困難増悪・喀痰増加・喘鳴",
+        "chief_complaint": "1週間前より痰の量と粘稠度が増加",
         "disposition": "[Mock LLM response #18 — disposition]",
-        "ed_workup": "検査: WBC 10583.0 /uL [H]、CRP 2.8 mg/L [H]、PCT 0.38 ng/mL [H]、クレアチニン 1.18 mg/dL [H]",
+        "ed_workup": "検査: CBC (全血球算定)、CRP、ABG (動脈血ガス)、PCT、クレアチニン、BUN、Na、K。画像: 胸部レントゲン (正面・側面)、胸部 CT、胸部レントゲン (正面・側面)、胸部ポータブルレントゲン。投薬: サルブタモール、イプラトロピウム、プレドニゾロン、ステロイド: プレドニゾロン 40mg 経口 1日1回 x5 日間、解熱剤: アセトアミノフェン 500mg 経口 6時間毎 頓用 体温 >= 38.5、セフトリアキソン 1g 静注 1日1回。処置指示: 気管支拡張薬: サルブタモール 2.5mg ネブライザー 4時間毎 (1時間毎 頓用 急性期)、気管支拡張薬: イプラトロピウム 0.5mg ネブライザー 6時間毎。異常値: WBC 10583.0 /uL [H]、CRP 2.8 mg/L [H]、PCT 0.38 ng/mL [H]、クレアチニン 1.18 mg/dL [H]",
         "hpi": "[Mock LLM response #18 — hpi]",
-        "physical_exam": "来院時所見: BP 123/72 mmHg, HR 83 回/分, RR 21 回/分, SpO2 96%, T 38.3°C。特記の身体所見なし。",
+        "physical_exam": "来院時所見: BP 126/77 mmHg, HR 92 回/分, RR 24 回/分, SpO2 89%, T 37.5°C。特記の身体所見なし。",
         "triage_details": "トリアージ情報：未記録"
       },
-      "structured": {},
       "text": ""
     }
   },
@@ -2002,7 +1956,6 @@
         "lang": "ja"
       },
       "sections": {},
-      "structured": {},
       "text": "トリアージ情報：未記録"
     }
   }

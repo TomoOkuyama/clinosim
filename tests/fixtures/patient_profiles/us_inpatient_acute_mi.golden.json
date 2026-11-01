@@ -10,8 +10,8 @@
         "ctx.patient.smoking_status",
         "ctx.patient.alcohol_use",
         "ctx.patient.occupation",
-        "generic:physical_exam_en",
-        "generic:daily_trajectory_en"
+        "ctx.vitals[day_0]",
+        "composed:cif_state_en"
       ],
       "generated_at": "2020-01-01T00:00:42Z",
       "generator": "template",
@@ -21,16 +21,15 @@
       },
       "sections": {
         "allergies": "No known drug allergies (NKDA)",
-        "assessment_and_plan": "Assessment: Clinical assessment ongoing. Plan: Continue current management.",
+        "assessment_and_plan": "Assessment: Admitted for evaluation and management of: Chest pain, diaphoresis, dyspnea. Working diagnosis: acute myocardial infarction (severity: severe). Comorbidities: Atherosclerotic heart disease of native coronary artery without angina pectoris, Essential (primary) hypertension, Hyperlipidemia, unspecified. Plan: Estimated length of stay: ~7 days. Initial medications: Aspirin, Ticagrelor, Nitroglycerin, Acetaminophen.",
         "chief_complaint": "Chest pain, diaphoresis, dyspnea",
         "family_history": "No significant family history",
         "hpi": "Patient reports rapid symptom worsening prompting today's presentation.",
         "medications_at_home": "No home medications",
-        "past_medical_history": "Chronic ischemic heart disease [I25]; Essential (primary) hypertension [I10]; Disorders of lipoprotein metabolism and other lipidemias [E78]",
-        "physical_examination": "No special findings",
+        "past_medical_history": "Atherosclerotic heart disease of native coronary artery without angina pectoris [I25.10]; Essential (primary) hypertension [I10]; Hyperlipidemia, unspecified [E78.5]",
+        "physical_examination": "Vital signs: BP 116/72 mmHg, HR 111/min, T 37.5°C, SpO2 96% (RA), RR 18/min. General: no additional exam findings recorded.",
         "social_history": "Smoking: Non-smoker; Alcohol: Non-drinker; Occupation: Other"
       },
-      "structured": {},
       "text": ""
     }
   },
@@ -39,7 +38,12 @@
     "encounter_id": "ENC-FORCED-0001-308142489017",
     "narrative": {
       "facts_used": [
-        "generic:progress_note_soap_en",
+        "composed:progress_note_soap_en",
+        "ctx.progress_subjective.state_composed.en",
+        "ctx.vitals[day_0].en",
+        "ctx.progress_assessment.state_composed.en",
+        "ctx.progress_plan.state_composed.en",
+        "ctx.safety_skips",
         "ctx.day_index",
         "ctx.clinical_course_archetype"
       ],
@@ -72,13 +76,12 @@
         }
       },
       "sections": {
-        "assessment": "Clinical assessment ongoing",
-        "objective": "No special findings",
-        "plan": "Continue current management",
-        "subjective": "No special findings"
+        "assessment": "Notable labs today: LDL 113.0 mg/dL [H], troponin I 68.799 ng/mL [H], troponin I 98.31 ng/mL [H], CK-MB 58.5 ng/mL [H].",
+        "objective": "BP 116/72 mmHg, HR 111/min, T 37.5°C, SpO2 96% (RA), RR 18/min",
+        "plan": "Continue current medications: Aspirin, Ticagrelor, Nitroglycerin, Acetaminophen.\n- Heparin avoided due to concurrent Aspirin; Acetaminophen prescribed instead.",
+        "subjective": "Hospital day 1. Pain persists (NRS 6). New decrease in level of consciousness (AVPU V); orientation being monitored."
       },
-      "structured": {},
-      "text": "S: No special findings\nO: No special findings\nA: Clinical assessment ongoing\nP: Continue current management"
+      "text": "S: Hospital day 1. Pain persists (NRS 6). New decrease in level of consciousness (AVPU V); orientation being monitored.\nO: BP 116/72 mmHg, HR 111/min, T 37.5°C, SpO2 96% (RA), RR 18/min\nA: Notable labs today: LDL 113.0 mg/dL [H], troponin I 68.799 ng/mL [H], troponin I 98.31 ng/mL [H], CK-MB 58.5 ng/mL [H].\nP: Continue current medications: Aspirin, Ticagrelor, Nitroglycerin, Acetaminophen.\n- Heparin avoided due to concurrent Aspirin; Acetaminophen prescribed instead."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-03": {
@@ -86,7 +89,12 @@
     "encounter_id": "ENC-FORCED-0001-308142489017",
     "narrative": {
       "facts_used": [
-        "generic:progress_note_soap_en",
+        "composed:progress_note_soap_en",
+        "ctx.progress_subjective.state_composed.en",
+        "ctx.vitals[day_1].en",
+        "ctx.progress_assessment.state_composed.en",
+        "ctx.progress_plan.state_composed.en",
+        "ctx.safety_skips",
         "ctx.day_index",
         "ctx.clinical_course_archetype"
       ],
@@ -119,13 +127,12 @@
         }
       },
       "sections": {
-        "assessment": "Clinical assessment ongoing",
-        "objective": "No special findings",
-        "plan": "Continue current management",
-        "subjective": "No special findings"
+        "assessment": "Notable labs today: troponin I 83.849 ng/mL [H], CK-MB 42.9 ng/mL [H], BNP 108.4 pg/mL [H], glucose 117.0 mg/dL [H].",
+        "objective": "BP 117/74 mmHg, HR 109/min, T 36.9°C, SpO2 94% (RA), RR 22/min",
+        "plan": "Continue current medications: Aspirin, Ticagrelor, Nitroglycerin, Acetaminophen.\n- Heparin avoided due to concurrent Aspirin; Acetaminophen prescribed instead.",
+        "subjective": "Hospital day 2. Pain persists (NRS 7). Level of consciousness remains decreased (AVPU P)."
       },
-      "structured": {},
-      "text": "S: No special findings\nO: No special findings\nA: Clinical assessment ongoing\nP: Continue current management"
+      "text": "S: Hospital day 2. Pain persists (NRS 7). Level of consciousness remains decreased (AVPU P).\nO: BP 117/74 mmHg, HR 109/min, T 36.9°C, SpO2 94% (RA), RR 22/min\nA: Notable labs today: troponin I 83.849 ng/mL [H], CK-MB 42.9 ng/mL [H], BNP 108.4 pg/mL [H], glucose 117.0 mg/dL [H].\nP: Continue current medications: Aspirin, Ticagrelor, Nitroglycerin, Acetaminophen.\n- Heparin avoided due to concurrent Aspirin; Acetaminophen prescribed instead."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-04": {
@@ -133,13 +140,625 @@
     "encounter_id": "ENC-FORCED-0001-308142489017",
     "narrative": {
       "facts_used": [
+        "composed:progress_note_soap_en",
+        "ctx.progress_subjective.state_composed.en",
+        "ctx.vitals[day_2].en",
+        "ctx.progress_assessment.state_composed.en",
+        "ctx.progress_plan.state_composed.en",
+        "ctx.safety_skips",
+        "ctx.day_index",
+        "ctx.clinical_course_archetype"
+      ],
+      "generated_at": "2020-01-01T00:00:42Z",
+      "generator": "template",
+      "generator_metadata": {
+        "day_index": 2,
+        "generator": "template",
+        "lang": "en",
+        "raw_text_rejoin": {
+          "order": [
+            [
+              "S:",
+              "subjective"
+            ],
+            [
+              "O:",
+              "objective"
+            ],
+            [
+              "A:",
+              "assessment"
+            ],
+            [
+              "P:",
+              "plan"
+            ]
+          ],
+          "separator": "\n"
+        }
+      },
+      "sections": {
+        "assessment": "Notable labs today: troponin I 76.694 ng/mL [H], CK-MB 43.0 ng/mL [H], glucose 114.0 mg/dL [H].",
+        "objective": "BP 112/70 mmHg, HR 104/min, T 37.4°C, SpO2 93% (RA), RR 18/min",
+        "plan": "Continue current medications: Aspirin, Ticagrelor, Nitroglycerin, Acetaminophen, Dobutamine 2-20ug/kg/min IV drip, Norepinephrine 0.05-0.3ug/kg/min IV drip.\n- Heparin avoided due to concurrent Aspirin; Acetaminophen prescribed instead.",
+        "subjective": "Hospital day 3. Pain improving (NRS 7 → 5). Level of consciousness remains decreased (AVPU P)."
+      },
+      "text": "S: Hospital day 3. Pain improving (NRS 7 → 5). Level of consciousness remains decreased (AVPU P).\nO: BP 112/70 mmHg, HR 104/min, T 37.4°C, SpO2 93% (RA), RR 18/min\nA: Notable labs today: troponin I 76.694 ng/mL [H], CK-MB 43.0 ng/mL [H], glucose 114.0 mg/dL [H].\nP: Continue current medications: Aspirin, Ticagrelor, Nitroglycerin, Acetaminophen, Dobutamine 2-20ug/kg/min IV drip, Norepinephrine 0.05-0.3ug/kg/min IV drip.\n- Heparin avoided due to concurrent Aspirin; Acetaminophen prescribed instead."
+    }
+  },
+  "doc-ENC-FORCED-0001-308142489017-05": {
+    "document_id": "doc-ENC-FORCED-0001-308142489017-05",
+    "encounter_id": "ENC-FORCED-0001-308142489017",
+    "narrative": {
+      "facts_used": [
+        "composed:progress_note_soap_en",
+        "ctx.progress_subjective.state_composed.en",
+        "ctx.vitals[day_3].en",
+        "ctx.progress_assessment.state_composed.en",
+        "ctx.progress_plan.state_composed.en",
+        "ctx.safety_skips",
+        "ctx.day_index",
+        "ctx.clinical_course_archetype"
+      ],
+      "generated_at": "2020-01-01T00:00:42Z",
+      "generator": "template",
+      "generator_metadata": {
+        "day_index": 3,
+        "generator": "template",
+        "lang": "en",
+        "raw_text_rejoin": {
+          "order": [
+            [
+              "S:",
+              "subjective"
+            ],
+            [
+              "O:",
+              "objective"
+            ],
+            [
+              "A:",
+              "assessment"
+            ],
+            [
+              "P:",
+              "plan"
+            ]
+          ],
+          "separator": "\n"
+        }
+      },
+      "sections": {
+        "assessment": "Notable labs today: troponin I 83.456 ng/mL [H], CK-MB 43.8 ng/mL [H], creatinine 1.41 mg/dL [H], glucose 107.0 mg/dL [H].",
+        "objective": "BP 114/67 mmHg, HR 108/min, T 37.1°C, SpO2 96% (RA), RR 18/min",
+        "plan": "Continue current medications: Aspirin, Ticagrelor, Nitroglycerin, Dobutamine 2-20ug/kg/min IV drip, Norepinephrine 0.05-0.3ug/kg/min IV drip.\n- Heparin avoided due to concurrent Aspirin; Acetaminophen prescribed instead.",
+        "subjective": "Hospital day 4. Pain well controlled (NRS 5 → 3). Level of consciousness remains decreased (AVPU P)."
+      },
+      "text": "S: Hospital day 4. Pain well controlled (NRS 5 → 3). Level of consciousness remains decreased (AVPU P).\nO: BP 114/67 mmHg, HR 108/min, T 37.1°C, SpO2 96% (RA), RR 18/min\nA: Notable labs today: troponin I 83.456 ng/mL [H], CK-MB 43.8 ng/mL [H], creatinine 1.41 mg/dL [H], glucose 107.0 mg/dL [H].\nP: Continue current medications: Aspirin, Ticagrelor, Nitroglycerin, Dobutamine 2-20ug/kg/min IV drip, Norepinephrine 0.05-0.3ug/kg/min IV drip.\n- Heparin avoided due to concurrent Aspirin; Acetaminophen prescribed instead."
+    }
+  },
+  "doc-ENC-FORCED-0001-308142489017-06": {
+    "document_id": "doc-ENC-FORCED-0001-308142489017-06",
+    "encounter_id": "ENC-FORCED-0001-308142489017",
+    "narrative": {
+      "facts_used": [
+        "composed:progress_note_soap_en",
+        "ctx.progress_subjective.state_composed.en",
+        "ctx.vitals[day_4].en",
+        "ctx.progress_assessment.state_composed.en",
+        "ctx.progress_plan.state_composed.en",
+        "ctx.safety_skips",
+        "ctx.day_index",
+        "ctx.clinical_course_archetype"
+      ],
+      "generated_at": "2020-01-01T00:00:42Z",
+      "generator": "template",
+      "generator_metadata": {
+        "day_index": 4,
+        "generator": "template",
+        "lang": "en",
+        "raw_text_rejoin": {
+          "order": [
+            [
+              "S:",
+              "subjective"
+            ],
+            [
+              "O:",
+              "objective"
+            ],
+            [
+              "A:",
+              "assessment"
+            ],
+            [
+              "P:",
+              "plan"
+            ]
+          ],
+          "separator": "\n"
+        }
+      },
+      "sections": {
+        "assessment": "Notable labs today: troponin I 58.18 ng/mL [H], CK-MB 49.4 ng/mL [H], creatinine 1.72 mg/dL [H], glucose 106.0 mg/dL [H].",
+        "objective": "BP 113/71 mmHg, HR 106/min, T 37.0°C, SpO2 97% (RA), RR 18/min",
+        "plan": "Continue current medications: Aspirin, Ticagrelor, Nitroglycerin, Dobutamine 2-20ug/kg/min IV drip, Norepinephrine 0.05-0.3ug/kg/min IV drip.\n- Heparin avoided due to concurrent Aspirin; Acetaminophen prescribed instead.",
+        "subjective": "Hospital day 5. Level of consciousness remains decreased (AVPU V)."
+      },
+      "text": "S: Hospital day 5. Level of consciousness remains decreased (AVPU V).\nO: BP 113/71 mmHg, HR 106/min, T 37.0°C, SpO2 97% (RA), RR 18/min\nA: Notable labs today: troponin I 58.18 ng/mL [H], CK-MB 49.4 ng/mL [H], creatinine 1.72 mg/dL [H], glucose 106.0 mg/dL [H].\nP: Continue current medications: Aspirin, Ticagrelor, Nitroglycerin, Dobutamine 2-20ug/kg/min IV drip, Norepinephrine 0.05-0.3ug/kg/min IV drip.\n- Heparin avoided due to concurrent Aspirin; Acetaminophen prescribed instead."
+    }
+  },
+  "doc-ENC-FORCED-0001-308142489017-07": {
+    "document_id": "doc-ENC-FORCED-0001-308142489017-07",
+    "encounter_id": "ENC-FORCED-0001-308142489017",
+    "narrative": {
+      "facts_used": [
+        "composed:progress_note_soap_en",
+        "ctx.progress_subjective.state_composed.en",
+        "ctx.vitals[day_5].en",
+        "ctx.progress_assessment.state_composed.en",
+        "ctx.progress_plan.state_composed.en",
+        "ctx.safety_skips",
+        "ctx.day_index",
+        "ctx.clinical_course_archetype"
+      ],
+      "generated_at": "2020-01-01T00:00:42Z",
+      "generator": "template",
+      "generator_metadata": {
+        "day_index": 5,
+        "generator": "template",
+        "lang": "en",
+        "raw_text_rejoin": {
+          "order": [
+            [
+              "S:",
+              "subjective"
+            ],
+            [
+              "O:",
+              "objective"
+            ],
+            [
+              "A:",
+              "assessment"
+            ],
+            [
+              "P:",
+              "plan"
+            ]
+          ],
+          "separator": "\n"
+        }
+      },
+      "sections": {
+        "assessment": "Notable labs today: troponin I 100.586 ng/mL [H], CK-MB 35.8 ng/mL [H], creatinine 1.9 mg/dL [H], K 5.5 mmol/L [H].",
+        "objective": "BP 111/73 mmHg, HR 100/min, T 37.1°C, SpO2 95% (RA), RR 18/min",
+        "plan": "Continue current medications: Aspirin, Ticagrelor, Nitroglycerin, Dobutamine 2-20ug/kg/min IV drip, Norepinephrine 0.05-0.3ug/kg/min IV drip.\n- Heparin avoided due to concurrent Aspirin; Acetaminophen prescribed instead.",
+        "subjective": "Hospital day 6. Level of consciousness remains decreased (AVPU V)."
+      },
+      "text": "S: Hospital day 6. Level of consciousness remains decreased (AVPU V).\nO: BP 111/73 mmHg, HR 100/min, T 37.1°C, SpO2 95% (RA), RR 18/min\nA: Notable labs today: troponin I 100.586 ng/mL [H], CK-MB 35.8 ng/mL [H], creatinine 1.9 mg/dL [H], K 5.5 mmol/L [H].\nP: Continue current medications: Aspirin, Ticagrelor, Nitroglycerin, Dobutamine 2-20ug/kg/min IV drip, Norepinephrine 0.05-0.3ug/kg/min IV drip.\n- Heparin avoided due to concurrent Aspirin; Acetaminophen prescribed instead."
+    }
+  },
+  "doc-ENC-FORCED-0001-308142489017-08": {
+    "document_id": "doc-ENC-FORCED-0001-308142489017-08",
+    "encounter_id": "ENC-FORCED-0001-308142489017",
+    "narrative": {
+      "facts_used": [
+        "composed:progress_note_soap_en",
+        "ctx.progress_subjective.state_composed.en",
+        "ctx.vitals[day_6].en",
+        "ctx.progress_assessment.state_composed.en",
+        "ctx.progress_plan.state_composed.en",
+        "ctx.safety_skips",
+        "ctx.day_index",
+        "ctx.clinical_course_archetype"
+      ],
+      "generated_at": "2020-01-01T00:00:42Z",
+      "generator": "template",
+      "generator_metadata": {
+        "day_index": 6,
+        "generator": "template",
+        "lang": "en",
+        "raw_text_rejoin": {
+          "order": [
+            [
+              "S:",
+              "subjective"
+            ],
+            [
+              "O:",
+              "objective"
+            ],
+            [
+              "A:",
+              "assessment"
+            ],
+            [
+              "P:",
+              "plan"
+            ]
+          ],
+          "separator": "\n"
+        }
+      },
+      "sections": {
+        "assessment": "Notable labs today: troponin I 86.259 ng/mL [H], CK-MB 34.8 ng/mL [H], creatinine 2.19 mg/dL [H], K 5.2 mmol/L [H].",
+        "objective": "BP 115/69 mmHg, HR 101/min, T 36.8°C, SpO2 98% (RA), RR 18/min",
+        "plan": "Continue current medications: Aspirin, Ticagrelor, Nitroglycerin, Dobutamine 2-20ug/kg/min IV drip, Norepinephrine 0.05-0.3ug/kg/min IV drip.\n- Heparin avoided due to concurrent Aspirin; Acetaminophen prescribed instead.",
+        "subjective": "Hospital day 7. Level of consciousness remains decreased (AVPU V)."
+      },
+      "text": "S: Hospital day 7. Level of consciousness remains decreased (AVPU V).\nO: BP 115/69 mmHg, HR 101/min, T 36.8°C, SpO2 98% (RA), RR 18/min\nA: Notable labs today: troponin I 86.259 ng/mL [H], CK-MB 34.8 ng/mL [H], creatinine 2.19 mg/dL [H], K 5.2 mmol/L [H].\nP: Continue current medications: Aspirin, Ticagrelor, Nitroglycerin, Dobutamine 2-20ug/kg/min IV drip, Norepinephrine 0.05-0.3ug/kg/min IV drip.\n- Heparin avoided due to concurrent Aspirin; Acetaminophen prescribed instead."
+    }
+  },
+  "doc-ENC-FORCED-0001-308142489017-09": {
+    "document_id": "doc-ENC-FORCED-0001-308142489017-09",
+    "encounter_id": "ENC-FORCED-0001-308142489017",
+    "narrative": {
+      "facts_used": [
+        "composed:progress_note_soap_en",
+        "ctx.progress_subjective.state_composed.en",
+        "ctx.vitals[day_7].en",
+        "ctx.progress_assessment.state_composed.en",
+        "ctx.progress_plan.state_composed.en",
+        "ctx.safety_skips",
+        "ctx.day_index",
+        "ctx.clinical_course_archetype"
+      ],
+      "generated_at": "2020-01-01T00:00:42Z",
+      "generator": "template",
+      "generator_metadata": {
+        "day_index": 7,
+        "generator": "template",
+        "lang": "en",
+        "raw_text_rejoin": {
+          "order": [
+            [
+              "S:",
+              "subjective"
+            ],
+            [
+              "O:",
+              "objective"
+            ],
+            [
+              "A:",
+              "assessment"
+            ],
+            [
+              "P:",
+              "plan"
+            ]
+          ],
+          "separator": "\n"
+        }
+      },
+      "sections": {
+        "assessment": "Notable labs today: troponin I 63.032 ng/mL [H], CK-MB 31.4 ng/mL [H], BNP 108.6 pg/mL [H], creatinine 2.59 mg/dL [H].",
+        "objective": "BP 110/68 mmHg, HR 107/min, T 37.4°C, SpO2 96% (RA), RR 18/min",
+        "plan": "Continue current medications: Aspirin, Ticagrelor, Nitroglycerin, Dobutamine 2-20ug/kg/min IV drip, Norepinephrine 0.05-0.3ug/kg/min IV drip.\n- Heparin avoided due to concurrent Aspirin; Acetaminophen prescribed instead.",
+        "subjective": "Hospital day 8. Level of consciousness remains decreased (AVPU V)."
+      },
+      "text": "S: Hospital day 8. Level of consciousness remains decreased (AVPU V).\nO: BP 110/68 mmHg, HR 107/min, T 37.4°C, SpO2 96% (RA), RR 18/min\nA: Notable labs today: troponin I 63.032 ng/mL [H], CK-MB 31.4 ng/mL [H], BNP 108.6 pg/mL [H], creatinine 2.59 mg/dL [H].\nP: Continue current medications: Aspirin, Ticagrelor, Nitroglycerin, Dobutamine 2-20ug/kg/min IV drip, Norepinephrine 0.05-0.3ug/kg/min IV drip.\n- Heparin avoided due to concurrent Aspirin; Acetaminophen prescribed instead."
+    }
+  },
+  "doc-ENC-FORCED-0001-308142489017-10": {
+    "document_id": "doc-ENC-FORCED-0001-308142489017-10",
+    "encounter_id": "ENC-FORCED-0001-308142489017",
+    "narrative": {
+      "facts_used": [
+        "composed:progress_note_soap_en",
+        "ctx.progress_subjective.state_composed.en",
+        "ctx.vitals[day_8].en",
+        "ctx.progress_assessment.state_composed.en",
+        "ctx.progress_plan.state_composed.en",
+        "ctx.safety_skips",
+        "ctx.day_index",
+        "ctx.clinical_course_archetype"
+      ],
+      "generated_at": "2020-01-01T00:00:42Z",
+      "generator": "template",
+      "generator_metadata": {
+        "day_index": 8,
+        "generator": "template",
+        "lang": "en",
+        "raw_text_rejoin": {
+          "order": [
+            [
+              "S:",
+              "subjective"
+            ],
+            [
+              "O:",
+              "objective"
+            ],
+            [
+              "A:",
+              "assessment"
+            ],
+            [
+              "P:",
+              "plan"
+            ]
+          ],
+          "separator": "\n"
+        }
+      },
+      "sections": {
+        "assessment": "Notable labs today: troponin I 70.812 ng/mL [H], CK-MB 29.1 ng/mL [H], creatinine 2.51 mg/dL [H], K 6.2 mmol/L [H].",
+        "objective": "BP 116/69 mmHg, HR 104/min, T 37.4°C, SpO2 98% (RA), RR 19/min",
+        "plan": "Continue current medications: Aspirin, Ticagrelor, Nitroglycerin, Dobutamine 2-20ug/kg/min IV drip, Norepinephrine 0.05-0.3ug/kg/min IV drip, Acetaminophen.\n- Heparin avoided due to concurrent Aspirin; Acetaminophen prescribed instead.",
+        "subjective": "Hospital day 9. Pain worsening (NRS 1 → 4). Level of consciousness remains decreased (AVPU V)."
+      },
+      "text": "S: Hospital day 9. Pain worsening (NRS 1 → 4). Level of consciousness remains decreased (AVPU V).\nO: BP 116/69 mmHg, HR 104/min, T 37.4°C, SpO2 98% (RA), RR 19/min\nA: Notable labs today: troponin I 70.812 ng/mL [H], CK-MB 29.1 ng/mL [H], creatinine 2.51 mg/dL [H], K 6.2 mmol/L [H].\nP: Continue current medications: Aspirin, Ticagrelor, Nitroglycerin, Dobutamine 2-20ug/kg/min IV drip, Norepinephrine 0.05-0.3ug/kg/min IV drip, Acetaminophen.\n- Heparin avoided due to concurrent Aspirin; Acetaminophen prescribed instead."
+    }
+  },
+  "doc-ENC-FORCED-0001-308142489017-11": {
+    "document_id": "doc-ENC-FORCED-0001-308142489017-11",
+    "encounter_id": "ENC-FORCED-0001-308142489017",
+    "narrative": {
+      "facts_used": [
+        "composed:progress_note_soap_en",
+        "ctx.progress_subjective.state_composed.en",
+        "ctx.vitals[day_9].en",
+        "ctx.progress_assessment.state_composed.en",
+        "ctx.progress_plan.state_composed.en",
+        "ctx.safety_skips",
+        "ctx.day_index",
+        "ctx.clinical_course_archetype"
+      ],
+      "generated_at": "2020-01-01T00:00:42Z",
+      "generator": "template",
+      "generator_metadata": {
+        "day_index": 9,
+        "generator": "template",
+        "lang": "en",
+        "raw_text_rejoin": {
+          "order": [
+            [
+              "S:",
+              "subjective"
+            ],
+            [
+              "O:",
+              "objective"
+            ],
+            [
+              "A:",
+              "assessment"
+            ],
+            [
+              "P:",
+              "plan"
+            ]
+          ],
+          "separator": "\n"
+        }
+      },
+      "sections": {
+        "assessment": "Notable labs today: troponin I 94.534 ng/mL [H], CK-MB 41.6 ng/mL [H], creatinine 2.62 mg/dL [H], K 5.6 mmol/L [H].",
+        "objective": "BP 115/71 mmHg, HR 102/min, T 37.1°C, SpO2 96% (RA), RR 15/min",
+        "plan": "Continue current medications: Aspirin, Ticagrelor, Nitroglycerin, Dobutamine 2-20ug/kg/min IV drip, Norepinephrine 0.05-0.3ug/kg/min IV drip.\n- Heparin avoided due to concurrent Aspirin; Acetaminophen prescribed instead.",
+        "subjective": "Hospital day 10. Pain well controlled (NRS 4 → 3). Level of consciousness improved, now alert (prev AVPU V)."
+      },
+      "text": "S: Hospital day 10. Pain well controlled (NRS 4 → 3). Level of consciousness improved, now alert (prev AVPU V).\nO: BP 115/71 mmHg, HR 102/min, T 37.1°C, SpO2 96% (RA), RR 15/min\nA: Notable labs today: troponin I 94.534 ng/mL [H], CK-MB 41.6 ng/mL [H], creatinine 2.62 mg/dL [H], K 5.6 mmol/L [H].\nP: Continue current medications: Aspirin, Ticagrelor, Nitroglycerin, Dobutamine 2-20ug/kg/min IV drip, Norepinephrine 0.05-0.3ug/kg/min IV drip.\n- Heparin avoided due to concurrent Aspirin; Acetaminophen prescribed instead."
+    }
+  },
+  "doc-ENC-FORCED-0001-308142489017-12": {
+    "document_id": "doc-ENC-FORCED-0001-308142489017-12",
+    "encounter_id": "ENC-FORCED-0001-308142489017",
+    "narrative": {
+      "facts_used": [
+        "composed:progress_note_soap_en",
+        "ctx.progress_subjective.state_composed.en",
+        "ctx.vitals[day_10].en",
+        "ctx.progress_assessment.state_composed.en",
+        "ctx.progress_plan.state_composed.en",
+        "ctx.safety_skips",
+        "ctx.day_index",
+        "ctx.clinical_course_archetype"
+      ],
+      "generated_at": "2020-01-01T00:00:42Z",
+      "generator": "template",
+      "generator_metadata": {
+        "day_index": 10,
+        "generator": "template",
+        "lang": "en",
+        "raw_text_rejoin": {
+          "order": [
+            [
+              "S:",
+              "subjective"
+            ],
+            [
+              "O:",
+              "objective"
+            ],
+            [
+              "A:",
+              "assessment"
+            ],
+            [
+              "P:",
+              "plan"
+            ]
+          ],
+          "separator": "\n"
+        }
+      },
+      "sections": {
+        "assessment": "Notable labs today: troponin I 56.263 ng/mL [H], CK-MB 29.3 ng/mL [H], BNP 103.3 pg/mL [H], creatinine 2.72 mg/dL [H].",
+        "objective": "BP 115/69 mmHg, HR 100/min, T 36.1°C, SpO2 98% (RA), RR 16/min",
+        "plan": "Continue current medications: Aspirin, Ticagrelor, Nitroglycerin, Dobutamine 2-20ug/kg/min IV drip, Norepinephrine 0.05-0.3ug/kg/min IV drip.\n- Heparin avoided due to concurrent Aspirin; Acetaminophen prescribed instead.",
+        "subjective": "Hospital day 11. No new subjective complaints."
+      },
+      "text": "S: Hospital day 11. No new subjective complaints.\nO: BP 115/69 mmHg, HR 100/min, T 36.1°C, SpO2 98% (RA), RR 16/min\nA: Notable labs today: troponin I 56.263 ng/mL [H], CK-MB 29.3 ng/mL [H], BNP 103.3 pg/mL [H], creatinine 2.72 mg/dL [H].\nP: Continue current medications: Aspirin, Ticagrelor, Nitroglycerin, Dobutamine 2-20ug/kg/min IV drip, Norepinephrine 0.05-0.3ug/kg/min IV drip.\n- Heparin avoided due to concurrent Aspirin; Acetaminophen prescribed instead."
+    }
+  },
+  "doc-ENC-FORCED-0001-308142489017-13": {
+    "document_id": "doc-ENC-FORCED-0001-308142489017-13",
+    "encounter_id": "ENC-FORCED-0001-308142489017",
+    "narrative": {
+      "facts_used": [
+        "composed:progress_note_soap_en",
+        "ctx.progress_subjective.state_composed.en",
+        "ctx.vitals[day_11].en",
+        "ctx.progress_assessment.state_composed.en",
+        "ctx.progress_plan.state_composed.en",
+        "ctx.safety_skips",
+        "ctx.day_index",
+        "ctx.clinical_course_archetype"
+      ],
+      "generated_at": "2020-01-01T00:00:42Z",
+      "generator": "template",
+      "generator_metadata": {
+        "day_index": 11,
+        "generator": "template",
+        "lang": "en",
+        "raw_text_rejoin": {
+          "order": [
+            [
+              "S:",
+              "subjective"
+            ],
+            [
+              "O:",
+              "objective"
+            ],
+            [
+              "A:",
+              "assessment"
+            ],
+            [
+              "P:",
+              "plan"
+            ]
+          ],
+          "separator": "\n"
+        }
+      },
+      "sections": {
+        "assessment": "Notable labs today: troponin I 67.048 ng/mL [H], CK-MB 34.9 ng/mL [H], creatinine 2.92 mg/dL [H], K 5.6 mmol/L [H].",
+        "objective": "BP 117/73 mmHg, HR 101/min, T 36.6°C, SpO2 97% (RA), RR 14/min",
+        "plan": "Continue current medications: Aspirin, Ticagrelor, Nitroglycerin, Dobutamine 2-20ug/kg/min IV drip, Norepinephrine 0.05-0.3ug/kg/min IV drip.\n- Heparin avoided due to concurrent Aspirin; Acetaminophen prescribed instead.",
+        "subjective": "Hospital day 12. Overall clinical status stable; observation continues."
+      },
+      "text": "S: Hospital day 12. Overall clinical status stable; observation continues.\nO: BP 117/73 mmHg, HR 101/min, T 36.6°C, SpO2 97% (RA), RR 14/min\nA: Notable labs today: troponin I 67.048 ng/mL [H], CK-MB 34.9 ng/mL [H], creatinine 2.92 mg/dL [H], K 5.6 mmol/L [H].\nP: Continue current medications: Aspirin, Ticagrelor, Nitroglycerin, Dobutamine 2-20ug/kg/min IV drip, Norepinephrine 0.05-0.3ug/kg/min IV drip.\n- Heparin avoided due to concurrent Aspirin; Acetaminophen prescribed instead."
+    }
+  },
+  "doc-ENC-FORCED-0001-308142489017-14": {
+    "document_id": "doc-ENC-FORCED-0001-308142489017-14",
+    "encounter_id": "ENC-FORCED-0001-308142489017",
+    "narrative": {
+      "facts_used": [
+        "composed:progress_note_soap_en",
+        "ctx.progress_subjective.state_composed.en",
+        "ctx.vitals[day_12].en",
+        "ctx.progress_assessment.state_composed.en",
+        "ctx.progress_plan.state_composed.en",
+        "ctx.safety_skips",
+        "ctx.day_index",
+        "ctx.clinical_course_archetype"
+      ],
+      "generated_at": "2020-01-01T00:00:42Z",
+      "generator": "template",
+      "generator_metadata": {
+        "day_index": 12,
+        "generator": "template",
+        "lang": "en",
+        "raw_text_rejoin": {
+          "order": [
+            [
+              "S:",
+              "subjective"
+            ],
+            [
+              "O:",
+              "objective"
+            ],
+            [
+              "A:",
+              "assessment"
+            ],
+            [
+              "P:",
+              "plan"
+            ]
+          ],
+          "separator": "\n"
+        }
+      },
+      "sections": {
+        "assessment": "Notable labs today: troponin I 55.163 ng/mL [H], CK-MB 38.0 ng/mL [H], creatinine 2.93 mg/dL [H], K 5.4 mmol/L [H].",
+        "objective": "BP 119/72 mmHg, HR 101/min, T 36.7°C, SpO2 96% (RA), RR 18/min",
+        "plan": "Continue current medications: Aspirin, Ticagrelor, Nitroglycerin, Dobutamine 2-20ug/kg/min IV drip, Norepinephrine 0.05-0.3ug/kg/min IV drip.\n- Heparin avoided due to concurrent Aspirin; Acetaminophen prescribed instead.",
+        "subjective": "Hospital day 13. Continuing rehab in preparation for discharge."
+      },
+      "text": "S: Hospital day 13. Continuing rehab in preparation for discharge.\nO: BP 119/72 mmHg, HR 101/min, T 36.7°C, SpO2 96% (RA), RR 18/min\nA: Notable labs today: troponin I 55.163 ng/mL [H], CK-MB 38.0 ng/mL [H], creatinine 2.93 mg/dL [H], K 5.4 mmol/L [H].\nP: Continue current medications: Aspirin, Ticagrelor, Nitroglycerin, Dobutamine 2-20ug/kg/min IV drip, Norepinephrine 0.05-0.3ug/kg/min IV drip.\n- Heparin avoided due to concurrent Aspirin; Acetaminophen prescribed instead."
+    }
+  },
+  "doc-ENC-FORCED-0001-308142489017-15": {
+    "document_id": "doc-ENC-FORCED-0001-308142489017-15",
+    "encounter_id": "ENC-FORCED-0001-308142489017",
+    "narrative": {
+      "facts_used": [
+        "composed:progress_note_soap_en",
+        "ctx.progress_subjective.state_composed.en",
+        "ctx.vitals[day_13].en",
+        "ctx.progress_assessment.state_composed.en",
+        "ctx.progress_plan.state_composed.en",
+        "ctx.safety_skips",
+        "ctx.day_index",
+        "ctx.clinical_course_archetype"
+      ],
+      "generated_at": "2020-01-01T00:00:42Z",
+      "generator": "template",
+      "generator_metadata": {
+        "day_index": 13,
+        "generator": "template",
+        "lang": "en",
+        "raw_text_rejoin": {
+          "order": [
+            [
+              "S:",
+              "subjective"
+            ],
+            [
+              "O:",
+              "objective"
+            ],
+            [
+              "A:",
+              "assessment"
+            ],
+            [
+              "P:",
+              "plan"
+            ]
+          ],
+          "separator": "\n"
+        }
+      },
+      "sections": {
+        "assessment": "Notable labs today: troponin I 48.037 ng/mL [H], CK-MB 25.5 ng/mL [H], creatinine 2.95 mg/dL [H], K 5.6 mmol/L [H].",
+        "objective": "BP 116/72 mmHg, HR 102/min, T 36.1°C, SpO2 98% (RA), RR 17/min",
+        "plan": "Continue current medications: Aspirin, Ticagrelor, Nitroglycerin, Dobutamine 2-20ug/kg/min IV drip, Norepinephrine 0.05-0.3ug/kg/min IV drip.\n- Heparin avoided due to concurrent Aspirin; Acetaminophen prescribed instead.",
+        "subjective": "Hospital day 14. Discharge readiness confirmed; family instructed."
+      },
+      "text": "S: Hospital day 14. Discharge readiness confirmed; family instructed.\nO: BP 116/72 mmHg, HR 102/min, T 36.1°C, SpO2 98% (RA), RR 17/min\nA: Notable labs today: troponin I 48.037 ng/mL [H], CK-MB 25.5 ng/mL [H], creatinine 2.95 mg/dL [H], K 5.6 mmol/L [H].\nP: Continue current medications: Aspirin, Ticagrelor, Nitroglycerin, Dobutamine 2-20ug/kg/min IV drip, Norepinephrine 0.05-0.3ug/kg/min IV drip.\n- Heparin avoided due to concurrent Aspirin; Acetaminophen prescribed instead."
+    }
+  },
+  "doc-ENC-FORCED-0001-308142489017-16": {
+    "document_id": "doc-ENC-FORCED-0001-308142489017-16",
+    "encounter_id": "ENC-FORCED-0001-308142489017",
+    "narrative": {
+      "facts_used": [
         "ctx.encounter.chief_complaint",
-        "ctx.patient.chronic_conditions",
-        "ctx.adl_assessments[-1]",
-        "ctx.patient.chronic_conditions",
-        "ctx.nursing_risk_assessments",
-        "ctx.patient.chronic_conditions",
-        "ctx.nursing_risk_assessments"
+        "ctx.los_days",
+        "ctx.diagnoses",
+        "ctx.discharge_medications",
+        "discharge_instructions.baseline",
+        "discharge_instructions.disease_specific.acute_mi",
+        "discharge_instructions.follow_up"
       ],
       "generated_at": "2020-01-01T00:00:42Z",
       "generator": "template",
@@ -148,18 +767,45 @@
         "lang": "en"
       },
       "sections": {
-        "adl_assessment": "Barthel Index 63/100 → minimal assistance (feeding=7, bathing=3, mobility=9, toilet_use=6)",
-        "care_plan": "Care plan: monitor BP AM/PM, escalate to MD if goal not met.",
-        "nursing_diagnosis": "Nursing diagnoses: risk for inadequate BP control.",
-        "nursing_history": "Admission reason: Chest pain, diaphoresis, dyspnea. PMH: Chronic ischemic heart disease, Essential (primary) hypertension, Disorders of lipoprotein metabolism and other lipidemias.",
-        "risk_assessments": "Fall / pressure ulcer risk: assessment pending"
+        "admission_summary": "Chief complaint: Chest pain, diaphoresis, dyspnea. Admitted for inpatient care.",
+        "discharge_diagnoses": "Acute myocardial infarction, unspecified (I21.9)",
+        "discharge_instructions": "Drink plenty of fluids. Get adequate rest and avoid overexertion. Cardiology follow-up within 1-2 weeks. Cardiac rehabilitation enrollment recommended. Take ALL cardiac medications as prescribed: aspirin, statin, beta-blocker, ACE inhibitor/ARB. Do NOT stop without consulting cardiologist. Call 911 immediately for: chest pain, severe shortness of breath, palpitations, syncope. Resume a normal diet gradually as tolerated. Take dual antiplatelet therapy (DAPT) and statin daily. Cardiac rehab attendance strongly recommended. Restricted activity for 4-6 weeks. Avoid heavy lifting. Gradual return per cardiologist guidance. Call ambulance immediately for chest pain lasting >15 min, dyspnea, syncope, or cold sweats. Low-fat, low-sodium diet. Smoking cessation mandatory. Limit alcohol. Weight management.",
+        "discharge_medications": "Aspirin 81mg PO daily; Ticagrelor 90mg PO BID; Atorvastatin 80mg PO daily",
+        "follow_up": "Cardiology follow-up within 1-2 weeks. Cardiac rehabilitation enrollment recommended.",
+        "hospital_course": "Length of stay: 14 days (primary reason: Chest pain, diaphoresis, dyspnea)."
       },
-      "structured": {},
       "text": ""
     }
   },
-  "doc-ENC-FORCED-0001-308142489017-05-day": {
-    "document_id": "doc-ENC-FORCED-0001-308142489017-05-day",
+  "doc-ENC-FORCED-0001-308142489017-17": {
+    "document_id": "doc-ENC-FORCED-0001-308142489017-17",
+    "encounter_id": "ENC-FORCED-0001-308142489017",
+    "narrative": {
+      "facts_used": [
+        "ctx.encounter.chief_complaint",
+        "ctx.patient.chronic_conditions",
+        "ctx.adl_assessments[-1]",
+        "ctx.patient.chronic_conditions",
+        "ctx.patient.chronic_conditions"
+      ],
+      "generated_at": "2020-01-01T00:00:42Z",
+      "generator": "template",
+      "generator_metadata": {
+        "generator": "template",
+        "lang": "en"
+      },
+      "sections": {
+        "adl_assessment": "Barthel Index 100/100 → independent (feeding=10, bathing=5, mobility=15, toilet_use=10)",
+        "care_plan": "Care plan: monitor BP AM/PM; escalate to MD if goal not met.",
+        "nursing_diagnosis": "Nursing diagnoses: risk for inadequate BP control.",
+        "nursing_history": "Admission reason: Chest pain, diaphoresis, dyspnea. PMH: Chronic ischemic heart disease (IHD), Hypertension (HTN), Dyslipidemia.",
+        "risk_assessments": "Fall / pressure ulcer risk: assessment pending"
+      },
+      "text": ""
+    }
+  },
+  "doc-ENC-FORCED-0001-308142489017-18-day": {
+    "document_id": "doc-ENC-FORCED-0001-308142489017-18-day",
     "encounter_id": "ENC-FORCED-0001-308142489017",
     "narrative": {
       "facts_used": [
@@ -178,12 +824,11 @@
         "shift": "day"
       },
       "sections": {},
-      "structured": {},
-      "text": "[Nursing Shift Note - day shift] Day 1 / LOS 2 days\nPatient status: BP 111/68, HR 99, SpO2 93%, T 37.5°C.\nMeds administered: Aspirin, Ticagrelor, Heparin.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - day shift] Day 1 / LOS 14 days\nPatient status: BP 116/72, HR 111, SpO2 96%, T 37.5°C.\nMeds administered: Aspirin, Ticagrelor, Nitroglycerin.\nObservation and care ongoing, no significant findings."
     }
   },
-  "doc-ENC-FORCED-0001-308142489017-06-evening": {
-    "document_id": "doc-ENC-FORCED-0001-308142489017-06-evening",
+  "doc-ENC-FORCED-0001-308142489017-19-evening": {
+    "document_id": "doc-ENC-FORCED-0001-308142489017-19-evening",
     "encounter_id": "ENC-FORCED-0001-308142489017",
     "narrative": {
       "facts_used": [
@@ -202,12 +847,11 @@
         "shift": "evening"
       },
       "sections": {},
-      "structured": {},
-      "text": "[Nursing Shift Note - evening shift] Day 1 / LOS 2 days\nPatient status: BP 111/68, HR 99, SpO2 93%, T 37.5°C.\nMeds administered: Aspirin, Ticagrelor, Heparin.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - evening shift] Day 1 / LOS 14 days\nPatient status: BP 116/72, HR 111, SpO2 96%, T 37.5°C.\nMeds administered: Aspirin, Ticagrelor, Nitroglycerin.\nObservation and care ongoing, no significant findings."
     }
   },
-  "doc-ENC-FORCED-0001-308142489017-07-night": {
-    "document_id": "doc-ENC-FORCED-0001-308142489017-07-night",
+  "doc-ENC-FORCED-0001-308142489017-20-night": {
+    "document_id": "doc-ENC-FORCED-0001-308142489017-20-night",
     "encounter_id": "ENC-FORCED-0001-308142489017",
     "narrative": {
       "facts_used": [
@@ -226,12 +870,11 @@
         "shift": "night"
       },
       "sections": {},
-      "structured": {},
-      "text": "[Nursing Shift Note - night shift] Day 2 / LOS 2 days\nPatient status: BP 116/65, HR 98, SpO2 98%, T 36.4°C.\nMeds administered: Aspirin, Ticagrelor, Heparin.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - night shift] Day 2 / LOS 14 days\nPatient status: BP 117/74, HR 109, SpO2 94%, T 36.9°C.\nMeds administered: Aspirin, Ticagrelor, Nitroglycerin.\nObservation and care ongoing, no significant findings."
     }
   },
-  "doc-ENC-FORCED-0001-308142489017-08-day": {
-    "document_id": "doc-ENC-FORCED-0001-308142489017-08-day",
+  "doc-ENC-FORCED-0001-308142489017-21-day": {
+    "document_id": "doc-ENC-FORCED-0001-308142489017-21-day",
     "encounter_id": "ENC-FORCED-0001-308142489017",
     "narrative": {
       "facts_used": [
@@ -250,12 +893,11 @@
         "shift": "day"
       },
       "sections": {},
-      "structured": {},
-      "text": "[Nursing Shift Note - day shift] Day 2 / LOS 2 days\nPatient status: BP 116/65, HR 98, SpO2 98%, T 36.4°C.\nMeds administered: Aspirin, Ticagrelor, Heparin.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - day shift] Day 2 / LOS 14 days\nPatient status: BP 117/74, HR 109, SpO2 94%, T 36.9°C.\nMeds administered: Aspirin, Ticagrelor, Nitroglycerin.\nObservation and care ongoing, no significant findings."
     }
   },
-  "doc-ENC-FORCED-0001-308142489017-09-evening": {
-    "document_id": "doc-ENC-FORCED-0001-308142489017-09-evening",
+  "doc-ENC-FORCED-0001-308142489017-22-evening": {
+    "document_id": "doc-ENC-FORCED-0001-308142489017-22-evening",
     "encounter_id": "ENC-FORCED-0001-308142489017",
     "narrative": {
       "facts_used": [
@@ -274,12 +916,839 @@
         "shift": "evening"
       },
       "sections": {},
-      "structured": {},
-      "text": "[Nursing Shift Note - evening shift] Day 2 / LOS 2 days\nPatient status: BP 116/65, HR 98, SpO2 98%, T 36.4°C.\nMeds administered: Aspirin, Ticagrelor, Heparin.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - evening shift] Day 2 / LOS 14 days\nPatient status: BP 117/74, HR 109, SpO2 94%, T 36.9°C.\nMeds administered: Aspirin, Ticagrelor, Nitroglycerin.\nObservation and care ongoing, no significant findings."
     }
   },
-  "doc-ENC-FORCED-0001-308142489017-10": {
-    "document_id": "doc-ENC-FORCED-0001-308142489017-10",
+  "doc-ENC-FORCED-0001-308142489017-23-night": {
+    "document_id": "doc-ENC-FORCED-0001-308142489017-23-night",
+    "encounter_id": "ENC-FORCED-0001-308142489017",
+    "narrative": {
+      "facts_used": [
+        "ctx.shift",
+        "ctx.vitals.today",
+        "ctx.medications.today",
+        "ctx.day_index",
+        "ctx.los_days"
+      ],
+      "generated_at": "2020-01-01T00:00:42Z",
+      "generator": "template",
+      "generator_metadata": {
+        "day_index": 2,
+        "generator": "template",
+        "lang": "en",
+        "shift": "night"
+      },
+      "sections": {},
+      "text": "[Nursing Shift Note - night shift] Day 3 / LOS 14 days\nPatient status: BP 112/70, HR 104, SpO2 93%, T 37.4°C.\nMeds administered: Aspirin, Ticagrelor, Nitroglycerin.\nObservation and care ongoing, no significant findings."
+    }
+  },
+  "doc-ENC-FORCED-0001-308142489017-24-day": {
+    "document_id": "doc-ENC-FORCED-0001-308142489017-24-day",
+    "encounter_id": "ENC-FORCED-0001-308142489017",
+    "narrative": {
+      "facts_used": [
+        "ctx.shift",
+        "ctx.vitals.today",
+        "ctx.medications.today",
+        "ctx.day_index",
+        "ctx.los_days"
+      ],
+      "generated_at": "2020-01-01T00:00:42Z",
+      "generator": "template",
+      "generator_metadata": {
+        "day_index": 2,
+        "generator": "template",
+        "lang": "en",
+        "shift": "day"
+      },
+      "sections": {},
+      "text": "[Nursing Shift Note - day shift] Day 3 / LOS 14 days\nPatient status: BP 112/70, HR 104, SpO2 93%, T 37.4°C.\nMeds administered: Aspirin, Ticagrelor, Nitroglycerin.\nObservation and care ongoing, no significant findings."
+    }
+  },
+  "doc-ENC-FORCED-0001-308142489017-25-evening": {
+    "document_id": "doc-ENC-FORCED-0001-308142489017-25-evening",
+    "encounter_id": "ENC-FORCED-0001-308142489017",
+    "narrative": {
+      "facts_used": [
+        "ctx.shift",
+        "ctx.vitals.today",
+        "ctx.medications.today",
+        "ctx.day_index",
+        "ctx.los_days"
+      ],
+      "generated_at": "2020-01-01T00:00:42Z",
+      "generator": "template",
+      "generator_metadata": {
+        "day_index": 2,
+        "generator": "template",
+        "lang": "en",
+        "shift": "evening"
+      },
+      "sections": {},
+      "text": "[Nursing Shift Note - evening shift] Day 3 / LOS 14 days\nPatient status: BP 112/70, HR 104, SpO2 93%, T 37.4°C.\nMeds administered: Aspirin, Ticagrelor, Nitroglycerin.\nObservation and care ongoing, no significant findings."
+    }
+  },
+  "doc-ENC-FORCED-0001-308142489017-26-night": {
+    "document_id": "doc-ENC-FORCED-0001-308142489017-26-night",
+    "encounter_id": "ENC-FORCED-0001-308142489017",
+    "narrative": {
+      "facts_used": [
+        "ctx.shift",
+        "ctx.vitals.today",
+        "ctx.medications.today",
+        "ctx.day_index",
+        "ctx.los_days"
+      ],
+      "generated_at": "2020-01-01T00:00:42Z",
+      "generator": "template",
+      "generator_metadata": {
+        "day_index": 3,
+        "generator": "template",
+        "lang": "en",
+        "shift": "night"
+      },
+      "sections": {},
+      "text": "[Nursing Shift Note - night shift] Day 4 / LOS 14 days\nPatient status: BP 114/67, HR 108, SpO2 96%, T 37.1°C.\nMeds administered: Aspirin, Ticagrelor, Nitroglycerin.\nObservation and care ongoing, no significant findings."
+    }
+  },
+  "doc-ENC-FORCED-0001-308142489017-27-day": {
+    "document_id": "doc-ENC-FORCED-0001-308142489017-27-day",
+    "encounter_id": "ENC-FORCED-0001-308142489017",
+    "narrative": {
+      "facts_used": [
+        "ctx.shift",
+        "ctx.vitals.today",
+        "ctx.medications.today",
+        "ctx.day_index",
+        "ctx.los_days"
+      ],
+      "generated_at": "2020-01-01T00:00:42Z",
+      "generator": "template",
+      "generator_metadata": {
+        "day_index": 3,
+        "generator": "template",
+        "lang": "en",
+        "shift": "day"
+      },
+      "sections": {},
+      "text": "[Nursing Shift Note - day shift] Day 4 / LOS 14 days\nPatient status: BP 114/67, HR 108, SpO2 96%, T 37.1°C.\nMeds administered: Aspirin, Ticagrelor, Nitroglycerin.\nObservation and care ongoing, no significant findings."
+    }
+  },
+  "doc-ENC-FORCED-0001-308142489017-28-evening": {
+    "document_id": "doc-ENC-FORCED-0001-308142489017-28-evening",
+    "encounter_id": "ENC-FORCED-0001-308142489017",
+    "narrative": {
+      "facts_used": [
+        "ctx.shift",
+        "ctx.vitals.today",
+        "ctx.medications.today",
+        "ctx.day_index",
+        "ctx.los_days"
+      ],
+      "generated_at": "2020-01-01T00:00:42Z",
+      "generator": "template",
+      "generator_metadata": {
+        "day_index": 3,
+        "generator": "template",
+        "lang": "en",
+        "shift": "evening"
+      },
+      "sections": {},
+      "text": "[Nursing Shift Note - evening shift] Day 4 / LOS 14 days\nPatient status: BP 114/67, HR 108, SpO2 96%, T 37.1°C.\nMeds administered: Aspirin, Ticagrelor, Nitroglycerin.\nObservation and care ongoing, no significant findings."
+    }
+  },
+  "doc-ENC-FORCED-0001-308142489017-29-night": {
+    "document_id": "doc-ENC-FORCED-0001-308142489017-29-night",
+    "encounter_id": "ENC-FORCED-0001-308142489017",
+    "narrative": {
+      "facts_used": [
+        "ctx.shift",
+        "ctx.vitals.today",
+        "ctx.medications.today",
+        "ctx.day_index",
+        "ctx.los_days"
+      ],
+      "generated_at": "2020-01-01T00:00:42Z",
+      "generator": "template",
+      "generator_metadata": {
+        "day_index": 4,
+        "generator": "template",
+        "lang": "en",
+        "shift": "night"
+      },
+      "sections": {},
+      "text": "[Nursing Shift Note - night shift] Day 5 / LOS 14 days\nPatient status: BP 113/71, HR 106, SpO2 97%, T 37.0°C.\nMeds administered: Aspirin, Ticagrelor, Nitroglycerin.\nObservation and care ongoing, no significant findings."
+    }
+  },
+  "doc-ENC-FORCED-0001-308142489017-30-day": {
+    "document_id": "doc-ENC-FORCED-0001-308142489017-30-day",
+    "encounter_id": "ENC-FORCED-0001-308142489017",
+    "narrative": {
+      "facts_used": [
+        "ctx.shift",
+        "ctx.vitals.today",
+        "ctx.medications.today",
+        "ctx.day_index",
+        "ctx.los_days"
+      ],
+      "generated_at": "2020-01-01T00:00:42Z",
+      "generator": "template",
+      "generator_metadata": {
+        "day_index": 4,
+        "generator": "template",
+        "lang": "en",
+        "shift": "day"
+      },
+      "sections": {},
+      "text": "[Nursing Shift Note - day shift] Day 5 / LOS 14 days\nPatient status: BP 113/71, HR 106, SpO2 97%, T 37.0°C.\nMeds administered: Aspirin, Ticagrelor, Nitroglycerin.\nObservation and care ongoing, no significant findings."
+    }
+  },
+  "doc-ENC-FORCED-0001-308142489017-31-evening": {
+    "document_id": "doc-ENC-FORCED-0001-308142489017-31-evening",
+    "encounter_id": "ENC-FORCED-0001-308142489017",
+    "narrative": {
+      "facts_used": [
+        "ctx.shift",
+        "ctx.vitals.today",
+        "ctx.medications.today",
+        "ctx.day_index",
+        "ctx.los_days"
+      ],
+      "generated_at": "2020-01-01T00:00:42Z",
+      "generator": "template",
+      "generator_metadata": {
+        "day_index": 4,
+        "generator": "template",
+        "lang": "en",
+        "shift": "evening"
+      },
+      "sections": {},
+      "text": "[Nursing Shift Note - evening shift] Day 5 / LOS 14 days\nPatient status: BP 113/71, HR 106, SpO2 97%, T 37.0°C.\nMeds administered: Aspirin, Ticagrelor, Nitroglycerin.\nObservation and care ongoing, no significant findings."
+    }
+  },
+  "doc-ENC-FORCED-0001-308142489017-32-night": {
+    "document_id": "doc-ENC-FORCED-0001-308142489017-32-night",
+    "encounter_id": "ENC-FORCED-0001-308142489017",
+    "narrative": {
+      "facts_used": [
+        "ctx.shift",
+        "ctx.vitals.today",
+        "ctx.medications.today",
+        "ctx.day_index",
+        "ctx.los_days"
+      ],
+      "generated_at": "2020-01-01T00:00:42Z",
+      "generator": "template",
+      "generator_metadata": {
+        "day_index": 5,
+        "generator": "template",
+        "lang": "en",
+        "shift": "night"
+      },
+      "sections": {},
+      "text": "[Nursing Shift Note - night shift] Day 6 / LOS 14 days\nPatient status: BP 111/73, HR 100, SpO2 95%, T 37.1°C.\nMeds administered: Aspirin, Ticagrelor, Nitroglycerin.\nObservation and care ongoing, no significant findings."
+    }
+  },
+  "doc-ENC-FORCED-0001-308142489017-33-day": {
+    "document_id": "doc-ENC-FORCED-0001-308142489017-33-day",
+    "encounter_id": "ENC-FORCED-0001-308142489017",
+    "narrative": {
+      "facts_used": [
+        "ctx.shift",
+        "ctx.vitals.today",
+        "ctx.medications.today",
+        "ctx.day_index",
+        "ctx.los_days"
+      ],
+      "generated_at": "2020-01-01T00:00:42Z",
+      "generator": "template",
+      "generator_metadata": {
+        "day_index": 5,
+        "generator": "template",
+        "lang": "en",
+        "shift": "day"
+      },
+      "sections": {},
+      "text": "[Nursing Shift Note - day shift] Day 6 / LOS 14 days\nPatient status: BP 111/73, HR 100, SpO2 95%, T 37.1°C.\nMeds administered: Aspirin, Ticagrelor, Nitroglycerin.\nObservation and care ongoing, no significant findings."
+    }
+  },
+  "doc-ENC-FORCED-0001-308142489017-34-evening": {
+    "document_id": "doc-ENC-FORCED-0001-308142489017-34-evening",
+    "encounter_id": "ENC-FORCED-0001-308142489017",
+    "narrative": {
+      "facts_used": [
+        "ctx.shift",
+        "ctx.vitals.today",
+        "ctx.medications.today",
+        "ctx.day_index",
+        "ctx.los_days"
+      ],
+      "generated_at": "2020-01-01T00:00:42Z",
+      "generator": "template",
+      "generator_metadata": {
+        "day_index": 5,
+        "generator": "template",
+        "lang": "en",
+        "shift": "evening"
+      },
+      "sections": {},
+      "text": "[Nursing Shift Note - evening shift] Day 6 / LOS 14 days\nPatient status: BP 111/73, HR 100, SpO2 95%, T 37.1°C.\nMeds administered: Aspirin, Ticagrelor, Nitroglycerin.\nObservation and care ongoing, no significant findings."
+    }
+  },
+  "doc-ENC-FORCED-0001-308142489017-35-night": {
+    "document_id": "doc-ENC-FORCED-0001-308142489017-35-night",
+    "encounter_id": "ENC-FORCED-0001-308142489017",
+    "narrative": {
+      "facts_used": [
+        "ctx.shift",
+        "ctx.vitals.today",
+        "ctx.medications.today",
+        "ctx.day_index",
+        "ctx.los_days"
+      ],
+      "generated_at": "2020-01-01T00:00:42Z",
+      "generator": "template",
+      "generator_metadata": {
+        "day_index": 6,
+        "generator": "template",
+        "lang": "en",
+        "shift": "night"
+      },
+      "sections": {},
+      "text": "[Nursing Shift Note - night shift] Day 7 / LOS 14 days\nPatient status: BP 115/69, HR 101, SpO2 98%, T 36.8°C.\nMeds administered: Aspirin, Ticagrelor, Nitroglycerin.\nObservation and care ongoing, no significant findings."
+    }
+  },
+  "doc-ENC-FORCED-0001-308142489017-36-day": {
+    "document_id": "doc-ENC-FORCED-0001-308142489017-36-day",
+    "encounter_id": "ENC-FORCED-0001-308142489017",
+    "narrative": {
+      "facts_used": [
+        "ctx.shift",
+        "ctx.vitals.today",
+        "ctx.medications.today",
+        "ctx.day_index",
+        "ctx.los_days"
+      ],
+      "generated_at": "2020-01-01T00:00:42Z",
+      "generator": "template",
+      "generator_metadata": {
+        "day_index": 6,
+        "generator": "template",
+        "lang": "en",
+        "shift": "day"
+      },
+      "sections": {},
+      "text": "[Nursing Shift Note - day shift] Day 7 / LOS 14 days\nPatient status: BP 115/69, HR 101, SpO2 98%, T 36.8°C.\nMeds administered: Aspirin, Ticagrelor, Nitroglycerin.\nObservation and care ongoing, no significant findings."
+    }
+  },
+  "doc-ENC-FORCED-0001-308142489017-37-evening": {
+    "document_id": "doc-ENC-FORCED-0001-308142489017-37-evening",
+    "encounter_id": "ENC-FORCED-0001-308142489017",
+    "narrative": {
+      "facts_used": [
+        "ctx.shift",
+        "ctx.vitals.today",
+        "ctx.medications.today",
+        "ctx.day_index",
+        "ctx.los_days"
+      ],
+      "generated_at": "2020-01-01T00:00:42Z",
+      "generator": "template",
+      "generator_metadata": {
+        "day_index": 6,
+        "generator": "template",
+        "lang": "en",
+        "shift": "evening"
+      },
+      "sections": {},
+      "text": "[Nursing Shift Note - evening shift] Day 7 / LOS 14 days\nPatient status: BP 115/69, HR 101, SpO2 98%, T 36.8°C.\nMeds administered: Aspirin, Ticagrelor, Nitroglycerin.\nObservation and care ongoing, no significant findings."
+    }
+  },
+  "doc-ENC-FORCED-0001-308142489017-38-night": {
+    "document_id": "doc-ENC-FORCED-0001-308142489017-38-night",
+    "encounter_id": "ENC-FORCED-0001-308142489017",
+    "narrative": {
+      "facts_used": [
+        "ctx.shift",
+        "ctx.vitals.today",
+        "ctx.medications.today",
+        "ctx.day_index",
+        "ctx.los_days"
+      ],
+      "generated_at": "2020-01-01T00:00:42Z",
+      "generator": "template",
+      "generator_metadata": {
+        "day_index": 7,
+        "generator": "template",
+        "lang": "en",
+        "shift": "night"
+      },
+      "sections": {},
+      "text": "[Nursing Shift Note - night shift] Day 8 / LOS 14 days\nPatient status: BP 110/68, HR 107, SpO2 96%, T 37.4°C.\nMeds administered: Aspirin, Ticagrelor, Nitroglycerin.\nObservation and care ongoing, no significant findings."
+    }
+  },
+  "doc-ENC-FORCED-0001-308142489017-39-day": {
+    "document_id": "doc-ENC-FORCED-0001-308142489017-39-day",
+    "encounter_id": "ENC-FORCED-0001-308142489017",
+    "narrative": {
+      "facts_used": [
+        "ctx.shift",
+        "ctx.vitals.today",
+        "ctx.medications.today",
+        "ctx.day_index",
+        "ctx.los_days"
+      ],
+      "generated_at": "2020-01-01T00:00:42Z",
+      "generator": "template",
+      "generator_metadata": {
+        "day_index": 7,
+        "generator": "template",
+        "lang": "en",
+        "shift": "day"
+      },
+      "sections": {},
+      "text": "[Nursing Shift Note - day shift] Day 8 / LOS 14 days\nPatient status: BP 110/68, HR 107, SpO2 96%, T 37.4°C.\nMeds administered: Aspirin, Ticagrelor, Nitroglycerin.\nObservation and care ongoing, no significant findings."
+    }
+  },
+  "doc-ENC-FORCED-0001-308142489017-40-evening": {
+    "document_id": "doc-ENC-FORCED-0001-308142489017-40-evening",
+    "encounter_id": "ENC-FORCED-0001-308142489017",
+    "narrative": {
+      "facts_used": [
+        "ctx.shift",
+        "ctx.vitals.today",
+        "ctx.medications.today",
+        "ctx.day_index",
+        "ctx.los_days"
+      ],
+      "generated_at": "2020-01-01T00:00:42Z",
+      "generator": "template",
+      "generator_metadata": {
+        "day_index": 7,
+        "generator": "template",
+        "lang": "en",
+        "shift": "evening"
+      },
+      "sections": {},
+      "text": "[Nursing Shift Note - evening shift] Day 8 / LOS 14 days\nPatient status: BP 110/68, HR 107, SpO2 96%, T 37.4°C.\nMeds administered: Aspirin, Ticagrelor, Nitroglycerin.\nObservation and care ongoing, no significant findings."
+    }
+  },
+  "doc-ENC-FORCED-0001-308142489017-41-night": {
+    "document_id": "doc-ENC-FORCED-0001-308142489017-41-night",
+    "encounter_id": "ENC-FORCED-0001-308142489017",
+    "narrative": {
+      "facts_used": [
+        "ctx.shift",
+        "ctx.vitals.today",
+        "ctx.medications.today",
+        "ctx.day_index",
+        "ctx.los_days"
+      ],
+      "generated_at": "2020-01-01T00:00:42Z",
+      "generator": "template",
+      "generator_metadata": {
+        "day_index": 8,
+        "generator": "template",
+        "lang": "en",
+        "shift": "night"
+      },
+      "sections": {},
+      "text": "[Nursing Shift Note - night shift] Day 9 / LOS 14 days\nPatient status: BP 116/69, HR 104, SpO2 98%, T 37.4°C.\nMeds administered: Aspirin, Ticagrelor, Nitroglycerin.\nObservation and care ongoing, no significant findings."
+    }
+  },
+  "doc-ENC-FORCED-0001-308142489017-42-day": {
+    "document_id": "doc-ENC-FORCED-0001-308142489017-42-day",
+    "encounter_id": "ENC-FORCED-0001-308142489017",
+    "narrative": {
+      "facts_used": [
+        "ctx.shift",
+        "ctx.vitals.today",
+        "ctx.medications.today",
+        "ctx.day_index",
+        "ctx.los_days"
+      ],
+      "generated_at": "2020-01-01T00:00:42Z",
+      "generator": "template",
+      "generator_metadata": {
+        "day_index": 8,
+        "generator": "template",
+        "lang": "en",
+        "shift": "day"
+      },
+      "sections": {},
+      "text": "[Nursing Shift Note - day shift] Day 9 / LOS 14 days\nPatient status: BP 116/69, HR 104, SpO2 98%, T 37.4°C.\nMeds administered: Aspirin, Ticagrelor, Nitroglycerin.\nObservation and care ongoing, no significant findings."
+    }
+  },
+  "doc-ENC-FORCED-0001-308142489017-43-evening": {
+    "document_id": "doc-ENC-FORCED-0001-308142489017-43-evening",
+    "encounter_id": "ENC-FORCED-0001-308142489017",
+    "narrative": {
+      "facts_used": [
+        "ctx.shift",
+        "ctx.vitals.today",
+        "ctx.medications.today",
+        "ctx.day_index",
+        "ctx.los_days"
+      ],
+      "generated_at": "2020-01-01T00:00:42Z",
+      "generator": "template",
+      "generator_metadata": {
+        "day_index": 8,
+        "generator": "template",
+        "lang": "en",
+        "shift": "evening"
+      },
+      "sections": {},
+      "text": "[Nursing Shift Note - evening shift] Day 9 / LOS 14 days\nPatient status: BP 116/69, HR 104, SpO2 98%, T 37.4°C.\nMeds administered: Aspirin, Ticagrelor, Nitroglycerin.\nObservation and care ongoing, no significant findings."
+    }
+  },
+  "doc-ENC-FORCED-0001-308142489017-44-night": {
+    "document_id": "doc-ENC-FORCED-0001-308142489017-44-night",
+    "encounter_id": "ENC-FORCED-0001-308142489017",
+    "narrative": {
+      "facts_used": [
+        "ctx.shift",
+        "ctx.vitals.today",
+        "ctx.medications.today",
+        "ctx.day_index",
+        "ctx.los_days"
+      ],
+      "generated_at": "2020-01-01T00:00:42Z",
+      "generator": "template",
+      "generator_metadata": {
+        "day_index": 9,
+        "generator": "template",
+        "lang": "en",
+        "shift": "night"
+      },
+      "sections": {},
+      "text": "[Nursing Shift Note - night shift] Day 10 / LOS 14 days\nPatient status: BP 115/71, HR 102, SpO2 96%, T 37.1°C.\nMeds administered: Aspirin, Ticagrelor, Nitroglycerin.\nObservation and care ongoing, no significant findings."
+    }
+  },
+  "doc-ENC-FORCED-0001-308142489017-45-day": {
+    "document_id": "doc-ENC-FORCED-0001-308142489017-45-day",
+    "encounter_id": "ENC-FORCED-0001-308142489017",
+    "narrative": {
+      "facts_used": [
+        "ctx.shift",
+        "ctx.vitals.today",
+        "ctx.medications.today",
+        "ctx.day_index",
+        "ctx.los_days"
+      ],
+      "generated_at": "2020-01-01T00:00:42Z",
+      "generator": "template",
+      "generator_metadata": {
+        "day_index": 9,
+        "generator": "template",
+        "lang": "en",
+        "shift": "day"
+      },
+      "sections": {},
+      "text": "[Nursing Shift Note - day shift] Day 10 / LOS 14 days\nPatient status: BP 115/71, HR 102, SpO2 96%, T 37.1°C.\nMeds administered: Aspirin, Ticagrelor, Nitroglycerin.\nObservation and care ongoing, no significant findings."
+    }
+  },
+  "doc-ENC-FORCED-0001-308142489017-46-evening": {
+    "document_id": "doc-ENC-FORCED-0001-308142489017-46-evening",
+    "encounter_id": "ENC-FORCED-0001-308142489017",
+    "narrative": {
+      "facts_used": [
+        "ctx.shift",
+        "ctx.vitals.today",
+        "ctx.medications.today",
+        "ctx.day_index",
+        "ctx.los_days"
+      ],
+      "generated_at": "2020-01-01T00:00:42Z",
+      "generator": "template",
+      "generator_metadata": {
+        "day_index": 9,
+        "generator": "template",
+        "lang": "en",
+        "shift": "evening"
+      },
+      "sections": {},
+      "text": "[Nursing Shift Note - evening shift] Day 10 / LOS 14 days\nPatient status: BP 115/71, HR 102, SpO2 96%, T 37.1°C.\nMeds administered: Aspirin, Ticagrelor, Nitroglycerin.\nObservation and care ongoing, no significant findings."
+    }
+  },
+  "doc-ENC-FORCED-0001-308142489017-47-night": {
+    "document_id": "doc-ENC-FORCED-0001-308142489017-47-night",
+    "encounter_id": "ENC-FORCED-0001-308142489017",
+    "narrative": {
+      "facts_used": [
+        "ctx.shift",
+        "ctx.vitals.today",
+        "ctx.medications.today",
+        "ctx.day_index",
+        "ctx.los_days"
+      ],
+      "generated_at": "2020-01-01T00:00:42Z",
+      "generator": "template",
+      "generator_metadata": {
+        "day_index": 10,
+        "generator": "template",
+        "lang": "en",
+        "shift": "night"
+      },
+      "sections": {},
+      "text": "[Nursing Shift Note - night shift] Day 11 / LOS 14 days\nPatient status: BP 115/69, HR 100, SpO2 98%, T 36.1°C.\nMeds administered: Aspirin, Ticagrelor, Nitroglycerin.\nObservation and care ongoing, no significant findings."
+    }
+  },
+  "doc-ENC-FORCED-0001-308142489017-48-day": {
+    "document_id": "doc-ENC-FORCED-0001-308142489017-48-day",
+    "encounter_id": "ENC-FORCED-0001-308142489017",
+    "narrative": {
+      "facts_used": [
+        "ctx.shift",
+        "ctx.vitals.today",
+        "ctx.medications.today",
+        "ctx.day_index",
+        "ctx.los_days"
+      ],
+      "generated_at": "2020-01-01T00:00:42Z",
+      "generator": "template",
+      "generator_metadata": {
+        "day_index": 10,
+        "generator": "template",
+        "lang": "en",
+        "shift": "day"
+      },
+      "sections": {},
+      "text": "[Nursing Shift Note - day shift] Day 11 / LOS 14 days\nPatient status: BP 115/69, HR 100, SpO2 98%, T 36.1°C.\nMeds administered: Aspirin, Ticagrelor, Nitroglycerin.\nObservation and care ongoing, no significant findings."
+    }
+  },
+  "doc-ENC-FORCED-0001-308142489017-49-evening": {
+    "document_id": "doc-ENC-FORCED-0001-308142489017-49-evening",
+    "encounter_id": "ENC-FORCED-0001-308142489017",
+    "narrative": {
+      "facts_used": [
+        "ctx.shift",
+        "ctx.vitals.today",
+        "ctx.medications.today",
+        "ctx.day_index",
+        "ctx.los_days"
+      ],
+      "generated_at": "2020-01-01T00:00:42Z",
+      "generator": "template",
+      "generator_metadata": {
+        "day_index": 10,
+        "generator": "template",
+        "lang": "en",
+        "shift": "evening"
+      },
+      "sections": {},
+      "text": "[Nursing Shift Note - evening shift] Day 11 / LOS 14 days\nPatient status: BP 115/69, HR 100, SpO2 98%, T 36.1°C.\nMeds administered: Aspirin, Ticagrelor, Nitroglycerin.\nObservation and care ongoing, no significant findings."
+    }
+  },
+  "doc-ENC-FORCED-0001-308142489017-50-night": {
+    "document_id": "doc-ENC-FORCED-0001-308142489017-50-night",
+    "encounter_id": "ENC-FORCED-0001-308142489017",
+    "narrative": {
+      "facts_used": [
+        "ctx.shift",
+        "ctx.vitals.today",
+        "ctx.medications.today",
+        "ctx.day_index",
+        "ctx.los_days"
+      ],
+      "generated_at": "2020-01-01T00:00:42Z",
+      "generator": "template",
+      "generator_metadata": {
+        "day_index": 11,
+        "generator": "template",
+        "lang": "en",
+        "shift": "night"
+      },
+      "sections": {},
+      "text": "[Nursing Shift Note - night shift] Day 12 / LOS 14 days\nPatient status: BP 117/73, HR 101, SpO2 97%, T 36.6°C.\nMeds administered: Aspirin, Ticagrelor, Nitroglycerin.\nObservation and care ongoing, no significant findings."
+    }
+  },
+  "doc-ENC-FORCED-0001-308142489017-51-day": {
+    "document_id": "doc-ENC-FORCED-0001-308142489017-51-day",
+    "encounter_id": "ENC-FORCED-0001-308142489017",
+    "narrative": {
+      "facts_used": [
+        "ctx.shift",
+        "ctx.vitals.today",
+        "ctx.medications.today",
+        "ctx.day_index",
+        "ctx.los_days"
+      ],
+      "generated_at": "2020-01-01T00:00:42Z",
+      "generator": "template",
+      "generator_metadata": {
+        "day_index": 11,
+        "generator": "template",
+        "lang": "en",
+        "shift": "day"
+      },
+      "sections": {},
+      "text": "[Nursing Shift Note - day shift] Day 12 / LOS 14 days\nPatient status: BP 117/73, HR 101, SpO2 97%, T 36.6°C.\nMeds administered: Aspirin, Ticagrelor, Nitroglycerin.\nObservation and care ongoing, no significant findings."
+    }
+  },
+  "doc-ENC-FORCED-0001-308142489017-52-evening": {
+    "document_id": "doc-ENC-FORCED-0001-308142489017-52-evening",
+    "encounter_id": "ENC-FORCED-0001-308142489017",
+    "narrative": {
+      "facts_used": [
+        "ctx.shift",
+        "ctx.vitals.today",
+        "ctx.medications.today",
+        "ctx.day_index",
+        "ctx.los_days"
+      ],
+      "generated_at": "2020-01-01T00:00:42Z",
+      "generator": "template",
+      "generator_metadata": {
+        "day_index": 11,
+        "generator": "template",
+        "lang": "en",
+        "shift": "evening"
+      },
+      "sections": {},
+      "text": "[Nursing Shift Note - evening shift] Day 12 / LOS 14 days\nPatient status: BP 117/73, HR 101, SpO2 97%, T 36.6°C.\nMeds administered: Aspirin, Ticagrelor, Nitroglycerin.\nObservation and care ongoing, no significant findings."
+    }
+  },
+  "doc-ENC-FORCED-0001-308142489017-53-night": {
+    "document_id": "doc-ENC-FORCED-0001-308142489017-53-night",
+    "encounter_id": "ENC-FORCED-0001-308142489017",
+    "narrative": {
+      "facts_used": [
+        "ctx.shift",
+        "ctx.vitals.today",
+        "ctx.medications.today",
+        "ctx.day_index",
+        "ctx.los_days"
+      ],
+      "generated_at": "2020-01-01T00:00:42Z",
+      "generator": "template",
+      "generator_metadata": {
+        "day_index": 12,
+        "generator": "template",
+        "lang": "en",
+        "shift": "night"
+      },
+      "sections": {},
+      "text": "[Nursing Shift Note - night shift] Day 13 / LOS 14 days\nPatient status: BP 119/72, HR 101, SpO2 96%, T 36.7°C.\nMeds administered: Aspirin, Ticagrelor, Nitroglycerin.\nObservation and care ongoing, no significant findings."
+    }
+  },
+  "doc-ENC-FORCED-0001-308142489017-54-day": {
+    "document_id": "doc-ENC-FORCED-0001-308142489017-54-day",
+    "encounter_id": "ENC-FORCED-0001-308142489017",
+    "narrative": {
+      "facts_used": [
+        "ctx.shift",
+        "ctx.vitals.today",
+        "ctx.medications.today",
+        "ctx.day_index",
+        "ctx.los_days"
+      ],
+      "generated_at": "2020-01-01T00:00:42Z",
+      "generator": "template",
+      "generator_metadata": {
+        "day_index": 12,
+        "generator": "template",
+        "lang": "en",
+        "shift": "day"
+      },
+      "sections": {},
+      "text": "[Nursing Shift Note - day shift] Day 13 / LOS 14 days\nPatient status: BP 119/72, HR 101, SpO2 96%, T 36.7°C.\nMeds administered: Aspirin, Ticagrelor, Nitroglycerin.\nObservation and care ongoing, no significant findings."
+    }
+  },
+  "doc-ENC-FORCED-0001-308142489017-55-evening": {
+    "document_id": "doc-ENC-FORCED-0001-308142489017-55-evening",
+    "encounter_id": "ENC-FORCED-0001-308142489017",
+    "narrative": {
+      "facts_used": [
+        "ctx.shift",
+        "ctx.vitals.today",
+        "ctx.medications.today",
+        "ctx.day_index",
+        "ctx.los_days"
+      ],
+      "generated_at": "2020-01-01T00:00:42Z",
+      "generator": "template",
+      "generator_metadata": {
+        "day_index": 12,
+        "generator": "template",
+        "lang": "en",
+        "shift": "evening"
+      },
+      "sections": {},
+      "text": "[Nursing Shift Note - evening shift] Day 13 / LOS 14 days\nPatient status: BP 119/72, HR 101, SpO2 96%, T 36.7°C.\nMeds administered: Aspirin, Ticagrelor, Nitroglycerin.\nObservation and care ongoing, no significant findings."
+    }
+  },
+  "doc-ENC-FORCED-0001-308142489017-56-night": {
+    "document_id": "doc-ENC-FORCED-0001-308142489017-56-night",
+    "encounter_id": "ENC-FORCED-0001-308142489017",
+    "narrative": {
+      "facts_used": [
+        "ctx.shift",
+        "ctx.vitals.today",
+        "ctx.medications.today",
+        "ctx.day_index",
+        "ctx.los_days"
+      ],
+      "generated_at": "2020-01-01T00:00:42Z",
+      "generator": "template",
+      "generator_metadata": {
+        "day_index": 13,
+        "generator": "template",
+        "lang": "en",
+        "shift": "night"
+      },
+      "sections": {},
+      "text": "[Nursing Shift Note - night shift] Day 14 / LOS 14 days\nPatient status: BP 116/72, HR 102, SpO2 98%, T 36.1°C.\nMeds administered: Aspirin, Ticagrelor, Nitroglycerin.\nObservation and care ongoing, no significant findings."
+    }
+  },
+  "doc-ENC-FORCED-0001-308142489017-57-day": {
+    "document_id": "doc-ENC-FORCED-0001-308142489017-57-day",
+    "encounter_id": "ENC-FORCED-0001-308142489017",
+    "narrative": {
+      "facts_used": [
+        "ctx.shift",
+        "ctx.vitals.today",
+        "ctx.medications.today",
+        "ctx.day_index",
+        "ctx.los_days"
+      ],
+      "generated_at": "2020-01-01T00:00:42Z",
+      "generator": "template",
+      "generator_metadata": {
+        "day_index": 13,
+        "generator": "template",
+        "lang": "en",
+        "shift": "day"
+      },
+      "sections": {},
+      "text": "[Nursing Shift Note - day shift] Day 14 / LOS 14 days\nPatient status: BP 116/72, HR 102, SpO2 98%, T 36.1°C.\nMeds administered: Aspirin, Ticagrelor, Nitroglycerin.\nObservation and care ongoing, no significant findings."
+    }
+  },
+  "doc-ENC-FORCED-0001-308142489017-58-evening": {
+    "document_id": "doc-ENC-FORCED-0001-308142489017-58-evening",
+    "encounter_id": "ENC-FORCED-0001-308142489017",
+    "narrative": {
+      "facts_used": [
+        "ctx.shift",
+        "ctx.vitals.today",
+        "ctx.medications.today",
+        "ctx.day_index",
+        "ctx.los_days"
+      ],
+      "generated_at": "2020-01-01T00:00:42Z",
+      "generator": "template",
+      "generator_metadata": {
+        "day_index": 13,
+        "generator": "template",
+        "lang": "en",
+        "shift": "evening"
+      },
+      "sections": {},
+      "text": "[Nursing Shift Note - evening shift] Day 14 / LOS 14 days\nPatient status: BP 116/72, HR 102, SpO2 98%, T 36.1°C.\nMeds administered: Aspirin, Ticagrelor, Nitroglycerin.\nObservation and care ongoing, no significant findings."
+    }
+  },
+  "doc-ENC-FORCED-0001-308142489017-59": {
+    "document_id": "doc-ENC-FORCED-0001-308142489017-59",
     "encounter_id": "ENC-FORCED-0001-308142489017",
     "narrative": {
       "facts_used": [
@@ -295,26 +1764,28 @@
         "lang": "en"
       },
       "sections": {
-        "admission_status": "Hospital stay: 2 days. Admission reason: Chest pain, diaphoresis, dyspnea. Discharge criteria met.",
-        "discharge_readiness": "Discharge readiness: Discharge Barthel 63/100.",
-        "nursing_interventions_provided": "Cumulative IN 3274 mL / OUT 1307 mL (net +1967 mL).",
+        "admission_status": "Hospital stay: 14 days. Admission reason: Chest pain, diaphoresis, dyspnea. Discharge criteria met.",
+        "discharge_readiness": "Discharge readiness: Discharge Barthel 100/100.",
+        "nursing_interventions_provided": "Cumulative IN 24114 mL / OUT 9095 mL (net +15019 mL).",
         "patient_education": "Patient education: home BP monitoring + low-salt diet."
       },
-      "structured": {},
       "text": ""
     }
   },
-  "doc-ENC-FORCED-0001-308142489017-11": {
-    "document_id": "doc-ENC-FORCED-0001-308142489017-11",
+  "doc-ENC-FORCED-0001-308142489017-60": {
+    "document_id": "doc-ENC-FORCED-0001-308142489017-60",
     "encounter_id": "ENC-FORCED-0001-308142489017",
     "narrative": {
       "facts_used": [
-        "ctx.diagnoses[0].discharge_diagnosis_code",
-        "ctx.los_days",
-        "ctx.diagnoses[0].discharge_diagnosis_code",
-        "ctx.diagnoses[0].discharge_diagnosis_code",
-        "ctx.patient.chronic_conditions",
-        "encounter.id::autopsy_sample"
+        "ctx.procedures",
+        "ctx.procedures",
+        "ctx.procedures",
+        "ctx.procedures",
+        "ctx.procedures",
+        "ctx.procedures",
+        "ctx.procedures",
+        "ctx.procedures",
+        "ctx.procedures"
       ],
       "generated_at": "2020-01-01T00:00:42Z",
       "generator": "template",
@@ -323,64 +1794,28 @@
         "lang": "en"
       },
       "sections": {
-        "autopsy_status": "Autopsy performed: no.",
-        "contributing_conditions": "Contributing conditions: Chronic ischemic heart disease (I25); Essential (primary) hypertension (I10); Disorders of lipoprotein metabolism and other lipidemias (E78) as comorbid conditions, which plausibly contributed to the terminal course.",
-        "duration_of_immediate_cause": "Time from onset of immediate cause to death: died approximately 2 days into the admission from Acute myocardial infarction, unspecified. Pre-admission course not captured in this record.",
-        "immediate_cause_of_death": "Immediate cause of death: Acute myocardial infarction, unspecified (I21.9).",
-        "manner_of_death": "Manner of death: natural / disease-related.",
-        "underlying_cause_of_death": "Underlying cause of death: Acute myocardial infarction, unspecified (I21)."
+        "op_anesthesia": "Anesthesia: Local anesthesia, ASA class 2",
+        "op_blood_loss": "Estimated blood loss: 300 mL; no intraoperative transfusion",
+        "op_course": "Operative course: planned procedure performed, operative time 24 min. Outcome: successful",
+        "op_equipment": "Implants / devices: none",
+        "op_findings": "Body site: Structure of coronary artery / No intraoperative complications",
+        "op_postop_plan": "Postoperative plan: ward-level monitoring. Vital signs, urine output, and wound assessment will be checked at frequent intervals to detect postoperative complications early.",
+        "op_procedure_name": "Procedure: Percutaneous transluminal coronary angioplasty (PCI); single major coronary artery (code 92920); operative time 24 min",
+        "op_specimens": "Specimens sent to pathology: none",
+        "op_surgeon": "Primary surgeon: not documented / Assistants: none"
       },
-      "structured": {},
       "text": ""
     }
   },
-  "doc-ENC-FORCED-0001-308142489017-12": {
-    "document_id": "doc-ENC-FORCED-0001-308142489017-12",
-    "encounter_id": "ENC-FORCED-0001-308142489017",
-    "narrative": {
-      "facts_used": [
-        "ctx.diagnoses[0].admission_diagnosis_code",
-        "ctx.encounter.admission_datetime",
-        "ctx.los_days",
-        "ctx.medications",
-        "ctx.procedures",
-        "ctx.encounter.discharge_datetime",
-        "ctx.diagnoses[0].discharge_diagnosis_code",
-        "ctx.procedures",
-        "ctx.diagnoses[0].discharge_diagnosis_code",
-        "ctx.patient.chronic_conditions",
-        "ctx.los_days",
-        "encounter.id::autopsy_sample"
-      ],
-      "generated_at": "2020-01-01T00:00:42Z",
-      "generator": "template",
-      "generator_metadata": {
-        "generator": "template",
-        "lang": "en"
-      },
-      "sections": {
-        "admission_state": "The patient was admitted urgently on 2024-06-15 04:16 with Acute myocardial infarction, unspecified (I21.9). On admission the overall clinical status was assessed as severe.",
-        "autopsy_status_and_findings": "Autopsy status and findings: autopsy not performed (no family consent).",
-        "cause_of_death": "Cause of death: Acute myocardial infarction, unspecified (I21.9).",
-        "circumstances_of_death": "On the ward, the patient died naturally under the attending physician's palliative bedside care, and death was confirmed.",
-        "complications_and_comorbidities": "Complications and comorbidities: The patient had a chronic-disease history including Chronic ischemic heart disease (I25), Essential (primary) hypertension (I10), Disorders of lipoprotein metabolism and other lipidemias (E78).",
-        "family_communication": "Family communication: The family was informed early in the admission about the possibility of clinical deterioration, and updated as the course evolved, and the family was present at the bedside at the time of death confirmation.",
-        "terminal_course": "In the final hours the patient developed acute hemodynamic deterioration, attributed to Acute myocardial infarction, unspecified, and death was confirmed at 2024-06-17 00:16.",
-        "treatment_course": "Over the 2-day admission, 27 medication order(s) were administered, 4 procedure(s) were performed, Multidisciplinary treatment was continued, but the patient could not be saved."
-      },
-      "structured": {},
-      "text": ""
-    }
-  },
-  "doc-ENC-FORCED-0001-308142489017-ED-13": {
-    "document_id": "doc-ENC-FORCED-0001-308142489017-ED-13",
+  "doc-ENC-FORCED-0001-308142489017-ED-61": {
+    "document_id": "doc-ENC-FORCED-0001-308142489017-ED-61",
     "encounter_id": "ENC-FORCED-0001-308142489017",
     "narrative": {
       "facts_used": [
         "ctx.encounter.chief_complaint",
         "ctx.vitals[0]",
-        "ctx.lab_results.abnormal",
-        "ctx.procedures.ed",
+        "ctx.orders.ed",
+        "ctx.ed_assessment.state_composed",
         "ctx.encounter.disposition"
       ],
       "generated_at": "2020-01-01T00:00:42Z",
@@ -390,20 +1825,19 @@
         "lang": "en"
       },
       "sections": {
-        "assessment": "Clinical assessment ongoing",
+        "assessment": "Encounter reason: Chest pain, diaphoresis, dyspnea",
         "chief_complaint": "Chest pain, diaphoresis, dyspnea",
-        "disposition": "expired. Return precautions provided.",
-        "ed_workup": "PT_INR 1.3 {INR} [H], AST 105.0 U/L [H], ALT 88.0 U/L [H], Troponin_I 68.799 ng/mL [H]",
+        "disposition": "Transferred to another facility (Chest pain, diaphoresis, dyspnea)",
+        "ed_workup": "Labs: CBC, coagulation studies, LFT, lipid panel, troponin I, troponin I (6 h repeat), CK-MB, BNP. Imaging: 12-lead ECG, echocardiogram, chest X-ray PA, coronary angiography, chest X-ray AP. Medications: Aspirin, Ticagrelor, Acetaminophen, Nitroglycerin, Dobutamine 2-20ug/kg/min IV drip, Norepinephrine 0.05-0.3ug/kg/min IV drip. Procedures ordered: O2: Nasal cannula SpO2 >= 94%",
         "hpi": "Patient presented with severe symptoms.",
-        "physical_exam": "On arrival: BP 111/68 mmHg, HR 99 bpm, RR 18 /min, SpO2 94%, T 37.5°C. No focal findings on exam.",
+        "physical_exam": "On arrival: BP 116/72 mmHg, HR 111 bpm, RR 18 /min, SpO2 96%, T 37.5°C. No focal findings on exam.",
         "triage_details": "Triage information: not recorded"
       },
-      "structured": {},
       "text": ""
     }
   },
-  "doc-ENC-FORCED-0001-308142489017-ED-14": {
-    "document_id": "doc-ENC-FORCED-0001-308142489017-ED-14",
+  "doc-ENC-FORCED-0001-308142489017-ED-62": {
+    "document_id": "doc-ENC-FORCED-0001-308142489017-ED-62",
     "encounter_id": "ENC-FORCED-0001-308142489017",
     "narrative": {
       "facts_used": [],
@@ -414,7 +1848,6 @@
         "lang": "en"
       },
       "sections": {},
-      "structured": {},
       "text": "Triage information: not recorded"
     }
   }

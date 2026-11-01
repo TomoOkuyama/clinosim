@@ -146,6 +146,11 @@ old name; those are being cleaned up module-by-module (see linked issues).
   and goldens for profiles other than the intended ones also show a diff, suspect a
   narrative-pass regression. Always investigate before committing. "I regenerated everything, so
   it's green" = the classic way to hide a silent regression (PR-90 lesson).
+- **AD-66 Rule 3**: CI runs the regression suite on every PR (`Narrative regression
+  (goldens)` job, Issue #2442). Any change that moves template or mock-LLM narrative
+  output — including simulation, catalog and localization changes, not only template
+  edits — regenerates the affected goldens (`--provider template` and `--provider mock`)
+  in the same PR and explains the diff in the PR description.
 
 ### Module independence
 
