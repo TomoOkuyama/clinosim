@@ -20,6 +20,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 
+from clinosim.codes.drugs import drug_classes, medication_matches
 from clinosim.codes.valuesets import patient_condition_names
 
 PATIENT_CONDITIONS: frozenset[str] = patient_condition_names()
@@ -211,47 +212,38 @@ class ComplicationContext:
     order after the stay, so it is decided up front); None = unknown."""
 
 
-DRUG_CLASSES: dict[str, tuple[str, ...]] = {
-    "opioid": ("MORPHINE", "OXYCODONE", "HYDROMORPHONE", "FENTANYL", "TRAMADOL", "PENTAZOCINE"),
-    "nsaid": ("IBUPROFEN", "KETOROLAC", "LOXOPROFEN", "NAPROXEN", "DICLOFENAC", "CELECOXIB"),
-    "fluoroquinolone": ("LEVOFLOXACIN", "CIPROFLOXACIN", "MOXIFLOXACIN"),
-    "clindamycin": ("CLINDAMYCIN",),
-    "anticoagulant": (
-        "HEPARIN",
-        "ENOXAPARIN",
-        "WARFARIN",
-        "APIXABAN",
-        "RIVAROXABAN",
-        "DABIGATRAN",
-        "EDOXABAN",
-        "FONDAPARINUX",
-    ),
-    "therapeutic_anticoagulant": ("WARFARIN", "APIXABAN", "RIVAROXABAN", "DABIGATRAN", "EDOXABAN"),
-    "heparin": ("HEPARIN",),
-    "steroid": ("PREDNISOLONE", "PREDNISONE", "METHYLPREDNISOLONE", "HYDROCORTISONE", "DEXAMETHASONE"),
-    "ppi": ("OMEPRAZOLE", "ESOMEPRAZOLE", "LANSOPRAZOLE", "PANTOPRAZOLE", "RABEPRAZOLE", "VONOPRAZAN"),
-    "benzodiazepine": ("LORAZEPAM", "DIAZEPAM", "MIDAZOLAM", "CHLORDIAZEPOXIDE", "ALPRAZOLAM"),
-    "diuretic": ("FUROSEMIDE", "TORSEMIDE", "BUMETANIDE", "HYDROCHLOROTHIAZIDE", "SPIRONOLACTONE"),
-    "ace_inhibitor": ("LISINOPRIL", "ENALAPRIL", "RAMIPRIL", "CAPTOPRIL", "PERINDOPRIL", "IMIDAPRIL"),
-    "antibiotic": (
-        "CEFTRIAXONE",
-        "CEFAZOLIN",
-        "CEFEPIME",
-        "CEFTAZIDIME",
-        "MEROPENEM",
-        "PIPERACILLIN",
-        "AMPICILLIN",
-        "VANCOMYCIN",
-        "LEVOFLOXACIN",
-        "CIPROFLOXACIN",
-        "AZITHROMYCIN",
-        "CLINDAMYCIN",
-        "METRONIDAZOLE",
-        "AMOXICILLIN",
-        "DOXYCYCLINE",
-        "SULFAMETHOXAZOLE",
-    ),
+# Drug classes used by context risk factors, as catalog selectors
+# (codes/data/drugs.yaml; Issue #2372): a medication counts when its catalog
+# drug_id is one of ``drugs`` or it has one of ``classes`` (with dotted
+# ancestors), unless it also has one of ``exclude_classes``. Replaces the
+# upper-case name-substring tuples.
+DRUG_CLASSES: dict[str, dict[str, tuple[str, ...]]] = {
+    "opioid": {"classes": ("opioid",)},
+    # Analgesic NSAIDs; low-dose aspirin is an antiplatelet, not an NSAID exposure.
+    "nsaid": {"classes": ("nsaid",), "exclude_classes": ("antiplatelet",)},
+    "fluoroquinolone": {"classes": ("antibiotic.fluoroquinolone",)},
+    "clindamycin": {"drugs": ("clindamycin",)},
+    # VTE prophylaxis / treatment; nafamostat anticoagulates a dialysis circuit only.
+    "anticoagulant": {"classes": ("anticoagulant",), "exclude_classes": ("anticoagulant.serine_protease",)},
+    "therapeutic_anticoagulant": {"classes": ("anticoagulant.doac", "anticoagulant.vka")},
+    "heparin": {"drugs": ("heparin",)},
+    "steroid": {"classes": ("corticosteroid",)},
+    "ppi": {"classes": ("ppi",)},
+    "benzodiazepine": {"classes": ("benzodiazepine",)},
+    "diuretic": {"classes": ("diuretic",)},
+    "ace_inhibitor": {"classes": ("acei",)},
+    "antibiotic": {"classes": ("antibiotic",)},
 }
+
+
+def in_drug_class(name: str, drug_class: str) -> bool:
+    """True when the medication ``name`` belongs to the context drug class."""
+    sel = DRUG_CLASSES[drug_class]
+    if not medication_matches(name, sel.get("drugs", ()), sel.get("classes", ())):
+        return False
+    return not set(sel.get("exclude_classes", ())) & set(drug_classes(name))
+
+
 """Drug-name substrings per class for medication-exposure risk factors."""
 
 # condition -> (kind, argument)
@@ -301,7 +293,7 @@ def resolve_context_condition(condition: str, ctx: ComplicationContext | None, d
         return day >= start if kind == "since" else day - start > 7
     if kind in ("drug", "no_drug", "home_drug"):
         names = ctx.home_medications if kind == "home_drug" else ctx.medications | ctx.home_medications
-        present = any(sub in name for name in names for sub in DRUG_CLASSES[arg])
+        present = any(in_drug_class(name, arg) for name in names)
         if arg == "anticoagulant" and kind == "no_drug" and ctx.dvt_prophylaxis:
             present = True  # planned prophylaxis counts only against "no prophylaxis"
         return not present if kind == "no_drug" else present

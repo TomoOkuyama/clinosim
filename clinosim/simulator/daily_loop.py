@@ -19,7 +19,7 @@ import numpy as np
 
 from clinosim.codes.drugs import has_drug
 from clinosim.modules._shared import MED_STOP_ORDER_ID_MARKER, sanitize_id_token
-from clinosim.modules.clinical_course._complication_risk_conditions import DRUG_CLASSES, ComplicationContext
+from clinosim.modules.clinical_course._complication_risk_conditions import ComplicationContext, in_drug_class
 from clinosim.modules.clinical_course.engine import (
     apply_diagnosis_modifier,
     compute_diagnosis_effectiveness,
@@ -143,15 +143,15 @@ def _complication_context(
     antibiotic_days = [
         (o.ordered_datetime.date() - admission_time.date()).days
         for o in meds
-        if any(sub in (o.display_name or "").upper() for sub in DRUG_CLASSES["antibiotic"])
+        if in_drug_class(o.display_name or "", "antibiotic")
     ]
     return ComplicationContext(
         icu_day=icu_day,
         intubated_day=intubated_day,
         surgery_day=surgery_day,
         antibiotic_start_day=min(antibiotic_days) if antibiotic_days else None,
-        medications={(o.display_name or "").upper() for o in meds},
-        home_medications={(m.drug_name or "").upper() for m in getattr(patient, "current_medications", []) or []},
+        medications={o.display_name or "" for o in meds},
+        home_medications={m.drug_name or "" for m in getattr(patient, "current_medications", []) or []},
         procedure_types={getattr(p, "procedure_type", "") for p in procedures},
         dvt_prophylaxis=dvt_prophylaxis,
     )

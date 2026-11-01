@@ -237,5 +237,6 @@ These parts of the code base do not yet conform. Each one is removed by the issu
 | The free-text name localizer lives in the FHIR output layer, is imported from the order and narrative layers, and also translates procedure, SNOMED and allergen names. Decision logic and records resolve drug names through `codes.drugs.drug_display`. | #2367 |
 | Language literals are still embedded in Python. | #2277 |
 | Disease YAMLs mix `drug:` names with `drug_id:`, and `Order.order_code` does not record its code system. | #2378 |
-| Complications, PRN selection and chronic-medication rules keep their own drug-class vocabularies. | #2372 |
+| The chronic-medication `drug_class` labels are their own vocabulary, not catalog classes. | #2388 |
+| Default administration interval and route heuristics identify drugs by upper-case name lists. | #2389 |
 | No lint guard enforces §8. | #2266 |

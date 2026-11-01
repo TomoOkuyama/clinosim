@@ -29,7 +29,7 @@ from typing import Any
 
 import numpy as np
 
-from clinosim.codes.drugs import drug_key, same_drug
+from clinosim.codes.drugs import drug_classes, drug_key, same_drug
 from clinosim.countries import is_jp
 from clinosim.modules.physiology.renal_thresholds import (
     METFORMIN_ADMISSION_HOLD_THRESHOLD,
@@ -580,9 +580,6 @@ def _place_chronic_monitoring_orders(
     return orders
 
 
-_PRN_NON_OPIOIDS = ("ACETAMINOPHEN", "PARACETAMOL", "IBUPROFEN", "KETOROLAC", "LOXOPROFEN")
-_PRN_OPIOIDS = ("MORPHINE", "OXYCODONE", "HYDROMORPHONE", "FENTANYL", "TRAMADOL", "PENTAZOCINE")
-_PRN_BENZODIAZEPINES = ("LORAZEPAM", "DIAZEPAM", "MIDAZOLAM", "CHLORDIAZEPOXIDE")
 PRN_PAIN_NON_OPIOID_MIN: int = 4
 PRN_PAIN_OPIOID_MIN: int = 7
 PRN_SYMPATHETIC_MIN: float = 0.25
@@ -592,12 +589,14 @@ PRN_ADMIN_DELAY_MIN: int = 10
 def prn_category(drug_name: str) -> str | None:
     """Trigger class of a PRN drug (Issue #2085): non_opioid / opioid analgesics
     follow the pain score, benzodiazepines follow autonomic symptoms (CIWA)."""
-    upper = (drug_name or "").upper()
-    if any(d in upper for d in _PRN_OPIOIDS):
+    # Catalog classes (Issue #2372): an opioid combination such as
+    # acetaminophen / codeine counts as an opioid.
+    classes = set(drug_classes(drug_name or ""))
+    if "opioid" in classes or "analgesic.opioid" in classes:
         return "opioid"
-    if any(d in upper for d in _PRN_NON_OPIOIDS):
+    if "analgesic.non_opioid" in classes or ("nsaid" in classes and "antiplatelet" not in classes):
         return "non_opioid"
-    if any(d in upper for d in _PRN_BENZODIAZEPINES):
+    if "benzodiazepine" in classes:
         return "benzodiazepine"
     return None
 

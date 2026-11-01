@@ -127,7 +127,7 @@ from clinosim.modules.clinical_course._complication_risk_conditions import (
   ([`_complication_risk_conditions.py`](_complication_risk_conditions.py)、
   Issue #2093): `PATIENT_CONDITIONS` (`codes/data/valuesets.yaml` の internal value set、severity modifier と共通)、`STATE_ALIASES`、
   `SEVERITY_ALIASES`、`CONTEXT_RESOLVED` (`ComplicationContext` から
-  解決)、`CONTEXT_CONDITIONS` (宣言済みだが False 評価)、`DRUG_CLASSES`。
+  解決)、`CONTEXT_CONDITIONS` (宣言済みだが False 評価)、`DRUG_CLASSES` (文脈の薬分類 → カタログの drug id / 分類、`in_drug_class` で判定、Issue #2372)。
 - **Load 時 validator** (`_validate_course_archetypes`、
   `_validate_archetype_modifiers`、`validate_complication_risk_factors`、
   `clinosim/modules/disease/protocol.py` から呼ばれる) は disease YAML
