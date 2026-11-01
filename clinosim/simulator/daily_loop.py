@@ -18,6 +18,7 @@ from typing import Any
 import numpy as np
 
 from clinosim.codes.drugs import has_drug, protocol_drug_name
+from clinosim.locale.i18n import t
 from clinosim.modules._shared import MED_STOP_ORDER_ID_MARKER, sanitize_id_token
 from clinosim.modules.clinical_course._complication_risk_conditions import ComplicationContext, in_drug_class
 from clinosim.modules.clinical_course.engine import (
@@ -593,11 +594,11 @@ def _run_daily_loop(
                         order_type=OrderType.LAB,
                         display_name=lab_name,
                         urgency="stat",
-                        clinical_intent=f"Day {day} {archetype}: additional workup",
+                        clinical_intent=t("order_intent.archetype_workup", "en", day=day, archetype=archetype),
                         # Issue #871: JA display for JP SR reasonCode.text.
                         # `archetype` is a code identifier (sepsis/ards/etc.) —
                         # kept as-is; the shell is translated.
-                        clinical_intent_ja=f"第{day}病日 {archetype}: 追加検査",
+                        clinical_intent_ja=t("order_intent.archetype_workup", "ja", day=day, archetype=archetype),
                         ordered_datetime=admission_time + timedelta(days=day, hours=10),
                         status=OrderStatus.PLACED,
                     )
@@ -611,9 +612,9 @@ def _run_daily_loop(
                         order_type=OrderType.IMAGING,
                         display_name=img_name,
                         urgency="stat",
-                        clinical_intent=f"Day {day} {archetype}: additional imaging",
+                        clinical_intent=t("order_intent.archetype_imaging", "en", day=day, archetype=archetype),
                         # Issue #871: JA display for JP SR reasonCode.text.
-                        clinical_intent_ja=f"第{day}病日 {archetype}: 追加画像検査",
+                        clinical_intent_ja=t("order_intent.archetype_imaging", "ja", day=day, archetype=archetype),
                         ordered_datetime=admission_time + timedelta(days=day, hours=10),
                         status=OrderStatus.PLACED,
                     )
@@ -640,9 +641,13 @@ def _run_daily_loop(
                         order_type=OrderType.MEDICATION,
                         display_name=f"DISCONTINUE: {drug_name}",
                         urgency="routine",
-                        clinical_intent=f"Day {day} {archetype}: stop {drug_name}",
+                        clinical_intent=t(
+                            "order_intent.archetype_stop", "en", day=day, archetype=archetype, drug=drug_name
+                        ),
                         # Issue #871: JA display for JP SR reasonCode.text.
-                        clinical_intent_ja=f"第{day}病日 {archetype}: {drug_name} 中止",
+                        clinical_intent_ja=t(
+                            "order_intent.archetype_stop", "ja", day=day, archetype=archetype, drug=drug_name
+                        ),
                         ordered_datetime=admission_time + timedelta(days=day, hours=10),
                         status=OrderStatus.PLACED,
                     )
@@ -667,12 +672,12 @@ def _run_daily_loop(
                         _is_medication = _dc_order_type == OrderType.MEDICATION
                         if _is_medication:
                             _order_id_prefix = f"ORD-{encounter_id}-START-D{day}-{sanitize_id_token(drug, 8)}"
-                            _intent = f"Day {day} {archetype}: new medication"
-                            _intent_ja = f"第{day}病日 {archetype}: 新規投薬"
+                            _intent = t("order_intent.archetype_new_medication", "en", day=day, archetype=archetype)
+                            _intent_ja = t("order_intent.archetype_new_medication", "ja", day=day, archetype=archetype)
                         else:
                             _order_id_prefix = f"ORD-{encounter_id}-DEV-D{day}-{sanitize_id_token(drug, 8)}"
-                            _intent = f"Day {day} {archetype}: device / therapy"
-                            _intent_ja = f"第{day}病日 {archetype}: 器材/治療"
+                            _intent = t("order_intent.archetype_device", "en", day=day, archetype=archetype)
+                            _intent_ja = t("order_intent.archetype_device", "ja", day=day, archetype=archetype)
                         all_orders.append(
                             Order(
                                 order_id=_order_id_prefix,
@@ -698,9 +703,13 @@ def _run_daily_loop(
                                 order_type=OrderType.PROCEDURE,
                                 display_name=display,
                                 urgency="urgent",
-                                clinical_intent=f"Day {day} {archetype}: new procedure",
+                                clinical_intent=t(
+                                    "order_intent.archetype_procedure", "en", day=day, archetype=archetype
+                                ),
                                 # Issue #871: JA display for JP SR reasonCode.text.
-                                clinical_intent_ja=f"第{day}病日 {archetype}: 新規処置",
+                                clinical_intent_ja=t(
+                                    "order_intent.archetype_procedure", "ja", day=day, archetype=archetype
+                                ),
                                 ordered_datetime=admission_time + timedelta(days=day, hours=10),
                                 status=OrderStatus.PLACED,
                             )
@@ -746,11 +755,15 @@ def _run_daily_loop(
                         order_code_system=protocol_drug_order_code_system(esc_drug, country_key),
                         display_name=_esc_display,
                         urgency="urgent",
-                        clinical_intent=f"Escalation day {day}: {drug_name} ({indication})",
+                        clinical_intent=t(
+                            "order_intent.escalation", "en", day=day, drug=drug_name, indication=indication
+                        ),
                         # Issue #871: JA display for JP SR reasonCode.text.
                         # `drug_name` and `indication` are kept as-is (may be
                         # EN or already-JA from disease YAML) — shell translated.
-                        clinical_intent_ja=f"治療エスカレーション第{day}病日: {drug_name} ({indication})",
+                        clinical_intent_ja=t(
+                            "order_intent.escalation", "ja", day=day, drug=drug_name, indication=indication
+                        ),
                         ordered_datetime=admission_time + timedelta(days=day, hours=10),
                         ordered_by=attending_id,
                         status=OrderStatus.PLACED,
@@ -786,9 +799,9 @@ def _run_daily_loop(
                     order_type=OrderType.DIET,
                     display_name=diet,
                     urgency="routine",
-                    clinical_intent=f"Day {day} diet: {diet}",
+                    clinical_intent=t("order_intent.diet", "en", day=day, diet=diet),
                     # Issue #871: JA display for JP SR reasonCode.text.
-                    clinical_intent_ja=f"第{day}病日 食事: {diet}",
+                    clinical_intent_ja=t("order_intent.diet", "ja", day=day, diet=diet),
                     ordered_datetime=admission_time + timedelta(days=day, hours=7),
                     ordered_by=attending_id,
                     status=OrderStatus.PLACED,

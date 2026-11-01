@@ -2060,3 +2060,62 @@ narrative_text:
     disposition_sentence:
       ja: "{disposition}となった。"
       en: "{disposition}."
+
+# Order intents and hold / interaction notes written by the simulator
+# (clinical_intent / clinical_intent_ja, rationale_en / rationale_ja;
+# Issue #2405).
+order_intent:
+  protocol_hold:
+    ja: "protocol による保留: {reason}"
+    en: "held per protocol: {reason}"
+  discharge_hold:
+    ja: "退院時保留: {reason}"
+    en: "held at discharge: {reason}"
+  home_med_continue:
+    ja: "継続内服: {drug}"
+    en: "Home medication (continue): {drug}"
+  dose_reduced_renal:
+    ja: " [腎機能低下のため減量]"
+    en: " [dose reduced for renal impairment]"
+  chronic_monitoring:
+    ja: "慢性モニタリング: {test}"
+    en: "Chronic monitoring: {test}"
+  contraindication_alternative:
+    ja: "{candidate} の禁忌回避のため代替処方: {drug}"
+    en: "Alternative for {candidate} (contraindication avoided): {drug}"
+  interaction_caution:
+    ja: "併用注意: {note}"
+    en: "Drug interaction (caution): {note}"
+  archetype_workup:
+    ja: "第{day}病日 {archetype}: 追加検査"
+    en: "Day {day} {archetype}: additional workup"
+  archetype_imaging:
+    ja: "第{day}病日 {archetype}: 追加画像検査"
+    en: "Day {day} {archetype}: additional imaging"
+  archetype_stop:
+    ja: "第{day}病日 {archetype}: {drug} 中止"
+    en: "Day {day} {archetype}: stop {drug}"
+  archetype_new_medication:
+    ja: "第{day}病日 {archetype}: 新規投薬"
+    en: "Day {day} {archetype}: new medication"
+  archetype_device:
+    ja: "第{day}病日 {archetype}: 器材/治療"
+    en: "Day {day} {archetype}: device / therapy"
+  archetype_procedure:
+    ja: "第{day}病日 {archetype}: 新規処置"
+    en: "Day {day} {archetype}: new procedure"
+  escalation:
+    ja: "治療エスカレーション第{day}病日: {drug} ({indication})"
+    en: "Escalation day {day}: {drug} ({indication})"
+  diet:
+    ja: "第{day}病日 食事: {diet}"
+    en: "Day {day} diet: {diet}"
+  discharge_protocol:
+    ja: "退院プロトコル"
+    en: "discharge protocol"
+  disease_discharge_protocol:
+    ja: "{disease}の退院プロトコル"
+    en: "{disease} discharge protocol"
+  renal_impairment:
+    ja: "腎機能低下"
+    en: "renal function impairment"
