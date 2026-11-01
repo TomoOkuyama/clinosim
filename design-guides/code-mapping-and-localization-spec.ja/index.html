@@ -3014,11 +3014,7 @@
 <td>#2340</td>
 </tr>
 <tr>
-<td><code>clinosim/codes/</code> の外に HL7 <code>terminology.hl7.org</code> の URI 直書きがあり、coding を組み立てる helper が 3 つ重複している (<code>_coding_with_display</code> / <code>_value</code> / <code>_build_hosp_concept</code>)。</td>
-<td>#2349</td>
-</tr>
-<tr>
-<td>手組みの dual-slot が残っている。後処理で text を補う walker も残っている。</td>
+<td>手組みの dual-slot が残っている。<code>_coding_with_display</code> と <code>_value</code> が英語専用の coding に出力言語の表示名を入れている (<code>system_coding</code> / <code>dual_slot_concept</code> を使うべき)。後処理で text を補う walker も残っている。</td>
 <td>#2337</td>
 </tr>
 <tr>
