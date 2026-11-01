@@ -429,7 +429,7 @@ expected_vital_distributions:
 drugs:
   first_line:
     japan:
-      - drug: "Regular insulin (continuous IV)"
+      - drug_id: insulin_regular_human
         dose: "0.1 U/kg/h continuous infusion"
         route: IV
         note: "Start after confirming K >= 3.3 mEq/L"
@@ -442,7 +442,7 @@ drugs:
         note: "Hold if K > 5.3; increase if K < 3.3"
 
     us:
-      - drug: "Regular insulin (continuous IV)"
+      - drug_id: insulin_regular_human
         dose: "0.1 U/kg/h continuous infusion (or 0.14 U/kg/h without bolus)"
         route: IV
         note: "ADA protocol: 0.1 U/kg bolus then 0.1 U/kg/h, OR 0.14 U/kg/h no bolus"

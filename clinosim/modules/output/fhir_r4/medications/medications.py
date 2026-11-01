@@ -1388,11 +1388,14 @@ def _build_ma_dosage_block(
         augment_iv_dosage_with_rate as _augment_iv,
     )
 
+    _po_iv = parent_order or {}
     _augment_iv(
         dosage,
         dose_text=dose_text or "",
         route=mar.get("route") or parsed.get("route"),
         display_name=drug_name_clean or "",
+        drug_id=str(mar.get("drug_id") or _po_iv.get("drug_id") or ""),
+        frequency=str(_po_iv.get("frequency") or ""),
     )
     # Route — shared helper so the MAR and MR paths cannot drift (Issue #458).
     route_concept = build_route_concept(mar.get("route") or parsed.get("route"), country)

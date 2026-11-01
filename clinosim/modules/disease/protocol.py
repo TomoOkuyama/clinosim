@@ -367,10 +367,9 @@ def _validate_escalation_type_signal(disease_id: str, drugs: dict[str, Any]) -> 
                 )
 
 
-# Drug names a protocol entry may still give without a `drug_id`: the
-# continuous-infusion mode is read from this name until the order carries it
-# (Issue #2436).
-_NAME_ONLY_DRUG_EXEMPT: frozenset[str] = frozenset({"Regular insulin (continuous IV)"})
+# No protocol drug may be given by name alone (Issue #2436 removed the last
+# exemption, continuous-IV insulin).
+_NAME_ONLY_DRUG_EXEMPT: frozenset[str] = frozenset()
 
 
 def _validate_no_name_only_drug(disease_id: str, node: Any, path: str = "") -> None:
