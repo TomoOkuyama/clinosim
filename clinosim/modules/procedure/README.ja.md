@@ -53,8 +53,8 @@ engine が使っていた scalar は全て inline から companion
 
 - **分娩 Procedure** — 母親側の周産期分娩 Encounter (詳細:
   [`clinosim.modules.encounter`](../encounter/README.ja.md)) に付与。
-  Code: JP `K894` (経腟分娩 — MHLW 診療報酬点数表 K-code) または
-  US CPT `59400` (routine obstetric care incl. vaginal delivery)。
+  Code: US CPT `59400` (JP は正常分娩が保険外のため K コードなし、Issue #2340)。
+  CPT `59400` (routine obstetric care incl. vaginal delivery)。
   emit 元は
   [`clinosim/simulator/perinatal.py`](../../simulator/perinatal.py)、
   shape は

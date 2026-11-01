@@ -293,7 +293,7 @@ def test_chemo_visit_emits_per_cycle_medication_order_and_admin() -> None:
                 {"drug": "Leuprorelin", "drug_ja": "リュープロレリン", "dose": "3.75mg", "route": "SC"},
             ],
         },
-        "chemo_procedure": {"jp_code": "G003", "us_code": "96413", "duration_minutes": 60},
+        "chemo_procedure": {"jp_code": "G004", "us_code": "96413", "duration_minutes": 60},
     }
     record = _simulate_outpatient_visit(
         patient=patient,
@@ -355,7 +355,7 @@ def test_chemo_visit_multi_drug_regimen_emits_one_order_and_mar_per_drug() -> No
                 {"drug": "5-FU", "drug_ja": "フルオロウラシル", "dose": "400mg/m2 bolus", "route": "IV"},
             ],
         },
-        "chemo_procedure": {"jp_code": "G003", "us_code": "96413", "duration_minutes": 60},
+        "chemo_procedure": {"jp_code": "G004", "us_code": "96413", "duration_minutes": 60},
     }
     record = _simulate_outpatient_visit(
         patient=patient,

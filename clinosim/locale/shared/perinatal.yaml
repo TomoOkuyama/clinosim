@@ -28,8 +28,8 @@ encounter:
 # ---------------------------------------------------------------------------
 # Delivery Procedure — emitted on the encounter with the JP/US billing code.
 procedure:
-  jp_code: "K894"                       # JP 医科診療報酬点数表: 分娩介助
-  jp_display: "分娩介助"
+  jp_code: ""                           # JP: no K-code — 正常分娩 is not insured (K894 is forceps delivery)
+  jp_display: "経腟分娩"
   us_code: "59400"                      # US CPT: Routine obstetric care including antepartum, vaginal delivery, and postpartum care
   us_display: "Routine obstetric care, vaginal delivery"
   duration_minutes: 90                  # active labor + delivery interval on the day of birth
@@ -235,7 +235,7 @@ abortion:
     length_of_stay_days: 0                # outpatient day-surgery (AMB encounter)
     duration_minutes: 90
   procedure:
-    jp_code: "K909"                       # JP: 子宮内容除去術
+    jp_code: "K909"                       # JP 医科診療報酬点数表: 流産手術
     us_code: "59840"                      # US CPT: Induced abortion, by D&C
   # Total abortion probability by mother's age at delivery draw time.
   # The remaining mass (1 - probability) proceeds to delivery.

@@ -209,7 +209,7 @@ drugs:
 procedure:
   postoperative_pain_level: 0.7   # operative-day pain floor (Issue #2080)
   type: "Total knee arthroplasty"
-  procedure_code_jp: "K0821"   # 人工関節置換術（肩、股、膝）
+  procedure_code_jp: "K0823"   # 人工関節置換術（人工膝関節置換術）
   procedure_code_us: "27447"   # CPT: total knee arthroplasty
   typical_duration_minutes: {mean: 100, sd: 20, min: 60, max: 180}
   anesthesia: "spinal or general"

@@ -2,7 +2,11 @@
 #
 # AUTHORITATIVE SOURCE: MHLW 診療報酬点数表 (厚生労働省告示; K手術・D検査・G処置・J処置).
 # Updated each fee revision (隔年). Do not fabricate a code (AD-57).
-# NOTE: not yet machine-verified against the official 点数表.
+# Verified 2026-11-01 against the 社会保険診療報酬支払基金 診療行為マスター
+# (s_ALL20261013): every code is the master's 区分番号 (``J063``, ``G005-2``)
+# or, for one item of a 区分, its 点数表区分番号 (``K0463`` = K046 item 3).
+# ``ja`` is the master's name (the 区分 name for a 区分-level code); ``en`` is
+# an English rendering (Issue #2340).
 metadata:
   name: K-codes
   uri: urn:oid:1.2.392.200119.4.401
@@ -15,118 +19,126 @@ metadata:
     Japanese) displays.
 codes:
   # --- K: Surgery (手術) ---
+  K0004:
+    en: Wound repair, not reaching muscle or organ, under 5 cm
+    ja: 創傷処理（筋肉、臓器に達しないもの（長径５センチメートル未満））
   K002:
-    en: Wound debridement
-    ja: 創傷デブリードマン
+    en: Debridement
+    ja: デブリードマン
   K013:
-    en: Debridement and skin grafting
-    ja: デブリードマン・植皮術
-  K081:
-    en: Orthopedic fracture fixation
-    ja: 整形外科的骨折固定術
-  K089:
-    en: Complex hand surgery (replantation)
-    ja: 複雑手指手術・再接着術
-  # Issue #939: neurosurgical hematoma evacuation for acute ICH.
-  # Source: MHLW 診療報酬点数表 (令和6年度) K164 頭蓋内血腫除去術.
-  # K164-1 = 開頭 (craniotomy) — used for acute intracerebral/subdural
-  # hematoma. K164-2 (existing) is 穿頭 (burr hole) for chronic SDH.
-  K164-1:
-    en: Craniotomy for intracranial hematoma evacuation
-    ja: 頭蓋内血腫除去術（開頭）
-  K164-2:
-    en: Chronic subdural hematoma, burr hole irrigation
-    ja: 慢性硬膜下血腫穿孔洗浄術
-  K0461:
-    en: Open treatment of femoral fracture, proximal end, neck (ORIF)
-    ja: 大腿骨観血的整復固定術
-  K0462:
-    en: ORIF with volar locking plate (forearm fracture)
-    ja: 掌側ロッキングプレートによる観血的整復固定術
-  K0811:
-    en: Hemiarthroplasty, femoral head
-    ja: 大腿骨頭人工骨頭置換術
-  K0821:
-    en: Arthroplasty (shoulder, hip, knee)
-    ja: 人工関節置換術（肩、股、膝）
-  # Issue #939: percutaneous coronary intervention (PCI) for STEMI/NSTEMI.
-  # Source: MHLW 診療報酬点数表 (令和6年度) K546 経皮的冠動脈形成術.
+    en: Split-thickness skin graft
+    ja: 分層植皮術
+  K0444:
+    en: Closed reduction of forearm fracture
+    ja: 骨折非観血的整復術（前腕骨骨折非観血的整復術）
+  K0463:
+    en: Open reduction and internal fixation of femoral fracture
+    ja: 骨折観血的手術（大腿骨骨折観血的手術）
+  K0464:
+    en: Open reduction and internal fixation of forearm fracture
+    ja: 骨折観血的手術（前腕骨骨折観血的手術）
+  K0812:
+    en: Hip hemiarthroplasty
+    ja: 人工骨頭挿入術（股関節人工骨頭挿入術）
+  K0823:
+    en: Total knee arthroplasty
+    ja: 人工関節置換術（人工膝関節置換術）
+  K0882:
+    en: Replantation of an amputated finger
+    ja: 四肢切断再接合術（手指切断再接合術）
+  K142:
+    en: Spinal fusion, laminectomy or laminoplasty
+    ja: 脊椎固定術、椎弓切除術、椎弓形成術
+  K1643:
+    en: Craniotomy for evacuation of intracerebral hematoma
+    ja: 頭蓋内血腫除去術（開頭して行うもの）（脳内のもの）
+  "K164-2":
+    en: Burr-hole evacuation of chronic subdural hematoma
+    ja: 慢性硬膜下血腫洗浄・除去術（穿頭による）
   K546:
     en: Percutaneous coronary intervention (PCI)
     ja: 経皮的冠動脈形成術
-  # Issue #939: permanent pacemaker implantation for HF / bradyarrhythmia.
-  # Source: MHLW 診療報酬点数表 (令和6年度) K597 ペースメーカー移植術.
   K597:
     en: Permanent pacemaker implantation
     ja: ペースメーカー移植術
-  K599:
-    en: Electrical cardioversion
-    ja: 電気的カルジオバージョン
   K636:
     en: Exploratory laparotomy
     ja: 試験開腹術
-  K672-2:
+  "K672-2":
     en: Laparoscopic cholecystectomy
     ja: 腹腔鏡下胆嚢摘出術
-  # Issue #939: bowel resection for failed conservative ileus / obstruction.
-  # Source: MHLW 診療報酬点数表 (令和6年度) K719 結腸切除術.
-  K719:
-    en: Colectomy (bowel resection)
-    ja: 結腸切除術
-  K718-2:
+  "K718-2":
     en: Laparoscopic appendectomy
     ja: 腹腔鏡下虫垂切除術
+  K719:
+    en: Colectomy
+    ja: 結腸切除術
+  K898:
+    en: Cesarean delivery
+    ja: 帝王切開術
+  K909:
+    en: Surgical termination of pregnancy
+    ja: 流産手術
   K920:
     en: Blood transfusion
     ja: 輸血
-
-  # --- D: Diagnostic procedures (検査) ---
-  D002:
-    en: Urinary catheter insertion
-    ja: 尿道カテーテル挿入
-  D004:
-    en: Lumbar puncture
-    ja: 腰椎穿刺
-  D010:
-    en: Thoracentesis
-    ja: 胸腔穿刺
-  D011:
-    en: Paracentesis
-    ja: 腹腔穿刺
-  D012:
-    en: Chest tube insertion
-    ja: 胸腔ドレーン挿入
+  # --- D: Examinations (検査) ---
+  D208:
+    en: Electrocardiogram
+    ja: 心電図検査
   D215:
-    en: Transthoracic echocardiography
-    ja: 経胸壁心エコー
+    en: Ultrasonography
+    ja: 超音波検査
+  D225:
+    en: Invasive arterial pressure monitoring (arterial line)
+    ja: 観血的動脈圧測定
   D302:
-    en: Bronchoscopy
-    ja: 気管支鏡検査
-
-  # --- G: General procedures (処置) ---
-  G005-2:
+    en: Bronchoscopy (flexible)
+    ja: 気管支ファイバースコピー
+  D403:
+    en: Lumbar puncture
+    ja: 腰椎穿刺（脳脊髄圧測定を含む）
+  # --- G: Injections (注射) ---
+  G004:
+    en: Intravenous drip infusion
+    ja: 点滴注射
+  "G005-2":
     en: Central venous catheter insertion
-    ja: 中心静脈カテーテル挿入
-  G005-3:
-    en: Arterial line insertion
-    ja: 動脈ライン挿入
-
-  # --- J: Invasive bedside procedures (処置) ---
+    ja: 中心静脈注射用カテーテル挿入
+  # --- J: Procedures (処置) ---
+  J008:
+    en: Thoracentesis
+    ja: 胸腔穿刺（洗浄、注入及び排液を含む）
+  J010:
+    en: Paracentesis
+    ja: 腹腔穿刺（人工気腹、洗浄、注入及び排液を含む）
+  J019:
+    en: Continuous chest tube drainage
+    ja: 持続的胸腔ドレナージ
+  J024:
+    en: Oxygen inhalation
+    ja: 酸素吸入
   J034:
-    en: Nasogastric tube insertion
-    ja: 経鼻胃管挿入
-  J038:
-    en: Acute hemodialysis
-    ja: 急性血液透析
-  J044:
-    en: Endotracheal intubation
-    ja: 気管挿管
-  # Issue #939: long tube (ileus tube) placement for bowel obstruction.
-  # Source: MHLW 診療報酬点数表 (令和6年度) J034-2 イレウス用ロングチューブ挿入法.
-  J034-2:
-    en: Long tube (ileus tube) placement for bowel obstruction
+    en: Long intestinal (ileus) tube insertion
     ja: イレウス用ロングチューブ挿入法
-
+  "J034-2":
+    en: Nasal feeding or drug-administration tube insertion
+    ja: 経鼻栄養・薬剤投与用チューブ挿入術
+  J038:
+    en: Hemodialysis
+    ja: 人工腎臓
+  J044:
+    en: Endotracheal intubation for resuscitation
+    ja: 救命のための気管挿管
+  J047:
+    en: Countershock (electrical cardioversion or defibrillation)
+    ja: カウンターショック
+  J063:
+    en: Indwelling urinary catheter placement
+    ja: 留置カテーテル設置
+  J122:
+    en: Limb plaster cast or splint
+    ja: 四肢ギプス包帯
   # --- M: Radiation therapy (Issue #957 slice 3 — cancer treatment) ---
   # Source: MHLW 診療報酬点数表 (令和6年度) 第7部 放射線治療.
   # Cancer-follow-up patients on active radiation therapy emit these

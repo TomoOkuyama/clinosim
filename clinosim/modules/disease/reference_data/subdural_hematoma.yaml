@@ -291,7 +291,7 @@ drugs:
 procedure:
   postoperative_pain_level: 0.4   # operative-day pain floor (Issue #2080)
   type: "Craniotomy or burr hole evacuation"
-  procedure_code_jp: "K164-2"  # 慢性硬膜下血腫穿孔洗浄術 / K1642
+  procedure_code_jp: "K164-2"  # 慢性硬膜下血腫洗浄・除去術（穿頭による）
   procedure_code_us: "61312"   # CPT: craniotomy for subdural hematoma
   typical_duration_minutes: {mean: 90, sd: 30, min: 30, max: 180}
   anesthesia: "general"

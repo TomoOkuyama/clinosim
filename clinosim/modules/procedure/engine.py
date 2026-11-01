@@ -571,12 +571,10 @@ def generate_bedside_procedures(
             continue
 
         _, cpt, kcode, _name_en, _name_ja, anesthesia = spec
-        # CO-3 review: when JP export and no authoritative K-code
-        # is registered, skip emission rather than emit an empty code (broken
-        # FHIR). Mirrors the cycle 2 no-fabrication policy — real K-codes will
-        # land when the MHLW verification chain populates them.
-        if is_jp(country) and not kcode:
-            continue
+        # A procedure without a code in this country (JP peripheral IV: no
+        # separate fee; US oxygen: no CPT) is still recorded; the FHIR
+        # Procedure then carries its name and the other country's coding,
+        # never an empty code (Issue #2340).
         code = kcode if is_jp(country) else cpt
         # Names not stored — FHIR adapter resolves via code_lookup (AD-30)
 

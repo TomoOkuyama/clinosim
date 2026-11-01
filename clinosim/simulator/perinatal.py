@@ -167,8 +167,8 @@ def simulate_abortion_encounter(
         ground_truth_diseases=[discharge_dx],
     )
 
-    proc_code_jp = str(proc_cfg.get("jp_code") or "K909")
-    proc_code_us = str(proc_cfg.get("us_code") or "59840")
+    proc_code_jp = str(proc_cfg.get("jp_code") or "")
+    proc_code_us = str(proc_cfg.get("us_code") or "")
     proc_code = proc_code_jp if is_jp(country) else proc_code_us
     procedure = ProcedureRecord(
         procedure_id=f"PROC-{patient.patient_id}-ABORTION-{encounter.encounter_id[:8]}",
@@ -688,12 +688,12 @@ def simulate_delivery_encounter(
 
     if is_cesarean:
         cs_proc = cs_cfg.get("procedure") or {}
-        proc_code_jp = str(cs_proc.get("jp_code") or "K898")
-        proc_code_us = str(cs_proc.get("us_code") or "59510")
+        proc_code_jp = str(cs_proc.get("jp_code") or "")
+        proc_code_us = str(cs_proc.get("us_code") or "")
         proc_duration_min = int(cs_proc.get("duration_minutes") or 60)
     else:
-        proc_code_jp = str(proc_cfg.get("jp_code") or "K894")
-        proc_code_us = str(proc_cfg.get("us_code") or "59400")
+        proc_code_jp = str(proc_cfg.get("jp_code") or "")
+        proc_code_us = str(proc_cfg.get("us_code") or "")
         proc_duration_min = int(proc_cfg.get("duration_minutes") or 90)
     proc_code = proc_code_jp if is_jp(country) else proc_code_us
     procedure = ProcedureRecord(

@@ -34,20 +34,21 @@
 
 procedure_note_codes:
   # === D: Diagnostic bedside procedures (検査) ===
-  - D002    # 尿道カテーテル挿入 / Urinary catheter insertion
-  - D004    # 腰椎穿刺 / Lumbar puncture
-  - D010    # 胸腔穿刺 / Thoracentesis
-  - D011    # 腹腔穿刺 / Paracentesis
-  - D012    # 胸腔ドレーン挿入 / Chest tube insertion
-  - D302    # 気管支鏡検査 / Bronchoscopy
+  - D225    # 観血的動脈圧測定 / Arterial line
+  - D302    # 気管支ファイバースコピー / Bronchoscopy
+  - D403    # 腰椎穿刺 / Lumbar puncture
   # === G: General bedside procedures (処置) ===
   - "G005-2"  # 中心静脈カテーテル挿入 / Central venous catheter insertion
-  - "G005-3"  # 動脈ライン挿入 / Arterial line insertion
   # === J: Invasive bedside procedures (処置) ===
-  - J034      # 経鼻胃管挿入 / Nasogastric tube insertion
-  - "J034-2"  # イレウス用ロングチューブ挿入法 / Long tube for bowel obstruction
-  - J038      # 急性血液透析 / Acute hemodialysis
-  - J044      # 気管挿管 / Endotracheal intubation
+  - J008      # 胸腔穿刺 / Thoracentesis
+  - J010      # 腹腔穿刺 / Paracentesis
+  - J019      # 持続的胸腔ドレナージ / Chest tube insertion
+  - J034      # イレウス用ロングチューブ挿入法 / Long tube for bowel obstruction
+  - "J034-2"  # 経鼻栄養・薬剤投与用チューブ挿入術 / Nasogastric tube insertion
+  - J038      # 人工腎臓 / Acute hemodialysis
+  - J044      # 救命のための気管挿管 / Endotracheal intubation
+  - J047      # カウンターショック / Electrical cardioversion
+  - J063      # 留置カテーテル設置 / Urinary catheter insertion
   # === K: Codes that are technically K-series but clinically bedside
   #        interventional procedures rather than OR surgeries. These
   #        emit a procedure_note (not operative_note) because they
@@ -55,20 +56,19 @@ procedure_note_codes:
   #        surgical opening.
   - K546      # 経皮的冠動脈形成術 / PCI
   - K597      # ペースメーカー移植術 / Pacemaker implantation
-  - K599      # 電気的カルジオバージョン / Electrical cardioversion
   - K920      # 輸血 / Blood transfusion (bedside procedure)
 
 operative_note_codes:
   # === K: Surgical (手術) — OR procedures with anesthesia + incision ===
   - K002      # 創傷デブリードマン / Wound debridement (OR)
-  - K013      # デブリードマン・植皮術 / Debridement + skin grafting
-  - K081      # 整形外科的骨折固定術 / Orthopedic fracture fixation
-  - K089      # 複雑手指手術・再接着術 / Complex hand replantation
-  - "K164-1"  # 頭蓋内血腫除去術（開頭） / Craniotomy for hematoma
-  - "K164-2"  # 慢性硬膜下血腫穿孔洗浄術 / Burr hole (chronic SDH)
-  - K0461     # 大腿骨観血的整復固定術 / ORIF proximal femur
-  - K0462     # 掌側ロッキングプレートORIF / ORIF forearm
-  - K0811     # 大腿骨頭人工骨頭置換術 / Hemiarthroplasty
+  - K013      # 分層植皮術 / Split-thickness skin graft
+  - K142      # 脊椎固定術 / Spinal fracture fixation
+  - K0882     # 手指切断再接合術 / Finger replantation
+  - K1643     # 頭蓋内血腫除去術（開頭・脳内） / Craniotomy for ICH
+  - "K164-2"  # 慢性硬膜下血腫洗浄・除去術 / Burr hole (chronic SDH)
+  - K0463     # 骨折観血的手術（大腿骨） / ORIF femur
+  - K0464     # 骨折観血的手術（前腕骨） / ORIF forearm
+  - K0812     # 人工骨頭挿入術（股関節） / Hemiarthroplasty
   - K636      # 試験開腹術 / Exploratory laparotomy
   - "K672-2"  # 腹腔鏡下胆嚢摘出術 / Laparoscopic cholecystectomy
   - K719      # 結腸切除術 / Colectomy
@@ -79,4 +79,5 @@ operative_note_codes:
   - "27236"   # Open treatment femoral fracture
   - "47562"   # Laparoscopic cholecystectomy
   - "61312"   # Craniotomy for subdural hematoma
-  - "20838"   # Complex hand surgery
+  - "61313"   # Craniotomy for intracerebral hematoma
+  - "20816"   # Finger replantation

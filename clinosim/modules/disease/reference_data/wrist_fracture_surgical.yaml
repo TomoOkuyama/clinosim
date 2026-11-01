@@ -239,7 +239,7 @@ drugs:
 procedure:
   postoperative_pain_level: 0.6   # operative-day pain floor (Issue #2080)
   type: "ORIF with volar locking plate"
-  procedure_code_jp: "K0462"   # 骨折観血的手術（前腕）
+  procedure_code_jp: "K0464"   # 骨折観血的手術（前腕骨）
   procedure_code_us: "25607"   # CPT: ORIF distal radius
   typical_duration_minutes: {mean: 75, sd: 20, min: 45, max: 120}
   anesthesia: "regional (brachial plexus block) or general"

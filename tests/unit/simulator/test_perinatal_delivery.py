@@ -258,7 +258,9 @@ def test_delivery_encounter_returns_mother_and_newborn_records_jp() -> None:
     assert mother_rec.clinical_diagnosis.admission_diagnosis_code == "O80"
     assert mother_rec.clinical_diagnosis.discharge_diagnosis_code == "Z37.0"
     assert len(mother_rec.procedures) == 1
-    assert mother_rec.procedures[0].procedure_code == "K894"
+    # 正常分娩 is uninsured in Japan: no K-code (K894 is forceps delivery; Issue #2340).
+    assert mother_rec.procedures[0].procedure_code == ""
+    assert mother_rec.procedures[0].procedure_code_us == "59400"
     assert mother_rec.procedures[0].procedure_type == "delivery"
 
     assert newborn_rec.patient.patient_id == "POP-000001-BABY"
