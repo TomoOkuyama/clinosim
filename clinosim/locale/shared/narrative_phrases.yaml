@@ -2414,3 +2414,12 @@ condition_evidence:
   hai:
     ja: "院内感染:培養検査+臨床所見に基づく診断"
     en: "Hospital-acquired infection — culture + clinical findings"
+
+# Fallback texts written by the FHIR shared library (Issue #2402).
+fhir_text:
+  procedure_reason_generic:
+    ja: "入院時診断に基づく処置"
+    en: "Procedure indicated by encounter diagnosis"
+  body_site_unspecified:
+    ja: "処置部位不明"
+    en: "Body site not specified"

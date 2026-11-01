@@ -112,3 +112,44 @@ interval_prefix:
   q6h: 6時間ごとに
   q8h: 8時間ごとに
   q12h: 12時間ごとに
+
+# Oral-route phrases (Issue #2402, formerly literals in
+# _resolve_patient_instruction_ja). `{freq_ph}` in the oral template is
+# replaced by `oral_freq_phrase[N]` (or `oral.freq_phrase_other`); an
+# interval label is followed by `oral.interval_verb`.
+oral:
+  interval_verb: 内服してください
+  freq_phrase_other: "{n}回、"
+  generic: 指示された時間帯に内服してください
+oral_freq_phrase:
+  1: 1回、
+  2: 2回、朝・夕の
+  3: 3回、朝・昼・夕の
+  4: 4回、
+
+# Japanese per-day frequency labels recognised as input ("1日N回").
+per_day_label:
+  1: 1日1回
+  2: 1日2回
+  3: 1日3回
+  4: 1日4回
+
+# Timing-only frequency labels → instruction (no route dependency).
+timing_only:
+  qhs: 就寝前
+  bedtime: 就寝前
+  at bedtime: 就寝前
+  hs: 就寝前
+  ac: 食前
+  before meal: 食前
+  before meals: 食前
+  pc: 食後
+  after meal: 食後
+  after meals: 食後
+  qam: 朝食後
+  qpm: 夕食後
+  prn: 頓用（必要時）
+  as needed: 頓用（必要時）
+  when required: 頓用（必要時）
+  頓服: 症状のある時にのみ服用してください
+  頓用: 症状のある時にのみ服用してください

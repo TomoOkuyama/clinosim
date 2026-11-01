@@ -85,6 +85,7 @@ from clinosim.codes.icd10 import condition_short_name
 from clinosim.codes.prefectures import prefecture_code
 from clinosim.codes.ucum import ucum_quantity
 from clinosim.locale.loader import load_code_mapping, load_reference_ranges
+from clinosim.locale.loaders.medical_display import department_display
 from clinosim.locale.localized import localized
 from clinosim.modules._shared import is_jp, resolve_lang, strip_protocol_prefix
 from clinosim.modules.output.fhir_r4.lib.localization import (
@@ -184,7 +185,7 @@ _JP_ECS_INSTITUTION_NUMBER_EXT_URL = (
 _JP_ECS_DEPARTMENT_EXT_URL = "http://jpfhir.jp/fhir/eCS/Extension/StructureDefinition/JP_eCS_Department"
 _JP_ECS_INSTITUTION_ID_SYSTEM = "http://jpfhir.jp/fhir/core/IdSystem/insurance-medical-institution-no"
 _JP_ECS_INSTITUTION_PLACEHOLDER = "1300000000"
-_JP_ECS_DEPARTMENT_PLACEHOLDER = "総合診療科"
+_JP_ECS_DEPARTMENT_PLACEHOLDER = department_display("primary_care", "ja")
 
 
 def build_ecs_institution_extension() -> dict[str, Any]:
@@ -797,6 +798,18 @@ def _interval_freq_prefix_ja_from_yaml() -> dict[str, str]:
 # stays unchanged.
 _PI_ROUTE_FAMILIES_JA: tuple[tuple[tuple[str, ...], str], ...] = _pi_route_families_ja_from_yaml()
 _INTERVAL_FREQ_PREFIX_JA: dict[str, str] = _interval_freq_prefix_ja_from_yaml()
+# Oral frequency phrases, "1日N回" labels and timing-only instructions
+# (same yaml, Issue #2402).
+_ORAL_JA: dict[str, str] = {str(k): str(v) for k, v in (_patient_instructions_ja_from_yaml().get("oral") or {}).items()}
+_ORAL_FREQ_PHRASE_JA: dict[int, str] = {
+    int(k): str(v) for k, v in (_patient_instructions_ja_from_yaml().get("oral_freq_phrase") or {}).items()
+}
+_PER_DAY_LABEL_JA: dict[int, str] = {
+    int(k): str(v) for k, v in (_patient_instructions_ja_from_yaml().get("per_day_label") or {}).items()
+}
+_TIMING_ONLY_JA: dict[str, str] = {
+    str(k): str(v) for k, v in (_patient_instructions_ja_from_yaml().get("timing_only") or {}).items()
+}
 
 
 def _resolve_patient_instruction_ja(route: str, freq: str, freq_per_day: int | None) -> str:
@@ -817,13 +830,13 @@ def _resolve_patient_instruction_ja(route: str, freq: str, freq_per_day: int | N
     # Resolve freq → per-day integer for both EN and JA labels.
     pd = freq_per_day
     if pd is None:
-        if freq_key in ("qd", "q24h", "once daily", "daily", "1x/day") or freq_orig == "1日1回":
+        if freq_key in ("qd", "q24h", "once daily", "daily", "1x/day") or freq_orig == _PER_DAY_LABEL_JA.get(1):
             pd = 1
-        elif freq_key in ("bid", "q12h", "twice daily", "2x/day") or freq_orig == "1日2回":
+        elif freq_key in ("bid", "q12h", "twice daily", "2x/day") or freq_orig == _PER_DAY_LABEL_JA.get(2):
             pd = 2
-        elif freq_key in ("tid", "q8h", "three times daily", "3x/day") or freq_orig == "1日3回":
+        elif freq_key in ("tid", "q8h", "three times daily", "3x/day") or freq_orig == _PER_DAY_LABEL_JA.get(3):
             pd = 3
-        elif freq_key in ("qid", "q6h", "four times daily", "4x/day") or freq_orig == "1日4回":
+        elif freq_key in ("qid", "q6h", "four times daily", "4x/day") or freq_orig == _PER_DAY_LABEL_JA.get(4):
             pd = 4
 
     # Interval-based labels (q2h/q3h/…/6時間ごと/…) — carry their own JA
@@ -837,17 +850,9 @@ def _resolve_patient_instruction_ja(route: str, freq: str, freq_per_day: int | N
                 return template
             # Oral: compose the freq prefix + verb.
             if interval_prefix:
-                return f"{interval_prefix}内服してください"
-            if pd == 1:
-                phrase = "1回、"
-            elif pd == 2:
-                phrase = "2回、朝・夕の"
-            elif pd == 3:
-                phrase = "3回、朝・昼・夕の"
-            elif pd == 4:
-                phrase = "4回、"
-            elif pd:
-                phrase = f"{pd}回、"
+                return f"{interval_prefix}{_ORAL_JA['interval_verb']}"
+            if pd:
+                phrase = _ORAL_FREQ_PHRASE_JA.get(pd) or _ORAL_JA["freq_phrase_other"].format(n=pd)
             else:
                 phrase = ""
             if phrase:
@@ -855,7 +860,7 @@ def _resolve_patient_instruction_ja(route: str, freq: str, freq_per_day: int | N
             # Neither pd-based nor interval-based freq matched — emit the
             # generic oral instruction rather than nothing (route IS oral,
             # so telling the patient to take it orally is not misleading).
-            return "指示された時間帯に内服してください"
+            return _ORAL_JA["generic"]
     return ""
 
 
@@ -1251,25 +1256,7 @@ def build_dosage_instruction(order: dict, country: str = "US") -> dict[str, Any]
         # Timing-only labels (qhs / ac / pc / qam / qpm / prn) have no
         # route dependency — they describe WHEN, not HOW. Handle those
         # first before falling through to the route-based composer.
-        _timing_only_ja = {
-            "qhs": "就寝前",
-            "bedtime": "就寝前",
-            "at bedtime": "就寝前",
-            "hs": "就寝前",
-            "ac": "食前",
-            "before meal": "食前",
-            "before meals": "食前",
-            "pc": "食後",
-            "after meal": "食後",
-            "after meals": "食後",
-            "qam": "朝食後",
-            "qpm": "夕食後",
-            "prn": "頓用（必要時）",
-            "as needed": "頓用（必要時）",
-            "when required": "頓用（必要時）",
-            "頓服": "症状のある時にのみ服用してください",
-            "頓用": "症状のある時にのみ服用してください",
-        }
+        _timing_only_ja = _TIMING_ONLY_JA
         _flow_instr = (freq or "").lower().strip()
         _flow_instr_orig = str(freq or "").strip()
         _derived_instr = _timing_only_ja.get(_flow_instr_orig) or _timing_only_ja.get(_flow_instr, "")
@@ -1459,7 +1446,9 @@ def build_reference_range(
                         {
                             "system": get_system_uri("hl7-referencerange-meaning"),
                             "code": "therapeutic",
-                            "display": "治療域" if is_jp(country_code) else "Therapeutic Desired Level",
+                            "display": registry_display(
+                                "hl7-referencerange-meaning", "therapeutic", resolve_lang(country_code)
+                            ),
                         }
                     ]
                 },
