@@ -123,7 +123,7 @@ Consumers resolve names only through these functions. Several are added by open 
 | `jp_clins_lab_system(kind)` / `jlac10_display(code, lang)` | JP lab CodeSystem URI / JLAC10 display | raises / `None` |
 | `codes.loinc`: `loinc_display`, `loinc_coding` | LOINC display / Coding | `None` / coding without display |
 | `codes.valuesets`: `concept_group`, `has_condition`, `patient_condition_names`, `code_by_chronic_prefix` | value-set membership | `KeyError` on an unknown group |
-| `codes.drugs`: `resolve_drug`, `get_drug`, `find_drug`, `names_drug`, `drug_name_needles` | drug identity and name matching | raises / `None` / `False` |
+| `codes.drugs`: `resolve_drug`, `get_drug`, `find_drug`, `drug_key(ref)`, `same_drug(a, b)` | drug identity; identity key (catalog id, else the normalised name) and whether two references name the same drug — no substring matching | raises / `None` / `""` / `False` |
 | `codes.drugs`: `route_class(route)`, `jp_drug_code(drug, route)`, `jp_drug_code_table(route)` | route class of an order route; the JP YJ product for a drug and route | `""` / `None` / no entry |
 | `codes.drugs`: `drug_display(ref, lang)` | catalog name of a drug id, name or alias (then its longest leading-word prefix) in `lang`, then English | `None` |
 | `codes.drugs`: `identify_drug(text)`, `drug_classes(ref)` | the catalog drug a free-text medication string names (exact id / name / alias, leading words, then the longest contained name or alias — whole-word for ASCII); its catalog classes with every dotted ancestor | `None` / `()` |
@@ -238,7 +238,6 @@ These parts of the code base do not yet conform. Each one is removed by the issu
 | Route, diagnosis, CoreLabo and MedicationAdministration route/device concepts are built by hand, and post-process walkers fill `.text` after emission. | #2375 |
 | The free-text name localizer lives in the FHIR output layer, is imported from the order and narrative layers, and also translates procedure, SNOMED and allergen names. Decision logic and records resolve drug names through `codes.drugs.drug_display`. | #2367 |
 | Language literals are still embedded in Python. | #2277 |
-| Decision logic identifies drugs by name substrings. | #2377 |
 | Disease YAMLs mix `drug:` names with `drug_id:`, and `Order.order_code` does not record its code system. | #2378 |
 | The medication-monitoring tables identify drugs by name patterns. | #2371 |
 | Complications, PRN selection and chronic-medication rules keep their own drug-class vocabularies. | #2372 |

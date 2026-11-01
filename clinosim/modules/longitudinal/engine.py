@@ -23,6 +23,7 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 
+from clinosim.codes.drugs import drug_key
 from clinosim.modules.longitudinal.loader import (
     AttributeSpec,
     load_attribute_specs,
@@ -291,19 +292,22 @@ def _apply_pattern(
             # additions so a substitution where the add is the same as
             # the removal is a no-op rather than a double-remove.
             if result.med_removals:
-                _retract = {str(name) for name in result.med_removals}
+                # Matched by drug identity (Issue #2377), not the exact name.
+                _retract = {drug_key(str(name)) for name in result.med_removals}
                 person.current_medications = [
-                    hm for hm in person.current_medications if (hm.drug_name or "") not in _retract
+                    hm
+                    for hm in person.current_medications
+                    if (hm.drug_id or drug_key(hm.drug_name or "")) not in _retract
                 ]
             if result.med_additions:
                 from clinosim.modules.longitudinal.med_lookup import resolve_med_name
 
-                existing_drug_names = {hm.drug_name for hm in person.current_medications}
+                existing = {hm.drug_id or drug_key(hm.drug_name or "") for hm in person.current_medications}
                 for drug_name in result.med_additions:
-                    if drug_name in existing_drug_names:
+                    if drug_key(drug_name) in existing:
                         continue
                     person.current_medications.append(resolve_med_name(drug_name))
-                    existing_drug_names.add(drug_name)
+                    existing.add(drug_key(drug_name))
     else:  # pragma: no cover — guarded by _IMPLEMENTED_PATTERNS
         raise NotImplementedError(f"pattern {spec.pattern!r} not implemented")
 

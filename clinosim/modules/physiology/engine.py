@@ -15,7 +15,7 @@ from typing import Any
 import numpy as np
 import yaml
 
-from clinosim.codes.drugs import names_drug
+from clinosim.codes.drugs import same_drug
 from clinosim.codes.valuesets import concept_group
 from clinosim.modules.observation.engine import medication_name, medications_in_effect
 from clinosim.modules.physiology._coupling_coefficients import (
@@ -630,7 +630,7 @@ def medication_flags_from_context(
     Detection (Issue #2293): ``observation.engine.medications_in_effect`` —
     home medications, plus an in-hospital warfarin order once
     ``current_day - (order_date - admission_date).days >= 3`` (loading-dose
-    3-day rule) — matched by catalog name (``codes.drugs.names_drug``). The
+    3-day rule) — matched by drug identity (``codes.drugs.same_drug``). The
     flagging and therapeutic-range paths read the same decision.
 
     DOAC (apixaban / rivaroxaban / edoxaban / dabigatran) is intentionally
@@ -650,7 +650,7 @@ def medication_flags_from_context(
         admission_date,
         current_day,
     )
-    return {"on_warfarin": any(names_drug(medication_name(m), "warfarin") for m in meds)}
+    return {"on_warfarin": any(same_drug(medication_name(m), "warfarin") for m in meds)}
 
 
 def room_air_saturation(state: PhysiologicalState, baseline_spo2: float) -> float:

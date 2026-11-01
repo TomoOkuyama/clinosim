@@ -17,6 +17,7 @@ from typing import Any
 
 import numpy as np
 
+from clinosim.codes.drugs import has_drug
 from clinosim.modules._shared import MED_STOP_ORDER_ID_MARKER, sanitize_id_token
 from clinosim.modules.clinical_course._complication_risk_conditions import DRUG_CLASSES, ComplicationContext
 from clinosim.modules.clinical_course.engine import (
@@ -873,7 +874,7 @@ def _run_daily_loop(
                 if comp_name == "acute_kidney_injury":
                     for o in all_orders:
                         if o.order_type == OrderType.MEDICATION and o.status == OrderStatus.PLACED:
-                            if "metformin" in (o.display_name or "").lower():
+                            if has_drug([o], "metformin"):
                                 o.status = OrderStatus.CANCELLED
 
         # State-driven airway / ICU escalation (Issue #2091): intubation on the

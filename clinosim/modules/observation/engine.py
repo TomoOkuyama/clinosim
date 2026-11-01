@@ -244,24 +244,24 @@ def medications_in_effect(
 
     The one "is the patient on drug X" decision (Issue #2293): INR generation,
     result flagging and the FHIR therapeutic reference range all read it, via
-    :func:`clinosim.codes.drugs.names_drug` on the returned entries. Orders
+    :func:`clinosim.codes.drugs.same_drug` on the returned entries. Orders
     and medications may be objects or dicts; order datetimes may be ISO
     strings. Without orders, admission date or day, only home medications
     count (outpatient and ED paths). ``DISCONTINUE: X`` marker orders are
     not orders to give X and never count.
     """
-    from clinosim.codes.drugs import names_drug
+    from clinosim.codes.drugs import same_drug
 
     meds = list(home_medications or [])
     if not medication_orders or admission_date is None or current_day is None:
         return meds
     for drug_id, loading_days in IN_HOSPITAL_LOADING_DAYS.items():
-        if current_day < loading_days or any(names_drug(medication_name(m), drug_id) for m in meds):
+        if current_day < loading_days or any(same_drug(medication_name(m), drug_id) for m in meds):
             continue
         for order in medication_orders:
             name = medication_name(order)
             # A "DISCONTINUE: X" marker stops X; it is not an order to give it.
-            if name.startswith("DISCONTINUE:") or not names_drug(name, drug_id):
+            if name.startswith("DISCONTINUE:") or not same_drug(name, drug_id):
                 continue
             ordered = getattr(order, "ordered_datetime", None)
             if ordered is None and isinstance(order, dict):
@@ -290,7 +290,7 @@ def therapeutic_range(
     ``medications`` through the catalog names (Issue #2293); pass
     :func:`medications_in_effect` so a drug started in hospital counts.
     """
-    from clinosim.codes.drugs import names_drug
+    from clinosim.codes.drugs import same_drug
     from clinosim.locale.loader import load_reference_ranges
 
     rows = ((load_reference_ranges(country) or {}).get("therapeutic_ranges") or {}).get(lab_name) or []
@@ -299,7 +299,7 @@ def therapeutic_range(
     names = [medication_name(med) for med in medications]
     for row in rows:
         drugs = [str(d) for d in row.get("drugs") or []]
-        if not any(names_drug(n, d) for d in drugs for n in names):
+        if not any(same_drug(n, d) for d in drugs for n in names):
             continue
         if row.get("age_min") is not None and (age is None or age < int(row["age_min"])):
             continue

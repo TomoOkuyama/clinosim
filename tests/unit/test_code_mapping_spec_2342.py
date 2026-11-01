@@ -28,7 +28,7 @@ _RESOLVERS = {
         "lookup",
     ],
     "clinosim.codes.valuesets": ["concept_group", "has_condition", "patient_condition_names", "code_by_chronic_prefix"],
-    "clinosim.codes.drugs": ["resolve_drug", "get_drug", "find_drug", "names_drug", "drug_name_needles"],
+    "clinosim.codes.drugs": ["resolve_drug", "get_drug", "find_drug", "drug_key", "same_drug"],
     "clinosim.codes.procedures": ["procedure_code", "procedure_type_display", "procedure_code_display"],
     "clinosim.codes.ucum": ["ucum_code", "ucum_quantity"],
     "clinosim.codes.loinc": ["loinc_display", "loinc_coding"],

@@ -193,7 +193,7 @@ def _find_by_leading_words(text: str) -> DrugIdentity | None:
 
 
 @cache
-def _name_patterns() -> tuple[tuple[re.Pattern[str], str], ...]:
+def _name_patterns() -> tuple[tuple[re.Pattern[str], str, bool], ...]:
     """Every catalog name and alias as a pattern, longest first. ASCII names
     match as whole words (the id ``ns`` must not match inside "insulin");
     Japanese names match as substrings ("ワルファリン錠")."""
@@ -206,8 +206,18 @@ def _name_patterns() -> tuple[tuple[re.Pattern[str], str], ...]:
     for name in sorted(pairs, key=len, reverse=True):
         body = re.escape(name)
         pattern = rf"(?<![\w-]){body}(?![\w])" if name.isascii() else body
-        out.append((re.compile(pattern), pairs[name]))
+        out.append((re.compile(pattern), pairs[name], _is_combination(name)))
     return tuple(out)
+
+
+_DOSE_START = re.compile(r"\s\d")
+
+
+def _is_combination(folded: str) -> bool:
+    """True when the drug-name part (before the first dose number) joins two
+    names with ``/`` or ``+`` — a "mg/kg" dose does not count."""
+    name_part = _DOSE_START.split(folded, maxsplit=1)[0]
+    return "/" in name_part or " + " in name_part
 
 
 def identify_drug(text: str) -> DrugIdentity | None:
@@ -221,7 +231,13 @@ def identify_drug(text: str) -> DrugIdentity | None:
     folded = (text or "").casefold()
     if not folded:
         return None
-    for pattern, drug_id in _name_patterns():
+    # A combination product matches only a catalogued combination: an
+    # uncatalogued one ("Oxycodone/Acetaminophen") is not one of its
+    # ingredients (Issue #2377).
+    combination = _is_combination(folded)
+    for pattern, drug_id, is_combo_name in _name_patterns():
+        if combination and not is_combo_name:
+            continue
         if pattern.search(folded):
             return _load_catalog()[drug_id]
     return None
@@ -233,6 +249,20 @@ def drug_ref(name_or_id: str) -> str:
     string names (:func:`identify_drug`); ``""`` when none (Issue #2297)."""
     rec = identify_drug(name_or_id) if name_or_id else None
     return rec.drug_id if rec is not None else ""
+
+
+def drug_key(name_or_id: str) -> str:
+    """Identity key of a drug reference: its catalog ``drug_id``, else the
+    whitespace-normalised, case-folded name (an uncatalogued drug). Used for
+    dedup and for comparing drugs without substring matching (Issue #2377)."""
+    return drug_ref(name_or_id) or " ".join((name_or_id or "").casefold().split())
+
+
+def same_drug(a: str, b: str) -> bool:
+    """True when two drug references (ids, names, aliases, order strings with
+    a dose) name the same drug (Issue #2377)."""
+    key = drug_key(a)
+    return bool(key) and key == drug_key(b)
 
 
 def has_drug(meds: Any, drug: str) -> bool:
@@ -346,22 +376,6 @@ def find_drug(ref: str) -> DrugIdentity | None:
         return catalog[ref]
     drug_id = _name_index().get((ref or "").strip().casefold())
     return catalog.get(drug_id) if drug_id else None
-
-
-@cache
-def drug_name_needles(drug_id: str) -> tuple[str, ...]:
-    """Case-folded id, English and Japanese names and aliases of a catalog drug."""
-    rec = resolve_drug(drug_id)
-    names = (drug_id, rec.names.get("en", ""), rec.names.get("ja", ""), *rec.aliases)
-    return tuple(dict.fromkeys(n.casefold() for n in names if n))
-
-
-def names_drug(text: str, drug_id: str) -> bool:
-    """True when free-text medication ``text`` names the catalog drug: one of its
-    names or aliases occurs in it, case-insensitively ("Warfarin 3mg PO",
-    "ワルファリン錠"). The one name match for "is this drug X" (Issue #2293)."""
-    folded = (text or "").casefold()
-    return bool(folded) and any(n in folded for n in drug_name_needles(drug_id))
 
 
 def all_drug_ids() -> tuple[str, ...]:

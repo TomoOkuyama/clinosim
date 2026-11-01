@@ -23,6 +23,7 @@ from datetime import datetime
 import numpy as np
 
 from clinosim import determinism
+from clinosim.codes.drugs import drug_key
 from clinosim.modules.disease.protocol import DiseaseProtocol
 from clinosim.modules.physiology.renal_thresholds import DISCHARGE_RENAL_HOLD_THRESHOLD
 from clinosim.types.encounter import PrescriptionRecord
@@ -36,12 +37,13 @@ def renal_hold_drugs() -> frozenset[str]:
     (KDIGO stage 3b+ CKD or active AKI)."""
     from clinosim.simulator.medication_pipeline import renal_medication_rules
 
-    return frozenset(renal_medication_rules())
+    return frozenset(renal_medication_rules())  # drug keys (Issue #2377)
 
 
 def _dedup_key(name: str) -> str:
-    """Whitespace-normalized lowercase key for cross-source drug dedup."""
-    return " ".join(name.lower().split())
+    """Cross-source drug dedup key: the catalog drug_id, else the normalised
+    name (Issue #2377: "Amlodipine" and "アムロジピン" are one drug)."""
+    return drug_key(name)
 
 
 def _discharge_protocol_hold_reason_en(disease_id: str | None) -> str:
@@ -189,17 +191,15 @@ def build_discharge_rx(
     # transcribed onto the discharge Rx from the patient's home-med
     # list. Reading the same protocol block keeps the inpatient and
     # discharge-Rx hold sets in a single source of truth. Compared
-    # against lowercase substring match to mirror how
-    # ``medication_pipeline`` matches (substring, not exact) so
-    # multi-name entries in the YAML (e.g. Enalapril / Lisinopril /
-    # Captopril) each match their MR text variant.
+    # by drug identity (catalog drug_id, Issue #2377), as
+    # ``medication_pipeline`` does.
     protocol_held: set[str] = set()
     if protocol and getattr(protocol, "medication_holds", None):
         for _hold in protocol.medication_holds or []:
             for _d in _hold.get("drugs", []) or []:
-                _dl = str(_d).lower().strip()
-                if _dl:
-                    protocol_held.add(_dl)
+                _dk = drug_key(str(_d))
+                if _dk:
+                    protocol_held.add(_dk)
 
     # A' Phase 1 (Issue #440) dedup: with `patient.current_medications` now
     # tracking newly started drugs across encounters, both the protocol
@@ -244,9 +244,7 @@ def build_discharge_rx(
             drug_name_ja = drug_display(drug_name, "ja") or drug_name
         if not drug_name:
             return
-        if final_renal_function < DISCHARGE_RENAL_HOLD_THRESHOLD and any(
-            rd in drug_name.lower() for rd in renal_hold_drugs()
-        ):
+        if final_renal_function < DISCHARGE_RENAL_HOLD_THRESHOLD and drug_key(drug_name) in renal_hold_drugs():
             # Issue #1403: log renal-driven hold for narrative surface
             # (matches inpatient medication_pipeline._log_disease_medication_hold
             # semantic — discharge Rx side).
@@ -261,9 +259,8 @@ def build_discharge_rx(
             )
             return
         # Issue #1335: apply the disease-protocol medication_holds at
-        # discharge as well. Substring match on lowercase drug_name to
-        # mirror ``medication_pipeline``'s inpatient hold semantics.
-        if protocol_held and any(h in drug_name.lower() for h in protocol_held):
+        # discharge as well, matched by drug identity (Issue #2377).
+        if protocol_held and drug_key(drug_name) in protocol_held:
             # Issue #1403: log the silent protocol-driven hold at
             # discharge for narrative surface.
             _log_discharge_hold(
@@ -379,8 +376,7 @@ def build_discharge_rx(
         drug_name = med.drug_name
         if not drug_name:
             continue
-        drug_lower = drug_name.lower()
-        if final_renal_function < DISCHARGE_RENAL_HOLD_THRESHOLD and any(rd in drug_lower for rd in renal_hold_drugs()):
+        if final_renal_function < DISCHARGE_RENAL_HOLD_THRESHOLD and drug_key(drug_name) in renal_hold_drugs():
             continue  # do not restart nephrotoxic drug at discharge
         key = _dedup_key(drug_name)
         if key in seen_dedup_keys:

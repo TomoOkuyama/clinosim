@@ -29,6 +29,7 @@ from typing import Any
 
 import numpy as np
 
+from clinosim.codes.drugs import drug_key, same_drug
 from clinosim.countries import is_jp
 from clinosim.modules.physiology.renal_thresholds import (
     METFORMIN_ADMISSION_HOLD_THRESHOLD,
@@ -117,12 +118,14 @@ def metformin_admission_hold_threshold() -> float:
 
 @functools.cache
 def renal_medication_rules() -> dict[str, str]:
-    """Drug (lower-case substring) -> admission action ("hold" / "reduce") for
-    renal impairment, from ``renal_medication_rules.yaml`` (Issue #2296)."""
+    """Drug key (catalog drug_id, ``codes.drugs.drug_key``) -> admission action
+    ("hold" / "reduce") for renal impairment, from
+    ``renal_medication_rules.yaml`` (Issue #2296; keyed by identity, #2377)."""
+    from clinosim.codes.drugs import drug_key
     from clinosim.locale._io import _LOCALE_DIR, _load_yaml
 
     data = _load_yaml(_LOCALE_DIR / "shared" / "renal_medication_rules.yaml", {}) or {}
-    return {str(k).lower(): str(v) for k, v in (data.get("renal_drugs") or {}).items()}
+    return {drug_key(str(k)): str(v) for k, v in (data.get("renal_drugs") or {}).items()}
 
 
 def mar_vital_hold_reason(drug_name: str, vitals: Any) -> str | None:
@@ -130,12 +133,11 @@ def mar_vital_hold_reason(drug_name: str, vitals: Any) -> str | None:
     ``chronic_medications.yaml`` applies to ``drug_name``, else None."""
     if vitals is None or not drug_name:
         return None
-    name = drug_name.lower()
     for rule in _hold_conditions():
         field = rule.get("field")
         if field not in _VITAL_HOLD_LABELS or rule.get("direction") != "below":
             continue
-        if str(rule.get("drug", "")).lower() not in name:
+        if not same_drug(str(rule.get("drug", "")), drug_name):
             continue
         value = getattr(vitals, field, None)
         threshold = rule.get("threshold")
@@ -371,8 +373,8 @@ def _generate_home_medication_orders(
         for hold in protocol.medication_holds or []:
             reason = hold.get("reason", "disease-specific hold")
             for drug in hold.get("drugs", []):
-                held_drugs.add(drug.lower())
-                hold_reasons[drug.lower()] = reason
+                held_drugs.add(drug_key(drug))
+                hold_reasons[drug_key(drug)] = reason
 
     # Iterate the patient's actual home meds (single source of truth).
     # Issue #452 PR 3: read `med.drug_name` explicitly instead of `str(med)`.
@@ -387,7 +389,7 @@ def _generate_home_medication_orders(
         drug_name = med.drug_name
         if not drug_name:
             continue
-        drug_lower = drug_name.lower()
+        med_key = med.drug_id or drug_key(drug_name)
         intent_drug = f"{drug_name} {med.dose}".strip() if med.dose else drug_name
         intent = f"Home medication (continue): {intent_drug}"
         # Issue #871: parallel JA display for JP SR reasonCode.text. `intent_drug`
@@ -397,12 +399,9 @@ def _generate_home_medication_orders(
 
         # 1. Protocol-driven disease-specific holds.
         yaml_held = False
-        matched_hold_name = ""
-        for held_name in held_drugs:
-            if held_name in drug_lower:
-                yaml_held = True
-                matched_hold_name = held_name
-                break
+        matched_hold_name = med_key if med_key in held_drugs else ""
+        if matched_hold_name:
+            yaml_held = True
         if yaml_held:
             # Issue #1403: log the silent hold so the narrative
             # `considered_but_not_prescribed` context surface can
@@ -421,13 +420,13 @@ def _generate_home_medication_orders(
             continue  # silently skip — not ordered (but now logged)
 
         # 2. Metformin: renal-function-based hold.
-        if "metformin" in drug_lower and (initial_renal < metformin_admission_hold_threshold() or has_renal_impairment):
+        if med_key == "metformin" and (initial_renal < metformin_admission_hold_threshold() or has_renal_impairment):
             continue
 
         # 3. Renal dose adjustment for CKD patients.
         # Issue #2296: one renal drug list shared with discharge.
         if has_renal_impairment and renal_reserve < METFORMIN_RENAL_RESERVE_THRESHOLD:
-            action = next((a for d, a in renal_medication_rules().items() if d in drug_lower), None)
+            action = renal_medication_rules().get(med_key)
             if action == "hold":
                 continue  # held
             if action == "reduce":
