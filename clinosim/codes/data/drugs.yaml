@@ -803,7 +803,7 @@ drugs:
     names: {en: "Alfacalcidol", ja: "アルファカルシドール"}
     codes:
       rxnorm: "12062"
-      yj: {oral: "3112001B4036"}
+      yj: {oral: "3112001M3065"}   # アルファロールカプセル1μg
     classes: ["vitamin_d_analogue"]
   denosumab:
     names: {en: "Denosumab", ja: "デノスマブ"}
