@@ -340,21 +340,17 @@ def pick_localized_field(source: Any, base: str, lang: str, fallback: str = "") 
     Resolution:
       1. When ``lang`` is non-empty and not ``"en"``: try
          ``source[<base>_<lang>]``; keep that value when non-empty.
-      2. Fall back to ``source[<base>]``.
+      2. Fall back to English: ``source[<base>_en]``, then ``source[<base>]``
+         (``clinosim.locale.localized.localized_field``, Issue #2395).
       3. Fall back to the caller's ``fallback`` (default ``""``).
 
     Empty-string values in the lang-specific slot fall through to the
     bare slot rather than being cached as the answer — this matches the
     pre-refactor ``lang == "ja" and not text`` fallback pattern.
     """
-    if lang and lang != "en":
-        v = get_attr_or_key(source, f"{base}_{lang}", "") or ""
-        if v:
-            return str(v)
-    v = get_attr_or_key(source, base, "") or ""
-    if v:
-        return str(v)
-    return fallback
+    from clinosim.locale.localized import localized_field
+
+    return localized_field(source, base, lang, fallback=fallback)
 
 
 def set_attr_or_key(obj: Any, name: str, value: Any) -> None:

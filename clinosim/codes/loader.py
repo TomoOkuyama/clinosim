@@ -228,7 +228,8 @@ def display(system: str, code: str, lang: str = "en") -> str | None:
 def _entry_text(system: str, code: str, entry: dict[str, str], lang: str) -> str | None:
     """``entry`` in ``lang``; else the same code's ``lang`` text in a sibling
     system (an ICD-10-CM code shared with WHO takes the MHLW Japanese name,
-    Issue #2360); else English; else any text."""
+    Issue #2360); else English; else ``None`` — never another language
+    (Issue #2395)."""
     if lang in entry:
         return str(entry[lang])
     for sibling_key in _SYSTEM_LOOKUP_SIBLINGS.get(system, ()):
@@ -238,9 +239,6 @@ def _entry_text(system: str, code: str, entry: dict[str, str], lang: str) -> str
             return str(sib[lang])
     if "en" in entry:
         return str(entry["en"])
-    for candidate in entry.values():
-        if isinstance(candidate, str):
-            return candidate
     return None
 
 

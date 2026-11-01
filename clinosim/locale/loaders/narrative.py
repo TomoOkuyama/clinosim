@@ -61,24 +61,10 @@ def resolve_localized_display(entry: dict[str, str] | None, lang: str, fallback:
     check baked "ja" and "en" into the source and would silently
     return English for a French request.
     """
-    if not entry:
-        return fallback
-    lang_key = str(lang).strip().lower()
-    # Tolerate the "jp"/"JP" spelling used by callers holding a country
-    # code rather than a language code — both refer to Japanese output.
-    if lang_key == "jp":
-        lang_key = "ja"
-    hit = entry.get(lang_key)
-    if hit:
-        return hit
-    # EN fallback so a JA-only entry (severity, oxygen_device, etc.)
-    # still renders a readable form for callers requesting "en" —
-    # matches the pre-refactor behaviour where the JA-only tables were
-    # not consulted on EN output and the caller passed the raw token.
-    hit = entry.get("en")
-    if hit:
-        return hit
-    return fallback
+    # Value selection lives in the one retrieval API (Issue #2395).
+    from clinosim.locale.localized import localized
+
+    return localized(entry, lang, fallback=fallback)
 
 
 @lru_cache(maxsize=1)

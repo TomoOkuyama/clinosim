@@ -151,7 +151,8 @@ Consumers resolve names only through these functions. Several are added by open 
 | `department_display(dept, lang)` / `department_specialty_snomed(dept)` | department label / specialty code |
 | `role_display(role, lang, *, facet)` | staff role title, suffix or qualification |
 | `chronic_followup_vitals(code)` / `chronic_followup_interval_months(codes)` | follow-up schedule data |
-| `t(key, lang, **kwargs)` (`clinosim.locale.i18n`) | phrase |
+| `t(key, lang, **kwargs)` (`clinosim.locale.i18n`) | phrase; `""` for an unknown key (never the key) |
+| `locale.localized`: `localized(entry, lang, *, fallback)`, `localized_field(record, base, lang, *, fallback)`, `label(catalog, section, key, lang, *, fallback)` | the one value selection for `{lang: text}` entries, `<base>_<lang>` fields and vocabulary catalogs (§6 order); `t`, `resolve_localized_display`, `resolve_text` and `pick_localized_field` delegate to it |
 
 ### 4.3 Output helpers
 
@@ -232,7 +233,9 @@ These parts of the code base do not yet conform. Each one is removed by the issu
 
 | Deviation | Issue |
 |---|---|
-| **Fallback.** `display` / `lookup`, `resolve_text` and `t` end with a last-resort value: the first available language, the code, `str(value)` or the key. That can break §6.1–6.2, and there is no single retrieval API. | #2275 |
+| Duplicate localization wrappers (`_label`, `_localize_*`, `_localize_token`, gated `localize_*`) keep their own selection logic. | #2396 |
+| Direct `.get("ja")` and inline language ternaries select values outside `locale.localized`; `codes.lookup` returns the code on a miss. | #2397 |
+| Localized YAML fields use mixed shapes (nested `{lang: text}`, 25 `*_ja` field names, `dose_ja` vs `dose_text_ja`). | #2398 |
 | Some Composition section codes do not mean their section. | #2391 |
 | Emitters still hold LOINC constants. | #2392 |
 | The free-text name localizer lives in the FHIR output layer, is imported from the order and narrative layers, and also translates procedure, SNOMED and allergen names. Decision logic and records resolve drug names through `codes.drugs.drug_display`. | #2367 |

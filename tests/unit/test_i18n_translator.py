@@ -54,10 +54,9 @@ class TestProgress:
 class TestFallback:
     """Fallback / error-handling semantics."""
 
-    def test_unknown_key_returns_key(self) -> None:
-        # An unresolved dot-notation path echoes the key itself so callers
-        # see something readable rather than an empty string.
-        assert t("does.not.exist", "ja") == "does.not.exist"
+    def test_unknown_key_returns_empty(self) -> None:
+        # A phrase key is not output text: an unresolved path yields "" (Issue #2395).
+        assert t("does.not.exist", "ja") == ""
 
     def test_missing_param_returns_raw_template(self) -> None:
         # Interpolation KeyError → return the raw template rather than
@@ -84,10 +83,9 @@ class TestFallback:
 class TestKeyResolution:
     """Dot-notation navigation."""
 
-    def test_intermediate_branch_returns_key(self) -> None:
-        # A branch node (dict of nested dicts) is not a leaf — the
-        # translator returns the key rather than picking a random leaf.
-        assert t("chief_complaint", "ja") == "chief_complaint"
+    def test_intermediate_branch_returns_empty(self) -> None:
+        # A branch node (dict of nested dicts) is not a leaf — no random leaf, no key.
+        assert t("chief_complaint", "ja") == ""
 
-    def test_missing_leaf_returns_key(self) -> None:
-        assert t("chief_complaint.nonexistent", "ja") == "chief_complaint.nonexistent"
+    def test_missing_leaf_returns_empty(self) -> None:
+        assert t("chief_complaint.nonexistent", "ja") == ""
