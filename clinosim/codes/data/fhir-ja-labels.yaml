@@ -37,6 +37,8 @@ routes:
   INHALED: 吸入
   NEBULIZED: ネブライザー
   OPH: 点眼  # #1265: eye-drop / eye-ointment (点眼薬)
+  INFILTRATION: 局所浸潤  # #2352: local-anaesthetic infiltration
+  INTRA-ARTICULAR: 関節内注  # #2352
 
 frequencies:
   DAILY: 1日1回

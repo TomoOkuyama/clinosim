@@ -83,6 +83,11 @@ _ROUTE_SNOMED: dict[str, dict[str, str]] = {
     # — "Ophthalmic route" is a registered SNOMED Synonym (FSN =
     # "Ophthalmic route (qualifier value)"; module=core, active).
     "OPH": {"code": "54485002", "display": "Ophthalmic route"},
+    # Issue #2352: local-anaesthetic infiltration and intra-articular
+    # injection in ED / outpatient procedures. Displays verified on
+    # tx.fhir.org CodeSystem/$lookup (SNOMED CT International).
+    "INFILTRATION": {"code": "718329006", "display": "Infiltration route"},
+    "INTRA-ARTICULAR": {"code": "12130007", "display": "Intra-articular route"},
 }
 
 

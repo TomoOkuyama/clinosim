@@ -79,11 +79,11 @@ metadata:
 # Matched case-insensitively; an unknown route has no class.
 route_classes:
   oral: [PO, oral, SL, sublingual, NG, per os, 経口, 舌下]
-  injection: [IV, IVPB, IV push, IV infusion, SC, SQ, subcutaneous, IM, intramuscular, IT, intrathecal, injection, epidural, 静注, 点滴静注, 皮下注, 筋注, 髄注]
+  injection: [IV, IVPB, IV push, IV infusion, SC, SQ, subcutaneous, IM, intramuscular, IT, intrathecal, injection, epidural, infiltration, intra-articular, 静注, 点滴静注, 皮下注, 筋注, 髄注]
   inhalation: [INH, inhaled, inhalation, NEB, nebulized, nebulizer, 吸入, ネブライザー]
   rectal: [PR, rectal, suppository, 直腸, 坐剤]
   intravesical: [intravesical, 膀胱内]
-  topical: [topical, TOP, OPH, ophthalmic, eye drops, nasal, local, transdermal, 外用, 点眼]
+  topical: [topical, TOP, OPH, ophthalmic, eye drops, nasal, transdermal, 外用, 点眼]
 
 drugs:
   # Representative set for Phase 1a (10 drugs across chronic classes).

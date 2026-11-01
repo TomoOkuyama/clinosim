@@ -37,7 +37,7 @@ treatment:
   - {name: "Wound irrigation with normal saline", probability: 0.95, route: "topical", intent: "infection prevention"}
   - {name: "Tetanus toxoid 0.5mL", probability: 0.5, route: "IM", intent: "tetanus prophylaxis"}
   - {name: "Amoxicillin/clavulanate 875/125mg", probability: 0.7, route: "PO", intent: "prophylactic antibiotic"}
-  - {name: "Lidocaine 1% local", probability: 0.6, route: "local", intent: "local anesthesia for wound care"}
+  - {name: "Lidocaine 1% local", probability: 0.6, route: "infiltration", intent: "local anesthesia for wound care"}
 
 discharge_instructions:
   - "Wound irrigated and cleaned; no signs of deep structure injury"

@@ -26,8 +26,8 @@ workup:
   imaging: []
 
 treatment:
-  - {name: "midazolam IV sedation", probability: 0.95}
-  - {name: "fentanyl IV sedation", probability: 0.95}
+  - {name: "midazolam IV sedation", route: "IV", probability: 0.95}
+  - {name: "fentanyl IV sedation", route: "IV", probability: 0.95}
   - {name: "polypectomy", probability: 0.3}
 
 discharge_instructions:

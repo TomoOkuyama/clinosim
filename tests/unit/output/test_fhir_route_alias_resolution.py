@@ -75,8 +75,13 @@ def test_canonical_set_is_the_full_declared_route_vocabulary():
       * #1265 (session 106)     — added OPH → 54485002 (Ophthalmic route)
                                   for the newborn erythromycin prophylaxis
                                   (#1252 N7 US); tx.fhir.org $lookup-verified.
+      * #2352                   — added INFILTRATION → 718329006 and
+                                  INTRA-ARTICULAR → 12130007 for ED /
+                                  outpatient procedure orders.
     """
     assert set(_ROUTE_SNOMED) == {
+        "INFILTRATION",
+        "INTRA-ARTICULAR",
         "PO",
         "IV",
         "SC",
