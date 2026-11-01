@@ -2778,6 +2778,11 @@
 <td><code>""</code> / <code>None</code> / 該当なし</td>
 </tr>
 <tr>
+<td><code>codes.icd10</code>: <code>icd10_system(country)</code> / <code>icd10_display(code, country, lang)</code> / <code>condition_short_name(code, lang)</code> / <code>medis_disease_keyno(icd)</code></td>
+<td>国の ICD-10 体系、正式名称、臨床短縮名 (3 桁分類で引く)、MEDIS 病名管理番号</td>
+<td>キー / <code>None</code> / <code>None</code> / <code>None</code></td>
+</tr>
+<tr>
 <td><code>codes.procedures</code>: <code>procedure_code</code> / <code>procedure_type_display</code> / <code>procedure_code_display</code></td>
 <td>処置のコードと名称</td>
 <td><code>""</code> / 人間可読化した type / <code>None</code></td>
@@ -2993,8 +2998,8 @@
 <td>#2275</td>
 </tr>
 <tr>
-<td>ICD の検索・短縮名・crosswalk が 1 つの accessor にまとまっていない (短縮名の表が 2 つ、CM と WHO で日本語表示が食い違う)。</td>
-<td>#2257</td>
+<td>JP の ICD-10 日本語表示が sibling fallback で ICD-10-CM の表から来ることがあり、両表に共通する 95 コードで日本語名が食い違う。</td>
+<td>#2360</td>
 </tr>
 <tr>
 <td>SNOMED のコードと表示名を出力側の dict がまだ持っている (route / severity)。SNOMED のリテラル 74 件が未登録。</td>

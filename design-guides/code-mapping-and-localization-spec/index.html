@@ -2778,6 +2778,11 @@
 <td><code>""</code> / <code>None</code> / no entry</td>
 </tr>
 <tr>
+<td><code>codes.icd10</code>: <code>icd10_system(country)</code>, <code>icd10_display(code, country, lang)</code>, <code>condition_short_name(code, lang)</code>, <code>medis_disease_keyno(icd)</code></td>
+<td>ICD-10 system of a country; official display; clinical short name (by category); MEDIS 病名管理番号</td>
+<td>key / <code>None</code> / <code>None</code> / <code>None</code></td>
+</tr>
+<tr>
 <td><code>codes.procedures</code>: <code>procedure_code</code>, <code>procedure_type_display</code>, <code>procedure_code_display</code></td>
 <td>procedure codes and names</td>
 <td><code>""</code> / humanised type / <code>None</code></td>
@@ -2993,8 +2998,8 @@
 <td>#2275</td>
 </tr>
 <tr>
-<td>ICD lookup, short names and crosswalks are not behind one accessor (two short-name tables, CM/WHO Japanese divergence).</td>
-<td>#2257</td>
+<td>JP ICD-10 Japanese displays can come from the ICD-10-CM table through the sibling fallback, and 95 shared codes have different Japanese names in the two tables.</td>
+<td>#2360</td>
 </tr>
 <tr>
 <td>SNOMED codes and displays are still held in emitter dicts (route, severity), and 74 SNOMED literals are unregistered.</td>
