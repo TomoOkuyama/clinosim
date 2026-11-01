@@ -534,7 +534,7 @@ def build_dr_resource(
     lang = resolve_lang(country)
     display = registry_display("loinc", panel["loinc"], lang) or panel["display"]
     # Issue #783: `code.text` = JA primary label on JP output (panel `display_ja`
-    # in `lab_panel_groups.yaml`), English `display` on US. Prior emit left
+    # in `lab_panels.yaml`), English `display` on US. Prior emit left
     # `code.text` unset entirely — consumers saw only the LOINC code string
     # and could not distinguish CBC vs Coag vs LFT DRs at a glance
     # (95.8% of JP DR had null `.text` in baseline).

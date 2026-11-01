@@ -1,17 +1,14 @@
 """Unit tests for panel detection (PR1 ServiceRequest)."""
 
-import pytest
-
 from clinosim.modules.order.panel_grouping import (
     PANEL_PRIORITY_ORDER,
-    _validate_panel_definitions,
     classify_lab_specs,
     load_panel_definitions,
 )
 
 
 def test_priority_order_constant():
-    """PANEL_PRIORITY_ORDER matches lab_panel_groups.yaml header convention.
+    """PANEL_PRIORITY_ORDER matches lab_panels.yaml header convention.
 
     Session 47 P2-13 (JP-eCheckup): "Checkup" 健診 panel added at the tail so
     checkup batteries can be grouped as one prescription without disturbing the
@@ -32,7 +29,7 @@ def test_load_panel_definitions_has_known_panels():
     """All canonical panels are loaded from YAML."""
     panels = load_panel_definitions()
     for name in PANEL_PRIORITY_ORDER:
-        assert name in panels, f"{name} missing from lab_panel_groups.yaml"
+        assert name in panels, f"{name} missing from lab_panels.yaml"
         assert "components" in panels[name]
         assert "min_components" in panels[name]
         assert "loinc" in panels[name]
@@ -123,27 +120,10 @@ def test_classify_empty_input_returns_empty():
     assert stand_alones == []
 
 
-def test_validate_panel_definitions_rejects_component_typo():
-    """Layer 6b: a component typo in lab_panel_groups.yaml must fail-loud.
+def test_grouping_and_generation_read_the_same_panel_list():
+    """One panel definition (Issue #2332): FHIR grouping and result generation
+    read the same component list, so no drift check is needed."""
+    from clinosim.modules.observation.engine import lab_panel_components
 
-    Simulates the scenario where lab_panel_groups.yaml has 'WBC', 'Hbx' (typo)
-    while lab_panels.yaml has 'WBC', 'Hb'. The symmetric_difference gate raises
-    ValueError at import time, preventing silent panel collapse.
-    """
-    # Build a minimal panels dict that matches PANEL_PRIORITY_ORDER but has
-    # a typo in CBC's components ("Hbx" instead of "Hb").
-
-    # Fetch real CBC LOINC + other panels from the actual loader, then inject the typo.
-    real_panels = load_panel_definitions()
-    typo_panels = {}
-    for name in PANEL_PRIORITY_ORDER:
-        p = dict(real_panels[name])
-        if name == "CBC":
-            # Replace "Hb" with "Hbx" to simulate the typo
-            p["components"] = ["WBC", "Hbx", "Hct", "Plt"]
-        typo_panels[name] = p
-
-    # _validate_panel_definitions performs the Layer 6b cross-validation
-    # against lab_panels.yaml (via lab_panel_components). A mismatch raises ValueError.
-    with pytest.raises(ValueError, match="component mismatch"):
-        _validate_panel_definitions(typo_panels)
+    for name, panel in load_panel_definitions().items():
+        assert lab_panel_components(name) == panel["components"], name

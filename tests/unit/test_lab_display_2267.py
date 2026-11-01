@@ -25,7 +25,7 @@ _REF = Path(__file__).resolve().parents[2] / "clinosim" / "modules" / "observati
 
 def _emitted_lab_names() -> set[str]:
     constants = yaml.safe_load((_REF / "lab_constants.yaml").read_text(encoding="utf-8"))
-    panels = yaml.safe_load((_REF / "lab_panels.yaml").read_text(encoding="utf-8"))
+    panels = yaml.safe_load((_REF / "lab_panels.yaml").read_text(encoding="utf-8"))["panels"]
     aliases = yaml.safe_load((_REF / "lab_aliases.yaml").read_text(encoding="utf-8"))
     return set(constants["units"]) | set(panels) | set(aliases.values())
 

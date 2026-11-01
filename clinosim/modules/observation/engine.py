@@ -38,11 +38,11 @@ def _lab_aliases() -> dict[str, str]:
 
 @lru_cache(maxsize=1)
 def _lab_panels() -> dict[str, list[str]]:
-    path = _REF_DIR / "lab_panels.yaml"
-    if path.exists():
-        with open(path, encoding="utf-8") as f:
-            return yaml.safe_load(f) or {}
-    return {}
+    """Panel name → component analytes, from the one panel definition
+    (``lab_panels.yaml``, shared with FHIR grouping; Issue #2332)."""
+    with open(_REF_DIR / "lab_panels.yaml", encoding="utf-8") as f:
+        panels = (yaml.safe_load(f) or {}).get("panels") or {}
+    return {name: list(spec.get("components") or []) for name, spec in panels.items()}
 
 
 def canonical_lab_name(name: str) -> str:

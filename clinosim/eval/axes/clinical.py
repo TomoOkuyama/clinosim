@@ -72,18 +72,34 @@ _JP_MEDICATION_SYSTEM_URIS: frozenset[str] = frozenset(get_system_uri(k) for k i
 
 @cache
 def _lab_bounds_from_yaml() -> dict[str, dict[str, tuple[float, float]]]:
+    """LOINC → {unit: (min, max)}. For the unit clinosim emits (and its UCUM
+    code) the bounds are the generator's ``physiologic_limits``
+    (``observation/reference_data/lab_constants.yaml``) mapped through the US
+    lab code mapping; ``lab-plausibility-bounds.yaml`` adds only the other unit
+    spellings, used to score third-party cohorts (Issue #2332)."""
+    from clinosim.codes.ucum import ucum_code
+    from clinosim.locale.loader import load_code_mapping
+    from clinosim.modules.observation.engine import LAB_UNITS, PHYSIOLOGIC_LIMITS
+
+    out: dict[str, dict[str, tuple[float, float]]] = {}
+    loinc_of = load_code_mapping("lab", "US")
+    for lab, (lo, hi) in PHYSIOLOGIC_LIMITS.items():
+        loinc, unit = loinc_of.get(lab), LAB_UNITS.get(lab, "")
+        if not loinc or not unit:
+            continue
+        inner = out.setdefault(str(loinc), {})
+        inner[unit] = inner[ucum_code(unit)] = (float(lo), float(hi))
+
     path = Path(__file__).resolve().parents[2] / "codes" / "data" / "lab-plausibility-bounds.yaml"
     with path.open(encoding="utf-8") as fh:
         raw = yaml.safe_load(fh) or {}
-    out: dict[str, dict[str, tuple[float, float]]] = {}
     for loinc, unit_map in (raw.get("loincs", {}) or {}).items():
         if not isinstance(unit_map, dict):
             continue
-        inner: dict[str, tuple[float, float]] = {}
+        inner = out.setdefault(str(loinc), {})
         for unit, bounds in unit_map.items():
             if isinstance(bounds, (list, tuple)) and len(bounds) == 2:
-                inner[str(unit)] = (float(bounds[0]), float(bounds[1]))
-        out[str(loinc)] = inner
+                inner.setdefault(str(unit), (float(bounds[0]), float(bounds[1])))
     return out
 
 

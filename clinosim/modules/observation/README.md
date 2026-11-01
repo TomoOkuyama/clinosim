@@ -223,7 +223,7 @@ and run in different stages, so there is no conflict.
 | Lab pipeline | [`clinosim/simulator/lab_pipeline.py`](../../simulator/lab_pipeline.py) | Calls `generate_lab_result` per placed lab order. |
 | Vitals pipeline | [`clinosim/simulator/vitals_pipeline.py`](../../simulator/vitals_pipeline.py) | Consumes `fluid_balance.py` + `oxygenation.py` thresholds. |
 | Inpatient / outpatient / emergency / daily_loop / unknown_condition | [`clinosim/simulator/*.py`](../../simulator/) | Consume lab canonicalisation / result generation; `inpatient.py` calls `generate_microbiology`. |
-| Order module | [`clinosim/modules/order/panel_grouping.py`](../order/panel_grouping.py) | Load-time cross-validation (Layer 6b) of `lab_panel_groups.yaml` components against `lab_panel_components`. |
+| Order module | [`clinosim/modules/order/panel_grouping.py`](../order/panel_grouping.py) | Reads the same `lab_panels.yaml` for FHIR DiagnosticReport grouping (LOINC, display, minimum components; Issue #2332). |
 | HAI lab lift | [`clinosim/modules/hai/lab_lift.py`](../hai/lab_lift.py) | Re-flags / re-rounds lifted WBC / CRP values via `determine_flag` + `round_to_precision`. |
 | Monitoring enricher | [`clinosim/modules/monitoring/enricher.py`](../monitoring/enricher.py) | Uses `canonical_lab_name`, `generate_lab_result`, `get_lab_unit`, `determine_flag` for injected monitoring labs. |
 | Antibiotic module | [`clinosim/modules/antibiotic/__init__.py`](../antibiotic/__init__.py) | Consumes `antibiotic_loinc_lookup` for regimen coding. |

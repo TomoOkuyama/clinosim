@@ -46,6 +46,7 @@ lab_names:
   calcium: {en: calcium, ja: カルシウム}
   cbc: {en: CBC, ja: CBC (全血球算定)}
   cea: {en: CEA, ja: CEA}
+  checkup: {en: health checkup panel, ja: 健康診断パネル}
   chloride: {en: chloride, ja: クロール}
   cholesterol: {en: cholesterol, ja: コレステロール}
   ciclosporin: {en: ciclosporin level, ja: シクロスポリン血中濃度}

@@ -382,13 +382,11 @@ class TestBuildLabPanelReports:
 
 @pytest.mark.unit
 class TestPanelYAMLs:
-    """Improvements I1 / I2 / I3: panel YAMLs are aligned across input
-    (lab_panels.yaml = panel order expansion) and output
-    (lab_panel_groups.yaml = DR grouping)."""
+    """Improvements I1 / I2 / I3: one panel YAML (lab_panels.yaml) serves
+    panel order expansion and DR grouping (Issue #2332)."""
 
     def test_lab_panels_yaml_has_coag_lft_lipid_ua(self):
-        """I1: lab_panels.yaml (expansion source) gains Coag/LFT/Lipid/UA
-        to match lab_panel_groups.yaml (DR grouping source)."""
+        """I1: lab_panels.yaml defines Coag/LFT/Lipid/UA for expansion and grouping."""
         from pathlib import Path
 
         import yaml
@@ -396,14 +394,14 @@ class TestPanelYAMLs:
         import clinosim
 
         path = Path(clinosim.__file__).parent / "modules/observation/reference_data/lab_panels.yaml"
-        panels = yaml.safe_load(path.read_text())
+        panels = {k: v["components"] for k, v in yaml.safe_load(path.read_text())["panels"].items()}
         assert panels["Coag"] == ["PT", "PT_INR", "APTT"]
         assert panels["LFT"] == ["AST", "ALT", "ALP", "T_Bil", "Albumin", "TP", "GGT", "LDH"]
         assert panels["Lipid"] == ["TC", "LDL", "HDL", "TG"]
         assert "UA" in panels
 
     def test_lab_panel_groups_documents_coag_authoritative_scope(self):
-        """I2: lab_panel_groups.yaml documents Fibrinogen exclusion + LOINC scope.
+        """I2: lab_panels.yaml documents Fibrinogen exclusion + LOINC scope.
 
         session 59 #276:LOINC 24373-3 は "Ferritin" semantic-mismatch のため
         14979-9 (aPTT) に substitute。yaml も 14979-9 参照 + 24373-3 の drop
@@ -413,8 +411,8 @@ class TestPanelYAMLs:
 
         import clinosim
 
-        # Canonical YAML location: order/reference_data/ (moved from output/reference_data/)
-        path = Path(clinosim.__file__).parent / "modules/order/reference_data/lab_panel_groups.yaml"
+        # The one panel definition (Issue #2332).
+        path = Path(clinosim.__file__).parent / "modules/observation/reference_data/lab_panels.yaml"
         text = path.read_text()
         # #276 (session 59):24373-3 は semantic-mismatch のため drop、
         # 現行 loinc = 14979-9。両 code が yaml text 内に document 経緯として残る。

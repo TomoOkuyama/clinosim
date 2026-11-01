@@ -15,7 +15,7 @@ responsibilities:
 2. **Panel grouping** (`panel_grouping.py`) — the single edit point
    that classifies a list of lab specs into panels (ABG, CBC, BMP,
    LFT, Lipid, Coag, UA, Checkup) vs stand-alone tests, driven by
-   `reference_data/lab_panel_groups.yaml`. Every lab-ordering call
+   `observation/reference_data/lab_panels.yaml`. Every lab-ordering call
    site MUST go through `classify_lab_specs` (see
    [`AGENTS.md`](../../../AGENTS.md) — this is the AD-59 sibling
    pattern for `derive_lab_values` flag helpers).
@@ -164,7 +164,7 @@ from clinosim.modules.order.discontinue_flip import enrich_discontinue_flip  # (
   `("ABG", "CBC", "BMP", "LFT", "Lipid", "Coag", "UA", "Checkup")`.
   Order is load-bearing — HCO3 belongs to BOTH ABG and BMP, and the
   classifier assigns it to ABG first because ABG appears earlier.
-- **Panel YAML**: [`reference_data/lab_panel_groups.yaml`](reference_data/lab_panel_groups.yaml)
+- **Panel YAML**: [`observation/reference_data/lab_panels.yaml`](../observation/reference_data/lab_panels.yaml)
   — moved from `output/reference_data/` because "panel" is
   fundamentally an ordering concept. Header comment enumerates the
   priority tuple and is cross-verified at import
@@ -204,7 +204,6 @@ clinosim/modules/order/
   _order_placement_timing.py         placement offset constants (Issue #637)
   _state_delay_thresholds.py         hospital-state delay constants (Issue #637)
   reference_data/
-    lab_panel_groups.yaml            panel → components + priority header
   SPEC.md                            extended design reference (not runtime)
 ```
 
