@@ -666,3 +666,75 @@ codes:
   '56459004':
     en: Foot structure
     ja: 足部
+  # === Route of administration (Issue #2258) ===
+  # English = SNOMED International preferred term (tx.fhir.org $lookup);
+  # Japanese = the route labels of codes/data/fhir-ja-labels.yaml.
+  '26643006':
+    en: Oral route
+    ja: 経口
+  '47625008':
+    en: Intravenous route
+    ja: 静注
+  '34206005':
+    en: Subcutaneous route
+    ja: 皮下注
+  '78421000':
+    en: Intramuscular route
+    ja: 筋注
+  '37839007':
+    en: Sublingual route
+    ja: 舌下
+  '37161004':
+    en: Rectal route
+    ja: 直腸
+  '447694001':
+    en: Respiratory tract route
+    ja: 吸入
+  '6064005':
+    en: Topical route
+    ja: 外用
+  '54485002':
+    en: Ophthalmic route
+    ja: 点眼
+  '718329006':
+    en: Infiltration route
+    ja: 局所浸潤
+  '12130007':
+    en: Intra-articular route
+    ja: 関節内注
+  # === Immunization site / specimen condition (Issue #2258) ===
+  '368208006':
+    en: Left upper arm structure
+    ja: 左上腕
+  '260385009':
+    en: Negative
+    ja: 陰性
+  # === Care team roles (Issue #2258; were narrative_labels care_team_role_display) ===
+  '309343006':
+    en: Physician
+    ja: 医師
+  '224535009':
+    en: Registered nurse
+    ja: 看護師
+  '46255001':
+    en: Pharmacist
+    ja: 薬剤師
+  '36682004':
+    en: Physiotherapist
+    ja: 理学療法士
+  '80546007':
+    en: Occupational therapist
+    ja: 作業療法士
+  '159026005':
+    en: Speech and language therapist
+    ja: 言語聴覚士
+  '159033005':
+    en: Dietitian
+    ja: 管理栄養士
+  '106328005':
+    en: Social worker
+    ja: 医療ソーシャルワーカー
+  # 309360001 replaces 309362007, which is not a SNOMED CT concept.
+  '309360001':
+    en: Rehabilitation physician
+    ja: リハビリテーション科医

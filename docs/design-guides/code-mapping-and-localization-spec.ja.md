@@ -128,6 +128,7 @@ occupation:
 | `codes.procedures`: `procedure_code` / `procedure_type_display` / `procedure_code_display` | 処置のコードと名称 | `""` / 人間可読化した type / `None` |
 | `codes.ucum`: `ucum_code` / `ucum_quantity` | UCUM コード / FHIR Quantity | 単位をそのまま通す |
 | `codes.prefectures.prefecture_code(name)` | JIS X 0401 コード | `""` |
+| `codes.snomed`: `snomed_display(code, lang)` / `snomed_for(kind, key)` / `snomed_map(kind)` | SNOMED の表示名、内部キー → コード (`route` / `severity`。`codes/data/snomed-maps.yaml`) | `None` / `None` / `KeyError` |
 | `codes.snomed_concepts` | 判定ロジックで使う名前付き SNOMED 概念 | — |
 
 `lookup(system, code, lang)` は旧 API で、ヒットしないとコード自体を返す。新しいコードでは `display(...) or <明示フォールバック>` を使う。
@@ -227,7 +228,7 @@ occupation:
 |---|---|
 | **フォールバック。** `display` / `lookup`、`resolve_text`、`t` は最後の手段として、最初に見つかった言語・コード・`str(value)`・キーを返す。§6.1–6.2 に反する場合があり、取得 API も 1 本化されていない。 | #2275 |
 | JP の ICD-10 日本語表示が sibling fallback で ICD-10-CM の表から来ることがあり、両表に共通する 95 コードで日本語名が食い違う。 | #2360 |
-| SNOMED のコードと表示名を出力側の dict がまだ持っている (route / severity)。SNOMED のリテラル 74 件が未登録。 | #2258 |
+| registry の外にある SNOMED のコードと表示名 (処置名 YAML、device / HAI / follow-up の写し、Python の mapper 表) と、未登録の SNOMED リテラル約 74 件。 | #2363 |
 | 文書 LOINC の定義が 8 箇所にある。意味の合わない section コードがある。出力側に LOINC 定数が残っている。 | #2344 |
 | 生成側が出しているのに未登録の CPT / K コード。 | #2340 |
 | 手組みの dual-slot が残っている。`_coding_with_display` と `_value` が英語専用の coding に出力言語の表示名を入れている (`system_coding` / `dual_slot_concept` を使うべき)。後処理で text を補う walker も残っている。 | #2337 |

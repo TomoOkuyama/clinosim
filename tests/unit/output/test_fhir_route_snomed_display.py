@@ -22,25 +22,19 @@ pytestmark = pytest.mark.unit
 # When a display string changes, verify via `$lookup` on tx.fhir.org before
 # updating this map.
 _AUTHORITATIVE_SNOMED_ROUTE_DISPLAY: dict[str, str] = {
-    "26643006": "Oral",
-    "47625008": "Intravenous",
-    "34206005": "Subcutaneous",
-    "78421000": "Intramuscular",
-    "37161004": "Per rectum",  # tx-server accepts this synonym
-    # 447694001 default display is "Respiratory tract route (qualifier value)"
-    # per SNOMED CT International; the previously-used "Inhalation" is not a
-    # registered synonym in the tx-server loadout (v4 chain #4, 667 errors).
-    "447694001": "Respiratory tract route (qualifier value)",
-    "6064005": "Topical",
-    # #311 session 60:Sublingual route の authoritative code。SNOMED
-    # valid synonym として "Sublingual" を HAPI 受容。
-    "37839007": "Sublingual",
-    # #1265: Ophthalmic route (newborn erythromycin prophylaxis, #1252 N7 US).
-    # "Ophthalmic route" は SNOMED registered Synonym (verified via tx.fhir.org
-    # /r4/CodeSystem/$lookup 2026-09-11); FSN は "Ophthalmic route (qualifier
-    # value)" だが tx-server は Synonym form も受容する。
+    # SNOMED International preferred terms, verified via tx.fhir.org
+    # CodeSystem/$lookup (Issue #2258: displays now come from snomed-ct.yaml;
+    # the former synonyms "Oral" / "Per rectum" / "Respiratory tract route
+    # (qualifier value)" were replaced by the preferred terms).
+    "26643006": "Oral route",
+    "47625008": "Intravenous route",
+    "34206005": "Subcutaneous route",
+    "78421000": "Intramuscular route",
+    "37161004": "Rectal route",
+    "447694001": "Respiratory tract route",
+    "6064005": "Topical route",
+    "37839007": "Sublingual route",
     "54485002": "Ophthalmic route",
-    # Issue #2352 (verified via tx.fhir.org $lookup 2026-11-01).
     "718329006": "Infiltration route",
     "12130007": "Intra-articular route",
 }
@@ -75,7 +69,7 @@ def test_inhalation_routes_use_respiratory_tract_display() -> None:
     non-registered 'Inhalation' synonym for SNOMED 447694001."""
     for k in ("INHALED", "NEBULIZED"):
         assert _ROUTE_SNOMED[k]["code"] == "447694001"
-        assert _ROUTE_SNOMED[k]["display"] == "Respiratory tract route (qualifier value)"
+        assert _ROUTE_SNOMED[k]["display"] == "Respiratory tract route"
 
 
 def test_sl_uses_authoritative_sublingual_code() -> None:

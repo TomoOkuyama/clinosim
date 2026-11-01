@@ -1,0 +1,27 @@
+# Internal key → SNOMED CT code, per vocabulary (Issue #2258).
+#
+# Codes only: displays live in snomed-ct.yaml and are read through
+# clinosim.codes.snomed (snomed_display / snomed_for). Every code here is
+# registered there with a display verified on tx.fhir.org $lookup.
+
+# Order route (upper-case canonical token; aliases such as INH / NEB resolve
+# to these in modules/output/fhir_r4/lib/reference_data.py _ROUTE_ALIASES).
+route:
+  PO: "26643006"
+  IV: "47625008"
+  SC: "34206005"
+  IM: "78421000"
+  SL: "37839007"
+  PR: "37161004"
+  INHALED: "447694001"
+  TOPICAL: "6064005"
+  NEBULIZED: "447694001"
+  OPH: "54485002"
+  INFILTRATION: "718329006"
+  INTRA-ARTICULAR: "12130007"
+
+# Condition severity.
+severity:
+  mild: "255604002"
+  moderate: "6736007"
+  severe: "24484000"

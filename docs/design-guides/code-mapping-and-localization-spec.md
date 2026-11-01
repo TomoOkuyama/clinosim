@@ -129,6 +129,7 @@ Consumers resolve names only through these functions. Several are added by open 
 | `codes.ucum`: `ucum_code`, `ucum_quantity` | UCUM code / FHIR Quantity | unit passed through |
 | `codes.prefectures.prefecture_code(name)` | JIS X 0401 code | `""` |
 | `codes.snomed_concepts` | named SNOMED concepts used in logic | — |
+| `codes.snomed`: `snomed_display(code, lang)`, `snomed_for(kind, key)`, `snomed_map(kind)` | SNOMED display; internal key → code (`route`, `severity`; `codes/data/snomed-maps.yaml`) | `None` / `None` / `KeyError` |
 
 `lookup(system, code, lang)` is legacy: on a miss it returns the code itself. New code uses `display(...) or <explicit fallback>`.
 
@@ -227,7 +228,7 @@ These parts of the code base do not yet conform. Each one is removed by the issu
 |---|---|
 | **Fallback.** `display` / `lookup`, `resolve_text` and `t` end with a last-resort value: the first available language, the code, `str(value)` or the key. That can break §6.1–6.2, and there is no single retrieval API. | #2275 |
 | JP ICD-10 Japanese displays can come from the ICD-10-CM table through the sibling fallback, and 95 shared codes have different Japanese names in the two tables. | #2360 |
-| SNOMED codes and displays are still held in emitter dicts (route, severity), and 74 SNOMED literals are unregistered. | #2258 |
+| SNOMED codes and displays outside the registry (procedure-name YAML, device / HAI / follow-up copies, mapper tables in Python), and about 74 unregistered SNOMED literals. | #2363 |
 | Document LOINCs are defined in eight places, some section codes do not mean their section, and emitters still hold LOINC constants. | #2344 |
 | CPT / K-codes the generator emits but has not registered. | #2340 |
 | Remaining hand-built dual-slot concepts; `_coding_with_display` and `_value` put the output-language display into English-only codings instead of `system_coding` / `dual_slot_concept`; and the post-process text-filling walkers. | #2337 |
