@@ -8,9 +8,31 @@ the Japanese label goes in ``CodeableConcept.text`` (spec §5.3).
 
 from __future__ import annotations
 
+from functools import cache
+from pathlib import Path
 from typing import Any
 
+import yaml
+
 from clinosim.codes.loader import display, get_system_uri
+
+_MAPS = Path(__file__).parent / "data" / "loinc-maps.yaml"
+
+
+@cache
+def loinc_map(kind: str) -> dict[str, str]:
+    """Internal key → LOINC code for vocabulary ``kind`` (``loinc-maps.yaml``,
+    Issue #2392). Raises ``KeyError`` on an unknown kind."""
+    data = yaml.safe_load(_MAPS.read_text(encoding="utf-8")) or {}
+    if kind not in data:
+        raise KeyError(f"loinc_map: unknown kind {kind!r}; expected one of {sorted(data)}")
+    return {str(k): str(v) for k, v in (data[kind] or {}).items()}
+
+
+def loinc_for(kind: str, key: str) -> str:
+    """LOINC code for an internal ``key`` of vocabulary ``kind``. Raises
+    ``KeyError`` on an unknown key: every emitted key is mapped."""
+    return loinc_map(kind)[str(key)]
 
 
 def loinc_display(code: str, lang: str) -> str | None:

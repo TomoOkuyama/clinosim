@@ -113,7 +113,7 @@ def test_enricher_writes_apgar_to_extensions() -> None:
 def test_fhir_emit_renders_two_apgar_observations() -> None:
     """The `_bb_newborn_apgar` bundle-builder reads
     `extensions["newborn"]["apgar"]` and renders one Observation per
-    minute with the correct LOINC (9271-8 / 9274-2), UCUM-`{score}`
+    minute with the correct LOINC (9272-6 / 9274-2), UCUM-`{score}`
     valueQuantity, and survey category.
     """
     rec = _newborn_record()
@@ -135,7 +135,7 @@ def test_fhir_emit_renders_two_apgar_observations() -> None:
     loincs = sorted(
         c.get("code") for o in obs_list for c in (o.get("code", {}).get("coding", []) or []) if c.get("code")
     )
-    assert loincs == ["9271-8", "9274-2"]
+    assert loincs == ["9272-6", "9274-2"]
     # Values are integer scores 0-10 with UCUM {score} unit.
     for o in obs_list:
         vq = o.get("valueQuantity", {})

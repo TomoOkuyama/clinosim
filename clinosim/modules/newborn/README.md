@@ -20,7 +20,7 @@ in the [#1252 design comment](https://github.com/TomoOkuyama/clinosim/issues/125
     syrup on days 0 / 7 when inside the stay, US 1 mg IM — N2).
   - Shift-cadence vital signs from the newborn's `baseline_vitals`
     (`VitalSignRecord` — N3).
-  - Apgar score at 1 min / 5 min (`Observation`, LOINC 9271-8 /
+  - Apgar score at 1 min / 5 min (`Observation`, LOINC 9272-6 /
     9274-2 — N4).
   - AABR hearing screen (`Procedure`, SNOMED 413083006 — N5).
   - Tandem-MS metabolic mass screen (`Procedure`, SNOMED 428447008,

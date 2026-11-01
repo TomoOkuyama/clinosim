@@ -975,3 +975,7 @@ codes:
   85847-2:
     en: "Patient Care team information"
     ja: "ケアチーム"
+  # === Issue #2392: 1-minute Apgar (tx.fhir.org $lookup) ===
+  9272-6:
+    en: "1 minute Apgar Score"
+    ja: "1分後アプガースコア"

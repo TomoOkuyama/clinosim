@@ -25,6 +25,7 @@ from typing import Any
 import numpy as np
 import yaml
 
+from clinosim.codes.loinc import loinc_for
 from clinosim.codes.snomed import snomed_for, snomed_map
 from clinosim.modules._shared import get_attr_or_key as _get
 from clinosim.modules._shared import is_jp
@@ -276,7 +277,7 @@ def build_apgar_scores(record: Any) -> list[dict[str, Any]]:
     newborn's `patient_id` — RNG-neutral against every other draw.
 
     Returns a list of `{"minute": 1 | 5, "score": 0..10, "timestamp": datetime}`
-    dicts. The FHIR emit layer walks this and renders LOINC 9271-8
+    dicts. The FHIR emit layer walks this and renders LOINC 9272-6
     (1-min) / 9274-2 (5-min) Observation resources.
 
     Empty list for non-newborn records (defensive; the enricher gates).
@@ -557,7 +558,7 @@ def build_metabolic_screen_workflow_data(record: Any, country: str) -> dict[str,
         # Copy through the yaml codes so the FHIR emit does not need
         # to re-load the config — same pattern as other newborn
         # extension slots (bilirubin, cchd_pulse_ox).
-        "order_loinc": str(sr_cfg.get("order_loinc") or "54089-8"),
+        "order_loinc": loinc_for("newborn_screen", "panel"),
         "order_display": str(sr_cfg.get("order_display") or "Newborn screening panel"),
         "order_display_ja": str(sr_cfg.get("order_display_ja") or "新生児マス・スクリーニング パネル"),
         "order_category_code": str(sr_cfg.get("category_code") or snomed_for("order_category", "laboratory")),
@@ -569,7 +570,7 @@ def build_metabolic_screen_workflow_data(record: Any, country: str) -> dict[str,
         "specimen_body_site_ja": str(spec_cfg.get("body_site_text_ja") or "踵"),
         "specimen_method_en": str(spec_cfg.get("collection_method_text_en") or "Heel-stick capillary blood collection"),
         "specimen_method_ja": str(spec_cfg.get("collection_method_text_ja") or "踵採血 (毛細血管採血)"),
-        "dr_code_loinc": str(dr_cfg.get("code_loinc") or "54089-8"),
+        "dr_code_loinc": loinc_for("newborn_screen", "panel"),
         "dr_code_display": str(dr_cfg.get("code_display") or "Newborn screening panel"),
         "dr_code_display_ja": str(dr_cfg.get("code_display_ja") or "新生児マス・スクリーニング パネル"),
         "dr_category_code": str(dr_cfg.get("category_code") or "LAB"),
@@ -587,7 +588,7 @@ def build_bilirubin_observations(record: Any) -> list[dict[str, Any]]:
     `patient_id`. Skipped for days that fall past discharge.
 
     Returns a list of `{"day": N, "timestamp": dt, "value_mg_dl": float,
-    "loinc": "58941-6"}` dicts. The FHIR emit layer walks this list.
+    "loinc": <bilirubin LOINC>}` dicts. The FHIR emit layer walks this list.
     """
     if not is_newborn_birth_record(record):
         return []
@@ -611,7 +612,7 @@ def build_bilirubin_observations(record: Any) -> list[dict[str, Any]]:
     std_by_day = cfg.get("std_by_day") or {}
     clamp_min = float(cfg.get("clamp_min", 2.0) or 2.0)
     clamp_max = float(cfg.get("clamp_max", 20.0) or 20.0)
-    loinc = str(cfg.get("loinc") or "58941-6")
+    loinc = loinc_for("newborn_screen", "bilirubin_transcutaneous")
 
     day_base = datetime(admit_dt.year, admit_dt.month, admit_dt.day, hour_of_day, 0)
     out: list[dict[str, Any]] = []
@@ -645,7 +646,7 @@ def build_cchd_pulse_ox(record: Any) -> list[dict[str, Any]]:
     slot falls past discharge (defensive).
 
     Returns a list of `{"site": "right_hand" | "foot", "timestamp": dt,
-    "value_pct": int, "loinc": "59408-5"}` dicts. The FHIR emit layer
+    "value_pct": int, "loinc": <pulse-oximetry LOINC>}` dicts. The FHIR emit layer
     renders one Observation per body site.
     """
     if not is_newborn_birth_record(record):
@@ -668,7 +669,7 @@ def build_cchd_pulse_ox(record: Any) -> list[dict[str, Any]]:
     sched = admit_dt + timedelta(hours=hours)
     if isinstance(discharge_dt, datetime) and sched > discharge_dt:
         return []
-    loinc = str(cfg.get("loinc") or "59408-5")
+    loinc = loinc_for("newborn_screen", "pulse_oximetry")
     clamp_min = int(cfg.get("clamp_min", 90) or 90)
     clamp_max = int(cfg.get("clamp_max", 100) or 100)
 

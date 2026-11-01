@@ -122,6 +122,7 @@ occupation:
 | `is_english_only_system(key_or_uri)` | 表示が英語のみの体系か (§5.3) | — |
 | `jp_clins_lab_system(kind)` / `jlac10_display(code, lang)` | JP 検査コード体系の URI / JLAC10 表示 | 例外 / `None` |
 | `codes.loinc`: `loinc_display` / `loinc_coding` | LOINC 表示 / Coding | `None` / display なしの coding |
+| `codes.loinc`: `loinc_for(kind, key)` / `loinc_map(kind)` | 内部キーの LOINC コード (`codes/data/loinc-maps.yaml`: anthropometric / blood_group / care_level / report / section / apgar / newborn_screen) | 未知の kind・key なら `KeyError` |
 | `modules.document.narrative.registry.document_loinc(doc_type)` | 文書種別の LOINC コード (`document_type_specs.yaml` に 1 回だけ定義) | 未知の種別なら例外 |
 | `codes.valuesets`: `concept_group` / `has_condition` / `patient_condition_names` / `code_by_chronic_prefix` | value set への所属 | 未知のグループなら `KeyError` |
 | `codes.drugs`: `resolve_drug` / `get_drug` / `find_drug` / `drug_key(ref)` / `same_drug(a, b)` | 薬の同一性。同一性キー (カタログ id、無ければ正規化した名称) と、2 つの参照が同じ薬か (部分文字列照合はしない) | 例外 / `None` / `""` / `False` |
@@ -237,7 +238,6 @@ occupation:
 | `locale.localized` を通らない `.get("ja")` や言語三項演算子が残る。`codes.lookup` はヒットしないとコードを返す。 | #2397 |
 | ローカライズされた YAML フィールドの形が混在している (入れ子の `{lang: text}`、25 種の `*_ja` フィールド名、`dose_ja` と `dose_text_ja`)。 | #2398 |
 | 意味の合わない Composition section コードがある。 | #2391 |
-| 出力側に LOINC 定数が残っている。 | #2392 |
 | 自由文の名称 localizer が FHIR 出力層にあり、order 層と narrative 層から import され、手技・SNOMED・アレルゲン名の翻訳にも使われている。判断ロジックと記録の薬名は `codes.drugs.drug_display` で解決する。 | #2367 |
 | Python に言語ごとのリテラルが残っている。 | #2277 |
 | 疾患 YAML が `drug:` 名と `drug_id:` を混在させ、`Order.order_code` がコード体系を記録していない。 | #2378 |

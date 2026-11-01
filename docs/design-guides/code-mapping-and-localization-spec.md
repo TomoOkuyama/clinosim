@@ -122,6 +122,7 @@ Consumers resolve names only through these functions. Several are added by open 
 | `is_english_only_system(key_or_uri)` | whether displays are English-only (§5.3) | — |
 | `jp_clins_lab_system(kind)` / `jlac10_display(code, lang)` | JP lab CodeSystem URI / JLAC10 display | raises / `None` |
 | `codes.loinc`: `loinc_display`, `loinc_coding` | LOINC display / Coding | `None` / coding without display |
+| `codes.loinc`: `loinc_for(kind, key)`, `loinc_map(kind)` | LOINC code of an internal key (`codes/data/loinc-maps.yaml`: anthropometric, blood_group, care_level, report, section, apgar, newborn_screen) | `KeyError` on an unknown kind or key |
 | `modules.document.narrative.registry.document_loinc(doc_type)` | a document type's LOINC code, defined once in `document_type_specs.yaml` | raises on an unknown type |
 | `codes.valuesets`: `concept_group`, `has_condition`, `patient_condition_names`, `code_by_chronic_prefix` | value-set membership | `KeyError` on an unknown group |
 | `codes.drugs`: `resolve_drug`, `get_drug`, `find_drug`, `drug_key(ref)`, `same_drug(a, b)` | drug identity; identity key (catalog id, else the normalised name) and whether two references name the same drug — no substring matching | raises / `None` / `""` / `False` |
@@ -237,7 +238,6 @@ These parts of the code base do not yet conform. Each one is removed by the issu
 | Direct `.get("ja")` and inline language ternaries select values outside `locale.localized`; `codes.lookup` returns the code on a miss. | #2397 |
 | Localized YAML fields use mixed shapes (nested `{lang: text}`, 25 `*_ja` field names, `dose_ja` vs `dose_text_ja`). | #2398 |
 | Some Composition section codes do not mean their section. | #2391 |
-| Emitters still hold LOINC constants. | #2392 |
 | The free-text name localizer lives in the FHIR output layer, is imported from the order and narrative layers, and also translates procedure, SNOMED and allergen names. Decision logic and records resolve drug names through `codes.drugs.drug_display`. | #2367 |
 | Language literals are still embedded in Python. | #2277 |
 | Disease YAMLs mix `drug:` names with `drug_id:`, and `Order.order_code` does not record its code system. | #2378 |

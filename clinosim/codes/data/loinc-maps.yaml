@@ -1,0 +1,36 @@
+# Internal key → LOINC code, per vocabulary kind (Issue #2392). Emitters read
+# these through `clinosim.codes.loinc.loinc_for(kind, key)` instead of holding
+# LOINC literals; every code is registered in loinc.yaml (displays there).
+# Document-type codes live in modules/document/reference_data/
+# document_type_specs.yaml and section codes in section_catalog.yaml.
+
+anthropometric:
+  body_height: "8302-2"          # Body height
+  body_weight: "29463-7"         # Body weight
+  head_circumference: "8287-5"   # Head Occipital-frontal circumference
+  bmi: "39156-5"                 # Body mass index (BMI) [Ratio]
+
+blood_group:
+  abo: "883-9"                   # ABO group [Type] in Blood
+  rh: "10331-7"                  # Rh [Type] in Blood
+
+care_level:
+  level_of_care: "80391-6"       # Level of care [Type]
+
+report:
+  microbiology: "18725-2"        # Microbiology studies (set)
+
+section:
+  hospital_course: "8648-8"      # Hospital course note
+
+# Apgar score by minute after birth (tx.fhir.org $lookup, 2026-11-01): 9272-6
+# is the 1-minute score (9271-8, used before Issue #2392, is the 10-minute one).
+apgar:
+  "1": "9272-6"                  # 1 minute Apgar Score
+  "5": "9274-2"                  # 5 minute Apgar Score
+
+newborn_screen:
+  bilirubin_transcutaneous: "58941-6"   # Bilirubin [Mass/volume] in Skin
+  pulse_oximetry: "59408-5"             # Oxygen saturation in Arterial blood by Pulse oximetry
+  panel: "54089-8"                      # Newborn screening panel AHIC
+  overall_interpretation: "57130-7"     # Newborn screening report - overall interpretation
