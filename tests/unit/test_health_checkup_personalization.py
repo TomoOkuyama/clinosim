@@ -64,8 +64,8 @@ def test_bmi_reflects_patient_profile():
     labs_lean = _run_and_extract_labs([lean])
     obese = _make_record(pid, bmi=32.0)
     labs_obese = _run_and_extract_labs([obese])
-    assert labs_lean["39156-5"] < 22.0
-    assert labs_obese["39156-5"] > 30.0
+    assert labs_lean["BMI"] < 22.0
+    assert labs_obese["BMI"] > 30.0
 
 
 @pytest.mark.unit
@@ -79,10 +79,10 @@ def test_bp_reflects_baseline_vitals():
     hyper = _make_record(pid, baseline_vitals=BaselineVitals(systolic_bp=160, diastolic_bp=98))
     labs_h = _run_and_extract_labs([hyper])
     # ± 5 mmHg noise を許容しても明確に分離される
-    assert labs_n["8480-6"] < 130
-    assert labs_h["8480-6"] > 145
-    assert labs_n["8462-4"] < 80
-    assert labs_h["8462-4"] > 90
+    assert labs_n["SBP"] < 130
+    assert labs_h["SBP"] > 145
+    assert labs_n["DBP"] < 80
+    assert labs_h["DBP"] > 90
 
 
 @pytest.mark.unit
@@ -100,9 +100,9 @@ def test_hba1c_elevated_for_dm_patient():
         ],
     )
     labs_dm = _run_and_extract_labs([dm])
-    assert labs_healthy["4548-4"] < 6.0
+    assert labs_healthy["HbA1c"] < 6.0
     # glycemic_control=0.3 → HBA1C_BEST(6.0) + 0.7*6.0 = 10.2%,noise ±0.15 %
-    assert labs_dm["4548-4"] >= 9.5
+    assert labs_dm["HbA1c"] >= 9.5
 
 
 @pytest.mark.unit
@@ -118,7 +118,7 @@ def test_ldl_elevated_for_dyslipidemia_patient():
         chronic_conditions=[ChronicCondition(code="E78", system="icd-10-cm")],
     )
     labs_d = _run_and_extract_labs([dyslip])
-    delta = labs_d["18262-6"] - labs_h["18262-6"]
+    delta = labs_d["LDL"] - labs_h["LDL"]
     # +40 baseline lift + ± 10 mg/dL noise、明確に上昇
     assert delta > 20.0
 
@@ -141,7 +141,7 @@ def test_ldl_lowered_by_statin_medication():
     )
     labs_st = _run_and_extract_labs([dyslip_statin])
     # -30 baseline + ±10 noise、明確に低下(統計的余裕あり)
-    assert labs_no["18262-6"] - labs_st["18262-6"] > 15.0
+    assert labs_no["LDL"] - labs_st["LDL"] > 15.0
 
 
 @pytest.mark.unit

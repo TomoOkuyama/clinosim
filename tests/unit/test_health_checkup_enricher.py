@@ -112,8 +112,8 @@ def test_health_checkup_creates_new_record_for_selected_adult():
     assert enc.chief_complaint == "事業者健診"
     # 法定健診 5 項目が lab_results に追加
     assert len(checkup_record.lab_results) == 5
-    loincs = {r.lab_name for r in checkup_record.lab_results}
-    assert loincs == {"39156-5", "8480-6", "8462-4", "4548-4", "18262-6"}
+    names = {r.lab_name for r in checkup_record.lab_results}
+    assert names == {"BMI", "SBP", "DBP", "HbA1c", "LDL"}
     # HEALTH_CHECKUP_REPORT stub が documents に追加
     assert len(checkup_record.documents) == 1
     doc = checkup_record.documents[0]

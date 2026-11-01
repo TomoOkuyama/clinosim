@@ -377,14 +377,18 @@ def build_checkup_lab_results(generator: TemplateNarrativeGenerator, ctx: Narrat
     facts: list[str] = []
     lang = ctx.target_lang
 
-    # Extract 5 measured values from lab_results keyed by LOINC code
-    results_by_loinc: dict[str, float | None] = {}
+    # The 5 measured values, keyed by canonical lab name (the Checkup panel
+    # components are the one definition of the item set, Issue #2300).
+    from clinosim.modules.health_checkup.engine import checkup_lab_names
+
+    items = set(checkup_lab_names())
+    results: dict[str, float | None] = {}
     for r in ctx.lab_results or []:
-        loinc = _o(r, "lab_name", "")
+        name = _o(r, "lab_name", "")
         val = _o(r, "value", None)
-        if loinc in {"39156-5", "8480-6", "8462-4", "4548-4", "18262-6"}:
-            results_by_loinc[loinc] = val
-            facts.append(f"ctx.lab_results[{loinc}]")
+        if name in items:
+            results[name] = val
+            facts.append(f"ctx.lab_results[{name}]")
 
     # Helpers return (catalog_key, format_kwargs, grade) —
     # grade ∈ {A, B, C, D} (A=normal, B=borderline, C=guidance
@@ -432,10 +436,10 @@ def build_checkup_lab_results(generator: TemplateNarrativeGenerator, ctx: Narrat
             return ("checkup_lab_results.ldl_elevated", {"v": v}, "B")
         return ("checkup_lab_results.ldl_reference", {"v": v}, "A")
 
-    bmi_key, bmi_kw, bmi_grade = _judge_bmi(results_by_loinc.get("39156-5"))
-    bp_key, bp_kw, bp_grade = _judge_bp(results_by_loinc.get("8480-6"), results_by_loinc.get("8462-4"))
-    hba1c_key, hba1c_kw, hba1c_grade = _judge_hba1c(results_by_loinc.get("4548-4"))
-    ldl_key, ldl_kw, ldl_grade = _judge_ldl(results_by_loinc.get("18262-6"))
+    bmi_key, bmi_kw, bmi_grade = _judge_bmi(results.get("BMI"))
+    bp_key, bp_kw, bp_grade = _judge_bp(results.get("SBP"), results.get("DBP"))
+    hba1c_key, hba1c_kw, hba1c_grade = _judge_hba1c(results.get("HbA1c"))
+    ldl_key, ldl_kw, ldl_grade = _judge_ldl(results.get("LDL"))
 
     bmi_desc = t(bmi_key, lang, **bmi_kw)
     bp_desc = t(bp_key, lang, **bp_kw)

@@ -32,16 +32,12 @@ from clinosim.codes.valuesets import concept_group
 from clinosim.modules._shared import get_attr_or_key as _o
 from clinosim.modules._shared import is_jp
 from clinosim.modules.health_checkup._checkup_thresholds import (
-    BMI_INTERPRET_HIGH_THRESHOLD,
-    BMI_INTERPRET_REFERENCE_RANGE,
     BMI_MEASUREMENT_NOISE_SD,
     BMI_PHYSIOLOGIC_MAX,
     BMI_PHYSIOLOGIC_MIN,
     BMI_PROFILE_FALLBACK,
     CHECKUP_TYPE_REGIONAL_UNION_AGE_MIN,
     CHECKUP_TYPE_SPECIFIC_AGE_MIN,
-    DBP_INTERPRET_HIGH_THRESHOLD,
-    DBP_INTERPRET_REFERENCE_RANGE,
     DBP_MEASUREMENT_NOISE_SD,
     DBP_PHYSIOLOGIC_MAX,
     DBP_PHYSIOLOGIC_MIN,
@@ -50,8 +46,6 @@ from clinosim.modules.health_checkup._checkup_thresholds import (
     HBA1C_DM_PHYSIOLOGIC_MAX,
     HBA1C_DM_PHYSIOLOGIC_MIN,
     HBA1C_GC_FALLBACK,
-    HBA1C_INTERPRET_HIGH_THRESHOLD,
-    HBA1C_INTERPRET_REFERENCE_RANGE,
     HBA1C_NONDM_AGE_SCALE,
     HBA1C_NONDM_MEASUREMENT_NOISE_SD,
     HBA1C_NONDM_PHYSIOLOGIC_MAX,
@@ -61,19 +55,16 @@ from clinosim.modules.health_checkup._checkup_thresholds import (
     LDL_BASE_FEMALE,
     LDL_BASE_MALE,
     LDL_DYSLIPIDEMIA_LIFT,
-    LDL_INTERPRET_HIGH_THRESHOLD,
-    LDL_INTERPRET_REFERENCE_RANGE,
     LDL_MEASUREMENT_NOISE_SD,
     LDL_PHYSIOLOGIC_MAX,
     LDL_PHYSIOLOGIC_MIN,
     LDL_STATIN_REDUCTION,
-    SBP_INTERPRET_HIGH_THRESHOLD,
-    SBP_INTERPRET_REFERENCE_RANGE,
     SBP_MEASUREMENT_NOISE_SD,
     SBP_PHYSIOLOGIC_MAX,
     SBP_PHYSIOLOGIC_MIN,
     SBP_VITALS_FALLBACK,
 )
+from clinosim.modules.observation.engine import get_lab_unit
 from clinosim.seeding import ENRICHER_SEED_OFFSETS, derive_sub_seed
 from clinosim.types.clinical import ClinicalDocument
 from clinosim.types.encounter import (
@@ -118,20 +109,16 @@ _CHECKUP_TYPE_CHIEF_COMPLAINT: dict[str, str] = {
     "regional_union": "広域連合健診",
 }
 
-# 法定健診項目の LOINC コードと単位。実測値は
-# `_derive_checkup_values(patient, rng)` が PatientProfile と chronic_conditions
-# から個別化する(sub-PR-B 高度化)。
-_CHECKUP_ITEMS: list[dict[str, str]] = [
-    # feedback FB-F7: UCUM canonical 形式に統一。
-    # 「kg/m2」→「kg/m2」(UCUM 準拠のまま、変更なし)
-    # 「mmHg」→「mm[Hg]」(UCUM は bracketed 単位を要求)
-    # 「mg/dL」→「mg/dL」(UCUM canonical、変更なし)
-    {"loinc": "39156-5", "key": "bmi", "unit": "kg/m2"},
-    {"loinc": "8480-6", "key": "sbp", "unit": "mm[Hg]"},
-    {"loinc": "8462-4", "key": "dbp", "unit": "mm[Hg]"},
-    {"loinc": "4548-4", "key": "hba1c", "unit": "%"},
-    {"loinc": "18262-6", "key": "ldl", "unit": "mg/dL"},
-]
+
+# 法定健診 5 項目は lab_panel_groups.yaml の Checkup パネルの component (正規の
+# 検査名) が唯一の定義。単位は lab_constants.yaml、コードは国別 code mapping、
+# 判定基準は reference_range_lab.yaml の checkup_ranges から引く (Issue #2300)。
+def checkup_lab_names() -> list[str]:
+    """法定健診項目の正規検査名 (BMI / SBP / DBP / HbA1c / LDL)。"""
+    from clinosim.modules.order.panel_grouping import load_panel_definitions
+
+    return list(load_panel_definitions()["Checkup"]["components"])
+
 
 # 脂質異常症を示す ICD-10 code
 _DYSLIPIDEMIA_CODES = {"E78", "E78.0", "E78.1", "E78.2", "E78.4", "E78.5"}
@@ -232,7 +219,7 @@ def _derive_checkup_values(patient: Any, rng: np.random.Generator) -> dict[str, 
         ldl_base -= LDL_STATIN_REDUCTION
     ldl = float(np.clip(ldl_base + rng.normal(0.0, LDL_MEASUREMENT_NOISE_SD), LDL_PHYSIOLOGIC_MIN, LDL_PHYSIOLOGIC_MAX))
 
-    return {"bmi": bmi, "sbp": sbp, "dbp": dbp, "hba1c": hba1c, "ldl": ldl}
+    return {"BMI": bmi, "SBP": sbp, "DBP": dbp, "HbA1c": hba1c, "LDL": ldl}
 
 
 def _patient_selected(patient_id: str) -> bool:
@@ -294,23 +281,18 @@ def _build_checkup_encounter(
     )
 
 
-def _interp_for(loinc: str, value: float) -> tuple[str, str]:
-    """LOINC 別に (interpretation, reference_range) を返す。
+def _interp_for(lab_name: str, value: float) -> tuple[str, str]:
+    """検査名別に (interpretation, reference_range) を返す。
 
-    interpretation は HL7 v2 Table 0078 の "N" / "H" / "L"(健診 5 項目は L は
-    実運用されないが将来のため保持)。BP は SBP と DBP を独立に扱う。
+    interpretation は HL7 v2 Table 0078 の "N" / "H"。保健指導判定値
+    (reference_range_lab.yaml の checkup_ranges) 以上を "H" とする。
     """
-    if loinc == "39156-5":  # BMI
-        return ("H" if value >= BMI_INTERPRET_HIGH_THRESHOLD else "N", BMI_INTERPRET_REFERENCE_RANGE)
-    if loinc == "8480-6":  # SBP
-        return ("H" if value >= SBP_INTERPRET_HIGH_THRESHOLD else "N", SBP_INTERPRET_REFERENCE_RANGE)
-    if loinc == "8462-4":  # DBP
-        return ("H" if value >= DBP_INTERPRET_HIGH_THRESHOLD else "N", DBP_INTERPRET_REFERENCE_RANGE)
-    if loinc == "4548-4":  # HbA1c
-        return ("H" if value >= HBA1C_INTERPRET_HIGH_THRESHOLD else "N", HBA1C_INTERPRET_REFERENCE_RANGE)
-    if loinc == "18262-6":  # LDL
-        return ("H" if value >= LDL_INTERPRET_HIGH_THRESHOLD else "N", LDL_INTERPRET_REFERENCE_RANGE)
-    return ("N", "")
+    from clinosim.locale.loader import load_reference_ranges
+
+    rng_def = (load_reference_ranges("JP").get("checkup_ranges") or {}).get(lab_name)
+    if not rng_def:
+        return ("N", "")
+    return ("H" if value >= float(rng_def["high"]) else "N", str(rng_def.get("text") or ""))
 
 
 def _build_checkup_lab_results(
@@ -328,21 +310,21 @@ def _build_checkup_lab_results(
     result_dt = datetime.combine(checkup_date, datetime.min.time().replace(hour=10))
     values = _derive_checkup_values(patient, rng)
     results: list[OrderResult] = []
-    for item in _CHECKUP_ITEMS:
-        v = values[item["key"]]
+    for lab_name in checkup_lab_names():
+        v = values[lab_name]
         # BMI/HbA1c/LDL は小数第 1 位、BP は整数丸め
-        if item["key"] in ("sbp", "dbp"):
+        if lab_name in ("SBP", "DBP"):
             v = float(round(v))
         else:
             v = float(round(v, 1))
-        interp, ref = _interp_for(item["loinc"], v)
+        interp, ref = _interp_for(lab_name, v)
         results.append(
             OrderResult(
                 result_datetime=result_dt,
                 performed_by="",
-                lab_name=item["loinc"],
+                lab_name=lab_name,
                 value=v,
-                unit=item["unit"],
+                unit=get_lab_unit(lab_name),
                 reference_range=ref,
                 flag=("H" if interp == "H" else None),
                 interpretation=interp,
@@ -485,7 +467,7 @@ def enrich_health_checkup(ctx: Any) -> None:
                     encounter_id=encounter.encounter_id,
                     patient_id=patient_id,
                     order_type=OrderType.LAB,
-                    order_code=res.lab_name,  # LOINC
+                    order_code=res.lab_name,  # 正規の検査名 (コードは出力時に code mapping)
                     display_name=res.lab_name,
                     urgency="routine",
                     clinical_intent="health_checkup",

@@ -195,3 +195,16 @@ therapeutic_ranges:
   PT_INR:
     - {drugs: [warfarin], age_min: 70, low: 1.6, high: 2.6, unit: "{INR}", text: "治療域（ワルファリン、70歳以上）"}
     - {drugs: [warfarin], low: 2.0, high: 3.0, unit: "{INR}", text: "治療域（ワルファリン）"}
+
+# 法定健診 (特定健診・事業者健診) の判定基準 (Issue #2300)。通常の基準範囲
+# (JCCLS) ではなく、保健指導判定値以上を H とする。high は「この値以上で H」、
+# text は referenceRange.text。キーは正規の検査名 (lab_constants.yaml)。
+# 出典: 厚生労働省「標準的な健診・保健指導プログラム (令和6年度版)」
+# 保健指導判定値 (BMI 25、収縮期 130 / 拡張期 85 mmHg、HbA1c 5.6 %、
+# LDL コレステロール 120 mg/dL)。
+checkup_ranges:
+  BMI: {high: 25.0, unit: "kg/m2", text: "18.5-24.9 kg/m2"}
+  SBP: {high: 130, unit: "mm[Hg]", text: "<130 mmHg"}
+  DBP: {high: 85, unit: "mm[Hg]", text: "<85 mmHg"}
+  HbA1c: {high: 5.6, unit: "%", text: "<5.6 %"}
+  LDL: {high: 120, unit: "mg/dL", text: "<120 mg/dL"}

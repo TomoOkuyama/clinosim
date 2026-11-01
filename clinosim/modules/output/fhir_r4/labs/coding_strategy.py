@@ -59,8 +59,8 @@ import unicodedata
 from enum import StrEnum
 from typing import Any, Protocol
 
+from clinosim.codes import code_exists, get_system_uri, system_key_for
 from clinosim.codes import display as registry_display
-from clinosim.codes import get_system_uri, system_key_for
 from clinosim.codes import lookup as code_lookup
 from clinosim.locale.loader import lab_display, load_code_mapping
 from clinosim.modules._shared import is_us, resolve_lang
@@ -203,10 +203,11 @@ class LegacyJSLMStrategy:
             code_value = code_map[lab_name]
             code_system_key = system_key_for("lab", "JP")
         else:
-            # Unmapped: fall back to raw order_code under LOINC (matches
-            # pre-refactor behavior — mapping the code under jlac10 would
-            # produce an incoherent coding).
-            code_value = order.get("order_code", "")
+            # Unmapped: fall back to the order_code under LOINC only when it
+            # is a registered LOINC code — a canonical lab name ("SBP") under
+            # the LOINC system would be a fabricated code (Issue #2300).
+            order_code = str(order.get("order_code", "") or "")
+            code_value = order_code if order_code and code_exists("loinc", order_code, exact=True) else ""
             code_system_key = "loinc"
         lang = resolve_lang("JP")
         display_name = code_lookup(code_system_key, code_value, lang) if code_value else None
@@ -598,6 +599,11 @@ _KNOWN_UNCODED_ANALYTES: frozenset[str] = frozenset(
         "TSH",
         "Fibrinogen",
         "eGFR",
+        # Health-checkup body measurements (Issue #2300): no CoreLabo slice;
+        # emitted Uncoded with their LOINC as the secondary coding.
+        "BMI",
+        "SBP",
+        "DBP",
         # Glucose — needs disambig into bg/fbg/cbg but upstream does not
         # carry fasting_state today. Uncoded until T67-Glucose-disambig
         # lands data-pipeline changes.

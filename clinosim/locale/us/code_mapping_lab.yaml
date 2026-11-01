@@ -101,3 +101,8 @@ Ethanol: "5643-2"              # Ethanol [Mass/volume] in Serum or Plasma
 Acetaminophen_level: "3298-7"  # Acetaminophen [Mass/volume] in Serum or Plasma
 Salicylate: "4024-6"           # Salicylates [Mass/volume] in Serum or Plasma
 Urine_drug_screen: "69739-1"   # Drugs of abuse panel - Urine by Screen method
+# Health-checkup measurements (JP checkup emits them Uncoded with this LOINC
+# as the secondary coding; Issue #2300).
+BMI: "39156-5"
+SBP: "8480-6"
+DBP: "8462-4"
