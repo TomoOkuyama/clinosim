@@ -4,7 +4,7 @@ Reads CIF Orders (with ``order_type=OrderType.LAB`` and Order.panel_key
 populated by the order engine), emits one ServiceRequest per panel
 instance (4 CBC tests → 1 SR) and one per stand-alone Order. Panel SR
 uses the LOINC panel code (58410-2 for CBC etc.) sourced from
-``lab_panel_groups.yaml``; stand-alone uses Order.order_code (individual
+``lab_panels.yaml``; stand-alone uses Order.order_code (individual
 LOINC for the analyte).
 
 For IMAGING orders, emits one ServiceRequest per Order (1 Order = 1 SR;

@@ -110,7 +110,7 @@ _CHECKUP_TYPE_CHIEF_COMPLAINT: dict[str, str] = {
 }
 
 
-# 法定健診 5 項目は lab_panel_groups.yaml の Checkup パネルの component (正規の
+# 法定健診 5 項目は lab_panels.yaml の Checkup パネルの component (正規の
 # 検査名) が唯一の定義。単位は lab_constants.yaml、コードは国別 code mapping、
 # 判定基準は reference_range_lab.yaml の checkup_ranges から引く (Issue #2300)。
 def checkup_lab_names() -> list[str]:

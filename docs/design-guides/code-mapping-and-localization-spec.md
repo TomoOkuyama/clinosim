@@ -242,5 +242,4 @@ These parts of the code base do not yet conform. Each one is removed by the issu
 | Disease YAMLs mix `drug:` names with `drug_id:`, and `Order.order_code` does not record its code system. | #2378 |
 | The medication-monitoring tables identify drugs by name patterns. | #2371 |
 | Complications, PRN selection and chronic-medication rules keep their own drug-class vocabularies. | #2372 |
-| Eval plausibility bounds, and the two panel definitions. | #2332 |
 | No lint guard enforces §8. | #2266 |

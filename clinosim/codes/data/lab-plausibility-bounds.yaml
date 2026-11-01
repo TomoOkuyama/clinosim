@@ -19,9 +19,13 @@
 # UCUM-unitless codes (`{INR}`). The empty-string fallback keeps the
 # check from degrading to "unknown unit" on legitimate output.
 #
+# Issue #2332: for the unit clinosim itself emits, the bounds are the
+# generator's physiologic_limits (observation/reference_data/
+# lab_constants.yaml), derived in the eval axis — they are not repeated
+# here. This file keeps only the other unit spellings (third-party
+# cohorts) and analytes without a generator limit (T-Bil, PT-INR).
+#
 # Membership policy:
-#   * one row per LOINC × unit the simulator actually emits (verified
-#     against validation reports)
 #   * bounds are the generous outer envelope — anything outside is
 #     physiologically impossible, not just unusual
 #   * extension requires authoring here + a smoke test in the
@@ -34,21 +38,12 @@ metadata:
 
 loincs:
   "6690-2":  # WBC
-    "/uL":    [0.0, 500000.0]
     "/μL":    [0.0, 500000.0]
     "10^9/L": [0.0, 500.0]
     "10*9/L": [0.0, 500.0]   # UCUM canonical form
-  "718-7":   # Hemoglobin
-    "g/dL": [0.0, 25.0]
-  "2160-0":  # Serum creatinine
-    "mg/dL": [0.0, 30.0]
-  "2345-7":  # Serum glucose
-    "mg/dL": [0.0, 1500.0]
   "2823-3":  # Serum potassium
-    "mmol/L": [0.0, 10.0]
     "mEq/L":  [0.0, 10.0]
   "2951-2":  # Serum sodium
-    "mmol/L": [0.0, 200.0]
     "mEq/L":  [0.0, 200.0]
   "1975-2":  # Total bilirubin
     "mg/dL": [0.0, 50.0]

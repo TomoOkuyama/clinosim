@@ -13,7 +13,7 @@ from clinosim.modules.output.fhir_r4.labs.service_request import _resolve_servic
 from clinosim.modules.output.fhir_r4.lib.common import BundleContext
 from clinosim.types.encounter import Order, OrderResult, OrderStatus, OrderType
 
-# CBC components matching lab_panel_groups.yaml
+# CBC components matching lab_panels.yaml
 _CBC_MEMBERS = ["WBC", "Hb", "Hct", "Plt"]
 _ENC_ID = "enc1"
 _PATIENT_ID = "pt1"

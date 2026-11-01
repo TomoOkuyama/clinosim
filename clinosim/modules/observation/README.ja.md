@@ -208,7 +208,7 @@ clinosim/modules/observation/
 | Lab pipeline | [`clinosim/simulator/lab_pipeline.py`](../../simulator/lab_pipeline.py) | 発注 lab ごとに `generate_lab_result` を呼び出す。 |
 | Vitals pipeline | [`clinosim/simulator/vitals_pipeline.py`](../../simulator/vitals_pipeline.py) | `fluid_balance.py` + `oxygenation.py` 閾値を消費。 |
 | Inpatient / outpatient / emergency / daily_loop / unknown_condition | [`clinosim/simulator/*.py`](../../simulator/) | lab canonicalisation / 結果生成を消費。`inpatient.py` が `generate_microbiology` を呼ぶ。 |
-| Order module | [`clinosim/modules/order/panel_grouping.py`](../order/panel_grouping.py) | `lab_panel_groups.yaml` component を `lab_panel_components` と load 時に cross-validate (Layer 6b)。 |
+| Order module | [`clinosim/modules/order/panel_grouping.py`](../order/panel_grouping.py) | 同じ `lab_panels.yaml` を FHIR DiagnosticReport のグルーピング (LOINC・表示名・最小 component 数) に使う (Issue #2332)。 |
 | HAI lab lift | [`clinosim/modules/hai/lab_lift.py`](../hai/lab_lift.py) | lift した WBC / CRP 値を `determine_flag` + `round_to_precision` で再 flag / 再 rounding。 |
 | Monitoring enricher | [`clinosim/modules/monitoring/enricher.py`](../monitoring/enricher.py) | 注入 monitoring lab に `canonical_lab_name`, `generate_lab_result`, `get_lab_unit`, `determine_flag` を使用。 |
 | Antibiotic module | [`clinosim/modules/antibiotic/__init__.py`](../antibiotic/__init__.py) | regimen coding のため `antibiotic_loinc_lookup` を消費。 |

@@ -12,7 +12,7 @@ treatment をスケジュールするために simulator が使う「臨床発�
    base + shift + weekend modifier + M/M/1 風 hospital-state 遅延)。
 2. **Panel grouping** (`panel_grouping.py`) — lab spec のリストを
    panel (ABG, CBC, BMP, LFT, Lipid, Coag, UA, Checkup) と stand-alone
-   に分類する単一 edit point。`reference_data/lab_panel_groups.yaml`
+   に分類する単一 edit point。`observation/reference_data/lab_panels.yaml`
    駆動。全 lab-ordering call site は `classify_lab_specs` を経由
    MUST ([`AGENTS.md`](../../../AGENTS.md) — `derive_lab_values` flag
    helper と同じ AD-59 兄弟 pattern)。
@@ -155,7 +155,7 @@ from clinosim.modules.order.discontinue_flip import enrich_discontinue_flip  # (
   `("ABG", "CBC", "BMP", "LFT", "Lipid", "Coag", "UA", "Checkup")`。
   順序は load-bearing — HCO3 は ABG ∧ BMP 両方に属するが、ABG が
   先に現れるため classifier は ABG に割り当てる。
-- **Panel YAML**: [`reference_data/lab_panel_groups.yaml`](reference_data/lab_panel_groups.yaml)
+- **Panel YAML**: [`observation/reference_data/lab_panels.yaml`](../observation/reference_data/lab_panels.yaml)
   — panel は本来「発注概念」のため `output/reference_data/` から
   ここに移動。header コメントに priority tuple が列挙されており
   import 時に cross-verify (`_validate_panel_definitions`)。
@@ -191,7 +191,6 @@ clinosim/modules/order/
   _order_placement_timing.py         placement offset 定数 (Issue #637)
   _state_delay_thresholds.py         hospital-state delay 定数 (Issue #637)
   reference_data/
-    lab_panel_groups.yaml            panel → components + priority header
   SPEC.md                            拡張設計参考 (runtime data ではない)
 ```
 

@@ -1,6 +1,6 @@
 """Panel detection for lab Order grouping (PR1 ServiceRequest foundation).
 
-Reads ``lab_panel_groups.yaml`` (moved from ``output/reference_data/`` in this task
+Reads ``lab_panels.yaml`` (moved from ``output/reference_data/`` in this task
 to unify panel data ownership; "panel" is fundamentally an ordering concept) and
 classifies a list of lab specs into panel groups and stand-alone tests.
 
@@ -19,15 +19,11 @@ from typing import Any
 import yaml
 
 _HERE = Path(__file__).resolve().parent
-# Canonical YAML location (moved from output/reference_data/ in this task to
-# unify panel data ownership; "panel" is fundamentally an ordering concept).
-# Following the canonical _HERE / "reference_data" path constant convention
-# (CLAUDE.md Path constant canonical form, PR-A 2026-06-26).
-_REF_DIR = _HERE / "reference_data"
-_PANEL_YAML = _REF_DIR / "lab_panel_groups.yaml"
+# The one panel definition, shared with result generation (Issue #2332).
+_PANEL_YAML = _HERE.parent / "observation" / "reference_data" / "lab_panels.yaml"
 
 PANEL_PRIORITY_ORDER: tuple[str, ...] = ("ABG", "CBC", "BMP", "LFT", "Lipid", "Coag", "UA", "Checkup")
-"""Priority order for panel matching (header of lab_panel_groups.yaml).
+"""Priority order for panel matching (header of lab_panels.yaml).
 
 Verified against the YAML header comment at import time via
 ``_validate_panel_definitions`` (forward + reverse coverage against YAML keys).
@@ -67,7 +63,7 @@ def _validate_panel_definitions(panels: dict[str, dict[str, Any]]) -> None:
     """
     # Layer 1: empty top-level
     if not panels:
-        raise ValueError("lab_panel_groups.yaml panels section is empty")
+        raise ValueError("lab_panels.yaml panels section is empty")
 
     yaml_keys = set(panels.keys())
     expected = set(PANEL_PRIORITY_ORDER)
@@ -75,15 +71,13 @@ def _validate_panel_definitions(panels: dict[str, dict[str, Any]]) -> None:
     # Layer 4: forward-coverage — every PANEL_PRIORITY_ORDER entry must be in YAML
     missing_in_yaml = expected - yaml_keys
     if missing_in_yaml:
-        raise ValueError(
-            f"lab_panel_groups.yaml missing panels declared in PANEL_PRIORITY_ORDER: {sorted(missing_in_yaml)}"
-        )
+        raise ValueError(f"lab_panels.yaml missing panels declared in PANEL_PRIORITY_ORDER: {sorted(missing_in_yaml)}")
 
     # Layer 3: unknown keys — YAML panels not in PANEL_PRIORITY_ORDER (silent-no-op risk)
     extra_in_yaml = yaml_keys - expected
     if extra_in_yaml:
         raise ValueError(
-            f"lab_panel_groups.yaml has panels NOT in PANEL_PRIORITY_ORDER (silent-no-op risk): {sorted(extra_in_yaml)}"
+            f"lab_panels.yaml has panels NOT in PANEL_PRIORITY_ORDER (silent-no-op risk): {sorted(extra_in_yaml)}"
         )
 
     # Layer 6 (key-order): YAML insertion order must match PANEL_PRIORITY_ORDER.
@@ -92,7 +86,7 @@ def _validate_panel_definitions(panels: dict[str, dict[str, Any]]) -> None:
     yaml_order = tuple(panels.keys())
     if yaml_order != PANEL_PRIORITY_ORDER:
         raise ValueError(
-            f"lab_panel_groups.yaml key order {yaml_order} does not match "
+            f"lab_panels.yaml key order {yaml_order} does not match "
             f"PANEL_PRIORITY_ORDER {PANEL_PRIORITY_ORDER}. "
             f"Iteration-order is load-bearing for grouping priority."
         )
@@ -119,31 +113,10 @@ def _validate_panel_definitions(panels: dict[str, dict[str, Any]]) -> None:
                 f"Panel '{name}' has unknown LOINC code '{panel['loinc']}' (not in clinosim/codes/data/loinc.yaml)"
             )
 
-    # Layer 6b: cross-validate components against lab_panels.yaml (observation engine).
-    # A typo in lab_panel_groups.yaml components (e.g. "AST" → "ASTx") passes layers
-    # 1-6a but silently causes group_lab_orders to miss that analyte from the panel DR.
-    # Safe lazy import: observation/engine.py has no imports from panel_grouping.py.
-    try:
-        from clinosim.modules.observation.engine import lab_panel_components as _lab_comps
-    except ImportError:
-        _lab_comps = None  # type: ignore[assignment]
-    if _lab_comps is not None:
-        for name, panel in panels.items():
-            canonical = _lab_comps(name)
-            if canonical:  # skip panels not present in lab_panels.yaml (e.g. UA silent-drops)
-                groups_comps = set(panel["components"])
-                canonical_comps = set(canonical)
-                drift = groups_comps.symmetric_difference(canonical_comps)
-                if drift:
-                    raise ValueError(
-                        f"Panel '{name}' component mismatch between "
-                        f"lab_panel_groups.yaml and lab_panels.yaml: {sorted(drift)}"
-                    )
-
 
 @lru_cache(maxsize=1)
 def load_panel_definitions() -> dict[str, dict[str, Any]]:
-    """Return panel definitions from lab_panel_groups.yaml (cached, validated).
+    """Return panel definitions from lab_panels.yaml (cached, validated).
 
     Key order matches the YAML insertion order, which is the grouping priority
     (ABG > CBC > BMP > LFT > Lipid > Coag > UA) — this order is load-bearing
@@ -155,7 +128,7 @@ def load_panel_definitions() -> dict[str, dict[str, Any]]:
 
     Raises:
         ValueError: if YAML fails schema/coverage validation.
-        FileNotFoundError: if lab_panel_groups.yaml is missing.
+        FileNotFoundError: if lab_panels.yaml is missing.
     """
     with _PANEL_YAML.open("r", encoding="utf-8") as f:
         data = yaml.safe_load(f)

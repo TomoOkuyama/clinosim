@@ -1,22 +1,105 @@
-# Lab panels (AD-57): one order name → component analytes. A panel order
-# expands into one resulted lab order per component (each derived from
-# physiology, emitted as its own Observation). Data-driven; add a panel
-# here, no code changes.
+# Lab panels — the one definition (Issue #2332). Each panel, keyed by its
+# order name, lists its component analytes by canonical lab name.
+#   - Result generation (observation.engine.lab_panel_components): a panel
+#     order expands into one resulted lab order per component, each derived
+#     from physiology. Components must match the analytes produced by
+#     physiology.derive_lab_values(); UA's urine analytes are documented
+#     silent-drops until urine physiology exists.
+#   - FHIR grouping (order.panel_grouping.load_panel_definitions): loinc,
+#     display / display_ja, min_components and the key order (= grouping
+#     priority) drive the panel DiagnosticReport.
 #
-# Components must match the canonical analyte names produced by
-# physiology.derive_lab_values(). Missing components are silently dropped
-# at the scalar-resulted path (acceptable: the engine catches up later).
+# Lab panel groupings for FHIR DiagnosticReport.result[] assembly.
+# Authoritative panel codes: LOINC (verified against Regenstrief, NLM
+# clinicaltables.nlm.nih.gov). Components are the *canonical* clinosim
+# analyte names (the same names that appear as lab_results.lab_name and as
+# the keys in derive_lab_values output).
 #
-# As of 2026-06-23 (PR #78 BMP Cl/Ca + Coag panel PR) every listed
-# component above has a derive — EXCEPT UA's urine analytes, which are
-# documented silent-drops until the future UA-panel PR adds urine
-# physiology. New panel-component additions must add the derive in
-# physiology/engine.py FIRST (or accept silent-drop semantics explicitly).
+# Grouping priority order (high to low; resolves analyte dual-membership):
+#   ABG > CBC > BMP > LFT > Lipid > Coag > UA
 
-ABG: [pH, pCO2, pO2, HCO3]
-CBC: [WBC, Hb, Hct, Plt]
-BMP: [Na, K, Cl, HCO3, BUN, Creatinine, Glucose, Ca]
-Coag: [PT, PT_INR, APTT]
-LFT: [AST, ALT, ALP, T_Bil, Albumin, TP, GGT, LDH]
-Lipid: [TC, LDL, HDL, TG]
-UA: [Urine_pH, Urine_specific_gravity, Urine_protein, Urine_glucose, Urine_ketones, Urine_blood, Urine_nitrite, Urine_leukocyte_esterase]
+panels:
+  ABG:
+    loinc: "24338-6"
+    display: "Gas panel - Arterial blood"
+    display_ja: "動脈血ガス分析"  # Issue #783: JP primary label for code.text
+    components: [pH, pCO2, pO2, HCO3]
+    min_components: 3
+
+  CBC:
+    loinc: "58410-2"
+    display: "Complete blood count (hemogram) panel - Blood by Automated count"
+    display_ja: "血算 (CBC)"
+    components: [WBC, Hb, Hct, Plt]
+    # canonical N − 1 rule: CBC has 4 canonical components; one specimen-
+    # handling anomaly (an individual stat draw failing for an unrelated
+    # reason) is tolerated. Validated by scratchpad/cbc_bmp_panel_audit.py
+    # on master @ PR #74's head: the 5th-percentile bucket of
+    # "panel-order-placed" days was ≥ 3, so 3 accepts every real CBC.
+    min_components: 3
+
+  BMP:
+    loinc: "51990-0"
+    display: "Basic metabolic 2000 panel - Serum or Plasma"
+    display_ja: "生化学基本パネル (BMP)"
+    components: [Na, K, Cl, HCO3, BUN, Creatinine, Glucose, Ca]
+    # canonical N − 1 rule (PR #75): BMP has 8 listed components and as of
+    # the Cl/Ca physiology PR (2026-06-23), derive_lab_values produces all
+    # 8. The 5th-percentile bucket of "panel-order-placed" days now holds
+    # ≥ 7 components, validated by scratchpad/cbc_bmp_panel_audit.py.
+    min_components: 7
+
+  LFT:
+    loinc: "24325-3"
+    display: "Hepatic function 2000 panel - Serum or Plasma"
+    display_ja: "肝機能検査 (LFT)"
+    components: [AST, ALT, ALP, T_Bil, Albumin, TP, GGT, LDH]
+    # AST + ALT pair is the standard "liver check" — threshold 2 matches both
+    # full and mini-LFT orders.
+    min_components: 2
+
+  Lipid:
+    loinc: "57698-3"
+    display: "Lipid panel with direct LDL - Serum or Plasma"
+    display_ja: "脂質検査 (Lipid Panel)"
+    components: [TC, LDL, HDL, TG]
+    min_components: 2
+
+  Coag:
+    loinc: "14979-9"
+    display: "aPTT in Platelet poor plasma by Coagulation assay"
+    display_ja: "凝固検査 (PT/APTT)"
+    # session 59 #276:従来 24373-3 を "aPTT+PT/INR panel" として使用して
+    # いたが LOINC 24373-3 の LONG_COMMON_NAME は "Ferritin [Mass/volume]
+    # in Blood" で完全に別の analyte(semantic-mismatch)。aPTT のみを
+    # 単独 loinc として emit する 14979-9(clinosim authoritative snapshot
+    # で verify 済)へ substitute。PT/INR は個別 Observation で emit。
+    # Fibrinogen (3255-7) and D-dimer (30240-9) are NOT part of this
+    # panel and emit as individual Observations. A broader DIC panel
+    # (e.g. LOINC 48995-7 "Coagulation panel") is a future enhancement
+    # and would be a separate entry here.
+    components: [PT, PT_INR, APTT]
+    # min=2: PT_INR + APTT are derived by physiology in every patient; PT
+    # is derived too (= 12 * PT_INR) so panels with any 2 of these three
+    # are clinically meaningful and assemble reliably.
+    min_components: 2
+
+  UA:
+    loinc: "24356-8"
+    display: "Urinalysis complete panel - Urine"
+    display_ja: "尿検査 (Urinalysis)"
+    components: [Urine_pH, Urine_specific_gravity, Urine_protein, Urine_glucose, Urine_ketones, Urine_blood, Urine_nitrite, Urine_leukocyte_esterase]
+    min_components: 3
+    skip_if_no_components_present: true
+
+  # session 48 cycle 8 CY8-01 fix: 労安衛法定健診 5 項目 panel。BMI + 血圧 +
+  # HbA1c + LDL コレステロールを単一 DiagnosticReport にまとめる。
+  # LOINC 55418-8 = Physical exam panel(健診パネルの canonical URL)。
+  # component は正規の検査名で、健診項目の唯一の定義 (Issue #2300)。
+  # health_checkup engine と JP-CLINS 健診文書がここから読む。
+  Checkup:
+    loinc: "55418-8"
+    display: "Weight and height panel"
+    display_ja: "健康診断パネル"
+    components: ["BMI", "SBP", "DBP", "HbA1c", "LDL"]
+    min_components: 3
