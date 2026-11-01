@@ -2802,6 +2802,11 @@
 <td>named SNOMED concepts used in logic</td>
 <td>—</td>
 </tr>
+<tr>
+<td><code>codes.snomed</code>: <code>snomed_display(code, lang)</code>, <code>snomed_for(kind, key)</code>, <code>snomed_map(kind)</code></td>
+<td>SNOMED display; internal key → code (<code>route</code>, <code>severity</code>; <code>codes/data/snomed-maps.yaml</code>)</td>
+<td><code>None</code> / <code>None</code> / <code>KeyError</code></td>
+</tr>
 </tbody>
 </table>
 <p><code>lookup(system, code, lang)</code> is legacy: on a miss it returns the code itself. New code uses <code>display(...) or &lt;explicit fallback&gt;</code>.</p>
@@ -3002,8 +3007,8 @@
 <td>#2360</td>
 </tr>
 <tr>
-<td>SNOMED codes and displays are still held in emitter dicts (route, severity), and 74 SNOMED literals are unregistered.</td>
-<td>#2258</td>
+<td>SNOMED codes and displays outside the registry (procedure-name YAML, device / HAI / follow-up copies, mapper tables in Python), and about 74 unregistered SNOMED literals.</td>
+<td>#2363</td>
 </tr>
 <tr>
 <td>Document LOINCs are defined in eight places, some section codes do not mean their section, and emitters still hold LOINC constants.</td>

@@ -2798,6 +2798,11 @@
 <td><code>""</code></td>
 </tr>
 <tr>
+<td><code>codes.snomed</code>: <code>snomed_display(code, lang)</code> / <code>snomed_for(kind, key)</code> / <code>snomed_map(kind)</code></td>
+<td>SNOMED の表示名、内部キー → コード (<code>route</code> / <code>severity</code>。<code>codes/data/snomed-maps.yaml</code>)</td>
+<td><code>None</code> / <code>None</code> / <code>KeyError</code></td>
+</tr>
+<tr>
 <td><code>codes.snomed_concepts</code></td>
 <td>判定ロジックで使う名前付き SNOMED 概念</td>
 <td>—</td>
@@ -3002,8 +3007,8 @@
 <td>#2360</td>
 </tr>
 <tr>
-<td>SNOMED のコードと表示名を出力側の dict がまだ持っている (route / severity)。SNOMED のリテラル 74 件が未登録。</td>
-<td>#2258</td>
+<td>registry の外にある SNOMED のコードと表示名 (処置名 YAML、device / HAI / follow-up の写し、Python の mapper 表) と、未登録の SNOMED リテラル約 74 件。</td>
+<td>#2363</td>
 </tr>
 <tr>
 <td>文書 LOINC の定義が 8 箇所にある。意味の合わない section コードがある。出力側に LOINC 定数が残っている。</td>
