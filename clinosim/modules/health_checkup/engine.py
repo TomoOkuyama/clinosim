@@ -30,6 +30,7 @@ import numpy as np
 
 from clinosim.codes.drugs import has_drug
 from clinosim.codes.valuesets import concept_group
+from clinosim.locale.i18n import t
 from clinosim.modules._shared import get_attr_or_key as _o
 from clinosim.modules._shared import is_jp
 from clinosim.modules.document.narrative.registry import document_loinc
@@ -104,12 +105,8 @@ def _pick_checkup_type(age: int) -> str:
     return "occupational"
 
 
-# 種別ごとの主訴表示
-_CHECKUP_TYPE_CHIEF_COMPLAINT: dict[str, str] = {
-    "occupational": "事業者健診",
-    "specific": "特定健診",
-    "regional_union": "広域連合健診",
-}
+# 種別ごとの主訴表示は narrative_phrases.yaml の health_checkup.<種別>
+_CHECKUP_TYPES = ("occupational", "specific", "regional_union")
 
 
 # 法定健診 5 項目は lab_panels.yaml の Checkup パネルの component (正規の
@@ -266,7 +263,7 @@ def _build_checkup_encounter(
     enc_id = f"CHK-{patient_id}-{encounter_seq:03d}"
     admission_dt = datetime.combine(checkup_date, datetime.min.time().replace(hour=9))
     discharge_dt = admission_dt + timedelta(hours=2)
-    cc = _CHECKUP_TYPE_CHIEF_COMPLAINT.get(checkup_type, "定期健康診断")
+    cc = t(f"health_checkup.{checkup_type if checkup_type in _CHECKUP_TYPES else 'periodic'}", "ja")
     return Encounter(
         encounter_id=enc_id,
         patient_id=patient_id,
@@ -474,7 +471,7 @@ def enrich_health_checkup(ctx: Any) -> None:
                     urgency="routine",
                     clinical_intent="health_checkup",
                     # Issue #871: JA display for JP SR reasonCode.text.
-                    clinical_intent_ja="健康診断",
+                    clinical_intent_ja=t("health_checkup.intent", "ja"),
                     ordered_datetime=ordered_dt,
                     ordered_by="",  # 健診は事業所/自治体依頼、実施医師未指定
                     status=OrderStatus.REVIEWED,  # 健診結果まで完了、reviewed 相当

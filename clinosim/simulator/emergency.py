@@ -11,6 +11,7 @@ from clinosim import determinism
 from clinosim.codes import system_key_for
 from clinosim.codes.hl7_encounter import ActPriority, AdmitSource, DischargeDisposition
 from clinosim.codes.valuesets import code_by_chronic_prefix, has_condition
+from clinosim.locale.i18n import t
 from clinosim.modules.disease.severity import sample_severity_category
 from clinosim.modules.encounter.engine import create_inpatient_encounter
 from clinosim.modules.observation.engine import get_lab_unit
@@ -186,8 +187,8 @@ def _ed_medication_skipped(
                 encounter_id=encounter_id,
                 candidate_drug=drug_name,
                 candidate_drug_ja=drug_name,
-                active_conflict=f"demographic:age={patient.age},sex={patient.sex}",
-                active_conflict_ja=f"適応外:年齢={patient.age},性別={patient.sex}",
+                active_conflict=t("safety_text.demographic_conflict", "en", age=patient.age, sex=patient.sex),
+                active_conflict_ja=t("safety_text.demographic_conflict", "ja", age=patient.age, sex=patient.sex),
                 verdict=_wrapped,
                 substituted_with=None,
                 substituted_with_ja=None,
@@ -511,9 +512,9 @@ def _simulate_ed_visit(
             order_type=OrderType.LAB,
             display_name=test,
             urgency="stat",
-            clinical_intent=f"ED workup: {test}",
+            clinical_intent=t("encounter_intent.ed_workup", "en", test=test),
             # Issue #871: JA display for JP SR reasonCode.text.
-            clinical_intent_ja=f"救急外来精査: {test}",
+            clinical_intent_ja=t("encounter_intent.ed_workup", "ja", test=test),
             ordered_datetime=visit_time
             + timedelta(minutes=int(lab_rng.normal(ED_LAB_ORDER_OFFSET_MEAN_MIN, ED_LAB_ORDER_OFFSET_STD_MIN))),
             ordered_by=encounter.attending_physician_id,
@@ -556,9 +557,9 @@ def _simulate_ed_visit(
                 order_type=OrderType.IMAGING,
                 display_name=test,
                 urgency="stat",
-                clinical_intent=f"ED imaging: {test}",
+                clinical_intent=t("encounter_intent.ed_imaging", "en", test=test),
                 # Issue #871: JA display for JP SR reasonCode.text.
-                clinical_intent_ja=f"救急外来画像検査: {test}",
+                clinical_intent_ja=t("encounter_intent.ed_imaging", "ja", test=test),
                 ordered_datetime=visit_time
                 + timedelta(minutes=int(rng.normal(ED_IMAGING_ORDER_OFFSET_MEAN_MIN, ED_IMAGING_ORDER_OFFSET_STD_MIN))),
                 ordered_by=encounter.attending_physician_id,
@@ -629,11 +630,11 @@ def _simulate_ed_visit(
                 # order fell to the name heuristic, which defaults to PO.
                 route=_ed_order_route(tx) if _order_type == OrderType.MEDICATION else "",
                 urgency="stat",
-                clinical_intent=f"ED treatment: {tx.get('intent', _tx_name)}",
+                clinical_intent=t("encounter_intent.ed_treatment", "en", intent=tx.get("intent", _tx_name)),
                 # Issue #871: JA display for JP SR reasonCode.text. `tx["intent"]`
                 # or `_tx_name` are kept as-is (may be EN or already-JA
                 # depending on the source); the shell is translated.
-                clinical_intent_ja=f"救急外来治療: {tx.get('intent', _tx_name)}",
+                clinical_intent_ja=t("encounter_intent.ed_treatment", "ja", intent=tx.get("intent", _tx_name)),
                 ordered_datetime=visit_time
                 + timedelta(
                     minutes=int(rng.normal(ED_TREATMENT_ORDER_OFFSET_MEAN_MIN, ED_TREATMENT_ORDER_OFFSET_STD_MIN))

@@ -126,14 +126,14 @@ def _generate_household_address(addr_data: dict, rng: np.random.Generator) -> di
 
     country = addr_data.get("country", "US")
     if is_jp(country):
-        towns = addr_data.get("towns", ["本町"])
+        towns = addr_data["towns"]
         town = str(rng.choice(towns))
         chome = int(rng.integers(JP_ADDRESS_CHOME_MIN, JP_ADDRESS_CHOME_MAX_EXCLUSIVE))
         banchi = int(rng.integers(JP_ADDRESS_BANCHI_MIN, JP_ADDRESS_BANCHI_MAX_EXCLUSIVE))
         go = int(rng.integers(JP_ADDRESS_GO_MIN, JP_ADDRESS_GO_MAX_EXCLUSIVE))
-        line = f"{town}{chome}丁目{banchi}-{go}"
+        line = str(addr_data["line_format"]).format(town=town, chome=chome, banchi=banchi, go=go)
         if rng.random() < addr_data.get("apartment_probability", JP_ADDRESS_APARTMENT_PROBABILITY_DEFAULT):
-            apt_names = addr_data.get("apartment_names", ["マンション"])
+            apt_names = addr_data["apartment_names"]
             apt = str(rng.choice(apt_names))
             room = int(rng.integers(JP_ADDRESS_APARTMENT_ROOM_MIN, JP_ADDRESS_APARTMENT_ROOM_MAX_EXCLUSIVE))
             line += f" {apt}{room}"

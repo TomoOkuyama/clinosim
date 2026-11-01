@@ -15,6 +15,7 @@ import numpy as np
 from clinosim.codes.drugs import drug_classes
 from clinosim.codes.valuesets import concept_group, has_condition
 from clinosim.countries import lang_for
+from clinosim.locale.i18n import t
 from clinosim.locale.loader import load_names
 from clinosim.locale.localized import localized
 from clinosim.modules._shared import is_jp, normalize_probabilities, resolve_lang
@@ -731,7 +732,7 @@ def activate_patient(
             # Fallback if name data unavailable. Gate on is_jp (matching the main
             # path above) — a raw country == "US" would give a lowercase "us"
             # patient the Japanese "家" suffix (FP-UNIFY-4 sibling class).
-            emergency_name = f"{name.family_name}家" if is_jp(country) else f"{name.family_name} family"
+            emergency_name = t("module_text.family_contact", lang_for(country), family=name.family_name)
 
     contact = ContactInfo(
         phone_home=phone_home,

@@ -27,7 +27,8 @@ cities:
   - {city: "柏市", prefecture: "千葉県", zips: ["277-0001", "277-0002", "277-0003", "277-0011", "277-0012", "277-0013"], weight: 5}
 
 # Japanese address format: 丁目-番地-号
-# Generated as: {city}{town}{chome}-{banchi}-{go}
+# Street line written by modules/population/_identity.py.
+line_format: "{town}{chome}丁目{banchi}-{go}"
 towns:
   - "本町"
   - "中央"

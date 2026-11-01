@@ -12,7 +12,8 @@ from clinosim import determinism
 from clinosim.codes import system_key_for
 from clinosim.codes.hl7_encounter import ActPriority, AdmitSource, DischargeDisposition
 from clinosim.codes.valuesets import concept_group, has_condition
-from clinosim.countries import is_jp
+from clinosim.countries import is_jp, lang_for
+from clinosim.locale.i18n import t
 from clinosim.locale.loader import chronic_followup_vitals, load_ambulatory_visit_length, load_chronic_followup
 from clinosim.modules.encounter.engine import create_inpatient_encounter
 from clinosim.modules.observation.engine import (
@@ -92,8 +93,8 @@ def _log_pregnancy_substitution(
     else:
         substitute = str(substitution_entry.get("substitute") or "")
         substitute_ja = str(substitution_entry.get("substitute_ja") or substitute)
-    rationale_en = str(substitution_entry.get("rationale_en") or "pregnancy-safe substitution")
-    rationale_ja = str(substitution_entry.get("rationale_ja") or "妊娠中の胎児安全性代替")
+    rationale_en = str(substitution_entry.get("rationale_en") or t("safety_text.pregnancy_substitution", "en"))
+    rationale_ja = str(substitution_entry.get("rationale_ja") or t("safety_text.pregnancy_substitution", "ja"))
     verdict = SafetyVerdict(
         severity="major",
         rule_id="pregnancy-teratogen",
@@ -108,8 +109,8 @@ def _log_pregnancy_substitution(
             encounter_id=encounter.encounter_id,
             candidate_drug=original_med.drug_name or "",
             candidate_drug_ja=original_med.drug_name_ja or original_med.drug_name or "",
-            active_conflict="active pregnancy",
-            active_conflict_ja="妊娠中",
+            active_conflict=t("safety_text.active_pregnancy", "en"),
+            active_conflict_ja=t("safety_text.active_pregnancy", "ja"),
             verdict=verdict,
             substituted_with=substitute or None,
             substituted_with_ja=substitute_ja or None,
@@ -298,7 +299,10 @@ def _simulate_outpatient_visit(
         # to a generic bilingual phrase so JP callers get a JA string.
         raw_chief = disease_fu.get(
             "visit_reason",
-            {"en": "Post-discharge follow-up", "ja": "退院後フォローアップ"},
+            {
+                "en": t("encounter_intent.post_discharge_followup", "en"),
+                "ja": t("encounter_intent.post_discharge_followup", "ja"),
+            },
         )
         chief = resolve_text(raw_chief, country=country)
     else:
@@ -309,11 +313,14 @@ def _simulate_outpatient_visit(
             enc_proto = load_encounter_condition(chronic_code)
             raw_chief = enc_proto.get(
                 "chief_complaint",
-                {"en": f"Follow-up: {chronic_code}", "ja": "外来フォローアップ"},
+                {
+                    "en": t("encounter_intent.followup", "en", code=chronic_code),
+                    "ja": t("encounter_intent.followup", "ja", code=chronic_code),
+                },
             )
             chief = resolve_text(raw_chief, country=country)
         except (FileNotFoundError, Exception):
-            chief = "外来フォローアップ" if is_jp(country) else f"Follow-up: {chronic_code}"
+            chief = t("encounter_intent.followup", lang_for(country), code=chronic_code)
 
     encounter = create_inpatient_encounter(
         patient.patient_id,
@@ -468,11 +475,11 @@ def _simulate_outpatient_visit(
             order_type=OrderType.LAB,
             display_name=test_name,
             urgency="routine",
-            clinical_intent=f"Outpatient follow-up: {test_name}",
+            clinical_intent=t("encounter_intent.outpatient_followup", "en", test=test_name),
             # Issue #871: JA display for the JP `reasonCode.text` emit path.
             # `test_name` is the analyte name (e.g. "Creatinine") — kept as-is
             # so consumers can still string-match; the shell is translated.
-            clinical_intent_ja=f"外来フォローアップ: {test_name}",
+            clinical_intent_ja=t("encounter_intent.outpatient_followup", "ja", test=test_name),
             ordered_datetime=visit_date + timedelta(minutes=OUTPATIENT_LAB_ORDER_OFFSET_MIN),
             ordered_by=encounter.attending_physician_id,
             status=OrderStatus.PLACED,
@@ -873,8 +880,10 @@ def _simulate_outpatient_visit(
                 order_type=OrderType.MEDICATION,
                 display_name=_drug_name,
                 urgency="routine",
-                clinical_intent=f"Chemotherapy cycle: {_drug_name} {_dose}".strip(),
-                clinical_intent_ja=f"化学療法サイクル: {_drug_ja or _drug_name} {_dose}".strip(),
+                clinical_intent=t("encounter_intent.chemo_cycle", "en", drug=_drug_name, dose=_dose).strip(),
+                clinical_intent_ja=t(
+                    "encounter_intent.chemo_cycle", "ja", drug=_drug_ja or _drug_name, dose=_dose
+                ).strip(),
                 ordered_datetime=visit_date + timedelta(minutes=OUTPATIENT_LAB_ORDER_OFFSET_MIN),
                 ordered_by=encounter.attending_physician_id,
                 status=OrderStatus.RESULTED,

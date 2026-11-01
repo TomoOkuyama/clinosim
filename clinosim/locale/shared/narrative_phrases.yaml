@@ -2119,3 +2119,187 @@ order_intent:
   renal_impairment:
     ja: "腎機能低下"
     en: "renal function impairment"
+
+# Order intents of the admission, ED, outpatient and unknown-condition flows
+# (clinical_intent / clinical_intent_ja; Issue #2406).
+encounter_intent:
+  admission_workup:
+    ja: "入院時精査: {test}"
+    en: "Admission workup: {test}"
+  first_line:
+    ja: "初期治療: {drug}"
+    en: "First-line treatment: {drug}"
+  supportive:
+    ja: "支持療法: {type}"
+    en: "Supportive: {type}"
+  admission_imaging:
+    ja: "入院時画像検査: {test}"
+    en: "Admission imaging: {test}"
+  day_monitoring:
+    ja: "第{day}病日モニタリング: {test}"
+    en: "Day {day} monitoring: {test}"
+  unknown_initial_workup:
+    ja: "不明疾患 {complaint}: 初期精査"
+    en: "Unknown {complaint}: initial workup"
+  unknown_imaging:
+    ja: "不明疾患 {complaint}: 画像精査"
+    en: "Unknown {complaint}: imaging workup"
+  unknown_treatment:
+    ja: "不明疾患 {complaint}: {intent}"
+    en: "Unknown {complaint}: {intent}"
+  unknown_fever_day4_imaging:
+    ja: "第4病日: 不明熱の追加画像検査"
+    en: "Day 4: expanded imaging for unknown fever"
+  unknown_daily_monitoring:
+    ja: "第{day}病日: モニタリング + 精査"
+    en: "Day {day}: monitoring + workup"
+  ed_workup:
+    ja: "救急外来精査: {test}"
+    en: "ED workup: {test}"
+  ed_imaging:
+    ja: "救急外来画像検査: {test}"
+    en: "ED imaging: {test}"
+  ed_treatment:
+    ja: "救急外来治療: {intent}"
+    en: "ED treatment: {intent}"
+  outpatient_followup:
+    ja: "外来フォローアップ: {test}"
+    en: "Outpatient follow-up: {test}"
+  newborn_inborn:
+    ja: "新生児 — 院内出生"
+    en: "Newborn — born in hospital"
+  post_discharge_followup:
+    ja: "退院後フォローアップ"
+    en: "Post-discharge follow-up"
+  followup:
+    ja: "外来フォローアップ"
+    en: "Follow-up: {code}"
+  chemo_cycle:
+    ja: "化学療法サイクル: {drug} {dose}"
+    en: "Chemotherapy cycle: {drug} {dose}"
+
+# Safety-skip conflicts and rationales written by the simulator (Issue #2406).
+safety_text:
+  demographic_conflict:
+    ja: "適応外:年齢={age},性別={sex}"
+    en: "demographic:age={age},sex={sex}"
+  pregnancy_substitution:
+    ja: "妊娠中の胎児安全性代替"
+    en: "pregnancy-safe substitution"
+  active_pregnancy:
+    ja: "妊娠中"
+    en: "active pregnancy"
+  treatment_plan_change:
+    ja: "治療計画変更"
+    en: "treatment plan change"
+  treatment_plan_change_archetype:
+    ja: "治療計画変更 (経過型: {archetype})"
+    en: "treatment plan change (archetype: {archetype})"
+  treatment_switch_stop:
+    ja: "treatment_modifications による中止→開始: {drug} 中止"
+    en: "treatment_modifications stop→start: {drug} discontinued"
+  treatment_switch_start:
+    ja: "、{drug} 開始"
+    en: ", {drug} started"
+
+# Perinatal order intents by order-id suffix (simulator/perinatal.py, Issue #2406).
+perinatal_intent:
+  CSCF:
+    ja: "帝王切開周術期予防抗菌薬 (ACOG / SCIP-INF-1)"
+    en: "Cesarean surgical antimicrobial prophylaxis (ACOG / SCIP-INF-1)"
+  CSBP:
+    ja: "帝王切開脊髄くも膜下麻酔 (0.5 % 髄腔内)"
+    en: "Cesarean spinal anesthesia (0.5 % intrathecal)"
+  CSFN:
+    ja: "帝王切開脊髄くも膜下麻酔 オピオイド補助"
+    en: "Cesarean intrathecal opioid adjunct to spinal anesthesia"
+  CSOD:
+    ja: "帝王切開制吐薬予防 (脊麻後低血圧対策)"
+    en: "Cesarean antiemetic prophylaxis (spinal-induced hypotension)"
+  CSOX:
+    ja: "帝王切開臍帯クランプ後 子宮収縮薬 (PPH予防)"
+    en: "Cesarean uterotonic post-cord-clamp (PPH prevention)"
+  CSAM:
+    ja: "帝王切開術後多剤鎮痛 (アセトアミノフェン IV)"
+    en: "Cesarean postoperative multimodal analgesia (JP IV acetaminophen)"
+  CSKT:
+    ja: "帝王切開術後多剤鎮痛 (ERAS)"
+    en: "Cesarean postoperative multimodal analgesia (ERAS)"
+  VDIV:
+    ja: "経腟分娩中の維持輸液 (乳酸リンゲル)"
+    en: "Vaginal delivery IV crystalloid during labor (maintenance + hydration)"
+  VDOX:
+    ja: "経腟分娩 分娩第3期 子宮収縮薬 (PPH予防、AWHONN / ACOG Class IA)"
+    en: "Vaginal delivery active 3rd-stage uterotonic (PPH prevention, AWHONN / ACOG Class IA)"
+
+# Health-checkup visit reasons and order intent (modules/health_checkup, Issue #2406).
+health_checkup:
+  occupational:
+    ja: "事業者健診"
+    en: "Occupational health checkup"
+  specific:
+    ja: "特定健診"
+    en: "Specific health checkup"
+  regional_union:
+    ja: "広域連合健診"
+    en: "Late-elderly health checkup"
+  periodic:
+    ja: "定期健康診断"
+    en: "Periodic health checkup"
+  intent:
+    ja: "健康診断"
+    en: "Health checkup"
+
+# Generic negative radiology report used when no template matches (Issue #2406).
+imaging_report:
+  generic_negative_findings:
+    ja: "特記すべき異常所見なし。"
+    en: "No acute abnormal findings within the imaged field."
+  generic_negative_impression:
+    ja: "今回撮像範囲内に急性期異常所見を認めず。"
+    en: "No acute abnormal findings within the imaged range."
+
+# Short visit reasons, notes and names written by simulator modules (Issue #2406).
+module_text:
+  chronic_drug_monitoring:
+    ja: "慢性投薬モニタリング ({drug}): {rationale}"
+    en: "Chronic medication monitoring ({drug}): {rationale}"
+  vaccination_visit:
+    ja: "予防接種"
+    en: "Vaccination visit"
+  pediatric_visit:
+    ja: "小児外来受診"
+    en: "Pediatric visit: {disease}"
+  specialty_followup:
+    ja: "{dept} 外来"
+    en: "{dept} follow-up"
+  rate_increase:
+    ja: "注入速度を{pct}%増量"
+    en: "increase rate by {pct}%"
+  rate_decrease:
+    ja: "注入速度を{pct}%減量"
+    en: "decrease rate by {pct}%"
+  family_contact:
+    ja: "{family}家"
+    en: "{family} family"
+  test_family:
+    ja: "テスト"
+    en: "Test"
+  test_given:
+    ja: "患者{n}"
+    en: "Patient{n}"
+
+# Newborn screening fallbacks when newborn config omits a display (Issue #2406).
+newborn_screen_display:
+  panel:
+    ja: "新生児マス・スクリーニング パネル"
+    en: "Newborn screening panel"
+  capillary_specimen:
+    ja: "毛細血管血検体"
+    en: "Capillary blood specimen"
+  heel:
+    ja: "踵"
+    en: "Heel"
+  heel_stick:
+    ja: "踵採血 (毛細血管採血)"
+    en: "Heel-stick capillary blood collection"

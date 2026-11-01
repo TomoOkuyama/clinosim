@@ -14,6 +14,7 @@ from __future__ import annotations
 from datetime import datetime
 from typing import TYPE_CHECKING, Any
 
+from clinosim.locale.i18n import t
 from clinosim.modules.population.engine import LifeEvent, generate_healthcare_calendar
 from clinosim.seeding import PHASE_OUTPATIENT_CAL, derive_phase_rng
 from clinosim.simulator._scheduling_thresholds import (
@@ -254,8 +255,12 @@ def dispatch_calendar_event(event: LifeEvent, ctx: ForwardContext) -> None:
                     "visit_reason": _specialty_visit_reason.get(
                         specialty_name,
                         {
-                            "en": f"{department_display(specialty_name, 'en')} follow-up",
-                            "ja": f"{department_display(specialty_name, 'ja')} 外来",
+                            "en": t(
+                                "module_text.specialty_followup", "en", dept=department_display(specialty_name, "en")
+                            ),
+                            "ja": t(
+                                "module_text.specialty_followup", "ja", dept=department_display(specialty_name, "ja")
+                            ),
                         },
                     ),
                 },

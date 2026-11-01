@@ -27,6 +27,7 @@ import yaml
 
 from clinosim.codes.loinc import loinc_for
 from clinosim.codes.snomed import snomed_for, snomed_map
+from clinosim.locale.i18n import t
 from clinosim.modules._shared import get_attr_or_key as _get
 from clinosim.modules._shared import is_jp
 from clinosim.types.encounter import MedicationAdministration, VitalSignRecord
@@ -560,19 +561,23 @@ def build_metabolic_screen_workflow_data(record: Any, country: str) -> dict[str,
         # extension slots (bilirubin, cchd_pulse_ox).
         "order_loinc": loinc_for("newborn_screen", "panel"),
         "order_display": str(sr_cfg.get("order_display") or "Newborn screening panel"),
-        "order_display_ja": str(sr_cfg.get("order_display_ja") or "新生児マス・スクリーニング パネル"),
+        "order_display_ja": str(sr_cfg.get("order_display_ja") or t("newborn_screen_display.panel", "ja")),
         "order_category_code": str(sr_cfg.get("category_code") or snomed_for("order_category", "laboratory")),
         "order_category_display": str(sr_cfg.get("category_display") or "Laboratory procedure"),
         "specimen_type_code": str(spec_cfg.get("type_code") or "122554006"),
         "specimen_type_display": str(spec_cfg.get("type_display") or "Capillary blood specimen"),
-        "specimen_type_display_ja": str(spec_cfg.get("type_display_ja") or "毛細血管血検体"),
+        "specimen_type_display_ja": str(
+            spec_cfg.get("type_display_ja") or t("newborn_screen_display.capillary_specimen", "ja")
+        ),
         "specimen_body_site_en": str(spec_cfg.get("body_site_text_en") or "Heel"),
-        "specimen_body_site_ja": str(spec_cfg.get("body_site_text_ja") or "踵"),
+        "specimen_body_site_ja": str(spec_cfg.get("body_site_text_ja") or t("newborn_screen_display.heel", "ja")),
         "specimen_method_en": str(spec_cfg.get("collection_method_text_en") or "Heel-stick capillary blood collection"),
-        "specimen_method_ja": str(spec_cfg.get("collection_method_text_ja") or "踵採血 (毛細血管採血)"),
+        "specimen_method_ja": str(
+            spec_cfg.get("collection_method_text_ja") or t("newborn_screen_display.heel_stick", "ja")
+        ),
         "dr_code_loinc": loinc_for("newborn_screen", "panel"),
         "dr_code_display": str(dr_cfg.get("code_display") or "Newborn screening panel"),
-        "dr_code_display_ja": str(dr_cfg.get("code_display_ja") or "新生児マス・スクリーニング パネル"),
+        "dr_code_display_ja": str(dr_cfg.get("code_display_ja") or t("newborn_screen_display.panel", "ja")),
         "dr_category_code": str(dr_cfg.get("category_code") or "LAB"),
         "dr_category_display": str(dr_cfg.get("category_display") or "Laboratory"),
     }

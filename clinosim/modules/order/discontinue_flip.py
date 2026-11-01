@@ -35,6 +35,7 @@ Determinism: RNG-free. Reads/mutates only ``record.orders``.
 
 from __future__ import annotations
 
+from clinosim.locale.i18n import t
 from clinosim.modules._shared import MED_STOP_ORDER_ID_MARKER
 from clinosim.simulator.enrichers import EnricherContext
 from clinosim.types.encounter import OrderStatus, OrderType
@@ -385,13 +386,13 @@ def _log_treatment_change(
     if archetype:
         archetype_en = _localize_archetype(archetype, "en")
         archetype_ja = _localize_archetype(archetype, "ja")
-        conflict_en = f"treatment plan change (archetype: {archetype_en})"
-        conflict_ja = f"治療計画変更 (経過型: {archetype_ja})"
+        conflict_en = t("safety_text.treatment_plan_change_archetype", "en", archetype=archetype_en)
+        conflict_ja = t("safety_text.treatment_plan_change_archetype", "ja", archetype=archetype_ja)
     else:
         archetype_en = ""
         archetype_ja = ""
-        conflict_en = "treatment plan change"
-        conflict_ja = "治療計画変更"
+        conflict_en = t("safety_text.treatment_plan_change", "en")
+        conflict_ja = t("safety_text.treatment_plan_change", "ja")
 
     verdict = SafetyVerdict(
         severity="moderate",
@@ -399,15 +400,13 @@ def _log_treatment_change(
         matched_classes=None,
         matched_active_drug=replacement_agent,
         rationale_en=(
-            f"treatment_modifications stop→start: "
-            f"{stopped_drug} discontinued"
-            + (f", {replacement_agent} started" if replacement_agent else "")
+            t("safety_text.treatment_switch_stop", "en", drug=stopped_drug)
+            + (t("safety_text.treatment_switch_start", "en", drug=replacement_agent) if replacement_agent else "")
             + (f" ({archetype})" if archetype else "")
         ),
         rationale_ja=(
-            f"treatment_modifications による中止→開始: "
-            f"{stopped_drug} 中止"
-            + (f"、{replacement_agent} 開始" if replacement_agent else "")
+            t("safety_text.treatment_switch_stop", "ja", drug=stopped_drug)
+            + (t("safety_text.treatment_switch_start", "ja", drug=replacement_agent) if replacement_agent else "")
             + (f" ({archetype})" if archetype else "")
         ),
         substitution_hint=replacement_agent,

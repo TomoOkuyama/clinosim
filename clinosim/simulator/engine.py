@@ -8,8 +8,9 @@ from pathlib import Path
 
 from clinosim import __version__ as _clinosim_version
 from clinosim import determinism
+from clinosim.countries import lang_for
+from clinosim.locale.i18n import t
 from clinosim.locale.loader import load_demographics
-from clinosim.modules._shared import is_jp
 from clinosim.modules.disease.protocol import load_disease_protocol
 from clinosim.modules.healthcare_system.loader import load_healthcare_config
 from clinosim.modules.patient.activator import activate_patient
@@ -382,8 +383,8 @@ def run_forced(scenario: ForcedScenario, config: SimulatorConfig | None = None) 
             age=age,
             sex=sex,
             date_of_birth=date(FORCED_SCENARIO_REFERENCE_YEAR - age, 1, 1),
-            family_name="テスト" if is_jp(config.country) else "Test",
-            given_name=f"患者{i + 1}" if is_jp(config.country) else f"Patient{i + 1}",
+            family_name=t("module_text.test_family", lang_for(config.country)),
+            given_name=t("module_text.test_given", lang_for(config.country), n=i + 1),
             chronic_conditions=scenario.patient_overrides.get("chronic_conditions", []),
         )
         patient = activate_patient(person, rng, _demo)
