@@ -85,6 +85,7 @@ from clinosim.codes.icd10 import condition_short_name
 from clinosim.codes.prefectures import prefecture_code
 from clinosim.codes.ucum import ucum_quantity
 from clinosim.locale.loader import load_code_mapping, load_reference_ranges
+from clinosim.locale.localized import localized
 from clinosim.modules._shared import is_jp, resolve_lang, strip_protocol_prefix
 from clinosim.modules.output.fhir_r4.lib.localization import (
     _FREQ_JA,
@@ -1140,7 +1141,7 @@ def build_dosage_instruction(order: dict, country: str = "US") -> dict[str, Any]
     # for `ICS/LABA inhaler` step-up-after-exacerbation).
     dose_text_ja = str(order.get("dose_text_ja", "") or "")
     dose_text_en = str(order.get("dose_text_en", "") or "")
-    authored_text = dose_text_ja if is_jp(country) else dose_text_en
+    authored_text = localized({"ja": dose_text_ja, "en": dose_text_en}, resolve_lang(country))
 
     # If nothing structured is available, return None so the caller omits
     # `dosageInstruction`. Issue #467: the previous fallback stuffed the

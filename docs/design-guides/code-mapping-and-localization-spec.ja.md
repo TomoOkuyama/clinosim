@@ -234,7 +234,7 @@ occupation:
 
 | 未準拠箇所 | Issue |
 |---|---|
-| `locale.localized` を通らない `.get("ja")` や言語三項演算子が残る。`codes.lookup` はヒットしないとコードを返す。 | #2397 |
+| `codes.lookup` はヒットしないとコードを返す (`clinosim/codes` 外に約 40 箇所)。 | #2416 |
 | ローカライズされた YAML フィールドの形が混在している (入れ子の `{lang: text}`、25 種の `*_ja` フィールド名、`dose_ja` と `dose_text_ja`)。 | #2398 |
 | 意味の合わない Composition section コードがある。 | #2391 |
 | 自由文の名称翻訳 (`locale.free_text.localize_free_text`) が汎用の 1 本で、手技・SNOMED・アレルゲン名も薬名辞書と部分文字列置換を通る。 | #2408 |

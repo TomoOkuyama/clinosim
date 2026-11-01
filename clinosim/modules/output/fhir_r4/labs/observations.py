@@ -17,6 +17,7 @@ from typing import Any
 
 from clinosim.codes import get_system_uri
 from clinosim.codes.ucum import ucum_quantity
+from clinosim.locale.localized import localized_field
 from clinosim.modules._shared import get_attr_or_key, is_jp, resolve_lang, sanitize_id_token
 from clinosim.modules.observation.engine import medications_in_effect
 from clinosim.modules.output.fhir_r4.demographics.patient import patient_ref
@@ -325,7 +326,7 @@ def _build_bp_component(
     interpretation ranges match the pre-#210 per-Observation shape so
     downstream flag semantics stay identical.
     """
-    display = spec.display_ja if is_jp(country) else spec.display_en
+    display = localized_field(spec, "display", resolve_lang(country))
     unit = "mm[Hg]"
     interp_code = "N"
     if value <= spec.critical_low:
@@ -418,7 +419,7 @@ def _build_vital_observations(
         crit_low = spec.critical_low
         crit_high = spec.critical_high
         offset_sec = spec.time_offset_sec
-        display = spec.display_ja if is_jp(country) else spec.display_en
+        display = localized_field(spec, "display", resolve_lang(country))
         value = vs.get(field)
         if value is None:
             continue

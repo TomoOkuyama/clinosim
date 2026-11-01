@@ -13,6 +13,7 @@ from typing import Any
 from clinosim.codes import get_system_uri, system_key_for
 from clinosim.codes import lookup as code_lookup
 from clinosim.codes.snomed import snomed_for
+from clinosim.locale.localized import localized
 from clinosim.modules._shared import get_attr_or_key, is_jp, resolve_lang
 from clinosim.modules.diagnosis.nonspecific_codes import is_visit_reason_zcode
 from clinosim.modules.output.fhir_r4.conditions.primary_ref import (
@@ -328,7 +329,7 @@ def _build_conditions(record: dict, patient_id: str, country: str) -> list[dict]
         )  # noqa: E501
         cond["evidence"] = [
             {
-                "code": [{"text": _ev_text_ja if is_jp(country_code) else _ev_text_en}],
+                "code": [{"text": localized({"ja": _ev_text_ja, "en": _ev_text_en}, resolve_lang(country_code))}],
             }
         ]
 
@@ -621,7 +622,7 @@ def _build_conditions(record: dict, patient_id: str, country: str) -> list[dict]
             _ev_text_en = "Secondary diagnosis carried onto the encounter"
             _ev_text_ja = "併存傷病"
         _wd_cond["evidence"] = [
-            {"code": [{"text": _ev_text_ja if is_jp(country_code) else _ev_text_en}]},
+            {"code": [{"text": localized({"ja": _ev_text_ja, "en": _ev_text_en}, resolve_lang(country_code))}]},
         ]
         _bs_wd = _bodysite_for(_wd_code_raw, country)
         if _bs_wd:

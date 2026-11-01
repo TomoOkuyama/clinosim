@@ -14,7 +14,9 @@ import numpy as np
 
 from clinosim.codes.drugs import drug_classes
 from clinosim.codes.valuesets import concept_group, has_condition
+from clinosim.countries import lang_for
 from clinosim.locale.loader import load_names
+from clinosim.locale.localized import localized
 from clinosim.modules._shared import is_jp, normalize_probabilities, resolve_lang
 from clinosim.modules.patient._patient_activator_thresholds import (
     AGE_PENALTY_HEPATIC_RATIO,
@@ -1039,7 +1041,7 @@ def _derive_home_medications(
             # CIF stores English drug names (AD-30). JP display picks up drug_ja
             # at output time. Selection key uses the string that reaches the
             # display side so JP and US dedup identically.
-            name_for_display = drug_ja if is_jp(country) else drug_en
+            name_for_display = localized({"ja": drug_ja, "en": drug_en}, lang_for(country))
             if not name_for_display or name_for_display in seen:
                 continue
 

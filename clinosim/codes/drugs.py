@@ -82,9 +82,10 @@ class DrugIdentity:
         Japanese display; everything else returns English (US is the
         default). Unknown country never raises — EN is the fallback.
         """
-        if (country or "").strip().upper() == "JP":
-            return self.names.get("ja") or self.names.get("en", "")
-        return self.names.get("en", "")
+        from clinosim.countries import lang_for
+        from clinosim.locale.localized import localized
+
+        return localized(self.names, lang_for(country))
 
 
 def _opt_int(drug_id: Any, body: dict[str, Any], key: str) -> int | None:

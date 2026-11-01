@@ -7,6 +7,7 @@ import os
 import sys
 from datetime import datetime
 
+from clinosim.locale.localized import localized
 from clinosim.modules._shared import is_jp
 from clinosim.simulator.cli_common import (
     _print_debug_record,
@@ -591,7 +592,7 @@ def main() -> None:
             # chief_complaint is `str | dict[str, str]` (multi-lang variant).
             # Coerce to str for the compact list display.
             cc = p.chief_complaint
-            cc_str = cc if isinstance(cc, str) else (cc.get("en") or cc.get("ja") or "")
+            cc_str = cc if isinstance(cc, str) else (localized(cc, "en"))
             print(f"  {name:35s} | {cc_str[:50]}")
 
         from clinosim.modules.encounter.protocol import load_all_encounter_conditions
