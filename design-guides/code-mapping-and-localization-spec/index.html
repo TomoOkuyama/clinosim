@@ -2789,7 +2789,7 @@
 <td><code>None</code> / <code>()</code></td>
 </tr>
 <tr>
-<td><code>codes.drugs</code>: <code>drug_ref(name_or_id)</code>, <code>has_drug(meds, drug_id_or_class)</code></td>
+<td><code>codes.drugs</code>: <code>drug_ref(name_or_id)</code>, <code>has_drug(meds, drug_id_or_class)</code>, <code>medication_matches(med, drugs, classes)</code></td>
 <td>the catalog <code>drug_id</code> a name, alias or free-text string names; whether any medication record is that drug or in that class (by its <code>drug_id</code>, else its name)</td>
 <td><code>""</code> / <code>False</code></td>
 </tr>
@@ -3041,10 +3041,6 @@
 <tr>
 <td>Disease YAMLs mix <code>drug:</code> names with <code>drug_id:</code>, and <code>Order.order_code</code> does not record its code system.</td>
 <td>#2378</td>
-</tr>
-<tr>
-<td>The medication-monitoring tables identify drugs by name patterns.</td>
-<td>#2371</td>
 </tr>
 <tr>
 <td>Complications, PRN selection and chronic-medication rules keep their own drug-class vocabularies.</td>
