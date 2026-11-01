@@ -264,7 +264,7 @@ def test_render_supplemental_oxygen_today_ja_localizes_device():
 
 
 @pytest.mark.unit
-def test_render_supplemental_oxygen_today_en_keeps_snake_case():
+def test_render_supplemental_oxygen_today_en_names_the_device():
     vitals = [
         {
             "day": 2,
@@ -274,7 +274,9 @@ def test_render_supplemental_oxygen_today_en_keeps_snake_case():
         }
     ]
     en = _render_supplemental_oxygen_today(vitals, day_index=2, encounter=None, lang="en")
-    assert "nasal_cannula" in en
+    # Issue #2449: English names the device instead of printing its slug.
+    assert "nasal cannula" in en
+    assert "nasal_cannula" not in en
     assert "経鼻カニューレ" not in en
 
 

@@ -57,27 +57,27 @@ severity:
   very_severe: {ja: 最重度}
   critical: {ja: 重篤}
 oxygen_device:
-  nasal_cannula: {ja: 経鼻カニューレ}
-  oxygen_mask: {ja: 酸素マスク}
-  simple_mask: {ja: 酸素マスク}
-  non_rebreather: {ja: リザーバーマスク}
+  nasal_cannula: {en: nasal cannula, ja: 経鼻カニューレ}
+  oxygen_mask: {en: oxygen mask, ja: 酸素マスク}
+  simple_mask: {en: simple face mask, ja: 酸素マスク}
+  non_rebreather: {en: non-rebreather mask, ja: リザーバーマスク}
   # `non-rebreather` (hyphen form) is what `vitals_pipeline.py:304`
   # actually writes to CIF. Alias entry so the JA-narrative
   # localizer resolves the hyphenated CIF value rather than leaking
   # `non-rebreather` verbatim into JP prose (Phase 1d-64 verify).
-  non-rebreather: {ja: リザーバーマスク}
-  reservoir_mask: {ja: リザーバーマスク}
-  venturi: {ja: ベンチュリーマスク}
-  venturi_mask: {ja: ベンチュリーマスク}
-  high_flow_nc: {ja: ハイフローネーザル}
-  high_flow_nasal_cannula: {ja: ハイフローネーザル}
-  mechanical_ventilation: {ja: 人工呼吸器}
-  invasive_mechanical_ventilation: {ja: 人工呼吸器}
-  room_air: {ja: 大気吸入}
-  supplemental o2: {ja: 酸素投与}
-  cpap: {ja: CPAP}
-  bipap: {ja: BiPAP}
-  niv: {ja: NIV}
+  non-rebreather: {en: non-rebreather mask, ja: リザーバーマスク}
+  reservoir_mask: {en: reservoir mask, ja: リザーバーマスク}
+  venturi: {en: Venturi mask, ja: ベンチュリーマスク}
+  venturi_mask: {en: Venturi mask, ja: ベンチュリーマスク}
+  high_flow_nc: {en: high-flow nasal cannula, ja: ハイフローネーザル}
+  high_flow_nasal_cannula: {en: high-flow nasal cannula, ja: ハイフローネーザル}
+  mechanical_ventilation: {en: mechanical ventilation, ja: 人工呼吸器}
+  invasive_mechanical_ventilation: {en: invasive mechanical ventilation, ja: 人工呼吸器}
+  room_air: {en: room air, ja: 大気吸入}
+  supplemental o2: {en: supplemental O2, ja: 酸素投与}
+  cpap: {en: CPAP, ja: CPAP}
+  bipap: {en: BiPAP, ja: BiPAP}
+  niv: {en: NIV, ja: NIV}
 risk_level:
   low: {ja: 低リスク}
   low_risk: {ja: 低リスク}
