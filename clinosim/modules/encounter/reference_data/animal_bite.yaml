@@ -3,7 +3,6 @@
 
 condition_id: animal_bite
 icd10_code: "W54.0XXA"
-icd10_display: "Bitten by dog, initial encounter"
 chief_complaint:
   en: "Dog bite to hand/leg, wound requiring treatment"
   ja: "犬咬傷（手/下肢）"

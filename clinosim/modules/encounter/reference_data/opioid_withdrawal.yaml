@@ -8,7 +8,6 @@
 
 condition_id: opioid_withdrawal
 icd10_code: "F11.23"
-icd10_display: "Opioid dependence with withdrawal"
 chief_complaint:
   en: "Opioid withdrawal: body aches, vomiting, anxiety"
   ja: "オピオイド離脱症状（全身痛・嘔吐・不安）"

@@ -124,6 +124,7 @@ Consumers resolve names only through these functions. Several are added by open 
 | `codes.valuesets`: `concept_group`, `has_condition`, `patient_condition_names`, `code_by_chronic_prefix` | value-set membership | `KeyError` on an unknown group |
 | `codes.drugs`: `resolve_drug`, `get_drug`, `find_drug`, `names_drug`, `drug_name_needles` | drug identity and name matching | raises / `None` / `False` |
 | `codes.drugs`: `route_class(route)`, `jp_drug_code(drug, route)`, `jp_drug_code_table(route)` | route class of an order route; the JP YJ product for a drug and route | `""` / `None` / no entry |
+| `codes.icd10`: `icd10_system(country)`, `icd10_display(code, country, lang)`, `condition_short_name(code, lang)`, `medis_disease_keyno(icd)` | ICD-10 system of a country; official display; clinical short name (by category); MEDIS 病名管理番号 | key / `None` / `None` / `None` |
 | `codes.procedures`: `procedure_code`, `procedure_type_display`, `procedure_code_display` | procedure codes and names | `""` / humanised type / `None` |
 | `codes.ucum`: `ucum_code`, `ucum_quantity` | UCUM code / FHIR Quantity | unit passed through |
 | `codes.prefectures.prefecture_code(name)` | JIS X 0401 code | `""` |
@@ -225,7 +226,7 @@ These parts of the code base do not yet conform. Each one is removed by the issu
 | Deviation | Issue |
 |---|---|
 | **Fallback.** `display` / `lookup`, `resolve_text` and `t` end with a last-resort value: the first available language, the code, `str(value)` or the key. That can break §6.1–6.2, and there is no single retrieval API. | #2275 |
-| ICD lookup, short names and crosswalks are not behind one accessor (two short-name tables, CM/WHO Japanese divergence). | #2257 |
+| JP ICD-10 Japanese displays can come from the ICD-10-CM table through the sibling fallback, and 95 shared codes have different Japanese names in the two tables. | #2360 |
 | SNOMED codes and displays are still held in emitter dicts (route, severity), and 74 SNOMED literals are unregistered. | #2258 |
 | Document LOINCs are defined in eight places, some section codes do not mean their section, and emitters still hold LOINC constants. | #2344 |
 | Disease YAMLs still carry inline `code_yj` literals, and JP CIF `order_code` is copied from them rather than from the catalog. | #2351 |

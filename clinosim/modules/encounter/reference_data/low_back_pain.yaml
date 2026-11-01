@@ -3,7 +3,6 @@
 
 condition_id: low_back_pain
 icd10_code: "M54.50"
-icd10_display: "Low back pain, unspecified"
 chief_complaint:
   en: "Acute low back pain, onset after lifting"
   ja: "急性腰痛（挙上時発症）"

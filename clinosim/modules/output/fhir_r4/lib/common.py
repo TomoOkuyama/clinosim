@@ -83,6 +83,7 @@ import yaml
 from clinosim.codes import display as registry_display
 from clinosim.codes import get_system_uri, is_english_only_system
 from clinosim.codes import lookup as code_lookup
+from clinosim.codes.icd10 import condition_short_name
 from clinosim.codes.prefectures import prefecture_code
 from clinosim.codes.ucum import ucum_quantity
 from clinosim.locale.loader import load_code_mapping, load_reference_ranges
@@ -440,24 +441,15 @@ def build_diagnosis_codeable_concept(code: str, system_key: str, country: str) -
     primary_lang = resolve_lang(country)
     primary_system = get_system_uri(system_key)
 
-    # Look up display in primary language (with cross-system fallback).
-    primary_display: str | None = code_lookup(system_key, code, primary_lang) if code else ""
-    # If primary system has no entry, try icd-10-cm which is more comprehensive
-    if (not primary_display or primary_display == code) and system_key != "icd-10-cm":
-        alt = code_lookup("icd-10-cm", code, primary_lang)
-        if alt and alt != code:
-            primary_display = alt
-    # Issue #1766: unresolved → omit (``None``), never a placeholder string.
-    if not primary_display or primary_display == code:
+    # Official display in the primary language, then English for the interop
+    # coding. The registry resolves the ICD-10 ↔ ICD-10-CM sibling fallback
+    # (Issue #2257). Issue #1766: unresolved → omit (``None``), never a
+    # placeholder string.
+    primary_display = registry_display(system_key, code, primary_lang) if code else None
+    if primary_display == code:
         primary_display = None
-
-    # English display (for interop secondary coding).
-    en_display: str | None = code_lookup(system_key, code, "en") if code else ""
-    if (not en_display or en_display == code) and system_key != "icd-10-cm":
-        alt_en = code_lookup("icd-10-cm", code, "en")
-        if alt_en and alt_en != code:
-            en_display = alt_en
-    if not en_display or en_display == code:
+    en_display = registry_display(system_key, code, "en") if code else None
+    if en_display == code:
         en_display = None
 
     primary_coding: dict[str, Any] = {"system": primary_system, "code": code}
@@ -485,9 +477,8 @@ def build_diagnosis_codeable_concept(code: str, system_key: str, country: str) -
     # code.text: clinical short-name / abbreviation for search friendliness.
     # coding[].display remains the official ICD name; text is what clinicians type.
     # Fallback chain: short-name → primary_display → raw code.
-    base_code = code.split(".")[0] if code else ""
-    short_name = code_lookup("condition-short-name", base_code, primary_lang) if base_code else ""
-    if short_name and short_name != base_code:
+    short_name = condition_short_name(code, primary_lang)
+    if short_name:
         text = short_name
     elif primary_display:
         text = primary_display

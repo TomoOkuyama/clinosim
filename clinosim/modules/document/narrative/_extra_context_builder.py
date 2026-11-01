@@ -17,7 +17,7 @@ from __future__ import annotations
 from functools import cache
 from pathlib import Path
 
-from clinosim.codes import display as registry_display
+from clinosim.codes.icd10 import icd10_display
 from clinosim.locale.i18n import t
 from clinosim.modules._shared import pick_localized_field
 from clinosim.modules.document.narrative._patient_info_renderers import (
@@ -412,8 +412,7 @@ def _build_extra_context(
             if _icd_pat.match(cid):
                 # ICD code — resolve via code_lookup on the JA/EN diagnosis
                 # code system; fall back to the raw code when unmapped.
-                sys_key = "icd-10-mhlw" if ctx.locale == "jp" else "icd-10-cm"
-                return registry_display(sys_key, cid, ctx.target_lang) or cid
+                return icd10_display(cid, ctx.locale, ctx.target_lang) or cid
             return _localize_complication(cid, ctx.target_lang) or cid
 
         # Phase 1d-79: locale-aware onset phrase. Pre-1d-79 the format was

@@ -2,7 +2,6 @@
 # Occupational exposure to acids, alkalis, solvents (skin, eye, inhalation).
 condition_id: chemical_exposure
 icd10_code: "T54.9"
-icd10_display: "Toxic effect of unspecified corrosive substance"
 chief_complaint:
   en: "Chemical exposure at workplace (skin/eye/inhalation)"
   ja: "化学物質曝露（労災・皮膚/眼/吸入）"

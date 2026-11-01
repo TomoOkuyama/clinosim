@@ -244,7 +244,6 @@ ENCOUNTER_TOP_KEYS = frozenset(
         "triage_level_max",  # Issue #2124 (triage/engine.py condition_triage_bounds)
         "triage_level_min",  # Issue #2124 (triage/engine.py condition_triage_bounds)
         "admitted_with_inpatient_unit",  # Issue #2132 (phases/_ed_slot.py ed_severity_restriction)
-        "icd10_display",
         "incidence_modifier",
         "narrative",
         "seasonal",

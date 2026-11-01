@@ -3,7 +3,6 @@
 
 condition_id: minor_burn
 icd10_code: "T30.0"
-icd10_display: "Burn of unspecified body region, unspecified degree"
 chief_complaint:
   en: "Burn to hand/arm, partial thickness"
   ja: "手/腕の熱傷（部分層）"

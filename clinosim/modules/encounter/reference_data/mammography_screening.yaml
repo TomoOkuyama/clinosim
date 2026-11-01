@@ -3,7 +3,6 @@
 
 condition_id: mammography_screening
 icd10_code: "Z12.31"
-icd10_display: "Encounter for screening mammogram for malignant neoplasm of breast"
 chief_complaint:
   en: "Breast cancer screening mammography"
   ja: "乳癌スクリーニング・マンモグラフィ"

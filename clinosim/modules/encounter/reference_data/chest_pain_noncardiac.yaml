@@ -3,7 +3,6 @@
 
 condition_id: chest_pain_noncardiac
 icd10_code: "R07.89"
-icd10_display: "Other chest pain"
 chief_complaint:
   en: "Chest pain, rule out acute coronary syndrome"
   ja: "胸痛（急性冠症候群除外目的）"

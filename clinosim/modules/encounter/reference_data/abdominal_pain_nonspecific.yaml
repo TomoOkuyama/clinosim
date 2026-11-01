@@ -3,7 +3,6 @@
 
 condition_id: abdominal_pain_nonspecific
 icd10_code: "R10.9"
-icd10_display: "Unspecified abdominal pain"
 chief_complaint:
   en: "Abdominal pain, nausea"
   ja: "腹痛・嘔気"

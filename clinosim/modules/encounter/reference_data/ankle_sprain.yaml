@@ -3,7 +3,6 @@
 
 condition_id: ankle_sprain
 icd10_code: "S93.40"
-icd10_display: "Sprain of unspecified ligament of ankle"
 chief_complaint:
   en: "Ankle injury after fall, pain, swelling"
   ja: "足関節捻挫（転倒後）"

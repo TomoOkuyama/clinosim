@@ -124,6 +124,7 @@ occupation:
 | `codes.valuesets`: `concept_group` / `has_condition` / `patient_condition_names` / `code_by_chronic_prefix` | value set への所属 | 未知のグループなら `KeyError` |
 | `codes.drugs`: `resolve_drug` / `get_drug` / `find_drug` / `names_drug` / `drug_name_needles` | 薬の同一性と名称照合 | 例外 / `None` / `False` |
 | `codes.drugs`: `route_class(route)` / `jp_drug_code(drug, route)` / `jp_drug_code_table(route)` | 投与経路の区分、薬と経路に対応する JP の YJ 製品コード | `""` / `None` / 該当なし |
+| `codes.icd10`: `icd10_system(country)` / `icd10_display(code, country, lang)` / `condition_short_name(code, lang)` / `medis_disease_keyno(icd)` | 国の ICD-10 体系、正式名称、臨床短縮名 (3 桁分類で引く)、MEDIS 病名管理番号 | キー / `None` / `None` / `None` |
 | `codes.procedures`: `procedure_code` / `procedure_type_display` / `procedure_code_display` | 処置のコードと名称 | `""` / 人間可読化した type / `None` |
 | `codes.ucum`: `ucum_code` / `ucum_quantity` | UCUM コード / FHIR Quantity | 単位をそのまま通す |
 | `codes.prefectures.prefecture_code(name)` | JIS X 0401 コード | `""` |
@@ -225,7 +226,7 @@ occupation:
 | 未準拠箇所 | Issue |
 |---|---|
 | **フォールバック。** `display` / `lookup`、`resolve_text`、`t` は最後の手段として、最初に見つかった言語・コード・`str(value)`・キーを返す。§6.1–6.2 に反する場合があり、取得 API も 1 本化されていない。 | #2275 |
-| ICD の検索・短縮名・crosswalk が 1 つの accessor にまとまっていない (短縮名の表が 2 つ、CM と WHO で日本語表示が食い違う)。 | #2257 |
+| JP の ICD-10 日本語表示が sibling fallback で ICD-10-CM の表から来ることがあり、両表に共通する 95 コードで日本語名が食い違う。 | #2360 |
 | SNOMED のコードと表示名を出力側の dict がまだ持っている (route / severity)。SNOMED のリテラル 74 件が未登録。 | #2258 |
 | 文書 LOINC の定義が 8 箇所にある。意味の合わない section コードがある。出力側に LOINC 定数が残っている。 | #2344 |
 | 疾患 YAML にインラインの `code_yj` が残り、JP の CIF `order_code` がカタログではなくそこから写されている。 | #2351 |

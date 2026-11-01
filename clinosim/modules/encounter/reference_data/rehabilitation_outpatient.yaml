@@ -3,7 +3,6 @@
 
 condition_id: rehabilitation_outpatient
 icd10_code: "Z51.89"
-icd10_display: "Encounter for other specified aftercare"
 chief_complaint:
   en: "Physical/occupational therapy session"
   ja: "外来リハビリテーション（理学療法/作業療法）"

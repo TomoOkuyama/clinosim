@@ -3,7 +3,6 @@
 
 condition_id: viral_gastroenteritis
 icd10_code: "A08.4"
-icd10_display: "Viral intestinal infection, unspecified"
 chief_complaint:
   en: "Nausea, vomiting, diarrhea, abdominal cramps"
   ja: "嘔気・嘔吐・下痢・腹部痙攣"

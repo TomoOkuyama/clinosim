@@ -3,7 +3,6 @@
 
 condition_id: lab_result_consultation
 icd10_code: "Z71.89"
-icd10_display: "Other specified counseling"
 chief_complaint:
   en: "Lab result review, test result explanation"
   ja: "検査結果説明・結果確認"

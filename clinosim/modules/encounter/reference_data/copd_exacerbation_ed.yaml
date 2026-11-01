@@ -6,7 +6,6 @@
 
 condition_id: copd_exacerbation_ed
 icd10_code: "J44.1"
-icd10_display: "Chronic obstructive pulmonary disease with (acute) exacerbation"
 chief_complaint:
   en: "Worsening dyspnea, cough and sputum"
   ja: "呼吸困難・咳嗽・喀痰の増悪"

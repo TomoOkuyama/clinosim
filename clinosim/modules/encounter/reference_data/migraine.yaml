@@ -3,7 +3,6 @@
 
 condition_id: migraine
 icd10_code: "G43.909"
-icd10_display: "Migraine, unspecified, not intractable, without status migrainosus"
 chief_complaint:
   en: "Severe headache, nausea, photophobia"
   ja: "激しい頭痛・嘔気・光過敏"

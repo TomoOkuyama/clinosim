@@ -9,10 +9,8 @@ from __future__ import annotations
 import hashlib
 from datetime import date, timedelta
 from functools import lru_cache
-from pathlib import Path
 
 import numpy as np
-import yaml
 
 from clinosim.codes.valuesets import concept_group, has_condition
 from clinosim.locale.loader import load_names
@@ -215,43 +213,6 @@ def _generate_stage(code: str, severity: str, rng: np.random.Generator) -> str:
     if code == "F41.1":  # Generalized anxiety severity (GAD-7 Spitzer bands)
         return str(rng.choice(F41_1_STAGES, p=F41_1_STAGE_WEIGHTS))
     return ""
-
-
-# Short bilingual display per ICD-10 code — authoritative yaml at
-# `clinosim/codes/data/icd10-condition-display.yaml` (hardcoded-review
-# Phase A8). The yaml carries both `en` and `ja`; this `CONDITION_NAMES`
-# alias preserves the historical EN-only shape so every existing call
-# site (activator.py chronic-activation path + outpatient.py chronic
-# visit-reason composition) stays unchanged.
-
-
-_ICD10_CONDITION_DISPLAY_PATH = Path(__file__).resolve().parents[2] / "codes" / "data" / "icd10-condition-display.yaml"
-
-
-@lru_cache(maxsize=1)
-def _icd10_condition_display() -> dict[str, dict[str, str]]:
-    """Load bilingual chronic/incident condition display from yaml."""
-    with open(_ICD10_CONDITION_DISPLAY_PATH, encoding="utf-8") as f:
-        data = yaml.safe_load(f) or {}
-    out: dict[str, dict[str, str]] = {}
-    for code, row in (data.get("codes") or {}).items():
-        if isinstance(row, dict):
-            out[str(code)] = {str(k): str(v) for k, v in row.items()}
-    return out
-
-
-def _condition_display(code: str, lang: str = "en") -> str:
-    """Return the short display label for ``code`` in ``lang``.
-
-    Falls back to the English label when `lang` is missing from the
-    row, then to the raw code — same contract as `code_lookup` so
-    callers can swap this in without special-casing missing JA.
-    """
-    row = _icd10_condition_display().get(code, {})
-    return row.get(lang) or row.get("en") or code
-
-
-CONDITION_NAMES: dict[str, str] = {code: _condition_display(code, "en") for code in _icd10_condition_display()}
 
 
 @lru_cache(maxsize=1)

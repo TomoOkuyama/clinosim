@@ -5,6 +5,7 @@ from __future__ import annotations
 import pytest
 
 from clinosim.codes import lookup
+from clinosim.locale.loader import load_code_mapping
 from clinosim.modules.hai.engine import (
     load_hai_codes,
     load_hai_organisms,
@@ -18,7 +19,8 @@ pytestmark = pytest.mark.unit
 def test_hai_condition_codes_resolve(hai_type):
     cfg = load_hai_codes()["hai_codes"][hai_type]
     cm = cfg["icd10_us_billable"]
-    who = cfg["icd10_jp_who"]
+    # JP code from the one CM → WHO crosswalk (Issue #2257).
+    who = load_code_mapping("diagnosis", "JP")[cm]
     snomed = cfg["snomed"]
     assert lookup("icd-10-cm", cm, "en"), f"icd-10-cm/{cm}/en empty"
     assert lookup("icd-10-cm", cm, "ja"), f"icd-10-cm/{cm}/ja empty"
