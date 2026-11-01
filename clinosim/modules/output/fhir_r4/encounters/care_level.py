@@ -23,7 +23,7 @@ from clinosim.modules.output.fhir_r4.demographics.smoking_alcohol import _sdoh_e
 from clinosim.modules.output.fhir_r4.lib.common import (
     BundleContext,
     _social_category,
-    _value,
+    dual_slot_concept,
 )
 from clinosim.modules.output.fhir_r4.lib.ids import (
     derive_opaque_id,
@@ -85,7 +85,7 @@ def _bb_care_level(ctx: BundleContext) -> list[dict]:
             "text": text,
         },
         "subject": patient_ref(ctx.patient_id),
-        "valueCodeableConcept": _value("jp-care-level", code, lang),
+        "valueCodeableConcept": dual_slot_concept("jp-care-level", code, lang),
     }
     if effective_dt:
         o["effectiveDateTime"] = effective_dt

@@ -48,7 +48,6 @@ __all__ = [
     "map_mar_status",
     # Coding-system helpers (used by both output/ and audit modules)
     "loinc_coding",
-    "_coding_with_display",
     "severity_coding",
     # Cross-profile helpers
     "attach_ecs_institutional_extensions",
@@ -65,8 +64,8 @@ __all__ = [
     "to_fhir_instant",
     "tz_suffix_for_country",
     # Truly-private (kept out of __all__): _parse_dose_for_mar, _sha1_b64,
-    # _escape_html, _coding_with_display, _social_category,
-    # _value, _validate_route_maps, _append_tz_if_missing.
+    # _escape_html, _social_category, _validate_route_maps,
+    # _append_tz_if_missing.
     # UCUM Quantities: clinosim.codes.ucum (ucum_code / ucum_quantity, Issue #2265).
 ]
 
@@ -82,7 +81,6 @@ import yaml
 
 from clinosim.codes import display as registry_display
 from clinosim.codes import get_system_uri, is_english_only_system
-from clinosim.codes import lookup as code_lookup
 from clinosim.codes.icd10 import condition_short_name
 from clinosim.codes.prefectures import prefecture_code
 from clinosim.codes.ucum import ucum_quantity
@@ -298,46 +296,10 @@ def dual_slot_concept(
     return concept
 
 
-def _coding_with_display(system_key: str, code: str, lang: str) -> dict:
-    """Build a FHIR coding, resolving display via codes/data.
-
-    Never emits ``display=code`` (a common FHIR interop trap); if
-    ``code_lookup`` cannot resolve a display it is omitted entirely.
-
-    Used at every builder site that emits a single coding (no CodeableConcept
-    wrapping and no multilingual duplicate). Sibling helpers: ``_value()``
-    (wraps as full CodeableConcept), ``loinc_coding()`` (LOINC-specialized),
-    ``build_diagnosis_codeable_concept()`` (multi-language dx codes).
-
-    C2-01/02/03/05/06/07/08 — migrated the display-fallback
-    sites (Encounter.type, Condition.clinicalStatus/verificationStatus,
-    Observation.referenceRange.appliesTo, Coverage.relationship,
-    PractitionerRole.code, DiagnosticReport.category) through this helper.
-    """
-    coding: dict[str, Any] = {"system": get_system_uri(system_key), "code": code}
-    disp = code_lookup(system_key, code, lang)
-    if disp and disp != code:
-        coding["display"] = disp
-    return coding
-
-
-def survey_category() -> list[dict]:
-    """Return the observation category list for survey-type observations.
-
-    Uses get_system_uri to avoid hardcoding FHIR system URIs (project rule).
-    """
-    return [
-        {
-            "coding": [
-                {
-                    "system": get_system_uri("hl7-observation-category"),
-                    "code": "survey",
-                    "display": "Survey",
-                }
-            ],
-            "text": "Survey",
-        }
-    ]
+def survey_category(lang: str) -> list[dict]:
+    """The observation category list for survey-type observations (dual slot,
+    Issue #2337)."""
+    return [dual_slot_concept("hl7-observation-category", "survey", lang)]
 
 
 def loinc_coding(code: str, lang: str) -> dict:
@@ -356,27 +318,6 @@ def _social_category(country: str) -> list[dict]:
     from _fhir_sdoh.py in PR2 (G2 SDOH integrity refactor, 2026-06-24).
     """
     return [dual_slot_concept("hl7-observation-category", "social-history", resolve_lang(country))]
-
-
-def _value(system_key: str, code: str, lang: str) -> dict[str, Any]:
-    """Build a FHIR valueCodeableConcept with localized display.
-
-    Generic helper for any coded value whose display lives in
-    clinosim.codes. Returns a CodeableConcept fragment
-    {"coding": [{"system": ..., "code": ..., "display": ...}], "text": ...}
-    — distinct from _coding_with_display() in this module which returns the
-    bare coding dict (no CodeableConcept wrapping). Used by SDOH
-    builders (smoking_status / alcohol_use / care_level) and any future
-    builder emitting a coded valueCodeableConcept.
-
-    Promoted from _fhir_sdoh.py in PR2 (G2 SDOH integrity refactor,
-    2026-06-24).
-    """
-    coding: dict[str, Any] = {"system": get_system_uri(system_key), "code": code}
-    disp = code_lookup(system_key, code, lang)
-    if disp and disp != code:
-        coding["display"] = disp
-    return {"coding": [coding], "text": disp or code}
 
 
 def entry(resource: dict) -> dict:
@@ -1492,7 +1433,7 @@ def build_reference_range(
             rr["appliesTo"] = [
                 {
                     "coding": [
-                        _coding_with_display(
+                        system_coding(
                             "hl7-v3-administrativegender",
                             sex,
                             resolve_lang(country_code),

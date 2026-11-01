@@ -234,7 +234,7 @@ occupation:
 | registry の外にある SNOMED のコードと表示名 (処置名 YAML、device / HAI / follow-up の写し、Python の mapper 表) と、未登録の SNOMED リテラル約 74 件。 | #2363 |
 | 文書 LOINC の定義が 8 箇所にある。意味の合わない section コードがある。出力側に LOINC 定数が残っている。 | #2344 |
 | 生成側が出しているのに未登録の CPT / K コード。 | #2340 |
-| 手組みの dual-slot が残っている。`_coding_with_display` と `_value` が英語専用の coding に出力言語の表示名を入れている (`system_coding` / `dual_slot_concept` を使うべき)。後処理で text を補う walker も残っている。 | #2337 |
+| 投与経路・診断名・CoreLabo・MedicationAdministration の経路/デバイスの概念を手組みしており、後処理の walker が出力後に `.text` を補っている。 | #2375 |
 | 自由文の名称 localizer が FHIR 出力層にあり、order 層と narrative 層から import され、手技・SNOMED・アレルゲン名の翻訳にも使われている。判断ロジックと記録の薬名は `codes.drugs.drug_display` で解決する。 | #2367 |
 | Python に言語ごとのリテラルが残っている。 | #2277 |
 | レコードが `drug_id` を持っていない。 | #2297 |

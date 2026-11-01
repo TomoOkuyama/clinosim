@@ -34,9 +34,9 @@ import hashlib
 from functools import lru_cache
 from typing import Any
 
-from clinosim.codes import get_system_uri
 from clinosim.locale.i18n import t
 from clinosim.locale.loader import load_external_organizations
+from clinosim.modules.output.fhir_r4.lib.common import dual_slot_concept
 
 # eCS `identifier:medicalInstitutionCode` slice fixedUri — identical to the
 # system that ``facility.py`` pins on ``hospital-main``. Extracted here so
@@ -115,16 +115,13 @@ def build_external_org_resource(entry: dict[str, Any]) -> dict[str, Any]:
             }
         ],
         "active": True,
+        # The external-hospital catalog is per country; its organizations are
+        # JP referral destinations, so the label is Japanese (dual slot,
+        # Issue #2337: English HL7 display in the coding).
         "type": [
-            {
-                "coding": [
-                    {
-                        "system": get_system_uri("hl7-organization-type"),
-                        "code": entry.get("type_code") or "prov",
-                        "display": entry.get("type_display") or "医療機関",
-                    }
-                ],
-            }
+            dual_slot_concept(
+                "hl7-organization-type", entry.get("type_code") or "prov", "ja", text=entry.get("type_display") or None
+            )
         ],
         "name": entry.get("name") or entry["id"],
         "telecom": [{"system": "phone", "value": str(entry.get("phone") or "03-0000-0000"), "use": "work"}],

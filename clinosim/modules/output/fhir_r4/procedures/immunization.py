@@ -22,8 +22,8 @@ from clinosim.modules.output.fhir_r4.demographics.patient import patient_ref
 from clinosim.modules.output.fhir_r4.encounters.encounter import encounter_ref
 from clinosim.modules.output.fhir_r4.lib.common import (
     BundleContext,
-    _coding_with_display,
     dual_slot_concept,
+    system_coding,
     to_fhir_datetime,
 )
 from clinosim.modules.output.fhir_r4.lib.ids import (
@@ -199,7 +199,7 @@ def _bb_immunizations(ctx: BundleContext) -> list[dict]:
             # hl7-v3-actreason.yaml — was en-only hardcoded string.
             lang = resolve_lang(ctx.country)
             resource["statusReason"] = {
-                "coding": [_coding_with_display("hl7-v3-actreason", "PATOBJ", lang)],
+                "coding": [system_coding("hl7-v3-actreason", "PATOBJ", lang)],
                 "text": t("immunization_fhir.patient_refused", lang),
             }
         # C3-05: reasonCode is universal — vaccination

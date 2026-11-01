@@ -42,7 +42,6 @@ from clinosim.modules.output.fhir_r4.conditions.conditions import _build_conditi
 from clinosim.modules.output.fhir_r4.conditions.hai import _bb_hai_conditions  # noqa: F401
 from clinosim.modules.output.fhir_r4.demographics.family_history import _bb_family_history  # noqa: F401
 from clinosim.modules.output.fhir_r4.demographics.patient import (  # noqa: F401
-    _ORG_TYPE_SYSTEM,
     _SUBSCRIBER_REL_SYSTEM,
     _build_coverage_resources,
     _build_occupation_observation,
@@ -107,7 +106,6 @@ from clinosim.modules.output.fhir_r4.labs.service_request import (  # noqa: F401
 # builders move out, without per-symbol import churn each phase.
 from clinosim.modules.output.fhir_r4.lib.common import (  # noqa: F401
     BundleContext,
-    _coding_with_display,
     _parse_dose_for_mar,
     _sha1_b64,
     build_address,
@@ -125,6 +123,7 @@ from clinosim.modules.output.fhir_r4.lib.common import (  # noqa: F401
     severity_coding,
     strip_protocol_prefix,
     survey_category,
+    system_coding,
 )
 from clinosim.modules.output.fhir_r4.lib.ids import wrap_as_identifier
 from clinosim.modules.output.fhir_r4.lib.localization import (  # noqa: F401

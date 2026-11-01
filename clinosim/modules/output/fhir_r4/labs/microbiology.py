@@ -26,9 +26,9 @@ from clinosim.modules.output.fhir_r4.labs.diagnostic_report import (
 )
 from clinosim.modules.output.fhir_r4.lib.common import (
     BundleContext,
-    _coding_with_display,
     build_presented_form,
     dual_slot_concept,
+    system_coding,
 )
 from clinosim.modules.output.fhir_r4.lib.ids import (
     derive_opaque_id,
@@ -174,19 +174,7 @@ def _bb_microbiology(ctx: BundleContext) -> list[dict]:
     # the original category — without a text hint here, mb-org
     # Observations end up with a bare `{system, code}` category and no
     # human-readable label at all.
-    _lab_category_text = "検査" if is_jp(ctx.country) else "Laboratory"
-    lab_category = [
-        {
-            "coding": [
-                {
-                    "system": get_system_uri("hl7-observation-category"),
-                    "code": "laboratory",
-                    "display": "Laboratory",
-                }
-            ],
-            "text": _lab_category_text,
-        }
-    ]
+    lab_category = [dual_slot_concept("hl7-observation-category", "laboratory", resolve_lang(ctx.country))]
     # CY6-03 (Chain-6): microbiology DR performer — encounter attending
     # fallback (same rationale as lab panel DR).
     _mb_performer_ref = ""
@@ -225,7 +213,7 @@ def _bb_microbiology(ctx: BundleContext) -> list[dict]:
             "subject": subject,
         }
         if mb.get("specimen_snomed"):
-            specimen["type"] = {"coding": [_coding_with_display("snomed-ct", mb["specimen_snomed"], lang)]}
+            specimen["type"] = dual_slot_concept("snomed-ct", mb["specimen_snomed"], lang)
         if mb.get("collected_datetime"):
             specimen["collection"] = {"collectedDateTime": mb["collected_datetime"]}
         # CY8-09 fix: Specimen.receivedTime = 検体到着時刻。
@@ -260,7 +248,7 @@ def _bb_microbiology(ctx: BundleContext) -> list[dict]:
         # coding が存在する場合も text を必ず併記(coding display を text に
         # コピー、無ければ "Culture" fallback)。
         if culture_code_value:
-            _c = _coding_with_display(code_system, culture_code_value, lang)
+            _c = system_coding(code_system, culture_code_value, lang)
             culture_code = {
                 "coding": [_c],
                 "text": _c.get("display") or t("microbiology_fhir.culture", lang),
@@ -313,7 +301,7 @@ def _bb_microbiology(ctx: BundleContext) -> list[dict]:
             # _only_systems` により削除、validator が "display=0" を検出)。
             # lookup 失敗時は SNOMED code 自体を display fallback として
             # 使う(FHIR spec:code は不明でも display 必要)。
-            _org_c = _coding_with_display("snomed-ct", mb["organism_snomed"], "en")
+            _org_c = system_coding("snomed-ct", mb["organism_snomed"], "en")
             if not _org_c.get("display"):
                 _org_c["display"] = mb["organism_snomed"]
             org_obs["valueCodeableConcept"] = {"coding": [_org_c]}
@@ -333,7 +321,7 @@ def _bb_microbiology(ctx: BundleContext) -> list[dict]:
             antibiotic_loinc = sus.get("antibiotic_loinc", "")
             sus_code_value, sus_code_system = resolve_susceptibility_code(antibiotic_loinc, ctx.country)
             # #321 JP_Observation_LabResult code.text min=1 満たす。
-            _sus_c = _coding_with_display(sus_code_system, sus_code_value, lang)
+            _sus_c = system_coding(sus_code_system, sus_code_value, lang)
             _sus_code_text = _sus_c.get("display") or t("microbiology_fhir.antimicrobial_susceptibility", lang)
             # 同 profile の valueCodeableConcept.coding.display min=1 満たす
             # (v6.1 で 162 件 error)。v3-ObservationInterpretation は
@@ -358,15 +346,12 @@ def _bb_microbiology(ctx: BundleContext) -> list[dict]:
                 "subject": subject,
                 "specimen": {"reference": f"Specimen/{spec_id}"},
                 "method": {"text": _sus_method_text},
-                "valueCodeableConcept": {
-                    "coding": [
-                        {
-                            "system": get_system_uri("hl7-observation-interpretation"),
-                            "code": interp,
-                            "display": _sus_interp_display,
-                        }
-                    ]
-                },
+                "valueCodeableConcept": dual_slot_concept(
+                    "hl7-observation-interpretation",
+                    interp,
+                    resolve_lang(ctx.country),
+                    fallback_display=_sus_interp_display,
+                ),
             }
             sus_obs["identifier"] = [*hai_identifier, _mb_sus_identifier]
             if enc_ref:

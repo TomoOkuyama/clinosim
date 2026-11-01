@@ -53,7 +53,7 @@ from clinosim.codes.blood_group_to_snomed import resolve_abo_snomed, resolve_rh_
 from clinosim.modules._shared import get_attr_or_key as _o
 from clinosim.modules._shared import is_jp, resolve_lang
 from clinosim.modules.output.fhir_r4.demographics.patient import patient_ref
-from clinosim.modules.output.fhir_r4.lib.common import BundleContext, to_fhir_datetime
+from clinosim.modules.output.fhir_r4.lib.common import BundleContext, dual_slot_concept, to_fhir_datetime
 from clinosim.modules.output.fhir_r4.lib.ids import (
     derive_opaque_id,
     structural_key_system,
@@ -189,17 +189,7 @@ def _build_blood_type_obs(
             else {}
         ),
         "status": "final",
-        "category": [
-            {
-                "coding": [
-                    {
-                        "system": get_system_uri("hl7-observation-category"),
-                        "code": _LAB_CATEGORY_CODE,
-                        "display": "Laboratory",
-                    }
-                ],
-            }
-        ],
+        "category": [dual_slot_concept("hl7-observation-category", _LAB_CATEGORY_CODE, lang)],
         "code": {
             "coding": [
                 {

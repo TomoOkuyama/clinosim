@@ -20,7 +20,7 @@ from clinosim.locale.loader import (
     role_display,
 )
 from clinosim.modules._shared import is_jp, is_us, resolve_lang
-from clinosim.modules.output.fhir_r4.lib.common import _coding_with_display
+from clinosim.modules.output.fhir_r4.lib.common import system_coding
 from clinosim.modules.output.fhir_r4.lib.localization import _ROLE_PREFIX_MAP_JA
 
 # Issue #1986: US Core 6.1.0 Practitioner profile marks the NPI
@@ -455,7 +455,7 @@ def _build_practitioner_role(
         resource["code"] = [
             {
                 "coding": [
-                    _coding_with_display(
+                    system_coding(
                         "hl7-practitioner-role",
                         role_code,
                         resolve_lang(country),

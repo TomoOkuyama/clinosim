@@ -57,7 +57,7 @@ def _bb_code_status(ctx: BundleContext) -> list[dict]:
             else {}
         ),
         "status": "final",
-        "category": survey_category(),
+        "category": survey_category(resolve_lang(ctx.country)),
         "code": {"coding": [_coding(observable)]},
         "subject": patient_ref(ctx.patient_id),
         "valueCodeableConcept": {"coding": [_coding(code)]},

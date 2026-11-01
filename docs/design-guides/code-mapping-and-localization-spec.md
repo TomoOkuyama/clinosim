@@ -234,7 +234,7 @@ These parts of the code base do not yet conform. Each one is removed by the issu
 | SNOMED codes and displays outside the registry (procedure-name YAML, device / HAI / follow-up copies, mapper tables in Python), and about 74 unregistered SNOMED literals. | #2363 |
 | Document LOINCs are defined in eight places, some section codes do not mean their section, and emitters still hold LOINC constants. | #2344 |
 | CPT / K-codes the generator emits but has not registered. | #2340 |
-| Remaining hand-built dual-slot concepts; `_coding_with_display` and `_value` put the output-language display into English-only codings instead of `system_coding` / `dual_slot_concept`; and the post-process text-filling walkers. | #2337 |
+| Route, diagnosis, CoreLabo and MedicationAdministration route/device concepts are built by hand, and post-process walkers fill `.text` after emission. | #2375 |
 | The free-text name localizer lives in the FHIR output layer, is imported from the order and narrative layers, and also translates procedure, SNOMED and allergen names. Decision logic and records resolve drug names through `codes.drugs.drug_display`. | #2367 |
 | Language literals are still embedded in Python. | #2277 |
 | Records do not carry `drug_id`. | #2297 |
