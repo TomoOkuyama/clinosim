@@ -1201,3 +1201,40 @@ codes:
   J95.8:
     en: "Other postprocedural respiratory disorders"
     ja: "その他の処置後の呼吸器障害"
+  D55.0:
+    en: "Anaemia due to glucose-6-phosphate dehydrogenase [G6PD] deficiency"
+    ja: "グルコース-６-リン＜燐＞酸脱水素酵素［G6PD］欠損による貧血"
+  E88.8:
+    en: "Other specified metabolic disorders"
+    ja: "その他の明示された代謝障害"
+  # Single-gene disease catalog (locale/shared/single_gene_diseases.yaml, Issue #2429)
+  E84:
+    en: "Cystic fibrosis"
+    ja: "のう＜嚢＞胞線維症"
+  E84.9:
+    en: "Cystic fibrosis, unspecified"
+    ja: "のう＜嚢＞胞線維症，詳細不明"
+  D57.1:
+    en: "Sickle-cell anaemia without crisis"
+    ja: "鎌状赤血球貧血，クリーゼを伴わないもの"
+  D66:
+    en: "Hereditary factor VIII deficiency"
+    ja: "遺伝性第Ⅷ因子欠乏症"
+  D67:
+    en: "Hereditary factor IX deficiency"
+    ja: "遺伝性第Ⅸ因子欠乏症"
+  D68.1:
+    en: "Hereditary factor XI deficiency"
+    ja: "遺伝性第XI因子欠乏症"
+  D56.0:
+    en: "Alpha thalassaemia"
+    ja: "アルファサラセミア＜地中海貧血＞"
+  D56.1:
+    en: "Beta thalassaemia"
+    ja: "ベータサラセミア＜地中海貧血＞"
+  G10:
+    en: "Huntington disease"
+    ja: "ハンチントン＜Huntington＞病"
+  Q87.4:
+    en: "Marfan syndrome"
+    ja: "マルファン＜Marfan＞症候群"
