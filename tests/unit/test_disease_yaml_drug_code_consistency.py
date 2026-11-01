@@ -172,10 +172,13 @@ def _norm(name: str) -> str:
     return n
 
 
+# Intermediate lines stay inside one list entry: same-entry ``key: value``
+# lines only (``[ \t]`` instead of ``\s`` so a match cannot run past a bare
+# ``us:`` / ``japan:`` header into the next entry's code).
 _DRUG_BLOCK_RE = re.compile(
-    r'- drug:\s*"([^"]+)"\s*\n'
-    r"(?:\s+[a-z_]+:\s*.+\n){0,3}?"
-    r'\s+code_(yj|rxnorm):\s*"([^"]+)"'
+    r'- drug:[ \t]*"([^"]+)"[ \t]*\n'
+    r"(?:[ \t]+[a-z_]+:[ \t]*[^\n]+\n){0,3}?"
+    r'[ \t]+code_(yj|rxnorm):[ \t]*"([^"]+)"'
 )
 
 

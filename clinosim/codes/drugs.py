@@ -170,6 +170,31 @@ def jp_drug_code(drug_ref: str, route: str = "") -> str | None:
     return next(iter(rec.yj_by_route.values())) if len(rec.yj_by_route) == 1 else None
 
 
+def jp_drug_code_for_name(name: str, route: str = "") -> str | None:
+    """JP YJ product code for a free-text order name ("Furosemide 20mg",
+    "Unfractionated Heparin", "Normal_saline") given by ``route``: the longest
+    leading word run that names a catalog drug, then the longest trailing run,
+    then a case-insensitive leading run — the matching the FHIR medication
+    builders apply to the same names (Issue #2351). ``None`` when no catalog
+    drug with a product for the route matches."""
+    table = jp_drug_code_table(route)
+    tokens = (name or "").replace("_", " ").split()
+    for n in range(len(tokens), 0, -1):
+        if (code := table.get(" ".join(tokens[:n]))) is not None:
+            return code
+    for n in range(len(tokens) - 1, 0, -1):
+        if (code := table.get(" ".join(tokens[-n:]))) is not None:
+            return code
+    folded: dict[str, set[str]] = {}
+    for key, code in table.items():
+        folded.setdefault(key.casefold(), set()).add(code)
+    for n in range(len(tokens), 0, -1):
+        hits = folded.get(" ".join(tokens[:n]).casefold())
+        if hits and len(hits) == 1:
+            return next(iter(hits))
+    return None
+
+
 @cache
 def jp_drug_code_table(route: str = "") -> dict[str, str]:
     """Drug name → JP YJ code for drugs given by ``route``: every English name,

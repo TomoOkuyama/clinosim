@@ -105,11 +105,11 @@ class TestFileSeparation:
           Loperamide / Sumatriptan / Naproxen / Dextromethorphan) → 155.
         - #2347: the 155 "HOT7" codes were YJ ingredient prefixes; all removed
           (hot7 → 0). The drug catalog's full YJ products are registered in
-          yj.yaml with their MHLW product names (yj → 255).
+          yj.yaml with their MHLW product names (yj → 255; #2351 adds four IV products → 259).
         """
         yj_n = len(_load(_YJ_FILE).get("codes") or {})
         hot7_n = len(_load(_HOT7_FILE).get("codes") or {})
-        assert yj_n == 255, f"yj.yaml YJ12 count expected 255, got {yj_n}"
+        assert yj_n == 259, f"yj.yaml YJ12 count expected 259, got {yj_n}"
         assert hot7_n == 0, f"hot7.yaml HOT7 count expected 0, got {hot7_n}"
 
 

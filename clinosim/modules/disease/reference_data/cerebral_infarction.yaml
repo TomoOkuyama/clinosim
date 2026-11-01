@@ -454,13 +454,11 @@ drugs:
     continue_at_discharge: true
     japan:
       - drug: "Aspirin"
-        code_yj: "1143001"
         dose: "160-300mg loading, then 100mg PO daily"
         route: PO
         start_timing: "within 24-48h (after 24h if tPA given)"
         pregnancy_safe: false
       - drug: "Clopidogrel"
-        code_yj: "3399008"
         # Issue #1334: chronic-discharge dose is 75mg qd, NOT the 300mg
         # loading dose (which is administered ONCE at admission and
         # should not appear in the maintenance MR). Prior "300mg
@@ -509,14 +507,12 @@ drugs:
       - drug: "Edoxaban"
         drug_class: "anticoagulant"
         probability: 0.8
-        code_yj: "3339002"
         dose: "60mg PO daily (30mg if CrCl 15-50 or weight <= 60kg)"
         route: PO
         note: "DOAC first-line (JCS 2019 脳卒中治療ガイドライン)"
       - drug: "Warfarin"
         drug_class: "anticoagulant"
         probability: 0.2
-        code_yj: "3332001"
         dose: "Titrate to INR 2.0-3.0 (1.6-2.6 if age >= 70)"
         route: PO
         note: "Used if mechanical valve or DOAC contraindicated (JCS 2019)"
@@ -544,7 +540,6 @@ drugs:
     continue_at_discharge: true
     japan:
       - drug: "Atorvastatin"
-        code_yj: "2189015"
         dose: "10-20mg PO daily"
         route: PO
         note: "Standard dose in Japan (JCS 2015)"
@@ -565,12 +560,10 @@ drugs:
     start_timing: "after acute phase (typically Day 2-3, once neurologically stable)"
     japan:
       - drug: "Amlodipine"
-        code_yj: "2149114"
         dose: "5mg PO daily"
         route: PO
         note: "AHA/ASA 2021 + JCS 2019 target < 130/80"
       - drug: "Candesartan"
-        code_yj: "2149040"
         dose: "8mg PO daily"
         route: PO
         note: "ARB post-stroke (PROGRESS trial)"
@@ -590,7 +583,6 @@ drugs:
     indication: "SBP > 185 or DBP > 110 (pre-tPA) or SBP > 220 (no tPA)"
     japan:
       - drug: "Nicardipine"
-        code_yj: "2149019"
         dose: "1-6mg/h IV drip"
         route: IV
     us:

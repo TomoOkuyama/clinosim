@@ -418,13 +418,11 @@ drugs:
   first_line:
     japan:
       - drug: "Normal_saline"
-        code_yj: "3311401"
         dose: "200-500 mL/h IV (if prerenal, fluid-responsive)"
         route: IV
         note: "Fluid resuscitation for prerenal AKI"
         pregnancy_safe: true
       - drug: "Furosemide"
-        code_yj: "2139005"
         dose: "20-40mg IV (if fluid overloaded)"
         route: IV
         note: "Only for volume management, does not improve renal recovery"
@@ -446,19 +444,16 @@ drugs:
     _indication_tag: electrolyte_correction
     japan:
       - drug: "Calcium_gluconate"
-        code_yj: "3212001"
         dose: "10mL 8.5% IV over 5min"
         route: IV
         indication: "K > 6.0 or ECG changes"
         note: "Cardioprotective, does not lower K"
       - drug: "Insulin_regular"
-        code_yj: "2491100"
         dose: "10 units IV + D50W 50mL"
         route: IV
         indication: "K > 5.5"
         note: "Shifts K intracellularly"
       - drug: "Sodium_polystyrene_sulfonate"
-        code_yj: "2190009"
         dose: "15-30g PO or PR"
         indication: "K > 5.5"
     us:
@@ -479,7 +474,6 @@ drugs:
   acidosis_management:
     japan:
       - drug: "Sodium_bicarbonate"
-        code_yj: "2344004"
         dose: "50-100 mEq IV over 1-2h"
         route: IV
         indication: "pH < 7.1 or CO2 < 12"

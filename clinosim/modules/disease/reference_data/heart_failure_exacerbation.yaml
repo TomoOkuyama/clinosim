@@ -284,12 +284,12 @@ order_protocols:
 drugs:
   first_line:
     japan:
-      - {drug: "Furosemide", code_yj: "2139007", dose: "20-40mg IV", route: "IV"}
+      - {drug: "Furosemide", dose: "20-40mg IV", route: "IV"}
     us:
       - {drug: "Furosemide", code_rxnorm: "4603", dose: "40mg IV", route: "IV"}
   additional:
     japan:
-      - {drug: "Carperitide", code_yj: "2179100", dose: "0.1ug/kg/min IV", note: "JP-specific: hANP"}
+      - {drug: "Carperitide", dose: "0.1ug/kg/min IV", note: "JP-specific: hANP"}
     us:
       - {drug: "Nitroglycerin", code_rxnorm: "4917", dose: "5-200ug/min IV drip"}
   discharge_oral:

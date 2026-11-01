@@ -358,7 +358,6 @@ drugs:
   first_line:
     japan:
       - drug: "Cefmetazole"
-        code_yj: "6132408"
         dose: "1g IV q8h"
         route: IV
         note: "Good biliary coverage; widely used in Japan"
@@ -366,12 +365,10 @@ drugs:
           eGFR_below_30: "0.5g IV q12h"
         pregnancy_safe: true
       - drug: "Acetaminophen"
-        code_yj: "1141001"
         dose: "1000mg IV q6h"
         route: IV
         pregnancy_safe: true
       - drug: "Diclofenac"
-        code_yj: "1147002"
         dose: "50mg suppository PRN"
         route: PR
         note: "NSAIDs reduce gallbladder prostaglandin-mediated inflammation"
@@ -400,13 +397,11 @@ drugs:
     _indication_tag: antimicrobial_penicillin_class
     japan:
       - drug: "Levofloxacin"
-        code_yj: "6241013"
         dose: "500mg IV daily"
         renal_adjustment:
           eGFR_below_50: "250mg IV daily"
         pregnancy_safe: false
       - drug: "Metronidazole"
-        code_yj: "6419002"
         dose: "500mg IV q8h"
         pregnancy_safe: false
     us:
@@ -422,7 +417,6 @@ drugs:
   escalation:  # gangrenous or emphysematous cholecystitis, sepsis
     japan:
       - drug: "Piperacillin/Tazobactam"
-        code_yj: "6131701"
         dose: "4.5g IV q8h"
         indication: "gangrenous_cholecystitis_or_sepsis"
         renal_adjustment:
@@ -440,12 +434,10 @@ drugs:
     # resolver preserves their emit path byte-identical.
     japan:
       - drug: "Cefditoren pivoxil"
-        code_yj: "6132814"
         dose: "200mg PO TID"
         duration_days: 5
         note: "Only if complicated; uncomplicated needs no postop antibiotics"
       - drug: "Loxoprofen"
-        code_yj: "1149019"
         dose: "60mg PO TID PRN"
         duration_days: 5
     us:

@@ -309,7 +309,6 @@ drugs:
   first_line:
     japan:
       - drug: "Cefmetazole"
-        code_yj: "6132408"
         dose: "1g IV q8h"
         route: IV
         note: "Preoperative prophylaxis and postoperative (if perforated)"
@@ -317,12 +316,10 @@ drugs:
           eGFR_below_30: "0.5g IV q12h"
         pregnancy_safe: true
       - drug: "Acetaminophen"
-        code_yj: "1141001"
         dose: "1000mg IV q6h"
         route: IV
         pregnancy_safe: true
       - drug: "Fentanyl"
-        code_yj: "8219700"
         dose: "50mcg IV PRN"
         route: IV
         note: "Perioperative analgesia"
@@ -352,11 +349,9 @@ drugs:
     _indication_tag: antimicrobial_penicillin_class
     japan:
       - drug: "Clindamycin"
-        code_yj: "6112001"
         dose: "600mg IV q8h"
         pregnancy_safe: false
       - drug: "Gentamicin"
-        code_yj: "6134407"
         dose: "5mg/kg IV daily"
         renal_adjustment:
           eGFR_below_50: "adjust_by_level"
@@ -374,7 +369,6 @@ drugs:
   escalation:  # perforated or complicated
     japan:
       - drug: "Piperacillin/Tazobactam"
-        code_yj: "6131701"
         dose: "4.5g IV q8h"
         indication: "perforated_appendicitis_or_abscess"
         renal_adjustment:
@@ -388,7 +382,6 @@ drugs:
   discharge_oral:
     japan:
       - drug: "Cefditoren pivoxil"
-        code_yj: "6132814"
         dose: "200mg PO TID"
         duration_days: 5
         note: "Only if perforated; non-perforated needs no postop antibiotics"

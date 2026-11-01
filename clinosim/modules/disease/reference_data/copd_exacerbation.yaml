@@ -444,17 +444,14 @@ drugs:
   first_line:
     japan:
       - drug: "Salbutamol"
-        code_yj: "2254001"
         dose: "2.5mg nebulizer q4h (q1h PRN acute)"
         route: inhaled
         pregnancy_safe: true
       - drug: "Ipratropium"
-        code_yj: "2259702"
         dose: "0.5mg nebulizer q6h"
         route: inhaled
         pregnancy_safe: true
       - drug: "Prednisolone"
-        code_yj: "2456001"
         dose: "30-40mg PO daily x5-7 days"
         route: PO
         note: "or Methylprednisolone 125mg IV if unable to take PO"
@@ -479,7 +476,6 @@ drugs:
   antibiotics_if_infectious:
     japan:
       - drug: "Ceftriaxone"
-        code_yj: "6132419"
         dose: "1g IV daily"
         route: IV
         indication: "purulent sputum or suspected bacterial trigger"
@@ -487,7 +483,6 @@ drugs:
           eGFR_below_30: "1g IV daily (no adjustment needed)"
         pregnancy_safe: true
       - drug: "Azithromycin"
-        code_yj: "6149004"
         dose: "500mg PO day1, then 250mg PO days 2-5"
         route: PO
         indication: "atypical coverage or mild infection"
@@ -510,7 +505,6 @@ drugs:
     _indication_tag: antimicrobial_penicillin_class
     japan:
       - drug: "Levofloxacin"
-        code_yj: "6241013"
         dose: "500mg IV or PO daily"
         renal_adjustment:
           eGFR_below_50: "250mg daily"
@@ -526,7 +520,6 @@ drugs:
   escalation:  # when first-line fails (Day 3 no improvement or NIV failure)
     japan:
       - drug: "Meropenem"
-        code_yj: "6139400"
         dose: "1g IV q8h"
         indication: "no_improvement_72h or culture_resistant_organism"
         renal_adjustment:

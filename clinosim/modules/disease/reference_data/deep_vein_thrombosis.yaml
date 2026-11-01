@@ -339,14 +339,12 @@ drugs:
   first_line:
     japan:
       - drug: "Unfractionated Heparin"
-        code_yj: "3334002"
         dose: "80 U/kg IV bolus, then 18 U/kg/h infusion"
         route: IV
         note: "Target aPTT 1.5-2.5x control"
         renal_adjustment: {}
         pregnancy_safe: true
       - drug: "Edoxaban"
-        code_yj: "3339002"
         dose: "60mg PO daily (after 5+ days heparin)"
         route: PO
         note: "Start after initial heparin phase"
@@ -373,7 +371,6 @@ drugs:
   alternative_doac_contraindicated:
     japan:
       - drug: "Warfarin"
-        code_yj: "3332001"
         dose: "Initial 2-5mg PO daily, target INR 1.5-2.5 (JP) or 2.0-3.0"
         route: PO
         note: "Overlap with heparin until INR therapeutic for 24h"
@@ -389,7 +386,6 @@ drugs:
   cancer_associated_vte:
     japan:
       - drug: "Edoxaban"
-        code_yj: "3339002"
         dose: "60mg PO daily"
         route: PO
         note: "DOAC preferred over LMWH in most cancer-associated VTE (Hokusai-VTE Cancer)"
