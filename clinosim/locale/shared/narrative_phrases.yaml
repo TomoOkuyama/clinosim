@@ -1947,3 +1947,45 @@ llm_template:
   findings_block:
     ja: "所見: {findings}\n"
     en: "Findings: {findings}\n"
+
+# Daily ClinicalImpression of an inpatient stay (clinosim/modules/document/engine.py,
+# Issue #2401): encounter label, phase and description; CIF stores both languages.
+clinical_impression:
+  enc_label:
+    inpatient:
+      ja: "入院"
+      en: "inpatient"
+    icu:
+      ja: "ICU"
+      en: "ICU"
+    rehab:
+      ja: "リハビリ入院"
+      en: "rehab"
+  phase:
+    brief_admission:
+      ja: "短期入院"
+      en: "brief admission"
+    admission_workup:
+      ja: "入院時精査"
+      en: "admission workup"
+    pre_discharge_review:
+      ja: "退院前評価"
+      en: "pre-discharge review"
+    acute_phase:
+      ja: "急性期"
+      en: "acute phase"
+    stabilisation:
+      ja: "安定期"
+      en: "stabilisation"
+    recovery:
+      ja: "回復期"
+      en: "recovery"
+  dx_part:
+    ja: "（{dx}）"
+    en: " for {dx}"
+  sev_part:
+    ja: "（{severity}）"
+    en: " ({severity})"
+  description:
+    ja: "{enc}第{day}病日／全{los}病日 臨床評価{dx_part}{sev_part} — {phase}。バイタル・薬効反応・合併症リスク・退院基準への進捗を主治医が評価。"
+    en: "Day {day} of {los} {enc} clinical assessment{dx_part}{sev_part} — {phase}. Attending review of vitals, medication response, complication risk, and progress toward discharge criteria."
