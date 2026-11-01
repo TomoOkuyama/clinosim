@@ -79,7 +79,7 @@ def _build_us_npi_identifier(staff_id: str) -> dict[str, Any]:
         "type": {
             "coding": [
                 {
-                    "system": "http://terminology.hl7.org/CodeSystem/v2-0203",
+                    "system": get_system_uri("hl7-v2-0203"),
                     "code": "NPI",
                     "display": "National provider identifier",
                 }

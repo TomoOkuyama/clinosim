@@ -173,7 +173,7 @@ def _build_dref(doc: Any, narrative: Any, patient_id: str, country: str) -> dict
             {
                 "coding": [
                     {
-                        "system": "http://terminology.hl7.org/CodeSystem/v3-Confidentiality",
+                        "system": get_system_uri("hl7-v3-confidentiality"),
                         "code": "N",
                         "display": "Normal",
                     }

@@ -230,8 +230,7 @@ These parts of the code base do not yet conform. Each one is removed by the issu
 | SNOMED codes and displays are still held in emitter dicts (route, severity), and 74 SNOMED literals are unregistered. | #2258 |
 | Document LOINCs are defined in eight places, some section codes do not mean their section, and emitters still hold LOINC constants. | #2344 |
 | CPT / K-codes the generator emits but has not registered. | #2340 |
-| HL7 `terminology.hl7.org` URI literals outside `clinosim/codes/`, and three overlapping coding helpers (`_coding_with_display`, `_value`, `_build_hosp_concept`). | #2349 |
-| Remaining hand-built dual-slot concepts, and the post-process text-filling walkers. | #2337 |
+| Remaining hand-built dual-slot concepts; `_coding_with_display` and `_value` put the output-language display into English-only codings instead of `system_coding` / `dual_slot_concept`; and the post-process text-filling walkers. | #2337 |
 | Lab analyte display is spread over five tables. | #2267 |
 | Drug names go through free-text translation, not the catalog. | #2271 |
 | Language literals are still embedded in Python. | #2277 |

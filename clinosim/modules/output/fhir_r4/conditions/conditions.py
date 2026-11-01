@@ -99,7 +99,7 @@ def _icd10_condition_bodysite_map() -> dict[str, str]:
 # - encounter-diagnosis (per-encounter reason for visit) → `principal`
 # - chronic (problem-list-item, patient-level)         → `clinical`
 _JP_ECS_DIAGNOSIS_TYPE_EXT_URL = "http://jpfhir.jp/fhir/eCS/Extension/StructureDefinition/JP_eCS_DiagnosisType"
-_EX_DIAGNOSISTYPE_SYSTEM = "http://terminology.hl7.org/CodeSystem/ex-diagnosistype"
+_EX_DIAGNOSISTYPE_SYSTEM = get_system_uri("hl7-ex-diagnosistype")
 
 # Kept minimal: only the two codes clinosim currently emits. Adding more
 # (differential / admitting / discharge / laboratory / radiology / …) is a

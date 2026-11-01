@@ -107,6 +107,7 @@ from clinosim.modules.output.fhir_r4.labs.service_request import (  # noqa: F401
 # builders move out, without per-symbol import churn each phase.
 from clinosim.modules.output.fhir_r4.lib.common import (  # noqa: F401
     BundleContext,
+    _coding_with_display,
     _parse_dose_for_mar,
     _sha1_b64,
     build_address,
@@ -121,7 +122,6 @@ from clinosim.modules.output.fhir_r4.lib.common import (  # noqa: F401
     map_diagnosis_code,
     map_encounter_status,
     map_mar_status,
-    micro_coding,
     severity_coding,
     strip_protocol_prefix,
     survey_category,

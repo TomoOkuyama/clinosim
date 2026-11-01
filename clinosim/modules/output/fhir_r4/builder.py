@@ -21,7 +21,8 @@ from collections.abc import Callable
 from datetime import datetime
 from typing import Any
 
-from clinosim.modules._shared import is_jp, is_us
+from clinosim.codes.hl7_encounter import DischargeDisposition
+from clinosim.modules._shared import is_jp, is_us, resolve_lang
 from clinosim.modules.newborn.fhir_emit import (
     _bb_newborn_apgar,
     _bb_newborn_bilirubin,
@@ -69,6 +70,7 @@ from clinosim.modules.output.fhir_r4.labs.stage_scale_observations import _bb_st
 # dropped once tests migrated to canonical imports.
 from clinosim.modules.output.fhir_r4.lib.common import (
     BundleContext,
+    dual_slot_concept,
     entry,
 )
 from clinosim.modules.output.fhir_r4.lib.ed_reattribution import (
@@ -881,7 +883,7 @@ def _build_bundle(
     # resources without any date field are kept unchanged.
     _pat_dod_str = patient_data.get("date_of_death") or patient_data.get("dod")
     if _pat_dod_str:
-        entries = _drop_entries_after_death(entries, str(_pat_dod_str)[:10])
+        entries = _drop_entries_after_death(entries, str(_pat_dod_str)[:10], resolve_lang(country))
 
     # Issue #945 (2026-08-30): post-snapshot event gate. Universal
     # bundle-finalize filter mirroring #928 death filter — for inpatients
@@ -1396,7 +1398,7 @@ def _drop_entries_after_snapshot(entries: list[dict], snapshot_iso: str) -> tupl
     return kept, dropped, total_scrubbed
 
 
-def _drop_entries_after_death(entries: list[dict], dod_iso: str) -> list[dict]:
+def _drop_entries_after_death(entries: list[dict], dod_iso: str, lang: str = "en") -> list[dict]:
     """Filter out bundle entries whose timestamp is after the patient's date of death.
 
     Issue #926: universal safety gate applied per-record in `_build_bundle`.
@@ -1474,14 +1476,9 @@ def _drop_entries_after_death(entries: list[dict], dod_iso: str) -> list[dict]:
                     disp_code = (coding_list[0] or {}).get("code", "") if coding_list else ""
                     if disp_code != "exp":
                         # Overwrite the disposition to the death-event code.
-                        hospitalization["dischargeDisposition"] = {
-                            "coding": [
-                                {
-                                    "system": "http://terminology.hl7.org/CodeSystem/discharge-disposition",
-                                    "code": "exp",
-                                }
-                            ]
-                        }
+                        hospitalization["dischargeDisposition"] = dual_slot_concept(
+                            "hl7-discharge-disposition", DischargeDisposition.EXP.value, lang
+                        )
                         res["hospitalization"] = hospitalization
             kept.append(e)
             continue

@@ -81,24 +81,6 @@ def _encounter_disposition_defaults() -> dict[str, Any]:
     return load_encounter_disposition_defaults()
 
 
-def _build_hosp_concept(system_key: str, code: str, lang: str) -> dict[str, Any]:
-    """Build the ``Encounter.hospitalization`` admitSource /
-    dischargeDisposition CodeableConcept in the dual-slot shape.
-
-    Issue #941: the HL7 admit-source / discharge-disposition CodeSystems
-    are on the "English-only-CS" prefix allowlist consumed by
-    :func:`_strip_japanese_display_on_english_only_systems`. Emitting the
-    JP display on ``coding.display`` alone lets the post-processor strip
-    it, leaving JP consumers with a bare code. This helper always emits
-    the EN canonical display on ``coding.display`` (survives HAPI
-    validation and the strip walker) and pairs it with a locale-resolved
-    ``.text`` slot (the JP label for JP output, EN for US output) so the
-    CodeableConcept always renders a human-readable label. Built by the
-    shared ``dual_slot_concept`` (Issue #2276).
-    """
-    return dual_slot_concept(system_key, code, lang)
-
-
 def _compute_encounter_length(start_iso: str, end_iso: str) -> dict[str, Any] | None:
     """Compute FHIR ``Encounter.length`` from ISO-8601 period bounds.
 
@@ -512,9 +494,9 @@ def _build_encounter(
     _emit_hospitalization = class_code != "AMB"
     _lang = resolve_lang(country)
     if _emit_hospitalization and enc.get("admit_source"):
-        hosp["admitSource"] = _build_hosp_concept("hl7-admit-source", enc["admit_source"], _lang)
+        hosp["admitSource"] = dual_slot_concept("hl7-admit-source", enc["admit_source"], _lang)
     if _emit_hospitalization and enc.get("discharge_disposition"):
-        hosp["dischargeDisposition"] = _build_hosp_concept(
+        hosp["dischargeDisposition"] = dual_slot_concept(
             "hl7-discharge-disposition", enc["discharge_disposition"], _lang
         )
     # Re-admission flag (FHIR standard: hospitalization.reAdmission CodeableConcept)
@@ -538,9 +520,7 @@ def _build_encounter(
     _defaults = _encounter_disposition_defaults()
     if _emit_hospitalization and not hosp.get("admitSource"):
         _admit_defaults = _defaults["admit_source"]
-        hosp["admitSource"] = _build_hosp_concept(
-            _admit_defaults["system_key"], _admit_defaults["fallback_code"], _lang
-        )
+        hosp["admitSource"] = dual_slot_concept(_admit_defaults["system_key"], _admit_defaults["fallback_code"], _lang)
     # C4-20: CIF encounter status is "completed" (mapped to FHIR
     # "finished" by map_encounter_status). Prior comparison to raw
     # "finished" never matched, so 4 IMP encounters retained no
@@ -555,7 +535,7 @@ def _build_encounter(
     if _emit_hospitalization and not hosp.get("dischargeDisposition") and _is_finished:
         _dd_defaults = _defaults["discharge_disposition"]
         _dd_code = _dd_defaults["deceased_code"] if deceased else _dd_defaults["fallback_code"]
-        hosp["dischargeDisposition"] = _build_hosp_concept(_dd_defaults["system_key"], _dd_code, _lang)
+        hosp["dischargeDisposition"] = dual_slot_concept(_dd_defaults["system_key"], _dd_code, _lang)
     # CY8-03 fix:Encounter.hospitalization.dietPreference
     # を CIF の DIET Order から derive。IMP/EMER encounter で diet order あれば
     # 一意の diet 種別を text-only CodeableConcept として emit。

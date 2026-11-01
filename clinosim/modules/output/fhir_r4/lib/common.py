@@ -48,7 +48,7 @@ __all__ = [
     "map_mar_status",
     # Coding-system helpers (used by both output/ and audit modules)
     "loinc_coding",
-    "micro_coding",
+    "_coding_with_display",
     "severity_coding",
     # Cross-profile helpers
     "attach_ecs_institutional_extensions",
@@ -321,12 +321,6 @@ def _coding_with_display(system_key: str, code: str, lang: str) -> dict:
     return coding
 
 
-# Legacy alias — microbiology builders (_fhir_microbiology) use this name.
-# The public helper name is `_coding_with_display`. Keep the alias to avoid
-# churn on unrelated call sites (cycle 2).
-micro_coding = _coding_with_display
-
-
 def survey_category() -> list[dict]:
     """Return the observation category list for survey-type observations.
 
@@ -370,7 +364,7 @@ def _value(system_key: str, code: str, lang: str) -> dict[str, Any]:
     Generic helper for any coded value whose display lives in
     clinosim.codes. Returns a CodeableConcept fragment
     {"coding": [{"system": ..., "code": ..., "display": ...}], "text": ...}
-    — distinct from micro_coding() in this module which returns the
+    — distinct from _coding_with_display() in this module which returns the
     bare coding dict (no CodeableConcept wrapping). Used by SDOH
     builders (smoking_status / alcohol_use / care_level) and any future
     builder emitting a coded valueCodeableConcept.

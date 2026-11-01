@@ -7,7 +7,6 @@ import pytest
 
 from clinosim.codes import ENGLISH_ONLY_SYSTEM_PREFIXES, get_system_uri, is_english_only_system
 from clinosim.codes import display as registry_display
-from clinosim.modules.output.fhir_r4.encounters.encounter import _build_hosp_concept
 from clinosim.modules.output.fhir_r4.lib.common import dual_slot_concept
 from clinosim.modules.output.fhir_r4.post_process.strip import _ENGLISH_ONLY_CODING_SYSTEM_PREFIXES
 
@@ -43,7 +42,3 @@ def test_unregistered_code_has_no_echoed_display() -> None:
     concept = dual_slot_concept("hl7-discharge-disposition", "not-a-code", "ja")
     assert "display" not in concept["coding"][0]
     assert "text" not in concept
-
-
-def test_hospitalization_concept_uses_the_shared_builder() -> None:
-    assert _build_hosp_concept("hl7-admit-source", "emd", "ja") == dual_slot_concept("hl7-admit-source", "emd", "ja")

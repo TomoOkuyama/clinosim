@@ -45,7 +45,7 @@ longitudinal service lines (see
   `admit_source = "born"` (`AdmitSource.BORN` value in
   [`clinosim/codes/hl7_encounter.py`](../../../../codes/hl7_encounter.py)),
   `Encounter.hospitalization.admitSource` maps that via
-  `_build_hosp_concept("hl7-admit-source", ...)` and the sibling
+  `dual_slot_concept("hl7-admit-source", ...)` and the sibling
   `admit_source_encounter_id` becomes the newborn's `Encounter.partOf`
   → mother's delivery encounter. The partOf link and the synthetic
   ED bridge Encounter are added by `_bb_encounters` in
