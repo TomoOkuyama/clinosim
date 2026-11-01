@@ -17,6 +17,7 @@ from clinosim.codes import display as registry_display
 from clinosim.codes.loinc import loinc_for, loinc_map
 from clinosim.codes.snomed import snomed_for
 from clinosim.codes.ucum import ucum_quantity
+from clinosim.locale.loader import narrative_label as _label  # the one label lookup (Issue #2396)
 
 
 def _encounter_ref(encounter_id: str) -> dict[str, str]:
@@ -28,15 +29,6 @@ def _encounter_ref(encounter_id: str) -> dict[str, str]:
     from clinosim.modules.output.fhir_r4.encounters.encounter import encounter_ref
 
     return encounter_ref(encounter_id)
-
-
-def _label(section: str, key: str, lang: str, fallback: str = "") -> str:
-    """Narrative-label lookup: ``clinosim.locale.loader.narrative_label``
-    (the one implementation; vocabulary sections come from
-    ``locale/shared/vocabulary.yaml``, Issue #2269)."""
-    from clinosim.locale.loader import narrative_label
-
-    return narrative_label(section, key, lang, fallback)
 
 
 # Apgar LOINC by minute (codes/data/loinc-maps.yaml, Issue #2392). The

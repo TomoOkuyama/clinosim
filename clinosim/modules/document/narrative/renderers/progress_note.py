@@ -18,6 +18,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from clinosim.locale.loader import narrative_label as _label
 from clinosim.modules.document.narrative._template_helpers import (
     _GENERIC_ASSESSMENT_EN,
     _GENERIC_ASSESSMENT_JA,
@@ -25,7 +26,6 @@ from clinosim.modules.document.narrative._template_helpers import (
     _GENERIC_FALLBACK_JA,
     _GENERIC_PLAN_EN,
     _GENERIC_PLAN_JA,
-    _label,
     _render_safety_skips_line,
 )
 from clinosim.modules.document.narrative.registry import DocumentTypeSpec

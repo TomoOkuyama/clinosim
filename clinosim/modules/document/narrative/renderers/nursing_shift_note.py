@@ -16,9 +16,10 @@ from __future__ import annotations
 from typing import Any
 
 from clinosim.locale.i18n import t
+from clinosim.locale.loader import narrative_label as _label
 from clinosim.modules._shared import get_attr_or_key as _o
 from clinosim.modules.document.narrative._narrative_utils import _filter_vitals_for_day
-from clinosim.modules.document.narrative._template_helpers import _label, _resolve_staff_name
+from clinosim.modules.document.narrative._template_helpers import _resolve_staff_name
 from clinosim.modules.document.narrative.registry import DocumentTypeSpec
 from clinosim.types.document import NarrativeContext, NarrativeOutput
 

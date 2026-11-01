@@ -27,6 +27,7 @@ from typing import TYPE_CHECKING
 from clinosim.codes.ucum import ucum_prose
 from clinosim.locale.i18n import t
 from clinosim.locale.loader import lab_display
+from clinosim.locale.loader import narrative_label as _label
 from clinosim.modules._shared import get_attr_or_key as _o
 from clinosim.modules.document.narrative._localization import (
     _localize_imaging,
@@ -36,7 +37,6 @@ from clinosim.modules.document.narrative._template_helpers import (
     _GENERIC_FALLBACK_EN,
     _GENERIC_FALLBACK_JA,
     _fill_template_placeholders,
-    _label,
     _pick_localized,
 )
 from clinosim.types.document import NarrativeContext

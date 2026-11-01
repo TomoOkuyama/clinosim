@@ -9,9 +9,9 @@ import pytest
 import yaml
 
 from clinosim.locale.loader import load_vocabulary, narrative_label, vocab_display
+from clinosim.locale.loader import narrative_label as _label
 from clinosim.modules.document.narrative._patient_info_renderers import _localize_token
 from clinosim.modules.document.narrative._replacement_localization import _localize_arrival_mode_ja
-from clinosim.modules.document.narrative._template_helpers import _label
 from clinosim.modules.newborn.fhir_emit import _label as newborn_label
 from clinosim.modules.output.fhir_r4.demographics.patient import _build_occupation_observation
 

@@ -234,7 +234,6 @@ occupation:
 
 | 未準拠箇所 | Issue |
 |---|---|
-| 重複したローカライズ用ラッパー (`_label`、`_localize_*`、`_localize_token`、言語で分岐する `localize_*`) が独自の選択ロジックを持つ。 | #2396 |
 | `locale.localized` を通らない `.get("ja")` や言語三項演算子が残る。`codes.lookup` はヒットしないとコードを返す。 | #2397 |
 | ローカライズされた YAML フィールドの形が混在している (入れ子の `{lang: text}`、25 種の `*_ja` フィールド名、`dose_ja` と `dose_text_ja`)。 | #2398 |
 | 意味の合わない Composition section コードがある。 | #2391 |

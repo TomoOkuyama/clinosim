@@ -44,6 +44,7 @@ from clinosim.codes.icd10 import icd10_system
 from clinosim.codes.valuesets import concept_group, iter_chronic_codes
 from clinosim.locale.i18n import t
 from clinosim.locale.loader import chronic_followup_interval_months
+from clinosim.locale.loader import narrative_label as _label
 from clinosim.modules._shared import get_attr_or_key as _o
 from clinosim.modules._shared import strip_protocol_prefix
 from clinosim.modules.document.narrative._localization import _localize_complication
@@ -59,7 +60,6 @@ from clinosim.modules.document.narrative._narrative_interpretation_thresholds im
 )
 from clinosim.modules.document.narrative._narrative_utils import _age_at
 from clinosim.modules.document.narrative._template_helpers import (
-    _label,
     _pick_localized,
     _render_home_med_name,
     _render_safety_skips_line,

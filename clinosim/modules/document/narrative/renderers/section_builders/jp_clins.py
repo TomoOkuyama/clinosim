@@ -24,6 +24,7 @@ from typing import TYPE_CHECKING
 from clinosim.codes import lookup as code_lookup
 from clinosim.codes import system_key_for
 from clinosim.locale.i18n import t
+from clinosim.locale.loader import narrative_label as _label
 from clinosim.modules._shared import get_attr_or_key as _o
 from clinosim.modules.document.narrative._narrative_interpretation_thresholds import (
     NARRATIVE_BMI_NORMAL_MAX_EXCLUSIVE,
@@ -40,7 +41,6 @@ from clinosim.modules.document.narrative._narrative_interpretation_thresholds im
     NARRATIVE_LDL_HIGH_THRESHOLD,
 )
 from clinosim.modules.document.narrative._template_helpers import (
-    _label,
     _render_home_med_name,
 )
 from clinosim.types.document import NarrativeContext

@@ -26,10 +26,10 @@ from clinosim.codes import display as registry_display
 from clinosim.codes import lookup as code_lookup
 from clinosim.codes import system_key_for
 from clinosim.locale.i18n import t
+from clinosim.locale.loader import narrative_label as _label
 from clinosim.modules._shared import get_attr_or_key as _o
 from clinosim.modules.document.narrative._localization import _localize_complication
 from clinosim.modules.document.narrative._narrative_utils import _autopsy_performed_sha256
-from clinosim.modules.document.narrative._template_helpers import _label
 from clinosim.types.document import NarrativeContext
 
 if TYPE_CHECKING:

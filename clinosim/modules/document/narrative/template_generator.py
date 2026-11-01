@@ -31,6 +31,7 @@ from __future__ import annotations
 import logging
 from typing import Any
 
+from clinosim.locale.loader import narrative_label as _label  # noqa: F401 — re-exported name (Issue #2396)
 from clinosim.modules.disease.localization import target_los_config
 from clinosim.modules.document.narrative._localization import (
     _localize_complication as _localize_complication,
@@ -121,9 +122,6 @@ from clinosim.modules.document.narrative._template_helpers import (
 )
 from clinosim.modules.document.narrative._template_helpers import (
     _hpi_onset_en as _hpi_onset_en,
-)
-from clinosim.modules.document.narrative._template_helpers import (
-    _label as _label,
 )
 from clinosim.modules.document.narrative._template_helpers import (
     _pick_localized as _pick_localized,

@@ -82,7 +82,7 @@ def _localize_proc_type(proc_type: str, lang: str) -> str:
     slug is humanised (underscores → spaces)."""
     from clinosim.codes.procedures import procedure_type_display
 
-    return procedure_type_display(str(proc_type or "").strip(), "ja" if str(lang).lower().startswith("ja") else "en")
+    return procedure_type_display(str(proc_type or "").strip(), lang)
 
 
 # PMH severity / persistence / grade descriptor localization —

@@ -29,6 +29,7 @@ from typing import TYPE_CHECKING
 
 from clinosim.codes import display as registry_display
 from clinosim.locale.i18n import t
+from clinosim.locale.loader import narrative_label as _label
 from clinosim.modules._shared import get_attr_or_key as _o
 from clinosim.modules.document.narrative._localization import _localize_complication
 from clinosim.modules.document.narrative._narrative_utils import _parse_iso_datetime
@@ -37,7 +38,6 @@ from clinosim.modules.document.narrative._template_helpers import (
     _GENERIC_ASSESSMENT_JA,
     _GENERIC_PLAN_EN,
     _GENERIC_PLAN_JA,
-    _label,
 )
 from clinosim.types.document import NarrativeContext
 
