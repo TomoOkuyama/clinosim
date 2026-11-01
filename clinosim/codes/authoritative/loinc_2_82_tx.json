@@ -1158,6 +1158,132 @@
       "display": "MICRO",
       "status": "ACTIVE",
       "source": "tx.fhir.org LOINC 2.83 $lookup / $validate-code (2026-10-31, Issue #2260)"
+    },
+    {
+      "code": "61150-9",
+      "display": "Subjective Narrative",
+      "status": "ACTIVE",
+      "source": "tx.fhir.org LOINC $lookup (2026-11-01, Issue #2391)"
+    },
+    {
+      "code": "61149-1",
+      "display": "Objective Narrative",
+      "status": "ACTIVE",
+      "source": "tx.fhir.org LOINC $lookup (2026-11-01, Issue #2391)"
+    },
+    {
+      "code": "29299-5",
+      "display": "Reason for visit Narrative",
+      "status": "ACTIVE",
+      "source": "tx.fhir.org LOINC $lookup (2026-11-01, Issue #2391)"
+    },
+    {
+      "code": "62387-6",
+      "display": "Interventions Narrative",
+      "status": "ACTIVE",
+      "source": "tx.fhir.org LOINC $lookup (2026-11-01, Issue #2391)"
+    },
+    {
+      "code": "47420-5",
+      "display": "Functional Status Assessment Note",
+      "status": "ACTIVE",
+      "source": "tx.fhir.org LOINC $lookup (2026-11-01, Issue #2391)"
+    },
+    {
+      "code": "61146-7",
+      "display": "Goals Narrative",
+      "status": "ACTIVE",
+      "source": "tx.fhir.org LOINC $lookup (2026-11-01, Issue #2391)"
+    },
+    {
+      "code": "30954-2",
+      "display": "Relevant diagnostic tests/laboratory data note",
+      "status": "ACTIVE",
+      "source": "tx.fhir.org LOINC $lookup (2026-11-01, Issue #2391)"
+    },
+    {
+      "code": "69440-6",
+      "display": "Disease onset to death interval",
+      "status": "ACTIVE",
+      "source": "tx.fhir.org LOINC $lookup (2026-11-01, Issue #2391)"
+    },
+    {
+      "code": "59776-5",
+      "display": "Procedure findings Narrative",
+      "status": "ACTIVE",
+      "source": "tx.fhir.org LOINC $lookup (2026-11-01, Issue #2391)"
+    },
+    {
+      "code": "59773-2",
+      "display": "Procedure specimens taken Narrative",
+      "status": "ACTIVE",
+      "source": "tx.fhir.org LOINC $lookup (2026-11-01, Issue #2391)"
+    },
+    {
+      "code": "59770-8",
+      "display": "Procedure estimated blood loss Narrative",
+      "status": "ACTIVE",
+      "source": "tx.fhir.org LOINC $lookup (2026-11-01, Issue #2391)"
+    },
+    {
+      "code": "59774-0",
+      "display": "Procedure anesthesia Narrative",
+      "status": "ACTIVE",
+      "source": "tx.fhir.org LOINC $lookup (2026-11-01, Issue #2391)"
+    },
+    {
+      "code": "55109-3",
+      "display": "Complications Document",
+      "status": "ACTIVE",
+      "source": "tx.fhir.org LOINC $lookup (2026-11-01, Issue #2391)"
+    },
+    {
+      "code": "85847-2",
+      "display": "Patient Care team information",
+      "status": "ACTIVE",
+      "source": "tx.fhir.org LOINC $lookup (2026-11-01, Issue #2391)"
+    },
+    {
+      "code": "29554-3",
+      "display": "Procedure Narrative",
+      "status": "ACTIVE",
+      "source": "tx.fhir.org LOINC $lookup (2026-11-01, Issue #2391)"
+    },
+    {
+      "code": "34895-3",
+      "display": "Education Note",
+      "status": "ACTIVE",
+      "source": "tx.fhir.org LOINC $lookup (2026-11-01, Issue #2391)"
+    },
+    {
+      "code": "46241-6",
+      "display": "Hospital admission diagnosis Narrative - Reported",
+      "status": "ACTIVE",
+      "source": "tx.fhir.org LOINC $lookup (2026-11-01, Issue #2391)"
+    },
+    {
+      "code": "64295-9",
+      "display": "Nurse Plan of Care Note",
+      "status": "ACTIVE",
+      "source": "tx.fhir.org LOINC $lookup (2026-11-01, Issue #2391)"
+    },
+    {
+      "code": "69449-7",
+      "display": "Manner of death",
+      "status": "ACTIVE",
+      "source": "tx.fhir.org LOINC $lookup (2026-11-01, Issue #2391)"
+    },
+    {
+      "code": "69453-9",
+      "display": "Cause of death [US Standard Certificate of Death]",
+      "status": "ACTIVE",
+      "source": "tx.fhir.org LOINC $lookup (2026-11-01, Issue #2391)"
+    },
+    {
+      "code": "85699-7",
+      "display": "Autopsy was performed",
+      "status": "ACTIVE",
+      "source": "tx.fhir.org LOINC $lookup (2026-11-01, Issue #2391)"
     }
   ]
 }

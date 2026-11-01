@@ -105,7 +105,7 @@ codes:
     en: Nurse Plan of Care Note
     ja: 看護計画
   34895-3:
-    en: Patient education and consents
+    en: "Education Note"
     ja: 患者教育
   64297-5:
     en: Death certificate
@@ -932,3 +932,46 @@ codes:
   72088-8:
     en: "Clinical Dementia Rating scale [CDR]"
     ja: "臨床認知症評価尺度 (CDR)"
+  # === Issue #2391: Composition section codes, with their tx.fhir.org LOINC display ===
+  61150-9:
+    en: "Subjective Narrative"
+    ja: "主観的情報"
+  61149-1:
+    en: "Objective Narrative"
+    ja: "客観的情報"
+  29299-5:
+    en: "Reason for visit Narrative"
+    ja: "受診理由"
+  62387-6:
+    en: "Interventions Narrative"
+    ja: "実施した介入"
+  47420-5:
+    en: "Functional Status Assessment Note"
+    ja: "機能状態評価"
+  61146-7:
+    en: "Goals Narrative"
+    ja: "目標"
+  30954-2:
+    en: "Relevant diagnostic tests/laboratory data note"
+    ja: "関連する検査結果"
+  69440-6:
+    en: "Disease onset to death interval"
+    ja: "発病から死亡までの期間"
+  59776-5:
+    en: "Procedure findings Narrative"
+    ja: "手術・処置所見"
+  59773-2:
+    en: "Procedure specimens taken Narrative"
+    ja: "採取検体"
+  59770-8:
+    en: "Procedure estimated blood loss Narrative"
+    ja: "推定出血量"
+  59774-0:
+    en: "Procedure anesthesia Narrative"
+    ja: "麻酔"
+  55109-3:
+    en: "Complications Document"
+    ja: "合併症"
+  85847-2:
+    en: "Patient Care team information"
+    ja: "ケアチーム"

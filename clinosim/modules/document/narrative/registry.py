@@ -338,7 +338,8 @@ def _validate_section_catalog(catalog: dict[str, dict[str, Any]]) -> None:
     """Fail-loud validation of the section_catalog.yaml payload.
 
     Runs at import time (via `load_section_catalog`). Fails on:
-      * A slug entry missing any of title_ja / title_en / loinc.
+      * A slug entry missing title_ja / title_en, or without a ``loinc``
+        string ("" when no LOINC section code means the section).
       * Any slug authored in `document_type_specs.yaml::composition_sections*`
         that is not registered in the catalog. This is the drift class the
         catalog exists to prevent — a new section type added to the doc-spec
@@ -350,9 +351,12 @@ def _validate_section_catalog(catalog: dict[str, dict[str, Any]]) -> None:
         if not isinstance(entry, dict):
             incomplete.append(f"{slug} (not a dict)")
             continue
-        for field in ("title_ja", "title_en", "loinc"):
+        for field in ("title_ja", "title_en"):
             if not entry.get(field):
                 incomplete.append(f"{slug}.{field}")
+        # ``loinc`` is required but may be "" (no LOINC section code; Issue #2391).
+        if not isinstance(entry.get("loinc"), str):
+            incomplete.append(f"{slug}.loinc")
     if incomplete:
         raise ValueError(
             f"section_catalog.yaml: incomplete entries — {incomplete[:20]}"
