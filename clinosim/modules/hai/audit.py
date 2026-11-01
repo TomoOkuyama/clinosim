@@ -67,7 +67,7 @@ def _build_cauti_proof():
                     hai_type=HAI_TYPES[1],
                     source_device_id="d1",
                     icd10_code=hai_icd10_code("cauti"),
-                    snomed_code="68566005",
+                    snomed_code="700372006",
                     onset_date="2026-01-10",
                     organism_snomed="112283007",
                     culture_specimen_id="s1",

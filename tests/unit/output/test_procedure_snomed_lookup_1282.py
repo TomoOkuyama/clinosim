@@ -22,9 +22,7 @@ from __future__ import annotations
 
 import pytest
 
-from clinosim.modules.output.fhir_r4.procedures.procedure_name_snomed import (
-    resolve_procedure_snomed,
-)
+from clinosim.codes.snomed import snomed_for_phrase
 
 pytestmark = pytest.mark.unit
 
@@ -33,114 +31,60 @@ pytestmark = pytest.mark.unit
     "display_name, expected",
     [
         # CRRT specificity wins over "hemodial" substring inside the same string.
-        (
-            "血液透析 3-4h セッション, 3x/週 または 持続 (CRRT)",
-            ("233581009", "Haemofiltration"),
-        ),
-        ("Continuous renal replacement therapy (CRRT)", ("233581009", "Haemofiltration")),
-        ("持続濾過セッション", ("233581009", "Haemofiltration")),
+        ("血液透析 3-4h セッション, 3x/週 または 持続 (CRRT)", "233581009"),
+        ("Continuous renal replacement therapy (CRRT)", "233581009"),
+        ("持続濾過セッション", "233581009"),
         # Standard hemodialysis session.
-        ("Hemodialysis session", ("302497006", "Haemodialysis")),
-        ("Haemodialysis 3-hour", ("302497006", "Haemodialysis")),
-        ("血液透析セッション", ("302497006", "Haemodialysis")),
+        ("Hemodialysis session", "302497006"),
+        ("Haemodialysis 3-hour", "302497006"),
+        ("血液透析セッション", "302497006"),
         # ECMO.
-        ("ECMO VA cannulation", ("233573008", "Extracorporeal membrane oxygenation")),
+        ("ECMO VA cannulation", "233573008"),
         # CPAP / BiPAP.
-        ("CPAP therapy overnight", ("47545007", "Continuous positive airway pressure ventilation treatment")),
-        ("BiPAP for hypercapnia", ("47545007", "Continuous positive airway pressure ventilation treatment")),
+        ("CPAP therapy overnight", "47545007"),
+        ("BiPAP for hypercapnia", "47545007"),
         # Wound care.
-        ("Wound care follow-up", ("225358003", "Wound care")),
-        ("Wound irrigation with normal saline", ("225358003", "Wound care")),
-        ("創傷ケア", ("225358003", "Wound care")),
-        ("創部処置", ("225358003", "Wound care")),
+        ("Wound care follow-up", "225358003"),
+        ("Wound irrigation with normal saline", "225358003"),
+        ("創傷ケア", "225358003"),
+        ("創部処置", "225358003"),
         # Urine output monitoring.
-        ("Foley catheter with urine output monitoring", ("225113003", "Timed urine collection")),
-        ("尿量測定", ("225113003", "Timed urine collection")),
+        ("Foley catheter with urine output monitoring", "225113003"),
+        ("尿量測定", "225113003"),
         # Triage.
-        ("ED triage assessment level 3", ("225390008", "Triage")),
-        ("トリアージ", ("225390008", "Triage")),
+        ("ED triage assessment level 3", "225390008"),
+        ("トリアージ", "225390008"),
         # Oxygen therapy (point-in-time O2 order).
-        ("O2: Nasal cannula SpO2 >= 94%", ("57485005", "Oxygen therapy")),
-        ("Oxygen therapy nebulizer", ("57485005", "Oxygen therapy")),
-        ("酸素投与", ("57485005", "Oxygen therapy")),
+        ("O2: Nasal cannula SpO2 >= 94%", "57485005"),
+        ("Oxygen therapy nebulizer", "57485005"),
+        ("酸素投与", "57485005"),
     ],
 )
 def test_procedure_snomed_lookup_hits(display_name, expected):
-    assert resolve_procedure_snomed(display_name) == expected
+    assert snomed_for_phrase(display_name) == expected
 
 
 def test_unmatched_display_returns_none():
     """No keyword hit → caller falls back to text-only emit."""
-    assert resolve_procedure_snomed("Some completely unrelated procedure") is None
+    assert snomed_for_phrase("Some completely unrelated procedure") is None
 
 
 def test_empty_input_returns_none():
-    assert resolve_procedure_snomed("") is None
-    assert resolve_procedure_snomed(None) is None  # type: ignore[arg-type]
+    assert snomed_for_phrase("") is None
+    assert snomed_for_phrase(None) is None  # type: ignore[arg-type]
 
 
 def test_case_insensitive_and_trim():
     """Whitespace-trimmed, case-folded substring match."""
-    assert resolve_procedure_snomed("  HEMODIALYSIS session  ")[0] == "302497006"
-    assert resolve_procedure_snomed("Wound Care Follow-Up")[0] == "225358003"
+    assert snomed_for_phrase("  HEMODIALYSIS session  ") == "302497006"
+    assert snomed_for_phrase("Wound Care Follow-Up") == "225358003"
 
 
 def test_first_match_wins_ordering():
     """CRRT entry precedes hemodialysis in the yaml, so a display with
     BOTH keywords resolves to CRRT (233581009), not hemodialysis
     (302497006)."""
-    got = resolve_procedure_snomed("Hemodialysis with CRRT protocol")
-    assert got == ("233581009", "Haemofiltration")
-
-
-def test_only_verified_snomed_codes():
-    """Sanity: every code in the crosswalk is one of the seven verified
-    2026-09-12. This guards against yaml drift adding an unverified code
-    without a corresponding tx.fhir.org lookup — repo policy
-    (`feedback_verify_fhir_profile_uri_from_spec`)."""
-    from clinosim.modules.output.fhir_r4.procedures.procedure_name_snomed import _load_entries
-
-    verified = {
-        "609588000",  # Total knee replacement (Issue #2043)
-        "233581009",  # Haemofiltration
-        "302497006",  # Haemodialysis
-        "233573008",  # ECMO
-        "47545007",  # CPAP ventilation
-        "225358003",  # Wound care
-        "225113003",  # Timed urine collection
-        "225390008",  # Triage
-        "57485005",  # Oxygen therapy
-        # Issue #1308: extended crosswalk for ED / inpatient minor procedures.
-        "447094002",  # Bronchodilator therapy
-        "385763009",  # Inhalation therapy
-        "18946005",  # Skin closure (suture / staple / tissue adhesive)
-        "268400002",  # Closed reduction of fracture
-        "79733001",  # Application of sling (also used for cervical collar)
-        "385760008",  # Application of dressing to wound
-        "229886001",  # Cold pack application
-        "386305005",  # Warm pack application
-        "241689008",  # Procedural sedation
-        "229586001",  # Application of intermittent pneumatic compression (SCD)
-        "244042001",  # Insertion of urinary bladder catheter (Foley)
-        # Phase 4d — OSA follow-up polysomnography (verified 2026-10-20 via
-        # tx.fhir.org $lookup against SCT 20250201 Intl Edition).
-        "60554003",  # Polysomnography
-        # Phase 4e — NCCN breast cancer surveillance (verified 2026-10-21
-        # via tx.fhir.org $lookup against SCT 20250201 Intl Edition).
-        "71651007",  # Mammography
-        # Phase 4e horizontal — NCCN oncology surveillance for 4 more
-        # cancer families (verified 2026-10-21 via tx.fhir.org $lookup
-        # against SCT 20250201 Intl Edition).
-        "73761001",  # Colonoscopy (C18 colon)
-        "169069000",  # CT of chest (C34 lung)
-        "76009000",  # Esophagogastroduodenoscopy / EGD (C16 gastric)
-        "45036003",  # Ultrasonography of abdomen (C22 liver HCC)
-    }
-    for _match, snomed, _display in _load_entries():
-        assert snomed in verified, (
-            f"crosswalk carries unverified SNOMED {snomed} — verify via tx.fhir.org "
-            f"$lookup before adding + update this test's `verified` set"
-        )
+    assert snomed_for_phrase("Hemodialysis with CRRT protocol") == "233581009"
 
 
 def test_extended_procedure_crosswalk_covers_top_15_empty_coding_buckets_1308() -> None:
@@ -151,28 +95,27 @@ def test_extended_procedure_crosswalk_covers_top_15_empty_coding_buckets_1308() 
     Coverage claim: after this PR, every one of the 15 exemplar display
     strings from the Issue reproduction routes to a non-empty
     ``Procedure.code.coding[0]`` entry."""
-    from clinosim.modules.output.fhir_r4.procedures.procedure_name_snomed import resolve_procedure_snomed
 
     cases = [
-        ("Ice pack application", "229886001"),
-        ("bronchodilator: Salbutamol 2.5mg nebulizer q4h (q1h PRN acute)", "447094002"),
-        ("bronchodilator: Ipratropium 0.5mg nebulizer q6h", "447094002"),
-        ("Elastic bandage wrap", "385760008"),
-        ("Suture closure", "18946005"),
-        ("Closed reduction", "268400002"),
-        ("Cool water irrigation", "229886001"),
-        ("Sling immobilization", "79733001"),
-        ("Non-adherent dressing", "385760008"),
-        ("Tissue adhesive (glue)", "18946005"),
-        ("Cervical collar application", "79733001"),
-        ("Procedural sedation (Propofol/Midazolam)", "241689008"),
-        ("Heat pack application", "386305005"),
-        ("DVT_prophylaxis: Sequential compression devices", "229586001"),
-        ("Foley catheter insertion", "244042001"),
+        ("Ice pack application", "229585002"),
+        ("bronchodilator: Salbutamol 2.5mg nebulizer q4h (q1h PRN acute)", "127784009"),
+        ("bronchodilator: Ipratropium 0.5mg nebulizer q6h", "127784009"),
+        ("Elastic bandage wrap", "9263008"),
+        ("Suture closure", "391906003"),
+        ("Closed reduction", "86052008"),
+        ("Cool water irrigation", "182661005"),
+        ("Sling immobilization", "52037006"),
+        ("Non-adherent dressing", "3895009"),
+        ("Tissue adhesive (glue)", "746011009"),
+        ("Cervical collar application", "49689007"),
+        ("Procedural sedation (Propofol/Midazolam)", "72641008"),
+        ("Heat pack application", "266694003"),
+        ("DVT_prophylaxis: Sequential compression devices", "429289005"),
+        ("Foley catheter insertion", "410024004"),
     ]
     for display, expected_snomed in cases:
-        got = resolve_procedure_snomed(display)
+        got = snomed_for_phrase(display)
         assert got is not None, f"crosswalk miss on Issue #1308 exemplar {display!r}"
-        assert got[0] == expected_snomed, (
-            f"crosswalk returned wrong SNOMED for {display!r}: got {got[0]}, expected {expected_snomed}"
+        assert got == expected_snomed, (
+            f"crosswalk returned wrong SNOMED for {display!r}: got {got}, expected {expected_snomed}"
         )

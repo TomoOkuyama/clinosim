@@ -64,7 +64,7 @@ from clinosim.modules.device.enricher import enrich_device
 - [`reference_data/devices.yaml`](reference_data/devices.yaml) —
   デバイスカタログ (`cvc`, `indwelling_catheter`,
   `mechanical_ventilator`)。各 entry は `snomed_code`、
-  `snomed_display_en` / `_ja`、`any: [token, ...]` 節の list である
+  `any: [token, ...]` 節の list である
   `placement_criteria` を持つ (いずれかの節のいずれかの token が
   成立すれば配置)。現状の条件: CVC ← `severity_moderate_plus`、
   膀胱留置カテーテル ← `severity_moderate_plus` または

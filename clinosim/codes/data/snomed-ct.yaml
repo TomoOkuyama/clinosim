@@ -278,17 +278,20 @@ codes:
   # International edition. Spec's CLABSI tentative 433142000 and
   # CAUTI tentative 425500004 were not present in International;
   # CLABSI replaced with 736442006 (Catheter related bloodstream
-  # infection, verified via $expand); CAUTI replaced with 68566005
-  # (Urinary tract infectious disease, generic — CAUTI-specificity
-  # is conveyed via ICD-10-CM T83.511A + Condition.code.text).
+  # infection, verified via $expand). CAUTI is 700372006 (Catheter-
+  # associated urinary tract infection, tx.fhir.org $lookup 2026-11-01,
+  # active; Issue #2363) — previously the generic 68566005.
   '736442006':
     en: Catheter related bloodstream infection
     ja: 中心静脈カテーテル関連血流感染症
+  '700372006':
+    en: Catheter-associated urinary tract infection
+    ja: カテーテル関連尿路感染症
   '68566005':
     en: Urinary tract infectious disease
-    ja: カテーテル関連尿路感染症
+    ja: 尿路感染症
   '429271009':
-    en: Ventilator-associated pneumonia
+    en: Ventilator associated pneumonia
     ja: 人工呼吸器関連肺炎
   # === HAI organisms (CDC NHSN top organisms, PR-B) ===
   # All 11 verified via tx.fhir.org $expand text-search.
@@ -738,3 +741,90 @@ codes:
   '309360001':
     en: Rehabilitation physician
     ja: リハビリテーション科医
+  # === Order-derived procedures (procedure-phrase-to-snomed.yaml) and chronic
+  # follow-up procedures. en: SNOMED preferred term, tx.fhir.org $lookup
+  # 2026-11-01, all active (Issue #2363). ===
+  '233581009':
+    en: Hemofiltration
+    ja: 血液濾過
+  '302497006':
+    en: Hemodialysis
+    ja: 血液透析
+  '233573008':
+    en: Extracorporeal membrane oxygenation
+    ja: 体外式膜型人工肺 (ECMO)
+  '47545007':
+    en: Continuous positive airway pressure ventilation treatment
+    ja: CPAP 療法
+  '60554003':
+    en: Polysomnography
+    ja: ポリソムノグラフィー
+  '71651007':
+    en: Mammography
+    ja: 乳房 X 線撮影（マンモグラフィー）
+  '73761001':
+    en: Colonoscopy
+    ja: 大腸内視鏡検査
+  '169069000':
+    en: CT of chest
+    ja: 胸部 CT
+  '76009000':
+    en: Esophagogastroduodenoscopy
+    ja: 上部消化管内視鏡検査
+  '45036003':
+    en: Ultrasonography of abdomen
+    ja: 腹部超音波検査
+  '225358003':
+    en: Wound care
+    ja: 創傷ケア
+  '225113003':
+    en: Timed urine collection
+    ja: 時間尿採取
+  '225390008':
+    en: Triage
+    ja: トリアージ
+  '127784009':
+    en: Inhaled bronchodilator therapy
+    ja: 気管支拡張薬吸入療法
+  '1366004':
+    en: Inhalation therapy procedure
+    ja: 吸入療法
+  '391906003':
+    en: Closure of skin by suture
+    ja: 皮膚縫合
+  '746011009':
+    en: Closure of skin wound
+    ja: 皮膚創閉鎖
+  '86052008':
+    en: Closed reduction of fracture
+    ja: 骨折非観血的整復術
+  '52037006':
+    en: Application of sling
+    ja: 三角巾固定
+  '49689007':
+    en: Application of cervical collar
+    ja: 頸椎カラー装着
+  '9263008':
+    en: Application of elastic bandage
+    ja: 弾性包帯装着
+  '3895009':
+    en: Application of dressing
+    ja: 創傷被覆材貼付
+  '229585002':
+    en: Cold pack treatment
+    ja: 冷罨法
+  '182661005':
+    en: Local cooling therapy
+    ja: 局所冷却療法
+  '266694003':
+    en: Heat therapy
+    ja: 温熱療法
+  '72641008':
+    en: Sedation
+    ja: 鎮静
+  '429289005':
+    en: Intermittent pneumatic compression therapy
+    ja: 間欠的空気圧迫法
+  '410024004':
+    en: Insertion of catheter into urinary bladder
+    ja: 膀胱カテーテル留置

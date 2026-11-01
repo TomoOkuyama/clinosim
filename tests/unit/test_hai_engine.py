@@ -5,6 +5,7 @@ from __future__ import annotations
 import numpy as np
 import pytest
 
+from clinosim.codes.snomed import snomed_display
 from clinosim.modules.hai.engine import (
     _add_days,
     _sample_organism,
@@ -33,8 +34,9 @@ def test_load_hai_codes_has_us_jp_snomed_keys():
         # JP code: the shared CM → WHO crosswalk, not a per-module copy (Issue #2257).
         assert "icd10_jp_who" not in entry
         assert entry["snomed"]
-        assert entry["display_en"]
-        assert entry["display_ja"]
+        # Displays come from the SNOMED registry, not a copy here (Issue #2363).
+        assert "display_en" not in entry and "display_ja" not in entry
+        assert snomed_display(entry["snomed"], "en") and snomed_display(entry["snomed"], "ja")
 
 
 def test_load_hai_organisms_weights_sum_to_one_per_type():

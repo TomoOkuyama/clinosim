@@ -142,7 +142,7 @@ def _build_synthetic_proof() -> dict[str, Any]:
         hai_type=HAI_TYPES[1],  # "cauti" — canonical, NEVER literal string
         source_device_id="d1",
         icd10_code=hai_icd10_code("cauti"),
-        snomed_code="68566005",
+        snomed_code="700372006",
         onset_date="2026-01-10",
         organism_snomed="112283007",
         culture_specimen_id="s1",

@@ -133,7 +133,7 @@ Consumers resolve names only through these functions. Several are added by open 
 | `codes.ucum`: `ucum_code`, `ucum_quantity`, `ucum_prose` | UCUM code / FHIR Quantity / the unit as written in prose (`mm[Hg]` → `mmHg`, `{INR}` → `""`) | unit passed through |
 | `codes.prefectures.prefecture_code(name)` | JIS X 0401 code | `""` |
 | `codes.snomed_concepts` | named SNOMED concepts used in logic | — |
-| `codes.snomed`: `snomed_display(code, lang)`, `snomed_for(kind, key)`, `snomed_map(kind)` | SNOMED display; internal key → code (`route`, `severity`; `codes/data/snomed-maps.yaml`) | `None` / `None` / `KeyError` |
+| `codes.snomed`: `snomed_display(code, lang)`, `snomed_for(kind, key)`, `snomed_map(kind)`, `snomed_for_phrase(text)` | SNOMED display; internal key → code (`route`, `severity`; `codes/data/snomed-maps.yaml`); free-text procedure / order name → code (first matching phrase in `codes/data/procedure-phrase-to-snomed.yaml`) | `None` / `None` / `KeyError` / `None` |
 
 `lookup(system, code, lang)` is legacy: on a miss it returns the code itself. New code uses `display(...) or <explicit fallback>`.
 
@@ -232,7 +232,7 @@ These parts of the code base do not yet conform. Each one is removed by the issu
 | Deviation | Issue |
 |---|---|
 | **Fallback.** `display` / `lookup`, `resolve_text` and `t` end with a last-resort value: the first available language, the code, `str(value)` or the key. That can break §6.1–6.2, and there is no single retrieval API. | #2275 |
-| SNOMED codes and displays outside the registry (procedure-name YAML, device / HAI / follow-up copies, mapper tables in Python), and about 74 unregistered SNOMED literals. | #2363 |
+| SNOMED mapper tables held in Python and SNOMED literals in emitters (specimen, ServiceRequest, newborn, radiology category). | #2379 |
 | Document LOINCs are defined in eight places, some section codes do not mean their section, and emitters still hold LOINC constants. | #2344 |
 | CPT / K-codes the generator emits but has not registered. | #2340 |
 | Route, diagnosis, CoreLabo and MedicationAdministration route/device concepts are built by hand, and post-process walkers fill `.text` after emission. | #2375 |

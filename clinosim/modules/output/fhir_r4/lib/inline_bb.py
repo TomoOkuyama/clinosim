@@ -30,6 +30,7 @@ from clinosim.codes import display as registry_display
 from clinosim.codes import get_system_uri, system_key_for
 from clinosim.codes import lookup as code_lookup
 from clinosim.codes.hl7_encounter import ActPriority, AdmitSource
+from clinosim.codes.snomed import snomed_for_phrase
 from clinosim.modules._shared import get_attr_or_key, is_jp, resolve_lang
 from clinosim.modules.output.fhir_r4.conditions.allergy_intolerance import (  # noqa: F401
     _bb_allergy_intolerances,
@@ -906,24 +907,12 @@ def _bb_procedures(ctx: BundleContext) -> list[dict]:
         # behaviour), and `code.text` still carries the localised
         # display so consumers doing free-text keyword search remain
         # unaffected.
-        from clinosim.modules.output.fhir_r4.procedures.procedure_name_snomed import (
-            resolve_procedure_snomed,
-        )
-
         _code_field: dict = {"text": _code_text}
-        _snomed_hit = resolve_procedure_snomed(display)
-        if _snomed_hit is not None:
-            _snomed_code, _snomed_display_en = _snomed_hit
-            _snomed_display = (
-                _localize_drug_name(_snomed_display_en, ctx.country) if is_jp(ctx.country) else _snomed_display_en
-            )
-            _code_field["coding"] = [
-                {
-                    "system": get_system_uri("snomed-ct"),
-                    "code": _snomed_code,
-                    "display": _snomed_display,
-                }
-            ]
+        _snomed_code = snomed_for_phrase(display)
+        if _snomed_code is not None:
+            # Registry code and English preferred term (dual slot, Issue #2363);
+            # the localized name stays in code.text.
+            _code_field["coding"] = [system_coding("snomed-ct", _snomed_code, resolve_lang(ctx.country))]
         procedure_res: dict = {
             "resourceType": "Procedure",
             "id": _resolve_procedure_id(_proc_structural_key),
