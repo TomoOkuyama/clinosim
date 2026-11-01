@@ -1133,3 +1133,38 @@ codes:
   J95.851:
     en: "Ventilator associated pneumonia"
     ja: "人工呼吸器関連肺炎"
+  D55.0:
+    en: "Anemia due to glucose-6-phosphate dehydrogenase [G6PD] deficiency"
+  # E88.81 is a category since ICD-10-CM FY2025 (internal metabolic-syndrome
+  # code of modules/metabolic); US output maps it to the billable E88.810.
+  E88.81:
+    en: "Metabolic syndrome and other insulin resistance"
+    ja: "メタボリックシンドローム及びその他のインスリン抵抗性"
+  E88.810:
+    en: "Metabolic syndrome"
+    ja: "メタボリックシンドローム"
+  # Single-gene disease catalog (locale/shared/single_gene_diseases.yaml, Issue #2429).
+  # E84 and Q87.4 are categories; US output maps them to E84.9 / Q87.40.
+  E84:
+    en: "Cystic fibrosis"
+  E84.9:
+    en: "Cystic fibrosis, unspecified"
+  D57.1:
+    en: "Sickle-cell disease without crisis"
+  D66:
+    en: "Hereditary factor VIII deficiency"
+  D67:
+    en: "Hereditary factor IX deficiency"
+  D68.1:
+    en: "Hereditary factor XI deficiency"
+  D56.0:
+    en: "Alpha thalassemia"
+  D56.1:
+    en: "Beta thalassemia"
+  G10:
+    en: "Huntington's disease"
+  Q87.4:
+    en: "Marfan syndrome"
+  Q87.40:
+    en: "Marfan syndrome, unspecified"
+    ja: "マルファン症候群、詳細不明"

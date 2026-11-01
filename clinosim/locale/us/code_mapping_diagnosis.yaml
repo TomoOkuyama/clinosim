@@ -159,3 +159,8 @@ S52.9: "S52.90XA"
 S62.0: "S62.009A"
 S86.9: "S86.909A"
 T14.9: "T14.90XA"
+# === Metabolic syndrome (modules/metabolic) — E88.81 is a category since FY2025 ===
+E88.81: "E88.810"   # Metabolic syndrome
+# === Single-gene disease categories (locale/shared/single_gene_diseases.yaml) ===
+E84: "E84.9"        # Cystic fibrosis, unspecified
+Q87.4: "Q87.40"     # Marfan syndrome, unspecified

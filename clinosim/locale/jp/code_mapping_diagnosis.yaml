@@ -194,3 +194,7 @@ R07.9: "R07.4"
 T80.211A: "T80.2"
 T83.511A: "T83.5"
 J95.851: "J95.8"
+# === Metabolic syndrome (modules/metabolic): ICD-10-CM E88.81 has no WHO code ===
+E88.81: "E88.8"   # その他の明示された代謝障害
+# === Single-gene disease categories (locale/shared/single_gene_diseases.yaml) ===
+E84: "E84.9"      # のう＜嚢＞胞線維症，詳細不明 (4-char leaf, Issue #1320 convention)

@@ -554,6 +554,111 @@
       ]
     },
     {
+      "code": "D55.0",
+      "display": "Anaemia due to glucose-6-phosphate dehydrogenase [G6PD] deficiency",
+      "definition": "Anaemia due to glucose-6-phosphate dehydrogenase [G6PD] deficiency",
+      "property": [
+        {
+          "code": "kind",
+          "valueCode": "category"
+        },
+        {
+          "code": "parent",
+          "valueCode": "D55"
+        }
+      ]
+    },
+    {
+      "code": "D56.0",
+      "display": "Alpha thalassaemia",
+      "definition": "Alpha thalassaemia",
+      "property": [
+        {
+          "code": "kind",
+          "valueCode": "category"
+        },
+        {
+          "code": "parent",
+          "valueCode": "D56"
+        }
+      ]
+    },
+    {
+      "code": "D56.1",
+      "display": "Beta thalassaemia",
+      "definition": "Beta thalassaemia",
+      "property": [
+        {
+          "code": "kind",
+          "valueCode": "category"
+        },
+        {
+          "code": "parent",
+          "valueCode": "D56"
+        }
+      ]
+    },
+    {
+      "code": "D57.1",
+      "display": "Sickle-cell anaemia without crisis",
+      "definition": "Sickle-cell anaemia without crisis",
+      "property": [
+        {
+          "code": "kind",
+          "valueCode": "category"
+        },
+        {
+          "code": "parent",
+          "valueCode": "D57"
+        }
+      ]
+    },
+    {
+      "code": "D66",
+      "display": "Hereditary factor VIII deficiency",
+      "definition": "Hereditary factor VIII deficiency",
+      "property": [
+        {
+          "code": "kind",
+          "valueCode": "category"
+        },
+        {
+          "code": "parent",
+          "valueCode": "D65-D69"
+        }
+      ]
+    },
+    {
+      "code": "D67",
+      "display": "Hereditary factor IX deficiency",
+      "definition": "Hereditary factor IX deficiency",
+      "property": [
+        {
+          "code": "kind",
+          "valueCode": "category"
+        },
+        {
+          "code": "parent",
+          "valueCode": "D65-D69"
+        }
+      ]
+    },
+    {
+      "code": "D68.1",
+      "display": "Hereditary factor XI deficiency",
+      "definition": "Hereditary factor XI deficiency",
+      "property": [
+        {
+          "code": "kind",
+          "valueCode": "category"
+        },
+        {
+          "code": "parent",
+          "valueCode": "D68"
+        }
+      ]
+    },
+    {
       "code": "E03",
       "display": "Other hypothyroidism",
       "definition": "Other hypothyroidism",
@@ -920,6 +1025,32 @@
       ]
     },
     {
+      "code": "E84",
+      "display": "Cystic fibrosis",
+      "definition": "Cystic fibrosis",
+      "property": [
+        {
+          "code": "kind",
+          "valueCode": "category"
+        }
+      ]
+    },
+    {
+      "code": "E84.9",
+      "display": "Cystic fibrosis, unspecified",
+      "definition": "Cystic fibrosis, unspecified",
+      "property": [
+        {
+          "code": "kind",
+          "valueCode": "category"
+        },
+        {
+          "code": "parent",
+          "valueCode": "E84"
+        }
+      ]
+    },
+    {
       "code": "E87.2",
       "display": "Acidosis",
       "definition": "Acidosis",
@@ -951,6 +1082,21 @@
         {
           "code": "exclusion",
           "valueString": "diabetic acidosis[E10-E14 with common fourth character .1]"
+        }
+      ]
+    },
+    {
+      "code": "E88.8",
+      "display": "Other specified metabolic disorders",
+      "definition": "Other specified metabolic disorders",
+      "property": [
+        {
+          "code": "kind",
+          "valueCode": "category"
+        },
+        {
+          "code": "parent",
+          "valueCode": "E88"
         }
       ]
     },
@@ -1091,6 +1237,21 @@
         {
           "code": "exclusion",
           "valueString": "panic disorder with agoraphobia[F40.0]"
+        }
+      ]
+    },
+    {
+      "code": "G10",
+      "display": "Huntington disease",
+      "definition": "Huntington disease",
+      "property": [
+        {
+          "code": "kind",
+          "valueCode": "category"
+        },
+        {
+          "code": "parent",
+          "valueCode": "G10-G14"
         }
       ]
     },
@@ -6502,6 +6663,21 @@
         {
           "code": "exclusion",
           "valueString": "polycystic ovarian syndrome[E28.2]"
+        }
+      ]
+    },
+    {
+      "code": "Q87.4",
+      "display": "Marfan syndrome",
+      "definition": "Marfan syndrome",
+      "property": [
+        {
+          "code": "kind",
+          "valueCode": "category"
+        },
+        {
+          "code": "parent",
+          "valueCode": "Q87"
         }
       ]
     },
