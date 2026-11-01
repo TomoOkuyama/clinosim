@@ -177,6 +177,7 @@ def test_radiology_dr_conclusion_code_normal_when_findings_codes_empty():
                     "display": "Normal",
                 }
             ],
+            "text": "Normal",  # dual-slot concept (Issue #2258)
         }
     ]
 

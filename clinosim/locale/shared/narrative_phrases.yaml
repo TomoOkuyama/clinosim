@@ -1780,8 +1780,6 @@ immunization_fhir:
   # localizations stay as the common clinical short form — the JP
   # SNOMED fragment is lenient on display, and the short form is what
   # clinicians read in Japanese charting.
-  left_deltoid: {ja: "左三角筋", en: "Structure of left deltoid muscle"}
-  intramuscular_route: {ja: "筋肉内注射", en: "Intramuscular route"}
 
 # FHIR emit-side microbiology labels + prose (Phase 1d-50).
 # From `clinosim/modules/output/fhir_r4/labs/microbiology.py` —
@@ -1789,9 +1787,6 @@ immunization_fhir:
 # .presentedForm title, and `_mb_conclusion_text` culture-outcome
 # one-liners.
 microbiology_fhir:
-  specimen_negative_adequate:
-    ja: "陰性(異常なし)"
-    en: "Negative (adequate)"
   culture: {ja: "培養検査", en: "Culture"}
   culture_and_identification: {ja: "培養同定", en: "Culture and identification"}
   antimicrobial_susceptibility_testing:
@@ -1800,8 +1795,6 @@ microbiology_fhir:
   antimicrobial_susceptibility:
     ja: "感受性試験"
     en: "Antimicrobial susceptibility"
-  abnormal: {ja: "異常所見", en: "Abnormal"}
-  normal: {ja: "異常なし", en: "Normal"}
   report_title: {ja: "微生物検査報告書", en: "Microbiology Report"}
   no_growth_after_5day:
     ja: "5 日間培養で発育なし。"
@@ -1825,8 +1818,6 @@ microbiology_fhir:
 # conclusionCode display, panel conclusion prose, presentedForm
 # titles/bodies, and JP-Radiology profile display constants.
 diagnostic_report_fhir:
-  abnormal_finding: {ja: "異常所見", en: "Abnormal"}
-  normal_finding: {ja: "異常なし", en: "Normal"}
   out_of_reference_range:
     ja: "{body}。参照範囲外: {names}"
     en: "{body}. Out of reference range: {names}"

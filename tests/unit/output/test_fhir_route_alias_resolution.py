@@ -126,7 +126,7 @@ def test_aliased_routes_now_emit_a_coding(raw):
         {
             "system": _SNOMED_URI,
             "code": _RESPIRATORY,
-            "display": "Respiratory tract route (qualifier value)",
+            "display": "Respiratory tract route",
         }
     ]
 

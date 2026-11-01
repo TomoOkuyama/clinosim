@@ -24,7 +24,12 @@ from clinosim.modules.output.fhir_r4.labs.diagnostic_report import (
     MB_DR_KEY_SYSTEM,
     _resolve_mb_dr_id,
 )
-from clinosim.modules.output.fhir_r4.lib.common import BundleContext, _coding_with_display, build_presented_form
+from clinosim.modules.output.fhir_r4.lib.common import (
+    BundleContext,
+    _coding_with_display,
+    build_presented_form,
+    dual_slot_concept,
+)
 from clinosim.modules.output.fhir_r4.lib.ids import (
     derive_opaque_id,
     structural_key_system,
@@ -241,17 +246,7 @@ def _bb_microbiology(ctx: BundleContext) -> list[dict]:
         # CY8-11 fix: Specimen.condition — 品質状態。既定は SNOMED 260385009
         # (Negative — 異常無し)、hemolysis/quality-note があれば別 code。
         # 現状 CIF に quality flag 無いため一律 negative (98%+ realistic)。
-        specimen["condition"] = [
-            {
-                "coding": [
-                    {
-                        "system": "http://snomed.info/sct",
-                        "code": "260385009",
-                        "display": t("microbiology_fhir.specimen_negative_adequate", lang),
-                    }
-                ]
-            }
-        ]
+        specimen["condition"] = [dual_slot_concept("snomed-ct", "260385009", lang)]
         # CY8-12 fix: Specimen.note — 技師コメント default 空、
         # quantitation(菌量表記等)がある場合のみ note を emit。
         if mb.get("quantitation"):
@@ -454,17 +449,7 @@ def _bb_microbiology(ctx: BundleContext) -> list[dict]:
         # CY8-14 polish: MB DR.conclusionCode — growth の有無で normal/abnormal。
         _mb_abnormal = bool(mb.get("growth"))
         report["conclusionCode"] = [
-            {
-                "coding": [
-                    {
-                        "system": get_system_uri("snomed-ct"),
-                        "code": FINDING_ABNORMAL if _mb_abnormal else FINDING_NORMAL,
-                        "display": t("microbiology_fhir.abnormal", lang)
-                        if _mb_abnormal
-                        else t("microbiology_fhir.normal", lang),
-                    }
-                ],
-            }
+            dual_slot_concept("snomed-ct", FINDING_ABNORMAL if _mb_abnormal else FINDING_NORMAL, lang)
         ]
         # Issue #1343: MB DR.conclusion — a one-line human-readable summary
         # of the culture outcome. Previously blank (0 %); a reader with the

@@ -57,7 +57,7 @@ def test_severity_coding_jp_moderate_display_pins_spec_chuudo() -> None:
     "severity,snomed_code,snomed_display",
     [
         ("mild", "255604002", "Mild"),
-        ("moderate", "6736007", "Moderate"),
+        ("moderate", "6736007", "Moderate severity"),  # SNOMED preferred term (Issue #2258)
         ("severe", "24484000", "Severe"),
     ],
 )

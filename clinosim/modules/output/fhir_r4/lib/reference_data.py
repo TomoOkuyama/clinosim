@@ -8,12 +8,9 @@ other adapter symbols) and are re-exported by fhir_r4_adapter as a facade.
 from __future__ import annotations
 
 from clinosim.codes import get_system_uri
+from clinosim.codes.snomed import snomed_display, snomed_map
 
-_SEVERITY_SNOMED: dict[str, dict[str, str]] = {
-    "mild": {"code": "255604002", "display": "Mild"},
-    "moderate": {"code": "6736007", "display": "Moderate"},
-    "severe": {"code": "24484000", "display": "Severe"},
-}
+_SEVERITY_SNOMED: dict[str, dict[str, str]] = {}  # filled below from codes/data/snomed-maps.yaml
 
 # iris4h-ai feedback F-4: JP Core `JP_ConditionSeverity_VS` は
 # JP_ConditionSeverity_CS の 4 code(MI/MO/SE/UK)のみを許容。SNOMED は
@@ -56,39 +53,18 @@ _SEVERITY_JP: dict[str, dict[str, str]] = {
 # types.
 
 
-_ROUTE_SNOMED: dict[str, dict[str, str]] = {
-    "PO": {"code": "26643006", "display": "Oral"},
-    "IV": {"code": "47625008", "display": "Intravenous"},
-    "SC": {"code": "34206005", "display": "Subcutaneous"},
-    "IM": {"code": "78421000", "display": "Intramuscular"},
-    # #311 SL は silent-code-substitution bug の fix。
-    # 37161004 の authoritative display は "Rectal route (qualifier value)"
-    # (SNOMED CT International、fhir-jp-validator GPS ValueSet 権威確認)
-    # なので SL entry で使うのは semantically 誤り。Sublingual の
-    # authoritative code は 37839007。用途は chest_pain_noncardiac.yaml の
-    # Nitroglycerin 0.4mg SL 等。display "Sublingual" は SNOMED valid
-    # synonym として HAPI 受容。
-    "SL": {"code": "37839007", "display": "Sublingual"},
-    "PR": {"code": "37161004", "display": "Per rectum"},
-    # 447694001 SNOMED-authoritative default display is "Respiratory tract
-    # route (qualifier value)" — "Inhalation" is not a registered synonym in
-    # the tx-server's SNOMED CT terminology (667 errors).
-    "INHALED": {"code": "447694001", "display": "Respiratory tract route (qualifier value)"},
-    "TOPICAL": {"code": "6064005", "display": "Topical"},
-    "NEBULIZED": {"code": "447694001", "display": "Respiratory tract route (qualifier value)"},
-    # #1265: OPH (ophthalmic) for the newborn erythromycin prophylaxis
-    # (#1252 N7 US) and any future eye-drop / eye-ointment route.
-    # Authoritative-display verified 2026-09-11 via
-    # tx.fhir.org/r4/CodeSystem/$lookup?system=http://snomed.info/sct&code=54485002
-    # — "Ophthalmic route" is a registered SNOMED Synonym (FSN =
-    # "Ophthalmic route (qualifier value)"; module=core, active).
-    "OPH": {"code": "54485002", "display": "Ophthalmic route"},
-    # Issue #2352: local-anaesthetic infiltration and intra-articular
-    # injection in ED / outpatient procedures. Displays verified on
-    # tx.fhir.org CodeSystem/$lookup (SNOMED CT International).
-    "INFILTRATION": {"code": "718329006", "display": "Infiltration route"},
-    "INTRA-ARTICULAR": {"code": "12130007", "display": "Intra-articular route"},
-}
+def _snomed_rows(kind: str) -> dict[str, dict[str, str]]:
+    """``{key: {code, display}}`` for a ``codes/data/snomed-maps.yaml``
+    vocabulary, with the English display from ``snomed-ct.yaml`` (Issue #2258)."""
+    return {key: {"code": code, "display": snomed_display(code, "en") or ""} for key, code in snomed_map(kind).items()}
+
+
+# Order route → SNOMED CT. Codes: codes/data/snomed-maps.yaml `route`; displays:
+# the SNOMED preferred terms in codes/data/snomed-ct.yaml (Issue #2258). History:
+# #311 SL = 37839007 Sublingual route (37161004 is the rectal route); #1265 OPH;
+# #2352 INFILTRATION / INTRA-ARTICULAR.
+_ROUTE_SNOMED: dict[str, dict[str, str]] = _snomed_rows("route")
+_SEVERITY_SNOMED.update(_snomed_rows("severity"))
 
 
 # Issue #458: YAML-authored route abbreviations → canonical `_ROUTE_SNOMED`

@@ -52,6 +52,7 @@ from clinosim.modules.output.fhir_r4.labs.service_request import (
 from clinosim.modules.output.fhir_r4.lib.common import (
     _escape_html,
     build_presented_form,
+    dual_slot_concept,
     to_fhir_datetime,
 )
 from clinosim.modules.output.fhir_r4.lib.ids import (
@@ -415,18 +416,7 @@ def _derive_imaging_conclusion_code(impression_text: str, lang: str) -> dict:
             code = FINDING_ABNORMAL
         else:
             code = FINDING_NORMAL
-    is_abnormal = code == FINDING_ABNORMAL
-    return {
-        "coding": [
-            {
-                "system": get_system_uri("snomed-ct"),
-                "code": code,
-                "display": t("diagnostic_report_fhir.abnormal_finding", lang)
-                if is_abnormal
-                else t("diagnostic_report_fhir.normal_finding", lang),
-            }
-        ]
-    }
+    return dual_slot_concept("snomed-ct", code, lang)
 
 
 def _build_lab_panel_conclusion(
@@ -670,17 +660,7 @@ def build_dr_resource(
         if _conclusion:
             res["conclusion"] = _conclusion
         res["conclusionCode"] = [
-            {
-                "coding": [
-                    {
-                        "system": get_system_uri("snomed-ct"),
-                        "code": FINDING_ABNORMAL if _abnormal else FINDING_NORMAL,
-                        "display": t("diagnostic_report_fhir.abnormal_finding", lang)
-                        if _abnormal
-                        else t("diagnostic_report_fhir.normal_finding", lang),
-                    }
-                ],
-            }
+            dual_slot_concept("snomed-ct", FINDING_ABNORMAL if _abnormal else FINDING_NORMAL, lang)
         ]
     # C5-20 (Chain 3): presentedForm — text-plain rendered summary of the
     # panel report (patient-facing form). Header + observation count is

@@ -14,6 +14,7 @@ from typing import Any
 
 from clinosim.codes import get_system_uri
 from clinosim.codes import lookup as code_lookup
+from clinosim.codes.snomed import snomed_for
 from clinosim.codes.ucum import ucum_quantity
 from clinosim.locale.i18n import t
 from clinosim.modules._shared import get_attr_or_key, is_jp, resolve_lang
@@ -22,6 +23,7 @@ from clinosim.modules.output.fhir_r4.encounters.encounter import encounter_ref
 from clinosim.modules.output.fhir_r4.lib.common import (
     BundleContext,
     _coding_with_display,
+    dual_slot_concept,
     to_fhir_datetime,
 )
 from clinosim.modules.output.fhir_r4.lib.ids import (
@@ -234,24 +236,8 @@ def _bb_immunizations(ctx: BundleContext) -> list[dict]:
         # adult vaccine administration protocol per CDC ACIP + JP 予防接種
         # ガイドライン. Only omitted for not-done entries.
         if status != "not-done":
-            resource["site"] = {
-                "coding": [
-                    {
-                        "system": get_system_uri("snomed-ct"),
-                        "code": "368208006",
-                        "display": t("immunization_fhir.left_deltoid", lang),
-                    }
-                ],
-            }
-            resource["route"] = {
-                "coding": [
-                    {
-                        "system": get_system_uri("snomed-ct"),
-                        "code": "78421000",
-                        "display": t("immunization_fhir.intramuscular_route", lang),
-                    }
-                ],
-            }
+            resource["site"] = dual_slot_concept("snomed-ct", "368208006", lang)
+            resource["route"] = dual_slot_concept("snomed-ct", snomed_for("route", "IM") or "", lang)
             resource["doseQuantity"] = ucum_quantity(0.5, "mL")
         out.append(resource)
 

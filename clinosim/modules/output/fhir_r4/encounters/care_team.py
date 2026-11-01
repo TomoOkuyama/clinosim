@@ -39,12 +39,11 @@ from __future__ import annotations
 from typing import Any
 
 from clinosim.locale.i18n import t
-from clinosim.locale.loader import load_narrative_labels, resolve_localized_display
 from clinosim.modules._shared import get_attr_or_key as _o
 from clinosim.modules._shared import is_jp, resolve_lang
 from clinosim.modules.output.fhir_r4.demographics.patient import patient_ref
 from clinosim.modules.output.fhir_r4.encounters.encounter import encounter_ref
-from clinosim.modules.output.fhir_r4.lib.common import BundleContext, to_fhir_datetime
+from clinosim.modules.output.fhir_r4.lib.common import BundleContext, dual_slot_concept, to_fhir_datetime
 from clinosim.modules.output.fhir_r4.lib.ids import (
     derive_opaque_id,
     structural_key_system,
@@ -192,25 +191,10 @@ def _build_care_team(
     #   224535009 = "Registered nurse"
     #   46255001  = "Pharmacist"
     # Build participant list: attending always first; nurse only when non-empty.
-    # Role displays live in `narrative_labels.yaml/care_team_role_display:`
-    # keyed by the SNOMED code, so this helper takes only the code — the
-    # locale-specific display is resolved from the label catalog.
-    _role_display_map = load_narrative_labels().get("care_team_role_display", {})
-
+    # Role codes and their en/ja displays are registered in
+    # codes/data/snomed-ct.yaml (Issue #2258); the concept is dual-slot.
     def _role_coding(code: str) -> list[dict]:
-        display = resolve_localized_display(_role_display_map.get(code), lang, fallback=code)
-        return [
-            {
-                "coding": [
-                    {
-                        "system": "http://snomed.info/sct",
-                        "code": code,
-                        "display": display,
-                    }
-                ],
-                "text": display,
-            }
-        ]
+        return [dual_slot_concept("snomed-ct", code, lang)]
 
     participants: list[dict[str, Any]] = [
         {
@@ -262,7 +246,7 @@ def _build_care_team(
     # Role JA/EN displays live in
     # `narrative_labels.yaml/care_team_role_display:` keyed by SNOMED
     # code — the spec here only names the (allied_role_name, SNOMED
-    # code) pair. Rehabilitation physician (SNOMED 309362007) is a
+    # code) pair. Rehabilitation physician (SNOMED 309360001) is a
     # consult member, not primary attending; verified via tx.fhir.org
     # 2026-06-01 loadout alongside the other 5 allied codes.
     _allied_role_specs = (
@@ -271,7 +255,7 @@ def _build_care_team(
         ("speech_therapist", "159026005"),
         ("dietitian", "159033005"),
         ("medical_social_worker", "106328005"),
-        ("rehab_physician", "309362007"),
+        ("rehab_physician", "309360001"),
     )
     if allied_ids_by_role and enc_type in ("inpatient", "icu", "rehab_inpatient"):
         for role_name, snomed_code in _allied_role_specs:
