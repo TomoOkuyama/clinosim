@@ -30,6 +30,7 @@ from clinosim.codes import display as registry_display
 from clinosim.codes import get_system_uri, system_key_for
 from clinosim.codes.hl7_encounter import ActPriority, AdmitSource
 from clinosim.codes.snomed import snomed_for_phrase
+from clinosim.locale.i18n import t
 from clinosim.modules._shared import get_attr_or_key, is_jp, resolve_lang
 from clinosim.modules.output.fhir_r4.conditions.allergy_intolerance import (  # noqa: F401
     _bb_allergy_intolerances,
@@ -956,9 +957,7 @@ def _bb_procedures(ctx: BundleContext) -> list[dict]:
         _dx = (ctx.record or {}).get("clinical_diagnosis", {}) or {}
         _dx_code = _dx.get("discharge_diagnosis_code") or _dx.get("admission_diagnosis_code", "") or ""
         _dx_display = _dx.get("discharge_diagnosis_display") or _dx.get("admission_diagnosis_display", "") or ""
-        _generic_reason_text = (
-            "入院時診断に基づく処置" if is_jp(ctx.country) else "Procedure indicated by encounter diagnosis"
-        )
+        _generic_reason_text = t("fhir_text.procedure_reason_generic", _lang)
         if _dx_code:
             _icd_key = system_key_for("diagnosis", ctx.country)
             _reason_display = _dx_display or (registry_display(_icd_key, _dx_code, _lang) or _dx_code)
@@ -981,7 +980,7 @@ def _bb_procedures(ctx: BundleContext) -> list[dict]:
         # code, so text is defensible.
         procedure_res["bodySite"] = [
             {
-                "text": "処置部位不明" if is_jp(ctx.country) else "Body site not specified",
+                "text": t("fhir_text.body_site_unspecified", _lang),
             }
         ]
         # CY7-19 (Chain-7): outcome default = Successful for completed status.

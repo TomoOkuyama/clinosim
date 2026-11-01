@@ -7,7 +7,7 @@ other adapter symbols) and are re-exported by fhir_r4_adapter as a facade.
 
 from __future__ import annotations
 
-from clinosim.codes import get_system_uri
+from clinosim.codes import display, get_system_uri
 from clinosim.codes.snomed import snomed_display, snomed_map
 
 _SEVERITY_SNOMED: dict[str, dict[str, str]] = {}  # filled below from codes/data/snomed-maps.yaml
@@ -21,9 +21,8 @@ _SEVERITY_SNOMED: dict[str, dict[str, str]] = {}  # filled below from codes/data
 # (JP CS の display は `中度`、`中等度` ではないので注意)
 _JP_CONDITION_SEVERITY_CS = get_system_uri("jp-condition-severity")
 _SEVERITY_JP: dict[str, dict[str, str]] = {
-    "mild": {"code": "MI", "display": "軽度"},
-    "moderate": {"code": "MO", "display": "中度"},
-    "severe": {"code": "SE", "display": "重度"},
+    sev: {"code": code, "display": display("jp-condition-severity", code, "ja") or ""}
+    for sev, code in (("mild", "MI"), ("moderate", "MO"), ("severe", "SE"))
 }
 # NOTE: 過去に定義していた `_JP_OBSERVATION_REFERENCE_RANGE_SOURCE_URL`
 # (`.../StructureDefinition/JP_Observation_ReferenceRangeSource`)は削除。

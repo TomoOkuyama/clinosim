@@ -1,0 +1,13 @@
+# JP Core JP_ConditionSeverity_CS — Condition.severity primary coding for JP
+# output (JP_ConditionSeverity_VS allows only these codes). Displays are the
+# CodeSystem's own (note 中度, not 中等度); moved from
+# modules/output/fhir_r4/lib/reference_data.py (Issue #2402). `en` is a
+# clinosim translation (the English fallback every code carries).
+metadata:
+  name: JP Core Condition Severity
+  uri: http://jpfhir.jp/fhir/core/CodeSystem/JP_ConditionSeverity_CS
+  source: "JP Core CodeSystem JP_ConditionSeverity_CS"
+codes:
+  MI: {en: "Mild", ja: "軽度"}
+  MO: {en: "Moderate", ja: "中度"}
+  SE: {en: "Severe", ja: "重度"}
