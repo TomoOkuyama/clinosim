@@ -2835,7 +2835,7 @@
 </tr>
 </tbody>
 </table>
-<p><code>lookup(system, code, lang)</code> は旧 API で、ヒットしないとコード自体を返す。新しいコードでは <code>display(...) or &lt;明示フォールバック&gt;</code> を使う。</p>
+<p><code>lookup(system, code, lang)</code> はヒットしないと <code>""</code> を返す <code>display(...)</code> で (Issue #2416)、コード自体は返さない。新しいコードでは <code>display(...) or &lt;明示フォールバック&gt;</code> を使う。</p>
 <h3 id="42-国別対応と表示表-clinosimlocaleloader">4.2 国別対応と表示表 (<code>clinosim.locale.loader</code>)<a class="headerlink" href="#42-国別対応と表示表-clinosimlocaleloader" title="Permanent link">&para;</a></h3>
 <table>
 <thead>
@@ -3032,10 +3032,6 @@
 </tr>
 </thead>
 <tbody>
-<tr>
-<td><code>codes.lookup</code> はヒットしないとコードを返す (<code>clinosim/codes</code> 外に約 40 箇所)。</td>
-<td>#2416</td>
-</tr>
 <tr>
 <td>ローカライズされた YAML フィールドの形が混在している (入れ子の <code>{lang: text}</code>、25 種の <code>*_ja</code> フィールド名、<code>dose_ja</code> と <code>dose_text_ja</code>)。</td>
 <td>#2398</td>

@@ -2835,7 +2835,7 @@
 </tr>
 </tbody>
 </table>
-<p><code>lookup(system, code, lang)</code> is legacy: on a miss it returns the code itself. New code uses <code>display(...) or &lt;explicit fallback&gt;</code>.</p>
+<p><code>lookup(system, code, lang)</code> is <code>display(...)</code> with <code>""</code> on a miss (Issue #2416); it never returns the code itself. New code uses <code>display(...) or &lt;explicit fallback&gt;</code>.</p>
 <h3 id="42-country-mappings-and-display-tables-clinosimlocaleloader">4.2 Country mappings and display tables (<code>clinosim.locale.loader</code>)<a class="headerlink" href="#42-country-mappings-and-display-tables-clinosimlocaleloader" title="Permanent link">&para;</a></h3>
 <table>
 <thead>
@@ -3032,10 +3032,6 @@
 </tr>
 </thead>
 <tbody>
-<tr>
-<td><code>codes.lookup</code> returns the code on a miss (about 40 call sites outside <code>clinosim/codes</code>).</td>
-<td>#2416</td>
-</tr>
 <tr>
 <td>Localized YAML fields use mixed shapes (nested <code>{lang: text}</code>, 25 <code>*_ja</code> field names, <code>dose_ja</code> vs <code>dose_text_ja</code>).</td>
 <td>#2398</td>
