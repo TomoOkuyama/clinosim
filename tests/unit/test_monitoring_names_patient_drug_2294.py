@@ -17,10 +17,10 @@ def test_rosuvastatin_matches_statin_rule_but_keeps_its_own_name() -> None:
     assert names == {"Atorvastatin": ("Rosuvastatin", "ロスバスタチン")}
 
 
-def test_valsartan_keeps_its_own_name_under_the_arb_rule() -> None:
+def test_another_arb_keeps_its_own_name_under_the_arb_rule() -> None:
     mapping = load_medication_monitoring()
-    meds = [HomeMedication(drug_name="Valsartan", drug_name_ja="バルサルタン")]
-    assert matched_medication_names(meds, mapping)["Candesartan"] == ("Valsartan", "バルサルタン")
+    meds = [HomeMedication(drug_name="Losartan", drug_name_ja="ロサルタン")]
+    assert matched_medication_names(meds, mapping)["Candesartan"] == ("Losartan", "ロサルタン")
 
 
 def test_rule_drug_itself_uses_its_names() -> None:

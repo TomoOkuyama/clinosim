@@ -1,10 +1,10 @@
 # Chronic-medication-driven monitoring lab mapping (Issue #757).
 #
 # For each mapping entry:
-#   ``matches``  — list of case-insensitive substring patterns applied to
-#                   ``HomeMedication.drug_name`` / ``drug_name_ja``. Any match
-#                   is sufficient; the check is intentionally forgiving so
-#                   trade names + generic names + JP katakana forms all resolve.
+#   ``drugs`` / ``classes`` — catalog drug ids and / or catalog drug classes
+#                   (codes/data/drugs.yaml). A medication matches by its
+#                   drug_id (or the drug its name resolves to); brand and
+#                   Japanese names are catalog aliases (Issue #2371).
 #   ``labs``     — canonical clinosim lab-analyte names appended to the
 #                   visit's ``visit_labs`` list when the patient carries a
 #                   matching medication. Names must exist in
@@ -24,7 +24,7 @@ medication_lab_mapping:
   # cadence for stable patients, more frequent during dose titration).
   # Closes #736 (US warfarin PT-INR 0-observation gap).
   warfarin:
-    matches: ["warfarin", "ワルファリン", "coumadin"]
+    drugs: [warfarin]
     labs: [PT_INR]
     per_visit_probability: 1.0
 
@@ -32,19 +32,19 @@ medication_lab_mapping:
   # here as ~50 % of chronic-followup visits since most clinics group with
   # the primary condition follow-up rather than a dedicated thyroid visit.
   levothyroxine:
-    matches: ["levothyroxine", "レボチロキシン", "synthroid", "チラーヂン"]
+    drugs: [levothyroxine]
     labs: [TSH]
     per_visit_probability: 0.5
 
   # Diabetes oral (metformin as sentinel) + insulin — HbA1c q3-6mo. Standard
   # ADA / JDS diabetes-monitoring cadence.
   metformin:
-    matches: ["metformin", "メトホルミン"]
+    drugs: [metformin]
     labs: [HbA1c]
     per_visit_probability: 0.5
 
   insulin:
-    matches: ["insulin", "インスリン"]
+    drugs: [insulin, insulin_aspart, insulin_glargine, insulin_lispro, insulin_regular_human, sliding_scale_insulin]
     labs: [HbA1c]
     per_visit_probability: 0.5
 
@@ -53,14 +53,14 @@ medication_lab_mapping:
   # via the existing chronic-followup labs, but we add here explicitly
   # so digoxin patients get the pair even at non-cardiac visits).
   digoxin:
-    matches: ["digoxin", "ジゴキシン", "ラニラピッド", "lanoxin"]
+    drugs: [digoxin]
     labs: [Digoxin, K, Creatinine]
     per_visit_probability: 0.5
 
   # Statin — LFTs (ALT/AST) baseline + as clinically indicated. Real
   # cadence is once at start + q6-12mo; approximate as ~25% of visits.
   statin:
-    matches: ["atorvastatin", "アトルバスタチン", "rosuvastatin", "ロスバスタチン", "simvastatin", "シンバスタチン", "pravastatin", "プラバスタチン", "statin"]
+    classes: [statin]
     labs: [ALT, AST]
     per_visit_probability: 0.25
 
@@ -68,25 +68,25 @@ medication_lab_mapping:
   # Cadence is longer than typical HTN follow-up (q2-3mo), so probability
   # weighted below 1.0.
   ace_arb_diuretic:
-    matches: ["enalapril", "エナラプリル", "lisinopril", "リシノプリル", "losartan", "ロサルタン", "candesartan", "カンデサルタン", "valsartan", "バルサルタン", "furosemide", "フロセミド", "hydrochlorothiazide", "ヒドロクロロチアジド", "spironolactone", "スピロノラクトン"]
+    classes: [acei_arb, diuretic]
     labs: [K, Creatinine]
     per_visit_probability: 0.4
 
   # Lithium — Li level + TSH + Cr every 6-12mo. Toxic window is narrow;
   # missed monitoring is a real prescribing-safety concern.
   lithium:
-    matches: ["lithium", "リチウム", "リーマス"]
+    drugs: [lithium_carbonate]
     labs: [Lithium, TSH, Creatinine]
     per_visit_probability: 0.35
 
   # Immunosuppressant — drug trough level per-visit. Post-transplant care
   # requires trough monitoring at every clinic visit while active.
   tacrolimus:
-    matches: ["tacrolimus", "タクロリムス", "プログラフ", "prograf"]
+    drugs: [tacrolimus]
     labs: [Tacrolimus, Creatinine, K]
     per_visit_probability: 1.0
 
   ciclosporin:
-    matches: ["ciclosporin", "cyclosporine", "シクロスポリン", "ネオーラル", "neoral"]
+    drugs: [ciclosporin]
     labs: [Ciclosporin, Creatinine, K]
     per_visit_probability: 1.0

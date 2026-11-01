@@ -24,7 +24,7 @@ class TestMappingLoader:
         mapping = load_medication_monitoring()
         assert "Warfarin" in mapping
         warfarin = mapping["Warfarin"]
-        assert "ワルファリン" in warfarin.get("aliases", [])
+        assert warfarin["drugs"] == ["warfarin"]  # catalog id (Issue #2371)
         monitoring = warfarin["monitoring"]
         assert len(monitoring) >= 1
         pt_inr = next(m for m in monitoring if m["lab"] == "PT_INR")
@@ -36,7 +36,7 @@ class TestMappingLoader:
         mapping = load_medication_monitoring()
         assert "Levothyroxine" in mapping
         levo = mapping["Levothyroxine"]
-        assert "レボチロキシン" in levo.get("aliases", [])
+        assert levo["drugs"] == ["levothyroxine"]
         monitoring = levo["monitoring"]
         assert len(monitoring) >= 1
         tsh = next(m for m in monitoring if m["lab"] == "TSH")
@@ -54,28 +54,28 @@ class TestMappingLoader:
         assert "HbA1c" in ins_labs
         met_hba1c = next(m for m in mapping["Metformin"]["monitoring"] if m["lab"] == "HbA1c")
         assert monitoring_lab_code(met_hba1c["lab"]) == "4548-4"
-        # Insulin aliases cover the SC sliding-scale variant used by chronic_medications.yaml.
-        assert "sliding scale insulin" in [a.lower() for a in mapping["Insulin"]["aliases"]]
+        # The Insulin rule covers the SC sliding-scale variant used by chronic_medications.yaml.
+        assert "sliding_scale_insulin" in mapping["Insulin"]["drugs"]
 
     def test_ships_statin_lft_pair(self):
-        # #757 pass 5 — Atorvastatin (and statin aliases) → AST + ALT.
+        # #757 pass 5 — Atorvastatin (every statin) → AST + ALT.
         mapping = load_medication_monitoring()
         assert "Atorvastatin" in mapping
         labs = [m["lab"] for m in mapping["Atorvastatin"]["monitoring"]]
         assert "AST" in labs
         assert "ALT" in labs
         # Aliases cover other common statins used in the wider chronic-medication tree.
-        assert "simvastatin" in [a.lower() for a in mapping["Atorvastatin"]["aliases"]]
+        assert mapping["Atorvastatin"]["classes"] == ["statin"]  # every catalog statin (Issue #2371)
 
     def test_ships_arb_renal_safety_pair(self):
-        # #757 pass 6 — Candesartan (and ARB aliases) → K + Creatinine.
+        # #757 pass 6 — Candesartan (every ARB) → K + Creatinine.
         mapping = load_medication_monitoring()
         assert "Candesartan" in mapping
         labs = [m["lab"] for m in mapping["Candesartan"]["monitoring"]]
         assert "K" in labs
         assert "Creatinine" in labs
         # Aliases cover the ARB drug family.
-        assert "losartan" in [a.lower() for a in mapping["Candesartan"]["aliases"]]
+        assert mapping["Candesartan"]["classes"] == ["arb"]  # every catalog ARB (Issue #2371)
 
 
 class TestMatchDrugs:

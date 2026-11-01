@@ -58,7 +58,10 @@ def test_doac_has_jp_display(mappings: dict, doac: str) -> None:
     ],
 )
 def test_doac_aliases_present(mappings: dict, doac: str, alias: str) -> None:
-    assert alias in mappings[doac]["aliases"]
+    # Names and aliases resolve through the drug catalog (Issue #2371).
+    from clinosim.codes.drugs import drug_ref
+
+    assert drug_ref(alias) in mappings[doac]["drugs"]
 
 
 @pytest.mark.parametrize("doac", ["Apixaban", "Rivaroxaban", "Dabigatran", "Edoxaban"])

@@ -47,6 +47,9 @@ from typing import Any
 import numpy as np
 import yaml
 
+from clinosim.codes.drugs import medication_matches
+from clinosim.modules.monitoring.mapping import _validate_drug_selector
+
 _HERE = Path(__file__).resolve().parent
 _REF_DIR = _HERE / "reference_data"
 
@@ -70,24 +73,16 @@ def load_medication_lab_mapping() -> dict[str, dict[str, Any]]:
     for key, entry in mapping.items():
         if not isinstance(entry, dict):
             raise ValueError(f"{path.name}[{key}]: entry must be a dict")
-        for field in ("matches", "labs", "per_visit_probability"):
+        for field in ("labs", "per_visit_probability"):
             if field not in entry:
                 raise ValueError(f"{path.name}[{key}]: missing required field {field!r}")
-        if not isinstance(entry["matches"], list) or not entry["matches"]:
-            raise ValueError(f"{path.name}[{key}].matches: non-empty list required")
+        _validate_drug_selector(f"{path.name}[{key}]", entry)
         if not isinstance(entry["labs"], list) or not entry["labs"]:
             raise ValueError(f"{path.name}[{key}].labs: non-empty list required")
         prob = entry["per_visit_probability"]
         if not isinstance(prob, int | float) or not 0.0 <= float(prob) <= 1.0:
             raise ValueError(f"{path.name}[{key}].per_visit_probability: must be in [0.0, 1.0]")
     return mapping
-
-
-def _drug_name_matches(drug_name: str, drug_name_ja: str, patterns: list[str]) -> bool:
-    """Return True when either drug-name field contains any of the case-
-    insensitive substring patterns."""
-    haystack = f"{drug_name} {drug_name_ja}".lower()
-    return any(pat.lower() in haystack for pat in patterns)
 
 
 def monitoring_labs_for_patient(
@@ -116,19 +111,10 @@ def monitoring_labs_for_patient(
     out: list[str] = []
     seen: set[str] = set()
     for entry in mapping.values():
-        patterns = entry["matches"]
-        matched = False
-        for med in current_medications:
-            if isinstance(med, dict):
-                dn = str(med.get("drug_name", "") or "")
-                dnj = str(med.get("drug_name_ja", "") or "")
-            else:
-                dn = str(getattr(med, "drug_name", "") or "")
-                dnj = str(getattr(med, "drug_name_ja", "") or "")
-            if _drug_name_matches(dn, dnj, patterns):
-                matched = True
-                break
-        if not matched:
+        # Catalog identity, not name substrings (Issue #2371).
+        if not any(
+            medication_matches(med, entry.get("drugs") or (), entry.get("classes") or ()) for med in current_medications
+        ):
             continue
         prob = float(entry["per_visit_probability"])
         if prob < 1.0 and rng.random() >= prob:

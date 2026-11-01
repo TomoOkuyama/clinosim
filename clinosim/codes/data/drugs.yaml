@@ -113,7 +113,7 @@ drugs:
       rxnorm: "83367"
       yj: {oral: "2189015F2020"}
     classes: ["statin", "cyp3a4_substrate"]
-    aliases: ["リピトール"]
+    aliases: ["リピトール", "Lipitor"]
 
   amlodipine:
     names: {en: "Amlodipine", ja: "アムロジピン"}
@@ -160,6 +160,7 @@ drugs:
       rxnorm: "10582"
       yj: {oral: "2431004F1056"}
     classes: []
+    aliases: ["Synthroid", "Levoxyl", "チラーヂン"]
 
   aspirin:
     names: {en: "Aspirin", ja: "アスピリン"}
@@ -300,7 +301,7 @@ drugs:
       rxnorm: "1114195"  # Issue #2150: was 221147
       yj: {oral: "3339003F1024"}
     classes: ["anticoagulant.doac", "anticoagulant"]
-    aliases: ["xarelto"]
+    aliases: ["xarelto", "イグザレルト"]
   meropenem:
     names: {en: "Meropenem", ja: "メロペネム"}
     codes:
@@ -678,6 +679,7 @@ drugs:
       rxnorm: "3407"
       yj: {oral: "2113003F3025"}
     classes: ["cardiac_glycoside"]
+    aliases: ["Lanoxin", "ラニラピッド"]
   disopyramide:
     names: {en: "Disopyramide", ja: "ジソピラミド"}
     codes:
@@ -1463,7 +1465,7 @@ drugs:
       rxnorm: "1599538"
       yj: {oral: "3339002F3022"}
     classes: ["anticoagulant", "anticoagulant.doac"]
-    aliases: ["リクシアナ", "savaysa"]
+    aliases: ["リクシアナ", "savaysa", "Lixiana"]
   oseltamivir:
     names: {en: "Oseltamivir", ja: "オセルタミビル"}
     codes:
@@ -1750,6 +1752,7 @@ drugs:
       rxnorm: "11118"
       yj: {oral: "1139004F2173"}
     classes: ["mood_stabilizer"]
+    aliases: ["Valproate", "Divalproex", "デパケン"]
   lamotrigine:
     names: {en: "Lamotrigine", ja: "ラモトリギン"}
     codes:
@@ -1796,7 +1799,7 @@ drugs:
   dabigatran:
     names: {en: "Dabigatran", ja: "ダビガトラン"}
     classes: ["anticoagulant.doac", "anticoagulant"]
-    aliases: ["pradaxa"]
+    aliases: ["pradaxa", "プラザキサ"]
   prasugrel:
     names: {en: "Prasugrel", ja: "プラスグレル"}
     classes: ["antiplatelet.p2y12", "antiplatelet"]
@@ -1841,3 +1844,15 @@ drugs:
     names: {en: "Clonazepam", ja: "クロナゼパム"}
     classes: ["benzodiazepine", "anxiolytic"]
     aliases: ["klonopin", "リボトリール", "ランドセン"]
+
+  # Issue #2371: transplant immunosuppressants with a monitoring rule
+  # (trough levels). Names only (MHLW ingredient names); not ordered by any
+  # protocol yet, so no RxNorm / YJ code (uncoded by design).
+  tacrolimus:
+    names: {en: "Tacrolimus", ja: "タクロリムス"}
+    classes: ["immunosuppressant.calcineurin_inhibitor"]
+    aliases: ["Prograf", "プログラフ"]
+  ciclosporin:
+    names: {en: "Ciclosporin", ja: "シクロスポリン"}
+    classes: ["immunosuppressant.calcineurin_inhibitor"]
+    aliases: ["Cyclosporine", "Neoral", "ネオーラル"]

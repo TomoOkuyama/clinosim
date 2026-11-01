@@ -1,18 +1,19 @@
 # Chronic-medication → standard-of-care monitoring lab mapping (Issue #757).
 #
 # Schema (per drug entry):
-#   <Drug canonical name>:
-#     aliases:        [<optional additional names, case-insensitive substring match>]
+#   <Rule label>:
+#     drugs:          [<catalog drug_id>, ...]     (codes/data/drugs.yaml)
+#     classes:        [<catalog drug class>, ...]  (either or both; Issue #2371)
 #     monitoring:
 #       - lab:        <internal analyte name — matches clinosim/modules/observation/engine.py>
 #         rationale:  "<one-sentence clinical justification>"
 #         rationale_ja: "<Japanese translation of the rationale — used for reasonCode.text JP>"
 #
-# The enricher (`clinosim/modules/monitoring/enricher.py`) matches the drug name
-# and every alias against each entry in `patient.current_medications` via
-# case-insensitive substring — the same pattern used by
-# `physiology.engine._WARFARIN_NAMES` — so "Warfarin 3mg PO" and "ワルファリン"
-# both match the Warfarin entry.
+# The enricher (`clinosim/modules/monitoring/enricher.py`) matches each entry in
+# `patient.current_medications` by catalog identity (its drug_id, or the drug
+# its name resolves to) — `codes.drugs.medication_matches` — so "Warfarin 3mg
+# PO", "ワルファリン" and "Coumadin" all match the Warfarin rule. Brand and
+# Japanese names live in the drug catalog's aliases.
 #
 # `drug_ja` and `rationale_ja` (Issue #871) are consumed by the FHIR
 # `ServiceRequest.reasonCode.text` JP emit path (via `Order.clinical_intent_ja`).
@@ -32,7 +33,7 @@
 # drawn (ordered or resulted) within the interval.
 mappings:
   Warfarin:
-    aliases: ["ワルファリン", "coumadin"]
+    drugs: [warfarin]
     monitoring:
       - lab: PT_INR
         interval_months: 1
@@ -40,7 +41,7 @@ mappings:
         rationale_ja: "抗凝固療法の治療域モニタリング — INR 目標 2.0-3.0 (機械弁は 2.5-3.5)。"
 
   Levothyroxine:
-    aliases: ["レボチロキシン", "synthroid", "levoxyl", "レボチロキシンナトリウム"]
+    drugs: [levothyroxine]
     monitoring:
       - lab: TSH
         interval_months: 6
@@ -56,7 +57,7 @@ mappings:
   # DM patients emit realistic values (6-10% range typical); non-DM patients
   # accidentally on a DM drug would emit the ~5.5% age-adjusted non-DM baseline.
   Metformin:
-    aliases: ["メトホルミン"]
+    drugs: [metformin]
     monitoring:
       - lab: HbA1c
         interval_months: 3
@@ -64,7 +65,7 @@ mappings:
         rationale_ja: "慢性血糖コントロールモニタリング — HbA1c 目標 <7% (ADA/JDS 個別化)。ガイドライン: 安定治療下は 3-6 か月毎、用量調整期は 3 か月毎。"
 
   Insulin:
-    aliases: ["インスリン", "sliding scale insulin", "insulin glargine", "insulin lispro", "insulin aspart", "regular insulin", "スライディングスケール インスリン"]
+    drugs: [insulin, insulin_aspart, insulin_glargine, insulin_lispro, insulin_regular_human, sliding_scale_insulin]
     monitoring:
       - lab: HbA1c
         interval_months: 3
@@ -79,7 +80,7 @@ mappings:
   # gap. AST + ALT are both physiology-modeled in
   # observation/engine.py (BIOLOGICAL_CV 0.120 / 0.195 respectively).
   Atorvastatin:
-    aliases: ["アトルバスタチン", "lipitor", "simvastatin", "rosuvastatin", "pravastatin", "シンバスタチン", "ロスバスタチン", "プラバスタチン"]
+    classes: [statin]
     monitoring:
       - lab: AST
         interval_months: 12
@@ -99,7 +100,7 @@ mappings:
   # `Cr` alias covered because the mapping enricher matches on Order's
   # display_name (which we emit as the YAML `lab` value, `Creatinine`).
   Candesartan:
-    aliases: ["カンデサルタン", "losartan", "valsartan", "olmesartan", "telmisartan", "ロサルタン", "バルサルタン", "オルメサルタン"]
+    classes: [arb]
     monitoring:
       - lab: K
         interval_months: 6
@@ -120,7 +121,7 @@ mappings:
   # the gap so DOAC + monitoring appears in the FHIR record the way real
   # anticoagulation clinics chart it.
   Apixaban:
-    aliases: ["アピキサバン", "eliquis"]
+    drugs: [apixaban]
     monitoring:
       - lab: eGFR
         interval_months: 6
@@ -128,7 +129,7 @@ mappings:
         rationale_ja: "DOAC (アピキサバン) の腎排泄モニタリング — CrCl <30 で減量 (5 mg 1日2回 → 2.5 mg 1日2回)。Chest 2018 / JCS 2020 に基づき安定期は 6 か月毎の測定を最低推奨。"
 
   Rivaroxaban:
-    aliases: ["リバーロキサバン", "xarelto", "イグザレルト"]
+    drugs: [rivaroxaban]
     monitoring:
       - lab: eGFR
         interval_months: 6
@@ -136,7 +137,7 @@ mappings:
         rationale_ja: "DOAC (リバーロキサバン) の腎排泄モニタリング — CrCl <15 で禁忌、CrCl 15-49 で減量 (20 mg 1日1回 → 15 mg 1日1回)。Chest 2018 に基づき 6 か月毎測定を最低推奨。"
 
   Dabigatran:
-    aliases: ["ダビガトラン", "pradaxa", "プラザキサ"]
+    drugs: [dabigatran]
     monitoring:
       - lab: eGFR
         interval_months: 6
@@ -144,7 +145,7 @@ mappings:
         rationale_ja: "DOAC (ダビガトラン) の腎排泄モニタリング — 4 剤中最も腎依存 (約 80% 腎排泄)。CrCl <30 で禁忌、CrCl 30-50 で減量 (150 mg 1日2回 → 110 mg 1日2回)。3-6 か月毎に再検。"
 
   Edoxaban:
-    aliases: ["エドキサバン", "リクシアナ", "savaysa", "lixiana"]
+    drugs: [edoxaban]
     monitoring:
       - lab: eGFR
         interval_months: 6
@@ -153,7 +154,7 @@ mappings:
 
   # Issue #2142: mood stabilizers (CANMAT / ISBD 2018 safety monitoring).
   Lithium carbonate:
-    aliases: ["Lithium", "炭酸リチウム", "リーマス"]
+    drugs: [lithium_carbonate]
     monitoring:
       - lab: Lithium
         interval_months: 3
@@ -168,7 +169,7 @@ mappings:
         rationale: "Lithium nephrotoxicity — renal function every 6-12 months."
         rationale_ja: "リチウムの腎毒性 — 腎機能を 6-12 か月毎。"
   Valproic acid:
-    aliases: ["Valproate", "Divalproex", "バルプロ酸ナトリウム", "デパケン"]
+    drugs: [valproic_acid]
     monitoring:
       - lab: AST
         interval_months: 6
@@ -186,14 +187,14 @@ mappings:
   # Issue #2146: agonist MOUD — urine drug screen to confirm adherence and
   # detect other substance use (SAMHSA TIP 63).
   Buprenorphine/Naloxone:
-    aliases: ["Suboxone", "buprenorphine"]
+    drugs: [buprenorphine_naloxone]
     monitoring:
       - lab: Urine_drug_screen
         interval_months: 1
         rationale: "Urine drug screen — adherence to buprenorphine and other substance use (SAMHSA TIP 63)."
         rationale_ja: "尿中薬物スクリーニング — ブプレノルフィンの服薬確認と他物質の使用確認。"
   Methadone:
-    aliases: ["methadone"]
+    drugs: [methadone]
     monitoring:
       - lab: Urine_drug_screen
         interval_months: 1

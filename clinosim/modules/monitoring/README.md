@@ -48,7 +48,7 @@ from clinosim.modules.monitoring.mapping import (
 
 # 2. Chronic-visit lab-list path (med_lab_mapping.yaml), re-exported from __init__.py
 from clinosim.modules.monitoring import (
-    load_medication_lab_mapping,     # () -> {entry: {matches, labs, per_visit_probability}} (lru_cache)
+    load_medication_lab_mapping,     # () -> {entry: {drugs, classes, labs, per_visit_probability}} (lru_cache)
     monitoring_labs_for_patient,     # (current_medications, rng) -> list[str] lab names
 )
 ```
@@ -120,7 +120,7 @@ Callers: `clinosim/simulator/enrichers.py` (enricher registration) and
   integer `interval_months >= 1` are required per monitoring row).
 - [`reference_data/med_lab_mapping.yaml`](reference_data/med_lab_mapping.yaml)
   — chronic-visit mapping for `monitoring_labs_for_patient`, under a
-  top-level `medication_lab_mapping:` key; each entry has `matches`
+  top-level `medication_lab_mapping:` key; each entry has `drugs` / `classes`
   (substring patterns over `drug_name` / `drug_name_ja`), `labs`
   (canonical analyte names) and `per_visit_probability`. Loaded by
   `engine.load_medication_lab_mapping` (cached, fail-loud).

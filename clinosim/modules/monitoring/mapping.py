@@ -21,7 +21,7 @@ from typing import Any
 
 import yaml
 
-from clinosim.codes.drugs import drug_display
+from clinosim.codes.drugs import drug_display, medication_matches
 from clinosim.locale.loaders.demographics import load_code_mapping
 
 _YAML_PATH = Path(__file__).parent / "reference_data" / "medication_monitoring.yaml"
@@ -31,7 +31,7 @@ def load_medication_monitoring(path: Path | None = None) -> dict[str, Any]:
     """Load and validate the drug → monitoring-labs mapping.
 
     Returns a dict keyed by canonical drug name (as declared in YAML) whose
-    value is `{"aliases": [...], "monitoring": [{lab, rationale}, ...]}`.
+    value is `{"drugs": [...], "classes": [...], "monitoring": [{lab, rationale}, ...]}`.
     Tests can override the file path via the optional `path` argument.
 
     Raises `ValueError` on schema violations (missing `mappings`, missing
@@ -49,9 +49,7 @@ def load_medication_monitoring(path: Path | None = None) -> dict[str, Any]:
     for drug, entry in mappings.items():
         if not isinstance(entry, dict):
             raise ValueError(f"medication_monitoring.yaml: drug '{drug}' entry must be a dict")
-        aliases = entry.get("aliases") or []
-        if not isinstance(aliases, list):
-            raise ValueError(f"medication_monitoring.yaml: drug '{drug}' aliases must be a list")
+        _validate_drug_selector(f"medication_monitoring.yaml: drug '{drug}'", entry)
         monitoring = entry.get("monitoring")
         if not isinstance(monitoring, list) or not monitoring:
             raise ValueError(f"medication_monitoring.yaml: drug '{drug}' must declare a non-empty 'monitoring' list")
@@ -85,17 +83,16 @@ def matched_medication_names(current_medications: list, mapping: dict[str, Any])
     """Map each matched monitoring rule to the (English, Japanese) name of the
     drug the patient actually takes (Issue #2294).
 
-    A rule's aliases cover other drugs of the same class (the Atorvastatin
-    rule also matches rosuvastatin), so order text must name the patient's
+    A rule's class covers other drugs of the class (the Atorvastatin rule
+    matches every statin), so order text must name the patient's
     drug, not the rule key. A medication without a Japanese name takes the
     drug catalog's (Issue #2271).
     """
     out: dict[str, tuple[str, str]] = {}
     for drug, entry in mapping.items():
-        needles = [drug.lower(), *(str(a).lower() for a in (entry.get("aliases") or []))]
         for med in current_medications or []:
             name = str(getattr(med, "drug_name", None) or (med if isinstance(med, str) else ""))
-            if any(needle and needle in name.lower() for needle in needles):
+            if medication_matches(med, entry.get("drugs") or (), entry.get("classes") or ()):
                 name_ja = str(getattr(med, "drug_name_ja", "") or "")
                 if not name_ja:
                     name_ja = drug_display(name, "ja") or ""
@@ -107,10 +104,10 @@ def matched_medication_names(current_medications: list, mapping: dict[str, Any])
 def match_drugs(current_medications: list, mapping: dict[str, Any]) -> list[str]:
     """Return the list of canonical drug names the patient is on.
 
-    Case-insensitive substring match across the drug's canonical name and
-    every alias. Matches the pattern used by `physiology.engine.medication_flags_from_context`
-    (`_WARFARIN_NAMES`) so "Warfarin 3mg PO", "ワルファリン 3mg", and
-    "Coumadin 5mg" all resolve to the same "Warfarin" mapping entry.
+    A medication matches a rule by catalog identity: its ``drug_id`` is in
+    the rule's ``drugs`` or belongs to one of its ``classes`` (Issue #2371),
+    so "Warfarin 3mg PO", "ワルファリン" and "Coumadin" all match the
+    Warfarin rule.
 
     `current_medications` accepts either `HomeMedication` dataclass entries
     (with `.drug_name` attribute) or plain strings (defensive fallback for
@@ -118,11 +115,25 @@ def match_drugs(current_medications: list, mapping: dict[str, Any]) -> list[str]
     """
     matched: list[str] = []
     for drug, entry in mapping.items():
-        needles = [drug.lower(), *(str(a).lower() for a in (entry.get("aliases") or []))]
         for med in current_medications or []:
-            haystack = getattr(med, "drug_name", None) or (med if isinstance(med, str) else "")
-            haystack = str(haystack).lower()
-            if any(needle and needle in haystack for needle in needles):
+            if medication_matches(med, entry.get("drugs") or (), entry.get("classes") or ()):
                 matched.append(drug)
                 break
     return matched
+
+
+def _validate_drug_selector(where: str, entry: dict[str, Any]) -> None:
+    """A monitoring rule selects drugs by catalog ``drugs`` ids and / or
+    catalog ``classes``; both must exist in the drug catalog (Issue #2371)."""
+    from clinosim.codes.drugs import all_drug_ids, drug_classes, get_drug
+
+    drugs, classes = entry.get("drugs") or [], entry.get("classes") or []
+    if not isinstance(drugs, list) or not isinstance(classes, list) or not (drugs or classes):
+        raise ValueError(f"{where}: needs a non-empty 'drugs' and / or 'classes' list")
+    unknown = [d for d in drugs if get_drug(str(d)) is None]
+    if unknown:
+        raise ValueError(f"{where}: drugs not in the drug catalog: {unknown}")
+    known_classes = {c for d in all_drug_ids() for c in drug_classes(d)}
+    bad = [c for c in classes if c not in known_classes]
+    if bad:
+        raise ValueError(f"{where}: classes no catalog drug has: {bad}")

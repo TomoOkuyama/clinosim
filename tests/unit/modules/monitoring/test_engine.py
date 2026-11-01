@@ -40,7 +40,7 @@ def test_loader_returns_dict_with_expected_keys() -> None:
 def test_loader_all_entries_have_required_fields() -> None:
     mapping = load_medication_lab_mapping()
     for key, entry in mapping.items():
-        assert "matches" in entry and entry["matches"], f"{key} missing matches"
+        assert entry.get("drugs") or entry.get("classes"), f"{key} selects no drug (Issue #2371)"
         assert "labs" in entry and entry["labs"], f"{key} missing labs"
         prob = entry["per_visit_probability"]
         assert 0.0 <= prob <= 1.0, f"{key} probability out of range: {prob}"
