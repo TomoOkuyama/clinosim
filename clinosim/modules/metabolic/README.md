@@ -57,7 +57,7 @@ Thresholds live as module-level constants in `engine.py` rather than yaml so the
 - `_NAFLD_CODE = "K76.0"`, `_NAFLD_OBESE_PREVALENCE = 0.60`, `_NAFLD_MORBID_PREVALENCE = 0.85`, `_NAFLD_DM_UPLIFT = 1.15`, `_NAFLD_SALT = "metabolic.nafld.v1"`, `_F10_PREFIXES = ("F10",)` — axis 3 anchors (Younossi 2016 obese sub-cohort) and the F10 exclusion gate (Issue #1756).
 - `_OSA_CODE = "G47.30"`, `_OSA_PREVALENCE_MALE`, `_OSA_PREVALENCE_FEMALE`, `_OSA_AGE_SPLIT`, `_OSA_AGE_FACTOR_MALE` / `_FEMALE`, `_OSA_SALT = "metabolic.osa.v1"` — axis 4 anchors (BMI tier × sex table × age factor, calibrated to Peppard 2013 AHI ≥ 15).
 
-Axis 5 constants live in `locale/shared/chronic_medications.yaml` under the `E66.9:` / `E66.01:` blocks (drug names, doses, routes, probabilities, `exclusive_classes: ["glp1"]`). A later refinement can externalise axis 2's AND criteria into `reference_data/metabolic_syndrome_criteria.yaml` if a 3-of-5 NCEP ATP III relaxation is ever added.
+Axis 5 constants live in `locale/shared/chronic_medications.yaml` under the `E66.9:` / `E66.01:` blocks (drug names, doses, routes, probabilities, `exclusive_classes: ["glp1_agonist"]`). A later refinement can externalise axis 2's AND criteria into `reference_data/metabolic_syndrome_criteria.yaml` if a 3-of-5 NCEP ATP III relaxation is ever added.
 
 ## Directory contents
 

@@ -51,7 +51,7 @@ def test_c16_gastric_cancer_has_oral_fluoropyrimidine():
     assert "Capecitabine" in drugs
     assert "Tegafur-Gimeracil-Oteracil" in drugs  # S-1, JP-first-line (legacy — no RxCUI)
     # Both tagged fluoropyrimidine for the active-regimen mutex guard
-    assert all(m.get("drug_class") == "fluoropyrimidine" for m in meds)
+    assert all(m.get("drug_class") == "antineoplastic.fluoropyrimidine" for m in meds)
     # Locale-exclusive: Capecitabine → not JP; S-1 → not US
     cape = next(m for m in meds if _entry_drug_name(m) == "Capecitabine")
     ts1 = next(m for m in meds if _entry_drug_name(m) == "Tegafur-Gimeracil-Oteracil")

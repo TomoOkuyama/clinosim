@@ -57,7 +57,7 @@ from clinosim.modules.metabolic import (
 - `_NAFLD_CODE = "K76.0"`, `_NAFLD_OBESE_PREVALENCE = 0.60`, `_NAFLD_MORBID_PREVALENCE = 0.85`, `_NAFLD_DM_UPLIFT = 1.15`, `_NAFLD_SALT = "metabolic.nafld.v1"`, `_F10_PREFIXES = ("F10",)` — 軸 3 アンカー (Younossi 2016 肥満サブコホート) と F10 除外 gate (Issue #1756)。
 - `_OSA_CODE = "G47.30"`, `_OSA_PREVALENCE_MALE`, `_OSA_PREVALENCE_FEMALE`, `_OSA_AGE_SPLIT`, `_OSA_AGE_FACTOR_MALE` / `_FEMALE`, `_OSA_SALT = "metabolic.osa.v1"` — 軸 4 アンカー (BMI 階層 × 性別テーブル × 年齢係数、Peppard 2013 AHI ≥ 15 に較正)。
 
-軸 5 定数は `locale/shared/chronic_medications.yaml` の `E66.9:` / `E66.01:` ブロック (drug 名、用量、route、probability、`exclusive_classes: ["glp1"]`)。将来 NCEP ATP III 3-of-5 緩和を追加する際は軸 2 AND 基準を `reference_data/metabolic_syndrome_criteria.yaml` に外出し可能。
+軸 5 定数は `locale/shared/chronic_medications.yaml` の `E66.9:` / `E66.01:` ブロック (drug 名、用量、route、probability、`exclusive_classes: ["glp1_agonist"]`)。将来 NCEP ATP III 3-of-5 緩和を追加する際は軸 2 AND 基準を `reference_data/metabolic_syndrome_criteria.yaml` に外出し可能。
 
 ## ディレクトリ構成
 

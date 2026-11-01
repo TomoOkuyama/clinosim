@@ -50,7 +50,7 @@ I10:  # Hypertension
     # Phase 4b.1 (#1697) — longitudinal escalation drug. probability: 0.0
     # keeps activation sampling from picking it; only the longitudinal
     # engine's htn_escalate_third_agent_i10 event adds it via resolve_med_name.
-    - {drug_id: hydrochlorothiazide, dose: "25mg", drug_class: "thiazide", route: "PO", frequency: "daily", probability: 0.0}
+    - {drug_id: hydrochlorothiazide, dose: "25mg", drug_class: "diuretic.thiazide", route: "PO", frequency: "daily", probability: 0.0}
     # Issue #1762 — 4th-agent escalation (mineralocorticoid-receptor
     # antagonist for resistant HTN per PATHWAY-2 / ACC-AHA 2017).
     # probability: 0.0 keeps the activation sampler from ever picking it;
@@ -79,7 +79,7 @@ E11.9:  # Type 2 Diabetes
     # event yamls add these via resolve_med_name lookup on fire.
     - {drug_id: empagliflozin, dose: "10mg", drug_class: "sglt2i", route: "PO", frequency: "daily", probability: 0.0}
     - {drug_id: dapagliflozin, dose: "10mg", drug_class: "sglt2i", route: "PO", frequency: "daily", probability: 0.0}
-    - {drug_id: insulin_glargine, dose: "10U", drug_class: "basal_insulin", route: "SC", frequency: "daily", probability: 0.0}
+    - {drug_id: insulin_glargine, dose: "10U", drug_class: "insulin.basal", route: "SC", frequency: "daily", probability: 0.0}
   monitoring:
     - {test: "Glucose", frequency: "qid", times: [6, 11, 17, 21], intent: "Blood glucose monitoring (DM)"}
   hold_conditions:
@@ -93,7 +93,7 @@ E78:  # Dyslipidemia
     # Phase 4b.1 (#1697) — longitudinal escalation drugs. probability: 0.0
     # keeps activation sampling from picking them; only the longitudinal
     # engine's lipid_escalate_* event yamls add them via resolve_med_name.
-    - {drug_id: rosuvastatin, dose: "20mg", drug_class: "high_intensity_statin", route: "PO", frequency: "daily", probability: 0.0}
+    - {drug_id: rosuvastatin, dose: "20mg", drug_class: "statin", route: "PO", frequency: "daily", probability: 0.0}
     - {drug_id: ezetimibe, dose: "10mg", drug_class: "cholesterol_absorption_inhibitor", route: "PO", frequency: "daily", probability: 0.0}
   monitoring:
     - {test: "AST", frequency: "every_3_days", intent: "Statin hepatotoxicity monitoring"}
@@ -317,8 +317,8 @@ C16:  # Gastric cancer — oral fluoropyrimidine adjuvant (Capecitabine US / S-1
   # fluoropyrimidine drug_class enables the active-regimen mutex in
   # patient/activator._derive_home_medications (same guard C18 uses).
   medications:
-    - {drug_id: capecitabine, dose: "1000mg/m2", drug_class: "fluoropyrimidine", route: "PO", frequency: "bid", probability: 0.35, locale_exclude: ["JP"]}
-    - {drug: "Tegafur-Gimeracil-Oteracil", dose: "80mg", drug_class: "fluoropyrimidine", route: "PO", frequency: "bid", probability: 0.5, locale_exclude: ["US"]}
+    - {drug_id: capecitabine, dose: "1000mg/m2", drug_class: "antineoplastic.fluoropyrimidine", route: "PO", frequency: "bid", probability: 0.35, locale_exclude: ["JP"]}
+    - {drug: "Tegafur-Gimeracil-Oteracil", dose: "80mg", drug_class: "antineoplastic.fluoropyrimidine", route: "PO", frequency: "bid", probability: 0.5, locale_exclude: ["US"]}
   monitoring:
     - {test: "Creatinine", frequency: "every_3_days", intent: "Chemotherapy renal function monitoring"}
 
@@ -331,7 +331,7 @@ C18:  # Colon cancer — oral fluoropyrimidine (Capecitabine, XELOX/XELIRI adjuv
   # double 5-FU exposure (oral Capecitabine + IV 5-FU) observed in
   # p=10k random-sample review.
   medications:
-    - {drug_id: capecitabine, dose: "1250mg/m2", drug_class: "fluoropyrimidine", route: "PO", frequency: "bid", probability: 0.5}
+    - {drug_id: capecitabine, dose: "1250mg/m2", drug_class: "antineoplastic.fluoropyrimidine", route: "PO", frequency: "bid", probability: 0.5}
     # Oxaliplatin (IV q3weeks) removed per Issue #1319 — cycle-based
     # chemo, emitted via chemo_regimens.yaml (FOLFOX) not as a daily
     # home med. Prior probability 0.3 produced ~196 excess standalone-
@@ -367,10 +367,10 @@ C50:  # Breast cancer — endocrine therapy (majority ER+); trastuzumab for HER2
   # post-menopausal state (NCCN: contraindicated in premenopausal women
   # without ovarian suppression; the pre-fix cohort had 8 premenopausal
   # anastrozole prescriptions, youngest 36 y).
-  exclusive_classes: ["breast_endocrine_therapy"]
+  exclusive_classes: ["endocrine_therapy.breast"]
   medications:
-    - {drug_id: tamoxifen, dose: "20mg", drug_class: "breast_endocrine_therapy", route: "PO", frequency: "daily", probability: 0.4}
-    - {drug_id: anastrozole, dose: "1mg", drug_class: "breast_endocrine_therapy", route: "PO", frequency: "daily", probability: 0.3, age_min: 50}
+    - {drug_id: tamoxifen, dose: "20mg", drug_class: "endocrine_therapy.breast", route: "PO", frequency: "daily", probability: 0.4}
+    - {drug_id: anastrozole, dose: "1mg", drug_class: "endocrine_therapy.breast", route: "PO", frequency: "daily", probability: 0.3, age_min: 50}
     # Trastuzumab (IV q3weeks) removed per Issue #1319 — cycle-based
     # anti-HER2 biologic, must emit via chemo_regimens.yaml as an IV
     # cycle regimen (a Trastuzumab regimen entry there would be the
@@ -499,7 +499,7 @@ F32:  # Depressive episode (single)
   # top two bands. Two independent categorical classes: SSRI
   # (first-line) + SNRI (augmentation). Atypicals on a separate
   # exclusive class.
-  exclusive_classes: ["ssri", "snri", "atypical_ad"]
+  exclusive_classes: ["ssri", "snri", "atypical_antidepressant"]
   medications:
     - {drug_id: sertraline, dose: "50mg", drug_class: "ssri", route: "PO", frequency: "daily", probability: 0.32}
     - {drug_id: escitalopram, dose: "10mg", drug_class: "ssri", route: "PO", frequency: "daily", probability: 0.22}
@@ -515,7 +515,7 @@ F32:  # Depressive episode (single)
     - {drug_id: venlafaxine, dose: "75mg", drug_class: "snri", route: "PO", frequency: "daily", probability: 0.08, requires_stage_in: ["PHQ-9 moderate", "PHQ-9 moderately severe", "PHQ-9 severe"]}
     - {drug_id: duloxetine, dose: "30mg", drug_class: "snri", route: "PO", frequency: "daily", probability: 0.07, requires_stage_in: ["PHQ-9 moderate", "PHQ-9 moderately severe", "PHQ-9 severe"]}
     # Atypical augmentation — moderately severe / severe only.
-    - {drug_id: mirtazapine, dose: "15mg", drug_class: "atypical_ad", route: "PO", frequency: "nightly", probability: 0.06, requires_stage_in: ["PHQ-9 moderately severe", "PHQ-9 severe"]}
+    - {drug_id: mirtazapine, dose: "15mg", drug_class: "atypical_antidepressant", route: "PO", frequency: "nightly", probability: 0.06, requires_stage_in: ["PHQ-9 moderately severe", "PHQ-9 severe"]}
 
 F33:  # Recurrent depressive disorder — same three-class shape + severity gates as F32
   # Recurrent-episode cohort has slightly elevated augmentation
@@ -523,7 +523,7 @@ F33:  # Recurrent depressive disorder — same three-class shape + severity gate
   # so the Mirtazapine + SNRI probabilities are higher here. The
   # severity gating convention mirrors F32: SNRI at moderate+,
   # atypical at moderately severe+.
-  exclusive_classes: ["ssri", "snri", "atypical_ad"]
+  exclusive_classes: ["ssri", "snri", "atypical_antidepressant"]
   medications:
     - {drug_id: sertraline, dose: "50mg", drug_class: "ssri", route: "PO", frequency: "daily", probability: 0.35}
     - {drug_id: escitalopram, dose: "10mg", drug_class: "ssri", route: "PO", frequency: "daily", probability: 0.25}
@@ -531,7 +531,7 @@ F33:  # Recurrent depressive disorder — same three-class shape + severity gate
     - {drug_id: fluoxetine, dose: "20mg", drug_class: "ssri", route: "PO", frequency: "daily", probability: 0.12, locale_exclude: ["JP"]}
     - {drug_id: venlafaxine, dose: "75mg", drug_class: "snri", route: "PO", frequency: "daily", probability: 0.10, requires_stage_in: ["PHQ-9 moderate", "PHQ-9 moderately severe", "PHQ-9 severe"]}
     - {drug_id: duloxetine, dose: "30mg", drug_class: "snri", route: "PO", frequency: "daily", probability: 0.08, requires_stage_in: ["PHQ-9 moderate", "PHQ-9 moderately severe", "PHQ-9 severe"]}
-    - {drug_id: mirtazapine, dose: "15mg", drug_class: "atypical_ad", route: "PO", frequency: "nightly", probability: 0.08, requires_stage_in: ["PHQ-9 moderately severe", "PHQ-9 severe"]}
+    - {drug_id: mirtazapine, dose: "15mg", drug_class: "atypical_antidepressant", route: "PO", frequency: "nightly", probability: 0.08, requires_stage_in: ["PHQ-9 moderately severe", "PHQ-9 severe"]}
 
 F41.1:  # Generalized anxiety disorder — SSRI + SNRI both first-line
   # APA / VA-DoD GAD guidelines: SNRI (Venlafaxine / Duloxetine)
@@ -587,12 +587,12 @@ E66.9:  # Obesity, unspecified — BMI 30-40
   # risen sharply since 2022 (Wegovy / Mounjaro market launch) but
   # cost + prior-authorization friction keeps per-patient
   # utilization in the ~5-10 % range for the general obese cohort
-  # (BMI 30-40). ``exclusive_classes: ["glp1"]`` so a patient
+  # (BMI 30-40). ``exclusive_classes: ["glp1_agonist"]`` so a patient
   # gets at most one GLP-1 agent, not multiple.
-  exclusive_classes: ["glp1"]
+  exclusive_classes: ["glp1_agonist"]
   medications:
-    - {drug_id: semaglutide, dose: "1mg", drug_class: "glp1", route: "SC", frequency: "weekly", probability: 0.05}
-    - {drug_id: liraglutide, dose: "1.2mg", drug_class: "glp1", route: "SC", frequency: "daily", probability: 0.03}
+    - {drug_id: semaglutide, dose: "1mg", drug_class: "glp1_agonist", route: "SC", frequency: "weekly", probability: 0.05}
+    - {drug_id: liraglutide, dose: "1.2mg", drug_class: "glp1_agonist", route: "SC", frequency: "daily", probability: 0.03}
 
 E66.01:  # Morbid obesity, BMI >= 40
   # GLP-1 utilization is substantially higher in the morbid-obesity
@@ -600,8 +600,8 @@ E66.01:  # Morbid obesity, BMI >= 40
   # weight gains outweigh friction). Bariatric surgery is a parallel
   # pathway — tracked as a follow-up for the referral-encounter
   # path, not emitted here.
-  exclusive_classes: ["glp1"]
+  exclusive_classes: ["glp1_agonist"]
   medications:
-    - {drug_id: semaglutide, dose: "2.4mg", drug_class: "glp1", route: "SC", frequency: "weekly", probability: 0.15}
-    - {drug_id: tirzepatide, dose: "10mg", drug_class: "glp1", route: "SC", frequency: "weekly", probability: 0.10}
-    - {drug_id: liraglutide, dose: "3mg", drug_class: "glp1", route: "SC", frequency: "daily", probability: 0.05}
+    - {drug_id: semaglutide, dose: "2.4mg", drug_class: "glp1_agonist", route: "SC", frequency: "weekly", probability: 0.15}
+    - {drug_id: tirzepatide, dose: "10mg", drug_class: "glp1_agonist", route: "SC", frequency: "weekly", probability: 0.10}
+    - {drug_id: liraglutide, dose: "3mg", drug_class: "glp1_agonist", route: "SC", frequency: "daily", probability: 0.05}

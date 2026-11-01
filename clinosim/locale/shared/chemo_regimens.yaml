@@ -34,7 +34,7 @@ regimens:
   FOLFOX:                                # colorectal adjuvant
     cycle_interval_days: 14
     course_cycles: 12                    # ~6 months adjuvant
-    contains_drug_classes: [fluoropyrimidine, platinum]
+    contains_drug_classes: [antineoplastic.fluoropyrimidine, chemo.platinum]  # catalog classes (Issue #2388)
     cycle_orders:
       - {drug_id: oxaliplatin,  dose: "85mg/m2",                        route: "IV"}
       - {drug_id: leucovorin,   dose: "400mg/m2",                       route: "IV"}
@@ -42,7 +42,7 @@ regimens:
   CarboPem:                              # lung adjuvant / advanced
     cycle_interval_days: 21
     course_cycles: 4
-    contains_drug_classes: [platinum, antifolate]
+    contains_drug_classes: [chemo.platinum, chemo.antifolate]
     cycle_orders:
       - {drug_id: carboplatin, dose: "AUC5",     route: "IV"}
       - {drug_id: pemetrexed,  dose: "500mg/m2", route: "IV"}
@@ -69,7 +69,7 @@ regimens:
     # per-day expansion is a future MedicationAdmin slice).
     cycle_interval_days: 28
     course_cycles: 6                     # ~6 months first-line palliative
-    contains_drug_classes: [taxane, gemcitabine]
+    contains_drug_classes: [chemo.taxane, gemcitabine]
     cycle_orders:
       # Nab-paclitaxel is kept in legacy drug/drug_ja form: it is a
       # formulation (albumin-bound) distinct from plain Paclitaxel at
@@ -81,7 +81,7 @@ regimens:
   BCG_intravesical:                      # NMIBC adjuvant induction (SWOG 8507)
     cycle_interval_days: 7               # weekly instillation
     course_cycles: 6                     # 6-week induction; maintenance q3mo is out of scope
-    contains_drug_classes: [bcg]
+    contains_drug_classes: [immunotherapy]
     cycle_orders:
       # BCG intravesical immunotherapy: Mycobacterium bovis BCG antigen
       # (MTHSPL RxCUI 42579) does not surface as a TTY=IN concept in
