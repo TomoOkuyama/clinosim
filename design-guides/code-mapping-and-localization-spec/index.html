@@ -2764,6 +2764,11 @@
 <td><code>None</code> / coding without display</td>
 </tr>
 <tr>
+<td><code>modules.document.narrative.registry.document_loinc(doc_type)</code></td>
+<td>a document type's LOINC code, defined once in <code>document_type_specs.yaml</code></td>
+<td>raises on an unknown type</td>
+</tr>
+<tr>
 <td><code>codes.valuesets</code>: <code>concept_group</code>, <code>has_condition</code>, <code>patient_condition_names</code>, <code>code_by_chronic_prefix</code></td>
 <td>value-set membership</td>
 <td><code>KeyError</code> on an unknown group</td>
@@ -3023,8 +3028,12 @@
 <td>#2275</td>
 </tr>
 <tr>
-<td>Document LOINCs are defined in eight places, some section codes do not mean their section, and emitters still hold LOINC constants.</td>
-<td>#2344</td>
+<td>Some Composition section codes do not mean their section.</td>
+<td>#2391</td>
+</tr>
+<tr>
+<td>Emitters still hold LOINC constants.</td>
+<td>#2392</td>
 </tr>
 <tr>
 <td>The free-text name localizer lives in the FHIR output layer, is imported from the order and narrative layers, and also translates procedure, SNOMED and allergen names. Decision logic and records resolve drug names through <code>codes.drugs.drug_display</code>.</td>

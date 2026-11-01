@@ -2764,6 +2764,11 @@
 <td><code>None</code> / display なしの coding</td>
 </tr>
 <tr>
+<td><code>modules.document.narrative.registry.document_loinc(doc_type)</code></td>
+<td>文書種別の LOINC コード (<code>document_type_specs.yaml</code> に 1 回だけ定義)</td>
+<td>未知の種別なら例外</td>
+</tr>
+<tr>
 <td><code>codes.valuesets</code>: <code>concept_group</code> / <code>has_condition</code> / <code>patient_condition_names</code> / <code>code_by_chronic_prefix</code></td>
 <td>value set への所属</td>
 <td>未知のグループなら <code>KeyError</code></td>
@@ -3023,8 +3028,12 @@
 <td>#2275</td>
 </tr>
 <tr>
-<td>文書 LOINC の定義が 8 箇所にある。意味の合わない section コードがある。出力側に LOINC 定数が残っている。</td>
-<td>#2344</td>
+<td>意味の合わない Composition section コードがある。</td>
+<td>#2391</td>
+</tr>
+<tr>
+<td>出力側に LOINC 定数が残っている。</td>
+<td>#2392</td>
 </tr>
 <tr>
 <td>自由文の名称 localizer が FHIR 出力層にあり、order 層と narrative 層から import され、手技・SNOMED・アレルゲン名の翻訳にも使われている。判断ロジックと記録の薬名は <code>codes.drugs.drug_display</code> で解決する。</td>
