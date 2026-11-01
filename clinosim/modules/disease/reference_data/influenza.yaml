@@ -314,7 +314,6 @@ drugs:
         note: "Most effective within 48h of symptom onset"
     us:
       - drug: "Oseltamivir"
-        code_rxnorm: "352018"
         dose: "75mg PO BID"
         route: PO
         duration_days: 5
@@ -333,7 +332,6 @@ drugs:
         note: "Single-dose IV antiviral for patients unable to take PO"
     us:
       - drug: "Peramivir"
-        code_rxnorm: "1116534"
         dose: "600mg IV single dose"
         route: IV
         renal_adjustment:
@@ -352,11 +350,9 @@ drugs:
         indication: "suspected_bacterial_superinfection"
     us:
       - drug: "Ceftriaxone"
-        code_rxnorm: "309090"
         dose: "1g IV daily"
         indication: "suspected_bacterial_superinfection"
       - drug: "Azithromycin"
-        code_rxnorm: "248656"
         dose: "500mg IV daily"
         indication: "atypical_coverage"
 

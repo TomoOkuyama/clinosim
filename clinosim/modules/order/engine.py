@@ -191,6 +191,7 @@ def place_imaging_orders(
             patient_id=patient_id,
             order_type=OrderType.IMAGING,
             order_code=proc["loinc"],
+            order_code_system="loinc",
             display_name=_order_display,
             urgency=urgency,
             clinical_intent=clinical_indication,
@@ -342,6 +343,7 @@ def _build_lab_order(
         patient_id=patient_id,
         order_type=OrderType.LAB,
         order_code=lab_spec.get("code_loinc", lab_spec.get("test", "")),
+        order_code_system="loinc" if lab_spec.get("code_loinc") else "",
         display_name=lab_spec["test"],
         urgency=lab_spec.get("urgency", "routine"),
         clinical_intent=clinical_intent,
@@ -353,16 +355,31 @@ def _build_lab_order(
     )
 
 
+def protocol_drug_order_code_system(spec: dict, country: str) -> str:
+    """Code-system key of :func:`protocol_drug_order_code` (Issue #2378):
+    ``yj`` (JP), ``rxnorm`` (other countries), ``""`` when there is no code."""
+    if not protocol_drug_order_code(spec, country):
+        return ""
+    return "yj" if str(country).strip().lower() in ("jp", "japan") else "rxnorm"
+
+
 def protocol_drug_order_code(spec: dict, country: str) -> str:
     """Order code of a disease-YAML drug entry (Issue #2351).
 
     JP: the drug catalog's YJ product for the drug and its route (the entry's
     ``route``, else the route in its dose string, else the name heuristic) —
     the same code the FHIR builders emit; ``""`` when the catalog lists no
-    product for that route. US: the entry's ``code_rxnorm``.
+    product for that route. US: the catalog RxCUI of the drug; ``""`` when the
+    drug is not catalogued.
     """
     if str(country).strip().lower() not in ("jp", "japan"):
-        return str(spec.get("code_rxnorm") or "")
+        # The catalog RxCUI of the drug (Issue #2378): the inline
+        # ``code_rxnorm`` values named other drugs (labetalol carried
+        # ketoconazole's RxCUI) and are removed from the disease YAMLs.
+        from clinosim.codes.drugs import drug_ref, get_drug
+
+        rec = get_drug(str(spec.get("drug_id") or "") or drug_ref(str(spec.get("drug") or "")))
+        return rec.codes.get("rxnorm", "") if rec is not None else ""
     from clinosim.codes.drugs import jp_drug_code_for_name
     from clinosim.simulator.helpers import _determine_route
 
@@ -507,6 +524,7 @@ def place_admission_orders(
             patient_id=patient_id,
             order_type=OrderType.MEDICATION,
             order_code=protocol_drug_order_code(med_spec, country),
+            order_code_system=protocol_drug_order_code_system(med_spec, country),
             display_name=drug_name,
             urgency="stat",
             clinical_intent=f"First-line treatment: {drug_name}",
@@ -623,6 +641,7 @@ def place_admission_orders(
             patient_id=patient_id,
             order_type=OrderType.IMAGING,
             order_code=img_spec.get("code_cpt", ""),
+            order_code_system="cpt" if img_spec.get("code_cpt") else "",
             display_name=img_spec.get("test", "Imaging"),
             urgency=img_spec.get("urgency", "stat"),
             clinical_intent=f"Admission imaging: {img_spec.get('test', '')}",

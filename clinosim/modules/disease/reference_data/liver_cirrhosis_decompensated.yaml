@@ -407,17 +407,14 @@ drugs:
         pregnancy_safe: true
     us:
       - drug: "Furosemide"
-        code_rxnorm: "4603"
         dose: "40mg PO daily"
         route: PO
         pregnancy_safe: false
       - drug: "Spironolactone"
-        code_rxnorm: "9997"
         dose: "100mg PO daily"
         route: PO
         pregnancy_safe: false
       - drug: "Lactulose"
-        code_rxnorm: "6026"
         dose: "30mL PO TID"
         route: PO
         indication: "hepatic_encephalopathy"
@@ -436,12 +433,10 @@ drugs:
         note: "Prevents hepatorenal syndrome in SBP"
     us:
       - drug: "Cefotaxime"
-        code_rxnorm: "2186"
         dose: "2g IV q8h"
         route: IV
         duration_days: 5
       - drug: "Albumin"
-        code_rxnorm: "828529"
         dose: "1.5g/kg Day 1, 1g/kg Day 3"
         route: IV
 
@@ -458,12 +453,10 @@ drugs:
         duration_days: 7
     us:
       - drug: "Octreotide"
-        code_rxnorm: "7435"
         dose: "50ug IV bolus, then 50ug/h"
         route: IV
         duration_days: 5
       - drug: "Ceftriaxone"
-        code_rxnorm: "2193"
         dose: "1g IV daily"
         route: IV
         duration_days: 7
@@ -477,7 +470,6 @@ drugs:
         pregnancy_safe: false
     us:
       - drug: "Rifaximin"
-        code_rxnorm: "194501"
         dose: "550mg PO BID"
         route: PO
         pregnancy_safe: false
@@ -493,16 +485,13 @@ drugs:
         route: IV
     us:
       - drug: "Midodrine"
-        code_rxnorm: "6931"
         dose: "7.5-12.5mg PO TID"
         route: PO
         indication: "hepatorenal_syndrome (with octreotide)"
       - drug: "Octreotide"
-        code_rxnorm: "7435"
         dose: "100-200ug SC TID"
         route: SC
       - drug: "Albumin"
-        code_rxnorm: "828529"
         dose: "25-50g IV daily"
         route: IV
 

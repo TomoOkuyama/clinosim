@@ -212,6 +212,9 @@ class Order:
     patient_id: str = ""
     order_type: OrderType = OrderType.LAB
     order_code: str = ""
+    # Code-system key of ``order_code`` (``loinc`` / ``cpt`` / ``rxnorm`` /
+    # ``yj``); ``""`` when ``order_code`` is empty or not a code (Issue #2378).
+    order_code_system: str = ""
     display_name: str = ""
     urgency: str = "routine"
     clinical_intent: str = ""

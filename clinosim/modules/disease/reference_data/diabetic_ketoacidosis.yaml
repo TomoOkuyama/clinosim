@@ -443,16 +443,13 @@ drugs:
 
     us:
       - drug: "Regular insulin (continuous IV)"
-        code_rxnorm: "311034"
         dose: "0.1 U/kg/h continuous infusion (or 0.14 U/kg/h without bolus)"
         route: IV
         note: "ADA protocol: 0.1 U/kg bolus then 0.1 U/kg/h, OR 0.14 U/kg/h no bolus"
       - drug: "Normal saline (0.9% NaCl)"
-        code_rxnorm: "313002"
         dose: "15-20 mL/kg/h x 1h (1-1.5L), then 250-500 mL/h"
         route: IV
       - drug: "Potassium chloride"
-        code_rxnorm: "8591"
         dose: "20-40 mEq/L added to IV fluids"
         route: IV
 
@@ -465,7 +462,6 @@ drugs:
         note: "Switch from NS to D5 when glucose approaches 200-250"
     us:
       - drug: "D5 half-NS (5% dextrose in 0.45% NaCl)"
-        code_rxnorm: "308971"
         dose: "150-250 mL/h"
         route: IV
         indication: "glucose < 200 mg/dL (ADA: 200 for DKA)"
@@ -479,7 +475,6 @@ drugs:
         note: "Controversial; only for pH < 6.9. Repeat q2h until pH > 7.0. Dilute in 400mL sterile water + 20mEq KCl, infuse over 2h."
     us:
       - drug: "Sodium bicarbonate"
-        code_rxnorm: "8782"
         dose: "100 mEq IV"
         route: IV
         indication: "pH < 6.9"
@@ -497,12 +492,10 @@ drugs:
         note: "Dose per carb counting or sliding scale"
     us:
       - drug: "Insulin glargine"
-        code_rxnorm: "261551"
         dose: "0.2-0.3 U/kg SC daily"
         route: SC
         note: "Overlap with IV insulin for 1-2h. Or resume home dose if previously taking insulin."
       - drug: "Insulin lispro"
-        code_rxnorm: "86009"
         dose: "As prescribed"
         route: SC
         note: "Dose per carb counting or sliding scale"

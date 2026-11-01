@@ -516,7 +516,6 @@ drugs:
 
     us:
       - drug: "Piperacillin/Tazobactam"
-        code_rxnorm: "240984"
         dose: "4.5g IV q6h"
         route: IV
         renal_adjustment:
@@ -524,7 +523,6 @@ drugs:
         pregnancy_safe: true
         note: "Broad-spectrum empiric; or Meropenem if ESBL risk"
       - drug: "Vancomycin"
-        code_rxnorm: "11124"
         dose: "15-20mg/kg IV q8-12h"
         route: IV
         renal_adjustment:
@@ -549,13 +547,11 @@ drugs:
         pregnancy_safe: true
     us:
       - drug: "Ciprofloxacin"
-        code_rxnorm: "2551"
         dose: "400mg IV q8h"
         renal_adjustment:
           eGFR_below_50: "400mg IV q12h"
         pregnancy_safe: false
       - drug: "Aztreonam"
-        code_rxnorm: "1272"
         dose: "2g IV q8h"
         renal_adjustment:
           eGFR_below_30: "1g IV q8h"
@@ -573,11 +569,9 @@ drugs:
         note: "Add antifungal if >5 days broad-spectrum ABx with no improvement"
     us:
       - drug: "Meropenem"
-        code_rxnorm: "29561"
         dose: "2g IV q8h"
         indication: "ESBL or resistant gram-negative"
       - drug: "Micafungin"
-        code_rxnorm: "349252"
         dose: "100mg IV daily"
         indication: "suspected_invasive_candidiasis"
 

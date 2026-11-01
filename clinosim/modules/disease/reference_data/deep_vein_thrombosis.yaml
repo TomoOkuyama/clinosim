@@ -354,7 +354,6 @@ drugs:
         pregnancy_safe: false
     us:
       - drug: "Rivaroxaban"
-        code_rxnorm: "1114195"
         dose: "15mg PO BID x21 days, then 20mg PO daily"
         route: PO
         note: "Direct oral route — no heparin bridge needed for most patients"
@@ -362,7 +361,6 @@ drugs:
           eGFR_below_30: "avoid"
         pregnancy_safe: false
       - drug: "Unfractionated Heparin"
-        code_rxnorm: "5224"
         dose: "80 U/kg IV bolus, then 18 U/kg/h"
         route: IV
         note: "For patients requiring bridging (cancer, renal failure)"
@@ -377,7 +375,6 @@ drugs:
         pregnancy_safe: false
     us:
       - drug: "Warfarin"
-        code_rxnorm: "11289"
         dose: "Initial 5mg PO daily, target INR 2.0-3.0"
         route: PO
         note: "Overlap with heparin for minimum 5 days and INR >= 2.0 for 24h"
@@ -391,12 +388,10 @@ drugs:
         note: "DOAC preferred over LMWH in most cancer-associated VTE (Hokusai-VTE Cancer)"
     us:
       - drug: "Rivaroxaban"
-        code_rxnorm: "1114195"
         dose: "15mg PO BID x21d then 20mg daily"
         route: PO
         note: "Alternative: apixaban or LMWH per ASCO guidelines"
       - drug: "Enoxaparin"
-        code_rxnorm: "67108"
         dose: "1mg/kg SC BID"
         route: SC
         note: "Preferred if GI cancer with mucosal involvement"

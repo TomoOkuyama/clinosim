@@ -365,7 +365,6 @@ drugs:
 
     us:
       - drug: "Enoxaparin"
-        code_rxnorm: "67108"
         dose: "1mg/kg SC q12h"
         route: SC
         note: "Bridge to oral anticoagulant"
@@ -373,7 +372,6 @@ drugs:
           eGFR_below_30: "1mg/kg SC daily"
         pregnancy_safe: true
       - drug: "Rivaroxaban"
-        code_rxnorm: "1114195"
         dose: "15mg PO BID x 21 days then 20mg PO daily"
         route: PO
         note: "DOAC — no heparin bridge needed"
@@ -392,11 +390,9 @@ drugs:
         indication: "shock"
     us:
       - drug: "Alteplase (tPA)"
-        code_rxnorm: "8410"
         dose: "100mg IV over 2h"
         indication: "massive_PE_with_hemodynamic_instability"
       - drug: "Norepinephrine"
-        code_rxnorm: "7512"
         dose: "0.05-0.5 ug/kg/min IV drip"
         indication: "shock"
 

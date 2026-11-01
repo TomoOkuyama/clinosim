@@ -409,12 +409,10 @@ drugs:
 
     us:
       - drug: "Ceftriaxone"
-        code_rxnorm: "309090"
         dose: "1g IV daily"
         route: IV
         pregnancy_safe: true
       - drug: "Ciprofloxacin"
-        code_rxnorm: "309308"
         dose: "400mg IV q12h"
         route: IV
         note: "Alternative first-line if local susceptibility permits"
@@ -430,7 +428,6 @@ drugs:
         pregnancy_safe: false
     us:
       - drug: "Levofloxacin"
-        code_rxnorm: "82122"
         dose: "750mg IV daily"
         renal_adjustment:
           eGFR_below_50: "500mg IV daily"
@@ -452,14 +449,12 @@ drugs:
           eGFR_below_30: "0.5g IV q12h"
     us:
       - drug: "Meropenem"
-        code_rxnorm: "106892"
         dose: "1g IV q8h"
         indication: "same"
         probability: 0.4
         renal_adjustment:
           eGFR_below_30: "0.5g IV q12h"
       - drug: "Piperacillin/Tazobactam"
-        code_rxnorm: "240984"
         dose: "4.5g IV q6h"
         indication: "alternative escalation"
         probability: 0.2   # alternative escalation ≤ 20 % of already-selected escalations

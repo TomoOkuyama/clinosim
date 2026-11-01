@@ -376,18 +376,15 @@ drugs:
 
     us:
       - drug: "Ceftriaxone"
-        code_rxnorm: "309090"
         dose: "2g IV daily"
         route: IV
         pregnancy_safe: true
       - drug: "Metronidazole"
-        code_rxnorm: "6922"
         dose: "500mg IV q8h"
         route: IV
         note: "Added for anaerobic coverage"
         pregnancy_safe: false
       - drug: "Ketorolac"
-        code_rxnorm: "6739"
         dose: "30mg IV q6h"
         route: IV
         note: "Max 5 days"
@@ -406,11 +403,9 @@ drugs:
         pregnancy_safe: false
     us:
       - drug: "Levofloxacin"
-        code_rxnorm: "82122"
         dose: "750mg IV daily"
         pregnancy_safe: false
       - drug: "Metronidazole"
-        code_rxnorm: "6922"
         dose: "500mg IV q8h"
         pregnancy_safe: false
 
@@ -423,7 +418,6 @@ drugs:
           eGFR_below_30: "2.25g IV q8h"
     us:
       - drug: "Piperacillin/Tazobactam"
-        code_rxnorm: "240984"
         dose: "3.375g IV q6h"
         indication: "gangrenous_cholecystitis_or_sepsis"
 

@@ -345,12 +345,10 @@ drugs:
 
     us:
       - drug: "Lactated Ringer"
-        code_rxnorm: "847630"    # C2/#1088: pre-fix 313002 was NS (fabrication); NLM-verified LR CUI
         dose: "125-250 mL/h IV"
         route: IV
         pregnancy_safe: true
       - drug: "Metoclopramide"
-        code_rxnorm: "6915"
         dose: "10mg IV q6h"
         route: IV
         pregnancy_safe: true
@@ -366,7 +364,6 @@ drugs:
           eGFR_below_30: "0.5g IV q12h"
     us:
       - drug: "Piperacillin/Tazobactam"
-        code_rxnorm: "240984"
         dose: "3.375g IV q6h"
         indication: "suspected bowel ischemia or perforation"
 

@@ -369,12 +369,10 @@ drugs:
 
     us:
       - drug: "Ceftriaxone"
-        code_rxnorm: "309090"
         dose: "1g IV daily"
         route: IV
         pregnancy_safe: true
       - drug: "Azithromycin"
-        code_rxnorm: "248656"
         dose: "500mg IV daily"
         route: IV
         note: "Added for atypical coverage"
@@ -390,7 +388,6 @@ drugs:
         pregnancy_safe: false
     us:
       - drug: "Levofloxacin"
-        code_rxnorm: "82122"
         dose: "750mg IV daily"
         renal_adjustment:
           eGFR_below_50: "500mg IV daily"
@@ -405,7 +402,6 @@ drugs:
           eGFR_below_30: "0.5g IV q12h"
     us:
       - drug: "Piperacillin/Tazobactam"
-        code_rxnorm: "240984"
         dose: "4.5g IV q6h"
         indication: "same"
 

@@ -384,17 +384,14 @@ drugs:
 
     us:
       - drug: "Lactated Ringer"
-        code_rxnorm: "847630"    # C2/#1088: pre-fix 313002 was NS (fabrication); NLM-verified LR CUI
         dose: "250-500 mL/h IV for first 12-24h"
         route: IV
         pregnancy_safe: true
       - drug: "Hydromorphone"
-        code_rxnorm: "3423"
         dose: "0.5-1mg IV q3h PRN"
         route: IV
         pregnancy_safe: false
       - drug: "Acetaminophen"
-        code_rxnorm: "161"
         dose: "1000mg IV q6h"
         route: IV
         pregnancy_safe: true
@@ -414,13 +411,11 @@ drugs:
         note: "Used in Japan, not standard in US/EU"
     us:
       - drug: "Meropenem"
-        code_rxnorm: "29561"
         dose: "1g IV q8h"
         indication: "infected_necrosis"
         renal_adjustment:
           eGFR_below_30: "0.5g IV q12h"
       - drug: "Imipenem/Cilastatin"
-        code_rxnorm: "5880"
         dose: "500mg IV q6h"
         indication: "alternative for infected necrosis"
 

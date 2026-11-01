@@ -316,13 +316,11 @@ drugs:
         pregnancy_safe: false
     us:
       - drug: "Diltiazem"
-        code_rxnorm: "3443"
         dose: "0.25mg/kg IV bolus, then 5-15mg/h drip"
         route: IV
         contraindication: "heart_failure_with_reduced_EF"
         pregnancy_safe: false
       - drug: "Metoprolol"
-        code_rxnorm: "6918"
         dose: "5mg IV q5min x3"
         route: IV
         note: "Preferred if HFrEF"
@@ -339,7 +337,6 @@ drugs:
         pregnancy_safe: false
     us:
       - drug: "Digoxin"
-        code_rxnorm: "3407"
         dose: "0.5mg IV load, then 0.125-0.25mg PO daily"
         renal_adjustment:
           eGFR_below_30: "0.0625mg PO daily"
@@ -355,7 +352,6 @@ drugs:
         pregnancy_safe: false
     us:
       - drug: "Amiodarone"
-        code_rxnorm: "703"
         dose: "150mg IV over 10min, then 1mg/min x6h, then 0.5mg/min"
         route: IV
         indication: "persistent_AF_or_hemodynamic_compromise"
@@ -387,14 +383,12 @@ drugs:
         pregnancy_safe: false
     us:
       - drug: "Heparin"
-        code_rxnorm: "5224"
         dose: "80IU/kg bolus, then 18IU/kg/h (adjust by APTT)"
         route: IV
         indication: "CHA2DS2-VASc >= 2 (men) or >= 3 (women)"
         pregnancy_safe: false
       - drug: "Apixaban"
         drug_class: "anticoagulant"
-        code_rxnorm: "1364430"
         dose: "5mg PO BID (2.5mg BID if age>=80, weight<=60kg, or Cr>=1.5)"
         route: PO
         indication: "transition_from_heparin"

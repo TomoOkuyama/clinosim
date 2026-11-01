@@ -419,7 +419,6 @@ expected_vital_distributions:
 drugs:
   acute_reperfusion:
     - drug: "Alteplase (tPA)"
-      code_rxnorm: "8410"
       dose: "0.9 mg/kg IV (max 90mg), 10% bolus then 60min infusion"
       route: IV
       probability: 0.20  # only ~20% of ischemic stroke patients receive tPA
@@ -473,13 +472,11 @@ drugs:
         note: "DAPT (aspirin + clopidogrel) for 21 days in minor stroke; 300 mg PO loading dose given ONCE at admission per POINT/CHANCE"
     us:
       - drug: "Aspirin"
-        code_rxnorm: "1191"
         dose: "325mg loading, then 81mg PO daily"
         route: PO
         start_timing: "within 24-48h (after 24h if tPA given)"
         pregnancy_safe: false
       - drug: "Clopidogrel"
-        code_rxnorm: "32968"
         # Issue #1334: chronic-discharge dose (75mg qd), not the 300mg
         # load. See JP block above for the full rationale.
         dose: "75mg PO daily"
@@ -520,14 +517,12 @@ drugs:
       - drug: "Apixaban"
         drug_class: "anticoagulant"
         probability: 0.8
-        code_rxnorm: "1364430"
         dose: "5mg PO BID (2.5mg if age >= 80, weight <= 60kg, or Cr >= 1.5)"
         route: PO
         note: "DOAC preferred (AHA/ASA 2021, ARISTOTLE)"
       - drug: "Warfarin"
         drug_class: "anticoagulant"
         probability: 0.2
-        code_rxnorm: "11289"
         dose: "Titrate to INR 2.0-3.0"
         route: PO
         note: "Used if mechanical valve or DOAC contraindicated (AHA/ASA 2021)"
@@ -545,7 +540,6 @@ drugs:
         note: "Standard dose in Japan (JCS 2015)"
     us:
       - drug: "Atorvastatin"
-        code_rxnorm: "83367"
         dose: "40-80mg PO daily"
         route: PO
         note: "High-intensity statin (AHA/ASA 2021, SPARCL)"
@@ -569,12 +563,10 @@ drugs:
         note: "ARB post-stroke (PROGRESS trial)"
     us:
       - drug: "Amlodipine"
-        code_rxnorm: "17767"
         dose: "5-10mg PO daily"
         route: PO
         note: "AHA/ASA 2021 target < 130/80"
       - drug: "Lisinopril"
-        code_rxnorm: "29046"
         dose: "10-20mg PO daily"
         route: PO
         note: "ACE-I post-stroke (PROGRESS trial)"
@@ -587,11 +579,9 @@ drugs:
         route: IV
     us:
       - drug: "Nicardipine"
-        code_rxnorm: "7417"
         dose: "5-15mg/h IV drip"
         route: IV
       - drug: "Labetalol"
-        code_rxnorm: "6185"
         dose: "10-20mg IV q10-20min PRN"
         route: IV
 
