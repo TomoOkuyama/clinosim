@@ -84,6 +84,7 @@ from clinosim.codes import get_system_uri, is_english_only_system
 from clinosim.codes.icd10 import condition_short_name
 from clinosim.codes.prefectures import prefecture_code
 from clinosim.codes.ucum import ucum_quantity
+from clinosim.locale.free_text import localize_free_text
 from clinosim.locale.loader import load_code_mapping, load_reference_ranges
 from clinosim.locale.loaders.medical_display import department_display
 from clinosim.locale.localized import localized
@@ -92,7 +93,6 @@ from clinosim.modules.output.fhir_r4.lib.localization import (
     _FREQ_JA,
     _ROUTE_JA,
     _localize_dosage_terms,
-    _localize_drug_name,
 )
 from clinosim.modules.output.fhir_r4.lib.reference_data import (
     _JP_CONDITION_SEVERITY_CS,
@@ -1332,7 +1332,7 @@ def build_dosage_instruction(order: dict, country: str = "US") -> dict[str, Any]
             dosage["text"] = " ".join(parts)
     elif order.get("display_name"):
         name = order["display_name"]
-        dosage["text"] = _localize_drug_name(name, country) if is_jp(country) else name
+        dosage["text"] = localize_free_text(name, "ja") if is_jp(country) else name
 
     # Issue #966: IV-route drugs need an infusion rate (or timing.duration)
     # in addition to doseQuantity. `augment_iv_dosage_with_rate` is a no-op

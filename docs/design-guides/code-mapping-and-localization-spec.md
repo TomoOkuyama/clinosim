@@ -236,4 +236,4 @@ These parts of the code base do not yet conform. Each one is removed by the issu
 
 | Deviation | Issue |
 |---|---|
-| The free-text name translator (`locale.free_text.localize_free_text`) is one generic translator: procedure, SNOMED and allergen names go through the drug-name dictionary and its substring replacement. | #2408 |
+| `locale/shared/med_terms.yaml` (dosage terms) repeats five procedure names of `clinosim-procedure-phrase.yaml`, so the drug-name resolver still translates them. | #2446 |

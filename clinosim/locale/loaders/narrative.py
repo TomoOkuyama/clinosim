@@ -265,37 +265,19 @@ def load_llm_prompt_labels() -> dict[str, dict[str, dict[str, str]]]:
     return {**(raw or {}), **load_vocabulary()}
 
 
+def _add_table(out: dict[str, str], rows: Any) -> None:
+    """Add ``{EN: JA}`` rows to ``out`` (lower-case EN key; first entry wins)."""
+    for en, ja in (rows or {}).items():
+        en_lower = (en or "").strip().lower()
+        ja_val = (ja or "").strip() if isinstance(ja, str) else ""
+        if en_lower and ja_val and en_lower not in out:
+            out[en_lower] = ja_val
+
+
 @lru_cache(maxsize=1)
-def load_narrative_display_dict() -> dict[str, str]:
-    """Load free-text English → Japanese display mapping used by the FHIR /
-    narrative emit paths as a last-resort translation helper.
-
-    Returns a ``{lower-case EN key: JA display}`` dict UNIONed from the
-    five authority-adjacent catalogs (all under
-    ``clinosim/codes/data/``):
-
-      1. ``drugs.yaml`` — drug_id → names + aliases
-         (META #1804 Phase 2.g UNION pattern, META #1849 Phase 5 Step
-         2.g aliases extension).
-      2. ``locale/shared/narrative_imaging.yaml`` — the one imaging-exam
-         table (ECG / Echocardiogram / FAST Ultrasound / …; Issue #2268).
-      3. ``clinosim-procedure-phrase.yaml`` — Suture closure / Hemodialysis
-         / CPAP therapy / … (META #1849 Phase 5 Step 2.d).
-      4. ``clinosim-allergen-substance.yaml`` — Penicillin / Latex / Egg
-         / Iodinated contrast / … (META #1849 Phase 5 Step 2.c).
-      5. ``clinosim-admin-form-display.yaml`` — Calcitonin nasal spray /
-         Hypertonic Saline / ICS/LABA inhaler / … (META #1849 Phase 5
-         Step 2 admin-form).
-
-    Phase 5 Step 3 (META #1849, 2026-10-25): renamed from the historical
-    ``load_drug_names_ja`` because its scope grew well beyond drug names
-    (procedure phrases, imaging exam names, allergen substances, admin-
-    form display variants). The underlying legacy
-    ``clinosim/locale/shared/drug_names_ja.yaml`` was deleted in Phase 5
-    Step 4 (#1876); this function now populates its dict from catalogs
-    only.
-    """
-    merged: dict[str, str] = {}
+def _drug_catalog_display_dict() -> dict[str, str]:
+    """EN → JA names and aliases of the drug catalog (``codes/data/drugs.yaml``)."""
+    out: dict[str, str] = {}
     try:
         from clinosim.codes.drugs import all_drug_ids, resolve_drug
 
@@ -309,34 +291,60 @@ def load_narrative_display_dict() -> dict[str, str]:
             continue
         en_lower = (rec.names.get("en") or "").strip().lower()
         ja = (rec.names.get("ja") or "").strip()
-        if en_lower and ja and en_lower not in merged:
-            merged[en_lower] = ja
+        if en_lower and ja and en_lower not in out:
+            out[en_lower] = ja
         for alias in rec.aliases:
             alias_lower = (alias or "").strip().lower()
-            if alias_lower and ja and alias_lower not in merged:
-                merged[alias_lower] = ja
-    # Imaging exam names (Issue #2268: the one imaging table), spaced form.
+            if alias_lower and ja and alias_lower not in out:
+                out[alias_lower] = ja
+    return out
+
+
+@lru_cache(maxsize=1)
+def load_drug_display_dict() -> dict[str, str]:
+    """EN → JA drug names (Issue #2408): the drug catalog's names and aliases
+    (``codes/data/drugs.yaml``), then the administration-form display variants
+    (``clinosim-admin-form-display.yaml``: Calcitonin nasal spray, ...)."""
+    out = dict(_drug_catalog_display_dict())
+    _add_table(out, data_table("clinosim-admin-form-display").get("displays"))
+    return out
+
+
+@lru_cache(maxsize=1)
+def load_procedure_display_dict() -> dict[str, str]:
+    """EN → JA procedure and examination names (Issue #2408): the imaging
+    exam table (``locale/shared/narrative_imaging.yaml``, spaced form), then
+    ``clinosim-procedure-phrase.yaml``."""
+    out: dict[str, str] = {}
     for slug, entry in load_narrative_imaging().items():
         en_lower = " ".join(str(slug).replace("_", " ").strip().lower().split())
         ja_val = str((entry or {}).get("ja") or "").strip() if isinstance(entry, dict) else ""
-        if en_lower and ja_val and en_lower not in merged:
-            merged[en_lower] = ja_val
-    proc_raw = data_table("clinosim-procedure-phrase")
-    for en, ja in (proc_raw.get("procedures", {}) or {}).items():
-        en_lower = (en or "").strip().lower()
-        ja_val = (ja or "").strip() if isinstance(ja, str) else ""
-        if en_lower and ja_val and en_lower not in merged:
-            merged[en_lower] = ja_val
-    subs_raw = data_table("clinosim-allergen-substance")
-    for en, ja in (subs_raw.get("substances", {}) or {}).items():
-        en_lower = (en or "").strip().lower()
-        ja_val = (ja or "").strip() if isinstance(ja, str) else ""
-        if en_lower and ja_val and en_lower not in merged:
-            merged[en_lower] = ja_val
-    disp_raw = data_table("clinosim-admin-form-display")
-    for en, ja in (disp_raw.get("displays", {}) or {}).items():
-        en_lower = (en or "").strip().lower()
-        ja_val = (ja or "").strip() if isinstance(ja, str) else ""
-        if en_lower and ja_val and en_lower not in merged:
-            merged[en_lower] = ja_val
+        if en_lower and ja_val and en_lower not in out:
+            out[en_lower] = ja_val
+    _add_table(out, data_table("clinosim-procedure-phrase").get("procedures"))
+    return out
+
+
+@lru_cache(maxsize=1)
+def load_allergen_display_dict() -> dict[str, str]:
+    """EN → JA allergen and substance names (``clinosim-allergen-substance.yaml``)."""
+    out: dict[str, str] = {}
+    _add_table(out, data_table("clinosim-allergen-substance").get("substances"))
+    return out
+
+
+@lru_cache(maxsize=1)
+def load_narrative_display_dict() -> dict[str, str]:
+    """EN → JA dictionary of every kind of name, for genuinely free-text order
+    strings only (``locale.free_text.localize_free_text``). A name of a known
+    kind goes through its own table (Issue #2408).
+
+    Precedence (first entry wins): drug catalog names and aliases, imaging
+    exams, procedure phrases, allergen substances, administration-form
+    displays — the order the tables were merged in before the split.
+    """
+    merged = dict(_drug_catalog_display_dict())
+    for table in (load_procedure_display_dict(), load_allergen_display_dict(), load_drug_display_dict()):
+        for k, v in table.items():
+            merged.setdefault(k, v)
     return merged

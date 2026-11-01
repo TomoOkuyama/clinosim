@@ -273,11 +273,9 @@ def build_ed_workup(generator: TemplateNarrativeGenerator, ctx: NarrativeContext
         # Drug/procedure display katakana via lang-aware wrapper
         # (same wrapper as med_display above).
         try:
-            from clinosim.locale.free_text import (
-                localize_drug_name,
-            )
+            from clinosim.locale.free_text import localize_procedure_name
 
-            proc_display = [localize_drug_name(p, lang) or p for p in proc_display]
+            proc_display = [localize_procedure_name(p, lang) or p for p in proc_display]
         except Exception:  # noqa: BLE001
             pass
         parts.append(t("ed_workup.procedures_ordered_head", lang) + t("list_sep.serial", lang).join(proc_display))

@@ -7,9 +7,18 @@ replacement of every known name inside the string (longest first), then
 dosage / route / frequency terms (``locale/shared/med_terms.yaml``).
 
 It lives in the locale layer so the order, narrative and FHIR layers share
-it without importing the FHIR output package. ``localize_free_text(text,
-lang)`` is the entry point; per-kind resolvers (drug, procedure, SNOMED,
-allergen) are tracked separately (code-mapping spec §9).
+it without importing the FHIR output package. Each kind of name has its own
+resolver over its own table (Issue #2408):
+
+- ``localize_drug_name`` — drug catalog names, aliases and admin-form variants;
+- ``localize_procedure_name`` — procedure phrases and imaging exams, exact
+  match first; a composite procedure order string falls back to the
+  free-text translator;
+- ``localize_allergen_name`` — allergen and substance names;
+- ``localize_free_text`` — every table, for genuinely free-text order strings.
+
+Coded names do not come through here: a code's display is the code
+system's own (``codes.display``, ``codes.snomed.snomed_display``).
 """
 
 from __future__ import annotations
@@ -18,8 +27,11 @@ import re
 
 from clinosim.countries import is_jp
 from clinosim.locale.i18n import t
+from clinosim.locale.loader import load_allergen_display_dict as _load_allergen_display_dict
+from clinosim.locale.loader import load_drug_display_dict as _load_drug_display_dict
 from clinosim.locale.loader import load_med_terms as _load_med_terms
 from clinosim.locale.loader import load_narrative_display_dict as _load_narrative_display_dict
+from clinosim.locale.loader import load_procedure_display_dict as _load_procedure_display_dict
 from clinosim.locale.loader import resolve_localized_display
 
 __all__ = [
@@ -30,8 +42,10 @@ __all__ = [
     "_localize_drug_name",
     "_localize_rate_adjustment",
     "_split_rate_adjustment_suffix",
+    "localize_allergen_name",
     "localize_drug_name",
     "localize_free_text",
+    "localize_procedure_name",
 ]
 
 
@@ -42,7 +56,7 @@ __all__ = [
 # widened the cache key to include ``lang`` so future non-JA locales share
 # the same cache without collisions.
 _DOSAGE_PATTERNS_CACHE: dict[tuple[int, str], tuple[tuple[re.Pattern[str], str], ...]] = {}
-_DRUG_PATTERNS_CACHE: dict[str, object] = {"dict_id": None, "value": None}
+_DRUG_PATTERNS_CACHE: dict[int, tuple[tuple[re.Pattern[str], str], ...]] = {}
 
 
 def _dosage_term_patterns(lang: str = "ja") -> tuple[tuple[re.Pattern[str], str], ...]:
@@ -158,67 +172,51 @@ def _localize_rate_adjustment(note_en: str, country: str) -> str:
     return t(f"module_text.rate_{m.group(1).lower()}", "ja", pct=m.group(2))
 
 
-def _drug_name_patterns() -> tuple[tuple[re.Pattern[str], str], ...]:
-    """Pre-compile the drug-name substring regex list once per process.
-
-    Pre-#1062 the sort + ``re.compile`` ran on every ``_localize_drug_name``
-    call — 267 drugs × 78,474 calls on a JP p=1000 sim = ~21M compile
-    operations, ~48s wall. Sorting descending-by-length once (longest match
-    wins for substring replacement) and pre-compiling collapses the slow
-    fall-through path to a plain list iteration + `pattern.subn` per entry.
-    Cache-invalidation notes on ``_DOSAGE_PATTERNS_CACHE`` apply here too.
-    """
-    ja_dict = _load_narrative_display_dict()
-    if _DRUG_PATTERNS_CACHE["dict_id"] == id(ja_dict):
-        return _DRUG_PATTERNS_CACHE["value"]  # type: ignore[return-value]
+def _drug_name_patterns(ja_dict: dict[str, str] | None = None) -> tuple[tuple[re.Pattern[str], str], ...]:
+    """Pre-compile the name substring regex list once per table (longest
+    first, so the longest match wins). Pre-#1062 the sort + ``re.compile`` ran
+    on every call — ~21M compile operations on a JP p=1000 sim. Keyed on the
+    table object's ``id`` so a test's ``cache_clear()`` rebuilds it."""
+    table = _load_drug_display_dict() if ja_dict is None else ja_dict
+    cached = _DRUG_PATTERNS_CACHE.get(id(table))
+    if cached is not None:
+        return cached
     compiled = tuple(
-        (re.compile(r"(?i)\b" + re.escape(k) + r"\b"), v) for k, v in sorted(ja_dict.items(), key=lambda x: -len(x[0]))
+        (re.compile(r"(?i)\b" + re.escape(k) + r"\b"), v) for k, v in sorted(table.items(), key=lambda x: -len(x[0]))
     )
-    _DRUG_PATTERNS_CACHE["dict_id"] = id(ja_dict)
-    _DRUG_PATTERNS_CACHE["value"] = compiled
+    _DRUG_PATTERNS_CACHE[id(table)] = compiled
     return compiled
 
 
-def _localize_drug_name(drug_name: str, country: str) -> str:
-    """Resolve drug name to Japanese when country=JP.
-
-    Matches drug names against the dictionary, handling:
-    - Exact match (case-insensitive, underscore→space normalized)
-    - Category prefix: "category: Drug ..." → "<ja> ..."
-    - Any drug name substring found anywhere in the text (longest match wins)
-    - Dosage/route/frequency terms translated at end
-    """
-    if not is_jp(country) or not drug_name:
-        return drug_name
-    ja_dict = _load_narrative_display_dict()
-    # Normalize underscores to spaces for matching
-    normalized = drug_name.replace("_", " ")
-    # Try exact match on normalized (case-insensitive)
+def _translate_ja(text: str, ja_dict: dict[str, str]) -> str:
+    """Japanese of ``text`` over ``ja_dict``: exact match (case-insensitive,
+    underscores as spaces, then without a ``category:`` prefix), else every
+    known name inside the string replaced (longest first); dosage / route /
+    frequency terms are translated last."""
+    normalized = text.replace("_", " ")
     ja = ja_dict.get(normalized.lower())
     if ja:
         return _localize_dosage_terms(ja)
-    # Try exact match on cleaned (prefix stripped) version
-    cleaned = normalized
-    if ":" in cleaned:
-        cleaned = cleaned.split(":", 1)[1].strip()
+    cleaned = normalized.split(":", 1)[1].strip() if ":" in normalized else normalized
     ja = ja_dict.get(cleaned.lower())
     if ja:
         return _localize_dosage_terms(ja)
-    # Replace ALL known drug name occurrences (longest-first to avoid partial matches)
-    # Use case-insensitive regex replacement
     result = normalized
     changed = False
-    for pattern, ja_val in _drug_name_patterns():
+    for pattern, ja_val in _drug_name_patterns(ja_dict):
         new_result, n = pattern.subn(ja_val, result)
         if n > 0:
             result = new_result
             changed = True
-    # Always translate dosage terms
-    return (
-        _localize_dosage_terms(result).strip()
-        if changed or result != drug_name
-        else _localize_dosage_terms(drug_name).strip()
-    )  # noqa: E501
+    return _localize_dosage_terms(result).strip() if changed or result != text else _localize_dosage_terms(text).strip()
+
+
+def _localize_drug_name(drug_name: str, country: str) -> str:
+    """Japanese of a drug name / medication order string when ``country`` is
+    JP, over the drug table only (Issue #2408); unchanged otherwise."""
+    if not is_jp(country) or not drug_name:
+        return drug_name
+    return _translate_ja(drug_name, _load_drug_display_dict())
 
 
 def localize_drug_name(drug_name: str, lang: str) -> str:
@@ -242,7 +240,31 @@ def localize_drug_name(drug_name: str, lang: str) -> str:
     return _localize_drug_name(drug_name, "JP")
 
 
+def localize_procedure_name(name: str, lang: str) -> str:
+    """``name`` of a procedure or examination in ``lang``: the procedure /
+    imaging table's entry, else (a composite order string such as "O2: Nasal
+    cannula SpO2 >= 94%") the free-text translator. Unchanged when ``lang``
+    has no tables (today: not ``ja``)."""
+    if not name or lang != "ja":
+        return name
+    table = _load_procedure_display_dict()
+    normalized = name.replace("_", " ").strip().lower()
+    hit = table.get(normalized) or table.get(normalized.split(":", 1)[1].strip() if ":" in normalized else "")
+    return _localize_dosage_terms(hit) if hit else localize_free_text(name, lang)
+
+
+def localize_allergen_name(name: str, lang: str) -> str:
+    """``name`` of an allergen or substance in ``lang`` (the allergen table),
+    else ``name``. Unchanged when ``lang`` has no tables (today: not ``ja``)."""
+    if not name or lang != "ja":
+        return name
+    return _load_allergen_display_dict().get(name.replace("_", " ").strip().lower()) or name
+
+
 def localize_free_text(text: str, lang: str) -> str:
-    """Translate a free-text name / order string into ``lang`` (Issue #2367).
-    Returns ``text`` unchanged when ``lang`` has no tables (today: not ``ja``)."""
-    return localize_drug_name(text, lang)
+    """Translate a genuinely free-text order string into ``lang`` over every
+    name table (Issue #2367). Returns ``text`` unchanged when ``lang`` has no
+    tables (today: not ``ja``)."""
+    if not text or lang != "ja":
+        return text
+    return _translate_ja(text, _load_narrative_display_dict())
