@@ -3027,16 +3027,16 @@
 <td>#2344</td>
 </tr>
 <tr>
-<td>CPT / K-codes the generator emits but has not registered.</td>
-<td>#2340</td>
-</tr>
-<tr>
 <td>The free-text name localizer lives in the FHIR output layer, is imported from the order and narrative layers, and also translates procedure, SNOMED and allergen names. Decision logic and records resolve drug names through <code>codes.drugs.drug_display</code>.</td>
 <td>#2367</td>
 </tr>
 <tr>
 <td>Language literals are still embedded in Python.</td>
 <td>#2277</td>
+</tr>
+<tr>
+<td>The imaging and chronic follow-up tables emit CPT and JP imaging codes that are not registered, some naming a retired or different service.</td>
+<td>#2390</td>
 </tr>
 <tr>
 <td>Disease YAMLs mix <code>drug:</code> names with <code>drug_id:</code>, and <code>Order.order_code</code> does not record its code system.</td>
