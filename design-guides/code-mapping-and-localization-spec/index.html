@@ -2778,6 +2778,11 @@
 <td><code>""</code> / <code>None</code> / no entry</td>
 </tr>
 <tr>
+<td><code>codes.drugs</code>: <code>drug_display(ref, lang)</code></td>
+<td>catalog name of a drug id, name or alias (then its longest leading-word prefix) in <code>lang</code>, then English</td>
+<td><code>None</code></td>
+</tr>
+<tr>
 <td><code>codes.icd10</code>: <code>icd10_system(country)</code>, <code>icd10_display(code, country, lang)</code>, <code>condition_short_name(code, lang)</code>, <code>medis_disease_keyno(icd)</code></td>
 <td>ICD-10 system of a country; official display; clinical short name (by category); MEDIS 病名管理番号</td>
 <td>key / <code>None</code> / <code>None</code> / <code>None</code></td>
@@ -3027,8 +3032,8 @@
 <td>#2267</td>
 </tr>
 <tr>
-<td>Drug names go through free-text translation, not the catalog.</td>
-<td>#2271</td>
+<td>The free-text name localizer lives in the FHIR output layer, is imported from the order and narrative layers, and also translates procedure, SNOMED and allergen names. Decision logic and records resolve drug names through <code>codes.drugs.drug_display</code>.</td>
+<td>#2367</td>
 </tr>
 <tr>
 <td>Language literals are still embedded in Python.</td>

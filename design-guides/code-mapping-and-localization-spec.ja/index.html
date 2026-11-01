@@ -2778,6 +2778,11 @@
 <td><code>""</code> / <code>None</code> / 該当なし</td>
 </tr>
 <tr>
+<td><code>codes.drugs</code>: <code>drug_display(ref, lang)</code></td>
+<td>薬 id・名称・alias (見つからなければ先頭語の最長一致) のカタログ名を <code>lang</code> で、無ければ英語で返す</td>
+<td><code>None</code></td>
+</tr>
+<tr>
 <td><code>codes.icd10</code>: <code>icd10_system(country)</code> / <code>icd10_display(code, country, lang)</code> / <code>condition_short_name(code, lang)</code> / <code>medis_disease_keyno(icd)</code></td>
 <td>国の ICD-10 体系、正式名称、臨床短縮名 (3 桁分類で引く)、MEDIS 病名管理番号</td>
 <td>キー / <code>None</code> / <code>None</code> / <code>None</code></td>
@@ -3027,8 +3032,8 @@
 <td>#2267</td>
 </tr>
 <tr>
-<td>薬名がカタログではなく自由文翻訳を通っている。</td>
-<td>#2271</td>
+<td>自由文の名称 localizer が FHIR 出力層にあり、order 層と narrative 層から import され、手技・SNOMED・アレルゲン名の翻訳にも使われている。判断ロジックと記録の薬名は <code>codes.drugs.drug_display</code> で解決する。</td>
+<td>#2367</td>
 </tr>
 <tr>
 <td>Python に言語ごとのリテラルが残っている。</td>
