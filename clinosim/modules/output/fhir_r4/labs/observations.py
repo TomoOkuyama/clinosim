@@ -150,7 +150,7 @@ def _build_lab_observation(
         display_name = codings[0]["display"]
     else:
         # No standard code at all (Issue #2138): text-only code, in Japanese on JP.
-        display_name = uncoded_analyte_display(lab_name) if is_jp(country) else lab_name
+        display_name = uncoded_analyte_display(lab_name, resolve_lang(country))
     code_value = codings[0]["code"] if codings else ""
 
     # encounter_id must be non-empty: the production path always provides

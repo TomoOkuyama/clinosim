@@ -33,9 +33,6 @@ from typing import Any
 
 from clinosim.modules.disease.localization import target_los_config
 from clinosim.modules.document.narrative._localization import (
-    _format_lab_unit_for_prose as _format_lab_unit_for_prose,
-)
-from clinosim.modules.document.narrative._localization import (
     _localize_complication as _localize_complication,
 )
 from clinosim.modules.document.narrative._localization import (
@@ -43,9 +40,6 @@ from clinosim.modules.document.narrative._localization import (
 )
 from clinosim.modules.document.narrative._localization import (
     _localize_lab_flag as _localize_lab_flag,
-)
-from clinosim.modules.document.narrative._localization import (
-    _localize_lab_name as _localize_lab_name,
 )
 from clinosim.modules.document.narrative._localization import (
     _localize_op_approach as _localize_op_approach,

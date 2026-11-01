@@ -30,9 +30,10 @@ from clinosim.codes import display as registry_display
 from clinosim.codes import get_system_uri
 from clinosim.codes import lookup as _codes_lookup
 from clinosim.codes.snomed_concepts import FINDING_ABNORMAL, FINDING_NORMAL
+from clinosim.codes.ucum import ucum_prose
 from clinosim.locale.i18n import t
+from clinosim.locale.loader import lab_display
 from clinosim.modules._shared import get_attr_or_key, is_jp, pick_localized_field, resolve_lang
-from clinosim.modules.document.narrative.replacement_strategy import localize_lab_name
 from clinosim.modules.imaging.engine import (
     RADIOLOGY_REPORT_ID_PREFIX,
     _resolve_imaging_procedure_code_key,
@@ -466,20 +467,12 @@ def _build_lab_panel_conclusion(
         value = _o(result, "value")
         if not lab_name or value is None:
             continue
-        # prompt-v11 counterpart at source: for JA output, translate the
-        # lab NAME (Albumin → アルブミン, Creatinine → クレアチニン, …)
-        # so the fact-only aggregation reads naturally in the JA
-        # narrative context. Standard medical abbreviations (BUN, CRP,
-        # BNP, HbA1c, eGFR, Cr, Na, K, Cl, Ca, Mg, P, AST, ALT, …) are
-        # DELIBERATELY preserved by `localize_lab_name`'s underlying
-        # map. The retroactive post-processor
-        # (`_localize_lab_names_in_text_ja`) would also fix this at the
-        # emitted-text level, but doing it here at the source keeps the
-        # emitted conclusion clean without relying on a second pass.
-        # `localize_lab_name` is lang-aware — no-op when the target
-        # locale has no lookup table.
-        lab_name = localize_lab_name(lab_name, lang)
-        unit = _o(result, "unit") or ""
+        # The same prose name and unit the narrative uses (Issue #2267): no
+        # CIF slug ("T_Bil") or raw UCUM ("{INR}", "mm[Hg]") in the text.
+        lab_name = lab_display(lab_name, lang)
+        unit = ucum_prose(_o(result, "unit"))
+        if unit.lower() == lab_name.lower():  # "pH 7.31", not "pH 7.31 pH"
+            unit = ""
         flag = _o(result, "flag") or ""
         # Format the value: drop a trailing ".0" for integer-valued floats
         # (matches the human convention used elsewhere in the emitter and

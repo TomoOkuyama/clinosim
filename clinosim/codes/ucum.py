@@ -3,6 +3,7 @@
 :func:`ucum_code` maps a clinical unit spelling to its UCUM code and
 :func:`ucum_quantity` builds a FHIR ``Quantity``; emitters use these for every
 Quantity instead of assembling the ``system`` / ``code`` pair by hand.
+:func:`ucum_prose` is the unit as written in prose (``mm[Hg]`` → ``mmHg``).
 """
 
 from __future__ import annotations
@@ -97,3 +98,50 @@ def ucum_quantity(value: Any, unit: str, *, code: str | None = None) -> dict[str
         q["unit"] = unit
         q["code"] = code or ucum_code(unit)
     return q
+
+
+def ucum_prose(unit: str | None) -> str:
+    """Return a display-friendly form of a UCUM unit for prose (narrative,
+    LLM context, DiagnosticReport.conclusion); FHIR Quantities keep the
+    UCUM code (Issue #2267).
+
+    UCUM allows dimensionless-annotation units of the form ``{annotation}``
+    (curly braces are literal) — e.g. ``{INR}`` for PT-INR ratio,
+    ``{score}`` for scored assessments — and lets any real unit carry a
+    trailing ``/{annotation}`` clarifier (e.g. eGFR
+    ``mL/min/{1.73_m2}``). These read as raw placeholders in narrative
+    prose (``PT-INR 2.6 {INR}``, ``mL/min/{1.73_m2}``).
+
+    Rules:
+    - A pure-annotation unit ``{...}`` is treated as dimensionless and
+      returns ``""`` — the accompanying value is self-describing.
+    - A composite unit ``<real>/{...}`` strips the annotation clause
+      (returns ``<real>``); the mL/min/1.73m² special-case is handled
+      at its callsite for the ² typography, so this helper leaves the
+      raw underscore/digit form untouched.
+    - UCUM special-unit brackets ``[X]`` (e.g. ``mm[Hg]`` for mmHg,
+      ``cm[H2O]`` for cmH2O) are stripped so blood-gas / airway-
+      pressure units render as clinicians write them (`PaCO2 46.4
+      mmHg` rather than `PaCO2 46.4 mm[Hg]`).
+    - Otherwise the unit is returned verbatim.
+    """
+    if not unit:
+        return ""
+    u = str(unit).strip()
+    if not u:
+        return ""
+    if u.startswith("{") and u.endswith("}"):
+        return ""
+    # Strip a trailing "/{annotation}" clause without touching the real
+    # unit prefix.
+    if u.endswith("}"):
+        anno_start = u.rfind("/{")
+        if anno_start > 0:
+            u = u[:anno_start]
+    # Strip UCUM special-unit brackets — `mm[Hg]` → `mmHg`,
+    # `cm[H2O]` → `cmH2O`, `[in_i]` → `in_i`. The brackets carry no
+    # information beyond marking a UCUM special unit family; prose
+    # renders them without.
+    if "[" in u and "]" in u:
+        u = u.replace("[", "").replace("]", "")
+    return u

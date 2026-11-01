@@ -24,13 +24,13 @@ from __future__ import annotations
 import logging
 from typing import TYPE_CHECKING
 
+from clinosim.codes.ucum import ucum_prose
 from clinosim.locale.i18n import t
+from clinosim.locale.loader import lab_display
 from clinosim.modules._shared import get_attr_or_key as _o
 from clinosim.modules.document.narrative._localization import (
-    _format_lab_unit_for_prose,
     _localize_imaging,
     _localize_lab_flag,
-    _localize_lab_name,
 )
 from clinosim.modules.document.narrative._template_helpers import (
     _GENERIC_FALLBACK_EN,
@@ -231,10 +231,10 @@ def build_ed_workup(generator: TemplateNarrativeGenerator, ctx: NarrativeContext
     if lab_names:
         # Phase 1c-4 (2026-09-23): localise lab / panel tokens
         # ("Creatinine" / "CBC" / "Urinalysis" / "Total_bilirubin"
-        # etc.) via ``_localize_lab_name``. Pre-fix, the JA emission
+        # etc.) via ``lab_display``. Pre-fix, the JA emission
         # embedded English tokens verbatim under 「検査:」.
-        lab_display = [_localize_lab_name(n, ctx.target_lang) for n in lab_names[:8]]
-        parts.append(t("ed_workup.labs_head", lang) + t("list_sep.serial", lang).join(lab_display))
+        lab_names_disp = [lab_display(n, ctx.target_lang) for n in lab_names[:8]]
+        parts.append(t("ed_workup.labs_head", lang) + t("list_sep.serial", lang).join(lab_names_disp))
     if imaging_names:
         # Phase 1c-4 (2026-09-23): localise imaging codes
         # ("Chest_Xray_PA_Lateral" / "CT_Head" / etc.) via
@@ -288,7 +288,7 @@ def build_ed_workup(generator: TemplateNarrativeGenerator, ctx: NarrativeContext
     #
     # Phase 1c-5 (2026-09-23): sibling of the progress_note
     # ``本日の検査所見:`` fix — route lab_name through
-    # ``_localize_lab_name`` and flag through ``_localize_lab_flag``
+    # ``lab_display`` and flag through ``_localize_lab_flag``
     # so JA emits 「クレアチニン 5.19 mg/dL [H]、BUN 143.8 mg/dL [H]」
     # rather than 「Creatinine 5.19 mg/dL [H]、BUN 143.8 mg/dL [H]」.
     # Pre-fix the JP p=10000 audit surfaced ~2,000 raw-English lab
@@ -303,9 +303,9 @@ def build_ed_workup(generator: TemplateNarrativeGenerator, ctx: NarrativeContext
         val = _o(lab, "value", None)
         unit = _o(lab, "unit", "") or ""
         if name and val is not None:
-            disp_name = _localize_lab_name(name, ctx.target_lang)
+            disp_name = lab_display(name, ctx.target_lang)
             disp_flag = _localize_lab_flag(flag, ctx.target_lang)
-            unit_disp = _format_lab_unit_for_prose(unit)
+            unit_disp = ucum_prose(unit)
             # Phase 1d-81 follow-up: same unit=name dedupe as
             # Phase 1d-80 covered in the two progress_note sites;
             # this ed_workup abnormal-lab emit needs it too. Real

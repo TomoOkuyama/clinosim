@@ -670,13 +670,14 @@ class TestPanelConclusion:
         assert "参照範囲外: アルブミン、クレアチニン" in c
 
     def test_conclusion_us_keeps_english_lab_names(self):
-        """Sanity: US output MUST keep EN names — no accidental localization."""
+        """US output keeps English names — the same prose name the narrative
+        uses (shared lab display table, Issue #2267)."""
         from clinosim.modules.output.fhir_r4.labs.diagnostic_report import _GroupedPanel, build_dr_resource
 
         g = _GroupedPanel(panel_name="BMP", bucket="2026-05-12", obs_idxs=[0])
         orders = [_order_with_result("Albumin", "2026-05-12T14:28:38", 0, value=4.0, unit="g/dL")]
         r = build_dr_resource(g, "P", "ENC-001", "US", None, None, 0, orders=orders)
-        assert "Albumin 4 g/dL" in r["conclusion"]
+        assert "albumin 4 g/dL" in r["conclusion"]
 
     def test_conclusion_ja_preserves_medical_abbreviations(self):
         """BUN / CRP / BNP / HbA1c / Na / K etc. are JA medical standard —

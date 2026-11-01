@@ -95,6 +95,7 @@ occupation:
 - 語彙ごとに表は 1 つ。例:
   - `vocabulary.yaml` — 職業、喫煙、飲酒、来院手段
   - `narrative_imaging.yaml` — 画像検査
+  - `lab_display.yaml` — 検査項目とパネル。小文字化した検査トークンをキーとし、`{en, ja}` は臨床での略称、任意の `formal` に正式名を持つ
   - `department_display.yaml`
 - FHIR、narrative、LLM プロンプトは同じ表を読む。同じ語彙の写しを作ってはいけない。
 
@@ -127,7 +128,7 @@ occupation:
 | `codes.drugs`: `drug_display(ref, lang)` | 薬 id・名称・alias (見つからなければ先頭語の最長一致) のカタログ名を `lang` で、無ければ英語で返す | `None` |
 | `codes.icd10`: `icd10_system(country)` / `icd10_display(code, country, lang)` / `condition_short_name(code, lang)` / `medis_disease_keyno(icd)` | 国の ICD-10 体系、正式名称、臨床短縮名 (3 桁分類で引く)、MEDIS 病名管理番号 | キー / `None` / `None` / `None` |
 | `codes.procedures`: `procedure_code` / `procedure_type_display` / `procedure_code_display` | 処置のコードと名称 | `""` / 人間可読化した type / `None` |
-| `codes.ucum`: `ucum_code` / `ucum_quantity` | UCUM コード / FHIR Quantity | 単位をそのまま通す |
+| `codes.ucum`: `ucum_code` / `ucum_quantity` / `ucum_prose` | UCUM コード / FHIR Quantity / 文章中の単位表記 (`mm[Hg]` → `mmHg`、`{INR}` → `""`) | 単位をそのまま通す |
 | `codes.prefectures.prefecture_code(name)` | JIS X 0401 コード | `""` |
 | `codes.snomed`: `snomed_display(code, lang)` / `snomed_for(kind, key)` / `snomed_map(kind)` | SNOMED の表示名、内部キー → コード (`route` / `severity`。`codes/data/snomed-maps.yaml`) | `None` / `None` / `KeyError` |
 | `codes.snomed_concepts` | 判定ロジックで使う名前付き SNOMED 概念 | — |
@@ -143,6 +144,7 @@ occupation:
 | `vocab_display(vocab, slug, lang, *, fallback)` | 語彙の表示名 (`vocabulary.yaml`) |
 | `narrative_label(section, key, lang, fallback)` | narrative のラベル |
 | `imaging_exam_display(exam_id, lang)` | 画像検査名 |
+| `lab_display(name, lang, *, style, fallback)` | 検査項目・パネル名。`style="prose"` は narrative・LLM 文・`DiagnosticReport.conclusion`、`style="formal"` は標準コードの無い項目の FHIR `code.text`。コード付き `Observation.code.coding.display` は権威 display のまま |
 | `department_display(dept, lang)` / `department_specialty_snomed(dept)` | 診療科名 / 専門科コード |
 | `role_display(role, lang, *, facet)` | 職種の名称・接尾辞・資格 |
 | `chronic_followup_vitals(code)` / `chronic_followup_interval_months(codes)` | 慢性疾患フォローアップの予定データ |
@@ -185,7 +187,7 @@ occupation:
 1. **順序。** 要求言語 → 英語 → 呼び出し側が**明示した**フォールバック。
 2. **フォールバックにしてはいけないもの。** 他の言語 (英語出力に日本語など)、検索キー、生コード、生 id、生 slug。
 3. **コードや id がない場合**、解決関数は `None` / `""` を返す。何を表示するかは呼び出し側が決めて明示的に渡すか、要素ごと省く (「捏造より沈黙」)。
-4. **slug の人間可読化** (アンダースコア → 空白) を許すのは、内部 slug の表示表の最後のフォールバックだけ。例: `imaging_exam_display` / `procedure_type_display` / `department_display` は未知の slug を人間可読化する。これを許す条件は、生成側が出す slug がすべて表にあることを unit test で保証していること。`.title()` による slug は常に禁止。
+4. **slug の人間可読化** (アンダースコア → 空白) を許すのは、内部 slug の表示表の最後のフォールバックだけ。例: `imaging_exam_display` / `procedure_type_display` / `department_display` / `lab_display` は未知の slug を人間可読化する。これを許す条件は、生成側が出す slug がすべて表にあることを unit test で保証していること。`.title()` による slug は常に禁止。
 5. **英語エントリの欠落**はデータのバグで、テストで検出する。英語以外の欠落は英語にフォールバックする (規則 1)。
 
 ## 7. コードの追加・変更手順
@@ -233,7 +235,6 @@ occupation:
 | 文書 LOINC の定義が 8 箇所にある。意味の合わない section コードがある。出力側に LOINC 定数が残っている。 | #2344 |
 | 生成側が出しているのに未登録の CPT / K コード。 | #2340 |
 | 手組みの dual-slot が残っている。`_coding_with_display` と `_value` が英語専用の coding に出力言語の表示名を入れている (`system_coding` / `dual_slot_concept` を使うべき)。後処理で text を補う walker も残っている。 | #2337 |
-| 検査項目の表示名が 5 つの表に分かれている。 | #2267 |
 | 自由文の名称 localizer が FHIR 出力層にあり、order 層と narrative 層から import され、手技・SNOMED・アレルゲン名の翻訳にも使われている。判断ロジックと記録の薬名は `codes.drugs.drug_display` で解決する。 | #2367 |
 | Python に言語ごとのリテラルが残っている。 | #2277 |
 | レコードが `drug_id` を持っていない。 | #2297 |

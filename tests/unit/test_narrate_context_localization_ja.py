@@ -15,10 +15,10 @@ from __future__ import annotations
 
 import pytest
 
+from clinosim.locale.loader import lab_display
 from clinosim.modules.document.narrative.replacement_strategy import (
     _localize_arrival_mode_ja,
     _localize_barthel_band_ja,
-    _localize_lab_name_ja,
     _localize_oxygen_device_ja,
     _localize_risk_level_ja,
     _localize_severity_ja,
@@ -135,11 +135,11 @@ def test_barthel_band_ja_mapping(raw, expected):
         ("Na", "Na"),
         ("K", "K"),
         ("PT-INR", "PT-INR"),
-        ("PT_INR", "PT_INR"),
+        ("PT_INR", "PT-INR"),
     ],
 )
 def test_lab_name_ja_mapping(raw, expected):
-    assert _localize_lab_name_ja(raw) == expected
+    assert lab_display(raw, "ja") == expected
 
 
 @pytest.mark.unit
@@ -310,5 +310,5 @@ def test_render_abnormal_labs_ja_localizes_full_english_names():
 def test_render_abnormal_labs_en_unchanged():
     labs = [{"day": 0, "lab_name": "Creatinine", "value": 1.42, "unit": "mg/dL", "flag": "H"}]
     en = _render_abnormal_labs(labs, day_index=0, lang="en")
-    assert "Creatinine" in en
+    assert "creatinine 1.42 mg/dL" in en
     assert "クレアチニン" not in en

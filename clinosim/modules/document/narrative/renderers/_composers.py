@@ -15,13 +15,13 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from clinosim.codes.ucum import ucum_prose
 from clinosim.locale.i18n import t
+from clinosim.locale.loader import lab_display
 from clinosim.modules._shared import get_attr_or_key as _o
 from clinosim.modules.document.narrative._localization import (
-    _format_lab_unit_for_prose,
     _localize_complication,
     _localize_lab_flag,
-    _localize_lab_name,
 )
 from clinosim.modules.document.narrative._narrative_utils import (
     _cc_altered_consciousness_keywords,
@@ -262,9 +262,9 @@ def compose_progress_assessment_from_state(ctx: NarrativeContext) -> str:
         val = _o(lab, "value", None)
         unit = _o(lab, "unit", "") or ""
         if name and val is not None:
-            disp_name = _localize_lab_name(name, ctx.target_lang)
+            disp_name = lab_display(name, ctx.target_lang)
             disp_flag = _localize_lab_flag(flag, ctx.target_lang)
-            unit_disp = _format_lab_unit_for_prose(unit)
+            unit_disp = ucum_prose(unit)
             if unit_disp and unit_disp.lower() == str(disp_name).lower():
                 unit_disp = ""
             unit_part = f" {unit_disp}" if unit_disp else ""

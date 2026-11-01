@@ -732,7 +732,7 @@ def test_localize_lab_name_ja_covers_common_labs() -> None:
     "hba1c" / "k") in the outpatient assessment vitals-list fallback
     surfaced 863 times pre-fix. Full-word labs translate; abbreviations
     canonicalise casing."""
-    from clinosim.modules.document.narrative.template_generator import _localize_lab_name
+    from clinosim.locale.loader import lab_display as _localize_lab_name
 
     # Full words → JA translation.
     assert _localize_lab_name("creatinine", "ja") == "クレアチニン"
@@ -745,8 +745,8 @@ def test_localize_lab_name_ja_covers_common_labs() -> None:
     assert _localize_lab_name("crp", "ja") == "CRP"
     assert _localize_lab_name("egfr", "ja") == "eGFR"
     assert _localize_lab_name("pt_inr", "ja") == "PT-INR"
-    # Unknown token falls back to the raw name so novel labs still surface.
-    assert _localize_lab_name("mystery_marker", "ja") == "mystery_marker"
+    # Unknown token humanises (underscores → spaces) so no slug leaks.
+    assert _localize_lab_name("mystery_marker", "ja") == "mystery marker"
 
 
 def test_filter_vitals_for_day_uses_timestamp_when_day_field_missing() -> None:
@@ -1000,7 +1000,7 @@ def test_localize_lab_name_ja_handles_ed_workup_panels() -> None:
     """Phase 1c-4: additional panel / lab tokens observed in the JP p=500
     ed_workup ``検査:`` audit — 全 45 距 raw-English leaks eliminated.
     Multi-analyte panel labels keep the abbreviation + a JA gloss."""
-    from clinosim.modules.document.narrative.template_generator import _localize_lab_name
+    from clinosim.locale.loader import lab_display as _localize_lab_name
 
     assert _localize_lab_name("CBC", "ja") == "CBC (全血球算定)"
     assert _localize_lab_name("LFT", "ja") == "LFT (肝機能パネル)"

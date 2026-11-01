@@ -3,14 +3,13 @@
 First mechanical slice of the META #1633 P6 ``replacement_strategy``
 decomposition (sibling to the ``template_generator`` → ``_localization.py``
 split in #1671). The 12 helpers here cover severity / oxygen-device /
-arrival-mode / risk-level / Barthel-band / lab-name token lookups
+arrival-mode / risk-level / Barthel-band token lookups
 plus the LLM-output post-processors that walk emitted narrative text
 and swap EN lab tokens for canonical JA katakana.
 
-Zero behaviour change: ``replacement_strategy.py`` re-exports every
-moved name via explicit ``from … import X as X`` aliases so external
-callers (e.g. ``diagnostic_report.py``'s ``localize_lab_name`` import)
-and tests see no API change.
+``replacement_strategy.py`` re-exports every moved name via explicit
+``from … import X as X`` aliases. Lab names resolve through
+``clinosim.locale.loader.lab_display`` (Issue #2267).
 
 Phase 1d-2 (2026-09-23): the vocab tables live in
 ``clinosim/locale/shared/llm_prompt_labels.yaml``; adding a new
@@ -20,6 +19,7 @@ target language is a data change, not a code change.
 from __future__ import annotations
 
 import re
+from functools import lru_cache
 
 
 def _lookup_ja_label(raw: str, section: str) -> str:
@@ -67,29 +67,9 @@ def _localize_barthel_band_ja(band: str) -> str:
     return _lookup_ja_label(band, "barthel_band")
 
 
-def _localize_lab_name_ja(name: str) -> str:
-    """Creatinine → クレアチニン. Keeps abbreviations (BUN, CRP, WBC)
-    as-is since they are Japanese medical standard."""
-    if not name:
-        return name
-    return _lookup_ja_label(name, "lab_name")
-
-
-def localize_lab_name(name: str, lang: str) -> str:
-    """Language-aware lab-name localizer wrapper. No-op when
-    ``lang != "ja"``. Callers that used to gate on
-    ``if lang == "ja":`` around ``_localize_lab_name_ja`` can call
-    this unconditionally instead — adding a new locale means
-    extending ``llm_prompt_labels.yaml/lab_name:`` with the new
-    ``<lang>`` slot (data-only change)."""
-    if not name or lang != "ja":
-        return name
-    return _localize_lab_name_ja(name)
-
-
 def localize_oxygen_device(device: str, lang: str) -> str:
-    """Language-aware oxygen-device localizer wrapper (sibling to
-    ``localize_lab_name``). No-op when ``lang != "ja"``."""
+    """Language-aware oxygen-device localizer wrapper. No-op when
+    ``lang != "ja"``."""
     if not device or lang != "ja":
         return device
     return _localize_oxygen_device_ja(device)
@@ -107,29 +87,34 @@ def localize_oxygen_device(device: str, lang: str) -> str:
 # Compound names ("Total bilirubin", "Direct bilirubin", "Total protein",
 # "Urea nitrogen", "White blood cell", "Red blood cell", "Troponin I/T")
 # are matched BEFORE their single-word bases via longest-first ordering.
-# Phase 1d-2 (2026-09-23): lazy-compiled longest-first regex over the
-# ``lab_name`` section of ``llm_prompt_labels.yaml``. The pattern must
-# recompile if the YAML changes; ``functools.lru_cache`` on
-# ``load_llm_prompt_labels`` guarantees a stable dict identity for the
-# process lifetime, so caching on that identity is safe.
-_LAB_NAME_PATTERN_CACHE: dict[int, re.Pattern[str]] = {}
+# The guard's vocabulary is the English prose names in the shared lab
+# display table (`locale/shared/lab_display.yaml`, Issue #2267) that are
+# common nouns — lower-case words, optionally ending in one capital or
+# number token ("troponin I", "vitamin B12") — and whose Japanese name
+# differs. Abbreviations (BUN, CRP, Cr, HbA1c, ...) are not words, so they
+# are kept as written, as Japanese clinicians write them.
+_PROSE_LAB_TERM = re.compile(r"[a-z][a-z ]*[a-z](?: [A-Z0-9]+)?")
 
 
+@lru_cache(maxsize=1)
+def _lab_prose_terms_ja() -> dict[str, str]:
+    from clinosim.locale.loader import load_lab_display
+
+    terms: dict[str, str] = {}
+    for entry in load_lab_display().values():
+        en, ja = str(entry.get("en") or ""), str(entry.get("ja") or "")
+        if ja and ja != en and _PROSE_LAB_TERM.fullmatch(en):
+            terms.setdefault(en.lower(), ja)
+    return terms
+
+
+@lru_cache(maxsize=1)
 def _get_lab_name_pattern() -> re.Pattern[str]:
-    from clinosim.locale.loader import load_llm_prompt_labels
-
-    section = load_llm_prompt_labels().get("lab_name", {})
-    cache_key = id(section)
-    hit = _LAB_NAME_PATTERN_CACHE.get(cache_key)
-    if hit is not None:
-        return hit
-    keys = sorted(section.keys(), key=len, reverse=True)
-    pattern = re.compile(
+    keys = sorted(_lab_prose_terms_ja(), key=len, reverse=True)
+    return re.compile(
         r"\b(" + "|".join(re.escape(k) for k in keys) + r")\b",
         re.IGNORECASE,
     )
-    _LAB_NAME_PATTERN_CACHE[cache_key] = pattern
-    return pattern
 
 
 def _localize_lab_names_in_text_ja(text: str) -> str:
@@ -143,7 +128,7 @@ def _localize_lab_names_in_text_ja(text: str) -> str:
         return text
 
     def _repl(m: re.Match) -> str:
-        return _lookup_ja_label(m.group(1), "lab_name")
+        return _lab_prose_terms_ja()[m.group(1).lower()]
 
     return _get_lab_name_pattern().sub(_repl, text)
 

@@ -9,9 +9,9 @@ from pathlib import Path
 import pytest
 
 from clinosim.codes import get_system_uri, jlac10_display, jp_clins_lab_system, system_key_for_uri
-from clinosim.locale.loader import lab_code, load_code_mapping
+from clinosim.locale.loader import lab_code, load_code_mapping, load_lab_display
 from clinosim.modules.output.fhir_r4.labs import coding_package
-from clinosim.modules.output.fhir_r4.labs.coding_strategy import _uncoded_analyte_ja_display
+from clinosim.modules.output.fhir_r4.labs.coding_strategy import _KNOWN_UNCODED_ANALYTES, uncoded_analyte_display
 
 pytestmark = pytest.mark.unit
 
@@ -46,9 +46,10 @@ def test_every_mapped_jp_lab_resolves_and_has_a_jlac10_display() -> None:
 
 
 def test_uncoded_analyte_displays_come_from_data() -> None:
-    displays = _uncoded_analyte_ja_display()
-    assert displays["pH"] == "動脈血pH"
-    assert all(displays.values())
+    assert uncoded_analyte_display("pH", "ja") == "動脈血pH"
+    table = load_lab_display()
+    for analyte in _KNOWN_UNCODED_ANALYTES:
+        assert analyte.lower() in table, analyte
 
 
 def test_no_jp_lab_uri_or_oid_literal_outside_codes() -> None:

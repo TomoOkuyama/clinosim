@@ -20,6 +20,7 @@ working.
 from __future__ import annotations
 
 from functools import lru_cache
+from typing import Any
 
 from clinosim.locale._io import _LOCALE_DIR, _load_yaml
 
@@ -99,9 +100,34 @@ def load_chief_complaint_translations() -> dict[str, dict[str, str]]:
 
 
 @lru_cache(maxsize=1)
-def load_narrative_lab_names() -> dict[str, dict[str, str]]:
-    raw = _load_yaml(_LOCALE_DIR / "shared" / "narrative_lab_names.yaml", fallback={})
+def load_lab_display() -> dict[str, dict[str, Any]]:
+    """The lab analyte display table, keyed by lower-cased lab token
+    (``locale/shared/lab_display.yaml``, Issue #2267)."""
+    raw = _load_yaml(_LOCALE_DIR / "shared" / "lab_display.yaml", fallback={})
     return raw.get("lab_names", {}) or {}
+
+
+def lab_display(name: str, lang: str, *, style: str = "prose", fallback: str | None = None) -> str:
+    """Display of lab token ``name`` (canonical lab name, panel or alternate
+    spelling) for ``lang``, then English, then ``fallback`` (default: the
+    token with ``_`` read as a space, so no slug reaches output).
+
+    ``style="prose"`` is the clinician short form (narrative, LLM,
+    DiagnosticReport.conclusion); ``style="formal"`` prefers the entry's
+    ``formal`` names (FHIR ``code.text`` of analytes with no standard code).
+    The one lab-name resolver for every output (Issue #2267)."""
+    if not name:
+        return ""
+    token = str(name).strip()
+    entry = load_lab_display().get("_".join(token.lower().split()))
+    if fallback is None:
+        fallback = token.replace("_", " ")
+    if not entry:
+        return fallback
+    names = {k: v for k, v in entry.items() if k != "formal"}
+    if style == "formal":
+        names.update(entry.get("formal") or {})
+    return resolve_localized_display(names, lang, fallback=fallback)
 
 
 @lru_cache(maxsize=1)

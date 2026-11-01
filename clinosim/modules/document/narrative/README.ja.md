@@ -173,15 +173,12 @@ token が template 出力に混入すると LLM は verbatim rule に従って
     `lang != "ja"` すべて):
     - `output/fhir_r4/lib/localization.localize_drug_name(name,
       lang)` — `_localize_drug_name` を wrap。
-    - `_replacement_localization.localize_lab_name(name, lang)`
-      (`replacement_strategy` から再 export) —
-      `_localize_lab_name_ja` を wrap。
     - `_replacement_localization.localize_oxygen_device(device,
       lang)` (`replacement_strategy` から再 export) —
       `_localize_oxygen_device_ja` を wrap。
     基底の JA-only helper 群
     (`_localize_severity_ja`、`_localize_oxygen_device_ja`、
-    `_localize_lab_name_ja`、`_localize_arrival_mode_ja`、
+    `_localize_arrival_mode_ja`、
     `_localize_risk_level_ja`、`_localize_barthel_band_ja`) は
     実辞書実装として維持。新 locale 追加は基底 YAML
     (`clinosim/locale/shared/llm_prompt_labels.yaml`) の data 追加のみ、code 変更不要。
@@ -215,7 +212,7 @@ clinosim/modules/document/narrative/
   _narrative_utils.py                      Miscellaneous narrative helpers (nursing-content lookup / vitals-for-day / SHA-driven autopsy gate / age-at / ISO-datetime parse / chief-complaint keyword / encounter-salted pool pickers / PE clause rewrite — META #1633 P6 slice 3)
   llm_generator.py                         LLMNarrativeGenerator (template base + per-section LLM replacement)
   replacement_strategy.py                  apply_replacement_strategy dispatch (~790 LOC — strategy applicators only; helpers extracted to the four files below)
-  _replacement_localization.py             Severity / oxygen-device / arrival-mode / Barthel-band / lab-name JA token lookups + LLM-output EN→JA post-processors (META #1633 P6 replacement slice 1)
+  _replacement_localization.py             Severity / oxygen-device / arrival-mode / Barthel-band JA token lookups + LLM-output EN→JA post-processors (lab names from `lab_display.yaml`) (META #1633 P6 replacement slice 1)
   _replacement_renderers.py                Per-section rendering helpers (chronic list / newborn workup / vitals-for-day / supplemental-O2 / med lists / abnormal labs / lab trend / lab carry-forward / key procedures / stay-phase — META #1633 P6 replacement slice 2)
   _patient_info_renderers.py               Patient demographics / biometrics / health-literacy renderers + _localize_token enum lookup (META #1633 P6 replacement slice 3)
   _extra_context_builder.py                _build_extra_context + _writing_day_of — composes every renderer into the LLM-prompt context dict (META #1633 P6 replacement slice 4)
