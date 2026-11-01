@@ -56,6 +56,7 @@ from clinosim.codes import lookup as code_lookup
 from clinosim.modules._shared import get_attr_or_key as _o
 from clinosim.modules._shared import is_jp, resolve_lang, uses_jp_clins_profile
 from clinosim.modules.document import COMPOSITION_ID_PREFIX, DOC_REFERENCE_ID_PREFIX
+from clinosim.modules.document.narrative.registry import document_loinc
 from clinosim.modules.document.narrative.registry import (
     resolve_section_loinc as _resolve_section_loinc,
 )
@@ -141,7 +142,7 @@ _uses_jp_clins_profile = uses_jp_clins_profile
 # #278:enc → free-text-doc-id 優先度用 LOINC 定数。
 # module-scope(function 内では N806 lint violation)。
 _HOSPITAL_COURSE_LOINC = "8648-8"
-_PROGRESS_NOTE_LOINC = "11506-3"
+_PROGRESS_NOTE_LOINC = document_loinc("progress_note")
 
 # Issue #340:HL7 FHIR R4 core `clinicaldocument` profile canonical URL。
 # module-scope 定数(function 内では N806 lint violation、また複数関数で参照)。
@@ -590,7 +591,7 @@ def _bb_compositions(ctx: BundleContext) -> list[dict[str, Any]]:
         # eReferral 57133-1 doc-type). Same seed (patient_id +
         # encounter_id) as the builder, so the id is byte-identical to
         # the reference the builder wrote.
-        if _uses_jp_clins_profile(lang) and _o(doc, "loinc_code", "") == "57133-1":
+        if _uses_jp_clins_profile(lang) and _o(doc, "loinc_code", "") == document_loinc("referral_note"):
             _pid = _o(doc, "patient_id", "") or ""
             _eid = _o(doc, "encounter_id", "") or ""
             _dest = pick_external_hospital(_pid, _eid, country="JP")
@@ -657,7 +658,7 @@ def _build_composition(
         )
     if _uses_jp_clins_profile(lang):
         loinc = _o(doc, "loinc_code", "")
-        if loinc == "18842-5":
+        if loinc == document_loinc("discharge_summary"):
             return _build_jp_clins_discharge_summary_composition(
                 doc,
                 sections,
@@ -667,15 +668,15 @@ def _build_composition(
                 roster_map=roster_map,
                 encounter_index=encounter_index,
             )
-        if loinc == "57133-1":
+        if loinc == document_loinc("referral_note"):
             return _build_jp_clins_referral_note_composition(doc, sections, lang, roster_map=roster_map)
         # P2-13 PR3:JP-eCheckup General
-        if loinc == "53576-5":
+        if loinc == document_loinc("health_checkup_report"):
             return _build_jp_echeckup_general_composition(doc, sections, lang, roster_map=roster_map)
         # Issue #961:死亡診断書 (Death certificate). Emit under jpfhir
         # doc-typecodes (per JP dispatch convention for JP-authored
         # documents) plus a CodeableConcept.text carrying 死亡診断書.
-        if loinc == "64297-5":
+        if loinc == document_loinc("death_certificate"):
             return _build_jp_death_certificate_composition(
                 doc, sections, lang, roster_map=roster_map, encounter_index=encounter_index
             )
@@ -1093,11 +1094,12 @@ def _build_jp_death_certificate_composition(
     # dispatch). `code_lookup` returns the localized display from yaml;
     # fallback to the hardcoded JP display when yaml lookup fails (yaml
     # is the source of truth per feedback_constants_live_in_external_config).
-    disp = registry_display("jpfhir-doc-typecodes", "64297-5", lang) or _DEATH_CERT_TYPE_DISPLAY_JA
+    code = document_loinc("death_certificate")
+    disp = registry_display("jpfhir-doc-typecodes", code, lang) or _DEATH_CERT_TYPE_DISPLAY_JA
     # Dual-slot at the emit site (Issue #2276): doc-typecodes is a JP
     # CodeSystem, so the coding keeps the Japanese display and `.text` carries
     # the same label.
-    comp["type"] = dual_slot_concept("jpfhir-doc-typecodes", "64297-5", lang, text=disp, fallback_display=disp)
+    comp["type"] = dual_slot_concept("jpfhir-doc-typecodes", code, lang, text=disp, fallback_display=disp)
     comp["title"] = disp
     return comp
 
@@ -1178,7 +1180,7 @@ def _build_death_discharge_summary_composition(
             "coding": [
                 {
                     "system": _JPFHIR_DOC_TYPECODES_SYSTEM,
-                    "code": "18842-5",
+                    "code": document_loinc("death_discharge_summary"),
                     "display": _DEATH_DISCHARGE_SUMMARY_TITLE_JA,
                 },
             ],
@@ -1192,7 +1194,7 @@ def _build_death_discharge_summary_composition(
             "coding": [
                 {
                     "system": get_system_uri("loinc"),
-                    "code": "18842-5",
+                    "code": document_loinc("death_discharge_summary"),
                     "display": _DEATH_DISCHARGE_SUMMARY_TITLE_EN,
                 },
             ],

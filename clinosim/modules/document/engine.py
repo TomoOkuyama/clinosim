@@ -68,6 +68,7 @@ from clinosim.modules.document import (
     specs_for_country,
     specs_for_encounter_type,
 )
+from clinosim.modules.document.narrative.registry import document_loinc
 from clinosim.types.clinical import ClinicalDocument, ClinicalImpressionRecord
 from clinosim.types.document import DocumentType
 
@@ -75,7 +76,7 @@ logger = logging.getLogger(__name__)
 
 # AD-65 Bug B: nursing-authored document types (LOINC codes) — DERIVED FROM
 # document_type_specs.yaml (F-7 adv-1 fix). Pre-fix this was a hardcoded
-# frozenset({"34746-8", "78390-2", "34745-0"}) that duplicated the YAML
+# frozenset of the three nursing LOINC codes that duplicated the YAML
 # values, so a future LOINC swap in the YAML would silently leave the
 # author-dispatch gate reading stale codes (single-edit-point rule).
 # clinosim/codes/data/loinc.yaml 78390-2 comment documents the rationale
@@ -139,7 +140,7 @@ def _effective_outpatient_loinc(spec_loinc: str, encounter: Any) -> str:
     service line, non-OUTPATIENT_SOAP spec, or when ``encounter`` has no
     ``service_line`` attribute — backwards-compat with older CIF).
     """
-    if spec_loinc != "34131-3":
+    if spec_loinc != document_loinc("outpatient_soap"):
         return spec_loinc
     if _o(encounter, "service_line", "") == "oncology":
         return _ONCOLOGY_OUTPATIENT_SOAP_LOINC
@@ -922,32 +923,32 @@ def document_enricher(ctx: Any) -> None:
                     if los_days <= 2:
                         _phase = "brief admission"
                         _phase_ja = "短期入院"
-                        _code_loinc = "34117-2"
+                        _code_loinc = document_loinc("admission_hp")
                         _code_loinc_display = "入院時記録" if is_jp(country) else "History and physical note"
                     elif day == 0:
                         _phase = "admission workup"
                         _phase_ja = "入院時精査"
-                        _code_loinc = "34117-2"
+                        _code_loinc = document_loinc("admission_hp")
                         _code_loinc_display = "入院時記録" if is_jp(country) else "History and physical note"
                     elif day == los_days - 1:
                         _phase = "pre-discharge review"
                         _phase_ja = "退院前評価"
-                        _code_loinc = "18842-5"
+                        _code_loinc = document_loinc("discharge_summary")
                         _code_loinc_display = "退院時サマリー" if is_jp(country) else "Discharge summary"
                     elif day < los_days / 3:
                         _phase = "acute phase"
                         _phase_ja = "急性期"
-                        _code_loinc = "11506-3"
+                        _code_loinc = document_loinc("progress_note")
                         _code_loinc_display = "経過記録" if is_jp(country) else "Progress note"
                     elif day < 2 * los_days / 3:
                         _phase = "stabilisation"
                         _phase_ja = "安定期"
-                        _code_loinc = "11506-3"
+                        _code_loinc = document_loinc("progress_note")
                         _code_loinc_display = "経過記録" if is_jp(country) else "Progress note"
                     else:
                         _phase = "recovery"
                         _phase_ja = "回復期"
-                        _code_loinc = "11506-3"
+                        _code_loinc = document_loinc("progress_note")
                         _code_loinc_display = "経過記録" if is_jp(country) else "Progress note"
                     _dx_part = f" for {_disease_id}" if _disease_id else ""
                     _sev_part = f" ({_severity})" if _severity else ""

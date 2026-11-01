@@ -152,7 +152,7 @@ class ClinicalDocument:
 
     document_id: str = ""
     task_type: str = ""  # LLMTaskType value
-    loinc_code: str = ""  # e.g. "18842-5"
+    loinc_code: str = ""  # document LOINC (document_type_specs.yaml)
     patient_id: str = ""
     encounter_id: str = ""
     author_practitioner_id: str = ""

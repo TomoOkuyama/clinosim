@@ -145,9 +145,20 @@ def _task_loincs_raw() -> dict[str, str]:
 
 
 def _document_loinc_from_yaml() -> dict[LLMTaskType, str]:
+    """Each document type's code from document_type_specs.yaml (its one
+    definition, Issue #2344), plus the template-only tasks of task_loincs.yaml."""
+    # Read the data file directly: the document package imports this module.
+    specs_path = Path(__file__).resolve().parents[1] / "document" / "reference_data" / "document_type_specs.yaml"
+    with specs_path.open(encoding="utf-8") as fh:
+        specs = (yaml.safe_load(fh) or {}).get("specs") or {}
+    codes = {str(k): str(v["loinc_code"]) for k, v in specs.items()}
+    overlap = sorted(set(codes) & set(_task_loincs_raw()))
+    if overlap:
+        raise ImportError(f"task_loincs.yaml redefines document types of document_type_specs.yaml: {overlap}")
+    codes.update(_task_loincs_raw())
     out: dict[LLMTaskType, str] = {}
     unknown: list[str] = []
-    for key, code in _task_loincs_raw().items():
+    for key, code in codes.items():
         try:
             task = LLMTaskType(key)
         except ValueError:

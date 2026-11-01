@@ -67,6 +67,8 @@ from clinosim.modules.document import (
     # Registry
     DocumentTypeSpec,
     load_document_type_specs,       # () -> list[DocumentTypeSpec]
+    # clinosim.modules.document.narrative.registry.document_loinc(doc_type) -> str
+    #   the document type's LOINC code (its one definition; Issue #2344)
     specs_for_country,              # (country) -> list[DocumentTypeSpec]
     specs_for_encounter_type,       # (encounter_type) -> list[DocumentTypeSpec]
 

@@ -122,6 +122,7 @@ Consumers resolve names only through these functions. Several are added by open 
 | `is_english_only_system(key_or_uri)` | whether displays are English-only (§5.3) | — |
 | `jp_clins_lab_system(kind)` / `jlac10_display(code, lang)` | JP lab CodeSystem URI / JLAC10 display | raises / `None` |
 | `codes.loinc`: `loinc_display`, `loinc_coding` | LOINC display / Coding | `None` / coding without display |
+| `modules.document.narrative.registry.document_loinc(doc_type)` | a document type's LOINC code, defined once in `document_type_specs.yaml` | raises on an unknown type |
 | `codes.valuesets`: `concept_group`, `has_condition`, `patient_condition_names`, `code_by_chronic_prefix` | value-set membership | `KeyError` on an unknown group |
 | `codes.drugs`: `resolve_drug`, `get_drug`, `find_drug`, `drug_key(ref)`, `same_drug(a, b)` | drug identity; identity key (catalog id, else the normalised name) and whether two references name the same drug — no substring matching | raises / `None` / `""` / `False` |
 | `codes.drugs`: `route_class(route)`, `jp_drug_code(drug, route)`, `jp_drug_code_table(route)` | route class of an order route; the JP YJ product for a drug and route | `""` / `None` / no entry |
@@ -232,7 +233,8 @@ These parts of the code base do not yet conform. Each one is removed by the issu
 | Deviation | Issue |
 |---|---|
 | **Fallback.** `display` / `lookup`, `resolve_text` and `t` end with a last-resort value: the first available language, the code, `str(value)` or the key. That can break §6.1–6.2, and there is no single retrieval API. | #2275 |
-| Document LOINCs are defined in eight places, some section codes do not mean their section, and emitters still hold LOINC constants. | #2344 |
+| Some Composition section codes do not mean their section. | #2391 |
+| Emitters still hold LOINC constants. | #2392 |
 | The free-text name localizer lives in the FHIR output layer, is imported from the order and narrative layers, and also translates procedure, SNOMED and allergen names. Decision logic and records resolve drug names through `codes.drugs.drug_display`. | #2367 |
 | Language literals are still embedded in Python. | #2277 |
 | The imaging and chronic follow-up tables emit CPT and JP imaging codes that are not registered, some naming a retired or different service. | #2390 |
