@@ -23,9 +23,9 @@ from __future__ import annotations
 import hashlib
 from datetime import datetime
 from functools import cache
-from pathlib import Path
 from typing import Any
 
+from clinosim.codes import data_table
 from clinosim.modules._shared import get_attr_or_key as _o
 from clinosim.types.document import NarrativeContext
 
@@ -309,11 +309,8 @@ def _parse_iso_datetime(raw: Any) -> datetime | None:
 @cache
 def _cc_pe_consistency_keywords() -> dict[str, Any]:
     """Load `clinosim/codes/data/cc-pe-consistency-keywords.yaml`."""
-    import yaml
 
-    path = Path(__file__).resolve().parents[3] / "codes" / "data" / "cc-pe-consistency-keywords.yaml"
-    with path.open(encoding="utf-8") as fh:
-        return yaml.safe_load(fh) or {}
+    return data_table("cc-pe-consistency-keywords")
 
 
 def _cc_altered_consciousness_keywords() -> tuple[str, ...]:

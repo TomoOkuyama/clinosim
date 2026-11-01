@@ -22,6 +22,7 @@ from __future__ import annotations
 from functools import lru_cache
 from typing import Any
 
+from clinosim.codes import data_table
 from clinosim.locale._io import _LOCALE_DIR, _load_yaml
 
 
@@ -320,22 +321,19 @@ def load_narrative_display_dict() -> dict[str, str]:
         ja_val = str((entry or {}).get("ja") or "").strip() if isinstance(entry, dict) else ""
         if en_lower and ja_val and en_lower not in merged:
             merged[en_lower] = ja_val
-    _procedure_catalog = _LOCALE_DIR.parent / "codes" / "data" / "clinosim-procedure-phrase.yaml"
-    proc_raw = _load_yaml(_procedure_catalog, fallback={})
+    proc_raw = data_table("clinosim-procedure-phrase")
     for en, ja in (proc_raw.get("procedures", {}) or {}).items():
         en_lower = (en or "").strip().lower()
         ja_val = (ja or "").strip() if isinstance(ja, str) else ""
         if en_lower and ja_val and en_lower not in merged:
             merged[en_lower] = ja_val
-    _allergen_substance_catalog = _LOCALE_DIR.parent / "codes" / "data" / "clinosim-allergen-substance.yaml"
-    subs_raw = _load_yaml(_allergen_substance_catalog, fallback={})
+    subs_raw = data_table("clinosim-allergen-substance")
     for en, ja in (subs_raw.get("substances", {}) or {}).items():
         en_lower = (en or "").strip().lower()
         ja_val = (ja or "").strip() if isinstance(ja, str) else ""
         if en_lower and ja_val and en_lower not in merged:
             merged[en_lower] = ja_val
-    _admin_form_catalog = _LOCALE_DIR.parent / "codes" / "data" / "clinosim-admin-form-display.yaml"
-    disp_raw = _load_yaml(_admin_form_catalog, fallback={})
+    disp_raw = data_table("clinosim-admin-form-display")
     for en, ja in (disp_raw.get("displays", {}) or {}).items():
         en_lower = (en or "").strip().lower()
         ja_val = (ja or "").strip() if isinstance(ja, str) else ""

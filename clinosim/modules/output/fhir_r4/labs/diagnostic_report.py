@@ -23,11 +23,10 @@ from __future__ import annotations
 
 from collections import defaultdict
 from functools import cache
-from pathlib import Path
 from typing import Any, NamedTuple
 
+from clinosim.codes import data_table, get_system_uri
 from clinosim.codes import display as registry_display
-from clinosim.codes import get_system_uri
 from clinosim.codes import lookup as _codes_lookup
 from clinosim.codes.snomed_concepts import FINDING_ABNORMAL, FINDING_NORMAL
 from clinosim.codes.ucum import ucum_prose
@@ -365,11 +364,8 @@ _ABNORMAL_LAB_FLAGS: frozenset[str] = frozenset({"H", "L", "HH", "LL", "A", "AA"
 def _imaging_impression_keywords() -> dict[str, tuple[str, ...]]:
     """Load `clinosim/codes/data/imaging-impression-keywords.yaml` as
     `{"normal": (...), "abnormal": (...)}`."""
-    import yaml
 
-    path = Path(__file__).resolve().parents[4] / "codes" / "data" / "imaging-impression-keywords.yaml"
-    with path.open(encoding="utf-8") as fh:
-        raw = yaml.safe_load(fh) or {}
+    raw = data_table("imaging-impression-keywords")
     return {
         "normal": tuple(str(p) for p in (raw.get("normal") or []) if isinstance(p, str)),
         "abnormal": tuple(str(p) for p in (raw.get("abnormal") or []) if isinstance(p, str)),

@@ -28,6 +28,8 @@ from typing import Any
 
 import yaml
 
+from clinosim.codes import data_table
+
 _HERE = Path(__file__).resolve().parent
 _REF_DIR = _HERE / "reference_data"
 # Narrative-scoped reference data (Issue #983 chief_complaint_variants et al).
@@ -38,7 +40,6 @@ _NARRATIVE_REF_DIR = _HERE / "narrative" / "reference_data"
 # discharge-instructions) now live under `clinosim/codes/data/clinosim-*.yaml`
 # alongside the other `clinosim-*.yaml` catalogs
 # (`clinosim-nursing-scores.yaml`, `snomed-maps.yaml`).
-_CODES_DATA_DIR = _HERE.parent.parent / "codes" / "data"
 
 # Required top-level keys for baseline and the minimum archetype.
 _PHYSICAL_EXAM_REQUIRED_BASELINE_ARCHETYPE = "uncomplicated_improvement"
@@ -212,8 +213,7 @@ def load_discharge_instructions() -> dict[str, Any]:
     Task 6 TemplateNarrativeGenerator merges baseline + disease_specific entries,
     with disease_specific taking precedence for shared keys.
     """
-    with (_CODES_DATA_DIR / "clinosim-discharge-instruction.yaml").open(encoding="utf-8") as f:
-        data: dict[str, Any] = yaml.safe_load(f)
+    data: dict[str, Any] = data_table("clinosim-discharge-instruction")
     _validate_discharge_instructions(data)
     return data
 
@@ -427,7 +427,6 @@ def load_nursing_content() -> dict[str, Any]:
     merge acute-first then chronic-second, per-lang, deduplicating and
     capping the merged list.
     """
-    with (_CODES_DATA_DIR / "clinosim-nursing-content.yaml").open(encoding="utf-8") as f:
-        data: dict[str, Any] = yaml.safe_load(f)
+    data: dict[str, Any] = data_table("clinosim-nursing-content")
     _validate_nursing_content(data)
     return data

@@ -182,6 +182,9 @@ def test_load_narrative_display_dict_fallback_when_catalogs_missing(monkeypatch)
     _catalog_loader.cache_clear()
     load_narrative_imaging.cache_clear()
     monkeypatch.setattr(Path, "exists", lambda self: False)
+    # The code-data tables merged into the dictionary are read through
+    # `codes.data_table` (Issue #2266); stub them as empty too.
+    monkeypatch.setattr("clinosim.locale.loaders.narrative.data_table", lambda name: {})
     data = _fhir_localization._load_narrative_display_dict()
     assert data == {}
     _fhir_localization._load_narrative_display_dict.cache_clear()

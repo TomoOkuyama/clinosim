@@ -47,11 +47,10 @@ from __future__ import annotations
 import logging
 import re
 from functools import cache
-from pathlib import Path
 from typing import Any
 
+from clinosim.codes import data_table, get_system_uri
 from clinosim.codes import display as registry_display
-from clinosim.codes import get_system_uri
 from clinosim.codes import lookup as code_lookup
 from clinosim.codes.loinc import loinc_for
 from clinosim.locale.i18n import t
@@ -421,11 +420,8 @@ def _build_encounter_resource_index(
 @cache
 def _section_entry_types() -> dict[str, tuple[str, ...]]:
     """Load the Composition.section[].entry resource-type registry."""
-    import yaml
 
-    path = Path(__file__).resolve().parents[4] / "codes" / "data" / "composition-section-entry-types.yaml"
-    with path.open(encoding="utf-8") as fh:
-        raw = yaml.safe_load(fh) or {}
+    raw = data_table("composition-section-entry-types")
     out: dict[str, tuple[str, ...]] = {}
     for section, types in (raw.get("sections", {}) or {}).items():
         out[str(section)] = tuple(str(rt) for rt in (types or []))

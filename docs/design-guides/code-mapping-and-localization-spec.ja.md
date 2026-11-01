@@ -118,6 +118,7 @@ occupation:
 | `display(system, code, lang)` | `lang` の表示名、なければ英語 | `None` |
 | `code_exists(system, code, *, exact=False)` | 登録の有無 | `False`。未知の体系なら例外 |
 | `get_system_uri(system)` / `system_key_for_uri(uri)` | URI とキーの相互変換 | `urn:clinosim:<key>` / `None` |
+| `data_table(name)` | 専用アクセサのない `codes/data/<name>.yaml` を読み込んだ結果 (コピー) | `FileNotFoundError` を送出 |
 | `system_key_for(kind, country)` | ドメインと国に対応するシステムキー | 未知の kind なら例外 |
 | `is_english_only_system(key_or_uri)` | 表示が英語のみの体系か (§5.3) | — |
 | `jp_clins_lab_system(kind)` / `jlac10_display(code, lang)` | JP 検査コード体系の URI / JLAC10 表示 | 例外 / `None` |
@@ -221,6 +222,7 @@ occupation:
 ## 8. 禁止パターン
 
 - `clinosim/codes/` の外にコード体系 URI の文字列リテラルを書く。`get_system_uri` を使う。例外は URI ファミリーの prefix リストだけ。
+- `clinosim/codes/` の外で `codes/data/*.yaml` を直接読む、または `clinosim.codes.loader._load_system` を import する。ソース別アクセサか `data_table` を使う。
 - Python の比較式にコードのリテラルを書く、または Python の dict でコードや表示名を持つ (CPT / LOINC / SNOMED / ICD / YJ …)。value set、カタログ、名前付き概念を使う。
 - 同じ語彙やコード対応の表を 2 つ持つ。
 - 自由文の部分文字列一致で薬・検査・疾患を同定する。カタログ id、canonical lab name、value set を使う。名称照合で許されるのは `names_drug` だけ。
@@ -234,9 +236,4 @@ occupation:
 
 | 未準拠箇所 | Issue |
 |---|---|
-| ローカライズされた YAML フィールドの形が混在している (入れ子の `{lang: text}`、25 種の `*_ja` フィールド名、`dose_ja` と `dose_text_ja`)。 | #2398 |
-| 意味の合わない Composition section コードがある。 | #2391 |
 | 自由文の名称翻訳 (`locale.free_text.localize_free_text`) が汎用の 1 本で、手技・SNOMED・アレルゲン名も薬名辞書と部分文字列置換を通る。 | #2408 |
-| Python に言語ごとのリテラルが残っている。 | #2277 |
-| 薬でない処置が `drug:` として書かれ、loader が名前だけの薬エントリを受け付ける。 | #2424 |
-| §8 を強制する lint guard がない。 | #2266 |

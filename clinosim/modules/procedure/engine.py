@@ -9,13 +9,12 @@ from __future__ import annotations
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 from functools import cache
-from pathlib import Path
 from typing import Any
 
 import numpy as np
-import yaml
 
 from clinosim import determinism
+from clinosim.codes import data_table
 from clinosim.codes.procedures import bedside_procedures
 from clinosim.locale.loader import load_code_mapping
 from clinosim.modules._shared import is_jp
@@ -277,9 +276,7 @@ def simulate_surgery(
 @cache
 def _procedure_snomed_metadata() -> dict[str, Any]:
     """Load the procedure-SNOMED metadata authority yaml."""
-    path = Path(__file__).resolve().parents[2] / "codes" / "data" / "procedure-snomed-metadata.yaml"
-    with path.open(encoding="utf-8") as fh:
-        return yaml.safe_load(fh) or {}
+    return data_table("procedure-snomed-metadata")
 
 
 def _sct_category(key: str) -> str:

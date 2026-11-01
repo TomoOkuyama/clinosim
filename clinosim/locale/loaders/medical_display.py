@@ -17,6 +17,7 @@ from __future__ import annotations
 from functools import lru_cache
 from typing import Any
 
+from clinosim.codes import data_table
 from clinosim.locale._io import _LOCALE_DIR, _load_yaml
 
 
@@ -83,7 +84,7 @@ def department_specialty_snomed(dept: str) -> str:
 def load_clinician_roles() -> dict[str, dict[str, Any]]:
     """Staff roles (``codes/data/clinosim-clinician-role.yaml``): staff-id
     prefix, title, name suffix and qualification per role (Issue #2270)."""
-    raw = _load_yaml(_LOCALE_DIR.parent / "codes" / "data" / "clinosim-clinician-role.yaml", fallback={})
+    raw = data_table("clinosim-clinician-role")
     return {str(k): v for k, v in (raw.get("roles") or {}).items() if isinstance(v, dict)}
 
 
@@ -114,8 +115,7 @@ def load_frequency_tokens() -> dict[str, tuple[int, int, str]]:
     `_FREQ_LABEL_TIMING` (`clinosim/modules/output/fhir_r4/lib/common.py`)
     dicts.
     """
-    path = _LOCALE_DIR.parent / "codes" / "data" / "frequency-tokens.yaml"
-    raw = _load_yaml(path, fallback={})
+    raw = data_table("frequency-tokens")
     tokens = raw.get("tokens", {}) or {}
     out: dict[str, tuple[int, int, str]] = {}
     for key, row in tokens.items():
