@@ -17,7 +17,7 @@ import pytest
 from clinosim.modules.population.aging import advance_population
 from clinosim.modules.population.engine import generate_population
 
-CPAP_CODE = "99503"
+CPAP_CODE = "94660"
 POLYSOMNOGRAPHY_CODE = "95810"
 
 

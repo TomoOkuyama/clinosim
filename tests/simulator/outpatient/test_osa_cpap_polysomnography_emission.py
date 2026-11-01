@@ -46,7 +46,7 @@ def test_osa_first_followup_emits_cpap_and_polysomnography(osa_fu_spec):
         country="US",
     )
     codes = {p.procedure_code for p in rec.procedures}
-    assert "99503" in codes  # CPAP
+    assert "94660" in codes  # CPAP
     assert "95810" in codes  # Polysomnography
 
 
@@ -76,7 +76,7 @@ def test_osa_second_followup_emits_cpap_only(osa_fu_spec):
         country="US",
     )
     codes2 = {p.procedure_code for p in rec2.procedures}
-    assert "99503" in codes2  # CPAP every visit
+    assert "94660" in codes2  # CPAP every visit
     assert "95810" not in codes2  # polysomnography already baselined
 
 
@@ -103,7 +103,7 @@ def test_osa_followup_procedure_codes_are_cpt_only_today(osa_fu_spec):
     # No SNOMED field exists on ProcedureRecord today; the yaml's snomed: value is
     # plumbed through the simulator but dormant at FHIR emit (future Phase 4d.1).
     for proc in rec.procedures:
-        if proc.procedure_code in {"99503", "95810"}:
+        if proc.procedure_code in {"94660", "95810"}:
             assert proc.procedure_code_us == proc.procedure_code
             # No snomed_code / snomed_cd attribute on ProcedureRecord.
             assert not hasattr(proc, "snomed_code")

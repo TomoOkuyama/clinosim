@@ -29,7 +29,7 @@ def _yaml(rel: str) -> dict:
 
 # 区分 headings of the 点数表 that no master row starts with (the rows name
 # the individual items).
-_KUBUN_HEADINGS = {"K920": "輸血"}
+_KUBUN_HEADINGS = {"K920": "輸血", "E001": "写真診断", "E200": "コンピューター断層撮影（ＣＴ撮影）"}
 
 
 @pytest.mark.parametrize("code", sorted(_KCODES))
@@ -70,6 +70,33 @@ def _emitted_codes() -> set[tuple[str, str]]:
                     walk(v)
 
         walk(yaml.safe_load(path.read_text(encoding="utf-8")))
+    # Imaging and chronic follow-up (Issue #2390).
+    sites = _yaml("modules/imaging/reference_data/body_sites.yaml")
+
+    def walk_sites(x: object) -> None:
+        if isinstance(x, dict):
+            if isinstance(x.get("cpt"), str):
+                out.add(("US", x["cpt"]))
+            if isinstance(x.get("jp_k_code"), str):
+                out.add(("JP", x["jp_k_code"]))
+            for v in x.values():
+                walk_sites(v)
+
+    walk_sites(sites)
+    followup = _yaml("locale/shared/chronic_followup.yaml")
+
+    def walk_followup(x: object) -> None:
+        if isinstance(x, dict):
+            for key, country in (("code", "US"), ("us_code", "US"), ("jp_code", "JP")):
+                if isinstance(x.get(key), str) and x.get(key):
+                    out.add((country, x[key]))
+            for v in x.values():
+                walk_followup(v)
+        elif isinstance(x, list):
+            for v in x:
+                walk_followup(v)
+
+    walk_followup(followup)
     return {(c, code) for c, code in out if code}
 
 

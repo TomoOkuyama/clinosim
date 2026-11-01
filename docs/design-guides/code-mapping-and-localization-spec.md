@@ -237,7 +237,6 @@ These parts of the code base do not yet conform. Each one is removed by the issu
 | Emitters still hold LOINC constants. | #2392 |
 | The free-text name localizer lives in the FHIR output layer, is imported from the order and narrative layers, and also translates procedure, SNOMED and allergen names. Decision logic and records resolve drug names through `codes.drugs.drug_display`. | #2367 |
 | Language literals are still embedded in Python. | #2277 |
-| The imaging and chronic follow-up tables emit CPT and JP imaging codes that are not registered, some naming a retired or different service. | #2390 |
 | Disease YAMLs mix `drug:` names with `drug_id:`, and `Order.order_code` does not record its code system. | #2378 |
 | The chronic-medication `drug_class` labels are their own vocabulary, not catalog classes. | #2388 |
 | No lint guard enforces §8. | #2266 |
