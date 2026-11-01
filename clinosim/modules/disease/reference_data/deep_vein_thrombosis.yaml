@@ -398,12 +398,12 @@ drugs:
 
   escalation:  # for iliofemoral DVT or phlegmasia
     japan:
-      - drug: "Catheter-directed thrombolysis"
+      - procedure: "Catheter-directed thrombolysis"
         type: "procedure"
         dose: "Urokinase 60,000-240,000 IU via catheter"
         indication: "iliofemoral_dvt_acute_phlegmasia"
     us:
-      - drug: "Catheter-directed thrombolysis"
+      - procedure: "Catheter-directed thrombolysis"
         type: "procedure"
         dose: "Alteplase 0.5-1mg/h via catheter x12-24h"
         indication: "iliofemoral_dvt_phlegmasia"

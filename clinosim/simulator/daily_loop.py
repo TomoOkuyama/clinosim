@@ -736,7 +736,7 @@ def _run_daily_loop(
                 if _esc_prob is not None and float(_esc_prob) < 1.0:
                     if rng.random() >= float(_esc_prob):
                         continue
-                drug_name = protocol_drug_name(esc_drug)
+                drug_name = protocol_drug_name(esc_drug) or str(esc_drug.get("procedure") or "")
                 dose = esc_drug.get("dose", "")
                 indication = esc_drug.get("indication", "no improvement")
                 # Escalation entries carry a `drug` field but the value is

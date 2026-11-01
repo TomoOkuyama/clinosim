@@ -728,10 +728,10 @@ course_archetypes:
         start:
           japan:
             - {drug_id: octreotide, dose: "50ug IV bolus then 50ug/h"}
-            - {drug: "Packed_RBC", dose: "transfuse to Hb 7"}
+            - {procedure: "Packed_RBC_transfusion", detail: "transfuse to Hb 7"}
           us:
             - {drug_id: octreotide, dose: "50ug IV bolus then 50ug/h"}
-            - {drug: "Packed_RBC", dose: "transfuse to Hb 7"}
+            - {procedure: "Packed_RBC_transfusion", detail: "transfuse to Hb 7"}
         action: "icu_transfer"
         action_2: "emergent_endoscopy_band_ligation"
     triggers:

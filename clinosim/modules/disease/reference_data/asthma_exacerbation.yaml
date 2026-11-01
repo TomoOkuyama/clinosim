@@ -365,22 +365,16 @@ drugs:
     us: []
 
   discharge_oral:
-    # META #1804 Phase 2.d asthma cluster: the systemic corticosteroid
-    # entries carry drug_id into clinosim/codes/data/drugs.yaml. The
-    # "ICS/LABA inhaler" rows stay on the legacy drug / code_yj /
-    # code_rxnorm fields — "ICS/LABA inhaler" is a generic category
-    # label, not a specific RxNorm concept, and migrating it to a
-    # concrete drug_id (e.g. fluticasone_salmeterol) would silently
-    # upgrade the emitted MedicationRequest.coding to a specific
-    # product. That is a separate, intentional refactor and is left
-    # out of this mechanical rename PR; the dual-path resolver keeps
-    # the ICS/LABA inhaler emit path unchanged.
+    # The controller inhaler is a concrete ICS/LABA product (fluticasone/
+    # salmeterol, marketed in the US and Japan) rather than the former
+    # "ICS/LABA inhaler" category label, which had no drug code (Issue #2424).
     japan:
       - drug_id: prednisolone
         dose: "30-40mg PO daily"
         duration_days: 5
         note: "Taper over 5-7 days"
-      - drug: "ICS/LABA inhaler"
+      - drug_id: fluticasone_salmeterol
+        duration_days: 28   # maintenance controller: same supply as the chronic renewal, so it stays a home medication
         dose: ""   # Issue #476: no numeric dose exists. Authored JP + EN
                    # instructions live in `dose_ja` / `dose_en` (below) — read
                    # by _build_discharge_rx / _bb_discharge_medication_requests
@@ -400,7 +394,8 @@ drugs:
       - drug_id: prednisone
         dose: "40-50mg PO daily"
         duration_days: 5
-      - drug: "ICS/LABA inhaler"
+      - drug_id: fluticasone_salmeterol
+        duration_days: 28   # maintenance controller: same supply as the chronic renewal, so it stays a home medication
         dose: ""   # Issue #476 (same rationale as japan side above).
         dose_ja: "以前の吸入薬を再開または新規開始"
         dose_en: "Resume or initiate controller therapy"
@@ -582,7 +577,7 @@ course_archetypes:
       day_3:
         action: "icu_transfer"
         start:
-          japan: [{drug: "NIV_BiPAP", dose: "IPAP 12 EPAP 5"}]
+          japan: [{procedure: "NIV_BiPAP", detail: "IPAP 12 EPAP 5"}]
     triggers:
       - day: 3
         condition: "pCO2 > 50 mmHg"
