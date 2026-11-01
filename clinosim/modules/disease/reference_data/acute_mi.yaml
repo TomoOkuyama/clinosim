@@ -399,25 +399,25 @@ expected_vital_distributions:
 drugs:
   first_line:
     japan:
-      - drug: "Aspirin"
+      - drug_id: aspirin
         dose: "162-325mg loading, then 100mg PO daily"
         route: PO
         pregnancy_safe: false
-      - drug: "Clopidogrel"
+      - drug_id: clopidogrel
         dose: "300mg loading, then 75mg PO daily"
         route: PO
         note: "Dual antiplatelet therapy (DAPT)"
         pregnancy_safe: false
-      - drug: "Heparin"
+      - drug_id: heparin
         dose: "60U/kg bolus, then 12U/kg/h IV drip (target APTT 1.5-2.5x)"
         route: IV
         pregnancy_safe: true
-      - drug: "Nitroglycerin"
+      - drug_id: nitroglycerin
         dose: "5ug/min IV, titrate for chest pain and BP"
         route: IV
         note: "Avoid if SBP < 90 or right ventricular MI"
         pregnancy_safe: false
-      - drug: "Morphine"
+      - drug_id: morphine
         dose: "2-4mg IV q5-15min PRN"
         route: IV
         note: "For refractory pain only; use with caution"
@@ -425,20 +425,20 @@ drugs:
         pregnancy_safe: false
 
     us:
-      - drug: "Aspirin"
+      - drug_id: aspirin
         dose: "325mg loading, then 81mg PO daily"
         route: PO
         pregnancy_safe: false
-      - drug: "Ticagrelor"
+      - drug_id: ticagrelor
         dose: "180mg loading, then 90mg PO BID"
         route: PO
         note: "Preferred over clopidogrel for ACS per ACC/AHA"
         pregnancy_safe: false
-      - drug: "Heparin"
+      - drug_id: heparin
         dose: "60U/kg bolus (max 4000U), then 12U/kg/h IV (max 1000U/h)"
         route: IV
         pregnancy_safe: true
-      - drug: "Nitroglycerin"
+      - drug_id: nitroglycerin
         dose: "5-10ug/min IV, titrate"
         route: IV
         note: "Avoid if SBP < 90 or right ventricular MI"
@@ -446,17 +446,17 @@ drugs:
 
   post_pci:
     japan:
-      - drug: "Atorvastatin"
+      - drug_id: atorvastatin
         dose: "20mg PO daily"
         route: PO
         note: "High-intensity statin; some JP guidelines use moderate intensity"
         pregnancy_safe: false
-      - drug: "Bisoprolol"
+      - drug_id: bisoprolol
         dose: "2.5mg PO daily, titrate"
         route: PO
         note: "Beta-blocker; start low if EF reduced"
         pregnancy_safe: false
-      - drug: "Enalapril"
+      - drug_id: enalapril
         dose: "2.5mg PO daily, titrate to 10mg"
         route: PO
         note: "ACE inhibitor for LV remodeling prevention"
@@ -465,7 +465,7 @@ drugs:
         pregnancy_safe: false
 
     us:
-      - drug: "Atorvastatin"
+      - drug_id: atorvastatin
         dose: "80mg PO daily"
         route: PO
         note: "High-intensity statin per ACC/AHA"
@@ -475,7 +475,7 @@ drugs:
         route: PO
         note: "Beta-blocker; avoid if cardiogenic shock"
         pregnancy_safe: false
-      - drug: "Lisinopril"
+      - drug_id: lisinopril
         dose: "5mg PO daily, titrate to 20mg"
         route: PO
         note: "ACE inhibitor; start within 24h if stable"
@@ -485,17 +485,17 @@ drugs:
 
   escalation:  # cardiogenic shock or recurrent ischemia
     japan:
-      - drug: "Dobutamine"
+      - drug_id: dobutamine
         dose: "2-20ug/kg/min IV drip"
         indication: "cardiogenic_shock_with_low_CO"
-      - drug: "Norepinephrine"
+      - drug_id: norepinephrine
         dose: "0.05-0.3ug/kg/min IV drip"
         indication: "cardiogenic_shock_with_hypotension"
     us:
-      - drug: "Dobutamine"
+      - drug_id: dobutamine
         dose: "2-20ug/kg/min IV drip"
         indication: "cardiogenic_shock_with_low_CO"
-      - drug: "Norepinephrine"
+      - drug_id: norepinephrine
         dose: "0.05-0.3ug/kg/min IV drip"
         indication: "cardiogenic_shock_with_hypotension"
 
@@ -718,11 +718,11 @@ course_archetypes:
     treatment_modifications:
       day_2:
         start:
-          japan: [{drug: "Dobutamine", dose: "5ug/kg/min IV drip"}]
-          us: [{drug: "Dobutamine", dose: "5ug/kg/min IV drip"}]
+          japan: [{drug_id: dobutamine, dose: "5ug/kg/min IV drip"}]
+          us: [{drug_id: dobutamine, dose: "5ug/kg/min IV drip"}]
       day_4:
         start:
-          japan: [{drug: "Norepinephrine", dose: "0.05ug/kg/min IV drip"}]
+          japan: [{drug_id: norepinephrine, dose: "0.05ug/kg/min IV drip"}]
         action: "icu_transfer"
     triggers:
       - day: 3
@@ -745,11 +745,11 @@ course_archetypes:
       day_1:
         start:
           japan:
-            - {drug: "Norepinephrine", dose: "0.1ug/kg/min IV drip"}
-            - {drug: "Amiodarone", dose: "300mg IV bolus then 900mg/24h drip"}
+            - {drug_id: norepinephrine, dose: "0.1ug/kg/min IV drip"}
+            - {drug_id: amiodarone, dose: "300mg IV bolus then 900mg/24h drip"}
           us:
-            - {drug: "Norepinephrine", dose: "0.1ug/kg/min IV drip"}
-            - {drug: "Amiodarone", dose: "300mg IV bolus then 900mg/24h drip"}
+            - {drug_id: norepinephrine, dose: "0.1ug/kg/min IV drip"}
+            - {drug_id: amiodarone, dose: "300mg IV bolus then 900mg/24h drip"}
         action: "icu_transfer"
         action_2: "emergent_cath_or_resuscitation"
     triggers:

@@ -120,18 +120,18 @@ order_protocols:
 drugs:
   first_line:
     japan:
-      - {drug: "Olanzapine", dose: "10-20mg PO daily", route: "PO"}
-      - {drug: "Haloperidol", dose: "5mg IM PRN agitation", route: "IM"}
-      - {drug: "Lorazepam", dose: "1-2mg PRN agitation", route: "IV"}
+      - {drug_id: olanzapine, dose: "10-20mg PO daily", route: "PO"}
+      - {drug_id: haloperidol, dose: "5mg IM PRN agitation", route: "IM"}
+      - {drug_id: lorazepam, dose: "1-2mg PRN agitation", route: "IV"}
     us:
-      - {drug: "Olanzapine", dose: "10-20mg PO daily", route: "PO"}
-      - {drug: "Haloperidol", dose: "5mg IM PRN agitation", route: "IM"}
-      - {drug: "Lorazepam", dose: "1-2mg PRN agitation", route: "IV"}
+      - {drug_id: olanzapine, dose: "10-20mg PO daily", route: "PO"}
+      - {drug_id: haloperidol, dose: "5mg IM PRN agitation", route: "IM"}
+      - {drug_id: lorazepam, dose: "1-2mg PRN agitation", route: "IV"}
   discharge_oral:
     japan:
-      - {drug: "Olanzapine", dose: "10mg PO daily", duration_days: 30}
+      - {drug_id: olanzapine, dose: "10mg PO daily", duration_days: 30}
     us:
-      - {drug: "Olanzapine", dose: "10mg PO daily", duration_days: 30}
+      - {drug_id: olanzapine, dose: "10mg PO daily", duration_days: 30}
 
 # JP: general-hospital psychiatric unit, far shorter than the all-hospital mean.
 target_los:

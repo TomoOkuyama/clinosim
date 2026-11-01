@@ -422,7 +422,7 @@ drugs:
         route: IV
         note: "Fluid resuscitation for prerenal AKI"
         pregnancy_safe: true
-      - drug: "Furosemide"
+      - drug_id: furosemide
         dose: "20-40mg IV (if fluid overloaded)"
         route: IV
         note: "Only for volume management, does not improve renal recovery"
@@ -433,7 +433,7 @@ drugs:
         route: IV
         note: "Balanced crystalloid preferred over NS to avoid hyperchloremic acidosis"
         pregnancy_safe: true
-      - drug: "Furosemide"
+      - drug_id: furosemide
         dose: "40-80mg IV (if fluid overloaded)"
         route: IV
         pregnancy_safe: false
@@ -462,7 +462,7 @@ drugs:
       - drug: "Insulin_regular"
         dose: "10 units IV + D50W 50mL"
         route: IV
-      - drug: "Patiromer"
+      - drug_id: patiromer
         dose: "8.4g PO daily"
         indication: "ongoing_hyperkalemia"
 

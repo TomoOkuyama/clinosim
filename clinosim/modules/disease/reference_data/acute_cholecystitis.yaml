@@ -357,34 +357,34 @@ expected_vital_distributions:
 drugs:
   first_line:
     japan:
-      - drug: "Cefmetazole"
+      - drug_id: cefmetazole
         dose: "1g IV q8h"
         route: IV
         note: "Good biliary coverage; widely used in Japan"
         renal_adjustment:
           eGFR_below_30: "0.5g IV q12h"
         pregnancy_safe: true
-      - drug: "Acetaminophen"
+      - drug_id: acetaminophen
         dose: "1000mg IV q6h"
         route: IV
         pregnancy_safe: true
-      - drug: "Diclofenac"
+      - drug_id: diclofenac
         dose: "50mg suppository PRN"
         route: PR
         note: "NSAIDs reduce gallbladder prostaglandin-mediated inflammation"
         pregnancy_safe: false
 
     us:
-      - drug: "Ceftriaxone"
+      - drug_id: ceftriaxone
         dose: "2g IV daily"
         route: IV
         pregnancy_safe: true
-      - drug: "Metronidazole"
+      - drug_id: metronidazole
         dose: "500mg IV q8h"
         route: IV
         note: "Added for anaerobic coverage"
         pregnancy_safe: false
-      - drug: "Ketorolac"
+      - drug_id: ketorolac
         dose: "30mg IV q6h"
         route: IV
         note: "Max 5 days"
@@ -393,31 +393,31 @@ drugs:
   alternative_penicillin_allergy:
     _indication_tag: antimicrobial_penicillin_class
     japan:
-      - drug: "Levofloxacin"
+      - drug_id: levofloxacin
         dose: "500mg IV daily"
         renal_adjustment:
           eGFR_below_50: "250mg IV daily"
         pregnancy_safe: false
-      - drug: "Metronidazole"
+      - drug_id: metronidazole
         dose: "500mg IV q8h"
         pregnancy_safe: false
     us:
-      - drug: "Levofloxacin"
+      - drug_id: levofloxacin
         dose: "750mg IV daily"
         pregnancy_safe: false
-      - drug: "Metronidazole"
+      - drug_id: metronidazole
         dose: "500mg IV q8h"
         pregnancy_safe: false
 
   escalation:  # gangrenous or emphysematous cholecystitis, sepsis
     japan:
-      - drug: "Piperacillin/Tazobactam"
+      - drug_id: piperacillin_tazobactam
         dose: "4.5g IV q8h"
         indication: "gangrenous_cholecystitis_or_sepsis"
         renal_adjustment:
           eGFR_below_30: "2.25g IV q8h"
     us:
-      - drug: "Piperacillin/Tazobactam"
+      - drug_id: piperacillin_tazobactam
         dose: "3.375g IV q6h"
         indication: "gangrenous_cholecystitis_or_sepsis"
 
@@ -427,11 +427,11 @@ drugs:
     # (not in NLM RxNorm) and stay on legacy fields; the dual-path
     # resolver preserves their emit path byte-identical.
     japan:
-      - drug: "Cefditoren pivoxil"
+      - drug_id: cefditoren_pivoxil
         dose: "200mg PO TID"
         duration_days: 5
         note: "Only if complicated; uncomplicated needs no postop antibiotics"
-      - drug: "Loxoprofen"
+      - drug_id: loxoprofen
         dose: "60mg PO TID PRN"
         duration_days: 5
     us:
@@ -584,8 +584,8 @@ course_archetypes:
       day_2:
         stop: ["Cefmetazole"]
         start:
-          japan: [{drug: "Piperacillin/Tazobactam", dose: "4.5g IV q8h"}]
-          us: [{drug: "Piperacillin/Tazobactam", dose: "3.375g IV q6h"}]
+          japan: [{drug_id: piperacillin_tazobactam, dose: "4.5g IV q8h"}]
+          us: [{drug_id: piperacillin_tazobactam, dose: "3.375g IV q6h"}]
     triggers:
       - day: 2
         condition: "gangrenous_changes_on_ct"
@@ -604,8 +604,8 @@ course_archetypes:
     treatment_modifications:
       day_1:
         start:
-          japan: [{drug: "Meropenem", dose: "1g IV q8h"}]
-          us: [{drug: "Meropenem", dose: "1g IV q8h"}]
+          japan: [{drug_id: meropenem, dose: "1g IV q8h"}]
+          us: [{drug_id: meropenem, dose: "1g IV q8h"}]
       day_2:
         action: "emergent_ercp_or_percutaneous_drainage"
     triggers:
@@ -628,9 +628,9 @@ course_archetypes:
       day_1:
         start:
           japan:
-            - {drug: "Meropenem", dose: "1g IV q8h"}
+            - {drug_id: meropenem, dose: "1g IV q8h"}
           us:
-            - {drug: "Meropenem", dose: "1g IV q8h"}
+            - {drug_id: meropenem, dose: "1g IV q8h"}
         action: "emergent_cholecystectomy_or_drainage"
         action_2: "icu_transfer"
     triggers:

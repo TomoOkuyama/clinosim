@@ -169,18 +169,18 @@ order_protocols:
 drugs:
   first_line:
     japan:
-      - {drug: "Lorazepam", dose: "1-2mg IV q1h PRN per CIWA-Ar", route: "IV"}
-      - {drug: "Folic acid", dose: "1mg PO daily"}
+      - {drug_id: lorazepam, dose: "1-2mg IV q1h PRN per CIWA-Ar", route: "IV"}
+      - {drug_id: folic_acid, dose: "1mg PO daily"}
     us:
-      - {drug: "Lorazepam", dose: "1-2mg IV q1h PRN per CIWA-Ar", route: "IV"}
-      - {drug: "Thiamine", dose: "100mg IV daily x3 days", route: "IV", note: "before glucose"}
-      - {drug: "Folic acid", dose: "1mg PO daily"}
+      - {drug_id: lorazepam, dose: "1-2mg IV q1h PRN per CIWA-Ar", route: "IV"}
+      - {drug_id: thiamine, dose: "100mg IV daily x3 days", route: "IV", note: "before glucose"}
+      - {drug_id: folic_acid, dose: "1mg PO daily"}
   discharge_oral:
     japan:
-      - {drug: "Folic acid", dose: "1mg PO daily", duration_days: 30}
+      - {drug_id: folic_acid, dose: "1mg PO daily", duration_days: 30}
     us:
-      - {drug: "Thiamine", dose: "100mg PO daily", duration_days: 30}
-      - {drug: "Folic acid", dose: "1mg PO daily", duration_days: 30}
+      - {drug_id: thiamine, dose: "100mg PO daily", duration_days: 30}
+      - {drug_id: folic_acid, dose: "1mg PO daily", duration_days: 30}
 
 target_los:
   japan:

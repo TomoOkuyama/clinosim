@@ -359,7 +359,7 @@ expected_vital_distributions:
 drugs:
   first_line:
     japan:
-      - drug: "Ampicillin/Sulbactam"
+      - drug_id: ampicillin_sulbactam
         dose: "3g IV q6h"
         route: IV
         renal_adjustment:
@@ -368,11 +368,11 @@ drugs:
         pregnancy_safe: true
 
     us:
-      - drug: "Ceftriaxone"
+      - drug_id: ceftriaxone
         dose: "1g IV daily"
         route: IV
         pregnancy_safe: true
-      - drug: "Azithromycin"
+      - drug_id: azithromycin
         dose: "500mg IV daily"
         route: IV
         note: "Added for atypical coverage"
@@ -381,13 +381,13 @@ drugs:
   alternative_penicillin_allergy:
     _indication_tag: antimicrobial_penicillin_class
     japan:
-      - drug: "Levofloxacin"
+      - drug_id: levofloxacin
         dose: "500mg IV daily"
         renal_adjustment:
           eGFR_below_50: "250mg IV daily"
         pregnancy_safe: false
     us:
-      - drug: "Levofloxacin"
+      - drug_id: levofloxacin
         dose: "750mg IV daily"
         renal_adjustment:
           eGFR_below_50: "500mg IV daily"
@@ -395,13 +395,13 @@ drugs:
 
   escalation:  # when first-line fails (Day 3 no improvement)
     japan:
-      - drug: "Meropenem"
+      - drug_id: meropenem
         dose: "1g IV q8h"
         indication: "no_defervescence_72h or culture_resistant_organism"
         renal_adjustment:
           eGFR_below_30: "0.5g IV q12h"
     us:
-      - drug: "Piperacillin/Tazobactam"
+      - drug_id: piperacillin_tazobactam
         dose: "4.5g IV q6h"
         indication: "same"
 
@@ -594,8 +594,8 @@ course_archetypes:
       day_3:
         stop: ["Ampicillin/Sulbactam"]
         start:
-          japan: [{drug: "Meropenem", dose: "1g IV q8h"}]
-          us: [{drug: "Piperacillin/Tazobactam", dose: "4.5g IV q6h"}]
+          japan: [{drug_id: meropenem, dose: "1g IV q8h"}]
+          us: [{drug_id: piperacillin_tazobactam, dose: "4.5g IV q6h"}]
     triggers:
       - day: 3
         condition: "inflammation_level > 0.5"
@@ -619,10 +619,10 @@ course_archetypes:
       day_3:
         stop: ["Ampicillin/Sulbactam"]
         start:
-          japan: [{drug: "Meropenem", dose: "1g IV q8h"}]
+          japan: [{drug_id: meropenem, dose: "1g IV q8h"}]
       day_5:
         start:
-          japan: [{drug: "Norepinephrine", dose: "0.05ug/kg/min IV drip"}]
+          japan: [{drug_id: norepinephrine, dose: "0.05ug/kg/min IV drip"}]
         action: "icu_transfer"
     triggers:
       - day: 5
@@ -646,8 +646,8 @@ course_archetypes:
         stop: ["Ampicillin/Sulbactam"]
         start:
           japan:
-            - {drug: "Meropenem", dose: "1g IV q8h"}
-            - {drug: "Norepinephrine", dose: "0.1ug/kg/min IV drip"}
+            - {drug_id: meropenem, dose: "1g IV q8h"}
+            - {drug_id: norepinephrine, dose: "0.1ug/kg/min IV drip"}
         action: "icu_transfer"
         action_2: "intubation_evaluation"
     triggers:

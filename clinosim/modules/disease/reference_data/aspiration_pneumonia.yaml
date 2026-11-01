@@ -373,7 +373,7 @@ expected_vital_distributions:
 drugs:
   first_line:
     japan:
-      - drug: "Ampicillin/Sulbactam"
+      - drug_id: ampicillin_sulbactam
         dose: "3g IV q6h"
         route: IV
         note: "Preferred — covers oral anaerobes and streptococci"
@@ -382,7 +382,7 @@ drugs:
           eGFR_below_30: "1.5g IV q12h"
         pregnancy_safe: true
     us:
-      - drug: "Ampicillin/Sulbactam"
+      - drug_id: ampicillin_sulbactam
         dose: "3g IV q6h"
         route: IV
         note: "Primary choice for aspiration pneumonia"
@@ -394,40 +394,40 @@ drugs:
   alternative_penicillin_allergy:
     _indication_tag: antimicrobial_penicillin_class
     japan:
-      - drug: "Clindamycin"
+      - drug_id: clindamycin
         dose: "600mg IV q8h"
         note: "Good anaerobic coverage but C.diff risk"
         pregnancy_safe: false
-      - drug: "Meropenem"
+      - drug_id: meropenem
         dose: "1g IV q8h"
         note: "If severe or hospital-acquired aspiration"
         renal_adjustment:
           eGFR_below_30: "0.5g IV q12h"
         pregnancy_safe: true
     us:
-      - drug: "Clindamycin"
+      - drug_id: clindamycin
         dose: "600mg IV q8h"
         pregnancy_safe: false
-      - drug: "Moxifloxacin"
+      - drug_id: moxifloxacin
         dose: "400mg IV daily"
         note: "Alternative with anaerobic coverage"
         pregnancy_safe: false
 
   escalation:
     japan:
-      - drug: "Meropenem"
+      - drug_id: meropenem
         dose: "1g IV q8h"
         indication: "no_defervescence_72h or lung_abscess"
         renal_adjustment:
           eGFR_below_30: "0.5g IV q12h"
-      - drug: "Metronidazole"
+      - drug_id: metronidazole
         dose: "500mg IV q8h"
         note: "Added for enhanced anaerobic coverage"
     us:
-      - drug: "Piperacillin/Tazobactam"
+      - drug_id: piperacillin_tazobactam
         dose: "4.5g IV q6h"
         indication: "no_defervescence_72h or hospital-acquired"
-      - drug: "Metronidazole"
+      - drug_id: metronidazole
         dose: "500mg IV q8h"
         note: "Added if lung abscess or empyema suspected"
 
@@ -616,8 +616,8 @@ course_archetypes:
       day_3:
         stop: ["Ampicillin/Sulbactam"]
         start:
-          japan: [{drug: "Meropenem", dose: "1g IV q8h"}, {drug: "Metronidazole", dose: "500mg IV q8h"}]
-          us: [{drug: "Piperacillin/Tazobactam", dose: "4.5g IV q6h"}, {drug: "Metronidazole", dose: "500mg IV q8h"}]
+          japan: [{drug_id: meropenem, dose: "1g IV q8h"}, {drug_id: metronidazole, dose: "500mg IV q8h"}]
+          us: [{drug_id: piperacillin_tazobactam, dose: "4.5g IV q6h"}, {drug_id: metronidazole, dose: "500mg IV q8h"}]
     triggers:
       - day: 3
         condition: "inflammation_level > 0.5 or new_cavitation_on_imaging"
@@ -641,11 +641,11 @@ course_archetypes:
       day_3:
         stop: ["Ampicillin/Sulbactam"]
         start:
-          japan: [{drug: "Meropenem", dose: "1g IV q8h"}]
-          us: [{drug: "Piperacillin/Tazobactam", dose: "4.5g IV q6h"}]
+          japan: [{drug_id: meropenem, dose: "1g IV q8h"}]
+          us: [{drug_id: piperacillin_tazobactam, dose: "4.5g IV q6h"}]
       day_5:
         start:
-          japan: [{drug: "Norepinephrine", dose: "0.05ug/kg/min IV drip"}]
+          japan: [{drug_id: norepinephrine, dose: "0.05ug/kg/min IV drip"}]
         action: "icu_transfer"
     triggers:
       - day: 5
@@ -670,11 +670,11 @@ course_archetypes:
         stop: ["Ampicillin/Sulbactam"]
         start:
           japan:
-            - {drug: "Meropenem", dose: "1g IV q8h"}
-            - {drug: "Norepinephrine", dose: "0.1ug/kg/min IV drip"}
+            - {drug_id: meropenem, dose: "1g IV q8h"}
+            - {drug_id: norepinephrine, dose: "0.1ug/kg/min IV drip"}
           us:
-            - {drug: "Piperacillin/Tazobactam", dose: "4.5g IV q6h"}
-            - {drug: "Norepinephrine", dose: "0.1ug/kg/min IV drip"}
+            - {drug_id: piperacillin_tazobactam, dose: "4.5g IV q6h"}
+            - {drug_id: norepinephrine, dose: "0.1ug/kg/min IV drip"}
         action: "icu_transfer"
         action_2: "intubation"
     triggers:

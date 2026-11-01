@@ -468,13 +468,13 @@ drugs:
 
   bicarbonate:
     japan:
-      - drug: "Sodium bicarbonate"
+      - drug_id: sodium_bicarbonate
         dose: "100 mEq IV"
         route: IV
         indication: "pH < 6.9 ONLY"
         note: "Controversial; only for pH < 6.9. Repeat q2h until pH > 7.0. Dilute in 400mL sterile water + 20mEq KCl, infuse over 2h."
     us:
-      - drug: "Sodium bicarbonate"
+      - drug_id: sodium_bicarbonate
         dose: "100 mEq IV"
         route: IV
         indication: "pH < 6.9"
@@ -486,7 +486,7 @@ drugs:
         dose: "0.2-0.3 U/kg SC daily"
         route: SC
         note: "Give 1-2h before stopping drip; add rapid-acting insulin with meals"
-      - drug: "Insulin aspart"
+      - drug_id: insulin_aspart
         dose: "As prescribed"
         route: SC
         note: "Dose per carb counting or sliding scale"
@@ -495,7 +495,7 @@ drugs:
         dose: "0.2-0.3 U/kg SC daily"
         route: SC
         note: "Overlap with IV insulin for 1-2h. Or resume home dose if previously taking insulin."
-      - drug: "Insulin lispro"
+      - drug_id: insulin_lispro
         dose: "As prescribed"
         route: SC
         note: "Dose per carb counting or sliding scale"
@@ -723,7 +723,7 @@ course_archetypes:
     treatment_modifications:
       day_2:
         start:
-          japan: [{drug: "Norepinephrine", dose: "0.05ug/kg/min IV drip"}]
+          japan: [{drug_id: norepinephrine, dose: "0.05ug/kg/min IV drip"}]
         action: "icu_transfer"
     triggers:
       - day: 2
@@ -749,9 +749,9 @@ course_archetypes:
       day_1:
         start:
           japan:
-            - {drug: "Mannitol", dose: "1g/kg IV over 20min", indication: "cerebral edema"}
+            - {drug_id: mannitol, dose: "1g/kg IV over 20min", indication: "cerebral edema"}
           us:
-            - {drug: "Mannitol", dose: "0.5-1g/kg IV over 20min", indication: "cerebral edema"}
+            - {drug_id: mannitol, dose: "0.5-1g/kg IV over 20min", indication: "cerebral edema"}
             - {drug: "Hypertonic saline 3%", dose: "5mL/kg IV over 30min", indication: "alternative to mannitol"}
         action: "icu_transfer"
         action_2: "intubation_evaluation"

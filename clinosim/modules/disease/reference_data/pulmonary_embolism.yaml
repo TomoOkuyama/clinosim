@@ -357,21 +357,21 @@ drugs:
         note: "Monitor aPTT q6h, target 60-80s"
         renal_adjustment: {}
         pregnancy_safe: true
-      - drug: "Warfarin"
+      - drug_id: warfarin
         dose: "Start 3-5mg PO daily, target INR 2.0-3.0 (JP: 1.5-2.5 for age>70)"
         route: PO
         note: "Overlap with heparin for >= 5 days and INR >= 2.0 for 24h"
         pregnancy_safe: false
 
     us:
-      - drug: "Enoxaparin"
+      - drug_id: enoxaparin
         dose: "1mg/kg SC q12h"
         route: SC
         note: "Bridge to oral anticoagulant"
         renal_adjustment:
           eGFR_below_30: "1mg/kg SC daily"
         pregnancy_safe: true
-      - drug: "Rivaroxaban"
+      - drug_id: rivaroxaban
         dose: "15mg PO BID x 21 days then 20mg PO daily"
         route: PO
         note: "DOAC — no heparin bridge needed"
@@ -385,14 +385,14 @@ drugs:
         dose: "0.6mg/kg IV over 2h (max 40mg JP dose)"
         indication: "massive_PE_with_hemodynamic_instability"
         note: "Lower dose in Japan than US protocol"
-      - drug: "Norepinephrine"
+      - drug_id: norepinephrine
         dose: "0.05-0.5 ug/kg/min IV drip"
         indication: "shock"
     us:
       - drug: "Alteplase (tPA)"
         dose: "100mg IV over 2h"
         indication: "massive_PE_with_hemodynamic_instability"
-      - drug: "Norepinephrine"
+      - drug_id: norepinephrine
         dose: "0.05-0.5 ug/kg/min IV drip"
         indication: "shock"
 
@@ -615,8 +615,8 @@ course_archetypes:
     treatment_modifications:
       day_3:
         start:
-          japan: [{drug: "Dobutamine", dose: "5 ug/kg/min IV drip"}]
-          us: [{drug: "Dobutamine", dose: "5 ug/kg/min IV drip"}]
+          japan: [{drug_id: dobutamine, dose: "5 ug/kg/min IV drip"}]
+          us: [{drug_id: dobutamine, dose: "5 ug/kg/min IV drip"}]
         action: "icu_transfer"
     triggers:
       - day: 3
@@ -639,11 +639,11 @@ course_archetypes:
       day_1:
         start:
           japan:
-            - {drug: "Alteplase", dose: "0.6mg/kg IV over 2h (max 40mg)"}
-            - {drug: "Norepinephrine", dose: "0.1ug/kg/min IV drip"}
+            - {drug_id: alteplase, dose: "0.6mg/kg IV over 2h (max 40mg)"}
+            - {drug_id: norepinephrine, dose: "0.1ug/kg/min IV drip"}
           us:
-            - {drug: "Alteplase", dose: "100mg IV over 2h"}
-            - {drug: "Norepinephrine", dose: "0.1ug/kg/min IV drip"}
+            - {drug_id: alteplase, dose: "100mg IV over 2h"}
+            - {drug_id: norepinephrine, dose: "0.1ug/kg/min IV drip"}
         action: "icu_transfer"
         action_2: "intubation_if_needed"
     triggers:

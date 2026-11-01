@@ -373,45 +373,45 @@ expected_vital_distributions:
 drugs:
   first_line:
     japan:
-      - drug: "Omeprazole"
+      - drug_id: omeprazole
         dose: "80mg IV bolus, then 8mg/h continuous infusion x 72h"
         route: IV
         note: "High-dose PPI for peptic ulcer bleeding"
         pregnancy_safe: false
-      - drug: "Omeprazole"
+      - drug_id: omeprazole
         dose: "20mg PO daily (after IV course)"
         route: PO
         note: "Step-down oral PPI"
         pregnancy_safe: false
     us:
-      - drug: "Pantoprazole"
+      - drug_id: pantoprazole
         dose: "80mg IV bolus, then 8mg/h continuous infusion x 72h"
         route: IV
         note: "Pantoprazole preferred in US"
         pregnancy_safe: false
-      - drug: "Pantoprazole"
+      - drug_id: pantoprazole
         dose: "40mg PO daily (after IV course)"
         route: PO
         pregnancy_safe: false
 
   variceal_specific:
     japan:
-      - drug: "Octreotide"
+      - drug_id: octreotide
         dose: "50mcg IV bolus, then 50mcg/h continuous infusion x 3-5 days"
         route: IV
         note: "Somatostatin analog for variceal bleeding"
         pregnancy_safe: false
-      - drug: "Ceftriaxone"
+      - drug_id: ceftriaxone
         dose: "1g IV daily x 7 days"
         route: IV
         note: "Antibiotic prophylaxis for cirrhotic patients with GI bleed"
         pregnancy_safe: true
     us:
-      - drug: "Octreotide"
+      - drug_id: octreotide
         dose: "50mcg IV bolus, then 50mcg/h continuous infusion x 3-5 days"
         route: IV
         pregnancy_safe: false
-      - drug: "Ceftriaxone"
+      - drug_id: ceftriaxone
         dose: "1g IV daily x 7 days"
         route: IV
         note: "Antibiotic prophylaxis for cirrhotic patients"
@@ -443,7 +443,7 @@ drugs:
     - drug: "Vitamin_K"
       dose: "10mg IV slow infusion"
       indication: "Warfarin-related coagulopathy"
-    - drug: "Idarucizumab"
+    - drug_id: idarucizumab
       dose: "5g IV"
       indication: "Dabigatran reversal"
     - drug: "Andexanet_alfa"
@@ -671,9 +671,9 @@ course_archetypes:
         add_transfusion: {detail: "massive_transfusion_protocol"}
         start:
           japan:
-            - {drug: "Norepinephrine", dose: "0.05ug/kg/min IV drip"}
+            - {drug_id: norepinephrine, dose: "0.05ug/kg/min IV drip"}
           us:
-            - {drug: "Norepinephrine", dose: "0.05ug/kg/min IV drip"}
+            - {drug_id: norepinephrine, dose: "0.05ug/kg/min IV drip"}
         action_2: "intubation_evaluation"
     triggers:
       - day: 1

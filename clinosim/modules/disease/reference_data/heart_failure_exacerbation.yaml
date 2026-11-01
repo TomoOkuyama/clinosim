@@ -284,14 +284,14 @@ order_protocols:
 drugs:
   first_line:
     japan:
-      - {drug: "Furosemide", dose: "20-40mg IV", route: "IV"}
+      - {drug_id: furosemide, dose: "20-40mg IV", route: "IV"}
     us:
-      - {drug: "Furosemide", dose: "40mg IV", route: "IV"}
+      - {drug_id: furosemide, dose: "40mg IV", route: "IV"}
   additional:
     japan:
-      - {drug: "Carperitide", dose: "0.1ug/kg/min IV", note: "JP-specific: hANP"}
+      - {drug_id: carperitide, dose: "0.1ug/kg/min IV", note: "JP-specific: hANP"}
     us:
-      - {drug: "Nitroglycerin", dose: "5-200ug/min IV drip"}
+      - {drug_id: nitroglycerin, dose: "5-200ug/min IV drip"}
   discharge_oral:
     # META #1804 Phase 2.d cardiac cluster: discharge_oral entries carry
     # drug_id into clinosim/codes/data/drugs.yaml. Display resolved via

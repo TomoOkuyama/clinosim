@@ -21,6 +21,7 @@ classification decision is made once against the English source name.
 
 from __future__ import annotations
 
+from clinosim.codes.drugs import protocol_drug_name
 from clinosim.types.encounter import OrderType
 
 PROCEDURE_KEYWORDS: tuple[str, ...] = (
@@ -320,7 +321,7 @@ def classify_escalation_treatment(esc_drug: object) -> OrderType:
         return OrderType.MEDICATION
 
     # (2) keyword fallback via classify_encounter_treatment
-    drug = esc_drug.get("drug", "") or ""
+    drug = protocol_drug_name(esc_drug)
     dose = esc_drug.get("dose", "") or ""
     display = f"{drug} {dose}".strip()
     if display:

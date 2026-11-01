@@ -5,6 +5,7 @@ from __future__ import annotations
 import pytest
 import yaml
 
+from clinosim.codes.drugs import protocol_drug_name
 from clinosim.modules.disease.protocol import load_disease_protocol
 
 pytestmark = pytest.mark.unit
@@ -21,7 +22,7 @@ def test_us_drugs_resolve_to_rxnorm() -> None:
     proto = load_disease_protocol("alcohol_withdrawal")
     with open("clinosim/locale/us/code_mapping_drug.yaml", encoding="utf-8") as fh:
         mapping = yaml.safe_load(fh)
-    names = {d["drug"] for block in ("first_line", "discharge_oral") for d in proto.drugs[block]["us"]}
+    names = {protocol_drug_name(d) for block in ("first_line", "discharge_oral") for d in proto.drugs[block]["us"]}
     assert names == {"Lorazepam", "Thiamine", "Folic acid"}
     assert all(mapping.get(n) for n in names)
 

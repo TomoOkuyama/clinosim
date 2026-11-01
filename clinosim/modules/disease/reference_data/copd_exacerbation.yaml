@@ -447,50 +447,50 @@ drugs:
         dose: "2.5mg nebulizer q4h (q1h PRN acute)"
         route: inhaled
         pregnancy_safe: true
-      - drug: "Ipratropium"
+      - drug_id: ipratropium
         dose: "0.5mg nebulizer q6h"
         route: inhaled
         pregnancy_safe: true
-      - drug: "Prednisolone"
+      - drug_id: prednisolone
         dose: "30-40mg PO daily x5-7 days"
         route: PO
         note: "or Methylprednisolone 125mg IV if unable to take PO"
         pregnancy_safe: false
     us:
-      - drug: "Albuterol"
+      - drug_id: albuterol
         dose: "2.5mg nebulizer q4h (q1h PRN acute)"
         route: inhaled
         pregnancy_safe: true
-      - drug: "Ipratropium"
+      - drug_id: ipratropium
         dose: "0.5mg nebulizer q6h"
         route: inhaled
         pregnancy_safe: true
-      - drug: "Prednisone"
+      - drug_id: prednisone
         dose: "40mg PO daily x5 days"
         route: PO
         pregnancy_safe: false
 
   antibiotics_if_infectious:
     japan:
-      - drug: "Ceftriaxone"
+      - drug_id: ceftriaxone
         dose: "1g IV daily"
         route: IV
         indication: "purulent sputum or suspected bacterial trigger"
         renal_adjustment:
           eGFR_below_30: "1g IV daily (no adjustment needed)"
         pregnancy_safe: true
-      - drug: "Azithromycin"
+      - drug_id: azithromycin
         dose: "500mg PO day1, then 250mg PO days 2-5"
         route: PO
         indication: "atypical coverage or mild infection"
         pregnancy_safe: true
     us:
-      - drug: "Ceftriaxone"
+      - drug_id: ceftriaxone
         dose: "1g IV daily"
         route: IV
         indication: "purulent sputum + elevated WBC/CRP"
         pregnancy_safe: true
-      - drug: "Azithromycin"
+      - drug_id: azithromycin
         dose: "500mg PO day1, then 250mg PO days 2-5"
         route: PO
         indication: "atypical coverage or outpatient transition"
@@ -499,13 +499,13 @@ drugs:
   alternative_penicillin_allergy:
     _indication_tag: antimicrobial_penicillin_class
     japan:
-      - drug: "Levofloxacin"
+      - drug_id: levofloxacin
         dose: "500mg IV or PO daily"
         renal_adjustment:
           eGFR_below_50: "250mg daily"
         pregnancy_safe: false
     us:
-      - drug: "Levofloxacin"
+      - drug_id: levofloxacin
         dose: "750mg PO daily"
         renal_adjustment:
           eGFR_below_50: "500mg daily"
@@ -513,13 +513,13 @@ drugs:
 
   escalation:  # when first-line fails (Day 3 no improvement or NIV failure)
     japan:
-      - drug: "Meropenem"
+      - drug_id: meropenem
         dose: "1g IV q8h"
         indication: "no_improvement_72h or culture_resistant_organism"
         renal_adjustment:
           eGFR_below_30: "0.5g IV q12h"
     us:
-      - drug: "Piperacillin/Tazobactam"
+      - drug_id: piperacillin_tazobactam
         dose: "4.5g IV q6h"
         indication: "same"
 
@@ -685,8 +685,8 @@ course_archetypes:
     treatment_modifications:
       day_2:
         start:
-          japan: [{drug: "Ceftriaxone", dose: "1g IV daily"}]
-          us: [{drug: "Ceftriaxone", dose: "1g IV daily"}]
+          japan: [{drug_id: ceftriaxone, dose: "1g IV daily"}]
+          us: [{drug_id: ceftriaxone, dose: "1g IV daily"}]
 
   plateau:
     probability: 0.15
@@ -724,8 +724,8 @@ course_archetypes:
           us: [{drug: "NIV_BiPAP", dose: "IPAP 12 / EPAP 5 cmH2O"}]
       day_3:
         start:
-          japan: [{drug: "Meropenem", dose: "1g IV q8h"}]
-          us: [{drug: "Piperacillin/Tazobactam", dose: "4.5g IV q6h"}]
+          japan: [{drug_id: meropenem, dose: "1g IV q8h"}]
+          us: [{drug_id: piperacillin_tazobactam, dose: "4.5g IV q6h"}]
     triggers:
       - day: 3
         condition: "ph_status < 7.30 or inflammation_level > 0.5"
@@ -753,7 +753,7 @@ course_archetypes:
           us: [{drug: "NIV_BiPAP", dose: "IPAP 14 / EPAP 6 cmH2O"}]
       day_5:
         start:
-          japan: [{drug: "Meropenem", dose: "1g IV q8h"}]
+          japan: [{drug_id: meropenem, dose: "1g IV q8h"}]
         action: "icu_transfer"
         action_2: "evaluate_intubation"
     triggers:
@@ -779,10 +779,10 @@ course_archetypes:
         start:
           japan:
             - {drug: "Intubation_and_mechanical_ventilation", dose: "TV 6mL/kg, PEEP 5"}
-            - {drug: "Meropenem", dose: "1g IV q8h"}
+            - {drug_id: meropenem, dose: "1g IV q8h"}
           us:
             - {drug: "Intubation_and_mechanical_ventilation", dose: "TV 6mL/kg, PEEP 5"}
-            - {drug: "Piperacillin/Tazobactam", dose: "4.5g IV q6h"}
+            - {drug_id: piperacillin_tazobactam, dose: "4.5g IV q6h"}
         action: "icu_transfer"
         action_2: "intubation"
     triggers:

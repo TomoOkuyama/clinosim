@@ -308,35 +308,35 @@ expected_vital_distributions:
 drugs:
   first_line:
     japan:
-      - drug: "Cefmetazole"
+      - drug_id: cefmetazole
         dose: "1g IV q8h"
         route: IV
         note: "Preoperative prophylaxis and postoperative (if perforated)"
         renal_adjustment:
           eGFR_below_30: "0.5g IV q12h"
         pregnancy_safe: true
-      - drug: "Acetaminophen"
+      - drug_id: acetaminophen
         dose: "1000mg IV q6h"
         route: IV
         pregnancy_safe: true
-      - drug: "Fentanyl"
+      - drug_id: fentanyl
         dose: "50mcg IV PRN"
         route: IV
         note: "Perioperative analgesia"
         pregnancy_safe: false
 
     us:
-      - drug: "Cefazolin"
+      - drug_id: cefazolin
         dose: "2g IV (single preoperative dose)"
         route: IV
         note: "Non-perforated: prophylaxis only"
         pregnancy_safe: true
-      - drug: "Metronidazole"
+      - drug_id: metronidazole
         dose: "500mg IV q8h"
         route: IV
         note: "Added for anaerobic coverage if perforated"
         pregnancy_safe: false
-      - drug: "Ketorolac"
+      - drug_id: ketorolac
         dose: "30mg IV q6h"
         route: IV
         note: "Postoperative pain; max 5 days"
@@ -345,37 +345,37 @@ drugs:
   alternative_penicillin_allergy:
     _indication_tag: antimicrobial_penicillin_class
     japan:
-      - drug: "Clindamycin"
+      - drug_id: clindamycin
         dose: "600mg IV q8h"
         pregnancy_safe: false
-      - drug: "Gentamicin"
+      - drug_id: gentamicin
         dose: "5mg/kg IV daily"
         renal_adjustment:
           eGFR_below_50: "adjust_by_level"
         pregnancy_safe: false
     us:
-      - drug: "Ciprofloxacin"
+      - drug_id: ciprofloxacin
         dose: "400mg IV q12h"
         pregnancy_safe: false
-      - drug: "Metronidazole"
+      - drug_id: metronidazole
         dose: "500mg IV q8h"
         pregnancy_safe: false
 
   escalation:  # perforated or complicated
     japan:
-      - drug: "Piperacillin/Tazobactam"
+      - drug_id: piperacillin_tazobactam
         dose: "4.5g IV q8h"
         indication: "perforated_appendicitis_or_abscess"
         renal_adjustment:
           eGFR_below_30: "2.25g IV q8h"
     us:
-      - drug: "Piperacillin/Tazobactam"
+      - drug_id: piperacillin_tazobactam
         dose: "3.375g IV q6h"
         indication: "perforated_appendicitis_or_abscess"
 
   discharge_oral:
     japan:
-      - drug: "Cefditoren pivoxil"
+      - drug_id: cefditoren_pivoxil
         dose: "200mg PO TID"
         duration_days: 5
         note: "Only if perforated; non-perforated needs no postop antibiotics"
@@ -384,7 +384,7 @@ drugs:
         dose: "875/125mg PO BID"
         duration_days: 5
         note: "Only if perforated"
-      - drug: "Metronidazole"
+      - drug_id: metronidazole
         dose: "500mg PO TID"
         duration_days: 5
         note: "Only if perforated, combined with above"
@@ -519,8 +519,8 @@ course_archetypes:
       day_3:
         stop: ["Cefmetazole"]
         start:
-          japan: [{drug: "Piperacillin/Tazobactam", dose: "4.5g IV q8h"}]
-          us: [{drug: "Piperacillin/Tazobactam", dose: "3.375g IV q6h"}]
+          japan: [{drug_id: piperacillin_tazobactam, dose: "4.5g IV q8h"}]
+          us: [{drug_id: piperacillin_tazobactam, dose: "3.375g IV q6h"}]
     triggers:
       - day: 3
         condition: "persistent_fever_and_elevated_WBC"
@@ -539,8 +539,8 @@ course_archetypes:
     treatment_modifications:
       day_1:
         start:
-          japan: [{drug: "Meropenem", dose: "1g IV q8h"}]
-          us: [{drug: "Meropenem", dose: "1g IV q8h"}]
+          japan: [{drug_id: meropenem, dose: "1g IV q8h"}]
+          us: [{drug_id: meropenem, dose: "1g IV q8h"}]
         action: "icu_transfer"
     triggers:
       - day: 1
@@ -560,8 +560,8 @@ course_archetypes:
     treatment_modifications:
       day_1:
         start:
-          japan: [{drug: "Meropenem", dose: "1g IV q8h"}]
-          us: [{drug: "Meropenem", dose: "1g IV q8h"}]
+          japan: [{drug_id: meropenem, dose: "1g IV q8h"}]
+          us: [{drug_id: meropenem, dose: "1g IV q8h"}]
         action: "reoperation_or_ir_embolization"
         action_2: "icu_transfer"
     triggers:

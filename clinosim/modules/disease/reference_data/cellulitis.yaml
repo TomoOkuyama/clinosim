@@ -316,7 +316,7 @@ expected_vital_distributions:
 drugs:
   first_line:
     japan:
-      - drug: "Cefazolin"
+      - drug_id: cefazolin
         dose: "1g IV q8h"
         route: IV
         renal_adjustment:
@@ -324,7 +324,7 @@ drugs:
           eGFR_below_30: "1g IV q24h"
         pregnancy_safe: true
     us:
-      - drug: "Cefazolin"
+      - drug_id: cefazolin
         dose: "2g IV q8h"
         route: IV
         renal_adjustment:
@@ -335,12 +335,12 @@ drugs:
   alternative_penicillin_allergy:
     _indication_tag: antimicrobial_penicillin_class
     japan:
-      - drug: "Clindamycin"
+      - drug_id: clindamycin
         dose: "600mg IV q8h"
         pregnancy_safe: false
         note: "C. diff risk"
     us:
-      - drug: "Vancomycin"
+      - drug_id: vancomycin
         dose: "15-20mg/kg IV q12h (trough 15-20)"
         note: "If MRSA concern; otherwise clindamycin 600mg IV q8h"
         renal_adjustment:
@@ -350,25 +350,25 @@ drugs:
   mrsa_coverage:
     _indication_tag: antimicrobial_gram_positive_resistant
     japan:
-      - drug: "Vancomycin"
+      - drug_id: vancomycin
         dose: "1g IV q12h (adjust by trough)"
         indication: "known_MRSA_or_failed_first_line"
         renal_adjustment:
           eGFR_below_30: "dose by trough levels"
     us:
-      - drug: "Vancomycin"
+      - drug_id: vancomycin
         dose: "15-20mg/kg IV q8-12h (AUC/MIC guided)"
         indication: "known_MRSA_or_purulent_cellulitis"
 
   escalation:
     japan:
-      - drug: "Piperacillin/Tazobactam"
+      - drug_id: piperacillin_tazobactam
         dose: "4.5g IV q8h"
         indication: "no_improvement_48h_or_diabetic_foot"
         renal_adjustment:
           eGFR_below_30: "4.5g IV q12h"
     us:
-      - drug: "Piperacillin/Tazobactam"
+      - drug_id: piperacillin_tazobactam
         dose: "4.5g IV q6h"
         indication: "no_improvement_48h_or_polymicrobial_concern"
 
@@ -517,8 +517,8 @@ course_archetypes:
       day_3:
         stop: ["Cefazolin"]
         start:
-          japan: [{drug: "Piperacillin/Tazobactam", dose: "4.5g IV q8h"}]
-          us: [{drug: "Vancomycin", dose: "15mg/kg IV q12h"}, {drug: "Piperacillin/Tazobactam", dose: "4.5g IV q6h"}]
+          japan: [{drug_id: piperacillin_tazobactam, dose: "4.5g IV q8h"}]
+          us: [{drug_id: vancomycin, dose: "15mg/kg IV q12h"}, {drug_id: piperacillin_tazobactam, dose: "4.5g IV q6h"}]
     triggers:
       - day: 3
         condition: "erythema_spreading and inflammation_level > 0.4"
@@ -541,8 +541,8 @@ course_archetypes:
       day_2:
         stop: ["Cefazolin"]
         start:
-          japan: [{drug: "Meropenem", dose: "1g IV q8h"}, {drug: "Vancomycin", dose: "1g IV q12h"}]
-          us: [{drug: "Meropenem", dose: "1g IV q8h"}, {drug: "Vancomycin", dose: "15mg/kg IV q12h"}]
+          japan: [{drug_id: meropenem, dose: "1g IV q8h"}, {drug_id: vancomycin, dose: "1g IV q12h"}]
+          us: [{drug_id: meropenem, dose: "1g IV q8h"}, {drug_id: vancomycin, dose: "15mg/kg IV q12h"}]
       day_4:
         action: "icu_transfer"
     triggers:
@@ -567,13 +567,13 @@ course_archetypes:
         stop: ["Cefazolin"]
         start:
           japan:
-            - {drug: "Meropenem", dose: "1g IV q8h"}
-            - {drug: "Vancomycin", dose: "1g IV q12h"}
-            - {drug: "Clindamycin", dose: "600mg IV q8h"}
+            - {drug_id: meropenem, dose: "1g IV q8h"}
+            - {drug_id: vancomycin, dose: "1g IV q12h"}
+            - {drug_id: clindamycin, dose: "600mg IV q8h"}
           us:
-            - {drug: "Meropenem", dose: "1g IV q8h"}
-            - {drug: "Vancomycin", dose: "15mg/kg IV q12h"}
-            - {drug: "Clindamycin", dose: "900mg IV q8h"}
+            - {drug_id: meropenem, dose: "1g IV q8h"}
+            - {drug_id: vancomycin, dose: "15mg/kg IV q12h"}
+            - {drug_id: clindamycin, dose: "900mg IV q8h"}
         action: "icu_transfer"
         action_2: "emergent_surgical_debridement"
     triggers:
