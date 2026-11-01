@@ -278,6 +278,24 @@ def has_drug(meds: Any, drug: str) -> bool:
     return False
 
 
+def medication_matches(med: Any, drugs: Any = (), classes: Any = ()) -> bool:
+    """True when a medication record (object or dict with ``drug_id`` /
+    ``drug_name``, or a plain name) is one of the catalog ``drugs`` or belongs
+    to one of the catalog ``classes`` (Issue #2371)."""
+    if isinstance(med, str):
+        drug_id = drug_key(med)
+    else:
+        get = med.get if isinstance(med, dict) else lambda k, d=None: getattr(med, k, d)
+        drug_id = (
+            str(get("drug_id", "") or "")
+            or drug_ref(str(get("drug_name", "") or ""))
+            or drug_key(str(get("drug_name_ja", "") or get("drug_name", "") or ""))
+        )
+    if not drug_id:
+        return False
+    return drug_id in set(drugs) or bool(set(classes) & set(drug_classes(drug_id)))
+
+
 def drug_classes(ref: str) -> tuple[str, ...]:
     """Catalog classes of the drug ``ref`` names (see :func:`identify_drug`),
     each followed by its dotted ancestors (``anticoagulant.vka`` also yields

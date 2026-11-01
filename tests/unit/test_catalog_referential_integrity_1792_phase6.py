@@ -97,6 +97,9 @@ def test_every_drug_id_reference_resolves_against_catalog() -> None:
 # Drugs with no RxNorm ingredient and no JP product in the clinosim-shipped
 # YJ CodeSystem: emitted in the eCS ``nocoded`` slice (Issue #2347).
 _UNCODED_BY_DESIGN = {
+    # Issue #2371: transplant immunosuppressants with a monitoring rule only.
+    "tacrolimus",
+    "ciclosporin",
     # Non-lactated Ringer's: the MHLW master lists only the unified-name
     # リンゲル液 (3319539A1015 / A2011), absent from JP_MedicationCodeYJ_CS_full.
     "ringer_solution",

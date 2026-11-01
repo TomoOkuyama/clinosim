@@ -127,7 +127,7 @@ Consumers resolve names only through these functions. Several are added by open 
 | `codes.drugs`: `route_class(route)`, `jp_drug_code(drug, route)`, `jp_drug_code_table(route)` | route class of an order route; the JP YJ product for a drug and route | `""` / `None` / no entry |
 | `codes.drugs`: `drug_display(ref, lang)` | catalog name of a drug id, name or alias (then its longest leading-word prefix) in `lang`, then English | `None` |
 | `codes.drugs`: `identify_drug(text)`, `drug_classes(ref)` | the catalog drug a free-text medication string names (exact id / name / alias, leading words, then the longest contained name or alias — whole-word for ASCII); its catalog classes with every dotted ancestor | `None` / `()` |
-| `codes.drugs`: `drug_ref(name_or_id)`, `has_drug(meds, drug_id_or_class)` | the catalog `drug_id` a name, alias or free-text string names; whether any medication record is that drug or in that class (by its `drug_id`, else its name) | `""` / `False` |
+| `codes.drugs`: `drug_ref(name_or_id)`, `has_drug(meds, drug_id_or_class)`, `medication_matches(med, drugs, classes)` | the catalog `drug_id` a name, alias or free-text string names; whether any medication record is that drug or in that class (by its `drug_id`, else its name) | `""` / `False` |
 | `codes.icd10`: `icd10_system(country)`, `icd10_display(code, country, lang)`, `condition_short_name(code, lang)`, `condition_label(code, country, lang)`, `medis_disease_keyno(icd)` | ICD-10 system of a country; official display (JP Japanese: the MHLW 2013 name, verbatim); clinical short name (by category); the name used in prose and `Condition.code.text` (short name, then official display); MEDIS 病名管理番号 | key / `None` / `None` / `None` / `None` |
 | `codes.procedures`: `procedure_code`, `procedure_type_display`, `procedure_code_display` | procedure codes and names | `""` / humanised type / `None` |
 | `codes.ucum`: `ucum_code`, `ucum_quantity`, `ucum_prose` | UCUM code / FHIR Quantity / the unit as written in prose (`mm[Hg]` → `mmHg`, `{INR}` → `""`) | unit passed through |
@@ -238,6 +238,5 @@ These parts of the code base do not yet conform. Each one is removed by the issu
 | The free-text name localizer lives in the FHIR output layer, is imported from the order and narrative layers, and also translates procedure, SNOMED and allergen names. Decision logic and records resolve drug names through `codes.drugs.drug_display`. | #2367 |
 | Language literals are still embedded in Python. | #2277 |
 | Disease YAMLs mix `drug:` names with `drug_id:`, and `Order.order_code` does not record its code system. | #2378 |
-| The medication-monitoring tables identify drugs by name patterns. | #2371 |
 | Complications, PRN selection and chronic-medication rules keep their own drug-class vocabularies. | #2372 |
 | No lint guard enforces §8. | #2266 |

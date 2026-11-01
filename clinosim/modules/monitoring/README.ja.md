@@ -48,7 +48,7 @@ from clinosim.modules.monitoring.mapping import (
 
 # 2. 慢性外来 lab リスト経路 (med_lab_mapping.yaml)、__init__.py から re-export
 from clinosim.modules.monitoring import (
-    load_medication_lab_mapping,     # () -> {entry: {matches, labs, per_visit_probability}} (lru_cache)
+    load_medication_lab_mapping,     # () -> {entry: {drugs, classes, labs, per_visit_probability}} (lru_cache)
     monitoring_labs_for_patient,     # (current_medications, rng) -> list[str] lab 名
 )
 ```
@@ -115,7 +115,7 @@ event ごとに呼ばれ、返り値の lab を visit の `visit_labs` に merge
   `lab`, `loinc`, 整数 `interval_months >= 1` が必須)。
 - [`reference_data/med_lab_mapping.yaml`](reference_data/med_lab_mapping.yaml)
   — `monitoring_labs_for_patient` 用の慢性外来 mapping (top-level
-  `medication_lab_mapping:` key 配下)。各 entry は `matches`
+  `medication_lab_mapping:` key 配下)。各 entry は `drugs` / `classes`
   (`drug_name` / `drug_name_ja` への部分一致 pattern)、`labs`
   (canonical analyte 名)、`per_visit_probability` を持つ。
   `engine.load_medication_lab_mapping` が load (cache あり、fail-loud)。
