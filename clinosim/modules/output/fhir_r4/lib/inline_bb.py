@@ -30,6 +30,7 @@ from clinosim.codes import display as registry_display
 from clinosim.codes import get_system_uri, system_key_for
 from clinosim.codes.hl7_encounter import ActPriority, AdmitSource
 from clinosim.codes.snomed import snomed_for_phrase
+from clinosim.locale.free_text import localize_procedure_name
 from clinosim.locale.i18n import t
 from clinosim.modules._shared import get_attr_or_key, is_jp, resolve_lang
 from clinosim.modules.output.fhir_r4.conditions.allergy_intolerance import (  # noqa: F401
@@ -883,16 +884,10 @@ def _bb_procedures(ctx: BundleContext) -> list[dict]:
         # filter. category is a Procedure.category coding, well-known SNOMED
         # concept from https://build.fhir.org/valueset-procedure-category.html.
         _cat_lang = resolve_lang(ctx.country)
-        # Issue #474: localize the Order display for JP so treatment-side
-        # procedures (splint/bandage/wound-care/O2 etc.) don't leak English
-        # into JP `Procedure.code.text`. `_localize_drug_name` is the
-        # phrase-level translator that consults `clinosim-procedure-phrase.yaml`
-        # via `load_narrative_display_dict()` (which already carries entries
-        # like "Ice pack application" → "氷嚢貼付",
-        # "Wound irrigation with normal saline" → "生理食塩液による創部洗浄")
-        # and internally chains dosage-abbrev translation (O2 → 酸素投与 etc.).
-        # US path unchanged (helper is a no-op for is_us(country)).
-        _code_text = _localize_drug_name(display, ctx.country) if display else "Procedure"
+        # Issue #474 / #2408: treatment-side procedures (splint / bandage /
+        # wound care / O2 …) take their JP name from the procedure-name
+        # resolver, so English does not leak into JP `Procedure.code.text`.
+        _code_text = localize_procedure_name(display, resolve_lang(ctx.country)) if display else "Procedure"
         # Issue #854 Bucket A: opaque Procedure.id via the shared resolver.
         # Structural key = pre-#854 id body (``proc-order-{order_id}`` or
         # ``proc-order-{patient_id}-{seq:04d}``) so consumers can recover it

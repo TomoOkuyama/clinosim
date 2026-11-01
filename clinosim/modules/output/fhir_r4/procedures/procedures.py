@@ -15,6 +15,7 @@ from clinosim.codes import (
 )
 from clinosim.codes.procedures import bedside_procedures, procedure_type_display
 from clinosim.codes.snomed import snomed_for_phrase
+from clinosim.locale.free_text import localize_procedure_name
 from clinosim.locale.i18n import t
 from clinosim.modules._shared import is_jp, is_us, resolve_lang
 from clinosim.modules.output.fhir_r4.demographics.patient import patient_ref
@@ -25,7 +26,7 @@ from clinosim.modules.output.fhir_r4.lib.ids import (
     structural_key_system,
     wrap_as_identifier,
 )
-from clinosim.modules.output.fhir_r4.lib.localization import _localize_drug_name, _procedure_display
+from clinosim.modules.output.fhir_r4.lib.localization import _procedure_display
 
 # Issue #854 Bucket A: opaque id + identifier[] round-trip for Procedure
 # (same pattern PR #357 established for antibiotic MedicationRequest, PR
@@ -140,21 +141,13 @@ def _build_procedure(
     # "O2: Nasal cannula SpO2 >= 94%") OR to a procedure name from encounter
     # YAML (e.g. "Ice pack application", "Wound irrigation with normal saline").
     #
-    # Route the JP fallback through `_localize_drug_name` — despite its name,
-    # this function is the phrase-level translator that consults
-    # `clinosim-procedure-phrase.yaml` via `load_narrative_display_dict()`
-    # (which already carries procedure phrases like
-    # "Ice pack application" → "氷嚢貼付") and internally chains
-    # `_localize_dosage_terms` for prefix / abbrev translation
-    # (O2 → 酸素投与, PO → 経口, etc.).
-    #
-    # Prior code called `_localize_dosage_terms` directly, which only handles
-    # dosage abbreviations and left encounter-YAML procedure names in English
-    # (71/112 JP Procedure.code.text hits per Issue #474 measurement).
-    # When a K-code was resolved, `_procedure_display` already returned the
-    # authoritative JP display, so this call is a no-op there (idempotent).
+    # The JP fallback goes through the procedure-name resolver (Issue #2408):
+    # an exact procedure-phrase / imaging entry ("Ice pack application" →
+    # 「氷嚢貼付」), else the free-text translator for composite order text,
+    # which also translates dosage abbreviations (O2 → 酸素投与, PO → 経口).
+    # A K-code display is already Japanese, so this is a no-op there.
     if is_jp(country) and primary_display:
-        primary_display = _localize_drug_name(primary_display, country)
+        primary_display = localize_procedure_name(primary_display, "ja")
 
     # Issue #1701 Phase 4d.2: when running JP output on a Procedure whose
     # CIF record carries only a CPT code (``procedure_code_us``) and no

@@ -236,4 +236,4 @@ occupation:
 
 | 未準拠箇所 | Issue |
 |---|---|
-| 自由文の名称翻訳 (`locale.free_text.localize_free_text`) が汎用の 1 本で、手技・SNOMED・アレルゲン名も薬名辞書と部分文字列置換を通る。 | #2408 |
+| 用法用語表 `locale/shared/med_terms.yaml` が `clinosim-procedure-phrase.yaml` の手技名 5 件を重複して持ち、薬名の解決関数がそれらを翻訳してしまう。 | #2446 |
