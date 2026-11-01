@@ -38,6 +38,7 @@ import numpy as np
 from clinosim.codes.drugs import drug_display
 from clinosim.codes.valuesets import has_condition
 from clinosim.locale.i18n import t
+from clinosim.locale.localized import localized_field
 from clinosim.modules._shared import get_attr_or_key as _get
 from clinosim.modules.observation.engine import (
     canonical_lab_name,
@@ -162,7 +163,7 @@ def _inject_for_record(
                 analyte=analyte,
                 display_name=str(lab_spec.get("lab") or analyte),
                 loinc=monitoring_lab_code(str(lab_spec.get("lab") or "")),
-                rationale=str(lab_spec.get("rationale") or f"{drug_name} monitoring"),
+                rationale=localized_field(lab_spec, "rationale", "en", fallback=f"{drug_name} monitoring"),
                 # Issue #871: JA rationale for the JP `reasonCode.text` emit
                 # path. Empty when the YAML has no `rationale_ja` slot yet;
                 # `_inject_one_lab` then leaves `clinical_intent_ja` empty

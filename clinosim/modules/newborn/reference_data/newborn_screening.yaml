@@ -128,7 +128,7 @@ metabolic_screen:
     # the tandem-MS newborn screen. Verified 2026-09-11 via
     # tx.fhir.org/r4/CodeSystem/$lookup?system=http://loinc.org&code=54089-8.
     # The code itself lives in codes/data/loinc-maps.yaml (Issue #2392).
-    order_display: "Newborn screening panel"
+    order_display_en: "Newborn screening panel"
     order_display_ja: "新生児マス・スクリーニング パネル"
     # SNOMED 108252007 = "Laboratory procedure" — tx.fhir.org verified.
     category_code: "108252007"
@@ -138,7 +138,7 @@ metabolic_screen:
     # verified 2026-09-11 via /ValueSet/$expand filter=capillary blood
     # specimen (top-of-list match).
     type_code: "122554006"
-    type_display: "Capillary blood specimen"
+    type_display_en: "Capillary blood specimen"
     type_display_ja: "毛細血管血検体"
     # Heel-stick collection details — body-site and method emitted as
     # text-only (no SNOMED code) because verified codes for
@@ -151,7 +151,7 @@ metabolic_screen:
     collection_method_text_ja: "踵採血 (毛細血管採血)"
   diagnostic_report:
     # Same LOINC 54089-8 for the aggregate report — matches SR.code.
-    code_display: "Newborn screening panel"
+    code_display_en: "Newborn screening panel"
     code_display_ja: "新生児マス・スクリーニング パネル"
     # laboratory category (hl7-diagnostic-service-sections) — the DR
     # is a lab-type diagnostic report even though the collection is a

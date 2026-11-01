@@ -41,7 +41,7 @@ class TestLoadPanelGroups:
 
         for name, panel in load_panel_definitions().items():
             assert "loinc" in panel and panel["loinc"]
-            assert "display" in panel and panel["display"]
+            assert "display_en" in panel and panel["display_en"]
             assert isinstance(panel["components"], list) and panel["components"]
             assert isinstance(panel["min_components"], int) and panel["min_components"] >= 1
 

@@ -13,6 +13,8 @@ from typing import Any
 
 import yaml
 
+from clinosim.locale.localized import localized_field
+
 _HERE = Path(__file__).resolve().parent
 _YAML_PATH = _HERE / "reference_data" / "prophylaxis_rules.yaml"
 
@@ -269,7 +271,7 @@ def build_dvt_prophylaxis_orders(
         order_code="",
         display_name=rule["drug"],
         urgency="routine",
-        clinical_intent=rule.get("clinical_intent", ""),
+        clinical_intent=localized_field(rule, "clinical_intent", "en"),
         clinical_intent_ja=rule.get("clinical_intent_ja", ""),
         ordered_datetime=ordered_dt,
         ordered_by=getattr(enc, "attending_physician_id", "") or "",

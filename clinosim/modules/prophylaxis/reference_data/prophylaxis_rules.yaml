@@ -18,7 +18,7 @@ dvt_prophylaxis:
   # Rationale citation
   guideline: "CHEST 2018 antithrombotic therapy for VTE + ACCP 2022"
   # Consumer-facing intent (populates Order.clinical_intent)
-  clinical_intent: "DVT prophylaxis: standard-of-care VTE chemoprophylaxis for inpatient stay ≥48h"
+  clinical_intent_en: "DVT prophylaxis: standard-of-care VTE chemoprophylaxis for inpatient stay ≥48h"
   clinical_intent_ja: "DVT予防: 入院期間 48 時間以上の患者に対する標準 VTE 化学的予防"
 
 # Skip conditions — the enricher walks these tags against the encounter /
