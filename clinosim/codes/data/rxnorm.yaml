@@ -834,3 +834,19 @@ codes:
   '5093':
     en: haloperidol
     ja: ハロペリドール
+  # Issue #2423: protocol drugs catalogued (RxNav historystatus, Active, 2026-11-01).
+  '2045114':
+    en: andexanet alfa
+    ja: アンデキサネット アルファ
+  '34482':
+    en: cilastatin / imipenem
+    ja: イミペネム/シラスタチン
+  '57048':
+    en: terlipressin
+    ja: テルリプレシン
+  '214183':
+    en: acetaminophen / oxycodone
+    ja: オキシコドン/アセトアミノフェン
+  '1795250':
+    en: 1000 ML glucose 50 MG/ML / sodium chloride 4.5 MG/ML Injection
+    ja: 5%ブドウ糖加0.45%食塩液 1000 mL

@@ -446,7 +446,7 @@ drugs:
     - drug_id: idarucizumab
       dose: "5g IV"
       indication: "Dabigatran reversal"
-    - drug: "Andexanet_alfa"
+    - drug_id: andexanet_alfa
       dose: "As prescribed"
       note: "Per weight-based protocol"
       indication: "Factor Xa inhibitor reversal (rivaroxaban, apixaban)"

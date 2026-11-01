@@ -415,7 +415,7 @@ drugs:
         indication: "infected_necrosis"
         renal_adjustment:
           eGFR_below_30: "0.5g IV q12h"
-      - drug: "Imipenem/Cilastatin"
+      - drug_id: imipenem_cilastatin
         dose: "500mg IV q6h"
         indication: "alternative for infected necrosis"
 

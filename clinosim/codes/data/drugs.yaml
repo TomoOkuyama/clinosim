@@ -1885,3 +1885,41 @@ drugs:
     names: {en: "Ciclosporin", ja: "シクロスポリン"}
     classes: ["immunosuppressant.calcineurin_inhibitor"]
     aliases: ["Cyclosporine", "Neoral", "ネオーラル"]
+
+  # Issue #2423: protocol drugs that were missing from the catalog. RxCUIs
+  # verified Active on RxNav /REST/rxcui/<cui>/historystatus (2026-11-01);
+  # YJ codes from the MHLW YJ master snapshot. Not marketed in Japan
+  # (no YJ): andexanet alfa, terlipressin, oxycodone/acetaminophen; D5 ½NS
+  # is a US product (Japanese maintenance fluids differ in composition).
+  andexanet_alfa:
+    names: {en: "Andexanet alfa", ja: "アンデキサネット アルファ"}
+    codes:
+      rxnorm: "2045114"
+    classes: ["antidote.factor_xa_inhibitor_reversal"]
+  imipenem_cilastatin:
+    names: {en: "Imipenem/Cilastatin", ja: "イミペネム/シラスタチン"}
+    codes:
+      rxnorm: "34482"
+      yj: {injection: "6139501D2105"}
+    classes: ["antibiotic.carbapenem"]
+  terlipressin:
+    names: {en: "Terlipressin", ja: "テルリプレシン"}
+    codes:
+      rxnorm: "57048"
+    classes: ["vasopressor"]
+  rebamipide:
+    names: {en: "Rebamipide", ja: "レバミピド"}
+    codes:
+      yj: {oral: "2329021F1102"}
+    classes: ["gastroprotective"]
+  oxycodone_acetaminophen:
+    names: {en: "Oxycodone/Acetaminophen", ja: "オキシコドン/アセトアミノフェン"}
+    codes:
+      rxnorm: "214183"
+    classes: ["opioid", "analgesic.non_opioid"]
+  dextrose_5_sodium_chloride_045:
+    names: {en: "Dextrose 5% / Sodium chloride 0.45%", ja: "5%ブドウ糖加0.45%食塩液"}
+    codes:
+      rxnorm: "1795250"
+    classes: ["iv_fluid"]
+

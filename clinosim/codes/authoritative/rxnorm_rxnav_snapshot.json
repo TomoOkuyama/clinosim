@@ -1378,6 +1378,36 @@
    "status": "Active",
    "name": "dextromethorphan / guaifenesin",
    "tty": "MIN"
+  },
+  {
+   "code": "2045114",
+   "status": "Active",
+   "name": "andexanet alfa",
+   "tty": "IN"
+  },
+  {
+   "code": "34482",
+   "status": "Active",
+   "name": "cilastatin / imipenem",
+   "tty": "MIN"
+  },
+  {
+   "code": "57048",
+   "status": "Active",
+   "name": "terlipressin",
+   "tty": "IN"
+  },
+  {
+   "code": "214183",
+   "status": "Active",
+   "name": "acetaminophen / oxycodone",
+   "tty": "MIN"
+  },
+  {
+   "code": "1795250",
+   "status": "Active",
+   "name": "1000 ML glucose 50 MG/ML / sodium chloride 4.5 MG/ML Injection",
+   "tty": "SCD"
   }
  ]
 }

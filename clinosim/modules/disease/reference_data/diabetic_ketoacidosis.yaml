@@ -455,13 +455,13 @@ drugs:
 
   glucose_management:
     japan:
-      - drug: "D5 half-NS (5% dextrose in 0.45% NaCl)"
+      - drug_id: dextrose_5_sodium_chloride_045
         dose: "250 mL/h"
         route: IV
         indication: "glucose < 250 mg/dL"
         note: "Switch from NS to D5 when glucose approaches 200-250"
     us:
-      - drug: "D5 half-NS (5% dextrose in 0.45% NaCl)"
+      - drug_id: dextrose_5_sodium_chloride_045
         dose: "150-250 mL/h"
         route: IV
         indication: "glucose < 200 mg/dL (ADA: 200 for DKA)"

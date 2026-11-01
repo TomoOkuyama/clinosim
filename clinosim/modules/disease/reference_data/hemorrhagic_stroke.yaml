@@ -401,7 +401,7 @@ drugs:
         dose: "5g IV"
         route: IV
         indication: "dabigatran_reversal"
-      - drug: "Andexanet alfa"
+      - drug_id: andexanet_alfa
         dose: "400-800mg IV bolus then infusion"
         route: IV
         indication: "rivaroxaban_or_apixaban_reversal"
