@@ -85,7 +85,7 @@ facade sorts NDJSON by id post-write.
 ## Dependencies
 
 - `clinosim.modules._shared` — `is_jp`, `is_us`, `resolve_lang`.
-- `clinosim.modules.output.fhir_r4.lib.common` — `_coding_with_display`,
+- `clinosim.modules.output.fhir_r4.lib.common` — `system_coding`,
   `_social_category`, `build_address`, `build_telecom`, `to_fhir_date`,
   `BundleContext`, plus fragment helpers.
 - `clinosim.modules.output.fhir_r4.lib.localization` — JP display

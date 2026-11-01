@@ -20,6 +20,7 @@ from clinosim.modules.output.fhir_r4.demographics.patient import patient_ref
 from clinosim.modules.output.fhir_r4.encounters.encounter import encounter_ref
 from clinosim.modules.output.fhir_r4.lib.common import (
     BundleContext,
+    dual_slot_concept,
     loinc_coding,
     survey_category,
     to_fhir_datetime,
@@ -244,7 +245,7 @@ def _bb_nursing_observations(ctx: BundleContext) -> list[dict]:
                 else {}
             ),
             "status": "final",
-            "category": survey_category(),
+            "category": survey_category(resolve_lang(ctx.country)),
             "subject": subject,
         }
         if enc_ref:
@@ -341,25 +342,15 @@ def _bb_nursing_observations(ctx: BundleContext) -> list[dict]:
             if fall_level:
                 # Clinosim Morse risk bands ("low"/"moderate"/"high") → HL7 v3
                 # ObservationInterpretation L / N / H.
-                _fall_interp: dict[str, tuple[str, str, str]] = {
-                    "low": ("L", "Low", "低リスク"),
-                    "moderate": ("N", "Normal", "中リスク"),
-                    "high": ("H", "High", "高リスク"),
-                }
-                code_val, display_en, display_ja = _fall_interp.get(str(fall_level).lower(), ("N", "Normal", "通常"))
-                interp_display = display_ja if is_jp(ctx.country) else display_en
+                # The coding display is the English HL7 display (dual slot,
+                # Issue #2337); the risk band goes in text.
+                _fall_interp = {"low": "L", "moderate": "N", "high": "H"}
+                code_val = _fall_interp.get(str(fall_level).lower(), "N")
                 interp_text = f"転倒リスク: {fall_level}" if is_jp(ctx.country) else f"Fall risk: {fall_level}"
                 obs["interpretation"] = [
-                    {
-                        "coding": [
-                            {
-                                "system": get_system_uri("hl7-observation-interpretation"),
-                                "code": code_val,
-                                "display": interp_display,
-                            }
-                        ],
-                        "text": interp_text,
-                    }
+                    dual_slot_concept(
+                        "hl7-observation-interpretation", code_val, resolve_lang(ctx.country), text=interp_text
+                    )
                 ]
             out.append(obs)
 

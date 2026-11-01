@@ -92,7 +92,7 @@ NDJSON を id で sort する。
 - `clinosim.modules._shared` — `is_jp`, `resolve_lang`,
   `get_attr_or_key`。
 - `clinosim.modules.output.fhir_r4.lib.common` — `BundleContext`,
-  `_coding_with_display`, `_social_category`, `loinc_coding`,
+  `system_coding`, `_social_category`, `loinc_coding`,
   `attach_ecs_institutional_extensions`。
 - `clinosim.modules.output.fhir_r4.conditions.primary_ref` —
   `Encounter.reasonReference` + `Encounter.diagnosis[].condition`

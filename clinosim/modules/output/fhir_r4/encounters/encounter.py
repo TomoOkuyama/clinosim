@@ -25,7 +25,6 @@ from clinosim.modules.output.fhir_r4.conditions.primary_ref import (
 )
 from clinosim.modules.output.fhir_r4.demographics.patient import patient_ref
 from clinosim.modules.output.fhir_r4.lib.common import (
-    _coding_with_display,
     dual_slot_concept,
     make_participant,
     map_diagnosis_code,
@@ -175,9 +174,9 @@ def _build_encounter(
             # future cycle (needs new CIF field).
             type_code = "185349003"
     if type_code:
-        # C2-01: use _coding_with_display so codes lacking a
+        # C2-01: use dual_slot_concept so codes lacking a
         # codes/data entry emit without display=code fallback (FHIR interop).
-        resource["type"] = [{"coding": [_coding_with_display("snomed-ct", type_code, resolve_lang(country))]}]
+        resource["type"] = [dual_slot_concept("snomed-ct", type_code, resolve_lang(country))]
 
     # Priority (Encounter.priority)
     priority = enc.get("priority", "")
@@ -321,7 +320,7 @@ def _build_encounter(
         # This gives every Encounter a machine-processable reason.
         rc: dict[str, Any] = {"text": reason_text}
         if _reason_code:
-            rc["coding"] = [_coding_with_display(_reason_system, _reason_code, lang)]
+            rc["coding"] = [system_coding(_reason_system, _reason_code, lang)]
         resource["reasonCode"] = [rc]
         # reasonReference: link to primary Condition (if dx exists).
         # Chronic-primary encounters resolve to the patient-scoped chronic

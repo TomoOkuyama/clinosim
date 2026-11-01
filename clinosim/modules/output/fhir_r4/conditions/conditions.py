@@ -33,7 +33,6 @@ from clinosim.modules.output.fhir_r4.conditions.primary_ref import (
 from clinosim.modules.output.fhir_r4.demographics.patient import patient_ref
 from clinosim.modules.output.fhir_r4.encounters.encounter import encounter_ref
 from clinosim.modules.output.fhir_r4.lib.common import (
-    _coding_with_display,
     build_diagnosis_codeable_concept,
     dual_slot_concept,
     infer_severity,
@@ -294,12 +293,8 @@ def _build_conditions(record: dict, patient_id: str, country: str) -> list[dict]
                 if is_jp(country_code)
                 else {}
             ),
-            "clinicalStatus": {
-                "coding": [_coding_with_display("hl7-condition-clinical", clinical_status, lang)],
-            },
-            "verificationStatus": {
-                "coding": [_coding_with_display("hl7-condition-ver-status", "confirmed", lang)],
-            },
+            "clinicalStatus": dual_slot_concept("hl7-condition-clinical", clinical_status, lang),
+            "verificationStatus": dual_slot_concept("hl7-condition-ver-status", "confirmed", lang),
             "category": [dual_slot_concept("hl7-condition-category", "encounter-diagnosis", resolve_lang(country))],
             "code": build_diagnosis_codeable_concept(
                 map_diagnosis_code(dx_code, country, sex=patient_sex), icd_system_key, country
@@ -494,18 +489,12 @@ def _build_conditions(record: dict, patient_id: str, country: str) -> list[dict]
             # stay it may be refined or resolved. Encode as ``active`` until
             # the encounter completes; ``resolved`` at discharge (same rule as
             # the encounter-primary path above for non-chronic, non-deceased).
-            "clinicalStatus": {
-                "coding": [
-                    _coding_with_display(
-                        "hl7-condition-clinical",
-                        "resolved" if (is_inpatient and discharge_dt and not deceased) else "active",
-                        lang,
-                    )
-                ],
-            },
-            "verificationStatus": {
-                "coding": [_coding_with_display("hl7-condition-ver-status", "confirmed", lang)],
-            },
+            "clinicalStatus": dual_slot_concept(
+                "hl7-condition-clinical",
+                "resolved" if (is_inpatient and discharge_dt and not deceased) else "active",
+                lang,
+            ),
+            "verificationStatus": dual_slot_concept("hl7-condition-ver-status", "confirmed", lang),
             "category": [dual_slot_concept("hl7-condition-category", "encounter-diagnosis", resolve_lang(country))],
             "code": build_diagnosis_codeable_concept(_admit_mapped, icd_system_key, country),
             "subject": patient_ref(patient_id),
@@ -595,21 +584,15 @@ def _build_conditions(record: dict, patient_id: str, country: str) -> list[dict]
             # clinical consideration on this encounter). "secondary"
             # is NOT a valid code in that value-set.
             **({"extension": [_ecs_diagnosis_type_extension("differential")]} if is_jp(country_code) else {}),
-            "clinicalStatus": {
-                "coding": [
-                    _coding_with_display(
-                        "hl7-condition-clinical",
-                        # Match the encounter-primary discharge semantics —
-                        # resolved when the encounter ends non-deceased,
-                        # active while ongoing / on discharge for deceased.
-                        "resolved" if (is_inpatient and discharge_dt and not deceased) else "active",
-                        lang,
-                    )
-                ],
-            },
-            "verificationStatus": {
-                "coding": [_coding_with_display("hl7-condition-ver-status", "confirmed", lang)],
-            },
+            "clinicalStatus": dual_slot_concept(
+                "hl7-condition-clinical",
+                # Match the encounter-primary discharge semantics —
+                # resolved when the encounter ends non-deceased,
+                # active while ongoing / on discharge for deceased.
+                "resolved" if (is_inpatient and discharge_dt and not deceased) else "active",
+                lang,
+            ),
+            "verificationStatus": dual_slot_concept("hl7-condition-ver-status", "confirmed", lang),
             "category": [dual_slot_concept("hl7-condition-category", "encounter-diagnosis", resolve_lang(country))],
             "code": build_diagnosis_codeable_concept(_wd_mapped, icd_system_key, country),
             "subject": patient_ref(patient_id),
@@ -691,14 +674,10 @@ def _build_conditions(record: dict, patient_id: str, country: str) -> list[dict]
             # finding, not the encounter's reason). Same extension family as
             # the encounter-diagnosis path above.
             **({"extension": [_ecs_diagnosis_type_extension("clinical")]} if is_jp(country_code) else {}),
-            # C2-02/03: use _coding_with_display so the
+            # C2-02/03: use system_coding so the
             # chronic-condition path also emits displays (was raw code).
-            "clinicalStatus": {
-                "coding": [_coding_with_display("hl7-condition-clinical", "active", lang)],
-            },
-            "verificationStatus": {
-                "coding": [_coding_with_display("hl7-condition-ver-status", "confirmed", lang)],
-            },
+            "clinicalStatus": dual_slot_concept("hl7-condition-clinical", "active", lang),
+            "verificationStatus": dual_slot_concept("hl7-condition-ver-status", "confirmed", lang),
             "category": [dual_slot_concept("hl7-condition-category", "problem-list-item", resolve_lang(country))],
             "code": build_diagnosis_codeable_concept(
                 map_diagnosis_code(c_code, country, sex=patient_sex), icd_system_key, country
@@ -825,12 +804,8 @@ def _build_conditions(record: dict, patient_id: str, country: str) -> list[dict]
                 else {}
             ),
             **({"extension": [_ecs_diagnosis_type_extension("clinical")]} if is_jp(country_code) else {}),
-            "clinicalStatus": {
-                "coding": [_coding_with_display("hl7-condition-clinical", "active", lang)],
-            },
-            "verificationStatus": {
-                "coding": [_coding_with_display("hl7-condition-ver-status", "confirmed", lang)],
-            },
+            "clinicalStatus": dual_slot_concept("hl7-condition-clinical", "active", lang),
+            "verificationStatus": dual_slot_concept("hl7-condition-ver-status", "confirmed", lang),
             "category": [dual_slot_concept("hl7-condition-category", "problem-list-item", resolve_lang(country))],
             "code": build_diagnosis_codeable_concept(
                 map_diagnosis_code("Z87.59", country, sex=patient_sex),

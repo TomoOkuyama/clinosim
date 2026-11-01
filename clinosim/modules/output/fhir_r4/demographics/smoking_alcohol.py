@@ -23,7 +23,7 @@ from clinosim.modules.output.fhir_r4.demographics.patient import patient_ref
 from clinosim.modules.output.fhir_r4.lib.common import (
     BundleContext,
     _social_category,
-    _value,
+    dual_slot_concept,
 )
 from clinosim.modules.output.fhir_r4.lib.ids import (
     derive_opaque_id,
@@ -80,7 +80,7 @@ def _obs(obs_id: str, country: str, loinc: str, loinc_text: str, value_system: s
             ],
             "text": loinc_text,
         },
-        "valueCodeableConcept": _value(value_system, value_code, lang),
+        "valueCodeableConcept": dual_slot_concept(value_system, value_code, lang),
     }
 
 

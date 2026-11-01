@@ -195,7 +195,7 @@ def _build_lab_observation(
         # feedback FB-F6: 該当 LOINC の standard profile も stack 追加。
         **({"meta": {"profile": _profiles}} if _profiles else {}),
         "status": "final",
-        "category": survey_category()
+        "category": survey_category(resolve_lang(country))
         if lab_name in _QUESTIONNAIRE_SCORE_ANALYTES
         else [dual_slot_concept("hl7-observation-category", "laboratory", resolve_lang(country))],
         "code": {"coding": codings, "text": display_name} if codings else {"text": display_name},

@@ -21,7 +21,7 @@ from clinosim.modules.output.fhir_r4.demographics.patient import patient_ref
 from clinosim.modules.output.fhir_r4.encounters.encounter import encounter_ref
 from clinosim.modules.output.fhir_r4.lib.common import (
     BundleContext,
-    _coding_with_display,
+    dual_slot_concept,
     map_diagnosis_code,
 )
 
@@ -69,26 +69,13 @@ def _bb_hai_conditions(ctx: BundleContext) -> list[dict]:
         resource: dict[str, Any] = {
             "resourceType": "Condition",
             "id": hai_id,
-            # C2-02/03: use _coding_with_display so status displays
+            # C2-02/03: use system_coding so status displays
             # are populated from codes/data/hl7-condition-{clinical,ver-status}.yaml.
             # Also fixes wrong system key `hl7-condition-verification` (never
             # registered; canonical URI ends in `condition-ver-status`).
-            "clinicalStatus": {
-                "coding": [_coding_with_display("hl7-condition-clinical", "active", resolve_lang(ctx.country))]
-            },
-            "verificationStatus": {
-                "coding": [_coding_with_display("hl7-condition-ver-status", "confirmed", resolve_lang(ctx.country))]
-            },
-            "category": [
-                {
-                    "coding": [
-                        {
-                            "system": get_system_uri("hl7-condition-category"),
-                            "code": "encounter-diagnosis",
-                        }
-                    ]
-                }
-            ],
+            "clinicalStatus": dual_slot_concept("hl7-condition-clinical", "active", resolve_lang(ctx.country)),
+            "verificationStatus": dual_slot_concept("hl7-condition-ver-status", "confirmed", resolve_lang(ctx.country)),
+            "category": [dual_slot_concept("hl7-condition-category", "encounter-diagnosis", lang)],
             "code": {"coding": coding, "text": icd_disp or snomed_disp},
             "subject": patient_ref(ctx.patient_id),
             "encounter": encounter_ref(enc_id),

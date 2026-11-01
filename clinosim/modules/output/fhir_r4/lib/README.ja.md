@@ -20,7 +20,7 @@ subpackage の builder helper を import する (下記)。
 - **In scope**:
   - `common.py` — `BundleContext` dataclass (各 `_bb_*` builder が
     受け取る read-only context)、fragment helper
-    (`_coding_with_display`,
+    (`system_coding`,
     `_escape_html`, `survey_category`, `_social_category`,
     `loinc_coding`, `to_fhir_date`, `entry`、ほか dosage / route /
     診断 / datetime helper 多数)、eCS 機関 / 部門

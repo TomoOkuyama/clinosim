@@ -21,7 +21,7 @@ directly from `clinosim.modules.output.fhir_r4.lib.common` (Issue
 - **In scope**:
   - `common.py` — `BundleContext` dataclass (the read-only context
     every `_bb_*` builder receives) + fragment helpers
-    (`_coding_with_display`,
+    (`system_coding`,
     `_escape_html`, `survey_category`, `_social_category`,
     `loinc_coding`, `to_fhir_date`, `entry`, plus many dosage /
     route / diagnosis / datetime helpers), the eCS

@@ -54,12 +54,11 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from typing import Any
 
-from clinosim.codes import get_system_uri
 from clinosim.codes.loinc import loinc_coding
 from clinosim.modules._shared import get_attr_or_key
 from clinosim.modules.output.fhir_r4.demographics.patient import patient_ref
 from clinosim.modules.output.fhir_r4.encounters.encounter import encounter_ref
-from clinosim.modules.output.fhir_r4.lib.common import BundleContext, to_fhir_datetime
+from clinosim.modules.output.fhir_r4.lib.common import BundleContext, survey_category, to_fhir_datetime
 from clinosim.modules.output.fhir_r4.lib.ids import (
     derive_opaque_id,
     structural_key_system,
@@ -254,18 +253,9 @@ def _build_one_observation(
         "id": _resolve_scale_id(structural_key),
         "identifier": [wrap_as_identifier(structural_key, STAGE_SCALE_OBSERVATION_KEY_SYSTEM)],
         "status": "final",
-        "category": [
-            {
-                "coding": [
-                    {
-                        "system": get_system_uri("hl7-observation-category"),
-                        "code": "survey",
-                        "display": "Survey",
-                    }
-                ],
-                "text": "Survey",
-            }
-        ],
+        # The stage-scale builder has no output language (its code.text is
+        # English too); the category keeps the English label.
+        "category": survey_category("en"),
         "code": code_block,
         "subject": patient_ref(patient_id),
         spec.value_key: value,

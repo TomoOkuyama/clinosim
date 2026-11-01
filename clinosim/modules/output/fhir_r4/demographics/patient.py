@@ -23,10 +23,11 @@ from clinosim.codes.ucum import ucum_quantity
 from clinosim.locale.loader import load_identity_config, vocab_display
 from clinosim.modules._shared import is_jp, resolve_lang
 from clinosim.modules.output.fhir_r4.lib.common import (
-    _coding_with_display,
     _social_category,
     build_address,
     build_telecom,
+    dual_slot_concept,
+    system_coding,
     to_fhir_date,
     to_fhir_deceased_datetime,
 )
@@ -237,8 +238,6 @@ def _resolve_coverage_id(structural_key: str) -> str:
     return derive_opaque_id(COVERAGE_ID_PREFIX, structural_key)
 
 
-# FHIR R4 standard: payer organization type
-_ORG_TYPE_SYSTEM = get_system_uri("hl7-organization-type")
 # FHIR R4 standard: beneficiary's relationship to the policy subscriber
 _SUBSCRIBER_REL_SYSTEM = get_system_uri("hl7-subscriber-relationship")
 
@@ -554,17 +553,7 @@ def _build_coverage_resources(
                                 "value": insurer,
                             }
                         ],
-                        "type": [
-                            {
-                                "coding": [
-                                    {
-                                        "system": _ORG_TYPE_SYSTEM,
-                                        "code": "pay",
-                                        "display": "Payer",
-                                    }
-                                ]
-                            }
-                        ],
+                        "type": [dual_slot_concept("hl7-organization-type", "pay", resolve_lang(country))],
                         "name": name_map.get(insurer, insurer),
                     }
                 )
@@ -648,7 +637,7 @@ def _build_coverage_resources(
             rel_code = "other" if category == "dependent" else "self"
             coverage["relationship"] = {
                 "coding": [
-                    _coding_with_display(
+                    system_coding(
                         "hl7-subscriber-relationship",
                         rel_code,
                         resolve_lang(country),

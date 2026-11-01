@@ -39,6 +39,9 @@ def test_encounter_type_display_us(enc_type, code, en):
 )
 def test_encounter_type_display_jp(enc_type, code, ja):
     resource = _build_encounter({"encounter_id": "E1", "encounter_type": enc_type}, "P1", country="JP")
-    coding = resource["type"][0]["coding"][0]
+    concept = resource["type"][0]
+    coding = concept["coding"][0]
     assert coding["code"] == code
-    assert coding["display"] == ja == lookup("snomed-ct", code, "ja")
+    # Dual slot (Issue #2337): English SNOMED display in the coding, Japanese in text.
+    assert coding["display"] == lookup("snomed-ct", code, "en")
+    assert concept["text"] == ja == lookup("snomed-ct", code, "ja")

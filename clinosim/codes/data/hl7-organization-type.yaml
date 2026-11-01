@@ -7,3 +7,4 @@ metadata:
 codes:
   prov: {en: "Healthcare Provider", ja: "医療機関"}
   dept: {en: "Hospital Department", ja: "診療科"}
+  pay: {en: "Payer", ja: "保険者"}
