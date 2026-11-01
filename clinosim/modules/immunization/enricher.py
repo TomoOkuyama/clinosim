@@ -12,6 +12,7 @@ from datetime import date, datetime
 import numpy as np
 
 from clinosim.countries import is_jp
+from clinosim.locale.i18n import t
 from clinosim.modules._shared import get_attr_or_key as _get
 from clinosim.modules._shared import set_attr_or_key as _set
 from clinosim.modules.immunization.engine import (
@@ -196,8 +197,8 @@ def _synthesize_vaccination_encounter(
     _suffix = hashlib.sha256(_key).hexdigest()[:12]
     enc_id = f"ENC-VAX-{patient_id}-{_suffix}"
     adm = datetime(occ.year, occ.month, occ.day, 10, 0)
-    chief_en = "Vaccination visit"
-    chief_ja = "予防接種"
+    chief_en = t("module_text.vaccination_visit", "en")
+    chief_ja = t("module_text.vaccination_visit", "ja")
     # Issue #1215: stamp Z23 "Encounter for immunization" as the companion
     # encounter's own admission diagnosis so FHIR emit's reasonCode reflects
     # the visit purpose (vaccination) instead of inheriting the record's

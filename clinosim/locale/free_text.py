@@ -17,6 +17,7 @@ from __future__ import annotations
 import re
 
 from clinosim.countries import is_jp
+from clinosim.locale.i18n import t
 from clinosim.locale.loader import load_med_terms as _load_med_terms
 from clinosim.locale.loader import load_narrative_display_dict as _load_narrative_display_dict
 from clinosim.locale.loader import resolve_localized_display
@@ -154,8 +155,7 @@ def _localize_rate_adjustment(note_en: str, country: str) -> str:
     m = re.match(r"^(increase|decrease) rate by (\d+)%\s*$", note_en, re.IGNORECASE)
     if not m:
         return note_en
-    direction_ja = "増量" if m.group(1).lower() == "increase" else "減量"
-    return f"注入速度を{m.group(2)}%{direction_ja}"
+    return t(f"module_text.rate_{m.group(1).lower()}", "ja", pct=m.group(2))
 
 
 def _drug_name_patterns() -> tuple[tuple[re.Pattern[str], str], ...]:

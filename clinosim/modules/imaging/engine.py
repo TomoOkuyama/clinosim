@@ -16,6 +16,7 @@ from typing import Any
 import numpy as np
 import yaml
 
+from clinosim.locale.i18n import t
 from clinosim.modules._shared import get_attr_or_key as _o
 from clinosim.types.encounter import OrderStatus, OrderType
 from clinosim.types.imaging import ImagingSeries, ImagingStudyRecord, RadiologyReport
@@ -507,10 +508,7 @@ def _select_report_template(
 #: consumer-side coverage fix, session 88j — 2,559 studies with 0 DR
 #: (RAD) in production output). Facts-only: no acuity claim beyond "no
 #: acute abnormal findings", no anatomic assumptions.
-_GENERIC_NEG_FINDINGS_JA = "特記すべき異常所見なし。"
-_GENERIC_NEG_FINDINGS_EN = "No acute abnormal findings within the imaged field."
-_GENERIC_NEG_IMPRESSION_JA = "今回撮像範囲内に急性期異常所見を認めず。"
-_GENERIC_NEG_IMPRESSION_EN = "No acute abnormal findings within the imaged range."
+#: Text lives in narrative_phrases.yaml (imaging_report.generic_negative_*).
 
 
 def _build_generic_negative_report(encounter_id: str, idx: int) -> RadiologyReport:
@@ -527,10 +525,10 @@ def _build_generic_negative_report(encounter_id: str, idx: int) -> RadiologyRepo
     return RadiologyReport(
         report_id=f"{RADIOLOGY_REPORT_ID_PREFIX}{encounter_id}-{idx}",
         status="final",
-        findings_text=_GENERIC_NEG_FINDINGS_EN,
-        findings_text_ja=_GENERIC_NEG_FINDINGS_JA,
-        impression_text=_GENERIC_NEG_IMPRESSION_EN,
-        impression_text_ja=_GENERIC_NEG_IMPRESSION_JA,
+        findings_text=t("imaging_report.generic_negative_findings", "en"),
+        findings_text_ja=t("imaging_report.generic_negative_findings", "ja"),
+        impression_text=t("imaging_report.generic_negative_impression", "en"),
+        impression_text_ja=t("imaging_report.generic_negative_impression", "ja"),
     )
 
 

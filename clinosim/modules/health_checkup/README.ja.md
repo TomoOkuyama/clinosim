@@ -105,7 +105,7 @@ tier 閾値 (`CHECKUP_TYPE_SPECIFIC_AGE_MIN = 65`,
   LDL base + scaling、statin reduction 係数、dyslipidemia lift、および
   上記 2 つの年齢 tier 閾値を保持。
 - checkup type 別 chief-complaint テキスト
-  (`_CHECKUP_TYPE_CHIEF_COMPLAINT`): `occupational → "事業者健診"`,
+  (`health_checkup.<type>` in `locale/shared/narrative_phrases.yaml`): `occupational → "事業者健診"`,
   `specific → "特定健診"`, `regional_union → "広域連合健診"`。
 
 ## ディレクトリ構造

@@ -17,6 +17,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any, NamedTuple
 
+from clinosim.locale.i18n import t
 from clinosim.modules.patient.activator import activate_patient
 from clinosim.modules.population.engine import PersonRecord
 from clinosim.seeding import PHASE_INPATIENT_SIM, derive_phase_rng
@@ -73,7 +74,10 @@ def _pediatric_visit_reason(disease_id: str) -> str | dict[str, str]:
     for candidate_entry in schedule.values():
         if candidate_entry.get("disease_id") == disease_id and candidate_entry.get("visit_reason"):
             return candidate_entry["visit_reason"]
-    return {"en": f"Pediatric visit: {disease_id}", "ja": "小児外来受診"}
+    return {
+        "en": t("module_text.pediatric_visit", "en", disease=disease_id),
+        "ja": t("module_text.pediatric_visit", "ja", disease=disease_id),
+    }
 
 
 def _parse_time_range_bound(bound: str) -> datetime:

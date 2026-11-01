@@ -37,6 +37,7 @@ import numpy as np
 
 from clinosim.codes.drugs import drug_display
 from clinosim.codes.valuesets import has_condition
+from clinosim.locale.i18n import t
 from clinosim.modules._shared import get_attr_or_key as _get
 from clinosim.modules.observation.engine import (
     canonical_lab_name,
@@ -310,7 +311,9 @@ def _inject_one_lab(
     # consumed by the JP SR emit path via `_pick_reason_text`. When
     # `rationale_ja` is empty (YAML not yet migrated), leave the JA slot
     # empty so the emit path falls back to the EN string.
-    clinical_intent_ja = f"慢性投薬モニタリング ({drug_ja}): {rationale_ja}" if rationale_ja else ""
+    clinical_intent_ja = (
+        t("module_text.chronic_drug_monitoring", "ja", drug=drug_ja, rationale=rationale_ja) if rationale_ja else ""
+    )
     order = Order(
         order_id=order_id,
         encounter_id=enc_id,

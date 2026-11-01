@@ -111,7 +111,7 @@ age-tier thresholds (`CHECKUP_TYPE_SPECIFIC_AGE_MIN = 65`,
   HbA1c branches, sex-and-age LDL base + scaling, statin reduction
   factor, dyslipidemia lift, plus the two age-tier thresholds above.
 - Chief-complaint text per checkup type
-  (`_CHECKUP_TYPE_CHIEF_COMPLAINT`): `occupational → "事業者健診"`,
+  (`health_checkup.<type>` in `locale/shared/narrative_phrases.yaml`): `occupational → "事業者健診"`,
   `specific → "特定健診"`, `regional_union → "広域連合健診"`.
 
 ## Directory contents

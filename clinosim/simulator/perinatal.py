@@ -29,7 +29,9 @@ from datetime import date, datetime, timedelta
 import numpy as np
 
 from clinosim.codes import system_key_for
+from clinosim.codes.drugs import drug_display
 from clinosim.codes.hl7_encounter import ActPriority, AdmitSource, DischargeDisposition
+from clinosim.locale.i18n import t
 from clinosim.locale.loader import load_perinatal_config
 from clinosim.modules._shared import is_jp
 from clinosim.modules.encounter.engine import create_inpatient_encounter
@@ -744,8 +746,8 @@ def simulate_delivery_encounter(
             (
                 "CSCF",
                 "Cefazolin",
-                "Cesarean surgical antimicrobial prophylaxis (ACOG / SCIP-INF-1)",
-                "帝王切開周術期予防抗菌薬 (ACOG / SCIP-INF-1)",
+                t("perinatal_intent.CSCF", "en"),
+                t("perinatal_intent.CSCF", "ja"),
                 2.0,
                 "g",
                 "IV",
@@ -754,8 +756,8 @@ def simulate_delivery_encounter(
             (
                 "CSBP",
                 "Bupivacaine",
-                "Cesarean spinal anesthesia (0.5 % intrathecal)",
-                "帝王切開脊髄くも膜下麻酔 (0.5 % 髄腔内)",
+                t("perinatal_intent.CSBP", "en"),
+                t("perinatal_intent.CSBP", "ja"),
                 12.0,
                 "mg",
                 "IT",
@@ -764,8 +766,8 @@ def simulate_delivery_encounter(
             (
                 "CSFN",
                 "Fentanyl",
-                "Cesarean intrathecal opioid adjunct to spinal anesthesia",
-                "帝王切開脊髄くも膜下麻酔 オピオイド補助",
+                t("perinatal_intent.CSFN", "en"),
+                t("perinatal_intent.CSFN", "ja"),
                 25.0,
                 "mcg",
                 "IT",
@@ -774,8 +776,8 @@ def simulate_delivery_encounter(
             (
                 "CSOD",
                 "Ondansetron",
-                "Cesarean antiemetic prophylaxis (spinal-induced hypotension)",
-                "帝王切開制吐薬予防 (脊麻後低血圧対策)",
+                t("perinatal_intent.CSOD", "en"),
+                t("perinatal_intent.CSOD", "ja"),
                 4.0,
                 "mg",
                 "IV",
@@ -784,8 +786,8 @@ def simulate_delivery_encounter(
             (
                 "CSOX",
                 "Oxytocin",
-                "Cesarean uterotonic post-cord-clamp (PPH prevention)",
-                "帝王切開臍帯クランプ後 子宮収縮薬 (PPH予防)",
+                t("perinatal_intent.CSOX", "en"),
+                t("perinatal_intent.CSOX", "ja"),
                 10.0,
                 "U",
                 "IV",
@@ -804,12 +806,8 @@ def simulate_delivery_encounter(
             (
                 "CSAM" if is_jp(country) else "CSKT",
                 "Acetaminophen" if is_jp(country) else "Ketorolac",
-                (
-                    "Cesarean postoperative multimodal analgesia (JP IV acetaminophen)"
-                    if is_jp(country)
-                    else "Cesarean postoperative multimodal analgesia (ERAS)"
-                ),
-                ("帝王切開術後多剤鎮痛 (アセトアミノフェン IV)" if is_jp(country) else "帝王切開術後多剤鎮痛 (ERAS)"),
+                (t("perinatal_intent.CSAM", "en") if is_jp(country) else t("perinatal_intent.CSKT", "en")),
+                (t("perinatal_intent.CSAM", "ja") if is_jp(country) else t("perinatal_intent.CSKT", "ja")),
                 1000.0 if is_jp(country) else 30.0,
                 "mg",
                 "IV",
@@ -861,8 +859,8 @@ def simulate_delivery_encounter(
             (
                 "VDIV",
                 "Lactated Ringer",
-                "Vaginal delivery IV crystalloid during labor (maintenance + hydration)",
-                "経腟分娩中の維持輸液 (乳酸リンゲル)",
+                t("perinatal_intent.VDIV", "en"),
+                t("perinatal_intent.VDIV", "ja"),
                 125.0,
                 "mL/h",
                 "IV",
@@ -871,8 +869,8 @@ def simulate_delivery_encounter(
             (
                 "VDOX",
                 "Oxytocin",
-                "Vaginal delivery active 3rd-stage uterotonic (PPH prevention, AWHONN / ACOG Class IA)",
-                "経腟分娩 分娩第3期 子宮収縮薬 (PPH予防、AWHONN / ACOG Class IA)",
+                t("perinatal_intent.VDOX", "en"),
+                t("perinatal_intent.VDOX", "ja"),
                 10.0,
                 "U",
                 "IM",
@@ -926,7 +924,7 @@ def simulate_delivery_encounter(
     _mother_rx_items: list[dict] = [
         {
             "drug_name": "Acetaminophen",
-            "drug_name_ja": "アセトアミノフェン",
+            "drug_name_ja": drug_display("Acetaminophen", "ja") or "",
             "dose": "500mg",
             "route": "PO",
             "frequency": "q6h PRN",
@@ -934,7 +932,7 @@ def simulate_delivery_encounter(
         },
         {
             "drug_name": "Ibuprofen",
-            "drug_name_ja": "イブプロフェン",
+            "drug_name_ja": drug_display("Ibuprofen", "ja") or "",
             "dose": "400mg",
             "route": "PO",
             "frequency": "tid" if is_cesarean else "q6h PRN",
@@ -1040,11 +1038,11 @@ def simulate_delivery_encounter(
     newborn_encounter = create_inpatient_encounter(
         newborn.patient_id,
         visit_date,
-        chief_complaint="Newborn — born in hospital",
+        chief_complaint=t("encounter_intent.newborn_inborn", "en"),
         department_id=dept,
         visit_number=0,
     )
-    newborn_encounter.chief_complaint_ja = "新生児 — 院内出生"
+    newborn_encounter.chief_complaint_ja = t("encounter_intent.newborn_inborn", "ja")
     newborn_encounter.encounter_type = EncounterType.INPATIENT
     newborn_encounter.status = EncounterStatus.COMPLETED
     # Newborn stays with mother — same LOS.
