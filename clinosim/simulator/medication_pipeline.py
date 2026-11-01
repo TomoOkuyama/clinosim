@@ -25,13 +25,17 @@ from __future__ import annotations
 
 import functools
 from datetime import datetime, timedelta
+from functools import cache
+from pathlib import Path
 from typing import Any
 
 import numpy as np
+import yaml
 
 from clinosim.codes.drugs import drug_classes, drug_key, drug_ref, get_drug, same_drug
-from clinosim.countries import is_jp, lang_for
-from clinosim.locale.localized import localized_field
+from clinosim.countries import lang_for
+from clinosim.locale.i18n import t
+from clinosim.locale.localized import localized, localized_field
 from clinosim.modules.physiology.renal_thresholds import (
     METFORMIN_ADMISSION_HOLD_THRESHOLD,
     METFORMIN_RENAL_RESERVE_THRESHOLD,
@@ -176,8 +180,8 @@ def _log_disease_medication_hold(
         rule_id=f"medication-hold:{disease_id or 'protocol'}",
         matched_classes=None,
         matched_active_drug=hold_reason,
-        rationale_en=f"held per protocol: {hold_reason}",
-        rationale_ja=f"protocol による保留: {hold_reason}",
+        rationale_en=t("order_intent.protocol_hold", "en", reason=hold_reason),
+        rationale_ja=t("order_intent.protocol_hold", "ja", reason=hold_reason),
         substitution_hint=None,
     )
     # active_conflict phrasing carries the CLINICAL REASON (English +
@@ -210,97 +214,21 @@ def _log_disease_medication_hold(
 # raw string so a new reason lands correctly (English side) with an
 # imperfect JA rendering until translated. Kept in the pipeline module
 # (rather than a shared table) so it stays scoped to the hold semantic.
-_HOLD_REASON_EN: dict[str, str] = {
-    # Legacy table entries (pre-Phase-1c-3, not observed as disease-YAML
-    # ``reason`` strings — kept for backward compat with any external
-    # caller that may still emit these compact forms).
-    "AKI: RAAS blockade held per KDIGO 2012 § 3.5.2": "AKI (KDIGO 2012 § 3.5.2 RAAS hold)",
-    "AKI: NSAIDs held (worsen renal perfusion)": "AKI (NSAID renal-perfusion hold)",
-    "Stroke: PO bisphosphonates held (aspiration risk)": "acute stroke (PO bisphosphonate aspiration risk)",
-    "Metformin held for renal function": "acute kidney injury / renal impairment",
-    # Phase 1c-3 (2026-09-22): mirror every ``reason`` string authored in
-    # ``clinosim/modules/disease/reference_data/*.yaml``. Pre-fix the
-    # H100 JP p=500 audit surfaced 112 raw-English leaks in the JA plan
-    # section because these YAML strings had no JA entry. The keys must
-    # match the YAML text VERBATIM.
-    "AKI — lactic acidosis risk, renal clearance impaired": (
-        "acute kidney injury (lactic acidosis + impaired renal clearance risk)"
-    ),
-    "AKI — NSAIDs contraindicated in renal impairment (afferent arteriolar vasoconstriction)": (
-        "acute kidney injury (NSAID contraindication — afferent arteriolar vasoconstriction)"
-    ),
-    "AKI — ACE-I blocks efferent arteriolar tone, worsens renal hemodynamics (KDIGO 2012 § 3.5.2)": (
-        "acute kidney injury (ACE-I blocks efferent arteriolar tone — KDIGO 2012 § 3.5.2)"
-    ),
-    "AKI — ARB same efferent-arteriole mechanism as ACE-I (KDIGO 2012 § 3.5.2)": (
-        "acute kidney injury (ARB — same efferent-arteriole mechanism as ACE-I, KDIGO 2012 § 3.5.2)"
-    ),
-    "Acute illness with lactic acidosis risk + NPO status": ("acute illness (lactic acidosis risk + NPO)"),
-    "Acute stroke — dysphagia / NG-tube risk contraindicates PO bisphosphonates (aspiration esophagitis)": (
-        "acute stroke (PO bisphosphonate aspiration-esophagitis risk with dysphagia / NG tube)"
-    ),
-    "Active intracranial hemorrhage — anticoagulation contraindicated": (
-        "active intracranial hemorrhage (anticoagulant contraindicated)"
-    ),
-    "Active intracranial hemorrhage — antiplatelet contraindicated": (
-        "active intracranial hemorrhage (antiplatelet contraindicated)"
-    ),
-    "Sepsis — lactic acidosis risk, potential renal impairment": ("sepsis (lactic acidosis + renal impairment risk)"),
-    "DKA — lactic acidosis risk; resume after metabolic stabilization": (
-        "DKA (lactic acidosis risk — resume after metabolic stabilisation)"
-    ),
-    "Acute HF exacerbation — oral diuretic replaced by IV furosemide": (
-        "acute HF exacerbation (oral diuretic held, IV furosemide substituted)"
-    ),
-}
-_HOLD_REASON_JA: dict[str, str] = {
-    # Legacy compact-form entries — see _HOLD_REASON_EN.
-    "AKI: RAAS blockade held per KDIGO 2012 § 3.5.2": "急性腎障害 (KDIGO 2012 § 3.5.2 RAAS 抑制保留)",
-    "AKI: NSAIDs held (worsen renal perfusion)": "急性腎障害 (NSAID による腎灌流悪化)",
-    "Stroke: PO bisphosphonates held (aspiration risk)": "急性期脳卒中 (PO bisphosphonate 誤嚥リスク)",
-    "Metformin held for renal function": "急性腎障害 / 腎機能低下",
-    # Phase 1c-3 (2026-09-22): JA mirror of the disease-YAML ``reason``
-    # authorship — closes the 112-leak JA plan-section audit finding.
-    "AKI — lactic acidosis risk, renal clearance impaired": (
-        "急性腎障害 (乳酸アシドーシス・腎排泄障害のリスクのため保留)"
-    ),
-    "AKI — NSAIDs contraindicated in renal impairment (afferent arteriolar vasoconstriction)": (
-        "急性腎障害 (NSAID — 輸入細動脈収縮のため腎機能低下下では禁忌)"
-    ),
-    "AKI — ACE-I blocks efferent arteriolar tone, worsens renal hemodynamics (KDIGO 2012 § 3.5.2)": (
-        "急性腎障害 (ACE 阻害薬 — 輸出細動脈トーン抑制、腎血行動態悪化、KDIGO 2012 § 3.5.2)"
-    ),
-    "AKI — ARB same efferent-arteriole mechanism as ACE-I (KDIGO 2012 § 3.5.2)": (
-        "急性腎障害 (ARB — ACE 阻害薬と同じ輸出細動脈機序、KDIGO 2012 § 3.5.2)"
-    ),
-    "Acute illness with lactic acidosis risk + NPO status": ("急性疾患 (乳酸アシドーシスリスク + 絶食状態のため保留)"),
-    "Acute stroke — dysphagia / NG-tube risk contraindicates PO bisphosphonates (aspiration esophagitis)": (
-        "急性期脳卒中 (嚥下障害・経鼻胃管留置により経口ビスホスホネートは誤嚥性食道炎リスクのため禁忌)"
-    ),
-    "Active intracranial hemorrhage — anticoagulation contraindicated": (
-        "頭蓋内出血の活動性 (抗凝固薬は禁忌のため保留)"
-    ),
-    "Active intracranial hemorrhage — antiplatelet contraindicated": (
-        "頭蓋内出血の活動性 (抗血小板薬は禁忌のため保留)"
-    ),
-    "Sepsis — lactic acidosis risk, potential renal impairment": (
-        "敗血症 (乳酸アシドーシス・腎機能悪化リスクのため保留)"
-    ),
-    "DKA — lactic acidosis risk; resume after metabolic stabilization": (
-        "糖尿病性ケトアシドーシス (乳酸アシドーシスリスクのため保留、代謝改善後再開予定)"
-    ),
-    "Acute HF exacerbation — oral diuretic replaced by IV furosemide": (
-        "急性心不全増悪 (経口利尿薬を保留し静注フロセミドに切替)"
-    ),
-}
+@cache
+def _hold_reasons() -> dict[str, dict[str, str]]:
+    """Hold-reason displays (``locale/shared/medication_hold_reasons.yaml``,
+    Issue #2405), keyed by the reason text authored in disease YAMLs."""
+    path = Path(__file__).resolve().parents[1] / "locale" / "shared" / "medication_hold_reasons.yaml"
+    data = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
+    return {str(k): dict(v) for k, v in (data.get("reasons") or {}).items()}
 
 
 def _hold_reason_english(reason: str) -> str:
-    return _HOLD_REASON_EN.get(reason, reason)
+    return localized(_hold_reasons().get(reason), "en", fallback=reason)
 
 
 def _hold_reason_japanese(reason: str) -> str:
-    return _HOLD_REASON_JA.get(reason, reason)
+    return localized(_hold_reasons().get(reason), "ja", fallback=reason)
 
 
 def _admin_hours_from_frequency(freq_per_day: int) -> list[int]:
@@ -392,11 +320,11 @@ def _generate_home_medication_orders(
             continue
         med_key = med.drug_id or drug_key(drug_name)
         intent_drug = f"{drug_name} {med.dose}".strip() if med.dose else drug_name
-        intent = f"Home medication (continue): {intent_drug}"
+        intent = t("order_intent.home_med_continue", "en", drug=intent_drug)
         # Issue #871: parallel JA display for JP SR reasonCode.text. `intent_drug`
         # includes the raw drug name + dose (which may be EN or JA depending on
         # the source); the shell is translated.
-        intent_ja = f"継続内服: {intent_drug}"
+        intent_ja = t("order_intent.home_med_continue", "ja", drug=intent_drug)
 
         # 1. Protocol-driven disease-specific holds.
         yaml_held = False
@@ -431,9 +359,9 @@ def _generate_home_medication_orders(
             if action == "hold":
                 continue  # held
             if action == "reduce":
-                intent += " [dose reduced for renal impairment]"
+                intent += t("order_intent.dose_reduced_renal", "en")
                 # Issue #871: mirror the annotation on the JA display.
-                intent_ja += " [腎機能低下のため減量]"
+                intent_ja += t("order_intent.dose_reduced_renal", "ja")
 
         order = Order(
             order_id=f"ORD-{encounter_id}-HM-{med_idx:02d}",
@@ -505,12 +433,14 @@ def _place_chronic_monitoring_orders(
                         order_code="",
                         display_name=mon["test"],
                         urgency="routine",
-                        clinical_intent=mon.get("intent", f"Chronic monitoring: {mon['test']}"),
+                        clinical_intent=mon.get("intent")
+                        or t("order_intent.chronic_monitoring", "en", test=mon["test"]),
                         # Issue #871: JA display for JP SR reasonCode.text.
                         # Reads `intent_ja` from the YAML spec; falls back to
                         # a shell-translated default when the YAML has not
                         # yet been extended.
-                        clinical_intent_ja=mon.get("intent_ja", f"慢性モニタリング: {mon['test']}"),
+                        clinical_intent_ja=mon.get("intent_ja")
+                        or t("order_intent.chronic_monitoring", "ja", test=mon["test"]),
                         ordered_datetime=order_time,
                         ordered_by=ordered_by,
                         status=OrderStatus.PLACED,
@@ -539,12 +469,14 @@ def _place_chronic_monitoring_orders(
                         order_code="",
                         display_name=mon["test"],
                         urgency="routine",
-                        clinical_intent=mon.get("intent", f"Chronic monitoring: {mon['test']}"),
+                        clinical_intent=mon.get("intent")
+                        or t("order_intent.chronic_monitoring", "en", test=mon["test"]),
                         # Issue #871: JA display for JP SR reasonCode.text.
                         # Reads `intent_ja` from the YAML spec; falls back to
                         # a shell-translated default when the YAML has not
                         # yet been extended.
-                        clinical_intent_ja=mon.get("intent_ja", f"慢性モニタリング: {mon['test']}"),
+                        clinical_intent_ja=mon.get("intent_ja")
+                        or t("order_intent.chronic_monitoring", "ja", test=mon["test"]),
                         ordered_datetime=order_time,
                         ordered_by=ordered_by,
                         status=OrderStatus.PLACED,
@@ -569,9 +501,9 @@ def _place_chronic_monitoring_orders(
                 order_code="",
                 display_name=mon["test"],
                 urgency="routine",
-                clinical_intent=mon.get("intent", f"Chronic monitoring: {mon['test']}"),
+                clinical_intent=mon.get("intent") or t("order_intent.chronic_monitoring", "en", test=mon["test"]),
                 # Issue #871: JA display for JP SR reasonCode.text.
-                clinical_intent_ja=mon.get("intent_ja", f"慢性モニタリング: {mon['test']}"),
+                clinical_intent_ja=mon.get("intent_ja") or t("order_intent.chronic_monitoring", "ja", test=mon["test"]),
                 ordered_datetime=order_time,
                 ordered_by=ordered_by,
                 status=OrderStatus.PLACED,
@@ -1005,8 +937,12 @@ def apply_drug_safety_gate_to_orders(
                 order_code="",
                 display_name=alt.drug,
                 urgency=order.urgency or "routine",
-                clinical_intent=f"Alternative for {candidate} (contraindication avoided): {alt.drug}",
-                clinical_intent_ja=f"{candidate} の禁忌回避のため代替処方: {alt.drug_ja}",
+                clinical_intent=t(
+                    "order_intent.contraindication_alternative", "en", candidate=candidate, drug=alt.drug
+                ),
+                clinical_intent_ja=t(
+                    "order_intent.contraindication_alternative", "ja", candidate=candidate, drug=alt.drug_ja
+                ),
                 ordered_datetime=order.ordered_datetime,
                 ordered_by=order.ordered_by or attending_id,
                 status=OrderStatus.PLACED,
@@ -1024,9 +960,8 @@ def apply_drug_safety_gate_to_orders(
         if worst is not None and worst.default_action == "emit_with_note":
             locale = country.lower()
             note_text = localized_field(worst, "rationale", lang_for(locale))
-            prefix = "併用注意: " if is_jp(locale) else "Drug interaction (caution): "
             note_entry = {
-                "text": f"{prefix}{note_text}",
+                "text": t("order_intent.interaction_caution", lang_for(locale), note=note_text),
                 "authorReference": {"display": "clinosim drug_safety v1"},
             }
             order.notes.append(note_entry)

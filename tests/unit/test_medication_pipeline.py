@@ -3,8 +3,8 @@
 from __future__ import annotations
 
 from clinosim.simulator.medication_pipeline import (
-    _HOLD_REASON_JA,
     _hold_reason_japanese,
+    _hold_reasons,
 )
 
 
@@ -28,7 +28,7 @@ class TestHoldReasonLocalization:
             "Acute HF exacerbation — oral diuretic replaced by IV furosemide",
         }
         for k in expected_keys:
-            assert k in _HOLD_REASON_JA, f"missing JA translation for {k!r}"
+            assert _hold_reasons().get(k, {}).get("ja"), f"missing JA translation for {k!r}"
             # Result must contain JA characters (not fall through to raw English).
             ja = _hold_reason_japanese(k)
             assert any("぀" <= ch <= "鿿" for ch in ja), f"JA translation for {k!r} looks non-JA: {ja!r}"

@@ -24,6 +24,7 @@ import numpy as np
 
 from clinosim import determinism
 from clinosim.codes.drugs import drug_key
+from clinosim.locale.i18n import t
 from clinosim.modules.disease.protocol import DiseaseProtocol
 from clinosim.modules.physiology.renal_thresholds import DISCHARGE_RENAL_HOLD_THRESHOLD
 from clinosim.types.encounter import PrescriptionRecord
@@ -62,14 +63,14 @@ def _discharge_protocol_hold_reason_en(disease_id: str | None) -> str:
     )
 
     if not disease_id:
-        return "discharge protocol"
+        return t("order_intent.discharge_protocol", "en")
     label = _localize_complication(disease_id, "en") or disease_id
     # Phase 1d-73: return a bare noun phrase (no "held per…" prefix)
     # so the narrative template `- {considered} was held … because of
     # {conflict}.` doesn't compose into "…because of held per…" (a
     # broken second "held"). Sibling ``_discharge_protocol_hold_reason_ja``
     # applies the same reformulation for JA.
-    return f"{label} discharge protocol"
+    return t("order_intent.disease_discharge_protocol", "en", disease=label)
 
 
 def _discharge_protocol_hold_reason_ja(disease_id: str | None) -> str:
@@ -86,12 +87,12 @@ def _discharge_protocol_hold_reason_ja(disease_id: str | None) -> str:
     )
 
     if not disease_id:
-        return "退院プロトコル"
+        return t("order_intent.discharge_protocol", "ja")
     label = _localize_complication(disease_id, "ja") or disease_id
     # Phase 1d-73: bare noun phrase (no 「保留」 suffix) so the JA
     # narrative template 「・{considered}：{conflict}のため今回入院中
     # は保留。」 doesn't collapse into "…保留のため…保留" (二重「保留」).
-    return f"{label}の退院プロトコル"
+    return t("order_intent.disease_discharge_protocol", "ja", disease=label)
 
 
 def _log_discharge_hold(
@@ -118,8 +119,8 @@ def _log_discharge_hold(
         rule_id="discharge-medication-hold",
         matched_classes=None,
         matched_active_drug=hold_reason,
-        rationale_en=f"held at discharge: {hold_reason}",
-        rationale_ja=f"退院時保留: {hold_reason_ja}",
+        rationale_en=t("order_intent.discharge_hold", "en", reason=hold_reason),
+        rationale_ja=t("order_intent.discharge_hold", "ja", reason=hold_reason_ja),
         substitution_hint=None,
     )
     patient.safety_skip_log.append(
@@ -253,8 +254,8 @@ def build_discharge_rx(
                 encounter_id=encounter_id,
                 held_drug_name=drug_name,
                 held_drug_name_ja=drug_name_ja or drug_name,
-                hold_reason="renal function impairment",
-                hold_reason_ja="腎機能低下",
+                hold_reason=t("order_intent.renal_impairment", "en"),
+                hold_reason_ja=t("order_intent.renal_impairment", "ja"),
                 timestamp=admission_time,
             )
             return
