@@ -11,7 +11,6 @@
 #
 # Fields:
 #   drug: Generic drug name (English, bare — no dose)
-#   drug_ja: Japanese drug name (optional, bare — no dose; used when country=JP)
 #   dose: Dose string (language-neutral numeric+unit, e.g. "5mg", "100/25mg", "1000IU")
 #   route: PO | IV | SC | INH
 #   frequency: daily | bid | tid | qid | prn | weekly | monthly
@@ -217,7 +216,7 @@ F00:  # Dementia / Alzheimer's
 I26:  # Pulmonary embolism — post-discharge AC (>=3 mo, indefinite if unprovoked)
   exclusive_classes: ["anticoagulant"]
   medications:
-    - {drug: "Rivaroxaban 20mg", drug_ja: "リバーロキサバン15mg", drug_class: "anticoagulant", route: "PO", frequency: "daily", probability: 0.5}
+    - {drug: "Rivaroxaban 20mg", drug_class: "anticoagulant", route: "PO", frequency: "daily", probability: 0.5}
     - {drug_id: apixaban, dose: "5mg", drug_class: "anticoagulant", route: "PO", frequency: "bid", probability: 0.3}
     - {drug_id: warfarin, dose: "3mg", drug_class: "anticoagulant", route: "PO", frequency: "daily", probability: 0.2}
   monitoring:
@@ -227,7 +226,7 @@ I26:  # Pulmonary embolism — post-discharge AC (>=3 mo, indefinite if unprovok
 I82:  # Deep vein thrombosis — same duration logic as I26
   exclusive_classes: ["anticoagulant"]
   medications:
-    - {drug: "Rivaroxaban 20mg", drug_ja: "リバーロキサバン15mg", drug_class: "anticoagulant", route: "PO", frequency: "daily", probability: 0.5}
+    - {drug: "Rivaroxaban 20mg", drug_class: "anticoagulant", route: "PO", frequency: "daily", probability: 0.5}
     - {drug_id: apixaban, dose: "5mg", drug_class: "anticoagulant", route: "PO", frequency: "bid", probability: 0.3}
     - {drug_id: warfarin, dose: "3mg", drug_class: "anticoagulant", route: "PO", frequency: "daily", probability: 0.2}
   monitoring:
@@ -319,7 +318,7 @@ C16:  # Gastric cancer — oral fluoropyrimidine adjuvant (Capecitabine US / S-1
   # patient/activator._derive_home_medications (same guard C18 uses).
   medications:
     - {drug_id: capecitabine, dose: "1000mg/m2", drug_class: "fluoropyrimidine", route: "PO", frequency: "bid", probability: 0.35, locale_exclude: ["JP"]}
-    - {drug: "Tegafur-Gimeracil-Oteracil", drug_ja: "ティーエスワン", dose: "80mg", drug_class: "fluoropyrimidine", route: "PO", frequency: "bid", probability: 0.5, locale_exclude: ["US"]}
+    - {drug: "Tegafur-Gimeracil-Oteracil", dose: "80mg", drug_class: "fluoropyrimidine", route: "PO", frequency: "bid", probability: 0.5, locale_exclude: ["US"]}
   monitoring:
     - {test: "Creatinine", frequency: "every_3_days", intent: "Chemotherapy renal function monitoring"}
 

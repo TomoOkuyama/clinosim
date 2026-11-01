@@ -97,7 +97,6 @@ event ごとに呼ばれ、返り値の lab を visit の `visit_labs` に merge
   mappings:
     <Drug canonical name>:
       aliases:        [<optional case-insensitive 部分一致>]
-      drug_ja:        "<薬剤の日本語表示>"                  # 任意 (Issue #871)
       monitoring:
         - lab:             <observation engine 内部 analyte 名>
           interval_months: <整数 >= 1、採取間の最小月数 (Issue #2143)>

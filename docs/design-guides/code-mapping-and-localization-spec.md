@@ -124,6 +124,7 @@ Consumers resolve names only through these functions. Several are added by open 
 | `codes.valuesets`: `concept_group`, `has_condition`, `patient_condition_names`, `code_by_chronic_prefix` | value-set membership | `KeyError` on an unknown group |
 | `codes.drugs`: `resolve_drug`, `get_drug`, `find_drug`, `names_drug`, `drug_name_needles` | drug identity and name matching | raises / `None` / `False` |
 | `codes.drugs`: `route_class(route)`, `jp_drug_code(drug, route)`, `jp_drug_code_table(route)` | route class of an order route; the JP YJ product for a drug and route | `""` / `None` / no entry |
+| `codes.drugs`: `drug_display(ref, lang)` | catalog name of a drug id, name or alias (then its longest leading-word prefix) in `lang`, then English | `None` |
 | `codes.icd10`: `icd10_system(country)`, `icd10_display(code, country, lang)`, `condition_short_name(code, lang)`, `medis_disease_keyno(icd)` | ICD-10 system of a country; official display; clinical short name (by category); MEDIS 病名管理番号 | key / `None` / `None` / `None` |
 | `codes.procedures`: `procedure_code`, `procedure_type_display`, `procedure_code_display` | procedure codes and names | `""` / humanised type / `None` |
 | `codes.ucum`: `ucum_code`, `ucum_quantity` | UCUM code / FHIR Quantity | unit passed through |
@@ -233,7 +234,7 @@ These parts of the code base do not yet conform. Each one is removed by the issu
 | CPT / K-codes the generator emits but has not registered. | #2340 |
 | Remaining hand-built dual-slot concepts; `_coding_with_display` and `_value` put the output-language display into English-only codings instead of `system_coding` / `dual_slot_concept`; and the post-process text-filling walkers. | #2337 |
 | Lab analyte display is spread over five tables. | #2267 |
-| Drug names go through free-text translation, not the catalog. | #2271 |
+| The free-text name localizer lives in the FHIR output layer, is imported from the order and narrative layers, and also translates procedure, SNOMED and allergen names. Decision logic and records resolve drug names through `codes.drugs.drug_display`. | #2367 |
 | Language literals are still embedded in Python. | #2277 |
 | Records do not carry `drug_id`. | #2297 |
 | Drug classes and aliases are held outside the catalog. | #2298 |

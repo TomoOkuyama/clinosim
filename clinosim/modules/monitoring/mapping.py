@@ -21,6 +21,7 @@ from typing import Any
 
 import yaml
 
+from clinosim.codes.drugs import drug_display
 from clinosim.locale.loaders.demographics import load_code_mapping
 
 _YAML_PATH = Path(__file__).parent / "reference_data" / "medication_monitoring.yaml"
@@ -86,8 +87,8 @@ def matched_medication_names(current_medications: list, mapping: dict[str, Any])
 
     A rule's aliases cover other drugs of the same class (the Atorvastatin
     rule also matches rosuvastatin), so order text must name the patient's
-    drug, not the rule key. The rule's ``drug_ja`` is used only when the
-    medication is the rule drug itself and carries no Japanese name.
+    drug, not the rule key. A medication without a Japanese name takes the
+    drug catalog's (Issue #2271).
     """
     out: dict[str, tuple[str, str]] = {}
     for drug, entry in mapping.items():
@@ -96,8 +97,8 @@ def matched_medication_names(current_medications: list, mapping: dict[str, Any])
             name = str(getattr(med, "drug_name", None) or (med if isinstance(med, str) else ""))
             if any(needle and needle in name.lower() for needle in needles):
                 name_ja = str(getattr(med, "drug_name_ja", "") or "")
-                if not name_ja and name.lower() == drug.lower():
-                    name_ja = str(entry.get("drug_ja") or "")
+                if not name_ja:
+                    name_ja = drug_display(name, "ja") or ""
                 out[drug] = (name or drug, name_ja or name or drug)
                 break
     return out

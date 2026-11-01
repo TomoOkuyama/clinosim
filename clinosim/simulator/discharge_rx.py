@@ -238,8 +238,10 @@ def build_discharge_rx(
             drug_name = _rec.names.get("en", "") or ""
             drug_name_ja = _rec.names.get("ja", "") or drug_name
         else:
+            from clinosim.codes.drugs import drug_display
+
             drug_name = drug_spec.get("drug", "")
-            drug_name_ja = drug_spec.get("drug_ja", "")
+            drug_name_ja = drug_display(drug_name, "ja") or drug_name
         if not drug_name:
             return
         if final_renal_function < DISCHARGE_RENAL_HOLD_THRESHOLD and any(

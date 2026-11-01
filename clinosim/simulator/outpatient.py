@@ -856,8 +856,10 @@ def _simulate_outpatient_visit(
                 _drug_name = _rec.names.get("en", "") or ""
                 _drug_ja = _rec.names.get("ja", "") or _drug_name
             else:
+                from clinosim.codes.drugs import drug_display
+
                 _drug_name = str(_drug.get("drug") or "")
-                _drug_ja = str(_drug.get("drug_ja") or "")
+                _drug_ja = drug_display(_drug_name, "ja") or _drug_name
             if not _drug_name:
                 continue
             _dose = str(_drug.get("dose") or "")

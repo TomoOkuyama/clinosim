@@ -3,7 +3,6 @@
 # Schema (per drug entry):
 #   <Drug canonical name>:
 #     aliases:        [<optional additional names, case-insensitive substring match>]
-#     drug_ja:        "<Japanese display of the drug — used for reasonCode.text JP>"
 #     monitoring:
 #       - lab:        <internal analyte name — matches clinosim/modules/observation/engine.py>
 #         rationale:  "<one-sentence clinical justification>"
@@ -34,7 +33,6 @@
 mappings:
   Warfarin:
     aliases: ["ワルファリン", "coumadin"]
-    drug_ja: "ワルファリン"
     monitoring:
       - lab: PT_INR
         interval_months: 1
@@ -43,7 +41,6 @@ mappings:
 
   Levothyroxine:
     aliases: ["レボチロキシン", "synthroid", "levoxyl", "レボチロキシンナトリウム"]
-    drug_ja: "レボチロキシン"
     monitoring:
       - lab: TSH
         interval_months: 6
@@ -60,7 +57,6 @@ mappings:
   # accidentally on a DM drug would emit the ~5.5% age-adjusted non-DM baseline.
   Metformin:
     aliases: ["メトホルミン"]
-    drug_ja: "メトホルミン"
     monitoring:
       - lab: HbA1c
         interval_months: 3
@@ -69,7 +65,6 @@ mappings:
 
   Insulin:
     aliases: ["インスリン", "sliding scale insulin", "insulin glargine", "insulin lispro", "insulin aspart", "regular insulin", "スライディングスケール インスリン"]
-    drug_ja: "インスリン"
     monitoring:
       - lab: HbA1c
         interval_months: 3
@@ -85,7 +80,6 @@ mappings:
   # observation/engine.py (BIOLOGICAL_CV 0.120 / 0.195 respectively).
   Atorvastatin:
     aliases: ["アトルバスタチン", "lipitor", "simvastatin", "rosuvastatin", "pravastatin", "シンバスタチン", "ロスバスタチン", "プラバスタチン"]
-    drug_ja: "アトルバスタチン"
     monitoring:
       - lab: AST
         interval_months: 12
@@ -106,7 +100,6 @@ mappings:
   # display_name (which we emit as the YAML `lab` value, `Creatinine`).
   Candesartan:
     aliases: ["カンデサルタン", "losartan", "valsartan", "olmesartan", "telmisartan", "ロサルタン", "バルサルタン", "オルメサルタン"]
-    drug_ja: "カンデサルタン"
     monitoring:
       - lab: K
         interval_months: 6
@@ -128,7 +121,6 @@ mappings:
   # anticoagulation clinics chart it.
   Apixaban:
     aliases: ["アピキサバン", "eliquis"]
-    drug_ja: "アピキサバン"
     monitoring:
       - lab: eGFR
         interval_months: 6
@@ -137,7 +129,6 @@ mappings:
 
   Rivaroxaban:
     aliases: ["リバーロキサバン", "xarelto", "イグザレルト"]
-    drug_ja: "リバーロキサバン"
     monitoring:
       - lab: eGFR
         interval_months: 6
@@ -146,7 +137,6 @@ mappings:
 
   Dabigatran:
     aliases: ["ダビガトラン", "pradaxa", "プラザキサ"]
-    drug_ja: "ダビガトラン"
     monitoring:
       - lab: eGFR
         interval_months: 6
@@ -155,7 +145,6 @@ mappings:
 
   Edoxaban:
     aliases: ["エドキサバン", "リクシアナ", "savaysa", "lixiana"]
-    drug_ja: "エドキサバン"
     monitoring:
       - lab: eGFR
         interval_months: 6
@@ -165,7 +154,6 @@ mappings:
   # Issue #2142: mood stabilizers (CANMAT / ISBD 2018 safety monitoring).
   Lithium carbonate:
     aliases: ["Lithium", "炭酸リチウム", "リーマス"]
-    drug_ja: "炭酸リチウム"
     monitoring:
       - lab: Lithium
         interval_months: 3
@@ -181,7 +169,6 @@ mappings:
         rationale_ja: "リチウムの腎毒性 — 腎機能を 6-12 か月毎。"
   Valproic acid:
     aliases: ["Valproate", "Divalproex", "バルプロ酸ナトリウム", "デパケン"]
-    drug_ja: "バルプロ酸ナトリウム"
     monitoring:
       - lab: AST
         interval_months: 6
@@ -200,7 +187,6 @@ mappings:
   # detect other substance use (SAMHSA TIP 63).
   Buprenorphine/Naloxone:
     aliases: ["Suboxone", "buprenorphine"]
-    drug_ja: "ブプレノルフィン・ナロキソン"
     monitoring:
       - lab: Urine_drug_screen
         interval_months: 1
@@ -208,7 +194,6 @@ mappings:
         rationale_ja: "尿中薬物スクリーニング — ブプレノルフィンの服薬確認と他物質の使用確認。"
   Methadone:
     aliases: ["methadone"]
-    drug_ja: "メサドン"
     monitoring:
       - lab: Urine_drug_screen
         interval_months: 1

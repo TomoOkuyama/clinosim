@@ -84,12 +84,14 @@ def test_resolve_substitution_display_prefers_drug_id() -> None:
     assert ja == "アセトアミノフェン"
 
 
-def test_resolve_substitution_display_falls_back_to_legacy_fields() -> None:
-    """Legacy ``drug`` / ``drug_ja`` fields (not present after migration
-    but kept supported) still work via the dual-path shim."""
-    en, ja = _resolve_substitution_display({"drug": "Legacy-Drug", "drug_ja": "レガシー薬"})
-    assert en == "Legacy-Drug"
-    assert ja == "レガシー薬"
+def test_resolve_substitution_display_takes_the_catalog_name_for_a_legacy_entry() -> None:
+    """A legacy ``drug`` entry takes its Japanese name from the drug catalog;
+    an uncatalogued name stays in English (Issue #2271: no ``drug_ja``)."""
+    assert _resolve_substitution_display({"drug": "Diazepam"}) == ("Diazepam", "ジアゼパム")
+    assert _resolve_substitution_display({"drug": "Legacy-Drug", "drug_ja": "レガシー薬"}) == (
+        "Legacy-Drug",
+        "Legacy-Drug",
+    )
 
 
 def test_resolve_substitution_display_empty_entry_returns_empty() -> None:

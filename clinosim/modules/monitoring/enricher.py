@@ -35,6 +35,7 @@ from typing import Any
 
 import numpy as np
 
+from clinosim.codes.drugs import drug_display
 from clinosim.codes.valuesets import has_condition
 from clinosim.modules._shared import get_attr_or_key as _get
 from clinosim.modules.observation.engine import (
@@ -144,7 +145,7 @@ def _inject_for_record(
         drug_entry = mapping[drug]
         # Issue #2294: order text names the drug the patient takes; the rule
         # key (e.g. "Atorvastatin") also matches other drugs of its class.
-        drug_name, drug_ja = patient_drug_names.get(drug, (drug, str(drug_entry.get("drug_ja") or drug)))
+        drug_name, drug_ja = patient_drug_names.get(drug, (drug, drug_display(drug, "ja") or drug))
         for lab_spec in drug_entry.get("monitoring") or []:
             analyte = canonical_lab_name(str(lab_spec.get("lab") or ""))
             if not analyte or analyte in existing:
