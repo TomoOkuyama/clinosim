@@ -49,7 +49,7 @@ def _folfox_positive_patient_ids(cancer_code: str, n_sweep: int) -> list[str]:
             continue
         _, regimen = picked
         classes = set(regimen.get("contains_drug_classes") or ())
-        if "fluoropyrimidine" in classes:
+        if "antineoplastic.fluoropyrimidine" in classes:  # catalog class (Issue #2388)
             hits.append(pid)
     return hits
 
@@ -123,4 +123,4 @@ def test_pick_active_chemo_regimen_returns_shared_regimen_dict():
     picked_b = pick_active_chemo_regimen(rng_b, regimens, by_cancer, "C18")
     assert picked_a is not None and picked_b is not None
     assert picked_a[0] == picked_b[0] == "FOLFOX"
-    assert "fluoropyrimidine" in (picked_a[1].get("contains_drug_classes") or ())
+    assert "antineoplastic.fluoropyrimidine" in (picked_a[1].get("contains_drug_classes") or ())

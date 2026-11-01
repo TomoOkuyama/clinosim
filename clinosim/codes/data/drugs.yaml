@@ -1124,7 +1124,7 @@ drugs:
     codes:
       rxnorm: "274783"
       yj: {injection: "2492416G2024"}
-    classes: ["basal_insulin"]
+    classes: ["insulin.basal"]
   dobutamine:
     names: {en: "Dobutamine", ja: "ドブタミン"}
     codes:
@@ -1142,13 +1142,13 @@ drugs:
     codes:
       rxnorm: "194000"
       yj: {oral: "4223005F1022"}
-    classes: []
+    classes: ["antineoplastic.fluoropyrimidine"]
   oxaliplatin:
     names: {en: "Oxaliplatin", ja: "オキサリプラチン"}
     codes:
       rxnorm: "32592"
       yj: {injection: "4291410A1029"}
-    classes: []
+    classes: ["chemo.platinum"]
   ticagrelor:
     names: {en: "Ticagrelor", ja: "チカグレロル"}
     codes:
@@ -1350,7 +1350,7 @@ drugs:
     names: {en: "Tirzepatide", ja: "チルゼパチド"}
     codes:
       rxnorm: "2601723"
-    classes: ["gip_glp1_agonist", "antidiabetic"]
+    classes: ["glp1_agonist.gip_dual", "antidiabetic"]
   rosuvastatin:
     names: {en: "Rosuvastatin", ja: "ロスバスタチン"}
     codes:
@@ -1367,7 +1367,7 @@ drugs:
     names: {en: "Naltrexone", ja: "ナルトレキソン"}
     codes:
       rxnorm: "7243"
-    classes: ["opioid_antagonist"]
+    classes: ["opioid_antagonist", "moud"]
   acamprosate:
     names: {en: "Acamprosate", ja: "アカンプロサート"}
     codes:
@@ -1403,7 +1403,7 @@ drugs:
     codes:
       rxnorm: "84857"
       yj: {oral: "4291010F1031"}
-    classes: ["aromatase_inhibitor"]
+    classes: ["aromatase_inhibitor", "endocrine_therapy.breast"]
   bicalutamide:
     names: {en: "Bicalutamide", ja: "ビカルタミド"}
     codes:
@@ -1456,7 +1456,7 @@ drugs:
     codes:
       rxnorm: "10324"
       yj: {oral: "4291003F2054"}
-    classes: ["serm"]
+    classes: ["serm", "endocrine_therapy.breast"]
   methyldopa:
     names: {en: "Methyldopa", ja: "メチルドパ"}
     codes:
@@ -1612,7 +1612,7 @@ drugs:
     codes:
       rxnorm: "486610"                 # NLM TTY=PIN (paclitaxel protein-bound). MHLW HOT7 (アルブミン懸濁型, Issue #1310).
       yj: {injection: "4240409D1023"}
-    classes: ["chemotherapy.taxane"]
+    classes: ["chemo.taxane"]
     aliases: ["Nab_paclitaxel"]        # underscore variant used inside disease YAMLs
                                        # ("nab-Paclitaxel" lower-cases to the same
                                        # key as catalog EN "Nab-paclitaxel").

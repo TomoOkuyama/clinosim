@@ -12,6 +12,7 @@ from functools import lru_cache
 
 import numpy as np
 
+from clinosim.codes.drugs import drug_classes
 from clinosim.codes.valuesets import concept_group, has_condition
 from clinosim.locale.loader import load_names
 from clinosim.modules._shared import is_jp, normalize_probabilities, resolve_lang
@@ -993,8 +994,14 @@ def _derive_home_medications(
                 _, _regimen = _picked
                 _conflict_classes = {str(x) for x in (_regimen.get("contains_drug_classes") or [])}
                 if _conflict_classes:
+                    # Catalog classes of the medication (with ancestors), Issue #2388.
                     medications = [
-                        (m if str(m.get("drug_class") or "") not in _conflict_classes else {**m, "probability": 0.0})
+                        (
+                            {**m, "probability": 0.0}
+                            if _conflict_classes & set(drug_classes(str(m.get("drug_id") or m.get("drug") or "")))
+                            or str(m.get("drug_class") or "") in _conflict_classes
+                            else m
+                        )
                         for m in medications
                     ]
 

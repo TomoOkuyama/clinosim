@@ -13,7 +13,7 @@ premenopausal women without ovarian suppression per NCCN.
 
 Fix:
 1. ``drug_class: breast_endocrine_therapy`` on both drugs +
-   ``exclusive_classes: ["breast_endocrine_therapy"]`` at the block
+   ``exclusive_classes: ["endocrine_therapy.breast"]`` at the block
    level → ``select_with_exclusive_classes`` picks at most one.
 2. ``age_min: 50`` on anastrozole → premenopausal filter via the
    existing ``_shared.py`` age-gate.
@@ -47,7 +47,7 @@ def test_c50_block_declares_breast_endocrine_mutex() -> None:
     selection among drugs declaring the matching drug_class."""
     block = _load_c50_block()
     exclusive = set(block.get("exclusive_classes") or [])
-    assert "breast_endocrine_therapy" in exclusive
+    assert "endocrine_therapy.breast" in exclusive
 
 
 def test_tamoxifen_and_anastrozole_share_breast_endocrine_class() -> None:
@@ -58,8 +58,8 @@ def test_tamoxifen_and_anastrozole_share_breast_endocrine_class() -> None:
     anastrozole = next((m for m in block.get("medications", []) if m.get("drug_id") == "anastrozole"), None)
     assert tamoxifen is not None, "tamoxifen missing from C50 regimen"
     assert anastrozole is not None, "anastrozole missing from C50 regimen"
-    assert tamoxifen.get("drug_class") == "breast_endocrine_therapy"
-    assert anastrozole.get("drug_class") == "breast_endocrine_therapy"
+    assert tamoxifen.get("drug_class") == "endocrine_therapy.breast"
+    assert anastrozole.get("drug_class") == "endocrine_therapy.breast"
 
 
 # ----------------------------------------------------------------------------
@@ -140,5 +140,5 @@ def test_postmenopausal_patient_picks_at_most_one_endocrine() -> None:
                 patient_age=65,
             )
         )
-        endocrine_picks = [p for p in picks if p.get("drug_class") == "breast_endocrine_therapy"]
+        endocrine_picks = [p for p in picks if p.get("drug_class") == "endocrine_therapy.breast"]
         assert len(endocrine_picks) <= 1, f"seed={seed}: {len(endocrine_picks)} endocrine drugs picked (mutex violated)"
