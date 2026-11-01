@@ -22,3 +22,8 @@ ABG_repeat: ABG
 # author who writes the human form lands on the physiology key.
 Total_bilirubin: T_Bil
 Total_protein: TP
+# Issue #2299: spellings disease YAMLs and the US code mapping used besides the
+# canonical names (APTT, T_Bil, Mg).
+aPTT: APTT
+T_Bilirubin: T_Bil
+Magnesium: Mg

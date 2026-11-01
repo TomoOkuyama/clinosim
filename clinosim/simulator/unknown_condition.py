@@ -37,6 +37,7 @@ from clinosim.codes import has_icd_prefix
 from clinosim.codes.valuesets import has_condition
 from clinosim.modules.encounter.engine import create_inpatient_encounter
 from clinosim.modules.observation.engine import (
+    canonical_lab_name,
     determine_flag,
     generate_lab_result,
     get_lab_unit,
@@ -340,7 +341,7 @@ def _simulate_unknown_condition(
                 order.result = OrderResult(
                     result_datetime=result_time,
                     performed_by=tech_id,
-                    lab_name=order.display_name,
+                    lab_name=canonical_lab_name(order.display_name),
                     value=observed,
                     unit=get_lab_unit(order.display_name),
                     flag=flag,

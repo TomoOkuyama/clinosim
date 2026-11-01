@@ -34,6 +34,7 @@ from clinosim.codes import get_system_uri, system_key_for
 from clinosim.codes import lookup as code_lookup
 from clinosim.locale.loader import load_code_mapping
 from clinosim.modules._shared import get_attr_or_key, is_jp, pick_localized_field, resolve_lang
+from clinosim.modules.observation.engine import canonical_lab_name
 from clinosim.modules.order.panel_grouping import load_panel_definitions
 from clinosim.modules.output.fhir_r4.encounters.encounter import encounter_ref
 from clinosim.modules.output.fhir_r4.lib.common import BundleContext, to_fhir_datetime
@@ -870,12 +871,14 @@ def _build_standalone_sr(o: Any, lang: str, country: str, earliest_dr_issued: st
     # country arrives lowercase ("us"/"jp"); load_code_mapping expects uppercase.
     country_code = "JP" if is_jp(country) else "US"
     code_map = load_code_mapping("lab", country_code)
-    resolved_code = code_map.get(display_name)
+    # Issue #2299: the code mappings are keyed by canonical lab name.
+    lab_key = canonical_lab_name(display_name)
+    resolved_code = code_map.get(lab_key) or code_map.get(display_name)
     # Two-tier fallback: when JP map missing entry, try LOINC (US) map.
     used_loinc_fallback = False
     if not resolved_code and is_jp(country_code):
         us_map = load_code_mapping("lab", "US")
-        us_resolved = us_map.get(display_name)
+        us_resolved = us_map.get(lab_key) or us_map.get(display_name)
         if us_resolved:
             resolved_code = us_resolved
             used_loinc_fallback = True
