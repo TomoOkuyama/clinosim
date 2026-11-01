@@ -2789,6 +2789,11 @@
 <td><code>None</code> / <code>()</code></td>
 </tr>
 <tr>
+<td><code>codes.drugs</code>: <code>drug_ref(name_or_id)</code>, <code>has_drug(meds, drug_id_or_class)</code></td>
+<td>the catalog <code>drug_id</code> a name, alias or free-text string names; whether any medication record is that drug or in that class (by its <code>drug_id</code>, else its name)</td>
+<td><code>""</code> / <code>False</code></td>
+</tr>
+<tr>
 <td><code>codes.icd10</code>: <code>icd10_system(country)</code>, <code>icd10_display(code, country, lang)</code>, <code>condition_short_name(code, lang)</code>, <code>condition_label(code, country, lang)</code>, <code>medis_disease_keyno(icd)</code></td>
 <td>ICD-10 system of a country; official display (JP Japanese: the MHLW 2013 name, verbatim); clinical short name (by category); the name used in prose and <code>Condition.code.text</code> (short name, then official display); MEDIS 病名管理番号</td>
 <td>key / <code>None</code> / <code>None</code> / <code>None</code> / <code>None</code></td>
@@ -3042,8 +3047,12 @@
 <td>#2277</td>
 </tr>
 <tr>
-<td>Records do not carry <code>drug_id</code>.</td>
-<td>#2297</td>
+<td>Decision logic identifies drugs by name substrings.</td>
+<td>#2377</td>
+</tr>
+<tr>
+<td>Disease YAMLs mix <code>drug:</code> names with <code>drug_id:</code>, and <code>Order.order_code</code> does not record its code system.</td>
+<td>#2378</td>
 </tr>
 <tr>
 <td>The medication-monitoring tables identify drugs by name patterns.</td>

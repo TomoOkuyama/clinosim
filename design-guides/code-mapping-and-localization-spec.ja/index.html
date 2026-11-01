@@ -2789,6 +2789,11 @@
 <td><code>None</code> / <code>()</code></td>
 </tr>
 <tr>
+<td><code>codes.drugs</code>: <code>drug_ref(name_or_id)</code> / <code>has_drug(meds, drug_id_or_class)</code></td>
+<td>名称・alias・自由文が指すカタログ <code>drug_id</code>、投薬記録のいずれかがその薬かその分類に属するか (<code>drug_id</code>、無ければ名称で判定)</td>
+<td><code>""</code> / <code>False</code></td>
+</tr>
+<tr>
 <td><code>codes.icd10</code>: <code>icd10_system(country)</code> / <code>icd10_display(code, country, lang)</code> / <code>condition_short_name(code, lang)</code> / <code>condition_label(code, country, lang)</code> / <code>medis_disease_keyno(icd)</code></td>
 <td>国の ICD-10 体系、正式名称 (JP の日本語は厚労省 2013 年版の名称そのまま)、臨床短縮名 (3 桁分類で引く)、文章と <code>Condition.code.text</code> に使う名前 (短縮名、無ければ正式名称)、MEDIS 病名管理番号</td>
 <td>キー / <code>None</code> / <code>None</code> / <code>None</code> / <code>None</code></td>
@@ -3042,8 +3047,12 @@
 <td>#2277</td>
 </tr>
 <tr>
-<td>レコードが <code>drug_id</code> を持っていない。</td>
-<td>#2297</td>
+<td>判断ロジックが薬名の部分文字列で薬を識別している。</td>
+<td>#2377</td>
+</tr>
+<tr>
+<td>疾患 YAML が <code>drug:</code> 名と <code>drug_id:</code> を混在させ、<code>Order.order_code</code> がコード体系を記録していない。</td>
+<td>#2378</td>
 </tr>
 <tr>
 <td>投薬モニタリングの表が名称パターンで薬を識別している。</td>
