@@ -278,9 +278,9 @@ def test_multiple_immunizations_count():
 
 def test_us_immunization_site_display_is_snomed_canonical():
     """``Immunization.site.coding[0].display`` for SNOMED code ``368208006``
-    must be the canonical preferred term ``Structure of left deltoid muscle``.
-    The validator rejects ``Left deltoid`` (short vernacular form) as a
-    non-canonical display against the SNOMED binding."""
+    must be its preferred term ``Left upper arm structure`` (tx.fhir.org
+    $validate-code; "Structure of left deltoid muscle" is a Wrong Display for
+    this code — Issue #2258). The display comes from snomed-ct.yaml."""
     from clinosim.modules.output.fhir_r4.procedures.immunization import _bb_immunizations
 
     ctx = _make_ctx(_record(), country="US")
@@ -294,7 +294,6 @@ def test_us_immunization_site_display_is_snomed_canonical():
             continue
         coding = site["coding"][0]
         assert coding["code"] == "368208006"
-        # Issue #1766: not the short-form "Left deltoid" alone.
-        assert coding["display"] == "Structure of left deltoid muscle", (
+        assert coding["display"] == "Left upper arm structure", (
             f"US Immunization.site.display must be SNOMED canonical for 368208006; got {coding['display']!r}"
         )
