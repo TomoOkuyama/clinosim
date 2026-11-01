@@ -16,7 +16,8 @@ from typing import Any
 
 from clinosim.codes import display as registry_display
 from clinosim.codes import get_system_uri, system_key_for
-from clinosim.modules._shared import get_attr_or_key, is_jp, resolve_lang
+from clinosim.locale.i18n import t
+from clinosim.modules._shared import get_attr_or_key, resolve_lang
 from clinosim.modules.output.fhir_r4.demographics.patient import patient_ref
 from clinosim.modules.output.fhir_r4.encounters.encounter import encounter_ref
 from clinosim.modules.output.fhir_r4.lib.common import (
@@ -85,13 +86,7 @@ def _bb_hai_conditions(ctx: BundleContext) -> list[dict]:
             # 培養+臨床像から診断された感染症であることを示す text-only 記述。
             "evidence": [
                 {
-                    "code": [
-                        {
-                            "text": "院内感染:培養検査+臨床所見に基づく診断"
-                            if is_jp(ctx.country)
-                            else "Hospital-acquired infection — culture + clinical findings"
-                        }
-                    ],
+                    "code": [{"text": t("condition_evidence.hai", resolve_lang(ctx.country))}],
                 }
             ],
         }

@@ -1,0 +1,9 @@
+# JP-CLINS uncoded laboratory-test CodeSystem — the fixed code for a lab
+# without a JLAC code. `ja` moved from modules/output/fhir_r4/labs/
+# coding_package.py (Issue #2403); `en` is a clinosim translation.
+metadata:
+  name: JP-CLINS Uncoded Laboratory Test
+  uri: http://jpfhir.jp/fhir/clins/CodeSystem/JP_CLINS_ObsLabResult_Uncoded_CS
+  source: "JP-CLINS"
+codes:
+  "99999999999999999": {en: "Uncoded laboratory test (JLAC)", ja: "未標準化コード項目(JLAC)"}

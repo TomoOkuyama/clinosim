@@ -65,6 +65,7 @@ import yaml
 from clinosim.codes import get_system_uri
 from clinosim.codes.loinc import loinc_for
 from clinosim.codes.ucum import ucum_quantity
+from clinosim.locale.i18n import t
 from clinosim.modules._shared import get_attr_or_key, is_jp, resolve_lang
 from clinosim.modules.output.fhir_r4.demographics.patient import patient_ref
 from clinosim.modules.output.fhir_r4.encounters.encounter import encounter_ref
@@ -91,9 +92,9 @@ _DISPLAY_EN = {
     LOINC_BMI: "Body mass index (BMI) [Ratio]",
 }
 _DISPLAY_JA = {
-    LOINC_BODY_HEIGHT: "身長",
-    LOINC_BODY_WEIGHT: "体重",
-    LOINC_HEAD_CIRCUMFERENCE: "頭囲",
+    LOINC_BODY_HEIGHT: t("fhir_obs_text.body_height", "ja"),
+    LOINC_BODY_WEIGHT: t("fhir_obs_text.body_weight", "ja"),
+    LOINC_HEAD_CIRCUMFERENCE: t("fhir_obs_text.head_circumference", "ja"),
     LOINC_BMI: "BMI",
 }
 _UNIT_UCUM = {
