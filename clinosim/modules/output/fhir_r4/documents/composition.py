@@ -93,6 +93,7 @@ from clinosim.modules.output.fhir_r4.lib.common import (
     BundleContext,
     _escape_html,
     derive_meta_last_updated,
+    display_entry,
     dual_slot_concept,
 )
 from clinosim.modules.output.fhir_r4.lib.ids import derive_opaque_id
@@ -750,6 +751,8 @@ def _build_composition_generic(
     _roster_map = roster_map or {}
     loinc_code = _o(doc, "loinc_code", "")
     loinc_display = code_lookup("loinc", loinc_code, lang) if loinc_code else ""
+    # Unregistered code: the document type name, never the code (Issue #2416).
+    _doc_label = str(_o(doc, "task_type", "") or "document").replace("_", " ")
 
     doc_id = _o(doc, "document_id", "")
     author_id = _o(doc, "author_practitioner_id", "")
@@ -797,10 +800,10 @@ def _build_composition_generic(
                 {
                     "system": get_system_uri("loinc"),
                     "code": loinc_code,
-                    "display": loinc_display or loinc_code,
+                    **display_entry(loinc_display),
                 }
             ],
-            "text": loinc_display or loinc_code,
+            "text": loinc_display or _doc_label,
         },
         "subject": patient_ref(patient_id),
         "date": authored_dt,
@@ -814,7 +817,7 @@ def _build_composition_generic(
         "author": [{"reference": f"Practitioner/{author_id}"}]
         if author_id
         else [{"reference": "Practitioner/UNKNOWN"}],  # noqa: E501
-        "title": loinc_display or loinc_code,
+        "title": loinc_display or _doc_label,
         # C5-27: Composition.confidentiality (0..1 code)
         # per HL7 CDA / FHIR ConfidentialityCode. `N` = Normal (default JP
         # 医療情報 practice). All clinical documents are Normal unless

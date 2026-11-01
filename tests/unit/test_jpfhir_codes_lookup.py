@@ -65,5 +65,6 @@ def test_jpfhir_doc_typecodes_en_fallback():
 
 
 @pytest.mark.unit
-def test_unknown_code_returns_code_itself():
-    assert lookup("jpfhir-doc-typecodes", "UNKNOWN", "ja") == "UNKNOWN"
+def test_unknown_code_returns_empty():
+    # Never the code itself (Issue #2416).
+    assert lookup("jpfhir-doc-typecodes", "UNKNOWN", "ja") == ""

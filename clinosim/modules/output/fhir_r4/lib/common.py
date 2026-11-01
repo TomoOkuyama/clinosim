@@ -253,6 +253,12 @@ def _escape_html(s: str) -> str:
     return s.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace('"', "&quot;")
 
 
+def display_entry(text: str) -> dict[str, str]:
+    """``{"display": text}``, or ``{}`` when ``text`` is empty — a Coding never
+    carries an empty display or the raw code as display (Issue #2416)."""
+    return {"display": text} if text else {}
+
+
 def system_coding(system_key: str, code: str, lang: str, *, fallback_display: str = "") -> dict[str, Any]:
     """A Coding whose display follows the dual-slot rule (Issue #2264).
 
@@ -394,12 +400,12 @@ def build_diagnosis_codeable_concept(code: str, system_key: str, country: str) -
     # code.text: clinical short-name / abbreviation for search friendliness;
     # coding[].display remains the official ICD name. Same chain as
     # ``condition_label`` (short name → official display), which the
-    # narrative uses, then the raw code (Issue #2360).
-    text = condition_short_name(code, primary_lang) or primary_display or code
+    # narrative uses; never the raw code (Issues #2360, #2416).
+    text = condition_short_name(code, primary_lang) or primary_display
 
     return {
         "coding": coding,
-        "text": text,
+        **({"text": text} if text else {}),
     }
 
 

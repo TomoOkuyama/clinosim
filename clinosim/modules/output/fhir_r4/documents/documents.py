@@ -45,7 +45,7 @@ from clinosim.modules._shared import resolve_lang
 from clinosim.modules.document import DOC_REFERENCE_ID_PREFIX
 from clinosim.modules.output.fhir_r4.demographics.patient import patient_ref
 from clinosim.modules.output.fhir_r4.encounters.encounter import encounter_ref
-from clinosim.modules.output.fhir_r4.lib.common import BundleContext, _sha1_b64, to_fhir_instant
+from clinosim.modules.output.fhir_r4.lib.common import BundleContext, _sha1_b64, display_entry, to_fhir_instant
 from clinosim.modules.output.fhir_r4.lib.ids import (
     derive_opaque_id,
     structural_key_system,
@@ -218,8 +218,13 @@ def _build_dref_from_clinical_doc(doc: Any, narrative: Any, patient_id: str, cou
     # ``coding[].display`` (survives walker) and Japanese on ``text``
     # (walker does not touch text) so the JP UI has a Japanese label AND
     # the LOINC coding stays FHIR-canonical for interop consumers.
-    en_display = registry_display("loinc", loinc_code, "en") or loinc_code
-    text_display = registry_display("loinc", loinc_code, lang) or en_display
+    en_display = registry_display("loinc", loinc_code, "en") or ""
+    # Unregistered code: the document type name, never the code (Issue #2416).
+    text_display = (
+        registry_display("loinc", loinc_code, lang)
+        or en_display
+        or str(_o(doc, "task_type", "") or "document").replace("_", " ")
+    )
 
     # Issue #854 Bucket B (PR-document-reference): opaque DocumentReference.id.
     # Structural key = pre-#854 CIF-doc-id body (with `doc-` prefix stripped)
@@ -272,7 +277,7 @@ def _build_dref_from_clinical_doc(doc: Any, narrative: Any, patient_id: str, cou
                 {
                     "system": get_system_uri("loinc"),
                     "code": loinc_code,
-                    "display": en_display,
+                    **display_entry(en_display),
                 }
             ],
             "text": text_display,

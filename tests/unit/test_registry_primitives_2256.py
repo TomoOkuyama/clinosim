@@ -15,7 +15,7 @@ pytestmark = pytest.mark.unit
 
 def test_display_returns_none_on_a_miss() -> None:
     assert display("snomed-ct", "999999999", "ja") is None
-    assert lookup("snomed-ct", "999999999", "ja") == "999999999"  # lookup keeps its echo
+    assert lookup("snomed-ct", "999999999", "ja") == ""  # no code echo (Issue #2416)
 
 
 def test_display_resolves_like_lookup() -> None:

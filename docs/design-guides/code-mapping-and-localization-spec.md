@@ -137,7 +137,7 @@ Consumers resolve names only through these functions. Several are added by open 
 | `codes.snomed_concepts` | named SNOMED concepts used in logic | — |
 | `codes.snomed`: `snomed_display(code, lang)`, `snomed_for(kind, key)`, `snomed_map(kind)`, `snomed_for_phrase(text)` | SNOMED display; internal key → code (`route`, `severity`, `abo`, `rh`, `cchd_site`, `encounter_type`, `oxygen_device`, `stage`, `procedure_category`, `order_category`, `specimen_type`, `newborn_screen`; `codes/data/snomed-maps.yaml`); free-text procedure / order name → code (first matching phrase in `codes/data/procedure-phrase-to-snomed.yaml`) | `None` / `None` / `KeyError` / `None` |
 
-`lookup(system, code, lang)` is legacy: on a miss it returns the code itself. New code uses `display(...) or <explicit fallback>`.
+`lookup(system, code, lang)` is `display(...)` with `""` on a miss (Issue #2416); it never returns the code itself. New code uses `display(...) or <explicit fallback>`.
 
 ### 4.2 Country mappings and display tables (`clinosim.locale.loader`)
 
@@ -234,7 +234,6 @@ These parts of the code base do not yet conform. Each one is removed by the issu
 
 | Deviation | Issue |
 |---|---|
-| `codes.lookup` returns the code on a miss (about 40 call sites outside `clinosim/codes`). | #2416 |
 | Localized YAML fields use mixed shapes (nested `{lang: text}`, 25 `*_ja` field names, `dose_ja` vs `dose_text_ja`). | #2398 |
 | Some Composition section codes do not mean their section. | #2391 |
 | The free-text name translator (`locale.free_text.localize_free_text`) is one generic translator: procedure, SNOMED and allergen names go through the drug-name dictionary and its substring replacement. | #2408 |

@@ -145,10 +145,10 @@ class TestBackwardCompatLookup:
         """Sibling fallback is directional (yj → hot7), NOT the reverse.
         A YJ12 code queried via ``"hot7"`` MUST NOT resolve because
         that would let a caller mislabel a YJ12 code as HOT7."""
-        # Returns the code itself when unresolved.
-        assert lookup("hot7", "6139504G1028", "ja") == "6139504G1028"
+        # Unresolved: empty, never the code (Issue #2416).
+        assert lookup("hot7", "6139504G1028", "ja") == ""
 
-    def test_unknown_code_returns_code_as_fallback(self):
-        """Unknown code through the yj → hot7 chain still returns the
-        original code (no crash on missing entries)."""
-        assert lookup("yj", "9999999", "ja") == "9999999"
+    def test_unknown_code_returns_empty(self):
+        """Unknown code through the yj → hot7 chain returns "" (no crash, and
+        never the code; Issue #2416)."""
+        assert lookup("yj", "9999999", "ja") == ""

@@ -15,6 +15,7 @@ from clinosim.codes import get_system_uri
 from clinosim.codes.loader import lookup as code_lookup
 from clinosim.codes.snomed import snomed_for
 from clinosim.modules._shared import resolve_lang
+from clinosim.modules.output.fhir_r4.lib.common import display_entry
 from clinosim.modules.output.fhir_r4.lib.ids import (
     derive_opaque_id,
     structural_key_system,
@@ -140,8 +141,8 @@ def _build_companion_specimen(observation: dict, country: str) -> dict:
         ],
         "subject": subject,
         "type": {
-            "coding": [{"system": get_system_uri("snomed-ct"), "code": specimen_snomed, "display": display}],
-            "text": display,
+            "coding": [{"system": get_system_uri("snomed-ct"), "code": specimen_snomed, **display_entry(display)}],
+            **({"text": display} if display else {}),
         },
         "status": "available",
     }

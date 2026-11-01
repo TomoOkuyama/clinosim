@@ -26,6 +26,7 @@ from clinosim.modules.output.fhir_r4.lib.common import (
     _social_category,
     build_address,
     build_telecom,
+    display_entry,
     dual_slot_concept,
     system_coding,
     to_fhir_date,
@@ -79,7 +80,7 @@ def _build_us_core_race_extension(race: str, lang: str = "en") -> dict[str, Any]
     code = _OMB_RACE_SLUG_TO_CODE.get(race or "")
     if not code:
         return None
-    display = registry_display("omb-race", code, lang) or code
+    display = registry_display("omb-race", code, lang) or ""
     return {
         "url": _US_CORE_RACE_URL,
         "extension": [
@@ -88,7 +89,7 @@ def _build_us_core_race_extension(race: str, lang: str = "en") -> dict[str, Any]
                 "valueCoding": {
                     "system": _OMB_RACE_ETHNICITY_SYSTEM,
                     "code": code,
-                    "display": display,
+                    **display_entry(display),
                 },
             },
             {"url": "text", "valueString": display},
@@ -102,7 +103,7 @@ def _build_us_core_ethnicity_extension(ethnicity: str, lang: str = "en") -> dict
     code = _OMB_ETHNICITY_SLUG_TO_CODE.get(ethnicity or "")
     if not code:
         return None
-    display = registry_display("omb-ethnicity", code, lang) or code
+    display = registry_display("omb-ethnicity", code, lang) or ""
     return {
         "url": _US_CORE_ETHNICITY_URL,
         "extension": [
@@ -111,7 +112,7 @@ def _build_us_core_ethnicity_extension(ethnicity: str, lang: str = "en") -> dict
                 "valueCoding": {
                     "system": _OMB_RACE_ETHNICITY_SYSTEM,
                     "code": code,
-                    "display": display,
+                    **display_entry(display),
                 },
             },
             {"url": "text", "valueString": display},
@@ -962,7 +963,7 @@ def _build_patient(p: dict, country: str) -> dict:
                 {
                     "system": get_system_uri("hl7-v3-maritalstatus"),
                     "code": marital,
-                    "display": code_lookup("hl7-v3-maritalstatus", marital, resolve_lang(country)),
+                    **display_entry(code_lookup("hl7-v3-maritalstatus", marital, resolve_lang(country))),
                 }
             ],
         }
@@ -990,7 +991,7 @@ def _build_patient(p: dict, country: str) -> dict:
                         {
                             "system": get_system_uri("bcp-47-language"),
                             "code": lang,
-                            "display": _lang_display,
+                            **display_entry(_lang_display),
                         }
                     ],
                 },

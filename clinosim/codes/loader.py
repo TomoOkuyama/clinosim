@@ -275,13 +275,14 @@ def lookup(system: str, code: str, lang: str = "en") -> str:
        ``_SYSTEM_LOOKUP_SIBLINGS[system]`` (Issue #415 — e.g. ``"yj"`` falls
        back to ``"hot7"`` so a HOT7 code passed with the ``"yj"`` key still
        resolves after the split).
-    5. Return the code itself as fallback. Use :func:`display` when a miss
-       should fall through to a caller-supplied fallback instead.
+    5. ``""`` on a miss — never the code itself (spec §6.2, Issue #2416);
+       callers choose their own fallback (or use :func:`display`, which
+       returns ``None``).
     """
-    entry = _resolve_entry(system, code)
+    entry = _resolve_entry(system, code) if code else None
     if entry is None:
-        return code
-    return _entry_text(system, code, entry, lang) or code
+        return ""
+    return _entry_text(system, code, entry, lang) or ""
 
 
 def get_display(system: str, code: str, country: str = "US") -> str:
