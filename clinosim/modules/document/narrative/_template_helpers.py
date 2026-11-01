@@ -109,10 +109,16 @@ def _render_home_med_name(m: Any, lang: str = "en") -> str:
     """
     if isinstance(m, dict):
         raw = str(m.get("drug_name") or m.get("drug") or "").strip()
+        stored_ja = str(m.get("drug_name_ja") or "").strip()
     else:
         raw = m.drug_name
+        stored_ja = str(getattr(m, "drug_name_ja", "") or "").strip()
     if not raw or lang != "ja":
         return raw
+    # Issue #2271: the CIF carries the catalog's Japanese name; use it before
+    # re-translating the English name.
+    if stored_ja:
+        return stored_ja
     # Lazy import to avoid the document → output → document circular at
     # module load; same pattern used in replacement_strategy.py.
     from clinosim.modules.output.fhir_r4.lib.localization import _localize_drug_name

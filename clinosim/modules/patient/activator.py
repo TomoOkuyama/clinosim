@@ -1025,8 +1025,10 @@ def _derive_home_medications(
                 drug_en = _rec.names.get("en", "") or ""
                 drug_ja = _rec.names.get("ja", "") or ""
             else:
+                from clinosim.codes.drugs import drug_display
+
                 drug_en = picked.get("drug", "")
-                drug_ja = picked.get("drug_ja", "")
+                drug_ja = drug_display(drug_en, "ja") or drug_en
             # CIF stores English drug names (AD-30). JP display picks up drug_ja
             # at output time. Selection key uses the string that reaches the
             # display side so JP and US dedup identically.

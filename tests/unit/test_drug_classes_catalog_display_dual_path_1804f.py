@@ -1,15 +1,9 @@
-"""Phase 2.f of META #1804: drug_classes.yaml drug_ja dual-path resolver.
+"""Drug-safety Japanese display comes from the drug catalog.
 
-Pins:
-- ``japanese_display`` first consults the Phase 1b drug-identity
-  catalog (``clinosim/codes/data/drugs.yaml``) when the canonical
-  name resolves there.
-- Falls back to the legacy ``drug_ja`` field in
-  ``drug_classes.yaml`` when the catalog has no matching entry
-  (18 drugs not yet enrolled: Dabigatran, Edoxaban, Prasugrel,
-  several NSAIDs, …).
-- The classifier module exports an internal reverse index
-  ``_catalog_en_to_drug_id`` built once and cached.
+Phase 2.f of META #1804 added the catalog path next to the legacy
+``drug_ja`` field of ``drug_classes.yaml``; Issue #2271 removed the field
+and enrolled the drug-safety-only drugs in the catalog, so
+``japanese_display`` reads the catalog alone.
 """
 
 from __future__ import annotations
@@ -18,7 +12,6 @@ import pytest
 
 from clinosim.codes.drugs import resolve_drug
 from clinosim.modules.drug_safety.classifier import (
-    _catalog_en_to_drug_id,
     canonical_name,
     japanese_display,
 )
@@ -48,19 +41,8 @@ def test_japanese_display_prefers_catalog(drug_name: str, expected_ja: str) -> N
     assert japanese_display(drug_name) == expected_ja
 
 
-def test_catalog_reverse_index_populated() -> None:
-    """The reverse index must contain at least every catalog drug that
-    has an EN name — regression pin against an accidentally empty
-    index."""
-    idx = _catalog_en_to_drug_id()
-    assert "warfarin" in idx
-    assert "apixaban" in idx
-    assert "amlodipine" in idx
-    assert len(idx) >= 100, f"reverse index unexpectedly small ({len(idx)} entries)"
-
-
 # ----------------------------------------------------------------------------
-# Legacy fallback — drugs not enrolled in the catalog
+# Drugs used only by drug-safety rules (enrolled by Issue #2271)
 # ----------------------------------------------------------------------------
 
 
@@ -77,10 +59,9 @@ def test_catalog_reverse_index_populated() -> None:
         ("Diazepam", "ジアゼパム"),
     ],
 )
-def test_japanese_display_falls_back_to_legacy_field(drug_name: str, expected_ja: str) -> None:
-    """A drug NOT in the catalog resolves JA via the legacy drug_ja
-    field in drug_classes.yaml — the dual-path shim keeps these
-    functional until catalog enrichment catches up."""
+def test_japanese_display_covers_drug_safety_only_drugs(drug_name: str, expected_ja: str) -> None:
+    """Drugs that only interaction rules reference resolve JA through the
+    catalog too."""
     assert japanese_display(drug_name) == expected_ja
 
 

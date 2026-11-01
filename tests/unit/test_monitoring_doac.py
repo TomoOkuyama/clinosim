@@ -40,7 +40,9 @@ def test_doac_has_egfr_monitoring_entry(mappings: dict, doac: str) -> None:
 
 @pytest.mark.parametrize("doac", ["Apixaban", "Rivaroxaban", "Dabigatran", "Edoxaban"])
 def test_doac_has_jp_display(mappings: dict, doac: str) -> None:
-    assert mappings[doac].get("drug_ja"), f"{doac} missing drug_ja"
+    from clinosim.codes.drugs import drug_display
+
+    assert drug_display(doac, "ja"), f"{doac} has no catalog Japanese name (Issue #2271)"
 
 
 @pytest.mark.parametrize(

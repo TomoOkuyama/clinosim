@@ -161,7 +161,7 @@ class HomeMedication:
     """
 
     drug_name: str = ""  # canonical drug identifier (matches chronic YAML `drug`)
-    drug_name_ja: str = ""  # optional JP display (matches chronic YAML `drug_ja`)
+    drug_name_ja: str = ""  # optional JP display (from the drug catalog, Issue #2271)
     route: str = ""  # PO | IV | SC | INH | NEB | ... — validated by #458's KNOWN_ROUTE_VOCABULARY
     dose: str = ""  # freeform text carried through to Order.dose
     dose_quantity: float | None = None
@@ -289,7 +289,7 @@ def _normalize_home_medications(items: list) -> list[HomeMedication]:
             out.append(
                 HomeMedication(
                     drug_name=str(item.get("drug_name") or item.get("drug") or ""),
-                    drug_name_ja=str(item.get("drug_name_ja") or item.get("drug_ja") or ""),
+                    drug_name_ja=str(item.get("drug_name_ja") or ""),
                     route=str(item.get("route") or ""),
                     dose=str(item.get("dose") or ""),
                     frequency=str(item.get("frequency") or ""),

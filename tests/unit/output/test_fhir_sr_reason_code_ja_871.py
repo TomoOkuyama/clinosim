@@ -261,7 +261,7 @@ def test_monitoring_enricher_empty_rationale_ja_leaves_slot_empty() -> None:
 
 def test_medication_monitoring_yaml_has_rationale_ja_on_every_entry() -> None:
     """Coverage guard: every drug entry in `medication_monitoring.yaml`
-    carries `drug_ja`, and every `monitoring[]` entry carries `rationale_ja`.
+    has a catalog Japanese name, and every `monitoring[]` entry carries `rationale_ja`.
 
     Detects a future accidental deletion or a new drug entry that ships
     without JA authoring (which would silently EN-leak on JP output)."""
@@ -269,10 +269,11 @@ def test_medication_monitoring_yaml_has_rationale_ja_on_every_entry() -> None:
 
     mapping = load_medication_monitoring()
 
-    drugs_without_drug_ja = [drug for drug, spec in mapping.items() if not spec.get("drug_ja")]
-    assert not drugs_without_drug_ja, (
-        f"Drug entries missing `drug_ja` in medication_monitoring.yaml: {drugs_without_drug_ja}"
-    )
+    # Issue #2271: the Japanese drug name comes from the drug catalog.
+    from clinosim.codes.drugs import drug_display
+
+    drugs_without_drug_ja = [drug for drug in mapping if not drug_display(drug, "ja")]
+    assert not drugs_without_drug_ja, f"Monitoring drugs without a catalog Japanese name: {drugs_without_drug_ja}"
 
     monitoring_without_rationale_ja: list[tuple[str, str]] = []
     for drug, spec in mapping.items():

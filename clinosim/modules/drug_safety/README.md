@@ -99,8 +99,8 @@ drug_safety.japanese_display("Aspirin")   # → "アスピリン"
 ## 5. Dependencies
 
 - `clinosim.locale/` (reads `locale/shared/drug_substitution.yaml`)
-- `clinosim.codes` drug catalog (`classifier._catalog_en_to_drug_id`
-  resolves `drug_id` entries to display names)
+- `clinosim.codes` drug catalog (`codes.drugs.drug_display` gives display
+  names)
 - `clinosim.modules.disease.protocol` (lazy import for
   `alternatives_by_indication` — only when disease_ctx is passed)
 - Third-party: `PyYAML` only.

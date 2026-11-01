@@ -15,7 +15,6 @@ code change required.
 mappings:
   <Canonical Drug Name>:
     aliases:      [<additional names, case-insensitive substring match — EN + JP + brand>]
-    drug_ja:      "<JP display>"   # legacy, optional — only for drugs not yet in clinosim/codes/data/drugs.yaml
     classes:      [<class tags, dot-notated: family.subfamily>]
 ```
 
@@ -137,7 +136,7 @@ indications:
     description: "<one-line explanation>"
     alternatives:
       - drug_id: <id in clinosim/codes/data/drugs.yaml>   # display (en + ja) resolved via the catalog
-        # legacy alternative to drug_id: drug: "<EN name>", drug_ja: "<JP display>"
+        # legacy alternative to drug_id: drug: "<EN name>" (Japanese name from the drug catalog)
         default_dose: "<neutral dose string>"
         default_route: "<PO | IV | SC | INH>"
         default_frequency: "<daily | bid | tid | qid | prn | q6h_prn>"

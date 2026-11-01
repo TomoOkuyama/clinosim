@@ -122,15 +122,16 @@ def test_resolved_display_is_non_empty_for_every_migrated_entry():
 
 @pytest.mark.parametrize("legacy_drug", sorted(_LEGACY_OK_DRUGS))
 def test_legacy_entries_still_carry_drug_and_drug_ja(legacy_drug: str):
-    """The dose-embedded Rivaroxaban variants and the S-1 combo stay in
-    the legacy ``drug: "X" / drug_ja: "Y"`` format; downstream
-    (activator / resolve_med_name) must still read them via the legacy
-    path. The migration must not accidentally drop their JA display."""
+    """The dose-embedded Rivaroxaban variants and the S-1 combo stay in the
+    legacy ``drug: "X"`` format; their Japanese name comes from the drug
+    catalog (Issue #2271 removed ``drug_ja``)."""
+    from clinosim.codes.drugs import drug_display
+
     hits = [entry for icd, entry in _iter_medication_entries() if entry.get("drug") == legacy_drug]
     assert hits, f"legacy entry {legacy_drug!r} missing from chronic_medications.yaml"
     for entry in hits:
-        assert entry.get("drug") == legacy_drug
-        assert entry.get("drug_ja"), f"legacy {legacy_drug} entry must retain drug_ja for JP display: {entry}"
+        assert "drug_ja" not in entry
+        assert drug_display(legacy_drug, "ja"), legacy_drug
 
 
 # ---------------------------------------------------------------------------

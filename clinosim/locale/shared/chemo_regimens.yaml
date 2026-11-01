@@ -76,7 +76,7 @@ regimens:
       # the SBD level; a separate drug_id would require an SBD-level
       # pointer which the Phase 1b catalog does not model yet. The
       # dual-path resolver carries this entry transparently.
-      - {drug: "Nab-paclitaxel",  drug_ja: "ナブパクリタキセル",  dose: "125mg/m2",   route: "IV"}
+      - {drug: "Nab-paclitaxel",  dose: "125mg/m2",   route: "IV"}
       - {drug_id: gemcitabine,    dose: "1000mg/m2",  route: "IV"}
   BCG_intravesical:                      # NMIBC adjuvant induction (SWOG 8507)
     cycle_interval_days: 7               # weekly instillation
@@ -89,7 +89,7 @@ regimens:
       # this entry stays on the legacy drug/drug_ja fields. The
       # dual-path resolver carries it transparently; a dedicated
       # vaccine-code catalog follow-up will register BCG properly.
-      - {drug: "BCG", drug_ja: "BCG", dose: "1 vial (81mg TICE / 27mg Connaught)", route: "intravesical"}
+      - {drug: "BCG", dose: "1 vial (81mg TICE / 27mg Connaught)", route: "intravesical"}
   Temozolomide_stupp:                    # glioblastoma adjuvant (Stupp EORTC 22981)
     # Adjuvant Temozolomide 150-200 mg/m2 PO daily × 5 days q28d × 6 cycles
     # after concurrent chemoradiation. Sim emits one Day-1 chemo_visit per

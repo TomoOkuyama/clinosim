@@ -965,6 +965,7 @@ drugs:
       rxnorm: "5224"
       yj: {injection: "3334400A3049"}
     classes: ['anticoagulant.heparin', 'anticoagulant']
+    aliases: ["Unfractionated Heparin"]   # Issue #2271: one Japanese name (ヘパリン) everywhere
   phytonadione:
     names: {en: "Phytonadione", ja: "フィトナジオン"}
     codes:
@@ -1739,3 +1740,42 @@ drugs:
       yj: {oral: "3160002Q1040"}
     classes: ["vitamin_k"]
     aliases: ["ケイツーシロップ"]   # JP perinatal order name
+  # Issue #2271: drugs the drug-safety rules name, catalogued so every drug name
+  # resolves from this catalog (Japanese names: MHLW YJ master ingredient names).
+  # Codes are not registered: the generator does not prescribe these drugs.
+  dabigatran:
+    names: {en: "Dabigatran", ja: "ダビガトラン"}
+    classes: ["anticoagulant.doac", "anticoagulant"]
+  prasugrel:
+    names: {en: "Prasugrel", ja: "プラスグレル"}
+    classes: ["antiplatelet.p2y12", "antiplatelet"]
+  meloxicam:
+    names: {en: "Meloxicam", ja: "メロキシカム"}
+    classes: ["nsaid.preferential_cox2", "nsaid"]
+  indomethacin:
+    names: {en: "Indomethacin", ja: "インドメタシン"}
+    classes: ["nsaid.non_selective", "nsaid"]
+  nifedipine:
+    names: {en: "Nifedipine", ja: "ニフェジピン"}
+    classes: ["ccb.dhp", "ccb", "antihypertensive"]
+  verapamil:
+    names: {en: "Verapamil", ja: "ベラパミル"}
+    classes: ["ccb.non_dhp", "ccb", "antiarrhythmic.class4"]
+  clarithromycin:
+    names: {en: "Clarithromycin", ja: "クラリスロマイシン"}
+    classes: ["macrolide", "cyp3a4_inhibitor_strong"]
+  allopurinol:
+    names: {en: "Allopurinol", ja: "アロプリノール"}
+    classes: ["xanthine_oxidase_inhibitor"]
+  azathioprine:
+    names: {en: "Azathioprine", ja: "アザチオプリン"}
+    classes: ["thiopurine", "immunosuppressant"]
+  selegiline:
+    names: {en: "Selegiline", ja: "セレギリン"}
+    classes: ["maoi", "antiparkinsonian"]
+  diazepam:
+    names: {en: "Diazepam", ja: "ジアゼパム"}
+    classes: ["benzodiazepine", "anxiolytic"]
+  clonazepam:
+    names: {en: "Clonazepam", ja: "クロナゼパム"}
+    classes: ["benzodiazepine", "anxiolytic"]

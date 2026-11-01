@@ -278,8 +278,10 @@ def _resolve_substitution_display(entry: dict[str, Any]) -> tuple[str, str]:
         en = rec.names.get("en", "") or ""
         ja = rec.names.get("ja", "") or en
         return en, ja
+    from clinosim.codes.drugs import drug_display
+
     legacy_en = str(entry.get("drug", "") or "")
-    return legacy_en, str(entry.get("drug_ja", "") or legacy_en)
+    return legacy_en, drug_display(legacy_en, "ja") or legacy_en
 
 
 def _shared_pool_pick(indication: str, active_meds: Sequence[str]) -> AlternativeDrug | None:

@@ -124,6 +124,7 @@ occupation:
 | `codes.valuesets`: `concept_group` / `has_condition` / `patient_condition_names` / `code_by_chronic_prefix` | value set への所属 | 未知のグループなら `KeyError` |
 | `codes.drugs`: `resolve_drug` / `get_drug` / `find_drug` / `names_drug` / `drug_name_needles` | 薬の同一性と名称照合 | 例外 / `None` / `False` |
 | `codes.drugs`: `route_class(route)` / `jp_drug_code(drug, route)` / `jp_drug_code_table(route)` | 投与経路の区分、薬と経路に対応する JP の YJ 製品コード | `""` / `None` / 該当なし |
+| `codes.drugs`: `drug_display(ref, lang)` | 薬 id・名称・alias (見つからなければ先頭語の最長一致) のカタログ名を `lang` で、無ければ英語で返す | `None` |
 | `codes.icd10`: `icd10_system(country)` / `icd10_display(code, country, lang)` / `condition_short_name(code, lang)` / `medis_disease_keyno(icd)` | 国の ICD-10 体系、正式名称、臨床短縮名 (3 桁分類で引く)、MEDIS 病名管理番号 | キー / `None` / `None` / `None` |
 | `codes.procedures`: `procedure_code` / `procedure_type_display` / `procedure_code_display` | 処置のコードと名称 | `""` / 人間可読化した type / `None` |
 | `codes.ucum`: `ucum_code` / `ucum_quantity` | UCUM コード / FHIR Quantity | 単位をそのまま通す |
@@ -233,7 +234,7 @@ occupation:
 | 生成側が出しているのに未登録の CPT / K コード。 | #2340 |
 | 手組みの dual-slot が残っている。`_coding_with_display` と `_value` が英語専用の coding に出力言語の表示名を入れている (`system_coding` / `dual_slot_concept` を使うべき)。後処理で text を補う walker も残っている。 | #2337 |
 | 検査項目の表示名が 5 つの表に分かれている。 | #2267 |
-| 薬名がカタログではなく自由文翻訳を通っている。 | #2271 |
+| 自由文の名称 localizer が FHIR 出力層にあり、order 層と narrative 層から import され、手技・SNOMED・アレルゲン名の翻訳にも使われている。判断ロジックと記録の薬名は `codes.drugs.drug_display` で解決する。 | #2367 |
 | Python に言語ごとのリテラルが残っている。 | #2277 |
 | レコードが `drug_id` を持っていない。 | #2297 |
 | 薬の分類と別名がカタログの外にある。 | #2298 |

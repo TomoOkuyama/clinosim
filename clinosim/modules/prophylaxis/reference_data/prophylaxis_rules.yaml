@@ -10,7 +10,6 @@
 
 dvt_prophylaxis:
   drug: "Enoxaparin"
-  drug_ja: "エノキサパリン"
   dose_quantity: 40.0
   dose_unit: "mg"
   route: "SC"

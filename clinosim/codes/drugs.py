@@ -170,6 +170,23 @@ def jp_drug_code(drug_ref: str, route: str = "") -> str | None:
     return next(iter(rec.yj_by_route.values())) if len(rec.yj_by_route) == 1 else None
 
 
+def drug_display(ref: str, lang: str) -> str | None:
+    """Display name of a catalog drug in ``lang`` (then English): ``ref`` is a
+    drug_id, English name or alias, or a free-text order name whose leading
+    words name one ("Rivaroxaban 20mg"). ``None`` when no catalog drug matches.
+    The one drug-name resolver for display (Issue #2271)."""
+    rec = find_drug(ref)
+    if rec is None:
+        tokens = (ref or "").replace("_", " ").split()
+        for n in range(len(tokens) - 1, 0, -1):
+            rec = find_drug(" ".join(tokens[:n]))
+            if rec is not None:
+                break
+    if rec is None:
+        return None
+    return rec.names.get(lang) or rec.names.get("en") or None
+
+
 def jp_drug_code_for_name(name: str, route: str = "") -> str | None:
     """JP YJ product code for a free-text order name ("Furosemide 20mg",
     "Unfractionated Heparin", "Normal_saline") given by ``route``: the longest

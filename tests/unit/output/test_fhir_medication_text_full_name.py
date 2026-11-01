@@ -36,7 +36,7 @@ def test_localize_multi_word_drug_names_hit_ja_dict():
         ("Regular insulin", "レギュラーインスリン"),
         ("Lactated Ringer", "乳酸リンゲル液"),
         ("Hypertonic Saline", "高張食塩液"),
-        ("Unfractionated Heparin", "未分画ヘパリン"),
+        ("Unfractionated Heparin", "ヘパリン"),  # catalog alias of heparin (Issue #2271)
         # META #1849 Phase 5 Step 2 (combo products): resolves via
         # calcium_carbonate_vitamin_d catalog alias → carbonate-specific JA.
         ("Calcium/Vitamin D", "炭酸カルシウム/ビタミンD"),
@@ -175,7 +175,7 @@ def test_mr_text_with_preset_order_code_unfractionated_heparin():
     concept, _ = _resolve_medication_concept(
         "Unfractionated Heparin 5000IU IV bolus", order_code="3334401A", country="JP"
     )
-    assert concept["text"] == "未分画ヘパリン"
+    assert concept["text"] == "ヘパリン"
 
 
 def test_ma_text_with_preset_code_yj_magnesium():

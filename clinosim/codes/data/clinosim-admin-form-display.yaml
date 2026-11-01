@@ -61,7 +61,6 @@ displays:
   "ICS/LABA": "吸入ステロイド／β2刺激薬配合"
 
   # --- Heparin specificity (unfractionated vs LMWH) ---
-  Unfractionated Heparin: "未分画ヘパリン"      # catalog heparin JA is generic "ヘパリン"
 
   # --- JP ester prodrug form ---
   Cefditoren pivoxil: "セフジトレンピボキシル"  # catalog cefditoren JA is bare "セフジトレン"

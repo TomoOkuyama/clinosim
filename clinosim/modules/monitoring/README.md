@@ -101,7 +101,6 @@ Callers: `clinosim/simulator/enrichers.py` (enricher registration) and
   mappings:
     <Drug canonical name>:
       aliases:        [<optional case-insensitive substring matches>]
-      drug_ja:        "<Japanese drug display>"            # optional (Issue #871)
       monitoring:
         - lab:             <internal analyte name — matches observation engine>
           interval_months: <int >= 1, minimum months between draws (Issue #2143)>
