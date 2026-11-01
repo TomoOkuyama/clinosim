@@ -2764,6 +2764,11 @@
 <td><code>None</code> / display なしの coding</td>
 </tr>
 <tr>
+<td><code>codes.loinc</code>: <code>loinc_for(kind, key)</code> / <code>loinc_map(kind)</code></td>
+<td>内部キーの LOINC コード (<code>codes/data/loinc-maps.yaml</code>: anthropometric / blood_group / care_level / report / section / apgar / newborn_screen)</td>
+<td>未知の kind・key なら <code>KeyError</code></td>
+</tr>
+<tr>
 <td><code>modules.document.narrative.registry.document_loinc(doc_type)</code></td>
 <td>文書種別の LOINC コード (<code>document_type_specs.yaml</code> に 1 回だけ定義)</td>
 <td>未知の種別なら例外</td>
@@ -3042,10 +3047,6 @@
 <tr>
 <td>意味の合わない Composition section コードがある。</td>
 <td>#2391</td>
-</tr>
-<tr>
-<td>出力側に LOINC 定数が残っている。</td>
-<td>#2392</td>
 </tr>
 <tr>
 <td>自由文の名称 localizer が FHIR 出力層にあり、order 層と narrative 層から import され、手技・SNOMED・アレルゲン名の翻訳にも使われている。判断ロジックと記録の薬名は <code>codes.drugs.drug_display</code> で解決する。</td>
