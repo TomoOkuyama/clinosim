@@ -197,6 +197,17 @@ def test_load_narrative_display_dict_fallback_when_catalogs_missing(monkeypatch)
         loader.cache_clear()
     data = _fhir_localization._load_narrative_display_dict()
     assert data == {}
+    # Drop the empty tables built under the stubs, or later tests in this
+    # worker would read them (Issue #2446).
+    monkeypatch.undo()
+    for loader in (
+        _narrative._drug_catalog_display_dict,
+        _narrative.load_drug_display_dict,
+        _narrative.load_procedure_display_dict,
+        _narrative.load_allergen_display_dict,
+        _narrative.load_narrative_display_dict,
+    ):
+        loader.cache_clear()
     _fhir_localization._load_narrative_display_dict.cache_clear()
     _catalog_loader.cache_clear()
     load_narrative_imaging.cache_clear()

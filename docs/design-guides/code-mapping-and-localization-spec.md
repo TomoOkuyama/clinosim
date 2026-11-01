@@ -234,6 +234,4 @@ The output language comes from the country: `clinosim.countries.lang_for(country
 
 These parts of the code base do not yet conform. Each one is removed by the issue listed.
 
-| Deviation | Issue |
-|---|---|
-| `locale/shared/med_terms.yaml` (dosage terms) repeats five procedure names of `clinosim-procedure-phrase.yaml`, so the drug-name resolver still translates them. | #2446 |
+None: the code base conforms to this specification.

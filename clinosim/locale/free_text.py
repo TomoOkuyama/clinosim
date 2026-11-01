@@ -55,8 +55,10 @@ __all__ = [
 # `id()` differs, and the compiled-pattern rebuild kicks in. Phase 1d-3
 # widened the cache key to include ``lang`` so future non-JA locales share
 # the same cache without collisions.
-_DOSAGE_PATTERNS_CACHE: dict[tuple[int, str], tuple[tuple[re.Pattern[str], str], ...]] = {}
-_DRUG_PATTERNS_CACHE: dict[int, tuple[tuple[re.Pattern[str], str], ...]] = {}
+_DOSAGE_PATTERNS_CACHE: dict[tuple[int, str], tuple[object, tuple[tuple[re.Pattern[str], str], ...]]] = {}
+# Value keeps the table itself: an ``id`` is reused once its object is freed
+# (a test's ``cache_clear()``), so a hit must also be the same table object.
+_DRUG_PATTERNS_CACHE: dict[int, tuple[dict[str, str], tuple[tuple[re.Pattern[str], str], ...]]] = {}
 
 
 def _dosage_term_patterns(lang: str = "ja") -> tuple[tuple[re.Pattern[str], str], ...]:
@@ -78,8 +80,8 @@ def _dosage_term_patterns(lang: str = "ja") -> tuple[tuple[re.Pattern[str], str]
     tables = _load_med_terms()
     cache_key = (id(tables), lang)
     hit = _DOSAGE_PATTERNS_CACHE.get(cache_key)
-    if hit is not None:
-        return hit
+    if hit is not None and hit[0] is tables:
+        return hit[1]
     patterns: list[tuple[re.Pattern[str], str]] = []
     # Category prefixes first, longest-match-wins, case-insensitive.
     for cat, entry in sorted(tables["categories"].items(), key=lambda x: -len(x[0])):
@@ -98,7 +100,7 @@ def _dosage_term_patterns(lang: str = "ja") -> tuple[tuple[re.Pattern[str], str]
         else:
             patterns.append((re.compile(r"(?i)\b" + re.escape(term) + r"\b"), display))
     compiled = tuple(patterns)
-    _DOSAGE_PATTERNS_CACHE[cache_key] = compiled
+    _DOSAGE_PATTERNS_CACHE[cache_key] = (tables, compiled)
     return compiled
 
 
@@ -179,12 +181,12 @@ def _drug_name_patterns(ja_dict: dict[str, str] | None = None) -> tuple[tuple[re
     table object's ``id`` so a test's ``cache_clear()`` rebuilds it."""
     table = _load_drug_display_dict() if ja_dict is None else ja_dict
     cached = _DRUG_PATTERNS_CACHE.get(id(table))
-    if cached is not None:
-        return cached
+    if cached is not None and cached[0] is table:
+        return cached[1]
     compiled = tuple(
         (re.compile(r"(?i)\b" + re.escape(k) + r"\b"), v) for k, v in sorted(table.items(), key=lambda x: -len(x[0]))
     )
-    _DRUG_PATTERNS_CACHE[id(table)] = compiled
+    _DRUG_PATTERNS_CACHE[id(table)] = (table, compiled)
     return compiled
 
 

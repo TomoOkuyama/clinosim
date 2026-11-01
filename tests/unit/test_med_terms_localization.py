@@ -59,4 +59,6 @@ def test_med_terms_tables_loaded():
     # `nasal cannula` / `cannula` keys were intentionally not
     # re-added — the pre-existing FHIR-emit convention (経鼻カニューラ)
     # is asserted by test_fhir_procedure_jp_text.
-    assert len(tables["terms"]) == 206
+    # Issue #2446: 206 → 196 — the five procedure names (both cases) the
+    # procedure-phrase table defines were removed.
+    assert len(tables["terms"]) == 196

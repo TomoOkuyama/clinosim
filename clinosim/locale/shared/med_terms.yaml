@@ -203,8 +203,6 @@ terms:
   RV: {ja: 右室}
   PE: {ja: PE（肺塞栓）}
   not: {ja: できず}
-  Ice pack application: {ja: 氷嚢貼付}
-  ice pack application: {ja: 氷嚢貼付}
   Ice pack: {ja: 氷嚢}
   ice pack: {ja: 氷嚢}
   Wound irrigation: {ja: 創部洗浄}
@@ -214,25 +212,17 @@ terms:
   normal saline: {ja: 生理食塩水}
   Normal saline: {ja: 生理食塩水}
   saline: {ja: 生理食塩水}
-  Elastic bandage wrap: {ja: 弾性包帯巻き付け}
-  elastic bandage wrap: {ja: 弾性包帯巻き付け}
   Elastic bandage: {ja: 弾性包帯}
   elastic bandage: {ja: 弾性包帯}
   bandage: {ja: 包帯}
   wrap: {ja: 巻き付け}
-  Suture closure: {ja: 縫合閉鎖}
-  suture closure: {ja: 縫合閉鎖}
   Suture: {ja: 縫合}
   suture: {ja: 縫合}
-  Tissue adhesive: {ja: 皮膚接着剤}
-  tissue adhesive: {ja: 皮膚接着剤}
   Foley catheter: {ja: フォーリーカテーテル}
   Foley: {ja: フォーリー}
   hourly urine output measurement: {ja: 時間尿量測定}
   urine output monitoring: {ja: 尿量モニタリング}
   urine_output_monitoring: {ja: 尿量モニタリング}
-  Hemodialysis: {ja: 血液透析}
-  hemodialysis: {ja: 血液透析}
   CRRT: {ja: 持続的腎代替療法 (CRRT)}
   irrigation: {ja: 洗浄}
   application: {ja: 貼付}
