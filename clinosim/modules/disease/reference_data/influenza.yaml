@@ -303,7 +303,7 @@ expected_vital_distributions:
 drugs:
   first_line:
     japan:
-      - drug: "Oseltamivir"
+      - drug_id: oseltamivir
         dose: "75mg PO BID"
         route: PO
         duration_days: 5
@@ -313,7 +313,7 @@ drugs:
         pregnancy_safe: true
         note: "Most effective within 48h of symptom onset"
     us:
-      - drug: "Oseltamivir"
+      - drug_id: oseltamivir
         dose: "75mg PO BID"
         route: PO
         duration_days: 5
@@ -324,14 +324,14 @@ drugs:
 
   alternative_oral_intolerance:
     japan:
-      - drug: "Peramivir"
+      - drug_id: peramivir
         dose: "300mg IV single dose"
         route: IV
         renal_adjustment:
           eGFR_below_30: "100mg IV single dose"
         note: "Single-dose IV antiviral for patients unable to take PO"
     us:
-      - drug: "Peramivir"
+      - drug_id: peramivir
         dose: "600mg IV single dose"
         route: IV
         renal_adjustment:
@@ -345,14 +345,14 @@ drugs:
 
   escalation:  # bacterial superinfection suspected
     japan:
-      - drug: "Ampicillin/Sulbactam"
+      - drug_id: ampicillin_sulbactam
         dose: "3g IV q6h"
         indication: "suspected_bacterial_superinfection"
     us:
-      - drug: "Ceftriaxone"
+      - drug_id: ceftriaxone
         dose: "1g IV daily"
         indication: "suspected_bacterial_superinfection"
-      - drug: "Azithromycin"
+      - drug_id: azithromycin
         dose: "500mg IV daily"
         indication: "atypical_coverage"
 
@@ -507,8 +507,8 @@ course_archetypes:
     treatment_modifications:
       day_3:
         start:
-          japan: [{drug: "Ampicillin/Sulbactam", dose: "3g IV q6h"}]
-          us: [{drug: "Ceftriaxone", dose: "1g IV daily"}, {drug: "Azithromycin", dose: "500mg IV daily"}]
+          japan: [{drug_id: ampicillin_sulbactam, dose: "3g IV q6h"}]
+          us: [{drug_id: ceftriaxone, dose: "1g IV daily"}, {drug_id: azithromycin, dose: "500mg IV daily"}]
     triggers:
       - day: 3
         condition: "inflammation_level > 0.4"
@@ -531,7 +531,7 @@ course_archetypes:
     treatment_modifications:
       day_3:
         start:
-          japan: [{drug: "Ampicillin/Sulbactam", dose: "3g IV q6h"}]
+          japan: [{drug_id: ampicillin_sulbactam, dose: "3g IV q6h"}]
       day_5:
         action: "icu_transfer"
     triggers:
@@ -555,8 +555,8 @@ course_archetypes:
       day_2:
         start:
           japan:
-            - {drug: "Meropenem", dose: "1g IV q8h"}
-            - {drug: "Norepinephrine", dose: "0.05ug/kg/min IV drip"}
+            - {drug_id: meropenem, dose: "1g IV q8h"}
+            - {drug_id: norepinephrine, dose: "0.05ug/kg/min IV drip"}
         action: "icu_transfer"
         action_2: "intubation_evaluation"
     triggers:

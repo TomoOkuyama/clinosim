@@ -17,7 +17,7 @@ from typing import Any
 
 import numpy as np
 
-from clinosim.codes.drugs import has_drug
+from clinosim.codes.drugs import has_drug, protocol_drug_name
 from clinosim.modules._shared import MED_STOP_ORDER_ID_MARKER, sanitize_id_token
 from clinosim.modules.clinical_course._complication_risk_conditions import ComplicationContext, in_drug_class
 from clinosim.modules.clinical_course.engine import (
@@ -653,7 +653,7 @@ def _run_daily_loop(
                 for med in start_meds:
                     if not isinstance(med, dict):
                         continue
-                    drug = med.get("drug", "").strip()
+                    drug = protocol_drug_name(med).strip()
                     proc = med.get("procedure", "").strip()
                     if drug:
                         # Daily-loop step medications sometimes carry device or
@@ -727,7 +727,7 @@ def _run_daily_loop(
                 if _esc_prob is not None and float(_esc_prob) < 1.0:
                     if rng.random() >= float(_esc_prob):
                         continue
-                drug_name = esc_drug.get("drug", "")
+                drug_name = protocol_drug_name(esc_drug)
                 dose = esc_drug.get("dose", "")
                 indication = esc_drug.get("indication", "no improvement")
                 # Escalation entries carry a `drug` field but the value is

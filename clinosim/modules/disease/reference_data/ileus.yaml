@@ -332,7 +332,7 @@ drugs:
         dose: "125-250 mL/h IV"
         route: IV
         pregnancy_safe: true
-      - drug: "Metoclopramide"
+      - drug_id: metoclopramide
         dose: "10mg IV q8h"
         route: IV
         note: "Prokinetic for paralytic ileus"
@@ -348,7 +348,7 @@ drugs:
         dose: "125-250 mL/h IV"
         route: IV
         pregnancy_safe: true
-      - drug: "Metoclopramide"
+      - drug_id: metoclopramide
         dose: "10mg IV q6h"
         route: IV
         pregnancy_safe: true
@@ -357,13 +357,13 @@ drugs:
 
   escalation:  # when conservative management fails
     japan:
-      - drug: "Cefmetazole"
+      - drug_id: cefmetazole
         dose: "1g IV q8h"
         indication: "fever or suspected bowel ischemia — prophylactic antibiotic"
         renal_adjustment:
           eGFR_below_30: "0.5g IV q12h"
     us:
-      - drug: "Piperacillin/Tazobactam"
+      - drug_id: piperacillin_tazobactam
         dose: "3.375g IV q6h"
         indication: "suspected bowel ischemia or perforation"
 
@@ -375,7 +375,7 @@ drugs:
     # and is not yet registered in the catalog; the dual-path
     # resolver keeps its emit path byte-identical to pre-PR output.
     japan:
-      - drug: "Mosapride"
+      - drug_id: mosapride
         dose: "5mg PO TID"
         duration_days: 7
     us:
@@ -508,8 +508,8 @@ course_archetypes:
       day_4:
         action: "surgical_intervention_laparotomy"
         start:
-          japan: [{drug: "Cefmetazole", dose: "1g IV q8h"}]
-          us: [{drug: "Piperacillin/Tazobactam", dose: "3.375g IV q6h"}]
+          japan: [{drug_id: cefmetazole, dose: "1g IV q8h"}]
+          us: [{drug_id: piperacillin_tazobactam, dose: "3.375g IV q6h"}]
     triggers:
       - day: 3
         condition: "no_bowel_function_and_worsening_distension"
@@ -529,8 +529,8 @@ course_archetypes:
     treatment_modifications:
       day_2:
         start:
-          japan: [{drug: "Cefmetazole", dose: "1g IV q8h"}]
-          us: [{drug: "Piperacillin/Tazobactam", dose: "3.375g IV q6h"}]
+          japan: [{drug_id: cefmetazole, dose: "1g IV q8h"}]
+          us: [{drug_id: piperacillin_tazobactam, dose: "3.375g IV q6h"}]
         action: "emergent_laparotomy"
     triggers:
       - day: 2
@@ -552,11 +552,11 @@ course_archetypes:
       day_2:
         start:
           japan:
-            - {drug: "Meropenem", dose: "1g IV q8h"}
-            - {drug: "Norepinephrine", dose: "0.05ug/kg/min IV drip"}
+            - {drug_id: meropenem, dose: "1g IV q8h"}
+            - {drug_id: norepinephrine, dose: "0.05ug/kg/min IV drip"}
           us:
-            - {drug: "Meropenem", dose: "1g IV q8h"}
-            - {drug: "Norepinephrine", dose: "0.05ug/kg/min IV drip"}
+            - {drug_id: meropenem, dose: "1g IV q8h"}
+            - {drug_id: norepinephrine, dose: "0.05ug/kg/min IV drip"}
         action: "emergent_laparotomy"
         action_2: "icu_transfer"
     triggers:

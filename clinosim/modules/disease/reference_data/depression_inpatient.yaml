@@ -122,20 +122,20 @@ order_protocols:
 drugs:
   first_line:
     japan:
-      - {drug: "Sertraline", dose: "50-100mg PO daily", route: "PO"}
-      - {drug: "Mirtazapine", dose: "15mg PO at bedtime", route: "PO"}
-      - {drug: "Lorazepam", dose: "0.5mg PO PRN anxiety", route: "PO"}
+      - {drug_id: sertraline, dose: "50-100mg PO daily", route: "PO"}
+      - {drug_id: mirtazapine, dose: "15mg PO at bedtime", route: "PO"}
+      - {drug_id: lorazepam, dose: "0.5mg PO PRN anxiety", route: "PO"}
     us:
-      - {drug: "Escitalopram", dose: "10-20mg PO daily", route: "PO"}
-      - {drug: "Mirtazapine", dose: "15mg PO at bedtime", route: "PO"}
-      - {drug: "Lorazepam", dose: "0.5mg PO PRN anxiety", route: "PO"}
+      - {drug_id: escitalopram, dose: "10-20mg PO daily", route: "PO"}
+      - {drug_id: mirtazapine, dose: "15mg PO at bedtime", route: "PO"}
+      - {drug_id: lorazepam, dose: "0.5mg PO PRN anxiety", route: "PO"}
   discharge_oral:
     japan:
-      - {drug: "Sertraline", dose: "100mg PO daily", duration_days: 30}
-      - {drug: "Mirtazapine", dose: "15mg PO at bedtime", duration_days: 30}
+      - {drug_id: sertraline, dose: "100mg PO daily", duration_days: 30}
+      - {drug_id: mirtazapine, dose: "15mg PO at bedtime", duration_days: 30}
     us:
-      - {drug: "Escitalopram", dose: "20mg PO daily", duration_days: 30}
-      - {drug: "Mirtazapine", dose: "15mg PO at bedtime", duration_days: 30}
+      - {drug_id: escitalopram, dose: "20mg PO daily", duration_days: 30}
+      - {drug_id: mirtazapine, dose: "15mg PO at bedtime", duration_days: 30}
 
 # JP: general-hospital psychiatric unit, shorter than the all-hospital 118 days.
 target_los:

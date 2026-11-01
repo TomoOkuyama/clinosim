@@ -303,7 +303,7 @@ expected_vital_distributions:
 drugs:
   first_line:
     japan:
-      - drug: "Diltiazem"
+      - drug_id: diltiazem
         dose: "10mg IV bolus, then 5-15mg/h drip"
         route: IV
         note: "Preferred rate control agent in Japan"
@@ -315,12 +315,12 @@ drugs:
         note: "Ultra-short-acting beta-blocker, Japan-specific"
         pregnancy_safe: false
     us:
-      - drug: "Diltiazem"
+      - drug_id: diltiazem
         dose: "0.25mg/kg IV bolus, then 5-15mg/h drip"
         route: IV
         contraindication: "heart_failure_with_reduced_EF"
         pregnancy_safe: false
-      - drug: "Metoprolol"
+      - drug_id: metoprolol
         dose: "5mg IV q5min x3"
         route: IV
         note: "Preferred if HFrEF"
@@ -329,14 +329,14 @@ drugs:
   alternative_beta_blocker_contraindicated:
     _indication_tag: hypertension_or_rate_control
     japan:
-      - drug: "Digoxin"
+      - drug_id: digoxin
         dose: "0.25mg IV, then 0.125-0.25mg PO daily"
         note: "When both CCB and beta-blocker contraindicated"
         renal_adjustment:
           eGFR_below_30: "0.0625mg PO daily"
         pregnancy_safe: false
     us:
-      - drug: "Digoxin"
+      - drug_id: digoxin
         dose: "0.5mg IV load, then 0.125-0.25mg PO daily"
         renal_adjustment:
           eGFR_below_30: "0.0625mg PO daily"
@@ -344,14 +344,14 @@ drugs:
 
   rhythm_control:
     japan:
-      - drug: "Amiodarone"
+      - drug_id: amiodarone
         dose: "150mg IV over 10min, then 1mg/min x6h, then 0.5mg/min"
         route: IV
         indication: "persistent_AF_or_hemodynamic_compromise"
         note: "Also used for rate control when others fail"
         pregnancy_safe: false
     us:
-      - drug: "Amiodarone"
+      - drug_id: amiodarone
         dose: "150mg IV over 10min, then 1mg/min x6h, then 0.5mg/min"
         route: IV
         indication: "persistent_AF_or_hemodynamic_compromise"
@@ -370,24 +370,24 @@ drugs:
     continue_at_discharge: true
     exclusive_classes: ["anticoagulant"]
     japan:
-      - drug: "Heparin"
+      - drug_id: heparin
         dose: "Initial bolus 5000IU IV, then 1000IU/h drip (adjust by APTT)"
         route: IV
         indication: "CHA2DS2-VASc >= 1 (Japan)"
         pregnancy_safe: false
-      - drug: "Edoxaban"
+      - drug_id: edoxaban
         drug_class: "anticoagulant"
         dose: "60mg PO daily (30mg if CrCl 15-50 or weight <= 60kg)"
         route: PO
         indication: "transition_from_heparin"
         pregnancy_safe: false
     us:
-      - drug: "Heparin"
+      - drug_id: heparin
         dose: "80IU/kg bolus, then 18IU/kg/h (adjust by APTT)"
         route: IV
         indication: "CHA2DS2-VASc >= 2 (men) or >= 3 (women)"
         pregnancy_safe: false
-      - drug: "Apixaban"
+      - drug_id: apixaban
         drug_class: "anticoagulant"
         dose: "5mg PO BID (2.5mg BID if age>=80, weight<=60kg, or Cr>=1.5)"
         route: PO
@@ -563,8 +563,8 @@ course_archetypes:
     treatment_modifications:
       day_2:
         start:
-          japan: [{drug: "Amiodarone", dose: "150mg IV over 10min then 1mg/min"}]
-          us: [{drug: "Amiodarone", dose: "150mg IV over 10min then 1mg/min"}]
+          japan: [{drug_id: amiodarone, dose: "150mg IV over 10min then 1mg/min"}]
+          us: [{drug_id: amiodarone, dose: "150mg IV over 10min then 1mg/min"}]
         action: "consider_cardioversion"
     triggers:
       - day: 2
@@ -586,8 +586,8 @@ course_archetypes:
     treatment_modifications:
       day_2:
         start:
-          japan: [{drug: "Furosemide", dose: "20mg IV"}]
-          us: [{drug: "Furosemide", dose: "40mg IV"}]
+          japan: [{drug_id: furosemide, dose: "20mg IV"}]
+          us: [{drug_id: furosemide, dose: "40mg IV"}]
         action: "icu_transfer"
     triggers:
       - day: 2

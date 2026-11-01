@@ -372,12 +372,12 @@ drugs:
         route: IV
         note: "Aggressive early fluid resuscitation (JP guidelines: goal-directed)"
         pregnancy_safe: true
-      - drug: "Fentanyl"
+      - drug_id: fentanyl
         dose: "25-50 mcg IV q1h PRN"
         route: IV
         note: "Preferred over morphine (no sphincter of Oddi spasm)"
         pregnancy_safe: false
-      - drug: "Acetaminophen"
+      - drug_id: acetaminophen
         dose: "1000mg IV q6h"
         route: IV
         pregnancy_safe: true
@@ -387,11 +387,11 @@ drugs:
         dose: "250-500 mL/h IV for first 12-24h"
         route: IV
         pregnancy_safe: true
-      - drug: "Hydromorphone"
+      - drug_id: hydromorphone
         dose: "0.5-1mg IV q3h PRN"
         route: IV
         pregnancy_safe: false
-      - drug: "Acetaminophen"
+      - drug_id: acetaminophen
         dose: "1000mg IV q6h"
         route: IV
         pregnancy_safe: true
@@ -400,17 +400,17 @@ drugs:
 
   escalation:  # for infected necrosis or severe disease
     japan:
-      - drug: "Meropenem"
+      - drug_id: meropenem
         dose: "1g IV q8h"
         indication: "infected_necrosis_or_pancreatic_abscess"
         renal_adjustment:
           eGFR_below_30: "0.5g IV q12h"
-      - drug: "Nafamostat"
+      - drug_id: nafamostat
         dose: "20mg/h continuous IV"
         indication: "severe pancreatitis (JP-specific protease inhibitor)"
         note: "Used in Japan, not standard in US/EU"
     us:
-      - drug: "Meropenem"
+      - drug_id: meropenem
         dose: "1g IV q8h"
         indication: "infected_necrosis"
         renal_adjustment:
@@ -429,7 +429,7 @@ drugs:
       - drug_id: acetaminophen
         dose: "500mg PO q6h PRN"
         duration_days: 7
-      - drug: "Camostat mesilate"
+      - drug_id: camostat_mesilate
         dose: "200mg PO TID"
         duration_days: 14
         note: "Protease inhibitor (JP-specific, for recurrence prevention)"
@@ -574,8 +574,8 @@ course_archetypes:
     treatment_modifications:
       day_7:
         start:
-          japan: [{drug: "Meropenem", dose: "1g IV q8h"}]
-          us: [{drug: "Meropenem", dose: "1g IV q8h"}]
+          japan: [{drug_id: meropenem, dose: "1g IV q8h"}]
+          us: [{drug_id: meropenem, dose: "1g IV q8h"}]
     triggers:
       - day: 7
         condition: "persistent_fever_and_elevated_WBC"
@@ -599,12 +599,12 @@ course_archetypes:
       day_3:
         start:
           japan:
-            - {drug: "Nafamostat", dose: "20mg/h continuous IV"}
+            - {drug_id: nafamostat, dose: "20mg/h continuous IV"}
           us: []
       day_5:
         start:
-          japan: [{drug: "Norepinephrine", dose: "0.05ug/kg/min IV drip"}]
-          us: [{drug: "Norepinephrine", dose: "0.05ug/kg/min IV drip"}]
+          japan: [{drug_id: norepinephrine, dose: "0.05ug/kg/min IV drip"}]
+          us: [{drug_id: norepinephrine, dose: "0.05ug/kg/min IV drip"}]
         action: "icu_transfer"
     triggers:
       - day: 5
@@ -627,12 +627,12 @@ course_archetypes:
       day_1:
         start:
           japan:
-            - {drug: "Meropenem", dose: "1g IV q8h"}
-            - {drug: "Nafamostat", dose: "20mg/h continuous IV"}
-            - {drug: "Norepinephrine", dose: "0.1ug/kg/min IV drip"}
+            - {drug_id: meropenem, dose: "1g IV q8h"}
+            - {drug_id: nafamostat, dose: "20mg/h continuous IV"}
+            - {drug_id: norepinephrine, dose: "0.1ug/kg/min IV drip"}
           us:
-            - {drug: "Meropenem", dose: "1g IV q8h"}
-            - {drug: "Norepinephrine", dose: "0.1ug/kg/min IV drip"}
+            - {drug_id: meropenem, dose: "1g IV q8h"}
+            - {drug_id: norepinephrine, dose: "0.1ug/kg/min IV drip"}
         action: "icu_transfer"
     triggers:
       - day: 1

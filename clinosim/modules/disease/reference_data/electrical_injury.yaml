@@ -224,20 +224,20 @@ order_protocols:
 drugs:
   first_line:
     japan:
-      - {drug: "Acetaminophen", dose: "1000mg IV q6h", route: "IV"}
-      - {drug: "Fentanyl", dose: "25-50mcg IV PRN", route: "IV"}
-      - {drug: "Sodium bicarbonate", dose: "as needed for urine alkalinization", note: "rhabdo"}
+      - {drug_id: acetaminophen, dose: "1000mg IV q6h", route: "IV"}
+      - {drug_id: fentanyl, dose: "25-50mcg IV PRN", route: "IV"}
+      - {drug_id: sodium_bicarbonate, dose: "as needed for urine alkalinization", note: "rhabdo"}
     us:
-      - {drug: "Acetaminophen", dose: "1000mg IV q6h", route: "IV"}
-      - {drug: "Fentanyl", dose: "25-100mcg IV PRN", route: "IV"}
-      - {drug: "Sodium bicarbonate", dose: "as needed", note: "urine alkalinization"}
+      - {drug_id: acetaminophen, dose: "1000mg IV q6h", route: "IV"}
+      - {drug_id: fentanyl, dose: "25-100mcg IV PRN", route: "IV"}
+      - {drug_id: sodium_bicarbonate, dose: "as needed", note: "urine alkalinization"}
   post_op:
     japan:
-      - {drug: "Acetaminophen", dose: "1000mg PO q6h"}
-      - {drug: "Loxoprofen", dose: "60mg PO tid"}
+      - {drug_id: acetaminophen, dose: "1000mg PO q6h"}
+      - {drug_id: loxoprofen, dose: "60mg PO tid"}
     us:
-      - {drug: "Acetaminophen", dose: "1000mg PO q6h"}
-      - {drug: "Ibuprofen", dose: "400mg PO tid"}
+      - {drug_id: acetaminophen, dose: "1000mg PO q6h"}
+      - {drug_id: ibuprofen, dose: "400mg PO tid"}
 
 target_los:
   japan:

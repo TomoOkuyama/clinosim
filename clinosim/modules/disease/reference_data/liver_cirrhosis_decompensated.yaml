@@ -390,31 +390,31 @@ expected_vital_distributions:
 drugs:
   first_line:
     japan:
-      - drug: "Furosemide"
+      - drug_id: furosemide
         dose: "20-40mg IV or PO daily"
         route: IV
         note: "Combined with spironolactone for ascites"
         pregnancy_safe: false
-      - drug: "Spironolactone"
+      - drug_id: spironolactone
         dose: "25-100mg PO daily"
         route: PO
         note: "Primary diuretic for cirrhotic ascites (100:40 ratio with furosemide)"
         pregnancy_safe: false
-      - drug: "Lactulose"
+      - drug_id: lactulose
         dose: "30mL PO TID (titrate to 2-3 soft stools/day)"
         route: PO
         indication: "hepatic_encephalopathy"
         pregnancy_safe: true
     us:
-      - drug: "Furosemide"
+      - drug_id: furosemide
         dose: "40mg PO daily"
         route: PO
         pregnancy_safe: false
-      - drug: "Spironolactone"
+      - drug_id: spironolactone
         dose: "100mg PO daily"
         route: PO
         pregnancy_safe: false
-      - drug: "Lactulose"
+      - drug_id: lactulose
         dose: "30mL PO TID"
         route: PO
         indication: "hepatic_encephalopathy"
@@ -422,7 +422,7 @@ drugs:
 
   sbp_treatment:
     japan:
-      - drug: "Cefotaxime"
+      - drug_id: cefotaxime
         dose: "2g IV q8h"
         route: IV
         indication: "ascitic_PMN > 250"
@@ -432,7 +432,7 @@ drugs:
         route: IV
         note: "Prevents hepatorenal syndrome in SBP"
     us:
-      - drug: "Cefotaxime"
+      - drug_id: cefotaxime
         dose: "2g IV q8h"
         route: IV
         duration_days: 5
@@ -442,34 +442,34 @@ drugs:
 
   variceal_bleeding:
     japan:
-      - drug: "Octreotide"
+      - drug_id: octreotide
         dose: "50ug IV bolus, then 50ug/h continuous"
         route: IV
         duration_days: 5
-      - drug: "Ceftriaxone"
+      - drug_id: ceftriaxone
         dose: "1g IV daily"
         route: IV
         note: "Antibiotic prophylaxis in variceal bleed"
         duration_days: 7
     us:
-      - drug: "Octreotide"
+      - drug_id: octreotide
         dose: "50ug IV bolus, then 50ug/h"
         route: IV
         duration_days: 5
-      - drug: "Ceftriaxone"
+      - drug_id: ceftriaxone
         dose: "1g IV daily"
         route: IV
         duration_days: 7
 
   encephalopathy_adjunct:
     japan:
-      - drug: "Rifaximin"
+      - drug_id: rifaximin
         dose: "400mg PO TID"
         route: PO
         indication: "recurrent_encephalopathy or inadequate_response_to_lactulose"
         pregnancy_safe: false
     us:
-      - drug: "Rifaximin"
+      - drug_id: rifaximin
         dose: "550mg PO BID"
         route: PO
         pregnancy_safe: false
@@ -484,11 +484,11 @@ drugs:
         dose: "20-40g IV daily"
         route: IV
     us:
-      - drug: "Midodrine"
+      - drug_id: midodrine
         dose: "7.5-12.5mg PO TID"
         route: PO
         indication: "hepatorenal_syndrome (with octreotide)"
-      - drug: "Octreotide"
+      - drug_id: octreotide
         dose: "100-200ug SC TID"
         route: SC
       - drug: "Albumin"
@@ -641,8 +641,8 @@ course_archetypes:
     treatment_modifications:
       day_2:
         start:
-          japan: [{drug: "Cefotaxime", dose: "2g IV q8h"}]
-          us: [{drug: "Cefotaxime", dose: "2g IV q8h"}]
+          japan: [{drug_id: cefotaxime, dose: "2g IV q8h"}]
+          us: [{drug_id: cefotaxime, dose: "2g IV q8h"}]
         add: [{drug: "Albumin", dose: "1.5g/kg IV"}]
 
   plateau_then_recovery:
@@ -678,7 +678,7 @@ course_archetypes:
     treatment_modifications:
       day_3:
         adjust: "maximize_diuretics"
-        add: [{drug: "Midodrine", dose: "7.5mg PO TID"}]
+        add: [{drug_id: midodrine, dose: "7.5mg PO TID"}]
       day_7:
         evaluate: "consider_TIPS_or_transplant"
     triggers:
@@ -703,7 +703,7 @@ course_archetypes:
       day_3:
         start:
           japan: [{drug: "Terlipressin", dose: "1mg IV q6h"}, {drug: "Albumin", dose: "20g IV daily"}]
-          us: [{drug: "Midodrine", dose: "12.5mg PO TID"}, {drug: "Octreotide", dose: "200ug SC TID"}, {drug: "Albumin", dose: "25g IV daily"}]
+          us: [{drug_id: midodrine, dose: "12.5mg PO TID"}, {drug_id: octreotide, dose: "200ug SC TID"}, {drug: "Albumin", dose: "25g IV daily"}]
       day_5:
         action: "icu_transfer"
     triggers:
@@ -727,10 +727,10 @@ course_archetypes:
       day_2:
         start:
           japan:
-            - {drug: "Octreotide", dose: "50ug IV bolus then 50ug/h"}
+            - {drug_id: octreotide, dose: "50ug IV bolus then 50ug/h"}
             - {drug: "Packed_RBC", dose: "transfuse to Hb 7"}
           us:
-            - {drug: "Octreotide", dose: "50ug IV bolus then 50ug/h"}
+            - {drug_id: octreotide, dose: "50ug IV bolus then 50ug/h"}
             - {drug: "Packed_RBC", dose: "transfuse to Hb 7"}
         action: "icu_transfer"
         action_2: "emergent_endoscopy_band_ligation"

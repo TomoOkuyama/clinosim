@@ -452,12 +452,12 @@ drugs:
     # expects (block[country_key] → list[drug_spec]).
     continue_at_discharge: true
     japan:
-      - drug: "Aspirin"
+      - drug_id: aspirin
         dose: "160-300mg loading, then 100mg PO daily"
         route: PO
         start_timing: "within 24-48h (after 24h if tPA given)"
         pregnancy_safe: false
-      - drug: "Clopidogrel"
+      - drug_id: clopidogrel
         # Issue #1334: chronic-discharge dose is 75mg qd, NOT the 300mg
         # loading dose (which is administered ONCE at admission and
         # should not appear in the maintenance MR). Prior "300mg
@@ -471,12 +471,12 @@ drugs:
         probability: 0.40  # dual antiplatelet for minor stroke / high-risk TIA
         note: "DAPT (aspirin + clopidogrel) for 21 days in minor stroke; 300 mg PO loading dose given ONCE at admission per POINT/CHANCE"
     us:
-      - drug: "Aspirin"
+      - drug_id: aspirin
         dose: "325mg loading, then 81mg PO daily"
         route: PO
         start_timing: "within 24-48h (after 24h if tPA given)"
         pregnancy_safe: false
-      - drug: "Clopidogrel"
+      - drug_id: clopidogrel
         # Issue #1334: chronic-discharge dose (75mg qd), not the 300mg
         # load. See JP block above for the full rationale.
         dose: "75mg PO daily"
@@ -501,26 +501,26 @@ drugs:
     indication: "atrial_fibrillation_or_cardioembolic_source"
     start_timing: "typically Day 3-14 depending on infarct size"
     japan:
-      - drug: "Edoxaban"
+      - drug_id: edoxaban
         drug_class: "anticoagulant"
         probability: 0.8
         dose: "60mg PO daily (30mg if CrCl 15-50 or weight <= 60kg)"
         route: PO
         note: "DOAC first-line (JCS 2019 脳卒中治療ガイドライン)"
-      - drug: "Warfarin"
+      - drug_id: warfarin
         drug_class: "anticoagulant"
         probability: 0.2
         dose: "Titrate to INR 2.0-3.0 (1.6-2.6 if age >= 70)"
         route: PO
         note: "Used if mechanical valve or DOAC contraindicated (JCS 2019)"
     us:
-      - drug: "Apixaban"
+      - drug_id: apixaban
         drug_class: "anticoagulant"
         probability: 0.8
         dose: "5mg PO BID (2.5mg if age >= 80, weight <= 60kg, or Cr >= 1.5)"
         route: PO
         note: "DOAC preferred (AHA/ASA 2021, ARISTOTLE)"
-      - drug: "Warfarin"
+      - drug_id: warfarin
         drug_class: "anticoagulant"
         probability: 0.2
         dose: "Titrate to INR 2.0-3.0"
@@ -534,12 +534,12 @@ drugs:
   statin:
     continue_at_discharge: true
     japan:
-      - drug: "Atorvastatin"
+      - drug_id: atorvastatin
         dose: "10-20mg PO daily"
         route: PO
         note: "Standard dose in Japan (JCS 2015)"
     us:
-      - drug: "Atorvastatin"
+      - drug_id: atorvastatin
         dose: "40-80mg PO daily"
         route: PO
         note: "High-intensity statin (AHA/ASA 2021, SPARCL)"
@@ -553,20 +553,20 @@ drugs:
     continue_at_discharge: true
     start_timing: "after acute phase (typically Day 2-3, once neurologically stable)"
     japan:
-      - drug: "Amlodipine"
+      - drug_id: amlodipine
         dose: "5mg PO daily"
         route: PO
         note: "AHA/ASA 2021 + JCS 2019 target < 130/80"
-      - drug: "Candesartan"
+      - drug_id: candesartan
         dose: "8mg PO daily"
         route: PO
         note: "ARB post-stroke (PROGRESS trial)"
     us:
-      - drug: "Amlodipine"
+      - drug_id: amlodipine
         dose: "5-10mg PO daily"
         route: PO
         note: "AHA/ASA 2021 target < 130/80"
-      - drug: "Lisinopril"
+      - drug_id: lisinopril
         dose: "10-20mg PO daily"
         route: PO
         note: "ACE-I post-stroke (PROGRESS trial)"
@@ -574,14 +574,14 @@ drugs:
   bp_lowering_acute:
     indication: "SBP > 185 or DBP > 110 (pre-tPA) or SBP > 220 (no tPA)"
     japan:
-      - drug: "Nicardipine"
+      - drug_id: nicardipine
         dose: "1-6mg/h IV drip"
         route: IV
     us:
-      - drug: "Nicardipine"
+      - drug_id: nicardipine
         dose: "5-15mg/h IV drip"
         route: IV
-      - drug: "Labetalol"
+      - drug_id: labetalol
         dose: "10-20mg IV q10-20min PRN"
         route: IV
 
@@ -771,8 +771,8 @@ course_archetypes:
     treatment_modifications:
       day_2:
         start:
-          japan: [{drug: "Mannitol", dose: "200mL IV q8h"}]
-          us: [{drug: "Mannitol", dose: "1g/kg IV q6h"}]
+          japan: [{drug_id: mannitol, dose: "200mL IV q8h"}]
+          us: [{drug_id: mannitol, dose: "1g/kg IV q6h"}]
         note: "Hyperosmolar therapy for cerebral edema"
       day_5:
         action: "icu_transfer"

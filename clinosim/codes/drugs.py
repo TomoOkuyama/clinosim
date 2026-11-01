@@ -268,6 +268,18 @@ def identify_drug(text: str) -> DrugIdentity | None:
     return None
 
 
+def protocol_drug_name(spec: Any) -> str:
+    """Name of a protocol drug entry (Issue #2414): the catalog English name of
+    its ``drug_id``, else its ``drug`` text; ``""`` for neither."""
+    if not isinstance(spec, dict):
+        return ""
+    drug_id = str(spec.get("drug_id") or "")
+    rec = _load_catalog().get(drug_id) if drug_id else None
+    if rec is not None:
+        return rec.names.get("en", "")
+    return str(spec.get("drug") or "")
+
+
 @cache
 def drug_ref(name_or_id: str) -> str:
     """The catalog ``drug_id`` a drug id, name, alias or free-text medication

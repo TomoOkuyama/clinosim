@@ -307,24 +307,24 @@ order_protocols:
 drugs:
   first_line:
     japan:
-      - {drug: "Fentanyl", dose: "25-50mcg IV q1h PRN", route: "IV"}
-      - {drug: "Acetaminophen", dose: "1000mg IV q6h", route: "IV"}
-      - {drug: "Cefazolin", dose: "1g IV q8h", note: "surgical prophylaxis"}
-      - {drug: "Famotidine", dose: "20mg IV q12h", note: "stress ulcer prophylaxis"}
+      - {drug_id: fentanyl, dose: "25-50mcg IV q1h PRN", route: "IV"}
+      - {drug_id: acetaminophen, dose: "1000mg IV q6h", route: "IV"}
+      - {drug_id: cefazolin, dose: "1g IV q8h", note: "surgical prophylaxis"}
+      - {drug_id: famotidine, dose: "20mg IV q12h", note: "stress ulcer prophylaxis"}
     us:
-      - {drug: "Fentanyl", dose: "25-100mcg IV q1h PRN", route: "IV"}
-      - {drug: "Acetaminophen", dose: "1000mg IV q6h", route: "IV"}
-      - {drug: "Cefazolin", dose: "2g IV q8h", note: "surgical prophylaxis"}
-      - {drug: "Pantoprazole", dose: "40mg IV daily", note: "stress ulcer prophylaxis"}
+      - {drug_id: fentanyl, dose: "25-100mcg IV q1h PRN", route: "IV"}
+      - {drug_id: acetaminophen, dose: "1000mg IV q6h", route: "IV"}
+      - {drug_id: cefazolin, dose: "2g IV q8h", note: "surgical prophylaxis"}
+      - {drug_id: pantoprazole, dose: "40mg IV daily", note: "stress ulcer prophylaxis"}
   post_op:
     japan:
-      - {drug: "Acetaminophen", dose: "1000mg PO q6h"}
-      - {drug: "Enoxaparin", dose: "2000IU SC daily"}
-      - {drug: "Celecoxib", dose: "200mg PO daily"}
+      - {drug_id: acetaminophen, dose: "1000mg PO q6h"}
+      - {drug_id: enoxaparin, dose: "2000IU SC daily"}
+      - {drug_id: celecoxib, dose: "200mg PO daily"}
     us:
-      - {drug: "Oxycodone", dose: "5-10mg PO q4-6h PRN"}
-      - {drug: "Acetaminophen", dose: "1000mg PO q6h"}
-      - {drug: "Enoxaparin", dose: "40mg SC daily"}
+      - {drug_id: oxycodone, dose: "5-10mg PO q4-6h PRN"}
+      - {drug_id: acetaminophen, dose: "1000mg PO q6h"}
+      - {drug_id: enoxaparin, dose: "40mg SC daily"}
 
 procedure:
   postoperative_pain_level: 0.65   # operative-day pain floor (Issue #2080)

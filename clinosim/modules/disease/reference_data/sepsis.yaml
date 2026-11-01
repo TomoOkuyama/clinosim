@@ -496,7 +496,7 @@ expected_vital_distributions:
 drugs:
   first_line:
     japan:
-      - drug: "Meropenem"
+      - drug_id: meropenem
         dose: "1g IV q8h"
         route: IV
         renal_adjustment:
@@ -504,7 +504,7 @@ drugs:
           eGFR_below_30: "0.5g IV q12h"
         pregnancy_safe: true
         note: "Empiric broad-spectrum for unknown source"
-      - drug: "Vancomycin"
+      - drug_id: vancomycin
         dose: "15-20mg/kg IV q12h"
         route: IV
         renal_adjustment:
@@ -515,14 +515,14 @@ drugs:
         probability: 0.50
 
     us:
-      - drug: "Piperacillin/Tazobactam"
+      - drug_id: piperacillin_tazobactam
         dose: "4.5g IV q6h"
         route: IV
         renal_adjustment:
           eGFR_below_30: "2.25g IV q6h"
         pregnancy_safe: true
         note: "Broad-spectrum empiric; or Meropenem if ESBL risk"
-      - drug: "Vancomycin"
+      - drug_id: vancomycin
         dose: "15-20mg/kg IV q8-12h"
         route: IV
         renal_adjustment:
@@ -535,23 +535,23 @@ drugs:
   alternative_penicillin_allergy:
     _indication_tag: antimicrobial_penicillin_class
     japan:
-      - drug: "Ciprofloxacin"
+      - drug_id: ciprofloxacin
         dose: "400mg IV q8h"
         renal_adjustment:
           eGFR_below_50: "400mg IV q12h"
         pregnancy_safe: false
-      - drug: "Aztreonam"
+      - drug_id: aztreonam
         dose: "2g IV q8h"
         renal_adjustment:
           eGFR_below_30: "1g IV q8h"
         pregnancy_safe: true
     us:
-      - drug: "Ciprofloxacin"
+      - drug_id: ciprofloxacin
         dose: "400mg IV q8h"
         renal_adjustment:
           eGFR_below_50: "400mg IV q12h"
         pregnancy_safe: false
-      - drug: "Aztreonam"
+      - drug_id: aztreonam
         dose: "2g IV q8h"
         renal_adjustment:
           eGFR_below_30: "1g IV q8h"
@@ -559,36 +559,36 @@ drugs:
 
   escalation:  # when empiric therapy fails
     japan:
-      - drug: "Meropenem"
+      - drug_id: meropenem
         dose: "2g IV q8h"
         indication: "persistent bacteremia or resistant organism"
         note: "Dose escalation if already on standard dose"
-      - drug: "Micafungin"
+      - drug_id: micafungin
         dose: "100mg IV daily"
         indication: "suspected_invasive_candidiasis"
         note: "Add antifungal if >5 days broad-spectrum ABx with no improvement"
     us:
-      - drug: "Meropenem"
+      - drug_id: meropenem
         dose: "2g IV q8h"
         indication: "ESBL or resistant gram-negative"
-      - drug: "Micafungin"
+      - drug_id: micafungin
         dose: "100mg IV daily"
         indication: "suspected_invasive_candidiasis"
 
   vasopressors:
-    - drug: "Norepinephrine"
+    - drug_id: norepinephrine
       dose: "0.05-0.5 ug/kg/min IV continuous"
       indication: "MAP < 65 despite fluid resuscitation"
       note: "First-line vasopressor per SSC guidelines"
-    - drug: "Vasopressin"
+    - drug_id: vasopressin
       dose: "0.03 units/min IV continuous"
       indication: "Adjunct to norepinephrine when NE dose > 0.25 ug/kg/min"
       note: "Second-line vasopressor"
-    - drug: "Epinephrine"
+    - drug_id: epinephrine
       dose: "0.01-0.1 ug/kg/min IV continuous"
       indication: "Refractory shock despite NE + vasopressin"
       note: "Third-line vasopressor"
-    - drug: "Hydrocortisone"
+    - drug_id: hydrocortisone
       dose: "50mg IV q6h"
       indication: "Septic shock refractory to vasopressors"
       note: "Stress-dose steroids; taper after shock resolution"
@@ -757,7 +757,7 @@ course_archetypes:
         add_fluid: {detail: "Additional crystalloid 1000mL bolus"}
       day_2:
         start:
-          all: [{drug: "Norepinephrine", dose: "0.05-0.1 ug/kg/min"}]
+          all: [{drug_id: norepinephrine, dose: "0.05-0.1 ug/kg/min"}]
         action: "icu_transfer"
 
   plateau:
@@ -780,8 +780,8 @@ course_archetypes:
         action: "reassess_source_control"
       day_7:
         start:
-          japan: [{drug: "Micafungin", dose: "100mg IV daily"}]
-          us: [{drug: "Micafungin", dose: "100mg IV daily"}]
+          japan: [{drug_id: micafungin, dose: "100mg IV daily"}]
+          us: [{drug_id: micafungin, dose: "100mg IV daily"}]
         note: "Empiric antifungal if no improvement with broad-spectrum ABx"
 
   treatment_resistant:
@@ -805,11 +805,11 @@ course_archetypes:
         stop: ["Piperacillin/Tazobactam"]
         start:
           japan:
-            - {drug: "Meropenem", dose: "2g IV q8h"}
-            - {drug: "Vancomycin", dose: "15-20mg/kg IV q12h"}
+            - {drug_id: meropenem, dose: "2g IV q8h"}
+            - {drug_id: vancomycin, dose: "15-20mg/kg IV q12h"}
           us:
-            - {drug: "Meropenem", dose: "2g IV q8h"}
-            - {drug: "Vancomycin", dose: "15-20mg/kg IV q8-12h"}
+            - {drug_id: meropenem, dose: "2g IV q8h"}
+            - {drug_id: vancomycin, dose: "15-20mg/kg IV q8-12h"}
       day_5:
         action: "interventional_source_control"
         note: "Percutaneous drainage or surgical intervention if abscess identified"
@@ -847,26 +847,26 @@ course_archetypes:
     treatment_modifications:
       day_1:
         start:
-          all: [{drug: "Norepinephrine", dose: "0.1 ug/kg/min IV drip"}]
+          all: [{drug_id: norepinephrine, dose: "0.1 ug/kg/min IV drip"}]
         action: "icu_transfer"
       day_3:
         stop: ["Piperacillin/Tazobactam"]
         start:
           japan:
-            - {drug: "Meropenem", dose: "2g IV q8h"}
-            - {drug: "Vancomycin", dose: "15-20mg/kg IV q12h"}
+            - {drug_id: meropenem, dose: "2g IV q8h"}
+            - {drug_id: vancomycin, dose: "15-20mg/kg IV q12h"}
           us:
-            - {drug: "Meropenem", dose: "2g IV q8h"}
-            - {drug: "Vancomycin", dose: "15-20mg/kg IV q8-12h"}
+            - {drug_id: meropenem, dose: "2g IV q8h"}
+            - {drug_id: vancomycin, dose: "15-20mg/kg IV q8-12h"}
       day_5:
         start:
           all:
-            - {drug: "Vasopressin", dose: "0.03 units/min IV continuous"}
-            - {drug: "Hydrocortisone", dose: "50mg IV q6h"}
+            - {drug_id: vasopressin, dose: "0.03 units/min IV continuous"}
+            - {drug_id: hydrocortisone, dose: "50mg IV q6h"}
         action: "consider_rrt"
       day_7:
         start:
-          all: [{drug: "Micafungin", dose: "100mg IV daily"}]
+          all: [{drug_id: micafungin, dose: "100mg IV daily"}]
         action: "intubation_if_not_already"
     triggers:
       - day: 3
@@ -901,14 +901,14 @@ course_archetypes:
       day_0:
         start:
           all:
-            - {drug: "Norepinephrine", dose: "0.2 ug/kg/min IV drip"}
-            - {drug: "Hydrocortisone", dose: "50mg IV q6h"}
+            - {drug_id: norepinephrine, dose: "0.2 ug/kg/min IV drip"}
+            - {drug_id: hydrocortisone, dose: "50mg IV q6h"}
         action: "icu_transfer"
         action_2: "intubation_evaluation"
       day_1:
         start:
           all:
-            - {drug: "Vasopressin", dose: "0.03 units/min IV continuous"}
+            - {drug_id: vasopressin, dose: "0.03 units/min IV continuous"}
         action: "consider_rrt"
         note: "Aggressive multi-organ support"
     triggers:

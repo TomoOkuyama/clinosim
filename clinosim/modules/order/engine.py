@@ -12,6 +12,7 @@ from typing import Any
 import numpy as np
 
 from clinosim.codes import display as registry_display
+from clinosim.codes.drugs import protocol_drug_name
 from clinosim.modules._shared import get_attr_or_key as _s
 from clinosim.modules.imaging.engine import (
     _resolve_imaging_procedure_code_key,
@@ -383,7 +384,7 @@ def protocol_drug_order_code(spec: dict, country: str) -> str:
     from clinosim.codes.drugs import jp_drug_code_for_name
     from clinosim.simulator.helpers import _determine_route
 
-    drug = str(spec.get("drug") or "")
+    drug = protocol_drug_name(spec)
     route = str(spec.get("route") or parse_dose_string(str(spec.get("dose") or "")).get("route") or "")
     return jp_drug_code_for_name(drug, route or _determine_route(drug, "")) or ""
 
@@ -517,7 +518,7 @@ def place_admission_orders(
             continue
         dose_str = med_spec.get("dose", "")
         parsed = parse_dose_string(dose_str)
-        drug_name = med_spec.get("drug", "Unknown")
+        drug_name = protocol_drug_name(med_spec) or "Unknown"
         order = Order(
             order_id=f"ORD-{encounter_id}-ADM-M{med_idx + 1:02d}",
             encounter_id=encounter_id,

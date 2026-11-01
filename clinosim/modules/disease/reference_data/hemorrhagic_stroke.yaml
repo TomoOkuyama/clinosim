@@ -353,30 +353,30 @@ expected_vital_distributions:
 drugs:
   first_line:
     japan:
-      - drug: "Nicardipine"
+      - drug_id: nicardipine
         dose: "1-6 mg/h IV infusion"
         route: IV
         note: "Target SBP < 140 mmHg within 1h"
         renal_adjustment: {}
         pregnancy_safe: false
-      - drug: "Mannitol"
+      - drug_id: mannitol
         dose: "200mL (20%) IV over 30min q6-8h"
         route: IV
         indication: "elevated_ICP_signs"
         note: "Use for cerebral edema/elevated ICP"
     us:
-      - drug: "Nicardipine"
+      - drug_id: nicardipine
         dose: "5-15 mg/h IV infusion"
         route: IV
         note: "Target SBP < 140 mmHg"
-      - drug: "Labetalol"
+      - drug_id: labetalol
         dose: "10-20mg IV bolus q10-20min, max 300mg"
         route: IV
         note: "Alternative BP management"
 
   anticoagulant_reversal:
     japan:
-      - drug: "Vitamin K"
+      - drug_id: vitamin_k
         dose: "10mg IV"
         route: IV
         indication: "warfarin_use_with_elevated_INR"
@@ -384,12 +384,12 @@ drugs:
         dose: "25-50 IU/kg IV"
         route: IV
         indication: "warfarin_use_urgent_reversal"
-      - drug: "Idarucizumab"
+      - drug_id: idarucizumab
         dose: "5g IV"
         route: IV
         indication: "dabigatran_reversal"
     us:
-      - drug: "Vitamin K"
+      - drug_id: vitamin_k
         dose: "10mg IV"
         route: IV
         indication: "warfarin_reversal"
@@ -397,7 +397,7 @@ drugs:
         dose: "25-50 IU/kg IV"
         route: IV
         indication: "warfarin_urgent_reversal"
-      - drug: "Idarucizumab"
+      - drug_id: idarucizumab
         dose: "5g IV"
         route: IV
         indication: "dabigatran_reversal"
@@ -570,7 +570,7 @@ course_archetypes:
         add_imaging: ["CT_Head_repeat"]
     treatment_modifications:
       day_2:
-        add_medication: {drug: "Mannitol", dose: "200mL 20% IV q8h"}
+        add_medication: {drug_id: mannitol, dose: "200mL 20% IV q8h"}
 
   plateau_then_recovery:
     probability: 0.15
@@ -626,7 +626,7 @@ course_archetypes:
     treatment_modifications:
       day_1:
         start:
-          japan: [{drug: "Mannitol", dose: "200mL 20% IV q6h"}]
+          japan: [{drug_id: mannitol, dose: "200mL 20% IV q6h"}]
       day_3:
         action: "icu_transfer"
     triggers:
@@ -654,7 +654,7 @@ course_archetypes:
         start:
           japan:
             - {drug: "Hypertonic Saline 23.4%", dose: "30mL IV stat"}
-            - {drug: "Mannitol", dose: "300mL 20% IV rapid"}
+            - {drug_id: mannitol, dose: "300mL 20% IV rapid"}
     triggers:
       - day: 1
         condition: "GCS drop >= 4 points"

@@ -400,7 +400,7 @@ expected_vital_distributions:
 drugs:
   first_line:
     japan:
-      - drug: "Ceftriaxone"
+      - drug_id: ceftriaxone
         dose: "1-2g IV daily"
         route: IV
         renal_adjustment:
@@ -408,11 +408,11 @@ drugs:
         pregnancy_safe: true
 
     us:
-      - drug: "Ceftriaxone"
+      - drug_id: ceftriaxone
         dose: "1g IV daily"
         route: IV
         pregnancy_safe: true
-      - drug: "Ciprofloxacin"
+      - drug_id: ciprofloxacin
         dose: "400mg IV q12h"
         route: IV
         note: "Alternative first-line if local susceptibility permits"
@@ -421,13 +421,13 @@ drugs:
   alternative_penicillin_allergy:
     _indication_tag: antimicrobial_penicillin_class
     japan:
-      - drug: "Levofloxacin"
+      - drug_id: levofloxacin
         dose: "500mg IV daily"
         renal_adjustment:
           eGFR_below_50: "250mg IV daily"
         pregnancy_safe: false
     us:
-      - drug: "Levofloxacin"
+      - drug_id: levofloxacin
         dose: "750mg IV daily"
         renal_adjustment:
           eGFR_below_50: "500mg IV daily"
@@ -441,20 +441,20 @@ drugs:
     # explicit probability so the effective escalation rate matches the
     # clinical baseline (guideline: IDSA UTI 2010, JP 尿路感染症 GL 2015).
     japan:
-      - drug: "Meropenem"
+      - drug_id: meropenem
         dose: "1g IV q8h"
         indication: "no_defervescence_72h or culture_ESBL_producing_organism"
         probability: 0.4   # ~15 % effective (0.34 trigger × 0.4 gate)
         renal_adjustment:
           eGFR_below_30: "0.5g IV q12h"
     us:
-      - drug: "Meropenem"
+      - drug_id: meropenem
         dose: "1g IV q8h"
         indication: "same"
         probability: 0.4
         renal_adjustment:
           eGFR_below_30: "0.5g IV q12h"
-      - drug: "Piperacillin/Tazobactam"
+      - drug_id: piperacillin_tazobactam
         dose: "4.5g IV q6h"
         indication: "alternative escalation"
         probability: 0.2   # alternative escalation ≤ 20 % of already-selected escalations
@@ -477,7 +477,7 @@ drugs:
         duration_days: 7
         drug_class: "oral_antibiotic"
         probability: 0.65   # fluoroquinolone preferred where local susceptibility permits
-      - drug: "Cefcapene pivoxil"
+      - drug_id: cefcapene_pivoxil
         dose: "100mg PO TID"
         duration_days: 7
         note: "If fluoroquinolone not preferred"
@@ -665,8 +665,8 @@ course_archetypes:
       day_3:
         stop: ["Ceftriaxone"]
         start:
-          japan: [{drug: "Meropenem", dose: "1g IV q8h"}]
-          us: [{drug: "Meropenem", dose: "1g IV q8h"}]
+          japan: [{drug_id: meropenem, dose: "1g IV q8h"}]
+          us: [{drug_id: meropenem, dose: "1g IV q8h"}]
     triggers:
       - day: 3
         condition: "inflammation_level > 0.4"
@@ -690,11 +690,11 @@ course_archetypes:
       day_3:
         stop: ["Ceftriaxone"]
         start:
-          japan: [{drug: "Meropenem", dose: "1g IV q8h"}]
-          us: [{drug: "Meropenem", dose: "1g IV q8h"}]
+          japan: [{drug_id: meropenem, dose: "1g IV q8h"}]
+          us: [{drug_id: meropenem, dose: "1g IV q8h"}]
       day_5:
         start:
-          japan: [{drug: "Norepinephrine", dose: "0.05ug/kg/min IV drip"}]
+          japan: [{drug_id: norepinephrine, dose: "0.05ug/kg/min IV drip"}]
         action: "icu_transfer"
     triggers:
       - day: 5
@@ -718,11 +718,11 @@ course_archetypes:
         stop: ["Ceftriaxone"]
         start:
           japan:
-            - {drug: "Meropenem", dose: "1g IV q8h"}
-            - {drug: "Norepinephrine", dose: "0.1ug/kg/min IV drip"}
+            - {drug_id: meropenem, dose: "1g IV q8h"}
+            - {drug_id: norepinephrine, dose: "0.1ug/kg/min IV drip"}
           us:
-            - {drug: "Meropenem", dose: "1g IV q8h"}
-            - {drug: "Norepinephrine", dose: "0.1ug/kg/min IV drip"}
+            - {drug_id: meropenem, dose: "1g IV q8h"}
+            - {drug_id: norepinephrine, dose: "0.1ug/kg/min IV drip"}
         action: "icu_transfer"
         action_2: "central_line_placement"
     triggers:
