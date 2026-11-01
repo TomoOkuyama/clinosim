@@ -93,10 +93,10 @@ def _validate_panel_definitions(panels: dict[str, dict[str, Any]]) -> None:
 
     for name, panel in panels.items():
         # Layer 2: per-bucket empty guard + required-field presence
-        for field in ("loinc", "components", "min_components", "display"):
+        for field in ("loinc", "components", "min_components", "display_en"):
             if field not in panel:
                 raise ValueError(f"Panel '{name}' missing required field '{field}'")
-        if not panel["display"]:
+        if not panel["display_en"]:
             raise ValueError(f"Panel '{name}' has empty display string")
 
         # Layer 5: type/range checks

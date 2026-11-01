@@ -533,7 +533,7 @@ def build_dr_resource(
     panels = load_panel_definitions()
     panel = panels[group.panel_name]
     lang = resolve_lang(country)
-    display = registry_display("loinc", panel["loinc"], lang) or panel["display"]
+    display = registry_display("loinc", panel["loinc"], lang) or panel["display_en"]
     # Issue #783: `code.text` = JA primary label on JP output (panel `display_ja`
     # in `lab_panels.yaml`), English `display` on US. Prior emit left
     # `code.text` unset entirely — consumers saw only the LOINC code string
