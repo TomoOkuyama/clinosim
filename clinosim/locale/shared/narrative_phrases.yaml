@@ -1875,3 +1875,75 @@ imaging_report_fhir:
   impression_section_code_display:
     ja: "印象"
     en: "Radiology imaging study impression"
+
+# Template fallbacks of the LLM service (clinosim/modules/llm_service/engine.py),
+# used when no LLM is configured (Issue #2399). `*_block` entries are optional
+# lines a template inserts through a placeholder; a language's template may
+# leave a block out.
+llm_template:
+  list_sep:
+    ja: "、"
+    en: ", "
+  default_symptoms:
+    ja: "発熱、咳嗽、呼吸困難"
+    en: "fever, cough, dyspnea"
+  chief_complaint:
+    ja: "{days}日前からの{symptoms}を主訴に来院。"
+    en: "{days}-day history of {symptoms}."
+  progress_note:
+    ja: "【経過記録 Day {day}】\nS: 特記事項なし。食事摂取良好。\nO: 体温 {temp}℃。CRP {crp}。\nA: {dx}。経過良好。\nP: 現治療継続。"
+    en: "Day {day} Progress Note\nS: No acute complaints. Tolerating diet.\nO: Temp {temp}C. CRP {crp}.\nA: {dx}. Improving.\nP: Continue current management."
+  discharge_summary:
+    ja: "【退院時サマリー】\n患者: {age}歳 {sex}\n入院期間: {los}日間\n入院診断: {admit_dx}\n最終診断: {final_dx}\n{course_block}{trends_block}{procs_block}退院時処方: {meds}\n退院先: {disposition}\n外来フォロー: 2週間後。"
+    en: "Discharge Summary\nPatient: {age}yo {sex}\nLOS: {los} days\nAdmission Dx: {admit_dx}\nFinal Dx: {final_dx}\n{course_block}{trends_block}{procs_block}Discharge Rx: {meds}\nDisposition: {disposition}\nFollow-up: 2 weeks."
+  course_block:
+    ja: "経過:\n{course}\n"
+    en: "Hospital course:\n{course}\n"
+  trends_block:
+    ja: "検査推移:\n{trends}\n"
+    en: "Lab trends:\n{trends}\n"
+  procs_block:
+    ja: "実施手技: {procs}\n"
+    en: "Procedures: {procs}\n"
+  no_discharge_meds:
+    ja: "処方なし"
+    en: "None"
+  admission_hp:
+    ja: "【入院時記録】\n主訴: {cc}\n現病歴: {age}歳{sex}。既往に{conditions}あり。\n身体所見: (記載省略)\nアセスメント: {dx}疑い。\nプラン: 抗菌薬治療開始。"
+    en: "Admission H&P\nCC: {cc}\nHPI: {age}yo {sex} with PMH of {conditions}.\nPE: (deferred)\nA: Suspected {dx}.\nP: Initiate antibiotic therapy."
+  death_summary:
+    ja: "【死亡時記録】\n患者: {age}歳 {sex}\n入院診断: {admit_dx}\n最終診断: {dx}\n入院日数: {los}日\n死亡日時: {death_dt}\n経過:\n{course}\n合併症: {complications}\n{terminal_block}治療経過にもかかわらず死亡。"
+    en: "Death Note\nPatient: {age}yo {sex}\nAdmission Dx: {admit_dx}\nFinal Dx: {dx}\nLOS: {los} days\nDate/time of death: {death_dt}\nHospital course:\n{course}\n{trends_block}{timeline_block}{terminal_block}Complications: {complications}\nPatient died despite maximal therapy."
+  timeline_block:
+    ja: "治療:\n{timeline}\n"
+    en: "Treatment:\n{timeline}\n"
+  terminal_block:
+    ja: "死亡時所見: {terminal}\n"
+    en: "Terminal findings: {terminal}\n"
+  none_documented:
+    ja: "記載なし"
+    en: "(none documented)"
+  not_available:
+    ja: "記載なし"
+    en: "(not available)"
+  none_listed:
+    ja: "なし"
+    en: "(none)"
+  no_complications:
+    ja: "なし"
+    en: "None"
+  operative_note:
+    ja: "【手術記録】\n術式: {proc} ({code})\n執刀医: {surgeon}\n助手: {assistants}\n麻酔科医: {anesthesiologist}\n麻酔: {anesthesia} (ASA {asa})\n手術時間: {duration}分\n出血量: {ebl}mL\n部位: {site}\n{approach_block}術前診断: {preop}\n術後診断: {postop}\nインプラント: {implants}\n検体: {specimens}\n合併症: {complications}\n転帰: {outcome}"
+    en: "Operative Note\nProcedure: {proc} ({code})\nSurgeon: {surgeon}\nAssistant(s): {assistants}\nAnesthesiologist: {anesthesiologist}\nAnesthesia: {anesthesia} (ASA {asa})\nDuration: {duration} min\nEBL: {ebl} mL\nBody site: {site}\n{approach_block}{preop_vitals_block}Preop Dx: {preop}\nPostop Dx: {postop}\nImplants: {implants}\nSpecimens: {specimens}\nComplications: {complications}\nOutcome: {outcome}"
+  approach_block:
+    ja: "アプローチ: {approach}\n"
+    en: "Approach: {approach}\n"
+  preop_vitals_block:
+    ja: "術前バイタル: {vitals}\n"
+    en: "Preop vitals: {vitals}\n"
+  procedure_note:
+    ja: "【処置記録】\n処置: {proc} ({code})\n実施者: {operator}\n適応: {indication}\n部位: {site}\n麻酔: {anesthesia}\n所要時間: {duration}分\n{findings_block}検体: {specimens}\n合併症: {complications}\n転帰: {outcome}"
+    en: "Procedure Note\nProcedure: {proc} ({code})\nOperator: {operator}\nIndication: {indication}\nSite: {site}\nAnesthesia: {anesthesia}\nDuration: {duration} min\n{findings_block}Specimens: {specimens}\nComplications: {complications}\nOutcome: {outcome}"
+  findings_block:
+    ja: "所見: {findings}\n"
+    en: "Findings: {findings}\n"
