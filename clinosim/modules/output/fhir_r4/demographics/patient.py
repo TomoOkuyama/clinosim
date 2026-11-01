@@ -683,7 +683,7 @@ def _build_coverage_resources(
                     "type": {
                         "coding": [
                             {
-                                "system": "http://terminology.hl7.org/CodeSystem/coverage-class",
+                                "system": get_system_uri("hl7-coverage-class"),
                                 "code": "group",
                                 "display": "Group" if not is_jp(country) else "保険グループ",
                             }
@@ -699,7 +699,7 @@ def _build_coverage_resources(
                         "type": {
                             "coding": [
                                 {
-                                    "system": "http://terminology.hl7.org/CodeSystem/coverage-class",
+                                    "system": get_system_uri("hl7-coverage-class"),
                                     "code": "plan",
                                     "display": "Plan" if not is_jp(country) else "保険プラン",
                                 }
@@ -720,7 +720,7 @@ def _build_coverage_resources(
                     "type": {
                         "coding": [
                             {
-                                "system": "http://terminology.hl7.org/CodeSystem/coverage-copay-type",
+                                "system": get_system_uri("hl7-coverage-copay-type"),
                                 "code": "copaypct",
                                 "display": "Copay percentage",
                             }

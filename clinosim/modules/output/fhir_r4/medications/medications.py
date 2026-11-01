@@ -51,8 +51,8 @@ from clinosim.modules.output.fhir_r4.lib.localization import (
 
 # HL7 CodeSystem URIs for MedicationRequest classification (both callers
 # emitted them inline before Issue #548 partial extraction).
-_MR_CATEGORY_SYSTEM = "http://terminology.hl7.org/CodeSystem/medicationrequest-category"
-_MR_COURSE_OF_THERAPY_SYSTEM = "http://terminology.hl7.org/CodeSystem/medicationrequest-course-of-therapy"
+_MR_CATEGORY_SYSTEM = get_system_uri("hl7-medicationrequest-category")
+_MR_COURSE_OF_THERAPY_SYSTEM = get_system_uri("hl7-medicationrequest-course-of-therapy")
 
 # Issue #1766: strip trailing `` (TradeName)`` from US RxNorm displays
 # before emitting ``MedicationRequest.medicationCodeableConcept.coding[].display``.
@@ -1651,7 +1651,7 @@ def _build_medication_admin(
     resource["category"] = {
         "coding": [
             {
-                "system": "http://terminology.hl7.org/CodeSystem/medication-admin-category",
+                "system": get_system_uri("hl7-medication-admin-category"),
                 "code": "inpatient",
                 "display": "Inpatient",
             }

@@ -265,10 +265,7 @@ def _check_encounter_class_v3_actcode(encounters: list[dict]) -> EvalCheck:
         name=name,
         numerator=ok,
         denominator=total,
-        message_template=(
-            "{hits}/{total} US Encounters carry class with v3-ActCode system "
-            "(http://terminology.hl7.org/CodeSystem/v3-ActCode)"
-        ),
+        message_template="{hits}/{total} US Encounters carry class with v3-ActCode system (" + _V3_ACTCODE_SYSTEM + ")",
     )
 
 

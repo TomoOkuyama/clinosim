@@ -57,7 +57,7 @@ _JP_OBSERVATION_RESOURCE_IDENTIFIER_SYSTEM = "http://jpfhir.jp/fhir/core/IdSyste
 # per Chain 5). Defined at module top-level so the
 # test_adapter_does_not_hardcode_code_system_uris invariant continues to hold
 # (the URI never appears as a `"system": "..."` literal inside a builder).
-_HL7_V3_SUBSTITUTION_SYSTEM = "http://terminology.hl7.org/CodeSystem/v3-substanceAdminSubstitution"
+_HL7_V3_SUBSTITUTION_SYSTEM = get_system_uri("hl7-v3-substanceadminsubstitution")
 
 
 # JP-CLINS MedicationRequest.dosageInstruction (Dosage = JP_MedicationDosage_eCS)

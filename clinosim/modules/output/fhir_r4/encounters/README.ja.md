@@ -44,7 +44,7 @@ export 時に 1 回生成)、および JP `CareLevel` (要介護度) の custom 
   持つとき (`AdmitSource.BORN` 値、詳細
   [`clinosim/codes/hl7_encounter.py`](../../../../codes/hl7_encounter.py))、
   `Encounter.hospitalization.admitSource` は
-  `_build_hosp_concept("hl7-admit-source", ...)` 経由でマップされ、
+  `dual_slot_concept("hl7-admit-source", ...)` 経由でマップされ、
   兄弟 `admit_source_encounter_id` は新生児側の
   `Encounter.partOf` → 母親の分娩 encounter となる。partOf と合成
   ED bridge Encounter は `_build_encounter` ではなく

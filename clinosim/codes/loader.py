@@ -468,6 +468,15 @@ _BUILTIN_URIS: dict[str, str] = {
     "hl7-endpoint-connection-type": "http://terminology.hl7.org/CodeSystem/endpoint-connection-type",
     "hl7-endpoint-payload-type": "http://terminology.hl7.org/CodeSystem/endpoint-payload-type",
     "hl7-subscriber-relationship": "http://terminology.hl7.org/CodeSystem/subscriber-relationship",
+    # Issue #2349: HL7 systems emitters referenced by URI literal.
+    "hl7-medicationrequest-category": "http://terminology.hl7.org/CodeSystem/medicationrequest-category",
+    "hl7-medicationrequest-course-of-therapy": "http://terminology.hl7.org/CodeSystem/medicationrequest-course-of-therapy",
+    "hl7-medication-admin-category": "http://terminology.hl7.org/CodeSystem/medication-admin-category",
+    "hl7-v3-substanceadminsubstitution": "http://terminology.hl7.org/CodeSystem/v3-substanceAdminSubstitution",
+    "hl7-coverage-class": "http://terminology.hl7.org/CodeSystem/coverage-class",
+    "hl7-coverage-copay-type": "http://terminology.hl7.org/CodeSystem/coverage-copay-type",
+    "hl7-ex-diagnosistype": "http://terminology.hl7.org/CodeSystem/ex-diagnosistype",
+    "hl7-v3-confidentiality": "http://terminology.hl7.org/CodeSystem/v3-Confidentiality",
     "us-core-documentreference-category": "http://hl7.org/fhir/us/core/CodeSystem/us-core-documentreference-category",
     # clinosim-owned CodeSystems for values that have no authoritative
     # standard-body CodeSystem URI (patient occupation category is a good

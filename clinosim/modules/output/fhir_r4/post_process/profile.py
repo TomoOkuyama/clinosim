@@ -15,6 +15,8 @@ from __future__ import annotations
 from functools import cache
 from pathlib import Path
 
+from clinosim.codes import get_system_uri
+
 # deferred cleanup (g): shape unification.
 # JP Core registry uses `dict[str, list[str]]` (was `dict[str, str]`) so its
 # shape matches `_JP_CLINS_PROFILES` below. Future JP Core release with
@@ -78,7 +80,7 @@ _JP_OBSERVATION_CATEGORY_SYSTEM = "http://jpfhir.jp/fhir/core/CodeSystem/JP_Simp
 
 # HL7 標準 URL + 過去 clinosim 版が誤って使った fabricated URL の両方を
 # normalize 対象とする(古い regen data + defensive migration)。
-_HL7_OBSERVATION_CATEGORY_SYSTEM = "http://terminology.hl7.org/CodeSystem/observation-category"
+_HL7_OBSERVATION_CATEGORY_SYSTEM = get_system_uri("hl7-observation-category")
 
 
 _HL7_OBSERVATION_CATEGORY_SYSTEMS = frozenset(

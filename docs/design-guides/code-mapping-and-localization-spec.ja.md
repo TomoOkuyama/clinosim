@@ -230,8 +230,7 @@ occupation:
 | SNOMED のコードと表示名を出力側の dict がまだ持っている (route / severity)。SNOMED のリテラル 74 件が未登録。 | #2258 |
 | 文書 LOINC の定義が 8 箇所にある。意味の合わない section コードがある。出力側に LOINC 定数が残っている。 | #2344 |
 | 生成側が出しているのに未登録の CPT / K コード。 | #2340 |
-| `clinosim/codes/` の外に HL7 `terminology.hl7.org` の URI 直書きがあり、coding を組み立てる helper が 3 つ重複している (`_coding_with_display` / `_value` / `_build_hosp_concept`)。 | #2349 |
-| 手組みの dual-slot が残っている。後処理で text を補う walker も残っている。 | #2337 |
+| 手組みの dual-slot が残っている。`_coding_with_display` と `_value` が英語専用の coding に出力言語の表示名を入れている (`system_coding` / `dual_slot_concept` を使うべき)。後処理で text を補う walker も残っている。 | #2337 |
 | 検査項目の表示名が 5 つの表に分かれている。 | #2267 |
 | 薬名がカタログではなく自由文翻訳を通っている。 | #2271 |
 | Python に言語ごとのリテラルが残っている。 | #2277 |
