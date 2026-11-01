@@ -33,6 +33,7 @@ from typing import Any
 from clinosim.codes import get_system_uri
 from clinosim.codes import lookup as code_lookup
 from clinosim.locale.loader import imaging_exam_display
+from clinosim.locale.localized import localized
 from clinosim.modules._shared import get_attr_or_key as _o
 from clinosim.modules._shared import resolve_lang
 from clinosim.modules.imaging.engine import (  # canonical owners; re-exported below
@@ -353,7 +354,7 @@ def _localize_chief_complaint(text: str, lang: str) -> str:
     row = load_chief_complaint_translations().get(text)
     if not isinstance(row, dict):
         return text
-    return row.get("ja") or text
+    return localized(row, "ja", fallback=text)
 
 
 def _build_series(series: Any, lang: str) -> dict[str, Any]:

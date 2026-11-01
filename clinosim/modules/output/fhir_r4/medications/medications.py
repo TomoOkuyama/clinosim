@@ -20,6 +20,7 @@ from clinosim.codes import lookup as code_lookup
 from clinosim.codes.drugs import drug_system_uri, is_verified_yj, jp_drug_code_table
 from clinosim.codes.ucum import ucum_quantity
 from clinosim.locale.loader import load_code_mapping
+from clinosim.locale.localized import localized
 from clinosim.modules._shared import (
     MED_STOP_ORDER_ID_MARKER,
     get_attr_or_key,
@@ -1117,7 +1118,7 @@ def _build_discharge_rx_dosage(
     # Issue #476: authored dose_ja / dose_en wins over auto-derived text.
     dose_text_ja = str(get_attr_or_key(item, "dose_ja", "") or "")
     dose_text_en = str(get_attr_or_key(item, "dose_en", "") or "")
-    authored_text = dose_text_ja if is_jp(country) else dose_text_en
+    authored_text = localized({"ja": dose_text_ja, "en": dose_text_en}, resolve_lang(country))
     if authored_text:
         dosage["text"] = authored_text
     else:

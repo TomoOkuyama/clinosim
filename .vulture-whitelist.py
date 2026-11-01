@@ -676,3 +676,4 @@ _.triage_level_min  # modules/encounter/protocol.py (Pydantic field; read from t
 _.admitted_with_inpatient_unit  # modules/encounter/protocol.py (Pydantic field; read from the YAML dict in phases/_ed_slot.py)
 _.order_code_system  # types/encounter.py Order (CIF field naming the code system of order_code, Issue #2378)
 _.asa_class  # types/procedure.py ProcedureRecord (CIF field; read by key into the operative-note event data)
+_.display_ja  # labs/_reference_ranges.py specs (read through locale.localized.localized_field, Issue #2397)

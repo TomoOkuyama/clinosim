@@ -30,7 +30,8 @@ from typing import Any
 import numpy as np
 
 from clinosim.codes.drugs import drug_classes, drug_key, drug_ref, get_drug, same_drug
-from clinosim.countries import is_jp
+from clinosim.countries import is_jp, lang_for
+from clinosim.locale.localized import localized_field
 from clinosim.modules.physiology.renal_thresholds import (
     METFORMIN_ADMISSION_HOLD_THRESHOLD,
     METFORMIN_RENAL_RESERVE_THRESHOLD,
@@ -1022,7 +1023,7 @@ def apply_drug_safety_gate_to_orders(
 
         if worst is not None and worst.default_action == "emit_with_note":
             locale = country.lower()
-            note_text = worst.rationale_ja if is_jp(locale) else worst.rationale_en
+            note_text = localized_field(worst, "rationale", lang_for(locale))
             prefix = "併用注意: " if is_jp(locale) else "Drug interaction (caution): "
             note_entry = {
                 "text": f"{prefix}{note_text}",

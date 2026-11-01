@@ -33,6 +33,7 @@ from clinosim.codes.snomed_concepts import FINDING_ABNORMAL, FINDING_NORMAL
 from clinosim.codes.ucum import ucum_prose
 from clinosim.locale.i18n import t
 from clinosim.locale.loader import lab_display
+from clinosim.locale.localized import localized_field
 from clinosim.modules._shared import get_attr_or_key, is_jp, pick_localized_field, resolve_lang
 from clinosim.modules.imaging.engine import (
     RADIOLOGY_REPORT_ID_PREFIX,
@@ -538,8 +539,7 @@ def build_dr_resource(
     # `code.text` unset entirely — consumers saw only the LOINC code string
     # and could not distinguish CBC vs Coag vs LFT DRs at a glance
     # (95.8% of JP DR had null `.text` in baseline).
-    display_ja = panel.get("display_ja") or ""
-    text_display = display_ja if is_jp(country) and display_ja else panel["display"]
+    text_display = localized_field(panel, "display", resolve_lang(country))
 
     # Issue #854 Bucket B (PR-diagnostic-report): opaque lab-panel DR.id.
     _lab_dr_structural_key = f"{group.panel_name.lower()}-{encounter_id}-{seq}"

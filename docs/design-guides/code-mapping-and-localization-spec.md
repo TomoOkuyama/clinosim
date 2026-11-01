@@ -234,7 +234,7 @@ These parts of the code base do not yet conform. Each one is removed by the issu
 
 | Deviation | Issue |
 |---|---|
-| Direct `.get("ja")` and inline language ternaries select values outside `locale.localized`; `codes.lookup` returns the code on a miss. | #2397 |
+| `codes.lookup` returns the code on a miss (about 40 call sites outside `clinosim/codes`). | #2416 |
 | Localized YAML fields use mixed shapes (nested `{lang: text}`, 25 `*_ja` field names, `dose_ja` vs `dose_text_ja`). | #2398 |
 | Some Composition section codes do not mean their section. | #2391 |
 | The free-text name translator (`locale.free_text.localize_free_text`) is one generic translator: procedure, SNOMED and allergen names go through the drug-name dictionary and its substring replacement. | #2408 |
