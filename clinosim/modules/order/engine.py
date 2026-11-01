@@ -353,6 +353,24 @@ def _build_lab_order(
     )
 
 
+def protocol_drug_order_code(spec: dict, country: str) -> str:
+    """Order code of a disease-YAML drug entry (Issue #2351).
+
+    JP: the drug catalog's YJ product for the drug and its route (the entry's
+    ``route``, else the route in its dose string, else the name heuristic) —
+    the same code the FHIR builders emit; ``""`` when the catalog lists no
+    product for that route. US: the entry's ``code_rxnorm``.
+    """
+    if str(country).strip().lower() not in ("jp", "japan"):
+        return str(spec.get("code_rxnorm") or "")
+    from clinosim.codes.drugs import jp_drug_code_for_name
+    from clinosim.simulator.helpers import _determine_route
+
+    drug = str(spec.get("drug") or "")
+    route = str(spec.get("route") or parse_dose_string(str(spec.get("dose") or "")).get("route") or "")
+    return jp_drug_code_for_name(drug, route or _determine_route(drug, "")) or ""
+
+
 def place_admission_orders(
     protocol: dict,
     patient_id: str,
@@ -488,7 +506,7 @@ def place_admission_orders(
             encounter_id=encounter_id,
             patient_id=patient_id,
             order_type=OrderType.MEDICATION,
-            order_code=med_spec.get("code_yj") or med_spec.get("code_rxnorm") or "",
+            order_code=protocol_drug_order_code(med_spec, country),
             display_name=drug_name,
             urgency="stat",
             clinical_intent=f"First-line treatment: {drug_name}",

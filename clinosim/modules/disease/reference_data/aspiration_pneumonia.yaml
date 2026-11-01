@@ -374,7 +374,6 @@ drugs:
   first_line:
     japan:
       - drug: "Ampicillin/Sulbactam"
-        code_yj: "6139504G1028"
         dose: "3g IV q6h"
         route: IV
         note: "Preferred — covers oral anaerobes and streptococci"
@@ -397,12 +396,10 @@ drugs:
     _indication_tag: antimicrobial_penicillin_class
     japan:
       - drug: "Clindamycin"
-        code_yj: "6112001"
         dose: "600mg IV q8h"
         note: "Good anaerobic coverage but C.diff risk"
         pregnancy_safe: false
       - drug: "Meropenem"
-        code_yj: "6139400"
         dose: "1g IV q8h"
         note: "If severe or hospital-acquired aspiration"
         renal_adjustment:
@@ -422,13 +419,11 @@ drugs:
   escalation:
     japan:
       - drug: "Meropenem"
-        code_yj: "6139400"
         dose: "1g IV q8h"
         indication: "no_defervescence_72h or lung_abscess"
         renal_adjustment:
           eGFR_below_30: "0.5g IV q12h"
       - drug: "Metronidazole"
-        code_yj: "6419002"
         dose: "500mg IV q8h"
         note: "Added for enhanced anaerobic coverage"
     us:

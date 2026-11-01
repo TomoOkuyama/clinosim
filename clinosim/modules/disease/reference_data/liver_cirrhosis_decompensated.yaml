@@ -391,19 +391,16 @@ drugs:
   first_line:
     japan:
       - drug: "Furosemide"
-        code_yj: "2139005"
         dose: "20-40mg IV or PO daily"
         route: IV
         note: "Combined with spironolactone for ascites"
         pregnancy_safe: false
       - drug: "Spironolactone"
-        code_yj: "2133001"
         dose: "25-100mg PO daily"
         route: PO
         note: "Primary diuretic for cirrhotic ascites (100:40 ratio with furosemide)"
         pregnancy_safe: false
       - drug: "Lactulose"
-        code_yj: "3999001"
         dose: "30mL PO TID (titrate to 2-3 soft stools/day)"
         route: PO
         indication: "hepatic_encephalopathy"
@@ -429,13 +426,11 @@ drugs:
   sbp_treatment:
     japan:
       - drug: "Cefotaxime"
-        code_yj: "6132409"
         dose: "2g IV q8h"
         route: IV
         indication: "ascitic_PMN > 250"
         duration_days: 5
       - drug: "Albumin"
-        code_yj: "6343410X1088"
         dose: "1.5g/kg Day 1, 1g/kg Day 3"
         route: IV
         note: "Prevents hepatorenal syndrome in SBP"
@@ -453,12 +448,10 @@ drugs:
   variceal_bleeding:
     japan:
       - drug: "Octreotide"
-        code_yj: "2499403"
         dose: "50ug IV bolus, then 50ug/h continuous"
         route: IV
         duration_days: 5
       - drug: "Ceftriaxone"
-        code_yj: "6132419"
         dose: "1g IV daily"
         route: IV
         note: "Antibiotic prophylaxis in variceal bleed"
@@ -478,7 +471,6 @@ drugs:
   encephalopathy_adjunct:
     japan:
       - drug: "Rifaximin"
-        code_yj: "6199001"
         dose: "400mg PO TID"
         route: PO
         indication: "recurrent_encephalopathy or inadequate_response_to_lactulose"
@@ -493,12 +485,10 @@ drugs:
   hepatorenal_syndrome:
     japan:
       - drug: "Terlipressin"
-        code_yj: "2414700"
         dose: "1mg IV q4-6h (increase to 2mg if no response)"
         route: IV
         indication: "hepatorenal_syndrome_type_1"
       - drug: "Albumin"
-        code_yj: "6343410X1088"
         dose: "20-40g IV daily"
         route: IV
     us:

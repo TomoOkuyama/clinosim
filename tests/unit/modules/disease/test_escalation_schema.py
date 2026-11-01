@@ -128,8 +128,9 @@ def test_all_shipped_disease_yamls_still_load():
 # ---------------------------------------------------------------------------
 
 
-def test_legacy_procedure_marker_code_yj_rejected(tmp_path, monkeypatch):
-    """`code_yj: "procedure"` is a pre-Issue-460 marker; must migrate to type=procedure."""
+def test_inline_code_yj_rejected(tmp_path, monkeypatch):
+    """Disease YAMLs carry no ``code_yj``: JP drug codes come from the drug
+    catalog by drug and route (Issue #2351)."""
     monkeypatch.setattr("clinosim.modules.disease.protocol._REF_DIR", tmp_path)
     load_disease_protocol.cache_clear()
     _write_disease_yaml(
@@ -138,10 +139,10 @@ def test_legacy_procedure_marker_code_yj_rejected(tmp_path, monkeypatch):
 drugs:
   escalation:
     japan:
-      - {drug: Hemodialysis, code_yj: procedure, dose: 3-4h}
+      - {drug: Real drug, code_yj: "1234567890", dose: 1g IV daily, route: IV}
 """,
     )
-    with pytest.raises(ValueError, match="legacy non-code marker"):
+    with pytest.raises(ValueError, match="code_yj"):
         load_disease_protocol("test_disease")
 
 
@@ -170,8 +171,8 @@ def test_real_code_value_not_rejected(tmp_path, monkeypatch):
         """
 drugs:
   escalation:
-    japan:
-      - {drug: Real drug, code_yj: "1234567890", dose: 1g IV daily, route: IV}
+    us:
+      - {drug: Real drug, code_rxnorm: "1234567", dose: 1g IV daily, route: IV}
 """,
     )
     protocol = load_disease_protocol("test_disease")

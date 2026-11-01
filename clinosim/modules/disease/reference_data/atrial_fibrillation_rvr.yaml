@@ -304,14 +304,12 @@ drugs:
   first_line:
     japan:
       - drug: "Diltiazem"
-        code_yj: "2171006"
         dose: "10mg IV bolus, then 5-15mg/h drip"
         route: IV
         note: "Preferred rate control agent in Japan"
         contraindication: "heart_failure_with_reduced_EF"
         pregnancy_safe: false
       - drug: "Landiolol"
-        code_yj: "2123404"
         dose: "0.0625mg/kg/min IV"
         route: IV
         note: "Ultra-short-acting beta-blocker, Japan-specific"
@@ -334,7 +332,6 @@ drugs:
     _indication_tag: hypertension_or_rate_control
     japan:
       - drug: "Digoxin"
-        code_yj: "2113003"
         dose: "0.25mg IV, then 0.125-0.25mg PO daily"
         note: "When both CCB and beta-blocker contraindicated"
         renal_adjustment:
@@ -351,7 +348,6 @@ drugs:
   rhythm_control:
     japan:
       - drug: "Amiodarone"
-        code_yj: "2129410A1028"
         dose: "150mg IV over 10min, then 1mg/min x6h, then 0.5mg/min"
         route: IV
         indication: "persistent_AF_or_hemodynamic_compromise"
@@ -379,14 +375,12 @@ drugs:
     exclusive_classes: ["anticoagulant"]
     japan:
       - drug: "Heparin"
-        code_yj: "3334400"
         dose: "Initial bolus 5000IU IV, then 1000IU/h drip (adjust by APTT)"
         route: IV
         indication: "CHA2DS2-VASc >= 1 (Japan)"
         pregnancy_safe: false
       - drug: "Edoxaban"
         drug_class: "anticoagulant"
-        code_yj: "3339002"
         dose: "60mg PO daily (30mg if CrCl 15-50 or weight <= 60kg)"
         route: PO
         indication: "transition_from_heparin"

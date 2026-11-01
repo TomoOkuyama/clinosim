@@ -360,7 +360,6 @@ drugs:
   first_line:
     japan:
       - drug: "Ampicillin/Sulbactam"
-        code_yj: "6139504G1028"
         dose: "3g IV q6h"
         route: IV
         renal_adjustment:
@@ -385,7 +384,6 @@ drugs:
     _indication_tag: antimicrobial_penicillin_class
     japan:
       - drug: "Levofloxacin"
-        code_yj: "6241013"
         dose: "500mg IV daily"
         renal_adjustment:
           eGFR_below_50: "250mg IV daily"
@@ -401,7 +399,6 @@ drugs:
   escalation:  # when first-line fails (Day 3 no improvement)
     japan:
       - drug: "Meropenem"
-        code_yj: "6139400"
         dose: "1g IV q8h"
         indication: "no_defervescence_72h or culture_resistant_organism"
         renal_adjustment:

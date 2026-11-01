@@ -175,6 +175,26 @@ def dose_names_long_interval(dose: str) -> bool:
     return bool(_LONG_INTERVAL_RE.search(dose or ""))
 
 
+def _validate_no_inline_jp_drug_codes(disease_id: str, node: Any) -> None:
+    """Reject ``code_yj`` anywhere in a disease YAML (Issue #2351).
+
+    JP drug codes come from the drug catalog by drug and route
+    (``clinosim.codes.drugs.jp_drug_code``); an inline code would be a second
+    source that drifts from it.
+    """
+    if isinstance(node, dict):
+        if "code_yj" in node:
+            raise ValueError(
+                f"disease {disease_id!r}: drug entry {node.get('drug', '')!r} carries code_yj; "
+                "JP drug codes come from codes/data/drugs.yaml (Issue #2351)"
+            )
+        for value in node.values():
+            _validate_no_inline_jp_drug_codes(disease_id, value)
+    elif isinstance(node, list):
+        for item in node:
+            _validate_no_inline_jp_drug_codes(disease_id, item)
+
+
 def _validate_drug_block_duration_days(disease_id: str, drugs: dict[str, Any]) -> None:
     """Fail loudly when a `discharge_oral` entry's dose names a long interval but
     omits `duration_days`, forcing the reader to substitute the 7-day fallback.
@@ -298,8 +318,8 @@ def _validate_escalation_type_signal(disease_id: str, drugs: dict[str, Any]) -> 
     """3-layer validation of drugs.escalation[*] entries (Issue #460).
 
     Layer 1: `type` field, if present, must be one of {"medication", "procedure"}.
-    Layer 2: pre-Issue-460 legacy marker `code_yj: "procedure"|"N/A"` or
-             `code_rxnorm: "procedure"|"N/A"` must be replaced with explicit
+    Layer 2: pre-Issue-460 legacy marker `code_rxnorm: "procedure"|"N/A"`
+             must be replaced with explicit
              `type: "procedure"` (the marker was YAML-author signal that the
              pre-refactor code did not read).
     Layer 3: `type: "procedure"` MUST NOT co-occur with a `route:` field.
@@ -328,13 +348,11 @@ def _validate_escalation_type_signal(disease_id: str, drugs: dict[str, Any]) -> 
                 )
 
             # Layer 2
-            code_yj = entry.get("code_yj", "")
             code_rxnorm = entry.get("code_rxnorm", "")
-            if code_yj in ("procedure", "N/A") or code_rxnorm in ("procedure", "N/A"):
+            if code_rxnorm in ("procedure", "N/A"):
                 raise ValueError(
                     f"drugs.escalation entry in disease {disease_id!r} carries a "
-                    f"legacy non-code marker (code_yj={code_yj!r}, "
-                    f"code_rxnorm={code_rxnorm!r}) at country {country_key!r}, "
+                    f"legacy non-code marker (code_rxnorm={code_rxnorm!r}) at country {country_key!r}, "
                     f'drug {drug_label!r}. Migrate to `type: "procedure"` and '
                     f"remove the marker (Issue #460)."
                 )
@@ -670,6 +688,7 @@ def load_disease_protocol(disease_id: str) -> DiseaseProtocol:
     # value in the whole YAML (not only `drugs`) so newly-added blocks are
     # covered without maintenance here.
     _validate_drug_route_vocabulary(disease_id, data)
+    _validate_no_inline_jp_drug_codes(disease_id, data)
     return protocol
 
 

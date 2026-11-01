@@ -335,7 +335,7 @@ drugs:
     names: {en: "Diltiazem", ja: "ジルチアゼム"}
     codes:
       rxnorm: "3443"
-      yj: {oral: "2171006F1224"}
+      yj: {oral: "2171006F1224", injection: "2171405D4050"}
     classes: []
   simvastatin:
     names: {en: "Simvastatin", ja: "シンバスタチン"}
@@ -409,7 +409,7 @@ drugs:
     names: {en: "Nitroglycerin", ja: "ニトログリセリン"}
     codes:
       rxnorm: "4917"
-      yj: {oral: "2171018K1039"}
+      yj: {oral: "2171018K1039", injection: "2171403A2052"}
     classes: []
   ibuprofen:
     names: {en: "Ibuprofen", ja: "イブプロフェン"}
@@ -427,7 +427,7 @@ drugs:
     names: {en: "Levetiracetam", ja: "レベチラセタム"}
     codes:
       rxnorm: "114477"  # Issue #2150: was 6373
-      yj: {oral: "1139010F2020"}
+      yj: {oral: "1139010F2020", injection: "1139402A1025"}
     classes: []
   enoxaparin:
     names: {en: "Enoxaparin", ja: "エノキサパリン"}
@@ -580,7 +580,7 @@ drugs:
     names: {en: "Metronidazole", ja: "メトロニダゾール"}
     codes:
       rxnorm: "6922"
-      yj: {oral: "6419002F1131"}
+      yj: {oral: "6419002F1131", injection: "6419401A1027"}
     classes: ["antibiotic.nitroimidazole"]
   fluconazole:
     names: {en: "Fluconazole", ja: "フルコナゾール"}
@@ -661,7 +661,9 @@ drugs:
     names: {en: "Landiolol hydrochloride", ja: "ランジオロール塩酸塩"}
     codes:
       rxnorm: "2712069"
+      yj: {injection: "2123404D1033"}   # オノアクト点滴静注用50mg (Issue #2351)
     classes: ["beta_blocker.cardioselective"]
+    aliases: ["Landiolol"]
   metoprolol:
     # Plain-ingredient Metoprolol (immediate-release / tartrate forms).
     # Distinct from `metoprolol_succinate` (221124, long-acting) added
@@ -755,7 +757,7 @@ drugs:
     names: {en: "Famotidine", ja: "ファモチジン"}
     codes:
       rxnorm: "4278"
-      yj: {oral: "2325003F2020"}
+      yj: {oral: "2325003F2020", injection: "2325401A2027"}
     classes: ["h2_blocker"]
   diphenhydramine:
     names: {en: "Diphenhydramine", ja: "ジフェンヒドラミン"}

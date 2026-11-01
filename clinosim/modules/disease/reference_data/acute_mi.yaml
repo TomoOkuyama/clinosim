@@ -400,23 +400,19 @@ drugs:
   first_line:
     japan:
       - drug: "Aspirin"
-        code_yj: "1143001"
         dose: "162-325mg loading, then 100mg PO daily"
         route: PO
         pregnancy_safe: false
       - drug: "Clopidogrel"
-        code_yj: "3399008"
         dose: "300mg loading, then 75mg PO daily"
         route: PO
         note: "Dual antiplatelet therapy (DAPT)"
         pregnancy_safe: false
       - drug: "Heparin"
-        code_yj: "3334400"
         dose: "60U/kg bolus, then 12U/kg/h IV drip (target APTT 1.5-2.5x)"
         route: IV
         pregnancy_safe: true
       - drug: "Nitroglycerin"
-        code_yj: "2171013"
         dose: "5ug/min IV, titrate for chest pain and BP"
         route: IV
         note: "Avoid if SBP < 90 or right ventricular MI"
@@ -455,19 +451,16 @@ drugs:
   post_pci:
     japan:
       - drug: "Atorvastatin"
-        code_yj: "2189015"
         dose: "20mg PO daily"
         route: PO
         note: "High-intensity statin; some JP guidelines use moderate intensity"
         pregnancy_safe: false
       - drug: "Bisoprolol"
-        code_yj: "2149700"
         dose: "2.5mg PO daily, titrate"
         route: PO
         note: "Beta-blocker; start low if EF reduced"
         pregnancy_safe: false
       - drug: "Enalapril"
-        code_yj: "2144002"
         dose: "2.5mg PO daily, titrate to 10mg"
         route: PO
         note: "ACE inhibitor for LV remodeling prevention"
@@ -500,11 +493,9 @@ drugs:
   escalation:  # cardiogenic shock or recurrent ischemia
     japan:
       - drug: "Dobutamine"
-        code_yj: "2119404"
         dose: "2-20ug/kg/min IV drip"
         indication: "cardiogenic_shock_with_low_CO"
       - drug: "Norepinephrine"
-        code_yj: "2451401"
         dose: "0.05-0.3ug/kg/min IV drip"
         indication: "cardiogenic_shock_with_hypotension"
     us:

@@ -401,7 +401,6 @@ drugs:
   first_line:
     japan:
       - drug: "Ceftriaxone"
-        code_yj: "6132419"
         dose: "1-2g IV daily"
         route: IV
         renal_adjustment:
@@ -425,7 +424,6 @@ drugs:
     _indication_tag: antimicrobial_penicillin_class
     japan:
       - drug: "Levofloxacin"
-        code_yj: "6241013"
         dose: "500mg IV daily"
         renal_adjustment:
           eGFR_below_50: "250mg IV daily"
@@ -447,7 +445,6 @@ drugs:
     # clinical baseline (guideline: IDSA UTI 2010, JP 尿路感染症 GL 2015).
     japan:
       - drug: "Meropenem"
-        code_yj: "6139400"
         dose: "1g IV q8h"
         indication: "no_defervescence_72h or culture_ESBL_producing_organism"
         probability: 0.4   # ~15 % effective (0.34 trigger × 0.4 gate)
@@ -486,7 +483,6 @@ drugs:
         drug_class: "oral_antibiotic"
         probability: 0.65   # fluoroquinolone preferred where local susceptibility permits
       - drug: "Cefcapene pivoxil"
-        code_yj: "6132420"
         dose: "100mg PO TID"
         duration_days: 7
         note: "If fluoroquinolone not preferred"

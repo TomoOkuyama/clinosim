@@ -354,14 +354,12 @@ drugs:
   first_line:
     japan:
       - drug: "Nicardipine"
-        code_yj: "2149019"
         dose: "1-6 mg/h IV infusion"
         route: IV
         note: "Target SBP < 140 mmHg within 1h"
         renal_adjustment: {}
         pregnancy_safe: false
       - drug: "Mannitol"
-        code_yj: "2190400"
         dose: "200mL (20%) IV over 30min q6-8h"
         route: IV
         indication: "elevated_ICP_signs"
@@ -381,17 +379,14 @@ drugs:
   anticoagulant_reversal:
     japan:
       - drug: "Vitamin K"
-        code_yj: "3160001"
         dose: "10mg IV"
         route: IV
         indication: "warfarin_use_with_elevated_INR"
       - drug: "Prothrombin Complex Concentrate (4F-PCC)"
-        code_yj: "6343449"
         dose: "25-50 IU/kg IV"
         route: IV
         indication: "warfarin_use_urgent_reversal"
       - drug: "Idarucizumab"
-        code_yj: "3399412"
         dose: "5g IV"
         route: IV
         indication: "dabigatran_reversal"
@@ -420,7 +415,6 @@ drugs:
   escalation:
     japan:
       - drug: "Hypertonic Saline"
-        code_yj: "3319001"
         dose: "23.4% 30mL IV over 15min via central line"
         route: IV
         indication: "severe_cerebral_edema_or_herniation_signs"

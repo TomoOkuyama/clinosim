@@ -430,16 +430,13 @@ drugs:
   first_line:
     japan:
       - drug: "Regular insulin (continuous IV)"
-        code_yj: "2491404"
         dose: "0.1 U/kg/h continuous infusion"
         route: IV
         note: "Start after confirming K >= 3.3 mEq/L"
       - drug: "Normal saline"
-        code_yj: "3311401"
         dose: "1000mL/h x 1h, then 500mL/h x 4h, then 250mL/h"
         route: IV
       - drug: "Potassium chloride"
-        code_yj: "3229001"
         dose: "20-40 mEq/L in IV fluids"
         route: IV
         note: "Hold if K > 5.3; increase if K < 3.3"
@@ -476,7 +473,6 @@ drugs:
   bicarbonate:
     japan:
       - drug: "Sodium bicarbonate"
-        code_yj: "2344004"
         dose: "100 mEq IV"
         route: IV
         indication: "pH < 6.9 ONLY"
@@ -492,12 +488,10 @@ drugs:
   transition_to_subcutaneous:
     japan:
       - drug: "Insulin glargine"
-        code_yj: "2492416"
         dose: "0.2-0.3 U/kg SC daily"
         route: SC
         note: "Give 1-2h before stopping drip; add rapid-acting insulin with meals"
       - drug: "Insulin aspart"
-        code_yj: "2492415"
         dose: "As prescribed"
         route: SC
         note: "Dose per carb counting or sliding scale"

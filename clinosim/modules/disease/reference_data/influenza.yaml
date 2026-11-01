@@ -304,7 +304,6 @@ drugs:
   first_line:
     japan:
       - drug: "Oseltamivir"
-        code_yj: "6250021"
         dose: "75mg PO BID"
         route: PO
         duration_days: 5
@@ -327,7 +326,6 @@ drugs:
   alternative_oral_intolerance:
     japan:
       - drug: "Peramivir"
-        code_yj: "6250405"
         dose: "300mg IV single dose"
         route: IV
         renal_adjustment:
@@ -350,7 +348,6 @@ drugs:
   escalation:  # bacterial superinfection suspected
     japan:
       - drug: "Ampicillin/Sulbactam"
-        code_yj: "6139504G1028"
         dose: "3g IV q6h"
         indication: "suspected_bacterial_superinfection"
     us:
