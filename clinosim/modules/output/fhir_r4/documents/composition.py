@@ -53,6 +53,7 @@ from typing import Any
 from clinosim.codes import display as registry_display
 from clinosim.codes import get_system_uri
 from clinosim.codes import lookup as code_lookup
+from clinosim.codes.loinc import loinc_for
 from clinosim.modules._shared import get_attr_or_key as _o
 from clinosim.modules._shared import is_jp, resolve_lang, uses_jp_clins_profile
 from clinosim.modules.document import COMPOSITION_ID_PREFIX, DOC_REFERENCE_ID_PREFIX
@@ -141,7 +142,7 @@ _uses_jp_clins_profile = uses_jp_clins_profile
 
 # #278:enc → free-text-doc-id 優先度用 LOINC 定数。
 # module-scope(function 内では N806 lint violation)。
-_HOSPITAL_COURSE_LOINC = "8648-8"
+_HOSPITAL_COURSE_LOINC = loinc_for("section", "hospital_course")
 _PROGRESS_NOTE_LOINC = document_loinc("progress_note")
 
 # Issue #340:HL7 FHIR R4 core `clinicaldocument` profile canonical URL。

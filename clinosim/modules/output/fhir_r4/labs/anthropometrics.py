@@ -63,6 +63,7 @@ from typing import Any
 import yaml
 
 from clinosim.codes import get_system_uri
+from clinosim.codes.loinc import loinc_for
 from clinosim.codes.ucum import ucum_quantity
 from clinosim.modules._shared import get_attr_or_key, is_jp, resolve_lang
 from clinosim.modules.output.fhir_r4.demographics.patient import patient_ref
@@ -78,10 +79,10 @@ from clinosim.modules.output.fhir_r4.lib.ids import (
 # LOINC + display metadata for the four emitted body measurements.
 # ---------------------------------------------------------------------------
 
-LOINC_BODY_HEIGHT = "8302-2"
-LOINC_BODY_WEIGHT = "29463-7"
-LOINC_HEAD_CIRCUMFERENCE = "8287-5"
-LOINC_BMI = "39156-5"
+LOINC_BODY_HEIGHT = loinc_for("anthropometric", "body_height")
+LOINC_BODY_WEIGHT = loinc_for("anthropometric", "body_weight")
+LOINC_HEAD_CIRCUMFERENCE = loinc_for("anthropometric", "head_circumference")
+LOINC_BMI = loinc_for("anthropometric", "bmi")
 
 _DISPLAY_EN = {
     LOINC_BODY_HEIGHT: "Body height",

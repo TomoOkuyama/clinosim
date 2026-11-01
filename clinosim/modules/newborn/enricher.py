@@ -133,7 +133,7 @@ def enrich_newborn(ctx: Any) -> None:
         if new_apgar:
             # Store under `extensions["newborn"]["apgar"]`. The FHIR
             # emit path (`_bb_newborn_apgar` in the fhir_r4 adapter)
-            # walks this and renders LOINC 9271-8 / 9274-2 Observations.
+            # walks this and renders LOINC 9272-6 / 9274-2 Observations.
             ext = _get(record, "extensions", None)
             if ext is None:
                 _set(record, "extensions", {"newborn": {"apgar": list(new_apgar)}})

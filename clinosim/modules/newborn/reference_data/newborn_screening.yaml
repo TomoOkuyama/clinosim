@@ -39,7 +39,6 @@ bilirubin:
   std_by_day: {1: 2.0, 2: 2.5, 3: 3.0}
   clamp_min: 2.0
   clamp_max: 20.0
-  loinc: "58941-6"
 
 # CCHD (Critical Congenital Heart Disease) pulse-oximetry screening
 # (#1252 N7). US-mandated per state since 2011; JP AAP-recommended
@@ -56,7 +55,6 @@ cchd_pulse_ox:
   foot_spo2_std: 1
   clamp_min: 90
   clamp_max: 100
-  loinc: "59408-5"
 
 # US ophthalmic prophylaxis at birth — erythromycin ophthalmic
 # ointment 0.5 % applied within 1 h of birth to both eyes,
@@ -129,7 +127,7 @@ metabolic_screen:
     # Information Community (AHIC)" — the canonical panel code for
     # the tandem-MS newborn screen. Verified 2026-09-11 via
     # tx.fhir.org/r4/CodeSystem/$lookup?system=http://loinc.org&code=54089-8.
-    order_loinc: "54089-8"
+    # The code itself lives in codes/data/loinc-maps.yaml (Issue #2392).
     order_display: "Newborn screening panel"
     order_display_ja: "新生児マス・スクリーニング パネル"
     # SNOMED 108252007 = "Laboratory procedure" — tx.fhir.org verified.
@@ -153,7 +151,6 @@ metabolic_screen:
     collection_method_text_ja: "踵採血 (毛細血管採血)"
   diagnostic_report:
     # Same LOINC 54089-8 for the aggregate report — matches SR.code.
-    code_loinc: "54089-8"
     code_display: "Newborn screening panel"
     code_display_ja: "新生児マス・スクリーニング パネル"
     # laboratory category (hl7-diagnostic-service-sections) — the DR
@@ -192,7 +189,7 @@ hearing_screen:
 # scores 0-2 → total 0-10. Real Z38.0 well-newborn population
 # distribution — 1-min median 8, 5-min median 9.
 #
-# LOINC 9271-8 (1 min) / 9274-2 (5 min) are the FHIR-standard codes
+# LOINC 9272-6 (1 min) / 9274-2 (5 min) are the FHIR-standard codes
 # consumers key on; the FHIR emit layer resolves those from
 # `minute` at build time.
 apgar:

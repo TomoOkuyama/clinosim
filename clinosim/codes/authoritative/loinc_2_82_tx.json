@@ -1284,6 +1284,12 @@
       "display": "Autopsy was performed",
       "status": "ACTIVE",
       "source": "tx.fhir.org LOINC $lookup (2026-11-01, Issue #2391)"
+    },
+    {
+      "code": "9272-6",
+      "display": "1 minute Apgar Score",
+      "status": "ACTIVE",
+      "source": "tx.fhir.org LOINC $lookup (2026-11-01, Issue #2392)"
     }
   ]
 }

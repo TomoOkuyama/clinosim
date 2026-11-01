@@ -14,6 +14,7 @@ import hashlib
 from typing import Any
 
 from clinosim.codes import display as registry_display
+from clinosim.codes.loinc import loinc_for, loinc_map
 from clinosim.codes.snomed import snomed_for
 from clinosim.codes.ucum import ucum_quantity
 
@@ -38,12 +39,10 @@ def _label(section: str, key: str, lang: str, fallback: str = "") -> str:
     return narrative_label(section, key, lang, fallback)
 
 
-_APGAR_MINUTE_TO_LOINC: dict[int, str] = {
-    1: "9271-8",
-    5: "9274-2",
-    # 10-min score exists (LOINC 9273-4) but only ordered for infants
-    # who needed resuscitation — out of scope for the well-newborn slice.
-}
+# Apgar LOINC by minute (codes/data/loinc-maps.yaml, Issue #2392). The
+# 10-min score (9271-8) is only ordered for infants who needed
+# resuscitation — out of scope for the well-newborn slice.
+_APGAR_MINUTE_TO_LOINC: dict[int, str] = {int(k): v for k, v in loinc_map("apgar").items()}
 
 # Phase 1d-16: Apgar minute display moved to narrative_labels.yaml
 # (``newborn_apgar_minute`` section). Resolved via ``_label()`` +
@@ -95,7 +94,7 @@ def _bb_newborn_apgar(ctx: Any) -> list[dict]:
 
     Reads `record.extensions["newborn"]["apgar"]` (populated by the
     newborn enricher — engine.build_apgar_scores). Standard neonatal
-    assessment: LOINC 9271-8 (1 min) / 9274-2 (5 min), category
+    assessment: LOINC 9272-6 (1 min) / 9274-2 (5 min), category
     survey, valueQuantity 0-10 unitless {score}.
 
     No-op for records that carry no Apgar entries (non-newborn / older
@@ -213,7 +212,7 @@ def _bb_newborn_bilirubin(ctx: Any) -> list[dict]:
     for e in bili:
         day = int(e.get("day", 0) or 0)
         value = float(e.get("value_mg_dl", 0.0) or 0.0)
-        loinc = str(e.get("loinc") or "58941-6")
+        loinc = str(e.get("loinc") or loinc_for("newborn_screen", "bilirubin_transcutaneous"))
         struct_key = f"{patient_id}-bili-day-{day}"
         obs: dict[str, Any] = {
             "resourceType": "Observation",
@@ -302,7 +301,7 @@ def _bb_newborn_cchd_pulse_ox(ctx: Any) -> list[dict]:
             continue
         site_display = registry_display("snomed-ct", site_code, lang) or site
         value = int(e.get("value_pct", 0) or 0)
-        loinc = str(e.get("loinc") or "59408-5")
+        loinc = str(e.get("loinc") or loinc_for("newborn_screen", "pulse_oximetry"))
         struct_key = f"{patient_id}-cchd-{site}"
         obs: dict[str, Any] = {
             "resourceType": "Observation",
@@ -418,7 +417,7 @@ def _bb_newborn_metabolic_screen_service_request(ctx: Any) -> list[dict]:
     ext, patient_id, encounter_id, lang = parsed
 
     sr_id = _metabolic_screen_sr_id(patient_id)
-    order_loinc = str(ext.get("order_loinc") or "54089-8")
+    order_loinc = str(ext.get("order_loinc") or loinc_for("newborn_screen", "panel"))
     order_display = str(ext.get("order_display") or "Newborn screening panel")
     # ``order_display_<lang>`` extension slot generalises the previous
     # ``order_display_ja`` field for any target language. Falls back to
@@ -603,7 +602,7 @@ def _bb_newborn_metabolic_screen_observation(ctx: Any) -> list[dict]:
         return []
     ext, patient_id, encounter_id, lang = parsed
 
-    loinc = "57130-7"
+    loinc = loinc_for("newborn_screen", "overall_interpretation")
     display_en = "Newborn screening report - overall interpretation"
     category_display = "Laboratory"
     resource: dict[str, Any] = {
@@ -666,7 +665,7 @@ def _bb_newborn_metabolic_screen_diagnostic_report(ctx: Any) -> list[dict]:
     sr_id = _metabolic_screen_sr_id(patient_id)
     spec_id = _metabolic_screen_specimen_id(patient_id)
 
-    dr_loinc = str(ext.get("dr_code_loinc") or "54089-8")
+    dr_loinc = str(ext.get("dr_code_loinc") or loinc_for("newborn_screen", "panel"))
     dr_display = str(ext.get("dr_code_display") or "Newborn screening panel")
     # ``dr_code_display_<lang>`` generalises the previous
     # ``dr_code_display_ja`` field; fallback to the base slot.

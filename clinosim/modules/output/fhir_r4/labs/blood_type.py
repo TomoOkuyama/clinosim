@@ -49,6 +49,7 @@ from typing import Any
 
 from clinosim.codes import display as registry_display
 from clinosim.codes import get_system_uri
+from clinosim.codes.loinc import loinc_for
 from clinosim.codes.snomed import snomed_for
 from clinosim.modules._shared import get_attr_or_key as _o
 from clinosim.modules._shared import is_jp, resolve_lang
@@ -96,8 +97,8 @@ def _resolve_blood_rh_id(structural_key: str) -> str:
 # specific to the blood-type emit path. Display strings resolve via
 # `code_lookup("loinc", ...)` against clinosim/codes/data/loinc.yaml
 # (Phase 3.α); the pre-fix module-local fallback dict is retired.
-_LOINC_ABO_GROUP = "883-9"
-_LOINC_RH_GROUP = "10331-7"
+_LOINC_ABO_GROUP = loinc_for("blood_group", "abo")
+_LOINC_RH_GROUP = loinc_for("blood_group", "rh")
 
 # SNOMED CT finding concepts for blood-group results are now sourced
 # from clinosim/codes/data/snomed-maps.yaml (abo / rh) via

@@ -17,6 +17,7 @@ from typing import Any
 
 from clinosim.codes import get_system_uri
 from clinosim.codes import lookup as code_lookup
+from clinosim.codes.loinc import loinc_for
 from clinosim.modules._shared import is_jp, resolve_lang
 from clinosim.modules.output.fhir_r4.demographics.patient import patient_ref
 from clinosim.modules.output.fhir_r4.demographics.smoking_alcohol import _sdoh_effective_datetime
@@ -46,7 +47,7 @@ def _resolve_care_level_id(structural_key: str) -> str:
 
 # Issue #733: LOINC observation-identifier for the care-level Observation.
 # Selection rationale is in clinosim/codes/data/loinc.yaml (entry 80391-6).
-_CARE_LEVEL_LOINC = "80391-6"
+_CARE_LEVEL_LOINC = loinc_for("care_level", "level_of_care")
 
 
 def _bb_care_level(ctx: BundleContext) -> list[dict]:

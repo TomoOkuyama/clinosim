@@ -22,7 +22,7 @@ Issue #1252 で起票。module 境界の根拠と、`perinatal.py` や
     であれば day 0 / 7 に経口 K2 シロップ、US は 1 mg IM — N2)。
   - 新生児の `baseline_vitals` からの勤務帯ごとのバイタルサイン
     (`VitalSignRecord` — N3)。
-  - 1 分 / 5 分 Apgar スコア (`Observation`、LOINC 9271-8 /
+  - 1 分 / 5 分 Apgar スコア (`Observation`、LOINC 9272-6 /
     9274-2 — N4)。
   - AABR 聴覚スクリーニング (`Procedure`、SNOMED 413083006 — N5)。
   - タンデムマス法による先天代謝異常マススクリーニング

@@ -14,6 +14,7 @@ from typing import Any
 from clinosim.codes import display as registry_display
 from clinosim.codes import get_system_uri, system_key_for
 from clinosim.codes import lookup as code_lookup
+from clinosim.codes.loinc import loinc_for
 from clinosim.codes.snomed_concepts import FINDING_ABNORMAL, FINDING_NORMAL
 from clinosim.locale.i18n import t
 from clinosim.locale.loader import load_code_mapping, load_narrative_labels, resolve_localized_display
@@ -103,7 +104,7 @@ def _resolve_mb_sus_id(structural_key: str) -> str:
 JP_MB_DR_PROFILE_URI = "http://jpfhir.jp/fhir/core/StructureDefinition/JP_DiagnosticReport_Microbiology"
 JP_MB_DR_CATEGORY_LOINC = "LP7819-8"
 JP_MB_DR_CODE_CS = get_system_uri("jp-document-codes")
-JP_MB_DR_CODE_VALUE = "18725-2"
+JP_MB_DR_CODE_VALUE = loinc_for("report", "microbiology")
 JP_MB_DR_CODE_DISPLAY = "微生物学的検査報告書"
 
 # Canonical URI for HAI event cross-reference identifiers (PR3b-5,
