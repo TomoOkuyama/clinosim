@@ -79,8 +79,8 @@ BASELINE_LAB_NORMALS: dict[str, float] = dict(_LAB_CONSTANTS["baseline_normals"]
 
 
 def get_lab_unit(lab_name: str) -> str:
-    """Get the standard unit for a lab test."""
-    return LAB_UNITS.get(lab_name, "")
+    """Standard unit of a lab test, by canonical name (aliases resolve; Issue #2299)."""
+    return LAB_UNITS.get(canonical_lab_name(lab_name), "")
 
 
 def clamp_to_physiologic_limits(lab_name: str, value: float) -> float:

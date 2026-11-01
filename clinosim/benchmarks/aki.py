@@ -12,6 +12,7 @@ from clinosim.benchmarks.harness import (
     disease_icd_codes,
 )
 from clinosim.benchmarks.sepsis import _iter_structural_records
+from clinosim.modules.observation.engine import canonical_lab_name
 
 
 def _is_aki_encounter(rec: dict) -> bool:
@@ -34,7 +35,7 @@ def _creatinine_delta(rec: dict) -> float | None:
     cr_values = [
         float(lab.get("value"))
         for lab in labs
-        if lab.get("value") is not None and str(lab.get("lab_name", "")).lower() in {"creatinine", "cr"}
+        if lab.get("value") is not None and canonical_lab_name(str(lab.get("lab_name", ""))) == "Creatinine"
     ]
     if len(cr_values) < 2:
         return None

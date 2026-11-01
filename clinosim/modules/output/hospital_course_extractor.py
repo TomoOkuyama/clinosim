@@ -16,6 +16,7 @@ from typing import Any
 from clinosim.codes import lookup as code_lookup
 from clinosim.codes.procedures import procedure_code_display
 from clinosim.codes.snomed_concepts import SURGICAL_PROCEDURE
+from clinosim.modules.observation.engine import canonical_lab_name, get_lab_unit
 from clinosim.simulator.complications import complication_names as _complication_names_from_cif
 
 __all__ = [
@@ -382,7 +383,7 @@ def _lab_peak_events(
         if not lab_name:
             continue
         key = _normalize_lab_name(lab_name)
-        if key not in {"CRP", "WBC", "Cr", "Lactate"}:
+        if key not in {"CRP", "WBC", "Creatinine", "Lactate"}:
             continue
         try:
             value = float(result.get("value", 0))
@@ -530,7 +531,7 @@ def extract_lab_trends(
             continue
         lab_name = (result.get("lab_name") or o.get("display_name") or "").strip()
         key = _normalize_lab_name(lab_name)
-        if key not in {"CRP", "WBC", "Cr", "Lactate", "Hgb", "Plt"}:
+        if key not in {"CRP", "WBC", "Creatinine", "Lactate", "Hb", "Plt"}:
             continue
         try:
             value = float(result.get("value", 0))
@@ -776,35 +777,12 @@ def _day_offset(base: datetime | None, target: Any) -> int:
     return max(0, delta.days)
 
 
-_LAB_NAME_MAP = {
-    "crp": "CRP",
-    "c-reactive protein": "CRP",
-    "wbc": "WBC",
-    "white blood cell count": "WBC",
-    "creatinine": "Cr",
-    "cr": "Cr",
-    "lactate": "Lactate",
-    "hemoglobin": "Hgb",
-    "hgb": "Hgb",
-    "hb": "Hgb",
-    "platelet count": "Plt",
-    "platelet": "Plt",
-    "plt": "Plt",
-}
-
-
 def _normalize_lab_name(name: str) -> str:
-    return _LAB_NAME_MAP.get(name.strip().lower(), name)
+    """Canonical lab name (``clinosim.modules.observation.engine``; Issue #2299)."""
+    return canonical_lab_name(name.strip())
 
 
-_UNIT_MAP = {
-    "CRP": "mg/L",
-    "WBC": "cells/μL",
-    "Cr": "mg/dL",
-    "Lactate": "mmol/L",
-    "Hgb": "g/dL",
-    "Plt": "x10^3/μL",
-}
+_UNIT_MAP = {name: get_lab_unit(name) for name in ("CRP", "WBC", "Creatinine", "Lactate", "Hb", "Plt")}
 
 # Japanese conventional units differ from SI for CRP: mg/dL instead of mg/L.
 _UNIT_MAP_JA = {

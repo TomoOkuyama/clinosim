@@ -237,7 +237,6 @@ These parts of the code base do not yet conform. Each one is removed by the issu
 | Language literals are still embedded in Python. | #2277 |
 | Records do not carry `drug_id`. | #2297 |
 | Drug classes and aliases are held outside the catalog. | #2298 |
-| Lab identity uses non-canonical names at some boundaries. | #2299 |
 | Checkup results use LOINC as `lab_name`. | #2300 |
 | Eval plausibility bounds, and the two panel definitions. | #2332 |
 | No lint guard enforces §8. | #2266 |
