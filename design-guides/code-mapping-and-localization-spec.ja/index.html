@@ -2814,9 +2814,9 @@
 <td><code>""</code></td>
 </tr>
 <tr>
-<td><code>codes.snomed</code>: <code>snomed_display(code, lang)</code> / <code>snomed_for(kind, key)</code> / <code>snomed_map(kind)</code></td>
-<td>SNOMED の表示名、内部キー → コード (<code>route</code> / <code>severity</code>。<code>codes/data/snomed-maps.yaml</code>)</td>
-<td><code>None</code> / <code>None</code> / <code>KeyError</code></td>
+<td><code>codes.snomed</code>: <code>snomed_display(code, lang)</code> / <code>snomed_for(kind, key)</code> / <code>snomed_map(kind)</code> / <code>snomed_for_phrase(text)</code></td>
+<td>SNOMED の表示名、内部キー → コード (<code>route</code> / <code>severity</code>。<code>codes/data/snomed-maps.yaml</code>)、自由文の処置・オーダー名 → コード (<code>codes/data/procedure-phrase-to-snomed.yaml</code> で最初に一致する語句)</td>
+<td><code>None</code> / <code>None</code> / <code>KeyError</code> / <code>None</code></td>
 </tr>
 <tr>
 <td><code>codes.snomed_concepts</code></td>
@@ -3023,8 +3023,8 @@
 <td>#2275</td>
 </tr>
 <tr>
-<td>registry の外にある SNOMED のコードと表示名 (処置名 YAML、device / HAI / follow-up の写し、Python の mapper 表) と、未登録の SNOMED リテラル約 74 件。</td>
-<td>#2363</td>
+<td>SNOMED の対応表が Python に残り、出力側 (検体・ServiceRequest・新生児・放射線カテゴリ) に SNOMED リテラルがある。</td>
+<td>#2379</td>
 </tr>
 <tr>
 <td>文書 LOINC の定義が 8 箇所にある。意味の合わない section コードがある。出力側に LOINC 定数が残っている。</td>
