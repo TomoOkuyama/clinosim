@@ -63,9 +63,9 @@ def test_new_loincs_are_registered_in_loinc_yaml() -> None:
     codes = loinc.get("codes", {})
     assert "64295-9" in codes
     assert "34895-3" in codes
-    # Verified via clinicaltables.nlm.nih.gov/api/loinc_items 2026-09-09.
+    # tx.fhir.org LOINC $lookup displays (Issue #2391, 2026-11-01).
     assert codes["64295-9"]["en"] == "Nurse Plan of Care Note"
-    assert codes["34895-3"]["en"] == "Patient education and consents"
+    assert codes["34895-3"]["en"] == "Education Note"
 
 
 def test_generic_plan_slug_still_uses_18776_5() -> None:
