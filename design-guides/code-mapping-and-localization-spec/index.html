@@ -2820,7 +2820,7 @@
 </tr>
 <tr>
 <td><code>codes.snomed</code>: <code>snomed_display(code, lang)</code>, <code>snomed_for(kind, key)</code>, <code>snomed_map(kind)</code>, <code>snomed_for_phrase(text)</code></td>
-<td>SNOMED display; internal key → code (<code>route</code>, <code>severity</code>; <code>codes/data/snomed-maps.yaml</code>); free-text procedure / order name → code (first matching phrase in <code>codes/data/procedure-phrase-to-snomed.yaml</code>)</td>
+<td>SNOMED display; internal key → code (<code>route</code>, <code>severity</code>, <code>abo</code>, <code>rh</code>, <code>cchd_site</code>, <code>encounter_type</code>, <code>oxygen_device</code>, <code>stage</code>, <code>procedure_category</code>, <code>order_category</code>, <code>specimen_type</code>, <code>newborn_screen</code>; <code>codes/data/snomed-maps.yaml</code>); free-text procedure / order name → code (first matching phrase in <code>codes/data/procedure-phrase-to-snomed.yaml</code>)</td>
 <td><code>None</code> / <code>None</code> / <code>KeyError</code> / <code>None</code></td>
 </tr>
 </tbody>
@@ -3021,10 +3021,6 @@
 <tr>
 <td><strong>Fallback.</strong> <code>display</code> / <code>lookup</code>, <code>resolve_text</code> and <code>t</code> end with a last-resort value: the first available language, the code, <code>str(value)</code> or the key. That can break §6.1–6.2, and there is no single retrieval API.</td>
 <td>#2275</td>
-</tr>
-<tr>
-<td>SNOMED mapper tables held in Python and SNOMED literals in emitters (specimen, ServiceRequest, newborn, radiology category).</td>
-<td>#2379</td>
 </tr>
 <tr>
 <td>Document LOINCs are defined in eight places, some section codes do not mean their section, and emitters still hold LOINC constants.</td>

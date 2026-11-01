@@ -2815,7 +2815,7 @@
 </tr>
 <tr>
 <td><code>codes.snomed</code>: <code>snomed_display(code, lang)</code> / <code>snomed_for(kind, key)</code> / <code>snomed_map(kind)</code> / <code>snomed_for_phrase(text)</code></td>
-<td>SNOMED の表示名、内部キー → コード (<code>route</code> / <code>severity</code>。<code>codes/data/snomed-maps.yaml</code>)、自由文の処置・オーダー名 → コード (<code>codes/data/procedure-phrase-to-snomed.yaml</code> で最初に一致する語句)</td>
+<td>SNOMED の表示名、内部キー → コード (<code>route</code> / <code>severity</code> / <code>abo</code> / <code>rh</code> / <code>cchd_site</code> / <code>encounter_type</code> / <code>oxygen_device</code> / <code>stage</code> / <code>procedure_category</code> / <code>order_category</code> / <code>specimen_type</code> / <code>newborn_screen</code>。<code>codes/data/snomed-maps.yaml</code>)、自由文の処置・オーダー名 → コード (<code>codes/data/procedure-phrase-to-snomed.yaml</code> で最初に一致する語句)</td>
 <td><code>None</code> / <code>None</code> / <code>KeyError</code> / <code>None</code></td>
 </tr>
 <tr>
@@ -3021,10 +3021,6 @@
 <tr>
 <td><strong>フォールバック。</strong> <code>display</code> / <code>lookup</code>、<code>resolve_text</code>、<code>t</code> は最後の手段として、最初に見つかった言語・コード・<code>str(value)</code>・キーを返す。§6.1–6.2 に反する場合があり、取得 API も 1 本化されていない。</td>
 <td>#2275</td>
-</tr>
-<tr>
-<td>SNOMED の対応表が Python に残り、出力側 (検体・ServiceRequest・新生児・放射線カテゴリ) に SNOMED リテラルがある。</td>
-<td>#2379</td>
 </tr>
 <tr>
 <td>文書 LOINC の定義が 8 箇所にある。意味の合わない section コードがある。出力側に LOINC 定数が残っている。</td>
