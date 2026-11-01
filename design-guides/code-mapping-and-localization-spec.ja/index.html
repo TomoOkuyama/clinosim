@@ -2784,9 +2784,9 @@
 <td><code>None</code></td>
 </tr>
 <tr>
-<td><code>codes.icd10</code>: <code>icd10_system(country)</code> / <code>icd10_display(code, country, lang)</code> / <code>condition_short_name(code, lang)</code> / <code>medis_disease_keyno(icd)</code></td>
-<td>国の ICD-10 体系、正式名称、臨床短縮名 (3 桁分類で引く)、MEDIS 病名管理番号</td>
-<td>キー / <code>None</code> / <code>None</code> / <code>None</code></td>
+<td><code>codes.icd10</code>: <code>icd10_system(country)</code> / <code>icd10_display(code, country, lang)</code> / <code>condition_short_name(code, lang)</code> / <code>condition_label(code, country, lang)</code> / <code>medis_disease_keyno(icd)</code></td>
+<td>国の ICD-10 体系、正式名称 (JP の日本語は厚労省 2013 年版の名称そのまま)、臨床短縮名 (3 桁分類で引く)、文章と <code>Condition.code.text</code> に使う名前 (短縮名、無ければ正式名称)、MEDIS 病名管理番号</td>
+<td>キー / <code>None</code> / <code>None</code> / <code>None</code> / <code>None</code></td>
 </tr>
 <tr>
 <td><code>codes.procedures</code>: <code>procedure_code</code> / <code>procedure_type_display</code> / <code>procedure_code_display</code></td>
@@ -3011,10 +3011,6 @@
 <tr>
 <td><strong>フォールバック。</strong> <code>display</code> / <code>lookup</code>、<code>resolve_text</code>、<code>t</code> は最後の手段として、最初に見つかった言語・コード・<code>str(value)</code>・キーを返す。§6.1–6.2 に反する場合があり、取得 API も 1 本化されていない。</td>
 <td>#2275</td>
-</tr>
-<tr>
-<td>JP の ICD-10 日本語表示が sibling fallback で ICD-10-CM の表から来ることがあり、両表に共通する 95 コードで日本語名が食い違う。</td>
-<td>#2360</td>
 </tr>
 <tr>
 <td>registry の外にある SNOMED のコードと表示名 (処置名 YAML、device / HAI / follow-up の写し、Python の mapper 表) と、未登録の SNOMED リテラル約 74 件。</td>

@@ -2784,9 +2784,9 @@
 <td><code>None</code></td>
 </tr>
 <tr>
-<td><code>codes.icd10</code>: <code>icd10_system(country)</code>, <code>icd10_display(code, country, lang)</code>, <code>condition_short_name(code, lang)</code>, <code>medis_disease_keyno(icd)</code></td>
-<td>ICD-10 system of a country; official display; clinical short name (by category); MEDIS 病名管理番号</td>
-<td>key / <code>None</code> / <code>None</code> / <code>None</code></td>
+<td><code>codes.icd10</code>: <code>icd10_system(country)</code>, <code>icd10_display(code, country, lang)</code>, <code>condition_short_name(code, lang)</code>, <code>condition_label(code, country, lang)</code>, <code>medis_disease_keyno(icd)</code></td>
+<td>ICD-10 system of a country; official display (JP Japanese: the MHLW 2013 name, verbatim); clinical short name (by category); the name used in prose and <code>Condition.code.text</code> (short name, then official display); MEDIS 病名管理番号</td>
+<td>key / <code>None</code> / <code>None</code> / <code>None</code> / <code>None</code></td>
 </tr>
 <tr>
 <td><code>codes.procedures</code>: <code>procedure_code</code>, <code>procedure_type_display</code>, <code>procedure_code_display</code></td>
@@ -3011,10 +3011,6 @@
 <tr>
 <td><strong>Fallback.</strong> <code>display</code> / <code>lookup</code>, <code>resolve_text</code> and <code>t</code> end with a last-resort value: the first available language, the code, <code>str(value)</code> or the key. That can break §6.1–6.2, and there is no single retrieval API.</td>
 <td>#2275</td>
-</tr>
-<tr>
-<td>JP ICD-10 Japanese displays can come from the ICD-10-CM table through the sibling fallback, and 95 shared codes have different Japanese names in the two tables.</td>
-<td>#2360</td>
 </tr>
 <tr>
 <td>SNOMED codes and displays outside the registry (procedure-name YAML, device / HAI / follow-up copies, mapper tables in Python), and about 74 unregistered SNOMED literals.</td>
