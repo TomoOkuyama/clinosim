@@ -59,9 +59,11 @@ from datetime import datetime, time, timedelta
 from functools import lru_cache
 from typing import Any
 
+from clinosim.codes.loinc import loinc_display
 from clinosim.codes.snomed_concepts import SURGICAL_PROCEDURE
+from clinosim.locale.i18n import t
 from clinosim.modules._shared import get_attr_or_key as _o
-from clinosim.modules._shared import is_jp, resolve_lang
+from clinosim.modules._shared import resolve_lang
 from clinosim.modules.document import (
     CLINICAL_IMPRESSION_ID_PREFIX,
     DOC_REFERENCE_ID_PREFIX,
@@ -896,77 +898,51 @@ def document_enricher(ctx: Any) -> None:
                 # touch ClinicalImpression.description.
                 _disease_id = _o(encounter, "disease_id", "") or ""
                 _severity = _o(encounter, "severity", "") or ""
-                _enc_label = (
+                # Labels, phases and descriptions come from the phrase catalog
+                # (``narrative_phrases.yaml`` ``clinical_impression``, Issue #2401).
+                _enc_key = (
                     "inpatient"
                     if enc_type_val == "inpatient"
-                    else ("ICU" if "icu" in enc_type_val.lower() else "rehab")
-                )
-                # Issue #360 G4: JP-localized encounter labels + phase hints for
-                # ClinicalImpression.description_ja. Parallel to the English template
-                # already computed below; consumed by _build_clinical_impression on
-                # JP output (AD-30: CIF stores both because ClinicalImpressionRecord
-                # has no diagnosis/severity code — the JP description cannot be
-                # re-derived from a code_lookup at FHIR emission time).
-                _enc_label_ja = (
-                    "入院"
-                    if enc_type_val == "inpatient"
-                    else ("ICU" if "icu" in enc_type_val.lower() else "リハビリ入院")
+                    else ("icu" if "icu" in enc_type_val.lower() else "rehab")
                 )
                 for day in range(los_days):
                     day_dt = admission_dt + timedelta(days=day)
                     # AD-32: the last day of an in-progress encounter is "in-progress"
                     # (encounter still open; prior days remain "completed").
                     last_day_of_in_progress = is_in_progress and (day == los_days - 1)
-                    # Phase hint (deterministic by day-index vs LOS).
-                    # session-88j P1-12: also set LOINC visit-type code per
-                    # phase so ClinicalImpression.code is no longer null.
+                    # Phase hint (deterministic by day-index vs LOS) and the LOINC
+                    # visit-type code per phase (session-88j P1-12).
                     if los_days <= 2:
-                        _phase = "brief admission"
-                        _phase_ja = "短期入院"
-                        _code_loinc = document_loinc("admission_hp")
-                        _code_loinc_display = "入院時記録" if is_jp(country) else "History and physical note"
+                        _phase_key, _doc_type = "brief_admission", "admission_hp"
                     elif day == 0:
-                        _phase = "admission workup"
-                        _phase_ja = "入院時精査"
-                        _code_loinc = document_loinc("admission_hp")
-                        _code_loinc_display = "入院時記録" if is_jp(country) else "History and physical note"
+                        _phase_key, _doc_type = "admission_workup", "admission_hp"
                     elif day == los_days - 1:
-                        _phase = "pre-discharge review"
-                        _phase_ja = "退院前評価"
-                        _code_loinc = document_loinc("discharge_summary")
-                        _code_loinc_display = "退院時サマリー" if is_jp(country) else "Discharge summary"
+                        _phase_key, _doc_type = "pre_discharge_review", "discharge_summary"
                     elif day < los_days / 3:
-                        _phase = "acute phase"
-                        _phase_ja = "急性期"
-                        _code_loinc = document_loinc("progress_note")
-                        _code_loinc_display = "経過記録" if is_jp(country) else "Progress note"
+                        _phase_key, _doc_type = "acute_phase", "progress_note"
                     elif day < 2 * los_days / 3:
-                        _phase = "stabilisation"
-                        _phase_ja = "安定期"
-                        _code_loinc = document_loinc("progress_note")
-                        _code_loinc_display = "経過記録" if is_jp(country) else "Progress note"
+                        _phase_key, _doc_type = "stabilisation", "progress_note"
                     else:
-                        _phase = "recovery"
-                        _phase_ja = "回復期"
-                        _code_loinc = document_loinc("progress_note")
-                        _code_loinc_display = "経過記録" if is_jp(country) else "Progress note"
-                    _dx_part = f" for {_disease_id}" if _disease_id else ""
-                    _sev_part = f" ({_severity})" if _severity else ""
-                    description = (
-                        f"Day {day + 1} of {los_days} {_enc_label} clinical assessment"
-                        f"{_dx_part}{_sev_part} — {_phase}. Attending review of vitals, "
-                        f"medication response, complication risk, and progress toward "
-                        f"discharge criteria."
-                    )
-                    # JP description — 主治医が JP-CLINS Progress Note / ClinicalImpression
-                    # を読む画面で表示される。iris4h-ai 2026-07-22 feedback G4。
-                    _dx_part_ja = f"（{_disease_id}）" if _disease_id else ""
-                    _sev_part_ja = f"（{_severity}）" if _severity else ""
-                    description_ja = (
-                        f"{_enc_label_ja}第{day + 1}病日／全{los_days}病日 臨床評価"
-                        f"{_dx_part_ja}{_sev_part_ja} — {_phase_ja}。"
-                        f"バイタル・薬効反応・合併症リスク・退院基準への進捗を主治医が評価。"
-                    )
+                        _phase_key, _doc_type = "recovery", "progress_note"
+                    _code_loinc = document_loinc(_doc_type)
+                    _code_loinc_display = loinc_display(_code_loinc, resolve_lang(country)) or ""
+
+                    def _describe(lang: str) -> str:
+                        return t(
+                            "clinical_impression.description",
+                            lang,
+                            enc=t(f"clinical_impression.enc_label.{_enc_key}", lang),
+                            day=day + 1,
+                            los=los_days,
+                            dx_part=t("clinical_impression.dx_part", lang, dx=_disease_id) if _disease_id else "",
+                            sev_part=t("clinical_impression.sev_part", lang, severity=_severity) if _severity else "",
+                            phase=t(f"clinical_impression.phase.{_phase_key}", lang),
+                        )
+
+                    # CIF keeps both languages (AD-30: the JP description cannot
+                    # be re-derived from a code at FHIR emission time).
+                    description = _describe("en")
+                    description_ja = _describe("ja")
                     clinical_impressions.append(
                         ClinicalImpressionRecord(
                             impression_id=f"{CLINICAL_IMPRESSION_ID_PREFIX}{encounter_id}-{day}",
