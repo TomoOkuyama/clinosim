@@ -21,10 +21,11 @@ from __future__ import annotations
 from typing import Any
 
 from clinosim.codes import display as registry_display
+from clinosim.codes.ucum import ucum_prose
 from clinosim.locale.i18n import t
+from clinosim.locale.loader import lab_display
 from clinosim.modules.document.narrative._replacement_localization import (
     _localize_severity_ja,
-    localize_lab_name,
     localize_oxygen_device,
 )
 from clinosim.modules.document.narrative.template_generator import _filter_vitals_for_day
@@ -350,7 +351,7 @@ def _render_abnormal_labs(
         unit = _get(lab, "unit") or ""
         if not name or val is None:
             continue
-        name = localize_lab_name(str(name), lang)
+        name = lab_display(str(name), lang)
         val_str = f"{val}"
         parts = f"{name} {val_str}"
         if unit:
@@ -358,11 +359,7 @@ def _render_abnormal_labs(
             # injecting into LLM context — the LLM's Rule 3 verbatim-copy
             # otherwise carries `mm[Hg]` / `{INR}` / `[pH]` into narrative
             # prose. Mirrors the template-side fix in Phase 1d-65/1d-69.
-            from clinosim.modules.document.narrative.template_generator import (
-                _format_lab_unit_for_prose,
-            )
-
-            unit_disp = _format_lab_unit_for_prose(unit)
+            unit_disp = ucum_prose(unit)
             # Phase 1d-80: skip the unit when it equals the lab_name after
             # bracket stripping. Real case: name="pH" + UCUM unit="[pH]" →
             # unit_disp="pH" → visible duplicate "pH 7.11 pH [L]". This
@@ -418,7 +415,7 @@ def _render_lab_trend_today(
     for row in trend_rows:
         if row["direction"] == "initial":
             continue
-        name = localize_lab_name(str(row["name"]), lang)
+        name = lab_display(str(row["name"]), lang)
         cur_flag_part = f" [{row['current_flag']}]" if row["current_flag"] else ""
         prior_flag_part = f" [{row['prior_flag']}]" if row["prior_flag"] else ""
         direction_label = resolve_localized_display(
@@ -473,7 +470,7 @@ def _render_lab_carry_forward(
         unit = _get(lab, "unit") or ""
         if val is None:
             continue
-        display_name = localize_lab_name(str(name), lang)
+        display_name = lab_display(str(name), lang)
         # Day is 0-indexed; caller-facing convention is 1-indexed hospital day.
         display_day = (d + 1) if d is not None else "?"
         val_str = f"{val}"
@@ -481,11 +478,7 @@ def _render_lab_carry_forward(
         if unit:
             # Phase 1d-79: strip UCUM brackets / annotations for LLM context
             # (see _render_abnormal_labs comment).
-            from clinosim.modules.document.narrative.template_generator import (
-                _format_lab_unit_for_prose,
-            )
-
-            unit_disp = _format_lab_unit_for_prose(unit)
+            unit_disp = ucum_prose(unit)
             # Phase 1d-80: dedupe when unit collapses to the same string as
             # the localized name (see _render_abnormal_labs — pH case).
             if unit_disp and unit_disp.lower() != str(display_name).lower():

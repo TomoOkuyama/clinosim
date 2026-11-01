@@ -100,41 +100,6 @@ barthel_band:
   moderate_dependence: {ja: 部分介助}
   severe_dependence: {ja: 全介助レベル}
   total_dependence: {ja: 全介助}
-lab_name:
-  creatinine: {ja: クレアチニン}
-  glucose: {ja: 血糖}
-  lactate: {ja: 乳酸}
-  albumin: {ja: アルブミン}
-  sodium: {ja: ナトリウム}
-  potassium: {ja: カリウム}
-  chloride: {ja: クロール}
-  calcium: {ja: カルシウム}
-  magnesium: {ja: マグネシウム}
-  phosphorus: {ja: リン}
-  phosphate: {ja: リン}
-  bilirubin: {ja: ビリルビン}
-  total bilirubin: {ja: 総ビリルビン}
-  direct bilirubin: {ja: 直接ビリルビン}
-  urea: {ja: 尿素}
-  urea nitrogen: {ja: 尿素窒素}
-  hemoglobin: {ja: ヘモグロビン}
-  hematocrit: {ja: ヘマトクリット}
-  platelet: {ja: 血小板}
-  platelets: {ja: 血小板}
-  white blood cell: {ja: 白血球}
-  red blood cell: {ja: 赤血球}
-  cholesterol: {ja: コレステロール}
-  triglyceride: {ja: トリグリセリド}
-  triglycerides: {ja: トリグリセリド}
-  protein: {ja: 蛋白}
-  total protein: {ja: 総蛋白}
-  iron: {ja: 鉄}
-  ferritin: {ja: フェリチン}
-  amylase: {ja: アミラーゼ}
-  lipase: {ja: リパーゼ}
-  troponin: {ja: トロポニン}
-  troponin i: {ja: トロポニンI}
-  troponin t: {ja: トロポニンT}
 marital:
   single: {en: single, ja: 独身}
   married: {en: married, ja: 既婚}

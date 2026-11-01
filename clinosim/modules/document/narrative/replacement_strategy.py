@@ -78,9 +78,6 @@ from clinosim.modules.document.narrative._replacement_localization import (
     _localize_barthel_band_ja as _localize_barthel_band_ja,
 )
 from clinosim.modules.document.narrative._replacement_localization import (
-    _localize_lab_name_ja as _localize_lab_name_ja,
-)
-from clinosim.modules.document.narrative._replacement_localization import (
     _localize_lab_names_in_sections_ja as _localize_lab_names_in_sections_ja,
 )
 from clinosim.modules.document.narrative._replacement_localization import (
@@ -97,9 +94,6 @@ from clinosim.modules.document.narrative._replacement_localization import (
 )
 from clinosim.modules.document.narrative._replacement_localization import (
     _lookup_ja_label as _lookup_ja_label,
-)
-from clinosim.modules.document.narrative._replacement_localization import (
-    localize_lab_name as localize_lab_name,
 )
 from clinosim.modules.document.narrative._replacement_localization import (
     localize_oxygen_device as localize_oxygen_device,

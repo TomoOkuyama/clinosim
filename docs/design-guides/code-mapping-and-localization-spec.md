@@ -95,6 +95,7 @@ occupation:
 - One table per vocabulary. Examples:
   - `vocabulary.yaml` — occupation, smoking, alcohol, arrival mode
   - `narrative_imaging.yaml` — imaging exams
+  - `lab_display.yaml` — lab analytes and panels, keyed by lower-cased lab token; `{en, ja}` is the clinician short form and an optional `formal` map holds the full analyte name
   - `department_display.yaml`
 - FHIR, narrative and LLM prompts read the same table. A second copy of a vocabulary is not allowed.
 
@@ -127,7 +128,7 @@ Consumers resolve names only through these functions. Several are added by open 
 | `codes.drugs`: `drug_display(ref, lang)` | catalog name of a drug id, name or alias (then its longest leading-word prefix) in `lang`, then English | `None` |
 | `codes.icd10`: `icd10_system(country)`, `icd10_display(code, country, lang)`, `condition_short_name(code, lang)`, `medis_disease_keyno(icd)` | ICD-10 system of a country; official display; clinical short name (by category); MEDIS 病名管理番号 | key / `None` / `None` / `None` |
 | `codes.procedures`: `procedure_code`, `procedure_type_display`, `procedure_code_display` | procedure codes and names | `""` / humanised type / `None` |
-| `codes.ucum`: `ucum_code`, `ucum_quantity` | UCUM code / FHIR Quantity | unit passed through |
+| `codes.ucum`: `ucum_code`, `ucum_quantity`, `ucum_prose` | UCUM code / FHIR Quantity / the unit as written in prose (`mm[Hg]` → `mmHg`, `{INR}` → `""`) | unit passed through |
 | `codes.prefectures.prefecture_code(name)` | JIS X 0401 code | `""` |
 | `codes.snomed_concepts` | named SNOMED concepts used in logic | — |
 | `codes.snomed`: `snomed_display(code, lang)`, `snomed_for(kind, key)`, `snomed_map(kind)` | SNOMED display; internal key → code (`route`, `severity`; `codes/data/snomed-maps.yaml`) | `None` / `None` / `KeyError` |
@@ -143,6 +144,7 @@ Consumers resolve names only through these functions. Several are added by open 
 | `vocab_display(vocab, slug, lang, *, fallback)` | vocabulary display (`vocabulary.yaml`) |
 | `narrative_label(section, key, lang, fallback)` | narrative label |
 | `imaging_exam_display(exam_id, lang)` | imaging exam name |
+| `lab_display(name, lang, *, style, fallback)` | lab analyte or panel name: `style="prose"` for narrative, LLM text and `DiagnosticReport.conclusion`; `style="formal"` for the FHIR `code.text` of analytes with no standard code. A coded `Observation.code.coding.display` keeps the authority display |
 | `department_display(dept, lang)` / `department_specialty_snomed(dept)` | department label / specialty code |
 | `role_display(role, lang, *, facet)` | staff role title, suffix or qualification |
 | `chronic_followup_vitals(code)` / `chronic_followup_interval_months(codes)` | follow-up schedule data |
@@ -185,7 +187,7 @@ The output language comes from the country: `clinosim.countries.lang_for(country
 1. **Order.** Requested language, then English, then the caller's **explicit** fallback.
 2. **What a fallback never is.** It is never another language (Japanese in English output), the lookup key, the raw code, a raw id or a raw slug.
 3. **A missing code or id** returns `None` / `""` from the resolver. The caller decides what to show and passes it explicitly, or omits the element ("silence beats fabrication").
-4. **Humanised slugs.** A humanised slug (underscores → spaces) is allowed only as the last fallback of a display table for internal slugs. For example `imaging_exam_display`, `procedure_type_display` and `department_display` humanise an unknown slug. It is allowed only when a unit test asserts that every slug the generator emits is in the table. A title-cased slug (`.title()`) is never allowed.
+4. **Humanised slugs.** A humanised slug (underscores → spaces) is allowed only as the last fallback of a display table for internal slugs. For example `imaging_exam_display`, `procedure_type_display`, `department_display` and `lab_display` humanise an unknown slug. It is allowed only when a unit test asserts that every slug the generator emits is in the table. A title-cased slug (`.title()`) is never allowed.
 5. **A missing English entry** is a data bug, and a test detects it. A missing non-English entry falls back to English (rule 1).
 
 ## 7. Adding or changing a code
@@ -233,7 +235,6 @@ These parts of the code base do not yet conform. Each one is removed by the issu
 | Document LOINCs are defined in eight places, some section codes do not mean their section, and emitters still hold LOINC constants. | #2344 |
 | CPT / K-codes the generator emits but has not registered. | #2340 |
 | Remaining hand-built dual-slot concepts; `_coding_with_display` and `_value` put the output-language display into English-only codings instead of `system_coding` / `dual_slot_concept`; and the post-process text-filling walkers. | #2337 |
-| Lab analyte display is spread over five tables. | #2267 |
 | The free-text name localizer lives in the FHIR output layer, is imported from the order and narrative layers, and also translates procedure, SNOMED and allergen names. Decision logic and records resolve drug names through `codes.drugs.drug_display`. | #2367 |
 | Language literals are still embedded in Python. | #2277 |
 | Records do not carry `drug_id`. | #2297 |

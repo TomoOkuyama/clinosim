@@ -182,20 +182,17 @@ first. Two symmetric defenses coexist:
     `Assigned nurse: George York (physician)`).
   - Lang-aware localizer wrappers (Phase 1d-61/62 unified-i18n
     API) let callers drop the outer `if lang == "ja":` gate around
-    per-locale data-pipeline lookups (drug names, lab names,
+    per-locale data-pipeline lookups (drug names,
     oxygen devices). Each is a no-op when the target locale has
     no lookup table (today: any `lang != "ja"`):
     - `output/fhir_r4/lib/localization.localize_drug_name(name,
       lang)` — wraps `_localize_drug_name`.
-    - `_replacement_localization.localize_lab_name(name, lang)`
-      (re-exported from `replacement_strategy`) — wraps
-      `_localize_lab_name_ja`.
     - `_replacement_localization.localize_oxygen_device(device,
       lang)` (re-exported from `replacement_strategy`) — wraps
       `_localize_oxygen_device_ja`.
     Underlying JA-only helpers
     (`_localize_severity_ja`, `_localize_oxygen_device_ja`,
-    `_localize_lab_name_ja`, `_localize_arrival_mode_ja`,
+    `_localize_arrival_mode_ja`,
     `_localize_risk_level_ja`, `_localize_barthel_band_ja`) stay
     as the actual dictionary implementations. Adding a new locale
     is a data-only extension of the underlying YAML (see
@@ -230,7 +227,7 @@ clinosim/modules/document/narrative/
   _narrative_utils.py                      Miscellaneous narrative helpers (nursing-content lookup / vitals-for-day / SHA-driven autopsy gate / age-at / ISO-datetime parse / chief-complaint keyword / encounter-salted pool pickers / PE clause rewrite — META #1633 P6 slice 3)
   llm_generator.py                         LLMNarrativeGenerator (template base + per-section LLM replacement)
   replacement_strategy.py                  apply_replacement_strategy dispatch (~790 LOC — strategy applicators only; helpers extracted to the four files below)
-  _replacement_localization.py             Severity / oxygen-device / arrival-mode / Barthel-band / lab-name JA token lookups + LLM-output EN→JA post-processors (META #1633 P6 replacement slice 1)
+  _replacement_localization.py             Severity / oxygen-device / arrival-mode / Barthel-band JA token lookups + LLM-output EN→JA post-processors (lab names from `lab_display.yaml`) (META #1633 P6 replacement slice 1)
   _replacement_renderers.py                Per-section rendering helpers (chronic list / newborn workup / vitals-for-day / supplemental-O2 / med lists / abnormal labs / lab trend / lab carry-forward / key procedures / stay-phase — META #1633 P6 replacement slice 2)
   _patient_info_renderers.py               Patient demographics / biometrics / health-literacy renderers + _localize_token enum lookup (META #1633 P6 replacement slice 3)
   _extra_context_builder.py                _build_extra_context + _writing_day_of — composes every renderer into the LLM-prompt context dict (META #1633 P6 replacement slice 4)

@@ -494,7 +494,7 @@ def _hpi_onset_en(severity: str) -> str:
 #
 # History (kept for grep):
 # - _COMPLICATION_JA/EN → narrative_complications.yaml (Phase 1c-2/5/6/7)
-# - _LAB_NAME_JA/EN     → narrative_lab_names.yaml     (Phase 1c-2/4/5/7)
+# - _LAB_NAME_JA/EN     → lab_display.yaml (Phase 1c-2/4/5/7; one table since #2267)
 # - _LAB_FLAG_JA        → narrative_lab_flags.yaml     (Phase 1c-5)
 
 
@@ -509,7 +509,7 @@ def _hpi_onset_en(severity: str) -> str:
 # Narrative localization helpers were extracted to ``_localization.py``
 # as the first slice of the META #1633 P6 narrative-package
 # decomposition. The imports at the top of this module re-export
-# ``_localize_*``, ``_format_lab_unit_for_prose``,
+# ``_localize_*``,
 # ``_PROC_TYPE_LOCALE_CACHE`` and ``_load_proc_type_locale`` so
 # external callers (``discharge_rx.py``, ``replacement_strategy.py``)
 # and the god class below keep their imports working unchanged.

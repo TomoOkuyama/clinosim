@@ -44,69 +44,6 @@ def _localize_complication(name: str, lang: str) -> str:
     )
 
 
-def _format_lab_unit_for_prose(unit: str | None) -> str:
-    """Return a display-friendly form of a UCUM lab unit for narrative prose.
-
-    UCUM allows dimensionless-annotation units of the form ``{annotation}``
-    (curly braces are literal) — e.g. ``{INR}`` for PT-INR ratio,
-    ``{score}`` for scored assessments — and lets any real unit carry a
-    trailing ``/{annotation}`` clarifier (e.g. eGFR
-    ``mL/min/{1.73_m2}``). These read as raw placeholders in narrative
-    prose (``PT-INR 2.6 {INR}``, ``mL/min/{1.73_m2}``).
-
-    Rules:
-    - A pure-annotation unit ``{...}`` is treated as dimensionless and
-      returns ``""`` — the accompanying value is self-describing.
-    - A composite unit ``<real>/{...}`` strips the annotation clause
-      (returns ``<real>``); the mL/min/1.73m² special-case is handled
-      at its callsite for the ² typography, so this helper leaves the
-      raw underscore/digit form untouched.
-    - UCUM special-unit brackets ``[X]`` (e.g. ``mm[Hg]`` for mmHg,
-      ``cm[H2O]`` for cmH2O) are stripped so blood-gas / airway-
-      pressure units render as clinicians write them (`PaCO2 46.4
-      mmHg` rather than `PaCO2 46.4 mm[Hg]`).
-    - Otherwise the unit is returned verbatim.
-    """
-    if not unit:
-        return ""
-    u = str(unit).strip()
-    if not u:
-        return ""
-    if u.startswith("{") and u.endswith("}"):
-        return ""
-    # Strip a trailing "/{annotation}" clause without touching the real
-    # unit prefix.
-    if u.endswith("}"):
-        anno_start = u.rfind("/{")
-        if anno_start > 0:
-            u = u[:anno_start]
-    # Strip UCUM special-unit brackets — `mm[Hg]` → `mmHg`,
-    # `cm[H2O]` → `cmH2O`, `[in_i]` → `in_i`. The brackets carry no
-    # information beyond marking a UCUM special unit family; prose
-    # renders them without.
-    if "[" in u and "]" in u:
-        u = u.replace("[", "").replace("]", "")
-    return u
-
-
-def _localize_lab_name(name: str, lang: str) -> str:
-    """Return the localized display for a lab_name token; fall back to
-    the token as-is when unknown (some sim disease archetypes emit
-    lab_names that predate this table)."""
-    if not name:
-        return ""
-    key = str(name).strip().lower()
-    if not key:
-        return ""
-    from clinosim.locale.loader import load_narrative_lab_names, resolve_localized_display
-
-    return resolve_localized_display(
-        load_narrative_lab_names().get(key, {}),
-        lang,
-        fallback=name,
-    )
-
-
 def _localize_lab_flag(flag: str, lang: str) -> str:
     """Localize an abnormal-flag marker for narrative display.
 

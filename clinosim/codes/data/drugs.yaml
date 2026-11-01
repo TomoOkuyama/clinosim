@@ -913,7 +913,7 @@ drugs:
                                        # Note: "Albumin" bare form is intentionally NOT aliased
                                        # here — it is ambiguous with the lab measurement
                                        # "Albumin" (serum albumin level) which uses the
-                                       # separate `_localize_lab_name` path with display "アルブミン".
+                                       # separate `lab_display` path with display "アルブミン".
   # META #1849 Phase 5 Step 2 batch 6 — respiratory / GI / hemostasis
   # cluster. 5 ingredient drugs.
   aminophylline:

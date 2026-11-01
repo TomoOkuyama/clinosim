@@ -57,16 +57,12 @@ from __future__ import annotations
 import re
 import unicodedata
 from enum import StrEnum
-from functools import cache
-from pathlib import Path
 from typing import Any, Protocol
-
-import yaml
 
 from clinosim.codes import display as registry_display
 from clinosim.codes import get_system_uri, system_key_for
 from clinosim.codes import lookup as code_lookup
-from clinosim.locale.loader import load_code_mapping
+from clinosim.locale.loader import lab_display, load_code_mapping
 from clinosim.modules._shared import is_us, resolve_lang
 from clinosim.modules.output.fhir_r4.labs.coding_package import LabCodeCandidate
 
@@ -89,9 +85,10 @@ from clinosim.modules.output.fhir_r4.labs.coding_package import LabCodeCandidate
 # + `display = "動脈血pH"`, both correct for their respective slots).
 
 
-def uncoded_analyte_display(lab_name: str) -> str:
-    """Japanese display of an analyte, or the analyte name when unlisted."""
-    return _uncoded_analyte_ja_display().get(lab_name, lab_name)
+def uncoded_analyte_display(lab_name: str, lang: str) -> str:
+    """Full name of an analyte with no standard code, for ``code.text`` and the
+    JP-CLINS LocalCode display (shared lab display table, Issue #2267)."""
+    return lab_display(lab_name, lang, style="formal")
 
 
 def _sanitize_localcode_display(text: str) -> str:
@@ -117,21 +114,6 @@ def _sanitize_localcode_code(name: str) -> str:
     analyte's identifying shape while satisfying spec character-class
     restriction."""
     return re.sub(r"[^A-Za-z0-9_-]", "_", name or "")
-
-
-# clinosim-side Japanese display for Uncoded analytes (12 entries; clinosim
-# IP — Uncoded analytes have no CoreLabo CS designation_ja to fall back on,
-# so we carry the JA name here for the LocalCode display + code.text).
-# Mirror of _KNOWN_UNCODED_ANALYTES; keep in sync.
-_UNCODED_ANALYTE_YAML = Path(__file__).resolve().parents[4] / "codes" / "data" / "jp-clins-uncoded-analyte-display.yaml"
-
-
-@cache
-def _uncoded_analyte_ja_display() -> dict[str, str]:
-    """Japanese display of JP-CLINS Uncoded analytes, keyed by canonical lab
-    name (``codes/data/jp-clins-uncoded-analyte-display.yaml``, Issue #2261)."""
-    raw = yaml.safe_load(_UNCODED_ANALYTE_YAML.read_text(encoding="utf-8")) or {}
-    return {str(k): str(v.get("ja") or "") for k, v in (raw.get("analytes") or {}).items()}
 
 
 # --------------------------------------------------------------------------- #
@@ -362,7 +344,7 @@ class UncodedStrategy:
         """PR 3c: emit LocalCode co-slice for Uncoded analytes.
 
         code = sanitized ASCII form of lab_name; display = sanitized
-        Japanese name from ``jp-clins-uncoded-analyte-display.yaml``. Applying
+        formal Japanese name from the shared lab display table. Applying
         display sanitize here (not in loader) matches        boundary: loader supplies raw text, strategy applies user-
         facing rules per slot."""
         from clinosim.modules.output.fhir_r4.labs.coding_package import load_lab_coding_package
@@ -370,7 +352,7 @@ class UncodedStrategy:
         pkg = load_lab_coding_package()
         if not pkg.is_available():
             return None
-        raw_ja = _uncoded_analyte_ja_display().get(lab_name, lab_name)
+        raw_ja = uncoded_analyte_display(lab_name, "ja")
         return {
             "system": pkg.localcode_system_uri(),
             "code": _sanitize_localcode_code(lab_name),
