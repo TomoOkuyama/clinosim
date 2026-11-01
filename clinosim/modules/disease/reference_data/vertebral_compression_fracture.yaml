@@ -386,12 +386,12 @@ drugs:
 
   escalation:  # vertebroplasty/kyphoplasty consideration
     japan:
-      - drug: "Vertebroplasty"
+      - procedure: "Vertebroplasty"
         type: "procedure"
         dose: "Percutaneous vertebroplasty under fluoroscopy"
         indication: "pain_refractory_to_conservative_treatment_4_weeks"
     us:
-      - drug: "Kyphoplasty"
+      - procedure: "Kyphoplasty"
         type: "procedure"
         dose: "Balloon kyphoplasty under fluoroscopy"
         indication: "pain_refractory_to_conservative_treatment_2_weeks"

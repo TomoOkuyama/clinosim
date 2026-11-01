@@ -237,3 +237,18 @@ entries:
     snomed: "410024004"
   - match: "尿道カテーテル"
     snomed: "410024004"
+
+  # Issue #2424: procedures and transfusions that disease YAMLs used to list
+  # as drugs (verified tx.fhir.org $lookup 2026-11-02).
+  - match: "mechanical_ventilation"
+    snomed: "1258985005"
+  - match: "mechanical ventilation"
+    snomed: "1258985005"
+  - match: "packed_rbc"
+    snomed: "116863004"
+  - match: "vertebroplasty"
+    snomed: "401226007"
+  - match: "kyphoplasty"
+    snomed: "431995006"
+  - match: "catheter-directed thrombolysis"
+    snomed: "233428003"

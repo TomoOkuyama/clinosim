@@ -839,3 +839,20 @@ codes:
   '122554006':
     en: Capillary blood specimen
     ja: 毛細管血検体
+  # === Procedures formerly listed as protocol drugs (Issue #2424; en verified
+  # on tx.fhir.org $lookup 2026-11-02, ja is a clinosim translation) ===
+  '1258985005':
+    en: Invasive mechanical ventilation
+    ja: 侵襲的人工呼吸管理
+  '116863004':
+    en: Transfusion of red blood cells
+    ja: 赤血球輸血
+  '401226007':
+    en: Vertebroplasty
+    ja: 椎体形成術
+  '431995006':
+    en: Kyphoplasty of fracture of spine using fluoroscopic guidance
+    ja: 透視下バルーン椎体形成術
+  '233428003':
+    en: Thrombolysis of vein
+    ja: 静脈血栓溶解療法

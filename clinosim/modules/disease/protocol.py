@@ -336,7 +336,7 @@ def _validate_escalation_type_signal(disease_id: str, drugs: dict[str, Any]) -> 
         for entry in entry_list:
             if not isinstance(entry, dict):
                 continue
-            drug_label = entry.get("drug", "")
+            drug_label = entry.get("drug") or entry.get("procedure", "")
             type_signal = entry.get("type")
 
             # Layer 1
@@ -365,6 +365,33 @@ def _validate_escalation_type_signal(disease_id: str, drugs: dict[str, Any]) -> 
                     f"(Procedure resource has no route). Remove `route` from entry "
                     f"at country {country_key!r}, drug {drug_label!r}."
                 )
+
+
+# Drug names a protocol entry may still give without a `drug_id`: the
+# continuous-infusion mode is read from this name until the order carries it
+# (Issue #2436).
+_NAME_ONLY_DRUG_EXEMPT: frozenset[str] = frozenset({"Regular insulin (continuous IV)"})
+
+
+def _validate_no_name_only_drug(disease_id: str, node: Any, path: str = "") -> None:
+    """Every `drug:` entry names a catalog drug through `drug_id` (Issue #2424).
+
+    Procedures use `procedure:`, blood products `blood_product:`; a `drug:`
+    without `drug_id` is an uncatalogued name and is rejected at load.
+    """
+    if isinstance(node, dict):
+        name = node.get("drug")
+        if isinstance(name, str) and not node.get("drug_id") and name not in _NAME_ONLY_DRUG_EXEMPT:
+            raise ValueError(
+                f"disease {disease_id!r}: protocol entry {path or '<root>'} names drug {name!r} without a "
+                "drug_id. Use `drug_id` (add the drug to codes/data/drugs.yaml if missing), or "
+                "`procedure:` / `blood_product:` for a non-drug item."
+            )
+        for key, value in node.items():
+            _validate_no_name_only_drug(disease_id, value, f"{path}.{key}" if path else str(key))
+    elif isinstance(node, list):
+        for i, item in enumerate(node):
+            _validate_no_name_only_drug(disease_id, item, f"{path}[{i}]")
 
 
 def _validate_drug_entry_localized_dose_keys(disease_id: str, drugs: dict[str, Any]) -> None:
@@ -683,6 +710,7 @@ def load_disease_protocol(disease_id: str) -> DiseaseProtocol:
     # Layer 2/3 (legacy marker reject + type/route co-occurrence) are wired in a
     # follow-up commit after the 3 shipped YAMLs are migrated (Task 5).
     _validate_escalation_type_signal(disease_id, data.get("drugs", {}) or {})
+    _validate_no_name_only_drug(disease_id, data)
 
     # Issue #458: import-time route vocabulary validation. Walks every `route:`
     # value in the whole YAML (not only `drugs`) so newly-added blocks are

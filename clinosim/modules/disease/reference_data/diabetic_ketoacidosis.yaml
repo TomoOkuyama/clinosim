@@ -698,8 +698,8 @@ course_archetypes:
     treatment_modifications:
       day_2:
         start:
-          japan: [{drug: "Broad spectrum antibiotic", indication: "suspected occult infection"}]
-          us: [{drug: "Broad spectrum antibiotic", indication: "suspected occult infection"}]
+          japan: [{drug_id: piperacillin_tazobactam, dose: "4.5g IV q6h", indication: "suspected occult infection"}]
+          us: [{drug_id: piperacillin_tazobactam, dose: "4.5g IV q6h", indication: "suspected occult infection"}]
     triggers:
       - day: 2
         condition: "anion_gap > 16 despite treatment"

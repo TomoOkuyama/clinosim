@@ -720,8 +720,8 @@ course_archetypes:
     treatment_modifications:
       day_2:
         start:
-          japan: [{drug: "NIV_BiPAP", dose: "IPAP 12 / EPAP 5 cmH2O"}]
-          us: [{drug: "NIV_BiPAP", dose: "IPAP 12 / EPAP 5 cmH2O"}]
+          japan: [{procedure: "NIV_BiPAP", detail: "IPAP 12 / EPAP 5 cmH2O"}]
+          us: [{procedure: "NIV_BiPAP", detail: "IPAP 12 / EPAP 5 cmH2O"}]
       day_3:
         start:
           japan: [{drug_id: meropenem, dose: "1g IV q8h"}]
@@ -749,8 +749,8 @@ course_archetypes:
     treatment_modifications:
       day_2:
         start:
-          japan: [{drug: "NIV_BiPAP", dose: "IPAP 14 / EPAP 6 cmH2O"}]
-          us: [{drug: "NIV_BiPAP", dose: "IPAP 14 / EPAP 6 cmH2O"}]
+          japan: [{procedure: "NIV_BiPAP", detail: "IPAP 14 / EPAP 6 cmH2O"}]
+          us: [{procedure: "NIV_BiPAP", detail: "IPAP 14 / EPAP 6 cmH2O"}]
       day_5:
         start:
           japan: [{drug_id: meropenem, dose: "1g IV q8h"}]
@@ -778,10 +778,10 @@ course_archetypes:
       day_2:
         start:
           japan:
-            - {drug: "Intubation_and_mechanical_ventilation", dose: "TV 6mL/kg, PEEP 5"}
+            - {procedure: "Intubation_and_mechanical_ventilation", detail: "TV 6mL/kg, PEEP 5"}
             - {drug_id: meropenem, dose: "1g IV q8h"}
           us:
-            - {drug: "Intubation_and_mechanical_ventilation", dose: "TV 6mL/kg, PEEP 5"}
+            - {procedure: "Intubation_and_mechanical_ventilation", detail: "TV 6mL/kg, PEEP 5"}
             - {drug_id: piperacillin_tazobactam, dose: "4.5g IV q6h"}
         action: "icu_transfer"
         action_2: "intubation"

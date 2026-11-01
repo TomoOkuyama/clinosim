@@ -68,7 +68,7 @@ def test_valid_type_procedure_accepted(tmp_path, monkeypatch):
 drugs:
   escalation:
     japan:
-      - {drug: Hemodialysis, type: procedure, dose: 3-4h session}
+      - {procedure: Hemodialysis, type: procedure, dose: 3-4h session}
 """,
     )
     protocol = load_disease_protocol("test_disease")
@@ -84,7 +84,7 @@ def test_valid_type_medication_accepted(tmp_path, monkeypatch):
 drugs:
   escalation:
     japan:
-      - {drug: Vasopressin, type: medication, dose: 0.03u/min IV, route: IV}
+      - {drug_id: vasopressin, type: medication, dose: 0.03u/min IV, route: IV}
 """,
     )
     protocol = load_disease_protocol("test_disease")
@@ -101,7 +101,7 @@ def test_type_absent_accepted_backcompat(tmp_path, monkeypatch):
 drugs:
   escalation:
     japan:
-      - {drug: Some drug, dose: q12h IV, route: IV}
+      - {drug_id: heparin, dose: q12h IV, route: IV}
 """,
     )
     protocol = load_disease_protocol("test_disease")
@@ -139,7 +139,7 @@ def test_inline_code_yj_rejected(tmp_path, monkeypatch):
 drugs:
   escalation:
     japan:
-      - {drug: Real drug, code_yj: "1234567890", dose: 1g IV daily, route: IV}
+      - {drug_id: heparin, code_yj: "1234567890", dose: 1g IV daily, route: IV}
 """,
     )
     with pytest.raises(ValueError, match="code_yj"):
@@ -172,7 +172,7 @@ def test_real_code_value_not_rejected(tmp_path, monkeypatch):
 drugs:
   escalation:
     us:
-      - {drug: Real drug, code_rxnorm: "1234567", dose: 1g IV daily, route: IV}
+      - {drug_id: heparin, code_rxnorm: "1234567", dose: 1g IV daily, route: IV}
 """,
     )
     protocol = load_disease_protocol("test_disease")
@@ -193,7 +193,7 @@ def test_type_procedure_with_route_rejected(tmp_path, monkeypatch):
 drugs:
   escalation:
     japan:
-      - {drug: Hemodialysis, type: procedure, dose: 3-4h, route: EXTRACORPOREAL}
+      - {procedure: Hemodialysis, type: procedure, dose: 3-4h, route: EXTRACORPOREAL}
 """,
     )
     with pytest.raises(ValueError, match="must not carry a `route` field"):
@@ -210,7 +210,7 @@ def test_type_medication_with_route_still_accepted(tmp_path, monkeypatch):
 drugs:
   escalation:
     japan:
-      - {drug: Vasopressin, type: medication, dose: 0.03u/min, route: IV}
+      - {drug_id: vasopressin, type: medication, dose: 0.03u/min, route: IV}
 """,
     )
     protocol = load_disease_protocol("test_disease")

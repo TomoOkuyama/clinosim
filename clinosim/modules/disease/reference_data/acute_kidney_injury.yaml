@@ -480,12 +480,12 @@ drugs:
 
   escalation:
     japan:
-      - drug: "Hemodialysis"
+      - procedure: "Hemodialysis"
         type: "procedure"
         dose: "3-4h session, 3x/week or continuous (CRRT)"
         indication: "refractory_hyperkalemia, acidosis, volume_overload, uremia, or BUN > 100"
     us:
-      - drug: "Hemodialysis"
+      - procedure: "Hemodialysis"
         type: "procedure"
         dose: "3-4h session or CRRT"
         indication: "same"
@@ -648,8 +648,8 @@ course_archetypes:
     treatment_modifications:
       day_3:
         start:
-          japan: [{drug: "Hemodialysis", dose: "3-4h, 3x/week"}]
-          us: [{drug: "Hemodialysis", dose: "3-4h or CRRT if ICU"}]
+          japan: [{procedure: "Hemodialysis", detail: "3-4h, 3x/week"}]
+          us: [{procedure: "Hemodialysis", detail: "3-4h or CRRT if ICU"}]
     triggers:
       - day: 3
         condition: "K > 6.0 or pH < 7.1 or pulmonary_edema"
@@ -671,8 +671,8 @@ course_archetypes:
     treatment_modifications:
       day_2:
         start:
-          japan: [{drug: "CRRT", dose: "continuous 24h"}]
-          us: [{drug: "CRRT", dose: "continuous 24h"}]
+          japan: [{procedure: "CRRT", detail: "continuous 24h"}]
+          us: [{procedure: "CRRT", detail: "continuous 24h"}]
         action: "icu_transfer"
     triggers:
       - day: 3
@@ -694,10 +694,10 @@ course_archetypes:
         start:
           japan:
             - {drug_id: calcium_gluconate, dose: "10mL 8.5% IV stat"}
-            - {drug: "Emergent_dialysis", dose: "stat"}
+            - {procedure: "Emergent_hemodialysis", detail: "stat"}
           us:
             - {drug_id: calcium_gluconate, dose: "1g IV stat"}
-            - {drug: "Emergent_dialysis", dose: "stat"}
+            - {procedure: "Emergent_hemodialysis", detail: "stat"}
         action: "icu_transfer"
     triggers:
       - day: 2

@@ -315,7 +315,7 @@ def classify_escalation_treatment(esc_drug: object) -> OrderType:
 
     # (1) explicit signal
     type_signal = esc_drug.get("type")
-    if type_signal == "procedure":
+    if type_signal == "procedure" or esc_drug.get("procedure"):
         return OrderType.PROCEDURE
     if type_signal == "medication":
         return OrderType.MEDICATION
