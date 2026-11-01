@@ -234,6 +234,4 @@ occupation:
 
 次の箇所はまだ仕様に準拠していない。それぞれ記載の Issue で解消する。
 
-| 未準拠箇所 | Issue |
-|---|---|
-| 用法用語表 `locale/shared/med_terms.yaml` が `clinosim-procedure-phrase.yaml` の手技名 5 件を重複して持ち、薬名の解決関数がそれらを翻訳してしまう。 | #2446 |
+なし。コードベースはこの仕様に準拠している。

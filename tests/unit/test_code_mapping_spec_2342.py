@@ -75,5 +75,6 @@ def test_every_deviation_points_at_an_issue() -> None:
     section = _SPEC.read_text(encoding="utf-8").split("## 9. Known deviations", 1)[1]
     rows = [line for line in section.splitlines() if line.startswith("| ") and not line.startswith("| Deviation")]
     rows = [r for r in rows if not set(r) <= set("|- ")]
-    assert rows
+    # No open deviation is written as "None: …" instead of an empty table.
+    assert rows or "\nNone:" in section.split("\n## ", 1)[0]
     assert all(re.search(r"\| #\d+ \|$", r) for r in rows), rows
