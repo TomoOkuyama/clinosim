@@ -40,6 +40,9 @@ _AUTHORITATIVE_SNOMED_ROUTE_DISPLAY: dict[str, str] = {
     # /r4/CodeSystem/$lookup 2026-09-11); FSN は "Ophthalmic route (qualifier
     # value)" だが tx-server は Synonym form も受容する。
     "54485002": "Ophthalmic route",
+    # Issue #2352 (verified via tx.fhir.org $lookup 2026-11-01).
+    "718329006": "Infiltration route",
+    "12130007": "Intra-articular route",
 }
 
 

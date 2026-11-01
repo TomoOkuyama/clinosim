@@ -24,7 +24,7 @@ workup:
     - {test: "Fundus_Photography", probability: 1.0}
 
 treatment:
-  - {name: "mydriatic eye drops (tropicamide)", probability: 1.0}
+  - {name: "mydriatic eye drops (tropicamide)", route: "OPH", probability: 1.0}
 
 discharge_instructions:
   - "Vision may be blurry for 4-6 hours due to pupil dilation"

@@ -24,8 +24,8 @@ workup:
     - {test: "Xray_Joint", probability: 0.5}
 
 treatment:
-  - {name: "local anesthesia (lidocaine)", probability: 1.0}
-  - {name: "corticosteroid intra-articular injection (triamcinolone)", probability: 1.0}
+  - {name: "local anesthesia (lidocaine)", route: "infiltration", probability: 1.0}
+  - {name: "corticosteroid intra-articular injection (triamcinolone)", route: "intra-articular", probability: 1.0}
 
 discharge_instructions:
   - "Rest the joint for 24-48 hours after injection"

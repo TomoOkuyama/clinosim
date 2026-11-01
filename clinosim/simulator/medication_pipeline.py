@@ -709,7 +709,7 @@ def _generate_mar(
         if _is_triggered_prn(order):
             continue  # given on demand by generate_prn_administrations (Issue #2085)
         # Determine administration times based on drug and route
-        route = _determine_route(drug_name, order.clinical_intent)
+        route = order.route or _determine_route(drug_name, order.clinical_intent)
 
         # Issue #913: MAR admin count must match
         # ``MedicationRequest.dosageInstruction.timing.repeat.frequency``

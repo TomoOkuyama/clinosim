@@ -77,6 +77,17 @@ def _has_diabetes(patient: object) -> bool:
     return has_condition(patient, "diabetes")
 
 
+# Treatment ``route`` values that describe no drug administration route.
+_NON_ADMINISTRATION_ROUTES = frozenset({"NON-PHARMACOLOGIC", "N/A", "OTHER", "PROCEDURE", "EXTRACORPOREAL"})
+
+
+def _ed_order_route(tx: dict) -> str:
+    """Administration route of an ED treatment entry, as declared in the
+    encounter YAML; ``""`` when the entry declares none (Issue #2352)."""
+    route = str(tx.get("route") or "").strip()
+    return "" if route.upper() in _NON_ADMINISTRATION_ROUTES else route
+
+
 def ed_treatment_response(state: PhysiologicalState) -> PhysiologicalState:
     """State after one round of ED treatment (Issue #2090): symptom axes and a
     volume deficit fall by ``ED_TREATMENT_RESPONSE_FACTOR``; perfusion recovers
@@ -614,6 +625,9 @@ def _simulate_ed_visit(
                 patient_id=patient.patient_id,
                 order_type=_order_type,
                 display_name=_tx_name,
+                # Issue #2352: the protocol's declared route; without it the
+                # order fell to the name heuristic, which defaults to PO.
+                route=_ed_order_route(tx) if _order_type == OrderType.MEDICATION else "",
                 urgency="stat",
                 clinical_intent=f"ED treatment: {tx.get('intent', _tx_name)}",
                 # Issue #871: JA display for JP SR reasonCode.text. `tx["intent"]`

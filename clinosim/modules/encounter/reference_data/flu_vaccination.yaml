@@ -23,7 +23,7 @@ workup:
   imaging: []
 
 treatment:
-  - {name: "influenza vaccine IM", probability: 1.0}
+  - {name: "influenza vaccine IM", route: "IM", probability: 1.0}
 
 discharge_instructions:
   - "Mild soreness at injection site is normal for 1-2 days"

@@ -34,7 +34,7 @@ workup:
     - {test: "Xray_affected_area", probability: 0.15}  # foreign body or fracture concern
 
 treatment:
-  - {name: "Lidocaine 1% local infiltration", probability: 0.9, route: "local", intent: "local anesthesia"}
+  - {name: "Lidocaine 1% local infiltration", probability: 0.9, route: "infiltration", intent: "local anesthesia"}
   - {name: "Wound irrigation with normal saline", probability: 0.95, route: "topical", intent: "wound cleaning"}
   - {name: "Suture closure", probability: 0.6, route: "topical", intent: "wound closure"}
   - {name: "Skin staples", probability: 0.15, route: "topical", intent: "wound closure"}
