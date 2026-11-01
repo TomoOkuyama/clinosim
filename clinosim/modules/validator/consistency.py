@@ -13,6 +13,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 
+from clinosim.codes.drugs import has_drug
 from clinosim.codes.snomed_concepts import SURGICAL_PROCEDURE
 from clinosim.modules.observation.engine import PHYSIOLOGIC_LIMITS, canonical_lab_name
 from clinosim.simulator.complications import complication_names as _complication_names_from_cif
@@ -181,12 +182,10 @@ def _check_medication_holds(record: CIFPatientRecord, pid: str, report: Consiste
         return
     disease = gt[0]
 
-    # Hemorrhagic stroke: no anticoagulants
-    anticoag = {"apixaban", "warfarin", "rivaroxaban", "dabigatran", "edoxaban", "heparin", "enoxaparin"}
+    # Hemorrhagic stroke: no anticoagulants (catalog class, Issue #2297)
     if disease == "hemorrhagic_stroke":
         for order in record.orders:
-            name = (order.display_name or "").lower()
-            if any(a in name for a in anticoag) and "HELD" not in (order.clinical_intent or ""):
+            if has_drug([order], "anticoagulant") and "HELD" not in (order.clinical_intent or ""):
                 report.add(
                     ConsistencyIssue(
                         pid,
@@ -205,7 +204,6 @@ def _check_medication_holds(record: CIFPatientRecord, pid: str, report: Consiste
     if all_conditions & metformin_hold_diseases:
         triggering = all_conditions & metformin_hold_diseases
         for order in record.orders:
-            name = (order.display_name or "").lower()
             intent = (order.clinical_intent or "").lower()
             # Skip hold instructions (these contain "metformin" but are not administration)
             if "hold" in intent or "held" in intent:
@@ -217,7 +215,7 @@ def _check_medication_holds(record: CIFPatientRecord, pid: str, report: Consiste
             # de-escalation chain — these orders are not active medications.
             if hasattr(order, "status") and order.status.value in ("cancelled", "discontinued", "stopped"):
                 continue
-            if "metformin" in name:
+            if has_drug([order], "metformin"):
                 report.add(
                     ConsistencyIssue(
                         pid,
