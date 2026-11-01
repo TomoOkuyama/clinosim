@@ -12,7 +12,7 @@ from typing import Any
 
 from clinosim.codes import get_system_uri, system_key_for
 from clinosim.codes import lookup as code_lookup
-from clinosim.codes.stage_to_snomed import resolve_stage_snomed
+from clinosim.codes.snomed import snomed_for
 from clinosim.modules._shared import get_attr_or_key, is_jp, resolve_lang
 from clinosim.modules.diagnosis.nonspecific_codes import is_visit_reason_zcode
 from clinosim.modules.output.fhir_r4.conditions.primary_ref import (
@@ -53,8 +53,8 @@ from clinosim.modules.output.fhir_r4.lib.ids import wrap_as_identifier
 # has a verified SNOMED coding. Previously-text-only entries (GOLD 4, asthma
 # severity 4-tier, hypertension stage 1-2, CCS angina I-III). Phase 3.β.6
 # (#1808 follow-up): the 24-entry stage → SNOMED mapping now lives in
-# `clinosim/codes/data/clinosim-stage-to-snomed.yaml` and resolves via
-# `clinosim.codes.stage_to_snomed.resolve_stage_snomed(label)`. The
+# `clinosim/codes/data/snomed-maps.yaml` (`stage`) and resolves via
+# `clinosim.codes.snomed.snomed_for("stage", label)`. The
 # authority SNOMED display stays in snomed-ct.yaml and is still fetched
 # via `code_lookup("snomed-ct", code, lang)` at emit time.
 
@@ -343,7 +343,7 @@ def _build_conditions(record: dict, patient_id: str, country: str) -> list[dict]
             _stg = chronic_stage_by_base.get(base_code, "")
             if _stg:
                 summary: dict[str, Any] = {"text": _stg}
-                stage_snomed = resolve_stage_snomed(_stg)
+                stage_snomed = snomed_for("stage", _stg)
                 if stage_snomed:
                     summary["coding"] = [
                         {
@@ -712,7 +712,7 @@ def _build_conditions(record: dict, patient_id: str, country: str) -> list[dict]
         # clinically wrong and is intentionally NOT emitted.
         if c_stage:
             summary = {"text": c_stage}
-            stage_snomed = resolve_stage_snomed(c_stage)
+            stage_snomed = snomed_for("stage", c_stage)
             if stage_snomed:
                 summary["coding"] = [
                     {

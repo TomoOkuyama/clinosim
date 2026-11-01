@@ -68,8 +68,10 @@ def test_hearing_screen_emitted_for_newborn() -> None:
     proc = build_hearing_screen_procedure(_newborn_record())
     assert proc is not None
     assert proc.procedure_type == "hearing_screen_aabr"
-    assert proc.procedure_code == "232717001"  # SNOMED AABR screening
-    assert proc.category_code == "103693007"  # diagnostic procedure
+    assert proc.procedure_code == "413083006"  # SNOMED AABR screening
+    assert (
+        proc.category_code == "386053000"
+    )  # Evaluation procedure (103693007 is inactive, Issue #2379)  # diagnostic procedure
     # outcome_code is one of the two configured SNOMED codes.
     assert proc.outcome_code in ("385669000", "385671000")
     # Scheduled within the birth admission.

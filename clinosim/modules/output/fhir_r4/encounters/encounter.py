@@ -13,8 +13,8 @@ from typing import Any
 
 from clinosim.codes import get_system_uri, system_key_for
 from clinosim.codes import lookup as code_lookup
-from clinosim.codes.encounter_type_to_snomed import resolve_encounter_type_snomed
 from clinosim.codes.hl7_encounter import ActPriority
+from clinosim.codes.snomed import snomed_for
 from clinosim.codes.ucum import ucum_quantity
 from clinosim.modules._shared import is_jp, pick_localized_field, resolve_lang
 from clinosim.modules.diagnosis.nonspecific_codes import is_never_principal_dx, is_visit_reason_zcode
@@ -158,7 +158,7 @@ def _build_encounter(
     # the vast majority of outpatient visits, 初診 (first-visit consultation)
     # is a small minority, and screening/immunization visits keep the generic
     # patient-initiated code.
-    type_code = resolve_encounter_type_snomed(enc_type)
+    type_code = snomed_for("encounter_type", enc_type)
     if enc_type == "outpatient":
         _cc = str(enc.get("chief_complaint", "") or "")
         # Health screening / annual check / immunization → keep the generic

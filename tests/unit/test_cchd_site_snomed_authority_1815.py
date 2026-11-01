@@ -17,7 +17,7 @@ Fix:
 - Register the correct SNOMED concepts in ``snomed-ct.yaml`` authority
   (``368209003`` Right upper arm structure, ``56459004`` Foot
   structure), with EN + JA displays.
-- Create ``cchd-site-to-snomed.yaml`` catalog + resolver (Phase 3.β.5
+- Create the CCHD site catalog + resolver (now ``snomed-maps.yaml`` ``cchd_site``, Phase 3.β.5
   pattern), retiring the module-local dict.
 - Retire the stale display strings — all FHIR emit displays now flow
   through ``code_lookup("snomed-ct", <code>, lang)`` against the
@@ -29,11 +29,7 @@ from __future__ import annotations
 import pytest
 
 from clinosim.codes import lookup as code_lookup
-from clinosim.codes.cchd_site_to_snomed import (
-    _load_catalog,
-    all_cchd_sites,
-    resolve_cchd_site_snomed,
-)
+from clinosim.codes.snomed import snomed_for, snomed_map
 
 pytestmark = pytest.mark.unit
 
@@ -71,16 +67,16 @@ def test_cchd_body_site_codes_registered_in_snomed_authority(code: str, expected
     ],
 )
 def test_resolve_cchd_site_snomed_known(site: str, expected_code: str) -> None:
-    assert resolve_cchd_site_snomed(site) == expected_code
+    assert snomed_for("cchd_site", site) == expected_code
 
 
 def test_resolve_cchd_site_snomed_unknown_returns_none() -> None:
-    assert resolve_cchd_site_snomed("left_hand") is None
-    assert resolve_cchd_site_snomed("") is None
+    assert snomed_for("cchd_site", "left_hand") is None
+    assert snomed_for("cchd_site", "") is None
 
 
 def test_all_cchd_sites_matches_catalog() -> None:
-    assert all_cchd_sites() == ("foot", "right_hand")
+    assert tuple(sorted(snomed_map("cchd_site"))) == ("foot", "right_hand")
 
 
 # ----------------------------------------------------------------------------
@@ -92,7 +88,7 @@ def test_wrong_laterality_codes_no_longer_mapped() -> None:
     """The pre-fix dict carried 368208006 (Left upper arm) and
     22335008 (Left foot). Both must stay out of the CCHD catalog —
     regression guard against reintroduction."""
-    catalog = _load_catalog()
+    catalog = snomed_map("cchd_site")
     offenders = [(site, code) for site, code in catalog.items() if code in {"368208006", "22335008"}]
     assert not offenders, f"left-laterality SNOMED codes still mapped: {offenders}"
 
@@ -102,8 +98,7 @@ def test_newborn_fhir_emit_module_no_longer_exports_wrong_dict() -> None:
     from clinosim.modules.newborn import fhir_emit as _nf
 
     assert not hasattr(_nf, "_CCHD_SITE_SNOMED"), (
-        "_CCHD_SITE_SNOMED was retired in #1815 — use "
-        "clinosim.codes.cchd_site_to_snomed.resolve_cchd_site_snomed instead"
+        '_CCHD_SITE_SNOMED was retired in #1815 — use clinosim.codes.snomed.snomed_for("cchd_site", ...) instead'
     )
 
 

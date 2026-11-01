@@ -29,8 +29,8 @@ class ProcedureRecord:
     procedure_code_us: str = ""  # CPT (always populated if available)
     # Explicit coding-system key for the primary ``procedure_code`` when it
     # is NOT the country default (K-codes on JP / CPT on US). Example:
-    # SNOMED-authored neonatal screens (newborn hearing screen 232717001;
-    # newborn metabolic screen 405058008) set ``procedure_system_key=
+    # SNOMED-authored neonatal screens (newborn hearing screen 413083006;
+    # newborn metabolic screen 428447008) set ``procedure_system_key=
     # "snomed-ct"`` so the FHIR emit path stamps ``coding[0].system`` with
     # the SNOMED CT URI instead of the CPT URI (M2, cycle-2). Empty string
     # falls back to the country default + the Phase 4d.2 CPT-swap. Any

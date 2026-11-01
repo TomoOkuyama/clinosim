@@ -103,7 +103,7 @@ Not applicable — pure builders over CIF procedures / immunizations /
 - `..demographics.patient.patient_ref`,
   `..encounters.encounter.encounter_ref`.
 - `clinosim.codes` — CPT / K-code / CVX / SNOMED display lookup;
-  `clinosim.codes.oxygen_device_to_snomed`.
+  `clinosim.codes.snomed.snomed_for("oxygen_device", ...)`.
 - `clinosim.modules.diagnosis.nonspecific_codes` (procedures).
 - CIF records are read as dicts via `get_attr_or_key`; no
   `clinosim.types` classes are imported.

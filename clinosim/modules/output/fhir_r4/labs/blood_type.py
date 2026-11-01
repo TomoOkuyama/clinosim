@@ -49,7 +49,7 @@ from typing import Any
 
 from clinosim.codes import display as registry_display
 from clinosim.codes import get_system_uri
-from clinosim.codes.blood_group_to_snomed import resolve_abo_snomed, resolve_rh_snomed
+from clinosim.codes.snomed import snomed_for
 from clinosim.modules._shared import get_attr_or_key as _o
 from clinosim.modules._shared import is_jp, resolve_lang
 from clinosim.modules.output.fhir_r4.demographics.patient import patient_ref
@@ -100,8 +100,8 @@ _LOINC_ABO_GROUP = "883-9"
 _LOINC_RH_GROUP = "10331-7"
 
 # SNOMED CT finding concepts for blood-group results are now sourced
-# from clinosim/codes/data/blood-group-to-snomed.yaml via the
-# clinosim.codes.blood_group_to_snomed resolver (Phase 3.β.2, #1808
+# from clinosim/codes/data/snomed-maps.yaml (abo / rh) via
+# clinosim.codes.snomed.snomed_for (Phase 3.β.2, #1808
 # follow-up). Displays resolve through
 # `code_lookup("snomed-ct", …)` against the authority yaml, so this
 # module no longer carries any SNOMED code constants.
@@ -229,7 +229,7 @@ def _bb_blood_type(ctx: BundleContext) -> list[dict]:
     resources: list[dict] = []
     is_jp_out = is_jp(ctx.country)
 
-    abo_snomed = resolve_abo_snomed(abo)
+    abo_snomed = snomed_for("abo", abo)
     if abo_snomed:
         abo_text = "ABO血液型" if is_jp_out else "ABO blood group"
         _abo_structural_key = ctx.patient_id
@@ -250,7 +250,7 @@ def _bb_blood_type(ctx: BundleContext) -> list[dict]:
             o["performer"] = [{"reference": perf}]
         resources.append(o)
 
-    rh_snomed = resolve_rh_snomed(rh)
+    rh_snomed = snomed_for("rh", rh)
     if rh_snomed:
         rh_text = "Rh血液型" if is_jp_out else "Rh blood group"
         _rh_structural_key = ctx.patient_id

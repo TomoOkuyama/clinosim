@@ -110,11 +110,6 @@ clinosim/codes/
   drugs.py                        drug identity catalog loader
                                   (data/drugs.yaml; resolve_drug /
                                   all_drug_ids)
-  blood_group_to_snomed.py,       key → SNOMED CT concept resolvers
-  cchd_site_to_snomed.py,         backed by the matching
-  encounter_type_to_snomed.py,    data/*-to-snomed.yaml
-  oxygen_device_to_snomed.py,
-  stage_to_snomed.py
   data/                           72 YAMLs: code systems (see
                                   "Supported code systems" below) plus
                                   curated catalogs (drugs, frequency

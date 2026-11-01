@@ -25,6 +25,7 @@ from typing import Any
 import numpy as np
 import yaml
 
+from clinosim.codes.snomed import snomed_for, snomed_map
 from clinosim.modules._shared import get_attr_or_key as _get
 from clinosim.modules._shared import is_jp
 from clinosim.types.encounter import MedicationAdministration, VitalSignRecord
@@ -57,10 +58,10 @@ def load_newborn_config() -> dict[str, Any]:
 _PERINATAL_BASELINE_EMITTED: dict[str, set[str]] = {}
 
 # SNOMED CT concept ids of the once-per-newborn screens this tracker
-# gates: AABR hearing screen (232717001) + tandem-MS neonatal metabolic
-# screen (405058008). Any future CCHD pulse-ox Procedure code would join
+# gates: AABR hearing screen (413083006) + tandem-MS neonatal metabolic
+# screen (428447008). Any future CCHD pulse-ox Procedure code would join
 # this set.
-PERINATAL_BASELINE_SNOMEDS: frozenset[str] = frozenset({"232717001", "405058008"})
+PERINATAL_BASELINE_SNOMEDS: frozenset[str] = frozenset(snomed_map("newborn_screen").values())
 
 
 def has_perinatal_baseline_emitted(patient_id: str, snomed: str) -> bool:
@@ -366,8 +367,8 @@ def build_hearing_screen_procedure(record: Any) -> ProcedureRecord | None:
     outcome_key = str(outcomes[int(rng.choice(len(outcomes), p=probs))])
 
     outcome_code = str(cfg.get("outcome_pass" if outcome_key == "pass" else "outcome_refer") or "")
-    proc_code = str(cfg.get("procedure_code") or "232717001")  # SNOMED AABR screening
-    category_code = str(cfg.get("category_code") or "103693007")  # diagnostic procedure
+    proc_code = str(cfg.get("procedure_code") or snomed_for("newborn_screen", "hearing_aabr"))
+    category_code = str(cfg.get("category_code") or snomed_for("procedure_category", "evaluation"))
 
     enc_id = str(_get(birth_enc, "encounter_id", "") or "")
     proc_id = f"PROC-{pid}-HEARING-SCREEN"
@@ -378,7 +379,7 @@ def build_hearing_screen_procedure(record: Any) -> ProcedureRecord | None:
         encounter_id=enc_id,
         procedure_type="hearing_screen_aabr",
         procedure_code=proc_code,
-        procedure_system_key="snomed-ct",  # 232717001 is a SNOMED CT concept id, not CPT
+        procedure_system_key="snomed-ct",  # 413083006 is a SNOMED CT concept id, not CPT
         start_datetime=sched,
         end_datetime=sched + timedelta(minutes=15),
         duration_minutes=15,
@@ -450,8 +451,8 @@ def build_metabolic_screen_procedure(record: Any, country: str) -> ProcedureReco
     outcome_key = str(outcomes[int(rng.choice(len(outcomes), p=probs))])
 
     outcome_code = str(cfg.get("outcome_pass" if outcome_key == "pass" else "outcome_refer") or "")
-    proc_code = str(cfg.get("procedure_code") or "405058008")  # SNOMED neonatal screening
-    category_code = str(cfg.get("category_code") or "103693007")  # diagnostic procedure
+    proc_code = str(cfg.get("procedure_code") or snomed_for("newborn_screen", "metabolic"))
+    category_code = str(cfg.get("category_code") or snomed_for("procedure_category", "evaluation"))
 
     enc_id = str(_get(birth_enc, "encounter_id", "") or "")
     proc_id = f"PROC-{pid}-METABOLIC-SCREEN"
@@ -462,7 +463,7 @@ def build_metabolic_screen_procedure(record: Any, country: str) -> ProcedureReco
         encounter_id=enc_id,
         procedure_type="metabolic_screen_tandem_ms",
         procedure_code=proc_code,
-        procedure_system_key="snomed-ct",  # 405058008 is a SNOMED CT concept id, not CPT
+        procedure_system_key="snomed-ct",  # 428447008 is a SNOMED CT concept id, not CPT
         start_datetime=sched,
         end_datetime=sched + timedelta(minutes=5),
         duration_minutes=5,
@@ -559,7 +560,7 @@ def build_metabolic_screen_workflow_data(record: Any, country: str) -> dict[str,
         "order_loinc": str(sr_cfg.get("order_loinc") or "54089-8"),
         "order_display": str(sr_cfg.get("order_display") or "Newborn screening panel"),
         "order_display_ja": str(sr_cfg.get("order_display_ja") or "新生児マス・スクリーニング パネル"),
-        "order_category_code": str(sr_cfg.get("category_code") or "108252007"),
+        "order_category_code": str(sr_cfg.get("category_code") or snomed_for("order_category", "laboratory")),
         "order_category_display": str(sr_cfg.get("category_display") or "Laboratory procedure"),
         "specimen_type_code": str(spec_cfg.get("type_code") or "122554006"),
         "specimen_type_display": str(spec_cfg.get("type_display") or "Capillary blood specimen"),

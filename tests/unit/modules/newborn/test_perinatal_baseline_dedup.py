@@ -6,8 +6,8 @@ Mechanism in production (as surfaced by the p=2000 US seed=42 5y audit):
 a mother with ≥ 2 deliveries lands two newborn-side CIF records that
 both carry ``patient_id = f"{mother_id}-BABY"`` with
 ``condition_event.condition_type = "newborn_birth"``. Pre-fix, the
-newborn enricher fires the AABR hearing screen (SNOMED 232717001) and
-the tandem-MS metabolic screen (SNOMED 405058008) on EACH record,
+newborn enricher fires the AABR hearing screen (SNOMED 413083006) and
+the tandem-MS metabolic screen (SNOMED 428447008) on EACH record,
 producing a duplicate once-per-newborn Procedure under the shared
 ``-BABY`` subject reference — 14 % of babies at p=2000 US 5y.
 
@@ -68,7 +68,7 @@ def _codes(record: CIFPatientRecord) -> set[str]:
 
 
 def test_hearing_screen_dedup_across_sibling_birth_records_us() -> None:
-    """US baby: first delivery emits SNOMED 232717001; a second delivery
+    """US baby: first delivery emits SNOMED 413083006; a second delivery
     under the same ``POP-xxx-BABY`` id does NOT re-emit."""
     pid = "POP-010000-BABY"
     first = _birth_record(pid, datetime(2026, 6, 1, 10, 0), los_days=2)
@@ -77,14 +77,14 @@ def test_hearing_screen_dedup_across_sibling_birth_records_us() -> None:
     enrich_newborn(_Ctx(records=[first], country="US"))
     enrich_newborn(_Ctx(records=[second], country="US"))
 
-    assert "232717001" in _codes(first)
-    assert "232717001" not in _codes(second), (
-        f"hearing screen 232717001 re-emitted on 2nd birth record for {pid}: codes={_codes(second)}"
+    assert "413083006" in _codes(first)
+    assert "413083006" not in _codes(second), (
+        f"hearing screen 413083006 re-emitted on 2nd birth record for {pid}: codes={_codes(second)}"
     )
 
 
 def test_metabolic_screen_dedup_across_sibling_birth_records_us() -> None:
-    """US baby: first delivery emits SNOMED 405058008; a second delivery
+    """US baby: first delivery emits SNOMED 428447008; a second delivery
     under the same ``POP-xxx-BABY`` id does NOT re-emit."""
     pid = "POP-010001-BABY"
     first = _birth_record(pid, datetime(2026, 6, 1, 10, 0), los_days=2)
@@ -93,9 +93,9 @@ def test_metabolic_screen_dedup_across_sibling_birth_records_us() -> None:
     enrich_newborn(_Ctx(records=[first], country="US"))
     enrich_newborn(_Ctx(records=[second], country="US"))
 
-    assert "405058008" in _codes(first)
-    assert "405058008" not in _codes(second), (
-        f"metabolic screen 405058008 re-emitted on 2nd birth record for {pid}: codes={_codes(second)}"
+    assert "428447008" in _codes(first)
+    assert "428447008" not in _codes(second), (
+        f"metabolic screen 428447008 re-emitted on 2nd birth record for {pid}: codes={_codes(second)}"
     )
 
 
@@ -130,7 +130,7 @@ def test_dedup_does_not_affect_distinct_baby_patient_ids() -> None:
     enrich_newborn(_Ctx(records=[sib_a], country="US"))
     enrich_newborn(_Ctx(records=[sib_b], country="US"))
 
-    assert "232717001" in _codes(sib_a)
-    assert "405058008" in _codes(sib_a)
-    assert "232717001" in _codes(sib_b)
-    assert "405058008" in _codes(sib_b)
+    assert "413083006" in _codes(sib_a)
+    assert "428447008" in _codes(sib_a)
+    assert "413083006" in _codes(sib_b)
+    assert "428447008" in _codes(sib_b)

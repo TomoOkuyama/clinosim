@@ -96,7 +96,7 @@ from clinosim.modules.output.fhir_r4.procedures.oxygen_therapy import (
 - `..demographics.patient.patient_ref`、
   `..encounters.encounter.encounter_ref`。
 - `clinosim.codes` — CPT / K-code / CVX / SNOMED 表示 lookup、
-  `clinosim.codes.oxygen_device_to_snomed`。
+  `clinosim.codes.snomed.snomed_for("oxygen_device", ...)`。
 - `clinosim.modules.diagnosis.nonspecific_codes` (procedures)。
 - CIF record は `get_attr_or_key` で dict として読み、
   `clinosim.types` の class は import しない。

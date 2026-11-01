@@ -142,10 +142,10 @@ def test_every_generated_stage_is_mapped():
     class). Fails loud if activator adds a stage value without a code.
 
     Phase 3.β.6: the map lives in
-    ``clinosim/codes/data/clinosim-stage-to-snomed.yaml`` and is read
-    via ``resolve_stage_snomed`` instead of the retired module-local
+    ``clinosim/codes/data/snomed-maps.yaml`` (``stage``) and is read
+    via ``snomed_for("stage", ...)`` instead of the retired module-local
     ``_STAGE_SUMMARY_SNOMED`` dict."""
-    from clinosim.codes.stage_to_snomed import resolve_stage_snomed
+    from clinosim.codes.snomed import snomed_for
 
     ckd = [f"CKD {g}" for g in ("G1", "G2", "G3a", "G3b", "G4", "G5")]
     nyha = [f"NYHA {c}" for c in ("I", "II", "III", "IV")]
@@ -154,4 +154,4 @@ def test_every_generated_stage_is_mapped():
     htn = ["Stage 1", "Stage 2"]
     ccs = [f"CCS {n}" for n in ("I", "II", "III")]  # activator emits I-III; IV is forward-compat
     for s in ckd + nyha + gold + asthma + htn + ccs:
-        assert resolve_stage_snomed(s), f"unmapped generated stage: {s}"
+        assert snomed_for("stage", s), f"unmapped generated stage: {s}"

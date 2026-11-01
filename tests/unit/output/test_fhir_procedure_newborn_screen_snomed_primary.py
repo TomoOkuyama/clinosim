@@ -5,9 +5,9 @@ Phase 4d.2 fixed the mirror case (JP output of a CPT-only Procedure
 emitted under the K-codes URI). This test pins the inverse:
 
 * ``build_hearing_screen_procedure`` stores SNOMED concept id
-  ``232717001`` (AABR newborn hearing screening); and
+  ``413083006`` (AABR newborn hearing screening); and
 * ``build_metabolic_screen_procedure`` stores SNOMED concept id
-  ``405058008`` (newborn blood spot screening).
+  ``428447008`` (newborn blood spot screening).
 
 Neither is a CPT 5-digit code — before this fix the US emit path stamped
 them under ``http://www.ama-assn.org/go/cpt`` purely because the
@@ -53,7 +53,7 @@ def test_us_hearing_screen_primary_coding_uses_snomed_system() -> None:
     """SNOMED-coded AABR hearing screen on US output — primary coding
     carries the SNOMED CT system URI, not the CPT URI."""
     res = _build_procedure(
-        _snomed_screen_proc("232717001", "hearing_screen_aabr"),
+        _snomed_screen_proc("413083006", "hearing_screen_aabr"),
         "pt-m2-BABY",
         0,
         "US",
@@ -63,16 +63,16 @@ def test_us_hearing_screen_primary_coding_uses_snomed_system() -> None:
     cpt_uri = get_system_uri("cpt")
     # Primary (first) entry under SNOMED CT URI with the SNOMED code.
     assert codings[0]["system"] == sct_uri
-    assert codings[0]["code"] == "232717001"
+    assert codings[0]["code"] == "413083006"
     # Zero entries carry the SNOMED code under the CPT URI.
-    assert not any(c.get("code") == "232717001" and c.get("system") == cpt_uri for c in codings)
+    assert not any(c.get("code") == "413083006" and c.get("system") == cpt_uri for c in codings)
 
 
 def test_us_metabolic_screen_primary_coding_uses_snomed_system() -> None:
     """SNOMED-coded tandem-MS metabolic screen on US output — same
     contract."""
     res = _build_procedure(
-        _snomed_screen_proc("405058008", "metabolic_screen_tandem_ms"),
+        _snomed_screen_proc("428447008", "metabolic_screen_tandem_ms"),
         "pt-m2-BABY",
         0,
         "US",
@@ -81,15 +81,15 @@ def test_us_metabolic_screen_primary_coding_uses_snomed_system() -> None:
     sct_uri = get_system_uri("snomed-ct")
     cpt_uri = get_system_uri("cpt")
     assert codings[0]["system"] == sct_uri
-    assert codings[0]["code"] == "405058008"
-    assert not any(c.get("code") == "405058008" and c.get("system") == cpt_uri for c in codings)
+    assert codings[0]["code"] == "428447008"
+    assert not any(c.get("code") == "428447008" and c.get("system") == cpt_uri for c in codings)
 
 
 def test_jp_hearing_screen_primary_coding_uses_snomed_system() -> None:
     """Same JP contract — JP output of the SNOMED-authored screen
     emits under SNOMED CT, not the K-codes URI."""
     res = _build_procedure(
-        _snomed_screen_proc("232717001", "hearing_screen_aabr"),
+        _snomed_screen_proc("413083006", "hearing_screen_aabr"),
         "pt-m2-BABY",
         0,
         "JP",
@@ -98,8 +98,8 @@ def test_jp_hearing_screen_primary_coding_uses_snomed_system() -> None:
     sct_uri = get_system_uri("snomed-ct")
     k_uri = get_system_uri("k-codes")
     assert codings[0]["system"] == sct_uri
-    assert codings[0]["code"] == "232717001"
-    assert not any(c.get("code") == "232717001" and c.get("system") == k_uri for c in codings)
+    assert codings[0]["code"] == "413083006"
+    assert not any(c.get("code") == "413083006" and c.get("system") == k_uri for c in codings)
 
 
 def test_us_cpt_only_procedure_unchanged_by_fix() -> None:

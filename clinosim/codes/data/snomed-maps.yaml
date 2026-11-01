@@ -25,3 +25,99 @@ severity:
   mild: "255604002"
   moderate: "6736007"
   severe: "24484000"
+
+# ABO blood type letter (patient activator) → finding concept (LOINC 883-9 value).
+abo:
+  A: '112144000'
+  B: '165743006'
+  O: '165744000'
+  AB: '165742001'
+
+# Rh factor glyph → finding concept (LOINC 10331-7 value).
+rh:
+  '+': '165747007'
+  '-': '165748002'
+  positive: '165747007'
+  negative: '165748002'
+
+# Newborn CCHD pulse-oximetry screening site → body-site concept (#1815).
+cchd_site:
+  right_hand: '368209003'  # Right upper arm structure
+  foot: '56459004'         # Foot structure (laterality-neutral)
+
+# Internal encounter type → Encounter.type concept.
+encounter_type:
+  inpatient: '32485007'
+  emergency: '50849002'
+  outpatient: '270427003'
+  icu: '183452005'
+
+# Oxygen delivery device mode → Procedure.usedCode device concept.
+oxygen_device:
+  nasal_cannula: '336623009'
+  simple_mask: '425574000'
+  venturi: '336623009'
+  non-rebreather: '425574000'
+  HFNC: '336623009'
+  BiPAP: '26412008'
+  ventilator: '26412008'
+
+# Clinical stage label → Condition.stage.summary concept (KDIGO, NYHA, GOLD,
+# GINA, ACC/AHA hypertension, CCS angina).
+stage:
+  # KDIGO CKD stage (N18)
+  "CKD G1": "431855005"
+  "CKD G2": "431856006"
+  "CKD G3a": "700378005"
+  "CKD G3b": "700379002"
+  "CKD G4": "431857002"
+  "CKD G5": "433146000"
+  # NYHA functional class (I50 heart failure)
+  "NYHA I": "420300004"
+  "NYHA II": "421704003"
+  "NYHA III": "420913000"
+  "NYHA IV": "422293003"
+  # COPD severity — GOLD 1/2/3 verified. GOLD 4 mapped to SNOMED
+  # 135836000 "End stage COPD" (clinical equivalence; no distinct
+  # "Very severe COPD" concept exists in SNOMED CT International
+  # Edition).
+  "GOLD 1": "313296004"
+  "GOLD 2": "313297008"
+  "GOLD 3": "313299006"
+  "GOLD 4": "135836000"
+  # Asthma severity 4-tier (J45)
+  "Mild intermittent": "427679007"
+  "Mild persistent": "426979002"
+  "Moderate persistent": "427295004"
+  "Severe persistent": "426656000"
+  # Hypertension stage (I10) — Stage 1/2 per ACC/AHA 2017 boundaries
+  "Stage 1": "827069000"
+  "Stage 2": "827068008"
+  # CCS angina class (I25) — Canadian Cardiovascular Society I-IV
+  # (activator currently emits I/II/III only; IV registered forward-compat)
+  "CCS I": "61490001"
+  "CCS II": "41334000"
+  "CCS III": "85284003"
+  "CCS IV": "89323001"
+
+# Procedure.category (Issue #2379). 103693007 "Diagnostic procedure" is
+# inactive; its active successor is 386053000 "Evaluation procedure".
+procedure_category:
+  surgical: "387713003"
+  evaluation: "386053000"
+  therapeutic: "277132007"
+
+# ServiceRequest.category for lab and imaging orders (Issue #2379).
+order_category:
+  laboratory: "108252007"
+  imaging: "363679005"
+
+# Specimen.type of the specimens the lab path emits (Issue #2379).
+specimen_type:
+  blood: "119297000"
+  urine: "122575003"
+
+# Newborn screening procedures (Issue #2379).
+newborn_screen:
+  hearing_aabr: "413083006"
+  metabolic: "428447008"

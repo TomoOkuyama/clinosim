@@ -68,8 +68,8 @@ def test_metabolic_screen_emitted_for_jp_newborn_day_4() -> None:
     proc = build_metabolic_screen_procedure(_newborn_record(), country="JP")
     assert proc is not None
     assert proc.procedure_type == "metabolic_screen_tandem_ms"
-    assert proc.procedure_code == "405058008"  # SNOMED Neonatal screening
-    assert proc.category_code == "103693007"  # diagnostic
+    assert proc.procedure_code == "428447008"  # SNOMED Neonatal screening
+    assert proc.category_code == "386053000"  # Evaluation procedure (103693007 is inactive, Issue #2379)  # diagnostic
     assert proc.outcome_code in ("385669000", "385671000")
     admit = _newborn_record().encounters[0].admission_datetime
     # JP: heel-stick day 4 before 5-day discharge.
@@ -87,8 +87,8 @@ def test_metabolic_screen_emitted_for_us_newborn_day_1() -> None:
     admit = rec.encounters[0].admission_datetime
     assert proc.start_datetime.date() == (admit + timedelta(days=1)).date()
     # SNOMED procedure/category codes are locale-invariant.
-    assert proc.procedure_code == "405058008"
-    assert proc.category_code == "103693007"
+    assert proc.procedure_code == "428447008"
+    assert proc.category_code == "386053000"  # Evaluation procedure (103693007 is inactive, Issue #2379)
 
 
 def test_metabolic_screen_deterministic() -> None:

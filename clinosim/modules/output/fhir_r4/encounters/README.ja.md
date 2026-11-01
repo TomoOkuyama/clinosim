@@ -102,7 +102,7 @@ NDJSON を id で sort する。
 - `clinosim.codes` — LOINC + SNOMED 表示 lookup。
 - `..demographics.patient.patient_ref`、`..lib.ids` (opaque id)。
 - `clinosim.codes.hl7_encounter.ActPriority`、
-  `clinosim.codes.encounter_type_to_snomed`、
+  `clinosim.codes.snomed.snomed_for("encounter_type", ...)`、
   `clinosim.modules.diagnosis.nonspecific_codes`、
   `clinosim.modules.imaging.engine.ENDPOINT_ID_PREFIX`、
   `clinosim.modules.staff.engine.roster_departments`。

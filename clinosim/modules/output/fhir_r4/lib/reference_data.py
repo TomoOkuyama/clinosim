@@ -45,8 +45,8 @@ _SEVERITY_JP: dict[str, dict[str, str]] = {
 
 
 # Encounter type -> SNOMED code lives in
-# clinosim/codes/data/encounter-type-to-snomed.yaml via the
-# clinosim.codes.encounter_type_to_snomed resolver (Phase 3.β.4,
+# clinosim/codes/data/snomed-maps.yaml (encounter_type) via
+# clinosim.codes.snomed.snomed_for (Phase 3.β.4,
 # #1808 follow-up). Displays resolve through
 # `code_lookup("snomed-ct", …)` against the authority yaml; this
 # module no longer carries any SNOMED code constants for encounter

@@ -37,7 +37,7 @@ _NARRATIVE_REF_DIR = _HERE / "narrative" / "reference_data"
 # META #1805 Phase D/E: authority-adjacent reference tables (nursing-content,
 # discharge-instructions) now live under `clinosim/codes/data/clinosim-*.yaml`
 # alongside the other `clinosim-*.yaml` catalogs
-# (`clinosim-nursing-scores.yaml`, `clinosim-stage-to-snomed.yaml`).
+# (`clinosim-nursing-scores.yaml`, `snomed-maps.yaml`).
 _CODES_DATA_DIR = _HERE.parent.parent / "codes" / "data"
 
 # Required top-level keys for baseline and the minimum archetype.
