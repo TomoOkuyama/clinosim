@@ -90,7 +90,7 @@ sort するため line 順は決定論的。
   `CLINICAL_IMPRESSION_ID_PREFIX`。
   `clinosim.modules.code_status.engine.load_reference`、
   `clinosim.modules.diagnosis.nonspecific_codes.is_visit_reason_zcode`、
-  `clinosim.codes.stage_to_snomed.resolve_stage_snomed`。
+  `clinosim.codes.snomed.snomed_for("stage", ...)`。
 - builder は CIF record を `get_attr_or_key` 経由で dict / 属性
   object として読み、`clinosim.types` の class は import しない。
 - 親 `__init__.py` には依存しない (adapter facade への循環無し)。

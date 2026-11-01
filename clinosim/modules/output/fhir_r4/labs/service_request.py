@@ -32,6 +32,7 @@ from typing import Any
 from clinosim.codes import display as registry_display
 from clinosim.codes import get_system_uri, system_key_for
 from clinosim.codes import lookup as code_lookup
+from clinosim.codes.snomed import snomed_for
 from clinosim.locale.loader import load_code_mapping
 from clinosim.modules._shared import get_attr_or_key, is_jp, pick_localized_field, resolve_lang
 from clinosim.modules.observation.engine import canonical_lab_name
@@ -131,7 +132,7 @@ def _resolve_service_request_id(structural_key: str) -> str:
 
 
 PLACER_ORDER_NUMBER_SYSTEM = "urn:clinosim:placer-order-number"
-LAB_CATEGORY_SNOMED = "108252007"
+LAB_CATEGORY_SNOMED: str = snomed_for("order_category", "laboratory") or ""
 LAB_CATEGORY_V2_0074 = "LAB"
 
 
@@ -171,7 +172,7 @@ NON_ORDER_DRIVEN_LAB_OBS_ID_PREFIXES: tuple[str, ...] = (
 )
 # === Imaging category constants (Tier 1 #2 PR1) ===
 # SNOMED CT 363679005 "Imaging procedure" — owner: this file (builder that emits imaging SRs).
-IMAGING_CATEGORY_SNOMED = "363679005"
+IMAGING_CATEGORY_SNOMED: str = snomed_for("order_category", "imaging") or ""
 # HL7 v2-0074 "Radiology" — owner: this file.
 IMAGING_CATEGORY_V2_0074 = "RAD"
 # System URIs derived from the canonical registry (never hardcode per CLAUDE.md).

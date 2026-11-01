@@ -73,7 +73,7 @@ from collections import Counter, defaultdict
 from datetime import datetime, timedelta
 from typing import Any
 
-from clinosim.codes.oxygen_device_to_snomed import resolve_device_snomed
+from clinosim.codes.snomed import snomed_for
 from clinosim.modules._shared import get_attr_or_key as _o
 from clinosim.modules._shared import is_jp, resolve_lang
 from clinosim.modules.output.fhir_r4.conditions.primary_ref import primary_condition_ref
@@ -104,8 +104,8 @@ _SINGLE_TIMESTAMP_DWELL = timedelta(minutes=15)
 _SNOMED_OXYGEN_THERAPY = "57485005"
 
 # SNOMED CT concepts for delivery devices are now sourced from
-# clinosim/codes/data/oxygen-device-to-snomed.yaml via the
-# clinosim.codes.oxygen_device_to_snomed resolver (Phase 3.β.3, #1808
+# clinosim/codes/data/snomed-maps.yaml (oxygen_device) via
+# clinosim.codes.snomed.snomed_for (Phase 3.β.3, #1808
 # follow-up). Displays resolve through `code_lookup("snomed-ct", …)`
 # against the authority yaml, so this module no longer carries any
 # SNOMED code constants for delivery devices.
@@ -455,7 +455,7 @@ def _bb_oxygen_therapy(ctx: BundleContext) -> list[dict]:
         # Procedure.usedCode carries the delivery device concept without
         # requiring a Device resource — CodeableConcept, min=0, max=* in
         # Procedure R4. Emit only when the vitals actually name a device.
-        device_snomed = resolve_device_snomed(device_mode) if device_mode else None
+        device_snomed = snomed_for("oxygen_device", device_mode) if device_mode else None
         if device_snomed:
             procedure["usedCode"] = [dual_slot_concept("snomed-ct", device_snomed, lang, fallback_display=device_mode)]
         out.append(procedure)

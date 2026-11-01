@@ -106,11 +106,6 @@ clinosim/codes/
   drugs.py                        薬剤 identity カタログローダー
                                   (data/drugs.yaml。resolve_drug /
                                   all_drug_ids)
-  blood_group_to_snomed.py,       キー → SNOMED CT concept リゾルバ
-  cchd_site_to_snomed.py,         (対応する data/*-to-snomed.yaml
-  encounter_type_to_snomed.py,    を参照)
-  oxygen_device_to_snomed.py,
-  stage_to_snomed.py
   data/                           YAML 72 件: コードシステム (下の
                                   「対応コードシステム」参照) と curated
                                   カタログ (drugs / frequency tokens /

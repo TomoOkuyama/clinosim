@@ -108,12 +108,13 @@ metabolic_screen:
   # Result distribution — weighted sample keyed on baby_id (fresh
   # sub-seed). ~99.7 % pass in real cohorts (locale-invariant).
   result_weights: {pass: 0.997, refer: 0.003}
-  # SNOMED procedure code for neonatal metabolic screening (405058008
-  # = "Neonatal screening test"). Category 103693007 (diagnostic).
+  # SNOMED procedure code for neonatal metabolic screening (428447008
+  # "Newborn blood spot screening"; the former 405058008 is not a SNOMED
+  # concept — Issue #2379). Category 386053000 "Evaluation procedure".
   # Locale-invariant — the same tandem-MS panel is emitted under both
   # 新生児マス・スクリーニング (JP) and state EHDI programs (US).
-  procedure_code: "405058008"
-  category_code: "103693007"
+  procedure_code: "428447008"
+  category_code: "386053000"  # Evaluation procedure (103693007 is inactive)
   # Outcome codes (same SNOMED slots as hearing screen).
   outcome_pass: "385669000"
   outcome_refer: "385671000"
@@ -176,11 +177,11 @@ hearing_screen:
   hours_after_admission: 24
   # Result distribution (weighted sample; sub-seed keyed on baby_id).
   result_weights: {pass: 0.97, refer: 0.03}
-  # SNOMED procedure code for AABR screening (232717001 =
-  # "Auditory brainstem response, screening test"). Category
-  # 103693007 = "Diagnostic procedure".
-  procedure_code: "232717001"
-  category_code: "103693007"
+  # SNOMED procedure code for AABR screening (413083006 "Automated auditory
+  # brainstem response test"; the former 232717001 is not a SNOMED concept —
+  # Issue #2379). Category 386053000 "Evaluation procedure".
+  procedure_code: "413083006"
+  category_code: "386053000"  # Evaluation procedure (103693007 is inactive)
   # SNOMED outcome codes (Procedure.outcome).
   outcome_pass: "385669000"       # Successful — no refer
   outcome_refer: "385671000"      # Unsuccessful — needs follow-up test

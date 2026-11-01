@@ -150,12 +150,12 @@ def _real_shape_neonate_record() -> SimpleNamespace:
             SimpleNamespace(
                 procedure_id="PROC-POP-007117-BABY-HEARING-SCREEN",
                 procedure_type="hearing_screen_aabr",
-                procedure_code="232717001",
+                procedure_code="413083006",
             ),
             SimpleNamespace(
                 procedure_id="PROC-POP-007117-BABY-METABOLIC-SCREEN",
                 procedure_type="metabolic_screen_tandem_ms",
-                procedure_code="405058008",
+                procedure_code="428447008",
             ),
         ],
         medication_administrations=[

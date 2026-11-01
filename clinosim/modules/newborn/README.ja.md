@@ -24,9 +24,9 @@ Issue #1252 で起票。module 境界の根拠と、`perinatal.py` や
     (`VitalSignRecord` — N3)。
   - 1 分 / 5 分 Apgar スコア (`Observation`、LOINC 9271-8 /
     9274-2 — N4)。
-  - AABR 聴覚スクリーニング (`Procedure`、SNOMED 232717001 — N5)。
+  - AABR 聴覚スクリーニング (`Procedure`、SNOMED 413083006 — N5)。
   - タンデムマス法による先天代謝異常マススクリーニング
-    (`Procedure`、SNOMED 405058008、加えて `ServiceRequest` +
+    (`Procedure`、SNOMED 428447008、加えて `ServiceRequest` +
     `Specimen` + `Observation` + `DiagnosticReport` の workflow —
     N6 / N6b)。
   - 経皮ビリルビン、CCHD パルスオキシメトリスクリーニング
@@ -58,7 +58,7 @@ from clinosim.modules.newborn import (
     build_bilirubin_observations,      # (record) -> list[dict]
     build_cchd_pulse_ox,               # (record) -> list[dict]
     build_ophthalmic_prophylaxis,      # (record, country) -> list[MedicationAdministration]
-    PERINATAL_BASELINE_SNOMEDS,        # {"232717001", "405058008"}
+    PERINATAL_BASELINE_SNOMEDS,        # {"413083006", "428447008"}
     has_perinatal_baseline_emitted,
     mark_perinatal_baseline_emitted,
     reset_perinatal_baseline_tracker,

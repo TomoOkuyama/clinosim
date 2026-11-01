@@ -66,7 +66,7 @@ def enrich_newborn(ctx: Any) -> None:
             logger.exception("newborn enricher failed on record; continuing")
             continue
         # Issue #1736 — once-per-newborn dedup for the hearing (SNOMED
-        # 232717001) + metabolic (SNOMED 405058008) screens. A mother
+        # 413083006) + metabolic (SNOMED 428447008) screens. A mother
         # with ≥ 2 deliveries produces two newborn-side CIF records that
         # share ``patient_id = f"{mother_id}-BABY"`` and both carry
         # ``condition_type = "newborn_birth"``; absent dedup, both
@@ -81,12 +81,12 @@ def enrich_newborn(ctx: Any) -> None:
         # polysomnography).
         _pid = str(_get(_get(record, "patient", None), "patient_id", "") or "")
         if new_hearing is not None and _pid:
-            if has_perinatal_baseline_emitted(_pid, "232717001"):
+            if has_perinatal_baseline_emitted(_pid, "413083006"):
                 new_hearing = None
             else:
-                mark_perinatal_baseline_emitted(_pid, "232717001")
+                mark_perinatal_baseline_emitted(_pid, "413083006")
         if new_metabolic is not None and _pid:
-            if has_perinatal_baseline_emitted(_pid, "405058008"):
+            if has_perinatal_baseline_emitted(_pid, "428447008"):
                 # Keep the metabolic Procedure AND its sibling
                 # ServiceRequest / Specimen / DiagnosticReport workflow
                 # stash in lock-step — dropping the Procedure without
@@ -97,7 +97,7 @@ def enrich_newborn(ctx: Any) -> None:
                 new_metabolic = None
                 new_metabolic_workflow = None
             else:
-                mark_perinatal_baseline_emitted(_pid, "405058008")
+                mark_perinatal_baseline_emitted(_pid, "428447008")
         if new_bili or new_cchd or new_metabolic_workflow:
             ext = _get(record, "extensions", None)
             if ext is None:

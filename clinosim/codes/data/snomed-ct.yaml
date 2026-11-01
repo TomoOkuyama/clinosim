@@ -828,3 +828,14 @@ codes:
   '410024004':
     en: Insertion of catheter into urinary bladder
     ja: 膀胱カテーテル留置
+  # === Newborn screening (Issue #2379; tx.fhir.org $lookup 2026-11-01, active).
+  # Replace 232717001 / 405058008, which are not SNOMED concepts. ===
+  '413083006':
+    en: Automated auditory brainstem response test
+    ja: 自動聴性脳幹反応検査 (AABR)
+  '428447008':
+    en: Newborn blood spot screening
+    ja: 新生児マススクリーニング (ろ紙血)
+  '122554006':
+    en: Capillary blood specimen
+    ja: 毛細管血検体

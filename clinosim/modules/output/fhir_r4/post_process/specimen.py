@@ -13,6 +13,7 @@ from typing import Any
 
 from clinosim.codes import get_system_uri
 from clinosim.codes.loader import lookup as code_lookup
+from clinosim.codes.snomed import snomed_for
 from clinosim.modules._shared import resolve_lang
 from clinosim.modules.output.fhir_r4.lib.ids import (
     derive_opaque_id,
@@ -67,8 +68,8 @@ def _resolve_specimen_id(structural_key: str) -> str:
 #   119297000 → Blood specimen / 血液検体 — default for lab output
 #     (CBC / chem panel / LFT / cardiac markers / coagulation / ...).
 #   122575003 → Urine specimen / 尿検体 — Urinalysis / urine dipstick tests.
-_SPECIMEN_SNOMED_BLOOD = "119297000"
-_SPECIMEN_SNOMED_URINE = "122575003"
+_SPECIMEN_SNOMED_BLOOD: str = snomed_for("specimen_type", "blood") or ""
+_SPECIMEN_SNOMED_URINE: str = snomed_for("specimen_type", "urine") or ""
 
 
 def _lab_observation_needs_specimen(resource: dict) -> bool:

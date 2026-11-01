@@ -22,8 +22,8 @@ in the [#1252 design comment](https://github.com/TomoOkuyama/clinosim/issues/125
     (`VitalSignRecord` — N3).
   - Apgar score at 1 min / 5 min (`Observation`, LOINC 9271-8 /
     9274-2 — N4).
-  - AABR hearing screen (`Procedure`, SNOMED 232717001 — N5).
-  - Tandem-MS metabolic mass screen (`Procedure`, SNOMED 405058008,
+  - AABR hearing screen (`Procedure`, SNOMED 413083006 — N5).
+  - Tandem-MS metabolic mass screen (`Procedure`, SNOMED 428447008,
     plus `ServiceRequest` + `Specimen` + `Observation` +
     `DiagnosticReport` workflow — N6 / N6b).
   - Transcutaneous bilirubin, CCHD pulse-ox screen (`Observation`) and
@@ -54,7 +54,7 @@ from clinosim.modules.newborn import (
     build_bilirubin_observations,      # (record) -> list[dict]
     build_cchd_pulse_ox,               # (record) -> list[dict]
     build_ophthalmic_prophylaxis,      # (record, country) -> list[MedicationAdministration]
-    PERINATAL_BASELINE_SNOMEDS,        # {"232717001", "405058008"}
+    PERINATAL_BASELINE_SNOMEDS,        # {"413083006", "428447008"}
     has_perinatal_baseline_emitted,
     mark_perinatal_baseline_emitted,
     reset_perinatal_baseline_tracker,

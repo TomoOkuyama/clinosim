@@ -159,7 +159,7 @@ def _build_procedure(
     #
     # Cycle-2 M2 (mirror case): when the CIF record pins
     # ``procedure_system_key`` (e.g. "snomed-ct" for the newborn hearing
-    # screen 232717001 and newborn metabolic screen 405058008), honour it
+    # screen 413083006 and newborn metabolic screen 428447008), honour it
     # as the authoritative system URI — SNOMED concept ids stamped under
     # the country default CPT / K-codes URI are rejected by a strict
     # US-Core / JP-Core consumer. The pinned key wins over the Phase 4d.2

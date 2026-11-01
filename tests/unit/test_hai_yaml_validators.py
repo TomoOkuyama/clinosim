@@ -9,14 +9,8 @@ from __future__ import annotations
 import pytest
 import yaml
 
-from clinosim.codes import (
-    blood_group_to_snomed,
-    cchd_site_to_snomed,
-    encounter_type_to_snomed,
-    oxygen_device_to_snomed,
-    stage_to_snomed,
-)
 from clinosim.codes.loader import _load_system
+from clinosim.codes.snomed import snomed_map
 from clinosim.locale import loader as locale_loader
 from clinosim.modules.device.engine import load_devices_config
 from clinosim.modules.hai import engine as hai_engine
@@ -55,11 +49,7 @@ def _clear_hai_caches():
     hai_engine.load_hai_specimens.cache_clear()
     load_devices_config.cache_clear()
     _load_system.cache_clear()
-    stage_to_snomed._load_catalog.cache_clear()  # Phase 3.β.6 catalog
-    blood_group_to_snomed._load_catalog.cache_clear()  # Phase 3.β.2 catalog
-    oxygen_device_to_snomed._load_catalog.cache_clear()  # Phase 3.β.3 catalog
-    encounter_type_to_snomed._load_catalog.cache_clear()  # Phase 3.β.4 catalog
-    cchd_site_to_snomed._load_catalog.cache_clear()  # #1815 fix / Phase 3.β.5 catalog
+    snomed_map.cache_clear()  # SNOMED internal-key maps (Issue #2379)
     locale_loader.load_chief_complaint_translations.cache_clear()  # Phase 3.β.1
     load_devices_config()  # pre-warm with real yaml (before monkeypatch)
     _load_system("icd-10-cm")  # pre-warm icd-10-cm.yaml (_validate_hai_codes)
@@ -67,11 +57,8 @@ def _clear_hai_caches():
     locale_loader.load_code_mapping("diagnosis", "JP")  # pre-warm the CM → WHO crosswalk (_validate_hai_codes, #2257)
     _load_system("snomed-ct")  # pre-warm snomed-ct.yaml (_validate_hai_codes + _validate_hai_specimens)
     _load_system("loinc")  # pre-warm loinc.yaml (_validate_hai_specimens test_loinc cross-ref)
-    stage_to_snomed._load_catalog()  # pre-warm clinosim-stage-to-snomed.yaml
-    blood_group_to_snomed._load_catalog()  # pre-warm blood-group-to-snomed.yaml
-    oxygen_device_to_snomed._load_catalog()  # pre-warm oxygen-device-to-snomed.yaml
-    encounter_type_to_snomed._load_catalog()  # pre-warm encounter-type-to-snomed.yaml
-    cchd_site_to_snomed._load_catalog()  # pre-warm cchd-site-to-snomed.yaml
+    for _kind in ("abo", "rh", "cchd_site", "encounter_type", "oxygen_device", "stage"):
+        snomed_map(_kind)  # pre-warm snomed-maps.yaml
     locale_loader.load_chief_complaint_translations()  # pre-warm chief_complaint_translations.yaml
     _load_system("omb-race")  # Phase 3.γ pre-warm
     _load_system("omb-ethnicity")  # Phase 3.γ pre-warm

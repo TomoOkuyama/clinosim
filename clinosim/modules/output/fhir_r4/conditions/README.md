@@ -91,7 +91,7 @@ the emitted NDJSON by resource id so line order is deterministic.
   `CLINICAL_IMPRESSION_ID_PREFIX`;
   `clinosim.modules.code_status.engine.load_reference`;
   `clinosim.modules.diagnosis.nonspecific_codes.is_visit_reason_zcode`;
-  `clinosim.codes.stage_to_snomed.resolve_stage_snomed`.
+  `clinosim.codes.snomed.snomed_for("stage", ...)`.
 - Builders read CIF records as dicts / attribute objects via
   `get_attr_or_key`; they import no `clinosim.types` classes.
 - No dependency on the parent `__init__.py` (no cycle back through

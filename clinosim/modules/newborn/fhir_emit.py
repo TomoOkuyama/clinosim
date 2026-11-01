@@ -14,6 +14,7 @@ import hashlib
 from typing import Any
 
 from clinosim.codes import display as registry_display
+from clinosim.codes.snomed import snomed_for
 from clinosim.codes.ucum import ucum_quantity
 
 
@@ -257,7 +258,7 @@ def _bb_newborn_bilirubin(ctx: Any) -> list[dict]:
 # 368208006 (SNOMED "Left upper arm structure") and foot → 22335008
 # (SNOMED "Structure of left foot"), both wrong-sided for CCHD
 # screening. The replacement catalog
-# ``clinosim/codes/data/cchd-site-to-snomed.yaml`` carries the correct
+# ``clinosim/codes/data/snomed-maps.yaml`` (``cchd_site``) carries the correct
 # codes verified against tx.fhir.org (368209003 Right upper arm
 # structure / 56459004 Foot structure); displays resolve through
 # ``code_lookup("snomed-ct", …)`` against the authority yaml.
@@ -293,12 +294,10 @@ def _bb_newborn_cchd_pulse_ox(ctx: Any) -> list[dict]:
     lang = resolve_lang(country)
     key_system = "urn:clinosim:identifier:newborn-cchd-key"
 
-    from clinosim.codes.cchd_site_to_snomed import resolve_cchd_site_snomed
-
     out: list[dict] = []
     for e in entries:
         site = str(e.get("site") or "")
-        site_code = resolve_cchd_site_snomed(site)
+        site_code = snomed_for("cchd_site", site)
         if site_code is None:
             continue
         site_display = registry_display("snomed-ct", site_code, lang) or site

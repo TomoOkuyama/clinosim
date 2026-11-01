@@ -132,7 +132,7 @@ occupation:
 | `codes.procedures`: `procedure_code` / `procedure_type_display` / `procedure_code_display` | 処置のコードと名称 | `""` / 人間可読化した type / `None` |
 | `codes.ucum`: `ucum_code` / `ucum_quantity` / `ucum_prose` | UCUM コード / FHIR Quantity / 文章中の単位表記 (`mm[Hg]` → `mmHg`、`{INR}` → `""`) | 単位をそのまま通す |
 | `codes.prefectures.prefecture_code(name)` | JIS X 0401 コード | `""` |
-| `codes.snomed`: `snomed_display(code, lang)` / `snomed_for(kind, key)` / `snomed_map(kind)` / `snomed_for_phrase(text)` | SNOMED の表示名、内部キー → コード (`route` / `severity`。`codes/data/snomed-maps.yaml`)、自由文の処置・オーダー名 → コード (`codes/data/procedure-phrase-to-snomed.yaml` で最初に一致する語句) | `None` / `None` / `KeyError` / `None` |
+| `codes.snomed`: `snomed_display(code, lang)` / `snomed_for(kind, key)` / `snomed_map(kind)` / `snomed_for_phrase(text)` | SNOMED の表示名、内部キー → コード (`route` / `severity` / `abo` / `rh` / `cchd_site` / `encounter_type` / `oxygen_device` / `stage` / `procedure_category` / `order_category` / `specimen_type` / `newborn_screen`。`codes/data/snomed-maps.yaml`)、自由文の処置・オーダー名 → コード (`codes/data/procedure-phrase-to-snomed.yaml` で最初に一致する語句) | `None` / `None` / `KeyError` / `None` |
 | `codes.snomed_concepts` | 判定ロジックで使う名前付き SNOMED 概念 | — |
 
 `lookup(system, code, lang)` は旧 API で、ヒットしないとコード自体を返す。新しいコードでは `display(...) or <明示フォールバック>` を使う。
@@ -232,7 +232,6 @@ occupation:
 | 未準拠箇所 | Issue |
 |---|---|
 | **フォールバック。** `display` / `lookup`、`resolve_text`、`t` は最後の手段として、最初に見つかった言語・コード・`str(value)`・キーを返す。§6.1–6.2 に反する場合があり、取得 API も 1 本化されていない。 | #2275 |
-| SNOMED の対応表が Python に残り、出力側 (検体・ServiceRequest・新生児・放射線カテゴリ) に SNOMED リテラルがある。 | #2379 |
 | 文書 LOINC の定義が 8 箇所にある。意味の合わない section コードがある。出力側に LOINC 定数が残っている。 | #2344 |
 | 生成側が出しているのに未登録の CPT / K コード。 | #2340 |
 | 自由文の名称 localizer が FHIR 出力層にあり、order 層と narrative 層から import され、手技・SNOMED・アレルゲン名の翻訳にも使われている。判断ロジックと記録の薬名は `codes.drugs.drug_display` で解決する。 | #2367 |
