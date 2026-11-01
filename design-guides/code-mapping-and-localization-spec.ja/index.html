@@ -2878,7 +2878,11 @@
 </tr>
 <tr>
 <td><code>t(key, lang, **kwargs)</code> (<code>clinosim.locale.i18n</code>)</td>
-<td>フレーズ</td>
+<td>フレーズ。未知のキーは <code>""</code> (キーは返さない)</td>
+</tr>
+<tr>
+<td><code>locale.localized</code>: <code>localized(entry, lang, *, fallback)</code> / <code>localized_field(record, base, lang, *, fallback)</code> / <code>label(catalog, section, key, lang, *, fallback)</code></td>
+<td><code>{lang: text}</code> エントリ・<code>&lt;base&gt;_&lt;lang&gt;</code> フィールド・語彙カタログの値選択を一本化 (§6 の順序)。<code>t</code> / <code>resolve_localized_display</code> / <code>resolve_text</code> / <code>pick_localized_field</code> はこれに委譲する</td>
 </tr>
 </tbody>
 </table>
@@ -3024,8 +3028,16 @@
 </thead>
 <tbody>
 <tr>
-<td><strong>フォールバック。</strong> <code>display</code> / <code>lookup</code>、<code>resolve_text</code>、<code>t</code> は最後の手段として、最初に見つかった言語・コード・<code>str(value)</code>・キーを返す。§6.1–6.2 に反する場合があり、取得 API も 1 本化されていない。</td>
-<td>#2275</td>
+<td>重複したローカライズ用ラッパー (<code>_label</code>、<code>_localize_*</code>、<code>_localize_token</code>、言語で分岐する <code>localize_*</code>) が独自の選択ロジックを持つ。</td>
+<td>#2396</td>
+</tr>
+<tr>
+<td><code>locale.localized</code> を通らない <code>.get("ja")</code> や言語三項演算子が残る。<code>codes.lookup</code> はヒットしないとコードを返す。</td>
+<td>#2397</td>
+</tr>
+<tr>
+<td>ローカライズされた YAML フィールドの形が混在している (入れ子の <code>{lang: text}</code>、25 種の <code>*_ja</code> フィールド名、<code>dose_ja</code> と <code>dose_text_ja</code>)。</td>
+<td>#2398</td>
 </tr>
 <tr>
 <td>意味の合わない Composition section コードがある。</td>

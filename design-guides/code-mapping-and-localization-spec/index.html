@@ -2878,7 +2878,11 @@
 </tr>
 <tr>
 <td><code>t(key, lang, **kwargs)</code> (<code>clinosim.locale.i18n</code>)</td>
-<td>phrase</td>
+<td>phrase; <code>""</code> for an unknown key (never the key)</td>
+</tr>
+<tr>
+<td><code>locale.localized</code>: <code>localized(entry, lang, *, fallback)</code>, <code>localized_field(record, base, lang, *, fallback)</code>, <code>label(catalog, section, key, lang, *, fallback)</code></td>
+<td>the one value selection for <code>{lang: text}</code> entries, <code>&lt;base&gt;_&lt;lang&gt;</code> fields and vocabulary catalogs (§6 order); <code>t</code>, <code>resolve_localized_display</code>, <code>resolve_text</code> and <code>pick_localized_field</code> delegate to it</td>
 </tr>
 </tbody>
 </table>
@@ -3024,8 +3028,16 @@
 </thead>
 <tbody>
 <tr>
-<td><strong>Fallback.</strong> <code>display</code> / <code>lookup</code>, <code>resolve_text</code> and <code>t</code> end with a last-resort value: the first available language, the code, <code>str(value)</code> or the key. That can break §6.1–6.2, and there is no single retrieval API.</td>
-<td>#2275</td>
+<td>Duplicate localization wrappers (<code>_label</code>, <code>_localize_*</code>, <code>_localize_token</code>, gated <code>localize_*</code>) keep their own selection logic.</td>
+<td>#2396</td>
+</tr>
+<tr>
+<td>Direct <code>.get("ja")</code> and inline language ternaries select values outside <code>locale.localized</code>; <code>codes.lookup</code> returns the code on a miss.</td>
+<td>#2397</td>
+</tr>
+<tr>
+<td>Localized YAML fields use mixed shapes (nested <code>{lang: text}</code>, 25 <code>*_ja</code> field names, <code>dose_ja</code> vs <code>dose_text_ja</code>).</td>
+<td>#2398</td>
 </tr>
 <tr>
 <td>Some Composition section codes do not mean their section.</td>
