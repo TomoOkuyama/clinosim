@@ -17,6 +17,7 @@ from __future__ import annotations
 from typing import Any
 
 from clinosim.countries import lang_for
+from clinosim.locale.localized import localized
 
 
 def resolve_text(value: Any, language: str = "", country: str = "") -> str:
@@ -28,7 +29,8 @@ def resolve_text(value: Any, language: str = "", country: str = "") -> str:
         country: Country code ("US", "JP") — used if language not specified
 
     Returns:
-        The text in the requested language, or English fallback.
+        The text in the requested language, else English, else ``""``
+        (never another language; Issue #2395).
     """
     if value is None:
         return ""
@@ -39,16 +41,6 @@ def resolve_text(value: Any, language: str = "", country: str = "") -> str:
 
     # Dict with language keys
     if isinstance(value, dict):
-        lang = language or lang_for(country)
-        # Try exact match
-        if lang in value:
-            return str(value[lang])
-        # Try English fallback
-        if "en" in value:
-            return str(value["en"])
-        # Return first available
-        for v in value.values():
-            if isinstance(v, str):
-                return v
+        return localized(value, language or lang_for(country))
 
     return str(value)

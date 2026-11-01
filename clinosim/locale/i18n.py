@@ -135,9 +135,8 @@ def t(key: str, lang: str, /, **params: object) -> str:
       1. ``entry[lang]`` — the caller's requested locale.
       2. ``entry["en"]`` — universal fallback (only when ``lang``
          slot is absent from the YAML entry).
-      3. ``key`` itself — the last-ditch fallback so an unresolved
-         phrase surfaces something readable rather than an empty
-         string.
+      3. ``""`` — never the key (Issue #2395: a phrase key is not output
+         text; every catalog entry has English, which a test enforces).
 
     Interpolation errors (missing ``**params`` key, index shape
     mismatch) return the raw template — the translator MUST NOT raise
@@ -145,7 +144,7 @@ def t(key: str, lang: str, /, **params: object) -> str:
     """
     catalog = _load_phrase_catalog()
     entry = _resolve_key(catalog, key)
-    template = resolve_localized_display(entry, lang, fallback=key)
+    template = resolve_localized_display(entry, lang, fallback="")
     if not params:
         return template
     try:

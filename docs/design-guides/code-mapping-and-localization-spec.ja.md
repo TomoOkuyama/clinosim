@@ -151,7 +151,8 @@ occupation:
 | `department_display(dept, lang)` / `department_specialty_snomed(dept)` | 診療科名 / 専門科コード |
 | `role_display(role, lang, *, facet)` | 職種の名称・接尾辞・資格 |
 | `chronic_followup_vitals(code)` / `chronic_followup_interval_months(codes)` | 慢性疾患フォローアップの予定データ |
-| `t(key, lang, **kwargs)` (`clinosim.locale.i18n`) | フレーズ |
+| `t(key, lang, **kwargs)` (`clinosim.locale.i18n`) | フレーズ。未知のキーは `""` (キーは返さない) |
+| `locale.localized`: `localized(entry, lang, *, fallback)` / `localized_field(record, base, lang, *, fallback)` / `label(catalog, section, key, lang, *, fallback)` | `{lang: text}` エントリ・`<base>_<lang>` フィールド・語彙カタログの値選択を一本化 (§6 の順序)。`t` / `resolve_localized_display` / `resolve_text` / `pick_localized_field` はこれに委譲する |
 
 ### 4.3 出力用ヘルパ
 
@@ -232,7 +233,9 @@ occupation:
 
 | 未準拠箇所 | Issue |
 |---|---|
-| **フォールバック。** `display` / `lookup`、`resolve_text`、`t` は最後の手段として、最初に見つかった言語・コード・`str(value)`・キーを返す。§6.1–6.2 に反する場合があり、取得 API も 1 本化されていない。 | #2275 |
+| 重複したローカライズ用ラッパー (`_label`、`_localize_*`、`_localize_token`、言語で分岐する `localize_*`) が独自の選択ロジックを持つ。 | #2396 |
+| `locale.localized` を通らない `.get("ja")` や言語三項演算子が残る。`codes.lookup` はヒットしないとコードを返す。 | #2397 |
+| ローカライズされた YAML フィールドの形が混在している (入れ子の `{lang: text}`、25 種の `*_ja` フィールド名、`dose_ja` と `dose_text_ja`)。 | #2398 |
 | 意味の合わない Composition section コードがある。 | #2391 |
 | 出力側に LOINC 定数が残っている。 | #2392 |
 | 自由文の名称 localizer が FHIR 出力層にあり、order 層と narrative 層から import され、手技・SNOMED・アレルゲン名の翻訳にも使われている。判断ロジックと記録の薬名は `codes.drugs.drug_display` で解決する。 | #2367 |
