@@ -476,7 +476,7 @@ drugs:
 
   hepatorenal_syndrome:
     japan:
-      - drug: "Terlipressin"
+      - drug_id: terlipressin
         dose: "1mg IV q4-6h (increase to 2mg if no response)"
         route: IV
         indication: "hepatorenal_syndrome_type_1"
@@ -702,7 +702,7 @@ course_archetypes:
     treatment_modifications:
       day_3:
         start:
-          japan: [{drug: "Terlipressin", dose: "1mg IV q6h"}, {drug: "Albumin", dose: "20g IV daily"}]
+          japan: [{drug_id: terlipressin, dose: "1mg IV q6h"}, {drug: "Albumin", dose: "20g IV daily"}]
           us: [{drug_id: midodrine, dose: "12.5mg PO TID"}, {drug_id: octreotide, dose: "200ug SC TID"}, {drug: "Albumin", dose: "25g IV daily"}]
       day_5:
         action: "icu_transfer"

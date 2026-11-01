@@ -791,3 +791,10 @@ codes:
   2325401A2027:
     en: "Famotidine"
     ja: "ガスター注射液20mg"
+  # Issue #2423 (MHLW 薬価基準収載品目リスト, 令和8年6月12日適用).
+  6139501D2105:
+    en: "Imipenem/Cilastatin"
+    ja: "チエナム点滴静注用0.5g"
+  2329021F1102:
+    en: "Rebamipide"
+    ja: "ムコスタ錠100mg"

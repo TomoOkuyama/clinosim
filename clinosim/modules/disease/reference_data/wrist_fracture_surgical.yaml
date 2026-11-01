@@ -231,7 +231,7 @@ drugs:
   post_op:
     japan:
       - {drug_id: loxoprofen, dose: "60mg PO tid"}
-      - {drug: "Rebamipide", dose: "100mg PO tid", note: "gastric protection"}
+      - {drug_id: rebamipide, dose: "100mg PO tid", note: "gastric protection"}
     us:
       - {drug_id: oxycodone, dose: "5mg PO q4-6h PRN"}
       - {drug_id: ibuprofen, dose: "400mg PO tid"}
