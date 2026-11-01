@@ -256,8 +256,20 @@ def display(system: str, code: str, lang: str = "en") -> str | None:
     entry = _resolve_entry(system, code) if code else None
     if entry is None:
         return None
+    return _entry_text(system, code, entry, lang)
+
+
+def _entry_text(system: str, code: str, entry: dict[str, str], lang: str) -> str | None:
+    """``entry`` in ``lang``; else the same code's ``lang`` text in a sibling
+    system (an ICD-10-CM code shared with WHO takes the MHLW Japanese name,
+    Issue #2360); else English; else any text."""
     if lang in entry:
         return str(entry[lang])
+    for sibling_key in _SYSTEM_LOOKUP_SIBLINGS.get(system, ()):
+        sibling = _load_system(sibling_key)
+        sib = sibling.codes.get(code) if sibling else None
+        if sib and lang in sib:
+            return str(sib[lang])
     if "en" in entry:
         return str(entry["en"])
     for candidate in entry.values():
@@ -305,15 +317,7 @@ def lookup(system: str, code: str, lang: str = "en") -> str:
     entry = _resolve_entry(system, code)
     if entry is None:
         return code
-
-    if lang in entry:
-        return str(entry[lang])
-    if "en" in entry:
-        return str(entry["en"])
-    for candidate in entry.values():
-        if isinstance(candidate, str):
-            return candidate
-    return code
+    return _entry_text(system, code, entry, lang) or code
 
 
 def get_display(system: str, code: str, country: str = "US") -> str:

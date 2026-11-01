@@ -21,7 +21,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from clinosim.codes.icd10 import icd10_display
+from clinosim.codes.icd10 import condition_label
 from clinosim.locale.i18n import t
 from clinosim.modules._shared import get_attr_or_key as _o
 from clinosim.modules.document.narrative._localization import _localize_complication
@@ -72,7 +72,7 @@ def build_nursing_history(generator: TemplateNarrativeGenerator, ctx: NarrativeC
         if not code:
             continue
         emit_code = _map_diagnosis_code(code, country) or code
-        labels.append(icd10_display(emit_code, ctx.locale, ctx.target_lang) or emit_code)
+        labels.append(condition_label(emit_code, ctx.locale, ctx.target_lang) or emit_code)
     if labels:
         parts.append(
             t("pmh.header_prefix", lang) + t("list_sep.serial", lang).join(labels) + t("list_sep.period", lang)

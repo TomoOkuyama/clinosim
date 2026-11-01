@@ -126,7 +126,7 @@ Consumers resolve names only through these functions. Several are added by open 
 | `codes.drugs`: `resolve_drug`, `get_drug`, `find_drug`, `names_drug`, `drug_name_needles` | drug identity and name matching | raises / `None` / `False` |
 | `codes.drugs`: `route_class(route)`, `jp_drug_code(drug, route)`, `jp_drug_code_table(route)` | route class of an order route; the JP YJ product for a drug and route | `""` / `None` / no entry |
 | `codes.drugs`: `drug_display(ref, lang)` | catalog name of a drug id, name or alias (then its longest leading-word prefix) in `lang`, then English | `None` |
-| `codes.icd10`: `icd10_system(country)`, `icd10_display(code, country, lang)`, `condition_short_name(code, lang)`, `medis_disease_keyno(icd)` | ICD-10 system of a country; official display; clinical short name (by category); MEDIS 病名管理番号 | key / `None` / `None` / `None` |
+| `codes.icd10`: `icd10_system(country)`, `icd10_display(code, country, lang)`, `condition_short_name(code, lang)`, `condition_label(code, country, lang)`, `medis_disease_keyno(icd)` | ICD-10 system of a country; official display (JP Japanese: the MHLW 2013 name, verbatim); clinical short name (by category); the name used in prose and `Condition.code.text` (short name, then official display); MEDIS 病名管理番号 | key / `None` / `None` / `None` / `None` |
 | `codes.procedures`: `procedure_code`, `procedure_type_display`, `procedure_code_display` | procedure codes and names | `""` / humanised type / `None` |
 | `codes.ucum`: `ucum_code`, `ucum_quantity`, `ucum_prose` | UCUM code / FHIR Quantity / the unit as written in prose (`mm[Hg]` → `mmHg`, `{INR}` → `""`) | unit passed through |
 | `codes.prefectures.prefecture_code(name)` | JIS X 0401 code | `""` |
@@ -230,7 +230,6 @@ These parts of the code base do not yet conform. Each one is removed by the issu
 | Deviation | Issue |
 |---|---|
 | **Fallback.** `display` / `lookup`, `resolve_text` and `t` end with a last-resort value: the first available language, the code, `str(value)` or the key. That can break §6.1–6.2, and there is no single retrieval API. | #2275 |
-| JP ICD-10 Japanese displays can come from the ICD-10-CM table through the sibling fallback, and 95 shared codes have different Japanese names in the two tables. | #2360 |
 | SNOMED codes and displays outside the registry (procedure-name YAML, device / HAI / follow-up copies, mapper tables in Python), and about 74 unregistered SNOMED literals. | #2363 |
 | Document LOINCs are defined in eight places, some section codes do not mean their section, and emitters still hold LOINC constants. | #2344 |
 | CPT / K-codes the generator emits but has not registered. | #2340 |

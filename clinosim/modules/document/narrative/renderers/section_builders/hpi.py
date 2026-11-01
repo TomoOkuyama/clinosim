@@ -21,7 +21,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from clinosim.codes.icd10 import icd10_display
+from clinosim.codes.icd10 import condition_label
 from clinosim.locale.i18n import t
 from clinosim.modules._shared import get_attr_or_key as _o
 from clinosim.modules.document.narrative._narrative_utils import _age_at
@@ -255,7 +255,7 @@ def _compose_hpi_extras_from_state(ctx: NarrativeContext) -> str:
         if not code:
             continue
         emit_code = _map_diagnosis_code(code, country) or code
-        disp = icd10_display(emit_code, ctx.locale, ctx.target_lang) or emit_code
+        disp = condition_label(emit_code, ctx.locale, ctx.target_lang) or emit_code
         chronic_labels.append(disp)
     if chronic_labels:
         parts.append(f"既往: {'、'.join(chronic_labels)}。")

@@ -21,6 +21,7 @@ import yaml
 from clinosim.codes.loader import display, system_key_for
 
 __all__ = [
+    "condition_label",
     "condition_short_name",
     "icd10_display",
     "icd10_system",
@@ -49,6 +50,13 @@ def condition_short_name(code: str, lang: str) -> str | None:
     no short name."""
     base = (code or "").split(".")[0]
     return display("condition-short-name", base, lang) if base else None
+
+
+def condition_label(code: str, country: str, lang: str) -> str | None:
+    """Name of a diagnosis in prose and in ``Condition.code.text``: the clinical
+    short name, then the official display; ``None`` when neither exists.
+    Narrative and the FHIR Condition use the same label (Issue #2360)."""
+    return condition_short_name(code, lang) or icd10_display(code, country, lang)
 
 
 @cache
