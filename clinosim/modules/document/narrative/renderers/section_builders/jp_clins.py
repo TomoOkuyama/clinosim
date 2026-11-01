@@ -153,7 +153,7 @@ def build_discharge_details(generator: TemplateNarrativeGenerator, ctx: Narrativ
             parts.append(dis_date)
         if ward:
             parts.append(t("discharge_details.ward_slot", lang, ward=ward))
-        parts.append(f"{dispo_label}となった。")
+        parts.append(t("narrative_text.discharge_details.disposition_sentence", lang, disposition=dispo_label))
         text = "、".join(parts[:-1]) + parts[-1] if len(parts) > 1 else parts[0]
         if not text:
             text = t("discharge_details.fallback_ja_only", lang)

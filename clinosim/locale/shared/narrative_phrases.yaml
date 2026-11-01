@@ -1989,3 +1989,74 @@ clinical_impression:
   description:
     ja: "{enc}第{day}病日／全{los}病日 臨床評価{dx_part}{sev_part} — {phase}。バイタル・薬効反応・合併症リスク・退院基準への進捗を主治医が評価。"
     en: "Day {day} of {los} {enc} clinical assessment{dx_part}{sev_part} — {phase}. Attending review of vitals, medication response, complication risk, and progress toward discharge criteria."
+
+# Narrative builder phrases moved out of Python (Issue #2400).
+narrative_text:
+  stay_progress:
+    ja: "入院{day}日目 / 予定{los}日 ({phase})"
+    en: "day {day_index} of expected {los} ({phase})"
+  hospital_day_label:
+    first:
+      ja: "入院初日"
+      en: "hospital day 1 (admission)"
+    nth:
+      ja: "入院{day}日目"
+      en: "hospital day {day}"
+  new_dx_line:
+    ja: "入院{day}日目に{disease}"
+    en: "{disease} on hospital day {day}"
+  onset_suffix:
+    ja: "（入院{day}日目発症）"
+    en: "(hospital-day {day} onset)"
+  vital_unit:
+    hr:
+      ja: "回/分"
+      en: "bpm"
+    rr:
+      ja: "回/分"
+      en: "/min"
+  lab_day:
+    ja: "{day}日目"
+    en: "day {day}"
+  phase:
+    single_day:
+      ja: "単日受診"
+      en: "single-day encounter"
+    acute:
+      ja: "急性期"
+      en: "early / acute phase"
+    middle:
+      ja: "安定期"
+      en: "middle / stabilisation phase"
+    late:
+      ja: "退院準備期"
+      en: "late / pre-discharge phase"
+    discharge_day:
+      ja: "退院日"
+      en: "discharge day"
+  hpi:
+    chief_complaint:
+      ja: "主訴: {cc}。"
+      en: "Chief complaint: {cc}."
+    history:
+      ja: "既往: {items}。"
+      en: "History: {items}."
+    more_meds:
+      ja: "他 {n} 剤"
+      en: "{n} more"
+    home_meds:
+      ja: "常用薬: {items}。"
+      en: "Home medications: {items}."
+    prior_care_chronic:
+      ja: "かかりつけ医で内服治療継続中。"
+      en: "Oral therapy continued by the primary care physician."
+    prior_care_outpatient:
+      ja: "外来にて内服処方継続中。"
+      en: "Oral prescriptions continued in the outpatient clinic."
+    list_sep:
+      ja: "、"
+      en: ", "
+  discharge_details:
+    disposition_sentence:
+      ja: "{disposition}となった。"
+      en: "{disposition}."

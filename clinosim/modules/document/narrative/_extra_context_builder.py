@@ -199,11 +199,14 @@ def _build_extra_context(
         # hard-coded English ("day N of expected M (middle / stabilisation
         # phase)"); the LLM copied it verbatim into JA prose, producing
         # visible EN leaks (「入院5日目（middle / stabilisation phase）」).
-        if ctx.target_lang == "ja":
-            hd = ctx.day_index + 1  # 1-indexed hospital day
-            extra["stay_progress"] = f"入院{hd}日目 / 予定{ctx.los_days}日 ({phase})"
-        else:
-            extra["stay_progress"] = f"day {ctx.day_index} of expected {ctx.los_days} ({phase})"
+        extra["stay_progress"] = t(
+            "narrative_text.stay_progress",
+            ctx.target_lang,
+            day=ctx.day_index + 1,  # 1-indexed hospital day (JA)
+            day_index=ctx.day_index,
+            los=ctx.los_days,
+            phase=phase,
+        )
 
     # v7 fix (2026-08-17): explicit 1-indexed hospital day label. v6
     # passed only day_index (0-indexed) and the LLM systematically
@@ -212,10 +215,11 @@ def _build_extra_context(
     # phrase eliminates the interpretation gap.
     if ctx.los_days and ctx.los_days > 0:
         hd = ctx.day_index + 1  # 1-indexed
-        if ctx.target_lang == "ja":
-            extra["hospital_day_label"] = "入院初日" if ctx.day_index == 0 else f"入院{hd}日目"
-        else:
-            extra["hospital_day_label"] = "hospital day 1 (admission)" if ctx.day_index == 0 else f"hospital day {hd}"
+        extra["hospital_day_label"] = (
+            t("narrative_text.hospital_day_label.first", ctx.target_lang)
+            if ctx.day_index == 0
+            else t("narrative_text.hospital_day_label.nth", ctx.target_lang, day=hd)
+        )
 
     # v6 blocker fix (2026-08-16): encounter_type disambiguates outpatient
     # vs inpatient. v5 progress_note vs outpatient_soap prompts diverged
@@ -419,9 +423,7 @@ def _build_extra_context(
         # hard-coded English (`(hospital-day N onset)`) which the LLM copied
         # verbatim into JA prose ("急性腎障害 (hospital-day 2 onset)").
         def _onset_suffix(onset_day: int) -> str:
-            if ctx.target_lang == "ja":
-                return f"（入院{onset_day}日目発症）"
-            return f"(hospital-day {onset_day} onset)"
+            return t("narrative_text.onset_suffix", ctx.target_lang, day=onset_day)
 
         _phrases: list[str] = []
         for c in complications[:10]:
@@ -451,9 +453,7 @@ def _build_extra_context(
         # notes never see future new dx.
         # Phase 1d-79: locale-aware format (JA gets 「入院N日目発症」).
         def _new_dx_line(disease: str, onset_day: int) -> str:
-            if ctx.target_lang == "ja":
-                return f"入院{onset_day}日目に{disease}"
-            return f"{disease} on hospital day {onset_day}"
+            return t("narrative_text.new_dx_line", ctx.target_lang, disease=disease, day=onset_day)
 
         filtered_new_dx = [
             _new_dx_line(did, int(od))
