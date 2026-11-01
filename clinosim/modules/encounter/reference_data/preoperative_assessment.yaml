@@ -3,7 +3,6 @@
 
 condition_id: preoperative_assessment
 icd10_code: "Z01.818"
-icd10_display: "Encounter for other preprocedural examination"
 chief_complaint:
   en: "Pre-operative assessment for scheduled surgery"
   ja: "術前検査・術前評価"

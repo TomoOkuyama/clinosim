@@ -3,7 +3,6 @@
 
 condition_id: asthma_attack_mild
 icd10_code: "J45.901"
-icd10_display: "Unspecified asthma with (acute) exacerbation"
 chief_complaint:
   en: "Wheezing, dyspnea, chest tightness"
   ja: "喘鳴・呼吸困難・胸部絞扼感"

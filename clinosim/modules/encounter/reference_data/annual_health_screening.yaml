@@ -3,7 +3,6 @@
 
 condition_id: annual_health_screening
 icd10_code: "Z00.00"
-icd10_display: "Encounter for general adult medical examination without abnormal findings"
 chief_complaint:
   en: "Annual health screening / preventive checkup"
   ja: "定期健康診断（特定健診）"

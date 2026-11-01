@@ -3,7 +3,6 @@
 
 condition_id: urinary_retention
 icd10_code: "R33.9"
-icd10_display: "Retention of urine, unspecified"
 chief_complaint:
   en: "Unable to urinate, suprapubic pain and distension"
   ja: "排尿不能・恥骨上部痛・腹部膨満"

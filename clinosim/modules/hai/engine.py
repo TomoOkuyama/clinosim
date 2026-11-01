@@ -159,7 +159,8 @@ def _validate_hai_codes(data: dict) -> None:
 
     Cross-validation via authoritative loaders:
     - icd10_us_billable ∈ codes/data/icd-10-cm.yaml
-    - icd10_jp_who     ∈ codes/data/icd-10.yaml
+    - the JP code of icd10_us_billable (locale/jp/code_mapping_diagnosis.yaml,
+      the one CM → WHO crosswalk; Issue #2257) ∈ codes/data/icd-10.yaml
     - snomed           ∈ codes/data/snomed-ct.yaml
     """
     from clinosim.modules.hai import HAI_TYPES
@@ -180,9 +181,15 @@ def _validate_hai_codes(data: dict) -> None:
             raise ValueError(
                 f"hai_codes.yaml: {hai_type!r} icd10_us_billable {icd_us!r} not in codes/data/icd-10-cm.yaml"
             )
-        icd_jp = bucket.get("icd10_jp_who", "")
+        from clinosim.locale.loader import load_code_mapping
+
+        # Codes absent from the crosswalk pass through unchanged, as at emission.
+        icd_jp = str(load_code_mapping("diagnosis", "JP").get(icd_us, icd_us))
         if not _code_in_data("icd-10", icd_jp):
-            raise ValueError(f"hai_codes.yaml: {hai_type!r} icd10_jp_who {icd_jp!r} not in codes/data/icd-10.yaml")
+            raise ValueError(
+                f"hai_codes.yaml: {hai_type!r} JP code {icd_jp!r} of {icd_us!r} "
+                "(locale/jp/code_mapping_diagnosis.yaml) not in codes/data/icd-10.yaml"
+            )
         snomed = bucket.get("snomed", "")
         if not _code_in_data("snomed-ct", snomed):
             raise ValueError(f"hai_codes.yaml: {hai_type!r} snomed {snomed!r} not in codes/data/snomed-ct.yaml")

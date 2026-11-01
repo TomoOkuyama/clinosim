@@ -3,7 +3,6 @@
 
 condition_id: shoulder_dislocation
 icd10_code: "S43.006A"
-icd10_display: "Unspecified dislocation of unspecified shoulder joint, initial encounter"
 chief_complaint:
   en: "Shoulder injury after fall, unable to move arm"
   ja: "転倒後の肩関節損傷（上肢挙上不能）"

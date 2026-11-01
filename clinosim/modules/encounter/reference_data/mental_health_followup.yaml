@@ -3,7 +3,6 @@
 
 condition_id: mental_health_followup
 icd10_code: "Z76.89"
-icd10_display: "Persons encountering health services in other specified circumstances"
 chief_complaint:
   en: "Depression/anxiety management, medication review"
   ja: "精神科フォローアップ・うつ/不安管理"

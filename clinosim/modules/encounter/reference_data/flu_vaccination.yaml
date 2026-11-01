@@ -3,7 +3,6 @@
 
 condition_id: flu_vaccination
 icd10_code: "Z23"
-icd10_display: "Encounter for immunization"
 chief_complaint:
   en: "Influenza vaccination"
   ja: "インフルエンザ予防接種"

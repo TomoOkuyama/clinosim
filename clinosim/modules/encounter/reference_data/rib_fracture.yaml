@@ -3,7 +3,6 @@
 
 condition_id: rib_fracture
 icd10_code: "S22.39XA"
-icd10_display: "Fracture of one rib, unspecified side, initial encounter for closed fracture"
 chief_complaint:
   en: "Chest wall pain after fall/trauma, worse with breathing"
   ja: "外傷後の胸壁痛（呼吸時増悪）"

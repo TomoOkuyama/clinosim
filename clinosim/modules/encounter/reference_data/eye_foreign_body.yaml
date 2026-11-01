@@ -2,7 +2,6 @@
 # Common occupational injury from welding, grinding, metal working.
 condition_id: eye_foreign_body
 icd10_code: "T15.0"
-icd10_display: "Foreign body in cornea"
 chief_complaint:
   en: "Foreign body sensation in eye, work-related"
   ja: "眼内異物（労災・作業中に発生）"

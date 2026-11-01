@@ -3,7 +3,6 @@
 
 condition_id: traffic_accident_minor
 icd10_code: "V89.2XXA"
-icd10_display: "Person injured in unspecified motor-vehicle accident, traffic, initial encounter"
 chief_complaint:
   en: "Motor vehicle accident, no loss of consciousness, neck/back pain"
   ja: "交通事故（軽症・意識消失なし・頸部/背部痛）"

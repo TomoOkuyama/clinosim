@@ -40,6 +40,7 @@ from typing import TYPE_CHECKING, Any
 import yaml
 
 from clinosim.codes import display as registry_display
+from clinosim.codes.icd10 import icd10_system
 from clinosim.codes.valuesets import concept_group, iter_chronic_codes
 from clinosim.locale.i18n import t
 from clinosim.locale.loader import chronic_followup_interval_months
@@ -602,7 +603,7 @@ def _compose_chronic_assessment_integrated(ctx: NarrativeContext) -> str:
         lab_by_name[name] = (val, _o(lab, "unit", None))
 
     lang = ctx.target_lang
-    disp_key = "icd-10" if ctx.locale == "jp" else "icd-10-cm"
+    disp_key = icd10_system(ctx.locale)
 
     # Pre-resolve current-medications for continuation-tail. Issue #1033:
     # rendering always as ``lang="ja"`` leaks katakana drug names into US

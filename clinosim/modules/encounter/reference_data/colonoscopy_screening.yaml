@@ -3,7 +3,6 @@
 
 condition_id: colonoscopy_screening
 icd10_code: "Z12.11"
-icd10_display: "Encounter for screening for malignant neoplasm of colon"
 chief_complaint:
   en: "Screening colonoscopy for colorectal cancer"
   ja: "大腸癌スクリーニング大腸内視鏡"

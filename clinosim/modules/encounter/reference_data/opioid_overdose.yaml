@@ -11,7 +11,6 @@
 
 condition_id: opioid_overdose
 icd10_code: "T40.411A"
-icd10_display: "Poisoning by fentanyl or fentanyl analogs, accidental (unintentional), initial encounter"
 chief_complaint:
   en: "Unresponsive, suspected opioid overdose"
   ja: "意識障害（オピオイド過量摂取疑い）"

@@ -12,13 +12,13 @@ here than to weave through every resource-specific builder. Also owns
 
 from __future__ import annotations
 
-import functools
 from functools import cache
 from pathlib import Path
 from typing import Any
 
 from clinosim.codes import get_system_uri, system_key_for_uri
 from clinosim.codes import lookup as code_lookup
+from clinosim.codes.icd10 import medis_disease_keyno
 from clinosim.codes.ucum import ucum_quantity
 from clinosim.modules._shared import is_jp, practitioner_name, resolve_lang
 from clinosim.modules.output.fhir_r4.lib.common import derive_meta_last_updated
@@ -417,7 +417,7 @@ _ECS_IDENTIFIER_SYSTEMS: dict[str, str] = {
 # cleanly to the 標準病名マスター. The code is verified present in the JP-
 # terminology fragment CodeSystem loaded by fhir-jp-validator
 # (`jpfhir-terminology 2.2606.0` / `medis-codesystem-diseasekanricodes`).
-_MEDIS_DISEASE_KEYNUMBER_SYSTEM = "http://medis.or.jp/CodeSystem/master-disease-keyNumber"
+_MEDIS_DISEASE_KEYNUMBER_SYSTEM = get_system_uri("medis-disease-keyno")
 
 
 _MEDIS_UNCODED_DISEASE_CODE = "99999999"
@@ -426,57 +426,10 @@ _MEDIS_UNCODED_DISEASE_CODE = "99999999"
 _MEDIS_UNCODED_DISEASE_DISPLAY = "未コード化傷病名"
 
 
-# Issue #1277: seed ICD-10 → MEDIS 病名管理番号 crosswalk. Loaded once
-# from `codes/data/medis-disease-keyno.yaml`; each entry is a
-# hand-verified 1:1 match cross-referenced against the fhir-jp-
-# validator jpfhir-terminology 2.2606.0 MEDIS 5.18 fragment. Falls
-# back to the `99999999` placeholder for un-mapped ICD-10 codes
-# (spec-compliant JP-CLINS behaviour).
-@functools.lru_cache(maxsize=1)
-def _load_medis_crosswalk() -> dict[str, tuple[str, str]]:
-    """Return `{icd_code: (medis_code, medis_display)}` for verified
-    ICD-10-mhlw → MEDIS 病名管理番号 seed entries. Empty dict on any
-    load error so the caller falls back to the placeholder."""
-    import yaml
-
-    path = Path(__file__).resolve().parents[4] / "codes" / "data" / "medis-disease-keyno.yaml"
-    if not path.exists():
-        return {}
-    try:
-        with path.open(encoding="utf-8") as fh:
-            data = yaml.safe_load(fh) or {}
-    except (OSError, yaml.YAMLError):
-        return {}
-    out: dict[str, tuple[str, str]] = {}
-    for icd, entry in (data.get("crosswalk") or {}).items():
-        if not isinstance(entry, dict):
-            continue
-        code = str(entry.get("medis_code") or "").strip()
-        display = str(entry.get("medis_display") or "").strip()
-        if code and display:
-            out[str(icd).strip()] = (code, display)
-    return out
-
-
-def _medis_crosswalk_lookup(icd_code: str) -> tuple[str, str] | None:
-    """Look up a MEDIS 病名管理番号 (code, display) for an ICD-10 code.
-
-    Resolution order:
-      1. Exact ICD match in the crosswalk (`E11.9`).
-      2. Base ICD (`E11.9` → `E11`) — allows the seed to cover a
-         family of subtypes with one entry when clinically valid.
-      3. None — caller emits the `99999999` placeholder.
-    """
-    if not icd_code:
-        return None
-    crosswalk = _load_medis_crosswalk()
-    hit = crosswalk.get(icd_code)
-    if hit is not None:
-        return hit
-    base = icd_code.split(".")[0]
-    if base != icd_code:
-        return crosswalk.get(base)
-    return None
+# Issue #1277: the verified ICD-10 → MEDIS 病名管理番号 seed crosswalk
+# (`codes/data/medis-disease-keyno.yaml`) is read through
+# `clinosim.codes.icd10.medis_disease_keyno` (Issue #2257); un-mapped codes get
+# the `99999999` placeholder (spec-compliant JP-CLINS behaviour).
 
 
 # Phase 3.α (#1807-follow-up): the four module-local dicts that
@@ -1042,7 +995,7 @@ def _populate_condition_ai_mr_ecs_fields(resource: dict, country: str = "US") ->
                     icd_code = str(existing.get("code") or "")
                     if not icd_code:
                         continue
-                    mapped = _medis_crosswalk_lookup(icd_code)
+                    mapped = medis_disease_keyno(icd_code)
                     if mapped is not None:
                         medis_code, medis_display = mapped
                         break

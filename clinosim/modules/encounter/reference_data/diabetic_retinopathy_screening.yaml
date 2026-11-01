@@ -3,7 +3,6 @@
 
 condition_id: diabetic_retinopathy_screening
 icd10_code: "Z13.5"
-icd10_display: "Encounter for screening for eye and ear disorders"
 chief_complaint:
   en: "Diabetic retinopathy screening, fundoscopy"
   ja: "糖尿病性網膜症スクリーニング・眼底検査"

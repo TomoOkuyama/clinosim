@@ -408,6 +408,10 @@ _BUILTIN_URIS: dict[str, str] = {
     # data as `icd-10` (WHO) via `_SYSTEM_DATA_ALIASES` above. The URI is
     # the required binding target on JP Core `jp-condition-diagnosis`.
     "icd-10-mhlw": "http://jpfhir.jp/fhir/core/mhlw/CodeSystem/ICD10-2013-full",
+    # MEDIS 標準病名マスター 病名管理番号 (JP-CLINS JP_Condition_eCS
+    # `code.coding:medisRecordNo` fixedUri). Crosswalk data:
+    # codes/data/medis-disease-keyno.yaml via codes.icd10 (Issue #2257).
+    "medis-disease-keyno": "http://medis.or.jp/CodeSystem/master-disease-keyNumber",
     "loinc": "http://loinc.org",
     "snomed-ct": "http://snomed.info/sct",
     "rxnorm": "http://www.nlm.nih.gov/research/umls/rxnorm",

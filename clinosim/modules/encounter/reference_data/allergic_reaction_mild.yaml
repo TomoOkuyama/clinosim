@@ -3,7 +3,6 @@
 
 condition_id: allergic_reaction_mild
 icd10_code: "T78.40"
-icd10_display: "Allergy, unspecified"
 chief_complaint:
   en: "Urticaria, mild angioedema, itching"
   ja: "蕁麻疹・軽度血管浮腫・掻痒"

@@ -631,7 +631,6 @@ def _simulate_outpatient_visit(
 
             enc_proto = load_encounter_condition(chronic_code)
             dx_code = enc_proto.get("icd10_code", "")
-            enc_proto.get("icd10_display", "")
         except (FileNotFoundError, Exception):
             pass
 
@@ -640,9 +639,6 @@ def _simulate_outpatient_visit(
         # Check if it looks like an ICD code (letter + digit)
         if len(chronic_code) >= 2 and chronic_code[0].isalpha() and chronic_code[1].isdigit():
             dx_code = chronic_code
-            from clinosim.modules.patient.activator import CONDITION_NAMES
-
-            CONDITION_NAMES.get(chronic_code, chronic_code)
 
     # Third priority: post-discharge follow-up
     if not dx_code and post_discharge_disease:

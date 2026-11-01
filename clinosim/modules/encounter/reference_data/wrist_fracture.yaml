@@ -3,7 +3,6 @@
 
 condition_id: wrist_fracture
 icd10_code: "S62.90XA"
-icd10_display: "Unspecified fracture of unspecified wrist, initial encounter for closed fracture"
 chief_complaint:
   en: "Fall on outstretched hand, wrist pain and swelling"
   ja: "転倒後の手関節痛・腫脹"

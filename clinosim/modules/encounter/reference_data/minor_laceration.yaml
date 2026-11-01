@@ -3,7 +3,6 @@
 
 condition_id: minor_laceration
 icd10_code: "T14.90"
-icd10_display: "Injury, unspecified"
 chief_complaint:
   en: "Laceration requiring sutures"
   ja: "裂傷（縫合が必要）"

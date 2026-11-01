@@ -3,7 +3,6 @@
 
 condition_id: wound_care_followup
 icd10_code: "Z48.01"
-icd10_display: "Encounter for change or removal of surgical wound dressing"
 chief_complaint:
   en: "Wound care follow-up, suture/staple removal"
   ja: "創傷ケア・抜糸・抜鉤"

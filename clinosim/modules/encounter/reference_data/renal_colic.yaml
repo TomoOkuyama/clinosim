@@ -3,7 +3,6 @@
 
 condition_id: renal_colic
 icd10_code: "N23"
-icd10_display: "Unspecified renal colic"
 chief_complaint:
   en: "Severe flank pain radiating to groin, nausea, hematuria"
   ja: "激しい側腹部痛（鼠径部放散）・嘔気・血尿"

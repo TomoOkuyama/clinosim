@@ -30,7 +30,8 @@ def test_load_hai_codes_has_us_jp_snomed_keys():
     for hai_type in ("clabsi", "cauti", "vap"):
         entry = cfg["hai_codes"][hai_type]
         assert entry["icd10_us_billable"]
-        assert entry["icd10_jp_who"]
+        # JP code: the shared CM → WHO crosswalk, not a per-module copy (Issue #2257).
+        assert "icd10_jp_who" not in entry
         assert entry["snomed"]
         assert entry["display_en"]
         assert entry["display_ja"]

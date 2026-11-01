@@ -3,7 +3,6 @@
 
 condition_id: syncope
 icd10_code: "R55"
-icd10_display: "Syncope and collapse"
 chief_complaint:
   en: "Loss of consciousness, fainting episode"
   ja: "意識消失・失神エピソード"

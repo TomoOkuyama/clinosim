@@ -3,7 +3,6 @@
 
 condition_id: anxiety_panic_attack
 icd10_code: "F41.0"
-icd10_display: "Panic disorder without agoraphobia"
 chief_complaint:
   en: "Palpitations, dyspnea, chest tightness, anxiety"
   ja: "動悸・呼吸困難・胸部圧迫感・不安"

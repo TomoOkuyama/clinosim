@@ -3,7 +3,6 @@
 
 condition_id: dialysis_session
 icd10_code: "Z99.2"
-icd10_display: "Dependence on renal dialysis"
 chief_complaint:
   en: "Scheduled hemodialysis session"
   ja: "定期血液透析"

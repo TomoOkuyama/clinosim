@@ -3,7 +3,6 @@
 
 condition_id: viral_uri
 icd10_code: "J06.9"
-icd10_display: "Acute upper respiratory infection, unspecified"
 chief_complaint:
   en: "Fever, sore throat, cough, nasal congestion"
   ja: "発熱・咽頭痛・咳嗽・鼻汁"

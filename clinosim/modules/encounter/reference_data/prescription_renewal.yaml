@@ -3,7 +3,6 @@
 
 condition_id: prescription_renewal
 icd10_code: "Z76.0"
-icd10_display: "Encounter for issue of repeat prescription"
 chief_complaint:
   en: "Medication refill, prescription renewal only"
   ja: "処方更新・定期処方"

@@ -3,7 +3,6 @@
 
 condition_id: elderly_fall
 icd10_code: "W19.XXXA"
-icd10_display: "Unspecified fall, initial encounter"
 chief_complaint:
   en: "Fall at home, no loss of consciousness"
   ja: "自宅での転倒（意識消失なし）"

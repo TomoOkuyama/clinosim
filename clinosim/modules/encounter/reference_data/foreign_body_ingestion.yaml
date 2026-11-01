@@ -3,7 +3,6 @@
 
 condition_id: foreign_body_ingestion
 icd10_code: "T18.9XXA"
-icd10_display: "Foreign body in alimentary tract, part unspecified, initial encounter"
 chief_complaint:
   en: "Accidental ingestion of foreign body"
   ja: "異物誤飲"

@@ -4,7 +4,7 @@
 # Tables ICD-10-CM API (clinicaltables.nlm.nih.gov/api/icd10cm/v3/search, 2024). No fabrication.
 #
 # WHY THIS EXISTS: chronic conditions are tracked internally by base/category code
-# (activator.CONDITION_NAMES; discharge dx truncated to base in simulator/helpers.py).
+# (patient chronic conditions; discharge dx truncated to base in simulator/helpers.py).
 # Those category codes (I50, E78, J44, ...) and WHO-only codes (F00) are NOT billable to
 # highest specificity. At FHIR output time _build_conditions() translates each internal
 # code to its billable ICD-10-CM leaf via this map. Codes absent from the map pass through

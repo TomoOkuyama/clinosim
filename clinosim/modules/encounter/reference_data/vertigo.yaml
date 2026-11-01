@@ -3,7 +3,6 @@
 
 condition_id: vertigo
 icd10_code: "R42"
-icd10_display: "Dizziness and giddiness"
 chief_complaint:
   en: "Dizziness, room spinning, nausea"
   ja: "めまい・回転性めまい・嘔気"
