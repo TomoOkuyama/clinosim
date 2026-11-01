@@ -16,10 +16,6 @@ pytestmark = pytest.mark.unit
 
 _ROOT = Path(clinosim.__file__).parent
 
-# Names whose text carries administration semantics the emitters still read
-# from the name (continuous-infusion detection); remodelled in #2424.
-_NAME_CARRIES_SEMANTICS = {"Regular insulin (continuous IV)"}
-
 
 @pytest.mark.parametrize(
     ("name", "drug_id"),
@@ -40,7 +36,7 @@ def test_no_resolvable_drug_name_in_protocols() -> None:
     def walk(x: Any) -> None:
         if isinstance(x, dict):
             name = x.get("drug")
-            if isinstance(name, str) and drug_ref(name) and name not in _NAME_CARRIES_SEMANTICS:
+            if isinstance(name, str) and drug_ref(name):
                 hits.append(name)
             for v in x.values():
                 walk(v)

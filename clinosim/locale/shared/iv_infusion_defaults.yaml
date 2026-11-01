@@ -215,7 +215,7 @@ drugs:
     rate_value: 0.1
     rate_unit: "U/kg/h"
     note: "DKA/HHS insulin drip; titrate to glucose drop 50-75 mg/dL/h."
-  "regular insulin (continuous iv)":
+  "insulin_regular_human":  # drug_id key (Issue #2436)
     mode: continuous
     rate_value: 0.1
     rate_unit: "U/kg/h"

@@ -912,7 +912,23 @@ def _canonicalize_iv_rate_unit(numerator: str, denominator: str) -> str:
     return f"{num}/{denom}"
 
 
-def resolve_iv_infusion_default(display_name: str) -> dict[str, Any] | None:
+@cache
+def _iv_infusion_defaults_by_drug_id() -> dict[str, dict[str, Any]]:
+    """Catalog entries keyed by the ``drug_id`` their name resolves to (first
+    entry wins), so a catalogued drug finds its infusion default by identity
+    rather than by display name (Issue #2436)."""
+    from clinosim.codes.drugs import drug_ref
+    from clinosim.locale.loader import load_iv_infusion_defaults
+
+    out: dict[str, dict[str, Any]] = {}
+    for name, entry in ((load_iv_infusion_defaults() or {}).get("drugs") or {}).items():
+        drug_id = drug_ref(str(name))
+        if drug_id and drug_id not in out and isinstance(entry, dict):
+            out[drug_id] = entry
+    return out
+
+
+def resolve_iv_infusion_default(display_name: str, drug_id: str = "") -> dict[str, Any] | None:
     """Return the per-drug IV infusion default entry for ``display_name`` or None.
 
     Lookup order (see ``iv_infusion_defaults.yaml`` header for full contract):
@@ -928,6 +944,8 @@ def resolve_iv_infusion_default(display_name: str) -> dict[str, Any] | None:
     """
     from clinosim.locale.loader import load_iv_infusion_defaults
 
+    if drug_id and drug_id in _iv_infusion_defaults_by_drug_id():
+        return _iv_infusion_defaults_by_drug_id()[drug_id]
     catalog = load_iv_infusion_defaults() or {}
     drugs: dict[str, Any] = catalog.get("drugs", {}) or {}
     aliases: dict[str, str] = catalog.get("aliases", {}) or {}
@@ -974,6 +992,9 @@ def augment_iv_dosage_with_rate(
     dose_text: str,
     route: str | None,
     display_name: str,
+    *,
+    drug_id: str = "",
+    frequency: str = "",
 ) -> None:
     """Extend ``dosage`` in-place with rateQuantity or timing.duration for IV orders.
 
@@ -1019,11 +1040,23 @@ def augment_iv_dosage_with_rate(
                 dar[0]["rateQuantity"] = ucum_quantity(rate_value, rate_unit)
                 return
 
-    # Priority 2/3: catalog lookup + default fallback.
-    entry = resolve_iv_infusion_default(display_name)
+    # Priority 2/3: catalog lookup + default fallback. The order decides the
+    # infusion mode (Issue #2436): a continuous order is never turned into a
+    # timed bolus, and a one-off order (ONCE / STAT, e.g. an IV dose of a drug
+    # that is also run as a drip) never gets the drip rate. Other frequencies
+    # do not decide it: drips carry the enricher's DAILY default.
+    entry = resolve_iv_infusion_default(display_name, drug_id)
     if not entry:
         return
     mode = str(entry.get("mode", "") or "").lower()
+    freq = (frequency or "").strip().upper()
+    if freq == "CONTINUOUS" and mode != "continuous":
+        return
+    if freq in ("ONCE", "STAT") and mode == "continuous":
+        from clinosim.locale.loader import load_iv_infusion_defaults
+
+        entry = (load_iv_infusion_defaults() or {}).get("default") or {}
+        mode = str(entry.get("mode", "") or "").lower()
     if mode == "continuous":
         rate_value = entry.get("rate_value")
         rate_unit = entry.get("rate_unit", "")
@@ -1315,6 +1348,8 @@ def build_dosage_instruction(order: dict, country: str = "US") -> dict[str, Any]
         dose_text=_display_name,
         route=order.get("route"),
         display_name=_display_name,
+        drug_id=str(order.get("drug_id") or ""),
+        frequency=str(order.get("frequency") or ""),
     )
 
     return dosage if dosage else None
