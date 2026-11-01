@@ -47,9 +47,10 @@ def procedure_type_display(proc_type: str, lang: str) -> str:
     an unknown type is humanised (underscores → spaces), never a raw slug."""
     if not proc_type:
         return ""
+    from clinosim.locale.localized import localized
+
     entry = _entries().get(proc_type) or _entries().get(str(proc_type).strip().lower()) or {}
-    names = entry.get("name") or {}
-    return str(names.get(lang) or names.get("en") or str(proc_type).replace("_", " "))
+    return localized(entry.get("name") or {}, lang, fallback=str(proc_type).replace("_", " "))
 
 
 def procedure_code_display(codes: Iterable[str], lang: str) -> str | None:

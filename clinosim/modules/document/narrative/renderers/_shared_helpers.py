@@ -14,8 +14,8 @@ from typing import TYPE_CHECKING, Any
 from clinosim.codes.procedures import procedure_code_display
 from clinosim.codes.snomed_concepts import SURGICAL_PROCEDURE
 from clinosim.locale.i18n import t
+from clinosim.locale.loader import narrative_label as _label
 from clinosim.modules._shared import get_attr_or_key as _o
-from clinosim.modules.document.narrative._template_helpers import _label
 
 if TYPE_CHECKING:
     from clinosim.types.document import NarrativeContext

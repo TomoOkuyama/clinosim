@@ -25,6 +25,7 @@ from clinosim.codes import display as registry_display
 from clinosim.codes import lookup as code_lookup
 from clinosim.codes.snomed_concepts import PROCEDURE_PARTIALLY_SUCCESSFUL, PROCEDURE_UNSUCCESSFUL
 from clinosim.locale.i18n import t
+from clinosim.locale.loader import narrative_label as _label
 from clinosim.modules._shared import get_attr_or_key as _o
 from clinosim.modules.document.narrative._localization import (
     _localize_complication,
@@ -32,7 +33,7 @@ from clinosim.modules.document.narrative._localization import (
     _localize_op_implant,
     _localize_proc_type,
 )
-from clinosim.modules.document.narrative._template_helpers import _label, _resolve_staff_name
+from clinosim.modules.document.narrative._template_helpers import _resolve_staff_name
 from clinosim.types.document import NarrativeContext
 
 if TYPE_CHECKING:

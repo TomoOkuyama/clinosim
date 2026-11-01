@@ -191,6 +191,14 @@ def vocab_display(vocab: str, slug: str, lang: str, *, fallback: str = "") -> st
     return resolve_localized_display(entry, lang, fallback=fallback)
 
 
+def prompt_label(section: str, token: str, lang: str, *, fallback: str = "") -> str:
+    """Entry ``token`` (case-insensitive) of an ``llm_prompt_labels.yaml``
+    section in ``lang``, then English, then ``fallback`` (Issue #2396)."""
+    from clinosim.locale.localized import label
+
+    return label(load_llm_prompt_labels(), section, str(token).strip().lower(), lang, fallback=fallback)
+
+
 def narrative_label(section: str, key: str, lang: str, fallback: str = "") -> str:
     """Entry ``key`` of a narrative-label section in ``lang`` (then English,
     then ``fallback``, else the key). Case-preserving with a lower-cased

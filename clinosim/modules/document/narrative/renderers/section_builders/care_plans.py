@@ -25,6 +25,7 @@ from clinosim.codes import lookup as code_lookup
 from clinosim.codes import system_key_for
 from clinosim.codes.snomed_concepts import SURGICAL_PROCEDURE
 from clinosim.locale.i18n import t
+from clinosim.locale.loader import narrative_label as _label
 from clinosim.modules._shared import get_attr_or_key as _o
 from clinosim.modules.document.narrative._localization import _localize_proc_type
 from clinosim.modules.document.narrative._narrative_interpretation_thresholds import (
@@ -33,7 +34,7 @@ from clinosim.modules.document.narrative._narrative_interpretation_thresholds im
     NUTRITION_ENERGY_KCAL_PER_KG_MIDPOINT,
     NUTRITION_PROTEIN_G_PER_KG_MIDPOINT,
 )
-from clinosim.modules.document.narrative._template_helpers import _label, _resolve_staff_name, allergen_display
+from clinosim.modules.document.narrative._template_helpers import _resolve_staff_name, allergen_display
 from clinosim.types.document import NarrativeContext
 
 if TYPE_CHECKING:

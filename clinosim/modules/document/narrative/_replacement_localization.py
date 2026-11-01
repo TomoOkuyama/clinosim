@@ -23,23 +23,13 @@ from functools import lru_cache
 
 
 def _lookup_ja_label(raw: str, section: str) -> str:
-    """Case-insensitive JA lookup for a raw enum-like token in the
-    named LLM-prompt-labels section. Returns the raw input if the
-    section / slug / ja slot is missing (safe fallback — never drops
-    content). Kept named ``_lookup_ja_label`` because every caller
-    below resolves against the ``ja`` slot; multi-lang callers use
-    ``_localize_token`` which routes through
-    ``resolve_localized_display`` (language-agnostic)."""
+    """Japanese label of a raw enum-like token in an LLM-prompt-labels
+    section; the raw input when unmapped (``prompt_label``, Issue #2396)."""
     if not raw:
         return raw
-    key = str(raw).strip().lower()
-    from clinosim.locale.loader import load_llm_prompt_labels, resolve_localized_display
+    from clinosim.locale.loader import prompt_label
 
-    return resolve_localized_display(
-        load_llm_prompt_labels().get(section, {}).get(key, {}),
-        "ja",
-        fallback=str(raw),
-    )
+    return prompt_label(section, raw, "ja", fallback=str(raw))
 
 
 def _localize_severity_ja(sev: str) -> str:
@@ -68,11 +58,13 @@ def _localize_barthel_band_ja(band: str) -> str:
 
 
 def localize_oxygen_device(device: str, lang: str) -> str:
-    """Language-aware oxygen-device localizer wrapper. No-op when
-    ``lang != "ja"``."""
-    if not device or lang != "ja":
+    """Oxygen-device label in ``lang`` (then English, then the raw device);
+    no language branch of its own (Issue #2396)."""
+    if not device:
         return device
-    return _localize_oxygen_device_ja(device)
+    from clinosim.locale.loader import prompt_label
+
+    return prompt_label("oxygen_device", device, lang, fallback=device)
 
 
 # --- prompt v11: post-processor hard-guard for EN lab names in JA text ------

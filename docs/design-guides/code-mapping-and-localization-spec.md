@@ -234,7 +234,6 @@ These parts of the code base do not yet conform. Each one is removed by the issu
 
 | Deviation | Issue |
 |---|---|
-| Duplicate localization wrappers (`_label`, `_localize_*`, `_localize_token`, gated `localize_*`) keep their own selection logic. | #2396 |
 | Direct `.get("ja")` and inline language ternaries select values outside `locale.localized`; `codes.lookup` returns the code on a miss. | #2397 |
 | Localized YAML fields use mixed shapes (nested `{lang: text}`, 25 `*_ja` field names, `dose_ja` vs `dose_text_ja`). | #2398 |
 | Some Composition section codes do not mean their section. | #2391 |

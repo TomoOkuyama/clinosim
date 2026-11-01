@@ -35,13 +35,9 @@ def _localize_token(token: str, section: str, lang: str) -> str:
     key = str(token).strip().lower()
     if not key or key in ("unknown", "none"):
         return ""
-    from clinosim.locale.loader import load_llm_prompt_labels, load_vocabulary, resolve_localized_display
+    from clinosim.locale.loader import load_vocabulary, prompt_label
 
-    text = resolve_localized_display(
-        load_llm_prompt_labels().get(section, {}).get(key, {}),
-        lang,
-        fallback=key.replace("_", " "),
-    )
+    text = prompt_label(section, key, lang, fallback=key.replace("_", " "))
     # The demographic anchor is running prose ("72 y/o female, retired, former
     # smoker"); the shared vocabulary stores sentence-case labels (Issue
     # #2269), so lower-case a leading capital unless it starts an acronym.

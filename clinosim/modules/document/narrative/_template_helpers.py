@@ -29,15 +29,6 @@ from clinosim.types.document import NarrativeContext
 logger = logging.getLogger(__name__)
 
 
-def _label(section: str, key: str, lang: str, fallback: str = "") -> str:
-    """Narrative-label lookup: ``clinosim.locale.loader.narrative_label``
-    (the one implementation; vocabulary sections come from
-    ``locale/shared/vocabulary.yaml``, Issue #2269)."""
-    from clinosim.locale.loader import narrative_label
-
-    return narrative_label(section, key, lang, fallback)
-
-
 # Issue #819 follow-up: staff-id → name + role suffix resolution for
 # narrative templates. Used by the small number of builders that inject
 # `nurse_id` / `physician_id` verbatim into the narrative text seen by

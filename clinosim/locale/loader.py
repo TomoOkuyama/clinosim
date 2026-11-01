@@ -111,6 +111,7 @@ from clinosim.locale.loaders.narrative import (
     load_narrative_stage_tokens,
     load_vocabulary,
     narrative_label,
+    prompt_label,
     resolve_localized_display,
     vocab_display,
 )
@@ -168,6 +169,7 @@ __all__ = [
     "load_narrative_imaging",
     "load_vocabulary",
     "narrative_label",
+    "prompt_label",
     "vocab_display",
     "load_narrative_lab_flags",
     "lab_display",

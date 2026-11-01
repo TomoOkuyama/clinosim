@@ -27,12 +27,12 @@ from clinosim.codes import display as registry_display
 from clinosim.codes import get_display as code_display
 from clinosim.codes import system_key_for
 from clinosim.locale.i18n import t
+from clinosim.locale.loader import narrative_label as _label
 from clinosim.modules._shared import get_attr_or_key as _o
 from clinosim.modules.document.narrative._localization import _localize_stage
 from clinosim.modules.document.narrative._template_helpers import (
     _GENERIC_FALLBACK_EN,
     _GENERIC_FALLBACK_JA,
-    _label,
     _render_home_med_name,
     allergen_display,
 )
