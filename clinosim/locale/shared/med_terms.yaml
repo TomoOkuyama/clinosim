@@ -5,8 +5,7 @@
 # ``{key: {lang: display}}`` so adding a new target language (fr / zh /
 # ko / …) is a data change — extend each entry with ``<lang>: <display>``.
 #
-# Consumers: ``clinosim.modules.output.fhir_r4.lib.localization
-# ._localize_dosage_terms(text, lang)`` applies these as
+# Consumers: ``clinosim.locale.free_text._localize_dosage_terms(text, lang)`` applies these as
 # case-insensitive word-boundary substitutions (categories first,
 # longest-key-first per section, all-uppercase keys stay case-sensitive
 # to avoid tail-of-word collisions like ``po`` inside ``clopidogrel``).

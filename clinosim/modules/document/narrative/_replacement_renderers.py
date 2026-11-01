@@ -22,6 +22,7 @@ from typing import Any
 
 from clinosim.codes import display as registry_display
 from clinosim.codes.ucum import ucum_prose
+from clinosim.locale.free_text import localize_free_text
 from clinosim.locale.i18n import t
 from clinosim.locale.loader import lab_display
 from clinosim.modules.document.narrative._replacement_localization import (
@@ -29,15 +30,6 @@ from clinosim.modules.document.narrative._replacement_localization import (
     localize_oxygen_device,
 )
 from clinosim.modules.document.narrative.template_generator import _filter_vitals_for_day
-
-
-def _load_drug_localizer():  # pragma: no cover — trivial thunk
-    """Lazy import of the lang-aware `localize_drug_name` wrapper.
-    Returned callable takes `(drug_name, lang)` — a no-op for any
-    lang without a lookup table."""
-    from clinosim.modules.output.fhir_r4.lib.localization import localize_drug_name as _f
-
-    return _f
 
 
 def _get(obj, key, default=None):
@@ -270,7 +262,7 @@ def _render_med_names(meds: list, lang: str = "en") -> str:
             name = m
         if not name:
             continue
-        localized = _load_drug_localizer()(str(name), lang)
+        localized = localize_free_text(str(name), lang)
         if localized and localized not in seen:
             names.append(localized[:60])
             seen.add(localized)
@@ -292,7 +284,7 @@ def _render_active_meds(admins: list, day_index: int, lang: str = "en") -> str:
         name = _get(m, "drug_name") or _get(m, "medication") or _get(m, "name")
         if not name:
             continue
-        localized = _load_drug_localizer()(str(name), lang)
+        localized = localize_free_text(str(name), lang)
         if localized and localized not in seen:
             names.append(localized[:60])
             seen.add(localized)

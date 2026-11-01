@@ -119,7 +119,7 @@ def render_nursing_shift_note(ctx: NarrativeContext, spec: DocumentTypeSpec) -> 
         seen.add(n)
         # Drug-name katakana lookup via lang-aware wrapper —
         # no-op for lang without a lookup table.
-        from clinosim.modules.output.fhir_r4.lib.localization import localize_drug_name
+        from clinosim.locale.free_text import localize_drug_name
 
         med_names.append(localize_drug_name(str(n), lang))
         if len(med_names) >= 3:
