@@ -3057,8 +3057,12 @@
 <td>#2277</td>
 </tr>
 <tr>
-<td>疾患 YAML が <code>drug:</code> 名と <code>drug_id:</code> を混在させ、<code>Order.order_code</code> がコード体系を記録していない。</td>
-<td>#2378</td>
+<td>疾患 YAML が <code>drug:</code> 名と <code>drug_id:</code> を混在させ、order engine はプロトコルの薬リストで <code>drug:</code> しか読まない。</td>
+<td>#2414</td>
+</tr>
+<tr>
+<td>プロトコルの薬の一部がカタログ未収載で、薬でない処置が <code>drug:</code> として書かれている。</td>
+<td>#2415</td>
 </tr>
 <tr>
 <td>§8 を強制する lint guard がない。</td>
