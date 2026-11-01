@@ -33,7 +33,7 @@ FHIR R4 emission 本体は [`fhir_r4/`](fhir_r4/README.ja.md) subpackage に。
 subpackage は `_BUNDLE_BUILDERS` registry 経由で CIF から拾う:
 
 - **産科 — 母親側分娩 Encounter** (admit dx `O80`、discharge dx
-  `Z37.0`、分娩 Procedure JP `K894` / US CPT `59400`) と **新生児
+  `Z37.0`、分娩 Procedure US CPT `59400`、JP は保険外のため K コードなし) と **新生児
   Encounter** (`admit_source = "born"` —
   `AdmitSource.BORN` enum 値、詳細
   [`clinosim/codes/hl7_encounter.py`](../../codes/hl7_encounter.py)、

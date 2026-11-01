@@ -53,8 +53,8 @@ FHIR taxonomy が Immunization を Procedure ファミリに配置している
 両者について `ProcedureRecord` を構築し、FHIR post-process pipeline
 が code + display を追加配線なしで拾う:
 
-- **分娩 Procedure** — JP `K894` (経腟分娩、MHLW 診療報酬点数表
-  K-code) / US CPT `59400` (routine obstetric care incl. vaginal
+- **分娩 Procedure** — JP は K コードなし (正常分娩は保険外。JP の
+  Procedure は CPT coding を持つ、Issue #2340) / US CPT `59400` (routine obstetric care incl. vaginal
   delivery)。母親側分娩 encounter (emit 元:
   [`clinosim/simulator/perinatal.py`](../../../../simulator/perinatal.py))
   に付与。

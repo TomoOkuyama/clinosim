@@ -233,9 +233,9 @@ These parts of the code base do not yet conform. Each one is removed by the issu
 |---|---|
 | **Fallback.** `display` / `lookup`, `resolve_text` and `t` end with a last-resort value: the first available language, the code, `str(value)` or the key. That can break §6.1–6.2, and there is no single retrieval API. | #2275 |
 | Document LOINCs are defined in eight places, some section codes do not mean their section, and emitters still hold LOINC constants. | #2344 |
-| CPT / K-codes the generator emits but has not registered. | #2340 |
 | The free-text name localizer lives in the FHIR output layer, is imported from the order and narrative layers, and also translates procedure, SNOMED and allergen names. Decision logic and records resolve drug names through `codes.drugs.drug_display`. | #2367 |
 | Language literals are still embedded in Python. | #2277 |
+| The imaging and chronic follow-up tables emit CPT and JP imaging codes that are not registered, some naming a retired or different service. | #2390 |
 | Disease YAMLs mix `drug:` names with `drug_id:`, and `Order.order_code` does not record its code system. | #2378 |
 | The chronic-medication `drug_class` labels are their own vocabulary, not catalog classes. | #2388 |
 | Default administration interval and route heuristics identify drugs by upper-case name lists. | #2389 |

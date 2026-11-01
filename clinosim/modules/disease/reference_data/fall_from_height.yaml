@@ -279,7 +279,7 @@ drugs:
 procedure:
   postoperative_pain_level: 0.65   # operative-day pain floor (Issue #2080)
   type: "orthopedic fracture fixation"
-  procedure_code_jp: "K081"
+  procedure_code_jp: "K142"
   procedure_code_us: "22325"
   typical_duration_minutes: {mean: 180, sd: 90, min: 60, max: 480}
   anesthesia: "general"

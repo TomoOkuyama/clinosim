@@ -163,8 +163,8 @@ by_cancer:
 # not the specific regimen; the specific drugs would live on the Encounter's
 # MedicationAdministration slice — future work).
 procedure:
-  jp_code: "G003"                   # JP 医科診療報酬点数表: 抗悪性腫瘍剤局所持続注入
-  jp_display: "抗悪性腫瘍剤注入"
+  jp_code: "G004"                   # JP 医科診療報酬点数表: 点滴注射 (systemic IV; G003 is local arterial infusion)
+  jp_display: "点滴注射"
   us_code: "96413"                  # US CPT: Chemotherapy administration, IV infusion, first hour
   us_display: "Chemotherapy administration, IV infusion, up to 1 hour"
   duration_minutes: 60              # infusion duration; encounter length includes prep/monitor

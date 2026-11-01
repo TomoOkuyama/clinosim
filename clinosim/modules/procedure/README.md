@@ -60,7 +60,7 @@ bedside / rehab trio above and reach FHIR via the same
 - **Delivery Procedure** — attached to every mother-side perinatal
   delivery Encounter (see
   [`clinosim.modules.encounter`](../encounter/README.md)). Code:
-  JP `K894` (経腟分娩 — MHLW 診療報酬点数表 K-code) or US CPT
+  US CPT `59400` (JP: no K-code — 正常分娩 is uninsured; Issue #2340), CPT
   `59400` (routine obstetric care incl. vaginal delivery). Emitted
   by [`clinosim/simulator/perinatal.py`](../../simulator/perinatal.py)
   with the shape coming from

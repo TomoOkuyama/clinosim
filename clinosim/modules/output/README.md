@@ -36,8 +36,8 @@ the FHIR R4 subpackage picks them up from the CIF via the same
 `_BUNDLE_BUILDERS` registry:
 
 - **Obstetric — mother-side delivery Encounter** with admission dx
-  `O80`, discharge dx `Z37.0`, delivery Procedure JP `K894` /
-  US CPT `59400`, and **newborn Encounter** with
+  `O80`, discharge dx `Z37.0`, delivery Procedure US CPT `59400`
+  (JP: no K-code, 正常分娩 is uninsured), and **newborn Encounter** with
   `admit_source = "born"` (`AdmitSource.BORN` enum value in
   [`clinosim/codes/hl7_encounter.py`](../../codes/hl7_encounter.py)) and
   `admit_source_encounter_id` → mother's delivery encounter,

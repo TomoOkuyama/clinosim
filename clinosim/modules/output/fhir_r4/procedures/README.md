@@ -59,8 +59,8 @@ the sibling
 constructs `ProcedureRecord` for both, and the FHIR post-process
 pipeline picks up the code + display without further wiring:
 
-- **Delivery Procedure** — JP `K894` (経腟分娩, MHLW 診療報酬点数表
-  K-code) / US CPT `59400` (routine obstetric care incl. vaginal
+- **Delivery Procedure** — JP no K-code (正常分娩 is uninsured; the JP
+  Procedure carries the CPT coding, Issue #2340) / US CPT `59400` (routine obstetric care incl. vaginal
   delivery). Attached to mother-side delivery encounters emitted
   by [`clinosim/simulator/perinatal.py`](../../../../simulator/perinatal.py).
 - **Radiation-therapy Procedure** — modality / dose / site come

@@ -119,7 +119,7 @@ def _proc_dict(**overrides) -> dict:
         "encounter_id": "ENC-PAT-001-0001",
         "procedure_type": "ORIF",
         "procedure_code": "27236",
-        "procedure_code_jp": "K0461",
+        "procedure_code_jp": "K0463",
         "procedure_code_us": "27236",
         "start_datetime": "2026-04-06T14:30:00",
         "end_datetime": "2026-04-06T16:00:00",

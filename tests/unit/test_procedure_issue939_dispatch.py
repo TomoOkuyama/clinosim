@@ -98,8 +98,8 @@ class TestIssue939CodesAndCatalog:
         [
             ("acute_mi", "coronary_pci", "K546", "92920"),
             ("heart_failure_exacerbation", "pacemaker_implant", "K597", "33208"),
-            ("hemorrhagic_stroke", "craniotomy_hematoma_evacuation", "K164-1", "61312"),
-            ("ileus", "ileus_tube_placement", "J034-2", "44500"),
+            ("hemorrhagic_stroke", "craniotomy_hematoma_evacuation", "K1643", "61313"),
+            ("ileus", "ileus_tube_placement", "J034", "44500"),
             ("ileus", "bowel_resection", "K719", "44140"),
         ],
     )

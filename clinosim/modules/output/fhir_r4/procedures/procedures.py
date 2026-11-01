@@ -123,7 +123,16 @@ def _build_procedure(
 
     # Resolve displays via code dictionaries (k-codes.yaml / cpt.yaml)
     primary_lang = resolve_lang(country)
-    primary_display = _procedure_display(primary_code, primary_lang, fallback)
+    if primary_code:
+        primary_display = _procedure_display(primary_code, primary_lang, fallback)
+    else:
+        # Uncoded by design in this country (Issue #2340: e.g. JP 正常分娩 is
+        # uninsured, US oxygen administration has no CPT code): name it from
+        # the catalog, else from the other country's registered code.
+        other_code = proc_code_us if is_jp(country) else proc_code_jp
+        primary_display = (
+            procedure_type_display(proc_type, primary_lang) if proc_type in _catalog_types() else ""
+        ) or _procedure_display(other_code, primary_lang, fallback)
     # Issue #360 G6 / Issue #474: supportive-care Procedure records commonly
     # lack a K-code, so `primary_display` falls back to the English composite
     # ``{type}: {detail}`` text from ``modules/order/engine.py`` (e.g.
@@ -172,13 +181,11 @@ def _build_procedure(
     elif is_jp(country) and not proc_code_jp and proc_code_us and primary_code == proc_code_us:
         _primary_system = get_system_uri("cpt")
 
-    coding_entries: list[dict[str, Any]] = [
-        {
-            "system": _primary_system,
-            "code": primary_code,
-            "display": primary_display,
-        }
-    ]
+    # No primary coding without a code (an empty ``code`` is invalid FHIR);
+    # the text and the other country's coding still describe it.
+    coding_entries: list[dict[str, Any]] = (
+        [{"system": _primary_system, "code": primary_code, "display": primary_display}] if primary_code else []
+    )
 
     # Issue #1701 Phase 4d.1: when ``procedure_type`` matches a verified
     # keyword in ``codes/data/procedure-phrase-to-snomed.yaml``, attach the SNOMED coding
@@ -231,7 +238,7 @@ def _build_procedure(
         ),
         "status": "completed",
         "code": {
-            "coding": coding_entries,
+            **({"coding": coding_entries} if coding_entries else {}),
             "text": primary_display,
         },
         "subject": patient_ref(patient_id),

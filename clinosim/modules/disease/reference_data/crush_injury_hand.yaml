@@ -218,8 +218,8 @@ drugs:
 procedure:
   postoperative_pain_level: 0.6   # operative-day pain floor (Issue #2080)
   type: "complex hand surgery / replantation"
-  procedure_code_jp: "K089"
-  procedure_code_us: "20838"
+  procedure_code_jp: "K0882"
+  procedure_code_us: "20816"
   typical_duration_minutes: {mean: 150, sd: 60, min: 60, max: 360}
   anesthesia: "general"
   estimated_blood_loss_ml: {mean: 150, sd: 100, min: 30, max: 500}
