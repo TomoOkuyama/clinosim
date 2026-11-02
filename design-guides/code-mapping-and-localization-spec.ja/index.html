@@ -2872,7 +2872,7 @@
 <tr>
 <td>HL7 terminology</td>
 <td><code>hl7-*.yaml</code></td>
-<td>汎用関数、<code>codes/hl7_encounter.py</code> (§11)</td>
+<td>汎用関数、<code>codes/hl7_encounter.py</code> (型付きの名前。レジストリと照合)</td>
 <td>—</td>
 </tr>
 <tr>
@@ -3468,7 +3468,7 @@
 <li><code>clinosim/codes/</code> の外にコード体系 URI の文字列リテラルを書く。<code>get_system_uri</code> を使う。例外は URI の系統を表す接頭辞リストだけ。</li>
 <li><code>clinosim/codes/</code> の外で <code>codes/data/*.yaml</code> を直接読む、または <code>clinosim.codes.loader._load_system</code> を import する。ソースごとのアクセサか <code>data_table</code> を使う。</li>
 <li>ある権威の参照規則を、その権威のアクセサの外で実装する (§2.2)。</li>
-<li>Python の比較式にコードのリテラルを書く、またはコードや表示名を Python の dict・list・enum に持つ (CPT、LOINC、SNOMED、ICD、YJ、HL7 …)。value set、カタログ、レジストリファイル、名前付き概念を使う。</li>
+<li>Python の比較式にコードのリテラルを書く、またはコードや表示名を Python の dict・list・enum に持つ (CPT、LOINC、SNOMED、ICD、YJ、HL7 …)。value set、カタログ、レジストリファイル、名前付き概念を使う。唯一の例外は、登録済みのコードに型付きの名前を付けるだけで、全メンバーを読み込み時にレジストリファイルと照合する enum (<code>codes/hl7_encounter.py</code>)。</li>
 <li>同じ語彙やコード対応の 2 つ目の表を作る。語彙自身の表の横に置く言語別の表も含む。</li>
 <li>薬・検査・病態を自由文字列の部分一致で同定する。カタログ id、正規の検査名、value set を使う。自由文字列から薬を同定してよいのは <code>identify_drug</code> だけ。</li>
 <li>表示を選ぶために言語をリテラルと比較する (<code>lang == "ja"</code>、<code>lang != "ja"</code>)、または <code>is_jp</code> で選ぶ。§4.2 を使う。</li>
@@ -3597,10 +3597,6 @@
 <tr>
 <td>JLAC10 / JP-CLINS の参照が汎用ローダに、MEDIS が ICD-10 のモジュールにあり、YJ / HOT は薬カタログのモジュールからしか引けない (§2.2)</td>
 <td>#2463</td>
-</tr>
-<tr>
-<td><code>codes/hl7_encounter.py</code> が HL7 の 3 つの語彙を StrEnum で書き写している (§9)</td>
-<td>#2464</td>
 </tr>
 <tr>
 <td>データ YAML に <code>metadata.kind</code> のヘッダと kind ごとの schema 検証が無い (§3.1)</td>

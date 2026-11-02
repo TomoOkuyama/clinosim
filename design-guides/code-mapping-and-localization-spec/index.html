@@ -2872,7 +2872,7 @@
 <tr>
 <td>HL7 terminology</td>
 <td><code>hl7-*.yaml</code></td>
-<td>generic functions; <code>codes/hl7_encounter.py</code> (§11)</td>
+<td>generic functions; <code>codes/hl7_encounter.py</code> (typed names, checked against the registry)</td>
 <td>—</td>
 </tr>
 <tr>
@@ -3468,7 +3468,7 @@
 <li>A code-system URI string literal outside <code>clinosim/codes/</code>. Use <code>get_system_uri</code>. Prefix lists that name URI families are the only exception.</li>
 <li>Reading a <code>codes/data/*.yaml</code> file directly, or importing <code>clinosim.codes.loader._load_system</code>, outside <code>clinosim/codes/</code>. Use the per-source accessor or <code>data_table</code>.</li>
 <li>An authority's lookup rule implemented outside that authority's accessor (§2.2).</li>
-<li>A code literal in a Python comparison, or a Python dict, list or enum of codes or displays (CPT, LOINC, SNOMED, ICD, YJ, HL7, ...). Use a value set, a catalog, a registry file or a named concept.</li>
+<li>A code literal in a Python comparison, or a Python dict, list or enum of codes or displays (CPT, LOINC, SNOMED, ICD, YJ, HL7, ...). Use a value set, a catalog, a registry file or a named concept. The one exception is an enum that only names registered codes for typing and checks every member against its registry file at import (<code>codes/hl7_encounter.py</code>).</li>
 <li>A second table for the same vocabulary or code mapping, including a per-language table beside the vocabulary's own.</li>
 <li>Identifying a drug, lab or condition by substring of free text. Use the catalog id, canonical lab name or value set; <code>identify_drug</code> is the one sanctioned free-text drug matcher.</li>
 <li>Comparing a language with a literal (<code>lang == "ja"</code>, <code>lang != "ja"</code>) or selecting by <code>is_jp</code> to pick a display. Use §4.2.</li>
@@ -3597,10 +3597,6 @@
 <tr>
 <td>JLAC10 / JP-CLINS lookups sit in the generic loader, MEDIS in the ICD-10 module, YJ / HOT only in the drug catalog module (§2.2)</td>
 <td>#2463</td>
-</tr>
-<tr>
-<td><code>codes/hl7_encounter.py</code> restates three HL7 vocabularies as StrEnums (§9)</td>
-<td>#2464</td>
 </tr>
 <tr>
 <td>Data YAMLs lack the <code>metadata.kind</code> header and per-kind schema validation (§3.1)</td>
