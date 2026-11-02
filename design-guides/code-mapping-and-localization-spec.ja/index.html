@@ -3267,6 +3267,10 @@
 <td><code>locale.localized</code>: <code>localized(entry, lang, *, fallback)</code>, <code>localized_field(record, base, lang, *, fallback)</code>, <code>label(catalog, section, key, lang, *, fallback)</code></td>
 <td>言語マップ、<code>&lt;base&gt;_&lt;lang&gt;</code> フィールド、語彙カタログから値を選ぶ唯一の処理 (§6)。<code>t</code>、<code>resolve_localized_display</code>、<code>resolve_text</code> はこれに委譲する</td>
 </tr>
+<tr>
+<td><code>locale.table</code>: <code>LocalizedTable.get(key, lang, *, fallback)</code>, <code>localized_tables()</code></td>
+<td>すべての表示表・翻訳表を読む基底クラス (§2.3)。<code>vocab_display</code>、<code>imaging_exam_display</code>、<code>prompt_label</code>、<code>narrative_label</code> はこれに委譲する。<code>localized_tables()</code> はテスト用に全表を列挙する</td>
+</tr>
 </tbody>
 </table>
 <h3 id="43-自由文字列の名称-clinosimlocalefree_text">4.3 自由文字列の名称 (<code>clinosim.locale.free_text</code>)<a class="headerlink" href="#43-自由文字列の名称-clinosimlocalefree_text" title="Permanent link">&para;</a></h3>
@@ -3539,7 +3543,11 @@
 <td><code>tests/unit/test_third_country_fallbacks_2203.py</code></td>
 </tr>
 <tr>
-<td>すべてのエントリが英語を持つ。YAML のヘッダと kind ごとの schema。基底クラスの処理を上書きしない</td>
+<td><code>CodeSystem</code> / <code>LocalizedTable</code> の処理を上書きしない。表示表のすべてのエントリが英語を持つ (#2460 に紐づけたラチェット)</td>
+<td><code>tests/unit/codes/test_code_system_base_2470.py</code>、<code>tests/unit/locale/test_localized_table_2471.py</code></td>
+</tr>
+<tr>
+<td>YAML のヘッダと kind ごとの schema</td>
 <td>まだ無い (§11)</td>
 </tr>
 </tbody>
@@ -3554,10 +3562,6 @@
 </tr>
 </thead>
 <tbody>
-<tr>
-<td>表示表が個別の関数で読み込まれ、見つからないときの扱いもそれぞれ違う。<code>LocalizedTable</code> になっていない (§2.3)</td>
-<td>#2471</td>
-</tr>
 <tr>
 <td>narrative のレンダラが、日本語だけの処理 (主訴バリエーション、CC/PE 整合、daily trajectory、JP のコード選択) を言語リテラルで切り替えている (12 ファイル 18 箇所)</td>
 <td>#2483</td>

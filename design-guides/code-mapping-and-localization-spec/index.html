@@ -3267,6 +3267,10 @@
 <td><code>locale.localized</code>: <code>localized(entry, lang, *, fallback)</code>, <code>localized_field(record, base, lang, *, fallback)</code>, <code>label(catalog, section, key, lang, *, fallback)</code></td>
 <td>the one value selection for language maps, <code>&lt;base&gt;_&lt;lang&gt;</code> fields and vocabulary catalogs (§6). <code>t</code>, <code>resolve_localized_display</code> and <code>resolve_text</code> delegate to it</td>
 </tr>
+<tr>
+<td><code>locale.table</code>: <code>LocalizedTable.get(key, lang, *, fallback)</code>, <code>localized_tables()</code></td>
+<td>the base class every display and translation table is read through (§2.3); <code>vocab_display</code>, <code>imaging_exam_display</code>, <code>prompt_label</code> and <code>narrative_label</code> delegate to it; <code>localized_tables()</code> lists every table for tests</td>
+</tr>
 </tbody>
 </table>
 <h3 id="43-free-text-names-clinosimlocalefree_text">4.3 Free-text names (<code>clinosim.locale.free_text</code>)<a class="headerlink" href="#43-free-text-names-clinosimlocalefree_text" title="Permanent link">&para;</a></h3>
@@ -3539,7 +3543,11 @@
 <td><code>tests/unit/test_third_country_fallbacks_2203.py</code></td>
 </tr>
 <tr>
-<td>Every entry has English; YAML header and schema per kind; base-class operations not overridden</td>
+<td><code>CodeSystem</code> / <code>LocalizedTable</code> operations not overridden; every display-table entry has English (ratchet pinned to #2460)</td>
+<td><code>tests/unit/codes/test_code_system_base_2470.py</code>, <code>tests/unit/locale/test_localized_table_2471.py</code></td>
+</tr>
+<tr>
+<td>YAML header and schema per kind</td>
 <td>none yet (§11)</td>
 </tr>
 </tbody>
@@ -3554,10 +3562,6 @@
 </tr>
 </thead>
 <tbody>
-<tr>
-<td>Display tables are loaded by separate functions with their own miss handling, not by <code>LocalizedTable</code> (§2.3)</td>
-<td>#2471</td>
-</tr>
 <tr>
 <td>Narrative renderers gate Japanese-only pipelines (chief-complaint variants, CC/PE consistency, daily trajectory, JP code choices) on the language literal (18 comparisons in 12 files)</td>
 <td>#2483</td>
