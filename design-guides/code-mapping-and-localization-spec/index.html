@@ -3127,6 +3127,11 @@
 <td><code>{}</code></td>
 </tr>
 <tr>
+<td><code>code_system(system)</code> / <code>system_keys()</code></td>
+<td>the system's <code>CodeSystem</code> instance (§2.3) / every system key, for tests that iterate all systems</td>
+<td><code>None</code> / —</td>
+</tr>
+<tr>
 <td><code>jp_clins_lab_system(kind)</code> / <code>jlac10_display(code, lang)</code></td>
 <td>JP lab CodeSystem URI / JLAC10 display</td>
 <td>raises / <code>None</code></td>
@@ -3549,10 +3554,6 @@
 </tr>
 </thead>
 <tbody>
-<tr>
-<td>The shared lookup, language selection and fallback are module functions in <code>codes/loader.py</code>, not a <code>CodeSystem</code> base class (§2.3)</td>
-<td>#2470</td>
-</tr>
 <tr>
 <td>Display tables are loaded by separate functions with their own miss handling, not by <code>LocalizedTable</code> (§2.3)</td>
 <td>#2471</td>

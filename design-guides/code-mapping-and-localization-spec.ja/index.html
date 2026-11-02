@@ -3127,6 +3127,11 @@
 <td><code>{}</code></td>
 </tr>
 <tr>
+<td><code>code_system(system)</code> / <code>system_keys()</code></td>
+<td>体系の <code>CodeSystem</code> インスタンス (§2.3) / 全体系を走査するテスト用の全システムキー</td>
+<td><code>None</code> / —</td>
+</tr>
+<tr>
 <td><code>jp_clins_lab_system(kind)</code> / <code>jlac10_display(code, lang)</code></td>
 <td>JP 検査 CodeSystem URI / JLAC10 表示名</td>
 <td>例外 / <code>None</code></td>
@@ -3549,10 +3554,6 @@
 </tr>
 </thead>
 <tbody>
-<tr>
-<td>共通の参照・言語選択・フォールバックが <code>codes/loader.py</code> のモジュール関数で、基底クラス <code>CodeSystem</code> になっていない (§2.3)</td>
-<td>#2470</td>
-</tr>
 <tr>
 <td>表示表が個別の関数で読み込まれ、見つからないときの扱いもそれぞれ違う。<code>LocalizedTable</code> になっていない (§2.3)</td>
 <td>#2471</td>
