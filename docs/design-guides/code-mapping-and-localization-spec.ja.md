@@ -408,7 +408,6 @@ occupation:
 | FHIR の出力処理と共有の補助関数が言語を `"ja"` と比較している | #2457 |
 | `codes/data/fhir-ja-labels.yaml` が、経路・頻度・固定ラベルの日本語だけの 2 つ目の表になっている (§5.3) | #2459 |
 | slug をキーにした表示表に `en` の無いエントリがある (§6.5) | #2460 |
-| `chief_complaint_translations.yaml` が、プロトコルの文字列を英語の文をキーにして訳している (§3.9) | #2461 |
 | `clinosim-clinician-role.yaml`、`perinatal.yaml`、`chronic_followup.yaml`、`pregnancy_substitutions.yaml` が言語の接尾辞付きのフィールド名を使っている (§3.1) | #2462 |
 | JLAC10 / JP-CLINS の参照が汎用ローダに、MEDIS が ICD-10 のモジュールにあり、YJ / HOT は薬カタログのモジュールからしか引けない (§2.2) | #2463 |
 | データ YAML に `metadata.kind` のヘッダと kind ごとの schema 検証が無い (§3.1) | #2465 |
