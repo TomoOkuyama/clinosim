@@ -26,6 +26,7 @@ _RESOLVERS = {
         "jp_clins_lab_system",
         "jlac10_display",
         "lookup",
+        "slug_to_code",
     ],
     "clinosim.codes.valuesets": ["concept_group", "has_condition", "patient_condition_names", "code_by_chronic_prefix"],
     "clinosim.codes.drugs": ["resolve_drug", "get_drug", "find_drug", "drug_key", "same_drug"],
@@ -47,8 +48,15 @@ _RESOLVERS = {
         "chronic_followup_interval_months",
     ],
     "clinosim.locale.i18n": ["t"],
+    "clinosim.locale.localized": ["localized", "localized_field", "label"],
+    "clinosim.locale.free_text": [
+        "localize_drug_name",
+        "localize_procedure_name",
+        "localize_allergen_name",
+        "localize_free_text",
+    ],
     "clinosim.countries": ["lang_for", "is_jp", "is_us"],
-    "clinosim.modules.output.fhir_r4.lib.common": ["dual_slot_concept"],
+    "clinosim.modules.output.fhir_r4.lib.common": ["dual_slot_concept", "system_coding"],
     "clinosim.modules._shared": ["practitioner_name", "pick_localized_field"],
     "clinosim.simulator.event_refs": ["event_ref_kind"],
 }
@@ -72,9 +80,29 @@ def test_every_file_the_spec_names_exists() -> None:
 
 
 def test_every_deviation_points_at_an_issue() -> None:
-    section = _SPEC.read_text(encoding="utf-8").split("## 9. Known deviations", 1)[1]
+    section = re.split(r"\n## \d+\. Known deviations\n", _SPEC.read_text(encoding="utf-8"), maxsplit=1)[1]
     rows = [line for line in section.splitlines() if line.startswith("| ") and not line.startswith("| Deviation")]
     rows = [r for r in rows if not set(r) <= set("|- ")]
     # No open deviation is written as "None: …" instead of an empty table.
     assert rows or "\nNone:" in section.split("\n## ", 1)[0]
+    assert len(rows) == len({r.rsplit("|", 2)[-2].strip() for r in rows}), "one row per issue"
     assert all(re.search(r"\| #\d+ \|$", r) for r in rows), rows
+
+
+def test_every_enforcing_test_the_spec_names_exists() -> None:
+    text = _SPEC.read_text(encoding="utf-8")
+    paths = set(re.findall(r"`(tests/[\w/]+\.py)`", text))
+    assert paths
+    missing = sorted(p for p in paths if not (_ROOT / p).exists())
+    assert not missing, missing
+
+
+def test_japanese_counterpart_matches_sections_and_deviations() -> None:
+    en = _SPEC.read_text(encoding="utf-8")
+    ja = _SPEC.with_name(_SPEC.stem + ".ja.md").read_text(encoding="utf-8")
+
+    def numbered(text: str) -> list[str]:
+        return re.findall(r"^#{2,3} (\d+(?:\.\d+)?)\.? ", text, flags=re.M)
+
+    assert numbered(en) == numbered(ja)
+    assert re.findall(r"\| (#\d+) \|$", en, flags=re.M) == re.findall(r"\| (#\d+) \|$", ja, flags=re.M)
