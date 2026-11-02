@@ -30,7 +30,7 @@
 **権威**とは、コード体系を定める機関 (NLM、WHO、MHLW、Regenstrief、SNOMED International、HL7、AMA、JSLM、MEDIS など) をいう。権威ごとの資料は、他の権威の資料と混ぜない。
 
 1. **データ。** コード体系ごとに、システムキーを名前にしたレジストリファイルを 1 つ置く (§3.3)。その体系への内部キー対応表や crosswalk は、体系名を付けた別ファイルにする (`loinc-maps.yaml`、`snomed-maps.yaml`)。
-2. **アクセサ。** 汎用のレジストリ関数 (`display`、`code_exists`、`get_system_uri`) 以外の参照 (対応付け、階層、製品の選択、正規 URI の規則など) が要る権威は、モジュール `clinosim/codes/<authority>.py` を 1 つ持つ。そのモジュールは自分の権威のファイルだけを読む。汎用関数だけで足りる権威 (HL7 terminology、CVX、DICOM、OMB) はモジュールを持たない。
+2. **アクセサ。** すべてのコード体系は基底クラス `CodeSystem` (§2.3) のインスタンスとする。フックや独自の参照 (対応付け、階層、製品の選択、正規 URI の規則など) が要る権威は、`clinosim/codes/<authority>.py` にサブクラスを 1 つ持ち、そのモジュールは自分の権威のファイルだけを読む。基底クラスだけで足りる権威 (HL7 terminology、CVX、DICOM、OMB、clinosim 独自の体系) は、レジストリファイルから作る素のインスタンスで、モジュールを持たない。
 3. **スナップショット。** 権威から照合済みで取り出したデータは `clinosim/codes/authoritative/` に、権威とリリースごとに 1 ファイルで置き (`loinc_2_82_tx.json`、`rxnorm_rxnav_snapshot.json` など)、テストでレジストリと突き合わせる。
 4. **カタログは権威をつなぐだけで、権威を持たない。** カタログ (薬、処置、職種) は内部 id、名称、複数の権威のコードを持つ。各コードはその権威のアクセサで解決し、権威の参照規則を再実装しない。
 
@@ -52,6 +52,24 @@
 | HL7 terminology | `hl7-*.yaml` | 汎用関数、`codes/hl7_encounter.py` (§11) | — |
 | JP Core / JP-CLINS / JP eCheckup / MHLW 文書コード | `jpfhir-*.yaml`、`jp-*.yaml`、`mhlw-*.yaml`、`fhir-profiles-*.yaml` | 汎用関数 | — |
 | clinosim 独自の体系 | `clinosim-*.yaml` | 汎用関数 | — |
+
+### 2.3 基底クラス
+
+すべてのソースに共通する処理は、基底クラスに 1 度だけ実装し、ソースごとに再実装も上書きもしない。
+
+**`CodeSystem` (codes 層)。** システムキーごとに 1 インスタンスで、そのレジストリファイル (§3.3) から作る。
+
+- **基底クラスが持ち、上書き不可のもの。** `display(code, lang)`、`code_exists(code, *, exact)`、`uri`、言語の正規化 (§5.1)、解決の順序 (§4.4)、フォールバックの順序 (§6)、見つからないときの扱い (`None` を返し、コードは返さない)。サブクラスはこれらを上書きしない。テストで確認する。
+- **サブクラスが実装してよいフック。** `parents(code)`: そのコードを一般化したコードを、詳細なものから順に返す (既定は無し。ICD-10 と ICD-10-CM は小数点以下を除いたコード)。参照の兄弟体系はデータとして宣言し (§3.3)、コードには書かない。
+- **権威固有の参照。** サブクラスは権威固有の参照をメソッドとして足す。例: 薬と経路区分に対応する YJ 製品、内部キーの LOINC コード、処置の語句に対応する SNOMED コード。
+- **レジストリ。** すべてのシステムキーはちょうど 1 つのインスタンスに対応し、テストで全体系を走査できる (スナップショット、URI、`en` の網羅)。
+
+**`LocalizedTable` (locale 層)。** 表示表・翻訳表 (§3.7、§3.8) ごとに 1 インスタンス。
+
+- **基底クラスが持ち、上書き不可のもの。** 読み込みと kind の検証、§6 のフォールバック順序に従う `get(key, lang, *, fallback)`、`en` の規則。
+- **宣言するプロパティ。** 未知の slug を人間可読化するか (§6.4) は表のプロパティとし、slug の網羅をテストしている表に限って許す。
+
+**入口。** 利用側はこれまでどおり §4 のモジュール関数 (`codes.display`、`loinc_display`、`vocab_display` など) を呼ぶ。これらの関数がインスタンスに委譲する。利用側はインスタンスを作ったり継承したりしない。カタログ (§3.5) は `CodeSystem` のサブクラスにしない。カタログは内部 id を持ち、コードは `CodeSystem` のインスタンスで解決する。
 
 ## 3. YAML の書き方
 
@@ -237,8 +255,10 @@ occupation:
 
 ### 4.4 `display` がコードを解決する順序
 
+基底クラス `CodeSystem` (§2.3) が、すべての体系をこの順序で解決する。
+
 1. 体系内の完全一致。
-2. 親コード (`E11.9` → `E11`)。コードを一般化したもので、そのコードについても正しい。
+2. 体系の `parents` フックが返すコード (`E11.9` → `E11`)。コードを一般化したもので、そのコードについても正しい。
 3. 体系の参照兄弟体系 (§3.3) で 1〜2 を繰り返す。
 4. それでも無ければ `None`。より詳細な子コードの表示名を、粗いコードに使うことはしない (§11)。
 
@@ -297,7 +317,7 @@ occupation:
 
 1. コードを照合する (§8)。
 2. `codes/data/<system-key>.yaml` を足す (§3.3)。ファイルに URI が無ければ `_BUILTIN_URIS` にキーを足す。
-3. 汎用関数で足りない権威なら `codes/<authority>.py` を足し、§2.2 と §4.1 に載せる。
+3. フックや独自の参照が要る権威なら、`codes/<authority>.py` に `CodeSystem` のサブクラスを足し (§2.3)、§2.2 と §4.1 に載せる。要らなければレジストリファイルだけで素のインスタンスになる。
 4. 権威がスナップショットを公開していれば、スナップショットとそのテストを足す。
 5. 表示名が英語のみの体系なら `is_english_only_system` に足す。
 
@@ -316,7 +336,7 @@ occupation:
 ### 7.4 新しい語彙
 
 1. コードを持つ語彙はコード体系として扱い (§7.1)、ラベルもそのレジストリファイルに置く。
-2. コードを持たない語彙は、表示表 `locale/shared/<vocabulary>.yaml` を 1 つ (§3.7、すべての slug に `en`) と解決関数を 1 つ足し、解決関数を §4.2 に載せる。
+2. コードを持たない語彙は、表示表 `locale/shared/<vocabulary>.yaml` を 1 つ (§3.7、すべての slug に `en`) 足して `LocalizedTable` (§2.3) として読み、入口の関数を 1 つ §4.2 に載せる。
 
 ## 8. コードの追加・変更手順
 
@@ -371,7 +391,7 @@ occupation:
 | 残っている言語接尾辞付きの YAML フィールド (§11) は `<base>_ja` と `<base>_en` を対で持つ | `tests/unit/locale/test_localized_field_shape_2398.py` |
 | 日本語以外の出力に日本語を出さない、Python に日本語リテラルを書かない | `tests/unit/test_no_japanese_fallback_2273.py`、`tests/unit/test_no_japanese_literals_2277.py`、`tests/unit/test_narrative_literals_2400.py`、`tests/unit/test_module_literals_2406.py`、`tests/unit/test_simulator_literals_2405.py`、`tests/unit/output/test_fhir_lib_literals_2402.py`、`tests/unit/output/test_fhir_lab_condition_literals_2403.py`、`tests/unit/output/test_fhir_emitter_literals_2404.py` |
 | 第三国を米国扱いしない | `tests/unit/test_third_country_fallbacks_2203.py` |
-| すべてのエントリが英語を持つ。YAML のヘッダと kind ごとの schema | まだ無い (§11) |
+| すべてのエントリが英語を持つ。YAML のヘッダと kind ごとの schema。基底クラスの処理を上書きしない | まだ無い (§11) |
 
 ## 11. 既知の逸脱
 
@@ -379,6 +399,8 @@ occupation:
 
 | 逸脱 | Issue |
 |---|---|
+| 共通の参照・言語選択・フォールバックが `codes/loader.py` のモジュール関数で、基底クラス `CodeSystem` になっていない (§2.3) | #2470 |
+| 表示表が個別の関数で読み込まれ、見つからないときの扱いもそれぞれ違う。`LocalizedTable` になっていない (§2.3) | #2471 |
 | `codes.display` が言語の引数を完全一致で比べる。国コード・大文字小文字の正規化も、BCP-47 主タグへのフォールバックもない (§5.1) | #2453 |
 | `display` / `code_exists` が、コードの最初に登録された子コードにフォールバックする (§4.4) | #2454 |
 | 言語選択のガードが `lang == "ja"` / `lang != "ja"` の比較を検出しない (§10) | #2455 |
