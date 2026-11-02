@@ -15,8 +15,7 @@ from functools import cache
 from pathlib import Path
 from typing import Any
 
-import yaml
-
+from clinosim.datafiles import load_data_yaml
 from clinosim.locale.i18n import t
 
 # Re-export ProviderResponse from the new providers subpackage so existing
@@ -91,8 +90,7 @@ class LLMTaskType(StrEnum):
 @cache
 def _task_categories_raw() -> dict[str, str]:
     path = Path(__file__).resolve().parent / "reference_data" / "task_categories.yaml"
-    with path.open(encoding="utf-8") as fh:
-        data = yaml.safe_load(fh) or {}
+    data = load_data_yaml(path) or {}
     return {str(k): str(v) for k, v in (data.get("categories", {}) or {}).items()}
 
 
@@ -141,8 +139,7 @@ TASK_CATEGORY: dict[LLMTaskType, LLMTaskCategory] = _task_category_from_yaml()
 @cache
 def _task_loincs_raw() -> dict[str, str]:
     path = Path(__file__).resolve().parent / "reference_data" / "task_loincs.yaml"
-    with path.open(encoding="utf-8") as fh:
-        data = yaml.safe_load(fh) or {}
+    data = load_data_yaml(path) or {}
     return {str(k): str(v) for k, v in (data.get("loincs", {}) or {}).items()}
 
 
@@ -151,8 +148,7 @@ def _document_loinc_from_yaml() -> dict[LLMTaskType, str]:
     definition, Issue #2344), plus the template-only tasks of task_loincs.yaml."""
     # Read the data file directly: the document package imports this module.
     specs_path = Path(__file__).resolve().parents[1] / "document" / "reference_data" / "document_type_specs.yaml"
-    with specs_path.open(encoding="utf-8") as fh:
-        specs = (yaml.safe_load(fh) or {}).get("specs") or {}
+    specs = (load_data_yaml(specs_path) or {}).get("specs") or {}
     codes = {str(k): str(v["loinc_code"]) for k, v in specs.items()}
     overlap = sorted(set(codes) & set(_task_loincs_raw()))
     if overlap:

@@ -11,8 +11,8 @@ from pathlib import Path
 from typing import Any
 
 import numpy as np
-import yaml
 
+from clinosim.datafiles import load_data_yaml
 from clinosim.modules._shared import is_jp, normalize_probabilities
 
 _HERE = Path(__file__).resolve().parent
@@ -67,8 +67,7 @@ def _validate_triage_protocols(data: dict[str, Any]) -> None:
 @lru_cache(maxsize=1)
 def load_triage_protocols() -> dict[str, Any]:
     """Load triage_protocols.yaml + validate."""
-    with (_REF_DIR / "triage_protocols.yaml").open(encoding="utf-8") as f:
-        data = yaml.safe_load(f)
+    data = load_data_yaml(_REF_DIR / "triage_protocols.yaml")
     _validate_triage_protocols(data)
     return data
 

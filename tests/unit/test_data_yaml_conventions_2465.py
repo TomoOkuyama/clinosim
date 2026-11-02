@@ -3,8 +3,8 @@
 Every data YAML under ``clinosim/codes/data``, ``clinosim/locale/shared`` and
 ``clinosim/locale/<cc>/code_mapping_*.yaml`` starts with a ``metadata`` block
 whose ``kind`` is one of the specification's kinds, and the kind belongs where
-the file lives. Data YAML is parsed by ``clinosim.datafiles``; the remaining
-direct parses are a ratchet pinned to #2494.
+the file lives. Data YAML is parsed by ``clinosim.datafiles``; only configuration and
+input files are parsed directly.
 """
 
 from __future__ import annotations
@@ -29,67 +29,21 @@ _CODES_KINDS = {"code-system", "map", "crosswalk", "catalog", "value-set"}
 _LOCALE_KINDS = {"display-table", "translation-table", "phrase-catalog", "reference"}
 
 
-# file → direct yaml.safe_load / yaml.load calls not yet moved to
-# clinosim.datafiles (Issue #2494). `locale/i18n.py` keeps its strict
-# duplicate-key parser and strips the header itself.
+# Files that parse YAML that is not data YAML — user configuration, dataset
+# presets, LLM prompt templates and paths passed in by the caller — with the
+# number of parses (Issue #2494). Data YAML goes through clinosim.datafiles;
+# `locale/i18n.py` keeps its duplicate-key-strict parser and strips the header
+# itself.
 _DIRECT_PARSES = {
-    "audit/axes/silent_no_op.py": 1,
-    "countries.py": 1,
-    "dataset/__init__.py": 1,
-    "determinism.py": 1,
-    "locale/_io.py": 1,
-    "modules/allergy/engine.py": 2,
-    "modules/antibiotic/engine.py": 2,
-    "modules/care_level/engine.py": 2,
-    "modules/clinical_course/engine.py": 1,
-    "modules/code_status/engine.py": 2,
-    "modules/device/engine.py": 1,
-    "modules/diagnosis/engine.py": 1,
-    "modules/disease/protocol.py": 1,
-    "modules/document/audit.py": 1,
-    "modules/document/narrative/_chronic_soap.py": 1,
-    "modules/document/narrative/_extra_context_builder.py": 1,
-    "modules/document/narrative/_hedging.py": 1,
-    "modules/document/narrative/registry.py": 2,
-    "modules/document/narrative/semantic_check.py": 1,
-    "modules/document/reference_data_loaders.py": 4,
-    "modules/drug_safety/demographic.py": 1,
-    "modules/drug_safety/engine.py": 3,
-    "modules/encounter/protocol.py": 2,
-    "modules/facility/hospital_state.py": 1,
-    "modules/family_history/engine.py": 2,
-    "modules/hai/__init__.py": 1,
-    "modules/hai/engine.py": 1,
-    "modules/hai/lab_lift.py": 1,
-    "modules/healthcare_system/loader.py": 1,
-    "modules/imaging/engine.py": 3,
-    "modules/immunization/engine.py": 1,
-    "modules/llm_service/engine.py": 3,
-    "modules/llm_service/factory.py": 1,
-    "modules/llm_service/prompt_registry.py": 1,
-    "modules/longitudinal/loader.py": 1,
-    "modules/monitoring/engine.py": 1,
-    "modules/monitoring/mapping.py": 1,
-    "modules/newborn/engine.py": 1,
-    "modules/nursing/engine.py": 1,
-    "modules/observation/engine.py": 3,
-    "modules/observation/microbiology.py": 1,
-    "modules/observation/nursing.py": 1,
-    "modules/order/panel_grouping.py": 1,
-    "modules/output/fhir_r4/labs/anthropometrics.py": 1,
-    "modules/output/fhir_r4/lib/common.py": 1,
-    "modules/pediatric/calendar.py": 1,
-    "modules/physiology/engine.py": 2,
-    "modules/population/_pediatric_anthropometry.py": 1,
-    "modules/prophylaxis/engine.py": 1,
-    "modules/sdoh/engine.py": 1,
-    "modules/triage/engine.py": 1,
-    "simulator/_setup.py": 1,
-    "simulator/enumerate.py": 1,
-    "simulator/event_refs.py": 1,
-    "simulator/medication_pipeline.py": 1,
-    "simulator/sex_gating.py": 1,
-    "types/config.py": 1,
+    "dataset/__init__.py": 1,  # dataset preset spec
+    "determinism.py": 1,  # determinism configuration
+    "modules/document/narrative/semantic_check.py": 1,  # a narrative file passed in by the caller
+    "modules/facility/hospital_state.py": 1,  # hospital operations configuration
+    "modules/healthcare_system/loader.py": 1,  # healthcare-system configuration
+    "modules/llm_service/factory.py": 1,  # LLM service configuration
+    "modules/llm_service/prompt_registry.py": 1,  # LLM prompt templates
+    "simulator/_setup.py": 1,  # hospital configuration passed on the command line
+    "types/config.py": 1,  # simulation configuration
 }
 
 

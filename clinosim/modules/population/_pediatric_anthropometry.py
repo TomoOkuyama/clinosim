@@ -25,8 +25,7 @@ from functools import lru_cache
 from pathlib import Path
 from typing import Any
 
-import yaml
-
+from clinosim.datafiles import load_data_yaml
 from clinosim.modules._shared import is_jp
 
 _REFERENCE_PATH = Path(__file__).resolve().parent / "reference_data" / "anthropometric_reference.yaml"
@@ -46,8 +45,7 @@ _FALLBACK_BMI_SD = 1.0
 
 @lru_cache(maxsize=1)
 def _load_reference() -> dict[str, Any]:
-    with _REFERENCE_PATH.open() as f:
-        return yaml.safe_load(f) or {}
+    return load_data_yaml(_REFERENCE_PATH) or {}
 
 
 def pediatric_upper_age() -> int:

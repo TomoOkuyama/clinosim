@@ -11,7 +11,7 @@ from functools import lru_cache
 from pathlib import Path
 from typing import Literal
 
-import yaml
+from clinosim.datafiles import load_data_yaml
 
 __all__ = ["country_slot", "is_jp", "is_us", "lang_for", "lang_name", "output_language_instruction"]
 
@@ -53,7 +53,7 @@ _COUNTRY_LANGUAGE_YAML = Path(__file__).parent / "locale" / "shared" / "country_
 @lru_cache(maxsize=1)
 def _country_language_yaml() -> dict:
     try:
-        raw = yaml.safe_load(_COUNTRY_LANGUAGE_YAML.read_text(encoding="utf-8")) or {}
+        raw = load_data_yaml(_COUNTRY_LANGUAGE_YAML) or {}
     except FileNotFoundError:
         raw = {}
     return raw if isinstance(raw, dict) else {}

@@ -8,9 +8,8 @@ from __future__ import annotations
 
 from pathlib import Path
 
-import yaml
-
 from clinosim.codes import lookup
+from clinosim.datafiles import load_data_yaml
 from clinosim.modules.diagnosis._diagnosis_thresholds import (
     DEFAULT_CONFIRMATION_THRESHOLD,
     ELDERLY_HF_PRIOR_AGE_THRESHOLD,
@@ -34,8 +33,7 @@ def _load_reference_data() -> tuple[
 
     Display names are not stored; they are resolved at use time via clinosim.codes.
     """
-    with open(_REF_DIR / "builtin_differentials.yaml", encoding="utf-8") as f:
-        data = yaml.safe_load(f) or {}
+    data = load_data_yaml(_REF_DIR / "builtin_differentials.yaml") or {}
     differentials = data.get("differentials", {})
     progression = {
         dx: [(float(row[0]), str(row[1])) for row in rows] for dx, rows in data.get("diagnosis_progression", {}).items()

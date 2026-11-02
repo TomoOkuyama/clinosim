@@ -18,6 +18,7 @@ from functools import cache
 from pathlib import Path
 
 from clinosim.codes.icd10 import condition_label
+from clinosim.datafiles import load_data_yaml
 from clinosim.locale.i18n import t
 from clinosim.locale.localized import localized_field
 from clinosim.modules.document.narrative._patient_info_renderers import (
@@ -57,11 +58,9 @@ from clinosim.types.document import DocumentTypeSpec, NarrativeContext
 
 @cache
 def _narrative_extras_whitelists() -> dict[str, frozenset[str]]:
-    import yaml
 
     path = Path(__file__).resolve().parents[1] / "reference_data" / "narrative_extras_whitelists.yaml"
-    with path.open(encoding="utf-8") as fh:
-        raw = yaml.safe_load(fh) or {}
+    raw = load_data_yaml(path) or {}
     out: dict[str, frozenset[str]] = {}
     for key in ("biometrics", "health_literacy"):
         rows = raw.get(key) or []

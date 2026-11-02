@@ -15,8 +15,7 @@ from functools import lru_cache
 from pathlib import Path
 from typing import Any
 
-import yaml
-
+from clinosim.datafiles import load_data_yaml
 from clinosim.modules._shared import sanitize_id_token
 from clinosim.modules.antibiotic import ANTIBIOTIC_DRUGS, ANTIBIOTIC_LOINC_LOOKUP
 from clinosim.modules.hai import HAI_TYPES
@@ -121,7 +120,7 @@ def load_narrow_ladder() -> dict[str, dict[str, list[str]]]:
     """Load + 3-way validate the PR3b-3 narrow ladder. Returns
     ``{hai_type: {organism_snomed: [drug_key, ...]}}`` where the list is the
     narrow→broad preference order."""
-    raw = yaml.safe_load(_NARROW_LADDER_YAML.read_text(encoding="utf-8"))
+    raw = load_data_yaml(_NARROW_LADDER_YAML)
     data = {k: dict(v) for k, v in dict(raw["narrow_ladder"]).items()}
     _validate_narrow_ladder(data)
     return data
@@ -135,7 +134,7 @@ def load_hai_empirical() -> dict[str, dict[str, Any]]:
     "route", "frequency"}, ...]}}``. Raises ``ValueError`` at import time if
     keys violate ``HAI_TYPES`` or any drug_key violates ``ANTIBIOTIC_DRUGS``.
     """
-    raw = yaml.safe_load(_HAI_EMPIRICAL_YAML.read_text(encoding="utf-8"))
+    raw = load_data_yaml(_HAI_EMPIRICAL_YAML)
     data = dict(raw["hai_empirical"])
 
     unknown_hai = set(data) - set(HAI_TYPES)

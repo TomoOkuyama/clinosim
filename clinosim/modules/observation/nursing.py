@@ -10,8 +10,8 @@ from functools import lru_cache
 from pathlib import Path
 
 import numpy as np
-import yaml
 
+from clinosim.datafiles import load_data_yaml
 from clinosim.modules.observation._nursing_score_thresholds import (
     AVPU_TO_BRADEN_SENSORY,
     BARTHEL_DEFAULT,
@@ -44,8 +44,7 @@ _REF_DIR = _HERE / "reference_data"
 
 @lru_cache(maxsize=1)
 def _scores() -> dict:
-    with open(_REF_DIR / "nursing_scores.yaml", encoding="utf-8") as f:
-        return yaml.safe_load(f) or {}
+    return load_data_yaml(_REF_DIR / "nursing_scores.yaml") or {}
 
 
 def _band_points(value, bands) -> int:

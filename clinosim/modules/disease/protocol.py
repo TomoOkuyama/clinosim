@@ -8,8 +8,9 @@ from functools import lru_cache
 from pathlib import Path
 from typing import Any, Literal
 
-import yaml
 from pydantic import BaseModel, ConfigDict, Field
+
+from clinosim.datafiles import load_data_yaml
 
 # reference_data is in the same package: clinosim/modules/disease/reference_data/
 _HERE = Path(__file__).resolve().parent
@@ -643,8 +644,7 @@ def load_disease_protocol(disease_id: str) -> DiseaseProtocol:
     if not protocol_path.exists():
         raise FileNotFoundError(f"Disease protocol not found: {protocol_path}")
 
-    with open(protocol_path, encoding="utf-8") as f:
-        data = yaml.safe_load(f)
+    data = load_data_yaml(protocol_path)
 
     protocol = DiseaseProtocol(**data)
     _validate_incidence_block(disease_id, data.get("incidence") or {})

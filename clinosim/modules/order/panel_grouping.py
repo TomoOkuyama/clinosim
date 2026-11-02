@@ -16,7 +16,7 @@ from functools import lru_cache
 from pathlib import Path
 from typing import Any
 
-import yaml
+from clinosim.datafiles import load_data_yaml
 
 _HERE = Path(__file__).resolve().parent
 # The one panel definition, shared with result generation (Issue #2332).
@@ -130,8 +130,7 @@ def load_panel_definitions() -> dict[str, dict[str, Any]]:
         ValueError: if YAML fails schema/coverage validation.
         FileNotFoundError: if lab_panels.yaml is missing.
     """
-    with _PANEL_YAML.open("r", encoding="utf-8") as f:
-        data = yaml.safe_load(f)
+    data = load_data_yaml(_PANEL_YAML)
     panels: dict[str, dict[str, Any]] = (data or {}).get("panels") or {}
     _validate_panel_definitions(panels)
     return panels

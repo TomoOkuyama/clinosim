@@ -109,10 +109,9 @@ from functools import cache
 from pathlib import Path
 from typing import Any
 
-import yaml
-
 from clinosim import __version__ as _clinosim_version
 from clinosim.audit.registry import ModuleAuditSpec, register_audit_module
+from clinosim.datafiles import load_data_yaml
 from clinosim.modules.document import (
     ALLERGY_ID_PREFIX,
     CLINICAL_IMPRESSION_ID_PREFIX,
@@ -144,8 +143,7 @@ _JA_CHAR_RE = re.compile(r"[぀-ゟ゠-ヿ一-鿿]")
 def _ja_only_fallback_sections() -> frozenset[str]:
     """Load the KNOWN_JA_ONLY_FALLBACK_SECTIONS registry from yaml."""
     path = Path(__file__).resolve().parent / "reference_data" / "ja_only_fallback_sections.yaml"
-    with open(path, encoding="utf-8") as f:
-        data = yaml.safe_load(f) or {}
+    data = load_data_yaml(path) or {}
     sections = data.get("sections", []) or []
     return frozenset(str(s) for s in sections)
 

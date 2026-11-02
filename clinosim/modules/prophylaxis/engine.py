@@ -11,8 +11,7 @@ from functools import lru_cache
 from pathlib import Path
 from typing import Any
 
-import yaml
-
+from clinosim.datafiles import load_data_yaml
 from clinosim.locale.localized import localized_field
 
 _HERE = Path(__file__).resolve().parent
@@ -21,8 +20,7 @@ _YAML_PATH = _HERE / "reference_data" / "prophylaxis_rules.yaml"
 
 @lru_cache(maxsize=1)
 def _load_rules() -> dict[str, Any]:
-    with _YAML_PATH.open(encoding="utf-8") as fh:
-        return yaml.safe_load(fh) or {}
+    return load_data_yaml(_YAML_PATH) or {}
 
 
 def _dvt_rule() -> dict[str, Any]:

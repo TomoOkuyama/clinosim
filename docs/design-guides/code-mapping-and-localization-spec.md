@@ -397,7 +397,7 @@ These rules are common to every resolver in §4, in both layers.
 | No Japanese in non-JP output, no Japanese literals in Python | `tests/unit/test_no_japanese_fallback_2273.py`, `tests/unit/test_no_japanese_literals_2277.py`, `tests/unit/test_narrative_literals_2400.py`, `tests/unit/test_module_literals_2406.py`, `tests/unit/test_simulator_literals_2405.py`, `tests/unit/output/test_fhir_lib_literals_2402.py`, `tests/unit/output/test_fhir_lab_condition_literals_2403.py`, `tests/unit/output/test_fhir_emitter_literals_2404.py` |
 | A third country is not treated as the US | `tests/unit/test_third_country_fallbacks_2203.py` |
 | `CodeSystem` / `LocalizedTable` operations not overridden; every display-table entry has English | `tests/unit/codes/test_code_system_base_2470.py`, `tests/unit/locale/test_localized_table_2471.py` |
-| Every data YAML has a `metadata.kind` that belongs where it lives; data YAML is parsed by `clinosim.datafiles` (ratchet pinned to #2494) | `tests/unit/test_data_yaml_conventions_2465.py` |
+| Every data YAML has a `metadata.kind` that belongs where it lives; data YAML is parsed by `clinosim.datafiles` (configuration files excepted) | `tests/unit/test_data_yaml_conventions_2465.py` |
 
 ## 11. Known deviations
 
@@ -406,4 +406,4 @@ These parts of the code base do not yet conform. Each one is removed by the issu
 | Deviation | Issue |
 |---|---|
 | Narrative renderers gate Japanese-only pipelines (chief-complaint variants, CC/PE consistency, daily trajectory, JP code choices) on the language literal (18 comparisons in 12 files) | #2483 |
-| Modules parse their own YAML with `yaml.safe_load` instead of `clinosim.datafiles`; module reference-data files have no `metadata` header (§3.1) | #2494 |
+| Module reference-data YAMLs (`**/reference_data/*.yaml`, 130 of 149) have no `metadata` header and are outside the conventions test (§3.1) | #2500 |

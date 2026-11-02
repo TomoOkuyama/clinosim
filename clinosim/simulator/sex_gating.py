@@ -42,7 +42,7 @@ from functools import lru_cache
 from pathlib import Path
 from typing import Any
 
-import yaml
+from clinosim.datafiles import load_data_yaml
 
 _YAML_PATH = Path(__file__).resolve().parent / "reference_data" / "icd10_sex_restrictions.yaml"
 
@@ -60,8 +60,7 @@ def _load_restrictions() -> tuple[frozenset[str], frozenset[str]]:
         # via ValueError so CI catches it, but do not crash the simulator
         # for developers who happen to be editing the locale tree.
         return frozenset(), frozenset()
-    with open(_YAML_PATH, encoding="utf-8") as f:
-        data = yaml.safe_load(f) or {}
+    data = load_data_yaml(_YAML_PATH) or {}
     male = frozenset(str(c) for c in (data.get("male_only") or []))
     female = frozenset(str(c) for c in (data.get("female_only") or []))
     return male, female

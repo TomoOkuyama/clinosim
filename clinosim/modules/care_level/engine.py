@@ -6,8 +6,8 @@ from functools import lru_cache
 from pathlib import Path
 
 import numpy as np
-import yaml
 
+from clinosim.datafiles import load_data_yaml
 from clinosim.modules._shared import is_jp, normalize_probabilities
 
 _HERE = Path(__file__).resolve().parent
@@ -17,8 +17,7 @@ _LOCALE = _HERE.parents[1] / "locale"
 
 @lru_cache(maxsize=1)
 def load_reference() -> dict:
-    with open(_REF_DIR / "care_level.yaml", encoding="utf-8") as f:
-        return yaml.safe_load(f) or {}
+    return load_data_yaml(_REF_DIR / "care_level.yaml") or {}
 
 
 @lru_cache(maxsize=2)
@@ -29,8 +28,7 @@ def load_rates(country: str = "JP") -> dict:
     additions slot in without API churn."""
     if not is_jp(country):
         return {}
-    with open(_LOCALE / "jp" / "care_level_rates.yaml", encoding="utf-8") as f:
-        return (yaml.safe_load(f) or {}).get("weights", {})
+    return (load_data_yaml(_LOCALE / "jp" / "care_level_rates.yaml") or {}).get("weights", {})
 
 
 def _age_band(age: int, bands: list[str]) -> str:

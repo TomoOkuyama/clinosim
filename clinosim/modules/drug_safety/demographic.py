@@ -19,8 +19,7 @@ from functools import lru_cache
 from pathlib import Path
 from typing import Any
 
-import yaml
-
+from clinosim.datafiles import load_data_yaml
 from clinosim.modules.drug_safety.verdict import SEVERITY_RANK, Severity
 
 _HERE = Path(__file__).resolve().parent
@@ -62,8 +61,7 @@ _ALLOWED = DemographicVerdict(
 
 @lru_cache(maxsize=1)
 def _load_rules() -> list[dict[str, Any]]:
-    with _DEMOGRAPHIC_GATES_YAML.open(encoding="utf-8") as fh:
-        data = yaml.safe_load(fh)
+    data = load_data_yaml(_DEMOGRAPHIC_GATES_YAML)
     rules = list(data.get("rules", []) or [])
     for r in rules:
         if not r.get("id"):

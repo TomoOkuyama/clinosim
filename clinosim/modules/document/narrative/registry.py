@@ -10,7 +10,7 @@ from functools import lru_cache
 from pathlib import Path
 from typing import Any
 
-import yaml
+from clinosim.datafiles import load_data_yaml
 
 # DocumentTypeSpec moved to clinosim/types/document.py (N-chain, types rule);
 # re-exported here so all historical imports keep working.
@@ -230,8 +230,7 @@ def _validate_document_type_specs(data: dict[str, Any]) -> None:
 @lru_cache(maxsize=1)
 def load_document_type_specs() -> dict[DocumentType, DocumentTypeSpec]:
     """Load + validate document_type_specs.yaml. Cached singleton."""
-    with (_REF_DIR / "document_type_specs.yaml").open(encoding="utf-8") as f:
-        data = yaml.safe_load(f)
+    data = load_data_yaml(_REF_DIR / "document_type_specs.yaml")
     _validate_document_type_specs(data)
     result: dict[DocumentType, DocumentTypeSpec] = {}
     for key, entry in data["specs"].items():
@@ -387,8 +386,7 @@ def _validate_section_catalog(catalog: dict[str, dict[str, Any]]) -> None:
 @lru_cache(maxsize=1)
 def load_section_catalog() -> dict[str, SectionCatalogEntry]:
     """Load + validate `section_catalog.yaml`. Cached singleton."""
-    with (_REF_DIR / "section_catalog.yaml").open(encoding="utf-8") as f:
-        data = yaml.safe_load(f) or {}
+    data = load_data_yaml(_REF_DIR / "section_catalog.yaml") or {}
     _validate_section_catalog(data)
     out: dict[str, SectionCatalogEntry] = {}
     for slug, entry in data.items():

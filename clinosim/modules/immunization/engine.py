@@ -13,8 +13,8 @@ from functools import lru_cache
 from pathlib import Path
 
 import numpy as np
-import yaml
 
+from clinosim.datafiles import load_data_yaml
 from clinosim.modules._shared import is_jp, is_us
 
 # ---------------------------------------------------------------------------
@@ -131,8 +131,7 @@ def load_schedule(country: str) -> dict:
     if not (is_us(country) or is_jp(country)):
         return {}
     key = "jp" if is_jp(country) else "us"
-    with open(_LOCALE / key / "immunization_schedule.yaml", encoding="utf-8") as f:
-        return (yaml.safe_load(f) or {}).get("vaccines", {})
+    return (load_data_yaml(_LOCALE / key / "immunization_schedule.yaml") or {}).get("vaccines", {})
 
 
 def _age_on(dob: date | None, on: date, fallback_age: int) -> int:

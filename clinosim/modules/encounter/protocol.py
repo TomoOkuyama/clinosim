@@ -7,8 +7,9 @@ from functools import lru_cache
 from pathlib import Path
 from typing import Any, Literal
 
-import yaml
 from pydantic import BaseModel, ConfigDict, Field
+
+from clinosim.datafiles import load_data_yaml
 
 _HERE = Path(__file__).resolve().parent
 _REF_DIR = _HERE / "reference_data"
@@ -156,8 +157,7 @@ def load_encounter_condition(condition_id: str) -> dict[str, Any]:
     path = _REF_DIR / f"{condition_id}.yaml"
     if not path.exists():
         raise FileNotFoundError(f"Encounter condition not found: {path}")
-    with open(path, encoding="utf-8") as f:
-        data = yaml.safe_load(f)
+    data = load_data_yaml(path)
     EncounterConditionProtocol.model_validate(data)
     _validate_encounter_route_vocabulary(condition_id, data)
     return data
@@ -168,7 +168,7 @@ def load_all_encounter_conditions() -> dict[str, dict[str, Any]]:
     """Auto-discover, validate, and load all encounter condition YAMLs. Cached."""
     conditions: dict[str, dict[str, Any]] = {}
     for yaml_file in sorted(_REF_DIR.glob("*.yaml")):
-        data = yaml.safe_load(yaml_file.read_text(encoding="utf-8"))
+        data = load_data_yaml(yaml_file)
         try:
             EncounterConditionProtocol.model_validate(data)
         except Exception as exc:  # narrow re-raise with offending filename

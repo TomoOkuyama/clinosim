@@ -10,8 +10,8 @@ from pathlib import Path
 from typing import Any
 
 import numpy as np
-import yaml
 
+from clinosim.datafiles import load_data_yaml
 from clinosim.modules._shared import normalize_probabilities
 from clinosim.seeding import ENRICHER_SEED_OFFSETS, derive_sub_seed
 from clinosim.types.allergy import Allergy, AllergyReaction
@@ -133,8 +133,7 @@ def load_allergens() -> dict[str, Any]:
     all pre-#942 call sites. NKA / polyallergy / cross-reactivity blocks
     are read via :func:`load_allergen_config`.
     """
-    with (_REF_DIR / "allergens.yaml").open(encoding="utf-8") as f:
-        data = yaml.safe_load(f)
+    data = load_data_yaml(_REF_DIR / "allergens.yaml")
     _validate_allergens(data)
     _validate_nka_and_polyallergy(data)
     return data["allergens"]
@@ -148,8 +147,7 @@ def load_allergen_config() -> dict[str, Any]:
     :func:`load_allergens` so legacy callers keep the plain allergen-catalog
     view.
     """
-    with (_REF_DIR / "allergens.yaml").open(encoding="utf-8") as f:
-        data = yaml.safe_load(f)
+    data = load_data_yaml(_REF_DIR / "allergens.yaml")
     _validate_allergens(data)
     _validate_nka_and_polyallergy(data)
     return data
