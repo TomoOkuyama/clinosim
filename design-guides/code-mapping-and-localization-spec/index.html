@@ -3309,7 +3309,7 @@
 <li>The exact code in the system.</li>
 <li>The codes returned by the system's <code>parents</code> hook (<code>E11.9</code> → <code>E11</code>): generalizations of the code, which are still true of it.</li>
 <li>Steps 1–2 in each lookup sibling of the system (§3.3).</li>
-<li>Otherwise <code>None</code>. A display of a more specific child code is never used for a less specific code (§11).</li>
+<li>Otherwise <code>None</code>. A display of a more specific child code is never used for a less specific code: a category the generator looks up is registered itself.</li>
 </ol>
 <p>The language of the entry is chosen by §6: the requested language, then the same code's entry in that language in a lookup sibling, then English, then <code>None</code>.</p>
 <h3 id="45-output-helpers">4.5 Output helpers<a class="headerlink" href="#45-output-helpers" title="Permanent link">&para;</a></h3>
@@ -3557,10 +3557,6 @@
 <tr>
 <td>Display tables are loaded by separate functions with their own miss handling, not by <code>LocalizedTable</code> (§2.3)</td>
 <td>#2471</td>
-</tr>
-<tr>
-<td><code>display</code> / <code>code_exists</code> fall back to the first registered child of a code (§4.4)</td>
-<td>#2454</td>
 </tr>
 <tr>
 <td>Narrative renderers gate Japanese-only pipelines (chief-complaint variants, CC/PE consistency, daily trajectory, JP code choices) on the language literal (18 comparisons in 12 files)</td>
