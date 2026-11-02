@@ -403,7 +403,7 @@ These parts of the code base do not yet conform. Each one is removed by the issu
 |---|---|
 | Display tables are loaded by separate functions with their own miss handling, not by `LocalizedTable` (§2.3) | #2471 |
 | `display` / `code_exists` fall back to the first registered child of a code (§4.4) | #2454 |
-| Narrative renderers compare the language with `"ja"` (29 comparisons in 16 files) | #2456 |
+| Narrative renderers gate Japanese-only pipelines (chief-complaint variants, CC/PE consistency, daily trajectory, JP code choices) on the language literal (18 comparisons in 12 files) | #2483 |
 | `codes/data/fhir-ja-labels.yaml` is a Japanese-only second table for routes, frequencies and fixed labels (§5.3) | #2459 |
 | Slug-keyed display tables have entries without `en` (§6.5) | #2460 |
 | `clinosim-clinician-role.yaml`, `perinatal.yaml`, `chronic_followup.yaml`, `pregnancy_substitutions.yaml` use language-suffixed field names (§3.1) | #2462 |
