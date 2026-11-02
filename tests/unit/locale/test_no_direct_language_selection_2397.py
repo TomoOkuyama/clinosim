@@ -20,8 +20,6 @@ _PATTERN = re.compile(r'\.get\("ja"\)|_ja(\(\))? if is_jp\(')
 # (file, code fragment) → why it is not a language selection.
 _ALLOWED = {
     ("codes/drugs.py", 'if not names.get("ja"):'): "catalog validation: names.ja is required",
-    ("locale/loaders/narrative.py", 'ja = (rec.names.get("ja") or "").strip()'): "builds the JA display dictionary",
-    ("locale/loaders/narrative.py", 'ja_val = str((entry or {}).get("ja") or "")'): "builds the JA display dictionary",
     (
         "simulator/perinatal.py",
         'ja_reason = (ab_cfg.get("visit_reason") or {}).get("ja") or ""',

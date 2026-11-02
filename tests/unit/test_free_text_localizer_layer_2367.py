@@ -43,3 +43,16 @@ def test_fhir_layer_reexports_the_same_functions() -> None:
 )
 def test_localize_free_text(text: str, lang: str, expected: str) -> None:
     assert free_text.localize_free_text(text, lang) == expected
+
+
+def test_a_new_language_needs_only_data(monkeypatch) -> None:
+    """A language is a data change (Issue #2458): a table entry in a third
+    language is used with no code change, and English input stays as written."""
+    from clinosim.locale import free_text
+
+    table = {"aspirin": "aspirina"}
+    monkeypatch.setattr(free_text, "_load_drug_display_dict", lambda lang: table if lang == "es" else {})
+    monkeypatch.setattr(free_text, "_dosage_term_patterns", lambda lang: ())
+    assert free_text.localize_drug_name("Aspirin", "es") == "aspirina"
+    assert free_text.localize_drug_name("Aspirin", "en") == "Aspirin"
+    assert free_text.localize_drug_name("Aspirin", "fr") == "Aspirin"

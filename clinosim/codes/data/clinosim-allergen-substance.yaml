@@ -36,17 +36,17 @@ metadata:
 
 substances:
   # --- Drug class allergens (medication category) ---
-  Penicillin: "ペニシリン"
-  Cephalosporin: "セフェム系抗菌薬"
-  Sulfonamide: "サルファ剤"
-  NSAIDs: "NSAIDs（非ステロイド性抗炎症薬）"
-  Aspirin allergy: "アスピリンアレルギー"
+  Penicillin: {ja: "ペニシリン"}
+  Cephalosporin: {ja: "セフェム系抗菌薬"}
+  Sulfonamide: {ja: "サルファ剤"}
+  NSAIDs: {ja: "NSAIDs（非ステロイド性抗炎症薬）"}
+  Aspirin allergy: {ja: "アスピリンアレルギー"}
 
   # --- Contrast / imaging substance ---
-  Iodinated contrast: "ヨード造影剤"
+  Iodinated contrast: {ja: "ヨード造影剤"}
 
   # --- Environmental / food allergens ---
-  Latex: "ラテックス"
-  Peanut: "ピーナッツ"
-  Shellfish: "甲殻類"
-  Egg: "鶏卵"
+  Latex: {ja: "ラテックス"}
+  Peanut: {ja: "ピーナッツ"}
+  Shellfish: {ja: "甲殻類"}
+  Egg: {ja: "鶏卵"}

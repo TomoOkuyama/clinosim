@@ -43,28 +43,28 @@ metadata:
 
 displays:
   # --- Administration-route decorations ---
-  Sodium bicarbonate oral: "経口炭酸水素ナトリウム"
-  Calcitonin nasal spray: "カルシトニン点鼻"
-  Ofloxacin ophthalmic: "オフロキサシン点眼"
+  Sodium bicarbonate oral: {ja: "経口炭酸水素ナトリウム"}
+  Calcitonin nasal spray: {ja: "カルシトニン点鼻"}
+  Ofloxacin ophthalmic: {ja: "オフロキサシン点眼"}
 
   # --- Insulin formulation variants ---
-  Regular insulin: "レギュラーインスリン"
-  Regular human insulin: "ヒトインスリン"       # MHLW YJ 2492403A4051 (ヒューマリンR; 遺伝子組換え)
+  Regular insulin: {ja: "レギュラーインスリン"}
+  Regular human insulin: {ja: "ヒトインスリン"}       # MHLW YJ 2492403A4051 (ヒューマリンR; 遺伝子組換え)
 
   # --- Saline concentration variant ---
-  Hypertonic Saline: "高張食塩液"               # typically 3% NaCl; distinct from normal_saline
+  Hypertonic Saline: {ja: "高張食塩液"}               # typically 3% NaCl; distinct from normal_saline
 
   # --- Class / vague labels ---
-  Crystalloid: "晶質液"                         # IV fluid class
-  Broad spectrum antibiotic: "広域スペクトラム抗菌薬"
-  "ICS/LABA inhaler": "吸入ステロイド／β2刺激薬配合吸入剤"
-  "ICS/LABA": "吸入ステロイド／β2刺激薬配合"
+  Crystalloid: {ja: "晶質液"}                         # IV fluid class
+  Broad spectrum antibiotic: {ja: "広域スペクトラム抗菌薬"}
+  "ICS/LABA inhaler": {ja: "吸入ステロイド／β2刺激薬配合吸入剤"}
+  "ICS/LABA": {ja: "吸入ステロイド／β2刺激薬配合"}
 
   # --- Heparin specificity (unfractionated vs LMWH) ---
 
   # --- JP ester prodrug form ---
-  Cefditoren pivoxil: "セフジトレンピボキシル"  # catalog cefditoren JA is bare "セフジトレン"
+  Cefditoren pivoxil: {ja: "セフジトレンピボキシル"}  # catalog cefditoren JA is bare "セフジトレン"
 
   # --- Lab-side vs drug-side disambiguation ---
-  Albumin: "アルブミン"                         # drug display intentionally generic;
+  Albumin: {ja: "アルブミン"}                         # drug display intentionally generic;
                                                 # see albumin_human catalog entry note.

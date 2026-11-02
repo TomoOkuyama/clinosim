@@ -25,7 +25,7 @@ from __future__ import annotations
 
 import re
 
-from clinosim.countries import is_jp
+from clinosim.countries import lang_for
 from clinosim.locale.i18n import t
 from clinosim.locale.loader import load_allergen_display_dict as _load_allergen_display_dict
 from clinosim.locale.loader import load_drug_display_dict as _load_drug_display_dict
@@ -33,6 +33,11 @@ from clinosim.locale.loader import load_med_terms as _load_med_terms
 from clinosim.locale.loader import load_narrative_display_dict as _load_narrative_display_dict
 from clinosim.locale.loader import load_procedure_display_dict as _load_procedure_display_dict
 from clinosim.locale.loader import resolve_localized_display
+from clinosim.locale.localized import normalize_lang
+
+# The language free text reaches the generator in; translation tables map
+# from it, so text requested in this language is returned as written.
+_SOURCE_LANG = "en"
 
 __all__ = [
     "_DOSAGE_PATTERNS_CACHE",
@@ -161,17 +166,19 @@ def _split_rate_adjustment_suffix(drug_name: str) -> tuple[str, str]:
 
 
 def _localize_rate_adjustment(note_en: str, country: str) -> str:
-    """Localize an English rate-adjustment note produced by ``_split_rate_adjustment_suffix``.
+    """Localize an English rate-adjustment note produced by
+    ``_split_rate_adjustment_suffix`` into the country's language.
 
-    Returns the input unchanged for non-JP countries or empty notes; only
-    JP output is localized (Issue #2273: "not US" is not "Japanese").
+    Returns the input unchanged for English output, empty notes, or a
+    language without the phrase (Issue #2273: "not US" is not "Japanese").
     """
-    if not note_en or not is_jp(country):
+    lang = lang_for(country)
+    if not note_en or lang == _SOURCE_LANG:
         return note_en
     m = re.match(r"^(increase|decrease) rate by (\d+)%\s*$", note_en, re.IGNORECASE)
     if not m:
         return note_en
-    return t(f"module_text.rate_{m.group(1).lower()}", "ja", pct=m.group(2))
+    return t(f"module_text.rate_{m.group(1).lower()}", lang, pct=m.group(2)) or note_en
 
 
 def _drug_name_patterns(ja_dict: dict[str, str] | None = None) -> tuple[tuple[re.Pattern[str], str], ...]:
@@ -190,83 +197,82 @@ def _drug_name_patterns(ja_dict: dict[str, str] | None = None) -> tuple[tuple[re
     return compiled
 
 
-def _translate_ja(text: str, ja_dict: dict[str, str]) -> str:
-    """Japanese of ``text`` over ``ja_dict``: exact match (case-insensitive,
-    underscores as spaces, then without a ``category:`` prefix), else every
-    known name inside the string replaced (longest first); dosage / route /
-    frequency terms are translated last."""
+def _translate(text: str, table: dict[str, str], lang: str) -> str:
+    """``text`` in ``lang`` over ``table`` (EN → ``lang``): exact match
+    (case-insensitive, underscores as spaces, then without a ``category:``
+    prefix), else every known name inside the string replaced (longest
+    first); dosage / route / frequency terms are translated last."""
     normalized = text.replace("_", " ")
-    ja = ja_dict.get(normalized.lower())
-    if ja:
-        return _localize_dosage_terms(ja)
+    hit = table.get(normalized.lower())
+    if hit:
+        return _localize_dosage_terms(hit, lang)
     cleaned = normalized.split(":", 1)[1].strip() if ":" in normalized else normalized
-    ja = ja_dict.get(cleaned.lower())
-    if ja:
-        return _localize_dosage_terms(ja)
+    hit = table.get(cleaned.lower())
+    if hit:
+        return _localize_dosage_terms(hit, lang)
     result = normalized
     changed = False
-    for pattern, ja_val in _drug_name_patterns(ja_dict):
-        new_result, n = pattern.subn(ja_val, result)
+    for pattern, value in _drug_name_patterns(table):
+        new_result, n = pattern.subn(value, result)
         if n > 0:
             result = new_result
             changed = True
-    return _localize_dosage_terms(result).strip() if changed or result != text else _localize_dosage_terms(text).strip()
+    if changed or result != text:
+        return _localize_dosage_terms(result, lang).strip()
+    return _localize_dosage_terms(text, lang).strip()
+
+
+def _target_lang(lang: str) -> str | None:
+    """Normalized ``lang``, or ``None`` when text needs no translation into it."""
+    code = normalize_lang(lang)
+    return None if code == _SOURCE_LANG else code
 
 
 def _localize_drug_name(drug_name: str, country: str) -> str:
-    """Japanese of a drug name / medication order string when ``country`` is
-    JP, over the drug table only (Issue #2408); unchanged otherwise."""
-    if not is_jp(country) or not drug_name:
-        return drug_name
-    return _translate_ja(drug_name, _load_drug_display_dict())
+    """A drug name / medication order string in the country's language, over
+    the drug table only (Issue #2408); unchanged for English output."""
+    return localize_drug_name(drug_name, lang_for(country))
 
 
 def localize_drug_name(drug_name: str, lang: str) -> str:
-    """Language-aware drug-name localizer — the public unified entry
-    point that lets callers drop the ``if lang == "ja":`` guard.
-
-    Returns ``drug_name`` unchanged when no per-locale drug-name
-    lookup table exists for ``lang`` (today: any lang other than
-    ``"ja"``). For ``lang == "ja"``, delegates to
-    ``_localize_drug_name`` with the JP country signal.
-
-    Adding a new target locale is a column add on each narrative display
-    catalog (``names.<lang>`` on `drugs.yaml`, ``<lang>: display`` on each
-    `clinosim-{procedure-phrase,allergen-substance,admin-form-display}.yaml`
-    and `locale/shared/narrative_imaging.yaml`) plus this dispatcher's branch — no code
-    change at the ~15 callers spread across ``template_generator`` /
-    ``replacement_strategy`` / FHIR emitters.
-    """
-    if not drug_name or lang != "ja":
+    """``drug_name`` (a drug name or medication order string) in ``lang``
+    over the drug table: catalog names and aliases plus admin-form variants
+    (Issue #2458). Unchanged for English and for a language with no entries —
+    a new language is a ``names.<lang>`` / ``<lang>:`` column in the tables,
+    with no code change."""
+    target = _target_lang(lang)
+    if not drug_name or target is None:
         return drug_name
-    return _localize_drug_name(drug_name, "JP")
+    return _translate(drug_name, _load_drug_display_dict(target), target)
 
 
 def localize_procedure_name(name: str, lang: str) -> str:
     """``name`` of a procedure or examination in ``lang``: the procedure /
     imaging table's entry, else (a composite order string such as "O2: Nasal
-    cannula SpO2 >= 94%") the free-text translator. Unchanged when ``lang``
-    has no tables (today: not ``ja``)."""
-    if not name or lang != "ja":
+    cannula SpO2 >= 94%") the free-text translator. Unchanged for English."""
+    target = _target_lang(lang)
+    if not name or target is None:
         return name
-    table = _load_procedure_display_dict()
+    table = _load_procedure_display_dict(target)
     normalized = name.replace("_", " ").strip().lower()
     hit = table.get(normalized) or table.get(normalized.split(":", 1)[1].strip() if ":" in normalized else "")
-    return _localize_dosage_terms(hit) if hit else localize_free_text(name, lang)
+    return _localize_dosage_terms(hit, target) if hit else localize_free_text(name, target)
 
 
 def localize_allergen_name(name: str, lang: str) -> str:
     """``name`` of an allergen or substance in ``lang`` (the allergen table),
-    else ``name``. Unchanged when ``lang`` has no tables (today: not ``ja``)."""
-    if not name or lang != "ja":
+    else ``name``. Unchanged for English."""
+    target = _target_lang(lang)
+    if not name or target is None:
         return name
-    return _load_allergen_display_dict().get(name.replace("_", " ").strip().lower()) or name
+    return _load_allergen_display_dict(target).get(name.replace("_", " ").strip().lower()) or name
 
 
 def localize_free_text(text: str, lang: str) -> str:
     """Translate a genuinely free-text order string into ``lang`` over every
-    name table (Issue #2367). Returns ``text`` unchanged when ``lang`` has no
-    tables (today: not ``ja``)."""
-    if not text or lang != "ja":
+    name table (Issue #2367). Unchanged for English and for a language with
+    no entries."""
+    target = _target_lang(lang)
+    if not text or target is None:
         return text
-    return _translate_ja(text, _load_narrative_display_dict())
+    return _translate(text, _load_narrative_display_dict(target), target)

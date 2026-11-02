@@ -19,7 +19,7 @@ working.
 
 from __future__ import annotations
 
-from functools import lru_cache
+from functools import cache, lru_cache
 from typing import Any
 
 from clinosim.codes import data_table
@@ -265,18 +265,20 @@ def load_llm_prompt_labels() -> dict[str, dict[str, dict[str, str]]]:
     return {**(raw or {}), **load_vocabulary()}
 
 
-def _add_table(out: dict[str, str], rows: Any) -> None:
-    """Add ``{EN: JA}`` rows to ``out`` (lower-case EN key; first entry wins)."""
-    for en, ja in (rows or {}).items():
+def _add_table(out: dict[str, str], rows: Any, lang: str) -> None:
+    """Add ``{EN: {lang: text}}`` translation rows to ``out`` (lower-case EN
+    key; first entry wins; rows without ``lang`` are skipped)."""
+    for en, entry in (rows or {}).items():
         en_lower = (en or "").strip().lower()
-        ja_val = (ja or "").strip() if isinstance(ja, str) else ""
-        if en_lower and ja_val and en_lower not in out:
-            out[en_lower] = ja_val
+        value = entry.get(lang) if isinstance(entry, dict) else None
+        text = value.strip() if isinstance(value, str) else ""
+        if en_lower and text and en_lower not in out:
+            out[en_lower] = text
 
 
-@lru_cache(maxsize=1)
-def _drug_catalog_display_dict() -> dict[str, str]:
-    """EN → JA names and aliases of the drug catalog (``codes/data/drugs.yaml``)."""
+@cache
+def _drug_catalog_display_dict(lang: str = "ja") -> dict[str, str]:
+    """EN → ``lang`` names and aliases of the drug catalog (``codes/data/drugs.yaml``)."""
     out: dict[str, str] = {}
     try:
         from clinosim.codes.drugs import all_drug_ids, resolve_drug
@@ -290,61 +292,63 @@ def _drug_catalog_display_dict() -> dict[str, str]:
         except Exception:
             continue
         en_lower = (rec.names.get("en") or "").strip().lower()
-        ja = (rec.names.get("ja") or "").strip()
-        if en_lower and ja and en_lower not in out:
-            out[en_lower] = ja
+        name = (rec.names.get(lang) or "").strip()
+        if en_lower and name and en_lower not in out:
+            out[en_lower] = name
         for alias in rec.aliases:
             alias_lower = (alias or "").strip().lower()
-            if alias_lower and ja and alias_lower not in out:
-                out[alias_lower] = ja
+            if alias_lower and name and alias_lower not in out:
+                out[alias_lower] = name
     return out
 
 
-@lru_cache(maxsize=1)
-def load_drug_display_dict() -> dict[str, str]:
-    """EN → JA drug names (Issue #2408): the drug catalog's names and aliases
-    (``codes/data/drugs.yaml``), then the administration-form display variants
-    (``clinosim-admin-form-display.yaml``: Calcitonin nasal spray, ...)."""
-    out = dict(_drug_catalog_display_dict())
-    _add_table(out, data_table("clinosim-admin-form-display").get("displays"))
+@cache
+def load_drug_display_dict(lang: str = "ja") -> dict[str, str]:
+    """EN → ``lang`` drug names (Issues #2408, #2458): the drug catalog's
+    names and aliases (``codes/data/drugs.yaml``), then the
+    administration-form display variants (``clinosim-admin-form-display.yaml``:
+    Calcitonin nasal spray, ...)."""
+    out = dict(_drug_catalog_display_dict(lang))
+    _add_table(out, data_table("clinosim-admin-form-display").get("displays"), lang)
     return out
 
 
-@lru_cache(maxsize=1)
-def load_procedure_display_dict() -> dict[str, str]:
-    """EN → JA procedure and examination names (Issue #2408): the imaging
-    exam table (``locale/shared/narrative_imaging.yaml``, spaced form), then
-    ``clinosim-procedure-phrase.yaml``."""
+@cache
+def load_procedure_display_dict(lang: str = "ja") -> dict[str, str]:
+    """EN → ``lang`` procedure and examination names (Issues #2408, #2458):
+    the imaging exam table (``locale/shared/narrative_imaging.yaml``, spaced
+    form), then ``clinosim-procedure-phrase.yaml``."""
     out: dict[str, str] = {}
     for slug, entry in load_narrative_imaging().items():
         en_lower = " ".join(str(slug).replace("_", " ").strip().lower().split())
-        ja_val = str((entry or {}).get("ja") or "").strip() if isinstance(entry, dict) else ""
-        if en_lower and ja_val and en_lower not in out:
-            out[en_lower] = ja_val
-    _add_table(out, data_table("clinosim-procedure-phrase").get("procedures"))
+        value = entry.get(lang) if isinstance(entry, dict) else None
+        text = value.strip() if isinstance(value, str) else ""
+        if en_lower and text and en_lower not in out:
+            out[en_lower] = text
+    _add_table(out, data_table("clinosim-procedure-phrase").get("procedures"), lang)
     return out
 
 
-@lru_cache(maxsize=1)
-def load_allergen_display_dict() -> dict[str, str]:
-    """EN → JA allergen and substance names (``clinosim-allergen-substance.yaml``)."""
+@cache
+def load_allergen_display_dict(lang: str = "ja") -> dict[str, str]:
+    """EN → ``lang`` allergen and substance names (``clinosim-allergen-substance.yaml``)."""
     out: dict[str, str] = {}
-    _add_table(out, data_table("clinosim-allergen-substance").get("substances"))
+    _add_table(out, data_table("clinosim-allergen-substance").get("substances"), lang)
     return out
 
 
-@lru_cache(maxsize=1)
-def load_narrative_display_dict() -> dict[str, str]:
-    """EN → JA dictionary of every kind of name, for genuinely free-text order
-    strings only (``locale.free_text.localize_free_text``). A name of a known
-    kind goes through its own table (Issue #2408).
+@cache
+def load_narrative_display_dict(lang: str = "ja") -> dict[str, str]:
+    """EN → ``lang`` dictionary of every kind of name, for genuinely
+    free-text order strings only (``locale.free_text.localize_free_text``).
+    A name of a known kind goes through its own table (Issue #2408).
 
     Precedence (first entry wins): drug catalog names and aliases, imaging
     exams, procedure phrases, allergen substances, administration-form
     displays — the order the tables were merged in before the split.
     """
-    merged = dict(_drug_catalog_display_dict())
-    for table in (load_procedure_display_dict(), load_allergen_display_dict(), load_drug_display_dict()):
+    merged = dict(_drug_catalog_display_dict(lang))
+    for table in (load_procedure_display_dict(lang), load_allergen_display_dict(lang), load_drug_display_dict(lang)):
         for k, v in table.items():
             merged.setdefault(k, v)
     return merged
