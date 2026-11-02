@@ -3345,7 +3345,7 @@
 <ul>
 <li><strong>From the country.</strong> The output language comes from the country: <code>clinosim.countries.lang_for(country)</code>, driven by <code>locale/shared/country_language.yaml</code>. It is case-insensitive, and an unmapped country gets English.</li>
 <li><strong>Country rules are not language rules.</strong> Code tests <code>countries.is_jp</code> / <code>is_us</code> only for country rules (reimbursement codes, profiles, JP-only sections). It never tests them, and never compares the language with a literal, to pick a display.</li>
-<li><strong>Language tags.</strong> Every function that takes <code>lang</code> normalizes it the same way: lower-cased; a country code becomes its language (<code>"JP"</code> → <code>ja</code>); a regional tag falls back to its primary subtag (<code>ja-JP</code> → <code>ja</code>); empty becomes <code>en</code>. The <code>codes</code> layer and the <code>locale</code> layer share this one normalization (§11).</li>
+<li><strong>Language tags.</strong> Every function that takes <code>lang</code> normalizes it the same way (<code>countries.normalize_lang</code>): lower-cased; a country code becomes its language (<code>"JP"</code> → <code>ja</code>); a regional tag falls back to its primary subtag (<code>ja-JP</code> → <code>ja</code>); empty becomes <code>en</code>. The <code>codes</code> layer and the <code>locale</code> layer share this one normalization (§11).</li>
 </ul>
 <h3 id="52-data-shape">5.2 Data shape<a class="headerlink" href="#52-data-shape" title="Permanent link">&para;</a></h3>
 <ul>
@@ -3557,10 +3557,6 @@
 <tr>
 <td>Display tables are loaded by separate functions with their own miss handling, not by <code>LocalizedTable</code> (§2.3)</td>
 <td>#2471</td>
-</tr>
-<tr>
-<td><code>codes.display</code> matches the language argument exactly: no country-code or case normalization, no BCP-47 primary-subtag fallback (§5.1)</td>
-<td>#2453</td>
 </tr>
 <tr>
 <td><code>display</code> / <code>code_exists</code> fall back to the first registered child of a code (§4.4)</td>
