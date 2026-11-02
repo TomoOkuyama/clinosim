@@ -3515,7 +3515,11 @@
 </tr>
 <tr>
 <td>言語を直接選ばない</td>
-<td><code>tests/unit/locale/test_no_direct_language_selection_2397.py</code> (§11: <code>lang == "ja"</code> はまだ検出しない)</td>
+<td><code>tests/unit/locale/test_no_direct_language_selection_2397.py</code></td>
+</tr>
+<tr>
+<td>言語をリテラルと比較しない (ラチェット: 残っている箇所は是正する Issue に紐づけて固定)</td>
+<td><code>tests/unit/locale/test_no_language_literal_comparison_2455.py</code></td>
 </tr>
 <tr>
 <td>残っている言語接尾辞付きの YAML フィールド (§11) は <code>&lt;base&gt;_ja</code> と <code>&lt;base&gt;_en</code> を対で持つ</td>
@@ -3560,10 +3564,6 @@
 <tr>
 <td><code>display</code> / <code>code_exists</code> が、コードの最初に登録された子コードにフォールバックする (§4.4)</td>
 <td>#2454</td>
-</tr>
-<tr>
-<td>言語選択のガードが <code>lang == "ja"</code> / <code>lang != "ja"</code> の比較を検出しない (§10)</td>
-<td>#2455</td>
 </tr>
 <tr>
 <td>narrative のレンダラが言語を <code>"ja"</code> と比較している (16 ファイル 29 箇所)</td>

@@ -3515,7 +3515,11 @@
 </tr>
 <tr>
 <td>No direct language selection</td>
-<td><code>tests/unit/locale/test_no_direct_language_selection_2397.py</code> (§11: does not yet see <code>lang == "ja"</code>)</td>
+<td><code>tests/unit/locale/test_no_direct_language_selection_2397.py</code></td>
+</tr>
+<tr>
+<td>No comparison of a language with a literal (ratchet: remaining sites pinned to their issues)</td>
+<td><code>tests/unit/locale/test_no_language_literal_comparison_2455.py</code></td>
 </tr>
 <tr>
 <td>Language-suffixed YAML fields that remain (§11) pair <code>&lt;base&gt;_ja</code> with <code>&lt;base&gt;_en</code></td>
@@ -3560,10 +3564,6 @@
 <tr>
 <td><code>display</code> / <code>code_exists</code> fall back to the first registered child of a code (§4.4)</td>
 <td>#2454</td>
-</tr>
-<tr>
-<td>The language-selection guard does not detect <code>lang == "ja"</code> / <code>lang != "ja"</code> comparisons (§10)</td>
-<td>#2455</td>
 </tr>
 <tr>
 <td>Narrative renderers compare the language with <code>"ja"</code> (29 comparisons in 16 files)</td>
