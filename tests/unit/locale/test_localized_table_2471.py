@@ -10,19 +10,6 @@ from clinosim.locale.table import ImagingExamTable, LocalizedTable, localized_ta
 
 pytestmark = pytest.mark.unit
 
-# display table → entries still without `en`, removed by #2460 (a ratchet:
-# a new entry without English fails, a fixed one must lower the count).
-_MISSING_EN = {
-    "narrative_imaging.imaging": 36,
-    "narrative_lab_flags.lab_flags": 6,
-    "narrative_stage_tokens.stage_tokens": 9,
-    "llm_prompt_labels.encounter_type": 10,
-    "llm_prompt_labels.disposition": 16,
-    "llm_prompt_labels.severity": 6,
-    "llm_prompt_labels.risk_level": 10,
-    "llm_prompt_labels.barthel_band": 10,
-}
-
 
 def _all_subclasses(cls: type) -> set[type]:
     found = set()
@@ -73,4 +60,4 @@ def test_every_display_table_entry_has_english() -> None:
         ]
         if missing:
             found[name] = len(missing)
-    assert found == _MISSING_EN, f"entries without `en` (found vs pinned): {found}"
+    assert found == {}, f"display-table entries without `en`: {found}"

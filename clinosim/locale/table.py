@@ -98,8 +98,8 @@ def localized_tables() -> dict[str, LocalizedTable]:
     tables: list[LocalizedTable] = [
         ImagingExamTable("narrative_imaging.imaging", n.load_narrative_imaging, humanize_unknown=True),
         LocalizedTable("lab_display.lab_names", n.load_lab_display),
-        LocalizedTable("narrative_lab_flags.lab_flags", n.load_narrative_lab_flags),
-        LocalizedTable("narrative_stage_tokens.stage_tokens", n.load_narrative_stage_tokens),
+        LocalizedTable("narrative_lab_flags.lab_flags", n.load_narrative_lab_flags, "translation-table"),
+        LocalizedTable("narrative_stage_tokens.stage_tokens", n.load_narrative_stage_tokens, "translation-table"),
         LocalizedTable("narrative_op_approach.op_approach", n.load_narrative_op_approach, "translation-table"),
         LocalizedTable("narrative_op_implants.op_implants", n.load_narrative_op_implants, "translation-table"),
         LocalizedTable("narrative_archetypes.archetypes", n.load_narrative_archetypes),

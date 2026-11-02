@@ -22,40 +22,40 @@
 #     carry both ``ja`` and ``en`` slots.
 
 encounter_type:
-  outpatient: {ja: 外来}
-  inpatient: {ja: 入院}
-  emergency: {ja: 救急}
-  icu: {ja: ICU}
-  day_surgery: {ja: 日帰り手術}
-  rehab_inpatient: {ja: 回復期リハビリ入院}
-  prenatal_visit: {ja: 妊婦健診}
-  delivery: {ja: 分娩}
-  nicu: {ja: NICU}
-  checkup: {ja: 健康診断}
+  outpatient: {en: outpatient, ja: 外来}
+  inpatient: {en: inpatient, ja: 入院}
+  emergency: {en: emergency, ja: 救急}
+  icu: {en: ICU, ja: ICU}
+  day_surgery: {en: day surgery, ja: 日帰り手術}
+  rehab_inpatient: {en: inpatient rehabilitation, ja: 回復期リハビリ入院}
+  prenatal_visit: {en: prenatal visit, ja: 妊婦健診}
+  delivery: {en: delivery, ja: 分娩}
+  nicu: {en: NICU, ja: NICU}
+  checkup: {en: health checkup, ja: 健康診断}
 disposition:
-  home: {ja: 自宅退院}
-  hosp: {ja: 他院転院}
-  other-hcf: {ja: 他施設転院}
-  snf: {ja: 施設退院}
-  exp: {ja: 死亡退院}
-  home_with_family: {ja: 自宅退院}
-  home_alone: {ja: 自宅退院（独居）}
-  independent_home: {ja: 独居自宅退院}
-  discharge_to_home: {ja: 自宅退院}
-  transfer_to_higher_care: {ja: 転院（上位施設）}
-  discharge_to_snf: {ja: 介護保険施設入所}
-  needs_snf: {ja: 介護保険施設入所}
-  needs_home_care: {ja: 訪問看護導入}
-  needs_rehab: {ja: リハビリ転院}
-  discharge_to_rehab: {ja: リハビリ転院}
-  deceased: {ja: 死亡退院}
+  home: {en: discharged home, ja: 自宅退院}
+  hosp: {en: transferred to another hospital, ja: 他院転院}
+  other-hcf: {en: transferred to another facility, ja: 他施設転院}
+  snf: {en: discharged to a skilled nursing facility, ja: 施設退院}
+  exp: {en: expired, ja: 死亡退院}
+  home_with_family: {en: discharged home with family, ja: 自宅退院}
+  home_alone: {en: "discharged home (lives alone)", ja: 自宅退院（独居）}
+  independent_home: {en: "discharged home, independent", ja: 独居自宅退院}
+  discharge_to_home: {en: discharged home, ja: 自宅退院}
+  transfer_to_higher_care: {en: transferred to a higher level of care, ja: 転院（上位施設）}
+  discharge_to_snf: {en: discharged to a skilled nursing facility, ja: 介護保険施設入所}
+  needs_snf: {en: skilled nursing facility placement, ja: 介護保険施設入所}
+  needs_home_care: {en: home nursing care arranged, ja: 訪問看護導入}
+  needs_rehab: {en: transferred for rehabilitation, ja: リハビリ転院}
+  discharge_to_rehab: {en: transferred for rehabilitation, ja: リハビリ転院}
+  deceased: {en: expired, ja: 死亡退院}
 severity:
-  mild: {ja: 軽度}
-  moderate: {ja: 中等度}
-  severe: {ja: 重度}
-  very severe: {ja: 最重度}
-  very_severe: {ja: 最重度}
-  critical: {ja: 重篤}
+  mild: {en: mild, ja: 軽度}
+  moderate: {en: moderate, ja: 中等度}
+  severe: {en: severe, ja: 重度}
+  very severe: {en: very severe, ja: 最重度}
+  very_severe: {en: very severe, ja: 最重度}
+  critical: {en: critical, ja: 重篤}
 oxygen_device:
   nasal_cannula: {en: nasal cannula, ja: 経鼻カニューレ}
   oxygen_mask: {en: oxygen mask, ja: 酸素マスク}
@@ -79,27 +79,27 @@ oxygen_device:
   bipap: {en: BiPAP, ja: BiPAP}
   niv: {en: NIV, ja: NIV}
 risk_level:
-  low: {ja: 低リスク}
-  low_risk: {ja: 低リスク}
-  moderate: {ja: 中等度リスク}
-  moderate_risk: {ja: 中等度リスク}
-  medium: {ja: 中等度リスク}
-  medium_risk: {ja: 中等度リスク}
-  high: {ja: 高リスク}
-  high_risk: {ja: 高リスク}
-  very_high: {ja: 非常に高リスク}
-  very_high_risk: {ja: 非常に高リスク}
+  low: {en: low risk, ja: 低リスク}
+  low_risk: {en: low risk, ja: 低リスク}
+  moderate: {en: moderate risk, ja: 中等度リスク}
+  moderate_risk: {en: moderate risk, ja: 中等度リスク}
+  medium: {en: moderate risk, ja: 中等度リスク}
+  medium_risk: {en: moderate risk, ja: 中等度リスク}
+  high: {en: high risk, ja: 高リスク}
+  high_risk: {en: high risk, ja: 高リスク}
+  very_high: {en: very high risk, ja: 非常に高リスク}
+  very_high_risk: {en: very high risk, ja: 非常に高リスク}
 barthel_band:
-  barthel_full: {ja: Barthel 自立}
-  barthel_good: {ja: Barthel ほぼ自立}
-  barthel_moderate: {ja: Barthel 部分介助}
-  barthel_poor: {ja: Barthel 全介助レベル}
-  barthel_dependent: {ja: Barthel 全介助}
-  full: {ja: 自立}
-  good: {ja: ほぼ自立}
-  moderate_dependence: {ja: 部分介助}
-  severe_dependence: {ja: 全介助レベル}
-  total_dependence: {ja: 全介助}
+  barthel_full: {en: "Barthel: independent", ja: Barthel 自立}
+  barthel_good: {en: "Barthel: mostly independent", ja: Barthel ほぼ自立}
+  barthel_moderate: {en: "Barthel: partial assistance", ja: Barthel 部分介助}
+  barthel_poor: {en: "Barthel: near-total assistance", ja: Barthel 全介助レベル}
+  barthel_dependent: {en: "Barthel: total assistance", ja: Barthel 全介助}
+  full: {en: independent, ja: 自立}
+  good: {en: mostly independent, ja: ほぼ自立}
+  moderate_dependence: {en: partial assistance, ja: 部分介助}
+  severe_dependence: {en: near-total assistance, ja: 全介助レベル}
+  total_dependence: {en: total assistance, ja: 全介助}
 marital:
   single: {en: single, ja: 独身}
   married: {en: married, ja: 既婚}
