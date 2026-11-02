@@ -387,7 +387,8 @@ occupation:
 | 見つからないときにコードをそのまま返さない | `tests/unit/codes/test_no_code_echo_2416.py` |
 | 英語のみの体系の dual slot | `tests/unit/test_dual_slot_2276.py` |
 | 選択 API とフォールバック順序が 1 つ | `tests/unit/locale/test_localized_api_2395.py` |
-| 言語を直接選ばない | `tests/unit/locale/test_no_direct_language_selection_2397.py` (§11: `lang == "ja"` はまだ検出しない) |
+| 言語を直接選ばない | `tests/unit/locale/test_no_direct_language_selection_2397.py` |
+| 言語をリテラルと比較しない (ラチェット: 残っている箇所は是正する Issue に紐づけて固定) | `tests/unit/locale/test_no_language_literal_comparison_2455.py` |
 | 残っている言語接尾辞付きの YAML フィールド (§11) は `<base>_ja` と `<base>_en` を対で持つ | `tests/unit/locale/test_localized_field_shape_2398.py` |
 | 日本語以外の出力に日本語を出さない、Python に日本語リテラルを書かない | `tests/unit/test_no_japanese_fallback_2273.py`、`tests/unit/test_no_japanese_literals_2277.py`、`tests/unit/test_narrative_literals_2400.py`、`tests/unit/test_module_literals_2406.py`、`tests/unit/test_simulator_literals_2405.py`、`tests/unit/output/test_fhir_lib_literals_2402.py`、`tests/unit/output/test_fhir_lab_condition_literals_2403.py`、`tests/unit/output/test_fhir_emitter_literals_2404.py` |
 | 第三国を米国扱いしない | `tests/unit/test_third_country_fallbacks_2203.py` |
@@ -403,7 +404,6 @@ occupation:
 | 表示表が個別の関数で読み込まれ、見つからないときの扱いもそれぞれ違う。`LocalizedTable` になっていない (§2.3) | #2471 |
 | `codes.display` が言語の引数を完全一致で比べる。国コード・大文字小文字の正規化も、BCP-47 主タグへのフォールバックもない (§5.1) | #2453 |
 | `display` / `code_exists` が、コードの最初に登録された子コードにフォールバックする (§4.4) | #2454 |
-| 言語選択のガードが `lang == "ja"` / `lang != "ja"` の比較を検出しない (§10) | #2455 |
 | narrative のレンダラが言語を `"ja"` と比較している (16 ファイル 29 箇所) | #2456 |
 | FHIR の出力処理と共有の補助関数が言語を `"ja"` と比較している | #2457 |
 | 自由文字列用の解決関数 (§4.3) が日本語しか扱えない | #2458 |

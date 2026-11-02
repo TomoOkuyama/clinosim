@@ -387,7 +387,8 @@ These rules are common to every resolver in §4, in both layers.
 | A miss never echoes the code | `tests/unit/codes/test_no_code_echo_2416.py` |
 | Dual slot for English-only systems | `tests/unit/test_dual_slot_2276.py` |
 | One selection API and fallback order | `tests/unit/locale/test_localized_api_2395.py` |
-| No direct language selection | `tests/unit/locale/test_no_direct_language_selection_2397.py` (§11: does not yet see `lang == "ja"`) |
+| No direct language selection | `tests/unit/locale/test_no_direct_language_selection_2397.py` |
+| No comparison of a language with a literal (ratchet: remaining sites pinned to their issues) | `tests/unit/locale/test_no_language_literal_comparison_2455.py` |
 | Language-suffixed YAML fields that remain (§11) pair `<base>_ja` with `<base>_en` | `tests/unit/locale/test_localized_field_shape_2398.py` |
 | No Japanese in non-JP output, no Japanese literals in Python | `tests/unit/test_no_japanese_fallback_2273.py`, `tests/unit/test_no_japanese_literals_2277.py`, `tests/unit/test_narrative_literals_2400.py`, `tests/unit/test_module_literals_2406.py`, `tests/unit/test_simulator_literals_2405.py`, `tests/unit/output/test_fhir_lib_literals_2402.py`, `tests/unit/output/test_fhir_lab_condition_literals_2403.py`, `tests/unit/output/test_fhir_emitter_literals_2404.py` |
 | A third country is not treated as the US | `tests/unit/test_third_country_fallbacks_2203.py` |
@@ -403,7 +404,6 @@ These parts of the code base do not yet conform. Each one is removed by the issu
 | Display tables are loaded by separate functions with their own miss handling, not by `LocalizedTable` (§2.3) | #2471 |
 | `codes.display` matches the language argument exactly: no country-code or case normalization, no BCP-47 primary-subtag fallback (§5.1) | #2453 |
 | `display` / `code_exists` fall back to the first registered child of a code (§4.4) | #2454 |
-| The language-selection guard does not detect `lang == "ja"` / `lang != "ja"` comparisons (§10) | #2455 |
 | Narrative renderers compare the language with `"ja"` (29 comparisons in 16 files) | #2456 |
 | FHIR emitters and shared helpers compare the language with `"ja"` | #2457 |
 | The free-text resolvers (§4.3) handle Japanese only | #2458 |
