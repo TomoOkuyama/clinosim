@@ -19,6 +19,7 @@ Unlike locale/, this module is NOT locale-scoped. Code systems are
 international standards; translations are one of the code's attributes.
 """
 
+from clinosim.codes.jlac10 import jlac10_display, jp_clins_lab_system
 from clinosim.codes.loader import (
     ENGLISH_ONLY_SYSTEM_PREFIXES,
     CodeSystem,
@@ -29,8 +30,6 @@ from clinosim.codes.loader import (
     get_display,
     get_system_uri,
     is_english_only_system,
-    jlac10_display,
-    jp_clins_lab_system,
     lookup,
     slug_to_code,
     system_key_for,

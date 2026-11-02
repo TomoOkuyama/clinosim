@@ -40,12 +40,12 @@ Current layout:
 |---|---|---|---|
 | ICD-10-CM (NLM / CMS) | `icd-10-cm.yaml` | `codes/icd10.py` | — |
 | ICD-10 (WHO; MHLW Japanese names) | `icd-10.yaml` (alias `icd-10-mhlw`) | `codes/icd10.py` | `icd10_who_tx.json`, `icd10_mhlw_2013_ja.json` |
-| MEDIS 病名管理番号 | `medis-disease-keyno.yaml` | `codes/icd10.py` (§11) | — |
+| MEDIS 病名管理番号 | `medis-disease-keyno.yaml` | `codes/medis.py` | — |
 | LOINC | `loinc.yaml`, `loinc-maps.yaml` | `codes/loinc.py` | `loinc_2_82_tx.json` |
 | SNOMED CT | `snomed-ct.yaml`, `snomed-maps.yaml`, `procedure-phrase-to-snomed.yaml`, `procedure-snomed-metadata.yaml` | `codes/snomed.py`, `codes/snomed_concepts.py` | — |
 | RxNorm | `rxnorm.yaml` | through `codes/drugs.py` | `rxnorm_rxnav_snapshot.json` |
-| YJ / HOT (MHLW, MEDIS) | `yj.yaml`, `hot7.yaml` | `codes/drugs.py` (§11) | `yj_mhlw_snapshot.json`, `JP_MedicationCodeYJ_CS_full.json`, `yj_tx_fragment.json` |
-| JLAC10 / JP-CLINS lab | `jlac10.yaml`, `jp-clins-lab-uncoded.yaml` | `codes/loader.py` (§11) | the JP-CLINS package |
+| YJ / HOT (MHLW, MEDIS) | `yj.yaml`, `hot7.yaml` | `codes/yj.py` (formats, YJ master); products per drug in the `codes/drugs.py` catalog | `yj_mhlw_snapshot.json`, `JP_MedicationCodeYJ_CS_full.json`, `yj_tx_fragment.json` |
+| JLAC10 / JP-CLINS lab | `jlac10.yaml`, `jp-clins-lab-uncoded.yaml` | `codes/jlac10.py` | the JP-CLINS package |
 | CPT / K-codes | `cpt.yaml`, `k-codes.yaml` | `codes/procedures.py` | `shinryo_koui_ssk_20261013_ja.json` |
 | UCUM | `ucum-aliases.yaml` | `codes/ucum.py` | — |
 | JIS X 0401 | `jis-x-0401-prefectures.yaml` | `codes/prefectures.py` | — |
@@ -212,6 +212,7 @@ Consumers resolve names only through these functions.
 | `modules.document.narrative.registry.document_loinc(doc_type)` | a document type's LOINC code, defined once in `document_type_specs.yaml` | raises on an unknown type |
 | `codes.valuesets`: `concept_group`, `has_condition`, `patient_condition_names`, `code_by_chronic_prefix` | value-set membership | `KeyError` on an unknown group |
 | `codes.drugs`: `resolve_drug`, `get_drug`, `find_drug`, `drug_key(ref)`, `same_drug(a, b)` | drug identity; identity key (catalog id, else the normalised name) and whether two references name the same drug — no substring matching | raises / `None` / `""` / `False` |
+| `codes.yj`: `jp_drug_system_key(code)`, `is_verified_yj(code)` | registry key of a JP drug code by its format (YJ, HOT7 / HOT9 / HOT13); whether a YJ code is in the national YJ master | `hot9` / `False` |
 | `codes.drugs`: `route_class(route)`, `jp_drug_code(drug, route)`, `jp_drug_code_table(route)` | route class of an order route; the JP YJ product for a drug and route | `""` / `None` / no entry |
 | `codes.drugs`: `drug_display(ref, lang)` | catalog name of a drug id, name or alias (then its longest leading-word prefix) in `lang`, then English | `None` |
 | `codes.drugs`: `identify_drug(text)`, `drug_classes(ref)` | the catalog drug a free-text medication string names (exact id / name / alias, leading words, then the longest contained name or alias — whole-word for ASCII); its catalog classes with every dotted ancestor | `None` / `()` |
@@ -407,6 +408,5 @@ These parts of the code base do not yet conform. Each one is removed by the issu
 | `codes/data/fhir-ja-labels.yaml` is a Japanese-only second table for routes, frequencies and fixed labels (§5.3) | #2459 |
 | Slug-keyed display tables have entries without `en` (§6.5) | #2460 |
 | `clinosim-clinician-role.yaml`, `perinatal.yaml`, `chronic_followup.yaml`, `pregnancy_substitutions.yaml` use language-suffixed field names (§3.1) | #2462 |
-| JLAC10 / JP-CLINS lookups sit in the generic loader, MEDIS in the ICD-10 module, YJ / HOT only in the drug catalog module (§2.2) | #2463 |
 | Data YAMLs lack the `metadata.kind` header and per-kind schema validation (§3.1) | #2465 |
 | Duplicate resolver names and pass-through wrappers (`llm_service.engine.loinc_for`, `fhir_r4.lib.common.loinc_coding`, `pick_localized_field`, `resolve_lang`, `get_display`, `codes.match`) | #2467 |

@@ -37,6 +37,9 @@ _RESOLVERS = {
     "clinosim.codes.ucum": ["ucum_code", "ucum_quantity"],
     "clinosim.codes.loinc": ["loinc_display", "loinc_coding"],
     "clinosim.codes.prefectures": ["prefecture_code"],
+    "clinosim.codes.jlac10": ["jp_clins_lab_system", "jlac10_display"],
+    "clinosim.codes.medis": ["medis_disease_keyno"],
+    "clinosim.codes.yj": ["jp_drug_system_key", "is_verified_yj"],
     "clinosim.locale.loader": [
         "load_code_mapping",
         "lab_code",

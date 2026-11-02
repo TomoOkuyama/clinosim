@@ -235,31 +235,6 @@ def is_english_only_system(system_key_or_uri: str) -> bool:
     return uri.startswith(ENGLISH_ONLY_SYSTEM_PREFIXES)
 
 
-_JP_CLINS_LAB_SYSTEM_KEYS: dict[str, str] = {
-    "corelabo_jlac10": "jp-clins-lab-corelabo-jlac10",
-    "corelabo_jlac11": "jp-clins-lab-corelabo-jlac11",
-    "infectionlabo_jlac10": "jp-clins-lab-infectionlabo-jlac10",
-    "infectionlabo_jlac11": "jp-clins-lab-infectionlabo-jlac11",
-    "uncoded": "jp-clins-lab-uncoded",
-    "localcode": "jp-clins-lab-localcode",
-    "jlac10_17digits": "jlac10-17digits",
-    "specimen_material": "jp-specimen-material-jlac10",
-}
-
-
-def jp_clins_lab_system(kind: str) -> str:
-    """URI of a JP lab CodeSystem by kind (``corelabo_jlac10``, ``uncoded``,
-    ``localcode``, ``jlac10_17digits``, ``specimen_material``, ...); KeyError
-    on an unknown kind (Issue #2261)."""
-    return get_system_uri(_JP_CLINS_LAB_SYSTEM_KEYS[kind])
-
-
-def jlac10_display(code: str, lang: str) -> str | None:
-    """Display of a JLAC10 analyte code in ``lang`` (then English); ``None``
-    when the code is not registered (Issue #2261)."""
-    return display("jlac10", code, lang)
-
-
 # maxsize=None (unbounded): the set of code-system keys is bounded at
 # module scope (~32 yaml files + a handful of aliases + at most one None
 # entry per missing key), so unbounded cache carries no growth risk while
