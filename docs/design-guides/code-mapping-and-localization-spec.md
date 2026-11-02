@@ -406,7 +406,6 @@ These parts of the code base do not yet conform. Each one is removed by the issu
 | `display` / `code_exists` fall back to the first registered child of a code (§4.4) | #2454 |
 | Narrative renderers compare the language with `"ja"` (29 comparisons in 16 files) | #2456 |
 | FHIR emitters and shared helpers compare the language with `"ja"` | #2457 |
-| The free-text resolvers (§4.3) handle Japanese only | #2458 |
 | `codes/data/fhir-ja-labels.yaml` is a Japanese-only second table for routes, frequencies and fixed labels (§5.3) | #2459 |
 | Slug-keyed display tables have entries without `en` (§6.5) | #2460 |
 | `chief_complaint_translations.yaml` translates protocol text keyed by its English sentence (§3.9) | #2461 |

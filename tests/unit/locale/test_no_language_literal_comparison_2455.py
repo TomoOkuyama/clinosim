@@ -31,7 +31,6 @@ _ALLOWED = {
 
 # file → (comparisons, issue that removes them).
 _RATCHET = {
-    "locale/free_text.py": (4, 2458),
     "modules/_shared.py": (1, 2457),
     "modules/document/narrative/_extra_context_builder.py": (4, 2456),
     "modules/document/narrative/_replacement_renderers.py": (1, 2456),
