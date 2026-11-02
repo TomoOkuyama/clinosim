@@ -27,6 +27,8 @@ from typing import Any, ClassVar, final
 
 import yaml
 
+from clinosim.countries import normalize_lang
+
 _DATA_DIR = Path(__file__).parent / "data"
 
 
@@ -97,7 +99,9 @@ class CodeSystem:
         """``entry`` in ``lang``; else the same code's ``lang`` text in a
         sibling system (an ICD-10-CM code shared with WHO takes the MHLW
         Japanese name, Issue #2360); else English; else ``None`` — never
-        another language (spec §6, Issue #2395)."""
+        another language (spec §6, Issue #2395). ``lang`` is normalized the
+        same way as every localized value (``countries.normalize_lang``)."""
+        lang = normalize_lang(lang)
         if lang in entry:
             return str(entry[lang])
         for sibling in _sibling_systems(self):
@@ -342,6 +346,7 @@ def display(system: str, code: str, lang: str = "en") -> str | None:
 def _entry_text(system: str, code: str, entry: dict[str, str], lang: str) -> str | None:
     """Language choice for a system with no registry file of its own (only
     its siblings'): ``lang``, else the sibling's ``lang`` text, else English."""
+    lang = normalize_lang(lang)
     if lang in entry:
         return str(entry[lang])
     for sibling_key in _SYSTEM_LOOKUP_SIBLINGS.get(system, ()):

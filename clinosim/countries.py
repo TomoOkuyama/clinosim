@@ -78,6 +78,20 @@ def lang_for(country: str) -> str:
     return _country_language_map().get(str(country or "").strip().lower(), "en")
 
 
+def normalize_lang(lang: str | None) -> str:
+    """The one normalization of a language argument (spec §5.1, Issue #2453):
+    lower-cased; a country code becomes its language (``"JP"`` → ``ja``); a
+    regional BCP-47 tag falls back to its primary subtag (``ja-JP`` → ``ja``);
+    empty becomes ``en``. Shared by the codes and locale layers."""
+    key = str(lang or "").strip().lower()
+    if not key:
+        return "en"
+    mapped = _country_language_map().get(key)
+    if mapped:
+        return mapped
+    return key.split("-", 1)[0]
+
+
 def country_slot(country: str, *, scheme: Literal["code", "legacy_japan"] = "code") -> str:
     """Section key for per-country YAML blocks (case-insensitive, US default).
 

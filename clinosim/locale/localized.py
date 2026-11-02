@@ -21,15 +21,9 @@ from __future__ import annotations
 from collections.abc import Mapping
 from typing import Any
 
-from clinosim.countries import _country_language_map
+from clinosim.countries import normalize_lang
 
 __all__ = ["label", "localized", "localized_field", "normalize_lang"]
-
-
-def normalize_lang(lang: str | None) -> str:
-    """Lower-case language code; a country code becomes its language."""
-    key = str(lang or "").strip().lower()
-    return _country_language_map().get(key, key) if key else "en"
 
 
 def localized(entry: Any, lang: str | None, *, fallback: str = "") -> str:

@@ -282,7 +282,7 @@ The language of the entry is chosen by §6: the requested language, then the sam
 
 - **From the country.** The output language comes from the country: `clinosim.countries.lang_for(country)`, driven by `locale/shared/country_language.yaml`. It is case-insensitive, and an unmapped country gets English.
 - **Country rules are not language rules.** Code tests `countries.is_jp` / `is_us` only for country rules (reimbursement codes, profiles, JP-only sections). It never tests them, and never compares the language with a literal, to pick a display.
-- **Language tags.** Every function that takes `lang` normalizes it the same way: lower-cased; a country code becomes its language (`"JP"` → `ja`); a regional tag falls back to its primary subtag (`ja-JP` → `ja`); empty becomes `en`. The `codes` layer and the `locale` layer share this one normalization (§11).
+- **Language tags.** Every function that takes `lang` normalizes it the same way (`countries.normalize_lang`): lower-cased; a country code becomes its language (`"JP"` → `ja`); a regional tag falls back to its primary subtag (`ja-JP` → `ja`); empty becomes `en`. The `codes` layer and the `locale` layer share this one normalization (§11).
 
 ### 5.2 Data shape
 
@@ -402,7 +402,6 @@ These parts of the code base do not yet conform. Each one is removed by the issu
 | Deviation | Issue |
 |---|---|
 | Display tables are loaded by separate functions with their own miss handling, not by `LocalizedTable` (§2.3) | #2471 |
-| `codes.display` matches the language argument exactly: no country-code or case normalization, no BCP-47 primary-subtag fallback (§5.1) | #2453 |
 | `display` / `code_exists` fall back to the first registered child of a code (§4.4) | #2454 |
 | Narrative renderers compare the language with `"ja"` (29 comparisons in 16 files) | #2456 |
 | FHIR emitters and shared helpers compare the language with `"ja"` | #2457 |
