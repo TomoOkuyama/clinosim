@@ -227,12 +227,9 @@ def build_present_illness(generator: TemplateNarrativeGenerator, ctx: NarrativeC
         # (JA disease severity ontology mapping); other locales use
         # the raw token via the phrase template.
         sev = str(ctx.severity or "").strip()
-        if sev and lang == "ja":
-            from clinosim.modules.document.narrative.replacement_strategy import (
-                _localize_severity_ja,
-            )
+        from clinosim.modules.document.narrative._replacement_localization import localize_token
 
-            sev = _localize_severity_ja(sev)
+        sev = localize_token(sev, "severity", lang)
         if sev:
             hpi_text = t("hpi.admission_with_severity", lang, sev=sev)
         else:
@@ -345,12 +342,9 @@ def build_present_illness_ref(generator: TemplateNarrativeGenerator, ctx: Narrat
     if not hpi_text:
         # #1266 empty-severity guard (see `_build_hpi`).
         sev = str(ctx.severity or "").strip()
-        if sev and lang == "ja":
-            from clinosim.modules.document.narrative.replacement_strategy import (
-                _localize_severity_ja,
-            )
+        from clinosim.modules.document.narrative._replacement_localization import localize_token
 
-            sev = _localize_severity_ja(sev)
+        sev = localize_token(sev, "severity", lang)
         if sev:
             hpi_text = t("hpi.ref_with_severity", lang, sev=sev)
         else:

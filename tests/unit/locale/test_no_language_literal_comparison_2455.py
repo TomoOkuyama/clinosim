@@ -31,22 +31,18 @@ _ALLOWED = {
 
 # file → (comparisons, issue that removes them).
 _RATCHET = {
-    "modules/document/narrative/_extra_context_builder.py": (4, 2456),
-    "modules/document/narrative/_replacement_renderers.py": (1, 2456),
-    "modules/document/narrative/_template_helpers.py": (1, 2456),
-    "modules/document/narrative/registry.py": (1, 2456),
-    "modules/document/narrative/renderers/_composers.py": (1, 2456),
-    "modules/document/narrative/renderers/progress_note.py": (1, 2456),
-    "modules/document/narrative/renderers/section_builders/assessment_and_plan.py": (2, 2456),
-    "modules/document/narrative/renderers/section_builders/chief_complaint.py": (1, 2456),
-    "modules/document/narrative/renderers/section_builders/ed_note.py": (1, 2456),
-    "modules/document/narrative/renderers/section_builders/hpi.py": (4, 2456),
-    "modules/document/narrative/renderers/section_builders/jp_clins.py": (4, 2456),
-    "modules/document/narrative/renderers/section_builders/mortality.py": (1, 2456),
-    "modules/document/narrative/renderers/section_builders/op_pn_notes.py": (2, 2456),
-    "modules/document/narrative/renderers/section_builders/outpatient_soap.py": (2, 2456),
-    "modules/document/narrative/renderers/section_builders/patient_history.py": (1, 2456),
-    "modules/document/narrative/replacement_strategy.py": (2, 2456),
+    "modules/document/narrative/renderers/_composers.py": (1, 2483),
+    "modules/document/narrative/renderers/progress_note.py": (1, 2483),
+    "modules/document/narrative/renderers/section_builders/assessment_and_plan.py": (1, 2483),
+    "modules/document/narrative/renderers/section_builders/chief_complaint.py": (1, 2483),
+    "modules/document/narrative/renderers/section_builders/ed_note.py": (1, 2483),
+    "modules/document/narrative/renderers/section_builders/hpi.py": (3, 2483),
+    "modules/document/narrative/renderers/section_builders/jp_clins.py": (2, 2483),
+    "modules/document/narrative/renderers/section_builders/mortality.py": (1, 2483),
+    "modules/document/narrative/renderers/section_builders/op_pn_notes.py": (2, 2483),
+    "modules/document/narrative/renderers/section_builders/outpatient_soap.py": (2, 2483),
+    "modules/document/narrative/renderers/section_builders/patient_history.py": (1, 2483),
+    "modules/document/narrative/replacement_strategy.py": (2, 2483),
 }
 
 

@@ -129,12 +129,9 @@ def _compose_ap_assessment_from_state(ctx: NarrativeContext) -> str:
         disease = _o(ctx.disease_protocol, "disease_id", None)
         if disease:
             _sev = str(ctx.severity or "")
-            if _sev and lang == "ja":
-                from clinosim.modules.document.narrative.replacement_strategy import (
-                    _localize_severity_ja,
-                )
+            from clinosim.modules.document.narrative._replacement_localization import localize_token
 
-                _sev = _localize_severity_ja(_sev)
+            _sev = localize_token(_sev, "severity", lang)
             # Phase 1c-2 (2026-09-22): the raw disease_id snake_case
             # token ("bacterial_pneumonia", "acute_myocardial_infarction")
             # leaked into JA narratives.

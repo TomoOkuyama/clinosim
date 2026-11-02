@@ -328,7 +328,9 @@ class SectionCatalogEntry:
         falls back to EN — matches the existing `_localize_section_title`
         contract).
         """
-        return self.title_ja if str(lang).lower() == "ja" else self.title_en
+        from clinosim.locale.localized import localized
+
+        return localized({"en": self.title_en, "ja": self.title_ja}, lang)
 
     def __repr__(self) -> str:
         return f"SectionCatalogEntry(slug={self.slug!r}, loinc={self.loinc!r})"
