@@ -30,31 +30,19 @@ def test_g47_30_procedures_declare_frequency():
 
 
 def test_polysomnography_snomed_resolves_from_name():
-    """Phase 4d Task 2: polysomnography / sleep study → SNOMED 60554003
-    via the pre-existing procedure name → SNOMED resolver."""
-    from clinosim.modules.output.fhir_r4.procedures.procedure_name_snomed import (
-        resolve_procedure_snomed,
-    )
+    """Polysomnography / sleep study → SNOMED 60554003 through the procedure
+    phrase → SNOMED resolver (``codes.snomed.snomed_for_phrase``)."""
+    from clinosim.codes.snomed import snomed_for_phrase
 
-    result = resolve_procedure_snomed("polysomnography")
-    assert result is not None
-    snomed, _display = result
-    assert snomed == "60554003"
-
-    result2 = resolve_procedure_snomed("sleep study")
-    assert result2 is not None
-    assert result2[0] == "60554003"
+    assert snomed_for_phrase("polysomnography") == "60554003"
+    assert snomed_for_phrase("sleep study") == "60554003"
 
 
 def test_cpap_snomed_still_resolves():
-    """Phase 4d regression: pre-existing CPAP SNOMED path still works."""
-    from clinosim.modules.output.fhir_r4.procedures.procedure_name_snomed import (
-        resolve_procedure_snomed,
-    )
+    """The CPAP phrase still resolves to SNOMED 47545007."""
+    from clinosim.codes.snomed import snomed_for_phrase
 
-    result = resolve_procedure_snomed("cpap")
-    assert result is not None
-    assert result[0] == "47545007"
+    assert snomed_for_phrase("cpap") == "47545007"
 
 
 def test_g47_33_central_apnea_does_not_activate_g47_30_block():

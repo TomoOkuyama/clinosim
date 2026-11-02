@@ -79,7 +79,7 @@ jobs:
       - name: Install (with dev extras)
         run: uv pip install --system -e ".[dev]"
       - name: Run unit tests
-        run: pytest tests/unit -q --tb=short
+        run: pytest tests/unit tests/modules -q --tb=short
 
   audit:
     name: Clinical-integrity audit (US + JP p=100 seed=42)

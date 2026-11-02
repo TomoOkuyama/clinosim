@@ -304,6 +304,17 @@ def _shared_pool_pick(indication: str, active_meds: Sequence[str]) -> Alternativ
     return None
 
 
+def _alternative_name(entry: dict[str, Any]) -> str:
+    """English catalog name of a disease-YAML alternative (``drug_id``, else
+    the legacy ``drug`` name); ``""`` when neither resolves (Issue #2497)."""
+    drug_id = str(entry.get("drug_id") or "")
+    if drug_id:
+        from clinosim.codes.drugs import drug_display
+
+        return drug_display(drug_id, "en") or ""
+    return str(entry.get("drug") or "")
+
+
 def suggest_alternative(
     candidate: str,
     indication: str | None,
@@ -334,7 +345,9 @@ def suggest_alternative(
         except (ImportError, AttributeError):
             disease_alts = []
         for idx, entry in enumerate(disease_alts):
-            drug = entry.get("drug")
+            # Disease YAMLs name the alternative by catalog `drug_id`
+            # (protocol drugs are catalog ids); `drug` is the legacy name key.
+            drug = _alternative_name(entry)
             if not drug or not _alt_is_safe(drug, active_meds):
                 continue
             disease_id = getattr(disease_ctx, "disease_id", "unknown")
