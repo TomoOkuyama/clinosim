@@ -98,12 +98,9 @@ def _build_hpi_core(generator: TemplateNarrativeGenerator, ctx: NarrativeContext
     # in the emitted Composition. Both locales use the natural
     # chief-complaint-less form on empty severity.
     sev = str(ctx.severity or "").strip()
-    if sev and lang == "ja":
-        from clinosim.modules.document.narrative.replacement_strategy import (
-            _localize_severity_ja,
-        )
+    from clinosim.modules.document.narrative._replacement_localization import localize_token
 
-        sev = _localize_severity_ja(sev)
+    sev = localize_token(sev, "severity", lang)
     if sev:
         fallback = t("hpi_core.fallback_with_severity", lang, sev=sev)
     else:

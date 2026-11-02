@@ -32,6 +32,17 @@ def _lookup_ja_label(raw: str, section: str) -> str:
     return prompt_label(section, raw, "ja", fallback=str(raw))
 
 
+def localize_token(raw: str, section: str, lang: str) -> str:
+    """``raw`` (an enum-like token) in ``lang`` from an LLM-prompt-labels
+    section; the raw input when the section has no entry for ``lang`` (or
+    English). Selects by data, never by comparing ``lang`` (Issue #2456)."""
+    if not raw:
+        return raw
+    from clinosim.locale.loader import prompt_label
+
+    return prompt_label(section, raw, lang, fallback=str(raw))
+
+
 def _localize_severity_ja(sev: str) -> str:
     """mild → 軽度 (etc). Safe fallback returns input verbatim."""
     return _lookup_ja_label(sev, "severity")

@@ -27,9 +27,7 @@ from clinosim.modules.document.narrative._patient_info_renderers import (
     _render_patient_demographics,
 )
 from clinosim.modules.document.narrative._replacement_localization import (
-    _localize_arrival_mode_ja,
-    _localize_severity_ja,
-    _lookup_ja_label,
+    localize_token,
 )
 from clinosim.modules.document.narrative._replacement_renderers import (
     _get,
@@ -189,7 +187,7 @@ def _build_extra_context(
         # session-88j Phase B: severity token (mild/moderate/severe)
         # leaks into JA narratives verbatim (v14 review: 634 mild + 442
         # moderate mentions across 1,386 doc). Localize for JA prompts.
-        sev_label = _localize_severity_ja(str(ctx.severity)) if ctx.target_lang == "ja" else ctx.severity
+        sev_label = localize_token(str(ctx.severity), "severity", ctx.target_lang)
         scenario_bits.append(f"severity={sev_label}")
     if scenario_bits:
         extra["clinical_scenario"] = " / ".join(scenario_bits)
@@ -233,10 +231,7 @@ def _build_extra_context(
             et_raw = str(et_raw).lower()
             # v6 localization: prompt payload should not leak raw English
             # enum tokens into JA narrative generation.
-            if ctx.target_lang == "ja":
-                extra["encounter_type"] = _lookup_ja_label(et_raw, "encounter_type")[:40]
-            else:
-                extra["encounter_type"] = et_raw[:40]
+            extra["encounter_type"] = localize_token(et_raw, "encounter_type", ctx.target_lang)[:40]
 
     enc = ctx.encounter
     if enc is not None:
@@ -531,10 +526,7 @@ def _build_extra_context(
             # session-88j Phase B: case-insensitive lookup so CIF enums
             # like transfer_to_higher_care / home_with_family / needs_snf
             # are recognized alongside the legacy short codes.
-            if ctx.target_lang == "ja":
-                extra["discharge_outcome"] = _lookup_ja_label(outcome_raw, "disposition")
-            else:
-                extra["discharge_outcome"] = outcome_raw
+            extra["discharge_outcome"] = localize_token(outcome_raw, "disposition", ctx.target_lang)
         # v6 blocker fix: hospital_course was collapsing to a 1-liner
         # template because LLM had nothing specific to work with.
         # Feed the whole-stay lab/procedure/vitals-extremes summary.
@@ -586,10 +578,7 @@ def _build_extra_context(
         if arrival:
             # session-88j Phase B: raw arrival_mode enum (walk_in /
             # ambulance) leaks into JA ed_note otherwise. Localize.
-            if ctx.target_lang == "ja":
-                extra["arrival_mode"] = _localize_arrival_mode_ja(str(arrival))
-            else:
-                extra["arrival_mode"] = str(arrival)
+            extra["arrival_mode"] = localize_token(str(arrival), "arrival_mode", ctx.target_lang)
         # initial_vitals: physical_exam template is narrative not
         # numeric, so numeric arrival vitals are complementary — keep.
         first_vitals = _render_first_vitals(ctx.vitals)

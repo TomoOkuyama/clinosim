@@ -22,6 +22,7 @@ from datetime import datetime, timedelta
 from typing import Any
 
 from clinosim.locale.i18n import t
+from clinosim.locale.localized import localized_field
 from clinosim.modules._shared import get_attr_or_key as _o
 from clinosim.modules._shared import practitioner_name
 from clinosim.types.document import NarrativeContext
@@ -98,23 +99,19 @@ def _render_home_med_name(m: Any, lang: str = "en") -> str:
     228-entry dictionary the FHIR emit uses). v8 template pasted raw
     English tokens ("Amlodipine, Enalapril") into JA narratives.
     """
-    if isinstance(m, dict):
-        raw = str(m.get("drug_name") or m.get("drug") or "").strip()
-        stored_ja = str(m.get("drug_name_ja") or "").strip()
-    else:
-        raw = m.drug_name
-        stored_ja = str(getattr(m, "drug_name_ja", "") or "").strip()
-    if not raw or lang != "ja":
+    raw = str(m.get("drug_name") or m.get("drug") or "").strip() if isinstance(m, dict) else m.drug_name
+    if not raw:
         return raw
-    # Issue #2271: the CIF carries the catalog's Japanese name; use it before
-    # re-translating the English name.
-    if stored_ja:
-        return stored_ja
+    # Issue #2271: the CIF carries the catalog's name in each language
+    # (`drug_name_<lang>`); use it before re-translating the English name.
+    stored = localized_field(m, "drug_name", lang).strip()
+    if stored and stored != raw.strip():
+        return stored
     # Lazy import to avoid the document → output → document circular at
     # module load; same pattern used in replacement_strategy.py.
-    from clinosim.locale.free_text import _localize_drug_name
+    from clinosim.locale.free_text import localize_drug_name
 
-    return _localize_drug_name(raw, "JP")
+    return localize_drug_name(raw, lang)
 
 
 def _pick_localized(tmpl: Any, key_base: str, lang: str, ctx: NarrativeContext | None = None) -> str:

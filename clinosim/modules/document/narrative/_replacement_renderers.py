@@ -26,8 +26,8 @@ from clinosim.locale.free_text import localize_free_text
 from clinosim.locale.i18n import t
 from clinosim.locale.loader import lab_display
 from clinosim.modules.document.narrative._replacement_localization import (
-    _localize_severity_ja,
     localize_oxygen_device,
+    localize_token,
 )
 from clinosim.modules.document.narrative.template_generator import _filter_vitals_for_day
 
@@ -71,8 +71,7 @@ def _render_chronic_list(chronic: list, lang: str = "en") -> str:
         system = _get(c, "system", "") or ""
         stage = _get(c, "stage", "") or ""
         sev = _get(c, "severity", "") or ""
-        if sev and lang == "ja":
-            sev = _localize_severity_ja(sev)
+        sev = localize_token(sev, "severity", lang)
         detail = ""
         if stage and sev:
             detail = f" ({stage}, {sev})"
