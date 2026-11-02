@@ -2338,6 +2338,17 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#23-base-classes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.3 Base classes
+      
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -2777,7 +2788,7 @@
 <p>An <strong>authority</strong> is the body that defines a code system (NLM, WHO, MHLW, Regenstrief, SNOMED International, HL7, AMA, JSLM, MEDIS, ...). Each authority's material is kept apart from every other authority's:</p>
 <ol>
 <li><strong>Data.</strong> Each code system has one registry file named by its system key (§3.3). Internal-key maps and crosswalks for that system are separate files named after it (<code>loinc-maps.yaml</code>, <code>snomed-maps.yaml</code>).</li>
-<li><strong>Accessor.</strong> An authority that needs any lookup beyond the generic registry functions (<code>display</code>, <code>code_exists</code>, <code>get_system_uri</code>) — a mapping, a hierarchy, a product choice, a canonical-URI rule — has one module <code>clinosim/codes/&lt;authority&gt;.py</code>. That module reads only its authority's files. Authorities served by the generic functions alone (HL7 terminology, CVX, DICOM, OMB) need no module.</li>
+<li><strong>Accessor.</strong> Every code system is an instance of the <code>CodeSystem</code> base class (§2.3). An authority that needs a hook or lookups of its own — a mapping, a hierarchy, a product choice, a canonical-URI rule — has one subclass in <code>clinosim/codes/&lt;authority&gt;.py</code>, and that module reads only its authority's files. Authorities served by the base class alone (HL7 terminology, CVX, DICOM, OMB, clinosim-owned systems) are plain instances built from their registry file and need no module.</li>
 <li><strong>Snapshot.</strong> Verified extracts from the authority live in <code>clinosim/codes/authoritative/</code>, one file per authority and release (<code>loinc_2_82_tx.json</code>, <code>rxnorm_rxnav_snapshot.json</code>, ...), and a test checks the registry against them.</li>
 <li><strong>Catalogs join authorities, they do not own them.</strong> A catalog (drugs, procedures, staff roles) holds internal ids, names and the codes of several authorities. It resolves each code through that authority's accessor; it never re-implements an authority's lookup rule.</li>
 </ol>
@@ -2878,6 +2889,21 @@
 </tr>
 </tbody>
 </table>
+<h3 id="23-base-classes">2.3 Base classes<a class="headerlink" href="#23-base-classes" title="Permanent link">&para;</a></h3>
+<p>The operations every source shares are implemented once, in a base class, and are not re-implemented or overridden per source.</p>
+<p><strong><code>CodeSystem</code> (codes layer).</strong> One instance per system key, built from its registry file (§3.3).</p>
+<ul>
+<li><strong>Owns, final.</strong> <code>display(code, lang)</code>, <code>code_exists(code, *, exact)</code>, <code>uri</code>, language normalization (§5.1), the resolution order (§4.4), the fallback order (§6) and miss handling (<code>None</code>, never the code). A subclass never overrides these; a test checks it.</li>
+<li><strong>Hooks a subclass may implement.</strong> <code>parents(code)</code>: the codes a code generalizes to, most specific first (default: none; ICD-10 and ICD-10-CM: the code without its decimal part). Lookup siblings are declared data (§3.3), not code.</li>
+<li><strong>Authority lookups.</strong> A subclass adds its authority's own lookups as methods, for example the YJ product for a drug and route class, the LOINC code of an internal key, the SNOMED code of a procedure phrase.</li>
+<li><strong>Registry.</strong> Every system key resolves to exactly one instance, so tests can iterate over all systems (snapshot, URI, <code>en</code> coverage).</li>
+</ul>
+<p><strong><code>LocalizedTable</code> (locale layer).</strong> One instance per display table or translation table (§3.7, §3.8).</p>
+<ul>
+<li><strong>Owns, final.</strong> Loading and kind validation, <code>get(key, lang, *, fallback)</code> with the fallback order of §6, and the <code>en</code> rule.</li>
+<li><strong>Declared properties.</strong> Whether an unknown slug is humanised (§6.4) is a property of the table, allowed only for a table whose slug coverage is tested.</li>
+</ul>
+<p><strong>Entry points.</strong> Consumers keep calling the module functions of §4 (<code>codes.display</code>, <code>loinc_display</code>, <code>vocab_display</code>, ...). Those functions delegate to the instances; consumers do not construct or subclass them. Catalogs (§3.5) are not <code>CodeSystem</code> subclasses: they hold internal ids and resolve codes through the <code>CodeSystem</code> instances.</p>
 <h2 id="3-yaml-authoring">3. YAML authoring<a class="headerlink" href="#3-yaml-authoring" title="Permanent link">&para;</a></h2>
 <h3 id="31-common-rules">3.1 Common rules<a class="headerlink" href="#31-common-rules" title="Permanent link">&para;</a></h3>
 <p>These rules apply to every data YAML under <code>clinosim/codes/data/</code>, <code>clinosim/locale/</code> and <code>clinosim/modules/*/reference_data/</code>.</p>
@@ -3273,9 +3299,10 @@
 </table>
 <p>A caller that holds a code or a catalog id uses §4.1 instead. These resolvers never translate a code display.</p>
 <h3 id="44-how-display-resolves-a-code">4.4 How <code>display</code> resolves a code<a class="headerlink" href="#44-how-display-resolves-a-code" title="Permanent link">&para;</a></h3>
+<p>The <code>CodeSystem</code> base class (§2.3) resolves every system in this order:</p>
 <ol>
 <li>The exact code in the system.</li>
-<li>The parent code (<code>E11.9</code> → <code>E11</code>): a generalization of the code, which is still true of it.</li>
+<li>The codes returned by the system's <code>parents</code> hook (<code>E11.9</code> → <code>E11</code>): generalizations of the code, which are still true of it.</li>
 <li>Steps 1–2 in each lookup sibling of the system (§3.3).</li>
 <li>Otherwise <code>None</code>. A display of a more specific child code is never used for a less specific code (§11).</li>
 </ol>
@@ -3346,7 +3373,7 @@
 <ol>
 <li>Verify the codes (§8).</li>
 <li>Add <code>codes/data/&lt;system-key&gt;.yaml</code> (§3.3) and, if the URI is not in the file, the key in <code>_BUILTIN_URIS</code>.</li>
-<li>If the authority needs more than the generic functions, add <code>codes/&lt;authority&gt;.py</code> and list it in §2.2 and §4.1.</li>
+<li>If the authority needs a hook or lookups of its own, add a <code>CodeSystem</code> subclass in <code>codes/&lt;authority&gt;.py</code> (§2.3) and list it in §2.2 and §4.1; otherwise the registry file alone gives a plain instance.</li>
 <li>Add the authoritative snapshot and its test, if the authority publishes one.</li>
 <li>Add the system to <code>is_english_only_system</code> when its displays are English-only.</li>
 </ol>
@@ -3365,7 +3392,7 @@
 <h3 id="74-a-new-vocabulary">7.4 A new vocabulary<a class="headerlink" href="#74-a-new-vocabulary" title="Permanent link">&para;</a></h3>
 <ol>
 <li>If it has codes, it is a code system (§7.1) and its labels live in its registry file.</li>
-<li>Otherwise add one display table <code>locale/shared/&lt;vocabulary&gt;.yaml</code> (§3.7) with <code>en</code> for every slug, and one resolver; register the resolver in §4.2.</li>
+<li>Otherwise add one display table <code>locale/shared/&lt;vocabulary&gt;.yaml</code> (§3.7) with <code>en</code> for every slug, load it as a <code>LocalizedTable</code> (§2.3), and add one entry-point function in §4.2.</li>
 </ol>
 <h2 id="8-adding-or-changing-a-code">8. Adding or changing a code<a class="headerlink" href="#8-adding-or-changing-a-code" title="Permanent link">&para;</a></h2>
 <ol>
@@ -3503,7 +3530,7 @@
 <td><code>tests/unit/test_third_country_fallbacks_2203.py</code></td>
 </tr>
 <tr>
-<td>Every entry has English; YAML header and schema per kind</td>
+<td>Every entry has English; YAML header and schema per kind; base-class operations not overridden</td>
 <td>none yet (§11)</td>
 </tr>
 </tbody>
@@ -3518,6 +3545,14 @@
 </tr>
 </thead>
 <tbody>
+<tr>
+<td>The shared lookup, language selection and fallback are module functions in <code>codes/loader.py</code>, not a <code>CodeSystem</code> base class (§2.3)</td>
+<td>#2470</td>
+</tr>
+<tr>
+<td>Display tables are loaded by separate functions with their own miss handling, not by <code>LocalizedTable</code> (§2.3)</td>
+<td>#2471</td>
+</tr>
 <tr>
 <td><code>codes.display</code> matches the language argument exactly: no country-code or case normalization, no BCP-47 primary-subtag fallback (§5.1)</td>
 <td>#2453</td>

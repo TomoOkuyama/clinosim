@@ -2338,6 +2338,17 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#23-基底クラス" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.3 基底クラス
+      
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -2777,7 +2788,7 @@
 <p><strong>権威</strong>とは、コード体系を定める機関 (NLM、WHO、MHLW、Regenstrief、SNOMED International、HL7、AMA、JSLM、MEDIS など) をいう。権威ごとの資料は、他の権威の資料と混ぜない。</p>
 <ol>
 <li><strong>データ。</strong> コード体系ごとに、システムキーを名前にしたレジストリファイルを 1 つ置く (§3.3)。その体系への内部キー対応表や crosswalk は、体系名を付けた別ファイルにする (<code>loinc-maps.yaml</code>、<code>snomed-maps.yaml</code>)。</li>
-<li><strong>アクセサ。</strong> 汎用のレジストリ関数 (<code>display</code>、<code>code_exists</code>、<code>get_system_uri</code>) 以外の参照 (対応付け、階層、製品の選択、正規 URI の規則など) が要る権威は、モジュール <code>clinosim/codes/&lt;authority&gt;.py</code> を 1 つ持つ。そのモジュールは自分の権威のファイルだけを読む。汎用関数だけで足りる権威 (HL7 terminology、CVX、DICOM、OMB) はモジュールを持たない。</li>
+<li><strong>アクセサ。</strong> すべてのコード体系は基底クラス <code>CodeSystem</code> (§2.3) のインスタンスとする。フックや独自の参照 (対応付け、階層、製品の選択、正規 URI の規則など) が要る権威は、<code>clinosim/codes/&lt;authority&gt;.py</code> にサブクラスを 1 つ持ち、そのモジュールは自分の権威のファイルだけを読む。基底クラスだけで足りる権威 (HL7 terminology、CVX、DICOM、OMB、clinosim 独自の体系) は、レジストリファイルから作る素のインスタンスで、モジュールを持たない。</li>
 <li><strong>スナップショット。</strong> 権威から照合済みで取り出したデータは <code>clinosim/codes/authoritative/</code> に、権威とリリースごとに 1 ファイルで置き (<code>loinc_2_82_tx.json</code>、<code>rxnorm_rxnav_snapshot.json</code> など)、テストでレジストリと突き合わせる。</li>
 <li><strong>カタログは権威をつなぐだけで、権威を持たない。</strong> カタログ (薬、処置、職種) は内部 id、名称、複数の権威のコードを持つ。各コードはその権威のアクセサで解決し、権威の参照規則を再実装しない。</li>
 </ol>
@@ -2878,6 +2889,21 @@
 </tr>
 </tbody>
 </table>
+<h3 id="23-基底クラス">2.3 基底クラス<a class="headerlink" href="#23-基底クラス" title="Permanent link">&para;</a></h3>
+<p>すべてのソースに共通する処理は、基底クラスに 1 度だけ実装し、ソースごとに再実装も上書きもしない。</p>
+<p><strong><code>CodeSystem</code> (codes 層)。</strong> システムキーごとに 1 インスタンスで、そのレジストリファイル (§3.3) から作る。</p>
+<ul>
+<li><strong>基底クラスが持ち、上書き不可のもの。</strong> <code>display(code, lang)</code>、<code>code_exists(code, *, exact)</code>、<code>uri</code>、言語の正規化 (§5.1)、解決の順序 (§4.4)、フォールバックの順序 (§6)、見つからないときの扱い (<code>None</code> を返し、コードは返さない)。サブクラスはこれらを上書きしない。テストで確認する。</li>
+<li><strong>サブクラスが実装してよいフック。</strong> <code>parents(code)</code>: そのコードを一般化したコードを、詳細なものから順に返す (既定は無し。ICD-10 と ICD-10-CM は小数点以下を除いたコード)。参照の兄弟体系はデータとして宣言し (§3.3)、コードには書かない。</li>
+<li><strong>権威固有の参照。</strong> サブクラスは権威固有の参照をメソッドとして足す。例: 薬と経路区分に対応する YJ 製品、内部キーの LOINC コード、処置の語句に対応する SNOMED コード。</li>
+<li><strong>レジストリ。</strong> すべてのシステムキーはちょうど 1 つのインスタンスに対応し、テストで全体系を走査できる (スナップショット、URI、<code>en</code> の網羅)。</li>
+</ul>
+<p><strong><code>LocalizedTable</code> (locale 層)。</strong> 表示表・翻訳表 (§3.7、§3.8) ごとに 1 インスタンス。</p>
+<ul>
+<li><strong>基底クラスが持ち、上書き不可のもの。</strong> 読み込みと kind の検証、§6 のフォールバック順序に従う <code>get(key, lang, *, fallback)</code>、<code>en</code> の規則。</li>
+<li><strong>宣言するプロパティ。</strong> 未知の slug を人間可読化するか (§6.4) は表のプロパティとし、slug の網羅をテストしている表に限って許す。</li>
+</ul>
+<p><strong>入口。</strong> 利用側はこれまでどおり §4 のモジュール関数 (<code>codes.display</code>、<code>loinc_display</code>、<code>vocab_display</code> など) を呼ぶ。これらの関数がインスタンスに委譲する。利用側はインスタンスを作ったり継承したりしない。カタログ (§3.5) は <code>CodeSystem</code> のサブクラスにしない。カタログは内部 id を持ち、コードは <code>CodeSystem</code> のインスタンスで解決する。</p>
 <h2 id="3-yaml-の書き方">3. YAML の書き方<a class="headerlink" href="#3-yaml-の書き方" title="Permanent link">&para;</a></h2>
 <h3 id="31-共通ルール">3.1 共通ルール<a class="headerlink" href="#31-共通ルール" title="Permanent link">&para;</a></h3>
 <p><code>clinosim/codes/data/</code>、<code>clinosim/locale/</code>、<code>clinosim/modules/*/reference_data/</code> の下のデータ YAML すべてに適用する。</p>
@@ -3273,9 +3299,10 @@
 </table>
 <p>コードやカタログ id を持っている呼び出し側は §4.1 を使う。これらの関数はコードの表示名を訳さない。</p>
 <h3 id="44-display-がコードを解決する順序">4.4 <code>display</code> がコードを解決する順序<a class="headerlink" href="#44-display-がコードを解決する順序" title="Permanent link">&para;</a></h3>
+<p>基底クラス <code>CodeSystem</code> (§2.3) が、すべての体系をこの順序で解決する。</p>
 <ol>
 <li>体系内の完全一致。</li>
-<li>親コード (<code>E11.9</code> → <code>E11</code>)。コードを一般化したもので、そのコードについても正しい。</li>
+<li>体系の <code>parents</code> フックが返すコード (<code>E11.9</code> → <code>E11</code>)。コードを一般化したもので、そのコードについても正しい。</li>
 <li>体系の参照兄弟体系 (§3.3) で 1〜2 を繰り返す。</li>
 <li>それでも無ければ <code>None</code>。より詳細な子コードの表示名を、粗いコードに使うことはしない (§11)。</li>
 </ol>
@@ -3346,7 +3373,7 @@
 <ol>
 <li>コードを照合する (§8)。</li>
 <li><code>codes/data/&lt;system-key&gt;.yaml</code> を足す (§3.3)。ファイルに URI が無ければ <code>_BUILTIN_URIS</code> にキーを足す。</li>
-<li>汎用関数で足りない権威なら <code>codes/&lt;authority&gt;.py</code> を足し、§2.2 と §4.1 に載せる。</li>
+<li>フックや独自の参照が要る権威なら、<code>codes/&lt;authority&gt;.py</code> に <code>CodeSystem</code> のサブクラスを足し (§2.3)、§2.2 と §4.1 に載せる。要らなければレジストリファイルだけで素のインスタンスになる。</li>
 <li>権威がスナップショットを公開していれば、スナップショットとそのテストを足す。</li>
 <li>表示名が英語のみの体系なら <code>is_english_only_system</code> に足す。</li>
 </ol>
@@ -3365,7 +3392,7 @@
 <h3 id="74-新しい語彙">7.4 新しい語彙<a class="headerlink" href="#74-新しい語彙" title="Permanent link">&para;</a></h3>
 <ol>
 <li>コードを持つ語彙はコード体系として扱い (§7.1)、ラベルもそのレジストリファイルに置く。</li>
-<li>コードを持たない語彙は、表示表 <code>locale/shared/&lt;vocabulary&gt;.yaml</code> を 1 つ (§3.7、すべての slug に <code>en</code>) と解決関数を 1 つ足し、解決関数を §4.2 に載せる。</li>
+<li>コードを持たない語彙は、表示表 <code>locale/shared/&lt;vocabulary&gt;.yaml</code> を 1 つ (§3.7、すべての slug に <code>en</code>) 足して <code>LocalizedTable</code> (§2.3) として読み、入口の関数を 1 つ §4.2 に載せる。</li>
 </ol>
 <h2 id="8-コードの追加変更手順">8. コードの追加・変更手順<a class="headerlink" href="#8-コードの追加変更手順" title="Permanent link">&para;</a></h2>
 <ol>
@@ -3503,7 +3530,7 @@
 <td><code>tests/unit/test_third_country_fallbacks_2203.py</code></td>
 </tr>
 <tr>
-<td>すべてのエントリが英語を持つ。YAML のヘッダと kind ごとの schema</td>
+<td>すべてのエントリが英語を持つ。YAML のヘッダと kind ごとの schema。基底クラスの処理を上書きしない</td>
 <td>まだ無い (§11)</td>
 </tr>
 </tbody>
@@ -3518,6 +3545,14 @@
 </tr>
 </thead>
 <tbody>
+<tr>
+<td>共通の参照・言語選択・フォールバックが <code>codes/loader.py</code> のモジュール関数で、基底クラス <code>CodeSystem</code> になっていない (§2.3)</td>
+<td>#2470</td>
+</tr>
+<tr>
+<td>表示表が個別の関数で読み込まれ、見つからないときの扱いもそれぞれ違う。<code>LocalizedTable</code> になっていない (§2.3)</td>
+<td>#2471</td>
+</tr>
 <tr>
 <td><code>codes.display</code> が言語の引数を完全一致で比べる。国コード・大文字小文字の正規化も、BCP-47 主タグへのフォールバックもない (§5.1)</td>
 <td>#2453</td>
