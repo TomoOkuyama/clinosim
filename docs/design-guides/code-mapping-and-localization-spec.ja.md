@@ -276,7 +276,7 @@ occupation:
 | `modules._shared.practitioner_name(staff_id, roster_map)` | 医療者の表示名。見つからなければ `""` |
 | `simulator.event_refs.event_ref_kind(value)` | `disease_id` / ground truth の値の名前空間 |
 
-`modules._shared.pick_localized_field` と `modules._shared.resolve_lang` は `localized_field` と `lang_for` に転送するだけなので、新しいコードは後者を直接呼ぶ (§11)。
+国の出力言語は `countries.lang_for(country)`、CIF の `<base>_<lang>` フィールドは `localized_field` で読む。
 
 ## 5. 多言語対応
 
@@ -406,4 +406,3 @@ occupation:
 |---|---|
 | narrative のレンダラが、日本語だけの処理 (主訴バリエーション、CC/PE 整合、daily trajectory、JP のコード選択) を言語リテラルで切り替えている (12 ファイル 18 箇所) | #2483 |
 | データ YAML に `metadata.kind` のヘッダと kind ごとの schema 検証が無い (§3.1) | #2465 |
-| 名前の重複した解決関数と、転送するだけのラッパー (`llm_service.engine.loinc_for`、`fhir_r4.lib.common.loinc_coding`、`pick_localized_field`、`resolve_lang`、`get_display`、`codes.match`) | #2467 |

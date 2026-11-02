@@ -16,8 +16,9 @@ from typing import Any
 
 from clinosim.codes import display as registry_display
 from clinosim.codes import get_system_uri, system_key_for
+from clinosim.countries import lang_for
 from clinosim.locale.i18n import t
-from clinosim.modules._shared import get_attr_or_key, resolve_lang
+from clinosim.modules._shared import get_attr_or_key
 from clinosim.modules.output.fhir_r4.demographics.patient import patient_ref
 from clinosim.modules.output.fhir_r4.encounters.encounter import encounter_ref
 from clinosim.modules.output.fhir_r4.lib.common import (
@@ -38,7 +39,7 @@ def _bb_hai_conditions(ctx: BundleContext) -> list[dict]:
     if not hais:
         return []
     country = ctx.country
-    lang = resolve_lang(country)
+    lang = lang_for(country)
     out: list[dict] = []
     for h in hais:
         icd_internal = get_attr_or_key(h, "icd10_code", "")
@@ -74,8 +75,8 @@ def _bb_hai_conditions(ctx: BundleContext) -> list[dict]:
             # are populated from codes/data/hl7-condition-{clinical,ver-status}.yaml.
             # Also fixes wrong system key `hl7-condition-verification` (never
             # registered; canonical URI ends in `condition-ver-status`).
-            "clinicalStatus": dual_slot_concept("hl7-condition-clinical", "active", resolve_lang(ctx.country)),
-            "verificationStatus": dual_slot_concept("hl7-condition-ver-status", "confirmed", resolve_lang(ctx.country)),
+            "clinicalStatus": dual_slot_concept("hl7-condition-clinical", "active", lang_for(ctx.country)),
+            "verificationStatus": dual_slot_concept("hl7-condition-ver-status", "confirmed", lang_for(ctx.country)),
             "category": [dual_slot_concept("hl7-condition-category", "encounter-diagnosis", lang)],
             "code": {"coding": coding, "text": icd_disp or snomed_disp},
             "subject": patient_ref(ctx.patient_id),
@@ -86,7 +87,7 @@ def _bb_hai_conditions(ctx: BundleContext) -> list[dict]:
             # 培養+臨床像から診断された感染症であることを示す text-only 記述。
             "evidence": [
                 {
-                    "code": [{"text": t("condition_evidence.hai", resolve_lang(ctx.country))}],
+                    "code": [{"text": t("condition_evidence.hai", lang_for(ctx.country))}],
                 }
             ],
         }

@@ -15,9 +15,10 @@ from clinosim.codes import (
 )
 from clinosim.codes.procedures import bedside_procedures, procedure_type_display
 from clinosim.codes.snomed import snomed_for_phrase
+from clinosim.countries import lang_for
 from clinosim.locale.free_text import localize_procedure_name
 from clinosim.locale.i18n import t
-from clinosim.modules._shared import is_jp, is_us, resolve_lang
+from clinosim.modules._shared import is_jp, is_us
 from clinosim.modules.output.fhir_r4.demographics.patient import patient_ref
 from clinosim.modules.output.fhir_r4.encounters.encounter import encounter_ref
 from clinosim.modules.output.fhir_r4.lib.common import dual_slot_concept, system_coding, to_fhir_datetime
@@ -95,7 +96,7 @@ def _build_procedure(
     """Build FHIR Procedure resource."""
     code_system_key = system_key_for("procedure", country)
     code_system = get_system_uri(code_system_key)
-    lang = resolve_lang(country)
+    lang = lang_for(country)
 
     # Use performedDateTime for point-in-time procedures, performedPeriod for longer ones
     start = proc.get("start_datetime", "")
@@ -124,7 +125,7 @@ def _build_procedure(
     fallback = catalog_name or _humanize_procedure_type(proc_type) or "(procedure)"
 
     # Resolve displays via code dictionaries (k-codes.yaml / cpt.yaml)
-    primary_lang = resolve_lang(country)
+    primary_lang = lang_for(country)
     if primary_code:
         primary_display = _procedure_display(primary_code, primary_lang, fallback)
     else:
@@ -193,7 +194,7 @@ def _build_procedure(
         if _sct_code is not None:
             # English SNOMED preferred term from the registry (dual slot,
             # Issue #2363); the localized name is code.text.
-            coding_entries.append(system_coding("snomed-ct", _sct_code, resolve_lang(country)))
+            coding_entries.append(system_coding("snomed-ct", _sct_code, lang_for(country)))
 
     # Secondary coding: the OTHER country's code system for international interop.
     # Phase 4d.2: skip the secondary CPT entry when the primary coding is
@@ -325,7 +326,7 @@ def _build_procedure(
         _dx = (record or {}).get("clinical_diagnosis", {}) or {}
         _dx_code = _dx.get("discharge_diagnosis_code") or _dx.get("admission_diagnosis_code", "") or ""
         _dx_display = _dx.get("discharge_diagnosis_display") or _dx.get("admission_diagnosis_display", "") or ""
-        _generic_text = t("fhir_text.procedure_reason_generic", resolve_lang(country))
+        _generic_text = t("fhir_text.procedure_reason_generic", lang_for(country))
         if _dx_code:
             # Use country-scoped ICD-10 system key (JP=icd-10-mhlw, US=icd-10-cm)
             # to stay consistent with Condition.code system emission.
@@ -353,7 +354,7 @@ def _build_procedure(
     # CY7-18 (Chain-7): bodySite text-only fallback when the CIF record
     # doesn't carry a SNOMED site code (bedside procedures often don't).
     if not resource.get("bodySite"):
-        resource["bodySite"] = [{"text": t("fhir_text.body_site_unspecified", resolve_lang(country))}]
+        resource["bodySite"] = [{"text": t("fhir_text.body_site_unspecified", lang_for(country))}]
 
     # location (OR etc.)
     location_id = proc.get("location_id", "")

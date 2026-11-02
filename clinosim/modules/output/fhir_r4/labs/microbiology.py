@@ -16,9 +16,10 @@ from clinosim.codes import get_system_uri, system_key_for
 from clinosim.codes import lookup as code_lookup
 from clinosim.codes.loinc import loinc_for
 from clinosim.codes.snomed_concepts import FINDING_ABNORMAL, FINDING_NORMAL
+from clinosim.countries import lang_for
 from clinosim.locale.i18n import t
 from clinosim.locale.loader import load_code_mapping, load_narrative_labels, resolve_localized_display
-from clinosim.modules._shared import is_jp, resolve_lang
+from clinosim.modules._shared import is_jp
 from clinosim.modules.output.fhir_r4.demographics.patient import patient_ref
 from clinosim.modules.output.fhir_r4.encounters.encounter import encounter_ref
 from clinosim.modules.output.fhir_r4.labs.diagnostic_report import (
@@ -164,7 +165,7 @@ def _bb_microbiology(ctx: BundleContext) -> list[dict]:
     cultures = ctx.record.get("microbiology") or []
     if not cultures:
         return []
-    lang = resolve_lang(ctx.country)
+    lang = lang_for(ctx.country)
     subject = patient_ref(ctx.patient_id)
     enc_ref = encounter_ref(ctx.primary_enc_id) if ctx.primary_enc_id else None
     # p=500 review finding (session 89): populate `.text` so the JP
@@ -175,7 +176,7 @@ def _bb_microbiology(ctx: BundleContext) -> list[dict]:
     # the original category — without a text hint here, mb-org
     # Observations end up with a bare `{system, code}` category and no
     # human-readable label at all.
-    lab_category = [dual_slot_concept("hl7-observation-category", "laboratory", resolve_lang(ctx.country))]
+    lab_category = [dual_slot_concept("hl7-observation-category", "laboratory", lang_for(ctx.country))]
     # CY6-03 (Chain-6): microbiology DR performer — encounter attending
     # fallback (same rationale as lab panel DR).
     _mb_performer_ref = ""
@@ -350,7 +351,7 @@ def _bb_microbiology(ctx: BundleContext) -> list[dict]:
                 "valueCodeableConcept": dual_slot_concept(
                     "hl7-observation-interpretation",
                     interp,
-                    resolve_lang(ctx.country),
+                    lang_for(ctx.country),
                     fallback_display=_sus_interp_display,
                 ),
             }

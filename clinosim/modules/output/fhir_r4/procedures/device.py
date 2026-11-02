@@ -13,7 +13,8 @@ from typing import Any
 
 from clinosim.codes import display as registry_display
 from clinosim.codes import get_system_uri
-from clinosim.modules._shared import get_attr_or_key, resolve_lang
+from clinosim.countries import lang_for
+from clinosim.modules._shared import get_attr_or_key
 from clinosim.modules.output.fhir_r4.demographics.patient import patient_ref
 from clinosim.modules.output.fhir_r4.lib.common import BundleContext
 from clinosim.modules.output.fhir_r4.lib.ids import (
@@ -69,7 +70,7 @@ def _bb_device(ctx: BundleContext) -> list[dict]:
     devices = _extensions_device_list(ctx)
     if not devices:
         return []
-    lang = resolve_lang(ctx.country)
+    lang = lang_for(ctx.country)
     out: list[dict] = []
     for d in devices:
         snomed = get_attr_or_key(d, "snomed_code", "")

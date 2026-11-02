@@ -91,7 +91,7 @@ from __future__ import annotations
 from typing import Any
 
 from clinosim.codes import get_system_uri, lookup as code_lookup
-from clinosim.modules._shared import resolve_lang
+from clinosim.modules._shared import lang_for
 from clinosim.modules.output.fhir_r4.lib.common import BundleContext
 
 # Canonical constants — single definition site, consumers import (Section B.3)
@@ -113,7 +113,7 @@ def _bb_<topic>(ctx: BundleContext) -> list[dict]:
 
 
 def _build_resource(item, ctx: BundleContext) -> dict:
-    lang = resolve_lang(ctx.country)   # canonical idiom — no inline branching (E.10)
+    lang = lang_for(ctx.country)   # canonical idiom — no inline branching (E.10)
     res = {
         "resourceType": "<ResourceType>",
         "id": f"{TOPIC_ID_PREFIX}{item.id_field}",
@@ -163,7 +163,7 @@ icd_display = code_lookup("icd-10-cm", icd_code, lang) or ""
   `"snomed"` / `"rxnorm"` / `"jlac10"` / `"k-codes"` / `"cpt"` /
   etc.).
 - 3rd argument = `"ja"` for JP cohort, `"en"` for US cohort — always
-  derived via `resolve_lang(ctx.country)` (`clinosim/modules/_shared.py`);
+  derived via `lang_for(ctx.country)` (`clinosim/modules/_shared.py`);
   inline branching is forbidden (E.10).
 - Return value = display string; `None` when absent (fall back with
   `or`).
@@ -181,7 +181,7 @@ raises `KeyError` fail-loud):
 from clinosim.codes import system_key_for
 
 system_key = system_key_for("lab", ctx.country)      # JP → "jlac10", else → "loinc"
-display = code_lookup(system_key, code, resolve_lang(ctx.country))
+display = code_lookup(system_key, code, lang_for(ctx.country))
 ```
 
 System URI:
@@ -436,13 +436,13 @@ primary language + an interop language**:
 ### D.4 JP localization conventions
 
 JP-cohort decision uses **`is_jp(ctx.country)`**; display language
-uses **`resolve_lang(ctx.country)`** (both are the canonical idioms
+uses **`lang_for(ctx.country)`** (both are the canonical idioms
 in `clinosim/modules/_shared.py` — shared-logic unification
 2026-07-02. Do not write hand-rolled variants like
 `ctx.country.lower() == "jp"` — E.10). For a JP cohort:
 
 - Every `display` / `text` / `name` field = Japanese (via
-  `code_lookup(..., resolve_lang(ctx.country))`).
+  `code_lookup(..., lang_for(ctx.country))`).
 - Country-dependent code-system selection (JLAC10 vs LOINC etc.) =
   `system_key_for(kind, ctx.country)` (E.11).
 - Coded enum values (category / priority / interpretation etc.) = `dual_slot_concept()` over the code-keyed `codes/data/hl7-*.yaml` registry
@@ -592,7 +592,7 @@ sr["id"] = f"sr-{enc}-{panel}-1"   # multiple panels in the same encounter all p
 sr["code"]["coding"][0]["display"] = code_lookup("loinc", code, "en")  # NG for JP
 ```
 
-**Fix**: derive `lang = resolve_lang(ctx.country)` (the canonical
+**Fix**: derive `lang = lang_for(ctx.country)` (the canonical
 idiom in E.10).
 
 ### E.9 ❌ Ad-hoc fields outside the FHIR R4 spec
@@ -612,8 +612,9 @@ if ctx.country.lower() == "jp": ...                      # NG
 lang = "ja" if str(ctx.country).upper() == "JP" else "en"  # NG
 ```
 
-**Fix**: `from clinosim.modules._shared import is_jp, resolve_lang`
-— use only `is_jp(ctx.country)` / `resolve_lang(ctx.country)`.
+**Fix**: `from clinosim.countries import lang_for
+from clinosim.modules._shared import is_jp`
+— use only `is_jp(ctx.country)` / `lang_for(ctx.country)`.
 Before the shared-logic unification (2026-07-02), 5 divergent
 idioms coexisted, and case-normalization differences could silently
 disable JP gating (a PR-90-class risk). Both helpers are a single
@@ -723,6 +724,6 @@ classic silent-no-op (PR-90 class): no audit gate → downstream NLP
 | **Tier 1 #3 α-min-2 OUTPATIENT_SOAP (2026-07-01)** | **LOINC 34131-3** (corrected from 11488-4 per a LOINC-DB query). `encounter_types_supported: [outpatient]`. Production wiring: `outpatient.py` calls `run_stage(POST_ENCOUNTER)` (α-min-2 Task 14 fix; verified 2026-07-02 — 1,841 Composition at US p=500 seed=42). |
 | **Tier 1 #3 α-min-2 ED_NOTE + ED_TRIAGE_NOTE (2026-07-01)** | **ED_NOTE = LOINC 34878-9** (corrected from 51847-2), **ED_TRIAGE_NOTE = LOINC 54094-8** (checked and confirmed correct). `encounter_types_supported: [emergency]`. Production wiring: `emergency.py` calls `run_stage(POST_ENCOUNTER)` (α-min-2 Task 14 fix; verified 2026-07-02 — ED_NOTE 210 Composition + ED_TRIAGE_NOTE 210 DocumentReference at US p=500 seed=42). |
 | **Tier 1 #2 Imaging (2026-06-30)** | **New `_fhir_imaging_study.py` + `_fhir_endpoint.py` + polymorphic `_fhir_service_request.py` imaging dispatch + radiology `_fhir_diagnostic_report.py` variant + canonical constants `IMAGING_CATEGORY_SNOMED` / `DICOM_UID_SYSTEM` / `ENDPOINT_ID_PREFIX` / `DICOM_WADO_RS_CONNECTION_TYPE` / `IMAGING_SR_ID_PREFIX` + CIF→FHIR no-drop invariant (1:1 ImagingStudyRecord → ImagingStudy + Endpoint + radiology DR + imaging SR) + AD-62 ADR + `encounter_id` invariant (all orders in `CIFPatientRecord.orders` must have non-empty `encounter_id` before FHIR export — inpatient.py unknown-condition fix 2026-06-30)** |
-| **Common-logic unification (2026-07-02)** | **Established `is_jp` / `resolve_lang` (`modules/_shared.py`) as the sole canonical idiom for JP-gating / display-language selection (replaced 5 divergent idioms — E.10) + `system_key_for(kind, country)` (`clinosim.codes`) = the single source of truth for country → code-system selection (E.11) + migrated `_fhir_localization.py`'s 3 inline YAML loaders to the canonical cached loaders in `clinosim/locale/loader.py` (`load_med_terms_ja` / `load_narrative_display_dict` / `load_department_display`; E.3 precedent) + added `hl7-endpoint-connection-type` / `hl7-endpoint-payload-type` / `hl7-subscriber-relationship` to `_BUILTIN_URIS` + moved aggregate loaders to their owner module (`load_all_disease_protocols` → `modules/disease/protocol.py`) + `@lru_cache`d the protocol / config loaders (shared instances = mutation forbidden)** |
+| **Common-logic unification (2026-07-02)** | **Established `is_jp` / `lang_for` (`modules/_shared.py`) as the sole canonical idiom for JP-gating / display-language selection (replaced 5 divergent idioms — E.10) + `system_key_for(kind, country)` (`clinosim.codes`) = the single source of truth for country → code-system selection (E.11) + migrated `_fhir_localization.py`'s 3 inline YAML loaders to the canonical cached loaders in `clinosim/locale/loader.py` (`load_med_terms_ja` / `load_narrative_display_dict` / `load_department_display`; E.3 precedent) + added `hl7-endpoint-connection-type` / `hl7-endpoint-payload-type` / `hl7-subscriber-relationship` to `_BUILTIN_URIS` + moved aggregate loaders to their owner module (`load_all_disease_protocols` → `modules/disease/protocol.py`) + `@lru_cache`d the protocol / config loaders (shared instances = mutation forbidden)** |
 
 Japanese counterpart: [`fhir-data-generation-logic.ja.md`](fhir-data-generation-logic.ja.md).

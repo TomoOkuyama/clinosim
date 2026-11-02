@@ -19,7 +19,7 @@ from pathlib import Path
 
 from clinosim.codes.icd10 import condition_label
 from clinosim.locale.i18n import t
-from clinosim.modules._shared import pick_localized_field
+from clinosim.locale.localized import localized_field
 from clinosim.modules.document.narrative._patient_info_renderers import (
     _WRITING_DAY_SCOPE,
     _health_literacy_tag,
@@ -283,9 +283,9 @@ def _build_extra_context(
             # shared CIF-slot picker — no `lang == "ja"` gate here so
             # adding a locale is a data-only change (populate
             # `<field>_<lang>` on the safety-skip entry).
-            considered = pick_localized_field(s, "considered", lang)
-            conflict = pick_localized_field(s, "avoided_due_to", lang)
-            substituted = pick_localized_field(s, "substituted_with", lang) or None
+            considered = localized_field(s, "considered", lang)
+            conflict = localized_field(s, "avoided_due_to", lang)
+            substituted = localized_field(s, "substituted_with", lang) or None
             day = s.get("stopped_on_day")
             day_phrase = (
                 t("safety_skips.day_phrase_specific", lang, day=int(day))

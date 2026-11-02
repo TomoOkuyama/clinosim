@@ -276,7 +276,7 @@ The language of the entry is chosen by §6: the requested language, then the sam
 | `modules._shared.practitioner_name(staff_id, roster_map)` | practitioner display; `""` on a miss |
 | `simulator.event_refs.event_ref_kind(value)` | namespace of a `disease_id` / ground-truth value |
 
-`modules._shared.pick_localized_field` and `modules._shared.resolve_lang` forward to `localized_field` and `lang_for`; new code calls those directly (§11).
+The output language of a country is `countries.lang_for(country)`; CIF `<base>_<lang>` fields are read with `localized_field`.
 
 ## 5. Localization
 
@@ -406,4 +406,3 @@ These parts of the code base do not yet conform. Each one is removed by the issu
 |---|---|
 | Narrative renderers gate Japanese-only pipelines (chief-complaint variants, CC/PE consistency, daily trajectory, JP code choices) on the language literal (18 comparisons in 12 files) | #2483 |
 | Data YAMLs lack the `metadata.kind` header and per-kind schema validation (§3.1) | #2465 |
-| Duplicate resolver names and pass-through wrappers (`llm_service.engine.loinc_for`, `fhir_r4.lib.common.loinc_coding`, `pick_localized_field`, `resolve_lang`, `get_display`, `codes.match`) | #2467 |

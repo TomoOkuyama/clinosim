@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import pytest
 
-from clinosim.codes import display, get_display, lookup
+from clinosim.codes import display, lookup
 from clinosim.modules.output.fhir_r4.lib.common import display_entry
 
 pytestmark = pytest.mark.unit
@@ -15,7 +15,6 @@ pytestmark = pytest.mark.unit
 )
 def test_lookup_miss_is_empty(system: str, code: str) -> None:
     assert lookup(system, code, "ja") == ""
-    assert get_display(system, code, "JP") == ""
     assert display(system, code, "ja") is None
 
 

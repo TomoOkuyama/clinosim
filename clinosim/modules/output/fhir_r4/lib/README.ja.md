@@ -103,7 +103,7 @@ from clinosim.modules.output.fhir_r4.lib.ids import (
 
 ## 依存
 
-- `clinosim.modules._shared` — `is_jp`, `is_us`, `resolve_lang`,
+- `clinosim.modules._shared` — `is_jp`, `is_us`, `countries.lang_for`,
   `strip_protocol_prefix`。
 - `clinosim.codes` — `get_system_uri`, `lookup`。
 - `clinosim.locale.loader` — locale 表示 map + code mapping。

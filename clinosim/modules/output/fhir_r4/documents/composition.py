@@ -53,10 +53,11 @@ from clinosim.codes import data_table, get_system_uri
 from clinosim.codes import display as registry_display
 from clinosim.codes import lookup as code_lookup
 from clinosim.codes.loinc import loinc_for
+from clinosim.countries import lang_for
 from clinosim.locale.i18n import t
 from clinosim.locale.loader import role_display
 from clinosim.modules._shared import get_attr_or_key as _o
-from clinosim.modules._shared import resolve_lang, uses_jp_clins_profile
+from clinosim.modules._shared import uses_jp_clins_profile
 from clinosim.modules.document import COMPOSITION_ID_PREFIX, DOC_REFERENCE_ID_PREFIX
 from clinosim.modules.document.narrative.registry import document_loinc
 from clinosim.modules.document.narrative.registry import (
@@ -477,7 +478,7 @@ def _bb_compositions(ctx: BundleContext) -> list[dict[str, Any]]:
     11506-3(Progress note)を優先、その他 free-text は fallback。
     """
     raw_docs = _o(ctx.record, "documents", []) or []
-    lang = resolve_lang(ctx.country)
+    lang = lang_for(ctx.country)
 
     # First pass: encounter_id → primary free-text doc id.
     # Priority: 8648-8 (Hospital course) > 11506-3 (Progress note) > any

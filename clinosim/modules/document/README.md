@@ -109,7 +109,7 @@ from clinosim.modules.document.engine import document_enricher
 ## Dependencies
 
 - `clinosim.modules._shared` — `get_attr_or_key`, `is_jp`,
-  `resolve_lang`.
+  `countries.lang_for`.
 - `clinosim.modules.document.narrative.registry` — spec loaders +
   filters.
 - `clinosim.modules.document.reference_data_loaders` — physical

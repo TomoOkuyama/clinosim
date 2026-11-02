@@ -32,10 +32,11 @@ from typing import Any
 
 from clinosim.codes import get_system_uri
 from clinosim.codes import lookup as code_lookup
+from clinosim.countries import lang_for
 from clinosim.locale.loader import imaging_exam_display
 from clinosim.locale.localized import localized_field
 from clinosim.modules._shared import get_attr_or_key as _o
-from clinosim.modules._shared import resolve_lang, uses_jp_clins_profile
+from clinosim.modules._shared import uses_jp_clins_profile
 from clinosim.modules.imaging.engine import (  # canonical owners; re-exported below
     ENDPOINT_ID_PREFIX,
     IMAGING_STUDY_ID_PREFIX,
@@ -125,7 +126,7 @@ def _bb_imaging_studies(ctx: BundleContext) -> list[dict[str, Any]]:
     studies = (_o(ctx.record, "extensions", {}) or {}).get("imaging") or []
     if not studies:
         return []
-    lang = resolve_lang(ctx.country)
+    lang = lang_for(ctx.country)
     # CY7-03 (Chain-7): reasonCode inherits the encounter's primary reasonCode
     # (imaging is done to investigate the current diagnosis). Encounter → dx.
     _enc_reason_by_id: dict[str, list[dict]] = {}

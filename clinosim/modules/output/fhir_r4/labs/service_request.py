@@ -33,8 +33,10 @@ from clinosim.codes import display as registry_display
 from clinosim.codes import get_system_uri, system_key_for
 from clinosim.codes import lookup as code_lookup
 from clinosim.codes.snomed import snomed_for
+from clinosim.countries import lang_for
 from clinosim.locale.loader import load_code_mapping
-from clinosim.modules._shared import get_attr_or_key, is_jp, pick_localized_field, resolve_lang
+from clinosim.locale.localized import localized_field
+from clinosim.modules._shared import get_attr_or_key, is_jp
 from clinosim.modules.observation.engine import canonical_lab_name
 from clinosim.modules.order.panel_grouping import load_panel_definitions
 from clinosim.modules.output.fhir_r4.encounters.encounter import encounter_ref
@@ -90,7 +92,7 @@ def _pick_reason_text(source: Any, lang: str) -> str:
     Same writer/reader locale-split pattern as
     ``Encounter.chief_complaint`` / ``chief_complaint_ja`` (Issue #360 G1).
     """
-    return pick_localized_field(source, "clinical_intent", lang)
+    return localized_field(source, "clinical_intent", lang)
 
 
 from clinosim.modules.output.fhir_r4.demographics.patient import patient_ref
@@ -562,7 +564,7 @@ def _build_lab_service_requests(
     counter = build_panel_counter(lab_orders)
     panels = load_panel_definitions()
     country = ctx.country.lower()
-    lang = resolve_lang(country)
+    lang = lang_for(country)
 
     # Group panel orders by SR id; stand-alone Orders emit 1 SR each.
     panel_buckets: dict[str, list[Any]] = defaultdict(list)
@@ -627,7 +629,7 @@ def _build_imaging_service_requests(
 
     Accepts both Order dataclass instances and JSON-deserialized dicts.
     """
-    lang = resolve_lang(ctx.country)
+    lang = lang_for(ctx.country)
     country = ctx.country.lower()
     _issued_map = earliest_dr_issued_by_sr or {}
     out: list[dict[str, Any]] = []

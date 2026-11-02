@@ -16,8 +16,10 @@ from clinosim.codes import lookup as code_lookup
 from clinosim.codes.hl7_encounter import ActPriority
 from clinosim.codes.snomed import snomed_for
 from clinosim.codes.ucum import ucum_quantity
+from clinosim.countries import lang_for
 from clinosim.locale.i18n import t
-from clinosim.modules._shared import is_jp, pick_localized_field, resolve_lang
+from clinosim.locale.localized import localized_field
+from clinosim.modules._shared import is_jp
 from clinosim.modules.diagnosis.nonspecific_codes import is_never_principal_dx, is_visit_reason_zcode
 from clinosim.modules.output.fhir_r4.conditions.primary_ref import (
     encounter_admission_condition_id,
@@ -149,7 +151,7 @@ def _build_encounter(
             else {}
         ),
         "status": map_encounter_status(enc.get("status", "")),
-        "class": system_coding("hl7-v3-actcode", class_code, resolve_lang(country)),
+        "class": system_coding("hl7-v3-actcode", class_code, lang_for(country)),
         "subject": patient_ref(patient_id),
     }
 
@@ -177,7 +179,7 @@ def _build_encounter(
     if type_code:
         # C2-01: use dual_slot_concept so codes lacking a
         # codes/data entry emit without display=code fallback (FHIR interop).
-        resource["type"] = [dual_slot_concept("snomed-ct", type_code, resolve_lang(country))]
+        resource["type"] = [dual_slot_concept("snomed-ct", type_code, lang_for(country))]
 
     # Priority (Encounter.priority)
     priority = enc.get("priority", "")
@@ -188,7 +190,7 @@ def _build_encounter(
     if not priority:
         priority = ActPriority.R.value
     if priority:
-        resource["priority"] = dual_slot_concept("hl7-v3-actpriority", priority, resolve_lang(country))
+        resource["priority"] = dual_slot_concept("hl7-v3-actpriority", priority, lang_for(country))
 
     # Service type (department)
     # feedback FB-F7: hl7-service-type CodeSystem は診療科 code の canonical
@@ -234,14 +236,14 @@ def _build_encounter(
             _icu_transfer_dt = _adm + _td(days=icu_transferred_day)
             class_history: list[dict[str, Any]] = [
                 {
-                    "class": system_coding("hl7-v3-actcode", "IMP", resolve_lang(country)),
+                    "class": system_coding("hl7-v3-actcode", "IMP", lang_for(country)),
                     "period": {
                         "start": enc["admission_datetime"],
                         "end": _icu_transfer_dt.isoformat(),
                     },
                 },
                 {
-                    "class": system_coding("hl7-v3-actcode", "ACUTE", resolve_lang(country)),
+                    "class": system_coding("hl7-v3-actcode", "ACUTE", lang_for(country)),
                     "period": {
                         "start": _icu_transfer_dt.isoformat(),
                         **({"end": enc["discharge_datetime"]} if enc.get("discharge_datetime") else {}),
@@ -293,7 +295,7 @@ def _build_encounter(
         # reasonCode: use diagnosis display in target language (codes module)
         # Falls back to JP-stashed chief_complaint_ja on JP output, or
         # English chief_complaint text otherwise, if no code available.
-        lang = resolve_lang(country)
+        lang = lang_for(country)
         # C4-24: route the admission dx system + code
         # through the country's diagnosis code system so JP output never
         # emits icd-10-cm under an icd-10 semantic surface (was 4 encounters
@@ -309,7 +311,7 @@ def _build_encounter(
         # output — CIF stores English canonical (AD-30), so the plain
         # ``enc["chief_complaint"]`` is English and would reach the JP
         # Clinical Cockpit as English protocol text (feedback G1).
-        _fallback_text = pick_localized_field(enc, "chief_complaint", lang)
+        _fallback_text = localized_field(enc, "chief_complaint", lang)
         if _reason_code:
             reason_text = code_lookup(_reason_system, _reason_code, lang)
             if not reason_text:
@@ -373,7 +375,7 @@ def _build_encounter(
         diagnosis_list: list[dict[str, Any]] = [
             {
                 "condition": {"reference": f"Condition/{_dd_ref}"},
-                "use": dual_slot_concept("hl7-diagnosis-role", "DD", resolve_lang(country)),
+                "use": dual_slot_concept("hl7-diagnosis-role", "DD", lang_for(country)),
                 "rank": 1,
             }
         ]
@@ -417,7 +419,7 @@ def _build_encounter(
                         "condition": {
                             "reference": f"Condition/{chronic_condition_id(patient_id, _i)}",
                         },
-                        "use": dual_slot_concept("hl7-diagnosis-role", "CM", resolve_lang(country)),
+                        "use": dual_slot_concept("hl7-diagnosis-role", "CM", lang_for(country)),
                         "rank": _rank,
                     }
                 )
@@ -458,7 +460,7 @@ def _build_encounter(
                     "condition": {
                         "reference": (f"Condition/{encounter_admission_condition_id(patient_id, encounter_id)}"),
                     },
-                    "use": dual_slot_concept("hl7-diagnosis-role", "AD", resolve_lang(country)),
+                    "use": dual_slot_concept("hl7-diagnosis-role", "AD", lang_for(country)),
                     "rank": _rank,
                 }
             )
@@ -492,7 +494,7 @@ def _build_encounter(
     # site rather than in a post-process walker.
     hosp: dict[str, Any] = {}
     _emit_hospitalization = class_code != "AMB"
-    _lang = resolve_lang(country)
+    _lang = lang_for(country)
     if _emit_hospitalization and enc.get("admit_source"):
         hosp["admitSource"] = dual_slot_concept("hl7-admit-source", enc["admit_source"], _lang)
     if _emit_hospitalization and enc.get("discharge_disposition"):
@@ -510,7 +512,7 @@ def _build_encounter(
                     "display": "Re-admission",
                 }
             ],
-            "text": t("fhir_emit_text.re_admission", resolve_lang(country)),
+            "text": t("fhir_emit_text.re_admission", lang_for(country)),
         }
     # C2-18: IMP encounters must carry a hospitalization block. When
     # admit_source is missing, fall back to the yaml-configured default
@@ -552,7 +554,7 @@ def _build_encounter(
         if diet_orders:
             from clinosim.locale.loader import load_diet_type_display
 
-            lang = resolve_lang(country)
+            lang = lang_for(country)
             _diet_labels = {slug: row.get(lang, slug) for slug, row in load_diet_type_display().items()}
             seen = []
             for o in diet_orders:
@@ -590,7 +592,7 @@ def _build_encounter(
             {
                 "location": {
                     "reference": f"Location/loc-bed-{bed_number}",
-                    "display": t("fhir_emit_text.bed", resolve_lang(country), n=bed_number),
+                    "display": t("fhir_emit_text.bed", lang_for(country), n=bed_number),
                 },
                 "status": "completed" if enc.get("discharge_datetime") else "active",
             }
@@ -601,7 +603,7 @@ def _build_encounter(
             {
                 "location": {
                     "reference": f"Location/loc-ward-{ward_id}",
-                    "display": t("fhir_emit_text.ward", resolve_lang(country), n=ward_id),
+                    "display": t("fhir_emit_text.ward", lang_for(country), n=ward_id),
                 },
                 "status": "completed" if enc.get("discharge_datetime") else "active",
             }

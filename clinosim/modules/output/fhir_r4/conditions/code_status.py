@@ -6,7 +6,8 @@ from typing import Any
 
 from clinosim.codes import get_system_uri
 from clinosim.codes import lookup as code_lookup
-from clinosim.modules._shared import is_jp, resolve_lang
+from clinosim.countries import lang_for
+from clinosim.modules._shared import is_jp
 from clinosim.modules.code_status.engine import load_reference
 from clinosim.modules.output.fhir_r4.demographics.patient import patient_ref
 from clinosim.modules.output.fhir_r4.encounters.encounter import encounter_ref
@@ -31,7 +32,7 @@ def _bb_code_status(ctx: BundleContext) -> list[dict]:
     code = ctx.record.get("code_status") or ""
     if not code:
         return []
-    lang = resolve_lang(ctx.country)
+    lang = lang_for(ctx.country)
     enc = ctx.primary_enc_id
     observable = load_reference()["observable_snomed"]
     snomed_uri = get_system_uri("snomed-ct")
@@ -57,7 +58,7 @@ def _bb_code_status(ctx: BundleContext) -> list[dict]:
             else {}
         ),
         "status": "final",
-        "category": survey_category(resolve_lang(ctx.country)),
+        "category": survey_category(lang_for(ctx.country)),
         "code": {"coding": [_coding(observable)]},
         "subject": patient_ref(ctx.patient_id),
         "valueCodeableConcept": {"coding": [_coding(code)]},

@@ -5,8 +5,9 @@ from __future__ import annotations
 import csv
 import os
 
-from clinosim.codes import display, get_display, get_system_uri, system_key_for
-from clinosim.modules._shared import get_attr_or_key, resolve_lang
+from clinosim.codes import display, get_system_uri, lookup, system_key_for
+from clinosim.countries import lang_for
+from clinosim.modules._shared import get_attr_or_key
 from clinosim.modules.output.cif_reader import CIFReader
 from clinosim.modules.output.fhir_r4.labs.microbiology import (
     resolve_culture_code,
@@ -114,8 +115,8 @@ def convert_cif_to_csv(
         adm_sys = clinical_dx.get("admission_diagnosis_system", "icd-10-cm")
         dis_code = clinical_dx.get("discharge_diagnosis_code", "")
         dis_sys = clinical_dx.get("discharge_diagnosis_system", "icd-10-cm")
-        adm_name = get_display(adm_sys, adm_code, country) if adm_code else ""
-        dis_name = get_display(dis_sys, dis_code, country) if dis_code else ""
+        adm_name = lookup(adm_sys, adm_code, lang_for(country)) if adm_code else ""
+        dis_name = lookup(dis_sys, dis_code, lang_for(country)) if dis_code else ""
         diagnoses_rows.append(
             {
                 "patient_id": patient_id,
@@ -393,14 +394,16 @@ def convert_cif_to_csv(
                     "patient_id": patient_id,
                     "encounter_id": enc0.get("encounter_id", ""),
                     "code": cs,
-                    "display": get_display("snomed-ct", cs, country),
+                    "display": lookup("snomed-ct", cs, lang_for(country)),
                 }
             )
 
         # JP 要介護度 (care level)
         cl = record.get("care_level")
         if cl:
-            cl_rows.append({"patient_id": patient_id, "code": cl, "display": get_display("jp-care-level", cl, country)})
+            cl_rows.append(
+                {"patient_id": patient_id, "code": cl, "display": lookup("jp-care-level", cl, lang_for(country))}
+            )
 
         # Discharge prescription
         rx = record.get("discharge_prescription")
@@ -491,7 +494,7 @@ def _procedure_name_and_system(proc: dict, country: str) -> tuple[str, str]:
     """
     from clinosim.modules.output.hospital_course_extractor import _resolve_procedure_name
 
-    lang = resolve_lang(country)
+    lang = lang_for(country)
     code = str(proc.get("procedure_code") or "")
     system_key = str(proc.get("procedure_system_key") or "") or system_key_for("procedure", country)
     name = (display(system_key, code, lang) if code else None) or _resolve_procedure_name(proc, lang)

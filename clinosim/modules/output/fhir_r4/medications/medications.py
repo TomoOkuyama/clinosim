@@ -20,15 +20,11 @@ from clinosim.codes import display as registry_display
 from clinosim.codes import lookup as code_lookup
 from clinosim.codes.drugs import drug_system_uri, is_verified_yj, jp_drug_code_table
 from clinosim.codes.ucum import ucum_quantity
+from clinosim.countries import lang_for
 from clinosim.locale.i18n import t
 from clinosim.locale.loader import load_code_mapping
 from clinosim.locale.localized import localized
-from clinosim.modules._shared import (
-    MED_STOP_ORDER_ID_MARKER,
-    get_attr_or_key,
-    is_jp,
-    resolve_lang,
-)
+from clinosim.modules._shared import MED_STOP_ORDER_ID_MARKER, get_attr_or_key, is_jp
 from clinosim.modules.output.fhir_r4.demographics.patient import patient_ref
 from clinosim.modules.output.fhir_r4.encounters.encounter import encounter_ref
 from clinosim.modules.output.fhir_r4.lib.common import (
@@ -541,7 +537,7 @@ def _resolve_medication_concept(
     base_name = drug_name_clean.split(" ")[0] if drug_name_clean else ""
 
     country_code = "JP" if is_jp(country) else "US"
-    lang = resolve_lang(country_code)
+    lang = lang_for(country_code)
     drug_codes = _drug_code_table(country_code, route)
 
     # C3-10: multi-word drug names (e.g. "Normal saline",
@@ -1120,14 +1116,14 @@ def _build_discharge_rx_dosage(
     # Issue #476: authored dose_ja / dose_en wins over auto-derived text.
     dose_text_ja = str(get_attr_or_key(item, "dose_ja", "") or "")
     dose_text_en = str(get_attr_or_key(item, "dose_en", "") or "")
-    authored_text = localized({"ja": dose_text_ja, "en": dose_text_en}, resolve_lang(country))
+    authored_text = localized({"ja": dose_text_ja, "en": dose_text_en}, lang_for(country))
     if authored_text:
         dosage["text"] = authored_text
     else:
         dose_parts = [p for p in (dose, rate_adjustment_note) if p]
         if dose_parts:
             dose_text = " ".join(dose_parts)
-            dosage["text"] = _localize_dosage_terms(dose_text, resolve_lang(country))
+            dosage["text"] = _localize_dosage_terms(dose_text, lang_for(country))
 
     # Issue #920 / #1348: emit structured doseAndRate + timing from the
     # same dose/frequency fields. Skipped when authored_text is set so
@@ -1373,7 +1369,7 @@ def _build_ma_dosage_block(
         dose_text = f"{dose_text} ({rate_note_localized})".strip() if dose_text.strip() else rate_note_localized
     # Issue #472: localize at the assignment only — `dose_text` itself stays English
     # because the continuous-infusion detection below matches on "CONTINUOUS" / "DRIP".
-    dosage: dict[str, Any] = {"text": _localize_dosage_terms(dose_text, resolve_lang(country))}
+    dosage: dict[str, Any] = {"text": _localize_dosage_terms(dose_text, lang_for(country))}
     if parsed.get("dose_quantity") is not None and parsed.get("dose_unit"):
         dosage["dose"] = ucum_quantity(parsed["dose_quantity"], parsed["dose_unit"])
     # Rate for continuous infusions
@@ -1475,7 +1471,7 @@ def _build_ma_device_block(
     return [
         {
             "reference": "Device/dev-infusion-pump",
-            "display": t("fhir_emit_text.generic_infusion_pump", resolve_lang(country_code)),
+            "display": t("fhir_emit_text.generic_infusion_pump", lang_for(country_code)),
         }
     ]
 
@@ -1507,7 +1503,7 @@ def _build_medication_admin(
     drug_name = _localize_drug_name(drug_name_clean, country)
     base_name = drug_name_clean.split(" ")[0] if drug_name_clean else ""
     country_code = "JP" if is_jp(country) else "US"
-    lang = resolve_lang(country_code)
+    lang = lang_for(country_code)
     drug_codes = _drug_code_table(country_code, str(mar.get("route", "") or ""))
     # C3-10: longest-match-wins for multi-word keys.
     # CO-8 (Chain 4 2026-07-11): normalize underscores + honor the MAR-carried

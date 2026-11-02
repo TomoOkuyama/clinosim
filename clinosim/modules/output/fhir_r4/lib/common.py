@@ -47,7 +47,6 @@ __all__ = [
     "map_encounter_status",
     "map_mar_status",
     # Coding-system helpers (used by both output/ and audit modules)
-    "loinc_coding",
     "severity_coding",
     # Cross-profile helpers
     "attach_ecs_institutional_extensions",
@@ -84,11 +83,12 @@ from clinosim.codes import get_system_uri, is_english_only_system
 from clinosim.codes.icd10 import condition_short_name
 from clinosim.codes.prefectures import prefecture_code
 from clinosim.codes.ucum import ucum_quantity
+from clinosim.countries import lang_for
 from clinosim.locale.free_text import localize_free_text
 from clinosim.locale.loader import load_code_mapping, load_reference_ranges
 from clinosim.locale.loaders.medical_display import department_display
 from clinosim.locale.localized import localized
-from clinosim.modules._shared import is_jp, resolve_lang, strip_protocol_prefix
+from clinosim.modules._shared import is_jp, strip_protocol_prefix
 from clinosim.modules.output.fhir_r4.lib.localization import (
     FREQUENCY_TEXT,
     ROUTE_TEXT,
@@ -310,13 +310,6 @@ def survey_category(lang: str) -> list[dict]:
     return [dual_slot_concept("hl7-observation-category", "survey", lang)]
 
 
-def loinc_coding(code: str, lang: str) -> dict:
-    """Build a LOINC coding entry (``clinosim.codes.loinc.loinc_coding``, Issue #2260)."""
-    from clinosim.codes.loinc import loinc_coding as _loinc_coding
-
-    return _loinc_coding(code, lang)
-
-
 def _social_category(country: str) -> list[dict]:
     """FHIR Observation.category for social-history (US Core SDOH).
 
@@ -325,7 +318,7 @@ def _social_category(country: str) -> list[dict]:
     (smoking, alcohol, occupation, education, housing, ...). Promoted
     from _fhir_sdoh.py in PR2 (G2 SDOH integrity refactor, 2026-06-24).
     """
-    return [dual_slot_concept("hl7-observation-category", "social-history", resolve_lang(country))]
+    return [dual_slot_concept("hl7-observation-category", "social-history", lang_for(country))]
 
 
 def entry(resource: dict) -> dict:
@@ -380,7 +373,7 @@ def build_diagnosis_codeable_concept(code: str, system_key: str, country: str) -
     have something to show.
     """
 
-    primary_lang = resolve_lang(country)
+    primary_lang = lang_for(country)
     primary_system = get_system_uri(system_key)
 
     # Official display in the primary language, then English for the interop
@@ -634,7 +627,7 @@ def build_telecom(contact: dict) -> list[dict[str, str]]:
 def make_participant(code: str, practitioner_id: str, country: str = "US") -> dict[str, Any]:
     """Build an Encounter.participant entry; ``code`` is an HL7 v3-ParticipationType code (ATND / ADM / DIS)."""
     return {
-        "type": [dual_slot_concept("hl7-v3-participationtype", code, resolve_lang(country))],
+        "type": [dual_slot_concept("hl7-v3-participationtype", code, lang_for(country))],
         "individual": {"reference": f"Practitioner/{practitioner_id}"},
     }
 
@@ -687,7 +680,7 @@ def build_route_concept(raw_route: str | None, country: str) -> dict[str, Any] |
     snomed = _ROUTE_SNOMED.get(canonical)
     # Route text in the output language (translation table keyed by the
     # canonical token); English keeps the author's wording (Issue #2459).
-    text_value = ROUTE_TEXT.get(canonical, resolve_lang(country), fallback=route)
+    text_value = ROUTE_TEXT.get(canonical, lang_for(country), fallback=route)
     if snomed:
         # Registry coding (English preferred term) + the localized text above
         # (dual slot, Issue #2375).
@@ -1186,7 +1179,7 @@ def build_dosage_instruction(order: dict, country: str = "US") -> dict[str, Any]
     # for `ICS/LABA inhaler` step-up-after-exacerbation).
     dose_text_ja = str(order.get("dose_text_ja", "") or "")
     dose_text_en = str(order.get("dose_text_en", "") or "")
-    authored_text = localized({"ja": dose_text_ja, "en": dose_text_en}, resolve_lang(country))
+    authored_text = localized({"ja": dose_text_ja, "en": dose_text_en}, lang_for(country))
 
     # If nothing structured is available, return None so the caller omits
     # `dosageInstruction`. Issue #467: the previous fallback stuffed the
@@ -1324,7 +1317,7 @@ def build_dosage_instruction(order: dict, country: str = "US") -> dict[str, Any]
         # Route / frequency tokens in the output language, then the dosage
         # term translator for any remaining English (Issue #2459); English
         # output keeps the tokens as written.
-        _lang = resolve_lang(country)
+        _lang = lang_for(country)
         translated = [
             ROUTE_TEXT.get(p.upper(), _lang)
             or FREQUENCY_TEXT.get(p.upper(), _lang)
@@ -1448,7 +1441,7 @@ def build_reference_range(
                         system_coding(
                             "hl7-v3-administrativegender",
                             sex,
-                            resolve_lang(country_code),
+                            lang_for(country_code),
                         )
                     ],
                 }
@@ -1485,7 +1478,7 @@ def build_reference_range(
                             "system": get_system_uri("hl7-referencerange-meaning"),
                             "code": "therapeutic",
                             "display": registry_display(
-                                "hl7-referencerange-meaning", "therapeutic", resolve_lang(country_code)
+                                "hl7-referencerange-meaning", "therapeutic", lang_for(country_code)
                             ),
                         }
                     ]

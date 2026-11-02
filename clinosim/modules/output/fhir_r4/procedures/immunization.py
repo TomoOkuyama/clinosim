@@ -16,8 +16,9 @@ from clinosim.codes import get_system_uri
 from clinosim.codes import lookup as code_lookup
 from clinosim.codes.snomed import snomed_for
 from clinosim.codes.ucum import ucum_quantity
+from clinosim.countries import lang_for
 from clinosim.locale.i18n import t
-from clinosim.modules._shared import get_attr_or_key, is_jp, resolve_lang
+from clinosim.modules._shared import get_attr_or_key, is_jp
 from clinosim.modules.output.fhir_r4.demographics.patient import patient_ref
 from clinosim.modules.output.fhir_r4.encounters.encounter import encounter_ref
 from clinosim.modules.output.fhir_r4.lib.common import (
@@ -127,7 +128,7 @@ def _bb_immunizations(ctx: BundleContext) -> list[dict]:
     Display text is resolved via lookup("cvx", code, lang); never emitted as display == code.
     US output contains no Japanese characters; JP output uses Japanese display when available.
     """
-    lang = resolve_lang(ctx.country)
+    lang = lang_for(ctx.country)
     out: list[dict] = []
     encounters = ctx.record.get("encounters", []) or []
 
@@ -197,7 +198,7 @@ def _bb_immunizations(ctx: BundleContext) -> list[dict]:
         if status == "not-done":
             # C2-28: display resolved via codes/data/
             # hl7-v3-actreason.yaml — was en-only hardcoded string.
-            lang = resolve_lang(ctx.country)
+            lang = lang_for(ctx.country)
             resource["statusReason"] = {
                 "coding": [system_coding("hl7-v3-actreason", "PATOBJ", lang)],
                 "text": t("immunization_fhir.patient_refused", lang),

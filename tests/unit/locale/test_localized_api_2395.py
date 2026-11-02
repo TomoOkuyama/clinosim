@@ -12,7 +12,6 @@ from clinosim.locale.i18n import _load_phrase_catalog, t
 from clinosim.locale.loaders.narrative import resolve_localized_display
 from clinosim.locale.localized import label, localized, localized_field, normalize_lang
 from clinosim.locale.text import resolve_text
-from clinosim.modules._shared import pick_localized_field
 
 pytestmark = pytest.mark.unit
 
@@ -62,8 +61,8 @@ def test_existing_helpers_follow_the_order(call: Any) -> None:
 
 
 def test_pick_localized_field_delegates() -> None:
-    assert pick_localized_field({"x": "a", "x_ja": "あ"}, "x", "ja") == "あ"
-    assert pick_localized_field({"x_ja": "あ"}, "x", "en", fallback="-") == "-"
+    assert localized_field({"x": "a", "x_ja": "あ"}, "x", "ja") == "あ"
+    assert localized_field({"x_ja": "あ"}, "x", "en", fallback="-") == "-"
 
 
 def test_t_never_echoes_the_key() -> None:

@@ -14,7 +14,7 @@ from typing import Any
 
 import numpy as np
 
-from clinosim.countries import _country_language_map, lang_for
+from clinosim.countries import _country_language_map
 from clinosim.countries import is_jp as is_jp
 from clinosim.countries import is_us as is_us
 
@@ -73,16 +73,6 @@ def uses_jp_clins_profile(lang: str) -> bool:
 def _jp_clins_languages() -> frozenset[str]:
     """Output languages of the countries whose FHIR output uses JP-CLINS."""
     return frozenset(language for country, language in _country_language_map().items() if is_jp(country))
-
-
-def resolve_lang(country: str) -> str:
-    """Display language ISO-639-1 code for a country code.
-
-    Delegates to :func:`clinosim.countries.lang_for`, the single
-    country -> language derivation (Issue #2274): YAML-driven,
-    case-insensitive, English for an unmapped country.
-    """
-    return lang_for(country)
 
 
 def strip_protocol_prefix(name: str) -> tuple[str, str]:
@@ -325,42 +315,6 @@ def get_attr_or_key(obj: Any, name: str, default: Any = None) -> Any:
     if isinstance(obj, dict):
         return obj.get(name, default)
     return getattr(obj, name, default)
-
-
-def pick_localized_field(source: Any, base: str, lang: str, fallback: str = "") -> str:
-    """CIF field-slot locale pick with the ``<base>_<lang>`` + bare-base convention.
-
-    Convention (data-side counterpart to the ``t()`` phrase catalog):
-    per-locale CIF fields carry a ``<base>_<lang>`` slot for each non-``en``
-    locale (e.g. ``findings_text_ja``) plus the bare ``<base>`` slot as
-    the ``en`` / universal fallback. Callers that used to write::
-
-        text = _o(rec, "findings_text_ja", "") if lang == "ja" \\
-            else _o(rec, "findings_text", "")
-        if lang == "ja" and not text:
-            text = _o(rec, "findings_text", "")
-
-    collapse to::
-
-        text = pick_localized_field(rec, "findings_text", lang)
-
-    Adding a new target locale (e.g. ``fr``) is a data-only change:
-    add ``findings_text_fr`` fields to the CIF, no code change needed.
-
-    Resolution:
-      1. When ``lang`` is non-empty and not ``"en"``: try
-         ``source[<base>_<lang>]``; keep that value when non-empty.
-      2. Fall back to English: ``source[<base>_en]``, then ``source[<base>]``
-         (``clinosim.locale.localized.localized_field``, Issue #2395).
-      3. Fall back to the caller's ``fallback`` (default ``""``).
-
-    Empty-string values in the lang-specific slot fall through to the
-    bare slot rather than being cached as the answer — this matches the
-    pre-refactor ``lang == "ja" and not text`` fallback pattern.
-    """
-    from clinosim.locale.localized import localized_field
-
-    return localized_field(source, base, lang, fallback=fallback)
 
 
 def set_attr_or_key(obj: Any, name: str, value: Any) -> None:

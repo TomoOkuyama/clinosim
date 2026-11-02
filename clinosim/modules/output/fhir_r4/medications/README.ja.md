@@ -94,7 +94,7 @@ fragment builder のみを移し、`_bb_*` 登録は inline_bb に残した。
 
 ## 依存
 
-- `clinosim.modules._shared` — `is_jp`, `resolve_lang`,
+- `clinosim.modules._shared` — `is_jp`, `countries.lang_for`,
   `get_attr_or_key`。
 - `clinosim.codes.ucum` — `ucum_quantity` (UCUM Quantity は全てここ)。
 - `clinosim.modules.output.fhir_r4.lib.common` — `BundleContext`、

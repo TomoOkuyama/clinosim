@@ -24,8 +24,9 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from clinosim.codes import display as registry_display
-from clinosim.codes import get_display as code_display
+from clinosim.codes import lookup as code_lookup
 from clinosim.codes import system_key_for
+from clinosim.countries import lang_for
 from clinosim.locale.i18n import t
 from clinosim.locale.loader import narrative_label as _label
 from clinosim.modules._shared import get_attr_or_key as _o
@@ -244,7 +245,7 @@ def build_family_history(generator: TemplateNarrativeGenerator, ctx: NarrativeCo
     if not fams:
         return fallback, facts
 
-    # Country → code-system key for `get_display` lookup. `system_key_for`
+    # Country → code-system key for `lookup` lookup. `system_key_for`
     # is the same helper the FHIR emit-side family_history builder uses,
     # so the narrative and FHIR resource render the same disease label
     # per relative.
@@ -267,10 +268,10 @@ def build_family_history(generator: TemplateNarrativeGenerator, ctx: NarrativeCo
         for code in codes:
             if not code:
                 continue
-            # get_display falls back to the code string when the
+            # lookup falls back to the code string when the
             # display is missing — that surfaces a code rather than an
             # empty entry, better than dropping the relative silently.
-            disp = code_display(icd_system_key, str(code), country=country)
+            disp = code_lookup(icd_system_key, str(code), lang_for(country))
             if disp:
                 displays.append(str(disp))
         if not displays:

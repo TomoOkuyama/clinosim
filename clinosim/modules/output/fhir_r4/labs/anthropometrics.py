@@ -65,8 +65,9 @@ import yaml
 from clinosim.codes import get_system_uri
 from clinosim.codes.loinc import loinc_for
 from clinosim.codes.ucum import ucum_quantity
+from clinosim.countries import lang_for
 from clinosim.locale.i18n import t
-from clinosim.modules._shared import get_attr_or_key, is_jp, resolve_lang
+from clinosim.modules._shared import get_attr_or_key, is_jp
 from clinosim.modules.output.fhir_r4.demographics.patient import patient_ref
 from clinosim.modules.output.fhir_r4.encounters.encounter import encounter_ref
 from clinosim.modules.output.fhir_r4.lib.common import BundleContext, dual_slot_concept, to_fhir_datetime
@@ -438,7 +439,7 @@ def _build_one_observation(
             else {}
         ),
         "status": "final",
-        "category": [dual_slot_concept("hl7-observation-category", "vital-signs", resolve_lang(country))],
+        "category": [dual_slot_concept("hl7-observation-category", "vital-signs", lang_for(country))],
         "code": {
             "coding": [
                 {

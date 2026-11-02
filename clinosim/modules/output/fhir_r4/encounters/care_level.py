@@ -18,8 +18,9 @@ from typing import Any
 from clinosim.codes import get_system_uri
 from clinosim.codes import lookup as code_lookup
 from clinosim.codes.loinc import loinc_for
+from clinosim.countries import lang_for
 from clinosim.locale.i18n import t
-from clinosim.modules._shared import is_jp, resolve_lang
+from clinosim.modules._shared import is_jp
 from clinosim.modules.output.fhir_r4.demographics.patient import patient_ref
 from clinosim.modules.output.fhir_r4.demographics.smoking_alcohol import _sdoh_effective_datetime
 from clinosim.modules.output.fhir_r4.lib.common import (
@@ -57,8 +58,8 @@ def _bb_care_level(ctx: BundleContext) -> list[dict]:
     code = ctx.record.get("care_level") or ""
     if not code:
         return []
-    lang = resolve_lang(ctx.country)
-    text = t("fhir_emit_text.long_term_care_need_level", resolve_lang(ctx.country))
+    lang = lang_for(ctx.country)
+    text = t("fhir_emit_text.long_term_care_need_level", lang_for(ctx.country))
     # C2-10: derive effectiveDateTime from earliest
     # encounter admission (mirrors _fhir_smoking_alcohol._sdoh_effective_datetime
     # pattern from C1-12). Care-level is patient-level SDOH, so tying it to the

@@ -366,18 +366,6 @@ def lookup(system: str, code: str, lang: str = "en") -> str:
     return display(system, code, lang) or ""
 
 
-def get_display(system: str, code: str, country: str = "US") -> str:
-    """Convenience: look up display using country → language mapping.
-
-    Country matching is case-insensitive; unmapped countries get English
-    (``clinosim.countries.lang_for``, Issue #2274).
-    """
-    from clinosim.countries import lang_for
-
-    lang = lang_for(country)
-    return lookup(system, code, lang=lang)
-
-
 def get_system_uri(system: str) -> str:
     """Get the FHIR canonical system URI for a code system key."""
     cs = _load_system(system)

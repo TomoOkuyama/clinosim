@@ -18,7 +18,7 @@ from clinosim.countries import lang_for
 from clinosim.locale.i18n import t
 from clinosim.locale.loader import load_names
 from clinosim.locale.localized import localized
-from clinosim.modules._shared import is_jp, normalize_probabilities, resolve_lang
+from clinosim.modules._shared import is_jp, normalize_probabilities
 from clinosim.modules.patient._patient_activator_thresholds import (
     AGE_PENALTY_HEPATIC_RATIO,
     AGE_PENALTY_MIN_AGE,
@@ -613,7 +613,7 @@ def activate_patient(
         family_name=person.family_name,
         given_name=person.given_name,
         display_name=display,
-        name_script=resolve_lang(country),
+        name_script=lang_for(country),
         phonetic=person.phonetic,
     )
 

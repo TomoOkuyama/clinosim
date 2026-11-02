@@ -74,9 +74,10 @@ from datetime import datetime, timedelta
 from typing import Any
 
 from clinosim.codes.snomed import snomed_for
+from clinosim.countries import lang_for
 from clinosim.locale.i18n import t
 from clinosim.modules._shared import get_attr_or_key as _o
-from clinosim.modules._shared import is_jp, resolve_lang
+from clinosim.modules._shared import is_jp
 from clinosim.modules.output.fhir_r4.conditions.primary_ref import primary_condition_ref
 from clinosim.modules.output.fhir_r4.demographics.patient import patient_ref
 from clinosim.modules.output.fhir_r4.encounters.encounter import encounter_ref
@@ -296,7 +297,7 @@ def _bb_oxygen_therapy(ctx: BundleContext) -> list[dict]:
 
     enc_end_idx = _encounter_end_index(ctx)
     enc_att_idx = _encounter_attending_index(ctx)
-    lang = resolve_lang(ctx.country)
+    lang = lang_for(ctx.country)
     is_jp_out = is_jp(ctx.country)
     # Issue #1352: only allow the "unattributed-vitals fallback" in
     # ``_oxygen_session_period`` when the record has exactly one encounter.

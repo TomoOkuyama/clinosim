@@ -21,8 +21,9 @@ from clinosim.codes import data_table, get_system_uri
 from clinosim.codes import display as registry_display
 from clinosim.codes.icd10 import medis_disease_keyno
 from clinosim.codes.ucum import ucum_quantity
+from clinosim.countries import lang_for
 from clinosim.locale.i18n import t
-from clinosim.modules._shared import is_jp, practitioner_name, resolve_lang
+from clinosim.modules._shared import is_jp, practitioner_name
 from clinosim.modules.output.fhir_r4.lib.common import derive_meta_last_updated
 from clinosim.modules.output.fhir_r4.post_process.profile import (
     _HL7_OBSERVATION_CATEGORY_SYSTEM,
@@ -782,7 +783,7 @@ def _populate_condition_ai_mr_ecs_fields(resource: dict, country: str = "US") ->
             meta["lastUpdated"] = ts
 
     # (3) clinicalStatus / verificationStatus displays.
-    _display_lang = resolve_lang(country)
+    _display_lang = lang_for(country)
     if rt == "Condition":
         _populate_status_coding_display(resource.get("clinicalStatus"), "hl7-condition-clinical", _display_lang)
         _populate_status_coding_display(resource.get("verificationStatus"), "hl7-condition-ver-status", _display_lang)

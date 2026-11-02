@@ -126,24 +126,25 @@ from clinosim.modules._shared import get_attr_or_key as _get
 
 `as _get` alias で短い local 名を維持し、call site の可読性も保ちます。新しい cross-module helper を追加する場合は **2 モジュール以上で実需が生じたタイミング**で `_shared.py` に昇格させます(YAGNI — 1 モジュールしか使わないなら local 定義のまま)。
 
-現在 `_shared.py` に集約されている helper(PR-A 2026-06-26 で `normalize_probabilities` 追加、共通ロジック統一 2026-07-02 で `is_jp` / `resolve_lang` 追加):
+現在 `_shared.py` に集約されている helper(PR-A 2026-06-26 で `normalize_probabilities` 追加、共通ロジック統一 2026-07-02 で `is_jp` / `lang_for` 追加):
 
 - `get_attr_or_key(obj, name, default)` — dict/dataclass 両対応の属性アクセス
 - `normalize_probabilities(probs, fallback="uniform") -> np.ndarray` — 確率配列を 1.0 へ正規化(下記「確率サンプリング規約」参照)
 - `is_jp(country) -> bool` — **JP 判定の唯一の正準 idiom**(case-insensitive + strip 正規化)
-- `resolve_lang(country) -> str` — **display 言語選択の唯一の正準 idiom**(JP → `"ja"`、その他 → `"en"`)
+- `countries.lang_for(country) -> str` — **display 言語選択の唯一の正準 idiom**(JP → `"ja"`、その他 → `"en"`)
 
-**JP-gating / 言語選択の必須 idiom(2026-07-02)** — 国判定と display 言語選択は必ず `is_jp(country)` / `resolve_lang(country)` を使うこと:
+**JP-gating / 言語選択の必須 idiom(2026-07-02)** — 国判定と display 言語選択は必ず `is_jp(country)` / `lang_for(country)` を使うこと:
 
 ```python
-from clinosim.modules._shared import is_jp, resolve_lang
+from clinosim.countries import lang_for
+from clinosim.modules._shared import is_jp
 
 if is_jp(ctx.country):
     ...
-lang = resolve_lang(ctx.country)   # "ja" / "en"
+lang = lang_for(ctx.country)   # "ja" / "en"
 ```
 
-> **アンチパターン:** hand-rolled な国判定の変種(`country == "JP"` / `country.lower() == "jp"` / `str(country).upper() == "JP"` / `lang = "ja" if country == "JP" else "en"`)を新規に書かない。共通ロジック統一前は 5 種類の divergent idiom が混在し、大文字小文字の扱い差で JP gating が silent に外れる PR-90 class risk があった。`is_jp` / `resolve_lang` が単一の正規化点。
+> **アンチパターン:** hand-rolled な国判定の変種(`country == "JP"` / `country.lower() == "jp"` / `str(country).upper() == "JP"` / `lang = "ja" if country == "JP" else "en"`)を新規に書かない。共通ロジック統一前は 5 種類の divergent idiom が混在し、大文字小文字の扱い差で JP gating が silent に外れる PR-90 class risk があった。`is_jp` / `lang_for` が単一の正規化点。
 
 ### パス定数の正規形(PR-A 2026-06-26 で確立)
 
@@ -778,7 +779,7 @@ two-pass CIF 生成アーキテクチャ(`clinosim simulate` → Stage 1 structu
 **Do**
 - engine は pure function、文脈は引数で渡す (`observation/engine.py` が手本)。
 - 型は `clinosim/types/`、display は `code_lookup()`、URI は `get_system_uri()`。
-- 国判定は `is_jp()`、display 言語は `resolve_lang()`、国→code system 選択は `system_key_for()`(hand-rolled な `country == "JP"` 変種 / inline 分岐を書かない)。
+- 国判定は `is_jp()`、display 言語は `lang_for()`、国→code system 選択は `system_key_for()`(hand-rolled な `country == "JP"` 変種 / inline 分岐を書かない)。
 - cached loader の戻り値は read-only 扱い(共有 instance — mutate 禁止)。
 - venue simulator は `CIFPatientRecord` を **return**、opt-in は `extensions[<module>]` に書く。
 - sub-seed に per-entity key を混ぜ、各 entity ごとに fresh な `default_rng` を作る。

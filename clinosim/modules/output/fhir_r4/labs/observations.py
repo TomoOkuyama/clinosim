@@ -18,9 +18,10 @@ from typing import Any
 from clinosim.codes import display as registry_display
 from clinosim.codes import get_system_uri
 from clinosim.codes.ucum import ucum_quantity
+from clinosim.countries import lang_for
 from clinosim.locale.i18n import t
 from clinosim.locale.localized import localized_field
-from clinosim.modules._shared import get_attr_or_key, is_jp, resolve_lang, sanitize_id_token
+from clinosim.modules._shared import get_attr_or_key, is_jp, sanitize_id_token
 from clinosim.modules.observation.engine import medications_in_effect
 from clinosim.modules.output.fhir_r4.demographics.patient import patient_ref
 from clinosim.modules.output.fhir_r4.encounters.encounter import encounter_ref
@@ -154,7 +155,7 @@ def _build_lab_observation(
     else:
         # No JP code (only the English LOINC interop coding, Issue #2300) or
         # no standard code at all (Issue #2138): the analyte name, in Japanese on JP.
-        display_name = uncoded_analyte_display(lab_name, resolve_lang(country))
+        display_name = uncoded_analyte_display(lab_name, lang_for(country))
 
     # encounter_id must be non-empty: the production path always provides
     # ctx.primary_enc_id, and it participates in the opaque-id structural key
@@ -197,9 +198,9 @@ def _build_lab_observation(
         # feedback FB-F6: 該当 LOINC の standard profile も stack 追加。
         **({"meta": {"profile": _profiles}} if _profiles else {}),
         "status": "final",
-        "category": survey_category(resolve_lang(country))
+        "category": survey_category(lang_for(country))
         if lab_name in _QUESTIONNAIRE_SCORE_ANALYTES
-        else [dual_slot_concept("hl7-observation-category", "laboratory", resolve_lang(country))],
+        else [dual_slot_concept("hl7-observation-category", "laboratory", lang_for(country))],
         "code": {"coding": codings, "text": display_name} if codings else {"text": display_name},
         "subject": patient_ref(patient_id),
         # Session-98 F11 fix. `effectiveDateTime` on a lab Observation is
@@ -290,7 +291,7 @@ def _build_lab_observation(
         coded = interp_map.get(flag) if flag else "N"
     if coded is None:
         coded = "N"
-    resource["interpretation"] = [dual_slot_concept("hl7-observation-interpretation", coded, resolve_lang(country))]
+    resource["interpretation"] = [dual_slot_concept("hl7-observation-interpretation", coded, lang_for(country))]
 
     # Encounter reference (use order's encounter_id, fallback to primary)
     enc_ref = order.get("encounter_id", "") or encounter_id
@@ -309,7 +310,7 @@ def _build_lab_observation(
     # (system+code omitted intentionally — no authoritative universal
     # method-code exists for "automated bench analyzer" that fits every
     # analyte). Mirrors Coverage.type text-only precedent.
-    _method_text = t("fhir_obs_text.automated_method", resolve_lang(country))
+    _method_text = t("fhir_obs_text.automated_method", lang_for(country))
     resource["method"] = {"text": _method_text}
 
     return resource
@@ -328,7 +329,7 @@ def _build_bp_component(
     interpretation ranges match the pre-#210 per-Observation shape so
     downstream flag semantics stay identical.
     """
-    display = localized_field(spec, "display", resolve_lang(country))
+    display = localized_field(spec, "display", lang_for(country))
     unit = "mm[Hg]"
     interp_code = "N"
     if value <= spec.critical_low:
@@ -340,8 +341,8 @@ def _build_bp_component(
     elif value > spec.normal_high:
         interp_code = "H"
 
-    normal_text = t("fhir_obs_text.normal_adult_range", resolve_lang(country))
-    crit_text = t("fhir_obs_text.critical_range", resolve_lang(country))
+    normal_text = t("fhir_obs_text.normal_adult_range", lang_for(country))
+    crit_text = t("fhir_obs_text.critical_range", lang_for(country))
     return {
         "code": {
             "coding": [{"system": get_system_uri("loinc"), "code": spec.loinc, "display": display}],
@@ -357,7 +358,7 @@ def _build_bp_component(
                         {
                             "system": get_system_uri("hl7-referencerange-meaning"),
                             "code": "normal",
-                            "display": registry_display("hl7-referencerange-meaning", "normal", resolve_lang(country)),
+                            "display": registry_display("hl7-referencerange-meaning", "normal", lang_for(country)),
                         }
                     ],
                 },
@@ -371,16 +372,14 @@ def _build_bp_component(
                         {
                             "system": get_system_uri("hl7-referencerange-meaning"),
                             "code": "treatment",
-                            "display": registry_display(
-                                "hl7-referencerange-meaning", "treatment", resolve_lang(country)
-                            ),
+                            "display": registry_display("hl7-referencerange-meaning", "treatment", lang_for(country)),
                         }
                     ],
                 },
                 "text": crit_text,
             },
         ],
-        "interpretation": [dual_slot_concept("hl7-observation-interpretation", interp_code, resolve_lang(country))],
+        "interpretation": [dual_slot_concept("hl7-observation-interpretation", interp_code, lang_for(country))],
     }
 
 
@@ -423,7 +422,7 @@ def _build_vital_observations(
         crit_low = spec.critical_low
         crit_high = spec.critical_high
         offset_sec = spec.time_offset_sec
-        display = localized_field(spec, "display", resolve_lang(country))
+        display = localized_field(spec, "display", lang_for(country))
         value = vs.get(field)
         if value is None:
             continue
@@ -445,7 +444,7 @@ def _build_vital_observations(
                 else {}
             ),
             "status": "final",
-            "category": [dual_slot_concept("hl7-observation-category", "vital-signs", resolve_lang(country))],
+            "category": [dual_slot_concept("hl7-observation-category", "vital-signs", lang_for(country))],
             "code": {
                 "coding": [{"system": get_system_uri("loinc"), "code": loinc, "display": display}],
                 "text": display,
@@ -476,8 +475,8 @@ def _build_vital_observations(
             obs["performer"] = [{"reference": f"Practitioner/{performer_id}"}]
 
         # Reference range — normal range (always) + critical range (when defined)
-        range_text = t("fhir_obs_text.normal_adult_range", resolve_lang(country))
-        crit_text = t("fhir_obs_text.critical_range", resolve_lang(country))
+        range_text = t("fhir_obs_text.normal_adult_range", lang_for(country))
+        crit_text = t("fhir_obs_text.critical_range", lang_for(country))
         ref_ranges = [
             {
                 "low": ucum_quantity(low, unit),
@@ -487,7 +486,7 @@ def _build_vital_observations(
                         {
                             "system": get_system_uri("hl7-referencerange-meaning"),
                             "code": "normal",
-                            "display": registry_display("hl7-referencerange-meaning", "normal", resolve_lang(country)),
+                            "display": registry_display("hl7-referencerange-meaning", "normal", lang_for(country)),
                         }
                     ],
                 },
@@ -502,9 +501,7 @@ def _build_vital_observations(
                         {
                             "system": get_system_uri("hl7-referencerange-meaning"),
                             "code": "treatment",
-                            "display": registry_display(
-                                "hl7-referencerange-meaning", "treatment", resolve_lang(country)
-                            ),
+                            "display": registry_display("hl7-referencerange-meaning", "treatment", lang_for(country)),
                         }
                     ],
                 },
@@ -527,9 +524,7 @@ def _build_vital_observations(
             interp_code = "L"
         elif value > high:
             interp_code = "H"
-        obs["interpretation"] = [
-            dual_slot_concept("hl7-observation-interpretation", interp_code, resolve_lang(country))
-        ]
+        obs["interpretation"] = [dual_slot_concept("hl7-observation-interpretation", interp_code, lang_for(country))]
 
         entries.append(entry(obs))
 
@@ -543,7 +538,7 @@ def _build_vital_observations(
     sbp = vs.get("systolic_bp")
     dbp = vs.get("diastolic_bp")
     if sbp is not None and dbp is not None:
-        bp_display = t("fhir_obs_text.bp_panel", resolve_lang(country))
+        bp_display = t("fhir_obs_text.bp_panel", lang_for(country))
         _bp_structural_key = f"{encounter_id or patient_id}-{index:04d}-bp-panel"
         bp_obs: dict[str, Any] = {
             "resourceType": "Observation",
@@ -555,7 +550,7 @@ def _build_vital_observations(
                 else {}
             ),
             "status": "final",
-            "category": [dual_slot_concept("hl7-observation-category", "vital-signs", resolve_lang(country))],
+            "category": [dual_slot_concept("hl7-observation-category", "vital-signs", lang_for(country))],
             "code": {
                 "coding": [{"system": get_system_uri("loinc"), "code": "85354-9", "display": bp_display}],
                 "text": bp_display,
@@ -606,7 +601,7 @@ def _build_vital_observations(
                 else {}
             ),
             "status": "final",
-            "category": [dual_slot_concept("hl7-observation-category", "vital-signs", resolve_lang(country))],
+            "category": [dual_slot_concept("hl7-observation-category", "vital-signs", lang_for(country))],
             "code": {
                 "coding": [
                     {
@@ -629,7 +624,7 @@ def _build_vital_observations(
                         "display": "Level of consciousness",
                     }
                 ],
-                "text": t("fhir_obs_text.loc_avpu", resolve_lang(country)),
+                "text": t("fhir_obs_text.loc_avpu", lang_for(country)),
             },
             "subject": patient_ref(patient_id),
             "valueCodeableConcept": {
@@ -669,7 +664,7 @@ def _build_vital_observations(
                 else {}
             ),
             "status": "final",
-            "category": [dual_slot_concept("hl7-observation-category", "vital-signs", resolve_lang(country))],
+            "category": [dual_slot_concept("hl7-observation-category", "vital-signs", lang_for(country))],
             "code": {
                 "coding": [
                     {
@@ -678,7 +673,7 @@ def _build_vital_observations(
                         "display": "Pain severity - 0-10 verbal numeric rating [Score] - Reported",
                     }
                 ],
-                "text": t("fhir_obs_text.pain_nrs", resolve_lang(country)),
+                "text": t("fhir_obs_text.pain_nrs", lang_for(country)),
             },
             "subject": patient_ref(patient_id),
             "valueInteger": int(pain),
@@ -709,7 +704,7 @@ def _build_vital_observations(
                 else {}
             ),
             "status": "final",
-            "category": [dual_slot_concept("hl7-observation-category", "vital-signs", resolve_lang(country))],
+            "category": [dual_slot_concept("hl7-observation-category", "vital-signs", lang_for(country))],
             "code": {
                 "coding": [
                     {
@@ -718,7 +713,7 @@ def _build_vital_observations(
                         "display": "Inhaled oxygen flow rate",
                     }
                 ],
-                "text": t("fhir_obs_text.o2_flow", resolve_lang(country)),
+                "text": t("fhir_obs_text.o2_flow", lang_for(country)),
             },
             "subject": patient_ref(patient_id),
         }

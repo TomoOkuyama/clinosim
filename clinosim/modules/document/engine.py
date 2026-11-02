@@ -61,9 +61,9 @@ from typing import Any
 
 from clinosim.codes.loinc import loinc_display
 from clinosim.codes.snomed_concepts import SURGICAL_PROCEDURE
+from clinosim.countries import lang_for
 from clinosim.locale.i18n import t
 from clinosim.modules._shared import get_attr_or_key as _o
-from clinosim.modules._shared import resolve_lang
 from clinosim.modules.document import (
     CLINICAL_IMPRESSION_ID_PREFIX,
     DOC_REFERENCE_ID_PREFIX,
@@ -318,7 +318,7 @@ def document_enricher(ctx: Any) -> None:
       ctx.config       — SimulatorConfig-like; ctx.config.country = "us" | "jp"
     """
     country: str = str(_o(ctx.config, "country", "us") or "us").lower()
-    lang = resolve_lang(country)
+    lang = lang_for(country)
 
     # Pre-compute country spec key set once per enricher call (lru_cache hit on repeated calls).
     country_spec_keys: frozenset[str] = frozenset(s.type_key for s in specs_for_country(country))
@@ -925,7 +925,7 @@ def document_enricher(ctx: Any) -> None:
                     else:
                         _phase_key, _doc_type = "recovery", "progress_note"
                     _code_loinc = document_loinc(_doc_type)
-                    _code_loinc_display = loinc_display(_code_loinc, resolve_lang(country)) or ""
+                    _code_loinc_display = loinc_display(_code_loinc, lang_for(country)) or ""
 
                     def _describe(lang: str) -> str:
                         return t(

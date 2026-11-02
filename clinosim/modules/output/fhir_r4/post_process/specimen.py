@@ -14,7 +14,7 @@ from typing import Any
 from clinosim.codes import get_system_uri
 from clinosim.codes.loader import lookup as code_lookup
 from clinosim.codes.snomed import snomed_for
-from clinosim.modules._shared import resolve_lang
+from clinosim.countries import lang_for
 from clinosim.modules.output.fhir_r4.lib.common import display_entry
 from clinosim.modules.output.fhir_r4.lib.ids import (
     derive_opaque_id,
@@ -131,7 +131,7 @@ def _build_companion_specimen(observation: dict, country: str) -> dict:
     spec_id = _resolve_specimen_id(_spec_structural_key)
     subject = observation.get("subject", {}) or {}
     specimen_snomed = _pick_specimen_type_for_lab(observation)
-    display = code_lookup("snomed-ct", specimen_snomed, resolve_lang(country))
+    display = code_lookup("snomed-ct", specimen_snomed, lang_for(country))
     specimen: dict[str, Any] = {
         "resourceType": "Specimen",
         "id": spec_id,

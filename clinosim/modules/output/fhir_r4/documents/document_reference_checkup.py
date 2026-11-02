@@ -30,9 +30,10 @@ from typing import Any
 
 from clinosim.codes import display as registry_display
 from clinosim.codes import get_system_uri
+from clinosim.countries import lang_for
 from clinosim.locale.i18n import t
 from clinosim.modules._shared import get_attr_or_key as _o
-from clinosim.modules._shared import is_jp, resolve_lang
+from clinosim.modules._shared import is_jp
 from clinosim.modules.document import DOC_REFERENCE_ID_PREFIX
 from clinosim.modules.document.narrative.registry import document_loinc
 from clinosim.modules.output.fhir_r4.demographics.patient import patient_ref
@@ -118,7 +119,7 @@ def _bb_document_references_checkup(ctx: BundleContext) -> list[dict[str, Any]]:
 def _build_dref(doc: Any, narrative: Any, patient_id: str, country: str) -> dict[str, Any] | None:
     """健診 DocumentReference を組み立てる。Composition を relatesTo で参照。"""
     loinc_code = _o(doc, "loinc_code", "") or document_loinc("health_checkup_report")
-    lang = _o(doc, "language", "") or resolve_lang(country)
+    lang = _o(doc, "language", "") or lang_for(country)
 
     # narrative から section text を合成(既存 free_text builder と同型式)
     text = _o(narrative, "text", "") or ""

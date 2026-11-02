@@ -68,7 +68,7 @@
 
 | 用途 | Helper(定義場所) |
 | --- | --- |
-| JP 判定 / 表示言語 | `is_jp(country)` / `is_us(country)` / `resolve_lang(country)`(`modules/_shared.py`)。`country == "JP"` 等の手書き比較禁止 |
+| JP 判定 / 表示言語 | `is_jp(country)` / `is_us(country)` / `lang_for(country)`(`modules/_shared.py`)。`country == "JP"` 等の手書き比較禁止 |
 | 国→コード体系選択 | `system_key_for(kind, country)`(`clinosim.codes`)。jlac10/loinc 等の inline 分岐禁止 |
 | system URI | `get_system_uri(key)`(`clinosim.codes`)。URI 文字列 hardcode 禁止 |
 | code→display | `code_lookup(system, code, lang)`。display 文字列 hardcode 禁止 |

@@ -4,8 +4,8 @@ from __future__ import annotations
 
 from typing import Any
 
+from clinosim.countries import lang_for
 from clinosim.modules._shared import get_attr_or_key as _o
-from clinosim.modules._shared import resolve_lang
 from clinosim.simulator.complications import complication_names, normalized_complications
 from clinosim.types.document import DocumentType, NarrativeContext
 
@@ -29,7 +29,7 @@ def build_narrative_context(
     ``day_index`` conveys the stage within a daily generation cycle
     (progress note runs 0..LOS, H&P = 0, discharge = LOS-1).
     """
-    lang = resolve_lang(country)
+    lang = lang_for(country)
     locale = country.lower()
     patient = _o(record, "patient", None)
     allergies: list[Any] = _o(patient, "allergies", []) if patient is not None else []

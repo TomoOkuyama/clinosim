@@ -21,9 +21,10 @@ from clinosim.codes import lookup as code_lookup
 from clinosim.codes.bcp47 import bcp47_display
 from clinosim.codes.loinc import loinc_coding
 from clinosim.codes.ucum import ucum_quantity
+from clinosim.countries import lang_for
 from clinosim.locale.i18n import t
 from clinosim.locale.loader import load_identity_config, vocab_display
-from clinosim.modules._shared import is_jp, resolve_lang
+from clinosim.modules._shared import is_jp
 from clinosim.modules.output.fhir_r4.lib.common import (
     _social_category,
     build_address,
@@ -556,7 +557,7 @@ def _build_coverage_resources(
                                 "value": insurer,
                             }
                         ],
-                        "type": [dual_slot_concept("hl7-organization-type", "pay", resolve_lang(country))],
+                        "type": [dual_slot_concept("hl7-organization-type", "pay", lang_for(country))],
                         "name": name_map.get(insurer, insurer),
                     }
                 )
@@ -643,7 +644,7 @@ def _build_coverage_resources(
                     system_coding(
                         "hl7-subscriber-relationship",
                         rel_code,
-                        resolve_lang(country),
+                        lang_for(country),
                     )
                 ]
             }
@@ -677,7 +678,7 @@ def _build_coverage_resources(
                             {
                                 "system": get_system_uri("hl7-coverage-class"),
                                 "code": "group",
-                                "display": t("fhir_emit_text.coverage_class_group", resolve_lang(country)),
+                                "display": t("fhir_emit_text.coverage_class_group", lang_for(country)),
                             }
                         ],
                     },
@@ -693,7 +694,7 @@ def _build_coverage_resources(
                                 {
                                     "system": get_system_uri("hl7-coverage-class"),
                                     "code": "plan",
-                                    "display": t("fhir_emit_text.coverage_class_plan", resolve_lang(country)),
+                                    "display": t("fhir_emit_text.coverage_class_plan", lang_for(country)),
                                 }
                             ],
                         },
@@ -717,7 +718,7 @@ def _build_coverage_resources(
                                 "display": "Copay percentage",
                             }
                         ],
-                        "text": t("fhir_emit_text.copay_percentage", resolve_lang(country)),
+                        "text": t("fhir_emit_text.copay_percentage", lang_for(country)),
                     },
                     "valueQuantity": ucum_quantity(_coshare_pct, "%"),
                 }
@@ -856,7 +857,7 @@ def _build_patient(p: dict, country: str) -> dict:
                             "display": "Medical Record Number",
                         }
                     ],
-                    "text": t("fhir_emit_text.mrn", resolve_lang(country)),
+                    "text": t("fhir_emit_text.mrn", lang_for(country)),
                 },
                 "system": mrn_system,
                 "value": pid,
@@ -965,7 +966,7 @@ def _build_patient(p: dict, country: str) -> dict:
                 {
                     "system": get_system_uri("hl7-v3-maritalstatus"),
                     "code": marital,
-                    **display_entry(code_lookup("hl7-v3-maritalstatus", marital, resolve_lang(country))),
+                    **display_entry(code_lookup("hl7-v3-maritalstatus", marital, lang_for(country))),
                 }
             ],
         }
@@ -1013,7 +1014,7 @@ def _build_patient(p: dict, country: str) -> dict:
                         }
                     ],
                 }
-                rel_text = vocab_display("emergency_contact_relationship", emer_rel, resolve_lang(country))
+                rel_text = vocab_display("emergency_contact_relationship", emer_rel, lang_for(country))
                 if rel_text:
                     rel_concept["text"] = rel_text
                 ec["relationship"] = [rel_concept]
@@ -1061,7 +1062,7 @@ def _build_occupation_observation(
     # Issue #2269: the occupation vocabulary shared with narrative and LLM
     # prompts; an unknown slug is humanised (a test keeps every generated
     # slug in the table).
-    display = vocab_display("occupation", occupation, resolve_lang(country), fallback=occupation.replace("_", " "))
+    display = vocab_display("occupation", occupation, lang_for(country), fallback=occupation.replace("_", " "))
     _occupation_key = patient_id
     return {
         "resourceType": "Observation",
@@ -1077,7 +1078,7 @@ def _build_occupation_observation(
         "category": _social_category(country),
         "code": {
             "coding": [loinc_coding("11341-5", "en")],
-            "text": t("fhir_emit_text.occupation", resolve_lang(country)),
+            "text": t("fhir_emit_text.occupation", lang_for(country)),
         },
         "subject": patient_ref(patient_id),
         "valueCodeableConcept": {

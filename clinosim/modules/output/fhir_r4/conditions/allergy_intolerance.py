@@ -27,10 +27,11 @@ from typing import Any
 
 from clinosim.codes import get_system_uri
 from clinosim.codes import lookup as code_lookup
+from clinosim.countries import lang_for
 from clinosim.locale.i18n import t
 from clinosim.locale.loader import load_narrative_labels, resolve_localized_display
 from clinosim.modules._shared import get_attr_or_key as _o
-from clinosim.modules._shared import resolve_lang, uses_jp_clins_profile
+from clinosim.modules._shared import uses_jp_clins_profile
 from clinosim.modules.document import ALLERGY_ID_PREFIX
 from clinosim.modules.output.fhir_r4.demographics.patient import patient_ref
 from clinosim.modules.output.fhir_r4.encounters.encounter import encounter_ref
@@ -131,7 +132,7 @@ def _bb_allergy_intolerances(ctx: BundleContext) -> list[dict[str, Any]]:
     allergies = _o(patient_data, "allergies", []) or []
     if not allergies:
         return []
-    lang = resolve_lang(ctx.country)
+    lang = lang_for(ctx.country)
     # C3-06/07: AllergyIntolerance.recorder = attending
     # physician of first encounter. recordedDate = first encounter admission
     # date when allergy has no onset_date (a chart-registration proxy).

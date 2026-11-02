@@ -92,7 +92,7 @@ NDJSON by id.
 
 ## Dependencies
 
-- `clinosim.modules._shared` — `is_jp`, `resolve_lang`,
+- `clinosim.modules._shared` — `is_jp`, `countries.lang_for`,
   `get_attr_or_key`.
 - `clinosim.modules.output.fhir_r4.lib.common` — `BundleContext`,
   `system_coding`, `_social_category`, `loinc_coding`,

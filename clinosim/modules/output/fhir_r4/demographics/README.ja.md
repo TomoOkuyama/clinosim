@@ -81,7 +81,7 @@ NDJSON を id で sort する。
 
 ## 依存
 
-- `clinosim.modules._shared` — `is_jp`, `is_us`, `resolve_lang`。
+- `clinosim.modules._shared` — `is_jp`, `is_us`, `countries.lang_for`。
 - `clinosim.modules.output.fhir_r4.lib.common` — `system_coding`,
   `_social_category`, `build_address`, `build_telecom`, `to_fhir_date`,
   `BundleContext`、および fragment helper。

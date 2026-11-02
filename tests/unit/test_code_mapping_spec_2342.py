@@ -64,7 +64,7 @@ _RESOLVERS = {
     ],
     "clinosim.countries": ["lang_for", "is_jp", "is_us", "normalize_lang"],
     "clinosim.modules.output.fhir_r4.lib.common": ["dual_slot_concept", "system_coding"],
-    "clinosim.modules._shared": ["practitioner_name", "pick_localized_field"],
+    "clinosim.modules._shared": ["practitioner_name"],
     "clinosim.simulator.event_refs": ["event_ref_kind"],
 }
 

@@ -77,7 +77,7 @@ Procedure, Practitioner)、
 
 ## 依存
 
-- `clinosim.modules._shared` — `is_jp`, `resolve_lang` (個別 builder
+- `clinosim.modules._shared` — `is_jp`, `countries.lang_for` (個別 builder
   では他 helper も)。
 - `clinosim.modules.output.cif_reader` — 構造化 + narrative-version
   merge 済み CIF load 用 `CIFReader`。

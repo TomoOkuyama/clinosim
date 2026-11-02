@@ -90,7 +90,7 @@ and use the helpers below:
 
 | Purpose | Helper (definition site) |
 |---|---|
-| JP / US decision / display language | `is_jp(country)` / `is_us(country)` / `resolve_lang(country)` (`modules/_shared.py`). Hand-written `country == "JP"` comparisons are forbidden. |
+| JP / US decision / display language | `is_jp(country)` / `is_us(country)` / `lang_for(country)` (`modules/_shared.py`). Hand-written `country == "JP"` comparisons are forbidden. |
 | Country → code-system selection | `system_key_for(kind, country)` (`clinosim.codes`). Inline jlac10 / loinc branching is forbidden. |
 | System URI | `get_system_uri(key)` (`clinosim.codes`). Hard-coding URI strings is forbidden. |
 | code → display | `code_lookup(system, code, lang)`. Hard-coding display strings is forbidden. |

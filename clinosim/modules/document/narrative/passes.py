@@ -22,8 +22,9 @@ from typing import TYPE_CHECKING, Any
 if TYPE_CHECKING:
     from clinosim.modules.llm_service.engine import LLMService
 
+from clinosim.countries import lang_for
 from clinosim.modules._shared import get_attr_or_key as _o
-from clinosim.modules._shared import is_jp, resolve_lang
+from clinosim.modules._shared import is_jp
 from clinosim.modules.document import specs_for_country
 from clinosim.modules.document.narrative.context import _build_newborn_workup, _build_safety_skips
 from clinosim.modules.document.narrative.fact_extractor import extract_all_facts
@@ -426,7 +427,7 @@ class NarrativePass(ABC):
     def _languages_for_spec(self, spec: DocumentTypeSpec) -> list[str]:
         # US → en, JP → ja. Kept as a hook so future bilingual output can
         # yield multiple language codes per spec.
-        return [resolve_lang(self.country)]
+        return [lang_for(self.country)]
 
     def _spec_applies(self, spec: DocumentTypeSpec, patient_dict: dict[str, Any]) -> bool:
         allowed = getattr(spec, "encounter_types_supported", ()) or ()
