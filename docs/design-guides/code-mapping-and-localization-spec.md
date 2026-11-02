@@ -30,7 +30,7 @@ Japanese counterpart: [`code-mapping-and-localization-spec.ja.md`](code-mapping-
 An **authority** is the body that defines a code system (NLM, WHO, MHLW, Regenstrief, SNOMED International, HL7, AMA, JSLM, MEDIS, ...). Each authority's material is kept apart from every other authority's:
 
 1. **Data.** Each code system has one registry file named by its system key (§3.3). Internal-key maps and crosswalks for that system are separate files named after it (`loinc-maps.yaml`, `snomed-maps.yaml`).
-2. **Accessor.** An authority that needs any lookup beyond the generic registry functions (`display`, `code_exists`, `get_system_uri`) — a mapping, a hierarchy, a product choice, a canonical-URI rule — has one module `clinosim/codes/<authority>.py`. That module reads only its authority's files. Authorities served by the generic functions alone (HL7 terminology, CVX, DICOM, OMB) need no module.
+2. **Accessor.** Every code system is an instance of the `CodeSystem` base class (§2.3). An authority that needs a hook or lookups of its own — a mapping, a hierarchy, a product choice, a canonical-URI rule — has one subclass in `clinosim/codes/<authority>.py`, and that module reads only its authority's files. Authorities served by the base class alone (HL7 terminology, CVX, DICOM, OMB, clinosim-owned systems) are plain instances built from their registry file and need no module.
 3. **Snapshot.** Verified extracts from the authority live in `clinosim/codes/authoritative/`, one file per authority and release (`loinc_2_82_tx.json`, `rxnorm_rxnav_snapshot.json`, ...), and a test checks the registry against them.
 4. **Catalogs join authorities, they do not own them.** A catalog (drugs, procedures, staff roles) holds internal ids, names and the codes of several authorities. It resolves each code through that authority's accessor; it never re-implements an authority's lookup rule.
 
@@ -52,6 +52,24 @@ Current layout:
 | HL7 terminology | `hl7-*.yaml` | generic functions; `codes/hl7_encounter.py` (§11) | — |
 | JP Core / JP-CLINS / JP eCheckup / MHLW document codes | `jpfhir-*.yaml`, `jp-*.yaml`, `mhlw-*.yaml`, `fhir-profiles-*.yaml` | generic functions | — |
 | clinosim-owned systems | `clinosim-*.yaml` | generic functions | — |
+
+### 2.3 Base classes
+
+The operations every source shares are implemented once, in a base class, and are not re-implemented or overridden per source.
+
+**`CodeSystem` (codes layer).** One instance per system key, built from its registry file (§3.3).
+
+- **Owns, final.** `display(code, lang)`, `code_exists(code, *, exact)`, `uri`, language normalization (§5.1), the resolution order (§4.4), the fallback order (§6) and miss handling (`None`, never the code). A subclass never overrides these; a test checks it.
+- **Hooks a subclass may implement.** `parents(code)`: the codes a code generalizes to, most specific first (default: none; ICD-10 and ICD-10-CM: the code without its decimal part). Lookup siblings are declared data (§3.3), not code.
+- **Authority lookups.** A subclass adds its authority's own lookups as methods, for example the YJ product for a drug and route class, the LOINC code of an internal key, the SNOMED code of a procedure phrase.
+- **Registry.** Every system key resolves to exactly one instance, so tests can iterate over all systems (snapshot, URI, `en` coverage).
+
+**`LocalizedTable` (locale layer).** One instance per display table or translation table (§3.7, §3.8).
+
+- **Owns, final.** Loading and kind validation, `get(key, lang, *, fallback)` with the fallback order of §6, and the `en` rule.
+- **Declared properties.** Whether an unknown slug is humanised (§6.4) is a property of the table, allowed only for a table whose slug coverage is tested.
+
+**Entry points.** Consumers keep calling the module functions of §4 (`codes.display`, `loinc_display`, `vocab_display`, ...). Those functions delegate to the instances; consumers do not construct or subclass them. Catalogs (§3.5) are not `CodeSystem` subclasses: they hold internal ids and resolve codes through the `CodeSystem` instances.
 
 ## 3. YAML authoring
 
@@ -237,8 +255,10 @@ A caller that holds a code or a catalog id uses §4.1 instead. These resolvers n
 
 ### 4.4 How `display` resolves a code
 
+The `CodeSystem` base class (§2.3) resolves every system in this order:
+
 1. The exact code in the system.
-2. The parent code (`E11.9` → `E11`): a generalization of the code, which is still true of it.
+2. The codes returned by the system's `parents` hook (`E11.9` → `E11`): generalizations of the code, which are still true of it.
 3. Steps 1–2 in each lookup sibling of the system (§3.3).
 4. Otherwise `None`. A display of a more specific child code is never used for a less specific code (§11).
 
@@ -297,7 +317,7 @@ These rules are common to every resolver in §4, in both layers.
 
 1. Verify the codes (§8).
 2. Add `codes/data/<system-key>.yaml` (§3.3) and, if the URI is not in the file, the key in `_BUILTIN_URIS`.
-3. If the authority needs more than the generic functions, add `codes/<authority>.py` and list it in §2.2 and §4.1.
+3. If the authority needs a hook or lookups of its own, add a `CodeSystem` subclass in `codes/<authority>.py` (§2.3) and list it in §2.2 and §4.1; otherwise the registry file alone gives a plain instance.
 4. Add the authoritative snapshot and its test, if the authority publishes one.
 5. Add the system to `is_english_only_system` when its displays are English-only.
 
@@ -316,7 +336,7 @@ These rules are common to every resolver in §4, in both layers.
 ### 7.4 A new vocabulary
 
 1. If it has codes, it is a code system (§7.1) and its labels live in its registry file.
-2. Otherwise add one display table `locale/shared/<vocabulary>.yaml` (§3.7) with `en` for every slug, and one resolver; register the resolver in §4.2.
+2. Otherwise add one display table `locale/shared/<vocabulary>.yaml` (§3.7) with `en` for every slug, load it as a `LocalizedTable` (§2.3), and add one entry-point function in §4.2.
 
 ## 8. Adding or changing a code
 
@@ -371,7 +391,7 @@ These rules are common to every resolver in §4, in both layers.
 | Language-suffixed YAML fields that remain (§11) pair `<base>_ja` with `<base>_en` | `tests/unit/locale/test_localized_field_shape_2398.py` |
 | No Japanese in non-JP output, no Japanese literals in Python | `tests/unit/test_no_japanese_fallback_2273.py`, `tests/unit/test_no_japanese_literals_2277.py`, `tests/unit/test_narrative_literals_2400.py`, `tests/unit/test_module_literals_2406.py`, `tests/unit/test_simulator_literals_2405.py`, `tests/unit/output/test_fhir_lib_literals_2402.py`, `tests/unit/output/test_fhir_lab_condition_literals_2403.py`, `tests/unit/output/test_fhir_emitter_literals_2404.py` |
 | A third country is not treated as the US | `tests/unit/test_third_country_fallbacks_2203.py` |
-| Every entry has English; YAML header and schema per kind | none yet (§11) |
+| Every entry has English; YAML header and schema per kind; base-class operations not overridden | none yet (§11) |
 
 ## 11. Known deviations
 
@@ -379,6 +399,8 @@ These parts of the code base do not yet conform. Each one is removed by the issu
 
 | Deviation | Issue |
 |---|---|
+| The shared lookup, language selection and fallback are module functions in `codes/loader.py`, not a `CodeSystem` base class (§2.3) | #2470 |
+| Display tables are loaded by separate functions with their own miss handling, not by `LocalizedTable` (§2.3) | #2471 |
 | `codes.display` matches the language argument exactly: no country-code or case normalization, no BCP-47 primary-subtag fallback (§5.1) | #2453 |
 | `display` / `code_exists` fall back to the first registered child of a code (§4.4) | #2454 |
 | The language-selection guard does not detect `lang == "ja"` / `lang != "ja"` comparisons (§10) | #2455 |
