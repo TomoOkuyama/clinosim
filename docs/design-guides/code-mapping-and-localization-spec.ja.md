@@ -404,7 +404,6 @@ occupation:
 | 表示表が個別の関数で読み込まれ、見つからないときの扱いもそれぞれ違う。`LocalizedTable` になっていない (§2.3) | #2471 |
 | `display` / `code_exists` が、コードの最初に登録された子コードにフォールバックする (§4.4) | #2454 |
 | narrative のレンダラが言語を `"ja"` と比較している (16 ファイル 29 箇所) | #2456 |
-| FHIR の出力処理と共有の補助関数が言語を `"ja"` と比較している | #2457 |
 | `codes/data/fhir-ja-labels.yaml` が、経路・頻度・固定ラベルの日本語だけの 2 つ目の表になっている (§5.3) | #2459 |
 | slug をキーにした表示表に `en` の無いエントリがある (§6.5) | #2460 |
 | `clinosim-clinician-role.yaml`、`perinatal.yaml`、`chronic_followup.yaml`、`pregnancy_substitutions.yaml` が言語の接尾辞付きのフィールド名を使っている (§3.1) | #2462 |

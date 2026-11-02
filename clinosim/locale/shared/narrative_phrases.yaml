@@ -668,6 +668,13 @@ common:
     ja: "{name} {suffix}"
     en: "{name} ({suffix})"
 
+# A staff id in Composition section text replaced by the practitioner's name
+# and role suffix (fhir_r4/documents/composition.py, Issue #2457).
+fhir_practitioner_text:
+  name_with_role:
+    en: "{name} ({suffix})"
+    ja: "{name}{suffix}"
+
 # Newborn metabolic-screen DiagnosticReport.conclusion (Phase 1d-16).
 # Long-form conclusion text per outcome key. The short conclusionCode
 # text lives in ``narrative_labels.yaml::newborn_screen_outcome_text``.
@@ -2384,6 +2391,15 @@ mb_text:
   organism_negative:
     ja: "検出菌: (陰性)"
     en: "Organism: (negative)"
+  growth:
+    ja: "発育: {value}"
+    en: "Growth: {value}"
+  growth_detected:
+    ja: "あり"
+    en: "detected"
+  growth_none:
+    ja: "なし"
+    en: "no-growth"
   susceptibility_header:
     ja: "[感受性]"
     en: "Susceptibilities:"

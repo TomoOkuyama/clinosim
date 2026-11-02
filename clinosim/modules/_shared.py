@@ -9,13 +9,14 @@ local duplication).
 from __future__ import annotations
 
 import calendar
+from functools import lru_cache
 from typing import Any
 
 import numpy as np
 
+from clinosim.countries import _country_language_map, lang_for
 from clinosim.countries import is_jp as is_jp
 from clinosim.countries import is_us as is_us
-from clinosim.countries import lang_for
 
 # ────────────────────────────────────────────────────────────────────
 # Cross-writer/reader id markers.
@@ -56,13 +57,22 @@ def uses_jp_clins_profile(lang: str) -> bool:
     cohort emitting under a generic profile) means changing the
     predicate here rather than surgically at each dispatch site.
 
-    Today equivalent to ``lang == "ja"`` — the predicate exists to
-    make the intent explicit at every callsite, not to change
-    behavior. Introduced module-locally in Phase 1d-54
-    (`composition.py`); promoted to shared here in Phase 1d-60 so
-    every FHIR emit module can use one canonical predicate.
+    The profile family is a country rule: JP-CLINS applies to the output
+    language of the JP country (``country_language.yaml``), so the
+    predicate reads that mapping instead of comparing the language with a
+    literal (Issue #2457). Introduced module-locally in Phase 1d-54
+    (`composition.py`); promoted to shared here in Phase 1d-60 so every
+    FHIR emit module can use one canonical predicate.
     """
-    return lang == "ja"
+    from clinosim.locale.localized import normalize_lang
+
+    return normalize_lang(lang) in _jp_clins_languages()
+
+
+@lru_cache(maxsize=1)
+def _jp_clins_languages() -> frozenset[str]:
+    """Output languages of the countries whose FHIR output uses JP-CLINS."""
+    return frozenset(language for country, language in _country_language_map().items() if is_jp(country))
 
 
 def resolve_lang(country: str) -> str:

@@ -112,7 +112,7 @@ class PromptRegistry:
             return self._cache[key]
 
         path = self.prompts_dir / language / f"{task_type}.yaml"
-        if not path.exists() and language != "en":
+        if not path.exists():
             # Fallback to English
             path = self.prompts_dir / "en" / f"{task_type}.yaml"
         if not path.exists():

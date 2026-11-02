@@ -35,7 +35,7 @@ from clinosim.codes import lookup as code_lookup
 from clinosim.locale.loader import imaging_exam_display
 from clinosim.locale.localized import localized_field
 from clinosim.modules._shared import get_attr_or_key as _o
-from clinosim.modules._shared import resolve_lang
+from clinosim.modules._shared import resolve_lang, uses_jp_clins_profile
 from clinosim.modules.imaging.engine import (  # canonical owners; re-exported below
     ENDPOINT_ID_PREFIX,
     IMAGING_STUDY_ID_PREFIX,
@@ -293,7 +293,7 @@ def _build_imaging_study(
                 #
                 # US path は LOINC coding + text 両方 emit(US profile は
                 # 該当 binding なし、情報保持)。
-                if lang != "ja":
+                if not uses_jp_clins_profile(lang):
                     res["procedureCode"] = [
                         {
                             "coding": [

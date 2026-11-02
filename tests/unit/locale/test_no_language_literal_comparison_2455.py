@@ -31,7 +31,6 @@ _ALLOWED = {
 
 # file → (comparisons, issue that removes them).
 _RATCHET = {
-    "modules/_shared.py": (1, 2457),
     "modules/document/narrative/_extra_context_builder.py": (4, 2456),
     "modules/document/narrative/_replacement_renderers.py": (1, 2456),
     "modules/document/narrative/_template_helpers.py": (1, 2456),
@@ -48,12 +47,6 @@ _RATCHET = {
     "modules/document/narrative/renderers/section_builders/outpatient_soap.py": (2, 2456),
     "modules/document/narrative/renderers/section_builders/patient_history.py": (1, 2456),
     "modules/document/narrative/replacement_strategy.py": (2, 2456),
-    "modules/llm_service/engine.py": (1, 2457),
-    "modules/llm_service/prompt_registry.py": (1, 2457),
-    "modules/output/fhir_r4/documents/composition.py": (2, 2457),
-    "modules/output/fhir_r4/labs/imaging_study.py": (1, 2457),
-    "modules/output/fhir_r4/labs/microbiology.py": (1, 2457),
-    "modules/output/hospital_course_extractor.py": (3, 2457),
 }
 
 
