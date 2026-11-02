@@ -5,13 +5,15 @@ from __future__ import annotations
 from dataclasses import dataclass
 from datetime import date, timedelta
 from functools import cache
+from pathlib import Path
 from typing import Any
 
 from clinosim.audit.types import Cohort
-from clinosim.codes import data_table, get_system_uri
+from clinosim.codes import get_system_uri
 from clinosim.codes.drugs import resolve_drug
 from clinosim.eval.engine import EvalCheck, Outcome, Severity
 from clinosim.locale.loader import load_code_mapping
+from clinosim.reference_data import load_reference_yaml
 
 # JP medication CodeSystem URI set — mirrors locale.py `_JP_MEDICATION_SYSTEM_URIS`.
 # canonical single source of truth = `codes/loader.py::_BUILTIN_URIS` + `codes/data/yj.yaml`.
@@ -61,7 +63,7 @@ _JP_MEDICATION_SYSTEM_URIS: frozenset[str] = frozenset(get_system_uri(k) for k i
 #     (``mg/dL`` / ``g/dL``); no alias.
 #   - PT-INR: unit-less (``{INR}`` in UCUM); value taken as-is.
 # LOINC → {unit_string: (min, max)} — authoritative yaml at
-# `clinosim/codes/data/lab-plausibility-bounds.yaml`
+# `reference_data/lab-plausibility-bounds.yaml`
 # (hardcoded-review Phase A13, CRITICAL C6). The emit site tries both
 # `valueQuantity.unit` (human-readable) and `.code` (UCUM) in order,
 # so each LOINC enumerates every representation clinosim emits.
@@ -87,7 +89,7 @@ def _lab_bounds_from_yaml() -> dict[str, dict[str, tuple[float, float]]]:
         inner = out.setdefault(str(loinc), {})
         inner[unit] = inner[ucum_code(unit)] = (float(lo), float(hi))
 
-    raw = data_table("lab-plausibility-bounds")
+    raw = load_reference_yaml(Path(__file__).resolve().parents[1] / "reference_data" / "lab-plausibility-bounds.yaml")
     for loinc, unit_map in (raw.get("loincs", {}) or {}).items():
         if not isinstance(unit_map, dict):
             continue
@@ -133,14 +135,14 @@ _LAB_WINDOW_DAYS = 7
 
 
 # Condition × lab pairings — authoritative yaml at
-# `clinosim/codes/data/condition-lab-pairings.yaml`
+# `reference_data/condition-lab-pairings.yaml`
 # (hardcoded-review Phase A13, CRITICAL C6). Each entry preserves the
 # original tuple shape consumed by _check_condition_lab_coherence.
 
 
 @cache
 def _condition_lab_pairings_from_yaml() -> tuple[_CondLabPairing, ...]:
-    raw = data_table("condition-lab-pairings")
+    raw = load_reference_yaml(Path(__file__).resolve().parents[1] / "reference_data" / "condition-lab-pairings.yaml")
     out: list[_CondLabPairing] = []
     for name, row in (raw.get("pairings", {}) or {}).items():
         if not isinstance(row, dict):

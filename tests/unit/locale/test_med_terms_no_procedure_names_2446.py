@@ -25,7 +25,7 @@ def _term_keys(node: object) -> set[str]:
 
 def test_no_procedure_name_in_med_terms() -> None:
     terms = _term_keys(yaml.safe_load((_ROOT / "locale/shared/med_terms.yaml").read_text(encoding="utf-8")))
-    procedures = yaml.safe_load((_ROOT / "codes/data/clinosim-procedure-phrase.yaml").read_text(encoding="utf-8"))
+    procedures = yaml.safe_load((_ROOT / "locale/shared/clinosim-procedure-phrase.yaml").read_text(encoding="utf-8"))
     overlap = sorted(terms & {str(k).lower() for k in procedures["procedures"]})
     assert not overlap, overlap
 

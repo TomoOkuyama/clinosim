@@ -182,9 +182,9 @@ def test_load_narrative_display_dict_fallback_when_catalogs_missing(monkeypatch)
     _catalog_loader.cache_clear()
     load_narrative_imaging.cache_clear()
     monkeypatch.setattr(Path, "exists", lambda self: False)
-    # The code-data tables merged into the dictionary are read through
-    # `codes.data_table` (Issue #2266); stub them as empty too.
-    monkeypatch.setattr("clinosim.locale.loaders.narrative.data_table", lambda name: {})
+    # The translation tables merged into the dictionary live in
+    # `locale/shared` (Issue #2466); stub their reader as empty too.
+    monkeypatch.setattr("clinosim.locale.loaders.narrative._load_yaml", lambda path, fallback=None: {})
     from clinosim.locale.loaders import narrative as _narrative
 
     for loader in (

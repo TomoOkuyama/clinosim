@@ -23,10 +23,11 @@ from __future__ import annotations
 
 from collections import defaultdict
 from functools import cache
+from pathlib import Path
 from typing import Any, NamedTuple
 
-from clinosim.codes import data_table, get_system_uri
 from clinosim.codes import display as registry_display
+from clinosim.codes import get_system_uri
 from clinosim.codes import lookup as _codes_lookup
 from clinosim.codes.snomed_concepts import FINDING_ABNORMAL, FINDING_NORMAL
 from clinosim.codes.ucum import ucum_prose
@@ -62,6 +63,7 @@ from clinosim.modules.output.fhir_r4.lib.ids import (
     wrap_as_identifier,
 )
 from clinosim.modules.output.fhir_r4.lib.localization import localize_fixed_label
+from clinosim.reference_data import load_reference_yaml
 from clinosim.types.encounter import OrderType
 
 # === Radiology DR constants (Tier 1 #2 PR1) ===
@@ -362,10 +364,12 @@ _ABNORMAL_LAB_FLAGS: frozenset[str] = frozenset({"H", "L", "HH", "LL", "A", "AA"
 # negation. Case-insensitive on the ASCII patterns.
 @cache
 def _imaging_impression_keywords() -> dict[str, tuple[str, ...]]:
-    """Load `clinosim/codes/data/imaging-impression-keywords.yaml` as
+    """Load `reference_data/imaging-impression-keywords.yaml` as
     `{"normal": (...), "abnormal": (...)}`."""
 
-    raw = data_table("imaging-impression-keywords")
+    raw = load_reference_yaml(
+        Path(__file__).resolve().parents[3] / "imaging" / "reference_data" / "imaging-impression-keywords.yaml"
+    )
     return {
         "normal": tuple(str(p) for p in (raw.get("normal") or []) if isinstance(p, str)),
         "abnormal": tuple(str(p) for p in (raw.get("abnormal") or []) if isinstance(p, str)),
