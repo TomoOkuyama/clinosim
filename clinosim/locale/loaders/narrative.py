@@ -131,17 +131,13 @@ def imaging_exam_display(exam_id: str, lang: str) -> str:
     pa lateral``). A missing language falls back to English; an unknown exam
     is humanised (underscores → spaces) so a slug never reaches the output.
     """
-    key = " ".join(str(exam_id or "").strip().lower().split())
-    if not key:
+    if not " ".join(str(exam_id or "").split()):
         return ""
-    table = load_narrative_imaging()
-    for candidate in (key, key.replace(" ", "_"), key.replace("_", " ")):
-        entry = table.get(candidate)
-        if entry:
-            hit = resolve_localized_display(entry, lang)
-            if hit:
-                return hit
-    return str(exam_id).replace("_", " ")
+    from clinosim.locale.table import ImagingExamTable
+
+    return ImagingExamTable("narrative_imaging.imaging", load_narrative_imaging, humanize_unknown=True).get(
+        str(exam_id), lang
+    )
 
 
 @lru_cache(maxsize=1)
@@ -171,20 +167,25 @@ def load_vocabulary() -> dict[str, dict[str, dict[str, str]]]:
     return _load_yaml(_LOCALE_DIR / "shared" / "vocabulary.yaml", fallback={}) or {}
 
 
+def _bundle_table(stem: str, loader: Any, section: str) -> Any:
+    """The ``LocalizedTable`` of one section of a label bundle (Issue #2471)."""
+    from clinosim.locale.table import LocalizedTable, _section
+
+    return LocalizedTable(f"{stem}.{section}", _section(loader, section))
+
+
 def vocab_display(vocab: str, slug: str, lang: str, *, fallback: str = "") -> str:
     """Display of ``slug`` in vocabulary ``vocab`` for ``lang`` (then English,
     then ``fallback``); slugs match case-insensitively (Issue #2269)."""
-    entries = load_vocabulary().get(vocab) or {}
-    entry = entries.get(str(slug)) or entries.get(str(slug).strip().lower())
-    return resolve_localized_display(entry, lang, fallback=fallback)
+    return _bundle_table("vocabulary", load_vocabulary, vocab).get(str(slug), lang, fallback=fallback)
 
 
 def prompt_label(section: str, token: str, lang: str, *, fallback: str = "") -> str:
     """Entry ``token`` (case-insensitive) of an ``llm_prompt_labels.yaml``
     section in ``lang``, then English, then ``fallback`` (Issue #2396)."""
-    from clinosim.locale.localized import label
-
-    return label(load_llm_prompt_labels(), section, str(token).strip().lower(), lang, fallback=fallback)
+    return _bundle_table("llm_prompt_labels", load_llm_prompt_labels, section).get(
+        str(token).strip().lower(), lang, fallback=fallback
+    )
 
 
 def narrative_label(section: str, key: str, lang: str, fallback: str = "") -> str:
@@ -193,9 +194,9 @@ def narrative_label(section: str, key: str, lang: str, fallback: str = "") -> st
     fallback so HL7-style codes (``"MTH"``) and snake_case slugs both resolve.
     The one ``_label`` implementation behind the narrative and newborn
     emitters (Issue #2269)."""
-    section_entries = load_narrative_labels().get(section, {})
-    entry = section_entries.get(str(key)) or section_entries.get(str(key).lower())
-    return resolve_localized_display(entry, lang, fallback=fallback or str(key))
+    return _bundle_table("narrative_labels", load_narrative_labels, section).get(
+        str(key), lang, fallback=fallback or str(key)
+    )
 
 
 @lru_cache(maxsize=1)
