@@ -2818,7 +2818,7 @@
 <tr>
 <td>MEDIS 病名管理番号</td>
 <td><code>medis-disease-keyno.yaml</code></td>
-<td><code>codes/icd10.py</code> (§11)</td>
+<td><code>codes/medis.py</code></td>
 <td>—</td>
 </tr>
 <tr>
@@ -2842,13 +2842,13 @@
 <tr>
 <td>YJ / HOT (MHLW、MEDIS)</td>
 <td><code>yj.yaml</code>、<code>hot7.yaml</code></td>
-<td><code>codes/drugs.py</code> (§11)</td>
+<td><code>codes/yj.py</code> (形式、YJ マスタ)。薬ごとの製品は <code>codes/drugs.py</code> のカタログ</td>
 <td><code>yj_mhlw_snapshot.json</code>、<code>JP_MedicationCodeYJ_CS_full.json</code>、<code>yj_tx_fragment.json</code></td>
 </tr>
 <tr>
 <td>JLAC10 / JP-CLINS 検査</td>
 <td><code>jlac10.yaml</code>、<code>jp-clins-lab-uncoded.yaml</code></td>
-<td><code>codes/loader.py</code> (§11)</td>
+<td><code>codes/jlac10.py</code></td>
 <td>JP-CLINS パッケージ</td>
 </tr>
 <tr>
@@ -3160,6 +3160,11 @@
 <td><code>codes.drugs</code>: <code>resolve_drug</code>, <code>get_drug</code>, <code>find_drug</code>, <code>drug_key(ref)</code>, <code>same_drug(a, b)</code></td>
 <td>薬の同定。同一性キー (カタログ id、なければ正規化した名前) と、2 つの参照が同じ薬か (部分一致は使わない)</td>
 <td>例外 / <code>None</code> / <code>""</code> / <code>False</code></td>
+</tr>
+<tr>
+<td><code>codes.yj</code>: <code>jp_drug_system_key(code)</code>, <code>is_verified_yj(code)</code></td>
+<td>JP の薬剤コードの形式 (YJ、HOT7 / HOT9 / HOT13) に対応するレジストリキー / YJ コードが国の YJ マスタにあるか</td>
+<td><code>hot9</code> / <code>False</code></td>
 </tr>
 <tr>
 <td><code>codes.drugs</code>: <code>route_class(route)</code>, <code>jp_drug_code(drug, route)</code>, <code>jp_drug_code_table(route)</code></td>
@@ -3577,10 +3582,6 @@
 <tr>
 <td><code>clinosim-clinician-role.yaml</code>、<code>perinatal.yaml</code>、<code>chronic_followup.yaml</code>、<code>pregnancy_substitutions.yaml</code> が言語の接尾辞付きのフィールド名を使っている (§3.1)</td>
 <td>#2462</td>
-</tr>
-<tr>
-<td>JLAC10 / JP-CLINS の参照が汎用ローダに、MEDIS が ICD-10 のモジュールにあり、YJ / HOT は薬カタログのモジュールからしか引けない (§2.2)</td>
-<td>#2463</td>
 </tr>
 <tr>
 <td>データ YAML に <code>metadata.kind</code> のヘッダと kind ごとの schema 検証が無い (§3.1)</td>

@@ -2818,7 +2818,7 @@
 <tr>
 <td>MEDIS 病名管理番号</td>
 <td><code>medis-disease-keyno.yaml</code></td>
-<td><code>codes/icd10.py</code> (§11)</td>
+<td><code>codes/medis.py</code></td>
 <td>—</td>
 </tr>
 <tr>
@@ -2842,13 +2842,13 @@
 <tr>
 <td>YJ / HOT (MHLW, MEDIS)</td>
 <td><code>yj.yaml</code>, <code>hot7.yaml</code></td>
-<td><code>codes/drugs.py</code> (§11)</td>
+<td><code>codes/yj.py</code> (formats, YJ master); products per drug in the <code>codes/drugs.py</code> catalog</td>
 <td><code>yj_mhlw_snapshot.json</code>, <code>JP_MedicationCodeYJ_CS_full.json</code>, <code>yj_tx_fragment.json</code></td>
 </tr>
 <tr>
 <td>JLAC10 / JP-CLINS lab</td>
 <td><code>jlac10.yaml</code>, <code>jp-clins-lab-uncoded.yaml</code></td>
-<td><code>codes/loader.py</code> (§11)</td>
+<td><code>codes/jlac10.py</code></td>
 <td>the JP-CLINS package</td>
 </tr>
 <tr>
@@ -3160,6 +3160,11 @@
 <td><code>codes.drugs</code>: <code>resolve_drug</code>, <code>get_drug</code>, <code>find_drug</code>, <code>drug_key(ref)</code>, <code>same_drug(a, b)</code></td>
 <td>drug identity; identity key (catalog id, else the normalised name) and whether two references name the same drug — no substring matching</td>
 <td>raises / <code>None</code> / <code>""</code> / <code>False</code></td>
+</tr>
+<tr>
+<td><code>codes.yj</code>: <code>jp_drug_system_key(code)</code>, <code>is_verified_yj(code)</code></td>
+<td>registry key of a JP drug code by its format (YJ, HOT7 / HOT9 / HOT13); whether a YJ code is in the national YJ master</td>
+<td><code>hot9</code> / <code>False</code></td>
 </tr>
 <tr>
 <td><code>codes.drugs</code>: <code>route_class(route)</code>, <code>jp_drug_code(drug, route)</code>, <code>jp_drug_code_table(route)</code></td>
@@ -3577,10 +3582,6 @@
 <tr>
 <td><code>clinosim-clinician-role.yaml</code>, <code>perinatal.yaml</code>, <code>chronic_followup.yaml</code>, <code>pregnancy_substitutions.yaml</code> use language-suffixed field names (§3.1)</td>
 <td>#2462</td>
-</tr>
-<tr>
-<td>JLAC10 / JP-CLINS lookups sit in the generic loader, MEDIS in the ICD-10 module, YJ / HOT only in the drug catalog module (§2.2)</td>
-<td>#2463</td>
 </tr>
 <tr>
 <td>Data YAMLs lack the <code>metadata.kind</code> header and per-kind schema validation (§3.1)</td>
