@@ -3348,7 +3348,7 @@
 </tr>
 </tbody>
 </table>
-<p><code>modules._shared.pick_localized_field</code> and <code>modules._shared.resolve_lang</code> forward to <code>localized_field</code> and <code>lang_for</code>; new code calls those directly (§11).</p>
+<p>The output language of a country is <code>countries.lang_for(country)</code>; CIF <code>&lt;base&gt;_&lt;lang&gt;</code> fields are read with <code>localized_field</code>.</p>
 <h2 id="5-localization">5. Localization<a class="headerlink" href="#5-localization" title="Permanent link">&para;</a></h2>
 <h3 id="51-output-language">5.1 Output language<a class="headerlink" href="#51-output-language" title="Permanent link">&para;</a></h3>
 <ul>
@@ -3574,10 +3574,6 @@
 <tr>
 <td>Data YAMLs lack the <code>metadata.kind</code> header and per-kind schema validation (§3.1)</td>
 <td>#2465</td>
-</tr>
-<tr>
-<td>Duplicate resolver names and pass-through wrappers (<code>llm_service.engine.loinc_for</code>, <code>fhir_r4.lib.common.loinc_coding</code>, <code>pick_localized_field</code>, <code>resolve_lang</code>, <code>get_display</code>, <code>codes.match</code>)</td>
-<td>#2467</td>
 </tr>
 </tbody>
 </table>

@@ -3522,7 +3522,7 @@ reference material.</p>
 </span><span id="__span-1-10"><a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a><span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span>
 </span><span id="__span-1-11"><a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a>
 </span><span id="__span-1-12"><a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a><span class="kn">from</span><span class="w"> </span><span class="nn">clinosim.codes</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_system_uri</span><span class="p">,</span> <span class="n">lookup</span> <span class="k">as</span> <span class="n">code_lookup</span>
-</span><span id="__span-1-13"><a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a><span class="kn">from</span><span class="w"> </span><span class="nn">clinosim.modules._shared</span><span class="w"> </span><span class="kn">import</span> <span class="n">resolve_lang</span>
+</span><span id="__span-1-13"><a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a><span class="kn">from</span><span class="w"> </span><span class="nn">clinosim.modules._shared</span><span class="w"> </span><span class="kn">import</span> <span class="n">lang_for</span>
 </span><span id="__span-1-14"><a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a><span class="kn">from</span><span class="w"> </span><span class="nn">clinosim.modules.output.fhir_r4.lib.common</span><span class="w"> </span><span class="kn">import</span> <span class="n">BundleContext</span>
 </span><span id="__span-1-15"><a id="__codelineno-1-15" name="__codelineno-1-15" href="#__codelineno-1-15"></a>
 </span><span id="__span-1-16"><a id="__codelineno-1-16" name="__codelineno-1-16" href="#__codelineno-1-16"></a><span class="c1"># Canonical constants — single definition site, consumers import (Section B.3)</span>
@@ -3544,7 +3544,7 @@ reference material.</p>
 </span><span id="__span-1-32"><a id="__codelineno-1-32" name="__codelineno-1-32" href="#__codelineno-1-32"></a>
 </span><span id="__span-1-33"><a id="__codelineno-1-33" name="__codelineno-1-33" href="#__codelineno-1-33"></a>
 </span><span id="__span-1-34"><a id="__codelineno-1-34" name="__codelineno-1-34" href="#__codelineno-1-34"></a><span class="k">def</span><span class="w"> </span><span class="nf">_build_resource</span><span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="n">ctx</span><span class="p">:</span> <span class="n">BundleContext</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
-</span><span id="__span-1-35"><a id="__codelineno-1-35" name="__codelineno-1-35" href="#__codelineno-1-35"></a>    <span class="n">lang</span> <span class="o">=</span> <span class="n">resolve_lang</span><span class="p">(</span><span class="n">ctx</span><span class="o">.</span><span class="n">country</span><span class="p">)</span>   <span class="c1"># canonical idiom — no inline branching (E.10)</span>
+</span><span id="__span-1-35"><a id="__codelineno-1-35" name="__codelineno-1-35" href="#__codelineno-1-35"></a>    <span class="n">lang</span> <span class="o">=</span> <span class="n">lang_for</span><span class="p">(</span><span class="n">ctx</span><span class="o">.</span><span class="n">country</span><span class="p">)</span>   <span class="c1"># canonical idiom — no inline branching (E.10)</span>
 </span><span id="__span-1-36"><a id="__codelineno-1-36" name="__codelineno-1-36" href="#__codelineno-1-36"></a>    <span class="n">res</span> <span class="o">=</span> <span class="p">{</span>
 </span><span id="__span-1-37"><a id="__codelineno-1-37" name="__codelineno-1-37" href="#__codelineno-1-37"></a>        <span class="s2">"resourceType"</span><span class="p">:</span> <span class="s2">"&lt;ResourceType&gt;"</span><span class="p">,</span>
 </span><span id="__span-1-38"><a id="__codelineno-1-38" name="__codelineno-1-38" href="#__codelineno-1-38"></a>        <span class="s2">"id"</span><span class="p">:</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">TOPIC_ID_PREFIX</span><span class="si">}{</span><span class="n">item</span><span class="o">.</span><span class="n">id_field</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
@@ -3583,7 +3583,7 @@ re-define.</p>
   <code>"snomed"</code> / <code>"rxnorm"</code> / <code>"jlac10"</code> / <code>"k-codes"</code> / <code>"cpt"</code> /
   etc.).</li>
 <li>3<sup>rd</sup> argument = <code>"ja"</code> for JP cohort, <code>"en"</code> for US cohort — always
-  derived via <code>resolve_lang(ctx.country)</code> (<code>clinosim/modules/_shared.py</code>);
+  derived via <code>lang_for(ctx.country)</code> (<code>clinosim/modules/_shared.py</code>);
   inline branching is forbidden (E.10).</li>
 <li>Return value = display string; <code>None</code> when absent (fall back with
   <code>or</code>).</li>
@@ -3599,7 +3599,7 @@ raises <code>KeyError</code> fail-loud):</p>
 <div class="highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">clinosim.codes</span><span class="w"> </span><span class="kn">import</span> <span class="n">system_key_for</span>
 </span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>
 </span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="n">system_key</span> <span class="o">=</span> <span class="n">system_key_for</span><span class="p">(</span><span class="s2">"lab"</span><span class="p">,</span> <span class="n">ctx</span><span class="o">.</span><span class="n">country</span><span class="p">)</span>      <span class="c1"># JP → "jlac10", else → "loinc"</span>
-</span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="n">display</span> <span class="o">=</span> <span class="n">code_lookup</span><span class="p">(</span><span class="n">system_key</span><span class="p">,</span> <span class="n">code</span><span class="p">,</span> <span class="n">resolve_lang</span><span class="p">(</span><span class="n">ctx</span><span class="o">.</span><span class="n">country</span><span class="p">))</span>
+</span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="n">display</span> <span class="o">=</span> <span class="n">code_lookup</span><span class="p">(</span><span class="n">system_key</span><span class="p">,</span> <span class="n">code</span><span class="p">,</span> <span class="n">lang_for</span><span class="p">(</span><span class="n">ctx</span><span class="o">.</span><span class="n">country</span><span class="p">))</span>
 </span></code></pre></div>
 <p>System URI:</p>
 <div class="highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="n">sr</span><span class="p">[</span><span class="s2">"code"</span><span class="p">][</span><span class="s2">"coding"</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="s2">"system"</span><span class="p">]</span> <span class="o">=</span> <span class="n">get_system_uri</span><span class="p">(</span><span class="s2">"loinc"</span><span class="p">)</span>
@@ -3865,13 +3865,13 @@ primary language + an interop language</strong>:</p>
 </span></code></pre></div>
 <h3 id="d4-jp-localization-conventions">D.4 JP localization conventions<a class="headerlink" href="#d4-jp-localization-conventions" title="Permanent link">&para;</a></h3>
 <p>JP-cohort decision uses <strong><code>is_jp(ctx.country)</code></strong>; display language
-uses <strong><code>resolve_lang(ctx.country)</code></strong> (both are the canonical idioms
+uses <strong><code>lang_for(ctx.country)</code></strong> (both are the canonical idioms
 in <code>clinosim/modules/_shared.py</code> — shared-logic unification
 2026-07-02. Do not write hand-rolled variants like
 <code>ctx.country.lower() == "jp"</code> — E.10). For a JP cohort:</p>
 <ul>
 <li>Every <code>display</code> / <code>text</code> / <code>name</code> field = Japanese (via
-  <code>code_lookup(..., resolve_lang(ctx.country))</code>).</li>
+  <code>code_lookup(..., lang_for(ctx.country))</code>).</li>
 <li>Country-dependent code-system selection (JLAC10 vs LOINC etc.) =
   <code>system_key_for(kind, ctx.country)</code> (E.11).</li>
 <li>Coded enum values (category / priority / interpretation etc.) = <code>dual_slot_concept()</code> over the code-keyed <code>codes/data/hl7-*.yaml</code> registry
@@ -3975,7 +3975,7 @@ helper (e.g. in <code>fhir_r4/lib/common.py</code>).</p>
 <h3 id="e8--leaving-english-display-on-a-jp-cohort">E.8 ❌ Leaving English display on a JP cohort<a class="headerlink" href="#e8--leaving-english-display-on-a-jp-cohort" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><span id="__span-25-1"><a id="__codelineno-25-1" name="__codelineno-25-1" href="#__codelineno-25-1"></a><span class="n">sr</span><span class="p">[</span><span class="s2">"code"</span><span class="p">][</span><span class="s2">"coding"</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="s2">"display"</span><span class="p">]</span> <span class="o">=</span> <span class="n">code_lookup</span><span class="p">(</span><span class="s2">"loinc"</span><span class="p">,</span> <span class="n">code</span><span class="p">,</span> <span class="s2">"en"</span><span class="p">)</span>  <span class="c1"># NG for JP</span>
 </span></code></pre></div>
-<p><strong>Fix</strong>: derive <code>lang = resolve_lang(ctx.country)</code> (the canonical
+<p><strong>Fix</strong>: derive <code>lang = lang_for(ctx.country)</code> (the canonical
 idiom in E.10).</p>
 <h3 id="e9--ad-hoc-fields-outside-the-fhir-r4-spec">E.9 ❌ Ad-hoc fields outside the FHIR R4 spec<a class="headerlink" href="#e9--ad-hoc-fields-outside-the-fhir-r4-spec" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><span id="__span-26-1"><a id="__codelineno-26-1" name="__codelineno-26-1" href="#__codelineno-26-1"></a><span class="n">sr</span><span class="p">[</span><span class="s2">"my_custom_field"</span><span class="p">]</span> <span class="o">=</span> <span class="s2">"..."</span>   <span class="c1"># NG — adding free fields on a Resource violates the spec</span>
@@ -3987,8 +3987,9 @@ idiom in E.10).</p>
 </span><span id="__span-27-2"><a id="__codelineno-27-2" name="__codelineno-27-2" href="#__codelineno-27-2"></a><span class="k">if</span> <span class="n">ctx</span><span class="o">.</span><span class="n">country</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s2">"jp"</span><span class="p">:</span> <span class="o">...</span>                      <span class="c1"># NG</span>
 </span><span id="__span-27-3"><a id="__codelineno-27-3" name="__codelineno-27-3" href="#__codelineno-27-3"></a><span class="n">lang</span> <span class="o">=</span> <span class="s2">"ja"</span> <span class="k">if</span> <span class="nb">str</span><span class="p">(</span><span class="n">ctx</span><span class="o">.</span><span class="n">country</span><span class="p">)</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span> <span class="o">==</span> <span class="s2">"JP"</span> <span class="k">else</span> <span class="s2">"en"</span>  <span class="c1"># NG</span>
 </span></code></pre></div>
-<p><strong>Fix</strong>: <code>from clinosim.modules._shared import is_jp, resolve_lang</code>
-— use only <code>is_jp(ctx.country)</code> / <code>resolve_lang(ctx.country)</code>.
+<p><strong>Fix</strong>: <code>from clinosim.countries import lang_for
+from clinosim.modules._shared import is_jp</code>
+— use only <code>is_jp(ctx.country)</code> / <code>lang_for(ctx.country)</code>.
 Before the shared-logic unification (2026-07-02), 5 divergent
 idioms coexisted, and case-normalization differences could silently
 disable JP gating (a PR-90-class risk). Both helpers are a single
@@ -4137,7 +4138,7 @@ classic silent-no-op (PR-90 class): no audit gate → downstream NLP
 </tr>
 <tr>
 <td><strong>Common-logic unification (2026-07-02)</strong></td>
-<td><strong>Established <code>is_jp</code> / <code>resolve_lang</code> (<code>modules/_shared.py</code>) as the sole canonical idiom for JP-gating / display-language selection (replaced 5 divergent idioms — E.10) + <code>system_key_for(kind, country)</code> (<code>clinosim.codes</code>) = the single source of truth for country → code-system selection (E.11) + migrated <code>_fhir_localization.py</code>'s 3 inline YAML loaders to the canonical cached loaders in <code>clinosim/locale/loader.py</code> (<code>load_med_terms_ja</code> / <code>load_narrative_display_dict</code> / <code>load_department_display</code>; E.3 precedent) + added <code>hl7-endpoint-connection-type</code> / <code>hl7-endpoint-payload-type</code> / <code>hl7-subscriber-relationship</code> to <code>_BUILTIN_URIS</code> + moved aggregate loaders to their owner module (<code>load_all_disease_protocols</code> → <code>modules/disease/protocol.py</code>) + <code>@lru_cache</code>d the protocol / config loaders (shared instances = mutation forbidden)</strong></td>
+<td><strong>Established <code>is_jp</code> / <code>lang_for</code> (<code>modules/_shared.py</code>) as the sole canonical idiom for JP-gating / display-language selection (replaced 5 divergent idioms — E.10) + <code>system_key_for(kind, country)</code> (<code>clinosim.codes</code>) = the single source of truth for country → code-system selection (E.11) + migrated <code>_fhir_localization.py</code>'s 3 inline YAML loaders to the canonical cached loaders in <code>clinosim/locale/loader.py</code> (<code>load_med_terms_ja</code> / <code>load_narrative_display_dict</code> / <code>load_department_display</code>; E.3 precedent) + added <code>hl7-endpoint-connection-type</code> / <code>hl7-endpoint-payload-type</code> / <code>hl7-subscriber-relationship</code> to <code>_BUILTIN_URIS</code> + moved aggregate loaders to their owner module (<code>load_all_disease_protocols</code> → <code>modules/disease/protocol.py</code>) + <code>@lru_cache</code>d the protocol / config loaders (shared instances = mutation forbidden)</strong></td>
 </tr>
 </tbody>
 </table>

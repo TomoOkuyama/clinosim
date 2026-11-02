@@ -3348,7 +3348,7 @@
 </tr>
 </tbody>
 </table>
-<p><code>modules._shared.pick_localized_field</code> と <code>modules._shared.resolve_lang</code> は <code>localized_field</code> と <code>lang_for</code> に転送するだけなので、新しいコードは後者を直接呼ぶ (§11)。</p>
+<p>国の出力言語は <code>countries.lang_for(country)</code>、CIF の <code>&lt;base&gt;_&lt;lang&gt;</code> フィールドは <code>localized_field</code> で読む。</p>
 <h2 id="5-多言語対応">5. 多言語対応<a class="headerlink" href="#5-多言語対応" title="Permanent link">&para;</a></h2>
 <h3 id="51-出力言語">5.1 出力言語<a class="headerlink" href="#51-出力言語" title="Permanent link">&para;</a></h3>
 <ul>
@@ -3574,10 +3574,6 @@
 <tr>
 <td>データ YAML に <code>metadata.kind</code> のヘッダと kind ごとの schema 検証が無い (§3.1)</td>
 <td>#2465</td>
-</tr>
-<tr>
-<td>名前の重複した解決関数と、転送するだけのラッパー (<code>llm_service.engine.loinc_for</code>、<code>fhir_r4.lib.common.loinc_coding</code>、<code>pick_localized_field</code>、<code>resolve_lang</code>、<code>get_display</code>、<code>codes.match</code>)</td>
-<td>#2467</td>
 </tr>
 </tbody>
 </table>

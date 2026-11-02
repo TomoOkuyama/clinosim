@@ -2725,7 +2725,7 @@ design review):</p>
   addresses / reference intervals / code_mapping) — AD-35.</li>
 <li>CIF is language-neutral (codes only, AD-30). Display is resolved
   at output time via <code>code_lookup(system, code, lang)</code>.</li>
-<li>Country dispatch goes through <code>is_jp()</code> / <code>resolve_lang()</code>;
+<li>Country dispatch goes through <code>is_jp()</code> / <code>lang_for()</code>;
   country → code-system dispatch through <code>system_key_for()</code> (single
   source).</li>
 <li>JP-specific: insurance / My Number (identity module, opt-in),

@@ -3880,7 +3880,7 @@ readability. Promote a new cross-module helper into <code>_shared.py</code>
 only <strong>at the point a second module actually needs it</strong> (YAGNI — if
 only one module uses it, leave it local).</p>
 <p>The helpers currently in <code>_shared.py</code> (<code>normalize_probabilities</code>
-added in PR-A 2026-06-26; <code>is_jp</code> / <code>resolve_lang</code> added by the
+added in PR-A 2026-06-26; <code>is_jp</code> / <code>lang_for</code> added by the
 2026-07-02 shared-logic unification):</p>
 <ul>
 <li><code>get_attr_or_key(obj, name, default)</code> — dict / dataclass dual
@@ -3890,17 +3890,18 @@ added in PR-A 2026-06-26; <code>is_jp</code> / <code>resolve_lang</code> added b
   convention" below).</li>
 <li><code>is_jp(country) -&gt; bool</code> — <strong>the sole canonical idiom for the JP
   decision</strong> (case-insensitive + strip normalisation).</li>
-<li><code>resolve_lang(country) -&gt; str</code> — <strong>the sole canonical idiom for
+<li><code>countries.lang_for(country) -&gt; str</code> — <strong>the sole canonical idiom for
   display-language selection</strong> (JP → <code>"ja"</code>, else → <code>"en"</code>).</li>
 </ul>
 <p><strong>Mandatory idiom for JP-gating / language selection (2026-07-02)</strong> —
 country decisions and display-language selection must go through
-<code>is_jp(country)</code> / <code>resolve_lang(country)</code>:</p>
-<div class="highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">clinosim.modules._shared</span><span class="w"> </span><span class="kn">import</span> <span class="n">is_jp</span><span class="p">,</span> <span class="n">resolve_lang</span>
-</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>
-</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="k">if</span> <span class="n">is_jp</span><span class="p">(</span><span class="n">ctx</span><span class="o">.</span><span class="n">country</span><span class="p">):</span>
-</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a>    <span class="o">...</span>
-</span><span id="__span-4-5"><a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="n">lang</span> <span class="o">=</span> <span class="n">resolve_lang</span><span class="p">(</span><span class="n">ctx</span><span class="o">.</span><span class="n">country</span><span class="p">)</span>   <span class="c1"># "ja" / "en"</span>
+<code>is_jp(country)</code> / <code>lang_for(country)</code>:</p>
+<div class="highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">clinosim.countries</span><span class="w"> </span><span class="kn">import</span> <span class="n">lang_for</span>
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">clinosim.modules._shared</span><span class="w"> </span><span class="kn">import</span> <span class="n">is_jp</span>
+</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>
+</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="k">if</span> <span class="n">is_jp</span><span class="p">(</span><span class="n">ctx</span><span class="o">.</span><span class="n">country</span><span class="p">):</span>
+</span><span id="__span-4-5"><a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a>    <span class="o">...</span>
+</span><span id="__span-4-6"><a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a><span class="n">lang</span> <span class="o">=</span> <span class="n">lang_for</span><span class="p">(</span><span class="n">ctx</span><span class="o">.</span><span class="n">country</span><span class="p">)</span>   <span class="c1"># "ja" / "en"</span>
 </span></code></pre></div>
 <blockquote>
 <p><strong>Anti-pattern:</strong> do not write new hand-rolled country-decision
@@ -3909,7 +3910,7 @@ variants (<code>country == "JP"</code> / <code>country.lower() == "jp"</code> /
 <code>lang = "ja" if country == "JP" else "en"</code>). Before the shared-
 logic unification 5 divergent idioms coexisted, and case-handling
 differences could silently disable JP gating — a PR-90-class risk.
-<code>is_jp</code> / <code>resolve_lang</code> are the single normalisation point.</p>
+<code>is_jp</code> / <code>lang_for</code> are the single normalisation point.</p>
 </blockquote>
 <h3 id="canonical-form-of-path-constants-established-in-pr-a-2026-06-26">Canonical form of path constants (established in PR-A 2026-06-26)<a class="headerlink" href="#canonical-form-of-path-constants-established-in-pr-a-2026-06-26" title="Permanent link">&para;</a></h3>
 <p>The <strong>canonical pattern</strong> for how a module loads reference_data or
@@ -4946,7 +4947,7 @@ pass structural / narrative CIF separation is
 - Types live in <code>clinosim/types/</code>; display via <code>code_lookup()</code>; URI
   via <code>get_system_uri()</code>.
 - Country decisions via <code>is_jp()</code>; display language via
-  <code>resolve_lang()</code>; country → code-system selection via
+  <code>lang_for()</code>; country → code-system selection via
   <code>system_key_for()</code> (do not write hand-rolled <code>country == "JP"</code>
   variants or inline branching).
 - Treat cached loader return values as read-only (shared instance —
