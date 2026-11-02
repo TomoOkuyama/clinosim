@@ -13,12 +13,8 @@ its category (:class:`Icd10CodeSystem`) in the system, then its declared sibling
 
 from __future__ import annotations
 
-from functools import cache
-from pathlib import Path
-
-import yaml
-
 from clinosim.codes.loader import CodeSystem, display, system_key_for
+from clinosim.codes.medis import medis_disease_keyno as medis_disease_keyno
 
 __all__ = [
     "Icd10CodeSystem",
@@ -37,9 +33,6 @@ class Icd10CodeSystem(CodeSystem):
     def parents(self, code: str) -> tuple[str, ...]:
         category = code.split(".", 1)[0]
         return (category,) if category != code else ()
-
-
-_MEDIS_CROSSWALK = Path(__file__).parent / "data" / "medis-disease-keyno.yaml"
 
 
 def icd10_system(country: str) -> str:
@@ -68,33 +61,3 @@ def condition_label(code: str, country: str, lang: str) -> str | None:
     short name, then the official display; ``None`` when neither exists.
     Narrative and the FHIR Condition use the same label (Issue #2360)."""
     return condition_short_name(code, lang) or icd10_display(code, country, lang)
-
-
-@cache
-def _medis_crosswalk() -> dict[str, tuple[str, str]]:
-    if not _MEDIS_CROSSWALK.exists():
-        return {}
-    data = yaml.safe_load(_MEDIS_CROSSWALK.read_text(encoding="utf-8")) or {}
-    out: dict[str, tuple[str, str]] = {}
-    for icd, entry in (data.get("crosswalk") or {}).items():
-        if not isinstance(entry, dict):
-            continue
-        code = str(entry.get("medis_code") or "").strip()
-        name = str(entry.get("medis_display") or "").strip()
-        if code and name:
-            out[str(icd).strip()] = (code, name)
-    return out
-
-
-def medis_disease_keyno(icd_code: str) -> tuple[str, str] | None:
-    """MEDIS 標準病名マスター 病名管理番号 ``(code, display)`` for an ICD-10 code:
-    the exact code, then its 3-character category; ``None`` when the
-    verified seed crosswalk has no entry (Issue #1277)."""
-    if not icd_code:
-        return None
-    crosswalk = _medis_crosswalk()
-    hit = crosswalk.get(icd_code)
-    if hit is not None:
-        return hit
-    base = icd_code.split(".")[0]
-    return crosswalk.get(base) if base != icd_code else None

@@ -40,12 +40,12 @@
 |---|---|---|---|
 | ICD-10-CM (NLM / CMS) | `icd-10-cm.yaml` | `codes/icd10.py` | — |
 | ICD-10 (WHO、MHLW 日本語名) | `icd-10.yaml` (alias `icd-10-mhlw`) | `codes/icd10.py` | `icd10_who_tx.json`、`icd10_mhlw_2013_ja.json` |
-| MEDIS 病名管理番号 | `medis-disease-keyno.yaml` | `codes/icd10.py` (§11) | — |
+| MEDIS 病名管理番号 | `medis-disease-keyno.yaml` | `codes/medis.py` | — |
 | LOINC | `loinc.yaml`、`loinc-maps.yaml` | `codes/loinc.py` | `loinc_2_82_tx.json` |
 | SNOMED CT | `snomed-ct.yaml`、`snomed-maps.yaml`、`procedure-phrase-to-snomed.yaml`、`procedure-snomed-metadata.yaml` | `codes/snomed.py`、`codes/snomed_concepts.py` | — |
 | RxNorm | `rxnorm.yaml` | `codes/drugs.py` 経由 | `rxnorm_rxnav_snapshot.json` |
-| YJ / HOT (MHLW、MEDIS) | `yj.yaml`、`hot7.yaml` | `codes/drugs.py` (§11) | `yj_mhlw_snapshot.json`、`JP_MedicationCodeYJ_CS_full.json`、`yj_tx_fragment.json` |
-| JLAC10 / JP-CLINS 検査 | `jlac10.yaml`、`jp-clins-lab-uncoded.yaml` | `codes/loader.py` (§11) | JP-CLINS パッケージ |
+| YJ / HOT (MHLW、MEDIS) | `yj.yaml`、`hot7.yaml` | `codes/yj.py` (形式、YJ マスタ)。薬ごとの製品は `codes/drugs.py` のカタログ | `yj_mhlw_snapshot.json`、`JP_MedicationCodeYJ_CS_full.json`、`yj_tx_fragment.json` |
+| JLAC10 / JP-CLINS 検査 | `jlac10.yaml`、`jp-clins-lab-uncoded.yaml` | `codes/jlac10.py` | JP-CLINS パッケージ |
 | CPT / K コード | `cpt.yaml`、`k-codes.yaml` | `codes/procedures.py` | `shinryo_koui_ssk_20261013_ja.json` |
 | UCUM | `ucum-aliases.yaml` | `codes/ucum.py` | — |
 | JIS X 0401 | `jis-x-0401-prefectures.yaml` | `codes/prefectures.py` | — |
@@ -212,6 +212,7 @@ occupation:
 | `modules.document.narrative.registry.document_loinc(doc_type)` | 文書種別の LOINC コード。`document_type_specs.yaml` に 1 度だけ定義する | 未知の種別は例外 |
 | `codes.valuesets`: `concept_group`, `has_condition`, `patient_condition_names`, `code_by_chronic_prefix` | value set の該当判定 | 未知のグループは `KeyError` |
 | `codes.drugs`: `resolve_drug`, `get_drug`, `find_drug`, `drug_key(ref)`, `same_drug(a, b)` | 薬の同定。同一性キー (カタログ id、なければ正規化した名前) と、2 つの参照が同じ薬か (部分一致は使わない) | 例外 / `None` / `""` / `False` |
+| `codes.yj`: `jp_drug_system_key(code)`, `is_verified_yj(code)` | JP の薬剤コードの形式 (YJ、HOT7 / HOT9 / HOT13) に対応するレジストリキー / YJ コードが国の YJ マスタにあるか | `hot9` / `False` |
 | `codes.drugs`: `route_class(route)`, `jp_drug_code(drug, route)`, `jp_drug_code_table(route)` | オーダ経路の経路区分 / 薬と経路に対応する JP の YJ 製品 | `""` / `None` / エントリなし |
 | `codes.drugs`: `drug_display(ref, lang)` | 薬の id・名前・別名 (なければ先頭語の最長一致) のカタログ名を `lang` で、なければ英語で返す | `None` |
 | `codes.drugs`: `identify_drug(text)`, `drug_classes(ref)` | 自由文字列の薬剤名が指すカタログの薬 (id / 名前 / 別名の完全一致、先頭語、含まれる最長の名前・別名の順。ASCII は単語境界で照合) / 薬の分類 (ドット区切りの上位分類を含む) | `None` / `()` |
@@ -406,7 +407,6 @@ occupation:
 | `codes/data/fhir-ja-labels.yaml` が、経路・頻度・固定ラベルの日本語だけの 2 つ目の表になっている (§5.3) | #2459 |
 | slug をキーにした表示表に `en` の無いエントリがある (§6.5) | #2460 |
 | `clinosim-clinician-role.yaml`、`perinatal.yaml`、`chronic_followup.yaml`、`pregnancy_substitutions.yaml` が言語の接尾辞付きのフィールド名を使っている (§3.1) | #2462 |
-| JLAC10 / JP-CLINS の参照が汎用ローダに、MEDIS が ICD-10 のモジュールにあり、YJ / HOT は薬カタログのモジュールからしか引けない (§2.2) | #2463 |
 | データ YAML に `metadata.kind` のヘッダと kind ごとの schema 検証が無い (§3.1) | #2465 |
 | `codes/data` に参照データと翻訳表が置かれている (§3.2) | #2466 |
 | 名前の重複した解決関数と、転送するだけのラッパー (`llm_service.engine.loinc_for`、`fhir_r4.lib.common.loinc_coding`、`pick_localized_field`、`resolve_lang`、`get_display`、`codes.match`) | #2467 |

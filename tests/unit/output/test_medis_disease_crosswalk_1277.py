@@ -25,8 +25,8 @@ from __future__ import annotations
 
 import pytest
 
-from clinosim.codes.icd10 import _medis_crosswalk as _load_medis_crosswalk
 from clinosim.codes.icd10 import medis_disease_keyno as _medis_crosswalk_lookup
+from clinosim.codes.medis import _medis_crosswalk as _load_medis_crosswalk
 from clinosim.modules.output.fhir_r4.post_process.populate import _populate_condition_ai_mr_ecs_fields
 
 pytestmark = pytest.mark.unit
