@@ -95,7 +95,9 @@ def _load_phrase_catalog() -> dict[str, Any]:
         return {}
     with open(path, encoding="utf-8") as f:
         raw = yaml.load(f, Loader=_StrictSafeLoader)  # noqa: S506 — strict subclass
-    return raw or {}
+    # The `metadata` header is not a phrase section (spec §3.1, Issue #2465);
+    # this is the one reader that keeps its own (duplicate-key-strict) parser.
+    return {k: v for k, v in (raw or {}).items() if k != "metadata"}
 
 
 def _resolve_key(catalog: dict[str, Any], key: str) -> dict[str, str] | None:

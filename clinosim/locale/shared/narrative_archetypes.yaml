@@ -4,6 +4,11 @@
 # Add new language: extend each entry with `<lang_code>: <display>`.
 # Load via ``clinosim.locale.loader.load_narrative_archetypes()``.
 
+metadata:
+  kind: display-table
+  name: narrative_archetypes
+  source: clinosim
+
 archetypes:
   complicated_delayed: {en: complicated delayed course, ja: 合併症遷延型}
   dip_then_recovery: {en: transient worsening then recovery, ja: 一過性増悪後回復経過}

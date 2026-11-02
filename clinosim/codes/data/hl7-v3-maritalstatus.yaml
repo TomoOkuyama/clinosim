@@ -1,6 +1,7 @@
 # HL7 v3 Marital Status. Authoritative source: HL7 Terminology (THO),
 # CodeSystem v3-MaritalStatus (http://terminology.hl7.org/CodeSystem/v3-MaritalStatus).
 metadata:
+  kind: code-system
   name: HL7 v3 Marital Status
   uri: http://terminology.hl7.org/CodeSystem/v3-MaritalStatus
   source: "HL7 Terminology (THO)"

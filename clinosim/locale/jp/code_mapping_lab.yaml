@@ -8,6 +8,11 @@
 # Display text lives in clinosim/codes/data/jlac10.yaml. Never fabricate a code (AD-57).
 
 # Hematology / coagulation
+metadata:
+  kind: country-mapping
+  name: code_mapping_lab
+  source: clinosim
+
 WBC: "2A010"
 RBC: "2A020"
 Hb: "2A030"

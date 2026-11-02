@@ -4,6 +4,11 @@
 # Add new language: extend each entry with `<lang_code>: <display>`.
 # Load via ``clinosim.locale.loader.load_narrative_lab_flags()``.
 
+metadata:
+  kind: translation-table
+  name: narrative_lab_flags
+  source: clinosim
+
 lab_flags:
   '!': {ja: 重篤}
   critical: {ja: 重篤}

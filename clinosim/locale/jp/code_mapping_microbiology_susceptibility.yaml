@@ -21,6 +21,11 @@
 # clinosim/modules/observation/reference_data/microbiology.yaml's `antibiotics`
 # dict (ampicillin/cefazolin/ceftriaxone/cefepime/ciprofloxacin/gentamicin/
 # vancomycin/piperacillin_tazobactam/meropenem/trimethoprim_sulfamethoxazole).
+metadata:
+  kind: country-mapping
+  name: code_mapping_microbiology_susceptibility
+  source: clinosim
+
 "18862-3": "6C010"
 "18866-4": "6C010"
 "18895-3": "6C010"

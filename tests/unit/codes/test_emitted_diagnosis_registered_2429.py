@@ -5,10 +5,10 @@ from __future__ import annotations
 from pathlib import Path
 
 import pytest
-import yaml
 
 import clinosim
 from clinosim.codes.icd10 import icd10_display
+from clinosim.datafiles import load_data_yaml
 
 pytestmark = pytest.mark.unit
 
@@ -25,14 +25,14 @@ def _leaves(value: object) -> list[str]:
 
 @pytest.mark.parametrize("country", ["US", "JP"])
 def test_every_mapping_target_is_registered(country: str) -> None:
-    mapping = yaml.safe_load((_LOCALE / country.lower() / "code_mapping_diagnosis.yaml").read_text(encoding="utf-8"))
+    mapping = load_data_yaml(_LOCALE / country.lower() / "code_mapping_diagnosis.yaml")
     targets = {t for v in mapping.values() for t in ([v] if isinstance(v, str) else _leaves(v))}
     missing = sorted(t for t in targets if not icd10_display(t, country, "en"))
     assert not missing, missing
 
 
 def test_single_gene_disease_codes_are_registered() -> None:
-    data = yaml.safe_load((_LOCALE / "shared" / "single_gene_diseases.yaml").read_text(encoding="utf-8"))
+    data = load_data_yaml(_LOCALE / "shared" / "single_gene_diseases.yaml")
     codes = list(data["single_gene_diseases"])
     assert "D55.0" in codes
     for country in ("US", "JP"):

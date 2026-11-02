@@ -9,6 +9,7 @@
 # the post-#1849 review (hardcoded-audit Finding 11).
 
 metadata:
+  kind: map
   name: US Core Profile URLs
   description: >
     Resource type → US Core v9 profile URL mapping used by

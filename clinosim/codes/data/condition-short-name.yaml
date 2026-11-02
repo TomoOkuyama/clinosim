@@ -10,6 +10,7 @@
 # consistency (matches the project's existing _CONDITION_SHORT_NAME values
 # verbatim; migrated from Python, not newly authored).
 metadata:
+  kind: code-system
   name: Clinical Short Name (Condition.code.text abbreviation)
   uri: "urn:clinosim:condition-short-name"
 codes:

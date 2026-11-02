@@ -42,6 +42,11 @@
 #   benchmark in verify_medical_stats.py is (7-11) US, (9-13) JP —
 #   consistent with these inputs.
 
+metadata:
+  kind: reference
+  name: actuarial_life_table
+  source: clinosim
+
 annual_mortality_qx:
   us:
     male:

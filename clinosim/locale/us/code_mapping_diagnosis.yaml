@@ -14,6 +14,11 @@
 # clinically-correct "old / personal history of" ICD-10-CM code (I21→I25.2 Old MI, etc.).
 
 # --- Chronic conditions → unspecified billable leaf ---
+metadata:
+  kind: country-mapping
+  name: code_mapping_diagnosis
+  source: clinosim
+
 I10: "I10"          # Essential hypertension (already billable)
 E11: "E11.9"        # Type 2 diabetes mellitus (WHO/category header) → uncomplicated leaf (billable CM)
 E11.9: "E11.9"      # Type 2 diabetes mellitus without complications

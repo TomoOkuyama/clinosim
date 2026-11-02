@@ -14,6 +14,7 @@
 # post-#1849 review (hardcoded-audit Finding 11).
 
 metadata:
+  kind: map
   name: JP-CLINS eCS Profile URLs
   description: >
     Resource type → JP-CLINS eCS profile URL mapping used by

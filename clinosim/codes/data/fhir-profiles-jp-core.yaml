@@ -10,6 +10,7 @@
 # post-#1849 review (hardcoded-audit Finding 11).
 
 metadata:
+  kind: map
   name: JP Core Profile URLs
   description: >
     Resource type → JP Core v1.1+ profile URL mapping used by

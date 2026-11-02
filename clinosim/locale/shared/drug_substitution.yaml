@@ -13,6 +13,11 @@
 # via clinosim.codes.drugs.resolve_drug so this file no longer
 # duplicates names.
 
+metadata:
+  kind: reference
+  name: drug_substitution
+  source: clinosim
+
 indications:
   pain_management:
     description: "General analgesia when NSAID or opioid is contraindicated."

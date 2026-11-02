@@ -50,6 +50,7 @@
 # jpfhir-terminology 2.2606.0 / MEDIS 5.18 fragment):
 # ---------------------------------------------------------------------
 metadata:
+  kind: crosswalk
   name: MEDIS 標準病名マスター 病名管理番号 (crosswalk seed)
   uri: http://medis.or.jp/CodeSystem/master-disease-keyNumber
   version: "5.18-fragment-seed"

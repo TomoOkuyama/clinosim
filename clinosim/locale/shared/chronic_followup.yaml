@@ -11,6 +11,11 @@
 #     heart_rate is listed wherever blood pressure is. Conditions without a
 #     vitals list get blood pressure and heart rate.
 
+metadata:
+  kind: reference
+  name: chronic_followup
+  source: clinosim
+
 I10:  # Hypertension
   # Interval raised from 1 → 4 months (Issue #943, 2026-08-30). Real-world JP
   # outpatient cadence for stable, well-controlled HTN under monotherapy /

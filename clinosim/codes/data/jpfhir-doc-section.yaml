@@ -13,6 +13,7 @@
 #   REF(診療情報提供書):220 / 330 / 340 / 420 / 430 / 520 / 610 / 620 / 720 / 730 / 740 / 910 / 920 / 950
 #   PCS(患者ケアサマリー):422
 metadata:
+  kind: code-system
   name: JP-CLINS Document Section Code
   # spec `.url` fixedUri:resource id (`jp-codeSystem-clins-document-section`)
   # を path segment に含めない(session 53 iris4h-ai feedback D 修正、

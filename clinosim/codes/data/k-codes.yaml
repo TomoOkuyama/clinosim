@@ -8,6 +8,7 @@
 # ``ja`` is the master's name (the 区分 name for a 区分-level code); ``en`` is
 # an English rendering (Issue #2340).
 metadata:
+  kind: code-system
   name: K-codes
   uri: urn:oid:1.2.392.200119.4.401
   version: '2024'

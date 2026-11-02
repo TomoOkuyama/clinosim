@@ -12,6 +12,11 @@
 # Rationale: NSAIDs are nephrotoxic; metformin carries a lactic-acidosis
 # risk; enoxaparin and alendronate are renally cleared; ACE inhibitors and
 # ARBs act on glomerular haemodynamics (Issue #1335).
+metadata:
+  kind: reference
+  name: renal_medication_rules
+  source: clinosim
+
 renal_drugs:
   metformin: hold
   celecoxib: hold

@@ -10,9 +10,9 @@ from collections import Counter
 from pathlib import Path
 
 import pytest
-import yaml
 
 import clinosim
+from clinosim.datafiles import load_data_yaml
 
 _DATA = Path(clinosim.__file__).parent / "codes" / "data"
 _LOCALE = Path(clinosim.__file__).parent / "locale"
@@ -38,7 +38,7 @@ class TestCodeSystemFiles:
         assert not dups, f"{path.name} has duplicate code keys (last-wins bug): {dups}"
 
     def test_every_code_has_english(self, path):
-        codes = yaml.safe_load(path.read_text()).get("codes", {})
+        codes = load_data_yaml(path).get("codes", {})
         no_en = [c for c, e in codes.items() if not (isinstance(e, dict) and e.get("en"))]
         assert not no_en, f"{path.name} codes missing `en`: {no_en}"
 
@@ -50,13 +50,13 @@ class TestDrugMapping:
     share a CUI (the Amoxicillin/Clavulanate + Azithromycin -> 18631 collision)."""
 
     def test_us_mapped_rxcuis_present(self):
-        rxnorm = yaml.safe_load((_DATA / "rxnorm.yaml").read_text())["codes"]
-        us = yaml.safe_load((_LOCALE / "us/code_mapping_drug.yaml").read_text())
+        rxnorm = load_data_yaml(_DATA / "rxnorm.yaml")["codes"]
+        us = load_data_yaml(_LOCALE / "us/code_mapping_drug.yaml")
         missing = {n: c for n, c in us.items() if c not in rxnorm}
         assert not missing, f"US-mapped RxCUIs absent from rxnorm.yaml: {missing}"
 
     def test_no_two_drugs_share_a_rxcui(self):
-        us = yaml.safe_load((_LOCALE / "us/code_mapping_drug.yaml").read_text())
+        us = load_data_yaml(_LOCALE / "us/code_mapping_drug.yaml")
         by_code: dict[str, list[str]] = {}
         for name, code in us.items():
             by_code.setdefault(code, []).append(name)
@@ -138,7 +138,7 @@ class TestLoincDisplay:
         with spec conformance, so it was removed here; `text` field on
         Observation.code carries the human-readable label instead.
         """
-        loinc = yaml.safe_load((_DATA / "loinc.yaml").read_text())["codes"]
-        us = yaml.safe_load((_LOCALE / "us/code_mapping_lab.yaml").read_text())
+        loinc = load_data_yaml(_DATA / "loinc.yaml")["codes"]
+        us = load_data_yaml(_LOCALE / "us/code_mapping_lab.yaml")
         missing = {n: c for n, c in us.items() if c not in loinc}
         assert not missing, f"US-mapped LOINC codes absent from loinc.yaml: {missing}"

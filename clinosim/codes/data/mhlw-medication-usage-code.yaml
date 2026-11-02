@@ -34,6 +34,7 @@
 # layout consistent.
 
 metadata:
+  kind: code-system
   source: >-
     clinosim/modules/output/fhir_r4/post_process/populate.py
     (_DEFAULT_MEAL_CONTEXT_BY_FREQ, _FREQ_CONTEXT_TO_MHLW_CODE,

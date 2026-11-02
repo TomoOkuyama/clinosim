@@ -6,6 +6,11 @@
 
 # Order route (upper-case canonical token; aliases such as INH / NEB resolve
 # to these in modules/output/fhir_r4/lib/reference_data.py _ROUTE_ALIASES).
+metadata:
+  kind: map
+  name: snomed-maps
+  source: clinosim
+
 route:
   PO: "26643006"
   IV: "47625008"

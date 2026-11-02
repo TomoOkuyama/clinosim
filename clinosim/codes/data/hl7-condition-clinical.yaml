@@ -4,6 +4,7 @@
 # C2-02 (session 42 cycle 2): registered so _fhir_conditions.py + _fhir_hai.py
 # stop emitting display-less coding on 70,348+ Condition records.
 metadata:
+  kind: code-system
   name: HL7 FHIR Condition Clinical Status
   uri: http://terminology.hl7.org/CodeSystem/condition-clinical
   source: "HL7 Terminology (THO)"

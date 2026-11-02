@@ -21,6 +21,11 @@
 #   - Multi-lang sections (smoking, marital, occupation, insurance, …)
 #     carry both ``ja`` and ``en`` slots.
 
+metadata:
+  kind: display-table
+  name: llm_prompt_labels
+  source: clinosim
+
 encounter_type:
   outpatient: {en: outpatient, ja: 外来}
   inpatient: {en: inpatient, ja: 入院}

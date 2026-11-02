@@ -3,6 +3,7 @@
 # medicationcode-nocoded-cs.json), moved from fhir_r4/medications/
 # medications.py (Issue #2404); `en` is a clinosim translation.
 metadata:
+  kind: code-system
   name: JP eCS Medication Code Nocoded
   uri: http://jpfhir.jp/fhir/eCS/CodeSystem/MedicationCodeNocoded_CS
   source: "JP eCS"

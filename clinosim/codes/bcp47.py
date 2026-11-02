@@ -11,9 +11,8 @@ from __future__ import annotations
 from functools import cache
 from pathlib import Path
 
-import yaml
-
 from clinosim.codes.loader import display
+from clinosim.datafiles import load_data_yaml
 
 __all__ = ["bcp47_display"]
 
@@ -22,7 +21,7 @@ _DATA = Path(__file__).parent / "data" / "bcp-47-language.yaml"
 
 @cache
 def _profile_displays() -> dict[str, dict[str, str]]:
-    raw = yaml.safe_load(_DATA.read_text(encoding="utf-8")) or {}
+    raw = load_data_yaml(_DATA)
     block = raw.get("profile_displays") or {}
     return {str(p): {str(k): str(v) for k, v in (rows or {}).items()} for p, rows in block.items()}
 

@@ -11,6 +11,11 @@
 # service type and the specialty of the same department agree (Issue #2270).
 # Read through `department_display()`; a missing language falls back to
 # English and a missing key is humanised (never title-cased).
+metadata:
+  kind: display-table
+  name: department_display
+  source: clinosim
+
 departments:
   internal_medicine: {en: "Internal Medicine", ja: "内科", specialty_snomed: "419192003"}
   cardiology: {en: "Cardiology", ja: "循環器内科", specialty_snomed: "394579002"}

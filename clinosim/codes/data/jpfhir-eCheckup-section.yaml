@@ -8,6 +8,7 @@
 # country=JP かつ health_checkup opt-in module 有効時の
 # Composition.section[].code.coding に使用する。
 metadata:
+  kind: code-system
   name: JP-eCheckup Section Code
   uri: http://jpfhir.jp/fhir/eCheckup/CodeSystem/section-code
   version: "1.7.0"

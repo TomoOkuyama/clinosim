@@ -16,6 +16,11 @@
 #
 # ---------------------------------------------------------------------
 
+metadata:
+  kind: phrase-catalog
+  name: narrative_phrases
+  source: clinosim
+
 chief_complaint:
   # From template_generator._render_chief_complaint (~line 5988).
   encounter_reason:

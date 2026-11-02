@@ -4,6 +4,7 @@
 # C2-05 (session 42 cycle 2): used at Observation.referenceRange.appliesTo
 # to indicate sex-specific reference ranges.
 metadata:
+  kind: code-system
   name: HL7 v3 Administrative Gender
   uri: http://terminology.hl7.org/CodeSystem/v3-AdministrativeGender
   source: "HL7 Terminology (THO)"

@@ -8,6 +8,7 @@
 # 健診結果報告書 / 処方箋 / 計画書)の Composition.type.coding に使用する。
 # US Composition 出力は LOINC を直接使用し、本 CodeSystem は経由しない。
 metadata:
+  kind: code-system
   name: JP-CLINS Document Type Code
   uri: http://jpfhir.jp/fhir/Common/CodeSystem/doc-typecodes
   version: "1.13.0"

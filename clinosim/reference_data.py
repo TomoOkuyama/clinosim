@@ -13,15 +13,14 @@ from functools import cache
 from pathlib import Path
 from typing import Any
 
-import yaml
+from clinosim.datafiles import load_data_yaml
 
 __all__ = ["load_reference_yaml"]
 
 
 @cache
 def _parsed(path: Path) -> dict[str, Any]:
-    with open(path, encoding="utf-8") as f:
-        return yaml.safe_load(f) or {}
+    return load_data_yaml(path)
 
 
 def load_reference_yaml(path: Path) -> dict[str, Any]:

@@ -4,6 +4,11 @@
 # Add new language: extend each entry with `<lang_code>: <display>`.
 # Load via ``clinosim.locale.loader.load_narrative_op_approach()``.
 
+metadata:
+  kind: translation-table
+  name: narrative_op_approach
+  source: clinosim
+
 op_approach:
   anterior approach: {ja: 前方アプローチ}
   endovascular: {en: endovascular, ja: 血管内}

@@ -1,5 +1,10 @@
 # Procedure code mapping — Internal name → CPT code (US)
 # Source: CPT (AMA)
 
+metadata:
+  kind: country-mapping
+  name: code_mapping_procedure
+  source: clinosim
+
 ORIF_femur: "27236"
 hemiarthroplasty_hip: "27125"

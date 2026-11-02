@@ -15,9 +15,9 @@ from __future__ import annotations
 from pathlib import Path
 
 import pytest
-import yaml
 
 from clinosim.codes.drugs import all_drug_ids, resolve_drug
+from clinosim.datafiles import load_data_yaml
 from clinosim.locale.loader import load_code_mapping
 
 pytestmark = pytest.mark.unit
@@ -26,8 +26,7 @@ _US_YAML = Path(__file__).resolve().parents[1].parent / "clinosim" / "locale" / 
 
 
 def _legacy_us() -> dict[str, str]:
-    with _US_YAML.open(encoding="utf-8") as fh:
-        return yaml.safe_load(fh) or {}
+    return load_data_yaml(_US_YAML)
 
 
 # ----------------------------------------------------------------------------

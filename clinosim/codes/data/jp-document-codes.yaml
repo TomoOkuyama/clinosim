@@ -2,6 +2,7 @@
 # reports. `ja` moved from modules/output/fhir_r4/labs/microbiology.py
 # (Issue #2403); `en` is the LOINC display of the same code.
 metadata:
+  kind: code-system
   name: JP Core Document Codes
   uri: http://jpfhir.jp/fhir/core/CodeSystem/JP_DocumentCodes_CS
   source: "JP Core CodeSystem JP_DocumentCodes_CS"

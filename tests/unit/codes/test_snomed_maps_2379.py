@@ -7,14 +7,14 @@ import re
 from pathlib import Path
 
 import pytest
-import yaml
 
 from clinosim.codes.snomed import snomed_display, snomed_for, snomed_map
+from clinosim.datafiles import load_data_yaml
 
 pytestmark = pytest.mark.unit
 
 _ROOT = Path(__file__).resolve().parents[3] / "clinosim"
-_KINDS = tuple(yaml.safe_load((_ROOT / "codes" / "data" / "snomed-maps.yaml").read_text(encoding="utf-8")))
+_KINDS = tuple(load_data_yaml(_ROOT / "codes" / "data" / "snomed-maps.yaml"))
 
 
 @pytest.mark.parametrize("kind", _KINDS)

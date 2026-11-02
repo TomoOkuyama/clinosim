@@ -7,6 +7,7 @@
 # COMPONENT / LONG_COMMON_NAME matches its analyte and specimen. Do not add a code without
 # verifying it against an authoritative LOINC source (no fabrication — AD-57).
 metadata:
+  kind: code-system
   name: LOINC
   uri: http://loinc.org
   version: '2.76'

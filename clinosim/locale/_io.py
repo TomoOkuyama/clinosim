@@ -17,6 +17,8 @@ from typing import Any
 
 import yaml
 
+from clinosim.datafiles import load_data_yaml
+
 _LOCALE_DIR = Path(__file__).parent
 
 # ISO 3166-1 alpha-2 lowercase.
@@ -42,8 +44,9 @@ def _country_dir(country: str) -> Path:
 def _load_yaml(path: Path, fallback: Any = None) -> Any:
     """Load a yaml file; return ``fallback`` (default ``{}``) when absent."""
     if path.exists():
-        with open(path, encoding="utf-8") as f:
-            return yaml.safe_load(f) or fallback
+        # The one data-YAML reader: the `metadata` header is not a section
+        # (spec §3.1, Issue #2465).
+        return load_data_yaml(path) or fallback
     return fallback if fallback is not None else {}
 
 

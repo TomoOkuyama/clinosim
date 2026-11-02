@@ -7,6 +7,7 @@
 # (snapshot: codes/authoritative/icd10_mhlw_2013_ja.json, Issue #2360). Clinical
 # short names for prose live in condition-short-name.yaml, not here.
 metadata:
+  kind: code-system
   name: ICD-10
   uri: http://hl7.org/fhir/sid/icd-10
   version: WHO 2019

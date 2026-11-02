@@ -19,6 +19,11 @@
 #
 # Loader: ``clinosim.locale.loader.load_inpatient_subjective_pool()``.
 
+metadata:
+  kind: phrase-catalog
+  name: inpatient_subjective_pool
+  source: clinosim
+
 early:
   - ja: "自覚症状に著変なし。"
     en: "No new subjective complaints."

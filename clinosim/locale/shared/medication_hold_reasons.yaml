@@ -1,6 +1,11 @@
 # Medication hold reasons (clinosim/simulator/medication_pipeline.py,
 # Issue #2405): the reason text authored in disease YAMLs (`reason:`) → its
 # English and Japanese display. A reason not listed displays as written.
+metadata:
+  kind: display-table
+  name: medication_hold_reasons
+  source: clinosim
+
 reasons:
   "AKI — ACE-I blocks efferent arteriolar tone, worsens renal hemodynamics (KDIGO 2012 § 3.5.2)":
     en: "acute kidney injury (ACE-I blocks efferent arteriolar tone — KDIGO 2012 § 3.5.2)"

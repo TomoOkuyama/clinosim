@@ -17,6 +17,7 @@
 # ICD-10 (icd-10.yaml), so codes shared with WHO carry no `ja` here (Issue #2360).
 # The `ja` on CM-only codes is a clinosim translation, not an authority display.
 metadata:
+  kind: code-system
   name: ICD-10-CM
   uri: http://hl7.org/fhir/sid/icd-10-cm
   version: '2024'

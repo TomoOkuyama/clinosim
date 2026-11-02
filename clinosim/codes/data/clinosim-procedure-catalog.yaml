@@ -13,6 +13,11 @@
 # visit), and peripheral IV placement has no separate fee in the 点数表.
 # Read through clinosim.codes.procedures.
 
+metadata:
+  kind: catalog
+  name: clinosim-procedure-catalog
+  source: clinosim
+
 bedside:
   - {type: urinary_catheter, cpt: "51702", k_code: "J063", name: {en: "Urinary catheter insertion", ja: "尿道カテーテル挿入"}, anesthesia: none}
   - {type: central_line, cpt: "36556", k_code: "G005-2", name: {en: "Central venous catheter insertion", ja: "中心静脈カテーテル挿入"}, anesthesia: local}

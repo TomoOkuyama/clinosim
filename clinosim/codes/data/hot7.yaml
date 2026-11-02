@@ -1,4 +1,5 @@
 metadata:
+  kind: code-system
   name: MEDIS HOT7 Medication Code
   uri: http://medis.or.jp/CodeSystem/master-HOT7
   version: '2024'

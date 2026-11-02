@@ -24,6 +24,7 @@
 # via `.get(k, ())`) stays as-is.
 
 metadata:
+  kind: map
   source: >-
     clinosim/modules/output/fhir_r4/documents/composition.py
     (_SECTION_ENTRY_TYPES) prior to hardcoded-review Phase A6.

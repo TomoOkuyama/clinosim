@@ -14,6 +14,7 @@
 # standards registry; data belongs in a yaml beside the other authority-
 # adjacent catalogs.
 metadata:
+  kind: map
   name: JIS X 0401 Prefecture Codes
   description: >
     47 都道府県 → 2-digit JIS X 0401 code mapping used by the JP-locale

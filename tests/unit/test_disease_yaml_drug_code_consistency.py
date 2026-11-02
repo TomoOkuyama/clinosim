@@ -29,8 +29,8 @@ import re
 from pathlib import Path
 
 import pytest
-import yaml
 
+from clinosim.datafiles import load_data_yaml
 from clinosim.locale.loader import load_code_mapping
 
 _ROOT = Path(__file__).resolve().parents[2]
@@ -39,7 +39,7 @@ _DISEASES = _ROOT / "clinosim/modules/disease/reference_data"
 # retired); the JP FHIR emitter resolves them by drug and route and does not use
 # a disease YAML's code_yj.
 _JP_MAP = load_code_mapping("drug", "JP")
-_US_MAP = yaml.safe_load((_ROOT / "clinosim/locale/us/code_mapping_drug.yaml").read_text())
+_US_MAP = load_data_yaml(_ROOT / "clinosim/locale/us/code_mapping_drug.yaml")
 
 _JP_CODE_TO_NAME: dict[str, str] = {}
 for _name, _code in _JP_MAP.items():

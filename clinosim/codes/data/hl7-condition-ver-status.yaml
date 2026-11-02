@@ -4,6 +4,7 @@
 # C2-03 (session 42 cycle 2): registered so _fhir_conditions.py stops emitting
 # display-less coding on 70,348 Condition records.
 metadata:
+  kind: code-system
   name: HL7 FHIR Condition Verification Status
   uri: http://terminology.hl7.org/CodeSystem/condition-ver-status
   source: "HL7 Terminology (THO)"

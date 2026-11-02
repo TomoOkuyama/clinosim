@@ -3,6 +3,7 @@
 # (http://terminology.hl7.org/CodeSystem/endpoint-payload-type). English
 # only — Endpoint has no JA output path in this project.
 metadata:
+  kind: code-system
   name: HL7 FHIR Endpoint Payload Type
   uri: http://terminology.hl7.org/CodeSystem/endpoint-payload-type
   source: "HL7 Terminology (THO)"

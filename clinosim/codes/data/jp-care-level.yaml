@@ -7,6 +7,7 @@
 # no officially registered FHIR CodeSystem URI, so a clinosim-owned URI is
 # the only spec-conformant option.
 metadata:
+  kind: code-system
   name: JP Long-term Care Need Level
   uri: http://clinosim.dev/fhir/CodeSystem/jp-care-level
   source: "MHLW 介護保険 (要支援/要介護 区分)"

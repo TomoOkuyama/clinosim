@@ -2,6 +2,7 @@
 # without a JLAC code. `ja` moved from modules/output/fhir_r4/labs/
 # coding_package.py (Issue #2403); `en` is a clinosim translation.
 metadata:
+  kind: code-system
   name: JP-CLINS Uncoded Laboratory Test
   uri: http://jpfhir.jp/fhir/clins/CodeSystem/JP_CLINS_ObsLabResult_Uncoded_CS
   source: "JP-CLINS"

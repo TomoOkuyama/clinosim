@@ -22,6 +22,11 @@
 #   - Nicotine dependence SMR ~1.4 — CDC MMWR 2018 smoking vs never.
 #   - Current depression / recurrent SMR 1.3 — Gilman SE et al, JAMA Psy 2017.
 
+metadata:
+  kind: reference
+  name: condition_mortality_smr
+  source: clinosim
+
 smr_table:
   # Hypertensive disease
   "I10": 1.3     # Essential hypertension

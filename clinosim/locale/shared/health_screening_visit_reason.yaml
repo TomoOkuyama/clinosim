@@ -22,6 +22,7 @@
 # `ev_key` branches in `simulator/engine.py`).
 
 metadata:
+  kind: reference
   source: >-
     clinosim/simulator/engine.py (_HEALTH_SCREENING_VISIT_REASON,
     _HEALTH_SCREENING_VISIT_REASON_FALLBACK) prior to hardcoded-review

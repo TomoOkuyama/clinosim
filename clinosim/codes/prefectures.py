@@ -9,14 +9,14 @@ from __future__ import annotations
 from functools import cache
 from pathlib import Path
 
-import yaml
+from clinosim.datafiles import load_data_yaml
 
 _DATA_FILE = Path(__file__).parent / "data" / "jis-x-0401-prefectures.yaml"
 
 
 @cache
 def _prefecture_codes() -> dict[str, str]:
-    raw = yaml.safe_load(_DATA_FILE.read_text(encoding="utf-8")) or {}
+    raw = load_data_yaml(_DATA_FILE)
     return {str(k): str(v) for k, v in (raw.get("prefectures") or {}).items()}
 
 

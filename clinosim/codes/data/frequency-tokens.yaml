@@ -23,6 +23,11 @@
 # and taking `frequency / period`; `_FREQ_LABEL_TIMING` is a direct
 # triple return.
 
+metadata:
+  kind: map
+  name: frequency-tokens
+  source: clinosim
+
 tokens:
   # Once daily
   qd:                   {frequency: 1,  period: 1, period_unit: d}

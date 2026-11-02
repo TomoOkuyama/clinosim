@@ -5,6 +5,7 @@
 # set. Do not fabricate a code (AD-57). NOTE: not yet machine-verified (no free public
 # CPT API; AMA license required for the master).
 metadata:
+  kind: code-system
   name: CPT
   uri: http://www.ama-assn.org/go/cpt
   version: '2024'

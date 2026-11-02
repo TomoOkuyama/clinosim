@@ -4,6 +4,11 @@
 # Document-type codes live in modules/document/reference_data/
 # document_type_specs.yaml and section codes in section_catalog.yaml.
 
+metadata:
+  kind: map
+  name: loinc-maps
+  source: clinosim
+
 anthropometric:
   body_height: "8302-2"          # Body height
   body_weight: "29463-7"         # Body weight

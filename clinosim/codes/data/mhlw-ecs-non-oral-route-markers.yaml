@@ -20,6 +20,7 @@
 # token becomes a yaml edit rather than a Python module edit.
 
 metadata:
+  kind: reference
   name: MHLW eCS Non-Oral Route Markers
   description: >
     JA route tokens that disqualify a dosage from MHLW eCS

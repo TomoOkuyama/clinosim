@@ -23,6 +23,7 @@
 | 権威コード体系 | `clinosim/codes/` | 登録コード、URI、表示名、value set、薬・処置・職種カタログ、UCUM、JIS X 0401、名前付き SNOMED 概念 | `clinosim.countries` のみ (`clinosim.locale` / `clinosim.modules` 禁止) |
 | 国別・表示データ | `clinosim/locale/` | 国別コード対応、コードを持たない語彙の表示表、翻訳表、フレーズカタログ | `clinosim.codes`、`clinosim.countries` |
 | 言語の選択 | `clinosim/countries.py` | 国→言語、言語タグの正規化 (§5.1) | clinosim 内は import しない |
+| データファイル | `clinosim/datafiles.py` | データ YAML の唯一の読み込み (`load_data_yaml`、`data_metadata`) と kind の一覧 (§3.1) | clinosim 内は import しない |
 | 利用側 | `clinosim/modules/` / `simulator/` / `eval/` / `audit/` / `benchmarks/` | 判定ロジック、出力処理 | 上の層。§4 の関数経由に限る |
 
 ### 2.2 1 権威 = 1 組のファイル
@@ -84,7 +85,7 @@
 5. **書式。** インデントは空白 2 つ、タブ・アンカー・エイリアスは使わない。1 行に収まるエントリは flow 形式 (`office: {en: Office worker, ja: 事務職}`)、入れ子のあるエントリは block 形式にする。
 6. **並び順。** 意味のある順序でない限り、キー順に並べる。順序に意味があるときは `metadata` に書く (例: `drugs.yaml` の YJ 経路区分の順序、§3.5)。
 7. **編集。** 手で編集するか、テキストをその場で書き換えるスクリプトを使う。読み込んで書き戻す (load → dump) のは禁止。コメントがすべて消えるため。生成したファイルは、どのスクリプトと元データで作ったかをヘッダに書く。
-8. **検証。** kind ごとに schema を持ち、テストですべてのファイルを検証する。ローダは未知のフィールドを無視せずエラーにする。
+8. **読み込みと検証。** データファイルはすべて `clinosim.datafiles.load_data_yaml` で読む。この関数は `metadata` ヘッダを除いた中身を返す (ヘッダはセクションではない)。ヘッダは `data_metadata` で取る。各ファイルの `kind` と置き場所はテストで確認し、ローダは未知のフィールドを無視せずエラーにする。
 
 ### 3.2 種類と置き場所
 
@@ -396,7 +397,7 @@ occupation:
 | 日本語以外の出力に日本語を出さない、Python に日本語リテラルを書かない | `tests/unit/test_no_japanese_fallback_2273.py`、`tests/unit/test_no_japanese_literals_2277.py`、`tests/unit/test_narrative_literals_2400.py`、`tests/unit/test_module_literals_2406.py`、`tests/unit/test_simulator_literals_2405.py`、`tests/unit/output/test_fhir_lib_literals_2402.py`、`tests/unit/output/test_fhir_lab_condition_literals_2403.py`、`tests/unit/output/test_fhir_emitter_literals_2404.py` |
 | 第三国を米国扱いしない | `tests/unit/test_third_country_fallbacks_2203.py` |
 | `CodeSystem` / `LocalizedTable` の処理を上書きしない。表示表のすべてのエントリが英語を持つ | `tests/unit/codes/test_code_system_base_2470.py`、`tests/unit/locale/test_localized_table_2471.py` |
-| YAML のヘッダと kind ごとの schema | まだ無い (§11) |
+| すべてのデータ YAML が置き場所に合った `metadata.kind` を持ち、`clinosim.datafiles` で読まれる (#2494、#2495 に紐づけたラチェット) | `tests/unit/test_data_yaml_conventions_2465.py` |
 
 ## 11. 既知の逸脱
 
@@ -405,4 +406,5 @@ occupation:
 | 逸脱 | Issue |
 |---|---|
 | narrative のレンダラが、日本語だけの処理 (主訴バリエーション、CC/PE 整合、daily trajectory、JP のコード選択) を言語リテラルで切り替えている (12 ファイル 18 箇所) | #2483 |
-| データ YAML に `metadata.kind` のヘッダと kind ごとの schema 検証が無い (§3.1) | #2465 |
+| モジュールが `clinosim.datafiles` ではなく `yaml.safe_load` で直接 YAML を読んでいる。モジュールの参照データに `metadata` ヘッダが無い (§3.1) | #2494 |
+| 参照データが、持ち主のモジュールの `reference_data/` ではなく `locale/shared` (22 ファイル) と `codes/data` (1 ファイル) にある (§3.2) | #2495 |

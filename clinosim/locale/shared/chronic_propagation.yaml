@@ -12,6 +12,11 @@
 # they are episodes, not lifelong conditions. Pregnancy and delivery Z codes
 # are not chronic either. Type 1 diabetes (E10) is absent so a DKA discharge
 # does not give a type 2 diabetic a second diabetes type.
+metadata:
+  kind: reference
+  name: chronic_propagation
+  source: clinosim
+
 chronic_propagatable:
   - C15
   - C16

@@ -2,6 +2,11 @@
 # Used by population engine to generate household-appropriate names
 # Adding a new country = adding a section here + a names/{country}.yaml file
 
+metadata:
+  kind: reference
+  name: naming_rules
+  source: clinosim
+
 jp:
   name_order: "family_given"              # display: family name first
   name_components: ["family_name", "given_name"]
