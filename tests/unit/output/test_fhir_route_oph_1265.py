@@ -18,7 +18,7 @@ from __future__ import annotations
 import pytest
 
 from clinosim.modules.output.fhir_r4.lib.common import build_route_concept
-from clinosim.modules.output.fhir_r4.lib.localization import _ROUTE_JA
+from clinosim.modules.output.fhir_r4.lib.localization import ROUTE_TEXT
 from clinosim.modules.output.fhir_r4.lib.reference_data import _ROUTE_SNOMED
 
 pytestmark = pytest.mark.unit
@@ -33,7 +33,7 @@ def test_oph_present_in_route_snomed_table() -> None:
 
 def test_oph_has_jp_translation() -> None:
     """`_validate_route_maps` invariant: every _ROUTE_SNOMED key needs a JA."""
-    assert _ROUTE_JA.get("OPH") == "点眼"
+    assert ROUTE_TEXT.get("OPH", "ja") == "点眼"
 
 
 def test_build_route_concept_us_oph_returns_snomed_coding() -> None:

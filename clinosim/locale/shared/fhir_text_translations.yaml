@@ -1,0 +1,59 @@
+# fhir_text_translations.yaml — translation tables for FHIR text (Issue #2459)
+#
+# English tokens and short English labels the FHIR emitters write, translated
+# into other languages. Translation tables (spec §3.2): the key is the English
+# source, English output is the key as written, so entries carry the target
+# languages only. Read through `clinosim.locale.table.LocalizedTable`.
+#
+#   * `route:` — canonical order-route token (`_ROUTE_SNOMED` key) →
+#     `CodeableConcept.text` label; alias forms (`INH`, `NEB`) are resolved
+#     to the canonical token first (`_ROUTE_ALIASES`), invariants checked at
+#     import by `_validate_route_maps()` in `fhir_r4/lib/common.py`.
+#   * `frequency:` — frequency token → `dosageInstruction.text` label.
+#   * `fixed_label:` — short English labels of FHIR text fields.
+#
+# Formerly `codes/data/fhir-ja-labels.yaml` (a Japanese-only table in the code
+# data directory).
+
+metadata:
+  kind: translation-table
+  name: FHIR text translations
+  source: clinosim
+
+route:
+  PO: {ja: 経口}
+  IV: {ja: 静注}
+  SC: {ja: 皮下注}
+  IM: {ja: 筋注}
+  SL: {ja: 舌下}
+  PR: {ja: 直腸}
+  TOPICAL: {ja: 外用}
+  NG: {ja: 経鼻}
+  INHALED: {ja: 吸入}
+  NEBULIZED: {ja: ネブライザー}
+  OPH: {ja: 点眼}  # #1265: eye-drop / eye-ointment (点眼薬)
+  INFILTRATION: {ja: 局所浸潤}  # #2352: local-anaesthetic infiltration
+  INTRA-ARTICULAR: {ja: 関節内注}  # #2352
+
+frequency:
+  DAILY: {ja: 1日1回}
+  BID: {ja: 1日2回}
+  TID: {ja: 1日3回}
+  QID: {ja: 1日4回}
+  Q4H: {ja: 4時間毎}
+  Q6H: {ja: 6時間毎}
+  Q8H: {ja: 8時間毎}
+  Q12H: {ja: 12時間毎}
+  PRN: {ja: 必要時}
+  STAT: {ja: 緊急}
+  ONCE: {ja: 1回}
+  "1x/day": {ja: 1日1回}
+  "2x/day": {ja: 1日2回}
+  "3x/day": {ja: 1日3回}
+  "4x/day": {ja: 1日4回}
+
+fixed_label:
+  Radiology: {ja: 放射線科}
+  "No growth": {ja: 発育なし}
+  "Imaging procedure": {ja: 画像診断}
+  "Laboratory procedure": {ja: 臨床検査}

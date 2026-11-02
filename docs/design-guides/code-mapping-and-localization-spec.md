@@ -301,7 +301,7 @@ The language of the entry is chosen by §6: the requested language, then the sam
 - **Where it is built.** The concept is built at the emit site with `dual_slot_concept`. It is not filled in later by a post-process walker.
 - **Coding-typed elements.** An element whose type is `Coding` (`Encounter.class`, `classHistory.class`) has no `text` slot. It is built with `system_coding` and carries the English display in every locale.
 - **HL7 vocabularies.** Each HL7 CodeSystem the generator emits has a code-keyed registry file (`hl7-v3-actcode`, `hl7-v3-actpriority`, `hl7-observation-category`, `hl7-condition-category`, `hl7-v3-participationtype`, `hl7-diagnosis-role`, `hl7-organization-type`, `hl7-observation-interpretation`, ...). Japanese labels are looked up by code, never by the English display.
-- **Labels for coded vocabularies.** The `text` label of a coded concept (route, frequency, specimen, ...) comes from the language map beside that concept's code, not from a separate per-language table (§11).
+- **Labels for coded vocabularies.** The `text` label of a coded concept comes from the language map beside that concept's code. When the generator holds an internal English token mapped to the code (an order route such as `PO`, a frequency such as `BID`), the label comes from that token's translation table (`locale/shared/fhir_text_translations.yaml`), so English keeps the token as written. A per-language table is never used.
 
 ## 6. Fallback rules
 
@@ -405,7 +405,6 @@ These parts of the code base do not yet conform. Each one is removed by the issu
 | Deviation | Issue |
 |---|---|
 | Narrative renderers gate Japanese-only pipelines (chief-complaint variants, CC/PE consistency, daily trajectory, JP code choices) on the language literal (18 comparisons in 12 files) | #2483 |
-| `codes/data/fhir-ja-labels.yaml` is a Japanese-only second table for routes, frequencies and fixed labels (§5.3) | #2459 |
 | `clinosim-clinician-role.yaml`, `perinatal.yaml`, `chronic_followup.yaml`, `pregnancy_substitutions.yaml` use language-suffixed field names (§3.1) | #2462 |
 | Data YAMLs lack the `metadata.kind` header and per-kind schema validation (§3.1) | #2465 |
 | Duplicate resolver names and pass-through wrappers (`llm_service.engine.loinc_for`, `fhir_r4.lib.common.loinc_coding`, `pick_localized_field`, `resolve_lang`, `get_display`, `codes.match`) | #2467 |

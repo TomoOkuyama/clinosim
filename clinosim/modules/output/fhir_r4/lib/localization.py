@@ -10,14 +10,13 @@ This module must NOT import ``fhir_r4_adapter`` (no circular import).
 
 from __future__ import annotations
 
-from functools import cache
-
-from clinosim.codes import data_table
 from clinosim.codes import lookup as code_lookup
+from clinosim.countries import lang_for
 from clinosim.locale.loader import load_department_display as _load_department_display
 from clinosim.locale.loader import load_med_terms as _load_med_terms
 from clinosim.locale.loader import load_med_terms_ja as _load_med_terms_ja
 from clinosim.locale.loader import load_narrative_display_dict as _load_narrative_display_dict
+from clinosim.locale.table import LocalizedTable
 from clinosim.modules._shared import is_jp, is_us, resolve_lang
 
 # expose the private-name loader aliases so mypy's strict export
@@ -87,48 +86,29 @@ def _procedure_display(code: str, lang: str, fallback: str = "") -> str:
     return procedure_code_display([code], lang) or fallback
 
 
-# FHIR JA label registries (_ROUTE_JA / _FREQ_JA / _FIXED_LABEL_JA) now
-# live in `clinosim/codes/data/fhir-ja-labels.yaml`. The module-level
-# aliases below are computed from the yaml at import time so existing
-# consumers (`common.py::_validate_route_maps`, `build_route_concept`,
-# `localize_fixed_label`) keep working with no call-site changes.
-#
-# Invariants still hold:
-#   - Keys for `routes:` MUST be `_ROUTE_SNOMED` canonical form
-#     (`_ROUTE_ALIASES` entries would be dead code).
-#   - `_validate_route_maps()` in `common.py` guards both at import time.
+# FHIR text translation tables (Issue #2459): English route / frequency
+# tokens and fixed labels → other languages, in
+# `clinosim/locale/shared/fhir_text_translations.yaml`. Translation tables: an
+# English request (or a language without an entry) gets the token as written.
+# `common.py::_validate_route_maps()` checks the `route` keys at import time.
+def _fhir_text_table(section: str) -> LocalizedTable:
+    from clinosim.locale.loader import load_fhir_text_translations
+    from clinosim.locale.table import _section
+
+    return LocalizedTable(
+        f"fhir_text_translations.{section}", _section(load_fhir_text_translations, section), "translation-table"
+    )
 
 
-@cache
-def _fhir_ja_labels() -> dict[str, dict[str, str]]:
-
-    raw = data_table("fhir-ja-labels")
-    out: dict[str, dict[str, str]] = {}
-    for section in ("routes", "frequencies", "fixed_labels"):
-        rows = raw.get(section) or {}
-        out[section] = {str(k): str(v) for k, v in rows.items() if isinstance(k, str)}
-    return out
-
-
-_ROUTE_JA: dict[str, str] = _fhir_ja_labels()["routes"]
-_FREQ_JA: dict[str, str] = _fhir_ja_labels()["frequencies"]
-_FIXED_LABEL_JA: dict[str, str] = _fhir_ja_labels()["fixed_labels"]
+ROUTE_TEXT = _fhir_text_table("route")
+FREQUENCY_TEXT = _fhir_text_table("frequency")
+FIXED_LABEL_TEXT = _fhir_text_table("fixed_label")
 
 
 def localize_fixed_label(en_label: str, country: str) -> str:
-    """Return the JA label for JP, the EN label otherwise.
-
-    Small, focused helper for the FHIR fixed-label dictionary above. Fails
-    loudly (silently returning the EN label unchanged) is intentional for
-    US / non-JP paths — the same behavior every inline conditional used.
-    New callers must add the EN key to ``_FIXED_LABEL_JA`` before use to
-    make the JA branch fire.
-    """
-    from clinosim.modules._shared import is_jp
-
-    if is_jp(country):
-        return _FIXED_LABEL_JA.get(en_label, en_label)
-    return en_label
+    """``en_label`` in the country's language (``FIXED_LABEL_TEXT``), else as
+    written. New callers add the English label to the ``fixed_label`` table."""
+    return FIXED_LABEL_TEXT.get(en_label, lang_for(country), fallback=en_label)
 
 
 def _clinician_role_rows() -> dict[str, dict[str, object]]:
