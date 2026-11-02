@@ -60,12 +60,11 @@ from functools import lru_cache
 from pathlib import Path
 from typing import Any
 
-import yaml
-
 from clinosim.codes import get_system_uri
 from clinosim.codes.loinc import loinc_for
 from clinosim.codes.ucum import ucum_quantity
 from clinosim.countries import lang_for
+from clinosim.datafiles import load_data_yaml
 from clinosim.locale.i18n import t
 from clinosim.modules._shared import get_attr_or_key, is_jp
 from clinosim.modules.output.fhir_r4.demographics.patient import patient_ref
@@ -135,8 +134,7 @@ _REFERENCE_YAML_PATH = (
 @lru_cache(maxsize=1)
 def _load_reference() -> dict[str, Any]:
     """Load anthropometric_reference.yaml (cached)."""
-    with open(_REFERENCE_YAML_PATH, encoding="utf-8") as f:
-        return yaml.safe_load(f) or {}
+    return load_data_yaml(_REFERENCE_YAML_PATH) or {}
 
 
 # ---------------------------------------------------------------------------

@@ -47,8 +47,7 @@ from functools import lru_cache
 from pathlib import Path
 from typing import Any
 
-import yaml
-
+from clinosim.datafiles import load_data_yaml
 from clinosim.modules.hai import HAI_TYPES
 from clinosim.modules.observation.engine import determine_flag, round_to_precision
 from clinosim.modules.physiology._lab_derivation_thresholds import (
@@ -109,7 +108,7 @@ def load_hai_lab_lift_config() -> tuple[float, dict[str, float]]:
     ``_validate_hai_lab_lift_config`` covers the 6-layer silent-no-op
     defense pattern (sibling sweep, 2026-06-29).
     """
-    data = yaml.safe_load((_REF_DIR / "hai_lab_lift.yaml").read_text(encoding="utf-8"))
+    data = load_data_yaml(_REF_DIR / "hai_lab_lift.yaml")
     _validate_hai_lab_lift_config(data)
     return float(data["ramp_peak_days"]), dict(data["hai_lift"])
 

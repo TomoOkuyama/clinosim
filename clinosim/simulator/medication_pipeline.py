@@ -30,10 +30,10 @@ from pathlib import Path
 from typing import Any
 
 import numpy as np
-import yaml
 
 from clinosim.codes.drugs import drug_classes, drug_key, drug_ref, get_drug, same_drug
 from clinosim.countries import lang_for
+from clinosim.datafiles import load_data_yaml
 from clinosim.locale.i18n import t
 from clinosim.locale.localized import localized, localized_field
 from clinosim.modules.physiology.renal_thresholds import (
@@ -219,7 +219,7 @@ def _hold_reasons() -> dict[str, dict[str, str]]:
     """Hold-reason displays (``locale/shared/medication_hold_reasons.yaml``,
     Issue #2405), keyed by the reason text authored in disease YAMLs."""
     path = Path(__file__).resolve().parents[1] / "locale" / "shared" / "medication_hold_reasons.yaml"
-    data = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
+    data = load_data_yaml(path) or {}
     return {str(k): dict(v) for k, v in (data.get("reasons") or {}).items()}
 
 

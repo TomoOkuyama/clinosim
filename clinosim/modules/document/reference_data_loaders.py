@@ -26,8 +26,7 @@ from functools import lru_cache
 from pathlib import Path
 from typing import Any
 
-import yaml
-
+from clinosim.datafiles import load_data_yaml
 from clinosim.reference_data import load_reference_yaml
 
 _HERE = Path(__file__).resolve().parent
@@ -129,8 +128,7 @@ def load_physical_exam_findings() -> dict[str, Any]:
     Task 6 TemplateNarrativeGenerator uses the 'baseline' section as
     fallback and the 'findings' section for per-disease overrides.
     """
-    with (_REF_DIR / "physical_exam_findings.yaml").open(encoding="utf-8") as f:
-        data: dict[str, Any] = yaml.safe_load(f)
+    data: dict[str, Any] = load_data_yaml(_REF_DIR / "physical_exam_findings.yaml")
     _validate_physical_exam_findings(data)
     return data
 
@@ -236,8 +234,7 @@ def load_hpi_pertinent_negatives() -> dict[str, list[str]]:
     path = _REF_DIR / "hpi_pertinent_negatives.yaml"
     if not path.exists():
         return {}
-    with path.open(encoding="utf-8") as f:
-        data = yaml.safe_load(f) or {}
+    data = load_data_yaml(path) or {}
     out: dict[str, list[str]] = {}
     if not isinstance(data, dict):
         return out
@@ -292,8 +289,7 @@ def load_chief_complaint_variants() -> dict[str, list[str]]:
     at narrative-build time (Issue #983). JP-only by design; US narrative
     keeps the existing single canonical CC (English disease_protocol chain).
     """
-    with (_NARRATIVE_REF_DIR / "chief_complaint_variants.yaml").open(encoding="utf-8") as f:
-        data: dict[str, Any] = yaml.safe_load(f)
+    data: dict[str, Any] = load_data_yaml(_NARRATIVE_REF_DIR / "chief_complaint_variants.yaml")
     _validate_chief_complaint_variants(data)
     return dict(data["variants"])
 
@@ -349,8 +345,7 @@ def load_bedside_procedure_codes() -> dict[str, frozenset[str]]:
     bucket) receive no per-procedure document — this is intentional so
     a `K002` bedside wound cleanup does not fabricate a formal note.
     """
-    with (_REF_DIR / "bedside_procedure_codes.yaml").open(encoding="utf-8") as f:
-        data: dict[str, Any] = yaml.safe_load(f)
+    data: dict[str, Any] = load_data_yaml(_REF_DIR / "bedside_procedure_codes.yaml")
     _validate_bedside_procedure_codes(data)
     return {
         "procedure_note": frozenset(str(c).strip() for c in data["procedure_note_codes"]),

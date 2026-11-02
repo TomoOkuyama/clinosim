@@ -13,8 +13,8 @@ from pathlib import Path
 from typing import Any
 
 import numpy as np
-import yaml
 
+from clinosim.datafiles import load_data_yaml
 from clinosim.modules._shared import normalize_probabilities
 from clinosim.seeding import ENRICHER_SEED_OFFSETS, derive_sub_seed
 from clinosim.types import MicrobiologyResult, SusceptibilityResult
@@ -124,8 +124,7 @@ def _load() -> dict[str, Any]:
     path = _REF_DIR / "microbiology.yaml"
     if not path.exists():
         return {}
-    with open(path, encoding="utf-8") as f:
-        data = yaml.safe_load(f) or {}
+    data = load_data_yaml(path) or {}
     _validate_microbiology(data)
     return data
 

@@ -12,8 +12,7 @@ from functools import lru_cache
 from pathlib import Path
 from typing import Any
 
-import yaml
-
+from clinosim.datafiles import load_data_yaml
 from clinosim.modules.drug_safety.classifier import (
     canonical_name,
     japanese_display,
@@ -55,8 +54,7 @@ _ALLOWED = SafetyVerdict(
 
 @lru_cache(maxsize=1)
 def _load_rules() -> list[dict[str, Any]]:
-    with _CONTRAINDICATIONS_YAML.open(encoding="utf-8") as fh:
-        data = yaml.safe_load(fh)
+    data = load_data_yaml(_CONTRAINDICATIONS_YAML)
     return list(data.get("rules", []))
 
 
@@ -141,8 +139,7 @@ def _load_disease_rules() -> list[dict[str, Any]]:
     reload should clear this cache directly."""
     if not _DISEASE_CONTRAINDICATIONS_YAML.exists():
         return []
-    with _DISEASE_CONTRAINDICATIONS_YAML.open(encoding="utf-8") as fh:
-        data = yaml.safe_load(fh) or {}
+    data = load_data_yaml(_DISEASE_CONTRAINDICATIONS_YAML) or {}
     return list(data.get("rules", []))
 
 
@@ -254,8 +251,7 @@ def check_candidate_against_disease_state(
 
 @lru_cache(maxsize=1)
 def _load_shared_substitutions() -> dict[str, dict[str, Any]]:
-    with _SHARED_SUBSTITUTION_YAML.open(encoding="utf-8") as fh:
-        data = yaml.safe_load(fh)
+    data = load_data_yaml(_SHARED_SUBSTITUTION_YAML)
     return data.get("indications", {}) or {}
 
 

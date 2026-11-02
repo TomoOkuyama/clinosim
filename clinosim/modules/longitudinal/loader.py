@@ -15,9 +15,9 @@ from functools import cache
 from pathlib import Path
 from typing import Any
 
-import yaml
 from pydantic import BaseModel, Field
 
+from clinosim.datafiles import load_data_yaml
 from clinosim.modules.longitudinal.patterns import PATTERN_REGISTRY
 from clinosim.modules.longitudinal.patterns.ar1 import AR1Spec
 from clinosim.modules.longitudinal.patterns.event import EventSpec
@@ -128,8 +128,7 @@ def _build_event_body(body_dict: dict[str, Any]) -> tuple[EventSpec, dict[str, A
 
 
 def _load_one(path: Path) -> AttributeSpec:
-    with path.open(encoding="utf-8") as fh:
-        raw = yaml.safe_load(fh) or {}
+    raw = load_data_yaml(path) or {}
     if "attribute_id" not in raw:
         raise ValueError(f"{path.name}: missing required field 'attribute_id'")
     pattern = raw.get("pattern")

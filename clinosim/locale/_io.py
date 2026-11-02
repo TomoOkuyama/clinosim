@@ -15,8 +15,6 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any
 
-import yaml
-
 from clinosim.datafiles import load_data_yaml
 
 _LOCALE_DIR = Path(__file__).parent
@@ -64,8 +62,7 @@ _FALLBACK_DEFAULTS_PATH = _LOCALE_DIR / "shared" / "fallback_defaults.yaml"
 def _read_fallback_defaults() -> dict[str, Any]:
     if not _FALLBACK_DEFAULTS_PATH.exists():
         return {}
-    with open(_FALLBACK_DEFAULTS_PATH, encoding="utf-8") as f:
-        raw = yaml.safe_load(f) or {}
+    raw = load_data_yaml(_FALLBACK_DEFAULTS_PATH) or {}
     return raw if isinstance(raw, dict) else {}
 
 

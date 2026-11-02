@@ -6,8 +6,8 @@ from functools import lru_cache
 from pathlib import Path
 
 import numpy as np
-import yaml
 
+from clinosim.datafiles import load_data_yaml
 from clinosim.modules._shared import is_jp, is_us, normalize_probabilities
 from clinosim.types.family_history import FamilyMemberHistoryRecord
 
@@ -33,8 +33,7 @@ to two decimal places)."""
 
 @lru_cache(maxsize=1)
 def load_reference() -> dict:
-    with open(_REF_DIR / "family_history.yaml", encoding="utf-8") as f:
-        return yaml.safe_load(f) or {}
+    return load_data_yaml(_REF_DIR / "family_history.yaml") or {}
 
 
 @lru_cache(maxsize=2)
@@ -46,8 +45,7 @@ def load_prevalence(country: str) -> dict:
     if not (is_us(country) or is_jp(country)):
         return {}
     key = "jp" if is_jp(country) else "us"
-    with open(_LOCALE / key / "family_history_prevalence.yaml", encoding="utf-8") as f:
-        return (yaml.safe_load(f) or {}).get("prevalence", {})
+    return (load_data_yaml(_LOCALE / key / "family_history_prevalence.yaml") or {}).get("prevalence", {})
 
 
 def _condition_code(c) -> str:

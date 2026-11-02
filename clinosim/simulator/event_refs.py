@@ -22,9 +22,8 @@ from functools import cache
 from pathlib import Path
 from typing import Literal
 
-import yaml
-
 from clinosim.codes import code_exists
+from clinosim.datafiles import load_data_yaml
 
 EventRefKind = Literal["disease", "encounter", "icd", "label"]
 
@@ -48,7 +47,7 @@ _PEDIATRIC_SCHEDULE = (
 
 @cache
 def _pediatric_labels() -> frozenset[str]:
-    raw = yaml.safe_load(_PEDIATRIC_SCHEDULE.read_text(encoding="utf-8")) or {}
+    raw = load_data_yaml(_PEDIATRIC_SCHEDULE) or {}
     found: set[str] = set()
 
     def walk(node: object) -> None:

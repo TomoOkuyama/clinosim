@@ -28,10 +28,9 @@ from __future__ import annotations
 
 from pathlib import Path
 
-import yaml
-
 from clinosim.audit.registry import ModuleAuditSpec
 from clinosim.audit.types import AuditFinding, AxisResult, Cohort, Severity
+from clinosim.datafiles import load_data_yaml
 
 # Per-analyte tolerance band for lift-firing proof comparison.
 _PROOF_TOLERANCE = {"WBC": 2.0, "CRP": 0.5}
@@ -66,7 +65,7 @@ def _check_constants(spec: ModuleAuditSpec, result: AxisResult) -> None:
             )
             continue
         try:
-            data = yaml.safe_load(p.read_text(encoding="utf-8"))
+            data = load_data_yaml(p)
         except Exception as e:
             result.findings.append(
                 AuditFinding(

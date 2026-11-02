@@ -19,9 +19,10 @@ from __future__ import annotations
 
 from functools import lru_cache
 from importlib import resources
+from pathlib import Path
 from typing import Any
 
-import yaml
+from clinosim.datafiles import load_data_yaml
 
 _REGISTRY_PACKAGE = "clinosim.modules.document.reference_data"
 _REGISTRY_FILENAME = "chronic_soap_templates.yaml"
@@ -30,8 +31,7 @@ _REGISTRY_FILENAME = "chronic_soap_templates.yaml"
 @lru_cache(maxsize=1)
 def _load_registry() -> dict[str, dict[str, str]]:
     """Load the chronic-SOAP registry once."""
-    with resources.files(_REGISTRY_PACKAGE).joinpath(_REGISTRY_FILENAME).open("r", encoding="utf-8") as f:
-        return yaml.safe_load(f) or {}
+    return load_data_yaml(Path(str(resources.files(_REGISTRY_PACKAGE).joinpath(_REGISTRY_FILENAME)))) or {}
 
 
 def resolve_chronic_soap(chronic_conditions: list[Any] | None) -> dict[str, str] | None:

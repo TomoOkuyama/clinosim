@@ -18,8 +18,7 @@ from functools import lru_cache
 from pathlib import Path
 from typing import Any
 
-import yaml
-
+from clinosim.datafiles import load_data_yaml
 from clinosim.types.clinical import PhysiologicalState
 from clinosim.types.device import DeviceRecord
 from clinosim.types.encounter import Encounter, EncounterType
@@ -32,8 +31,7 @@ _REF_DIR = _HERE / "reference_data"
 @lru_cache(maxsize=1)
 def load_devices_config() -> dict[str, Any]:
     """Load device reference data from devices.yaml (cached)."""
-    with (_REF_DIR / "devices.yaml").open(encoding="utf-8") as f:
-        data = yaml.safe_load(f)
+    data = load_data_yaml(_REF_DIR / "devices.yaml")
     return data
 
 

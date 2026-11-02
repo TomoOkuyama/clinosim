@@ -16,9 +16,10 @@ from __future__ import annotations
 import random
 from functools import lru_cache
 from importlib import resources
+from pathlib import Path
 from typing import Any
 
-import yaml
+from clinosim.datafiles import load_data_yaml
 
 _REGISTRY_PACKAGE = "clinosim.modules.document.reference_data"
 _REGISTRY_FILENAME = "hedging_phrases.yaml"
@@ -27,8 +28,7 @@ _REGISTRY_FILENAME = "hedging_phrases.yaml"
 @lru_cache(maxsize=1)
 def _load_registry() -> dict[str, Any]:
     """Load the YAML registry once and cache it (small file, static shape)."""
-    with resources.files(_REGISTRY_PACKAGE).joinpath(_REGISTRY_FILENAME).open("r", encoding="utf-8") as f:
-        return yaml.safe_load(f) or {}
+    return load_data_yaml(Path(str(resources.files(_REGISTRY_PACKAGE).joinpath(_REGISTRY_FILENAME)))) or {}
 
 
 def hedged_phrase(

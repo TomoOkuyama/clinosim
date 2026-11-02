@@ -14,8 +14,8 @@ from pathlib import Path
 from typing import Any
 
 import numpy as np
-import yaml
 
+from clinosim.datafiles import load_data_yaml
 from clinosim.modules._shared import normalize_probabilities
 from clinosim.types.device import DeviceRecord
 
@@ -24,8 +24,7 @@ _REF_DIR = _HERE / "reference_data"
 
 
 def _load_yaml(name: str) -> dict[str, Any]:
-    with (_REF_DIR / name).open(encoding="utf-8") as f:
-        return yaml.safe_load(f)
+    return load_data_yaml(_REF_DIR / name)
 
 
 def _validate_hai_organisms(data: dict) -> None:

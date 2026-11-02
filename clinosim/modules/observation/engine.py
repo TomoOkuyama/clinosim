@@ -11,8 +11,8 @@ from pathlib import Path
 from typing import Any
 
 import numpy as np
-import yaml
 
+from clinosim.datafiles import load_data_yaml
 from clinosim.modules.observation._variability_defaults import (
     DEFAULT_ANALYTICAL_CV,
     DEFAULT_BIOLOGICAL_CV,
@@ -31,8 +31,7 @@ _REF_DIR = _HERE / "reference_data"
 def _lab_aliases() -> dict[str, str]:
     path = _REF_DIR / "lab_aliases.yaml"
     if path.exists():
-        with open(path, encoding="utf-8") as f:
-            return yaml.safe_load(f) or {}
+        return load_data_yaml(path) or {}
     return {}
 
 
@@ -40,8 +39,7 @@ def _lab_aliases() -> dict[str, str]:
 def _lab_panels() -> dict[str, list[str]]:
     """Panel name → component analytes, from the one panel definition
     (``lab_panels.yaml``, shared with FHIR grouping; Issue #2332)."""
-    with open(_REF_DIR / "lab_panels.yaml", encoding="utf-8") as f:
-        panels = (yaml.safe_load(f) or {}).get("panels") or {}
+    panels = (load_data_yaml(_REF_DIR / "lab_panels.yaml") or {}).get("panels") or {}
     return {name: list(spec.get("components") or []) for name, spec in panels.items()}
 
 
@@ -57,9 +55,7 @@ def lab_panel_components(name: str) -> list[str]:
 
 # Per-analyte constants live in reference_data/lab_constants.yaml (Issue #2302),
 # keyed by canonical lab name; see that file for the sources and units.
-_LAB_CONSTANTS: dict[str, dict[str, Any]] = yaml.safe_load(
-    (_REF_DIR / "lab_constants.yaml").read_text(encoding="utf-8")
-)
+_LAB_CONSTANTS: dict[str, dict[str, Any]] = load_data_yaml(_REF_DIR / "lab_constants.yaml")
 
 BIOLOGICAL_CV: dict[str, float] = dict(_LAB_CONSTANTS["biological_cv"])
 

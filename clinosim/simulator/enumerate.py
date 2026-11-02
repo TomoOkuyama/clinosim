@@ -39,7 +39,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any, Literal
 
-import yaml
+from clinosim.datafiles import load_data_yaml
 
 _REPO_ROOT = Path(__file__).resolve().parents[2]
 _DISEASE_REFERENCE_DIR = _REPO_ROOT / "clinosim" / "modules" / "disease" / "reference_data"
@@ -154,8 +154,7 @@ def read_complications(protocol_data: dict) -> tuple[str, ...]:
 
 
 def _load_yaml(path: Path) -> dict:
-    with open(path, encoding="utf-8") as f:
-        return yaml.safe_load(f) or {}
+    return load_data_yaml(path) or {}
 
 
 def _validate_disease_yaml_enumerable(disease_id: str, data: dict, path: Path) -> None:

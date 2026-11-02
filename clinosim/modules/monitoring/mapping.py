@@ -19,9 +19,8 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any
 
-import yaml
-
 from clinosim.codes.drugs import drug_display, medication_matches
+from clinosim.datafiles import load_data_yaml
 from clinosim.locale.loaders.demographics import load_code_mapping
 
 _YAML_PATH = Path(__file__).parent / "reference_data" / "medication_monitoring.yaml"
@@ -41,8 +40,7 @@ def load_medication_monitoring(path: Path | None = None) -> dict[str, Any]:
     producing a mysterious "no drugs matched" runtime signature.
     """
     p = path or _YAML_PATH
-    with p.open(encoding="utf-8") as f:
-        raw = yaml.safe_load(f) or {}
+    raw = load_data_yaml(p) or {}
     mappings = raw.get("mappings")
     if not isinstance(mappings, dict):
         raise ValueError(f"medication_monitoring.yaml at {p}: missing or non-dict top-level 'mappings' key")

@@ -26,8 +26,8 @@ from pathlib import Path
 from typing import Any
 
 import numpy as np
-import yaml
 
+from clinosim.datafiles import load_data_yaml
 from clinosim.modules._shared import random_day_of_month
 
 _YAML_PATH = Path(__file__).parent / "reference_data" / "pediatric_schedule.yaml"
@@ -43,8 +43,7 @@ def load_pediatric_schedule(path: Path | None = None) -> dict[str, dict[str, Any
     edit surfaces at load time, not as a mysterious runtime miss.
     """
     p = path or _YAML_PATH
-    with p.open(encoding="utf-8") as f:
-        raw = yaml.safe_load(f) or {}
+    raw = load_data_yaml(p) or {}
     encounters = raw.get("encounters") or {}
     if not isinstance(encounters, dict):
         raise ValueError(f"pediatric_schedule.yaml at {p}: top-level 'encounters' must be a mapping")

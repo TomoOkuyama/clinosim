@@ -11,8 +11,8 @@ from pathlib import Path
 from typing import Any
 
 import numpy as np
-import yaml
 
+from clinosim.datafiles import load_data_yaml
 from clinosim.types.staff import StaffRoster
 
 _HERE = Path(__file__).resolve().parent
@@ -91,8 +91,7 @@ def _validate_nursing_assessment(data: dict[str, Any]) -> None:
 @lru_cache(maxsize=1)
 def load_nursing_assessment() -> dict[str, Any]:
     """Load nursing_assessment.yaml + validate (cached)."""
-    with (_REF_DIR / "nursing_assessment.yaml").open(encoding="utf-8") as f:
-        data = yaml.safe_load(f)
+    data = load_data_yaml(_REF_DIR / "nursing_assessment.yaml")
     _validate_nursing_assessment(data)
     return data
 

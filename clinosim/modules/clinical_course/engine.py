@@ -12,9 +12,9 @@ from pathlib import Path
 from typing import Any
 
 import numpy as np
-import yaml
 
 from clinosim.codes.valuesets import has_condition
+from clinosim.datafiles import load_data_yaml
 from clinosim.modules._shared import normalize_probabilities
 from clinosim.modules.clinical_course._archetype_modifiers import (
     AGE_SPEED_FACTOR_BANDS,
@@ -282,8 +282,7 @@ def _validate_archetype_modifiers(disease_id: str, modifiers: list[dict[str, Any
 @cache
 def _fallback_archetypes_raw() -> dict[str, Any]:
     path = Path(__file__).resolve().parent / "reference_data" / "fallback_archetypes.yaml"
-    with path.open(encoding="utf-8") as fh:
-        return yaml.safe_load(fh) or {}
+    return load_data_yaml(path) or {}
 
 
 def _fallback_trajectories_from_yaml() -> dict[str, dict[str, dict[int, float]]]:

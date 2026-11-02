@@ -5,7 +5,7 @@ from __future__ import annotations
 from functools import lru_cache
 from pathlib import Path
 
-import yaml
+from clinosim.datafiles import load_data_yaml
 
 # Canonical lowercase hai_type strings. MUST be defined BEFORE enricher
 # import to avoid circular import (enricher imports HAI_TYPES for validation).
@@ -52,8 +52,7 @@ def load_hai_antibiogram() -> dict:
     """
     from clinosim.modules.antibiotic import ANTIBIOTIC_LOINC_LOOKUP
 
-    with open(_HAI_ANTIBIOGRAM_PATH, encoding="utf-8") as f:
-        raw = yaml.safe_load(f) or {}
+    raw = load_data_yaml(_HAI_ANTIBIOGRAM_PATH) or {}
     abg = raw.get("hai_antibiogram") or {}
     # PR3b-3 stage-1 adversarial finding I2: empty top-level antibiogram would
     # silently disable downstream consumers (PR3b-3 D2 panel-eligible

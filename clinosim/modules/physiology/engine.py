@@ -13,10 +13,10 @@ from pathlib import Path
 from typing import Any
 
 import numpy as np
-import yaml
 
 from clinosim.codes.drugs import same_drug
 from clinosim.codes.valuesets import concept_group
+from clinosim.datafiles import load_data_yaml
 from clinosim.modules.observation.engine import medication_name, medications_in_effect
 from clinosim.modules.physiology._coupling_coefficients import (
     AFIB_CARDIAC_COUPLING,
@@ -380,8 +380,7 @@ def initialize_state(
 @cache
 def _chronic_glycemic_thresholds_raw() -> dict[str, Any]:
     path = Path(__file__).resolve().parent / "reference_data" / "chronic_glycemic_thresholds.yaml"
-    with path.open(encoding="utf-8") as fh:
-        return yaml.safe_load(fh) or {}
+    return load_data_yaml(path) or {}
 
 
 _HBA1C_YAML = _chronic_glycemic_thresholds_raw().get("hba1c", {}) or {}
@@ -1220,8 +1219,7 @@ def derive_observed_vitals(
 @cache
 def _state_variable_ranges_from_yaml() -> dict[str, tuple[float, float]]:
     path = Path(__file__).resolve().parent / "reference_data" / "state_variable_ranges.yaml"
-    with path.open(encoding="utf-8") as fh:
-        raw = yaml.safe_load(fh) or {}
+    raw = load_data_yaml(path) or {}
     out: dict[str, tuple[float, float]] = {}
     for name, row in (raw.get("variables", {}) or {}).items():
         if isinstance(row, dict) and "min" in row and "max" in row:

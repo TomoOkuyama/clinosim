@@ -23,10 +23,10 @@ from pathlib import Path
 from typing import Any
 
 import numpy as np
-import yaml
 
 from clinosim.codes.loinc import loinc_for
 from clinosim.codes.snomed import snomed_for, snomed_map
+from clinosim.datafiles import load_data_yaml
 from clinosim.locale.i18n import t
 from clinosim.locale.localized import localized_field
 from clinosim.modules._shared import get_attr_or_key as _get
@@ -40,8 +40,7 @@ _HERE = Path(__file__).resolve().parent
 @lru_cache(maxsize=1)
 def load_newborn_config() -> dict[str, Any]:
     """Load + cache `newborn_screening.yaml`. Cached singleton."""
-    with (_HERE / "reference_data" / "newborn_screening.yaml").open(encoding="utf-8") as f:
-        return yaml.safe_load(f) or {}
+    return load_data_yaml(_HERE / "reference_data" / "newborn_screening.yaml") or {}
 
 
 # Issue #1736 — once-per-newborn baseline-screen dedup tracker. Mirrors
