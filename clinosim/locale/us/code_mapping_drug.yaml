@@ -3,6 +3,11 @@
 # Source: NLM RxNorm
 
 # Antibiotics
+metadata:
+  kind: country-mapping
+  name: code_mapping_drug
+  source: clinosim
+
 Ampicillin: "733"
 Ampicillin/Sulbactam: "1009148"
 Amoxicillin: "723"

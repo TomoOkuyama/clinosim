@@ -21,6 +21,7 @@
 # migration once every active locale has its yamls populated.
 
 metadata:
+  kind: reference
   source: >-
     clinosim/locale/loader.py (_FALLBACK_NAMES, _FALLBACK_FORMATTING,
     _FALLBACK_DEMOGRAPHICS, _FALLBACK_ENCOUNTER_DISPOSITION) prior to

@@ -16,6 +16,11 @@
 # Add a language: add `<lang>: <display>` to the entries.
 # Read through `clinosim.locale.loader.lab_display(name, lang, style=...)`.
 
+metadata:
+  kind: display-table
+  name: lab_display
+  source: clinosim
+
 lab_names:
   abg: {en: ABG, ja: ABG (動脈血ガス)}
   abg_repeat: {en: ABG (repeat), ja: ABG (動脈血ガス再検)}

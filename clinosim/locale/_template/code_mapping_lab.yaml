@@ -1,6 +1,11 @@
 # Lab code mapping template.
 # Maps internal lab name → national lab coding system (LOINC / JLAC10 / national).
 
+metadata:
+  kind: country-mapping
+  name: code_mapping_lab
+  source: clinosim
+
 mapping:
   # Internal name → national code
   CRP:        "__TODO_crp_code__"

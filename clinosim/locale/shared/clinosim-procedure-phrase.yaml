@@ -32,6 +32,7 @@
 #     `clinosim-imaging-exam-name.yaml` (Phase 5 Step 2.e, PR #1863).
 
 metadata:
+  kind: translation-table
   name: clinosim Procedure Phrase Display Catalog
   description: >
     EN → JA display mapping for free-text procedure phrases used in CIF

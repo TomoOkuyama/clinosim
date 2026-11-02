@@ -1,5 +1,10 @@
 # Procedure code mapping — Internal name → K-code (Japan)
 # Source: 診療報酬点数表
 
+metadata:
+  kind: country-mapping
+  name: code_mapping_procedure
+  source: clinosim
+
 ORIF_femur: "K0463"
 hemiarthroplasty_hip: "K0812"

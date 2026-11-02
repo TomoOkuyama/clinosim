@@ -20,6 +20,7 @@
 # not three Python edits across two files.
 
 metadata:
+  kind: catalog
   source: >-
     clinosim/modules/output/fhir_r4/documents/composition.py
     (_STAFF_ROLE_SUFFIX_JA / _STAFF_ROLE_SUFFIX_EN)

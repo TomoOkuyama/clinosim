@@ -1,6 +1,11 @@
 # Internal lab name → LOINC code mapping
 # Source: LOINC (Regenstrief Institute)
 
+metadata:
+  kind: country-mapping
+  name: code_mapping_lab
+  source: clinosim
+
 CRP: "1988-5"
 WBC: "6690-2"
 Hb: "718-7"

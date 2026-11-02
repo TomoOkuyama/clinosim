@@ -1,6 +1,7 @@
 # IETF BCP 47 language tags used for FHIR Patient.communication.language.
 # Authoritative source: IETF BCP 47 (https://www.rfc-editor.org/info/bcp47).
 metadata:
+  kind: code-system
   name: IETF BCP 47 Language Tag
   uri: "urn:ietf:bcp:47"
   source: "IETF BCP 47"

@@ -47,6 +47,11 @@
 # well-defined (year y's progression reflects the control attained
 # through year y-1).
 
+metadata:
+  kind: reference
+  name: comorbidity_progression_multipliers
+  source: clinosim
+
 comorbidity_progression_multipliers:
 
   # ------------------------------------------------------------------

@@ -15,6 +15,11 @@
 # (specimen_snomed), not via the test code, which matches how JLAC10 itself
 # represents specimen type (in the 17-digit full code's material segment, not
 # the 5-character analyte code clinosim stores).
+metadata:
+  kind: country-mapping
+  name: code_mapping_microbiology
+  source: clinosim
+
 blood: "6B010"
 urine: "6B010"
 sputum: "6B010"

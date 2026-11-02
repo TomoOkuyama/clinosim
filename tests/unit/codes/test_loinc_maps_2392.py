@@ -6,15 +6,15 @@ import re
 from pathlib import Path
 
 import pytest
-import yaml
 
 import clinosim
 from clinosim.codes.loinc import loinc_display, loinc_for, loinc_map
+from clinosim.datafiles import load_data_yaml
 
 pytestmark = pytest.mark.unit
 
 _ROOT = Path(clinosim.__file__).parent
-_KINDS = sorted(yaml.safe_load((_ROOT / "codes/data/loinc-maps.yaml").read_text(encoding="utf-8")))
+_KINDS = sorted(load_data_yaml(_ROOT / "codes/data/loinc-maps.yaml"))
 
 
 @pytest.mark.parametrize("kind", _KINDS)

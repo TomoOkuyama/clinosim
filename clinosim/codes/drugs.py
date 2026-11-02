@@ -39,7 +39,7 @@ from functools import cache
 from pathlib import Path
 from typing import Any
 
-import yaml
+from clinosim.datafiles import load_data_yaml
 
 _DATA_FILE = Path(__file__).parent / "data" / "drugs.yaml"
 
@@ -161,8 +161,7 @@ def _load_catalog() -> dict[str, DrugIdentity]:
 def _raw_catalog() -> dict[str, Any]:
     if not _DATA_FILE.exists():
         raise FileNotFoundError(f"drugs.yaml not found at {_DATA_FILE}")
-    with _DATA_FILE.open(encoding="utf-8") as fh:
-        return yaml.safe_load(fh) or {}
+    return load_data_yaml(_DATA_FILE)
 
 
 @cache

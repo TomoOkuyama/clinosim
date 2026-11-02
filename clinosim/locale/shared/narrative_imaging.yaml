@@ -10,6 +10,11 @@
 # Add new language: extend each entry with `<lang_code>: <display>`.
 # Load via ``clinosim.locale.loader.load_narrative_imaging()``.
 
+metadata:
+  kind: display-table
+  name: narrative_imaging
+  source: clinosim
+
 imaging:
   abdominal_ultrasound: {en: abdominal ultrasound, ja: 腹部エコー}
   abdominal_xray: {en: abdominal X-ray, ja: 腹部レントゲン}

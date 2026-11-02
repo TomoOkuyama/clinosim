@@ -4,6 +4,7 @@
 # English only — matches this project's existing AllergyIntolerance JA scope
 # (only allergen/manifestation display are JA-localized).
 metadata:
+  kind: code-system
   name: HL7 FHIR AllergyIntolerance Clinical Status
   uri: http://terminology.hl7.org/CodeSystem/allergyintolerance-clinical
   source: "HL7 Terminology (THO)"

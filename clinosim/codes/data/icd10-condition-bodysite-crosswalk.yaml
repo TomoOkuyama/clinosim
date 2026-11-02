@@ -17,6 +17,7 @@
 # from `snomed-ct.yaml`, so adding a 16th prefix is a 2-line yaml edit.
 
 metadata:
+  kind: crosswalk
   name: ICD-10 Condition Body-Site Crosswalk
   description: >
     3-char ICD-10 prefix → SNOMED CT body-site code. Displays resolve

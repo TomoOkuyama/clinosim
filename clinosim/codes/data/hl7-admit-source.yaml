@@ -4,6 +4,7 @@
 # here (checked at import, Issue #2464); "other" is the fallback for IMP
 # encounters with no explicit admit source.
 metadata:
+  kind: code-system
   name: HL7 FHIR Admit Source
   uri: http://terminology.hl7.org/CodeSystem/admit-source
   source: "HL7 Terminology (THO)"

@@ -13,6 +13,7 @@
 # NOTE: codes here are the 5-character 分析物コード (analyte portion of the 17-digit JLAC10).
 # Do NOT add a code without verifying it against the master above (no fabrication — AD-57).
 metadata:
+  kind: code-system
   name: JLAC10
   uri: urn:oid:1.2.392.200119.4.1005
   version: '137'

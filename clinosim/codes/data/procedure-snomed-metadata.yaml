@@ -31,6 +31,7 @@
 #     SNOMED browser
 
 metadata:
+  kind: map
   source: >-
     clinosim/modules/procedure/engine.py (_PROCEDURE_METADATA +
     _COMPLICATION_SCT + _SCT_CATEGORY_* + _SCT_OUTCOME_*) prior to

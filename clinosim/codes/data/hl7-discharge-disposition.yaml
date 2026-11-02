@@ -5,6 +5,7 @@
 # "expired" (patient died); adding more codes here should be paired with the
 # emitter in simulator/inpatient.py.
 metadata:
+  kind: code-system
   name: HL7 FHIR Discharge Disposition
   uri: http://terminology.hl7.org/CodeSystem/discharge-disposition
   source: "HL7 Terminology (THO)"

@@ -11,6 +11,11 @@
 #
 # Loader: ``clinosim.locale.loader.load_narrative_labels()``.
 
+metadata:
+  kind: display-table
+  name: narrative_labels
+  source: clinosim
+
 shift_labels:
   day: {en: day, ja: 日勤}
   evening: {en: evening, ja: 準夜}

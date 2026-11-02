@@ -43,6 +43,7 @@
 #   profile.
 
 metadata:
+  kind: reference
   name: anthropometric_reference
   description: Reference height / weight / BMI / head-circumference for FHIR anthropometric Observations.
   sources:

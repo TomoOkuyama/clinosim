@@ -3,6 +3,7 @@
 # the antimicrobial susceptibility codes (S/I/R, microbiology). English
 # displays verified on tx.fhir.org $lookup (THO).
 metadata:
+  kind: code-system
   name: HL7 v3 ObservationInterpretation
   uri: http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation
   source: "HL7 Terminology (THO)"

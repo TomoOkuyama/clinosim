@@ -14,6 +14,11 @@
 # uncomplicated delivery code) and discharge diagnosis = Z37.0 (single
 # liveborn — mother-side birth outcome code, sex-locked female-only via
 # icd10_sex_restrictions.yaml).
+metadata:
+  kind: reference
+  name: perinatal
+  source: clinosim
+
 encounter:
   visit_reason:
     en: "Delivery (spontaneous vaginal delivery)"

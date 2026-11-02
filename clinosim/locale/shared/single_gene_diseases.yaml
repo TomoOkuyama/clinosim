@@ -34,6 +34,11 @@
 # "other"). Unknown race or empty-race locales (JP) fall through to
 # the ``default`` entry.
 
+metadata:
+  kind: reference
+  name: single_gene_diseases
+  source: clinosim
+
 single_gene_diseases:
   # Cystic fibrosis (CFTR). Clinical basis: Watts 2015 (Lancet
   # Respir Med) carrier-frequency survey; CDC newborn screening

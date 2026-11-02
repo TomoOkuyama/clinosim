@@ -25,9 +25,8 @@ from functools import cache
 from pathlib import Path
 from typing import Any, ClassVar, final
 
-import yaml
-
 from clinosim.countries import normalize_lang
+from clinosim.datafiles import data_metadata, load_data_yaml
 
 _DATA_DIR = Path(__file__).parent / "data"
 
@@ -249,9 +248,8 @@ def _load_system(system_key: str) -> CodeSystem | None:
     path = _DATA_DIR / f"{data_key}.yaml"
     if not path.exists():
         return None
-    with open(path, encoding="utf-8") as f:
-        data = yaml.safe_load(f) or {}
-    meta = data.get("metadata", {}) or {}
+    data = load_data_yaml(path)
+    meta = data_metadata(path)
     # For aliased systems, override the URI from `_BUILTIN_URIS` so the alias
     # carries its distinct canonical URI while sharing the underlying code
     # data. Non-aliased systems continue to read their URI from the yaml
@@ -395,15 +393,12 @@ def slug_to_code(system_key: str) -> dict[str, str]:
     path = _DATA_DIR / f"{data_key}.yaml"
     if not path.exists():
         return {}
-    with open(path, encoding="utf-8") as f:
-        data = yaml.safe_load(f) or {}
-    return dict(data.get("slug_to_code", {}) or {})
+    return dict(load_data_yaml(path).get("slug_to_code", {}) or {})
 
 
 @cache
 def _data_table(name: str) -> dict[str, Any]:
-    with open(_DATA_DIR / f"{name}.yaml", encoding="utf-8") as f:
-        return yaml.safe_load(f) or {}
+    return load_data_yaml(_DATA_DIR / f"{name}.yaml")
 
 
 def data_table(name: str) -> dict[str, Any]:

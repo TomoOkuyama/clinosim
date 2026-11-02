@@ -13,6 +13,11 @@
 #
 # Codes use ICD-10 base (without decimal subclassification): the code
 # passed in has `.split(".")[0]` applied at the call site.
+metadata:
+  kind: reference
+  name: chronic_onset_min_age
+  source: clinosim
+
 default_min_years: 0
 codes:
   # === Endocrine / metabolic ===

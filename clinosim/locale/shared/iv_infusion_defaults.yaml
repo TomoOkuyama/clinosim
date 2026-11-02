@@ -40,6 +40,11 @@
 #   5. Alias table (aliases block)
 #   6. `default` block
 
+metadata:
+  kind: reference
+  name: iv_infusion_defaults
+  source: clinosim
+
 drugs:
   # ── crystalloid fluids ──────────────────────────────────────────────
   "normal saline":

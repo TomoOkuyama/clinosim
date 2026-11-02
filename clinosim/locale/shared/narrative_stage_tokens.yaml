@@ -4,6 +4,11 @@
 # Add new language: extend each entry with `<lang_code>: <display>`.
 # Load via ``clinosim.locale.loader.load_narrative_stage_tokens()``.
 
+metadata:
+  kind: translation-table
+  name: narrative_stage_tokens
+  source: clinosim
+
 stage_tokens:
   critical: {ja: 重篤}
   grade: {ja: グレード}

@@ -8,15 +8,15 @@ exact codes confirmed against the JSLM JLAC10 master v137.
 from pathlib import Path
 
 import pytest
-import yaml
 
 import clinosim
 from clinosim.codes import lookup
+from clinosim.datafiles import load_data_yaml
 
 _ROOT = Path(clinosim.__file__).parent
-_JLAC10 = yaml.safe_load((_ROOT / "codes/data/jlac10.yaml").read_text())["codes"]
-_JP_MAP = yaml.safe_load((_ROOT / "locale/jp/code_mapping_lab.yaml").read_text())
-_JP_MICRO_SUS_MAP = yaml.safe_load((_ROOT / "locale/jp/code_mapping_microbiology_susceptibility.yaml").read_text())
+_JLAC10 = load_data_yaml(_ROOT / "codes/data/jlac10.yaml")["codes"]
+_JP_MAP = load_data_yaml(_ROOT / "locale/jp/code_mapping_lab.yaml")
+_JP_MICRO_SUS_MAP = load_data_yaml(_ROOT / "locale/jp/code_mapping_microbiology_susceptibility.yaml")
 
 
 @pytest.mark.unit
@@ -87,7 +87,7 @@ class TestJLAC10Integrity:
         assert lookup("jlac10", "4A055", "ja") == "甲状腺刺激ホルモン(TSH)"
 
 
-_JP_MICRO_MAP = yaml.safe_load((_ROOT / "locale/jp/code_mapping_microbiology.yaml").read_text())
+_JP_MICRO_MAP = load_data_yaml(_ROOT / "locale/jp/code_mapping_microbiology.yaml")
 
 
 @pytest.mark.unit

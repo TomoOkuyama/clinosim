@@ -12,9 +12,8 @@ from functools import cache
 from pathlib import Path
 from typing import Any
 
-import yaml
-
 from clinosim.codes.loader import display, get_system_uri
+from clinosim.datafiles import load_data_yaml
 
 _MAPS = Path(__file__).parent / "data" / "loinc-maps.yaml"
 
@@ -23,7 +22,7 @@ _MAPS = Path(__file__).parent / "data" / "loinc-maps.yaml"
 def loinc_map(kind: str) -> dict[str, str]:
     """Internal key → LOINC code for vocabulary ``kind`` (``loinc-maps.yaml``,
     Issue #2392). Raises ``KeyError`` on an unknown kind."""
-    data = yaml.safe_load(_MAPS.read_text(encoding="utf-8")) or {}
+    data = load_data_yaml(_MAPS)
     if kind not in data:
         raise KeyError(f"loinc_map: unknown kind {kind!r}; expected one of {sorted(data)}")
     return {str(k): str(v) for k, v in (data[kind] or {}).items()}

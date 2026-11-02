@@ -37,6 +37,11 @@
 # edits — every dispatch site funnels through
 # `clinosim.simulator.sex_gating.is_sex_locked_for`.
 
+metadata:
+  kind: reference
+  name: icd10_sex_restrictions
+  source: clinosim
+
 male_only:
   # N40–N51 male-genital-organ diseases (ICD-10 chapter XIV block N40–N51)
   - "N40"    # Hyperplasia of prostate (BPH)

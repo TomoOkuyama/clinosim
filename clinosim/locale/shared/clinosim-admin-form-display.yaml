@@ -35,6 +35,7 @@
 #     entries migrate there.
 
 metadata:
+  kind: translation-table
   name: clinosim Admin-Form / Narrative Display Catalog
   description: >
     EN → JA display mapping for drug / substance narrative display

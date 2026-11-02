@@ -11,6 +11,11 @@
 # post-#1849 review (hardcoded-audit Finding 13). Multi-locale extension
 # (`zh`, `ko`, …) is a column add here, not a Python edit.
 
+metadata:
+  kind: display-table
+  name: diet_type_display
+  source: clinosim
+
 diet_types:
   NPO:
     en: NPO (nothing by mouth)

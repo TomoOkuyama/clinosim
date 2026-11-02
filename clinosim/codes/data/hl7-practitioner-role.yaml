@@ -4,6 +4,7 @@
 # C2-07 (session 42 cycle 2): registered so PractitionerRole.code stops
 # emitting display-less coding.
 metadata:
+  kind: code-system
   name: HL7 FHIR Practitioner Role
   uri: http://terminology.hl7.org/CodeSystem/practitioner-role
   source: "HL7 Terminology (THO)"

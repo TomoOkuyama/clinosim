@@ -81,6 +81,7 @@
 #   - Every drug_id is unique and snake_case.
 
 metadata:
+  kind: catalog
   name: Clinosim Drug Identity Catalog
   description: >
     Internal drug_id -> display + authority-code pointers. META #1792

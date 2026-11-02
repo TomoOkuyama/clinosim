@@ -31,6 +31,11 @@
 # `match` is matched with case-insensitive substring against the trimmed
 # lowercase `display_name`; Japanese pattern strings match verbatim
 # (Python str.lower() is idempotent on kana/kanji).
+metadata:
+  kind: crosswalk
+  name: procedure-phrase-to-snomed
+  source: clinosim
+
 entries:
   # Issue #2043 elective knee arthroplasty (verified tx.fhir.org $lookup 2026-10-27).
   - match: "total knee arthroplasty"

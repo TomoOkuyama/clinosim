@@ -7,24 +7,24 @@ import json
 from pathlib import Path
 
 import pytest
-import yaml
 
 import clinosim
 from clinosim.codes.procedures import bedside_procedures
+from clinosim.datafiles import load_data_yaml
 from clinosim.modules.output.fhir_r4.procedures.procedures import _build_procedure
 
 pytestmark = pytest.mark.unit
 
 _ROOT = Path(clinosim.__file__).parent
-_KCODES = yaml.safe_load((_ROOT / "codes/data/k-codes.yaml").read_text(encoding="utf-8"))["codes"]
-_CPT = yaml.safe_load((_ROOT / "codes/data/cpt.yaml").read_text(encoding="utf-8"))["codes"]
+_KCODES = load_data_yaml(_ROOT / "codes/data/k-codes.yaml")["codes"]
+_CPT = load_data_yaml(_ROOT / "codes/data/cpt.yaml")["codes"]
 _MASTER = json.loads((_ROOT / "codes/authoritative/shinryo_koui_ssk_20261013_ja.json").read_text(encoding="utf-8"))[
     "codes"
 ]
 
 
 def _yaml(rel: str) -> dict:
-    return yaml.safe_load((_ROOT / rel).read_text(encoding="utf-8"))
+    return load_data_yaml(_ROOT / rel)
 
 
 # 区分 headings of the 点数表 that no master row starts with (the rows name
@@ -69,7 +69,7 @@ def _emitted_codes() -> set[tuple[str, str]]:
                 for v in x:
                     walk(v)
 
-        walk(yaml.safe_load(path.read_text(encoding="utf-8")))
+        walk(load_data_yaml(path))
     # Imaging and chronic follow-up (Issue #2390).
     sites = _yaml("modules/imaging/reference_data/body_sites.yaml")
 

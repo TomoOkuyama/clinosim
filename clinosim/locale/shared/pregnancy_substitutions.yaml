@@ -25,6 +25,11 @@
 # LMWH, etc.) — for now the entries cover the finding scope (HTN meds
 # in Z34 prenatal visits).
 
+metadata:
+  kind: reference
+  name: pregnancy_substitutions
+  source: clinosim
+
 substitutions:
   # DHP-CCB (finding case: pt-192d90bc7df0 Amlodipine on prenatal visits)
   Amlodipine:

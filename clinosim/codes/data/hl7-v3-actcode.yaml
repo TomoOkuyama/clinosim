@@ -3,6 +3,7 @@
 # a Coding with no text slot, so JP output carries the English display there
 # (code-mapping spec §5.3); the Japanese labels serve narrative and lookups.
 metadata:
+  kind: code-system
   name: HL7 v3 ActCode (encounter class subset)
   uri: http://terminology.hl7.org/CodeSystem/v3-ActCode
   source: "HL7 Terminology (THO)"

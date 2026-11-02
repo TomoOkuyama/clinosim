@@ -11,7 +11,7 @@ from __future__ import annotations
 from functools import cache
 from pathlib import Path
 
-import yaml
+from clinosim.datafiles import load_data_yaml
 
 __all__ = ["medis_disease_keyno"]
 
@@ -22,7 +22,7 @@ _MEDIS_CROSSWALK = Path(__file__).parent / "data" / "medis-disease-keyno.yaml"
 def _medis_crosswalk() -> dict[str, tuple[str, str]]:
     if not _MEDIS_CROSSWALK.exists():
         return {}
-    data = yaml.safe_load(_MEDIS_CROSSWALK.read_text(encoding="utf-8")) or {}
+    data = load_data_yaml(_MEDIS_CROSSWALK)
     out: dict[str, tuple[str, str]] = {}
     for icd, entry in (data.get("crosswalk") or {}).items():
         if not isinstance(entry, dict):

@@ -3,6 +3,7 @@
 # Verified 2026-06 against the CDC CVX list (https://www2.cdc.gov/vaccines/iis/iisstandards/downloads/cvx.txt).
 # Only Active-status codes are included. Do not add a code without verifying against CDC (no fabrication).
 metadata:
+  kind: code-system
   name: CVX
   uri: http://hl7.org/fhir/sid/cvx
   version: '2026-06'

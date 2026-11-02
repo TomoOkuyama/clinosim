@@ -19,6 +19,7 @@
 #   Rendering guide: https://ucum.org/ucum.html
 
 metadata:
+  kind: map
   source: >-
     clinosim/modules/output/fhir_r4/lib/common.py (_UCUM_CODE_MAP) prior
     to hardcoded-review Phase A4.

@@ -18,6 +18,7 @@
 # that the pair exists in the upstream CS.
 
 metadata:
+  kind: code-system
   source: >-
     clinosim/modules/output/fhir_r4/documents/composition.py
     (_JP_ECHECKUP_SECTION_CODE_MATRIX) prior to hardcoded-review Phase A3.

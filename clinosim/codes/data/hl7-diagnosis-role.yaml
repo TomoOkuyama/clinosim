@@ -1,6 +1,7 @@
 # HL7 FHIR diagnosis-role — Encounter.diagnosis.use. English displays
 # verified on tx.fhir.org $lookup (THO).
 metadata:
+  kind: code-system
   name: HL7 FHIR Diagnosis Role
   uri: http://terminology.hl7.org/CodeSystem/diagnosis-role
   source: "HL7 Terminology (THO)"

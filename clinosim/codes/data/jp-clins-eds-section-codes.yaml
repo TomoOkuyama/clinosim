@@ -35,6 +35,7 @@
 # the post-#1849 review (hardcoded-audit Finding 10).
 
 metadata:
+  kind: code-system
   name: JP-CLINS eDischargeSummary Section Codes
   description: >
     10-slice composition section registry for JP-CLINS eDS, with per-

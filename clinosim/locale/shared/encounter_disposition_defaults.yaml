@@ -18,6 +18,11 @@
 # pins the fallback selection and the JP-CLINS ValueSet binding URLs so
 # non-engineers can adjust either without touching the emit code.
 
+metadata:
+  kind: reference
+  name: encounter_disposition_defaults
+  source: clinosim
+
 admit_source:
   # HL7 CodeSystem key (resolves to
   # http://terminology.hl7.org/CodeSystem/admit-source via

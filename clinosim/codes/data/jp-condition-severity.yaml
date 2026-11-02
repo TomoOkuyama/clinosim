@@ -4,6 +4,7 @@
 # modules/output/fhir_r4/lib/reference_data.py (Issue #2402). `en` is a
 # clinosim translation (the English fallback every code carries).
 metadata:
+  kind: code-system
   name: JP Core Condition Severity
   uri: http://jpfhir.jp/fhir/core/CodeSystem/JP_ConditionSeverity_CS
   source: "JP Core CodeSystem JP_ConditionSeverity_CS"

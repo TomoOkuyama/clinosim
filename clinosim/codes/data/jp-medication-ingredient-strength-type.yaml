@@ -2,6 +2,7 @@
 # prescription ingredient. `ja` moved from fhir_r4/post_process/populate.py
 # (Issue #2404); `en` is a clinosim translation.
 metadata:
+  kind: code-system
   name: MHLW Medication Ingredient Strength Type
   uri: http://jpfhir.jp/fhir/core/mhlw/CodeSystem/MedicationIngredientStrengthStrengthType
   source: "MHLW / JP Core"

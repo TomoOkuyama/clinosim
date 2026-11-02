@@ -14,9 +14,8 @@ from __future__ import annotations
 from functools import cache
 from pathlib import Path
 
-import yaml
-
 from clinosim.codes.loader import display
+from clinosim.datafiles import load_data_yaml
 
 __all__ = ["snomed_display", "snomed_for", "snomed_for_phrase", "snomed_map"]
 
@@ -33,7 +32,7 @@ def snomed_display(code: str, lang: str = "en") -> str | None:
 def snomed_map(kind: str) -> dict[str, str]:
     """Internal key → SNOMED CT code for vocabulary ``kind`` (``route``,
     ``severity``). Raises ``KeyError`` on an unknown kind."""
-    data = yaml.safe_load(_MAPS.read_text(encoding="utf-8")) or {}
+    data = load_data_yaml(_MAPS)
     if kind not in data:
         raise KeyError(f"snomed_map: unknown kind {kind!r}; expected one of {sorted(data)}")
     return {str(k): str(v) for k, v in (data[kind] or {}).items()}
@@ -50,7 +49,7 @@ _PHRASES = Path(__file__).parent / "data" / "procedure-phrase-to-snomed.yaml"
 
 @cache
 def _phrase_entries() -> tuple[tuple[str, str], ...]:
-    data = yaml.safe_load(_PHRASES.read_text(encoding="utf-8")) or {}
+    data = load_data_yaml(_PHRASES)
     out = []
     for entry in data.get("entries") or []:
         match = str(entry.get("match") or "").strip().lower()

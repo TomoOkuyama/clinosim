@@ -16,6 +16,11 @@
 # narrative_labels.yaml and llm_prompt_labels.yaml, which had diverged
 # (office: 事務・専門職 vs 事務職, walk-in: 自来院（Walk-in） vs 独歩来院, ...).
 
+metadata:
+  kind: display-table
+  name: vocabulary
+  source: clinosim
+
 occupation:
   # Sampled by modules/population/_identity.py::_sample_occupation.
   agriculture: {en: Agricultural worker, ja: 農業従事者}

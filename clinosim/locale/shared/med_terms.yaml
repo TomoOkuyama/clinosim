@@ -18,6 +18,11 @@
 #
 # Loader: ``clinosim.locale.loader.load_med_terms``.
 
+metadata:
+  kind: translation-table
+  name: med_terms
+  source: clinosim
+
 categories:
   dvt prophylaxis: {ja: DVT予防}
   dvt_prophylaxis: {ja: DVT予防}

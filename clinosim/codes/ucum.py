@@ -12,9 +12,8 @@ from functools import cache
 from pathlib import Path
 from typing import Any
 
-import yaml
-
 from clinosim.codes.loader import get_system_uri
+from clinosim.datafiles import load_data_yaml
 
 
 # Human-readable → UCUM canonical token map (issue #204, 2026-07-17).
@@ -45,8 +44,7 @@ def _ucum_aliases() -> dict[str, str]:
     extension policy, and authority source live in the yaml header; see
     codes/data/ucum-aliases.yaml."""
     path = Path(__file__).parent / "data" / "ucum-aliases.yaml"
-    with path.open(encoding="utf-8") as fh:
-        raw = yaml.safe_load(fh) or {}
+    raw = load_data_yaml(path)
     return {str(k): str(v) for k, v in (raw.get("aliases", {}) or {}).items()}
 
 

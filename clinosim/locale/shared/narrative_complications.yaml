@@ -4,6 +4,11 @@
 # Add new language: extend each entry with `<lang_code>: <display>`.
 # Load via ``clinosim.locale.loader.load_narrative_complications()``.
 
+metadata:
+  kind: display-table
+  name: narrative_complications
+  source: clinosim
+
 complications:
   acute_appendicitis: {en: acute appendicitis, ja: 急性虫垂炎}
   acute_cholecystitis: {en: acute cholecystitis, ja: 急性胆嚢炎}

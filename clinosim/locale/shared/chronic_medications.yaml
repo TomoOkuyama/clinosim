@@ -36,6 +36,11 @@
 # involve Rivaroxaban, so leaving those entries unchanged does not
 # reintroduce the #442 defect.
 
+metadata:
+  kind: reference
+  name: chronic_medications
+  source: clinosim
+
 I10:  # Hypertension
   medications:
     - {drug_id: amlodipine, dose: "5mg", route: "PO", frequency: "daily"}

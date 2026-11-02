@@ -15,7 +15,7 @@ from functools import cache
 from pathlib import Path
 from typing import Any, Literal
 
-import yaml
+from clinosim.datafiles import load_data_yaml
 
 __all__ = [
     "ValueSet",
@@ -61,7 +61,7 @@ class ValueSet:
 
 @cache
 def _load() -> dict[str, ValueSet]:
-    raw = yaml.safe_load(_DATA_FILE.read_text(encoding="utf-8")) or {}
+    raw = load_data_yaml(_DATA_FILE)
     out: dict[str, ValueSet] = {}
     for name, body in (raw.get("groups") or {}).items():
         space = body.get("space")

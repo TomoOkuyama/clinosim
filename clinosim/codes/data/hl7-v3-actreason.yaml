@@ -6,6 +6,7 @@
 # Only the codes clinosim currently emits are registered — expand as callers
 # add new reason codes.
 metadata:
+  kind: code-system
   name: HL7 v3 ActReason
   uri: http://terminology.hl7.org/CodeSystem/v3-ActReason
   source: "HL7 Terminology (THO)"

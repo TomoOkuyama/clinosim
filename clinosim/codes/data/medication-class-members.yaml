@@ -17,6 +17,7 @@
 #     NSAID+NSAID (11), anticoagulant+anticoagulant (29).
 
 metadata:
+  kind: value-set
   source: >-
     clinosim/modules/output/fhir_r4/medications/medications.py
     (_MEDICATION_CLASS_MEMBERS, _MEDICATION_CLASS_SUPERGROUPS)

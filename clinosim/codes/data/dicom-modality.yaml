@@ -15,6 +15,7 @@
 # katakana forms used in clinical practice.
 
 metadata:
+  kind: code-system
   name: DICOM Modality
   uri: "http://dicom.nema.org/resources/ontology/DCM"
   source: "DICOM PS3.3 Table C.7-1"

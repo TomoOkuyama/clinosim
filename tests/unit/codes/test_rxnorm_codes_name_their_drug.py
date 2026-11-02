@@ -14,7 +14,8 @@ import re
 from pathlib import Path
 
 import pytest
-import yaml
+
+from clinosim.datafiles import load_data_yaml
 
 pytestmark = pytest.mark.unit
 
@@ -61,15 +62,15 @@ def _words(text: str) -> set[str]:
 
 def _shipped_pairs() -> list[tuple[str, str, str]]:
     pairs: list[tuple[str, str, str]] = []
-    rx = yaml.safe_load((_ROOT / "clinosim/codes/data/rxnorm.yaml").read_text(encoding="utf-8"))["codes"]
+    rx = load_data_yaml(_ROOT / "clinosim/codes/data/rxnorm.yaml")["codes"]
     pairs += [("rxnorm.yaml", str(v.get("en")), str(c)) for c, v in rx.items()]
-    drugs = yaml.safe_load((_ROOT / "clinosim/codes/data/drugs.yaml").read_text(encoding="utf-8"))["drugs"]
+    drugs = load_data_yaml(_ROOT / "clinosim/codes/data/drugs.yaml")["drugs"]
     pairs += [
         ("drugs.yaml", str(v["names"]["en"]), str(v["codes"]["rxnorm"]))
         for v in drugs.values()
         if isinstance(v, dict) and (v.get("codes") or {}).get("rxnorm")
     ]
-    us = yaml.safe_load((_ROOT / "clinosim/locale/us/code_mapping_drug.yaml").read_text(encoding="utf-8"))
+    us = load_data_yaml(_ROOT / "clinosim/locale/us/code_mapping_drug.yaml")
     pairs += [("us_mapping", str(k), str(v)) for k, v in us.items()]
     return pairs
 

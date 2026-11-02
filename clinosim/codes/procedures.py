@@ -12,16 +12,15 @@ from functools import cache
 from pathlib import Path
 from typing import Any
 
-import yaml
-
 from clinosim.codes.loader import display
+from clinosim.datafiles import load_data_yaml
 
 _DATA_FILE = Path(__file__).parent / "data" / "clinosim-procedure-catalog.yaml"
 
 
 @cache
 def _catalog() -> dict[str, Any]:
-    return yaml.safe_load(_DATA_FILE.read_text(encoding="utf-8")) or {}
+    return load_data_yaml(_DATA_FILE)
 
 
 def bedside_procedures() -> tuple[dict[str, Any], ...]:

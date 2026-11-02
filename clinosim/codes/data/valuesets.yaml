@@ -14,6 +14,11 @@
 # evaluators resolve a name the same way (Issue #2285). When two meanings are
 # needed, they get distinct names (prior_MI vs pre_existing_cardiac_disease,
 # liver_cirrhosis vs liver_disease).
+metadata:
+  kind: value-set
+  name: valuesets
+  source: clinosim
+
 groups:
   # --- Severity-modifier patient conditions (modules/disease/severity.py) ---
   # Issue #2281: every diabetes type (T1 E10, T2 E11, other specified E13);

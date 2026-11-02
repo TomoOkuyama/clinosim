@@ -2,6 +2,7 @@
 # displays verified on tx.fhir.org $lookup (THO 1.0.1); `ja` is a clinosim
 # translation (the CodeSystem has no Japanese designation).
 metadata:
+  kind: code-system
   name: HL7 Reference Range Meaning
   uri: http://terminology.hl7.org/CodeSystem/referencerange-meaning
   source: "HL7 Terminology (THO)"

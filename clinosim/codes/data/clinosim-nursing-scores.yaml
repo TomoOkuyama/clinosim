@@ -20,6 +20,7 @@
 # LOINC lacks an active canonical) land here without introducing a fresh
 # CodeSystem per score.
 metadata:
+  kind: code-system
   name: clinosim Nursing / Early-Warning Scores
   uri: http://clinosim.dev/fhir/CodeSystem/nursing-scores
   source: "clinosim — internal codes for nursing scores without a canonical LOINC 2.82 entry"

@@ -23,6 +23,7 @@ Japanese counterpart: [`code-mapping-and-localization-spec.ja.md`](code-mapping-
 | Authority code systems | `clinosim/codes/` | registered codes, URIs, displays, value sets, the drug / procedure / role catalogs, UCUM, JIS X 0401, named SNOMED concepts | `clinosim.countries` only (no `clinosim.locale`, no `clinosim.modules`) |
 | Country and display data | `clinosim/locale/` | per-country code mappings, display tables for non-code vocabularies, translation tables, the phrase catalog | `clinosim.codes`, `clinosim.countries` |
 | Language selection | `clinosim/countries.py` | country → language, language-tag normalization (§5.1) | nothing in clinosim |
+| Data files | `clinosim/datafiles.py` | the one data-YAML reader (`load_data_yaml`, `data_metadata`) and the list of kinds (§3.1) | nothing in clinosim |
 | Consumers | `clinosim/modules/`, `clinosim/simulator/`, `clinosim/eval/`, `clinosim/audit/`, `clinosim/benchmarks/` | decision logic, emitters | the layers above, only through the functions in §4 |
 
 ### 2.2 One authority, one set of files
@@ -84,7 +85,7 @@ These rules apply to every data YAML under `clinosim/codes/data/`, `clinosim/loc
 5. **Style.** Two-space indent, no tabs, no anchors or aliases. An entry that fits on one line uses flow style (`office: {en: Office worker, ja: 事務職}`); an entry with nested fields uses block style.
 6. **Order.** Entries are ordered by key unless the order carries meaning; when it does, `metadata` says so (for example the YJ route-class order in `drugs.yaml`, §3.5).
 7. **Editing.** Files are edited by hand or by a script that edits text in place. Loading and re-dumping a file is not allowed, because it drops every comment. A generated file says in its header which script and source produced it.
-8. **Validation.** Each kind has a schema, and a test validates every file against it. A loader rejects unknown fields instead of ignoring them.
+8. **Reading and validation.** Every data file is parsed by `clinosim.datafiles.load_data_yaml`, which returns the content without the `metadata` header (the header is not a section); `data_metadata` returns the header. A test checks every file's `kind` and where it lives, and a loader rejects unknown fields instead of ignoring them.
 
 ### 3.2 Kinds and where they live
 
@@ -396,7 +397,7 @@ These rules are common to every resolver in §4, in both layers.
 | No Japanese in non-JP output, no Japanese literals in Python | `tests/unit/test_no_japanese_fallback_2273.py`, `tests/unit/test_no_japanese_literals_2277.py`, `tests/unit/test_narrative_literals_2400.py`, `tests/unit/test_module_literals_2406.py`, `tests/unit/test_simulator_literals_2405.py`, `tests/unit/output/test_fhir_lib_literals_2402.py`, `tests/unit/output/test_fhir_lab_condition_literals_2403.py`, `tests/unit/output/test_fhir_emitter_literals_2404.py` |
 | A third country is not treated as the US | `tests/unit/test_third_country_fallbacks_2203.py` |
 | `CodeSystem` / `LocalizedTable` operations not overridden; every display-table entry has English | `tests/unit/codes/test_code_system_base_2470.py`, `tests/unit/locale/test_localized_table_2471.py` |
-| YAML header and schema per kind | none yet (§11) |
+| Every data YAML has a `metadata.kind` that belongs where it lives; data YAML is parsed by `clinosim.datafiles` (ratchets pinned to #2494, #2495) | `tests/unit/test_data_yaml_conventions_2465.py` |
 
 ## 11. Known deviations
 
@@ -405,4 +406,5 @@ These parts of the code base do not yet conform. Each one is removed by the issu
 | Deviation | Issue |
 |---|---|
 | Narrative renderers gate Japanese-only pipelines (chief-complaint variants, CC/PE consistency, daily trajectory, JP code choices) on the language literal (18 comparisons in 12 files) | #2483 |
-| Data YAMLs lack the `metadata.kind` header and per-kind schema validation (§3.1) | #2465 |
+| Modules parse their own YAML with `yaml.safe_load` instead of `clinosim.datafiles`; module reference-data files have no `metadata` header (§3.1) | #2494 |
+| Reference data sits in `locale/shared` (22 files) and `codes/data` (1 file) instead of the owning module's `reference_data/` (§3.2) | #2495 |

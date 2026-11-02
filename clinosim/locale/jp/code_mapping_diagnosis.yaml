@@ -11,6 +11,11 @@
 # --- Chronic conditions ---
 # Identity (WHO 3-char leaves — no 4-char subclassification, or intentionally
 # preserved because the CIF has no finer intent than the category root).
+metadata:
+  kind: country-mapping
+  name: code_mapping_diagnosis
+  source: clinosim
+
 I10: "I10"
 E11.9: "E11.9"
 E10: "E10"

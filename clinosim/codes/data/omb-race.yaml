@@ -11,6 +11,7 @@
 # a canonical JA equivalent — the display lookup falls through to EN
 # via resolve_localized_display's standard chain.
 metadata:
+  kind: code-system
   name: OMB Race Categories (CDC race+ethnicity CodeSystem)
   uri: urn:oid:2.16.840.1.113883.6.238
   version: '2024'

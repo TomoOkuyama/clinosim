@@ -10,6 +10,7 @@
 # 2.16.840.1.113883.6.238); HL7 US Core Patient value set
 # http://hl7.org/fhir/us/core/StructureDefinition-us-core-ethnicity.html.
 metadata:
+  kind: code-system
   name: OMB Ethnicity Categories (CDC race+ethnicity CodeSystem)
   uri: urn:oid:2.16.840.1.113883.6.238
   version: '2024'

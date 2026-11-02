@@ -30,6 +30,11 @@
 # exclusive oral home meds. First consumer (Issue #1329): fluoropyrimidine
 # — a patient on active FOLFOX must not also receive Capecitabine (oral
 # 5-FU pro-drug) as a chronic home med (double 5-FU exposure).
+metadata:
+  kind: reference
+  name: chemo_regimens
+  source: clinosim
+
 regimens:
   FOLFOX:                                # colorectal adjuvant
     cycle_interval_days: 14

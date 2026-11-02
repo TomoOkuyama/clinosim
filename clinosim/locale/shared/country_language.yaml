@@ -10,6 +10,11 @@
 # The default when a country code has no entry is ``en`` (the
 # canonical universal fallback used across the codebase).
 
+metadata:
+  kind: reference
+  name: country_language
+  source: clinosim
+
 country_language:
   jp: ja
   us: en

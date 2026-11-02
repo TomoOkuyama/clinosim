@@ -28,6 +28,7 @@
 #   - Change to allergen sampling in `modules/allergy/engine.py`.
 
 metadata:
+  kind: translation-table
   name: clinosim Allergen / Substance Display Catalog
   description: >
     EN → JA display mapping for free-text allergen and substance names.
