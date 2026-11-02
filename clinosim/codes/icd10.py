@@ -7,7 +7,7 @@ the clinical short name and the MEDIS 病名管理番号 through these functions
 instead of re-coding the country choice or reading the data YAMLs.
 
 Display resolution follows :func:`clinosim.codes.loader.display`: exact code,
-its category (:class:`Icd10CodeSystem`) and child codes in the system, then its declared sibling (``icd-10`` /
+its category (:class:`Icd10CodeSystem`) in the system, then its declared sibling (``icd-10`` /
 ``icd-10-mhlw`` ↔ ``icd-10-cm``), in ``lang`` then English. A miss is ``None``.
 """
 

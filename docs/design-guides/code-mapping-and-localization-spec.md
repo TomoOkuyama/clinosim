@@ -261,7 +261,7 @@ The `CodeSystem` base class (§2.3) resolves every system in this order:
 1. The exact code in the system.
 2. The codes returned by the system's `parents` hook (`E11.9` → `E11`): generalizations of the code, which are still true of it.
 3. Steps 1–2 in each lookup sibling of the system (§3.3).
-4. Otherwise `None`. A display of a more specific child code is never used for a less specific code (§11).
+4. Otherwise `None`. A display of a more specific child code is never used for a less specific code: a category the generator looks up is registered itself.
 
 The language of the entry is chosen by §6: the requested language, then the same code's entry in that language in a lookup sibling, then English, then `None`.
 
@@ -402,7 +402,6 @@ These parts of the code base do not yet conform. Each one is removed by the issu
 | Deviation | Issue |
 |---|---|
 | Display tables are loaded by separate functions with their own miss handling, not by `LocalizedTable` (§2.3) | #2471 |
-| `display` / `code_exists` fall back to the first registered child of a code (§4.4) | #2454 |
 | Narrative renderers gate Japanese-only pipelines (chief-complaint variants, CC/PE consistency, daily trajectory, JP code choices) on the language literal (18 comparisons in 12 files) | #2483 |
 | `codes/data/fhir-ja-labels.yaml` is a Japanese-only second table for routes, frequencies and fixed labels (§5.3) | #2459 |
 | Slug-keyed display tables have entries without `en` (§6.5) | #2460 |
