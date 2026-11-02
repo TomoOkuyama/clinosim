@@ -19,6 +19,7 @@ from clinosim.locale.loader import (
     load_practitioner_qualifications,
     role_display,
 )
+from clinosim.locale.localized import localized
 from clinosim.modules._shared import is_jp, is_us, resolve_lang
 from clinosim.modules.output.fhir_r4.lib.common import system_coding
 from clinosim.modules.output.fhir_r4.lib.localization import _ROLE_PREFIX_MAP_JA
@@ -372,7 +373,7 @@ def _role_qualification_en(role: str) -> dict[str, str] | None:
     qual = (load_clinician_roles().get(role) or {}).get("qualification")
     if not isinstance(qual, dict) or not qual.get("code"):
         return None
-    return {"qual_code": str(qual["code"]), "qual_display": str(qual.get("display_en") or qual.get("display") or "")}
+    return {"qual_code": str(qual["code"]), "qual_display": localized(qual.get("display") or {}, "en")}
 
 
 def _build_practitioner_role(
