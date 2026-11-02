@@ -52,7 +52,7 @@ _RATCHET = {
     "modules/llm_service/engine.py": (1, 2457),
     "modules/llm_service/prompt_registry.py": (1, 2457),
     "modules/output/fhir_r4/documents/composition.py": (2, 2457),
-    "modules/output/fhir_r4/labs/imaging_study.py": (2, 2457),
+    "modules/output/fhir_r4/labs/imaging_study.py": (1, 2457),
     "modules/output/fhir_r4/labs/microbiology.py": (1, 2457),
     "modules/output/hospital_course_extractor.py": (3, 2457),
 }

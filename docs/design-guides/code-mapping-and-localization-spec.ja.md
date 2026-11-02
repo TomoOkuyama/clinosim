@@ -409,7 +409,6 @@ occupation:
 | 自由文字列用の解決関数 (§4.3) が日本語しか扱えない | #2458 |
 | `codes/data/fhir-ja-labels.yaml` が、経路・頻度・固定ラベルの日本語だけの 2 つ目の表になっている (§5.3) | #2459 |
 | slug をキーにした表示表に `en` の無いエントリがある (§6.5) | #2460 |
-| `chief_complaint_translations.yaml` が、プロトコルの文字列を英語の文をキーにして訳している (§3.9) | #2461 |
 | `clinosim-clinician-role.yaml`、`perinatal.yaml`、`chronic_followup.yaml`、`pregnancy_substitutions.yaml` が言語の接尾辞付きのフィールド名を使っている (§3.1) | #2462 |
 | JLAC10 / JP-CLINS の参照が汎用ローダに、MEDIS が ICD-10 のモジュールにあり、YJ / HOT は薬カタログのモジュールからしか引けない (§2.2) | #2463 |
 | `codes/hl7_encounter.py` が HL7 の 3 つの語彙を StrEnum で書き写している (§9) | #2464 |

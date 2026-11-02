@@ -50,7 +50,6 @@ def _clear_hai_caches():
     load_devices_config.cache_clear()
     _load_system.cache_clear()
     snomed_map.cache_clear()  # SNOMED internal-key maps (Issue #2379)
-    locale_loader.load_chief_complaint_translations.cache_clear()  # Phase 3.β.1
     load_devices_config()  # pre-warm with real yaml (before monkeypatch)
     _load_system("icd-10-cm")  # pre-warm icd-10-cm.yaml (_validate_hai_codes)
     _load_system("icd-10")  # pre-warm icd-10.yaml (JP WHO ICD-10, _validate_hai_codes)
@@ -59,7 +58,6 @@ def _clear_hai_caches():
     _load_system("loinc")  # pre-warm loinc.yaml (_validate_hai_specimens test_loinc cross-ref)
     for _kind in ("abo", "rh", "cchd_site", "encounter_type", "oxygen_device", "stage"):
         snomed_map(_kind)  # pre-warm snomed-maps.yaml
-    locale_loader.load_chief_complaint_translations()  # pre-warm chief_complaint_translations.yaml
     _load_system("omb-race")  # Phase 3.γ pre-warm
     _load_system("omb-ethnicity")  # Phase 3.γ pre-warm
     yield

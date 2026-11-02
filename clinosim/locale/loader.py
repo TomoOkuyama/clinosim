@@ -12,7 +12,7 @@ Directory structure (country-based):
       (same shape as jp/)
     shared/
       naming_rules.yaml, chronic_medications.yaml, chronic_followup.yaml,
-      narrative_*.yaml, chief_complaint_translations.yaml
+      narrative_*.yaml
 
 Note: `drug_names_ja.yaml` was deleted under META #1849 Phase 5 Step 4
 (2026-10-24). The drug-name EN→JA display mapping now lives in the
@@ -97,7 +97,6 @@ from clinosim.locale.loaders.narrative import (
     imaging_exam_display,
     lab_display,
     load_allergen_display_dict,
-    load_chief_complaint_translations,
     load_drug_display_dict,
     load_inpatient_subjective_pool,
     load_lab_display,
@@ -134,7 +133,6 @@ __all__ = [
     "load_ambulatory_visit_length",
     "load_chemo_regimens",
     "load_chronic_age_limits",
-    "load_chief_complaint_translations",
     "chronic_followup_interval_months",
     "chronic_followup_vitals",
     "load_chronic_followup",

@@ -33,7 +33,7 @@ from typing import Any
 from clinosim.codes import get_system_uri
 from clinosim.codes import lookup as code_lookup
 from clinosim.locale.loader import imaging_exam_display
-from clinosim.locale.localized import localized
+from clinosim.locale.localized import localized_field
 from clinosim.modules._shared import get_attr_or_key as _o
 from clinosim.modules._shared import resolve_lang
 from clinosim.modules.imaging.engine import (  # canonical owners; re-exported below
@@ -138,13 +138,12 @@ def _bb_imaging_studies(ctx: BundleContext) -> list[dict[str, Any]]:
             # look up the encounter's primary Condition.code at ImagingStudy
             # emit is out of scope here. Instead attach a chief-complaint text
             # from the Encounter which is already carried on Encounter model.
-            _cc = _enc.get("chief_complaint", "") if isinstance(_enc, dict) else getattr(_enc, "chief_complaint", "")
+            # The chief complaint in the output language: the encounter's
+            # `chief_complaint_<lang>` (filled from the protocol's own
+            # language map), else the English `chief_complaint` (Issue #2461).
+            _cc = localized_field(_enc, "chief_complaint", lang)
             if _cc:
-                # Issue #872: localize the CIF-canonical EN chief-complaint to
-                # JA on JP output. No-op on US output. Unknown-in-dict values
-                # pass through unchanged (preserves the 1,127 already-JA
-                # records from the 2026-08-26 deploy verify).
-                _enc_reason_by_id[_eid] = [{"text": _localize_chief_complaint(_cc, lang)}]
+                _enc_reason_by_id[_eid] = [{"text": _cc}]
     return [_build_imaging_study(s, lang, _enc_reason_by_id) for s in studies]
 
 
@@ -327,34 +326,6 @@ def _build_imaging_study(
             _stub_desc = imaging_exam_display(_stub_desc, lang)
             res["description"] = _stub_desc
     return res
-
-
-# Issue #872 — chief-complaint text SoT lives in
-# ``clinosim/locale/shared/chief_complaint_translations.yaml``
-# (Phase 3.β.1). _localize_chief_complaint reads via
-# load_chief_complaint_translations.
-
-
-def _localize_chief_complaint(text: str, lang: str) -> str:
-    """Return the JA form of an English CIF chief-complaint (Issue #872).
-
-    Only invoked on JP output. Case-sensitive exact-match against the
-    ``chief_complaint_translations.yaml`` SoT (Phase 3.β.1 externalised
-    the pre-fix ``_CHIEF_COMPLAINT_JA`` module-local dict); unknown
-    values pass through unchanged so JA-authored chief complaints (the
-    1,127 / 4,735 records already in JA per the 2026-08-26 deploy) are
-    preserved as-is, and new EN phrases the yaml does not yet cover
-    degrade gracefully to the CIF text rather than a placeholder. US
-    output is a no-op.
-    """
-    if lang != "ja" or not text:
-        return text
-    from clinosim.locale.loader import load_chief_complaint_translations
-
-    row = load_chief_complaint_translations().get(text)
-    if not isinstance(row, dict):
-        return text
-    return localized(row, "ja", fallback=text)
 
 
 def _build_series(series: Any, lang: str) -> dict[str, Any]:
