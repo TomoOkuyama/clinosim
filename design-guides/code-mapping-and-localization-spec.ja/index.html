@@ -3031,7 +3031,7 @@
 <tr>
 <td>職種</td>
 <td><code>codes/data/clinosim-clinician-role.yaml</code></td>
-<td><code>&lt;role&gt;: {title: {en, ja}, staff_prefix, suffix, practitioner_role, qualification: {code, display}}</code> (<code>suffix</code> と <code>qualification.display</code> は言語マップ、§11)</td>
+<td><code>&lt;role&gt;: {title: {en, ja}, staff_prefix, suffix: {en, ja}, practitioner_role, qualification: {code, display: {en, ja}}}</code></td>
 </tr>
 <tr>
 <td>診療科</td>
@@ -3570,10 +3570,6 @@
 <tr>
 <td>narrative のレンダラが、日本語だけの処理 (主訴バリエーション、CC/PE 整合、daily trajectory、JP のコード選択) を言語リテラルで切り替えている (12 ファイル 18 箇所)</td>
 <td>#2483</td>
-</tr>
-<tr>
-<td><code>clinosim-clinician-role.yaml</code>、<code>perinatal.yaml</code>、<code>chronic_followup.yaml</code>、<code>pregnancy_substitutions.yaml</code> が言語の接尾辞付きのフィールド名を使っている (§3.1)</td>
-<td>#2462</td>
 </tr>
 <tr>
 <td>データ YAML に <code>metadata.kind</code> のヘッダと kind ごとの schema 検証が無い (§3.1)</td>
