@@ -3558,7 +3558,7 @@
 <td><code>tests/unit/codes/test_code_system_base_2470.py</code>、<code>tests/unit/locale/test_localized_table_2471.py</code></td>
 </tr>
 <tr>
-<td>すべてのデータ YAML が置き場所に合った <code>metadata.kind</code> を持ち、<code>clinosim.datafiles</code> で読まれる (#2494 に紐づけたラチェット)</td>
+<td>すべてのデータ YAML が置き場所に合った <code>metadata.kind</code> を持ち、<code>clinosim.datafiles</code> で読まれる (設定ファイルは除く)</td>
 <td><code>tests/unit/test_data_yaml_conventions_2465.py</code></td>
 </tr>
 </tbody>
@@ -3578,8 +3578,8 @@
 <td>#2483</td>
 </tr>
 <tr>
-<td>モジュールが <code>clinosim.datafiles</code> ではなく <code>yaml.safe_load</code> で直接 YAML を読んでいる。モジュールの参照データに <code>metadata</code> ヘッダが無い (§3.1)</td>
-<td>#2494</td>
+<td>モジュールの参照データ YAML (<code>**/reference_data/*.yaml</code>、149 ファイル中 130) に <code>metadata</code> ヘッダが無く、規約テストの対象外 (§3.1)</td>
+<td>#2500</td>
 </tr>
 </tbody>
 </table>

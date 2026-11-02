@@ -3558,7 +3558,7 @@
 <td><code>tests/unit/codes/test_code_system_base_2470.py</code>, <code>tests/unit/locale/test_localized_table_2471.py</code></td>
 </tr>
 <tr>
-<td>Every data YAML has a <code>metadata.kind</code> that belongs where it lives; data YAML is parsed by <code>clinosim.datafiles</code> (ratchet pinned to #2494)</td>
+<td>Every data YAML has a <code>metadata.kind</code> that belongs where it lives; data YAML is parsed by <code>clinosim.datafiles</code> (configuration files excepted)</td>
 <td><code>tests/unit/test_data_yaml_conventions_2465.py</code></td>
 </tr>
 </tbody>
@@ -3578,8 +3578,8 @@
 <td>#2483</td>
 </tr>
 <tr>
-<td>Modules parse their own YAML with <code>yaml.safe_load</code> instead of <code>clinosim.datafiles</code>; module reference-data files have no <code>metadata</code> header (§3.1)</td>
-<td>#2494</td>
+<td>Module reference-data YAMLs (<code>**/reference_data/*.yaml</code>, 130 of 149) have no <code>metadata</code> header and are outside the conventions test (§3.1)</td>
+<td>#2500</td>
 </tr>
 </tbody>
 </table>
