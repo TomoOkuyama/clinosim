@@ -176,7 +176,7 @@ def get_current_diagnosis_code(
     by probability so this walk consumes no RNG state (safe for cross-
     platform bit-reproducibility per memory
     ``feedback_deterministic_rng_proxy_pattern``). Lock list lives at
-    ``clinosim/locale/shared/icd10_sex_restrictions.yaml``.
+    ``clinosim/simulator/reference_data/icd10_sex_restrictions.yaml``.
 
     Falling back to the top (locked) code would emit an anatomically-
     impossible Condition — six such records were observed pre-fix

@@ -100,7 +100,7 @@
 | `display-table` | 内部 slug → 表示名 (コードを持たない語彙) | `locale/shared/<vocabulary>.yaml` (§3.7) |
 | `translation-table` | 英語の元文字列 → 他の言語 (生成器が英語の自由文字列で書くもの) | `locale/shared/` |
 | `phrase-catalog` | 文テンプレート | `locale/shared/narrative_phrases.yaml` (§3.8) |
-| `reference` | 閾値、キーワード一覧、コードでも表示でもない内容 | `modules/<module>/reference_data/` |
+| `reference` | 閾値、キーワード一覧、コードでも表示でもない内容 | 規則を持つモジュールの `<module>/reference_data/`。locale 層がローダー (`load_chronic_followup` など) で多くのモジュールに提供するものは `locale/shared/` |
 
 `codes/data` に置くのは `code-system`、`map`、`crosswalk`、`catalog`、`value-set` だけとする。
 
@@ -397,7 +397,7 @@ occupation:
 | 日本語以外の出力に日本語を出さない、Python に日本語リテラルを書かない | `tests/unit/test_no_japanese_fallback_2273.py`、`tests/unit/test_no_japanese_literals_2277.py`、`tests/unit/test_narrative_literals_2400.py`、`tests/unit/test_module_literals_2406.py`、`tests/unit/test_simulator_literals_2405.py`、`tests/unit/output/test_fhir_lib_literals_2402.py`、`tests/unit/output/test_fhir_lab_condition_literals_2403.py`、`tests/unit/output/test_fhir_emitter_literals_2404.py` |
 | 第三国を米国扱いしない | `tests/unit/test_third_country_fallbacks_2203.py` |
 | `CodeSystem` / `LocalizedTable` の処理を上書きしない。表示表のすべてのエントリが英語を持つ | `tests/unit/codes/test_code_system_base_2470.py`、`tests/unit/locale/test_localized_table_2471.py` |
-| すべてのデータ YAML が置き場所に合った `metadata.kind` を持ち、`clinosim.datafiles` で読まれる (#2494、#2495 に紐づけたラチェット) | `tests/unit/test_data_yaml_conventions_2465.py` |
+| すべてのデータ YAML が置き場所に合った `metadata.kind` を持ち、`clinosim.datafiles` で読まれる (#2494 に紐づけたラチェット) | `tests/unit/test_data_yaml_conventions_2465.py` |
 
 ## 11. 既知の逸脱
 
@@ -407,4 +407,3 @@ occupation:
 |---|---|
 | narrative のレンダラが、日本語だけの処理 (主訴バリエーション、CC/PE 整合、daily trajectory、JP のコード選択) を言語リテラルで切り替えている (12 ファイル 18 箇所) | #2483 |
 | モジュールが `clinosim.datafiles` ではなく `yaml.safe_load` で直接 YAML を読んでいる。モジュールの参照データに `metadata` ヘッダが無い (§3.1) | #2494 |
-| 参照データが、持ち主のモジュールの `reference_data/` ではなく `locale/shared` (22 ファイル) と `codes/data` (1 ファイル) にある (§3.2) | #2495 |

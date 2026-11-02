@@ -207,11 +207,13 @@ _DRUG_PRN_MHLW_CODE: dict[str, tuple[str, str]] = _drug_prn_mhlw_code()
 
 
 # MHLW eCS non-oral route markers live in
-# `clinosim/codes/data/mhlw-ecs-non-oral-route-markers.yaml` (Finding 3).
+# `fhir_r4/reference_data/mhlw-ecs-non-oral-route-markers.yaml` (Finding 3).
 @cache
 def _non_oral_route_markers() -> frozenset[str]:
 
-    raw = data_table("mhlw-ecs-non-oral-route-markers")
+    raw = load_reference_yaml(
+        Path(__file__).resolve().parents[1] / "reference_data" / "mhlw-ecs-non-oral-route-markers.yaml"
+    )
     return frozenset(str(m) for m in (raw.get("non_oral_route_markers", []) or []))
 
 

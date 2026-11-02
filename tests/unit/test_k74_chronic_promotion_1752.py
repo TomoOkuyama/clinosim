@@ -11,7 +11,7 @@ scan showed 100 % of US K74 patients (42/42) carrying empty
 ``stage=""`` on their chronic_conditions row.
 
 Fix: add ``K70`` + ``K74`` to the propagation allowlist (now
-``locale/shared/chronic_propagation.yaml``, read through
+``simulator/reference_data/chronic_propagation.yaml``, read through
 ``chronic_code_from_discharge``; Issue #2284). The
 longitudinal engine's `_attribute_in_scope` + the stage-writeback
 path then dispatch the initial Child-Pugh draw on the next

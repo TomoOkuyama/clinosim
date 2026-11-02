@@ -33,7 +33,7 @@ from clinosim.types.patient import PatientProfile
 
 def renal_hold_drugs() -> frozenset[str]:
     """Drugs held at discharge when renal function is impaired: the shared
-    renal drug list (``locale/shared/renal_medication_rules.yaml``; Issue
+    renal drug list (``simulator/reference_data/renal_medication_rules.yaml``; Issue
     #2296), used with ``final_renal_function < DISCHARGE_RENAL_HOLD_THRESHOLD``
     (KDIGO stage 3b+ CKD or active AKI)."""
     from clinosim.simulator.medication_pipeline import renal_medication_rules

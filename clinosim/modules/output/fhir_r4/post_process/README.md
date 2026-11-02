@@ -62,7 +62,7 @@ resource — not as a separate pass over an assembled bundle.
     `MedicationUsage_ePrescription` code. The resolver dispatch order
     is: (1) **route filter** — non-oral routes
     (`_non_oral_route_markers()`, loaded from
-    `clinosim/codes/data/mhlw-ecs-non-oral-route-markers.yaml`: 静注/皮下注/筋注/吸入/舌下/貼付/塗布/
+    `clinosim/modules/output/fhir_r4/reference_data/mhlw-ecs-non-oral-route-markers.yaml`: 静注/皮下注/筋注/吸入/舌下/貼付/塗布/
     点眼/直腸/経腸/etc.) always return dummy because the MHLW oral CS
     has no code family for them, (2) **PRN condition codes**
     (アセトアミノフェン→発熱時、サルブタモール→喘息発作時) via

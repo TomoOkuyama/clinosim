@@ -450,7 +450,7 @@ def _build_newborn_patient(
         sex=sex,
         date_of_birth=delivery_date,
         # Anthropometrics are age-appropriate infant defaults —
-        # locale/shared/anthropometric_reference.yaml handles per-age
+        # modules/population/reference_data/anthropometric_reference.yaml handles per-age
         # medians on emit; here we set the Layer-2 profile fallback
         # values so any consumer reading patient.height_cm / weight_kg
         # sees a plausible newborn (~50 cm / ~3.2 kg).

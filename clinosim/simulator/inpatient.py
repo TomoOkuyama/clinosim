@@ -271,7 +271,7 @@ def _attach_implied_chronic_conditions(
     Extracted from ``_simulate_patient`` per META #1633 P6.
     """
     # Issue #947: sex-lock table lives in
-    # ``clinosim/locale/shared/icd10_sex_restrictions.yaml`` and is
+    # ``clinosim/simulator/reference_data/icd10_sex_restrictions.yaml`` and is
     # consulted via ``clinosim.simulator.sex_gating.is_sex_locked_for`` so
     # every anatomy-locked code (N40 BPH, N41 prostatitis, N70–N77 female
     # PID, O00–O9A pregnancy, C50–C63 sex-specific malignancies) is covered.
@@ -765,7 +765,7 @@ def _simulate_patient(
     # Issue #1066: run admission_orders through the drug_safety CPOE-style
     # gate. Contraindicated / major DDI candidates are dropped (with
     # alternative substituted where the disease YAML alternative_* block
-    # or locale/shared/drug_substitution.yaml supplies one). Moderate DDI
+    # or modules/drug_safety/reference_data/drug_substitution.yaml supplies one). Moderate DDI
     # candidates are kept with a caution note attached. Home meds and
     # already-accepted acute drugs form the active-med set. See
     # docs/superpowers/specs/2026-09-03-drug-safety-module-design.md.

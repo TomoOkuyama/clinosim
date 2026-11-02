@@ -118,4 +118,4 @@ def test_disease_ctx_falls_back_to_shared_pool_on_unknown_indication() -> None:
     )
     assert alt is not None
     assert alt.drug == "Acetaminophen"
-    assert "locale/shared/drug_substitution.yaml" in alt.source_path
+    assert "modules/drug_safety/reference_data/drug_substitution.yaml" in alt.source_path

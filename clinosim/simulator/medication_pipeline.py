@@ -127,9 +127,9 @@ def renal_medication_rules() -> dict[str, str]:
     ("hold" / "reduce") for renal impairment, from
     ``renal_medication_rules.yaml`` (Issue #2296; keyed by identity, #2377)."""
     from clinosim.codes.drugs import drug_key
-    from clinosim.locale._io import _LOCALE_DIR, _load_yaml
+    from clinosim.datafiles import load_data_yaml
 
-    data = _load_yaml(_LOCALE_DIR / "shared" / "renal_medication_rules.yaml", {}) or {}
+    data = load_data_yaml(Path(__file__).resolve().parent / "reference_data" / "renal_medication_rules.yaml")
     return {drug_key(str(k)): str(v) for k, v in (data.get("renal_drugs") or {}).items()}
 
 

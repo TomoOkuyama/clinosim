@@ -22,7 +22,7 @@ the RNG happened to pick it. Six female patients ended up with
 
 Fix pattern:
 
-* Move the lock list to ``clinosim/locale/shared/icd10_sex_restrictions.yaml``
+* Move the lock list to ``clinosim/simulator/reference_data/icd10_sex_restrictions.yaml``
   (non-engineer-editable, single source of truth).
 * Every dispatch site funnels through this helper — no local per-file
   tables, no per-code inline branches.
@@ -44,8 +44,7 @@ from typing import Any
 
 import yaml
 
-_LOCALE_DIR = Path(__file__).resolve().parents[1] / "locale"
-_YAML_PATH = _LOCALE_DIR / "shared" / "icd10_sex_restrictions.yaml"
+_YAML_PATH = Path(__file__).resolve().parent / "reference_data" / "icd10_sex_restrictions.yaml"
 
 
 @lru_cache(maxsize=1)
