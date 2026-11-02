@@ -216,7 +216,7 @@ chronic_prevalence:
   # Target marginal prevalence for active cancer + on-treatment survivors on
   # the problem list. Sources: SEER Cancer Statistics 2020 (5yr survivor
   # prevalence rates), CDC Cancer Registries. C61 (prostate) is male-only
-  # via clinosim/locale/shared/icd10_sex_restrictions.yaml; C50 (breast)
+  # via clinosim/simulator/reference_data/icd10_sex_restrictions.yaml; C50 (breast)
   # uses ``by_sex`` because it emits at meaningfully different rates for
   # females vs males (Issue #957).
   # "Chronic" here means persistent problem-list entry with follow-up; true

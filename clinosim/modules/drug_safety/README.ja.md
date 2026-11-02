@@ -24,7 +24,7 @@ rule engine によって 0 件に低減する。薬剤 × 疾患状態
 - 年齢 / 性別 gate (`demographic_gates.yaml`、Issue #1316 / #1328)、
   ICD prefix の `exception_indications` で bypass。
 - 代替薬 substitution: Issue #437 の dead-data `alternative_*` block
-  を revive + 新規 `locale/shared/drug_substitution.yaml`。
+  を revive + 新規 `modules/drug_safety/reference_data/drug_substitution.yaml`。
 - CIF trace (`PatientProfile.safety_skip_log`)。
 - Narrative 統合 (4 layer 全て)。
 - MedicationRequest.note[] passthrough (moderate DDI caution)。

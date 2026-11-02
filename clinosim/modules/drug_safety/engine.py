@@ -28,7 +28,7 @@ from clinosim.modules.drug_safety.verdict import (
 _HERE = Path(__file__).resolve().parent
 _CONTRAINDICATIONS_YAML = _HERE / "reference_data" / "contraindications.yaml"
 _DISEASE_CONTRAINDICATIONS_YAML = _HERE / "reference_data" / "disease_contraindications.yaml"
-_SHARED_SUBSTITUTION_YAML = _HERE.parents[1] / "locale" / "shared" / "drug_substitution.yaml"
+_SHARED_SUBSTITUTION_YAML = _HERE / "reference_data" / "drug_substitution.yaml"
 
 
 @dataclass(frozen=True)
@@ -38,7 +38,8 @@ class AlternativeDrug:
     default_dose: str
     default_route: str
     default_frequency: str
-    source_path: str  # yaml provenance, e.g. "locale/shared/drug_substitution.yaml#pain_management[0]"
+    # yaml provenance, e.g. "modules/drug_safety/reference_data/drug_substitution.yaml#pain_management[0]"
+    source_path: str
 
 
 _ALLOWED = SafetyVerdict(
@@ -299,7 +300,7 @@ def _shared_pool_pick(indication: str, active_meds: Sequence[str]) -> Alternativ
             default_dose=entry.get("default_dose", ""),
             default_route=entry.get("default_route", "PO"),
             default_frequency=entry.get("default_frequency", "daily"),
-            source_path=(f"locale/shared/drug_substitution.yaml#{indication}[{idx}]"),
+            source_path=(f"modules/drug_safety/reference_data/drug_substitution.yaml#{indication}[{idx}]"),
         )
     return None
 
@@ -316,7 +317,7 @@ def suggest_alternative(
 
     Priority order:
       1. disease_ctx alternatives (``alternatives_by_indication``) matching ``indication``
-      2. locale/shared/drug_substitution.yaml[indication].alternatives
+      2. modules/drug_safety/reference_data/drug_substitution.yaml[indication].alternatives
       3. None (fully skipped — caller must handle)
 
     Every returned alternative has been re-checked via check_pair against

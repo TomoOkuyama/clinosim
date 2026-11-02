@@ -2,7 +2,7 @@
 
 YAML schemas for the drug_safety module. All four files
 (`contraindications.yaml`, `disease_contraindications.yaml`,
-`demographic_gates.yaml` here, plus `locale/shared/drug_substitution.yaml`)
+`demographic_gates.yaml` here, plus `modules/drug_safety/reference_data/drug_substitution.yaml`)
 are consumed via
 `PyYAML.safe_load` on first use (cached via `functools.lru_cache`).
 
@@ -62,7 +62,7 @@ Matching:
 
 `substitution_hint` names an indication tag that `suggest_alternative`
 uses as a prior when picking a replacement drug from
-`../../../locale/shared/drug_substitution.yaml` or from the
+`../../../modules/drug_safety/reference_data/drug_substitution.yaml` or from the
 disease YAML `alternative_*` blocks.
 
 Severity → default action:
@@ -118,7 +118,7 @@ rules:
 When several rules fire, the highest-severity verdict wins (ties: first
 rule).
 
-## `../../../locale/shared/drug_substitution.yaml`
+## `../../../modules/drug_safety/reference_data/drug_substitution.yaml`
 
 Generic indication → alternative drug pool. Consulted after
 disease-YAML `alternative_*` blocks (via `_indication_tag`) and before
@@ -147,7 +147,7 @@ re-checks each candidate against the caller's active meds via
    guideline. Set `substitution_hint` when a natural indication tag
    exists.
 3. If the substitution_hint is new, add it to
-   `locale/shared/drug_substitution.yaml` (or add an
+   `modules/drug_safety/reference_data/drug_substitution.yaml` (or add an
    `_indication_tag` marker to a disease YAML `alternative_*` block
    if one exists for the disease scope).
 4. Add a unit test asserting `check_pair(drug_a, drug_b).severity ==

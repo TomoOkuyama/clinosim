@@ -12,7 +12,7 @@ O00–O9A pregnancy, C50–C63 sex-specific malignancies) was silently
 emit-able onto opposite-sex patients whenever the RNG happened to pick it.
 
 Fix: canonical lock list lives at
-``clinosim/locale/shared/icd10_sex_restrictions.yaml``; every dispatch
+``clinosim/simulator/reference_data/icd10_sex_restrictions.yaml``; every dispatch
 site funnels through ``clinosim.simulator.sex_gating.is_sex_locked_for``.
 Differential picker walks candidates (non-RNG); static tables skip.
 

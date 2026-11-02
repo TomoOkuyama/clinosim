@@ -26,7 +26,7 @@ and drug-vs-age/sex (`check_demographic_gate`) contraindications.
 - Demographic (age / sex) gate (`demographic_gates.yaml`, Issues
   #1316 / #1328) with ICD-prefix `exception_indications` bypass.
 - Alternative substitution: revives Issue #437 dead-data `alternative_*`
-  blocks in disease YAML + new `locale/shared/drug_substitution.yaml`
+  blocks in disease YAML + new `modules/drug_safety/reference_data/drug_substitution.yaml`
   generic pool.
 - CIF trace via `PatientProfile.safety_skip_log` (per-patient list of
   `SafetySkipEntry` records).
@@ -98,7 +98,7 @@ drug_safety.japanese_display("Aspirin")   # → "アスピリン"
 
 ## 5. Dependencies
 
-- `clinosim.locale/` (reads `locale/shared/drug_substitution.yaml`)
+- `clinosim.locale/` (reads `modules/drug_safety/reference_data/drug_substitution.yaml`)
 - `clinosim.codes` drug catalog (`codes.drugs.drug_display` gives display
   names)
 - `clinosim.modules.disease.protocol` (lazy import for
@@ -123,7 +123,7 @@ Four YAML files plus the drug catalog:
 - `reference_data/demographic_gates.yaml` — age / sex rules (3 rules:
   aspirin pediatric (Reye's), nitroglycerin adult-only, tamsulosin
   adult male).
-- `locale/shared/drug_substitution.yaml` — generic indication →
+- `modules/drug_safety/reference_data/drug_substitution.yaml` — generic indication →
   alternative pool keyed by catalog `drug_id` (pain_management →
   acetaminophen; hypertension_or_rate_control → amlodipine /
   candesartan).

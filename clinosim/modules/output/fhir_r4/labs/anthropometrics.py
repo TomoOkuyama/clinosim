@@ -33,7 +33,7 @@ observations share the following FHIR shape:
 
 - **Pediatric (age < 18)** — height and weight come from a per-age /
   per-sex p50 growth-chart median in
-  `locale/shared/anthropometric_reference.yaml` (WHO / MHLW for JP,
+  `modules/population/reference_data/anthropometric_reference.yaml` (WHO / MHLW for JP,
   WHO / CDC for US). A small per-encounter SHA256-derived noise is
   added. BMI is computed as above.
 
@@ -127,7 +127,9 @@ def _resolve_anthropometric_id(structural_key: str) -> str:
 # Reference-table loader.
 # ---------------------------------------------------------------------------
 
-_REFERENCE_YAML_PATH = Path(__file__).resolve().parents[4] / "locale" / "shared" / "anthropometric_reference.yaml"
+_REFERENCE_YAML_PATH = (
+    Path(__file__).resolve().parents[4] / "modules" / "population" / "reference_data" / "anthropometric_reference.yaml"
+)
 
 
 @lru_cache(maxsize=1)

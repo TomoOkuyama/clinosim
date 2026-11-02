@@ -1,4 +1,4 @@
-# clinosim/locale/shared/drug_substitution.yaml
+# clinosim/modules/drug_safety/reference_data/drug_substitution.yaml
 # Generic indication-driven alternative drug pool for drug_safety.suggest_alternative.
 # Consulted after disease_ctx alternative_* blocks (see spec §4.4) and before
 # returning None. Schema documented in

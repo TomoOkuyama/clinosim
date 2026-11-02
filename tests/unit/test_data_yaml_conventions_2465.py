@@ -4,8 +4,7 @@ Every data YAML under ``clinosim/codes/data``, ``clinosim/locale/shared`` and
 ``clinosim/locale/<cc>/code_mapping_*.yaml`` starts with a ``metadata`` block
 whose ``kind`` is one of the specification's kinds, and the kind belongs where
 the file lives. Data YAML is parsed by ``clinosim.datafiles``; the remaining
-direct parses are a ratchet pinned to #2494, and the reference data still
-outside a module ``reference_data/`` directory is pinned to #2495.
+direct parses are a ratchet pinned to #2494.
 """
 
 from __future__ import annotations
@@ -25,34 +24,10 @@ _FILES = sorted(
     [*_ROOT.glob("codes/data/*.yaml"), *_ROOT.glob("locale/shared/*.yaml"), *_ROOT.glob("locale/*/code_mapping_*.yaml")]
 )
 _CODES_KINDS = {"code-system", "map", "crosswalk", "catalog", "value-set"}
-_LOCALE_KINDS = {"display-table", "translation-table", "phrase-catalog"}
+# `reference` in locale/shared: country and clinical defaults the locale layer
+# serves through its loaders (spec §3.2, Issue #2495).
+_LOCALE_KINDS = {"display-table", "translation-table", "phrase-catalog", "reference"}
 
-# Reference data not yet moved to its module's reference_data/ (Issue #2495).
-_REFERENCE_ELSEWHERE = {
-    "codes/data/mhlw-ecs-non-oral-route-markers.yaml",
-    "locale/shared/actuarial_life_table.yaml",
-    "locale/shared/anthropometric_reference.yaml",
-    "locale/shared/chemo_regimens.yaml",
-    "locale/shared/chronic_followup.yaml",
-    "locale/shared/chronic_medications.yaml",
-    "locale/shared/chronic_onset_min_age.yaml",
-    "locale/shared/chronic_propagation.yaml",
-    "locale/shared/comorbidity_progression_multipliers.yaml",
-    "locale/shared/condition_mortality_smr.yaml",
-    "locale/shared/country_language.yaml",
-    "locale/shared/drug_substitution.yaml",
-    "locale/shared/encounter_disposition_defaults.yaml",
-    "locale/shared/fallback_defaults.yaml",
-    "locale/shared/health_screening_visit_reason.yaml",
-    "locale/shared/icd10_sex_restrictions.yaml",
-    "locale/shared/iv_infusion_defaults.yaml",
-    "locale/shared/naming_rules.yaml",
-    "locale/shared/perinatal.yaml",
-    "locale/shared/pregnancy_substitutions.yaml",
-    "locale/shared/renal_medication_rules.yaml",
-    "locale/shared/single_gene_diseases.yaml",
-    "locale/shared/specialty_routing.yaml",
-}
 
 # file → direct yaml.safe_load / yaml.load calls not yet moved to
 # clinosim.datafiles (Issue #2494). `locale/i18n.py` keeps its strict
@@ -130,19 +105,12 @@ def test_every_data_yaml_has_a_kind(path: Path) -> None:
 @pytest.mark.parametrize("path", _FILES, ids=_rel)
 def test_the_kind_belongs_where_the_file_lives(path: Path) -> None:
     rel, kind = _rel(path), data_metadata(path)["kind"]
-    if kind == "reference":
-        assert rel in _REFERENCE_ELSEWHERE, rel
-    elif rel.startswith("codes/data/"):
+    if rel.startswith("codes/data/"):
         assert kind in _CODES_KINDS, (rel, kind)
     elif "/code_mapping_" in rel:
         assert kind == "country-mapping", (rel, kind)
     else:
         assert kind in _LOCALE_KINDS, (rel, kind)
-
-
-def test_reference_pin_shrinks() -> None:
-    present = {_rel(p) for p in _FILES if data_metadata(p).get("kind") == "reference"}
-    assert present == _REFERENCE_ELSEWHERE
 
 
 def test_metadata_is_not_a_section() -> None:

@@ -100,7 +100,7 @@ These rules apply to every data YAML under `clinosim/codes/data/`, `clinosim/loc
 | `display-table` | internal slug → display, for a vocabulary that has no code | `locale/shared/<vocabulary>.yaml` (§3.7) |
 | `translation-table` | English source text → other languages, for free text the generator writes in English | `locale/shared/` |
 | `phrase-catalog` | sentence templates | `locale/shared/narrative_phrases.yaml` (§3.8) |
-| `reference` | thresholds, keyword lists, content that is not code or display data | `modules/<module>/reference_data/` |
+| `reference` | thresholds, keyword lists, content that is not code or display data | `<module>/reference_data/` of the module that owns the rule; `locale/shared/` when the locale layer serves it to many modules through its loaders (`load_chronic_followup`, ...) |
 
 `codes/data` holds only `code-system`, `map`, `crosswalk`, `catalog` and `value-set` files.
 
@@ -397,7 +397,7 @@ These rules are common to every resolver in §4, in both layers.
 | No Japanese in non-JP output, no Japanese literals in Python | `tests/unit/test_no_japanese_fallback_2273.py`, `tests/unit/test_no_japanese_literals_2277.py`, `tests/unit/test_narrative_literals_2400.py`, `tests/unit/test_module_literals_2406.py`, `tests/unit/test_simulator_literals_2405.py`, `tests/unit/output/test_fhir_lib_literals_2402.py`, `tests/unit/output/test_fhir_lab_condition_literals_2403.py`, `tests/unit/output/test_fhir_emitter_literals_2404.py` |
 | A third country is not treated as the US | `tests/unit/test_third_country_fallbacks_2203.py` |
 | `CodeSystem` / `LocalizedTable` operations not overridden; every display-table entry has English | `tests/unit/codes/test_code_system_base_2470.py`, `tests/unit/locale/test_localized_table_2471.py` |
-| Every data YAML has a `metadata.kind` that belongs where it lives; data YAML is parsed by `clinosim.datafiles` (ratchets pinned to #2494, #2495) | `tests/unit/test_data_yaml_conventions_2465.py` |
+| Every data YAML has a `metadata.kind` that belongs where it lives; data YAML is parsed by `clinosim.datafiles` (ratchet pinned to #2494) | `tests/unit/test_data_yaml_conventions_2465.py` |
 
 ## 11. Known deviations
 
@@ -407,4 +407,3 @@ These parts of the code base do not yet conform. Each one is removed by the issu
 |---|---|
 | Narrative renderers gate Japanese-only pipelines (chief-complaint variants, CC/PE consistency, daily trajectory, JP code choices) on the language literal (18 comparisons in 12 files) | #2483 |
 | Modules parse their own YAML with `yaml.safe_load` instead of `clinosim.datafiles`; module reference-data files have no `metadata` header (§3.1) | #2494 |
-| Reference data sits in `locale/shared` (22 files) and `codes/data` (1 file) instead of the owning module's `reference_data/` (§3.2) | #2495 |

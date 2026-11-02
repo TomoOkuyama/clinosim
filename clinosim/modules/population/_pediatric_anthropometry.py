@@ -11,7 +11,7 @@ every age. A 4-year-old would therefore land on BMI ~ 26 and height
 ~ 170 cm, giving a stored weight ~ 75 kg — physically impossible.
 
 The medians come from the shared yaml at
-``locale/shared/anthropometric_reference.yaml`` (CDC growth charts for
+``modules/population/reference_data/anthropometric_reference.yaml`` (CDC growth charts for
 US, MHLW / MEXT for JP, both already consumed by the FHIR anthropometric
 Observation emit). The sampling SD is kept small — a true growth-chart
 ±1 z-band is wider at the tails, but Layer 1 only needs enough spread
@@ -29,7 +29,7 @@ import yaml
 
 from clinosim.modules._shared import is_jp
 
-_REFERENCE_PATH = Path(__file__).resolve().parents[2] / "locale" / "shared" / "anthropometric_reference.yaml"
+_REFERENCE_PATH = Path(__file__).resolve().parent / "reference_data" / "anthropometric_reference.yaml"
 
 # Age gate: strictly below ``PEDIATRIC_UPPER_AGE_EXCLUSIVE`` → pediatric
 # branch. Set to ``adult_path_min_age_years`` in the yaml (default 18) so

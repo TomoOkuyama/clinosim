@@ -10,7 +10,7 @@ the p=10k cohort flagged POP-000453 (4-year-old) with ``height_cm=169.2
 weight_kg=98.0 bmi=34.2`` as the surfaced symptom.
 
 Fix: for ``age < adult_path_min_age_years`` (18, from
-``locale/shared/anthropometric_reference.yaml``) sample BMI and height
+``modules/population/reference_data/anthropometric_reference.yaml``) sample BMI and height
 from the per-age growth-chart medians (CDC / MHLW) instead of the
 adult distribution. The number of ``rng.normal`` draws is unchanged
 (one BMI draw in population/engine.py + one height draw in

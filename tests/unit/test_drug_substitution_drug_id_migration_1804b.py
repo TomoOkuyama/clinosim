@@ -2,7 +2,7 @@
 
 Pins:
 - Every ``alternatives[]`` entry in
-  ``clinosim/locale/shared/drug_substitution.yaml`` carries a
+  ``clinosim/modules/drug_safety/reference_data/drug_substitution.yaml`` carries a
   ``drug_id`` that resolves against the Phase 1b
   ``clinosim/codes/data/drugs.yaml`` catalog.
 - The engine's ``_shared_pool_pick`` resolves display via
@@ -29,7 +29,8 @@ from clinosim.modules.drug_safety.engine import (
 
 pytestmark = pytest.mark.unit
 
-_YAML = Path(__file__).resolve().parents[1].parent / "clinosim" / "locale" / "shared" / "drug_substitution.yaml"
+_ROOT = Path(__file__).resolve().parents[2]
+_YAML = _ROOT / "clinosim" / "modules" / "drug_safety" / "reference_data" / "drug_substitution.yaml"
 
 
 # ----------------------------------------------------------------------------

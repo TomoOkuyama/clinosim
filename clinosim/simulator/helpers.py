@@ -21,6 +21,7 @@ from __future__ import annotations
 
 import functools
 import re
+from pathlib import Path
 from typing import Any
 
 import numpy as np
@@ -161,16 +162,16 @@ def _promote_stroke_sequela_at_discharge(person: Any, disease_id: str, record: A
 
 @functools.cache
 def _chronic_propagatable() -> frozenset[str]:
-    from clinosim.locale._io import _LOCALE_DIR, _load_yaml
+    from clinosim.datafiles import load_data_yaml
 
-    data = _load_yaml(_LOCALE_DIR / "shared" / "chronic_propagation.yaml", {}) or {}
+    data = load_data_yaml(Path(__file__).resolve().parent / "reference_data" / "chronic_propagation.yaml")
     return frozenset(str(c) for c in data.get("chronic_propagatable") or [])
 
 
 def chronic_code_from_discharge(dx_code: str, sex: str) -> str | None:
     """Chronic condition (ICD-10 base code) that a discharge diagnosis adds, or None.
 
-    Only conditions listed in ``locale/shared/chronic_propagation.yaml`` —
+    Only conditions listed in ``simulator/reference_data/chronic_propagation.yaml`` —
     the chronic conditions the simulator models — propagate (Issue #2284).
     The former chapter-wide prefixes ("I", "E", "M") turned acute episodes
     such as acute MI, PE, stroke and DVT into lifelong chronic conditions.

@@ -62,7 +62,7 @@ builder が resource を返した直後に resource 単位で呼ばれる —
     `MedicationUsage_ePrescription` code に mapping できない場合の
     fallback。resolver の dispatch 順序:
     (1) **route filter** — 非経口 route (`_non_oral_route_markers()`、
-    `clinosim/codes/data/mhlw-ecs-non-oral-route-markers.yaml` から load:
+    `clinosim/modules/output/fhir_r4/reference_data/mhlw-ecs-non-oral-route-markers.yaml` から load:
     静注/皮下注/筋注/吸入/舌下/貼付/塗布/点眼/直腸/経腸/etc.) は
     MHLW oral CS に該当 family 無しのため常に dummy 返却、
     (2) **PRN 条件 code** (アセトアミノフェン→発熱時、サルブタモール
