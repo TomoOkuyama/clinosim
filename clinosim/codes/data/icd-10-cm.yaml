@@ -45,6 +45,92 @@ codes:
   E11.65:
     en: Type 2 diabetes mellitus with hyperglycemia
     ja: 2型糖尿病，高血糖を伴うもの
+  # Issue #2454: ICD-10-CM categories the generator looks up as such, which
+  # used to take the display of their first registered subcode. Displays
+  # verified with tx.fhir.org CodeSystem/$lookup (http://hl7.org/fhir/sid/icd-10-cm);
+  # Japanese comes from the same WHO category (lookup sibling icd-10).
+  C16:
+    en: Malignant neoplasm of stomach
+  C25:
+    en: Malignant neoplasm of pancreas
+  C67:
+    en: Malignant neoplasm of bladder
+  C71:
+    en: Malignant neoplasm of brain
+  E11:
+    en: Type 2 diabetes mellitus
+  K74:
+    en: Fibrosis and cirrhosis of liver
+  M54:
+    en: Dorsalgia
+  Z00:
+    en: Encounter for general examination without complaint, suspected or reported diagnosis
+  # Issue #2454: categories the WHO registry has; without them a US lookup
+  # took the WHO display ("oesophagus"). Same verification as above.
+  C15:
+    en: "Malignant neoplasm of esophagus"
+  E10:
+    en: "Type 1 diabetes mellitus"
+  E79:
+    en: "Disorders of purine and pyrimidine metabolism"
+  G43:
+    en: "Migraine"
+  H26:
+    en: "Other cataract"
+  J15:
+    en: "Bacterial pneumonia, not elsewhere classified"
+  J18:
+    en: "Pneumonia, unspecified organism"
+  K59:
+    en: "Other functional intestinal disorders"
+  R07:
+    en: "Pain in throat and chest"
+  R10:
+    en: "Abdominal and pelvic pain"
+  R33:
+    en: "Retention of urine"
+  R53:
+    en: "Malaise and fatigue"
+  R57:
+    en: "Shock, not elsewhere classified"
+  S06:
+    en: "Intracranial injury"
+  S22:
+    en: "Fracture of rib(s), sternum and thoracic spine"
+  S42:
+    en: "Fracture of shoulder and upper arm"
+  S52:
+    en: "Fracture of forearm"
+  S62:
+    en: "Fracture at wrist and hand level"
+  S72:
+    en: "Fracture of femur"
+  S93:
+    en: "Dislocation and sprain of joints and ligaments at ankle, foot and toe level"
+  T14:
+    en: "Injury of unspecified body region"
+  T30:
+    en: "Burn and corrosion, body region unspecified"
+  T78:
+    en: "Adverse effects, not elsewhere classified"
+  W19:
+    en: "Unspecified fall"
+  W54:
+    en: "Contact with dog"
+  Z01:
+    en: "Encounter for other special examination without complaint, suspected or reported diagnosis"
+  Z12:
+    en: "Encounter for screening for malignant neoplasms"
+  Z13:
+    en: "Encounter for screening for other diseases and disorders"
+  Z48:
+    en: "Encounter for other postprocedural aftercare"
+  Z51:
+    en: "Encounter for other aftercare and medical care"
+  Z71:
+    en: "Persons encountering health services for other counseling and medical advice, not elsewhere classified"
+  Z76:
+    en: "Persons encountering health services in other circumstances"
   E11.9:
     en: Type 2 diabetes mellitus without complications
   E66:

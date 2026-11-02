@@ -72,12 +72,8 @@ class CodeSystem:
             entry = self.codes.get(parent)
             if entry:
                 return entry
-        # Child step: the first registered code under ``code``. Not part of
-        # the specified order (spec §4.4); removed by Issue #2454.
-        prefix = code + "."
-        for k, v in self.codes.items():
-            if k.startswith(prefix):
-                return v
+        # No child step: a more specific code's display never stands in for
+        # a less specific code (spec §4.4, Issue #2454).
         return None
 
     @final
@@ -362,7 +358,7 @@ def _entry_text(system: str, code: str, entry: dict[str, str], lang: str) -> str
 def code_exists(system: str, code: str, *, exact: bool = False) -> bool:
     """True when ``code`` is registered in ``system``.
 
-    ``exact=False`` uses the :func:`lookup` resolution (exact, base or child
+    ``exact=False`` uses the :func:`lookup` resolution (exact or parent
     match); ``exact=True`` requires the code itself. Raises ``ValueError``
     when ``system`` is not a registered code system, so a typo fails loud.
     """

@@ -957,6 +957,12 @@ codes:
   A15.0:
     en: "Tuberculosis of lung, confirmed by sputum microscopy with or without culture"
     ja: "肺結核，培養の有無にかかわらず喀痰鏡検により確認されたもの"
+  # Issue #2454: categories looked up as such (the display no longer comes
+  # from their first registered subcode). en: tx.fhir.org $lookup (WHO);
+  # ja: MHLW kihon2013.xlsx, verbatim.
+  C16:
+    en: Malignant neoplasm of stomach
+    ja: "胃の悪性新生物＜腫瘍＞"
   C16.9:
     en: Stomach, unspecified
     ja: "胃，部位不明"
@@ -1019,6 +1025,9 @@ codes:
   C67.9:
     en: "Bladder, unspecified"
     ja: "膀胱，部位不明"
+  C71:
+    en: Malignant neoplasm of brain
+    ja: "脳の悪性新生物＜腫瘍＞"
   C71.9:
     en: Brain, unspecified
     ja: "脳，部位不明"
