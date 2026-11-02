@@ -301,7 +301,7 @@ occupation:
 - **作る場所**: 出力する箇所で `dual_slot_concept` を使って作る。後処理の walker で後から埋めることはしない。
 - **Coding 型の要素**: 型が `Coding` の要素 (`Encounter.class`、`classHistory.class`) には `text` がない。`system_coding` で作り、どのロケールでも英語の表示名を入れる。
 - **HL7 の語彙**: 生成器が出力する HL7 CodeSystem には、それぞれコードをキーにしたレジストリファイルがある (`hl7-v3-actcode`、`hl7-v3-actpriority`、`hl7-observation-category`、`hl7-condition-category`、`hl7-v3-participationtype`、`hl7-diagnosis-role`、`hl7-organization-type`、`hl7-observation-interpretation` …)。日本語ラベルはコードで引き、英語の表示名では引かない。
-- **コードを持つ語彙のラベル**: コード付き概念 (経路、頻度、検体など) の `text` ラベルは、その概念のコードの横にある言語マップから取る。言語ごとの別表からは取らない (§11)。
+- **コードを持つ語彙のラベル**: コード付き概念の `text` ラベルは、その概念のコードの横にある言語マップから取る。生成器がコードに対応付けた内部の英語トークン (`PO` などのオーダ経路、`BID` などの頻度) を持つ場合は、そのトークンの翻訳表 (`locale/shared/fhir_text_translations.yaml`) から取り、英語ではトークンをそのまま使う。言語ごとの別表は使わない。
 
 ## 6. フォールバック規則
 
@@ -405,7 +405,6 @@ occupation:
 | 逸脱 | Issue |
 |---|---|
 | narrative のレンダラが、日本語だけの処理 (主訴バリエーション、CC/PE 整合、daily trajectory、JP のコード選択) を言語リテラルで切り替えている (12 ファイル 18 箇所) | #2483 |
-| `codes/data/fhir-ja-labels.yaml` が、経路・頻度・固定ラベルの日本語だけの 2 つ目の表になっている (§5.3) | #2459 |
 | `clinosim-clinician-role.yaml`、`perinatal.yaml`、`chronic_followup.yaml`、`pregnancy_substitutions.yaml` が言語の接尾辞付きのフィールド名を使っている (§3.1) | #2462 |
 | データ YAML に `metadata.kind` のヘッダと kind ごとの schema 検証が無い (§3.1) | #2465 |
 | 名前の重複した解決関数と、転送するだけのラッパー (`llm_service.engine.loinc_for`、`fhir_r4.lib.common.loinc_coding`、`pick_localized_field`、`resolve_lang`、`get_display`、`codes.match`) | #2467 |

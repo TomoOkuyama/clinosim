@@ -141,6 +141,15 @@ def imaging_exam_display(exam_id: str, lang: str) -> str:
 
 
 @lru_cache(maxsize=1)
+def load_fhir_text_translations() -> dict[str, dict[str, dict[str, str]]]:
+    """Translation tables for FHIR text — ``route``, ``frequency`` and
+    ``fixed_label`` sections (``locale/shared/fhir_text_translations.yaml``,
+    Issue #2459)."""
+    raw = _load_yaml(_LOCALE_DIR / "shared" / "fhir_text_translations.yaml", fallback={})
+    return {k: v for k, v in (raw or {}).items() if k != "metadata"}
+
+
+@lru_cache(maxsize=1)
 def load_narrative_op_approach() -> dict[str, dict[str, str]]:
     raw = _load_yaml(_LOCALE_DIR / "shared" / "narrative_op_approach.yaml", fallback={})
     return raw.get("op_approach", {}) or {}

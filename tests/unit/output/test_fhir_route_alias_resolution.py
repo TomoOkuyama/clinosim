@@ -30,10 +30,13 @@ from __future__ import annotations
 import pytest
 
 from clinosim.modules.output.fhir_r4.lib.common import build_dosage_instruction, build_route_concept
-from clinosim.modules.output.fhir_r4.lib.localization import _ROUTE_JA
+from clinosim.modules.output.fhir_r4.lib.localization import ROUTE_TEXT
 from clinosim.modules.output.fhir_r4.lib.reference_data import _ROUTE_ALIASES, _ROUTE_SNOMED
 
 pytestmark = pytest.mark.unit
+
+# The route translation table's entries (`{token: {lang: text}}`, Issue #2459).
+_ROUTE_JA = ROUTE_TEXT.entries()
 
 _SNOMED_URI = "http://snomed.info/sct"
 _RESPIRATORY = "447694001"
@@ -112,7 +115,7 @@ def test_inh_alias_resolves_to_the_canonical_ja_entry():
     changed and should be re-argued.
     """
     assert _ROUTE_ALIASES["INH"] == "INHALED"
-    assert _ROUTE_JA["INHALED"] == "吸入"
+    assert ROUTE_TEXT.get("INHALED", "ja") == "吸入"
 
 
 # ---------------------------------------------------------------- build_route_concept
@@ -471,7 +474,7 @@ def test_import_time_guard_rejects_alias_key_in_route_ja():
     from clinosim.modules.output.fhir_r4.lib.common import _validate_route_maps
 
     # Temporarily poison _ROUTE_JA and confirm the guard rejects.
-    _ROUTE_JA["INH"] = "吸入"  # alias key sneaking in
+    _ROUTE_JA["INH"] = {"ja": "吸入"}  # alias key sneaking in
     try:
         with pytest.raises(ValueError, match="alias keys"):
             _validate_route_maps()

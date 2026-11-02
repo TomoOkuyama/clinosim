@@ -90,8 +90,8 @@ from clinosim.locale.loaders.medical_display import department_display
 from clinosim.locale.localized import localized
 from clinosim.modules._shared import is_jp, resolve_lang, strip_protocol_prefix
 from clinosim.modules.output.fhir_r4.lib.localization import (
-    _FREQ_JA,
-    _ROUTE_JA,
+    FREQUENCY_TEXT,
+    ROUTE_TEXT,
     _localize_dosage_terms,
 )
 from clinosim.modules.output.fhir_r4.lib.reference_data import (
@@ -664,7 +664,7 @@ def build_route_concept(raw_route: str | None, country: str) -> dict[str, Any] |
     (canonical) → `"吸入"`, not a raw miss.
 
     `text` field adheres to dual-slot rule (Issue #479):
-    - JP (country="JP"): localized to Japanese via `_ROUTE_JA` lookup on the canonical
+    - JP (country="JP"): localized to Japanese via `ROUTE_TEXT` lookup on the canonical
       form, following the pattern of Observation.code and Procedure.code
     - US (country="US"): keeps the author's own wording (upper-cased abbreviation)
     `CodeableConcept.text` is where the source system's representation belongs, while
@@ -685,9 +685,9 @@ def build_route_concept(raw_route: str | None, country: str) -> dict[str, Any] |
         return None
     canonical = _ROUTE_ALIASES.get(route, route)
     snomed = _ROUTE_SNOMED.get(canonical)
-    text_value = route
-    if is_jp(country):
-        text_value = _ROUTE_JA.get(canonical, route)
+    # Route text in the output language (translation table keyed by the
+    # canonical token); English keeps the author's wording (Issue #2459).
+    text_value = ROUTE_TEXT.get(canonical, resolve_lang(country), fallback=route)
     if snomed:
         # Registry coding (English preferred term) + the localized text above
         # (dual slot, Issue #2375).
@@ -731,20 +731,21 @@ def _validate_route_maps() -> None:
     Same silent-no-op class as PR #90 — see `_validate_narrow_ladder` / `_validate_hai_*`
     for sibling shape. Two invariants:
 
-    1. `_ROUTE_JA.keys() ⊇ _ROUTE_SNOMED.keys()` — every canonical SNOMED route MUST
+    1. `ROUTE_TEXT.keys() ⊇ _ROUTE_SNOMED.keys()` — every canonical SNOMED route MUST
        have a JP translation. A new `_ROUTE_SNOMED` entry without a companion
-       `_ROUTE_JA` entry would silently emit the English canonical on JP output.
-    2. `_ROUTE_JA.keys() ∩ _ROUTE_ALIASES.keys() == ∅` — aliases are resolved to
-       canonical BEFORE the JA lookup, so an alias entry in `_ROUTE_JA` is dead
+       `ROUTE_TEXT` entry would silently emit the English canonical on JP output.
+    2. `ROUTE_TEXT.keys() ∩ _ROUTE_ALIASES.keys() == ∅` — aliases are resolved to
+       canonical BEFORE the JA lookup, so an alias entry in `ROUTE_TEXT` is dead
        (never reached) and misleads authors into thinking coverage exists.
     """
-    missing_ja = set(_ROUTE_SNOMED.keys()) - set(_ROUTE_JA.keys())
+    _route_text = ROUTE_TEXT.entries()
+    missing_ja = set(_ROUTE_SNOMED.keys()) - set(_route_text.keys())
     if missing_ja:
-        raise ValueError(f"_ROUTE_JA missing JP translation for canonical SNOMED routes: {sorted(missing_ja)}")
-    alias_in_ja = set(_ROUTE_JA.keys()) & set(_ROUTE_ALIASES.keys())
+        raise ValueError(f"ROUTE_TEXT missing JP translation for canonical SNOMED routes: {sorted(missing_ja)}")
+    alias_in_ja = set(_route_text.keys()) & set(_ROUTE_ALIASES.keys())
     if alias_in_ja:
         raise ValueError(
-            f"_ROUTE_JA contains alias keys — resolve via _ROUTE_ALIASES to canonical first: {sorted(alias_in_ja)}"
+            f"ROUTE_TEXT contains alias keys — resolve via _ROUTE_ALIASES to canonical first: {sorted(alias_in_ja)}"
         )
 
 
@@ -1170,7 +1171,7 @@ def build_dosage_instruction(order: dict, country: str = "US") -> dict[str, Any]
     route_concept = build_route_concept(order.get("route"), country)
     # `text` is the localized (JP) or authored (US) route form used only for the dosage
     # text summary block below (line 670+). The JP text summary path re-derives the JA
-    # form via `_ROUTE_JA.get(p_upper)`, so a JA `route` here fails that lookup and
+    # form via `ROUTE_TEXT.get(p_upper)`, so a JA `route` here fails that lookup and
     # falls back to `p` (itself already JA) — net-safe.
     route = route_concept["text"] if route_concept else ""
 
@@ -1320,16 +1321,18 @@ def build_dosage_instruction(order: dict, country: str = "US") -> dict[str, Any]
     if authored_text:
         dosage["text"] = authored_text
     elif parts:
-        if is_jp(country):
-            ja_parts = []
-            for p in parts:
-                p_upper = p.upper()
-                ja_parts.append(_ROUTE_JA.get(p_upper) or _FREQ_JA.get(p_upper) or _FREQ_JA.get(p) or p)
-            text = " ".join(ja_parts)
-            # Final pass through dosage term translator for any remaining English
-            dosage["text"] = _localize_dosage_terms(text, resolve_lang(country))
-        else:
-            dosage["text"] = " ".join(parts)
+        # Route / frequency tokens in the output language, then the dosage
+        # term translator for any remaining English (Issue #2459); English
+        # output keeps the tokens as written.
+        _lang = resolve_lang(country)
+        translated = [
+            ROUTE_TEXT.get(p.upper(), _lang)
+            or FREQUENCY_TEXT.get(p.upper(), _lang)
+            or FREQUENCY_TEXT.get(p, _lang)
+            or p
+            for p in parts
+        ]
+        dosage["text"] = _localize_dosage_terms(" ".join(translated), _lang)
     elif order.get("display_name"):
         name = order["display_name"]
         dosage["text"] = localize_free_text(name, "ja") if is_jp(country) else name
