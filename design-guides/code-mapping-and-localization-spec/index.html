@@ -3370,7 +3370,7 @@
 <li><strong>Where it is built.</strong> The concept is built at the emit site with <code>dual_slot_concept</code>. It is not filled in later by a post-process walker.</li>
 <li><strong>Coding-typed elements.</strong> An element whose type is <code>Coding</code> (<code>Encounter.class</code>, <code>classHistory.class</code>) has no <code>text</code> slot. It is built with <code>system_coding</code> and carries the English display in every locale.</li>
 <li><strong>HL7 vocabularies.</strong> Each HL7 CodeSystem the generator emits has a code-keyed registry file (<code>hl7-v3-actcode</code>, <code>hl7-v3-actpriority</code>, <code>hl7-observation-category</code>, <code>hl7-condition-category</code>, <code>hl7-v3-participationtype</code>, <code>hl7-diagnosis-role</code>, <code>hl7-organization-type</code>, <code>hl7-observation-interpretation</code>, ...). Japanese labels are looked up by code, never by the English display.</li>
-<li><strong>Labels for coded vocabularies.</strong> The <code>text</code> label of a coded concept (route, frequency, specimen, ...) comes from the language map beside that concept's code, not from a separate per-language table (§11).</li>
+<li><strong>Labels for coded vocabularies.</strong> The <code>text</code> label of a coded concept comes from the language map beside that concept's code. When the generator holds an internal English token mapped to the code (an order route such as <code>PO</code>, a frequency such as <code>BID</code>), the label comes from that token's translation table (<code>locale/shared/fhir_text_translations.yaml</code>), so English keeps the token as written. A per-language table is never used.</li>
 </ul>
 <h2 id="6-fallback-rules">6. Fallback rules<a class="headerlink" href="#6-fallback-rules" title="Permanent link">&para;</a></h2>
 <p>These rules are common to every resolver in §4, in both layers.</p>
@@ -3570,10 +3570,6 @@
 <tr>
 <td>Narrative renderers gate Japanese-only pipelines (chief-complaint variants, CC/PE consistency, daily trajectory, JP code choices) on the language literal (18 comparisons in 12 files)</td>
 <td>#2483</td>
-</tr>
-<tr>
-<td><code>codes/data/fhir-ja-labels.yaml</code> is a Japanese-only second table for routes, frequencies and fixed labels (§5.3)</td>
-<td>#2459</td>
 </tr>
 <tr>
 <td><code>clinosim-clinician-role.yaml</code>, <code>perinatal.yaml</code>, <code>chronic_followup.yaml</code>, <code>pregnancy_substitutions.yaml</code> use language-suffixed field names (§3.1)</td>

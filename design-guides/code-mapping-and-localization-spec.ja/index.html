@@ -3370,7 +3370,7 @@
 <li><strong>作る場所</strong>: 出力する箇所で <code>dual_slot_concept</code> を使って作る。後処理の walker で後から埋めることはしない。</li>
 <li><strong>Coding 型の要素</strong>: 型が <code>Coding</code> の要素 (<code>Encounter.class</code>、<code>classHistory.class</code>) には <code>text</code> がない。<code>system_coding</code> で作り、どのロケールでも英語の表示名を入れる。</li>
 <li><strong>HL7 の語彙</strong>: 生成器が出力する HL7 CodeSystem には、それぞれコードをキーにしたレジストリファイルがある (<code>hl7-v3-actcode</code>、<code>hl7-v3-actpriority</code>、<code>hl7-observation-category</code>、<code>hl7-condition-category</code>、<code>hl7-v3-participationtype</code>、<code>hl7-diagnosis-role</code>、<code>hl7-organization-type</code>、<code>hl7-observation-interpretation</code> …)。日本語ラベルはコードで引き、英語の表示名では引かない。</li>
-<li><strong>コードを持つ語彙のラベル</strong>: コード付き概念 (経路、頻度、検体など) の <code>text</code> ラベルは、その概念のコードの横にある言語マップから取る。言語ごとの別表からは取らない (§11)。</li>
+<li><strong>コードを持つ語彙のラベル</strong>: コード付き概念の <code>text</code> ラベルは、その概念のコードの横にある言語マップから取る。生成器がコードに対応付けた内部の英語トークン (<code>PO</code> などのオーダ経路、<code>BID</code> などの頻度) を持つ場合は、そのトークンの翻訳表 (<code>locale/shared/fhir_text_translations.yaml</code>) から取り、英語ではトークンをそのまま使う。言語ごとの別表は使わない。</li>
 </ul>
 <h2 id="6-フォールバック規則">6. フォールバック規則<a class="headerlink" href="#6-フォールバック規則" title="Permanent link">&para;</a></h2>
 <p>§4 のすべての解決関数に、両方の層で共通に適用する。</p>
@@ -3570,10 +3570,6 @@
 <tr>
 <td>narrative のレンダラが、日本語だけの処理 (主訴バリエーション、CC/PE 整合、daily trajectory、JP のコード選択) を言語リテラルで切り替えている (12 ファイル 18 箇所)</td>
 <td>#2483</td>
-</tr>
-<tr>
-<td><code>codes/data/fhir-ja-labels.yaml</code> が、経路・頻度・固定ラベルの日本語だけの 2 つ目の表になっている (§5.3)</td>
-<td>#2459</td>
 </tr>
 <tr>
 <td><code>clinosim-clinician-role.yaml</code>、<code>perinatal.yaml</code>、<code>chronic_followup.yaml</code>、<code>pregnancy_substitutions.yaml</code> が言語の接尾辞付きのフィールド名を使っている (§3.1)</td>
