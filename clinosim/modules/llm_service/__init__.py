@@ -16,7 +16,7 @@ from clinosim.modules.llm_service.engine import (
     LLMTaskCategory,
     LLMTaskType,
     PatientSummary,
-    loinc_for,
+    document_task_loinc,
 )
 from clinosim.modules.llm_service.factory import build_from_config, build_from_config_file
 from clinosim.modules.llm_service.prompt_registry import PromptRegistry, PromptSpec
@@ -36,7 +36,7 @@ __all__ = [
     "PatientSummary",
     "TASK_CATEGORY",
     "DOCUMENT_LOINC",
-    "loinc_for",
+    "document_task_loinc",
     "build_from_config",
     "build_from_config_file",
     "LLMProvider",

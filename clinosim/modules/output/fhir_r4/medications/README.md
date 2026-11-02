@@ -98,7 +98,7 @@ Not applicable — pure builders over CIF orders + MAR records.
 
 ## Dependencies
 
-- `clinosim.modules._shared` — `is_jp`, `resolve_lang`,
+- `clinosim.modules._shared` — `is_jp`, `countries.lang_for`,
   `get_attr_or_key`.
 - `clinosim.codes.ucum` — `ucum_quantity` (every UCUM Quantity).
 - `clinosim.modules.output.fhir_r4.lib.common` — dosage / route / status

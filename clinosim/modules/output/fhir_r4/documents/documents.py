@@ -40,8 +40,8 @@ from clinosim.codes import display as registry_display
 from clinosim.codes import (
     get_system_uri,
 )
+from clinosim.countries import lang_for
 from clinosim.modules._shared import get_attr_or_key as _o
-from clinosim.modules._shared import resolve_lang
 from clinosim.modules.document import DOC_REFERENCE_ID_PREFIX
 from clinosim.modules.output.fhir_r4.demographics.patient import patient_ref
 from clinosim.modules.output.fhir_r4.encounters.encounter import encounter_ref
@@ -208,7 +208,7 @@ def _build_dref_from_clinical_doc(doc: Any, narrative: Any, patient_id: str, cou
     if not loinc_code:
         return None
 
-    lang = _o(doc, "language", "") or resolve_lang(country)
+    lang = _o(doc, "language", "") or lang_for(country)
     # Issue #360 G5 (iris4h-ai 2026-07-22 feedback): DocumentReference.type
     # needs a display consumers can render. LOINC is treated as an
     # English-only CodeSystem by ``_strip_japanese_display_on_english_only_

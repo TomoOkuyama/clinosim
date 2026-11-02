@@ -7,9 +7,10 @@ leaf data, shared helpers, and stdlib/first-party deps — never the adapter.
 from __future__ import annotations
 
 from clinosim.codes import get_system_uri
+from clinosim.countries import lang_for
 from clinosim.locale.i18n import t
 from clinosim.locale.loader import vocab_display
-from clinosim.modules._shared import is_jp, resolve_lang
+from clinosim.modules._shared import is_jp
 from clinosim.modules.output.fhir_r4.lib.common import dual_slot_concept, entry
 from clinosim.modules.output.fhir_r4.lib.localization import _dept_display
 from clinosim.modules.staff.engine import roster_departments
@@ -56,12 +57,12 @@ def _build_facility_bundle(hospital_config: dict, country: str) -> dict:
     #   - name / telecom.value / address.text
     # telecom.use / address.use required binding: "home" is forbidden by
     # the spec; "work" is used.
-    hosp_name = t("fhir_emit_text.community_hospital", resolve_lang(country))
+    hosp_name = t("fhir_emit_text.community_hospital", lang_for(country))
     root_org: dict = {
         "resourceType": "Organization",
         "id": "hospital-main",
         "active": True,
-        "type": [dual_slot_concept("hl7-organization-type", "prov", resolve_lang(country))],
+        "type": [dual_slot_concept("hl7-organization-type", "prov", lang_for(country))],
         "name": hosp_name,
         "alias": [f"{beds}-bed hospital"] if beds else [],
     }
@@ -121,7 +122,7 @@ def _build_facility_bundle(hospital_config: dict, country: str) -> dict:
                 {
                     "system": get_system_uri("hl7-location-physical-type"),
                     "code": "bu",
-                    "display": t("fhir_emit_text.location_type_building", resolve_lang(country)),
+                    "display": t("fhir_emit_text.location_type_building", lang_for(country)),
                 }
             ],
         },
@@ -143,10 +144,10 @@ def _build_facility_bundle(hospital_config: dict, country: str) -> dict:
                 {
                     "system": get_system_uri("snomed-ct"),
                     "code": "433296005",
-                    "display": t("fhir_emit_text.infusion_pump_snomed", resolve_lang(country)),
+                    "display": t("fhir_emit_text.infusion_pump_snomed", lang_for(country)),
                 }
             ],
-            "text": t("fhir_emit_text.generic_infusion_pump", resolve_lang(country)),
+            "text": t("fhir_emit_text.generic_infusion_pump", lang_for(country)),
         },
         "owner": {"reference": "Organization/hospital-main"},
     }
@@ -167,7 +168,7 @@ def _build_facility_bundle(hospital_config: dict, country: str) -> dict:
             "id": f"dept-{dept.replace('_', '-')}",
             **_dept_jp_profile,
             "active": True,
-            "type": [dual_slot_concept("hl7-organization-type", "dept", resolve_lang(country))],
+            "type": [dual_slot_concept("hl7-organization-type", "dept", lang_for(country))],
             "name": display,
             "partOf": {"reference": "Organization/hospital-main"},
         }
@@ -206,7 +207,7 @@ def _build_facility_bundle(hospital_config: dict, country: str) -> dict:
                     {
                         "system": get_system_uri("hl7-location-physical-type"),
                         "code": "area",
-                        "display": t("fhir_emit_text.location_type_area", resolve_lang(country)),
+                        "display": t("fhir_emit_text.location_type_area", lang_for(country)),
                     }
                 ],
             },
@@ -257,9 +258,9 @@ def _build_facility_bundle(hospital_config: dict, country: str) -> dict:
                     else {}
                 ),
                 "status": "active",
-                "name": t("fhir_emit_text.ward", resolve_lang(country), n=ward)
+                "name": t("fhir_emit_text.ward", lang_for(country), n=ward)
                 if ward not in ("ER", "OPD")
-                else vocab_display("care_location", ward, resolve_lang(country)),
+                else vocab_display("care_location", ward, lang_for(country)),
                 "type": [
                     {
                         "coding": [
@@ -299,7 +300,7 @@ def _build_facility_bundle(hospital_config: dict, country: str) -> dict:
                             else {}
                         ),
                         "status": "active",
-                        "name": t("fhir_emit_text.bed", resolve_lang(country), n=bed_id),
+                        "name": t("fhir_emit_text.bed", lang_for(country), n=bed_id),
                         # C4-14: Location.type per HL7 v3-RoleCode.
                         "type": [
                             {
@@ -344,7 +345,7 @@ def _build_facility_bundle(hospital_config: dict, country: str) -> dict:
                     else {}
                 ),
                 "status": "active",
-                "name": t("fhir_emit_text.operating_room", resolve_lang(country), n=i),
+                "name": t("fhir_emit_text.operating_room", lang_for(country), n=i),
                 "physicalType": {
                     "coding": [
                         {
@@ -361,7 +362,7 @@ def _build_facility_bundle(hospital_config: dict, country: str) -> dict:
                 # drop し text-only CodeableConcept で emit。FHIR R4
                 # Location.type binding は preferred strength = coding
                 # 無くても spec-valid。
-                "type": [{"text": vocab_display("care_location", "operating_room", resolve_lang(country))}],
+                "type": [{"text": vocab_display("care_location", "operating_room", lang_for(country))}],
                 "managingOrganization": {"reference": or_org_ref},
             }
             entries.append(entry(or_loc))

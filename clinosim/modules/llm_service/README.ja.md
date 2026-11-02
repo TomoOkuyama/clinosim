@@ -13,7 +13,7 @@ prompt cache、provider 選択を所有する。
 - **In scope**: `LLMService` (top-level orchestrator、sync +
   concurrency-safe な call 面)、`LLMTaskType` / `LLMTaskCategory`
   (StrEnum task 一覧)、`TASK_CATEGORY` (task → category map)、
-  `DOCUMENT_LOINC` / `loinc_for(task_type)` (document 生成 task ごとの
+  `DOCUMENT_LOINC` / `document_task_loinc(task_type)` (document 生成 task ごとの
   LOINC コード)、`PatientSummary` + `ClinicalEventData` (入力 DTO)、
   `LLMResponse` + `LLMCompletionError`、document-task validation
   (`_validate_document_task_sync`)、task 別 prompt builder
@@ -51,7 +51,7 @@ from clinosim.modules.llm_service import (
     # Task metadata
     TASK_CATEGORY,               # {LLMTaskType: LLMTaskCategory}
     DOCUMENT_LOINC,              # {LLMTaskType: LOINC code}
-    loinc_for,                   # (task_type) -> LOINC | None
+    document_task_loinc,                   # (task_type) -> LOINC | None
 
     # 入力 DTO
     PatientSummary,
@@ -118,7 +118,7 @@ from clinosim.modules.llm_service import (
   使われる。データは
   [`reference_data/task_categories.yaml`](reference_data/task_categories.yaml)。
 - **`DOCUMENT_LOINC`** — document 生成 task ごとの LOINC code。
-  `loinc_for(task_type)` で参照する。文書種別のコードは唯一の定義である
+  `document_task_loinc(task_type)` で参照する。文書種別のコードは唯一の定義である
   `document_type_specs.yaml` から取り (Issue #2344)、
   [`reference_data/task_loincs.yaml`](reference_data/task_loincs.yaml)
   には文書パイプライン外の task (`death_summary`) だけを置く。

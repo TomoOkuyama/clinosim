@@ -31,10 +31,11 @@ from clinosim.codes import get_system_uri
 from clinosim.codes import lookup as _codes_lookup
 from clinosim.codes.snomed_concepts import FINDING_ABNORMAL, FINDING_NORMAL
 from clinosim.codes.ucum import ucum_prose
+from clinosim.countries import lang_for
 from clinosim.locale.i18n import t
 from clinosim.locale.loader import lab_display
 from clinosim.locale.localized import localized_field
-from clinosim.modules._shared import get_attr_or_key, is_jp, pick_localized_field, resolve_lang
+from clinosim.modules._shared import get_attr_or_key, is_jp
 from clinosim.modules.imaging.engine import (
     RADIOLOGY_REPORT_ID_PREFIX,
     _resolve_imaging_procedure_code_key,
@@ -532,14 +533,14 @@ def build_dr_resource(
     """
     panels = load_panel_definitions()
     panel = panels[group.panel_name]
-    lang = resolve_lang(country)
+    lang = lang_for(country)
     display = registry_display("loinc", panel["loinc"], lang) or panel["display_en"]
     # Issue #783: `code.text` = JA primary label on JP output (panel `display_ja`
     # in `lab_panels.yaml`), English `display` on US. Prior emit left
     # `code.text` unset entirely — consumers saw only the LOINC code string
     # and could not distinguish CBC vs Coag vs LFT DRs at a glance
     # (95.8% of JP DR had null `.text` in baseline).
-    text_display = localized_field(panel, "display", resolve_lang(country))
+    text_display = localized_field(panel, "display", lang_for(country))
 
     # Issue #854 Bucket B (PR-diagnostic-report): opaque lab-panel DR.id.
     _lab_dr_structural_key = f"{group.panel_name.lower()}-{encounter_id}-{seq}"
@@ -828,7 +829,7 @@ def _build_radiology_dr(study: Any, report: Any, ctx: Any) -> dict:
     Accepts both ImagingStudyRecord dataclass instances and JSON-deserialized
     dicts (production CIF path). Uses _o() for dual field access.
     """
-    lang = resolve_lang(ctx.country)
+    lang = lang_for(ctx.country)
 
     rep_id = _o(report, "report_id", "")
     study_id = _o(study, "study_id", "")
@@ -866,11 +867,11 @@ def _build_radiology_dr(study: Any, report: Any, ctx: Any) -> dict:
 
     # Locale-bound findings + impression text (JP cohort → ja slot with
     # bare-slot fallback for test stubs). Uses the shared
-    # `pick_localized_field` helper so adding a new locale (fr/zh/…)
+    # `localized_field` helper so adding a new locale (fr/zh/…)
     # requires only new CIF `findings_text_<lang>` / `impression_text_<lang>`
     # fields, no code change.
-    findings_text = pick_localized_field(report, "findings_text", lang)
-    impression_text = pick_localized_field(report, "impression_text", lang)
+    findings_text = localized_field(report, "findings_text", lang)
+    impression_text = localized_field(report, "impression_text", lang)
 
     # Build text.div (FHIR Narrative, Radiology IG requirement).
     div = (

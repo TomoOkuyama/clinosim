@@ -22,7 +22,8 @@ from datetime import datetime
 from typing import Any
 
 from clinosim.codes.hl7_encounter import DischargeDisposition
-from clinosim.modules._shared import is_jp, is_us, resolve_lang
+from clinosim.countries import lang_for
+from clinosim.modules._shared import is_jp, is_us
 from clinosim.modules.newborn.fhir_emit import (
     _bb_newborn_apgar,
     _bb_newborn_bilirubin,
@@ -883,7 +884,7 @@ def _build_bundle(
     # resources without any date field are kept unchanged.
     _pat_dod_str = patient_data.get("date_of_death") or patient_data.get("dod")
     if _pat_dod_str:
-        entries = _drop_entries_after_death(entries, str(_pat_dod_str)[:10], resolve_lang(country))
+        entries = _drop_entries_after_death(entries, str(_pat_dod_str)[:10], lang_for(country))
 
     # Issue #945 (2026-08-30): post-snapshot event gate. Universal
     # bundle-finalize filter mirroring #928 death filter — for inpatients

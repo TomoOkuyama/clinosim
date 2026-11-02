@@ -78,8 +78,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from clinosim.codes import has_icd_prefix
-from clinosim.codes.valuesets import concept_group, iter_chronic_codes
+from clinosim.codes.valuesets import concept_group, has_icd_prefix, iter_chronic_codes
 from clinosim.determinism import sha_bernoulli
 from clinosim.modules.population import (
     BMI_MORBID_OBESITY_THRESHOLD as _BMI_MORBID_THRESHOLD,

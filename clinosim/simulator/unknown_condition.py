@@ -33,8 +33,7 @@ from datetime import datetime, timedelta
 
 import numpy as np
 
-from clinosim.codes import has_icd_prefix
-from clinosim.codes.valuesets import has_condition
+from clinosim.codes.valuesets import has_condition, has_icd_prefix
 from clinosim.locale.i18n import t
 from clinosim.modules.encounter.engine import create_inpatient_encounter
 from clinosim.modules.observation.engine import (

@@ -12,6 +12,7 @@ from typing import Any
 
 from clinosim.codes import display as registry_display
 from clinosim.codes import get_system_uri
+from clinosim.countries import lang_for
 from clinosim.locale.loader import (
     department_display,
     department_specialty_snomed,
@@ -20,7 +21,7 @@ from clinosim.locale.loader import (
     role_display,
 )
 from clinosim.locale.localized import localized
-from clinosim.modules._shared import is_jp, is_us, resolve_lang
+from clinosim.modules._shared import is_jp, is_us
 from clinosim.modules.output.fhir_r4.lib.common import system_coding
 from clinosim.modules.output.fhir_r4.lib.localization import _ROLE_PREFIX_MAP_JA
 
@@ -393,7 +394,7 @@ def _build_practitioner_role(
     # Issue #2270: the HL7 practitioner-role code, the display title and the
     # specialty come from the role and department tables
     # (codes/data/clinosim-clinician-role.yaml, department_display.yaml).
-    lang = resolve_lang(country)
+    lang = lang_for(country)
     role_code = str((load_clinician_roles().get(role) or {}).get("practitioner_role") or "")
     # Allied-health roles without an HL7 practitioner-role code get a
     # text-only PractitionerRole.code (C5-25; FHIR R4 allows text-only).
@@ -459,7 +460,7 @@ def _build_practitioner_role(
                     system_coding(
                         "hl7-practitioner-role",
                         role_code,
-                        resolve_lang(country),
+                        lang_for(country),
                     )
                 ],
             }

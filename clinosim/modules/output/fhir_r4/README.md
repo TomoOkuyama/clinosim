@@ -79,7 +79,7 @@ Domain-README files enumerate the per-family builders.
 
 ## Dependencies
 
-- `clinosim.modules._shared` — `is_jp`, `resolve_lang` (and other
+- `clinosim.modules._shared` — `is_jp`, `countries.lang_for` (and other
   helpers in individual builders).
 - `clinosim.modules.output.cif_reader` — `CIFReader` for structural
   + narrative-version-merged CIF load.

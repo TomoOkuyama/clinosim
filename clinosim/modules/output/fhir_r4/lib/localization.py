@@ -18,7 +18,7 @@ from clinosim.locale.loader import load_med_terms_ja as _load_med_terms_ja
 from clinosim.locale.loader import load_narrative_display_dict as _load_narrative_display_dict
 from clinosim.locale.localized import localized
 from clinosim.locale.table import LocalizedTable
-from clinosim.modules._shared import is_jp, is_us, resolve_lang
+from clinosim.modules._shared import is_jp, is_us
 
 # expose the private-name loader aliases so mypy's strict export
 # check passes at fhir_r4_adapter.py's import site.
@@ -38,7 +38,6 @@ __all__ = [
     "code_lookup",
     "is_jp",
     "is_us",
-    "resolve_lang",
 ]
 
 # ``_load_med_terms_ja`` / ``_load_narrative_display_dict`` / ``_load_department_display``
@@ -67,7 +66,7 @@ def _dept_display(dept: str, country: str) -> str:
     department table, then English, then the humanised key (Issue #2270)."""
     from clinosim.locale.loader import department_display
 
-    return department_display(dept, resolve_lang(country))
+    return department_display(dept, lang_for(country))
 
 
 # Occupation display is the `occupation` section of

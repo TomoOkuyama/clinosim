@@ -14,15 +14,16 @@ from typing import Any
 
 from clinosim.codes import display as registry_display
 from clinosim.codes import get_system_uri
+from clinosim.codes.loinc import loinc_coding
 from clinosim.codes.ucum import ucum_quantity
+from clinosim.countries import lang_for
 from clinosim.locale.i18n import t
-from clinosim.modules._shared import is_jp, resolve_lang
+from clinosim.modules._shared import is_jp
 from clinosim.modules.output.fhir_r4.demographics.patient import patient_ref
 from clinosim.modules.output.fhir_r4.encounters.encounter import encounter_ref
 from clinosim.modules.output.fhir_r4.lib.common import (
     BundleContext,
     dual_slot_concept,
-    loinc_coding,
     survey_category,
     to_fhir_datetime,
 )
@@ -219,7 +220,7 @@ def _bb_nursing_observations(ctx: BundleContext) -> list[dict]:
     - Fluid output total 24h (LOINC 9262-7)
     """
     enc = ctx.primary_enc_id
-    lang = resolve_lang(ctx.country)
+    lang = lang_for(ctx.country)
     subject: dict[str, Any] = patient_ref(ctx.patient_id)
     enc_ref: dict[str, Any] | None = encounter_ref(enc) if enc else None
     # RM-1: primary_nurse_id as fallback performer for
@@ -246,7 +247,7 @@ def _bb_nursing_observations(ctx: BundleContext) -> list[dict]:
                 else {}
             ),
             "status": "final",
-            "category": survey_category(resolve_lang(ctx.country)),
+            "category": survey_category(lang_for(ctx.country)),
             "subject": subject,
         }
         if enc_ref:
@@ -347,10 +348,10 @@ def _bb_nursing_observations(ctx: BundleContext) -> list[dict]:
                 # Issue #2337); the risk band goes in text.
                 _fall_interp = {"low": "L", "moderate": "N", "high": "H"}
                 code_val = _fall_interp.get(str(fall_level).lower(), "N")
-                interp_text = t("fhir_emit_text.fall_risk", resolve_lang(ctx.country), level=fall_level)
+                interp_text = t("fhir_emit_text.fall_risk", lang_for(ctx.country), level=fall_level)
                 obs["interpretation"] = [
                     dual_slot_concept(
-                        "hl7-observation-interpretation", code_val, resolve_lang(ctx.country), text=interp_text
+                        "hl7-observation-interpretation", code_val, lang_for(ctx.country), text=interp_text
                     )
                 ]
             out.append(obs)

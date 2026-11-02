@@ -108,7 +108,7 @@ scope (see `write_generator_metadata` docstring).
 
 ## Dependencies
 
-- `clinosim.modules._shared` — `is_jp`, `is_us`, `resolve_lang`,
+- `clinosim.modules._shared` — `is_jp`, `is_us`, `countries.lang_for`,
   `strip_protocol_prefix`.
 - `clinosim.codes` — `get_system_uri`, `lookup`.
 - `clinosim.locale.loader` — locale display maps + code mappings.

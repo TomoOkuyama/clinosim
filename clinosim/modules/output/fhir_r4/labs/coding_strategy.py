@@ -62,8 +62,9 @@ from typing import Any, Protocol
 from clinosim.codes import code_exists, get_system_uri, system_key_for
 from clinosim.codes import display as registry_display
 from clinosim.codes import lookup as code_lookup
+from clinosim.countries import lang_for
 from clinosim.locale.loader import lab_display, load_code_mapping
-from clinosim.modules._shared import is_us, resolve_lang
+from clinosim.modules._shared import is_us
 from clinosim.modules.output.fhir_r4.labs.coding_package import LabCodeCandidate
 
 # --------------------------------------------------------------------------- #
@@ -209,7 +210,7 @@ class LegacyJSLMStrategy:
             order_code = str(order.get("order_code", "") or "")
             code_value = order_code if order_code and code_exists("loinc", order_code, exact=True) else ""
             code_system_key = "loinc"
-        lang = resolve_lang("JP")
+        lang = lang_for("JP")
         display_name = code_lookup(code_system_key, code_value, lang) if code_value else None
         if not display_name or display_name == code_value:
             display_name = lab_name
@@ -260,7 +261,7 @@ class LegacyLOINCStrategy:
         else:
             code_value = order.get("order_code", "")
             code_system_key = "loinc"
-        lang = resolve_lang("US")
+        lang = lang_for("US")
         display_name = code_lookup(code_system_key, code_value, lang) if code_value else None
         if not display_name or display_name == code_value:
             display_name = lab_name

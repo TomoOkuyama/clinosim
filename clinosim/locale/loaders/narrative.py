@@ -29,7 +29,7 @@ from clinosim.locale._io import _LOCALE_DIR, _load_yaml
 def _load_country_language_map() -> dict[str, str]:
     """Country code (lower-case) → ISO-639-1 language code map.
 
-    Backs ``clinosim.modules._shared.resolve_lang``. Adding a new
+    Backs ``clinosim.modules._shared.lang_for``. Adding a new
     locale (fr / zh / …) is a one-line YAML edit here — no code
     change needed to route the country→lang resolution.
     """

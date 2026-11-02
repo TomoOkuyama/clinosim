@@ -27,7 +27,6 @@ from clinosim.codes.loader import (
     code_system,
     data_table,
     display,
-    get_display,
     get_system_uri,
     is_english_only_system,
     lookup,
@@ -36,7 +35,7 @@ from clinosim.codes.loader import (
     system_key_for_uri,
     system_keys,
 )
-from clinosim.codes.match import has_icd_prefix
+from clinosim.codes.valuesets import has_icd_prefix
 
 __all__ = [
     "jlac10_display",
@@ -48,7 +47,6 @@ __all__ = [
     "code_system",
     "data_table",
     "display",
-    "get_display",
     "get_system_uri",
     "has_icd_prefix",
     "lookup",

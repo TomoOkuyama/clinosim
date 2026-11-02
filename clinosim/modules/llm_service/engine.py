@@ -179,7 +179,7 @@ def _document_loinc_from_yaml() -> dict[LLMTaskType, str]:
 DOCUMENT_LOINC: dict[LLMTaskType, str] = _document_loinc_from_yaml()
 
 
-def loinc_for(task_type: LLMTaskType) -> str | None:
+def document_task_loinc(task_type: LLMTaskType) -> str | None:
     """Return the LOINC code for a document-producing task type, or None."""
     return DOCUMENT_LOINC.get(task_type)
 

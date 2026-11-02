@@ -12,8 +12,9 @@ from typing import Any
 from clinosim.codes import data_table, get_system_uri, system_key_for
 from clinosim.codes import lookup as code_lookup
 from clinosim.codes.snomed import snomed_for
+from clinosim.countries import lang_for
 from clinosim.locale.i18n import t
-from clinosim.modules._shared import get_attr_or_key, is_jp, resolve_lang
+from clinosim.modules._shared import get_attr_or_key, is_jp
 from clinosim.modules.diagnosis.nonspecific_codes import is_visit_reason_zcode
 from clinosim.modules.output.fhir_r4.conditions.primary_ref import (
     CONDITION_KEY_SYSTEM,
@@ -147,7 +148,7 @@ def _bodysite_for(code: str, country: str) -> dict | None:
     snomed_code = _icd10_condition_bodysite_map().get(key3)
     if not snomed_code:
         return None
-    lang = resolve_lang(country)
+    lang = lang_for(country)
     disp = code_lookup("snomed-ct", snomed_code, lang)
     return {
         "coding": [
@@ -182,7 +183,7 @@ def _build_conditions(record: dict, patient_id: str, country: str) -> list[dict]
     deceased = record.get("deceased", False)
 
     country_code = "JP" if is_jp(country) else "US"
-    lang = resolve_lang(country_code)
+    lang = lang_for(country_code)
     icd_system_key = system_key_for("diagnosis", country_code)
     # Issue #957: US ICD-10-CM C50 splits into female (C50.919) / male (C50.929)
     # billable leaves. Every ``map_diagnosis_code`` call in this builder is
@@ -293,7 +294,7 @@ def _build_conditions(record: dict, patient_id: str, country: str) -> list[dict]
             ),
             "clinicalStatus": dual_slot_concept("hl7-condition-clinical", clinical_status, lang),
             "verificationStatus": dual_slot_concept("hl7-condition-ver-status", "confirmed", lang),
-            "category": [dual_slot_concept("hl7-condition-category", "encounter-diagnosis", resolve_lang(country))],
+            "category": [dual_slot_concept("hl7-condition-category", "encounter-diagnosis", lang_for(country))],
             "code": build_diagnosis_codeable_concept(
                 map_diagnosis_code(dx_code, country, sex=patient_sex), icd_system_key, country
             ),
@@ -321,7 +322,7 @@ def _build_conditions(record: dict, patient_id: str, country: str) -> list[dict]
         _ev_key = "condition_evidence.prior_diagnosis" if is_chronic_primary else "condition_evidence.clinical_and_labs"
         cond["evidence"] = [
             {
-                "code": [{"text": t(_ev_key, resolve_lang(country_code))}],
+                "code": [{"text": t(_ev_key, lang_for(country_code))}],
             }
         ]
 
@@ -342,7 +343,7 @@ def _build_conditions(record: dict, patient_id: str, country: str) -> list[dict]
                         {
                             "system": get_system_uri("snomed-ct"),
                             "code": stage_snomed,
-                            **display_entry(code_lookup("snomed-ct", stage_snomed, resolve_lang(country))),
+                            **display_entry(code_lookup("snomed-ct", stage_snomed, lang_for(country))),
                         }
                     ]
                 cond["stage"] = [
@@ -488,7 +489,7 @@ def _build_conditions(record: dict, patient_id: str, country: str) -> list[dict]
                 lang,
             ),
             "verificationStatus": dual_slot_concept("hl7-condition-ver-status", "confirmed", lang),
-            "category": [dual_slot_concept("hl7-condition-category", "encounter-diagnosis", resolve_lang(country))],
+            "category": [dual_slot_concept("hl7-condition-category", "encounter-diagnosis", lang_for(country))],
             "code": build_diagnosis_codeable_concept(_admit_mapped, icd_system_key, country),
             "subject": patient_ref(patient_id),
         }
@@ -520,7 +521,7 @@ def _build_conditions(record: dict, patient_id: str, country: str) -> list[dict]
         # Text-only evidence label consistent with the encounter-primary path.
         _admit_cond["evidence"] = [
             {
-                "code": [{"text": t("condition_evidence.admission_assessment", resolve_lang(country_code))}],
+                "code": [{"text": t("condition_evidence.admission_assessment", lang_for(country_code))}],
             }
         ]
         conditions.append(_admit_cond)
@@ -580,7 +581,7 @@ def _build_conditions(record: dict, patient_id: str, country: str) -> list[dict]
                 lang,
             ),
             "verificationStatus": dual_slot_concept("hl7-condition-ver-status", "confirmed", lang),
-            "category": [dual_slot_concept("hl7-condition-category", "encounter-diagnosis", resolve_lang(country))],
+            "category": [dual_slot_concept("hl7-condition-category", "encounter-diagnosis", lang_for(country))],
             "code": build_diagnosis_codeable_concept(_wd_mapped, icd_system_key, country),
             "subject": patient_ref(patient_id),
         }
@@ -606,7 +607,7 @@ def _build_conditions(record: dict, patient_id: str, country: str) -> list[dict]
         else:
             _wd_ev_key = "condition_evidence.secondary_diagnosis"
         _wd_cond["evidence"] = [
-            {"code": [{"text": t(_wd_ev_key, resolve_lang(country_code))}]},
+            {"code": [{"text": t(_wd_ev_key, lang_for(country_code))}]},
         ]
         _bs_wd = _bodysite_for(_wd_code_raw, country)
         if _bs_wd:
@@ -663,7 +664,7 @@ def _build_conditions(record: dict, patient_id: str, country: str) -> list[dict]
             # chronic-condition path also emits displays (was raw code).
             "clinicalStatus": dual_slot_concept("hl7-condition-clinical", "active", lang),
             "verificationStatus": dual_slot_concept("hl7-condition-ver-status", "confirmed", lang),
-            "category": [dual_slot_concept("hl7-condition-category", "problem-list-item", resolve_lang(country))],
+            "category": [dual_slot_concept("hl7-condition-category", "problem-list-item", lang_for(country))],
             "code": build_diagnosis_codeable_concept(
                 map_diagnosis_code(c_code, country, sex=patient_sex), icd_system_key, country
             ),
@@ -678,7 +679,7 @@ def _build_conditions(record: dict, patient_id: str, country: str) -> list[dict]
         # same rationale as the encounter-diagnosis path.
         cond["evidence"] = [
             {
-                "code": [{"text": t("condition_evidence.problem_list_prior", resolve_lang(country_code))}],  # noqa: E501
+                "code": [{"text": t("condition_evidence.problem_list_prior", lang_for(country_code))}],  # noqa: E501
             }
         ]
 
@@ -697,7 +698,7 @@ def _build_conditions(record: dict, patient_id: str, country: str) -> list[dict]
                     {
                         "system": get_system_uri("snomed-ct"),
                         "code": stage_snomed,
-                        **display_entry(code_lookup("snomed-ct", stage_snomed, resolve_lang(country))),
+                        **display_entry(code_lookup("snomed-ct", stage_snomed, lang_for(country))),
                     }
                 ]
             cond["stage"] = [
@@ -785,7 +786,7 @@ def _build_conditions(record: dict, patient_id: str, country: str) -> list[dict]
             **({"extension": [_ecs_diagnosis_type_extension("clinical")]} if is_jp(country_code) else {}),
             "clinicalStatus": dual_slot_concept("hl7-condition-clinical", "active", lang),
             "verificationStatus": dual_slot_concept("hl7-condition-ver-status", "confirmed", lang),
-            "category": [dual_slot_concept("hl7-condition-category", "problem-list-item", resolve_lang(country))],
+            "category": [dual_slot_concept("hl7-condition-category", "problem-list-item", lang_for(country))],
             "code": build_diagnosis_codeable_concept(
                 map_diagnosis_code("Z87.59", country, sex=patient_sex),
                 icd_system_key,
@@ -795,7 +796,7 @@ def _build_conditions(record: dict, patient_id: str, country: str) -> list[dict]
             "onsetDateTime": to_fhir_date(end_date),
             "evidence": [
                 {
-                    "code": [{"text": t("condition_evidence.problem_list_prior", resolve_lang(country_code))}],
+                    "code": [{"text": t("condition_evidence.problem_list_prior", lang_for(country_code))}],
                 }
             ],
         }

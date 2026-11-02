@@ -6,7 +6,6 @@ from types import SimpleNamespace
 
 import pytest
 
-from clinosim.codes import match
 from clinosim.codes.valuesets import (
     concept_group,
     group_names,
@@ -51,7 +50,3 @@ def test_severity_and_complication_tables_come_from_the_value_sets() -> None:
     internal = {n for n in group_names() if concept_group(n).space == "internal"}
     assert PATIENT_CONDITIONS == internal
     assert internal <= EVALUABLE_CONDITIONS
-
-
-def test_match_module_is_the_shared_helper() -> None:
-    assert match.has_icd_prefix([ChronicCondition(code="E11.9")], ("E11",))

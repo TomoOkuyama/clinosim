@@ -216,7 +216,7 @@ only **at the point a second module actually needs it** (YAGNI — if
 only one module uses it, leave it local).
 
 The helpers currently in `_shared.py` (`normalize_probabilities`
-added in PR-A 2026-06-26; `is_jp` / `resolve_lang` added by the
+added in PR-A 2026-06-26; `is_jp` / `lang_for` added by the
 2026-07-02 shared-logic unification):
 
 - `get_attr_or_key(obj, name, default)` — dict / dataclass dual
@@ -226,19 +226,20 @@ added in PR-A 2026-06-26; `is_jp` / `resolve_lang` added by the
   convention" below).
 - `is_jp(country) -> bool` — **the sole canonical idiom for the JP
   decision** (case-insensitive + strip normalisation).
-- `resolve_lang(country) -> str` — **the sole canonical idiom for
+- `countries.lang_for(country) -> str` — **the sole canonical idiom for
   display-language selection** (JP → `"ja"`, else → `"en"`).
 
 **Mandatory idiom for JP-gating / language selection (2026-07-02)** —
 country decisions and display-language selection must go through
-`is_jp(country)` / `resolve_lang(country)`:
+`is_jp(country)` / `lang_for(country)`:
 
 ```python
-from clinosim.modules._shared import is_jp, resolve_lang
+from clinosim.countries import lang_for
+from clinosim.modules._shared import is_jp
 
 if is_jp(ctx.country):
     ...
-lang = resolve_lang(ctx.country)   # "ja" / "en"
+lang = lang_for(ctx.country)   # "ja" / "en"
 ```
 
 > **Anti-pattern:** do not write new hand-rolled country-decision
@@ -247,7 +248,7 @@ lang = resolve_lang(ctx.country)   # "ja" / "en"
 > `lang = "ja" if country == "JP" else "en"`). Before the shared-
 > logic unification 5 divergent idioms coexisted, and case-handling
 > differences could silently disable JP gating — a PR-90-class risk.
-> `is_jp` / `resolve_lang` are the single normalisation point.
+> `is_jp` / `lang_for` are the single normalisation point.
 
 ### Canonical form of path constants (established in PR-A 2026-06-26)
 
@@ -1273,7 +1274,7 @@ pass structural / narrative CIF separation is
 - Types live in `clinosim/types/`; display via `code_lookup()`; URI
   via `get_system_uri()`.
 - Country decisions via `is_jp()`; display language via
-  `resolve_lang()`; country → code-system selection via
+  `lang_for()`; country → code-system selection via
   `system_key_for()` (do not write hand-rolled `country == "JP"`
   variants or inline branching).
 - Treat cached loader return values as read-only (shared instance —

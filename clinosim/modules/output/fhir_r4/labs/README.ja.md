@@ -86,7 +86,7 @@ from clinosim.modules.output.fhir_r4.labs._reference_ranges import (
 
 ## 依存
 
-- `clinosim.modules._shared` — `is_jp`, `resolve_lang`。
+- `clinosim.modules._shared` — `is_jp`, `countries.lang_for`。
 - `clinosim.modules.output.fhir_r4.lib.common` — `BundleContext`、
   fragment helper。
 - `..demographics.patient.patient_ref`、

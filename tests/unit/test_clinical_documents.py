@@ -22,7 +22,7 @@ from clinosim.modules.llm_service.engine import (
     ClinicalEventData,
     LLMTaskType,
     PatientSummary,
-    loinc_for,
+    document_task_loinc,
 )
 from clinosim.modules.llm_service.factory import build_from_config
 from clinosim.modules.llm_service.prompt_registry import PromptRegistry, _stringify
@@ -242,7 +242,7 @@ class TestDocumentLoinc:
             LLMTaskType.ADMISSION_HP,
             LLMTaskType.PROCEDURE_NOTE,
         ]:
-            assert loinc_for(task), f"{task} missing LOINC"
+            assert document_task_loinc(task), f"{task} missing LOINC"
 
     def test_known_loinc_codes(self):
         assert DOCUMENT_LOINC[LLMTaskType.DISCHARGE_SUMMARY] == "18842-5"

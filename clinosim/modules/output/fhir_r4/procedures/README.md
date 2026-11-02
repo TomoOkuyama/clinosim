@@ -93,7 +93,7 @@ Not applicable — pure builders over CIF procedures / immunizations /
 
 ## Dependencies
 
-- `clinosim.modules._shared` — `is_jp`, `resolve_lang`.
+- `clinosim.modules._shared` — `is_jp`, `countries.lang_for`.
 - `clinosim.modules.output.fhir_r4.lib.common` — `BundleContext`,
   `survey_category`, `to_fhir_datetime`, fragment helpers;
   `lib.ids` — opaque ids.

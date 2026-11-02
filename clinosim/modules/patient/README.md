@@ -116,7 +116,7 @@ from clinosim.modules.patient.activator import (
 ## Dependencies
 
 - `clinosim.modules._shared` — `is_jp`, `normalize_probabilities`,
-  `resolve_lang`.
+  `countries.lang_for`.
 - `clinosim.modules.patient._patient_activator_thresholds` — 586 LOC
   of named baseline / reserve / delirium / chronic-condition
   thresholds (Issue #637 sweep).

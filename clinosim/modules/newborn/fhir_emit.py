@@ -93,7 +93,7 @@ def _bb_newborn_apgar(ctx: Any) -> list[dict]:
     CIF fixtures / opt-out).
     """
     from clinosim.codes import get_system_uri
-    from clinosim.modules._shared import resolve_lang
+    from clinosim.countries import lang_for
     from clinosim.modules.output.fhir_r4.demographics.patient import patient_ref
     from clinosim.modules.output.fhir_r4.lib.ids import wrap_as_identifier
 
@@ -111,7 +111,7 @@ def _bb_newborn_apgar(ctx: Any) -> list[dict]:
         return []
     country = str(getattr(ctx, "country", "us") or "us")
     encounter_id = str(getattr(ctx, "primary_enc_id", "") or "")
-    lang = resolve_lang(country)
+    lang = lang_for(country)
     key_system = "urn:clinosim:identifier:apgar-observation-key"
 
     out: list[dict] = []
@@ -183,7 +183,7 @@ def _bb_newborn_bilirubin(ctx: Any) -> list[dict]:
     valueQuantity in `mg/dL` (UCUM).
     """
     from clinosim.codes import get_system_uri
-    from clinosim.modules._shared import resolve_lang
+    from clinosim.countries import lang_for
     from clinosim.modules.output.fhir_r4.demographics.patient import patient_ref
     from clinosim.modules.output.fhir_r4.lib.ids import wrap_as_identifier
 
@@ -198,7 +198,7 @@ def _bb_newborn_bilirubin(ctx: Any) -> list[dict]:
     patient_id = str(getattr(ctx, "patient_id", "") or "")
     country = str(getattr(ctx, "country", "us") or "us")
     encounter_id = str(getattr(ctx, "primary_enc_id", "") or "")
-    lang = resolve_lang(country)
+    lang = lang_for(country)
     key_system = "urn:clinosim:identifier:newborn-bilirubin-key"
     out: list[dict] = []
     for e in bili:
@@ -267,7 +267,7 @@ def _bb_newborn_cchd_pulse_ox(ctx: Any) -> list[dict]:
     SNOMED `bodySite` distinguishing pre- vs post-ductal readings.
     """
     from clinosim.codes import get_system_uri
-    from clinosim.modules._shared import resolve_lang
+    from clinosim.countries import lang_for
     from clinosim.modules.output.fhir_r4.demographics.patient import patient_ref
     from clinosim.modules.output.fhir_r4.lib.ids import wrap_as_identifier
 
@@ -282,7 +282,7 @@ def _bb_newborn_cchd_pulse_ox(ctx: Any) -> list[dict]:
     patient_id = str(getattr(ctx, "patient_id", "") or "")
     country = str(getattr(ctx, "country", "us") or "us")
     encounter_id = str(getattr(ctx, "primary_enc_id", "") or "")
-    lang = resolve_lang(country)
+    lang = lang_for(country)
     key_system = "urn:clinosim:identifier:newborn-cchd-key"
 
     out: list[dict] = []
@@ -362,12 +362,12 @@ def _read_metabolic_screen_ext(ctx: Any) -> tuple[dict[str, Any], str, str, str]
 
     Phase 1d-16: the tuple's 4th element is the ISO-639-1 lang code
     (``"ja" / "en" / ...``) resolved via
-    ``clinosim.modules._shared.resolve_lang``. Prior signature returned
+    ``clinosim.modules._shared.lang_for``. Prior signature returned
     ``is_ja: bool`` — replaced to unify the multi-language pattern
     (adding a new language extends ``country_language.yaml`` and the
     per-section ``narrative_labels.yaml`` slots, no code change).
     """
-    from clinosim.modules._shared import resolve_lang
+    from clinosim.countries import lang_for
 
     record = getattr(ctx, "record", None) or {}
     if isinstance(record, dict):
@@ -382,7 +382,7 @@ def _read_metabolic_screen_ext(ctx: Any) -> tuple[dict[str, Any], str, str, str]
         return None
     country = str(getattr(ctx, "country", "us") or "us")
     encounter_id = str(getattr(ctx, "primary_enc_id", "") or "") or str(ext.get("encounter_id", "") or "")
-    return ext, patient_id, encounter_id, resolve_lang(country)
+    return ext, patient_id, encounter_id, lang_for(country)
 
 
 def _iso(dt: Any) -> str:

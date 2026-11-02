@@ -14,7 +14,7 @@ response validation, prompt caching, and provider selection.
   concurrency-safe call surface); `LLMTaskType` /
   `LLMTaskCategory` (StrEnum task inventory);
   `TASK_CATEGORY` (task → category map); `DOCUMENT_LOINC` /
-  `loinc_for(task_type)` (LOINC code per document-generation task);
+  `document_task_loinc(task_type)` (LOINC code per document-generation task);
   `PatientSummary` + `ClinicalEventData` (input DTOs);
   `LLMResponse` + `LLMCompletionError`; document-task validation
   (`_validate_document_task_sync`); per-task prompt builders
@@ -52,7 +52,7 @@ from clinosim.modules.llm_service import (
     # Task metadata
     TASK_CATEGORY,               # {LLMTaskType: LLMTaskCategory}
     DOCUMENT_LOINC,              # {LLMTaskType: LOINC code}
-    loinc_for,                   # (task_type) -> LOINC | None
+    document_task_loinc,                   # (task_type) -> LOINC | None
 
     # Input DTOs
     PatientSummary,
@@ -122,7 +122,7 @@ from clinosim.modules.llm_service import (
   provider. Data lives in
   [`reference_data/task_categories.yaml`](reference_data/task_categories.yaml).
 - **`DOCUMENT_LOINC`** — LOINC code per document-generation task,
-  read through `loinc_for(task_type)`. Document types take their code
+  read through `document_task_loinc(task_type)`. Document types take their code
   from `document_type_specs.yaml` (their one definition, Issue #2344);
   [`reference_data/task_loincs.yaml`](reference_data/task_loincs.yaml)
   lists only the tasks outside the document pipeline (`death_summary`).

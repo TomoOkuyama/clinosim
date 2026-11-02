@@ -38,9 +38,10 @@ from __future__ import annotations
 
 from typing import Any
 
+from clinosim.countries import lang_for
 from clinosim.locale.i18n import t
 from clinosim.modules._shared import get_attr_or_key as _o
-from clinosim.modules._shared import is_jp, resolve_lang
+from clinosim.modules._shared import is_jp
 from clinosim.modules.output.fhir_r4.demographics.patient import patient_ref
 from clinosim.modules.output.fhir_r4.encounters.encounter import encounter_ref
 from clinosim.modules.output.fhir_r4.lib.common import BundleContext, dual_slot_concept, to_fhir_datetime
@@ -103,7 +104,7 @@ def _bb_care_teams(ctx: BundleContext) -> list[dict[str, Any]]:
     encounters = _o(ctx.record, "encounters", []) or []
     if not encounters:
         return []
-    lang = resolve_lang(ctx.country)
+    lang = lang_for(ctx.country)
     patient_id = _o(_o(ctx.record, "patient", {}) or {}, "patient_id", "") or ctx.patient_id
     # C1-15: pharmacist ids from the hospital roster for
     # multi-disciplinary CareTeam participation. Selected deterministically per

@@ -114,7 +114,7 @@
 - `codes/`(国際標準、locale 非依存、EN 必須)と `locale/<country>/`(名前・住所・
   基準値・code_mapping)を厳密分離(AD-35)。
 - CIF は言語中立(code のみ、AD-30)。表示は出力時に `code_lookup(system, code, lang)`。
-- 国判定は `is_jp()` / `resolve_lang()`、国→コード体系は `system_key_for()`(単一 source)。
+- 国判定は `is_jp()` / `lang_for()`、国→コード体系は `system_key_for()`(単一 source)。
 - JP 固有: 保険/マイナンバー(identity module, opt-in)、要介護度、JLAC10/YJ/K-code、
   JP Core 準拠 FHIR。**US 出力に日本語 0 / JP 出力は全 display 日本語**が監査される。
 - 新しい国 = locale dir + codes への言語キー追加 + demographics YAML で追加可能な構造。
