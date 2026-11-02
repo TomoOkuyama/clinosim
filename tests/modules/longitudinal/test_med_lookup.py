@@ -18,14 +18,13 @@ def test_resolve_known_drug_returns_full_metadata():
     assert hm.dose == "500mg"
 
 
-def test_resolve_unknown_drug_returns_default():
-    """Review Focus #2: a drug not in chronic_medications.yaml falls
-    back to a sensible default HomeMedication, not a crash."""
-    hm = resolve_med_name("UnknownNewDrug__Phase4a_test")
-    assert hm.drug_name == "UnknownNewDrug__Phase4a_test"
-    assert hm.route == "PO"
-    assert hm.frequency == "daily"
-    assert hm.dose == ""
+def test_resolve_unknown_drug_fails_loud():
+    """A drug with no chronic_medications.yaml entry raises instead of
+    emitting a guessed default (event specs are validated at load)."""
+    import pytest
+
+    with pytest.raises(KeyError, match="no chronic_medications.yaml entry"):
+        resolve_med_name("UnknownNewDrug__Phase4a_test")
 
 
 def test_resolve_is_cached():
@@ -46,7 +45,8 @@ def test_resolve_empagliflozin_full_metadata():
 
 def test_resolve_insulin_glargine_full_metadata():
     hm = resolve_med_name("Insulin glargine")
-    assert hm.drug_name == "Insulin glargine"
+    # The display name is the drug catalog's (`codes.drugs.drug_display`).
+    assert hm.drug_name == "Insulin Glargine"
     assert hm.route == "SC"
     assert hm.frequency == "daily"
     assert hm.dose == "10U"

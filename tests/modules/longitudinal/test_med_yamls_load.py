@@ -11,7 +11,7 @@ EXPECTED = {
         "requires_chronic_codes": ["E11"],
     },
     "dm_escalate_insulin_e11": {
-        "emits_meds": ["Insulin glargine"],
+        "emits_meds": ["Insulin Glargine"],
         "fire_marker": "dm_escalate_insulin_e11",
         "requires_chronic_codes": ["E11"],
     },

@@ -39,7 +39,7 @@ jobs:
     #   * Single-worker serial (pre-S114):                    ~8-9 min
     #   * S115 (2026-09-14) N=3 shards × xdist -n 2:          ~3-4 min per shard
     #
-    # `pytest-split` splits `tests/unit` into 3 groups using
+    # `pytest-split` splits `tests/unit` + `tests/modules` (Issue #2497) into 3 groups using
     # `.test_durations` (shared with integration). Within each shard,
     # `pytest-xdist -n 2 --dist=worksteal` fills both vCPUs. Combined
     # parallelism = 3 × 2 = 6 concurrent workers.
@@ -73,7 +73,7 @@ jobs:
         env:
           COVERAGE_FILE: ".coverage.shard-${{ matrix.shard }}"
         run: >
-          pytest tests/unit -q --tb=short
+          pytest tests/unit tests/modules -q --tb=short
           -n 2 --dist=worksteal
           --splits 3 --group ${{ matrix.shard }}
           --splitting-algorithm=least_duration
