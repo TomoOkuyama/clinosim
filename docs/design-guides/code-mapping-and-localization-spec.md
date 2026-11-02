@@ -205,6 +205,7 @@ Consumers resolve names only through these functions.
 | `system_key_for(kind, country)` | system key for a domain and country | raises on an unknown kind |
 | `is_english_only_system(key_or_uri)` | whether displays are English-only (§5.3) | — |
 | `slug_to_code(system)` | a system's `slug_to_code` block | `{}` |
+| `code_system(system)` / `system_keys()` | the system's `CodeSystem` instance (§2.3) / every system key, for tests that iterate all systems | `None` / — |
 | `jp_clins_lab_system(kind)` / `jlac10_display(code, lang)` | JP lab CodeSystem URI / JLAC10 display | raises / `None` |
 | `codes.loinc`: `loinc_display`, `loinc_coding` | LOINC display / Coding | `None` / coding without display |
 | `codes.loinc`: `loinc_for(kind, key)`, `loinc_map(kind)` | LOINC code of an internal key (`codes/data/loinc-maps.yaml`: anthropometric, blood_group, care_level, report, section, apgar, newborn_screen) | `KeyError` on an unknown kind or key |
@@ -400,7 +401,6 @@ These parts of the code base do not yet conform. Each one is removed by the issu
 
 | Deviation | Issue |
 |---|---|
-| The shared lookup, language selection and fallback are module functions in `codes/loader.py`, not a `CodeSystem` base class (§2.3) | #2470 |
 | Display tables are loaded by separate functions with their own miss handling, not by `LocalizedTable` (§2.3) | #2471 |
 | `codes.display` matches the language argument exactly: no country-code or case normalization, no BCP-47 primary-subtag fallback (§5.1) | #2453 |
 | `display` / `code_exists` fall back to the first registered child of a code (§4.4) | #2454 |

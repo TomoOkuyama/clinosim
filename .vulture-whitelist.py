@@ -677,3 +677,4 @@ _.admitted_with_inpatient_unit  # modules/encounter/protocol.py (Pydantic field;
 _.order_code_system  # types/encounter.py Order (CIF field naming the code system of order_code, Issue #2378)
 _.asa_class  # types/procedure.py ProcedureRecord (CIF field; read by key into the operative-note event data)
 _.display_ja  # labs/_reference_ranges.py specs (read through locale.localized.localized_field, Issue #2397)
+_.FINAL_OPERATIONS  # codes/loader.py CodeSystem (the operations subclasses must not override; read by tests/unit/codes/test_code_system_base_2470.py, Issue #2470)

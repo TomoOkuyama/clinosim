@@ -205,6 +205,7 @@ occupation:
 | `system_key_for(kind, country)` | ドメインと国に対応するシステムキー | 未知の kind は例外 |
 | `is_english_only_system(key_or_uri)` | 表示名が英語のみの体系か (§5.3) | — |
 | `slug_to_code(system)` | 体系の `slug_to_code` ブロック | `{}` |
+| `code_system(system)` / `system_keys()` | 体系の `CodeSystem` インスタンス (§2.3) / 全体系を走査するテスト用の全システムキー | `None` / — |
 | `jp_clins_lab_system(kind)` / `jlac10_display(code, lang)` | JP 検査 CodeSystem URI / JLAC10 表示名 | 例外 / `None` |
 | `codes.loinc`: `loinc_display`, `loinc_coding` | LOINC 表示名 / Coding | `None` / display なし coding |
 | `codes.loinc`: `loinc_for(kind, key)`, `loinc_map(kind)` | 内部キーの LOINC コード (`codes/data/loinc-maps.yaml`: anthropometric、blood_group、care_level、report、section、apgar、newborn_screen) | 未知の kind / key は `KeyError` |
@@ -400,7 +401,6 @@ occupation:
 
 | 逸脱 | Issue |
 |---|---|
-| 共通の参照・言語選択・フォールバックが `codes/loader.py` のモジュール関数で、基底クラス `CodeSystem` になっていない (§2.3) | #2470 |
 | 表示表が個別の関数で読み込まれ、見つからないときの扱いもそれぞれ違う。`LocalizedTable` になっていない (§2.3) | #2471 |
 | `codes.display` が言語の引数を完全一致で比べる。国コード・大文字小文字の正規化も、BCP-47 主タグへのフォールバックもない (§5.1) | #2453 |
 | `display` / `code_exists` が、コードの最初に登録された子コードにフォールバックする (§4.4) | #2454 |
