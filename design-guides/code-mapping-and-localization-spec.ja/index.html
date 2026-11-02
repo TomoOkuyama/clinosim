@@ -2777,6 +2777,12 @@
 <td>clinosim 内は import しない</td>
 </tr>
 <tr>
+<td>データファイル</td>
+<td><code>clinosim/datafiles.py</code></td>
+<td>データ YAML の唯一の読み込み (<code>load_data_yaml</code>、<code>data_metadata</code>) と kind の一覧 (§3.1)</td>
+<td>clinosim 内は import しない</td>
+</tr>
+<tr>
 <td>利用側</td>
 <td><code>clinosim/modules/</code> / <code>simulator/</code> / <code>eval/</code> / <code>audit/</code> / <code>benchmarks/</code></td>
 <td>判定ロジック、出力処理</td>
@@ -2915,7 +2921,7 @@
 <li><strong>書式。</strong> インデントは空白 2 つ、タブ・アンカー・エイリアスは使わない。1 行に収まるエントリは flow 形式 (<code>office: {en: Office worker, ja: 事務職}</code>)、入れ子のあるエントリは block 形式にする。</li>
 <li><strong>並び順。</strong> 意味のある順序でない限り、キー順に並べる。順序に意味があるときは <code>metadata</code> に書く (例: <code>drugs.yaml</code> の YJ 経路区分の順序、§3.5)。</li>
 <li><strong>編集。</strong> 手で編集するか、テキストをその場で書き換えるスクリプトを使う。読み込んで書き戻す (load → dump) のは禁止。コメントがすべて消えるため。生成したファイルは、どのスクリプトと元データで作ったかをヘッダに書く。</li>
-<li><strong>検証。</strong> kind ごとに schema を持ち、テストですべてのファイルを検証する。ローダは未知のフィールドを無視せずエラーにする。</li>
+<li><strong>読み込みと検証。</strong> データファイルはすべて <code>clinosim.datafiles.load_data_yaml</code> で読む。この関数は <code>metadata</code> ヘッダを除いた中身を返す (ヘッダはセクションではない)。ヘッダは <code>data_metadata</code> で取る。各ファイルの <code>kind</code> と置き場所はテストで確認し、ローダは未知のフィールドを無視せずエラーにする。</li>
 </ol>
 <h3 id="32-種類と置き場所">3.2 種類と置き場所<a class="headerlink" href="#32-種類と置き場所" title="Permanent link">&para;</a></h3>
 <table>
@@ -3552,8 +3558,8 @@
 <td><code>tests/unit/codes/test_code_system_base_2470.py</code>、<code>tests/unit/locale/test_localized_table_2471.py</code></td>
 </tr>
 <tr>
-<td>YAML のヘッダと kind ごとの schema</td>
-<td>まだ無い (§11)</td>
+<td>すべてのデータ YAML が置き場所に合った <code>metadata.kind</code> を持ち、<code>clinosim.datafiles</code> で読まれる (#2494、#2495 に紐づけたラチェット)</td>
+<td><code>tests/unit/test_data_yaml_conventions_2465.py</code></td>
 </tr>
 </tbody>
 </table>
@@ -3572,8 +3578,12 @@
 <td>#2483</td>
 </tr>
 <tr>
-<td>データ YAML に <code>metadata.kind</code> のヘッダと kind ごとの schema 検証が無い (§3.1)</td>
-<td>#2465</td>
+<td>モジュールが <code>clinosim.datafiles</code> ではなく <code>yaml.safe_load</code> で直接 YAML を読んでいる。モジュールの参照データに <code>metadata</code> ヘッダが無い (§3.1)</td>
+<td>#2494</td>
+</tr>
+<tr>
+<td>参照データが、持ち主のモジュールの <code>reference_data/</code> ではなく <code>locale/shared</code> (22 ファイル) と <code>codes/data</code> (1 ファイル) にある (§3.2)</td>
+<td>#2495</td>
 </tr>
 </tbody>
 </table>

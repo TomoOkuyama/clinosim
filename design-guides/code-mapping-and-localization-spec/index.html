@@ -2777,6 +2777,12 @@
 <td>nothing in clinosim</td>
 </tr>
 <tr>
+<td>Data files</td>
+<td><code>clinosim/datafiles.py</code></td>
+<td>the one data-YAML reader (<code>load_data_yaml</code>, <code>data_metadata</code>) and the list of kinds (§3.1)</td>
+<td>nothing in clinosim</td>
+</tr>
+<tr>
 <td>Consumers</td>
 <td><code>clinosim/modules/</code>, <code>clinosim/simulator/</code>, <code>clinosim/eval/</code>, <code>clinosim/audit/</code>, <code>clinosim/benchmarks/</code></td>
 <td>decision logic, emitters</td>
@@ -2915,7 +2921,7 @@
 <li><strong>Style.</strong> Two-space indent, no tabs, no anchors or aliases. An entry that fits on one line uses flow style (<code>office: {en: Office worker, ja: 事務職}</code>); an entry with nested fields uses block style.</li>
 <li><strong>Order.</strong> Entries are ordered by key unless the order carries meaning; when it does, <code>metadata</code> says so (for example the YJ route-class order in <code>drugs.yaml</code>, §3.5).</li>
 <li><strong>Editing.</strong> Files are edited by hand or by a script that edits text in place. Loading and re-dumping a file is not allowed, because it drops every comment. A generated file says in its header which script and source produced it.</li>
-<li><strong>Validation.</strong> Each kind has a schema, and a test validates every file against it. A loader rejects unknown fields instead of ignoring them.</li>
+<li><strong>Reading and validation.</strong> Every data file is parsed by <code>clinosim.datafiles.load_data_yaml</code>, which returns the content without the <code>metadata</code> header (the header is not a section); <code>data_metadata</code> returns the header. A test checks every file's <code>kind</code> and where it lives, and a loader rejects unknown fields instead of ignoring them.</li>
 </ol>
 <h3 id="32-kinds-and-where-they-live">3.2 Kinds and where they live<a class="headerlink" href="#32-kinds-and-where-they-live" title="Permanent link">&para;</a></h3>
 <table>
@@ -3552,8 +3558,8 @@
 <td><code>tests/unit/codes/test_code_system_base_2470.py</code>, <code>tests/unit/locale/test_localized_table_2471.py</code></td>
 </tr>
 <tr>
-<td>YAML header and schema per kind</td>
-<td>none yet (§11)</td>
+<td>Every data YAML has a <code>metadata.kind</code> that belongs where it lives; data YAML is parsed by <code>clinosim.datafiles</code> (ratchets pinned to #2494, #2495)</td>
+<td><code>tests/unit/test_data_yaml_conventions_2465.py</code></td>
 </tr>
 </tbody>
 </table>
@@ -3572,8 +3578,12 @@
 <td>#2483</td>
 </tr>
 <tr>
-<td>Data YAMLs lack the <code>metadata.kind</code> header and per-kind schema validation (§3.1)</td>
-<td>#2465</td>
+<td>Modules parse their own YAML with <code>yaml.safe_load</code> instead of <code>clinosim.datafiles</code>; module reference-data files have no <code>metadata</code> header (§3.1)</td>
+<td>#2494</td>
+</tr>
+<tr>
+<td>Reference data sits in <code>locale/shared</code> (22 files) and <code>codes/data</code> (1 file) instead of the owning module's <code>reference_data/</code> (§3.2)</td>
+<td>#2495</td>
 </tr>
 </tbody>
 </table>
