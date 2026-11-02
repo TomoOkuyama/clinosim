@@ -14,6 +14,7 @@ Coding displays and CodeableConcept text are set at emit time with
 from __future__ import annotations
 
 from functools import cache
+from pathlib import Path
 from typing import Any
 
 from clinosim.codes import data_table, get_system_uri
@@ -28,6 +29,7 @@ from clinosim.modules.output.fhir_r4.post_process.profile import (
     _HL7_OBSERVATION_CATEGORY_SYSTEMS,
     _JP_OBSERVATION_CATEGORY_SYSTEM,
 )
+from clinosim.reference_data import load_reference_yaml
 
 # Observation.identifier system — internal namespace for clinosim-generated
 # Observations. Feedback (2026-07-16) noted that JP_Observation_LabResult_eCS
@@ -150,7 +152,7 @@ _JP_MHLW_MEDICATION_USAGE_EPRESCRIPTION_CS = get_system_uri("jp-medication-usage
 
 # Drug-specific JA dosing conventions (QD/BID/TID meal-context,
 # QD/BID/TID implied-freq, and PRN MHLW condition codes) are
-# consolidated in `clinosim/codes/data/clinosim-drug-dosing-conventions.yaml`.
+# consolidated in `reference_data/clinosim-drug-dosing-conventions.yaml`.
 # The module-level dicts below are retained as thin yaml-backed
 # aliases so every existing consumer (`_resolve_mhlw_usage_code` and
 # `_resolve_implied_freq`) keeps working with no call-site changes.
@@ -159,7 +161,9 @@ _JP_MHLW_MEDICATION_USAGE_EPRESCRIPTION_CS = get_system_uri("jp-medication-usage
 @cache
 def _drug_dosing_conventions() -> dict[str, dict[str, Any]]:
 
-    raw = data_table("clinosim-drug-dosing-conventions")
+    raw = load_reference_yaml(
+        Path(__file__).resolve().parents[1] / "reference_data" / "clinosim-drug-dosing-conventions.yaml"
+    )
     drugs = raw.get("drugs") or {}
     out: dict[str, dict[str, Any]] = {}
     for name, row in drugs.items():

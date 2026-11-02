@@ -408,5 +408,4 @@ These parts of the code base do not yet conform. Each one is removed by the issu
 | `clinosim-clinician-role.yaml`, `perinatal.yaml`, `chronic_followup.yaml`, `pregnancy_substitutions.yaml` use language-suffixed field names (§3.1) | #2462 |
 | JLAC10 / JP-CLINS lookups sit in the generic loader, MEDIS in the ICD-10 module, YJ / HOT only in the drug catalog module (§2.2) | #2463 |
 | Data YAMLs lack the `metadata.kind` header and per-kind schema validation (§3.1) | #2465 |
-| `codes/data` holds reference data and translation tables (§3.2) | #2466 |
 | Duplicate resolver names and pass-through wrappers (`llm_service.engine.loinc_for`, `fhir_r4.lib.common.loinc_coding`, `pick_localized_field`, `resolve_lang`, `get_display`, `codes.match`) | #2467 |

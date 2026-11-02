@@ -23,10 +23,11 @@ from __future__ import annotations
 import hashlib
 from datetime import datetime
 from functools import cache
+from pathlib import Path
 from typing import Any
 
-from clinosim.codes import data_table
 from clinosim.modules._shared import get_attr_or_key as _o
+from clinosim.reference_data import load_reference_yaml
 from clinosim.types.document import NarrativeContext
 
 
@@ -299,7 +300,7 @@ def _parse_iso_datetime(raw: Any) -> datetime | None:
 # (feedback_rng_neutral_additive_field).
 
 # CC keyword / PE replacement pools now live in
-# `clinosim/codes/data/cc-pe-consistency-keywords.yaml`. The accessors
+# `reference_data/cc-pe-consistency-keywords.yaml`. The accessors
 # below load them lazily; the clinical rationale (altered consciousness
 # CC must not co-exist with 「意識清明」 PE; severe dyspnea CC must not
 # co-exist with 「呼吸音清明」 PE; replacement is deterministic via
@@ -308,9 +309,11 @@ def _parse_iso_datetime(raw: Any) -> datetime | None:
 
 @cache
 def _cc_pe_consistency_keywords() -> dict[str, Any]:
-    """Load `clinosim/codes/data/cc-pe-consistency-keywords.yaml`."""
+    """Load `reference_data/cc-pe-consistency-keywords.yaml`."""
 
-    return data_table("cc-pe-consistency-keywords")
+    return load_reference_yaml(
+        Path(__file__).resolve().parents[1] / "reference_data" / "cc-pe-consistency-keywords.yaml"
+    )
 
 
 def _cc_altered_consciousness_keywords() -> tuple[str, ...]:

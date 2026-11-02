@@ -74,9 +74,9 @@
 | `chf_bnp` | I50.* | 30934-4 (BNP) | **> 100 pg/mL** | Framingham / [ACC-AHA HF ガイドライン](https://www.acc.org/latest-in-cardiology/ten-points-to-remember/2022/04/06/12/57/2022-aha-acc-hfsa-guideline-for-the-management-of-hf) |
 
 ペアリングは
-[`clinosim/codes/data/condition-lab-pairings.yaml`](https://github.com/TomoOkuyama/clinosim/blob/master/clinosim/codes/data/condition-lab-pairings.yaml)
+[`clinosim/eval/reference_data/condition-lab-pairings.yaml`](https://github.com/TomoOkuyama/clinosim/blob/master/clinosim/eval/reference_data/condition-lab-pairings.yaml)
 から読み込まれる (`lab_values_physiological_range` の範囲も同様に
-`clinosim/codes/data/lab-plausibility-bounds.yaml` から)。ペアリング
+`clinosim/eval/reference_data/lab-plausibility-bounds.yaml` から)。ペアリング
 追加はこの yaml の `pairings:` 配下にエントリを追加し、このページに
 ソースを引用。
 

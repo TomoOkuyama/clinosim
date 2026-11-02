@@ -408,5 +408,4 @@ occupation:
 | `clinosim-clinician-role.yaml`、`perinatal.yaml`、`chronic_followup.yaml`、`pregnancy_substitutions.yaml` が言語の接尾辞付きのフィールド名を使っている (§3.1) | #2462 |
 | JLAC10 / JP-CLINS の参照が汎用ローダに、MEDIS が ICD-10 のモジュールにあり、YJ / HOT は薬カタログのモジュールからしか引けない (§2.2) | #2463 |
 | データ YAML に `metadata.kind` のヘッダと kind ごとの schema 検証が無い (§3.1) | #2465 |
-| `codes/data` に参照データと翻訳表が置かれている (§3.2) | #2466 |
 | 名前の重複した解決関数と、転送するだけのラッパー (`llm_service.engine.loinc_for`、`fhir_r4.lib.common.loinc_coding`、`pick_localized_field`、`resolve_lang`、`get_display`、`codes.match`) | #2467 |

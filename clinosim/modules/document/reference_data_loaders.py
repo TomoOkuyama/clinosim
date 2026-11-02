@@ -28,7 +28,7 @@ from typing import Any
 
 import yaml
 
-from clinosim.codes import data_table
+from clinosim.reference_data import load_reference_yaml
 
 _HERE = Path(__file__).resolve().parent
 _REF_DIR = _HERE / "reference_data"
@@ -213,7 +213,7 @@ def load_discharge_instructions() -> dict[str, Any]:
     Task 6 TemplateNarrativeGenerator merges baseline + disease_specific entries,
     with disease_specific taking precedence for shared keys.
     """
-    data: dict[str, Any] = data_table("clinosim-discharge-instruction")
+    data: dict[str, Any] = load_reference_yaml(_REF_DIR / "clinosim-discharge-instruction.yaml")
     _validate_discharge_instructions(data)
     return data
 
@@ -427,6 +427,6 @@ def load_nursing_content() -> dict[str, Any]:
     merge acute-first then chronic-second, per-lang, deduplicating and
     capping the merged list.
     """
-    data: dict[str, Any] = data_table("clinosim-nursing-content")
+    data: dict[str, Any] = load_reference_yaml(_REF_DIR / "clinosim-nursing-content.yaml")
     _validate_nursing_content(data)
     return data

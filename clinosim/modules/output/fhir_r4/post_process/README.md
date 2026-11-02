@@ -76,7 +76,7 @@ resource — not as a separate pass over an assembled bundle.
     `_DRUG_IMPLIED_FREQ_{QD,BID,TID}` sets. These dispatch tables are
     yaml-backed module constants loaded from
     `clinosim/codes/data/mhlw-medication-usage-code.yaml` and
-    `clinosim/codes/data/clinosim-drug-dosing-conventions.yaml`. Reaches ~85.9% real-code
+    `clinosim/modules/output/fhir_r4/reference_data/clinosim-drug-dosing-conventions.yaml`. Reaches ~85.9% real-code
     coverage (all coded records are 100% semantically correct — MHLW
     oral code is emitted **only** on `route.text=="経口"`) on the
     JP p=10000 s500 sample. The remaining ~14.1% dummy is

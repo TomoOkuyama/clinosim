@@ -34,9 +34,9 @@ from __future__ import annotations
 
 import hashlib
 from functools import cache
+from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
-from clinosim.codes import data_table
 from clinosim.codes import display as registry_display
 from clinosim.codes.icd10 import icd10_system
 from clinosim.codes.valuesets import concept_group, iter_chronic_codes
@@ -62,6 +62,7 @@ from clinosim.modules.document.narrative._template_helpers import (
     _render_home_med_name,
     _render_safety_skips_line,
 )
+from clinosim.reference_data import load_reference_yaml
 from clinosim.types.document import DocumentType, NarrativeContext
 
 if TYPE_CHECKING:
@@ -78,11 +79,13 @@ if TYPE_CHECKING:
 
 @cache
 def _chronic_med_class_hints_raw() -> dict[str, dict[str, Any]]:
-    """Load `clinosim/codes/data/chronic-med-class-hints.yaml`.
+    """Load `reference_data/chronic-med-class-hints.yaml`.
 
     Returns a `{class_key: {prefix, en: [...], ja: [...]}}` dict.
     """
-    raw = data_table("chronic-med-class-hints")
+    raw = load_reference_yaml(
+        Path(__file__).resolve().parents[4] / "document" / "reference_data" / "chronic-med-class-hints.yaml"
+    )
     classes = raw.get("classes") or {}
     out: dict[str, dict[str, Any]] = {}
     for class_key, row in classes.items():

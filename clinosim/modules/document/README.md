@@ -177,7 +177,7 @@ clinosim/modules/document/
     bedside_procedure_codes.yaml     bedside procedure codes (load_bedside_procedure_codes)
     narrative_extras_whitelists.yaml narrative extra-context whitelists (narrative/_extra_context_builder.py)
     ja_only_fallback_sections.yaml   sections exempt from the US H&P JA-char audit (audit.py)
-    # discharge_instructions.yaml moved to `clinosim/codes/data/clinosim-discharge-instruction.yaml`
+    # discharge_instructions.yaml moved to `clinosim/modules/document/reference_data/clinosim-discharge-instruction.yaml`
     # under META #1805 Phase E (#1862) — the file lives beside the other `clinosim-*` catalogs.
     chronic_soap_templates.yaml      chronic-condition SOAP note templates
     hedging_phrases.yaml             narrative hedging phrase pool

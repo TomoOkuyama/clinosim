@@ -76,7 +76,7 @@ builder が resource を返した直後に resource 単位で呼ばれる —
     想定 freq** を `_DRUG_IMPLIED_FREQ_{QD,BID,TID}` set から適用。
     これら dispatch 表は
     `clinosim/codes/data/mhlw-medication-usage-code.yaml` と
-    `clinosim/codes/data/clinosim-drug-dosing-conventions.yaml` から
+    `clinosim/modules/output/fhir_r4/reference_data/clinosim-drug-dosing-conventions.yaml` から
     load される yaml 由来 module 定数。
     JP p=10000 s500 sample で実 code coverage ~85.9% (**100%
     clinically correct** — MHLW oral code は `route.text=="経口"` の

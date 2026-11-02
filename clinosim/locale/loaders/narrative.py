@@ -22,7 +22,6 @@ from __future__ import annotations
 from functools import cache, lru_cache
 from typing import Any
 
-from clinosim.codes import data_table
 from clinosim.locale._io import _LOCALE_DIR, _load_yaml
 
 
@@ -297,7 +296,9 @@ def load_drug_display_dict(lang: str = "ja") -> dict[str, str]:
     administration-form display variants (``clinosim-admin-form-display.yaml``:
     Calcitonin nasal spray, ...)."""
     out = dict(_drug_catalog_display_dict(lang))
-    _add_table(out, data_table("clinosim-admin-form-display").get("displays"), lang)
+    _add_table(
+        out, _load_yaml(_LOCALE_DIR / "shared" / "clinosim-admin-form-display.yaml", fallback={}).get("displays"), lang
+    )
     return out
 
 
@@ -313,7 +314,9 @@ def load_procedure_display_dict(lang: str = "ja") -> dict[str, str]:
         text = value.strip() if isinstance(value, str) else ""
         if en_lower and text and en_lower not in out:
             out[en_lower] = text
-    _add_table(out, data_table("clinosim-procedure-phrase").get("procedures"), lang)
+    _add_table(
+        out, _load_yaml(_LOCALE_DIR / "shared" / "clinosim-procedure-phrase.yaml", fallback={}).get("procedures"), lang
+    )
     return out
 
 
@@ -321,7 +324,11 @@ def load_procedure_display_dict(lang: str = "ja") -> dict[str, str]:
 def load_allergen_display_dict(lang: str = "ja") -> dict[str, str]:
     """EN → ``lang`` allergen and substance names (``clinosim-allergen-substance.yaml``)."""
     out: dict[str, str] = {}
-    _add_table(out, data_table("clinosim-allergen-substance").get("substances"), lang)
+    _add_table(
+        out,
+        _load_yaml(_LOCALE_DIR / "shared" / "clinosim-allergen-substance.yaml", fallback={}).get("substances"),
+        lang,
+    )
     return out
 
 

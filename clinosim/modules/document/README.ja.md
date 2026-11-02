@@ -169,7 +169,7 @@ clinosim/modules/document/
     section_catalog.yaml             Composition section slug catalog (narrative/registry.py, composition.py)
     physical_exam_findings.yaml      per-disease PE 所見 (baseline + override)
     # discharge_instructions.yaml は META #1805 Phase E (#1862) で
-    # `clinosim/codes/data/clinosim-discharge-instruction.yaml` に移動
+    # `clinosim/modules/document/reference_data/clinosim-discharge-instruction.yaml` に移動
     hpi_pertinent_negatives.yaml     HPI pertinent negative (load_hpi_pertinent_negatives)
     bedside_procedure_codes.yaml     bedside procedure code (load_bedside_procedure_codes)
     narrative_extras_whitelists.yaml narrative extra-context whitelist (narrative/_extra_context_builder.py)
