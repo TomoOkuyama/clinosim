@@ -18,6 +18,7 @@ from typing import Any
 from clinosim.codes import display as registry_display
 from clinosim.codes import get_system_uri, slug_to_code
 from clinosim.codes import lookup as code_lookup
+from clinosim.codes.bcp47 import bcp47_display
 from clinosim.codes.loinc import loinc_coding
 from clinosim.codes.ucum import ucum_quantity
 from clinosim.locale.i18n import t
@@ -977,14 +978,9 @@ def _build_patient(p: dict, country: str) -> dict:
         # English displays. Issue #1764: HL7 base + US Core v9 require
         # the IETF canonical form (`English (United States)`, with a
         # space), while fhir-jp-validator registered the no-space form
-        # (`English(US)`). Pick the field by output locale.
-        _lang_display_field = "en" if is_jp(country) else "en_canonical"
-        _lang_display = code_lookup("bcp-47-language", lang, _lang_display_field)
-        # Fallback: unregistered language tag — fall back to the `en`
-        # field (jp-validator form) so JP flows that already pass stay
-        # pinned, and so US flows at least emit something resolvable.
-        if not _lang_display or _lang_display == lang:
-            _lang_display = code_lookup("bcp-47-language", lang, "en")
+        # (`English(US)`). The variant is a profile rule (JP output is
+        # validated against JP Core), chosen by country (Issue #2481).
+        _lang_display = bcp47_display(lang, profile="jp-core" if is_jp(country) else None) or ""
         resource["communication"] = [
             {
                 "language": {
