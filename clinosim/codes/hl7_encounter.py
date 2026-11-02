@@ -25,6 +25,8 @@ from __future__ import annotations
 
 from enum import StrEnum
 
+from clinosim.codes.loader import code_exists
+
 __all__ = [
     "ActPriority",
     "AdmitSource",
@@ -80,3 +82,22 @@ class ActPriority(StrEnum):
 
     EL = "EL"
     """Elective — scheduled inpatient admissions (e.g. joint replacement)."""
+
+
+# The registry files are the code lists; these enums only name their members
+# for typing. Every member must be registered (spec §9, Issue #2464).
+_REGISTRIES: dict[type[StrEnum], str] = {
+    AdmitSource: "hl7-admit-source",
+    DischargeDisposition: "hl7-discharge-disposition",
+    ActPriority: "hl7-v3-actpriority",
+}
+
+
+def _check_registered() -> None:
+    for enum, system_key in _REGISTRIES.items():
+        missing = [m.value for m in enum if not code_exists(system_key, m.value, exact=True)]
+        if missing:
+            raise ValueError(f"{enum.__name__}: {missing} not registered in codes/data/{system_key}.yaml")
+
+
+_check_registered()

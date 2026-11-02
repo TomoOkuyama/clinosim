@@ -49,7 +49,7 @@
 | CPT / K コード | `cpt.yaml`、`k-codes.yaml` | `codes/procedures.py` | `shinryo_koui_ssk_20261013_ja.json` |
 | UCUM | `ucum-aliases.yaml` | `codes/ucum.py` | — |
 | JIS X 0401 | `jis-x-0401-prefectures.yaml` | `codes/prefectures.py` | — |
-| HL7 terminology | `hl7-*.yaml` | 汎用関数、`codes/hl7_encounter.py` (§11) | — |
+| HL7 terminology | `hl7-*.yaml` | 汎用関数、`codes/hl7_encounter.py` (型付きの名前。レジストリと照合) | — |
 | JP Core / JP-CLINS / JP eCheckup / MHLW 文書コード | `jpfhir-*.yaml`、`jp-*.yaml`、`mhlw-*.yaml`、`fhir-profiles-*.yaml` | 汎用関数 | — |
 | clinosim 独自の体系 | `clinosim-*.yaml` | 汎用関数 | — |
 
@@ -367,7 +367,7 @@ occupation:
 - `clinosim/codes/` の外にコード体系 URI の文字列リテラルを書く。`get_system_uri` を使う。例外は URI の系統を表す接頭辞リストだけ。
 - `clinosim/codes/` の外で `codes/data/*.yaml` を直接読む、または `clinosim.codes.loader._load_system` を import する。ソースごとのアクセサか `data_table` を使う。
 - ある権威の参照規則を、その権威のアクセサの外で実装する (§2.2)。
-- Python の比較式にコードのリテラルを書く、またはコードや表示名を Python の dict・list・enum に持つ (CPT、LOINC、SNOMED、ICD、YJ、HL7 …)。value set、カタログ、レジストリファイル、名前付き概念を使う。
+- Python の比較式にコードのリテラルを書く、またはコードや表示名を Python の dict・list・enum に持つ (CPT、LOINC、SNOMED、ICD、YJ、HL7 …)。value set、カタログ、レジストリファイル、名前付き概念を使う。唯一の例外は、登録済みのコードに型付きの名前を付けるだけで、全メンバーを読み込み時にレジストリファイルと照合する enum (`codes/hl7_encounter.py`)。
 - 同じ語彙やコード対応の 2 つ目の表を作る。語彙自身の表の横に置く言語別の表も含む。
 - 薬・検査・病態を自由文字列の部分一致で同定する。カタログ id、正規の検査名、value set を使う。自由文字列から薬を同定してよいのは `identify_drug` だけ。
 - 表示を選ぶために言語をリテラルと比較する (`lang == "ja"`、`lang != "ja"`)、または `is_jp` で選ぶ。§4.2 を使う。
@@ -412,7 +412,6 @@ occupation:
 | `chief_complaint_translations.yaml` が、プロトコルの文字列を英語の文をキーにして訳している (§3.9) | #2461 |
 | `clinosim-clinician-role.yaml`、`perinatal.yaml`、`chronic_followup.yaml`、`pregnancy_substitutions.yaml` が言語の接尾辞付きのフィールド名を使っている (§3.1) | #2462 |
 | JLAC10 / JP-CLINS の参照が汎用ローダに、MEDIS が ICD-10 のモジュールにあり、YJ / HOT は薬カタログのモジュールからしか引けない (§2.2) | #2463 |
-| `codes/hl7_encounter.py` が HL7 の 3 つの語彙を StrEnum で書き写している (§9) | #2464 |
 | データ YAML に `metadata.kind` のヘッダと kind ごとの schema 検証が無い (§3.1) | #2465 |
 | `codes/data` に参照データと翻訳表が置かれている (§3.2) | #2466 |
 | 名前の重複した解決関数と、転送するだけのラッパー (`llm_service.engine.loinc_for`、`fhir_r4.lib.common.loinc_coding`、`pick_localized_field`、`resolve_lang`、`get_display`、`codes.match`) | #2467 |

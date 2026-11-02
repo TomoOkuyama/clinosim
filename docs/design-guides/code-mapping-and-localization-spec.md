@@ -49,7 +49,7 @@ Current layout:
 | CPT / K-codes | `cpt.yaml`, `k-codes.yaml` | `codes/procedures.py` | `shinryo_koui_ssk_20261013_ja.json` |
 | UCUM | `ucum-aliases.yaml` | `codes/ucum.py` | — |
 | JIS X 0401 | `jis-x-0401-prefectures.yaml` | `codes/prefectures.py` | — |
-| HL7 terminology | `hl7-*.yaml` | generic functions; `codes/hl7_encounter.py` (§11) | — |
+| HL7 terminology | `hl7-*.yaml` | generic functions; `codes/hl7_encounter.py` (typed names, checked against the registry) | — |
 | JP Core / JP-CLINS / JP eCheckup / MHLW document codes | `jpfhir-*.yaml`, `jp-*.yaml`, `mhlw-*.yaml`, `fhir-profiles-*.yaml` | generic functions | — |
 | clinosim-owned systems | `clinosim-*.yaml` | generic functions | — |
 
@@ -367,7 +367,7 @@ These rules are common to every resolver in §4, in both layers.
 - A code-system URI string literal outside `clinosim/codes/`. Use `get_system_uri`. Prefix lists that name URI families are the only exception.
 - Reading a `codes/data/*.yaml` file directly, or importing `clinosim.codes.loader._load_system`, outside `clinosim/codes/`. Use the per-source accessor or `data_table`.
 - An authority's lookup rule implemented outside that authority's accessor (§2.2).
-- A code literal in a Python comparison, or a Python dict, list or enum of codes or displays (CPT, LOINC, SNOMED, ICD, YJ, HL7, ...). Use a value set, a catalog, a registry file or a named concept.
+- A code literal in a Python comparison, or a Python dict, list or enum of codes or displays (CPT, LOINC, SNOMED, ICD, YJ, HL7, ...). Use a value set, a catalog, a registry file or a named concept. The one exception is an enum that only names registered codes for typing and checks every member against its registry file at import (`codes/hl7_encounter.py`).
 - A second table for the same vocabulary or code mapping, including a per-language table beside the vocabulary's own.
 - Identifying a drug, lab or condition by substring of free text. Use the catalog id, canonical lab name or value set; `identify_drug` is the one sanctioned free-text drug matcher.
 - Comparing a language with a literal (`lang == "ja"`, `lang != "ja"`) or selecting by `is_jp` to pick a display. Use §4.2.
@@ -412,7 +412,6 @@ These parts of the code base do not yet conform. Each one is removed by the issu
 | `chief_complaint_translations.yaml` translates protocol text keyed by its English sentence (§3.9) | #2461 |
 | `clinosim-clinician-role.yaml`, `perinatal.yaml`, `chronic_followup.yaml`, `pregnancy_substitutions.yaml` use language-suffixed field names (§3.1) | #2462 |
 | JLAC10 / JP-CLINS lookups sit in the generic loader, MEDIS in the ICD-10 module, YJ / HOT only in the drug catalog module (§2.2) | #2463 |
-| `codes/hl7_encounter.py` restates three HL7 vocabularies as StrEnums (§9) | #2464 |
 | Data YAMLs lack the `metadata.kind` header and per-kind schema validation (§3.1) | #2465 |
 | `codes/data` holds reference data and translation tables (§3.2) | #2466 |
 | Duplicate resolver names and pass-through wrappers (`llm_service.engine.loinc_for`, `fhir_r4.lib.common.loinc_coding`, `pick_localized_field`, `resolve_lang`, `get_display`, `codes.match`) | #2467 |
