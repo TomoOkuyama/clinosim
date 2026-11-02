@@ -73,9 +73,36 @@ def test_marital_status_yaml_matches_direct_lookup():
 
 
 def test_language_yaml_matches_direct_lookup():
-    # `en` field keeps the jp-validator form (JP output path).
-    assert lookup("bcp-47-language", "en-US", "en") == "English(US)"
-    assert lookup("bcp-47-language", "ja-JP", "en") == "Japanese(Japan)"
-    # `en_canonical` holds the BCP-47 canonical form (US output path).
-    assert lookup("bcp-47-language", "en-US", "en_canonical") == "English (United States)"
-    assert lookup("bcp-47-language", "ja-JP", "en_canonical") == "Japanese (Japan)"
+    # `en` is the IETF BCP-47 canonical display (US output path); the
+    # jp-validator form is a profile variant, not a language key (Issue #2481).
+    from clinosim.codes.bcp47 import bcp47_display
+
+    assert lookup("bcp-47-language", "en-US", "en") == "English (United States)"
+    assert lookup("bcp-47-language", "ja-JP", "en") == "Japanese (Japan)"
+    assert bcp47_display("en-US") == "English (United States)"
+    assert bcp47_display("en-US", profile="jp-core") == "English(US)"
+    assert bcp47_display("ja-JP", profile="jp-core") == "Japanese(Japan)"
+    assert bcp47_display("fr-FR", profile="jp-core") is None
+
+
+def test_code_entries_are_keyed_by_language_only():
+    """Every key of a code's entry in a code-system registry is a language
+    tag (spec §3.1 rule 4, Issue #2481)."""
+    import re
+    from pathlib import Path
+
+    import yaml
+
+    import clinosim
+
+    bad = []
+    for path in sorted((Path(clinosim.__file__).parent / "codes" / "data").glob("*.yaml")):
+        data = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
+        if not (isinstance(data, dict) and "metadata" in data and isinstance(data.get("codes"), dict)):
+            continue
+        for code, entry in data["codes"].items():
+            if isinstance(entry, dict):
+                bad += [
+                    f"{path.name}:{code}.{k}" for k in entry if not re.fullmatch(r"[a-z]{2}(-[A-Za-z0-9]+)*", str(k))
+                ]
+    assert not bad, bad

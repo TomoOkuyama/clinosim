@@ -5,23 +5,19 @@ metadata:
   uri: "urn:ietf:bcp:47"
   source: "IETF BCP 47"
 codes:
-  # Two English display forms are maintained per language tag because the
-  # two FHIR validators we target expect different registered strings:
-  #
-  # * `en` — fhir-jp-validator's registered form (no space between
-  #   "Language" and "(Region)"), verified against the v4 fullset error
-  #   message quoting `Japanese(Japan)` for `ja-JP`. Emitted on JP output.
-  # * `en_canonical` — the IETF BCP-47 canonical display (space before
-  #   the paren), required by HL7's base validator + US Core v9 against
-  #   the `urn:ietf:bcp:47` binding. Emitted on US output. Issue #1764.
-  #
-  # `ja` localizations are informational only — the CodeSystem is
-  # English-only per both validators' loadouts.
-  en-US:
-    en: "English(US)"
-    en_canonical: "English (United States)"
-    ja: "英語(米国)"
-  ja-JP:
-    en: "Japanese(Japan)"
-    en_canonical: "Japanese (Japan)"
-    ja: "日本語(日本)"
+  # `en` is the IETF BCP-47 canonical display (space before the paren),
+  # required by HL7's base validator + US Core v9 against the
+  # `urn:ietf:bcp:47` binding. `ja` localizations are informational only —
+  # the CodeSystem is English-only per both validators' loadouts.
+  en-US: {en: "English (United States)", ja: "英語(米国)"}
+  ja-JP: {en: "Japanese (Japan)", ja: "日本語(日本)"}
+
+# Display variants a profile family's validator registers instead of the
+# canonical display (Issue #1764): fhir-jp-validator registers the form with
+# no space before the paren, verified against the v4 fullset error message
+# quoting `Japanese(Japan)` for `ja-JP`. Read through
+# `clinosim.codes.bcp47.bcp47_display` (Issue #2481) — not a language key.
+profile_displays:
+  jp-core:
+    en-US: "English(US)"
+    ja-JP: "Japanese(Japan)"
