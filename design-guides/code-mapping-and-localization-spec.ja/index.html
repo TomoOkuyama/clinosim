@@ -2981,7 +2981,7 @@
 <tr>
 <td><code>reference</code></td>
 <td>閾値、キーワード一覧、コードでも表示でもない内容</td>
-<td><code>modules/&lt;module&gt;/reference_data/</code></td>
+<td>規則を持つモジュールの <code>&lt;module&gt;/reference_data/</code>。locale 層がローダー (<code>load_chronic_followup</code> など) で多くのモジュールに提供するものは <code>locale/shared/</code></td>
 </tr>
 </tbody>
 </table>
@@ -3558,7 +3558,7 @@
 <td><code>tests/unit/codes/test_code_system_base_2470.py</code>、<code>tests/unit/locale/test_localized_table_2471.py</code></td>
 </tr>
 <tr>
-<td>すべてのデータ YAML が置き場所に合った <code>metadata.kind</code> を持ち、<code>clinosim.datafiles</code> で読まれる (#2494、#2495 に紐づけたラチェット)</td>
+<td>すべてのデータ YAML が置き場所に合った <code>metadata.kind</code> を持ち、<code>clinosim.datafiles</code> で読まれる (#2494 に紐づけたラチェット)</td>
 <td><code>tests/unit/test_data_yaml_conventions_2465.py</code></td>
 </tr>
 </tbody>
@@ -3580,10 +3580,6 @@
 <tr>
 <td>モジュールが <code>clinosim.datafiles</code> ではなく <code>yaml.safe_load</code> で直接 YAML を読んでいる。モジュールの参照データに <code>metadata</code> ヘッダが無い (§3.1)</td>
 <td>#2494</td>
-</tr>
-<tr>
-<td>参照データが、持ち主のモジュールの <code>reference_data/</code> ではなく <code>locale/shared</code> (22 ファイル) と <code>codes/data</code> (1 ファイル) にある (§3.2)</td>
-<td>#2495</td>
 </tr>
 </tbody>
 </table>

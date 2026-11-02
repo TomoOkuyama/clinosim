@@ -2981,7 +2981,7 @@
 <tr>
 <td><code>reference</code></td>
 <td>thresholds, keyword lists, content that is not code or display data</td>
-<td><code>modules/&lt;module&gt;/reference_data/</code></td>
+<td><code>&lt;module&gt;/reference_data/</code> of the module that owns the rule; <code>locale/shared/</code> when the locale layer serves it to many modules through its loaders (<code>load_chronic_followup</code>, ...)</td>
 </tr>
 </tbody>
 </table>
@@ -3558,7 +3558,7 @@
 <td><code>tests/unit/codes/test_code_system_base_2470.py</code>, <code>tests/unit/locale/test_localized_table_2471.py</code></td>
 </tr>
 <tr>
-<td>Every data YAML has a <code>metadata.kind</code> that belongs where it lives; data YAML is parsed by <code>clinosim.datafiles</code> (ratchets pinned to #2494, #2495)</td>
+<td>Every data YAML has a <code>metadata.kind</code> that belongs where it lives; data YAML is parsed by <code>clinosim.datafiles</code> (ratchet pinned to #2494)</td>
 <td><code>tests/unit/test_data_yaml_conventions_2465.py</code></td>
 </tr>
 </tbody>
@@ -3580,10 +3580,6 @@
 <tr>
 <td>Modules parse their own YAML with <code>yaml.safe_load</code> instead of <code>clinosim.datafiles</code>; module reference-data files have no <code>metadata</code> header (§3.1)</td>
 <td>#2494</td>
-</tr>
-<tr>
-<td>Reference data sits in <code>locale/shared</code> (22 files) and <code>codes/data</code> (1 file) instead of the owning module's <code>reference_data/</code> (§3.2)</td>
-<td>#2495</td>
 </tr>
 </tbody>
 </table>
