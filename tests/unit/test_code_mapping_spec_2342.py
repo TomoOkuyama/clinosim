@@ -52,6 +52,7 @@ _RESOLVERS = {
     ],
     "clinosim.locale.i18n": ["t"],
     "clinosim.locale.localized": ["localized", "localized_field", "label"],
+    "clinosim.locale.table": ["LocalizedTable", "localized_tables"],
     "clinosim.locale.free_text": [
         "localize_drug_name",
         "localize_procedure_name",

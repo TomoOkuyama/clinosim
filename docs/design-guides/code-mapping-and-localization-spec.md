@@ -240,6 +240,7 @@ Consumers resolve names only through these functions.
 | `chronic_followup_vitals(code)` / `chronic_followup_interval_months(codes)` | follow-up schedule data |
 | `t(key, lang, **kwargs)` (`clinosim.locale.i18n`) | phrase; `""` for an unknown key (never the key) |
 | `locale.localized`: `localized(entry, lang, *, fallback)`, `localized_field(record, base, lang, *, fallback)`, `label(catalog, section, key, lang, *, fallback)` | the one value selection for language maps, `<base>_<lang>` fields and vocabulary catalogs (§6). `t`, `resolve_localized_display` and `resolve_text` delegate to it |
+| `locale.table`: `LocalizedTable.get(key, lang, *, fallback)`, `localized_tables()` | the base class every display and translation table is read through (§2.3); `vocab_display`, `imaging_exam_display`, `prompt_label` and `narrative_label` delegate to it; `localized_tables()` lists every table for tests |
 
 ### 4.3 Free-text names (`clinosim.locale.free_text`)
 
@@ -393,7 +394,8 @@ These rules are common to every resolver in §4, in both layers.
 | Language-suffixed YAML fields that remain (§11) pair `<base>_ja` with `<base>_en` | `tests/unit/locale/test_localized_field_shape_2398.py` |
 | No Japanese in non-JP output, no Japanese literals in Python | `tests/unit/test_no_japanese_fallback_2273.py`, `tests/unit/test_no_japanese_literals_2277.py`, `tests/unit/test_narrative_literals_2400.py`, `tests/unit/test_module_literals_2406.py`, `tests/unit/test_simulator_literals_2405.py`, `tests/unit/output/test_fhir_lib_literals_2402.py`, `tests/unit/output/test_fhir_lab_condition_literals_2403.py`, `tests/unit/output/test_fhir_emitter_literals_2404.py` |
 | A third country is not treated as the US | `tests/unit/test_third_country_fallbacks_2203.py` |
-| Every entry has English; YAML header and schema per kind; base-class operations not overridden | none yet (§11) |
+| `CodeSystem` / `LocalizedTable` operations not overridden; every display-table entry has English (ratchet pinned to #2460) | `tests/unit/codes/test_code_system_base_2470.py`, `tests/unit/locale/test_localized_table_2471.py` |
+| YAML header and schema per kind | none yet (§11) |
 
 ## 11. Known deviations
 
@@ -401,7 +403,6 @@ These parts of the code base do not yet conform. Each one is removed by the issu
 
 | Deviation | Issue |
 |---|---|
-| Display tables are loaded by separate functions with their own miss handling, not by `LocalizedTable` (§2.3) | #2471 |
 | Narrative renderers gate Japanese-only pipelines (chief-complaint variants, CC/PE consistency, daily trajectory, JP code choices) on the language literal (18 comparisons in 12 files) | #2483 |
 | `codes/data/fhir-ja-labels.yaml` is a Japanese-only second table for routes, frequencies and fixed labels (§5.3) | #2459 |
 | Slug-keyed display tables have entries without `en` (§6.5) | #2460 |

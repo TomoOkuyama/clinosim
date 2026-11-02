@@ -240,6 +240,7 @@ occupation:
 | `chronic_followup_vitals(code)` / `chronic_followup_interval_months(codes)` | フォローアップ予定のデータ |
 | `t(key, lang, **kwargs)` (`clinosim.locale.i18n`) | フレーズ。未知のキーは `""` (キーそのものは返さない) |
 | `locale.localized`: `localized(entry, lang, *, fallback)`, `localized_field(record, base, lang, *, fallback)`, `label(catalog, section, key, lang, *, fallback)` | 言語マップ、`<base>_<lang>` フィールド、語彙カタログから値を選ぶ唯一の処理 (§6)。`t`、`resolve_localized_display`、`resolve_text` はこれに委譲する |
+| `locale.table`: `LocalizedTable.get(key, lang, *, fallback)`, `localized_tables()` | すべての表示表・翻訳表を読む基底クラス (§2.3)。`vocab_display`、`imaging_exam_display`、`prompt_label`、`narrative_label` はこれに委譲する。`localized_tables()` はテスト用に全表を列挙する |
 
 ### 4.3 自由文字列の名称 (`clinosim.locale.free_text`)
 
@@ -393,7 +394,8 @@ occupation:
 | 残っている言語接尾辞付きの YAML フィールド (§11) は `<base>_ja` と `<base>_en` を対で持つ | `tests/unit/locale/test_localized_field_shape_2398.py` |
 | 日本語以外の出力に日本語を出さない、Python に日本語リテラルを書かない | `tests/unit/test_no_japanese_fallback_2273.py`、`tests/unit/test_no_japanese_literals_2277.py`、`tests/unit/test_narrative_literals_2400.py`、`tests/unit/test_module_literals_2406.py`、`tests/unit/test_simulator_literals_2405.py`、`tests/unit/output/test_fhir_lib_literals_2402.py`、`tests/unit/output/test_fhir_lab_condition_literals_2403.py`、`tests/unit/output/test_fhir_emitter_literals_2404.py` |
 | 第三国を米国扱いしない | `tests/unit/test_third_country_fallbacks_2203.py` |
-| すべてのエントリが英語を持つ。YAML のヘッダと kind ごとの schema。基底クラスの処理を上書きしない | まだ無い (§11) |
+| `CodeSystem` / `LocalizedTable` の処理を上書きしない。表示表のすべてのエントリが英語を持つ (#2460 に紐づけたラチェット) | `tests/unit/codes/test_code_system_base_2470.py`、`tests/unit/locale/test_localized_table_2471.py` |
+| YAML のヘッダと kind ごとの schema | まだ無い (§11) |
 
 ## 11. 既知の逸脱
 
@@ -401,7 +403,6 @@ occupation:
 
 | 逸脱 | Issue |
 |---|---|
-| 表示表が個別の関数で読み込まれ、見つからないときの扱いもそれぞれ違う。`LocalizedTable` になっていない (§2.3) | #2471 |
 | narrative のレンダラが、日本語だけの処理 (主訴バリエーション、CC/PE 整合、daily trajectory、JP のコード選択) を言語リテラルで切り替えている (12 ファイル 18 箇所) | #2483 |
 | `codes/data/fhir-ja-labels.yaml` が、経路・頻度・固定ラベルの日本語だけの 2 つ目の表になっている (§5.3) | #2459 |
 | slug をキーにした表示表に `en` の無いエントリがある (§6.5) | #2460 |
