@@ -1,6 +1,11 @@
 # Pre-operative Assessment — Outpatient visit protocol
 # Scheduled pre-surgical evaluation including labs, imaging, and anesthesia review.
 
+metadata:
+  kind: protocol
+  name: preoperative_assessment
+  source: clinosim
+
 condition_id: preoperative_assessment
 icd10_code: "Z01.818"
 chief_complaint:

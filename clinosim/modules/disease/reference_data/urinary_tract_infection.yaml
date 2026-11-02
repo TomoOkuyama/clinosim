@@ -2,6 +2,11 @@
 # Sources cited per section. All rates are approximate and should be validated
 # against the most current published data before production use.
 
+metadata:
+  kind: protocol
+  name: urinary_tract_infection
+  source: clinosim
+
 disease_id: urinary_tract_infection
 chief_complaint:
   en: "Fever, dysuria, flank pain"

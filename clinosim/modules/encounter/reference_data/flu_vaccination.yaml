@@ -1,6 +1,11 @@
 # Influenza Vaccination — Outpatient visit protocol
 # Seasonal influenza vaccine administration visit.
 
+metadata:
+  kind: protocol
+  name: flu_vaccination
+  source: clinosim
+
 condition_id: flu_vaccination
 icd10_code: "Z23"
 chief_complaint:

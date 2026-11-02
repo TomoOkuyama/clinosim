@@ -18,6 +18,11 @@
 #   test_clabsi_saureus_antibiogram_key_order_is_canonical
 #   test_cauti_ecoli_antibiotic_key_order_is_canonical
 #   test_vap_saureus_antibiogram_key_order_is_canonical
+metadata:
+  kind: reference
+  name: hai_antibiogram
+  source: clinosim
+
 hai_antibiogram:
   clabsi:
     # S. aureus, CLABSI ~47% MRSA (NHSN 2018-2020 Table 2)

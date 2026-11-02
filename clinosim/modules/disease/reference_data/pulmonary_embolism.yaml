@@ -2,6 +2,11 @@
 # Sources cited per section. All rates are approximate and should be validated
 # against the most current published data before production use.
 
+metadata:
+  kind: protocol
+  name: pulmonary_embolism
+  source: clinosim
+
 disease_id: pulmonary_embolism
 causes_vte: true   # PE — clot generation + fibrinolysis → D-dimer ↑↑ (Phase 2a)
 chief_complaint:

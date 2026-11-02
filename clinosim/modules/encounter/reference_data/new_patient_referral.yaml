@@ -1,6 +1,11 @@
 # New Patient Referral — Outpatient visit protocol
 # Initial evaluation for patients referred by primary care for specialist consultation.
 
+metadata:
+  kind: protocol
+  name: new_patient_referral
+  source: clinosim
+
 condition_id: new_patient_referral
 icd10_code: "Z76.89"
 chief_complaint:

@@ -28,6 +28,7 @@
 #     the same per-section data-authoring gap.
 
 metadata:
+  kind: reference
   source: >-
     clinosim/modules/document/audit.py (KNOWN_JA_ONLY_FALLBACK_SECTIONS
     frozenset) prior to hardcoded-review Phase A2.

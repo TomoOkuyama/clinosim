@@ -26,6 +26,7 @@
 # the resolver consults `prn_mhlw` first (PRN beats cadence).
 
 metadata:
+  kind: reference
   source: >-
     clinosim/modules/output/fhir_r4/post_process/populate.py
     (_DRUG_QD_MEAL_CONTEXT, _DRUG_BID_MEAL_CONTEXT, _DRUG_TID_MEAL_CONTEXT,

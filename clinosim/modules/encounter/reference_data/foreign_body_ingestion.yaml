@@ -1,6 +1,11 @@
 # Foreign Body Ingestion — ED visit protocol
 # Accidental ingestion evaluation. Imaging and observation.
 
+metadata:
+  kind: protocol
+  name: foreign_body_ingestion
+  source: clinosim
+
 condition_id: foreign_body_ingestion
 icd10_code: "T18.9XXA"
 chief_complaint:

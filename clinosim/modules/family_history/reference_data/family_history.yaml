@@ -2,6 +2,11 @@
 # Country-specific base prevalence lives in locale/<country>/family_history_prevalence.yaml.
 
 # Relationship codes (HL7 v3-RoleCode) with display.
+metadata:
+  kind: reference
+  name: family_history
+  source: clinosim
+
 relationships:
   # Issue #369 revised (2026-07-22 v23 regression): v3-RoleCode canonical
   # ja displays are per-code, NOT a uniform "natural <role>" pattern:

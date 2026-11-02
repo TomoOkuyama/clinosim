@@ -6,6 +6,11 @@
 # Codes verified 2026-10-27: ICD-10-CM F10.239 / F10.230 / F10.231 (NLM
 # Clinical Tables); lorazepam 6470, thiamine 10454, folic acid 4511 (RxNav).
 
+metadata:
+  kind: protocol
+  name: alcohol_withdrawal
+  source: clinosim
+
 disease_id: alcohol_withdrawal
 chief_complaint:
   en: "Tremor, sweating and anxiety after stopping alcohol"

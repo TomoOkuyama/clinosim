@@ -1,6 +1,11 @@
 # CDC NHSN HAI Annual Report organism distributions.
 # All 11 SNOMED codes verified at PR-B Task 1 via tx.fhir.org $expand.
 # Weights sum to 1.0 per HAI type.
+metadata:
+  kind: reference
+  name: hai_organisms
+  source: clinosim
+
 hai_organisms:
   clabsi:
     - {snomed: "3092008",   weight: 0.20}   # S. aureus

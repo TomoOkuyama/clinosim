@@ -1,6 +1,11 @@
 # Renal Colic (Kidney Stone) — ED visit protocol
 # Severe flank pain, often described as worst pain of life.
 
+metadata:
+  kind: protocol
+  name: renal_colic
+  source: clinosim
+
 condition_id: renal_colic
 icd10_code: "N23"
 chief_complaint:

@@ -8,6 +8,11 @@
 # session 43 for the individual query URLs.
 # CPT codes from AMA CPT 2024. JP K-code from 診療報酬点数表 令和6年.
 
+metadata:
+  kind: reference
+  name: body_sites
+  source: clinosim
+
 body_sites:
   chest:
     snomed: "51185008"

@@ -1,6 +1,11 @@
 # Acute Urinary Retention — ED visit protocol
 # Inability to urinate, common in elderly men with BPH.
 
+metadata:
+  kind: protocol
+  name: urinary_retention
+  source: clinosim
+
 condition_id: urinary_retention
 icd10_code: "R33.9"
 chief_complaint:

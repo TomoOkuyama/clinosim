@@ -1,6 +1,11 @@
 # Wrist Fracture (Distal Radius) — ED visit protocol
 # FOOSH injury. X-ray confirms. Splint/cast if non-displaced, refer ortho if displaced.
 
+metadata:
+  kind: protocol
+  name: wrist_fracture
+  source: clinosim
+
 condition_id: wrist_fracture
 icd10_code: "S62.90XA"
 chief_complaint:

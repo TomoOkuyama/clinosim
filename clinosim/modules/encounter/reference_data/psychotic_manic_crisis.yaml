@@ -9,6 +9,11 @@
 # 12.5% of principal mental / substance-use stays) and US ED visits with a
 # psychotic or bipolar primary diagnosis (~0.75% of ED visits).
 
+metadata:
+  kind: protocol
+  name: psychotic_manic_crisis
+  source: clinosim
+
 condition_id: psychotic_manic_crisis
 icd10_code: "F20.9"
 # Bipolar disorder codes the crisis under F31.

@@ -1,6 +1,11 @@
 # Mild Asthma Attack — ED visit protocol
 # Bronchospasm management. Nebulized bronchodilator and steroid.
 
+metadata:
+  kind: protocol
+  name: asthma_attack_mild
+  source: clinosim
+
 condition_id: asthma_attack_mild
 icd10_code: "J45.901"
 chief_complaint:

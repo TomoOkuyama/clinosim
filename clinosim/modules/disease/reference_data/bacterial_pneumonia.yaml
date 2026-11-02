@@ -2,6 +2,11 @@
 # Sources cited per section. All rates are approximate and should be validated
 # against the most current published data before production use.
 
+metadata:
+  kind: protocol
+  name: bacterial_pneumonia
+  source: clinosim
+
 disease_id: bacterial_pneumonia
 chief_complaint:
   en: "Fever, cough, dyspnea"

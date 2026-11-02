@@ -65,6 +65,11 @@
 # SOAP outpatient / progress notes
 # ---------------------------------------------------------------------------
 
+metadata:
+  kind: reference
+  name: section_catalog
+  source: clinosim
+
 subjective:
   title_ja: "主観的所見"
   title_en: "Subjective"

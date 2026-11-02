@@ -8,6 +8,11 @@
 # US+chest (echocardiography) / US+spine (carotid) combos — all of these had
 # whitelisted inference patterns that stub-fell at _expand_views_to_series.
 
+metadata:
+  kind: reference
+  name: modalities
+  source: clinosim
+
 modalities:
   CR:                                            # Computed Radiography (plain X-ray)
     dicom_code: "CR"

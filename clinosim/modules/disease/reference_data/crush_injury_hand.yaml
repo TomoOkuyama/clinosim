@@ -1,6 +1,11 @@
 # Crush Injury of Hand (Industrial / Occupational)
 # Severe hand/finger crush injury from press machines, conveyors, etc.
 # Sources: Japan Occupational Injury Statistics, OSHA reports
+metadata:
+  kind: protocol
+  name: crush_injury_hand
+  source: clinosim
+
 disease_id: crush_injury_hand
 chief_complaint:
   en: "Industrial hand crush injury with possible amputation"

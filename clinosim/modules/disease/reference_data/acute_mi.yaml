@@ -2,6 +2,11 @@
 # Sources cited per section. All rates are approximate and should be validated
 # against the most current published data before production use.
 
+metadata:
+  kind: protocol
+  name: acute_mi
+  source: clinosim
+
 disease_id: acute_mi
 causes_myocardial_injury: true   # ACS → primary myocardial necrosis (high troponin/CK-MB), AD-55
 chief_complaint:

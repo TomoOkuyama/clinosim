@@ -18,6 +18,11 @@
 #     locale-neutral English phrases and does not read this file).
 #   - Empty list = no per-disease negatives; template emits nothing.
 
+metadata:
+  kind: reference
+  name: hpi_pertinent_negatives
+  source: clinosim
+
 diabetic_ketoacidosis:
   - "発熱なし"
   - "下痢なし"

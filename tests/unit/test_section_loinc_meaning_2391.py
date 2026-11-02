@@ -11,15 +11,15 @@ import json
 from pathlib import Path
 
 import pytest
-import yaml
 
 import clinosim
+from clinosim.datafiles import load_data_yaml
 
 pytestmark = pytest.mark.unit
 
 _ROOT = Path(clinosim.__file__).parent
-_CATALOG = yaml.safe_load((_ROOT / "modules/document/reference_data/section_catalog.yaml").read_text(encoding="utf-8"))
-_LOINC = yaml.safe_load((_ROOT / "codes/data/loinc.yaml").read_text(encoding="utf-8"))["codes"]
+_CATALOG = load_data_yaml(_ROOT / "modules/document/reference_data/section_catalog.yaml")
+_LOINC = load_data_yaml(_ROOT / "codes/data/loinc.yaml")["codes"]
 _SNAPSHOT = {
     c["code"]: c
     for c in json.loads((_ROOT / "codes/authoritative/loinc_2_82_tx.json").read_text(encoding="utf-8"))["concept"]

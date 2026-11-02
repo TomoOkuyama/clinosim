@@ -1,6 +1,11 @@
 # Hip Fracture (Femoral Neck / Intertrochanteric) — Reference Data
 # Sources: MHLW Patient Survey, Japanese Orthopaedic Association, AAOS, Cochrane reviews
 
+metadata:
+  kind: protocol
+  name: hip_fracture
+  source: clinosim
+
 disease_id: hip_fracture
 chief_complaint:
   en: "Hip pain after fall, unable to walk"

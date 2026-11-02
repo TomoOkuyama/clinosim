@@ -2,6 +2,11 @@
 # JTAS 1-5 = 日本臨床救急医学会 JTAS 2017
 # ESI 1-5 = AHRQ ESI Version 4
 
+metadata:
+  kind: reference
+  name: triage_protocols
+  source: clinosim
+
 triage_systems:
   JTAS:
     levels:

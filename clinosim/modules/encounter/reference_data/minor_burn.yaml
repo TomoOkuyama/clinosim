@@ -1,6 +1,11 @@
 # Minor Burn — ED visit protocol
 # Partial thickness burn management. Wound care and pain control.
 
+metadata:
+  kind: protocol
+  name: minor_burn
+  source: clinosim
+
 condition_id: minor_burn
 icd10_code: "T30.0"
 chief_complaint:

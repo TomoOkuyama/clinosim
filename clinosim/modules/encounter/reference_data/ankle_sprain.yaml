@@ -1,6 +1,11 @@
 # Ankle Sprain — ED visit protocol
 # Common injury. X-ray to rule out fracture, RICE, discharge.
 
+metadata:
+  kind: protocol
+  name: ankle_sprain
+  source: clinosim
+
 condition_id: ankle_sprain
 icd10_code: "S93.40"
 chief_complaint:

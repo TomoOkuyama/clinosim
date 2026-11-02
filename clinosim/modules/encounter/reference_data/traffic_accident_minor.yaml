@@ -1,6 +1,11 @@
 # Minor Traffic Accident — ED visit protocol
 # MVC with no LOC, soft tissue injuries. Imaging to rule out fracture/hemorrhage.
 
+metadata:
+  kind: protocol
+  name: traffic_accident_minor
+  source: clinosim
+
 condition_id: traffic_accident_minor
 icd10_code: "V89.2XXA"
 chief_complaint:

@@ -1,6 +1,11 @@
 # Severe Traffic Accident (Major Trauma, Multiple Injuries) — Reference Data
 # Sources: Japan Trauma Data Bank, ACS TQIP, Trauma Surgery guidelines
 
+metadata:
+  kind: protocol
+  name: traffic_accident_severe
+  source: clinosim
+
 disease_id: traffic_accident_severe
 chief_complaint:
   en: "Major trauma, motor vehicle accident, multiple injuries"

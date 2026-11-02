@@ -1,6 +1,11 @@
 # Animal Bite — ED visit protocol
 # Wound management, infection prevention, tetanus assessment.
 
+metadata:
+  kind: protocol
+  name: animal_bite
+  source: clinosim
+
 condition_id: animal_bite
 icd10_code: "W54.0XXA"
 chief_complaint:

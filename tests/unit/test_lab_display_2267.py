@@ -11,9 +11,9 @@ import re
 from pathlib import Path
 
 import pytest
-import yaml
 
 from clinosim.codes.ucum import ucum_prose
+from clinosim.datafiles import load_data_yaml
 from clinosim.locale.loader import lab_display, load_lab_display
 from clinosim.modules.document.narrative._replacement_localization import _localize_lab_names_in_text_ja
 from clinosim.modules.output.fhir_r4.labs.diagnostic_report import _build_lab_panel_conclusion
@@ -24,9 +24,9 @@ _REF = Path(__file__).resolve().parents[2] / "clinosim" / "modules" / "observati
 
 
 def _emitted_lab_names() -> set[str]:
-    constants = yaml.safe_load((_REF / "lab_constants.yaml").read_text(encoding="utf-8"))
-    panels = yaml.safe_load((_REF / "lab_panels.yaml").read_text(encoding="utf-8"))["panels"]
-    aliases = yaml.safe_load((_REF / "lab_aliases.yaml").read_text(encoding="utf-8"))
+    constants = load_data_yaml(_REF / "lab_constants.yaml")
+    panels = load_data_yaml(_REF / "lab_panels.yaml")["panels"]
+    aliases = load_data_yaml(_REF / "lab_aliases.yaml")
     return set(constants["units"]) | set(panels) | set(aliases.values())
 
 
@@ -43,7 +43,7 @@ def test_every_lab_the_simulator_emits_has_an_entry() -> None:
 
 
 def test_every_protocol_order_name_has_an_entry() -> None:
-    aliases = yaml.safe_load((_REF / "lab_aliases.yaml").read_text(encoding="utf-8"))
+    aliases = load_data_yaml(_REF / "lab_aliases.yaml")
     table = load_lab_display()
     assert not sorted(k for k in aliases if k.lower() not in table)
 

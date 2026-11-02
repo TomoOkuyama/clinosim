@@ -1,6 +1,11 @@
 # Dialysis Session — Outpatient visit protocol
 # Scheduled hemodialysis with pre/post vitals and lab monitoring.
 
+metadata:
+  kind: protocol
+  name: dialysis_session
+  source: clinosim
+
 condition_id: dialysis_session
 icd10_code: "Z99.2"
 chief_complaint:

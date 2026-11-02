@@ -2,6 +2,11 @@
 # normal/abnormal sub-keys carry findings (detail narrative) + impression
 # (clinical conclusion) in en + ja. Tier 1 #5 LLM 統合点(本 template が prompt seed).
 
+metadata:
+  kind: reference
+  name: impression_templates
+  source: clinosim
+
 templates:
   bacterial_pneumonia:
     CR_chest:

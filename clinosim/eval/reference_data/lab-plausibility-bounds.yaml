@@ -32,6 +32,7 @@
 #     clinical eval axis suite
 
 metadata:
+  kind: reference
   source: >-
     clinosim/eval/axes/clinical.py (_LAB_BOUNDS_BY_UNIT) prior to
     hardcoded-review Phase A13.

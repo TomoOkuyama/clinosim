@@ -3,6 +3,11 @@
 # tx.fhir.org $lookup/$expand for SNOMED CT International.
 # JP folds CM-granular ICD codes to WHO 4-char via
 # locale/jp/code_mapping_diagnosis.yaml — the one crosswalk (Issue #2257).
+metadata:
+  kind: reference
+  name: hai_codes
+  source: clinosim
+
 hai_codes:
   clabsi:
     icd10_us_billable: "T80.211A"

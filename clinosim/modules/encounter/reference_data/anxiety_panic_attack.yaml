@@ -1,6 +1,11 @@
 # Anxiety / Panic Attack — ED visit protocol
 # Often presents mimicking cardiac or respiratory emergency.
 
+metadata:
+  kind: protocol
+  name: anxiety_panic_attack
+  source: clinosim
+
 condition_id: anxiety_panic_attack
 icd10_code: "F41.0"
 chief_complaint:

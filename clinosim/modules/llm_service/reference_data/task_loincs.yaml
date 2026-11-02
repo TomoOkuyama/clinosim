@@ -22,6 +22,7 @@
 #     every DOCUMENT_LOINC key is a NARRATIVE task
 
 metadata:
+  kind: reference
   source: >-
     clinosim/modules/llm_service/engine.py (DOCUMENT_LOINC) prior to
     hardcoded-review Phase A10. Document-pipeline types come from

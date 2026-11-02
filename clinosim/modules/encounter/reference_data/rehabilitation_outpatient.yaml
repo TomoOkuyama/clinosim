@@ -1,6 +1,11 @@
 # Rehabilitation Outpatient — Outpatient visit protocol
 # Physical/occupational therapy session.
 
+metadata:
+  kind: protocol
+  name: rehabilitation_outpatient
+  source: clinosim
+
 condition_id: rehabilitation_outpatient
 icd10_code: "Z51.89"
 chief_complaint:

@@ -2,6 +2,11 @@
 #   NEWS2: Royal College of Physicians, National Early Warning Score 2 (2017).
 #   GCS: Teasdale & Jennett 1974. Braden: Bergstrom et al. 1987. Morse: Morse 1989.
 # Aggregation tables are the published scoring rules; not fabricated.
+metadata:
+  kind: reference
+  name: nursing_scores
+  source: clinosim
+
 news2:
   # Each band: [low_inclusive, high_inclusive, points]. Use null for open bounds.
   respiratory_rate:

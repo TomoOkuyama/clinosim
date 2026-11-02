@@ -1,6 +1,11 @@
 # Mental Health Follow-up — Outpatient visit protocol
 # Depression/anxiety management and medication review.
 
+metadata:
+  kind: protocol
+  name: mental_health_followup
+  source: clinosim
+
 condition_id: mental_health_followup
 icd10_code: "Z76.89"
 chief_complaint:

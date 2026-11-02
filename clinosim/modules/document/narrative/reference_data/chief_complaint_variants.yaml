@@ -18,6 +18,11 @@
 #     future audit can `set(disease_id_files) == set(variant_keys)` — extension
 #     coverage is by-design.
 
+metadata:
+  kind: reference
+  name: chief_complaint_variants
+  source: clinosim
+
 variants:
   heart_failure_exacerbation:
     - "労作時呼吸困難・起座呼吸・下肢浮腫"

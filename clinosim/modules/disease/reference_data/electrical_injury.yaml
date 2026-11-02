@@ -1,6 +1,11 @@
 # Electrical Injury (Occupational)
 # High-voltage or moderate-voltage electrical shock with tissue damage or arrhythmia risk
 # Sources: OSHA electrical safety data, Japan Electric Safety guidelines
+metadata:
+  kind: protocol
+  name: electrical_injury
+  source: clinosim
+
 disease_id: electrical_injury
 chief_complaint:
   en: "Electrical injury with burns and cardiac monitoring required"

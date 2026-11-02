@@ -1,6 +1,11 @@
 # Orthopedic Injection — Outpatient visit protocol
 # Intra-articular corticosteroid injection for osteoarthritis (knee, shoulder, hip).
 
+metadata:
+  kind: protocol
+  name: orthopedic_injection
+  source: clinosim
+
 condition_id: orthopedic_injection
 icd10_code: "Z51.89"
 chief_complaint:

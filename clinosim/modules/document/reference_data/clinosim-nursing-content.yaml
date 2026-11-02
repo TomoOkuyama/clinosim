@@ -36,6 +36,11 @@
 # published patient guides). No verbatim copyrighted text — paraphrased
 # clinical concept only.
 
+metadata:
+  kind: reference
+  name: clinosim-nursing-content
+  source: clinosim
+
 version: 1
 
 acute_disease:

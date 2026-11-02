@@ -17,6 +17,7 @@
 # text here.
 
 metadata:
+  kind: reference
   source: >-
     clinosim/modules/document/narrative/_narrative_utils.py
     (_CC_ALTERED_CONSCIOUSNESS_KEYWORDS,

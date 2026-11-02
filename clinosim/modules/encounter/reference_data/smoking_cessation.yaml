@@ -1,6 +1,11 @@
 # Smoking Cessation — Outpatient visit protocol
 # Counseling and pharmacotherapy for tobacco cessation.
 
+metadata:
+  kind: protocol
+  name: smoking_cessation
+  source: clinosim
+
 condition_id: smoking_cessation
 icd10_code: "Z71.6"
 chief_complaint:

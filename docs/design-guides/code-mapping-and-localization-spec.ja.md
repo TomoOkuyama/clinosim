@@ -100,6 +100,7 @@
 | `display-table` | 内部 slug → 表示名 (コードを持たない語彙) | `locale/shared/<vocabulary>.yaml` (§3.7) |
 | `translation-table` | 英語の元文字列 → 他の言語 (生成器が英語の自由文字列で書くもの) | `locale/shared/` |
 | `phrase-catalog` | 文テンプレート | `locale/shared/narrative_phrases.yaml` (§3.8) |
+| `protocol` | 疾患・encounter のプロトコル (§3.9) | `modules/disease/reference_data/`、`modules/encounter/reference_data/` |
 | `reference` | 閾値、キーワード一覧、コードでも表示でもない内容 | 規則を持つモジュールの `<module>/reference_data/`。locale 層がローダー (`load_chronic_followup` など) で多くのモジュールに提供するものは `locale/shared/` |
 
 `codes/data` に置くのは `code-system`、`map`、`crosswalk`、`catalog`、`value-set` だけとする。
@@ -406,4 +407,4 @@ occupation:
 | 逸脱 | Issue |
 |---|---|
 | narrative のレンダラが、日本語だけの処理 (主訴バリエーション、CC/PE 整合、daily trajectory、JP のコード選択) を言語リテラルで切り替えている (12 ファイル 18 箇所) | #2483 |
-| モジュールの参照データ YAML (`**/reference_data/*.yaml`、149 ファイル中 130) に `metadata` ヘッダが無く、規約テストの対象外 (§3.1) | #2500 |
+| プロトコルとテンプレートの YAML が、言語マップではなく言語接尾辞付きのキー (`title_ja`、`findings_en` など、70 ファイル約 1,300 キー) を使っている (§3.1 の 4) | #2475 |

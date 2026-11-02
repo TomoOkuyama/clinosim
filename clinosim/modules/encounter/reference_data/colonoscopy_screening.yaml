@@ -1,6 +1,11 @@
 # Colonoscopy Screening — Outpatient visit protocol
 # Screening colonoscopy for colorectal cancer prevention and polyp detection.
 
+metadata:
+  kind: protocol
+  name: colonoscopy_screening
+  source: clinosim
+
 condition_id: colonoscopy_screening
 icd10_code: "Z12.11"
 chief_complaint:

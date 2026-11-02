@@ -1,6 +1,11 @@
 # Mild Allergic Reaction — ED visit protocol
 # Urticaria/mild angioedema. Antihistamines, observation, discharge.
 
+metadata:
+  kind: protocol
+  name: allergic_reaction_mild
+  source: clinosim
+
 condition_id: allergic_reaction_mild
 icd10_code: "T78.40"
 chief_complaint:

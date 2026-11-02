@@ -17,6 +17,11 @@
 #                 (no ceftriaxone — intrinsic R)
 #   S.maltophilia: trimethoprim_sulfamethoxazole only (intrinsic R to β-lactams)
 
+metadata:
+  kind: reference
+  name: narrow_ladder
+  source: clinosim
+
 narrow_ladder:
   clabsi:
     "3092008": [cefazolin, vancomycin]                                              # S. aureus

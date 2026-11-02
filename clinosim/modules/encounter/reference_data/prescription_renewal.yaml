@@ -1,6 +1,11 @@
 # Prescription Renewal — Outpatient visit protocol
 # Brief visit for medication refill and prescription renewal. Minimal workup.
 
+metadata:
+  kind: protocol
+  name: prescription_renewal
+  source: clinosim
+
 condition_id: prescription_renewal
 icd10_code: "Z76.0"
 chief_complaint:

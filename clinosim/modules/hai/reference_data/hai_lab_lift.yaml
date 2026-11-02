@@ -32,6 +32,11 @@
 # Issue #1987: ramp_peak_days 2 -> 1 so day-1 post-onset observations get
 # full lift (not half), reducing the cross-cohort median dilution the audit
 # clinical axis measures. No decay in Phase 3a; antibiotic chain -> Phase 3b.
+metadata:
+  kind: reference
+  name: hai_lab_lift
+  source: clinosim
+
 ramp_peak_days: 1
 
 hai_lift:

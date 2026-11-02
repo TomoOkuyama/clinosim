@@ -21,6 +21,7 @@
 # most-likely match wins when a patient is on multiple class members.
 
 metadata:
+  kind: reference
   source: >-
     clinosim/modules/document/narrative/template_generator.py
     (6 inline `_pick_med_containing(en_hints=..., ja_hints=...)`

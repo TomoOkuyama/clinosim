@@ -1,6 +1,11 @@
 # Cardiac Rehabilitation — Outpatient visit protocol
 # Supervised exercise and education session for post-MI or post-cardiac surgery patients.
 
+metadata:
+  kind: protocol
+  name: cardiac_rehabilitation
+  source: clinosim
+
 condition_id: cardiac_rehabilitation
 icd10_code: "Z51.89"
 chief_complaint:

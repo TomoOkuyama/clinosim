@@ -1,6 +1,11 @@
 # Diabetic Retinopathy Screening — Outpatient visit protocol
 # Annual fundoscopy screening for diabetic patients to detect retinopathy.
 
+metadata:
+  kind: protocol
+  name: diabetic_retinopathy_screening
+  source: clinosim
+
 condition_id: diabetic_retinopathy_screening
 icd10_code: "Z13.5"
 chief_complaint:

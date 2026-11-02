@@ -21,7 +21,12 @@ pytestmark = pytest.mark.unit
 
 _ROOT = Path(clinosim.__file__).parent
 _FILES = sorted(
-    [*_ROOT.glob("codes/data/*.yaml"), *_ROOT.glob("locale/shared/*.yaml"), *_ROOT.glob("locale/*/code_mapping_*.yaml")]
+    [
+        *_ROOT.glob("codes/data/*.yaml"),
+        *_ROOT.glob("locale/shared/*.yaml"),
+        *_ROOT.glob("locale/*/code_mapping_*.yaml"),
+        *_ROOT.glob("**/reference_data/*.yaml"),
+    ]
 )
 _CODES_KINDS = {"code-system", "map", "crosswalk", "catalog", "value-set"}
 # `reference` in locale/shared: country and clinical defaults the locale layer
@@ -59,7 +64,11 @@ def test_every_data_yaml_has_a_kind(path: Path) -> None:
 @pytest.mark.parametrize("path", _FILES, ids=_rel)
 def test_the_kind_belongs_where_the_file_lives(path: Path) -> None:
     rel, kind = _rel(path), data_metadata(path)["kind"]
-    if rel.startswith("codes/data/"):
+    if "/reference_data/" in rel:
+        # Disease and encounter protocols, and module reference data (Issue #2500).
+        protocol = rel.startswith(("modules/disease/", "modules/encounter/"))
+        assert kind == ("protocol" if protocol else "reference"), (rel, kind)
+    elif rel.startswith("codes/data/"):
         assert kind in _CODES_KINDS, (rel, kind)
     elif "/code_mapping_" in rel:
         assert kind == "country-mapping", (rel, kind)

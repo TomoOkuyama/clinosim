@@ -12,6 +12,11 @@
 # ICD-10); sertraline, escitalopram, mirtazapine and lorazepam already mapped
 # in both locales.
 
+metadata:
+  kind: protocol
+  name: depression_inpatient
+  source: clinosim
+
 disease_id: depression_inpatient
 chief_complaint:
   en: "Depressed mood with suicidal ideation"
