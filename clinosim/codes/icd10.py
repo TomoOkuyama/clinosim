@@ -6,8 +6,8 @@ ICD-10-CM for the US and the MHLW ICD-10 (``icd-10-mhlw``, same data as WHO
 the clinical short name and the MEDIS 病名管理番号 through these functions
 instead of re-coding the country choice or reading the data YAMLs.
 
-Display resolution follows :func:`clinosim.codes.loader.display`: exact, base
-and child codes in the system, then its declared sibling (``icd-10`` /
+Display resolution follows :func:`clinosim.codes.loader.display`: exact code,
+its category (:class:`Icd10CodeSystem`) and child codes in the system, then its declared sibling (``icd-10`` /
 ``icd-10-mhlw`` ↔ ``icd-10-cm``), in ``lang`` then English. A miss is ``None``.
 """
 
@@ -18,15 +18,26 @@ from pathlib import Path
 
 import yaml
 
-from clinosim.codes.loader import display, system_key_for
+from clinosim.codes.loader import CodeSystem, display, system_key_for
 
 __all__ = [
+    "Icd10CodeSystem",
     "condition_label",
     "condition_short_name",
     "icd10_display",
     "icd10_system",
     "medis_disease_keyno",
 ]
+
+
+class Icd10CodeSystem(CodeSystem):
+    """ICD-10 and ICD-10-CM: a code generalizes to its category, the code
+    without its decimal part (``E11.9`` → ``E11``; spec §2.3, Issue #2470)."""
+
+    def parents(self, code: str) -> tuple[str, ...]:
+        category = code.split(".", 1)[0]
+        return (category,) if category != code else ()
+
 
 _MEDIS_CROSSWALK = Path(__file__).parent / "data" / "medis-disease-keyno.yaml"
 

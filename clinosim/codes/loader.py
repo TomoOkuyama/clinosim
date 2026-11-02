@@ -19,10 +19,11 @@ Usage:
 from __future__ import annotations
 
 import copy
-from dataclasses import dataclass
+from collections.abc import Iterator
+from dataclasses import dataclass, field
 from functools import cache
 from pathlib import Path
-from typing import Any
+from typing import Any, ClassVar, final
 
 import yaml
 
@@ -31,13 +32,126 @@ _DATA_DIR = Path(__file__).parent / "data"
 
 @dataclass
 class CodeSystem:
-    """A clinical code system with metadata and entries."""
+    """One code system, built from its registry file (spec §2.3, Issue #2470).
+
+    The base class owns the operations every authority shares — finding a
+    code's entry, choosing the entry's language, falling back to English and
+    returning ``None`` on a miss. They are ``@final``: a subclass never
+    overrides them (``tests/unit/codes/test_code_system_base_2470.py``). A
+    subclass implements only the hooks (``parents``) and adds its
+    authority's own lookups. Lookup siblings are data
+    (``_SYSTEM_LOOKUP_SIBLINGS``), not code.
+    """
 
     key: str  # short key (e.g., "icd-10-cm")
     name: str  # human-readable name
     uri: str  # FHIR system URI
     version: str  # version / year
     codes: dict[str, dict[str, str]]  # code → {en, ja, ...}
+    siblings: tuple[str, ...] = field(default=())  # lookup siblings, in order
+
+    # Operations a subclass must not override.
+    FINAL_OPERATIONS: ClassVar[tuple[str, ...]] = ("entry", "own_entry", "text", "display", "code_exists")
+
+    def parents(self, code: str) -> tuple[str, ...]:
+        """Hook: the codes ``code`` generalizes to, most specific first.
+
+        A generalization is still true of the code, so its display may stand
+        in for the code's own. The base class has no hierarchy."""
+        return ()
+
+    @final
+    def own_entry(self, code: str) -> dict[str, str] | None:
+        """The entry of ``code`` in this system alone: exact, then its parents."""
+        entry = self.codes.get(code)
+        if entry:
+            return entry
+        for parent in self.parents(code):
+            entry = self.codes.get(parent)
+            if entry:
+                return entry
+        # Child step: the first registered code under ``code``. Not part of
+        # the specified order (spec §4.4); removed by Issue #2454.
+        prefix = code + "."
+        for k, v in self.codes.items():
+            if k.startswith(prefix):
+                return v
+        return None
+
+    @final
+    def entry(self, code: str) -> dict[str, str] | None:
+        """The entry of ``code`` here, else in each lookup sibling in order."""
+        if not code:
+            return None
+        entry = self.own_entry(code)
+        if entry is not None:
+            return entry
+        for sibling in _sibling_systems(self):
+            entry = sibling.own_entry(code)
+            if entry is not None:
+                return entry
+        return None
+
+    @final
+    def text(self, code: str, entry: dict[str, str], lang: str) -> str | None:
+        """``entry`` in ``lang``; else the same code's ``lang`` text in a
+        sibling system (an ICD-10-CM code shared with WHO takes the MHLW
+        Japanese name, Issue #2360); else English; else ``None`` — never
+        another language (spec §6, Issue #2395)."""
+        if lang in entry:
+            return str(entry[lang])
+        for sibling in _sibling_systems(self):
+            sib = sibling.codes.get(code)
+            if sib and lang in sib:
+                return str(sib[lang])
+        if "en" in entry:
+            return str(entry["en"])
+        return None
+
+    @final
+    def display(self, code: str, lang: str = "en") -> str | None:
+        """Display of ``code`` in ``lang`` (then English); ``None`` on a miss."""
+        entry = self.entry(code)
+        return None if entry is None else self.text(code, entry, lang)
+
+    @final
+    def code_exists(self, code: str, *, exact: bool = False) -> bool:
+        """Whether ``code`` is registered (``exact``) or resolves to an entry
+        of this system."""
+        if not code:
+            return False
+        if exact:
+            return code in self.codes
+        return self.own_entry(code) is not None
+
+
+def _sibling_systems(cs: CodeSystem) -> Iterator[CodeSystem]:
+    for sibling_key in cs.siblings:
+        sibling = _load_system(sibling_key)
+        if sibling is not None:
+            yield sibling
+
+
+# Subclasses by system key, as "module:Class" so the authority modules,
+# which import this one, load lazily (spec §2.2). A key not listed is a plain
+# CodeSystem built from its registry file.
+_SYSTEM_CLASSES: dict[str, str] = {
+    "icd-10-cm": "clinosim.codes.icd10:Icd10CodeSystem",
+    "icd-10": "clinosim.codes.icd10:Icd10CodeSystem",
+    "icd-10-mhlw": "clinosim.codes.icd10:Icd10CodeSystem",
+}
+
+
+def _system_class(system_key: str) -> type[CodeSystem]:
+    target = _SYSTEM_CLASSES.get(system_key)
+    if target is None:
+        return CodeSystem
+    import importlib
+
+    module, _, name = target.partition(":")
+    cls = getattr(importlib.import_module(module), name)
+    assert isinstance(cls, type) and issubclass(cls, CodeSystem), target
+    return cls
 
 
 # Issue #350: system keys that share underlying code data with
@@ -171,56 +285,54 @@ def _load_system(system_key: str) -> CodeSystem | None:
         uri = _BUILTIN_URIS.get(system_key, f"urn:clinosim:{system_key}")
     else:
         uri = meta.get("uri", f"urn:clinosim:{system_key}")
-    return CodeSystem(
+    return _system_class(system_key)(
         key=system_key,
         name=meta.get("name", system_key),
         uri=uri,
         version=meta.get("version", ""),
         codes=data.get("codes", {}) or {},
+        siblings=_SYSTEM_LOOKUP_SIBLINGS.get(system_key, ()),
     )
 
 
-def _lookup_in_system(cs: CodeSystem, code: str) -> dict[str, str] | None:
-    """Return the code entry from ``cs`` or None. Same resolution order as
-    ``lookup``: exact → base (E11.9→E11) → child of base."""
-    entry = cs.codes.get(code)
-    if entry:
-        return entry
-    base = code.split(".")[0]
-    entry = cs.codes.get(base)
-    if entry:
-        return entry
-    prefix = code + "."
-    for k, v in cs.codes.items():
-        if k.startswith(prefix) or k == code:
-            return v
-    return None
+def code_system(system_key: str) -> CodeSystem | None:
+    """The :class:`CodeSystem` instance of a system key, or ``None`` when the
+    key has no registry file."""
+    return _load_system(system_key)
+
+
+def system_keys() -> tuple[str, ...]:
+    """Every system key: the registry files' keys, their data aliases and the
+    URI-only keys of ``_BUILTIN_URIS`` (so tests can iterate all systems)."""
+    keys = {p.stem for p in _DATA_DIR.glob("*.yaml")} | set(_SYSTEM_DATA_ALIASES) | set(_BUILTIN_URIS)
+    return tuple(sorted(keys))
 
 
 def _resolve_entry(system: str, code: str) -> dict[str, str] | None:
+    """Entry of ``code`` in ``system`` (or a lookup sibling when ``system``
+    has no registry file of its own)."""
     cs = _load_system(system)
-    entry: dict[str, str] | None = None
-    if cs:
-        entry = _lookup_in_system(cs, code)
-    if entry is None:
-        for sibling_key in _SYSTEM_LOOKUP_SIBLINGS.get(system, ()):
-            sibling = _load_system(sibling_key)
-            if not sibling:
-                continue
-            entry = _lookup_in_system(sibling, code)
+    if cs is not None:
+        return cs.entry(code)
+    for sibling_key in _SYSTEM_LOOKUP_SIBLINGS.get(system, ()):
+        sibling = _load_system(sibling_key)
+        if sibling is not None and code:
+            entry = sibling.own_entry(code)
             if entry is not None:
-                break
-    return entry
+                return entry
+    return None
 
 
 def display(system: str, code: str, lang: str = "en") -> str | None:
     """Display text for a code, or ``None`` when the code is not registered.
 
-    Same resolution as :func:`lookup` (exact, base, child, sibling systems;
-    requested language, then English) but a miss is ``None`` instead of the
-    code itself, so callers can write ``display(...) or fallback``
-    (Issue #2256).
+    Resolved by the system's :class:`CodeSystem` (exact, parents, sibling
+    systems; requested language, then English), so callers can write
+    ``display(...) or fallback`` (Issue #2256).
     """
+    cs = _load_system(system)
+    if cs is not None:
+        return cs.display(code, lang)
     entry = _resolve_entry(system, code) if code else None
     if entry is None:
         return None
@@ -228,10 +340,8 @@ def display(system: str, code: str, lang: str = "en") -> str | None:
 
 
 def _entry_text(system: str, code: str, entry: dict[str, str], lang: str) -> str | None:
-    """``entry`` in ``lang``; else the same code's ``lang`` text in a sibling
-    system (an ICD-10-CM code shared with WHO takes the MHLW Japanese name,
-    Issue #2360); else English; else ``None`` — never another language
-    (Issue #2395)."""
+    """Language choice for a system with no registry file of its own (only
+    its siblings'): ``lang``, else the sibling's ``lang`` text, else English."""
     if lang in entry:
         return str(entry[lang])
     for sibling_key in _SYSTEM_LOOKUP_SIBLINGS.get(system, ()):
@@ -254,11 +364,7 @@ def code_exists(system: str, code: str, *, exact: bool = False) -> bool:
     cs = _load_system(system)
     if cs is None:
         raise ValueError(f"code system {system!r} is not registered in clinosim/codes/data/")
-    if not code:
-        return False
-    if exact:
-        return code in cs.codes
-    return _lookup_in_system(cs, code) is not None
+    return cs.code_exists(code, exact=exact)
 
 
 def system_key_for_uri(uri: str) -> str | None:
@@ -281,10 +387,7 @@ def lookup(system: str, code: str, lang: str = "en") -> str:
        callers choose their own fallback (or use :func:`display`, which
        returns ``None``).
     """
-    entry = _resolve_entry(system, code) if code else None
-    if entry is None:
-        return ""
-    return _entry_text(system, code, entry, lang) or ""
+    return display(system, code, lang) or ""
 
 
 def get_display(system: str, code: str, country: str = "US") -> str:

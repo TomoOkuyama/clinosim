@@ -23,6 +23,7 @@ from clinosim.codes.loader import (
     ENGLISH_ONLY_SYSTEM_PREFIXES,
     CodeSystem,
     code_exists,
+    code_system,
     data_table,
     display,
     get_display,
@@ -34,6 +35,7 @@ from clinosim.codes.loader import (
     slug_to_code,
     system_key_for,
     system_key_for_uri,
+    system_keys,
 )
 from clinosim.codes.match import has_icd_prefix
 
@@ -44,6 +46,7 @@ __all__ = [
     "is_english_only_system",
     "CodeSystem",
     "code_exists",
+    "code_system",
     "data_table",
     "display",
     "get_display",
@@ -53,4 +56,5 @@ __all__ = [
     "slug_to_code",
     "system_key_for",
     "system_key_for_uri",
+    "system_keys",
 ]
