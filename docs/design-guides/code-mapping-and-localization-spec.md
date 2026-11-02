@@ -395,7 +395,7 @@ These rules are common to every resolver in §4, in both layers.
 | Language-suffixed YAML fields that remain (§11) pair `<base>_ja` with `<base>_en` | `tests/unit/locale/test_localized_field_shape_2398.py` |
 | No Japanese in non-JP output, no Japanese literals in Python | `tests/unit/test_no_japanese_fallback_2273.py`, `tests/unit/test_no_japanese_literals_2277.py`, `tests/unit/test_narrative_literals_2400.py`, `tests/unit/test_module_literals_2406.py`, `tests/unit/test_simulator_literals_2405.py`, `tests/unit/output/test_fhir_lib_literals_2402.py`, `tests/unit/output/test_fhir_lab_condition_literals_2403.py`, `tests/unit/output/test_fhir_emitter_literals_2404.py` |
 | A third country is not treated as the US | `tests/unit/test_third_country_fallbacks_2203.py` |
-| `CodeSystem` / `LocalizedTable` operations not overridden; every display-table entry has English (ratchet pinned to #2460) | `tests/unit/codes/test_code_system_base_2470.py`, `tests/unit/locale/test_localized_table_2471.py` |
+| `CodeSystem` / `LocalizedTable` operations not overridden; every display-table entry has English | `tests/unit/codes/test_code_system_base_2470.py`, `tests/unit/locale/test_localized_table_2471.py` |
 | YAML header and schema per kind | none yet (§11) |
 
 ## 11. Known deviations
@@ -406,7 +406,6 @@ These parts of the code base do not yet conform. Each one is removed by the issu
 |---|---|
 | Narrative renderers gate Japanese-only pipelines (chief-complaint variants, CC/PE consistency, daily trajectory, JP code choices) on the language literal (18 comparisons in 12 files) | #2483 |
 | `codes/data/fhir-ja-labels.yaml` is a Japanese-only second table for routes, frequencies and fixed labels (§5.3) | #2459 |
-| Slug-keyed display tables have entries without `en` (§6.5) | #2460 |
 | `clinosim-clinician-role.yaml`, `perinatal.yaml`, `chronic_followup.yaml`, `pregnancy_substitutions.yaml` use language-suffixed field names (§3.1) | #2462 |
 | Data YAMLs lack the `metadata.kind` header and per-kind schema validation (§3.1) | #2465 |
 | Duplicate resolver names and pass-through wrappers (`llm_service.engine.loinc_for`, `fhir_r4.lib.common.loinc_coding`, `pick_localized_field`, `resolve_lang`, `get_display`, `codes.match`) | #2467 |
