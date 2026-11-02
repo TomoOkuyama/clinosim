@@ -48,9 +48,6 @@ _ALLOWED = {
         "modules/immunization/enricher.py",
         'chief_complaint_ja=chief_ja if is_jp(country) else ""',
     ): "fills the _ja field only for JP",
-    ("modules/output/fhir_r4/documents/composition.py", "suffix_map = _staff_role_suffix_ja() if is_jp(country)"): (
-        "selects a literal table; moves to a catalog with the FHIR literals (#2404)"
-    ),
 }
 
 

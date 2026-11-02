@@ -361,10 +361,7 @@ class LLMService:
 
         match task_type:
             case LLMTaskType.CHIEF_COMPLAINT:
-                if language == "ja":
-                    text = _jp_chief_complaint(ps, ed)
-                else:
-                    text = _en_chief_complaint(ps, ed)
+                text = _chief_complaint(ed, language)
 
             case LLMTaskType.PROGRESS_NOTE:
                 text = _progress_note(ps, ed, language)
@@ -686,14 +683,6 @@ def _chief_complaint(ed: dict, lang: str) -> str:
     else:
         symptoms = t("llm_template.default_symptoms", lang)
     return t("llm_template.chief_complaint", lang, days=ed.get("symptom_days", 3), symptoms=symptoms)
-
-
-def _jp_chief_complaint(ps: PatientSummary, ed: dict) -> str:
-    return _chief_complaint(ed, "ja")
-
-
-def _en_chief_complaint(ps: PatientSummary, ed: dict) -> str:
-    return _chief_complaint(ed, "en")
 
 
 def _block(key: str, lang: str, value: Any, **params: Any) -> str:

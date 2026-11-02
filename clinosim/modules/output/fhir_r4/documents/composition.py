@@ -54,8 +54,9 @@ from clinosim.codes import display as registry_display
 from clinosim.codes import lookup as code_lookup
 from clinosim.codes.loinc import loinc_for
 from clinosim.locale.i18n import t
+from clinosim.locale.loader import role_display
 from clinosim.modules._shared import get_attr_or_key as _o
-from clinosim.modules._shared import is_jp, resolve_lang, uses_jp_clins_profile
+from clinosim.modules._shared import resolve_lang, uses_jp_clins_profile
 from clinosim.modules.document import COMPOSITION_ID_PREFIX, DOC_REFERENCE_ID_PREFIX
 from clinosim.modules.document.narrative.registry import document_loinc
 from clinosim.modules.document.narrative.registry import (
@@ -172,27 +173,20 @@ _STAFF_ID_RE = re.compile(r"\b([A-Z]{2})-[A-Z]{2}-\d{3}\b")
 # at the use site instead of a module-level constant.
 
 
-def _staff_role_suffix_ja() -> dict[str, str]:
+def _staff_role_suffix(lang: str) -> dict[str, str]:
+    """Staff-id prefix → the role suffix in ``lang`` (``role_display`` facet
+    "suffix": ``lang``, then English)."""
     out: dict[str, str] = {}
-    for row in _clinician_role_rows().values():
+    for role, row in _clinician_role_rows().items():
         prefix = row.get("staff_prefix") if isinstance(row, dict) else None
-        suffix = row.get("suffix_ja") if isinstance(row, dict) else None
-        if isinstance(prefix, str) and isinstance(suffix, str):
-            out[prefix] = suffix
+        if isinstance(prefix, str):
+            suffix = role_display(role, lang, facet="suffix")
+            if suffix:
+                out[prefix] = suffix
     return out
 
 
-def _staff_role_suffix_en() -> dict[str, str]:
-    out: dict[str, str] = {}
-    for row in _clinician_role_rows().values():
-        prefix = row.get("staff_prefix") if isinstance(row, dict) else None
-        suffix = row.get("suffix_en") if isinstance(row, dict) else None
-        if isinstance(prefix, str) and isinstance(suffix, str):
-            out[prefix] = suffix
-    return out
-
-
-def _localize_practitioner_ids_in_text(text: str, roster_map: dict[str, dict], country: str) -> str:
+def _localize_practitioner_ids_in_text(text: str, roster_map: dict[str, dict], lang: str) -> str:
     """Substitute raw Practitioner staff ids (`DR-CA-002` etc.) with the
     practitioner's name + a role-suffix (`加瀬 幸男 医師`) using ``roster_map``.
 
@@ -204,7 +198,7 @@ def _localize_practitioner_ids_in_text(text: str, roster_map: dict[str, dict], c
     """
     if not text or not roster_map:
         return text
-    suffix_map = _staff_role_suffix_ja() if is_jp(country) else _staff_role_suffix_en()
+    suffix_map = _staff_role_suffix(lang)
 
     def _sub(m: re.Match) -> str:
         sid = m.group(0)
@@ -215,8 +209,7 @@ def _localize_practitioner_ids_in_text(text: str, roster_map: dict[str, dict], c
             return sid  # unknown → leave as-is
         suffix = suffix_map.get(prefix, "")
         if suffix:
-            sep = "" if is_jp(country) else " "
-            return f"{name}{sep}{suffix}" if is_jp(country) else f"{name} ({suffix})"
+            return t("fhir_practitioner_text.name_with_role", lang, name=name, suffix=suffix)
         return name
 
     return _STAFF_ID_RE.sub(_sub, text)
@@ -259,14 +252,12 @@ def _localize_section_title(section_title: str, lang: str) -> str:
 
     Reads from `section_catalog.yaml`. Unknown slugs (which should not
     happen for anything from `document_type_specs.yaml` — validated at
-    import time) fall through to `_humanize_section_slug` on the US path
-    or pass through unchanged on JP (matching pre-catalog behavior).
+    import time) fall through to `_humanize_section_slug` in every language
+    (never the raw slug, spec §6.2).
     """
     resolved = _resolve_section_title(section_title, lang)
     if resolved:
         return resolved
-    if lang == "ja":
-        return section_title  # JP path historically passed slug through on miss
     if section_title and (section_title[0].isupper() or " " in section_title):
         return section_title
     return _humanize_section_slug(section_title)
@@ -870,10 +861,9 @@ def _build_composition_generic(
         # Issue #819 (N-5): resolve raw Practitioner staff ids to real
         # names before HTML-escaping the section text. See
         # `_localize_practitioner_ids_in_text` docstring; idempotent
-        # for unknown ids. Country is derived from doc lang: "ja" → "jp",
-        # everything else → "us" (US path is FHIR-standard EN suffix).
-        _country_for_names = "jp" if _doc_lang == "ja" else "us"
-        _resolved_text = _localize_practitioner_ids_in_text(section_text, _roster_map or {}, _country_for_names)
+        # for unknown ids; the role suffix and its placement follow the
+        # document's language (Issue #2457).
+        _resolved_text = _localize_practitioner_ids_in_text(section_text, _roster_map or {}, _doc_lang)
         entry: dict[str, Any] = {
             "title": _localize_section_title(section_title, _doc_lang),
             "text": {

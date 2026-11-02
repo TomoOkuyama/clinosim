@@ -525,32 +525,21 @@ def _mb_conclusion_text(mb: dict, lang: str) -> str:
 
 
 def _mb_presented_text(mb: dict, lang: str) -> str:
-    """Text/plain culture + susceptibility summary for presentedForm."""
+    """Text/plain culture + susceptibility summary for presentedForm, in
+    ``lang``: the same lines in every language, worded by the phrase
+    catalog (``mb_text``; Issue #2457)."""
     specimen = mb.get("specimen", "") or "unknown"
     organism = mb.get("organism_snomed", "") or ""
-    growth = "detected" if mb.get("growth") else "no-growth"
-    if lang == "ja":
-        lines = [t("mb_text.specimen", "ja", value=specimen)]
-        if organism:
-            org_disp = registry_display("snomed-ct", organism, "ja") or organism
-            lines.append(t("mb_text.organism", "ja", value=org_disp))
-        else:
-            lines.append(t("mb_text.organism_negative", "ja"))
-        sus_list = mb.get("susceptibilities") or []
-        if sus_list:
-            lines.append(t("mb_text.susceptibility_header", "ja"))
-            for sus in sus_list:
-                ab = sus.get("antibiotic_loinc", "?")
-                interp = sus.get("interpretation", "?")
-                lines.append(f"  {ab}: {interp}")
-        return "\n".join(lines) + "\n"
-    lines = [f"Specimen: {specimen}", f"Growth: {growth}"]
+    growth = t("mb_text.growth_detected" if mb.get("growth") else "mb_text.growth_none", lang)
+    lines = [t("mb_text.specimen", lang, value=specimen), t("mb_text.growth", lang, value=growth)]
     if organism:
-        org_disp = registry_display("snomed-ct", organism, "en") or organism
-        lines.append(f"Organism: {org_disp}")
+        org_disp = registry_display("snomed-ct", organism, lang) or organism
+        lines.append(t("mb_text.organism", lang, value=org_disp))
+    else:
+        lines.append(t("mb_text.organism_negative", lang))
     sus_list = mb.get("susceptibilities") or []
     if sus_list:
-        lines.append("Susceptibilities:")
+        lines.append(t("mb_text.susceptibility_header", lang))
         for sus in sus_list:
             ab = sus.get("antibiotic_loinc", "?")
             interp = sus.get("interpretation", "?")

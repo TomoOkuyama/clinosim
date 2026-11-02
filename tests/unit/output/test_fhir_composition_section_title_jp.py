@@ -117,11 +117,11 @@ def test_localize_section_title_en_passthrough_for_titlecase_input() -> None:
     assert _localize_section_title("Assessment and Plan", "en") == "Assessment and Plan"
 
 
-def test_localize_section_title_unknown_slug_falls_back_to_slug() -> None:
-    """Unknown slugs pass through unchanged for JP so a new template section
-    still emits — silent-no-op deferral is intentional. (US path now
-    humanizes; see the sibling test above.)"""
-    assert _localize_section_title("brand_new_section", "ja") == "brand_new_section"
+def test_localize_section_title_unknown_slug_is_humanised_in_every_language() -> None:
+    """An unknown slug is humanised in every language, never emitted raw
+    (spec §6.2, Issue #2457)."""
+    assert _localize_section_title("brand_new_section", "ja") == _localize_section_title("brand_new_section", "en")
+    assert "_" not in _localize_section_title("brand_new_section", "ja")
 
 
 def test_all_30_iris4h_ai_flagged_slugs_covered() -> None:

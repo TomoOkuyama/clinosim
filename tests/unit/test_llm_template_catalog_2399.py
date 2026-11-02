@@ -55,10 +55,9 @@ def test_japanese_output_has_no_english_empty_markers() -> None:
 
 
 def test_english_templates() -> None:
-    assert llm_engine._en_chief_complaint(_PS, {}) == "3-day history of fever, cough, dyspnea."
+    assert llm_engine._chief_complaint({}, "en") == "3-day history of fever, cough, dyspnea."
     assert (
-        llm_engine._jp_chief_complaint(_PS, {"symptoms": ["発熱"], "symptom_days": 2})
-        == "2日前からの発熱を主訴に来院。"
+        llm_engine._chief_complaint({"symptoms": ["発熱"], "symptom_days": 2}, "ja") == "2日前からの発熱を主訴に来院。"
     )
     note = llm_engine._procedure_note_template(_PS, {"findings": "clear"}, "en")
     assert "Findings: clear\n" in note and note.endswith("Outcome: Successful")

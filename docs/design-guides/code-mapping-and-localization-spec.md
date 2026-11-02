@@ -405,7 +405,6 @@ These parts of the code base do not yet conform. Each one is removed by the issu
 | `codes.display` matches the language argument exactly: no country-code or case normalization, no BCP-47 primary-subtag fallback (§5.1) | #2453 |
 | `display` / `code_exists` fall back to the first registered child of a code (§4.4) | #2454 |
 | Narrative renderers compare the language with `"ja"` (29 comparisons in 16 files) | #2456 |
-| FHIR emitters and shared helpers compare the language with `"ja"` | #2457 |
 | `codes/data/fhir-ja-labels.yaml` is a Japanese-only second table for routes, frequencies and fixed labels (§5.3) | #2459 |
 | Slug-keyed display tables have entries without `en` (§6.5) | #2460 |
 | `clinosim-clinician-role.yaml`, `perinatal.yaml`, `chronic_followup.yaml`, `pregnancy_substitutions.yaml` use language-suffixed field names (§3.1) | #2462 |
