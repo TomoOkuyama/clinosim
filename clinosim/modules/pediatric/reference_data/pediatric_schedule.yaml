@@ -20,6 +20,11 @@
 # and immunization; pass 3+ add pediatric acute and adolescent
 # behavioural. See `README.md` for the roadmap.
 
+metadata:
+  kind: reference
+  name: pediatric_schedule
+  source: clinosim
+
 encounters:
   # Well-child visits per AAP / Bright Futures 2023 periodicity schedule.
   # AAP prescribes up to 8 well-child visits over the 0-1 age span

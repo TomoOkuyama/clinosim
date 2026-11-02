@@ -1,6 +1,11 @@
 # Non-cardiac Chest Pain — ED visit protocol
 # Rule-out ACS. Serial troponins, ECG, then discharge if negative.
 
+metadata:
+  kind: protocol
+  name: chest_pain_noncardiac
+  source: clinosim
+
 condition_id: chest_pain_noncardiac
 icd10_code: "R07.89"
 chief_complaint:

@@ -31,6 +31,7 @@
 #   * probabilities sum to 1.0 (verified at load time)
 
 metadata:
+  kind: reference
   source: >-
     clinosim/modules/clinical_course/engine.py
     (_FALLBACK_TRAJECTORIES + _FALLBACK_PROBABILITIES) prior to

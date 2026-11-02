@@ -30,6 +30,7 @@
 #     would be 2 rows)
 
 metadata:
+  kind: reference
   source: >-
     clinosim/eval/axes/clinical.py (_CONDITION_LAB_PAIRINGS) prior to
     hardcoded-review Phase A13.

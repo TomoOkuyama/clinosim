@@ -24,6 +24,7 @@
 # receives that extra, regardless of its DocumentTypeSpec fields.
 
 metadata:
+  kind: reference
   source: >-
     clinosim/modules/document/narrative/_extra_context_builder.py
     (prior to hardcoded-audit Finding 18 migration)

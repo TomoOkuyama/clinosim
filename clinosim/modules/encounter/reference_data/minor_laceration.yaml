@@ -1,6 +1,11 @@
 # Minor Laceration — ED visit protocol
 # Common ED presentation. Wound closure with sutures/staples/glue, discharge with wound care.
 
+metadata:
+  kind: protocol
+  name: minor_laceration
+  source: clinosim
+
 condition_id: minor_laceration
 icd10_code: "T14.90"
 chief_complaint:

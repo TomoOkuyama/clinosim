@@ -1,6 +1,11 @@
 # Epistaxis — ED visit protocol
 # Nosebleed management. Assess coagulopathy, nasal packing if needed.
 
+metadata:
+  kind: protocol
+  name: epistaxis
+  source: clinosim
+
 condition_id: epistaxis
 icd10_code: "R04.0"
 chief_complaint:

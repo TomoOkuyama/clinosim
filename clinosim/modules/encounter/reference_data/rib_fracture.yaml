@@ -1,6 +1,11 @@
 # Rib Fracture — ED visit protocol
 # Chest wall trauma. Pain management is key. Rule out pneumothorax/hemothorax.
 
+metadata:
+  kind: protocol
+  name: rib_fracture
+  source: clinosim
+
 condition_id: rib_fracture
 icd10_code: "S22.39XA"
 chief_complaint:

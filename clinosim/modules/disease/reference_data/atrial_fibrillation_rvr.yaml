@@ -2,6 +2,11 @@
 # Sources cited per section. All rates are approximate and should be validated
 # against the most current published data before production use.
 
+metadata:
+  kind: protocol
+  name: atrial_fibrillation_rvr
+  source: clinosim
+
 disease_id: atrial_fibrillation_rvr
 chief_complaint:
   en: "Palpitations, dyspnea, dizziness, chest discomfort"

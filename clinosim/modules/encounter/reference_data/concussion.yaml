@@ -1,6 +1,11 @@
 # Concussion (Mild Traumatic Brain Injury) — ED visit protocol
 # Head injury with transient neurological symptoms. CT to rule out bleed, observe, discharge.
 
+metadata:
+  kind: protocol
+  name: concussion
+  source: clinosim
+
 condition_id: concussion
 icd10_code: "S06.0X0A"
 chief_complaint:

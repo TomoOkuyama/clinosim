@@ -19,6 +19,11 @@
 #
 # Priority-ordered per Issue #757's clinical-importance × prevalence table.
 
+metadata:
+  kind: reference
+  name: med_lab_mapping
+  source: clinosim
+
 medication_lab_mapping:
   # Warfarin — every-visit INR is the maintenance standard-of-care (2-4 wk
   # cadence for stable patients, more frequent during dose titration).

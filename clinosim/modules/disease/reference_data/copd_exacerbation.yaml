@@ -2,6 +2,11 @@
 # Sources cited per section. All rates are approximate and should be validated
 # against the most current published data before production use.
 
+metadata:
+  kind: protocol
+  name: copd_exacerbation
+  source: clinosim
+
 disease_id: copd_exacerbation
 chief_complaint:
   en: "Worsening dyspnea, increased sputum production, wheezing"

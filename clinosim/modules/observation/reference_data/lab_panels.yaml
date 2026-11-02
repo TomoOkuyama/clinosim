@@ -18,6 +18,11 @@
 # Grouping priority order (high to low; resolves analyte dual-membership):
 #   ABG > CBC > BMP > LFT > Lipid > Coag > UA
 
+metadata:
+  kind: reference
+  name: lab_panels
+  source: clinosim
+
 panels:
   ABG:
     loinc: "24338-6"

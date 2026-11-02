@@ -1,6 +1,11 @@
 # Elderly Fall — ED visit protocol
 # Fall evaluation. Rule out fracture, head injury, and underlying cause.
 
+metadata:
+  kind: protocol
+  name: elderly_fall
+  source: clinosim
+
 condition_id: elderly_fall
 icd10_code: "W19.XXXA"
 chief_complaint:

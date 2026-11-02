@@ -1,6 +1,11 @@
 # Mammography Screening — Outpatient visit protocol
 # Routine breast cancer screening mammography for women aged 40+.
 
+metadata:
+  kind: protocol
+  name: mammography_screening
+  source: clinosim
+
 condition_id: mammography_screening
 icd10_code: "Z12.31"
 chief_complaint:

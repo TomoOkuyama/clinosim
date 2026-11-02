@@ -2,6 +2,11 @@
 # Sources cited per section. All rates are approximate and should be validated
 # against the most current published data before production use.
 
+metadata:
+  kind: protocol
+  name: cerebral_infarction
+  source: clinosim
+
 disease_id: cerebral_infarction
 # Phase 2a: most cerebral infarctions are embolic (cardioembolic or large-
 # artery thrombo-embolic); D-dimer behaves like VTE. NOT appropriate for

@@ -32,6 +32,7 @@ DATA_KINDS = frozenset(
         "translation-table",
         "phrase-catalog",
         "reference",
+        "protocol",
     }
 )
 

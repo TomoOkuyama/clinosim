@@ -8,6 +8,11 @@
 # Skip conditions live under `skip_conditions:` as human-readable tags so
 # the enricher's Python dispatch can be extended without changing this file.
 
+metadata:
+  kind: reference
+  name: prophylaxis_rules
+  source: clinosim
+
 dvt_prophylaxis:
   drug: "Enoxaparin"
   dose_quantity: 40.0

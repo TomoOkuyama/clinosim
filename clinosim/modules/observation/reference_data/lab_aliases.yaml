@@ -3,6 +3,11 @@
 # Disease/encounter protocols order labs under several names (stat/serial/repeat
 # variants, or a generic name). They all resolve to the canonical analyte whose true
 # value is derived by physiology. Data-driven: add an entry here, no code changes.
+metadata:
+  kind: reference
+  name: lab_aliases
+  source: clinosim
+
 Troponin: Troponin_I
 Troponin_I_stat: Troponin_I
 Troponin_I_serial_6h: Troponin_I

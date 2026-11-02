@@ -14,6 +14,11 @@
 # daily_care / warning_signs / follow_up so the discharge summary reads
 # as a genuine per-diagnosis instruction sheet, not a generic template.
 
+metadata:
+  kind: reference
+  name: clinosim-discharge-instruction
+  source: clinosim
+
 baseline:
   hydrate:
     en: "Drink plenty of fluids."

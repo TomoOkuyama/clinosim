@@ -1,5 +1,10 @@
 # Severe Industrial Burn (Thermal / Chemical, ≥ 10% TBSA or deep)
 # Sources: Japan Burn Association, American Burn Association
+metadata:
+  kind: protocol
+  name: industrial_burn_severe
+  source: clinosim
+
 disease_id: industrial_burn_severe
 chief_complaint:
   en: "Severe thermal/chemical burn from industrial accident"

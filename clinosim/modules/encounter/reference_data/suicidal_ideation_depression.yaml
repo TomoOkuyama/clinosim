@@ -5,6 +5,11 @@
 # Benchmark: HCUP Statistical Brief #220 (NEDS 2006-2013) — about 1% of adult
 # ED visits involve suicidal ideation; 72% end in admission or transfer.
 
+metadata:
+  kind: protocol
+  name: suicidal_ideation_depression
+  source: clinosim
+
 condition_id: suicidal_ideation_depression
 icd10_code: "F32.2"
 # Recurrent depression (F33) codes the current severe episode as F33.2.

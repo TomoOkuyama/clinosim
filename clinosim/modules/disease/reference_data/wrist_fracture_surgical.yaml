@@ -1,6 +1,11 @@
 # Wrist Fracture Surgical (Displaced Distal Radius ORIF) — Reference Data
 # Sources: AAOS, BOA, Japanese Orthopaedic Association guidelines
 
+metadata:
+  kind: protocol
+  name: wrist_fracture_surgical
+  source: clinosim
+
 disease_id: wrist_fracture_surgical
 chief_complaint:
   en: "Displaced distal radius fracture requiring ORIF"

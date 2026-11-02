@@ -1,6 +1,11 @@
 # Heart Failure Exacerbation — Reference Data
 # Sources: MHLW Patient Survey, ACC/AHA Guidelines, ESC Guidelines, JP JCARE-CARD registry
 
+metadata:
+  kind: protocol
+  name: heart_failure_exacerbation
+  source: clinosim
+
 disease_id: heart_failure_exacerbation
 chief_complaint:
   en: "Dyspnea on exertion, orthopnea, lower extremity edema"

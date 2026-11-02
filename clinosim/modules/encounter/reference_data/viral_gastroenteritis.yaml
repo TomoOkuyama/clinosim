@@ -1,6 +1,11 @@
 # Viral Gastroenteritis — ED visit protocol
 # Most common ED visit condition. Usually discharged after IV fluid + antiemetics.
 
+metadata:
+  kind: protocol
+  name: viral_gastroenteritis
+  source: clinosim
+
 condition_id: viral_gastroenteritis
 icd10_code: "A08.4"
 chief_complaint:

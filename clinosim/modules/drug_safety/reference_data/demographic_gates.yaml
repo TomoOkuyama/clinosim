@@ -32,6 +32,11 @@
 #   rationale_en, rationale_ja  — one-sentence clinical rationale
 #   references    (optional) — free-text citation
 
+metadata:
+  kind: reference
+  name: demographic_gates
+  source: clinosim
+
 rules:
   - id: aspirin-pediatric-reyes
     drug_names: [Aspirin, ASA, "アスピリン", "バイアスピリン"]

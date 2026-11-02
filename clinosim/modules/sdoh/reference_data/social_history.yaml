@@ -12,6 +12,11 @@
 # All 6 SNOMED codes are registered in codes/data/snomed-ct.yaml with
 # `en` + `ja` displays (verified by PR #68 SNOMED CT authority crosswalk).
 
+metadata:
+  kind: reference
+  name: social_history
+  source: clinosim
+
 smoking_status:
   loinc: "72166-2"
   category: "social-history"

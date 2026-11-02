@@ -1,6 +1,11 @@
 # Lab Result Consultation — Outpatient visit protocol
 # Brief visit to review and explain previous lab/test results with the patient.
 
+metadata:
+  kind: protocol
+  name: lab_result_consultation
+  source: clinosim
+
 condition_id: lab_result_consultation
 icd10_code: "Z71.89"
 chief_complaint:

@@ -32,6 +32,11 @@
 #    code is actually reachable from the corresponding archetype —
 #    otherwise the dispatch never fires.
 
+metadata:
+  kind: reference
+  name: bedside_procedure_codes
+  source: clinosim
+
 procedure_note_codes:
   # === D: Diagnostic bedside procedures (検査) ===
   - D225    # 観血的動脈圧測定 / Arterial line

@@ -1,6 +1,11 @@
 # Shoulder Dislocation (Anterior) — ED visit protocol
 # Traumatic anterior dislocation. X-ray, procedural sedation, closed reduction, sling.
 
+metadata:
+  kind: protocol
+  name: shoulder_dislocation
+  source: clinosim
+
 condition_id: shoulder_dislocation
 icd10_code: "S43.006A"
 chief_complaint:

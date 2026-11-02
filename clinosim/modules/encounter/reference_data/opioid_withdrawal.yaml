@@ -6,6 +6,11 @@
 # Benchmark: opioid withdrawal ~0.1% of US ED visits (NHAMCS / NEDS opioid-
 # related visits); withdrawal is managed as an outpatient condition.
 
+metadata:
+  kind: protocol
+  name: opioid_withdrawal
+  source: clinosim
+
 condition_id: opioid_withdrawal
 icd10_code: "F11.23"
 chief_complaint:

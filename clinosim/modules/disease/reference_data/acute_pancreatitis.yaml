@@ -2,6 +2,11 @@
 # Sources cited per section. All rates are approximate and should be validated
 # against the most current published data before production use.
 
+metadata:
+  kind: protocol
+  name: acute_pancreatitis
+  source: clinosim
+
 disease_id: acute_pancreatitis
 chief_complaint:
   en: "Severe epigastric pain radiating to back, nausea, vomiting"

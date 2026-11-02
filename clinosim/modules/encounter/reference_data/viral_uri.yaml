@@ -1,6 +1,11 @@
 # Viral Upper Respiratory Infection — ED visit protocol
 # Very common, self-limiting. Supportive care and discharge.
 
+metadata:
+  kind: protocol
+  name: viral_uri
+  source: clinosim
+
 condition_id: viral_uri
 icd10_code: "J06.9"
 chief_complaint:

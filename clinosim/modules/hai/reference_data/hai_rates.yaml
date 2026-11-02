@@ -2,6 +2,11 @@
 # (2018-2020 ICU mixed wards average; NHSN annual reports,
 # https://www.cdc.gov/nhsn/datastat).
 # Per-day risk = rate / 1000.
+metadata:
+  kind: reference
+  name: hai_rates
+  source: clinosim
+
 hai_rates:
   clabsi:
     per_day_risk: 0.0010

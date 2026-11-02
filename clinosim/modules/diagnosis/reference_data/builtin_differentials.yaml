@@ -2,6 +2,11 @@
 # Display names are NOT stored here — resolved at use time via clinosim.codes.lookup
 # (AD-30). This file is the 3rd emittable diagnosis-code source; keep every `icd` and
 # progression code registered per CLAUDE.md 'Diagnosis code coverage'.
+metadata:
+  kind: reference
+  name: builtin_differentials
+  source: clinosim
+
 differentials:
   bacterial_pneumonia:
   - disease: bacterial_pneumonia

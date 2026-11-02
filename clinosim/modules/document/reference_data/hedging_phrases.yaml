@@ -27,6 +27,11 @@
 #      confirmed nor unconfirmed (used e.g. for "sedation status TBD")
 
 # ── Symptom-class hedging ─────────────────────────────────────────
+metadata:
+  kind: reference
+  name: hedging_phrases
+  source: clinosim
+
 symptom:
   confirmed:
     ja:

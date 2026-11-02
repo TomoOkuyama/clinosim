@@ -25,6 +25,7 @@
 #     negative axis to 0 in `apply_disease_onset`).
 
 metadata:
+  kind: reference
   source: >-
     clinosim/modules/physiology/engine.py (_VARIABLE_RANGES) prior to
     hardcoded-review Phase A12.

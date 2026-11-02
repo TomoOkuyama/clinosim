@@ -8,6 +8,11 @@
 #
 # import-time 6-layer validator: _validate_nursing_assessment() in engine.py
 
+metadata:
+  kind: reference
+  name: nursing_assessment
+  source: clinosim
+
 adl_categories:
   eating: [independent, partial_assist, full_assist]
   bathing: [independent, partial_assist, full_assist]

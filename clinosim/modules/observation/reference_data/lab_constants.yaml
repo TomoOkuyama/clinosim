@@ -18,6 +18,11 @@
 #   panic_thresholds    [low, high] critical cutoffs (null = no cutoff)
 
 # Biological variation (within-individual CV, Ricos et al.)
+metadata:
+  kind: reference
+  name: lab_constants
+  source: clinosim
+
 biological_cv:
   Na: 0.006
   K: 0.046

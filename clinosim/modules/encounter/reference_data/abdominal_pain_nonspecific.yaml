@@ -1,6 +1,11 @@
 # Non-specific Abdominal Pain — ED visit protocol
 # Most common ED chief complaint. Wide differential, often self-limiting.
 
+metadata:
+  kind: protocol
+  name: abdominal_pain_nonspecific
+  source: clinosim
+
 condition_id: abdominal_pain_nonspecific
 icd10_code: "R10.9"
 chief_complaint:

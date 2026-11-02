@@ -4,6 +4,11 @@
 # Severe exacerbations are admitted through the disease-level
 # copd_exacerbation pathway, not here.
 
+metadata:
+  kind: protocol
+  name: copd_exacerbation_ed
+  source: clinosim
+
 condition_id: copd_exacerbation_ed
 icd10_code: "J44.1"
 chief_complaint:

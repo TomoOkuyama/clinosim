@@ -20,6 +20,7 @@
 # motivates the CXR/chest-imaging descriptor extension.
 
 metadata:
+  kind: reference
   source: >-
     clinosim/modules/output/fhir_r4/labs/diagnostic_report.py
     (_IMAGING_NORMAL_IMPRESSION_PATTERNS +

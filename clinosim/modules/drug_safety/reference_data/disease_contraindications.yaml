@@ -35,6 +35,11 @@
 # The default action mapping in ``verdict.py`` treats
 # ``contraindicated / major`` as "skip", ``moderate / minor`` as "warn".
 
+metadata:
+  kind: reference
+  name: disease_contraindications
+  source: clinosim
+
 rules:
   - id: nsaid-in-heart-failure
     drug_class: nsaid

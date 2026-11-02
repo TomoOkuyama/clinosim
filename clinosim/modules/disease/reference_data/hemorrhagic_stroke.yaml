@@ -2,6 +2,11 @@
 # Sources cited per section. All rates are approximate and should be validated
 # against the most current published data before production use.
 
+metadata:
+  kind: protocol
+  name: hemorrhagic_stroke
+  source: clinosim
+
 disease_id: hemorrhagic_stroke
 chief_complaint:
   en: "Sudden severe headache, vomiting, altered consciousness"

@@ -9,6 +9,11 @@
 # ACEP clinical policy (2020) and SAMHSA Overdose Prevention Toolkit for
 # naloxone distribution at discharge.
 
+metadata:
+  kind: protocol
+  name: opioid_overdose
+  source: clinosim
+
 condition_id: opioid_overdose
 icd10_code: "T40.411A"
 chief_complaint:

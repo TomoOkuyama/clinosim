@@ -29,9 +29,11 @@ from __future__ import annotations
 
 import glob
 import os
+from pathlib import Path
 
 import pytest
-import yaml
+
+from clinosim.datafiles import load_data_yaml
 
 pytestmark = pytest.mark.unit
 
@@ -110,8 +112,7 @@ EXPECTED_VITAL_DISTRIBUTIONS_KEYS = frozenset({"admission", "discharge"})
 
 
 def _yaml(path: str) -> dict:
-    with open(path) as f:
-        return yaml.safe_load(f) or {}
+    return load_data_yaml(Path(path)) or {}
 
 
 def _report(offenders: list[tuple[str, str, set[str]]]) -> str:

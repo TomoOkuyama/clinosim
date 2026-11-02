@@ -1,6 +1,11 @@
 # Subdural Hematoma (Traumatic) — Reference Data
 # Sources: Brain Trauma Foundation, Japanese Neurosurgical Society, ACS TQIP
 
+metadata:
+  kind: protocol
+  name: subdural_hematoma
+  source: clinosim
+
 disease_id: subdural_hematoma
 chief_complaint:
   en: "Altered consciousness after head trauma, progressive deterioration"

@@ -1,6 +1,11 @@
 # Upper Endoscopy (EGD) — Outpatient visit protocol
 # Diagnostic esophagogastroduodenoscopy for dyspepsia, GERD, or upper GI symptoms.
 
+metadata:
+  kind: protocol
+  name: upper_endoscopy_diagnostic
+  source: clinosim
+
 condition_id: upper_endoscopy_diagnostic
 icd10_code: "Z13.818"
 chief_complaint:

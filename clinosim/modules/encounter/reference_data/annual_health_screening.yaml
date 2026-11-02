@@ -1,6 +1,11 @@
 # Annual Health Screening — Outpatient visit protocol
 # Routine annual checkup. Japan: 特定健診 (Tokutei Kenshin). US: Annual physical.
 
+metadata:
+  kind: protocol
+  name: annual_health_screening
+  source: clinosim
+
 condition_id: annual_health_screening
 icd10_code: "Z00.00"
 chief_complaint:

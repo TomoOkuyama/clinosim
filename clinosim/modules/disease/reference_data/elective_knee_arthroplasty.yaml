@@ -6,6 +6,11 @@
 # Codes verified 2026-10-27: ICD-10-CM M17.9 (NLM Clinical Tables), SNOMED CT
 # 609588000 / 49076000 (tx.fhir.org $lookup).
 
+metadata:
+  kind: protocol
+  name: elective_knee_arthroplasty
+  source: clinosim
+
 disease_id: elective_knee_arthroplasty
 chief_complaint:
   en: "Scheduled admission for total knee arthroplasty (knee osteoarthritis)"

@@ -26,6 +26,7 @@
 # makes the dispatch table complete in one place.
 
 metadata:
+  kind: reference
   source: >-
     clinosim/modules/llm_service/engine.py (TASK_CATEGORY) prior to
     hardcoded-review Phase A10.

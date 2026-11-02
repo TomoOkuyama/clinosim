@@ -1,4 +1,9 @@
 # Per-HAI culture specimen mapping. All codes verified at PR-B Task 1.
+metadata:
+  kind: reference
+  name: hai_specimens
+  source: clinosim
+
 hai_specimens:
   clabsi:
     specimen: "blood"

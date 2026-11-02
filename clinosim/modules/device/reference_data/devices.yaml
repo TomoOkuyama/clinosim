@@ -2,6 +2,11 @@
 # All three SNOMED codes verified via tx.fhir.org $expand text-search
 # against SNOMED CT International edition at PR-A Task 1
 # (see clinosim/codes/data/snomed-ct.yaml for the authoritative entries).
+metadata:
+  kind: reference
+  name: devices
+  source: clinosim
+
 devices:
   cvc:
     snomed_code: "52124006"

@@ -1,6 +1,11 @@
 # Fall From Height (Construction / Industrial, ≥2 meters)
 # Major trauma from scaffolding, ladders, elevated work platforms
 # Sources: OSHA Fatal Four, Japan Occupational Safety data
+metadata:
+  kind: protocol
+  name: fall_from_height
+  source: clinosim
+
 disease_id: fall_from_height
 chief_complaint:
   en: "Fall from height at work site, multiple trauma"

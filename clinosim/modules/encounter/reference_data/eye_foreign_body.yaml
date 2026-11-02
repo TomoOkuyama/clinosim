@@ -1,5 +1,10 @@
 # Eye Foreign Body — ED visit protocol
 # Common occupational injury from welding, grinding, metal working.
+metadata:
+  kind: protocol
+  name: eye_foreign_body
+  source: clinosim
+
 condition_id: eye_foreign_body
 icd10_code: "T15.0"
 chief_complaint:

@@ -22,6 +22,7 @@
 # categories (metabolic / mixed / respiratory) are MHLW convention.
 
 metadata:
+  kind: reference
   source: >-
     clinosim/modules/physiology/engine.py (HBA1C_* + GLU_DM_* +
     GLYCEMIC_CONTROL_DEFAULT + _ACID_BASE_RESPIRATORY_FRACTION) prior

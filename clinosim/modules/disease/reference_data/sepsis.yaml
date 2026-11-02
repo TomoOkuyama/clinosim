@@ -2,6 +2,11 @@
 # Sources cited per section. All rates are approximate and should be validated
 # against the most current published data before production use.
 
+metadata:
+  kind: protocol
+  name: sepsis
+  source: clinosim
+
 disease_id: sepsis
 chief_complaint:
   en: "Fever, altered mental status, hypotension"

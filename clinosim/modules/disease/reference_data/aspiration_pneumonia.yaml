@@ -5,6 +5,11 @@
 # microbiology (anaerobes), patient population (elderly/stroke/dementia),
 # and treatment approach (anaerobic coverage, swallowing evaluation).
 
+metadata:
+  kind: protocol
+  name: aspiration_pneumonia
+  source: clinosim
+
 disease_id: aspiration_pneumonia
 chief_complaint:
   en: "Cough, fever, dyspnea after witnessed aspiration event"

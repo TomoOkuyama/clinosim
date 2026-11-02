@@ -29,6 +29,11 @@
 # Allergen substance codes: SNOMED CT International edition.
 # Reaction manifestation codes: SNOMED CT findings / disorders.
 
+metadata:
+  kind: reference
+  name: allergens
+  source: clinosim
+
 allergens:
   medication:
     # Session 57 v3 fix: 387207008 is Ibuprofen in SNOMED CT International

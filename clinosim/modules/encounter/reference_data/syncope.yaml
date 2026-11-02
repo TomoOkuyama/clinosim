@@ -1,6 +1,11 @@
 # Syncope — ED visit protocol
 # Loss of consciousness evaluation. ECG, troponin, glucose workup.
 
+metadata:
+  kind: protocol
+  name: syncope
+  source: clinosim
+
 condition_id: syncope
 icd10_code: "R55"
 chief_complaint:

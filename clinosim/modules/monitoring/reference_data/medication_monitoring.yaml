@@ -31,6 +31,11 @@
 # interval_months (Issue #2143): minimum months between draws of the lab for
 # a patient on the drug; the enricher skips an encounter when the lab was
 # drawn (ordered or resulted) within the interval.
+metadata:
+  kind: reference
+  name: medication_monitoring
+  source: clinosim
+
 mappings:
   Warfarin:
     drugs: [warfarin]

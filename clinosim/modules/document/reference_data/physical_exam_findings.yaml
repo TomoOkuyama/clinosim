@@ -15,6 +15,11 @@
 #
 # Structure is intentionally human-readable; Task 6 is the consumer.
 
+metadata:
+  kind: reference
+  name: physical_exam_findings
+  source: clinosim
+
 baseline:
   uncomplicated_improvement:
     day_0:

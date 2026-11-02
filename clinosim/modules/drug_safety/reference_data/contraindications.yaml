@@ -5,6 +5,11 @@
 # - `substitution_hint` names the indication tag suggest_alternative should use
 #   as a prior; leave null when no natural substitute exists.
 
+metadata:
+  kind: reference
+  name: contraindications
+  source: clinosim
+
 rules:
   - id: vka-plus-antiplatelet
     lhs: anticoagulant.vka

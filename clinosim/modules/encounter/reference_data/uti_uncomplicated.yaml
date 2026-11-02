@@ -1,6 +1,11 @@
 # Uncomplicated UTI — ED visit protocol
 # Lower urinary tract infection. Urinalysis, antibiotics, discharge.
 
+metadata:
+  kind: protocol
+  name: uti_uncomplicated
+  source: clinosim
+
 condition_id: uti_uncomplicated
 icd10_code: "N39.0"
 chief_complaint:

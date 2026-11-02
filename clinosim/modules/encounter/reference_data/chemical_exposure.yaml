@@ -1,5 +1,10 @@
 # Chemical Exposure — ED visit protocol
 # Occupational exposure to acids, alkalis, solvents (skin, eye, inhalation).
+metadata:
+  kind: protocol
+  name: chemical_exposure
+  source: clinosim
+
 condition_id: chemical_exposure
 icd10_code: "T54.9"
 chief_complaint:

@@ -1,6 +1,11 @@
 # Migraine — ED visit protocol
 # Severe headache presentation. Rule out secondary causes, abortive therapy, discharge.
 
+metadata:
+  kind: protocol
+  name: migraine
+  source: clinosim
+
 condition_id: migraine
 icd10_code: "G43.909"
 chief_complaint:

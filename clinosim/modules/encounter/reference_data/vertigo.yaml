@@ -1,6 +1,11 @@
 # Vertigo — ED visit protocol
 # Peripheral vs central vertigo evaluation. Symptomatic treatment.
 
+metadata:
+  kind: protocol
+  name: vertigo
+  source: clinosim
+
 condition_id: vertigo
 icd10_code: "R42"
 chief_complaint:

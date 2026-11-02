@@ -13,6 +13,11 @@
 # Doses use IDSA + UpToDate average adult ICU dosing without renal adjustment
 # (PR3b-1 simplification; future PR will add eGFR-based modification).
 
+metadata:
+  kind: reference
+  name: hai_empirical
+  source: clinosim
+
 hai_empirical:
   clabsi:
     duration_days: 14

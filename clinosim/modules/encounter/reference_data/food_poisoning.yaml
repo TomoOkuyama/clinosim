@@ -1,6 +1,11 @@
 # Food Poisoning — ED visit protocol
 # Acute gastroenteritis from contaminated food. IV fluids, antiemetics, discharge.
 
+metadata:
+  kind: protocol
+  name: food_poisoning
+  source: clinosim
+
 condition_id: food_poisoning
 icd10_code: "A05.9"
 chief_complaint:

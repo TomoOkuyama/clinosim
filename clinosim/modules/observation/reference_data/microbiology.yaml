@@ -8,6 +8,11 @@
 # Antibiogram S/I/R probabilities are approximate (CLSI-style); refine per locale later.
 
 # Specimen types: key -> { snomed (specimen type), test_loinc (culture test) }.
+metadata:
+  kind: reference
+  name: microbiology
+  source: clinosim
+
 specimens:
   blood:  { snomed: "119297000", test_loinc: "600-7" }   # Blood specimen / Bacteria id'd in Blood by Culture
   urine:  { snomed: "122575003", test_loinc: "630-4" }   # Urine specimen / Bacteria id'd in Urine by Culture

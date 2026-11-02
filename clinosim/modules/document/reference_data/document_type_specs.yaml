@@ -7,6 +7,11 @@
 # resolved at output time via clinosim.codes.lookup("loinc", loinc_code,
 # language) — see clinosim/codes/data/loinc.yaml (authoritative source).
 
+metadata:
+  kind: reference
+  name: document_type_specs
+  source: clinosim
+
 specs:
   admission_hp:
     loinc_code: "34117-2"

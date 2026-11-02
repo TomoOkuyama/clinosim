@@ -100,6 +100,7 @@ These rules apply to every data YAML under `clinosim/codes/data/`, `clinosim/loc
 | `display-table` | internal slug → display, for a vocabulary that has no code | `locale/shared/<vocabulary>.yaml` (§3.7) |
 | `translation-table` | English source text → other languages, for free text the generator writes in English | `locale/shared/` |
 | `phrase-catalog` | sentence templates | `locale/shared/narrative_phrases.yaml` (§3.8) |
+| `protocol` | a disease or encounter protocol (§3.9) | `modules/disease/reference_data/`, `modules/encounter/reference_data/` |
 | `reference` | thresholds, keyword lists, content that is not code or display data | `<module>/reference_data/` of the module that owns the rule; `locale/shared/` when the locale layer serves it to many modules through its loaders (`load_chronic_followup`, ...) |
 
 `codes/data` holds only `code-system`, `map`, `crosswalk`, `catalog` and `value-set` files.
@@ -406,4 +407,4 @@ These parts of the code base do not yet conform. Each one is removed by the issu
 | Deviation | Issue |
 |---|---|
 | Narrative renderers gate Japanese-only pipelines (chief-complaint variants, CC/PE consistency, daily trajectory, JP code choices) on the language literal (18 comparisons in 12 files) | #2483 |
-| Module reference-data YAMLs (`**/reference_data/*.yaml`, 130 of 149) have no `metadata` header and are outside the conventions test (§3.1) | #2500 |
+| Protocol and template YAMLs carry language-suffixed keys (`title_ja`, `findings_en`, ...; about 1,300 keys in 70 files) instead of language maps (§3.1 rule 4) | #2475 |

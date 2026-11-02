@@ -11,6 +11,11 @@
 # guidelines. Codes verified: F20.9 / F31.9 (tx.fhir.org); haloperidol
 # RxNorm 5093 / YJ 1179404; second-generation antipsychotics from #2140.
 
+metadata:
+  kind: protocol
+  name: psychosis_inpatient
+  source: clinosim
+
 disease_id: psychosis_inpatient
 chief_complaint:
   en: "Agitation with hallucinations, delusions or mania"

@@ -31,6 +31,11 @@
 #     to the engine fallback (still adequate post-v9 P1b).
 
 # ── I10: Essential hypertension ───────────────────────────────────
+metadata:
+  kind: reference
+  name: chronic_soap_templates
+  source: clinosim
+
 I10:
   subjective_ja: |
     血圧手帳を持参、家庭血圧の記録を確認。降圧薬の副作用は認めず、
