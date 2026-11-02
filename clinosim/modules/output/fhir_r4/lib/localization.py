@@ -16,6 +16,7 @@ from clinosim.locale.loader import load_department_display as _load_department_d
 from clinosim.locale.loader import load_med_terms as _load_med_terms
 from clinosim.locale.loader import load_med_terms_ja as _load_med_terms_ja
 from clinosim.locale.loader import load_narrative_display_dict as _load_narrative_display_dict
+from clinosim.locale.localized import localized
 from clinosim.locale.table import LocalizedTable
 from clinosim.modules._shared import is_jp, is_us, resolve_lang
 
@@ -134,7 +135,7 @@ def _role_prefix_map_ja() -> dict[str, dict[str, str]]:
             continue
         out[role_key] = {
             "qual_code": str(qual.get("code", "")),
-            "qual_display": str(qual.get("display", "")),
+            "qual_display": localized(qual.get("display") or {}, "ja"),
             "prefix": "",
         }
     return out

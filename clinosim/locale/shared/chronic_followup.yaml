@@ -244,7 +244,7 @@ C18:  # Colon cancer
   # annually post-dx (CPT 45378, SNOMED 73761001 verified 2026-10-21 via
   # tx.fhir.org $lookup against SCT 20250201 Intl Edition).
   procedures:
-    - {code: "45378", snomed: "73761001", name_en: "Colonoscopy", name_ja: "大腸内視鏡検査", frequency: "annual"}
+    - {code: "45378", snomed: "73761001", name: {en: "Colonoscopy", ja: "大腸内視鏡検査"}, frequency: "annual"}
 
 C22:  # Liver cancer
   visit_reason:
@@ -263,7 +263,7 @@ C22:  # Liver cancer
   # SNOMED 45036003 verified 2026-10-21 via tx.fhir.org $lookup against
   # SCT 20250201 Intl Edition.
   procedures:
-    - {code: "76700", snomed: "45036003", name_en: "Abdominal ultrasound", name_ja: "腹部超音波検査", frequency: "semi_annual"}
+    - {code: "76700", snomed: "45036003", name: {en: "Abdominal ultrasound", ja: "腹部超音波検査"}, frequency: "semi_annual"}
 
 C34:  # Lung cancer
   visit_reason:
@@ -280,7 +280,7 @@ C34:  # Lung cancer
   # post-dx. CPT 71250, SNOMED 169069000 verified 2026-10-21 via
   # tx.fhir.org $lookup against SCT 20250201 Intl Edition.
   procedures:
-    - {code: "71250", snomed: "169069000", name_en: "CT of chest", name_ja: "胸部 CT", frequency: "annual"}
+    - {code: "71250", snomed: "169069000", name: {en: "CT of chest", ja: "胸部 CT"}, frequency: "annual"}
 
 C50:  # Breast cancer — female-dominant but ~1% male incidence (Issue #957);
       # follow-up schedule shared (same tumor markers, same hormonal-therapy
@@ -302,7 +302,7 @@ C50:  # Breast cancer — female-dominant but ~1% male incidence (Issue #957);
   procedures:
     # Mammography — SNOMED 71651007 (verified 2026-10-21 via tx.fhir.org
     # $lookup against SCT 20250201 Intl Edition).
-    - {code: "77067", snomed: "71651007", name_en: "Mammography", name_ja: "乳房 X 線撮影（マンモグラフィー）", frequency: "annual"}
+    - {code: "77067", snomed: "71651007", name: {en: "Mammography", ja: "乳房 X 線撮影（マンモグラフィー）"}, frequency: "annual"}
 
 C61:  # Prostate cancer (male-only per sex-gate)
   visit_reason:
@@ -346,7 +346,7 @@ C16:  # Gastric cancer follow-up
   # candidate 1919006 was wrong — tx.fhir.org returned "Egyptians"
   # instead of EGD, caught by this repo's SNOMED verification policy).
   procedures:
-    - {code: "43235", snomed: "76009000", name_en: "Esophagogastroduodenoscopy", name_ja: "上部消化管内視鏡検査", frequency: "annual"}
+    - {code: "43235", snomed: "76009000", name: {en: "Esophagogastroduodenoscopy", ja: "上部消化管内視鏡検査"}, frequency: "annual"}
 
 C25:  # Pancreatic cancer follow-up
   visit_reason:
@@ -564,7 +564,7 @@ G47.30:  # Obstructive sleep apnea, unspecified
     # 99503 is a home visit for respiratory therapy care); SNOMED 47545007
     # (registered in codes/data/snomed-ct.yaml; the FHIR coding comes from
     # codes/data/procedure-phrase-to-snomed.yaml).
-    - {code: "94660", snomed: "47545007", name_en: "CPAP therapy", name_ja: "CPAP 療法", frequency: "every_visit"}
+    - {code: "94660", snomed: "47545007", name: {en: "CPAP therapy", ja: "CPAP 療法"}, frequency: "every_visit"}
     # Polysomnography — SNOMED 60554003, newly registered in Phase 4d Task 2
     # (verified 2026-10-20 via tx.fhir.org $lookup).
-    - {code: "95810", snomed: "60554003", name_en: "Polysomnography", name_ja: "ポリソムノグラフィー", frequency: "baseline_only"}
+    - {code: "95810", snomed: "60554003", name: {en: "Polysomnography", ja: "ポリソムノグラフィー"}, frequency: "baseline_only"}

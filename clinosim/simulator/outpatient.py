@@ -15,6 +15,7 @@ from clinosim.codes.valuesets import concept_group, has_condition
 from clinosim.countries import is_jp, lang_for
 from clinosim.locale.i18n import t
 from clinosim.locale.loader import chronic_followup_vitals, load_ambulatory_visit_length, load_chronic_followup
+from clinosim.locale.localized import localized
 from clinosim.modules.encounter.engine import create_inpatient_encounter
 from clinosim.modules.observation.engine import (
     canonical_lab_name,
@@ -93,8 +94,9 @@ def _log_pregnancy_substitution(
     else:
         substitute = str(substitution_entry.get("substitute") or "")
         substitute_ja = str(substitution_entry.get("substitute_ja") or substitute)
-    rationale_en = str(substitution_entry.get("rationale_en") or t("safety_text.pregnancy_substitution", "en"))
-    rationale_ja = str(substitution_entry.get("rationale_ja") or t("safety_text.pregnancy_substitution", "ja"))
+    rationale = substitution_entry.get("rationale") or {}
+    rationale_en = localized(rationale, "en") or t("safety_text.pregnancy_substitution", "en")
+    rationale_ja = localized(rationale, "ja") or t("safety_text.pregnancy_substitution", "ja")
     verdict = SafetyVerdict(
         severity="major",
         rule_id="pregnancy-teratogen",
@@ -703,8 +705,8 @@ def _simulate_outpatient_visit(
     procedures_list: list = []
 
     # Phase 4d (#1701 partial) — emit chronic_followup.yaml procedures:
-    # entries on this visit. Each entry carries {code, snomed, name_en,
-    # name_ja, frequency} where frequency is one of:
+    # entries on this visit. Each entry carries {code, snomed, name: {en, ja},
+    # frequency} where frequency is one of:
     #   'every_visit'   — chronic ongoing therapy (CPAP). Fires each visit.
     #   'baseline_only' — one-shot per patient (polysomnography).
     #   'annual'        — fires at most once per calendar year per patient
@@ -782,7 +784,7 @@ def _simulate_outpatient_visit(
                     procedure_id=f"PROC-{encounter.encounter_id}-{_snomed}",
                     patient_id=patient.patient_id,
                     encounter_id=encounter.encounter_id,
-                    procedure_type=str(_proc.get("name_en") or ""),
+                    procedure_type=localized(_proc.get("name") or {}, "en"),
                     procedure_code=_code_us,
                     procedure_code_us=_code_us,
                     start_datetime=_proc_start,

@@ -95,13 +95,14 @@ def role_display(role: str, lang: str, *, facet: str = "title") -> str:
     display). Issue #2270."""
     row = load_clinician_roles().get(role) or {}
     if facet == "suffix":
-        values = {"en": row.get("suffix_en"), "ja": row.get("suffix_ja")}
+        values = row.get("suffix")
     elif facet == "qualification":
-        qual = row.get("qualification") or {}
-        values = {"en": qual.get("display_en"), "ja": qual.get("display")}
+        values = (row.get("qualification") or {}).get("display")
     else:
-        values = dict(row.get("title") or {})
-    return str(values.get(lang) or values.get("en") or role.replace("_", " "))
+        values = row.get("title")
+    from clinosim.locale.localized import localized
+
+    return localized(values if isinstance(values, dict) else {}, lang, fallback=role.replace("_", " "))
 
 
 @lru_cache(maxsize=1)

@@ -152,24 +152,14 @@ complications:
   # Each row is one complication.
   bernoulli_draws:
     - code: "O24.9"     # Diabetes mellitus in pregnancy, unspecified
-      display_en: "Gestational diabetes mellitus"
-      display_ja: "妊娠糖尿病"
       probability: 0.06
     - code: "O14.9"     # Pre-eclampsia, unspecified
-      display_en: "Pre-eclampsia"
-      display_ja: "妊娠高血圧腎症"
       probability: 0.05
     - code: "O42.9"     # Premature rupture of membranes, unspecified
-      display_en: "Premature rupture of membranes"
-      display_ja: "前期破水"
       probability: 0.05
     - code: "O60.1"     # Preterm labor with preterm delivery
-      display_en: "Preterm labor with preterm delivery"
-      display_ja: "早産（早産分娩を伴う）"
       probability: 0.10
     - code: "O64.9"     # Obstructed labor due to malposition, unspecified
-      display_en: "Obstructed labor due to malposition or malpresentation"
-      display_ja: "胎位異常による分娩停止"
       probability: 0.04
 
 # ---------------------------------------------------------------------------
@@ -273,31 +263,21 @@ newborn_conditions:
   # of birth but appear on the delivery-encounter Condition list.
   - code: P59.9                         # Neonatal jaundice, unspecified
     probability: 0.20                   # ~20 % require documentation (transient physiological jaundice, higher in Asian populations)
-    display_en: "Neonatal jaundice, unspecified"
-    display_ja: "新生児黄疸、詳細不明"
 
   - code: P07.3                         # Preterm newborn (28-<37 wk)
     probability: 0.07                   # ~7 % of live births per MHLW / CDC natality
-    display_en: "Preterm newborn (28 completed weeks to less than 37 completed weeks)"
-    display_ja: "在胎 28-37 週の早産児"
     triggers:                           # conditions gated on this flag
       - code: P22.0                     # RDS — only meaningful on preterm
         conditional_probability: 0.35   # ~35 % of preterm 28-37wk newborns develop RDS
-        display_en: "Respiratory distress syndrome of newborn"
-        display_ja: "新生児呼吸窮迫症候群"
 
   # First-year chronic conditions the newborn carries onto the problem
   # list (persist beyond the birth encounter). Diaper dermatitis is
   # near-universal at some point but the "carries" rate is lower.
   - code: L22                           # Diaper dermatitis
     probability: 0.30                   # per-newborn carrier rate; on-and-off through infancy
-    display_en: "Diaper dermatitis"
-    display_ja: "おむつ皮膚炎"
 
   - code: L20.9                         # Atopic dermatitis, unspecified
     probability: 0.15                   # ~10-20 % of infants per MHLW allergy survey (JP higher than US)
-    display_en: "Atopic dermatitis, unspecified"
-    display_ja: "アトピー性皮膚炎、詳細不明"
 
 # ---------------------------------------------------------------------------
 # Newborn Patient construction defaults (#1252 N1).

@@ -81,8 +81,9 @@ def test_all_substitutes_carry_rationale():
     EN and JA rationale."""
     subs = load_pregnancy_substitutions()
     for orig, entry in subs.items():
-        assert entry.get("rationale_en"), f"{orig} missing rationale_en"
-        assert entry.get("rationale_ja"), f"{orig} missing rationale_ja"
+        rationale = entry.get("rationale") or {}
+        assert rationale.get("en"), f"{orig} missing rationale.en"
+        assert rationale.get("ja"), f"{orig} missing rationale.ja"
 
 
 def test_non_pregnancy_contraindicated_drugs_not_in_table():

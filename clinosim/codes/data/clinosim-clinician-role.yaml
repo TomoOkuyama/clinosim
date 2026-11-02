@@ -8,7 +8,7 @@
 #     narrative text (`DR-CA-002` etc.) that `_localize_practitioner_ids_
 #     in_text` recognises. Not every role has one (allied-health roster
 #     entries are generated after the narrative pass).
-#   * `suffix_ja` / `suffix_en` — the role suffix appended to a
+#   * `suffix: {en, ja}` — the role suffix appended to a
 #     practitioner's name when their id is substituted into narrative
 #     text (`加瀬 幸男 医師` in JP, `Kase Yukio (physician)` in EN).
 #   * `qualification` — FHIR Practitioner.qualification.coding.code +
@@ -34,103 +34,85 @@ roles:
     title: {en: "Physician", ja: "医師"}
     practitioner_role: doctor
     staff_prefix: DR
-    suffix_ja: 医師
-    suffix_en: physician
+    suffix: {en: physician, ja: 医師}
     qualification:
       code: MD
-      display: 医師
-      display_en: Doctor of Medicine
+      display: {en: Doctor of Medicine, ja: 医師}
 
   nurse:
     title: {en: "Nurse", ja: "看護師"}
     practitioner_role: nurse
     staff_prefix: NS
-    suffix_ja: 看護師
-    suffix_en: nurse
+    suffix: {en: nurse, ja: 看護師}
     qualification:
       code: RN
-      display: 看護師
-      display_en: Registered Nurse
+      display: {en: Registered Nurse, ja: 看護師}
 
   certified_nurse:
     title: {en: "Certified nurse", ja: "認定看護師"}
     staff_prefix: CN
-    suffix_ja: 看護師
-    suffix_en: nurse
+    suffix: {en: nurse, ja: 看護師}
 
   respiratory_therapist:
     title: {en: "Respiratory therapist", ja: "呼吸療法士"}
     staff_prefix: RT
-    suffix_ja: 呼吸療法士
-    suffix_en: respiratory therapist
+    suffix: {en: respiratory therapist, ja: 呼吸療法士}
 
   physical_therapist:
     title: {en: "Physical therapist", ja: "理学療法士"}
     staff_prefix: PT
-    suffix_ja: 理学療法士
-    suffix_en: physical therapist
+    suffix: {en: physical therapist, ja: 理学療法士}
     qualification:
       code: PT
-      display: 理学療法士
-      display_en: Physical Therapist
+      display: {en: Physical Therapist, ja: 理学療法士}
 
   occupational_therapist:
     title: {en: "Occupational therapist", ja: "作業療法士"}
     staff_prefix: OT
-    suffix_ja: 作業療法士
-    suffix_en: occupational therapist
+    suffix: {en: occupational therapist, ja: 作業療法士}
     qualification:
       code: OT
-      display: 作業療法士
-      display_en: Occupational Therapist
+      display: {en: Occupational Therapist, ja: 作業療法士}
 
   speech_therapist:
     title: {en: "Speech-language therapist", ja: "言語聴覚士"}
     staff_prefix: ST
-    suffix_ja: 言語聴覚士
-    suffix_en: speech therapist
+    suffix: {en: speech therapist, ja: 言語聴覚士}
     qualification:
       code: ST
-      display: 言語聴覚士
-      display_en: Speech-Language Therapist
+      display: {en: Speech-Language Therapist, ja: 言語聴覚士}
 
   pharmacist:
     title: {en: "Pharmacist", ja: "薬剤師"}
     practitioner_role: pharmacist
     staff_prefix: PH
-    suffix_ja: 薬剤師
-    suffix_en: pharmacist
+    suffix: {en: pharmacist, ja: 薬剤師}
     qualification:
       code: PharmD
-      display: 薬剤師
-      display_en: Doctor of Pharmacy
+      display: {en: Doctor of Pharmacy, ja: 薬剤師}
 
   lab_technician:
     title: {en: "Laboratory technician", ja: "臨床検査技師"}
     practitioner_role: ict
     qualification:
       code: MT
-      display: 臨床検査技師
-      display_en: Medical Technologist
+      display: {en: Medical Technologist, ja: 臨床検査技師}
 
   radiologist:
     title: {en: "Radiologist", ja: "放射線科医"}
     practitioner_role: doctor
     qualification:
       code: MD
-      display: 放射線科医
-      display_en: Doctor of Medicine
+      display: {en: Doctor of Medicine, ja: 放射線科医}
 
   medical_social_worker:
     title: {en: "Medical social worker", ja: "医療ソーシャルワーカー"}
     qualification:
       code: MSW
-      display: 医療ソーシャルワーカー
-      display_en: Medical Social Worker
+      display: {en: Medical Social Worker, ja: 医療ソーシャルワーカー}
 
   dietitian:
     title: {en: "Registered dietitian", ja: "管理栄養士"}
     qualification:
       code: RD
-      display: 管理栄養士
-      display_en: Registered Dietitian
+      display: {en: Registered Dietitian, ja: 管理栄養士}
